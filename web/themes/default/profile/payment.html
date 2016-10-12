@@ -143,11 +143,9 @@
 						{/if}
 						{if !empty($service)}
 						<label class="radio-inline">
-							<input type="radio" name="wechat[switch]" id="server" ng-model="wechat.switch" ng-disabled=" wechat_facilitator.switch == 'true' " ng-checked="wechat.switch == 3" value="3" />
 							服务商支付
 						</label>
 						{/if}
-						<label class="radio-inline">
 							<input type="radio" name="wechat[switch]" ng-model="wechat.switch" ng-checked="wechat.switch == 4 || wechat.switch == 'false'" value="4" />
 							关闭
 						</label>
@@ -171,26 +169,8 @@
 						</div>
 					</div>
 				</div>
-				<div ng-show="wechat.switch == '3'">
-					<div class="form-group">
-						<label class="col-xs-12 col-sm-3 col-md-2 control-label">服务商公众号</label>
-						<div class="col-sm-9 col-xs-12">
+							<select name="wechat[service]" id="ss" class="form-control">
 							<select name="wechat[service]" id="ss" class="form-control" >
-								{loop $service $acid $name}
-								<option value="{$acid}"  {if $pay['wechat']['service'] == $acid}selected{/if}>{$name}</option>
-								{/loop}
-							</select>
-							<span class="help-block">在微信公众号请求用户网页授权之前，开发者需要先到公众平台网站的【开发者中心】<b>网页服务</b>中配置授权回调域名。<mark>并在支付参数中完善相关信息。</mark></span>
-						</div>
-					</div>
-					<div class="form-group">
-						<label class="col-xs-12 col-sm-3 col-md-2 control-label">子商户号(sub_mch_id)</label>
-						<div class="col-sm-9 col-xs-12">
-							<input type="text" name="wechat[sub_mch_id]" class="form-control" ng-required=" wechat.switch == '3' " value="{$pay['wechat']['sub_mch_id']}" autocomplete="off"/>
-							<span class="help-block">子商户号是在服务商商户号下申请的子商户号</span>
-						</div>
-					</div>
-				</div>
 				<div ng-show="wechat.switch == '1'">
 					<div class="form-group" {if $accounts[$_W['acid']]['level'] == 3}style="display: none"{/if}>
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">接口类型</label>
@@ -282,46 +262,6 @@
 </div>
 {/if}
 </div>
-</div>
-<div class="panel panel-default">
-	<div class="panel-heading">
-		设置微信服务商开关
-	</div>
-	<div class="panel-body">
-		<div class="form-group">
-			<label class="col-xs-12 col-sm-3 col-md-2 control-label">服务商</label>
-			<div class="col-sm-8 col-xs-12">
-				<label class="radio-inline">
-					<input type="radio" name="wechat_facilitator[switch]"  ng-model="wechat_facilitator.switch" value="true"/>
-					开启
-				</label>
-				<label class="radio-inline">
-					<input type="radio" name="wechat_facilitator[switch]"  ng-model="wechat_facilitator.switch" value="false"/>
-					关闭
-				</label>
-				<span class="help-block">设置为服务商，其他商户可以授权给服务商，让服务商完成支付。</span>
-			</div>
-		</div>
-	</div>
-	<div ng-show="wechat_facilitator.switch == 'true'">
-		<div class="form-group">
-			<label class="col-xs-12 col-sm-3 col-md-2 control-label">服务商商户号</label>
-			<div class="col-sm-9 col-xs-12">
-				<input type="text" name="wechat_facilitator[mchid]"  ng-model="wechat_facilitator.mchid" ng-required=" wechat_facilitator.switch == 'true' " class="form-control" autocomplete="off"/>
-				<span class="help-block">需要填写申请为服务商的商户号。注：服务商的商户号与微信支付的商户号不是同一个号。</span>
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-xs-12 col-sm-3 col-md-2 control-label">商户支付密钥(API密钥)</label>
-			<div class="col-sm-9 col-xs-12">
-				<div class="input-group">
-					<input type="text" name="wechat_facilitator[signkey]" ng-model="wechat_facilitator.signkey" class="form-control" maxlength="32" ng-required=" wechat_facilitator.switch == 'true' " value="{php echo substr($pay['wechat_facilitator']['signkey'], 0 , 32)}" autocomplete="off"/>
-					<span ng-click="tokenGen('wechat_facilitator.signkey');" style="cursor:pointer" class="input-group-addon">生成新的</span>
-				</div>
-				<span class="help-block">此商户秘钥为服务商商户号对应的支付秘钥，与微信支付的支付秘钥不相同。</span>
-			</div>
-		</div>
-	</div>
 </div>
 <div class="panel panel-default">
 	<div class="panel-heading">
@@ -466,6 +406,24 @@
 
 	});
 	angular.bootstrap(document, ['paymentApp']);
+	$('[name="wechat[service]"]').change(function() {
+		if ($(this).val() != 0) {
+			$('[name="wechat[borrow]"]').val(0);
+		}
+	});
+	$('[name="wechat[borrow]"]').change(function() {
+		if ($(this).val() != 0) {
+			$('[name="wechat[service]"]').val(0);
+		}
+	});
+	<!--
+	var editor = UE.getEditor("line[message]")
+	editor.ready(function() {
+		{if empty($pay['line']['switch'])}
+			$('.js-offline-info').addClass('ng-hide');
+			{/if}
+			});
+	//-->
 </script>
 {template 'common/footer'}
   
