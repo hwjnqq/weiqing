@@ -657,9 +657,10 @@ function account_types() {
  * 创建子公众号
  * @param int $uniacid 指定统一公号
  * @param array $account 子公号信息
+ * @param int $createtype 创建类型（1、微信；2、易信；3、微信小程序）
  * @return int 新创建的子公号 acid
  */
-function account_create($uniacid, $account) {
+function account_create($uniacid, $account, $createtype = 1) {
 	$accountdata = array('uniacid' => $uniacid, 'type' => $account['type'], 'hash' => random(8));
 	pdo_insert('account', $accountdata);
 	$acid = pdo_insertid();
@@ -668,7 +669,18 @@ function account_create($uniacid, $account) {
 	$account['encodingaeskey'] = random(43);
 	$account['uniacid'] = $uniacid;
 	unset($account['type']);
-	pdo_insert('account_wechats', $account);
+	switch($createtype){
+		case '1':
+			pdo_insert('account_wechats', $account);
+			break;
+		case '2':
+			pdo_insert('account_yixin', $account);
+			break;
+		case '3':
+			pdo_insert('account_wxapp', $account);
+			break;
+	}
+	
 	return $acid;
 }
 
