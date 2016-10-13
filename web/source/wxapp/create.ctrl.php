@@ -7,6 +7,7 @@ defined('IN_IA') or exit('Access Denied');
 $_W['page']['title'] = '小程序 - 新建版本';
 
 load()->model('module');
+load()->model('wxapp');
 $dos = array('post', 'getapps', 'getpackage');
 $do = in_array($do, $dos) ? $do : 'post';
 
@@ -59,6 +60,7 @@ if($do == 'post') {
 		pdo_insert('site_multi', $multi);
 		$multi_id = pdo_insertid();
 		//添加acid及给account_wxapp表添加数据
+		$update['name'] = $name;
 		$update['account'] = trim('we7team');
 		$update['original'] = trim('gh_we7team');
 		$update['level'] = intval(1);
@@ -67,7 +69,7 @@ if($do == 'post') {
 		$update['type'] = 3;
 		$update['encodingaeskey'] = trim('we7teamencodingaeskey');
 		if (empty($acid)) {
-			$acid = account_create($uniacid, $update, 3);
+			$acid = account_wxapp_create($uniacid, $update, 3);
 			if(is_error($acid)) {
 				message('添加公众号信息失败', '', url('account/post-step/', array('uniacid' => intval($_GPC['uniacid']), 'step' => 2), 'error'));
 			}
@@ -98,28 +100,23 @@ if($do == 'post') {
 		$wxapp_version['uniacid'] = $uniacid;
 		$wxapp_version['multiid'] = $multi_id;
 		$wxapp_version['version'] = $version;
-		$version_modules = array();
-		foreach ($submitval['modules'] as $modulekey => $modulevalue) {
-			$version_modules[] = $modulevalue['module'];
-		}
-		$wxapp_version['modules'] = implode(',', $version_modules);
+		$wxapp_version['modules'] = json_encode($request_cloud_data['modules']);
 		$wxapp_version['design_method'] = intval($submitval['type']);
 		$wxapp_version['template'] = intval($submitval['template']);
 		$wxapp_version['redirect'] = '';
 		$wxapp_version['quickmenu'] = json_encode($request_cloud_data['tabBar']);
 		$wxapp_version['createtime'] = time();
 		pdo_insert('wxapp_versions', $wxapp_version);
-		//请求云API获取zip包
-		$request_cloud_data = json_encode($request_cloud_data);
-		load()->classs('cloudapi');
-		$api = new CloudApi();
-		$rst = $api->post('wxapp', 'download', $request_cloud_data, 'html');
-		if(!is_error($rst)) {
-			message($rst['message']);
+		echo "<pre>";
+		print_r($request_cloud_data);
+		echo "</pre>";exit;
+		$result = request_cloud($request_cloud_data);
+		if(!is_error($result)) {
+			message($result['message']);
 		}else {
 			header('content-type: application/zip');
 			header('content-disposition: attachment; filename="'.$submitval['name'].'.zip"');
-			echo $rst;
+			echo $result;
 			message('小程序创建成功！', url('wxapp/manage', array('do' => 'edit', 'multiid' => $multi_id)));
 		}
 		exit;
@@ -128,8 +125,32 @@ if($do == 'post') {
 }
 //打包文件
 if($do == 'getpackage') {
-	$unacid = $_GPC['uniacid'];
-
+	// $unacid = $_GPC['uniacid'];
+	$uniacid = 743;
+	// $versionid = $_GPC['versionid'];
+	$versionid = 3;
+	$request_cloud_data = array();
+	$account_wxapp_info = pdo_get('account_wxapp', array('uniacid' => $uniacid));
+	$wxapp_version_info = pdo_get('wxapp_versions', array('uniacid' => $uniacid, 'id' => $versionid));
+	$request_cloud_data['name'] = $account_wxapp_info['name'];
+	$request_cloud_data['modules'] = json_decode($wxapp_version_info['modules'], true);
+	$request_cloud_data['siteInfo'] = array(
+			'uniacid' => $uniacid,
+			'acid' => $account_wxapp_info['acid'],
+			'multiid' => $wxapp_version_info['multiid'],
+			'version' => $wxapp_version_info['version'],
+			'siteroot' => $_W['siteroot'].'app/index.php'
+		);
+	$request_cloud_data['tabBar'] = json_decode($wxapp_version_info['quickmenu'], true);
+	$result = request_cloud($request_cloud_data);
+	if(!is_error($result)) {
+		message($result['message']);
+	}else {
+		header('content-type: application/zip');
+		header('content-disposition: attachment; filename="'.$submitval['name'].'.zip"');
+		echo $result;
+	}
+	exit;
 }
 //获取应用
 if($do == 'getapps') {
