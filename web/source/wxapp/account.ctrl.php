@@ -12,38 +12,12 @@ $dos = array('display', 'switch');
 $do = in_array($do, $dos) ? $do : 'display';
 
 if ($do == 'display') {
-	$uniacid = 99998;
-	$acid = 99999;
-	$list = array();
-	$list[$uniacid] = array(
-		'uniacid' => $uniacid,
-		'groupid' => 0,
-		'name' => '小程序演示号',
-		'description' => '',
-		'type' => ACCOUNT_TYPE_APP_NORMAL,
-		'isdeleted' => 0,
-		'details' => array(
-			$acid => array(
-				'acid' => $acid,
-				'uniacid' => $uniacid,
-				'name' => '小程序演示号',
-				'isconnect' => 1,
-			),
-		),
-		'role' => 'founder',
-		'setmeal' => array (
-			'uid' => '-1',
-			'username' => '创始人',
-			'timelimit'=> '未设置',
-			'groupid' => '-1',
-			'groupname' => '所有服务',
-		)
-	);
+	$sql = "SELECT * FROM ".tablename('uni_account'). " AS a INNER JOIN " . tablename('account_wxapp') . " AS b ON a.uniacid = b.uniacid";
+	$wxapp_list = pdo_fetchall($sql, array(), 'uniacid');
 	template('wxapp/account-display');
 } elseif ($do == 'switch') {
 	$uniacid = intval($_GPC['uniacid']);
 	$version = pdo_get('wxapp_versions', array('uniacid' => $uniacid), array('version', 'multiid'), 'version DESC');
-	
 	isetcookie('__uniacid', $uniacid, 7 * 86400);
 	isetcookie('__uid', $_W['uid'], 7 * 86400);
 	header('Location: ' . url('wxapp/manage/edit', array('multiid' => $version['multiid'])));

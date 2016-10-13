@@ -18,7 +18,7 @@
 	<div class="clearfix" style="margin-bottom:5em;">
 		<div class="clearfix"><div class="pull-right">{$pager}</div></div>
 		<ul class="list-unstyled account">
-			{loop $list $uni}
+			{loop $wxapp_list $uni}
 			<li>
 				<div class="panel panel-default">
 					<div class="panel-heading">
@@ -35,26 +35,14 @@
 						</div>
 					</div>
 					<ul class="panel-body list-group">
-						{loop $uni['details'] $account}
 						<li class="row list-group-item" style="line-height:60px;">
 							<div class="col-xs-12 col-sm-12 col-md-2 col-lg-1">
 								<img src="{php echo tomedia('headimg_'.$account['acid'].'.jpg');}?time={php echo time()}" class="" width="50" height="50"  onerror="this.src='resource/images/gw-wx.gif'" />
 							</div>
 							<div class="col-xs-12 col-sm-12 col-md-4 col-lg-5 item" style="font-size:16px;">
-								{$account['name']}
-							</div>
-							<div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 item text-right">
-								<span style="width:80px; text-align:center; display:inline-block;">
-								{if $account['isconnect'] == 1}
-								<i class="fa fa-2x fa-check-circle text-success" style="position:absolute; top:15px;" data-toggle="tooltip" data-placement="top" title='接入状态 : {if $account['type'] == 3}登录授权{else}成功接入{/if}'></i>{$types[$account['type']]['title']}
-								{else}
-								<i class="fa fa-2x fa-times-circle text-warning" style="position:absolute; top:15px;" data-toggle="tooltip" data-placement="top" title='{if $account['type'] == 3}登录授权失败{else}公众号接入状态显示“未接入”解决方案：进入微信公众平台，依次选择: 开发者中心 -> 修改配置，然后将对应公众号在
-								平台的url和token复制到微信公众平台对应的选项，公众平台会自动进行检测{/if}'></i>{$types[$account['type']]['title']}
-								{/if}
-								</span>
+								{$uni['name']} {$uni['description']}
 							</div>
 						</li>
-						{/loop}
 					</ul>
 					<div class="list-group-bottom">
 						<div class="col-xs-6 list-group-bottom-left">
