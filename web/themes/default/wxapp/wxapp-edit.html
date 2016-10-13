@@ -179,7 +179,7 @@
 												</div>
 												<div class="media-left media-middle slide-img">
 													<image src="{php echo tomedia($nav['icon'])}"></image>
-													<icon class="{$nav['css']['icon']['icon']}"></icon>
+													<icon class="{if !empty($nav['css'])}{$nav['css']['icon']['icon']}{/if}"></icon>
 												</div>
 												<div class="media-body">
 													<div class="slide-title">

@@ -85,8 +85,6 @@ if ($do == 'edit') {
 		foreach($navs as &$nav) {
 			$nav['css'] = iunserializer($nav['css']);
 		}
-	} else {
-		$navs = array();
 	}
 //	$category_navs = pdo_fetchall("SELECT * FROM ".tablename('site_nav')." as a RIGHT JOIN ". tablename('site_category')." as b ON a.categoryid = b.id WHERE a.multiid = :multiid AND a.uniacid = :uniacid", array(':multiid' => $multiid, ':uniacid' => $_W['uniacid']), 'categoryid');
 //	$pcates = empty($category_navs) ? '' : array_keys($category_navs);
