@@ -12,8 +12,6 @@ $dos = array('edit');
 $do = in_array($do, $dos) ? $do : 'display';
 if ($do == 'edit') {
 	$multiid = intval($_GPC['multiid']);
-	$_W['uniacid'] = 281;
-	$multiid = 13;
 	$operate = $_GPC['operate'];
 	if ($operate == 'delete') {
 		$type = $_GPC['type'];
@@ -91,7 +89,13 @@ if ($do == 'edit') {
 //	$category_navs = pdo_fetchall("SELECT * FROM ".tablename('site_nav')." as a RIGHT JOIN ". tablename('site_category')." as b ON a.categoryid = b.id WHERE a.multiid = :multiid AND a.uniacid = :uniacid", array(':multiid' => $multiid, ':uniacid' => $_W['uniacid']), 'categoryid');
 //	$pcates = empty($category_navs) ? '' : array_keys($category_navs);
 	$categorys = pdo_getall('site_category', array('uniacid' => $_W['uniacid'], 'multiid' => $multiid, 'parentid' => 0), array(), 'id');
-	$recommends = pdo_getall('site_article', array('uniacid' => $_W['uniacid'], 'pcate' => array_keys($categorys)));
+	$pcates = array_keys($categorys);
+
+	if (!empty($pcates)) {
+		$recommends = pdo_getall('site_article', array('uniacid' => $_W['uniacid'], 'pcate' => $pcates));
+	} else {
+		$recommends = array();
+	}
 	if (!empty($categorys)) {
 		foreach ($categorys as &$category) {
 			$category['categorys'] = pdo_getall('site_category', array('parentid' => $category['id'], 'uniacid' => $_W['uniacid'], 'multiid' => $multiid));
