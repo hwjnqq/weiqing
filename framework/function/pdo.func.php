@@ -77,7 +77,7 @@ function pdo_fetchall($sql, $params = array(), $keyfield = '') {
  * @param array $fields
  * @return string|Ambigous <mixed, boolean>
  */
-function pdo_get($tablename, $condition = array(), $fields = array()) {
+function pdo_get($tablename, $condition = array(), $fields = array(), $orderby = array()) {
 	return pdo()->get($tablename, $condition, $fields);
 }
 /**

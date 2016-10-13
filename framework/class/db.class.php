@@ -209,7 +209,7 @@ class DB {
 		}
 	}
 	
-	public function get($tablename, $params = array(), $fields = array()) {
+	public function get($tablename, $params = array(), $fields = array(), $orderby = array()) {
 		$select = '*';
 		if (!empty($fields)){
 			if (is_array($fields)) {
@@ -219,7 +219,16 @@ class DB {
 			}
 		}
 		$condition = $this->implode($params, 'AND');
-		$sql = "SELECT {$select} FROM " . $this->tablename($tablename) . (!empty($condition['fields']) ? " WHERE {$condition['fields']}" : '') . " LIMIT 1";
+		
+		if (!empty($orderby)) {
+			if (is_array($orderby)) {
+				$orderbysql = implode(',', $orderbysql);
+			} else {
+				$orderbysql = $orderby;
+			}
+		}
+		
+		$sql = "SELECT {$select} FROM " . $this->tablename($tablename) . (!empty($condition['fields']) ? " WHERE {$condition['fields']}" : '') . (!empty($orderbysql) ? " ORDER BY $orderbysql " : '') . " LIMIT 1";
 		return $this->fetch($sql, $condition['params']);
 	}
 	
