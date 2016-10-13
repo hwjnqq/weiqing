@@ -4,6 +4,8 @@
  * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
+$_W['page']['title'] = '小程序 - 新建版本';
+
 load()->model('module');
 $dos = array('display', 'post', 'getapps');
 $do = in_array($do, $dos) ? $do : 'display';

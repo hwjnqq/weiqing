@@ -4,6 +4,8 @@
  * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
+$_W['page']['title'] = '小程序 - 管理';
+
 load()->model('module');
 $do = 'edit';
 $dos = array('edit');
