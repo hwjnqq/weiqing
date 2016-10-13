@@ -1,3 +1,4 @@
+<?php ob_start();?>
 {template 'header'}
 <link rel="stylesheet" type="text/css" href="../addons/we7_car/style/css/common.css" media="all"/>
 <link rel="stylesheet" type="text/css" href="../addons/we7_car/style/css/reset.css" media="all"/>
@@ -89,7 +90,7 @@
                             <select name="brand" id="brand" onchange="fetchseries(this.value,'series')" class="input-medium" data-rule-required="true">
                                 <option value="0">请选择品牌</option>
                                 {loop $brands $brand}
-                                <option {if ($carOwnerInfo['brand_cn'] == $brand['title'])} selected {/if}
+                                <option {if ($order['brand_cn'] == $brand['title'])} selected {/if}
                                 value="{$brand['id']}={$brand['title']}">{$brand['title']}</option>
                                 {/loop}
                             </select>
@@ -99,11 +100,11 @@
                         <div><label>车系：</label></div>
                         <div>
                             <select name="serie" id="series" onchange="fetchseries(this.value,'types')" class="input-medium" data-rule-required="true">
+                                <option value="0">请选择车系</option>
                                 {loop $eseries $serie}
-                                <option {if ($carOwnerInfo['series_cn'] == $serie['title'])} selected {/if}
+                                <option {if ($order['serie_cn'] == $serie['title'])} selected {/if}
                                 value="{$serie['id']}={$serie['title']}">{$serie['title']}</option>
                                 {/loop}
-                                <option value="0">请选择车系</option>
                             </select>
                         </div>
                     </dd>
@@ -111,11 +112,11 @@
                         <div><label>车型：</label></div>
                         <div>
                             <select name="types" id="types" class="input-medium" data-rule-required="true">
+                                <option value="0">请选择车型</option>
                                 {loop $etypes $type}
-                                <option {if ($carOwnerInfo['type_val'] == $type['title'])} selected {/if}
+                                <option {if ($order['type_cn'] == $type['title'])} selected {/if}
                                 value="{$type['id']}={$type['title']}">{$type['title']}</option>
                                 {/loop}
-                                <option value="0">请选择车型</option>
                             </select>
                         </div>
                     </dd>
@@ -125,6 +126,19 @@
                             <input type="text" name="dateline" id="dateline" readonly="readonly" placeholder="" value="{$order['dateline']}">
                         </div>
                     </dd>
+                    <dd class="tbox">
+                        <div><label>车牌号：</label></div>
+                        <div>
+                           <select name="nos" id="car_nos" class="input-medium" data-rule-required="true" style="width:45%;">
+                                <option value="0">请选择简称</option>
+                                {loop $enos $no}
+                                <option {if ($car_abbreviation['abbreviation'] == $no['abbreviation'])} selected {/if}
+                                value="{$no['id']}={$no['abbreviation']}">{$no['abbreviation']}</option>
+                                {/loop}
+                            </select>
+                            <input type="text"  id='car_nums' name="car_num" placeholder="如：晋A123456" maxlength="15" value="{$car_nums}" style="width:45%;" >
+                        </div>
+                    </dd>                   
                     {if $ds}
                     {loop $ds $field}
                     {if $field['type'] == 'text'}
@@ -152,7 +166,7 @@
                     <dd class="tbox">
                         <div><label>备注：</label></div>
                         <div>
-                            <textarea name="note" placeholder="{$reply['note']}" style="height:80px;"></textarea>
+                            <textarea name="note" placeholder="{$reply['note']}" style="height:80px;">{$order['note']}</textarea>
                         </div>
                     </dd>
                 </dl>
@@ -239,7 +253,14 @@
             alert('请选择车系.');
             return false;
         }
-
+        if ($("#car_nos").val() <= '0') {
+            alert('请选择车牌简称.');
+            return false;
+        }
+        if ($("#car_nums").val() == '') {
+            alert('请输入车牌号.');
+            return false;
+        }
         if ($("#dateline").val() == '') {
             alert('请选择预约日期.');
             return false;

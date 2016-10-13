@@ -136,7 +136,14 @@ function tpl_app_fans_form($field, $value = '', $placeholder = '') {
 }
 
 function tpl_app_form_field_calendar($name, $values = array()) {
-	$value = (empty($values['year']) || empty($values['month']) || empty($values['day'])) ? '' : implode('-', $values);
+
+	if (empty($values['year']) || empty($values['month']) || empty($values['day'])) {
+
+			$value = implode('-', $values);
+	}else{
+			$value = '';
+		}	
+	//$value = (empty($values['year']) || empty($values['month']) || empty($values['day'])) ? '' : implode('-', $values);
 	$html = '';
 	$html .= '<input class="mui-calendar-picker" type="text" placeholder="请选择日期" readonly value="' . $value . '" name="' . $name . '" />';
 	$html .= '<input type="hidden" value="' . $values['year'] . '" name="' . $name . '[year]"/>';

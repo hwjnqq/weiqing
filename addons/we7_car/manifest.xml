@@ -31,6 +31,7 @@
 			<entry title="汽车品牌管理" do="brand" direct="false" />
 			<entry title="汽车车系管理" do="series" direct="false" />
 			<entry title="汽车车型管理" do="type" direct="false" />
+      <entry title="汽车车牌管理" do="no" direct="false" />
 			<entry title="预约管理" do="yuyue" direct="false" />
 			<entry title="车主关怀管理" do="guanhuai" direct="false" />
 			<entry title="销售客服管理" do="kefu" direct="false" />
@@ -38,6 +39,7 @@
 			<entry title="车型相册管理" do="album" direct="false" />
 			<entry title="意见回馈管理" do="message" direct="false" />
 			<entry title="实用工具设置" do="tool" direct="false" />
+
 		</menu>
 		<home>
 			<entry title="汽车首页" do="index" />

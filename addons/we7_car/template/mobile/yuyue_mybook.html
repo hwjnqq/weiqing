@@ -1,3 +1,4 @@
+<?php ob_start();?>
 {template 'header'}
 <link rel="stylesheet" type="text/css" href="../addons/we7_car/style/css/common.css" media="all"/>
 <link rel="stylesheet" type="text/css" href="../addons/we7_car/style/css/reset.css" media="all"/>
@@ -40,9 +41,9 @@
                         <div><label>订单类型:</label></div>
                         <div><label>
                             {if $yytype==1}
-                            <span class="label label-important">预约试驾</span>
+                            <span class="label label-success">预约试驾</span>
                             {elseif $yytype==2}
-                            <span class="label label-success">预约保养</span>
+                            <span class="label label-primary">预约保养</span>
                             {else}
                             <span class="label">wei'zhi</span>
                             {/if}
@@ -71,6 +72,11 @@
                     <dd class="tbox">
                         <div><label>车型：</label></div>
                         <div><label>{$list['type_cn']}</label></div>
+                    </dd>
+
+                    <dd class="tbox">
+                        <div><label>车牌：</label></div>
+                        <div><label>{$list['car_cn']}</label></div>
                     </dd>
 
                     <dd class="tbox">
