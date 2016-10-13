@@ -6,7 +6,7 @@
 defined('IN_IA') or exit('Access Denied');
 $_W['page']['title'] = '小程序列表 - 帐号';
 
-$dos = array('display');
+$dos = array('display', 'switch');
 $do = in_array($do, $dos) ? $do : 'display';
 
 if ($do == 'display') {
@@ -38,4 +38,12 @@ if ($do == 'display') {
 		)
 	);
 	template('wxapp/account-display');
+} elseif ($do == 'switch') {
+	$uniacid = intval($_GPC['uniacid']);
+	$version = pdo_get('wxapp_versions', array('uniacid' => $uniacid), array('version', 'multiid'), 'version DESC');
+	
+	isetcookie('__uniacid', $uniacid, 7 * 86400);
+	isetcookie('__uid', $_W['uid'], 7 * 86400);
+	header('Location: ' . url('wxapp/manage/edit', array('multiid' => $version['multiid'])));
+	exit;
 }
