@@ -4,6 +4,8 @@
 * $sn: pro/web/source/account/display.ctrl.php : v 3ab687fd5968 : 2015/09/17 03:04:00 : yanghf $
 */
 defined('IN_IA') or exit('Access Denied');
+define('IN_GW', true);
+
 $_W['page']['title'] = '小程序列表 - 帐号';
 
 $dos = array('display', 'switch');
