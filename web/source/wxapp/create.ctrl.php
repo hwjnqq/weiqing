@@ -11,11 +11,14 @@ $dos = array('display', 'post', 'getapps');
 $do = in_array($do, $dos) ? $do : 'display';
 
 if($do == 'post') {
-
 	if(!empty($_GPC['wxappval'])) {
 		$submitval = json_decode(ihtml_entity_decode($_GPC['wxappval']), true);
 		$version = ($submitval['version0'] ? $submitval['version0'] : 0) .'.'.($submitval['version1'] ? $submitval['version1'] : 0).'.'.($submitval['version2'] ? $submitval['version2'] : 0);
-		//构建底部菜单menus
+
+		//构建请求数据
+		$request_cloud_data = array();
+		$version = ($submitval['version0'] ? $submitval['version0'] : 0) .'.'.($submitval['version1'] ? $submitval['version1'] : 0).'.'.($submitval['version2'] ? $submitval['version2'] : 0);
+		//底部菜单menus
 		$bottommenu = array();
 		foreach ($submitval['menus'] as $mvalue) {
 			$mvalue['defaultImage'] = empty($mvalue['defaultImage']) ? $_W['siteroot'].'web/resource/images/bottom-default.png' : $mvalue['defaultImage'];
@@ -27,29 +30,60 @@ if($do == 'post') {
 					'text' => $mvalue['name']
 				);
 		}
-		//构建包装应用modules
-		// $modules = array();
+		//包装应用modules
+		$modules = array();
 		// foreach ($submitval['modules'] as $modulekey => $modulevalue) {
 		// 	$modules[$modulevalue['module']] = $modulevalue['version'];
 		// }
+		//测试应用
 		$modules = array(
 			'we7_1' => '7.0',
 			'we7_gs' => '31.0'
 		);
-		//构建请求数据
-		$request_cloud_data = array();
+		//创建主公号
+		$name = trim($submitval['name']);
+		$description = '微信小程序体验版';
+		$data = array(
+			'name' => $name,
+			'description' => $description,
+			'groupid' => 0,
+		);
+		if (!pdo_insert('uni_account', $data)) {
+			message('添加公众号失败');
+		}
+		$uniacid = pdo_insertid();
+		//给应用号添加默认微站
+		$multi['uniacid'] = $uniacid;
+		$multi['title'] = $name;
+		$multi['styleid'] = 0;//暂设为0
+		pdo_insert('site_multi', $multi);
+		$multi_id = pdo_insertid();
+		//添加acid及给account_wxapp表添加数据
+		$update['account'] = trim('we7team');
+		$update['original'] = trim('gh_we7team');
+		$update['level'] = intval(1);
+		$update['key'] = trim('we7teamkey');
+		$update['secret'] = trim('we7teamsecret');
+		$update['type'] = 3;
+		$update['encodingaeskey'] = trim('we7teamencodingaeskey');
+		if (empty($acid)) {
+			$acid = account_create($uniacid, $update, 3);
+			if(is_error($acid)) {
+				message('添加公众号信息失败', '', url('account/post-step/', array('uniacid' => intval($_GPC['uniacid']), 'step' => 2), 'error'));
+			}
+			pdo_update('uni_account', array('default_acid' => $acid), array('uniacid' => $uniacid));
+		}
 		$request_cloud_data = array(
 			'name' => $submitval['name'],
 			'modules' => $modules,
 			'siteInfo' => array(
-					'uniacid' => '99998',
-					'acid' => '99999',
-					'multiid'  => '99990',
+					'uniacid' => $uniacid,
+					'acid' => $acid,
+					'multiid'  => $multi_id,
 					'version'  => $version,
 					'siteroot' => $_W['siteroot'].'app/index.php'
 				),
-			
-		);		
+		);
 		if($submitval['showmenu']) {
 			$request_cloud_data['tabBar'] = array(
 				'color' => $submitval['buttom']['color'],
@@ -59,14 +93,34 @@ if($do == 'post') {
 				'list' => $bottommenu
 			);
 		}
-		
+
+		//添加版本数据
+		$wxapp_version['uniacid'] = $uniacid;
+		$wxapp_version['multiid'] = $multi_id;
+		$wxapp_version['version'] = $version;
+		$version_modules = array();
+		foreach ($submitval['modules'] as $modulekey => $modulevalue) {
+			$version_modules[] = $modulevalue['module'];
+		}
+		$wxapp_version['modules'] = implode(',', $version_modules);
+		$wxapp_version['design_method'] = intval($submitval['type']);
+		$wxapp_version['template'] = intval($submitval['template']);
+		$wxapp_version['redirect'] = '';
+		$wxapp_version['quickmenu'] = json_encode($request_cloud_data['tabBar']);
+		$wxapp_version['createtime'] = time();
+		pdo_insert('wxapp_versions', $wxapp_version);
+		//请求云API获取zip包
 		$request_cloud_data = json_encode($request_cloud_data);
 		load()->classs('cloudapi');
 		$api = new CloudApi();
 		$rst = $api->post('wxapp', 'download', $request_cloud_data, 'html');
-		header('content-type: application/zip');
-		header('content-disposition: attachment; filename="'.$submitval['name'].'.zip"');
-		echo $rst;
+		if(strlen($rst) < 300) {
+			message($rst);
+		}else {
+			header('content-type: application/zip');
+			header('content-disposition: attachment; filename="'.$submitval['name'].'.zip"');
+			echo $rst;
+		}
 		exit;
 	}
 	template('wxapp/create-post');
