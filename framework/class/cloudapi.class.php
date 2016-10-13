@@ -146,8 +146,7 @@ class CloudApi {
 				$token = $this->moduleCerContent();
 			}
 		}
-		
-		if (empty($token)) {
+		if (empty($token) || empty($token['message'])) {
 			return error(1, '错误的数字证书内容.');
 		}
 		if (is_error($token)) {

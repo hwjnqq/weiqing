@@ -114,6 +114,9 @@ if($do == 'post') {
 		load()->classs('cloudapi');
 		$api = new CloudApi();
 		$rst = $api->post('wxapp', 'download', $request_cloud_data, 'html');
+		if (is_error($rst)) {
+			message($rst['message']);
+		}
 		if(strlen($rst) < 300) {
 			message($rst);
 		}else {
