@@ -7,8 +7,8 @@ defined('IN_IA') or exit('Access Denied');
 $_W['page']['title'] = '小程序 - 新建版本';
 
 load()->model('module');
-$dos = array('display', 'post', 'getapps');
-$do = in_array($do, $dos) ? $do : 'display';
+$dos = array('post', 'getapps', 'getpackage');
+$do = in_array($do, $dos) ? $do : 'post';
 
 if($do == 'post') {
 	if(!empty($_GPC['wxappval'])) {
@@ -114,26 +114,24 @@ if($do == 'post') {
 		load()->classs('cloudapi');
 		$api = new CloudApi();
 		$rst = $api->post('wxapp', 'download', $request_cloud_data, 'html');
-		if (is_error($rst)) {
+		if(!is_error($rst)) {
 			message($rst['message']);
-		}
-		if(strlen($rst) < 300) {
-			message($rst);
 		}else {
 			header('content-type: application/zip');
 			header('content-disposition: attachment; filename="'.$submitval['name'].'.zip"');
 			echo $rst;
+			message('小程序创建成功！', url('wxapp/manage', array('do' => 'edit', 'multiid' => $multi_id)));
 		}
 		exit;
 	}
 	template('wxapp/create-post');
 }
+//打包文件
+if($do == 'getpackage') {
+	$unacid = $_GPC['uniacid'];
 
-if($do == 'display') {
-	
-	template('wxapp/wxapp-display');
 }
-
+//获取应用
 if($do == 'getapps') {
 	//获取当前系统下所有安装模块及模块信息
 	$modulelist = uni_modules();
