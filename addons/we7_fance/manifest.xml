@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns="http://www.we7.cc" versionCode="0.51,0.52">
+	<application setting="false">
+        <name><![CDATA[凡策微信打印系统]]></name>
+        <identifie><![CDATA[we7_fance]]></identifie>
+        <version><![CDATA[1.4]]></version>
+        <type><![CDATA[activity]]></type>
+        <ability><![CDATA[关注后发送照片即可打印照片]]></ability>
+          <description><![CDATA[用于吸粉的利器之一，只有关注了之后，才能发送照片进行打印。]]></description>
+        <author><![CDATA[WeEngine Team]]></author>
+        <url><![CDATA[http://bbs.we7.cc/forum.php?mod=forumdisplay&fid=36&filter=typeid&typeid=1]]></url>
+	</application>
+	<platform>
+		<subscribes>
+		</subscribes>
+		<handles>
+			<message type="image" />
+			<message type="text" />
+		</handles>
+		<rule embed="true" />
+	</platform>
+	<bindings>
+		<rule>
+		</rule>
+	</bindings>
+	<install><![CDATA[
+
+CREATE TABLE IF NOT EXISTS `ims_fance` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`rid` int(10) unsigned NOT NULL COMMENT '规则ID',
+	`url` varchar(512) NOT NULL COMMENT '转发URL',
+	`token` varchar(512) NOT NULL COMMENT '转发Token',
+	`status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态',
+	`start_keyword` varchar(255) NOT NULL COMMENT '开始关键字',
+	`end_keyword` varchar(255) NOT NULL COMMENT '退出关键字',
+	PRIMARY KEY (`id`),
+	KEY `idx_rid` (`rid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8
+
+
+]]></install>
+	<uninstall><![CDATA[
+	DROP TABLE IF EXISTS `ims_fance`;
+	]]></uninstall>
+	<upgrade><![CDATA[upgrade.php]]></upgrade>
+</manifest>

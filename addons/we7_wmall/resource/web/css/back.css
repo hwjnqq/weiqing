@@ -1,0 +1,54 @@
+/* 门店图片 */
+.panel-slide{position: relative;}
+.panel-slide .btnClose{position: absolute; top:-10px; right:-10px; width:30px; height: 30px; border-radius: 30px;background: #eee; font-size: 16px; cursor: pointer; color:#FFF; text-align: center; line-height: 30px}
+.panel-slide .btnClose:hover{background: red}
+.panel-slide .panel-body div{margin-top: 10px}
+
+/*添加规格*/
+#options{margin-top:15px; display:none}
+#options .input-group{margin-bottom:15px;}
+#options .delOptions{cursor:pointer;}
+#options .addOptions{display:inline-block; margin-top:0px; cursor:pointer;}
+
+.label-br{display: inline-block; margin-top: 6px}
+
+.table-text-center td, .table-text-center th{text-align: center}
+
+.info{padding:6px;width:400px;margin:10px auto 3px auto;text-align:center;}
+.padding-left{padding-left:50px;height:30px;line-height:30px;}
+.order-nav {margin: 0;width: 100%;min-width: 800px; float: left;margin-left: 0px;padding-left: 0px;border-bottom:1px #c5d0dc solid;}
+.order-nav > li > a {display: block;}
+.order-nav-tabs {background: #EEE;}
+.order-nav-tabs > li {line-height: 40px;float: left;list-style: none;display: block;text-align: -webkit-match-parent;}
+.order-nav-tabs > li > a {font-size: 14px;color: #666;height: 40px;line-height: 40px;padding: 0 10px;margin: 0;border: 1px solid transparent;border-bottom-width: 0px;-webkit-border-radius: 0;-moz-border-radius: 0;border-radius: 0;}
+.order-nav-tabs > li > a, .order-nav-tabs > li > a:focus {border-radius: 0 !important;background-color: #f9f9f9;color: #999;margin-right: -1px;position: relative;z-index: 11;border-color: #c5d0dc;text-decoration: none;}
+.order-nav-tabs >li >a:hover {background-color: #FFF;}
+.order-nav-tabs > li.active > a, .order-nav-tabs > li.active > a:hover, .order-nav-tabs > li.active > a:focus {color: #576373;border-color: #c5d0dc;border-top: 2px solid #4c8fbd;border-bottom-color: transparent;background-color: #FFF;z-index: 12;margin-top: -1px;box-shadow: 0 -2px 3px 0 rgba(0, 0, 0, 0.15);}
+
+/*统计样式*/
+.account-stat{overflow:hidden; color:#666;}
+.account-stat .account-stat-btn{width:100%; overflow:hidden;}
+.account-stat .account-stat-btn > div{text-align:center; margin-bottom:5px;margin-right:2%; float:left;width:23%; height:80px; padding-top:10px;font-size:16px; border-left:1px #DDD solid;}
+.account-stat .account-stat-btn > div.col-3{width: 31%}
+.account-stat .account-stat-btn > div:first-child{border-left:0;}
+.account-stat .account-stat-btn > div span{display:block; font-size:30px; font-weight:bold}
+.account-stat .account-stat-btn > div.col-12{width: 12.2%;}
+/*批量导入数据*/
+.file-container{display: none}
+.file-container .form-group{width:300px; margin-right: -30px}
+
+/*配送中心*/
+.panel-dispatch .list-group-item{font-size: 25px; font-weight: bold;}
+.panel-dispatch .list-group-item .badge{font-size: 25px; background-color: #d9534f}
+.panel-dispatch .list-group-item.list-group-item-span{font-size: 14px; font-weight: normal;}
+.panel-dispatch .list-group-item.list-group-item-span{line-height: 1.8}
+.panel-dispatch .list-group-item.list-group-item-span .label{cursor: pointer}
+.panel-dispatch .list-group-item:first-child{text-align: center; font-size: 24px}
+.panel-dispatch .list-group-item.no-order{font-weight: normal}
+.panel-dispatch .table{margin-bottom: 0}
+
+.table-text-center tr th,.table-text-center tr td{text-align: center}
+.table-text-left tr th,.table-text-left tr td{text-align: left}
+.table-text-right tr th,.table-text-right tr td{text-align: right}
+
+.popover{max-width: 350px}

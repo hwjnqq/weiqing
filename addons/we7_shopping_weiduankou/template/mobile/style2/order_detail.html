@@ -1,0 +1,144 @@
+{php $bootstrap_type = 3;}
+{template 'header'}
+{template 'common'}
+<div id="share" class="hidden">
+	<span class="guide-arrow"></span>
+	<div class="guide-inner">
+		<p class="text-center">请点击右上角</p>
+		<p class="text-center">通过&nbsp;<span class="icons-share"></span>【发送给朋友】功能</p>
+		<p class="text-center">或&nbsp;<span class="icons-share-c"></span>【分享到朋友圈】功能</p>
+		<p class="text-center">把消息告诉小伙伴呦~</p>
+	</div>
+	<div class="text-center" style="position:absolute; bottom:20%; width:100%;">
+		<span class="guide-close img-circle" onclick="$('#share').addClass('hidden');">×</span>
+	</div>
+</div>
+<div class="orderDetail">
+	<div class="head clearfix">
+		<div class="col-xs-2 text-left"><a href="javascript:history.back();"><i class="fa fa-angle-left"></i></a></div>
+		<div class="col-xs-8 text-center"><span class="title">订单详情</span></div>
+		<div class="col-xs-2 text-right"><a href="{php echo $this->createMobileUrl('mycart')}"><span class="cart-logo"></span><span class="badge {if $carttotal == 0} hidden{/if}">{$carttotal}</span></a></div>
+	</div>
+	<div class="myorder">
+		<div class="myoder-state clearfix">
+			<span class="express-company">订单状态：</span>
+			<span class="express-num">
+			{if $item['paytype'] == 3}
+				{if $item['status'] == -1}
+				<span class="text-muted">订单取消</span>
+				{elseif $item['status'] < 3}
+				<span class="text-danger">货到付款 / 未付款</span>
+				{else}
+				<span class="text-success">已完成</span>
+				{/if}
+			{else}
+				{if $item['status'] == -1}
+				<span class="text-muted">订单取消</span>
+				{elseif $item['status'] == 0}
+				<span class="text-danger">未付款</span>
+				{elseif $item['status'] == 1}
+				<span class="text-warning">已付款</span>
+				{elseif $item['status'] == 2}
+				<span class="text-warning">已发货</span>
+				{else}
+				<span class="text-success">已完成</span>
+				{/if}
+			{/if}
+			</span>
+			{if empty($goods['otherpay'])}
+				<span class="pull-right share"><a href="javascript:;">分享</a></span>
+			{/if}
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading">店铺：{$cfg['shopname']}</div>
+			<div class="panel-body">
+				{loop $goods $g}
+				<div class="goods-info clearfix">
+					<div class="col-xs-9">
+						<a href="{php echo $this->createMobileUrl('detail', array('id' => $g['id']))}"><img src="{$_W['attachurl']}{$g['thumb']}" class="pull-left"></a>
+						<p><a href="{php echo $this->createMobileUrl('detail', array('id' => $g['id']))}">{$g['title']}</a></p>
+						{if !empty($item['optionname'])}
+						<span class="style"> {$item['optionname']}</span>
+						{/if}
+					</div>
+					<div class="col-xs-3">
+						<div class="price text-right">￥{$g['marketprice']}</div>
+						<div class="num text-right">×{$goodsid[$g['id']]['total']}</div>
+					</div>
+				</div>
+				<div class="message">
+				</div>
+				{/loop}
+			</div>
+		</div>
+		<div class="panel panel-default orderInfo">
+			<div class="panel-body">
+				<div class="myoderId clearfix">
+					<span class="pull-left">订单编号：{$item['ordersn']}</span>
+					<span class="pull-right" style="color:#999;">{php echo date('Y-m-d H:i', $item['createtime'])}</span>
+				</div>
+				<div class="myoder-express">
+					<span class="express-company">配送方式：</span>
+					<span class="express-num">{$dispatch['dispatchname']}</span>
+				</div>
+				{if ($item['status'] == '2' || $item['status']==3) && !empty($item['expresssn'])}
+				<div class="myoder-express">
+					<p class="express-company">快递： {$item['expresscom']}</p>
+					<p class="express-num">
+						单号： {$item['expresssn']}
+					</p>
+				</div>
+				<div class="myoder-total">
+					<a href="http://m.kuaidi100.com/index_all.html?type={$item['express']}&postid={$item['expresssn']}#input" class="btn btn-success pull-right btn-sm" >查看快递</a>
+				</div>
+				{/if}
+				{if !empty($item['remark'])}
+				<div class="myoder-express">
+					<p class="express-company">订单备注：</p>
+					<p>{$item['remark']}</p>
+				</div>
+				{/if}
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<p class="price text-center">{if $item['dispatchprice']<=0}
+						{$item['price']} 元
+					{else}
+						{$item['price']} 元 (含运费 {$item['dispatchprice']} 元) 
+					{/if}
+					</span></p>
+			</div>
+		</div>
+		<div class="btns">
+			{if $item['otherpay'] == '4'}
+				<a class="btn btn-default btn-block">查看代付信息</a>
+			{else}
+				{if $item['paytype'] != 3}
+				{if $item['status'] == 0}
+				<a href="{php echo $this->createMobileUrl('pay', array('orderid' => $item['id']))}" class="btn btn-danger btn-block">立即支付</a>
+				{/if}
+				{/if}
+				{if $item['status'] == 2 || ($item['paytype'] == 3 && $item['status'] < 3)}
+				<a href="{php echo $this->createMobileUrl('myorder', array('orderid' => $item['id'], 'op' => 'confirm'))}" class="btn btn-success btn-block" onclick="return confirm('点击确认收货前，请确认您的商品已经收到。确定收货吗？'); ">确认收货</a>
+				{/if}
+			{/if}
+		</div>
+		<p class="tips text-center">支付完成后,如需退换货请及时联系卖家</p>
+	</div>
+</div>
+
+<script>
+	require(['jquery'],function($){
+		$('.share').click(function(){
+			$('#share').removeClass('hidden');
+		});
+	});
+</script>
+{template 'footer'}
+{template 'footerbar'}
+<script>
+document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+	WeixinJSBridge.call('hideOptionMenu');
+});
+</script>

@@ -1,0 +1,127 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li{if $op == 'list'} class="active"{/if}><a href="{php echo $this->createWebUrl('ptfaccount');}">账号管理</a></li>
+	<li{if $op == 'post'} class="active"{/if}><a href="{php echo $this->createWebUrl('ptfaccount', array('op' => 'post', 'id' => $id));}">{if $id > 0}编辑账号{else}添加账号{/if}</a></li>
+</ul>
+{if $op == 'list'}
+<div class="main">
+	<div class="main table-responsive">
+		<form method="post" class="form-horizontal" id="form1">
+			<div class="panel panel-default">
+				<div class="panel-body table-responsive">
+					<table class="table table-hover">
+						<thead>
+						<tr>
+							<th>用户名</th>
+							<th>添加时间</th>
+							<th>上次登录</th>
+							<th>可添加门店数量</th>
+							<th>可管理的门店</th>
+							<th>账号状态</th>
+							<th>操作</th>
+						</tr>
+						</thead>
+						<tbody id="list">
+						{loop $list $item}
+							<tr>
+								<td>{$item['username']}</td>
+								<td>{php echo date('Y-m-d', $item['joindate']);}</td>
+								<td>{php echo date('Y-m-d', $item['lastvisit']);}</td>
+								<td>{$item['store_nums']}</td>
+								<td>
+									{if !empty($item['store_ids'])}
+										{loop $item['store_ids'] $id}
+											<span class="label label-success">{$stores[$id]['title']}</span>
+										{/loop}
+									{else}
+									<span class="label label-danger">未设置</span>
+									{/if}
+								</td>
+								<td>
+									<input type="checkbox" value="{$item['status']}" name="status[]" data-id="{$item['id']}" {if $item['status'] == 2}checked{/if}>
+								</td>
+								<td>
+									<a href="{php echo $this->createWebUrl('ptfaccount', array('op' => 'post', 'id' => $item['id']));}" title="编辑">编辑</a>&nbsp;-&nbsp;
+									<a href="{php echo $this->createWebUrl('ptfaccount', array('op' => 'del', 'id' => $item['id']));}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" title="删除">删除</a>
+								</td>
+							</tr>
+						{/loop}
+						</tbody>
+					</table>
+				</div>
+			</div>
+			{$pager}
+		</form>
+	</div>
+</div>
+{/if}
+{if $op == 'post'}
+<div class="clearfix">
+	<form class="form-horizontal form" id="form1" action="" method="post" enctype="multipart/form-data">
+		<input type="hidden" name="id" value="{$id}">
+		<div class="panel panel-default">
+			<div class="panel-heading">基本信息</div>
+			<div class="panel-body">
+				<div class="form-group" id="username">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">*</span>登录账号</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="username" value="{$account['username']}" class="form-control">
+						<div class="help-block">请输入登陆账号，登陆账号为 3 到 15 个字符组成，包括汉字，大小写字母（不区分大小写）</div>
+						<div class="help-block"><p class="text-danger">登录账号已存在，请重新输入登录账号</p></div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">*</span>密码</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="password" name="password" value="" class="form-control">
+						<div class="help-block">请填写密码，最小长度为 6 个字符.{if $id > 0}如果不更改密码此处请留空{/if}</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">*</span>确认密码</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="password" name="repassword" value="" class="form-control">
+						<div class="help-block">重复输入密码，确认正确输入.{if $id > 0}如果不更改密码此处请留空{/if}</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">*</span>可添加门店的数量</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="store_nums" value="{$account['store_nums']}" class="form-control">
+						<div class="help-block">设置该账号最多可添加几个门店</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">*</span>可管理的门店</label>
+					<div class="col-sm-9 col-xs-12">
+						{loop $stores $store}
+						<label class="checkbox-inline">
+							<input type="checkbox" name="store_ids[]" value="{$store['id']}" {if in_array($store['id'], $account['store_ids'])}checked{/if}> {$store['title']}
+						</label>
+						{/loop}
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<input name="submit" id="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</form>
+</div>
+{/if}
+<script>
+	require(['bootstrap.switch'], function($){
+		$(':checkbox[name="status[]"]').bootstrapSwitch();
+		$(':checkbox[name="status[]"]').on('switchChange.bootstrapSwitch', function(e, state){
+			var status = this.checked ? 2 : 1;
+			var id = $(this).data('id');
+			$.post("{php echo $this->createWebUrl('ptfaccount', array('op' => 'status'))}", {status: status, id: id}, function(resp){
+				setTimeout(function(){
+					location.reload();
+				}, 500)
+			});
+		});
+	});
+</script>
+{template 'common/footer'}

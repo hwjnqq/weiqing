@@ -1,0 +1,104 @@
+{php $bootstrap_type = 3;}
+{template 'header'}
+{template 'common'}
+<div class="order" id="order">
+	<div class="head">
+		<div class="col-xs-2 text-left"><a href="javascript:history.back();"><i class="fa fa-angle-left"></i></a></div>
+		<div class="col-xs-8 text-center"><span>我的订单</span></div>
+		<div class="col-xs-2 text-right"><a href="{php echo $this->createMobileUrl('mycart')}"><span class="cart-logo"></span><span class="badge {if $carttotal == 0} hidden{/if}">{$carttotal}</span></a></a></div>
+	</div>
+	<div class="filter text-center list" id="list">
+		<div class="btn-group">
+			<a class="btn btn-default btn-sm {if $status==0}sel{else}nosel{/if}"  onclick="location.href='{php echo $this->createMobileUrl('myorder',array('status'=>0))}'">待支付</a>
+			<a class="btn btn-default btn-sm {if $status==1 || $status==2}sel{else}nosel{/if} "onclick="location.href='{php echo $this->createMobileUrl('myorder',array('status'=>2))}'">待收货</a>
+			<a class="btn btn-default btn-sm {if $status==3}sel{else}nosel{/if}" onclick="location.href='{php echo $this->createMobileUrl('myorder',array('status'=>3))}'">已完成</a>
+		</div>
+	</div>
+	{if count($list)<=0}
+	<div class="empty">
+		<div class="empty-list">
+			<h4>居然还没有订单 T.T</h4>
+			<span>好东西,手慢无</span>
+			<div class="go-shopping"><a href="{php echo $this->createMobileUrl('list')}" class="btn btn-warning">去逛逛</a></div>
+		</div>
+	</div>
+	{/if}
+	<div class="recordList">
+		{loop $list $item}
+		<div class="list-group">
+			<div class="list-group-item clearfix">
+				<span class="orderId pull-left">订单号:{$item['ordersn']}</span>
+				<span class="orderDate pull-right">{php echo date('Y-m-d H:i', $item['createtime'])}
+				{if $item['paytype'] == 3}
+					{if $item['status'] == -1}
+					<span class="text-muted">订单取消</span>
+					{elseif $item['status'] < 3}
+					<span class="text-danger">货到付款 / 未付款</span>
+					{else}
+					<span class="text-success">已完成</span>
+					{/if}
+				{else}
+					{if $item['status'] == -1}
+					<span class="text-muted">订单取消</span>
+					{elseif $item['status'] == 0}
+					<span class="text-danger">未付款</span>
+					{elseif $item['status'] == 1}
+					<span class="text-warning">已付款</span>
+					{elseif $item['status'] == 2}
+					<span class="text-warning">已发货</span>
+					{else}
+					<span class="text-success">已完成</span>
+					{/if}
+				{/if}
+				</span>
+			</div>
+			{if count($item['goods'])==1}
+			{loop $item['goods'] $goods}
+			<div class="list-group-item clearfix">
+				<div class="goods-info col-xs-9">
+					<a href="{php echo $this->createMobileUrl('detail', array('id' => $goods['id']))}"><img src="{$_W['attachurl']}{$goods['thumb']}" class="pull-left"></a>
+					<p><a href="{php echo $this->createMobileUrl('detail', array('id' => $goods['id']))}">{$goods['title']}</a></p>
+					{if !empty($item['optionname'])}
+					<span class="style"> {$item['optionname']}</span>
+					{/if}
+				</div>
+				<div class="col-xs-3">
+					<div class="price text-right">￥{$goods['marketprice']}</div>
+					<div class="num text-right">×{$item['total'][$goods['id']]['total']}</div>
+				</div>
+			</div>
+			{/loop}
+			{else}
+			<div class="list-group-item clearfix">
+				<div class="goods-info col-xs-9">
+					{loop $item['goods'] $goods}
+					<a href="{php echo $this->createMobileUrl('detail', array('id' => $goods['id']))}">
+						<img src="{$_W['attachurl']}{$goods['thumb']}"  width="60" />
+					</a>
+					{/loop}
+				</div>
+			</div>
+			{/if}
+			<div class="list-group-item clearfix" style="line-height:30px;">
+				<span class="sum">商品总价:</span>　
+				<span class="price">￥
+					{if $item['dispatchprice']<=0}
+						{$item['price']}
+					{else}
+						{$item['price']}(运费 {$item['dispatchprice']} 元)
+					{/if}
+				</span>
+				<span class="pull-right">
+					{if $item['paytype'] == '4'}
+						<a class="btn btn-default btn-sm" href="{php echo $this->createMobileUrl('otherpay', array('orderid' => $item['id']))}">代付</a>
+					{/if}
+					<a class="btn btn-default btn-sm" href="{php echo $this->createMobileUrl('myorder', array('orderid' => $item['id'], 'op' => 'detail'))}">详情</a>
+				</span>
+			</div>
+		</div>
+		{/loop}
+	</div>
+</div>
+
+{template 'footer'}
+{template 'footerbar'}

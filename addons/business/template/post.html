@@ -1,0 +1,86 @@
+{template 'common/header'}
+<div class="main">
+<ul class="nav nav-tabs">
+	<li{if $_GPC['do'] == 'display'} class="active"{/if}><a href="{php echo $this->createWebUrl('display');}">商户管理</a></li>
+	<li{if $_GPC['do'] == 'post'} class="active"{/if}><a href="{php echo $this->createWebUrl('post');}">添加商户</a></li>
+</ul>
+<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+	<input type="hidden" name="id" value="{$item['id']}">
+	<div class="panel panel-default">
+		<div class="panel-heading">商户基本信息</div>
+		<div class="panel-body">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">名称</label>
+				<div class="col-sm-8">
+					<input type="text" name="title" value="{$item['title']}" class="form-control">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">宣传图</label>
+				<div class="col-sm-8">
+					{php echo tpl_form_field_image('thumb', $item['thumb'])}
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">行业</label>
+				<div class="col-sm-4">
+					<select name="industry_1" id="industry_1" class="form-control" value="{$item['industry1']}"></select>
+				</div>
+				<div class="col-sm-4">
+					<select name="industry_2" id="industry_2" class="form-control" value="{$item['industry2']}"></select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">简介</label>
+				<div class="col-sm-8">
+					{php echo tpl_ueditor('content', $item['content'])}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">电话</label>
+				<div class="col-sm-8">
+					<input type="text" id="" name="phone" value="{$item['phone']}"  class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">QQ</label>
+				<div class="col-sm-8">
+					<input type="text" id="" name="qq" value="{$item['qq']}"  class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">地区</label>
+				<div class="col-sm-10">
+					{php echo tpl_form_field_district($name)}
+					<span class="help-block">先选择地区，可以快速的定位地图位置。</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">详细坐标</label>
+				<div class="col-sm-8">
+					<div class="input-append"><input type="text" name="address" value="{$item['address']}"  class="form-control" /></div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">坐标</label>
+				<div class="col-sm-8" style="margin-left:-15px;">
+					{php echo tpl_form_field_coordinate('baidumap', $item)}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+				<div class="col-sm-8">
+					<button type="submit" class="btn btn-primary span3" name="submit" value="提交">提交</button>
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</div>
+			</div>
+		</div>
+	</div>
+</form>
+<script type="text/javascript" src="./resource/js/lib/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="./resource/script/cascade.js"></script>
+<script type="text/javascript" src="/addons/business/images/industry.js"></script> 
+
+</div>
+{template 'common/footer'}

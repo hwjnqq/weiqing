@@ -1,0 +1,31 @@
+html, body, div, p, span, label, img, a, ol, ul, dl, dt, dd, li, table, tr, td, th, tbody, thead, tfoot, form, fieldset, h1, h2, h3, h4, h5, h6, strong, b, em, blockquote, cite, pre, code, hr, br, input, button, textarea,article, aside, details, figcaption, figure, footer, header, menu, nav, section { padding:0; margin:0; }
+a{border:0 none; cursor:pointer;}
+ol, ul { list-style-type:none; }
+em,i{ font-style:normal;}
+a:link, a:visited { text-decoration:none; }
+.clearfix:after{clear:both; content:""; display:block; height:0; visibility:hidden; line-height:0;}
+.clearfix {overflow:hidden; zoom:1; }
+.clear { clear:both; height:0; width:0; display:block; visibility:hidden; overflow:hidden;}
+.left { float:left; display:inline; }
+.right { float:right; display:inline; }
+.block{ display:block;}
+.hidden{ display:none;}
+h1, h2, h3, h4, h5, h6 { font-weight:normal; font-size:1em; }
+body{font-family:"微软雅黑","Microsoft yahei", "SimHei","MS Sans Serif", "sans-serif"; color:#fff; overflow:hidden;}
+.user-list li{ border:1px solid  rgba(255,255,255,.7); background: rgba(255,255,255,.7); border-radius:0;}
+.head{ border-radius:50%; overflow:hidden; border:none;}
+.und-btn a{ display:inline-block; width:79px; height:33px; line-height:33px; text-align:center; color:#ed2947; margin-left:5px;}
+.und-btn a,.btn-color,.btn-start{ border:1px solid #ffd52c; border-radius:4px; background:-moz-linear-gradient(top , #fff76d, #ffcf1e); background: -webkit-linear-gradient(top , #fff76d, #ffcf1e); background:-o-linear-gradient(top , #fff76d, #ffcf1e); color:#ed2947;}
+.btn-rock a{ color:#ed2947;}
+.und-btn a:hover,.btn-color:hover,.btn-start:hover{ border:1px solid #ffd52c; background:-moz-linear-gradient(top , #fef785, #ffd332); background:-webkit-linear-gradient(top , #fef785, #ffd332);background:-o-linear-gradient(top , #fef785, #ffd332); box-shadow:0 0 5px rgba(255,255,153,1);}
+.fl-inner{ box-shadow:none; border-radius:0;}
+.fl-bg{ background:none; z-index:-1;}
+.props-color{ background:-webkit-linear-gradient(top , #a32b3e ,#b53e51); background:-moz-linear-gradient(top , #a32b3e ,#b53e51); background:-o-linear-gradient(top , #a32b3e ,#b53e51); box-shadow: inset -1px 1px rgba(204,204,204,.2)}
+.pair-wt,.lott-wt{ text-shadow:none;}
+.tips2,.user-name-detail,.detail-bar,.cont-box,.user-name,.cont-box a{ color:#bb233a;}
+.words-bottom{ background:none; color:#fff;}
+@media screen and ( max-height:720px){#sence{ height:720px;} #footer{ margin-top:-17px;}}
+@media screen and ( min-height:800px){#sence{ height:800px;}}
+@media screen and ( min-height:900px){#sence{ height:900px;}}
+@media screen and ( min-height:1080px){#sence{ height:1080px;}}
+@media screen and ( min-height:1200px){#sence{ height:1200px;}}

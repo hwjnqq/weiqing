@@ -1,0 +1,105 @@
+{php $bootstrap_type = 3;}
+{template 'header'}
+{template 'common'}
+
+<script type='text/javascript' src='resource/js/lib/jquery-1.11.1.min.js'></script>
+<!--结算订单-->
+<div class="account">
+	<form class="form-horizontal" method="post" role="form" onsubmit='return check()'>
+		<input type="hidden" name="goodstype" value="{$goodstype}" />
+		<input type="hidden" name="address" value="{$row['id']}" />
+		<div class="panel panel-default">
+			<div class="panel-heading">店铺:　{$_W['account']['name']}</div>
+			<div class="panel-body">
+				{loop $allgoods $item}
+				<div class="goods-info clearfix">
+					<div class="col-xs-9">
+						<a href="{php echo $this->createMobileUrl('detail', array('id' => $item['id']))}">
+							<img src="{php echo tomedia($item['thumb']);}" class="pull-left">
+						</a>
+						<p>
+							<a href='{php echo $this->createMobileUrl('detail',array('id'=>$item['id']))}'>{$item['title']}</a>
+						</p>
+						{if !empty($item['optionname'])}
+						<span class="style"> {$item['optionname']}</span>
+						{/if}
+					</div>
+					<div class="col-xs-3">
+						<div class="price text-right">￥{$item['marketprice']}</div>
+						<div class="num text-right">{$item['total']}{if !empty($item['unit'])}{$item['unit']}{/if}</div>
+					</div>
+				</div>
+				{/loop}
+				<div class="message message-box">
+					<input class="form-control" type="text" name="remark" placeholder="给卖家留言..."/>
+					<p class="sum">商品总价:　￥{$totalprice}</p>
+				</div>
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-body address">
+				{if !empty($row)}
+				<div class="col-xs-10">
+					<p id='address_{$row['id']}' class="shopcart-main img-rounded address_item" onclick='changeAddress()'> {$row['realname']},{$row['mobile']}<br>{$row['province']}　{$row['city']}　{$row['area']}<br> {$row['address']}</p>
+				</div>
+				<div class="col-xs-2 text-right">
+					<a href="{php echo $this->createMobileUrl('address',array('from'=>'confirm','returnurl'=>urlencode($returnurl)))}" class="btn btn-default btn-sm">修改</a>
+				</div>
+				{else}
+					<a class="btn btn-default btn-sm" onclick="location.href='{php echo $this->createMobileUrl('address',array('from'=>'confirm','returnurl'=>urlencode($returnurl)))}'"><i class="fa fa-plus"></i> 请添加修改地址</a>
+				{/if}
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-body clearfix">
+				<select id='dispatch' name="dispatch" class="form-control">
+					<option disabled>请选择配送方式</option>
+				{loop $dispatch $d}
+					<option value="{$d['id']}" price='{$d['price']}'>{$d['dispatchname']} ({$d['price']}元)</option>
+				{/loop}
+				</select>
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<p class="price text-center goodsprice">需付:&nbsp;<span id="totalprice"></span></p>
+			</div>
+		</div>
+		<div class="btns">
+			{if !empty($otherpay)}<button type="submit" class="btn btn-success btn-block" name="submit" value="yes">找人代付</button>{else}<button type="submit" class="btn btn-success btn-block" name="submit" value="yes">提交订单</button>{/if}
+			<input type="hidden" name="otherpay" value="{$otherpay}" />
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</form>
+	<p class="tips text-center">支付完成后,如需退换货请及时联系卖家</p>
+</div>
+
+<script language='javascript'>
+	function changeAddress(){
+		location.href = '{php echo $this->createMobileUrl('address', array('from'=>'confirm','returnurl'=>urlencode($returnurl)))}'
+	}
+	function check(){
+		if((".address_item").length<=0){
+			alert("请添加收货地址!");
+			return false;
+		}
+		return true;
+	}
+	$("#dispatch").change(canculate);
+	function canculate(){
+		var price = parseFloat("{$totalprice}");
+		var dispatchprice = parseFloat($("#dispatch").find("option:selected").attr("price"));
+		if(dispatchprice>0){
+			$("#totalprice").html(price + dispatchprice + " 元 (含运费"+dispatchprice + "元)");
+		}
+		else{
+			$("#totalprice").html(price + " 元");
+		}
+	}
+	$(function(){
+		canculate();
+	})
+</script>
+
+{template 'footer'}
+{template 'footerbar'}

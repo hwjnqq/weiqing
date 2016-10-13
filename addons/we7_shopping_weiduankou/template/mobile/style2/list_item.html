@@ -1,0 +1,22 @@
+
+	<li class="col-xs-6 list-item img-rounded">
+		<div>
+			<div class="pic">
+				<a href="{php echo $this->createMobileUrl('detail', array('id' => $item['id']))}">
+					<img src="{php echo tomedia($item['thumb']);}">
+				</a>
+			</div>
+			<div class="goods-info">
+				<div class="goods-title">
+					<a href="{php echo $this->createMobileUrl('detail', array('id' => $item['id']))}">
+						{$item['title']}
+					</a>
+					{if $item['type'] == '2'}(虚拟){/if}
+				</div>
+				<div class="clearfix infos">
+					<em class="price pull-right">{$item['marketprice']}元</em>
+					<span class="pull-left">已售<em>{$item['sales']}</em>件</span>
+				</div>
+			</div>
+		</div>
+	</li>

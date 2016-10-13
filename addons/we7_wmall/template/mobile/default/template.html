@@ -1,0 +1,150 @@
+<script id="tpl-order" type="text/html">
+	<{# for(var i = 0, len = d.length; i < len; i++){ }>
+	<div class="order-container">
+		<div class="order-inner">
+			<div class="store-info">
+				<a class="external" href="{php echo $this->createMobileUrl('goods');}&sid=<{d[i].sid}>">
+					<img src="<{d[i].logo_cn}>" alt="" />
+					<span class="store-title"><{d[i].title}></span>
+					<span class="fa fa-arrow-right"></span>
+				</a>
+			</div>
+			<a class="goods-info row no-gutter" href="{php echo $this->createMobileUrl('order', array('op' => 'detail'));}&id=<{d[i].id}>">
+				<div class="col-75">
+					<div class="goods-title"><{d[i].goods['goods_title']}>等<span><{d[i].num}></span>件商品</div>
+					<div class="date"><{d[i].addtime_cn}></div>
+				</div>
+				<div class="col-25 text-right">
+					<div class="price">￥<{d[i].final_fee}></div>
+					<div class="status no-pay"><{d[i].status_cn}></div>
+				</div>
+			</a>
+			<{# if(!d.is_pay && d.status != 6){ }>
+			<div class="order-status">
+				<div class="pic">
+					<img src="{MODULE_URL}resource/app/img/order_status_money.png" alt="" />
+				</div>
+				<div class="order-status-detail">
+					<div class="arrow-left"></div>
+					<div class="clearfix">待支付<span class="pull-right date"><{d[i].time_cn}></span></div>
+					<div class="tips">请在提交订单后<{d[i].pay_time_limit}>分钟内完成支付</div>
+				</div>
+			</div>
+			<{# } }>
+		</div>
+		<div class="order-btn table">
+			<{# if(!d.is_pay){ }>
+				<a href="javascript:;" class="order-cancel table-cell" data-id="<{d[i].id}>">取消订单</a>
+				<a href="{php echo $this->createMobileUrl('pay', array('type' => 1));}&id=<{d[i].id}>" class="table-cell">立即支付</a>
+			<{# } else { }>
+				<{# if(d.status == 1){ }>
+					<a href="javascript:;" class="order-remind table-cell" data-id="<{d[i].id}>">催单</a>
+				<{# } elseif(d.status == 5) { }>
+					<a href="{php echo $this->createMobileUrl('goods', array('f' => '1'));}&id=<{d[i].id}>&sid=<{d[i].sid}>"" class="table-cell external" data-id="{$order['id']}">再来一单</a>
+					<{# if(d.is_comment == 1){ }>
+						<a href="{php echo $this->createMobileUrl('order', array('op' => 'comment'));}&id=<{d[i].id}>" class="table-cell">去评价</a>
+					<{# } else { }>
+						<a href="{php echo $this->createMobileUrl('comment');}" class="table-cell">查看评价</a>
+					<{# } }>
+				<{# } else { }>
+					<a href="javascript:;" class="order-end table-cell" data-id="<{d[i].id}>">确认送达</a>
+					<a href="javascript:;" class="order-remind table-cell" data-id="<{d[i].id}>">催单</a>
+				<{# } }>
+			<{# } }>
+		</div>
+	</div>
+	<{# } }>
+</script>
+
+<script id="tpl-my-comment" type="text/html">
+	<{# for(var i = 0, len = d.length; i < len; i++){ }>
+	<div class="comment-inner">
+		<div class="store-title">
+			<{d[i].title}><span class="date color-muted"><{d[i].addtime_cn}></span>
+		</div>
+		<div>
+			<div class="star-rank">
+				<span class="star-rank-outline">
+					<span class="star-rank-active" style="width:<{d[i].id}>%"></span>
+				</span>
+			</div>
+			<span class="color-muted hide">送货速度:40分钟</span>
+		</div>
+		<div class="color-muted">送货：<{d[i].delivery_service}>分&nbsp;&nbsp;商品：<{d[i].goods_quality}>分</div>
+		<{# if(d[i].note != ''){ }>
+			<div class="comment-info"><{d[i].note}></div>
+		<{# } }>
+		<{# if(d[i].data && d[i].data.good && d[i].data.good.length > 0){ }>
+			<div class="comment-favor-oppose">
+				<i class="icon favor"></i>
+				<{# for(var j = 0, lenj = d[i].data.good.length; j < lenj; j++){ }>
+					<span><{d[i].data.good[j]}></span>
+				<{# } }>
+			</div>
+		<{# } }>
+		<{# if(d[i].data && d[i].data.bad && d[i].data.bad.length > 0){ }>
+			<div class="comment-favor-oppose">
+				<i class="icon oppose"></i>
+				<{# for(var j = 0, lenj = d[i].data.bad.length; j < lenj; j++){ }>
+					<span><{d[i].data.bad[j]}></span>
+				<{# } }>
+			</div>
+		<{# } }>
+		<{# if(d[i].reply != ''){ }>
+			<div class="store-comment">
+				<div class="clearfix store-comment-top">
+					店家回复：<span class="pull-right"><{d[i].replytime_cn}></span>
+				</div>
+				<div class="info"><{d[i].reply}></div>
+			</div>
+		<{# } }>
+	</div>
+	<{# } }>
+</script>
+
+<script id="tpl-store-comment" type="text/html">
+	<{# for(var i = 0, len = d.length; i < len; i++){ }>
+	<li>
+		<a href="javascript:;" class="item-link item-content">
+			<div class="item-media">
+				<img src="<{d[i].avatar}>" alt="">
+			</div>
+			<div class="item-inner">
+				<div class="item-title-row">
+					<div class="item-title"><{d[i].mobile}></div>
+					<div class="item-after"><{d[i].addtime}></div>
+				</div>
+				<div class="item-text">
+					<div>
+						<div class="star-rank">
+							<span class="star-rank-outline">
+								<span class="star-rank-active" style="width:<{d[i].score}>%"></span>
+							</span>
+						</div>
+						<span class="color-muted hide">送货速度:40分钟</span>
+					</div>
+					<{# if(d[i].reply != ''){ }>
+						<div class="comment-info"><{d[i].reply}></div>
+					<{# } }>
+					<{# if(d[i].data && d[i].data.good && d[i].data.good.length > 0){ }>
+						<div class="comment-favor-oppose">
+							<i class="icon favor"></i>
+							<{# for(var j = 0, lenj = d[i].data.bad.length; j < lenj; j++){ }>
+							<span><{d[i].data.good[j]}></span>
+							<{# } }>
+						</div>
+					<{# } }>
+					<{# if(d[i].reply != ''){ }>
+						<div class="store-comment">
+							<div class="clearfix store-comment-top">
+								店家回复<span class="pull-right"><{d[i].replytime}></span>
+							</div>
+							<div class="info"><{d[i].reply}></div>
+						</div>
+					<{# } }>
+				</div>
+			</div>
+		</a>
+	</li>
+	<{# } }>
+</script>

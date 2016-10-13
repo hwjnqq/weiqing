@@ -1,0 +1,52 @@
+{template 'manage/header'}
+<div class="page" id="page-manage-goods">
+	<header class="bar bar-nav common-bar-nav">
+		<a class="icon pull-left fa fa-arrow-left back"></a>
+		<h1 class="title">商品列表</h1>
+	</header>
+	{template 'manage/nav'}
+	<div class="content">
+		<div class="buttons-tab">
+			<a href="{php echo $this->createMobileUrl('mggoods', array('status' => -1));}" class="button {if $status == -1}active{/if}">所有商品</a>
+			<a href="{php echo $this->createMobileUrl('mggoods', array('status' => 1));}" class="button {if $status == 1}active{/if}">上架中</a>
+			<a href="{php echo $this->createMobileUrl('mggoods', array('status' => 0));}" class="button {if $status == 0}active{/if}">已下架</a>
+		</div>
+		{if empty($goods)}
+			<div class="no-data">
+				<div class="bg"></div>
+				<p>没有任何商品哦～</p>
+			</div>
+		{else}
+		<div class="goods-list">
+			<ul>
+				{loop $goods $good}
+				<li>
+					<a href="javascript:;">
+						<div class="goods-list-pic"><img src="{php echo tomedia($good['thumb']);}" alt="" width="100%" height="100%"></div>
+						<div class="goods-list-info">
+							<div class="goods-title">{$good['title']}</div>
+							<div class="goods-money">¥{$good['price']}/{$good['unitname']}</div>
+							<p class="goods-p"></p>
+							<div class="goods-sum">
+								<span>库存：{if $good['total'] == -1}不限库存{else}{$good['total']}{/if}</span>
+								<span>销量：{$good['sailed']}</span>
+							</div>
+						</div>
+					</a>
+					<div class="goods-btn">
+						{if $good['status'] == 1}
+							<a href="javascript:;" class="goods-display" data-id="{$good['id']}" data-value="0">下架</a>
+						{else}
+							<a href="javascript:;" class="goods-display" data-id="{$good['id']}" data-value="1">上架</a>
+						{/if}
+						<a href="javascript:;" class="goods-del" data-id="{$good['id']}">删除</a>
+					</div>
+				</li>
+				{/loop}
+			</ul>
+		</div>
+		{/if}
+	</div>
+</div>
+{template 'manage/common'}
+{template 'manage/footer'}

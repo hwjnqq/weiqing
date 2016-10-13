@@ -1,0 +1,87 @@
+{template 'common/header'}
+<div class="main">
+	<ul class="nav nav-tabs">
+		<li{if $_GPC['do'] == 'display'} class="active"{/if}><a href="{php echo $this->createWebUrl('display');}">商户管理</a></li>
+		<li{if $_GPC['do'] == 'post'} class="active"{/if}><a href="{php echo $this->createWebUrl('post');}">添加商户</a></li>
+	</ul>
+	
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site">
+			<input type="hidden" name="a" value="entry">
+			<input type="hidden" name="do" value="display">
+			<input type="hidden" name="m" value="business" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+				<div class="col-sm-8">
+						<input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+				</div>				
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">行业</label>
+				<div class="col-sm-4">
+					<select name="industry_1" id="industry_1" class="form-control" value="{$item['industry1']}"></select>
+				</div>
+				<div class="col-sm-4">
+					<select name="industry_2" id="industry_2" class="form-control" value="{$item['industry2']}"></select>
+				</div>
+				<div class="pull-right col-xs-12 col-sm-2 col-lg-3">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+			</form>
+		</div>
+	</div>
+	
+	<div class="panel panel-default">
+		<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:300px;">名称</th>
+					<th style="width:200px;">行业</th>
+					<th style="width:220px;">电话</th>
+					<th style="width:400px;">地址</th>
+					<th style="min-width:60px;width:100px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>
+					<td>{$item['title']}</td>
+					<td>{$item['industry1']}&nbsp;{$item['industry2']}</td>
+					<td>{$item['phone']}</td>
+					<td>{$item['address']}</td>
+					<td>
+						<a href="{php echo $this->createWebUrl('post', array('id' => $item['id']))}" title="编辑" class="btn btn-default btn-sm"><i class="fa fa-edit"></i></a>&nbsp;
+						<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('delete', array('id' => $item['id']))}" title="删除" class="btn btn-default btn-sm"><i class="fa fa-times"></i></a>
+					</td>				
+				</tr>
+				{/loop}
+			</tbody>
+			<tr>
+				<td colspan="5">
+					<input name="token" type="hidden" value="{$_W['token']}" />
+					<input type="submit" class="btn btn-primary" name="submit" value="提交" />
+				</td>
+			</tr>
+		</table>
+		</div>
+	</div>
+	{$pager}
+</div>
+<script type="text/javascript" src="./resource/js/lib/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="./resource/script/cascade.js"></script>
+<script type="text/javascript" src="/addons/business/images/industry.js"></script>
+<script>
+	require(['jquery'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+{template 'common/footer'}

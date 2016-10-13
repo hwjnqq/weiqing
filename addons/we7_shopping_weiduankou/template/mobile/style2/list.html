@@ -1,0 +1,142 @@
+{if empty($_W['isajax'])}
+{template 'header'}
+{template 'common'}
+<script language="javascript" src="../addons/we7_shopping_weiduankou/images/touchslider.min.js"></script>
+<script language="javascript" src="../addons/we7_shopping_weiduankou/images/swipe.js"></script>
+
+<div class="header clearfix">
+	<div class="col-xs-7 text-left">
+		<a href="javascript:;">
+			<span>
+				<i class="fa fa-home"></i>
+				{if !empty($cfg['shopname'])}
+				{$cfg['shopname']}
+				{else}
+				商城首页
+				{/if}
+			</span>
+		</a>
+	</div>
+	<div class="col-xs-5 text-right"><a href="javascript:;" class="attention"><i class="fa fa-plus"></i> 关注</a></div>
+</div>
+
+<div class="home">
+	<div class="container clearfix">
+		<div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+			<ol class="carousel-indicators">
+				{php $slideNum = 1;}
+				{loop $advs $adv}
+				<li data-target="#carousel-example-generic" data-slide-to="$slideNum" {if $slideNum == 1} class="active"{/if}></li>
+				{php $slideNum++;}
+				{/loop}
+			</ol>
+			<div class="carousel-inner" role="listbox">
+				{php $picNum = 1;}
+				{loop $advs $adv}
+				<div class="item {if $picNum == 1}active{/if}">
+					<a href="{if empty($adv['link'])}#{else}{$adv['link']}{/if}">
+						<img src="{php echo tomedia($adv['thumb']);}" title="{$adv['advname']}" style="display:block; height:200px; max-width:100%;  margin:0 auto;"/>
+					</a>
+					<div class="carousel-caption">{$adv['advname']}</div>
+				</div>
+				{php $picNum++;}
+				{/loop}
+			</div>
+		</div>
+		<div class="main">
+			<div class="goods-list">
+				<!--推荐商品-->
+				<div class="bar new-bar clearfix"><span class="pull-left">推荐商品</span></div>
+				<ul class="clearfix">
+				{loop $rlist $item}
+				{template 'list_item'}
+				{/loop}
+				</ul>
+			</div>
+
+		</div>
+	</div>
+</div>
+{/if}
+{if empty($_W['isajax'])}
+
+<div class="show-more text-center">
+	<a href="javascript:;" onclick="loadPage('{$pindex}', 'list_{$c['parentid']}_{$c['id']}', '{$c['parentid']}', '{$c['id']}')" class="btn btn-default" id="pager_{$c['parentid']}_{$c['id']}">浏览更多商品</a>
+</div>
+<div id="attention" class="hidden">
+	<div class="guide-inner">
+		<div class="step step-1 text-left">
+			<span class="num img-circle">1</span>在微信“通讯录”, 点击 &nbsp;<span class="btn btn-default">添加朋友</span>
+			<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;搜索微信号:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>we7team</strong>
+		</div>
+		<br>
+		<div class="step step-2 text-left">
+			<span class="num img-circle">2</span>点击详细资料  &nbsp;页面底部的  &nbsp;<span class="btn btn-success btn-sm">关注</span><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关注我们
+		</div>
+	</div>
+	<div class="text-center" style="position:absolute; bottom:20%; width:100%;">
+		<span class="guide-close img-circle">×</span>
+	</div>
+</div>
+<script type="text/javascript">
+	require(['bootstrap']);
+	function loadPage(pindex, container, pcate, ccate) {
+		pindex = parseInt(pindex) + 1;
+		var pager = $('#pager_' + pcate + "_" + ccate);
+		pager.html('正在加载数据...');
+		var url = "{php echo $this->createMobileUrl('listmore')}";
+		$.get(url, {'page' : pindex, 'pcate':pcate, 'ccate':ccate}, function(html){
+			if (html.indexOf('list-item') > - 1) {
+				pager.html('浏览更多商品');
+				$('#' + container).append(html);
+				pager.get(0).onclick = function(){
+					loadPage(pindex, container, pcate, ccate);
+				}
+			} else {
+				pager.html('已经显示全部商品');
+			}
+		});
+	}
+
+	function loadRecPage(pindex, container) {
+		pindex = parseInt(pindex) + 1;
+		var pager = $('#pager_rec');
+		pager.html('正在加载数据...');
+		var url = "{php echo $this->createMobileUrl('listmore_rec')}";
+		$.get(url, {'page' : pindex}, function(html){
+			if (html.indexOf('list-item') > - 1) {
+				pager.html('浏览更多商品');
+				$('#' + container).append(html);
+				pager.get(0).onclick = function(){
+					loadRecPage(pindex, container);
+				}
+			} else {
+				pager.html('已经显示全部商品');
+			}
+		});
+	}
+
+	require(['jquery'],function($){
+		$('.attention').click(function(){
+			$('#attention').removeClass('hidden');
+		});
+		$('.guide-close').click(function() {
+			$('#attention').addClass('hidden');
+		});
+	});
+
+	require(['bootstrap', 'hammer'], function($, Hammer){
+		$('#carousel-example-generic').carousel();
+		var mc = new Hammer($('#carousel-example-generic').get(0));
+		mc.on("panleft", function(ev) {
+			$('#carousel-example-generic').carousel('next');
+		});
+		mc.on("panright", function(ev) {
+			$('#carousel-example-generic').carousel('prev');
+		});
+	});
+</script>
+
+{template 'footer'}
+{template 'footerbar'}
+{/if}

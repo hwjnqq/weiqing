@@ -1,0 +1,224 @@
+{template 'common/header'}
+{php load()->func('tpl')}
+{template 'nav'}
+<div class="main">
+{if $operation == 'post'}
+<ul class="nav nav-tabs">
+	<li><a href="{php echo $this->createWebUrl('repair', array('op' => 'display','regionid'=>$_GPC['regionid']));}">管理</a></li>
+	<li class="active"><a href="{php echo $this->createWebUrl('repair', array('op' => 'post','regionid'=>$_GPC['regionid'], 'id'=>$item['id']));}">编辑</a></li>
+</ul>
+<form action="" class="form-horizontal form" method="post">
+	<input type="hidden" name="regionid" value="{$_GPC['regionid']}" />
+	<input type="hidden" name="id" value="{$item['id']}" />
+	<input type="hidden" name="type" value="1" />
+	<input type="hidden" name="openid" value="{$item['openid']}" />
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			报修信息
+		</div>
+		<div class="panel-body">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+				<div class="col-sm-9 col-xs-12">
+					<select name="status" class="form-control">
+						<option value="0" {if intval($item['status'])==0} selected{/if}>未解决</option>
+						<option value="1" {if intval($item['status'])==1} selected{/if}>已解决</option>
+						<option value="2" {if intval($item['status'])==2} selected{/if}>用户取消</option>
+					</select>
+					<input type="text" name="title" value="{$item['title']}" class="form-control"/>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">报修类型</label>
+				<div class="col-sm-9 col-xs-12">
+					<select name="category" class="form-control">
+						{loop $categories $key $category}
+						{if $key!=0}
+						<option value="{$category}"{if $category==$item['category']} selected{/if}>{$category}</option>
+						{/if}
+						{/loop}
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">报修时间</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" value="{php echo date('Y-m-d h:i:s', $item['createtime'])}" class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">报修内容</label>
+				<div class="col-sm-9 col-xs-12">
+					<textarea style="height:100px;" class="form-control richtext-clone" name="content" cols="70" id="content" >{$item['content']}</textarea>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">报修需求</label>
+				<div class="col-sm-9 col-xs-12">
+					<textarea style="height:100px;" class="form-control richtext-clone" name="requirement" cols="70" id="requirement" >{$item['requirement']}</textarea>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">评价</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" value="{php echo $this->getRepairRank($item['rank'])}" class="form-control" readonly="readonly"/>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">备注</label>
+				<div class="col-sm-9 col-xs-12">
+					<textarea name="comment" class="form-control" rows="3">{$item['comment']}</textarea>
+				</div>
+			</div>
+
+		</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			个人信息
+		</div>
+		<div class="panel-body">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">手机</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" value="{$member['mobile']}" readonly="readonly" class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">住户身份</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" class="form-control"  value="{if intval($member['type'])==1}业主{elseif intval($member['type'])==2}租户{/if}" readonly="readonly"/>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">地址</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" class="form-control" value="{$member['address']}" readonly="readonly"/>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			往来记录
+		</div>
+		<div class="panel-body table-responsive">
+			<table class="tb" style="width:665px;">
+				{loop $item['reply'] $reply}
+				<tr>
+					<td colspan="2" {if !empty($reply['isreply'])} style="text-align:right; border-bottom:#999999 solid 1px;"{else} style="text-align:left; border-bottom:#999999 solid 1px;"{/if}>
+					<p>{if empty($reply['isreply'])}业主{/if}{if !empty($reply['isreply'])}物业{/if}</p>
+					<div>{$reply['content']}</div>
+					</td>
+				</tr>
+				{/loop}
+				<tr>
+					<th>回复</th>
+					<td><textarea style="height:100px;" class="form-control" name="reply" cols="70"></textarea></td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<div class="form-group col-sm-12">
+		<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+		<input type="hidden" name="token" value="{$_W['token']}" />
+	</div>
+</form>
+{elseif $operation == 'display'}
+<ul class="nav nav-tabs">
+	<li class="active"><a href="{php echo $this->createWebUrl('repair', array('op' => 'display','regionid'=>$_GPC['regionid']));}">管理</a></li>
+</ul>
+
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+			<input type="hidden" name="m" value="we7_community" />
+			<input type="hidden" name="regionid" value="{$_GPC['regionid']}" />
+			<input type="hidden" name="type" value="1" />
+			<input type="hidden" name="op" value="display" />
+			<input type="hidden" name="do" value="repair">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">报修类型</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<select name="category" class="form-control">
+						{loop $categories $key $category}
+						<option value="{$category}"{if $category==$_GPC['category']} selected{/if}>{$category}</option>
+						{/loop}
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">报修日期</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					{php echo tpl_form_field_daterange('datelimit',array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)))}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">状态</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<label for="ipt_status1" class="checkbox-inline">
+						<input class="" name="status[]" id="ipt_status1" type="checkbox" value="0" {if in_array(0, $status)}checked='checked'{/if} />未解决
+					</label>
+					<label for="ipt_status2" class="checkbox-inline">
+						<input class="" name="status[]" id="ipt_status2" type="checkbox" value="1" {if in_array(1, $status)}checked='checked'{/if} />已解决
+					</label>
+					<label for="ipt_status3" class="checkbox-inline">
+						<input class="" name="status[]" id="ipt_status3" type="checkbox" value="2" {if in_array(2, $status)}checked='checked'{/if} />用户取消
+					</label>
+				</div>
+				<div class="col-sm-2">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-body table-responsive">
+	<table class="table table-hover">
+		<thead class="navbar-inner">
+		<tr>
+			<th style="width:100px;">报修类型</th>
+			<th style="width:80px;">报修人</th>
+			<th style="width:100px;">报修人手机</th>
+			<th style="width:150px;">内容</th>
+			<th style="width:120px;">报修日期</th>
+			<th style="width:80px;">状态</th>
+			<th style="width:100px;">评分</th>
+			<th style="width:120px;">操作</th>
+		</tr>
+		</thead>
+		<tbody>
+		{loop $list $item}
+		<tr>
+			<td>{$item['category']}</td>
+			<td>{$members[$item['openid']]['realname']}</td>
+			<td>{$members[$item['openid']]['mobile']}</td>
+			<td>{php echo cutstr(htmlspecialchars_decode($item['content']), 35, true)}</td>
+			<td>{php echo date('Y-m-d H:i', $item[createtime]);}</td>
+			<td>{if $item['status'] ==1 }<span class="label label-success">已解决</span>{/if}{if $item['status'] == 0 }<span class="label label-info">未解决</span>{/if}{if $item['status'] == 2 }<span class="label label-error">已取消</span>{/if}</td>
+			<td>{php echo $this->getRepairRank($item['rank'])}</td>
+			<td>
+				<a href="{php echo $this->createWebUrl('repair',array('op'=>'post','id'=>$item['id'], 'regionid' => $regionid));}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="编辑"><i class="fa fa-edit"></i></a>
+				<a onclick="return confirm('删除操作不可恢复，确认吗？')" href="{php echo $this->createWebUrl('repair',array('op'=>'delete','id'=>$item['id'], 'regionid' => $regionid));}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-times"></i></a>
+				{if intval($item['newmsg'])==1}<span class="label label-info">新消息</span>{/if}
+				{if intval($item['newmsg'])==2}<span class="label label-info">新评价</span>{/if}
+			</td>
+		</tr>
+		{/loop}
+		</tbody>
+	</table>
+	</div>
+</div>
+{$pager}
+{/if}
+</div>
+<script>
+	require(['bootstrap'],function(){
+		$('.btn').tooltip();
+	});
+</script>
+{template 'common/footer'}

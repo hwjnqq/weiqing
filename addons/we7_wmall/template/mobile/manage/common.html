@@ -1,0 +1,161 @@
+{template 'manage/template'}
+<script type='text/javascript' src="../addons/we7_wmall/resource/app/js/laytpl.dev.js"></script>
+<script type='text/javascript' src='../addons/we7_wmall/resource/app/js/light7.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../addons/we7_wmall/resource/app/js/i18n/cn.js' charset='utf-8'></script>
+<script type="text/javascript" src="../addons/we7_wmall/resource/app/js/light7-swiper.min.js"></script>
+<script type="text/javascript" src="../addons/we7_wmall/resource/app/js/common.js"></script>
+<script>
+$(function(){
+	$(document).on("pageInit", "#page-manage-order", function(e, id, page) {
+		var loading = false;
+		$(page).on('infinite', '.infinite-scroll',function() {
+			var $this = $(this);
+			var id = $this.data('min');
+			var status = $this.data('status');
+			if(!id) return;
+			if (loading) return;
+
+			loading = true;
+			$this.find('.infinite-scroll-preloader').removeClass('hide');
+			$.post("{php echo $this->createMobileUrl('mgorder', array('op' => 'more'))}", {id: id, status: status, time: timeStamp}, function(data){
+				var result = $.parseJSON(data);
+				$this.attr('data-min', result.message.min);
+
+				if(!result.message.min) {
+					$.detachInfiniteScroll($('.infinite-scroll'));
+					$('.infinite-scroll-preloader').remove();
+					return;
+				}
+
+				$this.find('.infinite-scroll-preloader').removeClass('hide');
+				var gettpl = $('#tpl-order').html();
+				loading = false;
+				laytpl(gettpl).render(result.message.message, function(html){
+					setTimeout(function() {
+						$this.find('.order-list ul').append(html);
+					}, 1000);
+				});
+			});
+		});
+	});
+
+	$(document).on("click", ".order-print", function() {
+		var id = $(this).data('id')
+		if(!id) {
+			return false;
+		}
+		$.post("{php echo $this->createMobileUrl('mgorder', array('op' => 'print'))}", {id: id}, function(data){
+			var result = $.parseJSON(data);
+			if(result.message.errno != 0) {
+				$.toast(result.message.message);
+			} else {
+				$.toast('打印成功');
+			}
+		});
+	});
+
+	$(document).on("click", ".order-status", function() {
+		var id = $(this).data('id')
+		if(!id) {
+			return false;
+		}
+		var change_order_status = function(status, type){
+			$.post("{php echo $this->createMobileUrl('mgorder', array('op' => 'status'))}", {id: id, status: status, type: type}, function(data){
+				var result = $.parseJSON(data);
+				if(result.message.errno != 0) {
+					$.toast(result.message.message);
+				} else {
+					$.toast('设置订单状态成功', location.href);
+				}
+			});
+			return;
+		}
+		var buttons1 = [
+			{text: '请选择', label: true},
+			{text: '确认接单', bold: true, onClick: function(){change_order_status(2, 'handel')}},
+			{text: '通知配送员配送', bold: true, onClick: function(){change_order_status(3, 'delivery_wait')}},
+			{text: '配送中', bold: true, onClick: function(){change_order_status(4, 'delivery_ing')}},
+			{text: '处理完成', bold: true, onClick: function(){change_order_status(5, 'end')}},
+			{text: '取消订单', bold: true, onClick: function(){change_order_status(6, 'cancel')}}
+		];
+		var buttons2 = [
+			{text: '取消', bg: 'danger'}
+		];
+		var groups = [buttons1, buttons2];
+		$.actions(groups);
+		return;
+	});
+
+	$(document).on("click", ".order-delivery", function() {
+		var id = $(this).data('id');
+		if(!id) {
+			return false;
+		}
+		$.popup('.popup-delivery');
+		$('#popup-delivery .button-success').unbind().click(function(){
+			var $this = $(this);
+			if($this.hasClass('disabled')) {
+				return false;
+			}
+			var deliveryer_id = $('#popup-delivery :radio[name="deliveryer_id"]:checked').val();
+			$this.html('处理中...');
+			$this.addClass('disabled');
+			$.post("{php echo $this->createMobileUrl('mgorder', array('op' => 'deliveryer'))}", {id: id, deliveryer_id: deliveryer_id}, function(data){
+				var result = $.parseJSON(data);
+				if(result.message.errno != 0) {
+					$.toast(result.message.message);
+				} else {
+					$.toast('分配配送员成功');
+				}
+				$this.html('确定');
+				$this.removeClass('disabled');
+			});
+		});
+	});
+
+	$(document).on("click", ".goods-display", function() {
+		var id = $(this).data('id')
+		if(!id) {
+			return false;
+		}
+		var value = $(this).data('value');
+		var type = (value == 1 ? '上架' : '下架');
+		$.confirm('确定' + type + '该商品吗?', function() {
+			$.post("{php echo $this->createMobileUrl('mggoods', array('op' => 'status'))}", {id: id, value: value}, function(data){
+				var result = $.parseJSON(data);
+				$.toast(type + '成功', location.href);
+			});
+		});
+	});
+
+	$(document).on("click", ".goods-del", function() {
+		var id = $(this).data('id')
+		if(!id) {
+			return false;
+		}
+		$.confirm('确定删除该商品吗?', function() {
+			$.post("{php echo $this->createMobileUrl('mggoods', array('op' => 'del'))}", {id: id}, function(data){
+				var result = $.parseJSON(data);
+				$.toast('删除商品成功', location.href);
+			});
+		});
+	});
+
+	$(document).on("click", "#scanqrcode", function() {
+		wx.ready(function(){
+			wx.scanQRCode({
+				needResult: 0, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+				scanType: ["qrCode","barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+				success: function (res) {
+					var result = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+				}
+			});
+		});
+	});
+
+	$(document).on("click", ".popover li a", function() {
+		$.closeModal('.popover-manage');
+	});
+	$.init();
+});
+</script>

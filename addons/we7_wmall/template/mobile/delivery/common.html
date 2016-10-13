@@ -1,0 +1,77 @@
+{template 'delivery/template'}
+<script type='text/javascript' src="../addons/we7_wmall/resource/app/js/laytpl.dev.js"></script>
+<script type='text/javascript' src='../addons/we7_wmall/resource/app/js/light7.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../addons/we7_wmall/resource/app/js/i18n/cn.js' charset='utf-8'></script>
+<script type="text/javascript" src="../addons/we7_wmall/resource/app/js/light7-swiper.min.js"></script>
+<script type="text/javascript" src="../addons/we7_wmall/resource/app/js/common.js"></script>
+<script>
+$(function(){
+	$(document).on("pageInit", "#page-delivery-order", function(e, id, page) {
+		var loading = false;
+		$(page).on('infinite', '.infinite-scroll',function() {
+			var $this = $(this);
+			var id = $this.data('min');
+			if(!id) return;
+			if (loading) return;
+
+			loading = true;
+			$this.find('.infinite-scroll-preloader').removeClass('hide');
+			$.post("{php echo $this->createMobileUrl('dyorder', array('op' => 'more', 'status' => $status))}", {id: id, time: timeStamp}, function(data){
+				var result = $.parseJSON(data);
+				$this.attr('data-min', result.message.min);
+
+				if(!result.message.min) {
+					$.detachInfiniteScroll($('.infinite-scroll'));
+					$('.infinite-scroll-preloader').remove();
+					return;
+				}
+
+				$this.find('.infinite-scroll-preloader').removeClass('hide');
+				var gettpl = $('#tpl-order').html();
+				loading = false;
+				laytpl(gettpl).render(result.message.message, function(html){
+					setTimeout(function() {
+						$this.find('.order-list ul').append(html);
+					}, 1000);
+				});
+			});
+		});
+	});
+
+	$(document).on("click", ".order-status", function() {
+		var id = $(this).data('id')
+		if(!id) {
+			return false;
+		}
+		var status = $(this).data('status');
+		var tips = '确定修改配送状态吗?';
+		if(status == 4) {
+			tips = '确定配送该订单吗';
+		}
+
+		$.confirm(tips, function() {
+			$.post("{php echo $this->createMobileUrl('dyorder', array('op' => 'delivery_status'))}", {id: id, status: status}, function(data){
+				var result = $.parseJSON(data);
+				if(result.message.errno != 0) {
+					$.toast(result.message.message);
+				} else {
+					$.toast(result.message.message, location.href);
+				}
+			});
+		});
+	});
+
+	$(document).on("click", "#scanqrcode", function() {
+		wx.ready(function(){
+			wx.scanQRCode({
+				needResult: 0, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+				scanType: ["qrCode","barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+				success: function (res) {
+					var result = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+				}
+			});
+		});
+	});
+	$.init();
+});
+</script>

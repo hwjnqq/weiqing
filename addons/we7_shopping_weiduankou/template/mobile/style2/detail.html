@@ -1,0 +1,336 @@
+{template 'header'}
+{template 'common'}
+<script type="text/javascript" src="../addons/we7_shopping_weiduankou/images/jquery.gcjs.js"></script>
+<script type='text/javascript' src='../addons/we7_shopping_weiduankou/images/touchslider.min.js'></script>
+<script language='javascript' src='../addons/we7_shopping_weiduankou/images/photoswipe/simple-inheritance.min.js'></script>
+<script language='javascript' src='../addons/we7_shopping_weiduankou/images/photoswipe/photoswipe-1.0.11.min.js'></script>
+<link href="../addons/we7_shopping_weiduankou/images/photoswipe/photoswipe.css" rel="stylesheet" />
+<script language="javascript" src="../addons/we7_shopping_weiduankou/images/touchslider.min.js"></script>
+<script language="javascript" src="../addons/we7_shopping_weiduankou/images/swipe.js"></script>
+<div class="goods-detail">
+	<div class="container clearfix">
+		<div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+			<ol class="carousel-indicators">
+				{loop $piclist $slideNum $row}
+				<li data-target="#carousel-example-generic" data-slide-to="{$slideNum}" {if $slideNum == 0}class="active"{/if}></li>
+				{/loop}
+			</ol>
+			<div class="carousel-inner" role="listbox">
+				{loop $piclist $picNum $row}
+				<div class="item {if $picNum == 0}active{/if}">
+					<a href="{php echo tomedia($row);}" rel='{php echo tomedia($row);}'>
+						<img src="{php echo tomedia($row);}" style="display:block; height:200px; max-width:100%; margin:0 auto; " />
+					</a>
+					<div class="carousel-caption"></div>
+				</div>
+				{/loop}
+			</div>
+		</div>
+		<div class="main">
+			<div class="goods-header">
+				<h2 class="title">{$goods['title']}</h2>
+				<div class="goods-price">
+					{if $marketprice==$productprice}
+					现价: <span id='marketprice' class="price">¥ {$marketprice}</span>
+					{else}
+					现价: <span class="price" id='marketprice'> ¥ {$marketprice}</span>
+					<span id='productpricecontainer' style='{if $productprice<=0}display:none{/if}'>  &nbsp;原价: <del style="font-size:14px; "><span id='productprice'>¥ {$productprice}</span></del></span>
+					{/if}
+				</div>
+			</div>
+			<div class="goods-info clearfix">
+				<div>
+				{loop $specs $spec}
+				<input type='hidden' name="optionid[]" class='optionid optionid_{$spec['id']}' value="" title="{$spec['title']}">
+				<dl id='option_group' class='detail-group clearfix'>
+					<dt>{$spec['title']}</dt>
+					<dd>
+						<span class='options options_{$spec['id']}' specid='{$spec['id']}'>
+						{loop $spec['items'] $o}
+						{if empty($o['thumb'])}
+						<span class="property option option_{$spec['id']}" specid='{$spec['id']}' oid="{$o['id']}"  sel='false'>{$o['title']}</span>
+						{else}
+						<span class="propertyimg optionimg option_img_{$spec['id']} " oid="{$o['id']}" specid='{$spec['id']}' sel='false'><img src="{php echo $_W['attachurl'].$o['thumb']}" style="max-height:28px ; max-width:48px;" /></span>　
+						{/if}
+						{/loop}
+						</span>
+					</dd>
+				</dl>
+				{/loop}
+				<div class="into-store clearfix">
+					<span class="pull-left">
+						{if !empty($cfg['shopname'])}
+							{$cfg['shopname']}
+						{else}
+							商城品牌
+						{/if}
+					</span>
+					<span class="pull-right"><a href="{php echo $this->createMobileUrl('list')}">进入店铺</a><span style="color:#EEE; margin:0 10px;">|</span><a href="{php echo $this->createMobileUrl('mycart')}"><i class="fa fa-shopping-cart"></i></a></span>
+				</div>
+				{if count($params)>0}
+				{loop $params $p}
+				<dl class="clearfix">
+					<dt>{$p['title']}</dt>
+					<dd>{$p['value']}</dd>
+				</dl>
+				{/loop}
+				{/if}
+				</div>
+				{if !empty($goods['content'])}
+				<div class="goods-content" style="margin-top:10px;">
+					<h5>宝贝描述</h5>
+					{$goods['content']}
+				</div>
+				{/if}
+			</div>
+		</div>
+	</div>
+	<div class="buy-bar clearfix">
+	{if $goods['status']!=1 || $goods['deleted']==1}
+		<a href="javascript:void(0)" class="btn btn-default btn-block" style="width:100%;">此商品已下架</a>
+	{else}
+		<input type="hidden"  id="optionid" name="optionid" value="" />
+		<a href="{php echo $this->createMobileUrl('list')}" class="pull-left" title="返回商城首页"><i class="fa fa-chevron-left"></i></a>
+		{if !empty($goods['otherpay']['status'])}<a href="javascript:void(0)" onclick="$('#selectgoods').attr('otherpay', 1)" data-toggle="modal" data-target="#selectgoods" class="btn btn-danger" style="overflow:hidden; text-overflow:ellipsis;">{if !empty($this->module['config']['otherpaybtntitle'])}{php echo $this->module['config']['otherpaybtntitle']}{else}众筹{/if}</a>{/if}
+		<a href="javascript:void(0)" data-toggle="modal" onclick="$('#selectgoods').attr('otherpay', 0)" data-target="#selectgoods" class="btn btn-success">我要购买</a>
+		<a href="javascript:void(0)" onclick="addtocart()" class="pull-right" title="加入购物车"><i class="fa fa-cart-plus"></i></a>
+	{/if}
+	</div>
+</div>
+<div id="selectgoods" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+<style>
+#selectgoods .selectgoods-main{width:100%; background:#FFF; position:absolute; bottom:0;}
+#selectgoods .close span{font-size:30px; background:#DDD; display:block; width:50px; height:50px; line-height:50px; margin:5px;}
+#selectgoods .title{display:block; margin:15px 0 15px 15px; font-size:16px;}
+#selectgoods .goods-detail{padding-bottom:62px;}
+#selectgoods .goods-detail div{overflow:hidden;}
+</style>
+	<div class="selectgoods-main">
+		<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			<span aria-hidden="true" class="img-circle"><i class="fa fa-times"></i></span>
+		</button>
+		<div class="goods-detail">
+			<div class="goods-header">
+				<span class="title">{$goods['title']}</span>
+			</div>
+			<div class='detail-group' style="margin-top:10px;">
+				<span style="float:left;margin-left:15px; margin-top:5px;">数量：</span>
+				<div class="input-group" style="width:100px;float:left;margin-left:8px;">
+					<span class="input-group-btn">
+						<button class="btn btn-default btn-sm" type="button" onclick="reduceNum()"><i class="fa fa-minus"></i></button>
+					</span>
+					<input type="tel" class="form-control input-sm pricetotal goodsnum" style="width:50px;text-align:center" value="1" id="total"  />
+					<span class="input-group-btn">
+						<button class="btn btn-default btn-sm" type="button" onclick="addNum()"><i class="fa fa-plus"></i></button>
+					</span>
+				</div> 
+				{if $stock!=-1}
+				<span id='stockcontainer' style="float:left;margin-left:5px;">( 剩余 <span id='stock'>{if $goods['totalcnf'] == 2} 无限 {else} {$stock} {/if}</span> ) </span>
+				{else}
+				<span id='stockcontainer' style="float:left;margin-left:5px;"><span id='stock'></span></span>
+				{/if}
+			</div>
+			{loop $specs $spec}
+			<input type='hidden' name="optionid[]" class='optionid optionid_{$spec['id']}' value="" title="{$spec['title']}">
+			<dl id='option_group' class='detail-group clearfix' style="margin:8px 0 8px 15px;">
+				<dt>{$spec['title']}</dt>
+				<dd>
+					<span class='options options_{$spec['id']}' specid='{$spec['id']}'>
+					{loop $spec['items'] $o}
+					{if empty($o['thumb'])}
+					<span class="property option option_{$spec['id']}" specid='{$spec['id']}' oid="{$o['id']}"  sel='false'>{$o['title']}</span>
+					{else}
+					<span class="propertyimg optionimg option_img_{$spec['id']} " oid="{$o['id']}" specid='{$spec['id']}' sel='false'><img src="{php echo $_W['attachurl'].$o['thumb']}" style="max-height:28px ; max-width:48px;" /></span>　
+					{/if}
+					{/loop}
+					</span>
+				</dd>
+			</dl>
+			{/loop}
+		</div>
+		<div class="buy-bar clearfix" style="box-shadow:none;">
+			<a href="javascript:void(0)" onclick='buy()' class="btn btn-danger" style="width:80%;">确定</a>
+		</div>
+	</div>
+</div>
+<script>
+	require(['bootstrap']);
+	var options={php echo json_encode($options)};
+	var specs={php echo json_encode($specs)};
+	var hasoption = {php echo $goods['hasoption']=='1'?'true':'false'};
+	
+	$(function() {
+		 $('.other-detail .detail-group:last').css("border-bottom", "0");
+		 $(".option,.optionimg").click(function() {
+			 var specid = $(this).attr("specid");
+			 var oid = $(this).attr("oid");
+			$(".optionid_"+specid).val(oid);
+			$(".options_" + specid + "  span").removeClass("current").attr("sel", "false");
+			$(this).addClass("current").attr("sel", "true");
+	
+			var optionid = "";
+			var stock =0;
+			var marketprice = 0;
+			var productprice = 0;
+			 var ret = option_selected();
+  
+			if(ret.no==''){
+				var len = options.length;
+				for(var i=0;i<len;i++) {
+					var o = options[i];
+				  
+					var ids = ret.all.join("_");
+				   
+					if( o.specs==ids){
+						optionid = o.id;
+						stock = o.stock;
+						marketprice = o.marketprice;
+						productprice = o.productprice;
+						break;
+					}
+					
+				}
+			   $("#optionid").val(optionid); 
+			   
+				if(stock!="-1"){
+					 $("#stockcontainer").html(" <span id='stock'>" + stock + "</span> ");
+				}
+				else{
+					$("#stockcontainer").html("<span id='stock'></span>");
+				}
+				$("#marketprice").html(marketprice);
+				
+				 
+				$("#productprice").html(productprice);
+				if(productprice<=0){
+					$("#productpricecontainer").hide();
+				}
+				else{
+					$("#productpricecontainer").show();
+				}
+			}
+		});
+		
+		$("#total").blur(function(){
+				var total = $("#total");
+				if(!total.isInt()){
+					total.val("1");
+				}
+				var stock = $("#stock").html()==''?-1:parseInt($("#stock").html());
+				var mb = maxbuy;
+				if(mb>stock && stock!=-1){
+					mb = stock;
+				}
+				var num = parseInt(total.val() );
+				if(num>mb && mb>0){
+					tip("您最多可购买 " + mb + "件",true);
+					total.val(mb);
+				}
+		})
+		
+});
+var maxbuy = {php echo empty($goods['maxbuy'])?"0":$goods['maxbuy']};
+function addNum(){
+	var total = $("#total");
+	if(!total.isInt()){
+		total.val("1");
+	}
+	var stock = $("#stock").html()==''?-1:parseInt($("#stock").html());
+	var mb = maxbuy;
+	
+	if(mb>stock && stock!=-1){
+		mb = stock;
+	}
+	var num = parseInt(total.val() ) + 1;
+	if(num>stock){
+		tip("您最多可购买 " + stock + " 件",true);
+		num--;
+	}
+	if(num>mb && mb>0){
+		tip("您最多可购买 " + mb + " 件",true);
+		num = mb;
+	}
+	total.val(num);
+}
+function reduceNum(){
+	var total = $("#total");
+	if(!total.isInt()){
+		total.val("1");
+	}
+	var num = parseInt( total.val() );
+	if(num-1<=0){
+		return;
+	}
+	num--;
+	total.val(num);
+}
+
+function addtocart(){
+	var ret = option_selected();
+	if(ret.no!=''){
+		tip("请选择" + ret.no + "!",true);
+		return;
+	}
+	tip("正在处理数据...");
+	var total = $("#total").val();
+	var stock = parseInt($('#stock').text());
+	if(stock == 0){
+		tip('库存不足，无法购买');
+		return;
+	}
+	var url = "{php echo murl('entry//mycart',array('id'=>$goods['id'],'op'=>'add','m'=>'we7_shopping_weiduankou'),true)}"+"&optionid=" + $("#optionid").val() + "&total=" + total;
+	//  var url = '{php echo $this->createMobileUrl('mycart',array('op'=>'add','id'=>$goods['id']),true);}' +"&optionid=" + $("#optionid").val() + "&total=" + total;
+	$.getJSON(url, function(s){
+		if(s.result==0){
+			tip("只能购买 " + s.maxbuy + " 件");
+		}else{
+			tip_close();tip("已加入购物车!");
+			$('#carttotal').css({'width':'50px', 'height':'50px', 'line-height':'50px'}).html(s.total).animate({'width':'20px', 'height':'20px', 'line-height':'20px'}, 'slow');
+		}
+	});
+}
+function buy(){
+	var ret = option_selected();
+	var otherpay = $('#selectgoods').attr('otherpay');
+	if(ret.no!=''){
+	   tip("请选择" + ret.no + "!",true);
+		return;
+	}
+	var stock = parseInt($('#stock').text());
+	if(stock == 0){
+		tip('库存不足，无法购买');
+		return;
+	}
+	var total = $("#total").val();
+	location.href ="{php echo murl('entry//confirm',array('id'=>$goods['id'],'op'=>'confirm','m'=>'we7_shopping_weiduankou'),true)}"+"&optionid=" + $("#optionid").val() + "&total=" + total + "&otherpay="+otherpay;
+//	 location.href = '{php echo $this->createMobileUrl('confirm',array('id'=>$goods['id']),true)}'+"&optionid=" + $("#optionid").val() + "&total=" + total;
+}
+var selected = [];
+function option_selected(){
+	var ret= {
+		no: "",
+		all: []
+	};
+	if(!hasoption){
+		return ret;
+	}
+			$(".optionid").each(function(){
+				ret.all.push($(this).val());
+				if($(this).val()==''){
+					ret.no = $(this).attr("title");
+					return false;
+				}
+	})
+	return ret;
+}
+require(['bootstrap', 'hammer'], function($, Hammer){
+		$('#carousel-example-generic').carousel();
+		var mc = new Hammer($('#carousel-example-generic').get(0));
+		mc.on("panleft", function(ev) {
+			$('#carousel-example-generic').carousel('next');
+		});
+		mc.on("panright", function(ev) {
+			$('#carousel-example-generic').carousel('prev');
+		});
+	});
+</script>

@@ -1,0 +1,61 @@
+{template 'common/header'}
+<div class="main">
+	<form class="form-horizontal form" action="./index.php" method="post" role="form">
+		<div class='panel panel-default'>
+			<div class="panel-heading">
+				{$express['name']} - 报价
+			</div>
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+					<tr>
+						<th style="width:80px;">省</th>
+						<th style="width:80px;">市</th>
+						<th style="width:80px;">县</th>
+						<th style="width:100px;">首重</th>
+						<th style="width:120px;">首重金额</th>
+						<th style="width:120px;">续重单价</th>
+						<th class="row-hover" style="text-align:right; width:100px;">操作</th>
+					</tr>
+					</thead>
+					<tbody id="status-items">
+					{loop $list $e}
+					<tr>
+						<td><input name="fees[{$e['id']}][province]" type="text" value="{$e['province']}"  class="form-control"></td>
+						<td><input name="fees[{$e['id']}][city]" type="text" value="{$e['city']}"  class="form-control"></td>
+						<td><input name="fees[{$e['id']}][district]" type="text" value="{$e['district']}"  class="form-control"></td>
+						<td><input name="fees[{$e['id']}][pricefirst]" type="text" value="{$e['pricefirst']}"  class="form-control"></td>
+						<td><input name="fees[{$e['id']}][weightfirst]" type="text" value="{$e['weightfirst']}"  class="form-control"></td>
+						<td><input name="fees[{$e['id']}][priceaddition]" type="text" value="{$e['priceaddition']}"  class="form-control"></td>
+						<td style="text-align:right;">
+							<a onclick="if (confirm('删除操作不可恢复，确认吗？')){ $(this).parent().parent().remove(); return true;} else {return false;}" href="{php echo $this->createWebUrl('expressFee', array('op' => 'delete', 'id' => $e['id']))}" class="btn btn-mini" title="删除"><i class="fa fa-remove"></i></a>
+						</td>
+					</tr>
+					{/loop}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<table class="tb">
+			<tr>
+				<td>
+					<span class="help-block">新增费用,格式为: "省名称:市名称:区名称:首重:首重金额:续重金额", 同时填多个另起一行</span>
+					<textarea rows="10" cols="80" style="width: 98%;" class="form-control" name="content"></textarea>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<button type="submit" class="btn btn-primary span3" name="submit" value="提交">提交</button>
+					<input type="hidden" name="c" value="site" />
+					<input type="hidden" name="a" value="entry" />
+					<input type="hidden" name="do" value="expressFee" />
+					<input type="hidden" name="m" value="we7_community" />
+					<input type="hidden" name="id" value="{$express['id']}" />
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</td>
+			</tr>
+		</table>
+	</form>
+</div>
+
+{template 'common/footer'}

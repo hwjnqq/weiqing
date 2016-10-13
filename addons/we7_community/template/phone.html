@@ -1,0 +1,59 @@
+{template 'common/header'}
+{template 'nav'}
+<div class="main">
+	<form class="form-horizontal form" action="" method="post" onsubmit="return formcheck(this)">
+		<div class="panel panel-default" style="margin-top:5px;">
+			<div class="panel-heading">
+				便民热线管理
+			</div>
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+					<tr>
+						<th class="row-hover" style="width:120px;">电话</th>
+						<th class="row-hover" style="width:200px;">说明</th>
+						<th style="width:80px; text-align:right;">操作</th>
+					</tr>
+					</thead>
+					<tbody id="status-items">
+					{loop $phones $phone}
+					<tr>
+						<td><input name="phones[]" type="text" value="{$phone['phone']}" class='form-control'></td>
+						<td><input name="titles[]" type="text" value="{$phone['title']}" class='form-control'><input name="ids[]" type="hidden" value="{$phone['id']}"><input name="weids[]" type="hidden" value="{$phone['weid']}"></td>
+						<td style="text-align:right;"><a onclick="if (confirm('删除操作不可恢复，确认吗？')){ $(this).parent().parent().next().remove(); return true;} else {return false;}" href="{php echo $this->createWebUrl('phone', array('op' => 'delete', 'id' => $phone['id'], 'regionid' => $regionid))}" class="btn btn-default btn-sm" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a></td>
+					</tr>
+					{/loop}
+					</tbody>
+					<tr>
+						<td colspan="3">
+							<a href="javascript:;" onclick="addStatusItem()" class="btn btn-default"><i class="fa fa-arrows"></i> 添加新电话</a>
+						</td>
+					</tr>
+				</table>
+			</div></div>
+		<table class="tb">
+			<tr>
+				<td colspan="3">
+					<button type="submit" class="btn btn-primary span3" name="submit" value="提交">提交</button>
+					<input type="hidden" name="regionid" value="{$_GPC['regionid']}" />
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</td>
+			</tr>
+		</table>
+	</form>
+</div>
+<script type="text/javascript">
+	function addStatusItem() {
+		var html = '' +
+				'<tr>' +
+				'<td><input name="phones[]" type="text"  class="form-control"/></td>' +
+				'<td><input name="titles[]" type="text" value="" class="form-control"><input name="ids[]" type="hidden" value=""><input name="weids[]" type="hidden" value="{$weid}"></td>' +
+				'<td style="text-align:right;" colspan="3"><a href="javascript:;" onclick="$(this).parent().parent().remove();" class="btn btn-small btn-default" title="删除此条目"><i class="fa fa-remove"></i></a></td>' +
+				'</tr>';
+		$('#status-items').append(html);
+	}
+	require(['bootstrap'],function($){
+		$('.btn').tooltip();
+	});
+</script>
+{template 'common/footer'}

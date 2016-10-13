@@ -1,0 +1,28 @@
+<input type="hidden" name="reply_id" value="{$reply['id']}" />
+{php load()->func('tpl')}
+<div class="panel panel-default">
+	<div class="panel-heading">
+		添加微拍
+	</div>
+	<div class="panel-body">
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">转接URL</label>
+			<div class="col-xs-12 col-sm-9">
+				<input type="text" value="{$reply['proxyurl']}" class="form-control" name="proxyurl">
+				<div class="help-block"></div>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">转接Token</label>
+			<div class="col-xs-12 col-sm-9">
+				<input type="text" value="{$reply['proxytoken']}" class="form-control" name="proxytoken">
+				<div class="help-block"></div>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	require(['util'],function(util){
+		util.editor($('#rule')[0]);
+	})
+</script>

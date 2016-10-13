@@ -1,0 +1,71 @@
+{template 'common/header'}
+<div class="main">
+	<form class="form-horizontal form" action="" method="post" onsubmit="return formcheck(this)">
+		<div class="panel panel-default" style="margin-top:5px;">
+			<div class="panel-heading">
+				快递公司
+			</div>
+			<div class="panel-body">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+					<tr>
+						<th class="row-hover" style="width:120px;">快递公司<i></i></th>
+						<th class="row-hover" style="width:120px;">快递编码<i></i></th>
+						<th class="row-hover" style="width:120px;">单号正则<i></i></th>
+						<th class="row-hover" style="width:120px;">注意事项<i></i></th>
+						<th class="row-hover " style="text-align:right; width:120px;">操作</th>
+					</tr>
+					</thead>
+					<tbody id="status-items">
+					{loop $list $e}
+					<tr>
+						<td>
+							<input name="olds[{$e['id']}][name]" type="text" value="{$e['name']}"  class="form-control">
+							<input name="olds[{$e['id']}][id]" type="hidden" value="{$e['id']}">
+						</td>
+						<td><input name="olds[{$e['id']}][code]" type="text" value="{$e['code']}"  class="form-control"></td>
+						<td><input name="olds[{$e['id']}][reg]" type="text" value="{$e['reg']}"  class="form-control"></td>
+						<td><input name="olds[{$e['id']}][note]" type="text" value="{$e['note']}"  class="form-control"></td>
+						<td style="text-align:right;">
+							<a onclick="if (confirm('删除操作不可恢复，确认吗？')){ $(this).parent().parent().remove(); return true;} else {return false;}" href="{php echo $this->createWebUrl('expressCompany', array('op' => 'delete', 'id' => $e['id']))}" class="btn btn-mini btn-default" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-times"></i></a>
+							<a href="{php echo $this->createWebUrl('expressFee', array('id' => $e['id']))}" class="btn btn-mini btn-default" data-toggle="tooltip" data-placement="bottom" title="编辑"><i class="fa fa-edit"></i></a>
+						</td>
+					</tr>
+					{/loop}
+					</tbody>
+					<tr>
+						<td colspan="5">
+							<a href="javascript:;" onclick="addExpress()"><i class="fa fa-arrows"></i> 添加新快递</a>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+		<table class="tb">
+			<tr>
+				<button type="submit" class="btn btn-primary col-lg-1" name="submit" value="提交">提交</button>
+				<input type="hidden" name="regionid" value="{$_GPC['regionid']}" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</tr>
+		</table>
+	</form>
+</div>
+<script type="text/javascript">
+	<!--
+	function addExpress() {
+		var html = '' +
+				'<tr>' +
+				'<td><input name="names[]" type="text" class="form-control" /></td>' +
+				'<td><input name="codes[]" type="text"  class="form-control"/></td>' +
+				'<td><input name="regs[]" type="text"  class="form-control"/></td>' +
+				'<td><input name="notes[]" type="text" value=""  class="form-control"></td>' +
+				'<td><a href="javascript:;" onclick="$(this).parent().parent().remove();" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="删除此条目"><i class="fa fa-remove"></i></a></td>' +
+				'</tr>';
+		$('#status-items').append(html);
+	}
+	//-->
+	require(['bootstrap'],function($){
+		$('.btn').tooltip();
+	});
+</script>
+{template 'common/footer'}

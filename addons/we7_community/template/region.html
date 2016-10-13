@@ -1,0 +1,168 @@
+{template 'common/header'}
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').tooltip();
+	});
+</script>
+{if $op == 'display'}
+<div class="main">
+	<div style="margin:0;" class="alert alert-info"><i class="icon-warning-sign"></i>&nbsp;物业公司下可添加多个小区，用户注册时需要选择绑定到哪个小区中。</div>
+	<form class="form-horizontal form" action="" method="post" onsubmit="return formcheck(this)">
+		<input name="weid" type="hidden" value="{$weid}">
+		<div class="panel panel-default" style="margin-top:5px;">
+			<div class="panel-heading">
+				小区管理
+			</div>
+			<div class="panel-body table-responsive">
+				<table class="table table-hover" >
+					<thead class="navbar-inner">
+					<tr>
+						<th style="width:80px;">名称</th>
+						<th style="width:100px;">联系人</th>
+						<th style="width:100px;">电话</th>
+						<th style="width:120px;">说明</th>
+						<th style="width:580px;">常用操作</th>
+						<th style="width:50px;">操作</th>
+					</tr>
+					</thead>
+					<tbody id="status-items">
+					{loop $regions $region}
+					<tr>
+						<td><input class="form-control" name="titles[]" type="text" value="{$region['title']}"></td>
+						<td><input class="form-control" name="linkmen[]" type="text" value="{$region['linkman']}"><input name="ids[]" type="hidden" value="{$region['id']}"></td>
+						<td><input class="form-control" name="linkways[]" type="text" value="{$region['linkway']}"></td>
+						<td><input class="form-control" name="contents[]" type="text" value="{$region['content']}"></td>
+						<td>
+							<a href="{php echo $this->createWebUrl('repair', array('op' => 'display', 'regionid'=>$region['id']));}">报修管理</a>
+							|
+							<a href="{php echo $this->createWebUrl('report', array('op' => 'display', 'regionid'=>$region['id']));}">投诉管理</a>
+							|
+							<a href="{php echo $this->createWebUrl('member', array('op' => 'display', 'regionid'=>$region['id']));}">业主管理</a>
+							|
+							<a href="{php echo $this->createWebUrl('announcement', array('op' => 'display', 'regionid'=>$region['id']));}">公告管理</a>
+							|
+							<a href="{php echo $this->createWebUrl('homemaking', array('op' => 'display', 'regionid'=>$region['id']));}">家政服务</a>
+							|
+							<a href="{php echo $this->createWebUrl('houselease', array('op' => 'display', 'regionid'=>$region['id']));}">房屋租赁</a>
+							|
+							<a href="{php echo $this->createWebUrl('phone', array('op' => 'display', 'regionid'=>$region['id']));}">便民热线管理</a>
+						</td>
+						<td>
+							<a onclick="if (confirm('删除操作不可恢复，确认吗？')) {
+                                $(this).parent().parent().next().remove();
+                                return true;
+                            } else {
+                                return false;
+                            }" href="{php echo $this->createWebUrl('region', array('op' => 'delete', 'id' => $region['id']))}" class="btn btn-sm btn-default" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
+						</td>
+					</tr>
+					{/loop}
+					</tbody>
+					<tr>
+						<td colspan="6">
+							<a href="javascript:;" onclick="addStatusItem()" class="btn btn-default"><i class="fa fa-arrows"></i> 添加新小区</a>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+		<table class="tb">
+			<tr>
+				<td colspan="6">
+					<button type="submit" class="btn btn-primary span3" name="submit" value="提交">提交</button>
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</td>
+			</tr>
+		</table>
+
+	</form>
+</div>
+<script type="text/javascript">
+	function addStatusItem() {
+		var html = '' +
+				'<tr>' +
+				'<td><input class="form-control" name="titles[]" title="小区名称" placeholder="小区名称" type="text" value=""/></td>' +
+				'<td><input class="form-control" name="linkmen[]" title="联系人姓名" placeholder="联系人姓名" type="text" value=""/><input name="ids[]" type="hidden" value=""/></td>' +
+				'<td><input class="form-control" name="linkways[]" title="联系人电话" placeholder="联系人电话" type="text" value=""></td>' +
+				'<td><input class="form-control" name="contents[]" title="小区说明" placeholder="小区说明" type="text" value=""></td>' +
+				'<td></td>' +
+				'<td><a href="javascript:;" onclick="$(this).parent().parent().remove();" class="btn btn-default btn-sm" title="删除此条目" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a></td>' +
+				'</tr>';
+		$('#status-items').append(html);
+	}
+</script>
+{elseif $op == 'manage'}
+{template 'nav'}
+<link type="text/css" rel="stylesheet" href="../addons/we7_community/style/font-awesome.css" />
+<div class="main">
+	<div class="clearfix welcome-container" style="margin-bottom:20px;">
+		<div class="page-header">
+			<h4><i class="fa fa-info"></i> 小区信息</h4>
+		</div>
+		<div class="shortcut panel panel-info">
+			<div class="panel-heading">{$region['title']}</div>
+			<div class="panel-body">
+				<p><span style="width:80px;display:inline-block;">联系人：</span>{$region['linkman']}</p>
+				<p><span style="width:80px;display:inline-block;">联系电话：</span>{$region['linkway']}</p>
+			</div>
+		</div>
+		<div class="page-header">
+			<h4><i class="fa fa-plane"></i> 快捷操作</h4>
+		</div>
+		<div class="shortcut clearfix">
+			<a href="{php echo $this->createWebUrl('announcement', array('op' => 'display', 'regionid'=>$region['id']));}"><div class="fast-icon img-rounded"><i class="fa fa-bullhorn"></i></div><span>公告管理</span></a>
+			<a href="{php echo $this->createWebUrl('repair', array('op' => 'display', 'regionid'=>$region['id']));}"><div class="fast-icon img-rounded"><i class="fa fa-wrench"></i></div><span>报修管理</span></a>
+			<a href="{php echo $this->createWebUrl('member', array('op' => 'display', 'regionid'=>$region['id']));}"><div class="fast-icon img-rounded"><i class="fa fa-user"></i></div><span>业主管理</span></a>
+			<a href="{php echo $this->createWebUrl('report', array('op' => 'display', 'regionid'=>$region['id']));}"><div class="fast-icon img-rounded"><i class="fa fa-legal"></i></div><span>投诉管理</span></a>
+			<a href="{php echo $this->createWebUrl('homemaking', array('op' => 'display', 'regionid'=>$region['id']));}"><div class="fast-icon img-rounded"><i class="fa fa-group"></i></div><span>家政服务</span></a>
+			<a href="{php echo $this->createWebUrl('houselease', array('op' => 'display', 'regionid'=>$region['id']));}"><div class="fast-icon img-rounded"><i class="fa fa-info"></i></div><span>房屋租赁</span></a>
+			<a href="{php echo $this->createWebUrl('phone', array('op' => 'display', 'regionid'=>$region['id']));}"><div class="fast-icon img-rounded"><i class="fa fa-phone"></i></div><span>常用电话管理</span></a>
+		</div>
+	</div>
+	<div class="panel panel-info">
+		<div class="panel-heading">待办事项</div>
+		<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			{if $repaircount}
+			<tr>
+				<th style="width:250px;">报修待处理事项</th>
+				<td>{$repaircount}&nbsp;&nbsp;<a href="{php echo $this->createWebUrl('repair', array('op' => 'display', 'regionid' => $id, 'status[]' => 0))}">查看</a></td>
+			</tr>
+			{/if}
+			{if $reportcount}
+			<tr>
+				<th style="width:250px;">投诉待处理事项</th>
+				<td>{$reportcount}&nbsp;&nbsp;<a href="{php echo $this->createWebUrl('report', array('op' => 'display', 'regionid' => $id, 'status[]' => 0))}">查看</a></td>
+			</tr>
+			{/if}
+		</table>
+		</div>
+	</div>
+	<div class="panel panel-info">
+		<div class="panel-heading">
+			待办回复留言
+		</div>
+		<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+			<tr>
+				<th style="width:250px;">类型</th>
+				<th style="width:200px;">内容</th>
+				<th style="width:200px;">最新留言</th>
+				<th style="width:80px;"></th>
+			</tr>
+			</thead>
+			{loop $reply $row}
+			<tr>
+				<td>{$row['category']}</td>
+				<td>{$row['content']}</td>
+				<td>{$row['message']['content']}</td>
+				<td><a href="{php echo $this->createWebUrl('repair', array('op' => 'post', 'id' => $row['id'], 'regionid' => $id, 'status[]' => 0))}">回复</a></td>
+			</tr>
+			{/loop}
+		</table>
+		</div>
+	</div>
+</div>
+{/if}
+{template 'common/footer'}

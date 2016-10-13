@@ -1,0 +1,167 @@
+{template 'header'}
+<div class="page store-detail" id="page-app-store">
+	<header class="bar bar-nav">
+		<a class="icon fa fa-arrow-left pull-left back" href="javascript:;"></a>
+		<h1 class="title">商户详情</h1>
+		<a class="icon fa pull-right {if !empty($is_favorite)}fa-favor-fill{else}fa-favor{/if}" href="javascript:;" id="btn-favorite" data-id="{$store['id']}" data-uid="{$_W['member']['uid']}"></a>
+	</header>
+	{template 'nav'}
+	<div class="content">
+		<div class="row no-gutter banner">
+			<div class="col-33 text-center">
+				<img src="{php echo tomedia($store['logo']);}" alt="" class="logo"/>
+			</div>
+			<div class="col-67">
+				<div class="goods-title">{$store['title']}</div>
+				<div class="star-rank">
+					<span class="star-rank-outline">
+						<span class="star-rank-active" style="width:{$store['score_cn']}%"></span>
+						<span class="star-rank-value">{$store['score']}</span>
+					</span>
+				</div>
+				<div class="sell-info">已售:{$store['sailed']}份</div>
+			</div>
+		</div>
+		<div class="row no-gutter delivery-info">
+			<div class="col-33">起送价￥{$store['send_price']}</div>
+			<div class="col-33">配送￥{$store['delivery_price']}</div>
+			<div class="col-33">送达时长{$store['delivery_time']}分钟</div>
+		</div>
+		<div class="list-block">
+			<ul>
+				<a href="{php echo $this->createMobileUrl('goods', array('sid' => $store['id']));}" class="item-content item-link external">
+					<div class="item-inner">
+						<div class="item-title">
+							<img src="{MODULE_URL}resource/app/img/goods.png" alt="" />
+							选购商品
+						</div>
+					</div>
+				</a>
+			</ul>
+		</div>
+		<div class="list-block">
+			<ul>
+				<li>
+					<div class="item-content">
+						<div class="item-inner">
+							<div class="item-title">
+								<img src="{MODULE_URL}resource/app/img/clock-grey.png" alt="" />
+								{$store['business_hours']['start']}~{$store['business_hours']['end']}
+							</div>
+						</div>
+					</div>
+				</li>
+				<li>
+					<a href="http://api.map.baidu.com/marker?location={$store['location_x']},{$store['location_y']}&title={$store['address']}&output=html" class="item-content item-link external">
+						<div class="item-inner">
+							<div class="item-title">
+								<img src="{MODULE_URL}resource/app/img/location-grey.png" alt="" />
+								朝阳门外大街
+							</div>
+						</div>
+					</a>
+				</li>
+				<li>
+					<a href="tel:{$store['telephone']}" class="item-content item-link external">
+						<div class="item-inner">
+							<div class="item-title">
+								<img src="{MODULE_URL}resource/app/img/tel-grey.png" alt="" />
+								{$store['telephone']}
+							</div>
+						</div>
+					</a>
+				</li>
+				<li>
+					<div class="item-content">
+						<div class="item-inner">
+							<div class="item-title text">
+								<img src="{MODULE_URL}resource/app/img/voice-grey.png" alt="" />
+								{$store['notice']}
+							</div>
+						</div>
+					</div>
+				</li>
+			</ul>
+		</div>
+		<div class="list-block">
+			<ul>
+				{if $activity['first_order_status'] == 1}
+					<li>
+						<div class="item-content">
+							<div class="item-inner">
+								<div class="item-title">
+									<img src="{MODULE_URL}resource/app/img/xin_b.png" alt="" />
+									新用户在线支付
+									{loop $activity['first_order_data'] $first}
+									满{$first['condition']}元减{$first['back']}
+									{/loop}
+								</div>
+							</div>
+						</div>
+					</li>
+				{/if}
+				{if $activity['discount_status'] == 1}
+					<li>
+						<div class="item-content">
+							<div class="item-inner">
+								<div class="item-title">
+									<img src="{MODULE_URL}resource/app/img/jian_b.png" alt="" />
+									新用户在线支付
+									{loop $activity['discount_data'] $discount}
+									满{$discount['condition']}元减{$discount['back']}
+									{/loop}
+								</div>
+							</div>
+						</div>
+					</li>
+				{/if}
+				{if $activity['grant_status'] == 1}
+				<li>
+					<div class="item-content">
+						<div class="item-inner">
+							<div class="item-title">
+								<img src="{MODULE_URL}resource/app/img/jian_b.png" alt="" />
+								新用户在线支付
+								{loop $activity['grant_data'] $grant}
+									满{$grant['condition']}元赠{$grant['back']}
+								{/loop}
+							</div>
+						</div>
+					</div>
+				</li>
+				{/if}
+			</ul>
+		</div>
+		<div class="list-block">
+			<ul>
+				<li>
+					<div class="item-content">
+						<div class="item-inner">
+							<div class="item-title">
+								<img src="{MODULE_URL}resource/app/img/pay_b.png" alt="" />
+								支持在线支付
+							</div>
+						</div>
+					</div>
+				</li>
+				{if $store['invoice_status'] == 1}
+				<li>
+					<div class="item-content">
+						<div class="item-inner">
+							<div class="item-title">
+								<img src="{MODULE_URL}resource/app/img/invoice_b.png" alt="" />
+								支持使用代金券抵付现金
+							</div>
+						</div>
+					</div>
+				</li>
+				{/if}
+			</ul>
+		</div>
+		<div class="report hide">
+			<a href="">举报商家</a>
+		</div>
+	</div>
+</div>
+{template 'common'}
+{template 'footer'}

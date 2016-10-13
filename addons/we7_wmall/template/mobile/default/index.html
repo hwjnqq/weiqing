@@ -1,0 +1,217 @@
+{template 'header'}
+<div class="page home" id="page-app-index">
+	<header class="bar bar-nav">
+		<!--<a class="icon search pull-right"></a>-->
+		<h1 class="title">
+			<!--<span class="icon icon-map-marker"></span>-->
+			门店列表
+			<!--<span class="icon icon-caret-down"></span>-->
+		</h1>
+	</header>
+	{template 'nav'}
+	<div class="content">
+		{if !empty($slides)}
+			<div class="swiper-container" data-space-between='30' data-pagination='.swiper-pagination' data-autoplay="2000">
+				<div class="swiper-wrapper">
+					{loop $slides $slide}
+						<div class="swiper-slide" data-link="{$slide['link']}">
+							<img src="{php echo tomedia($slide['thumb']);}"alt="">
+						</div>
+					{/loop}
+				</div>
+				<div class="swiper-pagination"></div>
+			</div>
+		{/if}
+		<div class="row no-gutter nav">
+			{loop $categorys $category}
+				<div class="col-25">
+					<a href="{php echo $this->createMobileUrl('search', array('cid' => $category['id']));}">
+						<img src="{php echo tomedia($category['thumb']);}" alt="{$category['title']}" />
+						<div class="text-center">{$category['title']}</div>
+					</a>
+				</div>
+			{/loop}
+		</div>
+		<div class="row no-gutter activity">
+			<div class="col-50">
+				<a href="javascript:;">
+					<div class="row no-gutter">
+						<div class="col-60">
+							<div class="heading">热销菜品</div>
+							<div class="sub-heading">吃货精选推荐</div>
+						</div>
+						<div class="col-40 text-center">
+							<img src="{MODULE_URL}resource/app//img/hot-dishes.png" alt="" />
+						</div>
+					</div>
+				</a>
+			</div>
+			<div class="col-50">
+				<a href="javascript:;">
+					<div class="row no-gutter">
+						<div class="col-40 text-center">
+							<img src="{MODULE_URL}resource/app//img/firecracker.png" alt="" />
+						</div>
+						<div class="col-60">
+							<div class="heading">新人专享</div>
+							<div class="sub-heading">全场1分钱</div>
+						</div>
+					</div>
+				</a>
+			</div>
+			<div class="col-50">
+				<a href="javascript:;">
+					<div class="row no-gutter">
+						<div class="col-60">
+							<div class="heading">今日必抢</div>
+							<div class="sub-heading">大餐低至一元</div>
+						</div>
+						<div class="col-40 text-center">
+							<img src="{MODULE_URL}resource/app//img/wallet.png" alt="" />
+						</div>
+					</div>
+				</a>
+			</div>
+			<div class="col-50">
+				<a href="javascript:;">
+					<div class="row no-gutter">
+						<div class="col-40 text-center">
+							<img src="{MODULE_URL}resource/app//img/pot.png" alt="" />
+						</div>
+						<div class="col-60">
+							<div class="heading">火锅开涮</div>
+							<div class="sub-heading">满300减150</div>
+						</div>
+					</div>
+				</a>
+			</div>
+		</div>
+		<div class="buttons-tab select-tab">
+			<a href="javascript:;" class="button">商家分类 <span class="fa"></span></a>
+			<div class="drop-menu-list">
+				<div class="list-block">
+					<ul>
+						<li><a class="list-button item-link" href="{php echo $this->createMobileUrl('search', array('cid' => 0));}">全部</a></li>
+						{loop $categorys $row}
+							<li><a class="list-button item-link" href="{php echo $this->createMobileUrl('search', array('cid' => $row['id']));}">{$row['title']}</a></li>
+						{/loop}
+					</ul>
+				</div>
+			</div>
+			<a href="javascript:;" class="button">智能排序 <span class="fa"></span></a>
+			<div class="drop-menu-list">
+				<div class="list-block">
+					<ul>
+						<li><a class="list-button item-link" href="{php echo $this->createMobileUrl('search', array('order' => ''));}"><span class="icon"></span>全部</a></li>
+						{loop $orderbys $row}
+						<li><a class="list-button item-link"  href="{php echo $this->createMobileUrl('search', array('order' => $row['key']));}">{$row['title']}</a></li>
+						{/loop}
+					</ul>
+				</div>
+			</div>
+			<a href="javascript:;" class="button">优惠活动 <span class="fa"></span></a>
+			<div class="drop-menu-list">
+				<div class="list-block">
+					<ul>
+						<li><a class="list-button item-link" href="{php echo $this->createMobileUrl('search', array('dis' => ''));}"><span class="icon"></span>全部</a></li>
+						{loop $discounts $row}
+							<li><a class="list-button item-link" href="{php echo $this->createMobileUrl('search', array('dis' => $row['key']));}"><span class="{$row['css']}"></span>{$row['title']}</a></li>
+						{/loop}
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="store-list" {if empty($stores)}style="position:relative; background: #eee"{/if}>
+			{if empty($stores)}
+				<div class="common-no-con">
+					<img src= "{MODULE_URL}resource/app/img/store_no_con.png" alt="" />
+					<p>抱歉,没有符合条件的商户！</p>
+				</div>
+			{else}
+			{loop $stores $store}
+				<div data-lat="{$store['location_x']}" data-lng="{$store['location_y']}" class="list-item">
+					<a href="{php echo $this->createMobileUrl('goods', array('sid' => $store['id']));}" class="external">
+						<div class="store-info row no-gutter">
+							<div class="store-img col-25">
+								<img src="{php echo tomedia($store['logo']);}" alt="{$store['title']}">
+							</div>
+							<div class="col-75">
+								<div class="row no-gutter">
+									<div class="col-60 text-ellipsis">{$store['title']}</div>
+									<div class="col-40 money-info text-right">
+										{if $store['token_status'] == 1}
+										<span>券</span>
+										{/if}
+										{if $store['invoice_status'] == 1}
+										<span>票</span>
+										{/if}
+										<span>付</span>
+									</div>
+								</div>
+								<div class="rel-info">
+									<div class="row no-gutter">
+										<div class="col-60">
+											{if $store['is_in_business_hours']}
+											<div class="star-rank">
+												<span class="star-rank-outline">
+													<span class="star-rank-active" style="width:88%"></span>
+													<!--<span class="star-rank-value">3.5</span>-->
+												</span>
+											</div>
+											{else}
+											<div class="order-status">
+												<span class="badge bg-default">店铺休息中</span>
+											</div>
+											{/if}
+										</div>
+										<div class="col-40 text-right distance hide">距离4KM</div>
+									</div>
+									<div class="delivery-conditions">
+										起送￥{$store['send_price']}<span class="pipe">|</span>配送￥{$store['delivery_price']}<span class="pipe">|</span>约{$store['delivery_time']}分钟
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="dashed-line"></div>
+						{if $store['activity']['first_order_status'] == 1}
+							<div class="free">
+								新用户在线支付
+								{loop $store['activity']['first_order_data'] $first}
+								满{$first['condition']}元减{$first['back']},
+								{/loop}
+							</div>
+						{/if}
+						{if $store['activity']['discount_status'] == 1}
+							<div class="minus">
+								在线支付
+								{loop $store['activity']['discount_data'] $discount}
+								满{$discount['condition']}元减{$discount['back']},
+								{/loop}
+							</div>
+						{/if}
+						{if $store['activity']['grant_status'] == 1}
+							<div class="zeng">
+								在线支付
+								{loop $store['activity']['grant_data'] $grant}
+								满{$grant['condition']}元赠{$grant['back']},
+								{/loop}
+							</div>
+						{/if}
+						{if !empty($store['hot_goods'])}
+							<div class="dashed-line"></div>
+							<div class="hot">
+								热销:
+								{loop $store['hot_goods'] $good}
+								{$good['title']}
+								{/loop}
+							</div>
+						{/if}
+					</a>
+				</div>
+			{/loop}
+			{/if}
+		</div>
+	</div>
+</div>
+{template 'common'}
+{template 'footer'}

@@ -1,0 +1,157 @@
+{template 'header'}
+{template 'common'}
+{if $order['status_otherpay'] == '0'}
+<div class="pay">
+	<form action="" method="post">
+		<div class="panel panel-default">
+			<div class="panel-heading text-muted">来自小伙伴的代付订单</div>
+			<div class="panel-body">
+				<div class="goods-info clearfix">
+					<div class="col-xs-12">
+						<img src="{php echo tomedia($goods['thumb'])}" class="pull-left">
+						<p><a href="{php echo $this->createMobileUrl('detail', array('id' => $goods['id']))}">{$goods['title']}</a></p>
+						<span class="style">{$order['address']['realname']}　{$order['address']['mobile']}<br>{$order['address']['province']}　{$order['address']['city']}　{$order['address']['area']}　***</span><br>
+						<span class="price">￥{$order['price']}</span>
+					</div>
+					<div class="pull-right">
+						<a href="{php echo $this->createMobileUrl('detail', array('id' => $goods['id']))}" class="btn btn-default btn-sm">查看商品</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="panel panel-default payment">
+			<div class="panel-heading">多人代付</div>
+			<div class="panel-body">
+				<div class="line"></div>
+				<div class="steps">
+					<div class="col-xs-3 text-center"><span class="step img-circle">1</span><p>留言并分享</p></div>
+					<div class="col-xs-3 text-center"><span class="step img-circle">2</span><p>多人参与付款</p></div>
+					<div class="col-xs-3 text-center"><span class="step img-circle">3</span><p>筹集完金额</p></div>
+					<div class="col-xs-3 text-center"><span class="step img-circle">4</span><p>代付成功</p></div>
+				</div>
+			</div>
+		</div>
+		<div class="pay-info">
+			<form action="" method="post">
+				<textarea class="form-control" rows="3" name="helpmsg">帮我付款吧</textarea><br>
+				<button class="btn-block btn btn-success" name="helppay" type="submit" value="yes">下一步</button>
+				<input name="token" type="hidden" value="{$_W['token']}" />
+			</form>
+			<br/>
+			<a class="btn-block btn btn-default" href="{php echo $this->createMobileUrl('myorder', array('orderid' => $order['id'], 'op' => 'detail'))}">查看订单详情</a>
+		</div>
+	</form>
+</div>
+{/if}
+{if $order['status_otherpay'] == '1'}
+<!--无好友帮助支付-->
+<div class="pay-step">
+	<div class="header">
+		<p class="message text-center">{$order['remark']}</p>
+	</div>
+	<div class="panel panel-default rate" style="border-bottom-color:#EEE;">
+		<div class="panel-body" style="padding:10px;">
+			<div class="pull-left thumb">
+				<img src="{if !empty($order['founder']['avatar'])}{$order['founder']['avatar']}{else}{MODULE_URL}/images/helpbuy-icon.jpg{/if}" class="img-rounded">
+			</div>
+			<div class="pull-left" style="padding-left:98px; position:absolute; margin-top:-35px; color:#FFF; font-size:16px;">{$order['address']['realname']}的众筹</div>
+			<div class="pull-right" style="width:100%; padding-left:95px;">
+				<div class="progress" style="margin-bottom:5px;">
+					<div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="{if $order['status'] == '1'}width:100%;{else}width: {php echo $otherpaytotal / $order['price'] * 100}%;{/if}"></div>
+				</div>
+				<div class="clearfix" style="font-size:12px;">
+					<span class="pull-left">已完成<i style="color:#f90; font-style:normal;">{if $order['status'] == '1'}100%;{else}{php echo intval($otherpaytotal / $order['price'] * 100)}%{/if}</i></span>
+					<span class="pull-right">还差<i style="color:#f90; font-style:normal;">{if $order['status'] == '1'}0{else}{php echo $order['price'] - $otherpaytotal}{/if}元</i></span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="panel panel-default" style="border-top:0;">
+		<div class="panel-body" style="padding:10px;">
+			<a href="{php echo $this->createMobileUrl('detail', array('id' => $goods['id']))}" style="text-decoration:none;">
+				<img src="{php echo tomedia($goods['thumb'])}" style="width:84px; max-height:84px;" class="pull-right">
+				<div>
+					<p style="color:#333; font-size:16px;">{$goods['title']}</p>
+					<p style="color:#f90; margin-bottom:0;">￥{$order['price']}</p>
+				</div>
+			</a>
+		</div>
+	</div>
+
+	<div class="buy-bar clearfix">
+		{if $order['from_user'] == $_W['openid'] || $order['from_user'] == $_W['member']['uid'] || !empty($_GPC['showprocess']) ||  $order['status'] == '1'}
+		<a class="btn btn-success" onclick="$('#share').removeClass('hidden');" style="width:90%;">找小伙伴帮忙付款</a>
+		{else}
+		<a class="btn btn-success" data-toggle="modal" data-target="#pay-another" style="width:40%;">帮TA付款</a>
+		<a class="btn btn-default" onclick="$('#share').removeClass('hidden');" style="width:40%;">找人帮TA</a>
+		{/if}
+	</div>
+	{if $order['from_user'] == $_W['openid'] || $order['from_user'] == $_W['member']['uid'] || !empty($_GPC['showprocess']) ||  $order['status'] == '1'}
+	{else}
+	<!--代付界面-->
+	<div id="pay-another" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="background:#f1f2f2;">
+		<button type="button" class="close" data-dismiss="modal" aria-label="Close" style="opacity:1; color:#CCC;">
+			<span aria-hidden="true" class="img-circle" style="font-size:30px; background:#FFF; display:block; width:40px; height:40px; line-height:40px; margin:5px;"><i class="fa fa-times"></i></span>
+		</button>
+		<div class="pay-another" style="margin-top:50px;">
+			<form action="" method="post" role="form">
+				<h5 class="text-muted" style="padding-left:10px;">付款人信息</h5>
+				<div class="panel panel-default" style="border:0; background:transparent;">
+					<div class="panel-body list-group user-info" style="padding:0;">
+						<div class="list-group-item clearfix">
+							<div class="col-xs-3"><label class="control-label">我的姓名</label></div>
+							<div class="col-xs-9">
+								<input type="text" name="username" class="form-control" value="朋友">
+							</div>
+						</div>
+						<div class="list-group-item clearfix">
+							<div class="col-xs-3"><label>给他留言</label></div>
+							<div class="col-xs-9">
+								<textarea rows="3" class="form-control">嘛钱不钱的，伤感情。这么着吧，这次我帮你，下次你帮我！</textarea>
+							</div>
+						</div>
+						<div class="list-group-item clearfix" style="margin-top:20px;">
+							<div class="col-xs-3"><label>付款金额</label></div>
+							<div class="col-xs-9">
+								<input type="text" class="form-control" name="price" value=""  placeholder="最低￥{$goods['otherpay']['low']}，最高￥{$goods['otherpay']['high']}"/>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="btns">
+					<button class="btn btn-success btn-block" name="submit" type="submit" id="wBtn" value="wechat" style="margin-bottom:5px;">微信安全支付(必须使用微信内置浏览器)</button>
+					<input name="token" type="hidden" value="{$_W['token']}" />
+				</div>
+			</form>
+		</div>
+	</div>
+	{/if}
+</div>
+<!--点击分享或者找小伙伴帮忙付款按钮后的界面-->
+<div id="share" class="hidden">
+	<span class="guide-arrow"></span>
+	<div class="guide-inner">
+		<p class="text-center">请点击右上角</p>
+		<p class="text-center">通过&nbsp;<span class="icons-share"></span>【发送给朋友】功能</p>
+		<p class="text-center">或&nbsp;<span class="icons-share-c"></span>【分享到朋友圈】功能</p>
+		<p class="text-center">把消息告诉小伙伴呦~</p>
+	</div>
+	<div class="text-center" style="position:absolute; bottom:20%; width:100%;">
+		<span class="guide-close img-circle" onclick="$('#share').addClass('hidden');">×</span>
+	</div>
+</div>
+{/if}
+<script type="text/javascript">
+	require(['bootstrap']);
+	document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+		$('#wBtn').removeAttr('disabled');
+		$('#wBtn').html('微信支付');
+	});
+	
+	sharedata = {
+		'title' : "{$order['address']['realname']}：{$goods['title']}",
+		'imgUrl' : "{php echo tomedia($goods['thumb'])}",
+		'desc' : "{$order['remark']}"
+	}
+</script>
+{template 'footer'}

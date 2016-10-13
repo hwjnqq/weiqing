@@ -1,0 +1,29 @@
+<script id="tpl-order" type="text/html">
+	<{# for(var i = 0, len = d.length; i < len; i++){ }>
+		<li>
+			<div class="order-ls-info">
+				<div class="order-ls-tl">下单人:<{d[i].username}><span class="<{d[i].status_color}>"><{d[i].status_cn}></span></div>
+				<div class="order-ls-date"><{d[i].addtime_cn}><span>编号: <{d[i].id}></span></div>
+				<div class="order-ls-dl">
+					<{# for(var j = 0, lenj = d[i].goods.length; j < lenj; j++){ }>
+					<div class="row">
+						<div class="col-60"><{d[i].goods[j].goods_title}></div>
+						<div class="col-20 align-right">X <{d[i].goods[j].goods_num}></div>
+						<div class="col-20 align-right">¥<{d[i].goods[j].goods_price}></div>
+					</div>
+					<{# } }>
+					<div class="row">
+						<div class="col-60">配送费¥<{d[i].delivery_fee}> + 包装费¥<{d[i].pack_fee}></div>
+						<div class="col-40 align-right">¥<{d[i].total_fee}>元</div>
+					</div>
+				</div>
+				<div class="order-ls-sum">共1件，合计：¥<{d[i].final_fee}><span class="color-danger">(已优惠¥<{d[i].discount_fee}>)</span></div>
+			</div>
+			<div class="order-ls-btn">
+				<a href="javascript:;"><i class="fa fa-selected"></i> 打印</a>
+				<a href="#tab4" class="create-actions"><i class="fa fa-selected"></i> 设置状态</a>
+				<a href="javascript:;"><i class="fa fa-selected"></i> 备注</a>
+			</div>
+		</li>
+	<{# } }>
+</script>

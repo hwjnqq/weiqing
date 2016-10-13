@@ -1,0 +1,268 @@
+<input type="hidden" name="reply_id" value="{$reply['id']}" />
+<!-- 规则创建 -->
+<div class="panel panel-default">
+	<div class="panel-heading">
+		添加活动规则
+	</div>
+	<div class="panel-body">
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">项目编号</label>
+			<div class="col-sm-9 col-xs-12">
+				<div class="help-block">
+					<span class="label label-info">{$reply['rid']}</span>
+					<span class="help-block">添加完规则后，生成的编号用于打印程序配置填写</span>
+				</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">管理码</label>
+			<div class="col-sm-9 col-xs-12">
+				<input type="text" value="{$reply['mpwd']}" class="form-control" name="mpwd">
+				<div class="help-block">增加粉丝可打印次数用到此管理码，设置5位以内数字即可</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+			<div class="col-sm-9 col-xs-12">
+				<label for="radio_1" class="radio-inline">
+					<input type="radio" name="wpstatus" id="radio_1" value="0" {if empty($rid)}disabled{/if} {if $reply['status'] == 0 || empty($reply['status'])} checked{/if} /> 停用
+				</label>
+				<label for="radio_2" class="radio-inline">
+					<input type="radio" name="wpstatus" id="radio_2" value="1" {if empty($rid)}disabled{/if} {if $reply['status'] == 1} checked{/if} /> 启用
+				</label>
+			</div>
+		</div>
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">动态参与码</label>
+			<div class="col-sm-9 col-xs-12">
+				<label for="radio_3" class="radio-inline">
+					<input type="radio" name="ispwd" id="radio_3" value="0" {if empty($rid)}disabled{/if} {if $reply['ispwd'] == 0 || empty($reply['ispwd'])} checked{/if} /> 停用
+				</label>
+				<label for="radio_4" class="radio-inline">
+					<input type="radio" name="ispwd" id="radio_4" value="1" {if empty($rid)}disabled{/if} {if $reply['ispwd'] == 1} checked{/if} /> 启用 （启用后初始密码为：111111；可与消费码同时启用，可各自启用）
+				</label>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">粉丝可参与次数</label>
+			<div class="col-sm-9 col-xs-12">
+				<input type="text" value="{$reply['maxnum']}" class="form-control" name="maxnum">
+				<div class="help-block">用户免费可以参与打印照片次数，如填 10 以下的数字</div>
+			</div>
+		</div>
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">计次周期</label>
+			<div class="col-sm-9 col-xs-12">
+				<label for="radio_5" class="radio-inline">
+					<input type="radio" name="isck" id="radio_5" value="0" {if empty($rid)}disabled{/if} {if $reply['isck'] == 0 || empty($reply['isck'])} checked{/if} /> 按天
+				</label>
+				<label for="radio_17" class="radio-inline">
+					<input type="radio" name="isck" id="radio_17" value="2" {if empty($rid)}disabled{/if} {if $reply['isck'] == 2} checked{/if} /> 按周
+				</label>
+				<label for="radio_6" class="radio-inline">
+					<input type="radio" name="isck" id="radio_6" value="1" {if empty($rid)}disabled{/if} {if $reply['isck'] == 1} checked{/if} /> 整个活动期 （删除上传照片记录，则重新计次）
+				</label>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">消费码</label>
+			<div class="col-sm-9 col-xs-12">
+				<label for="radio_7" class="radio-inline">
+					<input type="radio" name="isxf" id="radio_7" value="0" {if empty($rid)}disabled{/if} {if $reply['isxf'] == 0 || empty($reply['isxf'])} checked{/if} /> 停用
+				</label>
+				<label for="radio_8" class="radio-inline">
+					<input type="radio" name="isxf" id="radio_8" value="1" {if empty($rid)}disabled{/if} {if $reply['isxf'] == 1} checked{/if} /> 启用 （启用后，消费码可人工发放也可融合其他功能发放）
+				</label>
+			</div>
+		</div>
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">凭消费码单次可打印照片数量</label>
+			<div class="col-sm-9 col-xs-12">
+				<input type="text" value="{$reply['dcmaxnum']}" class="form-control" name="dcmaxnum">
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">粉丝留言</label>
+			<div class="col-sm-9 col-xs-12">
+				<label for="radio_9" class="radio-inline">
+					<input type="radio" name="wplyok" id="radio_9" value="0" {if empty($rid)}disabled{/if} {if $reply['lyok'] == 0 || empty($reply['lyok'])} checked{/if} /> 停用
+				</label>
+				<label for="radio_10" class="radio-inline">
+					<input type="radio" name="wplyok" id="radio_10" value="1" {if empty($rid)}disabled{/if} {if $reply['lyok'] == 1} checked{/if} /> 启用
+				</label>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">自助剪裁</label>
+			<div class="col-sm-9 col-xs-12">
+				<label for="radio_11" class="radio-inline">
+					<input type="radio" name="jcok" id="radio_11" value="0" {if empty($rid)}disabled{/if} {if $reply['jcok'] == 0 || empty($reply['jcok'])} checked{/if} /> 停用
+				</label>
+				<label for="radio_12" class="radio-inline">
+					<input type="radio" name="jcok" id="radio_12" value="1" {if empty($rid)}disabled{/if} {if $reply['jcok'] == 1} checked{/if} /> 启用
+				</label>
+			</div>
+		</div>
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">照片竖拍模板</label>
+			<div class="col-sm-9 col-xs-12">
+				{php echo tpl_form_field_image('picture1', $reply['picture1'])}
+				<div class="help-block">JPG格式（600*900,150DPI）</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">照片横拍模板</label>
+			<div class="col-sm-9 col-xs-12">
+				{php echo tpl_form_field_image('picture2', $reply['picture2'])}
+				<div class="help-block">JPG格式（900*600,150DPI）</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">裁切效果模板</label>
+			<div class="col-sm-9 col-xs-12">
+				{php echo tpl_form_field_image('picture3', $reply['picture3'])}
+				<div class="help-block">JPG格式（600*900,150DPI）</div>
+			</div>
+		</div>
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">进入提示内容</label>
+			<div class="col-sm-9 col-xs-12">
+				<textarea name="msg" class="form-control" cols="60" rows="5">{$reply['msg']}</textarea>
+				<div class="help-block">用户在进入微拍活动的提示语。如：欢迎进入微拍活动。</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">参与活动成功提示内容</label>
+			<div class="col-sm-9 col-xs-12">
+				<textarea name="msg_succ" class="form-control" cols="60" rows="5">{$reply['msg_succ']}</textarea>
+				<div class="help-block">参与活动成功提示内容。如：参与活动成功。</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">参与活动失败提示内容</label>
+			<div class="col-sm-9 col-xs-12">
+				<textarea name="msg_fail" class="form-control" cols="60" rows="5">{$reply['msg_fail']}</textarea>
+				<div class="help-block">参与活动失败提示内容。如：提交失败，请重试。。</div>
+			</div>
+		</div>
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">网络图片管理</label>
+			<div class="col-sm-9 col-xs-12">
+				<label for="radio_13" class="radio-inline">
+					<input type="radio" name="adstatus" id="radio_13" value="0" {if empty($rid)}disabled{/if} {if $reply['adstatus'] == 0 || empty($reply['adstatus'])} checked{/if} /> 停用
+				</label>
+				<label for="radio_14" class="radio-inline">
+					<input type="radio" name="adstatus" id="radio_14" value="1" {if empty($rid)}disabled{/if} {if $reply['adstatus'] == 1} checked{/if} /> 启用（停用后，则调用打印软件所在电脑本地的配置文件：buju.ini）
+				</label>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">二维码图片</label>
+			<div class="col-sm-9 col-xs-12">
+				<input type="text" placeholder="输入二维码外链网址，如：http://……，只可JPG格式图片，大小参照样本；" value="{$reply["acode"]}" class="form-control" name="acode" id="acode">
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">背景图</label>
+			<div class="col-sm-9 col-xs-12">
+				<input type="text" placeholder="输入背景图外链网址，如：http://……，只可JPG格式图片，大小参照样本；" value="{$reply["apage"]}" class="form-control" name="apage" id="apage">
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">WiFi联网图标</label>
+			<div class="col-sm-9 col-xs-12">
+				<input type="text" placeholder="输入WiFi联网标示外链网址，如：http://……，只可JPG格式图片，大小参照样本；" value="{$reply["wifis"]}" class="form-control" name="wifis" id="wifis">
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">WiFi断网图标</label>
+			<div class="col-sm-9 col-xs-12">
+				<input type="text" placeholder="输入WiFi断网标示外链网址，如：http://……，只可JPG格式图片，大小参照样本；" value="{$reply["wifif"]}" class="form-control" name="wifif" id="wifif">
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">操作说明图</label>
+			<div class="col-sm-9 col-xs-12">
+				<input type="text" placeholder="输入操作流程图外链网址，如：http://……，只可JPG格式图片，大小参照样本；" value="{$reply["compass"]}" class="form-control" name="compass" id="compass">
+			</div>
+		</div>
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">广告管理</label>
+			<div class="col-sm-9 col-xs-12">
+				<label for="radio_15" class="radio-inline">
+					<input type="radio" name="ad1type" id="radio_15" value="0" {if empty($rid)}disabled{/if} {if $reply['ad1type'] == 0 || empty($reply['ad1type'])} checked{/if} /> 图片
+				</label>
+				<label for="radio_16" class="radio-inline">
+					<input type="radio" name="ad1type" id="radio_16" value="1" {if empty($rid)}disabled{/if} {if $reply['ad1type'] == 1} checked{/if} /> 视频（网络方式视频加载可能较慢）
+				</label>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">主位广告格式</label>
+			<div class="col-sm-9 col-xs-12">
+				<label for="radio_15" class="radio-inline">
+					<input type="radio" name="ad1type" id="radio_15" value="0" {if empty($rid)}disabled{/if} {if $reply['ad1type'] == 0 || empty($reply['ad1type'])} checked{/if} /> 图片
+				</label>
+				<label for="radio_16" class="radio-inline">
+					<input type="radio" name="ad1type" id="radio_16" value="1" {if empty($rid)}disabled{/if} {if $reply['ad1type'] == 1} checked{/if} /> 视频（网络方式视频加载可能较慢）
+				</label>
+			</div>
+		</div>
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">主位广告</label>
+			<div class="col-sm-9 col-xs-12">
+				<input type="text" placeholder="输入广告外链网址，如：http://……，可图可视频，图片JPG格式，大小参照样本；" value="{$reply["ad1url1"]}" class="form-control" name="ad1url1" id="ad1url1">
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">小图切换时间</label>
+			<div class="col-sm-9 col-xs-12">
+				<input type="text" placeholder="输入以下小图广告位图片切换时间，必须为数字，单位为秒" value="{$reply['adtime1']}" class="form-control" name="adtime1" id="adtime1">
+			</div>
+		</div>
+
+		{php for($i = 1;$i < 4;$i++){}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">小图1位广告{$i}</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" placeholder="输入广告外链网址，如：http://……，只可JPG格式图片，大小参照样本；" value="{$reply["ad2url$i"]}" class="form-control" name="ad2url{$i}" id="ad2url{$i}">
+				</div>
+			</div>
+		{php };}
+
+		{php for($i = 1;$i < 4;$i++){}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">小图2位广告{$i}</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" placeholder="输入广告外链网址，如：http://……，只可JPG格式图片，大小参照样本；" value="{$reply["ad3url$i"]}" class="form-control" name="ad3url{$i}" id="ad3url{$i}">
+				</div>
+			</div>
+		{php };}
+
+		{php for($i = 1;$i < 4;$i++){}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">小图3位广告{$i}</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" placeholder="输入广告外链网址，如：http://……，只可JPG格式图片，大小参照样本；" value="{$reply["ad4url$i"]}" class="form-control" name="ad4url{$i}" id="ad4url{$i}">
+				</div>
+			</div>
+		{php };}
+
+	</div>
+</div>

@@ -1,0 +1,272 @@
+{template 'common/header'}
+{php load()->func('tpl')}
+{template 'nav'}
+<div class="main">
+<script type="text/javascript" src="../addons/we7_community/style/PCASClass.js"></script>
+{if $operation == 'post'}
+	<ul class="nav nav-tabs">
+		<li><a href="{php echo $this->createWebUrl('express', array('op' => 'display','regionid'=>$_GPC['regionid']));}">管理</a></li>
+		<li class="active"><a href="{php echo $this->createWebUrl('express', array('op' => 'post','regionid'=>$_GPC['regionid'], 'id'=>$item['id']));}">编辑</a></li>
+	</ul>
+<form action="" class="form-horizontal form" method="post" role="form">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			快递信息
+		</div>
+		<div class="panel-body">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+				<div class="col-sm-9 col-xs-12">
+					<select name="status" class="form-control">
+						<option value="1" {if intval($item['status'])==1} selected{/if}>预约</option>
+						<option value="2" {if intval($item['status'])==2} selected{/if}>揽收</option>
+						<option value="3" {if intval($item['status'])==3} selected{/if}>签收</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">包裹类型</label>
+				<div class="col-sm-9 col-xs-12">
+					<select name="type" id="type" class="form-control ">
+						{loop $types $key $type}
+						{if $key!=0}
+						<option value="{$key}"{if $key==$item['type']} selected{/if}>{$type}</option>
+						{/if}
+						{/loop}
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">包裹内容</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" class="form-control" name="detail" id="detail"  value="{$item['detail']}" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">寄件人姓名</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text"  name="realname" id="realname" class="form-control" value="{$item['realname']}" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">寄件人电话</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text"  name="mobile" id="mobile" class="form-control" value="{$item['mobile']}" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">目的地</label>
+				<div class="col-sm-9 col-xs-12">
+					<select id="province" name="province" class="form-control"></select>
+					<select id="city" name="city" class="form-control"></select>
+					<select id=district name="district" class="form-control"></select>
+					<script>
+						new PCAS("province","city","district","{$item['province']}","{$item['city']}","{$item['district']}")
+					</script>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">预估重量</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="weight_estimate" id="weight_estimate" class="form-control" value="{$item['weight_estimate']}" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">快递公司</label>
+				<div class="col-sm-9 col-xs-12">
+					<select name="express_code" id="express_code" class="form-control span5">
+						<option value="">选择快递公司</option>
+						{loop $coms $code $com}
+						<option value="{$code}"{if $code==$item['express_code']} selected{/if}>{$com['name']}</option>
+						{/loop}
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">快递单号</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="sn" id="sn" class="form-control" value="{$item['sn']}" />
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			个人信息
+		</div>
+		<div class="panel-body">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">手机</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" value="{$member['mobile']}" readonly="readonly" class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">住户身份</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" class="form-control"  value="{if intval($member['type'])==1}业主{elseif intval($member['type'])==2}租户{/if}" readonly="readonly"/>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">地址</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" class="form-control" value="{$member['address']}" readonly="readonly"/>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="form-group col-sm-12">
+		<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+		<input type="hidden" name="token" value="{$_W['token']}" />
+	</div>
+	<input type="hidden" name="id" value="{$item['id']}" />
+	<input type="hidden" name="weid" value="{$_W['weid']}" />
+	<input type="hidden" name="regionid" value="{$item['regionid']}" />
+	<input type="hidden" name="openid" value="{$item['openid']}" />
+	<input type="hidden" name="token" value="{$_W['token']}" />
+</form>
+{elseif $operation == 'display'}
+<ul class="nav nav-tabs">
+	<li class="active"><a href="{php echo $this->createWebUrl('express', array('op' => 'display','regionid'=>$_GPC['regionid']));}">管理</a></li>
+</ul>
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+			<input type="hidden" name="m" value="we7_community" />
+			<input type="hidden" name="regionid" value="{$_GPC['regionid']}" />
+			<input type="hidden" name="type" value="1" />
+			<input type="hidden" name="op" value="display" />
+			<input type="hidden" name="do" value="express">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">快递包裹类型</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<select name="type" class="form-control">
+						<option value=""{if empty($_GPC['type'])} selected{/if}>所有</option>
+						{loop $types $key $type}
+						<option value="{$key}"{if intval($_GPC['type'])==$key} selected{/if}>{$type}</option>
+						{/loop}
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">快递公司</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<select name="express_code" class="form-control">
+						<option value=""{if empty($_GPC['express_code'])} selected{/if}>所有</option>
+						{loop $coms $key $com}
+						<option value="{$key}"{if $_GPC['type']==$key} selected{/if}>{$com['name']}</option>
+						{/loop}
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">快递单号</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<input type="text" name="sn" class="span5 form-control" value="{$_GPC['sn']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">预约日期</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					{php echo tpl_form_field_daterange('datelimit',array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)))}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">状态</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<select name="status" class="form-control">
+						<option value=""{if empty($_GPC['status'])} selected{/if}>所有</option>
+						{loop $statuses $key $v}
+						<option value="{$key}"{if $_GPC['status']==$key} selected{/if}>{$v}</option>
+						{/loop}
+					</select>
+				</div>
+				<div class="col-sm-2">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+<div class="panel panel-default">
+	<div class="panel-body table-responsive">
+	<table class="table table-hover">
+		<thead class="navbar-inner">
+		<tr>
+			<th style="width:120px;">快递公司</th>
+			<th style="width:120px;">快递单号</th>
+			<th style="width:80px;">预约人</th>
+			<th style="width:100px;">预约电话</th>
+			<th style="width:120px">包裹类型</th>
+			<th style="width:120px;">包裹内容</th>
+			<th style="width:100px;">预估重量</th>
+			<th style="width:120px;">目的地</th>
+			<th style="width:120px">报修日期</th>
+			<th style="width:80px;">状态</th>
+			<th style="width:80px">操作</th>
+		</tr>
+		</thead>
+		<tbody>
+		{loop $list $item}
+		<tr>
+			<td>{$coms[$item['express_code']]['name']}</td>
+			<td>{$item['sn']}</td>
+			<td>{$item['realname']}</td>
+			<td>{$item['mobile']}</td>
+			<td>{$types[$item['type']]}</td>
+			<td>{$item['detail']}</td>
+			<td>{$item['weight_estimate']}</td>
+			<td>{$item['province']} {$item['city']} {$item['district']}</td>
+			<td>{php echo date('Y-m-d H:i', $item[createtime]);}</td>
+			<td>
+				{if $item['status'] == 1 }<span class="label label-error">预约</span>{/if}
+				{if $item['status'] == 2 }<span class="label label-info">揽收</span>{/if}
+				{if $item['status'] == 3 }<span class="label label-success">签收</span>{/if}
+			</td>
+			<td>
+				<span>
+					<a href="{php echo $this->createWebUrl('express',array('op'=>'post','id'=>$item['id'], 'regionid' => $regionid));}">查看</a>
+				</span>
+				<span>
+					<a onclick="return confirm('删除操作不可恢复，确认吗？')" href="{php echo $this->createWebUrl('express',array('op'=>'delete','id'=>$item['id'], 'regionid' => $regionid));}">删除</a>
+				</span>
+			</td>
+		</tr>
+		{/loop}
+		</tbody>
+	</table>
+	</div>
+</div>
+{$pager}
+
+<link type="text/css" rel="stylesheet" href="./resource/style/daterangepicker.css" />
+<script type="text/javascript" src="./resource/script/daterangepicker.js"></script>
+<script type="text/javascript">
+	$('#date-range').daterangepicker({
+		format: 'YYYY-MM-DD',
+		startDate: $(':hidden[name=starttime]').val(),
+		endDate: $(':hidden[name=endtime]').val(),
+		locale: {
+			applyLabel: '确定',
+			cancelLabel: '取消',
+			fromLabel: '从',
+			toLabel: '至',
+			weekLabel: '周',
+			customRangeLabel: '日期范围',
+			daysOfWeek: moment()._lang._weekdaysMin.slice(),
+			monthNames: moment()._lang._monthsShort.slice(),
+			firstDay: 0
+		}
+	}, function(start, end){
+		$('#date-range .date-title').html(start.format('YYYY-MM-DD') + ' 至 ' + end.format('YYYY-MM-DD'));
+		$(':hidden[name=starttime]').val(start.format('YYYY-MM-DD'));
+		$(':hidden[name=endtime]').val(end.format('YYYY-MM-DD'));
+	});
+</script>
+{/if}
+</div>
+{template 'common/footer'}

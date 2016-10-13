@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns="http://www.we7.cc" versionCode="0.6">
+	<application setting="false">
+		<name><![CDATA[微拍转接]]></name>
+		<identifie><![CDATA[we7_qyweipai_proxy]]></identifie>
+		<version><![CDATA[1.0]]></version>
+		<type><![CDATA[activity]]></type>
+		<ability><![CDATA[微拍转接0.52版]]></ability>
+		<description><![CDATA[微拍转接0.52版]]></description>
+		<author><![CDATA[微擎团队]]></author>
+		<url><![CDATA[http://bbs.we7.cc/]]></url>
+	</application>
+	<platform>
+		<subscribes>
+		</subscribes>
+		<handles>
+			<message type="text" />
+		</handles>
+		<rule embed="true" />
+	</platform>
+	<bindings>
+	</bindings>
+	<install><![CDATA[
+	CREATE TABLE IF NOT EXISTS `ims_we7_qyweipai_proxy_reply` (
+	  `id` int(10) unsigned NOT NULL,
+	  `rid` int(10) unsigned NOT NULL,
+	  `proxyurl` varchar(255) NOT NULL,
+	  `proxytoken` varchar(64) NOT NULL,
+	   PRIMARY KEY (`id`),
+	   KEY `idx_rid` (`rid`)
+	) ENGINE=MyISAM ;
+	]]></install>
+	<uninstall><![CDATA[
+	DROP TABLE IF EXISTS ims_we7_qyweipai_proxy_reply
+	]]></uninstall>
+	<upgrade><![CDATA[]]></upgrade>
+</manifest>

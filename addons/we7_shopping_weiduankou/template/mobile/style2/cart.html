@@ -1,0 +1,169 @@
+{php $bootstrap_type = 3;}
+{template 'header'}
+{template 'common'}
+
+<div id="cart" class="cart">
+	<div class="head clearfix">
+		<div class="col-xs-2 text-left"><a href="javascript:history.back();"><i class="fa fa-angle-left"></i></a></div>
+		<div class="col-xs-8 text-center"><span class="title">购物车</span></div>
+		<div class="col-xs-2 text-right"><a href="javascript:void(0)" onclick="clearCart()"><i class="fa fa-trash-o"></i></a></div>
+	</div>
+	<div id="mycart">
+		<!--购物车为空-->
+		<div class="empty {if count($list)>0}hidden{/if}">
+			<div class="empty-list">
+				<h4>购物车快饿瘪了 T.T</h4>
+				<span>快给我挑点宝贝</span>
+				<div class="go-shopping"><a href="{php echo $this->createMobileUrl('list')}" class="btn btn-warning">去逛逛</a></div>
+			</div>
+		</div>
+		{loop $list $item}
+		{php $price += $item['totalprice'];}
+		{php $goods = $item['goods']}
+		<!--购物车商品信息-->
+		<div class="list-group goods-list" id="item_{$item['id']}">
+			<div class="list-group-item clearfix">
+				<div class="pull-left">店铺: {$_W['account']['name']}</div>
+				<div class="pull-right"><a class="edit" href="javascript:;" onclick="removeCart({$item['id']})">删除</a></div>
+			</div>
+			<div class="list-group-item clearfix">
+				<div class="col-xs-1" style="line-height:58px;"><input type="checkbox"></div>
+				<div class="goods-info col-xs-8">
+					<img src="{php echo tomedia($goods['thumb']);}" class="pull-left">
+					<p>{$goods['title']}{if $goods['unit']}{/if}</p>
+					{if !empty($goods['optionname'])}
+					<span class="style">{$goods['optionname']}</span>
+					{/if}
+				</div>
+				<div class="col-xs-3">
+					<div class="price text-right">{$goods['marketprice']} 元</div>
+					<div class="num text-right">×{$item['total']}</div>
+				</div>
+			</div>
+		</div>
+		{php $n++;}
+		{/loop}
+		<div class="bar" {if count($list)<=0}style='display:none'{/if}>
+			<div class="col-xs-3 text-left">
+				<input type="checkbox" id="selectAll"/><label for="selectAll"> &nbsp;全选</label>
+			</div>
+			<div class="col-xs-6 text-center">
+				合计 :&nbsp;<strong>{$price}</strong> 元
+			</div>
+			<div class="col-xs-3 text-right">
+				<a class="btn btn-warning btn-sm" href="{php echo $this->createMobileUrl('confirm')}">结算</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	require(['bootstrap']);
+	$(function(){
+		$(".goodsnum").blur(function(){
+			var id = $(this).attr("cartid");
+			if($(this).isInt()){
+				var num = parseInt( $("#goodsnum_" + id).val() );
+				var maxbuy = parseInt( $(this).attr("maxbuy") );
+				var mb = maxbuy;
+				var stock =$("#stock_" + id).html()==''?-1:parseInt($("#stock_" + id).html());
+				if(mb>stock && stock!=-1){
+					mb = stock;
+				}
+		
+				if(num>mb && mb>0){
+					tip("最多只能购买 " + mb + " 件!",true);
+					$("#goodsnum_" + id).val(mb);
+					return;
+				}
+				updateCart(id,num);
+			}else{
+				$(this).val("1");
+				updateCart(id,1);
+			}
+		})
+	})
+	function clearCart(){
+		if (confirm('确定要清空购物车吗？')) {
+			tip("正在处理数据...");
+			$.getJSON('{php echo $this->createMobileUrl('mycart',array('op'=>'clear'));}', function(s){
+				$(".shopcart-item").remove();
+				$("#cartempty").show();
+				$("#cartfooter").hide();
+				tip_close();
+				location.reload();
+			});
+		}
+	}
+	function removeCart(id){
+		if (confirm('您确定要删除此商品吗？')) {
+			tip("正在处理数据...");
+			var url = "{php echo murl('entry//mycart',array('m'=>'we7_shopping_weiduankou','op'=>'remove'), true)}"+ "&id=" + id;
+			$.getJSON(url, function(s){
+				$("#item_" + s.cartid).remove();
+				if($(".shopcart-item").length<=0){
+					$("#cartempty").show();
+					$("#cartfooter").hide();
+				}
+				tip_close();
+				canculate();
+			});
+		}
+	}
+	function updateCart(id,num){
+		var url = "{php echo murl('entry//mycart',array('m'=>'we7_shopping_weiduankou','op'=>'update'), true)}"+ "&id=" + id+"&num=" + num;
+		$.getJSON(url, function(s){
+
+		});
+	}
+	function checkMaxBuy(id, maxbuy){
+
+	}
+	function addNum(id,maxbuy){
+		var mb = maxbuy;
+		 var stock =$("#stock_" + id).html()==''?-1:parseInt($("#stock_" + id).html());
+				if(mb>stock && stock!=-1){
+					mb = stock;
+				}
+		var num = parseInt( $("#goodsnum_" + id).val() ) + 1;
+		if(num>mb && mb>0){
+			tip("最多只能购买 " + mb + " 件!",true);
+			return;
+		}
+		$("#goodsnum_" + id).val(num);
+		var price = parseFloat( $("#singleprice_"+id).html() ) * num;
+		$("#goodsprice_" + id).html(price);
+		canculate();
+		updateCart(id,num);
+	}
+	function reduceNum(id){
+		var num = parseInt( $("#goodsnum_" + id).val() );
+		if(num-1<=0){
+			return;
+		}
+		num--;
+		$("#goodsnum_" + id).val(num);
+		var price = parseFloat( $("#singleprice_"+id).html() ) * num;
+		$("#goodsprice_" + id).html(price);
+		canculate();
+		updateCart(id,num);
+	}
+	function canculate(){
+		var total = 0;
+		$(".singletotalprice").each(function(){
+			total+=parseFloat( $(this).html() );
+		});
+
+		$("#pricetotal").html(total);
+	}
+
+	$('#selectAll').click(function() {
+		var isChecked = $(this).prop('checked');
+		$('input[type="checkbox"]').each(function() {
+			$(this).prop('checked', isChecked);
+		});
+	});
+</script>
+
+{template 'footer'}
+{template 'footerbar'}

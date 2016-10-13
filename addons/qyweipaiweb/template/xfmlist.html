@@ -1,0 +1,180 @@
+{template 'common/header'}
+
+<div class="main">
+    <div class="stat">
+        <div class="stat-div">
+            <div class="sub-item" id="table-list">
+                <ul class="nav nav-tabs">
+                    <li class="active"><a href="{php echo $this->createWebUrl('xfmlist', array('id'=>$id))}">消费码管理</a></li>
+                </ul>
+                <div class="alert alert-warning">
+                    消费码详情：总数：{$num1}个&nbsp;&nbsp;已消费：{$num2}个&nbsp;&nbsp;未消费：{$num3}个
+                </div>
+
+                <div class="panel panel-info">
+                    <div class="panel-heading">筛选</div>
+                    <div class="panel-body">
+                        <form action="./index.php" method="get" class="form-horizontal" role="form">
+                            <input type="hidden" name="c" value="site"/>
+                            <input type="hidden" name="a" value="entry" />
+                            <input type="hidden" name="m" value="qyweipaiweb"/>
+                            <input type="hidden" name="do" value="xfmlist"/>
+                            <input type="hidden" name="id" value="{$_GPC['id']}"/>
+                            <div class="form-group">
+                                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">消费码</label>
+                                <div class="col-xs-12 col-sm-8 col-lg-9">
+                                    <input class="form-control" name="keywords" id="" type="title" value="{$_GPC['keywords']}" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">状态</label>
+                                <div class="col-xs-12 col-sm-8 col-lg-9">
+                                    <select name="status" class="form-control">
+                                        <option value="" {if empty($_GPC['status'])} selected="selected" {/if}>全部</option>
+                                        <option value="1" {if $_GPC['status'] == '1'} selected="selected" {/if}>未消费</option>
+                                        <option value="2" {if $_GPC['status'] == '2'} selected="selected" {/if}>已消费</option>
+                                        <option value="3" {if $_GPC['status'] == '3'} selected="selected" {/if}>系统分配</option>
+                                        <option value="4" {if $_GPC['status'] == '4'} selected="selected" {/if}>线下分配</option>
+                                    </select>
+                                </div>
+                                <div class=" col-xs-12 col-sm-2 col-lg-2">
+                                    <button class="btn btn-default" data-original-title="" title=""><i class="fa fa-search"></i> 搜索</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div style="padding: 0 15px 0  15px;">
+                    <div class="row-fluid">
+                        <div>
+                            <div class="page-header">
+                                <h4><i class="fa fa-plane"></i> 生成消费码：</h4>
+                            </div>
+                            <a class="btn btn-primary" href="{php echo $this->createWebUrl('addxfm', array('name' => 'qyweipaiweb','id'=>$id,'stype'=>0))}">
+                                生成系统分配码
+                            </a>
+                            <a class="btn btn-warning" href="{php echo $this->createWebUrl('addxfm', array('name' => 'qyweipaiweb','id'=>$id,'stype'=>1))}">
+                                生成线下分配码
+                            </a>
+                            <div class="help-block"> 注：一次生成30个；系统分配码可以用在其他模块分配，线下分配码则可搞活动批量送出。</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-success">消费码：{$total}个</button>
+                        <button class="btn btn-danger">已消费：{$total1}个</button>
+                        <button class="btn btn-info">未消费：{$total0}个</button>
+                        <a class="btn btn-default" href="{php echo $this->createWebUrl('download', array('name' => 'qyweipaiweb','id'=>$id))}">
+                            <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>导出消费码
+                        </a>
+                    </div>
+                </div>
+
+                <form action="" method="post" onsubmit="">
+                    <div class="sub-content">
+                        <table class="table table-hover">
+                            <thead class="navbar-inner">
+                            <tr>
+                                <th style="width:50px;" class="row-first">选择</th>
+                                <th style="width:100px;" class="row-first">消费码<i></i></th>
+                                <th style="width:100px;" class="row-first">分配类型<i></i></th>
+                                <th style="width:100px;" class="row-first">使用状态<i></i></th>
+                                <th style="width:200px;" class="row-first">使用时间<i></i></th>
+                                <th style="width:200px;" class="row-first">添加时间</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            {loop $list $row}
+                            <tr>
+                                <td class="row-first"><input type="checkbox" name="select[]" value="{$row['id']}"/></td>
+                                <td>
+                                    <div class="row-first">
+                                        <div class="nickname">{$row['xfm']}</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="row-first">{if $row['stype']==1} 线下分配{else} 系统分配{/if}</div>
+                                </td>
+                                <td>
+                                    <div class="row-first">
+                                        <div class="nickname">{if $row['status']==1} 已消费{else} 未消费{/if}</div>
+                                    </div>
+                                </td>
+                                <td style="font-size:14px; color:#666;" class="row-first">
+                                    {if (!empty($row['use_time']))}
+                                       <span class="label label-danger">{php echo date('Y-m-d H:i:s', $row[use_time]);}</span>
+                                    {else}
+                                        <span class="label label-danger">未使用</span>
+                                    {/if}
+                                </td>
+                                <td style="font-size:14px; color:#666;" class="row-first">
+                                    <div style="margin-bottom:10px;">{php echo date('Y-m-d', $row[create_time]);} {php
+                                        echo date('H:i:s', $row[create_time]);}
+                                    </div>
+                                </td>
+                            </tr>
+                            {/loop}
+                            </tbody>
+                        </table>
+
+                        <table class="table">
+                            <tr>
+                                <td style="width:40px;" class="row-first"><input type="checkbox" id="selectAll"/></td>
+                                <td colspan="4">
+                                    <input type="submit" name="delete" value="删除" class="btn btn-primary" />
+                                    <input type="hidden" name="token" value="{$_W['token']}" />
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </form>
+
+                {$pager}
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        //详细数据相关操作
+        var tdIndex;
+        $("#table-list thead").delegate("th", "mouseover", function () {
+            if ($(this).find("i").hasClass("")) {
+                $("#table-list thead th").each(function () {
+                    if ($(this).find("i").hasClass("icon-sort")) $(this).find("i").attr("class", "");
+                });
+                $("#table-list thead th").eq($(this).index()).find("i").addClass("icon-sort");
+            }
+        });
+        $("#table-list thead th").click(function () {
+            if ($(this).find("i").length > 0) {
+                var a = $(this).find("i");
+                if (a.hasClass("icon-sort") || a.hasClass("icon-caret-up")) { //递减排序
+                    // 数据处理代码位置
+                    $("#table-list thead th i").attr("class", "");
+                    a.addClass("icon-caret-down");
+                } else if (a.hasClass("icon-caret-down")) { //递增排序
+                    // 数据处理代码位置
+                    $("#table-list thead th i").attr("class", "");
+                    a.addClass("icon-caret-up");
+                }
+                $("#table-list thead th,#table-list tbody:eq(0) td").removeClass("row-hover");
+                $(this).addClass("row-hover");
+                tdIndex = $(this).index();
+                $("#table-list tbody:eq(0) tr").each(function () {
+                    $(this).find("td").eq(tdIndex).addClass("row-hover");
+                });
+            }
+        });
+
+        $("#selectAll").click(function(){
+            var checked = $(this).get(0).checked;
+            $("input[type=checkbox]").prop("checked",checked);
+        });
+    });
+</script>
+
+{template 'common/footer'}
