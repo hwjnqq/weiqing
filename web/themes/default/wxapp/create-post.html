@@ -34,17 +34,17 @@
 							<a href="#" class="dropdown-toggle" data-toggle="dropdown">皮肤 <span class="caret"></span></a>
 							<ul class="dropdown-menu" role="menu">
 								<li>
-									<a href="#">Action</a>
+									<a href="#">1</a>
 								</li>
 								<li>
-									<a href="#">Another action</a>
+									<a href="#">2</a>
 								</li>
 								<li>
-									<a href="#">Something else here</a>
+									<a href="#">3</a>
 								</li>
 								<li class="divider"></li>
 								<li>
-									<a href="#">Separated link</a>
+									<a href="#">4</a>
 								</li>
 							</ul>
 						</li>
@@ -52,17 +52,17 @@
 							<a href="#" class="dropdown-toggle" data-toggle="dropdown">马德坤 <span class="caret"></span></a>
 							<ul class="dropdown-menu" role="menu">
 								<li>
-									<a href="#">Action</a>
+									<a href="#">5</a>
 								</li>
 								<li>
-									<a href="#">Another action</a>
+									<a href="#">6</a>
 								</li>
 								<li>
-									<a href="#">Something else here</a>
+									<a href="#">7</a>
 								</li>
 								<li class="divider"></li>
 								<li>
-									<a href="#">Separated link</a>
+									<a href="#">8</a>
 								</li>
 							</ul>
 						</li>
@@ -85,7 +85,7 @@
 					<div class="panel-body">
 						<ul class="nav nav-wxapp" role="tablist">
 							<li ng-class="{'active ban' : createStep == 1, 'finished ready' : createStep > 1}">
-								<a href="javascript:void(0);">
+								<a href="javascript:void(0);" ng-click="backToStep(1)">
 									<i class="num">1</i>
 									<div class="wxapp-step-name">
 										<img src="./resource/images/creat-step-1.png"/>
@@ -94,7 +94,7 @@
 								</a>
 							</li>
 							<li ng-class="{'active ban' : createStep == 2, 'finished ready' : createStep > 2}">
-								<a href="javascript:void(0);">
+								<a href="javascript:void(0);" ng-click="backToStep(2)">
 									<i class="num">2</i>
 									<div class="wxapp-step-name">
 										<img src="./resource/images/creat-step-2.png"/>
@@ -103,7 +103,7 @@
 								</a>
 							</li>
 							<li ng-class="{'active ban' : createStep == 3, 'finished ready' : createStep > 3}">
-								<a href="javascript:void(0);">
+								<a href="javascript:void(0);" ng-click="backToStep(3)">
 									<i class="num">3</i>
 									<div class="wxapp-step-name">
 										<img src="./resource/images/creat-step-3.png"/>
@@ -156,14 +156,14 @@
 											<div we7-select-more></div>
 										</ul>
 									</div>
-									<div class="form-group">
+									<!-- <div class="form-group">
 										<label class="control-label">打包应用说明：</label>
 										<div class="form-controls">
 											<p>1、要打包的应用您必须从<a href="http://s.we7.cc" target="_blank" style="color:#337ab7;font-weight:bold">应用市场</a>购买过；</p>
 											<p>2、您购买的应用的当前版本须支持小程序；</p>
 											<p>3、此页要添加的应用均为测试应用。待微信官方开放小程序后，正式应用再行同步开放。</p>
 										</div>
-									</div>
+									</div> -->
 								</div>
 							</div>
 							<div class="wxapp-modules">
@@ -220,7 +220,16 @@
 											<div class="wxapp-home-preview">
 												<img src="./resource/images/wxapp-default-tpl1.jpg" />
 											</div>
-
+										</div>
+										<div class="dropdown wxapp-type-cut">
+											<a class="dropdown-toggle" href="javascript:;" id="wxapp-type-cut" data-toggle="dropdown">
+											   	选择模板
+											  	<span class="fa fa-angle-down"></span>
+											</a>
+											<ul class="dropdown-menu" role="menu" aria-labelledby="wxapp-type-cut">
+											    <li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:;" ng-click="changeType(1)">选择模板</a></li>
+											    <li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:;" ng-click="changeType(3)">跳转应用</a></li>
+											</ul>
 										</div>
 										<div class="panel panel-app tem-detail">
 											<div class="panel-heading">
@@ -261,7 +270,7 @@
 										<div class="select-tem-list">
 											<input type="hidden" name="template" value="1">
 											<ul>
-												<li class="select-tem-item active" ng-click="selectTpl()">
+												<li class="select-tem-item active">
 													<img src="./resource/images/wxapp-default-tpl0.jpg"/>
 													<a href="javascript:;" class="cover-dark">
 														<i class="fa fa-check cover-selected"></i>
@@ -272,9 +281,22 @@
 										</div>
 									</div>
 								</div>
-								<div class="form-group" ng-if="type == 3">
+								<div class="form-group creat-wxapp-type" style="padding:75px 50px;" ng-if="type == 3">
+									<div class="dropdown wxapp-type-cut">
+										<a class="dropdown-toggle" href="javascript:;" id="wxapp-type-cut" data-toggle="dropdown">
+											   	跳转应用
+											  <span class="fa fa-angle-down"></span>
+										</a>
+										<ul class="dropdown-menu" role="menu" aria-labelledby="wxapp-type-cut">
+											<li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:;" ng-click="changeType(1)">选择模板</a></li>
+											 <li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:;" ng-click="changeType(2)">跳转应用</a></li>
+										</ul>
+									</div>
 									<input type="hidden" name="tomodule" value="">
-									<ul class="app-allow-list">
+									<div class="type-heading">
+										选择设计类型
+									</div>
+									<ul class="app-allow-list we7-margin-top">
 										<li class="select to-module" ng-click="selectHomeModule(m)" ng-repeat="m in modules">
 											<div class="app-info">
 												<img ng-src="{{m.icon}}"/>
@@ -357,18 +379,18 @@
 											</tr>
 											<tr ng-repeat="menu in menus">
 												<td>
-													<div class="nav-img-box">
+													<div class="nav-img-box active">
 														<img ng-src="{{menu.defaultImage}}" width="100%">
-														<div class="cover-dark" style="display:block">
-															<div ng-click="addDefaultImg($index)" class="select">选择</div>
+														<div class="cover-dark">
+															<div ng-click="addDefaultImg($index)" class="select">更换</div>
 														</div>
 													</div>
 												</td>
 												<td>
-													<div class="nav-img-box">
+													<div class="nav-img-box active">
 														<img ng-src="{{menu.selectedImage}}" width="100%">
-														<div class="cover-dark" style="display:block">
-															<div ng-click="addSelectedImg($index)" class="select">选择</div>
+														<div class="cover-dark">
+															<div ng-click="addSelectedImg($index)" class="select">更换</div>
 														</div>
 													</div>
 												</td>
@@ -385,7 +407,7 @@
 												</td>
 											</tr>
 											<tr class="buttom-more" ng-hide="menus.length >= 5">
-												<td colspan="7"><a href="javascript:;" class="buttom-add" ng-click="addMenu()">+</a></td>
+												<td colspan="5"><a href="javascript:;" class="buttom-add" ng-click="addMenu()">+</a></td>
 											</tr>
 										</table>
 									</div>
@@ -442,10 +464,10 @@
 												</tr>
 												<tr ng-repeat="menu in submit.menus">
 													<td>
-														<img ng-src="{{menu.defaultImage}}" alt="" width="48px" height="48px"/>
+														<img ng-src="{{menu.defaultImage}}" style="background-color:#ccc" alt="" width="48px" height="48px"/>
 													</td>
 													<td ng-bind="menu.name"></td>
-													<td ng-bind="menu.module.title"></td>
+													<td ng-bind="menu.module.title ? menu.module.title : '暂无'"></td>
 												</tr>
 											</table>
 										</div>
@@ -458,278 +480,19 @@
 
 			</div>
 		</div>
-
 		<nav class="navbar navbar-wxapp-bottom navbar-fixed-bottom" role="navigation">
 			<div class="container">
 				<div class="pager">
 					<a type="button" class="btn btn-primary" ng-show="createStep != 1" ng-click="prevStep()">上一步</a>
 					<a type="button" class="btn btn-primary" ng-show="createStep != 4" ng-click="nextStep()">下一步</a>
-					<a type="button" class="btn btn-danger" ng-show="createStep == 4" ng-click="package()">生成版本打包下载</a>
-					<!-- <a type="button" class="btn btn-default" ng-show="createStep == 4">首页预览</a> -->
+					<a type="button" class="btn btn-danger" ng-show="createStep == 4" ng-click="package()">生成版本</a>
 				</div>
 			</div>
 		</nav>
 	</div>
 </body>
 <script>
-
-require(['fileUploader', 'bootstrap', 'angular', 'underscore'], function(uploader){
-
-	//转移部分-start
-	angular.module('wxApp', ['app']);
-	angular.module('wxApp').directive('we7SelectMore', ['$http', function($http){
-		return {
-			restrict: 'EA',
-			template: '<li class="select select-more" ng-click="selectMore()"></li>',
-			replace: true,
-			link: function($scope) {
-				$scope.selectMore = function() {
-					$('#modules-Modal').modal('show');
-
-					if(_.isEmpty($scope.apps)) {
-						var content = $('.modules-content .tab-content .app-allow-list');
-						content.html('<div class="info text-center"><i class="fa fa-spinner fa-pulse fa-lg"></i> 数据加载中</div>');
-						var url = './index.php?c=wxapp&a=create&do=getapps';
-						$http({method: 'POST', url: url, cache: true}).
-							success(function(data, status) {
-								$scope.apps = data.message;
-								var dataHtml = '';
-								angular.forEach($scope.apps, function(val, key){
-									dataHtml += '<li>'+
-										'	<div class="app-info">'+
-										'		<img src="'+val.module_icon+'" />'+
-										'		<p>'+val.module_title+'</p>'+
-										'	</div>'+
-										'	<a href="javascript:;" onclick="selectModule(\''+val.module+'\', \''+val.module_title+'\', \''+val.module_icon+'\', \''+val.url_show+'\', \''+val.version+'\')" class="cover-dark">'+
-										'		<i class="fa fa-check cover-selected"></i>'+
-										'	</a>'+
-										'</li>';
-								});
-								content.html(dataHtml);
-							}).
-							error(function(data, status) {
-								content.html('<div class="info text-center">数据加载失败，点此<button class="btn btn-link"  ng-click="selectMore()">重新加载</button></div>');
-							});
-
-					}else {
-						var dataHtml = '';
-						var content = $('.modules-content .tab-content .app-allow-list');
-						angular.forEach($scope.apps, function(val, key){
-							dataHtml += '<li>'+
-										'	<div class="app-info">'+
-										'		<img src="'+val.module_icon+'" />'+
-										'		<p>'+val.module_title+'</p>'+
-										'	</div>'+
-										'	<a href="javascript:;" onclick="selectModule(\''+val.module+'\', \''+val.module_title+'\', \''+val.module_icon+'\', \''+val.url_show+'\', \''+val.version+'\')" class="cover-dark">'+
-										'		<i class="fa fa-check cover-selected"></i>'+
-										'	</a>'+
-										'</li>';
-						});
-						content.html(dataHtml);
-					}
-				};
-			}
-		}
-	}]);
-	angular.module('wxApp').controller('MainCtrl', ['$scope', 'config', function($scope, config){
-		//小程序添加的应用集合
-		$scope.apps = [];
-		//已选应用
-		$scope.modules = [];
-		//小程序首页类型
-		$scope.type = 0;
-		//创建小程序到第几步
-		$scope.createStep = 1;
-		//底部菜单背景颜色、分界线颜色
-		$scope.bottom = {
-			bgcolor: '#bebebe',
-			boundary: '#fff',
-			selectedColor: '#0f0',
-			color: '#428bca',
-		};
-		//底部菜单(默认2个)
-		$scope.menus = [
-			{
-				name: '首页',
-				defaultImage: './resource/images/bottom-default.png',
-				selectedImage: './resource/images/bottom-default.png',
-				module: {}
-			},
-			{
-				name: '首页',
-				defaultImage: './resource/images/bottom-default.png',
-				selectedImage: './resource/images/bottom-default.png',
-				module: {}
-			}
-		];
-		$scope.ifShowMenu = true;
-		$scope.submit = {};
-		$scope.prevStep = function() {
-			if($scope.createStep <= 1) {
-				$scope.createStep = 1;
-			}else {
-				$scope.createStep -= 1;
-			}
-		};
-		$scope.nextStep = function(){
-			if($scope.createStep > 4) {
-				$scope.createStep = 4;
-			}else {
-				var checked = $scope.checkComplete();
-				// var checked = true;
-				if(checked) {
-					$scope.createStep += 1;
-				}
-			}
-		};
-		$scope.selectType = function(type) {
-			$scope.type = parseInt(type);
-			$(':hidden[name="type"]').val(type);
-		};
-		$scope.searchTpl = function() {
-			var searchname = $(':text[id="searchtpl"]').val();
-			var name = '默认模版';
-			if(!name.match(searchname)) {
-				$(':hidden[name="template"]').val('');
-				$('.select-tem-list > ul').hide();
-			}else {
-				$(':hidden[name="template"]').val(1);
-				$('.select-tem-list > ul').show();				
-			}
-		};
-		$scope.selectTpl = function() {
-			$(event.target).parents('.select-tem-item').addClass('active');
-			$(':hidden[name="template"]').val(1);
-		};
-		$scope.selectHomeModule = function(m) {
-			$(event.target).parents('.to-module').addClass('active').siblings().removeClass('active');
-			$(':hidden[name="tomodule"]').val(m);
-			$scope.tomodule = m;
-		};
-		$scope.showMenu = function() {
-			$scope.ifShowMenu = !$scope.ifShowMenu;
-		};
-		$scope.addMenu = function() {
-			if($scope.menus.length >= 5) {
-				return false;
-			}
-			$scope.menus.push({
-				name: '首页',
-				defaultImage: './resource/images/bottom-default.png',
-				selectedImage: './resource/images/bottom-default.png',
-				module: {}
-			});
-		};
-		$scope.delMenu = function(index) {
-			$scope.menus = _.without($scope.menus, $scope.menus[index]);
-		};
-		$scope.addDefaultImg = function(index) {
-			uploader.show(function(img) {
-				$scope.menus[index].defaultImage = img.url;
-				$scope.$apply();
-			}, {'direct' : true, 'multiple' : false});
-		};
-		$scope.addSelectedImg = function(index) {
-			uploader.show(function(img) {
-				$scope.menus[index].selectedImage = img.url;
-				$scope.$apply();
-			}, {'direct' : true, 'multiple' : false});
-		}
-		//点击下一步：检测是否可以进入下一步
-		$scope.checkComplete = function() {
-			var step = $scope.createStep;
-			switch(step) {
-				case 1:
-					var name = $(':text[name="name"]').val().trim();
-					var version0 = $('.version0').val();
-					var version1 = $('.version1').val();
-					var version2 = $('.version2').val();
-					var modules = $(':hidden[name="modules"]').val().trim();
-					if(!angular.isString(name) || _.isEmpty(name)) {
-						util.message('小程序名称不可为空！');
-						return false;
-					}
-					if(_.isEmpty(version0)) {
-						util.message('版本号第一位有误，需不为空且为数字');
-						return false;
-					}
-					if(_.isEmpty(version1)) {
-						util.message('版本号第二位有误，需不为空且为数字');
-						return false;
-					}
-					if(_.isEmpty(version2)) {
-						util.message('版本号第三位有误，需不为空且为数字');
-						return false;
-					}
-					if(_.isEmpty(modules)) {
-						util.message('请添加并选择至少一个应用！');
-						return false;
-					}
-					$scope.modules = modulesVal;
-					return true;
-					break;
-				case 2:
-					//判断首页类型
-					var selectType = parseInt($(':hidden[name="type"]').val());
-					if(selectType != 1 && selectType != 3) {
-						util.message('请先选择首页设计类型！');
-						return false;
-					}
-					//判断DIY
-
-					//判断模板
-					if(selectType == 1) {
-						var selectTpl = $(':hidden[name="template"]').val();
-						if(_.isEmpty(selectTpl)) {
-							util.message('请选择一个模板！');
-							return false;
-						}	
-					}
-					
-					//判断跳转应用
-					if(selectType == 3) {
-						var selectTpl = $(':hidden[name="tomodule"]').val();
-						if(_.isEmpty(selectTpl)) {
-							util.message('请选择一个应用！');
-							return false;
-						}						
-					}
-					return true;
-					break;
-				case 3:
-					$scope.submit = {
-						name: $(':text[name="name"]').val(),
-						version0: $('.version0').val(),
-						version1: $('.version1').val(),
-						version2: $('.version2').val(),
-						modules: modulesVal,
-						type: $scope.type,
-						template: $(':hidden[name="template"]').val(),
-						tomodule: $scope.tomodule,
-						showmenu: $scope.ifShowMenu,
-						buttom: $scope.bottom,
-						menus: $scope.menus,
-					};
-					if($scope.menus.length < 2) {
-						util.message('请至少设置两个底部菜单！');
-						return false;
-					}
-					return true;
-					break;
-				case 4:
-					return true;
-					break;
-				default:
-					return false;
-			}
-		};
-
-		$scope.package = function(){
-			$(':hidden[name="wxappval"]').parents('form').submit();
-		};
-	}]);
-	//转移部分-end
-
+require(['fileUploader', 'bootstrap', 'angular', 'underscore'], function(){
 	angular.module('wxApp').value('config', {
 	});
 	angular.bootstrap(document, ['wxApp']);
