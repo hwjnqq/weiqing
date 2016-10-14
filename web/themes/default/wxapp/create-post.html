@@ -212,9 +212,6 @@
 											<p>直接跳转应用</p>
 										</li>
 									</ul>
-									<div class="type-footer">
-										<i class="fa fa-exclamation-circle"></i>请慎重选择，一旦选择不可更改！
-									</div>
 								</div>
 								<div ng-if="type == 1">
 									<div class="wxapp-tem-preview">
@@ -257,17 +254,18 @@
 												</select>
 											</div>
 											<div class="input-group">
-												<input type="text" name="" class="form-control" placeholder="输入模板名">
-												<span class="input-group-addon"><i class="fa fa-search"></i></span>
+												<input type="text" class="form-control" id="searchtpl" placeholder="输入模板名">
+												<span class="input-group-addon" ng-click="searchTpl()"><i class="fa fa-search"></i></span>
 											</div>
 										</div>
 										<div class="select-tem-list">
-											<input type="hidden" name="template" value="">
+											<input type="hidden" name="template" value="1">
 											<ul>
-												<li class="select-tem-item" ng-click="selectTpl()">
+												<li class="select-tem-item active" ng-click="selectTpl()">
 													<img src="./resource/images/wxapp-default-tpl0.jpg"/>
 													<a href="javascript:;" class="cover-dark">
 														<i class="fa fa-check cover-selected"></i>
+														<p style="position: absolute;bottom: -5px;left: 0px;width: 100%;text-align: center;color: white;">默认模版</p>
 													</a>
 												</li>
 											</ul>
@@ -386,7 +384,7 @@
 													<a href="javascript:;" class="buttom-del" ng-click="delMenu($index)"><i class="fa fa-times-circle"></i></a>
 												</td>
 											</tr>
-											<tr class="buttom-more">
+											<tr class="buttom-more" ng-hide="menus.length >= 5">
 												<td colspan="7"><a href="javascript:;" class="buttom-add" ng-click="addMenu()">+</a></td>
 											</tr>
 										</table>
@@ -549,8 +547,21 @@ require(['fileUploader', 'bootstrap', 'angular', 'underscore'], function(uploade
 			selectedColor: '#0f0',
 			color: '#428bca',
 		};
-		//底部菜单
-		$scope.menus = [];
+		//底部菜单(默认2个)
+		$scope.menus = [
+			{
+				name: '首页',
+				defaultImage: './resource/images/bottom-default.png',
+				selectedImage: './resource/images/bottom-default.png',
+				module: {}
+			},
+			{
+				name: '首页',
+				defaultImage: './resource/images/bottom-default.png',
+				selectedImage: './resource/images/bottom-default.png',
+				module: {}
+			}
+		];
 		$scope.ifShowMenu = true;
 		$scope.submit = {};
 		$scope.prevStep = function() {
@@ -574,6 +585,17 @@ require(['fileUploader', 'bootstrap', 'angular', 'underscore'], function(uploade
 		$scope.selectType = function(type) {
 			$scope.type = parseInt(type);
 			$(':hidden[name="type"]').val(type);
+		};
+		$scope.searchTpl = function() {
+			var searchname = $(':text[id="searchtpl"]').val();
+			var name = '默认模版';
+			if(!name.match(searchname)) {
+				$(':hidden[name="template"]').val('');
+				$('.select-tem-list > ul').hide();
+			}else {
+				$(':hidden[name="template"]').val(1);
+				$('.select-tem-list > ul').show();				
+			}
 		};
 		$scope.selectTpl = function() {
 			$(event.target).parents('.select-tem-item').addClass('active');
