@@ -158,7 +158,14 @@
 											<div we7-select-more></div>
 										</ul>
 									</div>
-									
+									<div class="form-group">
+										<label class="control-label">打包应用说明：</label>
+										<div class="form_controls">
+											<p>1、要打包的应用您必须从<a href="http://s.we7.cc" target="_blank" style="color:#337ab7;font-weight:bold">应用市场</a>购买过；</p>
+											<p>2、您购买的应用的当前版本须支持小程序；</p>
+											<p>3、此页要添加的应用均为测试应用。待微信官方开放小程序后，正式应用再行同步开放。</p>
+										</div>
+									</div>
 								</div>
 							</div>
 							<div class="wxapp-modules">
@@ -198,7 +205,7 @@
 											<i class="wi wi-select-diy"></i>
 											<p>DIY设计</p>
 										</li>
-										<li ng-click="selectType(2)">
+										<li ng-click="selectType(1)">
 											<i class="wi wi-select-tem"></i>
 											<p>选择模板</p>
 										</li>
@@ -211,7 +218,7 @@
 										<i class="fa fa-exclamation-circle"></i>请慎重选择，一旦选择不可更改！
 									</div>
 								</div>
-								<div ng-if="type == 2">
+								<div ng-if="type == 1">
 									<div class="wxapp-tem-preview">
 										<div class="wxapp-phone">
 											<img src="./resource/images/iphone6.png" alt="" class="wxapp-phone-bg" />
@@ -337,16 +344,6 @@
 												<div we7-colorpicker we7-my-color="bottom.selectedColor" we7-my-default-color="bottom.selectedColor"></div>
 											</div>
 										</div>
-										<!-- <td>
-											<div class="buttom-default-color">
-												<div we7-colorpicker we7-my-color="menu.defaultColor" we7-my-default-color="menu.defaultColor"></div>
-											</div>
-										</td>
-										<td>
-											<div class="buttom-default-color">
-												<div we7-colorpicker we7-my-color="menu.selectedColor" we7-my-default-color="menu.selectedColor"></div>
-											</div>
-										</td> -->
 									</div>
 									<div class="buttom-list">
 										<table class="table-default buttom-list-table">
@@ -423,7 +420,7 @@
 											</li>
 										</ul>
 									</div>
-									<div class="form-group" ng-if="type == 2">
+									<div class="form-group" ng-if="type == 1">
 										<label class="control-label">首页模板</label>
 										<div class="form_controls">
 											<p class="form-control-static" ng-bind="submit.template"></p>
@@ -582,7 +579,7 @@ require(['fileUploader', 'bootstrap', 'angular', 'underscore'], function(uploade
 		};
 		$scope.selectTpl = function() {
 			$(event.target).parents('.select-tem-item').addClass('active');
-			$(':hidden[name="template"]').val('default');
+			$(':hidden[name="template"]').val(1);
 		};
 		$scope.selectHomeModule = function(m) {
 			$(event.target).parents('.to-module').addClass('active').siblings().removeClass('active');
@@ -654,14 +651,14 @@ require(['fileUploader', 'bootstrap', 'angular', 'underscore'], function(uploade
 				case 2:
 					//判断首页类型
 					var selectType = parseInt($(':hidden[name="type"]').val());
-					if(selectType != 2 && selectType != 3) {
+					if(selectType != 1 && selectType != 3) {
 						util.message('请先选择首页设计类型！');
 						return false;
 					}
 					//判断DIY
 
 					//判断模板
-					if(selectType == 2) {
+					if(selectType == 1) {
 						var selectTpl = $(':hidden[name="template"]').val();
 						if(_.isEmpty(selectTpl)) {
 							util.message('请选择一个模板！');
