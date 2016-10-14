@@ -17,7 +17,7 @@ if ($do == 'edit') {
 		$type = $_GPC['type'];
 		$id = intval($_GPC['id']);
 		pdo_delete('site_'.$type, array('id' => $id));
-		message('删除成功', url('wxapp/manage/edit'), 'success');
+		message('删除成功', url('wxapp/manage/edit', array('multiid' => $multiid)), 'success');
 	}
 	if ($operate == 'change_category') {
 		$parentid = intval($_GPC['categoryid']);
@@ -36,10 +36,10 @@ if ($do == 'edit') {
 				$slide['uniacid'] = $_W['uniacid'];
 				$slide['multiid'] = $multiid;
 				pdo_insert('site_slide', $slide);
-				message('添加幻灯片成功', url('wxapp/manage/edit'), 'success');
+				message('添加幻灯片成功', url('wxapp/manage/edit', array('multiid' => $multiid)), 'success');
 			} else {
 				$result = pdo_update('site_slide', $slide, array('uniacid' => $_W['uniacid'], 'multiid' => $multiid, 'id' => $id));
-				message('更新幻灯片成功', url('wxapp/manage/edit'), 'success');
+				message('更新幻灯片成功', url('wxapp/manage/edit', array('multiid' => $multiid)), 'success');
 			}
 		}
 		if (!empty($nav)) {
@@ -47,20 +47,20 @@ if ($do == 'edit') {
 				$nav['uniacid'] = $_W['uniacid'];
 				$nav['multiid'] = $multiid;
 				pdo_insert('site_nav', $nav);
-				message('添加导航图标成功', url('wxapp/manage/edit', array('wxapp' => 'nav')), 'success');
+				message('添加导航图标成功', url('wxapp/manage/edit', array('wxapp' => 'nav', 'multiid' => $multiid)), 'success');
 			} else {
 				pdo_update('site_nav', $nav, array('uniacid' => $_W['uniacid'], 'multiid' => $multiid, 'id' => $id));
-				message('更新导航图标成功', url('wxapp/manage/edit', array('wxapp' => 'nav')), 'success');
+				message('更新导航图标成功', url('wxapp/manage/edit', array('wxapp' => 'nav', 'multiid' => $multiid)), 'success');
 			}
 		}
 		if (!empty($recommend)) {
 			if (empty($id)) {
 				$recommend['uniacid'] = $_W['uniacid'];
 				pdo_insert('site_article', $recommend);
-				message('添加推荐图片成功', url('wxapp/manage/edit', array('wxapp' => 'recommend')), 'success');
+				message('添加推荐图片成功', url('wxapp/manage/edit', array('wxapp' => 'recommend', 'multiid' => $multiid)), 'success');
 			} else {
 				pdo_update('site_article', $recommend, array('uniacid' => $_W['uniacid'], 'id' => $id));
-				message('更新推荐图片成功', url('wxapp/manage/edit', array('wxapp' => 'recommend')), 'success');
+				message('更新推荐图片成功', url('wxapp/manage/edit', array('wxapp' => 'recommend', 'multiid' => $multiid)), 'success');
 			}
 		}
 		if (!empty($category)) {
@@ -71,10 +71,10 @@ if ($do == 'edit') {
 					$category['parentid'] = intval($_GPC['parentid']);
 				}
 				pdo_insert('site_category', $category);
-				message('添加分类成功', url('wxapp/manage/edit', array('wxapp' => 'category')), 'success');
+				message('添加分类成功', url('wxapp/manage/edit', array('wxapp' => 'category', 'multiid' => $multiid)), 'success');
 			} else {
 				pdo_update('site_category', $category, array('uniacid' => $_W['uniacid'], 'id' => $id));
-				message('更新分类成功', url('wxapp/manage/edit', array('wxapp' => 'category')), 'success');
+				message('更新分类成功', url('wxapp/manage/edit', array('wxapp' => 'category', 'multiid' => $multiid)), 'success');
 			}
 		}
 		//导航图标
