@@ -7,15 +7,19 @@ defined('IN_IA') or exit('Access Denied');
 $_W['page']['title'] = '小程序 - 新建版本';
 
 load()->model('module');
-$dos = array('display', 'post', 'getapps');
-$do = in_array($do, $dos) ? $do : 'display';
+load()->model('wxapp');
+$dos = array('post', 'getapps', 'getpackage');
+$do = in_array($do, $dos) ? $do : 'post';
 
 if($do == 'post') {
-
 	if(!empty($_GPC['wxappval'])) {
 		$submitval = json_decode(ihtml_entity_decode($_GPC['wxappval']), true);
 		$version = ($submitval['version0'] ? $submitval['version0'] : 0) .'.'.($submitval['version1'] ? $submitval['version1'] : 0).'.'.($submitval['version2'] ? $submitval['version2'] : 0);
-		//构建底部菜单menus
+
+		//构建请求数据
+		$request_cloud_data = array();
+		$version = ($submitval['version0'] ? $submitval['version0'] : 0) .'.'.($submitval['version1'] ? $submitval['version1'] : 0).'.'.($submitval['version2'] ? $submitval['version2'] : 0);
+		//底部菜单menus
 		$bottommenu = array();
 		foreach ($submitval['menus'] as $mvalue) {
 			$mvalue['defaultImage'] = empty($mvalue['defaultImage']) ? $_W['siteroot'].'web/resource/images/bottom-default.png' : $mvalue['defaultImage'];
@@ -27,29 +31,61 @@ if($do == 'post') {
 					'text' => $mvalue['name']
 				);
 		}
-		//构建包装应用modules
-		// $modules = array();
+		//包装应用modules
+		$modules = array();
 		// foreach ($submitval['modules'] as $modulekey => $modulevalue) {
 		// 	$modules[$modulevalue['module']] = $modulevalue['version'];
 		// }
+		//测试应用
 		$modules = array(
 			'we7_1' => '7.0',
 			'we7_gs' => '31.0'
 		);
-		//构建请求数据
-		$request_cloud_data = array();
+		//创建主公号
+		$name = trim($submitval['name']);
+		$description = '微信小程序体验版';
+		$data = array(
+			'name' => $name,
+			'description' => $description,
+			'groupid' => 0,
+		);
+		if (!pdo_insert('uni_account', $data)) {
+			message('添加公众号失败');
+		}
+		$uniacid = pdo_insertid();
+		//给应用号添加默认微站
+		$multi['uniacid'] = $uniacid;
+		$multi['title'] = $name;
+		$multi['styleid'] = 0;//暂设为0
+		pdo_insert('site_multi', $multi);
+		$multi_id = pdo_insertid();
+		//添加acid及给account_wxapp表添加数据
+		$update['name'] = $name;
+		$update['account'] = trim('we7team');
+		$update['original'] = trim('gh_we7team');
+		$update['level'] = intval(1);
+		$update['key'] = trim('we7teamkey');
+		$update['secret'] = trim('we7teamsecret');
+		$update['type'] = 3;
+		$update['encodingaeskey'] = trim('we7teamencodingaeskey');
+		if (empty($acid)) {
+			$acid = account_wxapp_create($uniacid, $update, 3);
+			if(is_error($acid)) {
+				message('添加公众号信息失败', '', url('account/post-step/', array('uniacid' => intval($_GPC['uniacid']), 'step' => 2), 'error'));
+			}
+			pdo_update('uni_account', array('default_acid' => $acid), array('uniacid' => $uniacid));
+		}
 		$request_cloud_data = array(
 			'name' => $submitval['name'],
 			'modules' => $modules,
 			'siteInfo' => array(
-					'uniacid' => '99998',
-					'acid' => '99999',
-					'multiid'  => '99990',
+					'uniacid' => $uniacid,
+					'acid' => $acid,
+					'multiid'  => $multi_id,
 					'version'  => $version,
 					'siteroot' => $_W['siteroot'].'app/index.php'
 				),
-			
-		);		
+		);
 		if($submitval['showmenu']) {
 			$request_cloud_data['tabBar'] = array(
 				'color' => $submitval['buttom']['color'],
@@ -59,24 +95,64 @@ if($do == 'post') {
 				'list' => $bottommenu
 			);
 		}
-		
-		$request_cloud_data = json_encode($request_cloud_data);
-		load()->classs('cloudapi');
-		$api = new CloudApi();
-		$rst = $api->post('wxapp', 'download', $request_cloud_data, 'html');
-		header('content-type: application/zip');
-		header('content-disposition: attachment; filename="'.$submitval['name'].'.zip"');
-		echo $rst;
+
+		//添加版本数据
+		$wxapp_version['uniacid'] = $uniacid;
+		$wxapp_version['multiid'] = $multi_id;
+		$wxapp_version['version'] = $version;
+		$wxapp_version['modules'] = json_encode($request_cloud_data['modules']);
+		$wxapp_version['design_method'] = intval($submitval['type']);
+		$wxapp_version['template'] = intval($submitval['template']);
+		$wxapp_version['redirect'] = '';
+		$wxapp_version['quickmenu'] = json_encode($request_cloud_data['tabBar']);
+		$wxapp_version['createtime'] = time();
+		pdo_insert('wxapp_versions', $wxapp_version);
+		echo "<pre>";
+		print_r($request_cloud_data);
+		echo "</pre>";exit;
+		$result = request_cloud($request_cloud_data);
+		if(!is_error($result)) {
+			message($result['message']);
+		}else {
+			header('content-type: application/zip');
+			header('content-disposition: attachment; filename="'.$submitval['name'].'.zip"');
+			echo $result;
+			message('小程序创建成功！', url('wxapp/manage', array('do' => 'edit', 'multiid' => $multi_id)));
+		}
 		exit;
 	}
 	template('wxapp/create-post');
 }
-
-if($do == 'display') {
-	
-	template('wxapp/wxapp-display');
+//打包文件
+if($do == 'getpackage') {
+	// $unacid = $_GPC['uniacid'];
+	$uniacid = 743;
+	// $versionid = $_GPC['versionid'];
+	$versionid = 3;
+	$request_cloud_data = array();
+	$account_wxapp_info = pdo_get('account_wxapp', array('uniacid' => $uniacid));
+	$wxapp_version_info = pdo_get('wxapp_versions', array('uniacid' => $uniacid, 'id' => $versionid));
+	$request_cloud_data['name'] = $account_wxapp_info['name'];
+	$request_cloud_data['modules'] = json_decode($wxapp_version_info['modules'], true);
+	$request_cloud_data['siteInfo'] = array(
+			'uniacid' => $uniacid,
+			'acid' => $account_wxapp_info['acid'],
+			'multiid' => $wxapp_version_info['multiid'],
+			'version' => $wxapp_version_info['version'],
+			'siteroot' => $_W['siteroot'].'app/index.php'
+		);
+	$request_cloud_data['tabBar'] = json_decode($wxapp_version_info['quickmenu'], true);
+	$result = request_cloud($request_cloud_data);
+	if(!is_error($result)) {
+		message($result['message']);
+	}else {
+		header('content-type: application/zip');
+		header('content-disposition: attachment; filename="'.$submitval['name'].'.zip"');
+		echo $result;
+	}
+	exit;
 }
-
+//获取应用
 if($do == 'getapps') {
 	//获取当前系统下所有安装模块及模块信息
 	$modulelist = uni_modules();
