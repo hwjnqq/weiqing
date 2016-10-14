@@ -46,6 +46,7 @@ if ($do == 'edit') {
 			if (empty($id)) {
 				$nav['uniacid'] = $_W['uniacid'];
 				$nav['multiid'] = $multiid;
+				$nav['status'] = 1;
 				pdo_insert('site_nav', $nav);
 				message('添加导航图标成功', url('wxapp/manage/edit', array('wxapp' => 'nav', 'multiid' => $multiid)), 'success');
 			} else {

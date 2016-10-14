@@ -220,7 +220,17 @@
 											<div class="wxapp-home-preview">
 												<img src="./resource/images/wxapp-default-tpl1.jpg" />
 											</div>
-
+										</div>
+										<div class="dropdown wxapp-type-cut">
+											<a class="dropdown-toggle" href="javascript:;" id="wxapp-type-cut" data-toggle="dropdown">
+											   	选择模板
+											  	<span class="fa fa-angle-down"></span>
+											</a>
+											<ul class="dropdown-menu" role="menu" aria-labelledby="wxapp-type-cut">
+												<li role="presentation"><a role="menuitem" tabindex="-1" href="#">DIY设计</a></li>
+											    <li role="presentation"><a role="menuitem" tabindex="-1" href="#">选择模板</a></li>
+											    <li role="presentation"><a role="menuitem" tabindex="-1" href="#">跳转应用</a></li>
+											</ul>
 										</div>
 										<div class="panel panel-app tem-detail">
 											<div class="panel-heading">
@@ -273,6 +283,17 @@
 									</div>
 								</div>
 								<div class="form-group" ng-if="type == 3">
+									<div class="dropdown wxapp-type-cut">
+										<a class="dropdown-toggle" href="javascript:;" id="wxapp-type-cut" data-toggle="dropdown">
+											   	跳转应用
+											  <span class="fa fa-angle-down"></span>
+										</a>
+										<ul class="dropdown-menu" role="menu" aria-labelledby="wxapp-type-cut">
+											<li role="presentation"><a role="menuitem" tabindex="-1" href="#">DIY设计</a></li>
+											<li role="presentation"><a role="menuitem" tabindex="-1" href="#">选择模板</a></li>
+											 <li role="presentation"><a role="menuitem" tabindex="-1" href="#">跳转应用</a></li>
+										</ul>
+									</div>
 									<input type="hidden" name="tomodule" value="">
 									<ul class="app-allow-list">
 										<li class="select to-module" ng-click="selectHomeModule(m)" ng-repeat="m in modules">
@@ -357,18 +378,18 @@
 											</tr>
 											<tr ng-repeat="menu in menus">
 												<td>
-													<div class="nav-img-box">
+													<div class="nav-img-box active">
 														<img ng-src="{{menu.defaultImage}}" width="100%">
-														<div class="cover-dark" style="display:block">
-															<div ng-click="addDefaultImg($index)" class="select">选择</div>
+														<div class="cover-dark">
+															<div ng-click="addDefaultImg($index)" class="select">更换</div>
 														</div>
 													</div>
 												</td>
 												<td>
-													<div class="nav-img-box">
+													<div class="nav-img-box active">
 														<img ng-src="{{menu.selectedImage}}" width="100%">
-														<div class="cover-dark" style="display:block">
-															<div ng-click="addSelectedImg($index)" class="select">选择</div>
+														<div class="cover-dark">
+															<div ng-click="addSelectedImg($index)" class="select">更换</div>
 														</div>
 													</div>
 												</td>
@@ -385,7 +406,7 @@
 												</td>
 											</tr>
 											<tr class="buttom-more" ng-hide="menus.length >= 5">
-												<td colspan="7"><a href="javascript:;" class="buttom-add" ng-click="addMenu()">+</a></td>
+												<td colspan="5"><a href="javascript:;" class="buttom-add" ng-click="addMenu()">+</a></td>
 											</tr>
 										</table>
 									</div>
