@@ -109,7 +109,7 @@ if($do == 'post') {
 			case 2://DIY
 				break;
 			case 3://直接跳转
-				$wxapp_version['redirect'] = json_encode($request_cloud_data['tomodule']);
+				$wxapp_version['redirect'] = json_encode($submitval['tomodule']);
 				break;
 		}		
 		pdo_insert('wxapp_versions', $wxapp_version);
