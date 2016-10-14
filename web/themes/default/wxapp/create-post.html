@@ -227,9 +227,8 @@
 											  	<span class="fa fa-angle-down"></span>
 											</a>
 											<ul class="dropdown-menu" role="menu" aria-labelledby="wxapp-type-cut">
-												<li role="presentation"><a role="menuitem" tabindex="-1" href="#">DIY设计</a></li>
-											    <li role="presentation"><a role="menuitem" tabindex="-1" href="#">选择模板</a></li>
-											    <li role="presentation"><a role="menuitem" tabindex="-1" href="#">跳转应用</a></li>
+											    <li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:;" ng-click="changeType(1)">选择模板</a></li>
+											    <li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:;" ng-click="changeType(3)">跳转应用</a></li>
 											</ul>
 										</div>
 										<div class="panel panel-app tem-detail">
@@ -282,20 +281,22 @@
 										</div>
 									</div>
 								</div>
-								<div class="form-group" ng-if="type == 3">
+								<div class="form-group creat-wxapp-type" style="padding:75px 50px;" ng-if="type == 3">
 									<div class="dropdown wxapp-type-cut">
 										<a class="dropdown-toggle" href="javascript:;" id="wxapp-type-cut" data-toggle="dropdown">
 											   	跳转应用
 											  <span class="fa fa-angle-down"></span>
 										</a>
 										<ul class="dropdown-menu" role="menu" aria-labelledby="wxapp-type-cut">
-											<li role="presentation"><a role="menuitem" tabindex="-1" href="#">DIY设计</a></li>
-											<li role="presentation"><a role="menuitem" tabindex="-1" href="#">选择模板</a></li>
-											 <li role="presentation"><a role="menuitem" tabindex="-1" href="#">跳转应用</a></li>
+											<li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:;" ng-click="changeType(1)">选择模板</a></li>
+											 <li role="presentation"><a role="menuitem" tabindex="-1" href="javascript:;" ng-click="changeType(2)">跳转应用</a></li>
 										</ul>
 									</div>
 									<input type="hidden" name="tomodule" value="">
-									<ul class="app-allow-list">
+									<div class="type-heading">
+										选择设计类型
+									</div>
+									<ul class="app-allow-list we7-margin-top">
 										<li class="select to-module" ng-click="selectHomeModule(m)" ng-repeat="m in modules">
 											<div class="app-info">
 												<img ng-src="{{m.icon}}"/>
@@ -491,8 +492,7 @@
 	</div>
 </body>
 <script>
-
-require(['fileUploader', 'bootstrap', 'angular', 'underscore'], function(uploader){
+require(['fileUploader', 'bootstrap', 'angular', 'underscore'], function(){
 	angular.module('wxApp').value('config', {
 	});
 	angular.bootstrap(document, ['wxApp']);
