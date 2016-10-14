@@ -16,7 +16,6 @@ function request_cloud($data) {
 		load()->classs('cloudapi');
 		$api = new CloudApi();
 		$result = $api->post('wxapp', 'download', $request_cloud_data, 'html');
-
 		return $result;
 }
 /**

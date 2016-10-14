@@ -14,8 +14,6 @@ $do = in_array($do, $dos) ? $do : 'post';
 if($do == 'post') {
 	if(!empty($_GPC['wxappval'])) {
 		$submitval = json_decode(ihtml_entity_decode($_GPC['wxappval']), true);
-		$version = ($submitval['version0'] ? $submitval['version0'] : 0) .'.'.($submitval['version1'] ? $submitval['version1'] : 0).'.'.($submitval['version2'] ? $submitval['version2'] : 0);
-
 		//构建请求数据
 		$request_cloud_data = array();
 		$version = ($submitval['version0'] ? $submitval['version0'] : 0) .'.'.($submitval['version1'] ? $submitval['version1'] : 0).'.'.($submitval['version2'] ? $submitval['version2'] : 0);
@@ -33,14 +31,14 @@ if($do == 'post') {
 		}
 		//包装应用modules
 		$modules = array();
-		// foreach ($submitval['modules'] as $modulekey => $modulevalue) {
-		// 	$modules[$modulevalue['module']] = $modulevalue['version'];
-		// }
+		foreach ($submitval['modules'] as $modulekey => $modulevalue) {
+			$modules[$modulevalue['module']] = $modulevalue['version'];
+		}
 		//测试应用
-		$modules = array(
-			'we7_1' => '7.0',
-			'we7_gs' => '31.0'
-		);
+		// $modules = array(
+		// 	'we7_1' => '7.0',
+		// 	'we7_gs' => '31.0'
+		// );
 		//创建主公号
 		$name = trim($submitval['name']);
 		$description = '微信小程序体验版';
@@ -102,30 +100,28 @@ if($do == 'post') {
 		$wxapp_version['version'] = $version;
 		$wxapp_version['modules'] = json_encode($request_cloud_data['modules']);
 		$wxapp_version['design_method'] = intval($submitval['type']);
-		$wxapp_version['template'] = intval($submitval['template']);
-		$wxapp_version['redirect'] = '';
 		$wxapp_version['quickmenu'] = json_encode($request_cloud_data['tabBar']);
 		$wxapp_version['createtime'] = time();
+		switch ($wxapp_version['design_method']) {
+			case 1://模板
+				$wxapp_version['template'] = intval($submitval['template']);
+				break;
+			case 2://DIY
+				break;
+			case 3://直接跳转
+				$wxapp_version['redirect'] = json_encode($submitval['tomodule']);
+				break;
+		}		
 		pdo_insert('wxapp_versions', $wxapp_version);
-		$result = request_cloud($request_cloud_data);
-		if(is_error($result)) {
-			message($result['message']);
-		}else {
-			header('content-type: application/zip');
-			header('content-disposition: attachment; filename="'.$submitval['name'].'.zip"');
-			echo $result;
-			message('小程序创建成功！', url('wxapp/manage', array('do' => 'edit', 'multiid' => $multi_id)));
-		}
-		exit;
+		$versionid = pdo_insertid();
+		message('小程序创建成功！跳转后请自行下载打包程序', url('wxapp/account/switch', array('uniacid' => $uniacid)));
 	}
 	template('wxapp/create-post');
 }
 //打包文件
 if($do == 'getpackage') {
-	// $unacid = $_GPC['uniacid'];
-	$uniacid = 743;
-	// $versionid = $_GPC['versionid'];
-	$versionid = 3;
+	$unacid = $_GPC['uniacid'];
+	$versionid = $_GPC['versionid'];
 	$request_cloud_data = array();
 	$account_wxapp_info = pdo_get('account_wxapp', array('uniacid' => $uniacid));
 	$wxapp_version_info = pdo_get('wxapp_versions', array('uniacid' => $uniacid, 'id' => $versionid));
@@ -140,11 +136,11 @@ if($do == 'getpackage') {
 		);
 	$request_cloud_data['tabBar'] = json_decode($wxapp_version_info['quickmenu'], true);
 	$result = request_cloud($request_cloud_data);
-	if(!is_error($result)) {
+	if(is_error($result)) {
 		message($result['message']);
 	}else {
 		header('content-type: application/zip');
-		header('content-disposition: attachment; filename="'.$submitval['name'].'.zip"');
+		header('content-disposition: attachment; filename="'.$request_cloud_data['name'].'.zip"');
 		echo $result;
 	}
 	exit;
