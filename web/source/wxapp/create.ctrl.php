@@ -152,38 +152,42 @@ if($do == 'getpackage') {
 //获取应用
 if($do == 'getapps') {
 	//获取当前系统下所有安装模块及模块信息
-	$modulelist = uni_modules();
 	$apps = array();
-	foreach ($modulelist as $key => $module) {
-		if($module['type'] != 'system' && !empty($module['version'])) {
-			//获取图标
-			if($module['issystem']) {
-				$path = '../framework/builtin/' . $module['name'];
-			} else {
-				$path = '../addons/' . $module['name'];
-			}
-			$cion = $path . '/icon-custom.jpg';
-			if(!file_exists($cion)) {
-				$cion = $path . '/icon.jpg';
+	$apps = cache_load('packageapps');
+	if(empty($apps)) {
+		$modulelist = uni_modules();
+		foreach ($modulelist as $key => $module) {
+			if($module['type'] != 'system' && !empty($module['version'])) {
+				//获取图标
+				if($module['issystem']) {
+					$path = '../framework/builtin/' . $module['name'];
+				} else {
+					$path = '../addons/' . $module['name'];
+				}
+				$cion = $path . '/icon-custom.jpg';
 				if(!file_exists($cion)) {
-					$cion = './resource/images/nopic-small.jpg';
+					$cion = $path . '/icon.jpg';
+					if(!file_exists($cion)) {
+						$cion = './resource/images/nopic-small.jpg';
+					}
+				}
+				//获取模块相关信息
+				$m = module_entries($module['name'], array('home'));
+				if(!empty($m['home'])) {
+					foreach($m['home'] as $val) {
+						$rst = array();
+						if(isset($val['eid']) && !empty($val['eid'])) {
+							$rst = module_entry($val['eid']);
+							$rst['module_title'] = $module['title'];
+							$rst['module_icon'] = $cion;
+							$rst['version'] = $module['version'];
+							$apps[] = $rst;
+						}
+					}	
 				}
 			}
-			//获取模块相关信息
-			$m = module_entries($module['name'], array('home'));
-			if(!empty($m['home'])) {
-				foreach($m['home'] as $val) {
-					$rst = array();
-					if(isset($val['eid']) && !empty($val['eid'])) {
-						$rst = module_entry($val['eid']);
-						$rst['module_title'] = $module['title'];
-						$rst['module_icon'] = $cion;
-						$rst['version'] = $module['version'];
-						$apps[] = $rst;
-					}
-				}	
-			}
 		}
+		cache_write('packageapps', $apps);				
 	}
 	message($apps, '', 'ajax');
 }
