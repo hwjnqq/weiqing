@@ -107,11 +107,8 @@ if($do == 'post') {
 		$wxapp_version['quickmenu'] = json_encode($request_cloud_data['tabBar']);
 		$wxapp_version['createtime'] = time();
 		pdo_insert('wxapp_versions', $wxapp_version);
-		echo "<pre>";
-		print_r($request_cloud_data);
-		echo "</pre>";exit;
 		$result = request_cloud($request_cloud_data);
-		if(!is_error($result)) {
+		if(is_error($result)) {
 			message($result['message']);
 		}else {
 			header('content-type: application/zip');
