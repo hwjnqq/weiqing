@@ -101,9 +101,6 @@
 								<li class="list-group-item" ng-class="{active : wxapp == 'recommend'}" ng-click="wxapp = 'recommend'">
 									<a href=""><i class="fa fa-adjust"></i>推荐图片</a>
 								</li>
-								<li class="list-group-item" ng-class="{active : wxapp == 'category'}" ng-click="wxapp = 'category'">
-									<a href=""><i class="fa fa-adjust"></i>分类设置</a>
-								</li>
 							</ul>
 						</div>
 						<div class="panel panel-menu">
@@ -230,59 +227,6 @@
 										</li>
 									</ul>
 								</div>
-								<div class="wxapp-slide-list" ng-show="wxapp == 'category'">
-									<div class="slide-heading">
-										分类设置
-									</div>
-									<ul>
-										{loop $categorys $pcate}
-										<li>
-											<div class="wxapp-slide-detail media">
-												<div class="media-left media-middle slide-sort">
-													{$pcate['displayorder']}
-												</div>
-												<div class="media-left media-middle slide-img">
-													<img src="{php echo tomedia($pcate['icon'])}"/>
-												</div>
-												<div class="media-body">
-													<div class="slide-title">
-														{$pcate['name']}
-													</div>
-													<div class="slide-alter">
-														<a href="" class="color-default" ng-click="categoryedit({$pcate['id']})">编辑</a>
-														<a href="{php echo url('wxapp/manage/edit', array('operate' => 'delete', 'type' => 'category', 'id' => $pcate['id'], 'multiid' => $multiid))}" onclick="return confirm('确定要删除此分类吗？')" class="color-default slide-del">删除</a>
-														<a href="" ng-click="categoryedit('add', {$pcate['id']})" class="color-default slide-del">添加子分类</a>
-													</div>
-												</div>
-											</div>
-										</li>
-										{loop $pcate['categorys']  $cate}
-										<li>
-											<div class="wxapp-slide-detail media">
-												<div class="media-left media-middle slide-sort">
-													{$cate['displayorder']}
-												</div>
-												<div class="media-left media-middle slide-img">
-													<img src="{php echo tomedia($cate['icon'])}"/>
-												</div>
-												<div class="media-body">
-													<div class="slide-son-title">
-														{$cate['name']}
-													</div>
-													<div class="slide-alter">
-														<a href="" class="color-default" ng-click="categoryedit({$cate['id']})">编辑</a>
-														<a href="{php echo url('wxapp/manage/edit', array('operate' => 'delete', 'type' => 'category', 'id' => $cate['id'], 'multiid' => $multiid))}" onclick="return confirm('确定要删除此分类吗？')" class="color-default slide-del">删除</a>
-													</div>
-												</div>
-											</div>
-										</li>
-										{/loop}
-										{/loop}
-										<li class="slide-list-more">
-											<a href="javascript:void(0)" class="slide-add" ng-click="categoryedit('add')">+</a>
-										</li>
-									</ul>
-								</div>
 								<div class="wxapp-slide-edit" ng-show="wxapp == 'slideedit'">
 									<div class="edit-heading">
 										<a href="" class="go-back">
@@ -314,7 +258,7 @@
 											<div class="form-group">
 												<label for="" class="control-label">链接</label>
 												<div class="form_controls">
-													<input type="text" name="slide[url]" class="form-control input-slide-link" required placeholder="">
+													<input type="url" name="slide[url]" class="form-control input-slide-link" required placeholder="">
 												</div>
 											</div>
 											<input type="submit" name="submit" value="添加" class="btn btn-primary" />
@@ -386,7 +330,7 @@
 											<div class="form-group">
 												<label for="" class="control-label">链接</label>
 												<div class="form_controls">
-													<input type="text" name="nav[url]" required class="form-control input-slide-link" id="" placeholder="">
+													<input type="url" name="nav[url]" required class="form-control input-slide-link" id="" placeholder="">
 												</div>
 											</div>
 											<input type="submit" name="submit"  value="添加" class="btn btn-primary" />
@@ -416,7 +360,7 @@
 											<div class="form-group">
 												<label for="" class="control-label">链接</label>
 												<div class="form_controls">
-													<input type="text" name="nav[url]" required class="form-control input-slide-link" value="{$nav['url']}" id="" placeholder="">
+													<input type="url" name="nav[url]" required class="form-control input-slide-link" value="{$nav['url']}" id="" placeholder="">
 												</div>
 											</div>
 											<input type="submit" name="submit" id="" value="提交" class="btn btn-primary" />
@@ -452,15 +396,45 @@
 											<div class="form-group form-inline">
 												<label for="" class="control-label">分类</label>
 												<div class="form_controls">
-													<select class="form-control" name="recommend[pcate]" required onchange="change_category($(this))">
-														<option value="" disabled>一级分类</option>
-														{loop $categorys $cate}
-														<option value="{$cate['id']}"}>{$cate['name']}</option>
-														{/loop}
-													</select>
 													<select class="form-control" name="recommend[ccate]">
-														<option>二级分类</option>
+														<option>选择分类</option>
+														<option ng-repeat="category in categorys" value="{{ category.id }}">{{ category.name }}</option>
 													</select>
+												</div>
+												<a class="btn" data-toggle="modal" data-target="#myModal" ng-click="get_categorys()">设置分类</a>
+												<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+													<div class="modal-dialog">
+														<div class="modal-content">
+															<div class="modal-header">
+																<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+																<h4 class="modal-title" id="myModalLabel">分类设置</h4>
+															</div>
+															<div class="modal-body" ng-if="operate == 'list'">
+																<table class="table">
+																	<thead>
+																		<th>类名</th>
+																		<th>排序</th>
+																		<th>操作</th>
+																	</thead>
+																	<tbody>
+																		<tr ng-repeat="category in categorys">
+																			<td>{{ category['name'] }}</td>
+																			<td>{{ category['displayorder'] }}</td>
+																			<td><a href="" ng-click="edit_category(category)">编辑</a><a href="" ng-click="del_category(category.id)">删除</a></td>
+																		</tr>
+																	</tbody>
+																</table>
+																<button type="button" class="btn btn-primary" ng-click="edit_category()">添加分类</button>
+															</div>
+															<div class="modal-body" ng-if="operate == 'edit'">
+																<a href="" ng-click="get_categorys()">分类列表</a>
+																分类名<input ng-model="category.name">
+																排序<input ng-model="category.displayorder">
+																链接<input type="url" ng-model="category.linkurl">
+																<button type="button" class="btn btn-primary" ng-click="save_category()">保存</button>
+															</div>
+														</div>
+													</div>
 												</div>
 											</div>
 											<div class="form-group">
@@ -472,7 +446,7 @@
 											<div class="form-group">
 												<label for="" class="control-label">链接</label>
 												<div class="form_controls">
-													<input type="text" name="recommend[source]" required class="form-control input-slide-link" id="" placeholder="">
+													<input type="url" name="recommend[source]" required class="form-control input-slide-link" id="" placeholder="">
 												</div>
 											</div>
 											<input type="submit" name="submit"  value="添加" class="btn btn-primary" />
@@ -496,20 +470,57 @@
 											<div class="form-group form-inline">
 												<label for="" class="control-label">分类</label>
 												<div class="form_controls">
-													<select class="form-control pcategory" name="recommend[pcate]" onchange="change_category($(this))">
-														<option value="" disabled>一级分类</option>
-														{loop $categorys $cate}
-														<option value="{$cate['id']}" {if $recommend['pcate'] == $cate['id']}selected{/if}>{$cate['name']}</option>
-														{/loop}
-													</select>
 													<select class="form-control" name="recommend[ccate]">
-														<option>二级分类</option>
-														{loop $categorys $cates}
-														{loop $cates['categorys'] $categ}
-														<option value="{$categ['id']}" ng-show="recommendpid == '{$categ['parentid']}'" ng-selected="{$categ['id']} == '{$recommend['ccate']}'">{$categ['name']}</option>
-														{/loop}
-														{/loop}
+														<option>选择分类</option>
+														<option ng-repeat="category in categorys" value="{{ category.id }}" ng-selected="category.id == {$recommend['ccate']}">{{ category.name }}</option>
 													</select>
+												</div>
+											</div>
+											<a class="btn" data-toggle="modal" data-target="#myModal" ng-click="get_categorys()">设置分类</a>
+											<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+												<div class="modal-dialog">
+													<div class="modal-content">
+														<div class="modal-header">
+															<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+															<h4 class="modal-title" id="myModalLabel">分类设置</h4>
+														</div>
+														<div class="modal-body" ng-if="operate == 'list'">
+															<table class="table">
+																<thead>
+																<th>类名</th>
+																<th>排序</th>
+																<th>操作</th>
+																</thead>
+																<tbody>
+																<tr ng-repeat="category in categorys">
+																	<td>{{ category['name'] }}</td>
+																	<td>{{ category['displayorder'] }}</td>
+																	<td><a href="" ng-click="edit_category(category)">编辑</a><a href="" ng-click="del_category(category.id)">删除</a></td>
+																</tr>
+																</tbody>
+															</table>
+															<button type="button" class="btn btn-primary" ng-click="edit_category()">添加分类</button>
+														</div>
+														<div class="modal-body" ng-if="operate == 'edit'">
+															<a href="" ng-click="get_categorys()">分类列表</a>
+															<div class="form-group">
+																<label class="col-xs-12 col-sm-3 col-md-2 control-label">分类名</label>
+																<div class="col-sm-9 col-xs-12">
+																	<input ng-model="category.name">																</div>
+															</div>
+															<div class="form-group">
+																<label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
+																<div class="col-sm-9 col-xs-12">
+																	<input ng-model="category.displayorder">																</div>
+															</div>
+															<div class="form-group">
+																<label class="col-xs-12 col-sm-3 col-md-2 control-label">链接</label>
+																<div class="col-sm-9 col-xs-12">
+																	<input type="url" ng-model="category.linkurl">														</div>
+															</div>
+															<button type="button" class="btn btn-primary" ng-click="save_category()">保存</button>
+														</div>
+													</div>
 												</div>
 											</div>
 											<div class="form-group">
@@ -521,7 +532,7 @@
 											<div class="form-group">
 												<label for="" class="control-label">链接</label>
 												<div class="form_controls">
-													<input type="text" name="recommend[source]" required class="form-control input-slide-link" value="{$recommend['source']}" id="" placeholder="">
+													<input type="url" name="recommend[source]" required class="form-control input-slide-link" value="{$recommend['source']}" id="" placeholder="">
 												</div>
 											</div>
 											<input type="submit" name="submit" id="" value="提交" class="btn btn-primary" />
@@ -529,111 +540,6 @@
 											<input type="hidden" name="id" value="{$recommend['id']}">
 											<input type="hidden" name="multiid" value="{$multiid}" />
 										</div>
-										{/loop}
-									</form>
-								</div>
-								<div class="wxapp-slide-edit" ng-show="wxapp == 'categoryedit'">
-									<div class="edit-heading">
-										<a href="" class="go-back">
-											<i class="fa fa fa-chevron-circle-left"></i>
-										</a>
-										<span class="color-gray">导航列表 / </span>
-										<span class="color-dark">新建导航图标</span>
-									</div>
-									<form action="{php echo url('wxapp/manage/edit')}" method="post" class="form-defalut" enctype="multipart/form-data">
-										<div class="form-defalut" ng-if="categoryeditid == 'add' || (categoryparentid != '' && categoryparentid != unidefined)">
-											<div class="form-group" >
-												<label for="" class="control-label">标题</label>
-												<div class="form_controls">
-													<input type="text" required name="category[name]" class="form-control input-slide-title"  placeholder="">
-												</div>
-											</div>
-											<div class="form-group">
-												<label for="" class="control-label">排序</label>
-												<div class="form_controls">
-													<input type="text" name="catetory[displayorder]" class="form-control input-slide-sort" id="" placeholder="">
-												</div>
-											</div>
-											<div class="form-group">
-												<label for="" class="control-label">图片</label>
-												<div class="form_controls">
-													{php echo tpl_form_field_image('category[icon]')}
-												</div>
-											</div>
-											<div class="form-group">
-												<label for="" class="control-label">链接</label>
-												<div class="form_controls">
-													<input type="text" required name="category[linkurl]" class="form-control input-slide-link" id="" placeholder="">
-												</div>
-											</div>
-											<input type="submit" name="submit" id="" value="添加"  class="btn btn-primary" />
-											<input type="hidden" name="token" value="{$_W['token']}" />
-											<input type="hidden" name="parentid" value="{{ categoryparentid }}" ng-if="categoryparentid != ''" />
-											<input type="hidden" name="multiid" value="{$multiid}" />
-										</div>
-										{loop $categorys $pcate}
-										<div class="form-defalut" ng-if="categoryeditid == {$pcate['id']}">
-											<div class="form-group" >
-												<label for="" class="control-label">标题</label>
-												<div class="form_controls">
-													<input type="text" required name="category[name]" class="form-control input-slide-title" value="{$pcate['name']}" placeholder="">
-												</div>
-											</div>
-											<div class="form-group">
-												<label for="" class="control-label">排序</label>
-												<div class="form_controls">
-													<input type="text" name="category[displayorder]" class="form-control input-slide-sort" value="{$pcate['displayorder']}" placeholder="">
-												</div>
-											</div>
-											<div class="form-group">
-												<label for="" class="control-label">图片</label>
-												<div class="form_controls">
-													{php echo tpl_form_field_image('category[icon]', $pcate['icon'])}
-												</div>
-											</div>
-											<div class="form-group">
-												<label for="" class="control-label">链接</label>
-												<div class="form_controls">
-													<input type="text" required name="category[linkurl]" class="form-control input-slide-link" value="{$pcate['linkurl']}"  placeholder="">
-												</div>
-											</div>
-											<input type="submit" name="submit" value="提交" class="btn btn-primary" />
-											<input type="hidden" name="token" value="{$_W['token']}">
-											<input type="hidden" name="id" value="{$pcate['id']}">
-											<input type="hidden" name="multiid" value="{$multiid}" />
-										</div>
-										{loop $pcate['categorys'] $ccate}
-										<div class="form-defalut" ng-if="categoryeditid == {$ccate['id']}">
-											<div class="form-group" >
-												<label for="" class="control-label">标题</label>
-												<div class="form_controls">
-													<input type="text" required name="category[name]" class="form-control input-slide-title" value="{$ccate['name']}" placeholder="">
-												</div>
-											</div>
-											<div class="form-group">
-												<label for="" class="control-label">排序</label>
-												<div class="form_controls">
-													<input type="text" name="category[displayorder]" class="form-control input-slide-sort" value="{$ccate['displayorder']}" placeholder="">
-												</div>
-											</div>
-											<div class="form-group">
-												<label for="" class="control-label">图片</label>
-												<div class="form_controls">
-													{php echo tpl_form_field_image("category[icon]", $ccate['icon'])}
-												</div>
-											</div>
-											<div class="form-group">
-												<label for="" class="control-label">链接</label>
-												<div class="form_controls">
-													<input type="text" required name="category[linkurl]" class="form-control input-slide-link" value="{$ccate['linkurl']}" id="" placeholder="">
-												</div>
-											</div>
-											<input type="submit" name="submit" value="提交" class="btn btn-primary" />
-											<input type="hidden" name="token" value="{$_W['token']}">
-											<input type="hidden" name="id" value="{$ccate['id']}">
-											<input type="hidden" name="multiid" value="{$multiid}" />
-										</div>
-										{/loop}
 										{/loop}
 									</form>
 								</div>
@@ -647,9 +553,57 @@
 	</div>
 </div>
 <script>
-	require(['angular'], function(){
+	require(['angular', 'bootstrap'], function(){
 		angular.module('editWxApp', []);
-		angular.module('editWxApp').controller('MainCtrl', ['$scope', function($scope){
+		angular.module('editWxApp').controller('MainCtrl', ['$scope', '$http', function($scope, $http){
+			$scope.operate = 'list';
+			$scope.category = {
+				'id' : '',
+				'name' : '',
+				'displayorder' : '',
+				'linkurl' : ''
+			};
+			$scope.del_category = function(id) {
+				$http.post('{php echo url('wxapp/manage/del_category')}', {'id' : id}).success(function() {});
+				$scope.get_categorys();
+			}
+			$scope.edit_category = function (category) {
+				$scope.operate = 'edit';
+				if (category != undefined) {
+					$scope.category.id = category.id;
+					$scope.category.name = category.name;
+					$scope.category.displayorder = category.displayorder;
+					$scope.category.linkurl = category.linkurl;
+				} else {
+					$scope.category.id = '';
+					$scope.category.name = '';
+					$scope.category.displayorder = '';
+					$scope.category.linkurl = '';
+				}
+			};
+			$scope.get_categorys = function() {
+				$http.post('{php echo url('wxapp/manage/get_categorys')}', {'multiid' : '{$multiid}'}).success(function(data) {
+					$scope.categorys = data.message.message;
+				});
+				$scope.operate = 'list';
+			};
+			$scope.get_categorys();
+			$scope.save_category = function() {
+				post = {
+					'id' : $scope.category.id,
+					'name' : $scope.category.name,
+					'displayorder' : $scope.category.displayorder,
+					'linkurl' : $scope.category.linkurl,
+					'multiid' : '{$multiid}'
+				};
+				if (post.name == '') {
+					util.message('请输入分类名');
+					return false;
+				}
+				$http.post('{php echo url('wxapp/manage/save_category')}', post).success(function() {});
+				$scope.get_categorys();
+				$('#myModal').modal('hide');
+			};
 			$scope.wxapp = '{$_GPC['wxapp']}' == '' ? 'slide' : '{$_GPC['wxapp']}';
 			$scope.slideedit = function (id) {
 				$scope.wxapp = 'slideedit';
@@ -664,25 +618,8 @@
 				$scope.recommendid = id;
 				$scope.recommendpid = pid;
 			};
-			$scope.categoryedit = function (id, pid) {
-				$scope.wxapp = 'categoryedit';
-				$scope.categoryeditid = id;
-				$scope.categoryparentid = pid;
-			};
 		}]);
-		change_category = function (element) {
-			$.post('{php echo url('wxapp/manage/edit', array('operate' => 'change_category'))}', {'categoryid' : element.val()}, function(data) {
-				var data = $.parseJSON(data);
-				var html = '<option  value="">二级分类</option>';
-				var categorys = data.message.message;
-				for (var i = 0; i < categorys.length; i++) {
-					html += '<option value='+categorys[i]['id']+'>'+categorys[i]['name']+'</option>';
-				}
-				element.next().html(html);
-			});
-		};
 		angular.bootstrap(document, ['editWxApp']);
-
 	});
 </script>
 </body>

@@ -7,9 +7,33 @@ defined('IN_IA') or exit('Access Denied');
 $_W['page']['title'] = '小程序 - 管理';
 
 load()->model('module');
-$do = 'edit';
-$dos = array('edit');
-$do = in_array($do, $dos) ? $do : 'display';
+$dos = array('edit', 'get_categorys', 'save_category', 'del_category');
+$do = in_array($do, $dos) ? $do : 'edit';
+if ($do == 'del_category') {
+	$id = $_GPC['__input']['id'];
+	$result = pdo_delete('site_category', array('uniacid' => $_W['uniacid'], 'id' => $id));
+}
+if ($do == 'get_categorys') {
+	$multiid = $_GPC['__input']['multiid'];
+	$categorys = pdo_getall('site_category', array('uniacid' => $_W['uniacid'], 'multiid' => $multiid));
+	return message(error(1, $categorys), '', 'ajax');
+}
+if ($do == 'save_category') {
+	$id =  $_GPC['__input']['id'];
+	$category = array(
+		'name' => $_GPC['__input']['name'],
+		'displayorder' => $_GPC['__input']['displayorder'],
+		'linkurl' => $_GPC['__input']['linkurl'],
+	);
+	if (empty($id)) {
+		$category['uniacid'] = $_W['uniacid'];
+		$category['multiid'] = $_GPC['__input']['multiid'];
+		pdo_insert('site_category', $category);
+	} else {
+		pdo_update('site_category', $category, array('uniacid' => $_W['uniacid'], 'multiid' => $_GPC['__input']['multiid'], 'id' => $id));
+	}
+	return message(error(1, 1), '', 'ajax');
+}
 if ($do == 'edit') {
 	$multiid = intval($_GPC['multiid']);
 	$operate = $_GPC['operate'];
@@ -19,16 +43,10 @@ if ($do == 'edit') {
 		pdo_delete('site_'.$type, array('id' => $id));
 		message('删除成功', url('wxapp/manage/edit', array('multiid' => $multiid)), 'success');
 	}
-	if ($operate == 'change_category') {
-		$parentid = intval($_GPC['categoryid']);
-		$categorys = pdo_getall('site_category', array('parentid' => $parentid, 'uniacid' => $_W['uniacid']));
-		return message(error('1', $categorys), '', 'ajax');
-	}
 	if (checksubmit('submit')) {
 		$slide = $_GPC['slide'];
 		$nav = $_GPC['nav'];
 		$recommend = $_GPC['recommend'];
-		$category = $_GPC['category'];
 		$id = intval($_GPC['id']);
 		//更新幻灯片
 		if (!empty($slide)) {
@@ -57,25 +75,11 @@ if ($do == 'edit') {
 		if (!empty($recommend)) {
 			if (empty($id)) {
 				$recommend['uniacid'] = $_W['uniacid'];
-				pdo_insert('site_article', $recommend);
+				$result = pdo_insert('site_article', $recommend);
 				message('添加推荐图片成功', url('wxapp/manage/edit', array('wxapp' => 'recommend', 'multiid' => $multiid)), 'success');
 			} else {
 				pdo_update('site_article', $recommend, array('uniacid' => $_W['uniacid'], 'id' => $id));
 				message('更新推荐图片成功', url('wxapp/manage/edit', array('wxapp' => 'recommend', 'multiid' => $multiid)), 'success');
-			}
-		}
-		if (!empty($category)) {
-			if (empty($id)) {
-				$category['uniacid'] = $_W['uniacid'];
-				$category['multiid'] = $multiid;
-				if (!empty($_GPC['parentid'])) {
-					$category['parentid'] = intval($_GPC['parentid']);
-				}
-				pdo_insert('site_category', $category);
-				message('添加分类成功', url('wxapp/manage/edit', array('wxapp' => 'category', 'multiid' => $multiid)), 'success');
-			} else {
-				pdo_update('site_category', $category, array('uniacid' => $_W['uniacid'], 'id' => $id));
-				message('更新分类成功', url('wxapp/manage/edit', array('wxapp' => 'category', 'multiid' => $multiid)), 'success');
 			}
 		}
 		//导航图标
@@ -87,26 +91,12 @@ if ($do == 'edit') {
 			$nav['css'] = iunserializer($nav['css']);
 		}
 	}
-//	$category_navs = pdo_fetchall("SELECT * FROM ".tablename('site_nav')." as a RIGHT JOIN ". tablename('site_category')." as b ON a.categoryid = b.id WHERE a.multiid = :multiid AND a.uniacid = :uniacid", array(':multiid' => $multiid, ':uniacid' => $_W['uniacid']), 'categoryid');
-//	$pcates = empty($category_navs) ? '' : array_keys($category_navs);
-	$categorys = pdo_getall('site_category', array('uniacid' => $_W['uniacid'], 'multiid' => $multiid, 'parentid' => 0), array(), 'id');
-	$pcates = array_keys($categorys);
-
-	if (!empty($pcates)) {
-		$recommends = pdo_getall('site_article', array('uniacid' => $_W['uniacid'], 'pcate' => $pcates));
-	} else {
-		$recommends = array();
-	}
-	if (!empty($categorys)) {
-		foreach ($categorys as &$category) {
-			$category['categorys'] = pdo_getall('site_category', array('parentid' => $category['id'], 'uniacid' => $_W['uniacid'], 'multiid' => $multiid));
-		}
-	}
+	$recommends = pdo_getall('site_article', array('uniacid' => $_W['uniacid']));
 	$modules = pdo_getcolumn('wxapp_versions', array('multiid' => $multiid), 'modules');
+	$modules = json_decode($modules, true);
 	if (!empty($modules)) {
-		$modules = explode(',', $modules);
-		foreach ($modules as &$module) {
-			$module = pdo_get('modules', array('name' => $module));
+		foreach ($modules as $module => &$version) {
+			$version = pdo_get('modules', array('name' => $module));
 		}
 	}
 	template('wxapp/wxapp-edit');
