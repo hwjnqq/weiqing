@@ -640,7 +640,7 @@
 	</div>
 </div>
 <script>
-	require(['angular', 'layer'], function(){
+	require(['angular'], function(){
 		angular.module('editWxApp', []);
 		angular.module('editWxApp').controller('MainCtrl', ['$scope', function($scope){
 			$scope.wxapp = '{$_GPC['wxapp']}' == '' ? 'slide' : '{$_GPC['wxapp']}';
