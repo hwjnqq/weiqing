@@ -108,7 +108,7 @@ if($do == 'post') {
 		$wxapp_version['createtime'] = time();
 		pdo_insert('wxapp_versions', $wxapp_version);
 		$result = request_cloud($request_cloud_data);
-		if(!is_error($result)) {
+		if(is_error($result)) {
 			message($result['message']);
 		}else {
 			header('content-type: application/zip');
