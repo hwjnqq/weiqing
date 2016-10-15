@@ -116,7 +116,7 @@
 									<i class="num">4</i>
 									<div class="wxapp-step-name">
 										<img src="./resource/images/creat-step-4.png"/>
-										<p>打包完成</p>
+										<p>生成版本</p>
 									</div>
 								</a>
 							</li>
@@ -450,10 +450,10 @@
 											<p class="form-control-static" ng-bind="submit.tomodule.title"></p>
 										</div>
 									</div>
-									<div class="form-group" ng-show="ifShowMenu">
+									<div class="form-group">
 										<label class="control-label">底部菜单</label>
 										<div class="form-controls">	
-											<table class="table-finish-buttom">
+											<table class="table-finish-buttom" ng-show="ifShowMenu">
 												<col width="75px"/>
 												<col width="105"/>
 												<col />
@@ -470,6 +470,7 @@
 													<td ng-bind="menu.module.title ? menu.module.title : '暂无'"></td>
 												</tr>
 											</table>
+											<p class="form-control-static" ng-show="!ifShowMenu">不显示</p>
 										</div>
 									</div>
 								</div>
