@@ -13,34 +13,37 @@ $do = in_array($do, $dos) ? $do : 'post';
 
 if($do == 'post') {
 	if(!empty($_GPC['wxappval'])) {
-		$submitval = json_decode(ihtml_entity_decode($_GPC['wxappval']), true);
+		$submit_val = json_decode(ihtml_entity_decode($_GPC['wxappval']), true);
 		//构建请求数据
 		$request_cloud_data = array();
-		$version = ($submitval['version0'] ? $submitval['version0'] : 0) .'.'.($submitval['version1'] ? $submitval['version1'] : 0).'.'.($submitval['version2'] ? $submitval['version2'] : 0);
+		$version = ($submit_val['version0'] ? $submit_val['version0'] : 0) .'.'.($submit_val['version1'] ? $submit_val['version1'] : 0).'.'.($submit_val['version2'] ? $submit_val['version2'] : 0);
+
 		//底部菜单menus
-		$bottommenu = array();
-		foreach ($submitval['menus'] as $mvalue) {
-			$mvalue['defaultImage'] = empty($mvalue['defaultImage']) ? $_W['siteroot'].'web/resource/images/bottom-default.png' : $mvalue['defaultImage'];
-			$mvalue['selectedImage'] = empty($mvalue['selectedImage']) ? $_W['siteroot'].'web/resource/images/bottom-default.png' : $mvalue['selectedImage'];
-			$bottommenu[] = array(
+		$bottom_menu = array();
+		foreach ($submit_val['menus'] as $menu_val) {
+			$menu_val['defaultImage'] = empty($menu_val['defaultImage']) ? $_W['siteroot'].'web/resource/images/bottom-default.png' : $menu_val['defaultImage'];
+			$menu_val['selectedImage'] = empty($menu_val['selectedImage']) ? $_W['siteroot'].'web/resource/images/bottom-default.png' : $menu_val['selectedImage'];
+			$bottom_menu[] = array(
 					'pagePath' => 'we7/page/index/index',
-					'iconPath' => $mvalue['defaultImage'],
-					'selectedIconPath' => $mvalue['selectedImage'],
-					'text' => $mvalue['name']
+					'iconPath' => $menu_val['defaultImage'],
+					'selectedIconPath' => $menu_val['selectedImage'],
+					'text' => $menu_val['name']
 				);
 		}
+
 		//包装应用modules
 		$modules = array();
-		foreach ($submitval['modules'] as $modulekey => $modulevalue) {
-			$modules[$modulevalue['module']] = $modulevalue['version'];
+		foreach ($submit_val['modules'] as $module_val) {
+			$modules[$module_val['module']] = $module_val['version'];
 		}
 		//测试应用
 		// $modules = array(
 		// 	'we7_1' => '7.0',
 		// 	'we7_gs' => '31.0'
 		// );
+
 		//创建主公号
-		$name = trim($submitval['name']);
+		$name = trim($submit_val['name']);
 		$description = '微信小程序体验版';
 		$data = array(
 			'name' => $name,
@@ -51,12 +54,14 @@ if($do == 'post') {
 			message('添加公众号失败');
 		}
 		$uniacid = pdo_insertid();
+
 		//给应用号添加默认微站
 		$multi['uniacid'] = $uniacid;
 		$multi['title'] = $name;
 		$multi['styleid'] = 0;//暂设为0
 		pdo_insert('site_multi', $multi);
 		$multi_id = pdo_insertid();
+
 		//添加acid及给account_wxapp表添加数据
 		$update['name'] = $name;
 		$update['account'] = trim('we7team');
@@ -74,7 +79,7 @@ if($do == 'post') {
 			pdo_update('uni_account', array('default_acid' => $acid), array('uniacid' => $uniacid));
 		}
 		$request_cloud_data = array(
-			'name' => $submitval['name'],
+			'name' => $submit_val['name'],
 			'modules' => $modules,
 			'siteInfo' => array(
 					'uniacid' => $uniacid,
@@ -84,13 +89,13 @@ if($do == 'post') {
 					'siteroot' => $_W['siteroot'].'app/index.php'
 				),
 		);
-		if($submitval['showmenu']) {
+		if($submit_val['showmenu']) {
 			$request_cloud_data['tabBar'] = array(
-				'color' => $submitval['buttom']['color'],
-				'selectedColor' => $submitval['buttom']['selectedColor'],
+				'color' => $submit_val['buttom']['color'],
+				'selectedColor' => $submit_val['buttom']['selectedColor'],
 				'borderStyle' => 'black',
-				'backgroundColor' => $submitval['buttom']['boundary'],
-				'list' => $bottommenu
+				'backgroundColor' => $submit_val['buttom']['boundary'],
+				'list' => $bottom_menu
 			);
 		}
 
@@ -99,21 +104,22 @@ if($do == 'post') {
 		$wxapp_version['multiid'] = $multi_id;
 		$wxapp_version['version'] = $version;
 		$wxapp_version['modules'] = json_encode($request_cloud_data['modules']);
-		$wxapp_version['design_method'] = intval($submitval['type']);
+		$wxapp_version['design_method'] = intval($submit_val['type']);
 		$wxapp_version['quickmenu'] = json_encode($request_cloud_data['tabBar']);
 		$wxapp_version['createtime'] = time();
 		switch ($wxapp_version['design_method']) {
 			case 1://模板
-				$wxapp_version['template'] = intval($submitval['template']);
+				$wxapp_version['template'] = intval($submit_val['template']);
 				break;
 			case 2://DIY
 				break;
 			case 3://直接跳转
-				$wxapp_version['redirect'] = json_encode($submitval['tomodule']);
+				$wxapp_version['redirect'] = json_encode($submit_val['tomodule']);
 				break;
 		}		
 		pdo_insert('wxapp_versions', $wxapp_version);
 		$versionid = pdo_insertid();
+		
 		message('小程序创建成功！跳转后请自行下载打包程序', url('wxapp/account/switch', array('uniacid' => $uniacid)));
 	}
 	template('wxapp/create-post');
@@ -151,8 +157,8 @@ if($do == 'getapps') {
 	$apps = array();
 	$apps = cache_load('packageapps');
 	if(empty($apps)) {
-		$modulelist = uni_modules();
-		foreach ($modulelist as $key => $module) {
+		$module_list = uni_modules();
+		foreach ($module_list as $key => $module) {
 			if($module['type'] != 'system' && !empty($module['version'])) {
 				//获取图标
 				if($module['issystem']) {
