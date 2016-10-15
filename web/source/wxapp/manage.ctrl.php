@@ -19,18 +19,19 @@ if ($do == 'get_categorys') {
 	return message(error(1, $categorys), '', 'ajax');
 }
 if ($do == 'save_category') {
-	$id =  $_GPC['__input']['id'];
-	$category = array(
-		'name' => $_GPC['__input']['name'],
-		'displayorder' => $_GPC['__input']['displayorder'],
-		'linkurl' => $_GPC['__input']['linkurl'],
-	);
-	if (empty($id)) {
-		$category['uniacid'] = $_W['uniacid'];
-		$category['multiid'] = $_GPC['__input']['multiid'];
-		pdo_insert('site_category', $category);
-	} else {
-		pdo_update('site_category', $category, array('uniacid' => $_W['uniacid'], 'multiid' => $_GPC['__input']['multiid'], 'id' => $id));
+	$post =  $_GPC['__input']['post'];
+	foreach ($post as $category) {
+		if (!empty($category['id'])) {
+			$update = array('name' => $category['name'], 'displayorder' => $category['displayorder'], 'linkurl' => $category['linkurl']);
+			pdo_update('site_category', $update, array('uniacid' => $_W['uniacid'], 'id' => $category['id']));
+		} else {
+			if (!empty($category['name'])) {
+				$insert = $category;
+				$insert['uniacid'] = $_W['uniacid'];
+				$insert['multiid'] = $multiid;
+				pdo_insert('site_category', $insert);
+			}
+		}
 	}
 	return message(error(1, 1), '', 'ajax');
 }
