@@ -496,10 +496,14 @@
 																	<td><input ng-model="category['linkurl']" class="form-control"></td>
 																	<td><a href="" ng-click="del_category($index)">删除</a></td>
 																</tr>
+																<tr>
+																	<td colspan="4"><a href="javascript:;" class="buttom-add" ng-click="edit_category()">+</a></td>
+																	
+																</tr>
 																</tbody>
 															</table>
-															<button type="button" class="btn btn-primary" ng-click="edit_category()">添加分类</button>
-															<button type="button" class="btn btn-primary" ng-click="save_category()">保存</button>
+															<!--<button type="button" class="btn btn-primary" ng-click="edit_category()">添加分类</button>-->
+															<button type="button" class="btn btn-primary" ng-click="save_category()" style="margin-left: 0px;">保存</button>
 														</div>
 													</div>
 												</div>
