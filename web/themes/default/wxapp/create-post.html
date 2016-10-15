@@ -256,7 +256,7 @@
 										</div>
 										<div class="select-tem-filter">
 											<div class="form-group">
-												<select name="" class="select-we7">
+												<select id="tplcategory" value="" class="select-we7" onchange="selectedCategory()">
 													<option value="">全部分类</option>
 													<option value="">分类1</option>
 													<option value="">分类2</option>
@@ -270,7 +270,7 @@
 										<div class="select-tem-list">
 											<input type="hidden" name="template" value="1">
 											<ul>
-												<li class="select-tem-item active">
+												<li class="select-tem-item active" ng-click="selectTpl()">
 													<img src="./resource/images/wxapp-default-tpl0.jpg"/>
 													<a href="javascript:;" class="cover-dark">
 														<i class="fa fa-check cover-selected"></i>
@@ -314,7 +314,7 @@
 									<div class="wxapp-phone">
 										<img src="./resource/images/iphone6.png" alt="" class="wxapp-phone-bg" />
 										<div class="wxapp-home-preview">
-											<div class="buttom-list-preview" ng-style="{'background-color': bottom.bgcolor}">
+											<div class="buttom-list-preview" ng-style="{'background-color': bottom.bgcolor}" ng-show="ifShowMenu">
 												<ul ng-style="{'border-top': '1px solid'+bottom.boundary}">
 													<li ng-repeat="menu in menus">
 														<img ng-src="{{menu.defaultImage}}" class="buttom-preview-img"/>
@@ -450,7 +450,7 @@
 											<p class="form-control-static" ng-bind="submit.tomodule.title"></p>
 										</div>
 									</div>
-									<div class="form-group">
+									<div class="form-group" ng-show="ifShowMenu">
 										<label class="control-label">底部菜单</label>
 										<div class="form-controls">	
 											<table class="table-finish-buttom">
@@ -497,6 +497,17 @@ require(['fileUploader', 'bootstrap', 'angular', 'underscore'], function(){
 	});
 	angular.bootstrap(document, ['wxApp']);
 });
+var selectedCategory = function(){
+	var val = $('#tplcategory option:selected').text();
+	if(val == '分类1' || val == '全部分类') {
+		$(':hidden[name="template"]').val(1);
+		$('.select-tem-list > ul').show();
+	}
+	if(val == '分类2') {
+		$(':hidden[name="template"]').val('');
+		$('.select-tem-list > ul').hide();		
+	}
+}
 var modulesVal = [];
 var selectModule = function(module, title, icon, showurl, version){
 	var html = '<li class="select">'+
