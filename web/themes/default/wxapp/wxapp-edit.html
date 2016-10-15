@@ -470,29 +470,30 @@
 														<option>选择分类</option>
 														<option ng-repeat="category in categorys" value="{{ category.id }}" ng-selected="category.id == {$recommend['ccate']}">{{ category.name }}</option>
 													</select>
+													<a class="btn btn-default" data-toggle="modal" data-target="#myModal" ng-click="get_categorys()">设置分类</a>
 												</div>
 											</div>
-											<a class="btn" data-toggle="modal" data-target="#myModal" ng-click="get_categorys()">设置分类</a>
+											
 											<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-												<div class="modal-dialog">
+												<div class="modal-dialog modal-dialog-default  modal-lg">
 													<div class="modal-content">
 														<div class="modal-header">
 															<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 															<h4 class="modal-title" id="myModalLabel">分类设置</h4>
 														</div>
 														<div class="modal-body">
-															<table class="table">
-																<thead>
+															<table class="table we7-table we7-form">
+																<tr>
 																<th>类名</th>
 																<th>排序</th>
 																<th>链接</th>
 																<th>操作</th>
-																</thead>
+																</tr>
 																<tbody>
 																<tr ng-repeat="category in categorys">
-																	<td><input ng-model="category.name"></td>
-																	<td><input ng-model="category['displayorder']"></td>
-																	<td><input ng-model="category['linkurl']"></td>
+																	<td><input ng-model="category.name" class="form-control" size="15"></td>
+																	<td><input ng-model="category['displayorder']" class="form-control"></td>
+																	<td><input ng-model="category['linkurl']" class="form-control"></td>
 																	<td><a href="" ng-click="del_category($index)">删除</a></td>
 																</tr>
 																</tbody>
@@ -506,6 +507,12 @@
 											<div class="form-group">
 												<label for="" class="control-label">图片</label>
 												<div class="form_controls">
+													<div class="input-more active">
+														<img src="./resource/images/wxapp-default-tpl1.jpg"/>
+														<div class="cover-dark">
+															<a href="" class="cut">更换</a>
+														</div>
+													</div>
 													{php echo tpl_form_field_image('recommend[thumb]', $recommend['thumb'])}
 												</div>
 											</div>
