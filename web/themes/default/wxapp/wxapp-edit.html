@@ -409,28 +409,24 @@
 																<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 																<h4 class="modal-title" id="myModalLabel">分类设置</h4>
 															</div>
-															<div class="modal-body" ng-if="operate == 'list'">
+															<div class="modal-body">
 																<table class="table">
 																	<thead>
 																		<th>类名</th>
 																		<th>排序</th>
+																		<th>链接</th>
 																		<th>操作</th>
 																	</thead>
 																	<tbody>
 																		<tr ng-repeat="category in categorys">
-																			<td>{{ category['name'] }}</td>
-																			<td>{{ category['displayorder'] }}</td>
-																			<td><a href="" ng-click="edit_category(category)">编辑</a><a href="" ng-click="del_category(category.id)">删除</a></td>
+																			<td><input ng-model="category.name"></td>
+																			<td><input ng-model="category['displayorder']"></td>
+																			<td><input ng-model="category['linkurl']"></td>
+																			<td><a href="" ng-click="del_category($index)">删除</a></td>
 																		</tr>
 																	</tbody>
 																</table>
 																<button type="button" class="btn btn-primary" ng-click="edit_category()">添加分类</button>
-															</div>
-															<div class="modal-body" ng-if="operate == 'edit'">
-																<a href="" ng-click="get_categorys()">分类列表</a>
-																分类名<input ng-model="category.name">
-																排序<input ng-model="category.displayorder">
-																链接<input type="url" ng-model="category.linkurl">
 																<button type="button" class="btn btn-primary" ng-click="save_category()">保存</button>
 															</div>
 														</div>
@@ -484,40 +480,24 @@
 															<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 															<h4 class="modal-title" id="myModalLabel">分类设置</h4>
 														</div>
-														<div class="modal-body" ng-if="operate == 'list'">
+														<div class="modal-body">
 															<table class="table">
 																<thead>
 																<th>类名</th>
 																<th>排序</th>
+																<th>链接</th>
 																<th>操作</th>
 																</thead>
 																<tbody>
 																<tr ng-repeat="category in categorys">
-																	<td>{{ category['name'] }}</td>
-																	<td>{{ category['displayorder'] }}</td>
-																	<td><a href="" ng-click="edit_category(category)">编辑</a><a href="" ng-click="del_category(category.id)">删除</a></td>
+																	<td><input ng-model="category.name"></td>
+																	<td><input ng-model="category['displayorder']"></td>
+																	<td><input ng-model="category['linkurl']"></td>
+																	<td><a href="" ng-click="del_category($index)">删除</a></td>
 																</tr>
 																</tbody>
 															</table>
 															<button type="button" class="btn btn-primary" ng-click="edit_category()">添加分类</button>
-														</div>
-														<div class="modal-body" ng-if="operate == 'edit'">
-															<a href="" ng-click="get_categorys()">分类列表</a>
-															<div class="form-group">
-																<label class="col-xs-12 col-sm-3 col-md-2 control-label">分类名</label>
-																<div class="col-sm-9 col-xs-12">
-																	<input ng-model="category.name">																</div>
-															</div>
-															<div class="form-group">
-																<label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
-																<div class="col-sm-9 col-xs-12">
-																	<input ng-model="category.displayorder">																</div>
-															</div>
-															<div class="form-group">
-																<label class="col-xs-12 col-sm-3 col-md-2 control-label">链接</label>
-																<div class="col-sm-9 col-xs-12">
-																	<input type="url" ng-model="category.linkurl">														</div>
-															</div>
 															<button type="button" class="btn btn-primary" ng-click="save_category()">保存</button>
 														</div>
 													</div>
@@ -563,44 +543,35 @@
 				'displayorder' : '',
 				'linkurl' : ''
 			};
-			$scope.del_category = function(id) {
-				$http.post('{php echo url('wxapp/manage/del_category')}', {'id' : id}).success(function() {});
-				$scope.get_categorys();
+			$scope.del_category = function(index) {
+				if ($scope.categorys[index].id != undefined) {
+					$http.post('{php echo url('wxapp/manage/del_category')}', {'id' : $scope.categorys[index].id}).success(function() {});
+					$scope.get_categorys();
+				} else {
+					$scope.categorys.splice(index, 1);
+				}
 			}
 			$scope.edit_category = function (category) {
-				$scope.operate = 'edit';
-				if (category != undefined) {
-					$scope.category.id = category.id;
-					$scope.category.name = category.name;
-					$scope.category.displayorder = category.displayorder;
-					$scope.category.linkurl = category.linkurl;
-				} else {
-					$scope.category.id = '';
-					$scope.category.name = '';
-					$scope.category.displayorder = '';
-					$scope.category.linkurl = '';
-				}
+				$scope.categorys.push({'name' : '', 'displayorder' : '', 'linkurl' : ''});
 			};
 			$scope.get_categorys = function() {
 				$http.post('{php echo url('wxapp/manage/get_categorys')}', {'multiid' : '{$multiid}'}).success(function(data) {
 					$scope.categorys = data.message.message;
 				});
-				$scope.operate = 'list';
 			};
 			$scope.get_categorys();
 			$scope.save_category = function() {
-				post = {
-					'id' : $scope.category.id,
-					'name' : $scope.category.name,
-					'displayorder' : $scope.category.displayorder,
-					'linkurl' : $scope.category.linkurl,
-					'multiid' : '{$multiid}'
-				};
-				if (post.name == '') {
-					util.message('请输入分类名');
+				$scope.name_exist = false;
+				angular.forEach($scope.categorys, function(val) {
+					if (val.name == '') {
+						util.message('请填写类名');
+						$scope.name_exist = true;
+					}
+				});
+				if ($scope.name_exist == true) {
 					return false;
 				}
-				$http.post('{php echo url('wxapp/manage/save_category')}', post).success(function() {});
+				$http.post('{php echo url('wxapp/manage/save_category')}', {'post' : $scope.categorys, 'multiid' : {$multiid}}).success(function() {});
 				$scope.get_categorys();
 				$('#myModal').modal('hide');
 			};
