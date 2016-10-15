@@ -26,7 +26,7 @@ class Ewei_voteModuleSite extends WeModuleSite {
             message('抱歉，参数错误！', '', 'error');
         }
 	    if ($this->module['config']['isconcern']) {
-		    if (empty($_W['fans']['from_user'])) {
+		    if (empty($_W['fans']['follow'])) {
 			    message('请先关注公众号后，再来参加投票', '', 'info');
 		    }
 	    }

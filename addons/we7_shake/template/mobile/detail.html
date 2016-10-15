@@ -42,7 +42,7 @@
 
 				{if !empty($member['status'])}
 					$.getJSON('{php echo $this->createMobileUrl('shake', array('rid' => $reply['rid']))}', function(s){
-						if (s.message.status == '2') {
+						if (s.message.status == '2' || s.message.status == '0') {
 							location.href = '{php echo $this->createMobileUrl('detail', array('rid' => $reply['rid'], 'weid' => $_W['weid']))}';
 							return;
 						}

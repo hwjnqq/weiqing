@@ -765,7 +765,7 @@ class We7_carModuleSite extends WeModuleSite {
         $etypes = pdo_fetchall($sql, $params);
 
         // 获取车牌简称
-        $sql = 'SELECT `id`, `abbreviation` FROM ' . tablename('we7car_no') . $where . ' AND `status` = :status ORDER BY
+        $sql = 'SELECT `id`, `abbreviation` FROM ' . tablename('we7car_plate_numbers') . $where . ' AND `status` = :status ORDER BY
                 `listorder` DESC';
         $enos = pdo_fetchall($sql, $params);
 
@@ -791,7 +791,6 @@ class We7_carModuleSite extends WeModuleSite {
             }
             exit($html);
         }
-
         $lid = intval($_GPC['id']); //订单id
         $yytype = intval($_GPC['yytype']) ? intval($_GPC['yytype']) : intval($_GPC['__state']); //预约类型
 
@@ -867,7 +866,7 @@ class We7_carModuleSite extends WeModuleSite {
         // 自动获取车主信息
         $sql = 'SELECT * FROM ' . tablename('we7car_care') . ' WHERE `weid` = :weid AND `from_user` = :from_user';
         $carOwnerInfo = pdo_fetch($sql, array(':weid' => $_W['uniacid'], ':from_user' => $_W['openid']));
-        $sql = 'SELECT `abbreviation` FROM ' . tablename('we7car_no') . $where . ' AND `id` = :id'; 
+        $sql = 'SELECT `abbreviation` FROM ' . tablename('we7car_plate_numbers') . $where . ' AND `id` = :id'; 
         $car_abbreviation = pdo_fetch($sql, array(':weid' => $_W['uniacid'], ':id' => $order['car_no'])); 
         $car_nums = str_replace($car_abbreviation['abbreviation'],'',$order['car_cn']);
         if (checksubmit('submit')) {
@@ -1361,7 +1360,7 @@ class We7_carModuleSite extends WeModuleSite {
             }
             //获取fans表中的username
             // $nickname = pdo_fetchcolumn("SELECT `nickname` FROM " . tablename('fans') . " WHERE weid = :weid AND `from_user` = :from_user LIMIT 1", array(':from_user' => $_W['fans']['from_user'], ':weid' => $_W['uniacid']));
-            $mc = mc_require($_W['member']['uid'], array('nickname'));
+            //$mc = mc_require($_W['member']['uid'], array('nickname'));
             $nickname = $m['nickname'];
             include $this->template('message_list');
         }
@@ -1890,12 +1889,11 @@ class We7_carModuleSite extends WeModuleSite {
     public function doWebNo() {
         global $_GPC, $_W;
         $op = $_GPC['op'] ? $_GPC['op'] : 'list';
-
         if ($op == 'list') {
-            $list = pdo_fetchall('SELECT * FROM ' . tablename('we7car_no') . " WHERE `weid` = :weid ORDER BY listorder DESC", array(':weid' => $_W['uniacid']));
+            $list = pdo_fetchall('SELECT * FROM ' . tablename('we7car_plate_numbers') . " WHERE `weid` = :weid ORDER BY listorder DESC", array(':weid' => $_W['uniacid']));
             if (checksubmit('submit')) {
                 foreach ($_GPC['listorder'] as $key => $val) {
-                    pdo_update('we7car_no', array('listorder' => intval($val)), array('id' => intval($key)));
+                    pdo_update('we7car_plate_numbers', array('listorder' => intval($val)), array('id' => intval($key)));
                 }
                 message('更新车牌排序成功！', $this->createWebUrl('no', array('op' => 'list')), 'success');
             }
@@ -1905,7 +1903,7 @@ class We7_carModuleSite extends WeModuleSite {
         if ($op == 'post') {
             $id = intval($_GPC['id']);
             if ($id > 0) {
-                $theone = pdo_fetch('SELECT * FROM ' . tablename('we7car_no') . " WHERE  weid = :weid  AND id = :id", array(':weid' => $_W['uniacid'], ':id' => $id));
+                $theone = pdo_fetch('SELECT * FROM ' . tablename('we7car_plate_numbers') . " WHERE  weid = :weid  AND id = :id", array(':weid' => $_W['uniacid'], ':id' => $id));
             } else {
                 $theone = array('status' => 1, 'listorder' => 0);
             }
@@ -1924,10 +1922,10 @@ class We7_carModuleSite extends WeModuleSite {
                     'createtime' => TIMESTAMP
                 );
                 if (empty($id)) {
-                    pdo_insert('we7car_no', $insert);
+                    pdo_insert('we7car_plate_numbers', $insert);
                     !pdo_insertid() ? message('保存车牌简称数据失败, 请稍后重试.', 'error') : '';
                 } else {
-                    if (pdo_update('we7car_no', $insert, array('id' => $id)) === false) {
+                    if (pdo_update('we7car_plate_numbers', $insert, array('id' => $id)) === false) {
                         message('更新车牌简称数据失败, 请稍后重试.', 'error');
                     }
                 }
@@ -1938,7 +1936,7 @@ class We7_carModuleSite extends WeModuleSite {
 
         if ($op == 'del') {
             $id = intval($_GPC['id']);
-            $temp = pdo_delete("we7car_no", array("weid" => $_W['uniacid'], 'id' => $id));
+            $temp = pdo_delete("we7car_plate_numbers", array("weid" => $_W['uniacid'], 'id' => $id));
             if ($temp == false) {
                 message('抱歉，删除数据失败！', '', 'error');
             } else {

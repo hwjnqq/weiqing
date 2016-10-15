@@ -5,7 +5,6 @@
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('module');
-
 $eid = intval($_GPC['eid']);
 if(!empty($eid)) {
 	$entry = module_entry($eid);

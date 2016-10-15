@@ -5,7 +5,6 @@
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('site');
-
 $do = !empty($do) ? $do : 'page';
 $do = in_array($do, array('design', 'page', 'quickmenu', 'uc', 'del')) ? $do : 'page';
 
