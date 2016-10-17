@@ -77,11 +77,7 @@
 					<img src="./resource/images/9.png" alt="公众号头像" class="">
 					<span class="wxapp-name">第一个微擎小程序</span>
 					<span class="wxapp-version">v0.0.1</span>
-					<div class="pull-right">
-						<a href="" class="color-default">切换版本</a>
-						<a href="" class="color-default">设计新版本</a>
-						<a href="" class="color-default"><i class="fa fa-refresh"></i>切换小程序</a>
-					</div>
+					<a href="{php echo url('wxapp/create/getpackage', array('uniacid' => $uniacid, 'versionid' => $versionid));}" class="color-default">打包下载</a>
 					<!--end头部信息-->
 				</div>
 				<div class="panel-body">
@@ -177,7 +173,6 @@
 												</div>
 												<div class="media-left media-middle slide-img">
 													<image src="{php echo tomedia($nav['icon'])}"></image>
-													<icon class="{if !empty($nav['css'])}{$nav['css']['icon']['icon']}{/if}"></icon>
 												</div>
 												<div class="media-body">
 													<div class="slide-title">
@@ -252,7 +247,13 @@
 											<div class="form-group">
 												<label for="" class="control-label">图片</label>
 												<div class="form_controls">
-													{php echo tpl_form_field_image('slide[thumb]', '')}
+													<div class="input-more" ng-class="imageclass" onclick="selectimage($(this))">
+														<img src=""/>
+														<div class="cover-dark">
+															<a href="" class="cut">更换</a>
+														</div>
+													</div>
+													<input type="text" name="slide[thumb]" style="display: none" value="">
 												</div>
 											</div>
 											<div class="form-group">
@@ -282,7 +283,13 @@
 											<div class="form-group">
 												<label for="" class="control-label">图片</label>
 												<div class="form_controls">
-													{php echo tpl_form_field_image('slide[thumb]', $slide['thumb'])}
+													<div class="input-more active" onclick="selectimage($(this))">
+														<img src="{php echo tomedia($slide['thumb'])}"/>
+														<div class="cover-dark">
+															<a href="" class="cut">更换</a>
+														</div>
+													</div>
+													<input type="text" name="slide[thumb]" style="display: none;" value="{$slide['thumb']}">
 												</div>
 											</div>
 											<div class="form-group">
@@ -324,7 +331,13 @@
 											<div class="form-group">
 												<label for="" class="control-label">图片</label>
 												<div class="form_controls">
-													{php echo tpl_form_field_image('nav[icon]', '')}
+													<div class="input-more" onclick="selectimage($(this))">
+														<img src=""/>
+														<div class="cover-dark">
+															<a href="" class="cut">更换</a>
+														</div>
+													</div>
+													<input type="text" name="nav[icon]" style="display: none" value="">
 												</div>
 											</div>
 											<div class="form-group">
@@ -354,7 +367,13 @@
 											<div class="form-group">
 												<label for="" class="control-label">图片</label>
 												<div class="form_controls">
-													{php echo tpl_form_field_image('nav[icon]', $nav['icon'])}
+													<div class="input-more active" onclick="selectimage($(this))">
+														<img src="{php echo tomedia($nav['icon'])}"/>
+														<div class="cover-dark">
+															<a href="" class="cut">更换</a>
+														</div>
+													</div>
+													<input type="text" name="nav[icon]" style="display: none"  value="{$nav['icon']}">
 												</div>
 											</div>
 											<div class="form-group">
@@ -436,7 +455,13 @@
 											<div class="form-group">
 												<label for="" class="control-label">图片</label>
 												<div class="form_controls">
-													{php echo tpl_form_field_image('recommend[thumb]')}
+													<div class="input-more"  onclick="selectimage($(this))">
+														<img src=""/>
+														<div class="cover-dark">
+															<a href="" class="cut">更换</a>
+														</div>
+													</div>
+													<input type="text" name="recommend[thumb]" style="display: none" vlaue="">
 												</div>
 											</div>
 											<div class="form-group">
@@ -497,7 +522,7 @@
 																	<td><a href="" ng-click="del_category($index)">删除</a></td>
 																</tr>
 																<tr>
-																	<td colspan="4"><a href="javascript:;" class="buttom-add" ng-click="edit_category()">+</a></td>
+																	<td colspan="4"><a href="javascript:;" class="buttom-add color-default" ng-click="edit_category()" style="text-decoration: none;">添加分类</a></td>
 																	
 																</tr>
 																</tbody>
@@ -511,13 +536,13 @@
 											<div class="form-group">
 												<label for="" class="control-label">图片</label>
 												<div class="form_controls">
-													<div class="input-more active">
-														<img src="./resource/images/wxapp-default-tpl1.jpg"/>
+													<div class="input-more active" onclick="selectimage($(this))">
+														<img src="{php echo tomedia($recommend['thumb'])}"/>
 														<div class="cover-dark">
 															<a href="" class="cut">更换</a>
 														</div>
 													</div>
-													{php echo tpl_form_field_image('recommend[thumb]', $recommend['thumb'])}
+													<input type="text" name="recommend[thumb]" style="display: none" value="{php echo tomedia($recommend['thumb'])}">
 												</div>
 											</div>
 											<div class="form-group">
@@ -526,7 +551,7 @@
 													<input type="url" name="recommend[source]" required class="form-control input-slide-link" value="{$recommend['source']}" id="" placeholder="">
 												</div>
 											</div>
-											<input type="submit" name="submit" id="" value="提交" class="btn btn-primary" />
+											<input type="submit" name="submit" value="提交" class="btn btn-primary" />
 											<input type="hidden" name="token" value="{$_W['token']}">
 											<input type="hidden" name="id" value="{$recommend['id']}">
 											<input type="hidden" name="multiid" value="{$multiid}" />
@@ -544,15 +569,21 @@
 	</div>
 </div>
 <script>
-	require(['angular', 'bootstrap'], function(){
+	require(['angular', 'bootstrap', 'fileUploader'], function(){
 		angular.module('editWxApp', []);
 		angular.module('editWxApp').controller('MainCtrl', ['$scope', '$http', function($scope, $http){
-			$scope.operate = 'list';
 			$scope.category = {
 				'id' : '',
 				'name' : '',
 				'displayorder' : '',
 				'linkurl' : ''
+			};
+			selectimage = function(element) {
+				fileUploader.show(function(img) {
+					element.find('img').first().attr('src', img.url);
+					element.next('input').val(img.url);
+					element.attr('class', 'input-more active');
+				}, {'direct' : true, 'multiple' : false});
 			};
 			$scope.del_category = function(index) {
 				if ($scope.categorys[index].id != undefined) {
