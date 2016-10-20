@@ -128,10 +128,10 @@
 						{/if}
 
 						{if $row['type'] == 'checkbox'}
-						{loop $row['options'] $v}
-						<label class="checkbox-inline btn btn-small">
+						{loop $row['options']  $v}
+
 							<input type="checkbox" name="field_{$row['refid']}_{$row['bind']}[]" value="{$v}" {if $v == $row['default']} checked="checked"{/if}/>{$v}
-						</label>
+							&nbsp;&nbsp;
 						{/loop}
 						{/if}
 
