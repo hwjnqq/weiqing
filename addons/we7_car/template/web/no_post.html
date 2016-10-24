@@ -1,8 +1,8 @@
 {template 'common/header'}
 {php load()->func('tpl')}
 <ul class="nav nav-tabs">
-    <li {if !$id} class="active" {/if}><a href="{php echo $this->createWebUrl('brand',array('op'=>'post'));}">添加车牌简称</a></li>	
-    <li><a href="{php echo $this->createWebUrl('brand', array('op'=>'list'))}">车牌简称管理</a></li>	
+    <li {if !$id} class="active" {/if}><a href="{php echo $this->createWebUrl('no',array('op'=>'post'));}">添加车牌简称</a></li>	
+    <li><a href="{php echo $this->createWebUrl('no', array('op'=>'list'))}">车牌简称管理</a></li>	
     {if $id}<li class="active"><a href="{php echo $this->createWebUrl('brand',array('op'=>'post'));}">编辑车牌简称</a></li> {/if}
 </ul>
 <div class="main">
