@@ -10,12 +10,14 @@ defined('IN_IA') or exit('Access Denied');
  * @param array $data 请求数据
  * @return boolean
  */
-//
-function request_cloud($data) {
+function wxapp_getpackage($data) {
 		$request_cloud_data = json_encode($data);
 		load()->classs('cloudapi');
 		$api = new CloudApi();
 		$result = $api->post('wxapp', 'download', $request_cloud_data, 'html');
+		if(strpos($result, 'error:') === 0){
+			return error(-1, substr($result, 6));
+		}
 		return $result;
 }
 /**
@@ -24,7 +26,7 @@ function request_cloud($data) {
  * @param array $account 子公号信息
  * @return int 新创建的子公号 acid
  */
-function account_wxapp_create($uniacid, $account) {
+function wxapp_account_create($uniacid, $account) {
 	$accountdata = array('uniacid' => $uniacid, 'type' => $account['type'], 'hash' => random(8));
 	pdo_insert('account', $accountdata);
 	$acid = pdo_insertid();

@@ -93,6 +93,8 @@ if ($do == 'edit') {
 		}
 	}
 	$recommends = pdo_getall('site_article', array('uniacid' => $_W['uniacid']));
+	$version_info = pdo_get('wxapp_versions', array('multiid' => $multiid, 'uniacid' => $_W['uniacid']), array('id'));
+	$versionid = $version_info['id'];
 	$modules = pdo_getcolumn('wxapp_versions', array('multiid' => $multiid), 'modules');
 	$modules = json_decode($modules, true);
 	if (!empty($modules)) {
