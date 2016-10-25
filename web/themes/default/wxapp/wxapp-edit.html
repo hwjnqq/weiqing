@@ -76,8 +76,8 @@
 					<!--头部信息-->
 					<img src="./resource/images/9.png" alt="公众号头像" class="">
 					<span class="wxapp-name">第一个微擎小程序</span>
-					<span class="wxapp-version">v0.0.1</span>
-					<a href="{php echo url('wxapp/create/getpackage', array('uniacid' => $uniacid, 'versionid' => $versionid));}" class="color-default">打包下载</a>
+					<span class="wxapp-version">V {$version_info['version']} </span>
+					<a href="{php echo url('wxapp/create/getpackage', array('versionid' => $versionid));}" class="color-default">打包下载</a>
 					<!--end头部信息-->
 				</div>
 				<div class="panel-body">

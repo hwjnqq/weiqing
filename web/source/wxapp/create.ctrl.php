@@ -72,7 +72,7 @@ if($do == 'post') {
 		$update['type'] = 3;
 		$update['encodingaeskey'] = trim('we7teamencodingaeskey');
 		if (empty($acid)) {
-			$acid = account_wxapp_create($uniacid, $update, 3);
+			$acid = wxapp_account_create($uniacid, $update, 3);
 			if(is_error($acid)) {
 				message('添加公众号信息失败', '', url('account/post-step/', array('uniacid' => intval($_GPC['uniacid']), 'step' => 2), 'error'));
 			}
@@ -126,8 +126,11 @@ if($do == 'post') {
 }
 //打包文件
 if($do == 'getpackage') {
-	$unacid = $_GPC['uniacid'];
+	$unacid = $_W['uniacid'];
 	$versionid = $_GPC['versionid'];
+	if(empty($uniacid) || !is_numeric($uniacid) || empty($versionid) || !is_numeric($versionid)) {
+		message('参数错误！');
+	}
 	$request_cloud_data = array();
 	$account_wxapp_info = pdo_get('account_wxapp', array('uniacid' => $uniacid));
 	$wxapp_version_info = pdo_get('wxapp_versions', array('uniacid' => $uniacid, 'id' => $versionid));
@@ -141,7 +144,8 @@ if($do == 'getpackage') {
 			'siteroot' => $_W['siteroot'].'app/index.php'
 		);
 	$request_cloud_data['tabBar'] = json_decode($wxapp_version_info['quickmenu'], true);
-	$result = request_cloud($request_cloud_data);
+	$result = wxapp_getpackage($request_cloud_data);
+
 	if(is_error($result)) {
 		message($result['message']);
 	}else {
