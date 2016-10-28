@@ -127,7 +127,8 @@
 						{if $row['status'] == 4}<span class="label label-success">已入住</span>{/if}
 						{if $row['status'] == 3}<span class="label label-success">订单完成</span>{/if}
 						{else}
-						{if $row['status'] == 0}<span class="label label-info">{if $row['paytype']=='3'}待付款{else}已支付，等待确认{/if}</span>{/if}
+						{if $row['status'] == 0}<span class="label label-info">
+						{if $row['paytype']=='3'}待付款{else}已支付，等待确认{/if}</span>{/if}
 						{if $row['status'] == -1}<span class="label label-default">已支付,取消并退款</span>{/if}
 						{if $row['status'] == 1}<span class="label label-success">已支付,已接受</span>{/if}
 						{if $row['status'] == 2}<span class="label label-default">已支付, 已退款</span>{/if}

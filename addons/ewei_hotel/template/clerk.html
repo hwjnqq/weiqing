@@ -4,22 +4,22 @@
 <script language='javascript' src='{php echo $this->_script_url}tooltipbox.js'></script>
 <div class="main">
 	<ul class="nav nav-tabs">
-		<li class="active"><a href="{php echo $this->createWebUrl('member',array('op'=>'list'));}">用户管理</a></li>
-		<li><a href="{php echo $this->createWebUrl('member',array('op'=>'edit'));}">添加用户</a></li>
+		<li class="active"><a href="{php echo $this->createWebUrl('clerk',array('op'=>'list'));}">店员管理</a></li>
+		<li><a href="{php echo $this->createWebUrl('clerk',array('op'=>'edit'));}">添加店员</a></li>
+		<li><a href="{php echo $this->createWebUrl('clerk',array('op'=>'clerkcommentlist'));}">店员评分</a></li>
 	</ul>
 	<div class="panel panel-info">
 		<div class="panel-heading">条件</div>
 		<div class="panel-body">
 			<form action="./index.php" method="get" class="form-horizontal" role="form">
 				<input type="hidden" name="c" value="site" />
-				<input type="hidden" name="a" value="entry" /
+				<input type="hidden" name="a" value="entry" />
 				<input type="hidden" name="m" value="ewei_hotel" />
-				<input type="hidden" name="do" value="member" />
+				<input type="hidden" name="do" value="clerk" />
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">身份</label>
 					<div class="col-sm-9 col-xs-12">
-<!-- 						<a href="{php echo url('site/entry', array('m' => 'ewei_hotel', 'do' => 'member', 'clerk' => 1))}" class="btn {if !empty($_GPC['clerk'])}btn-primary{else}btn-default{/if}" style="width: 90px">店员</a> -->
-						<a href="#" class="btn btn-primary">普通用户</a>
+						<a href="#" class="btn btn-primary" style="width: 90px">店员</a>
 					</div>
 				</div>
 				<div class="form-group">
@@ -97,13 +97,13 @@
 					{/if}
 				</td>
 				<td>
-					<a class="btn btn-default " data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('member',array('op'=>'edit','id'=>$item['id']))}" title="编辑"><i class="fa fa-edit"></i></a>
+					<a class="btn btn-default " data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('clerk',array('op'=>'edit','id'=>$item['id']))}" title="编辑"><i class="fa fa-edit"></i></a>
 					{if $item['status']==0}
-					<a class="btn btn-default" title="显示" href="#" onclick="drop_confirm('您确定要启用此用户吗?', '{php echo $this->createWebUrl('member',array('op'=>'status','status'=>1, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
+					<a class="btn btn-default" title="显示" href="#" onclick="drop_confirm('您确定要启用此用户吗?', '{php echo $this->createWebUrl('clerk',array('op'=>'status','status'=>1, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
 					{elseif $item['status']==1}
-					<a class="btn btn-default" title="隐藏" href="#" onclick="drop_confirm('您确定要禁用此用户吗?', '{php echo $this->createWebUrl('member',array('op'=>'status','status'=>0, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
+					<a class="btn btn-default" title="隐藏" href="#" onclick="drop_confirm('您确定要禁用此用户吗?', '{php echo $this->createWebUrl('clerk',array('op'=>'status','status'=>0, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
 					{/if}
-					<a class="btn btn-default" data-toggle="tooltip" data-placement="bottom" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('member',array('op'=>'delete', 'id'=>$item['id']))}');" title="删除" ><i class="fa fa-times"></i></a>
+					<a class="btn btn-default" data-toggle="tooltip" data-placement="bottom" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('clerk',array('op'=>'delete', 'id'=>$item['id']))}');" title="删除" ><i class="fa fa-times"></i></a>
 				</td>
 			</tr>
 			{/loop}
@@ -141,7 +141,7 @@
 			check.each(function(i){
 				id[i] = $(this).val();
 			});
-			$.post("{php echo create_url('site/entry', array('do' => 'member','op'=>'showall', 'm' => $_GPC['m']))}", {idArr:id,show_name:name},function(data){
+			$.post("{php echo create_url('site/entry', array('do' => 'clerk','op'=>'showall', 'm' => $_GPC['m']))}", {idArr:id,show_name:name},function(data){
 				if (data.errno == 0)
 				{
 					location.reload();
@@ -162,7 +162,7 @@
 				check.each(function(i){
 					id[i] = $(this).val();
 				});
-				$.post("{php echo create_url('site/entry', array('do' => 'member','op'=>'deleteall', 'm' => $_GPC['m']))}", {idArr:id},function(data){
+				$.post("{php echo create_url('site/entry', array('do' => 'clerk','op'=>'deleteall', 'm' => $_GPC['m']))}", {idArr:id},function(data){
 					if (data.errno ==0)
 					{
 						location.reload();

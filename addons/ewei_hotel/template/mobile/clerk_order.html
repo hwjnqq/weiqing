@@ -245,6 +245,8 @@
 					<button type="button" class="mui-btn mui-btn-outlined {if $item['status'] == 3}mui-btn-primary{/if}" value="3">订单完成</button>
 					<input type="hidden" id="status" name="status" value="{$item['status']}">
 					<input type="hidden" name="id" value="{$item['id']}">
+					<input type="hidden" name="hotelid" value="{$hotelid}">
+					<input type="hidden" name="roomid" value="{$roomid}">					
 				</div>
 			</div>
 		</div>

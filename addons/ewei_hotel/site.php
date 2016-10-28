@@ -579,25 +579,171 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 					message('抱歉，订单不存在或是已经删除！', '', 'error');
 				}
 			}
+			$hotelid = intval($_GPC['hotelid']);
+			// $hotel = pdo_fetch("select id,title from " . tablename('hotel2') . " where id=:id limit 1", array(":id" => $hotelid));
+			$roomid = intval($_GPC['roomid']);
+			// $room = pdo_fetch("select id,title from " . tablename('hotel2_room') . " where id=:id limit 1", array(":id" => $roomid));
+			$member_info = pdo_fetch("SELECT from_user,isauto FROM " . tablename('hotel2_member') . " WHERE id = :id LIMIT 1", array(':id' => $item['memberid']));
 			if (checksubmit('submit')) {
+				$hotelid = intval($_GPC['hotelid']);
+				$hotel = pdo_fetch("select id,title from " . tablename('hotel2') . " where id=:id limit 1", array(":id" => $hotelid));
+				$roomid = intval($_GPC['roomid']);
+				$room = pdo_fetch("select id,title from " . tablename('hotel2_room') . " where id=:id limit 1", array(":id" => $roomid));				
+				$setting = pdo_get('hotel2_set', array('weid' => $_W['uniacid']));
 				$data = array(
 					'status' => $_GPC['status'],
-					'msg' => $_GPC['msg']
+					'msg' => $_GPC['msg'],
 				);
+				$params = array();
+				$sql = "SELECT id, roomdate, num FROM " . tablename('hotel2_room_price');
+				$sql .= " WHERE 1 = 1";
+				$sql .= " AND roomid = :roomid";
+				$sql .= " AND roomdate >= :btime AND roomdate < :etime";
+				$sql .= " AND status = 1";
+
+				$params[':roomid'] = $item['roomid'];
+				$params[':btime'] = $item['btime'];
+				$params[':etime'] = $item['etime'];
+
+				//订单取消
+				//print_r($old_status . '=>' . $data['status']); exit;
+				if ($data['status'] == -1 || $data['status'] == 2) {
+					$room_date_list = pdo_fetchall($sql, $params);
+					if ($room_date_list) {
+						foreach ($room_date_list as $key => $value) {
+							$num = $value['num'];
+							if ($num >= 0) {
+								$now_num = $num + $item['nums'];
+								pdo_update('hotel2_room_price', array('num' => $now_num), array('id' => $value['id']));
+							}
+						}
+					}
+				}
+				
+				if ($data['status'] != $item['status']) {
+					//订单退款
+					if ($data['status'] == 2) {
+						$acc = WeAccount::create();
+						$info = '您在'.$hotel['title'].'预订的'.$room['title']."已房满。已为您取消订单";
+						$custom = array(
+							'msgtype' => 'text',
+							'text' => array('content' => urlencode($info)),
+							'touser' => $item['openid'],
+						);
+						if (!empty($setting['template']) && !empty($setting['refuse_templateid'])) {
+							$tplnotice = array(
+								'first' => array('value'=>'尊敬的宾客，非常抱歉的通知您，您的客房预订订单被拒绝。'),								
+								'keyword1' => array('value' => $item['ordersn']),
+								'keyword2' => array('value' => date('Y.m.d', $item['btime']). '-'. date('Y.m.d', $item['etime'])),
+								'keyword3' => array('value' => $item['nums']),
+								'keyword4' => array('value' => $item['sum_price']),
+								'keyword5' => array('value' => '房型已满'),
+							);
+							$acc->sendTplNotice($item['openid'], $setting['refuse_templateid'], $tplnotice);
+						} else {
+							$status = $acc->sendCustomNotice($custom);
+						}
+					}
+					//订单确认提醒
+					if ($data['status'] == 1) {
+						$acc = WeAccount::create();
+						$info = '您在'.$hotel['title'].'预订的'.$room['title']."已预订成功";
+						$custom = array(
+							'msgtype' => 'text',
+							'text' => array('content' => urlencode($info)),
+							'touser' => $item['openid'],
+						);
+						//TM00217
+						if (!empty($setting['template']) && !empty($setting['templateid'])) {
+							$tplnotice = array(
+								'first' => array('value' => '您好，您已成功预订'.$hotel['title'].'！'),	
+								'order' => array('value' => $item['ordersn']),
+								'Name' => array('value' => $item['name']),
+								'datein' => array('value' => date('Y-m-d', $item['btime'])),
+								'dateout' => array('value' => date('Y-m-d', $item['etime'])),
+								'number' => array('value' => $item['nums']),
+								'room type' => array('value' => $item['style']),
+								'pay' => array('value' => $item['sum_price']),
+								'remark' => array('value' => '酒店预订成功')
+							);
+							$result = $acc->sendTplNotice($item['openid'], $setting['templateid'],$tplnotice);
+						} else {
+							$status = $acc->sendCustomNotice($custom);
+						}
+					}
+					//已入住提醒
+					if ($data['status'] == 4) {
+						$acc = WeAccount::create();
+						$info = '您已成功入住'.$hotel['title'].'预订的'.$room['title'];
+						$custom = array(
+							'msgtype' => 'text',
+							'text' => array('content' => urlencode($info)),
+							'touser' => $item['openid'],
+						);
+						//TM00058
+						if (!empty($setting['template']) && !empty($setting['check_in_templateid'])) {
+							$tplnotice = array(
+						'first' =>array('value' =>'您好,您已入住'.$hotel['title'].$room['title']),
+						'hotelName' => array('value' => $hotel['title']),
+						'roomName' => array('value' => $room['title']),
+						'date' => array('value' => date('Y-m-d', $item['btime'])),
+						'remark' => array('value' => '如有疑问，请咨询'.$hotel['phone'].'。'),
+							);
+							$result = $acc->sendTplNotice($item['openid'], $setting['check_in_templateid'],$tplnotice);
+						} else {
+							$status = $acc->sendCustomNotice($custom);
+						}
+					}
+
+					//订单完成提醒
+					if ($data['status'] == 3) {
+						$acc = WeAccount::create();
+						$info = '您在'.$hotel['title'].'预订的'.$room['title']."订单已完成,欢迎下次入住";
+						$custom = array(
+							'msgtype' => 'text',
+							'text' => array('content' => urlencode($info)),
+							'touser' => $item['openid'],
+						);
+						//OPENTM203173461
+						if (!empty($setting['template']) && !empty($setting['finish_templateid'])) {
+							$tplnotice = array(
+								'first' => array('value' =>'您已成功办理离店手续，您本次入住酒店的详情为'),
+								'keyword1' => array('value' =>date('Y-m-d', $item['btime'])),
+								'keyword2' => array('value' =>date('Y-m-d', $item['etime'])),			
+								'keyword3' => array('value' =>$item['sum_price']),		
+								'remark' => array('value' => '欢迎您的下次光临。')
+							);
+							$result = $acc->sendTplNotice($item['openid'], $setting['finish_templateid'],$tplnotice);
+						} else {
+							$status = $acc->sendCustomNotice($custom);
+						}
+					}
+				}
 				pdo_update('hotel2_order', $data, array('id' => $id));
 				message('订单信息处理完成！', $this->createMobileUrl('clerkorder', array('op' => 'list')), 'success');
 			}
-			if (!empty($id)) {
-				$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_order') . " WHERE id = :id", array(':id' => $id));
-				if (empty($item)) {
-					message('抱歉，订单不存在或是已经删除！', '', 'error');
-				}
-			}
-			$hotelid = intval($_GPC['hotelid']);
-			$hotel = pdo_fetch("select id,title from " . tablename('hotel2') . " where id=:id limit 1", array(":id" => $hotelid));
-			$roomid = intval($_GPC['roomid']);
-			$room = pdo_fetch("select id,title from " . tablename('hotel2_room') . " where id=:id limit 1", array(":id" => $roomid));
-			$member_info = pdo_fetch("SELECT from_user,isauto FROM " . tablename('hotel2_member') . " WHERE id = :id LIMIT 1", array(':id' => $item['memberid']));
+
+			// if (checksubmit('submit')) {
+			// 	$data = array(
+			// 		'status' => $_GPC['status'],
+			// 		'msg' => $_GPC['msg']
+			// 	);
+			// 	pdo_update('hotel2_order', $data, array('id' => $id));
+			// 	message('订单信息处理完成！', $this->createMobileUrl('clerkorder', array('op' => 'list')), 'success');
+			// }
+			// if (!empty($id)) {
+			// 	$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_order') . " WHERE id = :id", array(':id' => $id));
+			// 	if (empty($item)) {
+			// 		message('抱歉，订单不存在或是已经删除！', '', 'error');
+			// 	}
+			// }
+
+
+			// $hotelid = intval($_GPC['hotelid']);
+			// $hotel = pdo_fetch("select id,title from " . tablename('hotel2') . " where id=:id limit 1", array(":id" => $hotelid));
+			// $roomid = intval($_GPC['roomid']);
+			// $room = pdo_fetch("select id,title from " . tablename('hotel2_room') . " where id=:id limit 1", array(":id" => $roomid));
+			// $member_info = pdo_fetch("SELECT from_user,isauto FROM " . tablename('hotel2_member') . " WHERE id = :id LIMIT 1", array(':id' => $item['memberid']));
 		} elseif($op == 'delete') {
 			$id = intval($_GPC['id']);
 			$item = pdo_fetch("SELECT id FROM " . tablename('hotel2_order') . " WHERE id = :id LIMIT 1", array(':id' => $id));
@@ -1809,7 +1955,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 				$start = ($pindex - 1) * $psize;
 				$sql .= " LIMIT {$start},{$psize}";
 			}
-			$list = pdo_fetchall($sql);
+		    $list = pdo_fetchall($sql);
 			$total = pdo_fetchcolumn($count_sql);
 			$page_array = get_page_array($total, $pindex, $psize);
 			$data = array();
@@ -1995,7 +2141,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 		$sql = 'SELECT * FROM ' . tablename('hotel2_order') . ' WHERE `id` = :id AND `weid` = :weid';
 		$order = pdo_fetch($sql, array(':id' => $params['tid'], ':weid' => $weid));
 		pdo_update('hotel2_order', array('paystatus' => 1,'paytype'=>$paytype), array('id' => $params['tid']));
-		$sql = 'SELECT `email`, `mobile`,`template`, `confirm_templateid` FROM ' . tablename('hotel2_set') . ' WHERE `weid` = :weid';
+		$sql = 'SELECT `email`, `mobile`,`template`, `confirm_templateid`,`templateid` FROM ' . tablename('hotel2_set') . ' WHERE `weid` = :weid';
 		$setInfo = pdo_fetch($sql, array(':weid' => $_W['uniacid']));
 		$starttime = $order['btime'];
 		if ($setInfo['email']) {
@@ -2025,7 +2171,8 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 				$body = 'df';
 				$body = '用户' . $order['name'] . ',电话:' . $order['mobile'] . '于' . date('m月d日H:i') . '成功支付微酒店订单' . $order['ordersn']
 					. ',总金额' . $order['sum_price'] . '元' . '.' . random(3);
-				cloud_sms_send($setInfo['mobile'], $body);
+				 cloud_sms_send($setInfo['mobile'], $body);
+
 			}
 		}
 
@@ -2033,21 +2180,68 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 			$roomid = $order['roomid'];
 			$room = pdo_fetch("SELECT * FROM " . tablename('hotel2_room') . " WHERE id = {$roomid} AND weid = {$weid} LIMIT 1");
 			$score = intval($room['score']);
+			$acc = WeAccount::create($_W['acid']);
 			if ($params['result'] == 'success' && $_SESSION['ewei_hotel_pay_result'] != $params['tid']) {
 				//发送模板消息提醒
 				if (!empty($setInfo['template']) && !empty($setInfo['confirm_templateid'])) {
-					$acc = WeAccount::create($_W['acid']);
+					// $acc = WeAccount::create($_W['acid']);
+					$time = '';
+					$time.= date('Y年m月d日',$order['btime']);
+					$time.='-';
+					$time.= date('Y年m月d日',$order['etime']);
 					$data = array(
-						'keyword1' => array('value' => $order['ordersn']),
-						'keyword2' => array('value' => $order['name']),
-						'remark' => array('value' => '请等候酒店的确认订单通知'),
+						'first' => array('value' =>'你好，你已成功提交订房订单'),
+						'keyword1' => array('value' => $order['style']),
+						'keyword2' => array('value' => $time),
+						'keyword3' => array('value' => $order['name']),
+						'keyword4' => array('value' => $order['sum_price']),
+						'keyword5' => array('value' => $order['ordersn']),
+						'remark' => array('value' => '如有疑问，请咨询酒店前台'),
 					);
-					$acc->sendTplNotice($this->_from_user, $setInfo['confirm_templateid'],$data);
-					$clerks = pdo_getall('hotel2_member', array('clerk' => 1, 'weid' => $_W['uniacid']));
-					foreach ($clerks as $clerk) {
-						$acc->sendTplNotice($this->_from_user,$clerk['from_user'],$data);
+					$acc->sendTplNotice($this->_from_user, $setInfo['confirm_templateid'],$data);				
+
+				} else {
+						$info = '您在'.$hotel['title'].'预订的'.$room['title']."已预订成功";
+						$custom = array(
+							'msgtype' => 'text',
+							'text' => array('content' => urlencode($info)),
+							'touser' => $item['openid'],
+						);
+						$status = $acc->sendCustomNotice($custom);
 					}
-				}
+
+				//TM00217
+			    $clerks = pdo_getall('hotel2_member', array('clerk' => 1, 'weid' => $_W['uniacid'],'status'=>1));
+				if (!empty($setInfo['template']) && !empty($setInfo['templateid'])) {
+					$tplnotice = array(
+						'first' => array('value' => '您好，酒店有新的订单等待处理'),								
+						'order' => array('value' => $order['ordersn']),
+						'Name' => array('value' => $order['name']),
+						'datein' => array('value' => date('Y-m-d', $order['btime'])),
+						'dateout' => array('value' => date('Y-m-d', $order['etime'])),
+						'number' => array('value' => $order['nums']),
+						'room type' => array('value' => $order['style']),
+						'pay' => array('value' => $order['sum_price']),
+						'remark' => array('value' => '为保证客人入住正常，请及时处理！')
+					);
+					foreach ($clerks as $clerk) {
+						$acc->sendTplNotice($clerk['from_user'],$setInfo['templateid'],$tplnotice);
+					}					
+
+				} else {
+						foreach ($clerks as $clerk) {
+						$info = '酒店有新的订单,为保证客人入住正常，请及时处理!';
+						$custom = array(
+							'msgtype' => 'text',
+							'text' => array('content' => urlencode($info)),
+							'touser' => $clerk['from_user'],
+						);
+							$status = $acc->sendCustomNotice($custom);
+						}						
+
+					}
+
+
 				for ($i = 0; $i < $order['day']; $i++) {
 					$sql = 'SELECT * FROM '. tablename('hotel2_room_price'). ' WHERE weid = :weid AND roomid = :roomid AND roomdate = :roomdate';
 					$day = pdo_fetch($sql, array(':weid' => $weid, ':roomid' => $order['roomid'], ':roomdate' => $starttime));
@@ -3005,9 +3199,9 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 
 	public function doWebOrder() {
 		global $_GPC, $_W;
-		checklogin();
+		checklogin();   
 		$hotelid = intval($_GPC['hotelid']);
-		$hotel = pdo_fetch("select id,title from " . tablename('hotel2') . " where id=:id limit 1", array(":id" => $hotelid));
+		$hotel = pdo_fetch("select id,title,phone from " . tablename('hotel2') . " where id=:id limit 1", array(":id" => $hotelid));
 		$roomid = intval($_GPC['roomid']);
 		$room = pdo_fetch("select id,title from " . tablename('hotel2_room') . " where id=:id limit 1", array(":id" => $roomid));
 		$op = $_GPC['op'];
@@ -3089,6 +3283,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 //					}
 //				}
 				if ($data['status'] != $item['status']) {
+					//订单退款
 					if ($data['status'] == 2) {
 						$acc = WeAccount::create();
 						$info = '您在'.$hotel['title'].'预订的'.$room['title']."已房满。已为您取消订单";
@@ -3099,6 +3294,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 						);
 						if (!empty($setting['template']) && !empty($setting['refuse_templateid'])) {
 							$tplnotice = array(
+								'first' => array('value'=>'尊敬的宾客，非常抱歉的通知您，您的客房预订订单被拒绝。'),
 								'keyword1' => array('value' => $item['ordersn']),
 								'keyword2' => array('value' => date('Y.m.d', $item['btime']). '-'. date('Y.m.d', $item['etime'])),
 								'keyword3' => array('value' => $item['nums']),
@@ -3110,6 +3306,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 							$status = $acc->sendCustomNotice($custom);
 						}
 					}
+					//订单确认提醒
 					if ($data['status'] == 1) {
 						$acc = WeAccount::create();
 						$info = '您在'.$hotel['title'].'预订的'.$room['title']."已预订成功";
@@ -3121,6 +3318,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 						//TM00217
 						if (!empty($setting['template']) && !empty($setting['templateid'])) {
 							$tplnotice = array(
+								'first' => array('value' => '您好，您已成功预订'.$hotel['title'].'！'),								
 								'order' => array('value' => $item['ordersn']),
 								'Name' => array('value' => $item['name']),
 								'datein' => array('value' => date('Y-m-d', $item['btime'])),
@@ -3131,6 +3329,53 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 								'remark' => array('value' => '酒店预订成功')
 							);
 							$result = $acc->sendTplNotice($item['openid'], $setting['templateid'],$tplnotice);
+						} else {
+							$status = $acc->sendCustomNotice($custom);
+						}
+					}
+					//已入住提醒
+					if ($data['status'] == 4) {
+						$acc = WeAccount::create();
+						$info = '您已成功入住'.$hotel['title'].'预订的'.$room['title'];
+						$custom = array(
+							'msgtype' => 'text',
+							'text' => array('content' => urlencode($info)),
+							'touser' => $item['openid'],
+						);
+						//TM00058
+						if (!empty($setting['template']) && !empty($setting['check_in_templateid'])) {
+							$tplnotice = array(
+						'first' =>array('value' =>'您好,您已入住'.$hotel['title'].$room['title']),
+						'hotelName' => array('value' => $hotel['title']),
+						'roomName' => array('value' => $room['title']),
+						'date' => array('value' => date('Y-m-d', $item['btime'])),
+						'remark' => array('value' => '如有疑问，请咨询'.$hotel['phone'].'。'),
+							);
+							$result = $acc->sendTplNotice($item['openid'], $setting['check_in_templateid'],$tplnotice);
+						} else {
+							$status = $acc->sendCustomNotice($custom);
+						}
+					}
+
+					//订单完成提醒
+					if ($data['status'] == 3) {
+						$acc = WeAccount::create();
+						$info = '您在'.$hotel['title'].'预订的'.$room['title']."订单已完成,欢迎下次入住";
+						$custom = array(
+							'msgtype' => 'text',
+							'text' => array('content' => urlencode($info)),
+							'touser' => $item['openid'],
+						);
+						//OPENTM203173461
+						if (!empty($setting['template']) && !empty($setting['finish_templateid'])) {
+							$tplnotice = array(
+								'first' => array('value' =>'您已成功办理离店手续，您本次入住酒店的详情为'),
+								'keyword1' => array('value' =>date('Y-m-d', $item['btime'])),
+								'keyword2' => array('value' =>date('Y-m-d', $item['etime'])),			
+								'keyword3' => array('value' =>$item['sum_price']),		
+								'remark' => array('value' => '欢迎您的下次光临。')
+							);
+							$result = $acc->sendTplNotice($item['openid'], $setting['finish_templateid'],$tplnotice);
 						} else {
 							$status = $acc->sendCustomNotice($custom);
 						}
@@ -3403,6 +3648,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 					message('抱歉，用户不存在或是已经删除！', '', 'error');
 				}
 			}
+
 			if (checksubmit('submit')) {
 				$data = array(
 					'weid' => $_W['uniacid'],
@@ -3433,7 +3679,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 						message('关注公众号后才能成为店员', referer(), 'info');
 					}
 				}
-				if (!empty($_GPC['password'])) {
+				if (!empty($data['password'])) {
 					$data['salt'] = random(8);
 					$data['password'] = hotel_member_hash($_GPC['password'], $data['salt']);
 					//$data['password'] = md5($_GPC['password']);
@@ -3447,7 +3693,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 					pdo_insert('hotel2_member', $data);
 				} else {
 					pdo_update('hotel2_member', $data, array('id' => $id));
-				}
+				}	
 				message('用户信息更新成功！', $this->createWebUrl('member',array('clerk' => $data['clerk'])), 'success');
 			}
 			include $this->template('member_form');
@@ -3501,11 +3747,8 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 				$sql .= ' AND `mobile` LIKE :mobile';
 				$params[':mobile'] = "%{$_GPC['mobile']}%";
 			}
-			if (!empty($_GPC['clerk'])) {
-				$sql .= " AND clerk = '1'";
-			} else {
 				$sql .= " AND clerk <> '1'";
-			}
+
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 20;
 			$list = pdo_fetchall("SELECT * FROM " . tablename('hotel2_member') . " WHERE weid = '{$_W['uniacid']}' $sql ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
@@ -3543,6 +3786,8 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 				'templateid' => trim($_GPC['templateid']),
 				'refuse_templateid' => trim($_GPC['refuse_templateid']),
 				'confirm_templateid' => trim($_GPC['confirm_templateid']),
+				'check_in_templateid' => trim($_GPC['check_in_templateid']),
+				'finish_templateid' => trim($_GPC['finish_templateid']),			
 			);
 			if ($data['template'] && $data['templateid'] == '') {
 				message('请输入模板ID',referer(),'info');
@@ -3746,6 +3991,214 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('hotel2_business') . " WHERE weid = '{$_W['uniacid']}' $sql", $params);
 			$pager = pagination($total, $pindex, $psize);
 			include $this->template('business');
+		}
+	}
+
+//店员管理
+	public  function doWebClerk() {
+
+		global $_GPC, $_W;
+		$op = $_GPC['op'];
+		$weid = $this->_weid;
+		pdo_delete('hotel2_member', array('weid' => $_W['uniacid'], 'from_user' => ''));
+		if ($op == 'edit') {
+			$id = intval($_GPC['id']);
+
+			if (!empty($id)) {
+				$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_member') . " WHERE id = :id", array(':id' => $id));
+				if (empty($item)) {
+					message('抱歉，用户不存在或是已经删除！', '', 'error');
+				}
+			}
+			if (checksubmit('submit')) {
+				$data = array(
+					'weid' => $_W['uniacid'],
+					'username' => $_GPC['username'],
+					'realname' => $_GPC['realname'],
+					'mobile' => $_GPC['mobile'],
+					'score' => $_GPC['score'],
+					'userbind' => $_GPC['userbind'],
+					'isauto' => $_GPC['isauto'],
+					'status' => $_GPC['status'],
+					'clerk' => $_GPC['clerk'],
+					'nickname' => trim($_GPC['nickname'])
+				);
+				if (!empty($data['clerk'])) {
+					if (empty($id)) {
+						if (empty($data['nickname'])) {
+							message('请填写店员的微信昵称，否则无法获取到店员', '', 'info');
+						}
+					} else {
+						$from_user = pdo_get('hotel2_member', array('id' => $id, 'weid' => $_W['uniacid']));
+						if (empty($from_user['from_user']) && empty($data['nickname'])) {
+							message('请填写店员的微信昵称，否则无法获取到店员', '', 'info');
+						}
+					}
+					$from_user = pdo_get('mc_mapping_fans', array('nickname' => $data['nickname'], 'uniacid' => $_W['uniacid']));
+					$data['from_user'] = $from_user['openid'];
+					if (empty($data['from_user'])) {
+						message('关注公众号后才能成为店员', referer(), 'info');
+					}
+				}
+				if (!empty($_GPC['password'])) {
+					$data['salt'] = random(8);
+					$data['password'] = hotel_member_hash($_GPC['password'], $data['salt']);
+					//$data['password'] = md5($_GPC['password']);
+				}
+				if (empty($id)) {
+					$c = pdo_fetchcolumn("select count(*) from " . tablename('hotel2_member') . " where username=:username ", array(":username" => $data['username']));
+					if ($c > 0) {
+						message("用户名 " . $data['username'] . " 已经存在!", "", "error");
+					}
+					$data['createtime'] = time();
+					$result = pdo_get('hotel2_member', array('from_user' => $data['from_user'], 'weid' => $_W['uniacid']));
+					if ($result['from_user']) {
+						pdo_update('hotel2_member', $data, array('id' => $result['id']));
+					} else {
+						pdo_insert('hotel2_member', $data);				
+					}
+				} else {
+					pdo_update('hotel2_member', $data, array('id' => $id));
+				}
+				message('用户信息更新成功！', $this->createWebUrl('clerk',array('clerk' => $data['clerk'])), 'success');
+			}
+			include $this->template('clerk_form');
+		} else if ($op == 'delete') {
+			$id = intval($_GPC['id']);
+			pdo_delete('hotel2_member', array('id' => $id));
+			pdo_delete('hotel2_order', array('memberid' => $id));
+			message('删除成功！', referer(), 'success');
+		} else if ($op == 'deleteall') {
+			foreach ($_GPC['idArr'] as $k => $id) {
+				$id = intval($id);
+				pdo_delete('hotel2_member', array('id' => $id));
+				pdo_delete('hotel2_order', array('memberid' => $id));
+			}
+			$this->web_message('规则操作成功！', '', 0);
+			exit();
+		} else if ($op == 'showall') {
+			if ($_GPC['show_name'] == 'showall') {
+				$show_status = 1;
+			} else {
+				$show_status = 0;
+			}
+			foreach ($_GPC['idArr'] as $k => $id) {
+				$id = intval($id);
+				if (!empty($id)) {
+					pdo_update('hotel2_member', array('status' => $show_status), array('id' => $id));
+				}
+			}
+			$this->web_message('操作成功！', '', 0);
+			exit();
+		} else if ($op == 'status') {
+			$id = intval($_GPC['id']);
+			if (empty($id)) {
+				message('抱歉，传递的参数错误！', '', 'error');
+			}
+			$temp = pdo_update('hotel2_member', array('status' => $_GPC['status']), array('id' => $id));
+
+			if ($temp == false) {
+				message('抱歉，刚才操作数据失败！', '', 'error');
+			} else {
+				message('状态设置成功！', referer(), 'success');
+			}
+		} 
+		else if ($op == 'clerkcommentlist') {
+			$id = intval($_GPC['id']);
+			$where = ' WHERE `uniacid` = :uniacid';
+			$params = array(':uniacid' => $weid);
+			$sql = 'SELECT COUNT(*) FROM ' . tablename('hotel2_comment_clerk') . $where;
+			$total = pdo_fetchcolumn($sql, $params);
+			if ($total > 0) {
+				$pindex = max(1, intval($_GPC['page']));
+				$psize = 10;
+				$sql = 'SELECT * FROM ' . tablename('hotel2_comment_clerk') . $where . ' ORDER BY `id` DESC LIMIT ' .
+					($pindex - 1) * $psize . ',' . $psize;
+				$comments = pdo_fetchall($sql, $params);
+				$pager = pagination($total, $pindex, $psize);
+			}
+			include $this->template('clerk_comment');
+		} 
+		else {
+			$sql = "";
+			$params = array();
+			if (!empty($_GPC['realname'])) {
+				$sql .= ' AND `realname` LIKE :realname';
+				$params[':realname'] = "%{$_GPC['realname']}%";
+			}
+			if (!empty($_GPC['mobile'])) {
+				$sql .= ' AND `mobile` LIKE :mobile';
+				$params[':mobile'] = "%{$_GPC['mobile']}%";
+			}
+				$sql .= " AND clerk = '1'";
+			$pindex = max(1, intval($_GPC['page']));
+			$psize = 20;
+			$list = pdo_fetchall("SELECT * FROM " . tablename('hotel2_member') . " WHERE weid = '{$_W['uniacid']}'  $sql ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('hotel2_member') . " WHERE `weid` = '{$_W['uniacid']}' $sql", $params);
+			$pager = pagination($total, $pindex, $psize);
+			include $this->template('clerk');
+		}	
+	}
+    
+	//店员评分
+	public  function doMobileClerkComment() {
+
+		global $_GPC, $_W;
+		$op = $_GPC['op'];
+		$weid = $this->_weid;
+		if($op=='list') {
+			$sql = 'SELECT * FROM ' . tablename('hotel2_member') . ' WHERE `clerk` = :clerk AND `weid` = :weid AND `status` = :status';
+			$members = pdo_fetchall($sql, array(':clerk' => 1, ':weid' => $weid,'status'=>1));
+			 if(empty($members)) {
+			 	$sign = 0;
+			 }else {
+			 	$sign =1;
+			 }
+			$orderid = intval($_GPC['orderid']);
+			$hotelid =intval($_GPC['hotelid']);
+			include $this->template('clerk_comment');	
+		}
+
+		if($op=='post') {
+			$id = intval($_GPC['id']);
+			$orderid = intval($_GPC['orderid']);
+			$hotelid =intval($_GPC['hotelid']);
+			$sql = 'SELECT * FROM ' . tablename('hotel2_member') . ' WHERE `id` = :id AND `weid` = :weid';
+			$clerk = pdo_fetch($sql, array(':id' => $id, ':weid' => $weid));
+
+           if (checksubmit('submit')) {
+                $comment = trim($_GPC['comment']) ? trim($_GPC['comment']) : message('请填写评论内容！');
+                $realname = trim($_GPC['realname']);
+                $id = intval($_GPC['id']);
+    			$orderid = intval($_GPC['orderid']);
+				$hotelid =intval($_GPC['hotelid']);
+                $grade = intval($_GPC['grade']);
+                $insert = array(
+                    'comment' => $comment,
+                    'clerkid' => $id,
+                    'realname' => $realname,
+                    'grade' => $grade,
+                    'orderid' =>$orderid,
+                    'hotelid' => $hotelid,
+                    'uniacid' => $_W['uniacid'],
+                    'createtime' => TIMESTAMP
+                );
+                $result = pdo_insert('hotel2_comment_clerk', $insert);
+                if (empty($result)) {
+                     message('保存店员评分数据失败, 请稍后重试.', 'error');
+                }
+                 $clerkid = pdo_insertid();
+                 if(empty($clerkid)) {
+
+             	 	message('保存店员评分数据失败, 请稍后重试.', 'error');
+                 }
+				$temp = pdo_update('hotel2_order', array('clerkcomment' => $clerkid), array('id' => $orderid));
+				if ($temp == false) {
+					message('抱歉，刚才操作数据失败！', '', 'error');
+				}
+                message('店员评分成功！',$this->createMobileUrl('index'), 'success');
+            }
+			include $this->template('clerk_comment_detail');
 		}
 	}
 }

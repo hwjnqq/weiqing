@@ -60,8 +60,34 @@ $sql = "CREATE TABLE IF NOT EXISTS ".tablename('hotel2_comment')." (
 )ENGINE=MyISAM  DEFAULT CHARSET=utf8";
 pdo_query($sql);
 if (!pdo_fieldexists('hotel2_set', 'refuse_templateid')) {
-	pdo_query('ALTER TABLE ' . tablename('hotel2_set') . " ADD `refuse_templateid` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '提醒接受邮箱';");
+	pdo_query('ALTER TABLE ' . tablename('hotel2_set') . " ADD `refuse_templateid` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '拒绝提醒模板id';");
 }
 if (!pdo_fieldexists('hotel2_set', 'confirm_templateid')) {
-	pdo_query('ALTER TABLE ' . tablename('hotel2_set') . " ADD `confirm_templateid` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '提醒接受邮箱';");
+	pdo_query('ALTER TABLE ' . tablename('hotel2_set') . " ADD `confirm_templateid` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '确认提醒模板id';");
+}
+//hotel2_set表中添加酒店入住提醒模板id
+if (!pdo_fieldexists('hotel2_set', 'check_in_templateid')) {
+	pdo_query('ALTER TABLE ' . tablename('hotel2_set') . " ADD `check_in_templateid` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '酒店已入住通知模板id';");
+}
+//hotel2_set表中添加酒店订单完成提醒模板id
+if (!pdo_fieldexists('hotel2_set', 'finish_templateid')) {
+	pdo_query('ALTER TABLE ' . tablename('hotel2_set') . " ADD `finish_templateid` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '酒店订单完成通知模板id';");
+}
+//添加店员评分表
+$sqls = "CREATE TABLE IF NOT EXISTS ".tablename('hotel2_comment_clerk'). "(
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT '0',
+  `hotelid` int(11) DEFAULT '0',
+  `orderid` int(25) DEFAULT '0',
+  `createtime` int(11) DEFAULT '0',
+  `comment` varchar(255) DEFAULT '',
+  `clerkid` int(11) DEFAULT '0',
+  `realname` varchar(20) DEFAULT NULL,
+  `grade` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8";
+pdo_query($sqls);
+//酒店订单表中添加店员评分字段
+if (!pdo_fieldexists('hotel2_order', 'clerkcomment')) {
+	pdo_query('ALTER TABLE ' . tablename('hotel2_order') . " ADD `clerkcomment` INT(11)  DEFAULT '0' COMMENT '店员评分';");
 }
