@@ -248,7 +248,7 @@ class DB {
 		
 		if (!empty($orderby)) {
 			if (is_array($orderby)) {
-				$orderbysql = implode(',', $orderbysql);
+				$orderbysql = implode(',', $orderby);
 			} else {
 				$orderbysql = $orderby;
 			}
@@ -278,7 +278,7 @@ class DB {
 		
 		if (!empty($orderby)) {
 			if (is_array($orderby)) {
-				$orderbysql = implode(',', $orderbysql);
+				$orderbysql = implode(',', $orderby);
 			} else {
 				$orderbysql = $orderby;
 			}
