@@ -86,6 +86,8 @@ function pdo_get($tablename, $condition = array(), $fields = array()) {
  * @param array $condition 查询条件
  * @param array $fields 获取字段名
  * @param string $keyfield
+ * @param array|string $orderby 排序条件
+ * @param array|int|string $limit 分页，array(当前页, 每页条页)|直接string
  * @return Ambigous <mixed, boolean, multitype:unknown >
  */
 function pdo_getall($tablename, $condition = array(), $fields = array(), $keyfield = '', $orderby = array(), $limit = array()) {
@@ -99,6 +101,7 @@ function pdo_getall($tablename, $condition = array(), $fields = array(), $keyfie
  * @param reference int 数据总条数
  * @param array $fields 获取字段名
  * @param string $keyfield
+ * @param array|string $orderby 排序条件
  * @return Ambigous <mixed, boolean, multitype:unknown >
  */
 function pdo_getslice($tablename, $condition = array(), $limit = array(), &$total = null, $fields = array(), $keyfield = '', $orderby = array()) {
