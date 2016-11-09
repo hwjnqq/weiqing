@@ -116,7 +116,7 @@
         $(".goodsprice").each(function() {
             var total = $(this).prev().text();
             var price = $(this).next().text();
-            prices += parseFloat(total * price);
+            round(prices += parseFloat(total * price),2);
         });
         var dispatchprice = parseFloat($("#dispatch").find("option:selected").attr("price"));
         if (dispatchprice > 0){
