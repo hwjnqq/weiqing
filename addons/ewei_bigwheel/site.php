@@ -510,12 +510,11 @@ class Ewei_bigwheelModuleSite extends WeModuleSite {
 		$pager = pagination($total, $pindex, $psize);
 		$start = ($pindex - 1) * $psize;
 		$limit = " LIMIT {$start},{$psize}";
-
+		// $sql = 'SELECT * FROM ' . tablename('bigwheel_award').'WHERE `rid` = :rid AND `weid` = :weid';
 		$sql = 'SELECT `a`.*, `f`.`nickname` FROM ' . tablename('bigwheel_award') . ' AS `a` LEFT JOIN ' .
 				tablename('mc_mapping_fans') . ' AS `f` ON `a`.`from_user` = `f`.`openid` WHERE `a`.`rid` = :rid AND
-				`f`.`uniacid` = :weid ' . $where . ' ORDER BY `a`.`id` DESC ' . $limit;
+				`a`.`weid` = :weid ' . $where . ' ORDER BY `a`.`id` DESC ' . $limit;
 		$list = pdo_fetchall($sql, $params);
-
 		//一些参数的显示
 		$num1 = pdo_fetchcolumn("SELECT total_num FROM " . tablename($this->tablename) . " WHERE rid = :rid", array(':rid' => $rid));
 		$num2 = pdo_fetchcolumn("SELECT count(id) FROM " . tablename('bigwheel_award') . " WHERE rid = :rid and status=1", array(':rid' => $rid));
