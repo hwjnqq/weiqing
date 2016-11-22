@@ -484,7 +484,7 @@ function local_run($sql) {
 		$ret[$num] = '';
 		$queries = explode("\n", trim($query));
 		foreach($queries as $query) {
-			$ret[$num] .= (isset($query[0]) && $query[0] == '#') || (isset($query[1]) && isset($query[1]) && $query[0].$query[1] == '--') ? '' : $query;
+			$ret[$num] .= (isset($query[0]) && $query[0] == '#') || (isset($query[0]) && isset($query[1]) && $query[0].$query[1] == '--') ? '' : $query;
 		}
 		$num++;
 	}
