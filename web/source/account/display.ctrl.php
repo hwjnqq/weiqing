@@ -160,8 +160,8 @@ if ($do == 'delete') {
 		message('删除子公众号成功！您可以在回收站中恢复公众号', referer(), 'success');
 	}
 	if (!empty($uniacid)) {
-		$account = pdo_fetch("SELECT * FROM ".tablename('uni_account')." WHERE uniacid = :uniacid", array(':uniacid' => $uniacid));
-		if (empty($account)) {
+		$accountExists = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('uni_account')." WHERE uniacid = :uniacid", array(':uniacid' => $uniacid));
+		if (!$accountExists) {
 			message('抱歉，帐号不存在或是已经被删除', url('account/display'), 'error');
 		}
 		$state = uni_permission($uid, $uniacid);
