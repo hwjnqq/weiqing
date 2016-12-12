@@ -157,11 +157,11 @@ if ($do == 'delete') {
 			message('默认子公众号不能删除');
 		}
 		pdo_update('account', array('isdeleted' => 1), array('acid' => $acid));
-		message('删除子公众号成功！您可以在回收站中回复公众号', referer(), 'success');
+		message('删除子公众号成功！您可以在回收站中恢复公众号', referer(), 'success');
 	}
 	if (!empty($uniacid)) {
-		$account = pdo_fetch("SELECT * FROM ".tablename('uni_account')." WHERE uniacid = :uniacid", array(':uniacid' => $uniacid));
-		if (empty($account)) {
+		$accountExists = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('uni_account')." WHERE uniacid = :uniacid", array(':uniacid' => $uniacid));
+		if (!$accountExists) {
 			message('抱歉，帐号不存在或是已经被删除', url('account/display'), 'error');
 		}
 		$state = uni_permission($uid, $uniacid);
@@ -175,6 +175,6 @@ if ($do == 'delete') {
 		cache_delete("unicount:{$uniacid}");
 		cache_delete("unisetting:{$uniacid}");
 	}
-	message('公众帐号信息删除成功！，您可以在回收站中回复公众号', url('account/display'), 'success');
+	message('公众帐号信息删除成功！，您可以在回收站中恢复公众号', url('account/display'), 'success');
 }
 template('account/display');
