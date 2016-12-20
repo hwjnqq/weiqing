@@ -2296,7 +2296,7 @@ class Ewei_examModuleSite extends WeModuleSite
 			//插入学员考试记录
 			$data = array();
 			$data['weid'] = $weid;
-			$data['ordersn'] = date('md') . sprintf("%04d", $_W['fans']['id']) . random(4, 1);
+			$data['ordersn'] = date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1);
 			$data['courseid'] = $id;
 			$data['memberid'] = $member_info['id'];
 			$data['username'] = $username;

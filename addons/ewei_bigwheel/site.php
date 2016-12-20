@@ -359,7 +359,7 @@ class Ewei_bigwheelModuleSite extends WeModuleSite {
 		//增加fans次数
 		//记录用户信息
 		$id = intval($_GPC['id']);
-		$fansID = $_W['fans']['id'];
+		$fansID = $_W['fans']['fanid'];
 		if (empty($fansID) || empty($id))
 			return;
 		$fans = pdo_fetch("SELECT * FROM " . tablename($this->tablefans) . " WHERE rid = " . $id . " and fansID=" . $fansID . "");

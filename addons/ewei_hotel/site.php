@@ -1221,7 +1221,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 			}
 			$insert = array(
 				'weid' => $weid,
-				'ordersn' => date('md') . sprintf("%04d", $_W['fans']['id']) . random(4, 1),
+				'ordersn' => date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1),
 				'hotelid' => $hid,
 				'openid' => $from_user,
 				'roomid' => $id,
