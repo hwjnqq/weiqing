@@ -2126,7 +2126,6 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 		$this->pay($params);
 	}
 	public function payResult($params) {
-
 		global $_GPC, $_W;
 		if($params['type']=='credit'){
 			$paytype=1;
@@ -2267,6 +2266,8 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 					}
 				}
 			}
+			load()->model('mc');
+			mc_card_grant_credit($params['user'], $order['sum_price'], '');
 			message('支付成功！', '../../app/' . $this->createMobileUrl('detail', array('hid' => $room['hotelid'])), 'success');
 		}
 	}
