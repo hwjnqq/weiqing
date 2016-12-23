@@ -3,7 +3,7 @@
     <application setting="false">
         <name><![CDATA[微酒店]]></name>
         <identifie><![CDATA[ewei_hotel]]></identifie>
-        <version><![CDATA[5.6]]></version>
+        <version><![CDATA[5.7]]></version>
         <type><![CDATA[business]]></type>
         <ability><![CDATA[酒店房间预定,单店版,多店版]]></ability>
         <description><![CDATA[酒店房间预定，单店版, 多店版，类似携程]]></description>
@@ -247,6 +247,10 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_set` (
   `location_a` varchar(50) DEFAULT '',
   `smscode` int(3) NOT NULL DEFAULT '0',
   `refund` int(3) NOT NULL DEFAULT '0',
+  `refuse_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '提醒接受邮箱',
+  `confirm_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '提醒接受邮箱',
+  `check_in_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '酒店已入住通知模板id',
+  `finish_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '酒店订单完成通知模板id',
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
