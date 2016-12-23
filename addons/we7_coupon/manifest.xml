@@ -3,7 +3,7 @@
 	<application setting="true">
 		<name><![CDATA[微擎卡券]]></name>
 		<identifie><![CDATA[we7_coupon]]></identifie>
-		<version><![CDATA[1.5]]></version>
+		<version><![CDATA[1.6]]></version>
 		<type><![CDATA[business]]></type>
 		<ability><![CDATA[微擎卡券]]></ability>
 		<description><![CDATA[微擎卡券]]></description>
