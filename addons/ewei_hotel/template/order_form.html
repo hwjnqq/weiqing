@@ -117,11 +117,11 @@
 					<div class="col-sm-9 col-xs-12 form-control-static">
 						{if $item['paytype']==1}
 						余额支付
-						{else if $item['paytype']==21}
+						{elseif $item['paytype']==21}
 						微支付
-						{else if $item['paytype']==22}
+						{elseif $item['paytype']==22}
 						支付宝
-						{else}
+						{elseif $item['paytype']==3}
 						到店付款
 						{/if}
 					</div>
