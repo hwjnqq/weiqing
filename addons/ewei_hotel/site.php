@@ -1380,7 +1380,24 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 		} else {
 			$tel = $reply['phone'];
 		}
+		
+		//得到房间的所有类型
+		$params = array(
+			":weid"=>$weid,
+			":hotelid"=>$hid
+		);
+		$sql = "SELECT * FROM ". tablename('hotel2_room') . "WHERE hotelid = :hotelid AND weid = :weid"  ;
+		$room_list = pdo_fetchall($sql,$params);
+		$room_type = array();
+		foreach ($room_list as $detail){
+			if(!isset($room_type[$detail['title']])){
+				$room_type[$detail['title']] = $detail['title'];
+			}
+		}
+		unset($room_list);
+		
 		$ac = $_GPC['ac'];
+		$order_title = $_GPC['title'];
 		if ($ac == "getDate") {
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 20;
@@ -1394,9 +1411,9 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 			//离店
 			$edate = $search_array['edate'];
 			$etime = $search_array['etime'];
-			$params = array(
-				":weid"=>$weid,
-				":hotelid"=>$hid
+			$params= $room_params = array(
+					":weid"=>$weid,
+					":hotelid"=>$hid
 			);
 			$sql = "SELECT id, hotelid, id as roomid, title, breakfast, thumb, thumbs, oprice, " . $pricefield . " as m_price";
 			$sql .= " FROM " .tablename('hotel2_room');
@@ -1404,6 +1421,10 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 			$sql .= " AND hotelid = :hotelid";
 			$sql .= " AND weid = :weid";
 			$sql .= " AND status = 1";
+			if($order_title){
+				$params[":order_title"]=$order_title;
+				$sql .= " AND title = :order_title";
+			}
 			$sql .= " ORDER BY displayorder, sortid DESC";
 			$room_list = pdo_fetchall($sql, $params);
 			//循环房间列表
@@ -1415,7 +1436,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 				$r_sql .= " AND weid = :weid";
 				$r_sql .= " AND hotelid = :hotelid";
 				$r_sql .= " AND roomdate >=" . $btime ." AND roomdate <" .$etime;
-				$price_list = pdo_fetchall($r_sql, $params);
+				$price_list = pdo_fetchall($r_sql, $room_params);
 				if ($price_list) {
 					//价格表中存在
 					$has = 1;
