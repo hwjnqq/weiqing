@@ -581,19 +581,20 @@
         <select id="CheckInDaysDom" style="display:none"></select>
         <div class="conlist" style="width:100%; padding:0px; display:inline-block;">
             <ul class="ui-grid-b" id="menu">
-                <li class="ui-block-a tab-click hover" id="liOrder">
-                	房型预订
-                	<select id="select-room-type">
-                	<option value ="">房型选择</option>
-                	{loop $room_type $type}
-                	<option value ="{$type}">{$type}</option>
-                	{/loop}
-                	</select>
-               	</li>
+                <li class="ui-block-a tab-click hover" id="liOrder">房型预订</li>
                 <li class="ui-block-b tab-click" id="liDp">客户点评</li>
                 <li class="ui-block-c tab-click" id="liMore">酒店详情</li>
             </ul>
             <div id="content" style="padding:0px;">
+            	<div class="hotel-type" style="margin:10px 5px; color: #6b6b6b ">
+            		<label>房间类型：</label>
+	            	<select id="select-room-type" style="opacity:1; color: #6b6b6b;font-size:14px; border:1px solid #dadada; ">
+	                	<option value ="">请选择房间类型</option>
+	                	{loop $room_type $type}
+	                	<option value ="{$type}">{$type}</option>
+	                	{/loop}
+	                </select>
+                </div>
                 <ul class="block" id="room">
                     <div id="d_list"></div>
                     <div class="text_ct hide block" id="d_page" style="display: none;">
