@@ -581,7 +581,15 @@
         <select id="CheckInDaysDom" style="display:none"></select>
         <div class="conlist" style="width:100%; padding:0px; display:inline-block;">
             <ul class="ui-grid-b" id="menu">
-                <li class="ui-block-a tab-click hover" id="liOrder">房型预订</li>
+                <li class="ui-block-a tab-click hover" id="liOrder">
+                	房型预订
+                	<select id="select-room-type">
+                	<option value ="">房型选择</option>
+                	{loop $room_type $type}
+                	<option value ="{$type}">{$type}</option>
+                	{/loop}
+                	</select>
+               	</li>
                 <li class="ui-block-b tab-click" id="liDp">客户点评</li>
                 <li class="ui-block-c tab-click" id="liMore">酒店详情</li>
             </ul>
@@ -672,7 +680,34 @@
         });
     }
 </script>
-
+<script>
+	$(function(){
+		function get_list_title(title){
+			show_loading();
+			$.post("{php echo $this->createMobileUrl('detail')}",{ac:'getDate',title:title,hid:{$hid}},function(data){
+				hide_loading();
+                data  =eval("(" + data +")");
+                if(data.result == 1){
+                	$("#d_list").remove();
+                	$("#d_page").before( "<div id='d_list'></div>");;
+                    $("#top-title").html(data.title);
+                    $("#d_list").append(data.code);
+                    if (data.isshow == 1) {
+                        next_page = data.nindex;
+                        $("#d_page").show();
+                    } else {
+                        $("#d_page").hide();
+                    }
+                }else{
+                }
+			})
+	    }
+		$("#select-room-type").change(function(){
+		    var title = $("#select-room-type").val();
+		    get_list_title(title);
+		});
+	});
+</script>
 <input type="hidden" id="page_id" value="212094"/>
 <section id="ydwxcsF"></section>
 <div id="footer"></div>
@@ -680,9 +715,10 @@
 <script type="text/javascript">
     $(function(){
         var next_page  = 0;
-        function get_list(page) {
+        var title = $("#select-room-type").val();
+        function get_list(page,title) {
             show_loading();
-            $.post("{php echo $this->createMobileUrl('detail')}",{ac:'getDate',hid:{$hid},page:page},function(data){
+            $.post("{php echo $this->createMobileUrl('detail')}",{ac:'getDate',hid:{$hid},page:page,title:title},function(data){
                 hide_loading();
                 data  =eval("(" + data +")");
                 if(data.result == 1){
@@ -698,9 +734,9 @@
                 }
             });
         }
-        get_list(1);
+        get_list(1,title);
         $("#d_more").click(function () {
-            get_list(next_page);
+            get_list(next_page,title);
         });
     });
 </script>
