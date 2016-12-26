@@ -2287,12 +2287,24 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 					}
 				}
 			}
-			load()->model('mc');
-			mc_card_grant_credit($params['user'], $order['sum_price'], '');
-			message('支付成功！', '../../app/' . $this->createMobileUrl('detail', array('hid' => $room['hotelid'])), 'success');
+			$this->give_credit($weid,$params['user'],$order['sum_price']);
+			if($paytype == 3){
+				message('提交成功！', '../../app/' . $this->createMobileUrl('detail', array('hid' => $room['hotelid'])), 'success');
+			}else{
+				message('支付成功！', '../../app/' . $this->createMobileUrl('detail', array('hid' => $room['hotelid'])), 'success');
+			}
 		}
 	}
-
+	//支付成功后，根据酒店设置的消费返积分的比例给积分
+	public function give_credit($weid,$openid,$sum_price){
+		load()->model('mc');
+		$sql = 'SELECT integral_ratio,weid FROM ' . tablename('hotel2') . ' WHERE `weid` = :weid';
+		$hotel_info = pdo_fetch($sql, array(':weid' => $weid));
+		$num = $sum_price * $hotel_info['integral_ratio'];//实际消费的金额*比例
+		$tips .= "用户消费{$sum_price}元，余额支付{$sum_price}，积分赠送比率为:【1：{$hotel_info['integral_ratio']}】,共赠送【{$num}】积分";
+		mc_credit_update($openid, 'credit1', $num, array('0', $tip, 'paycenter', 0, 0, 3));
+		return error(0, $num);
+	}
 
 	//用户注册
 	public function doMobileregister()
@@ -2389,6 +2401,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 					'weid' => $weid,
 					'displayorder' => $_GPC['displayorder'],
 					'title' => $_GPC['title'],
+					'integral_ratio' => $_GPC['integral_ratio'],
 					'thumb'=>$_GPC['thumb'],
 					'address' => $_GPC['address'],
 					'location_p' => $_GPC['district']['province'],
@@ -3608,6 +3621,9 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 							}
 							if ($v[$key] == 3) {
 								$html .= '到店支付'."\t, ";
+							}
+							if ($v[$key] == '0') {
+								$html .= '未支付(或其它)'."\t, ";
 							}
 						} elseif ($key == 'paystatus') {
 							if ($v[$key] == 0) {
