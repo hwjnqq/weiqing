@@ -23,6 +23,22 @@ class We7_couponModuleSite extends WeModuleSite {
 		$this->settings = $setting;
 	}
 
+	public function getHomeTiles() {
+		global $_W;
+		$urls = array();
+		$urls = array(
+			array(
+				'title' => '我的卡券',
+				'url' => $this->createMobileurl('activity', array('op' => 'mine')),	
+			),
+			array(
+				'title' => '我的兑换',
+				'url' => $this->createMobileurl('activity', array('activity_type' => 'goods', 'op' => 'mine'))
+			)
+		);
+		return $urls;
+	}
+
 	public function doWebMembercard() {
 		global $_GPC, $_W;
 		$setting = $this->settings;
@@ -2686,6 +2702,728 @@ class We7_couponModuleSite extends WeModuleSite {
 			message('删除成功', referer(), 'success');
 		}
 		include $this->template('noticemanage');
+	}
+
+	public function doWebStatcredit1() {
+		global $_W, $_GPC;
+		$op = trim($_GPC['op']) ? trim($_GPC['op']) : 'index';
+		load()->model('mc');
+		uni_user_permission_check('stat_credit1');
+		$_W['page']['title'] = "积分统计-会员中心";
+		$starttime = empty($_GPC['time']['start']) ? mktime(0, 0, 0, date('m') , 1, date('Y')) : strtotime($_GPC['time']['start']);
+		$endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
+		$num = ($endtime + 1 - $starttime) / 86400;
+
+		if($op == 'index') {
+			$clerks = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name'), 'id');
+			$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid']), array('id', 'business_name', 'branch_name'), 'id');
+			$condition = ' WHERE uniacid = :uniacid AND credittype = :credittype AND createtime >= :starttime AND createtime <= :endtime';
+			$params = array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => $starttime, ':endtime' => $endtime);
+			$num = intval($_GPC['num']);
+			if($num > 0) {
+				if($num == 1) {
+					$condition .= ' AND num >= 0';
+				} else {
+					$condition .= ' AND num <= 0';
+				}
+			}
+			$min = intval($_GPC['min']);
+			if($min > 0 ) {
+				$condition .= ' AND abs(num) >= :minnum';
+				$params[':minnum'] = $min;
+			}
+
+			$max = intval($_GPC['max']);
+			if($max > 0 ) {
+				$condition .= ' AND abs(num) <= :maxnum';
+				$params[':maxnum'] = $max;
+			}
+			$clerk_id = intval($_GPC['clerk_id']);
+			if (!empty($clerk_id)) {
+				$condition .= ' AND clerk_id = :clerk_id';
+				$params[':clerk_id'] = $clerk_id;
+			}
+			$store_id = trim($_GPC['store_id']);
+			if (!empty($store_id)) {
+				$condition .= " AND store_id = :store_id";
+				$params[':store_id'] = $store_id;
+			}
+			$user = trim($_GPC['user']);
+			if(!empty($user)) {
+				$condition .= ' AND (uid IN (SELECT uid FROM '.tablename('mc_members').' WHERE uniacid = :uniacid AND (realname LIKE :username OR uid = :uid OR mobile LIKE :mobile)))';
+				$params[':username'] = "%{$user}%";
+				$params[':uid'] = intval($user);
+				$params[':mobile'] = "%{$user}%";
+			}
+
+			$psize = 30;
+			$pindex = max(1, intval($_GPC['page']));
+			$limit = " ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ", {$psize}";
+			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_credits_record') . $condition, $params);
+			$data = pdo_fetchall('SELECT * FROM ' . tablename('mc_credits_record') . $condition . $limit, $params);
+			if(!empty($data)) {
+				$uids = array();
+				foreach($data as &$da) {
+					if(!in_array($da['uid'], $uids)) {
+						$uids[] = $da['uid'];
+					}
+					$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
+					$da['clerk_cn'] = $operator['clerk_cn'];
+					$da['store_cn'] = $operator['store_cn'];
+				}
+				unset($da);
+				$uids = implode(',', $uids);
+				$users = pdo_fetchall('SELECT mobile,uid,realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
+			}
+			$pager = pagination($total, $pindex, $psize);
+
+			if ($_GPC['export'] != '') {
+				$exports = pdo_fetchall('SELECT * FROM ' . tablename('mc_credits_record') . $condition . " ORDER BY id DESC", $params);
+				if(!empty($exports)) {
+					$uids = array();
+					foreach($exports as &$da) {
+						if(!in_array($da['uid'], $uids)) {
+							$uids[] = $da['uid'];
+						}
+						$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
+						$da['clerk_cn'] = $operator['clerk_cn'];
+						$da['store_cn'] = $operator['store_cn'];
+					}
+					unset($da);
+					$uids = implode(',', $uids);
+					$users = pdo_fetchall('SELECT mobile,uid,realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
+				}
+				/* 输入到CSV文件 */
+				$html = "\xEF\xBB\xBF";
+
+				/* 输出表头 */
+				$filter = array(
+					'uid' => '会员编号',
+					'name' => '姓名',
+					'phone' => '手机',
+					'type' => '类型',
+					'num' => '数量',
+					'store_cn' => '消费门店	',
+					'clerk_cn' => '操作人	',
+					'createtime' => '操作时间	',
+					'remark' => '备注'
+				);
+				foreach ($filter as $title) {
+					$html .= $title . "\t,";
+				}
+				$html .= "\n";
+				foreach ($exports as $k => $v) {
+					foreach ($filter as $key => $title) {
+						if ($key == 'name') {
+							$html .= $users[$v['uid']]['realname']. "\t, ";
+						} elseif ($key == 'phone') {
+							$html .= $users[$v['uid']]['mobile']. "\t, ";
+						}elseif ($key == 'type') {
+							if ($v['num'] > 0) {
+								$html .= "充值\t, ";
+							} else {
+								$html .= "消费\t, ";
+							}
+						}elseif ($key == 'num') {
+							$html .= abs($v[$key]). "\t, ";
+						} elseif ($key == 'store') {
+							if ($v['store_id'] > 0) {
+								$html .= $stores[$v['store_id']]['business_name']. '-'. $stores[$v['store_id']]['branch_name']. "\t, ";
+							} else {
+								$html .= "未知\t, ";
+							}
+						}elseif ($key == 'operator') {
+							if ($v['clerk_id'] > 0) {
+								$html .= $clerks[$v['clerk_id']]['name']. "\t, ";
+							} elseif ($v['clerk_type'] == 1) {
+								$html .= "系统\t, ";
+							} else {
+								$html .= "未知\t, ";
+							}
+						}elseif ($key == 'createtime') {
+							$html .= date('Y-m-d H:i', $v['createtime']). "\t, ";
+						}elseif ($key == 'remark') {
+							$html .= cutstr($v['remark'], '30', '...'). "\t, ";
+						}else {
+							$html .= $v[$key]. "\t, ";
+						}
+					}
+					$html .= "\n";
+				}
+				/* 输出CSV文件 */
+				header("Content-type:text/csv");
+				header("Content-Disposition:attachment; filename=全部数据.csv");
+				echo $html;
+				exit();
+			}
+		}
+
+		if($op == 'chart') {
+			$today_recharge = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num > 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => strtotime(date('Y-m-d')), ':endtime' => TIMESTAMP)));
+			$today_consume = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num < 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => strtotime(date('Y-m-d')), ':endtime' => TIMESTAMP)));
+			$total_recharge = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num > 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => $starttime, ':endtime' => $endtime)));
+			$total_consume = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num < 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => $starttime, ':endtime' => $endtime)));
+			if($_W['isajax']) {
+				$stat = array();
+				for($i = 0; $i < $num; $i++) {
+					$time = $i * 86400 + $starttime;
+					$key = date('m-d', $time);
+					$stat['consume'][$key] = 0;
+					$stat['recharge'][$key] = 0;
+				}
+				$data = pdo_fetchall('SELECT id,num,credittype,createtime,uniacid FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => $starttime, ':endtime' => $endtime));
+
+				if(!empty($data)) {
+					foreach($data as $da) {
+						$key = date('m-d', $da['createtime']);
+						if($da['num'] > 0) {
+							$stat['recharge'][$key] += $da['num'];
+						} else {
+							$stat['consume'][$key] += abs($da['num']);
+						}
+					}
+				}
+
+				$out['label'] = array_keys($stat['consume']);
+				$out['datasets'] = array('recharge' => array_values($stat['recharge']), 'consume' => array_values($stat['consume']));
+				exit(json_encode($out));
+			}
+		}
+
+		include $this->template('statcredit1');
+	}
+
+	public function doWebStatcredit2() {
+		global $_W, $_GPC;
+		$op = trim($_GPC['op']) ? trim($_GPC['op']) : 'index';
+		load()->model('mc');
+		uni_user_permission_check('stat_credit2');
+		$_W['page']['title'] = "余额统计-会员中心";
+		$starttime = empty($_GPC['time']['start']) ? mktime(0, 0, 0, date('m') , 1, date('Y')) : strtotime($_GPC['time']['start']);
+		$endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
+		$num = ($endtime + 1 - $starttime) / 86400;
+
+		if($op == 'index') {
+			$clerks = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name'), 'id');
+			$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid']), array('id', 'business_name', 'branch_name'), 'id');
+			$condition = ' WHERE uniacid = :uniacid AND credittype = :credittype AND createtime >= :starttime AND createtime <= :endtime';
+			$params = array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => $starttime, ':endtime' => $endtime);
+			if(intval($_W['user']['clerk_type']) == ACCOUNT_OPERATE_CLERK) {
+				$condition .= ' AND clerk_id = :clerk_id';
+				$params[':clerk_id'] = $_W['user']['clerk_id'];
+			}
+			$num = intval($_GPC['num']);
+			if($num > 0) {
+				if($num == 1) {
+					$condition .= ' AND num >= 0';
+				} else {
+					$condition .= ' AND num <= 0';
+				}
+			}
+			$min = intval($_GPC['min']);
+			if($min > 0 ) {
+				$condition .= ' AND abs(num) >= :minnum';
+				$params[':minnum'] = $min;
+			}
+
+			$max = intval($_GPC['max']);
+			if($max > 0 ) {
+				$condition .= ' AND abs(num) <= :maxnum';
+				$params[':maxnum'] = $max;
+			}
+			$clerk_id = intval($_GPC['clerk_id']);
+			if (!empty($clerk_id)) {
+				$condition .= ' AND clerk_id = :clerk_id';
+				$params[':clerk_id'] = $clerk_id;
+			}
+			$store_id = trim($_GPC['store_id']);
+			if (!empty($store_id)) {
+				$condition .= " AND store_id = :store_id";
+				$params[':store_id'] = $store_id;
+			}
+
+			$user = trim($_GPC['user']);
+			if(!empty($user)) {
+				$condition .= ' AND (uid IN (SELECT uid FROM '.tablename('mc_members').' WHERE uniacid = :uniacid AND (realname LIKE :username OR uid = :uid OR mobile LIKE :mobile)))';
+				$params[':username'] = "%{$user}%";
+				$params[':uid'] = intval($user);
+				$params[':mobile'] = "%{$user}%";
+			}
+
+			$psize = 30;
+			$pindex = max(1, intval($_GPC['page']));
+			$limit = " ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ", {$psize}";
+			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_credits_record') . $condition, $params);
+			$data = pdo_fetchall('SELECT * FROM ' . tablename('mc_credits_record') . $condition . $limit, $params);
+
+			if(!empty($data)) {
+				load()->model('clerk');
+				$uids = array();
+				foreach($data as &$da) {
+					if(!in_array($da['uid'], $uids)) {
+						$uids[] = $da['uid'];
+					}
+					$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
+					$da['clerk_cn'] = $operator['clerk_cn'];
+					$da['store_cn'] = $operator['store_cn'];
+				}
+				unset($da);
+				$uids = implode(',', $uids);
+				$users = pdo_fetchall('SELECT mobile,uid,realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
+			}
+			$pager = pagination($total, $pindex, $psize);
+			if ($_GPC['export'] != '') {
+				$exports = pdo_fetchall('SELECT * FROM '.tablename('mc_credits_record'). $condition . ' ORDER BY id DESC', $params);
+				if(!empty($exports)) {
+					load()->model('clerk');
+					$uids = array();
+					foreach($exports as &$da) {
+						if(!in_array($da['uid'], $uids)) {
+							$uids[] = $da['uid'];
+						}
+						$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
+						$da['clerk_cn'] = $operator['clerk_cn'];
+						$da['store_cn'] = $operator['store_cn'];
+					}
+					unset($da);
+					$uids = implode(',', $uids);
+					$user = pdo_fetchall('SELECT mobile,uid,realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
+				}
+				
+				$html = "\xEF\xBB\xBF";
+
+				
+				$filter = array(
+					'uid' => '会员编号',
+					'name' => '姓名',
+					'phone' => '手机',
+					'type' => '类型',
+					'num' => '数量',
+					'store' => '消费门店	',
+					'operator' => '操作人	',
+					'createtime' => '操作时间	',
+					'remark' => '备注'
+				);
+				foreach ($filter as $title) {
+					$html .= $title . "\t,";
+				}
+				$html .= "\n";
+				foreach ($exports as $k => $v) {
+					foreach ($filter as $key => $title) {
+						if ($key == 'name') {
+							$html .= $user[$v['uid']]['realname']. "\t, ";
+						} elseif ($key == 'phone') {
+							$html .= $user[$v['uid']]['mobile']. "\t, ";
+						}elseif ($key == 'type') {
+							if ($v['num'] > 0) {
+								$html .= "充值\t, ";
+							} else {
+								$html .= "消费\t, ";
+							}
+						}
+						elseif ($key == 'num') {
+							$html .= abs($v[$key]). "\t, ";
+						} elseif ($key == 'store') {
+							if ($v['store_id'] > 0) {
+								$html .= $stores[$v['store_id']]['business_name']. '-'. $stores[$v['store_id']]['branch_name']. "\t, ";
+							} else {
+								$html .= "未知\t, ";
+							}
+						}elseif ($key == 'operator') {
+							if ($v['clerk_id'] > 0) {
+								$html .= $v['clerk_cn']. "\t, ";
+							} elseif ($v['clerk_type'] == 1) {
+								$html .= "系统\t, ";
+							}else {
+								$html .= "未知\t, ";
+							}
+						}elseif ($key == 'createtime') {
+							$html .= date('Y-m-d H:i', $v['createtime']). "\t, ";
+						}elseif ($key == 'remark') {
+							$html .= cutstr($v['remark'], '30', '...'). "\t, ";
+						}else {
+							$html .= $v[$key]. "\t, ";
+						}
+					}
+					$html .= "\n";
+				}
+				
+				header("Content-type:text/csv");
+				header("Content-Disposition:attachment; filename=全部数据.csv");
+				echo $html;
+				exit();
+			}
+		}
+
+		if($op == 'chart') {
+			$today_recharge = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num > 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => strtotime(date('Y-m-d')), ':endtime' => TIMESTAMP)));
+			$today_consume = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num < 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => strtotime(date('Y-m-d')), ':endtime' => TIMESTAMP)));
+			$total_recharge = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num > 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => $starttime, ':endtime' => $endtime)));
+			$total_consume = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num < 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => $starttime, ':endtime' => $endtime)));
+			if($_W['isajax']) {
+				$stat = array();
+				for($i = 0; $i < $num; $i++) {
+					$time = $i * 86400 + $starttime;
+					$key = date('m-d', $time);
+					$stat['consume'][$key] = 0;
+					$stat['recharge'][$key] = 0;
+				}
+				$data = pdo_fetchall('SELECT id,num,credittype,createtime,uniacid FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => $starttime, ':endtime' => $endtime));
+
+				if(!empty($data)) {
+					foreach($data as $da) {
+						$key = date('m-d', $da['createtime']);
+						if($da['num'] > 0) {
+							$stat['recharge'][$key] += $da['num'];
+						} else {
+							$stat['consume'][$key] += abs($da['num']);
+						}
+					}
+				}
+
+				$out['label'] = array_keys($stat['consume']);
+				$out['datasets'] = array('recharge' => array_values($stat['recharge']), 'consume' => array_values($stat['consume']));
+				exit(json_encode($out));
+			}
+		}
+
+		include $this->template('statcredit2');
+	}
+
+	public function doWebStatcash() {
+		global $_W, $_GPC;
+		$op = trim($_GPC['op']) ? trim($_GPC['op']) : 'index';
+		load()->model('mc');
+		uni_user_permission_check('stat_cash');
+		$_W['page']['title'] = "现金统计-会员中心";
+		$starttime = empty($_GPC['time']['start']) ? mktime(0, 0, 0, date('m') , 1, date('Y')) : strtotime($_GPC['time']['start']);
+		$endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
+		$num = ($endtime + 1 - $starttime) / 86400;
+
+		if($op == 'chart') {
+			$today_consume = floatval(pdo_fetchcolumn('SELECT SUM(final_cash) FROM ' . tablename('mc_cash_record') . ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => strtotime(date('Y-m-d')), ':endtime' => TIMESTAMP)));
+			$total_consume = floatval(pdo_fetchcolumn('SELECT SUM(final_cash) FROM ' . tablename('mc_cash_record') . ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime)));
+			if($_W['isajax']) {
+				$stat = array();
+				for($i = 0; $i < $num; $i++) {
+					$time = $i * 86400 + $starttime;
+					$key = date('m-d', $time);
+					$stat['consume'][$key] = 0;
+					$stat['recharge'][$key] = 0;
+				}
+
+				$data = pdo_fetchall('SELECT * FROM ' . tablename('mc_cash_record') . ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime));
+
+				if(!empty($data)) {
+					foreach($data as $da) {
+						$key = date('m-d', $da['createtime']);
+						$stat['consume'][$key] += abs($da['final_cash']);
+					}
+				}
+
+				$out['label'] = array_keys($stat['consume']);
+				$out['datasets'] = array('recharge' => array_values($stat['recharge']), 'consume' => array_values($stat['consume']));
+				exit(json_encode($out));
+			}
+		}
+
+		if($op == 'index') {
+			$clerks = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name'), 'id');
+			$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid']), array('id', 'business_name', 'branch_name'), 'id');
+
+			$condition = ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime';
+			$params = array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime);
+			$min = intval($_GPC['min']);
+			if ($_W['user']['clerk_type'] == '3') {
+				$current_clerk_id = $_W['user']['clerk_id'];
+				$condition .= " AND clerk_type = 3 AND clerk_id = {$current_clerk_id}";
+			}
+			if($min > 0 ) {
+				$condition .= ' AND abs(final_fee) >= :minnum';
+				$params[':minnum'] = $min;
+			}
+
+			$max = intval($_GPC['max']);
+			if($max > 0 ) {
+				$condition .= ' AND abs(final_fee) <= :maxnum';
+				$params[':maxnum'] = $max;
+			}
+			$clerk_id = intval($_GPC['clerk_id']);
+			if (!empty($clerk_id)) {
+				$condition .= ' AND clerk_id = :clerk_id';
+				$params[':clerk_id'] = $clerk_id;
+			}
+			$store_id = trim($_GPC['store_id']);
+			if (!empty($store_id)) {
+				$condition .= " AND store_id = :store_id";
+				$params[':store_id'] = $store_id;
+			}
+
+			$user = trim($_GPC['user']);
+			if(!empty($user)) {
+				$condition .= ' AND (uid IN (SELECT uid FROM '.tablename('mc_members').' WHERE uniacid = :uniacid AND (realname LIKE :username OR uid = :uid OR mobile LIKE :mobile)))';
+				$params[':username'] = "%{$user}%";
+				$params[':uid'] = intval($user);
+				$params[':mobile'] = "%{$user}%";
+			}
+
+			$psize = 30;
+			$pindex = max(1, intval($_GPC['page']));
+			$limit = " ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ", {$psize}";
+			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_cash_record') . $condition, $params);
+			$data = pdo_fetchall('SELECT * FROM ' . tablename('mc_cash_record') . $condition . $limit, $params);
+
+			if(!empty($data)) {
+				load()->model('clerk');
+				$uids = array();
+				foreach($data as &$da) {
+					if(!in_array($da['uid'], $uids)) {
+						$uids[] = $da['uid'];
+					}
+					$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
+					$da['clerk_cn'] = $operator['clerk_cn'];
+					$da['store_cn'] = $operator['store_cn'];
+					if (empty($da['clerk_type'])) {
+						$da['clerk_cn'] = '本人会员卡付款';
+					}
+				}
+				unset($da);
+				$uids = implode(',', $uids);
+				$users = pdo_fetchall('SELECT mobile,uid,realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
+			}
+			$pager = pagination($total, $pindex, $psize);
+			if ($_GPC['export'] != '') {
+				$exports = pdo_fetchall ('SELECT * FROM ' . tablename ('mc_cash_record') . $condition. " ORDER BY uid DESC", $params);
+				if (!empty($exports)) {
+					load ()->model ('clerk');
+					$uids = array ();
+					foreach ($exports as &$da) {
+						if (!in_array ($da['uid'], $uids)) {
+							$uids[] = $da['uid'];
+						}
+						$operator = mc_account_change_operator ($da['clerk_type'], $da['store_id'], $da['clerk_id']);
+						$da['clerk_cn'] = $operator['clerk_cn'];
+						$da['store_cn'] = $operator['store_cn'];
+						if (empty($da['clerk_type'])) {
+							$da['clerk_cn'] = '本人会员卡付款';
+						}
+					}
+					unset($da);
+					$uids = implode (',', $uids);
+					$user = pdo_fetchall ('SELECT mobile,uid,realname FROM ' . tablename ('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array (':uniacid' => $_W['uniacid']), 'uid');
+				}
+				
+				$html = "\xEF\xBB\xBF";
+
+				
+				$filter = array (
+					'uid' => '会员编号',
+					'realname' => '姓名',
+					'mobile' => '手机',
+					'fee' => '消费金额',
+					'final_fee' => '实收金额',
+					'credit2' => '余额支付	',
+					'credit1_fee' => '积分抵消	',
+					'final_cash' => '实收现金	',
+					'store_cn' => '消费门店',
+					'clerk_cn' => '操作人',
+					'createtime' => '操作时间'
+				);
+				foreach ($filter as $title) {
+					$html .= $title . "\t,";
+				}
+				$html .= "\n";
+				foreach ($exports as $k => $v) {
+					foreach ($filter as $key => $title) {
+						if ($key == 'realname') {
+							$html .= $user[$v['uid']]['realname'] . "\t, ";
+						} elseif ($key == 'mobile') {
+							$html .= $user[$v['uid']]['mobile'] . "\t, ";
+						}  elseif ($key == 'createtime') {
+							$html .= date ('Y-m-d H:i', $v['createtime']) . "\t, ";
+						}else {
+							$html .= $v[$key] . "\t, ";
+						}
+					}
+					$html .= "\n";
+				}
+				
+				header ("Content-type:text/csv");
+				header ("Content-Disposition:attachment; filename=全部数据.csv");
+				echo $html;
+				exit();
+			}
+		}
+
+		include $this->template('statcash');
+	}
+
+	public function doWebStatcard() {
+		global $_W, $_GPC;
+		$op = trim($_GPC['op']) ? trim($_GPC['op']) : 'index';
+		load()->model('mc');
+		uni_user_permission_check('stat_card');
+		$_W['page']['title'] = "会员卡领卡统计-会员中心";
+		$starttime = empty($_GPC['time']['start']) ? mktime(0, 0, 0, date('m') , 1, date('Y')) : strtotime($_GPC['time']['start']);
+		$endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
+		$num = ($endtime + 1 - $starttime) / 86400;
+		if($_W['isajax']) {
+			$stat = array();
+			for($i = 0; $i < $num; $i++) {
+				$time = $i * 86400 + $starttime;
+				$key = date('m-d', $time);
+				$stat[$key] = 0;
+			}
+			$data = pdo_fetchall('SELECT id,createtime FROM ' . tablename('mc_card_members') . ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime));
+			if(!empty($data)) {
+				foreach($data as $da) {
+					$key = date('m-d', $da['createtime']);
+					$stat[$key] += 1;
+				}
+			}
+
+			$out['label'] = array_keys($stat);
+			$out['datasets'] = array_values($stat);
+			exit(json_encode($out));
+		}
+
+		$total = floatval(pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_card_members') . ' WHERE uniacid = :uniacid', array(':uniacid' => $_W['uniacid'])));
+		$today = floatval(pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_card_members') . ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => strtotime(date('Y-m-d')), ':endtime' => TIMESTAMP)));
+		$yesterday = floatval(pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_card_members') . ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => strtotime(date('Y-m-d')) - 86400, ':endtime' => strtotime(date('Y-m-d')))));
+
+		include $this->template('statcard');
+	}
+
+	public function doWebStatpaycenter() {
+		global $_W, $_GPC;
+		$op = trim($_GPC['op']) ? trim($_GPC['op']) : 'index';
+		load()->model('mc');
+		load()->model('paycenter');
+		$_W['page']['title'] = "收银台收银统计-会员中心";
+
+		if($op == 'index') {
+			$clerks = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name'), 'id');
+			$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid']), array('id', 'business_name', 'branch_name'), 'id');
+			$pindex = max(1, intval($_GPC['page']));
+			$psize = 20;
+			$condition = ' WHERE uniacid = :uniacid AND status = 1';
+			$params = array(':uniacid' => $_W['uniacid']);
+			$clerk_id = intval($_GPC['clerk_id']);
+			if (!empty($clerk_id)) {
+				$condition .= ' AND clerk_id = :clerk_id';
+				$params[':clerk_id'] = $clerk_id;
+			}
+			$store_id = trim($_GPC['store_id']);
+			if (!empty($store_id)) {
+				$condition .= ' AND store_id = :store_id';
+				$params[':store_id'] = $store_id;
+			}
+			$limit = " ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ", {$psize}";
+			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM' . tablename('paycenter_order') . $condition, $params);
+			$orders = pdo_fetchall('SELECT * FROM ' . tablename('paycenter_order') . $condition . $limit, $params);
+			$pager = pagination($total, $pindex, $psize);
+			$status = paycenter_order_status();
+			if(!empty($orders)) {
+				foreach ($orders as &$value) {
+					$operator = mc_account_change_operator($value['clerk_type'], $value['store_id'], $value['clerk_id']);
+					$value['clerk_cn'] = $operator['clerk_cn'];
+					$value['store_cn'] = $operator['store_cn'];
+				}
+				unset($value);
+			}
+		}
+
+		if($op == 'detail') {
+			if($_W['isajax']) {
+				$id = intval($_GPC['id']);
+				$order = pdo_get('paycenter_order', array('uniacid' => $_W['uniacid'], 'id' => $id));
+				if(empty($order)) {
+					$info = '订单不存在';
+				} elseif($order['status'] == 0) {
+					$info = '订单尚未支付';
+				} else {
+					$order['createtime_text'] = date('Y-m-d H:i:s', $order['createtime']);
+					$order['paytime_text'] = date('Y-m-d H:i:s', $order['paytime']);
+					$types = paycenter_order_types();
+					$trade_types = paycenter_order_trade_types();
+					$status = paycenter_order_status();
+					$info = array('types' => $types, 'trade_types' => $trade_types, 'status' => $status, 'order' => $order);
+					// $info = $this->template('payinfo', TEMPLATE_FETCH);
+				}
+				message(error(0, $info), '', 'ajax');
+			}
+		}
+
+		if($op == 'chart') {
+			$today_starttime = strtotime(date('Y-m-d'));
+			$today_endtime = $today_starttime + 86400;
+			$yesterday_starttime = $today_starttime - 86400;
+			$yesterday_endtime = $today_starttime;
+			$month_starttime = date('Y-m-01', strtotime(date("Y-m-d")));
+			$month_endtime = strtotime("$month_starttime + 1month - 1day");
+			$today_fee = floatval(pdo_fetchcolumn('SELECT SUM(final_fee) FROM ' . tablename('paycenter_order') . ' WHERE uniacid = :uniacid AND status = 1 AND paytime >= :starttime AND paytime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $today_starttime, ':endtime' => $today_endtime)));
+			$yesterday_fee = floatval(pdo_fetchcolumn('SELECT SUM(final_fee) FROM ' . tablename('paycenter_order') . ' WHERE uniacid = :uniacid AND status = 1 AND paytime >= :starttime AND paytime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $yesterday_starttime, ':endtime' => $yesterday_endtime)));
+			$month_fee = floatval(pdo_fetchcolumn('SELECT SUM(final_fee) FROM ' . tablename('paycenter_order') . ' WHERE uniacid = :uniacid AND status = 1 AND paytime >= :starttime AND paytime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => strtotime($month_starttime), ':endtime' => $month_endtime)));
+			$type = trim($_GPC['type']);
+			if($_W['isajax']) {
+				if($type == 'date') {
+					$now = strtotime(date('Y-m-d'));
+					$starttime = empty($_GPC['start']) ? $now - 30*86400 : strtotime($_GPC['start']);
+					$endtime = empty($_GPC['end']) ? TIMESTAMP : strtotime($_GPC['end']) + 86399;
+					$num = ($endtime + 1 - $starttime) / 86400;
+
+					$stat = array(
+						'flow1' => array()
+					);
+					for($i = 0; $i < $num; $i++) {
+						$time = $i * 86400 + $starttime;
+						$key = date('m-d', $time);
+						$stat['flow1'][$key] = 0;
+					}
+					$data = pdo_fetchall('SELECT id, final_fee, paytime, uniacid FROM ' . tablename('paycenter_order') . ' WHERE uniacid = :uniacid AND status = 1 AND paytime >= :starttime AND paytime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime));
+					if(!empty($data)) {
+						foreach($data as $da) {
+							$key = date('m-d', $da['paytime']);
+							$stat['flow1'][$key] += $da['final_fee'];
+						}
+					}
+					$total = floatval(pdo_fetchcolumn('SELECT SUM(final_fee) FROM ' . tablename('paycenter_order') . ' WHERE uniacid = :uniacid AND status = 1 AND paytime >= :starttime AND paytime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime)));
+					$out['total'] = $total;
+					$out['label'] = array_keys($stat['flow1']);
+					$out['datasets']['flow1'] = array_values($stat['flow1']);
+					exit(json_encode($out));
+				} elseif($type == 'month') {
+					$now = mktime(0,0,0,date('m'),date('t'),date('Y'));
+					$end = mktime(23,59,59,date('m'),date('t'),date('Y'));
+					$starttime = empty($_GPC['start']) ? strtotime('-6months', $now) : strtotime($_GPC['start']);
+					$endtime = empty($_GPC['end']) ? $end : strtotime($_GPC['end']) +  date('t', strtotime($_GPC['end'])) * 86400 - 1;
+					$num = ($endtime + 1 - $starttime) / 86400;
+
+					$stat = array(
+						'flow1' => array()
+					);
+					for($i = 0; $i < $num; $i++) {
+						$time = $i * 86400 + $starttime;
+						$key = date('Y-m', $time);
+						$stat['flow1'][$key] = 0;
+					}
+					$data = pdo_fetchall('SELECT id, final_fee, paytime, uniacid FROM ' . tablename('paycenter_order') . ' WHERE uniacid = :uniacid AND status = 1 AND paytime >= :starttime AND paytime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime));
+					if(!empty($data)) {
+						foreach($data as $da) {
+							$key = date('Y-m', $da['paytime']);
+							$stat['flow1'][$key] += $da['final_fee'];
+						}
+					}
+					$total = floatval(pdo_fetchcolumn('SELECT SUM(final_fee) FROM ' . tablename('paycenter_order') . ' WHERE uniacid = :uniacid AND status = 1 AND paytime >= :starttime AND paytime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime)));
+					$out['total'] = $total;
+					$out['label'] = array_keys($stat['flow1']);
+					$out['datasets']['flow1'] = array_values($stat['flow1']);
+					exit(json_encode($out));
+				}
+			}
+		}
+
+		include $this->template('statpaycenter');
 	}
 
 	//app手机端
