@@ -4728,18 +4728,3 @@ class We7_couponModuleSite extends WeModuleSite {
 		}
 	}
 }
-function activity_member_propertys() {
-	global $_W;
-	$current_property_info = pdo_get('mc_member_property', array('uniacid' => $_W['uniacid']));
-	if (!empty($current_property_info)) {
-		$propertys = json_decode($current_property_info['property'], true);
-	} else {
-		$propertys = array(
-			'newmember' => '1',
-			'oldmember' => '2',
-			'activitymember' => '1',
-			'quietmember' => '1'
-		);
-	}
-	return $propertys;
-}
