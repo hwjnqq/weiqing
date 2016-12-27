@@ -2287,7 +2287,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 					}
 				}
 			}
-			$this->give_credit($weid,$params['user'],$order['sum_price']);
+			$this->give_credit($weid, $params['user'], $order['sum_price']);
 			if($paytype == 3){
 				message('提交成功！', '../../app/' . $this->createMobileUrl('detail', array('hid' => $room['hotelid'])), 'success');
 			}else{
@@ -2296,13 +2296,12 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 		}
 	}
 	//支付成功后，根据酒店设置的消费返积分的比例给积分
-	public function give_credit($weid,$openid,$sum_price){
+	public function give_credit($weid, $openid, $sum_price){
 		load()->model('mc');
-		$sql = 'SELECT integral_ratio,weid FROM ' . tablename('hotel2') . ' WHERE `weid` = :weid';
-		$hotel_info = pdo_fetch($sql, array(':weid' => $weid));
-		$num = $sum_price * $hotel_info['integral_ratio'];//实际消费的金额*比例
-		$tips .= "用户消费{$sum_price}元，余额支付{$sum_price}，积分赠送比率为:【1：{$hotel_info['integral_ratio']}】,共赠送【{$num}】积分";
-		mc_credit_update($openid, 'credit1', $num, array('0', $tip, 'paycenter', 0, 0, 3));
+		$hotel_info = pdo_get('hotel2', array('weid' => $weid), array('integral_rate', 'weid'));
+		$num = $sum_price * $hotel_info['integral_rate'];//实际消费的金额*比例
+		$tips .= "用户消费{$sum_price}元，支付{$sum_price}，积分赠送比率为:【1：{$hotel_info['integral_rate']}】,共赠送【{$num}】积分";
+		mc_credit_update($openid, 'credit1', $num, array('0', $tip, 'ewei_hotel', 0, 0, 3));
 		return error(0, $num);
 	}
 
@@ -2320,8 +2319,6 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 			$member['from_user'] = $from_user;
 			$member['username'] = $_GPC['username'];
 			$member['password'] = $_GPC['password'];
-
-			//print_r($_GPC);exit;
 
 			if (!preg_match(REGULAR_USERNAME, $member['username'])) {
 				die(json_encode(array("result" => 0, "error" => "必须输入用户名，格式为 3-15 位字符，可以包括汉字、字母（不区分大小写）、数字、下划线和句点。")));
@@ -2401,7 +2398,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 					'weid' => $weid,
 					'displayorder' => $_GPC['displayorder'],
 					'title' => $_GPC['title'],
-					'integral_ratio' => $_GPC['integral_ratio'],
+					'integral_rate' => $_GPC['integral_rate'],
 					'thumb'=>$_GPC['thumb'],
 					'address' => $_GPC['address'],
 					'location_p' => $_GPC['district']['province'],
