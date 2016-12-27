@@ -586,7 +586,7 @@
                 <li class="ui-block-c tab-click" id="liMore">酒店详情</li>
             </ul>
             <div id="content" style="padding:0px;">
-            	<div class="hotel-type" style="margin:10px 5px; color: #6b6b6b ">
+            	<div id="hotel_room_type" class="hotel-type" style="margin:10px 5px; color: #6b6b6b ">
             		<label>房间类型：</label>
 	            	<select id="select-room-type" style="opacity:1; color: #6b6b6b;font-size:14px; border:1px solid #dadada; ">
 	                	<option value ="">请选择房间类型</option>
@@ -654,14 +654,17 @@
                 $("#room").show();
                 $("#detail").hide();
 	            $("#comment").hide();
+	            $("#hotel_room_type").show();
             } else if ($(this).attr("id") == "liMore") {
                 $("#room").hide();
 	            $("#comment").hide();
                 $("#detail").show();
+                $("#hotel_room_type").hide();
             } else if ($(this).attr("id") == "liDp") {
 	            $("#room").hide();
 	            $("#detail").hide();
 	            $("#comment").show();
+	            $("#hotel_room_type").hide();
             }
         });
     });
