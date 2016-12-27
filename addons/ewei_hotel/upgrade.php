@@ -91,3 +91,6 @@ pdo_query($sqls);
 if (!pdo_fieldexists('hotel2_order', 'clerkcomment')) {
 	pdo_query('ALTER TABLE ' . tablename('hotel2_order') . " ADD `clerkcomment` INT(11)  DEFAULT '0' COMMENT '店员评分';");
 }
+if (!pdo_fieldexists('hotel2', 'integral_ratio')) {
+	pdo_query('ALTER TABLE ' . tablename('hotel2')." ADD 'integral_ratio' INT(11) NOT NULL DEFAULT '0' COMMENT '在该酒店消费返积分的比例' AFTER 'title';");
+}
