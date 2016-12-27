@@ -402,6 +402,10 @@ if($do == 'install') {
 	if (!empty($info['version']['cloud_setting'])) {
 		$module['settings'] = 2;
 	}
+	if ($modulename == 'we7_coupon') {
+		$module['issystem'] = 1;
+		$module['settings'] = 2;
+	}
 	if (pdo_insert('modules', $module)) {
 		if (strexists($manifest['install'], '.php')) {
 			if (file_exists($modulepath . $manifest['install'])) {
