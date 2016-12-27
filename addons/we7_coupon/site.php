@@ -1085,7 +1085,7 @@ class We7_couponModuleSite extends WeModuleSite {
 	public function doWebCouponmarket() {
 		global $_W, $_GPC;
 		$op = !empty($_GPC['op']) ? $_GPC['op'] : 'display';
-		$propertys = $this->activity_member_propertys();
+		$propertys = activity_member_propertys();
 		if ($op == 'checkcoupon') {
 			$coupon_id = intval($_GPC['coupon']);
 			$coupon = activity_coupon_info($coupon_id);
@@ -4726,20 +4726,5 @@ class We7_couponModuleSite extends WeModuleSite {
 		if($params['result'] == 'success' && $params['from'] == 'return') {
 			message('支付成功！', $this->createMobileUrl('clerk', array('m' => 'we7_coupon', 'op' => 'paydetail', 'id' => $params['tid'])), 'success');
 		}
-	}
-	function activity_member_propertys() {
-		global $_W;
-		$current_property_info = pdo_get('mc_member_property', array('uniacid' => $_W['uniacid']));
-		if (!empty($current_property_info)) {
-			$propertys = json_decode($current_property_info['property'], true);
-		} else {
-			$propertys = array(
-				'newmember' => '1',
-				'oldmember' => '2',
-				'activitymember' => '1',
-				'quietmember' => '1'
-			);
-		}
-		return $propertys;
 	}
 }
