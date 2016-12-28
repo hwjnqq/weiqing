@@ -252,15 +252,18 @@
             alert("请输入手机号");
             return false;
         }
-        var textval= $("#sncode").text()
-        $.post('{php echo $this->createMobileUrl('settel', array('id' => $id))}', {tel:tel,code:textval}, function (data) {
-        	if (data.success == true) {
-                alert(data.msg);
-                $("#result").slideUp(500);
-            }
-        }, "json")
-        //window.location.reload();
-    });
+        
+        var submitData = {
+            code: $("#sncode").text(),
+            tel: tel
+        };
+        $.post('{php echo $this->createMobileUrl('settel', array('id' => $id))}', submitData, function (data) {
+			if (data.success == true) {
+				alert(data.msg);
+				$("#result").slideUp(500);
+			}
+		}, "json")
+	});
 
     // 大转盘分享
     wx.ready(function () {
