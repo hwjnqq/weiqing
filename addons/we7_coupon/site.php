@@ -34,6 +34,14 @@ class We7_couponModuleSite extends WeModuleSite {
 			array(
 				'title' => '我的兑换',
 				'url' => $this->createMobileurl('activity', array('activity_type' => 'goods', 'op' => 'mine'))
+			),
+			array(
+				'title' => '消息',
+				'url' => $this->createMobileurl('card', array('op' => 'notice'))
+			),
+			array(
+				'title' => '签到',
+				'url' => $this->createMobileurl('card', array('op' => 'sign_display'))
 			)
 		);
 		return $urls;
