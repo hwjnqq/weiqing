@@ -12,6 +12,7 @@
 		<thead>
 		<tr>
 			<th style="width:200px;">房型</th>
+			<th style="width:120px;">优惠价</th>
 			<th style="width:120px;">房态</th>
 			<th style="width:150px;">房量(空为不限)</th>
 		</tr>
@@ -20,6 +21,7 @@
 		{loop $list $row}
 		<tr>
 			<td style="text-align: left;">{php echo cutstr($row['title'], 8)}</td>
+			<td style="text-align: left;">{php echo $row['cprice']}</td>
 			<td style="text-align: left;"> <label class="checkbox-inline">
 				<input type="checkbox" class="status_checkbox" value="1" name="status[{$row['id']}]" checked/>有房
 			</label></td>
