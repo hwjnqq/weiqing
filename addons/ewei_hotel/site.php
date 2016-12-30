@@ -1151,41 +1151,42 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 		$memberid = intval($user_info['id']);
 
 		$pricefield = $this->isMember()? 'mprice' : 'cprice';
-		$r_sql = 'SELECT `roomdate`, `num`, `oprice`, `status`, ' . $pricefield . ' AS `m_price` FROM ' . tablename('hotel2_room_price') .
+		$r_sql = 'SELECT `roomdate`, `num`, `oprice`, `cprice`, `status`, ' . $pricefield . ' AS `m_price` FROM ' . tablename('hotel2_room_price') .
 			' WHERE `roomid` = :roomid AND `weid` = :weid AND `hotelid` = :hotelid AND `roomdate` >= :btime AND ' .
-			' `roomdate` < :etime';
+			' `roomdate` < :etime  order by roomdate desc';
 		$params = array(':roomid' => $id, ':weid' => $weid, ':hotelid' => $hid, ':btime' => $btime, ':etime' => $etime);
 		$price_list = pdo_fetchall($r_sql, $params);
 		$member_p = unserialize($room['mprice']);
-		$this_price = $old_price =  $pricefield == 'mprice' ?  $room['oprice']*$member_p[$_W['member']['groupid']] : $room['roomprice'];
-		if ($this_price == 0) {
-			$this_price = $old_price = $room['oprice'] ;
-		}
-		$totalprice =  ($old_price + $room['service']) * $days;
-		$service = $room['service'] * $days;
 		//$room_score=$room['score'];
 		if ($price_list) {
 			//价格表中存在
-			$check_date = array();
 			foreach($price_list as $k => $v) {
-				$new_price = $pricefield == 'mprice' ? $this_price : $v['m_price'];
-				$roomdate = $v['roomdate'];
+				$room['oprice'] = $v['oprice'];
+				$room['cprice'] = $v['cprice'];
+				if ($pricefield == 'mprice') {
+					$this_price = $v['cprice'] * $member_p[$_W['member']['groupid']];
+				}else{
+					$this_price = $v['cprice'];
+				}
 				if ($v['status'] == 0 || $v['num'] == 0 ) {
 					$has = 0;
-				} else {
-					if ($new_price && $roomdate) {
-						if (!in_array($roomdate, $check_date)) {
-							$check_date[] = $roomdate;
-							if ($old_price != $new_price) {
-								$totalprice = $totalprice - $old_price + $new_price;
-							}
-						}
-					}
 				}
 			}
-			$this_price = round($totalprice / $days);
+			$totalprice =  $this_price * $day;
+			$totalprice =  ($this_price + $room['service']) * $days;
+			$service = $room['service'] * $days;
+		}else{
+			//会员的价格mprice=现价*会员卡折扣率
+			$this_price =  $pricefield == 'mprice' ? $room['cprice']*$member_p[$_W['member']['groupid']] : $room['cprice'];
+			if ($this_price == 0) {
+				$this_price = $room['oprice'] ;
+			}
+			$totalprice =  ($this_price + $room['service']) * $days;
+			$service = $room['service'] * $days;
 		}
-
+		if($totalprice == 0){
+			message("房间价格不能是0，请联系管理员修改！");
+		}
 		if ($is_submit) {
 			$from_user = $this->_from_user;
 			$name = $_GPC['uname'];
@@ -1415,7 +1416,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 					":weid"=>$weid,
 					":hotelid"=>$hid
 			);
-			$sql = "SELECT id, hotelid, id as roomid, title, breakfast, thumb, thumbs, oprice, " . $pricefield . " as m_price";
+			$sql = "SELECT id, hotelid, id as roomid, title, breakfast, thumb, thumbs, cprice, oprice, " . $pricefield . " as m_price";
 			$sql .= " FROM " .tablename('hotel2_room');
 			$sql .= " WHERE 1 = 1";
 			$sql .= " AND hotelid = :hotelid";
@@ -1430,45 +1431,34 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 			//循环房间列表
 			foreach($room_list as $key => $value) {
 				$room_list[$key]['thumbs'] = unserialize($value['thumbs']);
-				$r_sql = "SELECT roomdate, num, status, oprice, " . $pricefield . " as m_price FROM " . tablename('hotel2_room_price');
+				$r_sql = "SELECT roomdate, num, status, oprice, cprice, " . $pricefield . " as m_price FROM " . tablename('hotel2_room_price');
 				$r_sql .= " WHERE 1 = 1";
 				$r_sql .= " AND roomid = " . $value['roomid'];
 				$r_sql .= " AND weid = :weid";
 				$r_sql .= " AND hotelid = :hotelid";
 				$r_sql .= " AND roomdate >=" . $btime ." AND roomdate <" .$etime;
+				$r_sql .= " order by roomdate desc";
 				$price_list = pdo_fetchall($r_sql, $room_params);
 				if ($price_list) {
 					//价格表中存在
 					$has = 1;
 					$avg = 0;
-					if ($pricefield == 'mprice') {
-						$member_p = unserialize($value['m_price']);
-						$old_price = $value['oprice']*$member_p[$_W['member']['groupid']];
-						if ($old_price == 0) {
-							$old_price == $value['oprice'];
-						}
-					} else {
-						$old_price = $value['m_price'];
-					}
-					$totalprice =  $old_price * $day;
-					$check_date = array();
+					//如果hotel2_room_price 中存在这一天的修改的价格，那么手机端显示的旧价格和新价格都是hotel2_room_price表里的价格
+					//而会员显示的价格是 hotel2_room_price 表里的 优惠价*会员卡的折扣率，普通用户就直接显示优惠价
 					foreach($price_list as $k => $v) {
-						$new_price = $pricefield == 'mprice' ? $old_price : $v['m_price'];
-						$roomdate = $v['roomdate'];
-						if ($new_price && $roomdate) {
-							if (!in_array($roomdate, $check_date)) {
-								$check_date[] = $roomdate;
-								if ($old_price != $new_price) {
-									$avg = 1;
-									$totalprice = $totalprice - $old_price + $new_price;
-								}
-							}
+						if ($pricefield == 'mprice') {
+							 $member_p = unserialize($value['m_price']);
+							$room_list[$key]['oprice'] = $v['oprice'];
+							$room_list[$key]['cprice'] = $v['cprice']*$member_p[$_W['member']['groupid']];
+						}else{
+							$room_list[$key]['oprice'] = $v['oprice'];
+							$room_list[$key]['cprice'] = $v['cprice'];
 						}
 						if ($v['status'] == 0 || $v['num'] == 0 ) {
 							$has = 0;
-						} else {
 						}
 					}
+					$totalprice =  $room_list[$key]['cprice'] * $day;
 					$room_list[$key]['has'] = $has;
 					$room_list[$key]['price'] = round( $totalprice / $day);
 					$room_list[$key]['total_price'] = $totalprice;
@@ -1481,7 +1471,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 					$room_list[$key]['has'] = 1;
 					if ($pricefield == 'mprice') {
 						$member_p = unserialize($value['m_price']);
-						$room_list[$key]['price'] =  $value['oprice'] * $member_p[$_W['member']['groupid']];
+						$room_list[$key]['price'] =  $value['cprice'] * $member_p[$_W['member']['groupid']];//会员显示的价格是（优惠价*会员的折扣率）
 						if ($room_list[$key]['price'] == 0) {
 							$room_list[$key]['price'] =  $value['oprice'];
 						}
@@ -2299,8 +2289,8 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 	public function give_credit($weid, $openid, $sum_price){
 		load()->model('mc');
 		$hotel_info = pdo_get('hotel2', array('weid' => $weid), array('integral_rate', 'weid'));
-		$num = $sum_price * $hotel_info['integral_rate'];//实际消费的金额*比例
-		$tips .= "用户消费{$sum_price}元，支付{$sum_price}，积分赠送比率为:【1：{$hotel_info['integral_rate']}】,共赠送【{$num}】积分";
+		$num = $sum_price * $hotel_info['integral_rate']*0.01;//实际消费的金额*比例(值时百分数)*0.01
+		$tips .= "用户消费{$sum_price}元，支付{$sum_price}，积分赠送比率为:【1：{$hotel_info['integral_rate']}%】,共赠送【{$num}】积分";
 		mc_credit_update($openid, 'credit1', $num, array('0', $tip, 'ewei_hotel', 0, 0, 3));
 		return error(0, $num);
 	}
@@ -3107,7 +3097,8 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 					'smoke_show' => $_GPC['smoke_show'],
 					'score' => intval($_GPC['score']),
 					'status' => $_GPC['status'],
-					'service' => intval($_GPC['service'])
+					'service' => intval($_GPC['service']),
+					'sortid'=>intval($_GPC['sortid'])
 				);
 				if (!empty($card_status)) {
 					$group_mprice = array();
@@ -3643,7 +3634,11 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 								if ($v['status'] == 0) {
 									$html .= '已支付等待确认'."\t, ";
 								} elseif ($v['status'] == -1) {
-									$html .= '已支付，取消并退款'."\t, ";
+									if($v['paytype'] == 3){
+										$html .= '已取消'."\t, ";
+									}else{
+										$html .= '已支付，取消并退款'."\t, ";
+									}
 								} elseif ($v['status'] == 1) {
 									$html .= '已支付，已确认'."\t, ";
 								} elseif ($v['status'] == 2) {
