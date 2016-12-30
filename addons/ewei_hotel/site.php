@@ -1385,9 +1385,10 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 		//得到房间的所有类型
 		$params = array(
 			":weid"=>$weid,
-			":hotelid"=>$hid
+			":hotelid"=>$hid,
+			":status"=>1
 		);
-		$sql = "SELECT * FROM ". tablename('hotel2_room') . "WHERE hotelid = :hotelid AND weid = :weid"  ;
+		$sql = "SELECT * FROM ". tablename('hotel2_room') . "WHERE hotelid = :hotelid AND weid = :weid AND status = :status" ;
 		$room_list = pdo_fetchall($sql,$params);
 		$room_type = array();
 		foreach ($room_list as $detail){
@@ -2277,22 +2278,12 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 					}
 				}
 			}
-			$this->give_credit($weid, $params['user'], $order['sum_price']);
 			if($paytype == 3){
 				message('提交成功！', '../../app/' . $this->createMobileUrl('detail', array('hid' => $room['hotelid'])), 'success');
 			}else{
 				message('支付成功！', '../../app/' . $this->createMobileUrl('detail', array('hid' => $room['hotelid'])), 'success');
 			}
 		}
-	}
-	//支付成功后，根据酒店设置的消费返积分的比例给积分
-	public function give_credit($weid, $openid, $sum_price){
-		load()->model('mc');
-		$hotel_info = pdo_get('hotel2', array('weid' => $weid), array('integral_rate', 'weid'));
-		$num = $sum_price * $hotel_info['integral_rate']*0.01;//实际消费的金额*比例(值时百分数)*0.01
-		$tips .= "用户消费{$sum_price}元，支付{$sum_price}，积分赠送比率为:【1：{$hotel_info['integral_rate']}%】,共赠送【{$num}】积分";
-		mc_credit_update($openid, 'credit1', $num, array('0', $tip, 'ewei_hotel', 0, 0, 3));
-		return error(0, $num);
 	}
 
 	//用户注册
@@ -3382,6 +3373,9 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 
 					//订单完成提醒
 					if ($data['status'] == 3) {
+						$uid = pdo_fetchcolumn('SELECT `uid` FROM'. tablename('mc_mapping_fans')." WHERE openid = :openid", array(':openid' => trim($item['openid'])));
+						//订单完成后增加积分
+						$this->give_credit($item['weid'], $uid, $item['sum_price']);
 						$acc = WeAccount::create();
 						$info = '您在'.$hotel['title'].'预订的'.$room['title']."订单已完成,欢迎下次入住";
 						$custom = array(
@@ -3663,6 +3657,15 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 			$pager = pagination($total, $pindex, $psize);
 			include $this->template('order');
 		}
+	}
+	//支付成功后，根据酒店设置的消费返积分的比例给积分
+	public function give_credit($weid, $openid, $sum_price){
+		load()->model('mc');
+		$hotel_info = pdo_get('hotel2', array('weid' => $weid), array('integral_rate', 'weid'));
+		$num = $sum_price * $hotel_info['integral_rate']*0.01;//实际消费的金额*比例(值时百分数)*0.01
+		$tips .= "用户消费{$sum_price}元，支付{$sum_price}，积分赠送比率为:【1：{$hotel_info['integral_rate']}%】,共赠送【{$num}】积分";
+		mc_credit_update($openid, 'credit1', $num, array('0', $tip, 'ewei_hotel', 0, 0, 3));
+		return error(0, $num);
 	}
 
 	public function doWebMember() {

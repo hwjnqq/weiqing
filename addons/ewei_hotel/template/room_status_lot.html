@@ -91,10 +91,12 @@
 <script type="text/javascript">
 	$(function () {
 		$(".checkall").click(function(){
-			$(".room").attr("checked",$(this).get(0).checked);
+			var checked = $(this).get(0).checked;
+			$(".room").each(function(){this.checked = checked});
 		})
 		$(".days_checkall").click(function(){
-			$(".days").prop("checked",$(this).get(0).checked);
+			var checked = $(this).get(0).checked;
+			$(".days").each(function(){this.checked = checked});
 		})
 		$("#create_btn").click(function () {
 			var start = $(":hidden[name='datelimit[start]']").val();
