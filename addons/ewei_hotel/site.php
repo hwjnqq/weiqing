@@ -3114,6 +3114,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 			include $this->template('room_form');
 		} else if ($op == 'delete') {
 			$id = intval($_GPC['id']);
+			$hotelid = intval($_GPC['hotelid']);
 			if (!empty($id)) {
 				$item = pdo_fetch("SELECT id FROM " . tablename('hotel2_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
 				if (!empty($item)) {
@@ -3124,7 +3125,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 			}
 			pdo_delete('hotel2_room', array('id' => $id));
 			pdo_delete('hotel2_order', array('roomid' => $id));
-			pdo_query("update " . tablename('hotel2') . " set roomcount=(select count(*) from " . tablename('hotel2_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $id));
+			pdo_query("update " . tablename('hotel2') . " set roomcount=(select count(*) from " . tablename('hotel2_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $hotelid));
 			message('删除成功！', referer(), 'success');
 		} else if ($op == 'deleteall') {
 			foreach ($_GPC['idArr'] as $k => $id) {
