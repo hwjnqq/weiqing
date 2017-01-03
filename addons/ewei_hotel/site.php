@@ -1388,7 +1388,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 			":hotelid"=>$hid,
 			":status"=>1
 		);
-		$room_list = pdo_getall('hotel2_room', array('hotelid'=>$hid, 'weid'=>$weid, 'status'=>1));
+		$room_list = pdo_getall('hotel2_room', array('hotelid' => $hid, 'weid' => $weid, 'status' => 1));
 		$room_type = array();
 		foreach ($room_list as $detail){
 			if(!isset($room_type[$detail['title']])){
@@ -3664,7 +3664,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 	public function getOrderUniontid(&$lists){
 		if(!empty($lists)){
 			foreach ($lists as $orderkey=>$orderinfo){
-				$paylog = pdo_get('core_paylog', array('uniacid'=>$orderinfo['weid'], 'tid' => $orderinfo['id'], 'module'=>'ewei_hotel'), array('uniacid', 'uniontid', 'tid'));
+				$paylog = pdo_get('core_paylog', array('uniacid' => $orderinfo['weid'], 'tid' => $orderinfo['id'], 'module' => 'ewei_hotel'), array('uniacid', 'uniontid', 'tid'));
 				if(!empty($paylog)){
 					$lists[$orderkey]['uniontid'] = $paylog['uniontid'];
 				}
