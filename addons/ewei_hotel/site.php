@@ -3557,17 +3557,19 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 			pdo_query('UPDATE '. tablename('hotel2_order'). " SET status = '-1' WHERE time <  :time AND weid = '{$_W['uniacid']}' AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400));
 			$list = pdo_fetchall("SELECT o.*,h.title as hoteltitle,r.title as roomtitle FROM " . tablename('hotel2_order') . " o left join " . tablename('hotel2') .
 				"h on o.hotelid=h.id left join " . tablename("hotel2_room") . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+			$list = $this->getOrderUniontid($list);
 			$lists = pdo_fetchall("SELECT o.*,h.title as hoteltitle,r.title as roomtitle FROM " . tablename('hotel2_order') . " o left join " . tablename('hotel2') .
 				"h on o.hotelid=h.id left join " . tablename("hotel2_room") . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC" . ',' . $psize, $params);
-
 			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM  ' . tablename('hotel2_order') . " o left join " . tablename('hotel2') .
 				"h on o.hotelid=h.id left join " . tablename("hotel2_room") . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition", $params);
 			if ($_GPC['export'] != '') {
+				$lists = $this->getOrderUniontid($lists);
 				/* 输入到CSV文件 */
 				$html = "\xEF\xBB\xBF";
 				/* 输出表头 */
 				$filter = array(
 					'ordersn' => '订单号',
+					'uniontid' => '商户订单号',
 					'hoteltitle' => '酒店',
 					'roomtitle' => '房型',
 					'name' => '预订人',
@@ -3659,6 +3661,19 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 			include $this->template('order');
 		}
 	}
+	//获取订单的商户订单号
+	public function getOrderUniontid($list){
+		if($list){
+			foreach ($list as $orderkey=>$orderinfo){
+				$paylog = pdo_get('core_paylog', array('uniacid'=>$orderinfo['weid'], 'tid' => $orderinfo['id'], 'module'=>'ewei_hotel'), array('uniacid', 'uniontid', 'tid'));
+				if($paylog){
+					$list[$orderkey]['uniontid'] = $paylog['uniontid'];
+				}
+			}
+		}
+		return $list;
+	}
+	
 	//支付成功后，根据酒店设置的消费返积分的比例给积分
 	public function give_credit($weid, $openid, $sum_price){
 		load()->model('mc');
