@@ -3636,7 +3636,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 										$html .= '已支付，取消并退款'."\t, ";
 									}
 								} elseif ($v['status'] == 1) {
-									$html .= '已支付，已确认'."\t, ";
+									$html .= '已确认，已接受'."\t, ";
 								} elseif ($v['status'] == 2) {
 									$html .= '已支付，已退款'."\t, ";
 								} elseif ($v['status'] == 3) {
