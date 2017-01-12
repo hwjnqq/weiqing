@@ -1530,11 +1530,16 @@ class Ewei_shoppingModuleSite extends WeModuleSite {
 		$params['title'] = $goodsTitle;
 		$params['ordersn'] = $order['ordersn'];
 		$params['virtual'] = $order['goodstype'] == 2 ? true : false;
-		load() -> model('card');
-		if (!function_exists('card_discount_fee')) {
-			$params['fee'] = $order['price'];
+		$we7_coupon_info = module_fetch('we7_coupon');
+		if (!empty($we7_coupon_info) && pdo_tableexists('mc_card')) {
+			if (!function_exists('card_discount_fee')) {
+				$params['fee'] = $order['price'];
+			} else {
+				load() -> model('card');
+				$params['fee'] = card_discount_fee($order['price']);
+			}
 		} else {
-			$params['fee'] = card_discount_fee($order['price']);
+			$params['fee'] = $order['price'];
 		}
 		include $this->template('pay');
 	}
