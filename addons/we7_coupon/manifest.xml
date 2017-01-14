@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns="http://www.we7.cc" versionCode="">
 	<application setting="true">
-		<name><![CDATA[微擎卡券]]></name>
+		<name><![CDATA[系统卡券]]></name>
 		<identifie><![CDATA[we7_coupon]]></identifie>
 		<version><![CDATA[1.8]]></version>
 		<type><![CDATA[business]]></type>
