@@ -4,7 +4,7 @@
  * $sn$
  *
  * 实现要点: 是否按照统一公号隔离
- * 使用同样的命名及返回方式实现 代金券(token, 注意有效营销字段包括代金券面额及满足条件)
+ * 使用同样的命名及返回方式实现 代金�token, 注意有效营销字段包括代金券面额及满足条件)
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -76,7 +76,7 @@ function activity_coupon_user_available() {
 			unset($coupons[$key]);
 			continue;
 		}
-		//用户所在用户组在卡券可使用的用户组内
+		//用户所在用户组在卡券可使用的用户组�
 		$coupon_groups = pdo_getall('coupon_groups', array('uniacid' => $_W['uniacid'], 'couponid' => $coupon['id']), array(), 'groupid');
 		$coupon_groups = array_keys($coupon_groups);
 		if (COUPON_TYPE == WECHAT_COUPON) {
@@ -95,9 +95,9 @@ function activity_coupon_user_available() {
 }
 
 /**
- * 获取当前会员当前已有卡券及使用情况
+ * 获取当前会员当前已有卡券及使用情�
  * @param int $uid 会员ID
- * @param array $filter 筛选条件
+ * @param array $filter 筛选条�
  * @param int $pageindex 当前页数
  * @param int $psize 每页显示条数
  * @return array
@@ -140,7 +140,7 @@ function activity_coupon_owned() {
 				pdo_delete('coupon_record', array('id' => $record['id']));
 				continue;
 			} else {
-				$coupon['extra_date_info'] = '有效期:' . date('Y.m.d', $starttime) . '-' . date('Y.m.d', $endtime);
+				$coupon['extra_date_info'] = '有效�' . date('Y.m.d', $starttime) . '-' . date('Y.m.d', $endtime);
 			}
 		}
 		if (is_array($coupon['date_info']) && $coupon['date_info']['time_type'] == '1') {
@@ -154,10 +154,10 @@ function activity_coupon_owned() {
 
 		}
 		if ($coupon['type'] == COUPON_TYPE_DISCOUNT) {
-			$coupon['icon'] = '<div class="price">' . $coupon['extra']['discount'] * 0.1 . '<span>折</span></div>';
+			$coupon['icon'] = '<div class="price">' . $coupon['extra']['discount'] * 0.1 . '<span>�/span></div>';
 		}
 		elseif($coupon['type'] == COUPON_TYPE_CASH) {
-			$coupon['icon'] = '<div class="price">' . $coupon['extra']['reduce_cost'] * 0.01 . '<span>元</span></div><div class="condition">满' . $coupon['extra']['least_cost'] * 0.01 . '元可用</div>';
+			$coupon['icon'] = '<div class="price">' . $coupon['extra']['reduce_cost'] * 0.01 . '<span>�/span></div><div class="condition">� . $coupon['extra']['least_cost'] * 0.01 . '元可�/div>';
 		}
 		elseif($coupon['type'] == COUPON_TYPE_GIFT) {
 			$coupon['icon'] = '<img src="resource/images/wx_gift.png" alt="" />';
@@ -184,7 +184,7 @@ function activity_coupon_owned() {
 
 
 /**
- * 获取某卡券信息
+ * 获取某卡券信�
  * @param int $couponid 卡券ID
  * @param int $uniacid 公众号ID
  * @return array
@@ -202,16 +202,16 @@ function activity_coupon_info($id) {
 	}
 	$coupon['date_info'] = iunserializer($coupon['date_info']);
 	if ($coupon['date_info']['time_type'] == '1'){
-		$coupon['extra_date_info'] = '有效期:' . $coupon['date_info']['time_limit_start'] . '-' . $coupon['date_info']['time_limit_end'];
+		$coupon['extra_date_info'] = '有效�' . $coupon['date_info']['time_limit_start'] . '-' . $coupon['date_info']['time_limit_end'];
 	} else {
-		$coupon['extra_date_info'] = '有效期:领取后' . $coupon['date_info']['deadline'] . '天可用，有效期' . $coupon['date_info']['limit'] . '天';
+		$coupon['extra_date_info'] = '有效�领取� . $coupon['date_info']['deadline'] . '天可用，有效� . $coupon['date_info']['limit'] . '�;
 	}
 	if ($coupon['type'] == COUPON_TYPE_DISCOUNT) {
 		$coupon['extra'] = iunserializer($coupon['extra']);
-		$coupon['extra_instruction'] = '凭此券消费打' . $coupon['extra']['discount'] * 0.1 . '折';
+		$coupon['extra_instruction'] = '凭此券消费打' . $coupon['extra']['discount'] * 0.1 . '�;
 	} elseif ($coupon['type'] == COUPON_TYPE_CASH) {
 		$coupon['extra'] = iunserializer($coupon['extra']);
-		$coupon['extra_instruction'] = '消费满' . $coupon['extra']['least_cost'] * 0.01 . '元，减' . $coupon['extra']['reduce_cost'] * 0.01 . '元';
+		$coupon['extra_instruction'] = '消费� . $coupon['extra']['least_cost'] * 0.01 . '元，� . $coupon['extra']['reduce_cost'] * 0.01 . '�;
 	} else {
 
 	}
@@ -236,7 +236,7 @@ function activity_coupon_info($id) {
  * 指定会员领取指定卡券
  * @param int $uid 会员ID或者openid
  * @param int $card_id 卡券card_id
- * @param string $code 核销code码
+ * @param string $code 核销code�
  * @return mixed
  */
 function activity_coupon_grant($id,$openid) {
@@ -272,19 +272,19 @@ function activity_coupon_grant($id,$openid) {
 	}
 	$group = @array_intersect($coupon_group, $fan_groups);
 	if (empty($coupon)) {
-		return error(-1, '未找到指定卡券');
+		return error(-1, '未找到指定卡�);
 	}
 	elseif (empty($group) && !empty($coupon_group)) {
 		if (!empty($fan_groups)) {
-			return error(-1, '无权限兑换');
+			return error(-1, '无权限兑�);
 		} else {
 			if (is_array($coupon_group) && !in_array('0', $coupon_group)) {
-				return error(-1, '无权限兑换');
+				return error(-1, '无权限兑�);
 			}
 		}
 	}
 	elseif (strtotime(str_replace('.', '-', $coupon['date_info']['time_limit_end'])) < strtotime(date('Y-m-d')) && $coupon['date_info']['time_type'] != 2) {
-		return error(-1, '活动已结束');
+		return error(-1, '活动已结�);
 	}
 	elseif ($coupon['quantity'] <= 0) {
 		return error(-1, '卡券发放完毕');
@@ -306,7 +306,7 @@ function activity_coupon_grant($id,$openid) {
 			'grantmodule' => $give ? $_W['activity_coupon_id'] : $_W['current_module']['name'],
 			'addtime' => TIMESTAMP,
 			'status' => 1,
-			'remark' => $give ? '系统赠送' : '用户使用' . $coupon['exchange']['credit'] . $credit_names[$coupon['exchange']['credittype']] . '兑换'
+			'remark' => $give ? '系统赠� : '用户使用' . $coupon['exchange']['credit'] . $credit_names[$coupon['exchange']['credittype']] . '兑换'
 	);
 	if ($coupon['source'] == 2) {
 		$insert['card_id'] = $coupon['card_id'];
@@ -346,10 +346,10 @@ function activity_coupon_use($couponid, $recid, $module = 'system') {
 	}
 	$group = @array_intersect($coupon_group, $fan_groups);
 	if (empty($coupon_info)) {
-		return error(-1, '没有指定的卡券信息');
+		return error(-1, '没有指定的卡券信�);
 	}
 	if (empty($group) && !empty($coupon_group)) {
-		return error(-1, '无法使用该卡券');
+		return error(-1, '无法使用该卡�);
 	}
 	if ($module == 'paycenter') {
 		if (!empty($coupon_info['location_id_list'])) {
@@ -367,7 +367,7 @@ function activity_coupon_use($couponid, $recid, $module = 'system') {
 	$date_info = iunserializer($coupon_info['date_info']);
 	if ($date_info['time_type'] == '1') {
 		if (strtotime(str_replace('.', '-', $date_info['time_limit_start'])) > strtotime(date('Y-m-d'))) {
-			return error(-1, '卡券活动尚未开始');
+			return error(-1, '卡券活动尚未开�);
 		} elseif (strtotime(str_replace('.', '-', $date_info['time_limit_end'])) < strtotime(date('Y-m-d'))) {
 			return error(-1, '卡券活动已经结束');
 		}
@@ -375,7 +375,7 @@ function activity_coupon_use($couponid, $recid, $module = 'system') {
 		$starttime = strtotime(date('Y-m-d', $coupon_record['addtime'])) + $date_info['deadline'] * 86400;
 		$endtime = $starttime + $date_info['limit'] * 86400;
 		if ($starttime > strtotime(date('Y-m-d'))) {
-			return error(-1, '卡券活动尚未开始');
+			return error(-1, '卡券活动尚未开�);
 		} elseif ($endtime < strtotime(date('Y-m-d'))) {
 			return error(-1, '卡券活动已经结束');
 		}
@@ -404,7 +404,7 @@ function activity_coupon_use($couponid, $recid, $module = 'system') {
 }
 
 /*
- * 收银台可用卡券列表
+ * 收银台可用卡券列�
  * @return mixed
  */
 function activity_paycenter_coupon_available() {
@@ -432,20 +432,20 @@ function activity_goods_grant($uid, $exid){
 	$uid = intval($uid);
 	$exchange = activity_exchange_info($exid, $_W['uniacid']);
 	if (empty($exchange)) {
-		return error(-1, '没有指定的实物兑换');
+		return error(-1, '没有指定的实物兑�);
 	}
 	if ($exchange['starttime'] > TIMESTAMP) {
-		return error(-1, '该实物兑换尚未开始');
+		return error(-1, '该实物兑换尚未开�);
 	}
 	if ($exchange['endtime'] < TIMESTAMP) {
-		return error(-1, '该实物兑换已经结束');
+		return error(-1, '该实物兑换已经结�);
 	}
 	$pnum = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('activity_exchange_trades') . ' WHERE uniacid = :uniacid AND uid = :uid AND exid = :exid', array(':uniacid' => $_W['uniacid'], ':uid' => $uid, ':exid' => $exid));
 	if ($pnum >= $exchange['pretotal']) {
-		return error(-1, '该实物兑换每人只能使用' . $exchange['pretotal'] . '次');
+		return error(-1, '该实物兑换每人只能使� . $exchange['pretotal'] . '�);
 	}
 	if ($exchange['num'] >= $exchange['total']) {
-		return error(-1, '该实物兑换已兑换完');
+		return error(-1, '该实物兑换已兑换�);
 	}
 	$data = array(
 		'uniacid' => $_W['uniacid'],
@@ -490,7 +490,7 @@ function activity_exchange_info($exchangeid, $uniacid = 0){
 }
 
 /**
- * 获取当前公众号下的积分兑换实物信息
+ * 获取当前公众号下的积分兑换实物信�
  * @param int $id 兑换记录ID
  * @return array
  */
@@ -500,14 +500,14 @@ function activity_exchange_shipping($id){
 }
 
 /**
- * 获取礼品兑换的类型名称
- * @param int $type 类型码
+ * 获取礼品兑换的类型名�
+ * @param int $type 类型�
  * @return string
  */
 function activity_type_title($type){
 	switch (intval($type)) {
 		case 1: return '卡券';
-		case 2: return '代金券';
+		case 2: return '代金�;
 		case 3: return '实体物品';
 		case 4: return '虚拟物品';
 		case 5:
@@ -554,7 +554,7 @@ function activity_coupon_give() {
 	//获取公众号所有的活动
 	$coupon_activitys = pdo_getall('coupon_activity', array('uniacid' => $_W['uniacid'], 'type' => 1, 'status' => 1));
 	foreach ($coupon_activitys as $activity) {
-		$is_give = pdo_get('coupon_record', array('grantmodule' => $activity['id'], 'remark' => '系统赠送'));
+		$is_give = pdo_get('coupon_record', array('grantmodule' => $activity['id'], 'remark' => '系统赠�));
 		if (!empty($is_give)) {
 			continue;
 		}
@@ -600,7 +600,7 @@ function activity_coupon_give() {
 }
 
 /*
- * 获取（新用户，老用户，活跃用户， 沉寂用户，自定义用户的人数）
+ * 获取（新用户，老用户，活跃用户�沉寂用户，自定义用户的人数）
  * @param string $type 用户类型
  * @param array $param 获取自定义用户所需参数
  */
@@ -609,11 +609,11 @@ function activity_get_member($type, $param = array()) {
 	global $_W;
 	$types =  array('new_member', 'old_member', 'quiet_member', 'activity_member', 'group_member', 'cash_time', 'openids');
 	if (!in_array($type, $types)) {
-		return error('1', '没有匹配的用户类型');
+		return error('1', '没有匹配的用户类�);
 	}
-	//获取会员属性
+	//获取会员属�
 	$propertys = activity_member_propertys();
-	//新会员，一个月内消费不超过一次
+	//新会员，一个月内消费不超过一�
 	if ($type == 'new_member') {
 		$property_time = strtotime('-' . $propertys['newmember'] . ' month', time());
 		$members_sql = "SELECT c.openid FROM ( SELECT a.uid FROM ". tablename('mc_members')." as a LEFT JOIN ".tablename('mc_cash_record')." as b ON a.uid = b.uid WHERE a.uniacid = :uniacid AND a.createtime > :time AND (b.createtime > :time or b.id is null) GROUP BY a.uid HAVING COUNT(*) < 2) as d  LEFT JOIN ". tablename('mc_mapping_fans')." as c ON d.uid = c.uid WHERE c.openid <> ''";
@@ -640,7 +640,7 @@ function activity_get_member($type, $param = array()) {
 	}
 	if ($type == 'group_member') {
 		if (empty($param)) {
-			return error(1, '请选择会员组');
+			return error(1, '请选择会员�);
 		}
 		if (COUPON_TYPE == WECHAT_COUPON) {
 			$members =  pdo_getall('mc_mapping_fans', array('uniacid' => $_W['uniacid']), array(), 'openid');
@@ -673,7 +673,7 @@ function activity_get_member($type, $param = array()) {
 }
 
 /**
- * 同步微信卡券最新状态
+ * 同步微信卡券最新状�
  */
 function activity_coupon_sync() {
 	global $_W;
@@ -735,7 +735,7 @@ function activity_coupon_download($card_list) {
 			$coupon->can_give_friend = $coupon_info[$coupon_type_label[1]]['base_info']['can_give_friend'];
 			if ($coupon_info[$coupon_type_label[1]]['base_info']['date_info']['type'] == 'DATE_TYPE_FIX_TIME_RANGE') {
 				$coupon->date_info = array(
-					'type' => 'DATE_TYPE_FIX_TIME_RANGE',//新版文档变更为字符串，数值1也可用
+					'type' => 'DATE_TYPE_FIX_TIME_RANGE',//新版文档变更为字符串，数�也可�
 					'begin_timestamp' => $coupon_info[$coupon_type_label[1]]['base_info']['date_info']['begin_timestamp'],
 					'end_timestamp' => $coupon_info[$coupon_type_label[1]]['base_info']['date_info']['end_timestamp'],
 				);
@@ -751,16 +751,16 @@ function activity_coupon_download($card_list) {
 			$coupon->setCustomMenu('立即使用', '', murl('entry', array('m' => 'paycenter', 'do' => 'consume'), true, true));
 			$coupon->setQuantity($coupon_info[$coupon_type_label[1]]['base_info']['sku']['quantity']);
 			$coupon->code_type = $coupon_info[$coupon_type_label[1]]['base_info']['code_type'];
-			//折扣券
+			//折扣�
 			$coupon->discount = $coupon_info[$coupon_type_label[1]]['discount'];
 			//代金券，单位为分
 			$coupon->least_cost = $coupon_info[$coupon_type_label[1]]['least_cost'];
 			$coupon->reduce_cost = $coupon_info[$coupon_type_label[1]]['reduce_cost'];
-			//礼品券
+			//礼品�
 			$coupon->gift = $coupon_info[$coupon_type_label[1]]['gift'];
-			//团购券
+			//团购�
 			$coupon->deal_detail = $coupon_info[$coupon_type_label[1]]['deal_detail'];
-			//优惠券
+			//优惠�
 			$coupon->default_detail = $coupon_info[$coupon_type_label[1]]['default_detail'];
 			$coupon->card_id = $coupon_info[$coupon_type_label[1]]['base_info']['id'];
 			$coupon->source = 2;
@@ -778,7 +778,7 @@ function activity_coupon_download($card_list) {
 }
 
 /**
- * 同步微信门店最新状态
+ * 同步微信门店最新状�
  */
 function activity_store_sync() {
 	global $_W;
@@ -813,8 +813,8 @@ function activity_store_sync() {
 }
 
 /**
- * 获取卡券的颜色，参考微信接口
- * 考虑颜色数据很少变动，此处直接返回数据不走接口
+ * 获取卡券的颜色，参考微信接�
+ * 考虑颜色数据很少变动，此处直接返回数据不走接�
  */
 function activity_coupon_colors() {
 	$colors = array(
@@ -837,22 +837,22 @@ function activity_coupon_colors() {
 }
 
 /**
- * 返回卡券类型的中文标题和英文标识，此标识与微信文档同步
+ * 返回卡券类型的中文标题和英文标识，此标识与微信文档同�
  * @param int $type
  */
 function activity_coupon_type_label($type = '') {
 	$types = array(
-		COUPON_TYPE_DISCOUNT => array('折扣券', 'discount'),
-		COUPON_TYPE_CASH => array('代金券', 'cash'),
-		COUPON_TYPE_GIFT => array('礼品券', 'gift'),
-		COUPON_TYPE_GROUPON => array('团购券', 'groupon'),
-		COUPON_TYPE_GENERAL => array('优惠券', 'general_coupon'),
+		COUPON_TYPE_DISCOUNT => array('折扣�, 'discount'),
+		COUPON_TYPE_CASH => array('代金�, 'cash'),
+		COUPON_TYPE_GIFT => array('礼品�, 'gift'),
+		COUPON_TYPE_GROUPON => array('团购�, 'groupon'),
+		COUPON_TYPE_GENERAL => array('优惠�, 'general_coupon'),
 	);
 	return $types[$type] ? $types[$type] : $types;
 }
 
 /**
- * 获取礼品兑换状态文字说明
+ * 获取礼品兑换状态文字说�
  * @param int $status 状态码
  * @return string
  */
@@ -860,9 +860,9 @@ function activity_shipping_status_title($status){
 	if ($status == 0) {
 		return '正常';
 	} elseif ($status == 1) {
-		return '已发货';
+		return '已发�;
 	} elseif ($status == 2) {
-		return '已完成';
+		return '已完�;
 	} elseif ($status == -1) {
 		return '关闭';
 	}
@@ -870,13 +870,13 @@ function activity_shipping_status_title($status){
 
 function activity_coupon_status() {
 	return array(
-		'CARD_STATUS_NOT_VERIFY' => 1, //待审核
+		'CARD_STATUS_NOT_VERIFY' => 1, //待审�
 		'CARD_STATUS_VERIFY_FAIL' => 2, //未通过
 		'CARD_STATUS_VERIFY_OK' => 3, //通过审核
 		'CARD_STATUS_USER_DELETE' => 4,
-		'CARD_STATUS_DELETE' => 4,//卡券被商户删除
-		'CARD_STATUS_USER_DISPATCH' => 5, //在公众平台投放过的卡券
-		'CARD_STATUS_DISPATCH' => 5, //在公众平台投放过的卡券
+		'CARD_STATUS_DELETE' => 4,//卡券被商户删�
+		'CARD_STATUS_USER_DISPATCH' => 5, //在公众平台投放过的卡�
+		'CARD_STATUS_DISPATCH' => 5, //在公众平台投放过的卡�
 	);
 }
 

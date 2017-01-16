@@ -584,12 +584,14 @@ function tomedia($src, $local_path = false){
  * 构造错误数组
  * @param int $errno 错误码，0为无任何错误
  * @param string $message 错误信息
+ * @param mixed $data 返回数据结果
  * @return array
  */
-function error($errno, $message = '') {
+function error($errno, $message = '', $data = null) {
 	return array(
 		'errno' => $errno,
 		'message' => $message,
+		'data' => $data,
 	);
 }
 
