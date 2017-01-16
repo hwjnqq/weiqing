@@ -24,7 +24,7 @@
 						{loop $list $page}
 						<tr>
 							<td>{$page['title']}</td>
-							<td>{$page['params'][0]['params']['keyword']}</td>
+							<td>{$page['params'][0]['property'][0]['params']['keyword']}</td>
 							<td>{php echo date('Y-m-d H:i', $page['createtime'])}</td>
 							<td style="position:relative;">
 								<a href="{php echo url('site/editor/design', array('id' => $page['id'], 'multiid' => $multiid))}">编辑</a>
@@ -138,7 +138,7 @@
 						<div class="nav-menu" style="display:none;">
 							<div class="js-quickmenu nav-menu-wx clearfix" ng-class="{0 : 'has-nav-0', 1 : 'has-nav-1', 2: 'has-nav-2', 3: 'has-nav-3', 4 : 'has-nav-3'}[activeItem.menus.length]" ng-if="activeItem.navStyle == 1">
 								<div class="nav-home text-center">
-									<a href="{$_W['siteroot']}app/index.php?i={$_W['uniacid']}&j={$_W['acid']}"><i class="fa fa-home"></i></a>
+									<a href="{$_W['siteroot']}app/index.php?i={$_W['uniacid']}&j={$_W['acid']}&t={$multiid}"><i class="fa fa-home"></i></a>
 								</div>
 								<ul class="nav-group">
 									<li class="nav-group-item" ng-if="$index < 3" ng-repeat="menu in activeItem.menus">
@@ -688,34 +688,6 @@
 									</a>
 								</div>
 								<div class="mnav-box">
-									<ul class="mnav-box-ul">
-										<li>
-											<a class="mnav-box-list" href="javascript:;">
-												<span>兑换商城</span>
-												<span class="pull-right"><i class="fa fa-angle-right"></i></span>
-											</a>
-										</li>
-										<li>
-											<a class="mnav-box-list" href="javascript:;">
-												<span>会员卡</span>
-												<span class="pull-right"><i class="fa fa-angle-right"></i></span>
-											</a>
-										</li>
-									</ul>
-									<ul class="mnav-box-ul">
-										<li>
-											<a class="mnav-box-list" href="javascript:;">
-												<span>我的卡券</span>
-												<span class="pull-right"><i class="fa fa-angle-right"></i></span>
-											</a>
-										</li>
-										<li>
-											<a class="mnav-box-list" href="javascript:;">
-												<span>我的兑换</span>
-												<span class="pull-right"><i class="fa fa-angle-right"></i></span>
-											</a>
-										</li>
-									</ul>
 									<ul ng-show="activeMenus.length > 0" class="mnav-box-ul">
 										<li ng-repeat="menu in activeMenus" ng-if="menu.status != 0">
 											<a class="mnav-box-list" ng-href="{{menu.url}}">

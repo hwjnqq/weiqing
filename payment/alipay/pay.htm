@@ -119,7 +119,7 @@
     </div>
 </div>
 <div class="J-weixin-tip-img weixin-tip-img"></div>
-
+<script src="http://res.wx.qq.com/open/js/jweixin-1.1.0.js"></script>
 <script type="text/javascript" src="ap.js"></script>
 <script>
     if (location.hash.indexOf('error') != -1) {
@@ -145,6 +145,10 @@
             location.href = param != '' ? _AP.decode(param) : 'pay.htm#error';
         }
     }
+    document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+        WeixinJSBridge.call("showOptionMenu");
+        WeixinJSBridge.call("showToolbar");
+    });
 </script>
 </body>
 </html>

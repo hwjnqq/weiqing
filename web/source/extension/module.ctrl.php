@@ -183,7 +183,7 @@ if ($do == 'check') {
 						'site_branch' => $v['branches'][$v['branch']],
 					);
 				}
-				$mods['pirate_apps'] = array_values($v['pirate_apps']);
+				$mods['pirate_apps'] = $ret['pirate_apps'];
 			}
 			if (!empty($mods)) {
 				exit(json_encode($mods));
@@ -203,8 +203,11 @@ if ($do == 'check') {
 
 			if (!is_error($ret)) {
 				$cloudUninstallModules = array();
+				if ($ret['pirate_apps']) {
+					unset($ret['pirate_apps']);
+				}
 				foreach ($ret as $k => $v) {
-					if (!in_array(strtolower($k), $moduleids)) {
+					if (!in_array(strtolower($k), $moduleids) && $v['id']) {
 						$v['name'] = $k;
 						$cloudUninstallModules[] = $v;
 						$moduleids[] = $k;
@@ -392,13 +395,6 @@ if($do == 'install') {
 		}
 	}
 	$module['permissions'] = iserializer($module['permissions']);
-	$module_subscribe_success = true;
-	if (!empty($module['subscribes'])) {
-		$subscribes = iunserializer($module['subscribes']);
-		if (!empty($subscribes)) {
-			$module_subscribe_success = ext_check_module_subscribe($module['name']);
-		}
-	}
 	if (!empty($info['version']['cloud_setting'])) {
 		$module['settings'] = 2;
 	}
@@ -434,6 +430,13 @@ if($do == 'install') {
 				$item['modules'][] = $module['name'];
 				$item['modules'] = iserializer($item['modules']);
 				pdo_update('uni_group', $item, array('id' => $post_group));
+			}
+		}
+		$module_subscribe_success = true;
+		if (!empty($module['subscribes'])) {
+			$subscribes = iunserializer($module['subscribes']);
+			if (!empty($subscribes)) {
+				$module_subscribe_success = ext_check_module_subscribe($module['name']);
 			}
 		}
 		load()->model('module');

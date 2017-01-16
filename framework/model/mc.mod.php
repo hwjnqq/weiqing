@@ -1698,6 +1698,7 @@ function mc_init_fans_info($old_fan_info){
 			'followtime' => $fan['subscribe_time'],
 			'nickname' => stripcslashes($fan['nickname']),
 			'tag' => base64_encode(iserializer($fan)),
+			'unionid' => $fan['unionid'],
 			'groupid' => !empty($fan['tagid_list']) ? (','.join(',', $fan['tagid_list']).',') : '',
 		);
 		if (!empty($fan['tagid_list'])) {
@@ -1827,6 +1828,40 @@ function mc_card_settings_hide($item = '') {
 		}
 	}
 	return false;
+}
+
+/**
+ * 用户消费返积分
+ * @param 	string 		$openid 		粉丝openid字段
+ * @param 	string 		$card_fee 		core_paylog表card_fee 使用卡券后的价格
+ * @param 	string 		$storeid 		消费门店id
+ */
+function mc_card_grant_credit($openid, $card_fee, $storeid = 0) {
+	global $_W;
+	$setting = uni_setting($_W['uniacid'], array('creditbehaviors'));
+	load()->model('card');
+	$recharges_set = card_params_setting('cardRecharge');
+	$card_settings = card_setting();
+	$grant_rate = $card_settings['grant_rate'];
+	$grant_rate_switch = intval($recharges_set['params']['grant_rate_switch']);
+	$grant_credit1_enable = false;
+	if (!empty($grant_rate)) {
+		if (empty($recharges_set['params']['recharge_type'])) {
+			$grant_credit1_enable = true;
+		} else {
+			if ($grant_rate_switch == '1') {
+				$grant_credit1_enable = true;
+			}
+		}
+	}
+	if (!empty($grant_credit1_enable)) {
+		$num = $card_fee * $grant_rate;
+		$tips .= "用户消费{$card_fee}元，余额支付{$card_fee}，积分赠送比率为:【1：{$grant_rate}】,共赠送【{$num}】积分";
+		mc_credit_update($openid, 'credit1', $num, array('0', $tip, 'paycenter', 0, $storeid, 3));
+		return error(0, $num);
+	} else {
+		return error(-1, '');
+	}
 }
 /**
  * 用户消费返积分

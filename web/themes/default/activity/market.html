@@ -164,8 +164,8 @@
 							<div class="modal-footer">
 								<button type="button" class="btn btn-primary" id="save" data-dismiss="modal">保存</button>
 							</div>
-						</div><!-- /.modal-content -->
-					</div><!-- /.modal-dialog -->
+						</div>
+					</div>
 				</div>
 			</div>
 			<div class="form-group" id="coupon_table">
@@ -230,9 +230,9 @@
 							</ul>
 						</div>
 						<div class="panel-body" id="type">
-							<select name="group" class="form-control" id="group_list" {if !$item['members']['groupid']}style="display: none;"{/if}>
+							<select name="groupid" class="form-control" id="group_list" {if !$item['members']['groupid']}style="display: none;"{/if}>
 							{loop $groups $group}
-							<option value="{$group['id']}">{if COUPON_TYPE == SYSTEM_COUPON}{$group['title']}{else}{$group['name']}{/if}</option>
+							<option value="{$group['groupid']}">{if COUPON_TYPE == SYSTEM_COUPON}{$group['title']}{else}{$group['name']}{/if}</option>
 							{/loop}
 							</select>
 							<div id="date" {if !$item['members']['cash_time']['start']}style="display: none;"{/if}>{php echo tpl_form_field_daterange('daterange', array('start' => date('Y-m-d', strtotime('-1 month', time())), 'end' => date('Y-m-d', time())))}</div>
@@ -299,7 +299,7 @@
 		if (type == 'group_member' || type == 'openids' || type == 'cash_time') {
 			var param = {};
 			if (type == 'group_member') {
-				var groupid = $('[name="group"]').val();
+				var groupid = $('[name="groupid"]').val();
 				param = {'groupid' : groupid};
 			}
 			if (type == 'cash_time') {
@@ -351,83 +351,82 @@
 					util.message(data.message.message+'不可用', '', 'info');
 				}
 			});
-			{/if}
-			});
-
-			var page = 1;
-			window.openids = new Array();
-			{if !empty($item['members']['openids'])}
-				{loop $item['members']['openids'] $opid}
-				{if !empty($opid)}
-					openids.push('{$opid}');
-					{/if}
-						{/loop}
-						{/if}
-							window.showFans= function(page, nickname) {
-								nickname = nickname == undefined ? '' : nickname;
-								var footer = '<button type="button" class="btn btn-primary" id="save" data-dismiss="modal">添加</button>';
-								var modalobj = util.dialog('粉丝列表', ['./index.php?c=utility&a=fans&page='+ page+'&nickname='+nickname], footer, {containerName:'link-container'})
-								modalobj.find('.modal-body').css({'overflow-y':'auto' });
-								modalobj.modal('show');
-							};
-							$('#openids').click(function() {
-								showFans(page);
-							});
-							var coupons = new Array();
-							$('.member').click(function () {
-								if ($(this).val() != 'group_member') {
-									$('#group_list').hide();
-								}
-								if ($(this).val() != 'cash_time') {
-									$('#date').hide();
-								}
-							});
-							{if !empty($item['coupons']) && is_array($item['coupons'])}
-								{loop $item['coupons']  $cou}
-								var cid = {$cou['id']};
-								var title = '{$cou['title']}';
-								var type = {$cou['type']};
-								coupons[cid] = [{'title' : title,'type': type}];
-								{/loop}
-								{/if}
-									$('.check').click(function() {
-										var check = $(this).prop('checked');
-										if (check) {
-											coupons[$(this).val()] = new Array();
-											coupons[$(this).val()] = [{'couponid' : $(this).val(), 'title' : $(this).data('title'), 'type' : $(this).data('type')}]
-										} else {
-											delete coupons[$(this).val()];
-										}
-									});
-									$('#save').click(function() {
-										$('#coupon_list').html('');
-										for (var key in coupons) {
-											var type = coupons[key][0].type == 1? '折扣券' : '代金券';
-											$('#coupon_list').append(
-													'<tr>' +
-													'<td style="width: 50px">'+coupons[key][0].title+'</td>' +
-													'<td style="width: 50px">'+type+'</td>' +
-													'</tr>');
-										}
-									});
-									$('form').submit(function() {
-										if ($('[name="title"]').val() == '') {
-											util.message('请填写活动名称', '', 'info');
-											return false;
-										}
-										if ($('#members').val() == '') {
-											util.message('请选择发放用户', '', 'info');
-											return false;
-										}
-										if ($('.member:checked').val() == 'openids' && openids.length == 0) {
-											util.message('请选择发放粉丝', '', 'info');
-											return false;
-										}
-										if ($('.coupon:checked').val() == undefined) {
-											util.message('请选择卡券', '', 'info');
-											return false;
-										}
-									});
+		{/if}
+	});
+	var page = 1;
+	window.openids = new Array();
+	{if !empty($item['members']['openids'])}
+	{loop $item['members']['openids'] $opid}
+		{if !empty($opid)}
+			openids.push('{$opid}');
+		{/if}
+	{/loop}
+	{/if}
+	window.showFans= function(page, nickname) {
+		nickname = nickname == undefined ? '' : nickname;
+		var footer = '<button type="button" class="btn btn-primary" id="save" data-dismiss="modal">添加</button>';
+		var modalobj = util.dialog('粉丝列表', ['./index.php?c=utility&a=fans&page='+ page+'&nickname='+nickname], footer, {containerName:'link-container'})
+		modalobj.find('.modal-body').css({'overflow-y':'auto' });
+		modalobj.modal('show');
+	};
+	$('#openids').click(function() {
+		showFans(page);
+	});
+	var coupons = new Array();
+	$('.member').click(function () {
+		if ($(this).val() != 'group_member') {
+			$('#group_list').hide();
+		}
+		if ($(this).val() != 'cash_time') {
+			$('#date').hide();
+		}
+	});
+	{if !empty($item['coupons']) && is_array($item['coupons'])}
+	{loop $item['coupons']  $cou}
+	var cid = {$cou['id']};
+	var title = '{$cou['title']}';
+	var type = {$cou['type']};
+	coupons[cid] = [{'title' : title,'type': type}];
+	{/loop}
+	{/if}
+	$('.check').click(function() {
+		var check = $(this).prop('checked');
+		if (check) {
+			coupons[$(this).val()] = new Array();
+			coupons[$(this).val()] = [{'couponid' : $(this).val(), 'title' : $(this).data('title'), 'type' : $(this).data('type')}]
+		} else {
+			delete coupons[$(this).val()];
+		}
+	});
+	$('#save').click(function() {
+		$('#coupon_list').html('');
+		for (var key in coupons) {
+			var type = coupons[key][0].type == 1? '折扣券' : '代金券';
+			$('#coupon_list').append(
+					'<tr>' +
+					'<td style="width: 50px">'+coupons[key][0].title+'</td>' +
+					'<td style="width: 50px">'+type+'</td>' +
+					'</tr>');
+		}
+	});
+	$('form').submit(function() {
+		if ($('[name="title"]').val() == '') {
+			util.message('请填写活动名称', '', 'info');
+			return false;
+		}
+		if ($('#members').val() == '') {
+			util.message('请选择发放用户', '', 'info');
+			return false;
+		}
+		if ($('.member:checked').val() == 'openids' && openids.length == 0) {
+			util.message('请选择发放粉丝', '', 'info');
+			return false;
+		}
+		if ($('.coupon:checked').val() == undefined) {
+			util.message('请选择卡券', '', 'info');
+			return false;
+		}
+	});
 </script>
 {/if}
 {template 'common/footer'}

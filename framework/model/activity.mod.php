@@ -113,6 +113,11 @@ function activity_coupon_owned() {
 			unset($data[$key]);
 			continue;
 		}
+		if ($coupon['status'] != '3') {
+			pdo_delete('coupon_record', array('id' => $record['id']));
+			unset($data[$key]);
+			continue;
+		}
 		if (is_error($coupon)) {
 			unset($data[$key]);
 			continue;
@@ -126,6 +131,27 @@ function activity_coupon_owned() {
 		if (!empty($modules) && !in_array($_W['current_module']['name'], $modules) && !empty($_W['current_module']['name'])) {
 			unset($data[$key]);
 			continue;
+		}
+		if (is_array($coupon['date_info']) && $coupon['date_info']['time_type'] == '2') {
+			$starttime = $record['addtime'] + $coupon['date_info']['deadline'] * 86400;
+			$endtime = $starttime + ($coupon['date_info']['limit'] - 1) * 86400;
+			if ($endtime < time()) {
+				unset($data[$key]);
+				pdo_delete('coupon_record', array('id' => $record['id']));
+				continue;
+			} else {
+				$coupon['extra_date_info'] = '有效期:' . date('Y.m.d', $starttime) . '-' . date('Y.m.d', $endtime);
+			}
+		}
+		if (is_array($coupon['date_info']) && $coupon['date_info']['time_type'] == '1') {
+			$endtime = str_replace('.', '-', $coupon['date_info']['time_limit_end']);
+			$endtime = strtotime($endtime);
+			if ($endtime < time()) {
+				pdo_delete('coupon_record', array('id' => $record['id']));
+				unset($data[$key]);
+				continue;
+			}
+
 		}
 		if ($coupon['type'] == COUPON_TYPE_DISCOUNT) {
 			$coupon['icon'] = '<div class="price">' . $coupon['extra']['discount'] * 0.1 . '<span>折</span></div>';
@@ -142,19 +168,14 @@ function activity_coupon_owned() {
 		elseif($coupon['type'] == COUPON_TYPE_GENERAL) {
 			$coupon['icon'] = '<img src="resource/images/general_coupon.png" alt="" />';
 		}
-		if (is_array($coupon['date_info']) && $coupon['date_info']['time_type'] == '2') {
-			$starttime = $record['addtime'] + $coupon['date_info']['deadline'] * 86400;
-			$endtime = $starttime + ($coupon['date_info']['limit'] - 1) * 86400;
-			$coupon['extra_date_info'] = '有效期:' . date('Y.m.d', $starttime) . '-' . date('Y.m.d', $endtime);
-		}
 		$data[$key] = $coupon;
 		$data[$key]['recid'] = $record['id'];
 		$data[$key]['code'] = $record['code'];
 		if ($coupon['source'] == '2') {
 			if (empty($data[$key]['code'])) {
-				$data[$key]['extra_ajax'] = url('activity/coupon/addcard');
+				$data[$key]['extra_ajax'] = url('entry', array('m' => 'we7_coupon', 'do' => 'activity', 'type' => 'coupon', 'op' => 'addcard'));
 			} else {
-				$data[$key]['extra_ajax'] = url('activity/coupon/opencard');
+				$data[$key]['extra_ajax'] = url('entry', array('m' => 'we7_coupon', 'do' => 'activity', 'type' => 'coupon', 'op' => 'opencard'));
 			}
 		}
 	}
@@ -232,7 +253,11 @@ function activity_coupon_grant($id,$openid) {
 	}
 	$fan = mc_fansinfo($openid, '', $_W['uniacid']);
 	$openid = $fan['openid'];
-	$code = base_convert(uniqid(), 16, 10);
+	if (empty($openid)) {
+		return error(-1, '兑换失败');
+	}
+	$code = base_convert(md5(uniqid() . random(4)), 16, 10);
+	$code = substr($code, 1, 16);
 	$user = mc_fetch($fan['uid'], array('groupid'));
 	$credit_names = array('credit1' => '积分', 'credit2' => '余额');
 	$coupon = activity_coupon_info($id);
@@ -449,57 +474,6 @@ function activity_goods_grant($uid, $exid){
 }
 
 /**
- * 指定会员兑换指定活动
- * @param int $uid 会员UID
- * @param int $exid 活动ID
- * @return mixed
- **/
-function activity_module_grant($uid, $exid){
-	global $_W;
-	$exchange = activity_exchange_info($exid, $_W['uniacid']);
-	if (empty($exchange)) {
-		return error(-1, '没有指定的活动参与次数兑换');
-	}
-	if ($exchange['starttime'] > TIMESTAMP) {
-		return error(-1, '该活动参与次数兑换尚未开始');
-	}
-	if ($exchange['endtime'] < TIMESTAMP) {
-		return error(-1, '该活动参与次数兑换已经结束');
-	}
-	if ($exchange['pretotal'] > 0) {
-		$activity_modules = pdo_fetch('SELECT * FROM ' . tablename('activity_modules') . ' WHERE uniacid = :uniacid AND uid = :uid AND exid = :exid AND module = :module', array(':uniacid' => $_W['uniacid'], ':uid' => $uid, 'exid' => $exid, 'module' => $exchange['extra']['name']));
-		if ($activity_modules) {
-			$starttime = strtotime(date('Y-m-d')) - intval($exchange['extra']['period']) * 3600 * 24;
-			//num = 1 表示兑换记录, num = -1 表示消费记录
-			$pnum = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('activity_modules_record') . ' WHERE mid = :mid AND num = 1 AND createtime > :createtime', array('mid' => $activity_modules['mid'], ':createtime' => $starttime));
-			if ($pnum >= $exchange['pretotal']) {
-				return error(-1, '每人每' . $exchange['extra']['period'] . '天内,只能兑换' . $exchange['pretotal'] . '次');
-			}
-			//更新用户对于某个模块的可用次数
-			pdo_update('activity_modules', array('available' => $activity_modules['available'] + 1), array('mid' => $activity_modules['mid'], 'uid' => $uid));
-		} else {
-			$data = array(
-				'uniacid' => $_W['uniacid'],
-				'uid' => intval($uid),
-				'exid' => $exid,
-				'module' => trim($exchange['extra']['name']),
-				'available' => 1
-			);
-			pdo_insert('activity_modules', $data);
-			$activity_modules['mid'] = pdo_insertid();
-		}
-
-		//记录可用次数的变更记录
-		$data = array('mid' => $activity_modules['mid'], 'num' => 1, 'createtime' => TIMESTAMP);
-		pdo_insert('activity_modules_record', $data);
-		return true;
-	} else {
-		return error(-1, '该兑换活动每人可兑换' . intval($exchange['pretotal']));
-	}
-	return true;
-}
-
-/**
  * 获取礼品兑换信息(仅用于判断真实物品或活动参与次数)
  * @param int $exchangeid 兑换ID
  * @param int $uniacid 公众号ID
@@ -637,21 +611,27 @@ function activity_get_member($type, $param = array()) {
 	if (!in_array($type, $types)) {
 		return error('1', '没有匹配的用户类型');
 	}
+	//获取会员属性
+	$propertys = activity_member_propertys();
 	//新会员，一个月内消费不超过一次
 	if ($type == 'new_member') {
+		$property_time = strtotime('-' . $propertys['newmember'] . ' month', time());
 		$members_sql = "SELECT c.openid FROM ( SELECT a.uid FROM ". tablename('mc_members')." as a LEFT JOIN ".tablename('mc_cash_record')." as b ON a.uid = b.uid WHERE a.uniacid = :uniacid AND a.createtime > :time AND (b.createtime > :time or b.id is null) GROUP BY a.uid HAVING COUNT(*) < 2) as d  LEFT JOIN ". tablename('mc_mapping_fans')." as c ON d.uid = c.uid WHERE c.openid <> ''";
-		$members = pdo_fetchall($members_sql, array(':uniacid' => $_W['uniacid'], ':time' => strtotime('-1 month', time())), 'openid');
+		$members = pdo_fetchall($members_sql, array(':uniacid' => $_W['uniacid'], ':time' => $property_time), 'openid');
 	}
 	//老会员，注册超过两个月的会员
 	if ($type == 'old_member') {
-		$members = pdo_fetchall("SELECT b.openid FROM ".tablename('mc_members')." as a LEFT JOIN ". tablename('mc_mapping_fans')." as b ON a.uid = b.uid WHERE a.createtime < :time AND a.uniacid = :uniacid AND b.openid <> ''", array(':time' => strtotime('-2 month'), ':uniacid' => $_W['uniacid']), 'openid');
+		$property_time = strtotime('-' . $propertys['oldmember'] . ' month', time());
+		$members = pdo_fetchall("SELECT b.openid FROM ".tablename('mc_members')." as a LEFT JOIN ". tablename('mc_mapping_fans')." as b ON a.uid = b.uid WHERE a.createtime < :time AND a.uniacid = :uniacid AND b.openid <> ''", array(':time' => $property_time, ':uniacid' => $_W['uniacid']), 'openid');
 	}
 	if ($type == 'activity_member') {
-		$members = pdo_fetchall("SELECT * FROM " . tablename('mc_cash_record') . " as a LEFT JOIN ". tablename('mc_mapping_fans')." as b ON a.uid = b.uid WHERE a.uniacid = :uniacid AND a.createtime > :time AND b.openid <> '' GROUP BY a.uid HAVING COUNT(*) > 2", array(':uniacid' => $_W['uniacid'], ':time' => strtotime('-1 month', time())), 'openid');
+		$property_time = strtotime('-' . $propertys['activitymember'] . ' month', time());
+		$members = pdo_fetchall("SELECT * FROM " . tablename('mc_cash_record') . " as a LEFT JOIN ". tablename('mc_mapping_fans')." as b ON a.uid = b.uid WHERE a.uniacid = :uniacid AND a.createtime > :time AND b.openid <> '' GROUP BY a.uid HAVING COUNT(*) > 2", array(':uniacid' => $_W['uniacid'], ':time' => $property_time), 'openid');
 	}
 	if ($type == 'quiet_member') {
+		$property_time = strtotime('-' . $propertys['quietmember'] . ' month', time());
 		$members = pdo_fetchall("SELECT a.openid FROM " . tablename('mc_mapping_fans') . " as a LEFT JOIN ".tablename('mc_cash_record')." as b ON a.uid = b.uid WHERE a.uniacid = :uniacid AND b.id is null GROUP BY a.uid ", array(':uniacid' => $_W['uniacid']), 'openid');
-		$member = pdo_fetchall("SELECT a.openid FROM " . tablename('mc_mapping_fans') . " as a LEFT JOIN ".tablename('mc_cash_record')." as b ON a.uid = b.uid WHERE a.uniacid = :uniacid AND b.createtime > :time GROUP BY a.uid ", array(':uniacid' => $_W['uniacid'], ':time' => strtotime('-1 month', time())), 'openid');
+		$member = pdo_fetchall("SELECT a.openid FROM " . tablename('mc_mapping_fans') . " as a LEFT JOIN ".tablename('mc_cash_record')." as b ON a.uid = b.uid WHERE a.uniacid = :uniacid AND b.createtime > :time GROUP BY a.uid ", array(':uniacid' => $_W['uniacid'], ':time' => $property_time), 'openid');
 		if (!empty($member)) {
 			foreach ($member as $key => $mem) {
 				unset($members[$key]);
@@ -717,6 +697,86 @@ function activity_coupon_sync() {
 	cache_write($cachekey, array('expire' => time() + 1800));
 	return true;
 }
+
+function activity_coupon_download($card_list) {
+	global $_W;
+	$coupon_api = new coupon($_W['acid']);
+	$local_coupon_list = pdo_getall('coupon', array('acid' => $_W['acid'], 'source' => 2), array('id', 'status', 'card_id', 'type'), 'card_id');
+	if (!empty($card_list['card_id_list'])) {
+		foreach ($card_list['card_id_list'] as $card_id) {
+			$coupon_info = $coupon_api->fetchCard($card_id);
+			if (is_error($coupon_info)) {
+				return(error(-1, $coupon_info['message']));
+			}
+			if ($coupon_info['card_type'] == 'DISCOUNT') {
+				$type = 1;
+			} elseif ($coupon_info['card_type'] == 'CASH') {
+				$type = 2;
+			} elseif ($coupon_info['card_type'] == 'GENERAL_COUPON') {
+				$type = 3;
+			} elseif ($coupon_info['card_type'] == 'GIFT') {
+				$type = 4;
+			} elseif ($coupon_info['card_type'] == 'GROUPON') {
+				$type = 5;
+			}
+			$coupon_type_label = activity_coupon_type_label($type);
+			$coupon = Card::create($type);
+			$coupon->logo_url = $coupon_info[$coupon_type_label[1]]['base_info']['logo_url'];
+			$coupon->brand_name = $coupon_info[$coupon_type_label[1]]['base_info']['brand_name'];
+			$coupon->title = $coupon_info[$coupon_type_label[1]]['base_info']['title'];
+			$coupon->sub_title = $coupon_info[$coupon_type_label[1]]['base_info']['sub_title'];
+			$coupon_colors = array_flip(activity_coupon_colors());
+			$coupon->color = $coupon_colors[$coupon_info[$coupon_type_label[1]]['base_info']['color']];
+			$coupon->notice = $coupon_info[$coupon_type_label[1]]['base_info']['notice'];
+			$coupon->service_phone = $coupon_info[$coupon_type_label[1]]['base_info']['service_phone'];
+			$coupon->description = $coupon_info[$coupon_type_label[1]]['base_info']['description'];
+			$coupon->get_limit = $coupon_info[$coupon_type_label[1]]['base_info']['get_limit'];
+			$coupon->can_share = $coupon_info[$coupon_type_label[1]]['base_info']['can_share'];
+			$coupon->can_give_friend = $coupon_info[$coupon_type_label[1]]['base_info']['can_give_friend'];
+			if ($coupon_info[$coupon_type_label[1]]['base_info']['date_info']['type'] == 'DATE_TYPE_FIX_TIME_RANGE') {
+				$coupon->date_info = array(
+					'type' => 'DATE_TYPE_FIX_TIME_RANGE',//新版文档变更为字符串，数值1也可用
+					'begin_timestamp' => $coupon_info[$coupon_type_label[1]]['base_info']['date_info']['begin_timestamp'],
+					'end_timestamp' => $coupon_info[$coupon_type_label[1]]['base_info']['date_info']['end_timestamp'],
+				);
+			} elseif ($coupon_info[$coupon_type_label[1]]['base_info']['date_info']['type'] == 'DATE_TYPE_FIX_TERM') {
+				$coupon->setDateinfoFix($coupon_info[$coupon_type_label[1]]['base_info']['date_info']['fixed_begin_term'], $coupon_info[$coupon_type_label[1]]['base_info']['date_info']['fixed_term']);
+			}
+			if (!empty($coupon_info[$coupon_type_label[1]]['base_info']['promotion_url_name']) && !empty($coupon_info[$coupon_type_label[1]]['base_info']['promotion_url'])) {
+				$coupon->setPromotionMenu($coupon_info[$coupon_type_label[1]]['base_info']['promotion_url_name'], $coupon_info[$coupon_type_label[1]]['base_info']['promotion_url_sub_title'], $coupon_info[$coupon_type_label[1]]['base_info']['promotion_url']);
+			}
+			if (!empty($coupon_info[$coupon_type_label[1]]['base_info']['location_id_list'])) {
+				$coupon->location_id_list = $coupon_info[$coupon_type_label[1]]['base_info']['location_id_list'];
+			}
+			$coupon->setCustomMenu('立即使用', '', murl('entry', array('m' => 'paycenter', 'do' => 'consume'), true, true));
+			$coupon->setQuantity($coupon_info[$coupon_type_label[1]]['base_info']['sku']['quantity']);
+			$coupon->code_type = $coupon_info[$coupon_type_label[1]]['base_info']['code_type'];
+			//折扣券
+			$coupon->discount = $coupon_info[$coupon_type_label[1]]['discount'];
+			//代金券，单位为分
+			$coupon->least_cost = $coupon_info[$coupon_type_label[1]]['least_cost'];
+			$coupon->reduce_cost = $coupon_info[$coupon_type_label[1]]['reduce_cost'];
+			//礼品券
+			$coupon->gift = $coupon_info[$coupon_type_label[1]]['gift'];
+			//团购券
+			$coupon->deal_detail = $coupon_info[$coupon_type_label[1]]['deal_detail'];
+			//优惠券
+			$coupon->default_detail = $coupon_info[$coupon_type_label[1]]['default_detail'];
+			$coupon->card_id = $coupon_info[$coupon_type_label[1]]['base_info']['id'];
+			$coupon->source = 2;
+			$coupon_status = activity_coupon_status();
+			$coupon->status = $coupon_status[$coupon_info[$coupon_type_label[1]]['base_info']['status']];
+			$coupon_insert_data = $coupon->getCardArray();
+			$coupon_insert_data['uniacid'] = $_W['uniacid'];
+			$coupon_insert_data['acid'] = $_W['acid'];
+			if (empty($local_coupon_list[$coupon_insert_data['card_id']])) {
+				pdo_insert('coupon', $coupon_insert_data);
+			}
+		}
+	}
+	return true;
+}
+
 /**
  * 同步微信门店最新状态
  */
@@ -758,20 +818,20 @@ function activity_store_sync() {
  */
 function activity_coupon_colors() {
 	$colors = array(
-		'Color010' => '#63b359',
-		'Color020' => '#2c9f67',
-		'Color030' => '#509fc9',
-		'Color040' => '#5885cf',
-		'Color050' => '#9062c0',
-		'Color060' => '#d09a45',
-		'Color070' => '#e4b138',
-		'Color080' => '#ee903c',
+		'Color010' => '#55bd47',
+		'Color020' => '#10ad61',
+		'Color030' => '#35a4de',
+		'Color040' => '#3d78da',
+		'Color050' => '#9058cb',
+		'Color060' => '#de9c33',
+		'Color070' => '#ebac16',
+		'Color080' => '#f9861f',
 		'Color081' => '#f08500',
 		'Color082' => '#a9d92d',
-		'Color090' => '#dd6549',
-		'Color100' => '#cc463d',
+		'Color090' => '#e75735',
+		'Color100' => '#d54036',
 		'Color101' => '#cf3e36',
-		'Color102' => '#5E6671',
+		'Color102' => '#5e6671',
 	);
 	return $colors;
 }
@@ -818,6 +878,22 @@ function activity_coupon_status() {
 		'CARD_STATUS_USER_DISPATCH' => 5, //在公众平台投放过的卡券
 		'CARD_STATUS_DISPATCH' => 5, //在公众平台投放过的卡券
 	);
+}
+
+function activity_member_propertys() {
+	global $_W;
+	$current_property_info = pdo_get('mc_member_property', array('uniacid' => $_W['uniacid']));
+	if (!empty($current_property_info)) {
+		$propertys = json_decode($current_property_info['property'], true);
+	} else {
+		$propertys = array(
+			'newmember' => '1',
+			'oldmember' => '2',
+			'activitymember' => '1',
+			'quietmember' => '1'
+		);
+	}
+	return $propertys;
 }
 function activity_member_propertys() {
 	global $_W;

@@ -28,7 +28,7 @@ function template_page($id, $flag = TEMPLATE_DISPLAY) {
 		return '';
 	}
 	$page['params'] = json_decode($page['params'], true);
-	$GLOBALS['title'] = $page['title'];
+	$GLOBALS['title'] = htmlentities($page['title'], ENT_QUOTES, 'UTF-8');
 	$GLOBALS['_share'] = array('desc' => $page['description'], 'title' => $page['title'], 'imgUrl' => tomedia($page['params']['0']['params']['thumb']));;
 
 	$compile = IA_ROOT . "/data/tpl/app/{$id}.{$_W['template']}.tpl.php";
@@ -123,6 +123,17 @@ function template_compile($from, $to) {
 }
 
 function template_parse($str) {
+	$check_repeat_template = array(
+		"'common\\/header'",
+		"'common\\/footer'",
+	);
+	foreach ($check_repeat_template as $template) {
+		if (preg_match_all('/{template\s+'.$template.'}/', $str, $match) > 1) {
+			$replace = stripslashes($template);
+			$str = preg_replace('/{template\s+'.$template.'}/i', '<?php (!empty($this) && $this instanceof WeModuleSite) ? (include $this->template('.$replace.', TEMPLATE_INCLUDEPATH)) : (include template('.$replace.', TEMPLATE_INCLUDEPATH));?>', $str, 1);
+			$str = preg_replace('/{template\s+'.$template.'}/i', '', $str);
+		}
+	}
 	$str = preg_replace('/<!--{(.+?)}-->/s', '{$1}', $str);
 	$str = preg_replace('/{template\s+(.+?)}/', '<?php (!empty($this) && $this instanceof WeModuleSite) ? (include $this->template($1, TEMPLATE_INCLUDEPATH)) : (include template($1, TEMPLATE_INCLUDEPATH));?>', $str);
 	$str = preg_replace('/{php\s+(.+?)}/', '<?php $1?>', $str);
@@ -183,6 +194,7 @@ function moduledata($params = '') {
 	foreach ($params as $row) {
 		$row = explode('=', $row);
 		$data[$row[0]] = str_replace(array("'", '"'), '', $row[1]);
+		$row[1] = urldecode($row[1]);
 	}
 	$funcname = $data['func'];
 	$assign = !empty($data['assign']) ? $data['assign'] : $funcname;
@@ -389,7 +401,7 @@ function site_slide_search($params = array()) {
 		foreach($list as &$row) {
 			if (!strexists($row['url'], './')) {
 				if (!strexists($row['url'], 'http')) {
-					$row['url'] = $_W['sitescheme'] . $row['url'];
+					$row['url'] = '//' . $row['url'];
 				}
 			}
 			$row['thumb'] = tomedia($row['thumb']);
@@ -403,9 +415,12 @@ function app_slide($params = array()) {
 }
 
 function site_widget_link($params = array()) {
-	$widgetparams = json_decode($params['params'], true);
+	$params['widgetdata'] = urldecode($params['widgetdata']);
+	$widget = json_decode($params['widgetdata'], true);
+	$widgetparams = !empty($widget['params']) ? $widget['params'] : array();
+
 	$sql = 'SELECT * FROM ' .tablename('site_article')." WHERE uniacid = :uniacid ";
-	$sqlparams = array(':uniacid' => $params['uniacid']);
+	$sqlparams = array(':uniacid' => $widget['uniacid']);
 	if (!empty($widgetparams['selectCate']['pid'])) {
 		$sql .= " AND pcate = :pid";
 		$sqlparams[':pid'] = $widgetparams['selectCate']['pid'];
@@ -434,6 +449,7 @@ function site_widget_link($params = array()) {
 			$row['thumb_url'] = tomedia($row['thumb']);
 			$row['url'] = url('site/site/detail', array('id' => $row['id']));
 		}
+		unset($row);
 	}
 	return (array)$list;
 }
@@ -453,7 +469,7 @@ function site_quickmenu() {
 			$multiid = empty($site_multi_info) ? '' : $id;
 		} else {
 			if(!($_GPC['c'] == 'home' && $_GPC['a'] == 'page')){
-				isetcookie('__multiid', '');
+				@isetcookie('__multiid', '');
 			}
 		}
 		if (empty($multiid)) {

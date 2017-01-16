@@ -8,6 +8,7 @@ $_W['page']['title'] = '卡券营销';
 load()->model('activity');
 load()->model('mc');
 load()->classs('coupon');
+set_time_limit(0);
 $dos = array('list', 'post', 'delete', 'get_member_num', 'checkcoupon');
 $do = in_array($do, $dos) ? $do : 'list';
 if ($do == 'checkcoupon') {
@@ -171,6 +172,10 @@ elseif ($do == 'post') {
 		$groups = pdo_getall('mc_groups', array('uniacid' => $_W['uniacid']), array(), 'groupid');
 	} else {
 		$groups = mc_fans_groups();
+		foreach ($groups as &$group) {
+			$group['groupid'] = $group['id'];
+		}
+		unset($group);
 	}
 }
 if ($do == 'delete') {

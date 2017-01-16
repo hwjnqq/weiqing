@@ -49,7 +49,12 @@ if(is_array($setting['payment'])) {
 			}
 		}
 
-		$wechat['signkey'] = ($wechat['version'] == 1) ? $wechat['key'] : $wechat['signkey'];
+		if (intval($wechat['switch']) == 3) {
+			$facilitator_setting = uni_setting($wechat['service'], array('payment'));
+			$wechat['signkey'] = $facilitator_setting['payment']['wechat_facilitator']['signkey'];
+		} else {
+			$wechat['signkey'] = ($wechat['version'] == 1) ? $wechat['key'] : $wechat['signkey'];
+		}
 		$sign = strtoupper(md5($string1 . "key={$wechat['signkey']}"));
 		if($sign == $get['sign']) {
 			$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniontid`=:uniontid';
@@ -71,7 +76,7 @@ if(is_array($setting['payment'])) {
 					load()->model('activity');
 				 	$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $log['module']);
 				}
-		
+
 				$site = WeUtility::createModuleSite($log['module']);
 				if(!is_error($site)) {
 					$method = 'payResult';

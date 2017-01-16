@@ -101,58 +101,56 @@
 			return (e || window.event).returnValue = '正在进行群发操作, 离开页面将会中止执行.';
 		}
 	}
-	require(['angular'], function(angular){
-		angular.module('app', []).controller('doNotifySend', function($scope, $http) {
-			$scope.params = {
-				type : '{$_GPC['type']}',
-				group : '{$_GPC['group']}',
-				username : '{$_GPC['username']}'
-			};
-			$scope.isRunning = running = false;
+	angular.module('app', []).controller('doNotifySend', function($scope, $http) {
+		$scope.params = {
+			type : '{$_GPC['type']}',
+			group : '{$_GPC['group']}',
+			username : '{$_GPC['username']}'
+		};
+		$scope.isRunning = running = false;
+		
+		$scope.send = function(pindex) {
+			var params = {};
+			var params = angular.copy($scope.params);
+			{if $_GPC['type'] == 'email'}
+			params.title = $scope.params.title ? $scope.params.title : '';
+			params.content = editor.getContent();
+			if(params.title == '' || params.content == '') {
+				util.message('请输入完整的通知内容.', '', 'error');
+				return;
+			}
+			{/if}
+			$scope.isRunning = running = true;
+			params.method = 'send';
+			params.next = pindex;
+			if(pindex == 1) {
+				success = failed = 0;
+				var label = '正在发送中, 总共 {$count}';
+				angular.element('.label-result').html(label);
+			}
 			
-			$scope.send = function(pindex) {
-				var params = {};
-				var params = angular.copy($scope.params);
-				{if $_GPC['type'] == 'email'}
-				params.title = $scope.params.title ? $scope.params.title : '';
-				params.content = editor.getContent();
-				if(params.title == '' || params.content == '') {
-					util.message('请输入完整的通知内容.', '', 'error');
+			$http.post(location.href, params).success(function(dat, status){
+				if(!angular.isObject(dat)) {
+					util.message('执行错误, 请稍后重试', location.href);
 					return;
 				}
-				{/if}
-				$scope.isRunning = running = true;
-				params.method = 'send';
-				params.next = pindex;
-				if(pindex == 1) {
-					success = failed = 0;
-					var label = '正在发送中, 总共 {$count}';
-					angular.element('.label-result').html(label);
-				}
 				
-				$http.post(location.href, params).success(function(dat, status){
-					if(!angular.isObject(dat)) {
-						util.message('执行错误, 请稍后重试', location.href);
-						return;
+				success += dat.success;
+				failed += dat.failed;
+				var label = '正在发送中, 总共 ' + dat.total + ', 发送成功 ' + success + ', 发送失败 ' + failed;
+				angular.element('.label-result').html(label);
+				if(dat.total <= (success + failed) || dat.next == -1) {
+					$scope.isRunning = running = false;
+					if(dat.total <= failed) {
+						util.message('没有发送成功任何通知消息, 请检查配置项', '', 'error');
 					}
-					
-					success += dat.success;
-					failed += dat.failed;
-					var label = '正在发送中, 总共 ' + dat.total + ', 发送成功 ' + success + ', 发送失败 ' + failed;
-					angular.element('.label-result').html(label);
-					if(dat.total <= (success + failed) || dat.next == -1) {
-						$scope.isRunning = running = false;
-						if(dat.total <= failed) {
-							util.message('没有发送成功任何通知消息, 请检查配置项', '', 'error');
-						}
-					} else {
-						$scope.send(dat.next);
-					}
-				});
-			};
-		});
-		angular.bootstrap(document, ['app']);
+				} else {
+					$scope.send(dat.next);
+				}
+			});
+		};
 	});
+	angular.bootstrap(document, ['app']);
 </script>
 {/if}
 {template 'common/footer'}

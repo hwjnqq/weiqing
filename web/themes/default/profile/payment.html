@@ -1,154 +1,4 @@
-{php $newUI = true;}
 {template 'common/header'}
-<script type="text/javascript">
-	function tokenGen(id) {
-		var letters = 'abcdefghijklmnopqrstuvwxyz0123456789';
-		var token = '';
-		for(var i = 0; i < 32; i++) {
-			var j = parseInt(Math.random() * (31 + 1));
-			token += letters[j];
-		}
-		$('#'+id).val(token);
-	}
-	require(['angular'], function(angular){
-		angular.module('app', []).controller('paySetting', function($scope){
-			$scope.delivery = {
-				switch: {if $pay['delivery']['switch']}'true'{else}'false'{/if}
-		};
-		$scope.credit = {
-			switch: {if $pay['credit']['switch']}'true'{else}'false'{/if}
-	};
-	$scope.alipay = {
-		switch: {if $pay['alipay']['switch']}'true'{else}'false'{/if}
-	};
-	$scope.unionpay = {
-		switch: {if $pay['unionpay']['switch']}'true'{else}'false'{/if}
-	};
-	$scope.baifubao = {
-		switch: {if $pay['baifubao']['switch']}'true'{else}'false'{/if}
-	};
-	$scope.line = {
-		switch: {if $pay['line']['switch']}'true'{else}'false'{/if}
-	};
-	$scope.wechat_facilitator = {
-		switch: {if $pay['wechat_facilitator']['switch']}'true'{else}'false'{/if}
-	};
-	{if !empty($accounts)}
-		$scope.wechat = {
-			switch: '{$pay['wechat']['switch']}',
-			account: '{$pay['wechat']['account']}'
-		};
-		{/if}
-			$scope.$watch('wechat_facilitator.switch', function(newValue, oldValue, $scope){
-				if ($scope.wechat.switch != 1 && newValue == 'true') {
-					$scope.wechat.switch = 4;
-				}
-			});
-			var level = {$accounts[$_W['acid']]['level']};
-			$scope.$watch('wechat.switch', function(newValue,oldValue, $scope){
-				if (newValue < 4 && level <= 2) {
-					$scope.wechat.switch = '4';
-				}
-			});
-		});
-		angular.bootstrap(document, ['app']);
-		//支付宝和微信支付开启验证
-		$("#payform").submit(function(){
-			var $scope = angular.element('#payform').scope();
-			if($scope.alipay.switch == 'true') {
-				if($.trim($(':text[name="alipay[account]"]').val()) == '') {
-					util.message('必须输入收款支付宝账号.', '', 'error');
-					return false;
-				}
-				if($.trim($(':text[name="alipay[partner]"]').val()) == '') {
-					util.message('必须输入合作者身份.', '', 'error');
-					return false;
-				}
-				if($.trim($(':text[name="alipay[secret]"]').val()) == '') {
-					util.message('必须输入收款支付宝校验密钥.', '', 'error');
-					return false;
-				}
-			}
-			$(':hidden[name="alipay[t]"]').val('');
-			if($(':radio[name="wechat_facilitator[switch]"]:checked').val() == 'true') {
-				if ($('[name="wechat_facilitator[mchid]"]').val() == '') {
-					util.message('必须输入微信服务商的商户号');
-					return false;
-				}
-				if($.trim($('#facilitator_signkey').val()) == '') {
-					util.message('必须输入服务商支付密钥.', '', 'error');
-					return false;
-				}
-			}
-			if($(':radio[name="wechat[switch]"]:checked').val() < 4) {
-				if($scope.wechat.account.key == '') {
-					util.message('必须输入身份标识.', '', 'error');
-					return false;
-				}
-				if($scope.wechat.account.token == '') {
-					util.message('必须输入身份密钥.', '', 'error');
-					return false;
-				}
-				if($(':radio[name="wechat[version]"]:checked').val() == '1' && $.trim($(':text[name="wechat[signkey]"]').val()) == '' && $('[name="wechat[switch]"]:checked').val() == '1') {
-					util.message('必须输入通信密钥.', '', 'error');
-					return false;
-				}
-				if($(':radio[name="wechat[version]"]:checked').val() == '1' && $.trim($(':text[name="wechat[partner]"]').val()) == '' && $('[name="wechat[switch]"]:checked').val() == '1') {
-					util.message('必须输入商户身份.', '', 'error');
-					return false;
-				}
-				if($(':radio[name="wechat[version]"]:checked').val() == '1' && $.trim($(':text[name="wechat[key]"]').val()) == '' && $('[name="wechat[switch]"]:checked').val() == '1') {
-					util.message('必须输入商户密钥.', '', 'error');
-					return false;
-				}
-				if($(':radio[name="wechat[version]"]:checked').val() == '2' && $.trim($(':text[name="wechat[mchid]"]').val()) == '' && $('[name="wechat[switch]"]:checked').val() == '1') {
-					util.message('必须输入微信支付商户号.', '', 'error');
-					return false;
-				}
-
-				if($(':radio[name="wechat[switch]"]:checked').val() == '3' && $('[name="wechat[service]"]').val() == '0') {
-					util.message('请选择服务商的公众号.', '', 'error');
-					return false;
-				}
-				if($(':radio[name="wechat[switch]"]:checked').val() == '3' && $(':text[name="wechat[sub_mch_id]"]').val() == '') {
-					util.message('必须输入子商户号.', '', 'error');
-					return false;
-				}
-				if($(':radio[name="wechat[switch]"]:checked').val() == '2' && $('[name="wechat[borrow]"]').val() == '0') {
-					util.message('请选择借用的公众号.', '', 'error');
-					return false;
-				}
-				if(($(':radio[name="wechat[version]"]:checked').val() == '2' && $(':radio[name="wechat[switch]"]:checked').val() == '1')  && $.trim($('#wechat_apikey').val()) == '') {
-					util.message('必须输入商户支付密钥.', '', 'error');
-					return false;
-				}
-			}
-		});
-
-		//支付宝测试
-		$("#tPost").click(function(){
-			var $scope = angular.element('#payform').scope();
-			if($scope.alipay.switch == 'true') {
-				if($.trim($(':text[name="alipay[account]"]').val()) == '') {
-					util.message('必须输入收款支付宝账号.', '', 'error');
-					return false;
-				}
-				if($.trim($(':text[name="alipay[partner]"]').val()) == '') {
-					util.message('必须输入合作者身份.', '', 'error');
-					return false;
-				}
-				if($.trim($(':text[name="alipay[secret]"]').val()) == '') {
-					util.message('必须输入收款支付宝账号.', '', 'error');
-					return false;
-				}
-				if(confirm('你可能需要修改您的浏览器 User-Agent 来模拟手机浏览才能正常测试, 请确认已经修改好.')) {
-					$(':hidden[name="alipay[t]"]').val('true');
-					$('#payform')[0].submit();
-				}
-			}
-		});
-	});
-</script>
 <div class="main">
 	<form id="payform" action="{php echo url('profile/payment')}" enctype="multipart/form-data" method="post" class="form-horizontal form" onsubmit="return validate();" ng-controller="paySetting">
 		<div class="panel panel-default">
@@ -267,7 +117,7 @@
 							<p>微擎0.6支持微信支付接口，注意你的微擎访问地址一定不要写错了，这里我们用访问地址代替下面说明中出现的链接，申请微信支付的接口说明如下：</p>
 							<br>
 							<h4>JS API网页支付参数</h4>
-							<p>支付授权目录: {$_W['siteroot']}payment/wechat/</p>
+							<p>支付授权目录: {$_W['siteroot']}payment/wechat/ 和 {$_W['siteroot']}app/</p>
 							<p>支付请求实例: {$_W['siteroot']}payment/wechat/pay.php</p>
 							<p>共享收货地址: 选择"是"</p>
 							<br>
@@ -575,7 +425,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="js-offline-info" ng-show="line.switch == 'true'">
+	<div class="js-offline-info">
 		<div class="form-group">
 			<label class="col-xs-12 col-sm-3 col-md-2 control-label">账户信息</label>
 			<div class="col-sm-9 col-xs-12">
@@ -592,23 +442,168 @@
 </form>
 </div>
 <script type="text/javascript">
-	$('[name="wechat[service]"]').change(function() {
-		if ($(this).val() != 0) {
-			$('[name="wechat[borrow]"]').val(0);
+function tokenGen(id) {
+	var letters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+	var token = '';
+	for(var i = 0; i < 32; i++) {
+		var j = parseInt(Math.random() * (31 + 1));
+		token += letters[j];
+	}
+	$('#'+id).val(token);
+}
+angular.module('app', []).controller('paySetting', function($scope){
+	$scope.delivery = {
+		switch: {if $pay['delivery']['switch']}'true'{else}'false'{/if}
+	};
+	$scope.credit = {
+		switch: {if $pay['credit']['switch']}'true'{else}'false'{/if}
+	};
+	$scope.alipay = {
+		switch: {if $pay['alipay']['switch']}'true'{else}'false'{/if}
+	};
+	$scope.unionpay = {
+		switch: {if $pay['unionpay']['switch']}'true'{else}'false'{/if}
+	};
+	$scope.baifubao = {
+		switch: {if $pay['baifubao']['switch']}'true'{else}'false'{/if}
+	};
+	$scope.line = {
+		switch: {if $pay['line']['switch']}'true'{else}'false'{/if}
+	};
+	$scope.wechat_facilitator = {
+		switch: {if $pay['wechat_facilitator']['switch']}'true'{else}'false'{/if}
+	};
+	$scope.$watch('line.switch', function(newValue, oldValue){
+		if (newValue == 'false') {
+			$('.js-offline-info').hide();
+		} else {
+			$('.js-offline-info').show();
 		}
 	});
-	$('[name="wechat[borrow]"]').change(function() {
-		if ($(this).val() != 0) {
-			$('[name="wechat[service]"]').val(0);
+	{if !empty($accounts)}
+		$scope.wechat = {
+			switch: '{$pay['wechat']['switch']}',
+			account: '{$pay['wechat']['account']}'
+		};
+	{/if}
+	$scope.$watch('wechat_facilitator.switch', function(newValue, oldValue, $scope){
+		if ($scope.wechat.switch != 1 && newValue == 'true') {
+			$scope.wechat.switch = 4;
 		}
 	});
-	<!--
-	var editor = UE.getEditor("line[message]")
-	editor.ready(function() {
-		{if empty($pay['line']['switch'])}
-			$('.js-offline-info').addClass('ng-hide');
-			{/if}
-			});
-	//-->
+	var level = {$accounts[$_W['acid']]['level']};
+	$scope.$watch('wechat.switch', function(newValue,oldValue, $scope){
+		if (newValue < 4 && level <= 2) {
+			$scope.wechat.switch = '4';
+		}
+	});
+});
+angular.bootstrap(document, ['app']);
+
+//支付宝和微信支付开启验证
+$("#payform").submit(function(){
+	var $scope = angular.element('#payform').scope();
+	if($scope.alipay.switch == 'true') {
+		if($.trim($(':text[name="alipay[account]"]').val()) == '') {
+			util.message('必须输入收款支付宝账号.', '', 'error');
+			return false;
+		}
+		if($.trim($(':text[name="alipay[partner]"]').val()) == '') {
+			util.message('必须输入合作者身份.', '', 'error');
+			return false;
+		}
+		if($.trim($(':text[name="alipay[secret]"]').val()) == '') {
+			util.message('必须输入收款支付宝校验密钥.', '', 'error');
+			return false;
+		}
+	}
+	$(':hidden[name="alipay[t]"]').val('');
+	if($(':radio[name="wechat_facilitator[switch]"]:checked').val() == 'true') {
+		if ($('[name="wechat_facilitator[mchid]"]').val() == '') {
+			util.message('必须输入微信服务商的商户号');
+			return false;
+		}
+		if($.trim($('#facilitator_signkey').val()) == '') {
+			util.message('必须输入服务商支付密钥.', '', 'error');
+			return false;
+		}
+	}
+	if($(':radio[name="wechat[switch]"]:checked').val() < 4) {
+		if($scope.wechat.account.key == '') {
+			util.message('必须输入身份标识.', '', 'error');
+			return false;
+		}
+		if($scope.wechat.account.token == '') {
+			util.message('必须输入身份密钥.', '', 'error');
+			return false;
+		}
+		if($(':radio[name="wechat[version]"]:checked').val() == '1' && $.trim($(':text[name="wechat[signkey]"]').val()) == '' && $('[name="wechat[switch]"]:checked').val() == '1') {
+			util.message('必须输入通信密钥.', '', 'error');
+			return false;
+		}
+		if($(':radio[name="wechat[version]"]:checked').val() == '1' && $.trim($(':text[name="wechat[partner]"]').val()) == '' && $('[name="wechat[switch]"]:checked').val() == '1') {
+			util.message('必须输入商户身份.', '', 'error');
+			return false;
+		}
+		if($(':radio[name="wechat[version]"]:checked').val() == '1' && $.trim($(':text[name="wechat[key]"]').val()) == '' && $('[name="wechat[switch]"]:checked').val() == '1') {
+			util.message('必须输入商户密钥.', '', 'error');
+			return false;
+		}
+		if($(':radio[name="wechat[version]"]:checked').val() == '2' && $.trim($(':text[name="wechat[mchid]"]').val()) == '' && $('[name="wechat[switch]"]:checked').val() == '1') {
+			util.message('必须输入微信支付商户号.', '', 'error');
+			return false;
+		}
+
+		if($(':radio[name="wechat[switch]"]:checked').val() == '3' && $('[name="wechat[service]"]').val() == '0') {
+			util.message('请选择服务商的公众号.', '', 'error');
+			return false;
+		}
+		if($(':radio[name="wechat[switch]"]:checked').val() == '3' && $(':text[name="wechat[sub_mch_id]"]').val() == '') {
+			util.message('必须输入子商户号.', '', 'error');
+			return false;
+		}
+		if($(':radio[name="wechat[switch]"]:checked').val() == '2' && $('[name="wechat[borrow]"]').val() == '0') {
+			util.message('请选择借用的公众号.', '', 'error');
+			return false;
+		}
+		if(($(':radio[name="wechat[version]"]:checked').val() == '2' && $(':radio[name="wechat[switch]"]:checked').val() == '1')  && $.trim($('#wechat_apikey').val()) == '') {
+			util.message('必须输入商户支付密钥.', '', 'error');
+			return false;
+		}
+	}
+});
+
+//支付宝测试
+$("#tPost").click(function(){
+	var $scope = angular.element('#payform').scope();
+	if($scope.alipay.switch == 'true') {
+		if($.trim($(':text[name="alipay[account]"]').val()) == '') {
+			util.message('必须输入收款支付宝账号.', '', 'error');
+			return false;
+		}
+		if($.trim($(':text[name="alipay[partner]"]').val()) == '') {
+			util.message('必须输入合作者身份.', '', 'error');
+			return false;
+		}
+		if($.trim($(':text[name="alipay[secret]"]').val()) == '') {
+			util.message('必须输入收款支付宝账号.', '', 'error');
+			return false;
+		}
+		if(confirm('你可能需要修改您的浏览器 User-Agent 来模拟手机浏览才能正常测试, 请确认已经修改好.')) {
+			$(':hidden[name="alipay[t]"]').val('true');
+			$('#payform')[0].submit();
+		}
+	}
+});
+$('[name="wechat[service]"]').change(function() {
+	if ($(this).val() != 0) {
+		$('[name="wechat[borrow]"]').val(0);
+	}
+});
+$('[name="wechat[borrow]"]').change(function() {
+	if ($(this).val() != 0) {
+		$('[name="wechat[service]"]').val(0);
+	}
+});
 </script>
 {template 'common/footer'}

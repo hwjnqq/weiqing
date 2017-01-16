@@ -6,6 +6,8 @@
 defined('IN_IA') or exit('Access Denied');
 uni_user_permission_check('site_article');
 load()->func('file');
+load()->func('communication');
+
 $do = in_array($do, array('display', 'post', 'delete')) ? $do : 'display';
 $category = pdo_fetchall("SELECT id,parentid,name FROM ".tablename('site_category')." WHERE uniacid = '{$_W['uniacid']}' ORDER BY parentid ASC, displayorder ASC, id ASC ", array(), 'id');
 $parent = array();
@@ -100,7 +102,7 @@ if($do == 'display') {
 			'click' => intval($_GPC['click'])
 		);
 		if (!empty($_GPC['thumb'])) {
-			$data['thumb'] = $_GPC['thumb'];
+			$data['thumb'] = parse_path($_GPC['thumb']);
 		} elseif (!empty($_GPC['autolitpic'])) {
 			$match = array();
 			$file_name = file_random_name(ATTACHMENT_ROOT.'images/'.$_W['uniacid'].'/'.date('Y/m').'/', 'jpg');
@@ -108,7 +110,7 @@ if($do == 'display') {
 			preg_match('/&lt;img.*?src=&quot;(.*?)&quot;/', $_GPC['content'], $match);
 			if (!empty($match[1])) {
 				$url = $match[1];
-				$file = file_get_contents($url);
+				$file = ihttp_request(tomedia($url));
 				file_write($path, $file);
 				$data['thumb'] = $path;
 				file_remote_upload($path);

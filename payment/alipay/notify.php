@@ -43,7 +43,7 @@ if(!empty($_POST)) {
 						load()->model('activity');
 					 	$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $log['module']);
 					}
-
+					
 					$site = WeUtility::createModuleSite($log['module']);
 					if(!is_error($site)) {
 						$method = 'payResult';

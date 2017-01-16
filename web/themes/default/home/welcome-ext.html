@@ -5,12 +5,14 @@
 </div>
 <div class="shortcut clearfix">
 	{loop $enable_modules $key $row}
-	{if empty($current_user_permission_types) || in_array($key, $current_user_permission_types) || $row['issystem'] == 1}
-	<a href="{if $row['type'] != 'system'}./index.php?c=home&a=welcome&do=ext{else}./index.php?c=platform&a=reply{/if}&m={$row['name']}">
-		<img alt="{$row['title']}" src="{$row['icon']}" width="48" height="48" class="img-rounded">
-		<span>{$row['title']}</span>
-	</a>
-	{/if}
+		{if !$row['issystem']}
+			{if empty($current_user_permission_types) || in_array($key, $current_user_permission_types)}
+			<a href="{if $row['type'] != 'system'}./index.php?c=home&a=welcome&do=ext{else}./index.php?c=platform&a=reply{/if}&m={$row['name']}">
+				<img alt="{$row['title']}" src="{$row['icon']}" width="48" height="48" class="img-rounded">
+				<span>{$row['title']}</span>
+			</a>
+			{/if}
+		{/if}
 	{/loop}
 </div>
 {/if}

@@ -5,16 +5,16 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-$dos = array('display', 'del', 'ajax', 'module', 'view', 'switch', 'del_bind', 'edit-bind');
+$dos = array('display', 'del', 'ajax', 'module', 'view', 'switch', 'del_bind');
 $do = in_array($do, $dos) ? $do : 'display';
 
 load()->model('frame');
 if($do == 'display') {
 	$menus = frame_lists();
 	if(checksubmit('submit')) {
-		foreach($_GPC['id'] as $k => $v) {
+		foreach($_GPC['id'] as $k => $menuid) {
 			$update = array();
-			$menuid = intval($v);
+			$menuid = intval($menuid);
 			
 			$title = trim($_GPC['title'][$k]);
 			$is_system = intval($_GPC['is_system'][$k]);

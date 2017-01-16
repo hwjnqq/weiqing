@@ -15,9 +15,6 @@ $endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['en
 $num = ($endtime + 1 - $starttime) / 86400;
 
 if($do == 'index') {
-	$clerks = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name'), 'id');
-	$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid']), array('id', 'business_name', 'branch_name'), 'id');
-
 	$condition = ' WHERE uniacid = :uniacid AND credittype = :credittype AND createtime >= :starttime AND createtime <= :endtime';
 	$params = array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => $starttime, ':endtime' => $endtime);
 	$num = intval($_GPC['num']);
@@ -39,16 +36,6 @@ if($do == 'index') {
 		$condition .= ' AND abs(num) <= :maxnum';
 		$params[':maxnum'] = $max;
 	}
-	$clerk_id = intval($_GPC['clerk_id']);
-	if (!empty($clerk_id)) {
-		$condition .= ' AND clerk_id = :clerk_id';
-		$params[':clerk_id'] = $clerk_id;
-	}
-	$store_id = trim($_GPC['store_id']);
-	if (!empty($store_id)) {
-		$condition .= " AND store_id = :store_id";
-		$params[':store_id'] = $store_id;
-	}
 	$user = trim($_GPC['user']);
 	if(!empty($user)) {
 		$condition .= ' AND (uid IN (SELECT uid FROM '.tablename('mc_members').' WHERE uniacid = :uniacid AND (realname LIKE :username OR uid = :uid OR mobile LIKE :mobile)))';
@@ -68,9 +55,6 @@ if($do == 'index') {
 			if(!in_array($da['uid'], $uids)) {
 				$uids[] = $da['uid'];
 			}
-			$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
-			$da['clerk_cn'] = $operator['clerk_cn'];
-			$da['store_cn'] = $operator['store_cn'];
 		}
 		$uids = implode(',', $uids);
 		$users = pdo_fetchall('SELECT mobile,uid,realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
@@ -85,9 +69,6 @@ if($do == 'index') {
 				if(!in_array($da['uid'], $uids)) {
 					$uids[] = $da['uid'];
 				}
-				$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
-				$da['clerk_cn'] = $operator['clerk_cn'];
-				$da['store_cn'] = $operator['store_cn'];
 			}
 			$uids = implode(',', $uids);
 			$users = pdo_fetchall('SELECT mobile,uid,realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
@@ -102,8 +83,6 @@ if($do == 'index') {
 			'phone' => '手机',
 			'type' => '类型',
 			'num' => '数量',
-			'store_cn' => '消费门店	',
-			'clerk_cn' => '操作人	',
 			'createtime' => '操作时间	',
 			'remark' => '备注'
 		);
@@ -123,23 +102,8 @@ if($do == 'index') {
 					} else {
 						$html .= "消费\t, ";
 					}
-				}
-				elseif ($key == 'num') {
+				}elseif ($key == 'num') {
 					$html .= abs($v[$key]). "\t, ";
-				} elseif ($key == 'store') {
-					if ($v['store_id'] > 0) {
-						$html .= $stores[$v['store_id']]['business_name']. '-'. $stores[$v['store_id']]['branch_name']. "\t, ";
-					} else {
-						$html .= "未知\t, ";
-					}
-				}elseif ($key == 'operator') {
-					if ($v['clerk_id'] > 0) {
-						$html .= $clerks[$v['clerk_id']]['name']. "\t, ";
-					} elseif ($v['clerk_type'] == 1) {
-						$html .= "系统\t, ";
-					} else {
-						$html .= "未知\t, ";
-					}
 				}elseif ($key == 'createtime') {
 					$html .= date('Y-m-d H:i', $v['createtime']). "\t, ";
 				}elseif ($key == 'remark') {
