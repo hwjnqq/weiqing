@@ -14,7 +14,7 @@ isetcookie('__uniacid', $uniacid, 7 * 86400);
 isetcookie('__uid', $_W['uid'], 7 * 86400);
 
 if($_W['role'] == 'clerk' || $role == 'clerk') {
-	header('location: ' . url('activity/desk'));
+	header('location: ' . url('site/entry', array('m' => 'we7_coupon', 'do' => 'clerkdesk', 'op' => 'index')));
 	die;
 }
 header('location: ' . url('home/welcome/platform'));

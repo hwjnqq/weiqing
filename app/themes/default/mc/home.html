@@ -38,34 +38,6 @@
 				</a>
 			</div>
 		</div>
-		<ul class="mui-table-view mui-table-view-chevron">
-			{if $uni_setting['exchange_enable'] == '1'}
-			<li class="mui-table-view-cell">
-				<a href="{php echo url('activity/coupon') . 'wxref=mp.weixin.qq.com#wechat_redirect'}" class="mui-navigate-right">
-					兑换商城
-				</a>
-			</li>
-			{/if}
-			{if $card_setting['status'] == '1'}
-			<li class="mui-table-view-cell">
-				<a href="{php echo url('mc/card/mycard') . 'wxref=mp.weixin.qq.com#wechat_redirect'}" class="mui-navigate-right">
-					会员卡
-				</a>
-			</li>
-			{/if}
-		</ul>
-		<ul class="mui-table-view mui-table-view-chevron">
-			<li class="mui-table-view-cell">
-				<a href="{php echo url('activity/coupon/mine') . 'wxref=mp.weixin.qq.com#wechat_redirect'}" class="mui-navigate-right">
-					我的卡券
-				</a>
-			</li>
-			<li class="mui-table-view-cell">
-				<a href="{php echo url('activity/goods/mine') . 'wxref=mp.weixin.qq.com#wechat_redirect'}" class="mui-navigate-right">
-					我的兑换
-				</a>
-			</li>
-		</ul>
 		{if !empty($others) || !empty($groups)}
 		<ul class="mui-table-view mui-table-view-chevron">
 		{if !empty($others)}

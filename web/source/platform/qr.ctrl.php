@@ -65,7 +65,7 @@ if($do == 'del') {
 		}
 		message('执行成功<br />删除二维码：'.count($list), url('platform/qr/list'),'success');
 	}else{
-		$id = $_GPC['id'];
+		$id = intval($_GPC['id']);
 		pdo_delete('qrcode', array('id' =>$id, 'uniacid' => $_W['uniacid']));
 		pdo_delete('qrcode_stat',array('qid' => $id, 'uniacid' => $_W['uniacid']));
 		message('删除成功',url('platform/qr/list'),'success');
@@ -203,7 +203,7 @@ if($do == 'display') {
 }
 
 if($do == 'delsata') {
-	$id = $_GPC['id'];
+	$id = intval($_GPC['id']);
 	$b = pdo_delete('qrcode_stat',array('id' =>$id, 'uniacid' => $_W['uniacid']));
 	if ($b){
 		message('删除成功',url('platform/qr/display'),'success');

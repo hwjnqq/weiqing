@@ -204,13 +204,13 @@ class WeiXinPlatform extends WeiXinAccount {
 				'value' => $response['ticket'],
 				'expire' => TIMESTAMP + $response['expires_in'] - 200,
 			);
-			cache_write('account:jsapi_ticket', $js_ticket);
+			cache_write($cachekey, $js_ticket);
 		}
 		$this->account['jsapi_ticket'] = $js_ticket;
 		return $js_ticket['value'];
 	}
 	
-	public function getJssdkConfig(){
+	public function getJssdkConfig($url = ''){
 		global $_W;
 		$jsapiTicket = $this->getJsApiTicket();
 		if(is_error($jsapiTicket)){
@@ -218,7 +218,9 @@ class WeiXinPlatform extends WeiXinAccount {
 		}
 		$nonceStr = random(16);
 		$timestamp = TIMESTAMP;
-		$url = $_W['siteurl'];
+		if (empty($url)) {
+			$url = $_W['siteurl'];
+		}
 		$string1 = "jsapi_ticket={$jsapiTicket}&noncestr={$nonceStr}&timestamp={$timestamp}&url={$url}";
 		$signature = sha1($string1);
 		$config = array(

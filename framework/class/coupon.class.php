@@ -255,11 +255,19 @@ class coupon extends WeiXinAccount {
 
 	public function isCouponSupported() {
 		global $_W;
-		$uni_setting = uni_setting($_W['uniacid'], array('coupon_type'));
+		load()->model('module');
+		$we7_coupon_module = module_fetch('we7_coupon');
+		$setting = array();
+		if (!empty($we7_coupon_module)) {
+			$cachekey = "modulesetting:{$_W['uniacid']}:we7_coupon";
+			$setting = (array)cache_load($cachekey, true);
+		} else {
+			$setting = uni_setting($_W['uniacid'], array('coupon_type'));
+		}
 		if ($_W['account']['level'] != ACCOUNT_SERVICE_VERIFY && $_W['account']['level'] != ACCOUNT_SUBSCRIPTION_VERIFY) {
 			return false;
 		} else {
-			if ($uni_setting['coupon_type'] == SYSTEM_COUPON) {
+			if ($setting['coupon_type'] == SYSTEM_COUPON) {
 				return false;
 			} else {
 				return true;
@@ -488,6 +496,27 @@ class coupon extends WeiXinAccount {
 		}
 		return $result['card'];
 	}
+
+	//批量查询卡券列表
+	public function batchgetCard($data) {
+		$token = $this->getAccessToken();
+		if (is_error($token)) {
+			return $token;
+		}
+		$url = "https://api.weixin.qq.com/card/batchget?access_token={$token}";
+		load()->func('communication');
+		$response = ihttp_request($url, json_encode($data));
+		if(is_error($response)) {
+			return error(-1, "访问公众平台接口失败, 错误: {$response['message']}");
+		}
+		$result = @json_decode($response['content'], true);
+		if(empty($result)) {
+			return error(-1, "接口调用失败, 元数据: {$response['meta']}");
+		} elseif(!empty($result['errcode'])) {
+			return error(-1, "访问微信接口错误, 错误代码: {$result['errcode']}, 错误信息: {$result['errmsg']},错误详情：{$this->error_code($result['errcode'])}");
+		}
+		return $result;
+	}	
 
 	public function updateCard($card_id) {
 		$token = $this->getAccessToken();
@@ -898,6 +927,9 @@ class Card {
 			'base_info' => $this->getBaseinfo(),
 		);
 		$carddata = array_merge($carddata, $this->getCardExtraData());
+		if (strtolower($this->types[$this->type]) == 'discount') {
+			$carddata['discount'] = 100 - $carddata['discount'];
+		}
 		$card = array(
 			'card' => array(
 				'card_type' => $this->types[$this->type],

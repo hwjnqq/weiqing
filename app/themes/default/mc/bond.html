@@ -306,6 +306,22 @@
 		</div>
 		{/if}
 	</header>
+	<div id="consume-date" class="mui-popover mui-popover-top">
+		<ul class="mui-table-view">
+			<li class="mui-table-view-cell">
+				<a href="{php echo url('mc/bond/credits', array('credittype' => $_GPC['credittype'], 'type' => 'record', 'period' => '1'))}">查看全部</a>
+			</li>
+			<li class="mui-table-view-cell">
+				<a href="{php echo url('mc/bond/credits', array('credittype' => $_GPC['credittype'], 'type' => 'record', 'period' => '0'))}">{php echo date('Y.m', strtotime('today'))}</a>
+			</li>
+			<li class="mui-table-view-cell">
+				<a href="{php echo url('mc/bond/credits', array('credittype' => $_GPC['credittype'], 'type' => 'record', 'period' => '-1'))}">{php echo date('Y.m', strtotime('-1month'))}</a>
+			</li>
+			<li class="mui-table-view-cell">
+				<a href="{php echo url('mc/bond/credits', array('credittype' => $_GPC['credittype'], 'type' => 'record', 'period' => '-2'))}">{php echo date('Y.m', strtotime('-2month'))}</a>
+			</li>
+		</ul>
+	</div>
 	<div class="mui-content">
 		<div class="mui-table mui-table-inline mui-pa10">
 			<div class="mui-table-cell">
@@ -335,22 +351,6 @@
 			</li>
 			{/loop}
 		</ul>
-		</div>
-		<div id="consume-date" class="mui-popover mui-popover-top">
-			<ul class="mui-table-view">
-				<li class="mui-table-view-cell">
-					<a href="{php echo url('mc/bond/credits', array('credittype' => $_GPC['credittype'], 'type' => 'record', 'period' => '1'))}">查看全部</a>
-				</li>
-				<li class="mui-table-view-cell">
-					<a href="{php echo url('mc/bond/credits', array('credittype' => $_GPC['credittype'], 'type' => 'record', 'period' => '0'))}">{php echo date('Y.m', strtotime('today'))}</a>
-				</li>
-				<li class="mui-table-view-cell">
-					<a href="{php echo url('mc/bond/credits', array('credittype' => $_GPC['credittype'], 'type' => 'record', 'period' => '-1'))}">{php echo date('Y.m', strtotime('-1month'))}</a>
-				</li>
-				<li class="mui-table-view-cell">
-					<a href="{php echo url('mc/bond/credits', array('credittype' => $_GPC['credittype'], 'type' => 'record', 'period' => '-2'))}">{php echo date('Y.m', strtotime('-2month'))}</a>
-				</li>
-			</ul>
 		</div>
 	</div>
 	{/if}

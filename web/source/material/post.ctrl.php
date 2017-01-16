@@ -133,12 +133,12 @@ if($do == 'submit') {
 			$reply['content'] =  str_replace($hasimgs, $wximgs, $reply['content']);
 		}
 		$row = array(
-			'title' => urlencode($reply['title']),
-			'author' => urlencode($reply['author']),
-			'digest' => urlencode($reply['description']),
-			'content' => urlencode(addslashes(htmlspecialchars_decode($reply['content']))),
+			'title' => $reply['title'],
+			'author' => $reply['author'],
+			'digest' => $reply['description'],
+			'content' => $reply['content'],
 			'show_cover_pic' => intval($reply['incontent']),
-			'content_source_url' => urlencode($reply['url']),
+			'content_source_url' => $reply['url'],
 			'thumb_media_id' => $reply['media_id'],
 		);
 		$articles['articles'][] = $row;

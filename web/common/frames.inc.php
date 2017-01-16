@@ -8,6 +8,7 @@ defined('IN_IA') or exit('Access Denied');
 $ms = array();
 $ms['platform'][] =  array(
 	'title' => '基本功能',
+	'permission_name' => 'platform_basic_function',
 	'items' => array(
 		array(
 			'title' => '文字回复',
@@ -64,6 +65,15 @@ $ms['platform'][] =  array(
 			'permission_name' => 'platform_reply_video'
 		),
 		array(
+			'title' => '微信卡券回复',
+			'url' => url('platform/reply', array('m' => 'wxcard')),
+			'append' => array(
+				'title' => '<i class="fa fa-plus"></i>',
+				'url' => url('platform/reply/post', array('m' => 'wxcard'))
+			),
+			'permission_name' => 'platform_reply_wxcard'
+		),
+		array(
 			'title' => '自定义接口回复',
 			'url' => url('platform/reply', array('m' => 'userapi')),
 			'append' => array(
@@ -81,6 +91,7 @@ $ms['platform'][] =  array(
 );
 $ms['platform'][] =  array(
 	'title' => '高级功能',
+	'permission_name' => 'platform_high_function',
 	'items' => array(
 		array(
 			'title' => '常用服务接入',
@@ -116,6 +127,7 @@ $ms['platform'][] =  array(
 );
 $ms['platform'][] =  array(
 	'title' => '数据统计',
+	'permission_name' => 'platform_stat',
 	'items' => array(
 		array(
 			'title' => '聊天记录',
@@ -141,6 +153,7 @@ $ms['platform'][] =  array(
 );
 $ms['site'][] =  array(
 	'title' => '微站管理',
+	'permission_name' => 'site_manage',
 	'items' => array(
 		array(
 			'title' => '站点管理',
@@ -175,6 +188,7 @@ $ms['site'][] =  array(
 );
 $ms['site'][] =  array(
 	'title' => '特殊页面管理',
+	'permission_name' => 'site_special_page',
 	'items' => array(
 		array(
 			'title' => '会员中心',
@@ -194,6 +208,7 @@ $ms['site'][] =  array(
 );
 $ms['site'][] =  array(
 	'title' => '功能组件',
+	'permission_name' => 'site_widget',
 	'items' => array(
 		array(
 			'title' => '分类设置',
@@ -209,6 +224,7 @@ $ms['site'][] =  array(
 );
 $ms['mc'][] = array(
 	'title' => '粉丝管理',
+	'permission_name' => 'mc_fans_manage',
 	'items' => array(
 		array(
 			'title' => '粉丝分组',
@@ -225,15 +241,20 @@ $ms['mc'][] = array(
 
 $ms['mc'][] = array(
 	'title' => '会员中心',
+	'permission_name' => 'mc_members_manage',
 	'items' => array(
 		array(
-			'title' => '会员中心访问入口',
+			'title' => '会员中心关键字',
 			'url' => url('platform/cover/mc'),
 			'permission_name' => 'platform_cover_mc'
 		),
 		array(
 			'title' => '会员',
 			'url' => url('mc/member'),
+			'append' => array(
+				'title' => '<i class="fa fa-plus"></i>',
+				'url' => url('mc/member/add'),
+			),
 			'permission_name' => 'mc_member'
 		),
 		array(
@@ -241,106 +262,44 @@ $ms['mc'][] = array(
 			'url' => url('mc/group'),
 			'permission_name' => 'mc_group'
 		),
-		array(
-			'title' => '会员微信通知',
-			'url' => url('mc/tplnotice'),
-			'permission_name' => 'mc_tplnotice'
-		),
-		array(
-			'title' => '会员积分管理',
-			'url' => url('mc/creditmanage'),
-			'permission_name' => 'mc_creditmanage'
-		),
-		array(
-			'title' => '会员字段管理',
-			'url' => url('mc/fields'),
-			'permission_name' => 'mc_fields'
-		)
 	)
 );
 $ms['mc'][] = array(
-	'title' => '会员卡管理',
+	'title' => '微信素材&群发',
+	'permission_name' => 'material_manage',
 	'items' => array(
 		array(
-			'title' => '会员卡访问入口',
-			'url' => url('platform/cover/card'),
-			'permission_name' => 'platform_cover_card'
+			'title' => '素材&群发',
+			'url' => url('material/display'),
+			'permission_name' => 'material_display',
 		),
 		array(
-			'title' => '会员卡管理',
-			'url' => url('mc/card'),
-			'permission_name' => 'mc_card'
-		),
-		array(
-			'title' => '商家设置',
-			'url' =>url('mc/business'),
-			'permission_name' => 'mc_business'
-		),
-		array(
-			'title' => '店员操作访问入口',
-			'url' => url('platform/cover/clerk'),
-			'permission_name' => 'platform_cover_clerk'
-		),
-		array(
-			'title' => '操作店员管理',
-			'url' => url('activity/offline'),
-			'permission_name' => 'activity_offline'
-		)
-	)
-);
-$ms['mc'][] = array(
-	'title' => '积分兑换',
-	'items' => array(
-		array(
-			'title' => '折扣券',
-			'url' => url('activity/coupon'),
-			'permission_name' => 'activity_coupon'
-		),
-		array(
-			'title' => '代金券',
-			'url' => url('activity/token'),
-			'permission_name' => 'activity_token'
-		),
-		array(
-			'title' => '真实物品',
-			'url' => url('activity/goods'),
-			'permission_name' => 'activity_goods',
-		),
-				array(
-			'title' => '微信卡券',
-			'url' => url('wechat/manage'),
-			'permission_name' => 'wechat_manage'
-		),
-		array(
-			'title' => '卡券核销',
-			'url' => url('wechat/consume'),
-			'permission_name' => 'wechat_consume',
+			'title' => '定时群发',
+			'url' => url('material/mass'),
+			'permission_name' => 'material_mass',
 		),
 	)
 );
 $ms['mc'][] = array(
-	'title' => '通知中心',
+	'title' => '统计中心',
+	'permission_name' => 'stat_center',
 	'items' => array(
 		array(
-			'title' => '群发消息&通知',
-			'url' => url('mc/broadcast'),
-			'permission_name' => 'mc_broadcast',
+			'title' => '会员积分统计',
+			'url' => url('stat/credit1'),
+			'permission_name' => 'stat_credit1',
 		),
 		array(
-			'title' => '微信群发',
-			'url' => url('mc/mass'),
-			'permission_name' => 'mc_mass',
-		),
-		array(
-			'title' => '通知参数',
-			'url' => url('profile/notify'),
-			'permission_name' => 'profile_notify',
+			'title' => '会员余额统计',
+			'url' => url('stat/credit2'),
+			'permission_name' => 'stat_credit2',
 		),
 	)
 );
 
 $ms['setting'][] = array(
 	'title' => '公众号选项',
+	'permission_name' => 'account_setting',
 	'items' => array(
 		array(
 			'title' => '支付参数',
@@ -357,10 +316,21 @@ $ms['setting'][] = array(
 			'url' => url('profile/jsauth'),
 			'permission_name' => 'profile_jsauth',
 		),
+		array(
+			'title' => '会员字段管理',
+			'url' => url('mc/fields'),
+			'permission_name' => 'mc_fields',
+		),
+		array(
+			'title' => '微信通知设置',
+			'url' => url('mc/tplnotice'),
+			'permission_name' => 'mc_tplnotice',
+		),
 	)
 );
 $ms['setting'][] = array(
 	'title' => '会员及粉丝选项',
+	'permission_name' => 'mc_setting',
 	'items' => array(
 		array(
 			'title' => '积分设置',

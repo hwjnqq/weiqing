@@ -5,6 +5,7 @@
  */
 defined('IN_IA') or exit('Access Denied');
 $moduels = uni_modules();
+load()->model('activity');
 $params = @json_decode(base64_decode($_GPC['params']), true);
 if(empty($params) || !array_key_exists($params['module'], $moduels)) {
 	message('访问错误.');
@@ -29,7 +30,7 @@ if(!empty($setting['payment']['unionpay']['switch'])) {
 if(!empty($setting['payment']['baifubao']['switch'])) {
 	$dos[] = 'baifubao';
 }
-$do = $_GET['do'];
+$do = $_GPC['do'];
 $type = in_array($do, $dos) ? $do : '';
 
 if(empty($type)) {
@@ -173,41 +174,28 @@ if(!empty($type)) {
 				if ($log['is_usecard'] == 1 && !empty($log['encrypt_code'])) {
 					$coupon_info = pdo_get('coupon', array('id' => $log['card_id']), array('id'));
 					$coupon_record = pdo_get('coupon_record', array('couponid' => $log['card_id'], 'openid' => $_W['openid'], 'code' => $log['encrypt_code'], 'status' => '1'));
-				 	$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $params['module']);
+					$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $params['module']);
 				}
 				$fee = floatval($ps['fee']);
-				if ($log['module'] == 'paycenter') {
-					load()->model('card');
-					$recharges_set = card_params_setting('cardRecharge');
-					$card_settings = card_setting();
-					$grant_rate = $card_settings['grant_rate'];
-					$grant_rate_switch = intval($recharges_set['params']['grant_rate_switch']);
-					$grant_credit1_enable = false;
-					if (!empty($grant_rate)) {
-						if (empty($recharges_set['params']['recharge_type'])) {
-							$grant_credit1_enable = true;
-						} else {
-							if ($grant_rate_switch == '1') {
-								$grant_credit1_enable = true;
-							}
-						}
-					}
-					$paycenter_order = pdo_get('paycenter_order', array('id' => $params['tid']), array('store_id'));
-					if (!empty($grant_credit1_enable)) {
-						$num = $fee * $grant_rate;
-						$tips .= "用户消费{$fee}元，余额支付{$fee}，积分赠送比率为:【1：{$grant_rate}】,共赠送【{$num}】积分";
-						mc_credit_update($log['openid'], 'credit1', $num, array('0', $tip, 'paycenter', 0, $paycenter_order['store_id'], 3));
-					}
-					$result = mc_credit_update($log['openid'], 'credit2', -$fee, array('0', $tip, 'paycenter', 0, $paycenter_order['store_id'], 3));
+				if ($log['module'] == 'we7_coupon') {
+					load()->model('mc');
+					$paycenter_order = pdo_get('paycenter_order', array('id' => $log['tid']), array('store_id'));
+					$is_grant_credit = mc_card_grant_credit($log['openid'], $fee, $paycenter_order['store_id']);
+					$result = mc_credit_update($log['openid'], 'credit2', -$fee, array('0', $tip, 'we7_coupon', 0, $paycenter_order['store_id'], 3));
 				} else {
-					$result = mc_credit_update($_W['member']['uid'], $setting['creditbehaviors']['currency'], -$fee, array($_W['member']['uid'], '消费' . $setting['creditbehaviors']['currency'] . ':' . $fee));	
+					$result = mc_credit_update($_W['member']['uid'], $setting['creditbehaviors']['currency'], -$fee, array($_W['member']['uid'], '消费' . $setting['creditbehaviors']['currency'] . ':' . $fee));
 				}
 				if (is_error($result)) {
 					message($result['message'], '', 'error');
 				}
 				if (!empty($_W['openid'])) {
-					if ($log['module'] == 'paycenter') {
-						mc_notice_credit2($_W['openid'], $_W['member']['uid'], $fee, $fee * $grant_rate, '线上消费');
+					if ($log['module'] == 'we7_coupon') {
+						if (is_error($is_grant_credit)) {
+							$grant_credit_nums = 0; 
+						} else {
+							$grant_credit_nums = $is_grant_credit['message'];
+						}
+						mc_notice_credit2($_W['openid'], $_W['member']['uid'], $fee, $grant_credit_nums, '线上消费');	
 					} else {
 						mc_notice_credit2($_W['openid'], $_W['member']['uid'], $fee, 0, '线上消费');
 					}

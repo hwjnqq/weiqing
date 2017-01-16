@@ -5,7 +5,7 @@
  */
 
 /**
- * 检测会员信息是否存在(邮箱和手机号)
+ * 检测会员信息是否存�邮箱和手机号)
  * @param array $data 会员信息
  * @return mixed
  */
@@ -14,7 +14,7 @@ function mc_check($data) {
 	if (!empty($data['email'])) {
 		$email = trim($data['email']);
 		if (!preg_match(REGULAR_EMAIL, $email)) {
-			return error(-1, '邮箱格式不正确');
+			return error(-1, '邮箱格式不正�);
 		}
 		$isexist = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_members') . ' WHERE uniacid = :uniacid AND email = :email AND uid != :uid', array(':uniacid' => $_W['uniacid'], ':email' => $email, ':uid' => $_W['member']['uid']));
 		if ($isexist >= 1) {
@@ -28,7 +28,7 @@ function mc_check($data) {
 		}
 		$isexist = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_members') . ' WHERE uniacid = :uniacid AND mobile = :mobile AND uid != :uid', array(':uniacid' => $_W['uniacid'], ':mobile' => $mobile, ':uid' => $_W['member']['uid']));
 		if ($isexist >= 1) {
-			return error(-1, '手机号已被注册');
+			return error(-1, '手机号已被注�);
 		}
 	}
 	return true;
@@ -36,7 +36,7 @@ function mc_check($data) {
 
 /**
  * 更新会员个人信息.
- * 此函数不能更新用户的积分数量，更新积分数量使用 mc_credit_update
+ * 此函数不能更新用户的积分数量，更新积分数量使�mc_credit_update
  * @param mixed $uid 会员id
  * @param array $fields 更新字段
  * @return mixed
@@ -46,7 +46,7 @@ function mc_update($uid, $fields) {
 	if (empty($fields)) {
 		return false;
 	}
-	//如果是$uid 是一个openid并且是新增用户，需要更新mc_mapping_fans对应的uid
+	//如果�uid 是一个openid并且是新增用户，需要更新mc_mapping_fans对应的uid
 	$uid_temp = $uid;
 
 	$uid = mc_openid2uid($uid);
@@ -133,7 +133,7 @@ function mc_update($uid, $fields) {
 /**
  * 获取一个或多个会员某个或多个字段的信息
  * @param mixed $uid 一个或多个会员 uid
- * @param array $fields 一个、多个或所有字段
+ * @param array $fields 一个、多个或所有字�
  * @return array
  * */
 function mc_fetch($uid, $fields = array()) {
@@ -289,7 +289,7 @@ function mc_fansinfo($openidOruid, $acid = 0, $uniacid = 0){
 }
 
 /**
- * 无网页授权的公众号,通过借用授权定位 openid 和 uid
+ * 无网页授权的公众�通过借用授权定位 openid �uid
  * @param string $openid 粉丝唯一标志
  * @param int $acid 子公众号ID
  * @return array
@@ -305,7 +305,7 @@ function mc_oauth_fans($openid, $acid = 0){
 }
 
 /**
- * 调用oauth用户授权获取资料并更新会员信息
+ * 调用oauth用户授权获取资料并更新会员信�
  * @param int $acid 子公众号ID
  * @return mixed
  */
@@ -320,7 +320,7 @@ function mc_oauth_userinfo($acid = 0) {
 	if ($_W['container'] != 'wechat') {
 		return array();
 	}
-	// 认证号, 静默获取用户信息, 不需要跳转到网页授权获取用户信息.
+	// 认证� 静默获取用户信息, 不需要跳转到网页授权获取用户信息.
 	if (!empty($_SESSION['openid']) && intval($_W['account']['level']) >= 3) {
 		$oauth_account = WeAccount::create($_W['account']['oauth']);
 		$userinfo = $oauth_account->fansQueryInfo($_SESSION['openid']);
@@ -367,10 +367,10 @@ function mc_oauth_userinfo($acid = 0) {
 					$record['gender'] = $userinfo['sex'];
 				}
 				if (empty($member['residecity']) && !empty($userinfo['city'])) {
-					$record['residecity'] = $userinfo['city'] . '市';
+					$record['residecity'] = $userinfo['city'] . '�;
 				}
 				if (empty($member['resideprovince']) && !empty($userinfo['province'])) {
-					$record['resideprovince'] = $userinfo['province'] . '省';
+					$record['resideprovince'] = $userinfo['province'] . '�;
 				}
 				if (empty($member['nationality']) && !empty($userinfo['country'])) {
 					$record['nationality'] = $userinfo['country'];
@@ -390,10 +390,10 @@ function mc_oauth_userinfo($acid = 0) {
 		return error(-1, '未指定网页授权公众号, 无法获取用户信息.');
 	}
 	if (empty($_W['account']['oauth']['key'])) {
-		return error(-2, '公众号未设置 appId 或 secret.');
+		return error(-2, '公众号未设置 appId �secret.');
 	}
 	if (intval($_W['account']['oauth']['level']) < 4) {
-		return error(-3, '公众号非认证服务号, 无法获取用户信息.');
+		return error(-3, '公众号非认证服务� 无法获取用户信息.');
 	}
 
 	$state = 'we7sid-' . $_W['session_id'];
@@ -414,11 +414,11 @@ function mc_oauth_userinfo($acid = 0) {
 }
 
 /*
- * 如果某个模块需要获取用户的的一些信息(比如:真实姓名等),可使用函数【因生日.地区tpl函数修改,重新改造该函数】
- * 如果用户已经完善了(真实姓名),则返回用户的信息(真实姓名)。如果没有完善,则显示表单,让用户填写
+ * 如果某个模块需要获取用户的的一些信�比如:真实姓名�,可使用函数【因生日.地区tpl函数修改,重新改造该函数�
+ * 如果用户已经完善�真实姓名),则返回用户的信息(真实姓名)。如果没有完�则显示表�让用户填�
  * @param int $uid 会员ID
  * @param array $fields 会员字段信息
- * @param string $pre 提示信息连接符
+ * @param string $pre 提示信息连接�
  * @return mixed
  */
 function mc_require($uid, $fields, $pre = '') {
@@ -427,7 +427,7 @@ function mc_require($uid, $fields, $pre = '') {
 		return false;
 	}
 	$flipfields = array_flip($fields);
-	//如果是生日或户籍,只要取其中一个字段,则返回其他两个
+	//如果是生日或户籍,只要取其中一个字�则返回其他两�
 	if (in_array('birth', $fields) || in_array('birthyear', $fields) || in_array('birthmonth', $fields) || in_array('birthday', $fields)) {
 		unset($flipfields['birthyear'], $flipfields['birthmonth'], $flipfields['birthday'], $flipfields['birth']);
 		$flipfields['birthyear'] = 'birthyear';
@@ -503,7 +503,7 @@ function mc_require($uid, $fields, $pre = '') {
 					continue;
 				}
 				if (empty($value)) {
-					message('请填写完整所有资料.', referer(), 'error');
+					message('请填写完整所有资�', referer(), 'error');
 				}
 			}
 			if (empty($record['nickname']) && !empty($_W['fans']['nickname'])) {
@@ -516,13 +516,13 @@ function mc_require($uid, $fields, $pre = '') {
 			if (in_array('email', $fields)) {
 				$emailexists = pdo_fetchcolumn("SELECT email FROM " . tablename('mc_members') . " WHERE uniacid = :uniacid AND email = :email " . $condition, array(':uniacid' => $_W['uniacid'], ':email' => trim($record['email'])));
 				if (!empty($emailexists)) {
-					message('抱歉，您填写的手机号已经被使用，请更新。', 'refresh', 'error');
+					message('抱歉，您填写的手机号已经被使用，请更新�, 'refresh', 'error');
 				}
 			}
 			if (in_array('mobile', $fields)) {
 				$mobilexists = pdo_fetchcolumn("SELECT mobile FROM " . tablename('mc_members') . " WHERE uniacid = :uniacid AND mobile = :mobile " . $condition, array(':uniacid' => $_W['uniacid'], ':mobile' => trim($record['mobile'])));
 				if (!empty($mobilexists)) {
-					message('抱歉，您填写的手机号已经被使用，请更新。', 'refresh', 'error');
+					message('抱歉，您填写的手机号已经被使用，请更新�, 'refresh', 'error');
 				}
 			}
 			$insertuid = mc_update($uid, $record);
@@ -554,7 +554,7 @@ function mc_require($uid, $fields, $pre = '') {
  * @param int $uid 会员ID
  * @param string $credittype 积分类型
  * @param mixed $creditval 积分数量，数量可以为正数或是负数
- * @param array $log 积分操作日志 索引数组,0=>操作管理员id, 1=>备注, 2=>模块标识 3=>店员id 4=>门店id 5=> 变更渠道(clerk_type 操作人类型,1: 线上操作 2: 系统后台(公众号管理员和操作员) 3: 店员)
+ * @param array $log 积分操作日志 索引数组,0=>操作管理员id, 1=>备注, 2=>模块标识 3=>店员id 4=>门店id 5=> 变更渠道(clerk_type 操作人类�1: 线上操作 2: 系统后台(公众号管理员和操作员) 3: 店员)
  * @return boolean 
  */
 function mc_credit_update($uid, $credittype, $creditval = 0, $log = array()) {
@@ -567,7 +567,7 @@ function mc_credit_update($uid, $credittype, $creditval = 0, $log = array()) {
 		'3' => '店员',
 	);
 	if (!in_array($credittype, $credittypes)) {
-		return error('-1', "指定的用户积分类型 “{$credittype}”不存在.");
+		return error('-1', "指定的用户积分类�“{$credittype}”不存在.");
 	}
 	$creditval = floatval($creditval);
 	if (empty($creditval)) {
@@ -577,15 +577,15 @@ function mc_credit_update($uid, $credittype, $creditval = 0, $log = array()) {
 	if ($creditval > 0 || ($value + $creditval >= 0) || $credittype == 'credit6') {
 		pdo_update('mc_members', array($credittype => $value + $creditval), array('uid' => $uid));
 	} else {
-		return error('-1', "积分类型为“{$credittype}”的积分不够，无法操作。");
+		return error('-1', "积分类型为“{$credittype}”的积分不够，无法操作�);
 	}
-	//记录日志(如果没有$log参数或参数不合法,将视为用户自己修改积分);
+	//记录日志(如果没有$log参数或参数不合法,将视为用户自己修改积�;
 	if (empty($log) || !is_array($log)) {
 		load()->func('logging');
 		if (!empty($GLOBALS['site']) && $GLOBALS['site'] instanceof WeModuleSite) {
 			$log = array(
 				$uid, 
-				$GLOBALS['site']->module['title'] . '模块内消费' . logging_implode($_GET),
+				$GLOBALS['site']->module['title'] . '模块内消� . logging_implode($_GET),
 				$GLOBALS['site']->module['name'],
 				0,
 			);
@@ -593,18 +593,18 @@ function mc_credit_update($uid, $credittype, $creditval = 0, $log = array()) {
 			$modules = uni_modules();
 			$log = array(
 				$uid,
-				$modules[$GLOBALS['_GPC']['m']]['title'] . '模块内消费' . logging_implode($_GET),
+				$modules[$GLOBALS['_GPC']['m']]['title'] . '模块内消� . logging_implode($_GET),
 				$GLOBALS['_GPC']['m'],
 				0,
 			);
 		} else {
-			$log = array($uid, '未记录', 0, 0);
+			$log = array($uid, '未记�, 0, 0);
 		}
 	}
 	if ($credittype == 'credit1') {
 		$credittype_name = '积分';
 	} elseif ($credittype == 'credit2') {
-		$credittype_name = '元';
+		$credittype_name = '�;
 	}
 	if (empty($log[1])) {
 		if ($creditval > 0) {
@@ -662,7 +662,7 @@ function mc_account_change_operator($clerk_type, $store_id, $clerk_id) {
 		$data['store_cn'] = '暂无门店信息';
 	}
 	if (empty($data['clerk_cn'])) {
-		$data['clerk_cn'] = '暂无操作员信息';
+		$data['clerk_cn'] = '暂无操作员信�;
 	}
 	return $data;
 }
@@ -688,7 +688,7 @@ function mc_credit_fetch($uid, $types = array()) {
 }
 
 /**
- * 获取会员所有积分类型
+ * 获取会员所有积分类�
  * @return array
  */
 function mc_credit_types(){
@@ -712,7 +712,7 @@ function mc_groups($uniacid = 0) {
 }
 
 /**
- * 获取公众号粉丝标签列表
+ * 获取公众号粉丝标签列�
  * @return array
  */
 function mc_fans_groups($force_update = false) {
@@ -736,7 +736,7 @@ function mc_fans_groups($force_update = false) {
 	if (!empty($tags['tags'])) {
 		$tags_tmp = array();
 		foreach ($tags['tags'] as $da) {
-			// '屏蔽组' 跳过
+			// '屏蔽� 跳过
 			if ($da['id'] == 1) {
 				continue;
 			}
@@ -754,7 +754,7 @@ function mc_fans_groups($force_update = false) {
 }
 
 /**
- * 更新当前已登录会员信息
+ * 更新当前已登录会员信�
  * @param array $member 会员信息
  * @return boolean
  */
@@ -792,7 +792,7 @@ function _mc_login($member) {
 }
 
 /**
- * 获取会员配置信息所有字段
+ * 获取会员配置信息所有字�
  * @return array
  */
 function mc_fields() {
@@ -806,7 +806,7 @@ function mc_fields() {
 }
 
 /*
- * 获取公众号自定义的会员字段信息
+ * 获取公众号自定义的会员字段信�
  * $is_available 是否只获取开启的字段
  * */
 function mc_acccount_fields($uniacid = 0, $is_available = true) {
@@ -828,7 +828,7 @@ function mc_acccount_fields($uniacid = 0, $is_available = true) {
 }
 
 /**
- * UC登录初始化
+ * UC登录初始�
  * @return boolean
  */
 function mc_init_uc() {
@@ -859,11 +859,11 @@ function mc_init_uc() {
 }
 
 /**
- * 用户积分赠送模块
+ * 用户积分赠送模�
  * @param int $touid 赠送积分用户uid
  * @param int $fromuid 赠送积分来源用户uid(系统模块填写-1)
- * @param array $handsel 赠送信息 array('module' => '', 'sign' => '', 'action' => '', 'credit_value' =>, 'credit_log' => );
- * @param string $uniacid 公众号ID 默认为$_W['uniacid']
+ * @param array $handsel 赠送信�array('module' => '', 'sign' => '', 'action' => '', 'credit_value' =>, 'credit_log' => );
+ * @param string $uniacid 公众号ID 默认�_W['uniacid']
  * @return mixed
  */
 function mc_handsel($touid, $fromuid, $handsel, $uniacid = '') {
@@ -881,10 +881,10 @@ function mc_handsel($touid, $fromuid, $handsel, $uniacid = '') {
 		return error(-1, '没有填写模块名称');
 	}
 	if (empty($handsel['sign'])) {
-		return error(-1, '没有填写赠送积分对象信息');
+		return error(-1, '没有填写赠送积分对象信�);
 	}
 	if (empty($handsel['action'])) {
-		return error(-1, '没有填写赠送积分动作');
+		return error(-1, '没有填写赠送积分动�);
 	}
 	$credit_value = intval($handsel['credit_value']);
 
@@ -892,13 +892,13 @@ function mc_handsel($touid, $fromuid, $handsel, $uniacid = '') {
 	$parm = array(':uniacid' => $uniacid, ':touid' => $touid, ':fromuid' => $fromuid, ':module' => $handsel['module'], ':sign' => $handsel['sign'], ':action' => $handsel['action']);
 	$handsel_exists = pdo_fetch($sql, $parm);
 	if (!empty($handsel_exists)) {
-		return error(-1, '已经赠送过积分,每个用户只能赠送一次');
+		return error(-1, '已经赠送过积分,每个用户只能赠送一�);
 	}
 
 	$creditbehaviors = pdo_fetchcolumn('SELECT creditbehaviors FROM ' . tablename('uni_settings') . ' WHERE uniacid = :uniacid', array(':uniacid' => $uniacid));
 	$creditbehaviors = iunserializer($creditbehaviors) ? iunserializer($creditbehaviors) : array();
 	if (empty($creditbehaviors['activity'])) {
-		return error(-1, '公众号没有配置积分行为参数');
+		return error(-1, '公众号没有配置积分行为参�);
 	} else {
 		$credittype = $creditbehaviors['activity'];
 	}
@@ -959,7 +959,7 @@ function mc_openid2uid($openid) {
 }
 
 /*
- * 更新会员所在的会员组.
+ * 更新会员所在的会员�
  * */
 function mc_group_update($uid = 0) {
 	global $_W;
@@ -1026,11 +1026,11 @@ function mc_notice_init() {
 		return error(-1, '创建公众号操作类失败');
 	}
 	if($_W['account']['level'] < 3) {
-		return error(-1, '公众号没有经过认证，不能使用模板消息和客服消息');
+		return error(-1, '公众号没有经过认证，不能使用模板消息和客服消�);
 	}
 	$acc = WeAccount::create();
 	if(is_null($acc)) {
-		return error(-1, '创建公众号操作对象失败');
+		return error(-1, '创建公众号操作对象失�);
 	}
 	$setting = uni_setting();
 	$noticetpl = $setting['tplnotice'];
@@ -1044,7 +1044,7 @@ function mc_notice_init() {
 /*
  * 公用模板消息
  * $title 消息标题,eg:职位审核通知
- * $sender 发件人
+ * $sender 发件�
  * $content 消息内容
  * $url 跳转链接
  * $remark 备注
@@ -1079,7 +1079,7 @@ function mc_notice_public($openid, $title, $sender, $content, $url = '', $remark
 /*
  * 会员余额充值微信模板消息和客服消息通知
  * $openid  粉丝openid
- * $uid     会员uid 默认为当前会员
+ * $uid     会员uid 默认为当前会�
  * $num     充值金额。单位（元）
  * $url     跳转链接
  * $remark  操作备注
@@ -1107,7 +1107,7 @@ function mc_notice_recharge($openid, $uid = 0, $num = 0, $url = '', $remark = ''
 	if($_W['account']['level'] == ACCOUNT_SERVICE_VERIFY) {
 		$data = array(
 			'first' => array(
-				'value' => "您好，您在{$time}进行会员余额充值，充值金额{$num}元，充值后余额为{$credit['credit2']}元",
+				'value' => "您好，您在{$time}进行会员余额充值，充值金额{$num}元，充值后余额为{$credit['credit2']}�,
 				'color' => '#ff510'
 			),
 			'accountType' => array(
@@ -1119,11 +1119,11 @@ function mc_notice_recharge($openid, $uid = 0, $num = 0, $url = '', $remark = ''
 				'color' => '#ff510'
 			),
 			'amount' => array(
-				'value' => $num . '元',
+				'value' => $num . '�,
 				'color' => '#ff510'
 			),
 			'result' => array(
-				'value' => '充值成功',
+				'value' => '充值成�,
 				'color' => '#ff510'
 			),
 			'remark' => array(
@@ -1150,14 +1150,14 @@ function mc_notice_recharge($openid, $uid = 0, $num = 0, $url = '', $remark = ''
 /*
  * 会员余额变更通知
  * $openid          粉丝openid
- * $uid             会员uid 默认为当前会员
+ * $uid             会员uid 默认为当前会�
  * $credit2_num     消费金额。单位（元）
  * $credit1_num     获得积分
  * $store           消费门店
  * $url             跳转链接
  * $remark          备注
  * */
-function mc_notice_credit2($openid, $uid, $credit2_num, $credit1_num = 0, $store = '线下消费', $url = '', $remark = '谢谢惠顾，点击查看详情') {
+function mc_notice_credit2($openid, $uid, $credit2_num, $credit1_num = 0, $store = '线下消费', $url = '', $remark = '谢谢惠顾，点击查看详�) {
 	global $_W;
 	if(!$uid) {
 		$uid = $_W['member']['uid'];
@@ -1180,11 +1180,11 @@ function mc_notice_credit2($openid, $uid, $credit2_num, $credit1_num = 0, $store
 	if($_W['account']['level'] == ACCOUNT_SERVICE_VERIFY) {
 		$data = array(
 			'first' => array(
-				'value' => "您好，您在{$time}有余额消费",
+				'value' => "您好，您在{$time}有余额消�,
 				'color' => '#ff510'
 			),
 			'keyword1' => array(
-				'value' => abs($credit2_num) . '元',
+				'value' => abs($credit2_num) . '�,
 				'color' => '#ff510'
 			),
 			'keyword2' => array(
@@ -1196,7 +1196,7 @@ function mc_notice_credit2($openid, $uid, $credit2_num, $credit1_num = 0, $store
 				'color' => '#ff510'
 			),
 			'keyword4' => array(
-				'value' => $credit['credit2'] . '元',
+				'value' => $credit['credit2'] . '�,
 				'color' => '#ff510'
 			),
 			'keyword5' => array(
@@ -1212,7 +1212,7 @@ function mc_notice_credit2($openid, $uid, $credit2_num, $credit1_num = 0, $store
 	}
 	if($_W['account']['level'] == ACCOUNT_SUBSCRIPTION_VERIFY) {
 		$info = "【{$_W['account']['name']}】消费通知\n";
-		$info .= "您在{$time}进行会员余额消费，消费金额【{$credit2_num}】元，获得积分【{$credit1_num}】,消费后余额【{$credit['credit2']}】元，消费后积分【{$credit['credit1']}】。\n";
+		$info .= "您在{$time}进行会员余额消费，消费金额【{$credit2_num}】元，获得积分【{$credit1_num}�消费后余额【{$credit['credit2']}】元，消费后积分【{$credit['credit1']}】。\n";
 		$info .= !empty($remark) ? "备注：{$remark}\n\n" : '';
 		$custom = array(
 			'msgtype' => 'text',
@@ -1227,13 +1227,13 @@ function mc_notice_credit2($openid, $uid, $credit2_num, $credit1_num = 0, $store
 /*
  * 会员积分变更通知
  * $openid          粉丝openid
- * $uid             会员uid 默认为当前会员
- * $credit1_num     积分数量。如果是消耗积分，使用负数即可。即：-1000
+ * $uid             会员uid 默认为当前会�
+ * $credit1_num     积分数量。如果是消耗积分，使用负数即可。即�1000
  * $tip             积分变更原因
  * $url             跳转链接
  * $remark          备注
  * */
-function mc_notice_credit1($openid, $uid, $credit1_num, $tip, $url = '', $remark = '谢谢惠顾，点击查看详情') {
+function mc_notice_credit1($openid, $uid, $credit1_num, $tip, $url = '', $remark = '谢谢惠顾，点击查看详�) {
 	global $_W;
 	if(!$uid) {
 		$uid = $_W['member']['uid'];
@@ -1268,7 +1268,7 @@ function mc_notice_credit1($openid, $uid, $credit1_num, $tip, $url = '', $remark
 	if($_W['account']['level'] == ACCOUNT_SERVICE_VERIFY) {
 		$data = array(
 			'first' => array(
-				'value' => "您好，您在{$time}有积分变更",
+				'value' => "您好，您在{$time}有积分变�,
 				'color' => '#ff510'
 			),
 			'account' => array(
@@ -1308,7 +1308,7 @@ function mc_notice_credit1($openid, $uid, $credit1_num, $tip, $url = '', $remark
 	}
 	if($_W['account']['level'] == ACCOUNT_SUBSCRIPTION_VERIFY) {
 		$info = "【{$_W['account']['name']}】积分变更通知\n";
-		$info .= "您在{$time}有积分{$type}，{$type}积分【{$credit1_num}】，变更原因：【{$tip}】,消费后账户积分余额【{$credit['credit1']}】。\n";
+		$info .= "您在{$time}有积分{$type}，{$type}积分【{$credit1_num}】，变更原因：【{$tip}�消费后账户积分余额【{$credit['credit1']}】。\n";
 		$info .= !empty($remark) ? "备注：{$remark}\n\n" : '';
 		$custom = array(
 			'msgtype' => 'text',
@@ -1373,12 +1373,12 @@ function mc_notice_group($openid, $old_group, $now_group, $url = '', $remark = '
 }
 
 /*
- * 会员卡计次充值
+ * 会员卡计次充�
  * $openid          粉丝openid
  * $uid             会员uid
- * $type            冲次项目（eg:理发计次）
- * $num             本次充值次数
- * $total_num       总剩余次数
+ * $type            冲次项目（eg:理发计次�
+ * $num             本次充值次�
+ * $total_num       总剩余次�
  * $endtime         服务截至日期
  * $remark          备注
  * */
@@ -1398,7 +1398,7 @@ function mc_notice_nums_plus($openid, $type, $num, $total_num, $remark = '感谢
 	if($_W['account']['level'] == ACCOUNT_SERVICE_VERIFY) {
 		$data = array(
 			'first' => array(
-				'value' => "您好，您的{$type}已充次成功",
+				'value' => "您好，您的{$type}已充次成�,
 				'color' => '#ff510'
 			),
 			'keyword1' => array(
@@ -1406,11 +1406,11 @@ function mc_notice_nums_plus($openid, $type, $num, $total_num, $remark = '感谢
 				'color' => '#ff510'
 			),
 			'keyword2' => array(
-				'value' => $num . '次',
+				'value' => $num . '�,
 				'color' => '#ff510'
 			),
 			'keyword3' => array(
-				'value' => $total_num . '次',
+				'value' => $total_num . '�,
 				'color' => '#ff510'
 			),
 			'keyword4' => array(
@@ -1425,7 +1425,7 @@ function mc_notice_nums_plus($openid, $type, $num, $total_num, $remark = '感谢
 		$status = $acc->sendTplNotice($openid, $acc->noticetpl['nums_plus']['tpl'], $data);
 	}
 	if($_W['account']['level'] == ACCOUNT_SUBSCRIPTION_VERIFY) {
-		$info = "【{$_W['account']['name']}】-【{$type}】充值通知\n";
+		$info = "【{$_W['account']['name']}�【{$type}】充值通知\n";
 		$info .= "您的{$type}已充值成功，本次充次【{$num}】次，总剩余【{$total_num}】次。\n";
 		$info .= !empty($remark) ? "备注：{$remark}\n\n" : '';
 		$custom = array(
@@ -1439,16 +1439,16 @@ function mc_notice_nums_plus($openid, $type, $num, $total_num, $remark = '感谢
 }
 
 /*
- * 会员卡计次消费
+ * 会员卡计次消�
  * $openid          粉丝openid
  * $uid             会员uid
  * $card_id         卡号
- * $type            消费项目（eg:理发计次）
+ * $type            消费项目（eg:理发计次�
  * $num             剩余次数
  * $endtime         服务截至日期
  * $remark          备注
  * */
-function mc_notice_nums_times($openid, $card_id, $type, $num, $remark = '感谢您对本店的支持，欢迎下次再来！') {
+function mc_notice_nums_times($openid, $card_id, $type, $num, $remark = '感谢您对本店的支持，欢迎下次再来�) {
 	global $_W;
 	if(empty($num) || empty($type) || empty($card_id)) {
 		return error(-1, '参数错误');
@@ -1464,7 +1464,7 @@ function mc_notice_nums_times($openid, $card_id, $type, $num, $remark = '感谢�
 	if($_W['account']['level'] == ACCOUNT_SERVICE_VERIFY) {
 		$data = array(
 			'first' => array(
-				'value' => "您好，您的{$type}已成功使用了【1】次。",
+				'value' => "您好，您的{$type}已成功使用了�】次�,
 				'color' => '#ff510'
 			),
 			'keyword1' => array(
@@ -1476,7 +1476,7 @@ function mc_notice_nums_times($openid, $card_id, $type, $num, $remark = '感谢�
 				'color' => '#ff510'
 			),
 			'keyword3' => array(
-				'value' => $num . '次',
+				'value' => $num . '�,
 				'color' => '#ff510'
 			),
 			'keyword4' => array(
@@ -1491,7 +1491,7 @@ function mc_notice_nums_times($openid, $card_id, $type, $num, $remark = '感谢�
 		$status = $acc->sendTplNotice($openid, $acc->noticetpl['nums_times']['tpl'], $data);
 	}
 	if($_W['account']['level'] == ACCOUNT_SUBSCRIPTION_VERIFY) {
-		$info = "【{$_W['account']['name']}】-【{$type}】消费通知\n";
+		$info = "【{$_W['account']['name']}�【{$type}】消费通知\n";
 		$info .= "您的{$type}已成功使用了一次，总剩余【{$num}】次，消费时间【{$time}】。\n";
 		$info .= !empty($remark) ? "备注：{$remark}\n\n" : '';
 		$custom = array(
@@ -1505,16 +1505,16 @@ function mc_notice_nums_times($openid, $card_id, $type, $num, $remark = '感谢�
 }
 
 /*
- * 会员卡计时充值
+ * 会员卡计时充�
  * $openid          粉丝openid
  * $uid             会员uid
  * $card_id         卡号
- * $type            消费项目（eg:理发计次）
+ * $type            消费项目（eg:理发计次�
  * $num             剩余次数
  * $endtime         服务截至日期
  * $remark          备注
  * */
-function mc_notice_times_plus($openid, $card_id, $type, $fee, $days, $endtime = '', $remark = '感谢您对本店的支持，欢迎下次再来！') {
+function mc_notice_times_plus($openid, $card_id, $type, $fee, $days, $endtime = '', $remark = '感谢您对本店的支持，欢迎下次再来�) {
 	global $_W;
 	$acc = mc_notice_init();
 	if(is_error($acc)) {
@@ -1526,7 +1526,7 @@ function mc_notice_times_plus($openid, $card_id, $type, $fee, $days, $endtime = 
 	if($_W['account']['level'] == ACCOUNT_SERVICE_VERIFY) {
 		$data = array(
 			'first' => array(
-				'value' => "您好，您的{$type}已续费成功。",
+				'value' => "您好，您的{$type}已续费成功�,
 				'color' => '#ff510'
 			),
 			'keynote1' => array(
@@ -1538,11 +1538,11 @@ function mc_notice_times_plus($openid, $card_id, $type, $fee, $days, $endtime = 
 				'color' => '#ff510'
 			),
 			'keynote3' => array(
-				'value' => $fee . '元',
+				'value' => $fee . '�,
 				'color' => '#ff510'
 			),
 			'keynote4' => array(
-				'value' => $days . '天',
+				'value' => $days . '�,
 				'color' => '#ff510'
 			),
 			'keynote5' => array(
@@ -1557,7 +1557,7 @@ function mc_notice_times_plus($openid, $card_id, $type, $fee, $days, $endtime = 
 		$status = $acc->sendTplNotice($openid, $acc->noticetpl['times_plus']['tpl'], $data);
 	}
 	if($_W['account']['level'] == ACCOUNT_SUBSCRIPTION_VERIFY) {
-		$info = "【{$_W['account']['name']}】-【{$type}】续费通知\n";
+		$info = "【{$_W['account']['name']}�【{$type}】续费通知\n";
 		$info .= "您的{$type}已成功续费，续费时长【{$days}】天，续费金额【{$fee}】元，有效期至【{$endtime}】。\n";
 		$info .= !empty($remark) ? "备注：{$remark}\n\n" : '';
 		$custom = array(
@@ -1574,11 +1574,11 @@ function mc_notice_times_plus($openid, $card_id, $type, $fee, $days, $endtime = 
  * 会员服务到期提醒
  * $openid          粉丝openid
  * $title           服务说明（eg:您好，您有商品即将到期，请您注意。）
- * $type            服务项目（eg:游泳时长）
+ * $type            服务项目（eg:游泳时长�
  * $endtime         服务截至日期
  * $remark          备注
  * */
-function mc_notice_times_times($openid, $title, $type, $endtime = '', $remark = '请注意时间，防止服务失效！') {
+function mc_notice_times_times($openid, $title, $type, $endtime = '', $remark = '请注意时间，防止服务失效�) {
 	global $_W;
 	$acc = mc_notice_init();
 	if(is_error($acc)) {
@@ -1610,7 +1610,7 @@ function mc_notice_times_times($openid, $title, $type, $endtime = '', $remark = 
 		$status = $acc->sendTplNotice($openid, $acc->noticetpl['times_times']['tpl'], $data);
 	}
 	if($_W['account']['level'] == ACCOUNT_SUBSCRIPTION_VERIFY) {
-		$info = "【{$_W['account']['name']}】-【{$type}】服务到期通知\n";
+		$info = "【{$_W['account']['name']}�【{$type}】服务到期通知\n";
 		$info .= "您的{$type}即将到期，有效期至【{$endtime}】。\n";
 		$info .= !empty($remark) ? "备注：{$remark}\n\n" : '';
 		$custom = array(
@@ -1661,19 +1661,19 @@ function mc_notice_custom_text($openid, $title, $info) {
 function mc_plugins() {
 	$plugins = array(
 		'mc_card_manage' => array(
-			'title' => '会员卡',
+			'title' => '会员�,
 			'name' => 'mc_card_manage',
-			'description' => '提供粉丝可开通会员卡并可以设置充值、消费金额及积分的增减策略',
+			'description' => '提供粉丝可开通会员卡并可以设置充值、消费金额及积分的增减策�,
 		),
 		'activity_discount_manage' => array(
 			'title' => '兑换中心',
 			'name' => 'activity_discount_manage',
-			'description' => '提供粉丝可通过积分进行代金劵、折扣劵或是真实物品的兑换',
+			'description' => '提供粉丝可通过积分进行代金劵、折扣劵或是真实物品的兑�,
 		),
 		'wechat_card_manage' => array(
 			'title' => '微信卡券',
 			'name' => 'wechat_card_manage',
-			'description' => '提供粉丝可通过积分进行代金劵、折扣劵或是真实物品的兑换',
+			'description' => '提供粉丝可通过积分进行代金劵、折扣劵或是真实物品的兑�,
 		),
 
 	);
@@ -1681,7 +1681,7 @@ function mc_plugins() {
 }
 
 /**
- * 初始化粉丝个人信息
+ * 初始化粉丝个人信�
  * @param 	array 		$old_fan_info 	粉丝之前信息
  */
 function mc_init_fans_info($old_fan_info){
@@ -1698,6 +1698,7 @@ function mc_init_fans_info($old_fan_info){
 			'followtime' => $fan['subscribe_time'],
 			'nickname' => stripcslashes($fan['nickname']),
 			'tag' => base64_encode(iserializer($fan)),
+			'unionid' => $fan['unionid'],
 			'groupid' => !empty($fan['tagid_list']) ? (','.join(',', $fan['tagid_list']).',') : '',
 		);
 		if (!empty($fan['tagid_list'])) {
@@ -1717,10 +1718,10 @@ function mc_init_fans_info($old_fan_info){
 				$rec['gender'] = $fan['sex'];
 			}
 			if (empty($user['residecity']) && !empty($fan['city'])) {
-				$rec['residecity'] = $fan['city'] . '市';
+				$rec['residecity'] = $fan['city'] . '�;
 			}
 			if (empty($user['resideprovince']) && !empty($fan['province'])) {
-				$rec['resideprovince'] = $fan['province'] . '省';
+				$rec['resideprovince'] = $fan['province'] . '�;
 			}
 			if (empty($user['nationality']) && !empty($fan['country'])) {
 				$rec['nationality'] = $fan['country'];
@@ -1785,12 +1786,12 @@ function mc_show_tag($groupid){
 		}
 		$tag_show = rtrim($tag_show, ', ');
 	} else {
-		$tag_show = '无标签';
+		$tag_show = '无标�;
 	}
 	return $tag_show;
 }
 /**
- * 会员卡个人资料设置是否显示
+ * 会员卡个人资料设置是否显�
  * @param 	personal_info, contact_method, education_info, jobedit
  * @return 	boolean
  */
@@ -1828,8 +1829,9 @@ function mc_card_settings_hide($item = '') {
 	}
 	return false;
 }
+
 /**
- * 用户消费返积分
+ * 用户消费返积�
  * @param 	string 		$openid 		粉丝openid字段
  * @param 	string 		$card_fee 		core_paylog表card_fee 使用卡券后的价格
  * @param 	string 		$storeid 		消费门店id
@@ -1854,7 +1856,40 @@ function mc_card_grant_credit($openid, $card_fee, $storeid = 0) {
 	}
 	if (!empty($grant_credit1_enable)) {
 		$num = $card_fee * $grant_rate;
-		$tips .= "用户消费{$card_fee}元，余额支付{$card_fee}，积分赠送比率为:【1：{$grant_rate}】,共赠送【{$num}】积分";
+		$tips .= "用户消费{$card_fee}元，余额支付{$card_fee}，积分赠送比率为:�：{$grant_rate}�共赠送【{$num}】积�;
+		mc_credit_update($openid, 'credit1', $num, array('0', $tip, 'paycenter', 0, $storeid, 3));
+		return error(0, $num);
+	} else {
+		return error(-1, '');
+	}
+}
+/**
+ * 用户消费返积�
+ * @param 	string 		$openid 		粉丝openid字段
+ * @param 	string 		$card_fee 		core_paylog表card_fee 使用卡券后的价格
+ * @param 	string 		$storeid 		消费门店id
+ */
+function mc_card_grant_credit($openid, $card_fee, $storeid = 0) {
+	global $_W;
+	$setting = uni_setting($_W['uniacid'], array('creditbehaviors'));
+	load()->model('card');
+	$recharges_set = card_params_setting('cardRecharge');
+	$card_settings = card_setting();
+	$grant_rate = $card_settings['grant_rate'];
+	$grant_rate_switch = intval($recharges_set['params']['grant_rate_switch']);
+	$grant_credit1_enable = false;
+	if (!empty($grant_rate)) {
+		if (empty($recharges_set['params']['recharge_type'])) {
+			$grant_credit1_enable = true;
+		} else {
+			if ($grant_rate_switch == '1') {
+				$grant_credit1_enable = true;
+			}
+		}
+	}
+	if (!empty($grant_credit1_enable)) {
+		$num = $card_fee * $grant_rate;
+		$tips .= "用户消费{$card_fee}元，余额支付{$card_fee}，积分赠送比率为:�：{$grant_rate}�共赠送【{$num}】积�;
 		mc_credit_update($openid, 'credit1', $num, array('0', $tip, 'paycenter', 0, $storeid, 3));
 		return error(0, $num);
 	} else {

@@ -238,63 +238,61 @@
 	</div>
 	{/if}
 	<script type="text/javascript">
-		require(['angular'], function(angular){
-			angular.module('app', []).controller('listInstallwebthemes', function($scope, $http) {
-				$.post('{php echo url('extension/webtheme/check');}', {foo: 'install'},function(dat){
-					try {
-						var ret = $.parseJSON(dat);
-						if(!$.isArray(ret)) {
-							return;
-						}
-						$.each(ret, function(){
-							$('div.item[templates-name=' + this.name + ']').remove();
-						});
-						$scope.$apply(function(){
-							$scope.templates = ret;
-						});
-					} catch(err) {}
-				});
-			});
-			angular.bootstrap(document, ['app']);
-			//处理批量安装模块
-			var templates = {$prepare_webthemes};
-			var templates_title = {$prepare_webthemes_title};
-			var total = templates.length;
-
-			var i = 1;
-			var fail = [];
-			var success = [];
-
-			var insta = function(){
-				var m_name = templates.pop();
-				if(!m_name) {
-					util.message('本次成功安装' + success.length + '个后台皮肤.<br>安装失败' + fail.length + '个后台皮肤', "{php echo url('extension/webtheme/installed')}", 'info');
-					return;
-				}
-				var pragress = i + '/' + total;
-				$('#m_name').html(templates_title[m_name]);
-				$('#pragress').html(pragress);
-
-				$.post("{php echo url('extension/webtheme/batch-install')}", {'webthemeid' : m_name}, function(data){
-					if(data == 'success') {
-						i++;
-						$('#templates-' + m_name).slideUp();
-						success.push(templates_title[m_name]);
-						setTimeout(function(){insta()}, 2000);
-					} else {
-						i++;
-						fail.push(templates_title[m_name]);
-						$('#fail').html(fail.join('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')).parent().parent().show();
-						setTimeout(function(){insta()}, 2000);
+		angular.module('app', []).controller('listInstallwebthemes', function($scope, $http) {
+			$.post('{php echo url('extension/webtheme/check');}', {foo: 'install'},function(dat){
+				try {
+					var ret = $.parseJSON(dat);
+					if(!$.isArray(ret)) {
+						return;
 					}
-				});
-
-			}
-
-			$('#batch-install').click(function(){
-				$('#install-info').show();
-				insta();
+					$.each(ret, function(){
+						$('div.item[templates-name=' + this.name + ']').remove();
+					});
+					$scope.$apply(function(){
+						$scope.templates = ret;
+					});
+				} catch(err) {}
 			});
+		});
+		angular.bootstrap(document, ['app']);
+		//处理批量安装模块
+		var templates = {$prepare_webthemes};
+		var templates_title = {$prepare_webthemes_title};
+		var total = templates.length;
+
+		var i = 1;
+		var fail = [];
+		var success = [];
+
+		var insta = function(){
+			var m_name = templates.pop();
+			if(!m_name) {
+				util.message('本次成功安装' + success.length + '个后台皮肤.<br>安装失败' + fail.length + '个后台皮肤', "{php echo url('extension/webtheme/installed')}", 'info');
+				return;
+			}
+			var pragress = i + '/' + total;
+			$('#m_name').html(templates_title[m_name]);
+			$('#pragress').html(pragress);
+
+			$.post("{php echo url('extension/webtheme/batch-install')}", {'webthemeid' : m_name}, function(data){
+				if(data == 'success') {
+					i++;
+					$('#templates-' + m_name).slideUp();
+					success.push(templates_title[m_name]);
+					setTimeout(function(){insta()}, 2000);
+				} else {
+					i++;
+					fail.push(templates_title[m_name]);
+					$('#fail').html(fail.join('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')).parent().parent().show();
+					setTimeout(function(){insta()}, 2000);
+				}
+			});
+
+		}
+
+		$('#batch-install').click(function(){
+			$('#install-info').show();
+			insta();
 		});
 	</script>
 	{/if}

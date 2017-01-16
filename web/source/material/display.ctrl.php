@@ -53,20 +53,21 @@ if($do == 'down') {
 	if($type == 'voice') {
 		$type = 'audio';
 	}
-
-	foreach($result['data'] as $data) {
+	foreach($result['item'] as $data) {
+		$pathinfo = pathinfo($data['name']);
+		$data['name'] = $pathinfo['filename'] . '.' . $pathinfo['extension'];
 		if($type != 'news') {
 			$media = pdo_get('wechat_attachment', array('uniacid' => $_W['uniacid'], 'media_id' => $data['media_id']));
 			$is_down = 0;
 			$url = $tag = '';
 			if($type == 'image') {
 				if(!empty($media) && !empty($media['attachment'])) {
-					if(strexists($media['attachment'], 'https://mmbiz.qlogo.cn') || (file_exists(ATTACHMENT_ROOT . $media['attachment']))) {
+					if(strexists($media['attachment'], '//mmbiz.qlogo.cn') || (file_exists(ATTACHMENT_ROOT . $media['attachment']))) {
 						$has[] = $media['id'];
 						continue;
 					}
 				}
-				if(strexists($data['url'], 'https://mmbiz.qlogo.cn')) {
+				if(strexists($data['url'], '//mmbiz.qlogo.cn')) {
 					$url = $tag = $data['url'];
 					$is_down = 1;
 				}
@@ -78,42 +79,21 @@ if($do == 'down') {
 					}
 				}
 			}
-
 			if(!$is_down) {
 				//下载
-				$stream = $acc->getMaterial($data['media_id'], $types);
+				$stream = $acc->getMaterial($data['media_id']);
 				if(is_error($stream)) {
 					$data['message'] = $stream['message'];
 					$fail[$data['media_id']] = $data;
 					continue;
 				}
-				if($type == 'image' || $type == 'audio') {
-					$path = ATTACHMENT_ROOT . "/{$type}s/{$_W['uniacid']}/material";
-					mkdirs($path);
-					$is_ok = file_put_contents($path."/{$data['media_id']}", $stream);
-					if(!$is_ok && !$fail[$data['media_id']]) {
-						$data['message'] = '保存文件失败，请检查目录权限';
-						$fail[$data['media_id']] = $data;
-					}
-					$tag = '';
-					$url = "{$type}s/{$_W['uniacid']}/material/{$data['media_id']}";
-				} elseif($type == 'video') {
-					$tag = $url = '';
-					$tag = array(
-						'title' => $stream['title'],
-						'description' => $stream['description'],
-						'down_url' => $stream['down_url'],
-					);
-					$tag = iserializer($tag);
-				}
 			}
-
 			$insert = array(
 				'uniacid' => $_W['uniacid'],
 				'acid' => $_W['acid'],
 				'uid' => $_W['uid'],
 				'filename' => $data['name'],
-				'attachment' => $url,
+				'attachment' => $stream,
 				'media_id' => $data['media_id'],
 				'type' => $types,
 				'model' => 'perm',

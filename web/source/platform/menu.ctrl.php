@@ -10,6 +10,8 @@ load()->model('platform');
 $dos = array('display', 'save', 'remove', 'refresh', 'search_key', 'add', 'push', 'copy');
 $do = in_array($do, $dos) ? $do : 'display';
 
+@set_time_limit(0);
+
 if($_W['isajax']) {
 	if($do == 'search_key') {
 		$condition = '';
@@ -34,7 +36,6 @@ if($_W['isajax']) {
 
 if($do == 'display') {
 	$_W['page']['title'] = '菜单设计器 - 自定义菜单 - 高级功能';
-	set_time_limit(0);
 	$account = WeAccount::create($_W['acid']);
 	$result = $account->menuQuery();
 	if(is_error($result)) {
@@ -273,7 +274,6 @@ if($do == 'remove') {
 }
 
 if($do == 'save') {
-	set_time_limit(0);
 	$post = $post['group'];
 	$menu = array();
 	if(!empty($post['button'])) {

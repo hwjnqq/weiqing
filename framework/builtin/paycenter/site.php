@@ -9,7 +9,7 @@ class PaycenterModuleSite extends WeModuleSite {
 		global $_W, $_GPC;
 		load()->model('paycenter');
 		if($_GPC['do'] != 'pay') {
-			$session = json_decode(base64_decode($_GPC['_pc_session']), true);
+			$session = json_decode(base64_decode($_GPC["paycenter_session_{$_W['uniacid']}"]), true);
 			if(is_array($session)) {
 				load()->model('user');
 				$user = user_single(array('uid'=>$session['uid']));
@@ -20,11 +20,13 @@ class PaycenterModuleSite extends WeModuleSite {
 					}
 					$_W['uid'] = $user['uid'];
 					$_W['username'] = $user['username'];
-					$_W['user'] = $user;
+					$_W['user'] = $user;	
 				} else {
-					isetcookie('_pc_session', false, -100);
+					isetcookie("paycenter_session_{$_W['uniacid']}", false, -100);
 				}
 				unset($user);
+			} else {
+				isetcookie("paycenter_session_{$_W['uniacid']}", false, -100);
 			}
 			if(empty($_W['user']) && $_W['openid'] && $_GPC['_wechat_logout'] != '1') {
 				$clerk = pdo_get('activity_clerks', array('openid' => $_W['openid'], 'uniacid' => $_W['uniacid']));
@@ -36,7 +38,7 @@ class PaycenterModuleSite extends WeModuleSite {
 						$cookie['username'] = $user['username'];
 						$cookie['hash'] = md5($user['password'] . $user['salt']);
 						$session = base64_encode(json_encode($cookie));
-						isetcookie('_pc_session', $session, !empty($_GPC['rember']) ? 7 * 86400 : 0, true);
+						isetcookie("paycenter_session_{$_W['uniacid']}", $session, !empty($_GPC['rember']) ? 7 * 86400 : 0, true);
 						$_W['uid'] = $user['uid'];
 						$_W['username'] = $user['username'];
 						$_W['user'] = $user;
@@ -72,14 +74,14 @@ class PaycenterModuleSite extends WeModuleSite {
 			$cookie['uid'] = $user['uid'];
 			$cookie['hash'] = md5($user['password'] . $user['salt']);
 			$session = base64_encode(json_encode($cookie));
-			isetcookie('_pc_session', $session, !empty($_GPC['rember']) ? 7 * 86400 : 0, true);
+			isetcookie("paycenter_session_{$_W['uniacid']}", $session, !empty($_GPC['rember']) ? 7 * 86400 : 0, true);
 			message(error(0, ''), '', 'ajax');
 		}
 		include $this->template('login');
 	}
 
 	public function doMobileLogout() {
-		isetcookie('_pc_session', '', -10000);
+		isetcookie("paycenter_session_{$_W['uniacid']}", '', -10000);
 		isetcookie('_wechat_logout', '1', 180);
 		$forward = $_GPC['forward'];
 		if(empty($forward)) {
@@ -109,12 +111,15 @@ class PaycenterModuleSite extends WeModuleSite {
 		if($period == '0') {
 			$starttime = strtotime(date('Y-m-d'));
 			$endtime = $starttime + 86400;
-		} else {
+		} elseif ($period == '-1') {
 			$starttime = strtotime(date('Y-m-d',strtotime($period . 'day')));
 			$endtime = strtotime(date('Y-m-d'));
-		}
-		$condition = "WHERE uniacid = :uniacid AND status = 1 AND paytime >= :starttime AND paytime <= :endtime";
-		$params = array(':starttime' => $starttime, ':endtime' => $endtime, ':uniacid' => $_W['uniacid']);
+		} else {
+			$starttime = strtotime(date('Y-m-d',strtotime($period . 'day')));
+			$endtime = strtotime(date('Y-m-d')) + 86400;
+		}	
+		$condition = "WHERE uniacid = :uniacid AND status = 1 AND paytime >= :starttime AND paytime <= :endtime AND clerk_id = :clerk_id";
+		$params = array(':starttime' => $starttime, ':endtime' => $endtime, ':uniacid' => $_W['uniacid'], ':clerk_id' => intval($_W['user']['clerk_id']));
 		$revenue = pdo_fetchcolumn("SELECT SUM(final_fee) FROM" . tablename('paycenter_order') . $condition, $params);
 		return floatval($revenue);
 	}
@@ -152,6 +157,11 @@ class PaycenterModuleSite extends WeModuleSite {
 		if($params['result'] == 'success' && $params['from'] == 'notify') {
 			$order = pdo_get('paycenter_order', array('id' => $params['tid'], 'uniacid' => $_W['uniacid']));
 			if(!empty($order)) {
+				$log = pdo_get('core_paylog', array('tid' => $params['tid'], 'uniacid' => $_W['uniacid']));
+				if ($log['type'] != 'credit') {
+					load()->model('mc');
+					mc_card_grant_credit($log['openid'], $log['card_fee'], $order['store_id']);
+				}
 				if(!empty($params['tag'])) {
 					$params['tag'] = iunserializer($params['tag']);
 				}
@@ -176,21 +186,22 @@ class PaycenterModuleSite extends WeModuleSite {
 				}
 				pdo_update('paycenter_order', $data, array('id' => $params['tid'], 'uniacid' => $_W['uniacid']));
 				$cash_data = array(
-						'uniacid' => $_W['uniacid'],
-						'uid' => $order['uid'],
-						'fee' => $order['fee'],
-						'final_fee' => $order['final_fee'],
-						'credit1' => $order['credit1'],
-						'credit1_fee' => $order['credit1_fee'],
-						'credit2' => $order['credit2'],
-						'cash' => $params['card_fee'],
-						'final_cash' => $params['card_fee'],
-						'return_cash' => 0,
-						'remark' => $order['remark'],
-						'clerk_id' => $order['clerk_id'],
-						'store_id' => $order['store_id'],
-						'clerk_type' => $order['clerk_type'],
-						'createtime' => TIMESTAMP,
+					'uniacid' => $_W['uniacid'],
+					'uid' => $order['uid'],
+					'fee' => $order['fee'],
+					'final_fee' => $order['final_fee'],
+					'credit1' => $order['credit1'],
+					'credit1_fee' => $order['credit1_fee'],
+					'credit2' => $data['credit2'],
+					'cash' => $params['card_fee'],
+					'final_cash' => $data['cash'],
+					'return_cash' => 0,
+					'remark' => $order['remark'],
+					'clerk_id' => $order['clerk_id'],
+					'store_id' => $order['store_id'],
+					'clerk_type' => $order['clerk_type'],
+					'createtime' => TIMESTAMP,
+					'trade_type' => $log['type']
 				);
 				pdo_insert('mc_cash_record', $cash_data);
 			}

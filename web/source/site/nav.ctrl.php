@@ -93,7 +93,7 @@ if($do == 'post') {
 			);
 		} else {
 			$data['css'] = '';
-			$data['icon'] = $_GPC['iconfile'];
+			$data['icon'] = parse_path($_GPC['iconfile']);
 		}
 		if(empty($id)) {
 			pdo_insert('site_nav', $data);

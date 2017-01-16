@@ -295,12 +295,15 @@
 									'<button type="button" class="btn btn-default js-upgrade-info">升级说明</button>' +
 									'</div>' +
 									'<div class="col-sm-4">';
+							
 							if (module_branches[branch].id != current_branch) {
 								if ( parseInt(module_branches[branch].displayorder) > current_branch_sort) {
 									branch_info += '<a href="' + trade_link + '&branch=' + module_branches[branch].id + '" class="btn btn-warning js-module-trade" data-price="' + module_branches[branch].upgrade_price + '">付费升级到【' + module_branches[branch].name + '】</a></div></div>';
 								} else {
 									branch_info += '<a href="javascript:;" class="btn btn-default">已是最新版，无需升级</a></div></div>';
 								}
+							} else if(module_branches[branch]['status'] == 0) {
+								branch_info += '<a href="javascript:;" class="btn btn-default">分支已下架，无法升级</a></div></div>';
 							} else {
 								module_branches[branch].version.version = module_branches[branch].version.version.replace(/\./g, '');
 								current_version = current_version.replace(/\./g, '');
@@ -468,82 +471,80 @@
 	{/if}
 
 	<script type="text/javascript">
-		require(['angular'], function(angular){
-			angular.module('app', []).controller('listInstallModules', function($scope, $http) {
-				$.post('{php echo url('extension/module/check');}', {foo: 'install'},function(dat){
-					try {
-						var ret = $.parseJSON(dat);
-						var recycle_modules = new Array();
-						var i = 0
-						{loop $recycle_modules $m}
-						recycle_modules.push('{$m}');
-						{/loop}
-						if(!$.isArray(ret)) {
-							return;
-						}
-						var res = new Array();
-						$.each(ret, function(){
-							$('div.item[module-name=' + this.name + ']').remove();
-							{if $status}
-								if (recycle_modules.indexOf(this.name) > -1) {
-									{else}
-									if (recycle_modules.indexOf(this.name) < 0) {
-										{/if}
-											var index =ret.indexOf(this);
-											res.push(this);
-										}
-									});
-									if (res.length > 0) {
-										$('#no_module').hide();
-									}
-									$scope.$apply(function(){
-										$scope.modules = res;
-									});
-								}  catch(err) {}
-							});
-						});
-			angular.bootstrap(document, ['app']);
-			//处理批量安装模块
-			var module = {$prepare_module};
-			var module_title = {$prepare_module_title};
-			var total = module.length;
-
-			var i = 1;
-			var fail = [];
-			var success = [];
-
-			var insta = function(){
-				var m_name = module.pop();
-				if(!m_name) {
-					util.message('本次成功安装' + success.length + '个模块.<br>安装失败' + fail.length + '个模块', "{php echo url('extension/module/installed')}", 'info');
-					return;
-				}
-				var pragress = i + '/' + total;
-				$('#m_name').html(module_title[m_name]);
-				$('#pragress').html(pragress);
-
-				$.post("{php echo url('extension/module/batch-install')}", {'m_name' : m_name}, function(data){
-					if(data == 'success') {
-						i++;
-						$('#module-' + m_name).slideUp();
-						success.push(module_title[m_name]);
-						setTimeout(function(){insta()}, 2000);
-					} else {
-						i++;
-						fail.push(module_title[m_name]);
-						$('#fail').html(fail.join('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')).parent().parent().show();
-						setTimeout(function(){insta()}, 2000);
+		angular.module('app', []).controller('listInstallModules', function($scope, $http) {
+			$.post('{php echo url('extension/module/check');}', {foo: 'install'},function(dat){
+				try {
+					var ret = $.parseJSON(dat);
+					var recycle_modules = new Array();
+					var i = 0
+					{loop $recycle_modules $m}
+					recycle_modules.push('{$m}');
+					{/loop}
+					if(!$.isArray(ret)) {
+						return;
 					}
-				});
-			}
+					var res = new Array();
+					$.each(ret, function(){
+						$('div.item[module-name=' + this.name + ']').remove();
+						{if $status}
+							if (recycle_modules.indexOf(this.name) > -1) {
+								{else}
+								if (recycle_modules.indexOf(this.name) < 0) {
+									{/if}
+										var index =ret.indexOf(this);
+										res.push(this);
+									}
+								});
+								if (res.length > 0) {
+									$('#no_module').hide();
+								}
+								$scope.$apply(function(){
+									$scope.modules = res;
+								});
+							}  catch(err) {}
+						});
+					});
+		angular.bootstrap(document, ['app']);
+		//处理批量安装模块
+		var module = {$prepare_module};
+		var module_title = {$prepare_module_title};
+		var total = module.length;
 
-			$('#batch-install').click(function(){
-				if(!confirm('批量安装仅安装本地模块,不能安装行业模块,确定安装？')) {
-					return false;
+		var i = 1;
+		var fail = [];
+		var success = [];
+
+		var insta = function(){
+			var m_name = module.pop();
+			if(!m_name) {
+				util.message('本次成功安装' + success.length + '个模块.<br>安装失败' + fail.length + '个模块', "{php echo url('extension/module/installed')}", 'info');
+				return;
+			}
+			var pragress = i + '/' + total;
+			$('#m_name').html(module_title[m_name]);
+			$('#pragress').html(pragress);
+
+			$.post("{php echo url('extension/module/batch-install')}", {'m_name' : m_name}, function(data){
+				if(data == 'success') {
+					i++;
+					$('#module-' + m_name).slideUp();
+					success.push(module_title[m_name]);
+					setTimeout(function(){insta()}, 2000);
+				} else {
+					i++;
+					fail.push(module_title[m_name]);
+					$('#fail').html(fail.join('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')).parent().parent().show();
+					setTimeout(function(){insta()}, 2000);
 				}
-				$('#install-info').show();
-				insta();
 			});
+		}
+
+		$('#batch-install').click(function(){
+			if(!confirm('批量安装仅安装本地模块,不能安装行业模块,确定安装？')) {
+				return false;
+			}
+			$('#install-info').show();
+			insta();
 		});
 	</script>
 	{/if}
