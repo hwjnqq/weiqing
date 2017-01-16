@@ -1,4 +1,10 @@
 <?php
+/**
+ * 远程附件
+ * [WeEngine System] Copyright (c) 2013 WE7.CC
+ */
+defined('IN_IA') or exit('Access Denied');
+
 function attachment_alioss_datacenters() {
 	$bucket_datacenter = array(
 		'oss-cn-hangzhou' => '杭州数据中心',
@@ -11,7 +17,6 @@ function attachment_alioss_datacenters() {
 	);
 	return $bucket_datacenter;
 }
-
 
 function attachment_newalioss_auth($key, $secret, $bucket){
 	require_once(IA_ROOT.'/framework/library/alioss/autoload.php');
@@ -48,37 +53,12 @@ function attachment_alioss_buctkets($key, $secret) {
 	return $bucketlist;
 }
 
-function attachment_qiniu_change_district($district) {
-	if ($district == 2) {
-		$zonge = IA_ROOT.'/framework/library/qiniu/src/Qiniu/Zone.php';
-		$zonge = file_get_contents($zonge);
-		$zonge = str_replace('http://up.qiniu.com', 'http://up-z1.qiniu.com', $zonge);
-		$zonge = str_replace('http://upload.qiniu.com', 'http://upload-z1.qiniu.com', $zonge);
-		file_put_contents(IA_ROOT.'/framework/library/qiniu/src/Qiniu/Zone.php', $zonge);
-		$config = IA_ROOT.'/framework/library/qiniu/src/Qiniu/Config.php';
-		$config = file_get_contents($config);
-		$config = str_replace('http://iovip.qbox.me', 'http://iovip-z1.qbox.me', $config);
-		file_put_contents(IA_ROOT.'/framework/library/qiniu/src/Qiniu/Config.php', $config);
-	} else {
-		$zonge = IA_ROOT.'/framework/library/qiniu/src/Qiniu/Zone.php';
-		$zonge = file_get_contents($zonge);
-		$zonge = str_replace('http://up-z1.qiniu.com', 'http://up.qiniu.com', $zonge);
-		$zonge = str_replace('http://upload-z1.qiniu.com', 'http://upload.qiniu.com', $zonge);
-		file_put_contents(IA_ROOT.'/framework/library/qiniu/src/Qiniu/Zone.php', $zonge);
-		$config = IA_ROOT.'/framework/library/qiniu/src/Qiniu/Config.php';
-		$config = file_get_contents($config);
-		$config = str_replace('http://iovip-z1.qbox.me', 'http://iovip.qbox.me', $config);
-		file_put_contents(IA_ROOT.'/framework/library/qiniu/src/Qiniu/Config.php', $config);
-	}
-	return true;
-}
-
-function attachment_qiniu_auth($key, $secret,$bucket, $district) {
+function attachment_qiniu_auth($key, $secret,$bucket) {
 	require_once(IA_ROOT . '/framework/library/qiniu/autoload.php');
-	attachment_qiniu_change_district($district);
 	$auth = new Qiniu\Auth($key, $secret);
 	$token = $auth->uploadToken($bucket);
-	$uploadmgr = new Qiniu\Storage\UploadManager();
+	$config = new Qiniu\Config();
+	$uploadmgr = new Qiniu\Storage\UploadManager($config);
 	list($ret, $err) = $uploadmgr->putFile($token, 'MicroEngine.ico', ATTACHMENT_ROOT.'images/global/MicroEngine.ico');
 	if ($err !== null) {
 		$err = (array)$err;
@@ -91,7 +71,21 @@ function attachment_qiniu_auth($key, $secret,$bucket, $district) {
 }
 function attachment_cos_auth($bucket,$appid, $key, $secret) {
 	require_once(IA_ROOT.'/framework/library/cos/include.php');
-	$con = file_get_contents(IA_ROOT.'/framework/library/cos/Qcloud_cos/Conf.php');
+	if (!is_numeric($appid)) {
+		return error(-1, '传入appid值不合法, 请重新输入');
+	}
+	if (!preg_match('/^[a-zA-Z0-9]{36}$/', $key)) {
+		return error(-1, '传入secretid值不合法，请重新传入');
+	}
+	if (!preg_match('/^[a-zA-Z0-9]{32}$/', $secret)) {
+		return error(-1, '传入secretkey值不合法，请重新传入');
+	}
+	$con = $original = @file_get_contents(IA_ROOT.'/framework/library/cos/Qcloud_cos/Conf.php');
+	if (empty($con)) {
+		$conf_content = base64_decode("PD9waHANCm5hbWVzcGFjZSBRY2xvdWRfY29zOw0KDQpjbGFzcyBDb25mDQp7DQogICAgY29uc3QgUEtHX1ZFUlNJT04gPSAndjMuMyc7DQoNCiAgICBjb25zdCBBUElfSU1BR0VfRU5EX1BPSU5UID0gJ2h0dHA6Ly93ZWIuaW1hZ2UubXlxY2xvdWQuY29tL3Bob3Rvcy92MS8nOw0KICAgIGNvbnN0IEFQSV9WSURFT19FTkRfUE9JTlQgPSAnaHR0cDovL3dlYi52aWRlby5teXFjbG91ZC5jb20vdmlkZW9zL3YxLyc7DQogICAgY29uc3QgQVBJX0NPU0FQSV9FTkRfUE9JTlQgPSAnaHR0cDovL3dlYi5maWxlLm15cWNsb3VkLmNvbS9maWxlcy92MS8nOw0KICAgIC8v6K+35YiwaHR0cDovL2NvbnNvbGUucWNsb3VkLmNvbS9jb3Pljrvojrflj5bkvaDnmoRhcHBpZOOAgXNpZOOAgXNrZXkNCiAgICBjb25zdCBBUFBJRCA9ICcnOw0KICAgIGNvbnN0IFNFQ1JFVF9JRCA9ICcnOw0KICAgIGNvbnN0IFNFQ1JFVF9LRVkgPSAnJzsNCg0KDQogICAgcHVibGljIHN0YXRpYyBmdW5jdGlvbiBnZXRVQSgpIHsNCiAgICAgICAgcmV0dXJuICdjb3MtcGhwLXNkay0nLnNlbGY6OlBLR19WRVJTSU9OOw0KICAgIH0NCn0NCg0KLy9lbmQgb2Ygc2NyaXB0DQo=");
+		file_put_contents(IA_ROOT.'/framework/library/cos/Qcloud_cos/Conf.php', $conf_content);
+		$con = $original = $conf_content;
+	}
 	$con = preg_replace('/const[\s]APPID[\s]=[\s]\'.*\';/', 'const APPID = \''.$appid.'\';', $con);
 	$con = preg_replace('/const[\s]SECRET_ID[\s]=[\s]\'.*\';/', 'const SECRET_ID = \''.$key.'\';', $con);
 	$con = preg_replace('/const[\s]SECRET_KEY[\s]=[\s]\'.*\';/', 'const SECRET_KEY = \''.$secret.'\';', $con);
@@ -112,6 +106,7 @@ function attachment_cos_auth($bucket,$appid, $key, $secret) {
 				$message = '输入的bucket有误';
 				break;
 		}
+		file_put_contents(IA_ROOT.'/framework/library/cos/Qcloud_cos/Conf.php', $original);
 		return error(-1, $message);
 	}
 	return true;

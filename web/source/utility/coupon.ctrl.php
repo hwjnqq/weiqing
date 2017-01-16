@@ -15,7 +15,7 @@ if (!in_array($do, array('local', 'wechat'))) {
 }
 
 if ($do == 'wechat') {
-	$condition = ' WHERE uniacid = :uniacid AND is_display = 1 AND source = :source AND quantity > 0';
+	$condition = ' WHERE uniacid = :uniacid AND is_display = 1 AND status = 3 AND source = :source AND quantity > 0';
 	$param = array(
 		':uniacid' => $_W['uniacid'],
 		':source' => COUPON_TYPE,

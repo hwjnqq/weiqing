@@ -171,7 +171,7 @@ if ($do == 'addcard') {
 		if (is_error($card)) {
 			message(error(1, $card['message']), '', 'ajax');
 		} else {
-			message(error(0, $card), url('activity/coupon/mine'), 'ajax');
+			message(error(0, $card), murl('entry', array('do' => 'activity', 'm' => 'we7_coupon', 'type' => 'coupon', 'op' => 'mine')), 'ajax');
 		}
 	}
 }

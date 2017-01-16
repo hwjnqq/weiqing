@@ -43,24 +43,21 @@ if(!empty($dat) && !empty($dat['content'])) {
 	$reply = $dat['content'];
 	preg_match ('/查询结果如下所示.+/', $reply, $matchs);
 	$reply = $matchs[0];
-	if (empty($reply)) {
-		preg_match('/errordiv.*?<p.*?>(.+?)<\/p>{1}/', $dat['content'], $matchs);
-		$msg = ', 错误信息为: ' . $matchs[1];
-	} else {
-		preg_match_all('/&middot;(.*?)<br \/>(.*?)<\/p>/', $reply, $matchs);
-		$traces = '';
-		for ($i = 0; $i < count($matchs[0]); $i++ ) {
-			$traces .= $matchs[1][$i]. '-'. $matchs[2][$i]. PHP_EOL;
-		}
-		$replys = array();
-		$replys[] = array(
-			'title' => '已经为你查到相关快递记录:',
-			'picurl' => $images[$code],
-			'description' => $traces,
-			'url' => 'http://m.kuaidi100.com/index_all.html?type='.$code.'&postid='.$sn,
-		);
-		return $this->respNews ($replys);
+
+	preg_match_all('/&middot;(.*?)<br \/>(.*?)<\/p>/', $reply, $matchs);
+	$traces = '';
+	for ($i = 0; $i < count($matchs[0]); $i++ ) {
+		$traces .= $matchs[1][$i]. '-'. $matchs[2][$i]. PHP_EOL;
 	}
+	$replys = array();
+	$replys[] = array(
+		'title' => '已经为你查到相关快递记录:',
+		'picurl' => $images[$code],
+		'description' => $traces,
+		'url' => 'http://m.kuaidi100.com/index_all.html?type='.$code.'&postid='.$sn,
+	);
+	return $this->respNews ($replys);
+
 }
 return $this->respText ('没有查找到相关的数据' . $msg . '. 请重新发送或检查您的输入格式, 正确格式为: 快递公司+空格+单号, 例如: 申通 2309381801');
 

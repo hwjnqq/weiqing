@@ -1041,7 +1041,7 @@ function account_delete($acid) {
 		$tables = array(
 			'account','account_wechats',
 			'activity_clerks',
-			'activity_coupon_record','activity_exchange','activity_exchange_trades','activity_exchange_trades_shipping',
+			'activity_exchange','activity_exchange_trades','activity_exchange_trades_shipping',
 			'activity_modules', 'core_attachment','core_paylog','core_queue','core_resource',
 			'wechat_attachment','coupon','coupon_modules',
 			'coupon_record', 'cover_reply', 'mc_card','mc_card_members','mc_chats_record','mc_credits_recharge','mc_credits_record',

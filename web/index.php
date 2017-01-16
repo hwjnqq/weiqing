@@ -42,12 +42,12 @@ $acl = array(
 		)
 	),
 	'extension' => array(
-		'direct' => array(),
+		'direct' => array('subscribe'),
 		'founder' => array(
 			'module',
 			'service',
 			'theme',
-			'subscribe',
+			'menu'
 		)
 	),
 	'site' => array(
@@ -201,7 +201,7 @@ if ((ENDTIME - STARTTIME) > $_W['config']['setting']['maxtimeurl']) {
 	$data = array(
 		'type' => '1',
 		'runtime' => ENDTIME - STARTTIME,
-		'runurl' => $_W['sitescheme'].$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
+		'runurl' => '//'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
 		'createtime' => TIMESTAMP
 	);
 	pdo_insert('core_performance', $data);

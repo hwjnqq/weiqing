@@ -96,7 +96,6 @@ if ($do == 'global') {
 				'accesskey' => trim($_GPC['qiniu']['accesskey']),
 				'secretkey' => strexists($_GPC['qiniu']['secretkey'], '*') ? $_W['setting']['remote']['qiniu']['secretkey'] : trim($_GPC['qiniu']['secretkey']),
 				'bucket' => trim($_GPC['qiniu']['bucket']),
-				'district' => intval($_GPC['qiniu']['district']),
 				'url' => trim($_GPC['qiniu']['url'])
 			),
 			'cos' => array(
@@ -156,7 +155,7 @@ if ($do == 'global') {
 			} else {
 				$remote['qiniu']['url'] = strexists($remote['qiniu']['url'], 'http') ? trim($remote['qiniu']['url'], '/') : 'http://'. trim($remote['qiniu']['url'], '/');
 			}
-			$auth = attachment_qiniu_auth($remote['qiniu']['accesskey'], $remote['qiniu']['secretkey'], $remote['qiniu']['bucket'], $remote['qiniu']['district']);
+			$auth = attachment_qiniu_auth($remote['qiniu']['accesskey'], $remote['qiniu']['secretkey'], $remote['qiniu']['bucket']);
 			if (is_error($auth)) {
 				$message = $auth['message']['error'] == 'bad token' ? 'Accesskey或Secretkey填写错误， 请检查后重新提交' : 'bucket填写错误或是bucket所对应的存储区域选择错误，请检查后重新提交';
 				message($message, referer(), 'info');
@@ -183,6 +182,7 @@ if ($do == 'global') {
 				$remote['cos']['url'] = strexists($remote['cos']['url'], 'http') ? trim($remote['cos']['url'], '/') : 'http://'. trim($remote['cos']['url'], '/');
 			}
 			$auth = attachment_cos_auth($remote['cos']['bucket'], $remote['cos']['appid'], $remote['cos']['secretid'], $remote['cos']['secretkey']);
+
 			if (is_error($auth)) {
 				message($auth['message'], referer(), 'info');
 			}
@@ -191,7 +191,7 @@ if ($do == 'global') {
 		message('远程附件配置信息更新成功！', url('system/attachment/remote'));
 	}
 	$remote = $_W['setting']['remote'];
-	if (!empty($remote['alioss']['key']) && !empty($remote['alioss']['secret'])) {
+	if ($remote['type'] == ATTACH_OSS && !empty($remote['alioss']['key']) && !empty($remote['alioss']['secret'])) {
 		$buckets = attachment_alioss_buctkets($remote['alioss']['key'], $remote['alioss']['secret']);
 	}
 	$bucket_datacenter = attachment_alioss_datacenters();

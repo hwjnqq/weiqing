@@ -3,7 +3,7 @@
 	{if $do == 'list'}
 	<ol class="breadcrumb">
 		<li><a href="./index.php">系统首页</a></li>
-		<li><a href="{php echo url('article/notice-show/list');}">新闻列表</a></li>
+		<li><a href="{php echo url('article/news-show/list');}">新闻列表</a></li>
 		<li class="active">{if !$cateid}所有新闻{else}{$categroys[$cateid]['title']}{/if}</li>
 	</ol>
 	<div class="category-btn">

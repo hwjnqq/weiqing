@@ -1,99 +1,5 @@
 {php $newUI = true;}
 {template 'common/header'}
-<script type="text/javascript">
-	require(['angular'], function(angular){
-		angular.module('app', []).controller('ucSetting', function($scope, $http) {
-			$scope.uc = {php echo json_encode($uc);};
-		});
-		angular.bootstrap(document, ['app']);
-		//处理快速录入
-		$("#submit").click(function(){
-			var textarea = $("#textarea").val();
-			var arr = textarea.split(';');
-			var data = new Array();
-			for(var i in arr) {
-				var index0 = arr[i].indexOf("UC");
-				var index1 = arr[i].indexOf("', '");
-				var index2 = arr[i].indexOf("')");
-				var key = arr[i].substring(index0,index1);
-				var value = arr[i].substring(index1+4,index2);
-				data[key] = value;
-			}
-			var $scope = angular.element('#form1').scope();
-			$scope.uc.connect = data['UC_CONNECT'];
-			$scope.uc.appid = data['UC_APPID'];
-			$scope.uc.key = data['UC_KEY'];
-			$scope.uc.charset = data['UC_CHARSET'];
-			$scope.uc.dbhost = data['UC_DBHOST'];
-			$scope.uc.dbuser = data['UC_DBUSER'];
-			$scope.uc.dbname = data['UC_DBNAME'];
-			$scope.uc.dbpw = data['UC_DBPW'];
-			$scope.uc.dbcharset = data['UC_DBCHARSET'];
-			$scope.uc.dbtablepre = data['UC_DBTABLEPRE'];
-			$scope.uc.dbconnect = data['UC_DBCONNECT'];
-			$scope.uc.api = data['UC_API'];
-			$scope.uc.ip = data['UC_IP'];
-			
-			$scope.$digest();
-		});
-		$("#form1").submit(function(){
-			if($(':radio[name="status"]:checked').val()=='1'){
-				if($.trim($(':text[name="title"]').val()) == '') {
-					util.message('必须输入通行证名称.', '', 'error');
-					return false;
-				}
-				var appid = parseInt($(':text[name="appid"]').val());
-				if(isNaN(appid)) {
-					util.message('必须输入UCenter应用的ID.', '', 'error');
-					return false;
-				}
-				if($.trim($(':text[name="key"]').val()) == '') {
-					util.message('必须输入与UCenter的通信密钥.', '', 'error');
-					return false;
-				}
-				if($.trim($(':text[name="charset"]').val()) == '') {
-					util.message('必须输入UCenter的字符集.', '', 'error');
-					return false;
-				}
-				if($(':radio[name="connect"]:checked').val() == 'mysql') {
-					if($.trim($(':text[name="dbhost"]').val()) == '') {
-						util.message('必须输入UCenter数据库主机地址.', '', 'error');
-						return false;
-					}
-					if($.trim($(':text[name="dbuser"]').val()) == '') {
-						util.message('必须输入UCenter数据库用户名.', '', 'error');
-						return false;
-					}
-					if($.trim($(':text[name="dbpw"]').val()) == '') {
-						util.message('必须输入UCenter数据库密码.', '', 'error');
-						return false;
-					}
-					if($.trim($(':text[name="dbname"]').val()) == '') {
-						util.message('必须输入UCenter数据库名称.', '', 'error');
-						return false;
-					}
-					if($.trim($(':text[name="dbcharset"]').val()) == '') {
-						util.message('必须输入UCenter数据库字符集.', '', 'error');
-						return false;
-					}
-					if($.trim($(':text[name="dbtablepre"]').val()) == '') {
-						util.message('必须输入UCenter数据表前缀.', '', 'error');
-						return false;
-					}
-				} else if($(':radio[name="connect"]:checked').val() == 'http'){
-					if($.trim($(':text[name="api"]').val()) == '') {
-						util.message('必须输入UCenter 服务端的URL地址.', '', 'error');
-						return false;
-					}
-					if($.trim($(':text[name="ip"]').val()) == '') {
-						util.message('必须输入UCenter的IP.', '', 'error');
-						return false;
-					}
-				}
-			}
-		});
-	});
-</script>
 <ul class="nav nav-tabs">
 	<li class="active"><a href="{php echo url('mc/uc')}"><i class="icon-user"></i> UC站点整合</a></li>
 </ul>
@@ -251,4 +157,96 @@
 		</div>
 	</form>
 </div>
+<script type="text/javascript">
+	angular.module('app', []).controller('ucSetting', function($scope, $http) {
+		$scope.uc = {php echo json_encode($uc);};
+	});
+	angular.bootstrap(document, ['app']);
+	//处理快速录入
+	$("#submit").click(function(){
+		var textarea = $("#textarea").val();
+		var arr = textarea.split(';');
+		var data = new Array();
+		for(var i in arr) {
+			var index0 = arr[i].indexOf("UC");
+			var index1 = arr[i].indexOf("', '");
+			var index2 = arr[i].indexOf("')");
+			var key = arr[i].substring(index0,index1);
+			var value = arr[i].substring(index1+4,index2);
+			data[key] = value;
+		}
+		var $scope = angular.element('#form1').scope();
+		$scope.uc.connect = data['UC_CONNECT'];
+		$scope.uc.appid = data['UC_APPID'];
+		$scope.uc.key = data['UC_KEY'];
+		$scope.uc.charset = data['UC_CHARSET'];
+		$scope.uc.dbhost = data['UC_DBHOST'];
+		$scope.uc.dbuser = data['UC_DBUSER'];
+		$scope.uc.dbname = data['UC_DBNAME'];
+		$scope.uc.dbpw = data['UC_DBPW'];
+		$scope.uc.dbcharset = data['UC_DBCHARSET'];
+		$scope.uc.dbtablepre = data['UC_DBTABLEPRE'];
+		$scope.uc.dbconnect = data['UC_DBCONNECT'];
+		$scope.uc.api = data['UC_API'];
+		$scope.uc.ip = data['UC_IP'];
+		
+		$scope.$digest();
+	});
+	$("#form1").submit(function(){
+		if($(':radio[name="status"]:checked').val()=='1'){
+			if($.trim($(':text[name="title"]').val()) == '') {
+				util.message('必须输入通行证名称.', '', 'error');
+				return false;
+			}
+			var appid = parseInt($(':text[name="appid"]').val());
+			if(isNaN(appid)) {
+				util.message('必须输入UCenter应用的ID.', '', 'error');
+				return false;
+			}
+			if($.trim($(':text[name="key"]').val()) == '') {
+				util.message('必须输入与UCenter的通信密钥.', '', 'error');
+				return false;
+			}
+			if($.trim($(':text[name="charset"]').val()) == '') {
+				util.message('必须输入UCenter的字符集.', '', 'error');
+				return false;
+			}
+			if($(':radio[name="connect"]:checked').val() == 'mysql') {
+				if($.trim($(':text[name="dbhost"]').val()) == '') {
+					util.message('必须输入UCenter数据库主机地址.', '', 'error');
+					return false;
+				}
+				if($.trim($(':text[name="dbuser"]').val()) == '') {
+					util.message('必须输入UCenter数据库用户名.', '', 'error');
+					return false;
+				}
+				if($.trim($(':text[name="dbpw"]').val()) == '') {
+					util.message('必须输入UCenter数据库密码.', '', 'error');
+					return false;
+				}
+				if($.trim($(':text[name="dbname"]').val()) == '') {
+					util.message('必须输入UCenter数据库名称.', '', 'error');
+					return false;
+				}
+				if($.trim($(':text[name="dbcharset"]').val()) == '') {
+					util.message('必须输入UCenter数据库字符集.', '', 'error');
+					return false;
+				}
+				if($.trim($(':text[name="dbtablepre"]').val()) == '') {
+					util.message('必须输入UCenter数据表前缀.', '', 'error');
+					return false;
+				}
+			} else if($(':radio[name="connect"]:checked').val() == 'http'){
+				if($.trim($(':text[name="api"]').val()) == '') {
+					util.message('必须输入UCenter 服务端的URL地址.', '', 'error');
+					return false;
+				}
+				if($.trim($(':text[name="ip"]').val()) == '') {
+					util.message('必须输入UCenter的IP.', '', 'error');
+					return false;
+				}
+			}
+		}
+	});
+</script>
 {template 'common/footer'}

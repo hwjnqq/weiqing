@@ -1698,6 +1698,7 @@ function mc_init_fans_info($old_fan_info){
 			'followtime' => $fan['subscribe_time'],
 			'nickname' => stripcslashes($fan['nickname']),
 			'tag' => base64_encode(iserializer($fan)),
+			'unionid' => $fan['unionid'],
 			'groupid' => !empty($fan['tagid_list']) ? (','.join(',', $fan['tagid_list']).',') : '',
 		);
 		if (!empty($fan['tagid_list'])) {
@@ -1828,6 +1829,7 @@ function mc_card_settings_hide($item = '') {
 	}
 	return false;
 }
+
 /**
  * 用户消费返积分
  * @param 	string 		$openid 		粉丝openid字段

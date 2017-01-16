@@ -335,7 +335,6 @@
 	</div>
 </div>
 <script>
-require(['angular', 'underscore'], function(angular, _){
 	angular.module('app', []).controller('microPay', function($scope, $http){
 		var card_set_str = '{$card_set_str}';
 		var card = $.parseJSON(card_set_str);
@@ -480,7 +479,6 @@ require(['angular', 'underscore'], function(angular, _){
 		}
 	});
 	angular.bootstrap($('#microPay')[0], ['app']);
-});
 
 	require(['jquery.qrcode'], function(){
 		$('.card-submit').click(function(){

@@ -41,48 +41,46 @@
 		</dl>
 	</div>
 	<script>
-		require(['angular'], function(angular){
-			angular.module('app', []).controller('processor', function($scope, $http){
-				$scope.files = {php echo json_encode($packet['files']);};
-				$scope.fails = [];
-				var total = $scope.files.length;
-				var i = 1;
-				var errormsg = '';
-				var proc = function() {
-					var path = $scope.files.pop();
-					if(!path) {
-						if($scope.fails.length == 0 || confirm('有部分文件未成功更新, 错误信息：' + errormsg + ', 是否继续下一步？')) {
-							setTimeout(function(){
-								{if $packet['type'] == 'theme'}
-								location.href = '{url "cloud/process/" array("step" => "schemas", "t" => $m, "is_upgrade" => $is_upgrade)}';
-								{else}
-								location.href = '{url "cloud/process/" array("step" => "schemas", "m" => $m, "is_upgrade" => $is_upgrade)}';
-								{/if}
-								
-							}, 2000);
-						}
-						return;
+		angular.module('app', []).controller('processor', function($scope, $http){
+			$scope.files = {php echo json_encode($packet['files']);};
+			$scope.fails = [];
+			var total = $scope.files.length;
+			var i = 1;
+			var errormsg = '';
+			var proc = function() {
+				var path = $scope.files.pop();
+				if(!path) {
+					if($scope.fails.length == 0 || confirm('有部分文件未成功更新, 错误信息：' + errormsg + ', 是否继续下一步？')) {
+						setTimeout(function(){
+							{if $packet['type'] == 'theme'}
+							location.href = '{url "cloud/process/" array("step" => "schemas", "t" => $m, "is_upgrade" => $is_upgrade)}';
+							{else}
+							location.href = '{url "cloud/process/" array("step" => "schemas", "m" => $m, "is_upgrade" => $is_upgrade)}';
+							{/if}
+							
+						}, 2000);
 					}
-					$scope.file = path;
-					$scope.pragress = i + '/' + total;
-					var params = {path: path, type : '{php echo $packet['type']}'};
-					$http.post(location.href, params).success(function(dat){
-						i++;
-						if(dat != 'success') {
-							$scope.fails.push('['+dat+'] ' + path);
-							errormsg = dat;
-						}
-						proc();
-					}).error(function(){
-						i++;
-						$scope.fails.push(path);
-						proc();
-					});
+					return;
 				}
-				proc();
-			});
-			angular.bootstrap(document, ['app']);
+				$scope.file = path;
+				$scope.pragress = i + '/' + total;
+				var params = {path: path, type : '{php echo $packet['type']}'};
+				$http.post(location.href, params).success(function(dat){
+					i++;
+					if(dat != 'success') {
+						$scope.fails.push('['+dat+'] ' + path);
+						errormsg = dat;
+					}
+					proc();
+				}).error(function(){
+					i++;
+					$scope.fails.push(path);
+					proc();
+				});
+			}
+			proc();
 		});
+		angular.bootstrap(document, ['app']);
 	</script>
 	{/if}
 	{if $step == 'schemas'}
@@ -128,58 +126,56 @@
 			</dl>
 		</div>
 		<script>
-			require(['angular', 'util'], function(angular, u){
-				angular.module('app', []).controller('processor', function($scope, $http){
-					$scope.schemas = {php echo json_encode($schemas);};
-					$scope.fails = [];
-					var is_m_install = "{php echo $packet['install']}";
-					var total = $scope.schemas.length;
-					var i = 1;
-					var error = function() {
-						require(['util'], function(u){
-							u.message('未能成功执行处理数据库, 请联系开发商解决. ');
-						});
-					}
-					var proc = function() {
-						var schema = $scope.schemas.pop();
-						if(!schema) {
-							if($scope.fails.length > 0) {
-								error();
-								return;
-							} else {
-								setTimeout(function(){
-									if(is_m_install == 1) {
-										location.href = '{url "extension/module/install" array("m" => $m, "flag" => 1)}';
-									} else {
-										location.href = '{url "cloud/process" array("step" => "scripts", "m" => $m, "is_upgrade" => $is_upgrade, "is_confirm" => 1)}';
-									}
-								}, 2000);
-								return;
-							}
+			angular.module('app', []).controller('processor', function($scope, $http){
+				$scope.schemas = {php echo json_encode($schemas);};
+				$scope.fails = [];
+				var is_m_install = "{php echo $packet['install']}";
+				var total = $scope.schemas.length;
+				var i = 1;
+				var error = function() {
+					require(['util'], function(u){
+						u.message('未能成功执行处理数据库, 请联系开发商解决. ');
+					});
+				}
+				var proc = function() {
+					var schema = $scope.schemas.pop();
+					if(!schema) {
+						if($scope.fails.length > 0) {
+							error();
+							return;
+						} else {
+							setTimeout(function(){
+								if(is_m_install == 1) {
+									location.href = '{url "extension/module/install" array("m" => $m, "flag" => 1)}';
+								} else {
+									location.href = '{url "cloud/process" array("step" => "scripts", "m" => $m, "is_upgrade" => $is_upgrade, "is_confirm" => 1)}';
+								}
+							}, 2000);
+							return;
 						}
-						$scope.schema = schema;
-						$scope.pragress = i + '/' + total;
-						var params = {table: schema};
-						$http.post(location.href, params).success(function(dat){
-							i++;
-							if(dat != 'success') {
-								$scope.fails.push(schema)
-							}
-							if (dat['message']) {
-								u.message(dat['message']);
-								return;
-							}
-							proc();
-						}).error(function(){
-							i++;
-							$scope.fails.push(schema);
-							proc();
-						});
 					}
-					proc();
-				});
-				angular.bootstrap(document, ['app']);
+					$scope.schema = schema;
+					$scope.pragress = i + '/' + total;
+					var params = {table: schema};
+					$http.post(location.href, params).success(function(dat){
+						i++;
+						if(dat != 'success') {
+							$scope.fails.push(schema)
+						}
+						if (dat['message']) {
+							u.message(dat['message']);
+							return;
+						}
+						proc();
+					}).error(function(){
+						i++;
+						$scope.fails.push(schema);
+						proc();
+					});
+				}
+				proc();
 			});
+			angular.bootstrap(document, ['app']);
 		</script>
 	{/if}
 	{if $step == 'scripts'}
@@ -230,67 +226,65 @@
 			</dl>
 		</div>
 		<script>
-			require(['angular'], function(angular){
-				angular.module('app', []).controller('processor', function($scope, $http){
-					$scope.scripts = {php echo json_encode($scripts);};
-					$scope.fails = [];
-					
-					var is_upgrade = "{php echo $is_upgrade}";
-					var total = $scope.scripts.length;
-					var i = 1;
-					var error = function() {
-						require(['util'], function(u){
-							u.message('未能成功执行清理升级操作, 请联系开发商. ');
-						});
-					}
-					var proc = function() {
-						var script = $scope.scripts.shift();
-						if(!script) {
-							if($scope.fails.length > 0) {
-								error();
-							} else {
-								if(is_upgrade == 1) {
-									location.href = '{url "extension/module/upgrade" array("m" => $m, "flag" => 1)}';
-									return;
-								}
-								
-								var is_confirm = "{php echo $_GPC['is_confirm']}";
-								if(is_confirm == 1) {
-										if(confirm('已经成功执行升级操作! '+"\n"+' 由于数据库更新, 可能会产生多余的字段. 你可以按照需要删除')) {
-										location.href = '{url "system/database/trim"}';
-									} else {
-										location.href = '{url "cloud/upgrade"}';
-									}
-								} else {
-									require(['util'], function(u){
-										u.message('已经成功执行升级操作! '+"\n"+' 由于数据库更新, 可能会产生多余的字段. 你可以按照需要删除.', '{url "system/database/trim"}');
-									});
-								}
-								return;
-							}
-						}
-						$scope.script = script.fname;
-						$scope.message = script.message;
-						$scope.pragress = i + '/' + total;
-						var params = {fname: script.fname};
-						$http.post(location.href, params).success(function(dat){
-							i++;
-							if(dat != 'success') {
-								$scope.fails.push(script.fname)
-								error();
-								return;
-							}
-							proc();
-						}).error(function(){
-							i++;
-							$scope.fails.push(script.fname);
+			angular.module('app', []).controller('processor', function($scope, $http){
+				$scope.scripts = {php echo json_encode($scripts);};
+				$scope.fails = [];
+				
+				var is_upgrade = "{php echo $is_upgrade}";
+				var total = $scope.scripts.length;
+				var i = 1;
+				var error = function() {
+					require(['util'], function(u){
+						u.message('未能成功执行清理升级操作, 请联系开发商. ');
+					});
+				}
+				var proc = function() {
+					var script = $scope.scripts.shift();
+					if(!script) {
+						if($scope.fails.length > 0) {
 							error();
-						});
+						} else {
+							if(is_upgrade == 1) {
+								location.href = '{url "extension/module/upgrade" array("m" => $m, "flag" => 1)}';
+								return;
+							}
+							
+							var is_confirm = "{php echo $_GPC['is_confirm']}";
+							if(is_confirm == 1) {
+									if(confirm('已经成功执行升级操作! '+"\n"+' 由于数据库更新, 可能会产生多余的字段. 你可以按照需要删除')) {
+									location.href = '{url "system/database/trim"}';
+								} else {
+									location.href = '{url "cloud/upgrade"}';
+								}
+							} else {
+								require(['util'], function(u){
+									u.message('已经成功执行升级操作! '+"\n"+' 由于数据库更新, 可能会产生多余的字段. 你可以按照需要删除.', '{url "system/database/trim"}');
+								});
+							}
+							return;
+						}
 					}
-					proc();
-				});
-				angular.bootstrap(document, ['app']);
+					$scope.script = script.fname;
+					$scope.message = script.message;
+					$scope.pragress = i + '/' + total;
+					var params = {fname: script.fname};
+					$http.post(location.href, params).success(function(dat){
+						i++;
+						if(dat != 'success') {
+							$scope.fails.push(script.fname)
+							error();
+							return;
+						}
+						proc();
+					}).error(function(){
+						i++;
+						$scope.fails.push(script.fname);
+						error();
+					});
+				}
+				proc();
 			});
+			angular.bootstrap(document, ['app']);
 		</script>
 	{/if}
 </div>

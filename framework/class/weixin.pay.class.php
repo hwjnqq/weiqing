@@ -344,6 +344,7 @@ EOF;
 			'prepay_id' => $result['prepay_id'],
 			'nonce_str' =>  random(32),
 			'result_code' => 'SUCCESS',
+			'code_url' => $result['code_url'],
 		);
 		$params['sign'] = $this->bulidSign($params);
 		return $params;

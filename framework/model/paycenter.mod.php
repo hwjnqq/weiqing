@@ -49,7 +49,7 @@ function paycenter_order_trade_types() {
 function paycenter_check_login() {
 	global $_W, $_GPC;
 	if(empty($_W['uid']) && $_GPC['do'] != 'login') {
-		message('抱歉，您无权进行该操作，请先登录', murl('entry', array('m' => 'paycenter', 'do' => 'login'), true, true), 'error');
+		message('抱歉，您无权进行该操作，请先登录', murl('entry', array('m' => 'we7_coupon', 'do' => 'clerk', 'op' => 'login'), true, true), 'error');
 	}
 	if($_W['user']['type'] == ACCOUNT_OPERATE_CLERK) {
 		isetcookie('__uniacid', $_W['user']['uniacid'], 7 * 86400);

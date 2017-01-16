@@ -354,6 +354,7 @@ class WeEngine {
 		if(!empty($fans)) {
 			if ($message['event'] == 'unsubscribe') {
 				pdo_update('mc_mapping_fans', array('follow' => 0, 'unfollowtime' => TIMESTAMP), array('fanid' => $fans['fanid']));
+				pdo_delete('mc_fans_tag_mapping', array('fanid' => $fans['fanid']));
 			} elseif ($message['event'] != 'ShakearoundUserShake' && $message['type'] != 'trace') {
 				$rec = array();
 				if (empty($fans['follow'])) {
@@ -581,6 +582,9 @@ class WeEngine {
 			$qr = pdo_fetch("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE {$scene_condition} AND `uniacid` = '{$_W['uniacid']}'");
 			if(!empty($qr)) {
 				$message['content'] = $qr['keyword'];
+				if (!empty($qr['type']) && $qr['type'] == 'scene') {
+					$message['msgtype'] = 'text';
+				}
 				$params += $this->analyzeText($message);
 				return $params;
 			}
@@ -610,10 +614,28 @@ class WeEngine {
 				$scene_condition = " `scene_str` = '{$sceneid}'";
 			}
 			$qr = pdo_fetch("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE {$scene_condition} AND `uniacid` = '{$_W['uniacid']}'");
-			if(!empty($qr)) {
-				$message['content'] = $qr['keyword'];
-				$params += $this->analyzeText($message);
+	
+		}
+		if (empty($qr) && !empty($message['ticket'])) {
+			$message['source'] = 'qr';
+			$ticket = trim($message['ticket']);
+			if(!empty($ticket)) {
+				$qr = pdo_fetchall("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE `uniacid` = '{$_W['uniacid']}' AND ticket = '{$ticket}'");
+				if(!empty($qr)) {
+					if(count($qr) != 1) {
+						$qr = array();
+					} else {
+						$qr = $qr[0];
+					}
+				}
 			}
+		}
+		if(!empty($qr)) {
+			$message['content'] = $qr['keyword'];
+			if (!empty($qr['type']) && $qr['type'] == 'scene') {
+				$message['msgtype'] = 'text';
+			}
+			$params += $this->analyzeText($message);
 		}
 		return $params;
 	}
@@ -677,6 +699,9 @@ EOF;
 		if (strtolower($message['event']) == 'click') {
 			$message['content'] = strval($message['eventkey']);
 			return $this->analyzeClick($message);
+		}
+		if (strtolower($message['event']) == 'user_gifting_card') {
+			return $this->analyzeCoupon($message);
 		}
 		if (in_array($message['event'], array('pic_photo_or_album', 'pic_weixin', 'pic_sysphoto'))) {
 			pdo_query("DELETE FROM ".tablename('menu_event')." WHERE createtime < '".($GLOBALS['_W']['timestamp'] - 100)."' OR openid = '{$message['from']}'");
@@ -791,26 +816,23 @@ EOF;
 				if (!empty($coupon_record)) {
 					pdo_update('coupon_record', array('code' => trim($message['usercardcode'])),array('id' => $coupon_record['id']));
 				} else {
-					$qrcode_info = pdo_get('qrcode', array('qrcid' => $message['outerid']));
-					if (!empty($qrcode_info)) {
-						$fans_info = mc_fansinfo($message['fromusername']);
-						$coupon_info = pdo_get('coupon', array('card_id' => $message['cardid']));
-						$pcount = pdo_fetchcolumn("SELECT count(*) FROM " . tablename('coupon_record') . " WHERE `openid` = :openid AND `couponid` = :couponid", array(':couponid' => $coupon_info['id'], ':openid' => trim($message['fromusername'])));
-						if ($pcount < $coupon_info['get_limit'] && $coupon_info['quantity'] > 0) {
-							$insert_data = array(
-								'uniacid' => $qrcode_info['uniacid'],
-								'card_id' => $message['cardid'],
-								'openid' => $message['fromusername'],
-								'code' => $message['usercardcode'],
-								'addtime' => TIMESTAMP,
-								'status' => '1',
-								'uid' => $fans_info['uid'],
-								'remark' => '用户通过投放扫码',
-								'couponid' => $coupon_info['id']
-							);
-							pdo_insert('coupon_record', $insert_data);
-							pdo_update('coupon', array('quantity' => $coupon_info['quantity'] - 1, 'dosage' => $coupon_info['dosage'] + 1), array('uniacid' => $qrcode_info['uniacid'],'id' => $coupon_info['id']));
-						}
+					$fans_info = mc_fansinfo($message['fromusername']);
+					$coupon_info = pdo_get('coupon', array('card_id' => $message['cardid']));
+					$pcount = pdo_fetchcolumn("SELECT count(*) FROM " . tablename('coupon_record') . " WHERE `openid` = :openid AND `couponid` = :couponid", array(':couponid' => $coupon_info['id'], ':openid' => trim($message['fromusername'])));
+					if ($pcount < $coupon_info['get_limit'] && $coupon_info['quantity'] > 0) {
+						$insert_data = array(
+							'uniacid' => $fans_info['uniacid'],
+							'card_id' => $message['cardid'],
+							'openid' => $message['fromusername'],
+							'code' => $message['usercardcode'],
+							'addtime' => TIMESTAMP,
+							'status' => '1',
+							'uid' => $fans_info['uid'],
+							'remark' => '用户通过投放扫码',
+							'couponid' => $coupon_info['id']
+						);
+						pdo_insert('coupon_record', $insert_data);
+						pdo_update('coupon', array('quantity' => $coupon_info['quantity'] - 1, 'dosage' => $coupon_info['dosage'] + 1), array('uniacid' => $fans_info['uniacid'],'id' => $coupon_info['id']));
 					}
 				}
 			} else {
@@ -861,7 +883,7 @@ EOF;
 			} else {
 				$params[] = array(
 					'message' => $this->message,
-					'module' => $df[$type]['module'],
+					'module' => is_array($df[$type]) ? $df[$type]['module'] : $df[$type],
 					'rule' => '-1',
 				);
 				return $params;

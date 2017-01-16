@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * 检测远程附件
  * $sn: pro/web/source/utility/checkupgrade.ctrl.php : v 1b4cf3499c79 : 2015/03/13 09:56:35 : RenChao $
@@ -85,7 +85,7 @@ if ($do == 'oss') {
 if ($do == 'qiniu') {
 	load()->model('attachment');
 	$_GPC['secretkey'] = strexists($_GPC['secretkey'], '*') ? $_W['setting']['remote']['qiniu']['secretkey'] : $_GPC['secretkey'];
-	$auth= attachment_qiniu_auth(trim($_GPC['accesskey']), trim($_GPC['secretkey']), trim($_GPC['bucket']), $_GPC['district']);
+	$auth= attachment_qiniu_auth(trim($_GPC['accesskey']), trim($_GPC['secretkey']), trim($_GPC['bucket']));
 	if (is_error($auth)) {
 		message(error(-1, '配置失败，请检查配置。注：请检查存储区域是否选择的是和bucket对应<br/>的区域'), '', 'ajax');
 	}
@@ -121,7 +121,7 @@ if ($do == 'cos') {
 	$auth= attachment_cos_auth(trim($_GPC['bucket']), trim($_GPC['appid']), trim($_GPC['secretid']), trim($_GPC['secretkey']));
 
 	if (is_error($auth)) {
-		message(error(-1, '配置失败，请检查配置'), '', 'ajax');
+		message(error(-1, $auth['message']), '', 'ajax');
 	}
 	load()->func('communication');
 	$url = strexists($url, 'http') ? trim($url, '/') : 'http://'.trim($url, '/');

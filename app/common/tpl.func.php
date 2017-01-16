@@ -5,15 +5,24 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-function _tpl_form_field_date($name, $value = '', $withtime = false) {
-	if (empty($value)) {
-		$value = array(
-			'year' => date('Y', time()),
-			'month' => date('m', time()),
-			'day' => date('d', time())
-		);
+function _tpl_form_field_date($name, $values = '', $withtime = false) {
+	$html = '';
+	$html .= '<input class="mui-calendar-picker" type="text" placeholder="请选择日期" readonly value="' . $values . '" name="' . $name . '" />';
+	$html .= '<input type="hidden" value="' . $values . '" name="' . $name . '"/>';
+	if (!defined('TPL_INIT_CALENDAR')) {
+		$html .= '
+			<script type="text/javascript">
+				$(document).on("tap", ".mui-calendar-picker", function(){
+					var $this = $(this);
+					util.datepicker({type: "date", beginYear: 1960, endYear: 2050}, function(rs){
+						$this.val(rs.value)
+						.next().val(rs.value)
+					});
+				});
+			</script>';
+		define('TPL_INIT_CALENDAR', true);
 	}
-	return tpl_app_form_field_calendar($name, $value);
+	return $html;
 }
 
 function tpl_app_fans_form($field, $value = '', $placeholder = '') {

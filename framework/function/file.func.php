@@ -283,7 +283,9 @@ function file_remote_upload($filename, $auto_delete_local = true) {
 	}elseif ($_W['setting']['remote']['type'] == '3') {
 		require_once(IA_ROOT . '/framework/library/qiniu/autoload.php');
 		$auth = new Qiniu\Auth($_W['setting']['remote']['qiniu']['accesskey'],$_W['setting']['remote']['qiniu']['secretkey']);
-		$uploadmgr = new Qiniu\Storage\UploadManager();
+		$config = new Qiniu\Config();
+		$uploadmgr = new Qiniu\Storage\UploadManager($config);
+		//构造上传策略，覆盖已有文件
 		$putpolicy = Qiniu\base64_urlSafeEncode(json_encode(array('scope' => $_W['setting']['remote']['qiniu']['bucket'].':'. $filename)));
 		$uploadtoken = $auth->uploadToken($_W['setting']['remote']['qiniu']['bucket'], $filename, 3600, $putpolicy);
 		list($ret, $err) = $uploadmgr->putFile($uploadtoken, $filename, ATTACHMENT_ROOT. '/'.$filename);
@@ -563,7 +565,6 @@ function file_image_crop($src, $desfile, $width = 400, $height = 300, $position 
 	} else {
 		return error('-1', '获取原始图像信息失败');
 	}
-
 	//处理裁剪的宽高
 	if ($width == '0' || $width > $org_info[0]) {
 		$width = $org_info[0];

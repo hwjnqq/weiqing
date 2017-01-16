@@ -1299,7 +1299,7 @@ abstract class WeModuleSite extends WeBase {
 			$pars['result'] = 'success';
 			$pars['type'] = '';
 			$pars['tid'] = $params['tid'];
-			$site = WeUtility::createModuleSite($pars[':module']);
+			$site = WeUtility::createModuleSite($params['module']);
 			$method = 'payResult';
 			if (method_exists($site, $method)) {
 				exit($site->$method($pars));
@@ -1342,6 +1342,7 @@ abstract class WeModuleSite extends WeBase {
 					}
 				}
 				unset($val['icon']);
+				unset($val['description']);
 			}
 		}
 		$cards_str = json_encode($cards);

@@ -69,7 +69,7 @@ function wechat_build($params, $wechat) {
 	$wOpt = array();
 	if ($wechat['version'] == 1) {
 		$wOpt['appId'] = $wechat['appid'];
-		$wOpt['timeStamp'] = TIMESTAMP;
+		$wOpt['timeStamp'] = strval(TIMESTAMP);
 		$wOpt['nonceStr'] = random(8);
 		$package = array();
 		$package['bank_type'] = 'WX';
@@ -163,7 +163,7 @@ function wechat_build($params, $wechat) {
 		}
 		$prepayid = $xml->prepay_id;
 		$wOpt['appId'] = $wechat['appid'];
-		$wOpt['timeStamp'] = TIMESTAMP;
+		$wOpt['timeStamp'] = strval(TIMESTAMP);
 		$wOpt['nonceStr'] = random(8);
 		$wOpt['package'] = 'prepay_id='.$prepayid;
 		$wOpt['signType'] = 'MD5';

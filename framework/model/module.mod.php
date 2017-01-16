@@ -86,7 +86,7 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 			load()->func('communication');
 			$urlset = parse_url($_W['siteurl']);
 			$urlset = pathinfo($urlset['path']);
-			$response = ihttp_request($_W['sitescheme']. '127.0.0.1/'. $urlset['dirname'] . '/' . url('utility/bindcall', array('modulename' => $bind['module'], 'callname' => $bind['call'], 'args' => $args, 'uniacid' => $_W['uniacid'])), array(), $extra);
+			$response = ihttp_request($_W['sitescheme'] . '127.0.0.1/'. $urlset['dirname'] . '/' . url('utility/bindcall', array('modulename' => $bind['module'], 'callname' => $bind['call'], 'args' => $args, 'uniacid' => $_W['uniacid'])), array(), $extra);
 			if (is_error($response)) {
 				continue;
 			}
@@ -94,7 +94,10 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 			$ret = $response['message'];
 			if(is_array($ret)) {
 				foreach($ret as $et) {
-					$et['url'] .= '&__title=' . urlencode($et['title']);
+					if (empty($et['url'])) {
+						continue;
+					}
+					$et['url'] = $et['url'] . '&__title=' . urlencode($et['title']);
 					$entries[$bind['entry']][] = array('title' => $et['title'], 'do' => $et['do'], 'url' => $et['url'], 'from' => 'call', 'icon' => $et['icon'], 'displayorder' => $et['displayorder']);
 				}
 			}
@@ -164,7 +167,7 @@ function module_app_entries($name, $types = array(), $args = null) {
 			$ret = $response['message'];
 			if(is_array($ret)) {
 				foreach($ret as $et) {
-					$et['url'] .= '&__title=' . urlencode($et['title']);
+					$et['url'] = $et['url'] . '&__title=' . urlencode($et['title']);
 					$entries[$bind['entry']][] = array('title' => $et['title'], 'url' => $et['url'], 'from' => 'call');
 				}
 			}
