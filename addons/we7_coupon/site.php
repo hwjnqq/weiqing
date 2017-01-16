@@ -55,7 +55,11 @@ class We7_couponModuleSite extends WeModuleSite {
 		activity_coupon_type_init();
 		uni_user_permission_check('mc_card_editor');
 		$op = !empty($_GPC['op']) ? $_GPC['op'] : 'editor';
-
+		$unisetting = uni_setting_load('creditnames');
+		if (empty($unisetting['creditnames'])) {
+			$unisetting['credit1'] = array('title' => '积分', 'enabled' => 1);
+			$unisetting['credit2'] = array('title' => '余额', 'enabled' => 1);
+		}
 		if ($op == 'editor') {
 			if (!empty($_GPC['wapeditor'])) {
 				$params = $_GPC['wapeditor']['params'];

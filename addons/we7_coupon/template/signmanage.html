@@ -104,7 +104,7 @@
 	{/if}
 </div>
 <script type="text/javascript">
-	require(['jquery.ui', 'bootstrap.switch'], function($){
+	require(['jquery.ui', 'bootstrap.switch'], function(){
 		$('#form1').submit(function(){
 			var everydaynum = parseInt($(':text[name="sign[everydaynum]"]').val());
 			if(isNaN(everydaynum) || !everydaynum) {
