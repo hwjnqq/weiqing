@@ -233,7 +233,7 @@
 						<select name="groupid" class="form-control" id="groupid">
 							<option value="0" data-package="[]">不设置</option>
 							{loop $groups $row}
-							{php $package = $row['package'] ? implode(',', iunserializer($row['package'])) : '';}
+							{php $package = $row['package'] && is_array(iunserializer($row['package'])) ? implode(',', iunserializer($row['package'])) : '';}
 							<option value="{$row['id']}" {if $row['id'] == $owner['groupid']}selected{/if} data-package="[{$package}]">{$row['name']}</option>
 							{/loop}
 						</select>
