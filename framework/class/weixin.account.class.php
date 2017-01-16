@@ -1814,4 +1814,27 @@ class WeiXinAccount extends WeAccount {
 		}
 		return $result;
 	}
+	
+	//获取小程序用户的唯一标识
+	public function minUniqueIdentifier($js_code){
+		$data = array(
+				"appid" => "wxb4bf68b72dee1969",//小程序appid
+				"secret" => "1c58296b76698f749e4a36b9138fcd52",//SECRET
+				"js_code" => $js_code,
+				"grant_type" => "authorization_code",
+		);
+		$url = "https://api.weixin.qq.com/sns/jscode2session?";
+// 		$data = urldecode(json_encode($data));
+		$response = ihttp_request($url, $data);
+		if(is_error($response)) {
+			return error(-1, "访问小程序接口失败, 错误: {$response['message']}");
+		}
+		$result = @json_decode($response['content'], true);
+		if(empty($result)) {
+			return error(-1, "接口调用失败, 元数据: {$response['meta']}");
+		} elseif(!empty($result['errcode'])) {
+			return error(-1, "访问小程序错误, 错误代码: {$result['errcode']}, 错误信息: {$result['errmsg']},错误详情：{$this->error_code($result['errcode'])}");
+		}
+		return $result;
+	}
 }
