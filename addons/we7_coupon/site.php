@@ -2728,7 +2728,7 @@ class We7_couponModuleSite extends WeModuleSite {
 
 		if($op == 'index') {
 			$clerks = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name'), 'id');
-			$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid']), array('id', 'business_name', 'branch_name'), 'id');
+			$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array('id', 'business_name', 'branch_name'), 'id');
 			$condition = ' WHERE uniacid = :uniacid AND credittype = :credittype AND createtime >= :starttime AND createtime <= :endtime';
 			$params = array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => $starttime, ':endtime' => $endtime);
 			$num = intval($_GPC['num']);
@@ -2917,7 +2917,7 @@ class We7_couponModuleSite extends WeModuleSite {
 
 		if($op == 'index') {
 			$clerks = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name'), 'id');
-			$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid']), array('id', 'business_name', 'branch_name'), 'id');
+			$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array('id', 'business_name', 'branch_name'), 'id');
 			$condition = ' WHERE uniacid = :uniacid AND credittype = :credittype AND createtime >= :starttime AND createtime <= :endtime';
 			$params = array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => $starttime, ':endtime' => $endtime);
 			if(intval($_W['user']['clerk_type']) == ACCOUNT_OPERATE_CLERK) {
@@ -3141,7 +3141,7 @@ class We7_couponModuleSite extends WeModuleSite {
 
 		if($op == 'index') {
 			$clerks = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name'), 'id');
-			$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid']), array('id', 'business_name', 'branch_name'), 'id');
+			$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array('id', 'business_name', 'branch_name'), 'id');
 
 			$condition = ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime';
 			$params = array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime);
@@ -3315,7 +3315,7 @@ class We7_couponModuleSite extends WeModuleSite {
 
 		if($op == 'index') {
 			$clerks = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name'), 'id');
-			$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid']), array('id', 'business_name', 'branch_name'), 'id');
+			$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array('id', 'business_name', 'branch_name'), 'id');
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 20;
 			$condition = ' WHERE uniacid = :uniacid AND status = 1';
