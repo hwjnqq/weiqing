@@ -4080,7 +4080,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					}
 					if (!empty($_W['current_module'])) {
 						$coupon_modules = pdo_getall('coupon_modules', array('uniacid' => $_W['uniacid'], 'couponid' => $list['extra']), array(), 'module');
-						if (!empty($coupon_modules) && !in_array($_W['current'], $coupon_modules)) {
+						if (!empty($coupon_modules) && empty($coupon_modules[$_W['current_module']['name']])) {
 							unset($exchange_lists[$list['extra']]);
 							continue;
 						}
