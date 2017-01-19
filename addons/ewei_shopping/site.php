@@ -478,7 +478,9 @@ class Ewei_shoppingModuleSite extends WeModuleSite {
 						"goodsid" => $id,
 						"specs" => $newids
 					);
-					$totalstocks+=$a['stock'];
+					if(!empty($data['hasoption'])){
+						$totalstocks+=$a['stock'];
+					}
 					if (empty($get_option_id)) {
 						pdo_insert("shopping_goods_option", $a);
 						$option_id = pdo_insertid();
