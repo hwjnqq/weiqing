@@ -633,6 +633,45 @@ class WeUtility {
 			return error(-1008, 'ModuleCron Class Definition Error');
 		}
 	}
+	
+	/**
+	 * 创建模块小程序类
+	 * @param string $name
+	 */
+	public static function createModuleWxapp($name) {
+		global $_W;
+		static $file;
+		$classname = "{$name}ModuleWxapp";
+		if(!class_exists($classname)) {
+			$file = IA_ROOT . "/addons/{$name}/wxapp.php";
+			if(!is_file($file)) {
+				$file = IA_ROOT . "/framework/builtin/{$name}/wxapp.php";
+			}
+			if(!is_file($file)) {
+				trigger_error('ModuleWxapp Definition File Not Found '.$file, E_USER_WARNING);
+				return null;
+			}
+			require $file;
+		}
+		if(!class_exists($classname)) {
+			trigger_error('ModuleSite Definition Class Not Found', E_USER_WARNING);
+			return null;
+		}
+		$o = new $classname();
+		$o->uniacid = $o->weid = $_W['uniacid'];
+		$o->modulename = $name;
+		load()->model('module');
+		$o->module = module_fetch($name);
+		$o->__define = $file;
+		self::defineConst($o);
+		$o->inMobile = defined('IN_MOBILE');
+		if($o instanceof WeModuleWxapp) {
+			return $o;
+		} else {
+			trigger_error('ModuleReceiver Class Definition Error', E_USER_WARNING);
+			return null;
+		}
+	}
 
 	/**
 	 * 记录日志
@@ -1497,5 +1536,46 @@ abstract class WeModuleCron extends WeBase {
 		);
 		pdo_insert('core_cron_record', $data);
 		message(error($errno, $note), '', 'ajax');
+	}
+}
+
+/**
+ * 模块小程序
+ */
+abstract class WeModuleWxapp extends WeBase {
+	public $appid;
+	public $version;
+	
+	public function result($errno, $data) {
+		exit(json_encode(array(
+			'errno' => $errno,
+			'data' => $data,
+		)));
+	}
+	
+	public function __call($name, $arguments) {
+		$dir = IA_ROOT . '/addons/' . $this->modulename . '/inc/wxapp';
+		$function_name = strtolower(substr($name, 6));
+		//版本号不存在相应的目录则直接使用最新版
+		$file = "$dir/{$this->version}/{$function_name}.inc.php";
+		if (!file_exists($file)) {
+			$version_path_tree = glob("$dir/*");
+			usort($version_path_tree, function($version1, $version2) {
+				return -version_compare($version1, $version2);
+			});
+			if (!empty($version_path_tree)) {
+				foreach ($version_path_tree as $path) {
+					$file = "$path/{$function_name}.inc.php";
+					if (file_exists($file)) {
+						break;
+					}
+				}
+			}
+		}
+		if(file_exists($file)) {
+			require $file;
+			exit;
+		}
+		return null;
 	}
 }
