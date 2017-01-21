@@ -3572,6 +3572,11 @@ class We7_couponModuleSite extends WeModuleSite {
 						$coupon_title .= "{$grant_coupon['couponTitle']}|";
 					}
 				}
+				$params = json_decode($setting['params'], true);
+				foreach ($params as $key => $value) {
+					$params_new[$value['id']] = $value;  
+				}
+				$basic_info = $params_new['cardBasic'];
 			} else {
 				message('公众号尚未开启会员卡功能', $this->createMobileurl('card'), 'error');
 			}
