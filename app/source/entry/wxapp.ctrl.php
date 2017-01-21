@@ -16,7 +16,7 @@ if(!is_error($site)) {
 	$site->appid = $appid;
 	$site->version = $version;
 	$method = 'doPage' . ucfirst($entry['do']);
-	if (!empty($_GPC['sign']) && !empty($site->token)) {
+	if (!empty($site->token)) {
 		if (!$site->checkSign()) {
 			message(error(1, '签名错误'), '', 'ajax');
 		}

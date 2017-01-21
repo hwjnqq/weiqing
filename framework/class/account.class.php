@@ -1582,7 +1582,7 @@ abstract class WeModuleWxapp extends WeBase {
 	
 	public function checkSign() {
 		global $_GPC;
-		if (!empty($_GET)) {
+		if (!empty($_GET) && !empty($_GPC['sign'])) {
 			foreach ($_GET as $key => $get_value) {
 				if (!empty($get_value) && $key != 'sign') {
 					$sign_list[$key] = $get_value;
@@ -1592,7 +1592,7 @@ abstract class WeModuleWxapp extends WeBase {
 			$sign = http_build_query($sign_list, '', '&') . $this->token;
 			return md5($sign) == $_GPC['sign'];
 		} else {
-			return true;
+			return false;
 		}
 	}
 }
