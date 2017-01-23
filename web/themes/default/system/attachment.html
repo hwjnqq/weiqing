@@ -354,12 +354,37 @@
 			<span class="help-block">SecretKEY 是您项目的安全秘钥，具有该账户完全的权限，请妥善保管</span>
 		</div>
 	</div>
+	<div class="form-group">
+		<label class="col-xs-12 col-sm-3 col-md-2 control-label">版本</label>
+		<div class="col-sm-9 col-xs-12">
+			<label class="radio-inline">
+				<input type="radio" name="cos[version]" value="old" onclick="$('#cos_local').hide()" {if $remote['cos']['version'] != 'new'}checked{/if}>
+				旧版
+			</label>
+			<label class="radio-inline">
+				<input type="radio" name="cos[version]" value="new" onclick="$('#cos_local').show()" {if $remote['cos']['version'] == 'new'}checked{/if}>
+				新版
+			</label>
+			<span class="help-block">bucket有所属地区的为新版cos</span>
+		</div>
+	</div>
 	<div class="form-group" id="cosbucket">
 		<label class="col-xs-12 col-sm-3 col-md-2 control-label">Bucket</label>
 		<div class="col-sm-9 col-xs-12">
 			<input type="text" name="cos[bucket]" class="form-control" value="{$remote['cos']['bucket']}" placeholder="" />
 			<span class="help-block">请保证bucket为可公共读取的</span>
 		</div>
+	</div>
+	<div class="form-group" id="cos_local" {if $remote['cos']['version'] != 'new'}style="display:none"{/if}>
+	<label class="col-xs-12 col-sm-3 col-md-2 control-label">bucket所在区域</label>
+	<div class="col-sm-9 col-xs-12">
+		<select class="form-control" name="cos[local]">
+			<option value="tj" {if $remote['cos']['local'] == 'tj'}selected{/if}>华北</option>
+			<option value="sh" {if $remote['cos']['local'] == 'sh'}selected{/if}>华中</option>
+			<option value="gz" {if $remote['cos']['local'] == 'gz'}selected{/if}>华南</option>
+		</select>
+		<span class="help-block">选择bucket对应的区域</span>
+	</div>
 	</div>
 	<div class="form-group" >
 		<label class="col-xs-12 col-sm-3 col-md-2 control-label">Url</label>
@@ -496,12 +521,16 @@
 			return false;
 		}
 		var url = $.trim($(':text[name="cos[url]"]').val());
+		var version = $('[name="cos[version]"]:checked').val();
+		var local = $('[name="cos[local]"]').val();
 		var param = {
 			'appid' : appid,
 			'secretid' : secretid,
 			'secretkey'  : secretkey,
 			'bucket' :  bucket,
-			'url' : url
+			'url' : url,
+			'version' : version,
+			'local' : local
 		};
 		$.post("{php echo url('utility/checkattach/cos')}",param, function(data) {
 			var data = $.parseJSON(data);

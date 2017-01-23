@@ -137,7 +137,6 @@ if ($do == 'display') {
 		$starttime = strtotime($_GPC['time']['start']);
 		$endtime = strtotime($_GPC['time']['end']);
 		$endtime = !empty($endtime) ? $endtime + 86399 : 0;
-		
 		if (!empty($starttime)) {
 			$params[':starttime'] = $starttime;
 		}
@@ -145,6 +144,7 @@ if ($do == 'display') {
 			$params[':endtime'] = $endtime;
 		}
 	}
+	
 	$follow = intval($_GPC['follow']) ? intval($_GPC['follow']) : 1;
 	if ($follow == 1) {
 		$orderby = " ORDER BY f.`fanid` DESC";

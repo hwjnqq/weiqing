@@ -298,8 +298,14 @@ function file_remote_upload($filename, $auto_delete_local = true) {
 			return true;
 		}
 	} elseif ($_W['setting']['remote']['type'] == '4') {
-		require(IA_ROOT.'/framework/library/cos/include.php');
-		$uploadRet = \Qcloud_cos\Cosapi::upload($_W['setting']['remote']['cos']['bucket'], ATTACHMENT_ROOT .$filename,'/'.$filename,'',3 * 1024 * 1024, 0);
+		if ($_W['setting']['remote']['cos']['version'] == 'new') {
+			require(IA_ROOT.'/framework/library/newcos/include.php');
+			qcloudcos\Cosapi :: setRegion($_W['setting']['remote']['cos']['local']);
+			$uploadRet = qcloudcos\Cosapi::upload($_W['setting']['remote']['cos']['bucket'], ATTACHMENT_ROOT .$filename,'/'.$filename,'',3 * 1024 * 1024, 0);
+		} else {
+			require(IA_ROOT.'/framework/library/cos/include.php');
+			$uploadRet = \Qcloud_cos\Cosapi::upload($_W['setting']['remote']['cos']['bucket'], ATTACHMENT_ROOT .$filename,'/'.$filename,'',3 * 1024 * 1024, 0);
+		}
 		if ($uploadRet['code'] != 0) {
 			switch ($uploadRet['code']) {
 				case -62:

@@ -224,7 +224,6 @@
 	<script type="text/javascript">
 		require(['filestyle'], function($){
 			$.post('{php echo url("extension/module/check");}', {foo: 'upgrade'},function(modules) {
-				try {
 					var sys = ['{$sysmodules}'];
 					String.prototype.repeat = function(num) {
 						return new Array(num + 1).join(this);
@@ -232,6 +231,10 @@
 					$('.upgrade-label').each(function() {
 						var n = $(this).attr('module');
 						var v = $(this).attr('version');
+						if (n == 'ewei_hotel')
+						{
+							alert('')
+						}
 						if ($.inArray(n, sys) > -1) {
 							$('.hide-form[id="' + n + '"]').html('<span class="label label-primary">来自系统安装</span>').show();
 						} else if ($.inArray(n, modules.pirate_apps) > -1) {
@@ -244,7 +247,11 @@
 									var site_branch_sort = parseInt(modules[n].site_branch.displayorder);
 									var site_current_version = v.replace(/\./g, '');
 									for (var index in branches) {
-										branches[index].version = branches[index].version.replace(/\./g, '');
+										try {
+											branches[index].version = branches[index].version.replace(/\./g, '');
+										} catch (error) {
+											branches[index] = {version : ''};
+										}
 										if (site_current_version.length > branches[index].version.length) {
 											branches[index].version += '0'.repeat(site_current_version.length - branches[index].version.length);
 										}
@@ -256,7 +263,7 @@
 											var tips = '来自微擎云服务更新';
 											$(this).html('<a href="javascript:;" onclick=\'setModuleInfo("' + modules[n].name + '", "' + v +'");\' style="color:red;" title="' + tips + '">更新</a>');
 											$('.upgrade-label-tips[module=' + n + ']').show();
-											break;
+											continue;
 										}
 									}
 								}
@@ -265,7 +272,6 @@
 							}
 						}
 					});
-				} catch(err) {}
 			}, 'json');
 			window.setModuleInfo = function(modulename, version) {
 				var trade_link = "{php echo url('extension/module/upgrade', array('type' => 'getinfo'));}" + '&m=' + modulename;

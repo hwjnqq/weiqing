@@ -562,7 +562,22 @@
 			// mouse pointer has entered a range label
 			var label = e.target.innerHTML;
 			if (label == this.locale.customRangeLabel) {
-				this.updateView();
+				date = new Date();
+				year = date.getFullYear();
+				month = date.getMonth() + 1;
+				if (month < 10) {
+					month = '0' + month;
+				}
+				day = date.getDate();
+				week_date = this.addDate(month+'/'+day+'/'+year, -7);
+				week_year = week_date.getFullYear();
+				week_month = week_date.getMonth() + 1;
+				if (week_month < 10) {
+					week_month = '0' + week_month;
+				}
+				week_day = week_date.getDate();
+				this.container.find('input[name=daterangepicker_start]').val(week_year + '-' + week_month + '-' + week_day);
+				this.container.find('input[name=daterangepicker_end]').val(year + '-' + month + '-' + day);
 			} else {
 				var dates = this.ranges[label];
 				this.container.find('input[name=daterangepicker_start]').val(dates[0].format(this.format));
@@ -590,18 +605,41 @@
 				
 			}
 		},
-
+		addDate: function(date, count) {
+			var a = new Date(date);
+			a = a.valueOf();
+			a = a + count * 24 * 60 * 60 * 1000;
+			a = new Date(a);
+			return a;
+		},
 		clickRange: function (e) {
 			var label = e.target.innerHTML;
 			this.chosenLabel = label;
 			if (label == this.locale.customRangeLabel) {
 				this.showCalendars();
+
+				date = new Date();
+				year = date.getFullYear();
+				month = date.getMonth() + 1;
+				if (month < 10) {
+					month = '0' + month;
+				}
+				day = date.getDate();
+				week_date = this.addDate(month+'/'+day+'/'+year, -7);
+				week_year = week_date.getFullYear();
+				week_month = week_date.getMonth() + 1;
+				if (week_month < 10) {
+					week_month = '0' + week_month;
+				}
+				week_day = week_date.getDate();
+				this.leftCalendar.month.month(week_month).year(week_year).hour(this.startDate.hour()).minute(this.startDate.minute());
+				this.rightCalendar.month.month(month).year(year).hour(this.endDate.hour()).minute(this.endDate.minute());
+				this.updateCalendars();
 			} else {
 				var dates = this.ranges[label];
 
 				this.startDate = dates[0];
 				this.endDate = dates[1];
-
 				if (!this.timePicker) {
 					this.startDate.startOf('day');
 					this.endDate.endOf('day');

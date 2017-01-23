@@ -111,7 +111,7 @@ if($do == 'display') {
 			if (!empty($match[1])) {
 				$url = $match[1];
 				$file = ihttp_request(tomedia($url));
-				file_write($path, $file);
+				file_write($path, $file['content']);
 				$data['thumb'] = $path;
 				file_remote_upload($path);
 			}

@@ -753,7 +753,7 @@ abstract class WeBase {
 		$pars = array('module' => $this->modulename, 'uniacid' => $_W['uniacid']);
 		$row = array();
 		$row['settings'] = iserializer($settings);
-		cache_build_account_modules();
+		cache_build_account_modules($_W['uniacid']);
 		if (pdo_fetchcolumn("SELECT module FROM ".tablename('uni_account_modules')." WHERE module = :module AND uniacid = :uniacid", array(':module' => $this->modulename, ':uniacid' => $_W['uniacid']))) {
 			return pdo_update('uni_account_modules', $row, $pars) !== false;
 		} else {
