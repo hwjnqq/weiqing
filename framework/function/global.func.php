@@ -587,10 +587,11 @@ function tomedia($src, $local_path = false){
  * @param mixed $data 返回数据结果
  * @return array
  */
-function error($errno, $message = '') {
+function error($errno, $message = '', $data = null) {
 	return array(
 		'errno' => $errno,
 		'message' => $message,
+		'data' => $data,
 	);
 }
 
