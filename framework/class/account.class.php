@@ -9,11 +9,6 @@ defined('IN_IA') or exit('Access Denied');
  * 公众号业务操作基类
  */
 abstract class WeAccount {
-	
-	const TYPE_WEIXIN = '1';
-	const TYPE_YIXIN = '2';
-	const TYPE_WEIXIN_PLATFORM = '3';
-	
 	/**
 	 * 创建平台特定的公众号操作对象
 	 * @param int $acid 公众号编号
@@ -33,13 +28,17 @@ abstract class WeAccount {
 			$account = $_W['account'];
 		}
 		if(!empty($account) && isset($account['type'])) {
-			if($account['type'] == self::TYPE_WEIXIN) {
+			if($account['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL) {
 				load()->classs('weixin.account');
 				return new WeiXinAccount($account);
 			}
-			if($account['type'] == self::TYPE_WEIXIN_PLATFORM) {
+			if($account['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
 				load()->classs('weixin.platform');
 				return new WeiXinPlatform($account);
+			}
+			if($account['type'] == ACCOUNT_TYPE_APP_NORMAL) {
+				load()->classs('wxapp.account');
+				return new WxappAccount($account);
 			}
 		}
 		return null;
