@@ -12,9 +12,10 @@ if (empty($_W['account']['oauth']) || empty($code)) {
 }
 $account_api = WeAccount::create();
 $oauth = $account_api->getOauthInfo($code);
-
-if (!empty($oauth)) {
+if (!empty($oauth) && !is_error($oauth)) {
 	$_SESSION['openid'] = $oauth['openid'];
 	$_SESSION['session_key'] = $oauth['session_key'];
+	exit(json_encode(error(0, '', array('sessionid' => $_W['session_id']))));
+} else {
+	exit(json_encode(error(0, $oauth['message'])));
 }
-exit(json_encode(error(0, '', array('sessionid' => $_W['session_id']))));
