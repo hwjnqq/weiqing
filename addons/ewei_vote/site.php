@@ -376,7 +376,7 @@ class Ewei_voteModuleSite extends WeModuleSite {
     }
 
     public function doWebresult() {
-        global $_GPC;
+        global $_W, $_GPC;
         $rid = intval($_GPC['id']);
         $list = pdo_fetchall("SELECT * FROM " . tablename('vote_option') . " WHERE rid = :rid ORDER by `vote_num` DESC", array(':rid' => $rid));
         if (empty($_GPC['op'])) {
