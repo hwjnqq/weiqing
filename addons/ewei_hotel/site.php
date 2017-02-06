@@ -1082,7 +1082,9 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 				message("房型未找到, 请联系管理员!");
 			}
 		}
-
+		if(strtotime($search_array['bdate']) < strtotime(date('Y-m-d' ,time()))){
+			message("预定的开始日期不能小于当日的日期!");
+		}
 		// 入住
 		$btime = $search_array['btime'];
 		$bdate = $search_array['bdate'];
