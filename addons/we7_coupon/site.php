@@ -3729,8 +3729,10 @@ class We7_couponModuleSite extends WeModuleSite {
 			$notice_count = card_notice_stat();
 
 			$params = json_decode($setting['params'], true);
-			foreach ($params as $key => $value) {
-				$params_new[$value['id']] = $value;  
+			if (!empty($params)) {
+				foreach ($params as $key => $value) {
+					$params_new[$value['id']] = $value;  
+				}
 			}
 			$basic_info = $params_new['cardBasic'];
 			$activity_info = $params_new['cardActivity'];

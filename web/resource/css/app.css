@@ -529,6 +529,10 @@ ul{list-style:none;}
 .app .shop-preview div{background:rgba(255,254,220,0.8);}
 
 /*会员卡*/
+.usercard .system-card .card .card-panel .card-grade{position: absolute; right: 10px; top: 10px;}
+.usercard .system-card .card .card-panel .card-logo{left: 10px; top: 10px;}
+.usercard .system-card .card .card-panel .card-logo img{margin: 0; vertical-align: top;}
+.usercard .system-card .card .card-panel .card-rank{font-size:20px; padding: 0 10px;}
 .usercard .system-card{background: #efeff4;}
 .usercard .system-card .card{position:relative; width:100%; overflow:hidden; padding:15px;}
 .usercard .system-card .card .card-panel{position:relative; height: 160px;}

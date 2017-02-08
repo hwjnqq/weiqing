@@ -1,6 +1,12 @@
 {php define('MUI', true);}
 {template 'common/header'}
 {if $op == 'receive_card'}
+<style>
+	.membership-card-receive .card-panel .card-grade{position: absolute; right: 10px; top: 10px;}
+	.membership-card-receive .card-panel .card-logo{left: 10px; top: 10px;}
+	.membership-card-receive .card-panel .card-logo img{margin: 0; vertical-align: top;}
+	.membership-card-receive .card-panel .card-rank{font-size:20px; padding: 0 10px;}
+</style>
 <div class="mui-content membership-card-receive">
 	{if !empty($setting['grant']) && ($setting['grant']['credit1'] || $setting['grant']['credit2'] || !empty($coupon))}
 	<div class="mui-bg-warning mui-text-center tips">
@@ -28,9 +34,10 @@
 		<div class="card-logo mui-text-center">
 			{if !empty($setting['logo'])}<img src="{php echo tomedia($setting['logo'])}" class="mui-img-rounded"/>{/if}
 		</div>
+		<div class="card-grade" style="color:{if !empty($setting['color']['rank'])}{$setting['color']['rank']}{/if}"></div>
 		<div class="card-info">
 			<div class="mui-text-center" style="height:48px">
-				<span class="card-rank" style="color:{if !empty($setting['color'])}{$setting['color']}{/if}">{if $basic_info['params']['card_label']['type'] == 1}{$basic_info['params']['card_label']['title']}{/if}</span>
+				<span class="card-rank" style="color:{if !empty($setting['color']['title'])}{$setting['color']['title']}{/if}">{if $basic_info['params']['card_label']['type'] == 1}{$basic_info['params']['card_label']['title']}{/if}</span>
 			</div>
 			{if !$setting['format_type']}
 			<div class="card-no mui-text-right">会员卡号:<span style="color: #fff;">{$setting['format']}</span></div>
@@ -94,6 +101,10 @@
 		height: 84px;
 		overflow: hidden;
 	}
+	.membership-card-home .card-panel.prev .card-grade{position: absolute; right: 10px; top: 10px;}
+	.membership-card-home .card-panel.prev .card-logo{left: 10px; top: 10px;}
+	.membership-card-home .card-panel.prev .card-logo img{margin: 0; vertical-align: top;}
+	.membership-card-home .card-panel.prev .card-rank{font-size:20px; padding: 0 10px;}
 </style>
 {if empty($mcard['status'])}
 <div class="alert alert-warning" role="alert">
@@ -114,9 +125,10 @@
 			<div class="card-logo mui-text-center">
 				{if !empty($setting['logo'])}<img src="{php echo tomedia($setting['logo'])}" class="mui-img-rounded"/>{/if}
 			</div>
+			<div class="card-grade" style="color:{if !empty($setting['color']['rank'])}{$setting['color']['rank']}{/if}">{$_W['member']['groupname']}</div>
 			<div class="card-info">
 				<div class="mui-text-center" style="height:48px">
-					<span class="card-rank" style="color:{if !empty($setting['color'])}{$setting['color']}{/if}">{if $basic_info['params']['card_label']['type'] == 1}{$basic_info['params']['card_label']['title']}{/if}</span>
+					<span class="card-rank" style="color:{if !empty($setting['color']['title'])}{$setting['color']['title']}{/if}">{if $basic_info['params']['card_label']['type'] == 1}{$basic_info['params']['card_label']['title']}{/if}</span>
 				</div>
 				<div class="card-no mui-text-right">会员卡号:<span>{$mcard['cardsn']}</span></div>
 			</div>
