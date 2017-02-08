@@ -125,7 +125,7 @@
 			<div class="card-logo mui-text-center">
 				{if !empty($setting['logo'])}<img src="{php echo tomedia($setting['logo'])}" class="mui-img-rounded"/>{/if}
 			</div>
-			<div class="card-grade" style="color:{if !empty($setting['color']['rank'])}{$setting['color']['rank']}{/if}">{$_W['member']['groupname']}</div>
+			<div class="card-grade" style="color:{if !empty($setting['color']['rank'])}{$setting['color']['rank']}{/if}">{if $basic_info['params']['card_level']['type'] == 1}{$_W['member']['groupname']}{/if}</div>
 			<div class="card-info">
 				<div class="mui-text-center" style="height:48px">
 					<span class="card-rank" style="color:{if !empty($setting['color']['title'])}{$setting['color']['title']}{/if}">{if $basic_info['params']['card_label']['type'] == 1}{$basic_info['params']['card_label']['title']}{/if}</span>
