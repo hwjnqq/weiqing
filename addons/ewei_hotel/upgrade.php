@@ -94,3 +94,16 @@ if (!pdo_fieldexists('hotel2_order', 'clerkcomment')) {
 if (!pdo_fieldexists('hotel2', 'integral_rate')) {
 	pdo_query('ALTER TABLE ' . tablename('hotel2') . " ADD `integral_rate` INT(11) NOT NULL DEFAULT '0' COMMENT '在该酒店消费返积分的比例';");
 }
+//微酒店订单表的价格字段与房间表的价格字段的类型不一致
+if (pdo_fieldexists('hotel2_order', 'oprice')) {
+	pdo_query('ALTER TABLE ' . tablename('hotel2_order') . " CHANGE `oprice` `oprice` DECIMAL(10,2) NULL DEFAULT '0.00' ;");
+}
+if (pdo_fieldexists('hotel2_order', 'cprice')) {
+	pdo_query('ALTER TABLE ' . tablename('hotel2_order') . " CHANGE `cprice` `cprice` DECIMAL(10,2) NULL DEFAULT '0.00' ;");
+}
+if (pdo_fieldexists('hotel2_order', 'cprice')) {
+	pdo_query('ALTER TABLE ' . tablename('hotel2_order') . " CHANGE `mprice` `mprice` DECIMAL(10,2) NULL DEFAULT '0.00' ;");
+}
+if (pdo_fieldexists('hotel2_order', 'sum_price')) {
+	pdo_query('ALTER TABLE ' . tablename('hotel2_order') . " CHANGE `sum_price` `sum_price` DECIMAL(10,2) NULL DEFAULT '0.00' ;");
+}
