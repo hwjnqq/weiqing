@@ -295,30 +295,6 @@
 	});
 </script>
 {/if}
-<script>
-	$(function(){
-		require(['bootstrap.switch'], function() {
-			$(":checkbox[name='flag']").bootstrapSwitch();
-			$(':checkbox').on('switchChange.bootstrapSwitch', function(e, state){
-				$this = $(this);
-				var status = this.checked ? 1 : 2;
-				var hint = status == 1 ? '切换为系统卡券将不显示微信卡券及微信门店' : '切换为微信卡券将不显示系统卡券及系统门店';
-				if (confirm(hint) == false) {
-						location.href = location.href;
-					return false;
-				}
-				$.post("{php echo $this->createWeburl('couponmanage', array('op' => 'exchange_coupon_type'));}", {'status' : status}, function(resp){
-					resp = $.parseJSON(resp);
-					if (resp.message.errno < 0) {
-						util.message(resp.message.message, location.href, 'error');
-					} else {
-						util.message(resp.message.message, location.href, 'success');
-					}
-				});
-			});
-		});
-	});
-</script>
 {/if}
 
 {if $op == 'post'}
