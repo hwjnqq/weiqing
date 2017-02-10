@@ -2155,7 +2155,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 		$sql = 'SELECT * FROM ' . tablename('hotel2_order') . ' WHERE `id` = :id AND `weid` = :weid';
 		$order = pdo_fetch($sql, array(':id' => $params['tid'], ':weid' => $weid));
 		pdo_update('hotel2_order', array('paystatus' => 1,'paytype'=>$paytype), array('id' => $params['tid']));
-		$sql = 'SELECT `email`, `mobile`,`template`, `confirm_templateid`,`templateid` FROM ' . tablename('hotel2_set') . ' WHERE `weid` = :weid';
+		$sql = 'SELECT `email`, `mobile`, `nickname`, `template`, `confirm_templateid`,`templateid` FROM ' . tablename('hotel2_set') . ' WHERE `weid` = :weid';
 		$setInfo = pdo_fetch($sql, array(':weid' => $_W['uniacid']));
 		$starttime = $order['btime'];
 		if ($setInfo['email']) {
@@ -2226,6 +2226,12 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 
 				//TM00217
 			    $clerks = pdo_getall('hotel2_member', array('clerk' => 1, 'weid' => $_W['uniacid'],'status'=>1));
+			    if(!empty($setInfo['nickname'])){
+			    	$from_user = pdo_get('mc_mapping_fans', array('nickname' => $setInfo['nickname'], 'uniacid' => $_W['uniacid']));
+			    	if(!empty($from_user)){
+			    		$clerks[]['from_user'] = $from_user['openid'];
+			    	}
+			    }
 				if (!empty($setInfo['template']) && !empty($setInfo['templateid'])) {
 					$tplnotice = array(
 						'first' => array('value' => '您好，酒店有新的订单等待处理'),								
@@ -3839,10 +3845,18 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 				'refuse_templateid' => trim($_GPC['refuse_templateid']),
 				'confirm_templateid' => trim($_GPC['confirm_templateid']),
 				'check_in_templateid' => trim($_GPC['check_in_templateid']),
-				'finish_templateid' => trim($_GPC['finish_templateid']),			
+				'finish_templateid' => trim($_GPC['finish_templateid']),
+				'nickname' => trim($_GPC['nickname']),
 			);
 			if ($data['template'] && $data['templateid'] == '') {
 				message('请输入模板ID',referer(),'info');
+			}
+			//检查填写的昵称是否是关注了该公众号的用户
+			if(!empty($data['nickname'])){
+				$from_user = pdo_get('mc_mapping_fans', array('nickname' => $data['nickname'], 'uniacid' => $_W['uniacid']));
+				if(empty($from_user)){
+					message('输入的昵称错误或没有关注该公众号，请重新输入！');
+				}
 			}
 			if (!empty($id)) {
 				pdo_update("hotel2_set", $data, array("id" => $id));
