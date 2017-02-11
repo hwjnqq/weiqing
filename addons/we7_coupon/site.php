@@ -883,7 +883,6 @@ class We7_couponModuleSite extends WeModuleSite {
 		}
 
 		if ($op == 'delete') {
-			$coupon_api = new coupon();
 			$id = intval($_GPC['id']);
 			$row = pdo_get('coupon', array('uniacid' => $_W['uniacid'], 'id' => $id));
 			if (empty($row)) {
@@ -948,6 +947,7 @@ class We7_couponModuleSite extends WeModuleSite {
 	public function doWebCouponconsume() {
 		global $_W, $_GPC;
 		$op = !empty($_GPC['op']) ? $_GPC['op'] : 'display';
+		$coupon_api = new coupon();
 		if ($op == 'display') {
 			$source = (COUPON_TYPE == SYSTEM_COUPON) ? '1' : '2';
 			$clerks = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name'), 'id');
@@ -1098,6 +1098,7 @@ class We7_couponModuleSite extends WeModuleSite {
 		global $_W, $_GPC;
 		$op = !empty($_GPC['op']) ? $_GPC['op'] : 'display';
 		$propertys = activity_member_propertys();
+		$coupon_api = new coupon();
 		if ($op == 'checkcoupon') {
 			$coupon_id = intval($_GPC['coupon']);
 			$coupon = activity_coupon_info($coupon_id);
