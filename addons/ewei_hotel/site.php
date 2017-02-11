@@ -2054,7 +2054,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 		$params['user'] = $_W['fans']['from_user'];
 		$params['fee'] = $item['sum_price'];
 		$params['delivery']['title'] = '到店支付';
-		$params['title'] = $_W['account']['name'] . "酒店订单{$item['ordersn']}";
+		$params['title'] = $item['ordersn'];
 
 //		$log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $params['module'], 'tid' => $params['tid']));
 //		if (empty($log)) {
@@ -2137,7 +2137,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 		$params['tid'] = $orderid;
 		$params['user'] = $_W['fans']['from_user'];
 		$params['fee'] = $order['sum_price'];
-		$params['title'] = $_W['account']['name'] . "酒店订单{$order['ordersn']}";
+		$params['title'] = $order['style'];
 		$this->pay($params);
 	}
 	public function payResult($params) {
