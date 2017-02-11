@@ -343,7 +343,7 @@
 </script>
 {/if}
 
-{if $do == 'add_recharge'}
+{if $op == 'add_recharge'}
 <div class="mui-content membership-card-add-times">
 	<div class="mui-section mui-text-center">
 		请选择您要增加的{if $type == 'nums'}次数{elseif $type == 'times'}时间{/if}
@@ -405,9 +405,9 @@
 		<div class="mui-text-success mui-text-center times">{if $type == 'nums'}{$card['nums']}{elseif $type == 'times'}{php echo date('Y-m-d', $card['endtime'])}{/if}</div>
 		<div class="mui-text-center mui-text-muted">{if $type == 'nums'}{$setting['nums_text']}{elseif $type == 'times'}{$setting['times_text']}{/if}</div>
 		{if $type == 'nums'}
-		<a class="mui-btn mui-btn-success mui-btn-outlined mui-btn-block" href="{php echo url('mc/card/add_recharge', array('type' => 'nums'));}">立即充值</a>
+		<a class="mui-btn mui-btn-success mui-btn-outlined mui-btn-block" href="{php echo $this->createMobileurl('card', array('op' => 'add_recharge', 'type' => 'nums'));}">立即充值</a>
 		{elseif $type == 'times'}
-		<a class="mui-btn mui-btn-success mui-btn-outlined mui-btn-block" href="{php echo url('mc/card/add_recharge', array('type' => 'times'));}">立即充值</a>
+		<a class="mui-btn mui-btn-success mui-btn-outlined mui-btn-block" href="{php echo $this->createMobileurl('card', array('op' => 'add_recharge', 'type' => 'times'));}">立即充值</a>
 		{/if}
 	</div>
 	<ul class="mui-table-view">

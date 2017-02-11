@@ -3806,7 +3806,7 @@ class We7_couponModuleSite extends WeModuleSite {
 		}
 
 		/*增加次数*/
-		if($do == 'add_recharge') {
+		if($op == 'add_recharge') {
 			$type = trim($_GPC['type']);
 			$mcard = pdo_get('mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
 			$mcard['status'] = '1';
