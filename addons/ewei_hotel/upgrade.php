@@ -107,3 +107,6 @@ if (pdo_fieldexists('hotel2_order', 'cprice')) {
 if (pdo_fieldexists('hotel2_order', 'sum_price')) {
 	pdo_query('ALTER TABLE ' . tablename('hotel2_order') . " CHANGE `sum_price` `sum_price` DECIMAL(10,2) NULL DEFAULT '0.00' ;");
 }
+if (!pdo_fieldexists('hotel2_set', 'nickname')) {
+	pdo_query('ALTER TABLE ' . tablename('hotel2_set') . " ADD `nickname` VARCHAR(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '提醒接收微信' ;");
+}
