@@ -15,9 +15,6 @@ if (!pdo_fieldexists('hotel2_set', 'templateid')) {
 if (!pdo_fieldexists('hotel2_order', 'remark')) {
 	pdo_query('ALTER TABLE ' . tablename('hotel2_order') . " ADD `remark` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '备注' AFTER `mobile`;");
 }
-if (pdo_fieldexists('hotel2_room', 'mprice')) {
-	pdo_query('ALTER TABLE ' . tablename('hotel2_room') . " CHANGE `mprice` `mprice` VARCHAR(255) NOT NULL DEFAULT '' ;");
-}
 if (!pdo_fieldexists('hotel2_member', 'clerk')) {
 	pdo_query('ALTER TABLE ' . tablename('hotel2_member') . " ADD `clerk`  VARCHAR(32) NOT NULL DEFAULT '' AFTER `status`;");
 }

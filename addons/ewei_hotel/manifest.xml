@@ -278,6 +278,19 @@ CREATE TABLE IF NOT EXISTS `ims_hotel12_code`  (
   PRIMARY KEY (`id`),
   KEY `openid` (`openid`)
 ) ENGINE=MyISAM AUTO_INCREMENT=27 DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `hotel2_comment_clerk`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT '0',
+  `hotelid` int(11) DEFAULT '0',
+  `orderid` int(25) DEFAULT '0',
+  `createtime` int(11) DEFAULT '0',
+  `comment` varchar(255) DEFAULT '',
+  `clerkid` int(11) DEFAULT '0',
+  `realname` varchar(20) DEFAULT NULL,
+  `grade` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
         
 	  ]]></install>
 	  
