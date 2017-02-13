@@ -113,6 +113,9 @@ if (pdo_fieldexists('hotel2_room', 'oprice')) {
 if (pdo_fieldexists('hotel2_room', 'cprice')) {
 	pdo_query('ALTER TABLE ' . tablename('hotel2_room') . " CHANGE `cprice` `cprice` DECIMAL(10,2) NULL DEFAULT '0.00' ;");
 }
+if (pdo_fieldexists('hotel2_room', 'service')) {
+	pdo_query('ALTER TABLE ' . tablename('hotel2_room') . " CHANGE `service` `service` DECIMAL(10,2) NULL DEFAULT '0.00' ;");
+}
 if (pdo_fieldexists('hotel2_room_price', 'oprice')) {
 	pdo_query('ALTER TABLE ' . tablename('hotel2_room_price') . " CHANGE `oprice` `oprice` DECIMAL(10,2) NULL DEFAULT '0.00' ;");
 }
