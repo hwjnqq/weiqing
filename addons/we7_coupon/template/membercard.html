@@ -16,7 +16,7 @@
 <div class="panel panel-default">
 	<div class="panel-heading">
 		是否启用会员卡：
-		<input type="checkbox" name="flag" value="1" {if intval($setting['status'])==1} checked="checked" {/if} data="{$setting['id']}"/>
+		<input type="checkbox" name="flag" value="1" class="hidden" {if intval($setting['status'])==1} checked="checked" {/if} data="{$setting['id']}"/>
 	</div>
 </div>
 {if empty($setting) || $setting['status'] == 1}
