@@ -3,7 +3,7 @@
     <application setting="false">
         <name><![CDATA[微66店]]></name>
         <identifie><![CDATA[we7_storex]]></identifie>
-        <version><![CDATA[5.7.8]]></version>
+        <version><![CDATA[5.7.9]]></version>
         <type><![CDATA[business]]></type>
         <ability><![CDATA[微66店]]></ability>
         <description><![CDATA[微66店]]></description>
@@ -20,12 +20,12 @@
     </platform>
     <bindings>
         <cover>
-            <entry title="微酒店入口设置" do="index" />
+            <entry title="微66店入口设置" do="index" />
         </cover>
         <menu>
             <entry title="店铺管理" do="storemanage" state="" direct="false" />
             <entry title="商品分类" do="goodscategory" state="" direct="false" />
-            <entry title="房型管理" do="room" state="" direct="false" />
+            <entry title="商品管理" do="goodsmanage" state="" direct="false" />
             <entry title="品牌管理" do="brand" state="" direct="false" />
             <entry title="商圈管理" do="business" state="" direct="false" />
             <entry title="用户管理" do="member" state="" direct="false" />

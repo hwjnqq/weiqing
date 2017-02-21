@@ -12,11 +12,11 @@ include "model.php";
 
 class We7_storexModuleSite extends WeModuleSite {
 
-	public $_img_url = '../addons/ewei_hotel/template/style/img/';
+	public $_img_url = '../addons/We7_storex/template/style/img/';
 
-	public $_css_url = '../addons/ewei_hotel/template/style/css/';
+	public $_css_url = '../addons/We7_storex/template/style/css/';
 
-	public $_script_url = '../addons/ewei_hotel/template/style/js/';
+	public $_script_url = '../addons/We7_storex/template/style/js/';
 
 	public $_search_key = '__hotel2_search';
 
@@ -2373,12 +2373,8 @@ class We7_storexModuleSite extends WeModuleSite {
 		}
 	}
 
-	public function doWebStoremanage() {
-		echo '12313';
-		include $this->template('storemanage');
-	}
 
-	public function doWebHotel() {
+	public function doWebStoreManage() {
 		global $_GPC, $_W;
 
 		$op = $_GPC['op'];
@@ -2388,11 +2384,10 @@ class We7_storexModuleSite extends WeModuleSite {
 		if ($op == 'edit') {
 			$id = intval($_GPC['id']);
 			if (checksubmit('submit')) {
-				$insert = array(
+				$common_insert = array(
 					'weid' => $weid,
-					'displayorder' => $_GPC['displayorder'],
 					'title' => $_GPC['title'],
-					'integral_rate' => $_GPC['integral_rate'],
+					'store_type' => $_GPC['store_type'],
 					'thumb'=>$_GPC['thumb'],
 					'address' => $_GPC['address'],
 					'location_p' => $_GPC['district']['province'],
@@ -2402,36 +2397,51 @@ class We7_storexModuleSite extends WeModuleSite {
 					'lat' => $_GPC['baidumap']['lat'],
 					'phone' => $_GPC['phone'],
 					'mail' => $_GPC['mail'],
+					'displayorder' => $_GPC['displayorder'],
+					'integral_rate' => $_GPC['integral_rate'],
 					'description' => $_GPC['description'],
 					'content' => $_GPC['content'],
 					'traffic' => $_GPC['traffic'],
-					'sales' => $_GPC['sales'],
-					'level' => $_GPC['level'],
 					'status' => $_GPC['status'],
-					'brandid' => $_GPC['brandid'],
-					'businessid' => $_GPC['businessid'],
 				);
-
-				if ($_GPC['device']) {
-					$devices = array();
-					foreach ($_GPC['device'] as $key => $device) {
-						if ($device != '') {
-							$devices[] = array('value' => $device, 'isshow' => intval($_GPC['show_device'][$key]));
+				$common_insert['thumbs'] = empty($_GPC['thumbs']) ? '' : iserializer($_GPC['thumbs']);
+				if($_GPC['store_type']){
+					$common_insert['extend_table'] = 'hotel2';
+					$insert = array(
+							'weid' => $weid,
+							'sales' => $_GPC['sales'],
+							'level' => $_GPC['level'],
+							'brandid' => $_GPC['brandid'],
+							'businessid' => $_GPC['businessid'],
+					);
+					if ($_GPC['device']) {
+						$devices = array();
+						foreach ($_GPC['device'] as $key => $device) {
+							if ($device != '') {
+								$devices[] = array('value' => $device, 'isshow' => intval($_GPC['show_device'][$key]));
+							}
 						}
+						$insert['device'] = empty($devices) ? '' : iserializer($devices);
 					}
-					$insert['device'] = empty($devices) ? '' : iserializer($devices);
 				}
-				$insert['thumbs'] = empty($_GPC['thumbs']) ? '' : iserializer($_GPC['thumbs']);
-
 				if (empty($id)) {
-					pdo_insert('hotel2', $insert);
+					pdo_insert('store_bases', $common_insert);
+					if($_GPC['store_type']){
+						$insert['store_base_id'] = pdo_insertid();
+						pdo_insert('hotel2', $insert);
+					}
 				} else {
-					pdo_update('hotel2', $insert, array('id' => $id));
+					pdo_update('store_bases', $common_insert, array('id' => $id));
+					if($_GPC['store_type']){
+						pdo_update($common_insert['extend_table'], $insert, array('store_base_id' => $id));
+					}
 				}
-				message("酒店信息保存成功!", $this->createWebUrl('hotel'), "success");
+				message("店铺信息保存成功!", $this->createWebUrl('StoreManage'), "success");
 			}
-			$sql = 'SELECT * FROM ' . tablename('hotel2') . ' WHERE `id` = :id';
-			$item = pdo_fetch($sql, array(':id' => $id));
+			$sql = 'SELECT * FROM ' . tablename('store_bases') . ' WHERE `id` = :id';
+			$store_bases = pdo_fetch($sql, array(':id' => $id));
+			$sql = 'SELECT * FROM ' . tablename('hotel2') . ' WHERE `store_base_id` = :store_base_id';
+			$item = pdo_fetch($sql, array(':store_base_id' => $id));
 			if (empty($item['device'])) {
 				$devices = array(
 					array('isdel' => 0, 'value' => '有线上网'),
@@ -2455,6 +2465,9 @@ class We7_storexModuleSite extends WeModuleSite {
 			$params[':id'] = intval($item['businessid']);
 			$item['hotelbusinesss'] = pdo_fetchcolumn($sql, $params);
 			$item['thumbs'] =  iunserializer($item['thumbs']);
+			if($id){
+				$item = array_merge($item, $store_bases);
+			}
 			include $this->template('hotel_form');
 		} else if ($op == 'delete') {
 
@@ -2463,7 +2476,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			if (!empty($id)) {
 				$item = pdo_fetch("SELECT id FROM " . tablename('hotel2_order') . " WHERE hotelid = :hotelid LIMIT 1", array(':hotelid' => $id));
 				if (!empty($item)) {
-					message('抱歉，请先删除该酒店的订单,再删除该酒店！', '', 'error');
+					message('抱歉，请先删除该店铺的订单,再删除该店铺！', '', 'error');
 				}
 			} else {
 				message('抱歉，参数错误！', '', 'error');
@@ -2471,9 +2484,9 @@ class We7_storexModuleSite extends WeModuleSite {
 
 			pdo_delete("hotel2_order", array("hotelid" => $id));
 			pdo_delete("hotel2_room", array("hotelid" => $id));
-			pdo_delete("hotel2", array("id" => $id));
+			pdo_delete("store_bases", array("id" => $id));
 
-			message("酒店信息删除成功!", referer(), "success");
+			message("店铺信息删除成功!", referer(), "success");
 		} else if ($op == 'deleteall') {
 			foreach ($_GPC['idArr'] as $k => $id) {
 				$id = intval($id);
@@ -2514,7 +2527,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			if (empty($id)) {
 				message('抱歉，传递的参数错误！', '', 'error');
 			}
-			$temp = pdo_update('hotel2', array('status' => $_GPC['status']), array('id' => $id));
+			$temp = pdo_update('store_bases', array('status' => $_GPC['status']), array('id' => $id));
 			if ($temp == false) {
 				message('抱歉，刚才操作数据失败！', '', 'error');
 			} else {
@@ -2539,29 +2552,28 @@ class We7_storexModuleSite extends WeModuleSite {
 			$psize = 20;
 			$where = ' WHERE `weid` = :weid';
 			$params = array(':weid' => $_W['uniacid']);
-
-			if (!empty($_GPC['title'])) {
-				$where .= ' AND `title` LIKE :keywords';
-				$params[':keywords'] = "%{$_GPC['title']}%";
+			
+			if (!empty($_GPC['keywords'])) {
+				$where .= ' AND `title` LIKE :title';
+				$params[':title'] = "%{$_GPC['keywords']}%";
 			}
-			if (!empty($_GPC['level'])) {
-				$where .= ' AND level=:level';
-				$params[':level'] = intval($_GPC['level']);
-			}
-
-			$sql = 'SELECT COUNT(*) FROM ' . tablename('hotel2') . $where;
+// 			if (!empty($_GPC['level'])) {
+// 				$where .= ' AND level=:level';
+// 				$params[':level'] = intval($_GPC['level']);
+// 			}
+			$sql = 'SELECT COUNT(*) FROM ' . tablename('store_bases') . $where;
 			$total = pdo_fetchcolumn($sql, $params);
-
+			
 			if ($total > 0) {
 				$pindex = max(1, intval($_GPC['page']));
 				$psize = 10;
 
-				$sql = 'SELECT * FROM ' . tablename('hotel2') . $where . ' ORDER BY `displayorder` DESC LIMIT ' .
+				$sql = 'SELECT * FROM ' . tablename('store_bases') . $where . ' ORDER BY `displayorder` DESC LIMIT ' .
 					($pindex - 1) * $psize . ',' . $psize;
 				$list = pdo_fetchall($sql, $params);
-				foreach ($list as &$row) {
-					$row['level'] = $this->_hotel_level_config[$row['level']];
-				}
+// 				foreach ($list as &$row) {
+// 					$row['level'] = $this->_hotel_level_config[$row['level']];
+// 				}
 
 				$pager = pagination($total, $pindex, $psize);
 			}
@@ -2610,7 +2622,85 @@ class We7_storexModuleSite extends WeModuleSite {
 		}
 	}
 
-
+	public function doWebGoodscategory(){
+		global $_GPC, $_W;
+		load()->func('tpl');
+		$operation = !empty($_GPC['op']) ? $_GPC['op'] : 'display';
+		if ($operation == 'display') {
+			if (!empty($_GPC['displayorder'])) {
+				foreach ($_GPC['displayorder'] as $id => $displayorder) {
+					pdo_update('store_categorys', array('displayorder' => $displayorder), array('id' => $id, 'weid' => $_W['uniacid']));
+				}
+				message('分类排序更新成功！', $this->createWebUrl('Goodscategory', array('op' => 'display')), 'success');
+			}
+			$category = pdo_fetchall("SELECT * FROM " . tablename('store_bases') . " WHERE weid = '{$_W['uniacid']}' ORDER BY id ASC, displayorder DESC");
+			$children = array();
+			$store_category = pdo_fetchall("SELECT * FROM " . tablename('store_categorys') . " WHERE weid = '{$_W['uniacid']}' ORDER BY parentid ASC, displayorder DESC");
+			
+			foreach ($store_category as $index => $row){
+				if (!empty($category[$row['parentid']])) {
+					$children[$row['parentid']][] = $row;
+				}
+			}
+// 			foreach ($category as $index => $row) {
+// 				if (!empty($row['store_base_id'])) {
+// 					$children[$row['parentid']][] = $row;
+// 					unset($category[$index]);
+// 				}
+// 			}
+			include $this->template('category');
+		} elseif ($operation == 'post') {
+			$parentid = intval($_GPC['parentid']);
+			$id = intval($_GPC['id']);
+			if (!empty($id)) {
+				$category = pdo_fetch("SELECT * FROM " . tablename('store_categorys') . " WHERE id = :id AND weid = :weid", array(':id' => $id, ':weid' => $_W['uniacid']));
+			} else {
+				$category = array(
+						'displayorder' => 0,
+				);
+			}
+			if (!empty($parentid)) {
+				$parent = pdo_fetch("SELECT id, title FROM " . tablename('store_bases') . " WHERE id = '$parentid'");
+				if (empty($parent)) {
+					message('抱歉，上级分类不存在或是已经被删除！', $this->createWebUrl('post'), 'error');
+				}
+			}
+			if (checksubmit('submit')) {
+				if (empty($_GPC['catename'])) {
+					message('抱歉，请输入分类名称！');
+				}
+				$data = array(
+						'weid' => $_W['uniacid'],
+						'title' => $_GPC['catename'],
+						'enabled' => intval($_GPC['enabled']),
+						'displayorder' => intval($_GPC['displayorder']),
+						'isrecommand' => intval($_GPC['isrecommand']),
+						'description' => $_GPC['description'],
+						'parentid' => intval($parentid),
+						'thumb' => $_GPC['thumb']
+				);
+				if (!empty($id)) {
+					unset($data['parentid']);
+					pdo_update('store_categorys', $data, array('id' => $id, 'weid' => $_W['uniacid']));
+					load()->func('file');
+					file_delete($_GPC['thumb_old']);
+				} else {
+					pdo_insert('store_categorys', $data);
+					$id = pdo_insertid();
+				}
+				message('更新分类成功！', $this->createWebUrl('Goodscategory', array('op' => 'display')), 'success');
+			}
+			include $this->template('category');
+		} elseif ($operation == 'delete') {
+			$id = intval($_GPC['id']);
+			$category = pdo_fetch("SELECT id, parentid FROM " . tablename('store_categorys') . " WHERE id = '$id'");
+			if (empty($category)) {
+				message('抱歉，分类不存在或是已经被删除！', $this->createWebUrl('Goodscategory', array('op' => 'display')), 'error');
+			}
+			pdo_delete('store_categorys', array('id' => $id, 'parentid' => $id), 'OR');
+			message('分类删除成功！', $this->createWebUrl('Goodscategory', array('op' => 'display')), 'success');
+		}
+	}
 
 	public function doWebCopyroom() {
 		global $_GPC, $_W;
@@ -3060,6 +3150,7 @@ class We7_storexModuleSite extends WeModuleSite {
 		$op = $_GPC['op'];
 		$card_setting = pdo_fetch("SELECT * FROM ".tablename('mc_card')." WHERE uniacid = '{$_W['uniacid']}'");
 		$card_status =  $card_setting['status'];
+		print_r($op);
 		if ($op == 'edit') {
 			$id = intval($_GPC['id']);
 			$hotelid = intval($_GPC['hotelid']);
