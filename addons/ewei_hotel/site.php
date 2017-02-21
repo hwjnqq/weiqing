@@ -1542,8 +1542,6 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 			if ($page_array['isshow'] == 1) {
 				$data['nindex'] = $page_array['nindex'];
 			}
-			die(json_encode($data));
-			exit;
 			$where.=" GROUP BY r.id";
 			if ($search_array['price_type'] == 1) {
 				$price_value = $search_array['price_value'];
@@ -3233,6 +3231,13 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 			$id = $_GPC['id'];
 			if (!empty($id)) {
 				$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_order') . " WHERE id = :id", array(':id' => $id));
+				$this->getOrderUniontid($item);
+				
+				$paylog = pdo_get('core_paylog', array('uniacid' => $item['weid'], 'tid' => $item['id'], 'module' => 'ewei_hotel'), array('uniacid', 'uniontid', 'tid'));
+				if(!empty($paylog)){
+					$item['uniontid'] = $paylog['uniontid'];
+				}
+				
 				if (empty($item)) {
 					message('抱歉，订单不存在或是已经删除！', '', 'error');
 				}
