@@ -41,7 +41,6 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `weid` int(11) DEFAULT '0',
   `title` varchar(255) DEFAULT '',
-  `integral_rate` int(11) NOT NULL DEFAULT '0' COMMENT '在该酒店消费返积分的比例',
   `lng` decimal(10,2) DEFAULT '0.00',
   `lat` decimal(10,2) DEFAULT '0.00',
   `ordermax` int(11) DEFAULT '0',
