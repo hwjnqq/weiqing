@@ -228,7 +228,7 @@
 </div>
 {if COUPON_TYPE == WECHAT_COUPON}
 <a class="btn btn-success js-sync pull-left" onclick="util.ajaxshow('{php echo $this->createWeburl('couponmanage', array('op' => 'sync', 'type' => 1))}')">更新全部卡券最新状态</a>&nbsp;&nbsp;
-<a class="btn btn-success" ng-click="download();" style="display:none;">同步卡券信息</a>
+<a class="btn btn-success" ng-click="download(0);">同步卡券信息</a>
 {/if}
 <div class="pull-right">{$pager}</div>
 {if COUPON_TYPE == WECHAT_COUPON}
@@ -295,6 +295,32 @@
 	});
 </script>
 {/if}
+<script type="text/javascript">
+	download_url = "{php echo $this->createWeburl('couponmanage', array('op' => 'download'))}";
+	success_url = "{php echo $this->createWeburl('couponmanage')}";
+	total = 0;
+	angular.module('couponApp', ['app'])
+	.controller('CouponDisplayCtrl', ['$scope', '$http', function($scope, $http) {
+		$scope.download = function(offset) {
+			util.message('正在下载卡券数据...');
+			$http.post(download_url, {offset : offset}).success(function(data) {
+				if (data.message.errno != 0) {
+					util.message(data.message.message, '', 'error');
+					return false;
+				}
+				total += 50;
+				if ((data.message.message.pages <= (total/50)) || (!data.message.message.total && !data.message.message.offset)) {
+					util.message('同步完成', success_url, 'success');
+					return false;
+				} else {
+					$scope.download(data.message.message.offset);
+				}
+			});
+		};
+	}]);
+	angular.bootstrap(document, ['couponApp']);
+
+</script>
 {/if}
 
 {if $op == 'post'}

@@ -541,6 +541,7 @@ class We7_couponModuleSite extends WeModuleSite {
 
 	public function doWebCouponmanage() {
 		global $_W, $_GPC;
+		load()->classs('coupon');
 		$coupon_api = new coupon();
 		$_W['page']['title'] = '卡券管理 - 粉丝营销';
 		$op = !empty($_GPC['op']) ? $_GPC['op'] : 'display';
@@ -914,20 +915,28 @@ class We7_couponModuleSite extends WeModuleSite {
 		}
 
 		if ($op == 'download') {
-			$offset = $_GPC['__input']['offset'];
+			$compare = ver_compare(IMS_VERSION, '1.0');
+			if ($compare == -1) {
+				$offset = $_GPC['__input']['offset'];
+			} else {
+				$offset = $_GPC['offset'];
+			}
 			$data = array(
 				'offset' => $offset,
 				'count' => 50
 			);
 			$card_list = $coupon_api->batchgetCard($data);
 			$card_list_total = $card_list['total_num'];
-			$card_list_total = 100;
 			$download_info = activity_coupon_download($card_list);
 			if (is_error($download_info)) {
 				message(error(-1, $download_info['message']), '', 'ajax');
 			} else {
-				$response['offset'] = $offset;
+				$response['offset'] = $offset + 50;
+				if ($response['offset'] > $card_list_total) {
+					$response['offset'] = $offset + 1;
+				}
 				$response['total'] = $card_list_total;
+				$response['pages'] = ceil($card_list_total / 50);
 			}
 			message(error(0, $response), '', 'ajax');
 		}
@@ -994,7 +1003,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 20;
-			$list = pdo_fetchall("SELECT a.status AS rstatus,a.id AS recid, a.*, b.* FROM ".tablename('coupon_record'). ' AS a LEFT JOIN ' . tablename('coupon') . ' AS b ON a.couponid = b.id ' . " $where AND a.code <> '' ORDER BY a.status DESC, a.couponid DESC,a.id DESC LIMIT ".($pindex - 1) * $psize.','.$psize, $params);
+			$list = pdo_fetchall("SELECT a.status AS rstatus,a.id AS recid, a.*, b.* FROM ".tablename('coupon_record'). ' AS a LEFT JOIN ' . tablename('coupon') . ' AS b ON a.couponid = b.id ' . " $where AND a.code <> '' ORDER BY a.addtime DESC, a.status DESC, a.couponid DESC,a.id DESC LIMIT ".($pindex - 1) * $psize.','.$psize, $params);
 			$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('coupon_record') . ' AS a LEFT JOIN ' . tablename('coupon') . ' AS b ON a.couponid = b.id '. $where ." AND a.code <> ''", $params);
 			if(!empty($list)) {
 				$uids = array();
