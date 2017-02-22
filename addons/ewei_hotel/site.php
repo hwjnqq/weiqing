@@ -3231,7 +3231,6 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 			$id = $_GPC['id'];
 			if (!empty($id)) {
 				$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_order') . " WHERE id = :id", array(':id' => $id));
-				$this->getOrderUniontid($item);
 				
 				$paylog = pdo_get('core_paylog', array('uniacid' => $item['weid'], 'tid' => $item['id'], 'module' => 'ewei_hotel'), array('uniacid', 'uniontid', 'tid'));
 				if(!empty($paylog)){
