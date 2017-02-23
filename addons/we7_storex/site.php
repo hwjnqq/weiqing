@@ -3474,16 +3474,27 @@ class We7_storexModuleSite extends WeModuleSite {
 
 	public function doWebOrder() {
 		global $_GPC, $_W;
-		checklogin();   
+		checklogin();
+		$store_type = isset($_GPC['store_type']) ? $_GPC['store_type'] : 0;
 		$hotelid = intval($_GPC['hotelid']);
-		$hotel = pdo_fetch("select id,title,phone from " . tablename('hotel2') . " where id=:id limit 1", array(":id" => $hotelid));
+		$hotel = pdo_fetch("select id,title,phone from " . tablename('store_bases') . " where id=:id limit 1", array(":id" => $hotelid));
 		$roomid = intval($_GPC['roomid']);
-		$room = pdo_fetch("select id,title from " . tablename('hotel2_room') . " where id=:id limit 1", array(":id" => $roomid));
+		if($store_type == 1){
+			$room = pdo_fetch("select id,title from " . tablename('hotel2_room') . " where id=:id limit 1", array(":id" => $roomid));
+		}else{
+			$room = pdo_fetch("select id,title from " . tablename('store_goods') . " where id=:id limit 1", array(":id" => $roomid));
+		}
 		$op = $_GPC['op'];
 		if ($op == 'edit') {
 			$id = $_GPC['id'];
 			if (!empty($id)) {
 				$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_order') . " WHERE id = :id", array(':id' => $id));
+				
+				$paylog = pdo_get('core_paylog', array('uniacid' => $item['weid'], 'tid' => $item['id'], 'module' => 'ewei_hotel'), array('uniacid', 'uniontid', 'tid'));
+				if(!empty($paylog)){
+					$item['uniontid'] = $paylog['uniontid'];
+				}
+				
 				if (empty($item)) {
 					message('抱歉，订单不存在或是已经删除！', '', 'error');
 				}
@@ -3772,6 +3783,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			$roomtitle = $_GPC['roomtitle'];
 			$hoteltitle = $_GPC['hoteltitle'];
 			$condition = '';
+			$condition .= " AND h.store_type = " . $store_type;
 			$params = array();
 			if (!empty($hoteltitle)) {
 				$condition .= ' AND h.title LIKE :hoteltitle';
@@ -3795,14 +3807,14 @@ class We7_storexModuleSite extends WeModuleSite {
 				$params[':ordersn'] = "%{$ordersn}%";
 			}
 			if (!empty($hotelid)) {
-				$condition.=" and o.hotelid=" . $hotelid;
+				$condition.=" AND o.hotelid=" . $hotelid;
 			}
 			if (!empty($roomid)) {
-				$condition.=" and o.roomid=" . $roomid;
+				$condition.=" AND o.roomid=" . $roomid;
 			}
 			$status = $_GPC['status'];
 			if ($status != '') {
-				$condition.=" and o.status=" . intval($status);
+				$condition.=" AND o.status=" . intval($status);
 			}
 			$paystatus = $_GPC['paystatus'];
 			if ($paystatus != '') {
@@ -3815,13 +3827,13 @@ class We7_storexModuleSite extends WeModuleSite {
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 20;
 			pdo_query('UPDATE '. tablename('hotel2_order'). " SET status = '-1' WHERE time <  :time AND weid = '{$_W['uniacid']}' AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400));
-			$show_order_lists = pdo_fetchall("SELECT o.*,h.title as hoteltitle,r.title as roomtitle FROM " . tablename('hotel2_order') . " o LEFT JOIN " . tablename('hotel2') .
-				"h on o.hotelid=h.id LEFT JOIN " . tablename("hotel2_room") . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+			$show_order_lists = pdo_fetchall("SELECT o.*,h.title as hoteltitle,r.title as roomtitle FROM " . tablename('hotel2_order') . " o LEFT JOIN " . tablename('store_bases') .
+				" h on o.hotelid=h.id LEFT JOIN " . tablename("hotel2_room") . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
 			$this->getOrderUniontid($show_order_lists);
-			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM  ' . tablename('hotel2_order') . " o LEFT JOIN " . tablename('hotel2') .
+			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM  ' . tablename('hotel2_order') . " o LEFT JOIN " . tablename('store_bases') .
 				"h on o.hotelid=h.id LEFT JOIN " . tablename("hotel2_room") . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition", $params);
 			if ($_GPC['export'] != '') {
-				$export_order_lists = pdo_fetchall("SELECT o.*,h.title as hoteltitle,r.title as roomtitle FROM " . tablename('hotel2_order') . " o LEFT JOIN " . tablename('hotel2') .
+				$export_order_lists = pdo_fetchall("SELECT o.*,h.title as hoteltitle,r.title as roomtitle FROM " . tablename('hotel2_order') . " o LEFT JOIN " . tablename('store_bases') .
 						"h on o.hotelid=h.id LEFT JOIN " . tablename("hotel2_room") . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC" . ',' . $psize, $params);
 				$this->getOrderUniontid($export_order_lists);
 				/* 输入到CSV文件 */
