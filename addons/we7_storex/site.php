@@ -2436,7 +2436,7 @@ class We7_storexModuleSite extends WeModuleSite {
 						pdo_update($common_insert['extend_table'], $insert, array('store_base_id' => $id));
 					}
 				}
-				message("店铺信息保存成功!", $this->createWebUrl('StoreManage'), "success");
+				message("店铺信息保存成功!", $this->createWebUrl('storemanage'), "success");
 			}
 			$sql = 'SELECT * FROM ' . tablename('store_bases') . ' WHERE `id` = :id';
 			$store_bases = pdo_fetch($sql, array(':id' => $id));
@@ -2633,7 +2633,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				foreach ($_GPC['displayorder'] as $id => $displayorder) {
 					pdo_update('store_categorys', array('displayorder' => $displayorder), array('id' => $id, 'weid' => $_W['uniacid']));
 				}
-				message('分类排序更新成功！', $this->createWebUrl('Goodscategory', array('op' => 'display')), 'success');
+				message('分类排序更新成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
 			}
 			$children = array();
 			$category = pdo_fetchall("SELECT * FROM " . tablename('store_categorys') . " WHERE weid = '{$_W['uniacid']}' ORDER BY parentid ASC, displayorder DESC");
@@ -2697,17 +2697,17 @@ class We7_storexModuleSite extends WeModuleSite {
 					pdo_insert('store_categorys', $data);
 					$id = pdo_insertid();
 				}
-				message('更新分类成功！', $this->createWebUrl('Goodscategory', array('op' => 'display')), 'success');
+				message('更新分类成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
 			}
 			include $this->template('category');
 		} elseif ($operation == 'delete') {
 			$id = intval($_GPC['id']);
 			$category = pdo_fetch("SELECT id, parentid FROM " . tablename('store_categorys') . " WHERE id = '$id'");
 			if (empty($category)) {
-				message('抱歉，分类不存在或是已经被删除！', $this->createWebUrl('Goodscategory', array('op' => 'display')), 'error');
+				message('抱歉，分类不存在或是已经被删除！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'error');
 			}
 			pdo_delete('store_categorys', array('id' => $id, 'parentid' => $id), 'OR');
-			message('分类删除成功！', $this->createWebUrl('Goodscategory', array('op' => 'display')), 'success');
+			message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
 		}
 	}
 
@@ -3246,7 +3246,7 @@ class We7_storexModuleSite extends WeModuleSite {
 						pdo_update('hotel2_room', $data, array('id' => $id));
 					}
 					pdo_query("update " . tablename('hotel2') . " set roomcount=(select count(*) from " . tablename('hotel2_room') . " where hotelid=:store_base_id) where store_base_id=:store_base_id", array(":store_base_id" => $store_base_id));
-					message('房型信息更新成功！', $this->createWebUrl('Goodsmanage'), 'success');
+					message('房型信息更新成功！', $this->createWebUrl('goodsmanage'), 'success');
 				}
 				include $this->template('room_form');
 			} else if ($op == 'delete') {
@@ -3377,7 +3377,7 @@ class We7_storexModuleSite extends WeModuleSite {
 					} else {
 						pdo_update('store_goods', $data, array('id' => $id));
 					}
-					message('商品信息更新成功！', $this->createWebUrl('Goodsmanage'), 'success');
+					message('商品信息更新成功！', $this->createWebUrl('goodsmanage'), 'success');
 				}
 				include $this->template('room_form');
 			} else if ($op == 'delete') {

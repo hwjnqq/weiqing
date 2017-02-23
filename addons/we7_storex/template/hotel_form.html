@@ -4,9 +4,9 @@
 
 <div class="main">
 	<ul class="nav nav-tabs">
-		<li {if $op=='list' || empty($op)}class="active"{/if}><a href="{php echo $this->createWebUrl('StoreManage',array('op'=>'list'));}">店铺管理</a></li>
-		<li {if $op=='edit' && empty($item['id'])}class="active"{/if}><a href="{php echo $this->createWebUrl('StoreManage',array('op'=>'edit'));}">添加店铺</a></li>
-		{if $op=='edit' && !empty($item['id'])}<li class="active"><a href="{php echo $this->createWebUrl('StoreManage', array('op'=>'edit','id'=>$id));}">编辑店铺</a></li>{/if}
+		<li {if $op=='list' || empty($op)}class="active"{/if}><a href="{php echo $this->createWebUrl('storemanage',array('op'=>'list'));}">店铺管理</a></li>
+		<li {if $op=='edit' && empty($item['id'])}class="active"{/if}><a href="{php echo $this->createWebUrl('storemanage',array('op'=>'edit'));}">添加店铺</a></li>
+		{if $op=='edit' && !empty($item['id'])}<li class="active"><a href="{php echo $this->createWebUrl('storemanage', array('op'=>'edit','id'=>$id));}">编辑店铺</a></li>{/if}
 	</ul>
 	<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data" onsubmit="return formcheck()">
 		<input type="hidden" name="id" value="{$item['id']}">

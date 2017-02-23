@@ -3,8 +3,8 @@
 {template 'common'}
 <div class="main">
 <ul class="nav nav-tabs">
-	<li {if $_GPC['op'] == 'edit'}class="active"{/if}><a href="{php echo $this->createWebUrl('Goodsmanage', array('op'=>'edit'));}">添加商品</a></li>
-	<li {if empty($_GPC['op'])}class="active"{/if} ><a href="{php echo $this->createWebUrl('Goodsmanage', array('hotelid' => $rid));}">商品管理</a></li>
+	<li {if $_GPC['op'] == 'edit'}class="active"{/if}><a href="{php echo $this->createWebUrl('goodsmanage', array('op'=>'edit'));}">添加商品</a></li>
+	<li {if empty($_GPC['op'])}class="active"{/if} ><a href="{php echo $this->createWebUrl('goodsmanage', array('hotelid' => $rid));}">商品管理</a></li>
 </ul>
 <form action="" class="form-horizontal form" method="post" enctype="multipart/form-data" onsubmit="return formcheck()">
 <input type="hidden" name="id" value="{$item['id']}">
