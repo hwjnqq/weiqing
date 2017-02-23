@@ -2502,7 +2502,7 @@ class We7_storexModuleSite extends WeModuleSite {
 
 				pdo_delete("hotel2_order", array("hotelid" => $id));
 				pdo_delete("hotel2_room", array("hotelid" => $id));
-				pdo_delete("hotel2", array("id" => $id));
+				pdo_delete("store_bases", array("id" => $id));
 			}
 			$this->web_message('酒店信息删除成功！', '', 0);
 			exit();
@@ -2517,7 +2517,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				$id = intval($id);
 
 				if (!empty($id)) {
-					pdo_update('hotel2', array('status' => $show_status), array('id' => $id));
+					pdo_update('store_bases', array('status' => $show_status), array('id' => $id));
 				}
 			}
 			$this->web_message('操作成功！', '', 0);
@@ -2571,6 +2571,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				$sql = 'SELECT * FROM ' . tablename('store_bases') . $where . ' ORDER BY `displayorder` DESC LIMIT ' .
 					($pindex - 1) * $psize . ',' . $psize;
 				$list = pdo_fetchall($sql, $params);
+
 // 				foreach ($list as &$row) {
 // 					$row['level'] = $this->_hotel_level_config[$row['level']];
 // 				}
@@ -3382,7 +3383,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			} else if ($op == 'delete') {
 				$id = intval($_GPC['id']);
 				if (!empty($id)) {
-					$item = pdo_fetch("SELECT id FROM " . tablename('hotel2_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
+					$item = pdo_fetch("SELECT id FROM " . tablename('store_goods') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
 					if (!empty($item)) {
 						message('抱歉，请先删除该商品的订单,再删除该商品！', '', 'error');
 					}
@@ -3419,7 +3420,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				foreach ($_GPC['idArr'] as $k => $id) {
 					$id = intval($id);
 					if (!empty($id)) {
-						pdo_update('hotel2_room', array('status' => $show_status), array('id' => $id));
+						pdo_update('store_goods', array('status' => $show_status), array('id' => $id));
 					}
 				}
 				$this->web_message('操作成功！', '', 0);
@@ -3453,6 +3454,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				$psize = 20;
 				$list = pdo_fetchall("SELECT sg.*,sb.title as hoteltitle FROM " . tablename('store_goods') . " sg left join " . tablename('store_bases') . " sb on sg.store_base_id = sb.id WHERE sg.weid = '{$_W['uniacid']}' $sql ORDER BY sb.id, sg.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
 				$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('store_goods') . " sg left join " . tablename('store_bases') . " sb on sg.store_base_id = sb.id WHERE sg.weid = '{$_W['uniacid']}' $sql", $params);
+
 				$pager = pagination($total, $pindex, $psize);
 				include $this->template('room');
 			}

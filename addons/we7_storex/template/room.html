@@ -197,9 +197,10 @@
 				check.each(function(i){
 					id[i] = $(this).val();
 				});
-				$.post("{php echo $this->createWebUrl('room',array('op'=>'deleteall'))}", {idArr:id},function(data){
+				$.post("{php echo $this->createWebUrl('Goodsmanage',array('op'=>'deleteall'))}", {idArr:id},function(data){
 					if (data.errno == 0)
 					{
+						alert(data.errno);
 						location.reload();
 					} else {
 						alert(data.error);
@@ -219,7 +220,7 @@
 			check.each(function(i){
 				id[i] = $(this).val();
 			});
-			$.post("{php echo $this->createWebUrl('room',array('op'=>'showall'))}", {idArr:id,show_name:name},function(data){
+			$.post("{php echo $this->createWebUrl('Goodsmanage',array('op'=>'showall'))}", {idArr:id,show_name:name},function(data){
 				if (data.errno ==0)
 				{
 					location.reload();
