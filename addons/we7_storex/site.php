@@ -2438,10 +2438,8 @@ class We7_storexModuleSite extends WeModuleSite {
 				}
 				message("店铺信息保存成功!", $this->createWebUrl('storemanage'), "success");
 			}
-			$sql = 'SELECT * FROM ' . tablename('store_bases') . ' WHERE `id` = :id';
-			$store_bases = pdo_fetch($sql, array(':id' => $id));
-			$sql = 'SELECT * FROM ' . tablename('hotel2') . ' WHERE `store_base_id` = :store_base_id';
-			$item = pdo_fetch($sql, array(':store_base_id' => $id));
+			$store_bases = pdo_get('store_bases', array('id' => $id));
+			$item = pdo_get('hotel2', array('store_base_id' => $id));
 			if (empty($item['device'])) {
 				$devices = array(
 					array('isdel' => 0, 'value' => '有线上网'),
@@ -2474,7 +2472,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			$id = intval($_GPC['id']);
 
 			if (!empty($id)) {
-				$item = pdo_fetch("SELECT id FROM " . tablename('hotel2_order') . " WHERE hotelid = :hotelid LIMIT 1", array(':hotelid' => $id));
+				$item = pdo_get('hotel2_order', array('hotelid' => $id), array('id'));
 				if (!empty($item)) {
 					message('抱歉，请先删除该店铺的订单,再删除该店铺！', '', 'error');
 				}
@@ -2492,7 +2490,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				$id = intval($id);
 
 				if (!empty($id)) {
-					$item = pdo_fetch("SELECT id FROM " . tablename('hotel2_order') . " WHERE hotelid = :hotelid LIMIT 1", array(':hotelid' => $id));
+					$item = pdo_get('hotel2_order', array('hotelid' => $id), array('id'));
 					if (!empty($item)) {
 						message('抱歉，请先删除该酒店的订单,再删除该酒店！', '', 'error');
 					}
@@ -2623,7 +2621,7 @@ class We7_storexModuleSite extends WeModuleSite {
 		}
 	}
 
-	public function doWebGoodscategory(){
+	public function doWebGoodScategory(){
 		global $_GPC, $_W;
 		load()->func('tpl');
 		$operation = !empty($_GPC['op']) ? $_GPC['op'] : 'display';
@@ -2656,14 +2654,14 @@ class We7_storexModuleSite extends WeModuleSite {
 			$store_base_id = intval($_GPC['store_base_id']);
 			$id = intval($_GPC['id']);
 			if (!empty($id)) {
-				$category = pdo_fetch("SELECT * FROM " . tablename('store_categorys') . " WHERE id = :id AND weid = :weid", array(':id' => $id, ':weid' => $_W['uniacid']));
+				$category = pdo_get('store_categorys', array('id' => $id, 'weid' => $_W['uniacid']));
 			} else {
 				$category = array(
 						'displayorder' => 0,
 				);
 			}
 			if (!empty($parentid)) {
-				$parent = pdo_fetch("SELECT id, name FROM " . tablename('store_categorys') . " WHERE id = '$parentid'");
+				$parent = pdo_get('store_categorys', array('id' => $parentid), array('id', 'name'));
 				if (empty($parent)) {
 					message('抱歉，上级分类不存在或是已经被删除！', $this->createWebUrl('post'), 'error');
 				}
@@ -2702,7 +2700,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			include $this->template('category');
 		} elseif ($operation == 'delete') {
 			$id = intval($_GPC['id']);
-			$category = pdo_fetch("SELECT id, parentid FROM " . tablename('store_categorys') . " WHERE id = '$id'");
+			$category = pdo_get('store_categorys', array('id' => $id), array('id', 'parentid'));
 			if (empty($category)) {
 				message('抱歉，分类不存在或是已经被删除！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'error');
 			}
@@ -2721,8 +2719,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			message('参数错误', 'refresh', 'error');
 		}
 
-		$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_room') . " WHERE id = :id", array(':id' => $roomid));
-
+		$item = pdo_get('hotel2_room', array('id' => $roomid));
 		unset($item['id']);
 		$item['status'] = 0;
 		//$item['sortid'] = $roomid;
