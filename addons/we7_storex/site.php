@@ -2626,6 +2626,7 @@ class We7_storexModuleSite extends WeModuleSite {
 		global $_GPC, $_W;
 		load()->func('tpl');
 		$operation = !empty($_GPC['op']) ? $_GPC['op'] : 'display';
+		$stores = pdo_fetchall("SELECT * FROM " . tablename('store_bases') . " WHERE weid = '{$_W['uniacid']}' ORDER BY id ASC, displayorder DESC");
 		if ($operation == 'display') {
 			if (!empty($_GPC['displayorder'])) {
 				foreach ($_GPC['displayorder'] as $id => $displayorder) {
@@ -2633,24 +2634,25 @@ class We7_storexModuleSite extends WeModuleSite {
 				}
 				message('分类排序更新成功！', $this->createWebUrl('Goodscategory', array('op' => 'display')), 'success');
 			}
-			$category = pdo_fetchall("SELECT * FROM " . tablename('store_bases') . " WHERE weid = '{$_W['uniacid']}' ORDER BY id ASC, displayorder DESC");
 			$children = array();
-			$store_category = pdo_fetchall("SELECT * FROM " . tablename('store_categorys') . " WHERE weid = '{$_W['uniacid']}' ORDER BY parentid ASC, displayorder DESC");
-			
-			foreach ($store_category as $index => $row){
-				if (!empty($category[$row['parentid']])) {
-					$children[$row['parentid']][] = $row;
+			$category = pdo_fetchall("SELECT * FROM " . tablename('store_categorys') . " WHERE weid = '{$_W['uniacid']}' ORDER BY parentid ASC, displayorder DESC");
+			foreach ($category as $index => &$row_info) {
+				if(!empty($row_info['store_base_id'])){
+					foreach ($stores as $store_info){
+						if($row_info['store_base_id'] == $store_info['id']){
+							$row_info['store_title'] = $store_info['title'];
+						}
+					}
+				}
+				if (!empty($row_info['parentid'])) {
+					$children[$row_info['parentid']][] = $row_info;
+					unset($category[$index]);
 				}
 			}
-// 			foreach ($category as $index => $row) {
-// 				if (!empty($row['store_base_id'])) {
-// 					$children[$row['parentid']][] = $row;
-// 					unset($category[$index]);
-// 				}
-// 			}
 			include $this->template('category');
 		} elseif ($operation == 'post') {
 			$parentid = intval($_GPC['parentid']);
+			$store_base_id = intval($_GPC['store_base_id']);
 			$id = intval($_GPC['id']);
 			if (!empty($id)) {
 				$category = pdo_fetch("SELECT * FROM " . tablename('store_categorys') . " WHERE id = :id AND weid = :weid", array(':id' => $id, ':weid' => $_W['uniacid']));
@@ -2660,18 +2662,21 @@ class We7_storexModuleSite extends WeModuleSite {
 				);
 			}
 			if (!empty($parentid)) {
-				$parent = pdo_fetch("SELECT id, title FROM " . tablename('store_bases') . " WHERE id = '$parentid'");
+				$parent = pdo_fetch("SELECT id, name FROM " . tablename('store_categorys') . " WHERE id = '$parentid'");
 				if (empty($parent)) {
 					message('抱歉，上级分类不存在或是已经被删除！', $this->createWebUrl('post'), 'error');
 				}
 			}
 			if (checksubmit('submit')) {
+				if(empty($store_base_id)){
+					message('请选择店铺', $this->createWebUrl('post'), 'error');
+				}
 				if (empty($_GPC['catename'])) {
 					message('抱歉，请输入分类名称！');
 				}
 				$data = array(
 						'weid' => $_W['uniacid'],
-						'title' => $_GPC['catename'],
+						'name' => $_GPC['catename'],
 						'enabled' => intval($_GPC['enabled']),
 						'displayorder' => intval($_GPC['displayorder']),
 						'isrecommand' => intval($_GPC['isrecommand']),
@@ -2679,6 +2684,9 @@ class We7_storexModuleSite extends WeModuleSite {
 						'parentid' => intval($parentid),
 						'thumb' => $_GPC['thumb']
 				);
+				if(empty($parentid)){
+					$data['store_base_id'] = $store_base_id;
+				}
 				if (!empty($id)) {
 					unset($data['parentid']);
 					pdo_update('store_categorys', $data, array('id' => $id, 'weid' => $_W['uniacid']));
@@ -3144,164 +3152,310 @@ class We7_storexModuleSite extends WeModuleSite {
 		$sql .=" limit 1";
 		return pdo_fetch($sql);
 	}
-
-	public function doWebRoom() {
+	
+	public function doWebGoodsmanage() {
 		global $_GPC, $_W;
 		$op = $_GPC['op'];
 		$card_setting = pdo_fetch("SELECT * FROM ".tablename('mc_card')." WHERE uniacid = '{$_W['uniacid']}'");
 		$card_status =  $card_setting['status'];
-		print_r($op);
-		if ($op == 'edit') {
-			$id = intval($_GPC['id']);
-			$hotelid = intval($_GPC['hotelid']);
-			$hotel = pdo_fetch("select id,title from " . tablename('hotel2') . "where id=:id limit 1", array(":id" => $hotelid));
-			$usergroup_list = pdo_fetchall("SELECT * FROM ".tablename('mc_groups')." WHERE uniacid = :uniacid ORDER BY isdefault DESC,credit ASC", array(':uniacid' => $_W['uniacid']));
-			if (!empty($id)) {
-				$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_room') . " WHERE id = :id", array(':id' => $id));
-				if (empty($item)) {
-					message('抱歉，房型不存在或是已经删除！', '', 'error');
-				}
-				$piclist = unserialize($item['thumbs']);
-				$item['mprice'] = unserialize($item['mprice']);
-			}
-			if (checksubmit('submit')) {
-				if (empty($_GPC['title'])) {
-					message('请输入房型！');
-				}
-				$data = array(
-					'weid' => $_W['uniacid'],
-					'hotelid' => $hotelid,
-					'title' => $_GPC['title'],
-					'thumb'=>$_GPC['thumb'],
-					'breakfast' => $_GPC['breakfast'],
-					'oprice' => $_GPC['oprice'],
-					'cprice' => $_GPC['cprice'],
-					'area' => $_GPC['area'],
-					'area_show' => $_GPC['area_show'],
-					'bed' => $_GPC['bed'],
-					'bed_show' => $_GPC['bed_show'],
-					'bedadd' => $_GPC['bedadd'],
-					'bedadd_show' => $_GPC['bedadd_show'],
-					'persons' => $_GPC['persons'],
-					'persons_show' => $_GPC['persons_show'],
-					'sales' => $_GPC['sales'],
-					'device' => $_GPC['device'],
-					'floor' => $_GPC['floor'],
-					'floor_show' => $_GPC['floor_show'],
-					'smoke' => $_GPC['smoke'],
-					'smoke_show' => $_GPC['smoke_show'],
-					'score' => intval($_GPC['score']),
-					'status' => $_GPC['status'],
-					'service' => intval($_GPC['service']),
-					'sortid'=>intval($_GPC['sortid'])
-				);
-				if (!empty($card_status)) {
-					$group_mprice = array();
-					foreach ($_GPC['mprice'] as $user_group => $mprice) {
-						$group_mprice[$user_group] = empty($mprice)? '1' : min(1, $mprice);
-					}
-					$data['mprice'] = iserializer($group_mprice);
-				}
-				if(is_array($_GPC['thumbs'])){
-					$data['thumbs'] = serialize($_GPC['thumbs']);
+		
+		$store_type = isset($_GPC['store_type']) ? $_GPC['store_type'] : 0;
+		
+// 		$stores = pdo_fetchall("SELECT * FROM " . tablename('store_bases') . " WHERE weid = '{$_W['uniacid']}' AND store_type = '{$store_type}' ORDER BY id ASC, displayorder DESC");
+		
+		$sql = 'SELECT * FROM ' . tablename('store_categorys') . ' WHERE `weid` = :weid ORDER BY `parentid`, `displayorder` DESC';
+		$category = pdo_fetchall($sql, array(':weid' => $_W['uniacid']), 'id');
+		if (!empty($category)) {
+			$parent = $children = array();
+			foreach ($category as $cid => $cate) {
+				if (!empty($cate['parentid'])) {
+					$children[$cate['parentid']][] = $cate;
 				} else {
-					$data['thumbs'] = serialize(array());
+					$parent[$cate['id']] = $cate;
 				}
-				if (empty($id)) {
-					pdo_insert('hotel2_room', $data);
-				} else {
-					pdo_update('hotel2_room', $data, array('id' => $id));
-				}
-				pdo_query("update " . tablename('hotel2') . " set roomcount=(select count(*) from " . tablename('hotel2_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $hotelid));
-				message('房型信息更新成功！', $this->createWebUrl('room'), 'success');
 			}
-			include $this->template('room_form');
-		} else if ($op == 'delete') {
-			$id = intval($_GPC['id']);
-			$hotelid = intval($_GPC['hotelid']);
-			if (!empty($id)) {
-				$item = pdo_fetch("SELECT id FROM " . tablename('hotel2_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
-				if (!empty($item)) {
-					message('抱歉，请先删除该房间的订单,再删除该房间！', '', 'error');
+		}
+		//根据分类的一级id获取店铺的id
+		$category_store = pdo_fetch("select id,store_base_id from " . tablename('store_categorys') . "where id=:id limit 1", array(":id" => $_GPC['category']['parentid']));
+		if($store_type){//1是酒店
+			if ($op == 'edit') {
+				$id = intval($_GPC['id']);
+				if(!empty($category_store)){
+					$store_base_id = $category_store['store_base_id'];
 				}
-			} else {
-				message('抱歉，参数错误！', '', 'error');
-			}
-			pdo_delete('hotel2_room', array('id' => $id));
-			pdo_delete('hotel2_order', array('roomid' => $id));
-			pdo_query("update " . tablename('hotel2') . " set roomcount=(select count(*) from " . tablename('hotel2_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $hotelid));
-			message('删除成功！', referer(), 'success');
-		} else if ($op == 'deleteall') {
-			foreach ($_GPC['idArr'] as $k => $id) {
-				$id = intval($id);
+// 				$hotel = pdo_fetch("select id,title from " . tablename('store_bases') . "where id=:id limit 1", array(":id" => $store_base_id));
+				$usergroup_list = pdo_fetchall("SELECT * FROM ".tablename('mc_groups')." WHERE uniacid = :uniacid ORDER BY isdefault DESC,credit ASC", array(':uniacid' => $_W['uniacid']));
 				if (!empty($id)) {
+					$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_room') . " WHERE id = :id", array(':id' => $id));
+					$store_base_id = $item['hotelid'];
+					if (empty($item)) {
+						message('抱歉，房型不存在或是已经删除！', '', 'error');
+					}
+					$piclist = unserialize($item['thumbs']);
+					$item['mprice'] = unserialize($item['mprice']);
+				}
+				if (checksubmit('submit')) {
+					if (empty($_GPC['title'])) {
+						message('请输入房型！');
+					}
+					$data = array(
+							'weid' => $_W['uniacid'],
+							'pcate' => $_GPC['category']['parentid'],
+							'ccate' => $_GPC['category']['childid'],
+							'hotelid' => $store_base_id,
+							'title' => $_GPC['title'],
+							'thumb'=>$_GPC['thumb'],
+							'breakfast' => $_GPC['breakfast'],
+							'oprice' => $_GPC['oprice'],
+							'cprice' => $_GPC['cprice'],
+							'area' => $_GPC['area'],
+							'area_show' => $_GPC['area_show'],
+							'bed' => $_GPC['bed'],
+							'bed_show' => $_GPC['bed_show'],
+							'bedadd' => $_GPC['bedadd'],
+							'bedadd_show' => $_GPC['bedadd_show'],
+							'persons' => $_GPC['persons'],
+							'persons_show' => $_GPC['persons_show'],
+							'sales' => $_GPC['sales'],
+							'device' => $_GPC['device'],
+							'floor' => $_GPC['floor'],
+							'floor_show' => $_GPC['floor_show'],
+							'smoke' => $_GPC['smoke'],
+							'smoke_show' => $_GPC['smoke_show'],
+							'score' => intval($_GPC['score']),
+							'status' => $_GPC['status'],
+							'service' => intval($_GPC['service']),
+							'sortid'=>intval($_GPC['sortid'])
+					);
+					if (!empty($card_status)) {
+						$group_mprice = array();
+						foreach ($_GPC['mprice'] as $user_group => $mprice) {
+							$group_mprice[$user_group] = empty($mprice)? '1' : min(1, $mprice);
+						}
+						$data['mprice'] = iserializer($group_mprice);
+					}
+					if(is_array($_GPC['thumbs'])){
+						$data['thumbs'] = serialize($_GPC['thumbs']);
+					} else {
+						$data['thumbs'] = serialize(array());
+					}
+					if (empty($id)) {
+						pdo_insert('hotel2_room', $data);
+					} else {
+						pdo_update('hotel2_room', $data, array('id' => $id));
+					}
+					pdo_query("update " . tablename('hotel2') . " set roomcount=(select count(*) from " . tablename('hotel2_room') . " where hotelid=:store_base_id) where store_base_id=:store_base_id", array(":store_base_id" => $store_base_id));
+					message('房型信息更新成功！', $this->createWebUrl('Goodsmanage'), 'success');
+				}
+				include $this->template('room_form');
+			} else if ($op == 'delete') {
+				$id = intval($_GPC['id']);
+				if (!empty($id)) {
+					$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_room') . " WHERE id = :id", array(':id' => $id));
+					$store_base_id = $item['hotelid'];
 					$item = pdo_fetch("SELECT id FROM " . tablename('hotel2_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
 					if (!empty($item)) {
-						$this->web_message('抱歉，请先删除该房间的订单,再删除该房间！', '', 'error');
+						message('抱歉，请先删除该房间的订单,再删除该房间！', '', 'error');
 					}
 				} else {
-					$this->web_message('抱歉，参数错误！', '', 'error');
+					message('抱歉，参数错误！', '', 'error');
 				}
 				pdo_delete('hotel2_room', array('id' => $id));
 				pdo_delete('hotel2_order', array('roomid' => $id));
-				pdo_query("update " . tablename('hotel2') . " set roomcount=(select count(*) from " . tablename('hotel2_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $id));
-			}
-			$this->web_message('删除成功！', '', 0);
-			exit();
-		} else if ($op == 'showall') {
-			if ($_GPC['show_name'] == 'showall') {
-				$show_status = 1;
-			} else {
-				$show_status = 0;
-			}
-			foreach ($_GPC['idArr'] as $k => $id) {
-				$id = intval($id);
-				if (!empty($id)) {
-					pdo_update('hotel2_room', array('status' => $show_status), array('id' => $id));
+				pdo_query("update " . tablename('hotel2') . " set roomcount=(select count(*) from " . tablename('hotel2_room') . " where hotelid=:store_base_id) where store_base_id=:store_base_id", array(":store_base_id" => $store_base_id));
+				message('删除成功！', referer(), 'success');
+			} else if ($op == 'deleteall') {
+				foreach ($_GPC['idArr'] as $k => $id) {
+					$id = intval($id);
+					if (!empty($id)) {
+						$item = pdo_fetch("SELECT id FROM " . tablename('hotel2_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
+						if (!empty($item)) {
+							$this->web_message('抱歉，请先删除该房间的订单,再删除该房间！', '', 'error');
+						}
+					} else {
+						$this->web_message('抱歉，参数错误！', '', 'error');
+					}
+					pdo_delete('hotel2_room', array('id' => $id));
+					pdo_delete('hotel2_order', array('roomid' => $id));
+					pdo_query("update " . tablename('hotel2') . " set roomcount=(select count(*) from " . tablename('hotel2_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $id));
 				}
-			}
-			$this->web_message('操作成功！', '', 0);
-			exit();
-		} else if ($op == 'status') {
-			$id = intval($_GPC['id']);
-			if (empty($id)) {
-				message('抱歉，传递的参数错误！', '', 'error');
-			}
-			$temp = pdo_update('hotel2_room', array('status' => $_GPC['status']), array('id' => $id));
-			if ($temp == false) {
-				message('抱歉，刚才操作数据失败！', '', 'error');
+				$this->web_message('删除成功！', '', 0);
+				exit();
+			} else if ($op == 'showall') {
+				if ($_GPC['show_name'] == 'showall') {
+					$show_status = 1;
+				} else {
+					$show_status = 0;
+				}
+				foreach ($_GPC['idArr'] as $k => $id) {
+					$id = intval($id);
+					if (!empty($id)) {
+						pdo_update('hotel2_room', array('status' => $show_status), array('id' => $id));
+					}
+				}
+				$this->web_message('操作成功！', '', 0);
+				exit();
+			} else if ($op == 'status') {
+				$id = intval($_GPC['id']);
+				if (empty($id)) {
+					message('抱歉，传递的参数错误！', '', 'error');
+				}
+				$temp = pdo_update('hotel2_room', array('status' => $_GPC['status']), array('id' => $id));
+				if ($temp == false) {
+					message('抱歉，刚才操作数据失败！', '', 'error');
+				} else {
+					message('状态设置成功！', referer(), 'success');
+				}
 			} else {
-				message('状态设置成功！', referer(), 'success');
+				$store_bases = pdo_fetch("select title from " . tablename('store_bases') . "where store_type=:store_type limit 1", array(":store_type" => $store_type));
+				$pindex = max(1, intval($_GPC['page']));
+				$psize = 20;
+				$sql = "";
+				$params = array();
+				if (!empty($_GPC['title'])) {
+					$sql .= ' AND `title` LIKE :keywords';
+					$params[':keywords'] = "%{$_GPC['title']}%";
+				}
+				if (!empty($_GPC['hoteltitle'])) {
+					$sql .= ' AND h.title LIKE :keywords';
+					$params[':keywords'] = "%{$_GPC['hoteltitle']}%";
+				}
+				$pindex = max(1, intval($_GPC['page']));
+				$psize = 20;
+				$list = pdo_fetchall("SELECT r.*,h.title as hoteltitle FROM " . tablename('hotel2_room') . " r left join " . tablename('store_bases') . " h on r.hotelid = h.id WHERE r.weid = '{$_W['uniacid']}' $sql ORDER BY h.id, r.displayorder, r.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+				$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('hotel2_room') . " r left join " . tablename('store_bases') . " h on r.hotelid = h.id WHERE r.weid = '{$_W['uniacid']}' $sql", $params);
+				$pager = pagination($total, $pindex, $psize);
+				include $this->template('room');
 			}
-		} else {
-			$hotelid = intval($_GPC['hotelid']);
-			$hotel = pdo_fetch("select title from " . tablename('hotel2') . "where id=:id limit 1", array(":id" => $hotelid));
-			$pindex = max(1, intval($_GPC['page']));
-			$psize = 20;
-			$sql = "";
-			$params = array();
-			if (!empty($_GPC['title'])) {
-				$sql .= ' AND `title` LIKE :keywords';
-				$params[':keywords'] = "%{$_GPC['title']}%";
+		}else{//其他店铺
+			if ($op == 'edit') {
+				$id = intval($_GPC['id']);
+				$store_base_id = $category_store['store_base_id'];
+				$hotel = pdo_fetch("select id,title from " . tablename('store_bases') . "where id=:id limit 1", array(":id" => $store_base_id));
+				$usergroup_list = pdo_fetchall("SELECT * FROM ".tablename('mc_groups')." WHERE uniacid = :uniacid ORDER BY isdefault DESC,credit ASC", array(':uniacid' => $_W['uniacid']));
+				if (!empty($id)) {
+					$item = pdo_fetch("SELECT * FROM " . tablename('store_goods') . " WHERE id = :id", array(':id' => $id));
+					if (empty($item)) {
+						message('抱歉，商品不存在或是已经删除！', '', 'error');
+					}
+					$piclist = unserialize($item['thumbs']);
+					$item['mprice'] = unserialize($item['mprice']);
+				}
+				if (checksubmit('submit')) {
+					if (empty($_GPC['title'])) {
+						message('请输入商品名称或类型！');
+					}
+					$data = array(
+							'weid' => $_W['uniacid'],
+							'pcate' => $_GPC['category']['parentid'],
+							'ccate' => $_GPC['category']['childid'],
+							'store_base_id' => $store_base_id,
+							'title' => $_GPC['title'],
+							'thumb'=>$_GPC['thumb'],
+							'oprice' => $_GPC['oprice'],
+							'cprice' => $_GPC['cprice'],
+							'device' => $_GPC['device'],
+							'score' => intval($_GPC['score']),
+							'status' => $_GPC['status'],
+							'sortid'=>intval($_GPC['sortid'])
+					);
+					if (!empty($card_status)) {
+						$group_mprice = array();
+						foreach ($_GPC['mprice'] as $user_group => $mprice) {
+							$group_mprice[$user_group] = empty($mprice)? '1' : min(1, $mprice);
+						}
+						$data['mprice'] = iserializer($group_mprice);
+					}
+					if(is_array($_GPC['thumbs'])){
+						$data['thumbs'] = serialize($_GPC['thumbs']);
+					} else {
+						$data['thumbs'] = serialize(array());
+					}
+					if (empty($id)) {
+						pdo_insert('store_goods', $data);
+					} else {
+						pdo_update('store_goods', $data, array('id' => $id));
+					}
+					message('商品信息更新成功！', $this->createWebUrl('Goodsmanage'), 'success');
+				}
+				include $this->template('room_form');
+			} else if ($op == 'delete') {
+				$id = intval($_GPC['id']);
+				if (!empty($id)) {
+					$item = pdo_fetch("SELECT id FROM " . tablename('hotel2_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
+					if (!empty($item)) {
+						message('抱歉，请先删除该商品的订单,再删除该商品！', '', 'error');
+					}
+				} else {
+					message('抱歉，参数错误！', '', 'error');
+				}
+				pdo_delete('store_goods', array('id' => $id));
+// 				pdo_delete('hotel2_order', array('roomid' => $id));
+// 				pdo_query("update " . tablename('hotel2') . " set roomcount=(select count(*) from " . tablename('hotel2_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $hotelid));
+				message('删除成功！', referer(), 'success');
+			} else if ($op == 'deleteall') {
+				foreach ($_GPC['idArr'] as $k => $id) {
+					$id = intval($id);
+					if (!empty($id)) {
+						$item = pdo_fetch("SELECT id FROM " . tablename('hotel2_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
+						if (!empty($item)) {
+							$this->web_message('抱歉，请先删除该房间的订单,再删除该房间！', '', 'error');
+						}
+					} else {
+						$this->web_message('抱歉，参数错误！', '', 'error');
+					}
+					pdo_delete('hotel2_room', array('id' => $id));
+					pdo_delete('hotel2_order', array('roomid' => $id));
+					pdo_query("update " . tablename('hotel2') . " set roomcount=(select count(*) from " . tablename('hotel2_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $id));
+				}
+				$this->web_message('删除成功！', '', 0);
+				exit();
+			} else if ($op == 'showall') {
+				if ($_GPC['show_name'] == 'showall') {
+					$show_status = 1;
+				} else {
+					$show_status = 0;
+				}
+				foreach ($_GPC['idArr'] as $k => $id) {
+					$id = intval($id);
+					if (!empty($id)) {
+						pdo_update('hotel2_room', array('status' => $show_status), array('id' => $id));
+					}
+				}
+				$this->web_message('操作成功！', '', 0);
+				exit();
+			} else if ($op == 'status') {
+				$id = intval($_GPC['id']);
+				if (empty($id)) {
+					message('抱歉，传递的参数错误！', '', 'error');
+				}
+				$temp = pdo_update('store_goods', array('status' => $_GPC['status']), array('id' => $id));
+				if ($temp == false) {
+					message('抱歉，刚才操作数据失败！', '', 'error');
+				} else {
+					message('状态设置成功！', referer(), 'success');
+				}
+			} else {
+				$store_bases = pdo_fetch("select title from " . tablename('store_bases') . "where store_type=:store_type limit 1", array(":store_type" => $store_type));
+				$pindex = max(1, intval($_GPC['page']));
+				$psize = 20;
+				$sql = "";
+				$params = array();
+				if (!empty($_GPC['title'])) {
+					$sql .= ' AND `title` LIKE :keywords';
+					$params[':keywords'] = "%{$_GPC['title']}%";
+				}
+				if (!empty($_GPC['hoteltitle'])) {
+					$sql .= ' AND sb.title LIKE :keywords';
+					$params[':keywords'] = "%{$_GPC['hoteltitle']}%";
+				}
+				$pindex = max(1, intval($_GPC['page']));
+				$psize = 20;
+				$list = pdo_fetchall("SELECT sg.*,sb.title as hoteltitle FROM " . tablename('store_goods') . " sg left join " . tablename('store_bases') . " sb on sg.store_base_id = sb.id WHERE sg.weid = '{$_W['uniacid']}' $sql ORDER BY sb.id, sg.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+				$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('store_goods') . " sg left join " . tablename('store_bases') . " sb on sg.store_base_id = sb.id WHERE sg.weid = '{$_W['uniacid']}' $sql", $params);
+				$pager = pagination($total, $pindex, $psize);
+				include $this->template('room');
 			}
-			if (!empty($hotelid)) {
-				$sql.=' and r.hotelid=:hotelid';
-				$params[':hotelid'] = $hotelid;
-			}
-			if (!empty($_GPC['title'])) {
-				$sql .= ' AND r.title LIKE :keywords';
-				$params[':keywords'] = "%{$_GPC['title']}%";
-			}
-			if (!empty($_GPC['hoteltitle'])) {
-				$sql .= ' AND h.title LIKE :keywords';
-				$params[':keywords'] = "%{$_GPC['hoteltitle']}%";
-			}
-			$pindex = max(1, intval($_GPC['page']));
-			$psize = 20;
-			$list = pdo_fetchall("SELECT r.*,h.title as hoteltitle FROM " . tablename('hotel2_room') . " r left join " . tablename('hotel2') . " h on r.hotelid = h.id WHERE r.weid = '{$_W['uniacid']}' $sql ORDER BY h.id, r.displayorder, r.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
-			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('hotel2_room') . " r left join " . tablename('hotel2') . " h on r.hotelid = h.id WHERE r.weid = '{$_W['uniacid']}' $sql", $params);
-			$pager = pagination($total, $pindex, $psize);
-			include $this->template('room');
 		}
 	}
 
