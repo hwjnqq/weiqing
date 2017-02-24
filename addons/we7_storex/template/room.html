@@ -3,8 +3,8 @@
 <div class="main">
 	<ul class="nav nav-tabs">
 		<!-- 
-		<li><a href="{php echo $this->createWebUrl('StoreManage');}">店铺管理</a></li>
-		<li><a href="{php echo $this->createWebUrl('StoreManage', array('op'=>'edit','id' => $hotelid));}">添加店铺</a></li>
+		<li><a href="{php echo $this->createWebUrl('storemanage');}">店铺管理</a></li>
+		<li><a href="{php echo $this->createWebUrl('storemanage', array('op'=>'edit','id' => $hotelid));}">添加店铺</a></li>
 		 -->
 		<li><a href="{php echo $this->createWebUrl('goodsmanage', array('op'=>'edit','hotelid' => $hotelid));}">添加商品</a></li>
 		<li class="active"><a href="{php echo $this->createWebUrl('goodsmanage', array('hotelid' => $rid, 'is_hotel' => 1));}">商品管理</a></li>

@@ -3222,6 +3222,8 @@ class We7_storexModuleSite extends WeModuleSite {
 							'smoke_show' => $_GPC['smoke_show'],
 							'score' => intval($_GPC['score']),
 							'status' => $_GPC['status'],
+							'can_reserve' => intval($_GPC['can_reserve']),
+							'can_buy' => intval($_GPC['can_buy']),
 							'service' => intval($_GPC['service']),
 							'sortid'=>intval($_GPC['sortid'])
 					);
@@ -3355,6 +3357,8 @@ class We7_storexModuleSite extends WeModuleSite {
 							'device' => $_GPC['device'],
 							'score' => intval($_GPC['score']),
 							'status' => $_GPC['status'],
+							'can_reserve' => intval($_GPC['can_reserve']),
+							'can_buy' => intval($_GPC['can_buy']),
 							'sortid'=>intval($_GPC['sortid'])
 					);
 					if (!empty($card_status)) {
