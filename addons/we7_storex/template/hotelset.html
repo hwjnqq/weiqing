@@ -16,12 +16,12 @@
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">版本设置</label>
 					<div class="col-sm-9 col-xs-12">
 						<label class="radio-inline">
-							<input type="radio" value="0" name="version" class="version" {if $set['version']==0 || empty($set['version'])}checked{/if}/> 独立酒店版本
+							<input type="radio" value="0" name="version" class="version" {if $set['version']==0 || empty($set['version'])}checked{/if}/> 独立店铺版本
 						</label>
 						<label class="radio-inline">
-							<input type="radio" value="1" name="version" class="version" {if $set['version']==1}checked{/if}/> 多个酒店版本
+							<input type="radio" value="1" name="version" class="version" {if $set['version']==1}checked{/if}/> 多个店铺版本
 						</label>
-						<span class="help-block">请根据您酒店的实际情况选择，不要随意修改</span>
+						<span class="help-block">请根据您店铺的实际情况选择，不要随意修改</span>
 					</div>
 				</div>
 				<div  id="de_city" class="form-group" {if $set['version'] != 1}style="display:none"{/if}>
