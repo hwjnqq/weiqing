@@ -11,14 +11,14 @@ $op = trim($_GPC['op']) ? trim($_GPC['op']) : 'display';
 if ($op == 'store_list') {
 	$setting = pdo_get('hotel2_set', array('weid' => $_W['uniacid']));
 	if($setting['version'] == 0){//单店
-		$store_bases = pdo_getall('store_bases', array('weid' => $_W['uniacid'], 'status' => 1), array() , '' , 'id ASC', array(1,1));
+		$store_bases = pdo_getall('store_bases', array('weid' => $_W['uniacid'], 'status' => 1), array(), '', 'displayorder DESC', array(1,1));
 	}else{//多店
-		$store_bases = pdo_getall('store_bases', array('weid' => $_W['uniacid'], 'status' => 1), array() , '' , 'id ASC');
+		$store_bases = pdo_getall('store_bases', array('weid' => $_W['uniacid'], 'status' => 1), array(), '', 'displayorder DESC');
 	}
 	$data = array();
 	$data['version'] = $setting['version'];
 	$data['stores'] = $store_bases;
-	message(error(-1, $data), '', 'ajax');
+	message(error(0, $data), '', 'ajax');
 }
 
 //获取某个店铺的详细信息
@@ -43,7 +43,7 @@ if ($op == 'store_detail'){
 		}
 	}
 	$data = array_merge($data, $store_extend_info);
-	message(error(-1, $data), '', 'ajax');
+	message(error(0, $data), '', 'ajax');
 }
 // return result(0, '获取酒店成功', array('1', '2', '3'));
 include $this->template('usercenter');
