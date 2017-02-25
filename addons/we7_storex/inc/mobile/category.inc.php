@@ -28,33 +28,38 @@ if ($op == 'goods_list'){
 	if(empty(intval($_GPC['page']))){
 		$limit = array(1,2);
 	}
+	$fields = array('id', 'title', 'thumb', 'oprice', 'cprice');
 	if(!empty($categorys_two)){
 		$data['categorys_two'] = $categorys_two;
 		$condition = array('weid' => $_W['uniacid'], 'pcate' => $first_id, 'status' => 1);
 		if($store_info['store_type'] == 1){//酒店
 			$condition['hotelid'] = $store_id;
+			$fields[] = 'hotelid';
 			foreach ($categorys_two as $key => $categorytwoinfo){
 				$condition['ccate'] = $categorytwoinfo['id'];
-				$goods_list = get_store_goods('hotel2_room', $condition, $limit);
+				$goods_list = get_store_goods('hotel2_room', $condition, $fields, $limit);
 				$data[$key]['store_goods'] = $goods_list;
 			}
 		}else{
+			$fields[] = 'store_base_id';
 			$condition['store_base_id'] = $store_id;
 			foreach ($categorys_two as $key => $categorytwoinfo){
 				$condition['ccate'] = $categorytwoinfo['id'];
-				$goods_list = get_store_goods('store_goods', $condition, $limit);
+				$goods_list = get_store_goods('store_goods', $condition, $fields, $limit);
 				$data[$key]['store_goods'] = $goods_list;
 			}
 		}
 	}else{
 		$condition = array('weid' => $_W['uniacid'], 'pcate' => $first_id, 'status' => 1);
 		if($store_info['store_type'] == 1){
+			$fields[] = 'hotelid';
 			$condition['hotelid'] = $store_id;
-			$goods_list = get_store_goods('hotel2_room', $condition, $limit);
+			$goods_list = get_store_goods('hotel2_room', $condition, $fields, $limit);
 			$data = $goods_list;
 		}else{
+			$fields[] = 'store_base_id';
 			$condition['store_base_id'] = $store_id;
-			$goods_list = get_store_goods('store_goods', $condition, $limit);
+			$goods_list = get_store_goods('store_goods', $condition, $fields, $limit);
 			$data = $goods_list;
 		}
 	}
@@ -86,7 +91,6 @@ if ($op == 'goods_list'){
 	}
 	message(error(0, $data), '', 'ajax');
 }
-include $this->template('usercenter');
 
 function get_store_info(){
 	global $_W, $_GPC;
@@ -100,7 +104,18 @@ function get_category_two(){
 	return pdo_getall('store_categorys', array('weid' => $_W['uniacid'],'parentid' => $category_one_id, 'enabled' => 1), array(), '', 'displayorder DESC');
 }
 
-function get_store_goods($table, $condition, $limit = array()){
-	return pdo_getall($table, $condition, array(), '', 'sortid DESC', $limit);
+function get_store_goods($table, $condition, $fields, $limit = array()){
+	$goods = pdo_getall($table, $condition, $fields, '', 'sortid DESC', $limit);
+	foreach($goods as $k => $info){
+		if(!empty($info['thumb'])){
+			$goods[$k]['thumb'] = tomedia($info['thumb']);
+		}
+		if(!empty($info['thumbs'])){
+			foreach($info['thumbs'] as $key => $url){
+				$goods[$k]['thumbs'][$key] = tomedia($url);
+			}
+		}
+	}
+	return $goods;
 }
 
