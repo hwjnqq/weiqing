@@ -9,7 +9,7 @@ $op = trim($_GPC['op']) ? trim($_GPC['op']) : 'display';
 
 //获取店铺分类
 if ($op == 'category_list'){
-	$store_id = $_GPC['store_id'];//店铺id
+	$store_id = $_GPC['id'];//店铺id
 	$data = pdo_getall('store_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $store_id), array(), '', 'displayorder DESC');
 	message(error(0, $data), '', 'ajax');
 }
@@ -30,7 +30,7 @@ if ($op == 'goods_list'){
 	}
 	$fields = array('id', 'title', 'thumb', 'oprice', 'cprice');
 	if(!empty($categorys_two)){
-		$data['categorys_two'] = $categorys_two;
+		$data = $categorys_two;
 		$condition = array('weid' => $_W['uniacid'], 'pcate' => $first_id, 'status' => 1);
 		if($store_info['store_type'] == 1){//酒店
 			$condition['hotelid'] = $store_id;

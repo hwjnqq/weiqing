@@ -2403,10 +2403,12 @@ class We7_storexModuleSite extends WeModuleSite {
 					'timeend' => strtotime($_GPC['timeend']),
 					'description' => $_GPC['description'],
 					'content' => $_GPC['content'],
+					'store_info' => $_GPC['store_info'],
 					'traffic' => $_GPC['traffic'],
 					'status' => $_GPC['status'],
 				);
 				$common_insert['thumbs'] = empty($_GPC['thumbs']) ? '' : iserializer($_GPC['thumbs']);
+				$common_insert['detail_thumbs'] = empty($_GPC['detail_thumbs']) ? '' : iserializer($_GPC['detail_thumbs']);
 				if($_GPC['store_type']){
 					$common_insert['extend_table'] = 'hotel2';
 					$insert = array(

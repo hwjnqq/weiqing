@@ -37,11 +37,13 @@ if ($op == 'store_detail'){
 	$store_id = $_GPC['store_id'];//店铺id
 	$data = pdo_get('store_bases', array('weid' => $_W['uniacid'], 'id' => $store_id));
 	$data['thumb'] = tomedia($data['thumb']);
-	$data['thumbs'] =  iunserializer($data['thumbs']);
 	if(!empty($data['thumbs'])){
-		foreach ($data['thumbs'] as $k => $url){
-			$data['thumbs'][$k] = tomedia($url);
-		}
+		$data['thumbs'] =  iunserializer($data['thumbs']);
+		$data['thumbs'] = format_url($data['thumbs']);
+	}
+	if(!empty($data['detail_thumbs'])){
+		$data['detail_thumbs'] =  iunserializer($data['detail_thumbs']);
+		$data['detail_thumbs'] = format_url($data['detail_thumbs']);
 	}
 	if($data['store_type'] == 1){
 		$store_extend_info = pdo_get($data['extend_table'], array('weid' => $_W['uniacid'], 'store_base_id' => $store_id));
@@ -64,4 +66,11 @@ if ($op == 'store_detail'){
 	}
 	$data['version'] = $setting['version'];
 	message(error(0, $data), '', 'ajax');
+}
+
+function format_url($urls){
+	foreach ($urls as $k => $url){
+		$urls[$k] = tomedia($url);
+	}
+	return $urls;
 }
