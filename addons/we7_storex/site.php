@@ -2399,6 +2399,8 @@ class We7_storexModuleSite extends WeModuleSite {
 					'mail' => $_GPC['mail'],
 					'displayorder' => $_GPC['displayorder'],
 					'integral_rate' => $_GPC['integral_rate'],
+					'timestart' => strtotime($_GPC['timestart']),
+					'timeend' => strtotime($_GPC['timeend']),
 					'description' => $_GPC['description'],
 					'content' => $_GPC['content'],
 					'traffic' => $_GPC['traffic'],
@@ -2462,7 +2464,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			$sql = 'SELECT `title` FROM ' . tablename('hotel2_business') . ' WHERE `weid` = :weid AND `id` = :id';
 			$params[':id'] = intval($item['businessid']);
 			$item['hotelbusinesss'] = pdo_fetchcolumn($sql, $params);
-			$item['thumbs'] =  iunserializer($item['thumbs']);
+			$store_bases['thumbs'] =  iunserializer($store_bases['thumbs']);
 			if($id){
 				$item = array_merge($item, $store_bases);
 			}
@@ -3223,6 +3225,7 @@ class We7_storexModuleSite extends WeModuleSite {
 							'score' => intval($_GPC['score']),
 							'status' => $_GPC['status'],
 							'can_reserve' => intval($_GPC['can_reserve']),
+							'reserve_device' => $_GPC['reserve_device'],
 							'can_buy' => intval($_GPC['can_buy']),
 							'service' => intval($_GPC['service']),
 							'sortid'=>intval($_GPC['sortid'])
@@ -3358,6 +3361,7 @@ class We7_storexModuleSite extends WeModuleSite {
 							'score' => intval($_GPC['score']),
 							'status' => $_GPC['status'],
 							'can_reserve' => intval($_GPC['can_reserve']),
+							'reserve_device' => $_GPC['reserve_device'],
 							'can_buy' => intval($_GPC['can_buy']),
 							'sortid'=>intval($_GPC['sortid'])
 					);
