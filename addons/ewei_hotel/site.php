@@ -1542,6 +1542,8 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 			if ($page_array['isshow'] == 1) {
 				$data['nindex'] = $page_array['nindex'];
 			}
+			die(json_encode($data));
+			exit;
 			$where.=" GROUP BY r.id";
 			if ($search_array['price_type'] == 1) {
 				$price_value = $search_array['price_value'];

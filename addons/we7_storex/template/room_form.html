@@ -33,11 +33,18 @@
 			<label class="col-xs-12 col-sm-3 col-md-2 control-label">预定设置</label>
 			<div class="col-sm-9 col-xs-12">
 				<label class="radio-inline">
-					<input type="radio" name="can_reserve" value="1" {if $item['can_reserve'] == 1} checked {/if}"/>可预定
+					<input type="radio" name="can_reserve" value="1" {if $item['can_reserve'] == 1} checked {/if}" onclick="$('#reserve_device').show();"/>可预定
 				</label>
 				<label class="radio-inline">
-					<input type="radio" name="can_reserve" value="0" {if $item['can_reserve'] == 0} checked {/if}"/>不可预定
+					<input type="radio" name="can_reserve" value="0" {if $item['can_reserve'] == 0} checked {/if}" onclick="$('#reserve_device').hide();"/>不可预定
 				</label>
+			</div>
+		</div>
+		<div class="form-group" {if $item['can_reserve'] != 1}style="display: none"{/if} id="reserve_device">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">预定说明</label>
+			<div class="col-sm-9 col-xs-12">
+				<textarea style="height:100px;" id="reserve" class="form-control" name="reserve_device" cols="70" id="reply-add-text1">{$item['reserve_device']}</textarea>
+				<span class="help-block">商品预定说明（选填）</span>
 			</div>
 		</div>
 		<div class="form-group">
