@@ -1,11 +1,11 @@
 <?php
 
 defined('IN_IA') or exit('Access Denied');
+include IA_ROOT . '/addons/we7_storex/function/function.php';
 global $_W, $_GPC;
 // paycenter_check_login();
-// $ops = array('display', 'post', 'delete');
-// $op = in_array($op, $op) ? $op : 'display';
-$op = trim($_GPC['op']) ? trim($_GPC['op']) : 'display';
+$ops = array('display', 'post', 'delete', 'store_list', 'store_detail');
+$op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'display';
 
 //获取店铺列表
 if ($op == 'store_list') {
@@ -34,8 +34,11 @@ if ($op == 'store_list') {
 //获取某个店铺的详细信息
 if ($op == 'store_detail'){
 	$setting = pdo_get('hotel2_set', array('weid' => $_W['uniacid']));
-	$store_id = $_GPC['store_id'];//店铺id
+	$store_id = intval($_GPC['store_id']);//店铺id
 	$data = pdo_get('store_bases', array('weid' => $_W['uniacid'], 'id' => $store_id));
+	if(!empty($data['store_info'])){
+		$data['store_info'] = htmlspecialchars_decode($data['store_info']);
+	}
 	$data['thumb'] = tomedia($data['thumb']);
 	if(!empty($data['thumbs'])){
 		$data['thumbs'] =  iunserializer($data['thumbs']);
@@ -66,11 +69,4 @@ if ($op == 'store_detail'){
 	}
 	$data['version'] = $setting['version'];
 	message(error(0, $data), '', 'ajax');
-}
-
-function format_url($urls){
-	foreach ($urls as $k => $url){
-		$urls[$k] = tomedia($url);
-	}
-	return $urls;
 }
