@@ -43,6 +43,9 @@ if ($op == 'post'){
 		$result = pdo_update('store_address', $_GPC['fields'], array('id' => $address_id));
 		message(error(0, $result), '', 'ajax');
 	}else{
+		if(empty($_GPC['fields'])){
+			message(error(-1, 添加数据错误), '', 'ajax');
+		}
 		$result = pdo_insert('store_address', $_GPC['fields']);
 		message(error(0, $result), '', 'ajax');
 	}
