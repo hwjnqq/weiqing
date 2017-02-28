@@ -12,7 +12,7 @@ function format_url($urls){
 function get_store_info(){
 	global $_W, $_GPC;
 	$store_id = $_GPC['id'];//店铺id
-	return pdo_get('store_bases', array('weid' => $_W['uniacid'], 'id' => $store_id, 'status' => 1), array('id', 'store_type'));
+	return pdo_get('store_bases', array('weid' => $_W['uniacid'], 'id' => $store_id, 'status' => 1), array('id', 'store_type', 'status'));
 }
 //获取某一级分类下的所有二级分类
 function get_sub_class(){
@@ -71,10 +71,23 @@ function check_params($op){
 				'goodsid' => $_GPC['goodsid'],
 			),
 			'info' => array(
-					'openid' => $_W['openid'],
+				'openid' => $_W['openid'],
 			),
-			'reserve' => array(),
-			'buy' => array(),
+			'order' => array(
+				'id' => $_GPC['id'],
+				'goodsid' => $_GPC['goodsid'],
+				'action' => $_GPC['action'],
+			),
+		),
+		'orders' => array(
+			'common' => array(
+				'uniacid' => $_W['uniacid'],
+				'openid' => $_W['openid'],
+			),
+			'order_list' => array(),
+			'order_detail' => array(
+				'id' => $_GPC['id'],
+			),
 		),
 	);
 	$do = $_GPC['do'];

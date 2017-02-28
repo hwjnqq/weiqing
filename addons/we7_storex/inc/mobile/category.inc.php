@@ -18,7 +18,6 @@ if ($op == 'category_list'){
 			$store_categorys[$val['id']] = $val['name'];
 		}
 	}
-	
 	message(error(0, $store_categorys), '', 'ajax');
 }
 //i=281&c=entry&do=category&m=we7_storex&op=goods_list&id=6&first_id=10&
@@ -26,23 +25,32 @@ if ($op == 'category_list'){
 if ($op == 'goods_list'){
 	$store_id = intval($_GPC['id']);//店铺id
 	$store_info = get_store_info();
+	if(empty($store_info)){
+		message(error(-1, '店铺不存在'), '', 'ajax');
+	}
 	$first_id = intval($_GPC['first_id']);//一级分类id
+	$first_class = pdo_get('store_categorys', array('weid' => $_W['uniacid'],'store_base_id' => $store_id, 'id' => $first_id));
+	if(empty($first_class)){
+		message(error(-1, '分类不存在'), '', 'ajax');
+	}
 	$sub_class = get_sub_class();//获取二级分类
-	$list = array();
 	//存在二级分类就找其下的商品
-	$limit = array(1,2);
-	$fields = array('id', 'title', 'thumb', 'oprice', 'cprice');
+	$fields = array('id', 'title', 'thumb', 'oprice', 'cprice', 'sold_num');
+	$list = array();
+	$goods = array();
 	if(!empty($sub_class)){
-		$list = $sub_class;
+		$goods = $sub_class;
+		$list['have_subclass'] = 1;
 		$condition = array('weid' => $_W['uniacid'], 'pcate' => $first_id, 'status' => 1);
 		if($store_info['store_type'] == 1){//酒店
 			$condition['hotelid'] = $store_id;
 			$fields[] = 'hotelid';
 			foreach ($sub_class as $key => $sub_classinfo){
 				$condition['ccate'] = $sub_classinfo['id'];
-				$goods_list = get_store_goods('hotel2_room', $condition, $fields, $limit);
+				$goods_list = get_store_goods('hotel2_room', $condition, $fields);
 				if(!empty($goods_list)){
-					$list[$key]['store_goods'] = $goods_list;
+					$goods[$key]['store_goods'] = array_slice($goods_list, 0, 2);
+					$goods[$key]['total'] = count($goods_list);
 				}
 			}
 		}else{
@@ -50,30 +58,35 @@ if ($op == 'goods_list'){
 			$condition['store_base_id'] = $store_id;
 			foreach ($sub_class as $key => $sub_classinfo){
 				$condition['ccate'] = $sub_classinfo['id'];
-				$goods_list = get_store_goods('store_goods', $condition, $fields, $limit);
+				$goods_list = get_store_goods('store_goods', $condition, $fields);
 				if(!empty($goods_list)){
-					$list[$key]['store_goods'] = $goods_list;
+					$goods[$key]['store_goods'] = array_slice($goods_list, 0, 2);
+					$goods[$key]['total'] = count($goods_list);
 				}
 			}
 		}
 	}else{
+		$list['have_subclass'] = 0;
 		$condition = array('weid' => $_W['uniacid'], 'pcate' => $first_id, 'status' => 1);
 		if($store_info['store_type'] == 1){
 			$fields[] = 'hotelid';
 			$condition['hotelid'] = $store_id;
-			$goods_list = get_store_goods('hotel2_room', $condition, $fields, $limit);
+			$goods_list = get_store_goods('hotel2_room', $condition, $fields);
 			if(!empty($goods_list)){
-				$list = $goods_list;
+				$goods['store_goods'] = array_slice($goods_list, 0, 2);
+				$goods['total'] = count($goods_list);
 			}
 		}else{
 			$fields[] = 'store_base_id';
 			$condition['store_base_id'] = $store_id;
-			$goods_list = get_store_goods('store_goods', $condition, $fields, $limit);
+			$goods_list = get_store_goods('store_goods', $condition, $fields);
 			if(!empty($goods_list)){
-				$list = $goods_list;
+				$goods['store_goods'] = array_slice($goods_list, 0, 2);
+				$goods['total'] = count($goods_list);
 			}
 		}
 	}
+	$list['list'] = $goods;
 	message(error(0, $list), '', 'ajax');
 }
 
@@ -81,7 +94,14 @@ if ($op == 'goods_list'){
 if ($op == 'more_goods'){
 	$store_id = intval($_GPC['id']);//店铺id
 	$sub_classid = intval($_GPC['sub_id']);//二级id
-	$store_bases = pdo_get('store_bases', array('id' => $store_id), array('id', 'store_type'));
+	$store_bases = pdo_get('store_bases', array('id' => $store_id), array('id', 'store_type', 'status'));
+	if(empty($store_bases)){
+		message(error(-1, '店铺不存在'), '', 'ajax');
+	}else{
+		if($store_bases['status'] == 0){
+			message(error(-1, '管理员将该店铺设置为隐藏，请联系管理员'), '', 'ajax');
+		}
+	}
 	if($store_bases['store_type'] == 1){
 		$goods_list = pdo_getall('hotel2_room', array('ccate' => $sub_classid, 'hotelid' => $store_bases['id']));
 	}else{
@@ -92,12 +112,16 @@ if ($op == 'more_goods'){
 	$list = array();
 	$total = count($goods_list);
 	if ($total <= $psize) {
-		$list = $goods_list;
+		$list['list'] = $goods_list;
 	} else {
 		// 需要分页
 		if($pindex > 0) {
 			$list_array = array_chunk($goods_list, $psize, true);
-			$list['list'] = $list_array[($pindex-1)];
+			if(!empty($list_array[($pindex-1)])){
+				foreach ($list_array[($pindex-1)] as $val){
+					$list['list'][] = $val;
+				}
+			}
 		} else {
 			$list['list'] = $goods_list;
 		}
