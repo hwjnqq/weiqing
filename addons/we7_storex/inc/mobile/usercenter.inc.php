@@ -17,17 +17,20 @@ if ($op == 'personal_info') {
 if ($op == 'personal_update'){
 	foreach($_GPC['fields'] as $key => $value){
 		if(empty($value) || empty($key)){
-			message(error(-1, '不能为空' ), '', 'ajax');
+			message(error(-1, '不能为空'), '', 'ajax');
 		}
 	}
-	$user_update = mc_update($_W['openid'], $_GPC['fields']);
-	message(error(0, $user_update), '', 'ajax');
+	$result = mc_update($_W['openid'], $_GPC['fields']);
+	if (!empty($result)) {
+		message(error(0, '修改成功'), '', 'ajax');
+	} else {
+		message(error(-1, '修改失败'), '', 'ajax');
+	}
 }
 if ($op == 'credits_record'){
-	$credittype = $_GPC['credittype'];
 	$condition = 'WHERE uniacid = :uniacid AND credittype = :credittype AND uid = :uid AND module = :module';
-	$params = array(':uniacid' => $_W['uniacid'], ':credittype' => $credittype, ':uid' => $uid, 'module' => 'we7_storex');
-	$credits_record = pdo_fetchall('SELECT num, createtime , module, remark FROM ' .tablename('mc_credits_record') .$condition .' ORDER BY id DESC', $params );
+	$params = array(':uniacid' => $_W['uniacid'], ':credittype' => $_GPC['credittype'], ':uid' => $uid, 'module' => 'we7_storex');
+	$credits_record = pdo_fetchall('SELECT num, createtime , module, remark FROM ' .tablename('mc_credits_record') .$condition .' ORDER BY id DESC', $params);
 	message(error(0, $credits_record), '', 'ajax');
 }
 if ($op == 'address_info'){
@@ -37,12 +40,10 @@ if ($op == 'address_info'){
 if ($op == 'post'){
 	$address_id = intval($_GPC['id']);
 	if(!empty($address_id)){
-		$fields = $_GPC['fields'];
-		$result = pdo_update('store_address', $fields, array('id' => $address_id));
+		$result = pdo_update('store_address', $_GPC['fields'], array('id' => $address_id));
 		message(error(0, $result), '', 'ajax');
 	}else{
-		$fields = $_GPC['fields'];
-		$result = pdo_insert('store_address',$fields );
+		$result = pdo_insert('store_address', $_GPC['fields']);
 		message(error(0, $result), '', 'ajax');
 	}
 
@@ -52,6 +53,5 @@ if ($op == 'address_delete'){
 	$result = pdo_delete('store_address', array('id' => $address_id));
 	message(error(0, $result), '', 'ajax');
 }
-
 
 include $this->template('usercenter');
