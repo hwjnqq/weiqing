@@ -3390,7 +3390,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			} else if ($op == 'delete') {
 				$id = intval($_GPC['id']);
 				if (!empty($id)) {
-					$item = pdo_fetch("SELECT id FROM " . tablename('store_goods') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
+					$item = pdo_fetch("SELECT id FROM " . tablename('store_goods') . " WHERE store_base_id = :store_base_id LIMIT 1", array(':store_base_id' => $id));
 					if (!empty($item)) {
 						message('抱歉，请先删除该商品的订单,再删除该商品！', '', 'error');
 					}

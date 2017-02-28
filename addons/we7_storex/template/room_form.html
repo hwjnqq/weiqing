@@ -40,10 +40,11 @@
 				</label>
 			</div>
 		</div>
-		<div class="form-group" {if $item['can_reserve'] != 1}style="display: none"{/if} id="reserve_device">
+		<div class="form-group" >
+		<!-- {if $item['can_reserve'] != 1}style="display: none"{/if} id="reserve_device" -->
 			<label class="col-xs-12 col-sm-3 col-md-2 control-label">预定说明</label>
 			<div class="col-sm-9 col-xs-12">
-				<textarea style="height:100px;" id="reserve" class="form-control" name="reserve_device" cols="70" id="reply-add-text1">{$item['reserve_device']}</textarea>
+				{php echo tpl_ueditor('reserve_device', $item['reserve_device']);}
 				<span class="help-block">商品预定说明（选填）</span>
 			</div>
 		</div>
@@ -128,7 +129,7 @@
 			</div>
 		</div>
 		{/if}
-		<span {if $item['store_type'] != 1}style="display: none"{/if} id="hotel_add_info">
+		<span {if $store_type != 1}style="display: none"{/if} id="hotel_add_info">
 		<div class="form-group">
 			<label class="col-xs-12 col-sm-3 col-md-2 control-label">早餐设置</label>
 			<div class="col-sm-9 col-xs-12">
@@ -215,13 +216,13 @@
 		</div>
 		</span>
 		<!-- 普通店铺的属性  -->
-		<sapn {if $store_type != 1}style="display: none"{/if} id="goods_add_info">
+		<sapn {if $store_type != 0}style="display: none"{/if} id="goods_add_info">
 		
 		</sapn>
 		<div class="form-group">
 			<label class="col-xs-12 col-sm-3 col-md-2 control-label">其他说明</label>
 			<div class="col-sm-9 col-xs-12">
-				<textarea style="height:100px;" id="device" class="form-control" name="device" cols="70" id="reply-add-text1">{$item['device']}</textarea>
+				{php echo tpl_ueditor('device', $item['device']);}
 				<span class="help-block">商品特别说明（选填）</span>
 			</div>
 		</div>
