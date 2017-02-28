@@ -52,13 +52,22 @@ UPDATE `ims_coupon` SET type = '4' WHERE type = 'gift';
 UPDATE `ims_coupon` SET type = '5' WHERE type = 'general_coupon';
 EOF;
 pdo_run($sql);
-$sql = <<<EOF
-	ALTER TABLE `ims_coupon_modules` DROP `card_id`;
-	ALTER TABLE `ims_coupon` DROP `location_id_list`;
-	ALTER TABLE `ims_coupon` DROP `url_name_type`;
-	ALTER TABLE `ims_coupon` DROP `custom_url`;
-EOF;
-pdo_run($sql);
+if (pdo_fieldexists('coupon_modules', 'card_id')) {
+	$sql = "ALTER TABLE `ims_coupon_modules` DROP `card_id`;";
+	pdo_run($sql);
+}
+if (pdo_fieldexists('coupon', 'location_id_list')) {
+	$sql = "ALTER TABLE `ims_coupon` DROP `location_id_list`;";
+	pdo_run($sql);
+}
+if (pdo_fieldexists('coupon', 'url_name_type')) {
+	$sql = "ALTER TABLE `ims_coupon` DROP `url_name_type`;";
+	pdo_run($sql);
+}
+if (pdo_fieldexists('coupon', 'custom_url')) {
+	$sql = "ALTER TABLE `ims_coupon` DROP `custom_url`;";
+	pdo_run($sql);
+}
 //修改qrcode表url字段的长度
 if (pdo_fieldexists('qrcode', 'url')) {
 	$sql ="ALTER TABLE " .tablename('qrcode') . " CHANGE `url` `url` VARCHAR(256) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL";
