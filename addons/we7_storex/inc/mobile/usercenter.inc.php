@@ -56,11 +56,11 @@ if ($op == 'post'){
 		message(error(0, $result), '', 'ajax');
 	}
 }
-if ($op == 'default'){
-	if(empty($_GPC['id']) || empty($_GPC['default'])){
+if ($op == 'address_default'){
+	if(empty($_GPC['id']) || empty($_GPC['fields'])){
 		message(error(-1, 设置失败), '', 'ajax');
 	}
-	$result = pdo_update('mc_member_address', $default, array('id' => $_GPC['id']));
+	$result = pdo_update('mc_member_address', $_GPC['fields'], array('id' => $_GPC['id']));
 	message(error(0, $result), '', 'ajax');
 }
 if ($op == 'address_delete'){
