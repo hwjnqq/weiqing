@@ -31,17 +31,30 @@ if ($op == 'personal_update'){
 if ($op == 'credits_record'){
 	$condition = 'WHERE uniacid = :uniacid AND credittype = :credittype AND uid = :uid AND module = :module';
 	$params = array(':uniacid' => $_W['uniacid'], ':credittype' => $_GPC['credittype'], ':uid' => $uid, 'module' => 'we7_storex');
-	$credits_record = pdo_fetchall('SELECT num, createtime , module, remark FROM ' .tablename('mc_credits_record') .$condition .' ORDER BY id DESC', $params);
+	$credits_record = pdo_fetchall('SELECT num, createtime , module FROM ' .tablename('mc_credits_record') .$condition .' ORDER BY id DESC', $params);
 //	$credits_record = pdo_getall('mc_credits_record', array('uniacid' => $_W['uniacid'], 'credittype' => $_GPC['credittype'], 'uid' => $uid, 'module' => 'we7_storex'), array('num', 'createtime', 'module','remark' ), '', 'id DESC');
-	message(error(0, $credits_record), '', 'ajax');
+
+	foreach($credits_record as $data){
+		$data['createtime'] = date('Y-m-d h:m:s', $data['createtime']);
+		$datas[] = $data;
+	}
+	message(error(0, $datas), '', 'ajax');
 }
 if ($op == 'address_lists'){
 	$address_info = pdo_getall('mc_member_address', array('uid' => $uid));
 	message(error(0,$address_info),'','ajax');
 }
-if ($op == 'post'){
+if ($op == 'current_address'){
+	if(empty($_GPC['id'])){
+		message(error(-1,获取失败),'','ajax');
+	}
+	$current_info = pdo_get('mc_member_address', array('id' => intval($_GPC['id'])));
+	message(error(0,$current_info),'','ajax');
+}
+if ($op == 'address_post'){
 	$address_id = intval($_GPC['id']);
 	$address_info = $_GPC['__input']['fields'];
+
 	if (empty($address_info['username']) || empty($address_info['zipcode']) || empty($address_info['province']) || empty($address_info['city']) || empty($address_info['city']) || empty($address_info['district']) || empty($address_info['address'])){
 		message(error(-1, 请填写正确的信息), '', 'ajax');
 	}
@@ -52,6 +65,8 @@ if ($op == 'post'){
 		$result = pdo_update('mc_member_address', $address_info, array('id' => $address_id));
 		message(error(0, $result), '', 'ajax');
 	}else{
+		$address_info['uid'] = $uid;
+		$address_info['uniacid'] = $_W['uniacid'];
 		$result = pdo_insert('mc_member_address', $address_info);
 		message(error(0, $result), '', 'ajax');
 	}
