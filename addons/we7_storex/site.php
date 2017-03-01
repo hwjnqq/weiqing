@@ -3364,6 +3364,7 @@ class We7_storexModuleSite extends WeModuleSite {
 							'device' => $_GPC['device'],
 							'score' => intval($_GPC['score']),
 							'status' => $_GPC['status'],
+							'sales' => $_GPC['sales'],
 							'can_reserve' => intval($_GPC['can_reserve']),
 							'reserve_device' => $_GPC['reserve_device'],
 							'can_buy' => intval($_GPC['can_buy']),

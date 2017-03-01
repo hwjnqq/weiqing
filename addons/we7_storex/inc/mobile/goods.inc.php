@@ -136,9 +136,6 @@ if ($op == 'order'){
 	//预定直接将数据加进order表
 	if($store_info['store_type'] == 1){//酒店
 		$order_info['btime'] = strtotime($_GPC['__input']['order']['btime']);
-		print_r($order_info['btime']);
-		print_r('aaaa');
-		print_r(strtotime(date('Y-m-d' ,time())));
 		$order_info['etime'] = strtotime($_GPC['__input']['order']['etime']);
 // 		$order_info['day'] = intval($_GPC['day']);
 		$order_info['day'] = 1;
@@ -160,7 +157,7 @@ if ($op == 'order'){
 		
 		$pricefield = isMember() ? 'mprice' : 'cprice';
 		
-		if($order_info['btime'] < strtotime(date('Y-m-d' ,time()))){
+		if($order_info['btime'] < strtotime('today')){
 			message(error(-1, '预定的开始日期不能小于当日的日期!'), '', 'ajax');
 		}
 		// 入住
@@ -351,6 +348,12 @@ if ($op == 'order'){
 		}
 		if (empty($order_info['mobile'])) {
 			message(error(-1, '手机号不能为空!'), '', 'ajax');
+		}
+		$goods_info['mode_distribute'] = intval($_GPC['__input']['order']['mode_distribute']);
+		$goods_info['order_time'] = strtotime(intval($_GPC['__input']['order']['order_time']));
+		if($goods_info['mode_distribute'] == 2){//配送
+			$goods_info['addressid'] = intval($_GPC['__input']['order']['addressid']);
+			$goods_info['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
 		}
 		$insert = array(
 				'ordersn' => date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1),

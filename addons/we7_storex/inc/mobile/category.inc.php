@@ -36,7 +36,7 @@ if ($op == 'goods_list'){
 	$can_reserve = $_GPC['can_reserve'];
 	$sub_class = get_sub_class();//获取二级分类
 	//存在二级分类就找其下的商品
-	$fields = array('id', 'title', 'thumb', 'oprice', 'cprice', 'sold_num');
+	$fields = array('id', 'title', 'thumb', 'oprice', 'cprice', 'sold_num', 'sales');
 	$list = array();
 	$goods = array();
 	if(!empty($sub_class)){
@@ -100,7 +100,20 @@ if ($op == 'goods_list'){
 //获取更多的商品信息
 if ($op == 'more_goods'){
 	$store_id = intval($_GPC['id']);//店铺id
-	$sub_classid = intval($_GPC['sub_id']);//二级id
+	$sub_classid = intval($_GPC['sub_id']);//一级或二级id
+	$category = pdo_get('store_categorys', array('id' => $sub_classid, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id), array('id', 'parentid'));
+	if(empty($category)){
+		message(error(-1, '参数错误'), '', 'ajax');
+	}
+	if($category['parentid'] == 0){
+		$sub_category = pdo_getall('store_categorys', array('parentid' => $sub_classid, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id), array('id', 'parentid'));
+		if(!empty($sub_category)){
+			message(error(-1, '参数错误'), '', 'ajax');
+		}
+		$condition = array('pcate' => $sub_classid);
+	}else{
+		$condition = array('ccate' => $sub_classid);
+	}
 	$can_reserve = $_GPC['can_reserve'];//预定
 	$store_bases = pdo_get('store_bases', array('id' => $store_id), array('id', 'store_type', 'status'));
 	if(empty($store_bases)){
@@ -110,7 +123,6 @@ if ($op == 'more_goods'){
 			message(error(-1, '管理员将该店铺设置为隐藏，请联系管理员'), '', 'ajax');
 		}
 	}
-	$condition = array('ccate' => $sub_classid);
 	if(!empty($can_reserve)){
 		$condition['can_reserve'] = 1;
 	}
