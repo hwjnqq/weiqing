@@ -41,8 +41,8 @@ if ($op == 'address_lists'){
 }
 if ($op == 'post'){
 	$address_id = intval($_GPC['id']);
-	$address_info = $_GPC['fields'];
-	if (empty($address_info['username']) || empty($address_info['zipcode']) || empty($address_info['province'] || empty($address_info['city']) || empty($address_info['city']) || empty($address_info['district'] || empty($address_info['address']){
+	$address_info = $_GPC['__input']['fields'];
+	if (empty($address_info['username']) || empty($address_info['zipcode']) || empty($address_info['province']) || empty($address_info['city']) || empty($address_info['city']) || empty($address_info['district']) || empty($address_info['address'])){
 		message(error(-1, 请填写正确的信息), '', 'ajax');
 	}
 	if (!preg_match(REGULAR_MOBILE, $address_info['mobile'])){
@@ -57,9 +57,11 @@ if ($op == 'post'){
 	}
 }
 if ($op == 'address_default'){
-	if(empty($_GPC['id']) || empty($_GPC['fields'])){
+	if(empty($_GPC['id']) || empty($_GPC['__input']['fields'])){
 		message(error(-1, 设置失败), '', 'ajax');
 	}
+	$address_id = pdo_getcolumn('mc_member_address', array('isdefault' => '1', 'uid' => $uid), 'id');
+	$default_result = pdo_update('mc_member_address', array('isdefault' => '0'), array('id' => $address_id));
 	$result = pdo_update('mc_member_address', $_GPC['fields'], array('id' => $_GPC['id']));
 	message(error(0, $result), '', 'ajax');
 }
