@@ -3230,7 +3230,9 @@ class We7_storexModuleSite extends WeModuleSite {
 							'reserve_device' => $_GPC['reserve_device'],
 							'can_buy' => intval($_GPC['can_buy']),
 							'service' => intval($_GPC['service']),
-							'sortid'=>intval($_GPC['sortid'])
+							'sortid'=>intval($_GPC['sortid']),
+							'sold_num' => intval($_GPC['sold_num']),
+							'store_type' => intval($_GPC['store_type'])
 					);
 					if (!empty($card_status)) {
 						$group_mprice = array();
@@ -3365,7 +3367,9 @@ class We7_storexModuleSite extends WeModuleSite {
 							'can_reserve' => intval($_GPC['can_reserve']),
 							'reserve_device' => $_GPC['reserve_device'],
 							'can_buy' => intval($_GPC['can_buy']),
-							'sortid'=>intval($_GPC['sortid'])
+							'sortid'=>intval($_GPC['sortid']),
+							'sold_num' => intval($_GPC['sold_num']),
+							'store_type' => intval($_GPC['store_type'])
 					);
 					if (!empty($card_status)) {
 						$group_mprice = array();
