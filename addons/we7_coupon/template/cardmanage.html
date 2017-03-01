@@ -222,11 +222,7 @@
 					window.setTimeout(function(){location.href = location.href;}, 300);
 				}
 				{else}
-					if (status == 1) {
-						$this.parent().parent().parent().prev().html('<span class="label label-success">可用</span>');
-					} else {
-						$this.parent().parent().parent().prev().html('<span class="label label-warning">禁用</span>');
-					}
+					util.message('修改成功');
 				{/if}
 			});
 		});
