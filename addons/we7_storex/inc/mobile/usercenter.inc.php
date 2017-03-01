@@ -41,22 +41,33 @@ if ($op == 'address_lists'){
 }
 if ($op == 'post'){
 	$address_id = intval($_GPC['id']);
+	$address_info = $_GPC['fields'];
+	if (empty($address_info['username']) || empty($address_info['zipcode']) || empty($address_info['province'] || empty($address_info['city']) || empty($address_info['city']) || empty($address_info['district'] || empty($address_info['address']){
+		message(error(-1, 请填写正确的信息), '', 'ajax');
+	}
+	if (!preg_match(REGULAR_MOBILE, $address_info['mobile'])){
+		message(error(-1, 手机号格式不正确), '', 'ajax');
+	}
 	if(!empty($address_id)){
-		if(empty($_GPC['fields'])){
-			message(error(-1, 更改信息不能为空), '', 'ajax');
-		}
-		$result = pdo_update('mc_member_address', $_GPC['fields'], array('id' => $address_id));
+		$result = pdo_update('mc_member_address', $address_info, array('id' => $address_id));
 		message(error(0, $result), '', 'ajax');
 	}else{
-		if(empty($_GPC['fields'])){
-			message(error(-1, '添加数据错误'), '', 'ajax');
-		}
-		$result = pdo_insert('mc_member_address', $_GPC['fields']);
+		$result = pdo_insert('mc_member_address', $address_info);
 		message(error(0, $result), '', 'ajax');
 	}
 }
+if ($op == 'default'){
+	if(empty($_GPC['id']) || empty($_GPC['default'])){
+		message(error(-1, 设置失败), '', 'ajax');
+	}
+	$result = pdo_update('mc_member_address', $default, array('id' => $_GPC['id']));
+	message(error(0, $result), '', 'ajax');
+}
 if ($op == 'address_delete'){
 	$address_id = intval($_GPC['id']);
+	if(empty($address_id)){
+		message(error(-1, 删除失败), '', 'ajax');
+	}
 	$result = pdo_delete('mc_member_address', array('id' => $address_id));
 	message(error(0, $result), '', 'ajax');
 }
