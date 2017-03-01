@@ -38,6 +38,13 @@ if ($op == 'store_detail'){
 	$setting = pdo_get('hotel2_set', array('weid' => $_W['uniacid']));
 	$store_id = intval($_GPC['store_id']);//店铺id
 	$store_detail = pdo_get('store_bases', array('weid' => $_W['uniacid'], 'id' => $store_id));
+	if(empty($store_detail)){
+		message(error(-1, '店铺不存在'), '', 'ajax');
+	}else{
+		if($store_detail['status'] == 0){
+			message(error(-1, '管理员将该店铺设置为隐藏，请联系管理员'), '', 'ajax');
+		}
+	}
 	if(!empty($store_detail['store_info'])){
 		$store_detail['store_info'] = htmlspecialchars_decode($store_detail['store_info']);
 	}
