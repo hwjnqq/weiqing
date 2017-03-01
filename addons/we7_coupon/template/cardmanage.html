@@ -129,8 +129,8 @@
 					</td>
 				{/if}
 				<td>{php echo date('Y-m-d H:i', $row['createtime']);}</td>
-				<td class="switch">
-					<input type="checkbox" value="1" {if intval($row['status'])==1} checked="checked" {/if} data="{$row['id']}"/>
+				<td>
+					<input type="checkbox" class="hidden" value="1" {if intval($row['status'])==1} checked="checked" {/if} data="{$row['id']}"/>
 				</td>
 				<td class="text-right">
 					<div class="btn-group" style="margin-bottom: 5px">
@@ -183,7 +183,7 @@
 </div>
 
 <script type="text/javascript">
-	require(['bootstrap.switch', 'util', 'trade'], function($, u, trade){
+		require(['trade', 'bootstrap.switch'], function(trade){
 		trade.init();
 
 		{if $setting['times_status'] == 1 || $setting['nums_status'] == 1}
@@ -201,15 +201,15 @@
 							return false;
 						});
 					} else {
-						u.message('系统出错', '', 'error');
+						util.message('系统出错', '', 'error');
 						return false;
 					}
 				});
 			});
 		{/if}
 
-		$('.switch :checkbox').bootstrapSwitch();
-		$('.switch :checkbox').on('switchChange.bootstrapSwitch', function(e, state){
+		$(':checkbox').bootstrapSwitch();
+		$(':checkbox').on('switchChange.bootstrapSwitch', function(e, state){
 			$this = $(this);
 			var cardid = $this.attr('data');
 			var status = this.checked ? 1 : 0;
