@@ -7,10 +7,14 @@ class Weihaom_wbModuleSite extends WeModuleSite {
     public function doMobileIndex() {
         global $_W, $_GPC;
 
+        if (empty($_W['fans']['nickname'])) {
+            mc_oauth_userinfo();
+        }
+
         if (empty($_W['fans']['openid'])) {
             message('请先关注公众号再来参加活动吧！');
         }
-
+        
         $rid = intval($_GPC['rid']);
         $sql = 'SELECT * FROM ' . tablename('weihaom_wb_reply') .' WHERE `rid` = :rid';
         $params = array(':rid' => $rid);
@@ -49,7 +53,9 @@ class Weihaom_wbModuleSite extends WeModuleSite {
             pdo_insert('weihaom_wb_user', $insert);
             $user = array('id' => pdo_insertid());
         }
-
+        if (empty($user['realname'])) {
+            pdo_update('weihaom_wb_user', array('realname' => $_W['fans']['nickname']), array('id' => $user['id']));
+        }
         $realname = $_W['fans']['nickname'];
         $set['description'] = str_replace("\r\n", '', $set['description']);
 
