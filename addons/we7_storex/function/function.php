@@ -70,9 +70,7 @@ function check_params($op){
 				'id' => $_GPC['id'],
 				'goodsid' => $_GPC['goodsid'],
 			),
-			'info' => array(
-				'openid' => $_W['openid'],
-			),
+			'info' => array(),
 			'order' => array(
 				'id' => $_GPC['id'],
 				'goodsid' => $_GPC['goodsid'],
@@ -82,7 +80,7 @@ function check_params($op){
 		'orders' => array(
 			'common' => array(
 				'uniacid' => $_W['uniacid'],
-				'openid' => $_W['openid'],
+// 				'openid' => $_W['openid'],
 			),
 			'order_list' => array(),
 			'order_detail' => array(

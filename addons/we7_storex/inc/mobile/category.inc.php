@@ -20,7 +20,7 @@ if ($op == 'category_list'){
 	}
 	message(error(0, $store_categorys), '', 'ajax');
 }
-//i=281&c=entry&do=category&m=we7_storex&op=goods_list&id=6&first_id=10&
+//i=281&c=entry&do=category&m=we7_storex&op=goods_list&id=6&first_id=10&can_reserve=1
 //获取一级分类下的二级分类以及商品
 if ($op == 'goods_list'){
 	$store_id = intval($_GPC['id']);//店铺id
@@ -33,6 +33,7 @@ if ($op == 'goods_list'){
 	if(empty($first_class)){
 		message(error(-1, '分类不存在'), '', 'ajax');
 	}
+	$can_reserve = $_GPC['can_reserve'];
 	$sub_class = get_sub_class();//获取二级分类
 	//存在二级分类就找其下的商品
 	$fields = array('id', 'title', 'thumb', 'oprice', 'cprice', 'sold_num');
@@ -42,6 +43,9 @@ if ($op == 'goods_list'){
 		$goods = $sub_class;
 		$list['have_subclass'] = 1;
 		$condition = array('weid' => $_W['uniacid'], 'pcate' => $first_id, 'status' => 1);
+		if(!empty($can_reserve)){
+			$condition['can_reserve'] = 1;
+		}
 		if($store_info['store_type'] == 1){//酒店
 			$condition['hotelid'] = $store_id;
 			$fields[] = 'hotelid';
@@ -68,6 +72,9 @@ if ($op == 'goods_list'){
 	}else{
 		$list['have_subclass'] = 0;
 		$condition = array('weid' => $_W['uniacid'], 'pcate' => $first_id, 'status' => 1);
+		if(!empty($can_reserve)){
+			$condition['can_reserve'] = 1;
+		}
 		if($store_info['store_type'] == 1){
 			$fields[] = 'hotelid';
 			$condition['hotelid'] = $store_id;
@@ -94,6 +101,7 @@ if ($op == 'goods_list'){
 if ($op == 'more_goods'){
 	$store_id = intval($_GPC['id']);//店铺id
 	$sub_classid = intval($_GPC['sub_id']);//二级id
+	$can_reserve = $_GPC['can_reserve'];//预定
 	$store_bases = pdo_get('store_bases', array('id' => $store_id), array('id', 'store_type', 'status'));
 	if(empty($store_bases)){
 		message(error(-1, '店铺不存在'), '', 'ajax');
@@ -102,10 +110,16 @@ if ($op == 'more_goods'){
 			message(error(-1, '管理员将该店铺设置为隐藏，请联系管理员'), '', 'ajax');
 		}
 	}
+	$condition = array('ccate' => $sub_classid);
+	if(!empty($can_reserve)){
+		$condition['can_reserve'] = 1;
+	}
 	if($store_bases['store_type'] == 1){
-		$goods_list = pdo_getall('hotel2_room', array('ccate' => $sub_classid, 'hotelid' => $store_bases['id']));
+		$condition['hotelid'] = $store_bases['id'];
+		$goods_list = pdo_getall('hotel2_room', $condition);
 	}else{
-		$goods_list = pdo_getall('store_goods', array('ccate' => $sub_classid, 'store_base_id' => $store_bases['id']));
+		$condition['store_base_id'] = $store_bases['id'];
+		$goods_list = pdo_getall('store_goods', $condition);
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 2;

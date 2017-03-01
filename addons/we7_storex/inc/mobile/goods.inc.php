@@ -71,22 +71,49 @@ if ($op == 'info'){
 		$info['mobile'] = $record['mobile'];
 		$info['contact_name'] = $record['realname'];
 	}
-	message(error(0, $info), '', 'ajax');
+	
+	$store_info = get_store_info();
+	if(empty($store_info)){
+		message(error(-1, '店铺不存在'), '', 'ajax');
+	}else{
+		if($store_info['status'] == 0){
+			message(error(-1, '管理员将该店铺设置为隐藏，请联系管理员'), '', 'ajax');
+		}
+	}
+	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
+	if($store_info['store_type'] == 1){
+		$condition['hotelid'] = $store_id;
+		$table = 'hotel2_room';
+		$goods_info = pdo_get($table, $condition);
+	}else{
+		$condition['store_base_id'] = $store_id;
+		$table = 'store_goods';
+		$goods_info = pdo_get($table, $condition);
+	}
+	$member_p = unserialize($goods_info['mprice']);
+	$pricefield = isMember() ? 'mprice' : 'cprice';
+	$goods_info['cprice'] =  $pricefield == 'mprice' ? $goods_info['cprice']*$member_p[$_W['member']['groupid']] : $goods_info['cprice'];
+	$uid = mc_openid2uid($_W['openid']);
+	$address = pdo_getall('store_address', array('uid' => $uid));
+	$infos['info'] = $info;
+	$infos['goods_info'] = $goods_info;
+	$infos['address'] = $address;
+	message(error(0, $infos), '', 'ajax');
 }
 
 $order_info = array(
 	'weid' => intval($_W['uniacid']),
 	'hotelid' => $store_id,
 	'openid' => $_W['openid'],
-	'name' => trim($_GPC['name']),				//预定人的名字
-	'contact_name' => trim($_GPC['contact_name']),//联系人
+// 	'name' => trim($_GPC['order']['name']),				//预定人的名字
+	'contact_name' => trim($_GPC['__input']['order']['contact_name']),//联系人
 	'roomid' => $goodsid,					//商品id
-	'mobile' => trim($_GPC['mobile']),
-	'remark' => trim($_GPC['remark']),			//留言
-	'nums' => intval($_GPC['nums']),				//数量
+	'mobile' => trim($_GPC['__input']['order']['mobile']),
+	'remark' => trim($_GPC['__input']['order']['remark']),			//留言
+	'nums' => intval($_GPC['__input']['order']['nums']),				//数量
 	'time' => TIMESTAMP,					//下单时间（TIMESTAMP）
 );
-
+$_W['openid'] = 'oTKzFjq-vdizyZXDhpGI8XQqgnoE';
 //预定提交预定信息
 if ($op == 'order'){
 	$store_info = get_store_info();
@@ -108,9 +135,13 @@ if ($op == 'order'){
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
 	//预定直接将数据加进order表
 	if($store_info['store_type'] == 1){//酒店
-		$order_info['btime'] = $_GPC['btime'];
-		$order_info['etime'] = $_GPC['etime'];
-		$order_info['day'] = intval($_GPC['day']);
+		$order_info['btime'] = strtotime($_GPC['__input']['order']['btime']);
+		print_r($order_info['btime']);
+		print_r('aaaa');
+		print_r(strtotime(date('Y-m-d' ,time())));
+		$order_info['etime'] = strtotime($_GPC['__input']['order']['etime']);
+// 		$order_info['day'] = intval($_GPC['day']);
+		$order_info['day'] = 1;
 		$condition['hotelid'] = $store_id;
 		$table = 'hotel2_room';
 		$room = pdo_get($table, $condition);
@@ -127,8 +158,9 @@ if ($op == 'order'){
 			$tel = $reply['phone'];
 		}
 		
-		$pricefield = $this->isMember() ? 'mprice' : 'cprice';
-		if(strtotime(date('Y-m-d',$order_info['btime'])) < strtotime(date('Y-m-d' ,time()))){
+		$pricefield = isMember() ? 'mprice' : 'cprice';
+		
+		if($order_info['btime'] < strtotime(date('Y-m-d' ,time()))){
 			message(error(-1, '预定的开始日期不能小于当日的日期!'), '', 'ajax');
 		}
 		// 入住
@@ -229,9 +261,9 @@ if ($op == 'order'){
 			message(error(-1, '房间价格不能是0，请联系管理员修改！'), '', 'ajax');
 		}
 		
-		if (empty($order_info['name'])) {
-			message(error(-1, '预定人不能为空!'), '', 'ajax');
-		}
+// 		if (empty($order_info['name'])) {
+// 			message(error(-1, '预定人不能为空!'), '', 'ajax');
+// 		}
 	
 		if (empty($order_info['contact_name'])) {
 			message(error(-1, '联系人不能为空!'), '', 'ajax');
@@ -306,14 +338,14 @@ if ($op == 'order'){
 		$goods_info = pdo_get($table, $condition);
 		check_action($action, $goods_info);//检查是否符合条件
 		$member_p = unserialize($goods_info['mprice']);
-		$pricefield = $this->isMember() ? 'mprice' : 'cprice';
-		$now_price =  $pricefield == 'mprice' ? $goods_info['cprice']*$member_p[$_W['member']['groupid']] : $room['cprice'];
+		$pricefield = isMember() ? 'mprice' : 'cprice';
+		$now_price =  $pricefield == 'mprice' ? $goods_info['cprice']*$member_p[$_W['member']['groupid']] : $goods_info['cprice'];
 		if($now_price == 0){
 			message(error(-1, '商品价格不能是0，请联系管理员修改！'), '', 'ajax');
 		}
-		if (empty($order_info['name'])) {
-			message(error(-1, '名字人不能为空!'), '', 'ajax');
-		}
+// 		if (empty($order_info['name'])) {
+// 			message(error(-1, '名字人不能为空!'), '', 'ajax');
+// 		}
 		if (empty($order_info['contact_name'])) {
 			message(error(-1, '联系人不能为空!'), '', 'ajax');
 		}
