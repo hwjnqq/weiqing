@@ -32,13 +32,17 @@ if ($op == 'credits_record'){
 	$condition = 'WHERE uniacid = :uniacid AND credittype = :credittype AND uid = :uid AND module = :module';
 	$params = array(':uniacid' => $_W['uniacid'], ':credittype' => $_GPC['credittype'], ':uid' => $uid, 'module' => 'we7_storex');
 	$credits_record = pdo_fetchall('SELECT num, createtime , module FROM ' .tablename('mc_credits_record') .$condition .' ORDER BY id DESC', $params);
-//	$credits_record = pdo_getall('mc_credits_record', array('uniacid' => $_W['uniacid'], 'credittype' => $_GPC['credittype'], 'uid' => $uid, 'module' => 'we7_storex'), array('num', 'createtime', 'module','remark' ), '', 'id DESC');
-
-	foreach($credits_record as $data){
-		$data['createtime'] = date('Y-m-d h:m:s', $data['createtime']);
-		$datas[] = $data;
+	if (!empty($credits_record)) {
+		foreach ($credits_record as &$data) {
+			if ($data['num'] > 0) {
+				$data['remark'] = '充值' . $data['num'] . '元';
+			} else {
+				$data['remark'] = '消费' . - $data['num'] . '元';
+			}
+			$data['createtime'] = date('Y-m-d h:i:s', $data['createtime']);
+		}
 	}
-	message(error(0, $datas), '', 'ajax');
+	message(error(0, $credits_record), '', 'ajax');
 }
 if ($op == 'address_lists'){
 	$address_info = pdo_getall('mc_member_address', array('uid' => $uid));
