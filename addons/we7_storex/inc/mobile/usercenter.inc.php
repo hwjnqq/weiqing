@@ -42,6 +42,9 @@ if ($op == 'address_lists'){
 if ($op == 'post'){
 	$address_id = intval($_GPC['id']);
 	if(!empty($address_id)){
+		if(empty($_GPC['fields'])){
+			message(error(-1, 更改信息不能为空), '', 'ajax');
+		}
 		$result = pdo_update('mc_member_address', $_GPC['fields'], array('id' => $address_id));
 		message(error(0, $result), '', 'ajax');
 	}else{
