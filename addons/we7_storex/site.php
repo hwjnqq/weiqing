@@ -175,10 +175,15 @@ class We7_storexModuleSite extends WeModuleSite {
 			}
 
 			//微信粉丝，可以直接使用
-			$url = $this->createMobileUrl('search', array('hid' => $hid));
+			$url = $this->createMobileUrl('display');
 		}
 		header("Location: $url");
 		exit;
+	}
+
+	public function doMobiledisplay() {
+		global $_GPC, $_W;
+		include $this->template('display');
 	}
 
 	//检查酒店版本
