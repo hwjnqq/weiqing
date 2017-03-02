@@ -1,6 +1,7 @@
 <?php
 
 defined('IN_IA') or exit('Access Denied');
+include IA_ROOT . '/addons/we7_storex/function/function.php';
 global $_W, $_GPC;
 
 load()->model('mc');
@@ -74,8 +75,8 @@ if ($op == 'address_post'){
 	if (!preg_match(REGULAR_MOBILE, $address_info['mobile'])){
 		message(error(-1, '手机号格式不正确'), '', 'ajax');
 	}
-	if(!empty(intval($_GPC['id'])){
-		$result = pdo_update('mc_member_address', $address_info, array('id' => intval($_GPC['id']));
+	if(!empty($_GPC['id'])){
+		$result = pdo_update('mc_member_address', $address_info, array('id' => intval($_GPC['id'])));
 		message(error(0, $result), '', 'ajax');
 	}else{
 		$address_info['uid'] = $uid;
