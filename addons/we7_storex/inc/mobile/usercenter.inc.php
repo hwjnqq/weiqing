@@ -8,6 +8,7 @@ load()->model('mc');
 // $op = in_array($op, $op) ? $op : 'display';
 $op = trim($_GPC['op']) ? trim($_GPC['op']) : 'display';
 
+$_W['openid'] = 'oTKzFjpkpEKpqXibIshcJLsmeLVo';
 $uid = mc_openid2uid($_W['openid']);
 
 if ($op == 'personal_info') {
@@ -30,31 +31,67 @@ if ($op == 'personal_update'){
 if ($op == 'credits_record'){
 	$condition = 'WHERE uniacid = :uniacid AND credittype = :credittype AND uid = :uid AND module = :module';
 	$params = array(':uniacid' => $_W['uniacid'], ':credittype' => $_GPC['credittype'], ':uid' => $uid, 'module' => 'we7_storex');
-	$credits_record = pdo_fetchall('SELECT num, createtime , module, remark FROM ' .tablename('mc_credits_record') .$condition .' ORDER BY id DESC', $params);
+	$credits_record = pdo_fetchall('SELECT num, createtime , module FROM ' .tablename('mc_credits_record') .$condition .' ORDER BY id DESC', $params);
+	if (!empty($credits_record)) {
+		foreach ($credits_record as &$data) {
+			if ($data['num'] > 0) {
+				$data['remark'] = '充值' . $data['num'] . '元';
+			} else {
+				$data['remark'] = '消费' . - $data['num'] . '元';
+			}
+			$data['createtime'] = date('Y-m-d h:i:s', $data['createtime']);
+		}
+	}
 	message(error(0, $credits_record), '', 'ajax');
 }
-if ($op == 'address_info'){
-	$address_info = pdo_getall('store_address', array('uid' => $uid));
+if ($op == 'address_lists'){
+	$address_info = pdo_getall('mc_member_address', array('uid' => $uid));
 	message(error(0,$address_info),'','ajax');
 }
-if ($op == 'post'){
+if ($op == 'current_address'){
+	if(empty($_GPC['id'])){
+		message(error(-1,获取失败),'','ajax');
+	}
+	$current_info = pdo_get('mc_member_address', array('id' => intval($_GPC['id'])));
+	message(error(0,$current_info),'','ajax');
+}
+if ($op == 'address_post'){
 	$address_id = intval($_GPC['id']);
+	$address_info = $_GPC['__input']['fields'];
+
+	if (empty($address_info['username']) || empty($address_info['zipcode']) || empty($address_info['province']) || empty($address_info['city']) || empty($address_info['city']) || empty($address_info['district']) || empty($address_info['address'])){
+		message(error(-1, 请填写正确的信息), '', 'ajax');
+	}
+	if (!preg_match(REGULAR_MOBILE, $address_info['mobile'])){
+		message(error(-1, 手机号格式不正确), '', 'ajax');
+	}
 	if(!empty($address_id)){
-		$result = pdo_update('store_address', $_GPC['fields'], array('id' => $address_id));
+		$result = pdo_update('mc_member_address', $address_info, array('id' => $address_id));
 		message(error(0, $result), '', 'ajax');
 	}else{
-		if(empty($_GPC['fields'])){
-			message(error(-1, 添加数据错误), '', 'ajax');
-		}
-		$result = pdo_insert('store_address', $_GPC['fields']);
+		$address_info['uid'] = $uid;
+		$address_info['uniacid'] = $_W['uniacid'];
+		$result = pdo_insert('mc_member_address', $address_info);
 		message(error(0, $result), '', 'ajax');
 	}
-
+}
+if ($op == 'address_default'){
+	if(empty($_GPC['id']) || empty($_GPC['__input']['fields'])){
+		message(error(-1, 设置失败), '', 'ajax');
+	}
+	$address_id = pdo_getcolumn('mc_member_address', array('isdefault' => '1', 'uid' => $uid), 'id');
+	$default_result = pdo_update('mc_member_address', array('isdefault' => '0'), array('id' => $address_id));
+	$result = pdo_update('mc_member_address', $_GPC['fields'], array('id' => $_GPC['id']));
+	message(error(0, $result), '', 'ajax');
 }
 if ($op == 'address_delete'){
 	$address_id = intval($_GPC['id']);
-	$result = pdo_delete('store_address', array('id' => $address_id));
+	if(empty($address_id)){
+		message(error(-1, 删除失败), '', 'ajax');
+	}
+	$result = pdo_delete('mc_member_address', array('id' => $address_id));
 	message(error(0, $result), '', 'ajax');
 }
+
 
 include $this->template('usercenter');
