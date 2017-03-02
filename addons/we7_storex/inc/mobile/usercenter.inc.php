@@ -2,15 +2,18 @@
 
 defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
+
 load()->model('mc');
-// paycenter_check_login();
-// $ops = array('display', 'post', 'delete');
-// $op = in_array($op, $op) ? $op : 'display';
-$op = trim($_GPC['op']) ? trim($_GPC['op']) : 'display';
+
+$ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete');
+$op = trim($_GPC['op']) ? trim($_GPC['op']) : 'error';
 
 $_W['openid'] = 'oTKzFjpkpEKpqXibIshcJLsmeLVo';
 $uid = mc_openid2uid($_W['openid']);
 
+if ($op == 'error') {
+	message(error(-1, '参数错误'), '', 'ajax');
+}
 if ($op == 'personal_info') {
 	$user_info = mc_fetch($_W['openid']);
 	message(error(0, $user_info), '', 'ajax');
