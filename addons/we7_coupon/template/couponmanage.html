@@ -432,7 +432,7 @@
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 适用模块</label>
 						<div class="col-sm-9 col-xs-12">
-							<a href="javascript:;" class="btn btn-default js-modules-modal" data-toggle="modal">选择模块</a>
+							<a href="#modules-modal" class="btn btn-default js-modules-modal" data-toggle="modal">选择模块</a>
 							<input type="hidden" name="module-select" value="" autocomplete="off" />
 							<div class="js-modules-contain clearfix"></div>
 							<div class="help-block">确定该券的适用模块，不选择则为全部可用</div>
@@ -641,7 +641,7 @@
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 适用门店</label>
 						<div class="col-sm-9 col-xs-12">
-							<label class="radio"><a href="javascript:;" data-toggle="modal" class="js-location-store-modal">选择适用门店</a></label>
+							<label class="radio"><a href="#location-store-modal" data-toggle="modal" class="js-location-store-modal">选择适用门店</a></label>
 							<div class="js-location-contain"></div>
 							<div class="help-block">默认为适用于全部门店</div>
 						</div>
@@ -650,7 +650,7 @@
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 可用会员组</label>
 						<div class="col-sm-9 col-xs-12">
-							<label class="radio"><a href="javascript:;" data-toggle="modal" class="js-groups-modal">选择可用会员组</a></label>
+							<label class="radio"><a href="#groups-modal" data-toggle="modal" class="js-groups-modal">选择可用会员组</a></label>
 							<div class="js-groups-contain"></div>
 							<div class="help-block">默认为全部用户组可用</div>
 						</div>
@@ -815,15 +815,6 @@
 	</div>
 </div>
 <script>
-	$(document).on('click', '.js-location-store-modal', function() {
-		$('#location-store-modal').modal('show');
-	});
-	$(document).on('click', '.js-modules-modal', function() {
-		$('#modules-modal').modal('show');
-	});
-	$(document).on('click', '.js-groups-modal', function() {
-		$('#groups-modal').modal('show');
-	});
 	$('.list li,.card-dispose,.shop-panel').hover(function(){
 		$(this).find('.cicon').show();
 		$(this).addClass('hover');
