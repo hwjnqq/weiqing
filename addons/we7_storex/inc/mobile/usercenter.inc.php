@@ -3,7 +3,6 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-include IA_ROOT . '/addons/we7_storex/function/function.php';
 load()->model('mc');
 
 $ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete');

@@ -2,10 +2,7 @@
 
 defined('IN_IA') or exit('Access Denied');
 
-include IA_ROOT . '/addons/we7_storex/function/function.php';
-include IA_ROOT . '/addons/we7_storex/inc/mobile/__init.php';
 global $_W, $_GPC;
-
 $ops = array('display', 'post', 'delete', 'order_list', 'order_detail', 'orderpay', 'pay');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'display';
 

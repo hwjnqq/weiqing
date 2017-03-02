@@ -43,6 +43,43 @@ class We7_storexModuleSite extends WeModuleSite {
 		$this->_version = $this->_set_info['version'];
 	}
 
+	public function __call($name, $arguments) {
+		$isWeb = stripos($name, 'doWeb') === 0;
+		$isMobile = stripos($name, 'doMobile') === 0;
+		if($isWeb || $isMobile) {
+			$dir = IA_ROOT . '/addons/' . $this->modulename . '/inc/';
+			if($isWeb) {
+				$dir .= 'web/';
+				$fun = strtolower(substr($name, 5));
+			}
+			if($isMobile) {
+				$dir .= 'mobile/';
+		 		$fun = strtolower(substr($name, 8));
+		 		$init = $dir . '__init.php';
+		 		$func = IA_ROOT . '/addons/we7_storex/function/function.php';
+				if (is_file($init)) {
+					require $init;
+				}
+				if (is_file($func)) {
+					require $func;
+				}
+			}
+ 			$file = $dir . $fun . '.inc.php';
+			if(file_exists($file)) {
+				require $file;
+				exit;
+			} else {
+				$dir = str_replace("addons", "framework/builtin", $dir);
+				$file = $dir . $fun . '.inc.php';
+				if(file_exists($file)) {
+					require $file;
+					exit;
+				}
+			}
+		}
+		trigger_error("访问的方法 {$name} 不存在.", E_USER_WARNING);
+		return null;
+	}
 	public  function isMember() {
 		global $_W;
 		//判断公众号是否卡其会员卡功能
