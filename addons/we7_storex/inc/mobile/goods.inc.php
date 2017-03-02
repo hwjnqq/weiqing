@@ -4,10 +4,13 @@ defined('IN_IA') or exit('Access Denied');
 include IA_ROOT . '/addons/we7_storex/function/function.php';
 global $_W, $_GPC;
 // paycenter_check_login();
-$ops = array('display', 'post', 'delete', 'goods_info', 'info', 'order');
+$ops = array('display', 'post', 'delete', 'goods_info', 'info', 'order', 'test');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'display';
 
 check_params($op);
+
+$_W['openid'] = 'oTKzFjpkpEKpqXibIshcJLsmeLVo';
+$uid = mc_openid2uid($_W['openid']);
 
 $store_id = intval($_GPC['id']);//店铺id
 $goodsid = intval($_GPC['goodsid']);//商品id
@@ -93,11 +96,16 @@ if ($op == 'info'){
 	$member_p = unserialize($goods_info['mprice']);
 	$pricefield = isMember() ? 'mprice' : 'cprice';
 	$goods_info['cprice'] =  $pricefield == 'mprice' ? $goods_info['cprice']*$member_p[$_W['member']['groupid']] : $goods_info['cprice'];
-	$uid = mc_openid2uid($_W['openid']);
-	$address = pdo_getall('store_address', array('uid' => $uid));
+	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;
 	$infos['goods_info'] = $goods_info;
 	$infos['address'] = $address;
+	if($_GPC['debug'] ==1){
+		echo "<pre>";
+		print_r($infos);
+		echo "</pre>";
+		exit;
+	}
 	message(error(0, $infos), '', 'ajax');
 }
 
@@ -113,7 +121,7 @@ $order_info = array(
 	'nums' => intval($_GPC['__input']['order']['nums']),				//数量
 	'time' => TIMESTAMP,					//下单时间（TIMESTAMP）
 );
-$_W['openid'] = 'oTKzFjq-vdizyZXDhpGI8XQqgnoE';
+
 //预定提交预定信息
 if ($op == 'order'){
 	$store_info = get_store_info();
@@ -124,10 +132,15 @@ if ($op == 'order'){
 			message(error(-1, '管理员将该店铺设置为隐藏，请联系管理员'), '', 'ajax');
 		}
 	}
+	if($order_info['nums'] <= 0){
+		message(error(-1, '数量不能是零'), '', 'ajax');
+	}
 	$action = trim($_GPC['action']);//是预定还是购买
 	if($action == 'reserve'){
-		$order_info['paytype'] = 5;//支付方式，表示预定，只能到店支付
+		$order_info['action'] = 1;
+		$order_info['paytype'] = 3;//支付方式，表示预定，只能到店支付
 	}elseif($action == 'buy'){
+		$order_info['action'] = 2;
 		$paysetting = uni_setting(intval($_W['uniacid']), array('payment', 'creditbehaviors'));
 		$_W['account'] = array_merge($_W['account'], $paysetting);
 	}
@@ -137,8 +150,14 @@ if ($op == 'order'){
 	if($store_info['store_type'] == 1){//酒店
 		$order_info['btime'] = strtotime($_GPC['__input']['order']['btime']);
 		$order_info['etime'] = strtotime($_GPC['__input']['order']['etime']);
-// 		$order_info['day'] = intval($_GPC['day']);
-		$order_info['day'] = 1;
+		if(!empty(intval($_GPC['__input']['order']['day']))){
+			$order_info['day'] = intval($_GPC['__input']['order']['day']);
+		}else{
+			$order_info['day'] = ceil(($order_info['etime'] - $order_info['btime'])/86400);
+		}
+		if($order_info['day'] <= 0){
+			message(error(-1, '天数不能是零'), '', 'ajax');
+		}
 		$condition['hotelid'] = $store_id;
 		$table = 'hotel2_room';
 		$room = pdo_get($table, $condition);
@@ -291,6 +310,9 @@ if ($op == 'order'){
 		$insert = array_merge($order_info, $insert);
 		$insert[$pricefield] = $this_price;
 		$insert['sum_price'] = $totalprice * $insert['nums'];
+		if($insert['sum_price'] <= 0){
+			message(error(-1, '总价为零，请联系管理员！'), '', 'ajax');
+		}
 		pdo_query('UPDATE '. tablename('hotel2_order'). " SET status = '-1' WHERE time <  :time AND weid = '{$_W['uniacid']}' AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400));
 		$order_exist = pdo_fetch("SELECT * FROM ". tablename('hotel2_order'). " WHERE hotelid = :hotelid AND roomid = :roomid AND openid = :openid AND status = '0'", array(':hotelid' => $insert['hotelid'], ':roomid' => $insert['roomid'], ':openid' => $insert['openid']));
 		if ($order_exist) {
@@ -328,7 +350,9 @@ if ($op == 'order'){
 			}
 		}
 		pdo_update('hotel2_member', array('mobile' => $insert['mobile'], 'realname' => $insert['contact_name']), array('weid' => intval($_W['uniacid']), 'from_user' => $_W['openid']));
-		check_result($action, $order_id);
+		$params = check_result($action, $order_id);
+		$pay_info = $this->pay($params);
+		message(error(0, $pay_info), '', 'ajax');
 	}else{
 		$condition['store_base_id'] = $store_id;
 		$table = 'store_goods';
@@ -367,55 +391,27 @@ if ($op == 'order'){
 		$insert = array_merge($insert, $order_info);
 		pdo_insert('hotel2_order', $insert);
 		$order_id = pdo_insertid();
-		check_result($action, $order_id);
+		$params = check_result($action, $order_id);
+		$pay_info = $this->pay($params);
+		message(error(0, $pay_info), '', 'ajax');
 	}
 }
 
 //检查结果
 function check_result($action, $order_id){
+	global $_W;
 	if($action == 'reserve'){
 		if(!empty($order_id)){
-			message(error(0, '预定成功'), '', 'ajax');
+			message(error(0, $order_id), '', 'ajax');
 		}else{
 			message(error(-1, '预定失败'), '', 'ajax');
 		}
 	}else{
 		if(!empty($order_id)){
-			//购买成功返回的数据
+			$params = pay_info($order_id);
+			return $params;
 		}else{
-			message(error(-1, '购买失败'), '', 'ajax');
+			message(error(-1, '下单失败'), '', 'ajax');
 		}
-	}
-}
-//检查条件
-function check_action($action, $goods_info){
-	if (empty($goods_info)) {
-		message(error(-1, '商品未找到, 请联系管理员!'), '', 'ajax');
-	}
-	if($action == 'reserve' && $goods_info['can_reserve'] != 1){
-		message(error(-1, '该商品不能预定'), '', 'ajax');
-	}
-	if($action == 'buy' && $goods_info['can_buy'] != 1){
-		message(error(-1, '该商品不能购买'), '', 'ajax');
-	}
-}
-
-function isMember() {
-	global $_W;
-	//判断公众号是否卡其会员卡功能
-	$card_setting = pdo_fetch("SELECT * FROM ".tablename('mc_card')." WHERE uniacid = '{$_W['uniacid']}'");
-	$card_status =  $card_setting['status'];
-	//查看会员是否开启会员卡功能
-	if($_W['member']['uid']){
-		$membercard_setting  = pdo_get('mc_card_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $_W['member']['uid']));
-		$membercard_status = $membercard_setting['status'];
-		$pricefield = !empty($membercard_status) && $card_status == 1 ? "mprice" : "cprice";
-		if (!empty($card_status) && !empty($membercard_status)) {
-			return true;
-		} else {
-			return false;
-		}
-	}else{
-		return false;
 	}
 }
