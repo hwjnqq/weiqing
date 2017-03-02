@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="description" content="酒店预订"/>
 <meta name="keywords" content="酒店预订,酒店查询,宾馆住宿预订,网上订酒店,手机订酒店"/>
-<title>选择城市</title>
+<title>选123择城市</title>
 <meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <meta name="apple-mobile-web-app-title" content="酒店预订"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -277,7 +277,7 @@ body select {
 <body>
 <div id="ctripPage">
     <header>
-        <h1>选择城市</h1><i id="js_return" onClick="location.href='javascript:history.back();'"></i>
+        <h1>选择城ddddddddddddd市</h1><i id="js_return" onClick="location.href='javascript:history.back();'"></i>
     </header>
 
     <section class="cont_pd_wrap" style="margin:0">
@@ -297,7 +297,8 @@ body select {
                 </script>
             </li>
         </ul>
-        <input type="button" class="btn_blue" id="submitCity" value="确定"/>
+        <!-- <input type="button" class="btn_blue" id="submitCity" value="确定"/> -->
+        <button href="" class="btn_blue js-test">dadad</button>
     </section>
 
 </div>
@@ -306,24 +307,16 @@ body select {
 
 <script type="text/javascript">
 $(function(){
-    $("#submitCity").click(function () {
-        var location_p = $("#location_p").val();
-        var location_c = $("#location_c").val();
-        $.post("{php echo $this->createMobileUrl('ajaxData')}",{ac:'city', location_p:location_p, location_c:location_c, referer:'{$referer}'},function(data){
-            //alert(data);return false;
-            data  =eval("(" + data +")");
-            if(data.result==1){
-                location.href = data.url;
-            }
-            else{
-                //show_msg(data.error);
-                return false;
-            }
+    $('.js-test').click(function () {
+        ajax_url = "{php echo $this->createMobileurl('usercenter', array('op' => 'user_credit'))}";
+        uid = '10611';
+        $.post(ajax_url, {uid:uid}, function(data) {
+            data = $.parseJSON(data);
+            console.dir(data);
         });
     });
 });
 </script>
-
 {template 'share'}
 
 </body>

@@ -4,13 +4,28 @@ defined('IN_IA') or exit('Access Denied');
 include IA_ROOT . '/addons/we7_storex/function/function.php';
 global $_W, $_GPC;
 // paycenter_check_login();
-$ops = array('display', 'post', 'delete', 'order_list', 'order_detail');
+$ops = array('display', 'post', 'delete', 'order_list', 'order_detail', 'orderpay', 'pay');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'display';
+
+define('STORE_UNPAY_STATUS', '1');
+define('STORE_SURE_STATUS', '2');
+define('STORE_CANCLE_STATUS', '3');
+define('STORE_REPAY_STATUS', '4');
+define('STORE_UNLIVE_STATUS', '5');
+define('STORE_REFUSE_STATUS', '6');
+define('STORE_REPAY_SUCCESS_STATUS', '7');
+define('STORE_LIVE_STATUS', '8');
+define('STORE_OVER_STATUS', '9');
+define('STORE_UNSENT_STATUS', '10');
+define('STORE_SENT_STATUS', '11');
+define('STORE_GETGOODS_STATUS', '12');
 
 check_params($op);
 
+$_W['openid'] = 'oTKzFjpkpEKpqXibIshcJLsmeLVo';
+
 if ($op == 'order_list'){
-	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status');
+	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status' ,'openid');
 	$orders = pdo_getall('hotel2_order', array('weid' => intval($_W['uniacid']), 'openid' => $_W['openid']), $field, '', 'time DESC');
 	$order_list = array(
 		'over' => array(),
@@ -24,13 +39,13 @@ if ($op == 'order_list'){
 				$stores[$val['id']] = $val['store_type'];
 			}
 			foreach ($orders as $k => $info){
-				if(!empty($stores[$info['hotelid']])){
+				if(isset($stores[$info['hotelid']])){
 					$orders[$k]['store_type'] = $stores[$info['hotelid']];
 				}
 			}
 		}
 		foreach ($orders as $k => $info){
-			if(!empty($info['store_type'])){
+			if(isset($info['store_type'])){
 				if($info['store_type'] == 1){
 					$goods_info = pdo_get('hotel2_room', array('weid' => intval($_W['uniacid']), 'id' => $info['roomid']), array('id', 'thumb'));
 				}else{
@@ -52,6 +67,12 @@ if ($op == 'order_list'){
 			}
 		}
 	}
+	if($_GPC['debug'] ==1){
+		echo "<pre>";
+		print_r($order_list);
+		echo "</pre>";
+		exit;
+	}
 	message(error(0, $order_list), '', 'ajax');
 }
 
@@ -72,54 +93,47 @@ if ($op == 'order_detail'){
 	$order_info['store_info'] = $store_info;
 	//订单状态
 	$order_info = check_order_status($order_info);
+	if($_GPC['debug'] ==1){
+		echo "<pre>";
+		print_r($order_info);
+		echo "</pre>";
+		exit;
+	}
 	message(error(0, $order_info), '', 'ajax');
 }
 
-function check_order_status($item){
-	if(!empty($item['mode_distribute'])){
-		if($item['mode_distribute'] == 2){//配送
-			if($item['goods_status'] == 1){
-				$item['goods_status'] = '未发货';
-			}elseif($item['goods_status'] == 2){
-				$item['goods_status'] = '已发货';
-			}elseif($item['goods_status'] == 3){
-				$item['goods_status'] = '已收货';
-			}
-		}
+if($op == 'orderpay'){
+	$order_id = intval($_GPC['id']);
+	$params = pay_info($order_id);
+	$pay_info = $this->pay($params);
+	if($_GPC['debug'] ==1){
+		echo "<pre>";
+		print_r($pay_info);
+		echo "</pre>";
+		exit;
 	}
-	if ($item['status'] == 0){
-		if ($item['paystatus']== 0){
-			$status = '待付款';
-		}else{
-			$status = '等待店铺确认';
-		}
-	}else if ($item['status'] == -1){
-		if ($item['paystatus']== 0){
-			$status = '订单已取消';
-		}else{
-			if ($item['paytype'] == 3){
-				$status = '订单已取消';
-			}else{
-				$status = '正在退款中';
-			}
-		}
-	}else if ($item['status'] == 1){
-		if ($item['paystatus']== 0){
-			$status = '待入住';
-		}else{
-			$status = '待入住';
-		}
-	}else if ($item['status'] == 2){
-		if ($item['paystatus']== 0){
-			$status = '店铺已拒绝';
-		}else{
-			$status = '已退款';
-		}
-	}else if ($item['status'] == 4){
-		$status = '已入住';
-	}else if ($item['status'] == 3){
-		$status = '已完成';
-	}
-	$item['order_status'] = $status;
-	return $item;
+	message(error(0, $pay_info), '', 'ajax');
 }
+
+if($op == 'pay'){
+	$url = trim($_GPC['url']);
+	$pay_url = url($url);
+// 	$params = array(
+// 			'ordersn' => $order_info['ordersn'],
+// 			'tid' => $order_info['id'],
+// 			'title' => $_W['account']['name'] . "店铺订单{$order_info['ordersn']}",
+// 			'fee' => $order_info['sum_price'],
+// 			'user' => $_W['openid'],
+// 			'module' => 'we7_storex',
+// 	);
+// 	$p = base64_encode(json_encode($params));
+	$p = trim($_GPC['params']);
+	$pay_url.= '&params='.$p;
+	header("Location: $pay_url");
+}
+// echo "<pre>";
+// print_r($pay_info);
+// print_r(url('mc/cash/wechat'));
+// echo "</pre>";
+// exit;
+
