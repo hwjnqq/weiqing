@@ -38,7 +38,7 @@ function get_store_goods($table, $condition, $fields, $limit = array()){
 //检查每个文件的传值是否为空
 function check_params($op){
 	global $_W, $_GPC;
-	$array = array(
+	$permission_lists = array(
 		'store' => array(
 			'common' => array(
 				'uniacid' => $_W['uniacid'],
@@ -87,18 +87,40 @@ function check_params($op){
 				'id' => $_GPC['id'],
 			),
 		),
+		'usercenter' => array(
+			'common' => array(
+				'uniacid' => $_W['uniacid'],
+				'openid' => $_W['openid']
+			),
+			'personal_info' => array(),
+			'personal_update' => array(),
+			'credits_record' => array(
+				'credittype' => $_GPC['credittype']
+			),
+			'address_lists' => array(),
+			'current_address' => array(
+				'id' => $_GPC['id']
+			),
+			'address_post' => array(),
+			'address_default' => array(
+				'id' => $_GPC['id']
+			),
+			'address_delete' => array(
+				'id' => $_GPC['id']
+			)
+		)
 	);
-	$do = $_GPC['do'];
-	if(!empty($array[$do])){
-		if(!empty($array[$do]['common'])){
-			foreach($array[$do]['common'] as $val){
+	$do = trim($_GPC['do']);
+	if(!empty($permission_lists[$do])){
+		if(!empty($permission_lists[$do]['common'])){
+			foreach($permission_lists[$do]['common'] as $val){
 				if(empty($val)){
 					message(error(-1, '参数错误'), '', 'ajax');
 				}
 			}
 		}
-		if(!empty($array[$do][$op])){
-			foreach($array[$do][$op] as $val){
+		if(!empty($permission_lists[$do][$op])){
+			foreach($permission_lists[$do][$op] as $val){
 				if(empty($val)){
 					message(error(-1, '参数错误'), '', 'ajax');
 				}
