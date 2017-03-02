@@ -41,56 +41,56 @@ function check_params($op){
 	$permission_lists = array(
 		'store' => array(
 			'common' => array(
-				'uniacid' => $_W['uniacid'],
+				'uniacid' => intval($_W['uniacid']),
 			),
 			'store_list' => array(),
 			'store_detail' => array(
-				'store_id' => $_GPC['store_id'],
+				'store_id' => intval($_GPC['store_id']),
 			),
 		),
 		'category' => array(
 			'common' => array(
-				'uniacid' => $_W['uniacid'],
-				'id' => $_GPC['id'],
+				'uniacid' => intval($_W['uniacid']),
+				'id' => intval($_GPC['id']),
 			),
 			'category_list' => array(
 				
 			),
 			'goods_list' => array(
-				'first_id' => $_GPC['first_id'],
+				'first_id' => intval($_GPC['first_id']),
 			),
 			'more_goods' => array(),
 		),
 		'goods' => array(
 			'common' => array(
-				'uniacid' => $_W['uniacid'],
+				'uniacid' => intval($_W['uniacid']),
 // 				'openid' => $_W['openid'],
 			),
 			'goods_info' => array(
-				'id' => $_GPC['id'],
-				'goodsid' => $_GPC['goodsid'],
+				'id' => intval($_GPC['id']),
+				'goodsid' => intval($_GPC['goodsid']),
 			),
 			'info' => array(),
 			'order' => array(
-				'id' => $_GPC['id'],
-				'goodsid' => $_GPC['goodsid'],
-				'action' => $_GPC['action'],
+				'id' => intval($_GPC['id']),
+				'goodsid' => intval($_GPC['goodsid']),
+				'action' => trim($_GPC['action']),
 			),
 		),
 		'orders' => array(
 			'common' => array(
-				'uniacid' => $_W['uniacid'],
+				'uniacid' => intval($_W['uniacid']),
 // 				'openid' => $_W['openid'],
 			),
 			'order_list' => array(),
 			'order_detail' => array(
-				'id' => $_GPC['id'],
+				'id' => intval($_GPC['id']),
 			),
 		),
 		'usercenter' => array(
 			'common' => array(
-				'uniacid' => $_W['uniacid'],
-				'openid' => $_W['openid']
+				'uniacid' => intval($_W['uniacid']),
+//				'openid' => $_W['openid']
 			),
 			'personal_info' => array(),
 			'personal_update' => array(),
@@ -99,14 +99,14 @@ function check_params($op){
 			),
 			'address_lists' => array(),
 			'current_address' => array(
-				'id' => $_GPC['id']
+				'id' => intval($_GPC['id'])
 			),
 			'address_post' => array(),
 			'address_default' => array(
-				'id' => $_GPC['id']
+				'id' => intval($_GPC['id'])
 			),
 			'address_delete' => array(
-				'id' => $_GPC['id']
+				'id' => intval($_GPC['id'])
 			)
 		)
 	);
