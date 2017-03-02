@@ -6,7 +6,7 @@ global $_W, $_GPC;
 load()->model('mc');
 
 $ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete');
-$op = trim($_GPC['op']) ? trim($_GPC['op']) : 'error';
+$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 $_W['openid'] = 'oTKzFjpkpEKpqXibIshcJLsmeLVo';
 $uid = mc_openid2uid($_W['openid']);
