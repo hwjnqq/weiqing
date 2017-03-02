@@ -1,40 +1,4 @@
 <?php
-/**格式化图片的路径
- * $urls  url数组
- */
-function format_url($urls){
-	foreach ($urls as $k => $url){
-		$urls[$k] = tomedia($url);
-	}
-	return $urls;
-}
-//获取店铺信息
-function get_store_info(){
-	global $_W, $_GPC;
-	$store_id = $_GPC['id'];//店铺id
-	return pdo_get('store_bases', array('weid' => $_W['uniacid'], 'id' => $store_id, 'status' => 1), array('id', 'store_type', 'status'));
-}
-//获取某一级分类下的所有二级分类
-function get_sub_class(){
-	global $_W, $_GPC;
-	$category_one_id = $_GPC['first_id'];//一级分类id
-	return pdo_getall('store_categorys', array('weid' => $_W['uniacid'],'parentid' => $category_one_id, 'enabled' => 1), array(), '', 'displayorder DESC');
-}
-//获取一二级分类下的商品信息
-function get_store_goods($table, $condition, $fields, $limit = array()){
-	$goods = pdo_getall($table, $condition, $fields, '', 'sortid DESC', $limit);
-	foreach($goods as $k => $info){
-		if(!empty($info['thumb'])){
-			$goods[$k]['thumb'] = tomedia($info['thumb']);
-		}
-		if(!empty($info['thumbs'])){
-			foreach($info['thumbs'] as $key => $url){
-				$goods[$k]['thumbs'][$key] = tomedia($url);
-			}
-		}
-	}
-	return $goods;
-}
 //检查每个文件的传值是否为空
 function check_params($op){
 	global $_W, $_GPC;
@@ -54,7 +18,7 @@ function check_params($op){
 				'id' => intval($_GPC['id']),
 			),
 			'category_list' => array(
-				
+
 			),
 			'goods_list' => array(
 				'first_id' => intval($_GPC['first_id']),
@@ -128,12 +92,69 @@ function check_params($op){
 					message(error(-1, '参数错误'), '', 'ajax');
 				}
 			}
-		}	
+		}
+	}
+}
+/**格式化图片的路径
+ * $urls  url数组
+ */
+function format_url($urls){
+	foreach ($urls as $k => $url){
+		$urls[$k] = tomedia($url);
+	}
+	return $urls;
+}
+
+//获取店铺信息
+function get_store_info(){
+	global $_W, $_GPC;
+	$store_id = $_GPC['id'];//店铺id
+	return pdo_get('store_bases', array('weid' => $_W['uniacid'], 'id' => $store_id, 'status' => 1), array('id', 'store_type', 'status'));
+}
+
+//支付
+function pay_info($order_id){
+	global $_W;
+	$order_info = pdo_get('hotel2_order', array('id' => $order_id, 'weid' => intval($_W['uniacid']), 'openid' => $_W['openid']));
+	if(!empty($order_info)){
+		$params = array(
+				'ordersn' => $order_info['ordersn'],
+				'tid' => $order_info['id'],//支付订单编号, 应保证在同一模块内部唯一
+				'title' => $_W['account']['name'] . "店铺订单{$order_info['ordersn']}",//商家名称
+				'fee' => $order_info['sum_price'],//总费用, 只能大于 0
+				'user' => $_W['openid'],//付款用户, 付款的用户名(选填项)
+		);
+		return $params;
+	}else{
+		message(error(-1, '获取订单信息失败'), '', 'ajax');
 	}
 }
 
+//获取某一级分类下的所有二级分类
+function category_sub_class(){
+	global $_W, $_GPC;
+	$category_one_id = $_GPC['first_id'];//一级分类id
+	return pdo_getall('store_categorys', array('weid' => $_W['uniacid'],'parentid' => $category_one_id, 'enabled' => 1), array(), '', 'displayorder DESC');
+}
+
+//获取一二级分类下的商品信息
+function category_store_goods($table, $condition, $fields, $limit = array()){
+	$goods = pdo_getall($table, $condition, $fields, '', 'sortid DESC', $limit);
+	foreach($goods as $k => $info){
+		if(!empty($info['thumb'])){
+			$goods[$k]['thumb'] = tomedia($info['thumb']);
+		}
+		if(!empty($info['thumbs'])){
+			foreach($info['thumbs'] as $key => $url){
+				$goods[$k]['thumbs'][$key] = tomedia($url);
+			}
+		}
+	}
+	return $goods;
+}
+
 //检查条件
-function check_action($action, $goods_info){
+function goods_check_action($action, $goods_info){
 	if (empty($goods_info)) {
 		message(error(-1, '商品未找到, 请联系管理员!'), '', 'ajax');
 	}
@@ -145,7 +166,26 @@ function check_action($action, $goods_info){
 	}
 }
 
-function isMember() {
+//检查结果
+function goods_check_result($action, $order_id){
+	global $_W;
+	if($action == 'reserve'){
+		if(!empty($order_id)){
+			message(error(0, $order_id), '', 'ajax');
+		}else{
+			message(error(-1, '预定失败'), '', 'ajax');
+		}
+	}else{
+		if(!empty($order_id)){
+			$params = pay_info($order_id);
+			return $params;
+		}else{
+			message(error(-1, '下单失败'), '', 'ajax');
+		}
+	}
+}
+
+function goods_isMember() {
 	global $_W;
 	//判断公众号是否卡其会员卡功能
 	$card_setting = pdo_fetch("SELECT * FROM ".tablename('mc_card')." WHERE uniacid = '{$_W['uniacid']}'");
@@ -166,7 +206,7 @@ function isMember() {
 }
 
 //action 1预定  2购买
-function check_order_status($item){
+function orders_check_status($item){
 	$order_status_text = array(
 			'1' => '待付款',
 			'2' => '等待店铺确认',
@@ -236,21 +276,4 @@ function check_order_status($item){
 	}
 	$item['order_status'] = $order_status_text[$status];
 	return $item;
-}
-
-function pay_info($order_id){
-	global $_W;
-	$order_info = pdo_get('hotel2_order', array('id' => $order_id, 'weid' => intval($_W['uniacid']), 'openid' => $_W['openid']));
-	if(!empty($order_info)){
-		$params = array(
-				'ordersn' => $order_info['ordersn'],
-				'tid' => $order_info['id'],//支付订单编号, 应保证在同一模块内部唯一
-				'title' => $_W['account']['name'] . "店铺订单{$order_info['ordersn']}",//商家名称
-				'fee' => $order_info['sum_price'],//总费用, 只能大于 0
-				'user' => $_W['openid'],//付款用户, 付款的用户名(选填项)
-		);
-		return $params;
-	}else{
-		message(error(-1, '获取订单信息失败'), '', 'ajax');
-	}
 }

@@ -11,8 +11,8 @@ $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'display';
 check_params($op);
 
 $_W['openid'] = 'oTKzFjpkpEKpqXibIshcJLsmeLVo';
-$uid = mc_openid2uid($_W['openid']);
 
+$uid = mc_openid2uid($_W['openid']);
 $store_id = intval($_GPC['id']);//店铺id
 $goodsid = intval($_GPC['goodsid']);//商品id
 
@@ -45,7 +45,7 @@ if ($op == 'goods_info'){
 	$goods_info['store_type'] = $store_info['store_type'];
 	$goods_info['thumbs'] =  iunserializer($goods_info['thumbs']);
 	
-	$pricefield = isMember() ? 'mprice' : 'cprice';
+	$pricefield = goods_isMember() ? 'mprice' : 'cprice';
 	$member_p = unserialize($goods_info['mprice']);
 	$goods_info[$pricefield] =  $pricefield == 'mprice' ? $goods_info['cprice']*$member_p[$_W['member']['groupid']] : $goods_info['cprice'];
 	
@@ -95,7 +95,7 @@ if ($op == 'info'){
 		$goods_info = pdo_get($table, $condition);
 	}
 	$member_p = unserialize($goods_info['mprice']);
-	$pricefield = isMember() ? 'mprice' : 'cprice';
+	$pricefield = goods_isMember() ? 'mprice' : 'cprice';
 	$goods_info['cprice'] =  $pricefield == 'mprice' ? $goods_info['cprice']*$member_p[$_W['member']['groupid']] : $goods_info['cprice'];
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;
@@ -110,21 +110,20 @@ if ($op == 'info'){
 	message(error(0, $infos), '', 'ajax');
 }
 
-$order_info = array(
-	'weid' => intval($_W['uniacid']),
-	'hotelid' => $store_id,
-	'openid' => $_W['openid'],
-// 	'name' => trim($_GPC['order']['name']),				//预定人的名字
-	'contact_name' => trim($_GPC['__input']['order']['contact_name']),//联系人
-	'roomid' => $goodsid,					//商品id
-	'mobile' => trim($_GPC['__input']['order']['mobile']),
-	'remark' => trim($_GPC['__input']['order']['remark']),			//留言
-	'nums' => intval($_GPC['__input']['order']['nums']),				//数量
-	'time' => TIMESTAMP,					//下单时间（TIMESTAMP）
-);
-
 //预定提交预定信息
 if ($op == 'order'){
+	$order_info = array(
+		'weid' => intval($_W['uniacid']),
+		'hotelid' => $store_id,
+		'openid' => $_W['openid'],
+		// 	'name' => trim($_GPC['order']['name']),				//预定人的名字
+		'contact_name' => trim($_GPC['__input']['order']['contact_name']),//联系人
+		'roomid' => $goodsid,					//商品id
+		'mobile' => trim($_GPC['__input']['order']['mobile']),
+		'remark' => trim($_GPC['__input']['order']['remark']),			//留言
+		'nums' => intval($_GPC['__input']['order']['nums']),				//数量
+		'time' => TIMESTAMP,					//下单时间（TIMESTAMP）
+	);
 	$store_info = get_store_info();
 	if(empty($store_info)){
 		message(error(-1, '店铺不存在'), '', 'ajax');
@@ -162,7 +161,7 @@ if ($op == 'order'){
 		$condition['hotelid'] = $store_id;
 		$table = 'hotel2_room';
 		$room = pdo_get($table, $condition);
-		check_action($action, $room);//检查是否符合条件
+		goods_check_action($action, $room);//检查是否符合条件
 		$reply = pdo_get('store_bases', array('id' => $store_id), array('title', 'mail', 'phone', 'thumb', 'description'));
 		if (empty($reply)) {
 			message(error(-1, '酒店未找到, 请联系管理员!'), '', 'ajax');
@@ -175,7 +174,7 @@ if ($op == 'order'){
 			$tel = $reply['phone'];
 		}
 		
-		$pricefield = isMember() ? 'mprice' : 'cprice';
+		$pricefield = goods_isMember() ? 'mprice' : 'cprice';
 		
 		if($order_info['btime'] < strtotime('today')){
 			message(error(-1, '预定的开始日期不能小于当日的日期!'), '', 'ajax');
@@ -351,16 +350,16 @@ if ($op == 'order'){
 			}
 		}
 		pdo_update('hotel2_member', array('mobile' => $insert['mobile'], 'realname' => $insert['contact_name']), array('weid' => intval($_W['uniacid']), 'from_user' => $_W['openid']));
-		$params = check_result($action, $order_id);
+		$params = goods_check_result($action, $order_id);
 		$pay_info = $this->pay($params);
 		message(error(0, $pay_info), '', 'ajax');
 	}else{
 		$condition['store_base_id'] = $store_id;
 		$table = 'store_goods';
 		$goods_info = pdo_get($table, $condition);
-		check_action($action, $goods_info);//检查是否符合条件
+		goods_check_action($action, $goods_info);//检查是否符合条件
 		$member_p = unserialize($goods_info['mprice']);
-		$pricefield = isMember() ? 'mprice' : 'cprice';
+		$pricefield = goods_isMember() ? 'mprice' : 'cprice';
 		$now_price =  $pricefield == 'mprice' ? $goods_info['cprice']*$member_p[$_W['member']['groupid']] : $goods_info['cprice'];
 		if($now_price == 0){
 			message(error(-1, '商品价格不能是0，请联系管理员修改！'), '', 'ajax');
@@ -392,27 +391,8 @@ if ($op == 'order'){
 		$insert = array_merge($insert, $order_info);
 		pdo_insert('hotel2_order', $insert);
 		$order_id = pdo_insertid();
-		$params = check_result($action, $order_id);
+		$params = goods_check_result($action, $order_id);
 		$pay_info = $this->pay($params);
 		message(error(0, $pay_info), '', 'ajax');
-	}
-}
-
-//检查结果
-function check_result($action, $order_id){
-	global $_W;
-	if($action == 'reserve'){
-		if(!empty($order_id)){
-			message(error(0, $order_id), '', 'ajax');
-		}else{
-			message(error(-1, '预定失败'), '', 'ajax');
-		}
-	}else{
-		if(!empty($order_id)){
-			$params = pay_info($order_id);
-			return $params;
-		}else{
-			message(error(-1, '下单失败'), '', 'ajax');
-		}
 	}
 }

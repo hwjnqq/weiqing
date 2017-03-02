@@ -48,19 +48,13 @@ if ($op == 'order_list'){
 			}else{
 				continue;
 			}
-			$info = check_order_status($info);
+			$info = orders_check_status($info);
 			if($info['status'] == 3){
 				$order_list['over'][] = $info;
 			}else{
 				$order_list['unfinish'][] = $info;
 			}
 		}
-	}
-	if($_GPC['debug'] ==1){
-		echo "<pre>";
-		print_r($order_list);
-		echo "</pre>";
-		exit;
 	}
 	message(error(0, $order_list), '', 'ajax');
 }
@@ -81,13 +75,7 @@ if ($op == 'order_detail'){
 	$store_info = pdo_get('store_bases', array('weid' => intval($_W['uniacid']), 'id' => $order_info['hotelid']), array('id', 'title', 'store_type'));
 	$order_info['store_info'] = $store_info;
 	//订单状态
-	$order_info = check_order_status($order_info);
-	if($_GPC['debug'] ==1){
-		echo "<pre>";
-		print_r($order_info);
-		echo "</pre>";
-		exit;
-	}
+	$order_info = orders_check_status($order_info);
 	message(error(0, $order_info), '', 'ajax');
 }
 
@@ -95,12 +83,6 @@ if($op == 'orderpay'){
 	$order_id = intval($_GPC['id']);
 	$params = pay_info($order_id);
 	$pay_info = $this->pay($params);
-	if($_GPC['debug'] ==1){
-		echo "<pre>";
-		print_r($pay_info);
-		echo "</pre>";
-		exit;
-	}
 	message(error(0, $pay_info), '', 'ajax');
 }
 
@@ -120,9 +102,3 @@ if($op == 'pay'){
 	$pay_url.= '&params='.$p;
 	header("Location: $pay_url");
 }
-// echo "<pre>";
-// print_r($pay_info);
-// print_r(url('mc/cash/wechat'));
-// echo "</pre>";
-// exit;
-

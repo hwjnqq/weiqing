@@ -35,7 +35,7 @@ if ($op == 'goods_list'){
 		message(error(-1, '分类不存在'), '', 'ajax');
 	}
 	$can_reserve = $_GPC['can_reserve'];
-	$sub_class = get_sub_class();//获取二级分类
+	$sub_class = category_sub_class();//获取二级分类
 	//存在二级分类就找其下的商品
 	$fields = array('id', 'title', 'thumb', 'oprice', 'cprice', 'sold_num', 'sales');
 	$list = array();
@@ -52,7 +52,7 @@ if ($op == 'goods_list'){
 			$fields[] = 'hotelid';
 			foreach ($sub_class as $key => $sub_classinfo){
 				$condition['ccate'] = $sub_classinfo['id'];
-				$goods_list = get_store_goods('hotel2_room', $condition, $fields);
+				$goods_list = category_store_goods('hotel2_room', $condition, $fields);
 				if(!empty($goods_list)){
 					$goods[$key]['store_goods'] = array_slice($goods_list, 0, 2);
 					$goods[$key]['total'] = count($goods_list);
@@ -63,7 +63,7 @@ if ($op == 'goods_list'){
 			$condition['store_base_id'] = $store_id;
 			foreach ($sub_class as $key => $sub_classinfo){
 				$condition['ccate'] = $sub_classinfo['id'];
-				$goods_list = get_store_goods('store_goods', $condition, $fields);
+				$goods_list = category_store_goods('store_goods', $condition, $fields);
 				if(!empty($goods_list)){
 					$goods[$key]['store_goods'] = array_slice($goods_list, 0, 2);
 					$goods[$key]['total'] = count($goods_list);
@@ -79,7 +79,7 @@ if ($op == 'goods_list'){
 		if($store_info['store_type'] == 1){
 			$fields[] = 'hotelid';
 			$condition['hotelid'] = $store_id;
-			$goods_list = get_store_goods('hotel2_room', $condition, $fields);
+			$goods_list = category_store_goods('hotel2_room', $condition, $fields);
 			if(!empty($goods_list)){
 				$goods['store_goods'] = array_slice($goods_list, 0, 2);
 				$goods['total'] = count($goods_list);
@@ -87,7 +87,7 @@ if ($op == 'goods_list'){
 		}else{
 			$fields[] = 'store_base_id';
 			$condition['store_base_id'] = $store_id;
-			$goods_list = get_store_goods('store_goods', $condition, $fields);
+			$goods_list = category_store_goods('store_goods', $condition, $fields);
 			if(!empty($goods_list)){
 				$goods['store_goods'] = array_slice($goods_list, 0, 2);
 				$goods['total'] = count($goods_list);
