@@ -75,7 +75,7 @@ if ($op == 'address_post'){
 		message(error(-1, '手机号码格式不正确'), '', 'ajax');
 	}
 	unset($address_info['id']);
-	if(!empty(intval($_GPC['id']))){
+	if(!empty($_GPC['id'])){
 		$result = pdo_update('mc_member_address', $address_info, array('id' => intval($_GPC['id'])));
 		message(error(0, $result), '', 'ajax');
 	}else{
@@ -87,7 +87,7 @@ if ($op == 'address_post'){
 }
 if ($op == 'address_default'){
 	$default_result = pdo_update('mc_member_address', array('isdefault' => '0'), array('uid' => $uid, 'uniacid' => $_W['uniacid']));
-	$result = pdo_update('mc_member_address', array('isdefault' => '1'), array('id' => intval($_GPC['id']), 'uid' => $uid, 'uniacid' => $_W['uniacid'] ));
+	$result = pdo_update('mc_member_address', array('isdefault' => '1'), array('id' => intval($_GPC['id'])));
 	message(error(0, '设置成功'), '', 'ajax');
 
 }
@@ -95,6 +95,3 @@ if ($op == 'address_delete'){
 	$result = pdo_delete('mc_member_address', array('id' => intval($_GPC['id'])));
 	message(error(0, '删除成功'), '', 'ajax');
 }
-
-
-include $this->template('usercenter');
