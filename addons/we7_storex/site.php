@@ -2717,18 +2717,18 @@ class We7_storexModuleSite extends WeModuleSite {
 				if(empty($store_base_id)){
 					message('请选择店铺', $this->createWebUrl('post'), 'error');
 				}
-				if (empty($_GPC['catename'])) {
+				if (empty($_GPC['name'])) {
 					message('抱歉，请输入分类名称！');
 				}
 				$data = array(
-						'weid' => $_W['uniacid'],
-						'name' => $_GPC['catename'],
-						'enabled' => intval($_GPC['enabled']),
-						'displayorder' => intval($_GPC['displayorder']),
-						'isrecommand' => intval($_GPC['isrecommand']),
-						'description' => $_GPC['description'],
-						'parentid' => intval($parentid),
-						'thumb' => $_GPC['thumb']
+					'weid' => $_W['uniacid'],
+					'name' => $_GPC['name'],
+					'enabled' => intval($_GPC['enabled']),
+					'displayorder' => intval($_GPC['displayorder']),
+					'isrecommand' => intval($_GPC['isrecommand']),
+					'description' => $_GPC['description'],
+					'parentid' => intval($parentid),
+					'thumb' => $_GPC['thumb']
 				);
 				if(empty($parentid)){
 					$data['store_base_id'] = $store_base_id;
