@@ -348,9 +348,7 @@ if ($op == 'order'){
 			}
 		}
 		pdo_update('hotel2_member', array('mobile' => $insert['mobile'], 'realname' => $insert['contact_name']), array('weid' => intval($_W['uniacid']), 'from_user' => $_W['openid']));
-		$params = goods_check_result($action, $order_id);
-		$pay_info = $this->pay($params);
-		message(error(0, $pay_info), '', 'ajax');
+		goods_check_result($action, $order_id);
 	}else{
 		$condition['store_base_id'] = $store_id;
 		$table = 'store_goods';
@@ -389,8 +387,6 @@ if ($op == 'order'){
 		$insert = array_merge($insert, $order_info);
 		pdo_insert('hotel2_order', $insert);
 		$order_id = pdo_insertid();
-		$params = goods_check_result($action, $order_id);
-		$pay_info = $this->pay($params);
-		message(error(0, $pay_info), '', 'ajax');
+		goods_check_result($action, $order_id);
 	}
 }

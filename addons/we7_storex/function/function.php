@@ -177,8 +177,7 @@ function goods_check_result($action, $order_id){
 		}
 	}else{
 		if(!empty($order_id)){
-			$params = pay_info($order_id);
-			return $params;
+			message(error(0, $order_id), '', 'ajax');
 		}else{
 			message(error(-1, '下单失败'), '', 'ajax');
 		}
