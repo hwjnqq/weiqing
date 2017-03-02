@@ -1,9 +1,10 @@
 <?php
 
 defined('IN_IA') or exit('Access Denied');
+
 include IA_ROOT . '/addons/we7_storex/function/function.php';
 global $_W, $_GPC;
-// paycenter_check_login();
+
 $ops = array('display', 'post', 'delete', 'category_list', 'goods_list', 'more_goods');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'display';
 

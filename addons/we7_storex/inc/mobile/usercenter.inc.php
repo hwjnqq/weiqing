@@ -1,6 +1,7 @@
 <?php
 
 defined('IN_IA') or exit('Access Denied');
+
 global $_W, $_GPC;
 include IA_ROOT . '/addons/we7_storex/function/function.php';
 load()->model('mc');
