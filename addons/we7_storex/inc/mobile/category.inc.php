@@ -100,6 +100,7 @@ if ($op == 'goods_list'){
 if ($op == 'more_goods'){
 	$store_id = intval($_GPC['id']);//店铺id
 	$sub_classid = intval($_GPC['sub_id']);//一级或二级id
+	$keyword = trim($_GPC['keyword']);
 	$category = pdo_get('store_categorys', array('id' => $sub_classid, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id), array('id', 'parentid'));
 	if(empty($category)){
 		message(error(-1, '参数错误'), '', 'ajax');
@@ -109,9 +110,11 @@ if ($op == 'more_goods'){
 		if(!empty($sub_category)){
 			message(error(-1, '参数错误'), '', 'ajax');
 		}
-		$condition = array('pcate' => $sub_classid);
+		$sql .= ' AND `pcate` = :pcate';
+		$condition = array(':pcate' => $sub_classid);
 	}else{
-		$condition = array('ccate' => $sub_classid);
+		$sql .= ' AND `ccate` = :ccate';
+		$condition = array(':ccate' => $sub_classid);
 	}
 	$can_reserve = $_GPC['can_reserve'];//预定
 	$store_bases = pdo_get('store_bases', array('id' => $store_id), array('id', 'store_type', 'status'));
@@ -123,14 +126,21 @@ if ($op == 'more_goods'){
 		}
 	}
 	if(!empty($can_reserve)){
-		$condition['can_reserve'] = 1;
+		$sql .= ' AND `can_reserve` = :can_reserve';
+		$condition[':can_reserve'] = 1;
+	}
+	if(!empty($keyword)){
+		$sql .= ' AND `title` LIKE :title';
+		$condition[':title'] = "%{$keyword}%";
 	}
 	if($store_bases['store_type'] == 1){
-		$condition['hotelid'] = $store_bases['id'];
-		$goods_list = pdo_getall('hotel2_room', $condition);
+		$sql .= ' AND `hotelid` = :hotelid';
+		$condition[':hotelid'] = $store_bases['id'];
+		$goods_list = pdo_fetchall("SELECT * FROM " . tablename('hotel2_room') . " WHERE 1 = 1" . $sql, $condition);
 	}else{
-		$condition['store_base_id'] = $store_bases['id'];
-		$goods_list = pdo_getall('store_goods', $condition);
+		$sql .= ' AND `store_base_id` = :store_base_id';
+		$condition[':store_base_id'] = $store_bases['id'];
+		$goods_list = pdo_fetchall("SELECT * FROM " . tablename('store_goods') . " WHERE 1 = 1" . $sql, $condition);
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 2;

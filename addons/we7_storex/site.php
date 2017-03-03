@@ -4624,7 +4624,7 @@ class We7_storexModuleSite extends WeModuleSite {
 		}
 		$pay['delivery']['switch'] = 0;
 		foreach ($pay as $paytype => $val){
-			if($val['switch'] != 1){
+			if(empty($val['switch'])){
 				unset($pay[$paytype]);
 			}
 		}
@@ -4633,7 +4633,7 @@ class We7_storexModuleSite extends WeModuleSite {
 		}
 		$pay_data['pay'] = $pay;
 		$pay_data['credtis'] = $credtis;
-		$pay_data['params'] = $params;
+		$pay_data['params'] = json_encode($params);
 		return $pay_data;
 	}
 }

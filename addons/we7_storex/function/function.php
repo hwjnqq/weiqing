@@ -120,7 +120,7 @@ function pay_info($order_id){
 		$params = array(
 				'ordersn' => $order_info['ordersn'],
 				'tid' => $order_info['id'],//支付订单编号, 应保证在同一模块内部唯一
-				'title' => $_W['account']['name'] . "店铺订单{$order_info['ordersn']}",//商家名称
+				'title' => $order_info['style'],
 				'fee' => $order_info['sum_price'],//总费用, 只能大于 0
 				'user' => $_W['openid'],//付款用户, 付款的用户名(选填项)
 		);
