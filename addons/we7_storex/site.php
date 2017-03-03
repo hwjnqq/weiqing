@@ -220,6 +220,11 @@ class We7_storexModuleSite extends WeModuleSite {
 
 	public function doMobiledisplay() {
 		global $_GPC, $_W;
+		if (!empty($_GPC['orderid'])) {
+			$url = $this->createMobileurl('display');
+			$redirect =  $url.'#/Home/OrderInfo/' . $_GPC['orderid'];
+			header("Location: $redirect");
+		}
 		include $this->template('display');
 	}
 
@@ -630,7 +635,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				$hotelid = intval($_GPC['hotelid']);
 				$hotel = pdo_fetch("select id,title from " . tablename('hotel2') . " where id=:id limit 1", array(":id" => $hotelid));
 				$roomid = intval($_GPC['roomid']);
-				$room = pdo_fetch("select id,title from " . tablename('hotel2_room') . " where id=:id limit 1", array(":id" => $roomid));				
+				$room = pdo_fetch("select id,title from " . tablename('hotel2_room') . " where id=:id limit 1", array(":id" => $roomid));
 				$setting = pdo_get('hotel2_set', array('weid' => $_W['uniacid']));
 				$data = array(
 					'status' => $_GPC['status'],
@@ -661,7 +666,7 @@ class We7_storexModuleSite extends WeModuleSite {
 						}
 					}
 				}
-				
+
 				if ($data['status'] != $item['status']) {
 					//订单退款
 					if ($data['status'] == 2) {
@@ -674,7 +679,7 @@ class We7_storexModuleSite extends WeModuleSite {
 						);
 						if (!empty($setting['template']) && !empty($setting['refuse_templateid'])) {
 							$tplnotice = array(
-								'first' => array('value'=>'尊敬的宾客，非常抱歉的通知您，您的客房预订订单被拒绝。'),								
+								'first' => array('value'=>'尊敬的宾客，非常抱歉的通知您，您的客房预订订单被拒绝。'),
 								'keyword1' => array('value' => $item['ordersn']),
 								'keyword2' => array('value' => date('Y.m.d', $item['btime']). '-'. date('Y.m.d', $item['etime'])),
 								'keyword3' => array('value' => $item['nums']),
@@ -698,7 +703,7 @@ class We7_storexModuleSite extends WeModuleSite {
 						//TM00217
 						if (!empty($setting['template']) && !empty($setting['templateid'])) {
 							$tplnotice = array(
-								'first' => array('value' => '您好，您已成功预订'.$hotel['title'].'！'),	
+								'first' => array('value' => '您好，您已成功预订'.$hotel['title'].'！'),
 								'order' => array('value' => $item['ordersn']),
 								'Name' => array('value' => $item['name']),
 								'datein' => array('value' => date('Y-m-d', $item['btime'])),
@@ -751,8 +756,8 @@ class We7_storexModuleSite extends WeModuleSite {
 							$tplnotice = array(
 								'first' => array('value' =>'您已成功办理离店手续，您本次入住酒店的详情为'),
 								'keyword1' => array('value' =>date('Y-m-d', $item['btime'])),
-								'keyword2' => array('value' =>date('Y-m-d', $item['etime'])),			
-								'keyword3' => array('value' =>$item['sum_price']),		
+								'keyword2' => array('value' =>date('Y-m-d', $item['etime'])),
+								'keyword3' => array('value' =>$item['sum_price']),
 								'remark' => array('value' => '欢迎您的下次光临。')
 							);
 							$result = $acc->sendTplNotice($item['openid'], $setting['finish_templateid'],$tplnotice);
@@ -1425,7 +1430,7 @@ class We7_storexModuleSite extends WeModuleSite {
 		} else {
 			$tel = $reply['phone'];
 		}
-		
+
 		//得到房间的所有类型
 		$params = array(
 			":weid"=>$weid,
@@ -1440,7 +1445,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			}
 		}
 		unset($room_list);
-		
+
 		$ac = $_GPC['ac'];
 		$order_title = $_GPC['title'];
 		if ($ac == "getDate") {
@@ -2258,7 +2263,7 @@ class We7_storexModuleSite extends WeModuleSite {
 						'keyword5' => array('value' => $order['ordersn']),
 						'remark' => array('value' => '如有疑问，请咨询店铺前台'),
 					);
-					$acc->sendTplNotice($_W['uniacid'], $setInfo['confirm_templateid'],$data);				
+					$acc->sendTplNotice($_W['uniacid'], $setInfo['confirm_templateid'],$data);
 
 				} else {
 						$info = '您在'.$store_bases['title'].'预订的'.$goodsinfo['title']."已预订成功";
@@ -2280,7 +2285,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			    }
 				if (!empty($setInfo['template']) && !empty($setInfo['templateid'])) {
 					$tplnotice = array(
-						'first' => array('value' => '您好，店铺有新的订单等待处理'),								
+						'first' => array('value' => '您好，店铺有新的订单等待处理'),
 						'order' => array('value' => $order['ordersn']),
 						'Name' => array('value' => $order['name']),
 						'datein' => array('value' => date('Y-m-d', $order['btime'])),
@@ -2332,7 +2337,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			if($paytype == 3){
 				message('提交成功！', '../../app/' . $this->createMobileUrl('detail', array('hid' => $room['hotelid'])), 'success');
 			}else{
-				message(error(0, '支付成功！'), '', 'ajax');
+				message('支付成功！', $this->createMobileurl('display', array('orderid' => $params['tid'])), 'success');
 // 				message('支付成功！', '../../app/' . $this->createMobileUrl('detail', array('hid' => $room['hotelid'])), 'success');
 			}
 		}
@@ -2597,7 +2602,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			$psize = 20;
 			$where = ' WHERE `weid` = :weid';
 			$params = array(':weid' => $_W['uniacid']);
-			
+
 			if (!empty($_GPC['keywords'])) {
 				$where .= ' AND `title` LIKE :title';
 				$params[':title'] = "%{$_GPC['keywords']}%";
@@ -2608,7 +2613,7 @@ class We7_storexModuleSite extends WeModuleSite {
 // 			}
 			$sql = 'SELECT COUNT(*) FROM ' . tablename('store_bases') . $where;
 			$total = pdo_fetchcolumn($sql, $params);
-			
+
 			if ($total > 0) {
 				$pindex = max(1, intval($_GPC['page']));
 				$psize = 10;
@@ -3197,17 +3202,17 @@ class We7_storexModuleSite extends WeModuleSite {
 		$sql .=" limit 1";
 		return pdo_fetch($sql);
 	}
-	
+
 	public function doWebGoodsmanage() {
 		global $_GPC, $_W;
 		$op = $_GPC['op'];
 		$card_setting = pdo_fetch("SELECT * FROM ".tablename('mc_card')." WHERE uniacid = '{$_W['uniacid']}'");
 		$card_status =  $card_setting['status'];
-		
+
 		$store_type = isset($_GPC['store_type']) ? $_GPC['store_type'] : 0;
-		
+
 // 		$stores = pdo_fetchall("SELECT * FROM " . tablename('store_bases') . " WHERE weid = '{$_W['uniacid']}' AND store_type = '{$store_type}' ORDER BY id ASC, displayorder DESC");
-		
+
 		$sql = 'SELECT * FROM ' . tablename('store_categorys') . ' WHERE `weid` = :weid ORDER BY `parentid`, `displayorder` DESC';
 		$category = pdo_fetchall($sql, array(':weid' => $_W['uniacid']), 'id');
 		if (!empty($category)) {
@@ -3544,12 +3549,12 @@ class We7_storexModuleSite extends WeModuleSite {
 			$id = $_GPC['id'];
 			if (!empty($id)) {
 				$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_order') . " WHERE id = :id", array(':id' => $id));
-				
+
 				$paylog = pdo_get('core_paylog', array('uniacid' => $item['weid'], 'tid' => $item['id'], 'module' => 'ewei_hotel'), array('uniacid', 'uniontid', 'tid'));
 				if(!empty($paylog)){
 					$item['uniontid'] = $paylog['uniontid'];
 				}
-				
+
 				if (empty($item)) {
 					message('抱歉，订单不存在或是已经删除！', '', 'error');
 				}
@@ -3659,7 +3664,7 @@ class We7_storexModuleSite extends WeModuleSite {
 						//TM00217
 						if (!empty($setting['template']) && !empty($setting['templateid'])) {
 							$tplnotice = array(
-								'first' => array('value' => '您好，您已成功预订'.$hotel['title'].'！'),								
+								'first' => array('value' => '您好，您已成功预订'.$hotel['title'].'！'),
 								'order' => array('value' => $item['ordersn']),
 								'Name' => array('value' => $item['name']),
 								'datein' => array('value' => date('Y-m-d', $item['btime'])),
@@ -3715,8 +3720,8 @@ class We7_storexModuleSite extends WeModuleSite {
 							$tplnotice = array(
 								'first' => array('value' =>'您已成功办理离店手续，您本次入住酒店的详情为'),
 								'keyword1' => array('value' =>date('Y-m-d', $item['btime'])),
-								'keyword2' => array('value' =>date('Y-m-d', $item['etime'])),			
-								'keyword3' => array('value' =>$item['sum_price']),		
+								'keyword2' => array('value' =>date('Y-m-d', $item['etime'])),
+								'keyword3' => array('value' =>$item['sum_price']),
 								'remark' => array('value' => '欢迎您的下次光临。')
 							);
 							$result = $acc->sendTplNotice($item['openid'], $setting['finish_templateid'],$tplnotice);
@@ -4000,7 +4005,7 @@ class We7_storexModuleSite extends WeModuleSite {
 		}
 		return $list;
 	}
-	
+
 	//支付成功后，根据酒店设置的消费返积分的比例给积分
 	public function give_credit($weid, $openid, $sum_price ,$hotelid){
 		load()->model('mc');
@@ -4069,7 +4074,7 @@ class We7_storexModuleSite extends WeModuleSite {
 					pdo_insert('hotel2_member', $data);
 				} else {
 					pdo_update('hotel2_member', $data, array('id' => $id));
-				}	
+				}
 				message('用户信息更新成功！', $this->createWebUrl('member',array('clerk' => $data['clerk'])), 'success');
 			}
 			include $this->template('member_form');
@@ -4439,7 +4444,7 @@ class We7_storexModuleSite extends WeModuleSite {
 					if ($result['from_user']) {
 						pdo_update('hotel2_member', $data, array('id' => $result['id']));
 					} else {
-						pdo_insert('hotel2_member', $data);				
+						pdo_insert('hotel2_member', $data);
 					}
 				} else {
 					pdo_update('hotel2_member', $data, array('id' => $id));
@@ -4486,7 +4491,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			} else {
 				message('状态设置成功！', referer(), 'success');
 			}
-		} 
+		}
 		else if ($op == 'clerkcommentlist') {
 			$id = intval($_GPC['id']);
 			$where = ' WHERE `uniacid` = :uniacid';
@@ -4502,7 +4507,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				$pager = pagination($total, $pindex, $psize);
 			}
 			include $this->template('clerk_comment');
-		} 
+		}
 		else {
 			$sql = "";
 			$params = array();
@@ -4521,9 +4526,9 @@ class We7_storexModuleSite extends WeModuleSite {
 			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('hotel2_member') . " WHERE `weid` = '{$_W['uniacid']}' $sql", $params);
 			$pager = pagination($total, $pindex, $psize);
 			include $this->template('clerk');
-		}	
+		}
 	}
-    
+
 	//店员评分
 	public  function doMobileClerkComment() {
 
@@ -4540,7 +4545,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			 }
 			$orderid = intval($_GPC['orderid']);
 			$hotelid =intval($_GPC['hotelid']);
-			include $this->template('clerk_comment');	
+			include $this->template('clerk_comment');
 		}
 
 		if($op=='post') {
@@ -4607,7 +4612,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				exit($site->$method($pars));
 			}
 		}
-		
+
 		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniacid`=:uniacid AND `module`=:module AND `tid`=:tid';
 		$log = pdo_fetch($sql, $pars);
 		if (empty($log)) {
@@ -4648,6 +4653,9 @@ class We7_storexModuleSite extends WeModuleSite {
 		$pay_data['pay'] = $pay;
 		$pay_data['credtis'] = $credtis;
 		$pay_data['params'] = json_encode($params);
+
+
+		// include $this->template('common/paycenter');
 		return $pay_data;
 	}
 }

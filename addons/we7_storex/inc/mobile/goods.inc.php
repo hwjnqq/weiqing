@@ -8,8 +8,6 @@ $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'display';
 
 check_params($op);
 
-$_W['openid'] = 'oTKzFjpkpEKpqXibIshcJLsmeLVo';
-
 $uid = mc_openid2uid($_W['openid']);
 $store_id = intval($_GPC['id']);//店铺id
 $goodsid = intval($_GPC['goodsid']);//商品id
@@ -42,11 +40,11 @@ if ($op == 'goods_info'){
 	}
 	$goods_info['store_type'] = $store_info['store_type'];
 	$goods_info['thumbs'] =  iunserializer($goods_info['thumbs']);
-	
+
 	$pricefield = goods_isMember() ? 'mprice' : 'cprice';
 	$member_p = unserialize($goods_info['mprice']);
 	$goods_info[$pricefield] =  $pricefield == 'mprice' ? $goods_info['cprice']*$member_p[$_W['member']['groupid']] : $goods_info['cprice'];
-	
+
 	if(!empty($goods_info['thumb'])){
 		$goods_info['thumb'] = tomedia($goods_info['thumb']);
 	}
@@ -73,7 +71,7 @@ if ($op == 'info'){
 		$info['mobile'] = $record['mobile'];
 		$info['contact_name'] = $record['realname'];
 	}
-	
+
 	$store_info = get_store_info();
 	if(empty($store_info)){
 		message(error(-1, '店铺不存在'), '', 'ajax');
@@ -136,7 +134,7 @@ if ($op == 'order'){
 		$paysetting = uni_setting(intval($_W['uniacid']), array('payment', 'creditbehaviors'));
 		$_W['account'] = array_merge($_W['account'], $paysetting);
 	}
-	
+
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
 	//预定直接将数据加进order表
 	if($store_info['store_type'] == 1){//酒店
@@ -165,9 +163,9 @@ if ($op == 'order'){
 		} else {
 			$tel = $reply['phone'];
 		}
-		
+
 		$pricefield = goods_isMember() ? 'mprice' : 'cprice';
-		
+
 		if($order_info['btime'] < strtotime('today')){
 			message(error(-1, '预定的开始日期不能小于当日的日期!'), '', 'ajax');
 		}
@@ -184,7 +182,7 @@ if ($op == 'order'){
 		$date_array[0]['day'] = date('j', $btime);
 		$date_array[0]['time'] = $btime;
 		$date_array[0]['month'] = date('m',$btime);
-		
+
 		if ($days > 1) {
 			for($i = 1; $i < $days; $i++) {
 				$date_array[$i]['time'] = $date_array[$i-1]['time'] + 86400;
@@ -202,7 +200,7 @@ if ($op == 'order'){
 		$list = array();
 		$max_room = 8;
 		$is_order = 1;
-		
+
 		if ($flag == 1) {
 			for($i = 0; $i < $days; $i++) {
 				$k = $date_array[$i]['time'];
@@ -229,7 +227,7 @@ if ($op == 'order'){
 		if ($max_room == 0) {
 			message(error(-1, '当天没有空房间了,请选择其他房型!'), '', 'ajax');
 		}
-		
+
 		$user_info = hotel_get_userinfo();
 		$memberid = intval($user_info['id']);
 		$r_sql = 'SELECT `roomdate`, `num`, `oprice`, `cprice`, `status`, ' . $pricefield . ' AS `m_price` FROM ' . tablename('hotel2_room_price') .
@@ -268,19 +266,19 @@ if ($op == 'order'){
 		if($totalprice == 0){
 			message(error(-1, '房间价格不能是0，请联系管理员修改！'), '', 'ajax');
 		}
-		
+
 // 		if (empty($order_info['name'])) {
 // 			message(error(-1, '预定人不能为空!'), '', 'ajax');
 // 		}
-	
+
 		if (empty($order_info['contact_name'])) {
 			message(error(-1, '联系人不能为空!'), '', 'ajax');
 		}
-	
+
 		if (empty($order_info['mobile'])) {
 			message(error(-1, '手机号不能为空!'), '', 'ajax');
 		}
-	
+
 		if ($order_info['nums'] > $max_room) {
 			message(error(-1, '您的预定数量超过最大限制!'), '', 'ajax');
 		}
@@ -312,7 +310,7 @@ if ($op == 'order'){
 		}
 		pdo_insert('hotel2_order', $insert);
 		$order_id = pdo_insertid();
-	
+
 		//如果有接受订单的邮件,
 		if (!empty($reply['mail'])) {
 			$subject = "微信公共帐号 [" . $_W['account']['name'] . "] 微酒店订单提醒.";

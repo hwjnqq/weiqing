@@ -8,8 +8,6 @@ $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'display';
 
 check_params($op);
 
-$_W['openid'] = 'oTKzFjpkpEKpqXibIshcJLsmeLVo';
-
 if ($op == 'order_list'){
 	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status' ,'openid');
 	$orders = pdo_getall('hotel2_order', array('weid' => intval($_W['uniacid']), 'openid' => $_W['openid']), $field, '', 'time DESC');
