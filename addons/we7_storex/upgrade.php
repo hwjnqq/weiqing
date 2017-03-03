@@ -309,7 +309,7 @@ $hotel2 = array(
 //备份hotel2表，将备份表的数据分到store_bases表和扩展表hotel2
 $hotel2_beifen = pdo_getall('hotel2_beifen');
 if(!empty($hotel2_beifen)){
-	foreach(hotel2_beifen as $val){
+	foreach($hotel2_beifen as $val){
 		$store_insert = array();
 		foreach($store_base as $field){
 			if(isset($val[$field])){
