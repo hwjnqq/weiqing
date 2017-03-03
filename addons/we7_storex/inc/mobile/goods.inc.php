@@ -99,12 +99,6 @@ if ($op == 'info'){
 	$infos['info'] = $info;
 	$infos['goods_info'] = $goods_info;
 	$infos['address'] = $address;
-	if($_GPC['debug'] ==1){
-		echo "<pre>";
-		print_r($infos);
-		echo "</pre>";
-		exit;
-	}
 	message(error(0, $infos), '', 'ajax');
 }
 

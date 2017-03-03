@@ -2681,7 +2681,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				message('分类排序更新成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
 			}
 			$children = array();
-			$category = pdo_fetchall("SELECT * FROM " . tablename('store_categorys') . " WHERE weid = '{$_W['uniacid']}' ORDER BY parentid ASC, displayorder DESC");
+			$category = pdo_fetchall("SELECT * FROM " . tablename('store_categorys') . " WHERE weid = '{$_W['uniacid']}' ORDER BY store_base_id DESC, parentid ASC, displayorder DESC");
 			foreach ($category as $index => &$row_info) {
 				if(!empty($row_info['store_base_id'])){
 					foreach ($stores as $store_info){
@@ -4610,7 +4610,21 @@ class We7_storexModuleSite extends WeModuleSite {
 		
 		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniacid`=:uniacid AND `module`=:module AND `tid`=:tid';
 		$log = pdo_fetch($sql, $pars);
-		if(!empty($log) && $log['status'] == '1') {
+		if (empty($log)) {
+			$log = array(
+				'uniacid' => $_W['uniacid'],
+				'acid' => $_W['acid'],
+				'openid' => $_W['member']['uid'],
+				'module' => $this->module['name'],
+				'tid' => $params['tid'],
+				'fee' => $params['fee'],
+				'card_fee' => $params['fee'],
+				'status' => '0',
+				'is_usecard' => '0',
+			);
+			pdo_insert('core_paylog', $log);
+		}
+		if($log['status'] == '1') {
 			message('这个订单已经支付成功, 不需要重复支付.');
 		}
 // 		$payment = $_W['we7_storex']['config']['payment'];
