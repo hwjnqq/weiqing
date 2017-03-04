@@ -1,63 +1,61 @@
 <?php
 //检查每个文件的传值是否为空
-function check_params($op){
+function check_params(){
 	global $_W, $_GPC;
 	$permission_lists = array(
 		'store' => array(
 			'common' => array(
-				'uniacid' => intval($_W['uniacid']),
+				'uniacid' => intval($_W['uniacid'])
 			),
 			'store_list' => array(),
 			'store_detail' => array(
-				'store_id' => intval($_GPC['store_id']),
-			),
+				'store_id' => intval($_GPC['store_id'])
+			)
 		),
 		'category' => array(
 			'common' => array(
 				'uniacid' => intval($_W['uniacid']),
-				'id' => intval($_GPC['id']),
+				'id' => intval($_GPC['id'])
 			),
-			'category_list' => array(
-
-			),
+			'category_list' => array(),
 			'goods_list' => array(
-				'first_id' => intval($_GPC['first_id']),
+				'first_id' => intval($_GPC['first_id'])
 			),
-			'more_goods' => array(),
+			'more_goods' => array()
 		),
 		'goods' => array(
 			'common' => array(
 				'uniacid' => intval($_W['uniacid']),
-// 				'openid' => $_W['openid'],
+ 				'openid' => $_W['openid']
 			),
 			'goods_info' => array(
 				'id' => intval($_GPC['id']),
-				'goodsid' => intval($_GPC['goodsid']),
+				'goodsid' => intval($_GPC['goodsid'])
 			),
 			'info' => array(),
 			'order' => array(
 				'id' => intval($_GPC['id']),
 				'goodsid' => intval($_GPC['goodsid']),
-				'action' => trim($_GPC['action']),
-			),
+				'action' => trim($_GPC['action'])
+			)
 		),
 		'orders' => array(
 			'common' => array(
 				'uniacid' => intval($_W['uniacid']),
-// 				'openid' => $_W['openid'],
+ 				'openid' => $_W['openid']
 			),
 			'order_list' => array(),
 			'order_detail' => array(
-				'id' => intval($_GPC['id']),
+				'id' => intval($_GPC['id'])
 			),
 			'orderpay' => array(
-				'id' => intval($_GPC['id']),
+				'id' => intval($_GPC['id'])
 			)
 		),
 		'usercenter' => array(
 			'common' => array(
 				'uniacid' => intval($_W['uniacid']),
-//				'openid' => $_W['openid']
+				'openid' => $_W['openid']
 			),
 			'personal_info' => array(),
 			'personal_update' => array(),
@@ -78,6 +76,7 @@ function check_params($op){
 		)
 	);
 	$do = trim($_GPC['do']);
+	$op = trim($_GPC['op']);
 	if(!empty($permission_lists[$do])){
 		if(!empty($permission_lists[$do]['common'])){
 			foreach($permission_lists[$do]['common'] as $val){
@@ -108,8 +107,7 @@ function format_url($urls){
 //获取店铺信息
 function get_store_info(){
 	global $_W, $_GPC;
-	$store_id = $_GPC['id'];//店铺id
-	return pdo_get('store_bases', array('weid' => $_W['uniacid'], 'id' => $store_id, 'status' => 1), array('id', 'store_type', 'status'));
+	return pdo_get('store_bases', array('weid' => $_W['uniacid'], 'id' => intval($_GPC['id']), 'status' => 1), array('id', 'store_type', 'status'));
 }
 
 //支付
@@ -118,11 +116,11 @@ function pay_info($order_id){
 	$order_info = pdo_get('hotel2_order', array('id' => $order_id, 'weid' => intval($_W['uniacid']), 'openid' => $_W['openid']));
 	if(!empty($order_info)){
 		$params = array(
-				'ordersn' => $order_info['ordersn'],
-				'tid' => $order_info['id'],//支付订单编号, 应保证在同一模块内部唯一
-				'title' => $order_info['style'],
-				'fee' => $order_info['sum_price'],//总费用, 只能大于 0
-				'user' => $_W['openid'],//付款用户, 付款的用户名(选填项)
+            'ordersn' => $order_info['ordersn'],
+            'tid' => $order_info['id'],//支付订单编号, 应保证在同一模块内部唯一
+            'title' => $order_info['style'],
+            'fee' => $order_info['sum_price'],//总费用, 只能大于 0
+            'user' => $_W['openid']//付款用户, 付款的用户名(选填项)
 		);
 		return $params;
 	}else{
@@ -133,8 +131,7 @@ function pay_info($order_id){
 //获取某一级分类下的所有二级分类
 function category_sub_class(){
 	global $_W, $_GPC;
-	$category_one_id = $_GPC['first_id'];//一级分类id
-	return pdo_getall('store_categorys', array('weid' => $_W['uniacid'],'parentid' => $category_one_id, 'enabled' => 1), array(), '', 'displayorder DESC');
+	return pdo_getall('store_categorys', array('weid' => $_W['uniacid'],'parentid' => intval($_GPC['first_id']), 'enabled' => 1), array(), '', 'displayorder DESC');
 }
 
 //获取一二级分类下的商品信息
@@ -168,7 +165,6 @@ function goods_check_action($action, $goods_info){
 
 //检查结果
 function goods_check_result($action, $order_id){
-	global $_W;
 	if($action == 'reserve'){
 		if(!empty($order_id)){
 			message(error(0, $order_id), '', 'ajax');
@@ -192,9 +188,7 @@ function goods_isMember() {
 	//查看会员是否开启会员卡功能
 	if($_W['member']['uid']){
 		$membercard_setting  = pdo_get('mc_card_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $_W['member']['uid']));
-		$membercard_status = $membercard_setting['status'];
-		$pricefield = !empty($membercard_status) && $card_status == 1 ? "mprice" : "cprice";
-		if (!empty($card_status) && !empty($membercard_status)) {
+		if (!empty($card_status) && !empty($membercard_setting['status'])) {
 			return true;
 		} else {
 			return false;

@@ -8,8 +8,8 @@ load()->model('mc');
 $ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
+check_params();
 $uid = mc_openid2uid($_W['openid']);
-check_params($op);
 if (in_array($op, array('address_post', 'address_default', 'address_delete')) && !empty($_GPC['id'])) {
 	$address_info = pdo_get('mc_member_address', array('uniacid' => $_W['uniacid'], 'uid' => $uid, 'id' => intval($_GPC['id'])));
 	if(empty($address_info)){
@@ -17,9 +17,6 @@ if (in_array($op, array('address_post', 'address_default', 'address_delete')) &&
 	}
 }
 
-if ($op == 'error') {
-	message(error(-1, '参数错误'), '', 'ajax');
-}
 if ($op == 'personal_info') {
 	$user_info = mc_fetch($_W['openid']);
 	message(error(0, $user_info), '', 'ajax');

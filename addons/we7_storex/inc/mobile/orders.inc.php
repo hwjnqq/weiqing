@@ -4,10 +4,9 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 $ops = array('display', 'post', 'delete', 'order_list', 'order_detail', 'orderpay', 'pay');
-$op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'display';
+$op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
-check_params($op);
-
+check_params();
 if ($op == 'order_list'){
 	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status', 'openid', 'action');
 	$orders = pdo_getall('hotel2_order', array('weid' => intval($_W['uniacid']), 'openid' => $_W['openid']), $field, '', 'time DESC');

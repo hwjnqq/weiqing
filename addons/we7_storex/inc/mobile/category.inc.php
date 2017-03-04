@@ -3,37 +3,34 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('display', 'post', 'delete', 'category_list', 'goods_list', 'more_goods');
-$op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'display';
+$ops = array('category_list', 'goods_list', 'more_goods');
+$op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
-check_params($op);
-
+check_params();
 //获取店铺分类
 if ($op == 'category_list'){
-	$store_id = $_GPC['id'];//店铺id
-	$data = pdo_getall('store_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $store_id, 'enabled' => 1), array('id', 'name'), '', 'displayorder DESC');
-	if(!empty($data)){
-		foreach ($data as $val){
+	$pcate_lists = pdo_getall('store_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => intval($_GPC['id']), 'enabled' => 1), array('id', 'name'), '', 'displayorder DESC');
+	if(!empty($pcate_lists)){
+		foreach ($pcate_lists as $val){
 			$store_categorys[$val['id']] = $val['name'];
 		}
 	}
 	message(error(0, $store_categorys), '', 'ajax');
 }
-//i=281&c=entry&do=category&m=we7_storex&op=goods_list&id=6&first_id=10&can_reserve=1
 //获取一级分类下的二级分类以及商品
 if ($op == 'goods_list'){
-	$store_id = intval($_GPC['id']);//店铺id
+	$store_id = intval($_GPC['id']);
 	$store_info = get_store_info();
 	if(empty($store_info)){
 		message(error(-1, '店铺不存在'), '', 'ajax');
 	}
-	$first_id = intval($_GPC['first_id']);//一级分类id
-	$first_class = pdo_get('store_categorys', array('weid' => $_W['uniacid'],'store_base_id' => $store_id, 'id' => $first_id));
+	$first_id = intval($_GPC['first_id']);
+	$first_class = pdo_get('store_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $store_id, 'id' => $first_id));
 	if(empty($first_class)){
 		message(error(-1, '分类不存在'), '', 'ajax');
 	}
 	$can_reserve = $_GPC['can_reserve'];
-	$sub_class = category_sub_class();//获取二级分类
+	$sub_class = category_sub_class();
 	//存在二级分类就找其下的商品
 	$fields = array('id', 'title', 'thumb', 'oprice', 'cprice', 'sold_num', 'sales');
 	$list = array();
@@ -116,7 +113,7 @@ if ($op == 'more_goods'){
 		$sql .= ' AND `ccate` = :ccate';
 		$condition = array(':ccate' => $sub_classid);
 	}
-	$can_reserve = $_GPC['can_reserve'];//预定
+	$can_reserve = intval($_GPC['can_reserve']);//预定
 	$store_bases = pdo_get('store_bases', array('id' => $store_id), array('id', 'store_type', 'status'));
 	if(empty($store_bases)){
 		message(error(-1, '店铺不存在'), '', 'ajax');
