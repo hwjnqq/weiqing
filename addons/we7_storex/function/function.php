@@ -107,7 +107,16 @@ function format_url($urls){
 //获取店铺信息
 function get_store_info(){
 	global $_W, $_GPC;
-	return pdo_get('store_bases', array('weid' => $_W['uniacid'], 'id' => intval($_GPC['id']), 'status' => 1), array('id', 'store_type', 'status'));
+	$store_info = pdo_get('store_bases', array('weid' => $_W['uniacid'], 'id' => intval($_GPC['id']), 'status' => 1), array('id', 'store_type', 'status'));
+	if (empty($store_info)) {
+		message(error(-1, '店铺不存在'), '', 'ajax');
+	} else {
+		if ($store_info['status'] == 0) {
+			message(error(-1, '店铺已隐藏'), '', 'ajax');
+		}else{
+			return $store_info;
+		}
+	}
 }
 
 //支付

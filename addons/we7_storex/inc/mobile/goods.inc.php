@@ -15,13 +15,6 @@ $max_room = 8;
 //获取某个商品的详细信息
 if ($op == 'goods_info'){
 	$store_info = get_store_info();
-	if (empty($store_info)){
-		message(error(-1, '店铺不存在'), '', 'ajax');
-	} else {
-		if ($store_info['status'] == 0){
-			message(error(-1, '店铺已隐藏'), '', 'ajax');
-		}
-	}
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
 	if ($store_info['store_type'] == 1){
 		$condition['hotelid'] = $store_id;
@@ -60,6 +53,7 @@ if ($op == 'goods_info'){
 
 //进入预定页面的信息
 if ($op == 'info') {
+	$store_info = get_store_info();
 	$member = array();
 	$member['from_user'] = $_W['openid'];
 	$record = hotel_member_single($member);
@@ -68,14 +62,6 @@ if ($op == 'info') {
 		$info['name'] = $record['realname'];
 		$info['mobile'] = $record['mobile'];
 		$info['contact_name'] = $record['realname'];
-	}
-	$store_info = get_store_info();
-	if (empty($store_info)) {
-		message(error(-1, '店铺不存在'), '', 'ajax');
-	} else {
-		if ($store_info['status'] == 0) {
-			message(error(-1, '店铺已隐藏'), '', 'ajax');
-		}
 	}
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
 	if ($store_info['store_type'] == 1) {
@@ -100,6 +86,7 @@ if ($op == 'info') {
 
 //预定提交预定信息
 if ($op == 'order'){
+	$store_info = get_store_info();
 	$order_info = array(
 		'weid' => intval($_W['uniacid']),
 		'hotelid' => $store_id,
@@ -112,14 +99,6 @@ if ($op == 'order'){
 		'nums' => intval($_GPC['__input']['order']['nums']),				//数量
 		'time' => TIMESTAMP,					//下单时间（TIMESTAMP）
 	);
-	$store_info = get_store_info();
-	if(empty($store_info)){
-		message(error(-1, '店铺不存在'), '', 'ajax');
-	}else{
-		if($store_info['status'] == 0){
-			message(error(-1, '管理员将该店铺设置为隐藏，请联系管理员'), '', 'ajax');
-		}
-	}
 	if ($order_info['nums'] <= 0) {
 		message(error(-1, '数量不能是零'), '', 'ajax');
 	}
