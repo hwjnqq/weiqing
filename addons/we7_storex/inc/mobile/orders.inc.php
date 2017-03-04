@@ -9,7 +9,7 @@ $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'display';
 check_params($op);
 
 if ($op == 'order_list'){
-	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status' ,'openid');
+	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status', 'openid', 'action');
 	$orders = pdo_getall('hotel2_order', array('weid' => intval($_W['uniacid']), 'openid' => $_W['openid']), $field, '', 'time DESC');
 	$order_list = array(
 		'over' => array(),
