@@ -3,7 +3,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('display', 'post', 'delete', 'goods_info', 'info', 'order', 'test');
+$ops = array('goods_info', 'info', 'order');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -15,73 +15,70 @@ $max_room = 8;
 //获取某个商品的详细信息
 if ($op == 'goods_info'){
 	$store_info = get_store_info();
-	if(empty($store_info)){
+	if (empty($store_info)){
 		message(error(-1, '店铺不存在'), '', 'ajax');
-	}else{
-		if($store_info['status'] == 0){
-			message(error(-1, '管理员将该店铺设置为隐藏，请联系管理员'), '', 'ajax');
+	} else {
+		if ($store_info['status'] == 0){
+			message(error(-1, '店铺已隐藏'), '', 'ajax');
 		}
 	}
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
-	if($store_info['store_type'] == 1){
+	if ($store_info['store_type'] == 1){
 		$condition['hotelid'] = $store_id;
 		$table = 'hotel2_room';
-	}else{
+	} else {
 		$condition['store_base_id'] = $store_id;
 		$table = 'store_goods';
 	}
 	$goods_info = pdo_get($table, $condition);
-	if(empty($goods_info)){
+	if (empty($goods_info)) {
 		message(error(-1, '商品不存在'), '', 'ajax');
-	}else{
-		if($goods_info['status'] == 0){
+	} else {
+		if ($goods_info['status'] == 0){
 			message(error(-1, '管理员将该店铺设置为隐藏，请联系管理员'), '', 'ajax');
 		}
 	}
 	$goods_info['store_type'] = $store_info['store_type'];
 	$goods_info['thumbs'] =  iunserializer($goods_info['thumbs']);
-
 	$pricefield = goods_isMember() ? 'mprice' : 'cprice';
 	$member_p = unserialize($goods_info['mprice']);
-	$goods_info[$pricefield] =  $pricefield == 'mprice' ? $goods_info['cprice']*$member_p[$_W['member']['groupid']] : $goods_info['cprice'];
-
-	if(!empty($goods_info['thumb'])){
+	$goods_info[$pricefield] =  $pricefield == 'mprice' ? $goods_info['cprice'] * $member_p[$_W['member']['groupid']] : $goods_info['cprice'];
+	if (!empty($goods_info['thumb'])) {
 		$goods_info['thumb'] = tomedia($goods_info['thumb']);
 	}
-	if(!empty($goods_info['thumbs'])){
+	if (!empty($goods_info['thumbs'])) {
 		$goods_info['thumbs'] = format_url($goods_info['thumbs']);
 	}
-	if(!empty($goods_info['reserve_device'])){
+	if (!empty($goods_info['reserve_device'])) {
 		$goods_info['reserve_device'] = htmlspecialchars_decode($goods_info['reserve_device']);
 	}
-	if(!empty($goods_info['device'])){
+	if (!empty($goods_info['device'])) {
 		$goods_info['device'] = htmlspecialchars_decode($goods_info['device']);
 	}
 	message(error(0, $goods_info), '', 'ajax');
 }
 
 //进入预定页面的信息
-if ($op == 'info'){
+if ($op == 'info') {
 	$member = array();
 	$member['from_user'] = $_W['openid'];
 	$record = hotel_member_single($member);
 	$info = array();
-	if ($record) {
+	if (!empty($record)) {
 		$info['name'] = $record['realname'];
 		$info['mobile'] = $record['mobile'];
 		$info['contact_name'] = $record['realname'];
 	}
-
 	$store_info = get_store_info();
-	if(empty($store_info)){
+	if (empty($store_info)) {
 		message(error(-1, '店铺不存在'), '', 'ajax');
-	}else{
-		if($store_info['status'] == 0){
-			message(error(-1, '管理员将该店铺设置为隐藏，请联系管理员'), '', 'ajax');
+	} else {
+		if ($store_info['status'] == 0) {
+			message(error(-1, '店铺已隐藏'), '', 'ajax');
 		}
 	}
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
-	if($store_info['store_type'] == 1){
+	if ($store_info['store_type'] == 1) {
 		$condition['hotelid'] = $store_id;
 		$table = 'hotel2_room';
 		$goods_info = pdo_get($table, $condition);
@@ -93,7 +90,7 @@ if ($op == 'info'){
 	}
 	$member_p = unserialize($goods_info['mprice']);
 	$pricefield = goods_isMember() ? 'mprice' : 'cprice';
-	$goods_info['cprice'] =  $pricefield == 'mprice' ? $goods_info['cprice']*$member_p[$_W['member']['groupid']] : $goods_info['cprice'];
+	$goods_info['cprice'] =  $pricefield == 'mprice' ? $goods_info['cprice'] * $member_p[$_W['member']['groupid']] : $goods_info['cprice'];
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;
 	$infos['goods_info'] = $goods_info;
@@ -123,14 +120,14 @@ if ($op == 'order'){
 			message(error(-1, '管理员将该店铺设置为隐藏，请联系管理员'), '', 'ajax');
 		}
 	}
-	if($order_info['nums'] <= 0){
+	if ($order_info['nums'] <= 0) {
 		message(error(-1, '数量不能是零'), '', 'ajax');
 	}
 	$action = trim($_GPC['action']);//是预定还是购买
-	if($action == 'reserve'){
+	if ($action == 'reserve') {
 		$order_info['action'] = 1;
 		$order_info['paytype'] = 3;//支付方式，表示预定，只能到店支付
-	}elseif($action == 'buy'){
+	} elseif ($action == 'buy') {
 		$order_info['action'] = 2;
 		$paysetting = uni_setting(intval($_W['uniacid']), array('payment', 'creditbehaviors'));
 		$_W['account'] = array_merge($_W['account'], $paysetting);
@@ -138,21 +135,21 @@ if ($op == 'order'){
 
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
 	//预定直接将数据加进order表
-	if($store_info['store_type'] == 1){//酒店
+	if ($store_info['store_type'] == 1) {//酒店
 		$order_info['btime'] = strtotime($_GPC['__input']['order']['btime']);
 		$order_info['etime'] = strtotime($_GPC['__input']['order']['etime']);
-		if(!empty($_GPC['__input']['order']['day'])){
+		if (!empty($_GPC['__input']['order']['day'])) {
 			$order_info['day'] = intval($_GPC['__input']['order']['day']);
-		}else{
+		} else {
 			$order_info['day'] = ceil(($order_info['etime'] - $order_info['btime'])/86400);
 		}
-		if($order_info['day'] <= 0){
+		if ($order_info['day'] <= 0) {
 			message(error(-1, '天数不能是零'), '', 'ajax');
 		}
 		$condition['hotelid'] = $store_id;
 		$table = 'hotel2_room';
 		$room = pdo_get($table, $condition);
-		goods_check_action($action, $room);//检查是否符合条件
+		goods_check_action($action, $room);
 		$reply = pdo_get('store_bases', array('id' => $store_id), array('title', 'mail', 'phone', 'thumb', 'description'));
 		if (empty($reply)) {
 			message(error(-1, '酒店未找到, 请联系管理员!'), '', 'ajax');
@@ -170,13 +167,10 @@ if ($op == 'order'){
 		if($order_info['btime'] < strtotime('today')){
 			message(error(-1, '预定的开始日期不能小于当日的日期!'), '', 'ajax');
 		}
-		// 入住
 		$btime = $order_info['btime'];
 		$bdate = date('Y-m-d', $order_info['btime']);
-		// 住几天
-		$days =$order_info['day'];
-		// 离店
-		$etime = $search_array['etime'];
+		$days = $order_info['day'];
+		$etime = $order_info['etime'];
 		$edate = date('Y-m-d', $order_info['etime']);
 		$date_array = array();
 		$date_array[0]['date'] = $bdate;
@@ -263,7 +257,7 @@ if ($op == 'order'){
 			$totalprice =  ($this_price + $room['service']) * $days;
 			$service = $room['service'] * $days;
 		}
-		if($totalprice == 0){
+		if ($totalprice == 0) {
 			message(error(-1, '房间价格不能是0，请联系管理员修改！'), '', 'ajax');
 		}
 
@@ -290,12 +284,12 @@ if ($op == 'order'){
 			}
 		}
 		$insert = array(
-				'ordersn' => date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1),
-				'memberid' => $memberid,
-				'style' => $room['title'],
-				'oprice' => $room['oprice'],
-				'cprice' => $room['cprice'],
-				'mprice' => $room['mprice'],
+            'ordersn' => date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1),
+            'memberid' => $memberid,
+            'style' => $room['title'],
+            'oprice' => $room['oprice'],
+            'cprice' => $room['cprice'],
+            'mprice' => $room['mprice']
 		);
 		$insert = array_merge($order_info, $insert);
 		$insert[$pricefield] = $this_price;

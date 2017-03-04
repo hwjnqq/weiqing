@@ -95,8 +95,8 @@ if ($op == 'goods_list'){
 
 //获取更多的商品信息
 if ($op == 'more_goods'){
-	$store_id = intval($_GPC['id']);//店铺id
-	$sub_classid = intval($_GPC['sub_id']);//一级或二级id
+	$store_id = intval($_GPC['id']);
+	$sub_classid = intval($_GPC['sub_id']);
 	$keyword = trim($_GPC['keyword']);
 	$category = pdo_get('store_categorys', array('id' => $sub_classid, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id), array('id', 'parentid'));
 	if(empty($category)){
@@ -113,7 +113,7 @@ if ($op == 'more_goods'){
 		$sql .= ' AND `ccate` = :ccate';
 		$condition = array(':ccate' => $sub_classid);
 	}
-	$can_reserve = intval($_GPC['can_reserve']);//预定
+	$can_reserve = intval($_GPC['can_reserve']);
 	$store_bases = pdo_get('store_bases', array('id' => $store_id), array('id', 'store_type', 'status'));
 	if(empty($store_bases)){
 		message(error(-1, '店铺不存在'), '', 'ajax');
