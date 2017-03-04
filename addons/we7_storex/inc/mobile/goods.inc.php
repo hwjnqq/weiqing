@@ -334,11 +334,11 @@ if ($op == 'order'){
 		if (empty($order_info['mobile'])) {
 			message(error(-1, '手机号不能为空!'), '', 'ajax');
 		}
-		$goods_info['mode_distribute'] = intval($_GPC['__input']['order']['mode_distribute']);
-		$goods_info['order_time'] = strtotime(intval($_GPC['__input']['order']['order_time']));
-		if($goods_info['mode_distribute'] == 2){//配送
-			$goods_info['addressid'] = intval($_GPC['__input']['order']['addressid']);
-			$goods_info['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
+		$order_info['mode_distribute'] = intval($_GPC['__input']['order']['mode_distribute']);
+		$order_info['order_time'] = strtotime(intval($_GPC['__input']['order']['order_time']));
+		if($order_info['mode_distribute'] == 2){//配送
+			$order_info['addressid'] = intval($_GPC['__input']['order']['addressid']);
+			$order_info['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
 		}
 		$insert = array(
 				'ordersn' => date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1),

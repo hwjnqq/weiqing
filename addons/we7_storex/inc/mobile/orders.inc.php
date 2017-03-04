@@ -68,6 +68,9 @@ if ($op == 'order_detail'){
 	}
 	$store_info = pdo_get('store_bases', array('weid' => intval($_W['uniacid']), 'id' => $order_info['hotelid']), array('id', 'title', 'store_type'));
 	$order_info['store_info'] = $store_info;
+	if (!empty($order_info['addressid'])){
+		$order_info['address'] = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid']), 'id' => $order_info['addressid']));
+	}
 	//订单状态
 	$order_info = orders_check_status($order_info);
 	message(error(0, $order_info), '', 'ajax');
