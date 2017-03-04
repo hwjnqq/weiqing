@@ -97,11 +97,11 @@
 					<a href="{php echo $this->createWebUrl('order',array('hotelid'=>$item['hotelid'],'roomid'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="订单查看">订单查看</a>
 					<a class="btn btn-default" data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('goodsmanage',array('op'=>'edit','store_type'=>$store_type,'id'=>$item['id']))}" title="编辑"><i class="fa fa-edit"></i></a>
 					{if $item['status']==0}
-					<a class="btn btn-default" title="显示" href="#" onclick="drop_confirm('您确定要显示此房型吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'status','status'=>1, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
+					<a class="btn btn-default" title="显示" href="#" onclick="drop_confirm('您确定要显示此房型吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'status','status'=>1, 'id'=>$item['id'], 'store_type' => '1'))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
 					{elseif $item['status']==1}
-					<a class="btn btn-default" title="隐藏" href="#" onclick="drop_confirm('您确定要隐藏此房型吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'status','status'=>0, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
+					<a class="btn btn-default" title="隐藏" href="#" onclick="drop_confirm('您确定要隐藏此房型吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'status','status'=>0, 'id'=>$item['id'], 'store_type' => '1'))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
 					{/if}
-					<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'delete', 'id'=>$item['id']))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
+					<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'delete', 'id'=>$item['id'], 'store_type' => '1'))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
 				</td>
 			</tr>
 			{/loop}
