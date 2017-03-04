@@ -4645,6 +4645,9 @@ class We7_storexModuleSite extends WeModuleSite {
 		foreach ($pay as $paytype => $val){
 			if(empty($val['switch'])){
 				unset($pay[$paytype]);
+			}else{
+				$pay[$paytype] = array();
+				$pay[$paytype]['switch'] = $val['switch'];
 			}
 		}
 		if (!empty($pay['credit'])) {

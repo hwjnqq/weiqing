@@ -140,7 +140,7 @@ if ($op == 'order'){
 	if($store_info['store_type'] == 1){//酒店
 		$order_info['btime'] = strtotime($_GPC['__input']['order']['btime']);
 		$order_info['etime'] = strtotime($_GPC['__input']['order']['etime']);
-		if(!empty(intval($_GPC['__input']['order']['day']))){
+		if(!empty($_GPC['__input']['order']['day'])){
 			$order_info['day'] = intval($_GPC['__input']['order']['day']);
 		}else{
 			$order_info['day'] = ceil(($order_info['etime'] - $order_info['btime'])/86400);
