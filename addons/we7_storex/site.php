@@ -2779,11 +2779,9 @@ class We7_storexModuleSite extends WeModuleSite {
 		$item = pdo_get('hotel2_room', array('id' => $roomid));
 		unset($item['id']);
 		$item['status'] = 0;
-		//$item['sortid'] = $roomid;
-
 		pdo_insert('hotel2_room', $item);
 		$id = pdo_insertid();
-		$url = $this->createWebUrl('room', array('op' => 'edit', 'hotelid' => $hotelid, 'id' => $id));
+		$url = $this->createWebUrl('goodsmanage', array('op' => 'edit', 'hotelid' => $hotelid, 'id' => $id, 'store_type' => $item['store_type']));
 		header("Location: $url");
 		exit;
 	}
