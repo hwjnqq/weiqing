@@ -3,7 +3,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('order_list', 'order_detail', 'orderpay');
+$ops = array('order_list', 'order_detail', 'orderpay', 'cancel', 'confirm_goods');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -76,9 +76,42 @@ if ($op == 'order_detail'){
 	message(error(0, $order_info), '', 'ajax');
 }
 
-if($op == 'orderpay'){
+if ($op == 'orderpay'){
 	$order_id = intval($_GPC['id']);
 	$params = pay_info($order_id);
 	$pay_info = $this->pay($params);
 	message(error(0, $pay_info), '', 'ajax');
+}
+
+if ($op == 'cancel'){
+	$id = intval($_GPC['id']);
+	$order_info = pdo_get('hotel2_order', array('weid' => intval($_W['uniacid']), 'id' => $id));
+	$order_info = orders_check_status($order_info);
+	$setting = pdo_get('hotel2_set', array('weid' => intval($_W['uniacid'])));
+	if ($setting['refund'] == 1){
+		message(error(-1, '该店铺不能取消订单！'), '', 'ajax');
+	}
+	$order_info = orders_check_status($order_info);
+	if ($order_info['is_cancle'] == 2 || $order_info['status'] == 3){
+		message(error(-1, '该订单不能取消！'), '', 'ajax');
+	}
+	pdo_update('hotel2_order', array('status' => -1), array('id' => $id, 'weid' => $_W['uniacid']));
+	message(error(-1, '订单成功取消！'), '', 'ajax');
+}
+
+if ($op == 'confirm_goods'){
+	$id = intval($_GPC['id']);
+	$order_info = pdo_get('hotel2_order', array('weid' => intval($_W['uniacid']), 'id' => $id));
+	$order_info = orders_check_status($order_info);
+	if ($order_info['status'] == -1){
+		message(error(-1, '该订单已经取消了！'), '', 'ajax');
+	}
+	if ($order_info['status'] == 3){
+		message(error(-1, '该订单已经完成了！'), '', 'ajax');
+	}
+	if ($order_info['mode_distribute'] == 1){
+		message(error(-1, '订单方式不是配送！'), '', 'ajax');
+	}
+	pdo_update('hotel2_order', array('goods_status' => 3), array('id' => $id, 'weid' => $_W['uniacid']));
+	message(error(-1, '订单收货成功！'), '', 'ajax');
 }

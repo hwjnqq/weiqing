@@ -46,11 +46,17 @@ function check_params(){
 			),
 			'order_list' => array(),
 			'order_detail' => array(
-				'id' => intval($_GPC['id'])
+				'id' => intval($_GPC['id']),
 			),
 			'orderpay' => array(
-				'id' => intval($_GPC['id'])
-			)
+				'id' => intval($_GPC['id']),
+			),
+			'cancel' => array(
+				'id' => intval($_GPC['id']),
+			),
+			'confirm_goods' => array(
+				'id' => intval($_GPC['id']),
+			),
 		),
 		'usercenter' => array(
 			'common' => array(
