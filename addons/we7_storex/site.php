@@ -3253,6 +3253,9 @@ class We7_storexModuleSite extends WeModuleSite {
 					if (empty($_GPC['title'])) {
 						message('请输入房型！');
 					}
+					if (empty($_GPC['category']['parentid'])) {
+						message('一级分类不能为空！', '', 'error');
+					}
 					$data = array(
 							'weid' => $_W['uniacid'],
 							'pcate' => $_GPC['category']['parentid'],
@@ -3305,7 +3308,7 @@ class We7_storexModuleSite extends WeModuleSite {
 						pdo_update('hotel2_room', $data, array('id' => $id));
 					}
 					pdo_query("update " . tablename('hotel2') . " set roomcount=(select count(*) from " . tablename('hotel2_room') . " where hotelid=:store_base_id) where store_base_id=:store_base_id", array(":store_base_id" => $store_base_id));
-					message('房型信息更新成功！', $this->createWebUrl('goodsmanage'), 'success');
+					message('房型信息更新成功！', $this->createWebUrl('goodsmanage', array('store_type' => $data['store_type'])), 'success');
 				}
 				include $this->template('room_form');
 			} else if ($op == 'delete') {
@@ -3405,6 +3408,9 @@ class We7_storexModuleSite extends WeModuleSite {
 					if (empty($_GPC['title'])) {
 						message('请输入商品名称或类型！');
 					}
+					if (empty($_GPC['category']['parentid'])) {
+						message('一级分类不能为空！', '', 'error');
+					}
 					$data = array(
 							'weid' => $_W['uniacid'],
 							'pcate' => $_GPC['category']['parentid'],
@@ -3442,7 +3448,7 @@ class We7_storexModuleSite extends WeModuleSite {
 					} else {
 						pdo_update('store_goods', $data, array('id' => $id));
 					}
-					message('商品信息更新成功！', $this->createWebUrl('goodsmanage'), 'success');
+					message('商品信息更新成功！', $this->createWebUrl('goodsmanage', array('store_type' => $data['store_type'])), 'success');
 				}
 				include $this->template('room_form');
 			} else if ($op == 'delete') {

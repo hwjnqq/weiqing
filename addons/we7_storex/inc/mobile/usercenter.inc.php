@@ -38,18 +38,21 @@ if ($op == 'personal_update'){
 	}
 }
 if ($op == 'credits_record'){
-	$credits_record = pdo_getall('mc_credits_record', array('uniacid' => $_W['uniacid'], 'credittype' => $_GPC['credittype'], 'uid' => $uid, 'module' => 'we7_storex'), array('num', 'createtime', 'module'), '', 'id DESC');
+	$credits = array();
+	$credits_record = pdo_getall('mc_credits_record', array('uniacid' => $_W['uniacid'], 'credittype' => 'credit2', 'uid' => $uid, 'module' => 'we7_storex'), array('num', 'createtime', 'module'), 'num', 'id DESC');
 	if (!empty($credits_record)) {
-		foreach ($credits_record as &$data) {
+		foreach ($credits_record as $data) {
+			$data['createtime'] = date('Y-m-d h:i:s', $data['createtime']);
 			if ($data['num'] > 0) {
 				$data['remark'] = '充值' . $data['num'] . '元';
+				$credits['recharge'][] = $data;
 			} else {
 				$data['remark'] = '消费' . - $data['num'] . '元';
+				$credits['consume'][] = $data;
 			}
-			$data['createtime'] = date('Y-m-d h:i:s', $data['createtime']);
 		}
 	}
-	message(error(0, $credits_record), '', 'ajax');
+	message(error(0, $credits), '', 'ajax');
 }
 if ($op == 'address_lists'){
 	$address_info = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => $_W['uniacid']));
