@@ -219,6 +219,8 @@ function orders_check_status($item){
 			'10' => '未发货',
 			'11' => '已发货',
 			'12' => '已收货',
+			'13' => '预定订单提交成功',
+			'14' => '预定订单已被确认'
 	);
 	//1是显示,2不显示
 	$item['is_pay'] = 2;//立即付款 is_pay
@@ -226,32 +228,7 @@ function orders_check_status($item){
 	$item['is_confirm'] = 2;//确认收货is_confirm
 	$item['is_over'] = 2;//再来一单is_over
 	if ($item['status'] == 0){
-		if ($item['paystatus']== 0){
-			$status = STORE_UNPAY_STATUS;
-			$item['is_pay'] = 1;
-			$item['is_cancle'] = 1;
-		}else{
-			$status = STORE_SURE_STATUS;
-			$item['is_cancle'] = 1;
-		}
-	}else if ($item['status'] == -1){
-		if ($item['paystatus']== 0){
-			$status = STORE_CANCLE_STATUS;
-			$item['is_over'] = 1;
-		}else{
-			$status = STORE_REPAY_STATUS;
-		}
-	}else if ($item['status'] == 1){
-		if($item['store_type'] == 1){//酒店
-			if ($item['paystatus']== 0){
-				$item['is_pay'] = 1;
-				$item['is_cancle'] = 1;
-				$status = STORE_UNLIVE_STATUS;
-			}else{
-				$item['is_cancle'] = 1;
-				$status = STORE_UNLIVE_STATUS;
-			}
-		}else{//确认订单后显示货物状态，普通
+		if($item['action'] == 1){
 			if($item['goods_status'] == 1){
 				$status = STORE_UNSENT_STATUS;
 			}elseif($item['goods_status'] == 2){
@@ -259,6 +236,57 @@ function orders_check_status($item){
 				$status = STORE_SENT_STATUS;
 			}elseif($item['goods_status'] == 3){
 				$status = STORE_GETGOODS_STATUS;
+			}else{
+				$status = STORE_RESERVE_SUCCESS_STATUS;
+			}
+		}else{
+			if ($item['paystatus']== 0){
+				$status = STORE_UNPAY_STATUS;
+				$item['is_pay'] = 1;
+				$item['is_cancle'] = 1;
+			}else{
+				$status = STORE_SURE_STATUS;
+				$item['is_cancle'] = 1;
+			}
+		}
+	}else if ($item['status'] == -1){
+		if ($item['action'] == 1){
+			$status = STORE_CANCLE_STATUS;
+			$item['is_over'] = 1;
+		}else{
+			if ($item['paystatus']== 0){
+				$status = STORE_CANCLE_STATUS;
+				$item['is_over'] = 1;
+			}else{
+				$status = STORE_REPAY_STATUS;
+			}
+		}
+	}else if ($item['status'] == 1){
+		if ($item['store_type'] == 1){//酒店
+			if ($item['action'] == 1){
+				$item['is_cancle'] = 1;
+				$status = STORE_RESERVE_CONFIRM_STATUS;
+			}else{
+				if ($item['paystatus']== 0){
+					$item['is_pay'] = 1;
+					$item['is_cancle'] = 1;
+					$status = STORE_UNLIVE_STATUS;
+				}else{
+					$item['is_cancle'] = 1;
+					$status = STORE_UNLIVE_STATUS;
+				}
+			}
+		}else{//确认订单后显示货物状态，普通
+			if ($item['goods_status'] == 1){
+				$status = STORE_UNSENT_STATUS;
+			}elseif($item['goods_status'] == 2){
+				$item['is_confirm'] = 1;
+				$status = STORE_SENT_STATUS;
+			}elseif($item['goods_status'] == 3){
+				$status = STORE_GETGOODS_STATUS;
+			}else{
+				$item['is_cancle'] = 1;
+				$status = STORE_RESERVE_CONFIRM_STATUS;
 			}
 		}
 	}else if ($item['status'] == 2){
