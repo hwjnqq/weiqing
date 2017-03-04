@@ -1033,7 +1033,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					if ($date['time_type'] == 2) {
 						$addtime = strtotime(date('Y-m-d', $row['addtime']));
 						$row['starttime'] = $addtime + $date['deadline'] * 86400;
-						$row['endtime'] = $starttime + ($date['limit'] - 1) * 86400;
+						$row['endtime'] = $addtime + ($date['limit'] - 1) * 86400;
 						$row['time'] = strtotime(date('Y-m-d'));
 					}
 				}
