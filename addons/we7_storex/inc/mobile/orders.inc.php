@@ -3,7 +3,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('display', 'post', 'delete', 'order_list', 'order_detail', 'orderpay', 'pay');
+$ops = array('order_list', 'order_detail', 'orderpay');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -81,21 +81,4 @@ if($op == 'orderpay'){
 	$params = pay_info($order_id);
 	$pay_info = $this->pay($params);
 	message(error(0, $pay_info), '', 'ajax');
-}
-
-if($op == 'pay'){
-	$url = trim($_GPC['url']);
-	$pay_url = url($url);
-// 	$params = array(
-// 			'ordersn' => $order_info['ordersn'],
-// 			'tid' => $order_info['id'],
-// 			'title' => $_W['account']['name'] . "店铺订单{$order_info['ordersn']}",
-// 			'fee' => $order_info['sum_price'],
-// 			'user' => $_W['openid'],
-// 			'module' => 'we7_storex',
-// 	);
-// 	$p = base64_encode(json_encode($params));
-	$p = trim($_GPC['params']);
-	$pay_url.= '&params='.$p;
-	header("Location: $pay_url");
 }
