@@ -11,6 +11,7 @@ check_params($op);
 $uid = mc_openid2uid($_W['openid']);
 $store_id = intval($_GPC['id']);//店铺id
 $goodsid = intval($_GPC['goodsid']);//商品id
+$max_room = 8;
 
 //获取某个商品的详细信息
 if ($op == 'goods_info'){
@@ -85,6 +86,7 @@ if ($op == 'info'){
 		$condition['hotelid'] = $store_id;
 		$table = 'hotel2_room';
 		$goods_info = pdo_get($table, $condition);
+		$goods_info['max_room'] = $max_room;
 	}else{
 		$condition['store_base_id'] = $store_id;
 		$table = 'store_goods';
@@ -198,7 +200,6 @@ if ($op == 'order'){
 		$room_date_list = pdo_fetchall($sql, $params);
 		$flag = intval($room_date_list);
 		$list = array();
-		$max_room = 8;
 		$is_order = 1;
 
 		if ($flag == 1) {
