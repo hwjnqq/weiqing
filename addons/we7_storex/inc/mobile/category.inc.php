@@ -21,9 +21,6 @@ if ($op == 'category_list'){
 if ($op == 'goods_list'){
 	$store_id = intval($_GPC['id']);
 	$store_info = get_store_info();
-	if(empty($store_info)){
-		message(error(-1, '店铺不存在'), '', 'ajax');
-	}
 	$first_id = intval($_GPC['first_id']);
 	$first_class = pdo_get('store_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $store_id, 'id' => $first_id));
 	if(empty($first_class)){

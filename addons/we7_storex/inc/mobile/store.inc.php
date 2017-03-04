@@ -39,7 +39,7 @@ if ($op == 'store_detail'){
         message(error(-1, '店铺不存在'), '', 'ajax');
     } else {
         if ($store_detail['status'] == 0) {
-            message(error(-1, '管理员将该店铺设置为隐藏，请联系管理员'), '', 'ajax');
+            message(error(-1, '店铺已隐藏'), '', 'ajax');
         }
     }
 	if (!empty($store_detail['store_info'])) {
