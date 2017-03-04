@@ -2707,6 +2707,11 @@ class We7_storexModuleSite extends WeModuleSite {
 			$id = intval($_GPC['id']);
 			if (!empty($id)) {
 				$category = pdo_get('store_categorys', array('id' => $id, 'weid' => $_W['uniacid']));
+				foreach($stores as $k => $store_info){
+					if($store_info['id'] != $category['store_base_id']){
+						unset($stores[$k]);
+					}
+				}
 			} else {
 				$category = array(
 						'displayorder' => 0,

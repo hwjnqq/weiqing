@@ -136,11 +136,11 @@ if ($op == 'more_goods'){
 	if($store_bases['store_type'] == 1){
 		$sql .= ' AND `hotelid` = :hotelid';
 		$condition[':hotelid'] = $store_bases['id'];
-		$goods_list = pdo_fetchall("SELECT * FROM " . tablename('hotel2_room') . " WHERE 1 = 1" . $sql, $condition);
+		$goods_list = pdo_fetchall("SELECT * FROM " . tablename('hotel2_room') . " WHERE status = 1" . $sql, $condition);
 	}else{
 		$sql .= ' AND `store_base_id` = :store_base_id';
 		$condition[':store_base_id'] = $store_bases['id'];
-		$goods_list = pdo_fetchall("SELECT * FROM " . tablename('store_goods') . " WHERE 1 = 1" . $sql, $condition);
+		$goods_list = pdo_fetchall("SELECT * FROM " . tablename('store_goods') . " WHERE status = 1" . $sql, $condition);
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 2;
