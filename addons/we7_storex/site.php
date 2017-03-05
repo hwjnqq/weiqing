@@ -220,11 +220,15 @@ class We7_storexModuleSite extends WeModuleSite {
 
 	public function doMobiledisplay() {
 		global $_GPC, $_W;
+        $url = $this->createMobileurl('display');
 		if (!empty($_GPC['orderid'])) {
-			$url = $this->createMobileurl('display');
 			$redirect =  $url.'#/Home/OrderInfo/' . $_GPC['orderid'];
-			header("Location: $redirect");
 		}
+		if ($_GPC['pay_type'] == 'recharge') {
+            $redirect =  $url.'#/Home';
+        }
+        header("Location: $redirect");
+		exit;
 		include $this->template('display');
 	}
 
@@ -2198,6 +2202,83 @@ class We7_storexModuleSite extends WeModuleSite {
 		}elseif($params['type']=='delivery'){
 			$paytype=3;
 		}
+		$recharge_info = pdo_get('mc_credits_recharge', array('uniacid' => $_W['uniacid'], 'uniontid' => $params['uniontid']), array('id'));
+		if (!empty($recharge_info)) {
+            if ($params['result'] == 'success' && $params['from'] == 'notify') {
+                $fee = $params['fee'];
+                $total_fee = $fee;
+                $data = array('status' => $params['result'] == 'success' ? 1 : -1);
+                //如果是微信支付，需要记录transaction_id。
+                if ($params['type'] == 'wechat') {
+                    $data['transid'] = $params['tag']['transaction_id'];
+                    $params['user'] = mc_openid2uid($params['user']);
+                }
+                pdo_update('mc_credits_recharge', $data, array('tid' => $params['tid']));
+                $paydata = array('wechat' => '微信', 'alipay' => '支付宝', 'baifubao' => '百付宝', 'unionpay' => '银联');
+                //余额充值
+                if(empty($recharge_info['type']) || $recharge_info['type'] == 'credit') {
+                    $setting = uni_setting($_W['uniacid'], array('creditbehaviors', 'recharge'));
+                    $credit = $setting['creditbehaviors']['currency'];
+                    $we7_coupon = module_fetch('we7_coupon');
+                    if (!empty($we7_coupon)) {
+                        $recharge_settings = card_params_setting('cardRecharge');
+                        $recharge_params = $recharge_settings['params'];
+                    }
+                    if(empty($credit)) {
+                        message('站点积分行为参数配置错误,请联系服务商', '', 'error');
+                    } else {
+                        if ($recharge_params['recharge_type'] == '1') {
+                            $recharges = $recharge_params['recharges'];
+                        }
+                        if ($order['backtype'] == '2') {
+                            $total_fee = $fee;
+                        } else {
+                            foreach ($recharges as $key => $recharge) {
+                                if ($recharge['backtype'] == $order['backtype'] && $recharge['condition'] == $order['fee']) {
+                                    if ($order['backtype'] == '1') {
+                                        $total_fee = $fee;
+                                        $add_credit = $recharge['back'];
+                                    } else {
+                                        $total_fee = $fee + $recharge['back'];
+                                    }
+                                }
+                            }
+                        }
+                        if ($recharge_info['backtype'] == '1') {
+                            $add_str = ",充值成功,返积分{$add_credit}分,本次操作共增加余额{$total_fee}元,积分{$add_credit}分";
+                            $remark = '用户通过' . $paydata[$params['type']] . '充值' . $fee . $add_str;
+                            $record[] = $params['user'];
+                            $record[] = $remark;
+                            mc_credit_update($recharge_info['uid'], 'credit1', $add_credit, $record);
+                            mc_credit_update($recharge_info['uid'], 'credit2', $total_fee, $record);
+                            mc_notice_recharge($recharge_info['openid'], $recharge_info['uid'], $total_fee, '', $remark);
+                        } else {
+                            $add_str = ",充值成功,本次操作共增加余额{$total_fee}元";
+                            $remark = '用户通过' . $paydata[$params['type']] . '充值' . $fee . $add_str;
+                            $record[] = $params['user'];
+                            $record[] = $remark;
+                            $record[] = $this->module['name'];
+                            mc_credit_update($recharge_info['uid'], 'credit2', $total_fee, $record);
+                            mc_notice_recharge($recharge_info['openid'], $recharge_info['uid'], $total_fee, '', $remark);
+                        }
+                    }
+                }
+                if($recharge_info['type'] == 'credit' || $recharge_info['type'] == '') {
+                    $url = murl('mc/home');
+                } else {
+                    $url = murl('mc/card/mycard');
+                }
+                $url = $this->createMobileurl('display', array('pay_type' => 'recharge'));
+                //如果消息是用户直接返回（非通知），则提示一个付款成功
+                if ($params['from'] == 'return') {
+                    if ($params['result'] == 'success') {
+                        message('支付成功！', $url, 'success');
+                    } else {
+                        message('支付失败！', $url, 'error');
+                    }
+                }
+            }
+        }
 		$weid = intval($_W['uniacid']);
 		$order = pdo_get('hotel2_order', array('id' => $params['tid'], 'weid' => $weid));
 		$store_bases = pdo_get('store_bases', array('id' => $order['hotelid'],'weid' => $weid), array('id', 'store_type', 'title'));
@@ -2338,7 +2419,6 @@ class We7_storexModuleSite extends WeModuleSite {
 				message('提交成功！', '../../app/' . $this->createMobileUrl('detail', array('hid' => $room['hotelid'])), 'success');
 			}else{
 				message('支付成功！', $this->createMobileurl('display', array('orderid' => $params['tid'])), 'success');
-// 				message('支付成功！', '../../app/' . $this->createMobileUrl('detail', array('hid' => $room['hotelid'])), 'success');
 			}
 		}
 	}
@@ -4641,7 +4721,6 @@ class We7_storexModuleSite extends WeModuleSite {
 		if($log['status'] == '1') {
 			message('这个订单已经支付成功, 不需要重复支付.');
 		}
-// 		$payment = $_W['we7_storex']['config']['payment'];
 		$payment = uni_setting(intval($_W['uniacid']), array('payment', 'creditbehaviors'));
 		if(!is_array($payment['payment'])) {
 			message('没有有效的支付方式, 请联系网站管理员.');
@@ -4665,9 +4744,6 @@ class We7_storexModuleSite extends WeModuleSite {
 		$pay_data['pay'] = $pay;
 		$pay_data['credtis'] = $credtis;
 		$pay_data['params'] = json_encode($params);
-
-
-		// include $this->template('common/paycenter');
 		return $pay_data;
 	}
 }
