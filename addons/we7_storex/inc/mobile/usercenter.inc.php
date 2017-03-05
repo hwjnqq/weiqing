@@ -39,15 +39,16 @@ if ($op == 'personal_update'){
 }
 if ($op == 'credits_record'){
 	$credits = array();
-	$credits_record = pdo_getall('mc_credits_record', array('uniacid' => $_W['uniacid'], 'credittype' => 'credit2', 'uid' => $uid, 'module' => 'we7_storex'), array('num', 'createtime', 'module'), 'num', 'id DESC');
+	$credits_record = pdo_getall('mc_credits_record', array('uniacid' => $_W['uniacid'], 'credittype' => $_GPC['credittype'], 'uid' => $uid, 'module' => 'we7_storex'), array('num', 'createtime', 'module'), 'num', 'id DESC');
 	if (!empty($credits_record)) {
 		foreach ($credits_record as $data) {
 			$data['createtime'] = date('Y-m-d h:i:s', $data['createtime']);
+			$offset = $_GPC['credittype'] == 'credit2' ? '元' : '积分';
 			if ($data['num'] > 0) {
-				$data['remark'] = '充值' . $data['num'] . '元';
+				$data['remark'] = '充值' . $data['num'] . $offset;
 				$credits['recharge'][] = $data;
 			} else {
-				$data['remark'] = '消费' . - $data['num'] . '元';
+				$data['remark'] = '消费' . - $data['num'] . $offset;
 				$credits['consume'][] = $data;
 			}
 		}
