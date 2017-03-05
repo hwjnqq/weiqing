@@ -65,6 +65,8 @@
 					<input type="checkbox" class="check_all" />
 				</th>
 				<th style="width:200px;">店铺</th>
+				<th style="width:100px;">一级分类</th>
+				<th style="width:100px;">二级分类</th>
 				<th style="width:170px;">房型</th>
 				<th style="width:100px;">房型排序号</th>
 				<th style='width:200px;'>前台价（原价)</th>
@@ -80,6 +82,8 @@
 				<td class="with-checkbox">
 				<input type="checkbox" name="check" value="{$item['id']}">
 				</td>
+				<td>{$item['pcate']}</td>
+				<td>{$item['ccate']}</td>
 				<td>{$item['hoteltitle']}</td>
 				<td>{$item['title']}</td>
 				<td>{$item['sortid']}</td>
@@ -106,7 +110,7 @@
 			</tr>
 			{/loop}
 			<tr>
-				<td colspan="9">
+				<td colspan="11">
 					<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
 					<input type="button" class="btn btn-primary edit_all" name="showall" value="批量显示" />
 					<input type="button" class="btn btn-primary edit_all" name="hideall" value="批量隐藏" />
@@ -122,6 +126,8 @@
 					<input type="checkbox" class="check_all" />
 				</th>
 				<th style="width:200px;">店铺</th>
+				<th style="width:100px;">一级分类</th>
+				<th style="width:100px;">二级分类</th>
 				<th style="width:170px;">商品类型</th>
 				<th style="width:100px;">商品排序号</th>
 				<th style='width:200px;'>前台价（原价)</th>
@@ -138,6 +144,8 @@
 				<input type="checkbox" name="check" value="{$item['id']}">
 				</td>
 				<td>{$item['hoteltitle']}</td>
+				<td>{$item['pcate']}</td>
+				<td>{$item['ccate']}</td>
 				<td>{$item['title']}</td>
 				<td>{$item['sortid']}</td>
 				<td>{$item['oprice']}</td>
@@ -162,7 +170,7 @@
 			</tr>
 			{/loop}
 			<tr>
-				<td colspan="9">
+				<td colspan="11">
 					<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
 					<input type="button" class="btn btn-primary edit_all" name="showall" value="批量显示" />
 					<input type="button" class="btn btn-primary edit_all" name="hideall" value="批量隐藏" />
