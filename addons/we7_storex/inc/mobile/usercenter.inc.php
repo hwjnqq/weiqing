@@ -55,7 +55,7 @@ if ($op == 'credits_record') {
 	message(error(0, $credits), '', 'ajax');
 }
 if ($op == 'address_lists') {
-	$address_info = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => $_W['uniacid']));
+	$address_info = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => $_W['uniacid']), '', 'isdefault DESC');
 	message(error(0, $address_info), '', 'ajax');
 }
 if ($op == 'current_address') {
