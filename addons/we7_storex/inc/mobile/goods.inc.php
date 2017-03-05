@@ -335,8 +335,14 @@ if ($op == 'order'){
 			message(error(-1, '手机号不能为空!'), '', 'ajax');
 		}
 		$order_info['mode_distribute'] = intval($_GPC['__input']['order']['mode_distribute']);
+		if(empty($_GPC['__input']['order']['order_time'])){
+			message(error(-1, '请选择时间！'), '', 'ajax');
+		}
 		$order_info['order_time'] = strtotime(intval($_GPC['__input']['order']['order_time']));
 		if($order_info['mode_distribute'] == 2){//配送
+			if(empty($_GPC['__input']['order']['addressid'])){
+				message(error(-1, '地址不能为空！'), '', 'ajax');
+			}
 			$order_info['addressid'] = intval($_GPC['__input']['order']['addressid']);
 			$order_info['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
 		}

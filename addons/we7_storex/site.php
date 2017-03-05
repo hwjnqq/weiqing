@@ -3291,13 +3291,24 @@ class We7_storexModuleSite extends WeModuleSite {
 		$op = $_GPC['op'];
 		$card_setting = pdo_fetch("SELECT * FROM ".tablename('mc_card')." WHERE uniacid = '{$_W['uniacid']}'");
 		$card_status =  $card_setting['status'];
-
-		$store_type = isset($_GPC['store_type']) ? $_GPC['store_type'] : 0;
-
-// 		$stores = pdo_fetchall("SELECT * FROM " . tablename('store_bases') . " WHERE weid = '{$_W['uniacid']}' AND store_type = '{$store_type}' ORDER BY id ASC, displayorder DESC");
-
-		$sql = 'SELECT * FROM ' . tablename('store_categorys') . ' WHERE `weid` = :weid ORDER BY `parentid`, `displayorder` DESC';
-		$category = pdo_fetchall($sql, array(':weid' => $_W['uniacid']), 'id');
+		$store_base_id = intval($_GPC['store_base_id']);
+		$stores = pdo_fetchall("SELECT * FROM " . tablename('store_bases') . " WHERE weid = '{$_W['uniacid']}' ORDER BY id ASC, displayorder DESC");
+		$sql = '';
+		$condition = array(':weid' => $_W['uniacid']);
+		$store_type = !empty($_GPC['store_type'])? intval($_GPC['store_type']) : 0;
+		if(!empty($store_base_id)){
+			$sql = ' AND `store_base_id` = :store_base_id';
+			$condition[':store_base_id'] = $store_base_id;
+			foreach ($stores as $store_info){
+				if($store_info['id'] == $store_base_id){
+					$store_type = $store_info['store_type'];
+				}else{
+					continue;
+				}
+			}
+		}
+		$sql = 'SELECT * FROM ' . tablename('store_categorys') . ' WHERE `weid` = :weid '.$sql.' ORDER BY `parentid`, `displayorder` DESC';
+		$category = pdo_fetchall($sql, $condition, 'id');
 		if (!empty($category)) {
 			$parent = $children = array();
 			foreach ($category as $cid => $cate) {
@@ -3316,7 +3327,6 @@ class We7_storexModuleSite extends WeModuleSite {
 				if(!empty($category_store)){
 					$store_base_id = $category_store['store_base_id'];
 				}
-// 				$hotel = pdo_fetch("select id,title from " . tablename('store_bases') . "where id=:id limit 1", array(":id" => $store_base_id));
 				$usergroup_list = pdo_fetchall("SELECT * FROM ".tablename('mc_groups')." WHERE uniacid = :uniacid ORDER BY isdefault DESC,credit ASC", array(':uniacid' => $_W['uniacid']));
 				if (!empty($id)) {
 					$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_room') . " WHERE id = :id", array(':id' => $id));
@@ -3328,6 +3338,9 @@ class We7_storexModuleSite extends WeModuleSite {
 					$item['mprice'] = unserialize($item['mprice']);
 				}
 				if (checksubmit('submit')) {
+					if (empty(intval($_GPC['store_base_id']))) {
+						message('请选择店铺！', '', 'error');
+					}
 					if (empty($_GPC['title'])) {
 						message('请输入房型！');
 					}
@@ -3472,7 +3485,6 @@ class We7_storexModuleSite extends WeModuleSite {
 			if ($op == 'edit') {
 				$id = intval($_GPC['id']);
 				$store_base_id = $category_store['store_base_id'];
-				$hotel = pdo_fetch("select id,title from " . tablename('store_bases') . "where id=:id limit 1", array(":id" => $store_base_id));
 				$usergroup_list = pdo_fetchall("SELECT * FROM ".tablename('mc_groups')." WHERE uniacid = :uniacid ORDER BY isdefault DESC,credit ASC", array(':uniacid' => $_W['uniacid']));
 				if (!empty($id)) {
 					$item = pdo_fetch("SELECT * FROM " . tablename('store_goods') . " WHERE id = :id", array(':id' => $id));
@@ -3481,8 +3493,12 @@ class We7_storexModuleSite extends WeModuleSite {
 					}
 					$piclist = unserialize($item['thumbs']);
 					$item['mprice'] = unserialize($item['mprice']);
+					$store_base_id = $item['store_base_id'];
 				}
 				if (checksubmit('submit')) {
+					if (empty(intval($_GPC['store_base_id']))) {
+						message('请选择店铺！', '', 'error');
+					}
 					if (empty($_GPC['title'])) {
 						message('请输入商品名称或类型！');
 					}
