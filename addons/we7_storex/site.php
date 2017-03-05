@@ -1875,17 +1875,31 @@ class We7_storexModuleSite extends WeModuleSite {
 					'msg' => $_GPC['msg'],
 					'mngtime' => time(),
 				);
-
-				$params = array();
-				$sql = "SELECT id, roomdate, num FROM " . tablename('hotel2_room_price');
-				$sql .= " WHERE 1 = 1";
-				$sql .= " AND roomid = :roomid";
-				$sql .= " AND roomdate >= :btime AND roomdate < :etime";
-				$sql .= " AND status = 1";
-
-				$params[':roomid'] = $item['roomid'];
-				$params[':btime'] = $item['btime'];
-				$params[':etime'] = $item['etime'];
+				if($store_type == 1){
+					$params = array();
+					$sql = "SELECT id, roomdate, num FROM " . tablename('hotel2_room_price');
+					$sql .= " WHERE 1 = 1";
+					$sql .= " AND roomid = :roomid";
+					$sql .= " AND roomdate >= :btime AND roomdate < :etime";
+					$sql .= " AND status = 1";
+					
+					$params[':roomid'] = $item['roomid'];
+					$params[':btime'] = $item['btime'];
+					$params[':etime'] = $item['etime'];
+					//订单取消
+					if ($data['status'] == -1 || $data['status'] == 2) {
+						$room_date_list = pdo_fetchall($sql, $params);
+						if ($room_date_list) {
+							foreach ($room_date_list as $key => $value) {
+								$num = $value['num'];
+								if ($num >= 0) {
+									$now_num = $num + $item['nums'];
+									pdo_update('hotel2_room_price', array('num' => $now_num), array('id' => $value['id']));
+								}
+							}
+						}
+					}
+				}
 
 				//订单确认
 //				if ($data['status'] == 1 && $old_status != 1) {
@@ -1907,19 +1921,6 @@ class We7_storexModuleSite extends WeModuleSite {
 //					}
 //				}
 
-				//订单取消
-				if ($data['status'] == -1 || $data['status'] == 2) {
-					$room_date_list = pdo_fetchall($sql, $params);
-					if ($room_date_list) {
-						foreach ($room_date_list as $key => $value) {
-							$num = $value['num'];
-							if ($num >= 0) {
-								$now_num = $num + $item['nums'];
-								pdo_update('hotel2_room_price', array('num' => $now_num), array('id' => $value['id']));
-							}
-						}
-					}
-				}
 				//订单完成时减房间库存
 //				if ($_GPC['status'] == 3) {
 //					$starttime = $item['btime'];
@@ -1939,7 +1940,7 @@ class We7_storexModuleSite extends WeModuleSite {
 					//订单退款
 					if ($data['status'] == 2) {
 						$acc = WeAccount::create();
-						$info = '您在'.$hotel['title'].'预订的'.$room['title']."已房满。已为您取消订单";
+						$info = '您在'.$hotel['title'].'预订的'.$room['title']."不足。已为您取消订单";
 						$custom = array(
 							'msgtype' => 'text',
 							'text' => array('content' => urlencode($info)),
@@ -2036,88 +2037,98 @@ class We7_storexModuleSite extends WeModuleSite {
 							$status = $acc->sendCustomNotice($custom);
 						}
 					}
+					if ($data['status'] == 5) {
+						$acc = WeAccount::create();
+						$info = '您在'.$hotel['title'].'预订的'.$room['title']."已发货";
+						$custom = array(
+								'msgtype' => 'text',
+								'text' => array('content' => urlencode($info)),
+								'touser' => $item['openid'],
+						);
+						$status = $acc->sendCustomNotice($custom);
+					}
 				}
 				pdo_update('hotel2_order', $data, array('id' => $id));
 				message('订单信息处理完成！', $this->createWebUrl('order', array('hotelid' => $hotelid, "roomid" => $roomid)), 'success');
 			}
-
-			$btime = $item['btime'];
-			$etime = $item['etime'];
-
-			$start = date('m-d', $btime);
-			$end = date('m-d', $etime);
-
-			//日期列
-			$days = ceil(($etime - $btime) / 86400);
-
-			$date_array = array();
-			$date_array[0]['date'] = $start;
-			$date_array[0]['day'] = date('j', $btime);
-			$date_array[0]['time'] = $btime;
-			$date_array[0]['month'] = date('m', $btime);
-
-			if ($days > 1) {
-				for ($i = 1; $i < $days; $i++) {
-					$date_array[$i]['time'] = $date_array[$i - 1]['time'] + 86400;
-					$date_array[$i]['date'] = date('Y-m-d', $date_array[$i]['time']);
-					$date_array[$i]['day'] = date('j', $date_array[$i]['time']);
-					$date_array[$i]['month'] = date('m', $date_array[$i]['time']);
+			if($store_type == 1){
+				$btime = $item['btime'];
+				$etime = $item['etime'];
+				
+				$start = date('m-d', $btime);
+				$end = date('m-d', $etime);
+				
+				//日期列
+				$days = ceil(($etime - $btime) / 86400);
+				
+				$date_array = array();
+				$date_array[0]['date'] = $start;
+				$date_array[0]['day'] = date('j', $btime);
+				$date_array[0]['time'] = $btime;
+				$date_array[0]['month'] = date('m', $btime);
+				
+				if ($days > 1) {
+					for ($i = 1; $i < $days; $i++) {
+						$date_array[$i]['time'] = $date_array[$i - 1]['time'] + 86400;
+						$date_array[$i]['date'] = date('Y-m-d', $date_array[$i]['time']);
+						$date_array[$i]['day'] = date('j', $date_array[$i]['time']);
+						$date_array[$i]['month'] = date('m', $date_array[$i]['time']);
+					}
 				}
-			}
-
-			$sql = "SELECT id, roomdate, num, status FROM " . tablename('hotel2_room_price');
-			$sql .= " WHERE 1 = 1";
-			$sql .= " AND roomid = :roomid";
-			$sql .= " AND roomdate >= :btime AND roomdate < :etime";
-			$sql .= " AND status = 1";
-
-			$params[':roomid'] = $item['roomid'];
-			$params[':btime'] = $item['btime'];
-			$params[':etime'] = $item['etime'];
-
-			$room_date_list = pdo_fetchall($sql, $params);
-
-			if ($room_date_list) {
-				$flag = 1;
-			} else {
-				$flag = 0;
-			}
-			$list = array();
-
-			if ($flag == 1) {
-				for ($i = 0; $i < $days; $i++) {
-					$k = $date_array[$i]['time'];
-
-					foreach ($room_date_list as $p_key => $p_value) {
-						//判断价格表中是否有当天的数据
-						if ($p_value['roomdate'] == $k) {
-							$list[$k]['status'] = $p_value['status'];
-							if (empty($p_value['num'])) {
-								$list[$k]['num'] = 0;
-							} else if ($p_value['num'] == -1) {
-								$list[$k]['num'] = "不限";
-							} else {
-								$list[$k]['num'] = $p_value['num'];
+				
+				$sql = "SELECT id, roomdate, num, status FROM " . tablename('hotel2_room_price');
+				$sql .= " WHERE 1 = 1";
+				$sql .= " AND roomid = :roomid";
+				$sql .= " AND roomdate >= :btime AND roomdate < :etime";
+				$sql .= " AND status = 1";
+				
+				$params[':roomid'] = $item['roomid'];
+				$params[':btime'] = $item['btime'];
+				$params[':etime'] = $item['etime'];
+				
+				$room_date_list = pdo_fetchall($sql, $params);
+				
+				if ($room_date_list) {
+					$flag = 1;
+				} else {
+					$flag = 0;
+				}
+				$list = array();
+				
+				if ($flag == 1) {
+					for ($i = 0; $i < $days; $i++) {
+						$k = $date_array[$i]['time'];
+				
+						foreach ($room_date_list as $p_key => $p_value) {
+							//判断价格表中是否有当天的数据
+							if ($p_value['roomdate'] == $k) {
+								$list[$k]['status'] = $p_value['status'];
+								if (empty($p_value['num'])) {
+									$list[$k]['num'] = 0;
+								} else if ($p_value['num'] == -1) {
+									$list[$k]['num'] = "不限";
+								} else {
+									$list[$k]['num'] = $p_value['num'];
+								}
+								$list[$k]['has'] = 1;
+								break;
 							}
-							$list[$k]['has'] = 1;
-							break;
+						}
+						//价格表中没有当天数据
+						if (empty($list[$k])) {
+							$list[$k]['num'] = "不限";
+							$list[$k]['status'] = 1;
 						}
 					}
-					//价格表中没有当天数据
-					if (empty($list[$k])) {
+				} else {
+					//价格表中没有数据
+					for ($i = 0; $i < $days; $i++) {
+						$k = $date_array[$i]['time'];
 						$list[$k]['num'] = "不限";
 						$list[$k]['status'] = 1;
 					}
 				}
-			} else {
-				//价格表中没有数据
-				for ($i = 0; $i < $days; $i++) {
-					$k = $date_array[$i]['time'];
-					$list[$k]['num'] = "不限";
-					$list[$k]['status'] = 1;
-				}
 			}
-
 			$member_info = pdo_fetch("SELECT from_user,isauto FROM " . tablename('hotel2_member') . " WHERE id = :id LIMIT 1", array(':id' => $item['memberid']));
 
 			include $this->template('order_form');
