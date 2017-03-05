@@ -14,13 +14,13 @@ if ($op == 'store_list') {
 		$limit = array(1,1);
 	}
 	$store_bases = pdo_getall('store_bases', array('weid' => $_W['uniacid'], 'status' => 1), array(), '', 'displayorder DESC', $limit);
-	foreach ($store_bases as $key => $info){
+	foreach ($store_bases as $key => $info) {
 		$store_bases[$key]['thumb'] = tomedia($info['thumb']);
 		$info['thumbs'] =  iunserializer($info['thumbs']);
 		$store_bases[$key]['timestart'] = date("G:i", $info['timestart']);
 		$store_bases[$key]['timeend'] = date("G:i", $info['timeend']);
-		if (!empty($info['thumbs'])){
-			foreach ($info['thumbs'] as $k => $url){
+		if (!empty($info['thumbs'])) {
+			foreach ($info['thumbs'] as $k => $url) {
 				$store_bases[$key]['thumbs'][$k] = tomedia($url);
 			}
 		}
@@ -31,7 +31,7 @@ if ($op == 'store_list') {
 	message(error(0, $store_list), '', 'ajax');
 }
 //获取某个店铺的详细信息
-if ($op == 'store_detail'){
+if ($op == 'store_detail') {
 	$setting = pdo_get('hotel2_set', array('weid' => $_W['uniacid']));
 	$store_id = intval($_GPC['store_id']);//店铺id
 	$store_detail = pdo_get('store_bases', array('weid' => $_W['uniacid'], 'id' => $store_id));
@@ -56,7 +56,7 @@ if ($op == 'store_detail'){
 	}
 	if ($store_detail['store_type'] == 1) {
 		$store_extend_info = pdo_get($store_detail['extend_table'], array('weid' => $_W['uniacid'], 'store_base_id' => $store_id));
-		if(!empty($store_extend_info)){
+		if (!empty($store_extend_info)) {
 			unset($store_extend_info['id']);
 			if (empty($store_extend_info['device'])) {
 				$devices = array(
