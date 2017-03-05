@@ -3,8 +3,8 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('display', 'recharge_pay');
-$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
+$ops = array('recharge_add', 'recharge_pay');
+$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
 $uid = mc_openid2uid($_W['openid']);
