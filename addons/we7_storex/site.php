@@ -3477,6 +3477,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				$pindex = max(1, intval($_GPC['page']));
 				$psize = 20;
 				$list = pdo_fetchall("SELECT r.*,h.title as hoteltitle FROM " . tablename('hotel2_room') . " r left join " . tablename('store_bases') . " h on r.hotelid = h.id WHERE r.weid = '{$_W['uniacid']}' $sql ORDER BY h.id, r.displayorder, r.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+				$list = $this -> format_list($category, $list);
 				$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('hotel2_room') . " r left join " . tablename('store_bases') . " h on r.hotelid = h.id WHERE r.weid = '{$_W['uniacid']}' $sql", $params);
 				$pager = pagination($total, $pindex, $psize);
 				include $this->template('room');
@@ -3618,6 +3619,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				$pindex = max(1, intval($_GPC['page']));
 				$psize = 20;
 				$list = pdo_fetchall("SELECT sg.*,sb.title as hoteltitle FROM " . tablename('store_goods') . " sg left join " . tablename('store_bases') . " sb on sg.store_base_id = sb.id WHERE sg.weid = '{$_W['uniacid']}' $sql ORDER BY sb.id, sg.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+				$list = $this -> format_list($category, $list);
 				$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('store_goods') . " sg left join " . tablename('store_bases') . " sb on sg.store_base_id = sb.id WHERE sg.weid = '{$_W['uniacid']}' $sql", $params);
 
 				$pager = pagination($total, $pindex, $psize);
@@ -3625,7 +3627,25 @@ class We7_storexModuleSite extends WeModuleSite {
 			}
 		}
 	}
-
+	
+	public function format_list($category, $list){
+		if(!empty($category) && !empty($list)){
+			$cate = array();
+			foreach ($category as $category_info){
+				$cate[$category_info['id']] = $category_info;
+			}
+			foreach ($list as $k => $info){
+				if (!empty($cate[$info['pcate']])){
+					$list[$k]['pcate'] = $cate[$info['pcate']]['name'];
+				}
+				if (!empty($cate[$info['ccate']])){
+					$list[$k]['ccate'] = $cate[$info['ccate']]['name'];
+				}
+			}
+		}
+		return $list;
+	}
+	
 	public function web_message($error, $url = '', $errno = -1) {
 		$data = array();
 		$data['errno'] = $errno;
