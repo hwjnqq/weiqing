@@ -47,4 +47,4 @@ if ($op == 'recharge_pay') {
     );
     $pay_info = $this->pay($params, $mine);
     message(error(0, $pay_info), '', 'ajax');
-} 
+}

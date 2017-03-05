@@ -10,36 +10,36 @@ check_params();
 //获取店铺分类
 if ($op == 'category_list'){
 	$pcate_lists = pdo_getall('store_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => intval($_GPC['id']), 'enabled' => 1), array('id', 'name'), '', 'displayorder DESC');
-	if(!empty($pcate_lists)){
-		foreach ($pcate_lists as $val){
+	if (!empty($pcate_lists)) {
+		foreach ($pcate_lists as $val) {
 			$store_categorys[$val['id']] = $val['name'];
 		}
 	}
 	message(error(0, $store_categorys), '', 'ajax');
 }
 //获取一级分类下的二级分类以及商品
-if ($op == 'goods_list'){
+if ($op == 'goods_list') {
 	$store_id = intval($_GPC['id']);
 	$store_info = get_store_info();
 	$first_id = intval($_GPC['first_id']);
 	$first_class = pdo_get('store_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $store_id, 'id' => $first_id));
-	if(empty($first_class)){
+	if (empty($first_class)) {
 		message(error(-1, '分类不存在'), '', 'ajax');
 	}
-	$can_reserve = $_GPC['can_reserve'];
+	$can_reserve = intval($_GPC['can_reserve']);
 	$sub_class = category_sub_class();
 	//存在二级分类就找其下的商品
 	$fields = array('id', 'title', 'thumb', 'oprice', 'cprice', 'sold_num', 'sales');
 	$list = array();
 	$goods = array();
-	if(!empty($sub_class)){
+	if (!empty($sub_class)) {
 		$goods = $sub_class;
 		$list['have_subclass'] = 1;
 		$condition = array('weid' => $_W['uniacid'], 'pcate' => $first_id, 'status' => 1);
-		if(!empty($can_reserve)){
+		if (!empty($can_reserve)) {
 			$condition['can_reserve'] = 1;
 		}
-		if($store_info['store_type'] == 1){//酒店
+		if ($store_info['store_type'] == 1) {//酒店
 			$condition['hotelid'] = $store_id;
 			$fields[] = 'hotelid';
 			foreach ($sub_class as $key => $sub_classinfo){
@@ -50,37 +50,37 @@ if ($op == 'goods_list'){
 					$goods[$key]['total'] = count($goods_list);
 				}
 			}
-		}else{
+		} else {
 			$fields[] = 'store_base_id';
 			$condition['store_base_id'] = $store_id;
-			foreach ($sub_class as $key => $sub_classinfo){
+			foreach ($sub_class as $key => $sub_classinfo) {
 				$condition['ccate'] = $sub_classinfo['id'];
 				$goods_list = category_store_goods('store_goods', $condition, $fields);
-				if(!empty($goods_list)){
+				if (!empty($goods_list)) {
 					$goods[$key]['store_goods'] = array_slice($goods_list, 0, 2);
 					$goods[$key]['total'] = count($goods_list);
 				}
 			}
 		}
-	}else{
+	} else {
 		$list['have_subclass'] = 0;
 		$condition = array('weid' => $_W['uniacid'], 'pcate' => $first_id, 'status' => 1);
-		if(!empty($can_reserve)){
+		if (!empty($can_reserve)) {
 			$condition['can_reserve'] = 1;
 		}
-		if($store_info['store_type'] == 1){
+		if ($store_info['store_type'] == 1) {
 			$fields[] = 'hotelid';
 			$condition['hotelid'] = $store_id;
 			$goods_list = category_store_goods('hotel2_room', $condition, $fields);
-			if(!empty($goods_list)){
+			if (!empty($goods_list)) {
 				$goods['store_goods'] = array_slice($goods_list, 0, 2);
 				$goods['total'] = count($goods_list);
 			}
-		}else{
+		} else {
 			$fields[] = 'store_base_id';
 			$condition['store_base_id'] = $store_id;
 			$goods_list = category_store_goods('store_goods', $condition, $fields);
-			if(!empty($goods_list)){
+			if (!empty($goods_list)) {
 				$goods['store_goods'] = array_slice($goods_list, 0, 2);
 				$goods['total'] = count($goods_list);
 			}
@@ -91,47 +91,47 @@ if ($op == 'goods_list'){
 }
 
 //获取更多的商品信息
-if ($op == 'more_goods'){
+if ($op == 'more_goods') {
 	$store_id = intval($_GPC['id']);
 	$sub_classid = intval($_GPC['sub_id']);
 	$keyword = trim($_GPC['keyword']);
 	$category = pdo_get('store_categorys', array('id' => $sub_classid, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id), array('id', 'parentid'));
-	if(empty($category)){
+	if (empty($category)) {
 		message(error(-1, '参数错误'), '', 'ajax');
 	}
-	if($category['parentid'] == 0){
+	if ($category['parentid'] == 0) {
 		$sub_category = pdo_getall('store_categorys', array('parentid' => $sub_classid, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id), array('id', 'parentid'));
-		if(!empty($sub_category)){
+		if (!empty($sub_category)) {
 			message(error(-1, '参数错误'), '', 'ajax');
 		}
 		$sql .= ' AND `pcate` = :pcate';
 		$condition = array(':pcate' => $sub_classid);
-	}else{
+	} else {
 		$sql .= ' AND `ccate` = :ccate';
 		$condition = array(':ccate' => $sub_classid);
 	}
 	$can_reserve = intval($_GPC['can_reserve']);
 	$store_bases = pdo_get('store_bases', array('id' => $store_id), array('id', 'store_type', 'status'));
-	if(empty($store_bases)){
+	if (empty($store_bases)) {
 		message(error(-1, '店铺不存在'), '', 'ajax');
-	}else{
-		if($store_bases['status'] == 0){
+	} else {
+		if ($store_bases['status'] == 0) {
 			message(error(-1, '管理员将该店铺设置为隐藏，请联系管理员'), '', 'ajax');
 		}
 	}
-	if(!empty($can_reserve)){
+	if (!empty($can_reserve)) {
 		$sql .= ' AND `can_reserve` = :can_reserve';
 		$condition[':can_reserve'] = 1;
 	}
-	if(!empty($keyword)){
+	if (!empty($keyword)) {
 		$sql .= ' AND `title` LIKE :title';
 		$condition[':title'] = "%{$keyword}%";
 	}
-	if($store_bases['store_type'] == 1){
+	if ($store_bases['store_type'] == 1) {
 		$sql .= ' AND `hotelid` = :hotelid';
 		$condition[':hotelid'] = $store_bases['id'];
 		$goods_list = pdo_fetchall("SELECT * FROM " . tablename('hotel2_room') . " WHERE status = 1" . $sql, $condition);
-	}else{
+	} else {
 		$sql .= ' AND `store_base_id` = :store_base_id';
 		$condition[':store_base_id'] = $store_bases['id'];
 		$goods_list = pdo_fetchall("SELECT * FROM " . tablename('store_goods') . " WHERE status = 1" . $sql, $condition);
@@ -144,10 +144,10 @@ if ($op == 'more_goods'){
 		$list['list'] = $goods_list;
 	} else {
 		// 需要分页
-		if($pindex > 0) {
+		if ($pindex > 0) {
 			$list_array = array_chunk($goods_list, $psize, true);
-			if(!empty($list_array[($pindex-1)])){
-				foreach ($list_array[($pindex-1)] as $val){
+			if (!empty($list_array[($pindex-1)])) {
+				foreach ($list_array[($pindex-1)] as $val) {
 					$list['list'][] = $val;
 				}
 			}
