@@ -7,7 +7,6 @@ load()->model('mc');
 
 $ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
-$_W['openid'] = 'oTKzFjpkpEKpqXibIshcJLsmeLVo';
 check_params();
 $uid = mc_openid2uid($_W['openid']);
 if (in_array($op, array('address_post', 'address_default', 'address_delete')) && !empty($_GPC['id'])) {
