@@ -13,10 +13,10 @@ $goodsid = intval($_GPC['goodsid']);//商品id
 $max_room = 8;
 
 //获取某个商品的详细信息
-if ($op == 'goods_info'){
+if ($op == 'goods_info') {
 	$store_info = get_store_info();
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
-	if ($store_info['store_type'] == 1){
+	if ($store_info['store_type'] == 1) {
 		$condition['hotelid'] = $store_id;
 		$table = 'hotel2_room';
 	} else {
@@ -27,7 +27,7 @@ if ($op == 'goods_info'){
 	if (empty($goods_info)) {
 		message(error(-1, '商品不存在'), '', 'ajax');
 	} else {
-		if ($goods_info['status'] == 0){
+		if ($goods_info['status'] == 0) {
 			message(error(-1, '管理员将该店铺设置为隐藏，请联系管理员'), '', 'ajax');
 		}
 	}
@@ -91,7 +91,6 @@ if ($op == 'order'){
 		'weid' => intval($_W['uniacid']),
 		'hotelid' => $store_id,
 		'openid' => $_W['openid'],
-		// 	'name' => trim($_GPC['order']['name']),				//预定人的名字
 		'contact_name' => trim($_GPC['__input']['order']['contact_name']),//联系人
 		'roomid' => $goodsid,					//商品id
 		'mobile' => trim($_GPC['__input']['order']['mobile']),
@@ -143,7 +142,7 @@ if ($op == 'order'){
 
 		$pricefield = goods_isMember() ? 'mprice' : 'cprice';
 
-		if($order_info['btime'] < strtotime('today')){
+		if ($order_info['btime'] < strtotime('today')) {
 			message(error(-1, '预定的开始日期不能小于当日的日期!'), '', 'ajax');
 		}
 		$btime = $order_info['btime'];
@@ -158,7 +157,7 @@ if ($op == 'order'){
 		$date_array[0]['month'] = date('m',$btime);
 
 		if ($days > 1) {
-			for($i = 1; $i < $days; $i++) {
+			for ($i = 1; $i < $days; $i++) {
 				$date_array[$i]['time'] = $date_array[$i-1]['time'] + 86400;
 				$date_array[$i]['date'] = date('Y-m-d', $date_array[$i]['time']);
 				$date_array[$i]['day'] = date('j', $date_array[$i]['time']);
@@ -209,7 +208,6 @@ if ($op == 'order'){
 		$params = array(':roomid' => $goodsid, ':weid' => intval($_W['uniacid']), ':hotelid' => $store_id, ':btime' => $btime, ':etime' => $etime);
 		$price_list = pdo_fetchall($r_sql, $params);
 		$member_p = unserialize($room['mprice']);
-		//$room_score=$room['score'];
 		if (!empty($price_list)) {
 			//价格表中存在
 			foreach($price_list as $k => $v) {
@@ -239,10 +237,6 @@ if ($op == 'order'){
 		if ($totalprice == 0) {
 			message(error(-1, '房间价格不能是0，请联系管理员修改！'), '', 'ajax');
 		}
-
-// 		if (empty($order_info['name'])) {
-// 			message(error(-1, '预定人不能为空!'), '', 'ajax');
-// 		}
 
 		if (empty($order_info['contact_name'])) {
 			message(error(-1, '联系人不能为空!'), '', 'ajax');
@@ -322,12 +316,9 @@ if ($op == 'order'){
 		$member_p = unserialize($goods_info['mprice']);
 		$pricefield = goods_isMember() ? 'mprice' : 'cprice';
 		$now_price =  $pricefield == 'mprice' ? $goods_info['cprice']*$member_p[$_W['member']['groupid']] : $goods_info['cprice'];
-		if($now_price == 0){
+		if ($now_price == 0) {
 			message(error(-1, '商品价格不能是0，请联系管理员修改！'), '', 'ajax');
 		}
-// 		if (empty($order_info['name'])) {
-// 			message(error(-1, '名字人不能为空!'), '', 'ajax');
-// 		}
 		if (empty($order_info['contact_name'])) {
 			message(error(-1, '联系人不能为空!'), '', 'ajax');
 		}
@@ -347,12 +338,12 @@ if ($op == 'order'){
 			$order_info['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
 		}
 		$insert = array(
-				'ordersn' => date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1),
-				'memberid' => $memberid,
-				'style' => $goods_info['title'],
-				'oprice' => $goods_info['oprice'],
-				'cprice' => $goods_info['cprice'],
-				'mprice' => $goods_info['mprice'],
+			'ordersn' => date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1),
+			'memberid' => $memberid,
+			'style' => $goods_info['title'],
+			'oprice' => $goods_info['oprice'],
+			'cprice' => $goods_info['cprice'],
+			'mprice' => $goods_info['mprice'],
 		);
 		$insert['sum_price'] = $order_info['nums'] * $now_price;//结合会员，需修改
 		$insert = array_merge($insert, $order_info);
