@@ -14,7 +14,7 @@ if ($op == 'recharge_add') {
 	if ($type == 'credit') {
 		$fee = floatval($_GPC['__input']['fee']);
 		if (empty($fee) || $fee <= 0) {
-			message('请选择充值金额', referer(), 'error');
+			message(error(-1, '请输入正确金额'), '', 'ajax');
 		}
 		$backtype = trim($_GPC['__input']['backtype']);
 		$back= floatval($_GPC['__input']['back']);
@@ -31,7 +31,7 @@ if ($op == 'recharge_add') {
 			'createtime' => TIMESTAMP,
 		);
 		if (!pdo_insert('mc_credits_recharge', $charge_record)) {
-			message('创建充值订单失败，请重试！', url('entry', array('m' => 'we7_storex', 'do' => 'recharge')), 'error');
+			message(error(-1, '创建充值订单失败'), '', 'ajax');
 		}
 		$recharge_id = pdo_insertid();
 		message(error(0, $recharge_id), '', 'ajax');

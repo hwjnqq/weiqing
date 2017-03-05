@@ -7,7 +7,7 @@ load()->model('mc');
 
 $ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
-
+$_W['openid'] = 'oTKzFjpkpEKpqXibIshcJLsmeLVo';
 check_params();
 $uid = mc_openid2uid($_W['openid']);
 if (in_array($op, array('address_post', 'address_default', 'address_delete')) && !empty($_GPC['id'])) {
@@ -55,7 +55,7 @@ if ($op == 'credits_record') {
 	message(error(0, $credits), '', 'ajax');
 }
 if ($op == 'address_lists') {
-	$address_info = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => $_W['uniacid']), '', 'isdefault DESC');
+	$address_info = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => $_W['uniacid']), '', '', 'isdefault DESC');
 	message(error(0, $address_info), '', 'ajax');
 }
 if ($op == 'current_address') {
