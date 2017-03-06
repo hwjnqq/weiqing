@@ -20,13 +20,13 @@
 		<div class="form-group">
 			<label class="col-xs-12 col-sm-3 col-md-2 control-label">选择店铺</label>
 			<div class="col-sm-8 col-lg-9 col-xs-12">
-				<select class="form-control" onchange="window.location=this.value;">
-					<option>店铺列表</option>
+				<select class="form-control" onchange="window.location=this.value;" {if !empty($_GPC['id'])}disabled{/if}>
+					<option value = ''>店铺列表</option>
 					{loop $stores $info}
 					<option value="{php echo $this->createWebUrl('goodsmanage', array('store_base_id' => $info['id'], 'op' => 'edit'))}" {if $store_base_id == $info['id']} selected="selected" {/if}>{$info['title']}</option>
 					{/loop}
 				</select>
-				<span class='help-block'>请先选择店铺</span>
+				<span class='help-block'>请先选择店铺，缺少店铺请查看该店铺是否添加一级分类</span>
 			</div>
 		</div>
 		<div class="form-group">

@@ -1479,7 +1479,7 @@ class We7_storexModuleSite extends WeModuleSite {
 		$card_setting = pdo_fetch("SELECT * FROM ".tablename('mc_card')." WHERE uniacid = '{$_W['uniacid']}'");
 		$card_status =  $card_setting['status'];
 		$store_base_id = intval($_GPC['store_base_id']);
-		$stores = pdo_fetchall("SELECT * FROM " . tablename('storex_bases') . " WHERE weid = '{$_W['uniacid']}' ORDER BY id ASC, displayorder DESC");
+		$stores = pdo_fetchall("SELECT * FROM " . tablename('storex_bases') . " WHERE weid = '{$_W['uniacid']}' ORDER BY id ASC, displayorder DESC", array(), 'id');
 		$sql = '';
 		$condition = array(':weid' => $_W['uniacid']);
 		$store_type = !empty($_GPC['store_type'])? intval($_GPC['store_type']) : 0;
@@ -1663,7 +1663,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				}
 				$pindex = max(1, intval($_GPC['page']));
 				$psize = 20;
-				$list = pdo_fetchall("SELECT r.*,h.title as hoteltitle FROM " . tablename('storex_room') . " r left join " . tablename('storex_bases') . " h on r.hotelid = h.id WHERE r.weid = '{$_W['uniacid']}' $sql ORDER BY h.id, r.displayorder, r.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+				$list = pdo_fetchall("SELECT r.*,r.hotelid AS store_base_id,h.title AS hoteltitle FROM " . tablename('storex_room') . " r left join " . tablename('storex_bases') . " h on r.hotelid = h.id WHERE r.weid = '{$_W['uniacid']}' $sql ORDER BY h.id, r.displayorder, r.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
 				$list = $this -> format_list($category, $list);
 				$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_room') . " r left join " . tablename('storex_bases') . " h on r.hotelid = h.id WHERE r.weid = '{$_W['uniacid']}' $sql", $params);
 				$pager = pagination($total, $pindex, $psize);
