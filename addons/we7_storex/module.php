@@ -20,8 +20,8 @@ class We7_storexModule extends WeModule {
     public function fieldsFormDisplay($rid = 0) {
         global $_W;
         if ($rid) {
-            $reply = pdo_fetch("SELECT * FROM " . tablename('hotel2_reply') . " WHERE weid=:weid and rid = :rid limit 1", array(':weid' => $_W['uniacid'], ':rid' => $rid));
-            $sql = 'SELECT id,title,description,thumb FROM ' . tablename('hotel2') . ' WHERE `weid`=:weid AND `id`=:hotelid';
+            $reply = pdo_fetch("SELECT * FROM " . tablename('storex_reply') . " WHERE weid=:weid and rid = :rid limit 1", array(':weid' => $_W['uniacid'], ':rid' => $rid));
+            $sql = 'SELECT id,title,description,thumb FROM ' . tablename('storex_hotel') . ' WHERE `weid`=:weid AND `id`=:hotelid';
             $hotel = pdo_fetch($sql, array(':weid' => $_W['uniacid'], ':hotelid' => $reply['hotelid']));
         }
         include $this->template('form');
@@ -63,7 +63,7 @@ class We7_storexModule extends WeModule {
         global $_GPC;
         $hotelid = intval($_GPC['hotel']);
         if ($hotelid) {
-            $sql = 'SELECT * FROM ' . tablename('hotel2') . " WHERE `id`=:hotelid";
+            $sql = 'SELECT * FROM ' . tablename('storex_hotel') . " WHERE `id`=:hotelid";
             $params = array();
             $params[':hotelid'] = $hotelid;
             $hotel = pdo_fetch($sql, $params);
@@ -81,16 +81,16 @@ class We7_storexModule extends WeModule {
         $record['hotelid'] = $hotelid;
         $record['rid'] = $rid;
         $record['weid'] = $_W['uniacid'];
-        $reply = pdo_fetch("SELECT * FROM " . tablename('hotel2_reply') . " WHERE rid = :rid limit 1", array(':rid' => $rid));
+        $reply = pdo_fetch("SELECT * FROM " . tablename('storex_reply') . " WHERE rid = :rid limit 1", array(':rid' => $rid));
         if ($reply) {
-            pdo_update('hotel2_reply', $record, array('id' => $reply['id']));
+            pdo_update('storex_reply', $record, array('id' => $reply['id']));
         } else {
-            pdo_insert('hotel2_reply', $record);
+            pdo_insert('storex_reply', $record);
         }
     }
 
     public function ruleDeleted($rid) {
-        pdo_delete('hotel2_reply', array('rid' => $rid));
+        pdo_delete('storex_reply', array('rid' => $rid));
     }
 
  

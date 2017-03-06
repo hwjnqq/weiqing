@@ -151,7 +151,7 @@ class We7_storexModuleSite extends WeModuleSite {
 		$from_user = $this->_from_user;
 		$set = $this->_set_info;
 		$hid = $_GPC['hid'];
-		$user_info = pdo_fetch("SELECT * FROM " . tablename('hotel2_member') . " WHERE from_user = :from_user AND weid = :weid limit 1", array(':from_user' => $from_user, ':weid' => $weid));
+		$user_info = pdo_fetch("SELECT * FROM " . tablename('storex__member') . " WHERE from_user = :from_user AND weid = :weid limit 1", array(':from_user' => $from_user, ':weid' => $weid));
 		//独立用户
 		if ($set['user'] == 2) {
 
@@ -188,7 +188,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				$member['createtime'] = time();
 				$member['isauto'] = 1;
 				$member['status'] = 1;
-				pdo_insert('hotel2_member', $member);
+				pdo_insert('storex_member', $member);
 				$member['id'] = pdo_insertid();
 				$member['user_set'] = $set['user'];
 				//自动添加成功，将用户信息放入cookie
@@ -247,7 +247,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				$where = ' AND `id` = :id';
 				$params[':id'] = $hid;
 			}
-			$sql = "SELECT id FROM " . tablename('hotel2') . " WHERE weid = :weid AND status = :status" . $where;
+			$sql = "SELECT id FROM " . tablename('storex_hotel') . " WHERE weid = :weid AND status = :status" . $where;
 			$data = pdo_fetch($sql, $params);
 			if (empty($data['id'])) {
 				echo "酒店信息获取失败";exit;
@@ -374,7 +374,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			if(empty($this->_user_info)) {
 				$weid = $this->_weid;
 				$from_user = $this->_from_user;
-				$user_info = pdo_fetch("SELECT * FROM " . tablename('hotel2_member') . " WHERE from_user = :from_user AND weid = :weid limit 1", array(':from_user' => $from_user, ':weid' => $weid));
+				$user_info = pdo_fetch("SELECT * FROM " . tablename('storex_member') . " WHERE from_user = :from_user AND weid = :weid limit 1", array(':from_user' => $from_user, ':weid' => $weid));
 				$this->_user_info = $user_info;
 			}
 		}
@@ -466,10 +466,10 @@ class We7_storexModuleSite extends WeModuleSite {
             }
         } else {
         	$weid = intval($_W['uniacid']);
-        	$order = pdo_get('hotel2_order', array('id' => $params['tid'], 'weid' => $weid));
-        	$store_bases = pdo_get('store_bases', array('id' => $order['hotelid'],'weid' => $weid), array('id', 'store_type', 'title'));
-        	pdo_update('hotel2_order', array('paystatus' => 1,'paytype'=>$paytype), array('id' => $params['tid']));
-        	$setInfo = pdo_get('hotel2_set', array('weid' => $_W['uniacid']), array('email', 'mobile', 'nickname', 'template', 'confirm_templateid', 'templateid'));
+        	$order = pdo_get('storex_order', array('id' => $params['tid'], 'weid' => $weid));
+        	$storex_bases = pdo_get('storex_bases', array('id' => $order['hotelid'],'weid' => $weid), array('id', 'store_type', 'title'));
+        	pdo_update('storex_order', array('paystatus' => 1,'paytype'=>$paytype), array('id' => $params['tid']));
+        	$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('email', 'mobile', 'nickname', 'template', 'confirm_templateid', 'templateid'));
         	$starttime = $order['btime'];
         	if ($setInfo['email']) {
         		$body = "<h3>店铺订单</h3> <br />";
@@ -480,7 +480,7 @@ class We7_storexModuleSite extends WeModuleSite {
         		$body .= '订购数量' . $order['nums'] . '<br />';
         		$body .= '原价：' . $order['oprice']  . '<br />';
         		$body .= '会员价：' . $order['mprice']  . '<br />';
-        		if($store_bases['store_type'] == 1){
+        		if($storex_bases['store_type'] == 1){
         			$body .= '入住日期：' . date('Y-m-d',$order['btime'])  . '<br />';
         			$body .= '退房日期：' . date('Y-m-d',$order['etime']) . '<br />';
         		}
@@ -506,10 +506,10 @@ class We7_storexModuleSite extends WeModuleSite {
         	}
 
         	if ($params['from'] == 'return') {
-        		if($store_bases['store_type'] == 1){
-        			$goodsinfo = pdo_get('hotel2_room', array('id' => $order['roomid'], 'weid' => $weid));
+        		if($storex_bases['store_type'] == 1){
+        			$goodsinfo = pdo_get('storex_room', array('id' => $order['roomid'], 'weid' => $weid));
         		}else{
-        			$goodsinfo = pdo_get('store_goods', array('id' => $order['roomid'], 'weid' => $weid));
+        			$goodsinfo = pdo_get('storex_goods', array('id' => $order['roomid'], 'weid' => $weid));
         		}
         		$score = intval($goodsinfo['score']);
         		$acc = WeAccount::create($_W['acid']);
@@ -533,7 +533,7 @@ class We7_storexModuleSite extends WeModuleSite {
         				$acc->sendTplNotice($_W['uniacid'], $setInfo['confirm_templateid'],$data);
 
         			} else {
-        					$info = '您在'.$store_bases['title'].'预订的'.$goodsinfo['title']."已预订成功";
+        					$info = '您在'.$storex_bases['title'].'预订的'.$goodsinfo['title']."已预订成功";
         					$custom = array(
         						'msgtype' => 'text',
         						'text' => array('content' => urlencode($info)),
@@ -543,7 +543,7 @@ class We7_storexModuleSite extends WeModuleSite {
         				}
 
         			//TM00217
-        		    $clerks = pdo_getall('hotel2_member', array('clerk' => 1, 'weid' => $_W['uniacid'],'status'=>1));
+        		    $clerks = pdo_getall('storex_member', array('clerk' => 1, 'weid' => $_W['uniacid'],'status'=>1));
         		    if(!empty($setInfo['nickname'])){
         		    	$from_user = pdo_get('mc_mapping_fans', array('nickname' => $setInfo['nickname'], 'uniacid' => $_W['uniacid']));
         		    	if(!empty($from_user)){
@@ -578,13 +578,13 @@ class We7_storexModuleSite extends WeModuleSite {
         			}
 
         			for ($i = 0; $i < $order['day']; $i++) {
-        				$day = pdo_get('hotel2_room_price', array('weid' => $weid, 'roomid' => $order['roomid'], 'roomdate' => $starttime));
-        				pdo_update('hotel2_room_price', array('num' => $day['num'] - $order['nums']), array('id' => $day['id']));
+        				$day = pdo_get('storex_room_price', array('weid' => $weid, 'roomid' => $order['roomid'], 'roomdate' => $starttime));
+        				pdo_update('storex_room_price', array('num' => $day['num'] - $order['nums']), array('id' => $day['id']));
         				$starttime += 86400;
         			}
         			if ($score) {
         				$from_user = $_W['openid'];
-        				pdo_fetch("UPDATE " . tablename('hotel2_member') . " SET score = (score + " . $score . ") WHERE from_user = '" . $from_user . "' AND weid = " . $weid . "");
+        				pdo_fetch("UPDATE " . tablename('storex_member') . " SET score = (score + " . $score . ") WHERE from_user = '" . $from_user . "' AND weid = " . $weid . "");
         				//会员送积分
         				$_SESSION['ewei_hotel_pay_result'] = $params['tid'];
         				//判断公众号是否卡其会员卡功能
@@ -594,7 +594,7 @@ class We7_storexModuleSite extends WeModuleSite {
         				$membercard_setting = pdo_get('mc_card_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $params['user']));
         				$membercard_status = $membercard_setting['status'];
         				if ($membercard_status && $card_status) {
-        					$room_credit = pdo_get('hotel2_room', array('weid' => $_W['uniacid'], 'id' => $order['roomid']));
+        					$room_credit = pdo_get('storex_room', array('weid' => $_W['uniacid'], 'id' => $order['roomid']));
         					$room_credit = $room_credit['score'];
         					$member_info = pdo_get('mc_members', array('uniacid' => $_W['uniacid'], 'uid' => $params['user']));
         					pdo_update('mc_members', array('credit1' => $member_info['credit1'] + $room_credit), array('uniacid' => $_W['uniacid'], 'uid' => $params['user']));
@@ -653,7 +653,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			$member['createtime'] = time();
 			$member['status'] = 1;
 			$member['isauto'] = 0;
-			pdo_insert('hotel2_member', $member);
+			pdo_insert('storex_member', $member);
 			$member['id'] = pdo_insertid();
 			$member['user_set'] = $set['user'];
 
@@ -724,7 +724,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				$common_insert['thumbs'] = empty($_GPC['thumbs']) ? '' : iserializer($_GPC['thumbs']);
 				$common_insert['detail_thumbs'] = empty($_GPC['detail_thumbs']) ? '' : iserializer($_GPC['detail_thumbs']);
 				if($_GPC['store_type']){
-					$common_insert['extend_table'] = 'hotel2';
+					$common_insert['extend_table'] = 'storex_hotel';
 					$insert = array(
 							'weid' => $weid,
 							'sales' => $_GPC['sales'],
@@ -743,21 +743,21 @@ class We7_storexModuleSite extends WeModuleSite {
 					}
 				}
 				if (empty($id)) {
-					pdo_insert('store_bases', $common_insert);
+					pdo_insert('storex_bases', $common_insert);
 					if($_GPC['store_type']){
 						$insert['store_base_id'] = pdo_insertid();
-						pdo_insert('hotel2', $insert);
+						pdo_insert('storex_hotel', $insert);
 					}
 				} else {
-					pdo_update('store_bases', $common_insert, array('id' => $id));
+					pdo_update('storex_bases', $common_insert, array('id' => $id));
 					if($_GPC['store_type']){
 						pdo_update($common_insert['extend_table'], $insert, array('store_base_id' => $id));
 					}
 				}
 				message("店铺信息保存成功!", $this->createWebUrl('storemanage'), "success");
 			}
-			$store_bases = pdo_get('store_bases', array('id' => $id));
-			$item = pdo_get('hotel2', array('store_base_id' => $id));
+			$storex_bases = pdo_get('storex_bases', array('id' => $id));
+			$item = pdo_get('storex_hotel', array('store_base_id' => $id));
 			if (empty($item['device'])) {
 				$devices = array(
 					array('isdel' => 0, 'value' => '有线上网'),
@@ -773,16 +773,16 @@ class We7_storexModuleSite extends WeModuleSite {
 			}
 
 			//品牌
-			$sql = 'SELECT * FROM ' . tablename('hotel2_brand') . ' WHERE `weid` = :weid';
+			$sql = 'SELECT * FROM ' . tablename('storex_brand') . ' WHERE `weid` = :weid';
 			$params = array(':weid' => $_W['uniacid']);
 			$brands = pdo_fetchall($sql, $params);
 
-			$sql = 'SELECT `title` FROM ' . tablename('hotel2_business') . ' WHERE `weid` = :weid AND `id` = :id';
+			$sql = 'SELECT `title` FROM ' . tablename('storex_business') . ' WHERE `weid` = :weid AND `id` = :id';
 			$params[':id'] = intval($item['businessid']);
 			$item['hotelbusinesss'] = pdo_fetchcolumn($sql, $params);
-			$store_bases['thumbs'] =  iunserializer($store_bases['thumbs']);
+			$storex_bases['thumbs'] =  iunserializer($storex_bases['thumbs']);
 			if($id){
-				$item = array_merge($item, $store_bases);
+				$item = array_merge($item, $storex_bases);
 			}
 			include $this->template('hotel_form');
 		} else if ($op == 'delete') {
@@ -790,7 +790,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			$id = intval($_GPC['id']);
 
 			if (!empty($id)) {
-				$item = pdo_get('hotel2_order', array('hotelid' => $id), array('id'));
+				$item = pdo_get('storex_order', array('hotelid' => $id), array('id'));
 				if (!empty($item)) {
 					message('抱歉，请先删除该店铺的订单,再删除该店铺！', '', 'error');
 				}
@@ -798,9 +798,9 @@ class We7_storexModuleSite extends WeModuleSite {
 				message('抱歉，参数错误！', '', 'error');
 			}
 
-			pdo_delete("hotel2_order", array("hotelid" => $id));
-			pdo_delete("hotel2_room", array("hotelid" => $id));
-			pdo_delete("store_bases", array("id" => $id));
+			pdo_delete("storex_order", array("hotelid" => $id));
+			pdo_delete("storex_room", array("hotelid" => $id));
+			pdo_delete("storex_bases", array("id" => $id));
 
 			message("店铺信息删除成功!", referer(), "success");
 		} else if ($op == 'deleteall') {
@@ -808,7 +808,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				$id = intval($id);
 
 				if (!empty($id)) {
-					$item = pdo_get('hotel2_order', array('hotelid' => $id), array('id'));
+					$item = pdo_get('storex_order', array('hotelid' => $id), array('id'));
 					if (!empty($item)) {
 						message('抱歉，请先删除该酒店的订单,再删除该酒店！', '', 'error');
 					}
@@ -816,9 +816,9 @@ class We7_storexModuleSite extends WeModuleSite {
 					message('抱歉，参数错误！', '', 'error');
 				}
 
-				pdo_delete("hotel2_order", array("hotelid" => $id));
-				pdo_delete("hotel2_room", array("hotelid" => $id));
-				pdo_delete("store_bases", array("id" => $id));
+				pdo_delete("storex_order", array("hotelid" => $id));
+				pdo_delete("storex_room", array("hotelid" => $id));
+				pdo_delete("storex_bases", array("id" => $id));
 			}
 			$this->web_message('酒店信息删除成功！', '', 0);
 			exit();
@@ -833,7 +833,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				$id = intval($id);
 
 				if (!empty($id)) {
-					pdo_update('store_bases', array('status' => $show_status), array('id' => $id));
+					pdo_update('storex_bases', array('status' => $show_status), array('id' => $id));
 				}
 			}
 			$this->web_message('操作成功！', '', 0);
@@ -843,7 +843,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			if (empty($id)) {
 				message('抱歉，传递的参数错误！', '', 'error');
 			}
-			$temp = pdo_update('store_bases', array('status' => $_GPC['status']), array('id' => $id));
+			$temp = pdo_update('storex_bases', array('status' => $_GPC['status']), array('id' => $id));
 			if ($temp == false) {
 				message('抱歉，刚才操作数据失败！', '', 'error');
 			} else {
@@ -851,7 +851,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			}
 		} else if ($op == 'query') {
 			$kwd = trim($_GPC['keyword']);
-			$sql = 'SELECT id,title,description,thumb FROM ' . tablename('hotel2') . ' WHERE `weid`=:weid';
+			$sql = 'SELECT id,title,description,thumb FROM ' . tablename('storex_hotel') . ' WHERE `weid`=:weid';
 			$params = array();
 			$params[':weid'] = $_W['uniacid'];
 			if (!empty($kwd)) {
@@ -877,14 +877,14 @@ class We7_storexModuleSite extends WeModuleSite {
 // 				$where .= ' AND level=:level';
 // 				$params[':level'] = intval($_GPC['level']);
 // 			}
-			$sql = 'SELECT COUNT(*) FROM ' . tablename('store_bases') . $where;
+			$sql = 'SELECT COUNT(*) FROM ' . tablename('storex_bases') . $where;
 			$total = pdo_fetchcolumn($sql, $params);
 
 			if ($total > 0) {
 				$pindex = max(1, intval($_GPC['page']));
 				$psize = 10;
 
-				$sql = 'SELECT * FROM ' . tablename('store_bases') . $where . ' ORDER BY `displayorder` DESC LIMIT ' .
+				$sql = 'SELECT * FROM ' . tablename('storex_bases') . $where . ' ORDER BY `displayorder` DESC LIMIT ' .
 					($pindex - 1) * $psize . ',' . $psize;
 				$list = pdo_fetchall($sql, $params);
 
@@ -943,16 +943,16 @@ class We7_storexModuleSite extends WeModuleSite {
 		global $_GPC, $_W;
 		load()->func('tpl');
 		$operation = !empty($_GPC['op']) ? $_GPC['op'] : 'display';
-		$stores = pdo_fetchall("SELECT * FROM " . tablename('store_bases') . " WHERE weid = '{$_W['uniacid']}' ORDER BY id ASC, displayorder DESC");
+		$stores = pdo_fetchall("SELECT * FROM " . tablename('storex_bases') . " WHERE weid = '{$_W['uniacid']}' ORDER BY id ASC, displayorder DESC");
 		if ($operation == 'display') {
 			if (!empty($_GPC['displayorder'])) {
 				foreach ($_GPC['displayorder'] as $id => $displayorder) {
-					pdo_update('store_categorys', array('displayorder' => $displayorder), array('id' => $id, 'weid' => $_W['uniacid']));
+					pdo_update('storex_categorys', array('displayorder' => $displayorder), array('id' => $id, 'weid' => $_W['uniacid']));
 				}
 				message('分类排序更新成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
 			}
 			$children = array();
-			$category = pdo_fetchall("SELECT * FROM " . tablename('store_categorys') . " WHERE weid = '{$_W['uniacid']}' ORDER BY store_base_id DESC, parentid ASC, displayorder DESC");
+			$category = pdo_fetchall("SELECT * FROM " . tablename('storex_categorys') . " WHERE weid = '{$_W['uniacid']}' ORDER BY store_base_id DESC, parentid ASC, displayorder DESC");
 			foreach ($category as $index => &$row_info) {
 				if(!empty($row_info['store_base_id'])){
 					foreach ($stores as $store_info){
@@ -972,7 +972,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			$store_base_id = intval($_GPC['store_base_id']);
 			$id = intval($_GPC['id']);
 			if (!empty($id)) {
-				$category = pdo_get('store_categorys', array('id' => $id, 'weid' => $_W['uniacid']));
+				$category = pdo_get('storex_categorys', array('id' => $id, 'weid' => $_W['uniacid']));
 				foreach($stores as $k => $store_info){
 					if($store_info['id'] != $category['store_base_id']){
 						unset($stores[$k]);
@@ -984,7 +984,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				);
 			}
 			if (!empty($parentid)) {
-				$parent = pdo_get('store_categorys', array('id' => $parentid), array('id', 'name'));
+				$parent = pdo_get('storex_categorys', array('id' => $parentid), array('id', 'name'));
 				if (empty($parent)) {
 					message('抱歉，上级分类不存在或是已经被删除！', $this->createWebUrl('post'), 'error');
 				}
@@ -1011,11 +1011,11 @@ class We7_storexModuleSite extends WeModuleSite {
 				}
 				if (!empty($id)) {
 					unset($data['parentid']);
-					pdo_update('store_categorys', $data, array('id' => $id, 'weid' => $_W['uniacid']));
+					pdo_update('storex_categorys', $data, array('id' => $id, 'weid' => $_W['uniacid']));
 					load()->func('file');
 					file_delete($_GPC['thumb_old']);
 				} else {
-					pdo_insert('store_categorys', $data);
+					pdo_insert('storex_categorys', $data);
 					$id = pdo_insertid();
 				}
 				message('更新分类成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
@@ -1023,11 +1023,11 @@ class We7_storexModuleSite extends WeModuleSite {
 			include $this->template('category');
 		} elseif ($operation == 'delete') {
 			$id = intval($_GPC['id']);
-			$category = pdo_get('store_categorys', array('id' => $id), array('id', 'parentid'));
+			$category = pdo_get('storex_categorys', array('id' => $id), array('id', 'parentid'));
 			if (empty($category)) {
 				message('抱歉，分类不存在或是已经被删除！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'error');
 			}
-			pdo_delete('store_categorys', array('id' => $id, 'parentid' => $id), 'OR');
+			pdo_delete('storex_categorys', array('id' => $id, 'parentid' => $id), 'OR');
 			message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
 		}
 	}
@@ -1042,10 +1042,10 @@ class We7_storexModuleSite extends WeModuleSite {
 			message('参数错误', 'refresh', 'error');
 		}
 
-		$item = pdo_get('hotel2_room', array('id' => $roomid));
+		$item = pdo_get('storex_room', array('id' => $roomid));
 		unset($item['id']);
 		$item['status'] = 0;
-		pdo_insert('hotel2_room', $item);
+		pdo_insert('storex_room', $item);
 		$id = pdo_insertid();
 		$url = $this->createWebUrl('goodsmanage', array('op' => 'edit', 'hotelid' => $hotelid, 'id' => $id, 'store_type' => $item['store_type']));
 		header("Location: $url");
@@ -1095,14 +1095,14 @@ class We7_storexModuleSite extends WeModuleSite {
 				$date_array[$i]['month'] = date('m', $date_array[$i]['time']);
 			}
 			$params = array();
-			$sql = "SELECT r.* FROM " . tablename('hotel2_room') . "as r";
+			$sql = "SELECT r.* FROM " . tablename('storex_room') . "as r";
 			$sql .= " WHERE 1 = 1";
 			$sql .= " AND r.hotelid = $hotelid";
 			$sql .= " AND r.weid = $weid";
 			$list = pdo_fetchall($sql, $params);
 
 			foreach ($list as $key => $value) {
-				$sql = "SELECT * FROM " . tablename('hotel2_room_price');
+				$sql = "SELECT * FROM " . tablename('storex_room_price');
 				$sql .= " WHERE 1 = 1";
 				$sql .= " AND roomid = " . $value['id'];
 				$sql .= " AND roomdate >= " . $btime;
@@ -1167,9 +1167,9 @@ class We7_storexModuleSite extends WeModuleSite {
 			$roomprice = $this->getRoomPrice($hotelid, $roomid, $date);
 			$roomprice[$pricetype] = $price;
 			if (empty($roomprice['id'])) {
-				pdo_insert("hotel2_room_price", $roomprice);
+				pdo_insert("storex_room_price", $roomprice);
 			} else {
-				pdo_update("hotel2_room_price", $roomprice, array("id" => $roomprice['id']));
+				pdo_update("storex_room_price", $roomprice, array("id" => $roomprice['id']));
 			}
 			die(json_encode(array("result" => 1, "hotelid" => $hotelid, "roomid" => $roomid, "pricetype" => $pricetype, "price" => $price)));
 		} else if ($ac == 'updatelot') {
@@ -1178,7 +1178,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			$firstday = date('Y-m-01', time());
 			//当月最后一天
 			$endtime = strtotime(date('Y-m-d', strtotime("$firstday +1 month -1 day")));
-			$rooms = pdo_fetchall("select * from " . tablename("hotel2_room") . " where hotelid=" . $hotelid);
+			$rooms = pdo_fetchall("select * from " . tablename("storex_room") . " where hotelid=" . $hotelid);
 			include $this->template('room_price_lot');
 			exit();
 		} else if ($ac == 'updatelot_create') {
@@ -1191,7 +1191,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			$rooms_arr = implode(",", $rooms);
 			$start = $_GPC['start'];
 			$end = $_GPC['end'];
-			$list = pdo_fetchall("select * from " . tablename("hotel2_room") . " where id in (" . implode(",", $rooms) . ")");
+			$list = pdo_fetchall("select * from " . tablename("storex_room") . " where id in (" . implode(",", $rooms) . ")");
 			ob_start();
 			include $this->template('room_price_lot_list');
 			$data['result'] = 1;
@@ -1217,9 +1217,9 @@ class We7_storexModuleSite extends WeModuleSite {
 						$roomprice['cprice'] = $cprices[$v];
 						$roomprice['mprice'] = $mprices[$v];
 						if (empty($roomprice['id'])) {
-							pdo_insert("hotel2_room_price", $roomprice);
+							pdo_insert("storex_room_price", $roomprice);
 						} else {
-							pdo_update("hotel2_room_price", $roomprice, array("id" => $roomprice['id']));
+							pdo_update("storex_room_price", $roomprice, array("id" => $roomprice['id']));
 						}
 					}
 				}
@@ -1278,7 +1278,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			}
 
 			$params = array();
-			$sql = "SELECT r.* FROM " . tablename('hotel2_room') . "as r";
+			$sql = "SELECT r.* FROM " . tablename('storex_room') . "as r";
 			$sql .= " WHERE 1 = 1";
 			$sql .= " AND r.hotelid = $hotelid";
 			$sql .= " AND r.weid = $weid";
@@ -1286,7 +1286,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			$list = pdo_fetchall($sql, $params);
 
 			foreach ($list as $key => $value) {
-				$sql = "SELECT * FROM " . tablename('hotel2_room_price');
+				$sql = "SELECT * FROM " . tablename('storex_room_price');
 				$sql .= " WHERE 1 = 1";
 				$sql .= " AND roomid = " . $value['id'];
 				$sql .= " AND roomdate >= " . $btime;
@@ -1365,9 +1365,9 @@ class We7_storexModuleSite extends WeModuleSite {
 			}
 
 			if (empty($roomprice['id'])) {
-				pdo_insert("hotel2_room_price", $roomprice);
+				pdo_insert("storex_room_price", $roomprice);
 			} else {
-				pdo_update("hotel2_room_price", $roomprice, array("id" => $roomprice['id']));
+				pdo_update("storex_room_price", $roomprice, array("id" => $roomprice['id']));
 			}
 			die(json_encode(array("result" => 1, "hotelid" => $hotelid, "roomid" => $roomid, "pricetype" => $pricetype, "price" => $price)));
 		} else if ($ac == 'updatelot') {
@@ -1376,7 +1376,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			$firstday = date('Y-m-01', time());
 			//当月最后一天
 			$endtime = strtotime(date('Y-m-d', strtotime("$firstday +1 month -1 day")));
-			$rooms = pdo_fetchall("select * from " . tablename("hotel2_room") . " where hotelid=" . $hotelid);
+			$rooms = pdo_fetchall("select * from " . tablename("storex_room") . " where hotelid=" . $hotelid);
 			include $this->template('room_status_lot');
 			exit();
 		} else if ($ac == 'updatelot_create') {
@@ -1389,8 +1389,8 @@ class We7_storexModuleSite extends WeModuleSite {
 			$rooms_arr = implode(",", $rooms);
 			$start = $_GPC['start'];
 			$end = $_GPC['end'];
-			$list = pdo_fetchall("select * from " . tablename("hotel2_room") . " where id in (" . implode(",", $rooms) . ")");
-			$num = pdo_fetchall('SELECT num FROM '. tablename('hotel2_room_price'),array(),'roomid');
+			$list = pdo_fetchall("select * from " . tablename("storex_room") . " where id in (" . implode(",", $rooms) . ")");
+			$num = pdo_fetchall('SELECT num FROM '. tablename('storex_room_price'),array(),'roomid');
 			ob_start();
 			include $this->template('room_status_lot_list');
 			$data['result'] = 1;
@@ -1414,9 +1414,9 @@ class We7_storexModuleSite extends WeModuleSite {
 						$roomprice['num'] = empty($nums[$v]) ? '-1' : intval($nums[$v]);
 						$roomprice['status'] = $statuses[$v];
 						if (empty($roomprice['id'])) {
-							pdo_insert("hotel2_room_price", $roomprice);
+							pdo_insert("storex_room_price", $roomprice);
 						} else {
-							pdo_update("hotel2_room_price", $roomprice, array("id" => $roomprice['id']));
+							pdo_update("storex_room_price", $roomprice, array("id" => $roomprice['id']));
 						}
 					}
 				}
@@ -1435,7 +1435,7 @@ class We7_storexModuleSite extends WeModuleSite {
 	private function getRoomPrice($hotelid, $roomid, $date) {
 		global $_W;
 		$btime = strtotime($date);
-		$sql = "SELECT * FROM " . tablename('hotel2_room_price');
+		$sql = "SELECT * FROM " . tablename('storex_room_price');
 		$sql .= " WHERE 1 = 1";
 		$sql .=" and weid=" . $_W['uniacid'];
 		$sql .= " AND hotelid = " . $hotelid;
@@ -1464,7 +1464,7 @@ class We7_storexModuleSite extends WeModuleSite {
 	}
 
 	private function getRoom($hotelid, $roomid) {
-		$sql = "SELECT * FROM " . tablename('hotel2_room');
+		$sql = "SELECT * FROM " . tablename('storex_room');
 		$sql .= " WHERE 1 = 1";
 		$sql .= " AND hotelid = " . $hotelid;
 		$sql .= " AND id = " . $roomid;
@@ -1478,7 +1478,7 @@ class We7_storexModuleSite extends WeModuleSite {
 		$card_setting = pdo_fetch("SELECT * FROM ".tablename('mc_card')." WHERE uniacid = '{$_W['uniacid']}'");
 		$card_status =  $card_setting['status'];
 		$store_base_id = intval($_GPC['store_base_id']);
-		$stores = pdo_fetchall("SELECT * FROM " . tablename('store_bases') . " WHERE weid = '{$_W['uniacid']}' ORDER BY id ASC, displayorder DESC");
+		$stores = pdo_fetchall("SELECT * FROM " . tablename('storex_bases') . " WHERE weid = '{$_W['uniacid']}' ORDER BY id ASC, displayorder DESC");
 		$sql = '';
 		$condition = array(':weid' => $_W['uniacid']);
 		$store_type = !empty($_GPC['store_type'])? intval($_GPC['store_type']) : 0;
@@ -1493,7 +1493,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				}
 			}
 		}
-		$sql = 'SELECT * FROM ' . tablename('store_categorys') . ' WHERE `weid` = :weid '.$sql.' ORDER BY `parentid`, `displayorder` DESC';
+		$sql = 'SELECT * FROM ' . tablename('storex_categorys') . ' WHERE `weid` = :weid '.$sql.' ORDER BY `parentid`, `displayorder` DESC';
 		$category = pdo_fetchall($sql, $condition, 'id');
 		if (!empty($category)) {
 			$parent = $children = array();
@@ -1506,7 +1506,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			}
 		}
 		//根据分类的一级id获取店铺的id
-		$category_store = pdo_fetch("select id,store_base_id from " . tablename('store_categorys') . "where id=:id limit 1", array(":id" => $_GPC['category']['parentid']));
+		$category_store = pdo_fetch("select id,store_base_id from " . tablename('storex_categorys') . "where id=:id limit 1", array(":id" => $_GPC['category']['parentid']));
 		if($store_type){//1是酒店
 			if ($op == 'edit') {
 				$id = intval($_GPC['id']);
@@ -1515,7 +1515,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				}
 				$usergroup_list = pdo_fetchall("SELECT * FROM ".tablename('mc_groups')." WHERE uniacid = :uniacid ORDER BY isdefault DESC,credit ASC", array(':uniacid' => $_W['uniacid']));
 				if (!empty($id)) {
-					$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_room') . " WHERE id = :id", array(':id' => $id));
+					$item = pdo_fetch("SELECT * FROM " . tablename('storex_room') . " WHERE id = :id", array(':id' => $id));
 					$store_base_id = $item['hotelid'];
 					if (empty($item)) {
 						message('抱歉，房型不存在或是已经删除！', '', 'error');
@@ -1580,44 +1580,44 @@ class We7_storexModuleSite extends WeModuleSite {
 						$data['thumbs'] = serialize(array());
 					}
 					if (empty($id)) {
-						pdo_insert('hotel2_room', $data);
+						pdo_insert('storex_room', $data);
 					} else {
-						pdo_update('hotel2_room', $data, array('id' => $id));
+						pdo_update('storex_room', $data, array('id' => $id));
 					}
-					pdo_query("update " . tablename('hotel2') . " set roomcount=(select count(*) from " . tablename('hotel2_room') . " where hotelid=:store_base_id) where store_base_id=:store_base_id", array(":store_base_id" => $store_base_id));
+					pdo_query("update " . tablename('storex_hotel') . " set roomcount=(select count(*) from " . tablename('storex_room') . " where hotelid=:store_base_id) where store_base_id=:store_base_id", array(":store_base_id" => $store_base_id));
 					message('房型信息更新成功！', $this->createWebUrl('goodsmanage', array('store_type' => $data['store_type'])), 'success');
 				}
 				include $this->template('room_form');
 			} else if ($op == 'delete') {
 				$id = intval($_GPC['id']);
 				if (!empty($id)) {
-					$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_room') . " WHERE id = :id", array(':id' => $id));
+					$item = pdo_fetch("SELECT * FROM " . tablename('storex_room') . " WHERE id = :id", array(':id' => $id));
 					$store_base_id = $item['hotelid'];
-					$item = pdo_fetch("SELECT id FROM " . tablename('hotel2_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
+					$item = pdo_fetch("SELECT id FROM " . tablename('storex_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
 					if (!empty($item)) {
 						message('抱歉，请先删除该房间的订单,再删除该房间！', '', 'error');
 					}
 				} else {
 					message('抱歉，参数错误！', '', 'error');
 				}
-				pdo_delete('hotel2_room', array('id' => $id));
-				pdo_delete('hotel2_order', array('roomid' => $id));
-				pdo_query("update " . tablename('hotel2') . " set roomcount=(select count(*) from " . tablename('hotel2_room') . " where hotelid=:store_base_id) where store_base_id=:store_base_id", array(":store_base_id" => $store_base_id));
+				pdo_delete('storex_room', array('id' => $id));
+				pdo_delete('storex_order', array('roomid' => $id));
+				pdo_query("update " . tablename('storex_hotel') . " set roomcount=(select count(*) from " . tablename('storex_room') . " where hotelid=:store_base_id) where store_base_id=:store_base_id", array(":store_base_id" => $store_base_id));
 				message('删除成功！', referer(), 'success');
 			} else if ($op == 'deleteall') {
 				foreach ($_GPC['idArr'] as $k => $id) {
 					$id = intval($id);
 					if (!empty($id)) {
-						$item = pdo_fetch("SELECT id FROM " . tablename('hotel2_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
+						$item = pdo_fetch("SELECT id FROM " . tablename('storex_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
 						if (!empty($item)) {
 							$this->web_message('抱歉，请先删除该房间的订单,再删除该房间！', '', 'error');
 						}
 					} else {
 						$this->web_message('抱歉，参数错误！', '', 'error');
 					}
-					pdo_delete('hotel2_room', array('id' => $id));
-					pdo_delete('hotel2_order', array('roomid' => $id));
-					pdo_query("update " . tablename('hotel2') . " set roomcount=(select count(*) from " . tablename('hotel2_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $id));
+					pdo_delete('storex_room', array('id' => $id));
+					pdo_delete('storex_order', array('roomid' => $id));
+					pdo_query("update " . tablename('storex_hotel') . " set roomcount=(select count(*) from " . tablename('storex_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $id));
 				}
 				$this->web_message('删除成功！', '', 0);
 				exit();
@@ -1630,7 +1630,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				foreach ($_GPC['idArr'] as $k => $id) {
 					$id = intval($id);
 					if (!empty($id)) {
-						pdo_update('hotel2_room', array('status' => $show_status), array('id' => $id));
+						pdo_update('storex_room', array('status' => $show_status), array('id' => $id));
 					}
 				}
 				$this->web_message('操作成功！', '', 0);
@@ -1640,14 +1640,14 @@ class We7_storexModuleSite extends WeModuleSite {
 				if (empty($id)) {
 					message('抱歉，传递的参数错误！', '', 'error');
 				}
-				$temp = pdo_update('hotel2_room', array('status' => $_GPC['status']), array('id' => $id));
+				$temp = pdo_update('storex_room', array('status' => $_GPC['status']), array('id' => $id));
 				if ($temp == false) {
 					message('抱歉，刚才操作数据失败！', '', 'error');
 				} else {
 					message('状态设置成功！', referer(), 'success');
 				}
 			} else {
-				$store_bases = pdo_fetch("select title from " . tablename('store_bases') . "where store_type=:store_type limit 1", array(":store_type" => $store_type));
+				$storex_bases = pdo_fetch("select title from " . tablename('storex_bases') . "where store_type=:store_type limit 1", array(":store_type" => $store_type));
 				$pindex = max(1, intval($_GPC['page']));
 				$psize = 20;
 				$sql = "";
@@ -1662,9 +1662,9 @@ class We7_storexModuleSite extends WeModuleSite {
 				}
 				$pindex = max(1, intval($_GPC['page']));
 				$psize = 20;
-				$list = pdo_fetchall("SELECT r.*,h.title as hoteltitle FROM " . tablename('hotel2_room') . " r left join " . tablename('store_bases') . " h on r.hotelid = h.id WHERE r.weid = '{$_W['uniacid']}' $sql ORDER BY h.id, r.displayorder, r.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+				$list = pdo_fetchall("SELECT r.*,h.title as hoteltitle FROM " . tablename('storex_room') . " r left join " . tablename('storex_bases') . " h on r.hotelid = h.id WHERE r.weid = '{$_W['uniacid']}' $sql ORDER BY h.id, r.displayorder, r.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
 				$list = $this -> format_list($category, $list);
-				$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('hotel2_room') . " r left join " . tablename('store_bases') . " h on r.hotelid = h.id WHERE r.weid = '{$_W['uniacid']}' $sql", $params);
+				$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_room') . " r left join " . tablename('storex_bases') . " h on r.hotelid = h.id WHERE r.weid = '{$_W['uniacid']}' $sql", $params);
 				$pager = pagination($total, $pindex, $psize);
 				include $this->template('room');
 			}
@@ -1674,7 +1674,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				$store_base_id = $category_store['store_base_id'];
 				$usergroup_list = pdo_fetchall("SELECT * FROM ".tablename('mc_groups')." WHERE uniacid = :uniacid ORDER BY isdefault DESC,credit ASC", array(':uniacid' => $_W['uniacid']));
 				if (!empty($id)) {
-					$item = pdo_fetch("SELECT * FROM " . tablename('store_goods') . " WHERE id = :id", array(':id' => $id));
+					$item = pdo_fetch("SELECT * FROM " . tablename('storex_goods') . " WHERE id = :id", array(':id' => $id));
 					if (empty($item)) {
 						message('抱歉，商品不存在或是已经删除！', '', 'error');
 					}
@@ -1725,9 +1725,9 @@ class We7_storexModuleSite extends WeModuleSite {
 						$data['thumbs'] = serialize(array());
 					}
 					if (empty($id)) {
-						pdo_insert('store_goods', $data);
+						pdo_insert('storex_goods', $data);
 					} else {
-						pdo_update('store_goods', $data, array('id' => $id));
+						pdo_update('storex_goods', $data, array('id' => $id));
 					}
 					message('商品信息更新成功！', $this->createWebUrl('goodsmanage', array('store_type' => $data['store_type'])), 'success');
 				}
@@ -1735,29 +1735,29 @@ class We7_storexModuleSite extends WeModuleSite {
 			} else if ($op == 'delete') {
 				$id = intval($_GPC['id']);
 				if (!empty($id)) {
-					$item = pdo_fetch("SELECT id FROM " . tablename('store_goods') . " WHERE store_base_id = :store_base_id LIMIT 1", array(':store_base_id' => $id));
+					$item = pdo_fetch("SELECT id FROM " . tablename('storex_goods') . " WHERE store_base_id = :store_base_id LIMIT 1", array(':store_base_id' => $id));
 					if (!empty($item)) {
 						message('抱歉，请先删除该商品的订单,再删除该商品！', '', 'error');
 					}
 				} else {
 					message('抱歉，参数错误！', '', 'error');
 				}
-				pdo_delete('store_goods', array('id' => $id));
+				pdo_delete('storex_goods', array('id' => $id));
 				message('删除成功！', referer(), 'success');
 			} else if ($op == 'deleteall') {
 				foreach ($_GPC['idArr'] as $k => $id) {
 					$id = intval($id);
 					if (!empty($id)) {
-						$item = pdo_fetch("SELECT id FROM " . tablename('hotel2_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
+						$item = pdo_fetch("SELECT id FROM " . tablename('storex_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
 						if (!empty($item)) {
 							$this->web_message('抱歉，请先删除该房间的订单,再删除该房间！', '', 'error');
 						}
 					} else {
 						$this->web_message('抱歉，参数错误！', '', 'error');
 					}
-					pdo_delete('hotel2_room', array('id' => $id));
-					pdo_delete('hotel2_order', array('roomid' => $id));
-					pdo_query("update " . tablename('hotel2') . " set roomcount=(select count(*) from " . tablename('hotel2_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $id));
+					pdo_delete('storex_room', array('id' => $id));
+					pdo_delete('storex_order', array('roomid' => $id));
+					pdo_query("update " . tablename('storex_hotel') . " set roomcount=(select count(*) from " . tablename('storex_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $id));
 				}
 				$this->web_message('删除成功！', '', 0);
 				exit();
@@ -1770,7 +1770,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				foreach ($_GPC['idArr'] as $k => $id) {
 					$id = intval($id);
 					if (!empty($id)) {
-						pdo_update('store_goods', array('status' => $show_status), array('id' => $id));
+						pdo_update('storex_goods', array('status' => $show_status), array('id' => $id));
 					}
 				}
 				$this->web_message('操作成功！', '', 0);
@@ -1780,14 +1780,14 @@ class We7_storexModuleSite extends WeModuleSite {
 				if (empty($id)) {
 					message('抱歉，传递的参数错误！', '', 'error');
 				}
-				$temp = pdo_update('store_goods', array('status' => $_GPC['status']), array('id' => $id));
+				$temp = pdo_update('storex_goods', array('status' => $_GPC['status']), array('id' => $id));
 				if ($temp == false) {
 					message('抱歉，刚才操作数据失败！', '', 'error');
 				} else {
 					message('状态设置成功！', referer(), 'success');
 				}
 			} else {
-				$store_bases = pdo_fetch("select title from " . tablename('store_bases') . "where store_type=:store_type limit 1", array(":store_type" => $store_type));
+				$storex_bases = pdo_fetch("select title from " . tablename('storex_bases') . "where store_type=:store_type limit 1", array(":store_type" => $store_type));
 				$pindex = max(1, intval($_GPC['page']));
 				$psize = 20;
 				$sql = "";
@@ -1802,9 +1802,9 @@ class We7_storexModuleSite extends WeModuleSite {
 				}
 				$pindex = max(1, intval($_GPC['page']));
 				$psize = 20;
-				$list = pdo_fetchall("SELECT sg.*,sb.title as hoteltitle FROM " . tablename('store_goods') . " sg left join " . tablename('store_bases') . " sb on sg.store_base_id = sb.id WHERE sg.weid = '{$_W['uniacid']}' $sql ORDER BY sb.id, sg.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+				$list = pdo_fetchall("SELECT sg.*,sb.title as hoteltitle FROM " . tablename('storex_goods') . " sg left join " . tablename('storex_bases') . " sb on sg.store_base_id = sb.id WHERE sg.weid = '{$_W['uniacid']}' $sql ORDER BY sb.id, sg.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
 				$list = $this -> format_list($category, $list);
-				$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('store_goods') . " sg left join " . tablename('store_bases') . " sb on sg.store_base_id = sb.id WHERE sg.weid = '{$_W['uniacid']}' $sql", $params);
+				$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_goods') . " sg left join " . tablename('storex_bases') . " sb on sg.store_base_id = sb.id WHERE sg.weid = '{$_W['uniacid']}' $sql", $params);
 				$pager = pagination($total, $pindex, $psize);
 				include $this->template('room');
 			}
@@ -1844,18 +1844,18 @@ class We7_storexModuleSite extends WeModuleSite {
 		checklogin();
 		$store_type = isset($_GPC['store_type']) ? $_GPC['store_type'] : 0;
 		$hotelid = intval($_GPC['hotelid']);
-		$hotel = pdo_fetch("select id,title,phone from " . tablename('store_bases') . " where id=:id limit 1", array(":id" => $hotelid));
+		$hotel = pdo_fetch("select id,title,phone from " . tablename('storex_bases') . " where id=:id limit 1", array(":id" => $hotelid));
 		$roomid = intval($_GPC['roomid']);
 		if($store_type == 1){
-			$room = pdo_fetch("select id,title from " . tablename('hotel2_room') . " where id=:id limit 1", array(":id" => $roomid));
+			$room = pdo_fetch("select id,title from " . tablename('storex_room') . " where id=:id limit 1", array(":id" => $roomid));
 		}else{
-			$room = pdo_fetch("select id,title from " . tablename('store_goods') . " where id=:id limit 1", array(":id" => $roomid));
+			$room = pdo_fetch("select id,title from " . tablename('storex_goods') . " where id=:id limit 1", array(":id" => $roomid));
 		}
 		$op = $_GPC['op'];
 		if ($op == 'edit') {
 			$id = $_GPC['id'];
 			if (!empty($id)) {
-				$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_order') . " WHERE id = :id", array(':id' => $id));
+				$item = pdo_fetch("SELECT * FROM " . tablename('storex_order') . " WHERE id = :id", array(':id' => $id));
 
 				$paylog = pdo_get('core_paylog', array('uniacid' => $item['weid'], 'tid' => $item['id'], 'module' => 'ewei_hotel'), array('uniacid', 'uniontid', 'tid'));
 				if(!empty($paylog)){
@@ -1868,7 +1868,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			}
 			if (checksubmit('submit')) {
 				$old_status = $_GPC['old_status'];
-				$setting = pdo_get('hotel2_set', array('weid' => $_W['uniacid']));
+				$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']));
 				$data = array(
 					'status' => $_GPC['status'],
 					'msg' => $_GPC['msg'],
@@ -1876,7 +1876,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				);
 				if($store_type == 1){
 					$params = array();
-					$sql = "SELECT id, roomdate, num FROM " . tablename('hotel2_room_price');
+					$sql = "SELECT id, roomdate, num FROM " . tablename('storex_room_price');
 					$sql .= " WHERE 1 = 1";
 					$sql .= " AND roomid = :roomid";
 					$sql .= " AND roomdate >= :btime AND roomdate < :etime";
@@ -1893,7 +1893,7 @@ class We7_storexModuleSite extends WeModuleSite {
 								$num = $value['num'];
 								if ($num >= 0) {
 									$now_num = $num + $item['nums'];
-									pdo_update('hotel2_room_price', array('num' => $now_num), array('id' => $value['id']));
+									pdo_update('storex_room_price', array('num' => $now_num), array('id' => $value['id']));
 								}
 							}
 						}
@@ -1914,7 +1914,7 @@ class We7_storexModuleSite extends WeModuleSite {
 //								} else {
 //									$now_num = 0;
 //								}
-//								pdo_update('hotel2_room_price', array('num' => $now_num), array('id' => $value['id']));
+//								pdo_update('storex_room_price', array('num' => $now_num), array('id' => $value['id']));
 //							}
 //						}
 //					}
@@ -1926,11 +1926,11 @@ class We7_storexModuleSite extends WeModuleSite {
 //					$days = $item['day'];
 //					$room = $item['nums'];
 //					for ($i= 0; $i < $days; $i++) {
-//						$sql = 'SELECT * FROM ' . tablename('hotel2_room_price') . ' WHERE `roomdate` = :roomdate';
+//						$sql = 'SELECT * FROM ' . tablename('storex_room_price') . ' WHERE `roomdate` = :roomdate';
 //						$params = array(':roomdate' => $starttime);
 //						$day = pdo_fetch($sql, $params);
 //						if (!empty($day) && $day['num'] - $room >= 0) {
-//							pdo_update('hotel2_room_price', array('num' => $day['num'] - $room), array('id' => $day['id']));
+//							pdo_update('storex_room_price', array('num' => $day['num'] - $room), array('id' => $day['id']));
 //						}
 //						$starttime += 86400;
 //					}
@@ -2047,7 +2047,7 @@ class We7_storexModuleSite extends WeModuleSite {
 						$status = $acc->sendCustomNotice($custom);
 					}
 				}
-				pdo_update('hotel2_order', $data, array('id' => $id));
+				pdo_update('storex_order', $data, array('id' => $id));
 				message('订单信息处理完成！', $this->createWebUrl('order', array('hotelid' => $hotelid, "roomid" => $roomid)), 'success');
 			}
 			if($store_type == 1){
@@ -2075,7 +2075,7 @@ class We7_storexModuleSite extends WeModuleSite {
 					}
 				}
 				
-				$sql = "SELECT id, roomdate, num, status FROM " . tablename('hotel2_room_price');
+				$sql = "SELECT id, roomdate, num, status FROM " . tablename('storex_room_price');
 				$sql .= " WHERE 1 = 1";
 				$sql .= " AND roomid = :roomid";
 				$sql .= " AND roomdate >= :btime AND roomdate < :etime";
@@ -2128,22 +2128,22 @@ class We7_storexModuleSite extends WeModuleSite {
 					}
 				}
 			}
-			$member_info = pdo_fetch("SELECT from_user,isauto FROM " . tablename('hotel2_member') . " WHERE id = :id LIMIT 1", array(':id' => $item['memberid']));
+			$member_info = pdo_fetch("SELECT from_user,isauto FROM " . tablename('storex_member') . " WHERE id = :id LIMIT 1", array(':id' => $item['memberid']));
 
 			include $this->template('order_form');
 		} elseif ($op == 'delete') {
 			$id = intval($_GPC['id']);
-			$item = pdo_fetch("SELECT id FROM " . tablename('hotel2_order') . " WHERE id = :id LIMIT 1", array(':id' => $id));
+			$item = pdo_fetch("SELECT id FROM " . tablename('storex_order') . " WHERE id = :id LIMIT 1", array(':id' => $id));
 
 			if (empty($item)) {
 				message('抱歉，订单不存在或是已经删除！', '', 'error');
 			}
-			pdo_delete('hotel2_order', array('id' => $id));
+			pdo_delete('storex_order', array('id' => $id));
 			message('删除成功！', referer(), 'success');
 		} elseif($op == 'deleteall') {
 			foreach ($_GPC['idArr'] as $k => $id) {
 				$id = intval($id);
-				pdo_delete('hotel2_order', array('id' => $id));
+				pdo_delete('storex_order', array('id' => $id));
 			}
 			$this->web_message('删除成功！', '', 0);
 			exit();
@@ -2199,15 +2199,15 @@ class We7_storexModuleSite extends WeModuleSite {
 			}
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 20;
-			pdo_query('UPDATE '. tablename('hotel2_order'). " SET status = '-1' WHERE time <  :time AND weid = '{$_W['uniacid']}' AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400));
-			$show_order_lists = pdo_fetchall("SELECT o.*,h.title as hoteltitle,r.title as roomtitle FROM " . tablename('hotel2_order') . " o LEFT JOIN " . tablename('store_bases') .
-				" h on o.hotelid=h.id LEFT JOIN " . tablename("hotel2_room") . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+			pdo_query('UPDATE '. tablename('storex_order'). " SET status = '-1' WHERE time <  :time AND weid = '{$_W['uniacid']}' AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400));
+			$show_order_lists = pdo_fetchall("SELECT o.*,h.title as hoteltitle,r.title as roomtitle FROM " . tablename('storex_order') . " o LEFT JOIN " . tablename('storex_bases') .
+				" h on o.hotelid=h.id LEFT JOIN " . tablename("storex_room") . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
 			$this->getOrderUniontid($show_order_lists);
-			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM  ' . tablename('hotel2_order') . " o LEFT JOIN " . tablename('store_bases') .
-				"h on o.hotelid=h.id LEFT JOIN " . tablename("hotel2_room") . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition", $params);
+			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM  ' . tablename('storex_order') . " o LEFT JOIN " . tablename('storex_bases') .
+				"h on o.hotelid=h.id LEFT JOIN " . tablename("storex_room") . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition", $params);
 			if ($_GPC['export'] != '') {
-				$export_order_lists = pdo_fetchall("SELECT o.*,h.title as hoteltitle,r.title as roomtitle FROM " . tablename('hotel2_order') . " o LEFT JOIN " . tablename('store_bases') .
-						"h on o.hotelid=h.id LEFT JOIN " . tablename("hotel2_room") . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC" . ',' . $psize, $params);
+				$export_order_lists = pdo_fetchall("SELECT o.*,h.title as hoteltitle,r.title as roomtitle FROM " . tablename('storex_order') . " o LEFT JOIN " . tablename('storex_bases') .
+						"h on o.hotelid=h.id LEFT JOIN " . tablename("storex_room") . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC" . ',' . $psize, $params);
 				$this->getOrderUniontid($export_order_lists);
 				/* 输入到CSV文件 */
 				$html = "\xEF\xBB\xBF";
@@ -2322,7 +2322,7 @@ class We7_storexModuleSite extends WeModuleSite {
 	//支付成功后，根据酒店设置的消费返积分的比例给积分
 	public function give_credit($weid, $openid, $sum_price ,$hotelid){
 		load()->model('mc');
-		$hotel_info = pdo_get('hotel2', array('weid' => $weid ,'id' => $hotelid), array('integral_rate', 'weid'));
+		$hotel_info = pdo_get('storex_hotel', array('weid' => $weid ,'id' => $hotelid), array('integral_rate', 'weid'));
 		$num = $sum_price * $hotel_info['integral_rate']*0.01;//实际消费的金额*比例(值时百分数)*0.01
 		$tips .= "用户消费{$sum_price}元，支付{$sum_price}，积分赠送比率为:【1：{$hotel_info['integral_rate']}%】,共赠送【{$num}】积分";
 		mc_credit_update($openid, 'credit1', $num, array('0', $tip, 'we7_storex', 0, 0, 3));
@@ -2332,12 +2332,12 @@ class We7_storexModuleSite extends WeModuleSite {
 	public function doWebMember() {
 		global $_GPC, $_W;
 		$op = $_GPC['op'];
-		pdo_delete('hotel2_member', array('weid' => $_W['uniacid'], 'from_user' => ''));
+		pdo_delete('storex_member', array('weid' => $_W['uniacid'], 'from_user' => ''));
 		if ($op == 'edit') {
 			$id = intval($_GPC['id']);
 
 			if (!empty($id)) {
-				$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_member') . " WHERE id = :id", array(':id' => $id));
+				$item = pdo_fetch("SELECT * FROM " . tablename('storex_member') . " WHERE id = :id", array(':id' => $id));
 				if (empty($item)) {
 					message('抱歉，用户不存在或是已经删除！', '', 'error');
 				}
@@ -2362,7 +2362,7 @@ class We7_storexModuleSite extends WeModuleSite {
 							message('请填写店员的微信昵称，否则无法获取到店员', '', 'info');
 						}
 					} else {
-						$from_user = pdo_get('hotel2_member', array('id' => $id, 'weid' => $_W['uniacid']));
+						$from_user = pdo_get('storex_member', array('id' => $id, 'weid' => $_W['uniacid']));
 						if (empty($from_user['from_user']) && empty($data['nickname'])) {
 							message('请填写店员的微信昵称，否则无法获取到店员', '', 'info');
 						}
@@ -2379,28 +2379,28 @@ class We7_storexModuleSite extends WeModuleSite {
 					//$data['password'] = md5($_GPC['password']);
 				}
 				if (empty($id)) {
-					$c = pdo_fetchcolumn("select count(*) from " . tablename('hotel2_member') . " where username=:username ", array(":username" => $data['username']));
+					$c = pdo_fetchcolumn("select count(*) from " . tablename('storex_member') . " where username=:username ", array(":username" => $data['username']));
 					if ($c > 0) {
 						message("用户名 " . $data['username'] . " 已经存在!", "", "error");
 					}
 					$data['createtime'] = time();
-					pdo_insert('hotel2_member', $data);
+					pdo_insert('storex_member', $data);
 				} else {
-					pdo_update('hotel2_member', $data, array('id' => $id));
+					pdo_update('storex_member', $data, array('id' => $id));
 				}
 				message('用户信息更新成功！', $this->createWebUrl('member',array('clerk' => $data['clerk'])), 'success');
 			}
 			include $this->template('member_form');
 		} else if ($op == 'delete') {
 			$id = intval($_GPC['id']);
-			pdo_delete('hotel2_member', array('id' => $id));
-			pdo_delete('hotel2_order', array('memberid' => $id));
+			pdo_delete('storex_member', array('id' => $id));
+			pdo_delete('storex_order', array('memberid' => $id));
 			message('删除成功！', referer(), 'success');
 		} else if ($op == 'deleteall') {
 			foreach ($_GPC['idArr'] as $k => $id) {
 				$id = intval($id);
-				pdo_delete('hotel2_member', array('id' => $id));
-				pdo_delete('hotel2_order', array('memberid' => $id));
+				pdo_delete('storex_member', array('id' => $id));
+				pdo_delete('storex_order', array('memberid' => $id));
 			}
 			$this->web_message('规则操作成功！', '', 0);
 			exit();
@@ -2413,7 +2413,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			foreach ($_GPC['idArr'] as $k => $id) {
 				$id = intval($id);
 				if (!empty($id)) {
-					pdo_update('hotel2_member', array('status' => $show_status), array('id' => $id));
+					pdo_update('storex_member', array('status' => $show_status), array('id' => $id));
 				}
 			}
 			$this->web_message('操作成功！', '', 0);
@@ -2423,7 +2423,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			if (empty($id)) {
 				message('抱歉，传递的参数错误！', '', 'error');
 			}
-			$temp = pdo_update('hotel2_member', array('status' => $_GPC['status']), array('id' => $id));
+			$temp = pdo_update('storex_member', array('status' => $_GPC['status']), array('id' => $id));
 
 			if ($temp == false) {
 				message('抱歉，刚才操作数据失败！', '', 'error');
@@ -2445,8 +2445,8 @@ class We7_storexModuleSite extends WeModuleSite {
 
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 20;
-			$list = pdo_fetchall("SELECT * FROM " . tablename('hotel2_member') . " WHERE weid = '{$_W['uniacid']}' $sql ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
-			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('hotel2_member') . " WHERE weid = '{$_W['uniacid']}' $sql", $params);
+			$list = pdo_fetchall("SELECT * FROM " . tablename('storex_member') . " WHERE weid = '{$_W['uniacid']}' $sql ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_member') . " WHERE weid = '{$_W['uniacid']}' $sql", $params);
 			$pager = pagination($total, $pindex, $psize);
 			include $this->template('member');
 		}
@@ -2495,14 +2495,14 @@ class We7_storexModuleSite extends WeModuleSite {
 				}
 			}
 			if (!empty($id)) {
-				pdo_update("hotel2_set", $data, array("id" => $id));
+				pdo_update("storex_set", $data, array("id" => $id));
 			} else {
-				pdo_insert("hotel2_set", $data);
+				pdo_insert("storex_set", $data);
 			}
 			message("保存设置成功!", referer(), "success");
 		}
 
-		$sql = 'SELECT * FROM ' . tablename('hotel2_set') . ' WHERE `weid` = :weid';
+		$sql = 'SELECT * FROM ' . tablename('storex_set') . ' WHERE `weid` = :weid';
 		$set = pdo_fetch($sql, array(':weid' => $_W['uniacid']));
 		if (empty($set)) {
 			$set = array('user' => 1, 'reg' => 1, 'bind' => 1);
@@ -2516,7 +2516,7 @@ class We7_storexModuleSite extends WeModuleSite {
 		if ($op == 'edit') {
 			$id = intval($_GPC['id']);
 			if (!empty($id)) {
-				$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_brand') . " WHERE id = :id", array(':id' => $id));
+				$item = pdo_fetch("SELECT * FROM " . tablename('storex_brand') . " WHERE id = :id", array(':id' => $id));
 				if (empty($item)) {
 					message('抱歉，品牌不存在或是已经删除！', '', 'error');
 				}
@@ -2530,21 +2530,21 @@ class We7_storexModuleSite extends WeModuleSite {
 				);
 
 				if (empty($id)) {
-					pdo_insert('hotel2_brand', $data);
+					pdo_insert('storex_brand', $data);
 				} else {
-					pdo_update('hotel2_brand', $data, array('id' => $id));
+					pdo_update('storex_brand', $data, array('id' => $id));
 				}
 				message('品牌信息更新成功！', $this->createWebUrl('brand'), 'success');
 			}
 			include $this->template('brand_form');
 		} else if ($op == 'delete') {
 			$id = intval($_GPC['id']);
-			pdo_delete('hotel2_brand', array('id' => $id));
+			pdo_delete('storex_brand', array('id' => $id));
 			message('删除成功！', referer(), 'success');
 		} else if ($op == 'deleteall') {
 			foreach ($_GPC['idArr'] as $k => $id) {
 				$id = intval($id);
-				pdo_delete('hotel2_brand', array('id' => $id));
+				pdo_delete('storex_brand', array('id' => $id));
 			}
 			$this->web_message('规则操作成功！', '', 0);
 			exit();
@@ -2559,7 +2559,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				$id = intval($id);
 
 				if (!empty($id)) {
-					pdo_update('hotel2_brand', array('status' => $show_status), array('id' => $id));
+					pdo_update('storex_brand', array('status' => $show_status), array('id' => $id));
 				}
 			}
 			$this->web_message('操作成功！', '', 0);
@@ -2570,7 +2570,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			if (empty($id)) {
 				message('抱歉，传递的参数错误！', '', 'error');
 			}
-			$temp = pdo_update('hotel2_brand', array('status' => $_GPC['status']), array('id' => $id));
+			$temp = pdo_update('storex_brand', array('status' => $_GPC['status']), array('id' => $id));
 
 			if ($temp == false) {
 				message('抱歉，刚才操作数据失败！', '', 'error');
@@ -2586,8 +2586,8 @@ class We7_storexModuleSite extends WeModuleSite {
 			}
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 20;
-			$list = pdo_fetchall("SELECT * FROM " . tablename('hotel2_brand') . " WHERE weid = '{$_W['uniacid']}' $sql ORDER BY displayorder DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
-			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('hotel2_brand') . " WHERE weid = '{$_W['uniacid']}' $sql", $params);
+			$list = pdo_fetchall("SELECT * FROM " . tablename('storex_brand') . " WHERE weid = '{$_W['uniacid']}' $sql ORDER BY displayorder DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_brand') . " WHERE weid = '{$_W['uniacid']}' $sql", $params);
 			$pager = pagination($total, $pindex, $psize);
 			include $this->template('brand');
 		}
@@ -2596,7 +2596,7 @@ class We7_storexModuleSite extends WeModuleSite {
 	public function doWebGetBusiness() {
 		global $_W, $_GPC;
 		$kwd = trim($_GPC['keyword']);
-		$sql = 'SELECT * FROM ' . tablename('hotel2_business') . ' WHERE `weid`=:weid';
+		$sql = 'SELECT * FROM ' . tablename('storex_business') . ' WHERE `weid`=:weid';
 		$params = array();
 		$params[':weid'] = $_W['uniacid'];
 		if (!empty($kwd)) {
@@ -2614,7 +2614,7 @@ class We7_storexModuleSite extends WeModuleSite {
 		if ($op == 'edit') {
 			$id = intval($_GPC['id']);
 			if (!empty($id)) {
-				$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_business') . " WHERE id = :id", array(':id' => $id));
+				$item = pdo_fetch("SELECT * FROM " . tablename('storex_business') . " WHERE id = :id", array(':id' => $id));
 				if (empty($item)) {
 					message('抱歉，商圈不存在或是已经删除！', '', 'error');
 				}
@@ -2632,22 +2632,22 @@ class We7_storexModuleSite extends WeModuleSite {
 				);
 
 				if (empty($id)) {
-					pdo_insert('hotel2_business', $data);
+					pdo_insert('storex_business', $data);
 				} else {
-					pdo_update('hotel2_business', $data, array('id' => $id));
+					pdo_update('storex_business', $data, array('id' => $id));
 				}
 				message('商圈信息更新成功！', $this->createWebUrl('business'), 'success');
 			}
 			include $this->template('business_form');
 		} else if ($op == 'delete') {
 			$id = intval($_GPC['id']);
-			pdo_delete('hotel2_business', array('id' => $id));
+			pdo_delete('storex_business', array('id' => $id));
 			message('删除成功！', referer(), 'success');
 		} else if ($op == 'deleteall') {
 			foreach ($_GPC['idArr'] as $k => $id) {
 
 				$id = intval($id);
-				pdo_delete('hotel2_business', array('id' => $id));
+				pdo_delete('storex_business', array('id' => $id));
 			}
 			$this->web_message('规则操作成功！', '', 0);
 			exit();
@@ -2662,7 +2662,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				$id = intval($id);
 
 				if (!empty($id)) {
-					pdo_update('hotel2_business', array('status' => $show_status), array('id' => $id));
+					pdo_update('storex_business', array('status' => $show_status), array('id' => $id));
 				}
 			}
 			$this->web_message('操作成功！', '', 0);
@@ -2673,7 +2673,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			if (empty($id)) {
 				message('抱歉，传递的参数错误！', '', 'error');
 			}
-			$temp = pdo_update('hotel2_business', array('status' => $_GPC['status']), array('id' => $id));
+			$temp = pdo_update('storex_business', array('status' => $_GPC['status']), array('id' => $id));
 
 			if ($temp == false) {
 				message('抱歉，刚才操作数据失败！', '', 'error');
@@ -2689,8 +2689,8 @@ class We7_storexModuleSite extends WeModuleSite {
 			}
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 20;
-			$list = pdo_fetchall("SELECT * FROM " . tablename('hotel2_business') . " WHERE weid = '{$_W['uniacid']}' $sql ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
-			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('hotel2_business') . " WHERE weid = '{$_W['uniacid']}' $sql", $params);
+			$list = pdo_fetchall("SELECT * FROM " . tablename('storex_business') . " WHERE weid = '{$_W['uniacid']}' $sql ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_business') . " WHERE weid = '{$_W['uniacid']}' $sql", $params);
 			$pager = pagination($total, $pindex, $psize);
 			include $this->template('business');
 		}
@@ -2702,12 +2702,12 @@ class We7_storexModuleSite extends WeModuleSite {
 		global $_GPC, $_W;
 		$op = $_GPC['op'];
 		$weid = $this->_weid;
-		pdo_delete('hotel2_member', array('weid' => $_W['uniacid'], 'from_user' => ''));
+		pdo_delete('storex_member', array('weid' => $_W['uniacid'], 'from_user' => ''));
 		if ($op == 'edit') {
 			$id = intval($_GPC['id']);
 
 			if (!empty($id)) {
-				$item = pdo_fetch("SELECT * FROM " . tablename('hotel2_member') . " WHERE id = :id", array(':id' => $id));
+				$item = pdo_fetch("SELECT * FROM " . tablename('storex_member') . " WHERE id = :id", array(':id' => $id));
 				if (empty($item)) {
 					message('抱歉，用户不存在或是已经删除！', '', 'error');
 				}
@@ -2731,7 +2731,7 @@ class We7_storexModuleSite extends WeModuleSite {
 							message('请填写店员的微信昵称，否则无法获取到店员', '', 'info');
 						}
 					} else {
-						$from_user = pdo_get('hotel2_member', array('id' => $id, 'weid' => $_W['uniacid']));
+						$from_user = pdo_get('storex_member', array('id' => $id, 'weid' => $_W['uniacid']));
 						if (empty($from_user['from_user']) && empty($data['nickname'])) {
 							message('请填写店员的微信昵称，否则无法获取到店员', '', 'info');
 						}
@@ -2748,33 +2748,33 @@ class We7_storexModuleSite extends WeModuleSite {
 					//$data['password'] = md5($_GPC['password']);
 				}
 				if (empty($id)) {
-					$c = pdo_fetchcolumn("select count(*) from " . tablename('hotel2_member') . " where username=:username ", array(":username" => $data['username']));
+					$c = pdo_fetchcolumn("select count(*) from " . tablename('storex_member') . " where username=:username ", array(":username" => $data['username']));
 					if ($c > 0) {
 						message("用户名 " . $data['username'] . " 已经存在!", "", "error");
 					}
 					$data['createtime'] = time();
-					$result = pdo_get('hotel2_member', array('from_user' => $data['from_user'], 'weid' => $_W['uniacid']));
+					$result = pdo_get('storex_member', array('from_user' => $data['from_user'], 'weid' => $_W['uniacid']));
 					if ($result['from_user']) {
-						pdo_update('hotel2_member', $data, array('id' => $result['id']));
+						pdo_update('storex_member', $data, array('id' => $result['id']));
 					} else {
-						pdo_insert('hotel2_member', $data);
+						pdo_insert('storex_member', $data);
 					}
 				} else {
-					pdo_update('hotel2_member', $data, array('id' => $id));
+					pdo_update('storex_member', $data, array('id' => $id));
 				}
 				message('用户信息更新成功！', $this->createWebUrl('clerk',array('clerk' => $data['clerk'])), 'success');
 			}
 			include $this->template('clerk_form');
 		} else if ($op == 'delete') {
 			$id = intval($_GPC['id']);
-			pdo_delete('hotel2_member', array('id' => $id));
-			pdo_delete('hotel2_order', array('memberid' => $id));
+			pdo_delete('storex_member', array('id' => $id));
+			pdo_delete('storex_order', array('memberid' => $id));
 			message('删除成功！', referer(), 'success');
 		} else if ($op == 'deleteall') {
 			foreach ($_GPC['idArr'] as $k => $id) {
 				$id = intval($id);
-				pdo_delete('hotel2_member', array('id' => $id));
-				pdo_delete('hotel2_order', array('memberid' => $id));
+				pdo_delete('storex_member', array('id' => $id));
+				pdo_delete('storex_order', array('memberid' => $id));
 			}
 			$this->web_message('规则操作成功！', '', 0);
 			exit();
@@ -2787,7 +2787,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			foreach ($_GPC['idArr'] as $k => $id) {
 				$id = intval($id);
 				if (!empty($id)) {
-					pdo_update('hotel2_member', array('status' => $show_status), array('id' => $id));
+					pdo_update('storex_member', array('status' => $show_status), array('id' => $id));
 				}
 			}
 			$this->web_message('操作成功！', '', 0);
@@ -2797,7 +2797,7 @@ class We7_storexModuleSite extends WeModuleSite {
 			if (empty($id)) {
 				message('抱歉，传递的参数错误！', '', 'error');
 			}
-			$temp = pdo_update('hotel2_member', array('status' => $_GPC['status']), array('id' => $id));
+			$temp = pdo_update('storex_member', array('status' => $_GPC['status']), array('id' => $id));
 
 			if ($temp == false) {
 				message('抱歉，刚才操作数据失败！', '', 'error');
@@ -2809,12 +2809,12 @@ class We7_storexModuleSite extends WeModuleSite {
 			$id = intval($_GPC['id']);
 			$where = ' WHERE `uniacid` = :uniacid';
 			$params = array(':uniacid' => $weid);
-			$sql = 'SELECT COUNT(*) FROM ' . tablename('hotel2_comment_clerk') . $where;
+			$sql = 'SELECT COUNT(*) FROM ' . tablename('storex_comment_clerk') . $where;
 			$total = pdo_fetchcolumn($sql, $params);
 			if ($total > 0) {
 				$pindex = max(1, intval($_GPC['page']));
 				$psize = 10;
-				$sql = 'SELECT * FROM ' . tablename('hotel2_comment_clerk') . $where . ' ORDER BY `id` DESC LIMIT ' .
+				$sql = 'SELECT * FROM ' . tablename('storex_comment_clerk') . $where . ' ORDER BY `id` DESC LIMIT ' .
 					($pindex - 1) * $psize . ',' . $psize;
 				$comments = pdo_fetchall($sql, $params);
 				$pager = pagination($total, $pindex, $psize);
@@ -2835,8 +2835,8 @@ class We7_storexModuleSite extends WeModuleSite {
 				$sql .= " AND clerk = '1'";
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 20;
-			$list = pdo_fetchall("SELECT * FROM " . tablename('hotel2_member') . " WHERE weid = '{$_W['uniacid']}'  $sql ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
-			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('hotel2_member') . " WHERE `weid` = '{$_W['uniacid']}' $sql", $params);
+			$list = pdo_fetchall("SELECT * FROM " . tablename('storex_member') . " WHERE weid = '{$_W['uniacid']}'  $sql ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_member') . " WHERE `weid` = '{$_W['uniacid']}' $sql", $params);
 			$pager = pagination($total, $pindex, $psize);
 			include $this->template('clerk');
 		}

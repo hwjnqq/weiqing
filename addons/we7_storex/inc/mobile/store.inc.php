@@ -9,32 +9,32 @@ $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 check_params();
 //获取店铺列表
 if ($op == 'store_list') {
-	$setting = pdo_get('hotel2_set', array('weid' => $_W['uniacid']), array('id', 'version'));
+	$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('id', 'version'));
 	if ($setting['version'] == 0) {//单店
 		$limit = array(1,1);
 	}
-	$store_bases = pdo_getall('store_bases', array('weid' => $_W['uniacid'], 'status' => 1), array(), '', 'displayorder DESC', $limit);
-	foreach ($store_bases as $key => $info) {
-		$store_bases[$key]['thumb'] = tomedia($info['thumb']);
+	$storex_bases = pdo_getall('storex_bases', array('weid' => $_W['uniacid'], 'status' => 1), array(), '', 'displayorder DESC', $limit);
+	foreach ($storex_bases as $key => $info) {
+		$storex_bases[$key]['thumb'] = tomedia($info['thumb']);
 		$info['thumbs'] =  iunserializer($info['thumbs']);
-		$store_bases[$key]['timestart'] = date("G:i", $info['timestart']);
-		$store_bases[$key]['timeend'] = date("G:i", $info['timeend']);
+		$storex_bases[$key]['timestart'] = date("G:i", $info['timestart']);
+		$storex_bases[$key]['timeend'] = date("G:i", $info['timeend']);
 		if (!empty($info['thumbs'])) {
 			foreach ($info['thumbs'] as $k => $url) {
-				$store_bases[$key]['thumbs'][$k] = tomedia($url);
+				$storex_bases[$key]['thumbs'][$k] = tomedia($url);
 			}
 		}
 	}
 	$store_list = array();
 	$store_list['version'] = $setting['version'];
-	$store_list['stores'] = $store_bases;
+	$store_list['stores'] = $storex_bases;
 	message(error(0, $store_list), '', 'ajax');
 }
 //获取某个店铺的详细信息
 if ($op == 'store_detail') {
-	$setting = pdo_get('hotel2_set', array('weid' => $_W['uniacid']));
+	$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']));
 	$store_id = intval($_GPC['store_id']);//店铺id
-	$store_detail = pdo_get('store_bases', array('weid' => $_W['uniacid'], 'id' => $store_id));
+	$store_detail = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $store_id));
 	if (empty($store_detail)) {
         message(error(-1, '店铺不存在'), '', 'ajax');
     } else {

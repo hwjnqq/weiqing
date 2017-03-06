@@ -113,7 +113,7 @@ function format_url($urls){
 //获取店铺信息
 function get_store_info(){
 	global $_W, $_GPC;
-	$store_info = pdo_get('store_bases', array('weid' => $_W['uniacid'], 'id' => intval($_GPC['id'])), array('id', 'store_type', 'status'));
+	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => intval($_GPC['id'])), array('id', 'store_type', 'status'));
 	if (empty($store_info)) {
 		message(error(-1, '店铺不存在'), '', 'ajax');
 	} else {
@@ -128,7 +128,7 @@ function get_store_info(){
 //支付
 function pay_info($order_id){
 	global $_W;
-	$order_info = pdo_get('hotel2_order', array('id' => $order_id, 'weid' => intval($_W['uniacid']), 'openid' => $_W['openid']));
+	$order_info = pdo_get('storex_order', array('id' => $order_id, 'weid' => intval($_W['uniacid']), 'openid' => $_W['openid']));
 	if(!empty($order_info)){
 		$params = array(
             'ordersn' => $order_info['ordersn'],
@@ -146,7 +146,7 @@ function pay_info($order_id){
 //获取某一级分类下的所有二级分类
 function category_sub_class(){
 	global $_W, $_GPC;
-	return pdo_getall('store_categorys', array('weid' => $_W['uniacid'],'parentid' => intval($_GPC['first_id']), 'enabled' => 1), array(), '', 'displayorder DESC');
+	return pdo_getall('storex_categorys', array('weid' => $_W['uniacid'],'parentid' => intval($_GPC['first_id']), 'enabled' => 1), array(), '', 'displayorder DESC');
 }
 
 //获取一二级分类下的商品信息

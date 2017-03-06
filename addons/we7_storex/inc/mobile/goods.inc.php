@@ -18,10 +18,10 @@ if ($op == 'goods_info') {
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
 	if ($store_info['store_type'] == 1) {
 		$condition['hotelid'] = $store_id;
-		$table = 'hotel2_room';
+		$table = 'storex_room';
 	} else {
 		$condition['store_base_id'] = $store_id;
-		$table = 'store_goods';
+		$table = 'storex_goods';
 	}
 	$goods_info = pdo_get($table, $condition);
 	if (empty($goods_info)) {
@@ -66,12 +66,12 @@ if ($op == 'info') {
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
 	if ($store_info['store_type'] == 1) {
 		$condition['hotelid'] = $store_id;
-		$table = 'hotel2_room';
+		$table = 'storex_room';
 		$goods_info = pdo_get($table, $condition);
 		$goods_info['max_room'] = $max_room;
 	}else{
 		$condition['store_base_id'] = $store_id;
-		$table = 'store_goods';
+		$table = 'storex_goods';
 		$goods_info = pdo_get($table, $condition);
 	}
 	$member_p = unserialize($goods_info['mprice']);
@@ -125,14 +125,14 @@ if ($op == 'order'){
 			message(error(-1, '天数不能是零'), '', 'ajax');
 		}
 		$condition['hotelid'] = $store_id;
-		$table = 'hotel2_room';
+		$table = 'storex_room';
 		$room = pdo_get($table, $condition);
 		goods_check_action($action, $room);
-		$reply = pdo_get('store_bases', array('id' => $store_id), array('title', 'mail', 'phone', 'thumb', 'description'));
+		$reply = pdo_get('storex_bases', array('id' => $store_id), array('title', 'mail', 'phone', 'thumb', 'description'));
 		if (empty($reply)) {
 			message(error(-1, '酒店未找到, 请联系管理员!'), '', 'ajax');
 		}
-		$setInfo = pdo_get('hotel2_set', array('weid' => intval($_W['uniacid'])), array('weid', 'tel', 'is_unify', 'email', 'template', 'templateid', 'smscode'));
+		$setInfo = pdo_get('storex_set', array('weid' => intval($_W['uniacid'])), array('weid', 'tel', 'is_unify', 'email', 'template', 'templateid', 'smscode'));
 		//获取酒店的电话
 		if ($setInfo['is_unify'] == 1) {
 			$tel = $setInfo['tel'];
@@ -165,7 +165,7 @@ if ($op == 'order'){
 			}
 		}
 		//酒店信息
-		$sql = 'SELECT `id`, `roomdate`, `num`, `status` FROM ' . tablename('hotel2_room_price') . ' WHERE `roomid` = :roomid
+		$sql = 'SELECT `id`, `roomdate`, `num`, `status` FROM ' . tablename('storex_room_price') . ' WHERE `roomid` = :roomid
 			AND `roomdate` >= :btime AND `roomdate` < :etime AND `status` = :status';
 		$params = array(':roomid' => $goodsid, ':btime' => $btime, ':etime' => $etime, ':status' => '1');
 		$room_date_list = pdo_fetchall($sql, $params);
@@ -202,7 +202,7 @@ if ($op == 'order'){
 
 		$user_info = hotel_get_userinfo();
 		$memberid = intval($user_info['id']);
-		$r_sql = 'SELECT `roomdate`, `num`, `oprice`, `cprice`, `status`, ' . $pricefield . ' AS `m_price` FROM ' . tablename('hotel2_room_price') .
+		$r_sql = 'SELECT `roomdate`, `num`, `oprice`, `cprice`, `status`, ' . $pricefield . ' AS `m_price` FROM ' . tablename('storex_room_price') .
 		' WHERE `roomid` = :roomid AND `weid` = :weid AND `hotelid` = :hotelid AND `roomdate` >= :btime AND ' .
 		' `roomdate` < :etime  order by roomdate desc';
 		$params = array(':roomid' => $goodsid, ':weid' => intval($_W['uniacid']), ':hotelid' => $store_id, ':btime' => $btime, ':etime' => $etime);
@@ -270,12 +270,12 @@ if ($op == 'order'){
 		if($insert['sum_price'] <= 0){
 			message(error(-1, '总价为零，请联系管理员！'), '', 'ajax');
 		}
-		pdo_query('UPDATE '. tablename('hotel2_order'). " SET status = '-1' WHERE time <  :time AND weid = '{$_W['uniacid']}' AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400));
-		$order_exist = pdo_fetch("SELECT * FROM ". tablename('hotel2_order'). " WHERE hotelid = :hotelid AND roomid = :roomid AND openid = :openid AND status = '0'", array(':hotelid' => $insert['hotelid'], ':roomid' => $insert['roomid'], ':openid' => $insert['openid']));
+		pdo_query('UPDATE '. tablename('storex_order'). " SET status = '-1' WHERE time <  :time AND weid = '{$_W['uniacid']}' AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400));
+		$order_exist = pdo_fetch("SELECT * FROM ". tablename('storex_order'). " WHERE hotelid = :hotelid AND roomid = :roomid AND openid = :openid AND status = '0'", array(':hotelid' => $insert['hotelid'], ':roomid' => $insert['roomid'], ':openid' => $insert['openid']));
 		if ($order_exist) {
 			//message(error(0, "您有未完成订单,不能重复下单"), '', 'ajax');
 		}
-		pdo_insert('hotel2_order', $insert);
+		pdo_insert('storex_order', $insert);
 		$order_id = pdo_insertid();
 
 		//如果有接受订单的邮件,
@@ -294,23 +294,23 @@ if ($op == 'order'){
 			load()->func('communication');
 			ihttp_email($reply['mail'], $subject, $body);
 		}
-		$sql = 'SELECT * FROM ' . tablename('hotel2_order') . ' WHERE id = :id AND weid = :weid';
+		$sql = 'SELECT * FROM ' . tablename('storex_order') . ' WHERE id = :id AND weid = :weid';
 		$order = pdo_fetch($sql, array(':id' => $order_id, ':weid' => intval($_W['uniacid'])));
 		if($insert['paytype'] == '3') {
 			//到店付款减库存
 			$starttime = $insert['btime'];
 			for ($i = 0; $i < $insert['day']; $i++) {
-				$sql = 'SELECT * FROM '. tablename('hotel2_room_price'). ' WHERE weid = :weid AND roomid = :roomid AND roomdate = :roomdate';
+				$sql = 'SELECT * FROM '. tablename('storex_room_price'). ' WHERE weid = :weid AND roomid = :roomid AND roomdate = :roomdate';
 				$day = pdo_fetch($sql, array(':weid' => intval($_W['uniacid']), ':roomid' => $insert['roomid'], ':roomdate' => $starttime));
-				pdo_update('hotel2_room_price', array('num' => $day['num'] - $insert['nums']), array('id' => $day['id']));
+				pdo_update('storex_room_price', array('num' => $day['num'] - $insert['nums']), array('id' => $day['id']));
 				$starttime += 86400;
 			}
 		}
-		pdo_update('hotel2_member', array('mobile' => $insert['mobile'], 'realname' => $insert['contact_name']), array('weid' => intval($_W['uniacid']), 'from_user' => $_W['openid']));
+		pdo_update('storex_member', array('mobile' => $insert['mobile'], 'realname' => $insert['contact_name']), array('weid' => intval($_W['uniacid']), 'from_user' => $_W['openid']));
 		goods_check_result($action, $order_id);
 	}else{
 		$condition['store_base_id'] = $store_id;
-		$table = 'store_goods';
+		$table = 'storex_goods';
 		$goods_info = pdo_get($table, $condition);
 		goods_check_action($action, $goods_info);//检查是否符合条件
 		$member_p = unserialize($goods_info['mprice']);
@@ -347,7 +347,7 @@ if ($op == 'order'){
 		);
 		$insert['sum_price'] = $order_info['nums'] * $now_price;//结合会员，需修改
 		$insert = array_merge($insert, $order_info);
-		pdo_insert('hotel2_order', $insert);
+		pdo_insert('storex_order', $insert);
 		$order_id = pdo_insertid();
 		goods_check_result($action, $order_id);
 	}
