@@ -151,7 +151,7 @@ class We7_storexModuleSite extends WeModuleSite {
 		$from_user = $this->_from_user;
 		$set = $this->_set_info;
 		$hid = $_GPC['hid'];
-		$user_info = pdo_fetch("SELECT * FROM " . tablename('storex__member') . " WHERE from_user = :from_user AND weid = :weid limit 1", array(':from_user' => $from_user, ':weid' => $weid));
+		$user_info = pdo_fetch("SELECT * FROM " . tablename('storex_member') . " WHERE from_user = :from_user AND weid = :weid limit 1", array(':from_user' => $from_user, ':weid' => $weid));
 		//独立用户
 		if ($set['user'] == 2) {
 
