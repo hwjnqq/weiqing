@@ -1653,8 +1653,8 @@ class We7_storexModuleSite extends WeModuleSite {
 				$sql = "";
 				$params = array();
 				if (!empty($_GPC['title'])) {
-					$sql .= ' AND `title` LIKE :keywords';
-					$params[':keywords'] = "%{$_GPC['title']}%";
+					$sql .= ' AND r.title LIKE :keywordds';
+					$params[':keywordds'] = "%{$_GPC['title']}%";
 				}
 				if (!empty($_GPC['hoteltitle'])) {
 					$sql .= ' AND h.title LIKE :keywords';
@@ -1793,8 +1793,8 @@ class We7_storexModuleSite extends WeModuleSite {
 				$sql = "";
 				$params = array();
 				if (!empty($_GPC['title'])) {
-					$sql .= ' AND `title` LIKE :keywords';
-					$params[':keywords'] = "%{$_GPC['title']}%";
+					$sql .= ' AND sg.title LIKE :keywordds';
+					$params[':keywordds'] = "%{$_GPC['title']}%";
 				}
 				if (!empty($_GPC['hoteltitle'])) {
 					$sql .= ' AND sb.title LIKE :keywords';
@@ -1805,7 +1805,6 @@ class We7_storexModuleSite extends WeModuleSite {
 				$list = pdo_fetchall("SELECT sg.*,sb.title as hoteltitle FROM " . tablename('store_goods') . " sg left join " . tablename('store_bases') . " sb on sg.store_base_id = sb.id WHERE sg.weid = '{$_W['uniacid']}' $sql ORDER BY sb.id, sg.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
 				$list = $this -> format_list($category, $list);
 				$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('store_goods') . " sg left join " . tablename('store_bases') . " sb on sg.store_base_id = sb.id WHERE sg.weid = '{$_W['uniacid']}' $sql", $params);
-
 				$pager = pagination($total, $pindex, $psize);
 				include $this->template('room');
 			}
