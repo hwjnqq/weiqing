@@ -83,9 +83,13 @@
 				<td class="with-checkbox">
 				<input type="checkbox" name="check" value="{$item['id']}">
 				</td>
-				<td>{$item['pcate']}</td>
-				<td>{$item['ccate']}</td>
 				<td>{$item['hoteltitle']}</td>
+				<td>{$item['pcate']}</td>
+				{if $item['ccate'] <> '0'}
+				<td>{$item['ccate']}</td>
+				{else}
+				<td> </td>
+				{/if}
 				<td>{$item['title']}</td>
 				<td>{$item['sortid']}</td>
 				<td>{$item['oprice']}</td>
