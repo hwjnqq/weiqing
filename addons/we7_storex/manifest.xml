@@ -16,11 +16,10 @@
         <handles>
             <message type="text" />
         </handles>
-        <rule embed="true" />
     </platform>
     <bindings>
         <cover>
-            <entry title="万能小店入口设置" do="index" />
+            <entry title="万能小店入口设置" do="display" />
         </cover>
         <menu>
             <entry title="店铺管理" do="storemanage" state="" direct="false" />

@@ -99,8 +99,8 @@ class We7_storexModuleSite extends WeModuleSite {
 	public function getItemTiles() {
 		global $_W;
 		$urls = array(
-			array('title' => "酒店首页", 'url' => $this->createMobileUrl('index')),
-			array('title' => "我的订单", 'url' => $this->createMobileUrl('orderlist')),
+			array('title' => "酒店首页", 'url' => $this->createMobileUrl('display')),
+			array('title' => "我的订单", 'url' => $this->createMobileUrl('display')) . '#/Home/OrderList/',
 		);
 		return $urls;
 	}
