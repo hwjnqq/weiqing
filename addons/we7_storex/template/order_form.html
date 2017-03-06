@@ -2,7 +2,7 @@
 {template 'common'}
 <div class="main">
 	<ul class="nav nav-tabs">
-		<li><a href="{php echo $this->createWebUrl('order',array('op'=>'list','hotelid'=>$hotelid,'roomidid'=>$roomidid));}">订单管理</a></li>
+		<li><a href="{php echo $this->createWebUrl('order',array('op'=>'list'));}">订单管理</a></li>
 		<li class="active"><a href="{php echo $this->createWebUrl('order',array('op'=>'edit','id'=>$id));}">订单处理</a></li>
 	</ul>
 	<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data" onsubmit="return formcheck();">
