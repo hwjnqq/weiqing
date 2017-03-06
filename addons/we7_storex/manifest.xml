@@ -2,12 +2,12 @@
 <manifest xmlns="http://www.we7.cc" versionCode="0.52">
     <application setting="false">
         <name><![CDATA[万能小店]]></name>
-        <identifie><![CDATA[we7_storex]]></identifie>
+        <identifie><![CDATA[wn_storex]]></identifie>
         <version><![CDATA[1.0.0]]></version>
         <type><![CDATA[business]]></type>
         <ability><![CDATA[万能小店]]></ability>
         <description><![CDATA[万能小店]]></description>
-        <author><![CDATA[ewei & WeEngine Team]]></author>
+        <author><![CDATA[wannengjun]]></author>
         <url><![CDATA[]]></url>
     </application>
     <platform>
