@@ -25,7 +25,8 @@
 						{$room['title']}
 					</div>
 				</div>
-				<div class="form-group" {if $hotel['store_type'] != 1} style="display:none"{/if}>
+				{if $store_type == 1}
+				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">房量/房态</label>
 					<div class="col-sm-9 col-xs-12 form-control-static">
 						<select multiple="true" name="room_list" id="room_list" style="height:200px" class='form-control'>
@@ -44,6 +45,7 @@
 						</select>
 					</div>
 				</div>
+				{/if}
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">用户类型</label>
 					<div class="col-sm-9 col-xs-12 form-control-static">
@@ -72,24 +74,26 @@
 						{$item['mobile']}
 					</div>
 				</div>
-				<div class="form-group" {if $hotel['store_type'] != 1} style="display:none"{/if}>
+				{if $store_type == 1}
+				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">到店时间</label>
 					<div class="col-sm-9 col-xs-12 form-control-static">
 						{php echo date("Y-m-d",$item['btime']); }
 					</div>
 				</div>
-				<div class="form-group" {if $hotel['store_type'] != 1} style="display:none"{/if}>
+				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">离店时间</label>
 					<div class="col-sm-9 col-xs-12 form-control-static">
 						{php echo date("Y-m-d",$item['etime']); }
 					</div>
 				</div>
-				<div class="form-group" {if $hotel['store_type'] != 1} style="display:none"{/if}>
+				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">住几晚</label>
 					<div class="col-sm-9 col-xs-12 form-control-static">
 						{$item['day']}
 					</div>
 				</div>
+				{/if}
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">预定数量</label>
 					<div class="col-sm-9 col-xs-12 form-control-static">
@@ -159,7 +163,7 @@
 						<button type="button" class="btn but{if $item['status'] == -1} btn-primary{/if} btn-default"  value="-1">订单取消</button>
 						<button type="button" class="btn but{if $item['status'] == 1} btn-primary{/if} btn-default"  value="1">订单确认</button>
 						<button type="button" class="btn but{if $item['status'] == 2} btn-primary{/if} btn-default"  value="2">{if $item['paytype']==0}订单拒绝{else}订单退款{/if}</button>
-						{if $hotel['store_type'] == 1}
+						{if $store_type == 1}
 						<button type="button" class="btn but{if $item['status'] == 4} btn-primary{/if} btn-default"  value="4" >已入住</button>
 						{/if}
 						{if $item['mode_distribute'] == 2}
