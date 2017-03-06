@@ -99,8 +99,8 @@ class We7_storexModuleSite extends WeModuleSite {
 	public function getItemTiles() {
 		global $_W;
 		$urls = array(
-			array('title' => "酒店首页", 'url' => $this->createMobileUrl('index')),
-			array('title' => "我的订单", 'url' => $this->createMobileUrl('orderlist')),
+			array('title' => "酒店首页", 'url' => $this->createMobileUrl('display')),
+			array('title' => "我的订单", 'url' => $this->createMobileUrl('display')) . '#/Home/OrderList/',
 		);
 		return $urls;
 	}
@@ -151,7 +151,7 @@ class We7_storexModuleSite extends WeModuleSite {
 		$from_user = $this->_from_user;
 		$set = $this->_set_info;
 		$hid = $_GPC['hid'];
-		$user_info = pdo_fetch("SELECT * FROM " . tablename('storex__member') . " WHERE from_user = :from_user AND weid = :weid limit 1", array(':from_user' => $from_user, ':weid' => $weid));
+		$user_info = pdo_fetch("SELECT * FROM " . tablename('storex_member') . " WHERE from_user = :from_user AND weid = :weid limit 1", array(':from_user' => $from_user, ':weid' => $weid));
 		//独立用户
 		if ($set['user'] == 2) {
 
@@ -698,10 +698,13 @@ class We7_storexModuleSite extends WeModuleSite {
 		if ($op == 'edit') {
 			$id = intval($_GPC['id']);
 			if (checksubmit('submit')) {
+				if(empty($_GPC['title'])){
+					message('店铺名称不能是空！', '', 'error');
+				}
 				$common_insert = array(
 					'weid' => $weid,
-					'title' => $_GPC['title'],
-					'store_type' => $_GPC['store_type'],
+					'title' => trim($_GPC['title']),
+					'store_type' => intval($_GPC['store_type']),
 					'thumb'=>$_GPC['thumb'],
 					'address' => $_GPC['address'],
 					'location_p' => $_GPC['district']['province'],
@@ -1006,9 +1009,7 @@ class We7_storexModuleSite extends WeModuleSite {
 					'parentid' => intval($parentid),
 					'thumb' => $_GPC['thumb']
 				);
-				if(empty($parentid)){
-					$data['store_base_id'] = $store_base_id;
-				}
+				$data['store_base_id'] = $store_base_id;
 				if (!empty($id)) {
 					unset($data['parentid']);
 					pdo_update('storex_categorys', $data, array('id' => $id, 'weid' => $_W['uniacid']));
