@@ -22,8 +22,8 @@
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">店铺类型</label>
 					<div class="col-sm-7 col-lg-9 col-xs-12 btn-group">
-						<a href="{php echo filter_url('store_type:1');}" class="btn {if $store_type == 1}btn-primary{else}btn-default{/if}">酒店</a>
 						<a href="{php echo filter_url('store_type:0');}" class="btn {if $store_type == 0}btn-primary{else}btn-default{/if}">普通</a>
+						<a href="{php echo filter_url('store_type:1');}" class="btn {if $store_type == 1}btn-primary{else}btn-default{/if}">酒店</a>
 					</div>
 				</div>
 			</form>
@@ -65,6 +65,8 @@
 					<input type="checkbox" class="check_all" />
 				</th>
 				<th style="width:200px;">店铺</th>
+				<th style="width:100px;">一级分类</th>
+				<th style="width:100px;">二级分类</th>
 				<th style="width:170px;">房型</th>
 				<th style="width:100px;">房型排序号</th>
 				<th style='width:200px;'>前台价（原价)</th>
@@ -80,6 +82,8 @@
 				<td class="with-checkbox">
 				<input type="checkbox" name="check" value="{$item['id']}">
 				</td>
+				<td>{$item['pcate']}</td>
+				<td>{$item['ccate']}</td>
 				<td>{$item['hoteltitle']}</td>
 				<td>{$item['title']}</td>
 				<td>{$item['sortid']}</td>
@@ -95,18 +99,18 @@
 				<td>
 					<a href="{php echo $this->createWebUrl('copyroom',array('hotelid'=>$item['hotelid'],'roomid'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="复制房型">复制房型</a>
 					<a href="{php echo $this->createWebUrl('order',array('hotelid'=>$item['hotelid'],'roomid'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="订单查看">订单查看</a>
-					<a class="btn btn-default" data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('goodsmanage',array('op'=>'edit','store_type'=>$store_type,'id'=>$item['id']))}" title="编辑"><i class="fa fa-edit"></i></a>
+					<a class="btn btn-default" data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('goodsmanage',array('op'=>'edit','store_type'=>$store_type,'id'=>$item['id'],'store_base_id'=>$item['store_base_id']))}" title="编辑"><i class="fa fa-edit"></i></a>
 					{if $item['status']==0}
-					<a class="btn btn-default" title="显示" href="#" onclick="drop_confirm('您确定要显示此房型吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'status','status'=>1, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
+					<a class="btn btn-default" title="显示" href="#" onclick="drop_confirm('您确定要显示此房型吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'status','status'=>1, 'id'=>$item['id'], 'store_type' => '1'))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
 					{elseif $item['status']==1}
-					<a class="btn btn-default" title="隐藏" href="#" onclick="drop_confirm('您确定要隐藏此房型吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'status','status'=>0, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
+					<a class="btn btn-default" title="隐藏" href="#" onclick="drop_confirm('您确定要隐藏此房型吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'status','status'=>0, 'id'=>$item['id'], 'store_type' => '1'))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
 					{/if}
-					<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'delete', 'id'=>$item['id']))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
+					<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'delete', 'id'=>$item['id'], 'store_type' => '1'))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
 				</td>
 			</tr>
 			{/loop}
 			<tr>
-				<td colspan="9">
+				<td colspan="11">
 					<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
 					<input type="button" class="btn btn-primary edit_all" name="showall" value="批量显示" />
 					<input type="button" class="btn btn-primary edit_all" name="hideall" value="批量隐藏" />
@@ -122,6 +126,8 @@
 					<input type="checkbox" class="check_all" />
 				</th>
 				<th style="width:200px;">店铺</th>
+				<th style="width:100px;">一级分类</th>
+				<th style="width:100px;">二级分类</th>
 				<th style="width:170px;">商品类型</th>
 				<th style="width:100px;">商品排序号</th>
 				<th style='width:200px;'>前台价（原价)</th>
@@ -138,6 +144,8 @@
 				<input type="checkbox" name="check" value="{$item['id']}">
 				</td>
 				<td>{$item['hoteltitle']}</td>
+				<td>{$item['pcate']}</td>
+				<td>{$item['ccate']}</td>
 				<td>{$item['title']}</td>
 				<td>{$item['sortid']}</td>
 				<td>{$item['oprice']}</td>
@@ -151,7 +159,7 @@
 				</td>
 				<td>
 					<a href="{php echo $this->createWebUrl('order',array('hotelid'=>$item['hotelid'],'roomid'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="订单查看">订单查看</a>
-					<a class="btn btn-default" data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('goodsmanage',array('op'=>'edit','store_type'=>$store_type,'id'=>$item['id']))}" title="编辑"><i class="fa fa-edit"></i></a>
+					<a class="btn btn-default" data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('goodsmanage',array('op'=>'edit','store_type'=>$store_type,'id'=>$item['id'],'store_base_id'=>$item['store_base_id']))}" title="编辑"><i class="fa fa-edit"></i></a>
 					{if $item['status']==0}
 					<a class="btn btn-default" title="显示" href="#" onclick="drop_confirm('您确定要显示此商品吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'status','status'=>1, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
 					{elseif $item['status']==1}
@@ -162,7 +170,7 @@
 			</tr>
 			{/loop}
 			<tr>
-				<td colspan="9">
+				<td colspan="11">
 					<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
 					<input type="button" class="btn btn-primary edit_all" name="showall" value="批量显示" />
 					<input type="button" class="btn btn-primary edit_all" name="hideall" value="批量隐藏" />

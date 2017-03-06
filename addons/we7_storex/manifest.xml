@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns="http://www.we7.cc" versionCode="0.52">
     <application setting="false">
-        <name><![CDATA[微66店]]></name>
+        <name><![CDATA[万能小店]]></name>
         <identifie><![CDATA[we7_storex]]></identifie>
-        <version><![CDATA[5.7.9]]></version>
+        <version><![CDATA[1.0.0]]></version>
         <type><![CDATA[business]]></type>
-        <ability><![CDATA[微66店]]></ability>
-        <description><![CDATA[微66店]]></description>
+        <ability><![CDATA[万能小店]]></ability>
+        <description><![CDATA[万能小店]]></description>
         <author><![CDATA[ewei & WeEngine Team]]></author>
         <url><![CDATA[]]></url>
     </application>
@@ -20,7 +20,7 @@
     </platform>
     <bindings>
         <cover>
-            <entry title="微66店入口设置" do="index" />
+            <entry title="万能小店入口设置" do="index" />
         </cover>
         <menu>
             <entry title="店铺管理" do="storemanage" state="" direct="false" />
@@ -40,39 +40,20 @@
 
 CREATE TABLE IF NOT EXISTS `ims_hotel2` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `store_base_id` int(11) NOT NULL COMMENT '店铺基表对应的id',
   `weid` int(11) DEFAULT '0',
-  `title` varchar(255) DEFAULT '',
-  `integral_rate` int(11) NOT NULL DEFAULT '0' COMMENT '在该酒店消费返积分的比例',
-  `lng` decimal(10,2) DEFAULT '0.00',
-  `lat` decimal(10,2) DEFAULT '0.00',
   `ordermax` int(11) DEFAULT '0',
   `numsmax` int(11) DEFAULT '0',
   `daymax` int(11) DEFAULT '0',
-  `address` varchar(255) DEFAULT '',
-  `location_p` varchar(50) DEFAULT '',
-  `location_c` varchar(50) DEFAULT '',
-  `location_a` varchar(50) DEFAULT '',
   `roomcount` int(11) DEFAULT '0',
-  `status` int(11) DEFAULT '0',
-  `phone` varchar(255) DEFAULT '',
-  `mail` varchar(255) DEFAULT '',
-  `thumb` varchar(255) DEFAULT '',
-  `thumborder` varchar(255) DEFAULT '',
-  `description` text,
-  `content` text,
-  `traffic` text,
-  `thumbs` text,
   `sales` text,
-  `displayorder` int(11) DEFAULT '0',
   `level` int(11) DEFAULT '0',
   `device` text,
   `brandid` int(11) DEFAULT '0',
   `businessid` int(11) DEFAULT '0',
-  `integral_rate` int(11) NOT NULL DEFAULT '0' COMMENT '在该酒店消费返积分的比例',
   PRIMARY KEY (`id`),
   KEY `indx_weid` (`weid`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
-
 
 CREATE TABLE IF NOT EXISTS `ims_hotel2_brand` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -84,8 +65,6 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_brand` (
   KEY `indx_weid` (`weid`),
   KEY `indx_displayorder` (`displayorder`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
-
-
 
 CREATE TABLE IF NOT EXISTS `ims_hotel2_business` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -100,6 +79,28 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_business` (
   KEY `indx_weid` (`weid`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `ims_hotel2_comment` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT '0',
+  `hotelid` int(11) DEFAULT '0',
+  `uid` int(11) DEFAULT '0',
+  `createtime` int(11) DEFAULT '0',
+  `comment` varchar(255) DEFAULT '',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `ims_hotel2_comment_clerk` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT '0',
+  `hotelid` int(11) DEFAULT '0',
+  `orderid` int(25) DEFAULT '0',
+  `createtime` int(11) DEFAULT '0',
+  `comment` varchar(255) DEFAULT '',
+  `clerkid` int(11) DEFAULT '0',
+  `realname` varchar(20) DEFAULT NULL,
+  `grade` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `ims_hotel2_member` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -112,17 +113,16 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_member` (
   `createtime` int(11) DEFAULT '0',
   `userbind` int(11) DEFAULT '0',
   `status` int(11) DEFAULT '0',
+  `clerk` varchar(32) NOT NULL DEFAULT '',
   `username` varchar(30) DEFAULT '' COMMENT '用户名',
   `password` varchar(200) DEFAULT '' COMMENT '密码',
   `salt` varchar(8) NOT NULL DEFAULT '' COMMENT '加密盐',
   `islogin` tinyint(3) NOT NULL DEFAULT '0',
   `isauto` tinyint(1) NOT NULL DEFAULT '0' COMMENT '自动添加，0否，1是',
-  `clerk`  VARCHAR(32) NOT NULL DEFAULT '',
-  `nickname` VARCHAR(255) NOT NULL DEFAULT '',
+  `nickname` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `indx_weid` (`weid`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
-
 
 CREATE TABLE IF NOT EXISTS `ims_hotel2_order` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -133,7 +133,7 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_order` (
   `openid` varchar(255) DEFAULT '',
   `name` varchar(255) DEFAULT '',
   `mobile` varchar(255) DEFAULT '',
-  `remark` VARCHAR(255) DEFAULT '',
+  `remark` varchar(255) DEFAULT '',
   `btime` int(11) DEFAULT '0',
   `etime` int(11) DEFAULT '0',
   `style` varchar(255) DEFAULT '',
@@ -144,7 +144,12 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_order` (
   `info` text,
   `time` int(11) DEFAULT '0',
   `status` int(11) DEFAULT '0',
+  `mode_distribute` int(11) DEFAULT NULL COMMENT '配送方式  1自提 ，2配送',
+  `order_time` int(11) NOT NULL DEFAULT '0' COMMENT '自提是自提时间，配送是配送时间',
+  `addressid` int(11) NOT NULL COMMENT '配送选择的地址id',
+  `goods_status` int(11) NOT NULL COMMENT '货物状态：1未发送，2已发送，3已收货',
   `paytype` int(11) DEFAULT '0',
+  `action` int(11) NOT NULL DEFAULT '2' COMMENT '1预定  2购买',
   `paystatus` int(11) DEFAULT '0',
   `comment` int(3) NOT NULL DEFAULT '0',
   `msg` text,
@@ -161,27 +166,31 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_order` (
   KEY `indx_memberid` (`memberid`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `ims_hotel2_comment` (
-    `id` int(11) NOT NULL AUTO_INCREMENT,
-    `uniacid` int(11) DEFAULT '0',
-    `hotelid` int(11) DEFAULT '0',
-    `uid` int(11) DEFAULT '0',
-    `createtime` int(11) DEFAULT '0',
-    `comment` varchar(255) DEFAULT '',
-    PRIMARY KEY (`id`)
-)ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `ims_hotel2_reply` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `weid` int(11) NOT NULL,
+  `rid` int(11) NOT NULL,
+  `hotelid` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `indx_weid` (`weid`),
+  KEY `indx_rid` (`rid`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `ims_hotel2_room` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `hotelid` int(11) DEFAULT '0',
   `weid` int(11) DEFAULT '0',
+  `pcate` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '一级分类id',
+  `ccate` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '二级分类id',
   `title` varchar(255) DEFAULT '',
   `thumb` varchar(255) DEFAULT '',
-  `oprice` decimal(10,2) DEFAULT '0.00' COMMENT '原价',
-  `cprice` decimal(10,2) DEFAULT '0.00' COMMENT '现价',
+  `oprice` decimal(10,2) DEFAULT '0.00',
+  `cprice` decimal(10,2) DEFAULT '0.00',
   `mprice` varchar(255) NOT NULL DEFAULT '',
   `thumbs` text,
   `device` text,
+  `reserve_device` text COMMENT '预定说明',
   `area` varchar(255) DEFAULT '',
   `floor` varchar(255) DEFAULT '',
   `smoke` varchar(255) DEFAULT '',
@@ -189,6 +198,8 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_room` (
   `persons` int(11) DEFAULT '0',
   `bedadd` varchar(30) DEFAULT '',
   `status` int(11) DEFAULT '0',
+  `can_reserve` int(11) NOT NULL DEFAULT '1' COMMENT '预定设置',
+  `can_buy` int(11) NOT NULL DEFAULT '1' COMMENT '购买设置',
   `isshow` int(11) DEFAULT '0',
   `sales` text,
   `displayorder` int(11) DEFAULT '0',
@@ -199,14 +210,16 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_room` (
   `persons_show` int(11) DEFAULT '0',
   `bedadd_show` int(11) DEFAULT '0',
   `score` int(11) DEFAULT '0' COMMENT '订房积分',
-  `service` decimal(10,2) DEFAULT '0.00',
   `breakfast` tinyint(3) DEFAULT '0' COMMENT '0无早 1单早 2双早',
   `sortid` int(11) NOT NULL DEFAULT '0' COMMENT '房间id，排序时使用',
+  `sold_num` int(11) NOT NULL DEFAULT '0' COMMENT '已售的数量',
+  `nickname` varchar(255) NOT NULL DEFAULT '',
+  `service` decimal(10,2) DEFAULT '0.00',
+  `store_type` int(8) NOT NULL DEFAULT '1' COMMENT '所属店铺类型',
   PRIMARY KEY (`id`),
   KEY `indx_hotelid` (`hotelid`),
   KEY `indx_weid` (`weid`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
-
 
 CREATE TABLE IF NOT EXISTS `ims_hotel2_room_price` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -215,18 +228,17 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_room_price` (
   `roomid` int(11) DEFAULT '0',
   `roomdate` int(11) DEFAULT '0',
   `thisdate` varchar(255) NOT NULL DEFAULT '' COMMENT '当天日期',
-  `oprice` decimal(10,2) DEFAULT '0.00' COMMENT '原价',
-  `cprice` decimal(10,2) DEFAULT '0.00' COMMENT '现价',
-  `mprice` decimal(10,2) DEFAULT '0.00' COMMENT '会员价',
+  `oprice` decimal(10,2) DEFAULT '0.00',
+  `cprice` decimal(10,2) DEFAULT '0.00',
+  `mprice` decimal(10,2) DEFAULT '0.00',
   `num` varchar(255) DEFAULT '-1',
   `status` int(11) DEFAULT '1',
-  PRIMARY KEY (`id`)  
-  ,KEY `indx_weid` (`weid`)
-  ,KEY `indx_hotelid` (`hotelid`)
-  ,KEY `indx_roomid` (`roomid`)
-  ,KEY `indx_roomdate` (`roomdate`)  
+  PRIMARY KEY (`id`),
+  KEY `indx_weid` (`weid`),
+  KEY `indx_hotelid` (`hotelid`),
+  KEY `indx_roomid` (`roomid`),
+  KEY `indx_roomdate` (`roomdate`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
-
 
 CREATE TABLE IF NOT EXISTS `ims_hotel2_set` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -240,8 +252,8 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_set` (
   `tel` varchar(20) DEFAULT '' COMMENT '统一电话',
   `email` varchar(255) NOT NULL DEFAULT '' COMMENT '提醒接受邮箱',
   `mobile` varchar(32) NOT NULL DEFAULT '' COMMENT '提醒接受手机',
-  `template` tinyint(1) DEFAULT '0',
-  `templateid` VARCHAR(255) DEFAULT '',
+  `template` varchar(32) DEFAULT NULL COMMENT '发送模板消息',
+  `templateid` varchar(255) NOT NULL,
   `paytype1` tinyint(1) DEFAULT '0',
   `paytype2` tinyint(1) DEFAULT '0',
   `paytype3` tinyint(1) DEFAULT '0',
@@ -259,15 +271,7 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_set` (
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
-CREATE TABLE IF NOT EXISTS `ims_hotel2_reply` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `weid` int(11) NOT NULL,
-  `rid` int(11) NOT NULL,
-  `hotelid` int(11) NOT NULL,
-  PRIMARY KEY (`id`), KEY `indx_weid` (`weid`), KEY `indx_rid` (`rid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `ims_hotel12_code`  (
+CREATE TABLE IF NOT EXISTS `ims_hotel12_code` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `weid` int(10) unsigned NOT NULL,
   `openid` varchar(50) NOT NULL,
@@ -278,21 +282,80 @@ CREATE TABLE IF NOT EXISTS `ims_hotel12_code`  (
   `createtime` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   KEY `openid` (`openid`)
-) ENGINE=MyISAM AUTO_INCREMENT=27 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `hotel2_comment_clerk`  (
+CREATE TABLE IF NOT EXISTS `ims_store_bases` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uniacid` int(11) DEFAULT '0',
-  `hotelid` int(11) DEFAULT '0',
-  `orderid` int(25) DEFAULT '0',
-  `createtime` int(11) DEFAULT '0',
-  `comment` varchar(255) DEFAULT '',
-  `clerkid` int(11) DEFAULT '0',
-  `realname` varchar(20) DEFAULT NULL,
-  `grade` int(11) DEFAULT NULL,
+  `weid` int(11) DEFAULT '0',
+  `title` varchar(255) DEFAULT '',
+  `lng` decimal(10,2) DEFAULT '0.00',
+  `lat` decimal(10,2) DEFAULT '0.00',
+  `address` varchar(255) DEFAULT '',
+  `location_p` varchar(50) DEFAULT '',
+  `location_c` varchar(50) DEFAULT '',
+  `location_a` varchar(50) DEFAULT '',
+  `status` int(11) DEFAULT '0',
+  `phone` varchar(255) DEFAULT '',
+  `mail` varchar(255) DEFAULT '',
+  `thumb` varchar(255) DEFAULT '',
+  `thumborder` varchar(255) DEFAULT '',
+  `description` text,
+  `content` text,
+  `store_info` text COMMENT '关于我们',
+  `traffic` text,
+  `thumbs` text,
+  `detail_thumbs` text COMMENT '详情页图片',
+  `displayorder` int(11) DEFAULT '0',
+  `integral_rate` int(11) NOT NULL DEFAULT '0' COMMENT '在该店铺消费返积分的比例',
+  `store_type` int(8) NOT NULL DEFAULT '0' COMMENT '店铺类型',
+  `extend_table` varchar(50) DEFAULT NULL COMMENT '该店铺对应的扩张表',
+  `timestart` int(11) NOT NULL DEFAULT '0' COMMENT '运营开始时间',
+  `timeend` int(11) NOT NULL DEFAULT '0' COMMENT '运营结束时间',
+  PRIMARY KEY (`id`),
+  KEY `indx_weid` (`weid`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `ims_store_categorys` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `weid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '所属帐号',
+  `name` varchar(50) NOT NULL COMMENT '分类名称',
+  `thumb` varchar(255) NOT NULL COMMENT '分类图片',
+  `store_base_id` int(11) NOT NULL COMMENT '该分类属于哪个店铺的',
+  `parentid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '上级分类ID,0为第一级',
+  `isrecommand` int(10) DEFAULT '0',
+  `description` varchar(500) NOT NULL COMMENT '分类介绍',
+  `displayorder` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '排序',
+  `enabled` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否开启',
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
-        
+
+CREATE TABLE IF NOT EXISTS `ims_store_goods` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `store_base_id` int(11) DEFAULT '0',
+  `weid` int(11) DEFAULT '0',
+  `pcate` int(10) unsigned NOT NULL DEFAULT '0',
+  `ccate` int(10) unsigned NOT NULL DEFAULT '0',
+  `title` varchar(255) DEFAULT '',
+  `thumb` varchar(255) DEFAULT '',
+  `oprice` decimal(10,2) DEFAULT '0.00',
+  `cprice` decimal(10,2) DEFAULT '0.00',
+  `mprice` varchar(255) NOT NULL DEFAULT '',
+  `thumbs` text,
+  `device` text,
+  `reserve_device` text COMMENT '预定说明',
+  `status` int(11) DEFAULT '0',
+  `sales` text,
+  `can_reserve` int(11) NOT NULL DEFAULT '1' COMMENT '预定设置',
+  `can_buy` int(11) NOT NULL DEFAULT '1' COMMENT '购买设置',
+  `isshow` int(11) DEFAULT '0',
+  `score` int(11) DEFAULT '0' COMMENT '购买商品积分',
+  `sortid` int(11) DEFAULT '0',
+  `sold_num` int(11) NOT NULL DEFAULT '0' COMMENT '已售的数量',
+  `store_type` int(8) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `indx_weid` (`weid`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8; 
+      
 	  ]]></install>
 	  
     <uninstall><![CDATA[]]></uninstall>

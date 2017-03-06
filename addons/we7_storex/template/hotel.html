@@ -80,14 +80,16 @@
 					{/if}
 				</td>
 				<td>
+					{if $item['store_type'] == 1}
 					<a href="{php echo $this->createWebUrl('room_status',array('hotelid'=>$item['id']))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom" title="维护房量/房态">维护房量/房态</a>
 					<a href="{php echo $this->createWebUrl('room_price',array('hotelid'=>$item['id']))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom" title="维护房价">维护房价</a>
-					<a href="{php echo $this->createWebUrl('room',array('hotelid'=>$item['id']))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom"  title="房型管理">房型管理</a>
-					<a href="{php echo $this->createWebUrl('order',array('hotelid'=>$item['id']))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom"  title="订单查看">订单查看</a>
+					<a href="{php echo $this->createWebUrl('goodsmanage',array('store_type'=>1))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom"  title="房型管理">房型管理</a>
+					{/if}
+					<a href="{php echo $this->createWebUrl('order',array('store_type'=>$item['store_type']))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom"  title="订单查看">订单查看</a>
 					<a class="btn  btn-default btn-sm" rel="tooltip" href="{php echo $this->createWebUrl('StoreManage',array('op'=>'edit','id'=>$item['id']))}" title="编辑" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-edit"></i></a>
-					{if $item['status']==0}
+					{if $item['status'] == 0}
 					<a class="btn btn-default btn-sm" title="显示" href="#" onclick="drop_confirm('您确定要显示此酒店吗?', '{php echo $this->createWebUrl('StoreManage',array('op'=>'status','status'=>1, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
-					{elseif $item['status']==1}
+					{elseif $item['status'] == 1}
 					<a class="btn btn-default btn-sm" title="隐藏" href="#" onclick="drop_confirm('您确定要隐藏此酒店吗?', '{php echo $this->createWebUrl('StoreManage',array('op'=>'status','status'=>0, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
 					{/if}
 					<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('StoreManage',array('op'=>'delete', 'id'=>$item['id']))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>

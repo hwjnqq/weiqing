@@ -17,7 +17,7 @@
 		{/if}
 	</div>
 	<div class="panel-body">
-		<div class="form-group">
+		<!-- <div class="form-group">
 			<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺类型</label>
 			<div class="col-sm-9 col-xs-12">
 				<label class="radio-inline">
@@ -29,20 +29,32 @@
 				<span class='help-block'>店铺类型决定店铺的填写信息，慎重选择</span>
 			</div>
 		</div>
+		 -->
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">选择店铺</label>
+			<div class="col-sm-8 col-lg-9 col-xs-12">
+				<select class="form-control" onchange="window.location=this.value;">
+					<option>店铺列表</option>
+					{loop $stores $info}
+					<option value="{php echo $this->createWebUrl('goodsmanage', array('store_base_id' => $info['id'], 'op' => 'edit'))}" {if $store_base_id == $info['id']} selected="selected" {/if}>{$info['title']}</option>
+					{/loop}
+				</select>
+				<span class='help-block'>请先选择店铺</span>
+			</div>
+		</div>
 		<div class="form-group">
 			<label class="col-xs-12 col-sm-3 col-md-2 control-label">预定设置</label>
 			<div class="col-sm-9 col-xs-12">
 				<label class="radio-inline">
-					<input type="radio" name="can_reserve" value="1" {if $item['can_reserve'] == 1} checked {/if}" onclick="$('#reserve_device').show();"/>可预定
+					<input type="radio" name="can_reserve" value="1" {if $item['can_reserve'] == 1} checked {/if} onclick="$('.reserve_device').show();"/>可预定
 				</label>
 				<label class="radio-inline">
-					<input type="radio" name="can_reserve" value="0" {if $item['can_reserve'] == 0} checked {/if}" onclick="$('#reserve_device').hide();"/>不可预定
+					<input type="radio" name="can_reserve" value="0" {if $item['can_reserve'] == 0} checked {/if} onclick="$('.reserve_device').hide();"/>不可预定
 				</label>
 				<span class="help-block">预定不支持线上支付，请谨慎选择</span>
 			</div>
 		</div>
-		<div class="form-group" >
-		<!-- {if $item['can_reserve'] != 1}style="display: none"{/if} id="reserve_device" -->
+		<div class="form-group reserve_device" {if $item['can_reserve'] != 1} style="display:none"{/if}>
 			<label class="col-xs-12 col-sm-3 col-md-2 control-label">预定说明</label>
 			<div class="col-sm-9 col-xs-12">
 				{php echo tpl_ueditor('reserve_device', $item['reserve_device']);}
