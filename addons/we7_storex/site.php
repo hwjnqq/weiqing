@@ -698,10 +698,13 @@ class We7_storexModuleSite extends WeModuleSite {
 		if ($op == 'edit') {
 			$id = intval($_GPC['id']);
 			if (checksubmit('submit')) {
+				if(empty($_GPC['title'])){
+					message('店铺名称不能是空！', '', 'error');
+				}
 				$common_insert = array(
 					'weid' => $weid,
-					'title' => $_GPC['title'],
-					'store_type' => $_GPC['store_type'],
+					'title' => trim($_GPC['title']),
+					'store_type' => intval($_GPC['store_type']),
 					'thumb'=>$_GPC['thumb'],
 					'address' => $_GPC['address'],
 					'location_p' => $_GPC['district']['province'],

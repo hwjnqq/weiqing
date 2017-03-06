@@ -1,5 +1,5 @@
 <?php 
-pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
+$sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`store_base_id` int(11) NOT NULL COMMENT '店铺基表对应的id',
 	`weid` int(11) DEFAULT '0',
@@ -14,9 +14,9 @@ pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`businessid` int(11) DEFAULT '0',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8");
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
-pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_brand` (
+	CREATE TABLE IF NOT EXISTS `ims_storex_brand` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`weid` int(11) DEFAULT '0',
 	`title` varchar(255) DEFAULT '',
@@ -25,9 +25,9 @@ pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_brand` (
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`),
 	KEY `indx_displayorder` (`displayorder`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8");
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
-pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_business` (
+	CREATE TABLE IF NOT EXISTS `ims_storex_business` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`weid` int(11) DEFAULT '0',
 	`title` varchar(255) DEFAULT '',
@@ -38,9 +38,9 @@ pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_business` (
 	`status` int(11) DEFAULT '0',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8");
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
-pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_comment` (
+	CREATE TABLE IF NOT EXISTS `ims_storex_comment` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`uniacid` int(11) DEFAULT '0',
 	`hotelid` int(11) DEFAULT '0',
@@ -48,9 +48,9 @@ pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_comment` (
 	`createtime` int(11) DEFAULT '0',
 	`comment` varchar(255) DEFAULT '',
 	PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8");
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
-pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_comment_clerk` (
+	CREATE TABLE IF NOT EXISTS `ims_storex_comment_clerk` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`uniacid` int(11) DEFAULT '0',
 	`hotelid` int(11) DEFAULT '0',
@@ -61,8 +61,8 @@ pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_comment_clerk` (
 	`realname` varchar(20) DEFAULT NULL,
 	`grade` int(11) DEFAULT NULL,
 	PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8");
-pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_member` (
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	CREATE TABLE IF NOT EXISTS `ims_storex_member` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`weid` int(11) DEFAULT '0',
 	`userid` varchar(50) DEFAULT '',
@@ -82,9 +82,9 @@ pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_member` (
 	`nickname` varchar(255) NOT NULL DEFAULT '',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8");
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
-pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_order` (
+	CREATE TABLE IF NOT EXISTS `ims_storex_order` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`weid` int(11) DEFAULT '0',
 	`hotelid` int(11) DEFAULT '0',
@@ -124,9 +124,9 @@ pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_order` (
 	KEY `indx_weid` (`weid`),
 	KEY `indx_roomid` (`roomid`),
 	KEY `indx_memberid` (`memberid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8");
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
-pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_reply` (
+	CREATE TABLE IF NOT EXISTS `ims_storex_reply` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`weid` int(11) NOT NULL,
 	`rid` int(11) NOT NULL,
@@ -134,9 +134,9 @@ pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_reply` (
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`),
 	KEY `indx_rid` (`rid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8");
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
-pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_room` (
+	CREATE TABLE IF NOT EXISTS `ims_storex_room` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`hotelid` int(11) DEFAULT '0',
 	`weid` int(11) DEFAULT '0',
@@ -178,9 +178,9 @@ pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_room` (
 	PRIMARY KEY (`id`),
 	KEY `indx_hotelid` (`hotelid`),
 	KEY `indx_weid` (`weid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8");
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
-pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_room_price` (
+	CREATE TABLE IF NOT EXISTS `ims_storex_room_price` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`weid` int(11) DEFAULT '0',
 	`hotelid` int(11) DEFAULT '0',
@@ -197,9 +197,9 @@ pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_room_price` (
 	KEY `indx_hotelid` (`hotelid`),
 	KEY `indx_roomid` (`roomid`),
 	KEY `indx_roomdate` (`roomdate`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8");
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
-pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_set` (
+	CREATE TABLE IF NOT EXISTS `ims_storex_set` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`weid` int(11) DEFAULT '0',
 	`user` tinyint(1) DEFAULT '0' COMMENT '用户类型0微信用户1独立用户',
@@ -228,9 +228,9 @@ pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_set` (
 	`finish_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '酒店订单完成通知模板id',
 	`nickname` varchar(20) NOT NULL COMMENT '提醒接收微信',
 	PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC");
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
-pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_code` (
+	CREATE TABLE IF NOT EXISTS `ims_storex_code` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 	`weid` int(10) unsigned NOT NULL,
 	`openid` varchar(50) NOT NULL,
@@ -241,9 +241,9 @@ pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_code` (
 	`createtime` int(10) unsigned NOT NULL,
 	PRIMARY KEY (`id`),
 	KEY `openid` (`openid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8");
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
-pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_bases` (
+	CREATE TABLE IF NOT EXISTS `ims_storex_bases` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`weid` int(11) DEFAULT '0',
 	`title` varchar(255) DEFAULT '',
@@ -272,9 +272,9 @@ pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_bases` (
 	`timeend` int(11) NOT NULL DEFAULT '0' COMMENT '运营结束时间',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8");
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
-pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_categorys` (
+	CREATE TABLE IF NOT EXISTS `ims_storex_categorys` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 	`weid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '所属帐号',
 	`name` varchar(50) NOT NULL COMMENT '分类名称',
@@ -286,9 +286,9 @@ pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_categorys` (
 	`displayorder` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '排序',
 	`enabled` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否开启',
 	PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8");
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
-pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_goods` (
+	CREATE TABLE IF NOT EXISTS `ims_storex_goods` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`store_base_id` int(11) DEFAULT '0',
 	`weid` int(11) DEFAULT '0',
@@ -313,7 +313,10 @@ pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_goods` (
 	`store_type` int(8) NOT NULL DEFAULT '0',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8");
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+";
+
+pdo_run($sql);
 
 $ewei_hotel_table = array(
 // 	'hotel2' => 'storex_hotel',
