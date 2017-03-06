@@ -1006,9 +1006,7 @@ class We7_storexModuleSite extends WeModuleSite {
 					'parentid' => intval($parentid),
 					'thumb' => $_GPC['thumb']
 				);
-				if(empty($parentid)){
-					$data['store_base_id'] = $store_base_id;
-				}
+				$data['store_base_id'] = $store_base_id;
 				if (!empty($id)) {
 					unset($data['parentid']);
 					pdo_update('storex_categorys', $data, array('id' => $id, 'weid' => $_W['uniacid']));
