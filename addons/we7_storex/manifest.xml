@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2` (
   `businessid` int(11) DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `indx_weid` (`weid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=5 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `ims_hotel2_brand` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_brand` (
   PRIMARY KEY (`id`),
   KEY `indx_weid` (`weid`),
   KEY `indx_displayorder` (`displayorder`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=9 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `ims_hotel2_business` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_business` (
   `status` int(11) DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `indx_weid` (`weid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=11 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `ims_hotel2_comment` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_comment` (
   `createtime` int(11) DEFAULT '0',
   `comment` varchar(255) DEFAULT '',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=48 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `ims_hotel2_comment_clerk` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -100,8 +100,7 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_comment_clerk` (
   `realname` varchar(20) DEFAULT NULL,
   `grade` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=73 ;
-
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `ims_hotel2_member` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -123,8 +122,7 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_member` (
   `nickname` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `indx_weid` (`weid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=568 ;
-
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `ims_hotel2_order` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -166,7 +164,7 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_order` (
   KEY `indx_weid` (`weid`),
   KEY `indx_roomid` (`roomid`),
   KEY `indx_memberid` (`memberid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=255 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE IF NOT EXISTS `ims_hotel2_reply` (
@@ -177,7 +175,7 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_reply` (
   PRIMARY KEY (`id`),
   KEY `indx_weid` (`weid`),
   KEY `indx_rid` (`rid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=10 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `ims_hotel2_room` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -221,8 +219,7 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_room` (
   PRIMARY KEY (`id`),
   KEY `indx_hotelid` (`hotelid`),
   KEY `indx_weid` (`weid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=57 ;
-
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `ims_hotel2_room_price` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -241,7 +238,7 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_room_price` (
   KEY `indx_hotelid` (`hotelid`),
   KEY `indx_roomid` (`roomid`),
   KEY `indx_roomdate` (`roomdate`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=214 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `ims_hotel2_set` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -272,7 +269,20 @@ CREATE TABLE IF NOT EXISTS `ims_hotel2_set` (
   `finish_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '酒店订单完成通知模板id',
   `nickname` varchar(20) NOT NULL COMMENT '提醒接收微信',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=6 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+
+CREATE TABLE IF NOT EXISTS `ims_hotel12_code` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `weid` int(10) unsigned NOT NULL,
+  `openid` varchar(50) NOT NULL,
+  `code` varchar(6) NOT NULL,
+  `mobile` varchar(11) NOT NULL,
+  `total` tinyint(3) unsigned NOT NULL,
+  `status` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `createtime` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `openid` (`openid`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `ims_store_bases` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -303,8 +313,7 @@ CREATE TABLE IF NOT EXISTS `ims_store_bases` (
   `timeend` int(11) NOT NULL DEFAULT '0' COMMENT '运营结束时间',
   PRIMARY KEY (`id`),
   KEY `indx_weid` (`weid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=8 ;
-
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `ims_store_categorys` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -318,8 +327,7 @@ CREATE TABLE IF NOT EXISTS `ims_store_categorys` (
   `displayorder` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '排序',
   `enabled` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否开启',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=21 ;
-
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `ims_store_goods` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -346,8 +354,8 @@ CREATE TABLE IF NOT EXISTS `ims_store_goods` (
   `store_type` int(8) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `indx_weid` (`weid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=6 ;
-        
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8; 
+      
 	  ]]></install>
 	  
     <uninstall><![CDATA[]]></uninstall>
