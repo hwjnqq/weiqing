@@ -271,7 +271,7 @@ function orders_check_status($item){
 			}
 		}
 	}else if ($item['status'] == 1){
-		if ($item['store_info']['store_type'] == 1){//酒店
+		if ($item['store_type'] == 1){//酒店
 			if ($item['action'] == 1){
 				$item['is_cancle'] = 1;
 				$status = STORE_RESERVE_CONFIRM_STATUS;

@@ -28,7 +28,7 @@ if ($op == 'goods_info') {
 		message(error(-1, '商品不存在'), '', 'ajax');
 	} else {
 		if ($goods_info['status'] == 0) {
-			message(error(-1, '管理员将该店铺设置为隐藏，请联系管理员'), '', 'ajax');
+			message(error(-1, '店铺已隐藏'), '', 'ajax');
 		}
 	}
 	$goods_info['store_type'] = $store_info['store_type'];
