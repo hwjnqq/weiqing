@@ -10,13 +10,13 @@ defined('IN_IA') or exit('Access Denied');
 
 include "model.php";
 
-class We7_storexModuleSite extends WeModuleSite {
+class Wn_storexModuleSite extends WeModuleSite {
 
-	public $_img_url = '../addons/We7_storex/template/style/img/';
+	public $_img_url = '../addons/Wn_storex/template/style/img/';
 
-	public $_css_url = '../addons/We7_storex/template/style/css/';
+	public $_css_url = '../addons/Wn_storex/template/style/css/';
 
-	public $_script_url = '../addons/We7_storex/template/style/js/';
+	public $_script_url = '../addons/Wn_storex/template/style/js/';
 
 	public $_search_key = '__hotel2_search';
 
@@ -2331,7 +2331,7 @@ class We7_storexModuleSite extends WeModuleSite {
 		$hotel_info = pdo_get('storex_hotel', array('weid' => $weid ,'id' => $hotelid), array('integral_rate', 'weid'));
 		$num = $sum_price * $hotel_info['integral_rate']*0.01;//实际消费的金额*比例(值时百分数)*0.01
 		$tips .= "用户消费{$sum_price}元，支付{$sum_price}，积分赠送比率为:【1：{$hotel_info['integral_rate']}%】,共赠送【{$num}】积分";
-		mc_credit_update($openid, 'credit1', $num, array('0', $tip, 'we7_storex', 0, 0, 3));
+		mc_credit_update($openid, 'credit1', $num, array('0', $tip, 'wn_storex', 0, 0, 3));
 		return error(0, $num);
 	}
 

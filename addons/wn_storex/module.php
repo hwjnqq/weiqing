@@ -10,7 +10,7 @@ defined('IN_IA') or exit('Access Denied');
 
 include "../addons/wn_storex/model.php";
 
-class We7_storexModule extends WeModule {
+class Wn_storexModule extends WeModule {
 
     public $_img_url = '../addons/wn_storex/template/style/img/';
     public $_css_url = '../addons/wn_storex/template/style/css/';

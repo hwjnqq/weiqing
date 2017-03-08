@@ -37,7 +37,7 @@ if ($op == 'personal_update') {
 }
 if ($op == 'credits_record') {
 	$credits = array();
-	$credits_record = pdo_getall('mc_credits_record', array('uniacid' => $_W['uniacid'], 'credittype' => $_GPC['credittype'], 'uid' => $uid, 'module' => 'we7_storex'), array('num', 'createtime', 'module'), '', 'id DESC');
+	$credits_record = pdo_getall('mc_credits_record', array('uniacid' => $_W['uniacid'], 'credittype' => $_GPC['credittype'], 'uid' => $uid, 'module' => 'wn_storex'), array('num', 'createtime', 'module'), '', 'id DESC');
 	if (!empty($credits_record)) {
 		foreach ($credits_record as $data) {
 			$data['createtime'] = date('Y-m-d H:i:s', $data['createtime']);
