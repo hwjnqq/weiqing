@@ -104,7 +104,7 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`info` text,
 	`time` int(11) DEFAULT '0',
 	`status` int(11) DEFAULT '0',
-	`mode_distribute` int(11) DEFAULT NULL COMMENT '配送方式  1自提 ，2配送',
+	`mode_distribute` int(11) NOT NULL COMMENT '配送方式  1自提 ，2配送',
 	`order_time` int(11) NOT NULL DEFAULT '0' COMMENT '自提是自提时间，配送是配送时间',
 	`addressid` int(11) NOT NULL COMMENT '配送选择的地址id',
 	`goods_status` int(11) NOT NULL COMMENT '货物状态：1未发送，2已发送，3已收货',
@@ -267,7 +267,7 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`displayorder` int(11) DEFAULT '0',
 	`integral_rate` int(11) NOT NULL DEFAULT '0' COMMENT '在该店铺消费返积分的比例',
 	`store_type` int(8) NOT NULL DEFAULT '0' COMMENT '店铺类型',
-	`extend_table` varchar(50) DEFAULT NULL COMMENT '该店铺对应的扩张表',
+	`extend_table` varchar(50) NOT NULL COMMENT '该店铺对应的扩张表',
 	`timestart` int(11) NOT NULL DEFAULT '0' COMMENT '运营开始时间',
 	`timeend` int(11) NOT NULL DEFAULT '0' COMMENT '运营结束时间',
 	PRIMARY KEY (`id`),
@@ -361,7 +361,7 @@ $module = module_fetch('ewei_hotel');
 if (!empty($module)){
 	//将原数据填入新的表中
 	foreach($ewei_hotel_table as $hotel2_table => $storex_table){
-		pdo_query("INSERT INTO" .$storex_table ." select * from " .$hotel2_table);
+		pdo_query("INSERT INTO " .tablename($storex_table) ." select * from " .tablename($hotel2_table));
 	}
 	//storex_bases 字段
 	$storex_base = array(
