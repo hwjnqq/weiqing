@@ -2,8 +2,8 @@
 {template 'common'}
 <div class="main">
 	<ul class="nav nav-tabs">
-		<li class="active"><a href="{php echo $this->createWebUrl('StoreManage',array('op'=>'list'));}">店铺管理</a></li>
-		<li><a href="{php echo $this->createWebUrl('StoreManage',array('op'=>'edit'));}">添加店铺</a></li>
+		<li class="active"><a href="{php echo $this->createWebUrl('storemanage',array('op'=>'list'));}">店铺管理</a></li>
+		<li><a href="{php echo $this->createWebUrl('storemanage',array('op'=>'edit'));}">添加店铺</a></li>
 	</ul>
 	<div class="panel panel-info">
 		<div class="panel-heading">筛选</div>
@@ -11,8 +11,8 @@
 			<form action="./index.php" method="get" class="form-horizontal" role="form">
 				<input type="hidden" name="c" value="site" />
 				<input type="hidden" name="a" value="entry" />
-				<input type="hidden" name="m" value="we7_storex" />
-				<input type="hidden" name="do" value="StoreManage" />
+				<input type="hidden" name="m" value="wn_storex" />
+				<input type="hidden" name="do" value="storemanage" />
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">店铺</label>
 					<div class="col-xs-12 col-sm-8 col-lg-9">
@@ -86,13 +86,13 @@
 					<a href="{php echo $this->createWebUrl('goodsmanage',array('store_type'=>1))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom"  title="房型管理">房型管理</a>
 					{/if}
 					<a href="{php echo $this->createWebUrl('order',array('store_type'=>$item['store_type']))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom"  title="订单查看">订单查看</a>
-					<a class="btn  btn-default btn-sm" rel="tooltip" href="{php echo $this->createWebUrl('StoreManage',array('op'=>'edit','id'=>$item['id']))}" title="编辑" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-edit"></i></a>
+					<a class="btn  btn-default btn-sm" rel="tooltip" href="{php echo $this->createWebUrl('storemanage',array('op'=>'edit','id'=>$item['id']))}" title="编辑" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-edit"></i></a>
 					{if $item['status'] == 0}
-					<a class="btn btn-default btn-sm" title="显示" href="#" onclick="drop_confirm('您确定要显示此酒店吗?', '{php echo $this->createWebUrl('StoreManage',array('op'=>'status','status'=>1, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
+					<a class="btn btn-default btn-sm" title="显示" href="#" onclick="drop_confirm('您确定要显示此酒店吗?', '{php echo $this->createWebUrl('storemanage',array('op'=>'status','status'=>1, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
 					{elseif $item['status'] == 1}
-					<a class="btn btn-default btn-sm" title="隐藏" href="#" onclick="drop_confirm('您确定要隐藏此酒店吗?', '{php echo $this->createWebUrl('StoreManage',array('op'=>'status','status'=>0, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
+					<a class="btn btn-default btn-sm" title="隐藏" href="#" onclick="drop_confirm('您确定要隐藏此酒店吗?', '{php echo $this->createWebUrl('storemanage',array('op'=>'status','status'=>0, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
 					{/if}
-					<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('StoreManage',array('op'=>'delete', 'id'=>$item['id']))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
+					<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('storemanage',array('op'=>'delete', 'id'=>$item['id']))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
 				</td>
 			</tr>
 			{/loop}
@@ -132,7 +132,7 @@
 				check.each(function(i){
 					id[i] = $(this).val();
 				});
-				$.post("{php echo $this->createWebUrl('StoreManage',array('op'=>'deleteall'))}", {idArr:id},function(data){
+				$.post("{php echo $this->createWebUrl('storemanage',array('op'=>'deleteall'))}", {idArr:id},function(data){
 					if (data.errno ==0)
 					{
 						location.reload();
@@ -155,7 +155,7 @@
 			check.each(function(i){
 				id[i] = $(this).val();
 			});
-			$.post("{php echo $this->createWebUrl('StoreManage',array('op'=>'showall'))}", {idArr:id,show_name:name},function(data){
+			$.post("{php echo $this->createWebUrl('storemanage',array('op'=>'showall'))}", {idArr:id,show_name:name},function(data){
 				if (data.errno ==0)
 				{
 					location.reload();
