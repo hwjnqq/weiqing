@@ -2132,12 +2132,17 @@ class Wn_storexModuleSite extends WeModuleSite {
 			}
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 20;
+			if($store_type == 1){
+				$table = 'storex_room';
+			}else{
+				$table = 'storex_goods';
+			}
 			pdo_query('UPDATE '. tablename('storex_order'). " SET status = '-1' WHERE time <  :time AND weid = '{$_W['uniacid']}' AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400));
 			$show_order_lists = pdo_fetchall("SELECT o.*,h.title as hoteltitle,r.title as roomtitle FROM " . tablename('storex_order') . " o LEFT JOIN " . tablename('storex_bases') .
-				" h on o.hotelid=h.id LEFT JOIN " . tablename("storex_room") . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+				" h on o.hotelid=h.id LEFT JOIN " . tablename($table) . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
 			$this->getOrderUniontid($show_order_lists);
 			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM  ' . tablename('storex_order') . " o LEFT JOIN " . tablename('storex_bases') .
-				"h on o.hotelid=h.id LEFT JOIN " . tablename("storex_room") . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition", $params);
+				"h on o.hotelid=h.id LEFT JOIN " . tablename($table) . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition", $params);
 			if ($_GPC['export'] != '') {
 				$export_order_lists = pdo_fetchall("SELECT o.*,h.title as hoteltitle,r.title as roomtitle FROM " . tablename('storex_order') . " o LEFT JOIN " . tablename('storex_bases') .
 						"h on o.hotelid=h.id LEFT JOIN " . tablename("storex_room") . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC" . ',' . $psize, $params);
