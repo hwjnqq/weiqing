@@ -28,14 +28,16 @@ if ($op == 'goods_info') {
 		message(error(-1, '商品不存在'), '', 'ajax');
 	} else {
 		if ($goods_info['status'] == 0) {
-			message(error(-1, '管理员将该店铺设置为隐藏，请联系管理员'), '', 'ajax');
+			message(error(-1, '店铺已隐藏'), '', 'ajax');
 		}
 	}
 	$goods_info['store_type'] = $store_info['store_type'];
 	$goods_info['thumbs'] =  iunserializer($goods_info['thumbs']);
 	$pricefield = goods_isMember() ? 'mprice' : 'cprice';
-	$member_p = unserialize($goods_info['mprice']);
-	$goods_info[$pricefield] =  $pricefield == 'mprice' ? $goods_info['cprice'] * $member_p[$_W['member']['groupid']] : $goods_info['cprice'];
+	$member_p = iunserializer($goods_info['mprice']);
+	if(!empty($_W['member']['groupid']) && !empty($member_p[$_W['member']['groupid']])){
+		$goods_info['cprice'] =  $pricefield == 'mprice' ? $goods_info['cprice'] * $member_p[$_W['member']['groupid']] : $goods_info['cprice'];
+	}
 	if (!empty($goods_info['thumb'])) {
 		$goods_info['thumb'] = tomedia($goods_info['thumb']);
 	}
@@ -74,9 +76,11 @@ if ($op == 'info') {
 		$table = 'storex_goods';
 		$goods_info = pdo_get($table, $condition);
 	}
-	$member_p = unserialize($goods_info['mprice']);
+	$member_p = iunserializer($goods_info['mprice']);
 	$pricefield = goods_isMember() ? 'mprice' : 'cprice';
-	$goods_info['cprice'] =  $pricefield == 'mprice' ? $goods_info['cprice'] * $member_p[$_W['member']['groupid']] : $goods_info['cprice'];
+	if(!empty($_W['member']['groupid']) && !empty($member_p[$_W['member']['groupid']])){
+		$goods_info['cprice'] =  $pricefield == 'mprice' ? $goods_info['cprice'] * $member_p[$_W['member']['groupid']] : $goods_info['cprice'];
+	}
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;
 	$infos['goods_info'] = $goods_info;
@@ -91,11 +95,11 @@ if ($op == 'order'){
 		'weid' => intval($_W['uniacid']),
 		'hotelid' => $store_id,
 		'openid' => $_W['openid'],
-		'contact_name' => trim($_GPC['__input']['order']['contact_name']),//联系人
+		'contact_name' => trim($_GPC['order']['contact_name']),//联系人
 		'roomid' => $goodsid,					//商品id
-		'mobile' => trim($_GPC['__input']['order']['mobile']),
-		'remark' => trim($_GPC['__input']['order']['remark']),			//留言
-		'nums' => intval($_GPC['__input']['order']['nums']),				//数量
+		'mobile' => trim($_GPC['order']['mobile']),
+		'remark' => trim($_GPC['order']['remark']),			//留言
+		'nums' => intval($_GPC['order']['nums']),				//数量
 		'time' => TIMESTAMP,					//下单时间（TIMESTAMP）
 	);
 	if ($order_info['nums'] <= 0) {
@@ -114,10 +118,10 @@ if ($op == 'order'){
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
 	//预定直接将数据加进order表
 	if ($store_info['store_type'] == 1) {//酒店
-		$order_info['btime'] = strtotime($_GPC['__input']['order']['btime']);
-		$order_info['etime'] = strtotime($_GPC['__input']['order']['etime']);
-		if (!empty($_GPC['__input']['order']['day'])) {
-			$order_info['day'] = intval($_GPC['__input']['order']['day']);
+		$order_info['btime'] = strtotime($_GPC['order']['btime']);
+		$order_info['etime'] = strtotime($_GPC['order']['etime']);
+		if (!empty($_GPC['order']['day'])) {
+			$order_info['day'] = intval($_GPC['order']['day']);
 		} else {
 			$order_info['day'] = ceil(($order_info['etime'] - $order_info['btime'])/86400);
 		}
@@ -207,13 +211,13 @@ if ($op == 'order'){
 		' `roomdate` < :etime  order by roomdate desc';
 		$params = array(':roomid' => $goodsid, ':weid' => intval($_W['uniacid']), ':hotelid' => $store_id, ':btime' => $btime, ':etime' => $etime);
 		$price_list = pdo_fetchall($r_sql, $params);
-		$member_p = unserialize($room['mprice']);
+		$member_p = iunserializer($room['mprice']);
 		if (!empty($price_list)) {
 			//价格表中存在
 			foreach($price_list as $k => $v) {
 				$room['oprice'] = $v['oprice'];
 				$room['cprice'] = $v['cprice'];
-				if ($pricefield == 'mprice') {
+				if ($pricefield == 'mprice' && !empty($_W['member']['groupid']) && !empty($member_p[$_W['member']['groupid']])) {
 					$this_price = $v['cprice'] * $member_p[$_W['member']['groupid']];
 				}else{
 					$this_price = $v['cprice'];
@@ -227,7 +231,11 @@ if ($op == 'order'){
 			$service = $room['service'] * $days;
 		}else{
 			//会员的价格mprice=现价*会员卡折扣率
-			$this_price =  $pricefield == 'mprice' ? $room['cprice']*$member_p[$_W['member']['groupid']] : $room['cprice'];
+			if(!empty($_W['member']['groupid']) && !empty($member_p[$_W['member']['groupid']])){
+				$this_price =  $pricefield == 'mprice' ? $room['cprice']*$member_p[$_W['member']['groupid']] : $room['cprice'];
+			}else{
+				$this_price = $room['oprice'];
+			}
 			if ($this_price == 0) {
 				$this_price = $room['oprice'] ;
 			}
@@ -313,9 +321,13 @@ if ($op == 'order'){
 		$table = 'storex_goods';
 		$goods_info = pdo_get($table, $condition);
 		goods_check_action($action, $goods_info);//检查是否符合条件
-		$member_p = unserialize($goods_info['mprice']);
+		$member_p = iunserializer($goods_info['mprice']);
 		$pricefield = goods_isMember() ? 'mprice' : 'cprice';
-		$now_price =  $pricefield == 'mprice' ? $goods_info['cprice']*$member_p[$_W['member']['groupid']] : $goods_info['cprice'];
+		if(!empty($_W['member']['groupid']) && !empty($member_p[$_W['member']['groupid']])){
+			$now_price =  $pricefield == 'mprice' ? $goods_info['cprice']*$member_p[$_W['member']['groupid']] : $goods_info['cprice'];
+		}else{
+			$now_price = $goods_info['cprice'];
+		}
 		if ($now_price == 0) {
 			message(error(-1, '商品价格不能是0，请联系管理员修改！'), '', 'ajax');
 		}
@@ -325,16 +337,16 @@ if ($op == 'order'){
 		if (empty($order_info['mobile'])) {
 			message(error(-1, '手机号不能为空!'), '', 'ajax');
 		}
-		$order_info['mode_distribute'] = intval($_GPC['__input']['order']['mode_distribute']);
-		if(empty($_GPC['__input']['order']['order_time'])){
+		$order_info['mode_distribute'] = intval($_GPC['order']['mode_distribute']);
+		if(empty($_GPC['order']['order_time'])){
 			message(error(-1, '请选择时间！'), '', 'ajax');
 		}
-		$order_info['order_time'] = strtotime(intval($_GPC['__input']['order']['order_time']));
+		$order_info['order_time'] = strtotime(intval($_GPC['order']['order_time']));
 		if($order_info['mode_distribute'] == 2){//配送
-			if(empty($_GPC['__input']['order']['addressid'])){
+			if(empty($_GPC['order']['addressid'])){
 				message(error(-1, '地址不能为空！'), '', 'ajax');
 			}
-			$order_info['addressid'] = intval($_GPC['__input']['order']['addressid']);
+			$order_info['addressid'] = intval($_GPC['order']['addressid']);
 			$order_info['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
 		}
 		$insert = array(

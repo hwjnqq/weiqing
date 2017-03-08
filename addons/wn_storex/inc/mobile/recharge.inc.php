@@ -10,14 +10,14 @@ check_params();
 $uid = mc_openid2uid($_W['openid']);
 
 if ($op == 'recharge_add') {
-	$type = trim($_GPC['__input']['type']) ? trim($_GPC['__input']['type']) : 'credit';
+	$type = trim($_GPC['type']) ? trim($_GPC['type']) : 'credit';
 	if ($type == 'credit') {
-		$fee = floatval($_GPC['__input']['fee']);
+		$fee = floatval($_GPC['fee']);
 		if (empty($fee) || $fee <= 0) {
 			message(error(-1, '请输入正确金额'), '', 'ajax');
 		}
-		$backtype = trim($_GPC['__input']['backtype']);
-		$back= floatval($_GPC['__input']['back']);
+		$backtype = trim($_GPC['backtype']);
+		$back= floatval($_GPC['back']);
 		$charge_record = array(
 			'uid' => $uid,
 			'openid' => $_W['openid'],
@@ -38,7 +38,7 @@ if ($op == 'recharge_add') {
 	}
 }
 if ($op == 'recharge_pay') {
-	$charge_record = pdo_get('mc_credits_recharge', array('id' => intval($_GPC['__input']['id'])));
+	$charge_record = pdo_get('mc_credits_recharge', array('id' => intval($_GPC['id'])));
 	$params = array(
 		'tid' => $charge_record['tid'],
 		'title' => '万能小店余额充值',
