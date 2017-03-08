@@ -17,6 +17,7 @@
     <style type="text/css">
         .ui-btn-up-g { width:100%;height:35px;line-height: 35px}
         .pay-method {margin-top: 400px;overflow: hidden!important;}
+		.mui-active-body {height: 100% !important;overflow: hidden !important;}
     </style>
 </head>
 <body onselectstart="return false" tabindex="10000" style="padding-bottom:40px;overflow:auto;height:1200px;">
@@ -102,9 +103,12 @@
 <div class="cui-view cui-mask cui-opacitymask" id="cui-1398129065093" style="position: absolute; left: 0px; top: 0px; width: 100%; height: 630px; z-index: 3494; display: none;"><div></div>
 </div>
 <script language='javascript'>
-	$(document).on('click', '.js-submit', function() {
-		$('body').css({'padding-bottom' : '40px', 'overflow' : 'auto', 'height' : '1200px'})
-	})
+	$(document).on('click', '.js-submit, .mui-icon-close', function() {
+		$('body').removeClass('mui-active-body');
+	});
+	$(document).on('click', '.js-coupon, .js-token', function() {
+		$('body').addClass('mui-active-body');
+	});
 </script>
 
 {template 'share'}
