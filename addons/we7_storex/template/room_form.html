@@ -3,9 +3,61 @@
 {template 'common'}
 <div class="main">
 <ul class="nav nav-tabs">
-	<li {if $_GPC['op'] == 'edit'}class="active"{/if}><a href="{php echo $this->createWebUrl('goodsmanage', array('op'=>'edit', 'store_base_id' => $_GPC['store_base_id']));}">添加商品</a></li>
+	<li {if $_GPC['op'] == 'edit'}class="active"{/if}>
+		<a href="javascript:;" data-toggle="modal" data-target="#store-modal">
+			{if $_GPC['op'] == 'edit' && $_GPC['id'] != ''}
+			编辑商品
+			{else}
+			添加商品
+		{/if}
+		</a>
+	</li>
 	<li {if empty($_GPC['op'])}class="active"{/if} ><a href="{php echo $this->createWebUrl('goodsmanage', array('hotelid' => $rid));}">商品管理</a></li>
 </ul>
+<!-- href="{php echo $this->createWebUrl('goodsmanage', array('op'=>'edit', 'store_base_id' => $_GPC['store_base_id']));} -->
+<div class="modal fade" id="store-modal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel">选择你要创建的店铺商品</h4>
+			</div>
+			<div class="modal-body clearfix form-horizontal">
+				{if !empty($stores)}
+				{loop $stores $store}
+				{if $store['store_type'] == 1}
+				<div class="form-group marbot0">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="type" value="{$store['id']}"/>
+							{$store['title']}
+						</label>
+						<div class="help-block">酒店</div>
+					</div>
+				</div>
+				{else}
+				<div class="form-group marbot0">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="type" value="{$store['id']}"/>
+							{$store['title']}
+						</label>
+						<div class="help-block">普通店铺</div>
+					</div>
+				</div>
+				{/if}
+				{/loop}
+				{/if}
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="location.href='{php echo $this->createWeburl('goodsmanage', array('op' => 'edit'))}&store_base_id=' + $('#store-modal input[type=radio]:checked').val()">确定</button>
+			</div>
+		</div>
+	</div>
+</div>
 <form action="" class="form-horizontal form" method="post" enctype="multipart/form-data" onsubmit="return formcheck()">
 <input type="hidden" name="id" value="{$item['id']}">
 <div class="panel panel-default">

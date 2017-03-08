@@ -1506,6 +1506,11 @@ class We7_storexModuleSite extends WeModuleSite {
 				}
 			}
 		}
+		if(!empty($_GPC['store_base_id'])){
+			if(empty($stores[$_GPC['store_base_id']])){
+				message('抱歉，店铺不存在或是已经删除！', '', 'error');
+			}
+		}
 		//根据分类的一级id获取店铺的id
 		$category_store = pdo_fetch("select id,store_base_id from " . tablename('storex_categorys') . "where id=:id limit 1", array(":id" => $_GPC['category']['parentid']));
 		if($store_type){//1是酒店
