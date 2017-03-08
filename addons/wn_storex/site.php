@@ -2316,7 +2316,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 	public function getOrderUniontid(&$lists){
 		if(!empty($lists)){
 			foreach ($lists as $orderkey=>$orderinfo){
-				$paylog = pdo_get('core_paylog', array('uniacid' => $orderinfo['weid'], 'tid' => $orderinfo['id'], 'module' => 'ewei_hotel'), array('uniacid', 'uniontid', 'tid'));
+				$paylog = pdo_get('core_paylog', array('uniacid' => $orderinfo['weid'], 'tid' => $orderinfo['id'], 'module' => 'wn_storex'), array('uniacid', 'uniontid', 'tid'));
 				if(!empty($paylog)){
 					$lists[$orderkey]['uniontid'] = $paylog['uniontid'];
 				}
