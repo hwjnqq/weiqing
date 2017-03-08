@@ -21,14 +21,14 @@ if ($op == 'personal_info') {
 	message(error(0, $user_info), '', 'ajax');
 }
 if ($op == 'personal_update') {
-	if (!empty($_GPC['__input']['fields'])) {
-		foreach($_GPC['__input']['fields'] as $key=>$value){
+	if (!empty($_GPC['fields'])) {
+		foreach($_GPC['fields'] as $key=>$value){
 			if (empty($value) || empty($key)) {
 				message(error(-1, '信息不完整'), '', 'ajax');
 			}
 		}
 	}
-	$result = mc_update($_W['openid'], $_GPC['__input']['fields']);
+	$result = mc_update($_W['openid'], $_GPC['fields']);
 	if (!empty($result)) {
 		message(error(0, '修改成功'), '', 'ajax');
 	} else {
@@ -62,7 +62,7 @@ if ($op == 'current_address') {
 	message(error(0, $current_info), '', 'ajax');
 }
 if ($op == 'address_post') {
-	$address_info = $_GPC['__input']['fields'];
+	$address_info = $_GPC['fields'];
 	if (empty($address_info['username']) || empty($address_info['zipcode']) || empty($address_info['province']) || empty($address_info['city'])  || empty($address_info['district']) || empty($address_info['address'])) {
 		message(error(-1, '请填写正确的信息'), '', 'ajax');
 	}
