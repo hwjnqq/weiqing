@@ -60,6 +60,7 @@
 </div>
 <form action="" class="form-horizontal form" method="post" enctype="multipart/form-data" onsubmit="return formcheck()">
 <input type="hidden" name="id" value="{$item['id']}">
+	<input type="hidden" name="store_type" value="{$store_type}">
 <div class="panel panel-default">
 	<div class="panel-heading">
 		{if $_GPC['op'] == 'edit' && $_GPC['id'] != ''}
