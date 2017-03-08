@@ -1981,7 +1981,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 					}
 				}
 				pdo_update('storex_order', $data, array('id' => $id));
-				message('订单信息处理完成！', $this->createWebUrl('order', array('hotelid' => $hotelid, "roomid" => $roomid)), 'success');
+				message('订单信息处理完成！', $this->createWebUrl('order', array('hotelid' => $hotelid, "roomid" => $roomid, 'store_type' => $store_type)), 'success');
 			}
 			if ($store_type == 1){
 				$btime = $item['btime'];
