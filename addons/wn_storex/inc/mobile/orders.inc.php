@@ -68,6 +68,7 @@ if ($op == 'order_detail'){
 	}
 	$store_info = pdo_get('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $order_info['hotelid']), array('id', 'title', 'store_type'));
 	$order_info['store_info'] = $store_info;
+	$order_info['store_type'] = $store_info['store_type'];
 	if (!empty($order_info['addressid'])) {
 		$order_info['address'] = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid']), 'id' => $order_info['addressid']));
 	}
@@ -86,7 +87,8 @@ if ($op == 'orderpay'){
 if ($op == 'cancel'){
 	$id = intval($_GPC['id']);
 	$order_info = pdo_get('storex_order', array('weid' => intval($_W['uniacid']), 'id' => $id));
-	$order_info = orders_check_status($order_info);
+	$store_info = pdo_get('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $order_info['hotelid']), array('id', 'store_type'));
+	$order_info['store_type'] = $store_info['store_type'];
 	$setting = pdo_get('storex_set', array('weid' => intval($_W['uniacid'])));
 	if ($setting['refund'] == 1) {
 		message(error(-1, '该店铺不能取消订单！'), '', 'ajax');
@@ -102,6 +104,8 @@ if ($op == 'cancel'){
 if ($op == 'confirm_goods'){
 	$id = intval($_GPC['id']);
 	$order_info = pdo_get('storex_order', array('weid' => intval($_W['uniacid']), 'id' => $id));
+	$store_info = pdo_get('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $order_info['hotelid']), array('id', 'store_type'));
+	$order_info['store_type'] = $store_info['store_type'];
 	$order_info = orders_check_status($order_info);
 	if ($order_info['status'] == -1) {
 		message(error(-1, '该订单已经取消了！'), '', 'ajax');

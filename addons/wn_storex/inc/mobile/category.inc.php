@@ -116,7 +116,7 @@ if ($op == 'more_goods') {
 		message(error(-1, '店铺不存在'), '', 'ajax');
 	} else {
 		if ($storex_bases['status'] == 0) {
-			message(error(-1, '管理员将该店铺设置为隐藏，请联系管理员'), '', 'ajax');
+			message(error(-1, '店铺已隐藏'), '', 'ajax');
 		}
 	}
 	if (!empty($can_reserve)) {
