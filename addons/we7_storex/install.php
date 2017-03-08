@@ -382,7 +382,6 @@ if (!empty($module)){
 		'persons',
 		'bedadd',
 		'status',
-		'clerk',
 		'isshow',
 		'sales',
 		'displayorder',
