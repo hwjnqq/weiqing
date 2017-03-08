@@ -55,7 +55,7 @@ if ($op == 'order_list') {
 
 if ($op == 'order_detail'){
 	$id = intval($_GPC['id']);
-	$order_info = pdo_get('storex_order', array('weid' => intval($_W['uniacid']), 'id' => $id));
+	$order_info = pdo_get('storex_order', array('weid' => intval($_W['uniacid']), 'id' => $id, 'openid' => $_W['openid']));
 	if (empty($order_info)) {
 		message(error(-1, '找不到该订单了'), '', 'ajax');
 	}
@@ -86,7 +86,7 @@ if ($op == 'orderpay'){
 
 if ($op == 'cancel'){
 	$id = intval($_GPC['id']);
-	$order_info = pdo_get('storex_order', array('weid' => intval($_W['uniacid']), 'id' => $id));
+	$order_info = pdo_get('storex_order', array('weid' => intval($_W['uniacid']), 'id' => $id, 'openid' => $_W['openid']));
 	$store_info = pdo_get('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $order_info['hotelid']), array('id', 'store_type'));
 	$order_info['store_type'] = $store_info['store_type'];
 	$setting = pdo_get('storex_set', array('weid' => intval($_W['uniacid'])));
@@ -103,7 +103,7 @@ if ($op == 'cancel'){
 
 if ($op == 'confirm_goods'){
 	$id = intval($_GPC['id']);
-	$order_info = pdo_get('storex_order', array('weid' => intval($_W['uniacid']), 'id' => $id));
+	$order_info = pdo_get('storex_order', array('weid' => intval($_W['uniacid']), 'id' => $id, 'openid' => $_W['openid']));
 	$store_info = pdo_get('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $order_info['hotelid']), array('id', 'store_type'));
 	$order_info['store_type'] = $store_info['store_type'];
 	$order_info = orders_check_status($order_info);
