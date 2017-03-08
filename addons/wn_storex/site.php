@@ -56,7 +56,7 @@ class We7_storexModuleSite extends WeModuleSite {
 				$dir .= 'mobile/';
 		 		$fun = strtolower(substr($name, 8));
 		 		$init = $dir . '__init.php';
-		 		$func = IA_ROOT . '/addons/we7_storex/function/function.php';
+		 		$func = IA_ROOT . '/addons/wn_storex/function/function.php';
 				if (is_file($init)) {
 					require $init;
 				}

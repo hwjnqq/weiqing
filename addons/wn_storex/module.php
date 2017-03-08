@@ -8,13 +8,13 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-include "../addons/we7_storex/model.php";
+include "../addons/wn_storex/model.php";
 
 class We7_storexModule extends WeModule {
 
-    public $_img_url = '../addons/we7_storex/template/style/img/';
-    public $_css_url = '../addons/we7_storex/template/style/css/';
-    public $_script_url = '../addons/we7_storex/template/style/js/';
+    public $_img_url = '../addons/wn_storex/template/style/img/';
+    public $_css_url = '../addons/wn_storex/template/style/css/';
+    public $_script_url = '../addons/wn_storex/template/style/js/';
     public $_hotel_level_config = array(5 => '五星级酒店', 4 => '四星级酒店', 3 => '三星级酒店', 2 => '两星级以下', 15 => '豪华酒店', 14 => '高档酒店', 13 => '舒适酒店', 12 => '经济型酒店',);
 
     public function fieldsFormDisplay($rid = 0) {
