@@ -286,16 +286,42 @@ function orders_check_status($item){
 				}
 			}
 		}else{//确认订单后显示货物状态，普通
-			if ($item['goods_status'] == 1){
-				$status = STORE_UNSENT_STATUS;
-			}elseif($item['goods_status'] == 2){
-				$item['is_confirm'] = 1;
-				$status = STORE_SENT_STATUS;
-			}elseif($item['goods_status'] == 3){
-				$status = STORE_GETGOODS_STATUS;
+			if($item['paystatus'] == 0){
+				if ($item['goods_status'] == 1){
+					if($item['action'] == 2){
+						$item['is_pay'] = 1;
+					}
+					$status = STORE_UNSENT_STATUS;
+				}elseif($item['goods_status'] == 2){
+					if($item['action'] == 2){
+						$item['is_pay'] = 1;
+					}
+					$item['is_confirm'] = 1;
+					$status = STORE_SENT_STATUS;
+				}elseif($item['goods_status'] == 3){
+					if($item['action'] == 2){
+						$item['is_pay'] = 1;
+					}
+					$status = STORE_GETGOODS_STATUS;
+				}else{
+					if($item['action'] == 2){
+						$item['is_pay'] = 1;
+					}
+					$item['is_cancle'] = 1;
+					$status = STORE_RESERVE_CONFIRM_STATUS;
+				}
+			}else if($item['paystatus'] == 1){
+				if ($item['goods_status'] == 1){
+					$item['is_cancle'] = 1;
+					$status = STORE_UNSENT_STATUS;
+				}elseif($item['goods_status'] == 2){
+					$item['is_confirm'] = 1;
+					$status = STORE_SENT_STATUS;
+				}elseif($item['goods_status'] == 3){
+					$status = STORE_GETGOODS_STATUS;
+				}
 			}else{
-				$item['is_cancle'] = 1;
-				$status = STORE_RESERVE_CONFIRM_STATUS;
+				$status = STORE_REPAY_STATUS;
 			}
 		}
 	}else if ($item['status'] == 2){
