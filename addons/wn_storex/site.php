@@ -1526,8 +1526,8 @@ class Wn_storexModuleSite extends WeModuleSite {
 					if (empty($item)) {
 						message('抱歉，房型不存在或是已经删除！', '', 'error');
 					}
-					$piclist = unserialize($item['thumbs']);
-					$item['mprice'] = unserialize($item['mprice']);
+					$piclist = iunserializer($item['thumbs']);
+					$item['mprice'] = iunserializer($item['mprice']);
 				}
 				if (checksubmit('submit')) {
 					if (empty($_GPC['store_base_id'])) {
@@ -1684,8 +1684,8 @@ class Wn_storexModuleSite extends WeModuleSite {
 					if (empty($item)) {
 						message('抱歉，商品不存在或是已经删除！', '', 'error');
 					}
-					$piclist = unserialize($item['thumbs']);
-					$item['mprice'] = unserialize($item['mprice']);
+					$piclist = iunserializer($item['thumbs']);
+					$item['mprice'] = iunserializer($item['mprice']);
 					$store_base_id = $item['store_base_id'];
 				}
 				if (checksubmit('submit')) {
