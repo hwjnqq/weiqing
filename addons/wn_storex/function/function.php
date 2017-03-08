@@ -228,8 +228,9 @@ function orders_check_status($item){
 			'10' => '未发货',
 			'11' => '已发货',
 			'12' => '已收货',
-			'13' => '预定订单提交成功',
-			'14' => '预定订单已被确认'
+			'13' => '预定提交成功',
+			'14' => '预定已被确认',
+			'15' => '订单已确认'
 	);
 	//1是显示,2不显示
 	$item['is_pay'] = 2;//立即付款 is_pay
@@ -311,14 +312,18 @@ function orders_check_status($item){
 					$status = STORE_RESERVE_CONFIRM_STATUS;
 				}
 			}else if($item['paystatus'] == 1){
-				if ($item['goods_status'] == 1){
-					$item['is_cancle'] = 1;
-					$status = STORE_UNSENT_STATUS;
-				}elseif($item['goods_status'] == 2){
-					$item['is_confirm'] = 1;
-					$status = STORE_SENT_STATUS;
-				}elseif($item['goods_status'] == 3){
-					$status = STORE_GETGOODS_STATUS;
+				if($item['mode_distribute'] == 1){//自提
+					$status = STORE_CONFIRM_STATUS;
+				}else{
+					if ($item['goods_status'] == 1){
+						$item['is_cancle'] = 1;
+						$status = STORE_UNSENT_STATUS;
+					}elseif($item['goods_status'] == 2){
+						$item['is_confirm'] = 1;
+						$status = STORE_SENT_STATUS;
+					}elseif($item['goods_status'] == 3){
+						$status = STORE_GETGOODS_STATUS;
+					}
 				}
 			}else{
 				$status = STORE_REPAY_STATUS;
