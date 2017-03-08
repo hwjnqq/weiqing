@@ -91,11 +91,11 @@ if ($op == 'order'){
 		'weid' => intval($_W['uniacid']),
 		'hotelid' => $store_id,
 		'openid' => $_W['openid'],
-		'contact_name' => trim($_GPC['__input']['order']['contact_name']),//联系人
+		'contact_name' => trim($_GPC['order']['contact_name']),//联系人
 		'roomid' => $goodsid,					//商品id
-		'mobile' => trim($_GPC['__input']['order']['mobile']),
-		'remark' => trim($_GPC['__input']['order']['remark']),			//留言
-		'nums' => intval($_GPC['__input']['order']['nums']),				//数量
+		'mobile' => trim($_GPC['order']['mobile']),
+		'remark' => trim($_GPC['order']['remark']),			//留言
+		'nums' => intval($_GPC['order']['nums']),				//数量
 		'time' => TIMESTAMP,					//下单时间（TIMESTAMP）
 	);
 	if ($order_info['nums'] <= 0) {
@@ -114,10 +114,10 @@ if ($op == 'order'){
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
 	//预定直接将数据加进order表
 	if ($store_info['store_type'] == 1) {//酒店
-		$order_info['btime'] = strtotime($_GPC['__input']['order']['btime']);
-		$order_info['etime'] = strtotime($_GPC['__input']['order']['etime']);
-		if (!empty($_GPC['__input']['order']['day'])) {
-			$order_info['day'] = intval($_GPC['__input']['order']['day']);
+		$order_info['btime'] = strtotime($_GPC['order']['btime']);
+		$order_info['etime'] = strtotime($_GPC['order']['etime']);
+		if (!empty($_GPC['order']['day'])) {
+			$order_info['day'] = intval($_GPC['order']['day']);
 		} else {
 			$order_info['day'] = ceil(($order_info['etime'] - $order_info['btime'])/86400);
 		}
@@ -325,16 +325,16 @@ if ($op == 'order'){
 		if (empty($order_info['mobile'])) {
 			message(error(-1, '手机号不能为空!'), '', 'ajax');
 		}
-		$order_info['mode_distribute'] = intval($_GPC['__input']['order']['mode_distribute']);
-		if(empty($_GPC['__input']['order']['order_time'])){
+		$order_info['mode_distribute'] = intval($_GPC['order']['mode_distribute']);
+		if(empty($_GPC['order']['order_time'])){
 			message(error(-1, '请选择时间！'), '', 'ajax');
 		}
-		$order_info['order_time'] = strtotime(intval($_GPC['__input']['order']['order_time']));
+		$order_info['order_time'] = strtotime(intval($_GPC['order']['order_time']));
 		if($order_info['mode_distribute'] == 2){//配送
-			if(empty($_GPC['__input']['order']['addressid'])){
+			if(empty($_GPC['order']['addressid'])){
 				message(error(-1, '地址不能为空！'), '', 'ajax');
 			}
-			$order_info['addressid'] = intval($_GPC['__input']['order']['addressid']);
+			$order_info['addressid'] = intval($_GPC['order']['addressid']);
 			$order_info['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
 		}
 		$insert = array(
