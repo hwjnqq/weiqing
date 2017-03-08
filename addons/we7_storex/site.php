@@ -1479,7 +1479,7 @@ class We7_storexModuleSite extends WeModuleSite {
 		$card_setting = pdo_fetch("SELECT * FROM ".tablename('mc_card')." WHERE uniacid = '{$_W['uniacid']}'");
 		$card_status =  $card_setting['status'];
 		$store_base_id = intval($_GPC['store_base_id']);
-		$stores = pdo_fetchall("SELECT * FROM " . tablename('storex_bases') . " WHERE weid = '{$_W['uniacid']}' ORDER BY id ASC, displayorder DESC", array(), 'id');
+		$stores = pdo_fetchall("SELECT * FROM " . tablename('storex_bases') . " WHERE weid = '{$_W['uniacid']}' ORDER BY store_type DESC, displayorder DESC", array(), 'id');
 		$sql = '';
 		$condition = array(':weid' => $_W['uniacid']);
 		$store_type = !empty($_GPC['store_type'])? intval($_GPC['store_type']) : 0;

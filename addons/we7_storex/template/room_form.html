@@ -3,7 +3,7 @@
 {template 'common'}
 <div class="main">
 <ul class="nav nav-tabs">
-	<li {if $_GPC['op'] == 'edit'}class="active"{/if}><a href="{php echo $this->createWebUrl('goodsmanage', array('op'=>'edit'));}">添加商品</a></li>
+	<li {if $_GPC['op'] == 'edit'}class="active"{/if}><a href="{php echo $this->createWebUrl('goodsmanage', array('op'=>'edit', 'store_base_id' => $_GPC['store_base_id']));}">添加商品</a></li>
 	<li {if empty($_GPC['op'])}class="active"{/if} ><a href="{php echo $this->createWebUrl('goodsmanage', array('hotelid' => $rid));}">商品管理</a></li>
 </ul>
 <form action="" class="form-horizontal form" method="post" enctype="multipart/form-data" onsubmit="return formcheck()">
@@ -20,13 +20,8 @@
 		<div class="form-group">
 			<label class="col-xs-12 col-sm-3 col-md-2 control-label">选择店铺</label>
 			<div class="col-sm-8 col-lg-9 col-xs-12">
-				<select class="form-control" onchange="window.location=this.value;" {if !empty($_GPC['id'])}disabled{/if}>
-					<option value = ''>店铺列表</option>
-					{loop $stores $info}
-					<option value="{php echo $this->createWebUrl('goodsmanage', array('store_base_id' => $info['id'], 'op' => 'edit'))}" {if $store_base_id == $info['id']} selected="selected" {/if}>{$info['title']}</option>
-					{/loop}
-				</select>
-				<span class='help-block'>请先选择店铺，缺少店铺请查看该店铺是否添加一级分类</span>
+				<input type="text" disabled value="{$stores[$_GPC['store_base_id']]['title']}" class="form-control">
+				<span class='help-block'>请先选择店铺</span>
 			</div>
 		</div>
 		<div class="form-group">
