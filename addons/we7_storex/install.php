@@ -325,9 +325,9 @@ $ewei_hotel_table = array(
 	'hotel2_comment' => 'storex_comment',
 	'hotel2_comment_clerk' => 'storex_comment_clerk',
 	'hotel2_member' => 'storex_member',
-	'hotel2_order' => 'storex_order',
+// 	'hotel2_order' => 'storex_order',
 	'hotel2_reply' => 'storex_reply',
-	'hotel2_room' => 'storex_room',
+// 	'hotel2_room' => 'storex_room',
 	'hotel2_room_price' => 'storex_room_price',
 	'hotel2_set' => 'storex_set',
 	'hotel12_code' => 'storex_code',
@@ -362,6 +362,93 @@ if (!empty($module)){
 	//将原数据填入新的表中
 	foreach($ewei_hotel_table as $hotel2_table => $storex_table){
 		pdo_query("INSERT INTO " .tablename($storex_table) ." select * from " .tablename($hotel2_table));
+	}
+//hotel2_room 字段
+	$hotel2_room = array(
+		'id',
+		'hotelid',
+		'weid',
+		'title',
+		'thumb',
+		'oprice',
+		'cprice',
+		'mprice',
+		'thumbs',
+		'device',
+		'area',
+		'floor',
+		'smoke',
+		'bed',
+		'persons',
+		'bedadd',
+		'status',
+		'clerk',
+		'isshow',
+		'sales',
+		'displayorder',
+		'area_show',
+		'floor_show',
+		'smoke_show',
+		'bed_show',
+		'persons_show',
+		'bedadd_show',
+		'score',
+		'breakfast',
+		'sortid',
+		'service',
+	);
+	$hotel2_room_data = pdo_get('hotel2_room');
+	if(!empty($hotel2_room_data)){
+		foreach ($hotel2_room_data as $val){
+			$insert = array();
+			foreach($hotel2_room as $field){
+				$insert[$field] = $val;
+			}
+			pdo_insert('storex_room', $insert);
+		}
+	}
+	
+	//hotel2_order 字段
+	$hotel2_order = array(
+		'id',
+		'weid',
+		'hotelid',
+		'roomid',
+		'memberid',
+		'openid',
+		'name',
+		'mobile',
+		'remark',
+		'btime',
+		'etime',
+		'style',
+		'nums',
+		'oprice',
+		'cprice',
+		'mprice',
+		'info',
+		'time',
+		'status',
+		'paytype',
+		'paystatus',
+		'msg',
+		'mngtime',
+		'contact_name',
+		'day',
+		'sum_price',
+		'ordersn',
+		'comment',
+		'clerkcomment',
+	);
+	$hotel2_order_data = pdo_get('hotel2_order');
+	if(!empty($hotel2_order_data)){
+		foreach ($hotel2_order_data as $val){
+			$insert_order = array();
+			foreach($hotel2_order as $field){
+				$insert_order[$field] = $val;
+			}
+			pdo_insert('storex_order', $insert_order);
+		}
 	}
 	//storex_bases 字段
 	$storex_base = array(
@@ -407,7 +494,6 @@ if (!empty($module)){
 		'brandid',
 		'businessid',
 	);
-	
 	//微酒店的hotel2表，将hotel2的数据分到storex_bases表和扩展表storex_hotel
 	$hotel2_beifen = pdo_getall('hotel2');
 	if(!empty($hotel2_beifen)){
