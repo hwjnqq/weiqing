@@ -1462,6 +1462,9 @@ class Wn_storexModuleSite extends WeModuleSite {
 					if (empty($_GPC['category']['parentid'])) {
 						message('一级分类不能为空！', '', 'error');
 					}
+					if (empty($_GPC['device'])) {
+						message('商品说明不能为空！', '', 'error');
+					}
 					$data = array(
 							'weid' => $_W['uniacid'],
 							'pcate' => $_GPC['category']['parentid'],
