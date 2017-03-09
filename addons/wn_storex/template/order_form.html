@@ -161,7 +161,7 @@
 						<!--<option value="3" {if $item['status'] == 3 } selected="selected"{/if}>订单完成</option>-->
 						<!--</select>-->
 						<button type="button" class="btn but{if $item['status'] == -1} btn-primary{/if} btn-default"  value="-1">订单取消</button>
-						<button type="button" class="btn but{if $item['status'] == 1} btn-primary{/if} btn-default"  value="1">订单确认</button>
+						<button type="button" class="btn but{if $item['status'] == 1 && ($item['mode_distribute'] != 2 || $item['goods_status'] != 2)} btn-primary{/if} btn-default"  value="1">订单确认</button>
 						<button type="button" class="btn but{if $item['status'] == 2} btn-primary{/if} btn-default"  value="2">{if $item['paytype']==0}订单拒绝{else}订单退款{/if}</button>
 						{if $store_type == 1}
 						<button type="button" class="btn but{if $item['status'] == 4} btn-primary{/if} btn-default"  value="4" >已入住</button>

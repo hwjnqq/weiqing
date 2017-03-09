@@ -1973,6 +1973,8 @@ class Wn_storexModuleSite extends WeModuleSite {
 						}
 					}
 					if ($data['status'] == 5) {
+						$data['status'] = 1;
+						$data['goods_status'] = 2;
 						$acc = WeAccount::create();
 						$info = '您在'.$hotel['title'].'预订的'.$room['title']."已发货";
 						$custom = array(
