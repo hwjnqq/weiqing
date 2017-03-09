@@ -293,6 +293,7 @@ function orders_check_status($item){
 					if($item['action'] == 2){
 						$item['is_pay'] = 1;
 					}
+					$item['is_cancle'] = 1;
 					$status = STORE_UNSENT_STATUS;
 				}elseif($item['goods_status'] == 2){
 					if($item['action'] == 2){
