@@ -247,6 +247,7 @@ function orders_check_status($item){
 			}elseif($item['goods_status'] == 3){
 				$status = STORE_GETGOODS_STATUS;
 			}else{
+				$item['is_cancle'] = 1;
 				$status = STORE_RESERVE_SUCCESS_STATUS;
 			}
 		}else{
@@ -340,6 +341,10 @@ function orders_check_status($item){
 	}else if ($item['status'] == 3){
 		$status = STORE_OVER_STATUS;
 		$item['over'] = 1;
+	}
+	$setting = pdo_get('storex_set', array('weid' => intval($_W['uniacid'])));
+	if ($setting['refund'] == 1) {
+		$item['is_cancle'] = 2;
 	}
 	$item['order_status'] = $order_status_text[$status];
 	return $item;
