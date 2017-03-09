@@ -166,6 +166,12 @@ if ($op == 'more_goods') {
 	if ($page_array['isshow'] == 1) {
 		$list['nindex'] = $page_array['nindex'];
 	}
+	if (!empty($list['list'])){
+		foreach ($list['list'] as $k => $info){
+			$list['list'][$k]['thumb'] = tomedia($info['thumb']);
+			$list['list'][$k]['thumbs'] = format_url(iunserializer($info['thumbs']));
+		}
+	}
 	message(error(0, $list), '', 'ajax');
 }
 
