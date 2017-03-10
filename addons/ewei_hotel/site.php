@@ -1995,7 +1995,16 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 		$weid = $this->_weid;
 		$id = $_GPC['id'];
 		$this->check_login();
+		$pretime = $_GPC['pretime'];
+		$paystatus = $_GPC['paystatus'];
+		$endtime = date("Y-m-d h:i:s",($pretime + 86400));
+		$pretime = date("Y-m-d h:i:s",$pretime);
+		$currenttime = date("Y-m-d h:i:s",time());
 
+		if ($paystatus == 0 && $currenttime > $endtime){
+			$url = $this->createMobileUrl('orderlist');
+			header("Location: $url");
+		}
 		if (empty($id)) {
 			$url = $this->createMobileUrl('orderlist');
 			header("Location: $url");

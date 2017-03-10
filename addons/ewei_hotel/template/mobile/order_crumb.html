@@ -1,6 +1,6 @@
 {loop $list $item}
 <ul class="new_orderlist" id="order_list" style="">
-	<a href="{php echo $this->createMobileUrl('orderdetail',array('id' => $item['id']))}">
+	<a href="{php echo $this->createMobileUrl('orderdetail',array('id' => $item['id'],'pretime' =>$item['btime'], 'paystatus' =>$item['status']))}">
 		<li>
 			<h4 class="new_ordername ">{$item['title']}</h4>
 			<div class="new_orderstate new_ordersok">
