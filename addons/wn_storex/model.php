@@ -105,7 +105,7 @@ if(!function_exists('hotel_member_hash')) {
 if(!function_exists('hotel_member_check')) {
 	function hotel_member_check($member)
 	{
-		$sql = 'SELECT `password`,`salt` FROM ' . tablename('hotel2_member') . " WHERE 1";
+		$sql = 'SELECT `password`,`salt` FROM ' . tablename('storex_member') . " WHERE 1";
 		$params = array();
 		if (!empty($member['uid'])) {
 			$sql .= ' AND `uid`=:uid';
@@ -154,7 +154,7 @@ if(!function_exists('hotel_member_check')) {
 if(!function_exists('hotel_member_single')) {
 	function hotel_member_single($member)
 	{
-		$sql = 'SELECT * FROM ' . tablename('hotel2_member') . " WHERE 1";
+		$sql = 'SELECT * FROM ' . tablename('storex_member') . " WHERE 1";
 		$params = array();
 		if (!empty($member['weid'])) {
 			$sql .= ' AND `weid`=:weid';
@@ -194,7 +194,7 @@ if(!function_exists('get_hotel_set')) {
 	{
 		global $_GPC, $_W;
 		$weid = $_W['uniacid'];
-		$set = pdo_fetch("select * from " . tablename('hotel2_set') . " where weid=:weid limit 1", array(":weid" => $weid));
+		$set = pdo_fetch("select * from " . tablename('storex_set') . " where weid=:weid limit 1", array(":weid" => $weid));
 		if (!$set) {
 			$set = array(
 				"user" => 1,
@@ -211,85 +211,6 @@ if(!function_exists('get_hotel_set')) {
 			);
 		}
 		return $set;
-	}
-	}
-
-//获取登录用户
-if(!function_exists('get_login_user')) {
-	function get_login_user()
-	{
-		global $_GPC, $_W;
-		$weid = $_W['uniacid'];
-		if (isset($_SESSION['hotel2_member'])) {
-			return json_decode($_SESSION['hotel2_member']);
-		}
-		$member = pdo_fetch("select * from " . tablename('hotel2_member') . " where weid=:weid and from_user=:from_user and islogin=1 limit 1", array(":weid" => $weid, ":from_user" => $_W['fans']['from_user']));
-		session_start();
-		$_SESSION['hotel2_member'] = json_encode($member);
-		
-		return $member;
-	}
-}
-
-
-
-
-if(!function_exists('check_orderinfo')) {
-	function check_orderinfo($member)
-	{
-		global $_GPC, $_W;
-		$sql = "SELECT ID FROM " . tablename('hotel2_order') . " WHERE 1 = 1";
-		if (!empty($member['hotelid'])) {
-			$sql .= ' AND `hotelid`=:hotelid';
-			$params[':hotelid'] = $member['hotelid'];
-		}
-		if (!empty($member['openid'])) {
-			$sql .= ' AND `openid`=:openid';
-			$params[':openid'] = $member['openid'];
-		}
-		if (!empty($member['roomid'])) {
-			$sql .= ' AND `roomid`=:roomid';
-			$params[':roomid'] = $member['roomid'];
-		}
-		if (!empty($member['memberid'])) {
-			$sql .= ' AND `memberid`=:memberid';
-			$params[':memberid'] = $member['memberid'];
-		}
-		if (!empty($member['name'])) {
-			$sql .= ' AND `name`=:name';
-			$params[':name'] = $member['name'];
-		}
-		if (!empty($member['contact_name'])) {
-			$sql .= ' AND `contact_name`=:contact_name';
-			$params[':contact_name'] = $member['contact_name'];
-		}
-		if (!empty($member['mobile'])) {
-			$sql .= ' AND `mobile`=:mobile';
-			$params[':mobile'] = $member['mobile'];
-		}
-		if (!empty($member['btime'])) {
-			$sql .= ' AND `btime`=:btime';
-			$params[':btime'] = $member['btime'];
-		}
-		if (!empty($member['etime'])) {
-			$sql .= ' AND `etime`=:etime';
-			$params[':etime'] = $member['etime'];
-		}
-		if (!empty($member['nums'])) {
-			$sql .= ' AND `nums`=:nums';
-			$params[':nums'] = $member['nums'];
-		}
-		if (!empty($member['sum_price'])) {
-			$sql .= ' AND `sum_price`=:sum_price';
-			$params[':sum_price'] = $member['sum_price'];
-		}
-		$sql .= " LIMIT 1";
-		$record = pdo_fetch($sql, $params);
-		if ($record) {
-			return 1;
-		} else {
-			return 0;
-		}
 	}
 }
 
@@ -337,50 +258,5 @@ if(!function_exists('get_page_array')) {
 			$pdata['islast'] = 0;
 		}
 		return $pdata;
-	}
-	}
-
-//0升序 1降序
-if(!function_exists('array_sort')) {
-	function array_sort($arr, $keys, $type = 0)
-	{
-		$keysvalue = $new_array = array();
-		foreach ($arr as $k => $v) {
-			$keysvalue[$k] = $v[$keys];
-		}
-		if ($type == 0) {
-			asort($keysvalue);
-		} else {
-			arsort($keysvalue);
-		}
-		reset($keysvalue);
-		foreach ($keysvalue as $k => $v) {
-			$new_array[$k] = $arr[$k];
-		}
-		return $new_array;
-	}
-}
-
-
-
-if(!function_exists('img_url')) {
-	function img_url($img = '') {
-		global $_W;
-		if (empty($img)) {
-			return "";
-		}
-		if (substr($img, 0, 6) == 'avatar') {
-			return $_W['siteroot'] . "resource/image/avatar/" . $img;
-		}
-		if (substr($img, 0, 8) == './themes') {
-			return $_W['siteroot'] . $img;
-		}
-		if (substr($img, 0, 1) == '.') {
-			return $_W['siteroot'] . substr($img, 2);
-		}
-		if (substr($img, 0, 5) == 'http:') {
-			return $img;
-		}
-		return $_W['attachurl'] . $img;
 	}
 }
