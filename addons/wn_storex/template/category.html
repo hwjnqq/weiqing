@@ -65,7 +65,7 @@
 						<input type="text" name="name" class="form-control" value="{$category['name']}" />
 					</div>
 				</div>
-
+				<!-- 
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分类图片</label>
 					<div class="col-sm-9 col-xs-12">
@@ -78,8 +78,8 @@
 						<textarea name="description" class="form-control" cols="70">{$category['description']}</textarea>
 					</div>
 				</div>
-
-				 <div class="form-group">
+				 -->
+				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否显示</label>
 					<div class="col-sm-9 col-xs-12">
 						<label class='radio-inline'>
@@ -117,10 +117,17 @@
 							</tr>
 						</thead>
 						<tbody>
+						<?php $last_row = array();?>
 						{loop $category $key $row}
 						<tr>
-							<td>{if count($children[$row['id']]) > 0}<a href="javascript:;"><i class="fa fa-chevron-down"></i></a>{/if}</td>
+							{if !empty($last_row) && $row['store_base_id'] == $last_row['store_base_id']}
+							<td></td>
+							<td></td>
+							{else}
+							<td>{if count($children[$row['id']]) > 0}{/if}</td>
 							<td style="width:80px;">{$row['store_title']}</td>
+							{/if}
+							<?php $last_row = $row;?>
 							<td><input type="text" class="form-control" name="displayorder[{$row['id']}]" value="{$row['displayorder']}"></td>
 							<td>
 								<img src="{php echo tomedia($row['thumb']);}" width='30' height="30" onerror="$(this).remove()" style='padding:1px;border: 1px solid #ccc;float:left;' />

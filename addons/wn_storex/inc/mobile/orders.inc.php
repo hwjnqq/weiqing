@@ -7,6 +7,7 @@ $ops = array('order_list', 'order_detail', 'orderpay', 'cancel', 'confirm_goods'
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
+$uid = mc_openid2uid($_W['openid']);
 if ($op == 'order_list') {
 	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status', 'openid', 'action');
 	$orders = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'openid' => $_W['openid']), $field, '', 'time DESC');
@@ -70,7 +71,10 @@ if ($op == 'order_detail'){
 	$order_info['store_info'] = $store_info;
 	$order_info['store_type'] = $store_info['store_type'];
 	if (!empty($order_info['addressid'])) {
-		$order_info['address'] = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid']), 'id' => $order_info['addressid']));
+		$order_address = pdo_get('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid']), 'id' => $order_info['addressid']));
+		if (!empty($order_address)){
+			$order_info['address'] = $order_address['province'] . $order_address['city'] . $order_address['district'] . $order_address['address'];
+		}
 	}
 	//订单状态
 	$order_info = orders_check_status($order_info);

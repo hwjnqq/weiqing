@@ -9,7 +9,7 @@ $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 check_params();
 //获取店铺分类
 if ($op == 'category_list'){
-	$pcate_lists = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => intval($_GPC['id']), 'enabled' => 1), array('id', 'name'), '', 'displayorder DESC');
+	$pcate_lists = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'parentid' => '0', 'store_base_id' => intval($_GPC['id']), 'enabled' => 1), array('id', 'name'), '', 'displayorder DESC');
 	if (!empty($pcate_lists)) {
 		foreach ($pcate_lists as $val) {
 			$storex_categorys[$val['id']] = $val['name'];
@@ -137,7 +137,7 @@ if ($op == 'more_goods') {
 		$goods_list = pdo_fetchall("SELECT * FROM " . tablename('storex_goods') . " WHERE status = 1" . $sql, $condition);
 	}
 	$pindex = max(1, intval($_GPC['page']));
-	$psize = 2;
+	$psize = 10;
 	$list = array();
 	$total = count($goods_list);
 	if ($total <= $psize) {
@@ -165,6 +165,12 @@ if ($op == 'more_goods') {
 	$list['isshow'] = $page_array['isshow'];
 	if ($page_array['isshow'] == 1) {
 		$list['nindex'] = $page_array['nindex'];
+	}
+	if (!empty($list['list'])){
+		foreach ($list['list'] as $k => $info){
+			$list['list'][$k]['thumb'] = tomedia($info['thumb']);
+			$list['list'][$k]['thumbs'] = format_url(iunserializer($info['thumbs']));
+		}
 	}
 	message(error(0, $list), '', 'ajax');
 }
