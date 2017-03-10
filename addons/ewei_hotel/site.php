@@ -2031,8 +2031,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 		$endtime = date("Y-m-d h:i:s",($item['btime'] + 43200));
 		$currenttime = date("Y-m-d h:i:s",time());
 		if ($item['status'] == 0 && $currenttime > $endtime){
-			$url = $this->createMobileUrl('orderlist');
-			header("Location: $url");
+			message('抱歉，您的订单已过期！', $this->createMobileUrl('orderlist'), 'error');
 		}
 		$roomid = $item['roomid'];
 		$room_weid = $item['weid'];
