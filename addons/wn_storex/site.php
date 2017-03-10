@@ -728,37 +728,18 @@ class Wn_storexModuleSite extends WeModuleSite {
 		} else if ($op == 'delete') {
 
 			$id = intval($_GPC['id']);
-
-			if (!empty($id)) {
-				$item = pdo_get('storex_order', array('hotelid' => $id), array('id'));
-				if (!empty($item)) {
-					message('抱歉，请先删除该店铺的订单,再删除该店铺！', '', 'error');
-				}
-			} else {
-				message('抱歉，参数错误！', '', 'error');
-			}
-
-			pdo_delete("storex_order", array("hotelid" => $id));
 			pdo_delete("storex_room", array("hotelid" => $id));
 			pdo_delete("storex_bases", array("id" => $id));
-
+			pdo_delete("storex_categorys", array("store_base_id" => $id));
 			message("店铺信息删除成功!", referer(), "success");
 		} else if ($op == 'deleteall') {
 			foreach ($_GPC['idArr'] as $k => $id) {
 				$id = intval($id);
-				if (!empty($id)) {
-					$item = pdo_get('storex_order', array('hotelid' => $id), array('id'));
-					if (!empty($item)) {
-						message('抱歉，请先删除该酒店的订单,再删除该酒店！', '', 'error');
-					}
-				} else {
-					message('抱歉，参数错误！', '', 'error');
-				}
-				pdo_delete("storex_order", array("hotelid" => $id));
 				pdo_delete("storex_room", array("hotelid" => $id));
 				pdo_delete("storex_bases", array("id" => $id));
+				pdo_delete("storex_categorys", array("store_base_id" => $id));
 			}
-			$this->web_message('酒店信息删除成功！', '', 0);
+			$this->web_message('店铺信息删除成功！', '', 0);
 			exit();
 		} else if ($op == 'showall') {
 			if ($_GPC['show_name'] == 'showall') {
