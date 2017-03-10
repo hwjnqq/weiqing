@@ -892,6 +892,9 @@ class Wn_storexModuleSite extends WeModuleSite {
 							$row_info['store_title'] = $store_info['title'];
 						}
 					}
+					if(empty($row_info['store_title'])){
+						unset($category[$index]);
+					}
 				}
 				if (!empty($row_info['parentid'])) {
 					$children[$row_info['parentid']][] = $row_info;
