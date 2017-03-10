@@ -5,7 +5,7 @@
 <div class="main">
     <ul class="nav nav-tabs">
         <li><a href="{php echo $this->createWebUrl('storemanage');}">店铺管理</a></li>
-        <li {if $_GPC['op'] == 'edit'}class="active"{/if}><a href="{php echo $this->createWebUrl('goodsmanage', array('op'=>'edit'));}">添加商品</a></li>
+        <li {if $_GPC['op'] == 'edit'}class="active"{/if}><a href="{php echo $this->createWebUrl('goodsmanage', array('op'=>'edit','store_base_id'=>$hotelid));}">添加商品</a></li>
         <li><a href="{php echo $this->createWebUrl('goodsmanage');}">商品管理</a></li>
         <li class="active"><a href="{php echo $this->createWebUrl('room_status', array('hotelid' => $hotelid));}">维护房态/房量</a></li>
         <li><a href="{php echo $this->createWebUrl('room_price', array('hotelid' => $hotelid));}">维护房价</a></li>
