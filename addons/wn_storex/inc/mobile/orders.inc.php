@@ -3,7 +3,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('order_list', 'order_detail', 'orderpay', 'cancel', 'confirm_goods');
+$ops = array('order_list', 'order_detail', 'orderpay', 'cancel', 'confirm_goods', 'order_comment');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -122,4 +122,30 @@ if ($op == 'confirm_goods'){
 	}
 	pdo_update('storex_order', array('goods_status' => 3), array('id' => $id, 'weid' => $_W['uniacid']));
 	message(error(0, '订单收货成功！'), '', 'ajax');
+}
+
+if ($op == 'order_comment'){
+	$id = intval($_GPC['id']);
+	$comment = trim($_GPC['comment']);
+	if (empty($comment)){
+		message(error(-1, '评价不能为空！'), '', 'ajax');
+	}
+	$order_info = pdo_get('storex_order', array('weid' => intval($_W['uniacid']), 'id' => $id, 'openid' => $_W['openid']));
+	if (empty($order_info)){
+		message(error(-1, '找不到该订单了！'), '', 'ajax');
+	}
+	if ($order_info['status'] == 3 && $order_info['comment'] == 0){
+		$comment_info = array(
+			'uniacid' => $_W['uniacid'],
+			'uid' => $_W['member']['uid'],
+			'createtime' => time(),
+			'comment' => $comment,
+			'hotelid' => $order_info['hotelid'],
+		);
+		pdo_insert('storex_comment', $comment_info);
+		pdo_update('storex_order', array('comment' => 1), array('weid' => $_W['uniacid'], 'id' => $id));
+		message(error(0, '评论成功！'), '', 'ajax');
+	} else {
+		message(error(-1, '订单已经评价过了！'), '', 'ajax');
+	}
 }

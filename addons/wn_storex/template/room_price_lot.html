@@ -3,10 +3,10 @@
 {template 'common'}
 <div class="main">
 	<ul class="nav nav-tabs">
-		<li><a href="{php echo $this->createWebUrl('hotel');}">酒店管理</a></li>
-		<li><a href="{php echo $this->createWebUrl('hotel', array('op'=>'edit','id' => $hotelid));}">酒店编辑</a></li>
-		<li {if $_GPC['op'] == 'edit'}class="active"{/if}><a href="{php echo $this->createWebUrl('room', array('op'=>'edit','hotelid' => $hotelid));}">添加房型</a></li>
-		<li><a href="{php echo $this->createWebUrl('room', array('hotelid' => $rid));}">房型管理</a></li>
+		<li><a href="{php echo $this->createWebUrl('storemanage');}">店铺管理</a></li>
+		<li><a href="{php echo $this->createWebUrl('storemanage', array('op'=>'edit','id' => $hotelid));}">店铺编辑</a></li>
+		<li {if $_GPC['op'] == 'edit'}class="active"{/if}><a href="{php echo $this->createWebUrl('goodsmanage', array('op'=>'edit','store_base_id' => $hotelid));}">添加商品</a></li>
+		<li><a href="{php echo $this->createWebUrl('goodsmanage', array('hotelid' => $rid));}">商品管理</a></li>
 		<li><a href="{php echo $this->createWebUrl('room_price', array('hotelid' => $hotelid));}">维护房价</a></li>
 		<li class="active"><a href="{php echo $this->createWebUrl('room_price', array('ac'=>'updatelot','hotelid' => $hotelid));}">批量修改房价</a></li>
 	</ul>
