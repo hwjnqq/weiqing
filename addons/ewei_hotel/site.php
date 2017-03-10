@@ -1995,16 +1995,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 		$weid = $this->_weid;
 		$id = $_GPC['id'];
 		$this->check_login();
-		$pretime = $_GPC['pretime'];
-		$paystatus = $_GPC['paystatus'];
-		$endtime = date("Y-m-d h:i:s",($pretime + 86400));
-		$pretime = date("Y-m-d h:i:s",$pretime);
-		$currenttime = date("Y-m-d h:i:s",time());
 
-		if ($paystatus == 0 && $currenttime > $endtime){
-			$url = $this->createMobileUrl('orderlist');
-			header("Location: $url");
-		}
 		if (empty($id)) {
 			$url = $this->createMobileUrl('orderlist');
 			header("Location: $url");
@@ -2036,6 +2027,12 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 		$item = pdo_fetch($sql, $params);
 		if (empty($item)) {
 			message('抱歉，您的订单已被关闭！', $this->createMobileUrl('orderlist'), 'error');
+		}
+		$endtime = date("Y-m-d h:i:s",($item['btime'] + 43200));
+		$currenttime = date("Y-m-d h:i:s",time());
+		if ($item['status'] == 0 && $currenttime > $endtime){
+			$url = $this->createMobileUrl('orderlist');
+			header("Location: $url");
 		}
 		$roomid = $item['roomid'];
 		$room_weid = $item['weid'];
