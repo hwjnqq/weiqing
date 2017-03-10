@@ -731,6 +731,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			pdo_delete("storex_room", array("hotelid" => $id));
 			pdo_delete("storex_bases", array("id" => $id));
 			pdo_delete("storex_categorys", array("store_base_id" => $id));
+			pdo_delete('storex_goods', array('store_base_id' => $id));
 			message("店铺信息删除成功!", referer(), "success");
 		} else if ($op == 'deleteall') {
 			foreach ($_GPC['idArr'] as $k => $id) {
@@ -738,6 +739,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				pdo_delete("storex_room", array("hotelid" => $id));
 				pdo_delete("storex_bases", array("id" => $id));
 				pdo_delete("storex_categorys", array("store_base_id" => $id));
+				pdo_delete('storex_goods', array('store_base_id' => $id));
 			}
 			$this->web_message('店铺信息删除成功！', '', 0);
 			exit();
@@ -942,6 +944,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				message('抱歉，分类不存在或是已经被删除！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'error');
 			}
 			pdo_delete('storex_categorys', array('id' => $id, 'parentid' => $id), 'OR');
+			pdo_delete('storex_goods', array('pcate' => $id));
 			message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
 		}
 	}
@@ -1506,16 +1509,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				include $this->template('room_form');
 			} else if ($op == 'delete') {
 				$id = intval($_GPC['id']);
-				if (!empty($id)) {
-					$item = pdo_fetch("SELECT * FROM " . tablename('storex_room') . " WHERE id = :id", array(':id' => $id));
-					$store_base_id = $item['hotelid'];
-					$item = pdo_fetch("SELECT id FROM " . tablename('storex_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
-					if (!empty($item)) {
-						message('抱歉，请先删除该房间的订单,再删除该房间！', '', 'error');
-					}
-				} else {
-					message('抱歉，参数错误！', '', 'error');
-				}
+
 				pdo_delete('storex_room', array('id' => $id));
 				pdo_delete('storex_order', array('roomid' => $id));
 				pdo_query("update " . tablename('storex_hotel') . " set roomcount=(select count(*) from " . tablename('storex_room') . " where hotelid=:store_base_id) where store_base_id=:store_base_id", array(":store_base_id" => $store_base_id));
@@ -1523,14 +1517,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			} else if ($op == 'deleteall') {
 				foreach ($_GPC['idArr'] as $k => $id) {
 					$id = intval($id);
-					if (!empty($id)) {
-						$item = pdo_fetch("SELECT id FROM " . tablename('storex_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
-						if (!empty($item)) {
-							$this->web_message('抱歉，请先删除该房间的订单,再删除该房间！', '', 'error');
-						}
-					} else {
-						$this->web_message('抱歉，参数错误！', '', 'error');
-					}
+
 					pdo_delete('storex_room', array('id' => $id));
 					pdo_delete('storex_order', array('roomid' => $id));
 					pdo_query("update " . tablename('storex_hotel') . " set roomcount=(select count(*) from " . tablename('storex_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $id));
@@ -1650,27 +1637,13 @@ class Wn_storexModuleSite extends WeModuleSite {
 				include $this->template('room_form');
 			} else if ($op == 'delete') {
 				$id = intval($_GPC['id']);
-				if (!empty($id)) {
-					$item = pdo_fetch("SELECT id FROM " . tablename('storex_goods') . " WHERE store_base_id = :store_base_id LIMIT 1", array(':store_base_id' => $id));
-					if (!empty($item)) {
-						message('抱歉，请先删除该商品的订单,再删除该商品！', '', 'error');
-					}
-				} else {
-					message('抱歉，参数错误！', '', 'error');
-				}
+
 				pdo_delete('storex_goods', array('id' => $id));
 				message('删除成功！', referer(), 'success');
 			} else if ($op == 'deleteall') {
 				foreach ($_GPC['idArr'] as $k => $id) {
 					$id = intval($id);
-					if (!empty($id)) {
-						$item = pdo_fetch("SELECT id FROM " . tablename('storex_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
-						if (!empty($item)) {
-							$this->web_message('抱歉，请先删除该房间的订单,再删除该房间！', '', 'error');
-						}
-					} else {
-						$this->web_message('抱歉，参数错误！', '', 'error');
-					}
+
 					pdo_delete('storex_room', array('id' => $id));
 					pdo_delete('storex_order', array('roomid' => $id));
 					pdo_query("update " . tablename('storex_hotel') . " set roomcount=(select count(*) from " . tablename('storex_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $id));
