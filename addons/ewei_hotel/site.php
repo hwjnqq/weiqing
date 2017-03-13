@@ -2031,7 +2031,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 		if ($item['status'] == -1){
 			message('抱歉，您的订单已取消！', $this->createMobileUrl('orderlist'), 'error');
 		}
-		$endtime = date("Y-m-d h:i:s",($item['btime'] + 86400));ss
+		$endtime = date("Y-m-d h:i:s",($item['btime'] + 86400));
 		$currenttime = date("Y-m-d h:i:s",time());
 		if ($item['status'] == 0 && $currenttime > $endtime){
 			message('抱歉，您的订单已过期！', $this->createMobileUrl('orderlist'), 'error');
