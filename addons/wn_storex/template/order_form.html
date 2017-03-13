@@ -153,23 +153,18 @@
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">操作</label>
 					<div class="col-sm-9 col-xs-12 form-control-static">
-						<!--<select name="status" class="form-control" id="status">-->
-						<!--<option value="-1" {if $item['status'] == -1 } selected="selected"{/if}>订单取消</option>-->
-						<!--<option value="1" {if $item['status'] == 1 } selected="selected"{/if}>订单确认</option>-->
-						<!--<option value="2" {if $item['status'] == 2 } selected="selected"{/if}>-->
-						<!--{if $item['paytype']==0}订单拒绝{else}订单退款{/if}</option>-->
-						<!--<option value="3" {if $item['status'] == 3 } selected="selected"{/if}>订单完成</option>-->
-						<!--</select>-->
 						<button type="button" class="btn but{if $item['status'] == -1} btn-primary{/if} btn-default"  value="-1">订单取消</button>
-						<button type="button" class="btn but{if $item['status'] == 1 && ($item['mode_distribute'] != 2 || $item['goods_status'] != 2)} btn-primary{/if} btn-default"  value="1">订单确认</button>
-						<button type="button" class="btn but{if $item['status'] == 2} btn-primary{/if} btn-default"  value="2">{if $item['paytype']==0}订单拒绝{else}订单退款{/if}</button>
-						{if $store_type == 1}
-						<button type="button" class="btn but{if $item['status'] == 4} btn-primary{/if} btn-default"  value="4" >已入住</button>
+						{if $item['status'] != -1}
+							<button type="button" class="btn but{if $item['status'] == 1 && ($item['mode_distribute'] != 2 || $item['goods_status'] != 2)} btn-primary{/if} btn-default"  value="1">订单确认</button>
+							<button type="button" class="btn but{if $item['status'] == 2} btn-primary{/if} btn-default"  value="2">{if $item['paytype']==0}订单拒绝{else}订单退款{/if}</button>
+							{if $store_type == 1}
+							<button type="button" class="btn but{if $item['status'] == 4} btn-primary{/if} btn-default"  value="4" >已入住</button>
+							{/if}
+							{if $item['mode_distribute'] == 2}
+							<button type="button" class="btn but{if $item['goods_status'] == 2} btn-primary{/if} btn-default"  value="5" >已发货</button>
+							{/if}
+							<button type="button" class="btn but{if $item['status'] == 3} btn-primary{/if} btn-default"  value="3">订单完成</button>
 						{/if}
-						{if $item['mode_distribute'] == 2}
-						<button type="button" class="btn but{if $item['goods_status'] == 2} btn-primary{/if} btn-default"  value="5" >已发货</button>
-						{/if}
-						<button type="button" class="btn but{if $item['status'] == 3} btn-primary{/if} btn-default"  value="3">订单完成</button>
 						<input type="hidden" id="status" name="status" value="{$item['status']}">
 					</div>
 				</div>
