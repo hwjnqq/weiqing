@@ -884,6 +884,9 @@ class Wn_storexModuleSite extends WeModuleSite {
 					unset($category[$index]);
 				}
 			}
+//			echo "<pre>";
+//			print_r($category);
+
 			include $this->template('category');
 		} elseif ($operation == 'post') {
 			$parentid = intval($_GPC['parentid']);
@@ -943,8 +946,30 @@ class Wn_storexModuleSite extends WeModuleSite {
 			if (empty($category)) {
 				message('抱歉，分类不存在或是已经被删除！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'error');
 			}
-			pdo_delete('storex_categorys', array('id' => $id, 'parentid' => $id), 'OR');
-			pdo_delete('storex_goods', array('pcate' => $id));
+
+			$store_base_id = intval($_GPC['store_base_id']);
+			$store_base_od = intval($_GPC['store_base_od']);
+			$store_base_aid = !empty($store_base_id) ? $store_base_id : $store_base_od;
+			$store = pdo_get('storex_bases', array('id' => $store_base_aid), array('store_type'));
+			if ($store['store_type'] == 1 ){
+				if (!empty($store_base_od)){
+					pdo_delete('storex_room', array('pcate' => $id));
+					pdo_delete('storex_categorys', array('id' => $id, 'parentid' => $id), 'OR');
+				}
+				if (!empty($store_base_id)) {
+					pdo_delete('storex_room', array('ccate' => $id));
+					pdo_delete('storex_categorys', array('id' => $id));
+				}
+				message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
+			}
+			if (!empty($store_base_od)){
+				pdo_delete('storex_goods', array('pcate' => $id));
+				pdo_delete('storex_categorys', array('id' => $id, 'parentid' => $id), 'OR');
+			}
+			if (!empty($store_base_id)) {
+				pdo_delete('storex_goods', array('ccate' => $id));
+				pdo_delete('storex_categorys', array('id' => $id));
+			}
 			message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
 		}
 	}
