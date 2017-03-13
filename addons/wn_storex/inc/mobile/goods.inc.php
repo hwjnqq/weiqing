@@ -186,8 +186,7 @@ if ($op == 'order'){
 		$room_date_list = pdo_fetchall($sql, $params);
 		$flag = intval($room_date_list);
 		$list = array();
-		$is_order = 1;
-
+		$max_room = 8;
 		if ($flag == 1) {
 			for($i = 0; $i < $days; $i++) {
 				$k = $date_array[$i]['time'];
@@ -196,7 +195,6 @@ if ($op == 'order'){
 					if($p_value['roomdate'] == $k) {
 						$room_num = $p_value['num'];
 						if (empty($room_num)) {
-							$is_order = 0;
 							$max_room = 0;
 							$list['num'] = 0;
 							$list['date'] =  $date_array[$i]['date'];
@@ -208,11 +206,10 @@ if ($op == 'order'){
 						break;
 					}
 				}
+				if ($max_room == 0 || $max_room < $order_info['nums']) {
+					message(error(-1, '房间数量不足,请选择其他房型或日期!'), '', 'ajax');
+				}
 			}
-		}
-
-		if ($max_room == 0) {
-			message(error(-1, '当天没有空房间了,请选择其他房型!'), '', 'ajax');
 		}
 
 		$user_info = hotel_get_userinfo();
@@ -315,15 +312,15 @@ if ($op == 'order'){
 		}
 		$sql = 'SELECT * FROM ' . tablename('storex_order') . ' WHERE id = :id AND weid = :weid';
 		$order = pdo_fetch($sql, array(':id' => $order_id, ':weid' => intval($_W['uniacid'])));
-		if($insert['paytype'] == '3') {
-			//到店付款减库存
-			$starttime = $insert['btime'];
-			for ($i = 0; $i < $insert['day']; $i++) {
-				$sql = 'SELECT * FROM '. tablename('storex_room_price'). ' WHERE weid = :weid AND roomid = :roomid AND roomdate = :roomdate';
-				$day = pdo_fetch($sql, array(':weid' => intval($_W['uniacid']), ':roomid' => $insert['roomid'], ':roomdate' => $starttime));
+		//订单下单成功减库存
+		$starttime = $insert['btime'];
+		for ($i = 0; $i < $insert['day']; $i++) {
+			$sql = 'SELECT * FROM '. tablename('storex_room_price'). ' WHERE weid = :weid AND roomid = :roomid AND roomdate = :roomdate';
+			$day = pdo_fetch($sql, array(':weid' => intval($_W['uniacid']), ':roomid' => $insert['roomid'], ':roomdate' => $starttime));
+			if ($day) {
 				pdo_update('storex_room_price', array('num' => $day['num'] - $insert['nums']), array('id' => $day['id']));
-				$starttime += 86400;
 			}
+			$starttime += 86400;
 		}
 		pdo_update('storex_member', array('mobile' => $insert['mobile'], 'realname' => $insert['contact_name']), array('weid' => intval($_W['uniacid']), 'from_user' => $_W['openid']));
 		goods_check_result($action, $order_id);
