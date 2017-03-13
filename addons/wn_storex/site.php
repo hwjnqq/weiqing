@@ -986,7 +986,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 		$item['status'] = 0;
 		pdo_insert('storex_room', $item);
 		$id = pdo_insertid();
-		$url = $this->createWebUrl('goodsmanage', array('op' => 'edit', 'hotelid' => $hotelid, 'id' => $id, 'store_type' => $item['store_type']));
+		$url = $this->createWebUrl('goodsmanage', array('op' => 'edit', 'store_base_id' => $hotelid, 'id' => $id, 'store_type' => $item['store_type']));
 		header("Location: $url");
 		exit;
 	}
@@ -1441,7 +1441,10 @@ class Wn_storexModuleSite extends WeModuleSite {
 				}
 			}
 		}
-		if (!empty($_GPC['store_base_id'])){
+		if (empty($parent)) {
+			message('请先给该店铺添加一级分类！', '', 'error');
+		}
+		if (!empty($_GPC['store_base_id'])) {
 			if (empty($stores[$_GPC['store_base_id']])){
 				message('抱歉，店铺不存在或是已经删除！', '', 'error');
 			}
