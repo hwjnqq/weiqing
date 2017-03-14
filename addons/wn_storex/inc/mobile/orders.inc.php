@@ -55,6 +55,7 @@ if ($op == 'order_list') {
 }
 
 if ($op == 'order_detail'){
+	$user_info = hotel_get_userinfo();
 	$id = intval($_GPC['id']);
 	$order_info = pdo_get('storex_order', array('weid' => intval($_W['uniacid']), 'id' => $id, 'openid' => $_W['openid']));
 	if (empty($order_info)) {
@@ -70,6 +71,10 @@ if ($op == 'order_detail'){
 	$store_info = pdo_get('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $order_info['hotelid']), array('id', 'title', 'store_type'));
 	$order_info['store_info'] = $store_info;
 	$order_info['store_type'] = $store_info['store_type'];
+	if ($order_info['store_type'] == 1) {
+		$goods_info = pdo_get('storex_room', array('id' => $order_info['roomid'], 'weid' => $order_info['weid']));
+		$order_info['is_house'] = $goods_info['is_house'];
+	}
 	if (!empty($order_info['addressid'])) {
 		$order_address = pdo_get('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid']), 'id' => $order_info['addressid']));
 		if (!empty($order_address)){

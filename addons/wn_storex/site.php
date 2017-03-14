@@ -1029,6 +1029,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			$sql .= " WHERE 1 = 1";
 			$sql .= " AND r.hotelid = $hotelid";
 			$sql .= " AND r.weid = $weid";
+			$sql .= " AND r.is_house = 1";
 			$list = pdo_fetchall($sql, $params);
 
 			foreach ($list as $key => $value) {
@@ -1108,7 +1109,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			$firstday = date('Y-m-01', time());
 			//当月最后一天
 			$endtime = strtotime(date('Y-m-d', strtotime("$firstday +1 month -1 day")));
-			$rooms = pdo_fetchall("select * from " . tablename("storex_room") . " where hotelid=" . $hotelid);
+			$rooms = pdo_fetchall("select * from " . tablename("storex_room") . " where hotelid=" . $hotelid . " AND is_house = 1");
 			include $this->template('room_price_lot');
 			exit();
 		} else if ($ac == 'updatelot_create') {
@@ -1211,6 +1212,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			$sql .= " WHERE 1 = 1";
 			$sql .= " AND r.hotelid = $hotelid";
 			$sql .= " AND r.weid = $weid";
+			$sql .= " AND r.is_house = 1";
 
 			$list = pdo_fetchall($sql, $params);
 
@@ -1305,7 +1307,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			$firstday = date('Y-m-01', time());
 			//当月最后一天
 			$endtime = strtotime(date('Y-m-d', strtotime("$firstday +1 month -1 day")));
-			$rooms = pdo_fetchall("select * from " . tablename("storex_room") . " where hotelid=" . $hotelid);
+			$rooms = pdo_fetchall("select * from " . tablename("storex_room") . " where hotelid=" . $hotelid . " AND is_house = 1");
 			include $this->template('room_status_lot');
 			exit();
 		} else if ($ac == 'updatelot_create') {
@@ -1474,38 +1476,39 @@ class Wn_storexModuleSite extends WeModuleSite {
 						message('商品说明不能为空！', '', 'error');
 					}
 					$data = array(
-							'weid' => $_W['uniacid'],
-							'pcate' => $_GPC['category']['parentid'],
-							'ccate' => $_GPC['category']['childid'],
-							'hotelid' => $store_base_id,
-							'title' => $_GPC['title'],
-							'thumb'=>$_GPC['thumb'],
-							'breakfast' => $_GPC['breakfast'],
-							'oprice' => $_GPC['oprice'],
-							'cprice' => $_GPC['cprice'],
-							'area' => $_GPC['area'],
-							'area_show' => $_GPC['area_show'],
-							'bed' => $_GPC['bed'],
-							'bed_show' => $_GPC['bed_show'],
-							'bedadd' => $_GPC['bedadd'],
-							'bedadd_show' => $_GPC['bedadd_show'],
-							'persons' => $_GPC['persons'],
-							'persons_show' => $_GPC['persons_show'],
-							'sales' => $_GPC['sales'],
-							'device' => $_GPC['device'],
-							'floor' => $_GPC['floor'],
-							'floor_show' => $_GPC['floor_show'],
-							'smoke' => $_GPC['smoke'],
-							'smoke_show' => $_GPC['smoke_show'],
-							'score' => intval($_GPC['score']),
-							'status' => $_GPC['status'],
-							'can_reserve' => intval($_GPC['can_reserve']),
-							'reserve_device' => $_GPC['reserve_device'],
-							'can_buy' => intval($_GPC['can_buy']),
-							'service' => intval($_GPC['service']),
-							'sortid'=>intval($_GPC['sortid']),
-							'sold_num' => intval($_GPC['sold_num']),
-							'store_type' => intval($_GPC['store_type'])
+						'weid' => $_W['uniacid'],
+						'pcate' => $_GPC['category']['parentid'],
+						'ccate' => $_GPC['category']['childid'],
+						'hotelid' => $store_base_id,
+						'title' => $_GPC['title'],
+						'thumb'=>$_GPC['thumb'],
+						'breakfast' => $_GPC['breakfast'],
+						'oprice' => $_GPC['oprice'],
+						'cprice' => $_GPC['cprice'],
+						'area' => $_GPC['area'],
+						'area_show' => $_GPC['area_show'],
+						'bed' => $_GPC['bed'],
+						'bed_show' => $_GPC['bed_show'],
+						'bedadd' => $_GPC['bedadd'],
+						'bedadd_show' => $_GPC['bedadd_show'],
+						'persons' => $_GPC['persons'],
+						'persons_show' => $_GPC['persons_show'],
+						'sales' => $_GPC['sales'],
+						'device' => $_GPC['device'],
+						'floor' => $_GPC['floor'],
+						'floor_show' => $_GPC['floor_show'],
+						'smoke' => $_GPC['smoke'],
+						'smoke_show' => $_GPC['smoke_show'],
+						'score' => intval($_GPC['score']),
+						'status' => $_GPC['status'],
+						'can_reserve' => intval($_GPC['can_reserve']),
+						'reserve_device' => $_GPC['reserve_device'],
+						'can_buy' => intval($_GPC['can_buy']),
+						'service' => intval($_GPC['service']),
+						'sortid'=>intval($_GPC['sortid']),
+						'sold_num' => intval($_GPC['sold_num']),
+						'store_type' => intval($_GPC['store_type']),
+						'is_house' => intval($_GPC['is_house']),
 					);
 					if (!empty($card_status)) {
 						$group_mprice = array();
@@ -1524,7 +1527,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 					} else {
 						pdo_update('storex_room', $data, array('id' => $id));
 					}
-					pdo_query("update " . tablename('storex_hotel') . " set roomcount=(select count(*) from " . tablename('storex_room') . " where hotelid=:store_base_id) where store_base_id=:store_base_id", array(":store_base_id" => $store_base_id));
+					pdo_query("update " . tablename('storex_hotel') . " set roomcount=(select count(*) from " . tablename('storex_room') . " where hotelid=:store_base_id AND is_house=:is_house) where store_base_id=:store_base_id", array(":store_base_id" => $store_base_id, ':is_house' => $data['is_house']));
 					message('房型信息更新成功！', $this->createWebUrl('goodsmanage', array('store_type' => $data['store_type'])), 'success');
 				}
 				include $this->template('room_form');

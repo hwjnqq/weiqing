@@ -115,6 +115,17 @@
 			</div>
 		</div>
 		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品类型</label>
+			<div class="col-sm-9 col-xs-12">
+				<label class="radio-inline">
+					<input type="radio" name="is_house" value="1" {if !isset($item['is_house']) || $item['is_house'] == 1} checked {/if} onclick="$('#hotel_add_info').show()"/>房型
+				</label>
+				<label class="radio-inline">
+					<input type="radio" name="is_house" value="2" {if $item['is_house'] == 2} checked {/if} onclick="$('#hotel_add_info').hide()"/>非房型
+				</label>
+			</div>
+		</div>
+		<div class="form-group">
 			<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品名称(类型)</label>
 			<div class="col-sm-9 col-xs-12">
 				<input type="text" name="title" id="title" value="{$item['title']}" class="form-control">
@@ -185,7 +196,7 @@
 			</div>
 		</div>
 		{/if}
-		<span {if $store_type != 1}style="display: none"{/if} id="hotel_add_info">
+		<span {if $store_type != 1 || (isset($item['is_house']) && $item['is_house'] == 2)}style="display: none"{/if} id="hotel_add_info">
 		<div class="form-group">
 			<label class="col-xs-12 col-sm-3 col-md-2 control-label">早餐设置</label>
 			<div class="col-sm-9 col-xs-12">

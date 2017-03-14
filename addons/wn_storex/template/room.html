@@ -107,12 +107,9 @@
 				<th style="width:120px;">店铺</th>
 				<th style="width:100px;">一级分类</th>
 				<th style="width:100px;">二级分类</th>
+				<th style="width:150px;">商品名称</th>
 				{if !empty($store_type)}
-				<th style="width:170px;">房型</th>
-				{else}
-				<th style="width:170px;">商品名称</th>
-				{/if}
-				{if !empty($store_type)}
+				<th style="width:100px;">商品类型</th>
 				<th style="width:100px;">房型排序号</th>
 				{else}
 				<th style="width:100px;">商品排序号</th>
@@ -138,6 +135,11 @@
 				<td> </td>
 				{/if}
 				<td>{$item['title']}</td>
+				{if $item['is_house'] == 1}
+				<td>房型</td>
+				{else}
+				<td>非房型</td>
+				{/if}
 				<td>{$item['sortid']}</td>
 				<td>{$item['oprice']}</td>
 				<td>{$item['cprice']}</td>
@@ -150,7 +152,7 @@
 				</td>
 				<td>
 					{if !empty($store_type)}
-					<a href="{php echo $this->createWebUrl('copyroom',array('hotelid'=>$item['hotelid'],'roomid'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="复制房型">复制房型</a>
+					<a href="{php echo $this->createWebUrl('copyroom',array('hotelid'=>$item['hotelid'],'roomid'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="复制房型">复制商品</a>
 					{/if}
 					<a href="{php echo $this->createWebUrl('order',array('hotelid'=>$item['hotelid'],'roomid'=>$item['id'], store_type => $store_type))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="订单查看">订单查看</a>
 					<a class="btn btn-default" data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('goodsmanage',array('op'=>'edit','store_type'=> $store_type,'id'=>$item['id'],'store_base_id'=>$item['store_base_id']))}" title="编辑"><i class="fa fa-edit"></i></a>
@@ -164,7 +166,7 @@
 			</tr>
 			{/loop}
 			<tr>
-				<td colspan="11">
+				<td colspan="12">
 					<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
 					<input type="button" class="btn btn-primary edit_all" name="showall" value="批量显示" />
 					<input type="button" class="btn btn-primary edit_all" name="hideall" value="批量隐藏" />

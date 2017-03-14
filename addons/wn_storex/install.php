@@ -175,6 +175,7 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`nickname` varchar(255) NOT NULL DEFAULT '',
 	`service` decimal(10,2) DEFAULT '0.00',
 	`store_type` int(8) NOT NULL DEFAULT '1' COMMENT '所属店铺类型',
+	`is_house` int(11) NOT NULL DEFAULT '1' COMMENT '是否是房型 1 是，2不是',
 	PRIMARY KEY (`id`),
 	KEY `indx_hotelid` (`hotelid`),
 	KEY `indx_weid` (`weid`)
@@ -487,6 +488,7 @@ if (!empty($module)){
 			$update_room = array(
 					'can_reserve' => 1,
 					'can_buy' => 1,
+					'is_house' => 1,
 			);
 			if(!empty($store_bases)){
 				foreach($store_bases as $store_info){
