@@ -2028,15 +2028,22 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 		if (empty($item)) {
 			message('抱歉，您的订单已被关闭！', $this->createMobileUrl('orderlist'), 'error');
 		}
+		if ($item['status'] == -1){
+			message('抱歉，您的订单已取消！', $this->createMobileUrl('orderlist'), 'error');
+		}
+		$endtime = date("Y-m-d h:i:s",($item['btime'] + 86400));
+		$currenttime = date("Y-m-d h:i:s",time());
+		if ($item['status'] == 0 && $currenttime > $endtime){
+			message('抱歉，您的订单已过期！', $this->createMobileUrl('orderlist'), 'error');
+		}
 		$roomid = $item['roomid'];
 		$room_weid = $item['weid'];
-		$SQL ="SELECT * FROM " .tablename('hotel2_room')."where id = $roomid";
-		$PARAMS = array();
-		$ITEM = pdo_fetch($SQL,$PARAMS);
-		//svar_dump($ITEM);
-		if(!empty($ITEM['score']))
+		$sql ="SELECT * FROM " .tablename('hotel2_room')."where id = $roomid";
+		$params = array();
+		$item = pdo_fetch($sql,$params);
+		if(!empty($item['score']))
 		{
-			pdo_fetch("UPDATE " . tablename('hotel2_member') . " SET score = (score + " .$ITEM['score'] . ") WHERE weid = '" . $room_weid . "' ");
+			pdo_fetch("UPDATE " . tablename('hotel2_member') . " SET score = (score + " .$item['score'] . ") WHERE weid = '" . $room_weid . "' ");
 		}
 
 

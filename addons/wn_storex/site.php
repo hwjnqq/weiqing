@@ -728,37 +728,20 @@ class Wn_storexModuleSite extends WeModuleSite {
 		} else if ($op == 'delete') {
 
 			$id = intval($_GPC['id']);
-
-			if (!empty($id)) {
-				$item = pdo_get('storex_order', array('hotelid' => $id), array('id'));
-				if (!empty($item)) {
-					message('抱歉，请先删除该店铺的订单,再删除该店铺！', '', 'error');
-				}
-			} else {
-				message('抱歉，参数错误！', '', 'error');
-			}
-
-			pdo_delete("storex_order", array("hotelid" => $id));
 			pdo_delete("storex_room", array("hotelid" => $id));
 			pdo_delete("storex_bases", array("id" => $id));
-
+			pdo_delete("storex_categorys", array("store_base_id" => $id));
+			pdo_delete('storex_goods', array('store_base_id' => $id));
 			message("店铺信息删除成功!", referer(), "success");
 		} else if ($op == 'deleteall') {
 			foreach ($_GPC['idArr'] as $k => $id) {
 				$id = intval($id);
-				if (!empty($id)) {
-					$item = pdo_get('storex_order', array('hotelid' => $id), array('id'));
-					if (!empty($item)) {
-						message('抱歉，请先删除该酒店的订单,再删除该酒店！', '', 'error');
-					}
-				} else {
-					message('抱歉，参数错误！', '', 'error');
-				}
-				pdo_delete("storex_order", array("hotelid" => $id));
 				pdo_delete("storex_room", array("hotelid" => $id));
 				pdo_delete("storex_bases", array("id" => $id));
+				pdo_delete("storex_categorys", array("store_base_id" => $id));
+				pdo_delete('storex_goods', array('store_base_id' => $id));
 			}
-			$this->web_message('酒店信息删除成功！', '', 0);
+			$this->web_message('店铺信息删除成功！', '', 0);
 			exit();
 		} else if ($op == 'showall') {
 			if ($_GPC['show_name'] == 'showall') {
@@ -892,6 +875,9 @@ class Wn_storexModuleSite extends WeModuleSite {
 							$row_info['store_title'] = $store_info['title'];
 						}
 					}
+					if(empty($row_info['store_title'])){
+						unset($category[$index]);
+					}
 				}
 				if (!empty($row_info['parentid'])) {
 					$children[$row_info['parentid']][] = $row_info;
@@ -953,11 +939,30 @@ class Wn_storexModuleSite extends WeModuleSite {
 			include $this->template('category');
 		} elseif ($operation == 'delete') {
 			$id = intval($_GPC['id']);
-			$category = pdo_get('storex_categorys', array('id' => $id), array('id', 'parentid'));
+			$category = pdo_get('storex_categorys', array('id' => $id), array('id', 'parentid', 'store_base_id'));
 			if (empty($category)) {
 				message('抱歉，分类不存在或是已经被删除！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'error');
 			}
-			pdo_delete('storex_categorys', array('id' => $id, 'parentid' => $id), 'OR');
+			$store_base_aid = $category['store_base_id'];
+			$store = pdo_get('storex_bases', array('id' => $store_base_aid), array('store_type'));
+			if ($store['store_type'] == 1 ){
+				if ($category['parentid'] == 0){
+					pdo_delete('storex_room', array('pcate' => $id));
+					pdo_delete('storex_categorys', array('id' => $id, 'parentid' => $id), 'OR');
+					message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
+				}
+
+				pdo_delete('storex_room', array('ccate' => $id));
+				pdo_delete('storex_categorys', array('id' => $id));
+				message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
+			}
+			if ($category['parentid'] == 0){
+				pdo_delete('storex_goods', array('pcate' => $id));
+				pdo_delete('storex_categorys', array('id' => $id, 'parentid' => $id), 'OR');
+				message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
+			}
+			pdo_delete('storex_goods', array('ccate' => $id));
+			pdo_delete('storex_categorys', array('id' => $id));
 			message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
 		}
 	}
@@ -974,7 +979,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 		$item['status'] = 0;
 		pdo_insert('storex_room', $item);
 		$id = pdo_insertid();
-		$url = $this->createWebUrl('goodsmanage', array('op' => 'edit', 'hotelid' => $hotelid, 'id' => $id, 'store_type' => $item['store_type']));
+		$url = $this->createWebUrl('goodsmanage', array('op' => 'edit', 'store_base_id' => $hotelid, 'id' => $id, 'store_type' => $item['store_type']));
 		header("Location: $url");
 		exit;
 	}
@@ -1429,7 +1434,10 @@ class Wn_storexModuleSite extends WeModuleSite {
 				}
 			}
 		}
-		if (!empty($_GPC['store_base_id'])){
+		if (empty($parent)) {
+			message('请先给该店铺添加一级分类！', '', 'error');
+		}
+		if (!empty($_GPC['store_base_id'])) {
 			if (empty($stores[$_GPC['store_base_id']])){
 				message('抱歉，店铺不存在或是已经删除！', '', 'error');
 			}
@@ -1522,16 +1530,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				include $this->template('room_form');
 			} else if ($op == 'delete') {
 				$id = intval($_GPC['id']);
-				if (!empty($id)) {
-					$item = pdo_fetch("SELECT * FROM " . tablename('storex_room') . " WHERE id = :id", array(':id' => $id));
-					$store_base_id = $item['hotelid'];
-					$item = pdo_fetch("SELECT id FROM " . tablename('storex_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
-					if (!empty($item)) {
-						message('抱歉，请先删除该房间的订单,再删除该房间！', '', 'error');
-					}
-				} else {
-					message('抱歉，参数错误！', '', 'error');
-				}
+
 				pdo_delete('storex_room', array('id' => $id));
 				pdo_delete('storex_order', array('roomid' => $id));
 				pdo_query("update " . tablename('storex_hotel') . " set roomcount=(select count(*) from " . tablename('storex_room') . " where hotelid=:store_base_id) where store_base_id=:store_base_id", array(":store_base_id" => $store_base_id));
@@ -1539,14 +1538,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			} else if ($op == 'deleteall') {
 				foreach ($_GPC['idArr'] as $k => $id) {
 					$id = intval($id);
-					if (!empty($id)) {
-						$item = pdo_fetch("SELECT id FROM " . tablename('storex_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
-						if (!empty($item)) {
-							$this->web_message('抱歉，请先删除该房间的订单,再删除该房间！', '', 'error');
-						}
-					} else {
-						$this->web_message('抱歉，参数错误！', '', 'error');
-					}
+
 					pdo_delete('storex_room', array('id' => $id));
 					pdo_delete('storex_order', array('roomid' => $id));
 					pdo_query("update " . tablename('storex_hotel') . " set roomcount=(select count(*) from " . tablename('storex_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $id));
@@ -1666,27 +1658,13 @@ class Wn_storexModuleSite extends WeModuleSite {
 				include $this->template('room_form');
 			} else if ($op == 'delete') {
 				$id = intval($_GPC['id']);
-				if (!empty($id)) {
-					$item = pdo_fetch("SELECT id FROM " . tablename('storex_goods') . " WHERE store_base_id = :store_base_id LIMIT 1", array(':store_base_id' => $id));
-					if (!empty($item)) {
-						message('抱歉，请先删除该商品的订单,再删除该商品！', '', 'error');
-					}
-				} else {
-					message('抱歉，参数错误！', '', 'error');
-				}
+
 				pdo_delete('storex_goods', array('id' => $id));
 				message('删除成功！', referer(), 'success');
 			} else if ($op == 'deleteall') {
 				foreach ($_GPC['idArr'] as $k => $id) {
 					$id = intval($id);
-					if (!empty($id)) {
-						$item = pdo_fetch("SELECT id FROM " . tablename('storex_order') . " WHERE roomid = :roomid LIMIT 1", array(':roomid' => $id));
-						if (!empty($item)) {
-							$this->web_message('抱歉，请先删除该房间的订单,再删除该房间！', '', 'error');
-						}
-					} else {
-						$this->web_message('抱歉，参数错误！', '', 'error');
-					}
+
 					pdo_delete('storex_room', array('id' => $id));
 					pdo_delete('storex_order', array('roomid' => $id));
 					pdo_query("update " . tablename('storex_hotel') . " set roomcount=(select count(*) from " . tablename('storex_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $id));
@@ -1973,6 +1951,8 @@ class Wn_storexModuleSite extends WeModuleSite {
 						}
 					}
 					if ($data['status'] == 5) {
+						$data['status'] = 1;
+						$data['goods_status'] = 2;
 						$acc = WeAccount::create();
 						$info = '您在'.$hotel['title'].'预订的'.$room['title']."已发货";
 						$custom = array(
@@ -1984,7 +1964,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 					}
 				}
 				pdo_update('storex_order', $data, array('id' => $id));
-				message('订单信息处理完成！', $this->createWebUrl('order', array('hotelid' => $hotelid, "roomid" => $roomid)), 'success');
+				message('订单信息处理完成！', $this->createWebUrl('order', array('hotelid' => $hotelid, "roomid" => $roomid, 'store_type' => $store_type)), 'success');
 			}
 			if ($store_type == 1){
 				$btime = $item['btime'];
