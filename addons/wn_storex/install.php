@@ -319,22 +319,17 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 pdo_run($sql);
 
 $ewei_hotel_table = array(
-// 	'hotel2' => 'storex_hotel',
 	'hotel2_brand' => 'storex_brand',
 	'hotel2_business' => 'storex_business',
 	'hotel2_comment' => 'storex_comment',
 	'hotel2_comment_clerk' => 'storex_comment_clerk',
 	'hotel2_member' => 'storex_member',
-// 	'hotel2_order' => 'storex_order',
+	'hotel2_order' => 'storex_order',
 	'hotel2_reply' => 'storex_reply',
-// 	'hotel2_room' => 'storex_room',
+	'hotel2_room' => 'storex_room',
 	'hotel2_room_price' => 'storex_room_price',
 	'hotel2_set' => 'storex_set',
 	'hotel12_code' => 'storex_code',
-	
-// 	'store_bases' => 'storex_bases',
-// 	'store_categorys' => 'storex_categorys',
-// 	'store_goods' => 'storex_goods',
 );
 $we7_storex_table = array(
 	'storex_hotel',
@@ -363,124 +358,55 @@ $module = module_fetch('ewei_hotel');
 
 //已经安装了微酒店
 if (!empty($module)){
+	//微酒店所有表的字段
+	$hotel2_all_table = array(
+		'hotel2_brand' => array('id', 'weid', 'title', 'displayorder', 'status',),
+		'hotel2_business' => array('id', 'weid', 'title', 'location_p', 'location_c', 'location_a', 'displayorder', 'status',),
+		'hotel2_comment' => array('id', 'uniacid', 'hotelid', 'uid', 'createtime', 'comment',),
+		'hotel2_comment_clerk' => array('id', 'uniacid', 'hotelid', 'orderid', 'createtime', 'comment', 'clerkid', 'realname', 'grade',),
+		'hotel2_member' => array('id', 'weid', 'userid', 'from_user', 'realname', 'mobile', 'score', 'createtime', 'userbind', 'status',
+			'username', 'password', 'salt', 'islogin', 'isauto', 'clerk', 'nickname',
+		),
+		'hotel2_order' => array('id', 'weid', 'hotelid', 'roomid', 'memberid', 'openid', 'name', 'mobile', 'remark', 'btime',
+			'etime', 'style', 'nums', 'oprice', 'cprice', 'mprice', 'info', 'time', 'status', 'paytype',
+			'paystatus', 'msg', 'mngtime', 'contact_name', 'day', 'sum_price', 'ordersn', 'comment', 'clerkcomment',
+		),
+		'hotel2_reply' => array('id', 'weid', 'rid', 'hotelid',),
+		'hotel2_room' => array('id', 'hotelid', 'weid', 'title', 'thumb', 'oprice', 'cprice', 'mprice', 'thumbs', 'device',
+			'area', 'floor', 'smoke', 'bed', 'persons', 'bedadd', 'status', 'isshow', 'sales', 'displayorder',
+			'area_show', 'floor_show', 'smoke_show', 'bed_show', 'persons_show', 'bedadd_show', 'score', 'breakfast', 'sortid', 'service',
+		),
+		'hotel2_room_price' => array('id', 'weid', 'hotelid', 'roomid', 'roomdate', 'thisdate', 'oprice', 'cprice', 'mprice', 'num',
+			'status',
+		),
+		'hotel2_set' => array('id', 'weid', 'user', 'reg', 'bind', 'regcontent', 'ordertype', 'is_unify', 'tel', 'email',
+			'mobile', 'template', 'templateid', 'paytype1', 'paytype2', 'paytype3', 'version', 'location_p', 'location_c', 'location_a',
+			'smscode', 'refund', 'refuse_templateid', 'confirm_templateid', 'check_in_templateid', 'finish_templateid', 'nickname',
+		),
+		'hotel12_code' => array('id', 'weid', 'openid', 'code', 'mobile', 'total', 'status', 'createtime',),
+	);
 	//将原数据填入新的表中
 	foreach($ewei_hotel_table as $hotel2_table => $storex_table){
-		pdo_query("INSERT INTO " .tablename($storex_table) ." select * from " .tablename($hotel2_table));
-	}
-//hotel2_room 字段
-	$hotel2_room = array(
-		'id',
-		'hotelid',
-		'weid',
-		'title',
-		'thumb',
-		'oprice',
-		'cprice',
-		'mprice',
-		'thumbs',
-		'device',
-		'area',
-		'floor',
-		'smoke',
-		'bed',
-		'persons',
-		'bedadd',
-		'status',
-		'isshow',
-		'sales',
-		'displayorder',
-		'area_show',
-		'floor_show',
-		'smoke_show',
-		'bed_show',
-		'persons_show',
-		'bedadd_show',
-		'score',
-		'breakfast',
-		'sortid',
-		'service',
-	);
-	$hotel2_room_data = pdo_getall('hotel2_room');
-	if(!empty($hotel2_room_data)){
-		foreach ($hotel2_room_data as $val){
-			$insert = array();
-			foreach($hotel2_room as $field){
-				$insert[$field] = $val[$field];
+		if (!empty($hotel2_all_table[$hotel2_table])) {
+			$hotel2_data = pdo_getall($hotel2_table);
+			if(!empty($hotel2_data)){
+				foreach ($hotel2_data as $val){
+					$insert = array();
+					foreach($hotel2_all_table[$hotel2_table] as $field){
+						if (isset($val[$field])) {
+							$insert[$field] = $val[$field];
+						}
+					}
+					pdo_insert($storex_table, $insert);
+				}
 			}
-			pdo_insert('storex_room', $insert);
 		}
 	}
 	
-	//hotel2_order 字段
-	$hotel2_order = array(
-		'id',
-		'weid',
-		'hotelid',
-		'roomid',
-		'memberid',
-		'openid',
-		'name',
-		'mobile',
-		'remark',
-		'btime',
-		'etime',
-		'style',
-		'nums',
-		'oprice',
-		'cprice',
-		'mprice',
-		'info',
-		'time',
-		'status',
-		'paytype',
-		'paystatus',
-		'msg',
-		'mngtime',
-		'contact_name',
-		'day',
-		'sum_price',
-		'ordersn',
-		'comment',
-		'clerkcomment',
-	);
-	$hotel2_order_data = pdo_getall('hotel2_order');
-	if(!empty($hotel2_order_data)){
-		foreach ($hotel2_order_data as $val){
-			$insert_order = array();
-			foreach($hotel2_order as $field){
-				$insert_order[$field] = $val[$field];
-			}
-			pdo_insert('storex_order', $insert_order);
-		}
-	}
 	//storex_bases 字段
-	$storex_base = array(
-		'id',
-		'weid',
-		'title',
-		'lng',
-		'lat',
-		'address',
-		'location_p',
-		'location_c',
-		'location_a',
-		'status',
-		'phone',
-		'mail',
-		'thumb',
-		'thumborder',
-		'description',
-		'content',
-		'store_info',
-		'traffic',
-		'thumbs',
-		'detail_thumbs',
-		'displayorder',
-		'integral_rate',
-		'store_type',
-		'extend_table',
-		'timestart',
-		'timeend',
+	$storex_base = array('id', 'weid', 'title', 'lng', 'lat', 'address', 'location_p', 'location_c', 'location_a', 'status',
+		'phone', 'mail', 'thumb', 'thumborder', 'description', 'content', 'store_info', 'traffic', 'thumbs', 'detail_thumbs',
+		'displayorder', 'integral_rate', 'store_type', 'extend_table', 'timestart', 'timeend',
 	);
 	
 	//storex_hotel 现有字段
