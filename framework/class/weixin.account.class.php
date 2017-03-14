@@ -733,7 +733,30 @@ class WeiXinAccount extends WeAccount {
 	 */
 	public function getAccessToken() {
 		$cachekey = "accesstoken:{$this->account['acid']}";
-		
+		$cache = cache_load($cachekey);
+		if (!empty($cache) && !empty($cache['token']) && $cache['expire'] > TIMESTAMP) {
+			$this->account['access_token'] = $cache;
+			return $cache['token'];
+		}
+		if (empty($this->account['key']) || empty($this->account['secret'])) {
+			return error('-1', '未填写公众号的 appid 或 appsecret！');
+		}
+		$url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$this->account['key']}&secret={$this->account['secret']}";
+		$content = ihttp_get($url);
+		if(is_error($content)) {
+			message('获取微信公众号授权失败, 请稍后重试！错误详情: ' . $content['message']);
+		}
+		$token = @json_decode($content['content'], true);
+		if(empty($token) || !is_array($token) || empty($token['access_token']) || empty($token['expires_in'])) {
+			$errorinfo = substr($content['meta'], strpos($content['meta'], '{'));
+			$errorinfo = @json_decode($errorinfo, true);
+			message('获取微信公众号授权失败, 请稍后重试！ 公众平台返回原始数据为: 错误代码-' . $errorinfo['errcode'] . '，错误信息-' . $errorinfo['errmsg']);
+		}
+		$record = array();
+		$record['token'] = $token['access_token'];
+		$record['expire'] = TIMESTAMP + $token['expires_in'] - 200;
+		$this->account['access_token'] = $record;
+		cache_write($cachekey, $record);
 		return $record['token'];
 	}
 	
