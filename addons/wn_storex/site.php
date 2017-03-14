@@ -969,17 +969,27 @@ class Wn_storexModuleSite extends WeModuleSite {
 
 	public function doWebCopyroom() {
 		global $_GPC, $_W;
-		$hotelid = $_GPC['hotelid'];
-		$roomid = $_GPC['roomid'];
-		if (empty($hotelid) || empty($roomid)) {
+		$store_base_id = intval($_GPC['store_base_id']);
+		$id = intval($_GPC['id']);
+		if (empty($store_base_id) || empty($id)) {
 			message('参数错误', 'refresh', 'error');
 		}
-		$item = pdo_get('storex_room', array('id' => $roomid));
+		$store_info = pdo_get('storex_bases', array('id' => $store_base_id, 'weid' => $_W['uniacid']), array('id', 'store_type'));
+		if (!empty($store_info)) {
+			if ($store_info['store_type'] == 1) {
+				$table = 'storex_room';
+			}else{
+				$table = 'storex_goods';
+			}
+		}else{
+			message('店铺不存在！');
+		}
+		$item = pdo_get($table, array('id' => $id, 'weid' => $_W['uniacid']));
 		unset($item['id']);
 		$item['status'] = 0;
-		pdo_insert('storex_room', $item);
+		pdo_insert($table, $item);
 		$id = pdo_insertid();
-		$url = $this->createWebUrl('goodsmanage', array('op' => 'edit', 'store_base_id' => $hotelid, 'id' => $id, 'store_type' => $item['store_type']));
+		$url = $this->createWebUrl('goodsmanage', array('op' => 'edit', 'store_base_id' => $store_base_id, 'id' => $id, 'store_type' => $item['store_type']));
 		header("Location: $url");
 		exit;
 	}

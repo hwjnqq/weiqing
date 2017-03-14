@@ -135,10 +135,12 @@
 				<td> </td>
 				{/if}
 				<td>{$item['title']}</td>
-				{if $item['is_house'] == 1}
-				<td>房型</td>
-				{else}
-				<td>非房型</td>
+				{if $store_type == 1}
+					{if $item['is_house'] == 1}
+					<td>房型</td>
+					{else}
+					<td>非房型</td>
+					{/if}
 				{/if}
 				<td>{$item['sortid']}</td>
 				<td>{$item['oprice']}</td>
@@ -152,21 +154,27 @@
 				</td>
 				<td>
 					{if !empty($store_type)}
-					<a href="{php echo $this->createWebUrl('copyroom',array('hotelid'=>$item['hotelid'],'roomid'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="复制房型">复制商品</a>
+					<a href="{php echo $this->createWebUrl('copyroom',array('store_base_id'=>$item['hotelid'],'id'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="复制房型">复制商品</a>
+					{else}
+					<a href="{php echo $this->createWebUrl('copyroom',array('store_base_id'=>$item['store_base_id'],'id'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="复制房型">复制商品</a>
 					{/if}
 					<a href="{php echo $this->createWebUrl('order',array('hotelid'=>$item['hotelid'],'roomid'=>$item['id'], store_type => $store_type))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="订单查看">订单查看</a>
 					<a class="btn btn-default" data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('goodsmanage',array('op'=>'edit','store_type'=> $store_type,'id'=>$item['id'],'store_base_id'=>$item['store_base_id']))}" title="编辑"><i class="fa fa-edit"></i></a>
 					{if $item['status']==0}
-					<a class="btn btn-default" title="显示" href="#" onclick="drop_confirm('您确定要显示此房型吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'status','status'=>1, 'id'=>$item['id'], 'store_type' => $store_type))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
+					<a class="btn btn-default" title="显示" href="#" onclick="drop_confirm('您确定要显示此商品吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'status','status'=>1, 'id'=>$item['id'], 'store_type' => $store_type))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
 					{elseif $item['status']==1}
-					<a class="btn btn-default" title="隐藏" href="#" onclick="drop_confirm('您确定要隐藏此房型吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'status','status'=>0, 'id'=>$item['id'], 'store_type' => $store_type))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
+					<a class="btn btn-default" title="隐藏" href="#" onclick="drop_confirm('您确定要隐藏此商品吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'status','status'=>0, 'id'=>$item['id'], 'store_type' => $store_type))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
 					{/if}
 					<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'delete', 'id'=>$item['id'], 'store_type' => $store_type))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
 				</td>
 			</tr>
 			{/loop}
 			<tr>
+				{if $store_type == 1}
 				<td colspan="12">
+				{else}
+				<td colspan="11">
+				{/if}
 					<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
 					<input type="button" class="btn btn-primary edit_all" name="showall" value="批量显示" />
 					<input type="button" class="btn btn-primary edit_all" name="hideall" value="批量隐藏" />
