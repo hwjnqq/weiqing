@@ -27,7 +27,7 @@ function check_params(){
 			'more_goods' => array(
 				'id' => intval($_GPC['id']),
 			),
-			'category_list_s' => array(
+			'class' => array(
 				'id' => intval($_GPC['id']),
 			),
 			'sub_class' => array(

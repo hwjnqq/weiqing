@@ -3,7 +3,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('category_list', 'goods_list', 'more_goods', 'category_list_s', 'sub_class');
+$ops = array('category_list', 'goods_list', 'more_goods', 'class', 'sub_class');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -175,7 +175,7 @@ if ($op == 'more_goods') {
 	message(error(0, $list), '', 'ajax');
 }
 //获取该店铺下的一级分类
-if ($op == 'category_list_s') {
+if ($op == 'class') {
 	$id = intval($_GPC['id']);
 	$sql = "SELECT count(*) num, parentid FROM ".tablename('storex_categorys')." WHERE weid = {$_W['uniacid']} AND parentid != 0 AND store_base_id = {$id} group by parentid";
 	$class = pdo_fetchall($sql);
