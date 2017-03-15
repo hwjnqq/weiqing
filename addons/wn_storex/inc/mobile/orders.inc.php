@@ -146,6 +146,7 @@ if ($op == 'order_comment'){
 			'createtime' => time(),
 			'comment' => $comment,
 			'hotelid' => $order_info['hotelid'],
+			'goodsid' => $order_info['roomid'], 
 		);
 		pdo_insert('storex_comment', $comment_info);
 		pdo_update('storex_order', array('comment' => 1), array('weid' => $_W['uniacid'], 'id' => $id));

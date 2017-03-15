@@ -10,7 +10,10 @@ function check_params(){
 			'store_list' => array(),
 			'store_detail' => array(
 				'store_id' => intval($_GPC['store_id'])
-			)
+			),
+			'store_comment' => array(
+				'id' => intval($_GPC['id']),
+			),
 		),
 		'category' => array(
 			'common' => array(

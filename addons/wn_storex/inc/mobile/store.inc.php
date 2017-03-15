@@ -3,7 +3,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('store_list', 'store_detail');
+$ops = array('store_list', 'store_detail', 'store_comment');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -76,4 +76,21 @@ if ($op == 'store_detail') {
 	}
 	$store_detail['version'] = $setting['version'];
 	message(error(0, $store_detail), '', 'ajax');
+}
+//获取店铺的所有评论
+if ($op == 'store_comment') {
+	$id = intval($_GPC['id']);
+	$store_detail = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type'));
+	if (!empty($store_detail)) {
+		if ($store_detail['store_type'] == 1) {
+			$table = 'storex_room';
+		} else {
+			$table = 'storex_goods';
+		}
+	} else {
+		message(error(-1, '店铺不存在'), '', 'ajax');
+	}
+	$sql = "SELECT c.*,g.id as gid FROM ". tablename('storex_comment') ." c LEFT JOIN " .tablename($table)." g ON c.goodsid = g.id WHERE c.hotelid = :hotelid AND g.weid = :weid ORDER BY c.createtime DESC";
+	$comments = pdo_fetchall($sql, array(':hotelid' => $id, ':weid' => $_W['uniacid']));
+	message(error(0, $comments), '', 'ajax');
 }
