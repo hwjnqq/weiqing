@@ -47,6 +47,7 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`uid` int(11) DEFAULT '0',
 	`createtime` int(11) DEFAULT '0',
 	`comment` varchar(255) DEFAULT '',
+	`goodsid` int(11) NOT NULL COMMENT '评论商品的id',
 	PRIMARY KEY (`id`)
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
