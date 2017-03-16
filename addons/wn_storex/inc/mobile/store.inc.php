@@ -7,6 +7,7 @@ $ops = array('store_list', 'store_detail', 'store_comment');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
+
 //获取店铺列表
 if ($op == 'store_list') {
 	$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('id', 'version'));
@@ -90,7 +91,29 @@ if ($op == 'store_comment') {
 	} else {
 		message(error(-1, '店铺不存在'), '', 'ajax');
 	}
-	$sql = "SELECT c.*,g.id as gid FROM ". tablename('storex_comment') ." c LEFT JOIN " .tablename($table)." g ON c.goodsid = g.id WHERE c.hotelid = :hotelid AND g.weid = :weid ORDER BY c.createtime DESC";
+	$sql = "SELECT c.*,g.id as gid,g.title FROM ". tablename('storex_comment') ." c LEFT JOIN " .tablename($table)." g ON c.goodsid = g.id WHERE c.hotelid = :hotelid AND g.weid = :weid ORDER BY c.createtime DESC";
 	$comments = pdo_fetchall($sql, array(':hotelid' => $id, ':weid' => $_W['uniacid']));
+	if (!empty($comments)) {
+		$uid_arr = array();
+		foreach ($comments as $k => $info){
+			$uid .= $info['uid'] .",";
+		}
+		$uid = trim($uid, ',');
+		$sql = "SELECT uid, avatar, nickname FROM ". tablename('mc_members') ." WHERE uid in (" . $uid . ")";
+		$user_info = pdo_fetchall($sql);
+		if (!empty($user_info)){
+			foreach ($user_info as $val){
+				$users[$val['uid']] = $val;
+			}
+		}
+		foreach ($comments as $key => $infos) {
+			if (!empty($users[$infos['uid']])) {
+				$comments[$key]['user_info'] = $users[$infos['uid']];
+			} else {
+				$comments[$key]['user_info'] = array();
+			}
+			$comments[$key]['createtime'] = date('Y-m-d H:i:s', $infos['createtime']);
+		}
+	}
 	message(error(0, $comments), '', 'ajax');
 }
