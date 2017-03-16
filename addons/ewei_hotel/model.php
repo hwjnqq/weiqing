@@ -68,12 +68,12 @@ if(!function_exists('check_hotel_user_login')) {
 		if (empty($user_info['id'])) {
 			return 0;
 		} else {
-		  if ( ($from_user == $user_info['from_user']) && ($weid == $user_info['weid']) ) {
-			  if ($set['user'] == 2 && $user_info['user_set'] != 2) {
-				  return 0;
-			  } else {
-				  return 1;
-			  }
+			if ( ($from_user == $user_info['from_user']) && ($weid == $user_info['weid']) ) {
+				if ($set['user'] == 2 && $user_info['user_set'] != 2) {
+					return 0;
+				} else {
+					return 1;
+				}
 			} else {
 				return 0;
 			}
