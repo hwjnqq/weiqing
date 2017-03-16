@@ -93,6 +93,7 @@ if ($op == 'store_comment') {
 	}
 	$sql = "SELECT c.*,g.id as gid,g.title FROM ". tablename('storex_comment') ." c LEFT JOIN " .tablename($table)." g ON c.goodsid = g.id WHERE c.hotelid = :hotelid AND g.weid = :weid ORDER BY c.createtime DESC";
 	$comments = pdo_fetchall($sql, array(':hotelid' => $id, ':weid' => $_W['uniacid']));
+	
 	if (!empty($comments)) {
 		$uids = '';
 		foreach ($comments as $k => $info){
@@ -120,5 +121,31 @@ if ($op == 'store_comment') {
 			}
 		}
 	}
-	message(error(0, $comments), '', 'ajax');
+	$pindex = max(1, intval($_GPC['page']));
+	$psize = 10;
+	$list = array();
+	$total = count($comments);
+	if ($total <= $psize) {
+		$list['list'] = $comments;
+	} else {
+		if ($pindex > 0){
+			$list_array = array_chunk($comments, $psize, true);
+			if (!empty($list_array[($pindex - 1)])) {
+				foreach ($list_array[($pindex - 1)] as $val) {
+					$list['list'] = $val;
+				}
+			}
+		} else {
+					$list['list'] = $comments;
+		}
+	}
+	$list['psize'] = $psize;
+	$list['result'] = 1;
+	$page_array = get_page_array($total, $pindex, $psize);
+	$list['total'] = $total;
+	$list['isshow'] = $page_array['isshow'];
+	if ($page_array['isshow'] == 1) {
+		$list['nindex'] = $page_array['nindex'];
+	}
+	message(error(0, $list), '', 'ajax');
 }
