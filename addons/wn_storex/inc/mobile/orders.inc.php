@@ -131,6 +131,7 @@ if ($op == 'confirm_goods'){
 
 if ($op == 'order_comment'){
 	$id = intval($_GPC['id']);
+	$comment_level = intval($_GPC['comment_level']);
 	$comment = trim($_GPC['comment']);
 	if (empty($comment)){
 		message(error(-1, '评价不能为空！'), '', 'ajax');
@@ -141,12 +142,14 @@ if ($op == 'order_comment'){
 	}
 	if ($order_info['status'] == 3 && $order_info['comment'] == 0){
 		$comment_info = array(
+			
 			'uniacid' => $_W['uniacid'],
 			'uid' => $_W['member']['uid'],
 			'createtime' => time(),
 			'comment' => $comment,
 			'hotelid' => $order_info['hotelid'],
 			'goodsid' => $order_info['roomid'], 
+			'comment_level' => $comment_level,
 		);
 		pdo_insert('storex_comment', $comment_info);
 		pdo_update('storex_order', array('comment' => 1), array('weid' => $_W['uniacid'], 'id' => $id));
