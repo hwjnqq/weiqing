@@ -94,28 +94,30 @@ if ($op == 'store_comment') {
 	$sql = "SELECT c.*,g.id as gid,g.title FROM ". tablename('storex_comment') ." c LEFT JOIN " .tablename($table)." g ON c.goodsid = g.id WHERE c.hotelid = :hotelid AND g.weid = :weid ORDER BY c.createtime DESC";
 	$comments = pdo_fetchall($sql, array(':hotelid' => $id, ':weid' => $_W['uniacid']));
 	if (!empty($comments)) {
-		$uid_arr = array();
+		$uids = '';
 		foreach ($comments as $k => $info){
-			$uid .= $info['uid'] .",";
+			$comments[$k]['createtime'] = date('Y-m-d H:i:s', $info['createtime']);
+			$uids .= $info['uid'] .",";
 		}
-		$uid = trim($uid, ',');
-		$sql = "SELECT uid, avatar, nickname FROM ". tablename('mc_members') ." WHERE uid in (" . $uid . ")";
-		$user_info = pdo_fetchall($sql);
-		if (!empty($user_info)){
-			foreach ($user_info as $val){
-				if (!empty($val['avatar'])) {
-					$val['avatar'] = tomedia($val['avatar']);
+		$uids = trim($uids, ',');
+		if (!empty($uids)) {
+			$sql = "SELECT uid, avatar, nickname FROM ". tablename('mc_members') ." WHERE uid in (" . $uids . ")";
+			$user_info = pdo_fetchall($sql);
+			if (!empty($user_info)){
+				foreach ($user_info as $val){
+					if (!empty($val['avatar'])) {
+						$val['avatar'] = tomedia($val['avatar']);
+					}
+					$users[$val['uid']] = $val;
 				}
-				$users[$val['uid']] = $val;
 			}
-		}
-		foreach ($comments as $key => $infos) {
-			if (!empty($users[$infos['uid']])) {
-				$comments[$key]['user_info'] = $users[$infos['uid']];
-			} else {
-				$comments[$key]['user_info'] = array();
+			foreach ($comments as $key => $infos) {
+				if (!empty($users[$infos['uid']])) {
+					$comments[$key]['user_info'] = $users[$infos['uid']];
+				} else {
+					$comments[$key]['user_info'] = array();
+				}
 			}
-			$comments[$key]['createtime'] = date('Y-m-d H:i:s', $infos['createtime']);
 		}
 	}
 	message(error(0, $comments), '', 'ajax');
