@@ -3,7 +3,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('category_list', 'goods_list', 'more_goods');
+$ops = array('category_list', 'goods_list', 'more_goods', 'class', 'sub_class');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -174,4 +174,45 @@ if ($op == 'more_goods') {
 	}
 	message(error(0, $list), '', 'ajax');
 }
-
+//获取该店铺下的一级分类
+if ($op == 'class') {
+	$id = intval($_GPC['id']);
+	$sql = "SELECT count(*) num, parentid FROM ".tablename('storex_categorys')." WHERE weid = {$_W['uniacid']} AND parentid != 0 AND store_base_id = {$id} group by parentid";
+	$class = pdo_fetchall($sql);
+	if (!empty($class)) {
+		$sub_class = array();
+		foreach ($class as $val){
+			$sub_class[$val['parentid']] = $val;
+		}
+	}
+	$pcate_lists = pdo_getall('storex_categorys', array('weid' => intval($_W['uniacid']), 'parentid' => '0', 'store_base_id' => $id, 'enabled' => 1), array('id', 'name', 'thumb'), '', 'displayorder DESC');
+	if (!empty($pcate_lists)) {
+		foreach ($pcate_lists as $val) {
+			if (!empty($val['thumb'])) {
+				$val['thumb'] = tomedia($val['thumb']);
+			}
+			$storex_categorys[$val['id']] = $val;
+			if (!empty($sub_class[$val['id']]) && $sub_class[$val['id']]['num'] > 0) {
+				$storex_categorys[$val['id']]['is_child'] = 1;
+			} else {
+				$storex_categorys[$val['id']]['is_child'] = 0;
+			}
+		}
+	}
+	message(error(0, $storex_categorys), '', 'ajax');
+}
+//获取一级分类下的二级分类列表
+if ($op == 'sub_class') {
+	$id = intval($_GPC['id']);
+	$sub_class = pdo_getall('storex_categorys', array('weid' => intval($_W['uniacid']), 'parentid' => $id), array('id', 'store_base_id', 'name', 'thumb'), '', 'displayorder DESC');
+	if (empty($sub_class)) {
+		message(error(-1, '无子分类'), '', 'ajax');
+	} else {
+		foreach ($sub_class as $k => $info){
+			if (!empty($info['thumb'])) {
+				$sub_class[$k]['thumb'] = tomedia($info['thumb']);
+			}
+		}
+		message(error(0, $sub_class), '', 'ajax');
+	}
+}

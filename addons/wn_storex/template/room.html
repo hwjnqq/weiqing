@@ -117,8 +117,8 @@
 				<th style='width:200px;'>前台价（原价)</th>
 				<th style='width:120px;'>优惠价（现价)</th>
 				<th style='width:100px;'>积分</th>
-				<th style='width:200px;'>状态</th>
-				<th style="width:320px;">操作</th>
+				<th style='width:100px;'>状态</th>
+				<th style="width:420px;">操作</th>
 			</tr>
 			</thead>
 			<tbody>
@@ -154,11 +154,14 @@
 				</td>
 				<td>
 					{if !empty($store_type)}
-					<a href="{php echo $this->createWebUrl('copyroom',array('store_base_id'=>$item['hotelid'],'id'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="复制房型">复制商品</a>
-					{else}
-					<a href="{php echo $this->createWebUrl('copyroom',array('store_base_id'=>$item['store_base_id'],'id'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="复制房型">复制商品</a>
-					{/if}
+					<a href="{php echo $this->createWebUrl('copyroom',array('store_base_id'=>$item['hotelid'],'id'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="复制商品">复制商品</a>
+					<a href="{php echo $this->createWebUrl('goodscomment',array('store_base_id'=>$item['hotelid'],'id'=>$item['id'],'store_type'=> $store_type))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="查看评价">查看评价</a>
 					<a href="{php echo $this->createWebUrl('order',array('hotelid'=>$item['hotelid'],'roomid'=>$item['id'], store_type => $store_type))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="订单查看">订单查看</a>
+					{else}
+					<a href="{php echo $this->createWebUrl('copyroom',array('store_base_id'=>$item['store_base_id'],'id'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="复制商品">复制商品</a>
+					<a href="{php echo $this->createWebUrl('goodscomment',array('store_base_id'=>$item['store_base_id'],'id'=>$item['id'],'store_type'=> $store_type))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="查看评价">查看评价</a>
+					<a href="{php echo $this->createWebUrl('order',array('hotelid'=>$item['store_base_id'],'roomid'=>$item['id'], store_type => $store_type))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="订单查看">订单查看</a>
+					{/if}
 					<a class="btn btn-default" data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('goodsmanage',array('op'=>'edit','store_type'=> $store_type,'id'=>$item['id'],'store_base_id'=>$item['store_base_id']))}" title="编辑"><i class="fa fa-edit"></i></a>
 					{if $item['status']==0}
 					<a class="btn btn-default" title="显示" href="#" onclick="drop_confirm('您确定要显示此商品吗?', '{php echo $this->createWebUrl('goodsmanage',array('op'=>'status','status'=>1, 'id'=>$item['id'], 'store_type' => $store_type))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
