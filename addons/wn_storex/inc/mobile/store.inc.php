@@ -103,6 +103,9 @@ if ($op == 'store_comment') {
 		$user_info = pdo_fetchall($sql);
 		if (!empty($user_info)){
 			foreach ($user_info as $val){
+				if (!empty($val['avatar'])) {
+					$val['avatar'] = tomedia($val['avatar']);
+				}
 				$users[$val['uid']] = $val;
 			}
 		}
