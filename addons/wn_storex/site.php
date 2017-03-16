@@ -726,20 +726,28 @@ class Wn_storexModuleSite extends WeModuleSite {
 			}
 			include $this->template('hotel_form');
 		} else if ($op == 'delete') {
-
 			$id = intval($_GPC['id']);
-			pdo_delete("storex_room", array("hotelid" => $id));
-			pdo_delete("storex_bases", array("id" => $id));
-			pdo_delete("storex_categorys", array("store_base_id" => $id));
-			pdo_delete('storex_goods', array('store_base_id' => $id));
+			$store = pdo_get('storex_bases', array('id' => $id), array('store_type'));
+			if ($store['store_type'] == 1){
+				pdo_delete("storex_room", array("hotelid" => $id, 'weid' => $_W['uniacid']));
+			} else {
+				pdo_delete('storex_goods', array('store_base_id' => $id, 'weid' => $_W['uniacid']));
+			}
+			pdo_delete("storex_bases", array("id" => $id, 'weid' => $_W['uniacid']));
+			pdo_delete("storex_categorys", array("store_base_id" => $id, 'weid' => $_W['uniacid']));
 			message("店铺信息删除成功!", referer(), "success");
 		} else if ($op == 'deleteall') {
 			foreach ($_GPC['idArr'] as $k => $id) {
 				$id = intval($id);
-				pdo_delete("storex_room", array("hotelid" => $id));
-				pdo_delete("storex_bases", array("id" => $id));
-				pdo_delete("storex_categorys", array("store_base_id" => $id));
-				pdo_delete('storex_goods', array('store_base_id' => $id));
+				$id = intval($_GPC['id']);
+				$store = pdo_get('storex_bases', array('id' => $id), array('store_type'));
+				if ($store['store_type'] == 1){
+					pdo_delete("storex_room", array("hotelid" => $id, 'weid' => $_W['uniacid']));
+				} else {
+					pdo_delete('storex_goods', array('store_base_id' => $id, 'weid' => $_W['uniacid']));
+				}
+				pdo_delete("storex_bases", array("id" => $id, 'weid' => $_W['uniacid']));
+				pdo_delete("storex_categorys", array("store_base_id" => $id, 'weid' => $_W['uniacid']));
 			}
 			$this->web_message('店铺信息删除成功！', '', 0);
 			exit();
@@ -947,22 +955,22 @@ class Wn_storexModuleSite extends WeModuleSite {
 			$store = pdo_get('storex_bases', array('id' => $store_base_aid), array('store_type'));
 			if ($store['store_type'] == 1 ){
 				if ($category['parentid'] == 0){
-					pdo_delete('storex_room', array('pcate' => $id));
-					pdo_delete('storex_categorys', array('id' => $id, 'parentid' => $id), 'OR');
+					pdo_delete('storex_room', array('pcate' => $id, 'weid' => $_W['uniacid']));
+					pdo_query("DELETE FROM" .tablename('storex_categorys'). "WHERE id = :id or parentid = :id and weid = :weid", array('id' => $id, 'weid' => $_W['uniacid']));
 					message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
 				}
 
-				pdo_delete('storex_room', array('ccate' => $id));
-				pdo_delete('storex_categorys', array('id' => $id));
+				pdo_delete('storex_room', array('ccate' => $id, 'weid' => $_W['uniacid']));
+				pdo_delete('storex_categorys', array('id' => $id, 'weid' => $_W['uniacid']));
 				message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
 			}
 			if ($category['parentid'] == 0){
-				pdo_delete('storex_goods', array('pcate' => $id));
-				pdo_delete('storex_categorys', array('id' => $id, 'parentid' => $id), 'OR');
+				pdo_delete('storex_goods', array('pcate' => $id, 'weid' => $_W['uniacid']));
+				pdo_query("DELETE FROM" .tablename('storex_categorys'). "WHERE id = :id or parentid = :id and weid = :weid", array('id' => $id, 'weid' => $_W['uniacid']));
 				message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
 			}
-			pdo_delete('storex_goods', array('ccate' => $id));
-			pdo_delete('storex_categorys', array('id' => $id));
+			pdo_delete('storex_goods', array('ccate' => $id, 'weid' => $_W['uniacid']));
+			pdo_delete('storex_categorys', array('id' => $id, 'weid' => $_W['uniacid']));
 			message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
 		}
 	}
@@ -1544,16 +1552,16 @@ class Wn_storexModuleSite extends WeModuleSite {
 			} else if ($op == 'delete') {
 				$id = intval($_GPC['id']);
 
-				pdo_delete('storex_room', array('id' => $id));
-				pdo_delete('storex_order', array('roomid' => $id));
+				pdo_delete('storex_room', array('id' => $id, 'weid' => $_W['uniacid']));
+				pdo_delete('storex_order', array('roomid' => $id, 'weid' => $_W['uniacid']));
 				pdo_query("update " . tablename('storex_hotel') . " set roomcount=(select count(*) from " . tablename('storex_room') . " where hotelid=:store_base_id) where store_base_id=:store_base_id", array(":store_base_id" => $store_base_id));
 				message('删除成功！', referer(), 'success');
 			} else if ($op == 'deleteall') {
 				foreach ($_GPC['idArr'] as $k => $id) {
 					$id = intval($id);
 
-					pdo_delete('storex_room', array('id' => $id));
-					pdo_delete('storex_order', array('roomid' => $id));
+					pdo_delete('storex_room', array('id' => $id, 'weid' => $_W['uniacid']));
+					pdo_delete('storex_order', array('roomid' => $id, 'weid' => $_W['uniacid']));
 					pdo_query("update " . tablename('storex_hotel') . " set roomcount=(select count(*) from " . tablename('storex_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $id));
 				}
 				$this->web_message('删除成功！', '', 0);
@@ -1672,14 +1680,14 @@ class Wn_storexModuleSite extends WeModuleSite {
 			} else if ($op == 'delete') {
 				$id = intval($_GPC['id']);
 
-				pdo_delete('storex_goods', array('id' => $id));
+				pdo_delete('storex_goods', array('id' => $id, 'weid' => $_W['uniacid']));
 				message('删除成功！', referer(), 'success');
 			} else if ($op == 'deleteall') {
 				foreach ($_GPC['idArr'] as $k => $id) {
 					$id = intval($id);
 
-					pdo_delete('storex_room', array('id' => $id));
-					pdo_delete('storex_order', array('roomid' => $id));
+					pdo_delete('storex_room', array('id' => $id, 'weid' => $_W['uniacid']));
+					pdo_delete('storex_order', array('roomid' => $id, 'weid' => $_W['uniacid']));
 					pdo_query("update " . tablename('storex_hotel') . " set roomcount=(select count(*) from " . tablename('storex_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $id));
 				}
 				$this->web_message('删除成功！', '', 0);
