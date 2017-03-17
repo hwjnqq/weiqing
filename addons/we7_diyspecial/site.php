@@ -85,7 +85,7 @@ class We7_diyspecialModuleSite extends WeModuleSite {
 				);
 				site_cover($cover);
 			}
-			message('页面保存成功.', referer(), 'success');
+			message('页面保存成功.', url('site/entry/post', array('m' => 'we7_diyspecial', 'id' => $id)), 'success');
 		} else {
 			$page = pdo_fetch("SELECT * FROM ".tablename('site_page')." WHERE id = :id", array(':id' => $id));
 			$page['multipage'] = preg_replace('/<(\/)?script(.+)?>/U', '&lt;$1script$2&gt;', $page['multipage']);
