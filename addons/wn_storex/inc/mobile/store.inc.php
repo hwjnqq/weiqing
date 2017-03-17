@@ -106,13 +106,12 @@ if ($op == 'store_comment') {
 					if (!empty($val['avatar'])) {
 						$val['avatar'] = tomedia($val['avatar']);
 					}
-					$users[$val['uid']] = $val;
 				}
 			}
 			foreach ($comments as $key => $infos) {
 				$comments[$key]['user_info'] = array();
-				if (!empty($users[$infos['uid']])) {
-					$comments[$key]['user_info'] = $users[$infos['uid']];
+				if (!empty($user_info[$infos['uid']])) {
+					$comments[$key]['user_info'] = $user_info[$infos['uid']];
 				} 		
 			}
 		}
