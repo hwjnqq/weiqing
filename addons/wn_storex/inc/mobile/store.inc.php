@@ -130,7 +130,7 @@ if ($op == 'store_comment') {
 			$comment_list_array = array_chunk($comments, $psize, true);
 			if (!empty($comment_list_array[($pindex - 1)])) {
 				foreach ($comment_list_array[($pindex - 1)] as $val) {
-					$comment_list['list'] = $val;
+					$comment_list['list'][] = $val;
 				}
 			}
 		} else {
