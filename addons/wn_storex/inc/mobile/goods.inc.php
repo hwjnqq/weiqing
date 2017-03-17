@@ -61,6 +61,9 @@ if ($op == 'goods_info') {
 			$goods_info['params'] = "楼层(".$goods_info['floor'].")";
 		}
 	}
+	if ($store_info['store_type'] == 1) {
+		$goods_info = check_price($goods_info);
+	}
 	message(error(0, $goods_info), '', 'ajax');
 }
 
@@ -81,7 +84,7 @@ if ($op == 'info') {
 		$condition['hotelid'] = $store_id;
 		$table = 'storex_room';
 		$goods_info = pdo_get($table, $condition);
-		$goods_info['max_room'] = $max_room;
+		$goods_info = check_price($goods_info);
 	}else{
 		$condition['store_base_id'] = $store_id;
 		$table = 'storex_goods';
@@ -175,7 +178,9 @@ if ($op == 'order'){
 			if ($order_info['btime'] < strtotime('today')) {
 				message(error(-1, '预定的开始日期不能小于当日的日期!'), '', 'ajax');
 			}
-		
+			if ($max_room < $order_info['nums']) {
+				message(error(-1, '订单购买数量超过最大限制!'), '', 'ajax');
+			}
 			$btime = $order_info['btime'];
 			$bdate = date('Y-m-d', $order_info['btime']);
 			$days = $order_info['day'];
@@ -202,22 +207,27 @@ if ($op == 'order'){
 			$room_date_list = pdo_fetchall($sql, $params);
 			$flag = intval($room_date_list);
 			$list = array();
-			$max_room = 8;
 			if ($flag == 1) {
 				for($i = 0; $i < $days; $i++) {
 					$k = $date_array[$i]['time'];
 					foreach ($room_date_list as $p_key => $p_value) {
 						// 判断价格表中是否有当天的数据
 						if($p_value['roomdate'] == $k) {
-							$room_num = $p_value['num'];
-							if (empty($room_num)) {
-								$max_room = 0;
-								$list['num'] = 0;
-								$list['date'] =  $date_array[$i]['date'];
-							} else if ($room_num > 0 && $room_num < $max_room) {
-								$max_room = $room_num;
-								$list['num'] =  $room_num;
-								$list['date'] =  $date_array[$i]['date'];
+							if ($p_value['num'] == -1) {
+								$max_room = 8;
+							} else {
+								$room_num = $p_value['num'];
+								if (empty($room_num)) {
+									$max_room = 0;
+									$list['num'] = 0;
+									$list['date'] =  $date_array[$i]['date'];
+								} else if ($room_num > 0 && $room_num < $max_room) {
+									$max_room = $room_num;
+									$list['num'] =  $room_num;
+									$list['date'] =  $date_array[$i]['date'];
+								} else {
+									$max_room = 0;
+								}
 							}
 							break;
 						}
@@ -320,7 +330,7 @@ if ($op == 'order'){
 			for ($i = 0; $i < $insert['day']; $i++) {
 				$sql = 'SELECT * FROM '. tablename('storex_room_price'). ' WHERE weid = :weid AND roomid = :roomid AND roomdate = :roomdate';
 				$day = pdo_fetch($sql, array(':weid' => intval($_W['uniacid']), ':roomid' => $insert['roomid'], ':roomdate' => $starttime));
-				if ($day) {
+				if ($day && $day['num'] != -1) {
 					pdo_update('storex_room_price', array('num' => $day['num'] - $insert['nums']), array('id' => $day['id']));
 				}
 				$starttime += 86400;
