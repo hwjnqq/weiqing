@@ -3,6 +3,12 @@
 function check_params(){
 	global $_W, $_GPC;
 	$permission_lists = array(
+		'common' => array(
+			'uniacid' => intval($_W['uniacid'])
+		),
+		'user' => array(
+			'login' => array(),
+		),
 		'store' => array(
 			'common' => array(
 				'uniacid' => intval($_W['uniacid'])
@@ -123,7 +129,6 @@ function format_url($urls){
 	}
 	return $urls;
 }
-
 //获取店铺信息
 function get_store_info(){
 	global $_W, $_GPC;
@@ -162,7 +167,12 @@ function category_sub_class(){
 	global $_W, $_GPC;
 	return pdo_getall('storex_categorys', array('weid' => $_W['uniacid'],'parentid' => intval($_GPC['first_id']), 'enabled' => 1), array(), '', 'displayorder DESC');
 }
-
+function check_price($goods_info){
+	$goods[] = $goods_info;
+	$goods = room_special_price($goods);
+	$goods_info = $goods['0'];
+	return $goods_info;
+}
 //获取一二级分类下的商品信息
 function category_store_goods($table, $condition, $fields, $limit = array()){
 	$goods = pdo_getall($table, $condition, $fields, '', 'sortid DESC', $limit);
@@ -176,9 +186,30 @@ function category_store_goods($table, $condition, $fields, $limit = array()){
 			}
 		}
 	}
+	if ($table == 'storex_room') {
+		$goods = room_special_price($goods);
+	}
 	return $goods;
 }
-
+//根据信息获取房型的某一天的价格
+function room_special_price ($goods){
+	global $_W;
+	if (!empty($goods)) {
+		$btime = strtotime(date('Y-m-d'));
+		$etime = $btime+86400;
+		$sql = 'SELECT `id`, `roomdate`, `num`, `status`, `oprice`, `cprice`, `roomid` FROM ' . tablename('storex_room_price') . ' WHERE 
+				`weid` = :weid AND `roomdate` >= :btime AND `roomdate` < :etime order by roomdate desc';
+		$params = array(':weid' => $_W['uniacid'], ':btime' => $btime, ':etime' => $etime);
+		$room_price_list = pdo_fetchall($sql, $params, 'roomid');
+		foreach ($goods as $key => $val) {
+			if (!empty($room_price_list[$val['id']])) {
+				$goods[$key]['oprice'] = $room_price_list[$val['id']]['oprice'];
+				$goods[$key]['cprice'] = $room_price_list[$val['id']]['cprice'];
+			}
+		}
+	}
+	return $goods;
+}
 //检查条件
 function goods_check_action($action, $goods_info){
 	if (empty($goods_info)) {
