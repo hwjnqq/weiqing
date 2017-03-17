@@ -74,7 +74,10 @@ if ($op == 'order_detail'){
 	if ($order_info['store_type'] == 1) {
 		$goods_info = pdo_get('storex_room', array('id' => $order_info['roomid'], 'weid' => $order_info['weid']));
 		$order_info['is_house'] = $goods_info['is_house'];
+	} else {
+		$goods_info = pdo_get('storex_goods', array('id' => $order_info['roomid'], 'weid' => $order_info['weid']));
 	}
+	$order_info['thumb'] = tomedia($goods_info['thumb']);
 	if (!empty($order_info['addressid'])) {
 		$order_address = pdo_get('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid']), 'id' => $order_info['addressid']));
 		if (!empty($order_address)){
