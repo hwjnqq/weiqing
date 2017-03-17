@@ -91,19 +91,18 @@ if ($op == 'store_comment') {
 	} else {
 		message(error(-1, '店铺不存在'), '', 'ajax');
 	}
-	$sql = "SELECT c.*,g.id as gid,g.title FROM ". tablename('storex_comment') ." c LEFT JOIN " .tablename($table)." g ON c.goodsid = g.id WHERE c.hotelid = :hotelid AND g.weid = :weid ORDER BY c.createtime DESC";
 	$comments = pdo_fetchall("SELECT c.*,g.id as gid,g.title FROM ". tablename('storex_comment') ." c LEFT JOIN " .tablename($table)." g ON c.goodsid = g.id WHERE c.hotelid = :hotelid AND g.weid = :weid ORDER BY c.createtime DESC", array(':hotelid' => $id, ':weid' => $_W['uniacid']));
  	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM" . tablename('storex_comment') ." c LEFT JOIN " .tablename($table)." g ON c.goodsid = g.id WHERE c.hotelid = :hotelid AND g.weid = :weid", array(':hotelid' => $id, ':weid' => $_W['uniacid']));
 	if (!empty($comments)) {
-		$uids = '';
 		foreach ($comments as $k => $info){
 			$comments[$k]['createtime'] = date('Y-m-d H:i:s', $info['createtime']);
-			$uids['uid'] = $info['uid'] .",";
+			$uids[] = $info['uid'];
 		}
+		$uids = array_unique($uids);
 		if (!empty($uids)) {
-  			$user_info = pdo_getall('mc_members', $uids, array('uid', 'avatar', 'nickname'), 'uid');
+  			$user_info = pdo_getall('mc_members', array('uid' => $uids), array('uid', 'avatar', 'nickname'), 'uid');
 			if (!empty($user_info)){
-				foreach ($user_info as $val){
+				foreach ($user_info as &$val){
 					if (!empty($val['avatar'])) {
 						$val['avatar'] = tomedia($val['avatar']);
 					}
@@ -111,14 +110,14 @@ if ($op == 'store_comment') {
 			}
 			foreach ($comments as $key => $infos) {
 				$comments[$key]['user_info'] = array();
-				if (!empty($users[$infos['uid']])) {
-					$comments[$key]['user_info'] = $users[$infos['uid']];
+				if (!empty($user_info[$infos['uid']])) {
+					$comments[$key]['user_info'] = $user_info[$infos['uid']];
 				} 		
 			}
 		}
 	}
 	$pindex = max(1, intval($_GPC['page']));
-	$psize = 1;
+	$psize = 10;
 	$comment_list = array();
 	if ($total <= $psize) {
 		$comment_list['list'] = $comments;

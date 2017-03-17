@@ -4,6 +4,7 @@
 	<ul class="nav nav-tabs">
 		<li class="active"><a href="{php echo $this->createWebUrl('goodscomment', array('store_base_id' => $store_base_id, 'id' => $id, 'store_type' => $store_type));}">评论管理</a></li>
 	</ul>
+	
 	<div class="panel panel-default">
 		<div class="panel-body table-responsive">
 		<table class="table table-hover" >
@@ -44,16 +45,13 @@
 				</td>
 			</tr>
 			</tbody>
-			<input name="token" type="hidden" value="{$_W['token']}" />
 		</table>
-	{$pager}
+		{$pager}
 </div>
 <script>
 	require(['bootstrap'],function($){
 		$('.btn').tooltip();
 	});
-</script>
-<script>
 	$(function(){
 		$(".check_all").click(function(){
 			var checked = $(this).get(0).checked;
@@ -71,9 +69,7 @@
 					id[i] = $(this).val();
 				});
 				$.post("{php echo $this->createWebUrl('goodscomment',array('op'=>'deleteall', 'store_base_id' => $store_base_id, 'id' => $id, 'store_type' => $store_type))}", {idArr:id},function(data){
-					if (data.errno == 0)
-					{
-						alert(data.errno);
+					if (data.errno == 0) {
 						location.reload();
 					} else {
 						alert(data.error);
@@ -82,8 +78,6 @@
 			}
 		});
 	});
-</script>
-<script>
 	function drop_confirm(msg, url){
 		if(confirm(msg)){
 			window.location = url;
