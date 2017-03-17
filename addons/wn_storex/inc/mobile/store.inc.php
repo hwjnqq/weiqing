@@ -93,7 +93,7 @@ if ($op == 'store_comment') {
 	}
 	$sql = "SELECT c.*,g.id as gid,g.title FROM ". tablename('storex_comment') ." c LEFT JOIN " .tablename($table)." g ON c.goodsid = g.id WHERE c.hotelid = :hotelid AND g.weid = :weid ORDER BY c.createtime DESC";
 	$comments = pdo_fetchall($sql, array(':hotelid' => $id, ':weid' => $_W['uniacid']));
-	
+ 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM" . tablename('storex_comment') ." c LEFT JOIN " .tablename($table)." g ON c.goodsid = g.id WHERE c.hotelid = :hotelid AND g.weid = :weid", array(':hotelid' => $id, ':weid' => $_W['uniacid']));
 	if (!empty($comments)) {
 		$uids = '';
 		foreach ($comments as $k => $info){
@@ -113,39 +113,37 @@ if ($op == 'store_comment') {
 				}
 			}
 			foreach ($comments as $key => $infos) {
-				if (!empty($users[$infos['uid']])) {
-					$comments[$key]['user_info'] = $users[$infos['uid']];
-				} else {
+				if (empty($users[$infos['uid']])) {
 					$comments[$key]['user_info'] = array();
-				}
+				} 	
+				$comments[$key]['user_info'] = $users[$infos['uid']];
 			}
 		}
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 10;
-	$list = array();
-	$total = count($comments);
+	$comment_list = array();
 	if ($total <= $psize) {
-		$list['list'] = $comments;
+		$comment_list['list'] = $comments;
 	} else {
 		if ($pindex > 0){
-			$list_array = array_chunk($comments, $psize, true);
-			if (!empty($list_array[($pindex - 1)])) {
-				foreach ($list_array[($pindex - 1)] as $val) {
-					$list['list'] = $val;
+			$comment_list_array = array_chunk($comments, $psize, true);
+			if (!empty($comment_list_array[($pindex - 1)])) {
+				foreach ($comment_list_array[($pindex - 1)] as $val) {
+					$comment_list['list'] = $val;
 				}
 			}
 		} else {
-					$list['list'] = $comments;
+			$comment_list['list'] = $comments;
 		}
 	}
-	$list['psize'] = $psize;
-	$list['result'] = 1;
-	$page_array = get_page_array($total, $pindex, $psize);
-	$list['total'] = $total;
-	$list['isshow'] = $page_array['isshow'];
-	if ($page_array['isshow'] == 1) {
-		$list['nindex'] = $page_array['nindex'];
+	$comment_list['psize'] = $psize;
+	$comment_list['result'] = 1;
+	$page_data = get_page_array($total, $pindex, $psize);
+	$comment_list['total'] = $total;
+	$comment_list['isshow'] = $page_data['isshow'];
+	if ($page_data['isshow'] == 1) {
+		$comment_list['nindex'] = $page_data['nindex'];
 	}
-	message(error(0, $list), '', 'ajax');
+	message(error(0, $comment_list), '', 'ajax');
 }

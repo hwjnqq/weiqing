@@ -140,6 +140,9 @@ if ($op == 'order_comment'){
 	if (empty($order_info)){
 		message(error(-1, '找不到该订单了！'), '', 'ajax');
 	}
+	if ($comment_level > 5 || $comment_level < 1 || empty($comment_level)){
+		$comment_level = 5;
+	}
 	if ($order_info['status'] == 3 && $order_info['comment'] == 0){
 		$comment_info = array(
 			
