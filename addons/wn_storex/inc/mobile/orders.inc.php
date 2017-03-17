@@ -150,7 +150,7 @@ if ($op == 'order_comment'){
 		$comment_info = array(
 			
 			'uniacid' => $_W['uniacid'],
-			'uid' => $_W['member']['uid'],
+			'uid' => $uid,
 			'createtime' => time(),
 			'comment' => $comment,
 			'hotelid' => $order_info['hotelid'],

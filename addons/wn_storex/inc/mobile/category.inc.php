@@ -187,23 +187,23 @@ if ($op == 'class') {
 	}
 	$pcate_lists = pdo_getall('storex_categorys', array('weid' => intval($_W['uniacid']), 'parentid' => '0', 'store_base_id' => $id, 'enabled' => 1), array('id', 'name', 'thumb'), '', 'displayorder DESC');
 	if (!empty($pcate_lists)) {
-		foreach ($pcate_lists as $val) {
+		foreach ($pcate_lists as $key => $val) {
 			if (!empty($val['thumb'])) {
-				$val['thumb'] = tomedia($val['thumb']);
+				$pcate_lists[$key]['thumb'] = tomedia($val['thumb']);
 			}
-			$storex_categorys[$val['id']] = $val;
 			if (!empty($sub_class[$val['id']]) && $sub_class[$val['id']]['num'] > 0) {
-				$storex_categorys[$val['id']]['is_child'] = 1;
+				$pcate_lists[$key]['is_child'] = 1;
 			} else {
-				$storex_categorys[$val['id']]['is_child'] = 0;
+				$pcate_lists[$key]['is_child'] = 0;
 			}
 		}
 	}
-	message(error(0, $storex_categorys), '', 'ajax');
+	message(error(0, $pcate_lists), '', 'ajax');
 }
 //获取一级分类下的二级分类列表
 if ($op == 'sub_class') {
 	$id = intval($_GPC['id']);
+	$class = pdo_get('storex_categorys', array('weid' => intval($_W['uniacid']), 'id' => $id), array('id', 'store_base_id', 'name'));
 	$sub_class = pdo_getall('storex_categorys', array('weid' => intval($_W['uniacid']), 'parentid' => $id), array('id', 'store_base_id', 'name', 'thumb'), '', 'displayorder DESC');
 	if (empty($sub_class)) {
 		message(error(-1, '无子分类'), '', 'ajax');
@@ -211,8 +211,11 @@ if ($op == 'sub_class') {
 		foreach ($sub_class as $k => $info){
 			if (!empty($info['thumb'])) {
 				$sub_class[$k]['thumb'] = tomedia($info['thumb']);
+				$sub_class[$k]['is_child'] = 0;
 			}
 		}
-		message(error(0, $sub_class), '', 'ajax');
+		$list['list'] = $sub_class;
+		$list['class'] = $class;
+		message(error(0, $list), '', 'ajax');
 	}
 }

@@ -1759,11 +1759,10 @@ class Wn_storexModuleSite extends WeModuleSite {
 		$store_type = intval($_GPC['store_type']);
 		if ($store_type == 1) {
 			$table = 'storex_room';
-			$store_base_id = intval($_GPC['hotelid']);//店铺id
 		} else {
 			$table = 'storex_goods';
-			$store_base_id = intval($_GPC['store_base_id']);
 		}
+		$store_base_id = intval($_GPC['store_base_id']);//店铺id
 		$sql = "SELECT c.*, g.title FROM ".tablename('storex_comment') . " c LEFT JOIN " .tablename($table). " g ON c.goodsid = g.id 
 				WHERE c.hotelid = {$store_base_id} AND c.goodsid = {$id}";
 		$comments = pdo_fetchall($sql);

@@ -15,8 +15,7 @@ defined('IN_IA') or exit('Access Denied');
  * @return string
  */
 if(!function_exists('hotel_set_userinfo')) {
-	function hotel_set_userinfo($flag = 0, $member)
-	{
+	function hotel_set_userinfo($flag = 0, $member) {
 		global $_GPC, $_W;
 		unset($member['password']);
 		unset($member['salt']);
@@ -27,8 +26,7 @@ if(!function_exists('hotel_set_userinfo')) {
 
 
 if(!function_exists('hotel_get_userinfo')) {
-	function hotel_get_userinfo()
-	{
+	function hotel_get_userinfo() {
 		global $_W;
 		$key = '__hotel_member';
 		return get_cookie($key);
@@ -38,8 +36,7 @@ if(!function_exists('hotel_get_userinfo')) {
 
 
 if(!function_exists('get_cookie')) {
-	function get_cookie($key)
-	{
+	function get_cookie($key) {
 		global $_W;
 		$key = $_W['config']['cookie']['pre'] . $key;
 		return json_decode(base64_decode($_COOKIE[$key]), true);
@@ -49,8 +46,7 @@ if(!function_exists('get_cookie')) {
 
 
 if(!function_exists('insert_cookie')) {
-	function insert_cookie($key, $data)
-	{
+	function insert_cookie($key, $data) {
 		global $_W, $_GPC;
 		$session = base64_encode(json_encode($data));
 		setcookie($_W['config']['cookie']['pre'].$key, $session);
@@ -59,8 +55,7 @@ if(!function_exists('insert_cookie')) {
 
 //检查用户是否登录
 if(!function_exists('check_hotel_user_login')) {
-	function check_hotel_user_login($set)
-	{
+	function check_hotel_user_login($set) {
 		global $_W;
 		$weid = $_W['uniacid'];
 		$from_user = $_W['fans']['from_user'];
@@ -68,14 +63,27 @@ if(!function_exists('check_hotel_user_login')) {
 		if (empty($user_info['id'])) {
 			return 0;
 		} else {
-		  if ( ($from_user == $user_info['from_user']) && ($weid == $user_info['weid']) ) {
-			  if ($set['user'] == 2 && $user_info['user_set'] != 2) {
-				  return 0;
-			  } else {
-				  return 1;
-			  }
-			} else {
+			if ($weid != $user_info['weid']) {
 				return 0;
+			}
+			if ($from_user == $user_info['from_user']) {
+				if ($set['user'] == 2 && $user_info['user_set'] != 2) {
+					return 0;
+				} else {
+					return 1;
+				}
+			} else {
+				if ($set['bind'] == 1) {
+					return 1;
+				} elseif ($set['bind'] == 2) {
+					return 0;
+				} elseif ($set['bind'] == 3) {
+					if ($user_info['userbind'] == 0) {
+						return 1;
+					} else {
+						return 0;
+					}
+				}
 			}
 		}
 	}
@@ -88,8 +96,7 @@ if(!function_exists('check_hotel_user_login')) {
  * @return string
  */
 if(!function_exists('hotel_member_hash')) {
-	function hotel_member_hash($input, $salt)
-	{
+	function hotel_member_hash($input, $salt) {
 		global $_W;
 		$input = "{$input}-{$salt}-{$_W['config']['setting']['authkey']}";
 		return sha1($input);
@@ -103,8 +110,7 @@ if(!function_exists('hotel_member_hash')) {
  * @return int 成功返回新增的用户编号，失败返回 0
  */
 if(!function_exists('hotel_member_check')) {
-	function hotel_member_check($member)
-	{
+	function hotel_member_check($member) {
 		$sql = 'SELECT `password`,`salt` FROM ' . tablename('storex_member') . " WHERE 1";
 		$params = array();
 		if (!empty($member['uid'])) {
@@ -152,8 +158,7 @@ if(!function_exists('hotel_member_check')) {
  * @return array 完整的用户信息
  */
 if(!function_exists('hotel_member_single')) {
-	function hotel_member_single($member)
-	{
+	function hotel_member_single($member) {
 		$sql = 'SELECT * FROM ' . tablename('storex_member') . " WHERE 1";
 		$params = array();
 		if (!empty($member['weid'])) {
@@ -190,8 +195,7 @@ if(!function_exists('hotel_member_single')) {
 
 
 if(!function_exists('get_hotel_set')) {
-	function get_hotel_set()
-	{
+	function get_hotel_set() {
 		global $_GPC, $_W;
 		$weid = $_W['uniacid'];
 		$set = pdo_fetch("select * from " . tablename('storex_set') . " where weid=:weid limit 1", array(":weid" => $weid));
@@ -223,8 +227,7 @@ if(!function_exists('get_hotel_set')) {
  * @return string 分页HTML
  */
 if(!function_exists('get_page_array')) {
-	function get_page_array($tcount, $pindex, $psize = 15)
-	{
+	function get_page_array($tcount, $pindex, $psize = 15) {
 		global $_W;
 		$pdata = array(
 			'tcount' => 0,
