@@ -226,6 +226,8 @@ if ($op == 'order'){
 									$max_room = $room_num;
 									$list['num'] =  $room_num;
 									$list['date'] =  $date_array[$i]['date'];
+								} else {
+									$max_room = 0;
 								}
 							}
 							break;
@@ -329,7 +331,7 @@ if ($op == 'order'){
 			for ($i = 0; $i < $insert['day']; $i++) {
 				$sql = 'SELECT * FROM '. tablename('storex_room_price'). ' WHERE weid = :weid AND roomid = :roomid AND roomdate = :roomdate';
 				$day = pdo_fetch($sql, array(':weid' => intval($_W['uniacid']), ':roomid' => $insert['roomid'], ':roomdate' => $starttime));
-				if ($day) {
+				if ($day && $day['num'] != -1) {
 					pdo_update('storex_room_price', array('num' => $day['num'] - $insert['nums']), array('id' => $day['id']));
 				}
 				$starttime += 86400;
