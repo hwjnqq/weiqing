@@ -198,13 +198,18 @@ function room_special_price ($goods){
 		$btime = strtotime(date('Y-m-d'));
 		$etime = $btime+86400;
 		$sql = 'SELECT `id`, `roomdate`, `num`, `status`, `oprice`, `cprice`, `roomid` FROM ' . tablename('storex_room_price') . ' WHERE 
-				`weid` = :weid AND `roomdate` >= :btime AND `roomdate` < :etime order by roomdate desc';
+			`weid` = :weid AND `roomdate` >= :btime AND `roomdate` < :etime order by roomdate desc';
 		$params = array(':weid' => $_W['uniacid'], ':btime' => $btime, ':etime' => $etime);
 		$room_price_list = pdo_fetchall($sql, $params, 'roomid');
 		foreach ($goods as $key => $val) {
 			if (!empty($room_price_list[$val['id']])) {
 				$goods[$key]['oprice'] = $room_price_list[$val['id']]['oprice'];
 				$goods[$key]['cprice'] = $room_price_list[$val['id']]['cprice'];
+				if ($room_price_list[$val['id']]['num'] == -1) {
+					$goods[$key]['max_num'] = 8;
+				} else {
+					$goods[$key]['max_num'] = $room_price_list[$val['id']]['num'];
+				}
 			}
 		}
 	}
