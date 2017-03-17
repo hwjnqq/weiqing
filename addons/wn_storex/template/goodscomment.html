@@ -4,6 +4,7 @@
 	<ul class="nav nav-tabs">
 		<li class="active"><a href="{php echo $this->createWebUrl('goodscomment', array('store_base_id' => $store_base_id, 'id' => $id, 'store_type' => $store_type));}">评论管理</a></li>
 	</ul>
+	
 	<div class="panel panel-default">
 		<div class="panel-body table-responsive">
 		<table class="table table-hover" >
@@ -46,7 +47,7 @@
 			</tbody>
 			<input name="token" type="hidden" value="{$_W['token']}" />
 		</table>
-	{$pager}
+		{$pager}
 </div>
 <script>
 	require(['bootstrap'],function($){
