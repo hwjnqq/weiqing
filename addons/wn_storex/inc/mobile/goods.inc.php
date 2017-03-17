@@ -85,7 +85,6 @@ if ($op == 'info') {
 		$table = 'storex_room';
 		$goods_info = pdo_get($table, $condition);
 		$goods_info = check_price($goods_info);
-		$goods_info['max_room'] = $max_room;
 	}else{
 		$condition['store_base_id'] = $store_id;
 		$table = 'storex_goods';

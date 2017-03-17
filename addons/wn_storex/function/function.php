@@ -206,9 +206,9 @@ function room_special_price ($goods){
 				$goods[$key]['oprice'] = $room_price_list[$val['id']]['oprice'];
 				$goods[$key]['cprice'] = $room_price_list[$val['id']]['cprice'];
 				if ($room_price_list[$val['id']]['num'] == -1) {
-					$goods[$key]['max_num'] = 8;
+					$goods[$key]['max_room'] = 8;
 				} else {
-					$goods[$key]['max_num'] = $room_price_list[$val['id']]['num'];
+					$goods[$key]['max_room'] = $room_price_list[$val['id']]['num'];
 				}
 			}
 		}
