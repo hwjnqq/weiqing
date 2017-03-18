@@ -221,7 +221,7 @@ if ($op == 'order'){
 									$max_room = 0;
 									$list['num'] = 0;
 									$list['date'] =  $date_array[$i]['date'];
-								} else if ($room_num > 0 && $room_num < $max_room) {
+								} else if ($room_num > 0 && $room_num <= $max_room) {
 									$max_room = $room_num;
 									$list['num'] =  $room_num;
 									$list['date'] =  $date_array[$i]['date'];

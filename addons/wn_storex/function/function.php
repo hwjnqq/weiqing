@@ -210,6 +210,8 @@ function room_special_price ($goods){
 				} else {
 					$goods[$key]['max_room'] = $room_price_list[$val['id']]['num'];
 				}
+			} else {
+				$goods[$key]['max_room'] = 8;
 			}
 		}
 	}

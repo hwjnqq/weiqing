@@ -110,7 +110,7 @@ if ($op == 'store_comment') {
 				$comments[$key]['user_info'] = array();
 				if (!empty($user_info[$infos['uid']])) {
 					$comments[$key]['user_info'] = $user_info[$infos['uid']];
-				} 		
+				}
 			}
 		}
 	}
