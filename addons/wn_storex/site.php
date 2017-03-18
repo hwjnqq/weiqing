@@ -625,7 +625,15 @@ class Wn_storexModuleSite extends WeModuleSite {
 			echo 0;
 		}
 	}
-
+	
+	public function gettablebytype($store_type){
+		if ($store_type == 1) {
+			return 'storex_room';
+		} else {
+			return 'storex_goods';
+		}
+	}
+	
 	public function doWebStoreManage() {
 		global $_GPC, $_W;
 		$op = $_GPC['op'];
@@ -721,6 +729,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			$params[':id'] = intval($item['businessid']);
 			$item['hotelbusinesss'] = pdo_fetchcolumn($sql, $params);
 			$storex_bases['thumbs'] =  iunserializer($storex_bases['thumbs']);
+			$storex_bases['detail_thumbs'] =  iunserializer($storex_bases['detail_thumbs']);
 			if ($id){
 				$item = array_merge($item, $storex_bases);
 			}
@@ -1464,11 +1473,10 @@ class Wn_storexModuleSite extends WeModuleSite {
 		}
 		//根据分类的一级id获取店铺的id
 		$category_store = pdo_get('storex_categorys', array('id' => intval($_GPC['category']['parentid']), 'weid' => intval($_W['uniacid'])), array('id', 'store_base_id'));
+		$table = $this->gettablebytype($store_type);
 		if ($store_type == 1) {
-			$table = 'storex_room';
 			$store_field = 'hotelid';
 		} else {
-			$table = 'storex_goods';
 			$store_field = 'store_base_id';
 		}
 		if ($op == 'edit') {
@@ -1633,13 +1641,15 @@ class Wn_storexModuleSite extends WeModuleSite {
 			}
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 20;
+			$hotelid_as = '';
 			if ($store_type == 1) {
-				$list = pdo_fetchall("SELECT r.*,r.hotelid AS store_base_id,h.title AS hoteltitle FROM " . tablename('storex_room') . " r left join " . tablename('storex_bases') . " h on r.hotelid = h.id WHERE r.weid = '{$_W['uniacid']}' $sql ORDER BY h.id, r.displayorder, r.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
-				$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_room') . " r left join " . tablename('storex_bases') . " h on r.hotelid = h.id WHERE r.weid = '{$_W['uniacid']}' $sql", $params);
+				$hotelid_as = ' r.hotelid AS store_base_id,';
+				$join_condition = ' r.hotelid = h.id ';
 			} else {
-				$list = pdo_fetchall("SELECT r.*,h.title as hoteltitle FROM " . tablename('storex_goods') . " r left join " . tablename('storex_bases') . " h on r.store_base_id = h.id WHERE r.weid = '{$_W['uniacid']}' $sql ORDER BY h.id, r.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
-				$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_goods') . " r left join " . tablename('storex_bases') . " h on r.store_base_id = h.id WHERE r.weid = '{$_W['uniacid']}' $sql", $params);
+				$join_condition = ' r.store_base_id = h.id ';
 			}
+			$list = pdo_fetchall("SELECT r.*," .$hotelid_as." h.title AS hoteltitle FROM " . tablename($table) . " r left join " . tablename('storex_bases') . " h on ".$join_condition." WHERE r.weid = '{$_W['uniacid']}' $sql ORDER BY h.id, r.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename($table) . " r left join " . tablename('storex_bases') . " h on ".$join_condition." WHERE r.weid = '{$_W['uniacid']}' $sql", $params);
 			$list = $this -> format_list($category, $list);
 			$pager = pagination($total, $pindex, $psize);
 			include $this->template('room');
@@ -1663,11 +1673,10 @@ class Wn_storexModuleSite extends WeModuleSite {
 		$psize = 10;
 		$id = intval($_GPC['id']);//商品id
 		$store_type = intval($_GPC['store_type']);
+		$table = $this->gettablebytype($store_type);
 		if ($store_type == 1) {
-			$table = 'storex_room';
 			$store_base_id = intval($_GPC['hotelid']);//店铺id
 		} else {
-			$table = 'storex_goods';
 			$store_base_id = intval($_GPC['store_base_id']);
 		}
 		$comments = pdo_fetchall("SELECT c.*, g.title FROM ".tablename('storex_comment') . " c LEFT JOIN " .tablename($table). " g ON c.goodsid = g.id 
@@ -1735,11 +1744,8 @@ class Wn_storexModuleSite extends WeModuleSite {
 		$hotelid = intval($_GPC['hotelid']);
 		$hotel = pdo_fetch("select id,title,phone from " . tablename('storex_bases') . " where id=:id limit 1", array(":id" => $hotelid));
 		$roomid = intval($_GPC['roomid']);
-		if ($store_type == 1){
-			$room = pdo_fetch("select id,title,sold_num from " . tablename('storex_room') . " where id=:id limit 1", array(":id" => $roomid));
-		} else {
-			$room = pdo_fetch("select id,title,sold_num from " . tablename('storex_goods') . " where id=:id limit 1", array(":id" => $roomid));
-		}
+		$table = $this->gettablebytype($store_type);
+		$room = pdo_fetch("select id,title,sold_num from " . tablename($table) . " where id=:id limit 1", array(":id" => $roomid));
 		$op = $_GPC['op'];
 		if ($op == 'edit') {
 			$id = $_GPC['id'];
@@ -2093,11 +2099,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			}
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 20;
-			if($store_type == 1){
-				$table = 'storex_room';
-			}else{
-				$table = 'storex_goods';
-			}
+			$table = $this->gettablebytype($store_type);
 			pdo_query('UPDATE '. tablename('storex_order'). " SET status = '-1' WHERE time <  :time AND weid = '{$_W['uniacid']}' AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400));
 			$show_order_lists = pdo_fetchall("SELECT o.*,h.title as hoteltitle,r.title as roomtitle FROM " . tablename('storex_order') . " o LEFT JOIN " . tablename('storex_bases') .
 				" h on o.hotelid=h.id LEFT JOIN " . tablename($table) . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
