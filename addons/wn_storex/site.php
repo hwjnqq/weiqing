@@ -721,6 +721,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			$params[':id'] = intval($item['businessid']);
 			$item['hotelbusinesss'] = pdo_fetchcolumn($sql, $params);
 			$storex_bases['thumbs'] =  iunserializer($storex_bases['thumbs']);
+			$storex_bases['detail_thumbs'] =  iunserializer($storex_bases['detail_thumbs']);
 			if ($id){
 				$item = array_merge($item, $storex_bases);
 			}
