@@ -7,7 +7,7 @@ $ops = array('store_list', 'store_detail', 'store_comment');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
-
+// check_user_source();
 //获取店铺列表
 if ($op == 'store_list') {
 	$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('id', 'version'));
@@ -21,9 +21,7 @@ if ($op == 'store_list') {
 		$storex_bases[$key]['timestart'] = date("G:i", $info['timestart']);
 		$storex_bases[$key]['timeend'] = date("G:i", $info['timeend']);
 		if (!empty($info['thumbs'])) {
-			foreach ($info['thumbs'] as $k => $url) {
-				$storex_bases[$key]['thumbs'][$k] = tomedia($url);
-			}
+			$storex_bases[$key]['thumbs'] = format_url($info['thumbs']);
 		}
 	}
 	$store_list = array();

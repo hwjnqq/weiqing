@@ -31,5 +31,6 @@ data/**/*
 attachment/**/*
 !attachment/images/global/**/*
 addons/**/*
+!addons/wn_storex/**/*
 web/test.php
 framework/builtin/core/module.cer
