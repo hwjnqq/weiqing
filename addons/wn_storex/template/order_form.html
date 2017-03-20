@@ -161,7 +161,7 @@
 							<button type="button" class="btn but{if $item['status'] == 4} btn-primary{/if} btn-default"  value="4" >已入住</button>
 							{/if}
 							{if $item['mode_distribute'] == 2}
-							<button type="button" class="btn but{if $item['goods_status'] == 2 && $item['status'] != 3} btn-primary{/if} btn-default"  value="5" >已发货</button>
+							<button type="button" class="btn but{if $item['goods_status'] == 2 && $item['status'] != 3 && $item['status'] != 2} btn-primary{/if} btn-default"  value="5" >已发货</button>
 							{/if}
 							<button type="button" class="btn but{if $item['status'] == 3} btn-primary{/if} btn-default"  value="3">订单完成</button>
 						{/if}
