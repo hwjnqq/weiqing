@@ -170,6 +170,19 @@
 				</div>
 				{if $item['mode_distribute'] == 2}
 				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">常用快递公司</label>
+					<div class="col-sm-9 col-xs-12">
+					<select name="express_name" id="common_corp" class="form-control input-medium">
+						<option value="">其他快递</option>
+						{loop $express $value}
+						<option value="{$value}" {if $value == $item['express_name']} selected="selected" {/if}>{$value}</option>
+						{/loop}
+						
+					</select>
+					<span class="help-block">如果您选择了常用快递，则客户可以订单中查询快递信息，如果缺少您想要的快递，您可以联系我们! </span>
+					</div>
+				</div>
+				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">物流单号</label>
 					<div class="col-sm-9 col-xs-12 form-control-static">
 						<input type="text" name="track_number" id="track_number" value="{$item['track_number']}" class="form-control">

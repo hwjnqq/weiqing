@@ -11,4 +11,7 @@ if (!pdo_fieldexists('storex_comment', 'comment_level')) {
 if (!pdo_fieldexists('storex_order', 'track_number')) {
 	pdo_query('ALTER TABLE ' . tablename('storex_order') . " ADD `track_number` varchar(64) NOT NULL COMMENT '物流单号';");
 }
+if (!pdo_fieldexists('storex_order', 'express_name')) {
+	pdo_query('ALTER TABLE ' . tablename('storex_order') . " ADD `express_name` varchar(50) NOT NULL COMMENT '物流类型';");
+}
 ?>
