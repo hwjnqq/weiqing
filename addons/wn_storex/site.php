@@ -2853,7 +2853,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 	protected function pay($params = array(), $mine = array()) {
 		global $_W;
 		if (!$this->inMobile) {
-			message('支付功能只能在手机上使用');
+			message(error(-1, '支付功能只能在手机上使用'), '', 'ajax');
 		}
 		$params['module'] = $this->module['name'];
 		$pars = array();
@@ -2890,11 +2890,11 @@ class Wn_storexModuleSite extends WeModuleSite {
 			pdo_insert('core_paylog', $log);
 		}
 		if ($log['status'] == '1') {
-			message('这个订单已经支付成功, 不需要重复支付.');
+			message(error(-1, '这个订单已经支付成功, 不需要重复支付.'), '', 'ajax');
 		}
 		$payment = uni_setting(intval($_W['uniacid']), array('payment', 'creditbehaviors'));
 		if (!is_array($payment['payment'])) {
-			message('没有有效的支付方式, 请联系网站管理员.');
+			message(error(-1, '没有有效的支付方式, 请联系网站管理员.'), '', 'ajax');
 		}
 		$pay = $payment['payment'];
 		if (empty($_W['member']['uid'])) {
