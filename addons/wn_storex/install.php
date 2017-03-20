@@ -107,6 +107,7 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`time` int(11) DEFAULT '0',
 	`status` int(11) DEFAULT '0',
 	`mode_distribute` int(11) NOT NULL COMMENT '配送方式  1自提 ，2配送',
+	`track_number` varchar(64) NOT NULL COMMENT '物流单号',
 	`order_time` int(11) NOT NULL DEFAULT '0' COMMENT '自提是自提时间，配送是配送时间',
 	`addressid` int(11) NOT NULL COMMENT '配送选择的地址id',
 	`goods_status` int(11) NOT NULL COMMENT '货物状态：1未发送，2已发送，3已收货',

@@ -161,13 +161,21 @@
 							<button type="button" class="btn but{if $item['status'] == 4} btn-primary{/if} btn-default"  value="4" >已入住</button>
 							{/if}
 							{if $item['mode_distribute'] == 2}
-							<button type="button" class="btn but{if $item['goods_status'] == 2} btn-primary{/if} btn-default"  value="5" >已发货</button>
+							<button type="button" class="btn but{if $item['goods_status'] == 2 && $item['status'] != 3} btn-primary{/if} btn-default"  value="5" >已发货</button>
 							{/if}
 							<button type="button" class="btn but{if $item['status'] == 3} btn-primary{/if} btn-default"  value="3">订单完成</button>
 						{/if}
 						<input type="hidden" id="status" name="status" value="{$item['status']}">
 					</div>
 				</div>
+				{if $item['mode_distribute'] == 2}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">物流单号</label>
+					<div class="col-sm-9 col-xs-12 form-control-static">
+						<input type="text" name="track_number" id="track_number" value="{$item['track_number']}" class="form-control">
+					</div>
+				</div>
+				{/if}
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">备注</label>
 					<div class="col-sm-9 col-xs-12 form-control-static">

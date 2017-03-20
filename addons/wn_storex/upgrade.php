@@ -8,4 +8,7 @@ if (!pdo_fieldexists('storex_comment', 'goodsid')) {
 if (!pdo_fieldexists('storex_comment', 'comment_level')) {
 	pdo_query('ALTER TABLE ' . tablename('storex_comment') . " ADD `comment_level` TINYINT(11) NOT NULL COMMENT '评论商品的级别';");
 }
+if (!pdo_fieldexists('storex_order', 'track_number')) {
+	pdo_query('ALTER TABLE ' . tablename('storex_order') . " ADD `track_number` varchar(64) NOT NULL COMMENT '物流单号';");
+}
 ?>
