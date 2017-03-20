@@ -668,6 +668,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 					'store_info' => $_GPC['store_info'],
 					'traffic' => $_GPC['traffic'],
 					'status' => $_GPC['status'],
+					'distance' => $_GPC['distance'],
 				);
 				$common_insert['thumbs'] = empty($_GPC['thumbs']) ? '' : iserializer($_GPC['thumbs']);
 				$common_insert['detail_thumbs'] = empty($_GPC['detail_thumbs']) ? '' : iserializer($_GPC['detail_thumbs']);
@@ -2633,7 +2634,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 					message('抱歉，商圈不存在或是已经删除！', '', 'error');
 				}
 			}
-
 			if (checksubmit('submit')) {
 				$data = array(
 					'weid' => $_W['uniacid'],
@@ -2644,7 +2644,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 					'displayorder' => $_GPC['displayorder'],
 					'status' => $_GPC['status'],
 				);
-
 				if (empty($id)) {
 					pdo_insert('storex_business', $data);
 				} else {
@@ -2712,14 +2711,12 @@ class Wn_storexModuleSite extends WeModuleSite {
 
 //店员管理
 	public  function doWebClerk() {
-
 		global $_GPC, $_W;
 		$op = $_GPC['op'];
 		$weid = $this->_weid;
 		pdo_delete('storex_member', array('weid' => $_W['uniacid'], 'from_user' => ''));
 		if ($op == 'edit') {
 			$id = intval($_GPC['id']);
-
 			if (!empty($id)) {
 				$item = pdo_fetch("SELECT * FROM " . tablename('storex_member') . " WHERE id = :id", array(':id' => $id));
 				if (empty($item)) {
@@ -2846,7 +2843,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				$sql .= ' AND `mobile` LIKE :mobile';
 				$params[':mobile'] = "%{$_GPC['mobile']}%";
 			}
-				$sql .= " AND clerk = '1'";
+			$sql .= " AND clerk = '1'";
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 20;
 			$list = pdo_fetchall("SELECT * FROM " . tablename('storex_member') . " WHERE weid = '{$_W['uniacid']}'  $sql ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);

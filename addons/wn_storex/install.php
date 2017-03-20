@@ -250,6 +250,7 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_bases` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`distance` int(11) NOT NULL COMMENT '配送距离',
 	`weid` int(11) DEFAULT '0',
 	`title` varchar(255) DEFAULT '',
 	`lng` decimal(10,2) DEFAULT '0.00',
