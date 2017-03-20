@@ -136,7 +136,11 @@
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label">配送距离</label>
 						<div class="col-sm-9 col-xs-12">
+							{if !empty($item['distance'])}
 							<input type="text" id="distance" name="distance"  class="form-control" value="{$item['distance']}">
+							{else}
+							<input type="text" id="distance" name="distance"  class="form-control" value="不限">
+							{/if}
 							<span class='help-block'>配送距离（单位：公里）</span>
 						</div>
 					</div>

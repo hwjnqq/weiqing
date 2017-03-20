@@ -143,7 +143,21 @@ function get_store_info(){
 		}
 	}
 }
-
+//根据坐标计算距离
+function distanceBetween($longitude1, $latitude1, $longitude2, $latitude2) {
+	$radLat1 = radian ( $latitude1 );
+	$radLat2 = radian ( $latitude2 );
+	$a = radian ( $latitude1 ) - radian ( $latitude2 );
+	$b = radian ( $longitude1 ) - radian ( $longitude2 );
+	$s = 2 * asin ( sqrt ( pow ( sin ( $a / 2 ), 2 ) + cos ( $radLat1 ) *
+			cos ( $radLat2 ) * pow ( sin ( $b / 2 ), 2 ) ) );
+	$s = $s * 6378.137; //乘上地球半径，单位为公里
+	$s = round ( $s * 10000 ) / 10000; //单位为公里(km)
+	return $s * 1000; //单位为m
+}
+function radian($d) {
+	return $d * 3.1415926535898 / 180.0;
+}
 //支付
 function pay_info($order_id){
 	global $_W;
@@ -389,4 +403,66 @@ function orders_check_status($item){
 	}
 	$item['order_status'] = $order_status_text[$status];
 	return $item;
+}
+//检查登录
+function check_user_source (){
+	global $_W, $_GPC;
+	$set = get_hotel_set();
+	$user_info = pdo_get('storex_member', array('from_user' => $_W['openid'], 'weid' => intval($_W['uniacid'])));
+	//独立用户
+	if ($set['user'] == 2) {
+		if (empty($user_info['id'])) {
+			//用户不存在
+			if ($set['reg'] == 1) {
+				//开启注册
+				message(error(-1, 'register'), '', 'ajax');
+// 				$url = $this->createMobileUrl('register');
+			} else {
+				//禁止注册
+				message(error(-1, 'login'), '', 'ajax');
+// 				$url = $this->createMobileUrl('login');
+			}
+		} else {
+			//用户已经存在，判断用户是否登录
+			$check = check_hotel_user_login($set);
+			if ($check) {//登录状态
+				if ($user_info['status'] != 1) {
+					message(error(-1, '账号被禁用'), '', 'ajax');
+				}
+			} else {
+				message(error(-1, 'login'), '', 'ajax');
+// 				$url = $this->createMobileUrl('login');
+			}
+		}
+	} else {
+		//微信用户
+		if (empty($user_info['id'])) {
+			//用户不存在，自动添加一个用户
+			$member = array();
+			$member['weid'] = intval($_W['uniacid']);
+			$member['from_user'] = $_W['openid'];
+
+			$member['createtime'] = time();
+			$member['isauto'] = 1;
+			$member['status'] = 1;
+			pdo_insert('storex_member', $member);
+			$member['id'] = pdo_insertid();
+			$member['user_set'] = $set['user'];
+			//自动添加成功，将用户信息放入cookie
+			hotel_set_userinfo(0, $member);
+		} else {
+			if ($user_info['status'] == 1) {
+				$user_info['user_set'] = $set['user'];
+				//用户已经存在，将用户信息放入cookie
+				hotel_set_userinfo(1, $user_info);
+			} else {
+				//用户帐号被禁用
+				$msg = "抱歉，你的帐号被禁用，请联系管理员解决。";
+				if ($set['is_unify'] == 1) {
+					$msg .= "店铺电话：" . $set['tel'] . "。";
+				}
+				message(error(-1, $msg), '', 'ajax');
+			}
+		}
+	}
 }

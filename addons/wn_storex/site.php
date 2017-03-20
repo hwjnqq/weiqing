@@ -668,7 +668,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 					'store_info' => $_GPC['store_info'],
 					'traffic' => $_GPC['traffic'],
 					'status' => $_GPC['status'],
-					'distance' => $_GPC['distance'],
+					'distance' => intval($_GPC['distance']),
 				);
 				$common_insert['thumbs'] = empty($_GPC['thumbs']) ? '' : iserializer($_GPC['thumbs']);
 				$common_insert['detail_thumbs'] = empty($_GPC['detail_thumbs']) ? '' : iserializer($_GPC['detail_thumbs']);
