@@ -2352,6 +2352,11 @@ class Wn_storexModuleSite extends WeModuleSite {
 					message('抱歉，用户不存在或是已经删除！', '', 'error');
 				}
 			}
+			if (!empty($item['from_user'])) {
+				load()->model('mc');
+				$uid = mc_openid2uid($item['from_user']);
+				$address_info = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => $_W['uniacid']), '', '', 'isdefault DESC');
+			}
 			if (checksubmit('submit')) {
 				$data = array(
 					'weid' => $_W['uniacid'],
