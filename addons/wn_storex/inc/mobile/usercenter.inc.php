@@ -18,6 +18,12 @@ if (in_array($op, array('address_post', 'address_default', 'address_delete')) &&
 
 if ($op == 'personal_info') {
 	$user_info = mc_fetch($_W['openid']);
+	$storex_clerk = pdo_get('storex_clerk', array('weid' => intval($_W['uniacid']), 'from_user' => trim($_W['openid']), 'status !=' => -1), array('id', 'from_user'));
+	if (!empty($storex_clerk)) {
+		$user_info['clerk'] = 1;
+	} else {
+		$user_info['clerk'] = 0;
+	}
 	message(error(0, $user_info), '', 'ajax');
 }
 if ($op == 'personal_update') {

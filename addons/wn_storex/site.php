@@ -1949,12 +1949,12 @@ class Wn_storexModuleSite extends WeModuleSite {
 						);
 						if (!empty($setting['template']) && !empty($setting['refuse_templateid'])) {
 							$tplnotice = array(
-								'first' => array('value'=>'尊敬的宾客，非常抱歉的通知您，您的客房预订订单被拒绝。'),
+								'first' => array('value'=>'尊敬的宾客，非常抱歉的通知您，您的预订订单被拒绝。'),
 								'keyword1' => array('value' => $item['ordersn']),
 								'keyword2' => array('value' => date('Y.m.d', $item['btime']). '-'. date('Y.m.d', $item['etime'])),
 								'keyword3' => array('value' => $item['nums']),
 								'keyword4' => array('value' => $item['sum_price']),
-								'keyword5' => array('value' => '房型已满'),
+								'keyword5' => array('value' => '商品不足'),
 							);
 							$acc->sendTplNotice($item['openid'], $setting['refuse_templateid'], $tplnotice);
 						} else {
@@ -2014,11 +2014,11 @@ class Wn_storexModuleSite extends WeModuleSite {
 
 					//订单完成提醒
 					if ($data['status'] == 3) {
-						$uid = pdo_fetchcolumn('SELECT `uid` FROM'. tablename('mc_mapping_fans')." WHERE openid = :openid", array(':openid' => trim($item['openid'])));
+						$uid = mc_openid2uid(trim($item['openid']));
 						//订单完成后增加积分
-						$this->give_credit($item['weid'], $uid, $item['sum_price'] ,$hotelid);
+						give_credit($item['weid'], $uid, $item['sum_price'] ,$hotelid);
 						//增加出售货物的数量
-						$this->add_sold_num($room);
+						add_sold_num($room);
 						$acc = WeAccount::create();
 						$info = '您在'.$hotel['title'].'预订的'.$room['title']."订单已完成,欢迎下次入住";
 						$custom = array(
@@ -2027,7 +2027,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 							'touser' => $item['openid'],
 						);
 						//OPENTM203173461
-						if (!empty($setting['template']) && !empty($setting['finish_templateid'])) {
+						if (!empty($setting['template']) && !empty($setting['finish_templateid']) && $store_type == 1) {
 							$tplnotice = array(
 								'first' => array('value' =>'您已成功办理离店手续，您本次入住酒店的详情为'),
 								'keyword1' => array('value' =>date('Y-m-d', $item['btime'])),
@@ -2325,22 +2325,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 		return $list;
 	}
 
-	//支付成功后，根据酒店设置的消费返积分的比例给积分
-	public function give_credit($weid, $openid, $sum_price ,$hotelid){
-		load()->model('mc');
-		$hotel_info = pdo_get('storex_bases', array('weid' => $weid ,'id' => $hotelid), array('integral_rate', 'weid'));
-		$num = $sum_price * $hotel_info['integral_rate']*0.01;//实际消费的金额*比例(值时百分数)*0.01
-		$tips .= "用户消费{$sum_price}元，支付{$sum_price}，积分赠送比率为:【1：{$hotel_info['integral_rate']}%】,共赠送【{$num}】积分";
-		mc_credit_update($openid, 'credit1', $num, array('0', $tip, 'wn_storex', 0, 0, 3));
-		return error(0, $num);
-	}
-	public function add_sold_num($room){
-		if (intval($_GPC['store_type']) == 1){
-			pdo_update('storex_room', array('sold_num' => ($room['sold_num']+1)), array('id' => $room['id']));
-		} else {
-			pdo_update('storex_goods', array('sold_num' => ($room['sold_num']+1)), array('id' => $room['id']));
-		}
-	}
 	public function doWebMember() {
 		global $_GPC, $_W;
 		$op = $_GPC['op'];

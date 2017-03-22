@@ -110,6 +110,37 @@
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺管理权限</label>
 					<div class="col-md-10" id="permission1" style="padding-left: 0px;">
 						<div id="permission">
+							{if !empty($item['permission'])}
+							{loop $item['permission'] $store_id $permissions}
+							<div class="select col-sm-3 js-html-delete-{$store_id}">
+								<div class="app-info">
+									<img width="50px" src="{$stores[$store_id]['thumb']}" />
+									<p>{$stores[$store_id]['title']}</p>
+								</div>
+							</div>
+							<div style="height:80px" class="col-sm-9 js-html-delete-{$store_id}">
+								{loop $permissions $permit}
+									{if $permit == 'wn_storex_permission_order'}
+										{if $permit == 'wn_storex_permission_order'}
+										<input checked type="checkbox" name="permission[{$store_id}][]" value="wn_storex_permission_order">订单管理
+										{else}
+										<input type="checkbox" name="permission[{$store_id}][]" value="wn_storex_permission_order">订单管理
+										{/if}
+									{/if}
+									{if $permit == 'wn_storex_permission_room'}
+										{if $permit == 'wn_storex_permission_room'}
+										<input checked type="checkbox" name="permission[{$store_id}][]" value="wn_storex_permission_room">房型管理
+										{else}
+										<input type="checkbox" name="permission[{$store_id}][]" value="wn_storex_permission_room">房型管理
+										{/if}
+									{/if}
+								{/loop}
+								<div class="cover-dark">
+									<a href="javascript:;" class="cover-delect js-permission-delete" data-id="{$store_id}"><i class="fa fa-minus-circle"></i>删除</a>
+								</div>
+							</div>
+							{/loop}
+							{/if}
 						</div>
 					</div>
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
@@ -240,4 +271,3 @@
 		return true;
 	}
 </script>
-

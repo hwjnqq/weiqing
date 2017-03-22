@@ -263,3 +263,24 @@ if(!function_exists('get_page_array')) {
 		return $pdata;
 	}
 }
+//支付成功后，根据酒店设置的消费返积分的比例给积分
+if(!function_exists('give_credit')) {
+	function give_credit($weid, $openid, $sum_price ,$hotelid){
+		load()->model('mc');
+		$hotel_info = pdo_get('storex_bases', array('weid' => $weid ,'id' => $hotelid), array('integral_rate', 'weid'));
+		$num = $sum_price * $hotel_info['integral_rate']*0.01;//实际消费的金额*比例(值时百分数)*0.01
+		$tips .= "用户消费{$sum_price}元，支付{$sum_price}，积分赠送比率为:【1：{$hotel_info['integral_rate']}%】,共赠送【{$num}】积分";
+		mc_credit_update($openid, 'credit1', $num, array('0', $tip, 'wn_storex', 0, 0, 3));
+		return error(0, $num);
+	}
+}
+//完成订单后加售出数量
+if(!function_exists('add_sold_num')) {
+	function add_sold_num($room){
+		if (intval($_GPC['store_type']) == 1){
+			pdo_update('storex_room', array('sold_num' => ($room['sold_num']+1)), array('id' => $room['id']));
+		} else {
+			pdo_update('storex_goods', array('sold_num' => ($room['sold_num']+1)), array('id' => $room['id']));
+		}
+	}
+}

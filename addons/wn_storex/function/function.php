@@ -106,8 +106,12 @@ function check_params(){
 				'uniacid' => intval($_W['uniacid']),
 				'openid' => $_W['openid']
 			),
-			'clerkindex' => array(),
-			'clerkorder' => array(),
+			'clerkindex' => array(
+				'id' => intval($_GPC['id']),
+			),
+			'order' => array(
+				'id' => intval($_GPC['id']),
+			),
 		),
 	);
 	$do = trim($_GPC['do']);
@@ -141,7 +145,7 @@ function format_url($urls){
 //获取店铺信息
 function get_store_info(){
 	global $_W, $_GPC;
-	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => intval($_GPC['id'])), array('id', 'store_type', 'status'));
+	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => intval($_GPC['id'])), array('id', 'store_type', 'status', 'title', 'phone'));
 	if (empty($store_info)) {
 		message(error(-1, '店铺不存在'), '', 'ajax');
 	} else {
