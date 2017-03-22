@@ -293,9 +293,9 @@ if ($op == 'order'){
 			}
 		}else{
 			if(!empty($_W['member']['groupid']) && !empty($member_p[$_W['member']['groupid']])){
-				$this_price =  $pricefield == 'mprice' ? $room['cprice']*$room[$_W['member']['groupid']] : $room['cprice'];
+				$this_price =  $pricefield == 'mprice' ? $room['cprice']*$member_p[$_W['member']['groupid']] : $room['cprice'];
 			}else{
-				$this_price = $goods_info['cprice'];
+				$this_price = $room['cprice'];
 			}
 			$totalprice = $this_price;
 			$insert = array_merge($order_info, $insert);
