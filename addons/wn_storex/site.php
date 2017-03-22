@@ -2361,8 +2361,14 @@ class Wn_storexModuleSite extends WeModuleSite {
 				$uid = mc_openid2uid($item['from_user']);
 				$address_info = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => $_W['uniacid']), '', '', 'isdefault DESC');
 			}
-			$stores = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid'])), array('id', 'title', 'store_type'), 'id');
+			$stores = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid'])), array('id', 'title', 'store_type', 'thumb'), 'id');
+			foreach ($stores as &$value) {
+				$value['thumb'] = tomedia($value['thumb']);
+			}
 			if (checksubmit('submit')) {
+				echo "<pre>";
+				print_r($_GPC);
+				echo "</pre>";exit;
   				$data = array(
 					'weid' => $_W['uniacid'],
 					'username' => $_GPC['username'],

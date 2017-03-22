@@ -144,22 +144,10 @@
 					</div>
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺管理权限</label>
-						<div class="col-md-10" id="permission" style="padding-left: 0px;">
-							{if !empty($item['permission'])}
-							{loop $item['permission'] $id $store_info}
-								{if !empty($stores[$id])}
-									<div class="col-sm-9 col-xs-12">
-										<span class="input-group-addon">
-											<label class="col-xs-12 col-sm-3 col-md-2 control-label">{$stores[$id]['title']}</label>
-											<input type="checkbox" name="order[{$id}]" value="order" {if !empty($store_info['permission']['order'])}checked{/if}>订单管理
-											{if $stores[$id]['store_type'] == 1}
-												<input type="checkbox" name="room[{$id}]" value="room" {if !empty($store_info['permission']['room'])}checked{/if}>房型管理
-											{/if}
-				  						</span>
-									</div>
-								{/if}
-							{/loop}
-							{/if}
+						<div class="col-md-10" id="permission1" style="padding-left: 0px;">
+							<div id="permission">
+
+							</div>
 						</div>
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
 						<div class="col-md-10">
@@ -167,7 +155,7 @@
 						</div>
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
 						<div class="col-md-10" style="padding-left: 0px;">
-							<h4><a href="javascript:;" data-toggle="modal" data-target="#store-modal" class='btn btn-primary' id='' onclick="" style="margin-top:10px;margin-bottom:10px;"title="添加权限"><i class='fa fa-plus'></i> 添加权限</a> 
+							<h4><a href="javascript:;" class='btn btn-primary js-permission-modal' style="margin-top:10px;margin-bottom:10px;"title="添加权限"><i class='fa fa-plus'></i> 添加权限</a> 
 						</div>
 					</div>
 				</span>
@@ -187,56 +175,70 @@
 				<h4 class="modal-title" id="myModalLabel">选择你要添加的店铺权限</h4>
 			</div>
 			<div class="modal-body clearfix form-horizontal">
-				{if !empty($stores)}
-				{loop $stores $store}
-				{if $store['store_type'] == 1}
-				<div class="form-group marbot0">
-					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
-					<div class="col-sm-9 col-xs-12">
-						<label class="radio-inline">
-							<input type="radio" name="type" value="{$store['id']}"/>
-							{$store['title']}
-						</label>
-						<div class="help-block">酒店</div>
-					</div>
-				</div>
-				{else}
-				<div class="form-group marbot0">
-					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
-					<div class="col-sm-9 col-xs-12">
-						<label class="radio-inline">
-							<input type="radio" name="type" value="{$store['id']}"/>
-							{$store['title']}
-						</label>
-						<div class="help-block">普通店铺</div>
-					</div>
-				</div>
-				{/if}
-				{/loop}
-				{/if}
+			
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-				<button type="button" class="btn btn-primary" data-dismiss="modal" id="addPermission" onclick="addPermission($('#store-modal input[type=radio]:checked').val())">确定</button>
+				<button type="button" class="btn btn-primary" data-dismiss="modal" id="addPermission">确定</button>
 			</div>
 		</div>
 	</div>
 </div>
 <script type="text/javascript">
 	var stores = '<?php echo json_encode($stores);?>';
-	function addPermission(storeid){
-		var data = '{if !empty(' + stores.storeid +')}';
-		var title = stores.storeid["title"];
-		data += '<div class="col-sm-9 col-xs-12">';
-		data += '<span class="input-group-addon">';
-		data += '<label class="col-xs-12 col-sm-3 col-md-2 control-label">{' + title + '}</label>';
-		data += '<input type="checkbox" name="order[{' + storeid + '}]" value="order" {if !empty($store_info["permission"]["order"])}checked{/if}>订单管理';
-		data += '{if $stores[' + storeid + ']["store_type"] == 1}';
-		data += '<input type="checkbox" name="room[{' + storeid + '}]" value="room" {if !empty($store_info["permission"]["room"])}checked{/if}>房型管理';
-		data += '{/if}</span></div>{/if}';
+	stores = $.parseJSON(stores);
+	selected_stores = [];
+	$('.js-permission-modal').click(function() {
+		html = '';
+		for (var i in stores) {
+			if (stores[i].store_type == 1) {
+				store_description = '酒店';
+			} else {
+				store_description = '普通店铺';
+			}
+			html += '<div class="form-group marbot0">'+
+						'<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>'+
+							'<div class="col-sm-9 col-xs-12">'+
+								'<label class="radio-inline">'+
+									'<input type="radio" name="type" value="' + i + '"/>'
+									+ stores[i].title +
+								'</label>'+
+							'<div class="help-block">' + store_description + '</div>'+
+							'</div>'+
+					'</div>';
+		}
+		$('.modal-body').html(html);
+		$('#store-modal').modal('show');
+	});
+	$('#addPermission').click(function() {
+		var storeid = $('#store-modal input[type=radio]:checked').val();
+		data = '';
+		var title = stores[storeid].title;
+		data = '<div class="select col-sm-3 js-html-delete-' + storeid + '">'+
+					'<div class="app-info">'+
+						'<img width="50px" src="'+stores[storeid].thumb+'" />'+
+						'<p>'+title+'</p>'+
+					'</div>'+
+				'</div>'+
+				'<div style="height:80px" class="col-sm-9 js-html-delete-' + storeid + '">'+
+					'<input type="checkbox" name="permission[' + storeid + '][]" value="wn_storex_permission_order">订单管理'+
+					'<input type="checkbox" name="permission[' + storeid + '][]" value="wn_storex_permission_room">房型管理'+
+					'<div class="cover-dark">'+
+						'<a href="javascript:;" class="cover-delect js-permission-delete" data-id="' + storeid + '"><i class="fa fa-minus-circle"></i>删除</a>'+
+					'</div>'
+				'</div>';
+		selected_stores[storeid] = stores[storeid];
+		delete stores[storeid];
 		$('#permission').append(data);
-	}
-	//kindeditor($('.richtext-clone'));
+	});
+	//删除模态框内标签
+	$(document).on('click', '.js-permission-delete', function() {
+		id = $(this).data('id');
+		stores[id] = selected_stores[id];
+		delete selected_stores[id];
+		$('.js-html-delete-' + id).remove();
+	});
+	kindeditor($('.richtext-clone'));
 	function formcheck() {
 		var isauto = $('input[name="isauto"]:checked').val();
 		if (isauto == 0) {
