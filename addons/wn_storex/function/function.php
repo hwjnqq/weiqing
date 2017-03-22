@@ -8,6 +8,7 @@ function check_params(){
 		),
 		'user' => array(
 			'login' => array(),
+			'register' => array(),
 		),
 		'store' => array(
 			'common' => array(
@@ -99,7 +100,15 @@ function check_params(){
 			'address_delete' => array(
 				'id' => intval($_GPC['id'])
 			)
-		)
+		),
+		'clerk' => array(
+			'common' => array(
+				'uniacid' => intval($_W['uniacid']),
+				'openid' => $_W['openid']
+			),
+			'clerkindex' => array(),
+			'clerkorder' => array(),
+		),
 	);
 	$do = trim($_GPC['do']);
 	$op = trim($_GPC['op']);
@@ -141,6 +150,14 @@ function get_store_info(){
 		}else{
 			return $store_info;
 		}
+	}
+}
+//根据店铺的类型返回表名
+function get_goods_table($store_type){
+	if ($store_type == 1) {
+		return 'storex_room';
+	} else {
+		return 'storex_goods';
 	}
 }
 //根据坐标计算距离
@@ -364,11 +381,9 @@ function orders_check_status($item){
 							$item['is_pay'] = 1;
 							$status = STORE_UNSENT_STATUS;
 						} else if ($item['goods_status'] == 2){
-							$item['is_pay'] = 1;
 							$item['is_confirm'] = 1;
 							$status = STORE_SENT_STATUS;
 						} else if ($item['goods_status'] == 3){
-							$item['is_pay'] = 1;
 							$status = STORE_GETGOODS_STATUS;
 						} else {
 							$item['is_cancle'] = 1;
@@ -403,6 +418,21 @@ function orders_check_status($item){
 	}
 	$item['order_status'] = $order_status_text[$status];
 	return $item;
+}
+//检查店员    id:店铺id
+function get_clerk_permission ($id) {
+	global $_W;
+	$clerk_info = pdo_get('storex_clerk', array('from_user' => trim($_W['openid']), 'weid' => intval($_W['uniacid'])));
+	if (!empty($clerk_info) && !empty($clerk_info['permission'])) {
+		if ($clerk_info['status'] != 1) {
+			message(error(-1, '您没有进行此操作的权限！'), '', 'ajax');
+		}
+		$clerk_info['permission'] = iunserializer($clerk_info['permission']);
+		if (!empty($clerk_info['permission'][$id])) {
+			return $clerk_info['permission'][$id];
+		}
+	}
+	message(error(-1, '您没有进行此操作的权限！'), '', 'ajax');
 }
 //检查登录
 function check_user_source (){
