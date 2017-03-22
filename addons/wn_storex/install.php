@@ -82,6 +82,7 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`islogin` tinyint(3) NOT NULL DEFAULT '0',
 	`isauto` tinyint(1) NOT NULL DEFAULT '0' COMMENT '自动添加，0否，1是',
 	`nickname` varchar(255) NOT NULL DEFAULT '',
+	`permission` text NOT NULL COMMENT '店员权限',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;

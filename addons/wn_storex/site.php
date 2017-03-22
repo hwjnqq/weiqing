@@ -2352,14 +2352,18 @@ class Wn_storexModuleSite extends WeModuleSite {
 				if (empty($item)) {
 					message('抱歉，用户不存在或是已经删除！', '', 'error');
 				}
+				if (!empty($item['permission'])) {
+					$item['permission'] = iunserializer($item['permission']);
+				}
 			}
 			if (!empty($item['from_user'])) {
 				load()->model('mc');
 				$uid = mc_openid2uid($item['from_user']);
 				$address_info = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => $_W['uniacid']), '', '', 'isdefault DESC');
 			}
+			$stores = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid'])), array('id', 'title', 'store_type'), 'id');
 			if (checksubmit('submit')) {
-				$data = array(
+  				$data = array(
 					'weid' => $_W['uniacid'],
 					'username' => $_GPC['username'],
 					'realname' => $_GPC['realname'],

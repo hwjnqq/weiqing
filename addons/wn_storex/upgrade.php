@@ -17,4 +17,7 @@ if (!pdo_fieldexists('storex_order', 'express_name')) {
 if (!pdo_fieldexists('storex_bases', 'distance')) {
 	pdo_query('ALTER TABLE ' . tablename('storex_bases') . " ADD `distance` int(11) NOT NULL COMMENT '配送距离';");
 }
+if (!pdo_fieldexists('storex_member', 'permission')) {
+	pdo_query('ALTER TABLE ' . tablename('storex_member') . " ADD `permission` text NOT NULL COMMENT '店员权限';");
+}
 ?>

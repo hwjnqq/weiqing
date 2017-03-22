@@ -43,10 +43,10 @@
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">运营时间</label>
 					<div class="col-sm-4 col-xs-6">
-						{php echo tpl_form_field_date('timestart', !empty($item['timestart']) ? date('Y-m-d H:i',$item['timestart']) : date('Y-m-d H:i'), 1)}
+						{php echo tpl_form_field_clock('timestart',!empty($item['timestart']) ? date('H:i',$item['timestart']) : date('H:i'), 1)}
 					</div>
 					<div class="col-sm-4 col-xs-6">
-						{php echo tpl_form_field_date('timeend', !empty($item['timeend']) ? date('Y-m-d H:i',$item['timeend']) : date('Y-m-d H:i'), 1)}
+						{php echo tpl_form_field_clock('timeend',!empty($item['timeend']) ? date('H:i',$item['timeend']) : date('H:i'), 1)}
 					</div>
 				</div>
 				<div class="form-group">

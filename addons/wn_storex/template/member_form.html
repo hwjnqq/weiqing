@@ -51,9 +51,9 @@
 						<input type="password" name="password2" id="password2" value="" class="form-control">
 					</div>
 				</div>
+				{if !empty($address_info)}
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">收货地址</label>
-					{if !empty($address_info)}
 					<div class="col-sm-9 col-xs-12">
 						<table class="table table-hover">
 							<thead class="navbar-inner">
@@ -76,8 +76,8 @@
 							</tbody>
 						</table>
 					</div>
-					{/if}
 				</div>
+				{/if}
 				{if !empty($item)}
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">订房积分</label>
@@ -126,21 +126,51 @@
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">身份</label>
 					<div class="col-sm-9 col-xs-12">
 						<label class="radio-inline">
-							<input type="radio" name="clerk" value="1" {if $item['clerk'] == 1}checked{/if} onclick="$('#nickname').show()"/>店员
+							<input type="radio" name="clerk" value="1" {if $item['clerk'] == 1}checked{/if} onclick="$('#clerk_permission').show()"/>店员
 						</label>
 						<label class="radio-inline">
-							<input type="radio" name="clerk" value="0" {if $item['clerk'] == 0}checked{/if} onclick="$('#nickname').hide()"/>普通用户
+							<input type="radio" name="clerk" value="0" {if $item['clerk'] == 0}checked{/if} onclick="$('#clerk_permission').hide()"/>普通用户
 						</label>
 						<span class='help-block'>店员身份可以在手机端管理订单</span>
 					</div>
 				</div>
-				<div class="form-group" {if $item['clerk'] != 1}style="display: none"{/if} id="nickname">
-					<label class="col-xs-12 col-sm-3 col-md-2 control-label">微信昵称</label>
-					<div class="col-sm-9 col-xs-12">
-						<input type="text" name="nickname"  value="{$item['nickname']}" class="form-control">
-						<span class='help-block'>请填写微信昵称，以便关联微信号</span>
+				<span {if $item['clerk'] != 1}style="display: none"{/if} id="clerk_permission">
+					<div class="form-group"  id="nickname">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">微信昵称</label>
+						<div class="col-sm-9 col-xs-12">
+							<input type="text" name="nickname"  value="{$item['nickname']}" class="form-control">
+							<span class='help-block'>请填写微信昵称，以便关联微信号</span>
+						</div>
 					</div>
-				</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺管理权限</label>
+						<div class="col-md-10" id="permission" style="padding-left: 0px;">
+							{if !empty($item['permission'])}
+							{loop $item['permission'] $id $store_info}
+								{if !empty($stores[$id])}
+									<div class="col-sm-9 col-xs-12">
+										<span class="input-group-addon">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">{$stores[$id]['title']}</label>
+											<input type="checkbox" name="order[{$id}]" value="order" {if !empty($store_info['permission']['order'])}checked{/if}>订单管理
+											{if $stores[$id]['store_type'] == 1}
+												<input type="checkbox" name="room[{$id}]" value="room" {if !empty($store_info['permission']['room'])}checked{/if}>房型管理
+											{/if}
+				  						</span>
+									</div>
+								{/if}
+							{/loop}
+							{/if}
+						</div>
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+						<div class="col-md-10">
+							<span class='help-block'>设置店员可以在手机端管理哪些店铺订单</span>
+						</div>
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+						<div class="col-md-10" style="padding-left: 0px;">
+							<h4><a href="javascript:;" data-toggle="modal" data-target="#store-modal" class='btn btn-primary' id='' onclick="" style="margin-top:10px;margin-bottom:10px;"title="添加权限"><i class='fa fa-plus'></i> 添加权限</a> 
+						</div>
+					</div>
+				</span>
 			</div>
 		</div>
 		<div class="form-group col-sm-12">
@@ -149,44 +179,100 @@
 		</div>
 	</form>
 </div>
-	<script type="text/javascript">
-		//kindeditor($('.richtext-clone'));
-		function formcheck() {
-			var isauto = $('input[name="isauto"]:checked').val();
-			if (isauto == 0) {
-				if ($("#realname").isEmpty()) {
-					Tip.select("realname", "请填写姓名!", "right");
-					return false;
-				}
-				if ($("#username").isEmpty()) {
-					Tip.select("username", "请填写用户名!", "right");
-					return false;
-				}
-				if (!$("#mobile").isMobile()) {
-					Tip.select("mobile", "请填写正确的手机!", "right");
-					return false;
-				}
-			}
-			var check_pass = 1;
-			{if !empty($id)}
-				if ($("#password").isEmpty() && $("#password2").isEmpty()) {
-					check_pass = 0;
-				}
+<div class="modal fade" id="store-modal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel">选择你要添加的店铺权限</h4>
+			</div>
+			<div class="modal-body clearfix form-horizontal">
+				{if !empty($stores)}
+				{loop $stores $store}
+				{if $store['store_type'] == 1}
+				<div class="form-group marbot0">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="type" value="{$store['id']}"/>
+							{$store['title']}
+						</label>
+						<div class="help-block">酒店</div>
+					</div>
+				</div>
+				{else}
+				<div class="form-group marbot0">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="type" value="{$store['id']}"/>
+							{$store['title']}
+						</label>
+						<div class="help-block">普通店铺</div>
+					</div>
+				</div>
 				{/if}
-					if (check_pass) {
-						if ($("#password").isEmpty()) {
-							Tip.select("password", "请填写{if !empty($id)}新{/if}密码!", "right");
-							return false;
-						}
-						if ($("#password2").isEmpty()) {
-							Tip.select("password2", "请填写确认{if !empty($id)}新{/if}密码!", "right");
-							return false;
-						}
-						if ($.trim($("#password").val()) != $.trim($("#password2").val())  ) {
-							Tip.select("password2", "两次密码不一致，请确认!", "right");
-							return false;
-						}
+				{/loop}
+				{/if}
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				<button type="button" class="btn btn-primary" data-dismiss="modal" id="addPermission" onclick="addPermission($('#store-modal input[type=radio]:checked').val())">确定</button>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	var stores = '<?php echo json_encode($stores);?>';
+	function addPermission(storeid){
+		var data = '{if !empty(' + stores.storeid +')}';
+		var title = stores.storeid["title"];
+		data += '<div class="col-sm-9 col-xs-12">';
+		data += '<span class="input-group-addon">';
+		data += '<label class="col-xs-12 col-sm-3 col-md-2 control-label">{' + title + '}</label>';
+		data += '<input type="checkbox" name="order[{' + storeid + '}]" value="order" {if !empty($store_info["permission"]["order"])}checked{/if}>订单管理';
+		data += '{if $stores[' + storeid + ']["store_type"] == 1}';
+		data += '<input type="checkbox" name="room[{' + storeid + '}]" value="room" {if !empty($store_info["permission"]["room"])}checked{/if}>房型管理';
+		data += '{/if}</span></div>{/if}';
+		$('#permission').append(data);
+	}
+	//kindeditor($('.richtext-clone'));
+	function formcheck() {
+		var isauto = $('input[name="isauto"]:checked').val();
+		if (isauto == 0) {
+			if ($("#realname").isEmpty()) {
+				Tip.select("realname", "请填写姓名!", "right");
+				return false;
+			}
+			if ($("#username").isEmpty()) {
+				Tip.select("username", "请填写用户名!", "right");
+				return false;
+			}
+			if (!$("#mobile").isMobile()) {
+				Tip.select("mobile", "请填写正确的手机!", "right");
+				return false;
+			}
+		}
+		var check_pass = 1;
+		{if !empty($id)}
+			if ($("#password").isEmpty() && $("#password2").isEmpty()) {
+				check_pass = 0;
+			}
+			{/if}
+				if (check_pass) {
+					if ($("#password").isEmpty()) {
+						Tip.select("password", "请填写{if !empty($id)}新{/if}密码!", "right");
+						return false;
 					}
-					return true;
+					if ($("#password2").isEmpty()) {
+						Tip.select("password2", "请填写确认{if !empty($id)}新{/if}密码!", "right");
+						return false;
+					}
+					if ($.trim($("#password").val()) != $.trim($("#password2").val())  ) {
+						Tip.select("password2", "两次密码不一致，请确认!", "right");
+						return false;
+					}
 				}
-	</script>
+				return true;
+			}
+</script>
