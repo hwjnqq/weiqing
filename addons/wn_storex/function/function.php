@@ -438,6 +438,21 @@ function get_clerk_permission ($id) {
 	}
 	message(error(-1, '您没有进行此操作的权限！'), '', 'ajax');
 }
+function check_clerk_permission($clerk_info, $premit){
+	$is_permission = false;
+	echo "<pre>";
+	print_r($premit);
+	echo "</pre>";
+	foreach ($clerk_info as $permission) {
+		if ($permission == $premit) {
+			$is_permission = true;
+			break;
+		}
+	}
+	if (empty($is_permission)) {
+		message(error(-1, '您没有进行此操作的权限！'), '', 'ajax');
+	}
+}
 //检查登录
 function check_user_source (){
 	global $_W, $_GPC;
