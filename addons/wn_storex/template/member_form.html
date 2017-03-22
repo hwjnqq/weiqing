@@ -122,43 +122,6 @@
 						<span class='help-block'>禁用以后用户无法登录</span>
 					</div>
 				</div>
-				<div class="form-group">
-					<label class="col-xs-12 col-sm-3 col-md-2 control-label">身份</label>
-					<div class="col-sm-9 col-xs-12">
-						<label class="radio-inline">
-							<input type="radio" name="clerk" value="1" {if $item['clerk'] == 1}checked{/if} onclick="$('#clerk_permission').show()"/>店员
-						</label>
-						<label class="radio-inline">
-							<input type="radio" name="clerk" value="0" {if $item['clerk'] == 0}checked{/if} onclick="$('#clerk_permission').hide()"/>普通用户
-						</label>
-						<span class='help-block'>店员身份可以在手机端管理订单</span>
-					</div>
-				</div>
-				<span {if $item['clerk'] != 1}style="display: none"{/if} id="clerk_permission">
-					<div class="form-group"  id="nickname">
-						<label class="col-xs-12 col-sm-3 col-md-2 control-label">微信昵称</label>
-						<div class="col-sm-9 col-xs-12">
-							<input type="text" name="nickname"  value="{$item['nickname']}" class="form-control">
-							<span class='help-block'>请填写微信昵称，以便关联微信号</span>
-						</div>
-					</div>
-					<div class="form-group">
-						<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺管理权限</label>
-						<div class="col-md-10" id="permission1" style="padding-left: 0px;">
-							<div id="permission">
-
-							</div>
-						</div>
-						<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
-						<div class="col-md-10">
-							<span class='help-block'>设置店员可以在手机端管理哪些店铺订单</span>
-						</div>
-						<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
-						<div class="col-md-10" style="padding-left: 0px;">
-							<h4><a href="javascript:;" class='btn btn-primary js-permission-modal' style="margin-top:10px;margin-bottom:10px;"title="添加权限"><i class='fa fa-plus'></i> 添加权限</a> 
-						</div>
-					</div>
-				</span>
 			</div>
 		</div>
 		<div class="form-group col-sm-12">
@@ -185,59 +148,6 @@
 	</div>
 </div>
 <script type="text/javascript">
-	var stores = '<?php echo json_encode($stores);?>';
-	stores = $.parseJSON(stores);
-	selected_stores = [];
-	$('.js-permission-modal').click(function() {
-		html = '';
-		for (var i in stores) {
-			if (stores[i].store_type == 1) {
-				store_description = '酒店';
-			} else {
-				store_description = '普通店铺';
-			}
-			html += '<div class="form-group marbot0">'+
-						'<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>'+
-							'<div class="col-sm-9 col-xs-12">'+
-								'<label class="radio-inline">'+
-									'<input type="radio" name="type" value="' + i + '"/>'
-									+ stores[i].title +
-								'</label>'+
-							'<div class="help-block">' + store_description + '</div>'+
-							'</div>'+
-					'</div>';
-		}
-		$('.modal-body').html(html);
-		$('#store-modal').modal('show');
-	});
-	$('#addPermission').click(function() {
-		var storeid = $('#store-modal input[type=radio]:checked').val();
-		data = '';
-		var title = stores[storeid].title;
-		data = '<div class="select col-sm-3 js-html-delete-' + storeid + '">'+
-					'<div class="app-info">'+
-						'<img width="50px" src="'+stores[storeid].thumb+'" />'+
-						'<p>'+title+'</p>'+
-					'</div>'+
-				'</div>'+
-				'<div style="height:80px" class="col-sm-9 js-html-delete-' + storeid + '">'+
-					'<input type="checkbox" name="permission[' + storeid + '][]" value="wn_storex_permission_order">订单管理'+
-					'<input type="checkbox" name="permission[' + storeid + '][]" value="wn_storex_permission_room">房型管理'+
-					'<div class="cover-dark">'+
-						'<a href="javascript:;" class="cover-delect js-permission-delete" data-id="' + storeid + '"><i class="fa fa-minus-circle"></i>删除</a>'+
-					'</div>'
-				'</div>';
-		selected_stores[storeid] = stores[storeid];
-		delete stores[storeid];
-		$('#permission').append(data);
-	});
-	//删除模态框内标签
-	$(document).on('click', '.js-permission-delete', function() {
-		id = $(this).data('id');
-		stores[id] = selected_stores[id];
-		delete selected_stores[id];
-		$('.js-html-delete-' + id).remove();
-	});
 	kindeditor($('.richtext-clone'));
 	function formcheck() {
 		var isauto = $('input[name="isauto"]:checked').val();
@@ -260,21 +170,21 @@
 			if ($("#password").isEmpty() && $("#password2").isEmpty()) {
 				check_pass = 0;
 			}
-			{/if}
-				if (check_pass) {
-					if ($("#password").isEmpty()) {
-						Tip.select("password", "请填写{if !empty($id)}新{/if}密码!", "right");
-						return false;
-					}
-					if ($("#password2").isEmpty()) {
-						Tip.select("password2", "请填写确认{if !empty($id)}新{/if}密码!", "right");
-						return false;
-					}
-					if ($.trim($("#password").val()) != $.trim($("#password2").val())  ) {
-						Tip.select("password2", "两次密码不一致，请确认!", "right");
-						return false;
-					}
-				}
-				return true;
+		{/if}
+		if (check_pass) {
+			if ($("#password").isEmpty()) {
+				Tip.select("password", "请填写{if !empty($id)}新{/if}密码!", "right");
+				return false;
 			}
+			if ($("#password2").isEmpty()) {
+				Tip.select("password2", "请填写确认{if !empty($id)}新{/if}密码!", "right");
+				return false;
+			}
+			if ($.trim($("#password").val()) != $.trim($("#password2").val())  ) {
+				Tip.select("password2", "两次密码不一致，请确认!", "right");
+				return false;
+			}
+		}
+		return true;
+		}
 </script>

@@ -64,6 +64,7 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`grade` int(11) DEFAULT NULL,
 	PRIMARY KEY (`id`)
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+		
 	CREATE TABLE IF NOT EXISTS `ims_storex_member` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`weid` int(11) DEFAULT '0',
@@ -82,7 +83,6 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`islogin` tinyint(3) NOT NULL DEFAULT '0',
 	`isauto` tinyint(1) NOT NULL DEFAULT '0' COMMENT '自动添加，0否，1是',
 	`nickname` varchar(255) NOT NULL DEFAULT '',
-	`permission` text NOT NULL COMMENT '店员权限',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
@@ -321,6 +321,26 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_clerk` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`weid` int(11) DEFAULT '0',
+	`userid` varchar(50) DEFAULT '',
+	`from_user` varchar(50) DEFAULT '',
+	`realname` varchar(255) DEFAULT '',
+	`mobile` varchar(255) DEFAULT '',
+	`score` int(11) DEFAULT '0' COMMENT '积分',
+	`createtime` int(11) DEFAULT '0',
+	`userbind` int(11) DEFAULT '0',
+	`status` int(11) DEFAULT '0',
+	`username` varchar(30) DEFAULT '' COMMENT '用户名',
+	`password` varchar(200) DEFAULT '' COMMENT '密码',
+	`salt` varchar(8) NOT NULL DEFAULT '' COMMENT '加密盐',
+	`nickname` varchar(255) NOT NULL DEFAULT '',
+	`permission` text NOT NULL COMMENT '店员权限',
+	PRIMARY KEY (`id`),
+	KEY `indx_weid` (`weid`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 ";
 
 pdo_run($sql);

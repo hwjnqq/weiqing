@@ -2348,27 +2348,12 @@ class Wn_storexModuleSite extends WeModuleSite {
 		if ($op == 'edit') {
 			$id = intval($_GPC['id']);
 			if (!empty($id)) {
-				$item = pdo_fetch("SELECT * FROM " . tablename('storex_member') . " WHERE id = :id", array(':id' => $id));
+				$item = pdo_get('storex_member', array('id' => $id, 'weid' => $_W['uniacid']));
 				if (empty($item)) {
 					message('抱歉，用户不存在或是已经删除！', '', 'error');
 				}
-				if (!empty($item['permission'])) {
-					$item['permission'] = iunserializer($item['permission']);
-				}
-			}
-			if (!empty($item['from_user'])) {
-				load()->model('mc');
-				$uid = mc_openid2uid($item['from_user']);
-				$address_info = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => $_W['uniacid']), '', '', 'isdefault DESC');
-			}
-			$stores = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid'])), array('id', 'title', 'store_type', 'thumb'), 'id');
-			foreach ($stores as &$value) {
-				$value['thumb'] = tomedia($value['thumb']);
 			}
 			if (checksubmit('submit')) {
-				echo "<pre>";
-				print_r($_GPC);
-				echo "</pre>";exit;
   				$data = array(
 					'weid' => $_W['uniacid'],
 					'username' => $_GPC['username'],
@@ -2455,6 +2440,37 @@ class Wn_storexModuleSite extends WeModuleSite {
 			} else {
 				message('状态设置成功！', referer(), 'success');
 			}
+		} else if ($op == 'clerk') {
+			$id = intval($_GPC['id']);
+			if (empty($id)) {
+				message('抱歉，传递的参数错误！', '', 'error');
+			}
+			$member = pdo_get('storex_member', array('id' => $id, 'weid' => intval($_W['uniacid'])));
+			$clerk = pdo_get('storex_clerk', array('weid' => intval($_W['uniacid']), 'from_user' => $member['from_user']));
+			if ($member['clerk'] == 1 && !empty($clerk)) {
+				message('已经是店员了，不要重复操作', '', 'error');
+			}
+			if ($member['clerk'] != 1) {
+				$temp = pdo_update('storex_member', array('clerk' => 1), array('id' => $id, 'weid' => intval($_W['uniacid'])));
+				if ($temp == false) {
+					message('抱歉，操作数据失败！', '', 'error');
+				}
+			}
+			$fields = array('weid', 'userid', 'from_user', 'realname', 'mobile', 'score', 
+					'createtime', 'userbind', 'status', 'username', 'password', 'salt', 'nickname', 'permission');
+			$insert = array();
+			foreach ($fields as $val) {
+				if (!empty($member[$val])) {
+					$insert[$val] = $member[$val];
+				} else {
+					$insert[$val] = '';
+				}
+				if ($val == 'createtime') {
+					$insert['createtime'] = time();
+				}
+			}
+			pdo_insert('storex_clerk', $insert);
+			message('状态设置成功！', referer(), 'success');
 		} else {
 			$sql = "";
 			$params = array();
@@ -2466,8 +2482,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 				$sql .= ' AND `mobile` LIKE :mobile';
 				$params[':mobile'] = "%{$_GPC['mobile']}%";
 			}
-				$sql .= " AND clerk <> '1'";
-
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 20;
 			$list = pdo_fetchall("SELECT * FROM " . tablename('storex_member') . " WHERE weid = '{$_W['uniacid']}' $sql ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
@@ -2723,79 +2737,78 @@ class Wn_storexModuleSite extends WeModuleSite {
 	public  function doWebClerk() {
 		global $_GPC, $_W;
 		$op = $_GPC['op'];
-		$weid = $this->_weid;
-		pdo_delete('storex_member', array('weid' => $_W['uniacid'], 'from_user' => ''));
+		pdo_delete('storex_clerk', array('weid' => $_W['uniacid'], 'from_user' => ''));
 		if ($op == 'edit') {
 			$id = intval($_GPC['id']);
 			if (!empty($id)) {
-				$item = pdo_fetch("SELECT * FROM " . tablename('storex_member') . " WHERE id = :id", array(':id' => $id));
+				$item = pdo_get('storex_clerk', array('id' => $id, 'weid' => $_W['uniacid']));
 				if (empty($item)) {
 					message('抱歉，用户不存在或是已经删除！', '', 'error');
 				}
+				if (!empty($item['permission'])) {
+					$item['permission'] = iunserializer($item['permission']);
+				}
+			}
+			if (!empty($item['from_user'])) {
+				load()->model('mc');
+				$uid = mc_openid2uid($item['from_user']);
+				$address_info = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => $_W['uniacid']), '', '', 'isdefault DESC');
+			}
+			$stores = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid'])), array('id', 'title', 'store_type', 'thumb'), 'id');
+			foreach ($stores as &$value) {
+				$value['thumb'] = tomedia($value['thumb']);
 			}
 			if (checksubmit('submit')) {
 				$data = array(
-					'weid' => $_W['uniacid'],
-					'username' => $_GPC['username'],
-					'realname' => $_GPC['realname'],
+					'weid' => intval($_W['uniacid']),
+					'username' => trim($_GPC['username']),
+					'realname' => trim($_GPC['realname']),
 					'mobile' => $_GPC['mobile'],
-					'score' => $_GPC['score'],
-					'userbind' => $_GPC['userbind'],
-					'isauto' => $_GPC['isauto'],
-					'status' => $_GPC['status'],
-					'clerk' => $_GPC['clerk'],
-					'nickname' => trim($_GPC['nickname'])
+					'status' => intval($_GPC['status']),
+					'nickname' => trim($_GPC['nickname']),
+					'permission' => iserializer($_GPC['permission']),
 				);
-				if (!empty($data['clerk'])) {
-					if (empty($id)) {
-						if (empty($data['nickname'])) {
-							message('请填写店员的微信昵称，否则无法获取到店员', '', 'info');
-						}
-					} else {
-						$from_user = pdo_get('storex_member', array('id' => $id, 'weid' => $_W['uniacid']));
-						if (empty($from_user['from_user']) && empty($data['nickname'])) {
-							message('请填写店员的微信昵称，否则无法获取到店员', '', 'info');
-						}
+				if (empty($id)) {
+					if (empty($data['nickname'])) {
+						message('请填写店员的微信昵称，否则无法获取到店员信息', '', 'info');
 					}
-					$from_user = pdo_get('mc_mapping_fans', array('nickname' => $data['nickname'], 'uniacid' => $_W['uniacid']));
-					$data['from_user'] = $from_user['openid'];
-					if (empty($data['from_user'])) {
-						message('关注公众号后才能成为店员', referer(), 'info');
+				} else {
+					$from_user = pdo_get('storex_clerk', array('id' => $id, 'weid' => $_W['uniacid']));
+					if (empty($from_user['from_user']) && empty($data['nickname'])) {
+						message('请填写店员的微信昵称，否则无法获取到店员', '', 'info');
 					}
 				}
-				if (!empty($_GPC['password'])) {
-					$data['salt'] = random(8);
-					$data['password'] = hotel_member_hash($_GPC['password'], $data['salt']);
-					//$data['password'] = md5($_GPC['password']);
+				$from_user = pdo_get('mc_mapping_fans', array('nickname' => $data['nickname'], 'uniacid' => $_W['uniacid']));
+				$data['from_user'] = $from_user['openid'];
+				if (empty($data['from_user'])) {
+					message('关注公众号后才能成为店员', referer(), 'info');
 				}
 				if (empty($id)) {
-					$c = pdo_fetchcolumn("select count(*) from " . tablename('storex_member') . " where username=:username ", array(":username" => $data['username']));
+					$c = pdo_fetchcolumn("select count(*) from " . tablename('storex_clerk') . " where username=:username ", array(":username" => $data['username']));
 					if ($c > 0) {
 						message("用户名 " . $data['username'] . " 已经存在!", "", "error");
 					}
 					$data['createtime'] = time();
-					$result = pdo_get('storex_member', array('from_user' => $data['from_user'], 'weid' => $_W['uniacid']));
+					$result = pdo_get('storex_clerk', array('from_user' => $data['from_user'], 'weid' => $_W['uniacid']));
 					if ($result['from_user']) {
-						pdo_update('storex_member', $data, array('id' => $result['id']));
+						pdo_update('storex_clerk', $data, array('id' => $result['id']));
 					} else {
-						pdo_insert('storex_member', $data);
+						pdo_insert('storex_clerk', $data);
 					}
 				} else {
-					pdo_update('storex_member', $data, array('id' => $id));
+					pdo_update('storex_clerk', $data, array('id' => $id, 'weid' => intval($_W['uniacid'])));
 				}
-				message('用户信息更新成功！', $this->createWebUrl('clerk',array('clerk' => $data['clerk'])), 'success');
+				message('用户信息更新成功！', $this->createWebUrl('clerk'), 'success');
 			}
 			include $this->template('clerk_form');
 		} else if ($op == 'delete') {
 			$id = intval($_GPC['id']);
-			pdo_delete('storex_member', array('id' => $id));
-			pdo_delete('storex_order', array('memberid' => $id));
+			pdo_delete('storex_clerk', array('id' => $id));
 			message('删除成功！', referer(), 'success');
 		} else if ($op == 'deleteall') {
 			foreach ($_GPC['idArr'] as $k => $id) {
 				$id = intval($id);
-				pdo_delete('storex_member', array('id' => $id));
-				pdo_delete('storex_order', array('memberid' => $id));
+				pdo_delete('storex_clerk', array('id' => $id));
 			}
 			$this->web_message('规则操作成功！', '', 0);
 			exit();
@@ -2808,7 +2821,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			foreach ($_GPC['idArr'] as $k => $id) {
 				$id = intval($id);
 				if (!empty($id)) {
-					pdo_update('storex_member', array('status' => $show_status), array('id' => $id));
+					pdo_update('storex_clerk', array('status' => $show_status), array('id' => $id));
 				}
 			}
 			$this->web_message('操作成功！', '', 0);
@@ -2818,18 +2831,17 @@ class Wn_storexModuleSite extends WeModuleSite {
 			if (empty($id)) {
 				message('抱歉，传递的参数错误！', '', 'error');
 			}
-			$temp = pdo_update('storex_member', array('status' => $_GPC['status']), array('id' => $id));
+			$temp = pdo_update('storex_clerk', array('status' => $_GPC['status']), array('id' => $id));
 
 			if ($temp == false) {
 				message('抱歉，刚才操作数据失败！', '', 'error');
 			} else {
 				message('状态设置成功！', referer(), 'success');
 			}
-		}
-		else if ($op == 'clerkcommentlist') {
+		} else if ($op == 'clerkcommentlist') {
 			$id = intval($_GPC['id']);
 			$where = ' WHERE `uniacid` = :uniacid';
-			$params = array(':uniacid' => $weid);
+			$params = array(':uniacid' => intval($_W['uniacid']));
 			$sql = 'SELECT COUNT(*) FROM ' . tablename('storex_comment_clerk') . $where;
 			$total = pdo_fetchcolumn($sql, $params);
 			if ($total > 0) {
@@ -2841,8 +2853,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				$pager = pagination($total, $pindex, $psize);
 			}
 			include $this->template('clerk_comment');
-		}
-		else {
+		} else {
 			$sql = "";
 			$params = array();
 			if (!empty($_GPC['realname'])) {
@@ -2853,11 +2864,10 @@ class Wn_storexModuleSite extends WeModuleSite {
 				$sql .= ' AND `mobile` LIKE :mobile';
 				$params[':mobile'] = "%{$_GPC['mobile']}%";
 			}
-			$sql .= " AND clerk = '1'";
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 20;
-			$list = pdo_fetchall("SELECT * FROM " . tablename('storex_member') . " WHERE weid = '{$_W['uniacid']}'  $sql ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
-			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_member') . " WHERE `weid` = '{$_W['uniacid']}' $sql", $params);
+			$list = pdo_fetchall("SELECT * FROM " . tablename('storex_clerk') . " WHERE weid = '{$_W['uniacid']}'  $sql ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_clerk') . " WHERE `weid` = '{$_W['uniacid']}' $sql", $params);
 			$pager = pagination($total, $pindex, $psize);
 			include $this->template('clerk');
 		}

@@ -97,6 +97,7 @@
 					{/if}
 				</td>
 				<td>
+					<a class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom" onclick="drop_confirm('您确定要将此用户设置为店员么?', '{php echo $this->createWebUrl('member',array('op'=>'clerk', 'id'=>$item['id']))}');" href="#" title="设置为店员">设置为店员</a>
 					<a class="btn btn-default " data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('member',array('op'=>'edit','id'=>$item['id']))}" title="编辑"><i class="fa fa-edit"></i></a>
 					{if $item['status']==0}
 					<a class="btn btn-default" title="显示" href="#" onclick="drop_confirm('您确定要启用此用户吗?', '{php echo $this->createWebUrl('member',array('op'=>'status','status'=>1, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
