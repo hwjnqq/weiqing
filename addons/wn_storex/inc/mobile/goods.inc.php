@@ -297,6 +297,7 @@ if ($op == 'order'){
 			}else{
 				$this_price = $goods_info['cprice'];
 			}
+			$totalprice = $this_price;
 			$insert = array_merge($order_info, $insert);
 		}
 		$insert['cprice'] = $this_price;
