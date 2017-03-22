@@ -164,6 +164,7 @@ if ($op == 'order'){
 			'cprice' => $room['cprice'],
 			'mprice' => $room['mprice']
 		);
+		$member_p = iunserializer($room['mprice']);
 		if ($room['is_house'] == 1) {
 			$order_info['btime'] = strtotime($_GPC['order']['btime']);
 			$order_info['etime'] = strtotime($_GPC['order']['etime']);
@@ -243,7 +244,6 @@ if ($op == 'order'){
 			' `roomdate` < :etime  order by roomdate desc';
 			$params = array(':roomid' => $goodsid, ':weid' => intval($_W['uniacid']), ':hotelid' => $store_id, ':btime' => $btime, ':etime' => $etime);
 			$price_list = pdo_fetchall($r_sql, $params);
-			$member_p = iunserializer($room['mprice']);
 			if (!empty($price_list)) {
 				//价格表中存在
 				foreach($price_list as $k => $v) {
