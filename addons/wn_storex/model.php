@@ -263,3 +263,65 @@ if(!function_exists('get_page_array')) {
 		return $pdata;
 	}
 }
+
+function tpl_form_field_district_wn_storex($name, $values = array()) {
+	$html = '';
+	if (!defined('TPL_INIT_DISTRICT')) {
+		$html .= '
+		<script type="text/javascript">
+			require(["jquery", "district"], function($, dis){
+				$(".tpl-district-container").each(function(){
+					var elms = {};
+					elms.province = $(this).find(".tpl-province")[0];
+					elms.city = $(this).find(".tpl-city")[0];
+					elms.district = $(this).find(".tpl-district")[0];
+					var vals = {};
+					vals.province = $(elms.province).attr("data-value");
+					vals.city = $(elms.city).attr("data-value");
+					vals.district = $(elms.district).attr("data-value");
+					dis.render(elms, vals, {withTitle: true});
+				});
+			});
+		</script>';
+		define('TPL_INIT_DISTRICT', true);
+	}
+	if (empty($values) || !is_array($values)) {
+		$values = array('province'=>'','city'=>'','district'=>'');
+	}
+	if(empty($values['province'])) {
+		$values['province'] = '';
+	}
+	if(empty($values['city'])) {
+		$values['city'] = '';
+	}
+	if(empty($values['district'])) {
+		$values['district'] = '';
+	}
+	$html .= '
+		<div class="row row-fix tpl-district-container">
+			<div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+				<select name="' . $name . '[province]" data-value="' . $values['province'] . '" class="form-control tpl-province">
+				</select>
+			</div>
+			<div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+				<select name="' . $name . '[city]" cid="' . $value['cid'] . '" data-value="' . $values['city'] . '" class="form-control tpl-city">
+				</select>
+			</div>
+			<div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+				<select name="' . $name . '[district]" data-value="' . $values['district'] . '" class="form-control tpl-district">
+				</select>
+			</div>
+			<input type="hidden" name="' . $name . '[city_code]" class="js-city-code">
+		</div>';
+
+	$html .= '
+	<script type="text/javascript">
+	$(function() {
+		$(".tpl-city").change(function() {
+			cid = $(this).children("option:selected").attr("cid");
+			$(".js-city-code").val(cid);
+		});
+	})
+	</script>';
+	return $html;
+}
