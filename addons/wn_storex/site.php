@@ -1797,16 +1797,15 @@ class Wn_storexModuleSite extends WeModuleSite {
 		checklogin();
 		$store_type = isset($_GPC['store_type']) ? $_GPC['store_type'] : 0;
 		$hotelid = intval($_GPC['hotelid']);
-		$hotel = pdo_fetch("select id,title,phone from " . tablename('storex_bases') . " where id=:id limit 1", array(":id" => $hotelid));
+		$hotel = pdo_get('storex_bases', array('id' => $hotelid), array('id', 'title', 'phone'));
 		$roomid = intval($_GPC['roomid']);
 		$table = $this->gettablebytype($store_type);
-		$room = pdo_fetch("select id,title,sold_num from " . tablename($table) . " where id=:id limit 1", array(":id" => $roomid));
+		$room = pdo_get($table, array('id' => $roomid), array('id', 'title', 'sold_num'));
 		$op = $_GPC['op'];
 		if ($op == 'edit') {
 			$id = $_GPC['id'];
 			if (!empty($id)) {
-				$item = pdo_fetch("SELECT * FROM " . tablename('storex_order') . " WHERE id = :id", array(':id' => $id));
-
+				$item = pdo_get('storex_order', array('id' => $id));
 				$paylog = pdo_get('core_paylog', array('uniacid' => $item['weid'], 'tid' => $item['id'], 'module' => 'ewei_hotel'), array('uniacid', 'uniontid', 'tid'));
 				if (!empty($paylog)){
 					$item['uniontid'] = $paylog['uniontid'];
@@ -2052,12 +2051,11 @@ class Wn_storexModuleSite extends WeModuleSite {
 					}
 				}
 			}
-			$member_info = pdo_fetch("SELECT from_user,isauto FROM " . tablename('storex_member') . " WHERE id = :id LIMIT 1", array(':id' => $item['memberid']));
+			$member_info = pdo_get('storex_member', array('id' => $item['memberid']), array('from_user', 'isauto'));
 			include $this->template('order_form');
 		} elseif ($op == 'delete') {
 			$id = intval($_GPC['id']);
-			$item = pdo_fetch("SELECT id FROM " . tablename('storex_order') . " WHERE id = :id LIMIT 1", array(':id' => $id));
-
+			$item = pdo_get('storex_order', array('id' => $id), array('id'));
 			if (empty($item)) {
 				message('抱歉，订单不存在或是已经删除！', '', 'error');
 			}
@@ -2440,9 +2438,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			}
 			message("保存设置成功!", referer(), "success");
 		}
-
-		$sql = 'SELECT * FROM ' . tablename('storex_set') . ' WHERE `weid` = :weid';
-		$set = pdo_fetch($sql, array(':weid' => $_W['uniacid']));
+		$set = pdo_get('storex_set', array('weid' => $_W['uniacid']));
 		if (empty($set)) {
 			$set = array('user' => 1, 'reg' => 1, 'bind' => 1);
 		}
@@ -2455,7 +2451,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 		if ($op == 'edit') {
 			$id = intval($_GPC['id']);
 			if (!empty($id)) {
-				$item = pdo_fetch("SELECT * FROM " . tablename('storex_brand') . " WHERE id = :id", array(':id' => $id));
+				$item = pdo_get('storex_brand', array('id' => $id));
 				if (empty($item)) {
 					message('抱歉，品牌不存在或是已经删除！', '', 'error');
 				}
@@ -2553,7 +2549,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 		if ($op == 'edit') {
 			$id = intval($_GPC['id']);
 			if (!empty($id)) {
-				$item = pdo_fetch("SELECT * FROM " . tablename('storex_business') . " WHERE id = :id", array(':id' => $id));
+				$item = pdo_get('storex_business', array('id' => $id));
 				if (empty($item)) {
 					message('抱歉，商圈不存在或是已经删除！', '', 'error');
 				}

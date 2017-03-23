@@ -197,8 +197,7 @@ if(!function_exists('hotel_member_single')) {
 if(!function_exists('get_hotel_set')) {
 	function get_hotel_set() {
 		global $_GPC, $_W;
-		$weid = $_W['uniacid'];
-		$set = pdo_fetch("select * from " . tablename('storex_set') . " where weid=:weid limit 1", array(":weid" => $weid));
+		$set = pdo_get('storex_set', array('weid' => intval($_W['uniacid'])));
 		if (!$set) {
 			$set = array(
 				"user" => 1,
