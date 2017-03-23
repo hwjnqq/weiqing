@@ -2731,6 +2731,16 @@ class Wn_storexModuleSite extends WeModuleSite {
 				}
 				if (!empty($item['permission'])) {
 					$item['permission'] = iunserializer($item['permission']);
+					foreach ($item['permission'] as $key => $value) {
+						$stores_ids[] = $key;
+					}
+					$store_lists = pdo_getall('storex_bases', array('id' => $stores_ids), array('id', 'store_type', 'title', 'thumb'), 'id');
+					if (!empty($store_lists)) {
+						foreach ($store_lists as $key => &$store_info) {
+							$store_info['thumb'] = tomedia($store_info['thumb']);
+							$store_info['permission'] = $item['permission'][$key];
+						}
+					}
 				}
 			}
 			if (!empty($item['from_user'])) {

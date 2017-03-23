@@ -108,39 +108,9 @@
 				</div>
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺管理权限</label>
-					<div class="col-md-10" id="permission1" style="padding-left: 0px;">
+					<div class="col-md-10" style="padding-left: 0px;">
 						<div id="permission">
-							{if !empty($item['permission'])}
-							{loop $item['permission'] $store_id $permissions}
-							<div class="select col-sm-3 js-html-delete-{$store_id}">
-								<div class="app-info">
-									<img width="50px" src="{$stores[$store_id]['thumb']}" />
-									<p>{$stores[$store_id]['title']}</p>
-								</div>
-							</div>
-							<div style="height:80px" class="col-sm-9 js-html-delete-{$store_id}">
-								{loop $permissions $permit}
-									{if $permit == 'wn_storex_permission_order'}
-										{if $permit == 'wn_storex_permission_order'}
-										<input checked type="checkbox" name="permission[{$store_id}][]" value="wn_storex_permission_order">订单管理
-										{else}
-										<input type="checkbox" name="permission[{$store_id}][]" value="wn_storex_permission_order">订单管理
-										{/if}
-									{/if}
-									{if $permit == 'wn_storex_permission_room'}
-										{if $permit == 'wn_storex_permission_room'}
-										<input checked type="checkbox" name="permission[{$store_id}][]" value="wn_storex_permission_room">房型管理
-										{else}
-										<input type="checkbox" name="permission[{$store_id}][]" value="wn_storex_permission_room">房型管理
-										{/if}
-									{/if}
-								{/loop}
-								<div class="cover-dark">
-									<a href="javascript:;" class="cover-delect js-permission-delete" data-id="{$store_id}"><i class="fa fa-minus-circle"></i>删除</a>
-								</div>
-							</div>
-							{/loop}
-							{/if}
+							
 						</div>
 					</div>
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
@@ -179,8 +149,59 @@
 </div>
 <script type="text/javascript">
 	var stores = '<?php echo json_encode($stores);?>';
+	var selected_stores = '<?php echo  json_encode($store_lists);?>';
 	stores = $.parseJSON(stores);
-	selected_stores = [];
+	selected_stores = $.parseJSON(selected_stores);
+
+	var selected_pemissions = function(store_id, type) {
+		if (type == 'stores') {
+			store_lists = stores;
+		} else if (type == 'selected_stores') {
+			store_lists = selected_stores;
+		}
+		if (store_lists[store_id].store_type == 1) {
+			store_description = '酒店';
+		} else {
+			store_description = '普通店铺';
+		}
+		permission_list = store_lists[store_id].permission;
+		order_checked = '';
+		room_checked = '';
+		if ($.inArray("wn_storex_permission_order", permission_list) != '-1') {
+			order_checked = 'checked=true';
+		}
+		if ($.inArray("wn_storex_permission_room", permission_list) != '-1') {
+			room_checked = 'checked=true';
+		}
+		selected_store_list = '<div class="select col-sm-3 js-html-delete-' + store_id + '">'+
+					'<div class="app-info">'+
+						'<img width="50px" src="'+store_lists[store_id].thumb+'" />'+
+						'<p>'+store_lists[store_id].title+'</p>'+
+					'</div>'+
+				'</div>'+
+				'<div style="height:80px" class="col-sm-9 js-html-delete-' + store_id + '">'+
+					'<input type="checkbox" name="permission[' + store_id + '][]" value="wn_storex_permission_order" ' + order_checked + '">订单管理'+
+					'<input type="checkbox" name="permission[' + store_id + '][]" value="wn_storex_permission_room" ' + room_checked + '">房型管理'+
+					'<div class="cover-dark">'+
+						'<a href="javascript:;" class="cover-delect js-permission-delete" data-id="' + store_id + '"><i class="fa fa-minus-circle"></i>删除</a>'+
+					'</div>'
+				'</div>';
+		$('#permission').append(selected_store_list);
+	}
+	var selected_pemissions_init = function() {
+		for (var i in selected_stores) {
+			selected_pemissions(i, 'selected_stores');
+			delete stores[i];
+		}
+	}
+	selected_pemissions_init();
+	$('#addPermission').click(function() {
+		var storeid = $('#store-modal input[type=radio]:checked').val();
+		selected_pemissions(storeid, 'stores');
+		selected_stores[storeid] = stores[storeid];
+		delete stores[storeid];
+	});
+
 	$('.js-permission-modal').click(function() {
 		html = '';
 		for (var i in stores) {
@@ -203,35 +224,15 @@
 		$('.modal-body').html(html);
 		$('#store-modal').modal('show');
 	});
-	$('#addPermission').click(function() {
-		var storeid = $('#store-modal input[type=radio]:checked').val();
-		data = '';
-		var title = stores[storeid].title;
-		data = '<div class="select col-sm-3 js-html-delete-' + storeid + '">'+
-					'<div class="app-info">'+
-						'<img width="50px" src="'+stores[storeid].thumb+'" />'+
-						'<p>'+title+'</p>'+
-					'</div>'+
-				'</div>'+
-				'<div style="height:80px" class="col-sm-9 js-html-delete-' + storeid + '">'+
-					'<input type="checkbox" name="permission[' + storeid + '][]" value="wn_storex_permission_order">订单管理'+
-					'<input type="checkbox" name="permission[' + storeid + '][]" value="wn_storex_permission_room">房型管理'+
-					'<div class="cover-dark">'+
-						'<a href="javascript:;" class="cover-delect js-permission-delete" data-id="' + storeid + '"><i class="fa fa-minus-circle"></i>删除</a>'+
-					'</div>'
-				'</div>';
-		selected_stores[storeid] = stores[storeid];
-		delete stores[storeid];
-		$('#permission').append(data);
-	});
 	//删除模态框内标签
 	$(document).on('click', '.js-permission-delete', function() {
 		id = $(this).data('id');
 		stores[id] = selected_stores[id];
 		delete selected_stores[id];
+		console.dir(stores);
+		console.dir(selected_stores)
 		$('.js-html-delete-' + id).remove();
 	});
-	//kindeditor($('.richtext-clone'));
 	function formcheck() {
 		var isauto = $('input[name="isauto"]:checked').val();
 		if (isauto == 0) {
