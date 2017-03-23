@@ -3,7 +3,7 @@
     <application setting="true">
         <name><![CDATA[微投票丨微擎]]></name>
         <identifie><![CDATA[ewei_vote]]></identifie>
-        <version><![CDATA[1.8.9]]></version>
+        <version><![CDATA[1.9.0]]></version>
         <type><![CDATA[activity]]></type>
         <ability><![CDATA[投票系统]]></ability>
         <description><![CDATA[图片、文字，单选，多选]]></description>
