@@ -19,7 +19,7 @@ if ($op == 'order') {
 	$id = intval($_GPC['id']);
 	$clerk_info = get_clerk_permission($id);
 	check_clerk_permission($clerk_info, 'wn_storex_permission_'.$op);
-	$store_info = get_store_info();
+	$store_info = get_store_info($id);
 	$table = get_goods_table($store_info['store_type']);
 	$ac = $_GPC['ac'];
 	if ($ac == 'list' || $ac == '') {
@@ -248,7 +248,7 @@ if ($op == 'room') {
 	$id = intval($_GPC['id']);//酒店id
 	$clerk_info = get_clerk_permission($id);
 	check_clerk_permission($clerk_info, 'wn_storex_permission_'.$op);
-	$store_info = get_store_info();
+	$store_info = get_store_info($id);
 	if ($store_info['store_type'] != 1) {
 		message(error(-1, '该店铺没有房型'), '', 'ajax');
 	}

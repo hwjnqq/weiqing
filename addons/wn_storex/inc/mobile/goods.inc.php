@@ -14,7 +14,8 @@ $max_room = 8;
 
 //获取某个商品的详细信息
 if ($op == 'goods_info') {
-	$store_info = get_store_info();
+	$id = intval($_GPC['id']);
+	$store_info = get_store_info($id);
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
 	if ($store_info['store_type'] == 1) {
 		$condition['hotelid'] = $store_id;
@@ -69,7 +70,8 @@ if ($op == 'goods_info') {
 
 //进入预定页面的信息
 if ($op == 'info') {
-	$store_info = get_store_info();
+	$id = intval($_GPC['id']);
+	$store_info = get_store_info($id);
 	$member = array();
 	$member['from_user'] = $_W['openid'];
 	$record = hotel_member_single($member);
@@ -104,7 +106,8 @@ if ($op == 'info') {
 
 //预定提交预定信息
 if ($op == 'order'){
-	$store_info = get_store_info();
+	$id = intval($_GPC['id']);
+	$store_info = get_store_info($id);
 	$order_info = array(
 		'weid' => intval($_W['uniacid']),
 		'hotelid' => $store_id,
@@ -279,15 +282,14 @@ if ($op == 'order'){
 				message(error(-1, '您的预定数量超过最大限制!'), '', 'ajax');
 			}
 			if ($setInfo['smscode'] == 1) {
-				$sql="SELECT code from".tablename('hotel12_code').'WHERE `mobile`= :mobile AND `weid`= :weid';
-				$code=pdo_fetch($sql,array(':mobile' => $mobile,':weid' => intval($_W['uniacid'])));
+				$code = pdo_get('storex_code', array('mobile' => $mobile, 'weid' => intval($_W['uniacid'])), array('code'));
 				if ($mobilecode != $code['code']) {
 					message(error(-1, '您的验证码错误，请重新输入!'), '', 'ajax');
 				}
 			}
 			$insert = array_merge($order_info, $insert);
 			pdo_query('UPDATE '. tablename('storex_order'). " SET status = '-1' WHERE time <  :time AND weid = '{$_W['uniacid']}' AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400));
-			$order_exist = pdo_fetch("SELECT * FROM ". tablename('storex_order'). " WHERE hotelid = :hotelid AND roomid = :roomid AND openid = :openid AND status = '0'", array(':hotelid' => $insert['hotelid'], ':roomid' => $insert['roomid'], ':openid' => $insert['openid']));
+			$order_exist = pdo_get('storex_order', array('hotelid' => $insert['hotelid'], 'roomid' => $insert['roomid'], 'openid' => $insert['openid'], 'status' => 0));
 			if ($order_exist) {
 				//message(error(0, "您有未完成订单,不能重复下单"), '', 'ajax');
 			}
@@ -324,13 +326,11 @@ if ($op == 'order'){
 			ihttp_email($reply['mail'], $subject, $body);
 		}
 		if ($room['is_house'] == 1){
-			$sql = 'SELECT * FROM ' . tablename('storex_order') . ' WHERE id = :id AND weid = :weid';
-			$order = pdo_fetch($sql, array(':id' => $order_id, ':weid' => intval($_W['uniacid'])));
+			$order = pdo_get('storex_order', array('id' => $order_id, 'weid' => intval($_W['uniacid'])));
 			//订单下单成功减库存
 			$starttime = $insert['btime'];
 			for ($i = 0; $i < $insert['day']; $i++) {
-				$sql = 'SELECT * FROM '. tablename('storex_room_price'). ' WHERE weid = :weid AND roomid = :roomid AND roomdate = :roomdate';
-				$day = pdo_fetch($sql, array(':weid' => intval($_W['uniacid']), ':roomid' => $insert['roomid'], ':roomdate' => $starttime));
+				$day = pdo_get('storex_room_price', array('weid' => intval($_W['uniacid']), 'roomid' => $insert['roomid'], 'roomdate' => $starttime));
 				if ($day && $day['num'] != -1) {
 					pdo_update('storex_room_price', array('num' => $day['num'] - $insert['nums']), array('id' => $day['id']));
 				}

@@ -20,7 +20,7 @@ if ($op == 'category_list'){
 //获取一级分类下的二级分类以及商品
 if ($op == 'goods_list') {
 	$store_id = intval($_GPC['id']);
-	$store_info = get_store_info();
+	$store_info = get_store_info($store_id);
 	$first_id = intval($_GPC['first_id']);
 	$first_class = pdo_get('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $store_id, 'id' => $first_id));
 	if (empty($first_class)) {

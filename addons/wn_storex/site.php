@@ -83,7 +83,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 	public  function isMember() {
 		global $_W;
 		//判断公众号是否卡其会员卡功能
-		$card_setting = pdo_fetch("SELECT * FROM ".tablename('mc_card')." WHERE uniacid = '{$_W['uniacid']}'");
+		$card_setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid']));
 		$card_status =  $card_setting['status'];
 		//查看会员是否开启会员卡功能
 		$membercard_setting  = pdo_get('mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
@@ -1826,6 +1826,11 @@ class Wn_storexModuleSite extends WeModuleSite {
 					'track_number' => trim($_GPC['track_number']),
 					'express_name' => trim($_GPC['express_name']),
 				);
+				if ($item['status'] == 1 || $item['status'] == 4 || $item['goods_status'] == 2 || $item['goods_status'] == 3 ) {
+					if ($data['status'] == -1 || $data['status'] == 2) {
+						message('订单已确认或发货，不能操做！', '', 'error');
+					}
+				}
 				if ($item['status'] == -1) {
 					message('订单状态已经取消，不能操做！', '', 'error');
 				}
@@ -1860,42 +1865,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 						}
 					}
 				}
-
-				//订单确认
-//				if ($data['status'] == 1 && $old_status != 1) {
-//					$room_date_list = pdo_fetchall($sql, $params);
-//					if ($room_date_list) {
-//						//$change_data = array();
-//
-//						foreach ($room_date_list as $key => $value) {
-//							$num = $value['num'];
-//							if ($num > 0) {
-//								if ($num > $item['nums']) {
-//									$now_num = $num - $item['nums'];
-//								} else {
-//									$now_num = 0;
-//								}
-//								pdo_update('storex_room_price', array('num' => $now_num), array('id' => $value['id']));
-//							}
-//						}
-//					}
-//				}
-
-				//订单完成时减房间库存
-//				if ($_GPC['status'] == 3) {
-//					$starttime = $item['btime'];
-//					$days = $item['day'];
-//					$room = $item['nums'];
-//					for ($i= 0; $i < $days; $i++) {
-//						$sql = 'SELECT * FROM ' . tablename('storex_room_price') . ' WHERE `roomdate` = :roomdate';
-//						$params = array(':roomdate' => $starttime);
-//						$day = pdo_fetch($sql, $params);
-//						if (!empty($day) && $day['num'] - $room >= 0) {
-//							pdo_update('storex_room_price', array('num' => $day['num'] - $room), array('id' => $day['id']));
-//						}
-//						$starttime += 86400;
-//					}
-//				}
 				if ($data['status'] != $item['status']) {
 					//订单退款
 					if ($data['status'] == 2) {
@@ -1959,11 +1928,11 @@ class Wn_storexModuleSite extends WeModuleSite {
 						//TM00058
 						if (!empty($setting['template']) && !empty($setting['check_in_templateid'])) {
 							$tplnotice = array(
-						'first' =>array('value' =>'您好,您已入住'.$hotel['title'].$room['title']),
-						'hotelName' => array('value' => $hotel['title']),
-						'roomName' => array('value' => $room['title']),
-						'date' => array('value' => date('Y-m-d', $item['btime'])),
-						'remark' => array('value' => '如有疑问，请咨询'.$hotel['phone'].'。'),
+								'first' =>array('value' =>'您好,您已入住'.$hotel['title'].$room['title']),
+								'hotelName' => array('value' => $hotel['title']),
+								'roomName' => array('value' => $room['title']),
+								'date' => array('value' => date('Y-m-d', $item['btime'])),
+								'remark' => array('value' => '如有疑问，请咨询'.$hotel['phone'].'。'),
 							);
 							$result = $acc->sendTplNotice($item['openid'], $setting['check_in_templateid'],$tplnotice);
 						} else {
@@ -2005,9 +1974,9 @@ class Wn_storexModuleSite extends WeModuleSite {
 						$acc = WeAccount::create();
 						$info = '您在'.$hotel['title'].'预订的'.$room['title']."已发货";
 						$custom = array(
-								'msgtype' => 'text',
-								'text' => array('content' => urlencode($info)),
-								'touser' => $item['openid'],
+							'msgtype' => 'text',
+							'text' => array('content' => urlencode($info)),
+							'touser' => $item['openid'],
 						);
 						$status = $acc->sendCustomNotice($custom);
 					}
@@ -2018,19 +1987,15 @@ class Wn_storexModuleSite extends WeModuleSite {
 			if ($store_type == 1){
 				$btime = $item['btime'];
 				$etime = $item['etime'];
-				
 				$start = date('m-d', $btime);
 				$end = date('m-d', $etime);
-				
 				//日期列
 				$days = ceil(($etime - $btime) / 86400);
-				
 				$date_array = array();
 				$date_array[0]['date'] = $start;
 				$date_array[0]['day'] = date('j', $btime);
 				$date_array[0]['time'] = $btime;
 				$date_array[0]['month'] = date('m', $btime);
-				
 				if ($days > 1) {
 					for ($i = 1; $i < $days; $i++) {
 						$date_array[$i]['time'] = $date_array[$i - 1]['time'] + 86400;
@@ -2039,30 +2004,24 @@ class Wn_storexModuleSite extends WeModuleSite {
 						$date_array[$i]['month'] = date('m', $date_array[$i]['time']);
 					}
 				}
-				
 				$sql = "SELECT id, roomdate, num, status FROM " . tablename('storex_room_price');
 				$sql .= " WHERE 1 = 1";
 				$sql .= " AND roomid = :roomid";
 				$sql .= " AND roomdate >= :btime AND roomdate < :etime";
 				$sql .= " AND status = 1";
-				
 				$params[':roomid'] = $item['roomid'];
 				$params[':btime'] = $item['btime'];
 				$params[':etime'] = $item['etime'];
-				
 				$room_date_list = pdo_fetchall($sql, $params);
-				
 				if ($room_date_list) {
 					$flag = 1;
 				} else {
 					$flag = 0;
 				}
 				$list = array();
-				
 				if ($flag == 1) {
 					for ($i = 0; $i < $days; $i++) {
 						$k = $date_array[$i]['time'];
-				
 						foreach ($room_date_list as $p_key => $p_value) {
 							//判断价格表中是否有当天的数据
 							if ($p_value['roomdate'] == $k) {
@@ -2094,7 +2053,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 				}
 			}
 			$member_info = pdo_fetch("SELECT from_user,isauto FROM " . tablename('storex_member') . " WHERE id = :id LIMIT 1", array(':id' => $item['memberid']));
-
 			include $this->template('order_form');
 		} elseif ($op == 'delete') {
 			$id = intval($_GPC['id']);
@@ -2265,7 +2223,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 				header("Content-Disposition:attachment; filename=全部数据.csv");
 				echo $html;
 				exit();
-
 			}
 			$pager = pagination($total, $pindex, $psize);
 			include $this->template('order');
@@ -2847,7 +2804,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 				exit($site->$method($pars));
 			}
 		}
-
 		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniacid`=:uniacid AND `module`=:module AND `tid`=:tid';
 		$log = pdo_fetch($sql, $pars);
 		if (empty($log)) {

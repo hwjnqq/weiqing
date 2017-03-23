@@ -141,9 +141,9 @@ function format_url($urls){
 	return $urls;
 }
 //获取店铺信息
-function get_store_info(){
+function get_store_info($id){
 	global $_W, $_GPC;
-	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => intval($_GPC['id'])), array('id', 'store_type', 'status', 'title', 'phone'));
+	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone'));
 	if (empty($store_info)) {
 		message(error(-1, '店铺不存在'), '', 'ajax');
 	} else {
