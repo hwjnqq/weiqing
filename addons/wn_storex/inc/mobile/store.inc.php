@@ -10,11 +10,12 @@ check_params();
 // check_user_source();
 //获取店铺列表
 if ($op == 'store_list') {
+	$keyword = trim($_GPC['keyword']);
 	$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('id', 'version'));
 	if ($setting['version'] == 0) {//单店
 		$limit = array(1,1);
 	}
-	$storex_bases = pdo_getall('storex_bases', array('weid' => $_W['uniacid'], 'status' => 1), array(), '', 'displayorder DESC', $limit);
+	$storex_bases = pdo_getall('storex_bases', array('weid' => $_W['uniacid'], 'status' => 1, 'title LIKE' => '%'.$keyword.'%'), array(), '', 'displayorder DESC', $limit);
 	foreach ($storex_bases as $key => $info) {
 		if (!empty($_GPC['lat']) && !empty($_GPC['lng'])) {
 			if (!empty($info['distance'])) {
