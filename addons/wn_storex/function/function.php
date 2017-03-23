@@ -104,14 +104,12 @@ function check_params(){
 		'clerk' => array(
 			'common' => array(
 				'uniacid' => intval($_W['uniacid']),
-				'openid' => $_W['openid']
-			),
-			'clerkindex' => array(
+				'openid' => $_W['openid'],
 				'id' => intval($_GPC['id']),
 			),
-			'order' => array(
-				'id' => intval($_GPC['id']),
-			),
+			'clerkindex' => array(),
+			'order' => array(),
+			'room' => array(),
 		),
 	);
 	$do = trim($_GPC['do']);
@@ -440,9 +438,6 @@ function get_clerk_permission ($id) {
 }
 function check_clerk_permission($clerk_info, $premit){
 	$is_permission = false;
-	echo "<pre>";
-	print_r($premit);
-	echo "</pre>";
 	foreach ($clerk_info as $permission) {
 		if ($permission == $premit) {
 			$is_permission = true;

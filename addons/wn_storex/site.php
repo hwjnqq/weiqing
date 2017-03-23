@@ -1123,7 +1123,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			$price = $_GPC['price'];
 			$pricetype = $_GPC['pricetype'];
 			$date = $_GPC['date'];
-			$roomprice = $this->getRoomPrice($hotelid, $roomid, $date);
+			$roomprice = getRoomPrice($hotelid, $roomid, $date);
 			$roomprice[$pricetype] = $price;
 			if (empty($roomprice['id'])) {
 				pdo_insert("storex_room_price", $roomprice);
@@ -1171,7 +1171,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				for ($time = $start; $time <= $end; $time+=86400) {
 					$week = date('w', $time);
 					if (in_array($week, $days_arr)) {
-						$roomprice = $this->getRoomPrice($hotelid, $v, date('Y-m-d', $time));
+						$roomprice = getRoomPrice($hotelid, $v, date('Y-m-d', $time));
 						$roomprice['oprice'] = $oprices[$v];
 						$roomprice['cprice'] = $cprices[$v];
 						$roomprice['mprice'] = $mprices[$v];
@@ -1316,7 +1316,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			$price = $_GPC['price'];
 			$pricetype = $_GPC['pricetype'];
 			$date = $_GPC['date'];
-			$roomprice = $this->getRoomPrice($hotelid, $roomid, $date);
+			$roomprice = getRoomPrice($hotelid, $roomid, $date);
 			if ($pricetype == 'num') {
 				$roomprice['num'] = $_GPC['price'];
 			} else {
@@ -1369,7 +1369,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				for ($time = $start; $time <= $end; $time+=86400) {
 					$week = date('w', $time);
 					if (in_array($week, $days_arr)) {
-						$roomprice = $this->getRoomPrice($hotelid, $v, date('Y-m-d', $time));
+						$roomprice = getRoomPrice($hotelid, $v, date('Y-m-d', $time));
 						$roomprice['num'] = empty($nums[$v]) ? '-1' : intval($nums[$v]);
 						$roomprice['status'] = $statuses[$v];
 						if (empty($roomprice['id'])) {
@@ -1388,47 +1388,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 		//当月最后一天
 		$endtime = strtotime(date('Y-m-d', strtotime("$firstday +1 month -1 day")));
 		include $this->template('room_status');
-	}
-
-	//获取房型某天的记录
-	private function getRoomPrice($hotelid, $roomid, $date) {
-		global $_W;
-		$btime = strtotime($date);
-		$sql = "SELECT * FROM " . tablename('storex_room_price');
-		$sql .= " WHERE 1 = 1";
-		$sql .=" and weid=" . $_W['uniacid'];
-		$sql .= " AND hotelid = " . $hotelid;
-		$sql .= " AND roomid = " . $roomid;
-		$sql .= " AND roomdate = " . $btime;
-		$sql .=" limit 1";
-		$roomprice = pdo_fetch($sql);
-
-		if (empty($roomprice)) {
-			$room = $this->getRoom($hotelid, $roomid);
-			$roomprice = array(
-				"weid" => $_W['uniacid'],
-				"hotelid" => $hotelid,
-				"roomid" => $roomid,
-				"oprice" => $room['oprice'],
-				"cprice" => $room['cprice'],
-				"mprice" => $room['mprice'],
-				"status" => $room['status'],
-				"roomdate" => strtotime($date),
-				"thisdate" => $date,
-				"num" => "-1",
-				"status" => 1,
-			);
-		}
-		return $roomprice;
-	}
-
-	private function getRoom($hotelid, $roomid) {
-		$sql = "SELECT * FROM " . tablename('storex_room');
-		$sql .= " WHERE 1 = 1";
-		$sql .= " AND hotelid = " . $hotelid;
-		$sql .= " AND id = " . $roomid;
-		$sql .=" limit 1";
-		return pdo_fetch($sql);
 	}
 
 	public function doWebGoodsmanage() {

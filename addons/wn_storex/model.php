@@ -284,3 +284,26 @@ if(!function_exists('add_sold_num')) {
 		}
 	}
 }
+//获取房型某天的记录
+function getRoomPrice($hotelid, $roomid, $date) {
+	global $_W;
+	$btime = strtotime($date);
+	$roomprice = pdo_get('storex_room_price', array('weid' => intval($_W['uniacid']), 'hotelid' => $hotelid, 'roomid' => $roomid, 'roomdate' => $btime));
+	if (empty($roomprice)) {
+		$room = pdo_get('storex_room', array('hotelid' => $hotelid, 'id' => $roomid, 'weid' => intval($_W['uniacid'])));
+		$roomprice = array(
+				"weid" => $_W['uniacid'],
+				"hotelid" => $hotelid,
+				"roomid" => $roomid,
+				"oprice" => $room['oprice'],
+				"cprice" => $room['cprice'],
+				"mprice" => $room['mprice'],
+				"status" => $room['status'],
+				"roomdate" => strtotime($date),
+				"thisdate" => $date,
+				"num" => "-1",
+				"status" => 1,
+		);
+	}
+	return $roomprice;
+}
