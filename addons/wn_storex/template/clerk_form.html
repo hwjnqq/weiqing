@@ -39,7 +39,7 @@
 						<input type="text" name="mobile" id="mobile" value="{$item['mobile']}" class="form-control">
 					</div>
 				</div>
-				<!-- 
+				<!--
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">{if !empty($id)}新{/if}密码</label>
 					<div class="col-sm-9 col-xs-12">
@@ -85,7 +85,7 @@
 						<span class='help-block'>禁用以后用户无法登录</span>
 					</div>
 				</div>
-				<!-- 
+				<!--
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">身份</label>
 					<div class="col-sm-9 col-xs-12">
@@ -108,9 +108,9 @@
 				</div>
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺管理权限</label>
-					<div class="col-md-10" style="padding-left: 0px;">
+					<div class="col-sm-9 col-xs-12">
 						<div id="permission">
-							
+
 						</div>
 					</div>
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
@@ -119,7 +119,7 @@
 					</div>
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
 					<div class="col-md-10" style="padding-left: 0px;">
-						<h4><a href="javascript:;" class='btn btn-primary js-permission-modal' style="margin-top:10px;margin-bottom:10px;"title="添加权限"><i class='fa fa-plus'></i> 添加权限</a> 
+						<h4><a href="javascript:;" class='btn btn-primary js-permission-modal' style="margin-top:10px;margin-bottom:10px;"title="添加权限"><i class='fa fa-plus'></i> 添加权限</a>
 					</div>
 				</div>
 			</div>
@@ -138,7 +138,7 @@
 				<h4 class="modal-title" id="myModalLabel">选择你要添加的店铺权限</h4>
 			</div>
 			<div class="modal-body clearfix form-horizontal">
-			
+
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
@@ -173,18 +173,16 @@
 		if ($.inArray("wn_storex_permission_room", permission_list) != '-1') {
 			room_checked = 'checked=true';
 		}
-		selected_store_list = '<div class="select col-sm-3 js-html-delete-' + store_id + '">'+
-					'<div class="app-info">'+
+		selected_store_list = '<div class="panel panel-default js-html-delete-' + store_id + '">'+
+					'<div class="app-info panel-heading">'+
 						'<img width="50px" src="'+store_lists[store_id].thumb+'" />'+
-						'<p>'+store_lists[store_id].title+'</p>'+
+						'<span>'+store_lists[store_id].title+'</span>'+
+						'<a href="javascript:;" class="pull-right js-permission-delete" data-id="' + store_id + '"><i class="fa fa-minus-circle"></i>删除</a>'+
 					'</div>'+
+				'<div class="panel-body" class="js-html-delete-' + store_id + '">'+
+					'<input type="checkbox" class="permission" name="permission[' + store_id + '][]" id="permission[' + store_id + ']-1" value="wn_storex_permission_order" ' + order_checked + '"><label style="padding:0 10px;" for="permission[' + store_id + ']-1">订单管理</label>'+
+					'<input type="checkbox" class="permission" name="permission[' + store_id + '][]" id="permission[' + store_id + ']-2" value="wn_storex_permission_room" ' + room_checked + '"><label style="padding:0 10px;" for="permission[' + store_id + ']-2">房型管理</label>'+
 				'</div>'+
-				'<div style="height:80px" class="col-sm-9 js-html-delete-' + store_id + '">'+
-					'<input type="checkbox" name="permission[' + store_id + '][]" value="wn_storex_permission_order" ' + order_checked + '">订单管理'+
-					'<input type="checkbox" name="permission[' + store_id + '][]" value="wn_storex_permission_room" ' + room_checked + '">房型管理'+
-					'<div class="cover-dark">'+
-						'<a href="javascript:;" class="cover-delect js-permission-delete" data-id="' + store_id + '"><i class="fa fa-minus-circle"></i>删除</a>'+
-					'</div>'
 				'</div>';
 		$('#permission').append(selected_store_list);
 	}
