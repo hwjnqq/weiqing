@@ -25,11 +25,6 @@ class Ewei_voteModuleSite extends WeModuleSite {
         if (empty($rid)) {
             message('抱歉，参数错误！', '', 'error');
         }
-	    if ($this->module['config']['isconcern']) {
-		    if (empty($_W['fans']['follow'])) {
-			    message('请先关注公众号后，再来参加投票', '', 'info');
-		    }
-	    }
         $from_user = $_W['fans']['from_user'];
 
         if (substr($from_user, 0, 4) == 'we7_') {
@@ -75,6 +70,12 @@ class Ewei_voteModuleSite extends WeModuleSite {
         } else {
             $limits = "投票期限: " . date('Y-m-d H:i', $reply['starttime']) . " 至 " . date('Y-m-d H:i', $endtime);
         }
+    	if($_W['os'] == 'android' && $_W['container'] == 'wechat' && $_W['account']['account']) {
+			$subscribeurl = "weixin://profile/{$_W['account']['account']}";
+		} else {
+			$sql = 'SELECT `subscribeurl` FROM ' . tablename('account_wechats') . " WHERE `acid` = :acid";
+			$subscribeurl = pdo_fetchcolumn($sql, array(':acid' => intval($_W['acid'])));
+		}
         $selects = "";
         if ($reply['votetype'] == 0) {
             $selects = "最多选择一项";
@@ -122,6 +123,11 @@ class Ewei_voteModuleSite extends WeModuleSite {
         global $_GPC, $_W;
         //判断用户是否存在
         $rid = intval($_GPC['id']);
+        if ($this->module['config']['isconcern']) {
+        	if (empty($_W['fans']['follow'])) {
+        		die("请先关注公众号后，再来参加投票");
+        	}
+        }
         $from_user =$_W['fans']['from_user'];
         if (substr($from_user, 0, 4) == 'we7_'){
             die("请不要在微信以外环境下投票");

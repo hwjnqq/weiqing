@@ -133,6 +133,7 @@
         <img class="sep" src="../addons/ewei_vote/style/images/option_sep.jpg">
         {/loop}
     </div>
+    <div style="color:red;text-align:center;margin-top:15px;">{if !empty($subscribeurl)}<span>关注公众号：<a style="color:red;" href="{$subscribeurl}">{$_W['account']['name']}</a></span>{/if}</div>
     <div class="vote-cont">
         <div style="height: 10px;"></div>
         <img class="vote-btn" src="../addons/ewei_vote/style/images/vote.png" onclick="submit()"/>
