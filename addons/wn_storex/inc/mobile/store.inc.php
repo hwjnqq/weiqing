@@ -22,7 +22,7 @@ if ($op == 'store_list') {
 			$lng = trim($_GPC['lng']);
 			$distance = distanceBetween($info['lng'], $info['lat'], $lng, $lat);
 			$distance = round($distance / 1000, 2);
-			$storex_bases[$key]['ddd'] = $distance;
+			$storex_bases[$key]['distances'] = $distance;
 			if (empty($info['distance'])) {
 				$info['distance'] = 10;
 			}
