@@ -317,16 +317,7 @@ if ($op == 'room') {
 				}
 			}
 		} elseif ($type == 'price') {
-			$dates[0]['date'] = $start;
-			$dates[0]['day'] = date('j', $btime);
-			$dates[0]['time'] = $btime;
-			$dates[0]['month'] = date('m', $btime);
-			for ($i = 1; $i < $pagesize; $i++) {
-				$dates[$i]['time'] = $dates[$i - 1]['time'] + 86400;
-				$dates[$i]['date'] = date('Y-m-d', $dates[$i]['time']);
-				$dates[$i]['day'] = date('j', $dates[$i]['time']);
-				$dates[$i]['month'] = date('m', $dates[$i]['time']);
-			}
+			$dates = get_dates($start, $pagesize);
 			foreach ($list as $key => $value) {
 				$sql = "SELECT * FROM " . tablename('storex_room_price');
 				$sql .= " WHERE 1 = 1";

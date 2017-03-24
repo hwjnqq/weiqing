@@ -131,6 +131,9 @@ if ($op == 'more_goods') {
 		$sql .= ' AND `hotelid` = :hotelid';
 		$condition[':hotelid'] = $storex_bases['id'];
 		$goods_list = pdo_fetchall("SELECT * FROM " . tablename('storex_room') . " WHERE status = 1" . $sql, $condition);
+		if (!empty($goods_list)) {
+			$goods_list = category_room_status($goods_list);
+		}
 	} else {
 		$sql .= ' AND `store_base_id` = :store_base_id';
 		$condition[':store_base_id'] = $storex_bases['id'];

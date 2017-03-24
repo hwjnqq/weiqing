@@ -190,20 +190,7 @@ if ($op == 'order'){
 			$days = $order_info['day'];
 			$etime = $order_info['etime'];
 			$edate = date('Y-m-d', $order_info['etime']);
-			$date_array = array();
-			$date_array[0]['date'] = $bdate;
-			$date_array[0]['day'] = date('j', $btime);
-			$date_array[0]['time'] = $btime;
-			$date_array[0]['month'] = date('m',$btime);
-
-			if ($days > 1) {
-				for ($i = 1; $i < $days; $i++) {
-					$date_array[$i]['time'] = $date_array[$i-1]['time'] + 86400;
-					$date_array[$i]['date'] = date('Y-m-d', $date_array[$i]['time']);
-					$date_array[$i]['day'] = date('j', $date_array[$i]['time']);
-					$date_array[$i]['month'] = date('m', $date_array[$i]['time']);
-				}
-			}
+			$dates = get_dates($bdate, $days);
 			//酒店信息
 			$sql = 'SELECT `id`, `roomdate`, `num`, `status` FROM ' . tablename('storex_room_price') . ' WHERE `roomid` = :roomid
 				AND `roomdate` >= :btime AND `roomdate` < :etime AND `status` = :status';
@@ -213,7 +200,7 @@ if ($op == 'order'){
 			$list = array();
 			if ($flag == 1) {
 				for($i = 0; $i < $days; $i++) {
-					$k = $date_array[$i]['time'];
+					$k = $dates[$i]['time'];
 					foreach ($room_date_list as $p_key => $p_value) {
 						// 判断价格表中是否有当天的数据
 						if($p_value['roomdate'] == $k) {
@@ -224,11 +211,11 @@ if ($op == 'order'){
 								if (empty($room_num)) {
 									$max_room = 0;
 									$list['num'] = 0;
-									$list['date'] =  $date_array[$i]['date'];
+									$list['date'] =  $dates[$i]['date'];
 								} else if ($room_num > 0 && $room_num <= $max_room) {
 									$max_room = $room_num;
 									$list['num'] =  $room_num;
-									$list['date'] =  $date_array[$i]['date'];
+									$list['date'] =  $dates[$i]['date'];
 								} else {
 									$max_room = 0;
 								}

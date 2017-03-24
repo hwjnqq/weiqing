@@ -224,6 +224,77 @@ function category_store_goods($table, $condition, $fields, $limit = array()){
 	}
 	return $goods;
 }
+//根据日期和数量获取可预定的房型
+function category_room_status($goods_list){
+	global $_GPC,$_W;
+	$btime = $_GPC['btime'];
+	$etime = $_GPC['etime'];
+	$num = intval($_GPC['num']);
+	if (!empty($btime) && !empty($etime) && !empty($num)) {
+		if ($num <= 0 || strtotime($etime) < strtotime($btime) || strtotime($btime) < strtotime('today')) {
+			message(error(-1, '搜索参数错误！'), '', 'ajax');
+		}
+		$days = (strtotime($etime) - strtotime($btime))/86400 + 1;
+// 		$dates = get_dates($btime, $days);
+		$sql = "SELECT * FROM " . tablename('storex_room_price') . " WHERE weid = :weid AND roomdate >= :btime AND roomdate <= :etime ";
+		$modify_recored = pdo_fetchall($sql, array(':weid' => intval($_W['uniacid']), ':btime' => strtotime($btime), ':etime' => strtotime($etime)));
+		if (!empty($modify_recored)) {
+			foreach ($modify_recored as $value) {
+				foreach ($goods_list as &$info) {
+					if ($value['roomid'] == $info['id'] && $value['hotelid'] == $info['hotelid'] ) {
+						if ($info['max_room'] == 0) {
+							continue;
+						}
+						if ($value['status'] == 1) {
+							if ($value['num'] == -1) {
+								if (empty($info['max_room']) && $info['max_room'] != 0) {
+									$info['max_room'] = 8;
+								}
+							} else {
+								if ($value['num'] > 8 && $value['num'] > $info['max_room']) {
+									$info['max_room'] = 8;
+								} else if ($value['num'] < $info['max_room']){
+									$info['max_room'] = $value['num'];
+								}
+							}
+						} else {
+							$info['max_room'] = 0;
+						}
+					} else {
+						$info['max_room'] = 8;
+					}
+				}
+			}
+		} else {
+			foreach ($goods_list as &$val) {
+				$val['max_num'] = 8;
+			}
+		}
+		foreach ($goods_list as $k => $info) {
+			if ($info['max_room'] < $num) {
+				unset($goods_list[$k]);
+			}
+		}
+		return $goods_list;
+	}
+}
+//获取日期格式
+function get_dates($btime, $days){
+	$dates = array();
+	$dates[0]['date'] = $btime;
+	$dates[0]['day'] = date('j', strtotime($btime));
+	$dates[0]['time'] = strtotime($btime);
+	$dates[0]['month'] = date('m',strtotime($btime));
+	if ($days > 1) {
+		for ($i = 1; $i < $days; $i++) {
+			$dates[$i]['time'] = $dates[$i-1]['time'] + 86400;
+			$dates[$i]['date'] = date('Y-m-d', $dates[$i]['time']);
+			$dates[$i]['day'] = date('j', $dates[$i]['time']);
+			$dates[$i]['month'] = date('m', $dates[$i]['time']);
+		}
+	}
+	return $dates;
+}
 //根据信息获取房型的某一天的价格
 function room_special_price ($goods){
 	global $_W;
