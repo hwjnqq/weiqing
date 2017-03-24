@@ -18,15 +18,17 @@ if ($op == 'store_list') {
 	$storex_bases = pdo_getall('storex_bases', array('weid' => $_W['uniacid'], 'status' => 1, 'title LIKE' => '%'.$keyword.'%'), array(), '', 'displayorder DESC', $limit);
 	foreach ($storex_bases as $key => $info) {
 		if (!empty($_GPC['lat']) && !empty($_GPC['lng'])) {
-			if (!empty($info['distance'])) {
-				$lat = trim($_GPC['lat']);
-				$lng = trim($_GPC['lng']);
-				$distance = distanceBetween($info['lng'], $info['lat'], $lng, $lat);
-				$distance = round($distance / 1000, 2);
-				if ($distance > $info['distance']) {
-					unset($storex_bases[$key]);
-					continue;
-				}
+			$lat = trim($_GPC['lat']);
+			$lng = trim($_GPC['lng']);
+			$distance = distanceBetween($info['lng'], $info['lat'], $lng, $lat);
+			$distance = round($distance / 1000, 2);
+			$storex_bases[$key]['ddd'] = $distance;
+			if (empty($info['distance'])) {
+				$info['distance'] = 10;
+			}
+			if ($distance > $info['distance']) {
+				unset($storex_bases[$key]);
+				continue;
 			}
 		}
 		if (!empty($_GPC['city'])) {
