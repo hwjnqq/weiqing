@@ -275,8 +275,8 @@ function category_room_status($goods_list){
 				unset($goods_list[$k]);
 			}
 		}
-		return $goods_list;
 	}
+	return $goods_list;
 }
 //获取日期格式
 function get_dates($btime, $days){

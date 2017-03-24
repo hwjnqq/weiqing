@@ -148,7 +148,6 @@ if ($op == 'order_comment'){
 	}
 	if ($order_info['status'] == 3 && $order_info['comment'] == 0){
 		$comment_info = array(
-			
 			'uniacid' => $_W['uniacid'],
 			'uid' => $uid,
 			'createtime' => time(),
