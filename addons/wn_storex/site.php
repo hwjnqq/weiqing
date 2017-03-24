@@ -488,7 +488,24 @@ class Wn_storexModuleSite extends WeModuleSite {
 						}
 
 					//TM00217
-					$clerks = pdo_getall('storex_member', array('clerk' => 1, 'weid' => $_W['uniacid'],'status'=>1));
+					$clerks = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'],'status'=>1));
+					if (!empty($clerks)) {
+						foreach ($clerks as $k => $info) {
+							$permission = iunserializer($info['permission']);
+							if (!empty($permission[$order['hotelid']])) {
+								$is_permit = false;
+								foreach ($permission[$order['hotelid']] as $permit) {
+									if ($permit == 'wn_storex_permission_order') {
+										$is_permit = true;
+										continue;
+									}
+								}
+								if (empty($is_permit)) {
+									unset($clerks[$k]);
+								}
+							}
+						}
+					}
 					if (!empty($setInfo['nickname'])){
 						$from_user = pdo_get('mc_mapping_fans', array('nickname' => $setInfo['nickname'], 'uniacid' => $_W['uniacid']));
 						if (!empty($from_user)){
