@@ -17,6 +17,12 @@ if (!pdo_fieldexists('storex_order', 'express_name')) {
 if (!pdo_fieldexists('storex_bases', 'distance')) {
 	pdo_query('ALTER TABLE ' . tablename('storex_bases') . " ADD `distance` int(11) NOT NULL COMMENT '配送距离';");
 }
+if (pdo_fieldexists('storex_bases', 'lng')) {
+	pdo_query('ALTER TABLE ' . tablename('storex_bases') . "CHANGE `lng` `lng` DECIMAL(10,6) NULL DEFAULT '0.00';");
+}
+if (pdo_fieldexists('storex_bases', 'lat')) {
+	pdo_query('ALTER TABLE ' . tablename('storex_bases') . "CHANGE `lat` `lat` DECIMAL(10,6) NULL DEFAULT '0.00';");
+}
 pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_clerk` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`weid` int(11) DEFAULT '0',
