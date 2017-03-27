@@ -93,36 +93,32 @@ if ($op == 'goods_list') {
 //获取更多的商品信息
 if ($op == 'more_goods') {
 	$store_id = intval($_GPC['id']);
-	$sub_classid = intval($_GPC['sub_id']);
-	$keyword = trim($_GPC['keyword']);
-	$category = pdo_get('storex_categorys', array('id' => $sub_classid, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id), array('id', 'parentid'));
-	if (empty($category)) {
-		message(error(-1, '参数错误'), '', 'ajax');
-	}
-	if ($category['parentid'] == 0) {
-		$sub_category = pdo_getall('storex_categorys', array('parentid' => $sub_classid, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id), array('id', 'parentid'));
-		if (!empty($sub_category)) {
+	$storex_bases = get_store_info($store_id);
+	$condition = array();
+	if ($storex_bases['category_set'] == 1) {
+		$sub_classid = intval($_GPC['sub_id']);
+		$category = pdo_get('storex_categorys', array('id' => $sub_classid, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id), array('id', 'parentid'));
+		if (empty($category)) {
 			message(error(-1, '参数错误'), '', 'ajax');
 		}
-		$sql .= ' AND `pcate` = :pcate';
-		$condition = array(':pcate' => $sub_classid);
-	} else {
-		$sql .= ' AND `ccate` = :ccate';
-		$condition = array(':ccate' => $sub_classid);
-	}
-	$can_reserve = intval($_GPC['can_reserve']);
-	$storex_bases = get_store_info($store_id);
-	if (empty($storex_bases)) {
-		message(error(-1, '店铺不存在'), '', 'ajax');
-	} else {
-		if ($storex_bases['status'] == 0) {
-			message(error(-1, '店铺已隐藏'), '', 'ajax');
+		if ($category['parentid'] == 0) {
+			$sub_category = pdo_getall('storex_categorys', array('parentid' => $sub_classid, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id), array('id', 'parentid'));
+			if (!empty($sub_category)) {
+				message(error(-1, '参数错误'), '', 'ajax');
+			}
+			$sql .= ' AND `pcate` = :pcate';
+			$condition = array(':pcate' => $sub_classid);
+		} else {
+			$sql .= ' AND `ccate` = :ccate';
+			$condition = array(':ccate' => $sub_classid);
 		}
 	}
+	$can_reserve = intval($_GPC['can_reserve']);
 	if (!empty($can_reserve)) {
 		$sql .= ' AND `can_reserve` = :can_reserve';
 		$condition[':can_reserve'] = 1;
 	}
+	$keyword = trim($_GPC['keyword']);
 	if (!empty($keyword)) {
 		$sql .= ' AND `title` LIKE :title';
 		$condition[':title'] = "%{$keyword}%";
