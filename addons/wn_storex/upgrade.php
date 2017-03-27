@@ -42,4 +42,7 @@ pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_clerk` (
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8");
+if (pdo_fieldexists('storex_bases', 'category_set')) {
+	pdo_query('ALTER TABLE ' . tablename('storex_bases') . "ADD `category_set` TINYINT NOT NULL DEFAULT '1' COMMENT '分类开启设置1开启，2关闭';");
+}
 ?>

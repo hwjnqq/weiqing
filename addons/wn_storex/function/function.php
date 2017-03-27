@@ -143,7 +143,7 @@ function format_url($urls){
 //获取店铺信息
 function get_store_info($id){
 	global $_W, $_GPC;
-	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone'));
+	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone', 'category_set'));
 	if (empty($store_info)) {
 		message(error(-1, '店铺不存在'), '', 'ajax');
 	} else {
@@ -273,10 +273,25 @@ function category_room_status($goods_list){
 		foreach ($goods_list as $k => $info) {
 			if ($info['max_room'] < $num) {
 				unset($goods_list[$k]);
+				$goods_list[$k] = get_room_params($info);
 			}
 		}
 	}
 	return $goods_list;
+}
+function get_room_params($info){
+	$info['params'] = '';
+	if ($info['bed_show'] == 1){
+		$info['params'] = "床位(".$info['bed'].")";
+	}
+	if ($info['floor_show'] == 1){
+		if(!empty($info['params'])){
+			$info['params'] .= " | 楼层(".$info['floor'].")";
+		}else{
+			$info['params'] = "楼层(".$info['floor'].")";
+		}
+	}
+	return $info;
 }
 //获取日期格式
 function get_dates($btime, $days){

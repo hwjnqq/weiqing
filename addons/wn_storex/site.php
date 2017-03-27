@@ -686,6 +686,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 					'traffic' => $_GPC['traffic'],
 					'status' => $_GPC['status'],
 					'distance' => intval($_GPC['distance']),
+					'category_set' => intval($_GPC['category_set']),
 				);
 				$common_insert['thumbs'] = empty($_GPC['thumbs']) ? '' : iserializer($_GPC['thumbs']);
 				$common_insert['detail_thumbs'] = empty($_GPC['detail_thumbs']) ? '' : iserializer($_GPC['detail_thumbs']);
@@ -1448,6 +1449,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				message('抱歉，店铺不存在或是已经删除！', '', 'error');
 			}
 		}
+		$storex_bases = $stores[$_GPC['store_base_id']];
 		//根据分类的一级id获取店铺的id
 		$category_store = pdo_get('storex_categorys', array('id' => intval($_GPC['category']['parentid']), 'weid' => intval($_W['uniacid'])), array('id', 'store_base_id'));
 		$table = $this->gettablebytype($store_type);
@@ -1482,16 +1484,16 @@ class Wn_storexModuleSite extends WeModuleSite {
 				if (empty($_GPC['title'])) {
 					message('请输入房型！');
 				}
-				if (empty($_GPC['category']['parentid'])) {
-					message('一级分类不能为空！', '', 'error');
+				if ($storex_bases['category_set'] == 1) {
+					if (empty($_GPC['category']['parentid'])) {
+						message('一级分类不能为空！', '', 'error');
+					}
 				}
 				if ($store_type == 1 && empty($_GPC['device'])) {
 					message('商品说明不能为空！', '', 'error');
 				}
 				$common = array(
 					'weid' => $_W['uniacid'],
-					'pcate' => $_GPC['category']['parentid'],
-					'ccate' => $_GPC['category']['childid'],
 					'title' => $_GPC['title'],
 					'thumb'=>$_GPC['thumb'],
 					'oprice' => $_GPC['oprice'],
@@ -1507,6 +1509,10 @@ class Wn_storexModuleSite extends WeModuleSite {
 					'sold_num' => intval($_GPC['sold_num']),
 					'store_type' => intval($_GPC['store_type'])
 				);
+				if ($storex_bases['category_set'] == 1) {
+					$common['pcate'] = $_GPC['category']['parentid'];
+					$common['ccate'] = $_GPC['category']['childid'];
+				}
 				$goods = array(
 					'store_base_id' => $store_base_id,
 				);

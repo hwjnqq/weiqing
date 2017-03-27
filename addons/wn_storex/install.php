@@ -254,6 +254,7 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`distance` int(11) NOT NULL COMMENT '配送距离',
 	`weid` int(11) DEFAULT '0',
 	`title` varchar(255) DEFAULT '',
+	`category_set` tinyint(4) NOT NULL DEFAULT '1' COMMENT '分类开启设置1开启，2关闭',
 	`lng` decimal(10,6) DEFAULT '0.00',
 	`lat` decimal(10,6) DEFAULT '0.00',
 	`address` varchar(255) DEFAULT '',

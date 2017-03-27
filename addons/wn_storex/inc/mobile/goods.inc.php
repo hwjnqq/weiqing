@@ -51,17 +51,7 @@ if ($op == 'goods_info') {
 	if (!empty($goods_info['device'])) {
 		$goods_info['device'] = htmlspecialchars_decode($goods_info['device']);
 	}
-	$goods_info['params'] = '';
-	if ($goods_info['bed_show'] == 1){
-		$goods_info['params'] = "床位(".$goods_info['bed'].")";
-	}
-	if ($goods_info['floor_show'] == 1){
-		if(!empty($goods_info['params'])){
-			$goods_info['params'] .= " | 楼层(".$goods_info['floor'].")";
-		}else{
-			$goods_info['params'] = "楼层(".$goods_info['floor'].")";
-		}
-	}
+	$goods_info = get_room_params($goods_info);
 	if ($store_info['store_type'] == 1) {
 		$goods_info = check_price($goods_info);
 	}

@@ -111,7 +111,7 @@ if ($op == 'more_goods') {
 		$condition = array(':ccate' => $sub_classid);
 	}
 	$can_reserve = intval($_GPC['can_reserve']);
-	$storex_bases = pdo_get('storex_bases', array('id' => $store_id), array('id', 'store_type', 'status'));
+	$storex_bases = get_store_info($store_id);
 	if (empty($storex_bases)) {
 		message(error(-1, '店铺不存在'), '', 'ajax');
 	} else {
