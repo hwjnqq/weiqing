@@ -273,9 +273,13 @@ function category_room_status($goods_list){
 		foreach ($goods_list as $k => $info) {
 			if ($info['max_room'] < $num) {
 				unset($goods_list[$k]);
-				$goods_list[$k] = get_room_params($info);
+				continue;
 			}
+			$goods_list[$k] = get_room_params($info);
 		}
+	}
+	foreach ($goods_list as $k => $info) {
+		$goods_list[$k] = get_room_params($info);
 	}
 	return $goods_list;
 }
