@@ -183,11 +183,11 @@ function pay_info($order_id){
 	$order_info = pdo_get('storex_order', array('id' => $order_id, 'weid' => intval($_W['uniacid']), 'openid' => $_W['openid']));
 	if(!empty($order_info)){
 		$params = array(
-            'ordersn' => $order_info['ordersn'],
-            'tid' => $order_info['id'],//支付订单编号, 应保证在同一模块内部唯一
-            'title' => $order_info['style'],
-            'fee' => $order_info['sum_price'],//总费用, 只能大于 0
-            'user' => $_W['openid']//付款用户, 付款的用户名(选填项)
+			'ordersn' => $order_info['ordersn'],
+			'tid' => $order_info['id'],//支付订单编号, 应保证在同一模块内部唯一
+			'title' => $order_info['style'],
+			'fee' => $order_info['sum_price'],//总费用, 只能大于 0
+			'user' => $_W['openid']//付款用户, 付款的用户名(选填项)
 		);
 		return $params;
 	}else{
@@ -235,9 +235,10 @@ function category_room_status($goods_list){
 			message(error(-1, '搜索参数错误！'), '', 'ajax');
 		}
 	} else {
-		$btime = $etime = date('Y-m-d');
+		$btime = date('Y-m-d');
+		$etime = date('Y-m-d', time() + 86400);
 	}
-	$days = (strtotime($etime) - strtotime($btime))/86400 + 1;
+	$days = ceil((strtotime($etime) - strtotime($btime))/86400);
 	$sql = "SELECT * FROM " . tablename('storex_room_price') . " WHERE weid = :weid AND roomdate >= :btime AND roomdate <= :etime ";
 	$modify_recored = pdo_fetchall($sql, array(':weid' => intval($_W['uniacid']), ':btime' => strtotime($btime), ':etime' => strtotime($etime)));
 	if (!empty($modify_recored)) {
