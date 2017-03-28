@@ -234,52 +234,51 @@ function category_room_status($goods_list){
 		if ($num <= 0 || strtotime($etime) < strtotime($btime) || strtotime($btime) < strtotime('today')) {
 			message(error(-1, '搜索参数错误！'), '', 'ajax');
 		}
-		$days = (strtotime($etime) - strtotime($btime))/86400 + 1;
-// 		$dates = get_dates($btime, $days);
-		$sql = "SELECT * FROM " . tablename('storex_room_price') . " WHERE weid = :weid AND roomdate >= :btime AND roomdate <= :etime ";
-		$modify_recored = pdo_fetchall($sql, array(':weid' => intval($_W['uniacid']), ':btime' => strtotime($btime), ':etime' => strtotime($etime)));
-		if (!empty($modify_recored)) {
-			foreach ($modify_recored as $value) {
-				foreach ($goods_list as &$info) {
-					if ($value['roomid'] == $info['id'] && $value['hotelid'] == $info['hotelid'] ) {
-						if ($info['max_room'] == 0) {
-							continue;
-						}
-						if ($value['status'] == 1) {
-							if ($value['num'] == -1) {
-								if (empty($info['max_room']) && $info['max_room'] != 0) {
-									$info['max_room'] = 8;
-								}
-							} else {
-								if ($value['num'] > 8 && $value['num'] > $info['max_room']) {
-									$info['max_room'] = 8;
-								} else if ($value['num'] < $info['max_room']){
-									$info['max_room'] = $value['num'];
-								}
+	} else {
+		$btime = $etime = date('Y-m-d');
+	}
+	$days = (strtotime($etime) - strtotime($btime))/86400 + 1;
+	$sql = "SELECT * FROM " . tablename('storex_room_price') . " WHERE weid = :weid AND roomdate >= :btime AND roomdate <= :etime ";
+	$modify_recored = pdo_fetchall($sql, array(':weid' => intval($_W['uniacid']), ':btime' => strtotime($btime), ':etime' => strtotime($etime)));
+	if (!empty($modify_recored)) {
+		foreach ($modify_recored as $value) {
+			foreach ($goods_list as &$info) {
+				if ($value['roomid'] == $info['id'] && $value['hotelid'] == $info['hotelid'] ) {
+					if (isset($info['max_room']) && $info['max_room'] == 0) {
+						$info['room_counts'] = 0;
+						continue;
+					}
+					if ($value['status'] == 1) {
+						if ($value['num'] == -1) {
+							if (empty($info['max_room']) && $info['max_room'] != 0) {
+								$info['max_room'] = 8;
+								$info['room_counts'] = '不限';
 							}
 						} else {
-							$info['max_room'] = 0;
+							if ($value['num'] > 8 && $value['num'] > $info['max_room']) {
+								$info['max_room'] = 8;
+							} else if ($value['num'] < $info['max_room'] || !isset($info['max_room'])){
+								$info['max_room'] = $value['num'];
+							}
+							$info['room_counts'] = $value['num'];
 						}
 					} else {
-						$info['max_room'] = 8;
+						$info['max_room'] = 0;
+						$info['room_counts'] = 0;
 					}
 				}
 			}
-		} else {
-			foreach ($goods_list as &$val) {
-				$val['max_num'] = 8;
-			}
-		}
-		foreach ($goods_list as $k => $info) {
-			if ($info['max_room'] < $num) {
-				unset($goods_list[$k]);
-				continue;
-			}
-			$goods_list[$k] = get_room_params($info);
 		}
 	}
-	foreach ($goods_list as $k => $info) {
-		$goods_list[$k] = get_room_params($info);
+	foreach ($goods_list as $k => $val) {
+		if (!isset($val['max_room'])) {
+			$val['max_room'] = 8;
+			$val['room_counts'] = '不限';
+		} else if (!empty($num) && $val['max_room'] < $num){
+			unset($goods_list[$k]);
+			continue;
+		}
+		$goods_list[$k] = get_room_params($val);
 	}
 	return $goods_list;
 }
