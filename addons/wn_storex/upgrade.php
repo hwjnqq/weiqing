@@ -44,7 +44,7 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_clerk` (
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 ";
 pdo_run($sql);
-if (pdo_fieldexists('storex_bases', 'category_set')) {
+if (!pdo_fieldexists('storex_bases', 'category_set')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `category_set` TINYINT NOT NULL DEFAULT '1' COMMENT '分类开启设置1开启，2关闭';");
 }
 ?>
