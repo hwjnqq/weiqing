@@ -32,7 +32,7 @@ if ($op == 'store_list') {
 			}
 		}
 		if (!empty($_GPC['city'])) {
-			$city = trim($_GPC['city']);
+			$city = code2city(trim($_GPC['city']));
 			if ($city != $info['location_c']) {
 				unset($storex_bases[$key]);
 				continue;
