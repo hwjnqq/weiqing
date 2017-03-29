@@ -47,4 +47,7 @@ pdo_run($sql);
 if (!pdo_fieldexists('storex_bases', 'category_set')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `category_set` TINYINT NOT NULL DEFAULT '1' COMMENT '分类开启设置1开启，2关闭';");
 }
+if (!pdo_fieldexists('storex_bases', 'skin_style')) {
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `skin_style` VARCHAR(48) NOT NULL DEFAULT 'style1' COMMENT '皮肤选择';");
+}
 ?>

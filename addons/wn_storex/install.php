@@ -254,6 +254,7 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`distance` int(11) NOT NULL COMMENT '配送距离',
 	`weid` int(11) DEFAULT '0',
 	`title` varchar(255) DEFAULT '',
+	`skin_style` varchar(48) NOT NULL DEFAULT 'style1' COMMENT '皮肤选择',
 	`category_set` tinyint(4) NOT NULL DEFAULT '1' COMMENT '分类开启设置1开启，2关闭',
 	`lng` decimal(10,6) DEFAULT '0.00',
 	`lat` decimal(10,6) DEFAULT '0.00',
@@ -415,7 +416,7 @@ if (!empty($module)){
 	);
 	//将原数据填入新的表中
 	foreach($ewei_hotel_table as $hotel2_table => $storex_table){
-		if (!empty($hotel2_all_table[$hotel2_table])) {
+		if (pdo_tableexists($hotel2_table) && !empty($hotel2_all_table[$hotel2_table])) {
 			$hotel2_data = pdo_getall($hotel2_table);
 			if(!empty($hotel2_data)){
 				foreach ($hotel2_data as $val){
