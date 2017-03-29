@@ -1,29 +1,29 @@
 <?php 
 if (!pdo_fieldexists('storex_room', 'is_house')) {
-	pdo_query('ALTER TABLE ' . tablename('storex_room') . " ADD `is_house` INT(11) NOT NULL DEFAULT '1' COMMENT '是否是房型 1 是，2不是 ';");
+	pdo_query("ALTER TABLE " . tablename('storex_room') . " ADD `is_house` INT(11) NOT NULL DEFAULT '1' COMMENT '是否是房型 1 是，2不是 ';");
 }
 if (!pdo_fieldexists('storex_comment', 'goodsid')) {
-	pdo_query('ALTER TABLE ' . tablename('storex_comment') . " ADD `goodsid` INT(11) NOT NULL COMMENT '评论商品的id';");
+	pdo_query("ALTER TABLE " . tablename('storex_comment') . " ADD `goodsid` INT(11) NOT NULL COMMENT '评论商品的id';");
 }
 if (!pdo_fieldexists('storex_comment', 'comment_level')) {
-	pdo_query('ALTER TABLE ' . tablename('storex_comment') . " ADD `comment_level` TINYINT(11) NOT NULL COMMENT '评论商品的级别';");
+	pdo_query("ALTER TABLE " . tablename('storex_comment') . " ADD `comment_level` TINYINT(11) NOT NULL COMMENT '评论商品的级别';");
 }
 if (!pdo_fieldexists('storex_order', 'track_number')) {
-	pdo_query('ALTER TABLE ' . tablename('storex_order') . " ADD `track_number` varchar(64) NOT NULL COMMENT '物流单号';");
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `track_number` varchar(64) NOT NULL COMMENT '物流单号';");
 }
 if (!pdo_fieldexists('storex_order', 'express_name')) {
-	pdo_query('ALTER TABLE ' . tablename('storex_order') . " ADD `express_name` varchar(50) NOT NULL COMMENT '物流类型';");
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `express_name` varchar(50) NOT NULL COMMENT '物流类型';");
 }
 if (!pdo_fieldexists('storex_bases', 'distance')) {
-	pdo_query('ALTER TABLE ' . tablename('storex_bases') . " ADD `distance` int(11) NOT NULL COMMENT '配送距离';");
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `distance` int(11) NOT NULL COMMENT '配送距离';");
 }
 if (pdo_fieldexists('storex_bases', 'lng')) {
-	pdo_query('ALTER TABLE ' . tablename('storex_bases') . "CHANGE `lng` `lng` DECIMAL(10,6) NULL DEFAULT '0.00';");
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " CHANGE `lng` `lng` DECIMAL(10,6) NULL DEFAULT '0.00';");
 }
 if (pdo_fieldexists('storex_bases', 'lat')) {
-	pdo_query('ALTER TABLE ' . tablename('storex_bases') . "CHANGE `lat` `lat` DECIMAL(10,6) NULL DEFAULT '0.00';");
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " CHANGE `lat` `lat` DECIMAL(10,6) NULL DEFAULT '0.00';");
 }
-pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_clerk` (
+$sql = "CREATE TABLE IF NOT EXISTS `ims_storex_clerk` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`weid` int(11) DEFAULT '0',
 	`userid` varchar(50) DEFAULT '',
@@ -41,8 +41,10 @@ pdo_query("CREATE TABLE IF NOT EXISTS `ims_storex_clerk` (
 	`permission` text NOT NULL COMMENT '店员权限',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8");
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+";
+pdo_run($sql);
 if (pdo_fieldexists('storex_bases', 'category_set')) {
-	pdo_query('ALTER TABLE ' . tablename('storex_bases') . "ADD `category_set` TINYINT NOT NULL DEFAULT '1' COMMENT '分类开启设置1开启，2关闭';");
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `category_set` TINYINT NOT NULL DEFAULT '1' COMMENT '分类开启设置1开启，2关闭';");
 }
 ?>
