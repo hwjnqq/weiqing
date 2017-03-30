@@ -54,7 +54,6 @@ if ($op == 'getDate') {
 		$sql .= " AND roomdate < " . ($etime + 86400);
 		$item = pdo_fetchall($sql);
 		
-// 		$item = pdo_getall('storex_room_price', array('roomid' => $value['id'], 'roomdate >=' => $btime, 'roomdate <' => ($etime + 86400)));
 		if ($item) {
 			$flag = 1;
 		} else {
@@ -128,7 +127,7 @@ if ($op == 'updatelot') {
 	$firstday = date('Y-m-01', time());
 	//当月最后一天
 	$endtime = strtotime(date('Y-m-d', strtotime("$firstday +1 month -1 day")));
-	$rooms = pdo_fetchall("select * from " . tablename("storex_room") . " where hotelid=" . $hotelid . " AND is_house = 1");
+	$rooms = pdo_getall('storex_room', array('hotelid' => $hotelid, 'is_house' => 1));
 	include $this->template('room_price_lot');
 	exit();
 }
@@ -143,7 +142,7 @@ if ($op == 'updatelot_create') {
 	$rooms_arr = implode(",", $rooms);
 	$start = $_GPC['start'];
 	$end = $_GPC['end'];
-	$list = pdo_fetchall("select * from " . tablename("storex_room") . " where id in (" . implode(",", $rooms) . ")");
+	$list = pdo_getall('storex_room', array('id' => $rooms));
 	ob_start();
 	include $this->template('room_price_lot_list');
 	$data['result'] = 1;

@@ -23,7 +23,7 @@ if ($op == 'getDate') {
 	$page = intval($_GPC['page']);
 	if ($page > $totalpage) {
 		$page = $totalpage;
-	} else if ($page <= 1) {
+	} elseif ($page <= 1) {
 		$page = 1;
 	}
 	$currentindex = ($page - 1) * $pagesize;
@@ -41,13 +41,7 @@ if ($op == 'getDate') {
 		$date_array[$i]['day'] = date('j', $date_array[$i]['time']);
 		$date_array[$i]['month'] = date('m', $date_array[$i]['time']);
 	}
-	$params = array();
-	$sql = "SELECT r.* FROM " . tablename('storex_room') . "as r";
-	$sql .= " WHERE 1 = 1";
-	$sql .= " AND r.hotelid = $hotelid";
-	$sql .= " AND r.weid = {$_W['uniacid']}";
-	$sql .= " AND r.is_house = 1";
-	$list = pdo_fetchall($sql, $params);
+	$list = pdo_getall('storex_room', array('hotelid' => $hotelid, 'weid' => $_W['uniacid'], 'is_house' => 1));
 	foreach ($list as $key => $value) {
 		$sql = "SELECT * FROM " . tablename('storex_room_price');
 		$sql .= " WHERE 1 = 1";
@@ -72,7 +66,7 @@ if ($op == 'getDate') {
 						$list[$key]['price_list'][$k]['status'] = $p_value['status'];
 						if (empty($p_value['num'])) {
 							$list[$key]['price_list'][$k]['num'] = "无房";
-						} else if ($p_value['num'] == -1) {
+						} elseif ($p_value['num'] == -1) {
 							$list[$key]['price_list'][$k]['num'] = "不限";
 						} else {
 							$list[$key]['price_list'][$k]['num'] = $p_value['num'];
@@ -136,7 +130,7 @@ if ($op == 'updatelot') {
 	$firstday = date('Y-m-01', time());
 	//当月最后一天
 	$endtime = strtotime(date('Y-m-d', strtotime("$firstday +1 month -1 day")));
-	$rooms = pdo_fetchall("select * from " . tablename("storex_room") . " where hotelid=" . $hotelid . " AND is_house = 1");
+	$rooms = pdo_getall('storex_room', array('hotelid' => $hotelid, 'is_house' => 1));
 	include $this->template('room_status_lot');
 	exit();
 }
@@ -151,8 +145,8 @@ if ($op == 'updatelot_create') {
 	$rooms_arr = implode(",", $rooms);
 	$start = $_GPC['start'];
 	$end = $_GPC['end'];
-	$list = pdo_fetchall("select * from " . tablename("storex_room") . " where id in (" . implode(",", $rooms) . ")");
-	$num = pdo_fetchall('SELECT num FROM '. tablename('storex_room_price'),array(),'roomid');
+	$list = pdo_getall('storex_room', array('id' => $rooms));
+	$num = pdo_getall('storex_room_price', array(), array('num'), 'roomid');
 	ob_start();
 	include $this->template('room_status_lot_list');
 	$data['result'] = 1;

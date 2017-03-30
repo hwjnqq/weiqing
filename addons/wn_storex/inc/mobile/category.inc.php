@@ -106,34 +106,29 @@ if ($op == 'more_goods') {
 			if (!empty($sub_category)) {
 				message(error(-1, '参数错误'), '', 'ajax');
 			}
-			$sql .= ' AND `pcate` = :pcate';
-			$condition = array(':pcate' => $sub_classid);
+			$condition['pcate'] = $sub_classid;
 		} else {
-			$sql .= ' AND `ccate` = :ccate';
-			$condition = array(':ccate' => $sub_classid);
+			$condition['ccate'] = $sub_classid;
 		}
 	}
 	$can_reserve = intval($_GPC['can_reserve']);
 	if (!empty($can_reserve)) {
-		$sql .= ' AND `can_reserve` = :can_reserve';
-		$condition[':can_reserve'] = 1;
+		$condition['can_reserve'] = 1;
 	}
 	$keyword = trim($_GPC['keyword']);
 	if (!empty($keyword)) {
-		$sql .= ' AND `title` LIKE :title';
-		$condition[':title'] = "%{$keyword}%";
+		$condition['title LIKE'] = "%{$keyword}%";
 	}
+	$condition['status'] = 1;
 	if ($storex_bases['store_type'] == 1) {
-		$sql .= ' AND `hotelid` = :hotelid';
-		$condition[':hotelid'] = $storex_bases['id'];
-		$goods_list = pdo_fetchall("SELECT * FROM " . tablename('storex_room') . " WHERE status = 1" . $sql, $condition);
+		$condition['hotelid'] = $storex_bases['id'];
+		$goods_list = pdo_getall('storex_room', $condition);
 		if (!empty($goods_list)) {
 			$goods_list = category_room_status($goods_list);
 		}
 	} else {
-		$sql .= ' AND `store_base_id` = :store_base_id';
-		$condition[':store_base_id'] = $storex_bases['id'];
-		$goods_list = pdo_fetchall("SELECT * FROM " . tablename('storex_goods') . " WHERE status = 1" . $sql, $condition);
+		$condition['store_base_id'] = $storex_bases['id'];
+		$goods_list = pdo_getall('storex_goods', $condition);
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 10;

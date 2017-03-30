@@ -258,7 +258,7 @@ function category_room_status($goods_list){
 						} else {
 							if ($value['num'] > 8 && $value['num'] > $info['max_room']) {
 								$info['max_room'] = 8;
-							} else if ($value['num'] < $info['max_room'] || !isset($info['max_room'])){
+							} elseif ($value['num'] < $info['max_room'] || !isset($info['max_room'])){
 								$info['max_room'] = $value['num'];
 							}
 							$info['room_counts'] = $value['num'];
@@ -275,7 +275,7 @@ function category_room_status($goods_list){
 		if (!isset($val['max_room'])) {
 			$val['max_room'] = 8;
 			$val['room_counts'] = '不限';
-		} else if (!empty($num) && $val['max_room'] < $num){
+		} elseif (!empty($num) && $val['max_room'] < $num){
 			unset($goods_list[$k]);
 			continue;
 		}
@@ -423,14 +423,14 @@ function orders_check_status($item){
 			}
 		}
 		$item['is_cancle'] = 1;
-	} else if ($item['status'] == -1){
+	} elseif ($item['status'] == -1){
 		if ($item['paystatus'] == 0){
 			$status = STORE_CANCLE_STATUS;
 			$item['is_over'] = 1;
 		} else {
 			$status = STORE_REPAY_STATUS;
 		}
-	} else if ($item['status'] == 1){
+	} elseif ($item['status'] == 1){
 		if ($item['store_type'] == 1){//酒店
 			if ($item['action'] == 1){
 				$status = STORE_CONFIRM_STATUS;
@@ -447,14 +447,14 @@ function orders_check_status($item){
 				if ($item['mode_distribute'] == 1){//自提
 					$item['is_cancle'] = 1;
 					$status = STORE_CONFIRM_STATUS;
-				} else if ($item['mode_distribute'] == 2) {
+				} elseif ($item['mode_distribute'] == 2) {
 					if ($item['goods_status'] == 1){
 						$item['is_cancle'] = 1;
 						$status = STORE_UNSENT_STATUS;
-					} else if ($item['goods_status'] == 2){
+					} elseif ($item['goods_status'] == 2){
 						$item['is_confirm'] = 1;
 						$status = STORE_SENT_STATUS;
-					} else if ($item['goods_status'] == 3){
+					} elseif ($item['goods_status'] == 3){
 						$status = STORE_GETGOODS_STATUS;
 					} else {
 						$item['is_cancle'] = 1;
@@ -467,15 +467,15 @@ function orders_check_status($item){
 						$item['is_cancle'] = 1;
 						$item['is_pay'] = 1;
 						$status = STORE_CONFIRM_STATUS;
-					} else if ($item['mode_distribute'] == 2) {
+					} elseif ($item['mode_distribute'] == 2) {
 						if ($item['goods_status'] == 1){
 							$item['is_cancle'] = 1;
 							$item['is_pay'] = 1;
 							$status = STORE_UNSENT_STATUS;
-						} else if ($item['goods_status'] == 2){
+						} elseif ($item['goods_status'] == 2){
 							$item['is_confirm'] = 1;
 							$status = STORE_SENT_STATUS;
-						} else if ($item['goods_status'] == 3){
+						} elseif ($item['goods_status'] == 3){
 							$status = STORE_GETGOODS_STATUS;
 						} else {
 							$item['is_cancle'] = 1;
@@ -488,16 +488,16 @@ function orders_check_status($item){
 				}
 			}
 		}
-	} else if ($item['status'] == 2){
+	} elseif ($item['status'] == 2){
 		if ($item['paystatus'] == 0){
 			$status = STORE_REFUSE_STATUS;
 		} else {
 			$status = STORE_REPAY_SUCCESS_STATUS;
 		}
-	} else if ($item['status'] == 4){
+	} elseif ($item['status'] == 4){
 		$status = STORE_LIVE_STATUS;
 		$item['is_over'] = 1;
-	} else if ($item['status'] == 3){
+	} elseif ($item['status'] == 3){
 		$status = STORE_OVER_STATUS;
 		$item['is_over'] = 1;
 		if ($item['comment'] == 0){

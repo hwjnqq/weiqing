@@ -294,7 +294,7 @@ if ($op == 'room') {
 					if (empty($item['num'])) {
 						$list[$key]['price_list']['num'] = "无房";
 						$list[$key]['price_list']['status'] = 0;
-					} else if ($item['num'] == -1) {
+					} elseif ($item['num'] == -1) {
 						$list[$key]['price_list']['num'] = "不限";
 					} else {
 						$list[$key]['price_list']['num'] = $item['num'];
@@ -368,7 +368,7 @@ if ($op == 'room') {
 			}
 		}
 		message(error(0, $list), '', 'ajax');
-	} else if ($ac == 'edit_status') {
+	} elseif ($ac == 'edit_status') {
 		$roomid = intval($_GPC['roomid']);
 		$num = intval($_GPC['num'])>=0 ? intval($_GPC['num']) : 0;
 		$status = empty($_GPC['status']) ? 1 : 0;
@@ -386,7 +386,7 @@ if ($op == 'room') {
 			pdo_update("storex_room_price", $roomprice, array("id" => $roomprice['id']));
 		}
 		message(error(0, '更新房态成功！'), '', 'ajax');
-	} else if ($ac == 'edit_price') {
+	} elseif ($ac == 'edit_price') {
 		$roomid = intval($_GPC['roomid']);
 		$price = intval($_GPC['price'])<0 ? 0 : intval($_GPC['price']);
 		$pricetype = $_GPC['pricetype'];

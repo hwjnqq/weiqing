@@ -24,9 +24,8 @@ if ($op == 'display') {
 	if ($total > 0) {
 		$pindex = max(1, intval($_GPC['page']));
 		$psize = 10;
-		$sql = 'SELECT * FROM ' . tablename('storex_bases') . $where . ' ORDER BY `displayorder` DESC LIMIT ' .
-				($pindex - 1) * $psize . ',' . $psize;
-		$list = pdo_fetchall($sql, $params);
+		$list = pdo_getall('storex_bases', array('weid' => $_W['uniacid'], 'title LIKE' => "%{$_GPC['keywords']}%"), array(), '',
+			 'displayorder DESC', ($pindex - 1) * $psize . ',' . $psize);
 		$pager = pagination($total, $pindex, $psize);
 	}
 	
@@ -152,9 +151,7 @@ if ($op == 'edit') {
 	}
 	
 	//品牌
-	$sql = 'SELECT * FROM ' . tablename('storex_brand') . ' WHERE `weid` = :weid';
-	$params = array(':weid' => $_W['uniacid']);
-	$brands = pdo_fetchall($sql, $params);
+	$brands = pdo_getall('storex_brand', array('weid' => $_W['uniacid']));
 	
 	$sql = 'SELECT `title` FROM ' . tablename('storex_business') . ' WHERE `weid` = :weid AND `id` = :id';
 	$params[':id'] = intval($item['businessid']);
@@ -228,14 +225,7 @@ if ($op == 'status') {
 
 if ($op == 'query') {
 	$kwd = trim($_GPC['keyword']);
-	$sql = 'SELECT id,title,description,thumb FROM ' . tablename('storex_hotel') . ' WHERE `weid`=:weid';
-	$params = array();
-	$params[':weid'] = $_W['uniacid'];
-	if (!empty($kwd)) {
-		$sql.=" AND `title` LIKE :title";
-		$params[':title'] = "%{$kwd}%";
-	}
-	$ds = pdo_fetchall($sql, $params);
+	$ds = pdo_getall('storex_hotel', array('weid' => $_W['uniacid'], 'title LIKE' => "%{$kwd}%"), array('id','title','description','thumb'));
 	foreach ($ds as &$value) {
 		$value['thumb'] = tomedia($value['thumb']);
 	}
@@ -244,14 +234,7 @@ if ($op == 'query') {
 
 if ($op == 'getbusiness') {
 	$kwd = trim($_GPC['keyword']);
-	$sql = 'SELECT * FROM ' . tablename('storex_business') . ' WHERE `weid`=:weid';
-	$params = array();
-	$params[':weid'] = $_W['uniacid'];
-	if (!empty($kwd)) {
-		$sql.=" AND `title` LIKE :title";
-		$params[':title'] = "%{$kwd}%";
-	}
-	$ds = pdo_fetchall($sql, $params);
+	$ds = pdo_getall('storex_business', array('weid' => $_W['uniacid'], 'title LIKE' => "%{$kwd}%"));
 	include $this->template('business_query');
 	exit();
 }
