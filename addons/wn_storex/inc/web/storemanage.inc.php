@@ -155,6 +155,7 @@ if ($op == 'edit') {
 	
 	$sql = 'SELECT `title` FROM ' . tablename('storex_business') . ' WHERE `weid` = :weid AND `id` = :id';
 	$params[':id'] = intval($item['businessid']);
+	$params[':weid'] = intval($_W['uniacid']);
 	$item['hotelbusinesss'] = pdo_fetchcolumn($sql, $params);
 	$storex_bases['thumbs'] =  iunserializer($storex_bases['thumbs']);
 	$storex_bases['detail_thumbs'] =  iunserializer($storex_bases['detail_thumbs']);
