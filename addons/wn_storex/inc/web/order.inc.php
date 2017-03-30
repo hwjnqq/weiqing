@@ -55,19 +55,10 @@ if ($op == 'edit') {
 			message('订单状态已经是该状态了，不要重复操作！', '', 'error');
 		}
 		if ($store_type == 1){
-			$params = array();
-			$sql = "SELECT id, roomdate, num FROM " . tablename('storex_room_price');
-			$sql .= " WHERE 1 = 1";
-			$sql .= " AND roomid = :roomid";
-			$sql .= " AND roomdate >= :btime AND roomdate < :etime";
-			$sql .= " AND status = 1";
-				
-			$params[':roomid'] = $item['roomid'];
-			$params[':btime'] = $item['btime'];
-			$params[':etime'] = $item['etime'];
 			//订单取消
 			if ($data['status'] == -1 || $data['status'] == 2) {
-				$room_date_list = pdo_fetchall($sql, $params);
+				$room_date_list = pdo_getall('storex_room_price', array('roomid' => $item['roomid'], 'roomdate >=' => $item['btime'], 'roomdate <' => $item['etime'], 'status' => 1), 
+					array('id', 'roomdate', 'num', 'status'));
 				if ($room_date_list) {
 					foreach ($room_date_list as $key => $value) {
 						$num = $value['num'];
@@ -218,15 +209,8 @@ if ($op == 'edit') {
 				$date_array[$i]['month'] = date('m', $date_array[$i]['time']);
 			}
 		}
-		$sql = "SELECT id, roomdate, num, status FROM " . tablename('storex_room_price');
-		$sql .= " WHERE 1 = 1";
-		$sql .= " AND roomid = :roomid";
-		$sql .= " AND roomdate >= :btime AND roomdate < :etime";
-		$sql .= " AND status = 1";
-		$params[':roomid'] = $item['roomid'];
-		$params[':btime'] = $item['btime'];
-		$params[':etime'] = $item['etime'];
-		$room_date_list = pdo_fetchall($sql, $params);
+		$room_date_list = pdo_getall('storex_room_price', array('roomid' => $item['roomid'], 'roomdate >=' => $item['btime'], 'roomdate <' => $item['etime'], 'status' => 1), 
+				array('id', 'roomdate', 'num', 'status'));
 		if ($room_date_list) {
 			$flag = 1;
 		} else {
@@ -242,7 +226,7 @@ if ($op == 'edit') {
 						$list[$k]['status'] = $p_value['status'];
 						if (empty($p_value['num'])) {
 							$list[$k]['num'] = 0;
-						} else if ($p_value['num'] == -1) {
+						} elseif ($p_value['num'] == -1) {
 							$list[$k]['num'] = "不限";
 						} else {
 							$list[$k]['num'] = $p_value['num'];

@@ -1,9 +1,9 @@
 {template 'common/header'}
 {template 'common'}
 <ul class="nav nav-tabs">
-	<li {if $operation == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('goodscategory', array('op' => 'display'))}">店铺子分类管理</a></li>
-	{if $operation == 'post'}
-	<li {if $operation == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('goodscategory', array('op' => 'post'))}">添加分类</a></li>
+	<li {if $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('goodscategory', array('op' => 'display'))}">店铺子分类管理</a></li>
+	{if $op == 'post'}
+	<li {if $op == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('goodscategory', array('op' => 'post'))}">添加分类</a></li>
 	{/if}
 </ul>
 <script>
@@ -15,7 +15,7 @@
 		});
 	});
 </script>
-{if $operation == 'post'}
+{if $op == 'post'}
 <div class="main">
 	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form1">
 		<div class="panel panel-default">
@@ -99,7 +99,7 @@
 	</form>
 </div>
 
-{elseif $operation == 'display'}
+{elseif $op == 'display'}
 <div class="main">
 	<div class="category">
 		<form action="" method="post" onsubmit="return formcheck(this)">

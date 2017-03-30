@@ -55,7 +55,6 @@ if ($op == 'showall') {
 	}
 	foreach ($_GPC['idArr'] as $k => $id) {
 		$id = intval($id);
-	
 		if (!empty($id)) {
 			pdo_update('storex_brand', array('status' => $show_status), array('id' => $id));
 		}
@@ -87,7 +86,7 @@ if ($op == 'display') {
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	$list = pdo_fetchall("SELECT * FROM " . tablename('storex_brand') . " WHERE weid = '{$_W['uniacid']}' $sql ORDER BY displayorder DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+	$list = pdo_getall('storex_brand', array('weid' => $_W['uniacid'], 'title LIKE' => "%{$_GPC['title']}%"), array(), '', 'displayorder DESC', ($pindex - 1) * $psize.','.$psize);
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_brand') . " WHERE weid = '{$_W['uniacid']}' $sql", $params);
 	$pager = pagination($total, $pindex, $psize);
 	include $this->template('brand');

@@ -17,7 +17,7 @@ if ($op == 'copyroom') {
 	$store_info = pdo_get('storex_bases', array('id' => $store_base_id, 'weid' => $_W['uniacid']), array('id', 'store_type'));
 	if (!empty($store_info)) {
 		$table = gettablebytype($store_info['store_type']);
-	}else{
+	} else {
 		message('店铺不存在！');
 	}
 	$item = pdo_get($table, array('id' => $id, 'weid' => $_W['uniacid']));
@@ -31,13 +31,10 @@ if ($op == 'copyroom') {
 }
 
 $store_base_id = intval($_GPC['store_base_id']);
-$stores = pdo_fetchall("SELECT * FROM " . tablename('storex_bases') . " WHERE weid = '{$_W['uniacid']}' ORDER BY store_type DESC, displayorder DESC", array(), 'id');
-$sql = '';
-$condition = array(':weid' => $_W['uniacid']);
+$stores = pdo_getall('storex_bases', array('weid' => $_W['uniacid']), array(), 'id', array('store_type DESC', 'displayorder DESC'));
 $store_type = !empty($_GPC['store_type'])? intval($_GPC['store_type']) : 0;
+$condition = array('weid' => $_W['uniacid']);
 if (!empty($store_base_id)){
-	$sql = ' AND `store_base_id` = :store_base_id';
-	$condition[':store_base_id'] = $store_base_id;
 	foreach ($stores as $store_info){
 		if ($store_info['id'] == $store_base_id){
 			$store_type = $store_info['store_type'];
@@ -45,9 +42,9 @@ if (!empty($store_base_id)){
 			continue;
 		}
 	}
+	$condition['store_base_id'] = $store_base_id;
 }
-$sql = 'SELECT * FROM ' . tablename('storex_categorys') . ' WHERE `weid` = :weid '.$sql.' ORDER BY `parentid`, `displayorder` DESC';
-$category = pdo_fetchall($sql, $condition, 'id');
+$category = pdo_getall('storex_categorys', $condition, array(), 'id', array('parentid', 'displayorder DESC'));
 if (!empty($category)) {
 	$parent = $children = array();
 	foreach ($category as $cid => $cate) {
@@ -83,7 +80,7 @@ if ($op == 'edit') {
 	if (!empty($category_store)){
 		$store_base_id = $category_store['store_base_id'];
 	}
-	$usergroup_list = pdo_fetchall("SELECT * FROM ".tablename('mc_groups')." WHERE uniacid = :uniacid ORDER BY isdefault DESC,credit ASC", array(':uniacid' => $_W['uniacid']));
+	$usergroup_list = pdo_getall('mc_groups', array('uniacid' => $_W['uniacid']), array(), '', array('isdefault DESC', 'credit ASC'));
 	if (!empty($id)) {
 		$item = pdo_fetch("SELECT * FROM " . tablename($table) . " WHERE id = :id", array(':id' => $id));
 		$store_base_id = $item[$store_field];

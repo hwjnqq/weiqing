@@ -73,7 +73,6 @@ if ($op == 'status') {
 		message('抱歉，传递的参数错误！', '', 'error');
 	}
 	$temp = pdo_update('storex_business', array('status' => $_GPC['status']), array('id' => $id));
-	
 	if ($temp == false) {
 		message('抱歉，刚才操作数据失败！', '', 'error');
 	} else {
@@ -90,7 +89,7 @@ if ($op == 'display') {
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	$list = pdo_fetchall("SELECT * FROM " . tablename('storex_business') . " WHERE weid = '{$_W['uniacid']}' $sql ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+	$list = pdo_getall('storex_business', array('weid' => $_W['uniacid'], 'title LIKE' => "%{$_GPC['title']}%"), array(), '', 'id DESC', ($pindex - 1) * $psize . ',' . $psize);
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_business') . " WHERE weid = '{$_W['uniacid']}' $sql", $params);
 	$pager = pagination($total, $pindex, $psize);
 	include $this->template('business');

@@ -20,7 +20,7 @@
             		<div class="col-sm-9 col-xs-12">
             			{php echo tpl_form_field_daterange('datelimit',array('starttime'=>date('Y-m-d', $startime),'endtime'=>date('Y-m-d', $endtime)))}
               			<input class="btn btn-primary" id="search_button" type="button" value="搜索">
-                		<a href="{php echo $this->createWebUrl('room_status', array('ac'=>'updatelot','hotelid' => $hotelid));}" class="btn btn-primary">批量修改房量/房态</a>
+                		<a href="{php echo $this->createWebUrl('room_status', array('op'=>'updatelot','hotelid' => $hotelid));}" class="btn btn-primary">批量修改房量/房态</a>
         			</div>
     			</div>
         	</div>
@@ -42,7 +42,7 @@ $(function () {
     var next_page = 0;
     window.get_list  = function(start, end, page) {
         $("#d_list").html("正在加载...");
-        $.post("{php echo $this->createWebUrl('room_status')}", {ac: 'getDate', hotelid:{$hotelid}, page: page, start: start, end: end}, function (data) {
+        $.post("{php echo $this->createWebUrl('room_status')}", {op: 'getDate', hotelid:{$hotelid}, page: page, start: start, end: end}, function (data) {
             data = eval("(" + data + ")");
             if (data.result == 1) {
                 $("#d_list").html(data.code);
@@ -108,7 +108,7 @@ $(function () {
             obj.parent().addClass('hide');
              if(price=='') { price='-1';}
              $.post("{php echo $this->createWebUrl('room_status')}", 
-               {ac: 'submitPrice', hotelid:hotelid,roomid:roomid,date:date,price: price,pricetype:pricetype}, function (data) {
+               {op: 'submitPrice', hotelid:hotelid,roomid:roomid,date:date,price: price,pricetype:pricetype}, function (data) {
                 data = eval("(" + data + ")");
                 if (data.result == 1) {
                 }
@@ -116,7 +116,7 @@ $(function () {
         }
         else{
              $.post("{php echo $this->createWebUrl('room_status')}", 
-               {ac: 'submitPrice', hotelid:hotelid,roomid:roomid,date:date,status: (obj.get(0).checked?"1":"0"),pricetype:pricetype}, function (data) {
+               {op: 'submitPrice', hotelid:hotelid,roomid:roomid,date:date,status: (obj.get(0).checked?"1":"0"),pricetype:pricetype}, function (data) {
                 data = eval("(" + data + ")");
                 if (data.result == 1) {
                 }

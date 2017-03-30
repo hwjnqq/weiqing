@@ -160,7 +160,7 @@ if ($op == 'display') {
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	$list = pdo_fetchall("SELECT * FROM " . tablename('storex_member') . " WHERE weid = '{$_W['uniacid']}' $sql ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+	$list = pdo_getall('storex_member', array('weid' => $_W['uniacid'], 'realname LIKE' => "%{$_GPC['realname']}%", 'mobile LIKE' => "%{$_GPC['mobile']}%"), array(), '', 'id DESC', ($pindex - 1) * $psize . ',' . $psize);
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_member') . " WHERE weid = '{$_W['uniacid']}' $sql", $params);
 	$pager = pagination($total, $pindex, $psize);
 	include $this->template('member');

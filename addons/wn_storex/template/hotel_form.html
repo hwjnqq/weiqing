@@ -28,6 +28,20 @@
 					</div>
 				</div>
 				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺皮肤</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="skin_style" value="style1" {if $item['skin_style'] == 'style1'}checked{/if}/>经典
+						</label>
+						<img src="../addons/wn_storex/icon.jpg" class="img-rounded" style="height:300px;width:180px">
+						<label class="radio-inline">
+							<input type="radio" name="skin_style" value="style2" {if $item['skin_style'] == 'style2'}checked{/if}/>黑色
+						</label>
+						<img src="../addons/wn_storex/icon.jpg" class="img-rounded" style="height:300px;width:180px">
+						<span class='help-block'>店铺皮肤决定店铺的直观体验，慎重选择</span>
+					</div>
+				</div>
+				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
 					<div class="col-sm-9 col-xs-12">
 						<input type="text" id="displayorder" name="displayorder"  class="form-control" value="{$item['displayorder']}">
@@ -117,6 +131,15 @@
 						{php echo tpl_form_field_coordinate('baidumap',$item)}
 					</div>
 				</div>
+				<span {if $item['store_type'] == 1}style="display: none"{/if} id="distance_info">
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">配送距离</label>
+						<div class="col-sm-9 col-xs-12">
+							<input type="text" id="distance" name="distance"  class="form-control" value="{$item['distance']}">
+							<span class='help-block'>配送距离（单位：公里），不填或0，则不限距离</span>
+						</div>
+					</div>
+				</span>
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺介绍</label>
 					<div class="col-sm-9 col-xs-12">
@@ -144,19 +167,6 @@
 						<div class="help-block">店铺位置交通说明(选填)</div>
 					</div>
 				</div> 
-				<span {if $item['store_type'] == 1}style="display: none"{/if} id="distance_info">
-					<div class="form-group">
-						<label class="col-xs-12 col-sm-3 col-md-2 control-label">配送距离</label>
-						<div class="col-sm-9 col-xs-12">
-							{if !empty($item['distance'])}
-							<input type="text" id="distance" name="distance"  class="form-control" value="{$item['distance']}">
-							{else}
-							<input type="text" id="distance" name="distance"  class="form-control" value="不限">
-							{/if}
-							<span class='help-block'>配送距离（单位：公里）</span>
-						</div>
-					</div>
-				</span>
 				<span {if $item['store_type'] != 1}style="display: none"{/if} id="store_add_info">
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label">酒店品牌</label>
@@ -263,7 +273,7 @@
 
 	function search_business() {
 		$("#module-menus").html("正在搜索....")
-		$.post('{php echo $this->createWebUrl('GetBusiness');}', {
+		$.post('{php echo $this->createWebUrl("storemanage",array("op"=>"getbusiness"));}', {
 			keyword: $.trim($('#search-kwd').val())
 		}, function(dat){
 			$('#module-menus').html(dat);

@@ -154,11 +154,11 @@
 				</td>
 				<td>
 					{if !empty($store_type)}
-					<a href="{php echo $this->createWebUrl('copyroom',array('store_base_id'=>$item['hotelid'],'id'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="复制商品">复制商品</a>
+					<a href="{php echo $this->createWebUrl('goodsmanage',array('op'=>'copyroom','store_base_id'=>$item['hotelid'],'id'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="复制商品">复制商品</a>
 					<a href="{php echo $this->createWebUrl('goodscomment',array('store_base_id'=>$item['hotelid'],'id'=>$item['id'],'store_type'=> $store_type))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="查看评价">查看评价</a>
 					<a href="{php echo $this->createWebUrl('order',array('hotelid'=>$item['hotelid'],'roomid'=>$item['id'], store_type => $store_type))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="订单查看">订单查看</a>
 					{else}
-					<a href="{php echo $this->createWebUrl('copyroom',array('store_base_id'=>$item['store_base_id'],'id'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="复制商品">复制商品</a>
+					<a href="{php echo $this->createWebUrl('goodsmanage',array('op'=>'copyroom','store_base_id'=>$item['store_base_id'],'id'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="复制商品">复制商品</a>
 					<a href="{php echo $this->createWebUrl('goodscomment',array('store_base_id'=>$item['store_base_id'],'id'=>$item['id'],'store_type'=> $store_type))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="查看评价">查看评价</a>
 					<a href="{php echo $this->createWebUrl('order',array('hotelid'=>$item['store_base_id'],'roomid'=>$item['id'], store_type => $store_type))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="订单查看">订单查看</a>
 					{/if}

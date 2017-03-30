@@ -25,7 +25,7 @@ if ($op == 'getDate') {
 	$page = intval($_GPC['page']);
 	if ($page > $totalpage) {
 		$page = $totalpage;
-	} else if ($page <= 1) {
+	} elseif ($page <= 1) {
 		$page = 1;
 	}
 	$currentindex = ($page - 1) * $pagesize;
@@ -44,13 +44,7 @@ if ($op == 'getDate') {
 		$date_array[$i]['day'] = date('j', $date_array[$i]['time']);
 		$date_array[$i]['month'] = date('m', $date_array[$i]['time']);
 	}
-	$params = array();
-	$sql = "SELECT r.* FROM " . tablename('storex_room') . "as r";
-	$sql .= " WHERE 1 = 1";
-	$sql .= " AND r.hotelid = $hotelid";
-	$sql .= " AND r.weid = {$_W['uniacid']}";
-	$sql .= " AND r.is_house = 1";
-	$list = pdo_fetchall($sql, $params);
+	$list = pdo_getall('storex_room', array('hotelid' => $hotelid, 'weid' => $_W['uniacid'], 'is_house' => 1));
 	
 	foreach ($list as $key => $value) {
 		$sql = "SELECT * FROM " . tablename('storex_room_price');
@@ -59,6 +53,8 @@ if ($op == 'getDate') {
 		$sql .= " AND roomdate >= " . $btime;
 		$sql .= " AND roomdate < " . ($etime + 86400);
 		$item = pdo_fetchall($sql);
+		
+// 		$item = pdo_getall('storex_room_price', array('roomid' => $value['id'], 'roomdate >=' => $btime, 'roomdate <' => ($etime + 86400)));
 		if ($item) {
 			$flag = 1;
 		} else {

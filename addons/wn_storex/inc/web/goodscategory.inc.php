@@ -6,11 +6,11 @@ global $_W, $_GPC;
 load()->model('mc');
 
 $ops = array('display', 'post', 'delete');
-$op = $operation = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
+$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
-if ($operation == 'display') {
+if ($op == 'display') {
 	load()->func('tpl');
-	$stores = pdo_fetchall("SELECT * FROM " . tablename('storex_bases') . " WHERE weid = '{$_W['uniacid']}' ORDER BY id ASC, displayorder DESC");
+	$stores = pdo_getall('storex_bases', array('weid' => $_W['uniacid']), array(), '', array('id ASC', 'displayorder DESC'));
 	if (!empty($_GPC['displayorder'])) {
 		foreach ($_GPC['displayorder'] as $id => $displayorder) {
 			pdo_update('storex_categorys', array('displayorder' => $displayorder), array('id' => $id, 'weid' => $_W['uniacid']));
@@ -18,7 +18,7 @@ if ($operation == 'display') {
 		message('分类排序更新成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
 	}
 	$children = array();
-	$category = pdo_fetchall("SELECT * FROM " . tablename('storex_categorys') . " WHERE weid = '{$_W['uniacid']}' ORDER BY store_base_id DESC, parentid ASC, displayorder DESC");
+	$category = pdo_getall('storex_categorys', array('weid' => $_W['uniacid']), array(), '', array('store_base_id DESC', 'parentid ASC', 'displayorder DESC'));
 	foreach ($category as $index => &$row_info) {
 		if (!empty($row_info['store_base_id'])){
 			foreach ($stores as $store_info){
@@ -38,11 +38,11 @@ if ($operation == 'display') {
 	include $this->template('category');
 }
 
-if ($operation == 'post') {
+if ($op == 'post') {
 	$parentid = intval($_GPC['parentid']);
 	$store_base_id = intval($_GPC['store_base_id']);
 	$id = intval($_GPC['id']);
-	$stores = pdo_fetchall("SELECT * FROM " . tablename('storex_bases') . " WHERE weid = '{$_W['uniacid']}' ORDER BY id ASC, displayorder DESC");
+	$stores = pdo_getall('storex_bases', array('weid' => $_W['uniacid']), array(), '', array('id ASC', 'displayorder DESC'));
 	if (!empty($id)) {
 		$category = pdo_get('storex_categorys', array('id' => $id, 'weid' => $_W['uniacid']));
 		foreach ($stores as $k => $store_info){
@@ -93,7 +93,7 @@ if ($operation == 'post') {
 	include $this->template('category');
 }
 
-if ($operation == 'delete') {
+if ($op == 'delete') {
 	$id = intval($_GPC['id']);
 	$category = pdo_get('storex_categorys', array('id' => $id, 'weid' => intval($_W['uniacid'])), array('id', 'parentid', 'store_base_id'));
 	if (empty($category)) {
@@ -104,17 +104,16 @@ if ($operation == 'delete') {
 	if ($store['store_type'] == 1 ){
 		if ($category['parentid'] == 0){
 			pdo_delete('storex_room', array('pcate' => $id, 'weid' => $_W['uniacid']));
-			pdo_query("DELETE FROM" .tablename('storex_categorys'). "WHERE id = :id or parentid = :id and weid = :weid", array('id' => $id, 'weid' => $_W['uniacid']));
+			pdo_delete('storex_categorys', array('id' => $id, 'parentid' => $id), 'OR');
 			message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
 		}
-	
 		pdo_delete('storex_room', array('ccate' => $id, 'weid' => $_W['uniacid']));
 		pdo_delete('storex_categorys', array('id' => $id, 'weid' => $_W['uniacid']));
 		message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
 	}
 	if ($category['parentid'] == 0){
 		pdo_delete('storex_goods', array('pcate' => $id, 'weid' => $_W['uniacid']));
-		pdo_query("DELETE FROM" .tablename('storex_categorys'). "WHERE id = :id or parentid = :id and weid = :weid", array('id' => $id, 'weid' => $_W['uniacid']));
+		pdo_delete('storex_categorys', array('id' => $id, 'parentid' => $id), 'OR');
 		message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
 	}
 	pdo_delete('storex_goods', array('ccate' => $id, 'weid' => $_W['uniacid']));

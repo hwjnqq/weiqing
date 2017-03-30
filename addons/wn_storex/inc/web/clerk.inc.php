@@ -67,7 +67,7 @@ if ($op == 'edit') {
 			message('关注公众号后才能成为店员', referer(), 'info');
 		}
 		if (empty($id)) {
-			$c = pdo_fetchcolumn("select count(*) from " . tablename('storex_clerk') . " where username=:username ", array(":username" => $data['username']));
+			$c = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_clerk') . " WHERE username=:username ", array(":username" => $data['username']));
 			if ($c > 0) {
 				message("用户名 " . $data['username'] . " 已经存在!", "", "error");
 			}
@@ -140,9 +140,7 @@ if ($op == 'clerkcommentlist') {
 	if ($total > 0) {
 		$pindex = max(1, intval($_GPC['page']));
 		$psize = 10;
-		$sql = 'SELECT * FROM ' . tablename('storex_comment_clerk') . $where . ' ORDER BY `id` DESC LIMIT ' .
-				($pindex - 1) * $psize . ',' . $psize;
-		$comments = pdo_fetchall($sql, $params);
+		$comments = pdo_getall('storex_comment_clerk', array('uniacid' => intval($_W['uniacid'])), array(), '', 'id DESC', ($pindex - 1) * $psize . ',' . $psize);
 		$pager = pagination($total, $pindex, $psize);
 	}
 	include $this->template('clerk_comment');
@@ -161,7 +159,7 @@ if ($op == 'display') {
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	$list = pdo_fetchall("SELECT * FROM " . tablename('storex_clerk') . " WHERE weid = '{$_W['uniacid']}'  $sql ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+	$list = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'realname LIKE' => "%{$_GPC['realname']}%", 'mobile LIKE' => "%{$_GPC['mobile']}%"), array(), '', 'id DESC', ($pindex - 1) * $psize . ',' . $psize);
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_clerk') . " WHERE `weid` = '{$_W['uniacid']}' $sql", $params);
 	$pager = pagination($total, $pindex, $psize);
 	include $this->template('clerk');
