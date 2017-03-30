@@ -77,7 +77,7 @@ if ($op == 'info') {
 		$table = 'storex_room';
 		$goods_info = pdo_get($table, $condition);
 		$goods_info = check_price($goods_info);
-	}else{
+	} else {
 		$condition['store_base_id'] = $store_id;
 		$table = 'storex_goods';
 		$goods_info = pdo_get($table, $condition);
@@ -202,9 +202,12 @@ if ($op == 'order'){
 									$max_room = 0;
 									$list['num'] = 0;
 									$list['date'] =  $dates[$i]['date'];
-								} else if ($room_num > 0 && $room_num <= $max_room) {
+								} elseif ($room_num > 0 && $room_num <= $max_room) {
 									$max_room = $room_num;
 									$list['num'] =  $room_num;
+									$list['date'] =  $dates[$i]['date'];
+								} elseif ($room_num > 0 && $room_num > $max_room){
+									$list['num'] =  $max_room;
 									$list['date'] =  $dates[$i]['date'];
 								} else {
 									$max_room = 0;
@@ -231,18 +234,18 @@ if ($op == 'order'){
 					$room['cprice'] = $v['cprice'];
 					if ($pricefield == 'mprice' && !empty($_W['member']['groupid']) && !empty($member_p[$_W['member']['groupid']])) {
 						$this_price = $v['cprice'] * $member_p[$_W['member']['groupid']];
-					}else{
+					} else {
 						$this_price = $v['cprice'];
 					}
 				}
 				$totalprice =  $this_price * $day;
 				$totalprice =  ($this_price + $room['service']) * $days;
 				$service = $room['service'] * $days;
-			}else{
+			} else {
 				//会员的价格mprice=现价*会员卡折扣率
 				if(!empty($_W['member']['groupid']) && !empty($member_p[$_W['member']['groupid']])){
 					$this_price =  $pricefield == 'mprice' ? $room['cprice']*$member_p[$_W['member']['groupid']] : $room['cprice'];
-				}else{
+				} else {
 					$this_price = $room['oprice'];
 				}
 				if ($this_price == 0) {
@@ -270,10 +273,10 @@ if ($op == 'order'){
 			if ($order_exist) {
 				//message(error(0, "您有未完成订单,不能重复下单"), '', 'ajax');
 			}
-		}else{
+		} else {
 			if(!empty($_W['member']['groupid']) && !empty($member_p[$_W['member']['groupid']])){
 				$this_price =  $pricefield == 'mprice' ? $room['cprice']*$member_p[$_W['member']['groupid']] : $room['cprice'];
-			}else{
+			} else {
 				$this_price = $room['cprice'];
 			}
 			$totalprice = $this_price;
@@ -314,7 +317,7 @@ if ($op == 'order'){
 				$starttime += 86400;
 			}
 		}
-	}else{
+	} else {
 		$condition['store_base_id'] = $store_id;
 		$table = 'storex_goods';
 		$goods_info = pdo_get($table, $condition);
@@ -322,7 +325,7 @@ if ($op == 'order'){
 		$member_p = iunserializer($goods_info['mprice']);
 		if(!empty($_W['member']['groupid']) && !empty($member_p[$_W['member']['groupid']])){
 			$now_price =  $pricefield == 'mprice' ? $goods_info['cprice']*$member_p[$_W['member']['groupid']] : $goods_info['cprice'];
-		}else{
+		} else {
 			$now_price = $goods_info['cprice'];
 		}
 		if ($now_price == 0) {
