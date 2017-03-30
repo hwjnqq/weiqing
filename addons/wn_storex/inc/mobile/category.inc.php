@@ -9,7 +9,7 @@ $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 check_params();
 //获取店铺分类
 if ($op == 'category_list'){
-	$pcate_lists = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'parentid' => '0', 'store_base_id' => intval($_GPC['id']), 'enabled' => 1), array('id', 'name'), '', 'displayorder DESC');
+	$pcate_lists = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'parentid' => '0', 'store_base_id' => intval($_GPC['id']), 'enabled' => 1), array('id', 'name', 'category_type'), '', 'displayorder DESC');
 	if (!empty($pcate_lists)) {
 		foreach ($pcate_lists as $val) {
 			$storex_categorys[$val['id']] = $val['name'];
@@ -184,7 +184,7 @@ if ($op == 'class') {
 			$sub_class[$val['parentid']] = $val;
 		}
 	}
-	$pcate_lists = pdo_getall('storex_categorys', array('weid' => intval($_W['uniacid']), 'parentid' => '0', 'store_base_id' => $id, 'enabled' => 1), array('id', 'name', 'thumb'), '', 'displayorder DESC');
+	$pcate_lists = pdo_getall('storex_categorys', array('weid' => intval($_W['uniacid']), 'parentid' => '0', 'store_base_id' => $id, 'enabled' => 1), array('id', 'name', 'thumb', 'category_type'), '', 'displayorder DESC');
 	if (!empty($pcate_lists)) {
 		foreach ($pcate_lists as $key => $val) {
 			if (!empty($val['thumb'])) {
@@ -203,7 +203,7 @@ if ($op == 'class') {
 if ($op == 'sub_class') {
 	$id = intval($_GPC['id']);
 	$class = pdo_get('storex_categorys', array('weid' => intval($_W['uniacid']), 'id' => $id), array('id', 'store_base_id', 'name'));
-	$sub_class = pdo_getall('storex_categorys', array('weid' => intval($_W['uniacid']), 'parentid' => $id), array('id', 'store_base_id', 'name', 'thumb'), '', 'displayorder DESC');
+	$sub_class = pdo_getall('storex_categorys', array('weid' => intval($_W['uniacid']), 'parentid' => $id), array('id', 'store_base_id', 'name', 'thumb', 'category_type'), '', 'displayorder DESC');
 	if (empty($sub_class)) {
 		message(error(-1, '无子分类'), '', 'ajax');
 	} else {

@@ -116,6 +116,7 @@
 			</div>
 		</div>
 		{/if}
+		<!-- 
 		{if $store_type == 1}
 		<div class="form-group">
 			<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品类型</label>
@@ -129,6 +130,7 @@
 			</div>
 		</div>
 		{/if}
+		 -->
 		<div class="form-group">
 			<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品名称(类型)</label>
 			<div class="col-sm-9 col-xs-12">
@@ -321,8 +323,24 @@
 </form>
 
 <script type="text/javascript">
+	var parent = '<?php echo json_encode($parent);?>';
+	parent = $.parseJSON(parent);
+	console.log(parent)
+	$(function(){
+		$("#category_parent").change(function(){
+			var obj = $(this);
+			var sel =obj.find("option:selected");
+			var selectid = sel.val();
+			console.log(selectid)
+			if (parent[selectid].category_type == 1) {
+				$('#hotel_add_info').css('display','block')
+			} else {
+				$('#hotel_add_info').css('display','none')
+			}
+		});
+	})
 	// kindeditor($('.richtext-clone'));
-
+	
 	function search_hotels() {
 		$("#module-menus").html("正在搜索....")
 		$.post('{php echo $this->createWebUrl('hotel',array('op'=>'query'));}', {

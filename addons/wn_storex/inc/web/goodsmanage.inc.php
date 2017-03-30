@@ -126,9 +126,19 @@ if ($op == 'edit') {
 			'sold_num' => intval($_GPC['sold_num']),
 			'store_type' => intval($_GPC['store_type'])
 		);
+		if ($_GPC['store_type'] == 1) {
+			$is_house = 1;
+		} else {
+			$is_house = 2;
+		}
 		if ($storex_bases['category_set'] == 1) {
 			$common['pcate'] = $_GPC['category']['parentid'];
 			$common['ccate'] = $_GPC['category']['childid'];
+			if (!empty($category) && !empty($category[$_GPC['category']['parentid']])) {
+				$is_house = $category[$_GPC['category']['parentid']]['category_type'];
+			} else {
+				$is_house = 2;
+			}
 		}
 		$goods = array(
 			'store_base_id' => $store_base_id,
@@ -149,7 +159,7 @@ if ($op == 'edit') {
 			'smoke' => $_GPC['smoke'],
 			'smoke_show' => $_GPC['smoke_show'],
 			'service' => intval($_GPC['service']),
-			'is_house' => intval($_GPC['is_house']),
+			'is_house' => $is_house,
 		);
 	
 		if (!empty($card_status)) {

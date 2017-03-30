@@ -42,7 +42,7 @@ if ($op == 'post') {
 	$parentid = intval($_GPC['parentid']);
 	$store_base_id = intval($_GPC['store_base_id']);
 	$id = intval($_GPC['id']);
-	$stores = pdo_getall('storex_bases', array('weid' => $_W['uniacid']), array(), '', array('id ASC', 'displayorder DESC'));
+	$stores = pdo_getall('storex_bases', array('weid' => $_W['uniacid']), array(), 'id', array('id ASC', 'displayorder DESC'));
 	if (!empty($id)) {
 		$category = pdo_get('storex_categorys', array('id' => $id, 'weid' => $_W['uniacid']));
 		foreach ($stores as $k => $store_info){
@@ -55,8 +55,15 @@ if ($op == 'post') {
 				'displayorder' => 0,
 		);
 	}
+	$stores_infos = array();
+	if (!empty($stores)) {
+		foreach ($stores as $k => $store_info){
+			$stores_infos[$k]['id'] = $store_info['id'];
+			$stores_infos[$k]['store_type'] = $store_info['store_type'];
+		}
+	}
 	if (!empty($parentid)) {
-		$parent = pdo_get('storex_categorys', array('id' => $parentid), array('id', 'name'));
+		$parent = pdo_get('storex_categorys', array('id' => $parentid), array('id', 'name', 'category_type'));
 		if (empty($parent)) {
 			message('抱歉，上级分类不存在或是已经被删除！', $this->createWebUrl('post'), 'error');
 		}
@@ -68,6 +75,10 @@ if ($op == 'post') {
 		if (empty($_GPC['name'])) {
 			message('抱歉，请输入分类名称！');
 		}
+		$category_type = empty($_GPC['category_type']) ? 2 : intval($_GPC['category_type']);
+		if (!empty($parent)) {
+			$category_type = $parent['category_type'];
+		}
 		$data = array(
 			'weid' => $_W['uniacid'],
 			'name' => $_GPC['name'],
@@ -75,8 +86,9 @@ if ($op == 'post') {
 			'displayorder' => intval($_GPC['displayorder']),
 			'isrecommand' => intval($_GPC['isrecommand']),
 			'description' => $_GPC['description'],
-			'parentid' => intval($parentid),
-			'thumb' => $_GPC['thumb']
+			'parentid' => $parentid,
+			'thumb' => $_GPC['thumb'],
+			'category_type' => $category_type,
 		);
 		$data['store_base_id'] = $store_base_id;
 		if (!empty($id)) {

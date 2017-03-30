@@ -289,6 +289,7 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`name` varchar(50) NOT NULL COMMENT '分类名称',
 	`thumb` varchar(255) NOT NULL COMMENT '分类图片',
 	`store_base_id` int(11) NOT NULL COMMENT '该分类属于哪个店铺的',
+	`category_type` tinyint(2) NOT NULL DEFAULT '1' COMMENT '分类类型  1 酒店，2,普通',
 	`parentid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '上级分类ID,0为第一级',
 	`isrecommand` int(10) DEFAULT '0',
 	`description` varchar(500) NOT NULL COMMENT '分类介绍',

@@ -50,4 +50,7 @@ if (!pdo_fieldexists('storex_bases', 'category_set')) {
 if (!pdo_fieldexists('storex_bases', 'skin_style')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `skin_style` VARCHAR(48) NOT NULL DEFAULT 'style1' COMMENT '皮肤选择';");
 }
+if (!pdo_fieldexists('storex_categorys', 'category_type')) {
+	pdo_query("ALTER TABLE " . tablename('storex_categorys') . " ADD `category_type` TINYINT(2) NOT NULL DEFAULT '1' COMMENT '分类类型 1 酒店，2,普通';");
+}
 ?>
