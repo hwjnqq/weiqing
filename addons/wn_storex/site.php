@@ -724,7 +724,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			$credtis = mc_credit_fetch($_W['member']['uid']);
 		}
 		$pay_data['pay'] = $pay;
-		$pay_data['credtis'] = $credtis;
+		$pay_data['credits'] = $credtis;
 		$pay_data['params'] = json_encode($params);
 		return $pay_data;
 	}
