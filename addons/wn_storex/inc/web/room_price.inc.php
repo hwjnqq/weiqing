@@ -45,22 +45,24 @@ if ($op == 'getDate') {
 		$date_array[$i]['month'] = date('m', $date_array[$i]['time']);
 	}
 	$list = pdo_getall('storex_room', array('hotelid' => $hotelid, 'weid' => $_W['uniacid'], 'is_house' => 1));
-	
+	$sql = "SELECT * FROM " . tablename('storex_room_price');
+	$sql .= " WHERE roomdate >= " . $btime;
+	$sql .= " AND roomdate < " . ($etime + 86400);
+	$room_price = pdo_fetchall($sql);
 	foreach ($list as $key => $value) {
-		$sql = "SELECT * FROM " . tablename('storex_room_price');
-		$sql .= " WHERE 1 = 1";
-		$sql .= " AND roomid = " . $value['id'];
-		$sql .= " AND roomdate >= " . $btime;
-		$sql .= " AND roomdate < " . ($etime + 86400);
-		$item = pdo_fetchall($sql);
-		
-		if ($item) {
+		$item = array();
+		if (!empty($room_price)) {
+			foreach ($room_price as $val) {
+				if ($val['roomid'] == $value['id']) {
+					$item[] = $val;
+				}
+			}
+		}
+		$flag = 0;
+		if (!empty($item)) {
 			$flag = 1;
-		} else {
-			$flag = 0;
 		}
 		$list[$key]['price_list'] = array();
-	
 		if ($flag == 1) {
 			for ($i = 0; $i <= $pagesize; $i++) {
 				$k = $date_array[$i]['time'];
