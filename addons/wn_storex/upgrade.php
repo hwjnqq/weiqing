@@ -48,9 +48,38 @@ if (!pdo_fieldexists('storex_bases', 'category_set')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `category_set` TINYINT NOT NULL DEFAULT '1' COMMENT '分类开启设置1开启，2关闭';");
 }
 if (!pdo_fieldexists('storex_bases', 'skin_style')) {
-	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `skin_style` VARCHAR(48) NOT NULL DEFAULT 'style1' COMMENT '皮肤选择';");
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `skin_style` VARCHAR(48) NOT NULL DEFAULT 'display' COMMENT '皮肤选择';");
 }
 if (!pdo_fieldexists('storex_categorys', 'category_type')) {
 	pdo_query("ALTER TABLE " . tablename('storex_categorys') . " ADD `category_type` TINYINT(2) NOT NULL DEFAULT '1' COMMENT '分类类型 1 酒店，2,普通';");
+}
+
+$category = pdo_getall('storex_categorys');
+$stores = pdo_getall('storex_bases', array(), array('id', 'store_type', 'skin_style'), 'id');
+if (!empty($stores)) {
+	foreach ($stores as $val) {
+		if ($val['skin_style'] == 'style1') {
+			pdo_update('storex_bases', array('skin_style' => 'display'), array('id' => $val['id']));
+		}
+	}
+}
+if (!empty($category) && !empty($stores)) {
+	foreach ($category as &$info){
+		if ($info['category_type'] != 2) {
+			if (!empty($stores[$info['store_base_id']])) {
+				if ($stores[$info['store_base_id']]['store_type'] == 1) {
+					$data = array('category_type' => 1);
+					$info['category_type'] = 1;
+				} else {
+					$data = array('category_type' => 2);
+					$info['category_type'] = 2;
+				}
+				pdo_update('storex_categorys', $data, array('id' => $info['id']));
+			}
+			if (!empty($info['parentid'])) {
+				pdo_update('storex_room', array('is_house' => $info['category_type']), array('id' => $val['id'], 'pcate' => $info['id']));
+			}
+		}
+	}
 }
 ?>

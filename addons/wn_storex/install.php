@@ -254,7 +254,7 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`distance` int(11) NOT NULL COMMENT '配送距离',
 	`weid` int(11) DEFAULT '0',
 	`title` varchar(255) DEFAULT '',
-	`skin_style` varchar(48) NOT NULL DEFAULT 'style1' COMMENT '皮肤选择',
+	`skin_style` varchar(48) NOT NULL DEFAULT 'display' COMMENT '皮肤选择',
 	`category_set` tinyint(4) NOT NULL DEFAULT '1' COMMENT '分类开启设置1开启，2关闭',
 	`lng` decimal(10,6) DEFAULT '0.00',
 	`lat` decimal(10,6) DEFAULT '0.00',
@@ -488,15 +488,16 @@ if (!empty($module)){
 	if(!empty($storex_bases)){
 		foreach($storex_bases as $store_info){
 			$category_insert = array(
-					'weid' => $store_info['weid'],
-					'name' => '房型',
-					'thumb' => '',
-					'store_base_id' => $store_info['id'],
-					'parentid' => 0,
-					'isrecommand' => 1,
-					'description' => '房型',
-					'displayorder' => '',
-					'enabled' => 1,
+				'weid' => $store_info['weid'],
+				'name' => '房型',
+				'thumb' => '',
+				'store_base_id' => $store_info['id'],
+				'parentid' => 0,
+				'isrecommand' => 1,
+				'description' => '房型',
+				'displayorder' => '',
+				'enabled' => 1,
+				'category_type' => 1
 			);
 			pdo_insert('storex_categorys', $category_insert);
 		}
