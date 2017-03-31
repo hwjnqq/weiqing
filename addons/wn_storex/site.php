@@ -179,20 +179,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 
 	public function doMobiledisplay() {
 		global $_GPC, $_W;
-		$url = $this->createMobileurl('display');
-		if (!empty($_GPC['orderid'])) {
-			$redirect =  $url.'#/Home/OrderInfo/' . $_GPC['orderid'];
-			header("Location: $redirect");
-		}
-		if ($_GPC['pay_type'] == 'recharge') {
-			$redirect =  $url.'#/Home/Index';
-			header("Location: $redirect");
-		}
-		include $this->template('display');
-	}
-	
-	public function doMobileswitch() {
-		global $_GPC, $_W;
 		$id = intval($_GPC['id']);
 		$url = $this->createMobileurl('display');
 		if (!empty($_GPC['orderid'])) {
@@ -203,12 +189,16 @@ class Wn_storexModuleSite extends WeModuleSite {
 			$redirect =  $url.'#/Home/Index';
 			header("Location: $redirect");
 		}
+		$skin_style = $this->get_skin_style($id);
+		include $this->template($skin_style);
+	}
+	
+	//店铺id
+	public function get_skin_style($id){
 		$store = pdo_get('storex_bases', array('id' => $id), array('id', 'skin_style'));
-		if (empty($store['skin_style']) || $store['skin_style'] == 'default') {
-			include $this->template('display');
-		} else {
-			include $this->template($store['skin_style']);
-		}
+		$style = array('display', 'black');
+		$skin_style = in_array($store['skin_style'], $style) ? $store['skin_style'] : 'display';
+		return $skin_style;
 	}
 	
 	//检查酒店版本
@@ -586,7 +576,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				if ($paytype == 3){
 					message('提交成功！', '../../app/' . $this->createMobileUrl('detail', array('hid' => $room['hotelid'])), 'success');
 				} else {
-					message('支付成功！', $this->createMobileurl('display', array('orderid' => $params['tid'])), 'success');
+					message('支付成功！', $this->createMobileurl('display', array('orderid' => $params['tid'], 'id' => $order['hotelid'])), 'success');
 				}
 			}
 		}
