@@ -94,6 +94,10 @@ if ($op == 'post') {
 		if (!empty($id)) {
 			unset($data['parentid']);
 			pdo_update('storex_categorys', $data, array('id' => $id, 'weid' => $_W['uniacid']));
+			if ($category['id'] == $id && $data['category_type'] != $category['category_type'] && $stores[$store_base_id]['store_type'] == 1) {
+				pdo_update('storex_categorys', array('category_type' => $data['category_type']), array('parentid' => $id, 'weid' => $_W['uniacid']));
+				pdo_update('storex_room', array('is_house' => $data['category_type']), array('pcate' => $id, 'weid' => $_W['uniacid'], 'hotelid' => $store_base_id));
+			}
 			load()->func('file');
 			file_delete($_GPC['thumb_old']);
 		} else {
