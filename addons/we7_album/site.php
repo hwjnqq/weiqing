@@ -32,7 +32,7 @@ class We7_albumModuleSite extends WeModuleSite {
 				LIMIT ' . ($pindex - 1) * $psize . ',' . $psize;
 		$result['list'] = pdo_fetchall($sql, array(':albumid' => $album['id']));
 		$url = "app/index.php?c=entry&m=we7_album&do=detail&id={$album['id']}&i={$_W['uniacid']}";
-
+		$imageurl = "/app/index.php?c=entry&amp;m=we7_album&amp;do=image&amp;id={$album['id']}&amp;i={$_W['uniacid']}&amp;attach=";
 		//360全景
 		if ($album['type'] == 1 && $_GPC['gettype'] == 'xml') {
 			$result['list'] = pdo_fetchall("SELECT * FROM " . tablename('album_photo') . " WHERE albumid = :albumid ORDER BY displayorder ASC", array(':albumid' => $album['id']));
@@ -50,7 +50,7 @@ class We7_albumModuleSite extends WeModuleSite {
 					<polystyle mode="0" backgroundalpha="0.2509803921568627" backgroundcolor="0x0000ff" bordercolor="0x0000ff" borderalpha="1"/>
 				</hotspots>
 				<media/>
-				<input tilesize="700" tilescale="1.014285714285714" tile0url="' . $_W['attachurl'] . $result['list']['0']['attachment'] . '" tile1url="' . $_W['attachurl'] . $result['list']['1']['attachment'] . '" tile2url="' . $_W['attachurl'] . $result['list']['2']['attachment'] . '" tile3url="' . $_W['attachurl'] . $result['list']['3']['attachment'] . '" tile4url="' . $_W['attachurl'] . $result['list']['4']['attachment'] . '" tile5url="' . $_W['attachurl'] . $result['list']['5']['attachment'] . '"/>
+				<input tilesize="700" tilescale="1.014285714285714" tile0url="' . $imageurl . $_W['attachurl'] . $result['list']['0']['attachment'] . '" tile1url="' . $imageurl . $_W['attachurl'] . $result['list']['1']['attachment'] . '" tile2url="' . $imageurl . $_W['attachurl'] . $result['list']['2']['attachment'] . '" tile3url="' . $imageurl . $_W['attachurl'] . $result['list']['3']['attachment'] . '" tile4url="' . $imageurl . $_W['attachurl'] . $result['list']['4']['attachment'] . '" tile5url="' . $imageurl . $_W['attachurl'] . $result['list']['5']['attachment'] . '"/>
 				<autorotate speed="0.200" nodedelay="0.00" startloaded="1" returntohorizon="0.000" delay="5.00"/>
 				<control simulatemass="1" lockedmouse="0" lockedkeyboard="0" dblclickfullscreen="0" invertwheel="0" lockedwheel="0" invertcontrol="1" speedwheel="1" sensitivity="8"/>
 			</panorama>';
@@ -154,7 +154,7 @@ class We7_albumModuleSite extends WeModuleSite {
 							'weid' => $_W['uniacid'],
 							'albumid' => intval($_GPC['albumid']),
 							'title' => $_GPC['title-new'][$index],
-					
+
 							'description' => $_GPC['description-new'][$index],
 							'attachment' => $_GPC['attachment-new'][$index],
 							'displayorder' => $_GPC['displayorder-new'][$index],
@@ -472,4 +472,17 @@ class We7_albumModuleSite extends WeModuleSite {
 		}
 	}
 
+	public function doMobileImage() {
+		global $_GPC, $_W;
+		load()->func('communication');
+		$image = trim($_GPC['attach']);
+		if(empty($image)) {
+			exit();
+		}
+		$content = ihttp_request($image, '', '');
+		header('Content-Type:image/jpg');
+		echo $content['content'];
+		exit();
+
+	}
 }
