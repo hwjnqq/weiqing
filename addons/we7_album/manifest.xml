@@ -3,7 +3,7 @@
 	<application setting="true">
 		<name><![CDATA[微相册]]></name>
 		<identifie><![CDATA[we7_album]]></identifie>
-		<version><![CDATA[3.7.1]]></version>
+		<version><![CDATA[3.7.2]]></version>
 		<type><![CDATA[business]]></type>
 		<ability><![CDATA[展示一系列图片来介绍你的公众号]]></ability>
 		<description><![CDATA[相册]]></description>
