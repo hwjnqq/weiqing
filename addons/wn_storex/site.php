@@ -185,7 +185,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			header("Location: $redirect");
 		}
 		if ($_GPC['pay_type'] == 'recharge') {
-			$redirect =  $url.'#/Home';
+			$redirect =  $url.'#/Home/Index';
 			header("Location: $redirect");
 		}
 		include $this->template('display');
@@ -200,7 +200,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			header("Location: $redirect");
 		}
 		if ($_GPC['pay_type'] == 'recharge') {
-			$redirect =  $url.'#/Home';
+			$redirect =  $url.'#/Home/Index';
 			header("Location: $redirect");
 		}
 		$store = pdo_get('storex_bases', array('id' => $id), array('id', 'skin_style'));
