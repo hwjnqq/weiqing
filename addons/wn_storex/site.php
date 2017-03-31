@@ -180,13 +180,13 @@ class Wn_storexModuleSite extends WeModuleSite {
 	public function doMobiledisplay() {
 		global $_GPC, $_W;
 		$id = intval($_GPC['id']);
-		$url = $this->createMobileurl('display');
+		$url = $this->createMobileurl('display',array('id' => $id));
 		if (!empty($_GPC['orderid'])) {
 			$redirect =  $url.'#/Home/OrderInfo/' . $_GPC['orderid'];
 			header("Location: $redirect");
 		}
 		if ($_GPC['pay_type'] == 'recharge') {
-			$redirect =  $url.'#/Home/Index';
+			$redirect =  $url;
 			header("Location: $redirect");
 		}
 		$skin_style = $this->get_skin_style($id);

@@ -153,7 +153,7 @@ if ($op == 'edit') {
 				//增加出售货物的数量
 				add_sold_num($room);
 				$acc = WeAccount::create();
-				$info = '您在'.$hotel['title'].'预订的'.$room['title']."订单已完成,欢迎下次入住";
+				$info = '您在'.$hotel['title'].'预订的'.$room['title']."订单已完成,欢迎下次光临";
 				$custom = array(
 					'msgtype' => 'text',
 					'text' => array('content' => urlencode($info)),

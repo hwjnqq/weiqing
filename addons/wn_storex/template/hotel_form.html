@@ -2,6 +2,13 @@
 
 {template 'common'}
 
+<style>
+.item{position:relative;display:block;float:left;border:1px #ddd solid;border-radius:5px;background-color:#fff;padding:5px;width:190px;margin:0 20px 20px 0; overflow:hidden;}
+.title{margin:5px auto;line-height:2em;}
+.item img{width:178px;height:270px; cursor:pointer;}
+.item-style:hover img{width:178px;height:270px;border:3px #009cd6 solid;padding:1px; }
+.title .fa{display:none}
+</style>
 <div class="main">
 	<ul class="nav nav-tabs">
 		<li {if $op=='list' || empty($op)}class="active"{/if}><a href="{php echo $this->createWebUrl('storemanage',array('op'=>'list'));}">店铺管理</a></li>
@@ -31,16 +38,50 @@
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺皮肤</label>
 					<div class="col-sm-9 col-xs-12">
 						<label class="radio-inline">
+							<div class="item item-style {if $item['skin_style'] == 'display'} active{/if}">
+								<div class="title">
+									<div style="overflow:hidden; height:28px;center:auto">经典皮肤
+										<input style="margin-left:10px" type="radio" name="skin_style" value="display" {if $item['skin_style'] == 'display'}checked{/if}/>
+									</div>
+									<img src="../addons/wn_storex/display.png" class="img-rounded" />
+									<span class="fa fa-check"></span>
+								</div>
+							</div>
+						</label>
+						<label class="radio-inline">
+							<div class="item item-style {if $item['skin_style'] == 'black'} active{/if}">
+								<div class="title">
+									<div style="overflow:hidden; height:28px;">黑色皮肤（酒店）
+										<input style="margin-left:10px;" type="radio" name="skin_style" value="black" {if $item['skin_style'] == 'black'}checked{/if}/>
+									</div>
+									<img src="../addons/wn_storex/black.png" class="img-rounded" />
+									<span class="fa fa-check"></span>
+								</div>
+							</div>
+						</label>
+						<span class='help-block'>店铺皮肤决定店铺的直观体验，慎重选择（黑色皮肤是酒店专用）</span>
+					</div>
+				</div>
+				<!-- 
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺皮肤</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
 							<input type="radio" name="skin_style" value="display" {if $item['skin_style'] == 'display'}checked{/if}/>
-							<img src="../addons/wn_storex/icon.jpg" class="img-rounded" style="height:300px;width:180px">
+							<div class="input-group " style="margin-top:.5em;">
+								<img src="../addons/wn_storex/display.png" class="img-rounded">
+							</div>
 						</label>
 						<label class="radio-inline">
 							<input type="radio" name="skin_style" value="black" {if $item['skin_style'] == 'black'}checked{/if}/>
-							<img src="../addons/wn_storex/icon.jpg" class="img-rounded" style="height:300px;width:180px">
+							<div class="input-group " style="margin-top:.5em;">
+								<img src="../addons/wn_storex/black.png" class="img-rounded">
+							</div>
 						</label>
-						<span class='help-block'>店铺皮肤决定店铺的直观体验，慎重选择</span>
+						<span class='help-block'>店铺皮肤决定店铺的直观体验，慎重选择（黑色皮肤是酒店专用）</span>
 					</div>
 				</div>
+				 -->
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
 					<div class="col-sm-9 col-xs-12">
