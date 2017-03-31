@@ -215,14 +215,12 @@
 	stores_infos = $.parseJSON(stores_infos);
 	$(function(){
 		$("#store_name").change(function(){
-			var obj = $(this);
-			var sel =obj.find("option:selected");
-			var selectid = sel.val();
+			var selectid =$(this).find("option:selected").val();
 			if (stores_infos[selectid].store_type == 1) {
-				$('#category_type').css('display','block')
+				$('#category_type').show();
 				$("input[name=category_type]:eq(0)").attr("checked",'checked');
 			} else {
-				$('#category_type').css('display','none')
+				$('#category_type').hide();
 			}
 		});
 	})

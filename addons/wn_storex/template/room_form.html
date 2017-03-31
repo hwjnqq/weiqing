@@ -325,21 +325,16 @@
 <script type="text/javascript">
 	var parent = '<?php echo json_encode($parent);?>';
 	parent = $.parseJSON(parent);
-	console.log(parent)
 	$(function(){
 		$("#category_parent").change(function(){
-			var obj = $(this);
-			var sel =obj.find("option:selected");
-			var selectid = sel.val();
-			console.log(selectid)
+			var selectid =$(this).find("option:selected").val();
 			if (parent[selectid].category_type == 1) {
-				$('#hotel_add_info').css('display','block')
+				$('#hotel_add_info').show();
 			} else {
-				$('#hotel_add_info').css('display','none')
+				$('#hotel_add_info').hide();
 			}
 		});
 	})
-	// kindeditor($('.richtext-clone'));
 	
 	function search_hotels() {
 		$("#module-menus").html("正在搜索....")

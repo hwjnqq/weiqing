@@ -186,7 +186,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			header("Location: $redirect");
 		}
 		if ($_GPC['pay_type'] == 'recharge') {
-			$redirect =  $url.'#/Home/Index';
+			$redirect =  $url;
 			header("Location: $redirect");
 		}
 		$skin_style = $this->get_skin_style($id);
