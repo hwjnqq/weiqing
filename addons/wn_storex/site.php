@@ -179,7 +179,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 
 	public function doMobiledisplay() {
 		global $_GPC, $_W;
-		$skin_style = trim($_GPC['skin_style']);
 		$url = $this->createMobileurl('display');
 		if (!empty($_GPC['orderid'])) {
 			$redirect =  $url.'#/Home/OrderInfo/' . $_GPC['orderid'];
@@ -189,16 +188,29 @@ class Wn_storexModuleSite extends WeModuleSite {
 			$redirect =  $url.'#/Home';
 			header("Location: $redirect");
 		}
-		switch ($skin_style){
-			case style1 :
-				include $this->template('display');
-			case style2 :
-				include $this->template('black');
-			default:
-				include $this->template('display');
+		include $this->template('display');
+	}
+	
+	public function doMobileswitch() {
+		global $_GPC, $_W;
+		$id = intval($_GPC['id']);
+		$url = $this->createMobileurl('display');
+		if (!empty($_GPC['orderid'])) {
+			$redirect =  $url.'#/Home/OrderInfo/' . $_GPC['orderid'];
+			header("Location: $redirect");
+		}
+		if ($_GPC['pay_type'] == 'recharge') {
+			$redirect =  $url.'#/Home';
+			header("Location: $redirect");
+		}
+		$store = pdo_get('storex_bases', array('id' => $id), array('id', 'skin_style'));
+		if (empty($store['skin_style']) || $store['skin_style'] == 'default') {
+			include $this->template('display');
+		} else {
+			include $this->template($store['skin_style']);
 		}
 	}
-
+	
 	//检查酒店版本
 	public function check_version() {
 		global $_GPC, $_W;
@@ -390,11 +402,17 @@ class Wn_storexModuleSite extends WeModuleSite {
 								}
 							}
 						}
+						echo "<pre>";
+						print_r($recharge_info['backtype']);
+						echo "</pre>";
 						if ($recharge_info['backtype'] == '1') {
 							$add_str = ",充值成功,返积分{$add_credit}分,本次操作共增加余额{$total_fee}元,积分{$add_credit}分";
 							$remark = '用户通过' . $paydata[$params['type']] . '充值' . $fee . $add_str;
 							$record[] = $params['user'];
 							$record[] = $remark;
+							echo "<pre>";
+							print_r($record);
+							echo "</pre>";
 							mc_credit_update($recharge_info['uid'], 'credit1', $add_credit, $record);
 							mc_credit_update($recharge_info['uid'], 'credit2', $total_fee, $record);
 							mc_notice_recharge($recharge_info['openid'], $recharge_info['uid'], $total_fee, '', $remark);
@@ -404,6 +422,9 @@ class Wn_storexModuleSite extends WeModuleSite {
 							$record[] = $params['user'];
 							$record[] = $remark;
 							$record[] = $this->module['name'];
+							echo "<pre>";
+							print_r($record);
+							echo "</pre>";
 							mc_credit_update($params['user'], 'credit2', $total_fee, $record);
 							mc_notice_recharge($recharge_info['openid'], $params['user'], $total_fee, '', $remark);
 						}
@@ -668,6 +689,9 @@ class Wn_storexModuleSite extends WeModuleSite {
 			message(error(-1, '支付功能只能在手机上使用'), '', 'ajax');
 		}
 		$params['module'] = $this->module['name'];
+		echo "<pre>";
+		print_r($params);
+		echo "</pre>";
 		$pars = array();
 		$pars[':uniacid'] = $_W['uniacid'];
 		$pars[':module'] = $params['module'];

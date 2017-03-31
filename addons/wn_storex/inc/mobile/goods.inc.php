@@ -109,6 +109,12 @@ if ($op == 'order'){
 		'nums' => intval($_GPC['order']['nums']),				//数量
 		'time' => TIMESTAMP,					//下单时间（TIMESTAMP）
 	);
+	if (empty($order_info['mobile'])) {
+		message(error(-1, '手机号码不能为空'), '', 'ajax');
+	}
+	if (!preg_match(REGULAR_MOBILE, $order_info['mobile'])) {
+		message(error(-1, '手机号码格式不正确'), '', 'ajax');
+	}
 	if ($order_info['nums'] <= 0) {
 		message(error(-1, '数量不能是零'), '', 'ajax');
 	}
