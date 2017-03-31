@@ -64,6 +64,7 @@ if ($op == 'info') {
 	$store_info = get_store_info($id);
 	$member = array();
 	$member['from_user'] = $_W['openid'];
+	$member['weid'] = intval($_W['uniacid']);
 	$record = hotel_member_single($member);
 	$info = array();
 	if (!empty($record)) {
