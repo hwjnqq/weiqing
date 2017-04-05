@@ -172,15 +172,17 @@
 						{php echo tpl_form_field_coordinate('baidumap',$item)}
 					</div>
 				</div>
-				<span {if $item['store_type'] == 1}style="display: none"{/if} id="distance_info">
-					<div class="form-group">
-						<label class="col-xs-12 col-sm-3 col-md-2 control-label">配送距离</label>
-						<div class="col-sm-9 col-xs-12">
-							<input type="text" id="distance" name="distance"  class="form-control" value="{$item['distance']}">
-							<span class='help-block'>配送距离（单位：公里），不填或0，则不限距离</span>
-						</div>
+				<div class="form-group">
+					{if $item['store_type'] != 1}
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">配送距离</label>
+					{else}
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">显示距离</label>
+					{/if}
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" id="distance" name="distance"  class="form-control" value="{$item['distance']}">
+						<span class='help-block'>配送距离或者是搜索店铺显示的距离范围（单位：公里），不填或0，则不限距离</span>
 					</div>
-				</span>
+				</div>
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺介绍</label>
 					<div class="col-sm-9 col-xs-12">

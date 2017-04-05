@@ -24,7 +24,7 @@ if ($op == 'store_list') {
 			$distance = round($distance / 1000, 2);
 			$storex_bases[$key]['distances'] = $distance;
 			if (empty($info['distance'])) {
-				$info['distance'] = 10;
+				continue;
 			}
 			if ($distance > $info['distance']) {
 				unset($storex_bases[$key]);
