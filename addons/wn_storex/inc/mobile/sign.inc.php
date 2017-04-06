@@ -90,7 +90,10 @@ function sign_operation($sign_info, $sign_day, $cost = array(), $type = ''){
 			$insert_record['remedy'] = 1;
 			if (!empty($cost)) {
 				$tips = "消费".$cost['remedy_cost']."余额，补签第".$sign_day."天";
-				mc_credit_update($uid, $cost['remedy_cost_type'], -$cost['remedy_cost'], array('0', $tips, 'wn_storex', 0, 0, 1));
+				$return = mc_credit_update($uid, $cost['remedy_cost_type'], -$cost['remedy_cost'], array('0', $tips, 'wn_storex', 0, 0, 1));
+				if (is_array($return)) {
+					message(error(-1, "积分不足，补签失败！"), '', 'ajax');
+				}
 			}
 			$tip1 = "补签获得积分".$sign_info['credit'];
 			$tip2 = "补签成功，获得".$sign_info['credit']."积分";
