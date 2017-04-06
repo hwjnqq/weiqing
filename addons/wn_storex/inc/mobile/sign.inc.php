@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('sign_info', 'sign', 'remedy_sign');
+$ops = array('sign_info', 'sign', 'remedy_sign', 'sign_record');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 check_params();
 $uid = mc_openid2uid($_W['openid']);
@@ -53,6 +53,11 @@ if ($op == 'remedy_sign') {
 		$sign_info = $sign_data['signs'][$remedy_day];
 		sign_operation($sign_info, $remedy_day, $cost, 'remedy');
 	}
+}
+
+if ($op == 'sign_record') {
+	$sign_record = pdo_getall('storex_sign_record', array('uid' => $uid, 'year' => date('Y'), 'month' => date('n')), array(), '', 'day ASC');
+	message(error(0, $sign_record), '', 'ajax');
 }
 
 function sign_operation($sign_info, $sign_day, $cost = array(), $type = ''){
