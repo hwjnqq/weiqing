@@ -56,7 +56,18 @@ if ($op == 'remedy_sign') {
 }
 
 if ($op == 'sign_record') {
-	$sign_record = pdo_getall('storex_sign_record', array('uid' => $uid, 'year' => date('Y'), 'month' => date('n')), array(), '', 'day ASC');
+	$condition = array(
+		'uid' => $uid,
+		'year' => date('Y'),
+	);
+	if (!empty($_GPC['month'])) {
+		if (intval($_GPC['month']) > 12 || intval($_GPC['month']) <= 0) {
+			message(error(-1, '参数错误！'), '', 'ajax');
+		} else {
+			$condition['month'] = intval($_GPC['month']);
+		}
+	}
+	$sign_record = pdo_getall('storex_sign_record', $condition, array(), '', 'day ASC');
 	message(error(0, $sign_record), '', 'ajax');
 }
 
