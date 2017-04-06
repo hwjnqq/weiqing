@@ -24,28 +24,29 @@ if ($op == 'sign_info') {
 if ($op == 'sign') {
 	$sign_data = get_sign_info($sign_max_day);
 	$sign_day = intval($_GPC['day']);
-	if ($sign_day <= $sign_max_day) {
-		message(error(-1, '已经签过了，明天再来吧！'), '', 'ajax');
+	if ($sign_day != date('j')) {
+		message(error(-1, '参数错误！'), '', 'ajax');
 	}
-	if (!empty($sign_data[$sign_day])) {
-		if ($sign_data[$sign_day]['sign_status'] == 1) {
+	if (!empty($sign_data['signs'][$sign_day])) {
+		$sign_info = $sign_data['signs'][$sign_day];
+		if ($sign_info['sign_status'] == 1) {
 			message(error(-1, '已经签过了，明天再来吧！'), '', 'ajax');
 		} else {
 			$insert_record = array(
 				'uniacid' => intval($_W['uniacid']),
 				'uid' => $uid,
-				'credit' => $sign_data[$sign_day]['credit'],
+				'credit' => $sign_info['credit'],
 				'addtime' => TIMESTAMP,
 				'year' => date('Y'),
 				'month' => date('n'),
-				'day' => date('t'),
+				'day' => $sign_day,
 			);
-			$tip = "签到获得积分".$sign_data[$sign_day]['credit'];
+			$tip = "签到获得积分".$sign_info['credit'];
 			pdo_insert('storex_sign_record', $insert_record);
 			$insert_id = pdo_insertid();
 			if (!empty($insert_id)) {
-				mc_credit_update(trim($_W['openid']), 'credit1', $sign_data[$sign_day]['credit'], array('0', $tip, 'wn_storex', 0, 0, 3));
-				message(error(0, '签到成功，获得'.$sign_data[$sign_day]['credit']."积分"), '', 'ajax');
+				mc_credit_update(trim($_W['openid']), 'credit1', $sign_info['credit'], array('0', $tip, 'wn_storex', 0, 0, 3));
+				message(error(0, '签到成功，获得'.$sign_info['credit']."积分"), '', 'ajax');
 			} else {
 				message(error(-1, '签到失败！'), '', 'ajax');
 			}
@@ -56,6 +57,39 @@ if ($op == 'sign') {
 }
 
 if ($op == 'remedy_sign') {
+	$remedy_day = intval($_GPC['day']);
+	$sign_data = get_sign_info($sign_max_day);
+	if ($remedy_day >= date('j')) {
+		message(error(-1, '参数错误！'), '', 'ajax');
+	}
+	if (!empty($sign_data['signs'][$remedy_day])) {
+		$sign_info = $sign_data['signs'][$remedy_day];
+		if ($sign_info['sign_status'] == 1) {
+			message(error(-1, '已经签过了，明天再来吧！'), '', 'ajax');
+		} else {
+			$insert_record = array(
+					'uniacid' => intval($_W['uniacid']),
+					'uid' => $uid,
+					'credit' => $sign_info['credit'],
+					'addtime' => TIMESTAMP,
+					'year' => date('Y'),
+					'month' => date('n'),
+					'day' => $sign_day,
+			);
+			$tip = "签到获得积分".$sign_info['credit'];
+			pdo_insert('storex_sign_record', $insert_record);
+			$insert_id = pdo_insertid();
+			if (!empty($insert_id)) {
+				mc_credit_update(trim($_W['openid']), 'credit1', $sign_info['credit'], array('0', $tip, 'wn_storex', 0, 0, 3));
+				message(error(0, '签到成功，获得'.$sign_info['credit']."积分"), '', 'ajax');
+			} else {
+				message(error(-1, '签到失败！'), '', 'ajax');
+			}
+		}
+	}
+}
+
+function sign_operation($sign_info){
 	
 }
 
@@ -67,6 +101,7 @@ function get_sign_info($sign_max_day){
 	$sign_data['sign'] = $sign;
 	$sign_data['days'] = date('t');
 	$sign_data['month'] = date('n');
+	$sign_data['day'] = date('j');
 	$sign_data['content'] = $set['content'];
 	$sign_data['signs'] = array();
 	$sign_record = pdo_getall('storex_sign_record', array('uid' => $uid, 'year' => date('Y'), 'month' => date('n')), array(),'day','day ASC');
