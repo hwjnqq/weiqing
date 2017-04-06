@@ -269,7 +269,7 @@ if(!function_exists('give_credit')) {
 		$hotel_info = pdo_get('storex_bases', array('weid' => $weid ,'id' => $hotelid), array('integral_rate', 'weid'));
 		$num = $sum_price * $hotel_info['integral_rate']*0.01;//实际消费的金额*比例(值时百分数)*0.01
 		$tips .= "用户消费{$sum_price}元，支付{$sum_price}，积分赠送比率为:【1：{$hotel_info['integral_rate']}%】,共赠送【{$num}】积分";
-		mc_credit_update($openid, 'credit1', $num, array('0', $tip, 'wn_storex', 0, 0, 3));
+		mc_credit_update($openid, 'credit1', $num, array('0', $tips, 'wn_storex', 0, 0, 3));
 		return error(0, $num);
 	}
 }
