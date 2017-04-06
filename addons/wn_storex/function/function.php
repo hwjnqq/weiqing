@@ -111,6 +111,19 @@ function check_params(){
 			'order' => array(),
 			'room' => array(),
 		),
+		'sign' => array(
+			'common' => array(
+				'uniacid' => intval($_W['uniacid']),
+				'openid' => $_W['openid'],
+			),
+			'sign_info' => array(),
+			'sign' => array(
+				'day' => intval($_GPC['day']),
+			),
+			'remedy_sign' => array(
+				'day' => intval($_GPC['day']),
+			),
+		),
 	);
 	$do = trim($_GPC['do']);
 	$op = trim($_GPC['op']);

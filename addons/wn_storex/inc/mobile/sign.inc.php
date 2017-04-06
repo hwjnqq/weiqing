@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('sign_info', 'sign', 'remedy_sign');
+$ops = array('sign_info', 'sign', 'remedy_sign', 'sign_record');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 check_params();
 $uid = mc_openid2uid($_W['openid']);
@@ -15,42 +15,20 @@ if (empty($setting) || $setting['sign_status'] != 1) {
 	message(error(-1, '没有开启签到！'), '', 'ajax');
 }
 $sign_max_day = pdo_get('storex_sign_record', array('uid' => $uid, 'year' => date('Y'), 'month' => date('n')));
-
 if ($op == 'sign_info') {
-	$sign_data = get_sign_info($sign_max_day);
+	$sign_data = get_sign_info($sign_max_day['day']);
 	message(error(0, $sign_data), '', 'ajax');
 }
 
 if ($op == 'sign') {
-	$sign_data = get_sign_info($sign_max_day);
+	$sign_data = get_sign_info($sign_max_day['day']);
 	$sign_day = intval($_GPC['day']);
 	if ($sign_day != date('j')) {
 		message(error(-1, '参数错误！'), '', 'ajax');
 	}
 	if (!empty($sign_data['signs'][$sign_day])) {
 		$sign_info = $sign_data['signs'][$sign_day];
-		if ($sign_info['sign_status'] == 1) {
-			message(error(-1, '已经签过了，明天再来吧！'), '', 'ajax');
-		} else {
-			$insert_record = array(
-				'uniacid' => intval($_W['uniacid']),
-				'uid' => $uid,
-				'credit' => $sign_info['credit'],
-				'addtime' => TIMESTAMP,
-				'year' => date('Y'),
-				'month' => date('n'),
-				'day' => $sign_day,
-			);
-			$tip = "签到获得积分".$sign_info['credit'];
-			pdo_insert('storex_sign_record', $insert_record);
-			$insert_id = pdo_insertid();
-			if (!empty($insert_id)) {
-				mc_credit_update(trim($_W['openid']), 'credit1', $sign_info['credit'], array('0', $tip, 'wn_storex', 0, 0, 3));
-				message(error(0, '签到成功，获得'.$sign_info['credit']."积分"), '', 'ajax');
-			} else {
-				message(error(-1, '签到失败！'), '', 'ajax');
-			}
-		}
+		sign_operation($sign_info, $sign_day);
 	} else {
 		message(error(-1, '参数错误！'), '', 'ajax');
 	}
@@ -58,43 +36,73 @@ if ($op == 'sign') {
 
 if ($op == 'remedy_sign') {
 	$remedy_day = intval($_GPC['day']);
-	$sign_data = get_sign_info($sign_max_day);
+	$sign_data = get_sign_info($sign_max_day['day']);
+	if ($sign_data['sign']['remedy'] == 1) {
+		$cost = array(
+			'remedy' => $sign_data['sign']['remedy'],
+			'remedy_cost' => $sign_data['sign']['remedy_cost'],
+			'remedy_cost_type' => $sign_data['sign']['remedy_cost_type'],
+		);
+	} else {
+		message(error(-1, '未开启补签功能！'), '', 'ajax');
+	}
 	if ($remedy_day >= date('j')) {
 		message(error(-1, '参数错误！'), '', 'ajax');
 	}
 	if (!empty($sign_data['signs'][$remedy_day])) {
 		$sign_info = $sign_data['signs'][$remedy_day];
-		if ($sign_info['sign_status'] == 1) {
-			message(error(-1, '已经签过了，明天再来吧！'), '', 'ajax');
-		} else {
-			$insert_record = array(
-					'uniacid' => intval($_W['uniacid']),
-					'uid' => $uid,
-					'credit' => $sign_info['credit'],
-					'addtime' => TIMESTAMP,
-					'year' => date('Y'),
-					'month' => date('n'),
-					'day' => $sign_day,
-			);
-			$tip = "签到获得积分".$sign_info['credit'];
-			pdo_insert('storex_sign_record', $insert_record);
-			$insert_id = pdo_insertid();
-			if (!empty($insert_id)) {
-				mc_credit_update(trim($_W['openid']), 'credit1', $sign_info['credit'], array('0', $tip, 'wn_storex', 0, 0, 3));
-				message(error(0, '签到成功，获得'.$sign_info['credit']."积分"), '', 'ajax');
-			} else {
-				message(error(-1, '签到失败！'), '', 'ajax');
+		sign_operation($sign_info, $remedy_day, $cost, 'remedy');
+	}
+}
+
+if ($op == 'sign_record') {
+	$sign_record = pdo_getall('storex_sign_record', array('uid' => $uid, 'year' => date('Y'), 'month' => date('n')), array(), '', 'day ASC');
+	message(error(0, $sign_record), '', 'ajax');
+}
+
+function sign_operation($sign_info, $sign_day, $cost = array(), $type = ''){
+	global $_W, $_GPC;
+	$uid = mc_openid2uid($_W['openid']);
+	if ($sign_info['sign_status'] == 1) {
+		message(error(-1, '已经签过了，明天再来吧！'), '', 'ajax');
+	} else {
+		$insert_record = array(
+			'uniacid' => intval($_W['uniacid']),
+			'uid' => $uid,
+			'credit' => $sign_info['credit'],
+			'addtime' => TIMESTAMP,
+			'year' => date('Y'),
+			'month' => date('n'),
+			'day' => $sign_day,
+		);
+		if ($type == 'remedy') {
+			$insert_record['remedy'] = 1;
+			if (!empty($cost)) {
+				$tips = "消费".$cost['remedy_cost']."余额，补签第".$sign_day."天";
+				mc_credit_update($uid, $cost['remedy_cost_type'], -$cost['remedy_cost'], array('0', $tips, 'wn_storex', 0, 0, 1));
 			}
+			$tip1 = "补签获得积分".$sign_info['credit'];
+			$tip2 = "补签成功，获得".$sign_info['credit']."积分";
+			$tip3 = "补签失败！";
+		} else {
+			$tip1 = "签到获得积分".$sign_info['credit'];
+			$tip2 = "签到成功，获得".$sign_info['credit']."积分";
+			$tip3 = "签到失败！";
+		}
+		pdo_insert('storex_sign_record', $insert_record);
+		$insert_id = pdo_insertid();
+		if (!empty($insert_id)) {
+			mc_credit_update($uid, 'credit1', $sign_info['credit'], array('0', $tip1, 'wn_storex', 0, 0, 1));
+			message(error(0, $tip2), '', 'ajax');
+		} else {
+			message(error(-1, $tip3), '', 'ajax');
 		}
 	}
 }
 
-function sign_operation($sign_info){
-	
-}
-
 function get_sign_info($sign_max_day){
 	global $_W, $_GPC;
+	$uid = mc_openid2uid($_W['openid']);
 	$set = pdo_get('storex_sign_set', array('uniacid' => intval($_W['uniacid'])));
 	$sign = iunserializer($set['sign']);
 	$sign_data = array();
