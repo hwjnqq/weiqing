@@ -63,7 +63,7 @@ if ($op == 'sign_record') {
 function sign_operation($sign_info, $sign_day, $cost = array(), $type = ''){
 	global $_W, $_GPC;
 	$uid = mc_openid2uid($_W['openid']);
-	if ($sign_info['sign_status'] == 1) {
+	if ($sign_info['status'] == 1) {
 		message(error(-1, '已经签过了，明天再来吧！'), '', 'ajax');
 	} else {
 		$insert_record = array(
