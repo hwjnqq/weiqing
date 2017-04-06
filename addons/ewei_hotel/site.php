@@ -3702,7 +3702,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 		$hotel_info = pdo_get('hotel2', array('weid' => $weid ,'id' => $hotelid), array('integral_rate', 'weid'));
 		$num = $sum_price * $hotel_info['integral_rate']*0.01;//实际消费的金额*比例(值时百分数)*0.01
 		$tips .= "用户消费{$sum_price}元，支付{$sum_price}，积分赠送比率为:【1：{$hotel_info['integral_rate']}%】,共赠送【{$num}】积分";
-		mc_credit_update($openid, 'credit1', $num, array('0', $tip, 'ewei_hotel', 0, 0, 3));
+		mc_credit_update($openid, 'credit1', $num, array('0', $tips, 'ewei_hotel', 0, 0, 3));
 		return error(0, $num);
 	}
 
