@@ -17,13 +17,13 @@ if ($op == 'store_list') {
 	}
 	$storex_bases = pdo_getall('storex_bases', array('weid' => $_W['uniacid'], 'status' => 1, 'title LIKE' => '%'.$keyword.'%'), array(), '', 'displayorder DESC', $limit);
 	foreach ($storex_bases as $key => $info) {
-		if (!empty($info['distance'])) {
-			if (!empty($_GPC['lat']) && !empty($_GPC['lng'])) {
-				$lat = trim($_GPC['lat']);
-				$lng = trim($_GPC['lng']);
-				$distance = distanceBetween($info['lng'], $info['lat'], $lng, $lat);
-				$distance = round($distance / 1000, 2);
-				$storex_bases[$key]['distances'] = $distance;
+		if (!empty($_GPC['lat']) && !empty($_GPC['lng'])) {
+			$lat = trim($_GPC['lat']);
+			$lng = trim($_GPC['lng']);
+			$distance = distanceBetween($info['lng'], $info['lat'], $lng, $lat);
+			$distance = round($distance / 1000, 2);
+			$storex_bases[$key]['distances'] = $distance;
+			if (!empty($info['distance'])) {
 				if ($distance > $info['distance']) {
 					unset($storex_bases[$key]);
 					continue;
@@ -39,8 +39,18 @@ if ($op == 'store_list') {
 		}
 		$storex_bases[$key]['thumb'] = tomedia($info['thumb']);
 		$info['thumbs'] =  iunserializer($info['thumbs']);
-		$storex_bases[$key]['timestart'] = date("G:i", $info['timestart']);
-		$storex_bases[$key]['timeend'] = date("G:i", $info['timeend']);
+		$timestart = strexists($info['timestart'],':');
+		if ($timestart) {
+			$storex_bases[$key]['timestart'] = $info['timestart'];
+		} else {
+			$storex_bases[$key]['timestart'] = date("G:i", $info['timestart']);
+		}
+		$timeend = strexists($info['timeend'],':');
+		if ($timeend) {
+			$storex_bases[$key]['timeend'] = $info['timeend'];
+		} else {
+			$storex_bases[$key]['timeend'] = date("G:i", $info['timeend']);
+		}
 		if (!empty($info['thumbs'])) {
 			$storex_bases[$key]['thumbs'] = format_url($info['thumbs']);
 		}
