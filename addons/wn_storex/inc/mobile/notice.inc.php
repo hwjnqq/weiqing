@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('notice_list', 'read_notice', 'unread_num');
+$ops = array('notice_list', 'read_notice', 'get_info');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 check_params();
 $uid = mc_openid2uid($_W['openid']);
@@ -15,17 +15,24 @@ if (empty($setting) || $setting['sign_status'] != 1) {
 	message(error(-1, '没有开启签到！'), '', 'ajax');
 }
 
-if ($op == 'unread_num') {
+if ($op == 'get_info') {
 	$notices = get_notices();
-	$unread_num = 0;
+	$infos = array(
+		'notice_unread' => 0,
+		'sign_status' => '',
+	);
 	if (!empty($notices)) {
 		foreach ($notices as $val){
 			if (empty($val['read_status'])) {
-				$unread_num ++;
+				$infos['notice_unread'] ++;
 			}
 		}
 	}
-	message(error(0, $unread_num), '', 'ajax');
+	$sign_set = pdo_get('storex_sign_set', array('uniacid' => $_W['uniacid']));
+	if (!empty($sign_set)) {
+		$infos['sign_status'] = $sign_set['status'];
+	}
+	message(error(0, $infos), '', 'ajax');
 }
 
 if ($op == 'notice_list') {
@@ -52,30 +59,4 @@ if ($op == 'read_notice') {
 	} else {
 		message(error(-1, '通知不存在，请刷新！'), '', 'ajax');
 	}
-}
-
-function get_notices(){
-	global $_W, $_GPC;
-	$uid = mc_openid2uid($_W['openid']);
-	$notices = pdo_getall('storex_notices', array('uniacid' => intval($_W['uniacid']), 'type' => 1), array(), 'id', 'addtime DESC');
-	if (!empty($notices)) {
-		$notice_ids = array();
-		foreach ($notices as &$info) {
-			$info['read_status'] = 0; //未读
-			$info['addtime'] = date('Y-m-d', $info['addtime']);
-			if (!empty($info['thumb'])) {
-				$info['thumb'] = tomedia($info['thumb']);
-			}
-			$notice_ids[] = $info['id'];
-		}
-		$read_record = pdo_getall('storex_notices_unread', array('uid' => $uid, 'uniacid' => intval($_W['uniacid']), 'notice_id IN' => $notice_ids));
-		if (!empty($read_record)) {
-			foreach ($read_record as $val){
-				if (!empty($notices[$val['notice_id']])) {
-					$notices[$val['notice_id']]['read_status'] = 1; //已读
-				}
-			}
-		}
-	}
-	return $notices;
 }
