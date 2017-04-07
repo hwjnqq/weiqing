@@ -760,3 +760,18 @@ function get_notices(){
 	}
 	return $notices;
 }
+
+function extend_switch_fetch() {
+	global $_W;
+	$cachekey = "wn_storex_switch:{$_W['uniacid']}";
+	$cache = cache_load($cachekey);
+	if (!empty($cache)) {
+		return $cache;
+	}
+	$extend_switchs = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('extend_switch'));
+	$extend_switchs = iunserializer($extend_switchs);
+	$switchs['card'] = !empty($extend_switchs['card']) ? $extend_switchs['card'] : 2;
+	$switchs['sign'] = !empty($extend_switchs['sign']) ? $extend_switchs['sign'] : 2;
+	cache_write($cachekey, $switchs);
+	return $switchs;
+}

@@ -57,7 +57,7 @@
 	<div class="clearfix">
 		<div style="margin-bottom:20px">
 			是否开启签到功能:
-			<input type="checkbox" name="status" value="1" {if intval($sign_set['status'])==1} checked="checked" {/if}/>
+			<input type="checkbox" name="status" value="1" {if intval($extend_switch['sign'])==1} checked="checked" {/if}/>
 		</div>
 		{if $sign_set['status'] == '1'}
 		<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data" id="form1">
@@ -154,13 +154,14 @@
 		$(":checkbox[name='status']").bootstrapSwitch();
 		$(":checkbox[name='status']").on('switchChange.bootstrapSwitch', function(e, state){
 			$this = $(this);
-			var status = this.checked ? 1 : 0;
-			$.post("{php echo $this->createWeburl('signmanage', array('op' => 'sign_status', 'field' => 'status'));}", {status:status}, function(data){
+			var status = this.checked ? 1 : 2;
+			$.post("{php echo $this->createWeburl('signmanage', array('op' => 'sign_status'));}", {status:status}, function(data){
 				data = $.parseJSON(data);
 				if(data.message.errno != 0) {
 					util.message(data.message.message, '', 'error');
 					return false;
 				} else {
+					console.dir(data)
 					util.message('操作成功', location.href, 'success');
 				}
 			});

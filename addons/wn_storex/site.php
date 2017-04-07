@@ -51,6 +51,10 @@ class Wn_storexModuleSite extends WeModuleSite {
 			if ($isWeb) {
 				$dir .= 'web/';
 				$fun = strtolower(substr($name, 5));
+				$func = IA_ROOT . '/addons/wn_storex/function/function.php';
+				if (is_file($func)) {
+					require $func;
+				}
 			}
 			if ($isMobile) {
 				$dir .= 'mobile/';
