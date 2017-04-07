@@ -278,8 +278,8 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`integral_rate` int(11) NOT NULL DEFAULT '0' COMMENT '在该店铺消费返积分的比例',
 	`store_type` int(8) NOT NULL DEFAULT '0' COMMENT '店铺类型',
 	`extend_table` varchar(50) NOT NULL COMMENT '该店铺对应的扩张表',
-	`timestart` int(11) NOT NULL DEFAULT '0' COMMENT '运营开始时间',
-	`timeend` int(11) NOT NULL DEFAULT '0' COMMENT '运营结束时间',
+	`timestart` varchar(50) NOT NULL DEFAULT '0' COMMENT '运营开始时间',
+	`timeend` varchar(50) NOT NULL DEFAULT '0' COMMENT '运营结束时间',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;

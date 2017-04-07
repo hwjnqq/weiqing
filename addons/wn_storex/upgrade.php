@@ -142,3 +142,9 @@ if (!pdo_fieldexists('storex_set', 'extend_switch')) {
 	pdo_query("ALTER TABLE " . tablename('storex_set') . " ADD `extend_switch` varchar(400) NOT NULL COMMENT '扩展开关';");
 }
 pdo_insert('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu', 'title' => '扩展功能', 'do' => 'extend', 'icon' => 'fa fa-puzzle-piece'));
+if (pdo_fieldexists('storex_bases', 'timeend')) {
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " CHANGE `timeend` `timeend` VARCHAR(50) NOT NULL DEFAULT '0' COMMENT '运营结束时间';");
+}
+if (pdo_fieldexists('storex_bases', 'timestart')) {
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " CHANGE `timestart` `timestart` VARCHAR(50) NOT NULL DEFAULT '0' COMMENT '运营开始时间';");
+}

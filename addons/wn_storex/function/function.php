@@ -663,7 +663,6 @@ function sign_operation($sign_data, $sign_day, $cost = array(), $type = ''){
 					$tipx = "满签".$sign_data['sign'][$k]."天送".$val."积分";
 					mc_credit_update($uid, 'credit1', $val, array('0', $tipx, 'wn_storex', 0, 0, 1));
 					pdo_insert('storex_sign_record', $insert_extra);
-					$extra = $val;
 					continue;
 				}
 			}
@@ -677,8 +676,8 @@ function sign_operation($sign_data, $sign_day, $cost = array(), $type = ''){
 					message(error(-1, "积分不足，补签失败！"), '', 'ajax');
 				}
 			}
-			$tip1 = "补签获得积分".$extra;
-			$tip2 = "补签成功，获得".$extra."积分";
+			$tip1 = "补签获得积分".$sign_data['sign']['everydaynum'];
+			$tip2 = "补签成功，获得".$sign_data['sign']['everydaynum']."积分";
 			$tip3 = "补签失败！";
 		} else {
 			$tip1 = "签到获得积分".$sign_data['sign']['everydaynum'];

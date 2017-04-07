@@ -17,18 +17,17 @@ if ($op == 'store_list') {
 	}
 	$storex_bases = pdo_getall('storex_bases', array('weid' => $_W['uniacid'], 'status' => 1, 'title LIKE' => '%'.$keyword.'%'), array(), '', 'displayorder DESC', $limit);
 	foreach ($storex_bases as $key => $info) {
-		if (!empty($_GPC['lat']) && !empty($_GPC['lng'])) {
-			$lat = trim($_GPC['lat']);
-			$lng = trim($_GPC['lng']);
-			$distance = distanceBetween($info['lng'], $info['lat'], $lng, $lat);
-			$distance = round($distance / 1000, 2);
-			$storex_bases[$key]['distances'] = $distance;
-			if (empty($info['distance'])) {
-				continue;
-			}
-			if ($distance > $info['distance']) {
-				unset($storex_bases[$key]);
-				continue;
+		if (!empty($info['distance'])) {
+			if (!empty($_GPC['lat']) && !empty($_GPC['lng'])) {
+				$lat = trim($_GPC['lat']);
+				$lng = trim($_GPC['lng']);
+				$distance = distanceBetween($info['lng'], $info['lat'], $lng, $lat);
+				$distance = round($distance / 1000, 2);
+				$storex_bases[$key]['distances'] = $distance;
+				if ($distance > $info['distance']) {
+					unset($storex_bases[$key]);
+					continue;
+				}
 			}
 		}
 		if (!empty($_GPC['city'])) {
