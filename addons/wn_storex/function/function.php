@@ -99,7 +99,8 @@ function check_params(){
 			),
 			'address_delete' => array(
 				'id' => intval($_GPC['id'])
-			)
+			),
+			'extend_switch' => array(),
 		),
 		'clerk' => array(
 			'common' => array(

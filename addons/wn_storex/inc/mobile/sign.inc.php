@@ -10,8 +10,8 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 check_params();
 $uid = mc_openid2uid($_W['openid']);
 
-$sign_set = pdo_get('storex_sign_set', array('uniacid' => $_W['uniacid']));
-if (empty($sign_set) || $sign_set['status'] != 1) {
+$extend_switch = extend_switch_fetch();
+if (empty($extend_switch) || $extend_switch['sign'] != 1) {
 	message(error(-1, '没有开启签到！'), '', 'ajax');
 }
 $sign_max_day = pdo_get('storex_sign_record', array('uid' => $uid, 'year' => date('Y'), 'month' => date('n')));

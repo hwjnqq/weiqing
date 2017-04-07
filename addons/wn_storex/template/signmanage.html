@@ -59,7 +59,7 @@
 			是否开启签到功能:
 			<input type="checkbox" name="status" value="1" {if intval($extend_switch['sign'])==1} checked="checked" {/if}/>
 		</div>
-		{if $sign_set['status'] == '1'}
+		{if $extend_switch['sign'] == '1'}
 		<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data" id="form1">
 			<div class="panel panel-default">
 				<div class="panel-heading">签到策略</div>

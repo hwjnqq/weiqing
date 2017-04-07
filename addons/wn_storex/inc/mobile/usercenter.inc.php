@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete');
+$ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete', 'extend_switch');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 check_params();
 $uid = mc_openid2uid($_W['openid']);
@@ -14,6 +14,21 @@ if (in_array($op, array('address_post', 'address_default', 'address_delete')) &&
 	if (empty($address_info)) {
 		message(error(-1, '设置失败'), '', 'ajax');
 	}
+}
+
+if ($op == 'extend_switch') {
+	$extend_switch = extend_switch_fetch();
+	$notices = get_notices();
+	$notice_unread_num = 0;
+	if (!empty($notices)) {
+		foreach ($notices as $val){
+			if (empty($val['read_status'])) {
+				$notice_unread_num ++;
+			}
+		}
+	}
+	$extend_switch['notice_unread_num'] = $notice_unread_num;
+	message(error(0, $extend_switch), '', 'ajax');
 }
 
 if ($op == 'personal_info') {
