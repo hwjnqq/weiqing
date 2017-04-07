@@ -37,6 +37,6 @@ if ($op == 'read_notice') {
 		}
 		message(error(0, $notice), '', 'ajax');
 	} else {
-		message(error(-1, '通知不存在，请刷新！'), '', 'ajax');
+		message(error(-1, '通知已过期！'), '', 'ajax');
 	}
 }
