@@ -46,7 +46,7 @@ if ($op == 'post') {
 		} else {
 			pdo_insert('storex_notices', $data);
 		}
-		message('发布通知成功', $this->createWeburl('notice') , 'success');
+		message('发布成功', $this->createWeburl('noticemanage') , 'success');
 	}
 }
 if ($op == 'delete') {
