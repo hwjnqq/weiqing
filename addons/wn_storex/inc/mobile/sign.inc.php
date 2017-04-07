@@ -14,21 +14,21 @@ $extend_switch = extend_switch_fetch();
 if (empty($extend_switch) || $extend_switch['sign'] != 1) {
 	message(error(-1, '没有开启签到！'), '', 'ajax');
 }
-$sign_max_day = pdo_get('storex_sign_record', array('uid' => $uid, 'year' => date('Y'), 'month' => date('n')));
+$sign_max_day = pdo_getall('storex_sign_record', array('uid' => $uid, 'year' => date('Y'), 'month' => date('n'), 'remedy !=' => 2), array(), '', 'day DESC','1');
+
 if ($op == 'sign_info') {
-	$sign_data = get_sign_info($sign_max_day['day']);
+	$sign_data = get_sign_info($sign_max_day[0]['day']);
 	message(error(0, $sign_data), '', 'ajax');
 }
 
 if ($op == 'sign') {
-	$sign_data = get_sign_info($sign_max_day['day']);
+	$sign_data = get_sign_info($sign_max_day[0]['day']);
 	$sign_day = intval($_GPC['day']);
 	if ($sign_day != date('j')) {
 		message(error(-1, '参数错误！'), '', 'ajax');
 	}
 	if (!empty($sign_data['signs'][$sign_day])) {
-		$sign_info = $sign_data['signs'][$sign_day];
-		sign_operation($sign_info, $sign_day);
+		sign_operation($sign_data, $sign_day);
 	} else {
 		message(error(-1, '参数错误！'), '', 'ajax');
 	}
@@ -36,7 +36,7 @@ if ($op == 'sign') {
 
 if ($op == 'remedy_sign') {
 	$remedy_day = intval($_GPC['day']);
-	$sign_data = get_sign_info($sign_max_day['day']);
+	$sign_data = get_sign_info($sign_max_day[0]['day']);
 	if ($sign_data['sign']['remedy'] == 1) {
 		$cost = array(
 			'remedy' => $sign_data['sign']['remedy'],
@@ -50,8 +50,7 @@ if ($op == 'remedy_sign') {
 		message(error(-1, '参数错误！'), '', 'ajax');
 	}
 	if (!empty($sign_data['signs'][$remedy_day])) {
-		$sign_info = $sign_data['signs'][$remedy_day];
-		sign_operation($sign_info, $remedy_day, $cost, 'remedy');
+		sign_operation($sign_data, $remedy_day, $cost, 'remedy');
 	}
 }
 

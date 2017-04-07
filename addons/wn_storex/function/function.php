@@ -640,16 +640,17 @@ function code2city($code) {
 	return $name;
 }
 
-function sign_operation($sign_info, $sign_day, $cost = array(), $type = ''){
+function sign_operation($sign_data, $sign_day, $cost = array(), $type = ''){
 	global $_W, $_GPC;
+	$sign_info = $sign_data['signs'][$sign_day];
 	$uid = mc_openid2uid($_W['openid']);
 	if ($sign_info['status'] == 1) {
 		message(error(-1, '已经签过了，明天再来吧！'), '', 'ajax');
 	} else {
-		$insert_record = array(
+		$insert_record = $insert_extra = array(
 				'uniacid' => intval($_W['uniacid']),
 				'uid' => $uid,
-				'credit' => $sign_info['credit'],
+				'credit' => $sign_data['sign']['everydaynum'],
 				'addtime' => TIMESTAMP,
 				'year' => date('Y'),
 				'month' => date('n'),
@@ -671,6 +672,18 @@ function sign_operation($sign_info, $sign_day, $cost = array(), $type = ''){
 			$tip1 = "签到获得积分".$sign_info['credit'];
 			$tip2 = "签到成功，获得".$sign_info['credit']."积分";
 			$tip3 = "签到失败！";
+		}
+		if (!empty($sign_data['group'])) {
+			foreach ($sign_data['group'] as $k => $val) {
+				if (($sign_data['sign_days']+1) == $sign_data['sign'][$k] || (($sign_data['sign_days']+1) == date('t') && $k=='full_sign_num')) {
+					$insert_extra['remedy'] = 2;
+					$tipx = "满签".$sign_data['sign'][$k]."天送".$val."积分";
+					mc_credit_update($uid, 'credit1', $val, array('0', $tipx, 'wn_storex', 0, 0, 1));
+					pdo_insert('storex_sign_record', $insert_extra);
+					$insert_id = pdo_insertid();
+					continue;
+				}
+			}
 		}
 		pdo_insert('storex_sign_record', $insert_record);
 		$insert_id = pdo_insertid();
@@ -695,23 +708,25 @@ function get_sign_info($sign_max_day){
 	$sign_data['day'] = date('j');
 	$sign_data['content'] = $sign_set['content'];
 	$sign_data['signs'] = array();
-	$sign_record = pdo_getall('storex_sign_record', array('uid' => $uid, 'year' => date('Y'), 'month' => date('n')), array(),'day','day ASC');
+	$sign_record = pdo_getall('storex_sign_record', array('uid' => $uid, 'year' => date('Y'), 'month' => date('n'), 'remedy !=' => 2), array(),'day','day ASC');
 
 	$sign_days = count($sign_record);
 	$no_sign = date('t') - $sign_max_day;
 	$group = array();
-	if (($sign_days + $no_sign) > $sign['first_group_day']) {
+	if (($sign_days + $no_sign) >= $sign['first_group_day']) {
 		$group['first_group_day'] = $sign['first_group_num'];
 	}
-	if (($sign_days + $no_sign) > $sign['second_group_day']) {
+	if (($sign_days + $no_sign) >= $sign['second_group_day']) {
 		$group['second_group_day'] = $sign['second_group_num'];
 	}
-	if (($sign_days + $no_sign) > $sign['third_group_day']) {
+	if (($sign_days + $no_sign) >= $sign['third_group_day']) {
 		$group['third_group_day'] = $sign['third_group_num'];
 	}
 	if (($sign_days + $no_sign) == date('t')) {
 		$group['full_sign_num'] = $sign['full_sign_num'];
 	}
+	$sign_data['group'] = $group;
+	$sign_data['sign_days'] = $sign_days;
 	for ($i = 1; $i <= $sign_data['days']; $i++) {
 		$sign_data['signs'][$i] = array(
 				'credit' => $sign['everydaynum'],

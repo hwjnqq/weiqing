@@ -8,8 +8,6 @@ load()->model('mc');
 $ops = array('notice_list', 'post', 'delete');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'notice_list';
 
-$setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid']));
-
 if ($op == 'notice_list') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 30;
