@@ -384,7 +384,7 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`year` smallint(4) NOT NULL COMMENT '签到的年',
 	`month` smallint(2) NOT NULL COMMENT '签到的月',
 	`day` smallint(2) NOT NULL COMMENT '签到的日',
-	`remedy` tinyint(2) NOT NULL COMMENT '是否是补签 1 是补签',
+	`remedy` tinyint(2) NOT NULL COMMENT '是否是补签 1 是补签,2 是额外',
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`),
 	KEY `uid` (`uid`)
