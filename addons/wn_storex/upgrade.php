@@ -137,7 +137,8 @@ if (!empty($category) && !empty($stores)) {
 	}
 }
 
+
 if (!pdo_fieldexists('storex_set', 'extend_switch')) {
 	pdo_query("ALTER TABLE " . tablename('storex_set') . " ADD `extend_switch` varchar(400) NOT NULL COMMENT '扩展开关';");
 }
-?>
+pdo_insert('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu', 'title' => '扩展功能', 'do' => 'extend', 'icon' => 'fa fa-puzzle-piece'));
