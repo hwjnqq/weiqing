@@ -1,0 +1,10 @@
+{template 'common/header'}
+{template 'common'}
+<ul class="nav nav-tabs">
+	<li class="active" style="display:none;"><a href="{php echo $this->createWebUrl('extend_membercard', array('op' => 'card_setting'))}">会员卡设置</a></li>
+	<li class="" style="display:none;"><a href="javascript:;">会员卡管理</a></li>
+	<li class="active"><a href="{php echo $this->createWebUrl('extend_membercard', array('op' => 'signmanage'))}">签到管理</a></li>
+	<li class=""><a href="{php echo $this->createWebUrl('extend_membercard', array('op' => 'noticemanage'))}">通知管理</a></li>
+</ul>
+
+{template 'common/footer'}
