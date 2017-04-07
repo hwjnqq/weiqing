@@ -2,8 +2,8 @@
 {template 'common/header'}
 <div class="main">
 	<ul class="nav nav-tabs">
-		<li {if $op == 'sign-credit'}class="active"{/if}><a href="{php echo $this->createWeburl('extend', array('op' => 'sign-credit'))}">签到管理</a></li>
-		<li {if $op == 'list'}class="active"{/if}><a href="{php echo $this->createWeburl('notice', array('op' => 'list'))}">通知管理</a></li>
+		<li {if $_GPC['do'] == 'signmanage'}class="active"{/if}><a href="{php echo $this->createWeburl('signmanage', array('op' => 'sign-credit'))}">签到管理</a></li>
+		<li {if $_GPC['do'] == 'noticemanage'}class="active"{/if}><a href="{php echo $this->createWeburl('noticemanage', array('op' => 'list'))}">通知管理</a></li>
 	</ul>
 	{if $op == 'post'}
 	<div classs="clearfix">
@@ -67,7 +67,7 @@
 		<form action="" method="post" class="form-horizontal" role="form">
 			<div class="form-group">
 				<div class="col-sm-8 col-lg-9 col-xs-12">
-					<a href="{php echo $this->createWeburl('notice', array('op' => 'post'));}" class="btn btn-success"><i class="fa fa-plus"></i> 发布通知</a>
+					<a href="{php echo $this->createWeburl('noticemanage', array('op' => 'post'));}" class="btn btn-success"><i class="fa fa-plus"></i> 发布通知</a>
 				</div>
 			</div>
 			<div class="panel panel-default">

@@ -2,13 +2,13 @@
 {template 'common/header'}
 <div class="main">
 	<ul class="nav nav-tabs">
-		<li {if $op == 'sign-credit'}class="active"{/if}><a href="{php echo $this->createWeburl('extend', array('op' => 'sign-credit'))}">签到管理</a></li>
-		<li {if $op == 'list'}class="active"{/if}><a href="{php echo $this->createWeburl('notice', array('op' => 'list'))}">通知管理</a></li>
+		<li {if $_GPC['do'] == 'signmanage'}class="active"{/if}><a href="{php echo $this->createWeburl('signmanage', array('op' => 'sign-credit'))}">签到管理</a></li>
+		<li {if $_GPC['do'] == 'noticemanage'}class="active"{/if}><a href="{php echo $this->createWeburl('noticemanage', array('op' => 'list'))}">通知管理</a></li>
 	</ul>
 	<div style="margin-bottom:15px;">
 		<div class="btn-group">
-			<a href="{php echo $this->createWeburl('extend', array('op' => 'sign-credit'))}" class="btn {if $op == 'sign-credit'}btn-primary{else}btn-default{/if}">签到策略</a>
-			<a href="{php echo $this->createWeburl('extend', array('op' => 'record-list'))}" class="btn {if $op == 'record-list'}btn-primary{else}btn-default{/if}">签到列表</a>
+			<a href="{php echo $this->createWeburl('signmanage', array('op' => 'sign-credit'))}" class="btn {if $op == 'sign-credit'}btn-primary{else}btn-default{/if}">签到策略</a>
+			<a href="{php echo $this->createWeburl('signmanage', array('op' => 'record-list'))}" class="btn {if $op == 'record-list'}btn-primary{else}btn-default{/if}">签到列表</a>
 		</div>
 	</div>
 	{if $op == 'record-list'}
