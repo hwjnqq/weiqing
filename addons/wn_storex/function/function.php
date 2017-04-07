@@ -124,6 +124,17 @@ function check_params(){
 				'day' => intval($_GPC['day']),
 			),
 		),
+		'notice' => array(
+			'common' => array(
+				'uniacid' => intval($_W['uniacid']),
+				'openid' => $_W['openid'],
+			),
+			'notice_list' => array(),
+			'read_notice' => array(
+				'id' => intval($_GPC['id']),
+			),
+			'unread_num' => array(),
+		),
 	);
 	$do = trim($_GPC['do']);
 	$op = trim($_GPC['op']);
