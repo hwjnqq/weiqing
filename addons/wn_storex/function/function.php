@@ -768,8 +768,8 @@ function extend_switch_fetch() {
 	if (!empty($cache)) {
 		return $cache;
 	}
-	$extend_switchs = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('extend_switch'));
-	$extend_switchs = iunserializer($extend_switchs);
+	$extend_info = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('extend_switch'));
+	$extend_switchs = iunserializer($extend_info['extend_switch']);
 	$switchs['card'] = !empty($extend_switchs['card']) ? $extend_switchs['card'] : 2;
 	$switchs['sign'] = !empty($extend_switchs['sign']) ? $extend_switchs['sign'] : 2;
 	cache_write($cachekey, $switchs);
