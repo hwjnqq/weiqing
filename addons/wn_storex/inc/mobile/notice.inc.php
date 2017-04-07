@@ -48,7 +48,7 @@ if ($op == 'read_notice') {
 			);
 			pdo_insert('storex_notices_unread', $insert_record);
 		}
-		message(error(0, '阅读成功！'), '', 'ajax');
+		message(error(0, $notice), '', 'ajax');
 	} else {
 		message(error(-1, '通知不存在，请刷新！'), '', 'ajax');
 	}
@@ -57,12 +57,12 @@ if ($op == 'read_notice') {
 function get_notices(){
 	global $_W, $_GPC;
 	$uid = mc_openid2uid($_W['openid']);
-	$notices = pdo_getall('storex_notices', array('uniacid' => intval($_W['uniacid']), 'type' => 1), array(), 'id');
+	$notices = pdo_getall('storex_notices', array('uniacid' => intval($_W['uniacid']), 'type' => 1), array(), 'id', 'addtime DESC');
 	if (!empty($notices)) {
 		$notice_ids = array();
 		foreach ($notices as &$info) {
 			$info['read_status'] = 0; //未读
-			$info['addtime'] = date('Y-m-d H:i:s', $info['addtime']);
+			$info['addtime'] = date('Y-m-d', $info['addtime']);
 			if (!empty($info['thumb'])) {
 				$info['thumb'] = tomedia($info['thumb']);
 			}
