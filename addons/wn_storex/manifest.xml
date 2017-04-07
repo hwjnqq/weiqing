@@ -31,6 +31,7 @@
             <entry title="店员管理" do="clerk" state="" direct="false" />
             <entry title="订单管理" do="order" state="" direct="false" />
             <entry title="基本设置" do="hotelset" state="" direct="false" />
+            <entry title="扩展功能" do="extend" state="" direct="false" />
         </menu>
         <home call="getItemTiles"></home>
     </bindings>

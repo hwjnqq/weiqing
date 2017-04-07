@@ -656,6 +656,18 @@ function sign_operation($sign_data, $sign_day, $cost = array(), $type = ''){
 				'month' => date('n'),
 				'day' => $sign_day,
 		);
+		if (!empty($sign_data['group'])) {
+			foreach ($sign_data['group'] as $k => $val) {
+				if (($sign_data['sign_days']+1) == $sign_data['sign'][$k] || (($sign_data['sign_days']+1) == date('t') && $k=='full_sign_num')) {
+					$insert_extra['remedy'] = 2;
+					$tipx = "满签".$sign_data['sign'][$k]."天送".$val."积分";
+					mc_credit_update($uid, 'credit1', $val, array('0', $tipx, 'wn_storex', 0, 0, 1));
+					pdo_insert('storex_sign_record', $insert_extra);
+					$extra = $val;
+					continue;
+				}
+			}
+		}
 		if ($type == 'remedy') {
 			$insert_record['remedy'] = 1;
 			if (!empty($cost)) {
@@ -665,25 +677,13 @@ function sign_operation($sign_data, $sign_day, $cost = array(), $type = ''){
 					message(error(-1, "积分不足，补签失败！"), '', 'ajax');
 				}
 			}
-			$tip1 = "补签获得积分".$sign_info['credit'];
-			$tip2 = "补签成功，获得".$sign_info['credit']."积分";
+			$tip1 = "补签获得积分".$extra;
+			$tip2 = "补签成功，获得".$extra."积分";
 			$tip3 = "补签失败！";
 		} else {
-			$tip1 = "签到获得积分".$sign_info['credit'];
-			$tip2 = "签到成功，获得".$sign_info['credit']."积分";
+			$tip1 = "签到获得积分".$sign_data['sign']['everydaynum'];
+			$tip2 = "签到成功，获得".$sign_data['sign']['everydaynum']."积分";
 			$tip3 = "签到失败！";
-		}
-		if (!empty($sign_data['group'])) {
-			foreach ($sign_data['group'] as $k => $val) {
-				if (($sign_data['sign_days']+1) == $sign_data['sign'][$k] || (($sign_data['sign_days']+1) == date('t') && $k=='full_sign_num')) {
-					$insert_extra['remedy'] = 2;
-					$tipx = "满签".$sign_data['sign'][$k]."天送".$val."积分";
-					mc_credit_update($uid, 'credit1', $val, array('0', $tipx, 'wn_storex', 0, 0, 1));
-					pdo_insert('storex_sign_record', $insert_extra);
-					$insert_id = pdo_insertid();
-					continue;
-				}
-			}
 		}
 		pdo_insert('storex_sign_record', $insert_record);
 		$insert_id = pdo_insertid();
