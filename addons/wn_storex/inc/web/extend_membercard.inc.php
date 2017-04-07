@@ -7,7 +7,7 @@ $ops = array('card_setting', 'member_list', 'signmanage', 'noticemanage');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'signmanage';
 
 if ($op == 'signmanage') {
-	$url = $this->createWebUrl('signmanage', array('op' => 'sign-credit'));
+	$url = $this->createWebUrl('signmanage', array('op' => 'sign_set'));
 	header("Location: {$url}");
 	die;
 }
@@ -17,5 +17,3 @@ if ($op == 'noticemanage') {
 	header("Location: {$url}");
 	die;
 }
-
-// include $this->template('extend_membercard');

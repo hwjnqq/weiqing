@@ -5,18 +5,16 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('sign-credit', 'record-list', 'sign-status', 'list');
-$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'sign-credit';
-
-$setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid']));
+$ops = array('sign_set', 'sign_record', 'sign_status');
+$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'sign_set';
 
 //设置签到规则
-if ($op == 'sign-credit') {
-	$set = pdo_get('storex_sign_set', array('uniacid' => $_W['uniacid']));
-	if(empty($set)) {
-		$set = array();
+if ($op == 'sign_set') {
+	$sign_set = pdo_get('storex_sign_set', array('uniacid' => $_W['uniacid']));
+	if(empty($sign_set)) {
+		$sign_set = array();
 	} else {
-		$set['sign'] = iunserializer($set['sign']);
+		$sign_set['sign'] = iunserializer($sign_set['sign']);
 	}
 	$remedy_cost_type = in_array(trim($_GPC['remedy_cost_type']), array('credit1', 'credit2')) ? trim($_GPC['remedy_cost_type']): 'credit2';
 	if(checksubmit()) {
@@ -38,7 +36,7 @@ if ($op == 'sign-credit') {
 			'content' => htmlspecialchars_decode($_GPC['content']),
 		);
 		$data['sign'] = iserializer($data['sign']);
-		if(empty($set['uniacid'])) {
+		if(empty($sign_set['uniacid'])) {
 			pdo_insert('storex_sign_set', $data);
 		} else {
 			pdo_update('storex_sign_set', $data, array('uniacid' => $_W['uniacid']));
@@ -48,7 +46,7 @@ if ($op == 'sign-credit') {
 }
 
 //签到列表
-if ($op == 'record-list') {
+if ($op == 'sign_record') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	$list = pdo_getall('storex_sign_record', array('uniacid' => intval($_W['uniacid'])), array(), '', 'id DESC', ($pindex - 1)*$psize. ','. $psize);
@@ -61,15 +59,12 @@ if ($op == 'record-list') {
 }
 
 //是否开启签到
-if ($op == 'sign-status') {
-	if(empty($setting)) {
+if ($op == 'sign_status') {
+	$sign_set = pdo_get('storex_sign_set', array('uniacid' => $_W['uniacid']));
+	if(empty($sign_set)) {
 		message(error(-1, '还没有开启会员卡,请先开启会员卡'), '', 'ajax');
 	}
-	$field = trim($_GPC['field']);
-	if(!in_array($field, array('recommend_status', 'sign_status'))) {
-		message(error(-1, '非法操作'), '', 'ajax');
-	}
-	pdo_update('mc_card', array($field => intval($_GPC['status'])), array('uniacid' => $_W['uniacid']));
+	pdo_update('storex_sign_set', array('status' => intval($_GPC['status'])), array('uniacid' => $_W['uniacid']));
 	message(error(0, ''), '', 'ajax');
 }
 

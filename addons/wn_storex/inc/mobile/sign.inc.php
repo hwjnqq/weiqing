@@ -10,8 +10,8 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 check_params();
 $uid = mc_openid2uid($_W['openid']);
 
-$setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid']));
-if (empty($setting) || $setting['sign_status'] != 1) {
+$sign_set = pdo_get('storex_sign_set', array('uniacid' => $_W['uniacid']));
+if (empty($sign_set) || $sign_set['status'] != 1) {
 	message(error(-1, '没有开启签到！'), '', 'ajax');
 }
 $sign_max_day = pdo_get('storex_sign_record', array('uid' => $uid, 'year' => date('Y'), 'month' => date('n')));
@@ -117,14 +117,14 @@ function sign_operation($sign_info, $sign_day, $cost = array(), $type = ''){
 function get_sign_info($sign_max_day){
 	global $_W, $_GPC;
 	$uid = mc_openid2uid($_W['openid']);
-	$set = pdo_get('storex_sign_set', array('uniacid' => intval($_W['uniacid'])));
-	$sign = iunserializer($set['sign']);
+	$sign_set = pdo_get('storex_sign_set', array('uniacid' => intval($_W['uniacid'])));
+	$sign = iunserializer($sign_set['sign']);
 	$sign_data = array();
 	$sign_data['sign'] = $sign;
 	$sign_data['days'] = date('t');
 	$sign_data['month'] = date('n');
 	$sign_data['day'] = date('j');
-	$sign_data['content'] = $set['content'];
+	$sign_data['content'] = $sign_set['content'];
 	$sign_data['signs'] = array();
 	$sign_record = pdo_getall('storex_sign_record', array('uid' => $uid, 'year' => date('Y'), 'month' => date('n')), array(),'day','day ASC');
 	
