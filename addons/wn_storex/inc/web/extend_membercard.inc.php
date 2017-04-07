@@ -13,7 +13,7 @@ if ($op == 'signmanage') {
 }
 
 if ($op == 'noticemanage') {
-	$url = $this->createWebUrl('noticemanage', array('op' => 'list'));
+	$url = $this->createWebUrl('noticemanage', array('op' => 'notice_list'));
 	header("Location: {$url}");
 	die;
 }

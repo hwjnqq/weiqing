@@ -3,7 +3,7 @@
 <div class="main">
 	<ul class="nav nav-tabs">
 		<li {if $_GPC['do'] == 'signmanage'}class="active"{/if}><a href="{php echo $this->createWeburl('signmanage', array('op' => 'sign-credit'))}">签到管理</a></li>
-		<li {if $_GPC['do'] == 'noticemanage'}class="active"{/if}><a href="{php echo $this->createWeburl('noticemanage', array('op' => 'list'))}">通知管理</a></li>
+		<li {if $_GPC['do'] == 'noticemanage'}class="active"{/if}><a href="{php echo $this->createWeburl('noticemanage', array('op' => 'notice_list'))}">通知管理</a></li>
 	</ul>
 	{if $op == 'post'}
 	<div classs="clearfix">
@@ -62,7 +62,7 @@
 			});
 		});
 	</script>
-	{else if $op == 'list'}
+	{else if $op == 'notice_list'}
 	<div class="clearfix">
 		<form action="" method="post" class="form-horizontal" role="form">
 			<div class="form-group">
@@ -99,8 +99,8 @@
 							</td>
 							<td>{php echo date('Y-m-d H:i', $notice['addtime']);}</td>
 							<td class="text-right">
-								<a href="{php echo $this->createWeburl('notice', array('op' => 'post', 'id' => $notice['id']));}" class="btn btn-default">编辑</a>
-								<a href="{php echo $this->createWeburl('notice', array('op' => 'del', 'id' => $notice['id']));}" onclick="if(!confirm('确定删除吗')) return false;" class="btn btn-default">删除</a>
+								<a href="{php echo $this->createWeburl('noticemanage', array('op' => 'post', 'id' => $notice['id']));}" class="btn btn-default">编辑</a>
+								<a href="{php echo $this->createWeburl('noticemanage', array('op' => 'delete', 'id' => $notice['id']));}" onclick="if(!confirm('确定删除吗')) return false;" class="btn btn-default">删除</a>
 							</td>
 						</tr>
 						{/loop}

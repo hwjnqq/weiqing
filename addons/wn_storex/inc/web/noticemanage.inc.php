@@ -5,12 +5,12 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('list', 'post', 'del');
-$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'list';
+$ops = array('notice_list', 'post', 'delete');
+$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'notice_list';
 
 $setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid']));
 
-if ($op == 'list') {
+if ($op == 'notice_list') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 30;
 	$addtime = intval($_GPC['addtime']);
@@ -49,7 +49,7 @@ if ($op == 'post') {
 		message('发布通知成功', $this->createWeburl('notice') , 'success');
 	}
 }
-if ($op == 'del') {
+if ($op == 'delete') {
 	$id = intval($_GPC['id']);
 	pdo_delete('storex_notices', array('uniacid' => $_W['uniacid'], 'id' => $id));
 	message('删除成功', referer(), 'success');
