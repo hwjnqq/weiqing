@@ -228,11 +228,12 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`location_a` varchar(50) DEFAULT '',
 	`smscode` int(3) NOT NULL DEFAULT '0',
 	`refund` int(3) NOT NULL DEFAULT '0',
-	  `refuse_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '提醒接受邮箱',
+	`refuse_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '提醒接受邮箱',
 	`confirm_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '提醒接受邮箱',
 	`check_in_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '酒店已入住通知模板id',
 	`finish_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '酒店订单完成通知模板id',
 	`nickname` varchar(20) NOT NULL COMMENT '提醒接收微信',
+	`extend_switch` varchar(400) NOT NULL COMMENT '扩展开关',
 	PRIMARY KEY (`id`)
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
@@ -343,7 +344,61 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`permission` text NOT NULL COMMENT '店员权限',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+		
+	CREATE TABLE IF NOT EXISTS `ims_storex_notices` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+	`uid` int(10) unsigned NOT NULL DEFAULT '0',
+	`type` tinyint(3) unsigned NOT NULL DEFAULT '1' COMMENT '1:公共消息，2:个人消息',
+	`title` varchar(30) NOT NULL,
+	`thumb` varchar(100) NOT NULL,
+	`groupid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '通知会员组。默认为所有会员',
+	`content` text NOT NULL,
+	`addtime` int(10) unsigned NOT NULL DEFAULT '0',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `uid` (`uid`)
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_notices_unread` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+	`notice_id` int(10) unsigned NOT NULL DEFAULT '0',
+	`uid` int(10) unsigned NOT NULL DEFAULT '0',
+	`is_new` tinyint(3) unsigned NOT NULL DEFAULT '1',
+	`type` tinyint(3) unsigned NOT NULL DEFAULT '1' COMMENT '1:公共通知，2：个人通知',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `uid` (`uid`),
+	KEY `notice_id` (`notice_id`)
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_sign_record` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+	`uid` int(10) unsigned NOT NULL DEFAULT '0',
+	`credit` int(10) unsigned NOT NULL DEFAULT '0',
+	`is_grant` tinyint(3) unsigned NOT NULL DEFAULT '0',
+	`addtime` int(10) unsigned NOT NULL DEFAULT '0',
+	`year` smallint(4) NOT NULL COMMENT '签到的年',
+	`month` smallint(2) NOT NULL COMMENT '签到的月',
+	`day` smallint(2) NOT NULL COMMENT '签到的日',
+	`remedy` tinyint(2) NOT NULL COMMENT '是否是补签 1 是补签',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `uid` (`uid`)
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_sign_set` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+	`sign` varchar(1000) NOT NULL,
+	`share` varchar(500) NOT NULL,
+	`content` text NOT NULL,
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`)
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 ";
 
 pdo_run($sql);
