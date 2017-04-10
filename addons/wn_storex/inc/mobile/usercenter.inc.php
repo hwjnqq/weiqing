@@ -100,6 +100,10 @@ if ($op == 'address_post') {
 	} else {
 		$address_info['uid'] = $uid;
 		$address_info['uniacid'] = $_W['uniacid'];
+		$address = pdo_get('mc_member_address', array('uniacid' => $_W['uniacid'], 'uid' => $uid));
+		if (empty($address)) {
+			$address_info['isdefault'] = 1;
+		}
 		$result = pdo_insert('mc_member_address', $address_info);
 		message(error(0, $result), '', 'ajax');
 	}
