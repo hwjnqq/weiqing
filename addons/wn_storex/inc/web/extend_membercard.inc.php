@@ -17,3 +17,9 @@ if ($op == 'noticemanage') {
 	header("Location: {$url}");
 	die;
 }
+
+if ($op == 'card_setting') {
+	$url = $this->createWebUrl('membercard', array('op' => 'display'));
+	header("Location: {$url}");
+	die;
+}
