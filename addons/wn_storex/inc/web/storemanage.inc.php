@@ -99,6 +99,7 @@ if ($op == 'edit') {
 			'status' => $_GPC['status'],
 			'distance' => intval($_GPC['distance']),
 			'skin_style' => trim($_GPC['skin_style']),
+			'category_set' => intval($_GPC['category_set']),
 		);
 		$common_insert['thumbs'] = empty($_GPC['thumbs']) ? '' : iserializer($_GPC['thumbs']);
 		$common_insert['detail_thumbs'] = empty($_GPC['detail_thumbs']) ? '' : iserializer($_GPC['detail_thumbs']);
