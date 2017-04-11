@@ -68,6 +68,7 @@ if ($op == 'display') {
 
 if ($op == 'edit') {
 	$id = intval($_GPC['id']);
+	$hotel_level_config = array(5 => '五星级酒店', 4 => '四星级酒店', 3 => '三星级酒店', 2 => '两星级以下', 15 => '豪华酒店', 14 => '高档酒店', 13 => '舒适酒店', 12 => '经济型酒店', );
 	if (checksubmit('submit')) {
 		if (empty($_GPC['title'])){
 			message('店铺名称不能是空！', '', 'error');
