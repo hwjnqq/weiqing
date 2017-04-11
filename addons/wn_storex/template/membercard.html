@@ -1,30 +1,377 @@
-{template 'common/header'}
-{if $op == 'display'}
+{template 'common/header'} {if $op == 'display'}
+<link rel="stylesheet" href="../addons/Wn_storex/template/style/mobile/css/membercard.css">
 <div class="main">
 	<ul class="nav nav-tabs">
-		<li {if $_GPC['do'] == 'membercard'}class="active"{/if}><a href="{php echo $this->createWeburl('membercard', array('op' => 'display'))}">会员卡设置</a></li>
-		<li {if $_GPC['do'] == 'signmanage'}class="active"{/if}><a href="{php echo $this->createWeburl('signmanage', array('op' => 'sign-credit'))}">签到管理</a></li>
-		<li {if $_GPC['do'] == 'noticemanage'}class="active"{/if}><a href="{php echo $this->createWeburl('noticemanage', array('op' => 'notice_list'))}">通知管理</a></li>
+		<li {if $_GPC[ 'do']=='membercard' }class="active" {/if}><a href="{php echo $this->createWeburl('membercard', array('op' => 'display'))}">会员卡设置</a></li>
+		<li {if $_GPC[ 'do']=='signmanage' }class="active" {/if}><a href="{php echo $this->createWeburl('signmanage', array('op' => 'sign-credit'))}">签到管理</a></li>
+		<li {if $_GPC[ 'do']=='noticemanage' }class="active" {/if}><a href="{php echo $this->createWeburl('noticemanage', array('op' => 'notice_list'))}">通知管理</a></li>
 	</ul>
-	<div id="app">
-		{{ message }}
+	<div id="membercard" class="app">
+		<div class="app-preview">
+			<div class="app-header"></div>
+			<div class="app-content">
+				<div class="title">
+					<h1><span>会员卡</span></h1>
+				</div>
+				<div class="" v-for="module in activeModules">
+					<div class="weui-tab" v-if="module.id && module.id== 'cardBasic'">
+						<div id="vux_view_box_body" class="weui-tab__panel vux-fix-safari-overflow-scrolling" style="padding-bottom: 0;">
+							<div class="home router-view">
+								<div class="weui-tab__panel">
+									<div class="banner card-banner">
+										<div class="card-panel"><img :src="activeModules.cardBasic.params.background.image" alt="" class="bg-card">
+											<div class="logo"><img alt="" :src="activeModules.cardBasic.params.logo" class="avatar"></div>
+											<div class="con" v-show="activeModules.cardBasic.params.card_label.type == 1">{{activeModules.cardBasic.params.card_label.title}}</div>
+											<div class="rank" style="color: yellow; font-size: 20px;" v-show="activeModules.cardBasic.params.card_level.type == 1">高级会员</div>
+											<div class="num" style="color: black; font-size: 20px;">NO:0000001</div>
+										</div>
+									</div>
+									<!---->
+									<div class="money-panel">
+										<div class="recharge">
+											<a href="javascript:;" class=""><i class="storex-recharge"></i> <span>充值</span></a>
+										</div>
+										<div class="pay">
+											<a><i class="storex-payment"></i> <span>付款</span></a>
+										</div>
+									</div>
+									<div>
+										<!---->
+										<div class="weui-cells vux-no-group-title">
+											<div class="weui-cell vux-tap-active weui-cell_access">
+												<div class="weui-cell__hd"><span class="storex-balance"></span></div>
+												<div class="vux-cell-bd vux-cell-primary">
+													我的余额
+												</div>
+												<div class="weui-cell__ft">
+													19
+												</div>
+											</div>
+											<div class="weui-cell vux-tap-active weui-cell_access">
+												<div class="weui-cell__hd"><span class="storex storex-integral"></span></div>
+												<div class="vux-cell-bd vux-cell-primary">
+													我的积分
+												</div>
+												<div class="weui-cell__ft">
+													136
+												</div>
+											</div>
+											<div class="weui-cell vux-tap-active weui-cell_access">
+												<div class="weui-cell__hd"><span class="storex storex-order"></span></div>
+												<div class="vux-cell-bd vux-cell-primary">
+													我的订单
+												</div>
+												<div class="weui-cell__ft">
+
+												</div>
+											</div>
+										</div>
+									</div>
+									<div>
+										<!---->
+										<div class="weui-cells vux-no-group-title">
+											<div class="weui-cell vux-tap-active weui-cell_access">
+												<div class="weui-cell__hd"><span class="storex storex-sign"></span></div>
+												<div class="vux-cell-bd vux-cell-primary">
+													签到
+												</div>
+												<div class="weui-cell__ft">
+
+												</div>
+											</div>
+											<div class="weui-cell vux-tap-active weui-cell_access">
+												<div class="weui-cell__hd"><span class="storex storex-message"></span></div>
+												<div class="vux-cell-bd vux-cell-primary">
+													消息
+												</div>
+												<div class="weui-cell__ft">
+
+													<div class="badge-value">
+														<!---->
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div>
+										<!---->
+										<div class="weui-cells vux-no-group-title">
+											<div class="weui-cell vux-tap-active weui-cell_access">
+												<div class="weui-cell__hd"><span class="storex-set"></span></div>
+												<div class="vux-cell-bd vux-cell-primary">
+													设置
+												</div>
+												<div class="weui-cell__ft">
+
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="app-side">
+			<div class="editor">
+				<div>
+					<div class="app-header-setting">
+						<div class="arrow-left"></div>
+						<div class="app-header-setting-inner">
+							<div class="panel panel-default">
+								<ul class="nav nav-tabs" style="margin:10px 15px 0 15px">
+									<li ng-class="{'active' : activeModules.cardBasic.id == 'cardBasic'}" class="active" style=""><a href="javascript:;">基本设置</a></li>
+									<li ng-class="{'active' : activeModules.cardBasic.id == 'cardActivity'}" class="" style=""><a href="javascript:;">消费优惠设置</a></li>
+									<li ng-class="{'active' : activeModules.cardBasic.id == 'cardRecharge'}"><a href="javascript:;">充值优惠设置</a></li>
+									<li ng-class="{'active' : activeModules.cardBasic.id == 'cardNums'}"><a href="javascript:;">计次设置</a></li>
+									<li ng-class="{'active' : activeModules.cardBasic.id == 'cardTimes'}"><a href="javascript:;">计时设置</a></li>
+								</ul>
+								<div class="panel-body form-horizontal">
+									<div class="form-group">
+										<label class="col-xs-12 col-sm-3 col-md-2 control-label">名称<span style="color:red">*</span></label>
+										<div class="col-sm-9 col-xs-12">
+											<input type="text" class="form-control" v-model="activeModules.cardBasic.params.title" style="">
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="col-xs-12 col-sm-3 col-md-2 control-label">背景图案<span style="color:red">*</span></label>
+										<div class="col-sm-9 col-xs-12">
+											<label class="radio-inline">
+												<input type="radio" value="system" v-model="activeModules.cardBasic.params.background.type" name="37" style=""> 系统
+											</label>
+											<label class="radio-inline"><input type="radio" value="user" v-model="activeModules.cardBasic.params.background.type" 	name="38" style="">
+												自定义
+											</label>
+										</div>
+									</div>
+									<div class="form-group" v-show="activeModules.cardBasic.params.background.type == 'user'">
+										<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+										<div class="col-xs-9">
+											<span @click="addBgThumb()" class="form-control-static"><i class="fa fa-plus-circle green"></i>&nbsp;选择图片</span>
+											<div style="margin-top: 0.5em;" class="input-group" v-show="activeModules.cardBasic.params.background.image"><img width="150" class="img-responsive img-thumbnail" :src="activeModules.cardBasic.params.background.image"> <em @click="activeModules.cardBasic.params.background.image = '';"
+												    title="删除这张图片" style="position:absolute; top: 0px; right: -14px" class="close">×</em>
+											</div>
+										</div>
+									</div>
+									<div class="form-group" v-show="activeModules.cardBasic.params.background.type == 'system'">
+										<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+										<div class="col-sm-9 col-xs-12">
+											<select class="form-control" v-model="activeModules.cardBasic.params.background.image" style="">
+												<option :value="'http://172.16.1.222/attachment/images/global/card/'+ i + '.png'" v-for="i in 23">背景{{i}}</option>
+											</select>
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="col-xs-12 col-sm-3 col-md-2 control-label">LOGO<span style="color:red">*</span></label>
+										<div class="col-sm-9 col-xs-12">
+											<span ng-click="addThumb('logo')" class="form-control-static"><i class="fa fa-plus-circle green"></i>&nbsp;选择图片</span>
+											<div style="margin-top: 0.5em;" class="input-group" v-show="activeModules.cardBasic.params.logo">
+												<img width="150" class="img-responsive img-thumbnail" src="http://www.baidu.com/img/bdlogo.gif" ng-src="http://www.baidu.com/img/bdlogo.gif">
+												<em @click="activeModules.cardBasic.params.logo = '';" title="删除这张图片" style="position:absolute; top: 0px; right: -14px" class="close">×</em>
+											</div>
+										</div>
+									</div>
+									<!-- ngIf: newcard -->
+									<!-- ngIf: newcard -->
+									<div class="form-group">
+										<label class="col-xs-12 col-sm-3 col-md-2 control-label">会员卡等级</label>
+										<div class="col-sm-9 col-xs-12">
+											<label class="radio-inline">
+												<input type="radio" value="1" v-model="activeModules.cardBasic.params.card_level.type" class="n" name="39" style=""> 开启
+											</label>
+											<label class="radio-inline">
+												<input type="radio" value="2" v-model="activeModules.cardBasic.params.card_level.type" class="" name="40" style=""> 关闭
+											</label>
+										</div>
+									</div>
+									<div class="form-group" v-show="activeModules.cardBasic.params.card_level.type == '1'">
+										<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+										<div class="col-sm-9 col-xs-12">
+											<div we7-colorpicker="" we7-my-color="activeModules.cardBasic.params.color.rank" we7-my-default-color="'#fff'" class="ng-isolate-scope">
+												<div class="input-group">
+													<input type="text" name="" value="" ng-model="colorValue" class="form-control" style=""> <span class="input-group-addon" style="width: 35px; border-left: none; background-color: rgb(255, 255, 0);"
+													    ng-style="{'background-color' : colorValue}"></span> <span class="input-group-btn"><button class="btn btn-default colorpicker" type="button">选择颜色 <i class="fa fa-caret-down"></i></button> <button class="btn btn-default colorclean" type="button"><span><i class="fa fa-remove"></i></span></button>
+													</span>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="col-xs-12 col-sm-3 col-md-2 control-label">会员卡标题</label>
+										<div class="col-sm-9 col-xs-12">
+											<label class="radio-inline">
+												<input type="radio" value="1" v-model="activeModules.cardBasic.params.card_label.type" class="ng-pristine ng-untouched ng-valid ng-not-empty" name="41" style=""> 开启
+											</label>
+											<label class="radio-inline">
+												<input type="radio" value="2" v-model="activeModules.cardBasic.params.card_label.type" class="ng-pristine ng-untouched ng-valid ng-not-empty" name="42" style=""> 关闭
+											</label>
+										</div>
+									</div>
+									<div class="form-group" v-show="activeModules.cardBasic.params.card_label.type == '1'">
+										<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+										<div class="col-sm-9 col-xs-12">
+											<input type="text" v-model="activeModules.cardBasic.params.card_label.title" class="form-control" style="">
+											<br>
+											<span>
+												<span>
+												<div we7-colorpicker="" we7-my-color="activeModules.cardBasic.params.color.title" we7-my-default-color="'#fff'" class="ng-isolate-scope">
+													<div class="input-group">
+														<input type="text" name="" value="" ng-model="colorValue" class="form-control" style="">
+														<span class="input-group-addon" style="width: 35px; border-left: none; background-color: rgb(255, 0, 0);" ng-style="{'background-color' : colorValue}">	</span>
+											<span class="input-group-btn">
+															<button class="btn btn-default colorpicker" type="button">选择颜色
+																<i class="fa fa-caret-down"></i>
+															</button>
+															<button class="btn btn-default colorclean" type="button">
+																<span><i class="fa fa-remove"></i>
+																</span>
+											</button>
+											</span>
+										</div>
+									</div>
+									</span>
+									</span>
+								</div>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 control-label">使用说明<span style="color:red">*</span></label>
+							<div class="col-sm-9 col-xs-12">
+								<textarea class="form-control" rows="6" v-model="activeModules.cardBasic.params.description" style=""></textarea>
+								<span class="help-block">请填写会员卡的使用说明。</span>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 control-label">会员卡资料</label>
+							<div class="col-sm-10 col-xs-9">
+								<!-- ngRepeat: field in activeModules.cardBasic.params.fields -->
+								<div v-for="(field, index) in activeModules.cardBasic.params.fields" style="margin-left: -15px;">
+									<div class="col-sm-10" style="margin-bottom:10px">
+										<div class="input-group">
+											<input type="text" class="form-control" v-model="field.title" :disabled="(field.bind == 'realname' || field.bind == 'mobile') && index <= 1">
+											<span class="input-group-addon">
+												<label>
+													<input type="checkbox" v-model="field.require" :disabled="(field.bind == 'realname' || field.bind == 'mobile') && index <= 1" class=""> 必填
+												</label>
+											</span>
+											<select v-model="field.bind" class="form-control" :disabled="(field.bind == 'realname' || field.bind == 'mobile') && index <= 1">
+												<!-- ngRepeat: fansfield in fansFields -->
+												<option :value="key" v-for="(fansfield, key) in fansFields" class="" selected="selected">{{fansfield.title}}</option>
+												<!-- end ngRepeat: fansfield in fansFields -->
+												</select>
+										</div>
+									</div>
+									<div class="col-sm-1 ng-hide" style="margin-top:5px" ng-show="field.bind != 'mobile' &amp;&amp; field.bind != 'realname'"><a href="javascript:;" ng-click="removeFields(field);"><i class="fa fa-times-circle"></i></a></div>
+								</div>
+								<span class="help-block col-sm-9" style="margin-left:-15px">
+									系统会自动绑定:真实姓名和手机号码
+								</span>
+								 <span class="help-block col-sm-9" style="margin-left:-15px">
+									 <a href="javascript:;" @click="addFields();">
+										 <i class="fa fa-plus-circle" title="添加填写项目"></i>
+										 添加填写项目
+									 </a>
+								 </span>
+							 </div>
+						</div>
+						<div class="form-group"><label class="col-xs-12 col-sm-3 col-md-2 control-label">领卡赠送<span style="color:red">*</span></label>
+							<div class="col-sm-9 col-xs-12">
+								<div class="input-group"><span class="input-group-addon" ng-init="activeModules.cardBasic.params.grant &amp;&amp; activeModules.cardBasic.params.grant == 0 ? activeModules.cardBasic.params.grant = {} : ''">赠送</span> <input type="text" v-model="activeModules.cardBasic.params.grant.credit1"
+									    class="form-control" style=""> <span class="input-group-addon">积分</span></div>
+							</div>
+						</div>
+						<div class="form-group"><label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+							<div class="col-sm-9 col-xs-12">
+								<div class="input-group"><span class="input-group-addon">赠送</span> <input type="text" v-model="activeModules.cardBasic.params.grant.credit2" class="form-control" style=""> <span class="input-group-addon">余额</span></div>
+							</div>
+						</div>
+						<div class="form-group"><label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+							<div class="col-sm-9 col-xs-12">
+								<div class="input-group"><input type="hidden" ng-model="activeModules.cardBasic.params.grant.coupon" class="ng-pristine ng-untouched ng-valid ng-not-empty" style=""> <span class="input-group-addon">已选:<!-- ngRepeat: grant in activeModules.cardBasic.params.grant.coupon --></span>									<span class="input-group-btn"><button class="btn btn-primary" type="button" ng-click="selectCoupon();">搜索优惠券</button> <button class="btn btn-default" type="button" ng-click="clearCoupon();"><span><i class="fa fa-remove"></i></span></button>
+									</span>
+								</div>
+								<div class="help-block"><a href="./index.php?i=281&amp;j=269&amp;c=activity&amp;a=coupon" target="_blank">添加优惠券</a>.注意:赠送的优惠券应该各个会员组都可以领取.否则会造成赠送失败的问题</div>
+							</div>
+						</div>
+						<!-- ngIf: newcard -->
+						<!-- ngIf: newcard -->
+						<div class="form-group"><label class="col-xs-12 col-sm-3 col-md-2 control-label">抵现比率<span style="color:red">*</span></label>
+							<div class="col-sm-9 col-xs-12">
+								<div class="input-group"><input type="text" ng-model="activeModules.cardBasic.params.offset_rate" class="form-control" style=""> <span class="input-group-addon">积分抵 1 元</span></div><br>
+								<div class="input-group"><span class="input-group-addon">单次最多可抵现</span> <input type="text" ng-model="activeModules.cardBasic.params.offset_max" class="form-control" style=""> <span class="input-group-addon">元</span></div>
+								<div class="help-block"><strong class="text-danger">例:积分抵现金比率:100积分抵1元,那用户在消费的时候,将可用账户积分抵消部分金额.</strong></div>
+								<div class="help-block"><strong class="text-danger">目前仅支持后台交易抵现，暂不支持手机交易抵现.</strong></div>
+							</div>
+						</div>
+						<!-- ngIf: newcard -->
+						<!-- ngIf: newcard -->
+						<!-- ngIf: newcard -->
+						<!-- ngIf: newcard -->
+						<!-- ngIf: newcard -->
+						<!-- ngIf: newcard -->
+						<!-- ngIf: newcard -->
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>
+</div>
+</div>
+
 <script type="text/javascript">
-require({
-	paths: {
-		'vue' : '/addons/wn_storex/template/style/js/vue.min'
-	}
-})
-require(['vue'], function(Vue) {
-	var app = new Vue({
-	  el: '#app',
-	  data: {
-	    message: 'Hello Vue!'
-	  }
+	require({
+		paths: {
+			'vue': 'https://unpkg.com/vue@2.2.6/dist/vue',
+			'data': '/addons/wn_storex/template/style/js/membercard/data'
+		}
 	})
-})
+	require(['vue', 'data'], function(Vue, data) {
+		console.log(data)
+		var siteroot = "{php echo $_W['siteroot']}";
+		var app = new Vue({
+			el: '#membercard',
+			data: {
+				'newcard': data.newcard,
+				'creditnames': data.creditnames,
+				'activeModules': data.activeModules,
+				'fansFields': data.fansFields,
+				'discounts': data.discounts,
+				'siteroot': siteroot
+			},
+			methods: {
+				setBaseData(key, value) {
+					this[key] = value;
+					console.log(value);
+					console.log(key);
+				},
+				addBgThumb() {
+					const self = this;
+					var activeItem = this.activeModules;
+					require(['fileUploader'], function(uploader){
+						uploader.show(function(img){
+							console.log(activeItem.cardBasic.params.background.image);
+							activeItem['cardBasic']['params']['background']['image'] = img.url;
+							console.log(activeItem.cardBasic.params.background.image);
+							console.log(activeItem);
+							self.setBaseData('activeModules', activeItem);
+						}, {'direct' : true, 'multiple' : false});
+					});
+				},
+				addFields() {
+					this.activeModules.cardBasic.params.fields.push({
+						title: '',
+						require: 1,
+						bind: '',
+						issystem: 0
+					});
+				}
+			}
+		})
+	})
 </script>
 
-{/if}
-{template 'common/footer'}
+{/if} {template 'common/footer'}
