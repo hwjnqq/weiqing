@@ -34,8 +34,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 
 
 
-	function __construct()
-	{
+	function __construct() {
 		global $_W;
 		$this->_from_user = $_W['fans']['from_user'];
 		$this->_weid = $_W['uniacid'];
