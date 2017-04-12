@@ -1,13 +1,20 @@
 {template 'common/header'}
 {if $op == 'display'}
 <link rel="stylesheet" href="../addons/Wn_storex/template/style/mobile/css/membercard.css">
-<div class="main">
+<div class="main" id="membercard">
 	<ul class="nav nav-tabs">
 		<li {if $_GPC[ 'do']=='membercard' }class="active" {/if}><a href="{php echo $this->createWeburl('membercard', array('op' => 'display'))}">会员卡设置</a></li>
 		<li {if $_GPC[ 'do']=='signmanage' }class="active" {/if}><a href="{php echo $this->createWeburl('signmanage', array('op' => 'sign-credit'))}">签到管理</a></li>
 		<li {if $_GPC[ 'do']=='noticemanage' }class="active" {/if}><a href="{php echo $this->createWeburl('noticemanage', array('op' => 'notice_list'))}">通知管理</a></li>
 	</ul>
-	<div id="membercard" class="app">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			是否启用会员卡：
+			<input type="checkbox" class="weui-switch" name="flag" @change="switchflag" v-model.lazy="flag" :true-value="1" :false-value="0">
+			<!-- <input type="checkbox" name="flag" value="1" class="hidden" {if intval($setting['status'])==1} checked="checked" {/if} data="{$setting['id']}"/> -->
+		</div>
+	</div>
+	<div class="app" v-show="status">
 		<div class="app-preview">
 			<div class="app-header"></div>
 			<div class="app-content">
@@ -43,217 +50,419 @@
 						<div class="app-header-setting-inner">
 							<div class="panel panel-default">
 								<ul class="nav nav-tabs" style="margin:10px 15px 0 15px">
-									<li ng-class="{'active' : activeModules.cardBasic.id == 'cardBasic'}" class="active" style=""><a href="javascript:;">基本设置</a></li>
-									<li ng-class="{'active' : activeModules.cardBasic.id == 'cardActivity'}" class="" style=""><a href="javascript:;">消费优惠设置</a></li>
-									<li ng-class="{'active' : activeModules.cardBasic.id == 'cardRecharge'}"><a href="javascript:;">充值优惠设置</a></li>
-									<li ng-class="{'active' : activeModules.cardBasic.id == 'cardNums'}"><a href="javascript:;">计次设置</a></li>
-									<li ng-class="{'active' : activeModules.cardBasic.id == 'cardTimes'}"><a href="javascript:;">计时设置</a></li>
+									<li class="active" style=""><a href="#cardBasic" aria-controls="cardBasic" role="tab" data-toggle="tab">基本设置</a></li>
+									<li class="" style=""><a href="#cardActivity" aria-controls="cardActivity" role="tab" data-toggle="tab">消费优惠设置</a></li>
+									<li ><a href="#cardRecharge" aria-controls="cardRecharge" role="tab" data-toggle="tab">充值优惠设置</a></li>
+									<li ><a href="#cardNums" aria-controls="cardNums" role="tab" data-toggle="tab">计次设置</a></li>
+									<li ><a href="#cardTimes" aria-controls="cardTimes" role="tab" data-toggle="tab">计时设置</a></li>
 								</ul>
-								<div class="panel-body form-horizontal">
-									<!-- 名称 -->
-									<div class="form-group">
-										<label class="col-xs-12 col-sm-3 col-md-2 control-label">名称<span style="color:red">*</span></label>
-										<div class="col-sm-9 col-xs-12">
-											<input type="text" class="form-control" v-model="activeModules.cardBasic.params.title" style="">
-										</div>
-									</div>
-									<!-- 背景 -->
-									<div class="form-group">
-										<label class="col-xs-12 col-sm-3 col-md-2 control-label">背景图案<span style="color:red">*</span></label>
-										<div class="col-sm-9 col-xs-12">
-											<label class="radio-inline">
-												<input type="radio" value="system" v-model="activeModules.cardBasic.params.background.type" name="37" style=""> 系统
-											</label>
-											<label class="radio-inline"><input type="radio" value="user" v-model="activeModules.cardBasic.params.background.type" 	name="38" style="">
-												自定义
-											</label>
-										</div>
-									</div>
-									<!-- 背景图片 -->
-									<div class="form-group" v-if="activeModules.cardBasic.params.background.type == 'user'">
-										<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
-										<div class="col-xs-9">
-											<span @click="addBgThumb()" class="form-control-static"><i class="fa fa-plus-circle green"></i>&nbsp;选择图片</span>
-											<div style="margin-top: 0.5em;" class="input-group" v-show="activeModules.cardBasic.params.background.image"><img width="150" class="img-responsive img-thumbnail" :src="activeModules.cardBasic.params.background.image"> <em @click="activeModules.cardBasic.params.background.image = '';" title="删除这张图片" style="position:absolute; top: 0px; right: -14px"
-												    class="close">×</em>
+								<div class="tab-content">
+									<!-- 基本设置 -->
+									<div class="panel-body form-horizontal tab-pane in fade active" id="cardBasic">
+										<!-- 名称 -->
+										<div class="form-group">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">名称<span style="color:red">*</span></label>
+											<div class="col-sm-9 col-xs-12">
+												<input type="text" class="form-control" v-model="activeModules.cardBasic.params.title" style="">
 											</div>
 										</div>
-									</div>
-									<div class="form-group" v-if="activeModules.cardBasic.params.background.type == 'system'">
-										<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
-										<div class="col-sm-9 col-xs-12">
-											<select class="form-control" v-model="activeModules.cardBasic.params.background.image" style="">
-												<option :value="'http://172.16.1.222/attachment/images/global/card/'+ i + '.png'" v-for="i in 23">背景{{i}}</option>
-											</select>
-										</div>
-									</div>
-									<!-- Logo -->
-									<div class="form-group">
-										<label class="col-xs-12 col-sm-3 col-md-2 control-label">LOGO<span style="color:red">*</span></label>
-										<div class="col-sm-9 col-xs-12">
-											<span @click="addThumb('logo')" class="form-control-static"><i class="fa fa-plus-circle green"></i>&nbsp;选择图片</span>
-											<div style="margin-top: 0.5em;" class="input-group" v-show="activeModules.cardBasic.params.logo">
-												<img width="150" class="img-responsive img-thumbnail" :src="activeModules.cardBasic.params.logo">
-												<em @click="activeModules.cardBasic.params.logo = '';" title="删除这张图片" style="position:absolute; top: 0px; right: -14px" class="close">×</em>
+										<!-- 背景 -->
+										<div class="form-group">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">背景图案<span style="color:red">*</span></label>
+											<div class="col-sm-9 col-xs-12">
+												<label class="radio-inline">
+													<input type="radio" value="system" v-model="activeModules.cardBasic.params.background.type" name="37" style=""> 系统
+												</label>
+												<label class="radio-inline"><input type="radio" value="user" v-model="activeModules.cardBasic.params.background.type" 	name="38" style="">
+													自定义
+												</label>
 											</div>
 										</div>
-									</div>
-									<!-- 会员卡等级 -->
-									<div class="form-group">
-										<label class="col-xs-12 col-sm-3 col-md-2 control-label">会员卡等级</label>
-										<div class="col-sm-9 col-xs-12">
-											<label class="radio-inline">
-												<input type="radio" value="1" v-model="activeModules.cardBasic.params.card_level.type" class="n" name="39" style=""> 开启
-											</label>
-											<label class="radio-inline">
-												<input type="radio" value="2" v-model="activeModules.cardBasic.params.card_level.type" class="" name="40" style=""> 关闭
-											</label>
-										</div>
-									</div>
-									<!-- 会员卡等级颜色 -->
-									<div class="form-group" v-show="activeModules.cardBasic.params.card_level.type == '1'">
-										<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
-										<div class="col-sm-9 col-xs-12">
-											<br>
-											<div class="">
-												<div class="input-group">
-													<input type="text" name="" value="" v-model="activeModules.cardBasic.params.color.rank" class="form-control" style="">
-													<span class="input-group-addon" style="width: 35px; border-left: none;" :style="{'background-color' : activeModules.cardBasic.params.color.rank}"></span>
-													<span class="input-group-btn">
-														<button class="btn btn-default colorpicker" v-colorpicker="{'object': activeModules.cardBasic.params.color, 'key': 'rank'}"  type="button">选择颜色 <i class="fa fa-caret-down"></i></button>
-														<button class="btn btn-default colorclean" @click="activeModules.cardBasic.params.color.rank = ''" type="button"><span><i class="fa fa-remove"></i></span></button>
-													</span>
+										<!-- 背景图片 -->
+										<div class="form-group" v-if="activeModules.cardBasic.params.background.type == 'user'">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+											<div class="col-xs-9">
+												<span @click="addBgThumb()" class="form-control-static"><i class="fa fa-plus-circle green"></i>&nbsp;选择图片</span>
+												<div style="margin-top: 0.5em;" class="input-group" v-show="activeModules.cardBasic.params.background.image"><img width="150" class="img-responsive img-thumbnail" :src="activeModules.cardBasic.params.background.image"> <em @click="activeModules.cardBasic.params.background.image = '';" title="删除这张图片" style="position:absolute; top: 0px; right: -14px"
+													    class="close">×</em>
 												</div>
 											</div>
 										</div>
-									</div>
-									<!-- 会员卡标题 -->
-									<div class="form-group">
-										<label class="col-xs-12 col-sm-3 col-md-2 control-label">会员卡标题</label>
-										<div class="col-sm-9 col-xs-12">
-											<label class="radio-inline">
-												<input type="radio" value="1" v-model="activeModules.cardBasic.params.card_label.type" class="ng-pristine ng-untouched ng-valid ng-not-empty" name="41" style=""> 开启
-											</label>
-											<label class="radio-inline">
-												<input type="radio" value="2" v-model="activeModules.cardBasic.params.card_label.type" class="ng-pristine ng-untouched ng-valid ng-not-empty" name="42" style=""> 关闭
-											</label>
+										<div class="form-group" v-if="activeModules.cardBasic.params.background.type == 'system'">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+											<div class="col-sm-9 col-xs-12">
+												<select class="form-control" v-model="activeModules.cardBasic.params.background.image" style="">
+													<option :value="'http://172.16.1.222/attachment/images/global/card/'+ i + '.png'" v-for="i in 23">背景{{i}}</option>
+												</select>
+											</div>
 										</div>
-									</div>
-									<!-- 会员卡标题颜色 -->
-									<div class="form-group" v-show="activeModules.cardBasic.params.card_label.type == '1'">
-										<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
-										<div class="col-sm-9 col-xs-12">
-											<input type="text" v-model="activeModules.cardBasic.params.card_label.title" class="form-control">
-											<br>
-											<div class="">
-												<div class="input-group">
-													<input type="text" name="" value="" v-model="activeModules.cardBasic.params.color.title" class="form-control" style="">
-													<span class="input-group-addon" style="width: 35px; border-left: none;" :style="{'background-color' : activeModules.cardBasic.params.color.title}"></span>
-													<span class="input-group-btn">
-														<button class="btn btn-default colorpicker" v-colorpicker="{ 'object': activeModules.cardBasic.params.color,'key': 'title'}" type="button">选择颜色 <i class="fa fa-caret-down"></i></button>
-														<button class="btn btn-default" @click="activeModules.cardBasic.params.color.title = ''" type="button"><span><i class="fa fa-remove"></i></span></button>
-													</span>
+										<!-- Logo -->
+										<div class="form-group">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">LOGO<span style="color:red">*</span></label>
+											<div class="col-sm-9 col-xs-12">
+												<span @click="addThumb('logo')" class="form-control-static"><i class="fa fa-plus-circle green"></i>&nbsp;选择图片</span>
+												<div style="margin-top: 0.5em;" class="input-group" v-show="activeModules.cardBasic.params.logo">
+													<img width="150" class="img-responsive img-thumbnail" :src="activeModules.cardBasic.params.logo">
+													<em @click="activeModules.cardBasic.params.logo = '';" title="删除这张图片" style="position:absolute; top: 0px; right: -14px" class="close">×</em>
 												</div>
 											</div>
-
 										</div>
-									</div>
-									<!-- 使用说明 -->
-									<div class="form-group">
-										<label class="col-xs-12 col-sm-3 col-md-2 control-label">使用说明<span style="color:red">*</span></label>
-										<div class="col-sm-9 col-xs-12">
-											<textarea class="form-control" rows="6" v-model="activeModules.cardBasic.params.description" style=""></textarea>
-											<span class="help-block">请填写会员卡的使用说明。</span>
+										<!-- 会员卡等级 -->
+										<div class="form-group">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">会员卡等级</label>
+											<div class="col-sm-9 col-xs-12">
+												<label class="radio-inline">
+													<input type="radio" value="1" v-model="activeModules.cardBasic.params.card_level.type" class="n" name="39" style=""> 开启
+												</label>
+												<label class="radio-inline">
+													<input type="radio" value="2" v-model="activeModules.cardBasic.params.card_level.type" class="" name="40" style=""> 关闭
+												</label>
+											</div>
 										</div>
-									</div>
-									<!-- 会员卡资料 -->
-									<div class="form-group">
-										<label class="col-xs-12 col-sm-3 col-md-2 control-label">会员卡资料</label>
-										<div class="col-sm-10 col-xs-9">
-											<!-- ngRepeat: field in activeModules.cardBasic.params.fields -->
-											<div v-for="(field, index) in activeModules.cardBasic.params.fields" style="margin-left: -15px;">
-												<div class="col-sm-10" style="margin-bottom:10px">
+										<!-- 会员卡等级颜色 -->
+										<div class="form-group" v-show="activeModules.cardBasic.params.card_level.type == '1'">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+											<div class="col-sm-9 col-xs-12">
+												<br>
+												<div class="">
 													<div class="input-group">
-														<input type="text" class="form-control" v-model="field.title" :disabled="(field.bind == 'realname' || field.bind == 'mobile') && index <= 1">
-														<span class="input-group-addon">
-															<label>
-																<input type="checkbox" v-model="field.require" :disabled="(field.bind == 'realname' || field.bind == 'mobile') && index <= 1" class=""> 必填
-															</label>
+														<input type="text" name="" value="" v-model="activeModules.cardBasic.params.color.rank" class="form-control" style="">
+														<span class="input-group-addon" style="width: 35px; border-left: none;" :style="{'background-color' : activeModules.cardBasic.params.color.rank}"></span>
+														<span class="input-group-btn">
+															<button class="btn btn-default colorpicker" v-colorpicker="{'object': activeModules.cardBasic.params.color, 'key': 'rank'}"  type="button">选择颜色 <i class="fa fa-caret-down"></i></button>
+															<button class="btn btn-default colorclean" @click="activeModules.cardBasic.params.color.rank = ''" type="button"><span><i class="fa fa-remove"></i></span></button>
 														</span>
-														<select v-model="field.bind" class="form-control" :disabled="(field.bind == 'realname' || field.bind == 'mobile') && index <= 1">
-															<option :value="key" v-for="(fansfield, key) in fansFields" class="" selected="selected">{{fansfield.title}}</option>
-														</select>
 													</div>
 												</div>
-												<div class="col-sm-1" style="margin-top:5px" v-show="field.bind != 'mobile' && field.bind != 'realname'"><a href="javascript:;" @click="removeFields(field.bind, index);"><i class="fa fa-times-circle"></i></a></div>
-											</div>
-											<span class="help-block col-sm-9" style="margin-left:-15px">
-												系统会自动绑定:真实姓名和手机号码
-											</span>
-											<span class="help-block col-sm-9" style="margin-left:-15px">
-												 <a href="javascript:;" @click="addFields();">
-													 <i class="fa fa-plus-circle" title="添加填写项目"></i>
-													 添加填写项目
-												 </a>
-											 </span>
-										</div>
-									</div>
-									<!-- 领卡赠送 -->
-									<div class="form-group">
-										<label class="col-xs-12 col-sm-3 col-md-2 control-label">领卡赠送<span style="color:red">*</span></label>
-										<div class="col-sm-9 col-xs-12">
-											<div class="input-group">
-												<span class="input-group-addon" ng-init="activeModules.cardBasic.params.grant &amp;&amp; activeModules.cardBasic.params.grant == 0 ? activeModules.cardBasic.params.grant = {} : ''">赠送</span>
-												<input type="text" v-model="activeModules.cardBasic.params.grant.credit1" class="form-control" style="">
-												<span class="input-group-addon">积分</span>
 											</div>
 										</div>
-									</div>
-									<div class="form-group">
-										<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
-										<div class="col-sm-9 col-xs-12">
-											<div class="input-group">
-												<span class="input-group-addon">赠送</span>
-												<input type="text" v-model="activeModules.cardBasic.params.grant.credit2" class="form-control" style="">
-												<span class="input-group-addon">余额</span>
+										<!-- 会员卡标题 -->
+										<div class="form-group">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">会员卡标题</label>
+											<div class="col-sm-9 col-xs-12">
+												<label class="radio-inline">
+													<input type="radio" value="1" v-model="activeModules.cardBasic.params.card_label.type" class="ng-pristine ng-untouched ng-valid ng-not-empty" name="41" style=""> 开启
+												</label>
+												<label class="radio-inline">
+													<input type="radio" value="2" v-model="activeModules.cardBasic.params.card_label.type" class="ng-pristine ng-untouched ng-valid ng-not-empty" name="42" style=""> 关闭
+												</label>
 											</div>
 										</div>
-									</div>
-									<div class="form-group hidden">
-										<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
-										<div class="col-sm-9 col-xs-12">
-											<div class="input-group">
-												<input type="hidden" ng-model="activeModules.cardBasic.params.grant.coupon" class="ng-pristine ng-untouched ng-valid ng-not-empty" style=""> <span class="input-group-addon">已选:<!-- ngRepeat: grant in activeModules.cardBasic.params.grant.coupon --></span>									<span class="input-group-btn"><button class="btn btn-primary" type="button" @click="selectCoupon();">搜索优惠券</button> <button class="btn btn-default" type="button" ng-click="clearCoupon();"><span><i class="fa fa-remove"></i></span></button>
+										<!-- 会员卡标题颜色 -->
+										<div class="form-group" v-show="activeModules.cardBasic.params.card_label.type == '1'">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+											<div class="col-sm-9 col-xs-12">
+												<input type="text" v-model="activeModules.cardBasic.params.card_label.title" class="form-control">
+												<br>
+												<div class="">
+													<div class="input-group">
+														<input type="text" name="" value="" v-model="activeModules.cardBasic.params.color.title" class="form-control" style="">
+														<span class="input-group-addon" style="width: 35px; border-left: none;" :style="{'background-color' : activeModules.cardBasic.params.color.title}"></span>
+														<span class="input-group-btn">
+															<button class="btn btn-default colorpicker" v-colorpicker="{ 'object': activeModules.cardBasic.params.color,'key': 'title'}" type="button">选择颜色 <i class="fa fa-caret-down"></i></button>
+															<button class="btn btn-default" @click="activeModules.cardBasic.params.color.title = ''" type="button"><span><i class="fa fa-remove"></i></span></button>
+														</span>
+													</div>
+												</div>
+
+											</div>
+										</div>
+										<!-- 使用说明 -->
+										<div class="form-group">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">使用说明<span style="color:red">*</span></label>
+											<div class="col-sm-9 col-xs-12">
+												<textarea class="form-control" rows="6" v-model="activeModules.cardBasic.params.description" style=""></textarea>
+												<span class="help-block">请填写会员卡的使用说明。</span>
+											</div>
+										</div>
+										<!-- 会员卡资料 -->
+										<div class="form-group">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">会员卡资料</label>
+											<div class="col-sm-10 col-xs-9">
+												<!-- ngRepeat: field in activeModules.cardBasic.params.fields -->
+												<div v-for="(field, index) in activeModules.cardBasic.params.fields" style="margin-left: -15px;">
+													<div class="col-sm-10" style="margin-bottom:10px">
+														<div class="input-group">
+															<input type="text" class="form-control" v-model="field.title" :disabled="(field.bind == 'realname' || field.bind == 'mobile') && index <= 1">
+															<span class="input-group-addon">
+																<label>
+																	<input type="checkbox" v-model="field.require" :disabled="(field.bind == 'realname' || field.bind == 'mobile') && index <= 1" class=""> 必填
+																</label>
+															</span>
+															<select v-model="field.bind" class="form-control" :disabled="(field.bind == 'realname' || field.bind == 'mobile') && index <= 1">
+																<option :value="key" v-for="(fansfield, key) in fansFields" class="" selected="selected">{{fansfield.title}}</option>
+															</select>
+														</div>
+													</div>
+													<div class="col-sm-1" style="margin-top:5px" v-show="field.bind != 'mobile' && field.bind != 'realname'"><a href="javascript:;" @click="removeFields(field.bind, index);"><i class="fa fa-times-circle"></i></a></div>
+												</div>
+												<span class="help-block col-sm-9" style="margin-left:-15px">
+													系统会自动绑定:真实姓名和手机号码
 												</span>
-											</div>
-											<div class="help-block"><a href="./index.php?i=281&amp;j=269&amp;c=activity&amp;a=coupon" target="_blank">添加优惠券</a>.注意:赠送的优惠券应该各个会员组都可以领取.否则会造成赠送失败的问题</div>
-										</div>
-									</div>
-									<!-- 抵现比率 -->
-									<div class="form-group">
-										<label class="col-xs-12 col-sm-3 col-md-2 control-label">抵现比率<span style="color:red">*</span></label>
-										<div class="col-sm-9 col-xs-12">
-											<div class="input-group">
-												<input type="text" v-model="activeModules.cardBasic.params.offset_rate" class="form-control" style=""> <span class="input-group-addon">积分抵 1 元</span>
-											</div>
-											<br>
-											<div class="input-group">
-												<span class="input-group-addon">单次最多可抵现</span>
-												<input type="text" v-model="activeModules.cardBasic.params.offset_max" class="form-control" style=""> <span class="input-group-addon">元</span>
-											</div>
-											<div class="help-block">
-												<strong class="text-danger">例:积分抵现金比率:100积分抵1元,那用户在消费的时候,将可用账户积分抵消部分金额.</strong>
-											</div>
-											<div class="help-block">
-												<strong class="text-danger">目前仅支持后台交易抵现，暂不支持手机交易抵现.</strong>
+												<span class="help-block col-sm-9" style="margin-left:-15px">
+													 <a href="javascript:;" @click="addFields();">
+														 <i class="fa fa-plus-circle" title="添加填写项目"></i>
+														 添加填写项目
+													 </a>
+												 </span>
 											</div>
 										</div>
+										<!-- 领卡赠送 -->
+										<div class="form-group">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">领卡赠送<span style="color:red">*</span></label>
+											<div class="col-sm-9 col-xs-12">
+												<div class="input-group">
+													<span class="input-group-addon" ng-init="activeModules.cardBasic.params.grant &amp;&amp; activeModules.cardBasic.params.grant == 0 ? activeModules.cardBasic.params.grant = {} : ''">赠送</span>
+													<input type="text" v-model="activeModules.cardBasic.params.grant.credit1" class="form-control" style="">
+													<span class="input-group-addon">积分</span>
+												</div>
+											</div>
+										</div>
+										<div class="form-group">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+											<div class="col-sm-9 col-xs-12">
+												<div class="input-group">
+													<span class="input-group-addon">赠送</span>
+													<input type="text" v-model="activeModules.cardBasic.params.grant.credit2" class="form-control" style="">
+													<span class="input-group-addon">余额</span>
+												</div>
+											</div>
+										</div>
+										<div class="form-group hidden">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+											<div class="col-sm-9 col-xs-12">
+												<div class="input-group">
+													<input type="hidden" v-model="activeModules.cardBasic.params.grant.coupon" class="ng-pristine ng-untouched ng-valid ng-not-empty" style=""> <span class="input-group-addon">已选:<!-- ngRepeat: grant in activeModules.cardBasic.params.grant.coupon --></span>									<span class="input-group-btn"><button class="btn btn-primary" type="button" @click="selectCoupon();">搜索优惠券</button> <button class="btn btn-default" type="button" ng-click="clearCoupon();"><span><i class="fa fa-remove"></i></span></button>
+													</span>
+												</div>
+												<div class="help-block"><a href="./index.php?i=281&amp;j=269&amp;c=activity&amp;a=coupon" target="_blank">添加优惠券</a>.注意:赠送的优惠券应该各个会员组都可以领取.否则会造成赠送失败的问题</div>
+											</div>
+										</div>
+										<!-- 抵现比率 -->
+										<div class="form-group">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">抵现比率<span style="color:red">*</span></label>
+											<div class="col-sm-9 col-xs-12">
+												<div class="input-group">
+													<input type="text" v-model="activeModules.cardBasic.params.offset_rate" class="form-control" style=""> <span class="input-group-addon">积分抵 1 元</span>
+												</div>
+												<br>
+												<div class="input-group">
+													<span class="input-group-addon">单次最多可抵现</span>
+													<input type="text" v-model="activeModules.cardBasic.params.offset_max" class="form-control" style=""> <span class="input-group-addon">元</span>
+												</div>
+												<div class="help-block">
+													<strong class="text-danger">例:积分抵现金比率:100积分抵1元,那用户在消费的时候,将可用账户积分抵消部分金额.</strong>
+												</div>
+												<div class="help-block">
+													<strong class="text-danger">目前仅支持后台交易抵现，暂不支持手机交易抵现.</strong>
+												</div>
+											</div>
+										</div>
 									</div>
+									<!-- 消费设置 -->
+									<div class="panel-body form-horizontal tab-pane fade" id="cardActivity">
+										<div class="form-group">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">付款返积分比率</label>
+											<div class="col-sm-9 col-xs-12">
+												<div class="input-group">
+													<span class="input-group-addon">每消费 1 元赠送</span>
+													<input type="text" v-model="activeModules.cardActivity.params.grant_rate" class="form-control">
+													<span class="input-group-addon">积分</span>
+												</div>
+												<div class="help-block">设置消费返积分的比率.如果开启了充值优惠设置,请到充值优惠设置中->设置消费是否返还积分的开关.</div>
+												<div class="help-block"><strong class="text-danger">例:兑换比率:1元返10积分,那用户每消费1元,将得到10积分.</strong></div>
+											</div>
+										</div>
+										<div class="form-group">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">优惠设置</label>
+											<div class="col-sm-9 col-xs-12">
+												<input type="radio" value="0" v-model="activeModules.cardActivity.params.discount_type" id="discount_type1">
+												<label class="radio-inline" for="discount_type1"> 不开启</label>
+												<input type="radio" value="1" v-model="activeModules.cardActivity.params.discount_type" id="discount_type2">
+												<label class="radio-inline" for="discount_type2"> 使用满减功能</label>
+												<input type="radio" value="2" v-model="activeModules.cardActivity.params.discount_type" id="discount_type3">
+												<label class="radio-inline" for="discount_type3"> 使用折扣功能</label>
+											</div>
+										</div>
+										<div class="form-group" v-show="activeModules.cardActivity.params.discount_type == 1" v-for="discount in activeModules.cardActivity.params.discounts">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+											<div class="col-sm-9 col-xs-12">
+												<div class="input-group">
+													<span class="input-group-addon">{{discount.title}}</span>
+													<span class="input-group-addon">满</span>
+													<input type="hidden" v-model="discount.groupid"/>
+													<input type="text" class="form-control" v-model="discount.condition_1">
+													<span class="input-group-addon">元</span>
+													<span class="input-group-addon">减</span>
+													<input type="text" class="form-control"  v-model="discount.discount_1">
+													<span class="input-group-addon">元</span>
+												</div>
+											</div>
+										</div>
+										<div class="form-group" v-show="activeModules.cardActivity.params.discount_type == 2" v-for="discount in activeModules.cardActivity.params.discounts">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+											<div class="col-sm-9 col-xs-12">
+												<div class="input-group">
+													<span class="input-group-addon">{{discount.title}}</span>
+													<span class="input-group-addon">满</span>
+													<input type="hidden" v-model="discount.groupid"/>
+													<input type="text" class="form-control" v-model="discount.condition_2">
+													<span class="input-group-addon">元</span>
+													<span class="input-group-addon">打</span>
+													<input type="text" class="form-control"  v-model="discount.discount_2">
+													<span class="input-group-addon">折</span>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="panel-body form-horizontal tab-pane fade" id="cardRecharge">
+										<div class="form-group">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">优惠设置</label>
+											<div class="col-sm-9 col-xs-12">
+												<input type="radio" value="1" v-model="activeModules.cardRecharge.params.recharge_type" id="recharge_type1">
+												<label class="radio-inline" for="recharge_type1"> 开启</label>
+												<input type="radio" value="0" v-model="activeModules.cardRecharge.params.recharge_type" id="recharge_type2">
+												<label class="radio-inline" for="recharge_type2"> 不开启</label>
+											</div>
+										</div>
+										<div class="form-group" v-show="activeModules.cardRecharge.params.recharge_type == 1" v-for="(recharge, index) in activeModules.cardRecharge.params.recharges">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+											<div class="col-sm-9 col-xs-12">
+												<div class="input-group">
+													<span class="input-group-addon">充</span>
+													<input type="text" class="form-control" v-model="recharge.condition">
+													<span class="input-group-addon">元</span>
+													<span class="input-group-addon" v-if="recharge.backtype == '0'">送</span>
+													<span class="input-group-addon" v-if="recharge.backtype == '1'">送</span>
+													<input type="text" class="form-control"  v-model="recharge.back">
+													<div class="input-group-btn">
+														<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="width:88px;">
+																<span >{{recharge.backtype==1 ? '积分' : '元'}}</span>
+															<i class="fa fa-angle-down"></i>
+														</button>
+														<ul class="dropdown-menu dropdown-menu-right select-back">
+															<li><a href="javascript:;" @click="recharge.backtype='0';recharge.backunit='元'">元</a></li>
+															<li><a href="javascript:;" @click="recharge.backtype='1';recharge.backunit='积分'">积分</a></li>
+														</ul>
+													</div>
+												</div>
+											</div>
+											<div class="col-sm-1" style="margin-top:5px">
+												<a href="javascript:;" @click="removeRecharges(index);"><i class="fa fa-times-circle"></i></a>
+											</div>
+										</div>
+										<div class="form-group" v-show="activeModules.cardRecharge.params.recharge_type != 0">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+											<div class="help-block col-sm-9 col-xs-12" style="margin-left:-15px">
+												<a href="javascript:;" @click="addRecharges();"><i class="fa fa-plus-circle" title="添加充值设置"></i> 添加充值设置</a>
+											</div>
+										</div>
+										<div class="form-group" v-show="activeModules.cardRecharge.params.recharge_type == 1">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">消费返积分</label>
+											<div class="col-sm-9 col-xs-12">
+												<label class="radio-inline">
+													<input type="radio" value="1" v-model="activeModules.cardRecharge.params.grant_rate_switch"> 是
+												</label>
+												<label class="radio-inline">
+													<input type="radio" value="0" v-model="activeModules.cardRecharge.params.grant_rate_switch"> 否
+												</label>
+												<div class="help-block"><strong class="text-danger">开启充值优惠设置后,用户是否继续享受消费返积分的优惠</strong></div>
+											</div>
+										</div>
+									</div>
+									<div class="panel-body form-horizontal tab-pane fade" id="cardNums">
+										<div class="form-group">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">计次设置</label>
+											<div class="col-sm-9 col-xs-12">
+												<input type="radio" value="1" v-model="activeModules.cardNums.params.nums_status" id="nums_status1">
+												<label class="radio-inline" for="nums_status1"> 开启</label>
+												<input type="radio" value="0" v-model="activeModules.cardNums.params.nums_status" id="nums_status2">
+												<label class="radio-inline" for="nums_status2"> 关闭</label>
+												<span class="help-block">如你的业务有需要次数限制，可开启进行设置。</span>
+											</div>
+										</div>
+										<div class="form-group" v-show="activeModules.cardNums.params.nums_status == 1">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">计次设置</label>
+											<div class="col-sm-9 col-xs-12">
+												<input type="text" class="form-control" v-model="activeModules.cardNums.params.nums_text"/>
+												<span class="help-block">例如：设置为”洗发剩余次数“,前台将显示为：”洗发剩余次数：n次“,请根据自己的业务需求设置。</span>
+											</div>
+										</div>
+										<div class="form-group" v-show="activeModules.cardNums.params.nums_status == 1">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">充值返次数</label>
+											<div class="col-sm-9 col-xs-12">
+												<div v-for="num in activeModules.cardNums.params.nums" style="margin-left:-15px">
+													<div class="col-sm-8" style="margin-bottom:10px">
+														<div class="input-group">
+															<span class="input-group-addon">充</span>
+															<input type="text" class="form-control" v-model="num.recharge">
+															<span class="input-group-addon">元</span>
+															<input type="text" class="form-control" v-model="num.num">
+															<span class="input-group-addon">次</span>
+														</div>
+													</div>
+													<div class="col-sm-1" style="margin-top:5px">
+														<a href="javascript:;" @click="removeNums(num);"><i class="fa fa-times-circle"></i></a>
+													</div>
+												</div>
+												<div class="help-block col-sm-9" style="margin-left:-15px">
+													<a href="javascript:;" @click="addNums();"><i class="fa fa-plus-circle" title="添加充值设置"></i> 添加充值设置</a>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="panel-body form-horizontal tab-pane fade" id="cardTimes">
+										<div class="form-group">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">计时设置</label>
+											<div class="col-sm-9 col-xs-12">
+												<input type="radio" value="1" v-model="activeModules.cardTimes.params.times_status" id="times_status1">
+												<label class="radio-inline" for="times_status1"> 开启</label>
+												<input type="radio" value="0" v-model="activeModules.cardTimes.params.times_status" id="times_status2">
+												<label class="radio-inline" for="times_status2"> 关闭</label>
+												<span class="help-block">如你的业务有需要时长限制，可开启进行设置。</span>
+											</div>
+										</div>
+										<div class="form-group" v-show="activeModules.cardTimes.params.times_status == 1">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">计时设置</label>
+											<div class="col-sm-9 col-xs-12">
+												<input type="text" class="form-control" v-model="activeModules.cardTimes.params.times_text"/>
+												<span class="help-block">例如：设置为”到期时间“,系统将根据用户的领卡时间,加上用户的可用时长，计算到期时间，前台将显示为：”到期时间：x年x月x日“,请根据自己的业务需求设置。</span>
+											</div>
+										</div>
+										<div class="form-group" v-show="activeModules.cardTimes.params.times_status == 1">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">充值返时长</label>
+											<div class="col-sm-9 col-xs-12">
+												<div v-for="(time, index) in activeModules.cardTimes.params.times" style="margin-left:-15px">
+													<div class="col-sm-8" style="margin-bottom:10px">
+														<div class="input-group">
+															<span class="input-group-addon">充</span>
+															<input type="text" class="form-control" v-model="time.recharge">
+															<span class="input-group-addon">元</span>
+															<input type="text" class="form-control" v-model="time.time">
+															<span class="input-group-addon">天</span>
+														</div>
+													</div>
+													<div class="col-sm-1" style="margin-top:5px">
+														<a href="javascript:;" @click="removeTimes(index);"><i class="fa fa-times-circle"></i></a>
+													</div>
+												</div>
+												<div class="help-block col-sm-9" style="margin-left:-15px">
+													<a href="javascript:;" @click="addTimes();"><i class="fa fa-plus-circle" title="添加充值设置"></i> 添加充值设置</a>
+												</div>
+											</div>
+										</div>
+									</div>
+
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
+			</div>
+		</div>
+		<div class="shop-preview col-xs-12 col-sm-9 col-lg-10">
+			<div class="text-center alert alert-warning">
+				<button type="submit" class="btn btn-primary" @click = "submit">上架</button>
 			</div>
 		</div>
 	</div>
@@ -268,10 +477,9 @@
 			'data': '/addons/wn_storex/template/style/js/membercard/data'
 		}
 	})
-
-	var activeItem = {};
 	require(['vue', 'data'], function(Vue, data) {
 		var siteroot = "{php echo $_W['siteroot']}";
+		console.log(data);
 		var app = new Vue({
 			el: '#membercard',
 			data: {
@@ -281,7 +489,8 @@
 				'fansFields': data.fansFields,
 				'discounts': data.discounts,
 				'siteroot': siteroot,
-				'colorValue': ''
+				'flag': 1,
+				'status': true
 			},
 			directives: {
 				'colorpicker': {
@@ -296,6 +505,12 @@
 				}
 			},
 			methods: {
+				switchflag() {
+					const self = this
+					$.post("{php echo $this->createWeburl('membercard', array('op' => 'cardstatus'));}", {status:this.flag}, function(resp){
+						self.status = self.flag
+					});
+				},
 				addBgThumb() {
 					const self = this;
 					require(['fileUploader'], function(uploader) {
@@ -332,6 +547,38 @@
 					} else {
 						this.activeModules.cardBasic.params.fields.splice(index, '1')
 					}
+				},
+				addRecharges() {
+					this.activeModules.cardRecharge.params.recharges.push({
+						condition: '',
+						back: '',
+						backtype: '0',
+						backunit: '元',
+					});
+				},
+				removeRecharges(index) {
+					this.activeModules.cardRecharge.params.recharges.splice(index, '1')
+				},
+				addNums() {
+					this.activeModules.cardNums.params.nums.push({
+						recharge: '',
+						num: ''
+					});
+				},
+				removeNums(index) {
+					this.activeModules.cardNums.params.nums.splice(index, '1')
+				},
+				addTimes() {
+					this.activeModules.cardTimes.params.times.push({
+						recharge: '',
+						time: ''
+					});
+				},
+				removeTimes(index) {
+					this.activeModules.cardTimes.params.times.splice(index, '1')
+				},
+				submit() {
+					console.log(this.$data)
 				}
 			}
 		})

@@ -95,7 +95,7 @@
 
 .app .app-side {
     margin: 71px 0 0 0;
-    width: 560px;
+    width: 700px;
     overflow-x: hidden;
 }
 
@@ -110,7 +110,7 @@
 .app .app-side>div {
     position: relative;
     padding-bottom: 60px;
-    width: 535px;
+    width: 690px;
     margin-left: 20px;
 }
 
@@ -167,6 +167,8 @@
 .app .app-side .card:hover .btns {
     display: block;
 }
+.app .shop-preview{position:fixed; padding:0 15px; bottom:0; right:0; z-index:100;}
+.app .shop-preview div{background:rgba(255,254,220,0.8);}
 
 .weui-tabbar {
     display: -webkit-box;
@@ -3864,16 +3866,6 @@ a {
 .message-content img {
     max-width: 100%
 }
-
-body, html {
-    height: 100%
-}
-
-body {
-    background-color: #eeeff3;
-    font-size: 12px
-}
-
 body .hidden {
     display: none
 }
