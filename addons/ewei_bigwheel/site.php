@@ -90,7 +90,7 @@ class Ewei_bigwheelModuleSite extends WeModuleSite {
 				$msg = '活动还没有开始呢！';
 			}
 			//判断总次数超过限制,一般情况不会到这里的，考虑特殊情况,回复提示文字msg，便于测试
-			if ($running && $reply['endtime'] < time()) {
+			if ($running && ($reply['endtime'] + 86399) < time()) {
 				$running = false;
 				$msg = '活动已经结束了，下次再来吧！';
 			}
