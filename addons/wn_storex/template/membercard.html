@@ -179,7 +179,6 @@
 										<div class="form-group">
 											<label class="col-xs-12 col-sm-3 col-md-2 control-label">会员卡资料</label>
 											<div class="col-sm-10 col-xs-9">
-												<!-- ngRepeat: field in activeModules.cardBasic.params.fields -->
 												<div v-for="(field, index) in activeModules.cardBasic.params.fields" style="margin-left: -15px;">
 													<div class="col-sm-10" style="margin-bottom:10px">
 														<div class="input-group">
@@ -232,7 +231,7 @@
 											<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
 											<div class="col-sm-9 col-xs-12">
 												<div class="input-group">
-													<input type="hidden" v-model="activeModules.cardBasic.params.grant.coupon" class="ng-pristine ng-untouched ng-valid ng-not-empty" style=""> <span class="input-group-addon">已选:<!-- ngRepeat: grant in activeModules.cardBasic.params.grant.coupon --></span>									<span class="input-group-btn"><button class="btn btn-primary" type="button" @click="selectCoupon();">搜索优惠券</button> <button class="btn btn-default" type="button" ng-click="clearCoupon();"><span><i class="fa fa-remove"></i></span></button>
+													<input type="hidden" v-model="activeModules.cardBasic.params.grant.coupon" class="ng-pristine ng-untouched ng-valid ng-not-empty" style=""> <span class="input-group-addon">已选:</span>									<span class="input-group-btn"><button class="btn btn-primary" type="button" @click="selectCoupon();">搜索优惠券</button> <button class="btn btn-default" type="button" ng-click="clearCoupon();"><span><i class="fa fa-remove"></i></span></button>
 													</span>
 												</div>
 												<div class="help-block"><a href="./index.php?i=281&amp;j=269&amp;c=activity&amp;a=coupon" target="_blank">添加优惠券</a>.注意:赠送的优惠券应该各个会员组都可以领取.否则会造成赠送失败的问题</div>
@@ -284,7 +283,7 @@
 												<label class="radio-inline" for="discount_type3"> 使用折扣功能</label>
 											</div>
 										</div>
-										<div class="form-group" v-show="activeModules.cardActivity.params.discount_type == 1" v-for="discount in activeModules.cardActivity.params.discounts">
+										<div class="form-group" v-show="activeModules.cardActivity.params.discount_type == 1" v-for="discount in discounts">
 											<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
 											<div class="col-sm-9 col-xs-12">
 												<div class="input-group">
@@ -299,7 +298,7 @@
 												</div>
 											</div>
 										</div>
-										<div class="form-group" v-show="activeModules.cardActivity.params.discount_type == 2" v-for="discount in activeModules.cardActivity.params.discounts">
+										<div class="form-group" v-show="activeModules.cardActivity.params.discount_type == 2" v-for="discount in discounts">
 											<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
 											<div class="col-sm-9 col-xs-12">
 												<div class="input-group">
@@ -478,19 +477,21 @@
 		}
 	})
 	require(['vue', 'data'], function(Vue, data) {
-		var siteroot = "{php echo $_W['siteroot']}";
-		console.log(data);
+		var params = {php echo $setting['params']} ? {php echo $setting['params']} : data.activeModules;
+		var discounts = {php echo json_encode($discounts);};
+		var fansFields = {php echo json_encode($fields);};
+		var card_status = {php echo $setting['status']};
+		console.dir(card_status);
 		var app = new Vue({
 			el: '#membercard',
 			data: {
 				'newcard': data.newcard,
 				'creditnames': data.creditnames,
-				'activeModules': data.activeModules,
-				'fansFields': data.fansFields,
-				'discounts': data.discounts,
-				'siteroot': siteroot,
+				'activeModules': params,
+				'fansFields': fansFields,
+				'discounts': discounts,
 				'flag': 1,
-				'status': true
+				'status': card_status
 			},
 			directives: {
 				'colorpicker': {
@@ -507,8 +508,14 @@
 			methods: {
 				switchflag() {
 					const self = this
-					$.post("{php echo $this->createWeburl('membercard', array('op' => 'cardstatus'));}", {status:this.flag}, function(resp){
+					$.post("{php echo $this->createWeburl('membercard', array('op' => 'cardstatus'));}", {status:this.flag}, function(data){
 						self.status = self.flag
+						data = $.parseJSON(data);
+						if (data.message.errno != 0) {
+							util.message(data.message.message, '', 'error');
+						} else {
+							util.message('修改成功', '', 'success');
+						}
 					});
 				},
 				addBgThumb() {
@@ -578,7 +585,15 @@
 					this.activeModules.cardTimes.params.times.splice(index, '1')
 				},
 				submit() {
-					console.log(this.$data)
+					$.post("{php echo $this->createWeburl('membercard', array('op' => 'post'));}", {params:this.activeModules}, function(data){
+						data = $.parseJSON(data);
+						console.dir(typeof data);
+						if (data.message.errno != '0') {
+							util.message(data.message.message, '', 'error');
+						} else {
+							util.message('设置成功', data.redirect, 'success');
+						}
+					});
 				}
 			}
 		})
