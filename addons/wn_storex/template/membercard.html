@@ -9,9 +9,15 @@
 	</ul>
 	<div class="panel panel-default">
 		<div class="panel-heading">
-			是否启用会员卡：
-			<input type="checkbox" class="weui-switch" name="flag" @change="switchflag" v-model.lazy="flag" :true-value="1" :false-value="0">
-			<!-- <input type="checkbox" name="flag" value="1" class="hidden" {if intval($setting['status'])==1} checked="checked" {/if} data="{$setting['id']}"/> -->
+			<div class="weui-cell weui-cell_switch" style="width:300px;">
+				<div class="weui-cell__bd"> 是否启用会员卡：</div>
+				<div class="weui-cell__ft">
+					<label for="switchCP" class="weui-switch-cp">
+						<input id="switchCP" class="weui-switch-cp__input" type="checkbox" checked="checked" name="flag" @change="switchflag" v-model.lazy="flag" :true-value="1" :false-value="0">
+						<div class="weui-switch-cp__box"></div>
+					</label>
+				</div>
+			</div>
 		</div>
 	</div>
 	<div class="app" v-show="status">
