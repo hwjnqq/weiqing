@@ -40,6 +40,7 @@ if ($op == 'display') {
 			'discount_2' => $discounts_temp[$group['groupid']]['discount_2'],
 		);
 	}
+	$params['cardActivity']['params']['discounts'] = $discounts;
 	$setting['params'] = json_encode($params);
 	$setting['params'] = preg_replace('/\n/', '', $setting['params']);
 }
