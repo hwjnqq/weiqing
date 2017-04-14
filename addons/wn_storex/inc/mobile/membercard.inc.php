@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('my_card', 'card_info', 'receive_card',);
+$ops = array('receive_card',);
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -18,20 +18,6 @@ if ($extend_switch['card'] == 2) {
 $card_info = get_card_setting();
 if (empty($card_info)) {
 	message(error(-1, '公众号尚未开启会员卡功能！'), '', 'ajax');
-}
-
-if ($op == 'my_card') {
-	$my_card = pdo_get('storex_mc_card_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $uid));
-	$my_card['is_receive'] = 2;
-	if (!empty($my_card)) {
-		$my_card['is_receive'] = 1;//是否领取,1已经领取，2没有领取
-		$my_card['extend_info'] = iunserializer($my_card['extend_info']);
-	}
-	message(error(0, $my_card), '', 'ajax');
-}
-
-if ($op == 'card_info') {
-	message(error(0, $card_info), '', 'ajax');
 }
 
 if ($op == 'receive_card') {

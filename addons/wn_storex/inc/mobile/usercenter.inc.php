@@ -39,6 +39,22 @@ if ($op == 'personal_info') {
 	} else {
 		$user_info['clerk'] = 0;
 	}
+	$user_info['mycard'] = pdo_get('storex_mc_card_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $uid));
+	if (!empty($user_info['mycard'])) {
+		$user_info['mycard']['is_receive'] = 1;//是否领取,1已经领取，2没有领取
+		$user_info['mycard']['extend_info'] = iunserializer($user_info['mycard']['extend_info']);
+	} else {
+		$user_info['mycard']['is_receive'] = 2;
+	}
+	$card_info = get_card_setting();
+	if (!empty($card_info)) {
+		$show_fields = array('title', 'color', 'background', 'logo');
+		foreach ($show_fields as $val){
+			if (!empty($card_info[$val])) {
+				$user_info['mycard'][$val] = $card_info[$val];
+			}
+		}
+	}
 	message(error(0, $user_info), '', 'ajax');
 }
 if ($op == 'personal_update') {
