@@ -53,6 +53,9 @@ if ($op == 'personal_info') {
 			if (!empty($card_info[$val])) {
 				$user_info['mycard'][$val] = $card_info[$val];
 			}
+			if ($val == 'background') {
+				$user_info['mycard'][$val]['image'] = tomedia("addons/wn_storex/template/style/img/card/" .$user_info['mycard'][$val]['image']. ".png");
+			}
 		}
 		if (!empty($card_info['params']['cardBasic']['params'])) {
 			$user_info['mycard']['card_level'] = $card_info['params']['cardBasic']['params']['card_level'];
