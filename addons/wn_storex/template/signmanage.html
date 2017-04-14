@@ -5,6 +5,7 @@
 		<li {if $_GPC['do'] == 'membercard'}class="active"{/if}><a href="{php echo $this->createWeburl('membercard', array('op' => 'display'))}">会员卡设置</a></li>
 		<li {if $_GPC['do'] == 'signmanage'}class="active"{/if}><a href="{php echo $this->createWeburl('signmanage', array('op' => 'sign_set'))}">签到管理</a></li>
 		<li {if $_GPC['do'] == 'noticemanage'}class="active"{/if}><a href="{php echo $this->createWeburl('noticemanage', array('op' => 'list'))}">通知管理</a></li>
+		<li {if $_GPC['do'] == 'cardmanage'}class="active"{/if}><a href="{php echo $this->createWeburl('cardmanage', array('op' => 'display'))}">会员卡管理</a></li>
 	</ul>
 	<div style="margin-bottom:15px;">
 		<div class="btn-group">

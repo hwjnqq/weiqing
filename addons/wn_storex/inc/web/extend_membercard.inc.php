@@ -3,7 +3,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('card_setting', 'member_list', 'signmanage', 'noticemanage');
+$ops = array('card_setting', 'member_list', 'signmanage', 'noticemanage', 'cardmanage');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'signmanage';
 
 if ($op == 'signmanage') {
@@ -20,6 +20,12 @@ if ($op == 'noticemanage') {
 
 if ($op == 'card_setting') {
 	$url = $this->createWebUrl('membercard', array('op' => 'display'));
+	header("Location: {$url}");
+	die;
+}
+
+if ($op == 'cardmanage') {
+	$url = $this->createWebUrl('cardmanage', array('op' => 'display'));
 	header("Location: {$url}");
 	die;
 }

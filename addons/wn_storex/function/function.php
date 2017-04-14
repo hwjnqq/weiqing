@@ -136,6 +136,17 @@ function check_params(){
 			),
 			'get_info' => array(),
 		),
+		'membercard' => array(
+			'common' => array(
+				'uniacid' => intval($_W['uniacid']),
+				'openid' => $_W['openid'],
+			),
+			'my_card' => array(),
+			'card_info' => array(),
+			'receive_card' => array(
+				'cardid' => trim($_GPC['cardid']),
+			),
+		),
 	);
 	$do = trim($_GPC['do']);
 	$op = trim($_GPC['op']);
@@ -789,4 +800,30 @@ function extend_switch_fetch() {
 	$switchs['sign'] = !empty($extend_switchs['sign']) ? $extend_switchs['sign'] : 2;
 	cache_write($cachekey, $switchs);
 	return $switchs;
+}
+
+function get_card_setting() {
+	global $_W;
+	$cachekey = "wn_storex_mc_card_setting:{$_W['uniacid']}";
+	$cache = cache_load($cachekey);
+	if (!empty($cache)) {
+		return $cache;
+	}
+	$card_info = pdo_get('storex_mc_card', array('uniacid' => intval($_W['uniacid'])));
+	if (empty($card_info)) {
+		return array();
+	}
+	$json_to_array = array(
+			'color', 'background', 'fields', 'discount', 'grant', 'nums', 'times',
+	);
+	foreach ($json_to_array as $val) {
+		if (!empty($card_info[$val])) {
+			$card_info[$val] = iunserializer($card_info[$val]);
+		}
+	}
+	if (!empty($card_info['params'])) {
+		$card_info['params'] = json_decode($card_info['params'], true);
+	}
+	cache_write($cachekey, $card_info);
+	return $card_info;
 }

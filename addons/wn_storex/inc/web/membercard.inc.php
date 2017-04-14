@@ -190,6 +190,9 @@ if ($op == 'post') {
 			$update['uniacid'] = $_W['uniacid'];
 			pdo_insert('storex_mc_card', $update);
 		}
+		$cachekey = "wn_storex_mc_card_setting:{$_W['uniacid']}";
+		cache_delete($cachekey);
+		get_card_setting();
 		message(error(0, ''), $this->createWebUrl('membercard'), 'ajax');
 	}
 }
@@ -211,6 +214,12 @@ if ($op == 'cardstatus') {
 	if (false === pdo_update('storex_mc_card', array('status' => intval($_GPC['status'])), array('uniacid' => $_W['uniacid']))) {
 		message(error(-1, ''), '', 'ajax');
 	}
+	$extend_switch = extend_switch_fetch();
+	$extend_switch['card'] = intval($_GPC['status']);
+	$switch = iserializer($extend_switch);
+	pdo_update('storex_set', array('extend_switch' => $switch), array('weid' => $_W['uniacid']));
+	$cachekey = "wn_storex_switch:{$_W['uniacid']}";
+	cache_delete($cachekey);
 	message(error(0, ''), '', 'ajax');
 }
 
