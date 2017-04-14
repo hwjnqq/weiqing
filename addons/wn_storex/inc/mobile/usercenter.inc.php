@@ -54,6 +54,11 @@ if ($op == 'personal_info') {
 				$user_info['mycard'][$val] = $card_info[$val];
 			}
 		}
+		if (!empty($card_info['params']['cardBasic']['params'])) {
+			$user_info['mycard']['card_level'] = $card_info['params']['cardBasic']['params']['card_level'];
+			$user_info['mycard']['card_label'] = $card_info['params']['cardBasic']['params']['card_label'];
+		}
+		
 	}
 	message(error(0, $user_info), '', 'ajax');
 }
