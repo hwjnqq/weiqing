@@ -39,6 +39,7 @@ if ($op == 'personal_info') {
 	} else {
 		$user_info['clerk'] = 0;
 	}
+	$card_info = get_card_setting();
 	$user_info['mycard'] = pdo_get('storex_mc_card_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $uid));
 	if (!empty($user_info['mycard'])) {
 		$user_info['mycard']['is_receive'] = 1;//是否领取,1已经领取，2没有领取
@@ -46,7 +47,6 @@ if ($op == 'personal_info') {
 	} else {
 		$user_info['mycard']['is_receive'] = 2;
 	}
-	$card_info = get_card_setting();
 	if (!empty($card_info)) {
 		$show_fields = array('title', 'color', 'background', 'logo');
 		foreach ($show_fields as $val){

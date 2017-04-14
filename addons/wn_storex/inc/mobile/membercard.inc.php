@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('receive_card',);
+$ops = array('receive_info', 'receive_card',);
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -18,6 +18,20 @@ if ($extend_switch['card'] == 2) {
 $card_info = get_card_setting();
 if (empty($card_info)) {
 	message(error(-1, '公众号尚未开启会员卡功能！'), '', 'ajax');
+}
+
+if ($op == 'receive_info') {
+	$receive_info = array();
+	if (!empty($card_info['fields'])) {
+		foreach ($card_info['fields'] as $val){
+			$receive_info[$val['bind']] = array(
+					'title' => $val['title'],
+					'require' => $val['require'],
+					'value' => '',
+			);
+		}
+	}
+	message(error(0, $receive_info), '', 'ajax');
 }
 
 if ($op == 'receive_card') {

@@ -141,6 +141,7 @@ function check_params(){
 				'uniacid' => intval($_W['uniacid']),
 				'openid' => $_W['openid'],
 			),
+			'receive_info' => array(),
 			'receive_card' => array(
 				'cardid' => trim($_GPC['cardid']),
 			),
