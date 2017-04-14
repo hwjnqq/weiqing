@@ -689,7 +689,8 @@ class Wn_storexModuleSite extends WeModuleSite {
 				exit($site->$method($pars));
 			}
 		}
-		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniacid`=:uniacid AND `module`=:module AND `tid`=:tid';
+		$pars[':openid'] = $_W['member']['uid'];
+		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniacid`=:uniacid AND `module`=:module AND `tid`=:tid AND `openid`=:openid';
 		$log = pdo_fetch($sql, $pars);
 		if (empty($log)) {
 			$log = array(

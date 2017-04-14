@@ -43,30 +43,30 @@ if ($op == 'receive_card') {
 	$cardBasic = $card_info['params']['cardBasic'];
 	$data = array();
 	$extend_info = $_GPC['extend_info'];
-	$data['realname'] = $extend_info['realname'];
-	if(empty($extend_info['realname'])) {
+	$data['realname'] = $extend_info['realname']['value'];
+	if(empty($extend_info['realname']['value'])) {
 		message(error(-1, '请输入姓名'), '', 'ajax');
 	}
-	$data['mobile'] = $extend_info['mobile'];
+	$data['mobile'] = $extend_info['mobile']['value'];
 	if (!preg_match(REGULAR_MOBILE, $data['mobile'])) {
 		message(error(-1, '手机号有误'), '', 'ajax');
 	}
 	if (!empty($cardBasic['params']['fields'])) {
 		foreach ($cardBasic['params']['fields'] as $row) {
 			if (!empty($row['require']) && ($row['bind'] == 'birth' || $row['bind'] == 'birthyear')) {
-				if (empty($extend_info['birth']['year']) || empty($extend_info['birth']['month']) || empty($extend_info['birth']['day'])) {
+				if (empty($extend_info['birth']['value']['year']) || empty($extend_info['birth']['value']['month']) || empty($extend_info['birth']['value']['day'])) {
 					message(error(-1, '请输入出生日期'), '', 'ajax');
 				}
 				$row['bind'] = 'birth';
 			} elseif (!empty($row['require']) && $row['bind'] == 'resideprovince') {
-				if (empty($extend_info['reside']['province']) || empty($extend_info['reside']['city']) || empty($extend_info['reside']['district'])) {
+				if (empty($extend_info['reside']['value']['province']) || empty($extend_info['reside']['value']['city']) || empty($extend_info['reside']['value']['district'])) {
 					message(error(-1, '请输入居住地'), '', 'ajax');
 				}
 				$row['bind'] = 'reside';
-			} elseif (!empty($row['require']) && empty($extend_info[$row['bind']])) {
+			} elseif (!empty($row['require']) && empty($extend_info[$row['bind']]['value'])) {
 				message(error(-1, '请输入'.$row['title'].'！'), '', 'ajax');
 			}
-			$data[$row['bind']] = $extend_info[$row['bind']];
+			$data[$row['bind']] = $extend_info[$row['bind']]['value'];
 		}
 	}
 	$check = mc_check($data);
