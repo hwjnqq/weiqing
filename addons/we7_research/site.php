@@ -510,7 +510,7 @@ class We7_researchModuleSite extends WeModuleSite {
                             $entry['data'] = implode(';', $value);
                         }
 	                    if (in_array($field['type'], array('calendar'))) {
-		                    $entry['data'] = implode('-', $value);
+		                    $entry['data'] = $value;
 	                    }
                         $datas[] = $entry;
                     }

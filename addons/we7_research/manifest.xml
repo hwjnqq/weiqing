@@ -3,7 +3,7 @@
 	<application setting="false">
 		<name><![CDATA[预约与调查]]></name>
 		<identifie><![CDATA[we7_research]]></identifie>
-		<version><![CDATA[4.5.9]]></version>
+		<version><![CDATA[4.6.0]]></version>
 		<type><![CDATA[customer]]></type>
 		<ability><![CDATA[可以快速生成调查表单或则预约记录]]></ability>
 		<description><![CDATA[预约与调查]]></description>
