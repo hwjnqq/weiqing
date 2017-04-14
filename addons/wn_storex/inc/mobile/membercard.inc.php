@@ -22,8 +22,8 @@ if (empty($card_info)) {
 
 if ($op == 'receive_info') {
 	$receive_info = array();
-	if (!empty($card_info['fields'])) {
-		foreach ($card_info['fields'] as $val){
+	if (!empty($card_info['params']['cardBasic']['params']['fields'])) {
+		foreach ($card_info['params']['cardBasic']['params']['fields'] as $val){
 			$receive_info[$val['bind']] = array(
 					'title' => $val['title'],
 					'require' => $val['require'],

@@ -813,7 +813,7 @@ function get_card_setting() {
 		return array();
 	}
 	$json_to_array = array(
-			'color', 'background', 'fields', 'discount', 'grant', 'nums', 'times',
+		'color', 'background', 'fields', 'discount', 'grant', 'nums', 'times',
 	);
 	foreach ($json_to_array as $val) {
 		if (!empty($card_info[$val])) {
