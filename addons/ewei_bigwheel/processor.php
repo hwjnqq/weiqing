@@ -28,7 +28,7 @@ class Ewei_bigwheelModuleProcessor extends WeModuleProcessor {
 			return $this->respText("活动未开始，请等待...");
 		}
 
-		$endtime = $row['endtime'] + 68399;
+		$endtime = $row['endtime'] + 86399;
 		if ( $endtime < time()) {
 			return $this->respNews(array(
 				'Title' => $row['end_theme'],
