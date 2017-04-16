@@ -40,6 +40,7 @@ if ($op == 'receive_card') {
 	if(!empty($mcard)) {
 		message(error(-1, '请勿重复领取'), '', 'ajax');
 	}
+	$cardBasic = $card_info['params']['cardBasic'];
 	$extend_info = $_GPC['extend_info'];
 	foreach ($extend_info as $k => $value) {
 		if (!empty($value['require']) && empty($value['value'])) {
