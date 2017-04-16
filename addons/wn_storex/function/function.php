@@ -143,7 +143,7 @@ function check_params(){
 			),
 			'receive_info' => array(),
 			'receive_card' => array(
-				'cardid' => trim($_GPC['cardid']),
+				
 			),
 		),
 	);

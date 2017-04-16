@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('display', 'record', 'delete', 'modal', 'submit', 'memberproperty');
+$ops = array('display', 'record', 'delete', 'modal', 'submit', 'memberproperty', 'status');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 //判断会员卡开启
@@ -14,17 +14,9 @@ if ($extend_switch['card'] == 2) {
 	message('会员卡功能未开启', referer(), 'error');
 }
 
-$setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid']));
+$setting = pdo_get('storex_mc_card', array('uniacid' => $_W['uniacid']));
 
 if ($op == 'display') {
-	$cardid = intval($_GPC['cardid']);
-	if ($_W['ispost']) {
-		$status = array('status' => intval($_GPC['status']));
-		if (false === pdo_update('storex_mc_card_members', $status, array('uniacid' => $_W['uniacid'], 'id' => $cardid))) {
-			exit('error');
-		}
-		exit('success');
-	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 10;
 	
@@ -59,6 +51,15 @@ if ($op == 'display') {
 	}
 	$sql = 'SELECT a.*, b.realname, b.groupid, b.credit1, b.credit2, b.mobile FROM ' . tablename('storex_mc_card_members') . " AS a LEFT JOIN " . tablename('mc_members') . " AS b ON a.uid = b.uid WHERE a.uniacid = :uniacid $where ORDER BY a.id DESC LIMIT ".($pindex - 1) * $psize.','.$psize;
 	$list = pdo_fetchall($sql, $param);
+	foreach ($list as $key => &$info) {
+		$info['fields'] = iunserializer($info['fields']);
+		if ($info['fields'][0]['bind'] == 'realname' && $info['fields'][0]['title'] == '姓名') {
+			$info['realname'] = $info['fields'][0]['value'];
+		}
+		if ($info['fields'][1]['bind'] == 'mobile' && $info['fields'][1]['title'] == '手机') {
+			$info['mobile'] = $info['fields'][1]['value'];
+		}
+	}
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_mc_card_members') . " AS a LEFT JOIN " . tablename('mc_members') . " AS b ON a.uid = b.uid WHERE a.uniacid = :uniacid $where", $param);
 	$pager = pagination($total, $pindex, $psize);
 }
@@ -254,6 +255,17 @@ if ($op == 'memberproperty') {
 			message(error(-1, $status), '', 'ajax');
 		}
 		message(error(0, ''), '', 'ajax');
+	}
+}
+
+if ($op == 'status') {
+	if ($_W['ispost']) {
+		$cardid = intval($_GPC['cardid']);
+		$status = array('status' => intval($_GPC['status']));
+		if (false === pdo_update('storex_mc_card_members', $status, array('uniacid' => $_W['uniacid'], 'id' => $cardid))) {
+			exit('error');
+		}
+		exit('success');
 	}
 }
 include $this->template('cardmanage');

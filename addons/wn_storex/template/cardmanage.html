@@ -145,16 +145,16 @@
 				<td class="text-right">
 					<div class="btn-group" style="margin-bottom: 5px">
 						<a href="javascript:;" title="改卡号" class="btn btn-default modal-trade-cardsn" data-type="cardsn" data-uid="{$row['uid']}">改卡号</a>
-						<a href="javascript:;" title="积分" class="btn btn-default modal-trade-credit1" data-type="credit1" data-uid="{$row['uid']}">积分</a>
-						<a href="javascript:;" title="余额" class="btn btn-default modal-trade-credit2" data-type="credit2" data-uid="{$row['uid']}">余额</a>
-						<a href="javascript:;" title="消费" class="btn btn-default modal-trade-consume" data-type="consume" data-uid="{$row['uid']}">消费</a>
+						<a href="javascript:;" title="积分" class="btn btn-default modal-trade-credit1" data-type="credit1" data-uid="{$row['uid']}" style="display:none;">积分</a>
+						<a href="javascript:;" title="余额" class="btn btn-default modal-trade-credit2" data-type="credit2" data-uid="{$row['uid']}" style="display:none;">余额</a>
+						<a href="javascript:;" title="消费" class="btn btn-default modal-trade-consume" data-type="consume" data-uid="{$row['uid']}" style="display:none;">消费</a>
 					</div>
 					<br>
 					<div class="btn-group">
 					<a class="btn btn-default" href="{php echo $this->createWebUrl('cardmanage', array('op' => 'delete', 'cardid' => $row['id']))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;">删除</a>
 					<a class="btn btn-default" href="{php echo $this->createWebUrl('cardmanage', array('op' => 'record', 'uid' => $row['uid']))}">消费记录</a>
 					{if $setting['times_status'] == 1 || $setting['nums_status'] == 1}
-						<a class="btn btn-warning manage" href="javascript:;" data-uid="{$row['uid']}">充值/消费</a>
+						<a class="btn btn-warning manage" href="javascript:;" data-uid="{$row['uid']}" style="display:none;">充值/消费</a>
 					{/if}
 					</div>
 				</td>
@@ -223,7 +223,7 @@
 			$this = $(this);
 			var cardid = $this.attr('data');
 			var status = this.checked ? 1 : 0;
-			$.post(location.href, {cardid:cardid, status:status}, function(resp){
+			$.post("{php echo $this->createWebUrl('cardmanage', array('op' => 'status'))}", {cardid:cardid, status:status}, function(resp){
 				if(resp != 'success') {
 					util.message('操作失败, 请稍后重试.')
 				}

@@ -43,7 +43,7 @@ if ($op == 'personal_info') {
 	$user_info['mycard'] = pdo_get('storex_mc_card_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $uid));
 	if (!empty($user_info['mycard'])) {
 		$user_info['mycard']['is_receive'] = 1;//是否领取,1已经领取，2没有领取
-		$user_info['mycard']['extend_info'] = iunserializer($user_info['mycard']['extend_info']);
+		$user_info['mycard']['fields'] = iunserializer($user_info['mycard']['fields']);
 	} else {
 		$user_info['mycard']['is_receive'] = 2;
 	}
