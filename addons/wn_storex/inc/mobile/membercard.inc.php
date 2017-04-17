@@ -51,6 +51,11 @@ if ($op == 'receive_card') {
 				message(error(-1, '手机号有误'), '', 'ajax');
 			}
 		}
+		if ($value['bind'] == 'email') {
+			if (!preg_match(REGULAR_EMAIL, $value['value'])) {
+				message(error(-1, '邮箱格式不正确'), '', 'ajax');
+			}
+		}
 		if ($k == 1) {
 			$cardsn = $value['value'];
 		}

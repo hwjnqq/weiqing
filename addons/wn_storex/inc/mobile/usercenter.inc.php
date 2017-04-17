@@ -56,7 +56,7 @@ if ($op == 'personal_info') {
 		$user_info['mycard']['is_receive'] = 2;
 	}
 	if (!empty($card_info)) {
-		$show_fields = array('title', 'color', 'background', 'logo');
+		$show_fields = array('title', 'color', 'background', 'logo', 'description');
 		foreach ($show_fields as $val){
 			if (!empty($card_info[$val])) {
 				$user_info['mycard'][$val] = $card_info[$val];
