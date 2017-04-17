@@ -44,6 +44,14 @@ if ($op == 'personal_info') {
 	if (!empty($user_info['mycard'])) {
 		$user_info['mycard']['is_receive'] = 1;//是否领取,1已经领取，2没有领取
 		$user_info['mycard']['fields'] = iunserializer($user_info['mycard']['fields']);
+		$user_info['mycard']['group'] = array();
+		$groups = mc_groups();
+		if(!empty($groups)) {
+			$members = pdo_get('mc_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $uid));
+			if (!empty($members) && !empty($groups[$members['groupid']])) {
+				$user_info['mycard']['group'] = $groups[$members['groupid']];
+			}
+		}
 	} else {
 		$user_info['mycard']['is_receive'] = 2;
 	}
@@ -54,7 +62,11 @@ if ($op == 'personal_info') {
 				$user_info['mycard'][$val] = $card_info[$val];
 			}
 			if ($val == 'background') {
-				$user_info['mycard'][$val]['image'] = tomedia("addons/wn_storex/template/style/img/card/" .$user_info['mycard'][$val]['image']. ".png");
+				if ($card_info[$val]['background'] == 'user') {
+					$user_info['mycard'][$val]['image'] = $user_info['mycard'][$val]['image'];
+				} else {
+					$user_info['mycard'][$val]['image'] = tomedia("addons/wn_storex/template/style/img/card/" .$user_info['mycard'][$val]['image']. ".png");
+				}
 			}
 		}
 		if (!empty($card_info['params']['cardBasic']['params'])) {
