@@ -48,12 +48,12 @@ if ($op == 'receive_card') {
 		}
 		if ($value['bind'] == 'mobile') {
 			if (!preg_match(REGULAR_MOBILE, $value['value'])) {
-				message(error(-1, '手机号有误'), '', 'ajax');
+				message(error(-1, $value['title'] . '为手机号格式不正确'), '', 'ajax');
 			}
 		}
 		if ($value['bind'] == 'email') {
 			if (!preg_match(REGULAR_EMAIL, $value['value'])) {
-				message(error(-1, '邮箱格式不正确'), '', 'ajax');
+				message(error(-1, $value['title'] . '为邮箱格式不正确'), '', 'ajax');
 			}
 		}
 		if ($k == 1) {
