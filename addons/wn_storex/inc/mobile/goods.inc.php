@@ -293,6 +293,8 @@ if ($op == 'order'){
 			$totalprice -= $service;
 			$totalprice = calcul_discount_price($uid, $totalprice);
 			$totalprice += $service;
+		} else {
+			$totalprice = calcul_discount_price($uid, $totalprice);
 		}
 		$insert['sum_price'] = $totalprice * $insert['nums'];
 		if($insert['sum_price'] <= 0){

@@ -234,3 +234,9 @@ if (pdo_fieldexists('storex_bases', 'timeend')) {
 if (pdo_fieldexists('storex_bases', 'timestart')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " CHANGE `timestart` `timestart` VARCHAR(50) NOT NULL DEFAULT '0' COMMENT '运营开始时间';");
 }
+if (pdo_fieldexists('storex_goods', 'mprice')) {
+	pdo_update('storex_goods', array('mprice' => ''));
+}
+if (pdo_fieldexists('storex_room', 'mprice')) {
+	pdo_update('storex_room', array('mprice' => ''));
+}
