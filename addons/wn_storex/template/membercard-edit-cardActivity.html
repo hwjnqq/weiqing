@@ -39,10 +39,10 @@
 				<span class="input-group-addon">{{discount.title}}</span>
 				<span class="input-group-addon">满</span>
 				<input type="hidden" v-model="discount.groupid"/>
-				<input type="text" class="form-control" v-model="discount.condition_1">
+				<input type="text" class="form-control" v-model="discount.condition_1" @input="compare(discount.condition_1, discount.discount_1)">
 				<span class="input-group-addon">元</span>
 				<span class="input-group-addon">减</span>
-				<input type="text" class="form-control"  v-model="discount.discount_1">
+				<input type="text" class="form-control"  v-model="discount.discount_1" @input="compare(discount.condition_1, discount.discount_1)">
 				<span class="input-group-addon">元</span>
 			</div>
 		</div>

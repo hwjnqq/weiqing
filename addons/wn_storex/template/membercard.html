@@ -132,6 +132,11 @@
 				}
 			},
 			methods: {
+				compare(condition, discount) {
+					if(condition <= discount) {
+						util.message('优惠价格不合理', '', 'error');
+					}
+				},
 				switchflag() {
 					const self = this
 					$.post("{php echo $this->createWeburl('membercard', array('op' => 'cardstatus'));}", {status:this.flag}, function(data){
@@ -211,6 +216,15 @@
 					this.activeModules.cardTimes.params.times.splice(index, '1')
 				},
 				submit() {
+					if(this.activeModules.cardActivity.params.discount_type == 1) {
+						var compare = this.activeModules.cardActivity.params.discounts;
+						for(key in compare) {
+							console.log(compare[key])
+							if(compare[key].condition_1 <= compare[key].discount_1) {
+								return util.message('优惠价格不合理', '', 'error');
+							}
+						}
+					}
 					$.post("{php echo $this->createWeburl('membercard', array('op' => 'post'));}", {params:this.activeModules}, function(data){
 						data = $.parseJSON(data);
 						if (data.message.errno != '0') {
