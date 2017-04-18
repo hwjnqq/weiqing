@@ -88,6 +88,7 @@ if ($op == 'info') {
 	if(!empty($_W['member']['groupid']) && !empty($member_p[$_W['member']['groupid']])){
 		$goods_info['cprice'] =  $pricefield == 'mprice' ? $goods_info['cprice'] * $member_p[$_W['member']['groupid']] : $goods_info['cprice'];
 	}
+	$goods_info['cprice'] = calcul_discount_price($uid, $goods_info['cprice']);
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;
 	$infos['goods_info'] = $goods_info;
@@ -234,6 +235,7 @@ if ($op == 'order'){
 			' `roomdate` < :etime  order by roomdate desc';
 			$params = array(':roomid' => $goodsid, ':weid' => intval($_W['uniacid']), ':hotelid' => $store_id, ':btime' => $btime, ':etime' => $etime);
 			$price_list = pdo_fetchall($r_sql, $params);
+			$this_price = 0;
 			if (!empty($price_list)) {
 				//价格表中存在
 				foreach($price_list as $k => $v) {
@@ -245,22 +247,17 @@ if ($op == 'order'){
 						$this_price = $v['cprice'];
 					}
 				}
-				$totalprice =  $this_price * $day;
-				$totalprice =  ($this_price + $room['service']) * $days;
-				$service = $room['service'] * $days;
 			} else {
 				//会员的价格mprice=现价*会员卡折扣率
 				if(!empty($_W['member']['groupid']) && !empty($member_p[$_W['member']['groupid']])){
 					$this_price =  $pricefield == 'mprice' ? $room['cprice']*$member_p[$_W['member']['groupid']] : $room['cprice'];
-				} else {
-					$this_price = $room['oprice'];
 				}
 				if ($this_price == 0) {
-					$this_price = $room['oprice'] ;
+					$this_price = $room['cprice'] ;
 				}
-				$totalprice =  ($this_price + $room['service']) * $days;
-				$service = $room['service'] * $days;
 			}
+			$totalprice =  ($this_price + $room['service']) * $days;
+			$service = $room['service'] * $days;
 			if ($totalprice == 0) {
 				message(error(-1, '房间价格不能是0，请联系管理员修改！'), '', 'ajax');
 			}
@@ -289,7 +286,13 @@ if ($op == 'order'){
 			$totalprice = $this_price;
 			$insert = array_merge($order_info, $insert);
 		}
+		$this_price = calcul_discount_price($uid, $this_price);
 		$insert['cprice'] = $this_price;
+		if (!empty($service)) {
+			$totalprice -= $service;
+			$totalprice = calcul_discount_price($uid, $totalprice);
+			$totalprice += $service;
+		}
 		$insert['sum_price'] = $totalprice * $insert['nums'];
 		if($insert['sum_price'] <= 0){
 			message(error(-1, '总价为零，请联系管理员！'), '', 'ajax');
