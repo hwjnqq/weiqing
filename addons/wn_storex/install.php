@@ -399,6 +399,82 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`)
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_mc_card` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(10) unsigned NOT NULL,
+	`title` varchar(100) NOT NULL DEFAULT '' COMMENT '会员卡名称',
+	`color` varchar(255) NOT NULL DEFAULT '' COMMENT '会员卡字颜色',
+	`background` varchar(255) NOT NULL DEFAULT '' COMMENT '背景设置',
+	`logo` varchar(255) NOT NULL DEFAULT '' COMMENT 'logo图片',
+	`format_type` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '是否用手机号作为会员卡号',
+	`format` varchar(50) NOT NULL DEFAULT '' COMMENT '会员卡卡号规则',
+	`description` varchar(512) NOT NULL DEFAULT '' COMMENT '会员卡说明',
+	`fields` varchar(1000) NOT NULL DEFAULT '' COMMENT '会员卡资料',
+	`snpos` int(11) NOT NULL DEFAULT '0',
+	`status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否启用1:启用0:关闭',
+	`business` text NOT NULL,
+	`discount_type` tinyint(3) unsigned NOT NULL DEFAULT '1' COMMENT '折扣类型.1:满减,2:折扣',
+	`discount` varchar(3000) NOT NULL DEFAULT '' COMMENT '各个会员组的优惠详情',
+	`grant` varchar(3000) NOT NULL COMMENT '领卡赠送:积分,余额,优惠券',
+	`grant_rate` varchar(20) NOT NULL DEFAULT '0' COMMENT '消费返积分比率',
+	`offset_rate` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '积分抵现比例',
+	`offset_max` int(10) NOT NULL DEFAULT '0' COMMENT '每单最多可抵现金数量',
+	`nums_status` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '计次是否开启，0为关闭，1为开启',
+	`nums_text` varchar(15) NOT NULL COMMENT '计次名称',
+	`nums` varchar(1000) NOT NULL DEFAULT '' COMMENT '计次规则',
+	`times_status` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '计时是否开启，0为关闭，1为开启',
+	`times_text` varchar(15) NOT NULL COMMENT '计时名称',
+	`times` varchar(1000) NOT NULL DEFAULT '' COMMENT '计时规则',
+	`params` longtext NOT NULL,
+	`html` longtext NOT NULL,
+	`recommend_status` tinyint(3) unsigned NOT NULL DEFAULT '0',
+	`sign_status` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '签到功能是否开启，0为关闭，1为开启',
+	`brand_name` varchar(128) NOT NULL DEFAULT '' COMMENT '商户名字,',
+	`notice` varchar(48) NOT NULL DEFAULT '' COMMENT '卡券使用提醒',
+	`quantity` int(10) NOT NULL DEFAULT '0' COMMENT '会员卡库存',
+	`max_increase_bonus` int(10) NOT NULL DEFAULT '0' COMMENT '用户单次可获取的积分上限',
+	`least_money_to_use_bonus` int(10) NOT NULL DEFAULT '0' COMMENT '抵扣条件',
+	`source` int(1) NOT NULL DEFAULT '1' COMMENT '1.系统会员卡，2微信会员卡',
+	`card_id` varchar(250) NOT NULL DEFAULT '',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`)
+	) ENGINE=MyISAMDEFAULT CHARSET=utf8;
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_mc_card_members` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(10) unsigned NOT NULL,
+	`uid` int(10) DEFAULT NULL,
+	`openid` varchar(50) NOT NULL,
+	`cid` int(10) NOT NULL DEFAULT '0',
+	`cardsn` varchar(20) NOT NULL DEFAULT '',
+	`mobile` varchar(11) NOT NULL COMMENT '注册手机号',
+	`email` varchar(50) NOT NULL COMMENT '邮箱',
+	`realname` varchar(255) NOT NULL COMMENT '真实姓名',
+	`status` tinyint(1) NOT NULL,
+	`createtime` int(10) unsigned NOT NULL,
+	`nums` int(10) unsigned NOT NULL DEFAULT '0',
+	`endtime` int(10) unsigned NOT NULL DEFAULT '0',
+	`fields` varchar(2500) NOT NULL COMMENT '扩展的信息',
+	PRIMARY KEY (`id`)
+	) ENGINE=MyISAMDEFAULT CHARSET=utf8;
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_mc_card_record` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+	`uid` int(10) unsigned NOT NULL DEFAULT '0',
+	`type` varchar(15) NOT NULL,
+	`model` tinyint(3) unsigned NOT NULL DEFAULT '1' COMMENT '1：充值，2：消费',
+	`fee` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '充值金额',
+	`tag` varchar(10) NOT NULL COMMENT '次数|时长|充值金额',
+	`note` varchar(255) NOT NULL,
+	`remark` varchar(200) NOT NULL COMMENT '备注，只有管理员可以看',
+	`addtime` int(10) unsigned NOT NULL DEFAULT '0',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `uid` (`uid`),
+	KEY `addtime` (`addtime`)
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 ";
 
 pdo_run($sql);
