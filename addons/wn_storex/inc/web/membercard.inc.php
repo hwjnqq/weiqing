@@ -20,7 +20,10 @@ if ($op == 'display') {
 		);
 	}
 	$params = json_decode($setting['params'], true);
-	$params['cardBasic']['params']['description'] = str_replace("<br/>", "\n", $params['cardBasic']['params']['description']);
+	if (!empty($params['cardBasic'])) {
+		$params['cardBasic']['params']['description'] = str_replace("<br/>", "\n", $params['cardBasic']['params']['description']);
+	}
+	
 	$discounts_params = $params['cardActivity']['params']['discounts'];
 	$discounts_temp = array();
 	if(!empty($discounts_params)) {
@@ -40,7 +43,6 @@ if ($op == 'display') {
 			'discount_2' => $discounts_temp[$group['groupid']]['discount_2'],
 		);
 	}
-	$params['cardActivity']['params']['discounts'] = $discounts;
 	$setting['params'] = json_encode($params);
 	$setting['params'] = preg_replace('/\n/', '', $setting['params']);
 }
