@@ -225,6 +225,14 @@
 							}
 						}
 					}
+					if(this.activeModules.cardActivity.params.discount_type == 2) {
+						var compare = this.activeModules.cardActivity.params.discounts;
+						for(key in compare) {
+							if(compare[key].discount_2 <= 0 || compare[key].discount_2 >= 10) {
+								return util.message('优惠折扣不合理', '', 'error');
+							}
+						}
+					}
 					$.post("{php echo $this->createWeburl('membercard', array('op' => 'post'));}", {params:this.activeModules}, function(data){
 						data = $.parseJSON(data);
 						if (data.message.errno != '0') {
