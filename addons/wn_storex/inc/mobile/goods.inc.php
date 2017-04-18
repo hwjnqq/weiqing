@@ -55,6 +55,7 @@ if ($op == 'goods_info') {
 	if ($store_info['store_type'] == 1) {
 		$goods_info = check_price($goods_info);
 	}
+	$goods_info['cprice'] = calcul_discount_price($uid, $goods_info['cprice']);
 	message(error(0, $goods_info), '', 'ajax');
 }
 
@@ -362,7 +363,8 @@ if ($op == 'order'){
 			'mprice' => $goods_info['mprice'],
 		);
 		$insert['cprice'] = $now_price;
-		$insert['sum_price'] = $order_info['nums'] * $now_price;
+		$insert['cprice'] = calcul_discount_price($uid, $insert['cprice']);
+		$insert['sum_price'] = calcul_discount_price($uid, $order_info['nums'] * $now_price);
 		$insert = array_merge($insert, $order_info);
 		pdo_insert('storex_order', $insert);
 		$order_id = pdo_insertid();
