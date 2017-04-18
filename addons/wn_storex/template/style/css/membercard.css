@@ -3127,7 +3127,8 @@ a {
     width: 100%;
     text-align: center;
     position: absolute;
-    top: 62.5px
+    top: 62.5px;
+	font-size: 16px;
 }
 
 .home .banner.card-banner .card-panel .num {
@@ -3140,7 +3141,8 @@ a {
 .home .banner.card-banner .card-panel .rank {
     position: absolute;
     right: 10px;
-    top: 10px
+    top: 10px;
+	font-size: 14px;
 }
 
 .home .money-panel {
