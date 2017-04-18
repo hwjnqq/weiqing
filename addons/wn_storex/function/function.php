@@ -882,12 +882,16 @@ function calcul_discount_price($uid, $price){
 		if (!empty($group) && !empty($card_credit['discounts'][$group['groupid']])) {
 			$discounts = $card_credit['discounts'][$group['groupid']];
 			if ($card_credit['discount_type'] == 1) {
-				if ($price > $discounts['condition_1']) {
-					$price -= $discounts['discount_1'];
+				if ($price >= $discounts['condition_1']) {
+					if ($price > $discounts['discount_1']) {
+						$price -= $discounts['discount_1'];
+					}
 				}
 			} elseif($card_credit['discount_type'] == 2) {
-				if ($price > $discounts['condition_2']) {
-					$price *= $discounts['discount_2'] * 0.1;
+				if ($price >= $discounts['condition_2']) {
+					if ($discounts['discount_2'] != 0 && $discounts['discount_2'] > 0) {
+						$price *= $discounts['discount_2'] * 0.1;
+					}
 				}
 			}
 		}
