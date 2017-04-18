@@ -42,6 +42,7 @@ if ($op == 'receive_card') {
 	}
 	$cardBasic = $card_info['params']['cardBasic'];
 	$extend_info = $_GPC['extend_info'];
+	$insert = array();
 	foreach ($extend_info as $k => $value) {
 		if (!empty($value['require']) && empty($value['value'])) {
 			message(error(-1, '请输入' . $value['title']), '', 'ajax');
@@ -50,16 +51,22 @@ if ($op == 'receive_card') {
 			if (!preg_match(REGULAR_MOBILE, $value['value'])) {
 				message(error(-1, $value['title'] . '为手机号格式不正确'), '', 'ajax');
 			}
+			$insert['mobile'] = $value['value'];
 		}
 		if ($value['bind'] == 'email') {
 			if (!preg_match(REGULAR_EMAIL, $value['value'])) {
 				message(error(-1, $value['title'] . '为邮箱格式不正确'), '', 'ajax');
 			}
+			$insert['email'] = $value['value'];
+		}
+		if ($value['bind'] == 'realname') {
+			$insert['realname'] = $value['value'];
 		}
 		if ($k == 1) {
 			$cardsn = $value['value'];
 		}
 	}
+	check_info_exist($insert);
 	$record = array(
 		'uniacid' => $_W['uniacid'],
 		'openid' => $_W['openid'],
@@ -71,6 +78,7 @@ if ($op == 'receive_card') {
 		'endtime' => TIMESTAMP,
 		'fields' => iserializer($extend_info),
 	);
+	$record = array_merge($insert, $record);
 	if(pdo_insert('storex_mc_card_members', $record)) {
 		//赠送积分.余额.优惠券
 		$notice = '';

@@ -407,13 +407,12 @@ function goods_check_result($action, $order_id){
 
 function goods_isMember() {
 	global $_W;
-	//判断公众号是否卡其会员卡功能
-	$card_setting = pdo_fetch("SELECT * FROM ".tablename('mc_card')." WHERE uniacid = '{$_W['uniacid']}'");
-	$card_status =  $card_setting['status'];
+	//判断公众号是否开启会员卡功能
+	$extend_switch = extend_switch_fetch();
 	//查看会员是否开启会员卡功能
 	if($_W['member']['uid']){
-		$membercard_setting  = pdo_get('mc_card_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $_W['member']['uid']));
-		if (!empty($card_status) && !empty($membercard_setting['status'])) {
+		$membercard_setting  = pdo_get('storex_mc_card_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $_W['member']['uid']));
+		if ($extend_switch['card'] == 1 && !empty($membercard_setting['status'])) {
 			return true;
 		} else {
 			return false;
@@ -825,4 +824,73 @@ function get_card_setting() {
 	}
 	cache_write($cachekey, $card_info);
 	return $card_info;
+}
+
+function check_info_exist($data){
+	global $_W;
+	$uid = mc_openid2uid($_W['openid']);
+	if (!empty($data['email'])) {
+		$email = trim($data['email']);
+		$isexist = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_mc_card_members') . ' WHERE uniacid = :uniacid AND email = :email AND uid != :uid', array(':uniacid' => $_W['uniacid'], ':email' => $email, ':uid' => $uid));
+		if ($isexist >= 1) {
+			message(error(-1, '邮箱已被注册'), '', 'ajax');
+		}
+	}
+	if (!empty($data['mobile'])) {
+		$mobile = trim($data['mobile']);
+		$isexist = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_mc_card_members') . ' WHERE uniacid = :uniacid AND mobile = :mobile AND uid != :uid', array(':uniacid' => $_W['uniacid'], ':mobile' => $mobile, ':uid' => $uid));
+		if ($isexist >= 1) {
+			message(error(-1, '手机号已被注册'), '', 'ajax');
+		}
+	}
+}
+
+function get_return_credit_info(){
+	global $_W;
+	$uid = mc_openid2uid($_W['openid']);
+	if (!pdo_get('storex_mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $uid), array('id'))) {
+		return '';
+	}
+	$card_info = get_card_setting();
+	$cardActivity = $card_info['params']['cardActivity']['params'];
+	if ($card_info['params']['cardRecharge']['params']['recharge_type'] == 1) {
+		if ($card_info['params']['cardRecharge']['params']['grant_rate_switch'] == 1) {
+			return $cardActivity;
+		} else {
+			return '';
+		}
+	} else {
+		return $cardActivity;
+	}
+}
+
+function get_group_id($uid){
+	global $_W;
+	$groups = mc_groups();
+	if(!empty($groups)) {
+		$members = pdo_get('mc_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $uid));
+		if (!empty($members) && !empty($groups[$members['groupid']])) {
+			return $groups[$members['groupid']];
+		}
+	}
+}
+
+function calcul_discount_price($uid, $price){
+	$card_credit = get_return_credit_info();
+	if (!empty($card_credit)) {
+		$group = get_group_id($uid);
+		if (!empty($group) && !empty($card_credit['discounts'][$group['groupid']])) {
+			$discounts = $card_credit['discounts'][$group['groupid']];
+			if ($card_credit['discount_type'] == 1) {
+				if ($price > $discounts['condition_1']) {
+					$price -= $discounts['discount_1'];
+				}
+			} elseif($card_credit['discount_type'] == 2) {
+				if ($price > $discounts['condition_2']) {
+					$price *= $discounts['discount_2'] * 0.1;
+				}
+			}
+		}
+	}
+	return $price;
 }

@@ -45,13 +45,7 @@ if ($op == 'personal_info') {
 		$user_info['mycard']['is_receive'] = 1;//是否领取,1已经领取，2没有领取
 		$user_info['mycard']['fields'] = iunserializer($user_info['mycard']['fields']);
 		$user_info['mycard']['group'] = array();
-		$groups = mc_groups();
-		if(!empty($groups)) {
-			$members = pdo_get('mc_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $uid));
-			if (!empty($members) && !empty($groups[$members['groupid']])) {
-				$user_info['mycard']['group'] = $groups[$members['groupid']];
-			}
-		}
+		$user_info['mycard']['group'] = get_group_id($uid);
 	} else {
 		$user_info['mycard']['is_receive'] = 2;
 	}

@@ -47,19 +47,10 @@ if ($op == 'display') {
 	
 	$keyword = trim($_GPC['keyword']);
 	if(!empty($keyword)) {
-		$where .= " AND (b.mobile LIKE '%{$keyword}%' OR b.realname LIKE '%{$keyword}%')";
+		$where .= " AND (a.mobile LIKE '%{$keyword}%' OR a.realname LIKE '%{$keyword}%')";
 	}
-	$sql = 'SELECT a.*, b.realname, b.groupid, b.credit1, b.credit2, b.mobile FROM ' . tablename('storex_mc_card_members') . " AS a LEFT JOIN " . tablename('mc_members') . " AS b ON a.uid = b.uid WHERE a.uniacid = :uniacid $where ORDER BY a.id DESC LIMIT ".($pindex - 1) * $psize.','.$psize;
+	$sql = 'SELECT a.*, b.groupid, b.credit1, b.credit2 FROM ' . tablename('storex_mc_card_members') . " AS a LEFT JOIN " . tablename('mc_members') . " AS b ON a.uid = b.uid WHERE a.uniacid = :uniacid $where ORDER BY a.id DESC LIMIT ".($pindex - 1) * $psize.','.$psize;
 	$list = pdo_fetchall($sql, $param);
-	foreach ($list as $key => &$info) {
-		$info['fields'] = iunserializer($info['fields']);
-		if ($info['fields'][0]['bind'] == 'realname' && $info['fields'][0]['title'] == '姓名') {
-			$info['realname'] = $info['fields'][0]['value'];
-		}
-		if ($info['fields'][1]['bind'] == 'mobile' && $info['fields'][1]['title'] == '手机') {
-			$info['mobile'] = $info['fields'][1]['value'];
-		}
-	}
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_mc_card_members') . " AS a LEFT JOIN " . tablename('mc_members') . " AS b ON a.uid = b.uid WHERE a.uniacid = :uniacid $where", $param);
 	$pager = pagination($total, $pindex, $psize);
 }
