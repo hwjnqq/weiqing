@@ -218,7 +218,7 @@ if ($op == 'order'){
 				}
 			}
 	
-			$r_sql = 'SELECT `roomdate`, `num`, `oprice`, `cprice`, `status`, ' . $pricefield . ' AS `m_price` FROM ' . tablename('storex_room_price') .
+			$r_sql = 'SELECT `roomdate`, `num`, `oprice`, `cprice`, `status` FROM ' . tablename('storex_room_price') .
 			' WHERE `roomid` = :roomid AND `weid` = :weid AND `hotelid` = :hotelid AND `roomdate` >= :btime AND ' .
 			' `roomdate` < :etime  order by roomdate desc';
 			$params = array(':roomid' => $goodsid, ':weid' => intval($_W['uniacid']), ':hotelid' => $store_id, ':btime' => $btime, ':etime' => $etime);
