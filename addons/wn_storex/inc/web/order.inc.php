@@ -149,7 +149,7 @@ if ($op == 'edit') {
 			if ($data['status'] == 3) {
 				$uid = mc_openid2uid(trim($item['openid']));
 				//订单完成后增加积分
-				give_credit($item['weid'], $uid, $item['sum_price'] ,$hotelid);
+				give_credit($uid, $item['sum_price']);
 				//增加出售货物的数量
 				add_sold_num($room);
 				$acc = WeAccount::create();

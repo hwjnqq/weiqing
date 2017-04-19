@@ -51,7 +51,6 @@
 				<th style="width:120px;">店铺名称</th>
 				<th style="width:100px;">店铺类型</th>
 				<th style="width:100px;">店铺排序</th>
-				<th style="width:100px;">店铺返积分比例</th>
 				<th style='width:120px;'>电话</th>
 				<th style='width:100px;'>状态</th>
 				<th style="width:550px;">操作</th>
@@ -70,7 +69,6 @@
 					{/if}
 				</td>
 				<td>{$item['displayorder']}</td>
-				<td>{$item['integral_rate']}</td>
 				<td>{$item['phone']}</td>
 				<td>
 					{if $item['status']==1}
@@ -97,7 +95,7 @@
 			</tr>
 			{/loop}
 			<tr>
-				<td colspan="8">
+				<td colspan="7">
 					<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
 					<input type="button" class="btn btn-primary edit_all" name="showall" value="批量显示" />
 					<input type="button" class="btn btn-primary edit_all" name="hideall" value="批量隐藏" />

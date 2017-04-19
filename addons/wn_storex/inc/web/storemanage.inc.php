@@ -90,7 +90,6 @@ if ($op == 'edit') {
 			'phone' => $_GPC['phone'],
 			'mail' => $_GPC['mail'],
 			'displayorder' => $_GPC['displayorder'],
-			'integral_rate' => $_GPC['integral_rate'],
 			'timestart' => $_GPC['timestart'],
 			'timeend' => $_GPC['timeend'],
 			'description' => $_GPC['description'],

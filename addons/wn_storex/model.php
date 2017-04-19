@@ -264,17 +264,13 @@ if(!function_exists('get_page_array')) {
 }
 //支付成功后，根据酒店设置的消费返积分的比例给积分
 if(!function_exists('give_credit')) {
-	function give_credit($weid, $openid, $sum_price ,$hotelid){
+	function give_credit($uid, $sum_price){
 		load()->model('mc');
-// 		$hotel_info = pdo_get('storex_bases', array('weid' => $weid ,'id' => $hotelid), array('integral_rate', 'weid'));
-// 		$num = $sum_price * $hotel_info['integral_rate']*0.01;//实际消费的金额*比例(值时百分数)*0.01
-// 		$tips .= "用户消费{$sum_price}元，支付{$sum_price}，积分赠送比率为:【1：{$hotel_info['integral_rate']}%】,共赠送【{$num}】积分";
-// 		mc_credit_update($openid, 'credit1', $num, array('0', $tips, 'wn_storex', 0, 0, 3));
-		$card_credit = get_return_credit_info($openid);
+		$card_credit = get_return_credit_info($uid);
 		if (!empty($card_credit)) {
 			$num = $sum_price * $card_credit['grant_rate'];
 			$tips = "用户消费{$sum_price}元，支付{$sum_price}，会员每消费1元赠送{$card_credit['grant_rate']}积分,共赠送【{$num}】积分";
-			mc_credit_update($openid, 'credit1', $num, array('0', $tips, 'wn_storex', 0, 0, 3));
+			mc_credit_update($uid, 'credit1', $num, array('0', $tips, 'wn_storex', 0, 0, 3));
 		}
 		return error(0, $num);
 	}

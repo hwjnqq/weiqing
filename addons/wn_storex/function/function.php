@@ -845,11 +845,9 @@ function check_info_exist($data){
 	}
 }
 
-function get_return_credit_info($openid){
+function get_return_credit_info($uid){
 	global $_W;
-	if (!empty($openid)) {
-		$uid = mc_openid2uid($openid);
-	} else {
+	if (empty($uid)) {
 		$uid = mc_openid2uid($_W['openid']);
 	}
 	if (!pdo_get('storex_mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $uid), array('id'))) {

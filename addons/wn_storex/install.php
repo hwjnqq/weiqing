@@ -275,7 +275,6 @@ $sql = "CREATE TABLE IF NOT EXISTS `ims_storex_hotel` (
 	`thumbs` text,
 	`detail_thumbs` text COMMENT '详情页图片',
 	`displayorder` int(11) DEFAULT '0',
-	`integral_rate` int(11) NOT NULL DEFAULT '0' COMMENT '在该店铺消费返积分的比例',
 	`store_type` int(8) NOT NULL DEFAULT '0' COMMENT '店铺类型',
 	`extend_table` varchar(50) NOT NULL COMMENT '该店铺对应的扩张表',
 	`timestart` varchar(50) NOT NULL DEFAULT '0' COMMENT '运营开始时间',
@@ -567,7 +566,7 @@ if (!empty($module)){
 	//storex_bases 字段
 	$storex_base = array('id', 'weid', 'title', 'lng', 'lat', 'address', 'location_p', 'location_c', 'location_a', 'status',
 		'phone', 'mail', 'thumb', 'thumborder', 'description', 'content', 'store_info', 'traffic', 'thumbs', 'detail_thumbs',
-		'displayorder', 'integral_rate', 'store_type', 'extend_table', 'timestart', 'timeend',
+		'displayorder', 'store_type', 'extend_table', 'timestart', 'timeend',
 	);
 	
 	//storex_hotel 现有字段
