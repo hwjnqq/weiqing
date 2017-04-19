@@ -74,8 +74,6 @@ if ($store_type == 1) {
 }
 
 if ($op == 'edit') {
-	$card_setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid']));
-	$card_status =  $card_setting['status'];
 	$id = intval($_GPC['id']);
 	if (!empty($category_store)){
 		$store_base_id = $category_store['store_base_id'];
@@ -92,7 +90,6 @@ if ($op == 'edit') {
 			}
 		}
 		$piclist = iunserializer($item['thumbs']);
-		$item['mprice'] = iunserializer($item['mprice']);
 	}
 	if (checksubmit('submit')) {
 		if (empty($_GPC['store_base_id'])) {
@@ -162,13 +159,6 @@ if ($op == 'edit') {
 			'is_house' => $is_house,
 		);
 	
-		if (!empty($card_status)) {
-			$group_mprice = array();
-			foreach ($_GPC['mprice'] as $user_group => $mprice) {
-				$group_mprice[$user_group] = empty($mprice)? '1' : min(1, $mprice);
-			}
-			$common['mprice'] = iserializer($group_mprice);
-		}
 		if (is_array($_GPC['thumbs'])){
 			$common['thumbs'] = serialize($_GPC['thumbs']);
 		} else {

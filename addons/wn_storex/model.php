@@ -299,7 +299,6 @@ if(!function_exists('getRoomPrice')) {
 					"roomid" => $roomid,
 					"oprice" => $room['oprice'],
 					"cprice" => $room['cprice'],
-					"mprice" => $room['mprice'],
 					"status" => $room['status'],
 					"roomdate" => strtotime($date),
 					"thisdate" => $date,

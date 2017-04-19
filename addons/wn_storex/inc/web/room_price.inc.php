@@ -71,7 +71,6 @@ if ($op == 'getDate') {
 					if ($p_value['roomdate'] == $k) {
 						$list[$key]['price_list'][$k]['oprice'] = $p_value['oprice'];
 						$list[$key]['price_list'][$k]['cprice'] = $p_value['cprice'];
-						$list[$key]['price_list'][$k]['mprice'] = $p_value['mprice'];
 						$list[$key]['price_list'][$k]['roomid'] = $value['id'];
 						$list[$key]['price_list'][$k]['hotelid'] = $hotelid;
 						$list[$key]['price_list'][$k]['has'] = 1;
@@ -82,7 +81,6 @@ if ($op == 'getDate') {
 				if (empty($list[$key]['price_list'][$k]['oprice'])) {
 					$list[$key]['price_list'][$k]['oprice'] = $value['oprice'];
 					$list[$key]['price_list'][$k]['cprice'] = $value['cprice'];
-					$list[$key]['price_list'][$k]['mprice'] = $value['mprice'];
 					$list[$key]['price_list'][$k]['roomid'] = $value['id'];
 					$list[$key]['price_list'][$k]['hotelid'] = $hotelid;
 				}
@@ -93,7 +91,6 @@ if ($op == 'getDate') {
 				$k = $date_array[$i]['time'];
 				$list[$key]['price_list'][$k]['oprice'] = $value['oprice'];
 				$list[$key]['price_list'][$k]['cprice'] = $value['cprice'];
-				$list[$key]['price_list'][$k]['mprice'] = $value['mprice'];
 				$list[$key]['price_list'][$k]['roomid'] = $value['id'];
 				$list[$key]['price_list'][$k]['hotelid'] = $hotelid;
 			}
@@ -160,7 +157,6 @@ if ($op == 'updatelot_submit') {
 	$days_arr = explode(",", $days);
 	$oprices = $_GPC['oprice'];
 	$cprices = $_GPC['cprice'];
-	$mprices = $_GPC['mprice'];
 	$start = strtotime($_GPC['start']);
 	$end = strtotime($_GPC['end']);
 	foreach ($rooms_arr as $v) {
@@ -170,7 +166,6 @@ if ($op == 'updatelot_submit') {
 				$roomprice = getRoomPrice($hotelid, $v, date('Y-m-d', $time));
 				$roomprice['oprice'] = $oprices[$v];
 				$roomprice['cprice'] = $cprices[$v];
-				$roomprice['mprice'] = $mprices[$v];
 				if (empty($roomprice['id'])) {
 					pdo_insert("storex_room_price", $roomprice);
 				} else {

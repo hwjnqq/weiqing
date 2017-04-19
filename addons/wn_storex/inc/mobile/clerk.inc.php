@@ -339,7 +339,6 @@ if ($op == 'room') {
 							if ($p_value['roomdate'] == $k) {
 								$list[$key]['price_list'][$k]['oprice'] = $p_value['oprice'];
 								$list[$key]['price_list'][$k]['cprice'] = $p_value['cprice'];
-								$list[$key]['price_list'][$k]['mprice'] = $p_value['mprice'];
 								$list[$key]['price_list'][$k]['roomid'] = $value['id'];
 								$list[$key]['price_list'][$k]['hotelid'] = $id;
 								break;
@@ -349,7 +348,6 @@ if ($op == 'room') {
 						if (empty($list[$key]['price_list'][$k]['oprice'])) {
 							$list[$key]['price_list'][$k]['oprice'] = $value['oprice'];
 							$list[$key]['price_list'][$k]['cprice'] = $value['cprice'];
-							$list[$key]['price_list'][$k]['mprice'] = $value['mprice'];
 							$list[$key]['price_list'][$k]['roomid'] = $value['id'];
 							$list[$key]['price_list'][$k]['hotelid'] = $id;
 						}
@@ -360,7 +358,6 @@ if ($op == 'room') {
 						$k = $dates[$i]['date'];
 						$list[$key]['price_list'][$k]['oprice'] = $value['oprice'];
 						$list[$key]['price_list'][$k]['cprice'] = $value['cprice'];
-						$list[$key]['price_list'][$k]['mprice'] = $value['mprice'];
 						$list[$key]['price_list'][$k]['roomid'] = $value['id'];
 						$list[$key]['price_list'][$k]['hotelid'] = $id;
 					}

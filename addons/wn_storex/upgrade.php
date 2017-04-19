@@ -234,9 +234,20 @@ if (pdo_fieldexists('storex_bases', 'timeend')) {
 if (pdo_fieldexists('storex_bases', 'timestart')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " CHANGE `timestart` `timestart` VARCHAR(50) NOT NULL DEFAULT '0' COMMENT '运营开始时间';");
 }
-if (pdo_fieldexists('storex_goods', 'mprice')) {
-	pdo_update('storex_goods', array('mprice' => ''));
+//删除会员价字段
+if (pdo_fieldexists('storex_order', 'mprice')) {
+	pdo_query("ALTER TABLE" . tablename('storex_order') ." DROP `mprice`;");
 }
 if (pdo_fieldexists('storex_room', 'mprice')) {
-	pdo_update('storex_room', array('mprice' => ''));
+	pdo_query("ALTER TABLE" . tablename('storex_room') ." DROP `mprice`;");
+}
+if (pdo_fieldexists('storex_room_price', 'mprice')) {
+	pdo_query("ALTER TABLE" . tablename('storex_room_price') ." DROP `mprice`;");
+}
+if (pdo_fieldexists('storex_goods', 'mprice')) {
+	pdo_query("ALTER TABLE" . tablename('storex_goods') ." DROP `mprice`;");
+}
+//删除返积分比例字段
+if (pdo_fieldexists('storex_bases', 'integral_rate')) {
+	pdo_query("ALTER TABLE" . tablename('storex_bases') ." DROP `integral_rate`;");
 }

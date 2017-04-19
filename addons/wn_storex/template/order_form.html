@@ -103,11 +103,7 @@
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">单价</label>
 					<div class="col-sm-9 col-xs-12 form-control-static">
-						{if $member_info['isauto'] == 1}
-						{$item['cprice']}(优惠价)
-						{else}
-						{$item['mprice']}(会员价)
-						{/if}
+						{$item['cprice']}
 					</div>
 				</div>
 				<div class="form-group">

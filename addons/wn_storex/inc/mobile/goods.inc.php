@@ -34,11 +34,6 @@ if ($op == 'goods_info') {
 	}
 	$goods_info['store_type'] = $store_info['store_type'];
 	$goods_info['thumbs'] =  iunserializer($goods_info['thumbs']);
-	$pricefield = goods_isMember() ? 'mprice' : 'cprice';
-	$member_p = iunserializer($goods_info['mprice']);
-	if(!empty($_W['member']['groupid']) && !empty($member_p[$_W['member']['groupid']])){
-		$goods_info['cprice'] =  $pricefield == 'mprice' ? $goods_info['cprice'] * $member_p[$_W['member']['groupid']] : $goods_info['cprice'];
-	}
 	if (!empty($goods_info['thumb'])) {
 		$goods_info['thumb'] = tomedia($goods_info['thumb']);
 	}
@@ -83,11 +78,6 @@ if ($op == 'info') {
 		$condition['store_base_id'] = $store_id;
 		$table = 'storex_goods';
 		$goods_info = pdo_get($table, $condition);
-	}
-	$member_p = iunserializer($goods_info['mprice']);
-	$pricefield = goods_isMember() ? 'mprice' : 'cprice';
-	if(!empty($_W['member']['groupid']) && !empty($member_p[$_W['member']['groupid']])){
-		$goods_info['cprice'] =  $pricefield == 'mprice' ? $goods_info['cprice'] * $member_p[$_W['member']['groupid']] : $goods_info['cprice'];
 	}
 	$goods_info['cprice'] = calcul_discount_price($uid, $goods_info['cprice']);
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
@@ -138,7 +128,6 @@ if ($op == 'order'){
 	if (empty($order_info['mobile'])) {
 		message(error(-1, '手机号不能为空!'), '', 'ajax');
 	}
-	$pricefield = goods_isMember() ? 'mprice' : 'cprice';
 	$user_info = hotel_get_userinfo();
 	$memberid = intval($user_info['id']);
 	//预定直接将数据加进order表
@@ -164,9 +153,7 @@ if ($op == 'order'){
 			'style' => $room['title'],
 			'oprice' => $room['oprice'],
 			'cprice' => $room['cprice'],
-			'mprice' => $room['mprice']
 		);
-		$member_p = iunserializer($room['mprice']);
 		if ($room['is_house'] == 1) {
 			$order_info['btime'] = strtotime($_GPC['order']['btime']);
 			$order_info['etime'] = strtotime($_GPC['order']['etime']);
@@ -242,20 +229,10 @@ if ($op == 'order'){
 				foreach($price_list as $k => $v) {
 					$room['oprice'] = $v['oprice'];
 					$room['cprice'] = $v['cprice'];
-					if ($pricefield == 'mprice' && !empty($_W['member']['groupid']) && !empty($member_p[$_W['member']['groupid']])) {
-						$this_price = $v['cprice'] * $member_p[$_W['member']['groupid']];
-					} else {
-						$this_price = $v['cprice'];
-					}
+					$this_price = $v['cprice'];
 				}
 			} else {
-				//会员的价格mprice=现价*会员卡折扣率
-				if(!empty($_W['member']['groupid']) && !empty($member_p[$_W['member']['groupid']])){
-					$this_price =  $pricefield == 'mprice' ? $room['cprice']*$member_p[$_W['member']['groupid']] : $room['cprice'];
-				}
-				if ($this_price == 0) {
-					$this_price = $room['cprice'] ;
-				}
+				$this_price = $room['cprice'] ;
 			}
 			$totalprice =  ($this_price + $room['service']) * $days;
 			$service = $room['service'] * $days;
@@ -279,12 +256,7 @@ if ($op == 'order'){
 				//message(error(0, "您有未完成订单,不能重复下单"), '', 'ajax');
 			}
 		} else {
-			if(!empty($_W['member']['groupid']) && !empty($member_p[$_W['member']['groupid']])){
-				$this_price =  $pricefield == 'mprice' ? $room['cprice']*$member_p[$_W['member']['groupid']] : $room['cprice'];
-			} else {
-				$this_price = $room['cprice'];
-			}
-			$totalprice = $this_price;
+			$totalprice = $this_price = $room['cprice'];
 			$insert = array_merge($order_info, $insert);
 		}
 		$this_price = calcul_discount_price($uid, $this_price);
@@ -335,12 +307,7 @@ if ($op == 'order'){
 		$table = 'storex_goods';
 		$goods_info = pdo_get($table, $condition);
 		goods_check_action($action, $goods_info);//检查是否符合条件
-		$member_p = iunserializer($goods_info['mprice']);
-		if(!empty($_W['member']['groupid']) && !empty($member_p[$_W['member']['groupid']])){
-			$now_price =  $pricefield == 'mprice' ? $goods_info['cprice']*$member_p[$_W['member']['groupid']] : $goods_info['cprice'];
-		} else {
-			$now_price = $goods_info['cprice'];
-		}
+		$now_price = $goods_info['cprice'];
 		if ($now_price == 0) {
 			message(error(-1, '商品价格不能是0，请联系管理员修改！'), '', 'ajax');
 		}
@@ -362,7 +329,6 @@ if ($op == 'order'){
 			'style' => $goods_info['title'],
 			'oprice' => $goods_info['oprice'],
 			'cprice' => $goods_info['cprice'],
-			'mprice' => $goods_info['mprice'],
 		);
 		$insert['cprice'] = $now_price;
 		$insert['cprice'] = calcul_discount_price($uid, $insert['cprice']);
