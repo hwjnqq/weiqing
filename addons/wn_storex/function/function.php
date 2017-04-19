@@ -845,7 +845,7 @@ function check_info_exist($data){
 	}
 }
 
-function get_return_credit_info($uid){
+function get_return_credit_info($uid = ''){
 	global $_W;
 	if (empty($uid)) {
 		$uid = mc_openid2uid($_W['openid']);
@@ -898,5 +898,6 @@ function calcul_discount_price($uid, $price){
 			}
 		}
 	}
+	$price = sprintf ("%1.2f", $price);
 	return $price;
 }
