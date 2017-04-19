@@ -548,12 +548,11 @@ class Wn_storexModuleSite extends WeModuleSite {
 						//会员送积分
 						$_SESSION['ewei_hotel_pay_result'] = $params['tid'];
 						//判断公众号是否卡其会员卡功能
-						$card_setting = pdo_get('mc_card', array('uniacid' => intval($_W['uniacid'])));
-						$card_status = $card_setting['status'];
+						$extend_switch = extend_switch_fetch();
 						//查看会员是否开启会员卡功能
-						$membercard_setting = pdo_get('mc_card_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $params['user']));
+						$membercard_setting = pdo_get('storex_mc_card_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $params['user']));
 						$membercard_status = $membercard_setting['status'];
-						if ($membercard_status && $card_status) {
+						if ($membercard_status && $extend_switch['card']) {
 							$room_credit = pdo_get('storex_room', array('weid' => $_W['uniacid'], 'id' => $order['roomid']));
 							$room_credit = $room_credit['score'];
 							$member_info = pdo_get('mc_members', array('uniacid' => $_W['uniacid'], 'uid' => $params['user']));

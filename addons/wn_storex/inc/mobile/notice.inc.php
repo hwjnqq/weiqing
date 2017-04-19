@@ -10,11 +10,6 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 check_params();
 $uid = mc_openid2uid($_W['openid']);
 
-$setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid']));
-if (empty($setting) || $setting['sign_status'] != 1) {
-	message(error(-1, '没有开启签到！'), '', 'ajax');
-}
-
 if ($op == 'notice_list') {
 	$notices = get_notices();
 	message(error(0, $notices), '', 'ajax');
