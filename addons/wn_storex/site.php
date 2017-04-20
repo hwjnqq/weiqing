@@ -51,8 +51,12 @@ class Wn_storexModuleSite extends WeModuleSite {
 				$dir .= 'web/';
 				$fun = strtolower(substr($name, 5));
 				$func = IA_ROOT . '/addons/wn_storex/function/function.php';
+				$mod = IA_ROOT . '/addons/wn_storex/model/activity.mod.php';
 				if (is_file($func)) {
 					require $func;
+				}
+				if (is_file($mod)) {
+					require $mod;
 				}
 			}
 			if ($isMobile) {
@@ -60,11 +64,15 @@ class Wn_storexModuleSite extends WeModuleSite {
 		 		$fun = strtolower(substr($name, 8));
 		 		$init = $dir . '__init.php';
 		 		$func = IA_ROOT . '/addons/wn_storex/function/function.php';
+		 		$mod = IA_ROOT . '/addons/wn_storex/model/activity.mod.php';
 				if (is_file($init)) {
 					require $init;
 				}
 				if (is_file($func)) {
 					require $func;
+				}
+				if (is_file($mod)) {
+					require $mod;
 				}
 			}
  			$file = $dir . $fun . '.inc.php';
@@ -82,6 +90,21 @@ class Wn_storexModuleSite extends WeModuleSite {
 		}
 		trigger_error("访问的方法 {$name} 不存在.", E_USER_WARNING);
 		return null;
+	}
+	public  function isMember() {
+		global $_W;
+		//判断公众号是否卡其会员卡功能
+		$card_setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid']));
+		$card_status =  $card_setting['status'];
+		//查看会员是否开启会员卡功能
+		$membercard_setting  = pdo_get('mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
+		$membercard_status = $membercard_setting['status'];
+		$pricefield = !empty($membercard_status) && $card_status == 1?"mprice":"cprice";
+		if (!empty($card_status) && !empty($membercard_status)) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public function getItemTiles() {
@@ -424,7 +447,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				$body .= '名称：' . $order['style'] . '<br />';
 				$body .= '订购数量' . $order['nums'] . '<br />';
 				$body .= '原价：' . $order['oprice']  . '<br />';
-				$body .= '优惠价：' . $order['cprice']  . '<br />';
+				$body .= '会员价：' . $order['mprice']  . '<br />';
 				if ($storex_bases['store_type'] == 1){
 					$body .= '入住日期：' . date('Y-m-d',$order['btime'])  . '<br />';
 					$body .= '退房日期：' . date('Y-m-d',$order['etime']) . '<br />';
@@ -548,11 +571,12 @@ class Wn_storexModuleSite extends WeModuleSite {
 						//会员送积分
 						$_SESSION['ewei_hotel_pay_result'] = $params['tid'];
 						//判断公众号是否卡其会员卡功能
-						$extend_switch = extend_switch_fetch();
+						$card_setting = pdo_get('mc_card', array('uniacid' => intval($_W['uniacid'])));
+						$card_status = $card_setting['status'];
 						//查看会员是否开启会员卡功能
-						$membercard_setting = pdo_get('storex_mc_card_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $params['user']));
+						$membercard_setting = pdo_get('mc_card_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $params['user']));
 						$membercard_status = $membercard_setting['status'];
-						if ($membercard_status && $extend_switch['card']) {
+						if ($membercard_status && $card_status) {
 							$room_credit = pdo_get('storex_room', array('weid' => $_W['uniacid'], 'id' => $order['roomid']));
 							$room_credit = $room_credit['score'];
 							$member_info = pdo_get('mc_members', array('uniacid' => $_W['uniacid'], 'uid' => $params['user']));
