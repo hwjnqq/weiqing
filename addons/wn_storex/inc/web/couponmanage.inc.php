@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('display', 'post', 'detail', 'toggle', 'modifystock');
+$ops = array('display', 'post', 'detail', 'toggle', 'modifystock', 'delete');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $coupon_colors = activity_get_coupon_colors();
@@ -33,15 +33,22 @@ if ($op == 'display') {
 		$condition_sql .= " AND c.type = :type";
 		$condition[':type'] = intval($_GPC['type']);
 	}
-	
-	if (!empty($_GPC['storeid'])) {
-		$join_sql .= " LEFT JOIN ".tablename('storex_coupon_store')." AS s ON c.id = s.couponid ";
-		$condition_sql .= " AND s.storeid = :storeid";
-		$condition[':storeid'] = intval($_GPC['storeid']);
+	$store_id = intval($_GPC['storeid']);
+	// if (!empty($_GPC['storeid'])) {
+	// 	$join_sql .= " LEFT JOIN ".tablename('storex_coupon_store')." AS s ON c.id = s.couponid ";
+	// 	$condition_sql .= " AND s.storeid = :storeid";
+	// 	$condition[':storeid'] = intval($_GPC['storeid']);
+	// }
+	$coupon_stores = pdo_getall('storex_coupon_store', array('uniacid' => $_W['uniacid']), array('storeid', 'id', 'couponid'), 'id');
+	if (!empty($coupon_stores)) {
+		foreach ($coupon_stores as $key => $stores) {
+			$storelist[$stores['couponid']][$key] = $stores['storeid'];
+		}
 	}
+	$coupon_ids = array_keys($storelist);
 	$couponlist = pdo_fetchall("SELECT * FROM " . tablename('storex_coupon') . " AS c " . $join_sql . " WHERE  " . $condition_sql . " ORDER BY c.id DESC LIMIT ".($pageindex - 1) * $psize.','.$psize, $condition);
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_coupon') . " AS c " . $join_sql . " WHERE  " . $condition_sql, $condition);
-	foreach($couponlist as &$row) {
+	foreach($couponlist as $key=>&$row) {
 		$row['date_info'] = iunserializer($row['date_info']);
 		if ($row['date_info']['time_type'] == 1) {
 			$row['date_info'] = $row['date_info']['time_limit_start'].'-'. $row['date_info']['time_limit_end'];
@@ -49,6 +56,11 @@ if ($op == 'display') {
 			$row['date_info'] = '领取后'.$row['date_info']['limit'].'天有效';
 		}
 		$row['type'] = activity_get_coupon_label($row['type']);
+		if (in_array($row['id'], $coupon_ids)) {
+			if (!in_array($store_id, $storelist[$row['id']])) {
+				unset($couponlist[$key]);
+			}
+		}
 	}
 	unset($row);
 	$pager = pagination($total, $pageindex, $psize);
@@ -64,7 +76,6 @@ if ($op == 'post') {
 		$store['thumb'] = tomedia($store['thumb']);
 	}
 	if ($_W['isajax'] && $_W['ispost']) {
-		// message(error(-1, $_GPC), '', 'ajax');
 		load()->classs('coupon');
 		$params = $_GPC['params'];
 		$type = intval($params['type']);
@@ -90,13 +101,6 @@ if ($op == 'post') {
 		if(!empty($params['promotion_url_name']) && !empty($params['promotion_url'])) {
 			$coupon->setPromotionMenu($params['promotion_url_name'], $params['promotion_url_sub_title'], $params['promotion_url']);
 		}
-		//启用门店
-		// if (!empty($params['location_select'])) {
-		// 	$location_list = explode('-', $params['location_select']);
-		// 	if (!empty($location_list)) {
-		// 		$coupon->setLocation($location_list);
-		// 	}
-		// }
 		
 		$coupon->setCustomMenu('立即使用', '', murl('entry', array('m' => 'paycenter', 'do' => 'consume'), true, true));
 		$coupon->setQuantity($params['quantity']);
@@ -137,7 +141,6 @@ if ($op == 'post') {
 		}
 		//启用门店
 		if (!empty($params['location_select'])) {
-			// pdo_delete('coupon_store', array('couponid' => $cardid));
 			foreach ($params['location_select'] as $store) {
 				$data = array(
 					'uniacid' => $_W['uniacid'],
@@ -147,13 +150,17 @@ if ($op == 'post') {
 				pdo_insert('storex_coupon_store', $data);
 			}
 		}
-		message(error(0, '创建卡券成功'), '', 'ajax');
+		message(error(0, '创建卡券成功'), $this->createWebUrl('couponmanage'), 'ajax');
 	}
 }
 
 if ($op == 'detail') {
 	$coupon_info = activity_get_coupon_info($_GPC['id']);
 	$coupon_info['coupon_label'] = activity_get_coupon_label($coupon_info['type']);
+	if ($coupon_info['type'] == COUPON_TYPE_CASH) {
+		$coupon_info['detail']['least_cost'] = $coupon_info['extra']['least_cost'] * 0.01;
+		$coupon_info['detail']['reduce_cost'] = $coupon_info['extra']['reduce_cost'] * 0.01;
+	}
 }
 
 if ($op == 'toggle') {
@@ -180,8 +187,8 @@ if ($op == 'modifystock') {
 
 if ($op == 'delete') {
 	$id = intval($_GPC['id']);
-	$row = pdo_get('coupon', array('uniacid' => $_W['uniacid'], 'id' => $id));
-	if (empty($row)) {
+	$coupon_info = pdo_get('storex_coupon', array('uniacid' => $_W['uniacid'], 'id' => $id));
+	if (empty($coupon_info)) {
 		message('抱歉，卡券不存在或是已经被删除！');
 	}
 	pdo_delete('storex_coupon', array('uniacid' => $_W['uniacid'], 'id' => $id));
