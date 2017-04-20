@@ -57,7 +57,7 @@ if ($op == 'display') {
 		}
 		$row['type'] = activity_get_coupon_label($row['type']);
 		if (in_array($row['id'], $coupon_ids)) {
-			if (!in_array($store_id, $storelist[$row['id']])) {
+			if (!empty($store_id) && !in_array($store_id, $storelist[$row['id']])) {
 				unset($couponlist[$key]);
 			}
 		}
@@ -127,7 +127,6 @@ if ($op == 'post') {
 		$coupon->setCodetype(3);
 		$coupon->card_id = 'AB' . $_W['uniacid'] . date('YmdHis');
 		$cardinsert = $coupon->getCardArray();
-		// message(error(-1, $cardinsert), '', 'ajax');
 		$cardinsert['uniacid'] = $_W['uniacid'];
 		$cardinsert['acid'] = $_W['acid'];
 		$card_exists = pdo_get('storex_coupon', array('card_id' => $coupon->card_id), array('id'));
@@ -194,7 +193,7 @@ if ($op == 'delete') {
 	pdo_delete('storex_coupon', array('uniacid' => $_W['uniacid'], 'id' => $id));
 	// pdo_delete('storex_coupon_record', array('uniacid' => $_W['uniacid'], 'couponid' => $id));
 	// pdo_delete('activity_exchange', array('uniacid' => $_W['uniacid'], 'extra' => $id));
-	pdo_delete('storex_coupon_store', array('uniacid' => $_W['uniacid'],'couponid' => $id));
+	pdo_delete('storex_coupon_store', array('uniacid' => $_W['uniacid'], 'couponid' => $id));
 	
 	message('卡券删除成功！', referer(), 'success');
 }

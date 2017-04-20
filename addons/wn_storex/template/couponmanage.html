@@ -80,10 +80,11 @@
 				</div>
 				<div class="modal-body clearfix form-horizontal">
 					<input type="text" class="form-control" name="quantity" />
+					<input type="hidden" name="quantity_coupon_id">
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-					<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="util.ajaxshow('{php echo $this->createWeburl('couponmanage', array('op' => 'modifystock'))}&id=&quantity=' + $('input[name=quantity]').val() + '&id='+window.couponid)">确定</button>
+					<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="util.ajaxshow('{php echo $this->createWeburl('couponmanage', array('op' => 'modifystock'))}&quantity=' + $('input[name=quantity]').val() + '&id='+ $('input[name=quantity_coupon_id]').val())">确定</button>
 				</div>
 			</div>
 		</div>
@@ -195,7 +196,7 @@
 						<a href="javascript:;" onclick="util.ajaxshow('{php echo $this->createWeburl('couponmanage', array('op' => 'selfconsume', 'id' => $item['id']))}')" class="btn {if $item['is_selfconsume'] == 1}btn-danger{else}btn-success{/if} btn-sm toggle-selfconsume" title="自助核销">{if $item['is_selfconsume'] == 1}关闭自助核销{else}开启自助核销{/if}</a>
 						<a href="#put-coupon" data-toggle="modal" data-cid={$item['id']} class="btn btn-default btn-sm js-publish">投放</a>
 						{/if}
-						<a href="javascript:;" class="btn btn-default btn-sm" onclick="window.couponid = '{$item['id']}';$('input[name=quantity]').val('');" id="change_quantity">修改库存</a>
+						<a href="javascript:;" class="btn btn-default btn-sm change_quantity" data-id="{$item['id']}">修改库存</a>
 						<a href="javascript:;" onclick="util.ajaxshow('{php echo $this->createWeburl('couponmanage', array('op' => 'toggle', 'id' => $item['id']))}')" class="btn btn-default btn-sm toggle-display" title="上架/下架">{if $item['is_display'] == 1}下架{else}上架{/if}</a>
 						<a href="{php echo $this->createWeburl('couponmanage', array('op' => 'detail', 'id' => $item['id']))}" class="btn btn-success btn-sm" title="查看详情">查看详情</a>
 						<a href="{php echo $this->createWeburl('couponconsume', array('couponid' => $item['id'], 'status' => '0'))}"  class="btn btn-default btn-sm" title="领取记录">领取记录</a>
@@ -211,7 +212,9 @@
 	$('#add_coupon').click(function() {
 		$('#cardtype-modal').modal(); 
 	});
-	$('#change_quantity').click(function() {
+	$('.change_quantity').click(function() {
+		coupon_id = $(this).data('id');
+		$('input[name="quantity_coupon_id"]').val(coupon_id);
 		$('#quantity-modal').modal();
 	})
 </script>
