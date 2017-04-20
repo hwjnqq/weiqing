@@ -5,10 +5,10 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('exchange_display', 'post', 'change_status', 'coupon_info', 'delete');
-$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'exchange_display';
+$ops = array('display', 'post', 'change_status', 'coupon_info', 'delete');
+$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
-if ($op == 'exchange_display') {
+if ($op == 'display') {
 	$title = trim($_GPC['title']);
 	$condition = '';
 	$pindex = max(1, intval($_GPC['page']));
@@ -56,7 +56,7 @@ if ($op == 'post') {
 		$post['type'] = 1;
 		if (empty($id)) {
 			pdo_insert('storex_activity_exchange', $post);
-			message('添加兑换卡券成功', $this->createWeburl('couponexchange', array('op' => 'exchange_display')), 'success');
+			message('添加兑换卡券成功', $this->createWeburl('couponexchange', array('op' => 'display')), 'success');
 		}
 	}
 	$id = intval($_GPC['id']);
@@ -73,10 +73,11 @@ if ($op == 'post') {
 	$coupon_exists = pdo_getall('storex_activity_exchange', array('type' => 1, 'uniacid' => $_W['uniacid']), array(), 'extra');
 	$coupon_exists = array_keys($coupon_exists);
 	foreach ($coupons as $key => &$coupon) {
-		$coupon = activity_get_coupon_info($coupon['id']);
 		if (in_array($key, $coupon_exists)) {
 			unset($coupons[$key]);
+			continue;
 		}
+		$coupon['date_info'] = iunserializer($coupon['date_info']);
 	}
 	unset($coupon);
 }

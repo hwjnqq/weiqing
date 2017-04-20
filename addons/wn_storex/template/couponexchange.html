@@ -1,16 +1,14 @@
 {template 'common/header'}
 <ul class="nav nav-tabs">
-	<li {if $_GPC['op'] == 'display' }class="active" {/if}><a href="{php echo $this->createWeburl('couponmanage', array('op' => 'display'))}">卡券列表</a></li>
-	<li {if $_GPC['op'] == 'exchange_display'}class="active"{/if}><a href="{php echo $this->createWeburl('couponexchange', array('op' => 'exchange_display'));}">管理卡券兑换</a></li>
-	{if $_GPC['op'] == 'post' && empty($id)}<li class="active"><a href="{php echo $this->createWeburl('couponexchange', array('op' => 'post'))}">添加卡券兑换</a></li>{/if}
+	<li {if $_GPC['do'] == 'couponmanage' && $_GPC['op'] == 'display' }class="active" {/if}><a href="{php echo $this->createWeburl('couponmanage', array('op' => 'display'))}">卡券列表</a></li>
+	<li {if $_GPC['do'] == 'couponexchange' && $_GPC['op'] == 'display'}class="active"{/if}><a href="{php echo $this->createWeburl('couponexchange', array('op' => 'display'));}">管理卡券兑换</a></li>
+	{if $_GPC['op'] == 'post' && empty($id)}<li class="active"><a>添加卡券兑换</a></li>{/if}
 	{if $_GPC['op'] == 'post' && $id}<li class="active"><a href="{php echo $this->createWeburl('couponexchange', array('op' => 'post', 'id' => $id))}">编辑卡券兑换</a></li>{/if}
 </ul>
-{if $_GPC['op'] == 'exchange_display'}
+{if $_GPC['op'] == 'display'}
 <div class="pull-left">
-	<a href="javascript:;" onclick="location.href='{php echo $this->createWeburl('couponexchange', array('op' => 'post'))}'" class="btn btn-primary we7-padding-horizontal" >+添加卡券兑换</a>
+	<a href="{php echo $this->createWeburl('couponexchange', array('op' => 'post'))}" class="btn btn-primary we7-padding-horizontal" >+添加卡券兑换</a>
 </div>
-{/if}
-{if $_GPC['op'] == 'exchange_display'}
 <div class="main">
 	<div class="panel panel-info">
 		<div class="panel-heading">筛选</div>
@@ -20,7 +18,7 @@
 				<input type="hidden" name="a" value="entry" />
 				<input type="hidden" name="do" value="couponexchange" />
 				<input type="hidden" name="m" value="wn_storex" />
-				<input type="hidden" name="op" value="exchange_display" />
+				<input type="hidden" name="op" value="display" />
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">卡券名称</label>
 					<div class="col-sm-7 col-lg-8 col-xs-12">
