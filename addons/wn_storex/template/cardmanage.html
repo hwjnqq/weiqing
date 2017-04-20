@@ -151,7 +151,7 @@
 					<br>
 					<div class="btn-group">
 					<a class="btn btn-default" href="{php echo $this->createWebUrl('cardmanage', array('op' => 'delete', 'cardid' => $row['id']))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;">删除</a>
-					<a class="btn btn-default" href="{php echo $this->createWebUrl('cardmanage', array('op' => 'record', 'uid' => $row['uid']))}">消费记录</a>
+					<a class="btn btn-default" href="{php echo $this->createWebUrl('cardmanage', array('op' => 'record', 'uid' => $row['uid']))}" style="display:none;">消费记录</a>
 					{if $setting['times_status'] == 1 || $setting['nums_status'] == 1}
 						<a class="btn btn-warning manage" href="javascript:;" data-uid="{$row['uid']}" style="display:none;">充值/消费</a>
 					{/if}

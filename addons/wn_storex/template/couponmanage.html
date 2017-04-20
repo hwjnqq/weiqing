@@ -3,6 +3,7 @@
 <div class="main" id="coupon_display">
 	<ul class="nav nav-tabs">
 		<li {if $op == 'display' }class="active" {/if}><a href="{php echo $this->createWeburl('couponmanage', array('op' => 'display'))}">卡券列表</a></li>
+		<li {if $_GPC['op'] == 'exchange_display' }class="active" {/if}><a href="{php echo $this->createWeburl('couponexchange', array('op' => 'exchange_display'))}">管理卡券兑换</a></li>
 	</ul>
 	<div class="pull-left">
 		<a href="javascript:;" id="add_coupon" class="btn btn-primary we7-padding-horizontal">+添加卡券</a>
