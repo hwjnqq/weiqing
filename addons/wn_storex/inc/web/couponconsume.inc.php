@@ -9,51 +9,50 @@ $ops = array('display', 'post', 'detail', 'toggle', 'modifystock', 'delete');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 if ($op == 'display') {
-	$source = (COUPON_TYPE == SYSTEM_COUPON) ? '1' : '2';
+	$source = 1;
 	$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid']), array('id', 'business_name', 'branch_name'), 'id');
 	$store_ids = array_keys($stores);
 	$nicknames_info = pdo_getall('mc_mapping_fans', array('uniacid' => $_W['uniacid']), array('nickname', 'openid'), 'openid');
-	$condition = '';
 	$starttime = empty($_GPC['time']['start']) ? strtotime('-1 month') : strtotime($_GPC['time']['start']);
 	$endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
+	$condition = '';
+	$params = array();
+	$condition = ' a.uniacid = :uniacid AND b.source = :source';
+	$params[':uniacid'] = $_W['uniacid'];
+	$params[':source'] = $source;
 	$type = intval($_GPC['type']);
 	if (!empty($type)) {
-		$condition = "AND b.type = $type";
+		$condition .= ' AND b.type = :type';
+		$params[':type'] = $type;
 	}
-	$where = " WHERE a.uniacid = {$_W['uniacid']} ".$condition." AND b.source = {$source}";
-	$params = array();
 	$code = trim($_GPC['code']);
 	if (!empty($code)) {
-		$where .=' AND a.code=:code';
+		$condition .=' AND a.code = :code';
 		$params[':code'] = $code;
 	}
 	$couponid = intval($_GPC['couponid']);
 	if (!empty($couponid)) {
-		$where .= " AND a.couponid = {$couponid}";
-	}
-	$clerk_id = intval($_GPC['clerk_id']);
-	if (!empty($clerk_id)) {
-		$where .= " AND a.clerk_id = :clerk_id";
-		$params[':clerk_id'] = $clerk_id;
+		$condition .= " AND a.couponid = :couponid";
+		$params[':couponid'] = $couponid;
 	}
 	if (!empty($_GPC['nickname'])) {
 		$nicknames = pdo_fetchall('SELECT * FROM '. tablename('mc_mapping_fans')." WHERE uniacid = :uniacid AND nickname LIKE :nickname", array(':uniacid' => $_W['uniacid'], ':nickname' => '%'.$_GPC['nickname'].'%'), 'openid');
 		$nickname = array_keys($nicknames);
 		$nickname = '\''.implode('\',\'', $nickname).'\'';
-		$where .= " AND openid in ({$nickname}) ";
+		$condition .= " AND openid in ({$nickname}) ";
 	}
 	$status = intval($_GPC['status']);
 	if (!empty($status)) {
-		$where .= " AND a.status = :status";
+		$condition .= " AND a.status = :status";
 		$params[':status'] = $status;
 	} else {
-		$where .= " AND a.status <> :status";
+		$condition .= " AND a.status <> :status";
 		$params[':status'] = 4;
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	$list = pdo_fetchall("SELECT a.status AS rstatus,a.id AS recid, a.*, b.* FROM ".tablename('coupon_record'). ' AS a LEFT JOIN ' . tablename('coupon') . ' AS b ON a.couponid = b.id ' . " $where AND a.code <> '' ORDER BY a.addtime DESC, a.status DESC, a.couponid DESC,a.id DESC LIMIT ".($pindex - 1) * $psize.','.$psize, $params);
-	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('coupon_record') . ' AS a LEFT JOIN ' . tablename('coupon') . ' AS b ON a.couponid = b.id '. $where ." AND a.code <> ''", $params);
+	$list = pdo_fetchall("SELECT a.status AS rstatus,a.id AS recid, a.*, b.* FROM " . tablename('storex_coupon_record') . " AS a LEFT JOIN " . tablename('storex_coupon') . " AS b ON a.couponid = b.id WHERE " . $condition . " AND a.code <> '' ORDER BY a.addtime DESC, a.status DESC, a.couponid DESC,a.id DESC LIMIT " . ($pindex - 1) * $psize . "," . $psize, $params);
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('storex_coupon_record') . " AS a LEFT JOIN " . tablename('storex_coupon') . " AS b ON a.couponid = b.id WHERE " . $condition . " AND a.code <> ''", $params);
 	if(!empty($list)) {
 		$uids = array();
 		foreach ($list as &$row) {
