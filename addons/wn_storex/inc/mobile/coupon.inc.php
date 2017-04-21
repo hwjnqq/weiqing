@@ -16,7 +16,7 @@ if ($op == 'display') {
 	if (!empty($storex_exchange)) {
 		$ids = array_keys($storex_exchange);
 	}
-	$storex_coupon = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'id' => $ids, 'source' => 1), array('id', 'type', 'logo_url', 'title', 'description', 'get_limit', 'date_info', 'sub_title', 'extra'), 'id');
+	$storex_coupon = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'id' => $ids, 'source' => 1), array('id', 'type', 'logo_url', 'title', 'description', 'get_limit', 'date_info', 'sub_title', 'extra', 'quantity'), 'id');
 	if (!empty($storex_coupon)) {
 		foreach ($storex_coupon as &$value) {
 			$value['extra'] = iunserializer($value['extra']);
@@ -38,7 +38,6 @@ if ($op == 'display') {
 	$coupon_total = pdo_fetchall("SELECT COUNT(*) AS total, couponid FROM " . tablename('storex_coupon_record') . " WHERE uniacid = :uniacid AND couponid IN (" . implode(',', $ids) . ") GROUP BY couponid", array(':uniacid' => intval($_W['uniacid'])), 'couponid');
 	//我的领取的数量
 	$mine_coupon_num = pdo_fetchall("SELECT COUNT(*) AS sum, couponid FROM " . tablename('storex_coupon_record') . " WHERE uid = :uid GROUP BY couponid", array(':uid' => $uid), 'couponid');
-	
 	if (!empty($storex_exchange)) {
 		foreach ($storex_exchange as $id => $info) {
 			if (!empty($coupon_total[$id]) && $storex_coupon[$id]['quantity'] <= $coupon_total[$id]['total']) {
@@ -112,8 +111,9 @@ if ($op == 'exchange') {
 }
 
 if ($op == 'mine') {
-
-	message(error(-1, '领取会员卡失败!'), '', 'ajax');
+	$couponlist = activity_get_user_couponlist();
+	
+	message(error(0, $couponlist), '', 'ajax');
 }
 
 

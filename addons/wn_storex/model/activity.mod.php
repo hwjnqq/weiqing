@@ -139,3 +139,77 @@ function activity_user_get_coupon($id, $openid) {
 	pdo_update('storex_activity_exchange', array('num' => ($exchange['num'] + 1)), array('id' => $exchange['id']));
 	return true;
 }
+
+/**
+ * 获取当前会员当前已有卡券及使用情况
+ * @return array
+ */
+function activity_get_user_couponlist() {
+	global $_W, $_GPC;
+	$uid = $_W['member']['uid'];
+	$coupon_record = pdo_getall('storex_coupon_record', array('uniacid' => $_W['uniacid'], 'openid' => $_W['openid'], 'status' => 1));
+	foreach ($coupon_record as $key => $record) {
+		$coupon = activity_get_coupon_info($record['couponid']);
+		if ($coupon['source'] != 1) {
+			unset($coupon_record[$key]);
+			continue;
+		}
+		if ($coupon['status'] != '3') {
+			pdo_delete('storex_coupon_record', array('id' => $record['id']));
+			unset($coupon_record[$key]);
+			continue;
+		}
+		if (is_error($coupon)) {
+			unset($coupon_record[$key]);
+			continue;
+		}
+		if (is_array($coupon['date_info']) && $coupon['date_info']['time_type'] == '2') {
+			$starttime = $record['addtime'] + $coupon['date_info']['deadline'] * 86400;
+			$endtime = $starttime + ($coupon['date_info']['limit'] - 1) * 86400;
+			if ($endtime < time()) {
+				unset($coupon_record[$key]);
+				pdo_delete('storex_coupon_record', array('id' => $record['id']));
+				continue;
+			} else {
+				$coupon['extra_date_info'] = '有效期:' . date('Y.m.d', $starttime) . '-' . date('Y.m.d', $endtime);
+			}
+		}
+		if (is_array($coupon['date_info']) && $coupon['date_info']['time_type'] == '1') {
+			$endtime = str_replace('.', '-', $coupon['date_info']['time_limit_end']);
+			$endtime = strtotime($endtime);
+			if ($endtime < time()) {
+				pdo_update('coupon_record', array('status' => 2), array('id' => $record['id']));
+				// pdo_delete('coupon_record', array('id' => $record['id']));
+				unset($coupon_record[$key]);
+				continue;
+			}
+
+		}
+		// if ($coupon['type'] == COUPON_TYPE_DISCOUNT) {
+		// 	$coupon['icon'] = '<div class="price">' . $coupon['extra']['discount'] * 0.1 . '<span>折</span></div>';
+		// }
+		// elseif($coupon['type'] == COUPON_TYPE_CASH) {
+		// 	$coupon['icon'] = '<div class="price">' . $coupon['extra']['reduce_cost'] * 0.01 . '<span>元</span></div><div class="condition">满' . $coupon['extra']['least_cost'] * 0.01 . '元可用</div>';
+		// }
+		// elseif($coupon['type'] == COUPON_TYPE_GIFT) {
+		// 	$coupon['icon'] = '<img src="resource/images/wx_gift.png" alt="" />';
+		// }
+		// elseif($coupon['type'] == COUPON_TYPE_GROUPON) {
+		// 	$coupon['icon'] = '<img src="resource/images/groupon.png" alt="" />';
+		// }
+		// elseif($coupon['type'] == COUPON_TYPE_GENERAL) {
+		// 	$coupon['icon'] = '<img src="resource/images/general_coupon.png" alt="" />';
+		// }
+		$coupon_record[$key] = $coupon;
+		$coupon_record[$key]['recid'] = $record['id'];
+		$coupon_record[$key]['code'] = $record['code'];
+		if ($coupon['source'] == '2') {
+			if (empty($coupon_record[$key]['code'])) {
+				$coupon_record[$key]['extra_ajax'] = url('entry', array('m' => 'we7_coupon', 'do' => 'activity', 'type' => 'coupon', 'op' => 'addcard'));
+			} else {
+				$coupon_record[$key]['extra_ajax'] = url('entry', array('m' => 'we7_coupon', 'do' => 'activity', 'type' => 'coupon', 'op' => 'opencard'));
+			}
+		}
+	}
+	return $coupon_record;
+}
