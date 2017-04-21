@@ -2,9 +2,13 @@
 {if $op == 'display'}
 <div class="main">
 	<ul class="nav nav-tabs">
-		<li {if $_GPC['do'] == 'couponmanage' && $op == 'display'}class="active" {/if}><a href="{php echo $this->createWeburl('couponmanage', array('op' => 'display'))}">卡券列表</a></li>
-		<li {if $_GPC['do'] == 'couponconsume' && $op == 'display'}class="active" {/if}><a href="{php echo $this->createWeburl('couponconsume', array('op' => 'display'))}">卡券核销</a></li>
+		<li {if $_GPC['do'] == 'couponmanage' && $op == 'display'}class="active" {/if}><a href="{php echo $this->createWeburl('couponmanage', array('op' => 'display'))}">卡券管理</a></li>
+		<li {if $_GPC['do'] == 'couponexchange' && $_GPC['op'] == 'display'}class="active"{/if}><a href="{php echo $this->createWeburl('couponexchange', array('op' => 'display'));}">卡券兑换</a></li>
+		<li {if $_GPC['do'] == 'couponconsume' && $_GPC['op'] == 'display'}class="active" {/if}><a href="{php echo $this->createWeburl('couponconsume', array('op' => 'display'))}">卡券核销</a></li>
 	</ul>
+	<div class="page-header clearfix">
+		<h4 class="pull-left">卡券核销</h4>
+	</div>
 	<div class="panel panel-info">
 		<div class="panel-heading">筛选</div>
 		<div class="panel-body">

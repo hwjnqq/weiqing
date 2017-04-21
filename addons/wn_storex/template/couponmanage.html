@@ -2,11 +2,15 @@
 {if $op == 'display'}
 <div class="main" id="coupon_display">
 	<ul class="nav nav-tabs">
-		<li {if $_GPC['do'] == 'couponmanage' && $_GPC['op'] == 'display' }class="active" {/if}><a href="{php echo $this->createWeburl('couponmanage', array('op' => 'display'))}">卡券列表</a></li>
-		<li {if $_GPC['do'] == 'couponexchange' && $_GPC['op'] == 'display' }class="active" {/if}><a href="{php echo $this->createWeburl('couponexchange', array('op' => 'display'))}">管理卡券兑换</a></li>
+		<li {if $_GPC['do'] == 'couponmanage' && $_GPC['op'] == 'display' }class="active" {/if}><a href="{php echo $this->createWeburl('couponmanage', array('op' => 'display'))}">卡券管理</a></li>
+		<li {if $_GPC['do'] == 'couponexchange' && $_GPC['op'] == 'display' }class="active" {/if}><a href="{php echo $this->createWeburl('couponexchange', array('op' => 'display'))}">卡券兑换</a></li>
+		<li {if $_GPC['do'] == 'couponconsume' && $_GPC['op'] == 'display' }class="active" {/if}><a href="{php echo $this->createWeburl('couponconsume', array('op' => 'display'))}">卡券核销</a></li>
 	</ul>
-	<div class="pull-left">
-		<a href="javascript:;" id="add_coupon" class="btn btn-primary we7-padding-horizontal">+添加卡券</a>
+	<div class="page-header clearfix">
+		<h4 class="pull-left">卡券管理</h4>
+		<div class="pull-right">
+			<a href="javascript:;" id="add_coupon" class="btn btn-primary we7-padding-horizontal">+添加卡券</a>
+		</div>
 	</div>
 	<div class="modal fade" id="cardtype-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
 		<div class="modal-dialog">
@@ -224,9 +228,16 @@
 <link rel="stylesheet" href="../addons/Wn_storex/template/style/css/membercard.css">
 <div class="main" style="width:1200px;" id="couponmanage">
 	<ul class="nav nav-tabs">
-		<li {if $op == 'display' }class="active" {/if}><a href="{php echo $this->createWeburl('couponmanage', array('op' => 'display'))}">卡券列表</a></li>
-		<li {if $op == 'post' }class="active" {/if}><a href="javascript:;" id="add_coupon">添加卡券</a></li>
+		<li {if $_GPC['do'] == 'couponmanage' }class="active" {/if}><a href="{php echo $this->createWeburl('couponmanage', array('op' => 'display'))}">卡券管理</a></li>
+		<li {if $_GPC['do'] == 'couponexchange' && $_GPC['op'] == 'display' }class="active" {/if}><a href="{php echo $this->createWeburl('couponexchange', array('op' => 'display'))}">卡券兑换</a></li>
+		<li {if $_GPC['do'] == 'couponconsume' && $_GPC['op'] == 'display' }class="active" {/if}><a href="{php echo $this->createWeburl('couponconsume', array('op' => 'display'))}">卡券核销</a></li>
 	</ul>
+	<div class="page-header clearfix">
+		<h4 class="pull-left">卡券管理</h4>
+		<div class="pull-right">
+			<a href="{php echo $this->createWeburl('couponmanage', array('op' => 'display'))}" class="btn btn-primary we7-padding-horizontal">返回列表</a>
+		</div>
+	</div>
 	<div class="panel panel-default" id="step1">
 		<div class="panel-heading">
 			{{coupon_label.title}}

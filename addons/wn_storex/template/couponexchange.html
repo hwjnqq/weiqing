@@ -1,15 +1,17 @@
 {template 'common/header'}
 <ul class="nav nav-tabs">
-	<li {if $_GPC['do'] == 'couponmanage' && $_GPC['op'] == 'display' }class="active" {/if}><a href="{php echo $this->createWeburl('couponmanage', array('op' => 'display'))}">卡券列表</a></li>
-	<li {if $_GPC['do'] == 'couponexchange' && $_GPC['op'] == 'display'}class="active"{/if}><a href="{php echo $this->createWeburl('couponexchange', array('op' => 'display'));}">管理卡券兑换</a></li>
-	{if $_GPC['op'] == 'post' && empty($id)}<li class="active"><a>添加卡券兑换</a></li>{/if}
-	{if $_GPC['op'] == 'post' && $id}<li class="active"><a href="{php echo $this->createWeburl('couponexchange', array('op' => 'post', 'id' => $id))}">编辑卡券兑换</a></li>{/if}
+	<li {if $_GPC['do'] == 'couponmanage'}class="active" {/if}><a href="{php echo $this->createWeburl('couponmanage', array('op' => 'display'))}">卡券管理</a></li>
+	<li {if $_GPC['do'] == 'couponexchange'}class="active"{/if}><a href="{php echo $this->createWeburl('couponexchange', array('op' => 'display'));}">卡券兑换</a></li>
+	<li {if $_GPC['do'] == 'couponconsume'}class="active" {/if}><a href="{php echo $this->createWeburl('couponconsume', array('op' => 'display'))}">卡券核销</a></li>
 </ul>
 {if $_GPC['op'] == 'display'}
-<div class="pull-left">
-	<a href="{php echo $this->createWeburl('couponexchange', array('op' => 'post'))}" class="btn btn-primary we7-padding-horizontal" >+添加卡券兑换</a>
-</div>
 <div class="main">
+	<div class="page-header clearfix">
+		<h4 class="pull-left">卡券兑换</h4>
+		<div class="pull-right">
+			<a href="{php echo $this->createWeburl('couponexchange', array('op' => 'post'))}" class="btn btn-primary we7-padding-horizontal">+添加卡券兑换</a>
+		</div>
+	</div>
 	<div class="panel panel-info">
 		<div class="panel-heading">筛选</div>
 		<div class="panel-body">
@@ -94,10 +96,15 @@
 	{$pager}
 </div>
 {elseif $_GPC['op'] == 'post'}
-
+<div class="page-header clearfix">
+	<h4 class="pull-left">{if !empty($_GPC['id'])}查看{else}添加{/if}兑换</h4>
+	<div class="pull-right">
+		<a href="{php echo $this->createWeburl('couponexchange', array('op' => 'display'));}" class="btn btn-primary we7-padding-horizontal">返回列表</a>
+	</div>
+</div>
 <form action="{php echo $this->createWeburl('couponexchange', array('op' => 'post'))}" method="post" class="form-horizontal">
 	<div class="panel panel-default">
-		<div class="panel-heading">筛选</div>
+		<div class="panel-heading">{if !empty($_GPC['id'])}查看{else}添加{/if}</div>
 		<div class="panel-body">
 			<div class="clearfix">
 				<div class="form-group">
