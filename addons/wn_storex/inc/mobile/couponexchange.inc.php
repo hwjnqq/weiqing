@@ -30,7 +30,7 @@ if ($op == 'display') {
 			if ($value['date_info']['time_type'] == '1'){
 				$value['extra_date_info'] = '有效期:' . $value['date_info']['time_limit_start'] . '-' . $value['date_info']['time_limit_end'];
 			} else {
-				$value['extra_date_info'] = '有效期:领取后' . $value['date_info']['deadline'] . '天可用，有效期' . $value['date_info']['limit'] . '天';
+				$value['extra_date_info'] = '有效期:领取后' . ($coupon['date_info']['deadline'] == 0 ? '当' : $coupon['date_info']['deadline']) . '天可用，有效期' . $value['date_info']['limit'] . '天';
 			}
 		}
 	}
@@ -67,12 +67,61 @@ if ($op == 'exchange') {
 	echo "<pre>";
 	print_r($storex_exchange);
 	echo "</pre>";
-	exit;
-	$credit = mc_credit_fetch($uid, array($storex_exchange['credittype']));
-	if ($storex_exchange['credit'] < 0) {
-		message(error(-1, '兑换规则有误'), '', 'ajax');
+	if (empty($storex_exchange)) {
+		message(error(-1, '兑换券不存在'), '', 'ajax');
 	}
-	message(error(-1, '领取会员卡失败!'), '', 'ajax');
+	if ($storex_exchange['status'] != 1) {
+		message(error(-1, '未开启兑换'), '', 'ajax');
+	}
+	$creditnames = array('credit1' => '积分', 'credit2' => '余额');
+	$credit = mc_credit_fetch($uid, array($storex_exchange['credittype']));
+	if (intval($credit[$storex_exchange['credittype']]) < $storex_exchange['credit']) {
+		message(error(-1, $creditnames[$storex_exchange['credittype']] . '不足'), '', 'ajax');
+	}
+	$received_num = pdo_fetchcolumn("SELECT count(*) FROM " . tablename('storex_coupon_record') . " WHERE `uniacid` = :uniacid AND `uid` = :uid AND `couponid` = :id", array(':id' => $id, ':uid' => $uid, ':uniacid' => intval($_W['uniacid'])));
+	if ($received_num >= $storex_exchange['pretotal']) {
+		message(error(-1, '兑换次数不足'), '', 'ajax');
+	}
+	$coupon_info = activity_get_coupon_info($id);
+	echo "<pre>";
+	print_r($coupon_info);
+	echo "</pre>";
+	$received_total = pdo_fetchcolumn("SELECT count(*) FROM " . tablename('storex_coupon_record') . " WHERE `uniacid` = :uniacid AND `couponid` = :id", array(':id' => $id, ':uniacid' => intval($_W['uniacid'])));
+	if ($received_total >= $coupon_info['quantity']) {
+		message(error(-1, '数量超限'), '', 'ajax');
+	}
+	if ($storex_exchange['starttime'] > TIMESTAMP) {
+		message(error(-1, '活动未开始'), '', 'ajax');
+	}
+	if ($storex_exchange['endtime'] < TIMESTAMP) {
+		message(error(-1, '活动已结束'), '', 'ajax');
+	}
+	$card_info = get_card_setting();
+	echo "<pre>";
+	print_r($card_info['params']['cardRecharge']);
+	echo "</pre>";
+	exit;
+	$status = activity_coupon_record_grant($id, $_W['member']['uid']);
+	
+	if (is_error($status)) {
+		message(error(-1, $status['message']), '', 'ajax');
+	} else {
+		mc_credit_update($_W['member']['uid'], $storex_exchange['credittype'], -1 * $storex_exchange['credit']);
+		if ($storex_exchange['credittype'] == 'credit1') {
+			mc_notice_credit1($_W['openid'], $_W['member']['uid'], -1 * $storex_exchange['credit'], '兑换卡券消耗积分');
+		} else {
+			
+			$card_info = get_card_setting();
+			$recharges_set = $card_info['params']['cardRecharge'];
+			if (empty($recharges_set['params']['recharge_type'])) {
+				$grant_rate = $card_setting['grant_rate'];
+				mc_credit_update($_W['member']['uid'], 'credit1', $grant_rate * $storex_exchange['credit']);
+			}
+			mc_notice_credit2($_W['openid'], $_W['member']['uid'], -1 * $storex_exchange['credit'], $grant_rate * $storex_exchange['credit'], '兑换卡券消耗余额');
+		}
+		message(error(0, '兑换卡券成功!'), '', 'ajax');
+	}
+	
 }
 
 if ($op == 'mine') {

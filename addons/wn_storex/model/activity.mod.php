@@ -52,7 +52,7 @@ function activity_get_coupon_info($id) {
 	if ($coupon['date_info']['time_type'] == '1'){
 		$coupon['extra_date_info'] = '有效期:' . $coupon['date_info']['time_limit_start'] . '-' . $coupon['date_info']['time_limit_end'];
 	} else {
-		$coupon['extra_date_info'] = '有效期:领取后' . $coupon['date_info']['deadline'] . '天可用，有效期' . $coupon['date_info']['limit'] . '天';
+		$coupon['extra_date_info'] = '有效期:领取后' . ($coupon['date_info']['deadline'] == 0 ? '当' : $coupon['date_info']['deadline']) . '天可用，有效期' . $coupon['date_info']['limit'] . '天';
 	}
 	if ($coupon['type'] == COUPON_TYPE_DISCOUNT) {
 		$coupon['extra'] = iunserializer($coupon['extra']);
@@ -71,4 +71,91 @@ function activity_get_coupon_info($id) {
 		$coupon['location_id_list'] = $stores;
 	}
 	return $coupon;
+}
+
+/**
+ * 指定会员领取指定卡券
+ * @param int $openid 会员ID或者openid
+ * @param int $id 卡券自增id
+ * @return mixed
+ */
+function activity_coupon_record_grant($id, $openid) {
+	global $_W, $_GPC;
+	if (empty($openid)) {
+		$openid = $_W['openid'];
+		if(empty($openid)) {
+			$openid = $_W['member']['uid'];
+		}
+		if (empty($openid)) {
+			return error(-1, '没有找到指定会员');
+		}
+	}
+	$fan = mc_fansinfo($openid, '', $_W['uniacid']);
+	$openid = $fan['openid'];
+	if (empty($openid)) {
+		return error(-1, '兑换失败');
+	}
+	$code = base_convert(md5(uniqid() . random(4)), 16, 10);
+	$code = substr($code, 1, 16);
+	$user = mc_fetch($fan['uid'], array('groupid'));
+	$credit_names = array('credit1' => '积分', 'credit2' => '余额');
+	$coupon = activity_get_coupon_info($id);
+	$pcount = pdo_fetchcolumn("SELECT count(*) FROM " . tablename('storex_coupon_record') . " WHERE `openid` = :openid AND `couponid` = :couponid", array(':couponid' => $id, ':openid' => $openid));
+// 	$coupongroup = pdo_fetchall("SELECT * FROM " . tablename('coupon_groups') . " WHERE `couponid` = :couponid", array(':couponid' => $id), 'groupid');
+// 	$coupon_group = array_keys($coupongroup);
+// 	$member = pdo_get('mc_members', array('uniacid' => $_W['uniacid'], 'uid' => $fan['uid']));
+// 	if (COUPON_TYPE == WECHAT_COUPON) {
+// 		$fan_groups = $fan['tag']['tagid_list'];
+// 	} else {
+// 		$fan_groups[] = $user['groupid'];
+// 	}
+// 	$group = @array_intersect($coupon_group, $fan_groups);
+	if (empty($coupon)) {
+		return error(-1, '未找到指定卡券');
+	}
+// 	elseif (empty($group) && !empty($coupon_group)) {
+// 		if (!empty($fan_groups)) {
+// 			return error(-1, '无权限兑换');
+// 		} else {
+// 			if (is_array($coupon_group) && !in_array('0', $coupon_group)) {
+// 				return error(-1, '无权限兑换');
+// 			}
+// 		}
+// 	}
+	elseif (strtotime(str_replace('.', '-', $coupon['date_info']['time_limit_end'])) < strtotime(date('Y-m-d')) && $coupon['date_info']['time_type'] != 2) {
+		return error(-1, '活动已结束');
+	}
+	elseif ($coupon['quantity'] <= 0) {
+		return error(-1, '卡券发放完毕');
+	}
+	elseif ($pcount >= $coupon['get_limit'] && !empty($coupon['get_limit'])) {
+		return error(-1, '数量超限');
+	}
+	$give = $_W['activity_coupon_id'] ? true :false;
+	$uid = !empty($_W['member']['uid']) ? $_W['member']['uid'] : $fan['uid'];
+	$insert = array(
+		'couponid' => $id,
+		'uid' => $uid,
+		'uniacid' => $_W['uniacid'],
+		'openid' => $fan['openid'],
+		'code' => $code,
+		'grantmodule' => $give ? $_W['activity_coupon_id'] : $_W['current_module']['name'],
+		'addtime' => TIMESTAMP,
+		'status' => 1,
+		'remark' => $give ? '系统赠送' : '用户使用' . $coupon['exchange']['credit'] . $credit_names[$coupon['exchange']['credittype']] . '兑换'
+	);
+	if ($coupon['source'] == 2) {
+		$insert['card_id'] = $coupon['card_id'];
+		$insert['code'] = '';
+	}
+	if (empty($insert['card_id'])) {
+		$insert['card_id'] = $coupon['card_id'];
+	}
+	echo "<pre>";
+	print_r($insert);
+	echo "</pre>";
+	exit;
+	pdo_insert('storex_coupon_record', $insert);
+	pdo_update('storex_coupon', array('quantity' => $coupon['quantity'] - 1, 'dosage' => $coupon['dosage'] +1), array('uniacid' => $_W['uniacid'],'id' => $coupon['id']));
+	return true;
 }
