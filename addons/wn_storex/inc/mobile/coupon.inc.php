@@ -122,6 +122,15 @@ if ($op == 'detail') {
 	$coupon_info = activity_get_coupon_info($couponid);
 	$coupon_info['description'] = $coupon_info['description'] ? $coupon_info['description'] : '暂无说明';
 	$coupon_info['code'] = $coupon_record['code'];
+	if (!empty($coupon_info['location_id_list'])) {
+		foreach ($coupon_info['location_id_list'] as $key => $value) {
+			$store_names[] = $value['title'];
+		}
+		$coupon_info['store_info'] = '店铺' . implode(',', $store_names) . '可使用';
+	} else {
+		$coupon_info['store_info'] = '所有店铺均可使用';
+	}
+	$coupon_info['limit_info'] = '每人限领' . $coupon_info['get_limit'] . '张';
 	if ($coupon_info['type'] == '1') {
 		$coupon_info['discount_info'] = '凭此券消费打' . $coupon_info['extra']['discount'] * 0.1 . '折';
 	} else {
