@@ -134,6 +134,8 @@ if ($op == 'detail') {
 		$endtime = $starttime + ($coupon_info['date_info']['limit'] - 1) * 86400;
 		$coupon_info['detail_date_info'] = date('Y.m.d', $starttime) . '-' . date('Y.m.d', $endtime);
 	}
+	$coupon_colors = activity_get_coupon_colors();
+	$coupon_info['color_value'] = !empty($coupon_colors[$coupon_info['color']]) ? $coupon_colors[$coupon_info['color']] : '#a9d92d';
 	message(error(0, $coupon_info), '', 'ajax');
 }
 
