@@ -16,9 +16,16 @@ if ($op == 'display') {
 	if (!empty($storex_exchange)) {
 		$ids = array_keys($storex_exchange);
 	}
-	$storex_coupon = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'id' => $ids, 'source' => 1), array('id', 'logo_url', 'title', 'description', 'get_limit', 'date_info', 'sub_title'), 'id');
+	$storex_coupon = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'id' => $ids, 'source' => 1), array('id', 'type', 'logo_url', 'title', 'description', 'get_limit', 'date_info', 'sub_title', 'extra'), 'id');
 	if (!empty($storex_coupon)) {
 		foreach ($storex_coupon as &$value) {
+			$value['extra'] = iunserializer($value['extra']);
+			if ($value['type'] == COUPON_TYPE_DISCOUNT) {
+				$value['discounts'] = $value['extra']['discount']/10;
+			} elseif ($value['type'] == COUPON_TYPE_CASH) {
+				$value['least_cost'] = $value['extra']['least_cost']/100;
+				$value['reduce_cost'] = $value['extra']['reduce_cost']/100;
+			}
 			$value['date_info'] = iunserializer($value['date_info']);
 			if ($value['date_info']['time_type'] == '1'){
 				$value['extra_date_info'] = '有效期:' . $value['date_info']['time_limit_start'] . '-' . $value['date_info']['time_limit_end'];
@@ -55,8 +62,16 @@ if ($op == 'display') {
 }
 
 if ($op == 'exchange') {
-	$id = $_GPC['id'];
-	
+	$id = intval($_GPC['id']);
+	$storex_exchange = pdo_get('storex_activity_exchange', array('uniacid' => $_W['uniacid'], 'extra' => $id));
+	echo "<pre>";
+	print_r($storex_exchange);
+	echo "</pre>";
+	exit;
+	$credit = mc_credit_fetch($uid, array($storex_exchange['credittype']));
+	if ($storex_exchange['credit'] < 0) {
+		message(error(-1, '兑换规则有误'), '', 'ajax');
+	}
 	message(error(-1, '领取会员卡失败!'), '', 'ajax');
 }
 
@@ -95,53 +110,6 @@ function doMobileActivity() {
 	$we7_coupon_settings = cache_load($cachekey);
 	if ($activity_type == 'coupon') {
 		//兑换列表
-		if($op == 'display') {
-			if ($we7_coupon_settings['exchange_enable'] != '1') {
-				message('未开启兑换功能');
-			}
-			$user = mc_fetch($_W['member']['uid'], array('groupid'));
-			$fan = pdo_get('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
-			$groupid = $user['groupid'];
-			$exchanges = pdo_fetchall("SELECT * FROM ". tablename('activity_exchange')." WHERE uniacid = :uniacid AND type = ".COUPON_TYPE." AND status = '1' AND starttime <= :time AND endtime >= :time", array(':uniacid' => $_W['uniacid'], ':time' => strtotime(date('Y-m-d'))), 'extra');
-			foreach ($exchanges as $key => &$list) {
-				$coupon_info = activity_coupon_info($list['extra']);
-				$exchange_lists[$list['extra']] = $coupon_info;
-				$person_total = pdo_fetchcolumn("SELECT COUNT(*) FROM ". tablename('coupon_record')."  WHERE uid = :uid AND uniacid = :uniacid AND couponid = :couponid", array(':uniacid' => $_W['uniacid'], ':uid' => $_W['member']['uid'], ':couponid' => $list['extra']));
-				if ($person_total >= $list['pretotal'] || $person_total >= $coupon_info['get_limit']){
-					unset($exchange_lists[$list['extra']]);
-					continue;
-				}
-				$stock = pdo_fetchcolumn("SELECT COUNT(*) FROM ". tablename('coupon_record')." WHERE uniacid = :uniacid AND couponid = :couponid",  array(':uniacid' => $_W['uniacid'], ':couponid' => $list['extra']));
-				if ($stock > $coupon_info['quantity']) {
-					unset($exchange_lists[$list['extra']]);
-					continue;
-				}
-				$coupon_groups = pdo_getall('coupon_groups', array('uniacid' => $_W['uniacid'], 'couponid' => $list['extra']), array(), 'groupid');
-				$coupon_groups = array_keys($coupon_groups);
-				if (COUPON_TYPE == WECHAT_COUPON) {
-					$fan_groups = explode(',', $fan['tag']);
-					$group = array_intersect($coupon_groups, $fan_groups);
-				} else {
-					$group = pdo_get('coupon_groups', array('uniacid' => $_W['uniacid'], 'couponid' => $list['extra'], 'groupid' => $groupid));
-				}
-				if (empty($group) && !empty($coupon_groups)) {
-					unset($exchange_lists[$list['extra']]);
-					continue;
-				}
-				if (!empty($_W['current_module'])) {
-					$coupon_modules = pdo_getall('coupon_modules', array('uniacid' => $_W['uniacid'], 'couponid' => $list['extra']), array(), 'module');
-					if (!empty($coupon_modules) && empty($coupon_modules[$_W['current_module']['name']])) {
-						unset($exchange_lists[$list['extra']]);
-						continue;
-					}
-				}
-				$exchange_lists[$list['extra']]['extra_href'] = $this->createMobileurl('activity', array('op' => 'exchange', 'activity_type' => 'coupon'));
-				if (!empty($exchange_lists[$list['extra']])) {
-					$exchange_lists[$list['extra']]['extra_func'] = $list;
-					$exchange_lists[$list['extra']]['extra_func']['pic'] = 'resource/images/icon-signed.png';
-				}
-			}
-		}
 		//兑换过程
 		if($op == 'exchange') {
 			if ($we7_coupon_settings['exchange_enable'] != '1') {
