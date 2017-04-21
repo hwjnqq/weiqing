@@ -64,9 +64,6 @@ if ($op == 'display') {
 if ($op == 'exchange') {
 	$id = intval($_GPC['id']);
 	$storex_exchange = pdo_get('storex_activity_exchange', array('uniacid' => $_W['uniacid'], 'extra' => $id));
-	echo "<pre>";
-	print_r($storex_exchange);
-	echo "</pre>";
 	if (empty($storex_exchange)) {
 		message(error(-1, '兑换券不存在'), '', 'ajax');
 	}
@@ -83,9 +80,6 @@ if ($op == 'exchange') {
 		message(error(-1, '兑换次数不足'), '', 'ajax');
 	}
 	$coupon_info = activity_get_coupon_info($id);
-	echo "<pre>";
-	print_r($coupon_info);
-	echo "</pre>";
 	$received_total = pdo_fetchcolumn("SELECT count(*) FROM " . tablename('storex_coupon_record') . " WHERE `uniacid` = :uniacid AND `couponid` = :id", array(':id' => $id, ':uniacid' => intval($_W['uniacid'])));
 	if ($received_total >= $coupon_info['quantity']) {
 		message(error(-1, '数量超限'), '', 'ajax');
@@ -96,32 +90,25 @@ if ($op == 'exchange') {
 	if ($storex_exchange['endtime'] < TIMESTAMP) {
 		message(error(-1, '活动已结束'), '', 'ajax');
 	}
-	$card_info = get_card_setting();
-	echo "<pre>";
-	print_r($card_info['params']['cardRecharge']);
-	echo "</pre>";
-	exit;
-	$status = activity_coupon_record_grant($id, $_W['member']['uid']);
-	
+	$status = activity_user_get_coupon($id, $_W['member']['uid']);
+	mc_notice_credit2($_W['openid'], $_W['member']['uid'], -1 * 2, 1 * 1, '兑换卡券消耗余额');
 	if (is_error($status)) {
 		message(error(-1, $status['message']), '', 'ajax');
 	} else {
 		mc_credit_update($_W['member']['uid'], $storex_exchange['credittype'], -1 * $storex_exchange['credit']);
 		if ($storex_exchange['credittype'] == 'credit1') {
 			mc_notice_credit1($_W['openid'], $_W['member']['uid'], -1 * $storex_exchange['credit'], '兑换卡券消耗积分');
-		} else {
-			
+		} elseif ($storex_exchange['credittype'] == 'credit2') {
 			$card_info = get_card_setting();
 			$recharges_set = $card_info['params']['cardRecharge'];
 			if (empty($recharges_set['params']['recharge_type'])) {
-				$grant_rate = $card_setting['grant_rate'];
+				$grant_rate = $card_info['grant_rate'];
 				mc_credit_update($_W['member']['uid'], 'credit1', $grant_rate * $storex_exchange['credit']);
 			}
 			mc_notice_credit2($_W['openid'], $_W['member']['uid'], -1 * $storex_exchange['credit'], $grant_rate * $storex_exchange['credit'], '兑换卡券消耗余额');
 		}
 		message(error(0, '兑换卡券成功!'), '', 'ajax');
 	}
-	
 }
 
 if ($op == 'mine') {

@@ -79,7 +79,7 @@ function activity_get_coupon_info($id) {
  * @param int $id 卡券自增id
  * @return mixed
  */
-function activity_coupon_record_grant($id, $openid) {
+function activity_user_get_coupon($id, $openid) {
 	global $_W, $_GPC;
 	if (empty($openid)) {
 		$openid = $_W['openid'];
@@ -101,27 +101,9 @@ function activity_coupon_record_grant($id, $openid) {
 	$credit_names = array('credit1' => '积分', 'credit2' => '余额');
 	$coupon = activity_get_coupon_info($id);
 	$pcount = pdo_fetchcolumn("SELECT count(*) FROM " . tablename('storex_coupon_record') . " WHERE `openid` = :openid AND `couponid` = :couponid", array(':couponid' => $id, ':openid' => $openid));
-// 	$coupongroup = pdo_fetchall("SELECT * FROM " . tablename('coupon_groups') . " WHERE `couponid` = :couponid", array(':couponid' => $id), 'groupid');
-// 	$coupon_group = array_keys($coupongroup);
-// 	$member = pdo_get('mc_members', array('uniacid' => $_W['uniacid'], 'uid' => $fan['uid']));
-// 	if (COUPON_TYPE == WECHAT_COUPON) {
-// 		$fan_groups = $fan['tag']['tagid_list'];
-// 	} else {
-// 		$fan_groups[] = $user['groupid'];
-// 	}
-// 	$group = @array_intersect($coupon_group, $fan_groups);
 	if (empty($coupon)) {
 		return error(-1, '未找到指定卡券');
 	}
-// 	elseif (empty($group) && !empty($coupon_group)) {
-// 		if (!empty($fan_groups)) {
-// 			return error(-1, '无权限兑换');
-// 		} else {
-// 			if (is_array($coupon_group) && !in_array('0', $coupon_group)) {
-// 				return error(-1, '无权限兑换');
-// 			}
-// 		}
-// 	}
 	elseif (strtotime(str_replace('.', '-', $coupon['date_info']['time_limit_end'])) < strtotime(date('Y-m-d')) && $coupon['date_info']['time_type'] != 2) {
 		return error(-1, '活动已结束');
 	}
@@ -133,6 +115,7 @@ function activity_coupon_record_grant($id, $openid) {
 	}
 	$give = $_W['activity_coupon_id'] ? true :false;
 	$uid = !empty($_W['member']['uid']) ? $_W['member']['uid'] : $fan['uid'];
+	$exchange = pdo_get('storex_activity_exchange', array('uniacid' => $_W['uniacid'], 'extra' => $id), array());
 	$insert = array(
 		'couponid' => $id,
 		'uid' => $uid,
@@ -142,7 +125,7 @@ function activity_coupon_record_grant($id, $openid) {
 		'grantmodule' => $give ? $_W['activity_coupon_id'] : $_W['current_module']['name'],
 		'addtime' => TIMESTAMP,
 		'status' => 1,
-		'remark' => $give ? '系统赠送' : '用户使用' . $coupon['exchange']['credit'] . $credit_names[$coupon['exchange']['credittype']] . '兑换'
+		'remark' => $give ? '系统赠送' : '用户使用' . $exchange['credit'] . $credit_names[$exchange['credittype']] . '兑换'
 	);
 	if ($coupon['source'] == 2) {
 		$insert['card_id'] = $coupon['card_id'];
@@ -151,11 +134,8 @@ function activity_coupon_record_grant($id, $openid) {
 	if (empty($insert['card_id'])) {
 		$insert['card_id'] = $coupon['card_id'];
 	}
-	echo "<pre>";
-	print_r($insert);
-	echo "</pre>";
-	exit;
 	pdo_insert('storex_coupon_record', $insert);
 	pdo_update('storex_coupon', array('quantity' => $coupon['quantity'] - 1, 'dosage' => $coupon['dosage'] +1), array('uniacid' => $_W['uniacid'],'id' => $coupon['id']));
+	pdo_update('storex_activity_exchange', array('num' => ($exchange['num'] + 1)), array('id' => $exchange['id']));
 	return true;
 }
