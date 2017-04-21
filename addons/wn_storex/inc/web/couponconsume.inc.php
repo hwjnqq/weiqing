@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('display', 'post', 'detail', 'toggle', 'modifystock', 'delete');
+$ops = array('display', 'post', 'detail', 'toggle', 'modifystock', 'consume', 'delete');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 if ($op == 'display') {
@@ -55,6 +55,7 @@ if ($op == 'display') {
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('storex_coupon_record') . " AS a LEFT JOIN " . tablename('storex_coupon') . " AS b ON a.couponid = b.id WHERE " . $condition . " AND a.code <> ''", $params);
 	if(!empty($list)) {
 		$uids = array();
+		$members = mc_fetch($uids, array('uid', 'nickname'));
 		foreach ($list as &$row) {
 			if (empty($row['store_id'])) {
 				$row['store_name'] = '系统';
@@ -66,11 +67,6 @@ if ($op == 'display') {
 				}
 			}
 			$uids[] = $row['uid'];
-			if($row['status'] == 2) {
-				$operator = mc_account_change_operator($row['clerk_type'], $row['store_id'], $row['clerk_id']);
-				$row['clerk_cn'] = $operator['clerk_cn'];
-				$row['store_cn'] = $operator['store_cn'];
-			}
 			$row['extra'] = iunserializer($row['extra']);
 			if ($row['type'] == COUPON_TYPE_DISCOUNT){
 				$row['extra_notes'] = $row['extra']['discount'] * 0.1 . '折';
@@ -86,20 +82,19 @@ if ($op == 'display') {
 			}
 		}
 		unset($row);
-		$members = mc_fetch($uids, array('uid', 'nickname'));
 		foreach ($list as &$row) {
 			$row['nickname'] = $members[$row['uid']]['nickname'];
-			$row['logo_url'] = tomedia($row['logo_url']);
 		}
 		unset($row);
 	}
+
 	$pager = pagination($total, $pindex, $psize);
 	$status = array('1' => '未使用', '2' => '已使用');
 }
 
 if ($op == 'consume') {
 	$recid = intval($_GPC['id']);
-	$record = pdo_get('coupon_record', array('uniacid' => $_W['uniacid'], 'id' => $recid));
+	$record = pdo_get('storex_coupon_record', array('uniacid' => $_W['uniacid'], 'id' => $recid));
 	if(empty($record)) {
 		message(error(-1, '兑换记录不存在'), referer(), 'ajax');
 	}
@@ -118,16 +113,16 @@ if ($op == 'consume') {
 		if(is_error($status)) {
 			if (strexists($status['message'], '40127')) {
 				$status['message'] = '卡券已失效';
-				pdo_update('coupon_record', array('status' => '2'), array('uniacid' => $_W['uniacid'], 'id' => $recid));
+				pdo_update('storex_coupon_record', array('status' => '2'), array('uniacid' => $_W['uniacid'], 'id' => $recid));
 			}
 			if (strexists($status['message'], '40099')) {
 				$status['message'] = '卡券已被核销';
-				pdo_update('coupon_record', array('status' => '3'), array('uniacid' => $_W['uniacid'], 'id' => $recid));
+				pdo_update('storex_coupon_record', array('status' => '3'), array('uniacid' => $_W['uniacid'], 'id' => $recid));
 			}
 			message(error(-1, $status['message']), '', 'ajax');
 		}
 	}
-	$status = pdo_update('coupon_record', $update, array('uniacid' => $_W['uniacid'], 'id' => $recid));
+	$status = pdo_update('storex_coupon_record', $update, array('uniacid' => $_W['uniacid'], 'id' => $recid));
 	if (!empty($status)) {
 		message(error(0, '核销成功'), referer(), 'ajax');
 	}
@@ -135,7 +130,7 @@ if ($op == 'consume') {
 
 if ($op == 'delete') {
 	$recid = intval($_GPC['id']);
-	$record = pdo_get('coupon_record', array('uniacid' => $_W['uniacid'], 'id' => $recid));
+	$record = pdo_get('storex_coupon_record', array('uniacid' => $_W['uniacid'], 'id' => $recid));
 	if(empty($record)) {
 		message(error(-1, '没有要删除的记录'), '', 'ajax');
 	}
@@ -146,7 +141,7 @@ if ($op == 'delete') {
 			message(error(-1, $status['message']), referer(), 'ajax');
 		}
 	}
-	$status = pdo_delete('coupon_record', array('uniacid' => $_W['uniacid'], 'id' => $recid));
+	$status = pdo_delete('storex_coupon_record', array('uniacid' => $_W['uniacid'], 'id' => $recid));
 	if (!empty($status)) {
 		message(error(0, '删除成功'), referer(), 'ajax');
 	}

@@ -42,7 +42,7 @@
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">code码</label>
 					<div class="col-sm-7 col-lg-8 col-md-8 col-xs-12">
-						<input class="form-control" name="code" placeholder="code码" type="text">
+						<input class="form-control" name="code" value="{$_GPC['code']}" placeholder="code码" type="text">
 					</div>
 				</div>
 				<div class="form-group">
@@ -71,7 +71,6 @@
 					{if $_GPC['status'] == '3' || ($_GPC['status'] == '' || empty($_GPC['status']))}
 					<th width="120">使用时间</th>
 					<th width="80">核销员</th>
-					<th width="80">核销门店</th>
 					{/if}
 					<th style="width:150px; text-align:center;">操作</th>
 				</tr>
@@ -118,7 +117,6 @@
 						{/if}
 					</td>
 					<td>{$row['clerk_name']}</td>
-						<td>{$row['store_name']}</td>
 					{/if}
 					<td style="text-align:center;">
 						{if $row['rstatus'] == 1 && $row['starttime'] <= $row['time'] && $row['endtime'] >= $row['time'] }
