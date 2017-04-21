@@ -20,9 +20,15 @@ if ($op == 'display') {
 	}
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('storex_activity_exchange')." WHERE uniacid = :uniacid AND type = :type ".$condition, array(':uniacid' => $_W['uniacid'], ':type' => 1));
 	$list = pdo_fetchall("SELECT * FROM ".tablename('storex_activity_exchange')." WHERE uniacid = :uniacid AND type = :type ".$condition." ORDER BY id desc LIMIT ".($pindex - 1)*$psize.','. $psize, array(':uniacid' => $_W['uniacid'], ':type' => 1));
+	
 	if (!empty($list)) {
+		$id_str = '';
+		foreach ($list as $val) {
+			$id_arr[] = $val['extra'];
+		}
+		$coupons = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'source' => 1, 'id IN' => $id_arr), array(), 'id');
 		foreach($list as &$ex) {
-			$ex['coupon'] = activity_get_coupon_info($ex['extra']);
+			$ex['coupon'] = $coupons[$ex['extra']];
 			$ex['starttime'] = date('Y-m-d', $ex['starttime']);
 			$ex['endtime'] = date('Y-m-d', $ex['endtime']);
 		}
@@ -44,7 +50,7 @@ if ($op == 'post') {
 			'pretotal' => empty($_GPC['pretotal']) ? 1 : intval($_GPC['pretotal']),
 			'status' => $_GPC['status'],
 			'starttime' => strtotime($_GPC['date']['start']),
-			'endtime' => strtotime($_GPC['date']['end']),
+			'endtime' => strtotime($_GPC['date']['end']) + 86399,
 		);
 		if ($start && $end) {
 			$start = strtotime(str_replace('.', '-', $start));
