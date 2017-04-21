@@ -54,15 +54,7 @@ function activity_get_coupon_info($id) {
 	} else {
 		$coupon['extra_date_info'] = '有效期:领取后' . ($coupon['date_info']['deadline'] == 0 ? '当' : $coupon['date_info']['deadline']) . '天可用，有效期' . $coupon['date_info']['limit'] . '天';
 	}
-	if ($coupon['type'] == COUPON_TYPE_DISCOUNT) {
-		$coupon['extra'] = iunserializer($coupon['extra']);
-		$coupon['extra_instruction'] = '凭此券消费打' . $coupon['extra']['discount'] * 0.1 . '折';
-	} elseif ($coupon['type'] == COUPON_TYPE_CASH) {
-		$coupon['extra'] = iunserializer($coupon['extra']);
-		$coupon['extra_instruction'] = '消费满' . $coupon['extra']['least_cost'] * 0.01 . '元，减' . $coupon['extra']['reduce_cost'] * 0.01 . '元';
-	} else {
-
-	}
+	$coupon['extra'] = iunserializer($coupon['extra']);
 	$coupon['logo_url'] = tomedia($coupon['logo_url']);
 	$coupon['description'] = htmlspecialchars_decode($coupon['description']);
 	$coupon_stores = pdo_getall('storex_coupon_store', array('uniacid' => $_W['uniacid'], 'couponid' => $coupon['id']), array(), 'storeid');
@@ -178,7 +170,7 @@ function activity_get_user_couponlist() {
 			$endtime = str_replace('.', '-', $coupon['date_info']['time_limit_end']);
 			$endtime = strtotime($endtime);
 			if ($endtime < time()) {
-				pdo_update('coupon_record', array('status' => 2), array('id' => $record['id']));
+				pdo_update('storex_coupon_record', array('status' => 2), array('id' => $record['id']));
 				// pdo_delete('coupon_record', array('id' => $record['id']));
 				unset($coupon_record[$key]);
 				continue;

@@ -121,6 +121,7 @@ if ($op == 'detail') {
 	$coupon_record = pdo_get('storex_coupon_record', array('id' => intval($_GPC['recid'])));
 	$coupon_info = activity_get_coupon_info($couponid);
 	$coupon_info['description'] = $coupon_info['description'] ? $coupon_info['description'] : '暂无说明';
+	$coupon_info['code'] = $coupon_record['code'];
 	if ($coupon_info['type'] == '1') {
 		$coupon_info['discount_info'] = '凭此券消费打' . $coupon_info['extra']['discount'] * 0.1 . '折';
 	} else {
