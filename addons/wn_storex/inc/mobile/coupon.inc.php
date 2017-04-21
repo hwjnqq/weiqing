@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('display', 'exchange', 'mine');
+$ops = array('display', 'exchange', 'mine', 'detail');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -116,6 +116,25 @@ if ($op == 'mine') {
 	message(error(0, $couponlist), '', 'ajax');
 }
 
+if ($op == 'detail') {
+	$couponid = intval($_GPC['couponid']);
+	$coupon_record = pdo_get('storex_coupon_record', array('id' => intval($_GPC['recid'])));
+	$coupon_info = activity_get_coupon_info($couponid);
+	$coupon_info['description'] = $coupon_info['description'] ? $coupon_info['description'] : '暂无说明';
+	if ($coupon_info['type'] == '1') {
+		$coupon_info['discount_info'] = '凭此券消费打' . $coupon_info['extra']['discount'] * 0.1 . '折';
+	} else {
+		$coupon_info['discount_info'] = '价值' . $coupon_info['extra']['reduce_cost'] * 0.01 . '元代金券一张,消费满' . $coupon_info['extra']['least_cost'] * 0.01 . '元可使用';
+	}
+	if ($coupon_info['date_info']['time_type'] == '1') {
+		$coupon_info['detail_date_info'] = $coupon_info['date_info']['time_limit_start'] . '-' . $coupon_info['date_info']['time_limit_end'];
+	} else {
+		$starttime = $coupon_record['addtime'] + $coupon_info['date_info']['deadline'] * 86400;
+		$endtime = $starttime + ($coupon_info['date_info']['limit'] - 1) * 86400;
+		$coupon_info['detail_date_info'] = date('Y.m.d', $starttime) . '-' . date('Y.m.d', $endtime);
+	}
+	message(error(0, $coupon_info), '', 'ajax');
+}
 
 
 
