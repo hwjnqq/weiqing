@@ -79,11 +79,13 @@ if ($op == 'info') {
 		$table = 'storex_goods';
 		$goods_info = pdo_get($table, $condition);
 	}
+	$paycenter_couponlist = activity_paycenter_get_coupon();
 	$goods_info['cprice'] = calcul_discount_price($uid, $goods_info['cprice']);
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;
 	$infos['goods_info'] = $goods_info;
 	$infos['address'] = $address;
+	$infos['coupon_list'] = $paycenter_couponlist;
 	message(error(0, $infos), '', 'ajax');
 }
 

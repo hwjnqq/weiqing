@@ -54,7 +54,7 @@ function activity_get_coupon_info($id) {
 	} else {
 		$coupon['extra_date_info'] = '有效期:领取后' . ($coupon['date_info']['deadline'] == 0 ? '当' : $coupon['date_info']['deadline']) . '天可用，有效期' . $coupon['date_info']['limit'] . '天';
 	}
-	$coupon['extra'] = iunserializer($coupon['extra']);
+	$coupon['extra'] = iunserializer($coupon['extra']);	
 	$coupon['logo_url'] = tomedia($coupon['logo_url']);
 	$coupon['description'] = htmlspecialchars_decode($coupon['description']);
 	$coupon_stores = pdo_getall('storex_coupon_store', array('uniacid' => $_W['uniacid'], 'couponid' => $coupon['id']), array(), 'storeid');
@@ -177,21 +177,6 @@ function activity_get_user_couponlist() {
 			}
 
 		}
-		// if ($coupon['type'] == COUPON_TYPE_DISCOUNT) {
-		// 	$coupon['icon'] = '<div class="price">' . $coupon['extra']['discount'] * 0.1 . '<span>折</span></div>';
-		// }
-		// elseif($coupon['type'] == COUPON_TYPE_CASH) {
-		// 	$coupon['icon'] = '<div class="price">' . $coupon['extra']['reduce_cost'] * 0.01 . '<span>元</span></div><div class="condition">满' . $coupon['extra']['least_cost'] * 0.01 . '元可用</div>';
-		// }
-		// elseif($coupon['type'] == COUPON_TYPE_GIFT) {
-		// 	$coupon['icon'] = '<img src="resource/images/wx_gift.png" alt="" />';
-		// }
-		// elseif($coupon['type'] == COUPON_TYPE_GROUPON) {
-		// 	$coupon['icon'] = '<img src="resource/images/groupon.png" alt="" />';
-		// }
-		// elseif($coupon['type'] == COUPON_TYPE_GENERAL) {
-		// 	$coupon['icon'] = '<img src="resource/images/general_coupon.png" alt="" />';
-		// }
 		$coupon_record[$key] = $coupon;
 		$coupon_record[$key]['recid'] = $record['id'];
 		$coupon_record[$key]['code'] = $record['code'];
@@ -204,4 +189,17 @@ function activity_get_user_couponlist() {
 		}
 	}
 	return $coupon_record;
+}
+
+function activity_paycenter_get_coupon() {
+	$coupon_owned = activity_get_user_couponlist();
+	foreach ($coupon_owned as $key => &$val) {
+		if (empty($val['code'])) {
+			unset($val);
+		}
+		if ($val['type'] == '1' || $val['type'] == '2') {
+			$coupon_available[$val['id']] = $val;
+		}
+	}
+	return $coupon_available;
 }
