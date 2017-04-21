@@ -119,7 +119,7 @@ if ($op == 'post') {
 		
 		$check = $coupon->validate();
 		if (is_error($check)) {
-			message($check['message'], '', 'error');
+			message(error(-1, $check['message']), '', 'ajax');
 		}
 		//系统优惠券
 		$coupon->status = 3;
