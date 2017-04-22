@@ -218,7 +218,6 @@ function activity_coupon_consume($couponid, $recid, $store_id) {
 		return error(-1, '没有指定的卡券信息');
 	}
 	$uid = $coupon_record['uid'];
-	load()->model('mc');
 	$location_id_list = $coupon_info['location_id_list'];
 	if (!empty($location_id_list)) {
 		if (!in_array($store_id, array_keys($location_id_list))) {

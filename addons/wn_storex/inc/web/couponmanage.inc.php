@@ -45,7 +45,9 @@ if ($op == 'display') {
 			$storelist[$stores['couponid']][$key] = $stores['storeid'];
 		}
 	}
-	$coupon_ids = array_keys($storelist);
+	if (!empty($storelist) && is_array($storelist)) {
+		$coupon_ids = array_keys($storelist);
+	}
 	$couponlist = pdo_fetchall("SELECT * FROM " . tablename('storex_coupon') . " AS c " . $join_sql . " WHERE  " . $condition_sql . " ORDER BY c.id DESC LIMIT ".($pageindex - 1) * $psize.','.$psize, $condition);
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_coupon') . " AS c " . $join_sql . " WHERE  " . $condition_sql, $condition);
 	foreach($couponlist as $key=>&$row) {

@@ -12,9 +12,12 @@ check_params();
 $uid = mc_openid2uid($_W['openid']);
 
 if ($op == 'display') {
+	$ids = array();
 	$storex_exchange = pdo_getall('storex_activity_exchange', array('uniacid' => intval($_W['uniacid']), 'status' => 1), array(), 'extra');
 	if (!empty($storex_exchange)) {
 		$ids = array_keys($storex_exchange);
+	} else {
+		message(error(0, array()), '', 'ajax');
 	}
 	$storex_coupon = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'id' => $ids, 'source' => 1), array('id', 'type', 'logo_url', 'title', 'description', 'get_limit', 'date_info', 'sub_title', 'extra', 'quantity'), 'id');
 	if (!empty($storex_coupon)) {
