@@ -133,7 +133,7 @@
 			},
 			methods: {
 				compare(condition, discount) {
-					if(condition <= discount) {
+					if(Number(condition) <= Number(discount)) {
 						util.message('优惠价格不合理', '', 'error');
 					}
 				},
@@ -219,8 +219,8 @@
 					if(this.activeModules.cardActivity.params.discount_type == 1) {
 						var compare = this.activeModules.cardActivity.params.discounts;
 						for(key in compare) {
-							console.log(compare[key])
-							if(compare[key].condition_1 <= compare[key].discount_1) {
+							console.log(compare[key]);
+							if(Number(compare[key].condition_1) <= Number(compare[key].discount_1)) {
 								return util.message('优惠价格不合理', '', 'error');
 							}
 						}
