@@ -1,1 +1,52 @@
-<!DOCTYPE html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,user-scalable=0"><title>{$_W['page']['title']}</title><script type=text/javascript src="http://api.map.baidu.com/api?v=2.0&ak=WYABRjaoGklLEcobdrl2erIGvOpT4toj"></script><script type=text/javascript src=http://api.map.baidu.com/library/SearchInfoWindow/1.5/src/SearchInfoWindow_min.js></script><link rel=stylesheet href=http://api.map.baidu.com/library/SearchInfoWindow/1.5/src/SearchInfoWindow_min.css><link href=../addons/wn_storex/template/style/mobile/css/black.8dcceccec19a2ff44b5685e5a62a65d8.css rel=stylesheet></head><body><div id=wn-app></div>{template 'share'}<script type=text/javascript src=../addons/wn_storex/template/style/mobile/js/manifest.b95c5d50ec10259ca423.js></script><script type=text/javascript src=../addons/wn_storex/template/style/mobile/js/vendor.8a76b0295e8fb75d1e27.js></script><script type=text/javascript src=../addons/wn_storex/template/style/mobile/js/black.6b1a6115d0ee7e6cc815.js></script></body></html>
+<!DOCTYPE html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,user-scalable=0"><title>{$_W['page']['title']}</title><script type=text/javascript src="http://api.map.baidu.com/api?v=2.0&ak=WYABRjaoGklLEcobdrl2erIGvOpT4toj"></script><script type=text/javascript src=http://api.map.baidu.com/library/SearchInfoWindow/1.5/src/SearchInfoWindow_min.js></script><link rel=stylesheet href=http://api.map.baidu.com/library/SearchInfoWindow/1.5/src/SearchInfoWindow_min.css><link href=../addons/wn_storex/template/style/mobile/css/black.8dcceccec19a2ff44b5685e5a62a65d8.css rel=stylesheet></head><body><div id=wn-app></div>{template 'share'}<script type=text/javascript>Number.prototype.add = function(arg) {
+			var r1, r2, m;
+			try {
+				r1 = this.toString().split(".")[1].length
+			} catch (e) {
+				r1 = 0
+			}
+			try {
+				r2 = arg.toString().split(".")[1].length
+			} catch (e) {
+				r2 = 0
+			}
+			m = Math.pow(10, Math.max(r1, r2))
+			return (this * m + arg * m) / m
+		}
+
+		//减法
+		Number.prototype.sub = function(arg) {
+			return this.add(-arg);
+		}
+
+		//乘法
+		Number.prototype.mul = function(arg) {
+			var m = 0,
+				s1 = this.toString(),
+				s2 = arg.toString();
+			try {
+				m += s1.split(".")[1].length
+			} catch (e) {}
+			try {
+				m += s2.split(".")[1].length
+			} catch (e) {}
+			return Number(s1.replace(".", "")) * Number(s2.replace(".", "")) / Math.pow(10, m)
+		}
+
+		//除法
+		Number.prototype.div = function(arg) {
+			var t1 = 0,
+				t2 = 0,
+				r1, r2;
+			try {
+				t1 = this.toString().split(".")[1].length
+			} catch (e) {}
+			try {
+				t2 = arg.toString().split(".")[1].length
+			} catch (e) {}
+			with(Math) {
+				r1 = Number(this.toString().replace(".", ""))
+				r2 = Number(arg.toString().replace(".", ""))
+				return (r1 / r2) * pow(10, t2 - t1);
+			}
+		}</script><script type=text/javascript src=../addons/wn_storex/template/style/mobile/js/manifest.968439d1ea1c4ab4bc78.js></script><script type=text/javascript src=../addons/wn_storex/template/style/mobile/js/vendor.8a76b0295e8fb75d1e27.js></script><script type=text/javascript src=../addons/wn_storex/template/style/mobile/js/black.fc23eb73eb46e47f4c9c.js></script></body></html>
