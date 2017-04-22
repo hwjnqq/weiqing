@@ -5,7 +5,6 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 $ops = array('goods_info', 'info', 'order');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
-
 check_params();
 $uid = mc_openid2uid($_W['openid']);
 $store_id = intval($_GPC['id']);//店铺id
@@ -238,7 +237,7 @@ if ($op == 'order'){
 					}
 				}
 			}
-	
+
 			$r_sql = 'SELECT `roomdate`, `num`, `oprice`, `cprice`, `status` FROM ' . tablename('storex_room_price') .
 			' WHERE `roomid` = :roomid AND `weid` = :weid AND `hotelid` = :hotelid AND `roomdate` >= :btime AND ' .
 			' `roomdate` < :etime  order by roomdate desc';
@@ -256,12 +255,10 @@ if ($op == 'order'){
 				$this_price = $room['cprice'] ;
 			}
 			$totalprice =  ($this_price + $room['service']) * $days;
-
-			$service = $room['service'] * $days;
 			if ($totalprice == 0) {
 				message(error(-1, '房间价格不能是0，请联系管理员修改！'), '', 'ajax');
 			}
-	
+
 			if ($order_info['nums'] > $max_room) {
 				message(error(-1, '您的预定数量超过最大限制!'), '', 'ajax');
 			}
@@ -281,16 +278,7 @@ if ($op == 'order'){
 			$totalprice = $this_price = $room['cprice'];
 			$insert = array_merge($order_info, $insert);
 		}
-		$this_price = calcul_discount_price($uid, $this_price);
-		$insert['cprice'] = $this_price;
-		if (!empty($service)) {
-			$totalprice -= $service;
-			$totalprice = calcul_discount_price($uid, $totalprice);
-			$totalprice += $service;
-		} else {
-			$totalprice = calcul_discount_price($uid, $totalprice);
-		}
-		$insert['sum_price'] = $totalprice * $insert['nums'];
+		$insert['sum_price'] = ($this_price + $room['service']) * $insert['nums'] * $days;
 		if ($selected_coupon['type'] == 3) {
 			$extra_info = $coupon_info['extra'];
 			if ($coupon_info['type'] == COUPON_TYPE_DISCOUNT) {
@@ -312,9 +300,7 @@ if ($op == 'order'){
 		}
 		$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
 		$post_total = trim($_GPC['order']['total']);
-		if ($post_total == $insert['sum_price']) {
-			message(error(-1, '相等'), '', 'ajax');
-		} else {
+		if ($post_total != $insert['sum_price']) {
 			message(error(-1, '价格错误'), '', 'ajax');
 		}
 		if($insert['sum_price'] <= 0){
@@ -401,9 +387,7 @@ if ($op == 'order'){
 		}
 		$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
 		$post_total = trim($_GPC['order']['total']);
-		if ($post_total == $insert['sum_price']) {
-			message(error(-1, '相等'), '', 'ajax');
-		} else {
+		if ($post_total != $insert['sum_price']) {
 			message(error(-1, '价格错误'), '', 'ajax');
 		}
 		$insert = array_merge($insert, $order_info);
