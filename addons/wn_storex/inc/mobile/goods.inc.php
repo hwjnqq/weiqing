@@ -117,8 +117,8 @@ if ($op == 'order'){
 		'time' => TIMESTAMP,					//下单时间（TIMESTAMP）
 	);
 	$selected_coupon = $_GPC['order']['coupon'];
-	if ($order_info['coupon']['type'] == 3) {
-		$coupon_info = activity_get_coupon_info($order_info['coupon']['couponid']);
+	if ($selected_coupon['type'] == 3) {
+		$coupon_info = activity_get_coupon_info($selected_coupon['couponid']);
 		if (empty($coupon_info)) {
 			message(error(-1, '卡券信息有误'), '', 'ajax');
 		}
@@ -310,6 +310,13 @@ if ($op == 'order'){
 		} elseif ($selected_coupon['type'] == 2) {
 			$insert['sum_price'] = calcul_discount_price($uid, $insert['sum_price']);
 		}
+		$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
+		$post_total = trim($_GPC['order']['total']);
+		if ($post_total == $insert['sum_price']) {
+			message(error(-1, '相等'), '', 'ajax');
+		} else {
+			message(error(-1, '价格错误'), '', 'ajax');
+		}
 		if($insert['sum_price'] <= 0){
 			message(error(-1, '总价为零，请联系管理员！'), '', 'ajax');
 		}
@@ -391,6 +398,13 @@ if ($op == 'order'){
 			$insert['coupon'] = $selected_coupon['recid'];
 		} elseif ($selected_coupon['type'] == 2) {
 			$insert['sum_price'] = calcul_discount_price($uid, $insert['sum_price']);
+		}
+		$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
+		$post_total = trim($_GPC['order']['total']);
+		if ($post_total == $insert['sum_price']) {
+			message(error(-1, '相等'), '', 'ajax');
+		} else {
+			message(error(-1, '价格错误'), '', 'ajax');
 		}
 		$insert = array_merge($insert, $order_info);
 		pdo_insert('storex_order', $insert);
