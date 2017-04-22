@@ -12,13 +12,6 @@ include "model.php";
 
 class Wn_storexModuleSite extends WeModuleSite {
 
-	public $_img_url = '../addons/Wn_storex/template/style/img/';
-
-	public $_css_url = '../addons/Wn_storex/template/style/css/';
-
-	public $_script_url = '../addons/Wn_storex/template/style/js/';
-
-	public $_search_key = '__hotel2_search';
 
 	public $_from_user = '';
 

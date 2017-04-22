@@ -157,10 +157,10 @@ function activity_get_user_couponlist() {
 		}
 		if (is_array($coupon['date_info']) && $coupon['date_info']['time_type'] == '2') {
 			$starttime = $record['addtime'] + $coupon['date_info']['deadline'] * 86400;
-			$endtime = $starttime + ($coupon['date_info']['limit'] - 1) * 86400;
+			$endtime = $starttime + ($coupon['date_info']['limit']) * 86400;
 			if ($endtime < time()) {
 				unset($coupon_record[$key]);
-				pdo_delete('storex_coupon_record', array('id' => $record['id']));
+				pdo_update('storex_coupon_record', array('status' => 2), array('id' => $record['id']));
 				continue;
 			} else {
 				$coupon['extra_date_info'] = '有效期:' . date('Y.m.d', $starttime) . '-' . date('Y.m.d', $endtime);
@@ -198,7 +198,7 @@ function activity_paycenter_get_coupon() {
 			unset($val);
 		}
 		if ($val['type'] == '1' || $val['type'] == '2') {
-			$coupon_available[$val['id']] = $val;
+			$coupon_available[] = $val;
 		}
 	}
 	return $coupon_available;

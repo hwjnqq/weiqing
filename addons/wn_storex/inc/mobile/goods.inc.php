@@ -50,7 +50,7 @@ if ($op == 'goods_info') {
 	if ($store_info['store_type'] == 1) {
 		$goods_info = check_price($goods_info);
 	}
-	$goods_info['cprice'] = calcul_discount_price($uid, $goods_info['cprice']);
+	// $goods_info['cprice'] = calcul_discount_price($uid, $goods_info['cprice']);
 	message(error(0, $goods_info), '', 'ajax');
 }
 
@@ -86,6 +86,16 @@ if ($op == 'info') {
 	$infos['goods_info'] = $goods_info;
 	$infos['address'] = $address;
 	$infos['coupon_list'] = $paycenter_couponlist;
+	$card_activity_info = get_return_credit_info();
+	$user_group = get_group_id($uid);
+	if ($card_activity_info['discount_type'] == 1) {
+		$discount_info['condition'] = $card_activity_info['discounts'][$user_group['groupid']]['condition_1'];
+		$discount_info['discount'] = $card_activity_info['discounts'][$user_group['groupid']]['discount_1'];
+	} elseif ($card_activity_info['discount_type'] == 2) {
+		$discount_info['condition'] = $card_activity_info['discounts'][$user_group['groupid']]['condition_2'];
+		$discount_info['discount'] = $card_activity_info['discounts'][$user_group['groupid']]['discount_2'];
+	}
+	$infos['card_disounts_info'] = $discount_info;
 	message(error(0, $infos), '', 'ajax');
 }
 

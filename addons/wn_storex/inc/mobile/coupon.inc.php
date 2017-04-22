@@ -112,7 +112,6 @@ if ($op == 'exchange') {
 
 if ($op == 'mine') {
 	$couponlist = activity_get_user_couponlist();
-	
 	message(error(0, $couponlist), '', 'ajax');
 }
 
