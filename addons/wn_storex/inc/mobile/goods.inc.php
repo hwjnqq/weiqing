@@ -80,7 +80,7 @@ if ($op == 'info') {
 		$goods_info = pdo_get($table, $condition);
 	}
 	$paycenter_couponlist = activity_paycenter_get_coupon();
-	$goods_info['cprice'] = calcul_discount_price($uid, $goods_info['cprice']);
+	// $goods_info['cprice'] = calcul_discount_price($uid, $goods_info['cprice']);
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;
 	$infos['goods_info'] = $goods_info;
@@ -89,9 +89,11 @@ if ($op == 'info') {
 	$card_activity_info = get_return_credit_info();
 	$user_group = get_group_id($uid);
 	if ($card_activity_info['discount_type'] == 1) {
+		$discount_info['discount_type'] = 1;
 		$discount_info['condition'] = $card_activity_info['discounts'][$user_group['groupid']]['condition_1'];
 		$discount_info['discount'] = $card_activity_info['discounts'][$user_group['groupid']]['discount_1'];
 	} elseif ($card_activity_info['discount_type'] == 2) {
+		$discount_info['discount_type'] = 2;
 		$discount_info['condition'] = $card_activity_info['discounts'][$user_group['groupid']]['condition_2'];
 		$discount_info['discount'] = $card_activity_info['discounts'][$user_group['groupid']]['discount_2'];
 	}
@@ -114,6 +116,13 @@ if ($op == 'order'){
 		'nums' => intval($_GPC['order']['nums']),				//数量
 		'time' => TIMESTAMP,					//下单时间（TIMESTAMP）
 	);
+	$selected_coupon = $_GPC['order']['coupon'];
+	if ($order_info['coupon']['type'] == 3) {
+		$coupon_info = activity_get_coupon_info($order_info['coupon']['couponid']);
+		if (empty($coupon_info)) {
+			message(error(-1, '卡券信息有误'), '', 'ajax');
+		}
+	}
 	if (empty($order_info['mobile'])) {
 		message(error(-1, '手机号码不能为空'), '', 'ajax');
 	}
@@ -247,6 +256,7 @@ if ($op == 'order'){
 				$this_price = $room['cprice'] ;
 			}
 			$totalprice =  ($this_price + $room['service']) * $days;
+
 			$service = $room['service'] * $days;
 			if ($totalprice == 0) {
 				message(error(-1, '房间价格不能是0，请联系管理员修改！'), '', 'ajax');
@@ -281,6 +291,25 @@ if ($op == 'order'){
 			$totalprice = calcul_discount_price($uid, $totalprice);
 		}
 		$insert['sum_price'] = $totalprice * $insert['nums'];
+		if ($selected_coupon['type'] == 3) {
+			$extra_info = $coupon_info['extra'];
+			if ($coupon_info['type'] == COUPON_TYPE_DISCOUNT) {
+				$insert['sum_price'] = $insert['sum_price'] * $extra_info['discount'] / 100;
+			} elseif ($coupon_info['type'] == COUPON_TYPE_CASH) {
+				$least_cost = $extra_info['least_cost'] * 0.01;
+				$reduce_cost = $extra_info['reduce_cost'] * 0.01;
+				if ($insert['sum_price'] >= $least_cost) {
+					$insert['sum_price'] = $insert['sum_price'] - $reduce_cost;
+				}
+			}
+			$result = activity_coupon_consume($selected_coupon['couponid'], $selected_coupon['recid'], $store_info['id']);
+			if (is_error($result)) {
+				message($result, '', 'ajax');
+			}
+			$insert['coupon'] = $selected_coupon['recid'];
+		} elseif ($selected_coupon['type'] == 2) {
+			$insert['sum_price'] = calcul_discount_price($uid, $insert['sum_price']);
+		}
 		if($insert['sum_price'] <= 0){
 			message(error(-1, '总价为零，请联系管理员！'), '', 'ajax');
 		}
@@ -343,8 +372,26 @@ if ($op == 'order'){
 			'cprice' => $goods_info['cprice'],
 		);
 		$insert['cprice'] = $now_price;
-		$insert['cprice'] = calcul_discount_price($uid, $insert['cprice']);
-		$insert['sum_price'] = calcul_discount_price($uid, $order_info['nums'] * $now_price);
+		$insert['sum_price'] = $insert['cprice'] * $order_info['nums'];
+		if ($selected_coupon['type'] == 3) {
+			$extra_info = $coupon_info['extra'];
+			if ($coupon_info['type'] == COUPON_TYPE_DISCOUNT) {
+				$insert['sum_price'] = $insert['sum_price'] * $extra_info['discount'] / 100;
+			} elseif ($coupon_info['type'] == COUPON_TYPE_CASH) {
+				$least_cost = $extra_info['least_cost'] * 0.01;
+				$reduce_cost = $extra_info['reduce_cost'] * 0.01;
+				if ($insert['sum_price'] >= $least_cost) {
+					$insert['sum_price'] = $insert['sum_price'] - $reduce_cost;
+				}
+			}
+			$result = activity_coupon_consume($selected_coupon['couponid'], $selected_coupon['recid'], $store_info['id']);
+			if (is_error($result)) {
+				message($result, '', 'ajax');
+			}
+			$insert['coupon'] = $selected_coupon['recid'];
+		} elseif ($selected_coupon['type'] == 2) {
+			$insert['sum_price'] = calcul_discount_price($uid, $insert['sum_price']);
+		}
 		$insert = array_merge($insert, $order_info);
 		pdo_insert('storex_order', $insert);
 		$order_id = pdo_insertid();

@@ -576,6 +576,10 @@ class Wn_storexModuleSite extends WeModuleSite {
 							pdo_update('mc_members', array('credit1' => $member_info['credit1'] + $room_credit), array('uniacid' => $_W['uniacid'], 'uid' => $params['user']));
 						}
 					}
+					//核销卡券
+					if (!empty($order['coupon'])) {
+						pdo_update('storex_coupon_record', array('status' => 3), array('id' => $order['coupon']));
+					}
 				}
 				if ($paytype == 3){
 					message('提交成功！', '../../app/' . $this->createMobileUrl('detail', array('hid' => $room['hotelid'])), 'success');

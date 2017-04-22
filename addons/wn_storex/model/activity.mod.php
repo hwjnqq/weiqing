@@ -203,3 +203,60 @@ function activity_paycenter_get_coupon() {
 	}
 	return $coupon_available;
 }
+
+function activity_coupon_consume($couponid, $recid, $store_id) {
+	global $_W, $_GPC;
+	$clerk_name = $_W['user']['name'];
+	$clerk_id = $_W['user']['clerk_id'];
+	$clerk_type = $_W['user']['type'];
+	$coupon_record = pdo_get('storex_coupon_record', array('id' => $recid, 'status' => '1'));
+	if (empty($coupon_record)) {
+		return error(-1, '没有可使用的卡券');
+	}
+	$coupon_info = activity_get_coupon_info($couponid);
+	if (empty($coupon_info)) {
+		return error(-1, '没有指定的卡券信息');
+	}
+	$uid = $coupon_record['uid'];
+	load()->model('mc');
+	$location_id_list = $coupon_info['location_id_list'];
+	if (!empty($location_id_list)) {
+		if (!in_array($store_id, array_keys($location_id_list))) {
+			return error(-1, '该门店无法使用');
+		}
+	}
+	$date_info = iunserializer($coupon_info['date_info']);
+	if ($date_info['time_type'] == '1') {
+		if (strtotime(str_replace('.', '-', $date_info['time_limit_start'])) > strtotime(date('Y-m-d'))) {
+			return error(-1, '卡券活动尚未开始');
+		} elseif (strtotime(str_replace('.', '-', $date_info['time_limit_end'])) < strtotime(date('Y-m-d'))) {
+			return error(-1, '卡券活动已经结束');
+		}
+	} else {
+		$starttime = strtotime(date('Y-m-d', $coupon_record['addtime'])) + $date_info['deadline'] * 86400;
+		$endtime = $starttime + $date_info['limit'] * 86400;
+		if ($starttime > strtotime(date('Y-m-d'))) {
+			return error(-1, '卡券活动尚未开始');
+		} elseif ($endtime < strtotime(date('Y-m-d'))) {
+			return error(-1, '卡券活动已经结束');
+		}
+	}
+	if ($coupon_info['source'] == '2') {
+		load()->classs('coupon');
+		$coupon_api = new coupon($_W['acid']);
+		$status = $coupon_api->ConsumeCode(array('code' => $coupon_record['code']));
+		if(is_error($status)) {
+			return error(-1, $status['message']);
+		}
+	}
+	$update = array(
+		'status' => 2 ,
+		'usetime' => TIMESTAMP,
+		'clerk_name' => $clerk_name,
+		'clerk_id' => intval($clerk_id),
+		'clerk_type' => $clerk_type,
+		'store_id' => $store_id
+	);
+	pdo_update('storex_coupon_record', $update, array('id' => $coupon_record['id']));
+	return true;
+}
