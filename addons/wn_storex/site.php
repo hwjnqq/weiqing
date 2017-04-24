@@ -76,21 +76,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 		trigger_error("访问的方法 {$name} 不存在.", E_USER_WARNING);
 		return null;
 	}
-	public  function isMember() {
-		global $_W;
-		//判断公众号是否卡其会员卡功能
-		$card_setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid']));
-		$card_status =  $card_setting['status'];
-		//查看会员是否开启会员卡功能
-		$membercard_setting  = pdo_get('mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
-		$membercard_status = $membercard_setting['status'];
-		$pricefield = !empty($membercard_status) && $card_status == 1?"mprice":"cprice";
-		if (!empty($card_status) && !empty($membercard_status)) {
-			return true;
-		} else {
-			return false;
-		}
-	}
 
 	public function getItemTiles() {
 		global $_W;
@@ -196,32 +181,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 		$skin_style = in_array($store['skin_style'], $style) ? $store['skin_style'] : 'display';
 		return $skin_style;
 	}
-	
-	//检查酒店版本
-	public function check_version() {
-		global $_GPC, $_W;
-		$weid = $this->_weid;
-		$hid = $_GPC['hid'];
-		//单酒店版
-		if ($this->_version == 0) {
-			$params = array(':weid' => $weid, ':status' => '1');
-			if (empty($hid)) {
-				$where = ' ORDER BY displayorder DESC';
-			} else {
-				$where = ' AND `id` = :id';
-				$params[':id'] = $hid;
-			}
-			$sql = "SELECT id FROM " . tablename('storex_hotel') . " WHERE weid = :weid AND status = :status" . $where;
-			$data = pdo_fetch($sql, $params);
-			if (empty($data['id'])) {
-				echo "酒店信息获取失败";exit;
-			}
-			$hid = intval($data['id']);
-			$url = $this->createMobileUrl('detail', array('hid' => $hid));
-			header("Location: $url");
-		}
-	}
-
 
 	//登录页
 	public function doMobilelogin() {

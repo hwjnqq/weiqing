@@ -8,6 +8,7 @@ $ops = array('sign_info', 'sign', 'remedy_sign', 'sign_record');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 check_params();
 load()->model('mc');
+mload()->model('sign');
 $uid = mc_openid2uid($_W['openid']);
 
 $extend_switch = extend_switch_fetch();
