@@ -178,6 +178,134 @@ function check_params(){
 		}
 	}
 }
+
+/**
+ * action 1预定  2购买
+ * 获取订单的状态 
+ */
+function orders_check_status($item){
+	$order_status_text = array(
+			'1' => '待付款',
+			'2' => '等待店铺确认',
+			'3' => '订单已取消',
+			'4' => '正在退款中',
+			'5' => '待入住',
+			'6' => '店铺已拒绝',
+			'7' => '已退款',
+			'8' => '已入住',
+			'9' => '已完成',
+			'10' => '未发货',
+			'11' => '已发货',
+			'12' => '已收货',
+			'13' => '订单已确认'
+	);
+	//1是显示,2不显示
+	$item['is_pay'] = 2;//立即付款 is_pay
+	$item['is_cancle'] = 2;//取消订单is_cancle
+	$item['is_confirm'] = 2;//确认收货is_confirm
+	$item['is_over'] = 2;//再来一单is_over
+	$item['is_comment'] = 2;//显示评价is_comment
+	if ($item['status'] == 0){
+		if ($item['action'] == 1){
+			$status = STORE_SURE_STATUS;
+		} else {
+			if ($item['paystatus'] == 0){
+				$status = STORE_UNPAY_STATUS;
+				$item['is_pay'] = 1;
+			} else {
+				$status = STORE_SURE_STATUS;
+			}
+		}
+		$item['is_cancle'] = 1;
+	} elseif ($item['status'] == -1){
+		if ($item['paystatus'] == 0){
+			$status = STORE_CANCLE_STATUS;
+			$item['is_over'] = 1;
+		} else {
+			$status = STORE_REPAY_STATUS;
+		}
+	} elseif ($item['status'] == 1){
+		if ($item['store_type'] == 1){//酒店
+			if ($item['action'] == 1){
+				$status = STORE_CONFIRM_STATUS;
+				$item['is_cancle'] = 1;
+			} else {
+				$status = STORE_UNLIVE_STATUS;
+				$item['is_cancle'] = 1;
+				if ($item['paystatus'] == 0){
+					$item['is_pay'] = 1;
+				}
+			}
+		} else {
+			if ($item['action'] == 1 || $item['paystatus'] == 1){//预定
+				if ($item['mode_distribute'] == 1){//自提
+					$item['is_cancle'] = 1;
+					$status = STORE_CONFIRM_STATUS;
+				} elseif ($item['mode_distribute'] == 2) {
+					if ($item['goods_status'] == 1){
+						$item['is_cancle'] = 1;
+						$status = STORE_UNSENT_STATUS;
+					} elseif ($item['goods_status'] == 2){
+						$item['is_confirm'] = 1;
+						$status = STORE_SENT_STATUS;
+					} elseif ($item['goods_status'] == 3){
+						$status = STORE_GETGOODS_STATUS;
+					} else {
+						$item['is_cancle'] = 1;
+						$status = STORE_CONFIRM_STATUS;
+					}
+				}
+			} else {
+				if ($item['paystatus'] == 0){
+					if ($item['mode_distribute'] == 1 ){//自提
+						$item['is_cancle'] = 1;
+						$item['is_pay'] = 1;
+						$status = STORE_CONFIRM_STATUS;
+					} elseif ($item['mode_distribute'] == 2) {
+						if ($item['goods_status'] == 1){
+							$item['is_cancle'] = 1;
+							$item['is_pay'] = 1;
+							$status = STORE_UNSENT_STATUS;
+						} elseif ($item['goods_status'] == 2){
+							$item['is_confirm'] = 1;
+							$status = STORE_SENT_STATUS;
+						} elseif ($item['goods_status'] == 3){
+							$status = STORE_GETGOODS_STATUS;
+						} else {
+							$item['is_cancle'] = 1;
+							$item['is_pay'] = 1;
+							$status = STORE_CONFIRM_STATUS;
+						}
+					}
+				} else {
+					$status = STORE_REPAY_STATUS;
+				}
+			}
+		}
+	} elseif ($item['status'] == 2){
+		if ($item['paystatus'] == 0){
+			$status = STORE_REFUSE_STATUS;
+		} else {
+			$status = STORE_REPAY_SUCCESS_STATUS;
+		}
+	} elseif ($item['status'] == 4){
+		$status = STORE_LIVE_STATUS;
+		$item['is_over'] = 1;
+	} elseif ($item['status'] == 3){
+		$status = STORE_OVER_STATUS;
+		$item['is_over'] = 1;
+		if ($item['comment'] == 0){
+			$item['is_comment'] = 1;
+		}
+	}
+	$setting = pdo_get('storex_set', array('weid' => intval($_W['uniacid'])));
+	if ($setting['refund'] == 1) {
+		$item['is_cancle'] = 2;
+	}
+	$item['order_status'] = $order_status_text[$status];
+	return $item;
+}
+
 /**格式化图片的路径
  * $urls  url数组
  */
@@ -417,23 +545,6 @@ function goods_check_result($action, $order_id){
 	}
 }
 
-function goods_isMember() {
-	global $_W;
-	//判断公众号是否开启会员卡功能
-	$extend_switch = extend_switch_fetch();
-	//查看会员是否开启会员卡功能
-	if($_W['member']['uid']){
-		$membercard_setting  = pdo_get('storex_mc_card_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $_W['member']['uid']));
-		if ($extend_switch['card'] == 1 && !empty($membercard_setting['status'])) {
-			return true;
-		} else {
-			return false;
-		}
-	}else{
-		return false;
-	}
-}
-
 //检查店员    id:店铺id
 function get_clerk_permission ($id) {
 	global $_W;
@@ -474,32 +585,6 @@ function code2city($code) {
 		}
 	}
 	return $name;
-}
-
-function get_notices(){
-	global $_W, $_GPC;
-	$uid = mc_openid2uid($_W['openid']);
-	$notices = pdo_getall('storex_notices', array('uniacid' => intval($_W['uniacid']), 'type' => 1), array(), 'id', 'addtime DESC');
-	if (!empty($notices)) {
-		$notice_ids = array();
-		foreach ($notices as &$info) {
-			$info['read_status'] = 0; //未读
-			$info['addtime'] = date('Y-m-d', $info['addtime']);
-			if (!empty($info['thumb'])) {
-				$info['thumb'] = tomedia($info['thumb']);
-			}
-			$notice_ids[] = $info['id'];
-		}
-		$read_record = pdo_getall('storex_notices_unread', array('uid' => $uid, 'uniacid' => intval($_W['uniacid']), 'notice_id IN' => $notice_ids));
-		if (!empty($read_record)) {
-			foreach ($read_record as $val){
-				if (!empty($notices[$val['notice_id']])) {
-					$notices[$val['notice_id']]['read_status'] = 1; //已读
-				}
-			}
-		}
-	}
-	return $notices;
 }
 
 function extend_switch_fetch() {
@@ -543,25 +628,6 @@ function get_card_setting() {
 	return $card_info;
 }
 
-function check_info_exist($data){
-	global $_W;
-	$uid = mc_openid2uid($_W['openid']);
-	if (!empty($data['email'])) {
-		$email = trim($data['email']);
-		$isexist = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_mc_card_members') . ' WHERE uniacid = :uniacid AND email = :email AND uid != :uid', array(':uniacid' => $_W['uniacid'], ':email' => $email, ':uid' => $uid));
-		if ($isexist >= 1) {
-			message(error(-1, '邮箱已被注册'), '', 'ajax');
-		}
-	}
-	if (!empty($data['mobile'])) {
-		$mobile = trim($data['mobile']);
-		$isexist = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_mc_card_members') . ' WHERE uniacid = :uniacid AND mobile = :mobile AND uid != :uid', array(':uniacid' => $_W['uniacid'], ':mobile' => $mobile, ':uid' => $uid));
-		if ($isexist >= 1) {
-			message(error(-1, '手机号已被注册'), '', 'ajax');
-		}
-	}
-}
-
 function get_return_credit_info($uid = ''){
 	global $_W;
 	if (empty($uid)) {
@@ -581,40 +647,4 @@ function get_return_credit_info($uid = ''){
 	} else {
 		return $cardActivity;
 	}
-}
-
-function get_group_id($uid){
-	global $_W;
-	$groups = mc_groups();
-	if(!empty($groups)) {
-		$members = pdo_get('mc_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $uid));
-		if (!empty($members) && !empty($groups[$members['groupid']])) {
-			return $groups[$members['groupid']];
-		}
-	}
-}
-
-function calcul_discount_price($uid, $price){
-	$card_credit = get_return_credit_info();
-	if (!empty($card_credit)) {
-		$group = get_group_id($uid);
-		if (!empty($group) && !empty($card_credit['discounts'][$group['groupid']])) {
-			$discounts = $card_credit['discounts'][$group['groupid']];
-			if ($card_credit['discount_type'] == 1) {
-				if ($price >= $discounts['condition_1']) {
-					if ($price > $discounts['discount_1']) {
-						$price -= $discounts['discount_1'];
-					}
-				}
-			} elseif($card_credit['discount_type'] == 2) {
-				if ($price >= $discounts['condition_2']) {
-					if ($discounts['discount_2'] != 0 && $discounts['discount_2'] > 0) {
-						$price *= $discounts['discount_2'] * 0.1;
-					}
-				}
-			}
-		}
-	}
-	$price = sprintf ("%1.2f", $price);
-	return $price;
 }

@@ -391,7 +391,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				$body .= '名称：' . $order['style'] . '<br />';
 				$body .= '订购数量' . $order['nums'] . '<br />';
 				$body .= '原价：' . $order['oprice']  . '<br />';
-				$body .= '会员价：' . $order['mprice']  . '<br />';
+				$body .= '优惠价：' . $order['cprice']  . '<br />';
 				if ($storex_bases['store_type'] == 1){
 					$body .= '入住日期：' . date('Y-m-d',$order['btime'])  . '<br />';
 					$body .= '退房日期：' . date('Y-m-d',$order['etime']) . '<br />';

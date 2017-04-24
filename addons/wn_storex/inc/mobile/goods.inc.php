@@ -7,6 +7,7 @@ $ops = array('goods_info', 'info', 'order');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 check_params();
 mload()->model('activity');
+mload()->model('card');
 $uid = mc_openid2uid($_W['openid']);
 $store_id = intval($_GPC['id']);//店铺id
 $goodsid = intval($_GPC['goodsid']);//商品id
@@ -50,7 +51,7 @@ if ($op == 'goods_info') {
 	if ($store_info['store_type'] == 1) {
 		$goods_info = check_price($goods_info);
 	}
-	// $goods_info['cprice'] = calcul_discount_price($uid, $goods_info['cprice']);
+	// $goods_info['cprice'] = card_discount_price($uid, $goods_info['cprice']);
 	message(error(0, $goods_info), '', 'ajax');
 }
 
@@ -80,7 +81,7 @@ if ($op == 'info') {
 		$goods_info = pdo_get($table, $condition);
 	}
 	$paycenter_couponlist = activity_paycenter_get_coupon();
-	// $goods_info['cprice'] = calcul_discount_price($uid, $goods_info['cprice']);
+	// $goods_info['cprice'] = card_discount_price($uid, $goods_info['cprice']);
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;
 	$infos['goods_info'] = $goods_info;
@@ -89,7 +90,7 @@ if ($op == 'info') {
 	$card_activity_info = get_return_credit_info();
 	$infos['card_disounts_info'] = array();
 	if (!empty($card_activity_info)) {
-		$user_group = get_group_id($uid);
+		$user_group = card_group_id($uid);
 		if ($card_activity_info['discount_type'] == 1) {
 			$discount_info['discount_type'] = 1;
 			$discount_info['condition'] = $card_activity_info['discounts'][$user_group['groupid']]['condition_1'];
@@ -305,7 +306,7 @@ if ($op == 'order'){
 		}
 		$insert['coupon'] = $selected_coupon['recid'];
 	} elseif ($selected_coupon['type'] == 2) {
-		$insert['sum_price'] = calcul_discount_price($uid, $insert['sum_price']);
+		$insert['sum_price'] = card_discount_price($uid, $insert['sum_price']);
 	}
 	$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
 	$post_total = trim($_GPC['order']['total']);

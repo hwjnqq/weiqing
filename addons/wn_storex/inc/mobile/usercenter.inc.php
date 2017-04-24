@@ -8,6 +8,7 @@ $ops = array('personal_info', 'personal_update', 'credits_record', 'address_list
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 check_params();
 load()->model('mc');
+mload()->model('card');
 $uid = mc_openid2uid($_W['openid']);
 if (in_array($op, array('address_post', 'address_default', 'address_delete')) && !empty($_GPC['id'])) {
 	$address_info = pdo_get('mc_member_address', array('uniacid' => $_W['uniacid'], 'uid' => $uid, 'id' => intval($_GPC['id'])));
@@ -18,7 +19,7 @@ if (in_array($op, array('address_post', 'address_default', 'address_delete')) &&
 
 if ($op == 'extend_switch') {
 	$extend_switch = extend_switch_fetch();
-	$notices = get_notices();
+	$notices = card_notices();
 	$notice_unread_num = 0;
 	if (!empty($notices)) {
 		foreach ($notices as $val){

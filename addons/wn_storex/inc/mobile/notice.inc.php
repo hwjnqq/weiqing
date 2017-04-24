@@ -4,6 +4,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 load()->model('mc');
+mload()->model('card');
 
 $ops = array('notice_list', 'read_notice');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
@@ -11,7 +12,7 @@ check_params();
 $uid = mc_openid2uid($_W['openid']);
 
 if ($op == 'notice_list') {
-	$notices = get_notices();
+	$notices = card_notices();
 	message(error(0, $notices), '', 'ajax');
 }
 

@@ -8,7 +8,7 @@ $ops = array('sign_info', 'sign', 'remedy_sign', 'sign_record');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 check_params();
 load()->model('mc');
-mload()->model('sign');
+mload()->model('card');
 $uid = mc_openid2uid($_W['openid']);
 
 $extend_switch = extend_switch_fetch();
@@ -18,18 +18,18 @@ if (empty($extend_switch) || $extend_switch['sign'] != 1) {
 $sign_max_day = pdo_getall('storex_sign_record', array('uid' => $uid, 'year' => date('Y'), 'month' => date('n'), 'remedy !=' => 2), array(), '', 'day DESC','1');
 
 if ($op == 'sign_info') {
-	$sign_data = get_sign_info($sign_max_day[0]['day']);
+	$sign_data = card_sign_info($sign_max_day[0]['day']);
 	message(error(0, $sign_data), '', 'ajax');
 }
 
 if ($op == 'sign') {
-	$sign_data = get_sign_info($sign_max_day[0]['day']);
+	$sign_data = card_sign_info($sign_max_day[0]['day']);
 	$sign_day = intval($_GPC['day']);
 	if ($sign_day != date('j')) {
 		message(error(-1, '参数错误！'), '', 'ajax');
 	}
 	if (!empty($sign_data['signs'][$sign_day])) {
-		sign_operation($sign_data, $sign_day);
+		card_sign_operation($sign_data, $sign_day);
 	} else {
 		message(error(-1, '参数错误！'), '', 'ajax');
 	}
@@ -37,7 +37,7 @@ if ($op == 'sign') {
 
 if ($op == 'remedy_sign') {
 	$remedy_day = intval($_GPC['day']);
-	$sign_data = get_sign_info($sign_max_day[0]['day']);
+	$sign_data = card_sign_info($sign_max_day[0]['day']);
 	if ($sign_data['sign']['remedy'] == 1) {
 		$cost = array(
 			'remedy' => $sign_data['sign']['remedy'],
@@ -51,7 +51,7 @@ if ($op == 'remedy_sign') {
 		message(error(-1, '参数错误！'), '', 'ajax');
 	}
 	if (!empty($sign_data['signs'][$remedy_day])) {
-		sign_operation($sign_data, $remedy_day, $cost, 'remedy');
+		card_sign_operation($sign_data, $remedy_day, $cost, 'remedy');
 	}
 }
 

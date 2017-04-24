@@ -4,6 +4,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 load()->model('mc');
+mload()->model('card');
 
 $ops = array('receive_info', 'receive_card',);
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
@@ -66,7 +67,7 @@ if ($op == 'receive_card') {
 			$cardsn = $value['value'];
 		}
 	}
-	check_info_exist($insert);
+	card_info_exist($insert);
 	$record = array(
 		'uniacid' => $_W['uniacid'],
 		'openid' => $_W['openid'],
