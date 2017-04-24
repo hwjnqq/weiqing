@@ -3,11 +3,21 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('recharge_add', 'recharge_pay');
+$ops = array('recharge_add', 'recharge_pay', 'card_recharge');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
 $uid = mc_openid2uid($_W['openid']);
+
+if ($op == 'card_recharge') {
+	$card_setting = get_card_setting();
+	$card_recharge = $card_setting['params']['cardRecharge'];
+	$recharge_lists = array();
+	if ($card_recharge['params']['recharge_type'] == 1) {
+		$recharge_lists = $card_recharge['params']['recharges'];
+	}
+	message(error(0, $recharge_lists), '', 'ajax');
+}
 
 if ($op == 'recharge_add') {
 	$type = trim($_GPC['type']) ? trim($_GPC['type']) : 'credit';
