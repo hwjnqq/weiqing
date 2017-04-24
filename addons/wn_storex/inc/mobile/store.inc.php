@@ -7,7 +7,7 @@ $ops = array('store_list', 'store_detail', 'store_comment');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
-// check_user_source();
+
 //获取店铺列表
 if ($op == 'store_list') {
 	$keyword = trim($_GPC['keyword']);
