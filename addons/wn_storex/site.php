@@ -44,12 +44,8 @@ class Wn_storexModuleSite extends WeModuleSite {
 				$dir .= 'web/';
 				$fun = strtolower(substr($name, 5));
 				$func = IA_ROOT . '/addons/wn_storex/function/function.php';
-				$mod = IA_ROOT . '/addons/wn_storex/model/activity.mod.php';
 				if (is_file($func)) {
 					require $func;
-				}
-				if (is_file($mod)) {
-					require $mod;
 				}
 			}
 			if ($isMobile) {
@@ -57,15 +53,11 @@ class Wn_storexModuleSite extends WeModuleSite {
 		 		$fun = strtolower(substr($name, 8));
 		 		$init = $dir . '__init.php';
 		 		$func = IA_ROOT . '/addons/wn_storex/function/function.php';
-		 		$mod = IA_ROOT . '/addons/wn_storex/model/activity.mod.php';
 				if (is_file($init)) {
 					require $init;
 				}
 				if (is_file($func)) {
 					require $func;
-				}
-				if (is_file($mod)) {
-					require $mod;
 				}
 			}
  			$file = $dir . $fun . '.inc.php';

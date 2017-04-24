@@ -3,11 +3,11 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-load()->model('mc');
 
 $ops = array('sign_info', 'sign', 'remedy_sign', 'sign_record');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 check_params();
+load()->model('mc');
 $uid = mc_openid2uid($_W['openid']);
 
 $extend_switch = extend_switch_fetch();

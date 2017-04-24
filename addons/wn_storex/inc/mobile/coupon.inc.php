@@ -3,12 +3,12 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-load()->model('mc');
-
 $ops = array('display', 'exchange', 'mine', 'detail');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
+load()->model('mc');
+mload()->model('activity');
 $uid = mc_openid2uid($_W['openid']);
 
 if ($op == 'display') {
