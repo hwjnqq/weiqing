@@ -46,7 +46,7 @@ if ($op == 'personal_info') {
 		$user_info['mycard']['is_receive'] = 1;//是否领取,1已经领取，2没有领取
 		$user_info['mycard']['fields'] = iunserializer($user_info['mycard']['fields']);
 		$user_info['mycard']['group'] = array();
-		$user_info['mycard']['group'] = get_group_id($uid);
+		$user_info['mycard']['group'] = card_group_id($uid);
 	} else {
 		$user_info['mycard']['is_receive'] = 2;
 	}
@@ -60,7 +60,9 @@ if ($op == 'personal_info') {
 				if ($card_info[$val]['background'] == 'user') {
 					$user_info['mycard'][$val]['image'] = $user_info['mycard'][$val]['image'];
 				} else {
-					$user_info['mycard'][$val]['image'] = tomedia("addons/wn_storex/template/style/img/card/" .$user_info['mycard'][$val]['image']. ".png");
+					$png = $user_info['mycard'][$val]['image'];
+					$png = !empty($png) ? $png : '1';
+					$user_info['mycard'][$val]['image'] = tomedia("addons/wn_storex/template/style/img/card/" . $png . ".png");
 				}
 			}
 		}
