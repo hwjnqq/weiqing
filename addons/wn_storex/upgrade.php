@@ -341,6 +341,6 @@ if (pdo_fieldexists('storex_bases', 'integral_rate')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') ." DROP `integral_rate`;");
 }
 //order表加入coupon字段，使用卡券的recordid
-if (pdo_fieldexists('storex_order', 'coupon')) {
+if (!pdo_fieldexists('storex_order', 'coupon')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') ." ADD `coupon` INT NOT NULL COMMENT '使用卡券信息';");
 }
