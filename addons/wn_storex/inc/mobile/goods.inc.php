@@ -144,41 +144,39 @@ if ($op == 'order'){
 		$paysetting = uni_setting(intval($_W['uniacid']), array('payment', 'creditbehaviors'));
 		$_W['account'] = array_merge($_W['account'], $paysetting);
 	}
-
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
 	if (empty($order_info['contact_name'])) {
 		message(error(-1, '联系人不能为空!'), '', 'ajax');
 	}
-	if (empty($order_info['mobile'])) {
-		message(error(-1, '手机号不能为空!'), '', 'ajax');
-	}
 	$user_info = hotel_get_userinfo();
 	$memberid = intval($user_info['id']);
 	//预定直接将数据加进order表
-	if ($store_info['store_type'] == 1) {//酒店
-		$condition['hotelid'] = $store_id;
+	if ($store_info['store_type'] == 1) {
 		$table = 'storex_room';
-		$room = pdo_get($table, $condition);
-		goods_check_action($action, $room);
-		$reply = pdo_get('storex_bases', array('id' => $store_id), array('title', 'mail', 'phone', 'thumb', 'description'));
-		if (empty($reply)) {
-			message(error(-1, '酒店未找到, 请联系管理员!'), '', 'ajax');
-		}
+		$condition['hotelid'] = $store_id;
+	} else {
+		$table = 'storex_goods';
+		$condition['store_base_id'] = $store_id;
+	}
+	$goods_info = pdo_get($table, $condition);
+	goods_check_action($action, $goods_info);//检查是否符合条件
+	$insert = array(
+		'ordersn' => date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1),
+		'memberid' => $memberid,
+		'style' => $goods_info['title'],
+		'oprice' => $goods_info['oprice'],
+		'cprice' => $goods_info['cprice'],
+	);
+	if ($goods_info['cprice'] == 0) {
+		message(error(-1, '商品价格不能是0，请联系管理员!'), '', 'ajax');
+	}
+	$reply = pdo_get('storex_bases', array('id' => $store_id), array('title', 'mail', 'phone', 'thumb', 'description'));
+	if (empty($reply)) {
+		message(error(-1, '店铺未找到, 请联系管理员!'), '', 'ajax');
+	}
+	if ($store_info['store_type'] == 1) {//酒店
 		$setInfo = pdo_get('storex_set', array('weid' => intval($_W['uniacid'])), array('weid', 'tel', 'is_unify', 'email', 'template', 'templateid', 'smscode'));
-		//获取酒店的电话
-		if ($setInfo['is_unify'] == 1) {
-			$tel = $setInfo['tel'];
-		} else {
-			$tel = $reply['phone'];
-		}
-		$insert = array(
-			'ordersn' => date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1),
-			'memberid' => $memberid,
-			'style' => $room['title'],
-			'oprice' => $room['oprice'],
-			'cprice' => $room['cprice'],
-		);
-		if ($room['is_house'] == 1) {
+		if ($goods_info['is_house'] == 1) {
 			$order_info['btime'] = strtotime($_GPC['order']['btime']);
 			$order_info['etime'] = strtotime($_GPC['order']['etime']);
 			if (!empty($_GPC['order']['day'])) {
@@ -241,28 +239,18 @@ if ($op == 'order'){
 					}
 				}
 			}
-
 			$r_sql = 'SELECT `roomdate`, `num`, `oprice`, `cprice`, `status` FROM ' . tablename('storex_room_price') .
 			' WHERE `roomid` = :roomid AND `weid` = :weid AND `hotelid` = :hotelid AND `roomdate` >= :btime AND ' .
 			' `roomdate` < :etime  order by roomdate desc';
 			$params = array(':roomid' => $goodsid, ':weid' => intval($_W['uniacid']), ':hotelid' => $store_id, ':btime' => $btime, ':etime' => $etime);
 			$price_list = pdo_fetchall($r_sql, $params);
-			$this_price = 0;
 			if (!empty($price_list)) {
 				//价格表中存在
 				foreach($price_list as $k => $v) {
-					$room['oprice'] = $v['oprice'];
-					$room['cprice'] = $v['cprice'];
-					$this_price = $v['cprice'];
+					$goods_info['oprice'] = $v['oprice'];
+					$goods_info['cprice'] = $v['cprice'];
 				}
-			} else {
-				$this_price = $room['cprice'] ;
 			}
-			$totalprice =  ($this_price + $room['service']) * $days;
-			if ($totalprice == 0) {
-				message(error(-1, '房间价格不能是0，请联系管理员修改！'), '', 'ajax');
-			}
-
 			if ($order_info['nums'] > $max_room) {
 				message(error(-1, '您的预定数量超过最大限制!'), '', 'ajax');
 			}
@@ -273,82 +261,17 @@ if ($op == 'order'){
 				}
 			}
 			$insert = array_merge($order_info, $insert);
+			$insert['sum_price'] = ($goods_info['cprice'] + $goods_info['service']) * $days * $insert['nums'];
 			pdo_query('UPDATE '. tablename('storex_order'). " SET status = '-1' WHERE time <  :time AND weid = '{$_W['uniacid']}' AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400));
 			$order_exist = pdo_get('storex_order', array('hotelid' => $insert['hotelid'], 'roomid' => $insert['roomid'], 'openid' => $insert['openid'], 'status' => 0));
 			if ($order_exist) {
 				//message(error(0, "您有未完成订单,不能重复下单"), '', 'ajax');
 			}
 		} else {
-			$totalprice = $this_price = $room['cprice'];
 			$insert = array_merge($order_info, $insert);
-		}
-		$insert['sum_price'] = ($this_price + $room['service']) * $insert['nums'] * $days;
-		if ($selected_coupon['type'] == 3) {
-			$extra_info = $coupon_info['extra'];
-			if ($coupon_info['type'] == COUPON_TYPE_DISCOUNT) {
-				$insert['sum_price'] = $insert['sum_price'] * $extra_info['discount'] / 100;
-			} elseif ($coupon_info['type'] == COUPON_TYPE_CASH) {
-				$least_cost = $extra_info['least_cost'] * 0.01;
-				$reduce_cost = $extra_info['reduce_cost'] * 0.01;
-				if ($insert['sum_price'] >= $least_cost) {
-					$insert['sum_price'] = $insert['sum_price'] - $reduce_cost;
-				}
-			}
-			$result = activity_coupon_consume($selected_coupon['couponid'], $selected_coupon['recid'], $store_info['id']);
-			if (is_error($result)) {
-				message($result, '', 'ajax');
-			}
-			$insert['coupon'] = $selected_coupon['recid'];
-		} elseif ($selected_coupon['type'] == 2) {
-			$insert['sum_price'] = calcul_discount_price($uid, $insert['sum_price']);
-		}
-		$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
-		$post_total = trim($_GPC['order']['total']);
-		if ($post_total != $insert['sum_price']) {
-			message(error(-1, '价格错误'), '', 'ajax');
-		}
-		if($insert['sum_price'] <= 0){
-			message(error(-1, '总价为零，请联系管理员！'), '', 'ajax');
-		}
-		pdo_insert('storex_order', $insert);
-		$order_id = pdo_insertid();
-		//如果有接受订单的邮件,
-		if (!empty($reply['mail'])) {
-			$subject = "微信公共帐号 [" . $_W['account']['name'] . "] 微酒店订单提醒.";
-			$body = "您后台有一个预定订单: <br/><br/>";
-			$body .= "预定店铺: " . $reply['title'] . "<br/>";
-			$body .= "预定商品: " . $room['title'] . "<br/>";
-			$body .= "预定数量: " . $insert['nums'] . "<br/>";
-			$body .= "预定价格: " . $insert['sum_price'] . "<br/>";
-			$body .= "预定人: " . $insert['name'] . "<br/>";
-			$body .= "预定电话: " . $insert['mobile'] . "<br/>";
-			$body .= "到店时间: " . $bdate . "<br/>";
-			$body .= "离店时间: " . $edate . "<br/><br/>";
-			$body .= "请您到管理后台仔细查看. <a href='" .$_W['siteroot'] .create_url('member/login') . "' target='_blank'>立即登录后台</a>";
-			load()->func('communication');
-			ihttp_email($reply['mail'], $subject, $body);
-		}
-		if ($room['is_house'] == 1){
-			$order = pdo_get('storex_order', array('id' => $order_id, 'weid' => intval($_W['uniacid'])));
-			//订单下单成功减库存
-			$starttime = $insert['btime'];
-			for ($i = 0; $i < $insert['day']; $i++) {
-				$day = pdo_get('storex_room_price', array('weid' => intval($_W['uniacid']), 'roomid' => $insert['roomid'], 'roomdate' => $starttime));
-				if ($day && $day['num'] != -1) {
-					pdo_update('storex_room_price', array('num' => $day['num'] - $insert['nums']), array('id' => $day['id']));
-				}
-				$starttime += 86400;
-			}
+			$insert['sum_price'] = $goods_info['cprice'] * $insert['nums'];
 		}
 	} else {
-		$condition['store_base_id'] = $store_id;
-		$table = 'storex_goods';
-		$goods_info = pdo_get($table, $condition);
-		goods_check_action($action, $goods_info);//检查是否符合条件
-		$now_price = $goods_info['cprice'];
-		if ($now_price == 0) {
-			message(error(-1, '商品价格不能是0，请联系管理员修改！'), '', 'ajax');
-		}
 		$order_info['mode_distribute'] = intval($_GPC['order']['mode_distribute']);
 		if(empty($_GPC['order']['order_time'])){
 			message(error(-1, '请选择时间！'), '', 'ajax');
@@ -361,42 +284,66 @@ if ($op == 'order'){
 			$order_info['addressid'] = intval($_GPC['order']['addressid']);
 			$order_info['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
 		}
-		$insert = array(
-			'ordersn' => date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1),
-			'memberid' => $memberid,
-			'style' => $goods_info['title'],
-			'oprice' => $goods_info['oprice'],
-			'cprice' => $goods_info['cprice'],
-		);
-		$insert['cprice'] = $now_price;
-		$insert['sum_price'] = $insert['cprice'] * $order_info['nums'];
-		if ($selected_coupon['type'] == 3) {
-			$extra_info = $coupon_info['extra'];
-			if ($coupon_info['type'] == COUPON_TYPE_DISCOUNT) {
-				$insert['sum_price'] = $insert['sum_price'] * $extra_info['discount'] / 100;
-			} elseif ($coupon_info['type'] == COUPON_TYPE_CASH) {
-				$least_cost = $extra_info['least_cost'] * 0.01;
-				$reduce_cost = $extra_info['reduce_cost'] * 0.01;
-				if ($insert['sum_price'] >= $least_cost) {
-					$insert['sum_price'] = $insert['sum_price'] - $reduce_cost;
-				}
+		$insert = array_merge($order_info, $insert);
+		$insert['sum_price'] = $insert['cprice'] * $insert['nums'];
+	}
+	//根据优惠方式计算总价
+	if ($selected_coupon['type'] == 3) {
+		$extra_info = $coupon_info['extra'];
+		if ($coupon_info['type'] == COUPON_TYPE_DISCOUNT) {
+			$insert['sum_price'] = $insert['sum_price'] * $extra_info['discount'] / 100;
+		} elseif ($coupon_info['type'] == COUPON_TYPE_CASH) {
+			$least_cost = $extra_info['least_cost'] * 0.01;
+			$reduce_cost = $extra_info['reduce_cost'] * 0.01;
+			if ($insert['sum_price'] >= $least_cost) {
+				$insert['sum_price'] = $insert['sum_price'] - $reduce_cost;
 			}
-			$result = activity_coupon_consume($selected_coupon['couponid'], $selected_coupon['recid'], $store_info['id']);
-			if (is_error($result)) {
-				message($result, '', 'ajax');
+		}
+		$result = activity_coupon_consume($selected_coupon['couponid'], $selected_coupon['recid'], $store_info['id']);
+		if (is_error($result)) {
+			message($result, '', 'ajax');
+		}
+		$insert['coupon'] = $selected_coupon['recid'];
+	} elseif ($selected_coupon['type'] == 2) {
+		$insert['sum_price'] = calcul_discount_price($uid, $insert['sum_price']);
+	}
+	$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
+	$post_total = trim($_GPC['order']['total']);
+	if ($post_total != $insert['sum_price']) {
+		message(error(-1, '价格错误'), '', 'ajax');
+	}
+	if($insert['sum_price'] <= 0){
+		message(error(-1, '总价为零，请联系管理员！'), '', 'ajax');
+	}
+	pdo_insert('storex_order', $insert);
+	$order_id = pdo_insertid();
+	if ($store_info['store_type'] == 1 && $goods_info['is_house'] == 1) {
+		//如果有接受订单的邮件,
+		if (!empty($reply['mail'])) {
+			$subject = "微信公共帐号 [" . $_W['account']['name'] . "] 微酒店订单提醒.";
+			$body = "您后台有一个预定订单: <br/><br/>";
+			$body .= "预定店铺: " . $reply['title'] . "<br/>";
+			$body .= "预定商品: " . $goods_info['title'] . "<br/>";
+			$body .= "预定数量: " . $insert['nums'] . "<br/>";
+			$body .= "预定价格: " . $insert['sum_price'] . "<br/>";
+			$body .= "预定人: " . $insert['name'] . "<br/>";
+			$body .= "预定电话: " . $insert['mobile'] . "<br/>";
+			$body .= "到店时间: " . $bdate . "<br/>";
+			$body .= "离店时间: " . $edate . "<br/><br/>";
+			$body .= "请您到管理后台仔细查看. <a href='" .$_W['siteroot'] .create_url('member/login') . "' target='_blank'>立即登录后台</a>";
+			load()->func('communication');
+			ihttp_email($reply['mail'], $subject, $body);
+		}
+		$order = pdo_get('storex_order', array('id' => $order_id, 'weid' => intval($_W['uniacid'])));
+		//订单下单成功减库存
+		$starttime = $insert['btime'];
+		for ($i = 0; $i < $insert['day']; $i++) {
+			$day = pdo_get('storex_room_price', array('weid' => intval($_W['uniacid']), 'roomid' => $insert['roomid'], 'roomdate' => $starttime));
+			if ($day && $day['num'] != -1) {
+				pdo_update('storex_room_price', array('num' => $day['num'] - $insert['nums']), array('id' => $day['id']));
 			}
-			$insert['coupon'] = $selected_coupon['recid'];
-		} elseif ($selected_coupon['type'] == 2) {
-			$insert['sum_price'] = calcul_discount_price($uid, $insert['sum_price']);
+			$starttime += 86400;
 		}
-		$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
-		$post_total = trim($_GPC['order']['total']);
-		if ($post_total != $insert['sum_price']) {
-			message(error(-1, '价格错误'), '', 'ajax');
-		}
-		$insert = array_merge($insert, $order_info);
-		pdo_insert('storex_order', $insert);
-		$order_id = pdo_insertid();
 	}
 	pdo_update('storex_member', array('mobile' => $insert['mobile'], 'realname' => $insert['contact_name']), array('weid' => intval($_W['uniacid']), 'from_user' => $_W['openid']));
 	goods_check_result($action, $order_id);

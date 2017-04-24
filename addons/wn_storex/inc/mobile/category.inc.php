@@ -125,6 +125,7 @@ if ($op == 'more_goods') {
 		$goods_list = pdo_getall('storex_room', $condition);
 		if (!empty($goods_list)) {
 			$goods_list = category_room_status($goods_list);
+			$goods_list = room_special_price($goods_list);
 		}
 	} else {
 		$condition['store_base_id'] = $storex_bases['id'];
