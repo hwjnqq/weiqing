@@ -93,7 +93,6 @@ if ($op == 'exchange') {
 		message(error(-1, '活动已结束'), '', 'ajax');
 	}
 	$status = activity_user_get_coupon($id, $_W['member']['uid']);
-	mc_notice_credit2($_W['openid'], $_W['member']['uid'], -1 * 2, 1 * 1, '兑换卡券消耗余额');
 	if (is_error($status)) {
 		message(error(-1, $status['message']), '', 'ajax');
 	} else {
