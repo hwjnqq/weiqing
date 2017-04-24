@@ -15,6 +15,18 @@ $wn_storex_table = array(
 	'storex_bases',
 	'storex_categorys',
 	'storex_goods',
+	'storex_clerk',
+	'storex_notices',
+	'storex_notices_unread',
+	'storex_sign_record',
+	'storex_sign_set',
+	'storex_mc_card',
+	'storex_mc_card_members',
+	'storex_mc_card_record',
+	'storex_activity_exchange',
+	'storex_coupon',
+	'storex_coupon_record',
+	'storex_coupon_store',
 );
 foreach ($wn_storex_table as $table){
 	if(pdo_tableexists($table)){

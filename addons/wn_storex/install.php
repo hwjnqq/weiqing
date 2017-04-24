@@ -492,6 +492,7 @@ $sql = "
 	  PRIMARY KEY (`id`),
 	  KEY `extra` (`extra`(333))
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COMMENT='兑换表';
+		
 	CREATE TABLE IF NOT EXISTS `ims_storex_coupon` (
 	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 	  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
@@ -527,6 +528,7 @@ $sql = "
 	  KEY `uniacid` (`uniacid`,`acid`),
 	  KEY `card_id` (`card_id`)
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+		
 	CREATE TABLE IF NOT EXISTS `ims_storex_coupon_record` (
 	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 	  `uniacid` int(10) unsigned NOT NULL,
@@ -553,6 +555,7 @@ $sql = "
 	  KEY `card_id` (`card_id`),
 	  KEY `hash` (`hash`)
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+		
 	CREATE TABLE IF NOT EXISTS `ims_storex_coupon_store` (
 	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 	  `uniacid` int(10) NOT NULL,
