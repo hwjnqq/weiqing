@@ -300,10 +300,6 @@ if ($op == 'order'){
 				$insert['sum_price'] = $insert['sum_price'] - $reduce_cost;
 			}
 		}
-		$result = activity_coupon_consume($selected_coupon['couponid'], $selected_coupon['recid'], $store_info['id']);
-		if (is_error($result)) {
-			message($result, '', 'ajax');
-		}
 		$insert['coupon'] = $selected_coupon['recid'];
 	} elseif ($selected_coupon['type'] == 2) {
 		$insert['sum_price'] = card_discount_price($uid, $insert['sum_price']);
@@ -315,6 +311,10 @@ if ($op == 'order'){
 	}
 	if($insert['sum_price'] <= 0){
 		message(error(-1, '总价为零，请联系管理员！'), '', 'ajax');
+	}
+	$result = activity_coupon_consume($selected_coupon['couponid'], $selected_coupon['recid'], $store_info['id']);
+	if (is_error($result)) {
+		message($result, '', 'ajax');
 	}
 	pdo_insert('storex_order', $insert);
 	$order_id = pdo_insertid();
