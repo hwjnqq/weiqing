@@ -109,6 +109,9 @@ if ($op == 'cancel'){
 		message(error(-1, '该订单不能取消！'), '', 'ajax');
 	}
 	pdo_update('storex_order', array('status' => -1), array('id' => $id, 'weid' => $_W['uniacid']));
+	if (!empty($order_info['coupon'])) {
+		pdo_update('storex_coupon_record', array('status' => 1), array('id' => $order_info['coupon']));
+	}	
 	message(error(0, '订单成功取消！'), '', 'ajax');
 }
 
@@ -128,6 +131,9 @@ if ($op == 'confirm_goods'){
 		message(error(-1, '订单方式不是配送！'), '', 'ajax');
 	}
 	pdo_update('storex_order', array('goods_status' => 3), array('id' => $id, 'weid' => $_W['uniacid']));
+	if (!empty($order_info['coupon'])) {
+		pdo_update('storex_coupon_record', array('status' => 3), array('id' => $order_info['coupon']));
+	}
 	message(error(0, '订单收货成功！'), '', 'ajax');
 }
 

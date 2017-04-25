@@ -186,9 +186,14 @@ if ($op == 'edit') {
 				$status = $acc->sendCustomNotice($custom);
 			}
 		}
-		if ($data['status'] == '-1' || $data['status'] == '2') {
-			pdo_update('storex_coupon_record', array('status' => 1), array('id' => $item['coupon']));
+		if (!empty($item['coupon'])) {
+			if ($data['status'] == '-1' || $data['status'] == '2') {
+				pdo_update('storex_coupon_record', array('status' => 1), array('id' => $item['coupon']));
+			} elseif ($data['status'] == '3') {
+				pdo_update('storex_coupon_record', array('status' => 3), array('id' => $item['coupon']));
+			}
 		}
+		
 		pdo_update('storex_order', $data, array('id' => $id));
 		message('订单信息处理完成！', $this->createWebUrl('order', array('hotelid' => $hotelid, "roomid" => $roomid, 'store_type' => $store_type)), 'success');
 	}
