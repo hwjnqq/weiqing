@@ -132,11 +132,11 @@ if ($op == 'more_goods') {
 		$goods_list = pdo_getall('storex_goods', $condition);
 	}
 	if (!empty($goods_list)) {
-		foreach ($goods_list as &$gooods_info) {
-			if ($gooods_info['oprice'] > $gooods_info['cprice']) {
-				$gooods_info['reduced_price'] = $gooods_info['oprice'] - $gooods_info['cprice'];
+		foreach ($goods_list as &$goods_info) {
+			if ($goods_info['oprice'] > $goods_info['cprice']) {
+				$goods_info['reduced_price'] = bcsub($goods_info['oprice'], $goods_info['cprice'], 2);
 			} else {
-				$gooods_info['reduced_price'] = 0;
+				$goods_info['reduced_price'] = 0;
 			}
 		}
 	}
