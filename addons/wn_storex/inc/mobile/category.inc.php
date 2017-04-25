@@ -131,6 +131,15 @@ if ($op == 'more_goods') {
 		$condition['store_base_id'] = $storex_bases['id'];
 		$goods_list = pdo_getall('storex_goods', $condition);
 	}
+	if (!empty($goods_list)) {
+		foreach ($goods_list as &$gooods_info) {
+			if ($gooods_info['oprice'] > $gooods_info['cprice']) {
+				$gooods_info['reduced_price'] = $gooods_info['oprice'] - $gooods_info['cprice'];
+			} else {
+				$gooods_info['reduced_price'] = 0;
+			}
+		}
+	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 10;
 	$list = array();
