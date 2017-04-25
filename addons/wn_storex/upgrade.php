@@ -352,3 +352,40 @@ if (pdo_fieldexists('storex_bases', 'integral_rate')) {
 if (!pdo_fieldexists('storex_order', 'coupon')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') ." ADD `coupon` INT NOT NULL COMMENT '使用卡券信息';");
 }
+
+//处理mobile更新遗留的js，css和svg文件
+$js_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/js');
+$css_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/css');
+$svg_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/img');
+$current_js_files = array(
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/black.20170425120.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/display.20170425120.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/manifest.20170425120.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/vendor.20170425120.js'
+);
+$current_css_files = array(
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/black.20170425120.css',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/display.20170425120.css',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/membercard.css'
+);
+$current_svg_files = array(
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/img/storex.20170425120.svg',
+);
+$css_diff_files = array_diff($css_file_trees, $current_css_files);
+$js_diff_files = array_diff($js_file_trees, $current_js_files);
+$svg_diff_files = array_diff($svg_file_trees, $current_svg_files);
+if (!empty($svg_diff_files)) {
+	foreach ($js_diff_files as $value) {
+		file_delete($value);
+	}
+}
+if (!empty($svg_diff_files)) {
+	foreach ($css_diff_files as $value) {
+		file_delete($value);
+	}
+}
+if (!empty($svg_diff_files)) {
+	foreach ($svg_diff_files as $value) {
+		file_delete($value);
+	}
+}
