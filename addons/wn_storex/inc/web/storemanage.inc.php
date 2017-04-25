@@ -129,6 +129,11 @@ if ($op == 'edit') {
 				pdo_insert('storex_hotel', $insert);
 			}
 		} else {
+			if ($common_insert['store_type'] == 1 && $common_insert['category_set'] == 2) {
+				pdo_update('storex_room', array('status' => 0), array('hotelid'=> $id, 'weid' => $_W['uniacid'], 'is_house' => 2));
+			} elseif($common_insert['store_type'] == 1 && $common_insert['category_set'] == 1) {
+				pdo_update('storex_room', array('status' => 1), array('hotelid'=> $id, 'weid' => $_W['uniacid'], 'is_house' => 2));
+			}
 			pdo_update('storex_bases', $common_insert, array('id' => $id));
 			if ($_GPC['store_type']){
 				pdo_update($common_insert['extend_table'], $insert, array('store_base_id' => $id));
