@@ -82,7 +82,7 @@
 							<input type="radio" name="category_set" value="1" {if $item['category_set'] == 1} checked {/if}"/>开启
 						</label>
 						<label class="radio-inline">
-							<input type="radio" name="category_set" value="2" {if $item['category_set'] == 2} checked {/if}"/>关闭
+							<input type="radio" name="category_set" value="2" {if $item['store_type'] == 1} onclick="confirm('关闭分类将隐藏非酒店类的商品！')" {/if} {if $item['category_set'] == 2} checked {/if}"/>关闭
 						</label>
 						<span class='help-block'>添加商品的时候选择分类的设置，关闭则根据该店铺的类型显示商品，例如（酒店关闭分类，则只显示房型）请慎重选择</span>
 					</div>

@@ -106,6 +106,9 @@ if ($op == 'edit') {
 		if ($store_type == 1 && empty($_GPC['device'])) {
 			message('商品说明不能为空！', '', 'error');
 		}
+		if (empty($_GPC['oprice']) || $_GPC['oprice'] <= 0 || empty($_GPC['cprice']) || $_GPC['cprice'] <= 0) {
+			message('商品原价和优惠价不能为空！', '', 'error');
+		}
 		$common = array(
 			'weid' => $_W['uniacid'],
 			'title' => $_GPC['title'],

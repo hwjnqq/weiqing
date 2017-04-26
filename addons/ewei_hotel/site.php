@@ -2038,12 +2038,10 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 		}
 		$roomid = $item['roomid'];
 		$room_weid = $item['weid'];
-		$sql ="SELECT * FROM " .tablename('hotel2_room')."where id = $roomid";
+		$room_info = pdo_get('hotel2_room', array('id' => $roomid, 'weid' => $_W['uniacid']));
 		$params = array();
-		$item = pdo_fetch($sql,$params);
-		if(!empty($item['score']))
-		{
-			pdo_fetch("UPDATE " . tablename('hotel2_member') . " SET score = (score + " .$item['score'] . ") WHERE weid = '" . $room_weid . "' ");
+		if(!empty($room_info['score'])){
+			pdo_fetch("UPDATE " . tablename('hotel2_member') . " SET score = (score + " .$room_info['score'] . ") WHERE weid = '" . $room_weid . "' ");
 		}
 
 
@@ -2062,7 +2060,7 @@ class Ewei_hotelModuleSite extends WeModuleSite {
 		$params['fee'] = $item['sum_price'];
 		$params['delivery']['title'] = '到店支付';
 		$params['title'] = $item['style'];
-
+		
 //		$log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $params['module'], 'tid' => $params['tid']));
 //		if (empty($log)) {
 //			$log = array(
