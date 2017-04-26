@@ -23,19 +23,6 @@
 						<button class="btn btn-default" name="export" value="export"><i class="fa fa-download"></i> 导出数据</button>
 					</div>
 				</div>
-				<!-- 
-				<div class="form-group">
-					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">星级</label>
-					<div class="col-xs-12 col-sm-8 col-lg-9">
-						<select class='form-control' name='level'>
-							<option value='' {if empty($_GPC['level'])}selected{/if}></option>
-							{loop $hotel_level_config $key $value}
-							<option value ="{$key}" {if $_GPC['level'] == $key}selected="selected"{/if}>{$value}</option>
-							{/loop}
-						</select>
-					</div>
-				</div>
-				-->
 				<div class="form-group">
 				</div>
 			</form>
@@ -53,6 +40,7 @@
 				<th style="width:100px;">店铺排序</th>
 				<th style='width:120px;'>电话</th>
 				<th style='width:100px;'>状态</th>
+				<th style="width:100px;">入口</th>
 				<th style="width:550px;">操作</th>
 			</tr>
 			</thead>
@@ -76,6 +64,9 @@
 					{else}
 					<span class='label label-default'>隐藏</span>
 					{/if}
+				</td>
+				<td>
+					<a href="javascript:;" class="js-entry-modal" data-id="{$item['id']}" data-store_entry="{$item['store_entry']}" data-mc_entry="{$item['mc_entry']}">查看入口</a>
 				</td>
 				<td>
 					{if $item['store_type'] == 1}
@@ -108,12 +99,51 @@
 	</div>
 	{$pager}
 </div>
+<div class="modal fade" id="entry-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel">入口查看</h4>
+			</div>
+			<div class="modal-body clearfix form-horizontal">
+				<div class="form-group clip">
+					<label class="col-xs-12 col-sm-4 col-md-2 control-label">店铺首页</label>
+					<div class="col-sm-8 col-xs-12">
+						<p class="form-control-static"> <a href="javascript:;" id="store_entry"></a></p>
+					</div>
+				</div>
+				<div class="form-group clip">
+					<label class="col-xs-12 col-sm-4 col-md-2 control-label">个人中心</label>
+					<div class="col-sm-8 col-xs-12">
+						<p class="form-control-static"> <a href="javascript:;" id="mc_entry"></a></p>
+					</div>
+				</div>
+
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+			</div>
+		</div>
+	</div>
+</div>
 <script>
+	$('#entry-modal').on('shown.bs.modal', function () {
+		$('.clip p a').each(function(){
+			util.clip(this, $(this).text());
+		});
+	})
+	$('.js-entry-modal').click(function() {
+		var id = $(this).data('id');
+		store_entry = $(this).data('store_entry');
+		mc_entry = $(this).data('mc_entry');
+		$('#store_entry').text(store_entry);
+		$('#mc_entry').text(mc_entry);
+		$('#entry-modal').modal();
+	});
 	require(['bootstrap'],function($){
 		$('.btn').tooltip();
 	});
-</script>
-<script>
 	$(function(){
 		$(".check_all").click(function(){
 			var checked = $(this).get(0).checked;

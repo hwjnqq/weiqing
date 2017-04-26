@@ -354,6 +354,7 @@ if (!pdo_fieldexists('storex_order', 'coupon')) {
 }
 
 //处理mobile更新遗留的js，css和svg文件
+load()->func('file');
 $js_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/js');
 $css_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/css');
 $svg_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/img');
@@ -366,7 +367,6 @@ $current_js_files = array(
 $current_css_files = array(
 	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/black.20170425120.css',
 	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/display.20170425120.css',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/membercard.css'
 );
 $current_svg_files = array(
 	IA_ROOT . '/addons/wn_storex/template/style/mobile/img/storex.20170425120.svg',
@@ -374,12 +374,12 @@ $current_svg_files = array(
 $css_diff_files = array_diff($css_file_trees, $current_css_files);
 $js_diff_files = array_diff($js_file_trees, $current_js_files);
 $svg_diff_files = array_diff($svg_file_trees, $current_svg_files);
-if (!empty($svg_diff_files)) {
+if (!empty($js_diff_files)) {
 	foreach ($js_diff_files as $value) {
 		file_delete($value);
 	}
 }
-if (!empty($svg_diff_files)) {
+if (!empty($css_diff_files)) {
 	foreach ($css_diff_files as $value) {
 		file_delete($value);
 	}

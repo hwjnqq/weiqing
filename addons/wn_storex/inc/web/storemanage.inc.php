@@ -27,6 +27,12 @@ if ($op == 'display') {
 		$list = pdo_getall('storex_bases', array('weid' => $_W['uniacid'], 'title LIKE' => "%{$_GPC['keywords']}%"), array(), '',
 			 'displayorder DESC', ($pindex - 1) * $psize . ',' . $psize);
 		$pager = pagination($total, $pindex, $psize);
+		if (!empty($list)) {
+			foreach ($list as $key => &$value) {
+				$value['store_entry'] = $_W['siteroot'] . 'app/index.php?i=' . $_W['uniacid'] . '&c=entry&m=wn_storex&do=display&id=' . $value['id'] . '#/StoreIndex/' . $value['id'];
+				$value['mc_entry'] = $_W['siteroot'] . 'app/index.php?i=' . $_W['uniacid'] . '&c=entry&m=wn_storex&do=display&id=' . $value['id'] . '#/Home/Index';
+			}
+		}
 	}
 	
 	if (!empty($_GPC['export'])) {
