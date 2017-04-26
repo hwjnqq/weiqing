@@ -107,13 +107,13 @@
 				<h4 class="modal-title" id="myModalLabel">入口查看</h4>
 			</div>
 			<div class="modal-body clearfix form-horizontal">
-				<div class="form-group clip">
+				<div class="form-group clip-store">
 					<label class="col-xs-12 col-sm-4 col-md-2 control-label">店铺首页</label>
 					<div class="col-sm-8 col-xs-12">
 						<p class="form-control-static"> <a href="javascript:;" id="store_entry"></a></p>
 					</div>
 				</div>
-				<div class="form-group clip">
+				<div class="form-group clip-mc">
 					<label class="col-xs-12 col-sm-4 col-md-2 control-label">个人中心</label>
 					<div class="col-sm-8 col-xs-12">
 						<p class="form-control-static"> <a href="javascript:;" id="mc_entry"></a></p>
@@ -129,12 +129,10 @@
 </div>
 <script>
 	$('#entry-modal').on('shown.bs.modal', function () {
-		$('.clip p a').each(function(){
-			util.clip(this, $(this).text());
-		});
+		util.clip($('.clip-store p a'), $('.clip-store p a').text());
+		util.clip($('.clip-mc p a'), $('.clip-mc p a').text());
 	})
 	$('.js-entry-modal').click(function() {
-		var id = $(this).data('id');
 		store_entry = $(this).data('store_entry');
 		mc_entry = $(this).data('mc_entry');
 		$('#store_entry').text(store_entry);
