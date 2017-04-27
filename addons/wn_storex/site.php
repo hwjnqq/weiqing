@@ -80,8 +80,9 @@ class Wn_storexModuleSite extends WeModuleSite {
 	public function getItemTiles() {
 		global $_W;
 		$urls = array(
-			array('title' => "酒店首页", 'url' => $this->createMobileUrl('display')),
-			array('title' => "我的订单", 'url' => $this->createMobileUrl('display')) . '#/Home/OrderList/',
+			array('title' => '酒店首页', 'url' => $this->createMobileUrl('display')),
+			array('title' => '我的订单', 'url' => $this->createMobileUrl('display')) . '#/Home/OrderList/',
+			array('title' => '会员中心', 'url' => $this->createMobileurl(''))
 		);
 		return $urls;
 	}
@@ -161,13 +162,13 @@ class Wn_storexModuleSite extends WeModuleSite {
 	public function doMobiledisplay() {
 		global $_GPC, $_W;
 		$id = intval($_GPC['id']);
-		$url = $this->createMobileurl('display',array('id' => $id));
+		$url = $this->createMobileurl('display', array('id' => $id));
 		if (!empty($_GPC['orderid'])) {
-			$redirect =  $url.'#/Home/OrderInfo/' . $_GPC['orderid'];
+			$redirect = $url . '#/Home/OrderInfo/' . $_GPC['orderid'];
 			header("Location: $redirect");
 		}
 		if ($_GPC['pay_type'] == 'recharge') {
-			$redirect =  $url;
+			$redirect = $url;
 			header("Location: $redirect");
 		}
 		$skin_style = $this->get_skin_style($id);
@@ -295,7 +296,8 @@ class Wn_storexModuleSite extends WeModuleSite {
 		global $_GPC, $_W;
 		load()->model('mc');
 		load()->model('module');
-		load()->model('card');
+		// load()->model('card');
+		mload()->model('card');
 		if ($params['type']=='credit'){
 			$paytype=1;
 		} elseif ($params['type']=='wechat'){
@@ -322,10 +324,11 @@ class Wn_storexModuleSite extends WeModuleSite {
 				if (empty($recharge_info['type']) || $recharge_info['type'] == 'credit') {
 					$setting = uni_setting($_W['uniacid'], array('creditbehaviors', 'recharge'));
 					$credit = $setting['creditbehaviors']['currency'];
-					$we7_coupon = module_fetch('we7_coupon');
-					if (!empty($we7_coupon)) {
-						$recharge_settings = card_params_setting('cardRecharge');
-						$recharge_params = $recharge_settings['params'];
+					$card_setting = get_card_setting();
+					$card_recharge = $card_setting['params']['cardRecharge'];
+					$recharge_params = array();
+					if ($card_recharge['params']['recharge_type'] == 1) {
+						$recharge_params = $card_recharge['params'];
 					}
 					if (empty($credit)) {
 						message('站点积分行为参数配置错误,请联系服务商', '', 'error');
@@ -344,6 +347,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 									} else {
 										$total_fee = $fee + $recharge['back'];
 									}
+									break;
 								}
 							}
 						}
