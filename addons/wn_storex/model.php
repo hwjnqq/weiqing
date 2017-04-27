@@ -318,20 +318,6 @@ if(!function_exists('get_page_array')) {
 		return $pdata;
 	}
 }
-//支付成功后，根据酒店设置的消费返积分的比例给积分
-if(!function_exists('give_credit')) {
-	function give_credit($uid, $sum_price){
-		load()->model('mc');
-		mload()->model('card');
-		$card_credit = card_return_credit_info($uid);
-		if (!empty($card_credit)) {
-			$num = $sum_price * $card_credit['grant_rate'];
-			$tips = "用户消费{$sum_price}元，支付{$sum_price}，会员每消费1元赠送{$card_credit['grant_rate']}积分,共赠送【{$num}】积分";
-			mc_credit_update($uid, 'credit1', $num, array('0', $tips, 'wn_storex', 0, 0, 3));
-		}
-		return error(0, $num);
-	}
-}
 //完成订单后加售出数量
 if(!function_exists('add_sold_num')) {
 	function add_sold_num($room){

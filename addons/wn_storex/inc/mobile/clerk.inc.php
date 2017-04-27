@@ -4,6 +4,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 load()->model('mc');
+mload()->model('card');
 
 $ops = array('clerkindex', 'order', 'room');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
@@ -203,7 +204,7 @@ if ($op == 'order') {
 			if ($data['status'] == 3) {
 				$uid = mc_openid2uid(trim($item['openid']));
 				//订单完成后增加积分
-				give_credit($item['weid'], $uid, $item['sum_price'] ,$item['hotelid']);
+				card_give_credit($item['weid'], $uid, $item['sum_price'] ,$item['hotelid']);
 				//增加出售货物的数量
 				add_sold_num($goods_info);
 				$acc = WeAccount::create();
