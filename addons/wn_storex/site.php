@@ -324,7 +324,8 @@ class Wn_storexModuleSite extends WeModuleSite {
 				if (empty($recharge_info['type']) || $recharge_info['type'] == 'credit') {
 					$setting = uni_setting($_W['uniacid'], array('creditbehaviors', 'recharge'));
 					$credit = $setting['creditbehaviors']['currency'];
-					$card_setting = get_card_setting();
+					mload()->model('card');
+					$card_setting = card_setting_info();
 					$card_recharge = $card_setting['params']['cardRecharge'];
 					$recharge_params = array();
 					if ($card_recharge['params']['recharge_type'] == 1) {
