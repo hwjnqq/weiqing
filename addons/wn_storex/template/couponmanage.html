@@ -93,6 +93,45 @@
 			</div>
 		</div>
 	</div>
+	<div class="modal fade" id="put-coupon">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-body">
+					<div class="form-group">
+						<ul class="nav nav-tabs" role="tablist">
+						<li role="presentation" class="active"><a href="#put-qrcode" aria-controls="qrcode" role="tab" data-toggle="tab">二维码</a></li>
+						<li role="presentation"><a href="#put-coupon-record" aria-controls="put-coupon-record" role="tab" data-toggle="tab">领取记录</a></li>
+					</ul>
+					</div>
+					<div class="tab-content">
+						<div role="tabpanel" class="tab-pane active text-center" id="put-qrcode">
+							<div class="alert alert-info text-left">
+								<!-- 该投放二维码有效期至：<span class="js-qrcode-expire"></span> <br /> -->
+								如果您要大量投放卡券，请使用卡券营销功能
+							</div>
+							<div class="qrcode-block" data-url="{php echo murl('entry', array('m' => 'paycenter', 'do' => 'pay', 'id' => $id), true, true);}" style="margin-top:20px"></div>
+							<img src="" class="js-qrcode-src">
+						</div>
+						<div role="tabpanel" class="tab-pane" id="put-coupon-record">
+							<div class="alert alert-info text-left">
+								共有 <span class="js-qrcode-record-total"></span> 人领取
+							</div>
+							<table class="table table-hover">
+								<thead class="table table-hover">
+									<tr>
+										<th style="width: 20%;"></th>
+										<th>昵称</th>
+										<th style="width: 30%;">领取时间</th>
+									</tr>
+								</thead>
+								<tbody class="js-qrcode-record"></tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 	<div class="panel panel-info">
 	<div class="panel-heading">筛选</div>
 	<div class="panel-body">
@@ -198,8 +237,8 @@
 					<td style="text-align:right;">
 						{if false}
 						<a href="javascript:;" onclick="util.ajaxshow('{php echo $this->createWeburl('couponmanage', array('op' => 'selfconsume', 'id' => $item['id']))}')" class="btn {if $item['is_selfconsume'] == 1}btn-danger{else}btn-success{/if} btn-sm toggle-selfconsume" title="自助核销">{if $item['is_selfconsume'] == 1}关闭自助核销{else}开启自助核销{/if}</a>
-						<a href="#put-coupon" data-toggle="modal" data-cid={$item['id']} class="btn btn-default btn-sm js-publish">投放</a>
 						{/if}
+						<a href="#put-coupon" data-toggle="modal" data-cid={$item['id']} class="btn btn-default btn-sm js-publish">投放</a>
 						<a href="javascript:;" class="btn btn-default btn-sm change_quantity" data-id="{$item['id']}">修改库存</a>
 						<a href="javascript:;" onclick="util.ajaxshow('{php echo $this->createWeburl('couponmanage', array('op' => 'toggle', 'id' => $item['id']))}')" class="btn btn-default btn-sm toggle-display" title="上架/下架">{if $item['is_display'] == 1}下架{else}上架{/if}</a>
 						<a href="{php echo $this->createWeburl('couponmanage', array('op' => 'detail', 'id' => $item['id']))}" class="btn btn-success btn-sm" title="查看详情">查看详情</a>
@@ -213,6 +252,29 @@
 	</div>
 </div>
 <script type="text/javascript">
+	$(document).on('click', '.js-publish', function() {
+		cid = $(this).data('cid');
+		$.post("{php echo $this->createWeburl('couponmanage', array('op' => 'publish'))}", {'cid' : cid}, function(data) {
+			var data = $.parseJSON(data);
+			console.dir(data);
+			if (data.message.errno == '0') {
+				var coupon = data.message.message.coupon;
+				$('.js-qrcode-src').attr('src', coupon.url);
+				$('.js-qrcode-expire').html(coupon.expire);
+				$('.js-qrcode-record-total').html(data.message.message.total);
+				var record = data.message.message.record;
+				if (record) {
+					$('.js-qrcode-record').html('');
+					for (i in record) {
+						$('.js-qrcode-record').append('<tr><td><img src="'+record[i].avatar+'" width="50" /></td><td><a href="#">'+record[i].nickname+'</a></td><td><a href="#">'+record[i].createtime+'</a></td></tr>');
+					}
+				}
+			} else {
+				$('#put-coupon').modal('hide');
+				util.message(data.message.message);
+			}
+		});
+	});
 	$('#add_coupon').click(function() {
 		$('#cardtype-modal').modal(); 
 	});
@@ -789,7 +851,6 @@
 			}
 		});
 	});
-
 </script>
 {/if}
 

@@ -158,6 +158,12 @@ function check_params(){
 				'id' => intval($_GPC['recid']),
 			),
 		),
+		'recharge' => array(
+			'common' => array(
+				'uniacid' => intval($_W['uniacid']),
+				'openid' => $_W['openid']
+			),
+		)
 	);
 	$do = trim($_GPC['do']);
 	$op = trim($_GPC['op']);

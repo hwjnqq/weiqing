@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 mload()->model('activity');
-$ops = array('display', 'post', 'detail', 'toggle', 'modifystock', 'delete');
+$ops = array('display', 'post', 'detail', 'toggle', 'modifystock', 'delete', 'publish');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $coupon_colors = activity_get_coupon_colors();
@@ -198,6 +198,14 @@ if ($op == 'delete') {
 	pdo_delete('storex_coupon_store', array('uniacid' => $_W['uniacid'], 'couponid' => $id));
 	
 	message('卡券删除成功！', referer(), 'success');
+}
+
+if ($op == 'publish') {
+	$couponid = intval($_GPC['id']);
+	$url = $this->createMobileUrl('coupon', array('op' => 'publish', 'id' => $couponid));
+	message(error(0, $url), '', 'ajax');
+	message(error('0', array('coupon' => $url, 'record' => $qrcode_list, 'total' => $total)), '', 'ajax');
+
 }
 
 include $this->template('couponmanage');
