@@ -27,9 +27,25 @@ if ($op == 'recharge_add') {
 		if (empty($fee) || $fee <= 0) {
 			message(error(-1, '请输入正确金额'), '', 'ajax');
 		}
-		$backtype = trim($_GPC['backtype']);
 		$back= floatval($_GPC['back']);
-		$charge_record = array(
+		$backtype = trim($_GPC['backtype']);
+		if ($backtype == 0 || $backtype == 1) {
+			$card_setting = get_card_setting();
+			$card_recharge = $card_setting['params']['cardRecharge'];
+			$recharge_lists = array();
+			if ($card_recharge['params']['recharge_type'] == 1) {
+				$recharge_lists = $card_recharge['params']['recharges'];
+			}
+			foreach ($recharge_lists as $key => $value) {
+				if ($value['backtype'] == $backtype) {
+					if ($value['condition'] == $fee) {
+						$back = $value['back'];
+						break;
+					}
+				}
+			}
+		}
+		$recharge_record = array(
 			'uid' => $uid,
 			'openid' => $_W['openid'],
 			'uniacid' => $_W['uniacid'],
@@ -41,7 +57,7 @@ if ($op == 'recharge_add') {
 			'status' => 0,
 			'createtime' => TIMESTAMP,
 		);
-		if (!pdo_insert('mc_credits_recharge', $charge_record)) {
+		if (!pdo_insert('mc_credits_recharge', $recharge_record)) {
 			message(error(-1, '创建充值订单失败'), '', 'ajax');
 		}
 		$recharge_id = pdo_insertid();
