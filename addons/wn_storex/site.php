@@ -295,8 +295,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 	public function payResult($params) {
 		global $_GPC, $_W;
 		load()->model('mc');
-		load()->model('module');
-		// load()->model('card');
 		mload()->model('card');
 		if ($params['type']=='credit'){
 			$paytype=1;
@@ -307,7 +305,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 		} elseif ($params['type']=='delivery'){
 			$paytype=3;
 		}
-		$recharge_info = pdo_get('mc_credits_recharge', array('uniacid' => $_W['uniacid'], 'tid' => $params['tid']), array('id'));
+		$recharge_info = pdo_get('mc_credits_recharge', array('uniacid' => $_W['uniacid'], 'tid' => $params['tid']), array('id', 'backtype', 'fee'));
 		if (!empty($recharge_info)) {
 			if ($params['result'] == 'success' && $params['from'] == 'notify') {
 				$fee = $params['fee'];
@@ -324,7 +322,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 				if (empty($recharge_info['type']) || $recharge_info['type'] == 'credit') {
 					$setting = uni_setting($_W['uniacid'], array('creditbehaviors', 'recharge'));
 					$credit = $setting['creditbehaviors']['currency'];
-					mload()->model('card');
 					$card_setting = card_setting_info();
 					$card_recharge = $card_setting['params']['cardRecharge'];
 					$recharge_params = array();
@@ -337,18 +334,17 @@ class Wn_storexModuleSite extends WeModuleSite {
 						if ($recharge_params['recharge_type'] == '1') {
 							$recharges = $recharge_params['recharges'];
 						}
-						if ($order['backtype'] == '2') {
+						if ($recharge_info['backtype'] == '2') {
 							$total_fee = $fee;
 						} else {
 							foreach ($recharges as $key => $recharge) {
-								if ($recharge['backtype'] == $order['backtype'] && $recharge['condition'] == $order['fee']) {
-									if ($order['backtype'] == '1') {
+								if ($recharge['backtype'] == $recharge_info['backtype'] && $recharge['condition'] == $recharge_info['fee']) {
+									if ($recharge_info['backtype'] == '1') {
 										$total_fee = $fee;
 										$add_credit = $recharge['back'];
 									} else {
 										$total_fee = $fee + $recharge['back'];
 									}
-									break;
 								}
 							}
 						}
@@ -357,8 +353,8 @@ class Wn_storexModuleSite extends WeModuleSite {
 							$remark = '用户通过' . $paydata[$params['type']] . '充值' . $fee . $add_str;
 							$record[] = $params['user'];
 							$record[] = $remark;
-							mc_credit_update($recharge_info['uid'], 'credit1', $add_credit, $record);
-							mc_credit_update($recharge_info['uid'], 'credit2', $total_fee, $record);
+							mc_credit_update($params['user'], 'credit1', $add_credit, $record);
+							mc_credit_update($params['user'], 'credit2', $total_fee, $record);
 							mc_notice_recharge($recharge_info['openid'], $recharge_info['uid'], $total_fee, '', $remark);
 						} else {
 							$add_str = ",充值成功,本次操作共增加余额{$total_fee}元";

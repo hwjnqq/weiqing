@@ -11,10 +11,11 @@ check_params();
 $uid = mc_openid2uid($_W['openid']);
 
 if ($op == 'card_recharge') {
+	$card_member_info = pdo_get('storex_mc_card_members', array('uniacid' => $_W['uniacid'], 'openid' => $_W['openid']), array('id'));
 	$card_setting = card_setting_info();
 	$card_recharge = $card_setting['params']['cardRecharge'];
 	$recharge_lists = array();
-	if ($card_recharge['params']['recharge_type'] == 1) {
+	if ($card_recharge['params']['recharge_type'] == 1 && !empty($card_member_info)) {
 		$recharge_lists = $card_recharge['params']['recharges'];
 	}
 	message(error(0, $recharge_lists), '', 'ajax');
