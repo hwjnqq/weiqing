@@ -16,7 +16,7 @@ $extend_switch = extend_switch_fetch();
 if ($extend_switch['card'] == 2) {
 	message(error(-1, '管理员未开启会员卡！'), '', 'ajax');
 }
-$card_info = get_card_setting();
+$card_info = card_setting_info();
 if (empty($card_info)) {
 	message(error(-1, '公众号尚未开启会员卡功能！'), '', 'ajax');
 }

@@ -322,7 +322,8 @@ if(!function_exists('get_page_array')) {
 if(!function_exists('give_credit')) {
 	function give_credit($uid, $sum_price){
 		load()->model('mc');
-		$card_credit = get_return_credit_info($uid);
+		mload()->model('card');
+		$card_credit = card_return_credit_info($uid);
 		if (!empty($card_credit)) {
 			$num = $sum_price * $card_credit['grant_rate'];
 			$tips = "用户消费{$sum_price}元，支付{$sum_price}，会员每消费1元赠送{$card_credit['grant_rate']}积分,共赠送【{$num}】积分";

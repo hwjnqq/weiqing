@@ -87,7 +87,7 @@ if ($op == 'info') {
 	$infos['goods_info'] = $goods_info;
 	$infos['address'] = $address;
 	$infos['coupon_list'] = $paycenter_couponlist;
-	$card_activity_info = get_return_credit_info();
+	$card_activity_info = card_return_credit_info();
 	$infos['card_disounts_info'] = array();
 	if (!empty($card_activity_info)) {
 		$user_group = card_group_id($uid);

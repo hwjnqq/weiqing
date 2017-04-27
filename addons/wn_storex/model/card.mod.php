@@ -158,7 +158,7 @@ function card_info_exist($data){
 }
 
 function card_discount_price($uid, $price){
-	$card_credit = get_return_credit_info();
+	$card_credit = card_return_credit_info();
 	if (!empty($card_credit)) {
 		$group = card_group_id($uid);
 		if (!empty($group) && !empty($card_credit['discounts'][$group['groupid']])) {
@@ -190,5 +190,52 @@ function card_group_id($uid){
 		if (!empty($members) && !empty($groups[$members['groupid']])) {
 			return $groups[$members['groupid']];
 		}
+	}
+}
+
+function card_setting_info() {
+	global $_W;
+	$cachekey = "wn_storex_mc_card_setting:{$_W['uniacid']}";
+	$cache = cache_load($cachekey);
+	if (!empty($cache)) {
+		return $cache;
+	}
+	$card_info = pdo_get('storex_mc_card', array('uniacid' => intval($_W['uniacid'])));
+	if (empty($card_info)) {
+		return array();
+	}
+	$json_to_array = array(
+			'color', 'background', 'fields', 'discount', 'grant', 'nums', 'times',
+	);
+	foreach ($json_to_array as $val) {
+		if (!empty($card_info[$val])) {
+			$card_info[$val] = iunserializer($card_info[$val]);
+		}
+	}
+	if (!empty($card_info['params'])) {
+		$card_info['params'] = json_decode($card_info['params'], true);
+	}
+	cache_write($cachekey, $card_info);
+	return $card_info;
+}
+
+function card_return_credit_info($uid = ''){
+	global $_W;
+	if (empty($uid)) {
+		$uid = mc_openid2uid($_W['openid']);
+	}
+	if (!pdo_get('storex_mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $uid), array('id'))) {
+		return '';
+	}
+	$card_info = card_setting_info();
+	$cardActivity = $card_info['params']['cardActivity']['params'];
+	if ($card_info['params']['cardRecharge']['params']['recharge_type'] == 1) {
+		if ($card_info['params']['cardRecharge']['params']['grant_rate_switch'] == 1) {
+			return $cardActivity;
+		} else {
+			return '';
+		}
+	} else {
+		return $cardActivity;
 	}
 }

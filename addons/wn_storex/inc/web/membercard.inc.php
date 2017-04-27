@@ -193,7 +193,7 @@ if ($op == 'post') {
 		}
 		$cachekey = "wn_storex_mc_card_setting:{$_W['uniacid']}";
 		cache_delete($cachekey);
-		get_card_setting();
+		card_setting_info();
 		message(error(0, ''), $this->createWebUrl('membercard'), 'ajax');
 	}
 }

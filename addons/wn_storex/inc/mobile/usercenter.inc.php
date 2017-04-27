@@ -6,10 +6,12 @@ global $_W, $_GPC;
 
 $ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete', 'extend_switch');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
+
 check_params();
 load()->model('mc');
 mload()->model('card');
 $uid = mc_openid2uid($_W['openid']);
+
 if (in_array($op, array('address_post', 'address_default', 'address_delete')) && !empty($_GPC['id'])) {
 	$address_info = pdo_get('mc_member_address', array('uniacid' => $_W['uniacid'], 'uid' => $uid, 'id' => intval($_GPC['id'])));
 	if (empty($address_info)) {
@@ -40,7 +42,7 @@ if ($op == 'personal_info') {
 	} else {
 		$user_info['clerk'] = 0;
 	}
-	$card_info = get_card_setting();
+	$card_info = card_setting_info();
 	$user_info['mycard'] = pdo_get('storex_mc_card_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $uid));
 	if (!empty($user_info['mycard'])) {
 		$user_info['mycard']['is_receive'] = 1;//是否领取,1已经领取，2没有领取

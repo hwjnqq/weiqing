@@ -6,11 +6,12 @@ global $_W, $_GPC;
 $ops = array('recharge_add', 'recharge_pay', 'card_recharge');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
+mload()->model('card');
 check_params();
 $uid = mc_openid2uid($_W['openid']);
 
 if ($op == 'card_recharge') {
-	$card_setting = get_card_setting();
+	$card_setting = card_setting_info();
 	$card_recharge = $card_setting['params']['cardRecharge'];
 	$recharge_lists = array();
 	if ($card_recharge['params']['recharge_type'] == 1) {

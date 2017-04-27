@@ -9,6 +9,7 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 check_params();
 load()->model('mc');
 mload()->model('activity');
+mload()->model('card');
 $uid = mc_openid2uid($_W['openid']);
 
 if ($op == 'display') {
@@ -100,7 +101,7 @@ if ($op == 'exchange') {
 		if ($storex_exchange['credittype'] == 'credit1') {
 			mc_notice_credit1($_W['openid'], $_W['member']['uid'], -1 * $storex_exchange['credit'], '兑换卡券消耗积分');
 		} elseif ($storex_exchange['credittype'] == 'credit2') {
-			$card_info = get_card_setting();
+			$card_info = card_setting_info();
 			$recharges_set = $card_info['params']['cardRecharge'];
 			if (empty($recharges_set['params']['recharge_type'])) {
 				$grant_rate = $card_info['grant_rate'];
