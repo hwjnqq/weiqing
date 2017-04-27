@@ -30,7 +30,7 @@ if ($op == 'recharge_add') {
 		$back= floatval($_GPC['back']);
 		$backtype = trim($_GPC['backtype']);
 		if ($backtype == 0 || $backtype == 1) {
-			$card_setting = get_card_setting();
+			$card_setting = card_setting_info();
 			$card_recharge = $card_setting['params']['cardRecharge'];
 			$recharge_lists = array();
 			if ($card_recharge['params']['recharge_type'] == 1) {
