@@ -105,12 +105,10 @@
 					</div>
 					<div class="tab-content">
 						<div role="tabpanel" class="tab-pane active text-center" id="put-qrcode">
-							<div class="alert alert-info text-left">
-								<!-- 该投放二维码有效期至：<span class="js-qrcode-expire"></span> <br /> -->
-								如果您要大量投放卡券，请使用卡券营销功能
+							<div class="mui-content-padded mui-text-center">
+								<div class="js-qrcode-block" style="margin:50px 0 50px 0"></div>
+								<!-- <img src="" class="js-qrcode-src"> -->
 							</div>
-							<div class="qrcode-block" data-url="{php echo murl('entry', array('m' => 'paycenter', 'do' => 'pay', 'id' => $id), true, true);}" style="margin-top:20px"></div>
-							<img src="" class="js-qrcode-src">
 						</div>
 						<div role="tabpanel" class="tab-pane" id="put-coupon-record">
 							<div class="alert alert-info text-left">
@@ -252,23 +250,28 @@
 	</div>
 </div>
 <script type="text/javascript">
+require(['jquery.qrcode'], function(){
 	$(document).on('click', '.js-publish', function() {
 		cid = $(this).data('cid');
 		$.post("{php echo $this->createWeburl('couponmanage', array('op' => 'publish'))}", {'cid' : cid}, function(data) {
 			var data = $.parseJSON(data);
-			console.dir(data);
 			if (data.message.errno == '0') {
-				var coupon = data.message.message.coupon;
-				$('.js-qrcode-src').attr('src', coupon.url);
-				$('.js-qrcode-expire').html(coupon.expire);
-				$('.js-qrcode-record-total').html(data.message.message.total);
-				var record = data.message.message.record;
+				var coupon = data.message.message;
+				$('.js-qrcode-record-total').html(coupon.total);
+				var record = coupon.record;
 				if (record) {
 					$('.js-qrcode-record').html('');
 					for (i in record) {
-						$('.js-qrcode-record').append('<tr><td><img src="'+record[i].avatar+'" width="50" /></td><td><a href="#">'+record[i].nickname+'</a></td><td><a href="#">'+record[i].createtime+'</a></td></tr>');
+						$('.js-qrcode-record').append('<tr><td><img src="'+record[i].avatar+'" width="50" /></td><td><a href="#">'+record[i].nickname+'</a></td><td><a href="#">'+record[i].addtime+'</a></td></tr>');
 					}
 				}
+				var url = coupon.url;
+				$('.js-qrcode-block').html('').qrcode({
+					render: 'canvas',
+					width: 300,
+					height: 300,
+					text: url,
+				});
 			} else {
 				$('#put-coupon').modal('hide');
 				util.message(data.message.message);
@@ -283,6 +286,7 @@
 		$('input[name="quantity_coupon_id"]').val(coupon_id);
 		$('#quantity-modal').modal();
 	})
+});
 </script>
 {/if}
 

@@ -352,6 +352,9 @@ if (pdo_fieldexists('storex_bases', 'integral_rate')) {
 if (!pdo_fieldexists('storex_order', 'coupon')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') ." ADD `coupon` INT NOT NULL COMMENT '使用卡券信息';");
 }
+if (!pdo_fieldexists('storex_coupon_record', 'granttype')) {
+	pdo_query("ALTER TABLE " . tablename('storex_coupon_record') ." ADD `granttype` tinyint(4) NOT NULL COMMENT '获取卡券的方式：1 兑换，2 扫码';");
+}
 
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');

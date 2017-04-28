@@ -201,11 +201,20 @@ if ($op == 'delete') {
 }
 
 if ($op == 'publish') {
-	$couponid = intval($_GPC['id']);
-	$url = $this->createMobileUrl('coupon', array('op' => 'publish', 'id' => $couponid));
-	message(error(0, $url), '', 'ajax');
-	message(error('0', array('coupon' => $url, 'record' => $qrcode_list, 'total' => $total)), '', 'ajax');
-
+	$couponid = intval($_GPC['cid']);
+	$url = murl('entry', array('do' => 'coupon', 'op' => 'publish', 'id' => $couponid, 'm' => 'wn_storex'), true, true);
+	$coupon_record = pdo_getall('storex_coupon_record', array('uniacid' => $_W['uniacid'], 'couponid' => $couponid, 'granttype' => 2), 
+			array('id', 'uniacid', 'uid', 'addtime'));
+	if (!empty($coupon_record)) {
+		foreach ($coupon_record as &$info) {
+			$fansinfo = mc_fansinfo($info['uid']);
+			$info['nickname'] = $fansinfo['nickname'];
+			$info['addtime'] = date('Y-m-d H:i', $info['addtime']);
+			$info['avatar'] = $fansinfo['avatar'];
+		}
+	}
+	$total = count($coupon_record);
+	message(error('0', array('url' => $url, 'record' => $coupon_record, 'total' => $total)), '', 'ajax');
 }
 
 include $this->template('couponmanage');

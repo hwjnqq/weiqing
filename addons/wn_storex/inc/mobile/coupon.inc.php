@@ -3,7 +3,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('display', 'exchange', 'mine', 'detail');
+$ops = array('display', 'exchange', 'mine', 'detail', 'publish');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -83,10 +83,10 @@ if ($op == 'exchange') {
 		message(error(-1, '兑换次数不足'), '', 'ajax');
 	}
 	$coupon_info = activity_get_coupon_info($id);
-	$received_total = pdo_fetchcolumn("SELECT count(*) FROM " . tablename('storex_coupon_record') . " WHERE `uniacid` = :uniacid AND `couponid` = :id", array(':id' => $id, ':uniacid' => intval($_W['uniacid'])));
-	if ($received_total >= $coupon_info['quantity']) {
-		message(error(-1, '数量超限'), '', 'ajax');
-	}
+// 	$received_total = pdo_fetchcolumn("SELECT count(*) FROM " . tablename('storex_coupon_record') . " WHERE `uniacid` = :uniacid AND `couponid` = :id", array(':id' => $id, ':uniacid' => intval($_W['uniacid'])));
+// 	if ($received_total >= $coupon_info['quantity']) {
+// 		message(error(-1, '卡券发放完毕'), '', 'ajax');
+// 	}
 	if ($storex_exchange['starttime'] > TIMESTAMP) {
 		message(error(-1, '活动未开始'), '', 'ajax');
 	}
@@ -148,4 +148,19 @@ if ($op == 'detail') {
 	$coupon_colors = activity_get_coupon_colors();
 	$coupon_info['color_value'] = !empty($coupon_colors[$coupon_info['color']]) ? $coupon_colors[$coupon_info['color']] : '#a9d92d';
 	message(error(0, $coupon_info), '', 'ajax');
+}
+
+if ($op == 'publish') {
+	$id = intval($_GPC['id']);
+	$status = activity_user_get_coupon($id, $_W['openid'], $granttype = 2);
+	$url = $this->createMobileurl('display');
+	if (is_error($status)) {
+		$url .= '#/wechat_redirect';
+		message($status['message'], $url, 'error');
+	} else {
+		$record = pdo_get('storex_coupon_record', array('uniacid' => $_W['uniacid'], 'id' => $status), array('id', 'couponid'));
+		$store = pdo_getall('storex_bases', array('weid' => $_W['uniacid']), array('id'), '', 'displayorder DESC', array(1,1));
+		$url .= '&id=' . $store[0]['id'] . '#/Home/Coupon/' . $record['id'] . '/' . $record['couponid'];
+		header("Location: $url");
+	}
 }
