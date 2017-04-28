@@ -83,10 +83,6 @@ if ($op == 'exchange') {
 		message(error(-1, '兑换次数不足'), '', 'ajax');
 	}
 	$coupon_info = activity_get_coupon_info($id);
-// 	$received_total = pdo_fetchcolumn("SELECT count(*) FROM " . tablename('storex_coupon_record') . " WHERE `uniacid` = :uniacid AND `couponid` = :id", array(':id' => $id, ':uniacid' => intval($_W['uniacid'])));
-// 	if ($received_total >= $coupon_info['quantity']) {
-// 		message(error(-1, '卡券发放完毕'), '', 'ajax');
-// 	}
 	if ($storex_exchange['starttime'] > TIMESTAMP) {
 		message(error(-1, '活动未开始'), '', 'ajax');
 	}
