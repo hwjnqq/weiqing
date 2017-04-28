@@ -555,7 +555,7 @@ class Ewei_bigwheelModuleSite extends WeModuleSite {
 		}
 		$temp = pdo_update('bigwheel_award', $p, array('id' => $id, 'weid' => $_W['uniacid']));
 		if ($temp == false) {
-			message('抱歉，刚才操作数据失败！', '', 'error');
+			message('该用户已是该状态，无需重复操作！', '', 'error');
 		} else {
 			message('状态设置成功！', $this->createWebUrl('awardlist',array('rid'=>$_GPC['rid'])), 'success');
 		}
