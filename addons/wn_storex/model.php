@@ -253,8 +253,13 @@ if(!function_exists('hotel_member_single')) {
 if(!function_exists('get_hotel_set')) {
 	function get_hotel_set() {
 		global $_GPC, $_W;
+		$cachekey = "wn_storex_set:{$_W['uniacid']}";
+		$set = cache_load($cachekey);
+		if (!empty($set)) {
+			return $set;
+		}
 		$set = pdo_get('storex_set', array('weid' => intval($_W['uniacid'])));
-		if (!$set) {
+		if (empty($set)) {
 			$set = array(
 				"user" => 1,
 				"bind" => 1,
@@ -269,6 +274,7 @@ if(!function_exists('get_hotel_set')) {
 				"tel" => "",
 			);
 		}
+		cache_write($cachekey, $set);
 		return $set;
 	}
 }

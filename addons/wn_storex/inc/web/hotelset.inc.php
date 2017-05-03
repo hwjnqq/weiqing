@@ -54,11 +54,11 @@ if ($op == 'display') {
 		} else {
 			pdo_insert("storex_set", $data);
 		}
+		$cachekey = "wn_storex_set:{$_W['uniacid']}";
+		cache_delete($cachekey);
+		$set = get_hotel_set();
 		message("保存设置成功!", referer(), "success");
 	}
-	$set = pdo_get('storex_set', array('weid' => $_W['uniacid']));
-	if (empty($set)) {
-		$set = array('user' => 1, 'reg' => 1, 'bind' => 1);
-	}
+	$set = get_hotel_set();
 	include $this->template("hotelset");
 }
