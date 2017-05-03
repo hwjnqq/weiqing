@@ -1,5 +1,15 @@
 <?php
 
+function activity_get_coupon_type() {
+	global $_W;
+	$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']), 'source');
+	if ($setting['source'] == 1) {
+		define('COUPON_TYPE', SYSTEM_COUPON);
+	} else {
+		define('COUPON_TYPE', WECHAT_COUPON);
+	}
+}
+
 /**
  * 返回卡券类型的中文标题和英文标识，此标识与微信文档同步
  * @param int $type
@@ -265,5 +275,43 @@ function activity_coupon_consume($couponid, $recid, $store_id) {
 		'store_id' => $store_id
 	);
 	pdo_update('storex_coupon_record', $update, array('id' => $coupon_record['id']));
+	return true;
+}
+
+//卡券状态
+function activity_get_coupon_status() {
+	return array(
+		'CARD_STATUS_NOT_VERIFY' => 1, //待审核
+		'CARD_STATUS_VERIFY_FAIL' => 2, //未通过
+		'CARD_STATUS_VERIFY_OK' => 3, //通过审核
+		'CARD_STATUS_USER_DELETE' => 4,
+		'CARD_STATUS_DELETE' => 4,//卡券被商户删除
+		'CARD_STATUS_USER_DISPATCH' => 5, //在公众平台投放过的卡券
+		'CARD_STATUS_DISPATCH' => 5, //在公众平台投放过的卡券
+	);
+}
+
+//微信卡券同步
+function activity_wechat_coupon_sync() {
+	global $_W;
+	$cachekey = "wn_storex_couponsync:{$_W['uniacid']}";
+	$cache = cache_load($cachekey);
+	if (!empty($cache) && $cache['expire'] > time()) {
+		return false;
+	}
+	load()->classs('coupon');
+	$coupon_api = new coupon();
+	$cards = pdo_getall('storex_coupon', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array('id', 'status', 'card_id', 'acid'));
+	foreach ($cards as $val) {
+		$card = $coupon_api->fetchCard($val['card_id']);
+		if (is_error($card)) {
+			return error(-1, $card['message']);
+		}
+		$type = strtolower($card['card_type']);
+		$coupon_status = activity_get_coupon_status();
+		$status = $coupon_status[$card[$type]['base_info']['status']];
+		$status = pdo_update('storex_coupon', array('status' => $status), array('id' => $val['id']));
+	}
+	cache_write($cachekey, array('expire' => time() + 1800));
 	return true;
 }

@@ -1,5 +1,6 @@
 {template 'common/header'}
 {if $op == 'display'}
+<link rel="stylesheet" href="../addons/wn_storex/template/style/css/membercard.css">
 <div class="main" id="coupon_display">
 	<ul class="nav nav-tabs">
 		<li {if $_GPC['do'] == 'couponmanage' && $_GPC['op'] == 'display' }class="active" {/if}><a href="{php echo $this->createWeburl('couponmanage', array('op' => 'display'))}">卡券管理</a></li>
@@ -10,6 +11,19 @@
 		<h4 class="pull-left">卡券管理</h4>
 		<div class="pull-right">
 			<a href="javascript:;" id="add_coupon" class="btn btn-primary we7-padding-horizontal">+添加卡券</a>
+		</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<div class="weui-cell weui-cell_switch" style="width:300px;">
+				<div class="weui-cell__bd"> 是否启用微信卡券：</div>
+				<div class="weui-cell__ft">
+					<label for="switchCP" class="weui-switch-cp">
+						<input id="switchCP" class="weui-switch-cp__input" type="checkbox" name="flag" {if $setting['source'] == 2} checked="checked" {/if}>
+						<div class="weui-switch-cp__box"></div>
+					</label>
+				</div>
+			</div>
 		</div>
 	</div>
 	<div class="modal fade" id="cardtype-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
@@ -38,7 +52,7 @@
 							<div class="help-block">可为用户提供抵扣现金服务。可设置成为“满*元，减*元”</div>
 						</div>
 					</div>
-					{if false}
+					{if COUPON_TYPE == WECHAT_COUPON}
 					<div class="form-group marbot0">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
 						<div class="col-sm-9 col-xs-12">
@@ -70,7 +84,7 @@
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-					<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="location.href='{php echo $this->createWeburl('couponmanage', array('op' => 'post'))}&type=' + $('#cardtype-modal input[type=radio]:checked').val()">确定</button>
+					<button type="button" class="btn btn-primary js-select-coupon" data-dismiss="modal">确定</button>
 				</div>
 			</div>
 		</div>
@@ -107,7 +121,6 @@
 						<div role="tabpanel" class="tab-pane active text-center" id="put-qrcode">
 							<div class="mui-content-padded mui-text-center">
 								<div class="js-qrcode-block" style="margin:50px 0 50px 0"></div>
-								<!-- <img src="" class="js-qrcode-src"> -->
 							</div>
 						</div>
 						<div role="tabpanel" class="tab-pane" id="put-coupon-record">
@@ -146,7 +159,7 @@
 					<a href="{php echo filter_url('type:');}" class="btn {if $_GPC['type'] == ''}btn-primary{else}btn-default{/if}">不限</a>
 					<a href="{php echo filter_url('type:'.COUPON_TYPE_DISCOUNT);}" class="btn {if $_GPC['type'] == COUPON_TYPE_DISCOUNT}btn-primary{else}btn-default{/if}">折扣券</a>
 					<a href="{php echo filter_url('type:'.COUPON_TYPE_CASH);}" class="btn {if $_GPC['type'] == COUPON_TYPE_CASH}btn-primary{else}btn-default{/if}">代金券</a>
-					{if false}
+					{if COUPON_TYPE == WECHAT_COUPON}
 					<a href="{php echo filter_url('type:'.COUPON_TYPE_GIFT);}" class="btn {if $_GPC['type'] == COUPON_TYPE_GIFT}btn-primary{else}btn-default{/if}">礼品券</a>
 					<a href="{php echo filter_url('type:'.COUPON_TYPE_GROUPON);}" class="btn {if $_GPC['type'] == COUPON_TYPE_GROUPON}btn-primary{else}btn-default{/if}">团购券</a>
 					<a href="{php echo filter_url('type:'.COUPON_TYPE_GENERAL);}" class="btn {if $_GPC['type'] == COUPON_TYPE_GENERAL}btn-primary{else}btn-default{/if}">优惠券</a>
@@ -249,8 +262,27 @@
 		</table>
 	</div>
 </div>
+{if COUPON_TYPE == WECHAT_COUPON}
+<a class="btn btn-success js-sync pull-left" onclick="util.ajaxshow('{php echo $this->createWeburl('couponmanage', array('op' => 'sync', 'type' => 1))}')">更新全部卡券最新状态</a>&nbsp;&nbsp;
+<!-- <a class="btn btn-success" ng-click="download(0);">同步卡券信息</a> -->
+{/if}
 <script type="text/javascript">
 require(['jquery.qrcode'], function(){
+	$('#switchCP').change(function() {
+		var status = this.checked ? 2 : 1;
+		$.post("{php echo $this->createWeburl('couponmanage', array('op' => 'status'));}", {status:status}, function(data){
+			data = $.parseJSON(data);
+			if(data.message.errno != 0) {
+				util.message('操作失败, 请稍后重试.')
+			} else {
+				util.message('操作成功', location.href, 'success');
+			}
+		});
+	});
+	$('.js-select-coupon').click(function() {
+		type = $('#cardtype-modal input[type=radio]:checked').val() ? $('#cardtype-modal input[type=radio]:checked').val() : 1;
+		location.href = '{php echo $this->createWeburl('couponmanage', array('op' => 'post'))}&type=' + type;
+	});
 	$(document).on('click', '.js-publish', function() {
 		cid = $(this).data('cid');
 		$.post("{php echo $this->createWeburl('couponmanage', array('op' => 'publish'))}", {'cid' : cid}, function(data) {
@@ -340,15 +372,15 @@ require(['jquery.qrcode'], function(){
 							<p>销券设置</p>
 						</div>
 						<div class="destroy_type_preview">
-							<div class="barcode-area code_preview code_preview_3" style="display: block">
+							<div class="barcode-area code_preview_3" v-if="params.code_type == 3">
+								<div class="barcode"></div>
+								<p class="code_num">1513-2290-1878</p>
+							</div>
+							<div class="qrcode-area code_preview_2" v-if="params.code_type == 2">
 								<div class="qrcode"></div>
 								<p class="code_num">1513-2290-1878</p>
 							</div>
-							<div class="qrcode-area code_preview code_preview_2">
-								<div class="qrcode"></div>
-								<p class="code_num">1513-2290-1878</p>
-							</div>
-							<div class="sn-area code_preview code_preview_1">1513-2290-1878</div>
+							<div class="sn-area code_preview_1" v-if="params.code_type == 1">1513-2290-1878</div>
 							<p style="text-align: center" id="notice-purview">请在付款时出示此券</p>
 						</div>
 						<div class="cicon">
@@ -590,6 +622,44 @@ require(['jquery.qrcode'], function(){
 													<div class="help-block">默认领券限制为1</div>
 												</div>
 											</div>
+											{if COUPON_TYPE == WECHAT_COUPON}
+											<div class="form-group">
+												<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+												<div class="col-sm-9 col-xs-12">
+													<div class="checkbox">
+														<label><input type="checkbox" name="can_share" value="1" checked v-model="params.can_share"/> 用户可以分享领券链接</label>
+													</div>
+													<div class="checkbox">
+														<label><input type="checkbox" name="can_give_friend" value="1" checked v-model="params.can_give_friend"/> 用户领券后可转赠其他好友</label>
+													</div>
+												</div>
+											</div>
+											<h4 style="margin-top:20px;">销券设置</h4>
+											<div class="form-group">
+												<label class="col-xs-12 col-sm-3 col-md-2 control-label">销券方式</label>
+												<div class="col-sm-9 col-xs-12">
+													<div class="radio">
+														<label><input type="radio"  class="" name="code_type" value="1" v-model="params.code_type"/> 仅卡券号</label>
+														<div class="help-block">只显示卡券号，验证后可进行销券</div>
+													</div>
+													<div class="radio">
+														<label><input type="radio"  class="" name="code_type" value="2" v-model="params.code_type"/> 二维码</label>
+														<div class="help-block">包含卡券信息的二维码，扫描后可进行销券</div>
+													</div>
+													<div class="radio">
+														<label><input type="radio"  class="" name="code_type" value="3" checked v-model="params.code_type"/> 条形码</label>
+														<div class="help-block">包含卡券信息的条形码，扫描后可进行销券</div>
+													</div>
+												</div>
+											</div>
+											<div class="form-group">
+												<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 操作提示</label>
+												<div class="col-sm-9 col-xs-12">
+													<input type="text" class="form-control" name="notice" id="notice" value="请在付款时出示此券"/>
+													<div class="help-block">建议引导用户到店出示卡券，由店员完成核销操作。不超过16个字符</div>
+												</div>
+											</div>
+											{/if}
 											{if false}
 											<div class="form-group">
 												<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
@@ -793,8 +863,9 @@ require(['jquery.qrcode'], function(){
 					'promotion_url_name': '个人中心',
 					'promotion_url_sub_title': '点击进入',
 					'location_select': [],
-					'can_share': 0,
-					'can_give_friend': 0,
+					'can_share': 1,
+					'can_give_friend': 1,
+					'code_type': 3,
 					'type': type,
 				},
 				coupon_label: coupon_label,

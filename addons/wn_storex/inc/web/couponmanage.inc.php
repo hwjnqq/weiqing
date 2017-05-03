@@ -5,20 +5,23 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 mload()->model('activity');
-$ops = array('display', 'post', 'detail', 'toggle', 'modifystock', 'delete', 'publish');
+$ops = array('display', 'post', 'detail', 'toggle', 'modifystock', 'delete', 'publish', 'status', 'sync');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $coupon_colors = activity_get_coupon_colors();
+activity_get_coupon_type();
 if ($op == 'display') {
+	$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('source'));
 	$store_lists = pdo_getall('storex_bases', array('status' => 1, 'weid' => $_W['uniacid']), array('id', 'title'), 'id');
 	$type = intval($_GPC['type']);
 	$pageindex = max(1, $_GPC['page']);
 	$psize = 15;
 	$condition = array();
 	$condition_sql = $join_sql = '';
-	$condition_sql = ' c.uniacid = :uniacid';
+	$condition_sql = ' c.uniacid = :uniacid AND c.source = :source';
 	$condition[':uniacid'] = $_W['uniacid'];
-	
+	$condition[':source'] = COUPON_TYPE;
+
 	if(!empty($_GPC['status'])) {
 		$condition_sql .= " AND c.status = :status";
 		$condition[':status'] = intval($_GPC['status']);
@@ -79,6 +82,7 @@ if ($op == 'post') {
 	}
 	if ($_W['isajax'] && $_W['ispost']) {
 		load()->classs('coupon');
+		$coupon_api = new coupon();
 		$params = $_GPC['params'];
 		$type = intval($params['type']);
 		$coupon = Card::create($type);
@@ -123,11 +127,21 @@ if ($op == 'post') {
 		if (is_error($check)) {
 			message(error(-1, $check['message']), '', 'ajax');
 		}
-		//系统优惠券
-		$coupon->status = 3;
-		$coupon->source = 1;
-		$coupon->setCodetype(3);
-		$coupon->card_id = 'AB' . $_W['uniacid'] . date('YmdHis');
+
+		if (COUPON_TYPE == WECHAT_COUPON) {
+			$status = $coupon_api->CreateCard($coupon->getCardData());
+			if(is_error($status)) {
+				message($status['message'], '', 'ajax');
+			}
+			$coupon->card_id = $status['card_id'];
+			$coupon->source = 2;
+			$coupon->status = 1;
+		} else {
+			$coupon->status = 3;
+			$coupon->source = 1;
+			$coupon->setCodetype(3);
+			$coupon->card_id = 'AB' . $_W['uniacid'] . date('YmdHis');
+		}
 		$cardinsert = $coupon->getCardArray();
 		$cardinsert['uniacid'] = $_W['uniacid'];
 		$cardinsert['acid'] = $_W['acid'];
@@ -141,14 +155,16 @@ if ($op == 'post') {
 			pdo_update('storex_coupon', $cardinsert, array('id' => $cardid));
 		}
 		//启用门店
-		if (!empty($params['location_select'])) {
-			foreach ($params['location_select'] as $store) {
-				$data = array(
-					'uniacid' => $_W['uniacid'],
-					'storeid' => $store['id'],
-					'couponid' => $cardid
-				);
-				pdo_insert('storex_coupon_store', $data);
+		if (COUPON_TYPE == SYSTEM_COUPON) {
+			if (!empty($params['location_select'])) {
+				foreach ($params['location_select'] as $store) {
+					$data = array(
+						'uniacid' => $_W['uniacid'],
+						'storeid' => $store['id'],
+						'couponid' => $cardid
+					);
+					pdo_insert('storex_coupon_store', $data);
+				}
 			}
 		}
 		message(error(0, '创建卡券成功'), $this->createWebUrl('couponmanage'), 'ajax');
@@ -215,6 +231,25 @@ if ($op == 'publish') {
 	}
 	$total = count($coupon_record);
 	message(error('0', array('url' => $url, 'record' => $coupon_record, 'total' => $total)), '', 'ajax');
+}
+
+if ($op == 'status') {
+	$status = pdo_update('storex_set', array('source' => intval($_GPC['status'])), array('weid' => $_W['uniacid']));
+	if (!empty($status)) {
+		message(error(0, '修改成功'), referer(), 'ajax');
+	} else {
+		message(error(-1, '修改失败'), referer(), 'ajax');
+	}
+}
+
+if ($op == 'sync') {
+	$type = trim($_GPC['type']);
+	if ($type == 1) {
+		$cachekey = "wn_storex_couponsync:{$_W['uniacid']}";
+		$cache = cache_delete($cachekey);
+	}
+	activity_wechat_coupon_sync();
+	message(error(0, '更新卡券状态成功'), referer(), 'ajax');
 }
 
 include $this->template('couponmanage');
