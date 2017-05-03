@@ -4,11 +4,13 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 load()->model('mc');
+load()->classs('coupon');
 mload()->model('activity');
 $ops = array('display', 'post', 'detail', 'toggle', 'modifystock', 'delete', 'publish', 'status', 'sync');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $coupon_colors = activity_get_coupon_colors();
+$coupon_api = new coupon();
 activity_get_coupon_type();
 if ($op == 'display') {
 	$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('source'));
@@ -81,8 +83,6 @@ if ($op == 'post') {
 		$store['thumb'] = tomedia($store['thumb']);
 	}
 	if ($_W['isajax'] && $_W['ispost']) {
-		load()->classs('coupon');
-		$coupon_api = new coupon();
 		$params = $_GPC['params'];
 		$type = intval($params['type']);
 		$coupon = Card::create($type);
@@ -207,6 +207,12 @@ if ($op == 'delete') {
 	$coupon_info = pdo_get('storex_coupon', array('uniacid' => $_W['uniacid'], 'id' => $id));
 	if (empty($coupon_info)) {
 		message('抱歉，卡券不存在或是已经被删除！');
+	}
+	if (COUPON_TYPE == WECHAT_COUPON) {
+		$status = $coupon_api->DeleteCard($coupon_info['card_id']);
+		if(is_error($status)) {
+			message('删除卡券失败，错误为' . $status['message'], '', 'error');
+		}
 	}
 	pdo_delete('storex_coupon', array('uniacid' => $_W['uniacid'], 'id' => $id));
 	// pdo_delete('storex_coupon_record', array('uniacid' => $_W['uniacid'], 'couponid' => $id));

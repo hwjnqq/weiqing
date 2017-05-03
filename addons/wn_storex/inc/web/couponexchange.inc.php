@@ -8,13 +8,14 @@ mload()->model('activity');
 $ops = array('display', 'post', 'change_status', 'coupon_info', 'delete');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
+activity_get_coupon_type();
 if ($op == 'display') {
 	$title = trim($_GPC['title']);
 	$condition = '';
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	if (!empty($title)) {
-		$cids = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'title LIKE' => '%'.$title.'%', 'source' => 1), array(), 'id');
+		$cids = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'title LIKE' => '%'.$title.'%', 'source' => COUPON_TYPE), array(), 'id');
 		$cids = implode('\',\'', array_keys($cids));
 		$condition = ' AND extra IN(\''.$cids.'\')';
 	}
@@ -26,7 +27,7 @@ if ($op == 'display') {
 		foreach ($list as $val) {
 			$id_arr[] = $val['extra'];
 		}
-		$coupons = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'source' => 1, 'id IN' => $id_arr), array(), 'id');
+		$coupons = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'source' => COUPON_TYPE, 'id IN' => $id_arr), array(), 'id');
 		foreach($list as &$ex) {
 			$ex['coupon'] = $coupons[$ex['extra']];
 			$ex['starttime'] = date('Y-m-d', $ex['starttime']);
@@ -75,7 +76,7 @@ if ($op == 'post') {
 		$data['starttime'] = time();
 		$data['endtime'] = time();
 	}
-	$coupons = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'source' => 1), array(), 'id');
+	$coupons = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'source' => COUPON_TYPE), array(), 'id');
 	$coupon_exists = pdo_getall('storex_activity_exchange', array('type' => 1, 'uniacid' => $_W['uniacid']), array(), 'extra');
 	$coupon_exists = array_keys($coupon_exists);
 	foreach ($coupons as $key => &$coupon) {

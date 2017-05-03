@@ -4,12 +4,12 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 load()->model('mc');
-
+mload()->model('activity');
 $ops = array('display', 'post', 'detail', 'toggle', 'modifystock', 'consume', 'delete');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
+activity_get_coupon_type();
 if ($op == 'display') {
-	$source = 1;
 	$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid']), array('id', 'business_name', 'branch_name'), 'id');
 	$store_ids = array_keys($stores);
 	$nicknames_info = pdo_getall('mc_mapping_fans', array('uniacid' => $_W['uniacid']), array('nickname', 'openid'), 'openid');
@@ -19,7 +19,7 @@ if ($op == 'display') {
 	$params = array();
 	$condition = ' a.uniacid = :uniacid AND b.source = :source';
 	$params[':uniacid'] = $_W['uniacid'];
-	$params[':source'] = $source;
+	$params[':source'] = COUPON_TYPE;
 	$type = intval($_GPC['type']);
 	if (!empty($type)) {
 		$condition .= ' AND b.type = :type';
@@ -108,7 +108,7 @@ if ($op == 'consume') {
 		'store_id' => $_W['user']['store_id'],
 		'clerk_name' => $clerk_name,
 	);
-	if ($source == '2') {
+	if ($source == WECHAT_COUPON) {
 		$status = $coupon_api->ConsumeCode(array('code' => $record['code']));
 		if(is_error($status)) {
 			if (strexists($status['message'], '40127')) {
@@ -135,7 +135,7 @@ if ($op == 'delete') {
 		message(error(-1, '没有要删除的记录'), '', 'ajax');
 	}
 	$source = intval($_GPC['source']);
-	if ($source == '2') {
+	if ($source == WECHAT_COUPON) {
 		$status = $coupon_api->UnavailableCode(array('code' => $record['code']));
 		if (is_error($status)) {
 			message(error(-1, $status['message']), referer(), 'ajax');
