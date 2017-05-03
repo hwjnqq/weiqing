@@ -31,7 +31,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 		global $_W;
 		$this->_from_user = $_W['fans']['from_user'];
 		$this->_weid = $_W['uniacid'];
-		$this->_set_info = get_hotel_set();
+		$this->_set_info = get_storex_set();
 		$this->_version = $this->_set_info['version'];
 	}
 

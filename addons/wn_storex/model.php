@@ -250,8 +250,8 @@ if(!function_exists('hotel_member_single')) {
 
 
 
-if(!function_exists('get_hotel_set')) {
-	function get_hotel_set() {
+if(!function_exists('get_storex_set')) {
+	function get_storex_set() {
 		global $_GPC, $_W;
 		$cachekey = "wn_storex_set:{$_W['uniacid']}";
 		$set = cache_load($cachekey);

@@ -56,9 +56,9 @@ if ($op == 'display') {
 		}
 		$cachekey = "wn_storex_set:{$_W['uniacid']}";
 		cache_delete($cachekey);
-		$set = get_hotel_set();
+		$set = get_storex_set();
 		message("保存设置成功!", referer(), "success");
 	}
-	$set = get_hotel_set();
+	$set = get_storex_set();
 	include $this->template("hotelset");
 }

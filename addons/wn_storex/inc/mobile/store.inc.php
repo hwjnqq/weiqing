@@ -11,11 +11,8 @@ check_params();
 //获取店铺列表
 if ($op == 'store_list') {
 	$keyword = trim($_GPC['keyword']);
-	$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('id', 'version'));
-	if ($setting['version'] == 0) {//单店
-		$limit = array(1,1);
-	}
-	$storex_bases = pdo_getall('storex_bases', array('weid' => $_W['uniacid'], 'status' => 1, 'title LIKE' => '%'.$keyword.'%'), array(), '', 'displayorder DESC', $limit);
+	$setting = get_storex_set();
+	$storex_bases = pdo_getall('storex_bases', array('weid' => $_W['uniacid'], 'status' => 1, 'title LIKE' => '%'.$keyword.'%'), array(), '', 'displayorder DESC');
 	foreach ($storex_bases as $key => $info) {
 		if (!empty($_GPC['lat']) && !empty($_GPC['lng'])) {
 			$lat = trim($_GPC['lat']);
@@ -55,10 +52,21 @@ if ($op == 'store_list') {
 			$storex_bases[$key]['thumbs'] = format_url($info['thumbs']);
 		}
 	}
+	$url = '';
+	if ($setting['version'] == 0) {//单店
+		if (!empty($storex_bases) && count($storex_bases) > 1) {
+			foreach ($storex_bases as $val) {
+				$storex_bases = array();
+				$storex_bases[] = $val;
+				$url = $_W['siteroot'] . 'app/index.php?i=' . $_W['uniacid'] . '&c=entry&m=wn_storex&do=display&id=' . $val['id'] . '#/StoreIndex/' . $val['id'];
+				break;
+			}
+		}
+	}
 	$store_list = array();
 	$store_list['version'] = $setting['version'];
 	$store_list['stores'] = $storex_bases;
-	message(error(0, $store_list), '', 'ajax');
+	message(error(0, $store_list), $url, 'ajax');
 }
 //获取某个店铺的详细信息
 if ($op == 'store_detail') {
