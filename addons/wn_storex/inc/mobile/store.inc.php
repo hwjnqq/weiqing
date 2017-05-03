@@ -4,6 +4,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 $ops = array('store_list', 'store_detail', 'store_comment');
+
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -52,13 +53,11 @@ if ($op == 'store_list') {
 			$storex_bases[$key]['thumbs'] = format_url($info['thumbs']);
 		}
 	}
-	$url = '';
 	if ($setting['version'] == 0) {//单店
 		if (!empty($storex_bases) && count($storex_bases) > 1) {
 			foreach ($storex_bases as $val) {
 				$storex_bases = array();
 				$storex_bases[] = $val;
-				$url = $_W['siteroot'] . 'app/index.php?i=' . $_W['uniacid'] . '&c=entry&m=wn_storex&do=display&id=' . $val['id'] . '#/StoreIndex/' . $val['id'];
 				break;
 			}
 		}
@@ -66,7 +65,7 @@ if ($op == 'store_list') {
 	$store_list = array();
 	$store_list['version'] = $setting['version'];
 	$store_list['stores'] = $storex_bases;
-	message(error(0, $store_list), $url, 'ajax');
+	message(error(0, $store_list), '', 'ajax');
 }
 //获取某个店铺的详细信息
 if ($op == 'store_detail') {
