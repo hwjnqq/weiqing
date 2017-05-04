@@ -4,8 +4,8 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 load()->model('mc');
-
-$ops = array('display', 'post', 'cardstatus');
+mload()->model('card');
+$ops = array('display', 'post', 'cardstatus', 'remove_mc_data');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $setting = pdo_get('storex_mc_card', array('uniacid' => $_W['uniacid']));
@@ -224,4 +224,79 @@ if ($op == 'cardstatus') {
 	message(error(0, ''), '', 'ajax');
 }
 
+if ($op == 'remove_mc_data') {
+	$mc_card_members = pdo_getall('mc_card_members', array('uniacid' => intval($_W['uniacid'])), array(), 'uid');
+	$storex_mc_card = pdo_get('storex_mc_card', array('uniacid' => intval($_W['uniacid'])));
+	$mc_card = pdo_get('mc_card', array('uniacid' => intval($_W['uniacid'])));
+	if (empty($storex_mc_card)) {
+		unset($mc_card['id']);
+		$mc_card['params'] = json_decode($mc_card['params'], true);
+		if (!empty($mc_card['params'])) {
+			$params = array();
+			foreach ($mc_card['params'] as $val) {
+				$params[$val['id']] = $val;
+			}
+			$mc_card['params'] = json_encode($params);
+		}
+		pdo_insert('storex_mc_card', $mc_card);
+		$cachekey = "wn_storex_mc_card_setting:{$_W['uniacid']}";
+		cache_delete($cachekey);
+		card_setting_info();
+	}
+	if (!empty($mc_card)) {
+		$mc_card['fields'] = iunserializer($mc_card['fields']);
+		$fields = array();
+		if (!empty($mc_card['fields'])) {
+			foreach ($mc_card['fields'] as $val) {
+				if (pdo_fieldexists('mc_members', $val['bind'])) {
+					$fields[] = $val['bind'];
+				}
+			}
+		}
+		if (!empty($mc_card_members)) {
+			$fields[] = 'uid';
+			$members_uid = array();
+			foreach ($mc_card_members as $key=>$info) {
+				unset($mc_card_members[$key]['id']);
+				if (!empty($info['uid'])) {
+					$members_uid[] = $info['uid'];
+				}
+			}
+			if (!empty($members_uid)) {
+				$storex_mc_card_members = pdo_getall('storex_mc_card_members', array('uid' => $members_uid), array('uid'), 'uid');
+				if (!empty($storex_mc_card_members)) {
+					foreach ($storex_mc_card_members as $member_uid => $member_info) {
+						if (isset($mc_card_members[$member_uid])) {
+							unset($mc_card_members[$member_uid]);
+							foreach ($members_uid as $k=>$v) {
+								if ($v == $member_uid) {
+									unset($members_uid[$k]);
+									break;
+								}
+							}
+						}
+					}
+				}
+				if (!empty($members_uid) && !empty($mc_card_members)) {
+					$mc_members = pdo_getall('mc_members', array('uid' => $members_uid), $fields, 'uid');
+					foreach ($mc_card_members as $info) {
+						if (!empty($mc_members[$info['uid']])) {
+							unset($mc_members[$info['uid']]['uid']);
+							$storex_fields = array('mobile', 'email', 'realname');
+							foreach ($mc_members[$info['uid']] as $k=>$v) {
+								if (in_array($k, $storex_fields)) {
+									$info[$k] = $v;
+								}
+								$info['fields'][] = array('bind' => $k, 'title' => '', 'require' => 1, 'value' => $v);
+							}
+							$info['fields'] = iserializer($info['fields']);
+						}
+						pdo_insert('storex_mc_card_members', $info);
+					}
+				}
+			}
+		}
+	}
+	message('同步成功！', $this->createWebUrl('membercard'), 'success');
+}
 include $this->template('membercard');
