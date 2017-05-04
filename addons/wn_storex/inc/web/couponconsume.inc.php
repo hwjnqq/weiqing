@@ -4,6 +4,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 load()->model('mc');
+load()->classs('coupon');
 mload()->model('activity');
 $ops = array('display', 'post', 'detail', 'toggle', 'modifystock', 'consume', 'delete');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
@@ -109,6 +110,7 @@ if ($op == 'consume') {
 		'clerk_name' => $clerk_name,
 	);
 	if ($source == WECHAT_COUPON) {
+		$coupon_api = new coupon();
 		$status = $coupon_api->ConsumeCode(array('code' => $record['code']));
 		if(is_error($status)) {
 			if (strexists($status['message'], '40127')) {
@@ -136,6 +138,7 @@ if ($op == 'delete') {
 	}
 	$source = intval($_GPC['source']);
 	if ($source == WECHAT_COUPON) {
+		$coupon_api = new coupon();
 		$status = $coupon_api->UnavailableCode(array('code' => $record['code']));
 		if (is_error($status)) {
 			message(error(-1, $status['message']), referer(), 'ajax');
