@@ -9,8 +9,18 @@ $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 check_params();
 $uid = mc_openid2uid($_W['openid']);
 if ($op == 'order_list') {
+	$type = $_GPC['type']? intval($_GPC['type']) : -1;//3完成的订单，其他是未完成
+	$pindex = max(1, intval($_GPC['page']));
+	$psize = 10;
+	$condition = array('weid' => intval($_W['uniacid']), 'openid' => $_W['openid']);
+	if ($type == 3) {
+		$condition['status'] = 3;
+	} else {
+		$condition['status !='] = 3;
+	}
+	$limit = array($pindex, $psize);
 	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status', 'openid', 'action', 'track_number', 'express_name');
-	$orders = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'openid' => $_W['openid']), $field, '', 'time DESC');
+	$orders = pdo_getall('storex_order', $condition, $field, '', 'time DESC', $limit);
 	$order_list = array(
 		'over' => array(),
 		'unfinish' => array(),
