@@ -60,7 +60,7 @@ if ($op == 'post') {
 				message('日期范围超过卡券日期范围', '', 'info');
 			}
 		}
-		$post['type'] = 1;
+		$post['type'] = COUPON_TYPE;
 		if (empty($id)) {
 			pdo_insert('storex_activity_exchange', $post);
 			message('添加兑换卡券成功', $this->createWeburl('couponexchange', array('op' => 'display')), 'success');
@@ -77,7 +77,7 @@ if ($op == 'post') {
 		$data['endtime'] = time();
 	}
 	$coupons = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'source' => COUPON_TYPE), array(), 'id');
-	$coupon_exists = pdo_getall('storex_activity_exchange', array('type' => 1, 'uniacid' => $_W['uniacid']), array(), 'extra');
+	$coupon_exists = pdo_getall('storex_activity_exchange', array('type' => COUPON_TYPE, 'uniacid' => $_W['uniacid']), array(), 'extra');
 	$coupon_exists = array_keys($coupon_exists);
 	foreach ($coupons as $key => &$coupon) {
 		if (in_array($key, $coupon_exists)) {
