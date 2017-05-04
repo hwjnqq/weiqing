@@ -23,7 +23,7 @@
 						<a href="{php echo filter_url('type:0')}" class="btn btn-{if empty($_GPC['type'])}primary{else}default{/if}">全部</a>
 						<a href="{php echo filter_url('type:1')}" class="btn btn-{if $_GPC['type'] == 1}primary{else}default{/if}">折扣券</a>
 						<a href="{php echo filter_url('type:2')}" class="btn btn-{if $_GPC['type'] == 2}primary{else}default{/if}">代金券</a>
-						{if false}
+						{if COUPON_TYPE == WECHAT_COUPON}
 						<a href="{php echo filter_url('type:3')}" class="btn btn-{if $_GPC['type'] == 3}primary{else}default{/if}">团购券</a>
 						<a href="{php echo filter_url('type:4')}" class="btn btn-{if $_GPC['type'] == 4}primary{else}default{/if}">礼品券</a>
 						<a href="{php echo filter_url('type:5')}" class="btn btn-{if $_GPC['type'] == 5}primary{else}default{/if}">优惠券</a>

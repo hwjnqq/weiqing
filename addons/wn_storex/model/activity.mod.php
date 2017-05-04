@@ -156,11 +156,12 @@ function activity_user_get_coupon($id, $openid, $granttype = 1) {
  */
 function activity_get_user_couponlist() {
 	global $_W, $_GPC;
+	activity_get_coupon_type();
 	$uid = $_W['member']['uid'];
 	$coupon_record = pdo_getall('storex_coupon_record', array('uniacid' => $_W['uniacid'], 'openid' => $_W['openid'], 'status' => 1));
 	foreach ($coupon_record as $key => $record) {
 		$coupon = activity_get_coupon_info($record['couponid']);
-		if ($coupon['source'] != 1) {
+		if ($coupon['source'] != COUPON_TYPE) {
 			unset($coupon_record[$key]);
 			continue;
 		}
@@ -301,6 +302,7 @@ function activity_wechat_coupon_sync() {
 	}
 	load()->classs('coupon');
 	$coupon_api = new coupon();
+	activity_get_coupon_type();
 	$cards = pdo_getall('storex_coupon', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array('id', 'status', 'card_id', 'acid'));
 	foreach ($cards as $val) {
 		$card = $coupon_api->fetchCard($val['card_id']);

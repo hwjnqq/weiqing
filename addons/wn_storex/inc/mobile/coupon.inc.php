@@ -11,6 +11,7 @@ load()->model('mc');
 mload()->model('activity');
 mload()->model('card');
 $uid = mc_openid2uid($_W['openid']);
+activity_get_coupon_type();
 
 if ($op == 'display') {
 	$ids = array();
@@ -20,7 +21,7 @@ if ($op == 'display') {
 	} else {
 		message(error(0, array()), '', 'ajax');
 	}
-	$storex_coupon = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'id' => $ids, 'source' => 1), array('id', 'type', 'logo_url', 'title', 'description', 'get_limit', 'date_info', 'sub_title', 'extra', 'quantity'), 'id');
+	$storex_coupon = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'id' => $ids, 'source' => COUPON_TYPE), array('id', 'type', 'logo_url', 'title', 'description', 'get_limit', 'date_info', 'sub_title', 'extra', 'quantity'), 'id');
 	if (!empty($storex_coupon)) {
 		foreach ($storex_coupon as &$value) {
 			$value['extra'] = iunserializer($value['extra']);
