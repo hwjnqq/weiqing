@@ -112,7 +112,9 @@ if ($op == 'exchange') {
 
 if ($op == 'mine') {
 	$couponlist = activity_get_user_couponlist();
-	message(error(0, $couponlist), '', 'ajax');
+	$coupon_owned['lists'] = $couponlist;
+	$coupon_owned['source'] = COUPON_TYPE;
+	message(error(0, $coupon_owned), '', 'ajax');
 }
 
 if ($op == 'detail') {
