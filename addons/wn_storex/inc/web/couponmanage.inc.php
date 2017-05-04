@@ -223,20 +223,82 @@ if ($op == 'delete') {
 }
 
 if ($op == 'publish') {
+	$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('source'));
 	$couponid = intval($_GPC['cid']);
-	$url = murl('entry', array('do' => 'coupon', 'op' => 'publish', 'id' => $couponid, 'm' => 'wn_storex'), true, true);
-	$coupon_record = pdo_getall('storex_coupon_record', array('uniacid' => $_W['uniacid'], 'couponid' => $couponid, 'granttype' => 2), 
-			array('id', 'uniacid', 'uid', 'addtime'));
-	if (!empty($coupon_record)) {
-		foreach ($coupon_record as &$info) {
-			$fansinfo = mc_fansinfo($info['uid']);
-			$info['nickname'] = $fansinfo['nickname'];
-			$info['addtime'] = date('Y-m-d H:i', $info['addtime']);
-			$info['avatar'] = $fansinfo['avatar'];
+	if ($setting['source'] == 1) {
+		$url = murl('entry', array('do' => 'coupon', 'op' => 'publish', 'id' => $couponid, 'm' => 'wn_storex'), true, true);
+		$coupon_record = pdo_getall('storex_coupon_record', array('uniacid' => $_W['uniacid'], 'couponid' => $couponid, 'granttype' => 2),
+				array('id', 'uniacid', 'uid', 'addtime'));
+		if (!empty($coupon_record)) {
+			foreach ($coupon_record as &$info) {
+				$fansinfo = mc_fansinfo($info['uid']);
+				$info['nickname'] = $fansinfo['nickname'];
+				$info['addtime'] = date('Y-m-d H:i', $info['addtime']);
+				$info['avatar'] = $fansinfo['avatar'];
+			}
 		}
+		$total = count($coupon_record);
+		message(error('0', array('url' => $url, 'record' => $coupon_record, 'total' => $total)), '', 'ajax');
+	} else {
+		$coupon = pdo_get('storex_coupon', array('id' => $couponid));
+		if(empty($coupon)) {
+			return message('卡券不存在或已经删除', '', 'error');
+		}
+		//二维码投入场景Id,文档中是写的19位的longint型，实际测试大于14位会丢失精度
+		$qrcode_sceneid = sprintf('11%012d', $couponid);
+		$coupon_qrcode = pdo_get('qrcode', array('qrcid' => $qrcode_sceneid, 'type' => 'card'));
+		if (empty($coupon_qrcode)) {
+			$insert = array(
+				'uniacid' => $_W['uniacid'],
+				'acid' => $_W['acid'],
+				'qrcid' => $qrcode_sceneid,
+				'keyword' => '',
+				'name' => $coupon['title'],
+				'model' => 1,
+				'ticket' => '',
+				'expire' => '',
+				'url' => '',
+				'createtime' => TIMESTAMP,
+				'status' => '1',
+				'type' => 'card',
+			);
+			pdo_insert('qrcode', $insert);
+			$coupon_qrcode['id'] = pdo_insertid();
+		}
+		$response = ihttp_request($coupon_qrcode['url']);
+		load()->classs('coupon');
+		$coupon_api = new coupon();
+		if ($response['code'] != '200' || empty($coupon_qrcode['url'])) {
+			$coupon_qrcode_image = $coupon_api->QrCard($coupon['card_id'], $qrcode_sceneid);
+			if (is_error($coupon_qrcode_image)) {
+				if ($coupon_qrcode_image['errno'] == '40078') {
+					pdo_update('storex_coupon', array('status' => 2), array('id' => $couponid));
+				}
+				message(error('1', '生成二维码失败，' . $coupon_qrcode_image['message']), '', 'ajax');
+			}
+			$couponid = $coupon_qrcode['id'];
+			unset($coupon_qrcode['id']);
+		
+			$coupon_qrcode['url'] = $coupon_qrcode_image['show_qrcode_url'];
+			$coupon_qrcode['ticket'] = $coupon_qrcode_image['ticket'];
+			$coupon_qrcode['expire'] = TIMESTAMP + $coupon_qrcode_image['expire_seconds'];
+			pdo_update('qrcode', $coupon_qrcode, array('id' => $couponid));
+		}
+		$coupon_qrcode['expire'] = date('Y-m-d H:i:s', $coupon_qrcode['expire']);
+		//获取扫码记录
+		$qrcode_list = pdo_getslice('qrcode_stat', array('qrcid' => $qrcode_sceneid), 10, $total, array('openid', 'createtime'));
+		if (!empty($qrcode_list)) {
+			$openids = array();
+			foreach ($qrcode_list as &$row) {
+				//由于粉丝不多，循环内直接查询
+				$fans = mc_fansinfo($row['openid']);
+				$row['nickname'] = $fans['nickname'];
+				$row['avatar'] = $fans['avatar'];
+				$row['addtime'] = $row['createtime'] = date('Y-m-d H:i:s', $row['createtime']);
+			}
+		}
+		message(error('0', array('coupon' => $coupon_qrcode, 'record' => $qrcode_list, 'total' => $total)), '', 'ajax');
 	}
-	$total = count($coupon_record);
-	message(error('0', array('url' => $url, 'record' => $coupon_record, 'total' => $total)), '', 'ajax');
 }
 
 if ($op == 'status') {

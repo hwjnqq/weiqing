@@ -233,6 +233,7 @@ $sql = "
 	`finish_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '酒店订单完成通知模板id',
 	`nickname` varchar(20) NOT NULL COMMENT '提醒接收微信',
 	`extend_switch` varchar(400) NOT NULL COMMENT '扩展开关',
+	`source` tinyint(4) NOT NULL DEFAULT '2' COMMENT '卡券类型，1为系统卡券，2为微信卡券',
 	PRIMARY KEY (`id`)
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 

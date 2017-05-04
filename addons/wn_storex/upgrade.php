@@ -355,7 +355,25 @@ if (!pdo_fieldexists('storex_order', 'coupon')) {
 if (!pdo_fieldexists('storex_coupon_record', 'granttype')) {
 	pdo_query("ALTER TABLE " . tablename('storex_coupon_record') ." ADD `granttype` tinyint(4) NOT NULL COMMENT '获取卡券的方式：1 兑换，2 扫码';");
 }
-
+if (!pdo_fieldexists('storex_set', 'source')) {
+	pdo_query("ALTER TABLE " . tablename('storex_set') . " ADD `source` TINYINT NOT NULL DEFAULT '2' COMMENT '卡券类型，1为系统卡券，2为微信卡券';");
+}
+if (pdo_fieldexists('modules', 'subscribes')) {
+	$subscribes = pdo_get('modules', array('name' => 'wn_storex'), array('subscribes', 'name'));
+	$subscribes['subscribes'] = iunserializer($subscribes['subscribes']);
+	$compare_sub = iunserializer('a:3:{i:0;s:13:"user_get_card";i:1;s:13:"user_del_card";i:2;s:17:"user_consume_card";}');
+	if (!empty($subscribes['subscribes'])) {
+		foreach ($compare_sub as $val) {
+			if (!in_array($val, $subscribes['subscribes'])) {
+				$subscribes['subscribes'][] = $val;
+			}
+		}
+		$subscribes['subscribes'] = iserializer($subscribes['subscribes']);
+	} else {
+		$subscribes['subscribes'] = 'a:3:{i:0;s:13:"user_get_card";i:1;s:13:"user_del_card";i:2;s:17:"user_consume_card";}';
+	}
+	pdo_update('modules', array('subscribes' => $subscribes['subscribes']), array('name' => 'wn_storex'));
+}
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');
 $js_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/js');

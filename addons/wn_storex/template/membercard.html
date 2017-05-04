@@ -21,6 +21,17 @@
 			</div>
 		</div>
 	</div>
+	<div class="panel panel-default" v-show="status">
+		<div class="panel-heading">
+			<div class="weui-cell weui-cell_switch" style="width:300px;">
+				<div class="weui-cell__bd"> 同步系统会员卡：</div>
+				<div class="weui-cell__ft">
+					<a type="button" onclick="return confirm('此操作将同步系统会员卡信息到万能小店，确认同步？');return false;" 
+					href="{php echo $this->createWebUrl('membercard', array('op' => 'remove_mc_data'));}" class="btn btn-primary">同步系统会员卡</a>
+				</div>
+			</div>
+		</div>
+	</div>
 	<div class="app" v-show="status">
 		<div class="app-preview">
 			<div class="app-header"></div>

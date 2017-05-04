@@ -289,6 +289,7 @@ require(['jquery.qrcode'], function(){
 			var data = $.parseJSON(data);
 			if (data.message.errno == '0') {
 				var coupon = data.message.message;
+				console.log(coupon);
 				$('.js-qrcode-record-total').html(coupon.total);
 				var record = coupon.record;
 				if (record) {
@@ -297,13 +298,20 @@ require(['jquery.qrcode'], function(){
 						$('.js-qrcode-record').append('<tr><td><img src="'+record[i].avatar+'" width="50" /></td><td><a href="#">'+record[i].nickname+'</a></td><td><a href="#">'+record[i].addtime+'</a></td></tr>');
 					}
 				}
-				var url = coupon.url;
-				$('.js-qrcode-block').html('').qrcode({
-					render: 'canvas',
-					width: 300,
-					height: 300,
-					text: url,
-				});
+				if (coupon.url) {
+					var url = coupon.url;
+					$('.js-qrcode-block').html('').qrcode({
+						render: 'canvas',
+						width: 300,
+						height: 300,
+						text: url,
+					});
+				} else if(coupon.coupon.url) {
+					var url = coupon.coupon.url;
+					$('.js-qrcode-block img').remove();
+					$('.js-qrcode-block').append('<img src="'+url+'"/>');
+				}
+				
 			} else {
 				$('#put-coupon').modal('hide');
 				util.message(data.message.message);
