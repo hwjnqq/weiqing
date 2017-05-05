@@ -228,6 +228,7 @@ if ($op == 'remove_mc_data') {
 	$mc_card_members = pdo_getall('mc_card_members', array('uniacid' => intval($_W['uniacid'])), array(), 'uid');
 	$storex_mc_card = pdo_get('storex_mc_card', array('uniacid' => intval($_W['uniacid'])));
 	$mc_card = pdo_get('mc_card', array('uniacid' => intval($_W['uniacid'])));
+	//将系统的会员卡设置迁移到万能小店
 	if (empty($storex_mc_card)) {
 		unset($mc_card['id']);
 		$mc_card['params'] = json_decode($mc_card['params'], true);
@@ -243,6 +244,7 @@ if ($op == 'remove_mc_data') {
 		cache_delete($cachekey);
 		card_setting_info();
 	}
+	//将已经领取的会员卡信息迁到万能小店
 	if (!empty($mc_card)) {
 		$mc_card['fields'] = iunserializer($mc_card['fields']);
 		$fields = array();
@@ -295,6 +297,14 @@ if ($op == 'remove_mc_data') {
 					}
 				}
 			}
+		}
+	}
+	//将会员卡消费记录迁到万能小店
+	$mc_card_record = pdo_get('mc_card_record', array('uniacid' => $_W['uniacid']));
+	if (!empty($mc_card_record)) {
+		foreach ($mc_card_record as $val) {
+			unset($val['id']);
+			pdo_insert('storex_mc_card_record', $val);
 		}
 	}
 	message('同步成功！', $this->createWebUrl('membercard'), 'success');
