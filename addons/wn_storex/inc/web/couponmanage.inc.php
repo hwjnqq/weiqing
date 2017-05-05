@@ -78,6 +78,8 @@ if ($op == 'post') {
 	$coupon_title = activity_get_coupon_label($type);
 	$coupon_label = json_encode($coupon_title);
 	$store_lists = pdo_getall('storex_bases', array('status' => 1, 'weid' => $_W['uniacid']), array('id', 'title', 'location_p', 'location_c', 'location_a', 'address', 'thumb'), 'id');
+	$starttime = date('Y-m-d', time());
+	$endtime = date('Y-m-d', time() + 30 * 86400);
 	foreach ($store_lists as $key => &$store) {
 		$store['address_info'] = $store['location_p'] . $store['location_c'] . $store['location_a'] . $store['address'];
 		$store['thumb'] = tomedia($store['thumb']);

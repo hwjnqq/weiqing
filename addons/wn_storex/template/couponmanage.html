@@ -846,6 +846,8 @@ require(['jquery.qrcode'], function(){
 		var type = {php echo $type};
 		var store_lists = {php echo json_encode($store_lists);};
 		var promotion_url = "{php echo murl('entry', array('do' => 'display', 'm' => 'wn_storex'), true, true);}";
+		var starttime = "{$starttime}";
+		var endtime = "{$endtime}";
 		var app = new Vue({
 			el: '#couponmanage',
 			data: {
@@ -857,8 +859,8 @@ require(['jquery.qrcode'], function(){
 					'status': 1,
 					'time_type': 1,
 					'time_limit': {
-						'start': '2017-04-19',
-						'end': '2017-05-19'
+						'start': starttime,
+						'end': endtime
 					},
 					'deadline': 0,
 					'limit': 1,
@@ -890,8 +892,8 @@ require(['jquery.qrcode'], function(){
 						var value = binding.value; // 传递给指令的值
 						require(['daterangepicker'], function($){
 							$('.daterange.daterange-date').daterangepicker({
-								startDate: '2017-04-19',
-								endDate: '2017-05-19',
+								startDate: starttime,
+								endDate: endtime,
 								format: "YYYY-MM-DD",
 							}, function(start, end){
 								start = start.toDateStr();
