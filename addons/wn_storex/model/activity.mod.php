@@ -158,7 +158,7 @@ function activity_get_user_couponlist() {
 	global $_W, $_GPC;
 	activity_get_coupon_type();
 	$uid = $_W['member']['uid'];
-	$coupon_record = pdo_getall('storex_coupon_record', array('uniacid' => $_W['uniacid'], 'openid' => $_W['openid'], 'status' => 1));
+	$coupon_record = pdo_getall('storex_coupon_record', array('uniacid' => $_W['uniacid'], 'openid' => $_W['openid'], 'status' => 1), array(), '', 'addtime DESC');
 	foreach ($coupon_record as $key => $record) {
 		$coupon = activity_get_coupon_info($record['couponid']);
 		if ($coupon['source'] != COUPON_TYPE) {

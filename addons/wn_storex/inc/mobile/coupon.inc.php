@@ -46,7 +46,7 @@ if ($op == 'display') {
 	$mine_coupon_num = pdo_fetchall("SELECT COUNT(*) AS sum, couponid FROM " . tablename('storex_coupon_record') . " WHERE uid = :uid GROUP BY couponid", array(':uid' => $uid), 'couponid');
 	if (!empty($storex_exchange)) {
 		foreach ($storex_exchange as $id => $info) {
-			if (!empty($coupon_total[$id]) && $storex_coupon[$id]['quantity'] <= $coupon_total[$id]['total']) {
+			if ($storex_coupon[$id]['quantity'] <= 0) {
 				unset($storex_exchange[$id]);
 				continue;
 			}
