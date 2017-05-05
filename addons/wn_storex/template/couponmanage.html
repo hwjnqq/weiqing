@@ -450,7 +450,7 @@ require(['jquery.qrcode'], function(){
 											<li class="active" style=""><a href="#form1" aria-controls="cardBasic" role="tab" data-toggle="tab">券面信息</a></li>
 											<li class="" style=""><a href="#form2" aria-controls="cardActivity" role="tab" data-toggle="tab">领券设置</a></li>
 											<li ><a href="#form3" aria-controls="cardRecharge" role="tab" data-toggle="tab">{{coupon_label.title}}详情</a></li>
-											<li><a href="#form4" aria-controls="cardNums" role="tab" data-toggle="tab">服务信息</a></li>
+											<li {if COUPON_TYPE == WECHAT_COUPON}style="display:none;"{/if}><a href="#form4" aria-controls="cardNums" role="tab" data-toggle="tab">服务信息</a></li>
 											<li><a href="#form6" aria-controls="cardTimes" role="tab" data-toggle="tab">营销入口</a></li>
 										</ul>
 									</div>
@@ -846,6 +846,8 @@ require(['jquery.qrcode'], function(){
 		var type = {php echo $type};
 		var store_lists = {php echo json_encode($store_lists);};
 		var promotion_url = "{php echo murl('entry', array('do' => 'display', 'm' => 'wn_storex'), true, true);}";
+		var starttime = "{$starttime}";
+		var endtime = "{$endtime}";
 		var app = new Vue({
 			el: '#couponmanage',
 			data: {
@@ -857,8 +859,8 @@ require(['jquery.qrcode'], function(){
 					'status': 1,
 					'time_type': 1,
 					'time_limit': {
-						'start': '2017-04-19',
-						'end': '2017-05-19'
+						'start': starttime,
+						'end': endtime
 					},
 					'deadline': 0,
 					'limit': 1,
@@ -890,8 +892,8 @@ require(['jquery.qrcode'], function(){
 						var value = binding.value; // 传递给指令的值
 						require(['daterangepicker'], function($){
 							$('.daterange.daterange-date').daterangepicker({
-								startDate: '2017-04-19',
-								endDate: '2017-05-19',
+								startDate: starttime,
+								endDate: endtime,
 								format: "YYYY-MM-DD",
 							}, function(start, end){
 								start = start.toDateStr();
