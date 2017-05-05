@@ -52,8 +52,8 @@ if ($op == 'display') {
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	$list = pdo_fetchall("SELECT a.status AS rstatus,a.id AS recid, a.*, b.* FROM " . tablename('storex_coupon_record') . " AS a LEFT JOIN " . tablename('storex_coupon') . " AS b ON a.couponid = b.id WHERE " . $condition . " AND a.code <> '' ORDER BY a.addtime DESC, a.status DESC, a.couponid DESC,a.id DESC LIMIT " . ($pindex - 1) * $psize . "," . $psize, $params);
-	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('storex_coupon_record') . " AS a LEFT JOIN " . tablename('storex_coupon') . " AS b ON a.couponid = b.id WHERE " . $condition . " AND a.code <> ''", $params);
+	$list = pdo_fetchall("SELECT a.status AS rstatus,a.id AS recid, a.*, b.* FROM " . tablename('storex_coupon_record') . " AS a LEFT JOIN " . tablename('storex_coupon') . " AS b ON a.couponid = b.id WHERE " . $condition . " ORDER BY a.addtime DESC, a.status DESC, a.couponid DESC,a.id DESC LIMIT " . ($pindex - 1) * $psize . "," . $psize, $params);
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('storex_coupon_record') . " AS a LEFT JOIN " . tablename('storex_coupon') . " AS b ON a.couponid = b.id WHERE " . $condition, $params);
 	if(!empty($list)) {
 		$uids = array();
 		$members = mc_fetch($uids, array('uid', 'nickname'));

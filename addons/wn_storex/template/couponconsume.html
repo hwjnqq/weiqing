@@ -119,10 +119,12 @@
 					<td>{$row['clerk_name']}</td>
 					{/if}
 					<td style="text-align:center;">
-						{if $row['rstatus'] == 1 && $row['starttime'] <= $row['time'] && $row['endtime'] >= $row['time'] }
-						<a href="javascript:;" onclick="util.ajaxshow('{php echo $this->createWebUrl('couponconsume', array('op' => 'consume', 'id' => $row['recid'], 'source' => $row['source']))}')" class="btn btn-default btn-sm" title="核销优惠券">核销</a>
+						{if $row['code']}
+							{if $row['rstatus'] == 1 && $row['starttime'] <= $row['time'] && $row['endtime'] >= $row['time'] }
+							<a href="javascript:;" onclick="util.ajaxshow('{php echo $this->createWebUrl('couponconsume', array('op' => 'consume', 'id' => $row['recid'], 'source' => $row['source']))}')" class="btn btn-default btn-sm" title="核销优惠券">核销</a>
+							{/if}
+							<a href="javascript:;" onclick="util.ajaxshow('{php echo $this->createWebUrl('couponconsume', array('op' => 'delete', 'id' => $row['recid'], 'source' => $row['source']))}')" class="btn btn-default btn-sm" title="删除兑换记录">删除</a>
 						{/if}
-						<a href="javascript:;" onclick="util.ajaxshow('{php echo $this->createWebUrl('couponconsume', array('op' => 'delete', 'id' => $row['recid'], 'source' => $row['source']))}')" class="btn btn-default btn-sm" title="删除兑换记录">删除</a>
 					</td>
 				</tr>
 				{/loop}
