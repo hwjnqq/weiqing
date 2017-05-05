@@ -199,13 +199,6 @@ function activity_get_user_couponlist() {
 		$coupon_record[$key] = $coupon;
 		$coupon_record[$key]['recid'] = $record['id'];
 		$coupon_record[$key]['code'] = $record['code'];
-		if ($coupon['source'] == '2') {
-			if (empty($coupon_record[$key]['code'])) {
-				$coupon_record[$key]['extra_ajax'] = url('entry', array('m' => 'we7_coupon', 'do' => 'activity', 'type' => 'coupon', 'op' => 'addcard'));
-			} else {
-				$coupon_record[$key]['extra_ajax'] = url('entry', array('m' => 'we7_coupon', 'do' => 'activity', 'type' => 'coupon', 'op' => 'opencard'));
-			}
-		}
 	}
 	return $coupon_record;
 }

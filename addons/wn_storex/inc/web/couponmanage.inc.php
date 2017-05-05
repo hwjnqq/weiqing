@@ -108,7 +108,7 @@ if ($op == 'post') {
 			$coupon->setPromotionMenu($params['promotion_url_name'], $params['promotion_url_sub_title'], $params['promotion_url']);
 		}
 		
-		$coupon->setCustomMenu('立即使用', '', murl('entry', array('m' => 'paycenter', 'do' => 'consume'), true, true));
+		// $coupon->setCustomMenu('立即使用', '', murl('entry', array('m' => 'paycenter', 'do' => 'consume'), true, true));
 		$coupon->setQuantity($params['quantity']);
 		$coupon->setCodetype($params['code_type']);
 		//折扣券

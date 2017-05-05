@@ -3,13 +3,14 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('display', 'exchange', 'mine', 'detail', 'publish');
+$ops = array('display', 'exchange', 'mine', 'detail', 'publish', 'opencard', 'addcard');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
 load()->model('mc');
 mload()->model('activity');
 mload()->model('card');
+mload()->classs('coupon');
 $uid = mc_openid2uid($_W['openid']);
 activity_get_coupon_type();
 
@@ -115,6 +116,34 @@ if ($op == 'mine') {
 	$coupon_owned['lists'] = $couponlist;
 	$coupon_owned['source'] = COUPON_TYPE;
 	message(error(0, $coupon_owned), '', 'ajax');
+}
+
+if ($op == 'opencard') {
+	$coupon_api = new WnCoupon();
+	$id = intval($_GPC['id']);
+	$code = trim($_GPC['code']);
+	if($_W['isajax'] && $_W['ispost']) {
+		$card = $coupon_api->BuildCardExt($id);
+		if (is_error($card)) {
+			message(error(1, $card['message']), '', 'ajax');
+		} else {
+			$opencard['card_id'] = $card['card_id'];
+			$opencard['code'] = $code;
+			message(error(0, $opencard), '', 'ajax');
+		}
+	}
+}
+if ($op == 'addcard') {
+	$id = intval($_GPC['id']);
+	$coupon_api = new WnCoupon();
+	if($_W['isajax'] && $_W['ispost']) {
+		$card = $coupon_api->BuildCardExt($id);
+		if (is_error($card)) {
+			message(error(1, $card['message']), '', 'ajax');
+		} else {
+			message(error(0, $card), '', 'ajax');
+		}
+	}
 }
 
 if ($op == 'detail') {
