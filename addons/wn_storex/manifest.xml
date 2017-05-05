@@ -3,7 +3,7 @@
     <application setting="false">
         <name><![CDATA[万能小店]]></name>
         <identifie><![CDATA[wn_storex]]></identifie>
-        <version><![CDATA[1.2.1]]></version>
+        <version><![CDATA[1.2.2]]></version>
         <type><![CDATA[business]]></type>
         <ability><![CDATA[万能小店]]></ability>
         <description><![CDATA[万能小店]]></description>
@@ -12,6 +12,9 @@
     </application>
     <platform>
         <subscribes>
+			<message type="user_get_card" />
+			<message type="user_del_card" />
+			<message type="user_consume_card" />
         </subscribes>
         <handles>
             <message type="text" />
