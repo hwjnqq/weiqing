@@ -19,8 +19,8 @@ if ($op == 'display') {
 		$cids = implode('\',\'', array_keys($cids));
 		$condition = ' AND extra IN(\''.$cids.'\')';
 	}
-	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('storex_activity_exchange')." WHERE uniacid = :uniacid AND type = :type ".$condition, array(':uniacid' => $_W['uniacid'], ':type' => 1));
-	$list = pdo_fetchall("SELECT * FROM ".tablename('storex_activity_exchange')." WHERE uniacid = :uniacid AND type = :type ".$condition." ORDER BY id desc LIMIT ".($pindex - 1)*$psize.','. $psize, array(':uniacid' => $_W['uniacid'], ':type' => 1));
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('storex_activity_exchange')." WHERE uniacid = :uniacid AND type = :type ".$condition, array(':uniacid' => $_W['uniacid'], ':type' => COUPON_TYPE));
+	$list = pdo_fetchall("SELECT * FROM ".tablename('storex_activity_exchange')." WHERE uniacid = :uniacid AND type = :type ".$condition." ORDER BY id desc LIMIT ".($pindex - 1)*$psize.','. $psize, array(':uniacid' => $_W['uniacid'], ':type' => COUPON_TYPE));
 	
 	if (!empty($list)) {
 		$id_str = '';
