@@ -335,13 +335,10 @@ function activity_get_member_by_type($type, $param = array()) {
 		$sql_cash_record = "SELECT uid FROM " . tablename('mc_cash_record') . " WHERE uid IN ( :uids ) AND createtime > :time GROUP BY uid HAVING COUNT(*) < 2 " ;
 		$mc_cash_record = pdo_fetchall($sql_cash_record, array(':uids' => $uids, ':time' => $property_time));
 		if (!empty($mc_cash_record)) {
-			$mc_uids = array();
 			foreach ($mc_cash_record as $v) {
-				if (!empty($mc_members[$v['uid']])) {
-					unset($mc_members[$v['uid']]);
-					continue;
+				if (!in_array($v['uid'], $mc_uids)) {
+					unset($mc_uids[$v['uid']]);
 				}
-				$mc_uids[] = $v['uid'];
 			}
 		}
 	}
