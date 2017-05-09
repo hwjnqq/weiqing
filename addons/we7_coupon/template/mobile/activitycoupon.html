@@ -2,7 +2,7 @@
 {template 'common/header'}
 {if $activity_type == 'coupon'}
 {if $op == 'display'}
-<div class="mui-content activity-exchange">
+<div class="mui-content activity-exchange" style="padding-bottom:55px;">
 	<div class="mui-table nav">
 		<a href="{php echo $this->createMobileurl('activity')}" class="mui-table-cell mui-active">
 			卡券
@@ -21,7 +21,32 @@
 		{/if}
 	</div>
 </div>
-
+<script type="text/javascript">
+$('.js-scan-rules').click(function() {
+	$(this).parent().parent().next().toggle();
+	$(this).find('span').toggleClass('fa-angle-up');
+	$(this).find('span').toggleClass('fa-angle-down');
+})
+$('.js-coupon-exchange').click(function(){
+	var id = $.trim($(this).data('id'));
+	var source = $(this).data('source');
+	var href = $(this).data('href');
+	var cancel_href = $(this).data('cancel-href');
+	var exchange_href = $(this).data('exchange-href');
+	if(!id) {
+		return false;
+	}
+	$.post(href, {'id' : id}, function(data) {
+		data = $.parseJSON(data);
+		console.dir(data)
+		if (data.message.errno < 0) {
+			util.toast(data.message.message, '', 'error');
+		} else {
+			util.toast(data.message.message, data.redirect, 'error');
+		}
+	});
+});
+</script>
 {elseif $op == 'mine'}
 <div class="mui-content pay-select-coupon">
 	<div id="voucher" class="mui-control-content mui-active">

@@ -44,7 +44,7 @@
 			{/if}
 		</div>
 	</div>
-	<form class="tab-content clearfix js-ajax-form" action="{php echo $this->createMobileurl('card', array('op' => 'receive_card'))}" method="post" enctype="multipart/form-data">
+	<form class="tab-content clearfix js-card-form" action="{php echo $this->createMobileurl('card', array('op' => 'receive_card'))}" method="post" enctype="multipart/form-data">
 		<div class="mui-input-group">
 			<div class="mui-input-row">
 				<label>
@@ -81,6 +81,35 @@
 	</div>
 	</form>
 </div>
+<script type="text/javascript">
+	$('.js-card-form').submit(function(event) {
+		$(this).data('submit', 1);
+		$('button[type="submit"]').prop('disabled', true);
+		$.ajax(this.action, {
+			method : this.method.toUpperCase(),
+			data : new FormData(this),
+			cache : false,
+			processData : false,
+			contentType : false,
+			dataType : 'json'
+		}).done(function(result) {
+			$(this).data('submit', 0);
+			if (result.type == 'success') {
+				location.href = result.redirect;
+			} else {
+				util.toast(result.message, '', 'error');
+				$('button[type="submit"]').prop('disabled', false);
+				util.toast(result.message, result.redirect, 'error');
+			}
+			
+		}).fail(function(res) {
+			$(this).data('submit', 0);
+			util.toast('操作失败，请重试', '', 'error');
+		});
+		event.preventDefault();
+		return false;
+	});
+</script>
 {/if}
 <!-- 我的会员卡 -->
 {if $op == 'mycard'}
@@ -111,7 +140,7 @@
 	您的会员卡已被禁用，如有疑问，请联系{$_W['account']['name']}。
 </div>
 {else}
-<div class="mui-content membership-card-home mc-we7-home">
+<div class="mui-content membership-card-home mc-we7-home" style="padding-bottom:55px;">
 	<div class="card-panel prev" onclick="$(this).hide();$('.back').show()" style="background-image:url(
 			{if empty($setting['background']['image'])}
 			{php echo tomedia('images/global/card/1.png')}

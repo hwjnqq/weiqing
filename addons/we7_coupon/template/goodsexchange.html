@@ -179,7 +179,7 @@
 	<div class="panel panel-info">
 		<div class="panel-heading">筛选</div>
 		<div class="panel-body">
-			<form action="./index.php" method="post" class="form-horizontal" role="form">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
 				<input type="hidden" name="c" value="site">
 				<input type="hidden" name="a" value="entry">
 				<input type="hidden" name="do" value="goodsexchange">
@@ -189,6 +189,7 @@
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">兑换标题</label>
 					<div class="col-sm-6 col-lg-8 col-xs-12">
 						<select class="form-control" name="exid">
+							<option value="">全部</option>
 							{loop $exchanges $exchange}
 							<option value="{$exchange['id']}" {if $_GPC['exid'] == $exchange['id']}selected{/if}>{$exchange['title']}</option>
 							{/loop}

@@ -99,13 +99,13 @@
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">* </span> 选择卡券</label>
 					<div class="col-sm-8 col-xs-12">
 						{if !$id}
-						<button type="button" class="btn btn-default" data-toggle="modal" data-target="#myModal" id="add_coupon">添加卡券</button>
+						<button type="button" class="btn btn-default js-add-coupon" id="add_coupon">添加卡券</button>
 						{/if}
 						<img src="{$data['coupon']['logo_url']}" id="coupon_image" style="height: 100px;width: 240px;{if !$id}display: none;{/if}" data-id="{$data['coupon']['id']}">
 						<span class="help-block" id="coupon_title">{$data['coupon']['title']}</span>
 						<input type="hidden" name="coupon">
 					</div>
-					<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+					<div class="modal fade js-select-coupon" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
 						<div class="modal-dialog" style="width: 450px;">
 							<div class="modal-content">
 								<div class="modal-header">
@@ -266,6 +266,9 @@
 			$(this).popover('hide');
 		});
 	});
+	$('.js-add-coupon').click(function() {
+		$('.js-select-coupon').modal('show');
+	})
 	$('.coupon_check').click(function() {
 		$('#coupon_image').attr('src', $(this).data('src'));
 		$('#coupon_title').html($(this).data('title'));
@@ -287,7 +290,7 @@
 		$('#limit').html($(this).data('limit'));
 		$('#limit').parent().show();
 		$('#coupon_image').show();
-		$('#myModal').modal('hide');
+		$('.js-select-coupon').modal('hide');
 	});
 	$('#exchange').click(function(){
 		var coupon = $('[name="coupon"]').val();
