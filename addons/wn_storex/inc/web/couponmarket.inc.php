@@ -12,6 +12,7 @@ $ops = array('display', 'post', 'get_member_num', 'checkcoupon', 'delete');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 activity_get_coupon_type();
+$types = activity_get_coupon_label();
 $propertys = activity_storex_member_propertys();
 if ($op == 'checkcoupon') {
 	$coupon_id = intval($_GPC['coupon']);
@@ -44,7 +45,8 @@ if ($op == 'display') {
 			}
 		}
 	}
-	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM '. tablename('storex_coupon_activity')." WHERE uniacid = {$_W['uniacid']} AND type = ".COUPON_TYPE . $condition);
+	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM '. tablename('storex_coupon_activity')." WHERE uniacid = :uniacid AND type = :type " . $condition, 
+		array(':uniacid' => intval($_W['uniacid']), ':type' => COUPON_TYPE));
 	$pager = pagination($total, $pindex, $psize);
 }
 
@@ -102,7 +104,7 @@ if ($op == 'post') {
 				$post['msg_id'] = $result['errno'];
 			}
 			pdo_insert('storex_coupon_activity', $post);
-			message('卡券发放成功', $this->createWeburl('couponmarket', array('op' => 'display')), 'success');
+			message('添加卡券派发活动成功', $this->createWeburl('couponmarket', array('op' => 'display')), 'success');
 		}
 	}
 	

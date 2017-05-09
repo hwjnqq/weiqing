@@ -23,8 +23,10 @@ $wn_storex_table = array(
 	'storex_mc_card',
 	'storex_mc_card_members',
 	'storex_mc_card_record',
+	'storex_mc_member_property',
 	'storex_activity_exchange',
 	'storex_coupon',
+	'storex_coupon_activity',
 	'storex_coupon_record',
 	'storex_coupon_store',
 );

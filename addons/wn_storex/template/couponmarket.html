@@ -46,7 +46,9 @@
 			<table class="table table-hover">
 				<thead class="navbar-inner">
 				<tr>
+					{if !empty($item['thumb'])}
 					<th style="width:60px;">缩略图</th>
+					{/if}
 					<th style="width:100px;">活动名</th>
 					<th style="width:100px;">发放用户</th>
 					<th style="width:300px;">操作</th>
@@ -55,7 +57,9 @@
 				<tbody>
 				{loop $list $item}
 				<tr>
+					{if !empty($item['thumb'])}
 					<td><img src="{php echo tomedia($item['thumb'])}" width="40"></td>
+					{/if}
 					<td>{$item['title']}</td>
 					<td>
 						{if in_array('new_member', $item['members'])}
@@ -198,7 +202,10 @@
 						{if !empty($item['coupon_info'])}
 						<tr>
 							<td style="width: 50px">{php echo $item['coupon_info']['title']}</td>
-							<td style="width: 50px">{if $item['coupon_info']['type'] == 1}折扣券{else}代金券{/if}</td>
+							<td style="width: 50px">
+							{php $types = activity_get_coupon_label($item['coupon_info']['type'])}
+							{php echo $types['title']}
+							</td>
 						</tr>
 						{/if}
 						</tbody>
@@ -415,7 +422,9 @@
 	});
 	$('#save').click(function() {
 		$('#coupon_list').html('');
-		var type = coupons[0].type == 1? '折扣券' : '代金券';
+		var types = {php echo json_encode($types)};
+		var type_num = coupons[0].type ;
+		var type = types[type_num].title;
 		var title = coupons[0].title;
 			$('#coupon_list').append(
 				'<tr>' +

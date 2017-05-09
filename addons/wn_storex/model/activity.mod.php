@@ -323,45 +323,42 @@ function activity_get_member_by_type($type, $param = array()) {
 	if (!in_array($type, $types)) {
 		return error('1', '没有匹配的用户类型');
 	}
+	$members = array();
 	//获取会员属性
 	$propertys = activity_storex_member_propertys();
 	//新会员，一个月内消费不超过一次
 	if ($type == 'new_member') {
 		$property_time = strtotime('-' . $propertys['newmember'] . ' month', time());
 		$mc_members = pdo_getall('mc_members', array('uniacid' => $_W['uniacid'], 'createtime >' => $property_time), array('uid'), 'uid');
-		$mc = array_keys($mc_members);
-		$uids = implode(',',$mc);
-		$sql_cash_record = "SELECT uid FROM " . tablename('mc_cash_record') . " WHERE uid IN ( :uids ) AND createtime > :time 
-				GROUP BY uid HAVING COUNT(*) < 2 " ;
+		$mc_uids = array_keys($mc_members);
+		$uids = implode(',',$mc_uids);
+		$sql_cash_record = "SELECT uid FROM " . tablename('mc_cash_record') . " WHERE uid IN ( :uids ) AND createtime > :time GROUP BY uid HAVING COUNT(*) < 2 " ;
 		$mc_cash_record = pdo_fetchall($sql_cash_record, array(':uids' => $uids, ':time' => $property_time));
 		if (!empty($mc_cash_record)) {
-			$mc = array();
+			$mc_uids = array();
 			foreach ($mc_cash_record as $v) {
 				if (!empty($mc_members[$v['uid']])) {
 					unset($mc_members[$v['uid']]);
 					continue;
 				}
-				$mc[] = $v['uid'];
+				$mc_uids[] = $v['uid'];
 			}
 		}
-		$members = pdo_getall('mc_mapping_fans', array('uid IN' => $mc, 'openid !=' => ''), 'openid', 'openid');
 	}
 	//老会员，注册超过两个月的会员
 	if ($type == 'old_member') {
 		$property_time = strtotime('-' . $propertys['oldmember'] . ' month', time());
 		$mc_members = pdo_getall('mc_members', array('uniacid' => $_W['uniacid'], 'createtime <' => $property_time), array('uid'), 'uid');
-		$mc = array_keys($mc_members);
-		$members = pdo_getall('mc_mapping_fans', array('uid IN' => $mc, 'openid !=' => ''), 'openid', 'openid');
+		$mc_uids = array_keys($mc_members);
 	}
 	if ($type == 'activity_member') {
 		$property_time = strtotime('-' . $propertys['activitymember'] . ' month', time());
 		$mc_cash_record_sql = "SELECT * FROM " . tablename('mc_cash_record') . " WHERE uniacid = :uniacid AND createtime > :time GROUP BY uid HAVING COUNT(*) > 2";
-		$mc_cash_record = pdo_fetchall($mc_cash_record_sql, array(':uniacid' => $_W['uniacid'], ':time' => $property_time), array('uid'), 'uid');
-		$mc = array_keys($mc_cash_record);
-		$members = array();
-		if (!empty($uids)) {
-			$members = pdo_getall('mc_mapping_fans', array('uid IN' => $mc, 'openid !=' => ''), 'openid', 'openid');
-		}
+		$mc_cash_record = pdo_fetchall($mc_cash_record_sql, array(':uniacid' => $_W['uniacid'], ':time' => $property_time), 'uid');
+		$mc_uids = array_keys($mc_cash_record);
+	}
+	if (!empty($mc_uids)) {
+		$members = pdo_getall('mc_mapping_fans', array('uid' => $mc_uids, 'openid !=' => ''), array('openid'), 'openid');
 	}
 	if ($type == 'quiet_member') {
 		$property_time = strtotime('-' . $propertys['quietmember'] . ' month', time());
@@ -391,20 +388,20 @@ function activity_get_member_by_type($type, $param = array()) {
 			}
 		} else {
 			$mc_members = pdo_getall('mc_members', array('groupid' => $param['groupid'], 'uniacid' => $_W['uniacid']), array('uid'), 'uid');
-			$mc = array_keys($mc_members);
+			$mc_uids = array_keys($mc_members);
 			$members = array();
-			if (!empty($mc)) {
-				$members = pdo_getall('mc_mapping_fans', array('openid !=' => '', 'uid IN' => $mc), array('openid'), 'openid');
+			if (!empty($mc_uids)) {
+				$members = pdo_getall('mc_mapping_fans', array('openid !=' => '', 'uid' => $mc_uids), array('openid'), 'openid');
 			}
 		}
 	}
 	if ($type == 'cash_time') {
 		$mc_cash_record = pdo_fetchall("SELECT uid FROM " . tablename('mc_cash_record') . " WHERE createtime >= :start AND createtime <= :end", 
 				array(':start' => $param['start'], ':end' => $param['end']), 'uid');
-		$mc = array_keys($mc_cash_record);
+		$mc_uids = array_keys($mc_cash_record);
 		$members = array();
-		if (!empty($mc)) {
-			$members = pdo_getall('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'uid IN' => $mc), array('openid'), 'openid');
+		if (!empty($mc_uids)) {
+			$members = pdo_getall('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'uid' => $mc_uids), array('openid'), 'openid');
 		}
 	}
 	if ($type == 'openids') {

@@ -566,6 +566,27 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `couponid` (`couponid`)
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_mc_member_property` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(11) NOT NULL,
+	`property` varchar(200) NOT NULL DEFAULT '' COMMENT '当前公众号用户属性',
+	PRIMARY KEY (`id`)
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COMMENT='用户属性设置表';
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_coupon_activity` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(10) NOT NULL,
+	`msg_id` int(10) NOT NULL DEFAULT '0',
+	`status` int(10) NOT NULL DEFAULT '1',
+	`title` varchar(255) NOT NULL DEFAULT '',
+	`type` int(3) NOT NULL DEFAULT '0' COMMENT '1 发送系统卡券 2发送微信卡券',
+	`thumb` varchar(255) NOT NULL DEFAULT '',
+	`coupons` int(11) NOT NULL COMMENT '选择派发的卡券的id',
+	`description` varchar(255) NOT NULL DEFAULT '‘’',
+	`members` varchar(255) NOT NULL DEFAULT '',
+	PRIMARY KEY (`id`)
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 ";
 
 pdo_run($sql);
