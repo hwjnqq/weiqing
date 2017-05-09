@@ -19,9 +19,9 @@ if ($op == 'display') {
 		$property = json_encode('');
 	}
 	if($_W['isajax'] && $_W['ispost']) {
-		$member_property = $_GPC['__input'];
+		$member_property = $_GPC['param'];
 		$insert_data = array(
-				'property' => json_encode($member_property)
+			'property' => json_encode($member_property)
 		);
 		if (!empty($current_property_info)) {
 			$status = pdo_update('storex_mc_member_property', $insert_data, array('id' => $current_property_info['id']));
