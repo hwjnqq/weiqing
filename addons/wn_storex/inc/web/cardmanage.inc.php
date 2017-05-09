@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('display', 'record', 'delete', 'modal', 'submit', 'memberproperty', 'status');
+$ops = array('display', 'record', 'delete', 'modal', 'submit', 'status');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 //判断会员卡开启
@@ -219,34 +219,6 @@ if ($op == 'submit') {
 		mc_notice_times_times($card['openid'], "您好，您的{$setting['times_text']}到期时间已变更", $setting['times_text'], $endtime);
 	}
 	message('操作成功', referer(), 'success');
-}
-
-if ($op == 'memberproperty') {
-	for ($i = 1; $i <= 24; $i++) {
-		$nums[$i] = $i;
-	}
-	$nums = json_encode($nums);
-	$current_property_info = pdo_get('storex_mc_member_property', array('uniacid' => $_W['uniacid']));
-	$property = $current_property_info['property'];
-	if (empty($property)) {
-		$property = json_encode('');
-	}
-	if($_W['isajax'] && $_W['ispost']) {
-		$member_property = $_GPC['__input'];
-		$insert_data = array(
-				'property' => json_encode($member_property)
-		);
-		if (!empty($current_property_info)) {
-			$status = pdo_update('storex_mc_member_property', $insert_data, array('id' => $current_property_info['id']));
-		} else {
-			$insert_data['uniacid'] = $_W['uniacid'];
-			$status = pdo_insert('storex_mc_member_property', $insert_data);
-		}
-		if (is_error($status)) {
-			message(error(-1, $status), '', 'ajax');
-		}
-		message(error(0, ''), '', 'ajax');
-	}
 }
 
 if ($op == 'status') {

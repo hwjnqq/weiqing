@@ -310,3 +310,130 @@ function activity_wechat_coupon_sync() {
 	cache_write($cachekey, array('expire' => time() + 1800));
 	return true;
 }
+
+/*
+ * 获取（新用户，老用户，活跃用户， 沉寂用户，自定义用户的人数）
+* @param string $type 用户类型
+* @param array $param 获取自定义用户所需参数
+*/
+function activity_get_member_by_type($type, $param = array()) {
+	activity_get_coupon_type();
+	global $_W;
+	$types =  array('new_member', 'old_member', 'quiet_member', 'activity_member', 'group_member', 'cash_time', 'openids');
+	if (!in_array($type, $types)) {
+		return error('1', '没有匹配的用户类型');
+	}
+	//获取会员属性
+	$propertys = activity_storex_member_propertys();
+	//新会员，一个月内消费不超过一次
+	if ($type == 'new_member') {
+		$property_time = strtotime('-' . $propertys['newmember'] . ' month', time());
+		$mc_members = pdo_getall('mc_members', array('uniacid' => $_W['uniacid'], 'createtime >' => $property_time), array('uid'), 'uid');
+		$mc = array_keys($mc_members);
+		$uids = implode(',',$mc);
+		$sql_cash_record = "SELECT uid FROM " . tablename('mc_cash_record') . " WHERE uid IN ( :uids ) AND createtime > :time 
+				GROUP BY uid HAVING COUNT(*) < 2 " ;
+		$mc_cash_record = pdo_fetchall($sql_cash_record, array(':uids' => $uids, ':time' => $property_time));
+		if (!empty($mc_cash_record)) {
+			$mc = array();
+			foreach ($mc_cash_record as $v) {
+				if (!empty($mc_members[$v['uid']])) {
+					unset($mc_members[$v['uid']]);
+					continue;
+				}
+				$mc[] = $v['uid'];
+			}
+		}
+		$members = pdo_getall('mc_mapping_fans', array('uid IN' => $mc, 'openid !=' => ''), 'openid', 'openid');
+	}
+	//老会员，注册超过两个月的会员
+	if ($type == 'old_member') {
+		$property_time = strtotime('-' . $propertys['oldmember'] . ' month', time());
+		$mc_members = pdo_getall('mc_members', array('uniacid' => $_W['uniacid'], 'createtime <' => $property_time), array('uid'), 'uid');
+		$mc = array_keys($mc_members);
+		$members = pdo_getall('mc_mapping_fans', array('uid IN' => $mc, 'openid !=' => ''), 'openid', 'openid');
+	}
+	if ($type == 'activity_member') {
+		$property_time = strtotime('-' . $propertys['activitymember'] . ' month', time());
+		$mc_cash_record_sql = "SELECT * FROM " . tablename('mc_cash_record') . " WHERE uniacid = :uniacid AND createtime > :time GROUP BY uid HAVING COUNT(*) > 2";
+		$mc_cash_record = pdo_fetchall($mc_cash_record_sql, array(':uniacid' => $_W['uniacid'], ':time' => $property_time), array('uid'), 'uid');
+		$mc = array_keys($mc_cash_record);
+		$members = array();
+		if (!empty($uids)) {
+			$members = pdo_getall('mc_mapping_fans', array('uid IN' => $mc, 'openid !=' => ''), 'openid', 'openid');
+		}
+	}
+	if ($type == 'quiet_member') {
+		$property_time = strtotime('-' . $propertys['quietmember'] . ' month', time());
+		$members = pdo_fetchall("SELECT a.openid FROM " . tablename('mc_mapping_fans') . " as a LEFT JOIN " 
+				. tablename('mc_cash_record')." as b ON a.uid = b.uid WHERE a.uniacid = :uniacid AND b.id is null 
+				GROUP BY a.uid ", array(':uniacid' => $_W['uniacid']), 'openid');
+		$member = pdo_fetchall("SELECT a.openid FROM " . tablename('mc_mapping_fans') . " as a LEFT JOIN "
+				 . tablename('mc_cash_record')." as b ON a.uid = b.uid WHERE a.uniacid = :uniacid AND b.createtime > :time 
+				GROUP BY a.uid ", array(':uniacid' => $_W['uniacid'], ':time' => $property_time), 'openid');
+		if (!empty($member)) {
+			foreach ($member as $key => $mem) {
+				unset($members[$key]);
+			}
+		}
+	}
+	if ($type == 'group_member') {
+		if (empty($param)) {
+			return error(1, '请选择会员组');
+		}
+		if (COUPON_TYPE == WECHAT_COUPON) {
+			$members =  pdo_getall('mc_mapping_fans', array('uniacid' => $_W['uniacid']), array(), 'openid');
+			foreach ($members as $key => &$fan) {
+				$fan['groupid'] = explode(',', $fan['groupid']);
+				if (!is_array($fan['groupid']) || !in_array($param['groupid'], $fan['groupid'])) {
+					unset($members[$key]);
+				}
+			}
+		} else {
+			$mc_members = pdo_getall('mc_members', array('groupid' => $param['groupid'], 'uniacid' => $_W['uniacid']), array('uid'), 'uid');
+			$mc = array_keys($mc_members);
+			$members = array();
+			if (!empty($mc)) {
+				$members = pdo_getall('mc_mapping_fans', array('openid !=' => '', 'uid IN' => $mc), array('openid'), 'openid');
+			}
+		}
+	}
+	if ($type == 'cash_time') {
+		$mc_cash_record = pdo_fetchall("SELECT uid FROM " . tablename('mc_cash_record') . " WHERE createtime >= :start AND createtime <= :end", 
+				array(':start' => $param['start'], ':end' => $param['end']), 'uid');
+		$mc = array_keys($mc_cash_record);
+		$members = array();
+		if (!empty($mc)) {
+			$members = pdo_getall('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'uid IN' => $mc), array('openid'), 'openid');
+		}
+	}
+	if ($type == 'openids') {
+		$members = json_decode($_COOKIE['fans_openids'.$_W['uniacid']]);
+	}
+
+	if (is_array($members)) {
+		$member = $type == 'openids' ? $members : array_keys($members);
+		$members = array();
+		$members['members'] = $member;
+		$members['total'] = count($members['members']);
+	} else {
+		$members = array();
+	}
+	return $members;
+}
+
+function activity_storex_member_propertys() {
+	global $_W;
+	$current_property_info = pdo_get('storex_mc_member_property', array('uniacid' => $_W['uniacid']));
+	if (!empty($current_property_info)) {
+		$propertys = json_decode($current_property_info['property'], true);
+	} else {
+		$propertys = array(
+			'newmember' => '1',
+			'oldmember' => '2',
+			'activitymember' => '1',
+			'quietmember' => '1'
+		);
+	}
+	return $propertys;
+}
