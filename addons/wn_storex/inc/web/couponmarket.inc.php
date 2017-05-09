@@ -93,7 +93,7 @@ if ($op == 'post') {
 			$openids = $openids['members'];
 			$account_api = WeAccount::create();
 			foreach ($openids as $openid) {
-				$result = activity_user_get_coupon($post['coupons'], $openid);
+				$result = activity_user_get_coupon($post['coupons'], $openid, 3);
 				$coupon_info = activity_get_coupon_info($post['coupons']);
 				$send['touser'] = $openid;
 				$send['msgtype'] = 'text';

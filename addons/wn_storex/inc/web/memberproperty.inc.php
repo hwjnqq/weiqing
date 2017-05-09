@@ -4,6 +4,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 load()->model('mc');
+mload()->model('activity');
 
 $ops = array('display');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
@@ -16,7 +17,8 @@ if ($op == 'display') {
 	$current_property_info = pdo_get('storex_mc_member_property', array('uniacid' => $_W['uniacid']));
 	$property = $current_property_info['property'];
 	if (empty($property)) {
-		$property = json_encode('');
+		$property = activity_storex_member_propertys();
+		$property = json_encode($property);
 	}
 	if($_W['isajax'] && $_W['ispost']) {
 		$member_property = $_GPC['param'];

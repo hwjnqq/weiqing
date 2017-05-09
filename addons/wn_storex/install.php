@@ -551,7 +551,7 @@ $sql = "
 	`uid` int(10) unsigned NOT NULL,
 	`grantmodule` varchar(255) NOT NULL,
 	`remark` varchar(255) NOT NULL,
-	`granttype` tinyint(4) NOT NULL COMMENT '获取卡券的方式：1 兑换，2 扫码',
+	`granttype` tinyint(4) NOT NULL COMMENT '获取卡券的方式：1 兑换，2 扫码，3派发',
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`,`acid`),
 	KEY `card_id` (`card_id`),

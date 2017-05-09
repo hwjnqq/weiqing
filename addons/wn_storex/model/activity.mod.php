@@ -131,8 +131,10 @@ function activity_user_get_coupon($id, $openid, $granttype = 1) {
 	if ($granttype == 1) {
 		$exchange = pdo_get('storex_activity_exchange', array('uniacid' => $_W['uniacid'], 'extra' => $id), array());
 		$insert['remark'] = $give ? '系统赠送' : '用户使用' . $exchange['credit'] . $credit_names[$exchange['credittype']] . '兑换';
-	} else {
+	} elseif($granttype == 2) {
 		$insert['remark'] = "扫码获取";
+	} elseif($granttype == 3) {
+		$insert['remark'] = "系统派发";
 	}
 	if ($coupon['source'] == 2) {
 		$insert['card_id'] = $coupon['card_id'];
