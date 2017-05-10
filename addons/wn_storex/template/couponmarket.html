@@ -46,7 +46,7 @@
 			<table class="table table-hover">
 				<thead class="navbar-inner">
 				<tr>
-					{if !empty($item['thumb'])}
+					{if COUPON_TYPE == SYSTEM_COUPON}
 					<th style="width:60px;">缩略图</th>
 					{/if}
 					<th style="width:100px;">活动名</th>
@@ -57,7 +57,7 @@
 				<tbody>
 				{loop $list $item}
 				<tr>
-					{if !empty($item['thumb'])}
+					{if COUPON_TYPE == SYSTEM_COUPON}
 					<td><img src="{php echo tomedia($item['thumb'])}" width="40"></td>
 					{/if}
 					<td>{$item['title']}</td>

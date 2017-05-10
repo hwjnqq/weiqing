@@ -109,7 +109,7 @@ if ($op == 'post') {
 	}
 	
 	//获取可以选择派发的卡券
-	$coupons = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'source' => COUPON_TYPE, 'status' => '3', 'is_display' => '1', 'quantity >' => '0'));
+	$coupons = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'source' => COUPON_TYPE, 'status' => '3', 'is_display' => '1', 'quantity >' => '0'), array(), '', 'id DESC');
 	foreach ($coupons as $key => &$coupon) {
 		$coupon = activity_get_coupon_info($coupon['id']);
 		if (strtotime(date('Y-m-d')) < strtotime(str_replace('.', '-', $coupon['date_info']['time_limit_start'])) || strtotime(date('Y-m-d')) > strtotime(str_replace('.', '-', $coupon['date_info']['time_limit_end']))) {
