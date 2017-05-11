@@ -154,3 +154,24 @@ if (pdo_tableexists('mc_card')) {
 		}
 	}
 }
+//增加reply_wxcard表
+$sql="
+	CREATE TABLE IF NOT EXISTS `ims_wxcard_reply` (
+	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	  `rid` int(10) unsigned NOT NULL DEFAULT '0',
+	  `title` varchar(30) NOT NULL,
+	  `card_id` varchar(50) NOT NULL,
+	  `cid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '对应卡券表里的id',
+	  `brand_name` varchar(30) NOT NULL,
+	  `logo_url` varchar(255) NOT NULL,
+	  `success` varchar(255) NOT NULL,
+	  `error` varchar(255) NOT NULL,
+	  PRIMARY KEY (`id`),
+	  KEY `rid` (`rid`)
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;";
+pdo_run($sql);
+//增加微信卡券回复菜单
+$wxcardreply_menu = pdo_get('modules_bindings', array('module' => 'we7_coupon', 'entry' => 'menu', 'title' => '微信卡券回复', 'do' => 'wxcardreply'));
+if (empty($wxcardreply_menu)) {
+	pdo_insert('modules_bindings', array('module' => 'we7_coupon', 'entry' => 'menu', 'title' => '微信卡券回复', 'do' => 'wxcardreply', 'icon' => 'fa fa-puzzle-piece'));
+}

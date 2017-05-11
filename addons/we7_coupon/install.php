@@ -137,7 +137,7 @@ $sql = "
 	  `permission` varchar(50) NOT NULL,
 	  `system` int(2) NOT NULL DEFAULT '0',
 	  PRIMARY KEY (`id`)
-	) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_activity_clerks` (
 	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -231,7 +231,7 @@ $sql = "
 	  PRIMARY KEY (`id`),
 	  KEY `uniacid` (`uniacid`),
 	  KEY `location_id` (`location_id`)
-	) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+	) DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 	CREATE TABLE IF NOT EXISTS `ims_coupon` (
 	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -375,7 +375,20 @@ $sql = "
 	  `createtime` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
 	  PRIMARY KEY (`id`),
 	  KEY `uniacid` (`uniacid`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;	
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	CREATE TABLE IF NOT EXISTS `ims_wxcard_reply` (
+	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	  `rid` int(10) unsigned NOT NULL DEFAULT '0',
+	  `title` varchar(30) NOT NULL,
+	  `card_id` varchar(50) NOT NULL,
+	  `cid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '对应卡券表里的id',
+	  `brand_name` varchar(30) NOT NULL,
+	  `logo_url` varchar(255) NOT NULL,
+	  `success` varchar(255) NOT NULL,
+	  `error` varchar(255) NOT NULL,
+	  PRIMARY KEY (`id`),
+	  KEY `rid` (`rid`)
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 ";
 
 pdo_run($sql);
