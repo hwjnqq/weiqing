@@ -60,10 +60,10 @@ if ($op == 'post') {
 			'status' => intval($_GPC['status']),
 			'coupons' => intval($_GPC['coupon']),
 			'members' => $_GPC['members'],
+			'thumb' => empty($_GPC['thumb'])? '' : $_GPC['thumb'],
 		);
 		if (empty($id)) {
 			if (COUPON_TYPE == SYSTEM_COUPON) {
-				$post['thumb'] = empty($_GPC['thumb'])? '' : $_GPC['thumb'];
 				$post['description'] = trim($_GPC['description']);
 			}
 			$openids = array();

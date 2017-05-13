@@ -46,9 +46,7 @@
 			<table class="table table-hover">
 				<thead class="navbar-inner">
 				<tr>
-					{if COUPON_TYPE == SYSTEM_COUPON}
 					<th style="width:60px;">缩略图</th>
-					{/if}
 					<th style="width:100px;">活动名</th>
 					<th style="width:100px;">发放用户</th>
 					<th style="width:300px;">操作</th>
@@ -57,9 +55,7 @@
 				<tbody>
 				{loop $list $item}
 				<tr>
-					{if COUPON_TYPE == SYSTEM_COUPON}
 					<td><img src="{php echo tomedia($item['thumb'])}" width="40"></td>
-					{/if}
 					<td>{$item['title']}</td>
 					<td>
 						{if in_array('new_member', $item['members'])}
@@ -127,6 +123,7 @@
 						{/if}
 					</div>
 				</div>
+				{/if}
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 活动缩略图</label>
 					<div class="col-sm-8 col-xs-12">
@@ -137,7 +134,6 @@
 						{/if}
 					</div>
 				</div>
-				{/if}
 				<div class="form-group" {if $id}style="display: none;"{/if}>
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 选择卡券</label>
 				<div class="col-sm-8 col-xs-12">
