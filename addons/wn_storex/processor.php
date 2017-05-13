@@ -1,7 +1,7 @@
 <?php
 
 /**
- * 微酒店
+ * 万能小店
  *
  * @author WeEngine Team & ewei
  * @url

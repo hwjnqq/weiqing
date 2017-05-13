@@ -323,7 +323,7 @@ if ($op == 'order'){
 	if ($store_info['store_type'] == 1 && $goods_info['is_house'] == 1) {
 		//如果有接受订单的邮件,
 		if (!empty($reply['mail'])) {
-			$subject = "微信公共帐号 [" . $_W['account']['name'] . "] 微酒店订单提醒.";
+			$subject = "微信公共帐号 [" . $_W['account']['name'] . "] 万能小店订单提醒.";
 			$body = "您后台有一个预定订单: <br/><br/>";
 			$body .= "预定店铺: " . $reply['title'] . "<br/>";
 			$body .= "预定商品: " . $goods_info['title'] . "<br/>";

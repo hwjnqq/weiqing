@@ -1,6 +1,6 @@
 <?php
 /**
- * 微酒店
+ * 万能小店
  *
  * @author WeEngine Team & ewei
  * @url
@@ -273,7 +273,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			load()->model('cloud');
 			cloud_prepare();
 			$postdata = array(
-				'verify_code' => '微酒店订单验证码为' .$code ,
+				'verify_code' => '万能小店订单验证码为' .$code ,
 			);
 			$result = cloud_sms_send($mobile,'800010', $postdata);
 			if (is_error($result)){
