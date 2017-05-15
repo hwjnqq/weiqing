@@ -334,8 +334,8 @@ function activity_get_member_by_type($type, $param = array()) {
 		$mc_members = pdo_getall('mc_members', array('uniacid' => $_W['uniacid'], 'createtime >' => $property_time), array('uid'), 'uid');
 		$mc_uids = array_keys($mc_members);
 		$uids = implode(',',$mc_uids);
-		$sql_cash_record = "SELECT uid FROM " . tablename('mc_cash_record') . " WHERE uid IN ( :uids ) AND createtime > :time GROUP BY uid HAVING COUNT(*) < 2 " ;
-		$mc_cash_record = pdo_fetchall($sql_cash_record, array(':uids' => $uids, ':time' => $property_time));
+		$mc_cash_record_sql = "SELECT uid FROM " . tablename('mc_cash_record') . " WHERE uid IN ( :uids ) AND createtime > :time GROUP BY uid HAVING COUNT(*) < 2 " ;
+		$mc_cash_record = pdo_fetchall($mc_cash_record_sql, array(':uids' => $uids, ':time' => $property_time));
 		if (!empty($mc_cash_record)) {
 			foreach ($mc_cash_record as $v) {
 				if (!in_array($v['uid'], $mc_uids)) {
@@ -378,7 +378,7 @@ function activity_get_member_by_type($type, $param = array()) {
 			return error(1, '请选择会员组');
 		}
 		if (COUPON_TYPE == WECHAT_COUPON) {
-			$members =  pdo_getall('mc_mapping_fans', array('uniacid' => $_W['uniacid']), array(), 'openid');
+			$members = pdo_getall('mc_mapping_fans', array('uniacid' => $_W['uniacid']), array(), 'openid');
 			foreach ($members as $key => &$fan) {
 				$fan['groupid'] = explode(',', $fan['groupid']);
 				if (!is_array($fan['groupid']) || !in_array($param['groupid'], $fan['groupid'])) {
