@@ -3,11 +3,11 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('wxstore', 'paycenterwxmicro');
-$op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'couponmanage';
+$ops = array('storelist', 'paycenterwxmicro');
+$op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'storelist';
 
-if ($op == 'wxstore') {
-	$url = $this->createWebUrl('wxstore', array('op' => 'display'));
+if ($op == 'storelist') {
+	$url = $this->createWebUrl('storelist', array('op' => 'display'));
 	header("Location: {$url}");
 	die;
 }
