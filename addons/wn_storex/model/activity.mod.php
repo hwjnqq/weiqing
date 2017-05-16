@@ -433,3 +433,38 @@ function activity_storex_member_propertys() {
 	}
 	return $propertys;
 }
+
+/**
+ * 同步微信门店最新状态
+ */
+function activity_storex_sync() {
+	global $_W;
+	load()->classs('coupon');
+	$cachekey = "storexsync:{$_W['uniacid']}";
+	$cache = cache_load($cachekey);
+	if (!empty($cache) && $cache['expire'] > time()) {
+		return false;
+	}
+	$stores = pdo_getall('storex_activity_stores', array('uniacid' => $_W['uniacid'], 'source' => 2));
+	foreach ($stores as $val) {
+		if ($val['status'] == 3) {
+			continue;
+		}
+		$acc = new coupon($_W['acid']);
+		$location = $acc->LocationGet($val['location_id']);
+		if(is_error($location)) {
+			return error(-1, $location['message']);
+		}
+		$location = $location['business']['base_info'];
+		$status2local = array('', 3, 2, 1, 3);
+		$location['status'] = $status2local[$location['available_state']];
+		$location['location_id'] = $location['poi_id'];
+		$category_temp = explode(',', $location['categories'][0]);
+		$location['category'] = iserializer(array('cate' => $category_temp[0], 'sub' => $category_temp[1], 'clas' => $category_temp[2]));
+		$location['photo_list'] = iserializer($location['photo_list']);
+		unset($location['categories'], $location['poi_id'], $location['update_status'], $location['available_state'],$location['offset_type'], $location['sid'], $location['type']);
+		pdo_update('storex_activity_stores', $location, array('uniacid' => $_W['uniacid'], 'id' => $val['id']));
+	}
+	cache_write($cachekey, array('expire' => time() + 1800));
+	return true;
+}
