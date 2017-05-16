@@ -202,7 +202,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			}
 			$member['username'] = $username;
 			$member['password'] = $_GPC['password'];
-			//$member['status'] = 1;
+			// $member['status'] = 1;
 			if (empty($member['password'])) {
 				die(json_encode(array("result" => 3, "error" => "请输入登录密码")));
 			}
@@ -238,21 +238,21 @@ class Wn_storexModuleSite extends WeModuleSite {
 	//发送短信验证码
 	public function doMobilecode(){
 		global $_GPC, $_W;
-		$mobile=$_GPC['mobile'];
+		$mobile = $_GPC['mobile'];
 		$weid = $this->_weid;
-		$code=random(4);
-		if (empty($mobile)){
+		$code = random(4);
+		if (empty($mobile)) {
 			exit('请输入手机号');
 		}
-		$sql = 'DELETE FROM ' . tablename('hotel12_code') . "WHERE `mobile` = :mobile and  `createtime`< :time and `weid`= :weid ";
-		$delete=pdo_query($sql,array('mobile'=> $mobile,'time'=> TIMESTAMP - 1800,'weid'=> $weid));
+		$sql = 'DELETE FROM ' . tablename('hotel12_code') . ' WHERE `mobile` = :mobile and `createtime`< :time and `weid`= :weid ';
+		$delete = pdo_query($sql,array('mobile' => $mobile, 'time'=> TIMESTAMP - 1800, 'weid'=> $weid));
 		$sql = 'SELECT * FROM ' . tablename('hotel12_code') . ' WHERE `mobile`=:mobile AND `weid`=:weid ';
 		$pars = array();
 		$pars['mobile'] = $mobile;
 		$pars['weid'] = $weid;
 		$row = pdo_fetch($sql, $pars);
 		$record = array();
-		if ($row['total']>=5){
+		if ($row['total'] >= 5){
 			message(error(1,'您发送的验证码太频繁'), '', 'ajax');
 			exit;
 			$code = $row['code'];
@@ -303,14 +303,14 @@ class Wn_storexModuleSite extends WeModuleSite {
 		global $_GPC, $_W;
 		load()->model('mc');
 		mload()->model('card');
-		if ($params['type']=='credit'){
-			$paytype=1;
-		} elseif ($params['type']=='wechat'){
-			$paytype=21;
-		} elseif ($params['type']=='alipay'){
-			$paytype=22;
-		} elseif ($params['type']=='delivery'){
-			$paytype=3;
+		if ($params['type'] == 'credit') {
+			$paytype = 1;
+		} elseif ($params['type'] == 'wechat') {
+			$paytype = 21;
+		} elseif ($params['type'] == 'alipay') {
+			$paytype = 22;
+		} elseif ($params['type'] == 'delivery') {
+			$paytype = 3;
 		}
 		$recharge_info = pdo_get('mc_credits_recharge', array('uniacid' => $_W['uniacid'], 'tid' => $params['tid']), array('id', 'backtype', 'fee'));
 		if (!empty($recharge_info)) {
@@ -610,7 +610,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 		include $this->template('error');
 	}
 
-	public  function  doMobileAjaxdelete() {
+	public function doMobileAjaxdelete() {
 		global $_GPC;
 		$delurl = $_GPC['pic'];
 		if (file_delete($delurl)) {
