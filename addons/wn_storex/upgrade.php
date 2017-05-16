@@ -286,6 +286,38 @@ $sql = "
 	`members` varchar(255) NOT NULL DEFAULT '',
 	PRIMARY KEY (`id`)
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_paycenter_order` (
+	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+	  `uid` int(10) unsigned NOT NULL DEFAULT '0',
+	  `pid` int(10) unsigned NOT NULL DEFAULT '0',
+	  `clerk_id` int(10) unsigned NOT NULL DEFAULT '0',
+	  `store_id` int(10) unsigned NOT NULL DEFAULT '0',
+	  `clerk_type` tinyint(3) unsigned NOT NULL DEFAULT '2',
+	  `uniontid` varchar(40) NOT NULL,
+	  `transaction_id` varchar(40) NOT NULL,
+	  `type` varchar(10) NOT NULL COMMENT '支付方式',
+	  `trade_type` varchar(10) NOT NULL COMMENT '支付类型:刷卡支付,扫描支付',
+	  `body` varchar(255) NOT NULL COMMENT '商品信息',
+	  `fee` varchar(15) NOT NULL COMMENT '商品费用',
+	  `final_fee` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '优惠后应付价格',
+	  `credit1` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '抵消积分',
+	  `credit1_fee` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '积分抵消金额',
+	  `credit2` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '余额支付金额',
+	  `cash` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '线上支付金额',
+	  `remark` varchar(255) NOT NULL,
+	  `auth_code` varchar(30) NOT NULL,
+	  `openid` varchar(50) NOT NULL,
+	  `nickname` varchar(50) NOT NULL COMMENT '付款人',
+	  `follow` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '是否关注公众号',
+	  `status` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '线上支付状态',
+	  `credit_status` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '积分,余额的交易状态.0:未扣除,1:已扣除',
+	  `paytime` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '支付时间',
+	  `createtime` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+	  PRIMARY KEY (`id`),
+	  KEY `uniacid` (`uniacid`)
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 ";
 pdo_run($sql);
 if (!pdo_fieldexists('storex_bases', 'category_set')) {
