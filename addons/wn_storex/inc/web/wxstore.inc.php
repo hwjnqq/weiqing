@@ -32,9 +32,9 @@ if($op == 'display') {
 	}
 	$storex_list = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid'])), array(), 'id');
 	if (!empty($storex_list)) {
-		foreach ($storex_list as $key=>$val){
-			if (in_array($key, $activity_stores)) {
-				unset($storex_list[$key]);
+		foreach ($storex_list as $k=>$val){
+			if (in_array($k, $activity_stores)) {
+				unset($storex_list[$k]);
 			}
 		}
 	}
