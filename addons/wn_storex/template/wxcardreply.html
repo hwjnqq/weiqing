@@ -133,6 +133,12 @@ require(['bootstrap'], function($){
 {/if}
 
 {if $_GPC['op'] == 'post'}
+<div class="page-header clearfix">
+	<h4 class="pull-left">添加微信卡券回复</h4>
+	<div class="pull-right">
+		<a href="{php echo $this->createWeburl('wxcardreply', array('op' => 'display'))}" class="btn btn-primary we7-padding-horizontal">返回微信卡券回复管理</a>
+	</div>
+</div>
 <div class="clearfix ng-cloak" id="js-reply-form" ng-controller="replyForm">
 	<form id="reply-form" class="form-horizontal form" action="{php echo $this->createWebUrl('wxcardreply', array('op' => 'post', 'rid' => $rid))}" method="post" enctype="multipart/form-data">
 		<div class="form-group">

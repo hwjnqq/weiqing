@@ -1,9 +1,10 @@
 {template 'common/header'}
 <ul class="nav nav-tabs">
-	<li {if $op == 'display'}class="active"{/if}><a href="{php echo url('paycenter/wxmicro/pay');}">刷卡收款</a></li>
+	<li {if $_GPC['do'] == 'wxstore'}class="active" {/if}><a href="{php echo $this->createWeburl('wxstore', array('op' => 'display'))}">店家列表</a></li>
+	<li {if $_GPC['do'] == 'paycenterwxmicro'}class="active" {/if}><a href="{php echo $this->createWeburl('paycenterwxmicro', array('op' => 'display'))}">微信刷卡支付</a></li>
 </ul>
 
-{if $op == 'display'}
+{if $_GPC['op'] == 'display'}
 <style>
 	.panel .panel-heading input[name="fee"] {
 		line-height:60px;
