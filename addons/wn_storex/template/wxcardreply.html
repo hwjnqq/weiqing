@@ -1,4 +1,22 @@
 {template 'common/header'}
+
+<style>
+	.wxcard{clear: both;margin-bottom: 20px; position: relative;}
+	.wxcard .panel-body .panel-wxcard {position:relative;}
+	.wxcard .panel-body .panel-wxcard .wxcard-content{width:100%; height:90px; border-radius:5px; border-bottom-left-radius:0; border-bottom-right-radius:0; border:1px solid #e7e7eb; border-bottom:0; position:relative; background-color:#A9D92C; color:#fff; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+	.wxcard .panel-body .panel-wxcard .wxcard-content img{width:60px; height:60px; position:absolute; top:15px; left:15px;}
+	.wxcard .panel-body .panel-wxcard .wxcard-content .title{position:absolute; left:90px; top:30px; font-size:19px}
+	.wxcard .panel-body .panel-wxcard .wxcard-footer{background-color:#fff; height:35px; line-height:35px; border:1px solid #e7e7eb; padding:0 10px; border-bottom-left-radius:5px; border-bottom-right-radius:5px;}
+	.wxcard .panel-body .mask{position:absolute; width:100%; height:100%; line-height:104px; left:0; top:0; z-index:999; background-color:rgba(229, 229, 229, 0.85) !important; text-align:center; display:none;}
+
+	.wxcard .panel-body:hover .mask{display:block}
+	.wxcard .del,.panel .no{position: absolute; top:-10px; width:20px; height:20px; color:#fff; background:rgba(0,0,0,0.3); text-align:center; line-height:20px; cursor:pointer; border-radius:100%;}
+	.wxcard .del{right:-10px;}
+	.wxcard .no{left:-10px;background: #3071a9}
+	.wxcard .del:hover{background:rgba(0,0,0,0.7);}
+	.wxcard .panel:last-child{margin-bottom: 0;}
+</style>
+
 <ul class="nav nav-tabs">
 	<li {if $_GPC['do'] == 'couponmanage'}class="active" {/if}><a href="{php echo $this->createWeburl('couponmanage', array('op' => 'display'))}">卡券管理</a></li>
 	<li {if $_GPC['do'] == 'couponexchange'}class="active" {/if}><a href="{php echo $this->createWeburl('couponexchange', array('op' => 'display'))}">卡券兑换</a></li>
@@ -280,8 +298,119 @@ require(['bootstrap'], function($){
 		</div>
 		
 		<div class="form-group">
+			<!-- 
 			<div class="col-sm-12">
 				{php echo module_build_form('wxcard', $rid);}
+			</div>
+			 -->
+			<div class="alert alert-info" style="margin-top:-20px">
+				<i class="fa fa-info-circle"></i> 您可以添加多个回复卡券，系统将随机选择一个卡券推送给粉丝<br>
+				<i class="fa fa-info-circle"></i> 设置为回复的卡券要保证是可用的卡券.卡券的库存应该足够大,使用期限应该有效<br>
+			</div>
+			<input type="hidden" name="replies" value="">
+			<div class="panel panel-default clearfix">
+				<div class="panel-heading">回复内容</div>
+				<div class="panel-body">
+					<div class="row clearfix">
+						<div class="col-xs-6 col-sm-3 col-md-3">
+							<div class="panel panel-default">
+								<div class="panel-body">
+									<div class="form-group" style="margin:-15px">
+										<label class="col-xs-12 control-label" style="text-align:left; padding-bottom:7px">卡券发送成功提示语</label>
+										<div class="col-xs-12">
+											<textarea class="form-control" name="success">{$replies[0]['success']}</textarea>
+										</div>
+									</div>
+									<div class="form-group" style="margin:-15px">
+										<label class="col-xs-12 control-label" style="text-align:left; padding-bottom:7px">卡券发送失败提示语</label>
+										<div class="col-xs-12">
+											<textarea class="form-control" name="error">{$replies[0]['error']}</textarea>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="panel panel-default wxcard" ng-repeat="item in context.items">
+								<div class="no">{{$index + 1}}</div>
+								<div class="panel-body">
+									<div class="panel-wxcard">
+										<div class="wxcard-content" ng-style="{'background-color' : item.color}">
+											<img src="" ng-src="{{item.logo_url}}" class="img-circle">
+											<div class="title">{{item.title}}</div>
+										</div>
+										<div class="wxcard-footer clearfix">
+											<div class="pull-right text-muted hide">2015-12-5</div>
+											<div>{{item.brand_name}}</div>
+										</div>
+										<div class="mask">
+											<a data-toggle="modal" data-target="#myModal" href="javascript:;" ng-click="context.selectCoupon(item)"><i class="fa fa-book"></i> 选择微信卡券</a>
+										</div>
+									</div>
+								</div>
+								<div class="del" ng-click="context.removeItem(item);"><i class="fa fa-times"></i></div>
+							</div>
+							<div class="btn btn-primary" ng-click="context.addItem()" style="margin-bottom:20px">添加一组回复</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+			<div class="modal-dialog" style="width: 800px;">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h4 class="modal-title">选择卡券</h4>
+					</div>
+					<div class="modal-body">
+						{if empty($storex_coupon)}
+						您现在没有卡券，请先<a href="{php echo $this->createWeburl('couponmanage')}">添加卡券</a>。
+						{else}
+						<table class="table table-hover table-bordered">
+							<thead>
+								<tr>
+									<th width="130" class="text-center">标题</th>
+									<th class="text-center">类型</th>
+									<th width="250" class="text-center">卡券有效期</th>
+									<th class="text-center">库存/每人限领</th>
+									<th class="text-center">操作</th>
+								</tr>
+							</thead>
+							<tbody>
+								{php $types = activity_get_coupon_label();}
+								{loop $storex_coupon $coupon}
+								<tr title="{$coupon['title']}">
+									<td>{$coupon['title']}</td>
+									<td>
+										{if $coupon['type'] == "1"}
+										<span class="label label-info">
+										{$coupon['extra']['discount']}折</span>
+										<span class="label label-success">折扣券</span>
+										{else if $coupon['type'] == "2"}
+										<span class="label label-info">{$coupon['extra']['reduce_cost']}元</span>
+										<span class="label label-danger">代金券</span>
+										{else if $coupon['type'] == "4"}
+										<span class="label label-danger">礼品券</span>
+										{else if $coupon['type'] == "3"}
+										<span class="label label-danger">团购券</span>
+										{else if $coupon['type'] == "5"}
+										<span class="label label-danger">优惠券</span>
+										{/if}
+									</td>
+									<td>
+									{if $coupon['date_info']['time_type'] == 1}
+										{$coupon['date_info']['time_limit_start']}~{$coupon['date_info']['time_limit_end']} 
+									{else}
+										领取后{$coupon['date_info']['date_info']}天后生效,{$coupon['date_info']['limit']}天有效期
+									{/if}
+									</td>
+									<td>{$coupon['quantity']}/<strong class="text-danger">{$coupon['get_limit']}</strong></td>
+									<td><a href="javascript:;" class="btn btn-default add_coupon" data-title="{$coupon['title']}" data-attachid="{$coupon['id']}">选取</a></td>
+								</tr>
+								{/loop}
+							</tbody>
+						</table>
+						{/if}
+					</div>
+				</div>
 			</div>
 		</div>
 		<div class="form-group">
@@ -292,6 +421,7 @@ require(['bootstrap'], function($){
 		</div>
 	</form>
 </div>
+
 <script>
 require(['angular.sanitize', 'bootstrap', 'underscore', 'util'], function(angular, $, _, util){
 	angular.module('app', ['ngSanitize']).controller('replyForm', function($scope, $http){
@@ -475,7 +605,6 @@ require(['angular.sanitize', 'bootstrap', 'underscore', 'util'], function(angula
 	});
 	angular.bootstrap($('#js-reply-form')[0], ['app']);
 
-
 	// 检测规则是否已经存在
 	window.checkKeyWord = function(key) {
 		var keyword = key.val().trim();
@@ -522,6 +651,93 @@ require(['angular.sanitize', 'bootstrap', 'underscore', 'util'], function(angula
 		$(this).attr('data-type', 'keyword');
 	});
 });
+</script>
+
+<script>
+	window.initReplyController = function($scope, $http) {
+		$scope.context = {};
+		$scope.context.items = {php echo json_encode($replies)};
+		if(!$.isArray($scope.context.items)) {
+			$scope.context.items = [];
+		}
+
+		$scope.context.addItem = function(){
+			$scope.context.items.push(
+				{
+					id: '',
+					title: '',
+					logo_url: '',
+					color: '',
+					brand_name: ''
+				}
+			);
+			$scope.context.activeIndex = $scope.context.items.length - 1;
+			$scope.context.activeItem = $scope.context.items[$scope.context.activeIndex];
+		}
+
+		if($scope.context.items.length == 0) {
+			$scope.context.addItem();
+		}
+		$scope.context.activeIndex = 0;
+		$scope.context.activeItem = $scope.context.items[$scope.context.activeIndex];
+
+		$scope.context.removeItem = function(item){
+			if($scope.context.items.length == 1) {
+				util.message('至少有一组回复内容');
+				return false;
+			}
+			$scope.context.items = _.without($scope.context.items, item);
+			$scope.context.activeIndex = 0;
+			$scope.context.activeItem = $scope.context.items[$scope.context.activeIndex];
+			$scope.$digest();
+		}
+		$scope.context.selectCoupon = function(item) {
+			var index = $.inArray(item, $scope.context.items);
+			if(index == -1) return false;
+			$scope.context.activeIndex = index;
+			$scope.context.activeItem = $scope.context.items[$scope.context.activeIndex];
+
+			var option = {
+				'ignore' : {
+					'local' : true
+				},
+				'multiple' : false
+			};
+			$('.add_coupon').click(function() {
+				var storex_coupon = {php echo json_encode($storex_coupon);};
+				var attachid = $(this).data('attachid');
+				var coupon = storex_coupon[attachid];
+				$scope.context.activeItem.card_id = coupon.card_id;
+				$scope.context.activeItem.cid = coupon.id;
+				$scope.context.activeItem.title = coupon.title;
+				$scope.context.activeItem.logo_url = coupon.logo_url;
+				$scope.context.activeItem.brand_name = coupon.brand_name;
+				$scope.$digest();
+				$('#myModal').modal('hide');
+			});
+			
+		};
+	};
+
+	window.validateReplyForm = function(form, $, _, util, $scope) {
+		if($scope.context.items.length == 0) {
+			util.message('没有回复内容', '', 'error');
+			return false;
+		}
+		var error = {empty: false, message: ''};
+		angular.forEach($scope.context.items, function(v, k){
+			if($.trim(v.cid) == '' || $.trim(v.card_id) == '') {
+				this.empty = true;
+			}
+		}, error);
+		if(error.empty) {
+			util.message('存在没有设置 "卡券" 的回复条目');
+			return false;
+		}
+		var val = angular.toJson($scope.context.items);
+		$(':hidden[name=replies]').val(val);
+		return true;
+	};
 </script>
 {/if}
 
