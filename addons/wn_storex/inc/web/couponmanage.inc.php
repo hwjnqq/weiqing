@@ -50,6 +50,7 @@ if ($op == 'display') {
 			$storelist[$stores['couponid']][$key] = $stores['storeid'];
 		}
 	}
+	$coupon_ids = array();
 	if (!empty($storelist) && is_array($storelist)) {
 		$coupon_ids = array_keys($storelist);
 	}

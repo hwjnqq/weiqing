@@ -49,6 +49,5 @@ class Wn_storexModuleReceiver extends WeModuleReceiver {
 			$code = trim($this->message['usercardcode']);
 			pdo_update('storex_coupon_record', array('status' => 3), array('card_id' => $card_id, 'openid' => $openid, 'code' => $code));
 		}
-		exit('success');
 	}
 }

@@ -8,7 +8,7 @@ load()->model('reply');
 load()->model('module');
 mload()->model('activity');
 
-$ops = array('display', 'post', 'delete', 'stat_trend', 'wechat');
+$ops = array('display', 'post', 'delete', 'stat_trend');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 activity_get_coupon_type();
