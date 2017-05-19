@@ -79,8 +79,8 @@ if ($op == 'display') {
 		$exports = pdo_fetchall('SELECT * FROM ' . tablename('mc_credits_record') . $condition . " ORDER BY id DESC", $params);
 		if (!empty($exports)) {
 			$uids = array();
-			foreach($exports as &$da) {
-				if(!in_array($da['uid'], $uids)) {
+			foreach ($exports as &$da) {
+				if (!in_array($da['uid'], $uids)) {
 					$uids[] = $da['uid'];
 				}
 				$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
@@ -161,7 +161,7 @@ if ($op == 'chart') {
 	$today_consume = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num < 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => strtotime(date('Y-m-d')), ':endtime' => TIMESTAMP)));
 	$total_recharge = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num > 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => $starttime, ':endtime' => $endtime)));
 	$total_consume = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num < 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => $starttime, ':endtime' => $endtime)));
-	if ($_W['isajax']) {
+	if ($_W['isajax'] && $_W['ispost']) {
 		$stat = array();
 		for ($i = 0; $i < $num; $i++) {
 			$time = $i * 86400 + $starttime;

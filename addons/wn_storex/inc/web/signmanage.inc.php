@@ -12,13 +12,13 @@ $extend_switch = extend_switch_fetch();
 //设置签到规则
 if ($op == 'sign_set') {
 	$sign_set = pdo_get('storex_sign_set', array('uniacid' => $_W['uniacid']));
-	if(empty($sign_set)) {
+	if (empty($sign_set)) {
 		$sign_set = array();
 	} else {
 		$sign_set['sign'] = iunserializer($sign_set['sign']);
 	}
 	$remedy_cost_type = in_array(trim($_GPC['remedy_cost_type']), array('credit1', 'credit2')) ? trim($_GPC['remedy_cost_type']): 'credit2';
-	if(checksubmit()) {
+	if (checksubmit()) {
 		$data = array(
 			'uniacid' => $_W['uniacid'],
 			'sign' => array(
@@ -37,7 +37,7 @@ if ($op == 'sign_set') {
 			'content' => htmlspecialchars_decode($_GPC['content']),
 		);
 		$data['sign'] = iserializer($data['sign']);
-		if(empty($sign_set['uniacid'])) {
+		if (empty($sign_set['uniacid'])) {
 			pdo_insert('storex_sign_set', $data);
 		} else {
 			pdo_update('storex_sign_set', $data, array('uniacid' => $_W['uniacid']));

@@ -16,7 +16,7 @@ $starttime = empty($_GPC['time']['start']) ? mktime(0, 0, 0, date('m') , 1, date
 $endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
 $num = ($endtime + 1 - $starttime) / 86400;
 
-if($op == 'display') {
+if ($op == 'display') {
 	$stores = pdo_getall('storex_activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array('id', 'business_name', 'branch_name'), 'id');
 	$condition = ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime';
 	$params = array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime);
@@ -25,13 +25,13 @@ if($op == 'display') {
 		$current_clerk_id = $_W['user']['clerk_id'];
 		$condition .= " AND clerk_type = 3 AND clerk_id = {$current_clerk_id}";
 	}
-	if($min > 0 ) {
+	if ($min > 0 ) {
 		$condition .= ' AND abs(final_fee) >= :minnum';
 		$params[':minnum'] = $min;
 	}
 	
 	$max = intval($_GPC['max']);
-	if($max > 0 ) {
+	if ($max > 0 ) {
 		$condition .= ' AND abs(final_fee) <= :maxnum';
 		$params[':maxnum'] = $max;
 	}
@@ -46,7 +46,7 @@ if($op == 'display') {
 		$params[':store_id'] = $store_id;
 	}
 	$user = trim($_GPC['user']);
-	if(!empty($user)) {
+	if (!empty($user)) {
 		$condition .= ' AND (uid IN (SELECT uid FROM '.tablename('mc_members').' WHERE uniacid = :uniacid AND (realname LIKE :username OR uid = :uid OR mobile LIKE :mobile)))';
 		$params[':username'] = "%{$user}%";
 		$params[':uid'] = intval($user);
@@ -59,11 +59,11 @@ if($op == 'display') {
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_cash_record') . $condition, $params);
 	$data = pdo_fetchall('SELECT * FROM ' . tablename('mc_cash_record') . $condition . $limit, $params);
 	
-	if(!empty($data)) {
+	if (!empty($data)) {
 		load()->model('clerk');
 		$uids = array();
-		foreach($data as &$da) {
-			if(!in_array($da['uid'], $uids)) {
+		foreach ($data as &$da) {
+			if (!in_array($da['uid'], $uids)) {
 				$uids[] = $da['uid'];
 			}
 			$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
@@ -143,7 +143,7 @@ if($op == 'display') {
 if ($op == 'chart') {
 	$today_consume = floatval(pdo_fetchcolumn('SELECT SUM(final_cash) FROM ' . tablename('mc_cash_record') . ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => strtotime(date('Y-m-d')), ':endtime' => TIMESTAMP)));
 	$total_consume = floatval(pdo_fetchcolumn('SELECT SUM(final_cash) FROM ' . tablename('mc_cash_record') . ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime)));
-	if ($_W['isajax']) {
+	if ($_W['isajax'] && $_W['ispost']) {
 		$stat = array();
 		for ($i = 0; $i < $num; $i++) {
 			$time = $i * 86400 + $starttime;
@@ -151,9 +151,7 @@ if ($op == 'chart') {
 			$stat['consume'][$key] = 0;
 			$stat['recharge'][$key] = 0;
 		}
-	
 		$data = pdo_fetchall('SELECT * FROM ' . tablename('mc_cash_record') . ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime));
-	
 		if (!empty($data)) {
 			foreach ($data as $da) {
 				$key = date('m-d', $da['createtime']);

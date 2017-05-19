@@ -25,21 +25,21 @@ if($op == 'display') {
 		$params[':clerk_id'] = $_W['user']['clerk_id'];
 	}
 	$num = intval($_GPC['num']);
-	if($num > 0) {
-		if($num == 1) {
+	if ($num > 0) {
+		if ($num == 1) {
 			$condition .= ' AND num >= 0';
 		} else {
 			$condition .= ' AND num <= 0';
 		}
 	}
 	$min = intval($_GPC['min']);
-	if($min > 0 ) {
+	if ($min > 0 ) {
 		$condition .= ' AND abs(num) >= :minnum';
 		$params[':minnum'] = $min;
 	}
 	
 	$max = intval($_GPC['max']);
-	if($max > 0 ) {
+	if ($max > 0 ) {
 		$condition .= ' AND abs(num) <= :maxnum';
 		$params[':maxnum'] = $max;
 	}
@@ -55,7 +55,7 @@ if($op == 'display') {
 	}
 	
 	$user = trim($_GPC['user']);
-	if(!empty($user)) {
+	if (!empty($user)) {
 		$condition .= ' AND (uid IN (SELECT uid FROM '.tablename('mc_members').' WHERE uniacid = :uniacid AND (realname LIKE :username OR uid = :uid OR mobile LIKE :mobile)))';
 		$params[':username'] = "%{$user}%";
 		$params[':uid'] = intval($user);
@@ -67,11 +67,11 @@ if($op == 'display') {
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_credits_record') . $condition, $params);
 	$data = pdo_fetchall('SELECT * FROM ' . tablename('mc_credits_record') . $condition . $limit, $params);
 	
-	if(!empty($data)) {
+	if (!empty($data)) {
 		load()->model('clerk');
 		$uids = array();
-		foreach($data as &$da) {
-			if(!in_array($da['uid'], $uids)) {
+		foreach ($data as &$da) {
+			if (!in_array($da['uid'], $uids)) {
 				$uids[] = $da['uid'];
 			}
 			$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
@@ -85,11 +85,11 @@ if($op == 'display') {
 	$pager = pagination($total, $pindex, $psize);
 	if ($_GPC['export'] != '') {
 		$exports = pdo_fetchall('SELECT * FROM '.tablename('mc_credits_record'). $condition . ' ORDER BY id DESC', $params);
-		if(!empty($exports)) {
+		if (!empty($exports)) {
 			load()->model('clerk');
 			$uids = array();
-			foreach($exports as &$da) {
-				if(!in_array($da['uid'], $uids)) {
+			foreach ($exports as &$da) {
+				if (!in_array($da['uid'], $uids)) {
 					$uids[] = $da['uid'];
 				}
 				$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
@@ -123,14 +123,13 @@ if($op == 'display') {
 					$html .= $user[$v['uid']]['realname']. "\t, ";
 				} elseif ($key == 'phone') {
 					$html .= $user[$v['uid']]['mobile']. "\t, ";
-				}elseif ($key == 'type') {
+				} elseif ($key == 'type') {
 					if ($v['num'] > 0) {
 						$html .= "充值\t, ";
 					} else {
 						$html .= "消费\t, ";
 					}
-				}
-				elseif ($key == 'num') {
+				} elseif ($key == 'num') {
 					$html .= abs($v[$key]). "\t, ";
 				} elseif ($key == 'store') {
 					if ($v['store_id'] > 0) {
@@ -138,19 +137,19 @@ if($op == 'display') {
 					} else {
 						$html .= "未知\t, ";
 					}
-				}elseif ($key == 'operator') {
+				} elseif ($key == 'operator') {
 					if ($v['clerk_id'] > 0) {
 						$html .= $v['clerk_cn']. "\t, ";
 					} elseif ($v['clerk_type'] == 1) {
 						$html .= "系统\t, ";
-					}else {
+					} else {
 						$html .= "未知\t, ";
 					}
-				}elseif ($key == 'createtime') {
+				} elseif ($key == 'createtime') {
 					$html .= date('Y-m-d H:i', $v['createtime']). "\t, ";
-				}elseif ($key == 'remark') {
+				} elseif ($key == 'remark') {
 					$html .= cutstr($v['remark'], '30', '...'). "\t, ";
-				}else {
+				} else {
 					$html .= $v[$key]. "\t, ";
 				}
 			}
@@ -168,9 +167,9 @@ if ($op == 'chart') {
 	$today_consume = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num < 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => strtotime(date('Y-m-d')), ':endtime' => TIMESTAMP)));
 	$total_recharge = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num > 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => $starttime, ':endtime' => $endtime)));
 	$total_consume = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num < 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => $starttime, ':endtime' => $endtime)));
-	if($_W['isajax']) {
+	if ($_W['isajax'] && $_W['ispost']) {
 		$stat = array();
-		for($i = 0; $i < $num; $i++) {
+		for ($i = 0; $i < $num; $i++) {
 			$time = $i * 86400 + $starttime;
 			$key = date('m-d', $time);
 			$stat['consume'][$key] = 0;
@@ -178,10 +177,10 @@ if ($op == 'chart') {
 		}
 		$data = pdo_fetchall('SELECT id,num,credittype,createtime,uniacid FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => $starttime, ':endtime' => $endtime));
 	
-		if(!empty($data)) {
-			foreach($data as $da) {
+		if (!empty($data)) {
+			foreach ($data as $da) {
 				$key = date('m-d', $da['createtime']);
-				if($da['num'] > 0) {
+				if ($da['num'] > 0) {
 					$stat['recharge'][$key] += $da['num'];
 				} else {
 					$stat['consume'][$key] += abs($da['num']);
