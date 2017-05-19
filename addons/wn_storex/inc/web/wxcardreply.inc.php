@@ -27,20 +27,20 @@ if ($op == 'display') {
 	if ($status != -1){
 		$condition .= " AND status = '{$status}'";
 	}
-	if(isset($_GPC['keyword'])) {
+	if (isset($_GPC['keyword'])) {
 		$condition .= ' AND `name` LIKE :keyword';
 		$params[':keyword'] = "%{$_GPC['keyword']}%";
 	}
 	$replies = reply_search($condition, $params, $pindex, $psize, $total);
 	$pager = pagination($total, $pindex, $psize);
 	if (!empty($replies)) {
-		foreach($replies as &$item) {
+		foreach ($replies as &$item) {
 			$condition = '`rid`=:rid';
 			$params = array();
 			$params[':rid'] = $item['id'];
 			$item['keywords'] = reply_keywords_search($condition, $params);
 			$entries = module_entries('wxcard', array('rule'),$item['id']);
-			if(!empty($entries)) {
+			if (!empty($entries)) {
 				$item['options'] = $entries['rule'];
 			}
 		}
@@ -49,7 +49,7 @@ if ($op == 'display') {
 
 if ($op == 'post') {
 	$rid = intval($_GPC['rid']);
-	if(!empty($rid)) {
+	if (!empty($rid)) {
 		$replies = pdo_getall('wxcard_reply', array('rid' => $rid));
 	}
 	if ($_W['isajax'] && $_W['ispost']) {
@@ -69,12 +69,12 @@ if ($op == 'post') {
 		exit('success');
 	}
 	$rid = intval($_GPC['rid']);
-	if(!empty($rid)) {
+	if (!empty($rid)) {
 		$reply = reply_single($rid);
-		if(empty($reply) || $reply['uniacid'] != $_W['uniacid']) {
+		if (empty($reply) || $reply['uniacid'] != $_W['uniacid']) {
 			message('抱歉，您操作的规则不在存或是已经被删除！', $this->createWebUrl('wxcardreply', array('op' => 'display')), 'error');
 		}
-		foreach($reply['keywords'] as &$kw) {
+		foreach ($reply['keywords'] as &$kw) {
 			$kw = array_elements(array('type', 'content'), $kw);
 		}
 	}
@@ -89,8 +89,8 @@ if ($op == 'post') {
 	$psize = 15;
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM '. tablename('storex_coupon') . $condition, $param);
 	$storex_coupon = pdo_fetchall('SELECT * FROM ' . tablename('storex_coupon') . $condition . ' ORDER BY id DESC LIMIT ' . ($pindex - 1) * $psize . ', ' . $psize, $param, 'id');
-	if(!empty($storex_coupon)) {
-		foreach($storex_coupon as $key => &$da) {
+	if (!empty($storex_coupon)) {
+		foreach ($storex_coupon as $key => &$da) {
 			$da['date_info'] = iunserializer($da['date_info']);
 			$da['media_id'] = $da['card_id'];
 			$da['logo_url'] = url('utility/wxcode/image', array('attach' => $da['logo_url']));
@@ -110,12 +110,12 @@ if ($op == 'post') {
 			}
 		}
 	}
-	if(checksubmit('submit')) {
-		if(empty($_GPC['name'])) {
+	if (checksubmit('submit')) {
+		if (empty($_GPC['name'])) {
 			message('必须填写回复规则名称.');
 		}
 		$keywords = @json_decode(htmlspecialchars_decode($_GPC['keywords']), true);
-		if(empty($keywords)) {
+		if (empty($keywords)) {
 			message('必须填写有效的触发关键字.');
 		}
 		$rule = array(
@@ -125,19 +125,19 @@ if ($op == 'post') {
 			'status' => intval($_GPC['status']),
 			'displayorder' => intval($_GPC['displayorder_rule']),
 		);
-		if(!empty($_GPC['istop'])) {
+		if (!empty($_GPC['istop'])) {
 			$rule['displayorder'] = 255;
 		} else {
 			$rule['displayorder'] = range_limit($rule['displayorder'], 0, 254);
 		}
 		$module = WeUtility::createModule('wxcard');
 	
-		if(empty($module)) {
+		if (empty($module)) {
 			message('抱歉，模块不存在！');
 		}
 		$msg = $module->fieldsFormValidate();
 	
-		if(is_string($msg) && trim($msg) != '') {
+		if (is_string($msg) && trim($msg) != '') {
 			message($msg);
 		}
 		if (!empty($rid)) {
@@ -161,7 +161,7 @@ if ($op == 'post') {
 					'status' => $rule['status'],
 					'displayorder' => $rule['displayorder'],
 			);
-			foreach($keywords as $kw) {
+			foreach ($keywords as $kw) {
 				$krow = $rowtpl;
 				$krow['type'] = range_limit($kw['type'], 1, 4);
 				$krow['content'] = $kw['content'];
@@ -178,16 +178,16 @@ if ($op == 'post') {
 
 if ($op == 'delete') {
 	$rids = $_GPC['rid'];
-	if(!is_array($rids)) {
+	if (!is_array($rids)) {
 		$rids = array($rids);
 	}
-	if(empty($rids)) {
+	if (empty($rids)) {
 		message('非法访问.');
 	}
-	foreach($rids as $rid) {
+	foreach ($rids as $rid) {
 		$rid = intval($rid);
 		$reply = reply_single($rid);
-		if(empty($reply) || $reply['uniacid'] != $_W['uniacid']) {
+		if (empty($reply) || $reply['uniacid'] != $_W['uniacid']) {
 			message('抱歉，您操作的规则不在存或是已经被删除！', referer(), 'error');
 		}
 		//删除回复，关键字及规则

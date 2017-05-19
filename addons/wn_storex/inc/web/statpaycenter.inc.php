@@ -11,7 +11,7 @@ $ops = array('detail', 'chart', 'display');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 activity_get_coupon_type();
-if($op == 'display') {
+if ($op == 'display') {
 	$stores = pdo_getall('storex_activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array('id', 'business_name', 'branch_name'), 'id');
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
@@ -43,12 +43,12 @@ if($op == 'display') {
 }
 
 if ($op == 'detail') {
-	if($_W['isajax']) {
+	if ($_W['isajax'] && $_W['ispost']) {
 		$id = intval($_GPC['id']);
 		$order = pdo_get('storex_paycenter_order', array('uniacid' => $_W['uniacid'], 'id' => $id));
-		if(empty($order)) {
+		if (empty($order)) {
 			$info = '订单不存在';
-		} elseif($order['status'] == 0) {
+		} elseif ($order['status'] == 0) {
 			$info = '订单尚未支付';
 		} else {
 			$order['createtime_text'] = date('Y-m-d H:i:s', $order['createtime']);
@@ -74,8 +74,8 @@ if ($op == 'chart') {
 	$yesterday_fee = floatval(pdo_fetchcolumn('SELECT SUM(final_fee) FROM ' . tablename('storex_paycenter_order') . ' WHERE uniacid = :uniacid AND status = 1 AND paytime >= :starttime AND paytime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $yesterday_starttime, ':endtime' => $yesterday_endtime)));
 	$month_fee = floatval(pdo_fetchcolumn('SELECT SUM(final_fee) FROM ' . tablename('storex_paycenter_order') . ' WHERE uniacid = :uniacid AND status = 1 AND paytime >= :starttime AND paytime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => strtotime($month_starttime), ':endtime' => $month_endtime)));
 	$type = trim($_GPC['type']);
-	if($_W['isajax']) {
-		if($type == 'date') {
+	if ($_W['isajax'] && $_W['ispost']) {
+		if ($type == 'date') {
 			$now = strtotime(date('Y-m-d'));
 			$starttime = empty($_GPC['start']) ? $now - 30*86400 : strtotime($_GPC['start']);
 			$endtime = empty($_GPC['end']) ? TIMESTAMP : strtotime($_GPC['end']) + 86399;
@@ -83,14 +83,14 @@ if ($op == 'chart') {
 			$stat = array(
 				'flow1' => array()
 			);
-			for($i = 0; $i < $num; $i++) {
+			for ($i = 0; $i < $num; $i++) {
 				$time = $i * 86400 + $starttime;
 				$key = date('m-d', $time);
 				$stat['flow1'][$key] = 0;
 			}
 			$data = pdo_fetchall('SELECT id, final_fee, paytime, uniacid FROM ' . tablename('storex_paycenter_order') . ' WHERE uniacid = :uniacid AND status = 1 AND paytime >= :starttime AND paytime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime));
-			if(!empty($data)) {
-				foreach($data as $da) {
+			if (!empty($data)) {
+				foreach ($data as $da) {
 					$key = date('m-d', $da['paytime']);
 					$stat['flow1'][$key] += $da['final_fee'];
 				}
@@ -100,7 +100,7 @@ if ($op == 'chart') {
 			$out['label'] = array_keys($stat['flow1']);
 			$out['datasets']['flow1'] = array_values($stat['flow1']);
 			exit(json_encode($out));
-		} elseif($type == 'month') {
+		} elseif ($type == 'month') {
 			$now = mktime(0,0,0,date('m'),date('t'),date('Y'));
 			$end = mktime(23,59,59,date('m'),date('t'),date('Y'));
 			$starttime = empty($_GPC['start']) ? strtotime('-6months', $now) : strtotime($_GPC['start']);
@@ -110,14 +110,14 @@ if ($op == 'chart') {
 			$stat = array(
 				'flow1' => array()
 			);
-			for($i = 0; $i < $num; $i++) {
+			for ($i = 0; $i < $num; $i++) {
 				$time = $i * 86400 + $starttime;
 				$key = date('Y-m', $time);
 				$stat['flow1'][$key] = 0;
 			}
 			$data = pdo_fetchall('SELECT id, final_fee, paytime, uniacid FROM ' . tablename('storex_paycenter_order') . ' WHERE uniacid = :uniacid AND status = 1 AND paytime >= :starttime AND paytime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime));
-			if(!empty($data)) {
-				foreach($data as $da) {
+			if (!empty($data)) {
+				foreach ($data as $da) {
 					$key = date('Y-m', $da['paytime']);
 					$stat['flow1'][$key] += $da['final_fee'];
 				}
