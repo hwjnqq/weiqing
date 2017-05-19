@@ -2,6 +2,8 @@
 <ul class="nav nav-tabs">
 	<li {if $_GPC['do'] == 'wxstore'}class="active" {/if}><a href="{php echo $this->createWeburl('wxstore', array('op' => 'display'))}">店家列表</a></li>
 	<li {if $_GPC['do'] == 'paycenterwxmicro'}class="active" {/if}><a href="{php echo $this->createWeburl('paycenterwxmicro', array('op' => 'display'))}">微信刷卡支付</a></li>
+	<li {if $_GPC['do'] == 'clerkdeskmenu'}class="active"{/if}><a href="{php echo $this->createWeburl('clerkdeskmenu', array('op' => 'display'))}">工作台</a></li>
+	<li {if $_GPC['do'] == 'clerklist'}class="active" {/if}><a href="{php echo $this->createWeburl('clerklist', array('op' => 'display'))}">店员管理</a></li>
 </ul>
 {if $_GPC['op'] == 'post'}
 {if COUPON_TYPE ==  WECHAT_COUPON && $id}
@@ -137,6 +139,12 @@
 	</form>
 </div>
 {else}
+<div class="page-header clearfix">
+	<h4 class="pull-left">添加门店</h4>
+	<div class="pull-right">
+		<a href="{php echo $this->createWeburl('wxstore', array('op' => 'display'))}" class="btn btn-primary we7-padding-horizontal">返回门店</a>
+	</div>
+</div>
 <div class="clearfix">
 	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form1" style="display: block">
 		<div class="panel panel-default" id="step1">
@@ -307,7 +315,7 @@
 <div class="page-header clearfix">
 	<h4 class="pull-left">门店管理</h4>
 	<div class="pull-right">
-		<a href="{php echo $this->createWeburl('wxstore', array('op' => 'post'))}" class="btn btn-primary we7-padding-horizontal">+添加商家</a>
+		<a href="{php echo $this->createWeburl('wxstore', array('op' => 'post'))}" class="btn btn-primary we7-padding-horizontal">+添加门店</a>
 	</div>
 </div>
 <div class="clearfix">
