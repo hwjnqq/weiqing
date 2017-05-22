@@ -12,12 +12,12 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 activity_get_coupon_type();
 
-if($op == 'display') {
+if ($op == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 30;
-	$limit = 'ORDER BY id DESC LIMIT ' . ($pindex - 1) * $psize . ", {$psize}";
-	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('storex_activity_clerks')." WHERE uniacid = :uniacid ", array(':uniacid' => $_W['uniacid']));
-	$list = pdo_fetchall("SELECT * FROM ".tablename('storex_activity_clerks')." WHERE uniacid = :uniacid {$limit}", array(':uniacid' => $_W['uniacid']));
+	$limit = ' ORDER BY id DESC LIMIT ' . ($pindex - 1) * $psize . ", {$psize}";
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_activity_clerks') . " WHERE uniacid = :uniacid ", array(':uniacid' => $_W['uniacid']));
+	$list = pdo_fetchall("SELECT * FROM " . tablename('storex_activity_clerks') . " WHERE uniacid = :uniacid {$limit}", array(':uniacid' => $_W['uniacid']));
 	$uids = array(0);
 	foreach($list as $row) {
 		if ($row['uid'] > 0) {
@@ -25,16 +25,16 @@ if($op == 'display') {
 		}
 	}
 	$uids = implode(',', $uids);
-	$users = pdo_fetchall('SELECT username,uid FROM ' . tablename('users') . " WHERE uid IN ({$uids})", array(), 'uid');
+	$users = pdo_fetchall('SELECT username, uid FROM ' . tablename('users') . " WHERE uid IN ({$uids})", array(), 'uid');
 	$pager = pagination($total, $pindex, $psize);
 	$stores = pdo_getall('storex_activity_stores', array('uniacid' => $_W['uniacid']), array('id', 'business_name', 'branch_name'), 'id');
 }
 
-if($op == 'checkname') {
+if ($op == 'checkname') {
 	$username = trim($_GPC['username']);
 	$uid = intval($_GPC['uid']);
 	if (!empty($uid)) {
-		$exist = pdo_fetch("SELECT * FROM ". tablename('users'). " WHERE uid <> :uid AND username = :username", array(':uid' => $uid, ':username' => trim($_GPC['username'])));
+		$exist = pdo_fetch("SELECT * FROM " . tablename('users') . " WHERE uid <> :uid AND username = :username", array(':uid' => $uid, ':username' => trim($_GPC['username'])));
 	} else {
 		$exist = pdo_get('users', array('username' => $username));
 	}
@@ -68,8 +68,8 @@ if ($op == 'post') {
 	}
 	if (checksubmit()) {
 		$name = trim($_GPC['name']) ? trim($_GPC['name']) : message('店员名称不能为空');
-		$mobile =  trim($_GPC['mobile']) ? trim($_GPC['mobile']) : message('手机号不能为空');
-		$storeid =  intval($_GPC['storeid']) ? intval($_GPC['storeid']) : message('请选择所在门店');
+		$mobile = trim($_GPC['mobile']) ? trim($_GPC['mobile']) : message('手机号不能为空');
+		$storeid = intval($_GPC['storeid']) ? intval($_GPC['storeid']) : message('请选择所在门店');
 		if (!$clerk['uid']) {
 			$user = array();
 			$user['username'] = trim($_GPC['username']);
@@ -143,7 +143,7 @@ if ($op == 'post') {
 				$module_name = implode('_', $permi);
 				$modules = uni_modules_app_binding();
 				if (in_array($module_name, array_keys($modules))) {
-					$modules_permission[$module_name] = $permis.'|'.$modules_permission[$module_name];
+					$modules_permission[$module_name] = $permis . '|' . $modules_permission[$module_name];
 				}
 			}
 		}
@@ -153,7 +153,7 @@ if ($op == 'post') {
 			if (!empty($module_permission)) {
 				pdo_update('storex_users_permission', array('permission' => $module_p), array('uniacid' => $_W['uniacid'], 'uid' => $clerk['uid'], 'type' => $module_name));
 			} else {
-				pdo_insert('storex_users_permission', array('permission' => $module_p.'|'.$permis, 'uniacid' => $_W['uniacid'], 'uid' => $clerk['uid'], 'type' => $module_name));
+				pdo_insert('storex_users_permission', array('permission' => $module_p . '|' . $permis, 'uniacid' => $_W['uniacid'], 'uid' => $clerk['uid'], 'type' => $module_name));
 			}
 		}
 		$account_user = pdo_get('uni_account_users', array('uniacid' => $_W['uniacid'], 'uid' => $clerk['uid']));
@@ -184,8 +184,8 @@ if ($op == 'post') {
 	}
 	$stores = pdo_getall('storex_activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array('id', 'business_name', 'branch_name'));
 	$permission = storex_clerk_permission_list();
-	$clerk_p = pdo_fetchall("SELECT * FROM ". tablename('storex_activity_clerk_menu'). " WHERE (uniacid = :uniacid OR system = '1') AND pid = 0 ORDER BY system DESC", array(':uniacid' =>  $_W['uniacid']), 'group_name');
-	$clerk_c = pdo_fetchall("SELECT * FROM ". tablename('storex_activity_clerk_menu'). " WHERE (uniacid = :uniacid OR system = '1') AND pid <> 0 ORDER BY displayorder ASC,system DESC", array(':uniacid' =>  $_W['uniacid']));
+	$clerk_p = pdo_fetchall("SELECT * FROM " . tablename('storex_activity_clerk_menu') . " WHERE (uniacid = :uniacid OR system = '1') AND pid = 0 ORDER BY system DESC", array(':uniacid' => $_W['uniacid']), 'group_name');
+	$clerk_c = pdo_fetchall("SELECT * FROM " . tablename('storex_activity_clerk_menu') . " WHERE (uniacid = :uniacid OR system = '1') AND pid <> 0 ORDER BY displayorder ASC,system DESC", array(':uniacid' => $_W['uniacid']));
 	$permission = array();
 	foreach ($clerk_p as $p) {
 		$permission[$p['id']]['title'] = $p['title'];
@@ -216,14 +216,14 @@ if ($op == 'delete') {
 	$id = intval($_GPC['id']);
 	$clerk = pdo_get('storex_activity_clerks', array('id' => $id, 'uniacid' => $_W['uniacid']));
 	if ($clerk['uid'] > 0) {
-		pdo_delete('users',array('uid' => $clerk['uid']));
-		pdo_delete('uni_account_users',array('uid' => $clerk['uid'], 'uniacid' => $_W['uniacid']));
+		pdo_delete('users', array('uid' => $clerk['uid']));
+		pdo_delete('uni_account_users', array('uid' => $clerk['uid'], 'uniacid' => $_W['uniacid']));
 	}
-	pdo_delete('storex_activity_clerks',array('id' => intval($_GPC['id']), 'uniacid' => $_W['uniacid']));
-	message("删除成功",referer(),'success');
+	pdo_delete('storex_activity_clerks', array('id' => intval($_GPC['id']), 'uniacid' => $_W['uniacid']));
+	message("删除成功", referer(), 'success');
 }
 
-if($op == 'switch') {
+if ($op == 'switch') {
 	$clerkid = intval($_GPC['id']);
 	$clerk = pdo_get('storex_activity_clerks', array('id' => $clerkid, 'uniacid' => $_W['uniacid']));
 	$user = storex_user_single(array('uid' => $clerk['uid']));
@@ -239,8 +239,8 @@ if($op == 'switch') {
 }
 
 if ($op == 'clerkdesk') {
-	$clerk_p = pdo_fetchall("SELECT * FROM ". tablename('storex_activity_clerk_menu'). " WHERE (uniacid = :uniacid OR system = '1') AND pid = 0", array(':uniacid' =>  $_W['uniacid']));
-	$clerk_c = pdo_fetchall("SELECT * FROM ". tablename('storex_activity_clerk_menu'). " WHERE (uniacid = :uniacid OR system = '1') AND pid <> 0 ORDER BY displayorder ASC, system DESC", array(':uniacid' =>  $_W['uniacid']));
+	$clerk_p = pdo_fetchall("SELECT * FROM " . tablename('storex_activity_clerk_menu') . " WHERE (uniacid = :uniacid OR system = '1') AND pid = 0", array(':uniacid' =>  $_W['uniacid']));
+	$clerk_c = pdo_fetchall("SELECT * FROM " . tablename('storex_activity_clerk_menu') . " WHERE (uniacid = :uniacid OR system = '1') AND pid <> 0 ORDER BY displayorder ASC, system DESC", array(':uniacid' => $_W['uniacid']));
 	$permission = array();
 	foreach ($clerk_p as $p) {
 		$permission[$p['id']]['id'] = $p['id'];
@@ -250,11 +250,11 @@ if ($op == 'clerkdesk') {
 	}
 	foreach ($clerk_c as $c) {
 		if (empty($c['permission'])) {
-			pdo_update('storex_activity_clerk_menu', array('permission' => 'clerk_'.$c['id']), array('uniacid' => $_W['uniacid'], 'id' => $c['id']));
+			pdo_update('storex_activity_clerk_menu', array('permission' => 'clerk_' . $c['id']), array('uniacid' => $_W['uniacid'], 'id' => $c['id']));
 		}
 		$permission[$c['pid']]['items'][] = $c;
 	}
-	$user_permission = uni_user_permission_exist();
+	$user_permission = storex_user_permission_exist();
 	if (is_error ($user_permission)) {
 		$user_permission = uni_user_permission ('system');
 		$permission_list = array();
@@ -272,7 +272,7 @@ if ($op == 'clerkdesk') {
 		foreach ($permission as $key => &$row) {
 			$has = 0;
 			foreach ($row['items'] as $key1 => &$row1) {
-				if (!in_array ($row1['permission'], $user_permission)) {
+				if (!in_array($row1['permission'], $user_permission)) {
 					unset($row['items'][$key1]);
 				} else {
 					if (!$has) {
@@ -285,8 +285,5 @@ if ($op == 'clerkdesk') {
 			}
 		}
 	}
-	echo "<pre>";
-	print_r($permission);
-	echo "</pre>";
 }
 include $this->template('clerklist');

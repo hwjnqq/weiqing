@@ -19,7 +19,7 @@ if ($op == 'display') {
 	$cids = $parentcates = $list =  array();
 	$types = array('', '等价', '包含', '正则表达式匹配', '直接接管');
 
-	$condition = 'uniacid = :uniacid AND `module`=:module';
+	$condition = ' uniacid = :uniacid AND `module`=:module ';
 	$params = array();
 	$params[':uniacid'] = $_W['uniacid'];
 	$params[':module'] = 'wxcard';
@@ -155,11 +155,11 @@ if ($op == 'post') {
 			pdo_query($sql, $pars);
 				
 			$rowtpl = array(
-					'rid' => $rid,
-					'uniacid' => $_W['uniacid'],
-					'module' => $rule['module'],
-					'status' => $rule['status'],
-					'displayorder' => $rule['displayorder'],
+				'rid' => $rid,
+				'uniacid' => $_W['uniacid'],
+				'module' => $rule['module'],
+				'status' => $rule['status'],
+				'displayorder' => $rule['displayorder'],
 			);
 			foreach ($keywords as $kw) {
 				$krow = $rowtpl;

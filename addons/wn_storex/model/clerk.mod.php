@@ -154,19 +154,19 @@ function storex_user_single($user_or_uid) {
 	$where = ' WHERE 1 ';
 	$params = array();
 	if (!empty($user['uid'])) {
-		$where .= ' AND `uid`=:uid';
+		$where .= ' AND `uid` = :uid';
 		$params[':uid'] = intval($user['uid']);
 	}
 	if (!empty($user['username'])) {
-		$where .= ' AND `username`=:username';
+		$where .= ' AND `username` = :username';
 		$params[':username'] = $user['username'];
 	}
 	if (!empty($user['email'])) {
-		$where .= ' AND `email`=:email';
+		$where .= ' AND `email` = :email';
 		$params[':email'] = $user['email'];
 	}
 	if (!empty($user['status'])) {
-		$where .= " AND `status`=:status";
+		$where .= " AND `status` = :status";
 		$params[':status'] = intval($user['status']);
 	}
 	if (empty($params)) {
@@ -183,9 +183,9 @@ function storex_user_single($user_or_uid) {
 			return false;
 		}
 	}
-	if($record['type'] == ACCOUNT_OPERATE_CLERK) {
+	if ($record['type'] == ACCOUNT_OPERATE_CLERK) {
 		$clerk = pdo_get('storex_activity_clerks', array('uid' => $record['uid']));
-		if(!empty($clerk)) {
+		if (!empty($clerk)) {
 			$record['name'] = $clerk['name'];
 			$record['clerk_id'] = $clerk['id'];
 			$record['store_id'] = $clerk['storeid'];
@@ -207,12 +207,12 @@ function storex_user_permission_exist($uid = 0, $uniacid = 0) {
 	global $_W;
 	$uid = intval($uid) > 0 ? $uid : $_W['uid'];
 	$uniacid = intval($uniacid) > 0 ? $uniacid : $_W['uniacid'];
-	if($_W['role'] == 'founder' || $_W['role'] == 'manager') {
+	if ($_W['role'] == 'founder' || $_W['role'] == 'manager') {
 		return true;
 	}
-	$is_exist = pdo_fetch('SELECT id FROM ' . tablename('storex_users_permission') . ' WHERE `uid`=:uid AND `uniacid`=:uniacid', array(':uid' => $uid, ':uniacid' => $uniacid));
-	if(empty($is_exist)) {
-		if($_W['role'] != 'clerk') {
+	$is_exist = pdo_fetch('SELECT id FROM ' . tablename('storex_users_permission') . ' WHERE `uid` = :uid AND `uniacid` = :uniacid', array(':uid' => $uid, ':uniacid' => $uniacid));
+	if (empty($is_exist)) {
+		if ($_W['role'] != 'clerk') {
 			return true;
 		} else {
 			return error(-1, '');
@@ -229,14 +229,14 @@ function storex_user_permission($type = 'system', $uid = 0, $uniacid = 0) {
 	global $_W;
 	$uid = empty($uid) ? $_W['uid'] : intval($uid);
 	$uniacid = empty($uniacid) ? $_W['uniacid'] : intval($uniacid);
-	$sql = 'SELECT `permission` FROM ' . tablename('users_permission') . ' WHERE `uid`=:uid AND `uniacid`=:uniacid AND `type`=:type';
+	$sql = 'SELECT `permission` FROM ' . tablename('storex_users_permission') . ' WHERE `uid` = :uid AND `uniacid` = :uniacid AND `type` = :type';
 	$pars = array();
 	$pars[':uid'] = $uid;
 	$pars[':uniacid'] = $uniacid;
 	$pars[':type'] = $type;
 	$data = pdo_fetchcolumn($sql, $pars);
 	$permission = array();
-	if(!empty($data)) {
+	if (!empty($data)) {
 		$permission = explode('|', $data);
 	}
 	return $permission;

@@ -12,11 +12,12 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 activity_get_coupon_type();
 $coupon_api = new coupon();
-if($op == 'display') {
+
+if ($op == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 15;
 	$limit = 'ORDER BY id DESC LIMIT ' . ($pindex - 1) * $psize . ", {$psize}";
-	$total  = pdo_fetchcolumn('SELECT COUNT(*) FROM '. tablename('storex_activity_stores')." WHERE uniacid = :uniacid AND source = :source", array(':uniacid' => $_W['uniacid'], ':source' => COUPON_TYPE));
+	$total  = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_activity_stores') . " WHERE uniacid = :uniacid AND source = :source", array(':uniacid' => $_W['uniacid'], ':source' => COUPON_TYPE));
 	$list = pdo_getslice('storex_activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array($pindex, $psize));
 	$pager = pagination($total,$pindex,$psize);
 	foreach($list as &$key) {
@@ -178,7 +179,7 @@ if ($op == 'post') {
 			'latitude' => trim($_GPC['baidumap']['lat']),
 			'avg_price' => intval($_GPC['avg_price']),
 			'telephone' => trim($_GPC['telephone']),
-			'open_time' => trim($_GPC['open_time_start']). '-'.trim($_GPC['open_time_end']),
+			'open_time' => trim($_GPC['open_time_start']). '-' . trim($_GPC['open_time_end']),
 			'recommend' => trim($_GPC['recommend']),
 			'special' => trim($_GPC['special']),
 			'introduction' => trim($_GPC['introduction']),
@@ -186,7 +187,7 @@ if ($op == 'post') {
 		if (empty($store_data['business_name'])) {
 			message('门店名称不能为空');
 		}
-		if(empty($store_data['category']['cate'])) {
+		if (empty($store_data['category']['cate'])) {
 			message('门店类目不能为空');
 		}
 		if (empty($store_data['province']) || empty($store_data['city']) || empty($store_data['district']) || empty($store_data['address'])) {
@@ -218,7 +219,7 @@ if ($op == 'post') {
 			$insert['source'] = COUPON_TYPE;
 			$insert['category'] = iserializer($insert['category']);
 			$insert['photo_list'] = iserializer($insert['photo_list']);
-			pdo_update('storex_activity_stores',$insert,array('id' => $id, 'uniacid' => $_W['uniacid']));
+			pdo_update('storex_activity_stores', $insert, array('id' => $id, 'uniacid' => $_W['uniacid']));
 			message('门店信息更新成功', $this->createWeburl('wxstore'), 'success');
 		} else {
 			$insert['uniacid'] = $_W['uniacid'];
@@ -249,7 +250,7 @@ if ($op == 'delete') {
 	if ($count > 0) {
 		message("该门店下有{$count}名店员.请将店员变更到其他门店后,再进行删除操作", referer(), 'error');
 	}
-	pdo_delete('storex_activity_stores',array('id' => $id, 'uniacid' => $_W['uniacid']));
+	pdo_delete('storex_activity_stores', array('id' => $id, 'uniacid' => $_W['uniacid']));
 	if (COUPON_TYPE == WECHAT_COUPON) {
 		$location = pdo_get('storex_activity_stores', array('uniacid' => $_W['uniacid'], 'id' => $id), array('status', 'location_id'));
 		if (!empty($location['location_id'])) {
@@ -262,7 +263,7 @@ if ($op == 'delete') {
 	message('删除成功',referer(), 'success');
 }
 
-if($op == 'import') {
+if ($op == 'import') {
 	$begin = intval($_GPC['begin']);
 	$data = $coupon_api->LocationBatchGet(array('begin' => $begin));
 	if (is_error($data)) {
@@ -297,7 +298,7 @@ if($op == 'import') {
 			$store_info['photo_list'] = iserializer($store_info['photo_list']);
 			$store_info['source'] = 2;
 			$storeid = $select_type == 'poi_id' ? $store_info['poi_id'] : $store_info['sid'];
-			unset($store_info['categories'], $store_info['poi_id'], $store_info['update_status'], $store_info['available_state'],$store_info['offset_type'], $store_info['type'], $store_info['sid'], $store_info['qualification_list'], $store_info['upgrade_comment'], $store_info['upgrade_status'], $store_info['mapid']);
+			unset($store_info['categories'], $store_info['poi_id'], $store_info['update_status'], $store_info['available_state'], $store_info['offset_type'], $store_info['type'], $store_info['sid'], $store_info['qualification_list'], $store_info['upgrade_comment'], $store_info['upgrade_status'], $store_info['mapid']);
 			if (empty($isexist)) {
 				pdo_insert('storex_activity_stores', $store_info);
 			} else {
@@ -314,7 +315,7 @@ if($op == 'import') {
 	message('导入门店成功', $this->createWeburl('wxstore'), 'success');
 }
 	
-if($op == 'sync') {
+if ($op == 'sync') {
 	$type = trim($_GPC['type']);
 	if ($type == '1') {
 		$cachekey = "storesync:{$_W['uniacid']}";

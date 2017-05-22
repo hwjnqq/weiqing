@@ -8,9 +8,10 @@ mload()->model('clerk');
 
 $ops = array('edit', 'editmain', 'display', 'add', 'addmain', 'delete');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
+
 if($op == 'display') {
-	$clerk_p = pdo_fetchall("SELECT * FROM ". tablename('storex_activity_clerk_menu'). " WHERE (uniacid = :uniacid OR system = '1') AND pid = 0", array(':uniacid' =>  $_W['uniacid']));
-	$clerk_c = pdo_fetchall("SELECT * FROM ". tablename('storex_activity_clerk_menu'). " WHERE (uniacid = :uniacid OR system = '1') AND pid <> 0 ORDER BY displayorder ASC, system DESC", array(':uniacid' =>  $_W['uniacid']));
+	$clerk_p = pdo_fetchall("SELECT * FROM ". tablename('storex_activity_clerk_menu') . " WHERE (uniacid = :uniacid OR system = '1') AND pid = 0", array(':uniacid' =>  $_W['uniacid']));
+	$clerk_c = pdo_fetchall("SELECT * FROM ". tablename('storex_activity_clerk_menu') . " WHERE (uniacid = :uniacid OR system = '1') AND pid <> 0 ORDER BY displayorder ASC, system DESC", array(':uniacid' => $_W['uniacid']));
 	$permission = array();
 	foreach ($clerk_p as $p) {
 		$permission[$p['id']]['id'] = $p['id'];
@@ -20,13 +21,13 @@ if($op == 'display') {
 	}
 	foreach ($clerk_c as $c) {
 		if (empty($c['permission'])) {
-			pdo_update('storex_activity_clerk_menu', array('permission' => 'clerk_'.$c['id']), array('uniacid' => $_W['uniacid'], 'id' => $c['id']));
+			pdo_update('storex_activity_clerk_menu', array('permission' => 'clerk_' . $c['id']), array('uniacid' => $_W['uniacid'], 'id' => $c['id']));
 		}
 		$permission[$c['pid']]['items'][] = $c;
 	}
-	$user_permission = storex_user_permission_exist ();
+	$user_permission = storex_user_permission_exist();
 	if (is_error ($user_permission)) {
-		$user_permission = storex_user_permission ('system');
+		$user_permission = storex_user_permission('system');
 		foreach ($permission as $key => &$row) {
 			$has = 0;
 			foreach ($row['items'] as $key1 => &$row1) {
