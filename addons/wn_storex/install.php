@@ -15,7 +15,7 @@ $sql = "
 	`businessid` int(11) DEFAULT '0',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_brand` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -26,7 +26,7 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`),
 	KEY `indx_displayorder` (`displayorder`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_business` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -39,7 +39,7 @@ $sql = "
 	`status` int(11) DEFAULT '0',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_comment` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -51,7 +51,7 @@ $sql = "
 	`goodsid` int(11) NOT NULL COMMENT '评论商品的id',
 	`comment_level` tinyint(11) NOT NULL COMMENT '评论商品的级别',
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_comment_clerk` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -64,7 +64,7 @@ $sql = "
 	`realname` varchar(20) DEFAULT NULL,
 	`grade` int(11) DEFAULT NULL,
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 		
 	CREATE TABLE IF NOT EXISTS `ims_storex_member` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -86,7 +86,7 @@ $sql = "
 	`nickname` varchar(255) NOT NULL DEFAULT '',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_order` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -130,7 +130,7 @@ $sql = "
 	KEY `indx_weid` (`weid`),
 	KEY `indx_roomid` (`roomid`),
 	KEY `indx_memberid` (`memberid`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_reply` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -140,7 +140,7 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`),
 	KEY `indx_rid` (`rid`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_room` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -184,7 +184,7 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `indx_hotelid` (`hotelid`),
 	KEY `indx_weid` (`weid`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_room_price` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -202,7 +202,7 @@ $sql = "
 	KEY `indx_hotelid` (`hotelid`),
 	KEY `indx_roomid` (`roomid`),
 	KEY `indx_roomdate` (`roomdate`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_set` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -235,7 +235,7 @@ $sql = "
 	`extend_switch` varchar(400) NOT NULL COMMENT '扩展开关',
 	`source` tinyint(4) NOT NULL DEFAULT '2' COMMENT '卡券类型，1为系统卡券，2为微信卡券',
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_code` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -248,7 +248,7 @@ $sql = "
 	`createtime` int(10) unsigned NOT NULL,
 	PRIMARY KEY (`id`),
 	KEY `openid` (`openid`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_bases` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -281,7 +281,7 @@ $sql = "
 	`timeend` varchar(50) NOT NULL DEFAULT '0' COMMENT '运营结束时间',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_categorys` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -296,7 +296,7 @@ $sql = "
 	`displayorder` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '排序',
 	`enabled` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否开启',
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_goods` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -322,7 +322,7 @@ $sql = "
 	`store_type` int(8) NOT NULL DEFAULT '0',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 	
 	CREATE TABLE IF NOT EXISTS `ims_storex_clerk` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -342,7 +342,7 @@ $sql = "
 	`permission` text NOT NULL COMMENT '店员权限',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 		
 	CREATE TABLE IF NOT EXISTS `ims_storex_notices` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -357,7 +357,7 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`),
 	KEY `uid` (`uid`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_notices_unread` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -370,7 +370,7 @@ $sql = "
 	KEY `uniacid` (`uniacid`),
 	KEY `uid` (`uid`),
 	KEY `notice_id` (`notice_id`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 	
 	CREATE TABLE IF NOT EXISTS `ims_storex_sign_record` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -386,7 +386,7 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`),
 	KEY `uid` (`uid`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_sign_set` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -396,7 +396,7 @@ $sql = "
 	`content` text NOT NULL,
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 	
 	CREATE TABLE IF NOT EXISTS `ims_storex_mc_card` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -492,7 +492,7 @@ $sql = "
 	`endtime` int(10) NOT NULL,
 	PRIMARY KEY (`id`),
 	KEY `extra` (`extra`(333))
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COMMENT='兑换表';
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='兑换表';
 		
 	CREATE TABLE IF NOT EXISTS `ims_storex_coupon` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -528,7 +528,7 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`,`acid`),
 	KEY `card_id` (`card_id`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 		
 	CREATE TABLE IF NOT EXISTS `ims_storex_coupon_record` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -556,7 +556,7 @@ $sql = "
 	KEY `uniacid` (`uniacid`,`acid`),
 	KEY `card_id` (`card_id`),
 	KEY `hash` (`hash`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 		
 	CREATE TABLE IF NOT EXISTS `ims_storex_coupon_store` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -565,14 +565,14 @@ $sql = "
 	`storeid` int(10) unsigned NOT NULL DEFAULT '0',
 	PRIMARY KEY (`id`),
 	KEY `couponid` (`couponid`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 	
 	CREATE TABLE IF NOT EXISTS `ims_storex_mc_member_property` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 	`uniacid` int(11) NOT NULL,
 	`property` varchar(200) NOT NULL DEFAULT '' COMMENT '当前公众号用户属性',
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COMMENT='用户属性设置表';
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='用户属性设置表';
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_coupon_activity` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -586,39 +586,84 @@ $sql = "
 	`description` varchar(255) NOT NULL DEFAULT '‘’',
 	`members` varchar(255) NOT NULL DEFAULT '',
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
-
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_activity_stores` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(10) unsigned NOT NULL,
+	`business_name` varchar(50) NOT NULL,
+	`branch_name` varchar(50) NOT NULL,
+	`category` varchar(255) NOT NULL,
+	`province` varchar(15) NOT NULL,
+	`city` varchar(15) NOT NULL,
+	`district` varchar(15) NOT NULL,
+	`address` varchar(50) NOT NULL,
+	`longitude` varchar(15) NOT NULL,
+	`latitude` varchar(15) NOT NULL,
+	`telephone` varchar(20) NOT NULL,
+	`photo_list` varchar(10000) NOT NULL,
+	`avg_price` int(10) unsigned NOT NULL,
+	`recommend` varchar(255) NOT NULL,
+	`special` varchar(255) NOT NULL,
+	`introduction` varchar(255) NOT NULL,
+	`open_time` varchar(50) NOT NULL,
+	`location_id` int(10) unsigned NOT NULL,
+	`status` tinyint(3) unsigned NOT NULL COMMENT '1 审核通过 2 审核中 3审核未通过',
+	`source` tinyint(3) unsigned NOT NULL DEFAULT '1' COMMENT '1为系统门店，2为微信门店',
+	`message` varchar(500) NOT NULL,
+	`store_base_id` int(11) NOT NULL COMMENT '普通店铺添加为微信门店',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `location_id` (`location_id`)
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_activity_clerks` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(10) unsigned NOT NULL,
+	`uid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '关联users表uid',
+	`storeid` int(10) unsigned NOT NULL DEFAULT '0',
+	`name` varchar(20) NOT NULL,
+	`password` varchar(20) NOT NULL,
+	`mobile` varchar(20) NOT NULL,
+	`openid` varchar(50) NOT NULL,
+	`nickname` varchar(30) NOT NULL,
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `password` (`password`),
+	KEY `openid` (`openid`)
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='积分兑换店员表';
+	
 	CREATE TABLE IF NOT EXISTS `ims_storex_paycenter_order` (
-	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-	  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
-	  `uid` int(10) unsigned NOT NULL DEFAULT '0',
-	  `pid` int(10) unsigned NOT NULL DEFAULT '0',
-	  `clerk_id` int(10) unsigned NOT NULL DEFAULT '0',
-	  `store_id` int(10) unsigned NOT NULL DEFAULT '0',
-	  `clerk_type` tinyint(3) unsigned NOT NULL DEFAULT '2',
-	  `uniontid` varchar(40) NOT NULL,
-	  `transaction_id` varchar(40) NOT NULL,
-	  `type` varchar(10) NOT NULL COMMENT '支付方式',
-	  `trade_type` varchar(10) NOT NULL COMMENT '支付类型:刷卡支付,扫描支付',
-	  `body` varchar(255) NOT NULL COMMENT '商品信息',
-	  `fee` varchar(15) NOT NULL COMMENT '商品费用',
-	  `final_fee` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '优惠后应付价格',
-	  `credit1` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '抵消积分',
-	  `credit1_fee` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '积分抵消金额',
-	  `credit2` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '余额支付金额',
-	  `cash` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '线上支付金额',
-	  `remark` varchar(255) NOT NULL,
-	  `auth_code` varchar(30) NOT NULL,
-	  `openid` varchar(50) NOT NULL,
-	  `nickname` varchar(50) NOT NULL COMMENT '付款人',
-	  `follow` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '是否关注公众号',
-	  `status` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '线上支付状态',
-	  `credit_status` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '积分,余额的交易状态.0:未扣除,1:已扣除',
-	  `paytime` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '支付时间',
-	  `createtime` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
-	  PRIMARY KEY (`id`),
-	  KEY `uniacid` (`uniacid`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+	`uid` int(10) unsigned NOT NULL DEFAULT '0',
+	`pid` int(10) unsigned NOT NULL DEFAULT '0',
+	`clerk_id` int(10) unsigned NOT NULL DEFAULT '0',
+	`store_id` int(10) unsigned NOT NULL DEFAULT '0',
+	`clerk_type` tinyint(3) unsigned NOT NULL DEFAULT '2',
+	`uniontid` varchar(40) NOT NULL,
+	`transaction_id` varchar(40) NOT NULL,
+	`type` varchar(10) NOT NULL COMMENT '支付方式',
+	`trade_type` varchar(10) NOT NULL COMMENT '支付类型:刷卡支付,扫描支付',
+	`body` varchar(255) NOT NULL COMMENT '商品信息',
+	`fee` varchar(15) NOT NULL COMMENT '商品费用',
+	`final_fee` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '优惠后应付价格',
+	`credit1` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '抵消积分',
+	`credit1_fee` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '积分抵消金额',
+	`credit2` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '余额支付金额',
+	`cash` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '线上支付金额',
+	`remark` varchar(255) NOT NULL,
+	`auth_code` varchar(30) NOT NULL,
+	`openid` varchar(50) NOT NULL,
+	`nickname` varchar(50) NOT NULL COMMENT '付款人',
+	`follow` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '是否关注公众号',
+	`status` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '线上支付状态',
+	`credit_status` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '积分,余额的交易状态.0:未扣除,1:已扣除',
+	`paytime` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '支付时间',
+	`createtime` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`)
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 ";
 
 pdo_run($sql);

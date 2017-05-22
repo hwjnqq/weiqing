@@ -297,7 +297,7 @@ if($op == 'import') {
 			$store_info['photo_list'] = iserializer($store_info['photo_list']);
 			$store_info['source'] = 2;
 			$storeid = $select_type == 'poi_id' ? $store_info['poi_id'] : $store_info['sid'];
-			unset($store_info['categories'], $store_info['poi_id'], $store_info['update_status'], $store_info['available_state'],$store_info['offset_type'], $store_info['type'], $store_info['sid'], $store_info['qualification_list']);
+			unset($store_info['categories'], $store_info['poi_id'], $store_info['update_status'], $store_info['available_state'],$store_info['offset_type'], $store_info['type'], $store_info['sid'], $store_info['qualification_list'], $store_info['upgrade_comment'], $store_info['upgrade_status'], $store_info['mapid']);
 			if (empty($isexist)) {
 				pdo_insert('storex_activity_stores', $store_info);
 			} else {
