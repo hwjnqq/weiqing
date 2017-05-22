@@ -15,12 +15,12 @@ if ($op == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	if (!empty($title)) {
-		$cids = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'title LIKE' => '%'.$title.'%', 'source' => COUPON_TYPE), array(), 'id');
+		$cids = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'title LIKE' => '%' . $title . '%', 'source' => COUPON_TYPE), array(), 'id');
 		$cids = implode('\',\'', array_keys($cids));
 		$condition = ' AND extra IN(\''.$cids.'\')';
 	}
-	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('storex_activity_exchange')." WHERE uniacid = :uniacid AND type = :type ".$condition, array(':uniacid' => $_W['uniacid'], ':type' => COUPON_TYPE));
-	$list = pdo_fetchall("SELECT * FROM ".tablename('storex_activity_exchange')." WHERE uniacid = :uniacid AND type = :type ".$condition." ORDER BY id desc LIMIT ".($pindex - 1)*$psize.','. $psize, array(':uniacid' => $_W['uniacid'], ':type' => COUPON_TYPE));
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_activity_exchange') . " WHERE uniacid = :uniacid AND type = :type " . $condition, array(':uniacid' => $_W['uniacid'], ':type' => COUPON_TYPE));
+	$list = pdo_fetchall("SELECT * FROM " . tablename('storex_activity_exchange') . " WHERE uniacid = :uniacid AND type = :type " . $condition . " ORDER BY id desc LIMIT " . ($pindex - 1) * $psize . ',' . $psize, array(':uniacid' => $_W['uniacid'], ':type' => COUPON_TYPE));
 	
 	if (!empty($list)) {
 		$id_str = '';

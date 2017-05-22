@@ -9,9 +9,9 @@ mload()->model('clerk');
 $ops = array('edit', 'editmain', 'display', 'add', 'addmain', 'delete');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
-if($op == 'display') {
-	$clerk_p = pdo_fetchall("SELECT * FROM ". tablename('storex_activity_clerk_menu') . " WHERE (uniacid = :uniacid OR system = '1') AND pid = 0", array(':uniacid' =>  $_W['uniacid']));
-	$clerk_c = pdo_fetchall("SELECT * FROM ". tablename('storex_activity_clerk_menu') . " WHERE (uniacid = :uniacid OR system = '1') AND pid <> 0 ORDER BY displayorder ASC, system DESC", array(':uniacid' => $_W['uniacid']));
+if ($op == 'display') {
+	$clerk_p = pdo_fetchall("SELECT * FROM " . tablename('storex_activity_clerk_menu') . " WHERE (uniacid = :uniacid OR system = '1') AND pid = 0", array(':uniacid' =>  $_W['uniacid']));
+	$clerk_c = pdo_fetchall("SELECT * FROM " . tablename('storex_activity_clerk_menu') . " WHERE (uniacid = :uniacid OR system = '1') AND pid <> 0 ORDER BY displayorder ASC, system DESC", array(':uniacid' => $_W['uniacid']));
 	$permission = array();
 	foreach ($clerk_p as $p) {
 		$permission[$p['id']]['id'] = $p['id'];
@@ -26,7 +26,7 @@ if($op == 'display') {
 		$permission[$c['pid']]['items'][] = $c;
 	}
 	$user_permission = storex_user_permission_exist();
-	if (is_error ($user_permission)) {
+	if (is_error($user_permission)) {
 		$user_permission = storex_user_permission('system');
 		foreach ($permission as $key => &$row) {
 			$has = 0;
@@ -99,17 +99,17 @@ if ($_W['isajax']) {
 		$type = $_GPC['type'];
 		if (empty($type)) {
 			if (pdo_delete('storex_activity_clerk_menu', array('id' => $id, 'uniacid' => $_W['uniacid']))) {
-				message(error('1', '删除成功'), '' , 'ajax');
+				message(error(1, '删除成功'), '' , 'ajax');
 			} else {
-				message(error('0', '删除失败'), '' , 'ajax');
+				message(error(0, '删除失败'), '' , 'ajax');
 			}
 		} else {
 			$result = pdo_delete('storex_activity_clerk_menu', array('id' => $id, 'uniacid' => $_W['uniacid']));
 			$resultall = pdo_delete('storex_activity_clerk_menu', array('pid' => $id, 'uniacid' => $_W['uniacid']));
 			if ($result && $resultall) {
-				message(error('1', '删除成功'), '' , 'ajax');
+				message(error(1, '删除成功'), '' , 'ajax');
 			} else {
-				message(error('0', '删除失败'), '' , 'ajax');
+				message(error(0, '删除失败'), '' , 'ajax');
 			}
 		}
 	}

@@ -37,9 +37,9 @@ if ($op == 'display') {
 		$params[':couponid'] = $couponid;
 	}
 	if (!empty($_GPC['nickname'])) {
-		$nicknames = pdo_fetchall('SELECT * FROM '. tablename('mc_mapping_fans')." WHERE uniacid = :uniacid AND nickname LIKE :nickname", array(':uniacid' => $_W['uniacid'], ':nickname' => '%'.$_GPC['nickname'].'%'), 'openid');
+		$nicknames = pdo_fetchall("SELECT * FROM " . tablename('mc_mapping_fans') . " WHERE uniacid = :uniacid AND nickname LIKE :nickname", array(':uniacid' => $_W['uniacid'], ':nickname' => '%'.$_GPC['nickname'].'%'), 'openid');
 		$nickname = array_keys($nicknames);
-		$nickname = '\''.implode('\',\'', $nickname).'\'';
+		$nickname = '\'' . implode('\',\'', $nickname) . '\'';
 		$condition .= " AND openid in ({$nickname}) ";
 	}
 	$status = intval($_GPC['status']);
@@ -52,9 +52,9 @@ if ($op == 'display') {
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	$list = pdo_fetchall("SELECT a.status AS rstatus,a.id AS recid, a.*, b.* FROM " . tablename('storex_coupon_record') . " AS a LEFT JOIN " . tablename('storex_coupon') . " AS b ON a.couponid = b.id WHERE " . $condition . " ORDER BY a.addtime DESC, a.status DESC, a.couponid DESC,a.id DESC LIMIT " . ($pindex - 1) * $psize . "," . $psize, $params);
-	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('storex_coupon_record') . " AS a LEFT JOIN " . tablename('storex_coupon') . " AS b ON a.couponid = b.id WHERE " . $condition, $params);
-	if(!empty($list)) {
+	$list = pdo_fetchall("SELECT a.status AS rstatus, a.id AS recid, a.*, b.* FROM " . tablename('storex_coupon_record') . " AS a LEFT JOIN " . tablename('storex_coupon') . " AS b ON a.couponid = b.id WHERE " . $condition . " ORDER BY a.addtime DESC, a.status DESC, a.couponid DESC, a.id DESC LIMIT " . ($pindex - 1) * $psize . "," . $psize, $params);
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_coupon_record') . " AS a LEFT JOIN " . tablename('storex_coupon') . " AS b ON a.couponid = b.id WHERE " . $condition, $params);
+	if (!empty($list)) {
 		$uids = array();
 		$members = mc_fetch($uids, array('uid', 'nickname'));
 		foreach ($list as &$row) {
@@ -69,9 +69,9 @@ if ($op == 'display') {
 			}
 			$uids[] = $row['uid'];
 			$row['extra'] = iunserializer($row['extra']);
-			if ($row['type'] == COUPON_TYPE_DISCOUNT){
+			if ($row['type'] == COUPON_TYPE_DISCOUNT) {
 				$row['extra_notes'] = $row['extra']['discount'] * 0.1 . '折';
-			} elseif ($row['type'] == COUPON_TYPE_CASH){
+			} elseif ($row['type'] == COUPON_TYPE_CASH) {
 				$row['extra_notes'] = $row['extra']['reduce_cost'] * 0.01 . '元';
 			}
 			$date = iunserializer($row['date_info']);
@@ -112,7 +112,7 @@ if ($op == 'consume') {
 	if ($source == WECHAT_COUPON) {
 		$coupon_api = new coupon();
 		$status = $coupon_api->ConsumeCode(array('code' => $record['code']));
-		if(is_error($status)) {
+		if (is_error($status)) {
 			if (strexists($status['message'], '40127')) {
 				$status['message'] = '卡券已失效';
 				pdo_update('storex_coupon_record', array('status' => '2'), array('uniacid' => $_W['uniacid'], 'id' => $recid));
@@ -133,7 +133,7 @@ if ($op == 'consume') {
 if ($op == 'delete') {
 	$recid = intval($_GPC['id']);
 	$record = pdo_get('storex_coupon_record', array('uniacid' => $_W['uniacid'], 'id' => $recid));
-	if(empty($record)) {
+	if (empty($record)) {
 		message(error(-1, '没有要删除的记录'), '', 'ajax');
 	}
 	$source = intval($_GPC['source']);
