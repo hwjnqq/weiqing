@@ -160,24 +160,24 @@ function check_params(){
 		),
 		'recharge' => array(
 			'common' => array(
-				'uniacid' => intval($_W['uniacid']),
-				'openid' => $_W['openid']
+				// 'uniacid' => intval($_W['uniacid']),
+				// 'openid' => $_W['openid']
 			),
 		)
 	);
 	$do = trim($_GPC['do']);
 	$op = trim($_GPC['op']);
-	if(!empty($permission_lists[$do])){
-		if(!empty($permission_lists[$do]['common'])){
-			foreach($permission_lists[$do]['common'] as $val){
-				if(empty($val)){
+	if (!empty($permission_lists[$do])) {
+		if (!empty($permission_lists[$do]['common'])) {
+			foreach ($permission_lists[$do]['common'] as $val) {
+				if (empty($val)) {
 					message(error(-1, '参数错误'), '', 'ajax');
 				}
 			}
 		}
-		if(!empty($permission_lists[$do][$op])){
-			foreach($permission_lists[$do][$op] as $val){
-				if(empty($val)){
+		if (!empty($permission_lists[$do][$op])) {
+			foreach ($permission_lists[$do][$op] as $val) {
+				if (empty($val)) {
 					message(error(-1, '参数错误'), '', 'ajax');
 				}
 			}
@@ -189,21 +189,21 @@ function check_params(){
  * action 1预定  2购买
  * 获取订单的状态 
  */
-function orders_check_status($item){
+function orders_check_status($item) {
 	$order_status_text = array(
-			'1' => '待付款',
-			'2' => '等待店铺确认',
-			'3' => '订单已取消',
-			'4' => '正在退款中',
-			'5' => '待入住',
-			'6' => '店铺已拒绝',
-			'7' => '已退款',
-			'8' => '已入住',
-			'9' => '已完成',
-			'10' => '未发货',
-			'11' => '已发货',
-			'12' => '已收货',
-			'13' => '订单已确认'
+		'1' => '待付款',
+		'2' => '等待店铺确认',
+		'3' => '订单已取消',
+		'4' => '正在退款中',
+		'5' => '待入住',
+		'6' => '店铺已拒绝',
+		'7' => '已退款',
+		'8' => '已入住',
+		'9' => '已完成',
+		'10' => '未发货',
+		'11' => '已发货',
+		'12' => '已收货',
+		'13' => '订单已确认'
 	);
 	//1是显示,2不显示
 	$item['is_pay'] = 2;//立即付款 is_pay
@@ -212,10 +212,10 @@ function orders_check_status($item){
 	$item['is_over'] = 2;//再来一单is_over
 	$item['is_comment'] = 2;//显示评价is_comment
 	if ($item['status'] == 0){
-		if ($item['action'] == 1){
+		if ($item['action'] == 1) {
 			$status = STORE_SURE_STATUS;
 		} else {
-			if ($item['paystatus'] == 0){
+			if ($item['paystatus'] == 0) {
 				$status = STORE_UNPAY_STATUS;
 				$item['is_pay'] = 1;
 			} else {
@@ -223,16 +223,16 @@ function orders_check_status($item){
 			}
 		}
 		$item['is_cancle'] = 1;
-	} elseif ($item['status'] == -1){
-		if ($item['paystatus'] == 0){
+	} elseif ($item['status'] == -1) {
+		if ($item['paystatus'] == 0) {
 			$status = STORE_CANCLE_STATUS;
 			$item['is_over'] = 1;
 		} else {
 			$status = STORE_REPAY_STATUS;
 		}
-	} elseif ($item['status'] == 1){
-		if ($item['store_type'] == 1){//酒店
-			if ($item['action'] == 1){
+	} elseif ($item['status'] == 1) {
+		if ($item['store_type'] == 1) {//酒店
+			if ($item['action'] == 1) {
 				$status = STORE_CONFIRM_STATUS;
 				$item['is_cancle'] = 1;
 			} else {
@@ -243,18 +243,18 @@ function orders_check_status($item){
 				}
 			}
 		} else {
-			if ($item['action'] == 1 || $item['paystatus'] == 1){//预定
-				if ($item['mode_distribute'] == 1){//自提
+			if ($item['action'] == 1 || $item['paystatus'] == 1) {//预定
+				if ($item['mode_distribute'] == 1) {//自提
 					$item['is_cancle'] = 1;
 					$status = STORE_CONFIRM_STATUS;
 				} elseif ($item['mode_distribute'] == 2) {
-					if ($item['goods_status'] == 1){
+					if ($item['goods_status'] == 1) {
 						$item['is_cancle'] = 1;
 						$status = STORE_UNSENT_STATUS;
-					} elseif ($item['goods_status'] == 2){
+					} elseif ($item['goods_status'] == 2) {
 						$item['is_confirm'] = 1;
 						$status = STORE_SENT_STATUS;
-					} elseif ($item['goods_status'] == 3){
+					} elseif ($item['goods_status'] == 3) {
 						$status = STORE_GETGOODS_STATUS;
 					} else {
 						$item['is_cancle'] = 1;
@@ -262,20 +262,20 @@ function orders_check_status($item){
 					}
 				}
 			} else {
-				if ($item['paystatus'] == 0){
-					if ($item['mode_distribute'] == 1 ){//自提
+				if ($item['paystatus'] == 0) {
+					if ($item['mode_distribute'] == 1 ) {//自提
 						$item['is_cancle'] = 1;
 						$item['is_pay'] = 1;
 						$status = STORE_CONFIRM_STATUS;
 					} elseif ($item['mode_distribute'] == 2) {
-						if ($item['goods_status'] == 1){
+						if ($item['goods_status'] == 1) {
 							$item['is_cancle'] = 1;
 							$item['is_pay'] = 1;
 							$status = STORE_UNSENT_STATUS;
-						} elseif ($item['goods_status'] == 2){
+						} elseif ($item['goods_status'] == 2) {
 							$item['is_confirm'] = 1;
 							$status = STORE_SENT_STATUS;
-						} elseif ($item['goods_status'] == 3){
+						} elseif ($item['goods_status'] == 3) {
 							$status = STORE_GETGOODS_STATUS;
 						} else {
 							$item['is_cancle'] = 1;
@@ -288,19 +288,19 @@ function orders_check_status($item){
 				}
 			}
 		}
-	} elseif ($item['status'] == 2){
-		if ($item['paystatus'] == 0){
+	} elseif ($item['status'] == 2) {
+		if ($item['paystatus'] == 0) {
 			$status = STORE_REFUSE_STATUS;
 		} else {
 			$status = STORE_REPAY_SUCCESS_STATUS;
 		}
-	} elseif ($item['status'] == 4){
+	} elseif ($item['status'] == 4) {
 		$status = STORE_LIVE_STATUS;
 		$item['is_over'] = 1;
-	} elseif ($item['status'] == 3){
+	} elseif ($item['status'] == 3) {
 		$status = STORE_OVER_STATUS;
 		$item['is_over'] = 1;
-		if ($item['comment'] == 0){
+		if ($item['comment'] == 0) {
 			$item['is_comment'] = 1;
 		}
 	}
@@ -330,13 +330,13 @@ function get_store_info($id){
 	} else {
 		if ($store_info['status'] == 0) {
 			message(error(-1, '店铺已隐藏'), '', 'ajax');
-		}else{
+		} else {
 			return $store_info;
 		}
 	}
 }
 //根据店铺的类型返回表名
-function get_goods_table($store_type){
+function get_goods_table($store_type) {
 	if ($store_type == 1) {
 		return 'storex_room';
 	} else {
@@ -359,10 +359,10 @@ function radian($d) {
 	return $d * 3.1415926535898 / 180.0;
 }
 //支付
-function pay_info($order_id){
+function pay_info($order_id) {
 	global $_W;
 	$order_info = pdo_get('storex_order', array('id' => $order_id, 'weid' => intval($_W['uniacid']), 'openid' => $_W['openid']));
-	if(!empty($order_info)){
+	if (!empty($order_info)) {
 		$params = array(
 			'ordersn' => $order_info['ordersn'],
 			'tid' => $order_info['id'],//支付订单编号, 应保证在同一模块内部唯一
@@ -371,31 +371,31 @@ function pay_info($order_id){
 			'user' => $_W['openid']//付款用户, 付款的用户名(选填项)
 		);
 		return $params;
-	}else{
+	} else {
 		message(error(-1, '获取订单信息失败'), '', 'ajax');
 	}
 }
 
 //获取某一级分类下的所有二级分类
-function category_sub_class(){
+function category_sub_class() {
 	global $_W, $_GPC;
 	return pdo_getall('storex_categorys', array('weid' => $_W['uniacid'],'parentid' => intval($_GPC['first_id']), 'enabled' => 1), array(), '', 'displayorder DESC');
 }
-function check_price($goods_info){
+function check_price($goods_info) {
 	$goods[] = $goods_info;
 	$goods = room_special_price($goods);
 	$goods_info = $goods['0'];
 	return $goods_info;
 }
 //获取一二级分类下的商品信息
-function category_store_goods($table, $condition, $fields, $limit = array()){
+function category_store_goods($table, $condition, $fields, $limit = array()) {
 	$goods = pdo_getall($table, $condition, $fields, '', 'sortid DESC', $limit);
-	foreach($goods as $k => $info){
-		if(!empty($info['thumb'])){
+	foreach ($goods as $k => $info) {
+		if (!empty($info['thumb'])) {
 			$goods[$k]['thumb'] = tomedia($info['thumb']);
 		}
-		if(!empty($info['thumbs'])){
-			foreach($info['thumbs'] as $key => $url){
+		if (!empty($info['thumbs'])) {
+			foreach ($info['thumbs'] as $key => $url) {
 				$goods[$k]['thumbs'][$key] = tomedia($url);
 			}
 		}
@@ -406,7 +406,7 @@ function category_store_goods($table, $condition, $fields, $limit = array()){
 	return $goods;
 }
 //根据日期和数量获取可预定的房型
-function category_room_status($goods_list){
+function category_room_status($goods_list) {
 	global $_GPC,$_W;
 	$btime = $_GPC['btime'];
 	$etime = $_GPC['etime'];
@@ -425,7 +425,7 @@ function category_room_status($goods_list){
 	if (!empty($modify_recored)) {
 		foreach ($modify_recored as $value) {
 			foreach ($goods_list as &$info) {
-				if ($value['roomid'] == $info['id'] && $value['hotelid'] == $info['hotelid'] ) {
+				if ($value['roomid'] == $info['id'] && $value['hotelid'] == $info['hotelid']) {
 					if (isset($info['max_room']) && $info['max_room'] == 0) {
 						$info['room_counts'] = 0;
 						continue;
@@ -439,7 +439,7 @@ function category_room_status($goods_list){
 						} else {
 							if ($value['num'] > 8 && $value['num'] > $info['max_room']) {
 								$info['max_room'] = 8;
-							} elseif ($value['num'] < $info['max_room'] || !isset($info['max_room'])){
+							} elseif ($value['num'] < $info['max_room'] || !isset($info['max_room'])) {
 								$info['max_room'] = $value['num'];
 							}
 							$info['room_counts'] = $value['num'];
@@ -464,22 +464,22 @@ function category_room_status($goods_list){
 	}
 	return $goods_list;
 }
-function get_room_params($info){
+function get_room_params($info) {
 	$info['params'] = '';
-	if ($info['bed_show'] == 1){
-		$info['params'] = "床位(".$info['bed'].")";
+	if ($info['bed_show'] == 1) {
+		$info['params'] = "床位(" . $info['bed'] . ")";
 	}
-	if ($info['floor_show'] == 1){
-		if(!empty($info['params'])){
-			$info['params'] .= " | 楼层(".$info['floor'].")";
-		}else{
-			$info['params'] = "楼层(".$info['floor'].")";
+	if ($info['floor_show'] == 1) {
+		if (!empty($info['params'])) {
+			$info['params'] .= " | 楼层(" . $info['floor'] . ")";
+		} else {
+			$info['params'] = "楼层(" . $info['floor'] . ")";
 		}
 	}
 	return $info;
 }
 //获取日期格式
-function get_dates($btime, $days){
+function get_dates($btime, $days) {
 	$dates = array();
 	$dates[0]['date'] = $btime;
 	$dates[0]['day'] = date('j', strtotime($btime));
@@ -496,13 +496,13 @@ function get_dates($btime, $days){
 	return $dates;
 }
 //根据信息获取房型的某一天的价格
-function room_special_price ($goods){
+function room_special_price($goods) {
 	global $_W;
 	if (!empty($goods)) {
 		$btime = strtotime(date('Y-m-d'));
 		$etime = $btime+86400;
 		$sql = 'SELECT `id`, `roomdate`, `num`, `status`, `oprice`, `cprice`, `roomid` FROM ' . tablename('storex_room_price') . ' WHERE 
-			`weid` = :weid AND `roomdate` >= :btime AND `roomdate` < :etime order by roomdate desc';
+			`weid` = :weid AND `roomdate` >= :btime AND `roomdate` < :etime ORDER BY roomdate desc';
 		$params = array(':weid' => $_W['uniacid'], ':btime' => $btime, ':etime' => $etime);
 		$room_price_list = pdo_fetchall($sql, $params, 'roomid');
 		foreach ($goods as $key => $val) {
@@ -522,37 +522,37 @@ function room_special_price ($goods){
 	return $goods;
 }
 //检查条件
-function goods_check_action($action, $goods_info){
+function goods_check_action($action, $goods_info) {
 	if (empty($goods_info)) {
 		message(error(-1, '商品未找到, 请联系管理员!'), '', 'ajax');
 	}
-	if($action == 'reserve' && $goods_info['can_reserve'] != 1){
+	if ($action == 'reserve' && $goods_info['can_reserve'] != 1) {
 		message(error(-1, '该商品不能预定'), '', 'ajax');
 	}
-	if($action == 'buy' && $goods_info['can_buy'] != 1){
+	if ($action == 'buy' && $goods_info['can_buy'] != 1) {
 		message(error(-1, '该商品不能购买'), '', 'ajax');
 	}
 }
 
 //检查结果
 function goods_check_result($action, $order_id){
-	if($action == 'reserve'){
-		if(!empty($order_id)){
+	if ($action == 'reserve') {
+		if (!empty($order_id)) {
 			message(error(0, $order_id), '', 'ajax');
-		}else{
+		} else {
 			message(error(-1, '预定失败'), '', 'ajax');
 		}
-	}else{
-		if(!empty($order_id)){
+	} else {
+		if (!empty($order_id)) {
 			message(error(0, $order_id), '', 'ajax');
-		}else{
+		} else {
 			message(error(-1, '下单失败'), '', 'ajax');
 		}
 	}
 }
 
 //检查店员    id:店铺id
-function get_clerk_permission ($id) {
+function get_clerk_permission($id) {
 	global $_W;
 	$clerk_info = pdo_get('storex_clerk', array('from_user' => trim($_W['openid']), 'weid' => intval($_W['uniacid'])));
 	if (!empty($clerk_info) && !empty($clerk_info['permission'])) {
@@ -566,7 +566,7 @@ function get_clerk_permission ($id) {
 	}
 	message(error(-1, '您没有进行此操作的权限！'), '', 'ajax');
 }
-function check_clerk_permission($clerk_info, $premit){
+function check_clerk_permission($clerk_info, $premit) {
 	$is_permission = false;
 	foreach ($clerk_info as $permission) {
 		if ($permission == $premit) {
