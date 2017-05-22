@@ -10,7 +10,7 @@
 	<div class="clearfix menu">
 		{if empty($_W['isfounder'])}
 		<div class="alert alert-danger">您没有操作权限.请联系公众号管理员</div>
-   		{else}
+		{else}
 		{loop $permission $row}
 		<h5 class="page-header">{$row['title']}{if !$row['system']}&nbsp;&nbsp;&nbsp;&nbsp;<a href="javascript:" style="display: none;" title="编辑" class="editmain" data-id="{$row['id']}" data-title="{$row['title']}" data-op="editmain"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;<a href="javascript:" style="display: none;" class="delete" title="删除" data-id="{$row['id']}" data-type="main"><i class="fa fa-times"></i></a>{/if}</h5>
 		<div class="clearfix deskmenu">
