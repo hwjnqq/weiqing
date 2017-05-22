@@ -100,8 +100,7 @@ if ($_W['isajax']) {
 		if (empty($type)) {
 			if (pdo_delete('storex_activity_clerk_menu', array('id' => $id, 'uniacid' => $_W['uniacid']))) {
 				message(error('1', '删除成功'), '' , 'ajax');
-			}
-			else {
+			} else {
 				message(error('0', '删除失败'), '' , 'ajax');
 			}
 		} else {
