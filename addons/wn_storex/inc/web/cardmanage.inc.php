@@ -22,7 +22,7 @@ if ($op == 'display') {
 	
 	$param = array(':uniacid' => $_W['uniacid']);
 	$cardsn = trim($_GPC['cardsn']);
-	if(!empty($cardsn)) {
+	if (!empty($cardsn)) {
 		$where .= ' AND a.cardsn LIKE :cardsn';
 		$param[':cardsn'] = "%{$cardsn}%";
 	}
@@ -32,26 +32,26 @@ if ($op == 'display') {
 		$param[':status'] = $status;
 	}
 	$num = isset($_GPC['num']) ? intval($_GPC['num']) : -1;
-	if($num >= 0) {
-		if(!$num) {
+	if ($num >= 0) {
+		if (!$num) {
 			$where .= " AND a.nums = 0";
 		} else {
 			$where .= " AND a.nums > 0";
 		}
 	}
 	$endtime = isset($_GPC['endtime']) ? intval($_GPC['endtime']) : -1;
-	if($endtime >= 0) {
+	if ($endtime >= 0) {
 		$where .= " AND a.endtime <= :endtime";
 		$param[':endtime'] = strtotime($endtime . 'days');
 	}
 	
 	$keyword = trim($_GPC['keyword']);
-	if(!empty($keyword)) {
+	if (!empty($keyword)) {
 		$where .= " AND (a.mobile LIKE '%{$keyword}%' OR a.realname LIKE '%{$keyword}%')";
 	}
-	$sql = 'SELECT a.*, b.groupid, b.credit1, b.credit2 FROM ' . tablename('storex_mc_card_members') . " AS a LEFT JOIN " . tablename('mc_members') . " AS b ON a.uid = b.uid WHERE a.uniacid = :uniacid $where ORDER BY a.id DESC LIMIT ".($pindex - 1) * $psize.','.$psize;
+	$sql = "SELECT a.*, b.groupid, b.credit1, b.credit2 FROM " . tablename('storex_mc_card_members') . " AS a LEFT JOIN " . tablename('mc_members') . " AS b ON a.uid = b.uid WHERE a.uniacid = :uniacid $where ORDER BY a.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize;
 	$list = pdo_fetchall($sql, $param);
-	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_mc_card_members') . " AS a LEFT JOIN " . tablename('mc_members') . " AS b ON a.uid = b.uid WHERE a.uniacid = :uniacid $where", $param);
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_mc_card_members') . " AS a LEFT JOIN " . tablename('mc_members') . " AS b ON a.uid = b.uid WHERE a.uniacid = :uniacid $where", $param);
 	$pager = pagination($total, $pindex, $psize);
 }
 
@@ -61,11 +61,11 @@ if ($op == 'record') {
 	$where = ' WHERE uniacid = :uniacid AND uid = :uid';
 	$param = array(':uniacid' => $_W['uniacid'], ':uid' => $uid);
 	$type = trim($_GPC['type']);
-	if(!empty($type)) {
+	if (!empty($type)) {
 		$where .= ' AND type = :type';
 		$param[':type'] = $type;
 	}
-	if(empty($_GPC['endtime']['start'])) {
+	if (empty($_GPC['endtime']['start'])) {
 		$starttime = strtotime('-30 days');
 		$endtime = TIMESTAMP;
 	} else {
@@ -79,14 +79,14 @@ if ($op == 'record') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 30;
 	$limit = " ORDER BY id DESC LIMIT " . ($pindex -1) * $psize . ", {$psize}";
-	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_mc_card_record') . " {$where}", $param);
-	$list = pdo_fetchall('SELECT * FROM ' . tablename('storex_mc_card_record') . " {$where} {$limit}", $param);
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_mc_card_record') . " {$where}", $param);
+	$list = pdo_fetchall("SELECT * FROM " . tablename('storex_mc_card_record') . " {$where} {$limit}", $param);
 	$pager = pagination($total, $pindex, $psize);
 }
 
 if ($op == 'delete') {
 	$cardid = intval($_GPC['cardid']);
-	if (pdo_delete('storex_mc_card_members',array('id' =>$cardid))) {
+	if (pdo_delete('storex_mc_card_members', array('id' =>$cardid))) {
 		message('删除会员卡成功', referer(), 'success');
 	} else {
 		message('删除会员卡失败', referer(), 'error');
@@ -96,7 +96,7 @@ if ($op == 'delete') {
 if ($op == 'modal') {
 	$uid = intval($_GPC['uid']);
 	$card = pdo_get('storex_mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $uid));
-	if(empty($card)) {
+	if (empty($card)) {
 		exit('error');
 	}
 	include $this->template('cardmodel');
@@ -107,14 +107,14 @@ if ($op == 'submit') {
 	load()->model('mc');
 	$uid = intval($_GPC['uid']);
 	$card = pdo_get('storex_mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $uid));
-	if(empty($card)) {
+	if (empty($card)) {
 		message('用户会员卡信息不存在', referer(), 'error');
 	}
 	$type = trim($_GPC['type']);
-	if($type == 'nums_plus') {
+	if ($type == 'nums_plus') {
 		$fee = floatval($_GPC['fee']);
 		$tag = intval($_GPC['nums']);
-		if(!$fee && !$tag) {
+		if (!$fee && !$tag) {
 			message('请完善充值金额和充值次数', referer(), 'error');
 		}
 		$total_num = $card['nums'] + $tag;
@@ -134,12 +134,12 @@ if ($op == 'submit') {
 		mc_notice_nums_plus($card['openid'], $setting['nums_text'], $tag, $total_num);
 	}
 	
-	if($type == 'nums_times') {
+	if ($type == 'nums_times') {
 		$tag = intval($_GPC['nums']);
-		if(!$tag) {
+		if (!$tag) {
 			message('请填写消费次数', referer(), 'error');
 		}
-		if($card['nums'] < $tag) {
+		if ($card['nums'] < $tag) {
 			message('当前用户的消费次数不够', referer(), 'error');
 		}
 		$total_num = $card['nums'] - $tag;
@@ -159,17 +159,17 @@ if ($op == 'submit') {
 		mc_notice_nums_times($card['openid'], $card['cardsn'], $setting['nums_text'], $total_num);
 	}
 	
-	if($type == 'times_plus') {
+	if ($type == 'times_plus') {
 		$fee = floatval($_GPC['fee']);
 		$endtime = strtotime($_GPC['endtime']);
 		$days = intval($_GPC['days']);
-		if($endtime <= $card['endtime'] && !$days) {
+		if ($endtime <= $card['endtime'] && !$days) {
 			message('服务到期时间不能小于会员当前的服务到期时间或未填写延长服务天数', '', 'error');
 		}
 		$tag = floor(($endtime - $card['endtime']) / 86400);
-		if($days > 0) {
+		if ($days > 0) {
 			$tag = $days;
-			if($card['endtime'] > TIMESTAMP) {
+			if ($card['endtime'] > TIMESTAMP) {
 				$endtime = $card['endtime'] + $days * 86400;
 			} else {
 				$endtime = strtotime($days . 'days');
@@ -192,13 +192,13 @@ if ($op == 'submit') {
 		mc_notice_times_plus($card['openid'], $card['cardsn'], $setting['times_text'], $fee, $tag, $endtime);
 	}
 	
-	if($type == 'times_times') {
+	if ($type == 'times_times') {
 		$endtime = strtotime($_GPC['endtime']);
-		if($endtime > $card['endtime']) {
+		if ($endtime > $card['endtime']) {
 			message("该会员的{$setting['times_text']}到期时间为：" . date('Y-m-d', $card['endtime']) . ",您当前在进行消费操作，设置到期时间不能超过" . date('Y-m-d', $card['endtime']) , '', 'error');
 		}
 		$flag = intval($_GPC['flag']);
-		if($flag) {
+		if ($flag) {
 			$endtime = TIMESTAMP;
 		}
 		$tag = floor(($card['endtime'] - $endtime) / 86400);
