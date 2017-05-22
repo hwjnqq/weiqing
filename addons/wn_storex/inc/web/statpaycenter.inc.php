@@ -11,6 +11,7 @@ $ops = array('detail', 'chart', 'display');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 activity_get_coupon_type();
+
 if ($op == 'display') {
 	$stores = pdo_getall('storex_activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array('id', 'business_name', 'branch_name'), 'id');
 	$pindex = max(1, intval($_GPC['page']));
@@ -32,9 +33,9 @@ if ($op == 'display') {
 	$orders = pdo_fetchall('SELECT * FROM ' . tablename('storex_paycenter_order') . $condition . $limit, $params);
 	$pager = pagination($total, $pindex, $psize);
 	$status = paycenter_order_status();
-	if(!empty($orders)) {
+	if (!empty($orders)) {
 		foreach ($orders as &$value) {
-			$operator = mc_account_change_operator($value['clerk_type'], $value['store_id'], $value['clerk_id']);
+			$operator = storex_account_change_operator($value['clerk_type'], $value['store_id'], $value['clerk_id']);
 			$value['clerk_cn'] = $operator['clerk_cn'];
 			$value['store_cn'] = $operator['store_cn'];
 		}
@@ -101,10 +102,10 @@ if ($op == 'chart') {
 			$out['datasets']['flow1'] = array_values($stat['flow1']);
 			exit(json_encode($out));
 		} elseif ($type == 'month') {
-			$now = mktime(0,0,0,date('m'),date('t'),date('Y'));
-			$end = mktime(23,59,59,date('m'),date('t'),date('Y'));
+			$now = mktime(0, 0, 0, date('m'), date('t'), date('Y'));
+			$end = mktime(23, 59, 59, date('m'), date('t'), date('Y'));
 			$starttime = empty($_GPC['start']) ? strtotime('-6months', $now) : strtotime($_GPC['start']);
-			$endtime = empty($_GPC['end']) ? $end : strtotime($_GPC['end']) +  date('t', strtotime($_GPC['end'])) * 86400 - 1;
+			$endtime = empty($_GPC['end']) ? $end : strtotime($_GPC['end']) + date('t', strtotime($_GPC['end'])) * 86400 - 1;
 			$num = ($endtime + 1 - $starttime) / 86400;
 	
 			$stat = array(

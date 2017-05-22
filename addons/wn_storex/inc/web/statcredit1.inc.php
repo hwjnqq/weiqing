@@ -10,9 +10,11 @@ $ops = array('chart', 'display');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 activity_get_coupon_type();
-$starttime = empty($_GPC['time']['start']) ? mktime(0, 0, 0, date('m') , 1, date('Y')) : strtotime($_GPC['time']['start']);
+
+$starttime = empty($_GPC['time']['start']) ? mktime(0, 0, 0, date('m'), 1, date('Y')) : strtotime($_GPC['time']['start']);
 $endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
 $num = ($endtime + 1 - $starttime) / 86400;
+
 if ($op == 'display') {
 	$stores = pdo_getall('storex_activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array('id', 'business_name', 'branch_name'), 'id');
 	$condition = ' WHERE uniacid = :uniacid AND credittype = :credittype AND createtime >= :starttime AND createtime <= :endtime';
@@ -48,7 +50,7 @@ if ($op == 'display') {
 	}
 	$user = trim($_GPC['user']);
 	if (!empty($user)) {
-		$condition .= ' AND (uid IN (SELECT uid FROM '.tablename('mc_members').' WHERE uniacid = :uniacid AND (realname LIKE :username OR uid = :uid OR mobile LIKE :mobile)))';
+		$condition .= ' AND (uid IN (SELECT uid FROM ' . tablename('mc_members') . ' WHERE uniacid = :uniacid AND (realname LIKE :username OR uid = :uid OR mobile LIKE :mobile)))';
 		$params[':username'] = "%{$user}%";
 		$params[':uid'] = intval($user);
 		$params[':mobile'] = "%{$user}%";
@@ -65,13 +67,13 @@ if ($op == 'display') {
 			if (!in_array($da['uid'], $uids)) {
 				$uids[] = $da['uid'];
 			}
-			$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
+			$operator = storex_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
 			$da['clerk_cn'] = $operator['clerk_cn'];
 			$da['store_cn'] = $operator['store_cn'];
 		}
 		unset($da);
 		$uids = implode(',', $uids);
-		$users = pdo_fetchall('SELECT mobile,uid,realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
+		$users = pdo_fetchall('SELECT mobile, uid, realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
 	}
 	$pager = pagination($total, $pindex, $psize);
 	
@@ -83,28 +85,28 @@ if ($op == 'display') {
 				if (!in_array($da['uid'], $uids)) {
 					$uids[] = $da['uid'];
 				}
-				$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
+				$operator = storex_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
 				$da['clerk_cn'] = $operator['clerk_cn'];
 				$da['store_cn'] = $operator['store_cn'];
 			}
 			unset($da);
 			$uids = implode(',', $uids);
-			$users = pdo_fetchall('SELECT mobile,uid,realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
+			$users = pdo_fetchall('SELECT mobile, uid, realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
 		}
 		/* 输入到CSV文件 */
 		$html = "\xEF\xBB\xBF";
 	
 		/* 输出表头 */
 		$filter = array(
-				'uid' => '会员编号',
-				'name' => '姓名',
-				'phone' => '手机',
-				'type' => '类型',
-				'num' => '数量',
-				'store_cn' => '消费门店	',
-				'clerk_cn' => '操作人	',
-				'createtime' => '操作时间	',
-				'remark' => '备注'
+			'uid' => '会员编号',
+			'name' => '姓名',
+			'phone' => '手机',
+			'type' => '类型',
+			'num' => '数量',
+			'store_cn' => '消费门店',
+			'clerk_cn' => '操作人',
+			'createtime' => '操作时间',
+			'remark' => '备注'
 		);
 		foreach ($filter as $title) {
 			$html .= $title . "\t,";
@@ -187,5 +189,4 @@ if ($op == 'chart') {
 		exit(json_encode($out));
 	}
 }
-
 include $this->template('statcredit1');

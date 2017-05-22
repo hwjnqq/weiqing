@@ -86,7 +86,7 @@ function activity_user_get_coupon($id, $openid, $granttype = 1) {
 	global $_W, $_GPC;
 	if (empty($openid)) {
 		$openid = $_W['openid'];
-		if(empty($openid)) {
+		if (empty($openid)) {
 			$openid = $_W['member']['uid'];
 		}
 		if (empty($openid)) {
@@ -145,7 +145,7 @@ function activity_user_get_coupon($id, $openid, $granttype = 1) {
 	}
 	pdo_insert('storex_coupon_record', $insert);
 	$insert_id = pdo_insertid();
-	pdo_update('storex_coupon', array('quantity' => $coupon['quantity'] - 1, 'dosage' => $coupon['dosage'] +1), array('uniacid' => $_W['uniacid'],'id' => $coupon['id']));
+	pdo_update('storex_coupon', array('quantity' => $coupon['quantity'] - 1, 'dosage' => $coupon['dosage'] + 1), array('uniacid' => $_W['uniacid'],'id' => $coupon['id']));
 	if ($granttype == 1) {
 		pdo_update('storex_activity_exchange', array('num' => ($exchange['num'] + 1)), array('id' => $exchange['id']));
 	}
@@ -258,7 +258,7 @@ function activity_coupon_consume($couponid, $recid, $store_id) {
 		load()->classs('coupon');
 		$coupon_api = new coupon($_W['acid']);
 		$status = $coupon_api->ConsumeCode(array('code' => $coupon_record['code']));
-		if(is_error($status)) {
+		if (is_error($status)) {
 			return error(-1, $status['message']);
 		}
 	}
@@ -321,7 +321,7 @@ function activity_wechat_coupon_sync() {
 function activity_get_member_by_type($type, $param = array()) {
 	activity_get_coupon_type();
 	global $_W;
-	$types =  array('new_member', 'old_member', 'quiet_member', 'activity_member', 'group_member', 'cash_time', 'openids');
+	$types = array('new_member', 'old_member', 'quiet_member', 'activity_member', 'group_member', 'cash_time', 'openids');
 	if (!in_array($type, $types)) {
 		return error('1', '没有匹配的用户类型');
 	}
@@ -452,7 +452,7 @@ function activity_storex_sync() {
 		}
 		$acc = new coupon($_W['acid']);
 		$location = $acc->LocationGet($val['location_id']);
-		if(is_error($location)) {
+		if (is_error($location)) {
 			return error(-1, $location['message']);
 		}
 		$location = $location['business']['base_info'];
@@ -467,4 +467,38 @@ function activity_storex_sync() {
 	}
 	cache_write($cachekey, array('expire' => time() + 1800));
 	return true;
+}
+
+/*
+ * 会员积分|优惠券信息变更操作员
+* */
+function storex_account_change_operator($clerk_type, $store_id, $clerk_id) {
+	global $stores, $clerks, $_W;
+	if (empty($stores) || empty($clerks)) {
+		$clerks = pdo_getall('storex_activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name'), 'id');
+		$stores = pdo_getall('storex_activity_stores', array('uniacid' => $_W['uniacid']), array('id', 'business_name', 'branch_name'), 'id');
+	}
+	$data = array(
+		'clerk_cn' => '',
+		'store_cn' => '',
+	);
+	if ($clerk_type == 1) {
+		$data['clerk_cn'] = '系统';
+	} elseif($clerk_type == 2) {
+		$data['clerk_cn'] = pdo_fetchcolumn('SELECT username FROM ' . tablename('users') . ' WHERE uid = :uid', array(':uid' => $clerk_id));
+	} elseif($clerk_type == 3) {
+		if (empty($clerk_id)) {
+			$data['clerk_cn'] = '本人操作';
+		} else {
+			$data['clerk_cn'] = $clerks[$clerk_id]['name'];
+		}
+		$data['store_cn'] = $stores[$store_id]['business_name'] . ' ' . $stores[$store_id]['branch_name'];
+	}
+	if (empty($data['store_cn'])) {
+		$data['store_cn'] = '暂无门店信息';
+	}
+	if (empty($data['clerk_cn'])) {
+		$data['clerk_cn'] = '暂无操作员信息';
+	}
+	return $data;
 }

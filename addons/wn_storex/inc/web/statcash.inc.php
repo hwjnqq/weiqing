@@ -12,7 +12,7 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 activity_get_coupon_type();
 
-$starttime = empty($_GPC['time']['start']) ? mktime(0, 0, 0, date('m') , 1, date('Y')) : strtotime($_GPC['time']['start']);
+$starttime = empty($_GPC['time']['start']) ? mktime(0, 0, 0, date('m'), 1, date('Y')) : strtotime($_GPC['time']['start']);
 $endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
 $num = ($endtime + 1 - $starttime) / 86400;
 
@@ -66,7 +66,7 @@ if ($op == 'display') {
 			if (!in_array($da['uid'], $uids)) {
 				$uids[] = $da['uid'];
 			}
-			$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
+			$operator = storex_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
 			$da['clerk_cn'] = $operator['clerk_cn'];
 			$da['store_cn'] = $operator['store_cn'];
 			if (empty($da['clerk_type'])) {
@@ -75,7 +75,7 @@ if ($op == 'display') {
 		}
 		unset($da);
 		$uids = implode(',', $uids);
-		$users = pdo_fetchall('SELECT mobile,uid,realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
+		$users = pdo_fetchall('SELECT mobile, uid, realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
 	}
 	$pager = pagination($total, $pindex, $psize);
 	if ($_GPC['export'] != '') {
@@ -87,7 +87,7 @@ if ($op == 'display') {
 				if (!in_array($da['uid'], $uids)) {
 					$uids[] = $da['uid'];
 				}
-				$operator = mc_account_change_operator ($da['clerk_type'], $da['store_id'], $da['clerk_id']);
+				$operator = storex_account_change_operator ($da['clerk_type'], $da['store_id'], $da['clerk_id']);
 				$da['clerk_cn'] = $operator['clerk_cn'];
 				$da['store_cn'] = $operator['store_cn'];
 				if (empty($da['clerk_type'])) {
@@ -107,9 +107,9 @@ if ($op == 'display') {
 			'mobile' => '手机',
 			'fee' => '消费金额',
 			'final_fee' => '实收金额',
-			'credit2' => '余额支付	',
-			'credit1_fee' => '积分抵消	',
-			'final_cash' => '实收现金	',
+			'credit2' => '余额支付',
+			'credit1_fee' => '积分抵消',
+			'final_cash' => '实收现金',
 			'store_cn' => '消费门店',
 			'clerk_cn' => '操作人',
 			'createtime' => '操作时间'

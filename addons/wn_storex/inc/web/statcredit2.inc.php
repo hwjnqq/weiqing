@@ -11,16 +11,16 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 activity_get_coupon_type();
 
-$starttime = empty($_GPC['time']['start']) ? mktime(0, 0, 0, date('m') , 1, date('Y')) : strtotime($_GPC['time']['start']);
+$starttime = empty($_GPC['time']['start']) ? mktime(0, 0, 0, date('m'), 1, date('Y')) : strtotime($_GPC['time']['start']);
 $endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
 $num = ($endtime + 1 - $starttime) / 86400;
 
-if($op == 'display') {
+if ($op == 'display') {
 // 	$clerks = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name'), 'id');
 	$stores = pdo_getall('storex_activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array('id', 'business_name', 'branch_name'), 'id');
 	$condition = ' WHERE uniacid = :uniacid AND credittype = :credittype AND createtime >= :starttime AND createtime <= :endtime';
 	$params = array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => $starttime, ':endtime' => $endtime);
-	if(intval($_W['user']['clerk_type']) == ACCOUNT_OPERATE_CLERK) {
+	if (intval($_W['user']['clerk_type']) == ACCOUNT_OPERATE_CLERK) {
 		$condition .= ' AND clerk_id = :clerk_id';
 		$params[':clerk_id'] = $_W['user']['clerk_id'];
 	}
@@ -56,7 +56,7 @@ if($op == 'display') {
 	
 	$user = trim($_GPC['user']);
 	if (!empty($user)) {
-		$condition .= ' AND (uid IN (SELECT uid FROM '.tablename('mc_members').' WHERE uniacid = :uniacid AND (realname LIKE :username OR uid = :uid OR mobile LIKE :mobile)))';
+		$condition .= ' AND (uid IN (SELECT uid FROM ' . tablename('mc_members') . ' WHERE uniacid = :uniacid AND (realname LIKE :username OR uid = :uid OR mobile LIKE :mobile)))';
 		$params[':username'] = "%{$user}%";
 		$params[':uid'] = intval($user);
 		$params[':mobile'] = "%{$user}%";
@@ -74,17 +74,17 @@ if($op == 'display') {
 			if (!in_array($da['uid'], $uids)) {
 				$uids[] = $da['uid'];
 			}
-			$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
+			$operator = storex_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
 			$da['clerk_cn'] = $operator['clerk_cn'];
 			$da['store_cn'] = $operator['store_cn'];
 		}
 		unset($da);
 		$uids = implode(',', $uids);
-		$users = pdo_fetchall('SELECT mobile,uid,realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
+		$users = pdo_fetchall('SELECT mobile, uid, realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
 	}
 	$pager = pagination($total, $pindex, $psize);
 	if ($_GPC['export'] != '') {
-		$exports = pdo_fetchall('SELECT * FROM '.tablename('mc_credits_record'). $condition . ' ORDER BY id DESC', $params);
+		$exports = pdo_fetchall('SELECT * FROM ' . tablename('mc_credits_record') . $condition . ' ORDER BY id DESC', $params);
 		if (!empty($exports)) {
 			load()->model('clerk');
 			$uids = array();
@@ -92,26 +92,26 @@ if($op == 'display') {
 				if (!in_array($da['uid'], $uids)) {
 					$uids[] = $da['uid'];
 				}
-				$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
+				$operator = storex_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
 				$da['clerk_cn'] = $operator['clerk_cn'];
 				$da['store_cn'] = $operator['store_cn'];
 			}
 			unset($da);
 			$uids = implode(',', $uids);
-			$user = pdo_fetchall('SELECT mobile,uid,realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
+			$user = pdo_fetchall('SELECT mobile, uid, realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
 		}
 		$html = "\xEF\xBB\xBF";
 	
 		$filter = array(
-				'uid' => '会员编号',
-				'name' => '姓名',
-				'phone' => '手机',
-				'type' => '类型',
-				'num' => '数量',
-				'store' => '消费门店	',
-				'operator' => '操作人	',
-				'createtime' => '操作时间	',
-				'remark' => '备注'
+			'uid' => '会员编号',
+			'name' => '姓名',
+			'phone' => '手机',
+			'type' => '类型',
+			'num' => '数量',
+			'store' => '消费门店',
+			'operator' => '操作人',
+			'createtime' => '操作时间',
+			'remark' => '备注'
 		);
 		foreach ($filter as $title) {
 			$html .= $title . "\t,";
@@ -175,7 +175,7 @@ if ($op == 'chart') {
 			$stat['consume'][$key] = 0;
 			$stat['recharge'][$key] = 0;
 		}
-		$data = pdo_fetchall('SELECT id,num,credittype,createtime,uniacid FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => $starttime, ':endtime' => $endtime));
+		$data = pdo_fetchall('SELECT id, num, credittype, createtime, uniacid FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => $starttime, ':endtime' => $endtime));
 	
 		if (!empty($data)) {
 			foreach ($data as $da) {
