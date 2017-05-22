@@ -5,6 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 $ops = array('goods_info', 'info', 'order');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
+
 check_params();
 mload()->model('activity');
 mload()->model('card');
@@ -34,7 +35,7 @@ if ($op == 'goods_info') {
 		}
 	}
 	$goods_info['store_type'] = $store_info['store_type'];
-	$goods_info['thumbs'] =  iunserializer($goods_info['thumbs']);
+	$goods_info['thumbs'] = iunserializer($goods_info['thumbs']);
 	if (!empty($goods_info['thumb'])) {
 		$goods_info['thumb'] = tomedia($goods_info['thumb']);
 	}
@@ -106,7 +107,7 @@ if ($op == 'info') {
 }
 
 //预定提交预定信息
-if ($op == 'order'){
+if ($op == 'order') {
 	$id = intval($_GPC['id']);
 	$store_info = get_store_info($id);
 	$order_info = array(
@@ -116,7 +117,7 @@ if ($op == 'order'){
 		'contact_name' => trim($_GPC['order']['contact_name']),//联系人
 		'roomid' => $goodsid,					//商品id
 		'mobile' => trim($_GPC['order']['mobile']),
-		'remark' => trim($_GPC['order']['remark']),			//留言
+		'remark' => trim($_GPC['order']['remark']),		//留言
 		'nums' => intval($_GPC['order']['nums']),				//数量
 		'time' => TIMESTAMP,					//下单时间（TIMESTAMP）
 	);
@@ -212,7 +213,7 @@ if ($op == 'order'){
 					$k = $dates[$i]['time'];
 					foreach ($room_date_list as $p_key => $p_value) {
 						// 判断价格表中是否有当天的数据
-						if($p_value['roomdate'] == $k) {
+						if ($p_value['roomdate'] == $k) {
 							if ($p_value['num'] == -1) {
 								$max_room = 8;
 							} else {
@@ -225,7 +226,7 @@ if ($op == 'order'){
 									$max_room = $room_num;
 									$list['num'] =  $room_num;
 									$list['date'] =  $dates[$i]['date'];
-								} elseif ($room_num > 0 && $room_num > $max_room){
+								} elseif ($room_num > 0 && $room_num > $max_room) {
 									$list['num'] =  $max_room;
 									$list['date'] =  $dates[$i]['date'];
 								} else {
@@ -242,12 +243,12 @@ if ($op == 'order'){
 			}
 			$r_sql = 'SELECT `roomdate`, `num`, `oprice`, `cprice`, `status` FROM ' . tablename('storex_room_price') .
 			' WHERE `roomid` = :roomid AND `weid` = :weid AND `hotelid` = :hotelid AND `roomdate` >= :btime AND ' .
-			' `roomdate` < :etime  order by roomdate desc';
+			' `roomdate` < :etime  ORDER BY roomdate DESC';
 			$params = array(':roomid' => $goodsid, ':weid' => intval($_W['uniacid']), ':hotelid' => $store_id, ':btime' => $btime, ':etime' => $etime);
 			$price_list = pdo_fetchall($r_sql, $params);
 			if (!empty($price_list)) {
 				//价格表中存在
-				foreach($price_list as $k => $v) {
+				foreach ($price_list as $k => $v) {
 					$goods_info['oprice'] = $v['oprice'];
 					$goods_info['cprice'] = $v['cprice'];
 				}
@@ -263,7 +264,7 @@ if ($op == 'order'){
 			}
 			$insert = array_merge($order_info, $insert);
 			$insert['sum_price'] = ($goods_info['cprice'] + $goods_info['service']) * $days * $insert['nums'];
-			pdo_query('UPDATE '. tablename('storex_order'). " SET status = '-1' WHERE time <  :time AND weid = '{$_W['uniacid']}' AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400));
+			pdo_query('UPDATE ' . tablename('storex_order') . " SET status = '-1' WHERE time < :time AND weid = :weid AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400, ':weid' => $_W['uniacid']));
 			$order_exist = pdo_get('storex_order', array('hotelid' => $insert['hotelid'], 'roomid' => $insert['roomid'], 'openid' => $insert['openid'], 'status' => 0));
 			if ($order_exist) {
 				//message(error(0, "您有未完成订单,不能重复下单"), '', 'ajax');
@@ -274,12 +275,12 @@ if ($op == 'order'){
 		}
 	} else {
 		$order_info['mode_distribute'] = intval($_GPC['order']['mode_distribute']);
-		if(empty($_GPC['order']['order_time'])){
+		if (empty($_GPC['order']['order_time'])) {
 			message(error(-1, '请选择时间！'), '', 'ajax');
 		}
 		$order_info['order_time'] = strtotime(intval($_GPC['order']['order_time']));
-		if($order_info['mode_distribute'] == 2){//配送
-			if(empty($_GPC['order']['addressid'])){
+		if ($order_info['mode_distribute'] == 2) {//配送
+			if (empty($_GPC['order']['addressid'])) {
 				message(error(-1, '地址不能为空！'), '', 'ajax');
 			}
 			$order_info['addressid'] = intval($_GPC['order']['addressid']);
@@ -309,7 +310,7 @@ if ($op == 'order'){
 	if ($post_total != $insert['sum_price']) {
 		message(error(-1, '价格错误'), '', 'ajax');
 	}
-	if($insert['sum_price'] <= 0){
+	if ($insert['sum_price'] <= 0) {
 		message(error(-1, '总价为零，请联系管理员！'), '', 'ajax');
 	}
 	if ($selected_coupon['type'] == 3) {
@@ -333,7 +334,7 @@ if ($op == 'order'){
 			$body .= "预定电话: " . $insert['mobile'] . "<br/>";
 			$body .= "到店时间: " . $bdate . "<br/>";
 			$body .= "离店时间: " . $edate . "<br/><br/>";
-			$body .= "请您到管理后台仔细查看. <a href='" .$_W['siteroot'] .create_url('member/login') . "' target='_blank'>立即登录后台</a>";
+			$body .= "请您到管理后台仔细查看. <a href='" . $_W['siteroot'] . create_url('member/login') . "' target='_blank'>立即登录后台</a>";
 			load()->func('communication');
 			ihttp_email($reply['mail'], $subject, $body);
 		}
@@ -352,17 +353,17 @@ if ($op == 'order'){
 		$acc = WeAccount::create($_W['acid']);
 		$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('email', 'mobile', 'nickname', 'template', 'confirm_templateid', 'templateid'));
 		$clerk = array();
-		if (!empty($setInfo['nickname'])){
+		if (!empty($setInfo['nickname'])) {
 			$from_user = pdo_get('mc_mapping_fans', array('nickname' => $setInfo['nickname'], 'uniacid' => $_W['uniacid']));
-			if (!empty($from_user)){
+			if (!empty($from_user)) {
 				$clerk['from_user'] = $from_user['openid'];
 			}
 		}
 		$info = '店铺有新的订单,为保证用户体验度，请及时处理!';
 		$custom = array(
-				'msgtype' => 'text',
-				'text' => array('content' => urlencode($info)),
-				'touser' => $clerk['from_user'],
+			'msgtype' => 'text',
+			'text' => array('content' => urlencode($info)),
+			'touser' => $clerk['from_user'],
 		);
 		$status = $acc->sendCustomNotice($custom);
 	}

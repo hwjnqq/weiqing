@@ -27,13 +27,13 @@ if ($op == 'display') {
 		foreach ($storex_coupon as &$value) {
 			$value['extra'] = iunserializer($value['extra']);
 			if ($value['type'] == COUPON_TYPE_DISCOUNT) {
-				$value['discounts'] = $value['extra']['discount']/10;
+				$value['discounts'] = $value['extra']['discount'] / 10;
 			} elseif ($value['type'] == COUPON_TYPE_CASH) {
-				$value['least_cost'] = $value['extra']['least_cost']/100;
-				$value['reduce_cost'] = $value['extra']['reduce_cost']/100;
+				$value['least_cost'] = $value['extra']['least_cost'] / 100;
+				$value['reduce_cost'] = $value['extra']['reduce_cost'] / 100;
 			}
 			$value['date_info'] = iunserializer($value['date_info']);
-			if ($value['date_info']['time_type'] == '1'){
+			if ($value['date_info']['time_type'] == '1') {
 				$value['extra_date_info'] = '有效期:' . $value['date_info']['time_limit_start'] . '-' . $value['date_info']['time_limit_end'];
 			} else {
 				$value['extra_date_info'] = '有效期:领取后' . ($coupon['date_info']['deadline'] == 0 ? '当' : $coupon['date_info']['deadline']) . '天可用，有效期' . $value['date_info']['limit'] . '天';
@@ -80,7 +80,7 @@ if ($op == 'exchange') {
 	if (intval($credit[$storex_exchange['credittype']]) < $storex_exchange['credit']) {
 		message(error(-1, $creditnames[$storex_exchange['credittype']] . '不足'), '', 'ajax');
 	}
-	$received_num = pdo_fetchcolumn("SELECT count(*) FROM " . tablename('storex_coupon_record') . " WHERE `uniacid` = :uniacid AND `uid` = :uid AND `couponid` = :id", array(':id' => $id, ':uid' => $uid, ':uniacid' => intval($_W['uniacid'])));
+	$received_num = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_coupon_record') . " WHERE `uniacid` = :uniacid AND `uid` = :uid AND `couponid` = :id", array(':id' => $id, ':uid' => $uid, ':uniacid' => intval($_W['uniacid'])));
 	if ($received_num >= $storex_exchange['pretotal']) {
 		message(error(-1, '兑换次数不足'), '', 'ajax');
 	}
@@ -122,7 +122,7 @@ if ($op == 'opencard') {
 	$coupon_api = new WnCoupon();
 	$id = intval($_GPC['id']);
 	$code = trim($_GPC['code']);
-	if($_W['isajax'] && $_W['ispost']) {
+	if ($_W['isajax'] && $_W['ispost']) {
 		$card = $coupon_api->BuildCardExt($id);
 		if (is_error($card)) {
 			message(error(1, $card['message']), '', 'ajax');
@@ -136,7 +136,7 @@ if ($op == 'opencard') {
 if ($op == 'addcard') {
 	$id = intval($_GPC['id']);
 	$coupon_api = new WnCoupon();
-	if($_W['isajax'] && $_W['ispost']) {
+	if ($_W['isajax'] && $_W['ispost']) {
 		$card = $coupon_api->BuildCardExt($id);
 		if (is_error($card)) {
 			message(error(1, $card['message']), '', 'ajax');

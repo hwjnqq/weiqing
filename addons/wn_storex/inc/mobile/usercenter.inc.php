@@ -24,7 +24,7 @@ if ($op == 'extend_switch') {
 	$notices = card_notices();
 	$notice_unread_num = 0;
 	if (!empty($notices)) {
-		foreach ($notices as $val){
+		foreach ($notices as $val) {
 			if (empty($val['read_status'])) {
 				$notice_unread_num ++;
 			}
@@ -54,7 +54,7 @@ if ($op == 'personal_info') {
 	}
 	if (!empty($card_info)) {
 		$show_fields = array('title', 'color', 'background', 'logo', 'description');
-		foreach ($show_fields as $val){
+		foreach ($show_fields as $val) {
 			if (!empty($card_info[$val])) {
 				$user_info['mycard'][$val] = $card_info[$val];
 			}
@@ -78,7 +78,7 @@ if ($op == 'personal_info') {
 }
 if ($op == 'personal_update') {
 	if (!empty($_GPC['fields'])) {
-		foreach($_GPC['fields'] as $key=>$value){
+		foreach ($_GPC['fields'] as $key=>$value) {
 			if (empty($value) || empty($key)) {
 				message(error(-1, '信息不完整'), '', 'ajax');
 			}

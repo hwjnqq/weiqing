@@ -7,8 +7,9 @@ $ops = array('category_list', 'goods_list', 'more_goods', 'class', 'sub_class');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
+
 //获取店铺分类
-if ($op == 'category_list'){
+if ($op == 'category_list') {
 	$pcate_lists = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'parentid' => '0', 'store_base_id' => intval($_GPC['id']), 'enabled' => 1), array('id', 'name', 'category_type'), '', 'displayorder DESC');
 	if (!empty($pcate_lists)) {
 		foreach ($pcate_lists as $val) {
@@ -42,10 +43,10 @@ if ($op == 'goods_list') {
 		if ($store_info['store_type'] == 1) {//酒店
 			$condition['hotelid'] = $store_id;
 			$fields[] = 'hotelid';
-			foreach ($sub_class as $key => $sub_classinfo){
+			foreach ($sub_class as $key => $sub_classinfo) {
 				$condition['ccate'] = $sub_classinfo['id'];
 				$goods_list = category_store_goods('storex_room', $condition, $fields);
-				if(!empty($goods_list)){
+				if (!empty($goods_list)) {
 					$goods[$key]['store_goods'] = array_slice($goods_list, 0, 2);
 					$goods[$key]['total'] = count($goods_list);
 				}
@@ -170,8 +171,8 @@ if ($op == 'more_goods') {
 	if ($page_array['isshow'] == 1) {
 		$list['nindex'] = $page_array['nindex'];
 	}
-	if (!empty($list['list'])){
-		foreach ($list['list'] as $k => $info){
+	if (!empty($list['list'])) {
+		foreach ($list['list'] as $k => $info) {
 			$list['list'][$k]['thumb'] = tomedia($info['thumb']);
 			$list['list'][$k]['thumbs'] = format_url(iunserializer($info['thumbs']));
 		}
@@ -181,11 +182,11 @@ if ($op == 'more_goods') {
 //获取该店铺下的一级分类
 if ($op == 'class') {
 	$id = intval($_GPC['id']);
-	$sql = "SELECT count(*) num, parentid FROM ".tablename('storex_categorys')." WHERE weid = {$_W['uniacid']} AND parentid != 0 AND store_base_id = {$id} group by parentid";
+	$sql = "SELECT count(*) num, parentid FROM " . tablename('storex_categorys') . " WHERE weid = {$_W['uniacid']} AND parentid != 0 AND store_base_id = {$id} group by parentid";
 	$class = pdo_fetchall($sql);
 	if (!empty($class)) {
 		$sub_class = array();
-		foreach ($class as $val){
+		foreach ($class as $val) {
 			$sub_class[$val['parentid']] = $val;
 		}
 	}
@@ -212,7 +213,7 @@ if ($op == 'sub_class') {
 	if (empty($sub_class)) {
 		message(error(-1, '无子分类'), '', 'ajax');
 	} else {
-		foreach ($sub_class as $k => $info){
+		foreach ($sub_class as $k => $info) {
 			if (!empty($info['thumb'])) {
 				$sub_class[$k]['thumb'] = tomedia($info['thumb']);
 				$sub_class[$k]['is_child'] = 0;

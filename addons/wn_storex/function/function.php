@@ -1,6 +1,6 @@
 <?php
 //检查每个文件的传值是否为空
-function check_params(){
+function check_params() {
 	global $_W, $_GPC;
 	$permission_lists = array(
 		'common' => array(
@@ -211,7 +211,7 @@ function orders_check_status($item) {
 	$item['is_confirm'] = 2;//确认收货is_confirm
 	$item['is_over'] = 2;//再来一单is_over
 	$item['is_comment'] = 2;//显示评价is_comment
-	if ($item['status'] == 0){
+	if ($item['status'] == 0) {
 		if ($item['action'] == 1) {
 			$status = STORE_SURE_STATUS;
 		} else {
@@ -238,7 +238,7 @@ function orders_check_status($item) {
 			} else {
 				$status = STORE_UNLIVE_STATUS;
 				$item['is_cancle'] = 1;
-				if ($item['paystatus'] == 0){
+				if ($item['paystatus'] == 0) {
 					$item['is_pay'] = 1;
 				}
 			}
@@ -315,14 +315,14 @@ function orders_check_status($item) {
 /**格式化图片的路径
  * $urls  url数组
  */
-function format_url($urls){
-	foreach ($urls as $k => $url){
+function format_url($urls) {
+	foreach ($urls as $k => $url) {
 		$urls[$k] = tomedia($url);
 	}
 	return $urls;
 }
 //获取店铺信息
-function get_store_info($id){
+function get_store_info($id) {
 	global $_W, $_GPC;
 	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone', 'category_set'));
 	if (empty($store_info)) {
@@ -456,7 +456,7 @@ function category_room_status($goods_list) {
 		if (!isset($val['max_room'])) {
 			$val['max_room'] = 8;
 			$val['room_counts'] = '不限';
-		} elseif (!empty($num) && $val['max_room'] < $num){
+		} elseif (!empty($num) && $val['max_room'] < $num) {
 			unset($goods_list[$k]);
 			continue;
 		}
@@ -535,7 +535,7 @@ function goods_check_action($action, $goods_info) {
 }
 
 //检查结果
-function goods_check_result($action, $order_id){
+function goods_check_result($action, $order_id) {
 	if ($action == 'reserve') {
 		if (!empty($order_id)) {
 			message(error(0, $order_id), '', 'ajax');
@@ -566,10 +566,10 @@ function get_clerk_permission($id) {
 	}
 	message(error(-1, '您没有进行此操作的权限！'), '', 'ajax');
 }
-function check_clerk_permission($clerk_info, $premit) {
+function check_clerk_permission($clerk_info, $permit) {
 	$is_permission = false;
 	foreach ($clerk_info as $permission) {
-		if ($permission == $premit) {
+		if ($permission == $permit) {
 			$is_permission = true;
 			break;
 		}
