@@ -322,6 +322,6 @@ if ($op == 'sync') {
 		$cache = cache_delete($cachekey);
 	}
 	activity_storex_sync();
-	message('更新门店信息成功', $this->createWeburl('wxstore'), 'success');
+	message(error(1, '更新门店信息成功'), '', 'ajax');
 }
 include $this->template('wxstore');
