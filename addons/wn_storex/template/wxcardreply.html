@@ -809,7 +809,6 @@ require(['angular.sanitize', 'bootstrap', 'underscore', 'util'], function(angula
 		}
 
 		var myLine = new Chart(document.getElementById("myChart").getContext("2d")).Line(lineChartData, {responsive : true});
-
 		{loop $keywords $id $row}
 			var label = {php echo json_encode($row['day'])};
 			var datasets = {php echo json_encode($row['hit'])};
@@ -826,9 +825,7 @@ require(['angular.sanitize', 'bootstrap', 'underscore', 'util'], function(angula
 						data : datasets
 					}
 				]
-
 			}
-
 			var myLine = new Chart(document.getElementById("trend_keyword_{$id}").getContext("2d")).Line(lineChartData, {responsive : true});
 		{/loop}
 	});

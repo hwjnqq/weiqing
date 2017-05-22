@@ -462,7 +462,7 @@ function activity_storex_sync() {
 		$category_temp = explode(',', $location['categories'][0]);
 		$location['category'] = iserializer(array('cate' => $category_temp[0], 'sub' => $category_temp[1], 'clas' => $category_temp[2]));
 		$location['photo_list'] = iserializer($location['photo_list']);
-		unset($location['categories'], $location['poi_id'], $location['update_status'], $location['available_state'],$location['offset_type'], $location['sid'], $location['type'], $location['qualification_list'], $location['upgrade_comment'], $location['upgrade_status'], $location['mapid']);
+		unset($location['categories'], $location['poi_id'], $location['update_status'], $location['available_state'], $location['offset_type'], $location['sid'], $location['type'], $location['qualification_list'], $location['upgrade_comment'], $location['upgrade_status'], $location['mapid']);
 		pdo_update('storex_activity_stores', $location, array('uniacid' => $_W['uniacid'], 'id' => $val['id']));
 	}
 	cache_write($cachekey, array('expire' => time() + 1800));
