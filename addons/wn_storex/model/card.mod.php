@@ -18,9 +18,9 @@ function card_sign_operation($sign_data, $sign_day, $cost = array(), $type = '')
 		);
 		if (!empty($sign_data['group'])) {
 			foreach ($sign_data['group'] as $k => $val) {
-				if (($sign_data['sign_days']+1) == $sign_data['sign'][$k] || (($sign_data['sign_days']+1) == date('t') && $k=='full_sign_num')) {
+				if (($sign_data['sign_days'] + 1) == $sign_data['sign'][$k] || (($sign_data['sign_days'] + 1) == date('t') && $k == 'full_sign_num')) {
 					$insert_extra['remedy'] = 2;
-					$tipx = "满签".$sign_data['sign'][$k]."天送".$val."积分";
+					$tipx = '满签' . $sign_data['sign'][$k] . '天送' . $val . '积分';
 					mc_credit_update($uid, 'credit1', $val, array('0', $tipx, 'wn_storex', 0, 0, 1));
 					pdo_insert('storex_sign_record', $insert_extra);
 					continue;
@@ -30,19 +30,19 @@ function card_sign_operation($sign_data, $sign_day, $cost = array(), $type = '')
 		if ($type == 'remedy') {
 			$insert_record['remedy'] = 1;
 			if (!empty($cost)) {
-				$tips = "消费".$cost['remedy_cost']."余额，补签第".$sign_day."天";
+				$tips = '消费' . $cost['remedy_cost'] . '余额，补签第' . $sign_day . '天';
 				$return = mc_credit_update($uid, $cost['remedy_cost_type'], -$cost['remedy_cost'], array('0', $tips, 'wn_storex', 0, 0, 1));
 				if (is_array($return)) {
 					message(error(-1, "积分不足，补签失败！"), '', 'ajax');
 				}
 			}
-			$tip1 = "补签获得积分".$sign_data['sign']['everydaynum'];
-			$tip2 = "补签成功，获得".$sign_data['sign']['everydaynum']."积分";
-			$tip3 = "补签失败！";
+			$tip1 = '补签获得积分' . $sign_data['sign']['everydaynum'];
+			$tip2 = '补签成功，获得' . $sign_data['sign']['everydaynum'] . '积分';
+			$tip3 = '补签失败！';
 		} else {
-			$tip1 = "签到获得积分".$sign_data['sign']['everydaynum'];
-			$tip2 = "签到成功，获得".$sign_data['sign']['everydaynum']."积分";
-			$tip3 = "签到失败！";
+			$tip1 = '签到获得积分' . $sign_data['sign']['everydaynum'];
+			$tip2 = '签到成功，获得' . $sign_data['sign']['everydaynum'] . '积分';
+			$tip3 = '签到失败！';
 		}
 		pdo_insert('storex_sign_record', $insert_record);
 		$insert_id = pdo_insertid();
@@ -89,18 +89,18 @@ function card_sign_info($sign_max_day) {
 	$sign_data['sign_days'] = $sign_days;
 	for ($i = 1; $i <= $sign_data['days']; $i++) {
 		$sign_data['signs'][$i] = array(
-				'credit' => $sign['everydaynum'],
+			'credit' => $sign['everydaynum'],
 		);
 		if (!empty($sign_record[$i])) {
 			$sign_data['signs'][$i] = array(
-					'credit' => $sign_record[$i]['credit'],
-					'status' => 1,//已签到
+				'credit' => $sign_record[$i]['credit'],
+				'status' => 1,//已签到
 			);
 		} else {
 			$sign_data['signs'][$i]['status'] = 2;//未签到
 			if ($i > $sign_max_day) {
 				foreach ($group as $k => $val) {
-					if (($i-$sign_max_day+$sign_days) == $sign[$k] || (($i-$sign_max_day+$sign_days) == date('t') && $k=='full_sign_num')) {
+					if (($i-$sign_max_day+$sign_days) == $sign[$k] || (($i-$sign_max_day+$sign_days) == date('t') && $k == 'full_sign_num')) {
 						$sign_data['signs'][$i]['credit'] += $val;
 						continue;
 					}
@@ -125,6 +125,7 @@ function card_notices() {
 			}
 			$notice_ids[] = $info['id'];
 		}
+		unset($info);
 		$read_record = pdo_getall('storex_notices_unread', array('uid' => $uid, 'uniacid' => intval($_W['uniacid']), 'notice_id IN' => $notice_ids));
 		if (!empty($read_record)) {
 			foreach ($read_record as $val) {
@@ -205,7 +206,7 @@ function card_setting_info() {
 		return array();
 	}
 	$json_to_array = array(
-			'color', 'background', 'fields', 'discount', 'grant', 'nums', 'times',
+		'color', 'background', 'fields', 'discount', 'grant', 'nums', 'times',
 	);
 	foreach ($json_to_array as $val) {
 		if (!empty($card_info[$val])) {
