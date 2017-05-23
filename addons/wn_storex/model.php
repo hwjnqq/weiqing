@@ -343,16 +343,15 @@ if(!function_exists('getRoomPrice')) {
 		if (empty($roomprice)) {
 			$room = pdo_get('storex_room', array('hotelid' => $hotelid, 'id' => $roomid, 'weid' => intval($_W['uniacid'])));
 			$roomprice = array(
-					"weid" => $_W['uniacid'],
-					"hotelid" => $hotelid,
-					"roomid" => $roomid,
-					"oprice" => $room['oprice'],
-					"cprice" => $room['cprice'],
-					"status" => $room['status'],
-					"roomdate" => strtotime($date),
-					"thisdate" => $date,
-					"num" => "-1",
-					"status" => 1,
+				"weid" => $_W['uniacid'],
+				"hotelid" => $hotelid,
+				"roomid" => $roomid,
+				"oprice" => $room['oprice'],
+				"cprice" => $room['cprice'],
+				"roomdate" => strtotime($date),
+				"thisdate" => $date,
+				"num" => "-1",
+				"status" => 1,
 			);
 		}
 		return $roomprice;

@@ -26,11 +26,11 @@ if ($op == 'order') {
 	if ($ac == 'list' || $ac == '') {
 		$pindex = max(1, intval($_GPC['page']));
 		$psize = 10;
-		pdo_query('UPDATE ' . tablename('storex_order') . " SET status = '-1' WHERE time < :time AND weid = :uniacid AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400, ':uniacid' => $_W['uniacid']));
-		$list = pdo_fetchall("SELECT o.*, h.title AS hoteltitle, r.title AS roomtitle FROM " . tablename('hotel2_order') . " o LEFT JOIN " . tablename('hotel2') .
-				" h ON o.hotelid = h.id LEFT JOIN " . tablename($table) . " r ON r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
-		$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('hotel2_order') . " o LEFT JOIN " . tablename('hotel2') .
-				" h ON o.hotelid = h.id LEFT JOIN " . tablename($table) . " r ON r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}'", $params);
+		pdo_query("UPDATE " . tablename('storex_order') . " SET status = '-1' WHERE time < :time AND weid = :uniacid AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400, ':uniacid' => $_W['uniacid']));
+		$list = pdo_fetchall("SELECT o.*, h.title AS hoteltitle, r.title AS roomtitle FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') .
+				" AS h ON o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r ON r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+		$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') .
+				" AS h ON o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r ON r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}'", $params);
 		$page_array = get_page_array($total, $pindex, $psize);
 		$page_array['lists'] = $list;
 		message(error(0, $page_array), '', 'ajax');
@@ -54,14 +54,15 @@ if ($op == 'order') {
 					}
 					$status['status']['3'] = "已完成";
 				} elseif ($item['status'] == 4) {
-					$status['status'] = '已完成';
-				}
-				else {
+					$status['status']['3'] = '已完成';
+				} else {
 					$status['status']['-1'] = '取消订单';
 					$status['status']['1'] = '确认订单';
 					$status['status']['2'] = '拒绝订单';
+					$status['status']['3'] = '已完成';
 				}
-				$item['ac'] = $status;
+				//可以执行的操作
+				$item['operate'] = $status;
 				message(error(0, $item), '', 'ajax');
 			}
 		}
@@ -83,22 +84,30 @@ if ($op == 'order') {
 			'msg' => $_GPC['msg'],
 			'goods_status' => intval($_GPC['goods_status']),
 		);
-		if ($item['status'] == -1) {
-			message(error(-1, '订单状态已经取消，不能操做！'), '', 'ajax');
-		}
-		if ($item['status'] == 3) {
-			message(error(-1, '订单状态已经完成，不能操做！'), '', 'ajax');
-		}
-		if ($item['status'] == 2) {
-			message(error(-1, '订单状态已拒绝，不能操做！'), '', 'ajax');
-		}
-		if ($data['status'] == $item['status']) {
-			message(error(-1, '订单状态已经是该状态了，不要重复操作！'), '', 'ajax');
+		if (!empty($data['status'])) {
+			if ($item['status'] == -1) {
+				message(error(-1, '订单状态已经取消，不能操做！'), '', 'ajax');
+			}
+			if ($item['status'] == 3) {
+				message(error(-1, '订单状态已经完成，不能操做！'), '', 'ajax');
+			}
+			if ($item['status'] == 2) {
+				message(error(-1, '订单状态已拒绝，不能操做！'), '', 'ajax');
+			}
+			if ($data['status'] == $item['status']) {
+				message(error(-1, '订单状态已经是该状态了，不要重复操作！'), '', 'ajax');
+			}
 		}
 		if (!empty($data['goods_status']) && $data['goods_status'] == 2 && $item['status'] != 1) {
-			message(error(-1, '订单不能发货！'), '', 'ajax');
-		} else {
-			$data['status'] = '';
+			if ($item['goods_status'] == 3) {
+				message(error(-1, '已收货，不要再发了！'), '', 'ajax');
+			}
+			if ($item['goods_status'] == 2) {
+				message(error(-1, '已发货，不要重复操做！'), '', 'ajax');
+			}
+			if ($item['status'] != 1) {
+				message(error(-1, '请先确认订单！'), '', 'ajax');
+			}
 		}
 		//订单取消
 		if ($data['status'] == -1 || $data['status'] == 2) {
@@ -229,7 +238,7 @@ if ($op == 'order') {
 				}
 			}
 			//发货设置
-			if ($data['goods_status'] == 2) {
+			if (!empty($data['goods_status']) && $data['goods_status'] == 2) {
 				$data['status'] = 1;
 				$acc = WeAccount::create();
 				$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已发货";
@@ -260,7 +269,7 @@ if ($op == 'room') {
 		if (empty($type) || !in_array($type, array('status', 'price'))) {
 			message(error(-1, '类型错误！'), '', 'ajax');
 		}
-		$pagesize = 1;
+		$pagesize = 2;
 		$page = intval($_GPC['page']);
 		$totalpage = 20;
 		if ($page > $totalpage) {
@@ -273,48 +282,48 @@ if ($op == 'room') {
 		$btime = strtotime($start);
 		$etime = strtotime(date('Y-m-d', strtotime("$start +$pagesize day")));
 		$list = pdo_getall('storex_room', array('hotelid' => $id, 'weid' => intval($_W['uniacid']), 'is_house' => 1));
-		$dates = array();
 		if ($type == 'status') {
-			$dates['date'] = $start;
-			$dates['day'] = date('j', $btime);
-			$dates['time'] = $btime;
-			$dates['month'] = date('m', $btime);
+			$dates = get_dates($start, $pagesize);
 			foreach ($list as $key => $value) {
 				$list[$key]['thumb'] = tomedia($value['thumb']);
 				$item = pdo_get('storex_room_price', array('roomid' => $value['id'], 'roomdate' => $dates['time'], 'weid' => intval($_W['uniacid'])));
+				$flag = 0;
 				if (!empty($item)) {
 					$flag = 1;
-				} else {
-					$flag = 0;
 				}
 				$list[$key]['price_list'] = array();
 				if ($flag == 1) {
-					$k = $dates['time'];
-					//判断价格表中是否有当天的数
-					$list[$key]['price_list']['status'] = $item['status']; //有房，没房
-					if (empty($item['num'])) {
-						$list[$key]['price_list']['num'] = "无房";
-						$list[$key]['price_list']['status'] = 0;
-					} elseif ($item['num'] == -1) {
-						$list[$key]['price_list']['num'] = "不限";
-					} else {
-						$list[$key]['price_list']['num'] = $item['num'];
-					}
-					$list[$key]['price_list']['roomid'] = $value['id'];
-					$list[$key]['price_list']['hotelid'] = $id;
-					//价格表中没有当天数据
-					if (empty($list[$key]['price_list'])) {
-						$list[$key]['price_list']['num'] = "不限";
-						$list[$key]['price_list']['status'] = 1;
-						$list[$key]['price_list']['roomid'] = $value['id'];
-						$list[$key]['price_list']['hotelid'] = $id;
+					for ($i = 0; $i < $pagesize; $i++) {
+						$k = $dates[$i]['date'];
+						//判断价格表中是否有当天的数
+						$list[$key]['price_list']['status'] = $item['status']; //有房，没房
+						if (empty($item['num'])) {
+							$list[$key]['price_list'][$k]['num'] = "无房";
+							$list[$key]['price_list'][$k]['status'] = 0;
+						} elseif ($item['num'] == -1) {
+							$list[$key]['price_list'][$k]['num'] = "不限";
+						} else {
+							$list[$key]['price_list'][$k]['num'] = $item['num'];
+						}
+						$list[$key]['price_list'][$k]['roomid'] = $value['id'];
+						$list[$key]['price_list'][$k]['hotelid'] = $id;
+						//价格表中没有当天数据
+						if (empty($list[$key]['price_list'])) {
+							$list[$key]['price_list'][$k]['num'] = "不限";
+							$list[$key]['price_list'][$k]['status'] = 1;
+							$list[$key]['price_list'][$k]['roomid'] = $value['id'];
+							$list[$key]['price_list'][$k]['hotelid'] = $id;
+						}
 					}
 				} else {
-					//价格表中没有数据
-					$list[$key]['price_list']['num'] = "不限";
-					$list[$key]['price_list']['status'] = 1;
-					$list[$key]['price_list']['roomid'] = $value['id'];
-					$list[$key]['price_list']['hotelid'] = $id;
+					for ($i = 0; $i < $pagesize; $i++) {
+						$k = $dates[$i]['date'];
+						//价格表中没有数据
+						$list[$key]['price_list'][$k]['num'] = "不限";
+						$list[$key]['price_list'][$k]['status'] = 1;
+						$list[$key]['price_list'][$k]['roomid'] = $value['id'];
+						$list[$key]['price_list'][$k]['hotelid'] = $id;
+					}
 				}
 			}
 		} elseif ($type == 'price') {
@@ -326,10 +335,9 @@ if ($op == 'room') {
 				$sql .= " AND roomdate >= " . $btime;
 				$sql .= " AND roomdate < " . ($etime + 86400);
 				$item = pdo_fetchall($sql);
-				if ($item) {
+				$flag = 0;
+				if (!empty($item)) {
 					$flag = 1;
-				} else {
-					$flag = 0;
 				}
 				$list[$key]['price_list'] = array();
 				if ($flag == 1) {
@@ -368,12 +376,12 @@ if ($op == 'room') {
 		message(error(0, $list), '', 'ajax');
 	} elseif ($ac == 'edit_status') {
 		$roomid = intval($_GPC['roomid']);
-		$num = intval($_GPC['num'])>=0 ? intval($_GPC['num']) : 0;
+		$num = intval($_GPC['num']) >= 0 ? intval($_GPC['num']) : 0;
 		$status = empty($_GPC['status']) ? 1 : 0;
-		$pricetype = $_GPC['pricetype'];
+		$edit_type = $_GPC['edit_type'];
 		$date = empty($_GPC['date']) ? date('Y-m-d') : $_GPC['date'];
 		$roomprice = getRoomPrice($id, $roomid, $date);
-		if ($pricetype == 'num') {
+		if ($edit_type == 'num') {
 			$roomprice['num'] = $num;
 		} else {
 			$roomprice['status'] = $status;
@@ -387,10 +395,10 @@ if ($op == 'room') {
 	} elseif ($ac == 'edit_price') {
 		$roomid = intval($_GPC['roomid']);
 		$price = intval($_GPC['price']) < 0 ? 0 : intval($_GPC['price']);
-		$pricetype = $_GPC['pricetype'];
+		$edit_type = $_GPC['edit_type'];
 		$date = empty($_GPC['date']) ? date('Y-m-d') : $_GPC['date'];
 		$roomprice = getRoomPrice($id, $roomid, $date);
-		if ($pricetype == 'oprice') {
+		if ($edit_type == 'oprice') {
 			$roomprice['oprice'] = $price;
 		} else {
 			$roomprice['cprice'] = $price;

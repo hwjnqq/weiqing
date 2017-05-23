@@ -8,28 +8,6 @@ load()->model('mc');
 $ops = array('edit', 'delete', 'deleteall', 'showall', 'status', 'copyroom');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
-if ($op == 'copyroom') {
-	$store_base_id = intval($_GPC['store_base_id']);
-	$id = intval($_GPC['id']);
-	if (empty($store_base_id) || empty($id)) {
-		message('参数错误', 'refresh', 'error');
-	}
-	$store_info = pdo_get('storex_bases', array('id' => $store_base_id, 'weid' => $_W['uniacid']), array('id', 'store_type'));
-	if (!empty($store_info)) {
-		$table = gettablebytype($store_info['store_type']);
-	} else {
-		message('店铺不存在！');
-	}
-	$item = pdo_get($table, array('id' => $id, 'weid' => $_W['uniacid']));
-	unset($item['id']);
-	$item['status'] = 0;
-	pdo_insert($table, $item);
-	$id = pdo_insertid();
-	$url = $this->createWebUrl('goodsmanage', array('op' => 'edit', 'store_base_id' => $store_base_id, 'id' => $id, 'store_type' => $item['store_type']));
-	header("Location: $url");
-	exit;
-}
-
 $store_base_id = intval($_GPC['store_base_id']);
 $stores = pdo_getall('storex_bases', array('weid' => $_W['uniacid']), array(), 'id', array('store_type DESC', 'displayorder DESC'));
 $store_type = !empty($_GPC['store_type'])? intval($_GPC['store_type']) : 0;
@@ -71,6 +49,27 @@ if ($store_type == 1) {
 	$store_field = 'hotelid';
 } else {
 	$store_field = 'store_base_id';
+}
+
+if ($op == 'copyroom') {
+	$id = intval($_GPC['id']);
+	if (empty($store_base_id) || empty($id)) {
+		message('参数错误', 'refresh', 'error');
+	}
+	$store_info = pdo_get('storex_bases', array('id' => $store_base_id, 'weid' => $_W['uniacid']), array('id', 'store_type'));
+	if (!empty($store_info)) {
+		$table = gettablebytype($store_info['store_type']);
+	} else {
+		message('店铺不存在！');
+	}
+	$item = pdo_get($table, array('id' => $id, 'weid' => $_W['uniacid']));
+	unset($item['id']);
+	$item['status'] = 0;
+	pdo_insert($table, $item);
+	$id = pdo_insertid();
+	$url = $this->createWebUrl('goodsmanage', array('op' => 'edit', 'store_base_id' => $store_base_id, 'id' => $id, 'store_type' => $item['store_type']));
+	header("Location: $url");
+	exit;
 }
 
 if ($op == 'edit') {
