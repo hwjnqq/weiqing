@@ -344,14 +344,13 @@ function get_goods_table($store_type) {
 }
 //根据坐标计算距离
 function distanceBetween($longitude1, $latitude1, $longitude2, $latitude2) {
-	$radLat1 = radian ( $latitude1 );
-	$radLat2 = radian ( $latitude2 );
-	$a = radian ( $latitude1 ) - radian ( $latitude2 );
-	$b = radian ( $longitude1 ) - radian ( $longitude2 );
-	$s = 2 * asin ( sqrt ( pow ( sin ( $a / 2 ), 2 ) + cos ( $radLat1 ) *
-			cos ( $radLat2 ) * pow ( sin ( $b / 2 ), 2 ) ) );
+	$radLat1 = radian($latitude1);
+	$radLat2 = radian($latitude2);
+	$a = radian($latitude1) - radian($latitude2);
+	$b = radian($longitude1) - radian($longitude2);
+	$s = 2 * asin(sqrt(pow(sin($a / 2), 2) + cos($radLat1) * cos($radLat2) * pow(sin($b / 2), 2)));
 	$s = $s * 6378.137; //乘上地球半径，单位为公里
-	$s = round ( $s * 10000 ) / 10000; //单位为公里(km)
+	$s = round($s * 10000) / 10000; //单位为公里(km)
 	return $s * 1000; //单位为m
 }
 function radian($d) {
@@ -418,7 +417,7 @@ function category_room_status($goods_list) {
 		$btime = date('Y-m-d');
 		$etime = date('Y-m-d', time() + 86400);
 	}
-	$days = ceil((strtotime($etime) - strtotime($btime))/86400);
+	$days = ceil((strtotime($etime) - strtotime($btime)) / 86400);
 	$sql = "SELECT * FROM " . tablename('storex_room_price') . " WHERE weid = :weid AND roomdate >= :btime AND roomdate <= :etime ";
 	$modify_recored = pdo_fetchall($sql, array(':weid' => intval($_W['uniacid']), ':btime' => strtotime($btime), ':etime' => strtotime($etime)));
 	if (!empty($modify_recored)) {
@@ -486,7 +485,7 @@ function get_dates($btime, $days) {
 	$dates[0]['month'] = date('m',strtotime($btime));
 	if ($days > 1) {
 		for ($i = 1; $i < $days; $i++) {
-			$dates[$i]['time'] = $dates[$i-1]['time'] + 86400;
+			$dates[$i]['time'] = $dates[$i - 1]['time'] + 86400;
 			$dates[$i]['date'] = date('Y-m-d', $dates[$i]['time']);
 			$dates[$i]['day'] = date('j', $dates[$i]['time']);
 			$dates[$i]['month'] = date('m', $dates[$i]['time']);
@@ -499,9 +498,8 @@ function room_special_price($goods) {
 	global $_W;
 	if (!empty($goods)) {
 		$btime = strtotime(date('Y-m-d'));
-		$etime = $btime+86400;
-		$sql = 'SELECT `id`, `roomdate`, `num`, `status`, `oprice`, `cprice`, `roomid` FROM ' . tablename('storex_room_price') . ' WHERE 
-			`weid` = :weid AND `roomdate` >= :btime AND `roomdate` < :etime ORDER BY roomdate desc';
+		$etime = $btime + 86400;
+		$sql = 'SELECT `id`, `roomdate`, `num`, `status`, `oprice`, `cprice`, `roomid` FROM ' . tablename('storex_room_price') . ' WHERE `weid` = :weid AND `roomdate` >= :btime AND `roomdate` < :etime ORDER BY roomdate DESC';
 		$params = array(':weid' => $_W['uniacid'], ':btime' => $btime, ':etime' => $etime);
 		$room_price_list = pdo_fetchall($sql, $params, 'roomid');
 		foreach ($goods as $key => $val) {

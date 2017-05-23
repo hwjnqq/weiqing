@@ -736,13 +736,13 @@ if (!empty($module)){
 		'hotel12_code' => array('id', 'weid', 'openid', 'code', 'mobile', 'total', 'status', 'createtime',),
 	);
 	//将原数据填入新的表中
-	foreach($ewei_hotel_table as $hotel2_table => $storex_table){
+	foreach ($ewei_hotel_table as $hotel2_table => $storex_table){
 		if (pdo_tableexists($hotel2_table) && !empty($hotel2_all_table[$hotel2_table])) {
 			$hotel2_data = pdo_getall($hotel2_table);
-			if(!empty($hotel2_data)){
-				foreach ($hotel2_data as $val){
+			if (!empty($hotel2_data)) {
+				foreach ($hotel2_data as $val) {
 					$insert = array();
-					foreach($hotel2_all_table[$hotel2_table] as $field){
+					foreach ($hotel2_all_table[$hotel2_table] as $field) {
 						if (isset($val[$field])) {
 							$insert[$field] = $val[$field];
 						}
@@ -754,10 +754,7 @@ if (!empty($module)){
 	}
 	
 	//storex_bases 字段
-	$storex_base = array('id', 'weid', 'title', 'lng', 'lat', 'address', 'location_p', 'location_c', 'location_a', 'status',
-		'phone', 'mail', 'thumb', 'thumborder', 'description', 'content', 'store_info', 'traffic', 'thumbs', 'detail_thumbs',
-		'displayorder', 'store_type', 'extend_table', 'timestart', 'timeend',
-	);
+	$storex_base = array('id', 'weid', 'title', 'lng', 'lat', 'address', 'location_p', 'location_c', 'location_a', 'status', 'phone', 'mail', 'thumb', 'thumborder', 'description', 'content', 'store_info', 'traffic', 'thumbs', 'detail_thumbs', 'displayorder', 'store_type', 'extend_table', 'timestart', 'timeend');
 	
 	//storex_hotel 现有字段
 	$storex_hotel = array(
@@ -775,27 +772,27 @@ if (!empty($module)){
 	);
 	//微酒店的hotel2表，将hotel2的数据分到storex_bases表和扩展表storex_hotel
 	$hotel2_beifen = pdo_getall('hotel2');
-	if(!empty($hotel2_beifen)){
-		foreach($hotel2_beifen as $val){
+	if (!empty($hotel2_beifen)) {
+		foreach ($hotel2_beifen as $val) {
 			$store_insert = array();
-			foreach($storex_base as $field){
-				if(isset($val[$field])){
+			foreach ($storex_base as $field) {
+				if (isset($val[$field])) {
 					$store_insert[$field] = $val[$field];
 				}
-				if($field == 'extend_table'){
+				if ($field == 'extend_table') {
 					$store_insert[$field] = 'storex_hotel';
 				}
-				if($field == 'store_type'){
+				if ($field == 'store_type') {
 					$store_insert[$field] = 1;
 				}
 			}
 			pdo_insert('storex_bases', $store_insert);
 			$hotel2_insert = array();
-			foreach($storex_hotel as $hotel2_field){
-				if(isset($val[$hotel2_field])){
+			foreach ($storex_hotel as $hotel2_field) {
+				if (isset($val[$hotel2_field])) {
 					$hotel2_insert[$hotel2_field] = $val[$hotel2_field];
 				}
-				if($hotel2_field == 'store_base_id'){
+				if ($hotel2_field == 'store_base_id') {
 					$hotel2_insert[$hotel2_field] = $val['id'];
 				}
 			}
@@ -805,8 +802,8 @@ if (!empty($module)){
 	
 	//给每个店铺添加一个默认的分类
 	$storex_bases = pdo_getall('storex_bases');
-	if(!empty($storex_bases)){
-		foreach($storex_bases as $store_info){
+	if (!empty($storex_bases)) {
+		foreach ($storex_bases as $store_info) {
 			$category_insert = array(
 				'weid' => $store_info['weid'],
 				'name' => '房型',
@@ -833,23 +830,23 @@ if (!empty($module)){
 	// store_type		所属店铺的类型
 	$store_categorys = pdo_getall('storex_categorys');
 	$storex_room = pdo_getall('storex_room');
-	if(!empty($storex_room)){
-		foreach($storex_room as $room_info){
+	if (!empty($storex_room)) {
+		foreach ($storex_room as $room_info) {
 			$update_room = array(
-					'can_reserve' => 1,
-					'can_buy' => 1,
-					'is_house' => 1,
+				'can_reserve' => 1,
+				'can_buy' => 1,
+				'is_house' => 1,
 			);
-			if(!empty($store_bases)){
-				foreach($store_bases as $store_info){
-					if($room_info['weid'] == $store_info['weid'] && $room_info['hotelid'] == $store_info['id']){
+			if (!empty($store_bases)) {
+				foreach ($store_bases as $store_info) {
+					if ($room_info['weid'] == $store_info['weid'] && $room_info['hotelid'] == $store_info['id']) {
 						$update_room['store_type'] = $store_info['store_type'];
 					}
 				}
 			}
-			if(!empty($store_categorys)){
-				foreach($store_categorys as $category_info){
-					if($category_info['store_base_id'] == $room_info['hotelid'] && $category_info['weid'] == $room_info['weid']){
+			if (!empty($store_categorys)) {
+				foreach ($store_categorys as $category_info) {
+					if ($category_info['store_base_id'] == $room_info['hotelid'] && $category_info['weid'] == $room_info['weid']) {
 						$update_room['pcate'] = $category_info['id'];
 					}
 				}

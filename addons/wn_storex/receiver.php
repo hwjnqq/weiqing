@@ -13,7 +13,7 @@ class Wn_storexModuleReceiver extends WeModuleReceiver {
 				} else {
 					$fans_info = mc_fansinfo($this->message['fromusername']);
 					$coupon_info = pdo_get('storex_coupon', array('card_id' => $this->message['cardid']));
-					$pcount = pdo_fetchcolumn("SELECT count(*) FROM " . tablename('storex_coupon_record') . " WHERE `openid` = :openid AND `couponid` = :couponid", array(':couponid' => $coupon_info['id'], ':openid' => trim($this->message['fromusername'])));
+					$pcount = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_coupon_record') . " WHERE `openid` = :openid AND `couponid` = :couponid", array(':couponid' => $coupon_info['id'], ':openid' => trim($this->message['fromusername'])));
 					if ($pcount < $coupon_info['get_limit'] && $coupon_info['quantity'] > 0) {
 						$insert_data = array(
 							'uniacid' => $fans_info['uniacid'],
