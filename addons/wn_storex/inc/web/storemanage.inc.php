@@ -76,7 +76,7 @@ if ($op == 'edit') {
 	$id = intval($_GPC['id']);
 	$hotel_level_config = array(5 => '五星级酒店', 4 => '四星级酒店', 3 => '三星级酒店', 2 => '两星级以下', 15 => '豪华酒店', 14 => '高档酒店', 13 => '舒适酒店', 12 => '经济型酒店', );
 	if (checksubmit('submit')) {
-		if (empty($_GPC['title'])){
+		if (empty($_GPC['title'])) {
 			message('店铺名称不能是空！', '', 'error');
 		}
 		if (!is_numeric($_GPC['distance'])) {
@@ -109,7 +109,7 @@ if ($op == 'edit') {
 		);
 		$common_insert['thumbs'] = empty($_GPC['thumbs']) ? '' : iserializer($_GPC['thumbs']);
 		$common_insert['detail_thumbs'] = empty($_GPC['detail_thumbs']) ? '' : iserializer($_GPC['detail_thumbs']);
-		if ($_GPC['store_type']){
+		if ($_GPC['store_type']) {
 			$common_insert['extend_table'] = 'storex_hotel';
 			$insert = array(
 				'weid' => $_W['uniacid'],
@@ -130,18 +130,18 @@ if ($op == 'edit') {
 		}
 		if (empty($id)) {
 			pdo_insert('storex_bases', $common_insert);
-			if ($_GPC['store_type']){
+			if ($_GPC['store_type']) {
 				$insert['store_base_id'] = pdo_insertid();
 				pdo_insert('storex_hotel', $insert);
 			}
 		} else {
 			if ($common_insert['store_type'] == 1 && $common_insert['category_set'] == 2) {
 				pdo_update('storex_room', array('status' => 0), array('hotelid'=> $id, 'weid' => $_W['uniacid'], 'is_house' => 2));
-			} elseif($common_insert['store_type'] == 1 && $common_insert['category_set'] == 1) {
+			} elseif ($common_insert['store_type'] == 1 && $common_insert['category_set'] == 1) {
 				pdo_update('storex_room', array('status' => 1), array('hotelid'=> $id, 'weid' => $_W['uniacid'], 'is_house' => 2));
 			}
 			pdo_update('storex_bases', $common_insert, array('id' => $id));
-			if ($_GPC['store_type']){
+			if ($_GPC['store_type']) {
 				pdo_update($common_insert['extend_table'], $insert, array('store_base_id' => $id));
 			}
 		}
@@ -172,7 +172,7 @@ if ($op == 'edit') {
 	$item['hotelbusinesss'] = pdo_fetchcolumn($sql, $params);
 	$storex_bases['thumbs'] =  iunserializer($storex_bases['thumbs']);
 	$storex_bases['detail_thumbs'] =  iunserializer($storex_bases['detail_thumbs']);
-	if ($id){
+	if ($id) {
 		$item = array_merge($item, $storex_bases);
 	}
 	include $this->template('hotel_form');
@@ -181,7 +181,7 @@ if ($op == 'edit') {
 if ($op == 'delete') {
 	$id = intval($_GPC['id']);
 	$store = pdo_get('storex_bases', array('id' => $id), array('store_type'));
-	if ($store['store_type'] == 1){
+	if ($store['store_type'] == 1) {
 		pdo_delete("storex_room", array("hotelid" => $id, 'weid' => $_W['uniacid']));
 	} else {
 		pdo_delete('storex_goods', array('store_base_id' => $id, 'weid' => $_W['uniacid']));
@@ -196,7 +196,7 @@ if ($op == 'deleteall') {
 		$id = intval($id);
 		$id = intval($_GPC['id']);
 		$store = pdo_get('storex_bases', array('id' => $id), array('store_type'));
-		if ($store['store_type'] == 1){
+		if ($store['store_type'] == 1) {
 			pdo_delete("storex_room", array("hotelid" => $id, 'weid' => $_W['uniacid']));
 		} else {
 			pdo_delete('storex_goods', array('store_base_id' => $id, 'weid' => $_W['uniacid']));

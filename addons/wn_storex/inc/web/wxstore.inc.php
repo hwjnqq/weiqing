@@ -20,7 +20,7 @@ if ($op == 'display') {
 	$total  = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_activity_stores') . " WHERE uniacid = :uniacid AND source = :source", array(':uniacid' => $_W['uniacid'], ':source' => COUPON_TYPE));
 	$list = pdo_getslice('storex_activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array($pindex, $psize));
 	$pager = pagination($total,$pindex,$psize);
-	foreach($list as &$key) {
+	foreach ($list as &$key) {
 		$key['category'] = iunserializer($key['category']);
 		$key['category_'] = implode('-', $key['category']);
 	}
@@ -33,7 +33,7 @@ if ($op == 'display') {
 	}
 	$storex_list = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid'])), array(), 'id');
 	if (!empty($storex_list)) {
-		foreach ($storex_list as $k=>$val){
+		foreach ($storex_list as $k=>$val) {
 			if (in_array($k, $activity_stores)) {
 				unset($storex_list[$k]);
 			}
@@ -135,7 +135,7 @@ if ($op == 'post') {
 			if (empty($_GPC['photo_list'])) {
 				message('门店图片不能为空');
 			} else {
-				foreach($_GPC['photo_list'] as $val) {
+				foreach ($_GPC['photo_list'] as $val) {
 					if (empty($val)) continue;
 					$data['photo_list'][] = array('photo_url' => $val);
 				}

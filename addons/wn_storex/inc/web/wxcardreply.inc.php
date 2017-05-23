@@ -24,7 +24,7 @@ if ($op == 'display') {
 	$params[':uniacid'] = $_W['uniacid'];
 	$params[':module'] = 'wxcard';
 	$status = isset($_GPC['status']) ? intval($_GPC['status']) : -1;
-	if ($status != -1){
+	if ($status != -1) {
 		$condition .= " AND status = '{$status}'";
 	}
 	if (isset($_GPC['keyword'])) {

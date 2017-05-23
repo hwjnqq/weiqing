@@ -78,11 +78,11 @@ if ($op == 'post') {
 			}
 			if (in_array('openids', $post['members'])) {
 				$post['members']['openids'] = json_decode($_COOKIE['fans_openids'.$_W['uniacid']]);
-				$array = array();
+				$compare_array = array();
 				for ($i = 0; $i < count($post['members']['openids']); $i++) {
-					$array[$i] = '';
+					$compare_array[$i] = '';
 				}
-				$post['members']['openids'] = array_diff($post['members']['openids'], $array);
+				$post['members']['openids'] = array_diff($post['members']['openids'], $compare_array);
 				if (empty($post['members']['openids'])) {
 					message('请选择粉丝', referer(), 'info');
 				}
