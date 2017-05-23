@@ -21,7 +21,7 @@ class Wn_storexModule extends WeModule {
         global $_W;
         if ($rid) {
             $reply = pdo_fetch("SELECT * FROM " . tablename('storex_reply') . " WHERE weid=:weid and rid = :rid limit 1", array(':weid' => $_W['uniacid'], ':rid' => $rid));
-            $sql = 'SELECT id,title,description,thumb FROM ' . tablename('storex_hotel') . ' WHERE `weid`=:weid AND `id`=:hotelid';
+            $sql = 'SELECT id, title, description, thumb FROM ' . tablename('storex_hotel') . ' WHERE `weid` = :weid AND `id` = :hotelid';
             $hotel = pdo_fetch($sql, array(':weid' => $_W['uniacid'], ':hotelid' => $reply['hotelid']));
         }
         include $this->template('form');
@@ -63,7 +63,7 @@ class Wn_storexModule extends WeModule {
         global $_GPC;
         $hotelid = intval($_GPC['hotel']);
         if ($hotelid) {
-            $sql = 'SELECT * FROM ' . tablename('storex_hotel') . " WHERE `id`=:hotelid";
+            $sql = 'SELECT * FROM ' . tablename('storex_hotel') . " WHERE `id` = :hotelid";
             $params = array();
             $params[':hotelid'] = $hotelid;
             $hotel = pdo_fetch($sql, $params);
