@@ -6,16 +6,18 @@ global $_W, $_GPC;
 
 $ops = array('sign_info', 'sign', 'remedy_sign', 'sign_record');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
+
 check_params();
 load()->model('mc');
 mload()->model('card');
 $uid = mc_openid2uid($_W['openid']);
 
 $extend_switch = extend_switch_fetch();
+
 if (empty($extend_switch) || $extend_switch['sign'] != 1) {
 	message(error(-1, '没有开启签到！'), '', 'ajax');
 }
-$sign_max_day = pdo_getall('storex_sign_record', array('uid' => $uid, 'year' => date('Y'), 'month' => date('n'), 'remedy !=' => 2), array(), '', 'day DESC','1');
+$sign_max_day = pdo_getall('storex_sign_record', array('uid' => $uid, 'year' => date('Y'), 'month' => date('n'), 'remedy !=' => 2), array(), '', 'day DESC', '1');
 
 if ($op == 'sign_info') {
 	$sign_data = card_sign_info($sign_max_day[0]['day']);

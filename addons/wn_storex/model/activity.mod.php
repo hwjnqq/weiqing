@@ -59,7 +59,7 @@ function activity_get_coupon_info($id) {
 		return error(1, '卡券不存在或是已经被删除');
 	}
 	$coupon['date_info'] = iunserializer($coupon['date_info']);
-	if ($coupon['date_info']['time_type'] == '1'){
+	if ($coupon['date_info']['time_type'] == '1') {
 		$coupon['extra_date_info'] = '有效期:' . $coupon['date_info']['time_limit_start'] . '-' . $coupon['date_info']['time_limit_end'];
 	} else {
 		$coupon['extra_date_info'] = '有效期:领取后' . ($coupon['date_info']['deadline'] == 0 ? '当' : $coupon['date_info']['deadline']) . '天可用，有效期' . $coupon['date_info']['limit'] . '天';
@@ -131,9 +131,9 @@ function activity_user_get_coupon($id, $openid, $granttype = 1) {
 	if ($granttype == 1) {
 		$exchange = pdo_get('storex_activity_exchange', array('uniacid' => $_W['uniacid'], 'extra' => $id), array());
 		$insert['remark'] = $give ? '系统赠送' : '用户使用' . $exchange['credit'] . $credit_names[$exchange['credittype']] . '兑换';
-	} elseif($granttype == 2) {
+	} elseif ($granttype == 2) {
 		$insert['remark'] = "扫码获取";
-	} elseif($granttype == 3) {
+	} elseif ($granttype == 3) {
 		$insert['remark'] = "系统派发";
 	}
 	if ($coupon['source'] == 2) {
@@ -484,9 +484,9 @@ function storex_account_change_operator($clerk_type, $store_id, $clerk_id) {
 	);
 	if ($clerk_type == 1) {
 		$data['clerk_cn'] = '系统';
-	} elseif($clerk_type == 2) {
+	} elseif ($clerk_type == 2) {
 		$data['clerk_cn'] = pdo_fetchcolumn('SELECT username FROM ' . tablename('users') . ' WHERE uid = :uid', array(':uid' => $clerk_id));
-	} elseif($clerk_type == 3) {
+	} elseif ($clerk_type == 3) {
 		if (empty($clerk_id)) {
 			$data['clerk_cn'] = '本人操作';
 		} else {

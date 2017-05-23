@@ -13,7 +13,7 @@ check_params();
 if ($op == 'store_list') {
 	$keyword = trim($_GPC['keyword']);
 	$setting = get_storex_set();
-	$storex_bases = pdo_getall('storex_bases', array('weid' => $_W['uniacid'], 'status' => 1, 'title LIKE' => '%'.$keyword.'%'), array(), '', 'displayorder DESC');
+	$storex_bases = pdo_getall('storex_bases', array('weid' => $_W['uniacid'], 'status' => 1, 'title LIKE' => '%' . $keyword . '%'), array(), '', 'displayorder DESC');
 	foreach ($storex_bases as $key => $info) {
 		if (!empty($_GPC['lat']) && !empty($_GPC['lng'])) {
 			$lat = trim($_GPC['lat']);
@@ -36,7 +36,7 @@ if ($op == 'store_list') {
 			}
 		}
 		$storex_bases[$key]['thumb'] = tomedia($info['thumb']);
-		$info['thumbs'] =  iunserializer($info['thumbs']);
+		$info['thumbs'] = iunserializer($info['thumbs']);
 		$timestart = strexists($info['timestart'],':');
 		if ($timestart) {
 			$storex_bases[$key]['timestart'] = $info['timestart'];
@@ -127,18 +127,18 @@ if ($op == 'store_comment') {
 	} else {
 		message(error(-1, '店铺不存在'), '', 'ajax');
 	}
-	$comments = pdo_fetchall("SELECT c.*,g.id as gid,g.title FROM ". tablename('storex_comment') ." c LEFT JOIN " .tablename($table)." g ON c.goodsid = g.id WHERE c.hotelid = :hotelid AND g.weid = :weid ORDER BY c.createtime DESC", array(':hotelid' => $id, ':weid' => $_W['uniacid']));
- 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM" . tablename('storex_comment') ." c LEFT JOIN " .tablename($table)." g ON c.goodsid = g.id WHERE c.hotelid = :hotelid AND g.weid = :weid", array(':hotelid' => $id, ':weid' => $_W['uniacid']));
+	$comments = pdo_fetchall("SELECT c.*,g.id AS gid,g.title FROM " . tablename('storex_comment') ." c LEFT JOIN " . tablename($table) ." g ON c.goodsid = g.id WHERE c.hotelid = :hotelid AND g.weid = :weid ORDER BY c.createtime DESC", array(':hotelid' => $id, ':weid' => $_W['uniacid']));
+ 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM" . tablename('storex_comment') . " c LEFT JOIN " . tablename($table) . " g ON c.goodsid = g.id WHERE c.hotelid = :hotelid AND g.weid = :weid", array(':hotelid' => $id, ':weid' => $_W['uniacid']));
 	if (!empty($comments)) {
-		foreach ($comments as $k => $info){
+		foreach ($comments as $k => $info) {
 			$comments[$k]['createtime'] = date('Y-m-d H:i:s', $info['createtime']);
 			$uids[] = $info['uid'];
 		}
 		$uids = array_unique($uids);
 		if (!empty($uids)) {
   			$user_info = pdo_getall('mc_members', array('uid' => $uids), array('uid', 'avatar', 'nickname'), 'uid');
-			if (!empty($user_info)){
-				foreach ($user_info as &$val){
+			if (!empty($user_info)) {
+				foreach ($user_info as &$val) {
 					if (!empty($val['avatar'])) {
 						$val['avatar'] = tomedia($val['avatar']);
 					}
@@ -158,7 +158,7 @@ if ($op == 'store_comment') {
 	if ($total <= $psize) {
 		$comment_list['list'] = $comments;
 	} else {
-		if ($pindex > 0){
+		if ($pindex > 0) {
 			$comment_list_array = array_chunk($comments, $psize, true);
 			if (!empty($comment_list_array[($pindex - 1)])) {
 				foreach ($comment_list_array[($pindex - 1)] as $val) {

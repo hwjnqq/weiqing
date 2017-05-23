@@ -1,6 +1,6 @@
 <?php 
 //签到操作
-function card_sign_operation($sign_data, $sign_day, $cost = array(), $type = ''){
+function card_sign_operation($sign_data, $sign_day, $cost = array(), $type = '') {
 	global $_W, $_GPC;
 	$sign_info = $sign_data['signs'][$sign_day];
 	$uid = mc_openid2uid($_W['openid']);
@@ -56,7 +56,7 @@ function card_sign_operation($sign_data, $sign_day, $cost = array(), $type = '')
 }
 
 //获取签到信息
-function card_sign_info($sign_max_day){
+function card_sign_info($sign_max_day) {
 	global $_W, $_GPC;
 	$uid = mc_openid2uid($_W['openid']);
 	$sign_set = pdo_get('storex_sign_set', array('uniacid' => intval($_W['uniacid'])));
@@ -111,7 +111,7 @@ function card_sign_info($sign_max_day){
 	return $sign_data;
 }
 //通知
-function card_notices(){
+function card_notices() {
 	global $_W, $_GPC;
 	$uid = mc_openid2uid($_W['openid']);
 	$notices = pdo_getall('storex_notices', array('uniacid' => intval($_W['uniacid']), 'type' => 1), array(), 'id', 'addtime DESC');
@@ -127,7 +127,7 @@ function card_notices(){
 		}
 		$read_record = pdo_getall('storex_notices_unread', array('uid' => $uid, 'uniacid' => intval($_W['uniacid']), 'notice_id IN' => $notice_ids));
 		if (!empty($read_record)) {
-			foreach ($read_record as $val){
+			foreach ($read_record as $val) {
 				if (!empty($notices[$val['notice_id']])) {
 					$notices[$val['notice_id']]['read_status'] = 1; //已读
 				}
@@ -138,7 +138,7 @@ function card_notices(){
 }
 
 //检查邮箱，手机号是否已经注册过
-function card_info_exist($data){
+function card_info_exist($data) {
 	global $_W;
 	$uid = mc_openid2uid($_W['openid']);
 	if (!empty($data['email'])) {
@@ -157,7 +157,7 @@ function card_info_exist($data){
 	}
 }
 
-function card_discount_price($uid, $price){
+function card_discount_price($uid, $price) {
 	$card_credit = card_return_credit_info();
 	if (!empty($card_credit)) {
 		$group = card_group_id($uid);
@@ -169,7 +169,7 @@ function card_discount_price($uid, $price){
 						$price -= $discounts['discount_1'];
 					}
 				}
-			} elseif($card_credit['discount_type'] == 2) {
+			} elseif ($card_credit['discount_type'] == 2) {
 				if ($price >= $discounts['condition_2']) {
 					if ($discounts['discount_2'] != 0 && $discounts['discount_2'] > 0) {
 						$price *= $discounts['discount_2'] * 0.1;
@@ -178,14 +178,14 @@ function card_discount_price($uid, $price){
 			}
 		}
 	}
-	$price = sprintf ("%1.2f", $price);
+	$price = sprintf("%1.2f", $price);
 	return $price;
 }
 
-function card_group_id($uid){
+function card_group_id($uid) {
 	global $_W;
 	$groups = mc_groups();
-	if(!empty($groups)) {
+	if (!empty($groups)) {
 		$members = pdo_get('mc_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $uid));
 		if (!empty($members) && !empty($groups[$members['groupid']])) {
 			return $groups[$members['groupid']];
@@ -219,7 +219,7 @@ function card_setting_info() {
 	return $card_info;
 }
 
-function card_return_credit_info($uid = ''){
+function card_return_credit_info($uid = '') {
 	global $_W;
 	if (empty($uid)) {
 		$uid = mc_openid2uid($_W['openid']);
@@ -241,7 +241,7 @@ function card_return_credit_info($uid = ''){
 }
 
 //支付成功后，根据酒店设置的消费返积分的比例给积分
-function card_give_credit($uid, $sum_price){
+function card_give_credit($uid, $sum_price) {
 	load()->model('mc');
 	$card_credit = card_return_credit_info($uid);
 	if (!empty($card_credit)) {

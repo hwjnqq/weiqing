@@ -24,7 +24,7 @@ if (empty($card_info)) {
 if ($op == 'receive_info') {
 	$receive_info = array();
 	if (!empty($card_info['params']['cardBasic']['params']['fields'])) {
-		foreach ($card_info['params']['cardBasic']['params']['fields'] as $val){
+		foreach ($card_info['params']['cardBasic']['params']['fields'] as $val) {
 			$receive_info[] = array(
 				'bind' => $val['bind'],
 				'title' => $val['title'],
@@ -38,7 +38,7 @@ if ($op == 'receive_info') {
 
 if ($op == 'receive_card') {
 	$mcard = pdo_get('storex_mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $uid), array('id'));
-	if(!empty($mcard)) {
+	if (!empty($mcard)) {
 		message(error(-1, '请勿重复领取'), '', 'ajax');
 	}
 	$cardBasic = $card_info['params']['cardBasic'];
@@ -80,11 +80,11 @@ if ($op == 'receive_card') {
 		'fields' => iserializer($extend_info),
 	);
 	$record = array_merge($insert, $record);
-	if(pdo_insert('storex_mc_card_members', $record)) {
+	if (pdo_insert('storex_mc_card_members', $record)) {
 		//赠送积分.余额.优惠券
 		$notice = '';
-		if(is_array($cardBasic['params']['grant'])) {
-			if($cardBasic['params']['grant']['credit1'] > 0) {
+		if (is_array($cardBasic['params']['grant'])) {
+			if ($cardBasic['params']['grant']['credit1'] > 0) {
 				$log = array(
 					$uid,
 					"领取会员卡，赠送{$cardBasic['params']['grant']['credit1']}积分"
@@ -92,10 +92,10 @@ if ($op == 'receive_card') {
 				mc_credit_update($uid, 'credit1', $cardBasic['params']['grant']['credit1'], $log);
 				$notice .= "赠送【{$cardBasic['params']['grant']['credit1']}】积分";
 			}
-			if($cardBasic['params']['grant']['credit2'] > 0) {
+			if ($cardBasic['params']['grant']['credit2'] > 0) {
 				$log = array(
 					$uid,
-					"领取会员卡，赠送{$cardBasic['params']['grant']['credit1']}余额"
+					"领取会员卡，赠送{$cardBasic['params']['grant']['credit1']}余额",
 				);
 				mc_credit_update($uid, 'credit2', $cardBasic['params']['grant']['credit2'], $log);
 				$notice .= ",赠送【{$cardBasic['params']['grant']['credit2']}】余额";

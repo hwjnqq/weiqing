@@ -19,22 +19,22 @@ if ($op == 'clerkindex') {
 if ($op == 'order') {
 	$id = intval($_GPC['id']);
 	$clerk_info = get_clerk_permission($id);
-	check_clerk_permission($clerk_info, 'wn_storex_permission_'.$op);
+	check_clerk_permission($clerk_info, 'wn_storex_permission_' . $op);
 	$store_info = get_store_info($id);
 	$table = get_goods_table($store_info['store_type']);
 	$ac = $_GPC['ac'];
 	if ($ac == 'list' || $ac == '') {
 		$pindex = max(1, intval($_GPC['page']));
 		$psize = 10;
-		pdo_query('UPDATE ' . tablename('storex_order') . " SET status = '-1' WHERE time <  :time AND weid = '{$_W['uniacid']}' AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400));
-		$list = pdo_fetchall("SELECT o.*,h.title as hoteltitle,r.title as roomtitle FROM " . tablename('hotel2_order') . " o left join " . tablename('hotel2') .
-				"h on o.hotelid=h.id left join " . tablename($table) . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
-		$total = pdo_fetchcolumn('SELECT COUNT(*) FROM  ' . tablename('hotel2_order') . " o left join " . tablename('hotel2') .
-				"h on o.hotelid=h.id left join " . tablename($table) . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition", $params);
+		pdo_query('UPDATE ' . tablename('storex_order') . " SET status = '-1' WHERE time < :time AND weid = :uniacid AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400, ':uniacid' => $_W['uniacid']));
+		$list = pdo_fetchall("SELECT o.*, h.title AS hoteltitle, r.title AS roomtitle FROM " . tablename('hotel2_order') . " o LEFT JOIN " . tablename('hotel2') .
+				" h ON o.hotelid = h.id LEFT JOIN " . tablename($table) . " r ON r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+		$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('hotel2_order') . " o LEFT JOIN " . tablename('hotel2') .
+				" h ON o.hotelid = h.id LEFT JOIN " . tablename($table) . " r ON r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}'", $params);
 		$page_array = get_page_array($total, $pindex, $psize);
 		$page_array['lists'] = $list;
 		message(error(0, $page_array), '', 'ajax');
-	} elseif($ac == 'info') {
+	} elseif ($ac == 'info') {
 		$orderid = $_GPC['orderid'];
 		if (!empty($orderid)) {
 			$item = pdo_get('storex_order', array('id' => $orderid));
@@ -42,7 +42,7 @@ if ($op == 'order') {
 				$status = array();
 				if ($item['status'] == -1 || $item['status'] == 3 || $item['status'] == 2) {
 					$status = array();
-				} elseif($item['status'] == 1) {
+				} elseif ($item['status'] == 1) {
 					if ($store_info['store_type'] == 1) {
 						$status['status']['4'] = "已入住";
 					} else {
@@ -53,7 +53,7 @@ if ($op == 'order') {
 						}
 					}
 					$status['status']['3'] = "已完成";
-				} elseif($item['status'] == 4){
+				} elseif ($item['status'] == 4) {
 					$status['status'] = '已完成';
 				}
 				else {
@@ -92,7 +92,7 @@ if ($op == 'order') {
 		if ($item['status'] == 2) {
 			message(error(-1, '订单状态已拒绝，不能操做！'), '', 'ajax');
 		}
-		if ($data['status'] == $item['status']){
+		if ($data['status'] == $item['status']) {
 			message(error(-1, '订单状态已经是该状态了，不要重复操作！'), '', 'ajax');
 		}
 		if (!empty($data['goods_status']) && $data['goods_status'] == 2 && $item['status'] != 1) {
@@ -127,7 +127,7 @@ if ($op == 'order') {
 			//订单退款
 			if ($data['status'] == 2) {
 				$acc = WeAccount::create();
-				$info = '您在'.$store_info['title'].'预订的'.$goods_info['title']."已不足。已为您取消订单";
+				$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已不足。已为您取消订单";
 				$custom = array(
 					'msgtype' => 'text',
 					'text' => array('content' => urlencode($info)),
@@ -135,14 +135,14 @@ if ($op == 'order') {
 				);
 				if (!empty($setting['template']) && !empty($setting['refuse_templateid'])) {
 					$tplnotice = array(
-						'first' => array('value'=>'尊敬的宾客，非常抱歉的通知您，您的预订订单被拒绝。'),
+						'first' => array('value' => '尊敬的宾客，非常抱歉的通知您，您的预订订单被拒绝。'),
 						'keyword1' => array('value' => $item['ordersn']),
 						'keyword3' => array('value' => $item['nums']),
 						'keyword4' => array('value' => $item['sum_price']),
 						'keyword5' => array('value' => '商品不足'),
 					);
 					if ($store_info['store_type'] == 1) {
-						$tplnotice['keyword2'] = array('value' => date('Y.m.d', $item['btime']). '-'. date('Y.m.d', $item['etime']));
+						$tplnotice['keyword2'] = array('value' => date('Y.m.d', $item['btime']) . '-' . date('Y.m.d', $item['etime']));
 					}
 					$acc->sendTplNotice($item['openid'], $setting['refuse_templateid'], $tplnotice);
 				} else {
@@ -152,7 +152,7 @@ if ($op == 'order') {
 			//订单确认提醒
 			if ($data['status'] == 1) {
 				$acc = WeAccount::create();
-				$info = '您在'.$store_info['title'].'预订的'.$goods_info['title']."已预订成功";
+				$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已预订成功";
 				$custom = array(
 					'msgtype' => 'text',
 					'text' => array('content' => urlencode($info)),
@@ -161,7 +161,7 @@ if ($op == 'order') {
 				//TM00217
 				if (!empty($setting['template']) && !empty($setting['templateid'])) {
 					$tplnotice = array(
-						'first' => array('value' => '您好，您已成功预订'.$store_info['title'].'！'),
+						'first' => array('value' => '您好，您已成功预订' . $store_info['title'] . '！'),
 						'order' => array('value' => $item['ordersn']),
 						'Name' => array('value' => $item['name']),
 						'datein' => array('value' => date('Y-m-d', $item['btime'])),
@@ -171,7 +171,7 @@ if ($op == 'order') {
 						'pay' => array('value' => $item['sum_price']),
 						'remark' => array('value' => '预订成功')
 					);
-					$result = $acc->sendTplNotice($item['openid'], $setting['templateid'],$tplnotice);
+					$result = $acc->sendTplNotice($item['openid'], $setting['templateid'], $tplnotice);
 				} else {
 					$status = $acc->sendCustomNotice($custom);
 				}
@@ -179,7 +179,7 @@ if ($op == 'order') {
 			//已入住提醒
 			if ($data['status'] == 4) {
 				$acc = WeAccount::create();
-				$info = '您已成功入住'.$store_info['title'].'预订的'.$goods_info['title'];
+				$info = '您已成功入住' . $store_info['title'] . '预订的' . $goods_info['title'];
 				$custom = array(
 					'msgtype' => 'text',
 					'text' => array('content' => urlencode($info)),
@@ -188,13 +188,13 @@ if ($op == 'order') {
 				//TM00058
 				if (!empty($setting['template']) && !empty($setting['check_in_templateid'])) {
 					$tplnotice = array(
-						'first' =>array('value' =>'您好,您已入住'.$store_info['title'].$goods_info['title']),
+						'first' =>array('value' =>'您好,您已入住' . $store_info['title'] . $goods_info['title']),
 						'hotelName' => array('value' => $store_info['title']),
 						'roomName' => array('value' => $goods_info['title']),
 						'date' => array('value' => date('Y-m-d', $item['btime'])),
-						'remark' => array('value' => '如有疑问，请咨询'.$store_info['phone'].'。'),
+						'remark' => array('value' => '如有疑问，请咨询' . $store_info['phone'] . '。'),
 					);
-					$result = $acc->sendTplNotice($item['openid'], $setting['check_in_templateid'],$tplnotice);
+					$result = $acc->sendTplNotice($item['openid'], $setting['check_in_templateid'], $tplnotice);
 				} else {
 					$status = $acc->sendCustomNotice($custom);
 				}
@@ -204,11 +204,11 @@ if ($op == 'order') {
 			if ($data['status'] == 3) {
 				$uid = mc_openid2uid(trim($item['openid']));
 				//订单完成后增加积分
-				card_give_credit($item['weid'], $uid, $item['sum_price'] ,$item['hotelid']);
+				card_give_credit($item['weid'], $uid, $item['sum_price'], $item['hotelid']);
 				//增加出售货物的数量
 				add_sold_num($goods_info);
 				$acc = WeAccount::create();
-				$info = '您在'.$store_info['title'].'预订的'.$goods_info['title']."订单已完成,欢迎下次光临";
+				$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "订单已完成,欢迎下次光临";
 				$custom = array(
 					'msgtype' => 'text',
 					'text' => array('content' => urlencode($info)),
@@ -218,12 +218,12 @@ if ($op == 'order') {
 				if (!empty($setting['template']) && !empty($setting['finish_templateid']) && $store_info['store_type'] == 1) {
 					$tplnotice = array(
 						'first' => array('value' =>'您已成功办理离店手续，您本次入住酒店的详情为'),
-						'keyword1' => array('value' =>date('Y-m-d', $item['btime'])),
-						'keyword2' => array('value' =>date('Y-m-d', $item['etime'])),
-						'keyword3' => array('value' =>$item['sum_price']),
+						'keyword1' => array('value' => date('Y-m-d', $item['btime'])),
+						'keyword2' => array('value' => date('Y-m-d', $item['etime'])),
+						'keyword3' => array('value' => $item['sum_price']),
 						'remark' => array('value' => '欢迎您的下次光临。')
 					);
-					$result = $acc->sendTplNotice($item['openid'], $setting['finish_templateid'],$tplnotice);
+					$result = $acc->sendTplNotice($item['openid'], $setting['finish_templateid'], $tplnotice);
 				} else {
 					$status = $acc->sendCustomNotice($custom);
 				}
@@ -232,11 +232,11 @@ if ($op == 'order') {
 			if ($data['goods_status'] == 2) {
 				$data['status'] = 1;
 				$acc = WeAccount::create();
-				$info = '您在'.$store_info['title'].'预订的'.$goods_info['title']."已发货";
+				$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已发货";
 				$custom = array(
-						'msgtype' => 'text',
-						'text' => array('content' => urlencode($info)),
-						'touser' => $item['openid'],
+					'msgtype' => 'text',
+					'text' => array('content' => urlencode($info)),
+					'touser' => $item['openid'],
 				);
 				$status = $acc->sendCustomNotice($custom);
 			}
@@ -248,7 +248,7 @@ if ($op == 'order') {
 if ($op == 'room') {
 	$id = intval($_GPC['id']);//酒店id
 	$clerk_info = get_clerk_permission($id);
-	check_clerk_permission($clerk_info, 'wn_storex_permission_'.$op);
+	check_clerk_permission($clerk_info, 'wn_storex_permission_' . $op);
 	$store_info = get_store_info($id);
 	if ($store_info['store_type'] != 1) {
 		message(error(-1, '该店铺没有房型'), '', 'ajax');
@@ -257,7 +257,7 @@ if ($op == 'room') {
 	$ac = $_GPC['ac'];
 	if ($ac == 'getdate') {
 		$type = trim($_GPC['type']);
-		if (empty($type) || !in_array($type, array('status','price'))) {
+		if (empty($type) || !in_array($type, array('status', 'price'))) {
 			message(error(-1, '类型错误！'), '', 'ajax');
 		}
 		$pagesize = 1;
@@ -386,7 +386,7 @@ if ($op == 'room') {
 		message(error(0, '更新房态成功！'), '', 'ajax');
 	} elseif ($ac == 'edit_price') {
 		$roomid = intval($_GPC['roomid']);
-		$price = intval($_GPC['price'])<0 ? 0 : intval($_GPC['price']);
+		$price = intval($_GPC['price']) < 0 ? 0 : intval($_GPC['price']);
 		$pricetype = $_GPC['pricetype'];
 		$date = empty($_GPC['date']) ? date('Y-m-d') : $_GPC['date'];
 		$roomprice = getRoomPrice($id, $roomid, $date);

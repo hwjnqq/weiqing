@@ -30,7 +30,7 @@ if ($op == 'order_list') {
 		}
 		foreach ($orders as $k => $info) {
 			if (isset($info['store_type'])) {
-				if($info['store_type'] == 1){
+				if ($info['store_type'] == 1) {
 					$goods_info = pdo_get('storex_room', array('weid' => intval($_W['uniacid']), 'id' => $info['roomid']), array('id', 'thumb'));
 				} else {
 					$goods_info = pdo_get('storex_goods', array('weid' => intval($_W['uniacid']), 'id' => $info['roomid']), array('id', 'thumb'));
@@ -54,7 +54,7 @@ if ($op == 'order_list') {
 	message(error(0, $order_list), '', 'ajax');
 }
 
-if ($op == 'order_detail'){
+if ($op == 'order_detail') {
 	$id = intval($_GPC['id']);
 	$order_info = pdo_get('storex_order', array('weid' => intval($_W['uniacid']), 'id' => $id, 'openid' => $_W['openid']));
 	if (empty($order_info)) {
@@ -79,7 +79,7 @@ if ($op == 'order_detail'){
 	$order_info['thumb'] = tomedia($goods_info['thumb']);
 	if (!empty($order_info['addressid'])) {
 		$order_address = pdo_get('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid']), 'id' => $order_info['addressid']));
-		if (!empty($order_address)){
+		if (!empty($order_address)) {
 			$order_info['address'] = $order_address['province'] . $order_address['city'] . $order_address['district'] . $order_address['address'];
 		}
 	}
@@ -88,14 +88,14 @@ if ($op == 'order_detail'){
 	message(error(0, $order_info), '', 'ajax');
 }
 
-if ($op == 'orderpay'){
+if ($op == 'orderpay') {
 	$order_id = intval($_GPC['id']);
 	$params = pay_info($order_id);
 	$pay_info = $this->pay($params);
 	message(error(0, $pay_info), '', 'ajax');
 }
 
-if ($op == 'cancel'){
+if ($op == 'cancel') {
 	$id = intval($_GPC['id']);
 	$order_info = pdo_get('storex_order', array('weid' => intval($_W['uniacid']), 'id' => $id, 'openid' => $_W['openid']));
 	$store_info = pdo_get('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $order_info['hotelid']), array('id', 'store_type'));
@@ -115,7 +115,7 @@ if ($op == 'cancel'){
 	message(error(0, '订单成功取消！'), '', 'ajax');
 }
 
-if ($op == 'confirm_goods'){
+if ($op == 'confirm_goods') {
 	$id = intval($_GPC['id']);
 	$order_info = pdo_get('storex_order', array('weid' => intval($_W['uniacid']), 'id' => $id, 'openid' => $_W['openid']));
 	$store_info = pdo_get('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $order_info['hotelid']), array('id', 'store_type'));
@@ -137,21 +137,21 @@ if ($op == 'confirm_goods'){
 	message(error(0, '订单收货成功！'), '', 'ajax');
 }
 
-if ($op == 'order_comment'){
+if ($op == 'order_comment') {
 	$id = intval($_GPC['id']);
 	$comment_level = intval($_GPC['comment_level']);
 	$comment = trim($_GPC['comment']);
-	if (empty($comment)){
+	if (empty($comment)) {
 		message(error(-1, '评价不能为空！'), '', 'ajax');
 	}
 	$order_info = pdo_get('storex_order', array('weid' => intval($_W['uniacid']), 'id' => $id, 'openid' => $_W['openid']));
-	if (empty($order_info)){
+	if (empty($order_info)) {
 		message(error(-1, '找不到该订单了！'), '', 'ajax');
 	}
-	if ($comment_level > 5 || $comment_level < 1 || empty($comment_level)){
+	if ($comment_level > 5 || $comment_level < 1 || empty($comment_level)) {
 		$comment_level = 5;
 	}
-	if ($order_info['status'] == 3 && $order_info['comment'] == 0){
+	if ($order_info['status'] == 3 && $order_info['comment'] == 0) {
 		$comment_info = array(
 			'uniacid' => $_W['uniacid'],
 			'uid' => $uid,

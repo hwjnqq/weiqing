@@ -50,7 +50,7 @@ if ($op == 'recharge_add') {
 			'uid' => $uid,
 			'openid' => $_W['openid'],
 			'uniacid' => $_W['uniacid'],
-			'tid' => date('YmdHi').random(8, 1),
+			'tid' => date('YmdHi') . random(8, 1),
 			'fee' => $fee,
 			'type' => 'credit',
 			'tag' => $back,
