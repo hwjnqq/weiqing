@@ -34,9 +34,9 @@ $store_base_id = intval($_GPC['store_base_id']);
 $stores = pdo_getall('storex_bases', array('weid' => $_W['uniacid']), array(), 'id', array('store_type DESC', 'displayorder DESC'));
 $store_type = !empty($_GPC['store_type'])? intval($_GPC['store_type']) : 0;
 $condition = array('weid' => $_W['uniacid']);
-if (!empty($store_base_id)){
-	foreach ($stores as $store_info){
-		if ($store_info['id'] == $store_base_id){
+if (!empty($store_base_id)) {
+	foreach ($stores as $store_info) {
+		if ($store_info['id'] == $store_base_id) {
 			$store_type = $store_info['store_type'];
 		} else {
 			continue;
@@ -59,7 +59,7 @@ if (empty($parent)) {
 	message('请先给该店铺添加一级分类！', '', 'error');
 }
 if (!empty($_GPC['store_base_id'])) {
-	if (empty($stores[$_GPC['store_base_id']])){
+	if (empty($stores[$_GPC['store_base_id']])) {
 		message('抱歉，店铺不存在或是已经删除！', '', 'error');
 	}
 }
@@ -162,7 +162,7 @@ if ($op == 'edit') {
 			'is_house' => $is_house,
 		);
 	
-		if (is_array($_GPC['thumbs'])){
+		if (is_array($_GPC['thumbs'])) {
 			$common['thumbs'] = serialize($_GPC['thumbs']);
 		} else {
 			$common['thumbs'] = serialize(array());
@@ -174,7 +174,7 @@ if ($op == 'edit') {
 			} else {
 				pdo_update($table, $data, array('id' => $id));
 			}
-			pdo_query("update " . tablename('storex_hotel') . " set roomcount=(select count(*) from " . tablename('storex_room') . " where hotelid=:store_base_id AND is_house=:is_house) where store_base_id=:store_base_id", array(":store_base_id" => $store_base_id, ':is_house' => $data['is_house']));
+			pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT count(*) FROM " . tablename('storex_room') . " WHERE hotelid = :store_base_id AND is_house = :is_house) WHERE store_base_id = :store_base_id", array(':store_base_id' => $store_base_id, ':is_house' => $data['is_house']));
 		} else {
 			$data = array_merge($goods, $common);
 			if (empty($id)) {
@@ -192,7 +192,7 @@ if ($op == 'delete') {
 	$id = intval($_GPC['id']);
 	pdo_delete($table, array('id' => $id, 'weid' => $_W['uniacid']));
 	if ($store_type == 1) {
-		pdo_query("update " . tablename('storex_hotel') . " set roomcount=(select count(*) from " . tablename('storex_room') . " where hotelid=:store_base_id) where store_base_id=:store_base_id", array(":store_base_id" => $store_base_id));
+		pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT count(*) FROM " . tablename('storex_room') . " WHERE hotelid = :store_base_id) WHERE store_base_id = :store_base_id", array(':store_base_id' => $store_base_id));
 	}
 	message('删除成功！', referer(), 'success');
 }
@@ -202,7 +202,7 @@ if ($op == 'deleteall') {
 		$id = intval($id);
 		pdo_delete($table, array('id' => $id, 'weid' => $_W['uniacid']));
 		if ($store_type == 1) {
-			pdo_query("update " . tablename('storex_hotel') . " set roomcount=(select count(*) from " . tablename('storex_room') . " where hotelid=:hotelid) where id=:hotelid", array(":hotelid" => $id));
+			pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT count(*) FROM " . tablename('storex_room') . " WHERE hotelid = :hotelid) WHERE id = :hotelid", array(':hotelid' => $id));
 		}
 	}
 	$this->web_message('删除成功！', '', 0);
@@ -236,10 +236,10 @@ if ($op == 'status') {
 	}
 }
 if ($op == 'display') {
-	$storex_bases = pdo_fetch("select title from " . tablename('storex_bases') . "where store_type=:store_type limit 1", array(":store_type" => $store_type));
+	$storex_bases = pdo_fetch("SELECT title FROM " . tablename('storex_bases') . " WHERE store_type = :store_type LIMIT 1", array(':store_type' => $store_type));
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	$sql = "";
+	$sql = '';
 	$params = array();
 	if (!empty($_GPC['title'])) {
 		$sql .= ' AND r.title LIKE :keywordds';
@@ -258,8 +258,8 @@ if ($op == 'display') {
 	} else {
 		$join_condition = ' r.store_base_id = h.id ';
 	}
-	$list = pdo_fetchall("SELECT r.*," .$hotelid_as." h.title AS hoteltitle FROM " . tablename($table) . " r left join " . tablename('storex_bases') . " h on ".$join_condition." WHERE r.weid = '{$_W['uniacid']}' $sql ORDER BY h.id, r.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
-	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename($table) . " r left join " . tablename('storex_bases') . " h on ".$join_condition." WHERE r.weid = '{$_W['uniacid']}' $sql", $params);
+	$list = pdo_fetchall("SELECT r.*, " . $hotelid_as . " h.title AS hoteltitle FROM " . tablename($table) . " r LEFT JOIN " . tablename('storex_bases') . " h ON " . $join_condition . " WHERE r.weid = '{$_W['uniacid']}' $sql ORDER BY h.id, r.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename($table) . " r LEFT JOIN " . tablename('storex_bases') . " h ON " . $join_condition . " WHERE r.weid = '{$_W['uniacid']}' $sql", $params);
 	$list = format_list($category, $list);
 	$pager = pagination($total, $pindex, $psize);
 	include $this->template('room');

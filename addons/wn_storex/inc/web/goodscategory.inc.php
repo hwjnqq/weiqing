@@ -20,13 +20,13 @@ if ($op == 'display') {
 	$children = array();
 	$category = pdo_getall('storex_categorys', array('weid' => $_W['uniacid']), array(), '', array('store_base_id DESC', 'parentid ASC', 'displayorder DESC'));
 	foreach ($category as $index => &$row_info) {
-		if (!empty($row_info['store_base_id'])){
-			foreach ($stores as $store_info){
-				if ($row_info['store_base_id'] == $store_info['id']){
+		if (!empty($row_info['store_base_id'])) {
+			foreach ($stores as $store_info) {
+				if ($row_info['store_base_id'] == $store_info['id']) {
 					$row_info['store_title'] = $store_info['title'];
 				}
 			}
-			if(empty($row_info['store_title'])){
+			if (empty($row_info['store_title'])) {
 				unset($category[$index]);
 			}
 		}
@@ -35,6 +35,7 @@ if ($op == 'display') {
 			unset($category[$index]);
 		}
 	}
+	unset($row_info);
 	include $this->template('category');
 }
 
@@ -45,14 +46,14 @@ if ($op == 'post') {
 	$stores = pdo_getall('storex_bases', array('weid' => $_W['uniacid']), array(), 'id', array('id ASC', 'displayorder DESC'));
 	if (!empty($id)) {
 		$category = pdo_get('storex_categorys', array('id' => $id, 'weid' => $_W['uniacid']));
-		foreach ($stores as $k => $store_info){
-			if ($store_info['id'] != $category['store_base_id']){
+		foreach ($stores as $k => $store_info) {
+			if ($store_info['id'] != $category['store_base_id']) {
 				unset($stores[$k]);
 			}
 		}
 	} else {
 		$category = array(
-				'displayorder' => 0,
+			'displayorder' => 0,
 		);
 	}
 	$stores_infos = array();
@@ -69,7 +70,7 @@ if ($op == 'post') {
 		}
 	}
 	if (checksubmit('submit')) {
-		if (empty($store_base_id)){
+		if (empty($store_base_id)) {
 			message('请选择店铺', $this->createWebUrl('post'), 'error');
 		}
 		if (empty($_GPC['name'])) {
@@ -117,8 +118,8 @@ if ($op == 'delete') {
 	}
 	$store_base_aid = $category['store_base_id'];
 	$store = pdo_get('storex_bases', array('id' => $store_base_aid, 'weid' => intval($_W['uniacid'])), array('store_type'));
-	if ($store['store_type'] == 1 ){
-		if ($category['parentid'] == 0){
+	if ($store['store_type'] == 1 ) {
+		if ($category['parentid'] == 0) {
 			pdo_delete('storex_room', array('pcate' => $id, 'weid' => $_W['uniacid']));
 			pdo_delete('storex_categorys', array('id' => $id, 'parentid' => $id), 'OR');
 			message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
@@ -127,7 +128,7 @@ if ($op == 'delete') {
 		pdo_delete('storex_categorys', array('id' => $id, 'weid' => $_W['uniacid']));
 		message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');
 	}
-	if ($category['parentid'] == 0){
+	if ($category['parentid'] == 0) {
 		pdo_delete('storex_goods', array('pcate' => $id, 'weid' => $_W['uniacid']));
 		pdo_delete('storex_categorys', array('id' => $id, 'parentid' => $id), 'OR');
 		message('分类删除成功！', $this->createWebUrl('goodscategory', array('op' => 'display')), 'success');

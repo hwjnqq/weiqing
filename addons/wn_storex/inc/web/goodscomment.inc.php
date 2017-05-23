@@ -29,23 +29,22 @@ if ($op == 'display') {
 	$store_type = intval($_GPC['store_type']);
 	$table = gettablebytype($store_type);
 	$store_base_id = intval($_GPC['store_base_id']);
-	$comments = pdo_fetchall("SELECT c.*, g.title FROM ".tablename('storex_comment') . " c LEFT JOIN " .tablename($table). " g ON c.goodsid = g.id
-				WHERE c.hotelid = :store_base_id AND c.goodsid = :id AND g.weid = :weid " . "LIMIT " . ($pindex - 1) * $psize . ',' . $psize, array(':store_base_id' => $store_base_id, ':id' => $id, 'weid' => $_W['uniacid']));
-	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM" . tablename('storex_comment') . " c LEFT JOIN " .tablename($table). " g ON c.goodsid = g.id
-				WHERE c.hotelid = :store_base_id AND c.goodsid = :id AND g.weid = :weid ", array(':store_base_id' => $store_base_id, ':id' => $id, 'weid' => $_W['uniacid']));
+	$comments = pdo_fetchall("SELECT c.*, g.title FROM " . tablename('storex_comment') . " AS c LEFT JOIN " .tablename($table). " AS g ON c.goodsid = g.id WHERE c.hotelid = :store_base_id AND c.goodsid = :id AND g.weid = :weid " . "LIMIT " . ($pindex - 1) * $psize . ',' . $psize, array(':store_base_id' => $store_base_id, ':id' => $id, 'weid' => $_W['uniacid']));
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_comment') . " AS c LEFT JOIN " .tablename($table) . " AS g ON c.goodsid = g.id WHERE c.hotelid = :store_base_id AND c.goodsid = :id AND g.weid = :weid ", array(':store_base_id' => $store_base_id, ':id' => $id, 'weid' => $_W['uniacid']));
 	if (!empty($comments)) {
-		foreach ($comments as $k => $val){
+		foreach ($comments as $k => $val) {
 			$comments[$k]['createtime'] = date('Y-m-d :H:i:s', $val['createtime']);
 			$uids[] = $val['uid'];
 		}
 		if (!empty($uids)) {
 			$user_info = pdo_getall('mc_members', array('uid' => $uids), array('uid', 'avatar', 'nickname'), 'uid');
-			if (!empty($user_info)){
-				foreach ($user_info as &$val){
+			if (!empty($user_info)) {
+				foreach ($user_info as &$val) {
 					if (!empty($val['avatar'])) {
 						$val['avatar'] = tomedia($val['avatar']);
 					}
 				}
+				unset($val);
 			}
 			foreach ($comments as $key => $infos) {
 				$comments[$key]['user_info'] = array();
