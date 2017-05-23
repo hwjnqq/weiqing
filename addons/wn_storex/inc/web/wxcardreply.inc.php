@@ -84,8 +84,8 @@ if ($op == 'post') {
 	//获取卡券
 	$condition = ' WHERE uniacid = :uniacid AND is_display = 1 AND status = 3 AND source = :source AND quantity > 0';
 	$param = array(
-			':uniacid' => $_W['uniacid'],
-			':source' => COUPON_TYPE,
+		':uniacid' => $_W['uniacid'],
+		':source' => COUPON_TYPE,
 	);
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 15;

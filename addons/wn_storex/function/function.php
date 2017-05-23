@@ -106,7 +106,6 @@ function check_params() {
 			'common' => array(
 				'uniacid' => intval($_W['uniacid']),
 				'openid' => $_W['openid'],
-				'id' => intval($_GPC['id']),
 			),
 			'clerkindex' => array(),
 			'order' => array(),
@@ -552,7 +551,7 @@ function goods_check_result($action, $order_id) {
 }
 
 //检查店员    id:店铺id
-function get_clerk_permission($id) {
+function get_clerk_permission($id = 0) {
 	global $_W;
 	$clerk_info = pdo_get('storex_clerk', array('from_user' => trim($_W['openid']), 'weid' => intval($_W['uniacid'])));
 	if (!empty($clerk_info) && !empty($clerk_info['permission'])) {
@@ -560,9 +559,14 @@ function get_clerk_permission($id) {
 			message(error(-1, '您没有进行此操作的权限！'), '', 'ajax');
 		}
 		$clerk_info['permission'] = iunserializer($clerk_info['permission']);
-		if (!empty($clerk_info['permission'][$id])) {
-			return $clerk_info['permission'][$id];
+		if (!empty($id)) {
+			if (!empty($clerk_info['permission'][$id])) {
+				return $clerk_info['permission'][$id];
+			}
+		} else {
+			return $clerk_info['permission'];
 		}
+		
 	}
 	message(error(-1, '您没有进行此操作的权限！'), '', 'ajax');
 }
