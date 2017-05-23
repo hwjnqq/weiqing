@@ -78,6 +78,7 @@ if ($op == 'post') {
 		foreach ($reply['keywords'] as &$kw) {
 			$kw = array_elements(array('type', 'content'), $kw);
 		}
+		unset($kw);
 	}
 	
 	//获取卡券
@@ -91,26 +92,26 @@ if ($op == 'post') {
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM '. tablename('storex_coupon') . $condition, $param);
 	$storex_coupon = pdo_fetchall('SELECT * FROM ' . tablename('storex_coupon') . $condition . ' ORDER BY id DESC LIMIT ' . ($pindex - 1) * $psize . ', ' . $psize, $param, 'id');
 	if (!empty($storex_coupon)) {
-		foreach ($storex_coupon as $key => &$da) {
-			$da['date_info'] = iunserializer($da['date_info']);
-			$da['media_id'] = $da['card_id'];
-			$da['logo_url'] = url('utility/wxcode/image', array('attach' => $da['logo_url']));
-			$da['ctype'] = $da['type'];
-			$da['extra'] = iunserializer($da['extra']);
-			if ($da['type'] == '1') {
-				$da['extra']['discount'] = $da['extra']['discount'] * 0.1;
-			} elseif ($da['type'] == '2') {
-				$da['extra']['reduce_cost'] = $da['extra']['reduce_cost'] * 0.01;
+		foreach ($storex_coupon as $key => &$value) {
+			$value['date_info'] = iunserializer($value['date_info']);
+			$value['media_id'] = $value['card_id'];
+			$value['logo_url'] = url('utility/wxcode/image', array('attach' => $value['logo_url']));
+			$value['ctype'] = $value['type'];
+			$value['extra'] = iunserializer($value['extra']);
+			if ($value['type'] == '1') {
+				$value['extra']['discount'] = $value['extra']['discount'] * 0.1;
+			} elseif ($value['type'] == '2') {
+				$value['extra']['reduce_cost'] = $value['extra']['reduce_cost'] * 0.01;
 			}
-			if ($da['date_info']['time_type'] == '1') {
-				$starttime = strtotime(str_replace('.', '-', $da['date_info']['time_limit_start']));
-				$endtime = strtotime(str_replace('.', '-', $da['date_info']['time_limit_end']));
+			if ($value['date_info']['time_type'] == '1') {
+				$starttime = strtotime(str_replace('.', '-', $value['date_info']['time_limit_start']));
+				$endtime = strtotime(str_replace('.', '-', $value['date_info']['time_limit_end']));
 				if ($starttime > strtotime(date('Y-m-d')) || $endtime < strtotime(date('Y-m-d'))) {
 					unset($storex_coupon[$key]);
 				}
 			}
 		}
-		unset($da);
+		unset($value);
 	}
 	if (checksubmit('submit')) {
 		if (empty($_GPC['name'])) {
