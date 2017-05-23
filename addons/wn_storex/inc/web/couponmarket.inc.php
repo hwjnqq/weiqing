@@ -34,19 +34,18 @@ if ($op == 'display') {
 	if (!empty($_GPC['title'])) {
 		$condition .= " AND title LIKE '%".$_GPC['title']."%'";
 	}
-	$list = pdo_getall('storex_coupon_activity', array('uniacid' => intval($_W['uniacid']), 'type' => COUPON_TYPE, 'title LIKE' => '%'.$_GPC['title'].'%'), 
-			array(), '', 'id ASC', array($pindex, $psize));
+	$list = pdo_getall('storex_coupon_activity', array('uniacid' => intval($_W['uniacid']), 'type' => COUPON_TYPE, 'title LIKE' => '%'.$_GPC['title'].'%'), array(), '', 'id ASC', array($pindex, $psize));
 	foreach ($list as &$data) {
 		$data['members'] = empty($data['members']) ? array() : iunserializer($data['members']);
 		if (!empty($data['members'])) {
-			if(in_array('group_member', $data['members'])) {
+			if (in_array('group_member', $data['members'])) {
 				$groups = pdo_getall('mc_groups', array('uniacid' => $_W['uniacid']), array(), 'groupid');
 				$data['members']['group_name'] = $groups[$data['members']['groupid']]['title'];
 			}
 		}
 	}
-	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM '. tablename('storex_coupon_activity')." WHERE uniacid = :uniacid AND type = :type " . $condition, 
-		array(':uniacid' => intval($_W['uniacid']), ':type' => COUPON_TYPE));
+	unset($data);
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_coupon_activity') . " WHERE uniacid = :uniacid AND type = :type " . $condition, array(':uniacid' => intval($_W['uniacid']), ':type' => COUPON_TYPE));
 	$pager = pagination($total, $pindex, $psize);
 }
 
