@@ -50,12 +50,13 @@ if ($op == 'sign_set') {
 if ($op == 'sign_record') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	$list = pdo_getall('storex_sign_record', array('uniacid' => intval($_W['uniacid'])), array(), '', 'id DESC', ($pindex - 1)*$psize. ','. $psize);
+	$list = pdo_getall('storex_sign_record', array('uniacid' => intval($_W['uniacid'])), array(), '', 'id DESC', ($pindex - 1) * $psize . ',' . $psize);
 	foreach ($list as $key => &$value){
 		$value['addtime'] = date('Y-m-d H:i:s', $value['addtime']);
 		$value['realname'] = pdo_fetchcolumn("SELECT realname FROM ". tablename('mc_members'). ' WHERE uniacid = :uniacid AND uid = :uid', array(':uniacid' => $_W['uniacid'], ':uid' => $value['uid']));
 	}
-	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ". tablename('storex_sign_record'). " WHERE uniacid = :uniacid", array(':uniacid' => $_W['uniacid']));
+	unset($value);
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_sign_record') . " WHERE uniacid = :uniacid", array(':uniacid' => $_W['uniacid']));
 	$pager = pagination($total, $pindex, $psize);
 }
 

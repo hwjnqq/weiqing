@@ -44,6 +44,7 @@ if ($op == 'display') {
 				$item['options'] = $entries['rule'];
 			}
 		}
+		unset($item);
 	}
 }
 
@@ -54,7 +55,7 @@ if ($op == 'post') {
 	}
 	if ($_W['isajax'] && $_W['ispost']) {
 		/*检测规则是否已经存在*/
-		$sql = 'SELECT `rid` FROM ' . tablename('rule_keyword') . " WHERE `uniacid` = :uniacid  AND `content` = :content";
+		$sql = "SELECT `rid` FROM " . tablename('rule_keyword') . " WHERE `uniacid` = :uniacid  AND `content` = :content";
 		$result = pdo_fetchall($sql, array(':uniacid' => $_W['uniacid'], ':content' => $_GPC['keyword']));
 		if (!empty($result)) {
 			$keywords = array();
@@ -62,7 +63,7 @@ if ($op == 'post') {
 				$keywords[] = $reply['rid'];
 			}
 			$rids = implode($keywords, ',');
-			$sql = 'SELECT `id`, `name` FROM ' . tablename('rule') . " WHERE `id` IN ($rids)";
+			$sql = "SELECT `id`, `name` FROM " . tablename('rule') . " WHERE `id` IN ($rids)";
 			$rules = pdo_fetchall($sql);
 			exit(@json_encode($rules));
 		}
@@ -109,6 +110,7 @@ if ($op == 'post') {
 				}
 			}
 		}
+		unset($da);
 	}
 	if (checksubmit('submit')) {
 		if (empty($_GPC['name'])) {
@@ -148,7 +150,7 @@ if ($op == 'post') {
 		}
 		if (!empty($rid)) {
 			//更新，添加，删除关键字
-			$sql = 'DELETE FROM '. tablename('rule_keyword') . ' WHERE `rid`=:rid AND `uniacid`=:uniacid';
+			$sql = 'DELETE FROM '. tablename('rule_keyword') . ' WHERE `rid` = :rid AND `uniacid` = :uniacid';
 			$pars = array();
 			$pars[':rid'] = $rid;
 			$pars[':uniacid'] = $_W['uniacid'];
@@ -211,7 +213,7 @@ if ($op == 'stat_trend') {
 	$id = intval($_GPC['id']);
 	$starttime = empty($_GPC['time']['start']) ? strtotime(date('Y-m-d')) - 7 * 86400 : strtotime($_GPC['time']['start']);
 	$endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
-	$list = pdo_fetchall("SELECT createtime, hit  FROM " . tablename('stat_rule') . " WHERE uniacid = '{$_W['uniacid']}' AND rid = :rid AND createtime >= :createtime AND createtime <= :endtime ORDER BY createtime ASC", array(':rid' => $id, ':createtime' => $starttime, ':endtime' => $endtime));
+	$list = pdo_fetchall("SELECT createtime, hit FROM " . tablename('stat_rule') . " WHERE uniacid = '{$_W['uniacid']}' AND rid = :rid AND createtime >= :createtime AND createtime <= :endtime ORDER BY createtime ASC", array(':rid' => $id, ':createtime' => $starttime, ':endtime' => $endtime));
 	$day = $hit = array();
 	if (!empty($list)) {
 		foreach ($list as $row) {
@@ -237,6 +239,7 @@ if ($op == 'stat_trend') {
 				$value['day'][] = date('m-d', $endtime);
 			}
 		}
+		unset($value);
 		$keywordnames = pdo_fetchall("SELECT content, id FROM " . tablename('rule_keyword') . " WHERE id IN (" . implode(',', array_keys($keywords)) . ")", array(), 'id');
 	}
 }

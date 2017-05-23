@@ -24,14 +24,14 @@ if ($op == 'display') {
 	if ($total > 0) {
 		$pindex = max(1, intval($_GPC['page']));
 		$psize = 10;
-		$list = pdo_getall('storex_bases', array('weid' => $_W['uniacid'], 'title LIKE' => "%{$_GPC['keywords']}%"), array(), '',
-			 'displayorder DESC', ($pindex - 1) * $psize . ',' . $psize);
+		$list = pdo_getall('storex_bases', array('weid' => $_W['uniacid'], 'title LIKE' => "%{$_GPC['keywords']}%"), array(), '', 'displayorder DESC', ($pindex - 1) * $psize . ',' . $psize);
 		$pager = pagination($total, $pindex, $psize);
 		if (!empty($list)) {
 			foreach ($list as $key => &$value) {
 				$value['store_entry'] = $_W['siteroot'] . 'app/index.php?i=' . $_W['uniacid'] . '&c=entry&m=wn_storex&do=display&id=' . $value['id'] . '#/StoreIndex/' . $value['id'];
 				$value['mc_entry'] = $_W['siteroot'] . 'app/index.php?i=' . $_W['uniacid'] . '&c=entry&m=wn_storex&do=display&id=' . $value['id'] . '#/Home/Index';
 			}
+			unset($value);
 		}
 	}
 	
@@ -40,11 +40,11 @@ if ($op == 'display') {
 		$html = "\xEF\xBB\xBF";
 		/* 输出表头 */
 		$filter = array(
-				'title' => '酒店名称',
-				'level' => '星级',
-				'roomcount' => '房间数',
-				'phone' => '电话',
-				'status' => '状态',
+			'title' => '酒店名称',
+			'level' => '星级',
+			'roomcount' => '房间数',
+			'phone' => '电话',
+			'status' => '状态',
 		);
 		foreach ($filter as $key => $value) {
 			$html .= $value . "\t,";
@@ -145,7 +145,7 @@ if ($op == 'edit') {
 				pdo_update($common_insert['extend_table'], $insert, array('store_base_id' => $id));
 			}
 		}
-		message("店铺信息保存成功!", $this->createWebUrl('storemanage'), "success");
+		message('店铺信息保存成功!', $this->createWebUrl('storemanage'), 'success');
 	}
 	$storex_bases = pdo_get('storex_bases', array('id' => $id));
 	$item = pdo_get('storex_hotel', array('store_base_id' => $id));
@@ -182,13 +182,13 @@ if ($op == 'delete') {
 	$id = intval($_GPC['id']);
 	$store = pdo_get('storex_bases', array('id' => $id), array('store_type'));
 	if ($store['store_type'] == 1) {
-		pdo_delete("storex_room", array("hotelid" => $id, 'weid' => $_W['uniacid']));
+		pdo_delete('storex_room', array('hotelid' => $id, 'weid' => $_W['uniacid']));
 	} else {
 		pdo_delete('storex_goods', array('store_base_id' => $id, 'weid' => $_W['uniacid']));
 	}
-	pdo_delete("storex_bases", array("id" => $id, 'weid' => $_W['uniacid']));
-	pdo_delete("storex_categorys", array("store_base_id" => $id, 'weid' => $_W['uniacid']));
-	message("店铺信息删除成功!", referer(), "success");
+	pdo_delete('storex_bases', array('id' => $id, 'weid' => $_W['uniacid']));
+	pdo_delete('storex_categorys', array('store_base_id' => $id, 'weid' => $_W['uniacid']));
+	message('店铺信息删除成功!', referer(), 'success');
 }
 
 if ($op == 'deleteall') {
@@ -197,12 +197,12 @@ if ($op == 'deleteall') {
 		$id = intval($_GPC['id']);
 		$store = pdo_get('storex_bases', array('id' => $id), array('store_type'));
 		if ($store['store_type'] == 1) {
-			pdo_delete("storex_room", array("hotelid" => $id, 'weid' => $_W['uniacid']));
+			pdo_delete('storex_room', array('hotelid' => $id, 'weid' => $_W['uniacid']));
 		} else {
 			pdo_delete('storex_goods', array('store_base_id' => $id, 'weid' => $_W['uniacid']));
 		}
-		pdo_delete("storex_bases", array("id" => $id, 'weid' => $_W['uniacid']));
-		pdo_delete("storex_categorys", array("store_base_id" => $id, 'weid' => $_W['uniacid']));
+		pdo_delete('storex_bases', array('id' => $id, 'weid' => $_W['uniacid']));
+		pdo_delete('storex_categorys', array("store_base_id" => $id, 'weid' => $_W['uniacid']));
 	}
 	$this->web_message('店铺信息删除成功！', '', 0);
 	exit();
@@ -243,6 +243,7 @@ if ($op == 'query') {
 	foreach ($ds as &$value) {
 		$value['thumb'] = tomedia($value['thumb']);
 	}
+	unset($value);
 	include $this->template('query');
 }
 

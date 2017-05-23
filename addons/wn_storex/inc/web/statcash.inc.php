@@ -25,13 +25,13 @@ if ($op == 'display') {
 		$current_clerk_id = $_W['user']['clerk_id'];
 		$condition .= " AND clerk_type = 3 AND clerk_id = {$current_clerk_id}";
 	}
-	if ($min > 0 ) {
+	if ($min > 0) {
 		$condition .= ' AND abs(final_fee) >= :minnum';
 		$params[':minnum'] = $min;
 	}
 	
 	$max = intval($_GPC['max']);
-	if ($max > 0 ) {
+	if ($max > 0) {
 		$condition .= ' AND abs(final_fee) <= :maxnum';
 		$params[':maxnum'] = $max;
 	}
@@ -47,7 +47,7 @@ if ($op == 'display') {
 	}
 	$user = trim($_GPC['user']);
 	if (!empty($user)) {
-		$condition .= ' AND (uid IN (SELECT uid FROM '.tablename('mc_members').' WHERE uniacid = :uniacid AND (realname LIKE :username OR uid = :uid OR mobile LIKE :mobile)))';
+		$condition .= ' AND (uid IN (SELECT uid FROM ' . tablename('mc_members') . ' WHERE uniacid = :uniacid AND (realname LIKE :username OR uid = :uid OR mobile LIKE :mobile)))';
 		$params[':username'] = "%{$user}%";
 		$params[':uid'] = intval($user);
 		$params[':mobile'] = "%{$user}%";
@@ -75,11 +75,11 @@ if ($op == 'display') {
 		}
 		unset($da);
 		$uids = implode(',', $uids);
-		$users = pdo_fetchall('SELECT mobile, uid, realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
+		$users = pdo_fetchall("SELECT mobile, uid, realname FROM " . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
 	}
 	$pager = pagination($total, $pindex, $psize);
 	if ($_GPC['export'] != '') {
-		$exports = pdo_fetchall('SELECT * FROM ' . tablename ('mc_cash_record') . $condition. " ORDER BY uid DESC", $params);
+		$exports = pdo_fetchall("SELECT * FROM " . tablename ('mc_cash_record') . $condition . " ORDER BY uid DESC", $params);
 		if (!empty($exports)) {
 			load()->model('clerk');
 			$uids = array();
@@ -96,7 +96,7 @@ if ($op == 'display') {
 			}
 			unset($da);
 			$uids = implode(',', $uids);
-			$user = pdo_fetchall('SELECT mobile, uid, realname FROM ' . tablename ('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
+			$user = pdo_fetchall("SELECT mobile, uid, realname FROM " . tablename ('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
 		}
 	
 		$html = "\xEF\xBB\xBF";

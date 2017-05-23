@@ -80,7 +80,7 @@ if ($op == 'display') {
 		}
 		unset($da);
 		$uids = implode(',', $uids);
-		$users = pdo_fetchall('SELECT mobile, uid, realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
+		$users = pdo_fetchall("SELECT mobile, uid, realname FROM " . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
 	}
 	$pager = pagination($total, $pindex, $psize);
 	if ($_GPC['export'] != '') {
@@ -120,9 +120,9 @@ if ($op == 'display') {
 		foreach ($exports as $k => $v) {
 			foreach ($filter as $key => $title) {
 				if ($key == 'name') {
-					$html .= $user[$v['uid']]['realname']. "\t, ";
+					$html .= $user[$v['uid']]['realname'] . "\t, ";
 				} elseif ($key == 'phone') {
-					$html .= $user[$v['uid']]['mobile']. "\t, ";
+					$html .= $user[$v['uid']]['mobile'] . "\t, ";
 				} elseif ($key == 'type') {
 					if ($v['num'] > 0) {
 						$html .= "充值\t, ";
@@ -130,25 +130,25 @@ if ($op == 'display') {
 						$html .= "消费\t, ";
 					}
 				} elseif ($key == 'num') {
-					$html .= abs($v[$key]). "\t, ";
+					$html .= abs($v[$key]) . "\t, ";
 				} elseif ($key == 'store') {
 					if ($v['store_id'] > 0) {
-						$html .= $stores[$v['store_id']]['business_name']. '-'. $stores[$v['store_id']]['branch_name']. "\t, ";
+						$html .= $stores[$v['store_id']]['business_name'] . '-'. $stores[$v['store_id']]['branch_name'] . "\t, ";
 					} else {
 						$html .= "未知\t, ";
 					}
 				} elseif ($key == 'operator') {
 					if ($v['clerk_id'] > 0) {
-						$html .= $v['clerk_cn']. "\t, ";
+						$html .= $v['clerk_cn'] . "\t, ";
 					} elseif ($v['clerk_type'] == 1) {
 						$html .= "系统\t, ";
 					} else {
 						$html .= "未知\t, ";
 					}
 				} elseif ($key == 'createtime') {
-					$html .= date('Y-m-d H:i', $v['createtime']). "\t, ";
+					$html .= date('Y-m-d H:i', $v['createtime']) . "\t, ";
 				} elseif ($key == 'remark') {
-					$html .= cutstr($v['remark'], '30', '...'). "\t, ";
+					$html .= cutstr($v['remark'], '30', '...') . "\t, ";
 				} else {
 					$html .= $v[$key]. "\t, ";
 				}

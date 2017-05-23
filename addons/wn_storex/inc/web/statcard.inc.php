@@ -19,9 +19,9 @@ if ($op == 'display') {
 			$key = date('m-d', $time);
 			$stat[$key] = 0;
 		}
-		$data = pdo_fetchall('SELECT id, createtime FROM ' . tablename('storex_mc_card_members') . ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime));
+		$data = pdo_fetchall("SELECT id, createtime FROM " . tablename('storex_mc_card_members') . " WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime", array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime));
 		if (!empty($data)) {
-			foreach($data as $da) {
+			foreach ($data as $da) {
 				$key = date('m-d', $da['createtime']);
 				$stat[$key] += 1;
 			}
@@ -30,8 +30,8 @@ if ($op == 'display') {
 		$out['datasets'] = array_values($stat);
 		exit(json_encode($out));
 	}
-	$total = floatval(pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_mc_card_members') . ' WHERE uniacid = :uniacid', array(':uniacid' => $_W['uniacid'])));
-	$today = floatval(pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_mc_card_members') . ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => strtotime(date('Y-m-d')), ':endtime' => TIMESTAMP)));
-	$yesterday = floatval(pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_mc_card_members') . ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => strtotime(date('Y-m-d')) - 86400, ':endtime' => strtotime(date('Y-m-d')))));
+	$total = floatval(pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_mc_card_members') . " WHERE uniacid = :uniacid", array(':uniacid' => $_W['uniacid'])));
+	$today = floatval(pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_mc_card_members') . " WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime", array(':uniacid' => $_W['uniacid'], ':starttime' => strtotime(date('Y-m-d')), ':endtime' => TIMESTAMP)));
+	$yesterday = floatval(pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_mc_card_members') . " WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime", array(':uniacid' => $_W['uniacid'], ':starttime' => strtotime(date('Y-m-d')) - 86400, ':endtime' => strtotime(date('Y-m-d')))));
 }
 include $this->template('statcard');

@@ -17,13 +17,14 @@ if ($op == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 15;
 	$limit = 'ORDER BY id DESC LIMIT ' . ($pindex - 1) * $psize . ", {$psize}";
-	$total  = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_activity_stores') . " WHERE uniacid = :uniacid AND source = :source", array(':uniacid' => $_W['uniacid'], ':source' => COUPON_TYPE));
+	$total  = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_activity_stores') . " WHERE uniacid = :uniacid AND source = :source", array(':uniacid' => $_W['uniacid'], ':source' => COUPON_TYPE));
 	$list = pdo_getslice('storex_activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array($pindex, $psize));
 	$pager = pagination($total,$pindex,$psize);
 	foreach ($list as &$key) {
 		$key['category'] = iunserializer($key['category']);
 		$key['category_'] = implode('-', $key['category']);
 	}
+	unset($key);
 	$activity_stores_lists = pdo_getall('storex_activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE, 'store_base_id !=' => ''), array('id', 'store_base_id'));
 	$activity_stores = array();
 	if (!empty($activity_stores_lists)) {
@@ -112,6 +113,7 @@ if ($op == 'post') {
 			foreach ($location['photo_list'] as &$photo) {
 				$photo = $photo['photo_url'];
 			}
+			unset($photo);
 			$location['opentime'] = explode('-', $location['open_time']);
 			$location['open_time_start'] = $location['opentime'][0];
 			$location['open_time_end'] = $location['opentime'][1];
@@ -136,7 +138,9 @@ if ($op == 'post') {
 				message('门店图片不能为空');
 			} else {
 				foreach ($_GPC['photo_list'] as $val) {
-					if (empty($val)) continue;
+					if (empty($val)) {
+						continue;
+					}
 					$data['photo_list'][] = array('photo_url' => $val);
 				}
 			}

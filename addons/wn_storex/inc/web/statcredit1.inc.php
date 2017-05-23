@@ -73,12 +73,12 @@ if ($op == 'display') {
 		}
 		unset($da);
 		$uids = implode(',', $uids);
-		$users = pdo_fetchall('SELECT mobile, uid, realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
+		$users = pdo_fetchall("SELECT mobile, uid, realname FROM " . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
 	}
 	$pager = pagination($total, $pindex, $psize);
 	
 	if ($_GPC['export'] != '') {
-		$exports = pdo_fetchall('SELECT * FROM ' . tablename('mc_credits_record') . $condition . " ORDER BY id DESC", $params);
+		$exports = pdo_fetchall("SELECT * FROM " . tablename('mc_credits_record') . $condition . " ORDER BY id DESC", $params);
 		if (!empty($exports)) {
 			$uids = array();
 			foreach ($exports as &$da) {
@@ -115,9 +115,9 @@ if ($op == 'display') {
 		foreach ($exports as $k => $v) {
 			foreach ($filter as $key => $title) {
 				if ($key == 'name') {
-					$html .= $users[$v['uid']]['realname']. "\t, ";
+					$html .= $users[$v['uid']]['realname'] . "\t, ";
 				} elseif ($key == 'phone') {
-					$html .= $users[$v['uid']]['mobile']. "\t, ";
+					$html .= $users[$v['uid']]['mobile'] . "\t, ";
 				} elseif ($key == 'type') {
 					if ($v['num'] > 0) {
 						$html .= "充值\t, ";
@@ -125,27 +125,27 @@ if ($op == 'display') {
 						$html .= "消费\t, ";
 					}
 				} elseif ($key == 'num') {
-					$html .= abs($v[$key]). "\t, ";
+					$html .= abs($v[$key]) . "\t, ";
 				} elseif ($key == 'store') {
 					if ($v['store_id'] > 0) {
-						$html .= $stores[$v['store_id']]['business_name']. '-'. $stores[$v['store_id']]['branch_name']. "\t, ";
+						$html .= $stores[$v['store_id']]['business_name'] . '-' . $stores[$v['store_id']]['branch_name'] . "\t, ";
 					} else {
 						$html .= "未知\t, ";
 					}
 				} elseif ($key == 'operator') {
 					if ($v['clerk_id'] > 0) {
-						$html .= $clerks[$v['clerk_id']]['name']. "\t, ";
+						$html .= $clerks[$v['clerk_id']]['name'] . "\t, ";
 					} elseif ($v['clerk_type'] == 1) {
 						$html .= "系统\t, ";
 					} else {
 						$html .= "未知\t, ";
 					}
 				} elseif ($key == 'createtime') {
-					$html .= date('Y-m-d H:i', $v['createtime']). "\t, ";
+					$html .= date('Y-m-d H:i', $v['createtime']) . "\t, ";
 				} elseif ($key == 'remark') {
-					$html .= cutstr($v['remark'], '30', '...'). "\t, ";
+					$html .= cutstr($v['remark'], '30', '...') . "\t, ";
 				} else {
-					$html .= $v[$key]. "\t, ";
+					$html .= $v[$key] . "\t, ";
 				}
 			}
 			$html .= "\n";
@@ -171,7 +171,7 @@ if ($op == 'chart') {
 			$stat['consume'][$key] = 0;
 			$stat['recharge'][$key] = 0;
 		}
-		$data = pdo_fetchall('SELECT id,num,credittype,createtime,uniacid FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => $starttime, ':endtime' => $endtime));
+		$data = pdo_fetchall("SELECT id, num, credittype, createtime, uniacid FROM " . tablename('mc_credits_record') . " WHERE uniacid = :uniacid AND credittype = :credittype AND createtime >= :starttime AND createtime <= :endtime", array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => $starttime, ':endtime' => $endtime));
 	
 		if (!empty($data)) {
 			foreach ($data as $da) {
