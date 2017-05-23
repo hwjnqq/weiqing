@@ -13,7 +13,7 @@ $setting = pdo_get('storex_mc_card', array('uniacid' => $_W['uniacid']));
 if ($op == 'display') {
 	$fields_temp = mc_acccount_fields();
 	$fields = array();
-	foreach($fields_temp as $key => $val) {
+	foreach ($fields_temp as $key => $val) {
 		$fields[$key] = array(
 			'title' => $val,
 			'bind' => $key
@@ -25,13 +25,13 @@ if ($op == 'display') {
 	}
 	$discounts_params = $params['cardActivity']['params']['discounts'];
 	$discounts_temp = array();
-	if(!empty($discounts_params)) {
-		foreach($discounts_params as $row) {
+	if (!empty($discounts_params)) {
+		foreach ($discounts_params as $row) {
 			$discounts_temp[$row['groupid']] = $row;
 		}
 	}
 	$discounts = array();
-	foreach($_W['account']['groups'] as $group) {
+	foreach ($_W['account']['groups'] as $group) {
 		$discounts[$group['groupid']] = array(
 			'groupid' => $group['groupid'],
 			'title' => $group['title'],
@@ -66,14 +66,14 @@ if ($op == 'post') {
 			message(error(-1, '名称不能为空'), '', 'ajax');
 		}
 		$basic['description'] = str_replace(array("\r\n", "\n"), '<br/>', $basic['description']);
-		if(!empty($basic['fields'])) {
-			foreach($basic['fields'] as $field) {
-				if(!empty($field['title']) && !empty($field['bind'])) {
+		if (!empty($basic['fields'])) {
+			foreach ($basic['fields'] as $field) {
+				if (!empty($field['title']) && !empty($field['bind'])) {
 					$fields[] = $field;
 				}
 			}
 		}
-		if($basic['background']['type'] == 'system') {
+		if ($basic['background']['type'] == 'system') {
 			$image = pathinfo($basic['background']['image']);
 			$basic['background']['image'] = $image['filename'];
 		}
@@ -125,9 +125,9 @@ if ($op == 'post') {
 		if ($update['offset_rate'] < 0 || $update['offset_max'] < 0) {
 			message(error(-1, '抵现比率的数值不能为负数或零'), '', 'ajax');
 		}
-		if($update['discount_type'] != 0 && !empty($activity['discounts'])) {
+		if ($update['discount_type'] != 0 && !empty($activity['discounts'])) {
 			$update['discount'] = array();
-			foreach($activity['discounts'] as $discount) {
+			foreach ($activity['discounts'] as $discount) {
 				if ($update['discount_type'] == 1) {
 					if (!empty($discount['condition_1']) || !empty($discount['discount_1'])) {
 						if ($discount['condition_1'] < 0 || $discount['discount_1'] < 0) {
@@ -142,7 +142,9 @@ if ($op == 'post') {
 					}
 				}
 				$groupid = intval($discount['groupid']);
-				if($groupid <= 0) continue;
+				if ($groupid <= 0) {
+					continue;
+				}
 				$update['discount'][$groupid] = array(
 					'condition_1' => trim($discount['condition_1']),
 					'discount_1' => trim($discount['discount_1']),
@@ -152,15 +154,17 @@ if ($op == 'post') {
 			}
 			$update['discount'] = iserializer($update['discount']);
 		}
-		if($update['nums_status'] != 0 && !empty($nums['nums'])) {
+		if ($update['nums_status'] != 0 && !empty($nums['nums'])) {
 			$update['nums'] = array();
-			foreach($nums['nums'] as $row) {
+			foreach ($nums['nums'] as $row) {
 				if ($row['num'] <= 0 || $row['recharge'] <= 0) {
 					message(error(-1, '充值返次数设置不能为负数或零'), '', 'ajax');
 				}
 				$num = floatval($row['num']);
 				$recharge = trim($row['recharge']);
-				if($num <= 0 || $recharge <= 0) continue;
+				if ($num <= 0 || $recharge <= 0) {
+					continue;
+				}
 				$update['nums'][$recharge] = array(
 					'recharge' => $recharge,
 					'num' => $num
@@ -168,15 +172,17 @@ if ($op == 'post') {
 			}
 			$update['nums'] = iserializer($update['nums']);
 		}
-		if($update['times_status'] != 0 && !empty($times['times'])) {
+		if ($update['times_status'] != 0 && !empty($times['times'])) {
 			$update['times'] = array();
-			foreach($times['times'] as $row) {
+			foreach ($times['times'] as $row) {
 				if ($row['time'] <= 0 || $row['recharge'] <= 0) {
 					message(error(-1, '充值返时长设置不能为负数或零'), '', 'ajax');
 				}
 				$time = intval($row['time']);
 				$recharge = trim($row['recharge']);
-				if($time <= 0 || $recharge <= 0) continue;
+				if ($time <= 0 || $recharge <= 0) {
+					continue;
+				}
 				$update['times'][$recharge] = array(
 					'recharge' => $recharge,
 					'time' => $time
@@ -199,7 +205,7 @@ if ($op == 'post') {
 }
 
 if ($op == 'cardstatus') {
-	if(empty($setting)) {
+	if (empty($setting)) {
 		$open = array(
 			'uniacid' => $_W['uniacid'],
 			'title' => '我的会员卡',

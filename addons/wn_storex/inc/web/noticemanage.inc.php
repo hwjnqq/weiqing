@@ -14,19 +14,19 @@ if ($op == 'notice_list') {
 	$addtime = intval($_GPC['addtime']);
 	$where = ' WHERE uniacid = :uniacid AND type = 1';
 	$param = array(':uniacid' => $_W['uniacid']);
-	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_notices') . " {$where}", $param);
-	$notices = pdo_getall('storex_notices', array('uniacid' => $_W['uniacid'], 'type' => 1), array(),'', 'id DESC', ($pindex - 1) * $psize . "," . $psize);
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_notices') . " {$where}", $param);
+	$notices = pdo_getall('storex_notices', array('uniacid' => $_W['uniacid'], 'type' => 1), array(), '', 'id DESC', ($pindex - 1) * $psize . "," . $psize);
 	$pager = pagination($total, $pindex, $psize);
 }
 if ($op == 'post') {
 	$id = intval($_GPC['id']);
-	if($id > 0) {
+	if ($id > 0) {
 		$notice = pdo_get('storex_notices', array('uniacid' => $_W['uniacid'], 'id' => $id));
-		if(empty($notice)) {
+		if (empty($notice)) {
 			message('通知不存在或已被删除', referer(), 'error');
 		}
 	}
-	if(checksubmit()) {
+	if (checksubmit()) {
 		$title = trim($_GPC['title']) ? trim($_GPC['title']) : message('通知标题不能为空');
 		$content = trim($_GPC['content']) ? trim($_GPC['content']) : message('通知内容不能为空');
 		$data = array(
@@ -39,7 +39,7 @@ if ($op == 'post') {
 			'content' => htmlspecialchars_decode($_GPC['content']),
 			'addtime' => TIMESTAMP
 		);
-		if($id > 0) {
+		if ($id > 0) {
 			pdo_update('storex_notices', $data, array('uniacid' => $_W['uniacid'], 'id' => $id));
 		} else {
 			pdo_insert('storex_notices', $data);

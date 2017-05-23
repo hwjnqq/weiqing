@@ -20,7 +20,7 @@ if ($op == 'display') {
 		$property = activity_storex_member_propertys();
 		$property = json_encode($property);
 	}
-	if($_W['isajax'] && $_W['ispost']) {
+	if ($_W['isajax'] && $_W['ispost']) {
 		$member_property = $_GPC['param'];
 		$insert_data = array(
 			'property' => json_encode($member_property)

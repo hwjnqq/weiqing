@@ -40,25 +40,25 @@ if ($op == 'display') {
 			'nickname' => trim($_GPC['nickname']),
 		);
 		if ($data['template'] && $data['templateid'] == '') {
-			message('请输入模板ID',referer(),'info');
+			message('请输入模板ID', referer(), 'info');
 		}
 		//检查填写的昵称是否是关注了该公众号的用户
-		if (!empty($data['nickname'])){
+		if (!empty($data['nickname'])) {
 			$from_user = pdo_get('mc_mapping_fans', array('nickname' => $data['nickname'], 'uniacid' => $_W['uniacid']));
 			if (empty($from_user)){
 				message('输入的昵称错误或没有关注该公众号，请重新输入！');
 			}
 		}
 		if (!empty($id)) {
-			pdo_update("storex_set", $data, array("id" => $id));
+			pdo_update('storex_set', $data, array('id' => $id));
 		} else {
-			pdo_insert("storex_set", $data);
+			pdo_insert('storex_set', $data);
 		}
 		$cachekey = "wn_storex_set:{$_W['uniacid']}";
 		cache_delete($cachekey);
 		$set = get_storex_set();
-		message("保存设置成功!", referer(), "success");
+		message('保存设置成功!', referer(), 'success');
 	}
 	$set = get_storex_set();
-	include $this->template("hotelset");
+	include $this->template('hotelset');
 }

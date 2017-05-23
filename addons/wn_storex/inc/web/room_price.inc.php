@@ -12,7 +12,7 @@ $hotelid = $_GPC['hotelid'];
 
 if ($op == 'getDate') {
 	if (empty($_GPC['start']) || empty($_GPC['end'])) {
-		die(json_encode(array("result" => 0, "error" => "请选择时间")));
+		die(json_encode(array('result' => 0, 'error' => '请选择时间')));
 	}
 	$start = $_GPC['start'];
 	$end = $_GPC['end'];
@@ -117,7 +117,7 @@ if ($op == 'submitPrice') {
 	} else {
 		pdo_update("storex_room_price", $roomprice, array("id" => $roomprice['id']));
 	}
-	die(json_encode(array("result" => 1, "hotelid" => $hotelid, "roomid" => $roomid, "pricetype" => $pricetype, "price" => $price)));
+	die(json_encode(array('result' => 1, 'hotelid' => $hotelid, 'roomid' => $roomid, 'pricetype' => $pricetype, 'price' => $price)));
 }
 
 if ($op == 'updatelot') {
@@ -137,8 +137,8 @@ if ($op == 'updatelot_create') {
 		die("");
 	}
 	$days = $_GPC['days'];
-	$days_arr = implode(",", $days);
-	$rooms_arr = implode(",", $rooms);
+	$days_arr = implode(',', $days);
+	$rooms_arr = implode(',', $rooms);
 	$start = $_GPC['start'];
 	$end = $_GPC['end'];
 	$list = pdo_getall('storex_room', array('id' => $rooms));
@@ -152,9 +152,9 @@ if ($op == 'updatelot_create') {
 
 if ($op == 'updatelot_submit') {
 	$rooms = $_GPC['rooms'];
-	$rooms_arr = explode(",", $rooms);
+	$rooms_arr = explode(',', $rooms);
 	$days = $_GPC['days'];
-	$days_arr = explode(",", $days);
+	$days_arr = explode(',', $days);
 	$oprices = $_GPC['oprice'];
 	$cprices = $_GPC['cprice'];
 	$start = strtotime($_GPC['start']);
@@ -167,14 +167,14 @@ if ($op == 'updatelot_submit') {
 				$roomprice['oprice'] = $oprices[$v];
 				$roomprice['cprice'] = $cprices[$v];
 				if (empty($roomprice['id'])) {
-					pdo_insert("storex_room_price", $roomprice);
+					pdo_insert('storex_room_price', $roomprice);
 				} else {
-					pdo_update("storex_room_price", $roomprice, array("id" => $roomprice['id']));
+					pdo_update('storex_room_price', $roomprice, array('id' => $roomprice['id']));
 				}
 			}
 		}
 	}
-	message("批量修改房价成功!", $this->createWebUrl('room_price', array("hotelid" => $hotelid)), "success");
+	message('批量修改房价成功!', $this->createWebUrl('room_price', array('hotelid' => $hotelid)), 'success');
 }
 $startime = time();
 $firstday = date('Y-m-01', time());

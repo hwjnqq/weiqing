@@ -208,7 +208,7 @@ if ($op == 'display') {
 		}
 		exit();
 	}
-	$paycenter_records = pdo_fetchall("SELECT * FROM " . tablename('storex_paycenter_order') . " WHERE uniacid = :uniacid AND clerk_id = :clerk_id ORDER BY id DESC LIMIT 0,10", array(':uniacid' => $_W['uniacid'], ':clerk_id' => $_W['user']['clerk_id']));
+	$paycenter_records = pdo_fetchall("SELECT * FROM " . tablename('storex_paycenter_order') . " WHERE uniacid = :uniacid AND clerk_id = :clerk_id ORDER BY id DESC LIMIT 0, 10", array(':uniacid' => $_W['uniacid'], ':clerk_id' => $_W['user']['clerk_id']));
 	$today_credit_total = pdo_fetchall("SELECT credit2 FROM " . tablename('storex_paycenter_order') . " WHERE uniacid = :uniacid AND clerk_id = :clerk_id AND paytime > :starttime AND paytime < :endtime AND credit2 <> ''", array(':uniacid' => $_W['uniacid'], ':clerk_id' => trim($_W['user']['clerk_id']), ':starttime' => strtotime(date('Ymd')), ':endtime' => time()));
 	$today_wechat_total = pdo_fetchall("SELECT cash FROM " . tablename('storex_paycenter_order') . " WHERE uniacid = :uniacid AND clerk_id = :clerk_id AND paytime > :starttime AND paytime < :endtime AND cash <> ''", array(':uniacid' => $_W['uniacid'], ':clerk_id' => trim($_W['user']['clerk_id']), ':starttime' => strtotime(date('Ymd')), ':endtime' => time()));
 	foreach ($today_wechat_total as $val) {

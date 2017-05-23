@@ -23,7 +23,7 @@ if ($op == 'edit') {
 	if (!empty($id)) {
 		$item = pdo_get('storex_order', array('id' => $id));
 		$paylog = pdo_get('core_paylog', array('uniacid' => $item['weid'], 'tid' => $item['id'], 'module' => 'wn_storex'), array('uniacid', 'uniontid', 'tid'));
-		if (!empty($paylog)){
+		if (!empty($paylog)) {
 			$item['uniontid'] = $paylog['uniontid'];
 		}
 		if (empty($item)) {
@@ -52,15 +52,15 @@ if ($op == 'edit') {
 		if ($item['status'] == 3) {
 			message('订单状态已经完成，不能操做！', '', 'error');
 		}
-		if ($data['status'] == $item['status']){
+		if ($data['status'] == $item['status']) {
 			message('订单状态已经是该状态了，不要重复操作！', '', 'error');
 		}
-		if ($store_type == 1){
+		if ($store_type == 1) {
 			//订单取消
 			if ($data['status'] == -1 || $data['status'] == 2) {
 				$room_date_list = pdo_getall('storex_room_price', array('roomid' => $item['roomid'], 'roomdate >=' => $item['btime'], 'roomdate <' => $item['etime'], 'status' => 1), 
 					array('id', 'roomdate', 'num', 'status'));
-				if ($room_date_list) {
+				if (!empty($room_date_list)) {
 					foreach ($room_date_list as $key => $value) {
 						$num = $value['num'];
 						if ($num >= 0) {
@@ -98,7 +98,7 @@ if ($op == 'edit') {
 			//订单确认提醒
 			if ($data['status'] == 1) {
 				$acc = WeAccount::create();
-				$info = '您在'.$hotel['title'].'预订的'.$room['title']."已预订成功";
+				$info = '您在' . $hotel['title'] . '预订的' . $room['title'] . '已预订成功';
 				$custom = array(
 					'msgtype' => 'text',
 					'text' => array('content' => urlencode($info)),
@@ -107,7 +107,7 @@ if ($op == 'edit') {
 				//TM00217
 				if (!empty($setting['template']) && !empty($setting['templateid'])) {
 					$tplnotice = array(
-						'first' => array('value' => '您好，您已成功预订'.$hotel['title'].'！'),
+						'first' => array('value' => '您好，您已成功预订' . $hotel['title'] . '！'),
 						'order' => array('value' => $item['ordersn']),
 						'Name' => array('value' => $item['name']),
 						'datein' => array('value' => date('Y-m-d', $item['btime'])),
@@ -117,7 +117,7 @@ if ($op == 'edit') {
 						'pay' => array('value' => $item['sum_price']),
 						'remark' => array('value' => '酒店预订成功')
 					);
-					$result = $acc->sendTplNotice($item['openid'], $setting['templateid'],$tplnotice);
+					$result = $acc->sendTplNotice($item['openid'], $setting['templateid'], $tplnotice);
 				} else {
 					$status = $acc->sendCustomNotice($custom);
 				}
@@ -125,7 +125,7 @@ if ($op == 'edit') {
 			//已入住提醒
 			if ($data['status'] == 4) {
 				$acc = WeAccount::create();
-				$info = '您已成功入住'.$hotel['title'].'预订的'.$room['title'];
+				$info = '您已成功入住' . $hotel['title'] . '预订的' . $room['title'];
 				$custom = array(
 					'msgtype' => 'text',
 					'text' => array('content' => urlencode($info)),
@@ -134,13 +134,13 @@ if ($op == 'edit') {
 				//TM00058
 				if (!empty($setting['template']) && !empty($setting['check_in_templateid'])) {
 					$tplnotice = array(
-						'first' =>array('value' =>'您好,您已入住'.$hotel['title'].$room['title']),
+						'first' =>array('value' =>'您好,您已入住' . $hotel['title'] . $room['title']),
 						'hotelName' => array('value' => $hotel['title']),
 						'roomName' => array('value' => $room['title']),
 						'date' => array('value' => date('Y-m-d', $item['btime'])),
-						'remark' => array('value' => '如有疑问，请咨询'.$hotel['phone'].'。'),
+						'remark' => array('value' => '如有疑问，请咨询' . $hotel['phone'] . '。'),
 					);
-					$result = $acc->sendTplNotice($item['openid'], $setting['check_in_templateid'],$tplnotice);
+					$result = $acc->sendTplNotice($item['openid'], $setting['check_in_templateid'], $tplnotice);
 				} else {
 					$status = $acc->sendCustomNotice($custom);
 				}
@@ -154,7 +154,7 @@ if ($op == 'edit') {
 				//增加出售货物的数量
 				add_sold_num($room);
 				$acc = WeAccount::create();
-				$info = '您在'.$hotel['title'].'预订的'.$room['title']."订单已完成,欢迎下次光临";
+				$info = '您在'.$hotel['title'] . '预订的' . $room['title'] . '订单已完成,欢迎下次光临';
 				$custom = array(
 					'msgtype' => 'text',
 					'text' => array('content' => urlencode($info)),
@@ -169,7 +169,7 @@ if ($op == 'edit') {
 						'keyword3' => array('value' =>$item['sum_price']),
 						'remark' => array('value' => '欢迎您的下次光临。')
 					);
-					$result = $acc->sendTplNotice($item['openid'], $setting['finish_templateid'],$tplnotice);
+					$result = $acc->sendTplNotice($item['openid'], $setting['finish_templateid'], $tplnotice);
 				} else {
 					$status = $acc->sendCustomNotice($custom);
 				}
@@ -178,7 +178,7 @@ if ($op == 'edit') {
 				$data['status'] = 1;
 				$data['goods_status'] = 2;
 				$acc = WeAccount::create();
-				$info = '您在'.$hotel['title'].'预订的'.$room['title']."已发货";
+				$info = '您在' . $hotel['title'] . '预订的' . $room['title'] . '已发货';
 				$custom = array(
 					'msgtype' => 'text',
 					'text' => array('content' => urlencode($info)),
@@ -194,11 +194,10 @@ if ($op == 'edit') {
 				pdo_update('storex_coupon_record', array('status' => 3), array('id' => $item['coupon']));
 			}
 		}
-		
 		pdo_update('storex_order', $data, array('id' => $id));
 		message('订单信息处理完成！', $this->createWebUrl('order', array('hotelid' => $hotelid, "roomid" => $roomid, 'store_type' => $store_type)), 'success');
 	}
-	if ($store_type == 1){
+	if ($store_type == 1) {
 		$btime = $item['btime'];
 		$etime = $item['etime'];
 		$start = date('m-d', $btime);
@@ -218,12 +217,10 @@ if ($op == 'edit') {
 				$date_array[$i]['month'] = date('m', $date_array[$i]['time']);
 			}
 		}
-		$room_date_list = pdo_getall('storex_room_price', array('roomid' => $item['roomid'], 'roomdate >=' => $item['btime'], 'roomdate <' => $item['etime'], 'status' => 1), 
-				array('id', 'roomdate', 'num', 'status'));
-		if ($room_date_list) {
+		$room_date_list = pdo_getall('storex_room_price', array('roomid' => $item['roomid'], 'roomdate >=' => $item['btime'], 'roomdate <' => $item['etime'], 'status' => 1), array('id', 'roomdate', 'num', 'status'));
+		$flag = 0;
+		if (!empty($room_date_list)) {
 			$flag = 1;
-		} else {
-			$flag = 0;
 		}
 		$list = array();
 		if ($flag == 1) {
@@ -236,7 +233,7 @@ if ($op == 'edit') {
 						if (empty($p_value['num'])) {
 							$list[$k]['num'] = 0;
 						} elseif ($p_value['num'] == -1) {
-							$list[$k]['num'] = "不限";
+							$list[$k]['num'] = '不限';
 						} else {
 							$list[$k]['num'] = $p_value['num'];
 						}
@@ -246,7 +243,7 @@ if ($op == 'edit') {
 				}
 				//价格表中没有当天数据
 				if (empty($list[$k])) {
-					$list[$k]['num'] = "不限";
+					$list[$k]['num'] = '不限';
 					$list[$k]['status'] = 1;
 				}
 			}
@@ -313,18 +310,18 @@ if ($op == 'display') {
 		$params[':ordersn'] = "%{$ordersn}%";
 	}
 	if (!empty($hotelid)) {
-		$condition.=" AND o.hotelid=" . $hotelid;
+		$condition .= " AND o.hotelid=" . $hotelid;
 	}
 	if (!empty($roomid)) {
-		$condition.=" AND o.roomid=" . $roomid;
+		$condition .= " AND o.roomid=" . $roomid;
 	}
 	$status = $_GPC['status'];
 	if ($status != '') {
-		$condition.=" AND o.status=" . intval($status);
+		$condition .= " AND o.status=" . intval($status);
 	}
 	$paystatus = $_GPC['paystatus'];
 	if ($paystatus != '') {
-		$condition.=" and o.paystatus=" . intval($paystatus);
+		$condition .= " and o.paystatus=" . intval($paystatus);
 	}
 	$date = $_GPC['date'];
 	if (!empty($date)) {
@@ -332,15 +329,12 @@ if ($op == 'display') {
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	pdo_query('UPDATE '. tablename('storex_order'). " SET status = '-1' WHERE time <  :time AND weid = '{$_W['uniacid']}' AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400));
-	$show_order_lists = pdo_fetchall("SELECT o.*,h.title as hoteltitle,r.title as roomtitle FROM " . tablename('storex_order') . " o LEFT JOIN " . tablename('storex_bases') .
-			" h on o.hotelid=h.id LEFT JOIN " . tablename($table) . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+	pdo_query('UPDATE ' . tablename('storex_order') . " SET status = -1 WHERE time < :time AND weid = '{$_W['uniacid']}' AND paystatus = 0 AND status <> 1 AND status <> 3", array(':time' => time() - 86400));
+	$show_order_lists = pdo_fetchall("SELECT o.*, h.title AS hoteltitle, r.title AS roomtitle FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') . " h ON o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r ON r.id = o.roomid WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
 	getOrderUniontid($show_order_lists);
-	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM  ' . tablename('storex_order') . " o LEFT JOIN " . tablename('storex_bases') .
-			"h on o.hotelid=h.id LEFT JOIN " . tablename($table) . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition", $params);
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') . " AS h on o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition", $params);
 	if ($_GPC['export'] != '') {
-		$export_order_lists = pdo_fetchall("SELECT o.*,h.title as hoteltitle,r.title as roomtitle FROM " . tablename('storex_order') . " o LEFT JOIN " . tablename('storex_bases') .
-				"h on o.hotelid=h.id LEFT JOIN " . tablename($table) . " r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC" . ',' . $psize, $params);
+		$export_order_lists = pdo_fetchall("SELECT o.*, h.title as hoteltitle, r.title AS roomtitle FROM " . tablename('storex_order') . " o LEFT JOIN " . tablename('storex_bases') . " AS h on o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r ON r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC" . ',' . $psize, $params);
 		getOrderUniontid($export_order_lists);
 		/* 输入到CSV文件 */
 		$html = "\xEF\xBB\xBF";
@@ -374,52 +368,52 @@ if ($op == 'display') {
 					$html .= date('Y-m-d', $v[$key]) . "\t, ";
 				} elseif ($key == 'paytype') {
 					if ($v[$key] == 1) {
-						$html .= '余额支付'."\t, ";
+						$html .= '余额支付' . "\t, ";
 					}
 					if ($v[$key] == 21) {
-						$html .= '微信支付'."\t, ";
+						$html .= '微信支付' . "\t, ";
 					}
 					if ($v[$key] == 22) {
-						$html .= '支付宝支付'."\t, ";
+						$html .= '支付宝支付' . "\t, ";
 					}
 					if ($v[$key] == 3) {
-						$html .= '到店支付'."\t, ";
+						$html .= '到店支付' . "\t, ";
 					}
 					if ($v[$key] == '0') {
-						$html .= '未支付(或其它)'."\t, ";
+						$html .= '未支付(或其它)' . "\t, ";
 					}
 				} elseif ($key == 'paystatus') {
 					if ($v[$key] == 0) {
 						if ($v['status'] == 0) {
 							if ($v['paytype'] == 1 || $v['paytype'] == 2) {
-								$html .= '待付款'."\t, ";
+								$html .= '待付款' . "\t, ";
 							} else {
-								$html .= '等待确认'."\t, ";
+								$html .= '等待确认' . "\t, ";
 							}
 						} elseif ($v['status'] == -1) {
-							$html .= '已取消'."\t, ";
+							$html .= '已取消' . "\t, ";
 						} elseif ($v['status'] == 1) {
-							$html .= '已接受'."\t, ";
+							$html .= '已接受' . "\t, ";
 						} elseif ($v['status'] == 2) {
-							$html .= '已拒绝'."\t, ";
+							$html .= '已拒绝' . "\t, ";
 						} elseif ($v['status'] == 3) {
-							$html .= '订单完成'."\t, ";
+							$html .= '订单完成' . "\t, ";
 						}
 					} else {
 						if ($v['status'] == 0) {
 							$html .= '已支付等待确认'."\t, ";
 						} elseif ($v['status'] == -1) {
-							if ($v['paytype'] == 3){
-								$html .= '已取消'."\t, ";
+							if ($v['paytype'] == 3) {
+								$html .= '已取消' . "\t, ";
 							} else {
-								$html .= '已支付，取消并退款'."\t, ";
+								$html .= '已支付，取消并退款' . "\t, ";
 							}
 						} elseif ($v['status'] == 1) {
-							$html .= '已确认，已接受'."\t, ";
+							$html .= '已确认，已接受' . "\t, ";
 						} elseif ($v['status'] == 2) {
-							$html .= '已支付，已退款'."\t, ";
+							$html .= '已支付，已退款' . "\t, ";
 						} elseif ($v['status'] == 3) {
-							$html .= '订单完成'."\t, ";
+							$html .= '订单完成' . "\t, ";
 						}
 					}
 				} else {

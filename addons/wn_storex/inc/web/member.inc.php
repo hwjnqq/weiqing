@@ -53,9 +53,9 @@ if ($op == 'edit') {
 			//$data['password'] = md5($_GPC['password']);
 		}
 		if (empty($id)) {
-			$c = pdo_fetchcolumn("select count(*) from " . tablename('storex_member') . " where username=:username ", array(":username" => $data['username']));
+			$c = pdo_fetchcolumn("SELECT count(*) FROM " . tablename('storex_member') . " WHERE username = :username ", array(':username' => $data['username']));
 			if ($c > 0) {
-				message("用户名 " . $data['username'] . " 已经存在!", "", "error");
+				message('用户名 ' . $data['username'] . ' 已经存在!', '', 'error');
 			}
 			$data['createtime'] = time();
 			pdo_insert('storex_member', $data);
@@ -106,7 +106,6 @@ if ($op == 'status') {
 		message('抱歉，传递的参数错误！', '', 'error');
 	}
 	$temp = pdo_update('storex_member', array('status' => $_GPC['status']), array('id' => $id));
-	
 	if ($temp == false) {
 		message('抱歉，刚才操作数据失败！', '', 'error');
 	} else {
@@ -130,8 +129,7 @@ if ($op == 'clerk') {
 			message('抱歉，操作数据失败！', '', 'error');
 		}
 	}
-	$fields = array('weid', 'userid', 'from_user', 'realname', 'mobile', 'score',
-			'createtime', 'userbind', 'status', 'username', 'password', 'salt', 'nickname', 'permission');
+	$fields = array('weid', 'userid', 'from_user', 'realname', 'mobile', 'score', 'createtime', 'userbind', 'status', 'username', 'password', 'salt', 'nickname', 'permission');
 	$insert = array();
 	foreach ($fields as $val) {
 		if (!empty($member[$val])) {
@@ -148,7 +146,7 @@ if ($op == 'clerk') {
 }
 
 if ($op == 'display') {
-	$sql = "";
+	$sql = '';
 	$params = array();
 	if (!empty($_GPC['realname'])) {
 		$sql .= ' AND `realname` LIKE :realname';
@@ -161,7 +159,7 @@ if ($op == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	$list = pdo_getall('storex_member', array('weid' => $_W['uniacid'], 'realname LIKE' => "%{$_GPC['realname']}%", 'mobile LIKE' => "%{$_GPC['mobile']}%"), array(), '', 'id DESC', ($pindex - 1) * $psize . ',' . $psize);
-	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_member') . " WHERE weid = '{$_W['uniacid']}' $sql", $params);
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_member') . " WHERE weid = '{$_W['uniacid']}' $sql", $params);
 	$pager = pagination($total, $pindex, $psize);
 	include $this->template('member');
 }
