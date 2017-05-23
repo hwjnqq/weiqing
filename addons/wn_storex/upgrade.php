@@ -402,6 +402,7 @@ if (!empty($category) && !empty($stores)) {
 			}
 		}
 	}
+	unset($info);
 }
 
 
@@ -413,7 +414,7 @@ if (empty($extend)) {
 	pdo_insert('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu', 'title' => '扩展功能', 'do' => 'extend', 'icon' => 'fa fa-puzzle-piece'));
 } else {
 	if (count($extend) > 1) {
-		foreach ($extend as $key =>$value) {
+		foreach ($extend as $key => $value) {
 			if ($value['icon'] == '') {
 				pdo_delete('modules_bindings', array('eid' => $value['eid']));
 				unset($extend[$key]);
