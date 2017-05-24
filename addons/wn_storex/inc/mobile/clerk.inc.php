@@ -401,7 +401,7 @@ if ($op == 'room_info') {
 			$room_info['price_list'][$k]['roomid'] = $room_info['id'];
 			$room_info['price_list'][$k]['hotelid'] = $room_info['hotelid'];
 			$room_info['price_list'][$k]['oprice'] = $room_info['oprice'];
-			$room_info['price_list'][$k]['cprice'] = $value['cprice'];
+			$room_info['price_list'][$k]['cprice'] = $room_info['cprice'];
 		}
 	}
 	message(error(0, $room_info), '', 'ajax');
@@ -421,8 +421,14 @@ if ($op == 'edit_room') {
 	} else {
 		$dates = array(date('Y-m-d'));
 	}
-	$status = empty($_GPC['status']) ? 0 : 1;
 	$num = intval($_GPC['num']);
+	$status = 1;
+	if ($num == 0) {
+		$status = 0;
+	}
+	if ($num < 0) {
+		message(error(-1, '房间数量不能小于0！'), '', 'ajax');
+	}
 	$oprice = sprintf('%.2f', $_GPC['oprice']);
 	$cprice = sprintf('%.2f', $_GPC['cprice']);
 	if ($oprice <= 0 || $cprice <= 0) {
