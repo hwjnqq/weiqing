@@ -6,7 +6,7 @@ global $_W, $_GPC;
 load()->model('mc');
 mload()->model('card');
 
-$ops = array('clerkindex', 'order', 'order_info', 'edit_order', 'room', 'room_info', 'edit', 'permission_storex');
+$ops = array('clerkindex', 'order', 'order_info', 'edit_order', 'room', 'room_info', 'edit_room', 'permission_storex');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -416,7 +416,11 @@ if ($op == 'edit_room') {
 	$room_info['thumb'] = tomedia($room_info['thumb']);
 	check_clerk_permission($room_info['hotelid'], 'wn_storex_permission_room');
 	
-	$dates = explode(',', $_GPC['dates']);
+	if (!empty($_GPC['dates'])) {
+		$dates = explode(',', $_GPC['dates']);
+	} else {
+		$dates = array(date('Y-m-d'));
+	}
 	$status = empty($_GPC['status']) ? 0 : 1;
 	$num = intval($_GPC['num']);
 	$oprice = sprintf('%.2f', $_GPC['oprice']);
@@ -424,13 +428,9 @@ if ($op == 'edit_room') {
 	if ($oprice <= 0 || $cprice <= 0) {
 		message(error(-1, '价格不能小于等于0！'), '', 'ajax');
 	}
-	$room_id = intval($_GPC['room_id']);
-	if (empty($room_id)) {
-		message(error(-1, '请选择房间！'), '', 'ajax');
-	}
 	if (!empty($dates) && is_array($dates)) {
 		foreach ($dates as $date) {
-			$roomprice = getRoomPrice($id, $room_id, $date);
+			$roomprice = getRoomPrice($room_info['hotelid'], $room_id, $date);
 			$roomprice['num'] = $num;
 			$roomprice['status'] = $status;
 			$roomprice['oprice'] = $oprice;
