@@ -6,7 +6,7 @@ global $_W, $_GPC;
 load()->model('mc');
 mload()->model('card');
 
-$ops = array('clerkindex', 'order', 'order_info', 'room', 'edit', 'permission_storex');
+$ops = array('clerkindex', 'order', 'order_info', 'edit_order', 'room', 'edit', 'permission_storex');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -30,12 +30,13 @@ if ($op == 'order') {
 	pdo_query("UPDATE " . tablename('storex_order') . " SET status = '-1' WHERE time < :time AND weid = :uniacid AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400, ':uniacid' => $_W['uniacid']));
 	$operation_status = array(0, 1, 4);
 	$goods_status = array(0, 1);
-	$order_lists = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'hotelid' => $manage_storex_ids, 'status' => $operation_status, 'goods_status' => $goods_status), array('id', 'weid', 'hotelid', 'roomid', 'style', 'status', 'goods_status'), '', 'id DESC');
+	$order_lists = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'hotelid' => $manage_storex_ids, 'status' => $operation_status, 'goods_status' => $goods_status), array('id', 'weid', 'hotelid', 'roomid', 'style', 'status', 'goods_status', 'mode_distribute'), '', 'id DESC');
 	if (!empty($order_lists)) {
 		foreach ($order_lists as &$info) {
-			$info = clerk_order_operation($info);
 			if (!empty($manage_storex_lists[$info['hotelid']])) {
-				$table = get_goods_table($manage_storex_lists[$info['hotelid']]['store_type']);
+				$store_type = $manage_storex_lists[$info['hotelid']]['store_type'];
+				$info = clerk_order_operation($info, $store_type);
+				$table = get_goods_table($store_type);
 			} else {
 				continue;
 			}
@@ -48,53 +49,60 @@ if ($op == 'order') {
 	message(error(0, $order_data), '', 'ajax');
 }
 
-function clerk_order_operation ($item) {
-	$status = array();
-	if ($item['status'] == -1 || $item['status'] == 3 || $item['status'] == 2) {
+function clerk_order_operation ($order, $store_type) {
+	$status = array(
+		'is_cancel' => false, //-1
+		'is_confirm' => false,//1
+		'is_refuse' => false, //2
+		'is_over' => false,	  //3
+		'is_send' => false,	  //goods_status 2
+		'is_access' => false, //4
+	);
+	if ($order['status'] == -1 || $order['status'] == 3 || $order['status'] == 2) {
 		$status = array();
-	} elseif ($item['status'] == 1) {
-		if ($store_info['store_type'] == 1) {
-			$status['status']['4'] = "已入住";
+	} elseif ($order['status'] == 1) {
+		if ($store_type == 1) {
+			$status['is_access'] = true;
 		} else {
-			if ($item['mode_distribute'] == 2) {//配送
-				if ($item['goods_status'] == 1 || empty($item['goods_status'])) {
-					$status['goods_status']['2'] = '已发货';
+			if ($order['mode_distribute'] == 2) {//配送
+				if ($order['goods_status'] == 1 || empty($order['goods_status'])) {
+					$status['is_send'] = true;
 				}
 			}
 		}
-		$status['status']['3'] = "已完成";
-	} elseif ($item['status'] == 4) {
-		$status['status']['3'] = '已完成';
+		$status['is_over'] = true;
+	} elseif ($order['status'] == 4) {
+		$status['is_over'] = true;
 	} else {
-		$status['status']['-1'] = '取消订单';
-		$status['status']['1'] = '确认订单';
-		$status['status']['2'] = '拒绝订单';
-		$status['status']['3'] = '已完成';
+		$status['is_cancel'] = true;
+		$status['is_confirm'] = true;
+		$status['is_refuse'] = true;
+		$status['is_over'] = true;
 	}
 	//可以执行的操作
-	$item['operate'] = $status;
-	return $item;
+	$order['operate'] = $status;
+	return $order;
 }
 
 if ($op == 'order_info') {
 	$orderid = intval($_GPC['orderid']);
 	if (!empty($orderid)) {
-		$item = pdo_get('storex_order', array('id' => $orderid));
-		if (!empty($item)) {
-			check_clerk_permission($item['hotelid'], 'wn_storex_permission_order');
-			$storex_info = pdo_get('storex_bases', array('id' => $item['hotelid']), array('id', 'store_type'));
+		$order = pdo_get('storex_order', array('id' => $orderid));
+		if (!empty($order)) {
+			check_clerk_permission($order['hotelid'], 'wn_storex_permission_order');
+			$storex_info = pdo_get('storex_bases', array('id' => $order['hotelid']), array('id', 'store_type'));
 			$table = get_goods_table($storex_info['store_type']);
-			$goods = pdo_get($table, array('id' => $item['roomid']), array('id', 'thumb'));
-			$item['thumb'] = tomedia($goods['thumb']);
-			$item = clerk_order_operation($item);
-			message(error(0, $item), '', 'ajax');
+			$goods = pdo_get($table, array('id' => $order['roomid']), array('id', 'thumb'));
+			$order['thumb'] = tomedia($goods['thumb']);
+			$order = clerk_order_operation($order, $storex_info['store_type']);
+			message(error(0, $order), '', 'ajax');
 		}
 	}
 	message(error(-1, '抱歉，订单不存在或是已经删除！'), '', 'ajax');
 }
 
 if ($op == 'edit_order') {
-	$orderid = $_GPC['orderid'];
+	$orderid = intval($_GPC['orderid']);
 	if (empty($orderid)) {
 		message(error(-1, '参数错误！'), '', 'ajax');
 	}
@@ -103,6 +111,8 @@ if ($op == 'edit_order') {
 	if (empty($item)) {
 		message(error(-1, '抱歉，订单不存在或是已经删除'), '', 'ajax');
 	}
+	$storex_info = pdo_get('storex_bases', array('id' => $item['hotelid']), array('id', 'store_type'));
+	$table = get_goods_table($storex_info['store_type']);
 	$goodsid = intval($item['roomid']);
 	$goods_info = pdo_get($table, array('id' => $goodsid), array('id', 'title'));
 	$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']));
@@ -111,6 +121,7 @@ if ($op == 'edit_order') {
 		'msg' => $_GPC['msg'],
 		'goods_status' => intval($_GPC['goods_status']),
 	);
+	
 	if (!empty($data['status'])) {
 		if ($item['status'] == -1) {
 			message(error(-1, '订单状态已经取消，不能操做！'), '', 'ajax');
@@ -136,6 +147,7 @@ if ($op == 'edit_order') {
 			message(error(-1, '请先确认订单！'), '', 'ajax');
 		}
 	}
+	
 	//订单取消
 	if ($data['status'] == -1 || $data['status'] == 2) {
 		if ($store_info['store_type'] == 1) {
