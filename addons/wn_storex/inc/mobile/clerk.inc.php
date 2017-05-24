@@ -30,16 +30,17 @@ if ($op == 'order') {
 	pdo_query("UPDATE " . tablename('storex_order') . " SET status = '-1' WHERE time < :time AND weid = :uniacid AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400, ':uniacid' => $_W['uniacid']));
 	$operation_status = array(0, 1, 4);
 	$goods_status = array(0, 1);
-	$order_lists = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'hotelid' => $manage_storex_ids, 'status' => $operation_status, 'goods_status' => $goods_status), array(), '', 'id DESC');
+	$order_lists = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'hotelid' => $manage_storex_ids, 'status' => $operation_status, 'goods_status' => $goods_status), array('id', 'weid', 'hotelid', 'roomid', 'style', 'status', 'goods_status'), '', 'id DESC');
 	if (!empty($order_lists)) {
-		foreach ($order_lists as $key => $info) {
+		foreach ($order_lists as &$info) {
+			$info = clerk_order_operation($info);
 			if (!empty($manage_storex_lists[$info['hotelid']])) {
 				$table = get_goods_table($manage_storex_lists[$info['hotelid']]['store_type']);
 			} else {
 				continue;
 			}
 			$goods = pdo_get($table, array('id' => $info['roomid']), array('id', 'thumb'));
-			$order_lists[$key]['thumb'] = tomedia($goods['thumb']);
+			$info['thumb'] = tomedia($goods['thumb']);
 		}
 	}
 	$order_data = array();
@@ -47,36 +48,45 @@ if ($op == 'order') {
 	message(error(0, $order_data), '', 'ajax');
 }
 
+function clerk_order_operation ($item) {
+	$status = array();
+	if ($item['status'] == -1 || $item['status'] == 3 || $item['status'] == 2) {
+		$status = array();
+	} elseif ($item['status'] == 1) {
+		if ($store_info['store_type'] == 1) {
+			$status['status']['4'] = "已入住";
+		} else {
+			if ($item['mode_distribute'] == 2) {//配送
+				if ($item['goods_status'] == 1 || empty($item['goods_status'])) {
+					$status['goods_status']['2'] = '已发货';
+				}
+			}
+		}
+		$status['status']['3'] = "已完成";
+	} elseif ($item['status'] == 4) {
+		$status['status']['3'] = '已完成';
+	} else {
+		$status['status']['-1'] = '取消订单';
+		$status['status']['1'] = '确认订单';
+		$status['status']['2'] = '拒绝订单';
+		$status['status']['3'] = '已完成';
+	}
+	//可以执行的操作
+	$item['operate'] = $status;
+	return $item;
+}
+
 if ($op == 'order_info') {
 	$orderid = intval($_GPC['orderid']);
 	if (!empty($orderid)) {
 		$item = pdo_get('storex_order', array('id' => $orderid));
 		if (!empty($item)) {
-			check_clerk_permission($clerk_info, 'wn_storex_permission_order');
-			$status = array();
-			if ($item['status'] == -1 || $item['status'] == 3 || $item['status'] == 2) {
-				$status = array();
-			} elseif ($item['status'] == 1) {
-				if ($store_info['store_type'] == 1) {
-					$status['status']['4'] = "已入住";
-				} else {
-					if ($item['mode_distribute'] == 2) {//配送
-						if ($item['goods_status'] == 1 || empty($item['goods_status'])) {
-							$status['goods_status']['2'] = '已发货';
-						}
-					}
-				}
-				$status['status']['3'] = "已完成";
-			} elseif ($item['status'] == 4) {
-				$status['status']['3'] = '已完成';
-			} else {
-				$status['status']['-1'] = '取消订单';
-				$status['status']['1'] = '确认订单';
-				$status['status']['2'] = '拒绝订单';
-				$status['status']['3'] = '已完成';
-			}
-			//可以执行的操作
-			$item['operate'] = $status;
+			check_clerk_permission($item['hotelid'], 'wn_storex_permission_order');
+			$storex_info = pdo_get('storex_bases', array('id' => $item['hotelid']), array('id', 'store_type'));
+			$table = get_goods_table($storex_info['store_type']);
+			$goods = pdo_get($table, array('id' => $item['roomid']), array('id', 'thumb'));
+			$item['thumb'] = tomedia($goods['thumb']);
+			$item = clerk_order_operation($item);
 			message(error(0, $item), '', 'ajax');
 		}
 	}
@@ -89,8 +99,7 @@ if ($op == 'edit_order') {
 		message(error(-1, '参数错误！'), '', 'ajax');
 	}
 	$item = pdo_get('storex_order', array('id' => $orderid));
-	$clerk_info = get_clerk_permission($item['hotelid']);
-	check_clerk_permission($clerk_info, 'wn_storex_permission_order');
+	check_clerk_permission($item['hotelid'], 'wn_storex_permission_order');
 	if (empty($item)) {
 		message(error(-1, '抱歉，订单不存在或是已经删除'), '', 'ajax');
 	}
@@ -276,8 +285,7 @@ if ($op == 'orders') {
 	$id = intval($_GPC['id']);
 	$ac = $_GPC['ac'];
 	if ($ac != 'list' && $ac != '') {
-		$clerk_info = get_clerk_permission($id);
-		check_clerk_permission($clerk_info, 'wn_storex_permission_' . $op);
+		check_clerk_permission($id, 'wn_storex_permission_' . $op);
 		$store_info = get_store_info($id);
 		$table = get_goods_table($store_info['store_type']);
 	}
@@ -333,8 +341,7 @@ if ($op == 'orders') {
 }
 if ($op == 'room') {
 	$id = intval($_GPC['id']);//酒店id
-	$clerk_info = get_clerk_permission($id);
-	check_clerk_permission($clerk_info, 'wn_storex_permission_' . $op);
+	check_clerk_permission($id, 'wn_storex_permission_' . $op);
 	$store_info = get_store_info($id);
 	if ($store_info['store_type'] != 1) {
 		message(error(-1, '该店铺没有房型'), '', 'ajax');
@@ -425,8 +432,7 @@ if ($op == 'room') {
 
 if ($op == 'edit') {
 	$id = intval($_GPC['id']);//酒店id
-	$clerk_info = get_clerk_permission($id);
-	check_clerk_permission($clerk_info, 'wn_storex_permission_room');
+	check_clerk_permission($id, 'wn_storex_permission_room');
 	$store_info = get_store_info($id);
 	if ($store_info['store_type'] != 1) {
 		message(error(-1, '该店铺没有房型'), '', 'ajax');
