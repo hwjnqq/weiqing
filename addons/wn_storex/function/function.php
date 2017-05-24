@@ -569,6 +569,7 @@ function get_clerk_permission($id = 0) {
 	message(error(-1, '您没有进行此操作的权限！'), '', 'ajax');
 }
 function check_clerk_permission($clerk_info, $permit) {
+	$clerk_info = get_clerk_permission($item['hotelid']);
 	$is_permission = false;
 	foreach ($clerk_info as $permission) {
 		if ($permission == $permit) {
