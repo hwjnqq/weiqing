@@ -6,7 +6,7 @@ global $_W, $_GPC;
 load()->model('mc');
 mload()->model('card');
 
-$ops = array('clerkindex', 'order', 'room', 'edit');
+$ops = array('clerkindex', 'order', 'room', 'edit', 'permission_storex');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -16,7 +16,26 @@ if ($op == 'clerkindex') {
 	$clerk_info = get_clerk_permission($id);
 	message(error(0, $clerk_info), '', 'ajax');
 }
+
+if ($op == 'permission_storex') {
+	$type = $_GPC['type'];
+	$manage_storex_lists = clerk_permission_storex($type);
+	message(error(0, $manage_storex_lists), '', 'ajax');
+}
+
 if ($op == 'order') {
+	$manage_storex_ids = clerk_permission_storex($op);
+	pdo_query("UPDATE " . tablename('storex_order') . " SET status = '-1' WHERE time < :time AND weid = :uniacid AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400, ':uniacid' => $_W['uniacid']));
+	$operation_status = array(0, 1, 4);
+	$goods_status = array(0, 1);
+	$order_lists = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'hotelid' => $manage_storex_ids, 'status' => $operation_status, 'goods_status' => $goods_status), array(), '', 'id DESC');
+	$order_data = array();
+	$order_data['order_lists'] = $order_lists;
+	message(error(0, $order_data), '', 'ajax');
+}
+
+
+if ($op == 'orders') {
 	$id = intval($_GPC['id']);
 	$ac = $_GPC['ac'];
 	if ($ac != 'list' && $ac != '') {
@@ -344,6 +363,9 @@ if ($op == 'room') {
 			}
 		}
 	}
+	echo "<pre>";
+	print_r($list);
+	echo "</pre>";
 	message(error(0, $list), '', 'ajax');
 }
 
