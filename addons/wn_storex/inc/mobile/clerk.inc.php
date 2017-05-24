@@ -426,13 +426,16 @@ if ($op == 'edit_room') {
 	if ($num == 0) {
 		$status = 0;
 	}
-	if ($num < 0) {
-		message(error(-1, '房间数量不能小于0！'), '', 'ajax');
+	if ($num < -1) {
+		message(error(-1, '房间数量错误！'), '', 'ajax');
 	}
 	$oprice = sprintf('%.2f', $_GPC['oprice']);
 	$cprice = sprintf('%.2f', $_GPC['cprice']);
 	if ($oprice <= 0 || $cprice <= 0) {
 		message(error(-1, '价格不能小于等于0！'), '', 'ajax');
+	}
+	if ($oprice < $cprice) {
+		message(error(-1, '价格错误！'), '', 'ajax');
 	}
 	if (!empty($dates) && is_array($dates)) {
 		foreach ($dates as $date) {
