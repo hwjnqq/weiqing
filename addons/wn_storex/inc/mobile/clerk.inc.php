@@ -26,10 +26,22 @@ if ($op == 'permission_storex') {
 
 if ($op == 'order') {
 	$manage_storex_ids = clerk_permission_storex($op);
+	$manage_storex_lists = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $manage_storex_ids), array('id', 'title', 'store_type'), 'id');
 	pdo_query("UPDATE " . tablename('storex_order') . " SET status = '-1' WHERE time < :time AND weid = :uniacid AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400, ':uniacid' => $_W['uniacid']));
 	$operation_status = array(0, 1, 4);
 	$goods_status = array(0, 1);
 	$order_lists = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'hotelid' => $manage_storex_ids, 'status' => $operation_status, 'goods_status' => $goods_status), array(), '', 'id DESC');
+	if (!empty($order_lists)) {
+		foreach ($order_lists as $key => $info) {
+			if (!empty($manage_storex_lists[$info['hotelid']])) {
+				$table = get_goods_table($manage_storex_lists[$info['hotelid']]['store_type']);
+			} else {
+				continue;
+			}
+			$goods = pdo_get($table, array('id' => $info['roomid']), array('id', 'thumb'));
+			$order_lists[$key]['thumb'] = tomedia($goods['thumb']);
+		}
+	}
 	$order_data = array();
 	$order_data['order_lists'] = $order_lists;
 	message(error(0, $order_data), '', 'ajax');
