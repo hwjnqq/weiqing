@@ -4,7 +4,6 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 load()->model('mc');
-mload()->model('card');
 
 $ops = array('clerkindex', 'order', 'order_info', 'edit_order', 'room', 'room_info', 'edit_room', 'permission_storex');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
@@ -18,7 +17,7 @@ if ($op == 'clerkindex') {
 }
 
 if ($op == 'permission_storex') {
-	$type = $_GPC['type'];
+	$type = trim($_GPC['type']);
 	$manage_storex_ids = clerk_permission_storex($type);
 	$manage_storex_lists = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $manage_storex_ids), array('id', 'title'));
 	message(error(0, $manage_storex_lists), '', 'ajax');
@@ -27,11 +26,11 @@ if ($op == 'permission_storex') {
 if ($op == 'order') {
 	$manage_storex_ids = clerk_permission_storex($op);
 	$manage_storex_lists = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $manage_storex_ids), array('id', 'title', 'store_type'), 'id');
-	pdo_query("UPDATE " . tablename('storex_order') . " SET status = '-1' WHERE time < :time AND weid = :uniacid AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400, ':uniacid' => $_W['uniacid']));
+	pdo_query("UPDATE " . tablename('storex_order') . " SET status = '-1' WHERE time < :time AND weid = :uniacid AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400, ':uniacid' => intval($_W['uniacid'])));
 	$operation_status = array(0, 1, 4);
 	$goods_status = array(0, 1);
 	$order_lists = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'hotelid' => $manage_storex_ids, 'status' => $operation_status, 'goods_status' => $goods_status), array('id', 'weid', 'hotelid', 'roomid', 'style', 'status', 'goods_status', 'mode_distribute', 'nums', 'sum_price', 'day'), '', 'id DESC');
-	if (!empty($order_lists)) {
+	if (!empty($order_lists) && is_array($order_lists)) {
 		foreach ($order_lists as &$info) {
 			if (!empty($manage_storex_lists[$info['hotelid']])) {
 				$store_type = $manage_storex_lists[$info['hotelid']]['store_type'];
@@ -48,41 +47,6 @@ if ($op == 'order') {
 	$order_data = array();
 	$order_data['order_lists'] = $order_lists;
 	message(error(0, $order_data), '', 'ajax');
-}
-
-function clerk_order_operation ($order, $store_type) {
-	$status = array(
-		'is_cancel' => false, //-1
-		'is_confirm' => false,//1
-		'is_refuse' => false, //2
-		'is_over' => false,	  //3
-		'is_send' => false,	  //goods_status 2
-		'is_access' => false, //4
-	);
-	if ($order['status'] == -1 || $order['status'] == 3 || $order['status'] == 2) {
-		$status = array();
-	} elseif ($order['status'] == 1) {
-		if ($store_type == 1) {
-			$status['is_access'] = true;
-		} else {
-			if ($order['mode_distribute'] == 2) {//配送
-				if ($order['goods_status'] == 1 || empty($order['goods_status'])) {
-					$status['is_send'] = true;
-				}
-			}
-		}
-		$status['is_over'] = true;
-	} elseif ($order['status'] == 4) {
-		$status['is_over'] = true;
-	} else {
-		$status['is_cancel'] = true;
-		$status['is_confirm'] = true;
-		$status['is_refuse'] = true;
-		$status['is_over'] = true;
-	}
-	//可以执行的操作
-	$order['operate'] = $status;
-	return $order;
 }
 
 if ($op == 'order_info') {
@@ -120,11 +84,11 @@ if ($op == 'edit_order') {
 	$goods_info = pdo_get($table, array('id' => $goodsid), array('id', 'title'));
 	$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']));
 	$status_array = array(
-		'is_cancel' => -1, //-1    取消
-		'is_confirm' => 1,//1  确认
-		'is_refuse' => 2, //2   拒绝
-		'is_over' => 3,	  //3  完成
-		'is_access' => 4, //4    已入住
+		'is_cancel' => -1,	//取消
+		'is_confirm' => 1,	//确认
+		'is_refuse' => 2,	//拒绝
+		'is_over' => 3,		//完成
+		'is_access' => 4,	//已入住
 	);
 	$type = trim($_GPC['type']);
 	$data = array(
@@ -197,17 +161,17 @@ if ($op == 'edit_order') {
 			$acc = WeAccount::create();
 			$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已不足。已为您取消订单";
 			$custom = array(
-					'msgtype' => 'text',
-					'text' => array('content' => urlencode($info)),
-					'touser' => $item['openid'],
+				'msgtype' => 'text',
+				'text' => array('content' => urlencode($info)),
+				'touser' => $item['openid'],
 			);
 			if (!empty($setting['template']) && !empty($setting['refuse_templateid'])) {
 				$tplnotice = array(
-						'first' => array('value' => '尊敬的宾客，非常抱歉的通知您，您的预订订单被拒绝。'),
-						'keyword1' => array('value' => $item['ordersn']),
-						'keyword3' => array('value' => $item['nums']),
-						'keyword4' => array('value' => $item['sum_price']),
-						'keyword5' => array('value' => '商品不足'),
+					'first' => array('value' => '尊敬的宾客，非常抱歉的通知您，您的预订订单被拒绝。'),
+					'keyword1' => array('value' => $item['ordersn']),
+					'keyword3' => array('value' => $item['nums']),
+					'keyword4' => array('value' => $item['sum_price']),
+					'keyword5' => array('value' => '商品不足'),
 				);
 				if ($store_info['store_type'] == 1) {
 					$tplnotice['keyword2'] = array('value' => date('Y.m.d', $item['btime']) . '-' . date('Y.m.d', $item['etime']));
@@ -222,22 +186,22 @@ if ($op == 'edit_order') {
 			$acc = WeAccount::create();
 			$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已预订成功";
 			$custom = array(
-					'msgtype' => 'text',
-					'text' => array('content' => urlencode($info)),
-					'touser' => $item['openid'],
+				'msgtype' => 'text',
+				'text' => array('content' => urlencode($info)),
+				'touser' => $item['openid'],
 			);
 			//TM00217
 			if (!empty($setting['template']) && !empty($setting['templateid'])) {
 				$tplnotice = array(
-						'first' => array('value' => '您好，您已成功预订' . $store_info['title'] . '！'),
-						'order' => array('value' => $item['ordersn']),
-						'Name' => array('value' => $item['name']),
-						'datein' => array('value' => date('Y-m-d', $item['btime'])),
-						'dateout' => array('value' => date('Y-m-d', $item['etime'])),
-						'number' => array('value' => $item['nums']),
-						'room type' => array('value' => $item['style']),
-						'pay' => array('value' => $item['sum_price']),
-						'remark' => array('value' => '预订成功')
+					'first' => array('value' => '您好，您已成功预订' . $store_info['title'] . '！'),
+					'order' => array('value' => $item['ordersn']),
+					'Name' => array('value' => $item['name']),
+					'datein' => array('value' => date('Y-m-d', $item['btime'])),
+					'dateout' => array('value' => date('Y-m-d', $item['etime'])),
+					'number' => array('value' => $item['nums']),
+					'room type' => array('value' => $item['style']),
+					'pay' => array('value' => $item['sum_price']),
+					'remark' => array('value' => '预订成功')
 				);
 				$result = $acc->sendTplNotice($item['openid'], $setting['templateid'], $tplnotice);
 			} else {
@@ -249,18 +213,18 @@ if ($op == 'edit_order') {
 			$acc = WeAccount::create();
 			$info = '您已成功入住' . $store_info['title'] . '预订的' . $goods_info['title'];
 			$custom = array(
-					'msgtype' => 'text',
-					'text' => array('content' => urlencode($info)),
-					'touser' => $item['openid'],
+				'msgtype' => 'text',
+				'text' => array('content' => urlencode($info)),
+				'touser' => $item['openid'],
 			);
 			//TM00058
 			if (!empty($setting['template']) && !empty($setting['check_in_templateid'])) {
 				$tplnotice = array(
-						'first' =>array('value' =>'您好,您已入住' . $store_info['title'] . $goods_info['title']),
-						'hotelName' => array('value' => $store_info['title']),
-						'roomName' => array('value' => $goods_info['title']),
-						'date' => array('value' => date('Y-m-d', $item['btime'])),
-						'remark' => array('value' => '如有疑问，请咨询' . $store_info['phone'] . '。'),
+					'first' =>array('value' =>'您好,您已入住' . $store_info['title'] . $goods_info['title']),
+					'hotelName' => array('value' => $store_info['title']),
+					'roomName' => array('value' => $goods_info['title']),
+					'date' => array('value' => date('Y-m-d', $item['btime'])),
+					'remark' => array('value' => '如有疑问，请咨询' . $store_info['phone'] . '。'),
 				);
 				$result = $acc->sendTplNotice($item['openid'], $setting['check_in_templateid'], $tplnotice);
 			} else {
@@ -278,18 +242,18 @@ if ($op == 'edit_order') {
 			$acc = WeAccount::create();
 			$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "订单已完成,欢迎下次光临";
 			$custom = array(
-					'msgtype' => 'text',
-					'text' => array('content' => urlencode($info)),
-					'touser' => $item['openid'],
+				'msgtype' => 'text',
+				'text' => array('content' => urlencode($info)),
+				'touser' => $item['openid'],
 			);
 			//OPENTM203173461
 			if (!empty($setting['template']) && !empty($setting['finish_templateid']) && $store_info['store_type'] == 1) {
 				$tplnotice = array(
-						'first' => array('value' =>'您已成功办理离店手续，您本次入住酒店的详情为'),
-						'keyword1' => array('value' => date('Y-m-d', $item['btime'])),
-						'keyword2' => array('value' => date('Y-m-d', $item['etime'])),
-						'keyword3' => array('value' => $item['sum_price']),
-						'remark' => array('value' => '欢迎您的下次光临。')
+					'first' => array('value' =>'您已成功办理离店手续，您本次入住酒店的详情为'),
+					'keyword1' => array('value' => date('Y-m-d', $item['btime'])),
+					'keyword2' => array('value' => date('Y-m-d', $item['etime'])),
+					'keyword3' => array('value' => $item['sum_price']),
+					'remark' => array('value' => '欢迎您的下次光临。')
 				);
 				$result = $acc->sendTplNotice($item['openid'], $setting['finish_templateid'], $tplnotice);
 			} else {
@@ -302,9 +266,9 @@ if ($op == 'edit_order') {
 			$acc = WeAccount::create();
 			$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已发货";
 			$custom = array(
-					'msgtype' => 'text',
-					'text' => array('content' => urlencode($info)),
-					'touser' => $item['openid'],
+				'msgtype' => 'text',
+				'text' => array('content' => urlencode($info)),
+				'touser' => $item['openid'],
 			);
 			$status = $acc->sendCustomNotice($custom);
 		}
@@ -346,11 +310,11 @@ if ($op == 'room_info') {
 	$dates = get_dates($start_time, $days);
 	$item = array();
 	$sql = "SELECT * FROM " . tablename('storex_room_price');
-	$sql .= " WHERE weid = " . intval($_W['uniacid']);
-	$sql .= " AND roomid = " . $room_id;
+	$sql .= " WHERE weid = :weid ";
+	$sql .= " AND roomid = :roomid ";
 	$sql .= " AND roomdate >= " . $btime;
 	$sql .= " AND roomdate < " . ($etime + 86400);
-	$item = pdo_fetchall($sql);
+	$item = pdo_fetchall($sql, array(':weid' => intval($_W['uniacid']), ':roomid' => $room_id));
 	$flag = 0;
 	if (!empty($item)) {
 		$flag = 1;

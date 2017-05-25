@@ -109,7 +109,22 @@ function check_params() {
 			),
 			'clerkindex' => array(),
 			'order' => array(),
+			'order_info' => array(
+				'orderid' => $_GPC['orderid'],
+			),
+			'edit_order' => array(
+				'orderid' => $_GPC['orderid'],
+			),
 			'room' => array(),
+			'room_info' => array(
+				'room_id' => $_GPC['room_id'],
+			),
+			'edit_room' => array(
+				'room_id' => $_GPC['room_id'],
+			),
+			'permission_storex' => array(
+				'type' => $_GPC['type'],
+			),
 		),
 		'sign' => array(
 			'common' => array(
@@ -309,6 +324,45 @@ function orders_check_status($item) {
 	}
 	$item['order_status'] = $order_status_text[$status];
 	return $item;
+}
+
+/**店员可操作订单的行为
+ * $order  订单信息
+ * $store_type  店铺类型
+*/
+function clerk_order_operation ($order, $store_type) {
+	$status = array(
+			'is_cancel' => false,	//-1
+			'is_confirm' => false,	//1
+			'is_refuse' => false,	//2
+			'is_over' => false,		//3
+			'is_send' => false,		//goods_status 2
+			'is_access' => false,	//4
+	);
+	if ($order['status'] == -1 || $order['status'] == 3 || $order['status'] == 2) {
+		$status = array();
+	} elseif ($order['status'] == 1) {
+		if ($store_type == 1) {
+			$status['is_access'] = true;
+		} else {
+			if ($order['mode_distribute'] == 2) {//配送
+				if ($order['goods_status'] == 1 || empty($order['goods_status'])) {
+					$status['is_send'] = true;
+				}
+			}
+		}
+		$status['is_over'] = true;
+	} elseif ($order['status'] == 4) {
+		$status['is_over'] = true;
+	} else {
+		$status['is_cancel'] = true;
+		$status['is_confirm'] = true;
+		$status['is_refuse'] = true;
+		$status['is_over'] = true;
+	}
+	//可以执行的操作
+	$order['operate'] = $status;
+	return $order;
 }
 
 /**格式化图片的路径
