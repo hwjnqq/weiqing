@@ -142,7 +142,8 @@ if ($op == 'clerk') {
 		}
 	}
 	pdo_insert('storex_clerk', $insert);
-	message('状态设置成功！', referer(), 'success');
+	$insert_id = pdo_insertid();
+	message('状态设置成功！', $this->createWebUrl('clerk',array('op' => 'edit', 'id' => $insert_id)), 'success');
 }
 
 if ($op == 'display') {
