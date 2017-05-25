@@ -48,32 +48,26 @@ if ($op == 'edit') {
 			'realname' => trim($_GPC['realname']),
 			'mobile' => $_GPC['mobile'],
 			'status' => intval($_GPC['status']),
-			'nickname' => trim($_GPC['nickname']),
+            'from_user' => $_GPC['from_user'],
 			'permission' => iserializer($_GPC['permission']),
 		);
 		if (empty($id)) {
-			if (empty($data['nickname'])) {
-				message('请填写店员的微信昵称，否则无法获取到店员信息', '', 'info');
-			}
-		} else {
-			$from_user = pdo_get('storex_clerk', array('id' => $id, 'weid' => $_W['uniacid']));
-			if (empty($from_user['from_user']) && empty($data['nickname'])) {
-				message('请填写店员的微信昵称，否则无法获取到店员', '', 'info');
+			if (empty($data['from_user'])) {
+				message('请填写店员的微信openid，否则无法获取到店员信息', '', 'info');
 			}
 		}
-		$from_user = pdo_get('mc_mapping_fans', array('nickname' => $data['nickname'], 'uniacid' => $_W['uniacid']));
-		$data['from_user'] = $from_user['openid'];
-		if (empty($data['from_user'])) {
+		$from_user = pdo_get('mc_mapping_fans', array('openid' => $data['from_user'], 'uniacid' => $_W['uniacid']));
+		if (empty($from_user)) {
 			message('关注公众号后才能成为店员', referer(), 'info');
 		}
 		if (empty($id)) {
-			$c = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_clerk') . " WHERE username=:username ", array(":username" => $data['username']));
-			if ($c > 0) {
+			$exist = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_clerk') . " WHERE username=:username ", array(":username" => $data['username']));
+			if ($exist > 0) {
 				message("用户名 " . $data['username'] . " 已经存在!", "", "error");
 			}
 			$data['createtime'] = time();
 			$result = pdo_get('storex_clerk', array('from_user' => $data['from_user'], 'weid' => $_W['uniacid']));
-			if ($result['from_user']) {
+			if (!empty($result)) {
 				pdo_update('storex_clerk', $data, array('id' => $result['id']));
 			} else {
 				pdo_insert('storex_clerk', $data);

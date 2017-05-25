@@ -234,6 +234,9 @@ if ($op == 'edit_order') {
 	
 		//订单完成提醒
 		if ($data['status'] == 3) {
+			if (empty($item['status'])) {
+				message(error(-1, '请先确认订单再完成！'), '', 'ajax');
+			}
 			$uid = mc_openid2uid(trim($item['openid']));
 			//订单完成后增加积分
 			card_give_credit($item['weid'], $uid, $item['sum_price'], $item['hotelid']);

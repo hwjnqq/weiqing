@@ -358,7 +358,6 @@ function clerk_order_operation ($order, $store_type) {
 		$status['is_cancel'] = true;
 		$status['is_confirm'] = true;
 		$status['is_refuse'] = true;
-		$status['is_over'] = true;
 	}
 	//可以执行的操作
 	$order['operate'] = $status;
