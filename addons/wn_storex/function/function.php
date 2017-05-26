@@ -682,3 +682,14 @@ function extend_switch_fetch() {
 	cache_write($cachekey, $switchs);
 	return $switchs;
 }
+
+function get_plugin_list() {
+	load()->model('module');
+	$plugin_list = module_get_plugin_list('wn_storex');
+	if (!empty($plugin_list) && is_array($plugin_list)) {
+		foreach ($plugin_list as $name => $plugin) {
+			$plugins[$name] = true;
+		}
+	}
+	return $plugins;
+}

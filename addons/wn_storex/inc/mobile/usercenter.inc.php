@@ -26,10 +26,12 @@ if ($op == 'extend_switch') {
 	if (!empty($notices)) {
 		foreach ($notices as $val) {
 			if (empty($val['read_status'])) {
-				$notice_unread_num ++;
+				$notice_unread_num++;
 			}
 		}
 	}
+	$plugin_list = get_plugin_list();
+	$extend_switch['plugin_list'] = $plugin_list;
 	$extend_switch['notice_unread_num'] = $notice_unread_num;
 	message(error(0, $extend_switch), '', 'ajax');
 }
