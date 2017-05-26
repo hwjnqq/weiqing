@@ -502,3 +502,71 @@ function storex_account_change_operator($clerk_type, $store_id, $clerk_id) {
 	}
 	return $data;
 }
+
+/**
+ * 获取礼品兑换信息(仅用于判断真实物品或活动参与次数)
+ * @param int $exchangeid 兑换ID
+ * @param int $uniacid 公众号ID
+ * @return array
+ **/
+function activity_get_exchange_info($exchangeid, $uniacid = 0) {
+	global $_W;
+	$uniacid = intval($uniacid) ? intval($uniacid) : $_W['uniacid'];
+	$exchange = pdo_get('storex_activity_exchange', array('id' => $exchangeid, 'uniacid' => $uniacid));
+	if (!empty($exchange) && !empty($exchange['extra'])) {
+		$exchange['extra'] = iunserializer($exchange['extra']);
+	}
+	return $exchange;
+}
+
+/**
+ * 指定会员兑换指定真实物品
+ * @param int $uid  会员UID
+ * @param int $exid  真实物品ID
+ * @return mixed
+ */
+function activity_user_get_goods($uid, $exid) {
+	global $_W;
+	$exid = intval($exid);
+	$uid = intval($uid);
+	$exchange = activity_get_exchange_info($exid, $_W['uniacid']);
+	if (empty($exchange)) {
+		return error(-1, '没有指定的实物兑换');
+	}
+	if ($exchange['starttime'] > TIMESTAMP) {
+		return error(-1, '该实物兑换尚未开始');
+	}
+	if ($exchange['endtime'] < TIMESTAMP) {
+		return error(-1, '该实物兑换已经结束');
+	}
+	$pnum = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_activity_exchange_trades') . ' WHERE uniacid = :uniacid AND uid = :uid AND exid = :exid', array(':uniacid' => $_W['uniacid'], ':uid' => $uid, ':exid' => $exid));
+	if ($pnum >= $exchange['pretotal']) {
+		return error(-1, '该实物兑换每人只能使用' . $exchange['pretotal'] . '次');
+	}
+	if ($exchange['num'] >= $exchange['total']) {
+		return error(-1, '该实物兑换已兑换完');
+	}
+	$data = array(
+		'uniacid' => $_W['uniacid'],
+		'uid' => $uid,
+		'type' => 3,
+		'exid' => $exid,
+		'createtime' => TIMESTAMP,
+	);
+	pdo_insert('storex_activity_exchange_trades', $data);
+	$insert_id = pdo_insertid();
+	if (empty($insert_id)) {
+		return error(-1, '实物兑换失败');
+	}
+	$insert = array(
+		'tid' => $insert_id,
+		'uniacid' => $_W['uniacid'],
+		'uid' => $uid,
+		'status' => 0,
+		'exid' => $exid,
+		'createtime' => TIMESTAMP
+	);
+	pdo_insert('storex_activity_exchange_trades_shipping', $insert);
+	pdo_update('storex_activity_exchange', array('num' => $exchange['num'] + 1), array('id' => $exid, 'uniacid' => $_W['uniacid']));
+	return $insert_id;
+}
