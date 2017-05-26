@@ -118,7 +118,7 @@
 		var discounts = {php echo json_encode($discounts);};
 		params.cardActivity.params.discounts = discounts;
 		var fansFields = {php echo json_encode($fields);};
-		var card_status = {php echo $setting['status'] ? $setting['status'] : 1};
+		var card_status = {php echo $setting['status'] ? $setting['status'] : 0};
 		var app = new Vue({
 			el: '#membercard',
 			data: {

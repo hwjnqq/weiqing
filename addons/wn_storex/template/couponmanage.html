@@ -894,7 +894,7 @@ require(['jquery.qrcode'], function(){
 					bind: function (el, binding, vnode) {
 						var self = this;
 						var value = binding.value; // 传递给指令的值
-						require(['daterangepicker'], function($){
+						require(['daterangepicker', 'jquery'], function($, $){
 							$('.daterange.daterange-date').daterangepicker({
 								startDate: starttime,
 								endDate: endtime,
