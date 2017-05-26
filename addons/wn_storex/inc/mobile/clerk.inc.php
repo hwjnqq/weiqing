@@ -159,13 +159,7 @@ if ($op == 'edit_order') {
 	if ($data['status'] != $item['status']) {
 		//订单退款
 		if ($data['status'] == 2) {
-			$acc = WeAccount::create();
 			$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已不足。已为您取消订单";
-			$custom = array(
-				'msgtype' => 'text',
-				'text' => array('content' => urlencode($info)),
-				'touser' => $item['openid'],
-			);
 			if (!empty($setting['template']) && !empty($setting['refuse_templateid'])) {
 				$tplnotice = array(
 					'first' => array('value' => '尊敬的宾客，非常抱歉的通知您，您的预订订单被拒绝。'),
@@ -177,20 +171,15 @@ if ($op == 'edit_order') {
 				if ($store_info['store_type'] == 1) {
 					$tplnotice['keyword2'] = array('value' => date('Y.m.d', $item['btime']) . '-' . date('Y.m.d', $item['etime']));
 				}
+				$acc = WeAccount::create();
 				$acc->sendTplNotice($item['openid'], $setting['refuse_templateid'], $tplnotice);
 			} else {
-				$status = $acc->sendCustomNotice($custom);
+				$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
 			}
 		}
 		//订单确认提醒
 		if ($data['status'] == 1) {
-			$acc = WeAccount::create();
 			$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已预订成功";
-			$custom = array(
-				'msgtype' => 'text',
-				'text' => array('content' => urlencode($info)),
-				'touser' => $item['openid'],
-			);
 			//TM00217
 			if (!empty($setting['template']) && !empty($setting['templateid'])) {
 				$tplnotice = array(
@@ -204,20 +193,15 @@ if ($op == 'edit_order') {
 					'pay' => array('value' => $item['sum_price']),
 					'remark' => array('value' => '预订成功')
 				);
+				$acc = WeAccount::create();
 				$result = $acc->sendTplNotice($item['openid'], $setting['templateid'], $tplnotice);
 			} else {
-				$status = $acc->sendCustomNotice($custom);
+				$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
 			}
 		}
 		//已入住提醒
 		if ($data['status'] == 4) {
-			$acc = WeAccount::create();
 			$info = '您已成功入住' . $store_info['title'] . '预订的' . $goods_info['title'];
-			$custom = array(
-				'msgtype' => 'text',
-				'text' => array('content' => urlencode($info)),
-				'touser' => $item['openid'],
-			);
 			//TM00058
 			if (!empty($setting['template']) && !empty($setting['check_in_templateid'])) {
 				$tplnotice = array(
@@ -227,9 +211,10 @@ if ($op == 'edit_order') {
 					'date' => array('value' => date('Y-m-d', $item['btime'])),
 					'remark' => array('value' => '如有疑问，请咨询' . $store_info['phone'] . '。'),
 				);
+				$acc = WeAccount::create();
 				$result = $acc->sendTplNotice($item['openid'], $setting['check_in_templateid'], $tplnotice);
 			} else {
-				$status = $acc->sendCustomNotice($custom);
+				$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
 			}
 		}
 	
@@ -243,7 +228,6 @@ if ($op == 'edit_order') {
 			card_give_credit($item['weid'], $uid, $item['sum_price'], $item['hotelid']);
 			//增加出售货物的数量
 			add_sold_num($goods_info);
-			$acc = WeAccount::create();
 			$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "订单已完成,欢迎下次光临";
 			$custom = array(
 				'msgtype' => 'text',
@@ -259,22 +243,21 @@ if ($op == 'edit_order') {
 					'keyword3' => array('value' => $item['sum_price']),
 					'remark' => array('value' => '欢迎您的下次光临。')
 				);
+				$acc = WeAccount::create();
 				$result = $acc->sendTplNotice($item['openid'], $setting['finish_templateid'], $tplnotice);
 			} else {
-				$status = $acc->sendCustomNotice($custom);
+				$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
 			}
+		}
+		if ($data['status'] == -1) {
+			$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "订单已取消，请联系管理员！";
+			$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
 		}
 		//发货设置
 		if (!empty($data['goods_status']) && $data['goods_status'] == 2) {
 			$data['status'] = 1;
-			$acc = WeAccount::create();
 			$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已发货";
-			$custom = array(
-				'msgtype' => 'text',
-				'text' => array('content' => urlencode($info)),
-				'touser' => $item['openid'],
-			);
-			$status = $acc->sendCustomNotice($custom);
+			$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
 		}
 		pdo_update('storex_order', $data, array('id' => $orderid));
 		message(error(0, '处理订单成功！'), '', 'ajax');

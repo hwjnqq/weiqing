@@ -363,6 +363,31 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_users_permission` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(10) unsigned NOT NULL,
+	`uid` int(10) unsigned NOT NULL,
+	`type` varchar(30) NOT NULL,
+	`permission` varchar(10000) NOT NULL,
+	`url` varchar(255) NOT NULL,
+	PRIMARY KEY (`id`)
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_activity_clerk_menu` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`uniacid` int(11) NOT NULL,
+	`displayorder` int(4) NOT NULL,
+	`pid` int(6) NOT NULL,
+	`group_name` varchar(20) NOT NULL,
+	`title` varchar(20) NOT NULL,
+	`icon` varchar(50) NOT NULL,
+	`url` varchar(200) NOT NULL,
+	`type` varchar(20) NOT NULL,
+	`permission` varchar(50) NOT NULL,
+	`system` int(2) NOT NULL DEFAULT '0',
+	PRIMARY KEY (`id`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ";
 pdo_run($sql);
 if (!pdo_fieldexists('storex_bases', 'category_set')) {

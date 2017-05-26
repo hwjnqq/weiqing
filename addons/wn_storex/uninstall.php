@@ -32,6 +32,8 @@ $wn_storex_table = array(
 	'storex_activity_stores',
 	'storex_activity_clerks',
 	'storex_paycenter_order',
+	'storex_users_permission',
+	'storex_activity_clerk_menu',
 );
 foreach ($wn_storex_table as $table){
 	if(pdo_tableexists($table)){
