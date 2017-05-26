@@ -163,10 +163,10 @@ if ($do == 'entry') {
 		);
 		$has_permission['system'] = uni_user_permission('system');
 		//获取用户的模块权限
-		$temp_module = pdo_fetchall('SELECT * FROM ' . tablename('users_permission') . ' WHERE uniacid = :uniacid AND uid = :uid AND type != :type', array(':uniacid' => $_W['uniacid'], ':uid' => $_W['uid'], ':type' => 'system'), 'type');
-		if(!empty($temp_module)) {
-			$has_permission['modules'] = array_keys($temp_module);
-			foreach($temp_module as $row) {
+		$module_permission = uni_getall_user_module_permission($_W['uid'], $_W['uniacid']);
+		if(!empty($module_permission)) {
+			$has_permission['modules'] = array_keys($module_permission);
+			foreach($module_permission as $row) {
 				if($row['permission'] == 'all') {
 					$has_permission[$row['type']] = array('all');
 				} else {

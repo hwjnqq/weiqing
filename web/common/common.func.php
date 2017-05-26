@@ -170,7 +170,7 @@ function buildframes($framename = ''){
 	$status = uni_user_permission_exist($_W['uid'], $_W['uniacid']);
 	//非创始人应用模块菜单
 	if (!$_W['isfounder'] && $status) {
-		$module_permission = pdo_getall('users_permission', array('uid' => $_W['uid'], 'uniacid' => $_W['uniacid'], 'type !=' => 'system'), array('type'));
+		$module_permission = uni_getall_user_module_permission($_W['uid'], $_W['uniacid']);
 		if (!empty($module_permission)) {
 			foreach ($module_permission as $module) {
 				if (!in_array($module['type'], $sysmodules) && empty($modules[$module['type']]['main_module'])) {
@@ -436,26 +436,14 @@ function buildframes($framename = ''){
 	if (FRAME == 'wxapp') {
 		$version_id = intval($_GPC['version_id']);
 		$wxapp_version = wxapp_version($version_id);
-		if ($wxapp_version['design_method'] == WXAPP_MODULE) {
-		
-		}
 		if (!empty($wxapp_version['modules'])) {
-			$frames['wxapp']['section']['platform_module_menu']['title'] = '应用';
 			foreach ($wxapp_version['modules'] as $module) {
-				$frames['wxapp']['section']['platform_module_menu']['menu']['module_menu'.$module['mid']] = array(
+				$frames['wxapp']['section']['wxapp_module']['menu']['module_menu'.$module['mid']] = array(
 					'title' => "<i class='wi wi-appsetting'></i> {$module['title']}",
 					'url' => url('wxapp/display/switch', array('module' => $module['name'], 'version_id' => $version_id)),
 					'is_display' => 1,
 				);
 			}
-		}
-		if ($wxapp_version['design_method'] == WXAPP_MODULE) {
-			$frames['wxapp']['section']['platform_manage_menu']['title'] = '管理';
-			$frames['wxapp']['section']['platform_manage_menu']['menu']['module_link'] = array(
-				'title' => "<i class='wi wi-appsetting'></i> 模块关联",
-				'url' => url('wxapp/version/module_link_uniacid', array('version_id' => $version_id)),
-				'is_display' => 1,
-			);
 		}
 	}
 	foreach ($frames as $menuid => $menu) {

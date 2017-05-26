@@ -115,3 +115,8 @@ define('CACHE_KEY_ACCOUNT_SWITCH', 'lastaccount:%s');
 
 define('MODULE_SUPPORT_WXAPP', 2);
 define('MODULE_SUPPORT_ACCOUNT', 2);
+
+//权限类型
+define('PERMISSION_ACCOUNT', 'system');
+define('PERMISSION_WXAPP', 'wxapp');
+define('PERMISSION_SYSTEM', 'site');
