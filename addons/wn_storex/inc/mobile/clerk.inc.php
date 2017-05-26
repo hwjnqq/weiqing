@@ -159,7 +159,6 @@ if ($op == 'edit_order') {
 	if ($data['status'] != $item['status']) {
 		//订单退款
 		if ($data['status'] == 2) {
-			$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已不足。已为您取消订单";
 			if (!empty($setting['template']) && !empty($setting['refuse_templateid'])) {
 				$tplnotice = array(
 					'first' => array('value' => '尊敬的宾客，非常抱歉的通知您，您的预订订单被拒绝。'),
@@ -174,12 +173,12 @@ if ($op == 'edit_order') {
 				$acc = WeAccount::create();
 				$acc->sendTplNotice($item['openid'], $setting['refuse_templateid'], $tplnotice);
 			} else {
+				$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已不足。已为您取消订单";
 				$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
 			}
 		}
 		//订单确认提醒
 		if ($data['status'] == 1) {
-			$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已预订成功";
 			//TM00217
 			if (!empty($setting['template']) && !empty($setting['templateid'])) {
 				$tplnotice = array(
@@ -196,12 +195,12 @@ if ($op == 'edit_order') {
 				$acc = WeAccount::create();
 				$result = $acc->sendTplNotice($item['openid'], $setting['templateid'], $tplnotice);
 			} else {
+				$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已预订成功";
 				$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
 			}
 		}
 		//已入住提醒
 		if ($data['status'] == 4) {
-			$info = '您已成功入住' . $store_info['title'] . '预订的' . $goods_info['title'];
 			//TM00058
 			if (!empty($setting['template']) && !empty($setting['check_in_templateid'])) {
 				$tplnotice = array(
@@ -214,6 +213,7 @@ if ($op == 'edit_order') {
 				$acc = WeAccount::create();
 				$result = $acc->sendTplNotice($item['openid'], $setting['check_in_templateid'], $tplnotice);
 			} else {
+				$info = '您已成功入住' . $store_info['title'] . '预订的' . $goods_info['title'];
 				$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
 			}
 		}
@@ -228,12 +228,6 @@ if ($op == 'edit_order') {
 			card_give_credit($item['weid'], $uid, $item['sum_price'], $item['hotelid']);
 			//增加出售货物的数量
 			add_sold_num($goods_info);
-			$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "订单已完成,欢迎下次光临";
-			$custom = array(
-				'msgtype' => 'text',
-				'text' => array('content' => urlencode($info)),
-				'touser' => $item['openid'],
-			);
 			//OPENTM203173461
 			if (!empty($setting['template']) && !empty($setting['finish_templateid']) && $store_info['store_type'] == 1) {
 				$tplnotice = array(
@@ -246,6 +240,7 @@ if ($op == 'edit_order') {
 				$acc = WeAccount::create();
 				$result = $acc->sendTplNotice($item['openid'], $setting['finish_templateid'], $tplnotice);
 			} else {
+				$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "订单已完成,欢迎下次光临";
 				$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
 			}
 		}
