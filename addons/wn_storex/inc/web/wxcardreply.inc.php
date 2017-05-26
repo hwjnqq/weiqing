@@ -55,16 +55,13 @@ if ($op == 'post') {
 	}
 	if ($_W['isajax'] && $_W['ispost']) {
 		/*检测规则是否已经存在*/
-		$sql = "SELECT `rid` FROM " . tablename('rule_keyword') . " WHERE `uniacid` = :uniacid  AND `content` = :content";
-		$result = pdo_fetchall($sql, array(':uniacid' => $_W['uniacid'], ':content' => $_GPC['keyword']));
+		$result = pdo_getall('rule_keyword', array('uniacid' => intval($_W['uniacid']), 'content' => trim($_GPC['keyword'])));
 		if (!empty($result)) {
 			$keywords = array();
 			foreach ($result as $reply) {
 				$keywords[] = $reply['rid'];
 			}
-			$rids = implode($keywords, ',');
-			$sql = "SELECT `id`, `name` FROM " . tablename('rule') . " WHERE `id` IN ($rids)";
-			$rules = pdo_fetchall($sql);
+			$rules = pdo_getall('rule', array('id' => $keywords));
 			exit(@json_encode($rules));
 		}
 		exit('success');
@@ -151,11 +148,7 @@ if ($op == 'post') {
 		}
 		if (!empty($rid)) {
 			//更新，添加，删除关键字
-			$sql = 'DELETE FROM '. tablename('rule_keyword') . ' WHERE `rid` = :rid AND `uniacid` = :uniacid';
-			$pars = array();
-			$pars[':rid'] = $rid;
-			$pars[':uniacid'] = $_W['uniacid'];
-			pdo_query($sql, $pars);
+			pdo_delete('rule_keyword', array('rid' => $rid, 'uniacid' => intval($_W['uniacid'])));
 				
 			$rowtpl = array(
 				'rid' => $rid,
@@ -241,7 +234,7 @@ if ($op == 'stat_trend') {
 			}
 		}
 		unset($value);
-		$keywordnames = pdo_fetchall("SELECT content, id FROM " . tablename('rule_keyword') . " WHERE id IN (" . implode(',', array_keys($keywords)) . ")", array(), 'id');
+		$keywordnames = pdo_getall('rule_keyword', array('id' => array_keys($keywords)), array('content', 'id'), 'id');
 	}
 }
 include $this->template('wxcardreply');
