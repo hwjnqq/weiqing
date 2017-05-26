@@ -74,8 +74,7 @@ if ($op == 'display') {
 			}
 		}
 		unset($da);
-		$uids = implode(',', $uids);
-		$users = pdo_fetchall("SELECT mobile, uid, realname FROM " . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
+		$users = pdo_getall('mc_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $uids), array('mobile', 'uid', 'realname'), 'uid');
 	}
 	$pager = pagination($total, $pindex, $psize);
 	if ($_GPC['export'] != '') {
@@ -95,8 +94,7 @@ if ($op == 'display') {
 				}
 			}
 			unset($da);
-			$uids = implode(',', $uids);
-			$user = pdo_fetchall("SELECT mobile, uid, realname FROM " . tablename ('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
+			$users = pdo_getall('mc_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $uids), array('mobile', 'uid', 'realname'), 'uid');
 		}
 	
 		$html = "\xEF\xBB\xBF";

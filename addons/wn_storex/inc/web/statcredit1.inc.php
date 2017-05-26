@@ -72,8 +72,7 @@ if ($op == 'display') {
 			$da['store_cn'] = $operator['store_cn'];
 		}
 		unset($da);
-		$uids = implode(',', $uids);
-		$users = pdo_fetchall("SELECT mobile, uid, realname FROM " . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
+		$users = pdo_getall('mc_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $uids), array('mobile', 'uid', 'realname'), 'uid');
 	}
 	$pager = pagination($total, $pindex, $psize);
 	
@@ -90,8 +89,7 @@ if ($op == 'display') {
 				$da['store_cn'] = $operator['store_cn'];
 			}
 			unset($da);
-			$uids = implode(',', $uids);
-			$users = pdo_fetchall('SELECT mobile, uid, realname FROM ' . tablename('mc_members') . " WHERE uniacid = :uniacid AND uid IN ($uids)", array(':uniacid' => $_W['uniacid']), 'uid');
+			$users = pdo_getall('mc_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $uids), array('mobile', 'uid', 'realname'), 'uid');
 		}
 		/* 输入到CSV文件 */
 		$html = "\xEF\xBB\xBF";
