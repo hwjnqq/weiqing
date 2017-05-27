@@ -15,6 +15,9 @@ $do = in_array($do, $dos) ? $do : 'platform';
 if ($do == 'platform') {
 
 	$last_uniacid = uni_account_last_switch();
+	if (empty($last_uniacid)) {
+		itoast('', url('account/display'), 'info');
+	}
 	if (!empty($last_uniacid) && $last_uniacid != $_W['uniacid']) {
 		uni_account_switch($last_uniacid,  url('home/welcome'));
 	}

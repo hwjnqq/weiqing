@@ -547,7 +547,7 @@ function uni_user_permission($type = 'system') {
 	if(!empty($user_permission)) {
 		$user_permission = explode('|', $user_permission);
 	} else {
-		$user_permission = array('account*');
+		$user_permission = array('account*', 'wxapp*');
 	}
 	$permission_append = frames_menu_append();
 	//目前只有系统管理才有预设权限，公众号权限走数据库

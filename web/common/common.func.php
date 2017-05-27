@@ -149,12 +149,14 @@ function buildframes($framename = ''){
 			if (empty($row)) continue;
 			$row = (array)$row;
 			$frames['section']['platform_module_menu'.$key]['title'] = $row['title'];
-			foreach ($row['items'] as $li) {
-				$frames['section']['platform_module_menu'.$key]['menu']['platform_module_menu'.$li['id']] = array(
-					'title' => "<i class='wi wi-appsetting'></i> {$li['title']}",
-					'url' => $li['url'],
-					'is_display' => 1,
-				);
+			if (!empty($row['items'])) {
+				foreach ($row['items'] as $li) {
+					$frames['section']['platform_module_menu'.$key]['menu']['platform_module_menu'.$li['id']] = array(
+						'title' => "<i class='wi wi-appsetting'></i> {$li['title']}",
+						'url' => $li['url'],
+						'is_display' => 1,
+					);
+				}
 			}
 		}
 		return $frames;
@@ -268,17 +270,19 @@ function buildframes($framename = ''){
 						}
 					}
 				}
-				$section_show = false;
-				$secion['if_fold'] = !empty($_GPC['menu_fold_tag:'.$section_id]) ? 1 : 0;
-				foreach ($secion['menu'] as $menu_id => $menu) {
-					if (!in_array($menu['permission_name'], $user_permission) && $section_id != 'platform_module') {
-						$frames[$nav_id]['section'][$section_id]['menu'][$menu_id]['is_display'] = false;
-					} else {
-						$section_show = true;
+				if ($nav_id != 'wxapp') {
+					$section_show = false;
+					$secion['if_fold'] = !empty($_GPC['menu_fold_tag:'.$section_id]) ? 1 : 0;
+					foreach ($secion['menu'] as $menu_id => $menu) {
+						if (!in_array($menu['permission_name'], $user_permission) && $section_id != 'platform_module') {
+							$frames[$nav_id]['section'][$section_id]['menu'][$menu_id]['is_display'] = false;
+						} else {
+							$section_show = true;
+						}
 					}
-				}
-				if (!isset($frames[$nav_id]['section'][$section_id]['is_display'])) {
-					$frames[$nav_id]['section'][$section_id]['is_display'] = $section_show;
+					if (!isset($frames[$nav_id]['section'][$section_id]['is_display'])) {
+						$frames[$nav_id]['section'][$section_id]['is_display'] = $section_show;
+					}
 				}
 			}
 		}
@@ -443,6 +447,21 @@ function buildframes($framename = ''){
 					'url' => url('wxapp/display/switch', array('module' => $module['name'], 'version_id' => $version_id)),
 					'is_display' => 1,
 				);
+			}
+		} else {
+			$frames['wxapp']['section']['wxapp_module']['is_display'] = false;
+		}
+
+		if (!empty($frames['wxapp']['section'])) {
+			$wxapp_permission = uni_user_permission('wxapp');
+			foreach ($frames['wxapp']['section'] as $wxapp_section_id => $wxapp_section) {
+				if (!empty($wxapp_section['menu']) && !in_array("wxapp*", $wxapp_permission) && $wxapp_section_id != 'wxapp_module') {
+					foreach ($wxapp_section['menu'] as $wxapp_menu_id => $wxapp_menu) {
+						if (!in_array($wxapp_menu['permission_name'], $wxapp_permission)) {
+							$frames['wxapp']['section'][$wxapp_section_id]['menu'][$wxapp_menu_id]['is_display'] = false;
+						}
+					}
+				}
 			}
 		}
 	}

@@ -126,7 +126,8 @@ $we7_system_menu['wxapp'] = array(
 	'section' => array(
 		'wxapp_module' => array(
 			'title' => '应用',
-			'menu' => array()
+			'menu' => array(),
+			'is_display' => true,
 		),
 		'platform_manage_menu' => array(
 			'title' => '管理',

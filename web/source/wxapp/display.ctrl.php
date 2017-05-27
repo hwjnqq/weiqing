@@ -29,6 +29,7 @@ if ($do == 'home') {
 	} else {
 		$last_version = wxapp_fetch($last_uniacid);
 		if (!empty($last_version)) {
+			uni_account_switch($last_uniacid);
 			header('Location: ' . url('wxapp/version/manage', array('version_id' => $last_version['version']['id'])));
 			exit;
 		} else {
