@@ -768,19 +768,29 @@ function uni_user_account_permission($uid = 0) {
 		load()->model('user');
 		$user = user_single($uid);
 	}
+	$account_num = $wxapp_num = 0;
 	$group = pdo_get('users_group', array('id' => $user['groupid']));
 	$uniacocunts = pdo_getall('uni_account_users', array('uid' => $user['uid'], 'role' => 'owner'), array(), 'uniacid');
-	if (empty($uniacocunts)) {
-		$uniacid_num = 0;
-	} else {
+	if (!empty($uniacocunts)) {
 		//再次判断公众号是否真实存在
-		$uniacid_num = pdo_fetchcolumn('SELECT COUNT(*) FROM (SELECT u.uniacid, a.default_acid FROM ' . tablename('uni_account_users') . ' as u RIGHT JOIN '. tablename('uni_account').' as a  ON a.uniacid = u.uniacid  WHERE u.uid = :uid AND u.role = :role ) AS c LEFT JOIN '.tablename('account').' as d ON c.default_acid = d.acid WHERE d.isdeleted = 0', array(':uid' => $user['uid'], ':role' => 'owner'));
+		$all_account = pdo_fetchall('SELECT * FROM (SELECT u.uniacid, a.default_acid FROM ' . tablename('uni_account_users') . ' as u RIGHT JOIN '. tablename('uni_account').' as a  ON a.uniacid = u.uniacid  WHERE u.uid = :uid AND u.role = :role ) AS c LEFT JOIN '.tablename('account').' as d ON c.default_acid = d.acid WHERE d.isdeleted = 0', array(':uid' => $user['uid'], ':role' => 'owner'));
+		foreach ($all_account as $account) {
+			if ($account['type'] == 1 || $account['type'] == 3) {
+				$account_num++;
+			}
+			if ($account['type'] == 4) {
+				$wxapp_num++;
+			}
+		}
 	}
 	$data = array(
 		'group_name' => $group['name'],
 		'maxaccount' => $group['maxaccount'],
-		'uniacid_num' => $uniacid_num,
-		'uniacid_limit' => max((intval($group['maxaccount']) - $uniacid_num), 0),
+		'uniacid_num' => $account_num,
+		'uniacid_limit' => max((intval($group['maxaccount']) - $account_num), 0),
+		'maxwxapp' => $group['maxwxapp'],
+		'wxapp_num' => $wxapp_num,
+		'wxapp_limit' => max((intval($group['maxwxapp']) - $wxapp_num), 0),
 	);
 	return $data;
 }

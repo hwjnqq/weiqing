@@ -13,7 +13,7 @@
 			<i class="fa fa-info-circle"></i>
 			Hi，<span class="text-strong">{$_W['username']}</span>，您所在的会员组： <span class="text-strong">{$account_info['group_name']}</span>，
 			账号有效期限：<span class="text-strong">{php echo date('Y-m-d', $_W['user']['starttime'])} ~~ {if empty($_W['user']['endtime'])}无限制{else}{php echo date('Y-m-d', $_W['user']['endtime'])}{/if}</span>，
-			可创建 <span class="text-strong">{$account_info['maxaccount']} </span>个公众号，已创建<span class="text-strong"> {$account_info['uniacid_num']} </span>个，还可创建 <span class="text-strong">{$account_info['uniacid_limit']} </span>个公众号。
+			可创建 <span class="text-strong">{$account_info['maxwxapp']} </span>个小程序，已创建<span class="text-strong"> {$account_info['wxapp_num']} </span>个，还可创建 <span class="text-strong">{$account_info['wxapp_limit']} </span>个小程序。
 		</div>
 	{/if}
 	<form action="" class="form-inline  pull-left" method="get">

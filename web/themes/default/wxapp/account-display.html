@@ -4,9 +4,19 @@
 		选择小程序
 	</div>
 	<div class="panel-body">
+		{if !$_W['isfounder'] && !empty($account_info['wxapp_limit'])}
+			<div class="alert alert-warning">
+				温馨提示：
+				<i class="fa fa-info-circle"></i>
+				Hi，<span class="text-strong">{$_W['username']}</span>，您所在的会员组： <span class="text-strong">{$account_info['group_name']}</span>，
+				账号有效期限：<span class="text-strong">{php echo date('Y-m-d', $_W['user']['starttime'])} ~~ {if empty($_W['user']['endtime'])}无限制{else}{php echo date('Y-m-d', $_W['user']['endtime'])}{/if}</span>，
+				可创建 <span class="text-strong">{$account_info['maxwxapp']} </span>个小程序，已创建<span class="text-strong"> {$account_info['wxapp_num']} </span>个，还可创建 <span class="text-strong">{$account_info['wxapp_limit']} </span>个小程序。
+			</div>
+		{/if}
 		<div class="wxapp-manage">
+			{if !empty($account_info['wxapp_limit'])}
 			<a href="{php echo url('wxapp/post/design_method')}" class="color-default"><i class="wi wi-registersite"></i>新建小程序</a>
-			<a href="{php echo url('account/manage', array('account_type' => '4'))}" class="color-default"><i class="wi wi-appsetting"></i>小程序管理</a>
+			{/if}
 		</div>
 		<ul class="wxapp-cut-list clearfix">
 			{loop $wxapp_lists $list}

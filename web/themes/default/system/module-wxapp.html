@@ -3,16 +3,13 @@
 <div class="we7-page-title">
 	小程序管理
 </div>
-<ul class="we7-page-tab">
-	<li class="active"><a href="{php echo url('system/module/installed', array('account_type' => 4))}">已安装的小程序  </a></li>
-	<li><a href="{php echo url('system/module/not_installed', array('account_type' => 4))}" ng-if="isFounder == 1">未安装的小程序<span class="color-red">  ({$total_uninstalled}) </span></a></li>
-	<li><a href="{php echo url('system/module/not_installed', array('account_type' => 4, 'status' => 'recycle'))}" ng-if="isFounder == 1">已停用小程序</a></li>
-</ul>
 <div id="js-system-module" ng-controller="installedCtrl" ng-cloak>
+	<ul class="we7-page-tab">
+		<li class="active"><a href="{php echo url('system/module/installed', array('account_type' => 4))}">已安装的小程序  </a></li>
+		<li><a href="{php echo url('system/module/not_installed', array('account_type' => 4))}" ng-if="isFounder == 1">未安装的小程序<span class="color-red">  ({$total_uninstalled}) </span></a></li>
+		<li><a href="{php echo url('system/module/not_installed', array('account_type' => 4, 'status' => 'recycle'))}" ng-if="isFounder == 1">已停用小程序</a></li>
+	</ul>
 	<div class="we7-page-search clearfix">
-		<!--<div class="pull-right">-->
-		<!--<a href="添加.html" class="btn btn-danger">购买应用模块</a>-->
-		<!--</div>-->
 		<form action="" method="get" class="row">
 			<div class="form-group we7-margin-bottom  col-sm-4">
 				<input type="hidden" name="letter" ng-model="activeLetter">
@@ -40,8 +37,6 @@
 			<col width="230px" />
 			<tr>
 				<th colspan="2" class="text-left">应用名</th>
-				<!--<th>公众号</th>-->
-				<!--<th>数量</th>-->
 				<th class="text-right">操作</th>
 			</tr>
 			<tr ng-repeat="module in module_list">
@@ -52,12 +47,9 @@
 					<p>{{ module.title }}</p>
 					<span>版本：{{ module.version }} </span><span class="color-red" ng-if="module.upgrade && isFounder == 1">发现新版本</span>
 				</td>
-				<!--<td >{{ module.use_account }}</td>-->
-				<!--<td >{{ module.enabled_use_account }}</td>-->
 				<td class="text-left">
 					<div class="link-group">
-						<a href="{php echo url('system/module/module_detail')}&name={{ module.name }}">管理设置</a>
-						<!--<a href="javascript:;" ng-if="isFounder == 1" ng-click="editModule(module.mid)">编辑</a>-->
+						<a href="{php echo url('system/module/module_detail')}&name={{ module.name }}" ng-if="isFounder == 1">管理设置</a>
 						<a href="{php echo url('system/module/uninstall', array('account_type' => 4))}&name={{ module.name }}&account_type={ACCOUNT_TYPE}" ng-if="isFounder == 1" class="del">停用</a>
 						<a ng-href="{{ './index.php?c=system&a=module&do=upgrade&module_name='+module.name}}&account_type={ACCOUNT_TYPE}" class="color-red" ng-if="module.upgrade && module.from != 'cloud' && isFounder == 1">升级</a>
 						<a href="javascript:;" class="del" ng-click="setUpgradeInfo(module.name)" ng-if="module.upgrade && module.from == 'cloud' && isFounder == 1">升级</a>
@@ -316,9 +308,6 @@
 			<dd>
 				<span>名称：{$module_info['title']}</span>  <span>版本：{$module_info['version']}</span>  <span> 作者：{$module_info['author']}</span>
 			</dd>
-			<!--<dd>-->
-			<!--<span>QQ:361635464</span>  <span>微信：3513854324</span>-->
-			<!--</dd>-->
 		</dl>
 	</div>
 	<div class="module-group" ng-if="isFounder == 1">

@@ -12,12 +12,12 @@ load()->classs('weixin.platform');
 $_W['page']['title'] = '添加/编辑公众号 - 公众号管理';
 $uniacid = intval($_GPC['uniacid']);
 $step = intval($_GPC['step']) ? intval($_GPC['step']) : 1;
+//模版调用，显示该用户所在用户组可添加的主公号数量，已添加的数量，还可以添加的数量
+$account_info = uni_user_account_permission();
 
 if($step == 1) {
 	// 用户点击 '授权登录添加公众号'，判断公共号最大个数限制
 	if (!$_W['isfounder']) {
-		//模版调用，显示该用户所在用户组可添加的主公号数量，已添加的数量，还可以添加的数量
-		$account_info = uni_user_account_permission();
 		//当前用户可添加公众号数量判断
 		$max_tsql = "SELECT COUNT(*) FROM " . tablename('uni_account'). " as a LEFT JOIN". tablename('account'). " as b ON a.default_acid = b.acid LEFT JOIN ". tablename('uni_account_users')." as c ON a.uniacid = c.uniacid WHERE a.default_acid <> 0 AND c.uid = :uid AND b.isdeleted <> 1";
 		$max_pars[':uid'] = $_W['uid'];
@@ -50,6 +50,9 @@ if($step == 1) {
 	}
 	//添加公众号
 	if (checksubmit('submit')) {
+		if ($account_info['uniacid_limit'] <= 0) {
+			itoast('创建公众号已达上限！');
+		}
 		$update = array();
 		$update['name'] = trim($_GPC['cname']);
 

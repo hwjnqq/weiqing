@@ -502,6 +502,8 @@ function frames_menu_append() {
 		'owner' => array(
 			'system_account',
 			'system_module',
+			'system_wxapp',
+			'system_module_wxapp',
 			'system_module_group',
 			'system_my',
 			'system_setting_updatecache',
@@ -509,12 +511,15 @@ function frames_menu_append() {
 		'manager' => array(
 			'system_account',
 			'system_module',
+			'system_wxapp',
+			'system_module_wxapp',
 			'system_module_group',
 			'system_my',
 			'system_setting_updatecache',
 		),
 		'operator' => array(
 			'system_account',
+			'system_wxapp',
 			'system_my',
 			'system_setting_updatecache',
 		),

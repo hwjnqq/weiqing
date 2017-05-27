@@ -11,7 +11,7 @@ load()->model('wxapp');
 $dos = array('design_method', 'post', 'get_wxapp_modules', 'getpackage');
 $do = in_array($do, $dos) ? $do : 'post';
 $_W['page']['title'] = '小程序 - 新建版本';
-
+$account_info = uni_user_account_permission();
 
 if ($do == 'design_method') {
 	$uniacid = intval($_GPC['uniacid']);
@@ -30,6 +30,9 @@ if($do == 'post') {
 	}
 	
 	if (checksubmit('submit')) {
+		if ($account_info['wxapp_limit'] <= 0) {
+			itoast('创建的小程序已达上限！');
+		}
 		if ($design_method == WXAPP_TEMPLATE && empty($_GPC['select']['modules'])) {
 			iajax(2, '请选择要打包的模块应用', url('wxapp/post'));
 		}
