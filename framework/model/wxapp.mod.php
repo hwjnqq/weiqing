@@ -23,6 +23,7 @@ function wxapp_getpackage($data, $if_single = false) {
 }
 
 function wxapp_account_create($account) {
+	global $_W;
 	$uni_account_data = array(
 		'name' => $account['name'],
 		'description' => $account['description'],
@@ -212,6 +213,7 @@ function wxapp_save_switch($uniacid) {
 }
 
 function wxapp_site_info($multiid) {
+	global $_GPC;
 	$site_info = array();
 	$multiid = intval($multiid);
 	$uniacid = intval($_GPC['uniacid']);
