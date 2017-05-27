@@ -31,7 +31,7 @@ if ($do == 'manage') {
 	if ($version_info['design_method'] == WXAPP_TEMPLATE) {
 		$version_site_info = wxapp_site_info($version_info['multiid']);
 	}
-
+	$role = uni_permission($_W['uid'], $wxapp_info['uniacid']);
 	template('wxapp/version-manage');
 }
 

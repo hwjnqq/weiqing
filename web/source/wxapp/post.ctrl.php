@@ -30,7 +30,7 @@ if($do == 'post') {
 	}
 	
 	if (checksubmit('submit')) {
-		if ($account_info['wxapp_limit'] <= 0) {
+		if ($account_info['wxapp_limit'] <= 0 && empty($uniacid)) {
 			itoast('创建的小程序已达上限！');
 		}
 		if ($design_method == WXAPP_TEMPLATE && empty($_GPC['select']['modules'])) {
