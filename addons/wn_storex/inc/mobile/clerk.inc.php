@@ -29,7 +29,7 @@ if ($op == 'order') {
 	$manage_storex_lists = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $manage_storex_ids), array('id', 'title', 'store_type'), 'id');
 	pdo_query("UPDATE " . tablename('storex_order') . " SET status = '-1' WHERE time < :time AND weid = :uniacid AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400, ':uniacid' => intval($_W['uniacid'])));
 	$operation_status = array(0, 1, 4);
-	$goods_status = array(0, 1);
+	$goods_status = array(0, 1, 2);
 	$order_lists = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'hotelid' => $manage_storex_ids, 'status' => $operation_status, 'goods_status' => $goods_status), array('id', 'weid', 'hotelid', 'roomid', 'style', 'status', 'goods_status', 'mode_distribute', 'nums', 'sum_price', 'day'), '', 'id DESC');
 	if (!empty($order_lists) && is_array($order_lists)) {
 		foreach ($order_lists as &$info) {
