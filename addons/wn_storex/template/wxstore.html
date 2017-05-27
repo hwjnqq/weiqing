@@ -2,8 +2,8 @@
 <ul class="nav nav-tabs">
 	<li {if $_GPC['do'] == 'wxstore'}class="active" {/if}><a href="{php echo $this->createWeburl('wxstore', array('op' => 'display'))}">店家列表</a></li>
 	<li {if $_GPC['do'] == 'paycenterwxmicro'}class="active" {/if}><a href="{php echo $this->createWeburl('paycenterwxmicro', array('op' => 'display'))}">微信刷卡支付</a></li>
-	<li {if $_GPC['do'] == 'clerkdeskmenu'}class="active"{/if}><a href="{php echo $this->createWeburl('clerkdeskmenu', array('op' => 'display'))}">工作台</a></li>
-	<li {if $_GPC['do'] == 'clerklist'}class="active" {/if}><a href="{php echo $this->createWeburl('clerklist', array('op' => 'display'))}">店员管理</a></li>
+	<li style="display:none" {if $_GPC['do'] == 'clerkdeskmenu'}class="active"{/if}><a href="{php echo $this->createWeburl('clerkdeskmenu', array('op' => 'display'))}">工作台</a></li>
+	<li style="display:none" {if $_GPC['do'] == 'clerklist'}class="active" {/if}><a href="{php echo $this->createWeburl('clerklist', array('op' => 'display'))}">店员管理</a></li>
 </ul>
 {if $_GPC['op'] == 'post'}
 {if COUPON_TYPE ==  WECHAT_COUPON && $id}
