@@ -48,7 +48,7 @@ if ($op == 'edit') {
 			'realname' => trim($_GPC['realname']),
 			'mobile' => $_GPC['mobile'],
 			'status' => intval($_GPC['status']),
-            'from_user' => $_GPC['from_user'],
+			'from_user' => $_GPC['from_user'],
 			'permission' => iserializer($_GPC['permission']),
 		);
 		if (empty($id)) {

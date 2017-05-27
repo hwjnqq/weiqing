@@ -29,7 +29,7 @@ if ($op == 'order') {
 	$manage_storex_lists = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $manage_storex_ids), array('id', 'title', 'store_type'), 'id');
 	pdo_query("UPDATE " . tablename('storex_order') . " SET status = '-1' WHERE time < :time AND weid = :uniacid AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400, ':uniacid' => intval($_W['uniacid'])));
 	$operation_status = array(0, 1, 4);
-	$goods_status = array(0, 1, 2);
+	$goods_status = array(0, 1, 2, 3);
 	$order_lists = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'hotelid' => $manage_storex_ids, 'status' => $operation_status, 'goods_status' => $goods_status), array('id', 'weid', 'hotelid', 'roomid', 'style', 'status', 'goods_status', 'mode_distribute', 'nums', 'sum_price', 'day'), '', 'id DESC');
 	if (!empty($order_lists) && is_array($order_lists)) {
 		foreach ($order_lists as &$info) {
@@ -173,7 +173,7 @@ if ($op == 'edit_order') {
 				$acc = WeAccount::create();
 				$acc->sendTplNotice($item['openid'], $setting['refuse_templateid'], $tplnotice);
 			} else {
-				$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已不足。已为您取消订单";
+				$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已不足，订单编号:" . $item['ordersn'] . "。已为您取消订单";
 				$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
 			}
 		}
@@ -195,7 +195,7 @@ if ($op == 'edit_order') {
 				$acc = WeAccount::create();
 				$result = $acc->sendTplNotice($item['openid'], $setting['templateid'], $tplnotice);
 			} else {
-				$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已预订成功";
+				$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已预订成功，订单编号:" . $item['ordersn'];
 				$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
 			}
 		}
@@ -213,7 +213,7 @@ if ($op == 'edit_order') {
 				$acc = WeAccount::create();
 				$result = $acc->sendTplNotice($item['openid'], $setting['check_in_templateid'], $tplnotice);
 			} else {
-				$info = '您已成功入住' . $store_info['title'] . '预订的' . $goods_info['title'];
+				$info = '您已成功入住' . $store_info['title'] . '预订的' . $goods_info['title'] . "订单编号:" . $item['ordersn'];
 				$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
 			}
 		}
@@ -240,18 +240,18 @@ if ($op == 'edit_order') {
 				$acc = WeAccount::create();
 				$result = $acc->sendTplNotice($item['openid'], $setting['finish_templateid'], $tplnotice);
 			} else {
-				$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "订单已完成,欢迎下次光临";
+				$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "订单" . $item['ordersn'] . "已完成,欢迎下次光临.";
 				$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
 			}
 		}
 		if ($data['status'] == -1) {
-			$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "订单已取消，请联系管理员！";
+			$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "订单" . $item['ordersn'] . "已取消，请联系管理员！";
 			$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
 		}
 		//发货设置
 		if (!empty($data['goods_status']) && $data['goods_status'] == 2) {
 			$data['status'] = 1;
-			$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已发货";
+			$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已发货,订单编号:" . $item['ordersn'];
 			$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
 		}
 		pdo_update('storex_order', $data, array('id' => $orderid));
