@@ -107,7 +107,7 @@ if ($op == 'mine') {
 if ($op == 'confirm') {
 	if ($_W['isajax'] && $_W['ispost']) {
 		$tid = intval($_GPC['tid']);
-		$shipping_info = pdo_get('storex_activity_exchange_trades_shipping', array('tid' => $tid, 'uid' => $uid), array('tid'));
+		$shipping_info = pdo_get('storex_activity_exchange_trades_shipping', array('tid' => $tid, 'uid' => $uid), array('tid', 'status'));
 		if (empty($shipping_info)) {
 			message(error(-1,'订单信息不存在'), '', 'ajax');
 		}
