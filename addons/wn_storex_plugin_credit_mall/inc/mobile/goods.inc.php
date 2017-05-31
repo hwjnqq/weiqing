@@ -15,7 +15,7 @@ activity_get_coupon_type();
 
 $profile = mc_fetch($_W['member']['uid']);
 //真实物品列表
-if($op == 'display') {
+if ($op == 'display') {
 	$goods_lists = pdo_fetchall('SELECT id, title, extra, thumb, type, credittype, endtime, description, credit FROM ' . tablename('storex_activity_exchange') . ' WHERE uniacid = :uniacid AND type = :type AND endtime > :endtime AND status = 1 ORDER BY endtime ASC ', array(':uniacid' => $_W['uniacid'], ':type' => 3, ':endtime' => TIMESTAMP));
 	foreach ($goods_lists as &$list) {
 		$list['thumb'] = tomedia($list['thumb']);
@@ -57,7 +57,7 @@ if ($op == 'exchange') {
 		message(error(-1, "{$creditnames[$goods['credittype']]}不足"), '', 'ajax');
 	}
 	$ret = activity_user_get_goods($uid, $id);
-	if(is_error($ret)) {
+	if (is_error($ret)) {
 		message($ret, '', 'ajax');
 	}
 	pdo_update('storex_activity_exchange_trades_shipping', $shipping_data, array('tid' => $ret));
@@ -71,7 +71,7 @@ if ($op == 'exchange') {
 	message(error(0, '兑换成功'), '', 'ajax');
 }
 //收获地址
-if($op == 'detail') {
+if ($op == 'detail') {
 	$tid = intval($_GPC['tid']);//收货人信息id
 	$id = intval($_GPC['id']);
 	$goods_info = pdo_get('storex_activity_exchange', array('id' => $id));
