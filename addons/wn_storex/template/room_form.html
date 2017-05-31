@@ -207,16 +207,18 @@
 			<label class="col-xs-12 col-sm-3 col-md-2 control-label">房间参数</label>
 			<div class="col-sm-4">
 				<div class="input-group">
-                <span class="input-group-addon">
-                    <label class='checkbox-inline' style='margin-top:-5px;' > <input type='checkbox' id='bed_show' name="bed_show" value="1"  {if  $item['bed_show']==1}checked{/if}/> 床位</label></span>
+					<span class="input-group-addon">
+						<label class='checkbox-inline' style='margin-top:-5px;' > <input type='checkbox' id='bed_show' name="bed_show" value="1"  {if  $item['bed_show']==1}checked{/if}/> 床位</label>
+					</span>
 					<input type="text" name="bed" id="bed" class="form-control" value="{$item['bed']}" />
 					<span class="input-group-addon">例如: 2米大床</span>
 				</div>
 			</div>
 			<div class="col-sm-4">
 				<div class="input-group">
-                <span class="input-group-addon">
-                    <label class='checkbox-inline' style='margin-top:-5px;' > <input type='checkbox' id='floor_show' name="floor_show" value="1" {if  $item['floor_show']==1}checked{/if}/> 楼层</label></span>
+					<span class="input-group-addon">
+						<label class='checkbox-inline' style='margin-top:-5px;' > <input type='checkbox' id='floor_show' name="floor_show" value="1" {if  $item['floor_show']==1}checked{/if}/> 楼层</label>
+					</span>
 					<input type="text" name="floor" id="floor" class="form-control" value="{$item['floor']}" />
 					<span class="input-group-addon">楼</span>
 				</div>
@@ -227,16 +229,16 @@
 			<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
 			<div class="col-sm-4">
 				<div class="input-group">
-                <span class="input-group-addon">
-                    <label class='checkbox-inline' style='margin-top:-5px;' > <input type='checkbox' id='area_show' name="area_show" value="1" {if  $item['area_show']==1}checked{/if} /> 房间面积</label></span>
+				<span class="input-group-addon">
+					<label class='checkbox-inline' style='margin-top:-5px;' > <input type='checkbox' id='area_show' name="area_show" value="1" {if  $item['area_show']==1}checked{/if} /> 房间面积</label></span>
 					<input type="text" name="area" id="area" class="form-control" value="{$item['area']}" />
 					<span class="input-group-addon">平方米</span>
 				</div>
 			</div>
 			<div class="col-sm-4">
 				<div class="input-group">
-                <span class="input-group-addon">
-                    <label class='checkbox-inline ' style='margin-top:-5px;' > <input type='checkbox' id='bedadd_show' name="bedadd_show" value="1" {if  $item['bedadd_show']==1}checked{/if}/> 是否可加床</label></span>
+				<span class="input-group-addon">
+					<label class='checkbox-inline ' style='margin-top:-5px;' > <input type='checkbox' id='bedadd_show' name="bedadd_show" value="1" {if  $item['bedadd_show']==1}checked{/if}/> 是否可加床</label></span>
 					<input type="text" name="bedadd" id="bedadd" class="form-control" value="{$item['bedadd']}" placeholder='加床说明' />
 
 				</div>
@@ -246,16 +248,16 @@
 			<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
 			<div class="col-sm-4">
 				<div class="input-group">
-                <span class="input-group-addon">
-                    <label class='checkbox-inline' style='margin-top:-5px;' > <input type='checkbox' id='smoke_show' name="smoke_show" value="1" {if $item['smoke_show']==1}checked{/if}/> 无烟房</label></span>
+				<span class="input-group-addon">
+					<label class='checkbox-inline' style='margin-top:-5px;' > <input type='checkbox' id='smoke_show' name="smoke_show" value="1" {if $item['smoke_show']==1}checked{/if}/> 无烟房</label></span>
 					<input type="text" name="smoke" id="smoke" class="form-control" value="{$item['smoke']}" />
 					<span class="input-group-addon">无烟房说明</span>
 				</div>
 			</div>
 			<div class="col-sm-4">
 				<div class="input-group">
-                <span class="input-group-addon">
-                    <label class='checkbox-inline' style='margin-top:-5px;' > <input type='checkbox' id='persons_show' name="persons_show" value="1" {if  $item['persons_show']==1}checked{/if}/> 入住人数</label></span>
+				<span class="input-group-addon">
+					<label class='checkbox-inline' style='margin-top:-5px;' > <input type='checkbox' id='persons_show' name="persons_show" value="1" {if  $item['persons_show']==1}checked{/if}/> 入住人数</label></span>
 					<input type="text" name="persons" id="persons" class="form-control" value="{$item['persons']}" />
 					<span class="input-group-addon">人</span>
 				</div>

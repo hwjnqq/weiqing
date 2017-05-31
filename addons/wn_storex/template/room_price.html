@@ -85,7 +85,7 @@
 				var roomid = input.attr("roomid");
 				var date = input.attr("date");
 				var pricetype  = input.attr("pricetype");
-/*				if(!input.isNumber()){
+				/*if(!input.isNumber()){
 					Tip.select(input,"请输入数字!","top");
 					return;
 				}*/
@@ -93,11 +93,11 @@
 				input.parent().parent().find(".price_span").html( price ).removeClass('hide');
 				input.parent().addClass('hide');
 				$.post("{php echo $this->createWebUrl('room_price')}",
-						{op: 'submitPrice', hotelid:hotelid,roomid:roomid,date:date,price: price,pricetype:pricetype}, function (data) {
-							data = eval("(" + data + ")");
-							if (data.result == 1) {
-							}
-						});
+					{op: 'submitPrice', hotelid:hotelid,roomid:roomid,date:date,price: price,pricetype:pricetype}, function (data) {
+						data = eval("(" + data + ")");
+						if (data.result == 1) {
+						}
+				});
 			}
 			$("#search_button").click(function () {
 				var start = $(":hidden[name='datelimit[start]']").val();
@@ -109,3 +109,4 @@
 	</script>
 
 	{template 'common/footer'}
+</div>

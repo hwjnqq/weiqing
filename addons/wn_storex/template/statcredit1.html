@@ -3,13 +3,7 @@
 	.account-stat-num > div{width:25%; float:left; font-size:16px; text-align:center;}
 	.account-stat-num > div span{display:block; font-size:30px; font-weight:bold;}
 </style>
-<ul class="nav nav-tabs">
-	<li {if $_GPC['do'] == 'statcredit1'} class="active"{/if}><a href="{php echo $this->createWeburl('statcredit1', array('op' => 'display'))}">积分日志</a></li>
-	<li {if $_GPC['do'] == 'statcredit2'} class="active"{/if}><a href="{php echo $this->createWeburl('statcredit2', array('op' => 'display'))}">余额日志</a></li>
-	<li {if $_GPC['do'] == 'statcash'} class="active"{/if}><a href="{php echo $this->createWeburl('statcash', array('op' => 'display'))}">消费日志</a></li>
-	<li {if $_GPC['do'] == 'statcard'} class="active" {/if}><a href="{php echo $this->createWeburl('statcard')}">会员卡领卡统计</a></li>
-	<li {if $_GPC['do'] == 'statpaycenter'} class="active"{/if}><a href="{php echo $this->createWeburl('statpaycenter', array('op' => 'display'))}">收款记录</a></li>
-</ul>
+{template 'stat_nav'}>
 
 {if $op == 'chart'}
 <div class="page-header clearfix">
