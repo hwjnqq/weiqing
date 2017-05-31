@@ -28,7 +28,7 @@ if($op == 'display') {
 	message(error(0, $goods_lists), '', 'ajax');
 }
 //兑换过程
-if($op == 'exchange') {
+if ($op == 'exchange') {
 	$id = intval($_GPC['id']); 
 	$shipping_data = array(
 		'name' => trim($_GPC['username']),
