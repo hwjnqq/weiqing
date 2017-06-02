@@ -1,4 +1,6 @@
 <?php 
+use Qiniu\json_decode;
+
 /**
  * 小程序入口
  * [WeEngine System] Copyright (c) 2013 WE7.CC
@@ -6,31 +8,29 @@
 defined('IN_IA') or exit('Access Denied');
 
 class Wn_storexModuleWxapp extends WeModuleWxapp {
-	function __construct(){
-		global $_W;
-		include "model.php";
-	}
 	//http://prox.we7.cc/app/index.php?i=281&c=entry&a=wxapp&do=Route&m=wn_storex&
 	//获取该公众号下的所有酒店信息
 	public function doPageRoute(){
 		load()->func('communication');
 		global $_GPC, $_W;
 		$params = $_GPC['params'];
+		if (!empty($params)) {
+			$params = json_decode($params, true);
+			if (empty($params['do']) || empty($params['op'])) {
+				message(error(-1, '访问失败'), '', 'ajax');
+			}
+		} else {
+			message(error(-1, '访问失败'), '', 'ajax');
+		}
 		$params['m'] = $_GPC['m'];
-		if (empty($params['op'])) {
-			message(error(-1, '访问失败'), '', 'ajax');
-		}
-		$params['do'] = $this->get_action($params['op']);
-		if (empty($params['do'])) {
-			message(error(-1, '访问失败'), '', 'ajax');
-		}
+		$this->get_action($params['do'], $params['op']);
 		$params['userid'] = mc_openid2uid($_SESSION['openid']);
 		$this->check_login();
 		$url = murl('entry', $params, true, true);
 		$result = ihttp_request($url);
 		exit($result['content']);
 	}
-	function get_action($op) {
+	function get_action($do, $op) {
 		$actions = array(
 			'category' => array(
 				'category_list',
@@ -107,10 +107,8 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 				'extend_switch',
 			),
 		);
-		foreach ($actions as $do => $val) {
-			if (in_array($op, $val)) {
-				return $do;
-			}
+		if (empty($actions[$do][$op])) {
+			message(error(-1, '访问失败'), '', 'ajax');
 		}
 	}
 	//检查登录
