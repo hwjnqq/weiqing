@@ -10,13 +10,13 @@ class WnCoupon extends coupon {
 	 * */
 	public function BuildCardExt($id, $openid = '') {
 		$card_id = pdo_fetchcolumn('SELECT card_id FROM ' . tablename('storex_coupon') . ' WHERE id = :id', array(':id' => $id));
-		if(empty($card_id)) {
+		if (empty($card_id)) {
 			return error(-1, '卡券id不合法');
 		}
 		$time = TIMESTAMP;
 		$sign = array($card_id, $time);
 		$signature = $this->SignatureCard($sign);
-		if(is_error($signature)) {
+		if (is_error($signature)) {
 			return $signature;
 		}
 		$cardExt = array('timestamp' => $time, 'signature' => $signature);

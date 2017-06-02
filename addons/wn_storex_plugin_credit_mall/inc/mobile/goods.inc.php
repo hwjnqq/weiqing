@@ -5,7 +5,6 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 $ops = array('display', 'exchange', 'mine', 'detail', 'confirm');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
-$_W['openid'] = 'oTKzFjiAN4nRdSSY9Id2Lik3DXaQ';
 
 load()->model('mc');
 
