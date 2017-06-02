@@ -14,23 +14,22 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		load()->func('communication');
 		global $_GPC, $_W;
 		$params = $_GPC['params'];
-		if (!empty($params)) {
-			$params = json_decode($params, true);
-			if (empty($params['do']) || empty($params['op'])) {
-				message(error(-1, '访问失败'), '', 'ajax');
-			}
-		} else {
+		if (empty($params['do']) || empty($params['op'])) {
 			message(error(-1, '访问失败'), '', 'ajax');
 		}
-		$params['m'] = $_GPC['m'];
+		$url_param = array(
+			'm' => $_GPC['m'] ? $_GPC['m'] : 'wn_storex',
+			'do' => $params['do'],
+			'op' => $params['op'],
+		);
 		$this->get_action($params['do'], $params['op']);
 		$params['userid'] = mc_openid2uid($_SESSION['openid']);
 		$this->check_login();
-		$url = murl('entry', $params, true, true);
-		$result = ihttp_request($url);
+		$url = murl('entry', $url_param, true, true);
+		$result = ihttp_request($url, $params);
 		exit($result['content']);
 	}
-	function get_action($do, $op) {
+	function get_action($do, $op) { 
 		$actions = array(
 			'category' => array(
 				'category_list',
@@ -110,6 +109,14 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		if (!in_array($op, $actions[$do])) {
 			message(error(-1, '访问失败'), '', 'ajax');
 		}
+	}
+	public function doPageLocation() {
+		global $_GPC;
+		load()->func('communication');
+		$url = 'https://api.map.baidu.com/geocoder/v2/?';
+		$params = $_GPC['params'];
+		$result = ihttp_request($url, $params);
+		exit($result['content']);
 	}
 	//检查登录
 	public function check_login(){
