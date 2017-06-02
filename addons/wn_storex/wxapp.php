@@ -107,7 +107,7 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 				'extend_switch',
 			),
 		);
-		if (empty($actions[$do][$op])) {
+		if (!in_array($op, $actions[$do])) {
 			message(error(-1, '访问失败'), '', 'ajax');
 		}
 	}
