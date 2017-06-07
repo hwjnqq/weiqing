@@ -3860,6 +3860,9 @@ class We7_couponModuleSite extends WeModuleSite {
 				}
 			}
 			$profile = mc_fetch($_W['member']['uid']);
+			if (strexists($profile['email'], '@we7.cc')) {
+				$profile['email'] = '';
+			}
 			$mcard = pdo_get('mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
 		}
 
