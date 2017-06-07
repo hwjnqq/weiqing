@@ -3699,7 +3699,7 @@ class We7_couponModuleSite extends WeModuleSite {
 						}
 					}
 					$time = date('Y-m-d H:i');
-					$url = $this->createMobileurl('card', array('op' => 'mycard'));
+					$url = murl('entry', array('do' => 'card', 'op' => 'mycard', 'm' => 'we7_coupon'), true, true);
 					$title = "【{$_W['account']['name']}】- 领取会员卡通知\n";
 					$info = "您在{$time}成功领取会员卡，{$notice}。\n\n";
 					$info .= "<a href='{$url}'>点击查看详情</a>";
