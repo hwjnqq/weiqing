@@ -23,6 +23,9 @@ if (empty($card_info)) {
 
 if ($op == 'receive_info') {
 	$receive_info = array();
+	if (empty($card_info['params'])) {
+		message(error(-1, '会员卡信息未设置，请咨询管理员！'), '', 'ajax');
+	}
 	if (!empty($card_info['params']['cardBasic']['params']['fields'])) {
 		foreach ($card_info['params']['cardBasic']['params']['fields'] as $val) {
 			$receive_info[] = array(
