@@ -19,6 +19,9 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		
 		$params = $_GPC['params'];
 		$params['userid'] = mc_openid2uid($_SESSION['openid']);
+		if (empty($params['userid'])) {
+			message(error(-1, '访问失败'), '', 'ajax');
+		}
 		$this->check_login();
 		$url = murl('entry', $url_param, true, true);
 		$result = ihttp_request($url, $params);

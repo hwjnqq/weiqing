@@ -189,6 +189,9 @@ function check_params() {
 		if (!empty($permission_lists[$do]['common'])) {
 			foreach ($permission_lists[$do]['common'] as $val) {
 				if (empty($val)) {
+					if ($val == 'openid') {
+						message(error(41009, '未登录！'), '', 'ajax');
+					}
 					message(error(-1, '参数错误'), '', 'ajax');
 				}
 			}
