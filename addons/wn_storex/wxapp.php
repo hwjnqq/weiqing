@@ -16,16 +16,16 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		$ac = $_GPC['ac'];
 		$url_param = $this->actions($ac);
 		$url_param['m'] = $_GPC['m'] ? $_GPC['m'] : 'wn_storex';
-		
-		$params = $_GPC['params'];
+		$params = json_decode(htmlspecialchars_decode($_GPC['params']), true);
 		$params['userid'] = mc_openid2uid($_SESSION['openid']);
 		if (empty($params['userid'])) {
-			message(error(-1, '访问失败'), '', 'ajax');
+			return $this->result(41009, '请重新登录!', array());
 		}
 		$this->check_login();
 		$url = murl('entry', $url_param, true, true);
 		$result = ihttp_request($url, $params);
-		exit($result['content']);
+		$result = json_decode($result['content'], true);
+		return $this->result($result['message']['errno'], $result['message']['message'], empty($result['message']['data']) ? '' : $result['message']['data']);
 	}
 	function actions($ac) {
 		$actions = array(
@@ -98,7 +98,7 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		if (!empty($actions[$ac])) {
 			return $actions[$ac];
 		}
-		message(error(-1, '访问失败'), '', 'ajax');
+		return $this->result(-1, '访问失败', array());
 	}
 	public function doPageLocation() {
 		global $_GPC;
