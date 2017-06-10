@@ -13,6 +13,7 @@
 	<platform>
 		<plugins>
 			<item name="wn_storex_plugin_credit_mall" />
+			<item name="wn_storex_plugin_hotel_service" />
 		</plugins>
 		<subscribes>
 			<message type="user_get_card" />
