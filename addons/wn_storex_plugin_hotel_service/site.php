@@ -90,7 +90,7 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 	public function doWebRoommanage() {
 		global $_W, $_GPC;
 
-		$ops = array('post', 'display');
+		$ops = array('post', 'display', 'confirm');
 		$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 		if ($op == 'display') {
@@ -106,6 +106,7 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 					$items[$value['id']]['storeid'] = $value['storeid'];
 					$items[$value['id']]['openid'] = $value['openid'];
 					$items[$value['id']]['time'] = $value['time'];
+					$items[$value['id']]['status'] = $value['status'];
 				}
 			}
 			$hotel_lists = pdo_getall('storex_bases', array('store_type' => 1, 'weid' => $_W['uniacid']), array('id', 'title', 'thumb'), 'id');
@@ -114,6 +115,7 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 					$room_items[$key]['info'] = $item['room'] . '住户需要以下服务：【' . $item['time'] . '】牙刷牙膏' . $item['brush'] . '个，毛巾' . $item['towel'] . '个，卫生纸' . $item['paper'] . '卷。' . $item['other'];
 					$room_items[$key]['hotel_info'] = $hotel_lists[$item['storeid']];
 					$room_items[$key]['time'] = $item['time'];
+					$room_items[$key]['status'] = $item['status'];
 					if ($storeid > 0) {
 						if ($storeid != $room_items[$key]['hotel_info']['id']) {
 							unset($room_items[$key]);
@@ -141,6 +143,12 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 				}
 				message(error(0, '设置成功'), referer(), 'ajax');
 			}
+		}
+
+		if ($op == 'confirm') {
+			$id = intval($_GPC['id']);
+			pdo_update('storex_plugin_room_item', array('status' => 2), array('id' => $id));
+			message('确认成功', referer(), 'success');
 		}
 
 		include $this->template('roommanage');
