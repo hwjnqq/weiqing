@@ -105,6 +105,7 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 					$items[$value['id']] = iunserializer($value['items']);
 					$items[$value['id']]['storeid'] = $value['storeid'];
 					$items[$value['id']]['openid'] = $value['openid'];
+					$items[$value['id']]['time'] = $value['time'];
 				}
 			}
 			$hotel_lists = pdo_getall('storex_bases', array('store_type' => 1, 'weid' => $_W['uniacid']), array('id', 'title', 'thumb'), 'id');
@@ -112,6 +113,7 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 				foreach ($items as $key => $item) {
 					$room_items[$key]['info'] = $item['room'] . '住户需要以下服务：【' . $item['time'] . '】牙刷牙膏' . $item['brush'] . '个，毛巾' . $item['towel'] . '个，卫生纸' . $item['paper'] . '卷。' . $item['other'];
 					$room_items[$key]['hotel_info'] = $hotel_lists[$item['storeid']];
+					$room_items[$key]['time'] = $item['time'];
 					if ($storeid > 0) {
 						if ($storeid != $room_items[$key]['hotel_info']['id']) {
 							unset($room_items[$key]);
@@ -202,7 +204,7 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 				if (empty($room_service['room']) || empty($room_service['time'])) {
 					message(error(-1, '请完善信息'), '', 'ajax');
 				}
-				pdo_insert('storex_plugin_room_item', array('openid' => $_W['openid'], 'storeid' => intval($_GPC['storeid']), 'uniacid' => $_W['uniacid'], 'items' => iserializer($room_service)));
+				pdo_insert('storex_plugin_room_item', array('openid' => $_W['openid'], 'storeid' => intval($_GPC['storeid']), 'uniacid' => $_W['uniacid'], 'items' => iserializer($room_service), 'time' => TIMESTAMP));
 				$item_id = pdo_insertid();
 				if (!empty($item_id)) {
 					$clerk_list = pdo_getall('storex_clerk', array('weid' => $_W['uniacid']), '', 'id');

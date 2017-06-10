@@ -37,6 +37,7 @@
 				<tr>
 					<th>酒店信息</th>
 					<th>预约信息</th>
+					<th>预约时间</th>
 					<th>操作</th>
 				</tr>
 			</thead>
@@ -50,6 +51,7 @@
 					<td style="text-align:left;">
 						{$item['info']}
 					</td>
+					<td>{php echo date('Y-m-d H:i:s', $item['time'])}</td>
 					<td>
 						<a href="" class="btn btn-danger">删除</a>
 					</td>
