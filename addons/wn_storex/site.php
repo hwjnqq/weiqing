@@ -177,6 +177,11 @@ class Wn_storexModuleSite extends WeModuleSite {
 		$skin_style = $this->get_skin_style($id);
 		include $this->template($skin_style);
 	}
+
+	public function doMobileservice() {
+		global $_GPC, $_W;
+		include $this->template('service');
+	}
 	
 	//店铺id
 	public function get_skin_style($id) {

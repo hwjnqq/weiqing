@@ -95,7 +95,7 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 
 		if ($op == 'display') {
 			$storeid = intval($_GPC['storeid']);
-			$room_list = pdo_getall('storex_plugin_room_item', array('uniacid' => $_W['uniacid']));
+			$room_list = pdo_getall('storex_plugin_room_item', array('uniacid' => $_W['uniacid']), array(), '', 'id DESC');
 			if (!empty($room_list) && is_array($room_list)) {
 				$storeids = array();
 				foreach ($room_list as $key => $value) {
@@ -147,7 +147,18 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 
 		if ($op == 'confirm') {
 			$id = intval($_GPC['id']);
+			$room_item = pdo_get('storex_plugin_room_item', array('id' => $id));
+			if ($room_item['status'] == 2) {
+				message('该预约已确认', referer(), 'error');
+			}
 			pdo_update('storex_plugin_room_item', array('status' => 2), array('id' => $id));
+			$account_api = WeAccount::create();
+			$message = array(
+				'msgtype' => 'text',
+				'text' => array('content' => urlencode('您的预约已确认，请耐心等待')),
+				'touser' => $room_item['openid']
+			);
+			$account_api->sendCustomNotice($message);
 			message('确认成功', referer(), 'success');
 		}
 
@@ -157,8 +168,14 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 	public function doMobileHotelservice() {
 		global $_W, $_GPC;
 
-		$ops = array('wifi_info', 'hotel_info', 'room_service');
-		$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'wifi_info';
+		$ops = array('wifi_info', 'hotel_info', 'room_service', 'display');
+		$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
+
+		if ($op == 'display') {
+			$url = murl('entry', array('do' => 'service', 'm' => 'wn_storex'));
+			header("Location: $url");
+			exit;
+		}
 
 		if ($op == 'hotel_info') {
 			$tel_lists = $this->hotel_tel_info();
@@ -234,7 +251,7 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 					if (!empty($clerk_openids) && is_array($clerk_openids)) {
 						foreach ($clerk_openids as $openid) {
 							$message['touser'] = $openid;
-							$account_api->sendCustomNotice($message);	
+							$account_api->sendCustomNotice($message);
 						}
 					}
 					message(error(0, '提交成功'), '', 'ajax');
