@@ -1,0 +1,84 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li class="{if $op == 'display'}active{/if}"><a href="{php echo $this->createWeburl('telmanage', array('op' => 'display'))}">电话列表</a></li>
+</ul>
+
+<div class="main" id="telmanage">
+	{if $op == 'display'}
+	<div class="clearfix">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th>酒店信息</th>
+					<th>电话</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $tel_lists $item}
+				<tr>
+					<td>
+						<img src="{php echo tomedia($item['thumb'])}" width="50px" height="50px">
+						{$item['title']}
+					</td>
+					<td>{php echo $item['tel'] ? $item['tel'] : '暂无信息'}</td>
+					<td style="text-align:left;">
+						<a href="javascript:;" class="btn btn-primary" @click="setBtn({$item['id']})">设置电话</a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+	</div>
+	<div class="modal fade" id="tel-modal" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="myModalLabel">修改电话</h4>
+				</div>
+				<div class="modal-body clearfix form-horizontal">
+					<input type="text" class="form-control" v-model="tel"/>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+					<button type="button" class="btn btn-primary" data-dismiss="modal" @click="telSubmit()">确定</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	{/if}
+</div>
+<script type="text/javascript">
+	require({
+		paths: {
+			'vue': 'https://unpkg.com/vue@2.2.6/dist/vue',
+		}
+	})
+	require(['vue'], function(Vue) {
+		var app = new Vue({
+			el: '#telmanage',
+			data: {
+				tel: '',
+				storeid: ''
+			},
+			methods: {
+				setBtn(storeid) {
+					this.storeid = storeid;
+					$('#tel-modal').modal();
+				},
+				telSubmit() {
+					$.post("{php echo $this->createWeburl('telmanage', array('op' => 'post'));}", {params : this.tel, storeid : this.storeid}, function(data) {
+						data = $.parseJSON(data);
+						if (data.message.errno != 0) {
+							util.message(data.message.message, '', 'error');
+						} else {
+							util.message('设置成功', data.redirect, 'success');
+						}
+					});
+				}
+			}
+		});
+	});
+</script>
+{template 'common/footer'}
