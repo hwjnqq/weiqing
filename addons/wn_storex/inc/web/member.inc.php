@@ -162,5 +162,30 @@ if ($op == 'display') {
 	$list = pdo_getall('storex_member', array('weid' => $_W['uniacid'], 'realname LIKE' => "%{$_GPC['realname']}%", 'mobile LIKE' => "%{$_GPC['mobile']}%"), array(), '', 'id DESC', ($pindex - 1) * $psize . ',' . $psize);
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_member') . " WHERE weid = '{$_W['uniacid']}' $sql", $params);
 	$pager = pagination($total, $pindex, $psize);
+	if (!empty($list)) {
+		$uid_infos = array();
+		foreach ($list as $k => $val) {
+			$uid = mc_openid2uid(trim($val['from_user']));
+			if (!empty($uid)) {
+				$uid_infos[$uid]['openid'] = trim($val['from_user']);
+			}
+		}
+		$uids = array_keys($uid_infos);
+		$mc_members = pdo_getall('mc_members', array('uid' => $uids), array('mobile', 'realname', 'uid'));
+		foreach ($mc_members as $val) {
+			if (!empty($uid_infos[$val['uid']])) {
+				$uid_infos[$val['uid']]['mobile'] = $val['mobile'];
+				$uid_infos[$val['uid']]['realname'] = $val['realname'];
+			}
+		}
+		foreach ($list as &$info) {
+			foreach ($uid_infos as $v) {
+				if (trim($info['from_user']) == $v['openid']) {
+					$info['mobile'] = $v['mobile'];
+					$info['realname'] = $v['realname'];
+				}
+			}
+		}
+	}
 	include $this->template('member');
 }
