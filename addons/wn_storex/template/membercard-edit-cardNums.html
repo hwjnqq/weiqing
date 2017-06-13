@@ -26,7 +26,7 @@
 	<div class="form-group" v-show="activeModules.cardNums.params.nums_status == 1">
 		<label class="col-xs-12 col-sm-3 col-md-2 control-label">充值返次数</label>
 		<div class="col-sm-9 col-xs-12">
-			<div v-for="num in activeModules.cardNums.params.nums" style="margin-left:-15px">
+			<div v-for="(num, index) in activeModules.cardNums.params.nums" style="margin-left:-15px">
 				<div class="col-sm-8" style="margin-bottom:10px">
 					<div class="input-group">
 						<span class="input-group-addon">充</span>
@@ -37,7 +37,7 @@
 					</div>
 				</div>
 				<div class="col-sm-1" style="margin-top:5px">
-					<a href="javascript:;" @click="removeNums(num);"><i class="fa fa-times-circle"></i></a>
+					<a href="javascript:;" @click="removeNums(index);"><i class="fa fa-times-circle"></i></a>
 				</div>
 			</div>
 			<div class="help-block col-sm-9" style="margin-left:-15px">

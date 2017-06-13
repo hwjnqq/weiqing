@@ -33,7 +33,7 @@
 					</div>
 				</div>
 			</div>
-			{if $setting['nums_status'] == 1 && false}
+			{if $setting['nums_status'] == 1}
 			<div class="form-group">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">{$setting['nums_text']}</label>
 				<div class="col-sm-8 col-xs-12">
@@ -45,7 +45,7 @@
 				</div>
 			</div>
 			{/if}
-			{if $setting['nums_status'] == 1 && false}
+			{if $setting['nums_status'] == 1}
 			<div class="form-group">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">{$setting['times_text']}</label>
 				<div class="col-sm-8 col-xs-12">
@@ -86,10 +86,10 @@
 				<th width="150">卡号/所属用户组</th>
 				<th width="150">姓名/手机号</th>
 				<th width="150">积分/余额</th>
-				{if $setting['nums_status'] == 1 && false}
+				{if $setting['nums_status'] == 1}
 					<th width="80">{$setting['nums_text']}</th>
 				{/if}
-				{if $setting['times_status'] == 1 && false}
+				{if $setting['times_status'] == 1}
 					<th  width="150">{$setting['times_text']}</th>
 				{/if}
 				<th width="150">领卡时间</th>
@@ -113,7 +113,7 @@
 					<br>
 					<span class="label label-info">余额:{$row['credit2']}</span>
 				</td>
-				{if $setting['nums_status'] == 1 && false}
+				{if $setting['nums_status'] == 1}
 					<td>
 						{if !$row['nums']}
 							<span class="label label-danger">已用完</span>
@@ -122,7 +122,7 @@
 						{/if}
 					</td>
 				{/if}
-				{if $setting['times_status'] == 1 && false}
+				{if $setting['times_status'] == 1}
 					<td>
 						{if $row['endtime'] < time()}
 							<span class="label label-danger">{php echo date('Y-m-d', $row['endtime']);} 已到期</span>
@@ -145,9 +145,9 @@
 					<br>
 					<div class="btn-group">
 					<a class="btn btn-default" href="{php echo $this->createWebUrl('cardmanage', array('op' => 'delete', 'cardid' => $row['id']))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;">删除</a>
-					<a class="btn btn-default" href="{php echo $this->createWebUrl('cardmanage', array('op' => 'record', 'uid' => $row['uid']))}" style="display:none;">消费记录</a>
+					<a class="btn btn-default" href="{php echo $this->createWebUrl('cardmanage', array('op' => 'record', 'uid' => $row['uid']))}">消费记录</a>
 					{if $setting['times_status'] == 1 || $setting['nums_status'] == 1}
-						<a class="btn btn-warning manage" href="javascript:;" data-uid="{$row['uid']}" style="display:none;">充值/消费</a>
+						<a class="btn btn-warning manage" href="javascript:;" data-uid="{$row['uid']}">充值/消费</a>
 					{/if}
 					</div>
 				</td>
@@ -236,8 +236,13 @@
 		});
 	});
 </script>
-
 {elseif $op == 'record'}
+<div class="page-header clearfix">
+	<h4 class="pull-left">消费记录</h4>
+	<div class="pull-right">
+		<a href="{php echo $this->createWeburl('cardmanage', array('op' => 'display'))}" class="btn btn-primary we7-padding-horizontal">返回会员卡列表</a>
+	</div>
+</div>
 <div class="panel panel-info">
 	<div class="panel-heading">消费记录筛选</div>
 	<div class="panel-body">

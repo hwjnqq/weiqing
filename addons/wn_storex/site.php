@@ -313,7 +313,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 		} elseif ($params['type'] == 'delivery') {
 			$paytype = 3;
 		}
-		$recharge_info = pdo_get('mc_credits_recharge', array('uniacid' => $_W['uniacid'], 'tid' => $params['tid']), array('id', 'backtype', 'fee'));
+		$recharge_info = pdo_get('mc_credits_recharge', array('uniacid' => $_W['uniacid'], 'tid' => $params['tid']), array('id', 'backtype', 'fee', 'openid', 'uid', 'type'));
 		if (!empty($recharge_info)) {
 			if ($params['result'] == 'success' && $params['from'] == 'notify') {
 				$fee = $params['fee'];
@@ -326,11 +326,11 @@ class Wn_storexModuleSite extends WeModuleSite {
 				}
 				pdo_update('mc_credits_recharge', $data, array('tid' => $params['tid']));
 				$paydata = array('wechat' => '微信', 'alipay' => '支付宝', 'baifubao' => '百付宝', 'unionpay' => '银联');
+				$card_setting = card_setting_info();
 				//余额充值
 				if (empty($recharge_info['type']) || $recharge_info['type'] == 'credit') {
 					$setting = uni_setting($_W['uniacid'], array('creditbehaviors', 'recharge'));
 					$credit = $setting['creditbehaviors']['currency'];
-					$card_setting = card_setting_info();
 					$card_recharge = $card_setting['params']['cardRecharge'];
 					$recharge_params = array();
 					if ($card_recharge['params']['recharge_type'] == 1) {
@@ -373,6 +373,50 @@ class Wn_storexModuleSite extends WeModuleSite {
 							mc_credit_update($params['user'], 'credit2', $total_fee, $record);
 							mc_notice_recharge($recharge_info['openid'], $params['user'], $total_fee, '', $remark);
 						}
+					}
+				} elseif ($recharge_info['type'] == 'card_nums') {
+					$card_recharge = $card_setting['params']['cardNums'];
+					if ($card_recharge['params']['nums_status'] == 1) {
+						$recharge = $card_recharge['params']['nums'];
+						foreach ($recharges as $key => $recharge) {
+							if ($recharge['recharge'] == $recharge_info['fee']) {
+								$total_fee = $fee;
+								$nums = $recharge['num'];
+								break;
+							}
+						}
+						$add_str = ",充值成功,增加会员卡使用次数{$nums}";
+						$remark = '用户通过' . $paydata[$params['type']] . '充值' . $fee . $add_str;
+						$record[] = $params['user'];
+						$record[] = $remark;
+						$record[] = $this->module['name'];
+						$card_info = pdo_get('storex_mc_card_members', array('openid' => $recharge_info['openid']), array('nums'));
+						pdo_update('storex_mc_card_members', array('nums' => ($card_info['nums'] + $nums)), array('openid' => $recharge_info['openid']));
+						mc_notice_recharge($recharge_info['openid'], $params['user'], $total_fee, '', $remark);
+					}
+				} elseif ($recharge_info['type'] == 'card_times') {
+					$card_recharge = $card_setting['params']['cardTimes'];
+					if ($card_recharge['params']['times_status'] == 1) {
+						$recharge = $card_recharge['params']['times'];
+						foreach ($recharges as $key => $recharge) {
+							if ($recharge['recharge'] == $recharge_info['fee']) {
+								$total_fee = $fee;
+								$times = $recharge['time'];
+								break;
+							}
+						}
+						$add_str = ",充值成功,增加{$times}天会员时间";
+						$remark = '用户通过' . $paydata[$params['type']] . '充值' . $fee . $add_str;
+						$record[] = $params['user'];
+						$record[] = $remark;
+						$record[] = $this->module['name'];
+						$card_info = pdo_get('storex_mc_card_members', array('openid' => $recharge_info['openid']), array('endtime'));
+						if ($card_info['endtime'] < TIMESTAMP) {
+							pdo_update('storex_mc_card_members', array('endtime' => (TIMESTAMP + $times * 86400)), array('openid' => $recharge_info['openid']));
+						} else {
+							pdo_update('storex_mc_card_members', array('endtime' => ($card_info['endtime'] + $times * 86400)), array('openid' => $recharge_info['openid']));
+						}
+						mc_notice_recharge($recharge_info['openid'], $params['user'], $total_fee, '', $remark);
 					}
 				}
 			}
