@@ -132,7 +132,7 @@ $sql = "
 	  `group_name` varchar(20) NOT NULL,
 	  `title` varchar(20) NOT NULL,
 	  `icon` varchar(50) NOT NULL,
-	  `url` varchar(60) NOT NULL,
+	  `url` varchar(255) NOT NULL,
 	  `type` varchar(20) NOT NULL,
 	  `permission` varchar(50) NOT NULL,
 	  `system` int(2) NOT NULL DEFAULT '0',
@@ -405,4 +405,28 @@ if (!empty($uni_settings)) {
 			cache_write($cachekey, $setting);
 		}
 	}
+}
+
+//添加activity_clerk_menu数据
+$menu_info = pdo_getall('activity_clerk_menu');
+if (empty($menu_info)) {
+	$sql = "
+		INSERT INTO `ims_activity_clerk_menu` (`id`, `uniacid`, `displayorder`, `pid`, `group_name`, `title`, `icon`, `url`, `type`, `permission`, `system`) VALUES
+		(1, 0, 0, 0, 'mc', '快捷交易', '', '', '', 'mc_manage', 1),
+		(2, 0, 0, 1, '', '积分充值', 'fa fa-money', 'credit1', 'modal', 'mc_credit1', 1),
+		(3, 0, 0, 1, '', '余额充值', 'fa fa-cny', 'credit2', 'modal', 'mc_credit2', 1),
+		(4, 0, 0, 1, '', '消费', 'fa fa-usd', 'consume', 'modal', 'mc_consume', 1),
+		(5, 0, 0, 1, '', '发放会员卡', 'fa fa-credit-card', 'card', 'modal', 'mc_card', 1),
+		(6, 0, 0, 0, 'stat', '数据统计', '', '', '', 'stat_manage', 1),
+		(7, 0, 0, 6, '', '积分统计', 'fa fa-bar-chart', './index.php?c=site&a=entry&op=chart&do=statcredit1&m=we7_coupon', 'url', 'stat_credit1', 1),
+		(8, 0, 0, 6, '', '余额统计', 'fa fa-bar-chart', './index.php?c=site&a=entry&op=chart&do=statcredit2&m=we7_coupon', 'url', 'stat_credit2', 1),
+		(9, 0, 0, 6, '', '现金消费统计', 'fa fa-bar-chart', './index.php?c=site&a=entry&op=chart&do=statcash&m=we7_coupon', 'url', 'stat_cash', 1),
+		(10, 0, 0, 6, '', '会员卡统计', 'fa fa-bar-chart', './index.php?c=site&a=entry&op=chart&do=statcard&m=we7_coupon', 'url', 'stat_card', 1),
+		(11, 0, 0, 6, '', '收银台收款统计', 'fa fa-bar-chart', './index.php?c=site&a=entry&op=chart&do=statpaycenter&m=we7_coupon', 'url', 'stat_paycenter', 1),
+		(12, 0, 0, 0, 'activity', '卡券核销', '', '', '', 'activity_card_manage', 1),
+		(16, 0, 0, 12, '', '卡券核销', 'fa fa-money', 'cardconsume', 'modal', 'coupon_consume', 1),
+		(17, 0, 0, 0, 'paycenter', '收银台', '', '', '', 'paycenter_manage', 1),
+		(18, 0, 0, 17, '', '微信刷卡收款', 'fa fa-money', './index.php?c=paycenter&a=wxmicro&do=pay', 'url', 'paycenter_wxmicro_pay', 1);
+		";
+	pdo_run($sql);
 }
