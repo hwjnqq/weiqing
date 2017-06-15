@@ -13,15 +13,15 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 	public function doPageRoute(){
 		load()->func('communication');
 		global $_GPC, $_W;
+		$this->check_login();
 		$ac = $_GPC['ac'];
 		$url_param = $this->actions($ac);
 		$url_param['m'] = $_GPC['m'] ? $_GPC['m'] : 'wn_storex';
 		$params = json_decode(htmlspecialchars_decode($_GPC['params']), true);
 		$params['u_openid'] = trim($_SESSION['openid']);
-		if (empty($params['userid'])) {
+		if (empty($params['u_openid'])) {
 			return $this->result(41009, '请重新登录!', array());
 		}
-		$this->check_login();
 		$url = murl('entry', $url_param, true, true);
 		$result = ihttp_request($url, $params);
 		$result = json_decode($result['content'], true);
