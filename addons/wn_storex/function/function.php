@@ -2,8 +2,8 @@
 //检查每个文件的传值是否为空
 function check_params() {
 	global $_W, $_GPC;
-	if (!empty($_GPC['userid'])) {
-		$user_info = pdo_get('mc_mapping_fans', array('uid' => $_GPC['userid']), array('openid', 'uid'));
+	if (!empty($_GPC['u_openid'])) {
+		$user_info = pdo_get('mc_mapping_fans', array('openid' => $_GPC['u_openid']), array('openid', 'uid'));
 		$_W['openid'] = $user_info['openid'];
 	}
 	$permission_lists = array(
