@@ -152,6 +152,11 @@
 	</div>
 </div>
 <script>
+	require({
+		paths: {
+			'chart': '../../../../addons/wn_storex/template/style/js/chart.min'
+		}
+	});
 	require(['chart', 'daterangepicker', 'datetimepicker'], function(c) {
 		$(".datetime").each(function(){
 			var option = {

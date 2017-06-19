@@ -38,6 +38,11 @@
 	</div>
 </div>
 <script>
+	require({
+		paths: {
+			'chart': '../../../../addons/wn_storex/template/style/js/chart.min'
+		}
+	});
 	require(['chart', 'daterangepicker'], function(c) {
 		$('.daterange').on('apply.daterangepicker', function(ev, picker) {
 			$('#form1')[0].submit();
