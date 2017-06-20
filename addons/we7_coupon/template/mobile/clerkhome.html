@@ -6,7 +6,7 @@
 {template 'nav'}
 <div class="mui-content paycenter">
 	<div class="mui-banner">
-		<img src="./resource/images/avatar.png" alt="" class="mui-logo mui-img-circle"/>
+		<img src="{$headimg}" alt="" class="mui-logo mui-img-circle"/>
 		<h1 class="mui-name">{$_W['user']['name']}</h1>
 	</div>
 	<div class="mui-table activity-nav">
@@ -24,14 +24,12 @@
 		</div>
 	</div>
 	<ul class="mui-table-view mui-grid-view mui-grid-9 store-nav">
-		{if $_W['user']['clerk_type'] == 2 || ($_W['user']['clerk_type'] == 3 && in_array('coupon_consume', $user_permission))}
 		<li class="mui-table-view-cell mui-media mui-col-xs-4">
 			<a href="{php echo $this->createMobileUrl('clerk', array('op' => 'cardconsume'));}">
 				<span class="mui-icon mui-img-circle mui-image"><img src="./resource/images/icon-verification.png" alt="" /></span>
 				<div class="mui-media-body">卡券核销</div>
 			</a>
 		</li>
-		{/if}
 		{if $_W['account']['level'] == ACCOUNT_SERVICE_VERIFY}
 		<li class="mui-table-view-cell mui-media mui-col-xs-4">
 			<a href="{php echo $this->createMobileUrl('clerk', array('op' => 'scanpay'));}">

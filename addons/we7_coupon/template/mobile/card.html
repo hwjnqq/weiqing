@@ -404,18 +404,17 @@
 </div>
 <script>
 	$(function(){
-		$('.mui-thumbnail').click(function(){
+		$('.mui-thumbnail').click(function() {
 			$('.mui-thumbnail').removeClass('selected');
 			$(this).addClass('selected');
 			var type = '{$type}';
 			var addnums = $(this).data('nums');
 			var addpay = $(this).data('recharge');
 			var status = '<div class="selected-status"></div>';
-
 			if (type == 'nums') {
 				$('.add-nums').text(addnums + '次');
 				url = "{php echo url('entry', array('m' => 'recharge', 'do' => 'pay', 'type' => 'card_nums'), true)}&fee=" + addpay;
-			} else if(type == 'times') {
+			} else if (type == 'times') {
 				$('.add-nums').text(addnums + '天');
 				url = "{php echo url('entry', array('m' => 'recharge', 'do' => 'pay', 'type' => 'card_times'), true)}&fee=" + addpay;
 			}
@@ -650,7 +649,7 @@
 					var fragment = document.createDocumentFragment();
 					var li;
 					var url = "{php echo $this->createMobileurl('card', array('op' => 'sign_record', 'period' => $_GPC['period']), true)}";
-					mui.post(url, {'page' : page}, function(data){
+					mui.post(url, {'page' : page}, function(data) {
 						data = $.parseJSON(data);
 						if (data.message.errno == '1') {
 							return false;
@@ -760,8 +759,10 @@
 				<label>{php echo $fields['title']}</label>
 				{if $fields['bind'] == 'birth'}
 				{php echo tpl_app_fans_form('birth', array('year' => $profile['birthyear'], 'month' => $profile['birthmonth'], 'day' => $profile['birthday']), $fields['title']);}
-				{else if $fields['bind'] == 'reside'}
+				{elseif $fields['bind'] == 'reside'}
 				{php echo tpl_app_fans_form('reside', array('province' => $profile['resideprovince'], 'city' => $profile['residecity'], 'district' => $profile['residedist']), $fields['title']);}
+				{elseif $fields['bind'] == 'email'}
+				<input type="text" name="email" value="{$profile[$fields['bind']]}" readonly/>
 				{else}
 				{php echo tpl_app_fans_form($fields['bind'], $profile[$fields['bind']], $fields['title']);}
 				{/if}
@@ -799,7 +800,7 @@
 <script>
 $(function() {
 	stores = {php echo json_encode($stores_data)};
-	$('#pay-form').submit(function(){
+	$('#pay-form').submit(function() {
 		var fee = $.trim($('#pay-form :text[name="fee"]').val());
 		var store_id = $('input[name="store_id"]').val();
 		reg = /^[0-9]+([.]{1}[0-9]{1,2})?$/;
@@ -820,13 +821,13 @@ $(function() {
 		}
 		return true;
 	});
-	$(".js-user-options").on("tap", function(){
+	$(".js-user-options").on("tap", function() {
 		if (stores.data.length == 0) {
 			util.toast('当前无可用门店');
 			return false;
 		}
 		var $this = $(this);
-		util.poppicker(stores, function(items){
+		util.poppicker(stores, function(items) {
 			$('input[name="store_id"]').val(items[0].value);
 			$this.val(items[0].text);
 		});
