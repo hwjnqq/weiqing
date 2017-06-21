@@ -31,12 +31,12 @@ $(function(){
 			alert('密码不能为空');
 			return false;
 		}
-		$.post(location.href, {username: username, password: password}, function(data){
+		$.post(location.href, {username: username, password: password}, function(data) {
 			var result = $.parseJSON(data);
 			if(result.message.errno != 0) {
 				alert(result.message.message);
 			} else {
-				location.reload();
+				util.toast('登陆成功', result.redirect, 'success');
 			}
 			return false;
 		});

@@ -93,9 +93,6 @@ if ($op == 'recharge_add') {
 		$recharge_record['backtype'] = 2;
 	} elseif ($type == 'card_times') {
 		$card_times = $card_setting['params']['cardTimes'];
-		echo "<pre>";
-		print_r($card_times);
-		echo "</pre>";
 		$recharge_lists = array();
 		$add_times = 0;
 		if ($card_times['params']['times_status'] == 1) {

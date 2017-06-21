@@ -27,18 +27,17 @@ $('.js-scan-rules').click(function() {
 	$(this).find('span').toggleClass('fa-angle-up');
 	$(this).find('span').toggleClass('fa-angle-down');
 })
-$('.js-coupon-exchange').click(function(){
+$('.js-coupon-exchange').click(function() {
 	var id = $.trim($(this).data('id'));
 	var source = $(this).data('source');
 	var href = $(this).data('href');
 	var cancel_href = $(this).data('cancel-href');
 	var exchange_href = $(this).data('exchange-href');
-	if(!id) {
+	if (!id) {
 		return false;
 	}
 	$.post(href, {'id' : id}, function(data) {
 		data = $.parseJSON(data);
-		console.dir(data)
 		if (data.message.errno < 0) {
 			util.toast(data.message.message, '', 'error');
 		} else {
@@ -104,9 +103,9 @@ $(document).on('click', '.js-coupon-info', function() {
 	code = $(this).data('code');
 	href = $(this).data('ajax');
 	if (!code) {
-		$.post(href, {'id' : id}, function(data){
+		$.post(href, {'id' : id}, function(data) {
 			var data = $.parseJSON(data);
-			if(data.message.errno < 0) {
+			if (data.message.errno < 0) {
 				util.toast(data.message.error, '', 'error');
 			} else {
 				wx.ready(function(){
@@ -128,7 +127,7 @@ $(document).on('click', '.js-coupon-info', function() {
 	} else {
 		$.post(href, {'id' : id, 'code' : code}, function(data) {
 		var data = $.parseJSON(data);
-		if(data.message.errno < 0) {
+		if (data.message.errno < 0) {
 			u.message(data.message.error, '', 'error');
 		} else {
 			wx.ready(function(){
@@ -158,7 +157,7 @@ $(document).on('click', '.js-coupon-info', function() {
 		});
 	});
 	var qrcodeShow = function(code) {
-		require(['jquery.qrcode'], function(){
+		require(['jquery.qrcode'], function() {
 			url = "{php echo url('entry', array('i' => $_W['uniacid'],'do' => 'home', 'm' => 'paycenter'));}";
 			$('.js-qrcode-show').show();
 			$('.qrcode-block').html('').qrcode({
@@ -196,7 +195,7 @@ $(document).on('click', '.js-coupon-info', function() {
 					<a href="{php echo $this->createMobileurl('activity', array('activity_type' => 'coupon', 'op' => 'detail', 'couponid' => $coupon_info['id'], 'recid' => $recid))}" class="mui-navigate-right">{if $coupon_info['type'] == '1'}折扣{else}代金{/if}券详情</a>
 				</li>
 				<li class="mui-table-view-cell">
-				<a href="{php echo url('entry', array('m' => 'paycenter', 'do' => 'consume', 'encrypt_code' => $coupon_record['code'], 'card_id' => $coupon_info['id'], 'openid' => $_W['openid'], 'source' => $coupon_info['source']))}" class="mui-navigate-right">立即使用</a>
+				<a href="{php echo url('entry', array('m' => 'we7_coupon', 'do' => 'consume', 'encrypt_code' => $coupon_record['code'], 'card_id' => $coupon_info['id'], 'openid' => $_W['openid'], 'source' => $coupon_info['source']))}" class="mui-navigate-right">立即使用</a>
 				</li>
 				<li class="mui-table-view-cell">
 					<a href="{php echo url('mc/home')}" class="mui-navigate-right">
@@ -232,7 +231,7 @@ $(document).on('click', '.js-coupon-info', function() {
 			<div class="title">{$coupon_info['title']}</div>
 			<div class="hr"></div>
 			<div class="img">
-				<div class="qrcode-block" data-url="{php echo murl('entry', array('m' => 'paycenter', 'do' => 'cardconsume', 'op' => 'consume', 'code' => $coupon_info['code']), true, true);}" style="margin-top:20px"></div>
+				<div class="qrcode-block" data-url="{php echo murl('entry', array('m' => 'we7_coupon', 'do' => 'clerkcardconsume', 'code' => $coupon_info['code']), true, true);}" style="margin-top:20px"></div>
 			</div>
 			<div class="bar-code">{$coupon_info['code']}</div>
 			<div class="mui-text-muted">请在付款时出示此券</div>
@@ -426,6 +425,5 @@ $(document).on('click', '.js-coupon-info', function() {
 	})
 </script>
 {/if}
-
 {/if}
 {template 'common/footer'}

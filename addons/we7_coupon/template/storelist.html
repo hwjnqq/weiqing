@@ -8,7 +8,10 @@
 <div class="clearfix">
 	<div class="alert alert-info">
 		<i class="fa fa-info-circle"></i> 系统提示：更新服务信息后，需要微信进行审核，审核通过后可在门店详情页显示。在审核通过前，不能再次修改服务信息。<br>
-		<i class="fa fa-info-circle"></i> 注意：系统不会保存修改的服务信息，你可以通过“更新门店信息”来保持门店信息的有效性
+		<i class="fa fa-info-circle"></i> 注意：系统不会保存修改的服务信息，你可以通过“更新门店信息”来保持门店信息的有效性<br>
+		<strong class="text-danger">
+			<i class="fa fa-info-circle"></i> 提示：新申请的认证服务号无法使用门店管理（错误详情：api未授权），原因：因微信官方调整规则，等微信官方调整后可以继续使用<br>
+		</strong>
 	</div>
 	{if $update_status == 1}
 	<div class="alert alert-danger"><i class="fa fa-info-circle"></i> 系统提示：服务信息正在更新中，尚未生效，不允许再次更新</div>
@@ -138,6 +141,13 @@
 </div>
 {else}
 <div class="clearfix">
+	{if COUPON_TYPE == WECHAT_COUPON}
+	<div class="alert alert-info">
+		<strong class="text-danger">
+			<i class="fa fa-info-circle"></i> 提示：新申请的认证服务号无法使用门店管理（错误详情：api未授权），原因：因微信官方调整规则，等微信官方调整后可以继续使用<br>
+		</strong>
+	</div>
+	{/if}
 	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form1" style="display: block">
 		<div class="panel panel-default" id="step1">
 			<div class="panel-heading">
@@ -258,6 +268,13 @@
 {if $op == 'display'}
 <div class="clearfix">
 	<form action="" method="post" id="form2">
+		{if COUPON_TYPE == WECHAT_COUPON}
+		<div class="alert alert-info">
+			<strong class="text-danger">
+				<i class="fa fa-info-circle"></i> 提示：新申请的认证服务号无法使用门店管理（错误详情：api未授权），原因：因微信官方调整规则，等微信官方调整后可以继续使用<br>
+			</strong>
+		</div>
+		{/if}
 		<input type="hidden" name="acid" value="{$acid}">
 		<div class="panel panel-default">
 			<div class="panel-body table-responsive">

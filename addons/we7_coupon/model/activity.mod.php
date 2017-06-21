@@ -6,7 +6,7 @@ function we7_coupon_activity_coupon_grant($id, $openid) {
 	global $_W, $_GPC;
 	if (empty($openid)) {
 		$openid = $_W['openid'];
-		if(empty($openid)) {
+		if (empty($openid)) {
 			$openid = $_W['member']['uid'];
 		}
 		if (empty($openid)) {
@@ -35,8 +35,7 @@ function we7_coupon_activity_coupon_grant($id, $openid) {
 	$group = @array_intersect($coupon_group, $fan_groups);
 	if (empty($coupon)) {
 		return error(-1, '未找到指定卡券');
-	}
-	elseif (empty($group) && !empty($coupon_group)) {
+	} elseif (empty($group) && !empty($coupon_group)) {
 		if (!empty($fan_groups)) {
 			return error(-1, '无权限兑换');
 		} else {
@@ -44,38 +43,34 @@ function we7_coupon_activity_coupon_grant($id, $openid) {
 				return error(-1, '无权限兑换');
 			}
 		}
-	}
-	elseif (strtotime(str_replace('.', '-', $coupon['date_info']['time_limit_end'])) < strtotime(date('Y-m-d')) && $coupon['date_info']['time_type'] != 2) {
+	} elseif (strtotime(str_replace('.', '-', $coupon['date_info']['time_limit_end'])) < strtotime(date('Y-m-d')) && $coupon['date_info']['time_type'] != 2) {
 		return error(-1, '活动已结束');
-	}
-	elseif ($coupon['quantity'] <= 0) {
+	} elseif ($coupon['quantity'] <= 0) {
 		return error(-1, '卡券发放完毕');
-	}
-	elseif ($pcount >= $coupon['get_limit'] && !empty($coupon['get_limit'])) {
+	} elseif ($pcount >= $coupon['get_limit'] && !empty($coupon['get_limit'])) {
 		return error(-1, '数量超限');
-	}
-	elseif (!empty($coupon['modules']) && !in_array($_W['current_module']['name'], array_keys($coupon['modules'])) && ($_GPC['c'] != 'activity' && $_GPC['c'] != 'mc' ) && $_W['current_module']['name'] != 'we7_coupon') {
+	} elseif (!empty($coupon['modules']) && !in_array($_W['current_module']['name'], array_keys($coupon['modules'])) && ($_GPC['c'] != 'activity' && $_GPC['c'] != 'mc' ) && $_W['current_module']['name'] != 'we7_coupon') {
 		return error(-1, '该模块没有此卡券发放权限');
 	}
 	$give = $_W['activity_coupon_id'] ? true :false;
 	$uid = !empty($_W['member']['uid']) ? $_W['member']['uid'] : $fan['uid'];
 	$insert = array(
-			'couponid' => $id,
-			'uid' => $uid,
-			'uniacid' => $_W['uniacid'],
-			'openid' => $fan['openid'],
-			'code' => $code,
-			'grantmodule' => $give ? $_W['activity_coupon_id'] : $_W['current_module']['name'],
-			'addtime' => TIMESTAMP,
-			'status' => 1,
-			'remark' => $give ? '系统赠送' : '用户使用' . $coupon['exchange']['credit'] . $credit_names[$coupon['exchange']['credittype']] . '兑换'
+		'couponid' => $id,
+		'uid' => $uid,
+		'uniacid' => $_W['uniacid'],
+		'openid' => $fan['openid'],
+		'code' => $code,
+		'grantmodule' => $give ? $_W['activity_coupon_id'] : $_W['current_module']['name'],
+		'addtime' => TIMESTAMP,
+		'status' => 1,
+		'remark' => $give ? '系统赠送' : '用户使用' . $coupon['exchange']['credit'] . $credit_names[$coupon['exchange']['credittype']] . '兑换'
 	);
 	if ($coupon['source'] == 2) {
 		$insert['card_id'] = $coupon['card_id'];
 		$insert['code'] = '';
 	}
-	$arr = pdo_insert('coupon_record', $insert);
-	pdo_update('coupon', array('quantity' => $coupon['quantity'] - 1, 'dosage' => $coupon['dosage'] +1), array('uniacid' => $_W['uniacid'],'id' => $coupon['id']));
+	pdo_insert('coupon_record', $insert);
+	pdo_update('coupon', array('quantity' => $coupon['quantity'] - 1, 'dosage' => $coupon['dosage'] + 1), array('uniacid' => $_W['uniacid'],'id' => $coupon['id']));
 	return true;
 }
 
@@ -220,13 +215,13 @@ function we7_coupon_activity_coupon_give() {
 			$activity['coupons'] = empty($activity['coupons']) ? array() : iunserializer($activity['coupons']);
 			foreach ($activity['coupons'] as $id){
 				$coupon = activity_coupon_info($id);
-				if(is_error($coupon)){
+				if (is_error($coupon)){
 					continue;
 				}
 				$_W['activity_coupon_id'] = $activity['id'];
 				$ret = we7_coupon_activity_coupon_grant($id, $_W['member']['uid']);
 				unset($_W['activity_coupon_id']);
-				if(is_error($ret)) {
+				if (is_error($ret)) {
 					continue;
 				}
 			}
@@ -289,17 +284,13 @@ function we7_coupon_activity_coupon_owned() {
 		}
 		if ($coupon['type'] == COUPON_TYPE_DISCOUNT) {
 			$coupon['icon'] = '<div class="price">' . $coupon['extra']['discount'] * 0.1 . '<span>折</span></div>';
-		}
-		elseif($coupon['type'] == COUPON_TYPE_CASH) {
+		} elseif($coupon['type'] == COUPON_TYPE_CASH) {
 			$coupon['icon'] = '<div class="price">' . $coupon['extra']['reduce_cost'] * 0.01 . '<span>元</span></div><div class="condition">满' . $coupon['extra']['least_cost'] * 0.01 . '元可用</div>';
-		}
-		elseif($coupon['type'] == COUPON_TYPE_GIFT) {
+		} elseif($coupon['type'] == COUPON_TYPE_GIFT) {
 			$coupon['icon'] = '<img src="resource/images/wx_gift.png" alt="" />';
-		}
-		elseif($coupon['type'] == COUPON_TYPE_GROUPON) {
+		} elseif($coupon['type'] == COUPON_TYPE_GROUPON) {
 			$coupon['icon'] = '<img src="resource/images/groupon.png" alt="" />';
-		}
-		elseif($coupon['type'] == COUPON_TYPE_GENERAL) {
+		} elseif($coupon['type'] == COUPON_TYPE_GENERAL) {
 			$coupon['icon'] = '<img src="resource/images/general_coupon.png" alt="" />';
 		}
 		$data[$key] = $coupon;
@@ -344,7 +335,7 @@ function we7_coupon_activity_store_sync() {
 		}
 		$coupon_api = new coupon($_W['acid']);
 		$location = $coupon_api->LocationGet($val['location_id']);
-		if(is_error($location)) {
+		if (is_error($location)) {
 			return error(-1, $location['message']);
 		}
 		$location = $location['business']['base_info'];
@@ -404,10 +395,10 @@ function we7_coupon_paycenter_order_trade_types() {
 
 function we7_coupon_paycenter_check_login() {
 	global $_W, $_GPC;
-	if(empty($_W['uid']) && $_GPC['do'] != 'login') {
+	if (empty($_W['uid']) && $_GPC['do'] != 'login') {
 		message('抱歉，您无权进行该操作，请先登录', murl('entry', array('m' => 'we7_coupon', 'do' => 'clerk', 'op' => 'login'), true, true), 'error');
 	}
-	if($_W['user']['type'] == ACCOUNT_OPERATE_CLERK) {
+	if ($_W['user']['type'] == ACCOUNT_OPERATE_CLERK) {
 		isetcookie('__uniacid', $_W['user']['uniacid'], 7 * 86400);
 		isetcookie('__uid', $_W['uid'], 7 * 86400);
 	} else {
