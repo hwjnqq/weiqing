@@ -346,7 +346,7 @@ if ($op == 'order') {
 			$body .= "预定电话: " . $insert['mobile'] . "<br/>";
 			$body .= "到店时间: " . $bdate . "<br/>";
 			$body .= "离店时间: " . $edate . "<br/><br/>";
-			$body .= "请您到管理后台仔细查看. <a href='" . $_W['siteroot'] . create_url('member/login') . "' target='_blank'>立即登录后台</a>";
+			$body .= "请您到管理后台仔细查看. <a href= " . $_W['siteroot'] . create_url('member/login') . " target='_blank'>立即登录后台</a>";
 			load()->func('communication');
 			ihttp_email($reply['mail'], $subject, $body);
 		}
@@ -361,24 +361,24 @@ if ($op == 'order') {
 			$starttime += 86400;
 		}
 	}
-	if ($action == 'reserve') {
-		$acc = WeAccount::create($_W['acid']);
-		$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('email', 'mobile', 'nickname', 'template', 'confirm_templateid', 'templateid'));
-		$clerk = array();
-		if (!empty($setInfo['nickname'])) {
-			$from_user = pdo_get('mc_mapping_fans', array('nickname' => $setInfo['nickname'], 'uniacid' => $_W['uniacid']));
-			if (!empty($from_user)) {
-				$clerk['from_user'] = $from_user['openid'];
-			}
+	//发送订单提示
+	$acc = WeAccount::create($_W['acid']);
+	$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('email', 'mobile', 'nickname', 'template', 'confirm_templateid', 'templateid'));
+	$clerk = array();
+	if (!empty($setInfo['nickname'])) {
+		$from_user = pdo_get('mc_mapping_fans', array('nickname' => $setInfo['nickname'], 'uniacid' => $_W['uniacid']));
+		if (!empty($from_user)) {
+			$clerk['from_user'] = $from_user['openid'];
 		}
-		$info = '店铺有新的订单,为保证用户体验度，请及时处理!';
-		$custom = array(
-			'msgtype' => 'text',
-			'text' => array('content' => urlencode($info)),
-			'touser' => $clerk['from_user'],
-		);
-		$status = $acc->sendCustomNotice($custom);
 	}
+	$info = '店铺有新的订单,为保证用户体验度，请及时处理!';
+	$custom = array(
+		'msgtype' => 'text',
+		'text' => array('content' => urlencode($info)),
+		'touser' => $clerk['from_user'],
+	);
+	$status = $acc->sendCustomNotice($custom);
+	
 	$member = pdo_get('storex_member', array('weid' => intval($_W['uniacid']), 'from_user' => $_W['openid']));
 	if (!empty($member)) {
 		pdo_update('storex_member', array('userid' => $uid, 'mobile' => $insert['mobile'], 'realname' => $insert['contact_name']), array('weid' => intval($_W['uniacid']), 'from_user' => $_W['openid']));
