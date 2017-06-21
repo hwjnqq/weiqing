@@ -4,7 +4,7 @@
 <script language='javascript' src='{php echo $this->_script_url}tooltipbox.js'></script>
 <div class="main">
 	<ul class="nav nav-tabs">
-		<li class="active"><a href="{php echo $this->createWebUrl('order',array('op'=>'list'));}">订单管理</a></li>
+		<li class="active"><a href="{php echo $this->createWebUrl('order',array('op'=>'display'));}">订单管理</a></li>
 	</ul>
 	<div class="panel panel-info">
 		<div class="panel-heading">筛选</div>
@@ -116,7 +116,7 @@
 					<td>{$row['nums']}</td>
 					<!--<td>{$row['cprice']}</td>-->
 					<td>{$row['sum_price']}</td>
-					<td >{php echo date("Y-m-d",$row['btime']); }<br/>{php echo date("Y-m-d",$row['etime']); }</td>
+					<td>{if isset($row['is_house']) && $row['is_house'] == 1}{php echo date("Y-m-d",$row['btime']); }<br/>{php echo date("Y-m-d",$row['etime']); }{/if}</td>
 					<td >{if $row['paytype']==1}
 						余额支付
 						{else if $row['paytype']==21}

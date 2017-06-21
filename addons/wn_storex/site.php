@@ -161,6 +161,9 @@ class Wn_storexModuleSite extends WeModuleSite {
 		$setting = get_storex_set();
 		if (empty($id) && $setting['version'] == 0 && empty($_GPC['orderid']) && $_GPC['pay_type'] != 'recharge') {
 			$storex_base = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'status' => 1), array('id'), '', 'displayorder DESC');
+			if (empty($storex_base)) {
+				message('暂时没有店铺！', '', 'error');
+			}
 			$url = $_W['siteroot'] . 'app/index.php?i=' . $_W['uniacid'] . '&c=entry&m=wn_storex&do=display&id='
 					 . $storex_base['id'] . '#/StoreIndex/' . $storex_base['id'];
 			header("Location: $url");
@@ -698,14 +701,14 @@ class Wn_storexModuleSite extends WeModuleSite {
 				exit($site->$method($pars));
 			}
 		}
-		$pars[':openid'] = $_W['member']['uid'];
+		$pars[':openid'] = $_W['openid'];
 		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniacid`=:uniacid AND `module`=:module AND `tid`=:tid AND `openid`=:openid';
 		$log = pdo_fetch($sql, $pars);
 		if (empty($log)) {
 			$log = array(
 				'uniacid' => $_W['uniacid'],
 				'acid' => $_W['acid'],
-				'openid' => $_W['member']['uid'],
+				'openid' => $_W['openid'],
 				'module' => $this->module['name'],
 				'tid' => $params['tid'],
 				'fee' => $params['fee'],

@@ -25,7 +25,7 @@
 						{$room['title']}
 					</div>
 				</div>
-				{if $store_type == 1}
+				{if $store_type == 1 && !empty($good_info) && $good_info['is_house'] == 1}
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">房量/房态</label>
 					<div class="col-sm-9 col-xs-12 form-control-static">
@@ -74,7 +74,7 @@
 						{$item['mobile']}
 					</div>
 				</div>
-				{if $store_type == 1}
+				{if $store_type == 1 && !empty($good_info) && $good_info['is_house'] == 1}
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">到店时间</label>
 					<div class="col-sm-9 col-xs-12 form-control-static">
@@ -165,14 +165,14 @@
 						{if $item['status'] != -1}
 							<button type="button" class="btn but{if $item['status'] == 1 && ($item['mode_distribute'] != 2 || ($item['goods_status'] != 2 && $item['goods_status'] != 3))} btn-primary{/if} btn-default"  value="1">订单确认</button>
 							<button type="button" class="btn but{if $item['status'] == 2} btn-primary{/if} btn-default"  value="2">{if $item['paytype']==0}订单拒绝{else}订单退款{/if}</button>
-							{if $store_type == 1}
+							{if $store_type == 1 && !empty($good_info) && $good_info['is_house'] == 1}
 							<button type="button" class="btn but{if $item['status'] == 4} btn-primary{/if} btn-default"  value="4" >已入住</button>
 							{/if}
 							{if $item['mode_distribute'] == 2}
-							<button type="button" class="btn but{if ($item['goods_status'] == 2 || $item['goods_status'] == 3) && $item['status'] != 3 && $item['status'] != 2} btn-primary{/if} btn-default"  value="5" >
-								{if $item['goods_status'] == 2}
+							<button type="button" class="btn but{if ($item['goods_status'] == 2 || $item['goods_status'] == 3) && $item['status'] != 3 && $item['status'] != 2} btn-primary{/if} btn-default" value="5">
+								{if $item['goods_status'] == 1}
 									已发货
-								{else}
+								{elseif $item['goods_status'] == 2 || $item['goods_status'] == 3}
 									已收货
 								{/if}
 							</button>

@@ -23,11 +23,14 @@ if ($op == 'edit') {
 	if (!empty($id)) {
 		$item = pdo_get('storex_order', array('id' => $id));
 		$paylog = pdo_get('core_paylog', array('uniacid' => $item['weid'], 'tid' => $item['id'], 'module' => 'wn_storex'), array('uniacid', 'uniontid', 'tid'));
-		if (!empty($paylog)) {
-			$item['uniontid'] = $paylog['uniontid'];
-		}
 		if (empty($item)) {
 			message('抱歉，订单不存在或是已经删除！', '', 'error');
+		}
+		if ($store_type == 1) {
+			$good_info = pdo_get('storex_room', array('hotelid' => $hotelid, 'id' => $item['roomid']), array('id', 'is_house'));
+		}
+		if (!empty($paylog)) {
+			$item['uniontid'] = $paylog['uniontid'];
 		}
 	}
 	$express = express_name();
@@ -308,7 +311,11 @@ if ($op == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	pdo_query('UPDATE ' . tablename('storex_order') . " SET status = -1 WHERE time < :time AND weid = '{$_W['uniacid']}' AND paystatus = 0 AND status <> 1 AND status <> 3", array(':time' => time() - 86400));
-	$show_order_lists = pdo_fetchall("SELECT o.*, h.title AS hoteltitle, r.title AS roomtitle FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') . " h ON o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r ON r.id = o.roomid WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+	$field = '';
+	if ($table == 'storex_room') {
+		$field = ', r.is_house ';
+	}
+	$show_order_lists = pdo_fetchall("SELECT o.*, h.title AS hoteltitle, r.title AS roomtitle " . $field . " FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') . " h ON o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r ON r.id = o.roomid WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
 	getOrderUniontid($show_order_lists);
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') . " AS h on o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition", $params);
 	if ($_GPC['export'] != '') {

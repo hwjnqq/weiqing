@@ -270,6 +270,18 @@ if ($op == 'order') {
 				//message(error(0, "您有未完成订单,不能重复下单"), '', 'ajax');
 			}
 		} else {
+			$order_info['mode_distribute'] = intval($_GPC['order']['mode_distribute']);
+			if (empty($_GPC['order']['order_time'])) {
+				message(error(-1, '请选择时间！'), '', 'ajax');
+			}
+			$order_info['order_time'] = strtotime(intval($_GPC['order']['order_time']));
+			if ($order_info['mode_distribute'] == 2) {//配送
+				if (empty($_GPC['order']['addressid'])) {
+					message(error(-1, '地址不能为空！'), '', 'ajax');
+				}
+				$order_info['addressid'] = intval($_GPC['order']['addressid']);
+				$order_info['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
+			}
 			$insert = array_merge($order_info, $insert);
 			$insert['sum_price'] = $goods_info['cprice'] * $insert['nums'];
 		}
@@ -367,6 +379,21 @@ if ($op == 'order') {
 		);
 		$status = $acc->sendCustomNotice($custom);
 	}
-	pdo_update('storex_member', array('mobile' => $insert['mobile'], 'realname' => $insert['contact_name']), array('weid' => intval($_W['uniacid']), 'from_user' => $_W['openid']));
+	$member = pdo_get('storex_member', array('weid' => intval($_W['uniacid']), 'from_user' => $_W['openid']));
+	if (!empty($member)) {
+		pdo_update('storex_member', array('userid' => $uid, 'mobile' => $insert['mobile'], 'realname' => $insert['contact_name']), array('weid' => intval($_W['uniacid']), 'from_user' => $_W['openid']));
+	} else {
+		$insert_member = array(
+			'weid' => intval($_W['uniacid']),
+			'userid' => $uid,
+			'from_user' => $_W['openid'],
+			'realname' => $insert['contact_name'],
+			'mobile' => $insert['mobile'],
+			'createtime' => TIMESTAMP,
+			'isauto' => 1,
+			'status' => 1,
+		);
+		pdo_insert('storex_member', $insert_member);
+	}
 	goods_check_result($action, $order_id);
 }

@@ -229,6 +229,10 @@ function orders_check_status($item) {
 		'12' => '已收货',
 		'13' => '订单已确认'
 	);
+	if ($item['store_type'] == 1) {
+		$good = pdo_get('storex_room', array('id' => $item['roomid']), array('id', 'is_house'));
+	}
+	
 	//1是显示,2不显示
 	$item['is_pay'] = 2;//立即付款 is_pay
 	$item['is_cancle'] = 2;//取消订单is_cancle
@@ -257,13 +261,60 @@ function orders_check_status($item) {
 	} elseif ($item['status'] == 1) {
 		if ($item['store_type'] == 1) {//酒店
 			if ($item['action'] == 1) {
-				$status = STORE_CONFIRM_STATUS;
-				$item['is_cancle'] = 1;
+				if (!empty($good) && $good['is_house'] == 2) {
+					if ($item['mode_distribute'] == 1) {//自提
+						$item['is_cancle'] = 1;
+						$status = STORE_CONFIRM_STATUS;
+					} elseif ($item['mode_distribute'] == 2) {
+						if ($item['goods_status'] == 1) {
+							$item['is_cancle'] = 1;
+							$status = STORE_UNSENT_STATUS;
+						} elseif ($item['goods_status'] == 2) {
+							$item['is_confirm'] = 1;
+							$status = STORE_SENT_STATUS;
+						} elseif ($item['goods_status'] == 3) {
+							$status = STORE_GETGOODS_STATUS;
+						} else {
+							$item['is_cancle'] = 1;
+							$status = STORE_CONFIRM_STATUS;
+						}
+					}
+				} else {
+					$status = STORE_CONFIRM_STATUS;
+					$item['is_cancle'] = 1;
+				}
 			} else {
-				$status = STORE_UNLIVE_STATUS;
-				$item['is_cancle'] = 1;
-				if ($item['paystatus'] == 0) {
-					$item['is_pay'] = 1;
+				if (!empty($good) && $good['is_house'] == 2) {
+					if ($item['paystatus'] == 0 || $item['paystatus'] == 1) {
+						if ($item['mode_distribute'] == 1 ) {//自提
+							$item['is_cancle'] = 1;
+							$item['is_pay'] = 1;
+							$status = STORE_CONFIRM_STATUS;
+						} elseif ($item['mode_distribute'] == 2) {
+							if ($item['goods_status'] == 1) {
+								$item['is_cancle'] = 1;
+								$item['is_pay'] = 1;
+								$status = STORE_UNSENT_STATUS;
+							} elseif ($item['goods_status'] == 2) {
+								$item['is_confirm'] = 1;
+								$status = STORE_SENT_STATUS;
+							} elseif ($item['goods_status'] == 3) {
+								$status = STORE_GETGOODS_STATUS;
+							} else {
+								$item['is_cancle'] = 1;
+								$item['is_pay'] = 1;
+								$status = STORE_CONFIRM_STATUS;
+							}
+						}
+					} else {
+						$status = STORE_REPAY_STATUS;
+					}
+				} else {
+					$status = STORE_UNLIVE_STATUS;
+					$item['is_cancle'] = 1;
+					if ($item['paystatus'] == 0) {
+						$item['is_pay'] = 1;
+					}
 				}
 			}
 		} else {
