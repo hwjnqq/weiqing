@@ -224,7 +224,17 @@ if ($op == 'cardstatus') {
 	$extend_switch = extend_switch_fetch();
 	$extend_switch['card'] = intval($_GPC['status']);
 	$switch = iserializer($extend_switch);
-	pdo_update('storex_set', array('extend_switch' => $switch), array('weid' => $_W['uniacid']));
+	$storex_set = pdo_get('storex_set', array('weid' => $_W['uniacid']));
+	if (!empty($storex_set)) {
+		pdo_update('storex_set', array('extend_switch' => $switch), array('weid' => $_W['uniacid']));
+	} else {
+		$set_insert = array(
+			'weid' => intval($_W['uniacid']),
+			'version' => 1,
+			'extend_switch' => $switch,
+		);
+		pdo_insert('storex_set', $set_insert);
+	}
 	$cachekey = "wn_storex_switch:{$_W['uniacid']}";
 	cache_delete($cachekey);
 	message(error(0, ''), '', 'ajax');

@@ -1,4 +1,5 @@
 <?php 
+error_reporting(E_ALL^E_NOTICE);
 use Qiniu\json_decode;
 
 /**
@@ -149,5 +150,191 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 			}
 		}
 		return $info;
+	}
+	
+	public function doPagePay() {
+	global $_GPC, $_W;
+		//构造订单信息，此处订单随机生成，业务中应该把此订单入库，支付成功后，根据此订单号更新用户是否支付成功
+		$this->check_login();
+		$orderid = intval($_GPC['orderid']);
+		$pay_type = trim($_GPC['pay_type']);
+		$order_info = pdo_get('storex_order', array('id' => $orderid), array('id', 'sum_price', 'style'));
+		if (empty($order_info)) {
+			return $this->result(-1, '订单不存在！', array());
+		}
+		if ($pay_type == 'wechat') {
+			$order = array(
+				'tid' => $orderid,
+				'user' => $_SESSION['openid'],
+				'fee' => floatval($order_info['sum_price']),
+				'title' => $order_info['style'],
+			);
+			$pay_params = $this->pay($order);
+			if (is_error($pay_params)) {
+				return $this->result(1, '支付失败，请重试');
+			}
+		} else {
+			$log = pdo_get('core_paylog', array('tid' => $orderid, 'module' => $_GPC['m'], 'openid' => $_W['openid']));
+			if ($log['status'] == 1) {
+				return $this->result(1, '已经支付，请勿重复支付！');
+			}
+			load()->model('mc');
+			$uid = mc_openid2uid($_W['openid']);
+			$credtis = mc_credit_fetch($uid);
+			//如果是return返回的话，处理相应付款操作
+			if(!empty($log) && $log['status'] == '0') {
+				if($credtis['credit2'] < $order_info['sum_price']) {
+					return $this->result(1, "余额不足以支付, 需要{$order_info['sum_price']}, 当前 {$credtis['credit2']}");
+				}
+				$fee = floatval($order_info['sum_price']);
+				$tip = "余额支付" . $fee;
+				$result = mc_credit_update($uid, 'credit2', -$fee, array(0, $tip, $log['module'], 0, 0, 1));
+				if (is_error($result)) {
+					return $this->result(1, $result['message']);
+				}
+				return $this->result(0, '余额支付成功！');
+			} else {
+				return $this->result(-1, '订单错误！', array());
+			}
+		}
+		return $this->result(0, '', $pay_params);
+	}
+	
+	public function doPagePayResult () {
+		global $_W, $_GPC;
+		$orderid = intval($_GPC['orderid']);
+		$pay_type = trim($_GPC['pay_type']);
+		$core_paylog = pdo_get('core_paylog', array('tid' => $orderid, 'module' => $_GPC['m'], 'openid' => $_W['openid']));
+		pdo_update('core_paylog', array('status' => '1'), array('plid' => $core_paylog['plid']));
+		//处理订单
+		if ($pay_type == 'wechat') {
+			$type = 21;
+		} else {
+			$type = 1;
+		}
+		$order = pdo_get('storex_order', array('id' => $orderid));
+		$storex_bases = pdo_get('storex_bases', array('id' => $order['hotelid'], 'weid' => $_W['uniacid']), array('id', 'store_type', 'title'));
+		pdo_update('storex_order', array('paystatus' => 1, 'paytype' => $type), array('id' => $orderid));
+		$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('email', 'mobile', 'nickname', 'template', 'confirm_templateid', 'templateid'));
+		$starttime = $order['btime'];
+		if (!empty($setInfo['email'])) {
+			$body = "<h3>店铺订单</h3> <br />";
+			$body .= '订单编号：' . $order['ordersn'] . '<br />';
+			$body .= '姓名：' . $order['name'] . '<br />';
+			$body .= '手机：' . $order['mobile'] . '<br />';
+			$body .= '名称：' . $order['style'] . '<br />';
+			$body .= '订购数量' . $order['nums'] . '<br />';
+			$body .= '原价：' . $order['oprice'] . '<br />';
+			$body .= '优惠价：' . $order['cprice'] . '<br />';
+			if ($storex_bases['store_type'] == 1) {
+				$body .= '入住日期：' . date('Y-m-d', $order['btime']) . '<br />';
+				$body .= '退房日期：' . date('Y-m-d', $order['etime']) . '<br />';
+			}
+			$body .= '总价:' . $order['sum_price'];
+			// 发送邮件提醒
+			if (!empty($setInfo['email'])) {
+				load()->func('communication');
+				ihttp_email($setInfo['email'], '万能小店订单提醒', $body);
+			}
+		}
+		if (!empty($setInfo['mobile'])) {
+			// 发送短信提醒
+			if (!empty($setInfo['mobile'])) {
+				load()->model('cloud');
+				cloud_prepare();
+				$body = 'df';
+				$body = '用户' . $order['name'] . ',电话:' . $order['mobile'] . '于' . date('m月d日H:i') . '成功支付万能小店订单' . $order['ordersn']
+				. ',总金额' . $order['sum_price'] . '元' . '.' . random(3);
+				cloud_sms_send($setInfo['mobile'], $body);
+			}
+		}
+		
+		if ($storex_bases['store_type'] == 1) {
+			$goodsinfo = pdo_get('storex_room', array('id' => $order['roomid'], 'weid' => $_W['uniacid']));
+		} else {
+			$goodsinfo = pdo_get('storex_goods', array('id' => $order['roomid'], 'weid' => $_W['uniacid']));
+		}
+		$score = intval($goodsinfo['score']);
+		$acc = WeAccount::create($_W['acid']);
+		//TM00217
+		$clerks = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'status'=>1));
+		if (!empty($clerks)) {
+			foreach ($clerks as $k => $info) {
+				$permission = iunserializer($info['permission']);
+				if (!empty($permission[$order['hotelid']])) {
+					$is_permit = false;
+					foreach ($permission[$order['hotelid']] as $permit) {
+						if ($permit == 'wn_storex_permission_order') {
+							$is_permit = true;
+							continue;
+						}
+					}
+					if (empty($is_permit)) {
+						unset($clerks[$k]);
+					}
+				}
+			}
+		}
+		if (!empty($setInfo['nickname'])) {
+			$from_user = pdo_get('mc_mapping_fans', array('nickname' => $setInfo['nickname'], 'uniacid' => $_W['uniacid']));
+			if (!empty($from_user)) {
+				$clerks[]['from_user'] = $from_user['openid'];
+			}
+		}
+		if (!empty($setInfo['template']) && !empty($setInfo['templateid'])) {
+			$tplnotice = array(
+				'first' => array('value' => '您好，店铺有新的订单等待处理'),
+				'order' => array('value' => $order['ordersn']),
+				'Name' => array('value' => $order['name']),
+				'datein' => array('value' => date('Y-m-d', $order['btime'])),
+				'dateout' => array('value' => date('Y-m-d', $order['etime'])),
+				'number' => array('value' => $order['nums']),
+				'room type' => array('value' => $order['style']),
+				'pay' => array('value' => $order['sum_price']),
+				'remark' => array('value' => '为保证用户体验度，请及时处理！')
+			);
+			foreach ($clerks as $clerk) {
+				$acc->sendTplNotice($clerk['from_user'], $setInfo['templateid'], $tplnotice);
+			}
+		} else {
+			foreach ($clerks as $clerk) {
+				$info = '店铺有新的订单,为保证用户体验度，请及时处理!';
+				$custom = array(
+					'msgtype' => 'text',
+					'text' => array('content' => urlencode($info)),
+					'touser' => $clerk['from_user'],
+				);
+				$status = $acc->sendCustomNotice($custom);
+			}
+		}
+	
+		for ($i = 0; $i < $order['day']; $i++) {
+			$day = pdo_get('storex_room_price', array('weid' => $_W['uniacid'], 'roomid' => $order['roomid'], 'roomdate' => $starttime));
+			pdo_update('storex_room_price', array('num' => $day['num'] - $order['nums']), array('id' => $day['id']));
+			$starttime += 86400;
+		}
+		if ($score && false) {
+			$from_user = $_SESSION['openid'];
+			pdo_fetch("UPDATE " . tablename('storex_member') . " SET score = (score + " . $score . ") WHERE from_user = '" . $from_user . "' AND weid = " . $_W['uniacid'] . "");
+			//会员送积分
+			$_SESSION['ewei_hotel_pay_result'] = $orderid;
+			//判断公众号是否卡其会员卡功能
+			$card_setting = pdo_get('storex_mc_card', array('uniacid' => intval($_W['uniacid'])));
+			$card_status = $card_setting['status'];
+			//查看会员是否开启会员卡功能
+			$membercard_setting = pdo_get('storex_mc_card_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $params['user']));
+			$membercard_status = $membercard_setting['status'];
+			if ($membercard_status && $card_status) {
+				$room_credit = pdo_get('storex_room', array('weid' => $_W['uniacid'], 'id' => $order['roomid']));
+				$room_credit = $room_credit['score'];
+				$member_info = pdo_get('mc_members', array('uniacid' => $_W['uniacid'], 'uid' => $params['user']));
+				pdo_update('mc_members', array('credit1' => $member_info['credit1'] + $room_credit), array('uniacid' => $_W['uniacid'], 'uid' => $params['user']));
+			}
+		}
+		//核销卡券
+		if (!empty($order['coupon'])) {
+			pdo_update('storex_coupon_record', array('status' => 3), array('id' => $order['coupon']));
+		}
+		return $this->result(0, '支付成功！');
 	}
 }
