@@ -52,6 +52,9 @@ if ($op == 'goods_info') {
 	if ($store_info['store_type'] == 1) {
 		$goods_info = check_price($goods_info);
 	}
+	if (!empty($goods_info['carriage_set'])) {
+		$goods_info['carriage_set'] = iunserializer($goods_info['carriage_set']);
+	}
 	// $goods_info['cprice'] = card_discount_price($uid, $goods_info['cprice']);
 	message(error(0, $goods_info), '', 'ajax');
 }
@@ -80,6 +83,9 @@ if ($op == 'info') {
 		$condition['store_base_id'] = $store_id;
 		$table = 'storex_goods';
 		$goods_info = pdo_get($table, $condition);
+	}
+	if (!empty($goods_info['carriage_set'])) {
+		$goods_info['carriage_set'] = iunserializer($goods_info['carriage_set']);
 	}
 	$paycenter_couponlist = activity_paycenter_get_coupon();
 	// $goods_info['cprice'] = card_discount_price($uid, $goods_info['cprice']);
@@ -270,36 +276,10 @@ if ($op == 'order') {
 				//message(error(0, "您有未完成订单,不能重复下单"), '', 'ajax');
 			}
 		} else {
-			$order_info['mode_distribute'] = intval($_GPC['order']['mode_distribute']);
-			if (empty($_GPC['order']['order_time'])) {
-				message(error(-1, '请选择时间！'), '', 'ajax');
-			}
-			$order_info['order_time'] = strtotime(intval($_GPC['order']['order_time']));
-			if ($order_info['mode_distribute'] == 2) {//配送
-				if (empty($_GPC['order']['addressid'])) {
-					message(error(-1, '地址不能为空！'), '', 'ajax');
-				}
-				$order_info['addressid'] = intval($_GPC['order']['addressid']);
-				$order_info['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
-			}
-			$insert = array_merge($order_info, $insert);
-			$insert['sum_price'] = $goods_info['cprice'] * $insert['nums'];
+			$insert = general_goods_order($order_info, $goods_info, $insert);
 		}
 	} else {
-		$order_info['mode_distribute'] = intval($_GPC['order']['mode_distribute']);
-		if (empty($_GPC['order']['order_time'])) {
-			message(error(-1, '请选择时间！'), '', 'ajax');
-		}
-		$order_info['order_time'] = strtotime(intval($_GPC['order']['order_time']));
-		if ($order_info['mode_distribute'] == 2) {//配送
-			if (empty($_GPC['order']['addressid'])) {
-				message(error(-1, '地址不能为空！'), '', 'ajax');
-			}
-			$order_info['addressid'] = intval($_GPC['order']['addressid']);
-			$order_info['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
-		}
-		$insert = array_merge($order_info, $insert);
-		$insert['sum_price'] = $insert['cprice'] * $insert['nums'];
+		$insert = general_goods_order($order_info, $goods_info, $insert);
 	}
 	//根据优惠方式计算总价
 	if ($selected_coupon['type'] == 3) {
@@ -317,6 +297,9 @@ if ($op == 'order') {
 	} elseif ($selected_coupon['type'] == 2) {
 		$insert['sum_price'] = card_discount_price($uid, $insert['sum_price']);
 	}
+	//计算运费
+	//$insert = calculate_carriage($goods_info, $insert);
+	
 	$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
 	$post_total = trim($_GPC['order']['total']);
 	if ($post_total != $insert['sum_price']) {

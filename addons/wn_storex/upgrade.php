@@ -486,6 +486,12 @@ if (!pdo_fieldexists('storex_coupon_record', 'granttype')) {
 if (!pdo_fieldexists('storex_set', 'source')) {
 	pdo_query("ALTER TABLE " . tablename('storex_set') . " ADD `source` TINYINT NOT NULL DEFAULT '2' COMMENT '卡券类型，1为系统卡券，2为微信卡券';");
 }
+if (!pdo_fieldexists('storex_room', 'carriage_set')) {
+	pdo_query("ALTER TABLE " . tablename('storex_room') . " ADD `carriage_set` TEXT NOT NULL COMMENT '运费设置';");
+}
+if (!pdo_fieldexists('storex_goods', 'carriage_set')) {
+	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `carriage_set` TEXT NOT NULL COMMENT '运费设置';");
+}
 
 $subscribes = array('user_get_card', 'user_del_card', 'user_consume_card',);
 $subscribes = iserializer($subscribes);

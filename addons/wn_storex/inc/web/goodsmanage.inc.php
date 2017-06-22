@@ -80,6 +80,12 @@ if ($op == 'edit') {
 	$usergroup_list = pdo_getall('mc_groups', array('uniacid' => $_W['uniacid']), array(), '', array('isdefault DESC', 'credit ASC'));
 	if (!empty($id)) {
 		$item = pdo_fetch("SELECT * FROM " . tablename($table) . " WHERE id = :id", array(':id' => $id));
+		if (!empty($item['carriage_set'])) {
+			$item['carriage_set'] = iunserializer($item['carriage_set']);
+		} else {
+			$item['carriage_set']['carriage'] = 0;
+			$item['carriage_set']['full_free'] = 0;
+		}
 		$store_base_id = $item[$store_field];
 		if (empty($item)) {
 			if ($store_type == 1) {
@@ -108,6 +114,10 @@ if ($op == 'edit') {
 		if (empty($_GPC['oprice']) || $_GPC['oprice'] <= 0 || empty($_GPC['cprice']) || $_GPC['cprice'] <= 0) {
 			message('商品原价和优惠价不能为空！', '', 'error');
 		}
+		$carriage_set = array(
+			'carriage' => is_numeric($_GPC['carriage']) ? $_GPC['carriage'] : 0,
+			'full_free' => is_numeric($_GPC['full_free']) ? $_GPC['full_free'] : 0,
+		);
 		$common = array(
 			'weid' => $_W['uniacid'],
 			'title' => $_GPC['title'],
@@ -123,7 +133,8 @@ if ($op == 'edit') {
 			'can_buy' => intval($_GPC['can_buy']),
 			'sortid'=>intval($_GPC['sortid']),
 			'sold_num' => intval($_GPC['sold_num']),
-			'store_type' => intval($_GPC['store_type'])
+			'store_type' => intval($_GPC['store_type']),
+			'carriage_set' => iserializer($carriage_set),
 		);
 		if ($_GPC['store_type'] == 1) {
 			$is_house = 1;
