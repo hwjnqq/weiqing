@@ -153,7 +153,7 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 	}
 	
 	public function doPagePay() {
-	global $_GPC, $_W;
+		global $_GPC, $_W;
 		//构造订单信息，此处订单随机生成，业务中应该把此订单入库，支付成功后，根据此订单号更新用户是否支付成功
 		$this->check_login();
 		$orderid = intval($_GPC['orderid']);

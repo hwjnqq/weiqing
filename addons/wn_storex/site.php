@@ -15,7 +15,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 
 	public $_weid = '';
 
-	public $_version = 0;
+	public $_version = 9;
 
 	public $_hotel_level_config = array(5 => '五星级酒店', 4 => '四星级酒店', 3 => '三星级酒店', 2 => '两星级以下', 15 => '豪华酒店', 14 => '高档酒店', 13 => '舒适酒店', 12 => '经济型酒店', );
 
