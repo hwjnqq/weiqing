@@ -437,7 +437,7 @@ $sql = "
 	`card_id` varchar(250) NOT NULL DEFAULT '',
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`)
-	) ENGINE=MyISAMDEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_mc_card_members` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -455,7 +455,7 @@ $sql = "
 	`endtime` int(10) unsigned NOT NULL DEFAULT '0',
 	`fields` varchar(2500) NOT NULL COMMENT '扩展的信息',
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAMDEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_mc_card_record` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,

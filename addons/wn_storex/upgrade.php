@@ -137,7 +137,7 @@ $sql = "
 	`card_id` varchar(250) NOT NULL DEFAULT '',
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`)
-	) ENGINE=MyISAMDEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_mc_card_members` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -155,7 +155,7 @@ $sql = "
 	`endtime` int(10) unsigned NOT NULL DEFAULT '0',
 	`fields` varchar(2500) NOT NULL COMMENT '扩展的信息',
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAMDEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_mc_card_record` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -192,7 +192,7 @@ $sql = "
 	`endtime` int(10) NOT NULL,
 	PRIMARY KEY (`id`),
 	KEY `extra` (`extra`(333))
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COMMENT='兑换表';
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='兑换表';
 		
 	CREATE TABLE IF NOT EXISTS `ims_storex_coupon` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -228,7 +228,7 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`,`acid`),
 	KEY `card_id` (`card_id`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 		
 	CREATE TABLE IF NOT EXISTS `ims_storex_coupon_record` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -255,7 +255,7 @@ $sql = "
 	KEY `uniacid` (`uniacid`,`acid`),
 	KEY `card_id` (`card_id`),
 	KEY `hash` (`hash`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 		
 	CREATE TABLE IF NOT EXISTS `ims_storex_coupon_store` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -271,7 +271,7 @@ $sql = "
 	`uniacid` int(11) NOT NULL,
 	`property` varchar(200) NOT NULL DEFAULT '' COMMENT '当前公众号用户属性',
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COMMENT='用户属性设置表';
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='用户属性设置表';
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_coupon_activity` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -285,7 +285,7 @@ $sql = "
 	`description` varchar(255) NOT NULL DEFAULT '‘’',
 	`members` varchar(255) NOT NULL DEFAULT '',
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_activity_stores` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -486,6 +486,7 @@ if (!pdo_fieldexists('storex_coupon_record', 'granttype')) {
 if (!pdo_fieldexists('storex_set', 'source')) {
 	pdo_query("ALTER TABLE " . tablename('storex_set') . " ADD `source` TINYINT NOT NULL DEFAULT '2' COMMENT '卡券类型，1为系统卡券，2为微信卡券';");
 }
+
 $subscribes = array('user_get_card', 'user_del_card', 'user_consume_card',);
 $subscribes = iserializer($subscribes);
 pdo_update('modules', array('subscribes' => $subscribes), array('name' => 'wn_storex'));
