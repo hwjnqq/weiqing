@@ -181,12 +181,14 @@
 					});
 				},
 				addFields() {
-					this.activeModules.cardBasic.params.fields.push({
-						title: '',
-						require: 1,
-						bind: '',
-						issystem: 0
-					});
+					if (this.activeModules.cardBasic.params.fields.length < 5) {
+						this.activeModules.cardBasic.params.fields.push({
+							title: '',
+							require: 1,
+							bind: '',
+							issystem: 0
+						});
+					}
 				},
 				removeFields(type, index) {
 					if(type == 'mobile' ||　type == 'realname') {

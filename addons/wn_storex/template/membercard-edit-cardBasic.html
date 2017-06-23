@@ -141,10 +141,10 @@
 				<div class="col-sm-1" style="margin-top:5px" v-show="field.bind != 'mobile' && field.bind != 'realname'"><a href="javascript:;" @click="removeFields(field.bind, index);"><i class="fa fa-times-circle"></i></a></div>
 			</div>
 			<span class="help-block col-sm-9" style="margin-left:-15px">
-				系统会自动绑定:真实姓名和手机号码
+				系统会自动绑定：真实姓名和手机号码，最多可添加5个。
 			</span>
 			<span class="help-block col-sm-9" style="margin-left:-15px">
-				 <a href="javascript:;" @click="addFields();">
+				 <a href="javascript:;" @click="addFields();" v-if="activeModules.cardBasic.params.fields.length < 5">
 					 <i class="fa fa-plus-circle" title="添加填写项目"></i>
 					 添加填写项目
 				 </a>
