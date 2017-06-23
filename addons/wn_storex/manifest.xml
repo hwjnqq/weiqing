@@ -11,9 +11,14 @@
 		<url><![CDATA[]]></url>
 	</application>
 	<platform>
+		<supports>
+			<item type="app" />
+			<item type="wxapp" />
+		</supports>
 		<plugins>
 			<item name="wn_storex_plugin_credit_mall" />
 			<item name="wn_storex_plugin_hotel_service" />
+			<item name="wn_storex_plugin_sms" />
 		</plugins>
 		<subscribes>
 			<message type="user_get_card" />
@@ -40,6 +45,11 @@
 			<entry title="基本设置" do="hotelset" state="" direct="false" />
 			<entry title="扩展功能" do="extend" state="" direct="false" />
 		</menu>
+		<page>
+			<entry title="首页" do="/wn_storex/pages/index/index" state="" direct="" />
+			<entry title="分类" do="/wn_storex/pages/category/category" state="" direct="" />
+			<entry title="我的" do="/wn_storex/pages/home/index" state="" direct="" />
+		</page>
 		<home call="getItemTiles"></home>
 	</bindings>
 
