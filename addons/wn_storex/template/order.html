@@ -6,6 +6,24 @@
 	<ul class="nav nav-tabs">
 		<li class="active"><a href="{php echo $this->createWebUrl('order',array('op'=>'display'));}">订单管理</a></li>
 	</ul>
+	<div class="modal fade" id="quantity-modal" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="myModalLabel">修改订单价格</h4>
+				</div>
+				<div class="modal-body clearfix form-horizontal">
+					<input type="text" class="form-control" name="sum_price" />
+					<input type="hidden" name="order_id">
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+					<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="util.ajaxshow('{php echo $this->createWeburl('order', array('op' => 'edit_price'))}&sum_price=' + $('input[name=sum_price]').val() + '&id='+ $('input[name=order_id]').val())">确定</button>
+				</div>
+			</div>
+		</div>
+	</div>
 	<div class="panel panel-info">
 		<div class="panel-heading">筛选</div>
 		<div class="panel-body">
@@ -85,22 +103,22 @@
 			<table class="table table-hover" {if $store_type != 1}style="display: none"{/if}>
 				<thead class="navbar-inner">
 				<tr>
-					<th class='with-checkbox' style='width:30px;'>
+					<th class='with-checkbox' style='width:20px;'>
 						<input type="checkbox" class="check_all" />
 					</th>
-					<th style="width:120px;">订单编号</th>
-					<th style="width:240px;">商户订单号</th>
+					<th style="width:110px;">订单编号</th>
+					<th style="width:220px;">商户订单号</th>
 					<th style="width:120px;">酒店</th>
 					<th style="width:120px;">房型</th>
-					<th style="width:180px;">联系人/手机</th>
+					<th style="width:120px;">联系人/手机</th>
 					<th style="width:80px;">预定数量</th>
 					<!--<th>单价</th>-->
-					<th style="width:80px;">总价</th>
+					<th style="width:70px;">总价</th>
 					<th style="width:100px;">到店时间<br>离店时间</th>
 					<th style="width:120px;">支付方式<i></i></th>
 					<th style="width:160px;">订单时间<i></i></th>
 					<th style="width:120px;">订单状态<i></i></th>
-					<th style="width:100px;">操作</th>
+					<th style="width:140px;">操作</th>
 				</tr>
 				</thead>
 				<tbody>
@@ -150,6 +168,7 @@
 						{/if}
 					</td>
 					<td>
+						<a href="javascript:;" class="btn btn-default btn-sm change_price" data-id="{$row['id']}" data-price="{$row['sum_price']}">修改总价</a>
 						<a href="{php echo $this->createWebUrl('order', array('op'=>'edit', 'id' => $row['id'], 'roomid' => $row['roomid'], 'hotelid' => $row['hotelid'], 'store_type' => $store_type)); }" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="编辑"><i class="fa fa-edit"></i></a>&nbsp;
 						<a onclick="return confirm('此操作不可恢复，取消删除吗?');return false;" href="{php echo $this->createWebUrl('order', array('op'=>'delete', 'id' => $row['id'], 'hotelid' => $row['hotelid'], 'roomidid' => $row['roomid'], 'store_type' => $store_type))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-times"></i></a>
 					</td>
@@ -173,14 +192,14 @@
 					<th style="width:240px;">商户订单号</th>
 					<th style="width:120px;">店铺</th>
 					<th style="width:120px;">商品名称</th>
-					<th style="width:180px;">联系人/手机</th>
-					<th style="width:80px;">预定数量</th>
+					<th style="width:150px;">联系人/手机</th>
+					<th style="width:60px;">预定数量</th>
 					<!--<th>单价</th>-->
 					<th style="width:80px;">总价</th>
 					<th style="width:120px;">支付方式<i></i></th>
-					<th style="width:160px;">订单时间<i></i></th>
+					<th style="width:140px;">订单时间<i></i></th>
 					<th style="width:120px;">订单状态<i></i></th>
-					<th style="width:100px;">操作</th>
+					<th style="width:140px;">操作</th>
 				</tr>
 				</thead>
 				<tbody>
@@ -229,6 +248,7 @@
 						{/if}
 					</td>
 					<td>
+						<a href="javascript:;" class="btn btn-default btn-sm change_price" data-id="{$row['id']}" data-price="{$row['sum_price']}">修改总价</a>
 						<a href="{php echo $this->createWebUrl('order', array('op'=>'edit', 'id' => $row['id'], 'roomid' => $row['roomid'], 'hotelid' => $row['hotelid'], 'store_type' => $store_type)); }" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="编辑"><i class="fa fa-edit"></i></a>&nbsp;
 						<a onclick="return confirm('此操作不可恢复，取消删除吗?');return false;" href="{php echo $this->createWebUrl('order', array('op'=>'delete', 'id' => $row['id'], 'hotelid' => $row['hotelid'], 'roomidid' => $row['roomid'], 'store_type' => $store_type))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-times"></i></a>
 					</td>
@@ -283,6 +303,11 @@
 
 		});
 	});
+	$('.change_price').click(function() {
+		order_id = $(this).data('id');
+		$('input[name="order_id"]').val(order_id);
+		$('#quantity-modal').modal();
+	})
 </script>
 <script>
 	function drop_confirm(msg, url){

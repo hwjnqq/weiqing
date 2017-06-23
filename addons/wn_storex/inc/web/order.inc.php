@@ -6,7 +6,7 @@ global $_W, $_GPC;
 load()->model('mc');
 mload()->model('card');
 
-$ops = array('edit', 'post', 'delete', 'deleteall');
+$ops = array('edit', 'post', 'delete', 'deleteall', 'edit_price');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 checklogin();
@@ -268,6 +268,28 @@ if ($op == 'deleteall') {
 	}
 	$this->web_message('删除成功！', '', 0);
 	exit();
+}
+
+if ($op == 'edit_price') {
+	$order_id = intval($_GPC['id']);
+	$sum_price = $_GPC['sum_price'];
+	if (!is_numeric($sum_price)) {
+		message(error(-1, '价格必须是数字！'), '', 'ajax');
+	}
+	$sum_price = sprintf("%1.2f", $_GPC['sum_price']);
+	$order_info = pdo_get('storex_order', array('weid' => $_W['uniacid'], 'id' => $order_id), array('id', 'sum_price'));
+	if (empty($order_info)) {
+		message(error(-1, '抱歉，订单不存在或是已经被删除！'), '', 'ajax');
+	}
+	$core_paylog = pdo_get('core_paylog', array('tid' => $order_info['id'], 'module' => $_GPC['m'], 'uniacid' => $_W['uniacid']));
+	$core_result = true;
+	if (!empty($core_paylog)) {
+		$core_result = pdo_update('core_paylog', array('fee' => $sum_price, 'card_fee' => $sum_price), array('plid' => $core_paylog['plid']));
+	}
+	$result = pdo_update('storex_order', array('sum_price' => $sum_price), array('id' => $order_info['id']));
+	if (!empty($core_result) && !empty($result)) {
+		message(error(0, '修改成功'), referer(), 'ajax');
+	}
 }
 
 if ($op == 'display') {

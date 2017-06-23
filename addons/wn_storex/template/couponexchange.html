@@ -1,96 +1,94 @@
 {template 'common/header'}
 {template 'coupon_nav'}
 {if $_GPC['op'] == 'display'}
-<div class="main">
-	<div class="page-header clearfix">
-		<h4 class="pull-left">卡券兑换</h4>
-		<div class="pull-right">
-			<a href="{php echo $this->createWeburl('couponexchange', array('op' => 'post'))}" class="btn btn-primary we7-padding-horizontal">+添加卡券兑换</a>
-		</div>
+<div class="page-header clearfix">
+	<h4 class="pull-left">卡券兑换</h4>
+	<div class="pull-right">
+		<a href="{php echo $this->createWeburl('couponexchange', array('op' => 'post'))}" class="btn btn-primary we7-padding-horizontal">+添加卡券兑换</a>
 	</div>
-	<div class="panel panel-info">
-		<div class="panel-heading">筛选</div>
-		<div class="panel-body">
-			<form action="./index.php" method="get" class="form-horizontal" role="form">
-				<input type="hidden" name="c" value="site" />
-				<input type="hidden" name="a" value="entry" />
-				<input type="hidden" name="do" value="couponexchange" />
-				<input type="hidden" name="m" value="wn_storex" />
-				<input type="hidden" name="op" value="display" />
-				<div class="form-group">
-					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">卡券名称</label>
-					<div class="col-sm-7 col-lg-8 col-xs-12">
-						<input class="form-control" name="title" type="text" value="{$_GPC['title']}">
-					</div>
-					<div class="pull-right col-lg-2">
-						<input type="submit" name="submit" class="btn btn-default" value="搜索">
-						<input type="hidden" name="token" value="{$_W['token']}">
-					</div>
+</div>
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+			<input type="hidden" name="do" value="couponexchange" />
+			<input type="hidden" name="m" value="wn_storex" />
+			<input type="hidden" name="op" value="display" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">卡券名称</label>
+				<div class="col-sm-7 col-lg-8 col-xs-12">
+					<input class="form-control" name="title" type="text" value="{$_GPC['title']}">
 				</div>
-			</form>
-		</div>
+				<div class="pull-right col-lg-2">
+					<input type="submit" name="submit" class="btn btn-default" value="搜索">
+					<input type="hidden" name="token" value="{$_W['token']}">
+				</div>
+			</div>
+		</form>
 	</div>
-	{if empty($list)}
-	<div class="alert alert-info">
-		您当前没有兑换活动
-	</div>
-	{else}
-	<div class="panel panel-default">
-		<div class="table-responsive panel-body">
-			<table class="table table-hover">
-				<thead class="navbar-inner">
-				<tr>
-					<th style="width:150px;">卡券名称</th>
-					<th style="width:200px;">兑换条件</th>
-					<th style="width:200px;">兑换次数</th>
-					<th style="width:200px;">每人限领</th>
-					<th style="width:200px;">兑换时间</th>
-					<th style="width:150px;">兑换状态</th>
-					<th style="width:200px;">操作</th>
-				</tr>
-				</thead>
-				<tbody>
-				{loop $list $item}
-				<tr>
-					<td>{$item['coupon']['title']}</td>
-					<td>
-						{if $item['credittype'] == 'credit1'}
-						积分兑换
-						{elseif $item['credittype'] == 'credit2'}
-						余额兑换
-						{/if}
-					</td>
-					<td>{$item['num']}</td>
-					<td>{$item['pretotal']}</td>
-					<td>{$item['starttime']} - {$item['endtime']}</td>
-					<td>
-						<input class="js-flag" type="checkbox" data-id="{$item['id']}" {if $item['status']}checked{/if}/>
-						<script>
-							require(['bootstrap.switch'],function($){
-								$('.js-flag:checkbox').bootstrapSwitch({onText: '启用', offText: '关闭'});
-								$('.js-flag:checkbox').on('switchChange.bootstrapSwitch', function(event, state) {
-									var id = $(this).data('id');
-									var ban = state ? 1 : 0;
-									$.getJSON("{php echo $this->createWeburl('couponexchange', array('op' => 'change_status'))}", {id:id, status:ban}, function(data) {
-										var data = eval(data.message);
-									});
+</div>
+{if empty($list)}
+<div class="alert alert-info">
+	您当前没有兑换活动
+</div>
+{else}
+<div class="panel panel-default">
+	<div class="table-responsive panel-body">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+			<tr>
+				<th style="width:150px;">卡券名称</th>
+				<th style="width:200px;">兑换条件</th>
+				<th style="width:200px;">兑换次数</th>
+				<th style="width:200px;">每人限领</th>
+				<th style="width:200px;">兑换时间</th>
+				<th style="width:150px;">兑换状态</th>
+				<th style="width:200px;">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $list $item}
+			<tr>
+				<td>{$item['coupon']['title']}</td>
+				<td>
+					{if $item['credittype'] == 'credit1'}
+					积分兑换
+					{elseif $item['credittype'] == 'credit2'}
+					余额兑换
+					{/if}
+				</td>
+				<td>{$item['num']}</td>
+				<td>{$item['pretotal']}</td>
+				<td>{$item['starttime']} - {$item['endtime']}</td>
+				<td>
+					<input class="js-flag" type="checkbox" data-id="{$item['id']}" {if $item['status']}checked{/if}/>
+					<script>
+						require(['bootstrap.switch'],function($){
+							$('.js-flag:checkbox').bootstrapSwitch({onText: '启用', offText: '关闭'});
+							$('.js-flag:checkbox').on('switchChange.bootstrapSwitch', function(event, state) {
+								var id = $(this).data('id');
+								var ban = state ? 1 : 0;
+								$.getJSON("{php echo $this->createWeburl('couponexchange', array('op' => 'change_status'))}", {id:id, status:ban}, function(data) {
+									var data = eval(data.message);
 								});
 							});
-						</script>
-					</td>
-					<td>
-						<a href="{php echo $this->createWeburl('couponexchange', array('id' => $item['id'], 'op' => 'post'))}">查看详情</a>
-						<a href="{php echo $this->createWeburl('couponexchange', array('id' => $item['id'], 'op' => 'delete'))}" onclick="return confirm('确定删除卡券兑换吗？');return false;">删除</a>
-					</td>
-				</tr>
-				{/loop}
-				</tbody>
-			</table>
-		</div>
+						});
+					</script>
+				</td>
+				<td>
+					<a href="{php echo $this->createWeburl('couponexchange', array('id' => $item['id'], 'op' => 'post'))}">查看详情</a>
+					<a href="{php echo $this->createWeburl('couponexchange', array('id' => $item['id'], 'op' => 'delete'))}" onclick="return confirm('确定删除卡券兑换吗？');return false;">删除</a>
+				</td>
+			</tr>
+			{/loop}
+			</tbody>
+		</table>
 	</div>
-	{/if}
-	{$pager}
 </div>
+{/if}
+{$pager}
 {elseif $_GPC['op'] == 'post'}
 <div class="page-header clearfix">
 	<h4 class="pull-left">{if !empty($_GPC['id'])}查看{else}添加{/if}兑换</h4>
