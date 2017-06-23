@@ -162,7 +162,17 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		if (empty($order_info)) {
 			return $this->result(-1, '订单不存在！', array());
 		}
+		$log = pdo_get('core_paylog', array('tid' => $orderid, 'module' => $_GPC['m'], 'uniacid' => $_W['uniacid']));
+		if (!empty($log) && $log['status'] == 1) {
+			return $this->result(1, '已经支付，请勿重复支付！');
+		}
 		if ($pay_type == 'wechat') {
+			if (is_numeric($log['openid'])) {
+				$tag = array();
+				$tag['acid'] = $_W['acid'];
+				$tag['uid'] = $log['openid'];
+				pdo_update('core_paylog', array('openid' => $_W['openid'], 'tag' => iserializer($tag)), array('plid' => $log['plid']));
+			}
 			$order = array(
 				'tid' => $orderid,
 				'user' => $_SESSION['openid'],
@@ -174,12 +184,16 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 				return $this->result(1, '支付失败，请重试');
 			}
 		} else {
-			$log = pdo_get('core_paylog', array('tid' => $orderid, 'module' => $_GPC['m'], 'openid' => $_W['openid']));
-			if ($log['status'] == 1) {
-				return $this->result(1, '已经支付，请勿重复支付！');
-			}
 			load()->model('mc');
-			$uid = mc_openid2uid($_W['openid']);
+			if (empty($log['openid'])) {
+				$uid = mc_openid2uid($_W['openid']);
+			} else {
+				if (!is_numeric($log['openid'])) {
+					$uid = mc_openid2uid($log['openid']);
+				} else {
+					$uid = $log['openid'];
+				}
+			}
 			$credtis = mc_credit_fetch($uid);
 			//如果是return返回的话，处理相应付款操作
 			if(!empty($log) && $log['status'] == '0') {
@@ -204,8 +218,12 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		global $_W, $_GPC;
 		$orderid = intval($_GPC['orderid']);
 		$pay_type = trim($_GPC['pay_type']);
-		$core_paylog = pdo_get('core_paylog', array('tid' => $orderid, 'module' => $_GPC['m'], 'openid' => $_W['openid']));
-		pdo_update('core_paylog', array('status' => '1'), array('plid' => $core_paylog['plid']));
+		$type = array('wechat', 'credit');
+		if (!in_array($pay_type, $type)) {
+			$pay_type = 'credit';
+		}
+		$core_paylog = pdo_get('core_paylog', array('tid' => $orderid, 'module' => $_GPC['m'], 'uniacid' => $_W['uniacid']));
+		pdo_update('core_paylog', array('status' => '1', 'type' => $pay_type), array('plid' => $core_paylog['plid']));
 		//处理订单
 		if ($pay_type == 'wechat') {
 			$type = 21;

@@ -701,14 +701,19 @@ class Wn_storexModuleSite extends WeModuleSite {
 				exit($site->$method($pars));
 			}
 		}
-		$pars[':openid'] = $_W['openid'];
-		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniacid`=:uniacid AND `module`=:module AND `tid`=:tid AND `openid`=:openid';
+		if (!empty($_W['openid'])) {
+			load()->model('mc');
+			$uid = mc_openid2uid($_W['openid']);
+		} else {
+			$uid = $_W['member']['uid'];
+		}
+		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniacid`=:uniacid AND `module`=:module AND `tid`=:tid';
 		$log = pdo_fetch($sql, $pars);
 		if (empty($log)) {
 			$log = array(
 				'uniacid' => $_W['uniacid'],
 				'acid' => $_W['acid'],
-				'openid' => $_W['openid'],
+				'openid' => $uid,
 				'module' => $this->module['name'],
 				'tid' => $params['tid'],
 				'fee' => $params['fee'],
@@ -726,7 +731,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			message(error(-1, '没有有效的支付方式, 请联系网站管理员.'), '', 'ajax');
 		}
 		$pay = $payment['payment'];
-		if (empty($_W['member']['uid'])) {
+		if (empty($uid)) {
 			$pay['credit'] = false;
 		}
 		$pay['delivery']['switch'] = 0;
@@ -739,7 +744,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			}
 		}
 		if (!empty($pay['credit'])) {
-			$credtis = mc_credit_fetch($_W['member']['uid']);
+			$credtis = mc_credit_fetch($uid);
 		}
 		$pay_data['pay'] = $pay;
 		$pay_data['credits'] = $credtis;
