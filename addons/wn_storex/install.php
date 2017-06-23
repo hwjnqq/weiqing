@@ -396,6 +396,7 @@ $sql = "
 	`sign` varchar(1000) NOT NULL,
 	`share` varchar(500) NOT NULL,
 	`content` text NOT NULL,
+	`status` tinyint(2) NOT NULL COMMENT '开启状态 1开启，2关闭',
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
