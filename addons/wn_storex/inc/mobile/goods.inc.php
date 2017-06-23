@@ -52,8 +52,8 @@ if ($op == 'goods_info') {
 	if ($store_info['store_type'] == 1) {
 		$goods_info = check_price($goods_info);
 	}
-	if (!empty($goods_info['carriage_set'])) {
-		$goods_info['carriage_set'] = iunserializer($goods_info['carriage_set']);
+	if (!empty($goods_info['express_set'])) {
+		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
 	}
 	// $goods_info['cprice'] = card_discount_price($uid, $goods_info['cprice']);
 	message(error(0, $goods_info), '', 'ajax');
@@ -84,8 +84,8 @@ if ($op == 'info') {
 		$table = 'storex_goods';
 		$goods_info = pdo_get($table, $condition);
 	}
-	if (!empty($goods_info['carriage_set'])) {
-		$goods_info['carriage_set'] = iunserializer($goods_info['carriage_set']);
+	if (!empty($goods_info['express_set'])) {
+		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
 	}
 	$paycenter_couponlist = activity_paycenter_get_coupon();
 	// $goods_info['cprice'] = card_discount_price($uid, $goods_info['cprice']);
@@ -298,7 +298,7 @@ if ($op == 'order') {
 		$insert['sum_price'] = card_discount_price($uid, $insert['sum_price']);
 	}
 	//计算运费
-	//$insert = calculate_carriage($goods_info, $insert);
+	//$insert = calculate_express($goods_info, $insert);
 	
 	$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
 	$post_total = trim($_GPC['order']['total']);
@@ -391,12 +391,7 @@ if ($op == 'order') {
 		}
 	}
 	$info = '店铺有新的订单,为保证用户体验度，请及时处理!';
-	$custom = array(
-		'msgtype' => 'text',
-		'text' => array('content' => urlencode($info)),
-		'touser' => $clerk['from_user'],
-	);
-	$status = $acc->sendCustomNotice($custom);
+	$status = send_custom_notice('text', array('content' => urlencode($info)), $clerk['from_user']);
 	
 	$member = pdo_get('storex_member', array('weid' => intval($_W['uniacid']), 'from_user' => $_W['openid']));
 	if (!empty($member)) {

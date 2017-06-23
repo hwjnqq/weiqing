@@ -155,15 +155,15 @@
 				<input type="text" name="cprice" id="cprice" value="{$item['cprice']}" class="form-control">
 			</div>
 		</div>
-		<span {if $store_type == 1 && $item['is_house'] != 2} style="display:none" {/if} id="carriage_info">
+		<span {if $store_type == 1 && $item['is_house'] != 2} style="display:none" {/if} id="express_info">
 		<div class="form-group">
 			<label class="col-xs-12 col-sm-3 col-md-2 control-label">运费设置</label>
 			<div class="col-sm-9 col-xs-12">
 				<div class="input-group">
 					<span class="input-group-addon">默认运费</span>
-					<input type="text" class="form-control" name="carriage" value="{$item['carriage_set']['carriage']}"/>
+					<input type="text" class="form-control" name="express" value="{$item['express_set']['express']}"/>
 					<span class="input-group-addon">满</span>
-					<input type="text" class="form-control" name="full_free" value="{$item['carriage_set']['full_free']}"/>
+					<input type="text" class="form-control" name="full_free" value="{$item['express_set']['full_free']}"/>
 					<span class="input-group-addon">免运费</span>
 				</div>
 			</div>
@@ -326,11 +326,11 @@
 			var selectid =$(this).find("option:selected").val();
 			if (parent[selectid].category_type == 1) {
 				$('#hotel_add_info').show();
-				$('#carriage_info').hide();
+				$('#express_info').hide();
 				
 			} else {
 				$('#hotel_add_info').hide();
-				$('#carriage_info').show();
+				$('#express_info').show();
 			}
 		});
 	})

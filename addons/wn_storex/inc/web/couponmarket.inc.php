@@ -94,10 +94,8 @@ if ($op == 'post') {
 			foreach ($openids as $openid) {
 				$result = activity_user_get_coupon($post['coupons'], $openid, 3);
 				$coupon_info = activity_get_coupon_info($post['coupons']);
-				$send['touser'] = $openid;
-				$send['msgtype'] = 'text';
-				$send['text'] = array('content' => urlencode($_W['account']['name'].'赠送了您一张'.$coupon_info['title'].'，请到会员中心查收'));
-				$data = $account_api->sendCustomNotice($send);
+				$info = $_W['account']['name'] . '赠送了您一张' . $coupon_info['title'] . '，请到会员中心查收';
+				$data = send_custom_notice('text', array('content' => urlencode($info)), $openid);
 			}
 			if (is_array($result)) {
 				$post['msg_id'] = $result['errno'];

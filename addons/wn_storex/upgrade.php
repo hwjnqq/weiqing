@@ -486,11 +486,11 @@ if (!pdo_fieldexists('storex_coupon_record', 'granttype')) {
 if (!pdo_fieldexists('storex_set', 'source')) {
 	pdo_query("ALTER TABLE " . tablename('storex_set') . " ADD `source` TINYINT NOT NULL DEFAULT '2' COMMENT '卡券类型，1为系统卡券，2为微信卡券';");
 }
-if (!pdo_fieldexists('storex_room', 'carriage_set')) {
-	pdo_query("ALTER TABLE " . tablename('storex_room') . " ADD `carriage_set` TEXT NOT NULL COMMENT '运费设置';");
+if (!pdo_fieldexists('storex_room', 'express_set')) {
+	pdo_query("ALTER TABLE " . tablename('storex_room') . " ADD `express_set` TEXT NOT NULL COMMENT '运费设置';");
 }
-if (!pdo_fieldexists('storex_goods', 'carriage_set')) {
-	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `carriage_set` TEXT NOT NULL COMMENT '运费设置';");
+if (!pdo_fieldexists('storex_goods', 'express_set')) {
+	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `express_set` TEXT NOT NULL COMMENT '运费设置';");
 }
 if (!pdo_fieldexists('storex_sign_set', 'status')) {
 	pdo_query("ALTER TABLE " . tablename('storex_sign_set') . " ADD `status` TINYINT(2) NOT NULL COMMENT '开启状态 1开启，2关闭';");

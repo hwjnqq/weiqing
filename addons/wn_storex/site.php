@@ -500,12 +500,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 
 					} else {
 							$info = '您在' . $storex_bases['title'] . '预订的' . $goodsinfo['title'] . "已预订成功";
-							$custom = array(
-								'msgtype' => 'text',
-								'text' => array('content' => urlencode($info)),
-								'touser' => $_W['openid'],
-							);
-							$status = $acc->sendCustomNotice($custom);
+							$status = send_custom_notice('text', array('content' => urlencode($info)), $_W['openid']);
 						}
 
 					//TM00217
@@ -551,12 +546,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 					} else {
 						foreach ($clerks as $clerk) {
 							$info = '店铺有新的订单,为保证用户体验度，请及时处理!';
-							$custom = array(
-								'msgtype' => 'text',
-								'text' => array('content' => urlencode($info)),
-								'touser' => $clerk['from_user'],
-							);
-							$status = $acc->sendCustomNotice($custom);
+							$status = send_custom_notice('text', array('content' => urlencode($info)), $clerk['from_user']);
 						}
 					}
 
@@ -726,11 +716,18 @@ class Wn_storexModuleSite extends WeModuleSite {
 		if ($log['status'] == '1') {
 			message(error(-1, '这个订单已经支付成功, 不需要重复支付.'), '', 'ajax');
 		}
-		$payment = uni_setting(intval($_W['uniacid']), array('payment', 'creditbehaviors'));
-		if (!is_array($payment['payment'])) {
-			message(error(-1, '没有有效的支付方式, 请联系网站管理员.'), '', 'ajax');
+		if (check_wxapp()) {
+			$pay = array(
+				'wechat' => array('switch' => true), 
+				'credit' => array('switch' => true),
+			);
+		} else {
+			$payment = uni_setting(intval($_W['uniacid']), array('payment', 'creditbehaviors'));
+			if (!is_array($payment['payment'])) {
+				message(error(-1, '没有有效的支付方式, 请联系网站管理员.'), '', 'ajax');
+			}
+			$pay = $payment['payment'];
 		}
-		$pay = $payment['payment'];
 		if (empty($uid)) {
 			$pay['credit'] = false;
 		}

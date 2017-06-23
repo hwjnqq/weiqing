@@ -316,12 +316,7 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		} else {
 			foreach ($clerks as $clerk) {
 				$info = '店铺有新的订单,为保证用户体验度，请及时处理!';
-				$custom = array(
-					'msgtype' => 'text',
-					'text' => array('content' => urlencode($info)),
-					'touser' => $clerk['from_user'],
-				);
-				$status = $acc->sendCustomNotice($custom);
+				$status = send_custom_notice('text', array('content' => urlencode($info)), $clerk['from_user']);
 			}
 		}
 	

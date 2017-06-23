@@ -181,7 +181,7 @@ $sql = "
 	`service` decimal(10,2) DEFAULT '0.00',
 	`store_type` int(8) NOT NULL DEFAULT '1' COMMENT '所属店铺类型',
 	`is_house` int(11) NOT NULL DEFAULT '1' COMMENT '是否是房型 1 是，2不是',
-	`carriage_set` text NOT NULL COMMENT '运费设置',
+	`express_set` text NOT NULL COMMENT '运费设置',
 	PRIMARY KEY (`id`),
 	KEY `indx_hotelid` (`hotelid`),
 	KEY `indx_weid` (`weid`)
@@ -321,7 +321,7 @@ $sql = "
 	`sortid` int(11) DEFAULT '0',
 	`sold_num` int(11) NOT NULL DEFAULT '0' COMMENT '已售的数量',
 	`store_type` int(8) NOT NULL DEFAULT '0',
-	`carriage_set` text NOT NULL COMMENT '运费设置',
+	`express_set` text NOT NULL COMMENT '运费设置',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
