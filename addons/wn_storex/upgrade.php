@@ -492,6 +492,9 @@ if (!pdo_fieldexists('storex_room', 'carriage_set')) {
 if (!pdo_fieldexists('storex_goods', 'carriage_set')) {
 	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `carriage_set` TEXT NOT NULL COMMENT '运费设置';");
 }
+if (!pdo_fieldexists('storex_sign_set', 'status')) {
+	pdo_query("ALTER TABLE " . tablename('storex_sign_set') . " ADD `status` TINYINT(2) NOT NULL COMMENT '开启状态 1开启，2关闭';");
+}
 
 $subscribes = array('user_get_card', 'user_del_card', 'user_consume_card',);
 $subscribes = iserializer($subscribes);

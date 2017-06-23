@@ -11,7 +11,7 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 //判断会员卡开启
 $extend_switch = extend_switch_fetch();
-if ($extend_switch['card'] == 2) {
+if ($extend_switch['card'] != 1) {
 	message('会员卡功能未开启', referer(), 'error');
 }
 

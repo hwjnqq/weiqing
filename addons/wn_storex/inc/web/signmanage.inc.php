@@ -9,6 +9,7 @@ $ops = array('sign_set', 'sign_record', 'sign_status');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'sign_set';
 
 $extend_switch = extend_switch_fetch();
+
 //设置签到规则
 if ($op == 'sign_set') {
 	$sign_set = pdo_get('storex_sign_set', array('uniacid' => $_W['uniacid']));
@@ -63,8 +64,12 @@ if ($op == 'sign_record') {
 //是否开启签到
 if ($op == 'sign_status') {
 	$extend_switch['sign'] = intval($_GPC['status']);
-	$switch = iserializer($extend_switch);
-	pdo_update('storex_set', array('extend_switch' => $switch), array('weid' => $_W['uniacid']));
+	$sign_set = pdo_get('storex_sign_set', array('uniacid' => $_W['uniacid']));
+	if (empty($sign_set)) {
+		pdo_insert('storex_sign_set', array('uniacid' => $_W['uniacid'], 'status' => intval($_GPC['status'])));
+	} else {
+		pdo_update('storex_sign_set', array('status' => intval($_GPC['status'])), array('uniacid' => $_W['uniacid']));
+	}
 	$cachekey = "wn_storex_switch:{$_W['uniacid']}";
 	cache_delete($cachekey);
 	message(error(0, ''), '', 'ajax');
