@@ -64,7 +64,7 @@ if ($op == 'sign_record') {
 //是否开启签到
 if ($op == 'sign_status') {
 	$extend_switch['sign'] = intval($_GPC['status']);
-	$sign_set = pdo_get('storex_sign_set', array('uniacid' => $_W['uniacid']));
+	$sign_set = pdo_get('storex_sign_set', array('uniacid' => $_W['uniacid']), array('id'));
 	if (empty($sign_set)) {
 		pdo_insert('storex_sign_set', array('uniacid' => $_W['uniacid'], 'status' => intval($_GPC['status'])));
 	} else {
