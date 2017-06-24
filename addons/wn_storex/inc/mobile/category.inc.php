@@ -135,7 +135,7 @@ if ($op == 'more_goods') {
 	if (!empty($goods_list)) {
 		foreach ($goods_list as &$goods_info) {
 			if ($goods_info['oprice'] > $goods_info['cprice']) {
-				$goods_info['reduced_price'] = bcsub($goods_info['oprice'], $goods_info['cprice'], 2);
+				$goods_info['reduced_price'] = ($goods_info['oprice'] * 100000 - $goods_info['cprice'] * 100000) / 100000;
 			} else {
 				$goods_info['reduced_price'] = 0;
 			}
