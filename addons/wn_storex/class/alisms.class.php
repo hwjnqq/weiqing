@@ -59,7 +59,7 @@ class Alisms {
 		ksort($parameters);
 		$canonicalizedQueryString = '';
 		if (!empty($parameters) && is_array($parameters)) {
-		foreach ($parameters as $key => $value){
+			foreach ($parameters as $key => $value){
 				$canonicalizedQueryString .= '&' . $this->percentEncode($key) . '=' . $this->percentEncode($value);
 			}
 		}
@@ -73,10 +73,10 @@ class Alisms {
 	}
 	
 	protected function percentEncode($str) {
-		$res = urlencode($str);
-		$res = preg_replace('/\+/', '%20', $res);
-		$res = preg_replace('/\*/', '%2A', $res);
-		$res = preg_replace('/%7E/', '~', $res);
-		return $res;
+		$result = urlencode($str);
+		$result = preg_replace('/\+/', '%20', $result);
+		$result = preg_replace('/\*/', '%2A', $result);
+		$result = preg_replace('/%7E/', '~', $result);
+		return $result;
 	}
 }
