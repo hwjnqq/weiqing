@@ -247,17 +247,18 @@ if ($op == 'order') {
 					}
 				}
 			}
-			$r_sql = 'SELECT `roomdate`, `num`, `oprice`, `cprice`, `status` FROM ' . tablename('storex_room_price') .
-			' WHERE `roomid` = :roomid AND `weid` = :weid AND `hotelid` = :hotelid AND `roomdate` >= :btime AND ' .
-			' `roomdate` < :etime  ORDER BY roomdate DESC';
-			$params = array(':roomid' => $goodsid, ':weid' => intval($_W['uniacid']), ':hotelid' => $store_id, ':btime' => $btime, ':etime' => $etime);
-			$price_list = pdo_fetchall($r_sql, $params);
+// 			$r_sql = 'SELECT `roomdate`, `num`, `oprice`, `cprice`, `status` FROM ' . tablename('storex_room_price') .
+// 			' WHERE `roomid` = :roomid AND `weid` = :weid AND `hotelid` = :hotelid AND `roomdate` >= :btime AND ' .
+// 			' `roomdate` < :etime  ORDER BY roomdate DESC';
+// 			$params = array(':roomid' => $goodsid, ':weid' => intval($_W['uniacid']), ':hotelid' => $store_id, ':btime' => $btime, ':etime' => $etime);
+// 			$price_list = pdo_fetchall($r_sql, $params);
+			
+			$day_date = date('Y-m-d', time());
+			$price_list = pdo_get('storex_room_price', array('thisdate' => $day_date, 'roomid' => $goodsid, 'weid' => intval($_W['uniacid']), 'hotelid' => $store_id));
 			if (!empty($price_list)) {
 				//价格表中存在
-				foreach ($price_list as $k => $v) {
-					$goods_info['oprice'] = $v['oprice'];
-					$goods_info['cprice'] = $v['cprice'];
-				}
+				$goods_info['oprice'] = $price_list['oprice'];
+				$goods_info['cprice'] = $price_list['cprice'];
 			}
 			if ($order_info['nums'] > $max_room) {
 				message(error(-1, '您的预定数量超过最大限制!'), '', 'ajax');
@@ -317,37 +318,40 @@ if ($op == 'order') {
 	pdo_insert('storex_order', $insert);
 	$order_id = pdo_insertid();
 	
-	$plugins = get_plugin_list();
-	if (!empty($plugins) && !empty($plugins['wn_storex_plugin_sms'])) {
-		$clerks = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'status' => 1), array('mobile', 'permission'));
-		if (!empty($clerks)) {
-			foreach ($clerks as $k => $val) {
-				if (!preg_match(REGULAR_MOBILE, $val['mobile'])) {
-					unset($clerks[$k]);
-					continue;
-				}
-				$permission = iunserializer($val['permission']);
-				if (!empty($permission[$store_info['id']])) {
-					$exist = false;
-					foreach ($permission[$store_info['id']] as $v) {
-						if ($v == 'wn_storex_permission_order') {
-							$exist = true;
-						}
-					}
-					if (empty($exist)) {
+	$compare = ver_compare(IMS_VERSION, '1.0');
+	if ($compare != -1) {
+		$plugins = get_plugin_list();
+		if (!empty($plugins) && !empty($plugins['wn_storex_plugin_sms'])) {
+			$clerks = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'status' => 1), array('mobile', 'permission'));
+			if (!empty($clerks)) {
+				foreach ($clerks as $k => $val) {
+					if (!preg_match(REGULAR_MOBILE, $val['mobile'])) {
 						unset($clerks[$k]);
+						continue;
+					}
+					$permission = iunserializer($val['permission']);
+					if (!empty($permission[$store_info['id']])) {
+						$exist = false;
+						foreach ($permission[$store_info['id']] as $v) {
+							if ($v == 'wn_storex_permission_order') {
+								$exist = true;
+							}
+						}
+						if (empty($exist)) {
+							unset($clerks[$k]);
+						}
 					}
 				}
 			}
-		}
-		if (!empty($clerks)) {
-			mload()->model('sms');
-			$content = array(
-				'store' => $store_info['title'],
-				'price' => $insert['sum_price'],
-			);
-			foreach ($clerks as $value) {
-				sms_send($value['mobile'], $content, 'clerk');
+			if (!empty($clerks)) {
+				mload()->model('sms');
+				$content = array(
+						'store' => $store_info['title'],
+						'price' => $insert['sum_price'],
+				);
+				foreach ($clerks as $value) {
+					sms_send($value['mobile'], $content, 'clerk');
+				}
 			}
 		}
 	}
@@ -388,10 +392,10 @@ if ($op == 'order') {
 		$from_user = pdo_get('mc_mapping_fans', array('nickname' => $setInfo['nickname'], 'uniacid' => $_W['uniacid']));
 		if (!empty($from_user)) {
 			$clerk['from_user'] = $from_user['openid'];
+			$info = '店铺有新的订单,为保证用户体验度，请及时处理!';
+			$status = send_custom_notice('text', array('content' => urlencode($info)), $clerk['from_user']);
 		}
 	}
-	$info = '店铺有新的订单,为保证用户体验度，请及时处理!';
-	$status = send_custom_notice('text', array('content' => urlencode($info)), $clerk['from_user']);
 	
 	$member = pdo_get('storex_member', array('weid' => intval($_W['uniacid']), 'from_user' => $_W['openid']));
 	if (!empty($member)) {

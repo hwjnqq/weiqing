@@ -114,15 +114,18 @@ if ($op == 'edit') {
 					$info = '您在' . $hotel['title'] . '预订的' . $room['title'] . '已预订成功';
 					$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
 				}
-				$plugins = get_plugin_list();
-				if (!empty($plugins) && !empty($plugins['wn_storex_plugin_sms'])) {
-					mload()->model('sms');
-					$content = array(
-						'store' => $hotel['title'],
-						'ordersn' => $item['ordersn'],
-						'price' => $item['sum_price'],
-					);
-					sms_send($item['mobile'], $content, 'user');
+				$compare = ver_compare(IMS_VERSION, '1.0');
+				if ($compare != -1) {
+					$plugins = get_plugin_list();
+					if (!empty($plugins) && !empty($plugins['wn_storex_plugin_sms'])) {
+						mload()->model('sms');
+						$content = array(
+							'store' => $hotel['title'],
+							'ordersn' => $item['ordersn'],
+							'price' => $item['sum_price'],
+						);
+						sms_send($item['mobile'], $content, 'user');
+					}
 				}
 			}
 			//已入住提醒

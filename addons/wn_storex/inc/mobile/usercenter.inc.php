@@ -30,8 +30,11 @@ if ($op == 'extend_switch') {
 			}
 		}
 	}
-	$plugin_list = get_plugin_list();
-	$extend_switch['plugin_list'] = $plugin_list;
+	$compare = ver_compare(IMS_VERSION, '1.0');
+	if ($compare != -1) {
+		$plugin_list = get_plugin_list();
+		$extend_switch['plugin_list'] = $plugin_list;
+	}
 	$extend_switch['notice_unread_num'] = $notice_unread_num;
 	message(error(0, $extend_switch), '', 'ajax');
 }

@@ -198,15 +198,18 @@ if ($op == 'edit_order') {
 				$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "已预订成功，订单编号:" . $item['ordersn'];
 				$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
 			}
-			$plugins = get_plugin_list();
-			if (!empty($plugins) && !empty($plugins['wn_storex_plugin_sms'])) {
-				mload()->model('sms');
-				$content = array(
-					'store' => $store_info['title'],
-					'ordersn' => $item['ordersn'],
-					'price' => $item['sum_price'],
-				);
-				sms_send($item['mobile'], $content, 'user');
+			$compare = ver_compare(IMS_VERSION, '1.0');
+			if ($compare != -1) {
+				$plugins = get_plugin_list();
+				if (!empty($plugins) && !empty($plugins['wn_storex_plugin_sms'])) {
+					mload()->model('sms');
+					$content = array(
+						'store' => $store_info['title'],
+						'ordersn' => $item['ordersn'],
+						'price' => $item['sum_price'],
+					);
+					sms_send($item['mobile'], $content, 'user');
+				}
 			}
 		}
 		//已入住提醒
