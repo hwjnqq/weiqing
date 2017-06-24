@@ -3,7 +3,7 @@
 	<application setting="false">
 		<name><![CDATA[万能小店短信服务]]></name>
 		<identifie><![CDATA[wn_storex_plugin_sms]]></identifie>
-		<version><![CDATA[1.0]]></version>
+		<version><![CDATA[1.1]]></version>
 		<type><![CDATA[business]]></type>
 		<ability><![CDATA[万能小店短信服务]]></ability>
 		<description><![CDATA[万能小店短信服务]]></description>
