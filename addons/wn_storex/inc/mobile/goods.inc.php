@@ -298,7 +298,7 @@ if ($op == 'order') {
 		$insert['sum_price'] = card_discount_price($uid, $insert['sum_price']);
 	}
 	//计算运费
-	//$insert = calculate_express($goods_info, $insert);
+	$insert = calculate_express($goods_info, $insert);
 	
 	$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
 	$post_total = trim($_GPC['order']['total']);
