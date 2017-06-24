@@ -185,12 +185,10 @@ function card_discount_price($uid, $price) {
 
 function card_group_id($uid) {
 	global $_W;
-	$groups = mc_groups();
-	if (!empty($groups)) {
-		$members = pdo_get('mc_members', array('uniacid' => intval($_W['uniacid']), 'uid' => $uid));
-		if (!empty($members) && !empty($groups[$members['groupid']])) {
-			return $groups[$members['groupid']];
-		}
+	$members = pdo_get('mc_members', array('uid' => $uid), array('groupid'));
+	if (!empty($members['groupid'])) {
+		$group_info = pdo_get('mc_groups', array('groupid' => $members['groupid']));
+		return $group_info;
 	}
 }
 
