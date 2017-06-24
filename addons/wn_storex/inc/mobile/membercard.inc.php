@@ -74,7 +74,7 @@ if ($op == 'receive_card') {
 	$record = array(
 		'uniacid' => $_W['uniacid'],
 		'openid' => $_W['openid'],
-		'uid' => $_W['member']['uid'],
+		'uid' => $uid,
 		'cid' => $_GPC['cardid'],
 		'cardsn' => $cardsn,
 		'status' => '1',
