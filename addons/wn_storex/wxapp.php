@@ -166,7 +166,7 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 				'tid' => $order_info['tid'],
 				'user' => $_SESSION['openid'],
 				'fee' => floatval($order_info['fee']),
-				'title' => $order_info['type'],
+				'title' => "余额充值".$order_info['fee'],
 			);
 		} else {
 			$order_info = pdo_get('storex_order', array('id' => $orderid), array('id', 'sum_price', 'style'));
