@@ -247,12 +247,6 @@ if ($op == 'order') {
 					}
 				}
 			}
-// 			$r_sql = 'SELECT `roomdate`, `num`, `oprice`, `cprice`, `status` FROM ' . tablename('storex_room_price') .
-// 			' WHERE `roomid` = :roomid AND `weid` = :weid AND `hotelid` = :hotelid AND `roomdate` >= :btime AND ' .
-// 			' `roomdate` < :etime  ORDER BY roomdate DESC';
-// 			$params = array(':roomid' => $goodsid, ':weid' => intval($_W['uniacid']), ':hotelid' => $store_id, ':btime' => $btime, ':etime' => $etime);
-// 			$price_list = pdo_fetchall($r_sql, $params);
-			
 			$day_date = date('Y-m-d', time());
 			$price_list = pdo_get('storex_room_price', array('thisdate' => $day_date, 'roomid' => $goodsid, 'weid' => intval($_W['uniacid']), 'hotelid' => $store_id));
 			if (!empty($price_list)) {
