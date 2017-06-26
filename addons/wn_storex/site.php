@@ -499,9 +499,14 @@ class Wn_storexModuleSite extends WeModuleSite {
 						$acc->sendTplNotice($_W['uniacid'], $setInfo['confirm_templateid'], $data);
 
 					} else {
-							$info = '您在' . $storex_bases['title'] . '预订的' . $goodsinfo['title'] . "已预订成功";
-							$status = send_custom_notice('text', array('content' => urlencode($info)), $_W['openid']);
-						}
+						$info = '您在' . $storex_bases['title'] . '预订的' . $goodsinfo['title'] . "已预订成功";
+						$custom = array(
+							'msgtype' => 'text',
+							'text' => array('content' => urlencode($info)),
+							'touser' => $_W['openid'],
+						);
+						$status = $acc->sendCustomNotice($custom);
+					}
 
 					//TM00217
 					$clerks = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'status'=>1));
@@ -546,7 +551,12 @@ class Wn_storexModuleSite extends WeModuleSite {
 					} else {
 						foreach ($clerks as $clerk) {
 							$info = '店铺有新的订单,为保证用户体验度，请及时处理!';
-							$status = send_custom_notice('text', array('content' => urlencode($info)), $clerk['from_user']);
+							$custom = array(
+								'msgtype' => 'text',
+								'text' => array('content' => urlencode($info)),
+								'touser' => $clerk['from_user'],
+							);
+							$status = $acc->sendCustomNotice($custom);
 						}
 					}
 
