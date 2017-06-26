@@ -37,6 +37,7 @@ if ($op == 'store_list') {
 		}
 		$storex_bases[$key]['thumb'] = tomedia($info['thumb']);
 		$info['thumbs'] = iunserializer($info['thumbs']);
+		$info['detail_thumbs'] = iunserializer($info['detail_thumbs']);
 		$timestart = strexists($info['timestart'],':');
 		if ($timestart) {
 			$storex_bases[$key]['timestart'] = $info['timestart'];
@@ -51,6 +52,9 @@ if ($op == 'store_list') {
 		}
 		if (!empty($info['thumbs'])) {
 			$storex_bases[$key]['thumbs'] = format_url($info['thumbs']);
+		}
+		if (!empty($info['detail_thumbs'])) {
+			$storex_bases[$key]['detail_thumbs'] = format_url($info['detail_thumbs']);
 		}
 	}
 	if ($setting['version'] == 0) {//单店
