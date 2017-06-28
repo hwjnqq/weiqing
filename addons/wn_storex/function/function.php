@@ -786,6 +786,7 @@ function calculate_express($goods_info, $insert) {
 	}
 	return $insert;
 }
+
 function get_plugin_list() {
 	load()->model('module');
 	$plugin_list = module_get_plugin_list('wn_storex');
@@ -805,4 +806,13 @@ function check_wxapp() {
 		}
 	}
 	return false;
+}
+
+function check_ims_version () {
+	$compare = ver_compare(IMS_VERSION, '1.0');
+	if ($compare != -1) {
+		return true;
+	} else {
+		return false;
+	}
 }

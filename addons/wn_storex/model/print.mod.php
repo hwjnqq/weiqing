@@ -5,14 +5,9 @@ load()->func('communication');
  * $orderid 订单ID
  * */
 
-function print_order($printerid, $orderid) {
+function print_order($printerid, $orderid, $storeid) {
 	global $_W, $_GPC;
 	$printer_info = pdo_get('storex_plugin_printer', array('id' => $printerid));
-	$order_info = pdo_get('storex_order', array('id' => $orderid));
-	if (empty($order_info)) {
-		return error(-1, '订单错误!');
-	}
-	$storeid = $order_info['hotelid'];
 	
 	if (empty($printer_info)) {
 		print_insert_log(array('status' => 1, 'storeid' => $storeid, 'message' => '打印机信息错误'));
@@ -23,8 +18,10 @@ function print_order($printerid, $orderid) {
 		return error(-1, '打印机未开启');
 	}
 	
-	$content = print_get_content($printer_info, $order_info);
-	
+	$content = print_get_content($printer_info, $orderid);
+	if (empty($content)) {
+		return error(-1, '订单错误！');
+	}
 	mload()->classs('printer');
 	$printer_api = new Printer($printer_info['user'], $printer_info['key'], $printer_info['sn']);
 	//$result = $printer_api->printOrderAction($content);
@@ -47,8 +44,13 @@ function print_insert_log($params) {
 	pdo_insert('storex_plugin_print_logs', $logs);
 }
 
-function print_get_content($printer_info, $order_info) {
+function print_get_content($printer_info, $orderid) {
 	global $_W;
+	$order_info = pdo_get('storex_order', array('id' => $orderid));
+	if (empty($order_info)) {
+		return array();
+	}
+	$storeid = $order_info['hotelid'];
 	$storeinfo = get_store_info($order_info['hotelid']);
 	$goods_table = get_goods_table($storeinfo['store_type']);
 	$goodsinfo = pdo_get($goods_table, array('id' => $order_info['roomid']));
@@ -62,17 +64,17 @@ function print_get_content($printer_info, $order_info) {
 	
 	if ($storeinfo['store_type'] == 1) {
 		if ($goodsinfo['is_house'] == 1) {
-			$content[] = '服务费　　' . $goodsinfo['service'] . '<BR>';
+			$content[] = '服务费　　' . $goodsinfo['service'] * $order_info['nums'] * $order_info['day'] . '<BR>';
 			$content[] = '房间数量　' . $order_info['nums'] . '<BR>';
 			$content[] = '入住天数　' . $order_info['day'] . '<BR>';
 			$content[] = '联系人　　' . $order_info['contact_name'] . '<BR>';
 		} else {
 			$content[] = '数量　　　' . $order_info['nums'] . '<BR>';
 			if ($order_info['mode_distribute'] == 1) {
-				$content[] = '提货方式　' . 自提 . '<BR>';
+				$content[] = '提货方式　自提 <BR>';
 				$content[] = '自提时间　' . date('Y-m-d H:i:s', $order_info['order_time']) . '<BR>';
 			} else {
-				$content[] = '提货方式　' . 配送 . '<BR>';
+				$content[] = '提货方式　配送 <BR>';
 				$content[] = '配送时间　' . date('Y-m-d H:i:s', $order_info['order_time']) . '<BR>';
 				$address = print_get_address($order_info['addressid']);
 			}
@@ -80,25 +82,36 @@ function print_get_content($printer_info, $order_info) {
 	} else {
 		$content[] = '数量　　　' . $order_info['nums'] . '<BR>';
 		if ($order_info['mode_distribute'] == 1) {
-			$content[] = '提货方式　' . 自提 . '<BR>';
+			$content[] = '提货方式　自提 <BR>';
 			$content[] = '自提时间　' . date('Y-m-d H:i', $order_info['order_time']) . '<BR>';
 		} else {
-			$content[] = '提货方式　' . 配送 . '<BR>';
+			$content[] = '提货方式　配送 <BR>';
 			$content[] = '配送时间　' . date('Y-m-d H:i', $order_info['order_time']) . '<BR>';
 			$address = print_get_address($order_info['addressid']);
 		}
 	}
 	if ($order_info['mode_distribute'] == 2) {
 		//邮费
-// 		if (!empty($order_info['express_set'])) {
-// 			$express_set = iunserializer($order_info['express_set']);
-// 		}
+		if (!empty($goodsinfo['express_set'])) {
+			$express_set = iunserializer($goodsinfo['express_set']);
+			if (!empty($express_set['express'])) {
+				if ($order_info['static_price'] < $express_set['full_free']) {
+					$content[] = '邮费　　　' . $express_set['express'] . '<BR>';
+				} else {
+					$content[] = '邮费　　　免邮 <BR>';
+				}
+			}
+		}
 		$content[] = '送货地址　' . $address . '<BR>';
 	}
 	$content[] = '联系电话　' . $order_info['mobile'] . ' <BR>';
 	$content[] = '下单时间　' . date('Y-m-d H:i', $order_info['time']) . '<BR>';
 	$content[] = '--------------------------------<BR>';
-	$content[] = '合计　' . $order_info['sum_price'] . '　元<BR>';
+	$change = '';
+	if ($order_info['static_price'] != $order_info['sum_price']) {
+		$change = '(管理员处理后的价格)';
+	}
+	$content[] = '合计　' . $order_info['sum_price'] . '元' . $change . '<BR>';
 	$content[] = '备注　' . $order_info['remark'] .'<BR>';
 	
 	if (!empty($printer_info['footer'])) {

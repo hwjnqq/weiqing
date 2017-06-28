@@ -6,7 +6,7 @@ global $_W, $_GPC;
 load()->model('mc');
 mload()->model('card');
 
-$ops = array('edit', 'post', 'delete', 'deleteall', 'edit_price');
+$ops = array('edit', 'post', 'delete', 'deleteall', 'edit_price', 'print_order', 'display', 'check_print_plugin');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 checklogin();
@@ -114,8 +114,7 @@ if ($op == 'edit') {
 					$info = '您在' . $hotel['title'] . '预订的' . $room['title'] . '已预订成功';
 					$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
 				}
-				$compare = ver_compare(IMS_VERSION, '1.0');
-				if ($compare != -1) {
+				if (check_ims_version()) {
 					$plugins = get_plugin_list();
 					if (!empty($plugins) && !empty($plugins['wn_storex_plugin_sms'])) {
 						mload()->model('sms');
@@ -284,9 +283,10 @@ if ($op == 'edit_price') {
 		message(error(-1, '价格保留两位小数后不能小于零！'), '', 'ajax');
 	}
 	$sum_price = sprintf("%1.2f", $_GPC['sum_price']);
-	$order_info = pdo_get('storex_order', array('weid' => $_W['uniacid'], 'id' => $order_id), array('id', 'sum_price'));
+	$status = array('0', '1');
+	$order_info = pdo_get('storex_order', array('weid' => $_W['uniacid'], 'id' => $order_id, 'paystatus' => 0, 'status' => $status), array('id', 'sum_price'));
 	if (empty($order_info)) {
-		message(error(-1, '抱歉，订单不存在或是已经被删除！'), '', 'ajax');
+		message(error(-1, '抱歉，订单不是未支付状态或者订单已取消！'), '', 'ajax');
 	}
 	$core_paylog = pdo_get('core_paylog', array('tid' => $order_info['id'], 'module' => $_GPC['m'], 'uniacid' => $_W['uniacid']));
 	$core_result = true;
@@ -296,6 +296,37 @@ if ($op == 'edit_price') {
 	$result = pdo_update('storex_order', array('sum_price' => $sum_price), array('id' => $order_info['id']));
 	if (!empty($core_result) && !empty($result)) {
 		message(error(0, '修改成功'), referer(), 'ajax');
+	}
+}
+
+if ($op == 'print_order') {
+	$order_id = intval($_GPC['id']);
+	$storeid = intval($_GPC['storeid']);
+	$print = intval($_GPC['print']);
+	if (empty($order_id)) {
+		message('获取订单失败!', referer(), 'error');
+	}
+	mload()->model('print');
+	$result = print_order($print, $order_id, $storeid);
+	if ($result['errno'] != 0) {
+		message($result['message'], referer(), 'error');
+	} else {
+		message('打印成功！', referer(), 'success');
+	}
+}
+
+if ($op == 'check_print_plugin') {
+	$plugins = array();
+	if (check_ims_version()) {
+		$plugins = get_plugin_list();
+		if (!empty($plugins) && !empty($plugins['wn_storex_plugin_printer'])) {
+			$url = wurl('site/entry/printerset', array('op' => 'display', 'm'=> 'wn_storex_plugin_printer'), true);
+			message('', $url, 'success');
+		} else {
+			message('该店铺未安装或设置打印机插件！', referer(), 'error');
+		}
+	} else {
+		message('该微擎版本不支持打印机插件！', referer(), 'error');
 	}
 }
 
@@ -356,6 +387,38 @@ if ($op == 'display') {
 	}
 	$show_order_lists = pdo_fetchall("SELECT o.*, h.title AS hoteltitle, r.title AS roomtitle " . $field . " FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') . " h ON o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r ON r.id = o.roomid WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
 	getOrderUniontid($show_order_lists);
+	
+	$version = check_ims_version();
+	if (!empty($version)) {
+		$printers = pdo_getall('storex_plugin_printer', array('uniacid' => $_W['uniacid']), array('name', 'id'), 'id');
+		$stores_printers = pdo_getall('storex_plugin_printer_set', array('uniacid' => $_W['uniacid']), array('storeid','id', 'printerids'), 'storeid');
+		$printer = array();
+		if (!empty($stores_printers)) {
+			foreach ($stores_printers as $storeid => $info) {
+				$info['printerids'] = iunserializer($info['printerids']);
+				if (!empty($info['printerids'])) {
+					foreach ($info['printerids'] as $p_id => $status) {
+						if ($status == 1 && !empty($printers[$p_id])) {
+							$printer[$storeid][$p_id] = array(
+								'id' => $p_id,
+								'status' => $status,
+								'name' => $printers[$p_id]['name'],
+							);
+						}
+					}
+				}
+			}
+		}
+		if (!empty($show_order_lists) && !empty($printer)) {
+			foreach ($show_order_lists as &$orderinfo) {
+				$orderinfo['printers'] = array();
+				if (!empty($printer[$orderinfo['hotelid']])) {
+					$orderinfo['printers'] = $printer[$orderinfo['hotelid']];
+				}
+			}
+		}
+	}
+	
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') . " AS h on o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition", $params);
 	if ($_GPC['export'] != '') {
 		$export_order_lists = pdo_fetchall("SELECT o.*, h.title as hoteltitle, r.title AS roomtitle FROM " . tablename('storex_order') . " o LEFT JOIN " . tablename('storex_bases') . " AS h on o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r ON r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC" . ',' . $psize, $params);

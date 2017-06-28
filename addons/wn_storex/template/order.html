@@ -118,7 +118,7 @@
 					<th style="width:120px;">支付方式<i></i></th>
 					<th style="width:160px;">订单时间<i></i></th>
 					<th style="width:120px;">订单状态<i></i></th>
-					<th style="width:140px;">操作</th>
+					<th style="width:180px;">操作</th>
 				</tr>
 				</thead>
 				<tbody>
@@ -168,7 +168,23 @@
 						{/if}
 					</td>
 					<td>
+						{if !empty($version)}
+						<div class="dropdown" style="display: inline-block">
+							<a id="dLabel" data-target="#" href="#" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" class="btn btn-default btn-sm"><i class="fa fa-print"></i></a>
+							<ul class="dropdown-menu" aria-labelledby="dLabel">
+								{if !empty($row['printers'])}
+									{loop $row['printers'] $p}
+									<li><a onclick="return confirm('是否打印小票?');return false;" href="{php echo $this->createWebUrl('order', array('op'=>'print_order', 'id' => $row['id'], 'storeid' => $row['hotelid'], 'print' => $p['id']))}">{$p['name']}</a></li>
+									{/loop}
+								{else}
+									<li><a href="{php echo $this->createWebUrl('order', array('op'=>'check_print_plugin'))}" target="_blank">添加打印机</a></li>
+								{/if}
+							</ul>
+						</div>
+						{/if}
+						{if $row['status'] != -1 && $row['status'] != 3 && $row['status'] != 2 && $row['paystatus'] == 0}
 						<a href="javascript:;" class="btn btn-default btn-sm change_price" data-id="{$row['id']}" data-price="{$row['sum_price']}">修改总价</a>
+						{/if}
 						<a href="{php echo $this->createWebUrl('order', array('op'=>'edit', 'id' => $row['id'], 'roomid' => $row['roomid'], 'hotelid' => $row['hotelid'], 'store_type' => $store_type)); }" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="编辑"><i class="fa fa-edit"></i></a>&nbsp;
 						<a onclick="return confirm('此操作不可恢复，取消删除吗?');return false;" href="{php echo $this->createWebUrl('order', array('op'=>'delete', 'id' => $row['id'], 'hotelid' => $row['hotelid'], 'roomidid' => $row['roomid'], 'store_type' => $store_type))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-times"></i></a>
 					</td>
@@ -199,7 +215,7 @@
 					<th style="width:120px;">支付方式<i></i></th>
 					<th style="width:140px;">订单时间<i></i></th>
 					<th style="width:120px;">订单状态<i></i></th>
-					<th style="width:140px;">操作</th>
+					<th style="width:180px;">操作</th>
 				</tr>
 				</thead>
 				<tbody>
@@ -248,7 +264,23 @@
 						{/if}
 					</td>
 					<td>
+						{if !empty($version)}
+						<div class="dropdown" style="display: inline-block">
+							<a id="dLabel" data-target="#" href="#" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" class="btn btn-default btn-sm"><i class="fa fa-print"></i></a>
+							<ul class="dropdown-menu" aria-labelledby="dLabel">
+								{if !empty($row['printers'])}
+									{loop $row['printers'] $p}
+									<li><a onclick="return confirm('是否打印小票?');return false;" href="{php echo $this->createWebUrl('order', array('op'=>'print_order', 'id' => $row['id'], 'storeid' => $row['hotelid'], 'print' => $p['id']))}">{$p['name']}</a></li>
+									{/loop}
+								{else}
+									<li><a href="{php echo $this->createWebUrl('order', array('op'=>'check_print_plugin'))}" target="_blank">添加打印机</a></li>
+								{/if}
+							</ul>
+						</div>
+						{/if}
+						{if $row['status'] != -1 && $row['status'] != 3 && $row['status'] != 2 && $row['paystatus'] == 0}
 						<a href="javascript:;" class="btn btn-default btn-sm change_price" data-id="{$row['id']}" data-price="{$row['sum_price']}">修改总价</a>
+						{/if}
 						<a href="{php echo $this->createWebUrl('order', array('op'=>'edit', 'id' => $row['id'], 'roomid' => $row['roomid'], 'hotelid' => $row['hotelid'], 'store_type' => $store_type)); }" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="编辑"><i class="fa fa-edit"></i></a>&nbsp;
 						<a onclick="return confirm('此操作不可恢复，取消删除吗?');return false;" href="{php echo $this->createWebUrl('order', array('op'=>'delete', 'id' => $row['id'], 'hotelid' => $row['hotelid'], 'roomidid' => $row['roomid'], 'store_type' => $store_type))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-times"></i></a>
 					</td>

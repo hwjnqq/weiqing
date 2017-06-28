@@ -292,6 +292,7 @@ if ($op == 'order') {
 	} elseif ($selected_coupon['type'] == 2) {
 		$insert['sum_price'] = card_discount_price($uid, $insert['sum_price']);
 	}
+	$insert['static_price'] = $insert['sum_price'];
 	//计算运费
 	$insert = calculate_express($goods_info, $insert);
 	
@@ -312,8 +313,7 @@ if ($op == 'order') {
 	pdo_insert('storex_order', $insert);
 	$order_id = pdo_insertid();
 	
-	$compare = ver_compare(IMS_VERSION, '1.0');
-	if ($compare != -1) {
+	if (check_ims_version()) {
 		$plugins = get_plugin_list();
 		if (!empty($plugins) && !empty($plugins['wn_storex_plugin_sms'])) {
 			$clerks = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'status' => 1), array('mobile', 'permission'));

@@ -30,8 +30,7 @@ if ($op == 'extend_switch') {
 			}
 		}
 	}
-	$compare = ver_compare(IMS_VERSION, '1.0');
-	if ($compare != -1) {
+	if (check_ims_version()) {
 		$plugin_list = get_plugin_list();
 		$extend_switch['plugin_list'] = $plugin_list;
 	}
