@@ -279,6 +279,10 @@ if ($op == 'edit_price') {
 	if (!is_numeric($sum_price)) {
 		message(error(-1, '价格必须是数字！'), '', 'ajax');
 	}
+	$sum_price = sprintf('%1.2f', $sum_price);
+	if ($sum_price <= 0) {
+		message(error(-1, '价格保留两位小数后不能小于零！'), '', 'ajax');
+	}
 	$sum_price = sprintf("%1.2f", $_GPC['sum_price']);
 	$order_info = pdo_get('storex_order', array('weid' => $_W['uniacid'], 'id' => $order_id), array('id', 'sum_price'));
 	if (empty($order_info)) {

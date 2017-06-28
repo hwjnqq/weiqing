@@ -84,7 +84,7 @@ if ($op == 'personal_info') {
 if ($op == 'personal_update') {
 	if (!empty($_GPC['fields'])) {
 		foreach ($_GPC['fields'] as $key=>$value) {
-			if (empty($value) || empty($key)) {
+			if (empty($key) && $key != 'gender' && empty($value)) {
 				message(error(-1, '信息不完整'), '', 'ajax');
 			}
 		}
