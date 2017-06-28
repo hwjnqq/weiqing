@@ -125,6 +125,7 @@ $sql = "
 	`ordersn` varchar(30) DEFAULT '',
 	`clerkcomment` int(11) DEFAULT '0',
 	`coupon` int(11) NOT NULL COMMENT '使用卡券信息',
+	`static_price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '初始订单的价格，不可更改',
 	PRIMARY KEY (`id`),
 	KEY `indx_hotelid` (`hotelid`),
 	KEY `indx_weid` (`weid`),

@@ -495,6 +495,15 @@ if (!pdo_fieldexists('storex_goods', 'express_set')) {
 if (!pdo_fieldexists('storex_sign_set', 'status')) {
 	pdo_query("ALTER TABLE " . tablename('storex_sign_set') . " ADD `status` TINYINT(2) NOT NULL COMMENT '开启状态 1开启，2关闭';");
 }
+if (!pdo_fieldexists('storex_order', 'static_price')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `static_price` DECIMAL(10,2) NOT NULL DEFAULT '0.00' COMMENT '初始订单的价格，不可更改';");
+	$orders = pdo_getall('storex_order', array(), array('id', 'sum_price'));
+	if (!empty($orders)) {
+		foreach ($orders as $info) {
+			pdo_update('storex_order', array('static_price' => $info['sum_price']), array('id' => $info['id']));
+		}
+	}
+}
 
 $subscribes = array('user_get_card', 'user_del_card', 'user_consume_card',);
 $subscribes = iserializer($subscribes);
