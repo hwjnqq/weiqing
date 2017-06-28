@@ -3,7 +3,7 @@
 $sql = "
 	CREATE TABLE IF NOT EXISTS `ims_storex_plugin_smsset` (
 	  `id` int(11) NOT NULL AUTO_INCREMENT,
-	  `uniacid` int(11) DEFAULT '0',
+	  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
 	  `appkey` varchar(100) DEFAULT '',
 	  `appsecret` varchar(255) DEFAULT '',
 	  `sign` varchar(1000) DEFAULT '',
@@ -13,14 +13,14 @@ $sql = "
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_plugin_smsnotice` (
 	  `id` int(11) NOT NULL AUTO_INCREMENT,
-	  `uniacid` int(11) DEFAULT '0',
+	 `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
 	  `notice` varchar(1000) DEFAULT NULL,
 	  PRIMARY KEY (`id`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 		
 	CREATE TABLE `ims_storex_plugin_sms_logs` (
 	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-	  `uniacid` int(11) NOT NULL,
+	  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
 	  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '发送状态1为失败，2为成功',
 	  `mobile` varchar(32) NOT NULL DEFAULT '' COMMENT '发送手机号',
 	  `message` varchar(800) NOT NULL DEFAULT '' COMMENT '错误信息',
