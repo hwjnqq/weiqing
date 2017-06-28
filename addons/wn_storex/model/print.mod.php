@@ -107,11 +107,7 @@ function print_get_content($printer_info, $orderid) {
 	$content[] = '联系电话　' . $order_info['mobile'] . ' <BR>';
 	$content[] = '下单时间　' . date('Y-m-d H:i', $order_info['time']) . '<BR>';
 	$content[] = '--------------------------------<BR>';
-	$change = '';
-	if ($order_info['static_price'] != $order_info['sum_price']) {
-		$change = '(管理员处理后的价格)';
-	}
-	$content[] = '合计　' . $order_info['sum_price'] . '元' . $change . '<BR>';
+	$content[] = '合计　' . $order_info['sum_price'] . ' 元<BR>';
 	$content[] = '备注　' . $order_info['remark'] .'<BR>';
 	
 	if (!empty($printer_info['footer'])) {
