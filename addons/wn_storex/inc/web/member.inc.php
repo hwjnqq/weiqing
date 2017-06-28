@@ -167,6 +167,7 @@ if ($op == 'display') {
 		$uid_infos = array();
 		foreach ($member_list as $k => $val) {
 			if (!empty($val['userid'])) {
+				$list[$val['userid']] = $val;
 				$uid_infos[$val['userid']] = $val['userid'];
 				continue;
 			}
