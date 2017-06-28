@@ -16,7 +16,7 @@ activity_get_coupon_type();
 
 if ($op == 'display') {
 	$ids = array();
-	$storex_exchange = pdo_getall('storex_activity_exchange', array('uniacid' => intval($_W['uniacid']), 'status' => 1), array(), 'extra');
+	$storex_exchange = pdo_getall('storex_activity_exchange', array('uniacid' => intval($_W['uniacid']), 'status' => 1, 'type <>' => 3), array(), 'extra');
 	if (!empty($storex_exchange)) {
 		$ids = array_keys($storex_exchange);
 	} else {
