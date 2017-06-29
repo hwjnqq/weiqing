@@ -54,7 +54,7 @@ class Wn_storex_plugin_printerModuleSite extends WeModuleSite {
 
 	public function doWebPrinterset() {
 		global $_W, $_GPC;
-		$ops = array('post', 'display', 'current_printer');
+		$ops = array('post', 'display');
 		$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 		$printer_list = pdo_getall('storex_plugin_printer', array('uniacid' => $_W['uniacid']), array('id', 'name'));
 		if ($op == 'display') {
@@ -104,20 +104,6 @@ class Wn_storex_plugin_printerModuleSite extends WeModuleSite {
 			}
 		}
 
-		if ($op == 'current_printer') {
-			$storeid = intval($_GPC['id']);
-			if (empty($storeid)) {
-				message(error(-1, '数据错误，请刷新页面重试'), $this->createWebUrl('printerset', array('op' => 'display')), 'ajax');
-			}
-			$printer_set_list = pdo_getall('storex_plugin_printer_set', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid));
-			// if (!empty($printer_list) && is_array($printer_list)) {
-			// 	foreach ($printer_list as $key => $value) {
-					
-			// 	}
-			// }
-			message(error(0, $printer_set_list), '', 'ajax');
-
-		}
 		include $this->template('printerset');
 	}
 
