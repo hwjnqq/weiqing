@@ -204,8 +204,7 @@ if ($op == 'deleteall') {
 		pdo_delete('storex_bases', array('id' => $id, 'weid' => $_W['uniacid']));
 		pdo_delete('storex_categorys', array("store_base_id" => $id, 'weid' => $_W['uniacid']));
 	}
-	$this->web_message('店铺信息删除成功！', '', 0);
-	exit();
+	message(error(0, '店铺信息删除成功！'), '', 'ajax');
 }
 
 if ($op == 'showall') {
@@ -220,8 +219,7 @@ if ($op == 'showall') {
 			pdo_update('storex_bases', array('status' => $show_status), array('id' => $id));
 		}
 	}
-	$this->web_message('操作成功！', '', 0);
-	exit();
+	message(error(0, '操作成功！'), '', 'ajax');
 }
 
 if ($op == 'status') {

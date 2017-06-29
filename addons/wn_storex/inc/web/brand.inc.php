@@ -43,8 +43,7 @@ if ($op == 'deleteall') {
 		$id = intval($id);
 		pdo_delete('storex_brand', array('id' => $id));
 	}
-	$this->web_message('规则操作成功！', '', 0);
-	exit();
+	message(error(0, '删除成功！'), '', 'ajax');
 }
 
 if ($op == 'showall') {
@@ -59,8 +58,7 @@ if ($op == 'showall') {
 			pdo_update('storex_brand', array('status' => $show_status), array('id' => $id));
 		}
 	}
-	$this->web_message('操作成功！', '', 0);
-	exit();
+	message(error(0, '操作成功！'), '', 'ajax');
 }
 
 if ($op == 'status') {
