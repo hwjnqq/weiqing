@@ -328,7 +328,7 @@
 					if (data.message.errno ==0) {
 						util.message(data.message.message, 'refresh', 'success');
 					} else {
-						alert(data.error);
+						util.message(data.message.message);
 					}
 				},'json');
 			}
@@ -360,7 +360,7 @@
 					util.message(data.message.message, 'refresh', 'success');
 					return;
 				} else {
-					util.message('修改失败！');
+					util.message(data.message.message);
 					return;
 				}
 			},'json');

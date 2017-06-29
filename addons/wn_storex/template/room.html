@@ -214,7 +214,7 @@
 					if (data.message.errno ==0) {
 						util.message(data.message.message, 'refresh', 'success');
 					} else {
-						alert(data.error);
+						util.message(data.message.message);
 					}
 				},'json');
 			}
@@ -235,7 +235,7 @@
 				if (data.message.errno ==0) {
 					util.message(data.message.message, 'refresh', 'success');
 				} else {
-					alert(data.error);
+					util.message(data.message.message);
 				}
 			},'json');
 		});
