@@ -14,7 +14,8 @@
 					<h4 class="modal-title" id="myModalLabel">修改订单价格</h4>
 				</div>
 				<div class="modal-body clearfix form-horizontal">
-					<input type="text" class="form-control" name="sum_price" />
+					<input type="number" class="form-control" name="sum_price" />
+					<div class="help-block">价格为0.01到99999999.99,精度为两位小数</div>
 					<input type="hidden" name="order_id">
 				</div>
 				<div class="modal-footer">
@@ -113,7 +114,7 @@
 					<th style="width:120px;">联系人/手机</th>
 					<th style="width:80px;">预定数量</th>
 					<!--<th>单价</th>-->
-					<th style="width:70px;">总价</th>
+					<th style="width:120px;">总价</th>
 					<th style="width:100px;">到店时间<br>离店时间</th>
 					<th style="width:120px;">支付方式<i></i></th>
 					<th style="width:160px;">订单时间<i></i></th>
@@ -211,7 +212,7 @@
 					<th style="width:150px;">联系人/手机</th>
 					<th style="width:60px;">预定数量</th>
 					<!--<th>单价</th>-->
-					<th style="width:80px;">总价</th>
+					<th style="width:120px;">总价</th>
 					<th style="width:120px;">支付方式<i></i></th>
 					<th style="width:140px;">订单时间<i></i></th>
 					<th style="width:120px;">订单状态<i></i></th>
@@ -349,17 +350,18 @@
 	function check_price(){
 		var price = $('input[name=sum_price]').val();
 		var orderid = $('input[name=order_id]').val();
-		console.log(price);
-		if (price <= 0 || isNaN(price)) {
-			alert("价格错误！");
+		price = Number(price);
+		if (price < 0.01 || price > 99999999.99) {
+			util.message('价格错误！', 'refresh', 'error');
+			return;
 		} else {
 			$.post("{php echo $this->createWebUrl('order',array('op'=>'edit_price'))}", {sum_price:price, id:orderid},function(data){
-				console.log(data.message);
 				if (data.message.errno == 0) {
 					util.message(data.message.message, 'refresh', 'ajax');
-					
+					return;
 				} else {
 					util.message('修改失败！');
+					return;
 				}
 			},'json');
 		}

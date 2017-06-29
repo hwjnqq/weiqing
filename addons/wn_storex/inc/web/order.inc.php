@@ -281,7 +281,6 @@ if ($op == 'edit_price') {
 	if ($sum_price <= 0) {
 		message(error(-1, '价格保留两位小数后不能小于零！'), '', 'ajax');
 	}
-	$sum_price = sprintf("%1.2f", $_GPC['sum_price']);
 	$status = array('0', '1');
 	$order_info = pdo_get('storex_order', array('weid' => $_W['uniacid'], 'id' => $order_id, 'paystatus' => 0, 'status' => $status), array('id', 'sum_price'));
 	if (empty($order_info)) {
