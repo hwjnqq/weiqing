@@ -547,3 +547,11 @@ if (!empty($svg_diff_files)) {
 		file_delete($value);
 	}
 }
+$unused_files = array(
+	IA_ROOT . '/addons/wn_storex/template/manage.html',
+);
+if (!empty($unused_files)) {
+	foreach ($unused_files as $file) {
+		file_delete($file);
+	}
+}
