@@ -19,7 +19,7 @@
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-					<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="util.ajaxshow('{php echo $this->createWeburl('order', array('op' => 'edit_price'))}&sum_price=' + $('input[name=sum_price]').val() + '&id='+ $('input[name=order_id]').val())">确定</button>
+					<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="check_price();">确定</button>
 				</div>
 			</div>
 		</div>
@@ -324,8 +324,7 @@
 				});
 
 				$.post("{php echo $this->createWebUrl('order',array('op'=>'deleteall'))}", {idArr:id},function(data){
-					if (data.errno ==0)
-					{
+					if (data.errno ==0) {
 						location.reload();
 					} else {
 						alert(data.error);
@@ -345,6 +344,24 @@
 	function drop_confirm(msg, url){
 		if(confirm(msg)){
 			window.location = url;
+		}
+	}
+	function check_price(){
+		var price = $('input[name=sum_price]').val();
+		var orderid = $('input[name=order_id]').val();
+		console.log(price);
+		if (price <= 0 || isNaN(price)) {
+			alert("价格错误！");
+		} else {
+			$.post("{php echo $this->createWebUrl('order',array('op'=>'edit_price'))}", {sum_price:price, id:orderid},function(data){
+				console.log(data);
+				if (data.errno ==0) {
+					alert(data.error);
+					location.reload();
+				} else {
+					alert(data.error);
+				}
+			},'json');
 		}
 	}
 </script>

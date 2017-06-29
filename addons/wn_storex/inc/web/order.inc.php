@@ -295,8 +295,11 @@ if ($op == 'edit_price') {
 	}
 	$result = pdo_update('storex_order', array('sum_price' => $sum_price), array('id' => $order_info['id']));
 	if (!empty($core_result) && !empty($result)) {
-		message(error(0, '修改成功'), referer(), 'ajax');
+		$this->web_message('修改成功！', '', 0);
+	} else {
+		$this->web_message('修改失败！', '', -1);
 	}
+	exit();
 }
 
 if ($op == 'print_order') {
