@@ -143,7 +143,7 @@
 			});
 			$.post("{php echo create_url('site/entry', array('do' => 'clerk','op'=>'showall', 'm' => $_GPC['m']))}", {idArr:id,show_name:name},function(data){
 				if (data.message.errno ==0) {
-					util.message(data.message.message, 'refresh', 'ajax');
+					util.message(data.message.message, 'refresh', 'success');
 				} else {
 					alert(data.error);
 				}
@@ -163,7 +163,7 @@
 				});
 				$.post("{php echo create_url('site/entry', array('do' => 'clerk','op'=>'deleteall', 'm' => $_GPC['m']))}", {idArr:id},function(data){
 					if (data.message.errno ==0) {
-						util.message(data.message.message, 'refresh', 'ajax');
+						util.message(data.message.message, 'refresh', 'success');
 					} else {
 						alert(data.error);
 					}

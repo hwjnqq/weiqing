@@ -100,7 +100,7 @@
 			});
 			$.post("{php echo $this->createWebUrl('brand',array('op'=>'showall'))}", {idArr:id, show_name:name}, function(data){
 				if (data.message.errno == 0) {
-					util.message(data.message.message, 'refresh', 'ajax');
+					util.message(data.message.message, 'refresh', 'success');
 				} else {
 					alert(data.error);
 				}
@@ -120,7 +120,7 @@
 				});
 				$.post("{php echo $this->createWebUrl('brand',array('op'=>'deleteall'))}", {idArr:id}, function(data){
 					if (data.message.errno == 0) {
-						util.message(data.message.message, 'refresh', 'ajax');
+						util.message(data.message.message, 'refresh', 'success');
 					} else {
 						alert(data.error);
 					}

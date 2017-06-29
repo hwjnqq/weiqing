@@ -326,7 +326,7 @@
 
 				$.post("{php echo $this->createWebUrl('order',array('op'=>'deleteall'))}", {idArr:id}, function(data) {
 					if (data.message.errno ==0) {
-						util.message(data.message.message, 'refresh', 'ajax');
+						util.message(data.message.message, 'refresh', 'success');
 					} else {
 						alert(data.error);
 					}
@@ -357,7 +357,7 @@
 		} else {
 			$.post("{php echo $this->createWebUrl('order',array('op'=>'edit_price'))}", {sum_price:price, id:orderid},function(data){
 				if (data.message.errno == 0) {
-					util.message(data.message.message, 'refresh', 'ajax');
+					util.message(data.message.message, 'refresh', 'success');
 					return;
 				} else {
 					util.message('修改失败！');
