@@ -19,6 +19,7 @@
 			<item name="wn_storex_plugin_credit_mall" />
 			<item name="wn_storex_plugin_hotel_service" />
 			<item name="wn_storex_plugin_sms" />
+			<item name="wn_storex_plugin_printer" />
 		</plugins>
 		<subscribes>
 			<message type="user_get_card" />

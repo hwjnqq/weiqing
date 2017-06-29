@@ -11,7 +11,7 @@ $sql = "
 	  `sn` varchar(100) NOT NULL COMMENT '打印机编码sn',
 	  `header` varchar(50) NOT NULL,
 	  `footer` varchar(50) NOT NULL,
-	  `qrcode` varchar(100) NOT NULL,
+	  `qrcode` varchar(1000) NOT NULL,
 	  `status` tinyint(3) unsigned NOT NULL DEFAULT '1',
 	  PRIMARY KEY (`id`),
 	  KEY `uniacid` (`uniacid`),
