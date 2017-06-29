@@ -190,10 +190,14 @@ function check_params() {
 	$op = trim($_GPC['op']);
 	if (!empty($permission_lists[$do])) {
 		if (!empty($permission_lists[$do]['common'])) {
-			foreach ($permission_lists[$do]['common'] as $val) {
+			foreach ($permission_lists[$do]['common'] as $key => $val) {
 				if (empty($val)) {
-					if ($val == 'openid') {
-						message(error(41009, '未登录！'), '', 'ajax');
+					if ($key == 'openid') {
+						if ($_GPC['from'] == 'wxapp') {
+							message(error(41009, '未登录！'), '', 'ajax');
+						} else {
+							message(error(41009, '请先关注公众号' . $_W['account']['name']), '', 'ajax');
+						}
 					}
 					message(error(-1, '参数错误'), '', 'ajax');
 				}

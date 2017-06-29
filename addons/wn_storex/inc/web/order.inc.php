@@ -322,7 +322,8 @@ if ($op == 'check_print_plugin') {
 		$plugins = get_plugin_list();
 		if (!empty($plugins) && !empty($plugins['wn_storex_plugin_printer'])) {
 			$url = wurl('site/entry/printerset', array('op' => 'display', 'm'=> 'wn_storex_plugin_printer'), true);
-			message('', $url, 'success');
+			header("Location: {$url}");
+			exit;
 		} else {
 			message('该店铺未安装或设置打印机插件！', referer(), 'error');
 		}
@@ -394,10 +395,10 @@ if ($op == 'display') {
 		$printers = pdo_getall('storex_plugin_printer', array('uniacid' => $_W['uniacid']), array('name', 'id'), 'id');
 		$stores_printers = pdo_getall('storex_plugin_printer_set', array('uniacid' => $_W['uniacid']), array('storeid','id', 'printerids'), 'storeid');
 		$printer = array();
-		if (!empty($stores_printers)) {
+		if (!empty($stores_printers) && is_array($stores_printers)) {
 			foreach ($stores_printers as $storeid => $info) {
 				$info['printerids'] = iunserializer($info['printerids']);
-				if (!empty($info['printerids'])) {
+				if (!empty($info['printerids']) && is_array($info['printerids'])) {
 					foreach ($info['printerids'] as $p_id => $status) {
 						if ($status == 1 && !empty($printers[$p_id])) {
 							$printer[$storeid][$p_id] = array(
@@ -410,7 +411,7 @@ if ($op == 'display') {
 				}
 			}
 		}
-		if (!empty($show_order_lists) && !empty($printer)) {
+		if (!empty($show_order_lists) && is_array($show_order_lists)) {
 			foreach ($show_order_lists as &$orderinfo) {
 				$orderinfo['printers'] = array();
 				if (!empty($printer[$orderinfo['hotelid']])) {

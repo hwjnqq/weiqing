@@ -3,6 +3,7 @@ load()->func('communication');
 /*
  * $printerid 打印机ID
  * $orderid 订单ID
+ * $storeid 店铺ID
  * */
 
 function print_order($printerid, $orderid, $storeid) {
@@ -25,7 +26,7 @@ function print_order($printerid, $orderid, $storeid) {
 	}
 	mload()->classs('printer');
 	$printer_api = new Printer($printer_info['user'], $printer_info['key'], $printer_info['sn']);
-	//$result = $printer_api->printOrderAction($content);
+	$result = $printer_api->printOrderAction($content);
 	if (empty($result['data'])) {
 		$msg = !empty($result['msg']) ? $result['msg'] : '连接API失败';
 		print_insert_log(array('status' => 1, 'storeid' => $storeid, 'message' => $result['msg']));
@@ -119,6 +120,7 @@ function print_get_content($printer_info, $orderid) {
 	if (!empty($printer_info['footer'])) {
 		$content[] = $printer_info['footer'] . '<BR>';
 	}
+	$content[] = '<BR>';
 	$content[] = '<QR>' . $printer_info['qrcode'] . '</QR>';
 	return $content;
 }

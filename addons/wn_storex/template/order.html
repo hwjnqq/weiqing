@@ -323,7 +323,7 @@
 					id[i] = $(this).val();
 				});
 
-				$.post("{php echo $this->createWebUrl('order',array('op'=>'deleteall'))}", {idArr:id},function(data){
+				$.post("{php echo $this->createWebUrl('order',array('op'=>'deleteall'))}", {idArr:id}, function(data) {
 					if (data.message.errno ==0) {
 						util.message(data.message.message, 'refresh', 'ajax');
 					} else {
@@ -338,7 +338,7 @@
 		order_id = $(this).data('id');
 		$('input[name="order_id"]').val(order_id);
 		$('#quantity-modal').modal();
-	})
+	});
 </script>
 <script>
 	function drop_confirm(msg, url){
