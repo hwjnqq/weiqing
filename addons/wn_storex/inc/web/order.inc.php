@@ -268,8 +268,7 @@ if ($op == 'deleteall') {
 		$id = intval($id);
 		pdo_delete('storex_order', array('id' => $id));
 	}
-	$this->web_message('删除成功！', '', 0);
-	exit();
+	message(error(0, '删除成功！'), '', 'ajax');
 }
 
 if ($op == 'edit_price') {
@@ -295,7 +294,9 @@ if ($op == 'edit_price') {
 	}
 	$result = pdo_update('storex_order', array('sum_price' => $sum_price), array('id' => $order_info['id']));
 	if (!empty($core_result) && !empty($result)) {
-		message(error(0, '修改成功'), referer(), 'ajax');
+		message(error(0, '修改成功！'), '', 'ajax');
+	} else {
+		message(error(-1, '修改失败！'), '', 'ajax');
 	}
 }
 

@@ -215,8 +215,7 @@ if ($op == 'deleteall') {
 			pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT count(*) FROM " . tablename('storex_room') . " WHERE hotelid = :hotelid) WHERE id = :hotelid", array(':hotelid' => $id));
 		}
 	}
-	$this->web_message('删除成功！', '', 0);
-	exit();
+	message(error(0, '删除成功！'), '', 'ajax');
 }
 if ($op == 'showall') {
 	if ($_GPC['show_name'] == 'showall') {
@@ -230,8 +229,7 @@ if ($op == 'showall') {
 			pdo_update($table, array('status' => $show_status), array('id' => $id));
 		}
 	}
-	$this->web_message('操作成功！', '', 0);
-	exit();
+	message(error(0, '操作成功！'), '', 'ajax');
 }
 if ($op == 'status') {
 	$id = intval($_GPC['id']);

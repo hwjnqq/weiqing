@@ -11,16 +11,14 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 if ($op == 'delete') {
 	$cid = intval($_GPC['cid']);
 	pdo_delete('storex_comment', array('id' => $cid));
-	$this->web_message('删除成功！', '', 0);
-	exit();
+	message('删除成功！', referer(), 'success');
 }
 if ($op == 'deleteall') {
 	foreach ($_GPC['idArr'] as $k => $id) {
 		$id = intval($id);
 		pdo_delete('storex_comment', array('id' => $id));
 	}
-	$this->web_message('删除成功！', '', 0);
-	exit();
+	message(error(0, '删除成功！'), '', 'ajax');
 }
 if ($op == 'display') {
 	$pindex = max(1, intval($_GPC['page']));

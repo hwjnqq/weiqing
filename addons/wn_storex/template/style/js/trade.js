@@ -1,4 +1,4 @@
-define(['bootstrap'], function($){
+define(['bootstrap'], function(){
 	var trade = {};
 	var reg_credit = /^[+-]?(([1-9]{1}\d*)|([0]{1}))(\.(\d){1,2})?$/i;
 	var reg_int = /^[0-9]\d*$/i;
@@ -135,7 +135,7 @@ define(['bootstrap'], function($){
 			'		</div>'+
 			'	</div>'+
 			'</div>';
-		require(['validator'], function($){
+		require(['jquery', 'validator'], function($){
 			$('#consume-Modal').remove();
 			$(document.body).append(html);
 			var dialog = $('#consume-Modal');
@@ -631,7 +631,7 @@ define(['bootstrap'], function($){
 			'		</div>'+
 			'	</div>'+
 			'</div>';
-		require(['validator'], function($){
+		require(['jquery', 'validator'], function($){
 			$('#credit-Modal').remove();
 			$(document.body).append(html);
 			var dialog = $('#credit-Modal');
@@ -794,7 +794,7 @@ define(['bootstrap'], function($){
 			'		</div>'+
 			'	</div>'+
 			'</div>';
-		require(['validator'], function($){
+		require(['jquery', 'validator'], function($){
 			$('#card-Modal').remove();
 			$(document.body).append(html);
 			var dialog = $('#card-Modal');
@@ -936,7 +936,7 @@ define(['bootstrap'], function($){
 			'		</div>'+
 			'	</div>'+
 			'</div>';
-		require(['validator'], function($){
+		require(['jquery', 'validator'], function($){
 			$('#card-Modal').remove();
 			$(document.body).append(html);
 			var dialog = $('#card-Modal');
@@ -1058,7 +1058,7 @@ define(['bootstrap'], function($){
 			'		</div>'+
 			'	</div>'+
 			'</div>';
-		require(['validator'], function($){
+		require(['jquery', 'validator'], function($){
 			$('#card-edit-Modal').remove();
 			$(document.body).append(html);
 			var dialog = $('#card-edit-Modal');
