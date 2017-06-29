@@ -20,6 +20,7 @@ function print_order($printerid, $orderid, $storeid) {
 	
 	$content = print_get_content($printer_info, $orderid);
 	if (empty($content)) {
+		print_insert_log(array('status' => 1, 'storeid' => $storeid, 'message' => '订单错误'));
 		return error(-1, '订单错误！');
 	}
 	mload()->classs('printer');
@@ -46,14 +47,19 @@ function print_insert_log($params) {
 
 function print_get_content($printer_info, $orderid) {
 	global $_W;
-	$order_info = pdo_get('storex_order', array('id' => $orderid));
+	$order_info = pdo_get('storex_order', array('id' => $orderid), array('remark', 'time', 'sum_price', 'mobile', 'static_price', 'hotelid', 'roomid', 'ordersn', 'cprice', 'nums', 'day', 'contact_name', 'mode_distribute', 'addressid', 'order_time'));
 	if (empty($order_info)) {
 		return array();
 	}
 	$storeid = $order_info['hotelid'];
 	$storeinfo = get_store_info($order_info['hotelid']);
 	$goods_table = get_goods_table($storeinfo['store_type']);
-	$goodsinfo = pdo_get($goods_table, array('id' => $order_info['roomid']));
+	$fields = array('title', 'express_set');
+	if ($goods_table == 'storex_room') {
+		$fields[] = 'is_house';
+		$fields[] = 'service';
+	}
+	$goodsinfo = pdo_get($goods_table, array('id' => $order_info['roomid']), $fields);
 	$title = !empty($printer_info['header']) ? $printer_info['header'] : $storeinfo['title'];
 	$content['title'] = '<CB>' . $title . '</CB><BR>';
 	$content[] = '--------------------------------<BR>';
@@ -120,7 +126,7 @@ function print_get_content($printer_info, $orderid) {
 function print_get_address($addressid) {
 	$address = '';
 	if (!empty($addressid)) {
-		$address_info = pdo_get('mc_member_address', array('id' => $addressid));
+		$address_info = pdo_get('mc_member_address', array('id' => $addressid), array('province', 'city', 'district', 'address'));
 		if (!empty($address_info)) {
 			$address = $address_info['province'] . $address_info['city'] . $address_info['district'] . $address_info['address'];
 		}
