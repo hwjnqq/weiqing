@@ -120,6 +120,7 @@ function print_get_content($printer_info, $orderid) {
 	if (!empty($printer_info['footer'])) {
 		$content[] = $printer_info['footer'] . '<BR>';
 	}
+	$content[] = '<BR>';
 	$content[] = '<QR>' . $printer_info['qrcode'] . '</QR>';
 	return $content;
 }
