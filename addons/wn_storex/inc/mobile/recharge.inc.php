@@ -108,6 +108,11 @@ if ($op == 'recharge_add') {
 		$recharge_record['tag'] = $add_times;
 		$recharge_record['backtype'] = 2;
 	}
+	if ($type == 'card_nums' || $type == 'card_times') {
+		if (empty($recharge_record['tag'])) {
+			message(error(-1, '充值金额错误'), '', 'ajax');
+		}
+	}
 	if (!pdo_insert('mc_credits_recharge', $recharge_record)) {
 		message(error(-1, '创建充值订单失败'), '', 'ajax');
 	}
@@ -117,9 +122,16 @@ if ($op == 'recharge_add') {
 
 if ($op == 'recharge_pay') {
 	$charge_record = pdo_get('mc_credits_recharge', array('id' => intval($_GPC['id'])));
+	if ($charge_record['type'] == 'credit') {
+		$title = '万能小店余额充值';
+	} elseif ($charge_record['type'] == 'card_nums') {
+		$title = '万能小店会员卡次数充值';
+	} elseif ($charge_record['type'] == 'card_times') {
+		$title = '万能小店会员卡时间充值';
+	}
 	$params = array(
 		'tid' => $charge_record['tid'],
-		'title' => '万能小店余额充值',
+		'title' => $title,
 		'fee' => $charge_record['fee'],
 		'user' => $uid
 	);
