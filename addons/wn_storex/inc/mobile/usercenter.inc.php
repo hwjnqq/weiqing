@@ -76,7 +76,24 @@ if ($op == 'personal_info') {
 			$user_info['mycard']['card_level'] = $card_info['params']['cardBasic']['params']['card_level'];
 			$user_info['mycard']['card_label'] = $card_info['params']['cardBasic']['params']['card_label'];
 		}
-		
+		$user_info['mycard']['cardNums'] = array(
+			'status' => 0,
+		);
+		if (!empty($card_info['params']['cardNums']) && $card_info['params']['cardNums']['params']['nums_status'] == 1) {
+			$cardNums = $card_info['params']['cardNums']['params'];
+			$user_info['mycard']['cardNums']['status'] = $cardNums['nums_status'];
+			$user_info['mycard']['cardNums']['text'] = $cardNums['nums_text'];
+			$user_info['mycard']['cardNums']['nums'] = $user_info['mycard']['nums'];
+		}
+		$user_info['mycard']['cardTimes'] = array(
+			'status' => 0,
+		);
+		if (!empty($card_info['params']['cardTimes']) && $card_info['params']['cardTimes']['params']['times_status'] == 1) {
+			$times_status = $card_info['params']['cardTimes']['params'];
+			$user_info['mycard']['cardTimes']['status'] = $times_status['times_status'];
+			$user_info['mycard']['cardTimes']['text'] = $times_status['times_text'];
+			$user_info['mycard']['cardTimes']['endtime'] = $user_info['mycard']['endtime'];
+		}
 	}
 	message(error(0, $user_info), '', 'ajax');
 }
