@@ -157,6 +157,8 @@ class Wn_storexModuleSite extends WeModuleSite {
 
 	public function doMobiledisplay() {
 		global $_GPC, $_W;
+		load()->model('mc');
+		mc_oauth_userinfo();
 		$id = intval($_GPC['id']);
 		$setting = get_storex_set();
 		if (empty($id) && $setting['version'] == 0 && empty($_GPC['orderid']) && $_GPC['pay_type'] != 'recharge') {
