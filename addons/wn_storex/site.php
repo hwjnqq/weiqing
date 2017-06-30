@@ -380,7 +380,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				} elseif ($recharge_info['type'] == 'card_nums') {
 					$card_recharge = $card_setting['params']['cardNums'];
 					if ($card_recharge['params']['nums_status'] == 1) {
-						$recharge = $card_recharge['params']['nums'];
+						$recharges = $card_recharge['params']['nums'];
 						foreach ($recharges as $key => $recharge) {
 							if ($recharge['recharge'] == $recharge_info['fee']) {
 								$total_fee = $fee;
@@ -400,7 +400,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				} elseif ($recharge_info['type'] == 'card_times') {
 					$card_recharge = $card_setting['params']['cardTimes'];
 					if ($card_recharge['params']['times_status'] == 1) {
-						$recharge = $card_recharge['params']['times'];
+						$recharges = $card_recharge['params']['times'];
 						foreach ($recharges as $key => $recharge) {
 							if ($recharge['recharge'] == $recharge_info['fee']) {
 								$total_fee = $fee;
