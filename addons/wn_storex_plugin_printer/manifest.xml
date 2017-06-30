@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns="http://www.we7.cc" versionCode="">
-	<application setting="true">
+	<application setting="false">
 		<name><![CDATA[万能小店小票打印]]></name>
 		<identifie><![CDATA[wn_storex_plugin_printer]]></identifie>
-		<version><![CDATA[1.0]]></version>
+		<version><![CDATA[1.1]]></version>
 		<type><![CDATA[business]]></type>
 		<ability><![CDATA[万能小店小票打印]]></ability>
 		<description><![CDATA[万能小店小票打印]]></description>
