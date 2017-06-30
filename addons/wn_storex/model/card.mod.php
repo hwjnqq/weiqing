@@ -116,8 +116,14 @@ function card_notices() {
 	$uid = mc_openid2uid($_W['openid']);
 	$notices = pdo_getall('storex_notices', array('uniacid' => intval($_W['uniacid']), 'type' => 1), array(), 'id', 'addtime DESC');
 	if (!empty($notices)) {
+		$members = pdo_get('mc_members', array('uid' => $uid), array('groupid'));
 		$notice_ids = array();
-		foreach ($notices as &$info) {
+		foreach ($notices as $k => &$info) {
+			if (!empty($info['groupid'])) {
+				if (empty($members['groupid']) || $info['groupid'] != $members['groupid']) {
+					unset($notices[$k]);
+				}
+			}
 			$info['read_status'] = 0; //未读
 			$info['addtime'] = date('Y-m-d', $info['addtime']);
 			if (!empty($info['thumb'])) {
