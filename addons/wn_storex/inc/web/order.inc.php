@@ -100,7 +100,7 @@ if ($op == 'edit') {
 					$tplnotice = array(
 						'first' => array('value' => '您好，您已成功预订' . $hotel['title'] . '！'),
 						'order' => array('value' => $item['ordersn']),
-						'Name' => array('value' => $item['name']),
+						'Name' => array('value' => $item['contact_name']),
 						'datein' => array('value' => date('Y-m-d', $item['btime'])),
 						'dateout' => array('value' => date('Y-m-d', $item['etime'])),
 						'number' => array('value' => $item['nums']),

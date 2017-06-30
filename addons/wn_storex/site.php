@@ -442,7 +442,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			if ($setInfo['email']) {
 				$body = "<h3>店铺订单</h3> <br />";
 				$body .= '订单编号：' . $order['ordersn'] . '<br />';
-				$body .= '姓名：' . $order['name'] . '<br />';
+				$body .= '姓名：' . $order['contact_name'] . '<br />';
 				$body .= '手机：' . $order['mobile'] . '<br />';
 				$body .= '名称：' . $order['style'] . '<br />';
 				$body .= '订购数量' . $order['nums'] . '<br />';
@@ -465,7 +465,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 					load()->model('cloud');
 					cloud_prepare();
 					$body = 'df';
-					$body = '用户' . $order['name'] . ',电话:' . $order['mobile'] . '于' . date('m月d日H:i') . '成功支付万能小店订单' . $order['ordersn']
+					$body = '用户' . $order['contact_name'] . ',电话:' . $order['mobile'] . '于' . date('m月d日H:i') . '成功支付万能小店订单' . $order['ordersn']
 						. ',总金额' . $order['sum_price'] . '元' . '.' . random(3);
 					cloud_sms_send($setInfo['mobile'], $body);
 				}
@@ -491,7 +491,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 							'first' => array('value' =>'你好，你已成功提交订单'),
 							'keyword1' => array('value' => $order['style']),
 							'keyword2' => array('value' => $time),
-							'keyword3' => array('value' => $order['name']),
+							'keyword3' => array('value' => $order['contact_name']),
 							'keyword4' => array('value' => $order['sum_price']),
 							'keyword5' => array('value' => $order['ordersn']),
 							'remark' => array('value' => '如有疑问，请咨询店铺前台'),
@@ -537,7 +537,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 						$tplnotice = array(
 							'first' => array('value' => '您好，店铺有新的订单等待处理'),
 							'order' => array('value' => $order['ordersn']),
-							'Name' => array('value' => $order['name']),
+							'Name' => array('value' => $order['contact_name']),
 							'datein' => array('value' => date('Y-m-d', $order['btime'])),
 							'dateout' => array('value' => date('Y-m-d', $order['etime'])),
 							'number' => array('value' => $order['nums']),
