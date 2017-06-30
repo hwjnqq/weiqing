@@ -16,12 +16,13 @@ class We7_eggModuleProcessor extends WeModuleProcessor {
 		if (empty($row['id'])) {
 			return array();
 		}
-		$title = pdo_fetchcolumn("SELECT name FROM ".tablename('rule')." WHERE id = :rid LIMIT 1", array(':rid' => $rid));
-		return $this->respNews(array(
-			'Title' => $title,
-			'Description' => $row['description'],
-			'PicUrl' => $_W['attachurl'] . $row['picture'],
-			'Url' => $this->createMobileUrl('lottery', array('id' => $rid)),
-		));
+		$news = array();
+		$news[] = array(
+			'title' => $row['title'],
+			'description' => $row['description'],
+			'picurl' => $row['picture'],
+			'url' => $this->createMobileUrl('lottery', array('id' => $rid)),
+		);
+		return $this->respNews($news);
 	}
 }
