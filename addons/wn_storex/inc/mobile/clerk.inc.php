@@ -237,7 +237,7 @@ if ($op == 'edit_order') {
 			}
 			$uid = mc_openid2uid(trim($item['openid']));
 			//订单完成后增加积分
-			card_give_credit($item['weid'], $uid, $item['sum_price'], $item['hotelid']);
+			card_give_credit($uid, $item['sum_price']);
 			//增加出售货物的数量
 			add_sold_num($goods_info);
 			//OPENTM203173461
