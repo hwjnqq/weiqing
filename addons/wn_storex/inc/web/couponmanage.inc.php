@@ -134,7 +134,7 @@ if ($op == 'post') {
 		if (COUPON_TYPE == WECHAT_COUPON) {
 			$status = $coupon_api->CreateCard($coupon->getCardData());
 			if(is_error($status)) {
-				message($status['message'], '', 'ajax');
+				message($status, '', 'ajax');
 			}
 			$coupon->card_id = $status['card_id'];
 			$coupon->source = 2;
