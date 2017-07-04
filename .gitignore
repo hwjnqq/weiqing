@@ -34,3 +34,5 @@ attachment/**/*
 !addons/wn_storex/**/*
 web/test.php
 framework/builtin/core/module.cer
+addons/wn_storex/template/resource/sass/*
+addons/wn_storex/template/resource/css/common.css.map

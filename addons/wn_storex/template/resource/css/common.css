@@ -1,0 +1,122 @@
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+li {
+  list-style: none;
+}
+
+.text-over {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
+}
+
+.wn-aside__menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 180px;
+  background: #384655;
+}
+.wn-aside__logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin: 15px auto;
+  display: block;
+}
+.wn-aside__nav__item {
+  padding: 15px 0 15px 20px;
+  color: #aab0b6;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
+}
+.wn-aside__nav__item:hover {
+  background: #40505f;
+  color: #fff;
+}
+.wn-aside__nav__item--active {
+  background: #59c2e6;
+  color: #ffffff;
+}
+.wn-aside__nav__item i {
+  margin-right: 15px;
+}
+.wn-aside__nav__item a {
+  color: inherit;
+}
+.wn-aside__submenu {
+  position: fixed;
+  top: 0;
+  left: 180px;
+  bottom: 0;
+  width: 180px;
+  background: #f0f3f6;
+  border-right: 1px solid #ddd;
+}
+.wn-aside__title {
+  height: 50px;
+  line-height: 50px;
+  padding-left: 20px;
+  border-bottom: 1px solid #ddd;
+}
+.wn-aside__sub {
+  padding: 0px;
+}
+.wn-aside__sub__item {
+  margin: 10px 0;
+  padding: 15px 0 15px 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
+}
+.wn-aside__sub__item:hover {
+  color: #00a0e9;
+}
+.wn-aside__sub__item--active {
+  background: #d7dde4;
+  color: #fff;
+}
+.wn-aside__sub__item--active:hover {
+  color: #fff;
+}
+.wn-aside__sub__item a {
+  color: inherit;
+}
+
+.wn-main {
+  margin: 0 0 0 360px;
+  width: calc(100% - 360px);
+  height: auto;
+  min-height: 100vh;
+}
+.wn-main__head {
+  height: 50px;
+  line-height: 50px;
+  padding-left: 20px;
+  border-bottom: 1px solid #ddd;
+  background: #f0f3f6;
+}
+.wn-main__content {
+  margin: 15px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  min-height: 300px;
+  height: auto;
+}
+.wn-main__content:after {
+  clear: both;
+}
+.wn-main--without {
+  margin: 0 0 0 180px;
+  width: calc(100% - 180px);
+}
+
+/*# sourceMappingURL=common.css.map */
