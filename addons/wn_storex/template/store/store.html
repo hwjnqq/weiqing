@@ -69,7 +69,6 @@
 					<a href="javascript:;" class="js-entry-modal" data-id="{$item['id']}" data-store_entry="{$item['store_entry']}" data-mc_entry="{$item['mc_entry']}">查看入口</a>
 				</td>
 				<td>
-					<a href="{php echo $this->createWebUrl('storebackstage',array('storeid'=>$item['id']))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom"  title="店铺管理">店铺管理</a>
 					{if $item['store_type'] == 1}
 					<a href="{php echo $this->createWebUrl('room_status',array('hotelid'=>$item['id']))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom" title="维护房量/房态">维护房量/房态</a>
 					<a href="{php echo $this->createWebUrl('room_price',array('hotelid'=>$item['id']))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom" title="维护房价">维护房价</a>
