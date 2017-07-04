@@ -820,3 +820,11 @@ function check_ims_version () {
 		return false;
 	}
 }
+
+function store_type_info($store_type) {
+	$store_type_list = array(
+		STORE_TYPE_NORMAL => '普通店铺',
+		STORE_TYPE_HOTEL => '酒店'
+	);
+	return $store_type_list[$store_type];
+}

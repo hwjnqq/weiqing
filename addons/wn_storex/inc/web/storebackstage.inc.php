@@ -5,19 +5,18 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('edit', 'delete', 'deleteall', 'showall', 'status', 'query', 'getbusiness', 'display');
+$ops = array('post', 'delete', 'deleteall', 'showall', 'status', 'query', 'getbusiness', 'display');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 if ($op == 'display') {
-	
-	include $this->template('store/store');
+
 }
 
-if ($op == 'edit') {
+if ($op == 'post') {
+	$store_type_name = store_type_info($_GPC['store_type']);
 	$id = intval($_GPC['id']);
-	$hotel_level_config = array(5 => '五星级酒店', 4 => '四星级酒店', 3 => '三星级酒店', 2 => '两星级以下', 15 => '豪华酒店', 14 => '高档酒店', 13 => '舒适酒店', 12 => '经济型酒店', );
 	if (checksubmit('submit')) {
-		if (empty($_GPC['title'])) {
+		if (empty($_GPC['title'])) {	
 			message('店铺名称不能是空！', '', 'error');
 		}
 		if (!is_numeric($_GPC['distance'])) {
@@ -25,41 +24,34 @@ if ($op == 'edit') {
 		}
 		$common_insert = array(
 			'weid' => $_W['uniacid'],
+			'displayorder' => $_GPC['displayorder'],
 			'title' => trim($_GPC['title']),
+			'timestart' => $_GPC['timestart'],
+			'timeend' => $_GPC['timeend'],
 			'store_type' => intval($_GPC['store_type']),
 			'thumb'=>$_GPC['thumb'],
+			'phone' => $_GPC['phone'],
+			'mail' => $_GPC['mail'],
 			'address' => $_GPC['address'],
 			'location_p' => $_GPC['district']['province'],
 			'location_c' => $_GPC['district']['city'],
 			'location_a' => $_GPC['district']['district'],
 			'lng' => $_GPC['baidumap']['lng'],
 			'lat' => $_GPC['baidumap']['lat'],
-			'phone' => $_GPC['phone'],
-			'mail' => $_GPC['mail'],
-			'displayorder' => $_GPC['displayorder'],
-			'timestart' => $_GPC['timestart'],
-			'timeend' => $_GPC['timeend'],
+			'distance' => intval($_GPC['distance']),
 			'description' => $_GPC['description'],
 			'content' => $_GPC['content'],
 			'store_info' => $_GPC['store_info'],
 			'traffic' => $_GPC['traffic'],
 			'status' => $_GPC['status'],
-			'distance' => intval($_GPC['distance']),
-			'skin_style' => trim($_GPC['skin_style']),
-			'category_set' => intval($_GPC['category_set']),
 		);
 		$common_insert['thumbs'] = empty($_GPC['thumbs']) ? '' : iserializer($_GPC['thumbs']);
-		$common_insert['detail_thumbs'] = empty($_GPC['detail_thumbs']) ? '' : iserializer($_GPC['detail_thumbs']);
-		if ($_GPC['store_type']) {
+		if (!empty($_GPC['store_type'])) {
 			$common_insert['extend_table'] = 'storex_hotel';
 			$insert = array(
 				'weid' => $_W['uniacid'],
-				'sales' => $_GPC['sales'],
-				'level' => $_GPC['level'],
-				'brandid' => $_GPC['brandid'],
-				'businessid' => $_GPC['businessid'],
 			);
-			if ($_GPC['device']) {
+			if (!empty($_GPC['device'])) {
 				$devices = array();
 				foreach ($_GPC['device'] as $key => $device) {
 					if ($device != '') {
@@ -71,25 +63,25 @@ if ($op == 'edit') {
 		}
 		if (empty($id)) {
 			pdo_insert('storex_bases', $common_insert);
-			if ($_GPC['store_type']) {
+			if (!empty($_GPC['store_type'])) {
 				$insert['store_base_id'] = pdo_insertid();
 				pdo_insert('storex_hotel', $insert);
 			}
 		} else {
 			if ($common_insert['store_type'] == 1 && $common_insert['category_set'] == 2) {
-				pdo_update('storex_room', array('status' => 0), array('hotelid'=> $id, 'weid' => $_W['uniacid'], 'is_house' => 2));
+				pdo_update('storex_room', array('status' => 0), array('hotelid' => $id, 'weid' => $_W['uniacid'], 'is_house' => 2));
 			} elseif ($common_insert['store_type'] == 1 && $common_insert['category_set'] == 1) {
-				pdo_update('storex_room', array('status' => 1), array('hotelid'=> $id, 'weid' => $_W['uniacid'], 'is_house' => 2));
+				pdo_update('storex_room', array('status' => 1), array('hotelid' => $id, 'weid' => $_W['uniacid'], 'is_house' => 2));
 			}
 			pdo_update('storex_bases', $common_insert, array('id' => $id));
-			if ($_GPC['store_type']) {
-				pdo_update($common_insert['extend_table'], $insert, array('store_base_id' => $id));
+			if (!empty($_GPC['store_type'])) {
+				pdo_update('storex_hotel', $insert, array('store_base_id' => $id));
 			}
 		}
-		message('店铺信息保存成功!', $this->createWebUrl('storemanage'), 'success');
+		message('店铺信息保存成功!', referer(), 'success');
 	}
 	$storex_bases = pdo_get('storex_bases', array('id' => $id));
-	$item = pdo_get('storex_hotel', array('store_base_id' => $id));
+	$item = pdo_get('storex_hotel', array('store_base_id' => $id), array('id', 'store_base_id', 'device'));
 	if (empty($item['device'])) {
 		$devices = array(
 			array('isdel' => 0, 'value' => '有线上网'),
@@ -103,64 +95,7 @@ if ($op == 'edit') {
 	} else {
 		$devices = iunserializer($item['device']);
 	}
-	
-	//品牌
-	$brands = pdo_getall('storex_brand', array('weid' => $_W['uniacid']));
-	
-	$sql = 'SELECT `title` FROM ' . tablename('storex_business') . ' WHERE `weid` = :weid AND `id` = :id';
-	$params[':id'] = intval($item['businessid']);
-	$params[':weid'] = intval($_W['uniacid']);
-	$item['hotelbusinesss'] = pdo_fetchcolumn($sql, $params);
 	$storex_bases['thumbs'] =  iunserializer($storex_bases['thumbs']);
-	$storex_bases['detail_thumbs'] =  iunserializer($storex_bases['detail_thumbs']);
-	if ($id) {
-		$item = array_merge($item, $storex_bases);
-	}
-	include $this->template('hotel_form');
-}
-
-if ($op == 'delete') {
-	$id = intval($_GPC['id']);
-	$store = pdo_get('storex_bases', array('id' => $id), array('store_type'));
-	if ($store['store_type'] == 1) {
-		pdo_delete('storex_room', array('hotelid' => $id, 'weid' => $_W['uniacid']));
-	} else {
-		pdo_delete('storex_goods', array('store_base_id' => $id, 'weid' => $_W['uniacid']));
-	}
-	pdo_delete('storex_bases', array('id' => $id, 'weid' => $_W['uniacid']));
-	pdo_delete('storex_categorys', array('store_base_id' => $id, 'weid' => $_W['uniacid']));
-	message('店铺信息删除成功!', referer(), 'success');
-}
-
-if ($op == 'deleteall') {
-	foreach ($_GPC['idArr'] as $k => $id) {
-		$id = intval($id);
-		$id = intval($_GPC['id']);
-		$store = pdo_get('storex_bases', array('id' => $id), array('store_type'));
-		if ($store['store_type'] == 1) {
-			pdo_delete('storex_room', array('hotelid' => $id, 'weid' => $_W['uniacid']));
-		} else {
-			pdo_delete('storex_goods', array('store_base_id' => $id, 'weid' => $_W['uniacid']));
-		}
-		pdo_delete('storex_bases', array('id' => $id, 'weid' => $_W['uniacid']));
-		pdo_delete('storex_categorys', array("store_base_id" => $id, 'weid' => $_W['uniacid']));
-	}
-	message(error(0, '店铺信息删除成功！'), '', 'ajax');
-}
-
-if ($op == 'showall') {
-	if ($_GPC['show_name'] == 'showall') {
-		$show_status = 1;
-	} else {
-		$show_status = 0;
-	}
-	foreach ($_GPC['idArr'] as $k => $id) {
-		$id = intval($id);
-		if (!empty($id)) {
-			pdo_update('storex_bases', array('status' => $show_status), array('id' => $id));
-		}
-	}
-	message(error(0, '操作成功！'), '', 'ajax');
 }
 
 if ($op == 'status') {
@@ -176,19 +111,10 @@ if ($op == 'status') {
 	}
 }
 
-if ($op == 'query') {
-	$kwd = trim($_GPC['keyword']);
-	$ds = pdo_getall('storex_hotel', array('weid' => $_W['uniacid'], 'title LIKE' => "%{$kwd}%"), array('id','title','description','thumb'));
-	foreach ($ds as &$value) {
-		$value['thumb'] = tomedia($value['thumb']);
-	}
-	unset($value);
-	include $this->template('query');
-}
-
-if ($op == 'getbusiness') {
-	$kwd = trim($_GPC['keyword']);
-	$ds = pdo_getall('storex_business', array('weid' => $_W['uniacid'], 'title LIKE' => "%{$kwd}%"));
-	include $this->template('business_query');
-	exit();
-}
+// if ($op == 'getbusiness') {
+// 	$kwd = trim($_GPC['keyword']);
+// 	$ds = pdo_getall('storex_business', array('weid' => $_W['uniacid'], 'title LIKE' => "%{$kwd}%"));
+// 	include $this->template('business_query');
+// 	exit();
+// }
+include $this->template('store/store');

@@ -1,13 +1,13 @@
 {template 'store/common'}
 <aside class="wn-aside clearfix">
 	<nav class="wn-aside__menu">
-		<img src="../addons/wn_storex/template/resource/image/logo.jpg" alt="" class="wn-aside__logo">
+		<img src="{php echo tomedia($_W['wn_storex']['store_info']['thumb'])}" alt="" class="wn-aside__logo">
 		<ul class="wn-aside__nav">
-			<li class="wn-aside__nav__item wn-aside__nav__item--active"><a href=""> <i class="fa fa-search"></i> 设置1</a></li>
+			<li class="wn-aside__nav__item"><a href=""> <i class="fa fa-search"></i> 概况</a></li>
 			<li class="wn-aside__nav__item"><a href="{php echo $this->createWeburl('goodscategory', array('storeid' => $storeid))}"><i class="fa fa-search"></i>商品分类</a></li>
 			<li class="wn-aside__nav__item"><a href="{php echo $this->createWeburl('goodsmanage', array('storeid' => $storeid))}"><i class="fa fa-search"></i>商品管理</a></li>
 			<li class="wn-aside__nav__item"><a href=""><i class="fa fa-search"></i>设置设置设置设置4</a></li>
-			<li class="wn-aside__nav__item"><a href=""><i class="fa fa-search"></i>设置设置设置设置设置5</a></li>
+			<li class="wn-aside__nav__item {if $_GPC['do'] == 'storebackstage' && $op == 'post'}wn-aside__nav__item--active{/if}"><a href="{php echo $this->createWebUrl('storebackstage', array('op' => 'post', 'store_type' => $_GPC['store_type'], 'id' => $_GPC['id']))}"><i class="fa fa-search"></i>店铺设置</a></li>
 		</ul>
 	</nav>
 	<!-- <nav class="wn-aside__submenu">
