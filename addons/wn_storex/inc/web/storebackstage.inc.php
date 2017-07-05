@@ -9,7 +9,8 @@ $ops = array('post', 'delete', 'deleteall', 'showall', 'status', 'query', 'getbu
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'dashboard';
 
 if ($op == 'dashboard') {
-
+    include $this->template('store/dashboard');
+    exit;
 }
 
 if ($op == 'post') {
