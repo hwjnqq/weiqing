@@ -215,7 +215,8 @@ function check_params() {
 
 /**
  * action 1预定  2购买
- * 获取订单的状态 
+ * 获取订单的状态
+ * status -1取消，0未确认，1已确认，2退款，3完成，4已入住 
  */
 function orders_check_status($item) {
 	$order_status_text = array(

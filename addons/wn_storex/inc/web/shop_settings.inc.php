@@ -6,15 +6,15 @@ $ops = array('post', 'dashboard');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'post';
 
 if ($op == 'dashboard') {
-    include $this->template('store/dashboard');
-    exit;
+	include $this->template('store/dashboard');
+	exit;
 }
 
 if ($op == 'post') {
 	$store_type = intval($_W['wn_storex']['store_info']['store_type']);
 	$id = intval($_GPC['storeid']);
 	if (checksubmit('submit')) {
-		if (empty($_GPC['title'])) {	
+		if (empty($_GPC['title'])) {
 			message('店铺名称不能是空！', '', 'error');
 		}
 		if (!is_numeric($_GPC['distance'])) {
@@ -66,11 +66,6 @@ if ($op == 'post') {
 				pdo_insert('storex_hotel', $insert);
 			}
 		} else {
-			if ($common_insert['store_type'] == 1 && $common_insert['category_set'] == 2) {
-				pdo_update('storex_room', array('status' => 0), array('hotelid' => $id, 'weid' => $_W['uniacid'], 'is_house' => 2));
-			} elseif ($common_insert['store_type'] == 1 && $common_insert['category_set'] == 1) {
-				pdo_update('storex_room', array('status' => 1), array('hotelid' => $id, 'weid' => $_W['uniacid'], 'is_house' => 2));
-			}
 			pdo_update('storex_bases', $common_insert, array('id' => $id));
 			if (!empty($store_type)) {
 				pdo_update('storex_hotel', $insert, array('store_base_id' => $id));
