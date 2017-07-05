@@ -3,29 +3,22 @@
 	<div class="wn-main__head">商品管理</div>
 	<div class="wn-main__content">
 		<div class="main">
-			<ul class="nav nav-tabs">
-				<li {if $op == 'display'}class="active"{/if} ><a href="{php echo $this->createWebUrl('shop_goodsmanage', array('storeid' => $storeid));}">商品管理</a></li>
-				<li {if $_GPC['op'] == 'edit'}class="active"{/if}>
-					<a href="">
-						{if $_GPC['op'] == 'edit' && $_GPC['id'] != ''}
-							编辑商品
-						{else}
-							添加商品
-						{/if}
-					</a>
-				</li>
-			</ul>
+			<div class="page-header clearfix">
+				<h4 class="pull-left">
+					{if $_GPC['op'] == 'edit' && $_GPC['id'] != ''}
+						编辑商品
+					{else}
+						添加商品
+					{/if}
+				</h4>
+				<div class="pull-right">
+					<a href="{php echo $this->createWebUrl('shop_goodsmanage', array('storeid' => $storeid));}" id="add_coupon" class="btn btn-primary we7-padding-horizontal">+返回管理商品</a>
+				</div>
+			</div>
 			<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data" onsubmit="return formcheck()">
 			<input type="hidden" name="id" value="{$item['id']}">
 			<input type="hidden" name="store_type" value="{$store['store_type']}">
 			<div class="panel panel-default">
-				<div class="panel-heading">
-					{if $_GPC['op'] == 'edit' && $_GPC['id'] != ''}
-					编辑商品
-					{else}
-					添加商品
-					{/if}
-				</div>
 				<div class="panel-body">
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label">选择店铺</label>

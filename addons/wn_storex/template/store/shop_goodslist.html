@@ -3,14 +3,10 @@
 	<div class="wn-main__head">商品管理</div>
 	<div class="wn-main__content">
 		<div class="main">
-			<ul class="nav nav-tabs">
-				<li class="active"><a href="{php echo $this->createWebUrl('shop_goodsmanage', array('storeid' => $storeid));}">商品管理</a></li>
-				<li {if $op == 'edit'}class="active"{/if}><a href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'edit', 'storeid' => $storeid));}">添加商品</a></li>
-			</ul>
 			<div class="page-header clearfix">
 				<h4 class="pull-left">商品管理</h4>
 				<div class="pull-right">
-					<a href="javascript:;" id="add_coupon" class="btn btn-primary we7-padding-horizontal">+添加商品</a>
+					<a href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'edit', 'storeid' => $storeid));}" id="add_coupon" class="btn btn-primary we7-padding-horizontal">+添加商品</a>
 				</div>
 			</div>
 			<div class="panel panel-info">
