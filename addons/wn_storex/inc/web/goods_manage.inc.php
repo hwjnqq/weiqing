@@ -10,6 +10,7 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $storeid = intval($_GPC['storeid']);
 $store = $_W['wn_storex']['store_info'];
+$store_type = $store['store_type'];
 
 $category = pdo_getall('storex_categorys', array('store_base_id' => $storeid), array(), 'id', array('parentid', 'displayorder DESC'));
 if (!empty($category)) {
@@ -28,9 +29,9 @@ if (empty($parent)) {
 
 //根据分类的一级id获取店铺的id
 $category_store = pdo_get('storex_categorys', array('id' => intval($_GPC['category']['parentid']), 'weid' => intval($_W['uniacid'])), array('id', 'store_base_id'));
-$table = gettablebytype($store['store_type']);
+$table = gettablebytype($store_type);
 
-if ($store['store_type'] == STORE_TYPE_HOTEL) {
+if ($store_type == STORE_TYPE_HOTEL) {
 	$store_field = 'hotelid';
 } else {
 	$store_field = 'store_base_id';
@@ -59,12 +60,12 @@ if ($op == 'edit') {
 	$usergroup_list = pdo_getall('mc_groups', array('uniacid' => $_W['uniacid']), array(), '', array('isdefault DESC', 'credit ASC'));
 	if (!empty($id)) {
 		$item = pdo_get($table, array('id' => $id));
-		if (empty($store['store_type'])) {
+		if (empty($store_type)) {
 			$item['express_set'] = iunserializer($item['express_set']);
 		}
 		$store_base_id = $item[$store_field];
 		if (empty($item)) {
-			if ($store['store_type'] == STORE_TYPE_HOTEL) {
+			if ($store_type == STORE_TYPE_HOTEL) {
 				message('抱歉，房型不存在或是已经删除！', '', 'error');
 			} else {
 				message('抱歉，商品不存在或是已经删除！', '', 'error');
@@ -84,7 +85,7 @@ if ($op == 'edit') {
 				message('一级分类不能为空！', '', 'error');
 			}
 		}
-		if ($store['store_type'] == STORE_TYPE_HOTEL && empty($_GPC['device'])) {
+		if ($store_type == STORE_TYPE_HOTEL && empty($_GPC['device'])) {
 			message('商品说明不能为空！', '', 'error');
 		}
 		if (empty($_GPC['oprice']) || $_GPC['oprice'] <= 0 || empty($_GPC['cprice']) || $_GPC['cprice'] <= 0) {
@@ -106,9 +107,9 @@ if ($op == 'edit') {
 			'can_buy' => intval($_GPC['can_buy']),
 			'sortid'=>intval($_GPC['sortid']),
 			'sold_num' => intval($_GPC['sold_num']),
-			'store_type' => intval($store['store_type']),
+			'store_type' => intval($store_type),
 		);
-		if ($store['store_type'] == STORE_TYPE_HOTEL) {
+		if ($store_type == STORE_TYPE_HOTEL) {
 			$is_house = 1;
 		} else {
 			$is_house = 2;
@@ -123,7 +124,7 @@ if ($op == 'edit') {
 			}
 		}
 		
-		if (empty($store['store_type'])) {
+		if (empty($store_type)) {
 			$goods = array(
 				'store_base_id' => $store_base_id,
 			);
@@ -157,7 +158,7 @@ if ($op == 'edit') {
 		} else {
 			$common['thumbs'] = serialize(array());
 		}
-		if ($store['store_type'] == STORE_TYPE_HOTEL) {
+		if ($store_type == STORE_TYPE_HOTEL) {
 			$data = array_merge($room, $common);
 			if (empty($id)) {
 				pdo_insert($table, $data);
@@ -181,7 +182,7 @@ if ($op == 'edit') {
 if ($op == 'delete') {
 	$id = intval($_GPC['id']);
 	pdo_delete($table, array('id' => $id, 'weid' => $_W['uniacid']));
-	if ($store['store_type'] == STORE_TYPE_HOTEL) {
+	if ($store_type == STORE_TYPE_HOTEL) {
 		pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT count(*) FROM " . tablename('storex_room') . " WHERE hotelid = :store_base_id) WHERE store_base_id = :store_base_id", array(':store_base_id' => $store_base_id));
 	}
 	message('删除成功！', referer(), 'success');
@@ -191,7 +192,7 @@ if ($op == 'deleteall') {
 	foreach ($_GPC['idArr'] as $k => $id) {
 		$id = intval($id);
 		pdo_delete($table, array('id' => $id, 'weid' => $_W['uniacid']));
-		if ($store['store_type'] == STORE_TYPE_HOTEL) {
+		if ($store_type == STORE_TYPE_HOTEL) {
 			pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT count(*) FROM " . tablename('storex_room') . " WHERE hotelid = :hotelid) WHERE id = :hotelid", array(':hotelid' => $id));
 		}
 	}
@@ -233,7 +234,7 @@ if ($op == 'display') {
 		$params[':keywordds'] = "%{$_GPC['title']}%";
 	}
 	$hotelid_as = '';
-	if ($store['store_type'] == STORE_TYPE_HOTEL) {
+	if ($store_type == STORE_TYPE_HOTEL) {
 		$hotelid_as = ' r.hotelid AS store_base_id,';
 		$join_condition = ' r.hotelid = h.id ';
 	} else {
