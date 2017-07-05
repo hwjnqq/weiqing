@@ -14,7 +14,7 @@ if ($op == 'display') {
 
 if ($op == 'post') {
 	$store_type_name = store_type_info($_GPC['store_type']);
-	$id = intval($_GPC['id']);
+	$id = intval($_GPC['storeid']);
 	if (checksubmit('submit')) {
 		if (empty($_GPC['title'])) {	
 			message('店铺名称不能是空！', '', 'error');
@@ -99,7 +99,7 @@ if ($op == 'post') {
 }
 
 if ($op == 'status') {
-	$id = intval($_GPC['id']);
+	$id = intval($_GPC['storeid']);
 	if (empty($id)) {
 		message('抱歉，传递的参数错误！', '', 'error');
 	}
