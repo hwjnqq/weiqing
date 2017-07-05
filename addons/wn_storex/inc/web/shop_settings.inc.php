@@ -1,10 +1,7 @@
 <?php
-
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-load()->model('mc');
-
 $ops = array('post', 'dashboard');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'post';
 
@@ -99,4 +96,4 @@ if ($op == 'post') {
 	$storex_bases['thumbs'] =  iunserializer($storex_bases['thumbs']);
 }
 
-include $this->template('store/store');
+include $this->template('store/shop_settings');
