@@ -8,10 +8,9 @@ load()->model('mc');
 $ops = array('display', 'post', 'delete');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
-// $storeid = intval($_GPC['storeid']);
-// $store = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $storeid), array('id', 'title', 'store_type'));
 $store = $_W['wn_storex']['store_info'];
 $storeid = $store['id'];
+
 if ($op == 'display') {
 	load()->func('tpl');
 	if (!empty($_GPC['displayorder'])) {
@@ -28,14 +27,13 @@ if ($op == 'display') {
 			unset($category[$index]);
 		}
 		if (!empty($row_info['parentid'])) {
-			if ($store['store_type'] != 1) {
+			if ($store['store_type'] != STORE_TYPE_HOTEL) {
 				$children[$row_info['parentid']][] = $row_info;
 			}
 			unset($category[$index]);
 		}
 	}
 	unset($row_info);
-	include $this->template('store/category');
 }
 
 if ($op == 'post') {
@@ -51,15 +49,15 @@ if ($op == 'post') {
 	if (!empty($parentid)) {
 		$parent = pdo_get('storex_categorys', array('id' => $parentid), array('id', 'name', 'category_type'));
 		if (empty($parent)) {
-			message('抱歉，上级分类不存在或是已经被删除！', $this->createWebUrl('post'), 'error');
+			message('抱歉，上级分类不存在或是已经被删除！', 'refresh', 'error');
 		}
 	}
 	if (checksubmit('submit')) {
 		if (empty($storeid)) {
-			message('请选择店铺', $this->createWebUrl('post'), 'error');
+			message('请选择店铺', 'refresh', 'error');
 		}
 		if (empty($_GPC['name'])) {
-			message('抱歉，请输入分类名称！');
+			message('抱歉，请输入分类名称！', 'refresh', 'error');
 		}
 		$category_type = empty($_GPC['category_type']) ? 2 : intval($_GPC['category_type']);
 		if (!empty($parent)) {
@@ -80,7 +78,7 @@ if ($op == 'post') {
 		if (!empty($id)) {
 			unset($data['parentid']);
 			pdo_update('storex_categorys', $data, array('id' => $id, 'weid' => $_W['uniacid']));
-			if ($category['id'] == $id && $data['category_type'] != $category['category_type'] && $stores[$storeid]['store_type'] == 1) {
+			if ($data['category_type'] != $category['category_type'] && $store['store_type'] == STORE_TYPE_HOTEL) {
 				pdo_update('storex_categorys', array('category_type' => $data['category_type']), array('parentid' => $id, 'weid' => $_W['uniacid']));
 				pdo_update('storex_room', array('is_house' => $data['category_type']), array('pcate' => $id, 'weid' => $_W['uniacid'], 'hotelid' => $storeid));
 			}
@@ -92,7 +90,6 @@ if ($op == 'post') {
 		}
 		message('更新分类成功！', $this->createWebUrl('goods_category', array('op' => 'display', 'storeid' => $storeid)), 'success');
 	}
-	include $this->template('store/category');
 }
 
 if ($op == 'delete') {
@@ -101,7 +98,7 @@ if ($op == 'delete') {
 	if (empty($category)) {
 		message('抱歉，分类不存在或是已经被删除！', $this->createWebUrl('goods_category', array('op' => 'display', 'storeid' => $storeid)), 'error');
 	}
-	if ($store['store_type'] == 1 ) {
+	if ($store['store_type'] == STORE_TYPE_HOTEL ) {
 		if ($category['parentid'] == 0) {
 			pdo_delete('storex_room', array('pcate' => $id, 'weid' => $_W['uniacid']));
 			pdo_delete('storex_categorys', array('id' => $id, 'parentid' => $id), 'OR');
@@ -120,3 +117,4 @@ if ($op == 'delete') {
 	pdo_delete('storex_categorys', array('id' => $id, 'weid' => $_W['uniacid']));
 	message('分类删除成功！', $this->createWebUrl('goods_category', array('op' => 'display', 'storeid' => $storeid)), 'success');
 }
+include $this->template('store/category');

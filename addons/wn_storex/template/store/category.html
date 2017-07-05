@@ -3,20 +3,11 @@
 	<div class="wn-main__head">分类设置</div>
 	<div class="wn-main__content">
 		<ul class="nav nav-tabs">
-			<li {if $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('goods_category', array('op' => 'display', 'storeid' => $storeid))}">店铺子分类管理</a></li>
+			<li {if $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('goods_category', array('op' => 'display', 'storeid' => $storeid))}">店铺分类管理</a></li>
 			{if $op == 'post'}
 			<li {if $op == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('goods_category', array('op' => 'post', 'storeid' => $storeid))}">添加分类</a></li>
 			{/if}
 		</ul>
-		<script>
-			require(['bootstrap'],function($){
-				$('.btn').hover(function(){
-					$(this).tooltip('show');
-				},function(){
-					$(this).tooltip('hide');
-				});
-			});
-		</script>
 		{if $op == 'post'}
 		<div class="main">
 			<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form1">
@@ -199,3 +190,12 @@
 	</div>
 </div>
 {/if}
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>

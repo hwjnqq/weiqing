@@ -8,14 +8,8 @@ load()->model('mc');
 $ops = array('edit', 'delete', 'deleteall', 'showall', 'status', 'copyroom');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
-
 $storeid = intval($_GPC['storeid']);
-if (!empty($storeid)) {
-	$store = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $storeid));
-	if (empty($store)) {
-		message('抱歉，店铺不存在或是已经删除！', '', 'error');
-	}
-}
+$store = $_W['wn_storex']['store_info'];
 
 $category = pdo_getall('storex_categorys', array('store_base_id' => $storeid), array(), 'id', array('parentid', 'displayorder DESC'));
 if (!empty($category)) {
@@ -36,7 +30,7 @@ if (empty($parent)) {
 $category_store = pdo_get('storex_categorys', array('id' => intval($_GPC['category']['parentid']), 'weid' => intval($_W['uniacid'])), array('id', 'store_base_id'));
 $table = gettablebytype($store['store_type']);
 
-if ($store['store_type'] == 1) {
+if ($store['store_type'] == STORE_TYPE_HOTEL) {
 	$store_field = 'hotelid';
 } else {
 	$store_field = 'store_base_id';
@@ -44,21 +38,15 @@ if ($store['store_type'] == 1) {
 
 if ($op == 'copyroom') {
 	$id = intval($_GPC['id']);
-	if (empty($store_base_id) || empty($id)) {
+	if (empty($storeid) || empty($id)) {
 		message('参数错误', 'refresh', 'error');
-	}
-	$store_info = pdo_get('storex_bases', array('id' => $store_base_id, 'weid' => $_W['uniacid']), array('id', 'store_type'));
-	if (!empty($store_info)) {
-		$table = gettablebytype($store_info['store_type']);
-	} else {
-		message('店铺不存在！');
 	}
 	$item = pdo_get($table, array('id' => $id, 'weid' => $_W['uniacid']));
 	unset($item['id']);
 	$item['status'] = 0;
 	pdo_insert($table, $item);
 	$id = pdo_insertid();
-	$url = $this->createWebUrl('goods_manage', array('op' => 'edit', 'store_base_id' => $store_base_id, 'id' => $id, 'store_type' => $item['store_type']));
+	$url = $this->createWebUrl('goods_manage', array('op' => 'edit', 'storeid' => $storeid, 'id' => $id));
 	header("Location: $url");
 	exit;
 }
@@ -76,7 +64,7 @@ if ($op == 'edit') {
 		}
 		$store_base_id = $item[$store_field];
 		if (empty($item)) {
-			if ($store['store_type'] == 1) {
+			if ($store['store_type'] == STORE_TYPE_HOTEL) {
 				message('抱歉，房型不存在或是已经删除！', '', 'error');
 			} else {
 				message('抱歉，商品不存在或是已经删除！', '', 'error');
@@ -89,14 +77,14 @@ if ($op == 'edit') {
 			message('店铺错误！', '', 'error');
 		}
 		if (empty($_GPC['title'])) {
-			message('请输入房型！');
+			message('请输入房型！', '', 'error');
 		}
 		if ($store['category_set'] == 1) {
 			if (empty($_GPC['category']['parentid'])) {
 				message('一级分类不能为空！', '', 'error');
 			}
 		}
-		if ($store_type == 1 && empty($_GPC['device'])) {
+		if ($store['store_type'] == STORE_TYPE_HOTEL && empty($_GPC['device'])) {
 			message('商品说明不能为空！', '', 'error');
 		}
 		if (empty($_GPC['oprice']) || $_GPC['oprice'] <= 0 || empty($_GPC['cprice']) || $_GPC['cprice'] <= 0) {
@@ -120,7 +108,7 @@ if ($op == 'edit') {
 			'sold_num' => intval($_GPC['sold_num']),
 			'store_type' => intval($store['store_type']),
 		);
-		if ($store['store_type'] == 1) {
+		if ($store['store_type'] == STORE_TYPE_HOTEL) {
 			$is_house = 1;
 		} else {
 			$is_house = 2;
@@ -169,7 +157,7 @@ if ($op == 'edit') {
 		} else {
 			$common['thumbs'] = serialize(array());
 		}
-		if ($store['store_type'] == 1) {
+		if ($store['store_type'] == STORE_TYPE_HOTEL) {
 			$data = array_merge($room, $common);
 			if (empty($id)) {
 				pdo_insert($table, $data);
@@ -193,7 +181,7 @@ if ($op == 'edit') {
 if ($op == 'delete') {
 	$id = intval($_GPC['id']);
 	pdo_delete($table, array('id' => $id, 'weid' => $_W['uniacid']));
-	if ($store_type == 1) {
+	if ($store['store_type'] == STORE_TYPE_HOTEL) {
 		pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT count(*) FROM " . tablename('storex_room') . " WHERE hotelid = :store_base_id) WHERE store_base_id = :store_base_id", array(':store_base_id' => $store_base_id));
 	}
 	message('删除成功！', referer(), 'success');
@@ -203,7 +191,7 @@ if ($op == 'deleteall') {
 	foreach ($_GPC['idArr'] as $k => $id) {
 		$id = intval($id);
 		pdo_delete($table, array('id' => $id, 'weid' => $_W['uniacid']));
-		if ($store_type == 1) {
+		if ($store['store_type'] == STORE_TYPE_HOTEL) {
 			pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT count(*) FROM " . tablename('storex_room') . " WHERE hotelid = :hotelid) WHERE id = :hotelid", array(':hotelid' => $id));
 		}
 	}
@@ -244,12 +232,8 @@ if ($op == 'display') {
 		$sql .= ' AND r.title LIKE :keywordds';
 		$params[':keywordds'] = "%{$_GPC['title']}%";
 	}
-	if (!empty($_GPC['hoteltitle'])) {
-		$sql .= ' AND h.title LIKE :keywords';
-		$params[':keywords'] = "%{$_GPC['hoteltitle']}%";
-	}
 	$hotelid_as = '';
-	if ($store['store_type'] == 1) {
+	if ($store['store_type'] == STORE_TYPE_HOTEL) {
 		$hotelid_as = ' r.hotelid AS store_base_id,';
 		$join_condition = ' r.hotelid = h.id ';
 	} else {
