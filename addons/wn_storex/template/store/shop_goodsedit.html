@@ -1,4 +1,3 @@
-{php load()->func('tpl')}
 {template 'common/header-storex'}
 <div class="wn-main wn-main--without">
 	<div class="wn-main__head">商品管理</div>
@@ -68,18 +67,18 @@
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-xs-12 col-sm-3 col-md-2 control-label">前台价(原价)</label>
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">前台支付价</label>
 						<div class="col-sm-9 col-xs-12">
 							<input type="text" name="oprice" id="oprice" value="{$item['oprice']}" class="form-control">
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-xs-12 col-sm-3 col-md-2 control-label">优惠价(现价)</label>
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">在线支付价</label>
 						<div class="col-sm-9 col-xs-12">
 							<input type="text" name="cprice" id="cprice" value="{$item['cprice']}" class="form-control">
 						</div>
 					</div>
-					<span {if $store['store_type'] == 1} style="display:none" {/if} id="express_info">
+					<span {if $store['store_type'] == STORE_TYPE_HOTEL} style="display:none" {/if} id="express_info">
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label">运费设置</label>
 						<div class="col-sm-9 col-xs-12">
@@ -120,7 +119,7 @@
 						</div>
 					</div>
 					{/if}
-					<span {if $store_type != 1 || (isset($item['is_house']) && $item['is_house'] == 2)}style="display: none"{/if} id="hotel_add_info">
+					<span {if $store_type != STORE_TYPE_HOTEL || (isset($item['is_house']) && $item['is_house'] == 2)}style="display: none"{/if} id="hotel_add_info">
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label">早餐设置</label>
 						<div class="col-sm-9 col-xs-12">
@@ -204,9 +203,6 @@
 					 -->
 					</span>
 					<!-- 普通店铺的属性  -->
-					<sapn {if $store_type != 0}style="display: none"{/if} id="goods_add_info">
-					
-					</sapn>
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label">促销信息</label>
 						<div class="col-sm-9 col-xs-12">
@@ -254,7 +250,7 @@
 				$('#express_info').hide();
 			} else {
 				$('#hotel_add_info').hide();
-				if ($store_type != 1) {
+				if ($store_type != STORE_TYPE_HOTEL) {
 					$('#express_info').show();
 				}
 			}

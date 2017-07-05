@@ -7,6 +7,12 @@
 				<li class="active"><a href="{php echo $this->createWebUrl('shop_goodsmanage', array('storeid' => $storeid));}">商品管理</a></li>
 				<li {if $op == 'edit'}class="active"{/if}><a href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'edit', 'storeid' => $storeid));}">添加商品</a></li>
 			</ul>
+			<div class="page-header clearfix">
+				<h4 class="pull-left">商品管理</h4>
+				<div class="pull-right">
+					<a href="javascript:;" id="add_coupon" class="btn btn-primary we7-padding-horizontal">+添加商品</a>
+				</div>
+			</div>
 			<div class="panel panel-info">
 				<div class="panel-heading">筛选</div>
 				<div class="panel-body">
@@ -80,7 +86,7 @@
 						<td> </td>
 						{/if}
 						<td>{$item['title']}</td>
-						{if $store_type == 1}
+						{if $store_type == STORE_TYPE_HOTEL}
 							{if $item['is_house'] == 1}
 							<td>房型</td>
 							{else}
@@ -112,7 +118,7 @@
 					</tr>
 					{/loop}
 					<tr>
-						{if $store_type == 1}
+						{if $store_type == STORE_TYPE_HOTEL}
 						<td colspan="12">
 						{else}
 						<td colspan="11">

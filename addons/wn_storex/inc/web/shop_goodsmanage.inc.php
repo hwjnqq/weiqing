@@ -53,6 +53,7 @@ if ($op == 'copyroom') {
 }
 
 if ($op == 'edit') {
+	load()->func('tpl');
 	$id = intval($_GPC['id']);
 	if (!empty($category_store)){
 		$store_base_id = $category_store['store_base_id'];
