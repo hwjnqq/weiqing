@@ -5,8 +5,8 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('post', 'delete', 'deleteall', 'showall', 'status', 'query', 'getbusiness', 'display', 'dashboard');
-$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'dashboard';
+$ops = array('post', 'dashboard');
+$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'post';
 
 if ($op == 'dashboard') {
     include $this->template('store/dashboard');
@@ -14,7 +14,7 @@ if ($op == 'dashboard') {
 }
 
 if ($op == 'post') {
-	$store_type_name = store_type_info($_GPC['store_type']);
+	$store_type = intval($_W['wn_storex']['store_info']['store_type']);
 	$id = intval($_GPC['storeid']);
 	if (checksubmit('submit')) {
 		if (empty($_GPC['title'])) {	
@@ -29,7 +29,7 @@ if ($op == 'post') {
 			'title' => trim($_GPC['title']),
 			'timestart' => $_GPC['timestart'],
 			'timeend' => $_GPC['timeend'],
-			'store_type' => intval($_GPC['store_type']),
+			'store_type' => $store_type,
 			'thumb'=>$_GPC['thumb'],
 			'phone' => $_GPC['phone'],
 			'mail' => $_GPC['mail'],
@@ -47,7 +47,7 @@ if ($op == 'post') {
 			'status' => $_GPC['status'],
 		);
 		$common_insert['thumbs'] = empty($_GPC['thumbs']) ? '' : iserializer($_GPC['thumbs']);
-		if (!empty($_GPC['store_type'])) {
+		if (!empty($store_type)) {
 			$common_insert['extend_table'] = 'storex_hotel';
 			$insert = array(
 				'weid' => $_W['uniacid'],
@@ -64,7 +64,7 @@ if ($op == 'post') {
 		}
 		if (empty($id)) {
 			pdo_insert('storex_bases', $common_insert);
-			if (!empty($_GPC['store_type'])) {
+			if (!empty($store_type)) {
 				$insert['store_base_id'] = pdo_insertid();
 				pdo_insert('storex_hotel', $insert);
 			}
@@ -75,7 +75,7 @@ if ($op == 'post') {
 				pdo_update('storex_room', array('status' => 1), array('hotelid' => $id, 'weid' => $_W['uniacid'], 'is_house' => 2));
 			}
 			pdo_update('storex_bases', $common_insert, array('id' => $id));
-			if (!empty($_GPC['store_type'])) {
+			if (!empty($store_type)) {
 				pdo_update('storex_hotel', $insert, array('store_base_id' => $id));
 			}
 		}
@@ -99,23 +99,4 @@ if ($op == 'post') {
 	$storex_bases['thumbs'] =  iunserializer($storex_bases['thumbs']);
 }
 
-if ($op == 'status') {
-	$id = intval($_GPC['storeid']);
-	if (empty($id)) {
-		message('抱歉，传递的参数错误！', '', 'error');
-	}
-	$temp = pdo_update('storex_bases', array('status' => $_GPC['status']), array('id' => $id));
-	if ($temp == false) {
-		message('抱歉，刚才操作数据失败！', '', 'error');
-	} else {
-		message('状态设置成功！', referer(), 'success');
-	}
-}
-
-// if ($op == 'getbusiness') {
-// 	$kwd = trim($_GPC['keyword']);
-// 	$ds = pdo_getall('storex_business', array('weid' => $_W['uniacid'], 'title LIKE' => "%{$kwd}%"));
-// 	include $this->template('business_query');
-// 	exit();
-// }
 include $this->template('store/store');

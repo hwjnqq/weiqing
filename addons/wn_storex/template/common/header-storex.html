@@ -7,19 +7,12 @@ document.write("<script async src='http://HOST:3000/browser-sync/browser-sync-cl
 	<nav class="wn-aside__menu">
 		<img src="{php echo tomedia($_W['wn_storex']['store_info']['thumb'])}" alt="" class="wn-aside__logo">
 		<ul class="wn-aside__nav">
-			{loop $aside__nav $nav_info}
-			<li class="wn-aside__nav__item {if $_GPC['do'] == $nav_info['do']}wn-aside__nav__item--active{/if}"><a href="{php echo $this->createWeburl($nav_info['do'], $nav_info['param'])}"><i class="fa fa-search"></i>{$nav_info['title']}	</a></li>
+			{loop $aside_nav $key $nav}
+			<li class="wn-aside__nav__item {if $_GPC['do'] == $key}wn-aside__nav__item--active{/if}"><a href="{$nav['url']}"><i class="{$nav['icon']}"></i>{$nav['title']}	</a></li>
 			{/loop}
-			<!-- 
-			<li class="wn-aside__nav__item"><a href=""> <i class="fa fa-search"></i> 概况</a></li>
-			<li class="wn-aside__nav__item"><a href="{php echo $this->createWeburl('goods_category', array('storeid' => $_GPC['storeid']))}"><i class="fa fa-search"></i>商品分类</a></li>
-			<li class="wn-aside__nav__item"><a href="{php echo $this->createWeburl('goods_manage', array('storeid' => $_GPC['storeid']))}"><i class="fa fa-search"></i>商品管理</a></li>
-			<li class="wn-aside__nav__item"><a href=""><i class="fa fa-search"></i>设置设置设置设置4</a></li>
-			<li class="wn-aside__nav__item {if $_GPC['do'] == 'storebackstage' && $op == 'post'}wn-aside__nav__item--active{/if}"><a href="{php echo $this->createWebUrl('storebackstage', array('op' => 'post', 'store_type' => $_GPC['store_type'], 'storeid' => $_GPC['storeid']))}"><i class="fa fa-search"></i>店铺设置</a></li>
-			 -->
 		</ul>
 	</nav>
-	<!-- <nav class="wn-aside__submenu">
+	<nav class="wn-aside__submenu" style="display:none;">
 		<div class="wn-aside__title">设置</div>
 		<ul class="wn-aside__sub">
 			<li class="wn-aside__sub__item wn-aside__sub__item--active"><a href="">设置1</a></li>
@@ -28,5 +21,5 @@ document.write("<script async src='http://HOST:3000/browser-sync/browser-sync-cl
 			<li class="wn-aside__sub__item"><a href="">设置设置设置设置4</a></li>
 			<li class="wn-aside__sub__item"><a href="">设置设置设置设置设置5</a></li>
 		</ul>
-	</nav> -->
+	</nav>
 </aside>
