@@ -4,7 +4,7 @@
 	<div class="wn-main__content">
 		<div class="main">
 			<ul class="nav nav-tabs">
-				<li class="active"><a href="{php echo $this->createWebUrl('goods_comment', array('storeid' => $storeid, 'id' => $id));}">评论管理</a></li>
+				<li class="active"><a href="{php echo $this->createWebUrl('shop_comment', array('storeid' => $storeid, 'id' => $id));}">评论管理</a></li>
 			</ul>
 			
 			<div class="panel panel-default">
@@ -39,7 +39,7 @@
 						<td>{$item['uid']}</td>
 						{/if}
 						<td>
-							<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除该评论吗?', '{php echo $this->createWebUrl('goods_comment',array('op'=>'delete', 'cid'=>$item['id'],'storeid'=>$storeid,'id'=>$item['goodsid']))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
+							<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除该评论吗?', '{php echo $this->createWebUrl('shop_comment',array('op'=>'delete', 'cid'=>$item['id'],'storeid'=>$storeid,'id'=>$item['goodsid']))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
 						</td>
 					</tr>
 					{/loop}
@@ -75,7 +75,7 @@
 				check.each(function(i){
 					id[i] = $(this).val();
 				});
-				$.post("{php echo $this->createWebUrl('goods_comment',array('op'=>'deleteall', 'store_base_id' => $store_base_id, 'id' => $id, 'store_type' => $store_type))}", {idArr:id},function(data){
+				$.post("{php echo $this->createWebUrl('shop_comment',array('op'=>'deleteall', 'store_base_id' => $store_base_id, 'id' => $id, 'store_type' => $store_type))}", {idArr:id},function(data){
 					if (data.message.errno ==0) {
 						util.message(data.message.message, 'refresh', 'success');
 					} else {

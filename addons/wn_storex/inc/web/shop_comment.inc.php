@@ -54,5 +54,5 @@ if ($op == 'display') {
 		}
 	}
 	$pager = pagination($total, $pindex, $psize);
-	include $this->template('store/goods_comment');
+	include $this->template('store/shop_comment');
 }

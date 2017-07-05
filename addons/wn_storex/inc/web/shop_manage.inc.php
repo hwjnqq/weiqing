@@ -47,7 +47,7 @@ if ($op == 'copyroom') {
 	$item['status'] = 0;
 	pdo_insert($table, $item);
 	$id = pdo_insertid();
-	$url = $this->createWebUrl('goods_manage', array('op' => 'edit', 'storeid' => $storeid, 'id' => $id));
+	$url = $this->createWebUrl('shop_manage', array('op' => 'edit', 'storeid' => $storeid, 'id' => $id));
 	header("Location: $url");
 	exit;
 }
@@ -174,9 +174,9 @@ if ($op == 'edit') {
 				pdo_update($table, $data, array('id' => $id));
 			}
 		}
-		message('商品信息更新成功！', $this->createWebUrl('goods_manage', array('storeid' => $storeid)), 'success');
+		message('商品信息更新成功！', $this->createWebUrl('shop_manage', array('storeid' => $storeid)), 'success');
 	}
-	include $this->template('store/goods_form');
+	include $this->template('store/shop_form');
 }
 
 if ($op == 'delete') {
@@ -244,5 +244,5 @@ if ($op == 'display') {
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename($table) . " r LEFT JOIN " . tablename('storex_bases') . " h ON " . $join_condition . " WHERE r.weid = '{$_W['uniacid']}' $sql", $params);
 	$list = format_list($category, $list);
 	$pager = pagination($total, $pindex, $psize);
-	include $this->template('store/goods_lists');
+	include $this->template('store/shop_lists');
 }

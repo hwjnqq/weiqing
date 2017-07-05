@@ -5,7 +5,7 @@ global $_GPC, $_W;
 define('STORE_TYPE_NORMAL', '0');
 define('STORE_TYPE_HOTEL', '1');
 
-if ($_GPC['do'] == 'shop_settings' || $_GPC['do'] == 'goods_category' || $_GPC['do'] == 'goods_manage' || $_GPC['do'] == 'goods_comment' || $_GPC['do'] == 'shop_index') {
+if ($_GPC['do'] == 'shop_settings' || $_GPC['do'] == 'shop_category' || $_GPC['do'] == 'shop_manage' || $_GPC['do'] == 'shop_comment' || $_GPC['do'] == 'shop_index') {
 	if (empty($_GPC['storeid'])) {
 		message('请重新选择店铺', $this->createWebUrl('storemanage', array('op' => 'list')), 'error');
 	}
@@ -19,14 +19,14 @@ $aside_nav = array(
 		'url' => $this->createWebUrl('shop_index', array('storeid' => $_GPC['storeid'])),
 		'icon' => 'fa fa-scan'
 	),
-	'goods_category' => array(
+	'shop_category' => array(
 		'title' => '商品分类',
-		'url' => $this->createWebUrl('goods_category', array('storeid' => $_GPC['storeid'])),
+		'url' => $this->createWebUrl('shop_category', array('storeid' => $_GPC['storeid'])),
 		'icon' => 'fa fa-search'
 	),
-	'goods_manage' => array(
+	'shop_manage' => array(
 		'title' => '商品管理',
-		'url' => $this->createWebUrl('goods_manage', array('storeid' => $_GPC['storeid'])),
+		'url' => $this->createWebUrl('shop_manage', array('storeid' => $_GPC['storeid'])),
 		'icon' => 'fa fa-search'
 	),
 	'shop_settings' => array(

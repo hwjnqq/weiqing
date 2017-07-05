@@ -5,7 +5,7 @@
 	<div class="wn-main__content">
 		<div class="main">
 			<ul class="nav nav-tabs">
-				<li {if $op == 'display'}class="active"{/if} ><a href="{php echo $this->createWebUrl('goods_manage', array('storeid' => $storeid));}">商品管理</a></li>
+				<li {if $op == 'display'}class="active"{/if} ><a href="{php echo $this->createWebUrl('shop_manage', array('storeid' => $storeid));}">商品管理</a></li>
 				<li {if $_GPC['op'] == 'edit'}class="active"{/if}>
 					<a href="">
 						{if $_GPC['op'] == 'edit' && $_GPC['id'] != ''}
