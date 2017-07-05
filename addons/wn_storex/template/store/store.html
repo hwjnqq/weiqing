@@ -142,29 +142,29 @@
 				<input type="hidden" name="token" value="{$_W['token']}" />
 			</div>
 		</form>
-	<script type="text/javascript">
-		$("#add_device").click(function() {
-			var index = $('.device-input').length;
-			var html =
-				'<div class="col-sm-5" style="margin: 5px 0px;">' +
-					'<div class="input-group">' +
-						'<span class="input-group-addon">' +
-							'<input type="checkbox" name="show_device[' + index + ']" value="1" aria-label="Checkbox for following text input">' +
-						'</span>' +
-						'<input type="text" name="device[' + index + ']" class="form-control device-input" value="">' +
-						'<span class="input-group-btn">' +
-							'<button class="btn btn-default device-delete" type="button">删除</button>' +
-						'</span>' +
-					'</div>' +
-				'</div>';
+		<script type="text/javascript">
+			$("#add_device").click(function() {
+				var index = $('.device-input').length;
+				var html =
+					'<div class="col-sm-5" style="margin: 5px 0px;">' +
+						'<div class="input-group">' +
+							'<span class="input-group-addon">' +
+								'<input type="checkbox" name="show_device[' + index + ']" value="1" aria-label="Checkbox for following text input">' +
+							'</span>' +
+							'<input type="text" name="device[' + index + ']" class="form-control device-input" value="">' +
+							'<span class="input-group-btn">' +
+								'<button class="btn btn-default device-delete" type="button">删除</button>' +
+							'</span>' +
+						'</div>' +
+					'</div>';
 
-			$(this).parent().before(html);
-		});
+				$(this).parent().before(html);
+			});
 
-		$(document).on('click', '.device-delete', function() {
-			$(this).parent().parent().parent().remove();
-		})
-	</script>
+			$(document).on('click', '.device-delete', function() {
+				$(this).parent().parent().parent().remove();
+			})
+		</script>
 	{/if}
 	</div>
 </div>

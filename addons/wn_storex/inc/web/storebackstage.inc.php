@@ -5,10 +5,10 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('post', 'delete', 'deleteall', 'showall', 'status', 'query', 'getbusiness', 'display');
-$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
+$ops = array('post', 'delete', 'deleteall', 'showall', 'status', 'query', 'getbusiness', 'display', 'dashboard');
+$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'dashboard';
 
-if ($op == 'display') {
+if ($op == 'dashboard') {
 
 }
 
