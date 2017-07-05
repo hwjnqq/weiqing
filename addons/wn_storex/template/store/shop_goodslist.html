@@ -4,8 +4,8 @@
 	<div class="wn-main__content">
 		<div class="main">
 			<ul class="nav nav-tabs">
-				<li class="active"><a href="{php echo $this->createWebUrl('shop_manage', array('storeid' => $storeid));}">商品管理</a></li>
-				<li {if $op == 'edit'}class="active"{/if}><a href="{php echo $this->createWebUrl('shop_manage', array('op' => 'edit', 'storeid' => $storeid));}">添加商品</a></li>
+				<li class="active"><a href="{php echo $this->createWebUrl('shop_goodsmanage', array('storeid' => $storeid));}">商品管理</a></li>
+				<li {if $op == 'edit'}class="active"{/if}><a href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'edit', 'storeid' => $storeid));}">添加商品</a></li>
 			</ul>
 			<div class="panel panel-info">
 				<div class="panel-heading">筛选</div>
@@ -14,14 +14,14 @@
 						<input type="hidden" name="c" value="site" />
 						<input type="hidden" name="a" value="entry" />
 						<input type="hidden" name="m" value="wn_storex" />
-						<input type="hidden" name="do" value="shop_manage" />
+						<input type="hidden" name="do" value="shop_goodsmanage" />
 						<input type="hidden" name="storeid" value="{$storeid}">
 					</form>
 					<form action="./index.php" method="get" class="form-horizontal" role="form">
 						<input type="hidden" name="c" value="site" />
 						<input type="hidden" name="a" value="entry" />
 						<input type="hidden" name="m" value="wn_storex" />
-						<input type="hidden" name="do" value="shop_manage" />
+						<input type="hidden" name="do" value="shop_goodsmanage" />
 						<input type="hidden" name="storeid" value="{$storeid}">
 						<div class="form-group">
 							<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">商品名称</label>
@@ -98,16 +98,16 @@
 							{/if}
 						</td>
 						<td>
-							<a href="{php echo $this->createWebUrl('shop_manage',array('op'=>'copyroom','storeid'=>$storeid,'id'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="复制商品">复制商品</a>
+							<a href="{php echo $this->createWebUrl('shop_goodsmanage',array('op'=>'copyroom','storeid'=>$storeid,'id'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="复制商品">复制商品</a>
 							<a href="{php echo $this->createWebUrl('shop_comment',array('storeid'=>$storeid,'id'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="查看评价">查看评价</a>
 							<a href="{php echo $this->createWebUrl('order',array('storeid'=>$storeid,'roomid'=>$item['id']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="bottom" title="订单查看">订单查看</a>
-							<a class="btn btn-default" data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('shop_manage',array('op'=>'edit', 'id'=>$item['id'], 'storeid'=>$storeid))}" title="编辑"><i class="fa fa-edit"></i></a>
+							<a class="btn btn-default" data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('shop_goodsmanage',array('op'=>'edit', 'id'=>$item['id'], 'storeid'=>$storeid))}" title="编辑"><i class="fa fa-edit"></i></a>
 							{if $item['status']==0}
-							<a class="btn btn-default" title="显示" href="#" onclick="drop_confirm('您确定要显示此商品吗?', '{php echo $this->createWebUrl('shop_manage',array('op'=>'status','status'=>1, 'id'=>$item['id'], 'storeid'=>$storeid))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
+							<a class="btn btn-default" title="显示" href="#" onclick="drop_confirm('您确定要显示此商品吗?', '{php echo $this->createWebUrl('shop_goodsmanage',array('op'=>'status','status'=>1, 'id'=>$item['id'], 'storeid'=>$storeid))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
 							{elseif $item['status']==1}
-							<a class="btn btn-default" title="隐藏" href="#" onclick="drop_confirm('您确定要隐藏此商品吗?', '{php echo $this->createWebUrl('shop_manage',array('op'=>'status','status'=>0, 'id'=>$item['id'], 'storeid'=>$storeid))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
+							<a class="btn btn-default" title="隐藏" href="#" onclick="drop_confirm('您确定要隐藏此商品吗?', '{php echo $this->createWebUrl('shop_goodsmanage',array('op'=>'status','status'=>0, 'id'=>$item['id'], 'storeid'=>$storeid))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
 							{/if}
-							<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('shop_manage',array('op'=>'delete', 'id'=>$item['id'], 'storeid'=>$storeid))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
+							<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('shop_goodsmanage',array('op'=>'delete', 'id'=>$item['id'], 'storeid'=>$storeid))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
 						</td>
 					</tr>
 					{/loop}
@@ -151,7 +151,7 @@
 				check.each(function(i){
 					id[i] = $(this).val();
 				});
-				$.post("{php echo $this->createWebUrl('shop_manage',array('op'=>'deleteall', 'storeid'=>$storeid))}", {idArr:id},function(data){
+				$.post("{php echo $this->createWebUrl('shop_goodsmanage',array('op'=>'deleteall', 'storeid'=>$storeid))}", {idArr:id},function(data){
 					if (data.message.errno ==0) {
 						util.message(data.message.message, 'refresh', 'success');
 					} else {
@@ -172,7 +172,7 @@
 			check.each(function(i){
 				id[i] = $(this).val();
 			});
-			$.post("{php echo $this->createWebUrl('shop_manage',array('op'=>'showall', 'storeid'=>$storeid))}", {idArr:id,show_name:name},function(data){
+			$.post("{php echo $this->createWebUrl('shop_goodsmanage',array('op'=>'showall', 'storeid'=>$storeid))}", {idArr:id,show_name:name},function(data){
 				if (data.message.errno ==0) {
 					util.message(data.message.message, 'refresh', 'success');
 				} else {
