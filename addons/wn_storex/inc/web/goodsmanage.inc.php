@@ -260,6 +260,10 @@ if ($op == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	$hotelid_as = '';
+	if (!empty($_GPC['hotelid'])) {
+		$sql .= ' AND r.hotelid = :hotelid';
+		$params[':hotelid'] = $_GPC['hotelid'];
+	}
 	if ($store_type == 1) {
 		$hotelid_as = ' r.hotelid AS store_base_id,';
 		$join_condition = ' r.hotelid = h.id ';
