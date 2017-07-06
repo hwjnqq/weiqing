@@ -1,30 +1,126 @@
-{template 'common/header-base'}
 {template 'common/header-storex'}
-
 <div class="wn-main wn-main--without">
 	<div class="wn-main__head">概况</div>
 	<div class="wn-main__content">
 		<div class="wn-dashboard">
 			<div class="wn-dashboard__order wn-flex">
 				<div class="wn-flex__item">
-					<p>营业总额</p>
-					<span>￥121200120元</span>
+					<p>待确认订单</p>
+					<span>{$not_confirmed_order_count}</span>
 				</div>
 				<div class="wn-flex__item">
-					<p>营业总额</p>
-					<span>￥121200120元</span>
+					<p>昨日营业总额</p>
+					<span>￥{php echo floatval($yesterday_revenue)}元</span>
 				</div>
 				<div class="wn-flex__item">
-					<p>营业总额</p>
-					<span>￥121200120元</span>
+					<p>昨日订单量</p>
+					<span>{$yesterday_order_count}</span>
 				</div>
 				<div class="wn-flex__item">
-					<p>营业总额</p>
-					<span>￥121200120元</span>
+					<p>今日订单量</p>
+					<span>{$today_order_count}</span>
 				</div>
+			</div>
+		</div>
+		<div class="pull-left">
+			<form action="" id="form1">
+				<input type="hidden" name="c" value="site">
+				<input type="hidden" name="a" value="entry">
+				<input type="hidden" name="do" value="shop_index">
+				<input type="hidden" name="op" value="dashboard">
+				<input type="hidden" name="storeid" value="{$storeid}">
+				<input type="hidden" name="m" value="wn_storex">
+				{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
+			</form>
+		</div>
+		<div class="clearfix"></div>
+		<br>
+		<div class="panel panel-default" style="padding:1em">
+			<nav role="navigation" class="navbar navbar-default navbar-static-top" style="margin: -1em -1em 1em -1em;">
+				<div class="container-fluid">
+					<div class="navbar-header">
+						<a href="javascript:;" class="navbar-brand">营业额趋势图</a>
+					</div>
+				</div>
+			</nav>
+			<div style="margin-top:20px;">
+				<canvas id="myChart" height="500" width="1200"></canvas>
 			</div>
 		</div>
 	</div>
 </div>
-
+<script type="text/javascript">
+	require({
+		paths: {
+			'echart': '../../../../addons/wn_storex/template/style/js/echarts'
+		}
+	})
+	require(['echart', 'daterangepicker'], function(echarts) {
+		$('.daterange').on('apply.daterangepicker', function(ev, picker) {
+			$('#form1')[0].submit();
+		});
+		var myChart = echarts.init(document.getElementById('myChart'));
+		// 指定图表的配置项和数据
+		option = {
+			title: {
+				text: '折线图堆叠'
+			},
+			tooltip: {
+				trigger: 'axis'
+			},
+			legend: {
+				data:['邮件营销','联盟广告','视频广告','直接访问','搜索引擎']
+			},
+			grid: {
+				left: '3%',
+				right: '4%',
+				bottom: '3%',
+				containLabel: true
+			},
+			toolbox: {
+				feature: {
+					saveAsImage: {}
+				}
+			},
+			xAxis: {
+				type: 'category',
+				boundaryGap: false,
+				data: ['周一','周二','周三','周四','周五','周六','周日']
+			},
+			yAxis: {
+				type: 'value'
+			},
+			series: [
+				{
+					name:'邮件营销',
+					type:'line',
+					stack: '总量',
+					itemStyle:{
+						normal:{
+							label : {
+                               rotate:-90,
+								show: true,
+								textStyle:{
+									color:'#FD211E'
+								}
+							},
+							lineStyle:{
+								color:'#FD211E'
+							}
+						}
+					},
+					data:[120, 132, 101, 134, 90, 230, 210]
+				},
+				{
+		           name:'联盟广告',
+		           type:'line',
+		           stack: '总量',
+		           data:[220, 182, 191, 234, 290, 330, 310]
+		       }
+			]
+		};
+		// 使用刚指定的配置项和数据显示图表。
+		myChart.setOption(option);
+	});
+</script>
 {template 'common/footer-storex'}
