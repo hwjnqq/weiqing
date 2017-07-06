@@ -95,7 +95,8 @@
 	</div>
 	<div class="panel panel-default">
 		<div class="panel-body table-responsive">
-			<table class="table table-hover" {if $store_type != STORE_TYPE_HOTEL}style="display: none"{/if}>
+			{if $store_type == STORE_TYPE_HOTEL }
+			<table class="table table-hover">
 				<thead class="navbar-inner">
 				<tr>
 					<th class='with-checkbox' style='width:20px;'>
@@ -193,7 +194,9 @@
 				</tbody>
 				<input name="token" type="hidden" value="{$_W['token']}" />
 			</table>
-			<table class="table table-hover" {if $store_type != 0}style="display: none"{/if}>
+			{/if}
+			{if empty($store_type)}
+			<table class="table table-hover">
 				<thead class="navbar-inner">
 				<tr>
 					<th class='with-checkbox' style='width:30px;'>
@@ -289,6 +292,7 @@
 				</tbody>
 				<input name="token" type="hidden" value="{$_W['token']}" />
 			</table>
+			{/if}
 		</div>
 	</div>
 	{$pager}
