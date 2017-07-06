@@ -25,11 +25,23 @@ if ($op == 'deleteall') {
 }
 if ($op == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
-	$psize = 10;
-	$id = intval($_GPC['id']);//商品id
+	$psize = 20;
 	$table = gettablebytype($store['store_type']);
-	$comments = pdo_fetchall("SELECT c.*, g.title FROM " . tablename('storex_comment') . " AS c LEFT JOIN " .tablename($table). " AS g ON c.goodsid = g.id WHERE c.hotelid = :store_base_id AND c.goodsid = :id AND g.weid = :weid " . "LIMIT " . ($pindex - 1) * $psize . ',' . $psize, array(':store_base_id' => $storeid, ':id' => $id, 'weid' => $_W['uniacid']));
-	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_comment') . " AS c LEFT JOIN " .tablename($table) . " AS g ON c.goodsid = g.id WHERE c.hotelid = :store_base_id AND c.goodsid = :id AND g.weid = :weid ", array(':store_base_id' => $storeid, ':id' => $id, 'weid' => $_W['uniacid']));
+	
+	$id = intval($_GPC['id']);//商品id
+	$param = array(':store_base_id' => $storeid, 'weid' => $_W['uniacid']);
+	if (!empty($id)) {
+		$condition = " AND c.goodsid = :id ";
+		$param[':id'] = $id;
+	}
+	$search_title = trim($_GPC['title']);
+	if (!empty($search_title)) {
+		$condition = " AND g.title like :title ";
+		$param[':title'] = "%{$search_title}%";
+	}
+	
+	$comments = pdo_fetchall("SELECT c.*, g.title FROM " . tablename('storex_comment') . " AS c LEFT JOIN " .tablename($table). " AS g ON c.goodsid = g.id WHERE c.hotelid = :store_base_id AND g.weid = :weid " . $condition . "LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $param);
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_comment') . " AS c LEFT JOIN " .tablename($table) . " AS g ON c.goodsid = g.id WHERE c.hotelid = :store_base_id AND g.weid = :weid " . $condition, $param);
 	if (!empty($comments)) {
 		foreach ($comments as $k => $val) {
 			$comments[$k]['createtime'] = date('Y-m-d :H:i:s', $val['createtime']);

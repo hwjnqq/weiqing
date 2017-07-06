@@ -227,7 +227,7 @@ if ($op == 'status') {
 }
 if ($op == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
-	$psize = 10;
+	$psize = 20;
 	$sql .= ' AND ' . $store_field . ' = ' . $storeid;
 	$params = array();
 	if (!empty($_GPC['title'])) {

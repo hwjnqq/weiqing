@@ -29,6 +29,16 @@ $aside_nav = array(
 		'url' => $this->createWebUrl('shop_goodsmanage', array('storeid' => $_GPC['storeid'])),
 		'icon' => 'fa fa-search'
 	),
+	'shop_comment' => array(
+		'title' => '商品评价',
+		'url' => $this->createWebUrl('shop_comment', array('storeid' => $_GPC['storeid'])),
+		'icon' => 'fa fa-search'
+	),
+	'shop_order' => array(
+		'title' => '店铺订单',
+		'url' => $this->createWebUrl('shop_order', array('storeid' => $_GPC['storeid'])),
+		'icon' => 'fa fa-search'
+	),
 	'shop_settings' => array(
 		'title' => '店铺设置',
 		'url' => $this->createWebUrl('shop_settings', array('storeid' => $_GPC['storeid'])),
