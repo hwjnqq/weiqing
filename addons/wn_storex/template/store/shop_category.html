@@ -25,7 +25,7 @@
 					<input type="text" readonly="readonly" name="title" class="form-control" value="{$store['title']}" />
 				</div>
 			</div>
-			{if $store['store_type'] != 1 || !empty($category['parentid'])}
+			{if $store['store_type'] == 1 && empty($category['parentid'])}
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分类类型</label>
 					<div class="col-sm-9 col-xs-12">
