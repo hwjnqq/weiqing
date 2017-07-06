@@ -11,12 +11,15 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 checklogin();
 $store_type = isset($_GPC['store_type']) ? $_GPC['store_type'] : 0;
-$hotelid = intval($_GPC['hotelid']);
-$hotel = pdo_get('storex_bases', array('id' => $hotelid), array('id', 'title', 'phone'));
-$roomid = intval($_GPC['roomid']);
-
 $table = gettablebytype($store_type);
-$room = pdo_get($table, array('id' => $roomid), array('id', 'title', 'sold_num'));
+$hotelid = intval($_GPC['hotelid']);
+if (!empty($hotelid)) {
+	$hotel = pdo_get('storex_bases', array('id' => $hotelid), array('id', 'title', 'phone'));
+}
+$roomid = intval($_GPC['roomid']);
+if (!empty($roomid)) {
+	$room = pdo_get($table, array('id' => $roomid), array('id', 'title', 'sold_num'));
+}
 
 if ($op == 'edit') {
 	$id = $_GPC['id'];
@@ -188,7 +191,7 @@ if ($op == 'edit') {
 			}
 		}
 		pdo_update('storex_order', $data, array('id' => $id));
-		message('订单信息处理完成！', $this->createWebUrl('order', array('hotelid' => $hotelid, "roomid" => $roomid, 'store_type' => $store_type)), 'success');
+		message('订单信息处理完成！', $this->createWebUrl('order', array('store_type' => $store_type)), 'success');
 	}
 	if ($store_type == 1) {
 		$btime = $item['btime'];

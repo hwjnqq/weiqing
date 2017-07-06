@@ -340,13 +340,8 @@ if ($op == 'display') {
 	$mobile = $_GPC['mobile'];
 	$ordersn = $_GPC['ordersn'];
 	$roomtitle = $_GPC['roomtitle'];
-	$hoteltitle = $_GPC['hoteltitle'];
 	$condition = '';
 	$params = array();
-	if (!empty($hoteltitle)) {
-		$condition .= ' AND h.title LIKE :hoteltitle';
-		$params[':hoteltitle'] = "%{$hoteltitle}%";
-	}
 	if (!empty($roomtitle)) {
 		$condition .= ' AND r.title LIKE :roomtitle';
 		$params[':roomtitle'] = "%{$roomtitle}%";
