@@ -1,8 +1,8 @@
 {template 'common/header-storex'}
 <div class="wn-main wn-main--without">
-	<div class="wn-main__head">分类设置</div>
+	<div class="wn-main__head">商品评价{$_GPC['title']}</div>
 	<div class="wn-main__content">
-	<div class="wn-main__search clearfix">
+		<div class="wn-main__search clearfix">
 			<div class="wn-main__search__form" style="width: 600px">
 				<form action="./index.php" method="get" class="form-horizontal from" role="form">
 					<input type="hidden" name="c" value="site" />
@@ -23,57 +23,56 @@
 				</form>
 			</div>
 		</div>
-		<div class="main">
-			<ul class="nav nav-tabs">
-				<li class="active"><a href="{php echo $this->createWebUrl('shop_comment', array('storeid' => $storeid, 'id' => $id));}">评论管理</a></li>
-			</ul>
-			
-			<div class="panel panel-default">
-				<div class="panel-body table-responsive">
-				<table class="table table-hover" >
-					<thead class="navbar-inner">
-					<tr>
-						<th class='with-checkbox' style='width:30px;'>
-							<input type="checkbox" class="check_all" />
-						</th>
-						<th style="width:120px;">商品名称</th>
-						<th style="width:300px;">评论内容</th>
-						<th style='width:100px;'>评价级别</th>
-						<th style="width:150px;">评论时间</th>
-						<th style='width:120px;'>评论者</th>
-						<th style="width:320px;">操作</th>
-					</tr>
-					</thead>
-					<tbody>
-					{loop $comments $item}
-					<tr>
-						<td class="with-checkbox">
-							<input type="checkbox" name="check" value="{$item['id']}">
-						</td>
-						<td>{$item['title']}</td>
-						<td>{$item['comment']}</td>
-						<td>{$item['comment_level']}</td>
-						<td>{$item['createtime']}</td>
-						{if !empty($item['user_info'])}
-						<td>{$item['user_info']['nickname']}</td>
-						{else}
-						<td>{$item['uid']}</td>
-						{/if}
-						<td>
-							<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除该评论吗?', '{php echo $this->createWebUrl('shop_comment',array('op'=>'delete', 'cid'=>$item['id'],'storeid'=>$storeid,'id'=>$item['goodsid']))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
-						</td>
-					</tr>
-					{/loop}
-					<tr>
-						<td colspan="7">
-							<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
-						</td>
-					</tr>
-					</tbody>
-				</table>
-				{$pager}
-			</div>
-		</div>
+
+		<table class="table table-hover table-bordered wn-table" >
+			<thead class="navbar-inner">
+			<tr>
+				<th class='with-checkbox' style='width:30px;'>
+					<input type="checkbox" class="check_all" />
+				</th>
+				<th style="width:120px;">商品名称</th>
+				<th style="width:300px;">评论内容</th>
+				<th style='width:100px;'>评价级别</th>
+				<th style="width:150px;">评论时间</th>
+				<th style='width:120px;'>评论者</th>
+				<th style="width:320px;">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $comments $item}
+			<tr>
+				<td class="with-checkbox">
+					<input type="checkbox" name="check" value="{$item['id']}">
+				</td>
+				<td>{$item['title']}</td>
+				<td>{$item['comment']}</td>
+				<td>{$item['comment_level']}</td>
+				<td>{$item['createtime']}</td>
+				{if !empty($item['user_info'])}
+				<td>{$item['user_info']['nickname']}</td>
+				{else}
+				<td>{$item['uid']}</td>
+				{/if}
+				<td>
+					<div class="wn-table__link">
+						<a class="wn-table__link__item" href="#" onclick="drop_confirm('您确定要删除该评论吗?', '{php echo $this->createWebUrl('shop_comment',array('op'=>'delete', 'cid'=>$item['id'],'storeid'=>$storeid,'id'=>$item['goodsid']))}');" title="删除" >删除</a>
+					</div>
+
+				</td>
+			</tr>
+			{/loop}
+			<tr>
+				<td></td>
+				<td colspan="6">
+					<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
+					<div class="pull-right">
+						{$pager}
+					</div>
+				</td>
+			</tr>
+			</tbody>
+		</table>
+
 	</div>
 </div>
 <script>
