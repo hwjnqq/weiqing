@@ -29,13 +29,13 @@ if ($op == 'display') {
 	$table = gettablebytype($store['store_type']);
 	
 	$id = intval($_GPC['id']);//商品id
-	$param = array(':store_base_id' => $storeid, 'weid' => $_W['uniacid']);
+	$param = array(':store_base_id' => $storeid, ':weid' => $_W['uniacid']);
 	if (!empty($id)) {
 		$condition = " AND c.goodsid = :id ";
 		$param[':id'] = $id;
 	}
 	$search_title = trim($_GPC['title']);
-	if (!empty($search_title)) {
+	if (!empty($search_title) && empty($id)) {
 		$condition = " AND g.title like :title ";
 		$param[':title'] = "%{$search_title}%";
 	}
