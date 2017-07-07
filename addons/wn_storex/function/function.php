@@ -720,7 +720,7 @@ function clerk_permission_storex($type) {
 	$manage_storex_ids = array_keys($clerk_info);
 	return $manage_storex_ids;
 }
-function send_custom_notice ($msgtype, $text, $touser) {
+function send_custom_notice($msgtype, $text, $touser) {
 	$acc = WeAccount::create();
 	if (!check_wxapp()) {
 		$custom = array(

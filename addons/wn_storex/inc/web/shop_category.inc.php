@@ -80,8 +80,6 @@ if ($op == 'post') {
 				pdo_update('storex_categorys', array('category_type' => $data['category_type']), array('parentid' => $id, 'weid' => $_W['uniacid']));
 				pdo_update('storex_room', array('is_house' => $data['category_type']), array('pcate' => $id, 'weid' => $_W['uniacid'], 'hotelid' => $storeid));
 			}
-			load()->func('file');
-			file_delete($_GPC['thumb_old']);
 		} else {
 			pdo_insert('storex_categorys', $data);
 			$id = pdo_insertid();

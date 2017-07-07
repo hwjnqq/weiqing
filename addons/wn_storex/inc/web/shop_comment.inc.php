@@ -34,7 +34,7 @@ if ($op == 'display') {
 			$comments[$k]['createtime'] = date('Y-m-d :H:i:s', $val['createtime']);
 			$uids[] = $val['uid'];
 		}
-		if (!empty($uids)) {
+		if (!empty($uids) && is_array($uids)) {
 			$user_info = pdo_getall('mc_members', array('uid' => $uids), array('uid', 'avatar', 'nickname'), 'uid');
 			if (!empty($user_info) && is_array($user_info)) {
 				foreach ($user_info as &$val) {
@@ -58,8 +58,12 @@ if ($op == 'display') {
 
 if ($op == 'delete') {
 	$cid = intval($_GPC['cid']);
-	pdo_delete('storex_comment', array('id' => $cid));
-	message('删除成功！', referer(), 'success');
+	if (!empty($cid)) {
+		pdo_delete('storex_comment', array('id' => $cid));
+		message('删除成功！', referer(), 'success');
+	} else {
+		message('参数错误！', '', 'error');
+	}
 }
 
 if ($op == 'deleteall') {

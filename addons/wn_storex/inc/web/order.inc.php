@@ -43,7 +43,7 @@ if ($op == 'edit') {
 		$data = array(
 			'status' => $_GPC['status'],
 			'msg' => $_GPC['msg'],
-			'mngtime' => time(),
+			'mngtime' => TIMESTAMP,
 			'track_number' => trim($_GPC['track_number']),
 			'express_name' => trim($_GPC['express_name']),
 		);
@@ -93,7 +93,7 @@ if ($op == 'edit') {
 					$acc->sendTplNotice($item['openid'], $setting['refuse_templateid'], $tplnotice);
 				} else {
 					$info = '您在'.$hotel['title'].'预订的'.$room['title']."不足。已为您取消订单";
-					$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
+					$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
 				}
 			}
 			//订单确认提醒
@@ -115,7 +115,7 @@ if ($op == 'edit') {
 					$result = $acc->sendTplNotice($item['openid'], $setting['templateid'], $tplnotice);
 				} else {
 					$info = '您在' . $hotel['title'] . '预订的' . $room['title'] . '已预订成功';
-					$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
+					$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
 				}
 				if (check_ims_version()) {
 					$plugins = get_plugin_list();
@@ -145,7 +145,7 @@ if ($op == 'edit') {
 					$result = $acc->sendTplNotice($item['openid'], $setting['check_in_templateid'], $tplnotice);
 				} else {
 					$info = '您已成功入住' . $hotel['title'] . '预订的' . $room['title'];
-					$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
+					$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
 				}
 			}
 	
@@ -169,18 +169,18 @@ if ($op == 'edit') {
 					$result = $acc->sendTplNotice($item['openid'], $setting['finish_templateid'], $tplnotice);
 				} else {
 					$info = '您在'.$hotel['title'] . '预订的' . $room['title'] . '订单已完成,欢迎下次光临';
-					$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
+					$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
 				}
 			}
 			if ($data['status'] == 5) {
 				$data['status'] = 1;
 				$data['goods_status'] = 2;
 				$info = '您在' . $hotel['title'] . '预订的' . $room['title'] . '已发货';
-				$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
+				$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
 			}
 			if ($data['status'] == -1) {
 				$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "订单已取消，请联系管理员！";
-				$status = send_custom_notice ('text', array('content' => urlencode($info)), $item['openid']);
+				$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
 			}
 		}
 		if (!empty($item['coupon'])) {
