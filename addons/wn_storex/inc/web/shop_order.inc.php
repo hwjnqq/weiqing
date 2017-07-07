@@ -19,27 +19,24 @@ if (!empty($roomid)) {
 }
 
 if ($op == 'display') {
-	$realname = $_GPC['realname'];
-	$mobile = $_GPC['mobile'];
-	$ordersn = $_GPC['ordersn'];
-	$roomtitle = $_GPC['roomtitle'];
+	$search_name = $_GPC['search_name'];
+	$keyword = trim($_GPC['keyword']);
 	$condition = '';
 	$params = array();
-	if (!empty($roomtitle)) {
-		$condition .= ' AND r.title LIKE :roomtitle';
-		$params[':roomtitle'] = "%{$roomtitle}%";
-	}
-	if (!empty($realname)) {
-		$condition .= ' AND o.name LIKE :realname';
-		$params[':realname'] = "%{$realname}%";
-	}
-	if (!empty($mobile)) {
-		$condition .= ' AND o.mobile LIKE :mobile';
-		$params[':mobile'] = "%{$mobile}%";
-	}
-	if (!empty($ordersn)) {
-		$condition .= ' AND o.ordersn LIKE :ordersn';
-		$params[':ordersn'] = "%{$ordersn}%";
+	if (!empty($search_name) && !empty($keyword)) {
+		if ($search_name == 'roomtitle') {
+			$condition .= ' AND r.title LIKE :roomtitle';
+			$params[':roomtitle'] = "%{$keyword}%";
+		} elseif ($search_name == 'realname') {
+			$condition .= ' AND o.contact_name LIKE :realname';
+			$params[':realname'] = "%{$keyword}%";
+		} elseif ($search_name == 'mobile') {
+			$condition .= ' AND o.mobile LIKE :mobile';
+			$params[':mobile'] = "%{$keyword}%";
+		} elseif ($search_name == 'ordersn') {
+			$condition .= ' AND o.ordersn LIKE :ordersn';
+			$params[':ordersn'] = "%{$keyword}%";
+		}
 	}
 	if (!empty($storeid)) {
 		$condition .= " AND o.hotelid=" . $storeid;
@@ -169,6 +166,7 @@ if ($op == 'edit') {
 		if (!empty($paylog)) {
 			$item['uniontid'] = $paylog['uniontid'];
 		}
+		getOrderpaytext($item);
 	}
 	$express = express_name();
 	if (checksubmit('submit')) {
