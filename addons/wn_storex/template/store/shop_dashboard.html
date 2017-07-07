@@ -23,7 +23,7 @@
 			</div>
 		</div>
 		<div class="pull-left">
-			<form action="" id="form1">
+			<form id="dashboard-form">
 				<input type="hidden" name="c" value="site">
 				<input type="hidden" name="a" value="entry">
 				<input type="hidden" name="do" value="shop_index">
@@ -56,7 +56,7 @@
 	var chart_data = {php echo json_encode($chart_data);};
 	require(['echart', 'daterangepicker'], function(echarts) {
 		$('.daterange').on('apply.daterangepicker', function(ev, picker) {
-			$('#form1')[0].submit();
+			$('#dashboard-form')[0].submit();
 		});
 		var myChart = echarts.init(document.getElementById('myChart'));
 		// 指定图表的配置项和数据
@@ -94,20 +94,6 @@
 					name:'营业额',
 					type:'line',
 					stack: '总量',
-					// itemStyle:{
-					// 	normal:{
-					// 		label : {
-					// 			rotate:-90,
-					// 			show: true,
-					// 			textStyle:{
-					// 				color:'#FD211E'
-					// 			}
-					// 		},
-					// 		lineStyle:{
-					// 			color:'#FD211E'
-					// 		}
-					// 	}
-					// },
 					data: chart_data.series_data
 				}
 			]
