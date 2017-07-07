@@ -1,9 +1,7 @@
 <?php
-
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-load()->model('mc');
 
 $ops = array('display', 'post', 'delete');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';

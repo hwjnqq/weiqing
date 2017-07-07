@@ -5,51 +5,62 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('edit', 'delete', 'deleteall', 'showall', 'status', 'copyroom');
+$ops = array('display', 'edit', 'delete', 'deleteall', 'showall', 'status', 'copyroom');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $storeid = intval($_GPC['storeid']);
 $store = $_W['wn_storex']['store_info'];
 $store_type = $store['store_type'];
 
-$category = pdo_getall('storex_categorys', array('store_base_id' => $storeid), array(), 'id', array('parentid', 'displayorder DESC'));
-if (!empty($category)) {
-	$parent = $children = array();
-	foreach ($category as $cid => $cate) {
-		if (!empty($cate['parentid'])) {
-			$children[$cate['parentid']][] = $cate;
-		} else {
-			$parent[$cate['id']] = $cate;
-		}
-	}
-}
+$parent = pdo_getall('storex_categorys', array('store_base_id' => $storeid, 'parentid' => 0), array(), 'id', array('parentid', 'displayorder DESC'));
 if (empty($parent)) {
 	message('请先给该店铺添加一级分类！', '', 'error');
 }
 
-//根据分类的一级id获取店铺的id
-$category_store = pdo_get('storex_categorys', array('id' => intval($_GPC['category']['parentid']), 'weid' => intval($_W['uniacid'])), array('id', 'store_base_id'));
-$table = gettablebytype($store_type);
+$children = array();
+if ($store_type != STORE_TYPE_HOTEL) {
+	$category = pdo_getall('storex_categorys', array('store_base_id' => $storeid, 'parentid !=' => 0), array(), 'id', array('parentid', 'displayorder DESC'));
+	if (!empty($category) && is_array($category)) {
+		foreach ($category as $cid => $cate) {
+			if (!empty($cate['parentid'])) {
+				$children[$cate['parentid']][] = $cate;
+			}
+		}
+	}
+}
 
+//根据分类的一级id获取店铺的id
+if (!empty($_GPC['category']['parentid'])) {
+	$category_store = pdo_get('storex_categorys', array('id' => intval($_GPC['category']['parentid']), 'weid' => intval($_W['uniacid'])), array('id', 'store_base_id'));
+}
+$table = gettablebytype($store_type);
 if ($store_type == STORE_TYPE_HOTEL) {
 	$store_field = 'hotelid';
 } else {
 	$store_field = 'store_base_id';
 }
 
-if ($op == 'copyroom') {
-	$id = intval($_GPC['id']);
-	if (empty($storeid) || empty($id)) {
-		message('参数错误', 'refresh', 'error');
+if ($op == 'display') {
+	$pindex = max(1, intval($_GPC['page']));
+	$psize = 20;
+	$sql .= ' AND ' . $store_field . ' = ' . $storeid;
+	$params = array();
+	if (!empty($_GPC['title'])) {
+		$sql .= ' AND r.title LIKE :keywordds';
+		$params[':keywordds'] = "%{$_GPC['title']}%";
 	}
-	$item = pdo_get($table, array('id' => $id, 'weid' => $_W['uniacid']));
-	unset($item['id']);
-	$item['status'] = 0;
-	pdo_insert($table, $item);
-	$id = pdo_insertid();
-	$url = $this->createWebUrl('shop_goodsmanage', array('op' => 'edit', 'storeid' => $storeid, 'id' => $id));
-	header("Location: $url");
-	exit;
+	$hotelid_as = '';
+	if ($store_type == STORE_TYPE_HOTEL) {
+		$hotelid_as = ' r.hotelid AS store_base_id,';
+		$join_condition = ' r.hotelid = h.id ';
+	} else {
+		$join_condition = ' r.store_base_id = h.id ';
+	}
+	$list = pdo_fetchall("SELECT r.*, " . $hotelid_as . " h.title AS hoteltitle FROM " . tablename($table) . " r LEFT JOIN " . tablename('storex_bases') . " h ON " . $join_condition . " WHERE r.weid = '{$_W['uniacid']}' $sql ORDER BY h.id, r.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename($table) . " r LEFT JOIN " . tablename('storex_bases') . " h ON " . $join_condition . " WHERE r.weid = '{$_W['uniacid']}' $sql", $params);
+	$list = format_list($category, $list);
+	$pager = pagination($total, $pindex, $psize);
+	include $this->template('store/shop_goodslist');
 }
 
 if ($op == 'edit') {
@@ -75,9 +86,6 @@ if ($op == 'edit') {
 		$piclist = iunserializer($item['thumbs']);
 	}
 	if (checksubmit('submit')) {
-		if (empty($storeid)) {
-			message('店铺错误！', '', 'error');
-		}
 		if (empty($_GPC['title'])) {
 			message('请输入房型！', '', 'error');
 		}
@@ -103,8 +111,6 @@ if ($op == 'edit') {
 			'score' => intval($_GPC['score']),
 			'status' => $_GPC['status'],
 			'sales' => $_GPC['sales'],
-// 			'can_reserve' => intval($_GPC['can_reserve']),
-// 			'reserve_device' => $_GPC['reserve_device'],
 			'can_buy' => intval($_GPC['can_buy']),
 			'sortid'=>intval($_GPC['sortid']),
 			'sold_num' => intval($_GPC['sold_num']),
@@ -225,25 +231,18 @@ if ($op == 'status') {
 		message('状态设置成功！', referer(), 'success');
 	}
 }
-if ($op == 'display') {
-	$pindex = max(1, intval($_GPC['page']));
-	$psize = 20;
-	$sql .= ' AND ' . $store_field . ' = ' . $storeid;
-	$params = array();
-	if (!empty($_GPC['title'])) {
-		$sql .= ' AND r.title LIKE :keywordds';
-		$params[':keywordds'] = "%{$_GPC['title']}%";
+
+if ($op == 'copyroom') {
+	$id = intval($_GPC['id']);
+	if (empty($storeid) || empty($id)) {
+		message('参数错误', 'refresh', 'error');
 	}
-	$hotelid_as = '';
-	if ($store_type == STORE_TYPE_HOTEL) {
-		$hotelid_as = ' r.hotelid AS store_base_id,';
-		$join_condition = ' r.hotelid = h.id ';
-	} else {
-		$join_condition = ' r.store_base_id = h.id ';
-	}
-	$list = pdo_fetchall("SELECT r.*, " . $hotelid_as . " h.title AS hoteltitle FROM " . tablename($table) . " r LEFT JOIN " . tablename('storex_bases') . " h ON " . $join_condition . " WHERE r.weid = '{$_W['uniacid']}' $sql ORDER BY h.id, r.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
-	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename($table) . " r LEFT JOIN " . tablename('storex_bases') . " h ON " . $join_condition . " WHERE r.weid = '{$_W['uniacid']}' $sql", $params);
-	$list = format_list($category, $list);
-	$pager = pagination($total, $pindex, $psize);
-	include $this->template('store/shop_goodslist');
+	$item = pdo_get($table, array('id' => $id, 'weid' => $_W['uniacid']));
+	unset($item['id']);
+	$item['status'] = 0;
+	pdo_insert($table, $item);
+	$id = pdo_insertid();
+	$url = $this->createWebUrl('shop_goodsmanage', array('op' => 'edit', 'storeid' => $storeid, 'id' => $id));
+	header("Location: $url");
+	exit;
 }

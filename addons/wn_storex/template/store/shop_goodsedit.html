@@ -1,11 +1,19 @@
 {template 'common/header-storex'}
 <div class="wn-main wn-main--without">
-	<div class="wn-main__head"><a href="{php echo $this->createWebUrl('shop_goodsmanage', array('storeid' => $storeid));}" id="add_coupon" >管理商品</a>/{if $_GPC['op'] == 'edit' && $_GPC['id'] != ''}编辑商品{else}添加商品{/if} </div>
+	<div class="wn-main__head">
+		<a href="{php echo $this->createWebUrl('shop_goodsmanage', array('storeid' => $storeid));}" id="add_coupon" >
+			管理商品
+		</a>
+		{if $_GPC['op'] == 'edit' && $_GPC['id'] != ''}
+			/编辑商品
+		{else}
+			/添加商品
+		{/if}
+	</div>
 	<div class="wn-main__content">
 		<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data" onsubmit="return formcheck()">
 			<input type="hidden" name="id" value="{$item['id']}">
 			<input type="hidden" name="store_type" value="{$store['store_type']}">
-
 			<div class="form-group">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺</label>
 				<div class="col-sm-8 col-lg-9 col-xs-12">
@@ -56,7 +64,7 @@
 					<input type="text" name="cprice" id="cprice" value="{$item['cprice']}" class="form-control">
 				</div>
 			</div>
-			{if $store['store_type'] == STORE_TYPE_HOTEL}
+			{if $store['store_type'] != STORE_TYPE_HOTEL}
 			<div class="form-group">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">运费设置</label>
 				<div class="col-sm-9 col-xs-12">
@@ -97,88 +105,52 @@
 				</div>
 			</div>
 			{/if}
-			{if $store_type != STORE_TYPE_HOTEL || (isset($item['is_house']) && $item['is_house'] == 2)}
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label">早餐设置</label>
-				<div class="col-sm-9 col-xs-12">
-					<label class="radio-inline">
-						<input type="radio" value="0" class="change_breakfast" name="breakfast" {if $item['breakfast']==0 || empty($item['breakfast'])}checked{/if}/> 无早
-					</label>
-					<label class="radio-inline">
-						<input type="radio" value="1" class="change_breakfast" name="breakfast" {if $item['breakfast']==1}checked{/if}/> 单早
-					</label>
-					<label class="radio-inline">
-						<input type="radio" value="2" class="change_breakfast" name="breakfast" {if $item['breakfast']==2}checked{/if}/> 双早
-					</label>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label">服务费</label>
-				<div class="col-sm-9 col-xs-12">
-					<input type="text" name="service" id="" value="{$item['service']}" class="form-control">
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label">房间参数</label>
-				<div class="col-sm-4">
-					<div class="input-group">
-						<span class="input-group-addon">
-							<label class='checkbox-inline' style='margin-top:-5px;' > <input type='checkbox' id='bed_show' name="bed_show" value="1"  {if  $item['bed_show']==1}checked{/if}/> 床位</label>
-						</span>
-						<input type="text" name="bed" id="bed" class="form-control" value="{$item['bed']}" />
-						<span class="input-group-addon">例如: 2米大床</span>
+			{if $store_type == STORE_TYPE_HOTEL}
+			<div {if isset($item['is_house']) && $item['is_house'] != 1}style="display:none"{/if} id="hotel_add_info">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">早餐设置</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" value="0" class="change_breakfast" name="breakfast" {if $item['breakfast'] == 0 || empty($item['breakfast'])} checked {/if}/> 无早
+						</label>
+						<label class="radio-inline">
+							<input type="radio" value="1" class="change_breakfast" name="breakfast" {if $item['breakfast'] == 1} checked {/if}/> 单早
+						</label>
+						<label class="radio-inline">
+							<input type="radio" value="2" class="change_breakfast" name="breakfast" {if $item['breakfast'] == 2} checked {/if}/> 双早
+						</label>
 					</div>
 				</div>
-				<div class="col-sm-4">
-					<div class="input-group">
-						<span class="input-group-addon">
-							<label class='checkbox-inline' style='margin-top:-5px;' > <input type='checkbox' id='floor_show' name="floor_show" value="1" {if  $item['floor_show']==1}checked{/if}/> 楼层</label>
-						</span>
-						<input type="text" name="floor" id="floor" class="form-control" value="{$item['floor']}" />
-						<span class="input-group-addon">楼</span>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">服务费</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="service" id="" value="{$item['service']}" class="form-control">
 					</div>
 				</div>
-			</div>
-			<!--
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
-				<div class="col-sm-4">
-					<div class="input-group">
-					<span class="input-group-addon">
-						<label class='checkbox-inline' style='margin-top:-5px;' > <input type='checkbox' id='area_show' name="area_show" value="1" {if  $item['area_show']==1}checked{/if} /> 房间面积</label></span>
-						<input type="text" name="area" id="area" class="form-control" value="{$item['area']}" />
-						<span class="input-group-addon">平方米</span>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">房间参数</label>
+					<div class="col-sm-4">
+						<div class="input-group">
+							<span class="input-group-addon">
+								<label class='checkbox-inline' style='margin-top:-5px;'>
+									<input type='checkbox' id='bed_show' name="bed_show" value="1" {if $item['bed_show'] == 1} checked {/if}/>床位
+								</label>
+							</span>
+							<input type="text" name="bed" id="bed" class="form-control" value="{$item['bed']}" />
+							<span class="input-group-addon">例如: 2米大床</span>
+						</div>
 					</div>
-				</div>
-				<div class="col-sm-4">
-					<div class="input-group">
-					<span class="input-group-addon">
-						<label class='checkbox-inline ' style='margin-top:-5px;' > <input type='checkbox' id='bedadd_show' name="bedadd_show" value="1" {if  $item['bedadd_show']==1}checked{/if}/> 是否可加床</label></span>
-						<input type="text" name="bedadd" id="bedadd" class="form-control" value="{$item['bedadd']}" placeholder='加床说明' />
-
+					<div class="col-sm-4">
+						<div class="input-group">
+							<span class="input-group-addon">
+								<label class='checkbox-inline' style='margin-top:-5px;' > <input type='checkbox' id='floor_show' name="floor_show" value="1" {if  $item['floor_show'] == 1} checked {/if}/>楼层</label>
+							</span>
+							<input type="text" name="floor" id="floor" class="form-control" value="{$item['floor']}" />
+							<span class="input-group-addon">楼</span>
+						</div>
 					</div>
 				</div>
 			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
-				<div class="col-sm-4">
-					<div class="input-group">
-					<span class="input-group-addon">
-						<label class='checkbox-inline' style='margin-top:-5px;' > <input type='checkbox' id='smoke_show' name="smoke_show" value="1" {if $item['smoke_show']==1}checked{/if}/> 无烟房</label></span>
-						<input type="text" name="smoke" id="smoke" class="form-control" value="{$item['smoke']}" />
-						<span class="input-group-addon">无烟房说明</span>
-					</div>
-				</div>
-				<div class="col-sm-4">
-					<div class="input-group">
-					<span class="input-group-addon">
-						<label class='checkbox-inline' style='margin-top:-5px;' > <input type='checkbox' id='persons_show' name="persons_show" value="1" {if  $item['persons_show']==1}checked{/if}/> 入住人数</label></span>
-						<input type="text" name="persons" id="persons" class="form-control" value="{$item['persons']}" />
-						<span class="input-group-addon">人</span>
-					</div>
-				</div>
-			</div>
-			 -->
 			{/if}
 			<!-- 普通店铺的属性  -->
 			<div class="form-group">
@@ -199,10 +171,10 @@
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
 				<div class="col-sm-9 col-xs-12">
 					<label class="radio-inline">
-						<input type="radio" name="status" value="1" {if $item['status'] == 1}checked{/if}/>显示
+						<input type="radio" name="status" value="1" {if $item['status'] == 1} checked {/if}/>显示
 					</label>
 					<label class="radio-inline">
-						<input type="radio" name="status" value="0" {if $item['status'] == 0}checked{/if}/>隐藏
+						<input type="radio" name="status" value="0" {if $item['status'] == 0} checked {/if}/>隐藏
 					</label>
 					<span class='help-block'>手机前台是否显示</span>
 				</div>
@@ -218,63 +190,58 @@
 	var parent = '<?php echo json_encode($parent);?>';
 	parent = $.parseJSON(parent);
 	$(function(){
-		$("#category_parent").change(function(){
-			var selectid =$(this).find("option:selected").val();
+		$('#category_parent').change(function(){
+			var selectid =$(this).find('option:selected').val();
 			if (parent[selectid].category_type == 1) {
 				$('#hotel_add_info').show();
-				$('#express_info').hide();
 			} else {
 				$('#hotel_add_info').hide();
-				if ($store_type != STORE_TYPE_HOTEL) {
-					$('#express_info').show();
-				}
 			}
 		});
 	})
 	
 	function search_hotels() {
-		$("#module-menus").html("正在搜索....")
+		$('#module-menus').html("正在搜索....")
 		$.post('{php echo $this->createWebUrl('hotel',array('op'=>'query'));}', {
 			keyword: $.trim($('#search-kwd').val()),
-			industry: $.trim($("#industry").val()),
-			nature: $.trim($("#nature").val()),
-			scale: $.trim($("#scale").val())
+			industry: $.trim($('#industry').val()),
+			nature: $.trim($('#nature').val()),
+			scale: $.trim($('#scale').val())
 		}, function(dat){
 			$('#module-menus').html(dat);
 		});
 	}
+	
 	function select_hotel(o) {
-		$("#hotelid").val(o.id);
-		$("#hotel").val( o.title );
-		$(".close").click();
+		$('#hotelid').val(o.id);
+		$('#hotel').val( o.title );
+		$('.close').click();
 	}
 
 	function formcheck() {
-		if ($("#hotel").isEmpty()) {
+		if ($('#hotel').isEmpty()) {
 			Tip.focus("hotel", "请选择所属酒店!", "right");
 			return false;
 		}
-		if ($("#title").isEmpty()) {
+		if ($('#title').isEmpty()) {
 			Tip.focus("title", "请填写房型名称!", "right");
 			return false;
 		}
 		return true;
 	}
+	
 	$(function(){
-
 		$('.change_breakfast').click(function() {
 			var value = $(this).val();
-			var name = $("#title").val();
+			var name = $('#title').val();
 			var new_name = name.replace(/\[含早\]/g,'');
 
 			if (value == 0) {
-				$("#title").val(new_name);
+				$('#title').val(new_name);
 			} else  {
-				$("#title").val(new_name + "[含早]");
+				$('#title').val(new_name + "[含早]");
 			}
 		});
 	});
-
 </script>
-
 {template 'common/footer-storex'}

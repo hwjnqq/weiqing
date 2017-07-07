@@ -1,17 +1,97 @@
 {template 'common/header-storex'}
-<!--<ul class="nav nav-tabs">
-	<li {if $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('shop_category', array('op' => 'display', 'storeid' => $storeid))}">店铺分类管理</a></li>
-	{if $op == 'post'}
-	<li {if $op == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('shop_category', array('op' => 'post', 'storeid' => $storeid))}">添加分类</a></li>
-	{/if}
-</ul>-->
-
-{if $op == 'post'}
+{if $op == 'display'}
+<div class="wn-main wn-main--without">
+	<div class="wn-main__head">店铺分类管理</div>
+	<div class="wn-main__content">
+		<form action="" method="post" onsubmit="return formcheck(this)">
+			<table class="table table-hover wn-table table-bordered">
+				<thead>
+					<tr>
+						<th style="width:80px;">显示顺序</th>
+						<th style="width:300px;">分类名称</th>
+						<th style="width:150px;">状态</th>
+						<th style="width:150px;">操作</th>
+					</tr>
+				</thead>
+				<tbody>
+				{if !empty($category)}
+				{loop $category $key $row}
+				<tr>
+					<td><input type="text" class="form-control col-lg-2" name="displayorder[{$row['id']}]" value="{$row['displayorder']}"></td>
+					<td>
+						<img src="{php echo tomedia($row['thumb']);}" width='30' height="30" onerror="$(this).remove()" style='padding:1px;border: 1px solid #ccc;float:left;' />
+						<div class="type-parent">{$row['name']}
+							{if empty($row['parentid']) && $store['store_type'] != 1}
+							<a href="{php echo $this->createWebUrl('shop_category', array('parentid' => $row['id'], 'op' => 'post', 'storeid' => $row['store_base_id']))}"><i class="fa fa-plus-circle"></i> 添加子分类</a>
+							{/if}
+						</div>
+					</td>
+					<td>
+						{if $row['enabled']==1}
+						<span class='label label-success'>显示</span>
+						{else}
+						<span class='label label-danger'>隐藏</span>
+						{/if}
+					</td>
+					<td>
+						<div class="wn-table__link">
+							<a href="{php echo $this->createWebUrl('shop_category', array('op' => 'post', 'id' => $row['id'], 'storeid' => $storeid))}" class="wn-table__link__item">编辑</a>&nbsp;&nbsp;
+							<a href="{php echo $this->createWebUrl('shop_category', array('op' => 'delete', 'id' => $row['id'], 'storeid' => $storeid))}" onclick="return confirm('是否删除一级分类及以下的所有商品？');return false;" class="wn-table__link__item" >删除</a>
+						</div>
+					</td>
+				</tr>
+				{loop $children[$row['id']] $rows}
+				<tr>
+					<td>
+						<input type="text" class="form-control col-lg-2" style = "width:50%;" name="displayorder[{$rows['id']}]" value="{$rows['displayorder']}">
+					</td>
+					<td>
+						<div style="padding-left:50px;height:30px;line-height:30px;background:url('./resource/images/bg_repno.gif') no-repeat -245px -545px;">{$rows['name']}
+							<img src="{php echo tomedia($rows['thumb']);}" width='30' height="30" onerror="$(this).remove()" style='padding:1px;border: 1px solid #ccc;float:left;' />&nbsp;&nbsp;
+						</div>
+					</td>
+					<td>
+						{if $rows['enabled']==1}
+						<span class='label label-success'>显示</span>
+						{else}
+						<span class='label label-danger'>隐藏</span>
+						{/if}
+					</td>
+					<td>
+						<div class="wn-table__link">
+							<a href="{php echo $this->createWebUrl('shop_category', array('op' => 'post', 'id' => $rows['id'], 'storeid' => $storeid))}" class="wn-table__link__item">编辑</a>&nbsp;&nbsp;
+							<a href="{php echo $this->createWebUrl('shop_category', array('op' => 'delete', 'id' => $rows['id'], 'storeid' => $storeid))}" onclick="return confirm('是否删除二级分类及以下的所有商品？');return false;" class="wn-table__link__item">删除</a>
+						</div>
+					</td>
+				</tr>
+				{/loop}
+				{/loop}
+				{/if}
+				<tr>
+					<td colspan="3">{if empty($category)}暂无分类{/if}</td>
+					<td >
+						<div class="wn-table__link">
+							<a href="{php echo $this->createWebUrl('shop_category', array('op' => 'post', 'storeid' => $storeid))}" class="wn-table__link__item">添加新分类</a>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="4">
+						<input name="submit" type="submit" class="btn btn-primary" value="提交">
+						<input type="hidden" name="storeid" value="{$storeid}" />
+						<input type="hidden" name="token" value="{$_W['token']}" />
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</form>
+	</div>
+</div>
+{elseif $op == 'post'}
 <div class="wn-main wn-main--without">
 	<div class="wn-main__head"><a href="{php echo $this->createWebUrl('shop_category', array('op' => 'display', 'storeid' => $storeid))}">店铺分类管理</a>/添加分类</div>
 	<div class="wn-main__content">
 		<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form1">
-
 			{if !empty($parentid)}
 			<div class="form-group">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">上级分类</label>
@@ -30,10 +110,10 @@
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分类类型</label>
 					<div class="col-sm-9 col-xs-12">
 						<label class='radio-inline'>
-							<input type='radio' name='category_type' value='1' {if $category['category_type']==1}checked{/if} /> 房型
+							<input type='radio' name='category_type' value='1' {if $category['category_type'] == 1} checked {/if} /> 房型
 						</label>
 						<label class='radio-inline'>
-							<input type='radio' name='category_type' value='2' {if $category['category_type']==2}checked{/if} /> 普通
+							<input type='radio' name='category_type' value='2' {if $category['category_type'] == 2} checked {/if} /> 普通
 						</label>
 					</div>
 				</div>
@@ -56,22 +136,14 @@
 					{php echo tpl_form_field_image('thumb', $category['thumb'])}
 				</div>
 			</div>
-			<!--
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label">分类描述</label>
-				<div class="col-sm-9 col-xs-12">
-					<textarea name="description" class="form-control" cols="70">{$category['description']}</textarea>
-				</div>
-			</div>
-			 -->
 			<div class="form-group">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否显示</label>
 				<div class="col-sm-9 col-xs-12">
 					<label class='radio-inline'>
-						<input type='radio' name='enabled' value='1' {if $category['enabled']==1}checked{/if} /> 是
+						<input type='radio' name='enabled' value='1' {if $category['enabled'] == 1} checked {/if} /> 是
 					</label>
 					<label class='radio-inline'>
-						<input type='radio' name='enabled' value='0' {if $category['enabled']==0}checked{/if} /> 否
+						<input type='radio' name='enabled' value='0' {if $category['enabled'] == 0} checked {/if} /> 否
 					</label>
 				</div>
 			</div>
@@ -83,98 +155,8 @@
 		</form>
 	</div>
 </div>
-{elseif $op == 'display'}
-<div class="wn-main wn-main--without">
-	<div class="wn-main__head">店铺分类管理</div>
-	<div class="wn-main__content">
-		<form action="" method="post" onsubmit="return formcheck(this)">
-
-			<table class="table table-hover wn-table table-bordered">
-				<thead>
-					<tr>
-						<th style="width:80px;">显示顺序</th>
-						<th style="width:300px;">分类名称</th>
-						<th style="width:150px;">状态</th>
-						<th style="width:150px;">操作</th>
-					</tr>
-				</thead>
-						<tbody>
-						<?php $last_row = array();?>
-						{loop $category $key $row}
-						<tr>
-							<?php $last_row = $row;?>
-							<td><input type="text" class="form-control col-lg-2" name="displayorder[{$row['id']}]" value="{$row['displayorder']}"></td>
-							<td>
-								<img src="{php echo tomedia($row['thumb']);}" width='30' height="30" onerror="$(this).remove()" style='padding:1px;border: 1px solid #ccc;float:left;' />
-								<div class="type-parent">{$row['name']}
-									{if empty($row['parentid']) && $store['store_type'] != 1}
-									<a href="{php echo $this->createWebUrl('shop_category', array('parentid' => $row['id'], 'op' => 'post', 'storeid' => $row['store_base_id']))}"><i class="fa fa-plus-circle"></i> 添加子分类</a>
-									{/if}
-								</div>
-							</td>
-							<td>
-								{if $row['enabled']==1}
-								<span class='label label-success'>显示</span>
-								{else}
-								<span class='label label-danger'>隐藏</span>
-								{/if}
-							</td>
-							<td>
-								<div class="wn-table__link">
-									<a href="{php echo $this->createWebUrl('shop_category', array('op' => 'post', 'id' => $row['id'], 'storeid' => $storeid))}" class="wn-table__link__item">编辑</a>&nbsp;&nbsp;
-									<a href="{php echo $this->createWebUrl('shop_category', array('op' => 'delete', 'id' => $row['id'], 'storeid' => $storeid))}" onclick="return confirm('是否删除一级分类及以下的所有商品？');return false;" class="wn-table__link__item" >删除</a>
-								</div>
-							</td>
-						</tr>
-						{loop $children[$row['id']] $rows}
-						<tr>
-							<td>
-								<input type="text" class="form-control col-lg-2" style = "width:50%;" name="displayorder[{$rows['id']}]" value="{$rows['displayorder']}">
-							</td>
-							<td>
-								<div style="padding-left:50px;height:30px;line-height:30px;background:url('./resource/images/bg_repno.gif') no-repeat -245px -545px;">{$rows['name']}
-									<img src="{php echo tomedia($rows['thumb']);}" width='30' height="30" onerror="$(this).remove()" style='padding:1px;border: 1px solid #ccc;float:left;' />&nbsp;&nbsp;
-								</div>
-							</td>
-							<td>
-								{if $rows['enabled']==1}
-								<span class='label label-success'>显示</span>
-								{else}
-								<span class='label label-danger'>隐藏</span>
-								{/if}
-							</td>
-							<td>
-								<div class="wn-table__link">
-									<a href="{php echo $this->createWebUrl('shop_category', array('op' => 'post', 'id' => $rows['id'], 'storeid' => $storeid))}" class="wn-table__link__item">编辑</a>&nbsp;&nbsp;
-									<a href="{php echo $this->createWebUrl('shop_category', array('op' => 'delete', 'id' => $rows['id'], 'storeid' => $storeid))}" onclick="return confirm('是否删除二级分类及以下的所有商品？');return false;" class="wn-table__link__item">删除</a>
-								</div>
-							</td>
-						</tr>
-						{/loop}
-						{/loop}
-						<tr>
-							<td colspan="3"></td>
-							<td >
-								<div class="wn-table__link">
-									<a href="{php echo $this->createWebUrl('shop_category', array('op' => 'post', 'storeid' => $storeid))}" class="wn-table__link__item">添加新分类</a>
-								</div>
-							</td>
-						</tr>
-						<tr>
-							<td colspan="4">
-								<input name="submit" type="submit" class="btn btn-primary" value="提交">
-								<input type="hidden" name="storeid" value="{$storeid}" />
-								<input type="hidden" name="token" value="{$_W['token']}" />
-							</td>
-						</tr>
-						</tbody>
-					</table>
-
-		</form>
-	</div>
-</div>
 {/if}
-<script>
+<script type="text/javascript">
 	require(['bootstrap'],function($){
 		$('.btn').hover(function(){
 			$(this).tooltip('show');
