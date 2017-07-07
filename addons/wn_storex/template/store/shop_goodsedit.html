@@ -189,8 +189,8 @@
 <script type="text/javascript">
 	var parent = '<?php echo json_encode($parent);?>';
 	parent = $.parseJSON(parent);
-	$(function(){
-		$('#category_parent').change(function(){
+	$(function() {
+		$('#category_parent').change(function() {
 			var selectid =$(this).find('option:selected').val();
 			if (parent[selectid].category_type == 1) {
 				$('#hotel_add_info').show();
@@ -207,7 +207,7 @@
 			industry: $.trim($('#industry').val()),
 			nature: $.trim($('#nature').val()),
 			scale: $.trim($('#scale').val())
-		}, function(dat){
+		}, function(dat) {
 			$('#module-menus').html(dat);
 		});
 	}
@@ -230,7 +230,7 @@
 		return true;
 	}
 	
-	$(function(){
+	$(function() {
 		$('.change_breakfast').click(function() {
 			var value = $(this).val();
 			var name = $('#title').val();

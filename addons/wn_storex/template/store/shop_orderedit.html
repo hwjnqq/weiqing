@@ -342,24 +342,24 @@
 		</form>
 	</div>
 </div>
-<script language="JavaScript">
-	function formcheck(){
+<script type="text/javascript">
+	function formcheck() {
 		var ok = true;
-		if($("#status").val()==1 && $("#oldstatus").val()!=1){
-			$("#room_list option").each(function(){
+		if ($("#status").val()==1 && $("#oldstatus").val()!=1) {
+			$("#room_list option").each(function() {
 				var val = $(this).val().split("|");
-				if(val[1] == 0){
+				if (val[1] == 0) {
 					alert(val[0] + "无房");
 					ok =false;
 					return false;
 				} else {
 					if (val[2] != '不限') {
-						if(parseInt(val[2]) == 0) {
+						if (parseInt(val[2]) == 0) {
 							alert(val[0] + "没有空房间");
 							ok =false;
 							return false;
 						}
-						if(parseInt(val[2]) > 0 && parseInt(val[2]) < {$item['nums']}) {
+						if (parseInt(val[2]) > 0 && parseInt(val[2]) < {$item['nums']}) {
 							alert(val[0] + "房间数量不够");
 							ok =false;
 							return false;
@@ -370,15 +370,13 @@
 		}
 		return ok;
 	}
-</script>
-<script>
-	require(['bootstrap'],function($){
-		$('.but').click(function(){
+
+	require(['bootstrap'],function($) {
+		$('.but').click(function() {
 			$('.but').removeClass('btn-primary');
 			$(this).addClass('btn-primary');
 			$('#status').val($(this).val()) ;
 		});
 	});
 </script>
-
-	{template 'common/footer'}
+{template 'common/footer'}

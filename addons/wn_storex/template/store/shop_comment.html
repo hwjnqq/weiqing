@@ -82,21 +82,21 @@
 	</div>
 </div>
 <script>
-	require(['bootstrap'],function($){
+	require(['bootstrap'],function($) {
 		$('.btn').tooltip();
 	});
-	$(function(){
-		$(".check_all").click(function(){
+	$(function() {
+		$(".check_all").click(function() {
 			var checked = $(this).get(0).checked;
 			$("input[type=checkbox]").prop("checked",checked);
 		});
-		$("input[name=deleteall]").click(function(){
+		$("input[name=deleteall]").click(function() {
 			var check = $("input[name='check']:checked");
-			if(check.length < 1){
+			if (check.length < 1) {
 				alert('请选择要删除的记录!');
 				return false;
 			}
-			if( confirm("确认要删除选择的记录?")){
+			if (confirm("确认要删除选择的记录?")) {
 				var id = new Array();
 				check.each(function(i){
 					id[i] = $(this).val();
@@ -111,11 +111,10 @@
 			}
 		});
 	});
-	function drop_confirm(msg, url){
-		if(confirm(msg)){
+	function drop_confirm(msg, url) {
+		if (confirm(msg)) {
 			window.location = url;
 		}
 	}
 </script>
-
 {template 'common/footer-storex'}

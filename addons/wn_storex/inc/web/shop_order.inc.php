@@ -1,25 +1,204 @@
 <?php
-
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 load()->model('mc');
 mload()->model('card');
 
-$ops = array('edit', 'post', 'delete', 'deleteall', 'edit_price', 'print_order', 'display', 'check_print_plugin');
+$ops = array('display', 'edit', 'delete', 'deleteall', 'edit_price', 'print_order', 'check_print_plugin');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
-
-checklogin();
 
 $storeid = intval($_GPC['storeid']);
 $store = $_W['wn_storex']['store_info'];
-
 $store_type = $store['store_type'];
 $table = gettablebytype($store_type);
 
 $roomid = intval($_GPC['roomid']);
 if (!empty($roomid)) {
 	$room = pdo_get($table, array('id' => $roomid), array('id', 'title', 'sold_num'));
+}
+
+if ($op == 'display') {
+	$realname = $_GPC['realname'];
+	$mobile = $_GPC['mobile'];
+	$ordersn = $_GPC['ordersn'];
+	$roomtitle = $_GPC['roomtitle'];
+	$condition = '';
+	$params = array();
+	if (!empty($roomtitle)) {
+		$condition .= ' AND r.title LIKE :roomtitle';
+		$params[':roomtitle'] = "%{$roomtitle}%";
+	}
+	if (!empty($realname)) {
+		$condition .= ' AND o.name LIKE :realname';
+		$params[':realname'] = "%{$realname}%";
+	}
+	if (!empty($mobile)) {
+		$condition .= ' AND o.mobile LIKE :mobile';
+		$params[':mobile'] = "%{$mobile}%";
+	}
+	if (!empty($ordersn)) {
+		$condition .= ' AND o.ordersn LIKE :ordersn';
+		$params[':ordersn'] = "%{$ordersn}%";
+	}
+	if (!empty($storeid)) {
+		$condition .= " AND o.hotelid=" . $storeid;
+	}
+	if (!empty($roomid)) {
+		$condition .= " AND o.roomid=" . $roomid;
+	}
+	$status = $_GPC['status'];
+	if ($status != '') {
+		$condition .= " AND o.status=" . intval($status);
+	}
+	$paystatus = $_GPC['paystatus'];
+	if ($paystatus != '') {
+		$condition .= " and o.paystatus=" . intval($paystatus);
+	}
+	$date = $_GPC['date'];
+	if (!empty($date) && $date['start'] != $date['end'] && $date['start'] != date('Y-m-d', time())) {
+		$condition .= " AND o.time > ". strtotime($date['start'])." AND o.time < ".strtotime($date['end']);
+	}
+	$pindex = max(1, intval($_GPC['page']));
+	$psize = 20;
+	pdo_query('UPDATE ' . tablename('storex_order') . " SET status = -1 WHERE time < :time AND weid = '{$_W['uniacid']}' AND paystatus = 0 AND status <> 1 AND status <> 3", array(':time' => time() - 86400));
+	$field = '';
+	if ($table == 'storex_room') {
+		$field = ' , r.is_house ';
+	}
+	$show_order_lists = pdo_fetchall("SELECT o.*, h.title AS hoteltitle, r.title AS roomtitle " . $field . " FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') . " h ON o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r ON r.id = o.roomid WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+	getOrderUniontid($show_order_lists);
+	$version = check_ims_version();
+	if (!empty($version)) {
+		$printers = pdo_getall('storex_plugin_printer', array('uniacid' => $_W['uniacid']), array('name', 'id'), 'id');
+		$stores_printers = pdo_getall('storex_plugin_printer_set', array('uniacid' => $_W['uniacid']), array('storeid','id', 'printerids'), 'storeid');
+		$printer = array();
+		if (!empty($stores_printers) && is_array($stores_printers)) {
+			foreach ($stores_printers as $storeid => $info) {
+				$info['printerids'] = iunserializer($info['printerids']);
+				if (!empty($info['printerids']) && is_array($info['printerids'])) {
+					foreach ($info['printerids'] as $p_id => $status) {
+						if ($status == 1 && !empty($printers[$p_id])) {
+							$printer[$storeid][$p_id] = array(
+								'id' => $p_id,
+								'status' => $status,
+								'name' => $printers[$p_id]['name'],
+							);
+						}
+					}
+				}
+			}
+		}
+		if (!empty($show_order_lists) && is_array($show_order_lists)) {
+			foreach ($show_order_lists as &$orderinfo) {
+				$orderinfo['printers'] = array();
+				if (!empty($printer[$orderinfo['hotelid']])) {
+					$orderinfo['printers'] = $printer[$orderinfo['hotelid']];
+				}
+			}
+		}
+	}
+
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') . " AS h on o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition", $params);
+	if ($_GPC['export'] != '') {
+		$export_order_lists = pdo_fetchall("SELECT o.*, h.title as hoteltitle, r.title AS roomtitle FROM " . tablename('storex_order') . " o LEFT JOIN " . tablename('storex_bases') . " AS h on o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r ON r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC" . ',' . $psize, $params);
+		getOrderUniontid($export_order_lists);
+		/* 输入到CSV文件 */
+		$html = "\xEF\xBB\xBF";
+		/* 输出表头 */
+		$filter = array(
+			'ordersn' => '订单号',
+			'uniontid' => '商户订单号',
+			'hoteltitle' => '酒店',
+			'roomtitle' => '房型',
+			'name' => '预订人',
+			'mobile' => '手机',
+			'nums' => '预订数量',
+			'sum_price' => '总价',
+			'paytype' => '支付方式',
+			'time' => '订单生成时间',
+			'paystatus' => '订单状态'
+		);
+		if ($store_type == STORE_TYPE_HOTEL) {
+			$filter['btime'] = '到店时间';
+			$filter['etime'] = '离店时间';
+		}
+		foreach ($filter as $key => $title) {
+			$html .= $title . "\t,";
+		}
+		$html .= "\n";
+		foreach ($export_order_lists as $k => $v) {
+			foreach ($filter as $key => $title) {
+				if ($key == 'time') {
+					$html .= date('Y-m-d H:i:s', $v[$key]) . "\t, ";
+				} elseif ($key == 'btime') {
+					$html .= date('Y-m-d', $v[$key]) . "\t, ";
+				} elseif ($key == 'etime') {
+					$html .= date('Y-m-d', $v[$key]) . "\t, ";
+				} elseif ($key == 'paytype') {
+					if ($v[$key] == 1) {
+						$html .= '余额支付' . "\t, ";
+					}
+					if ($v[$key] == 21) {
+						$html .= '微信支付' . "\t, ";
+					}
+					if ($v[$key] == 22) {
+						$html .= '支付宝支付' . "\t, ";
+					}
+					if ($v[$key] == 3) {
+						$html .= '到店支付' . "\t, ";
+					}
+					if ($v[$key] == '0') {
+						$html .= '未支付(或其它)' . "\t, ";
+					}
+				} elseif ($key == 'paystatus') {
+					if ($v[$key] == 0) {
+						if ($v['status'] == 0) {
+							if ($v['paytype'] == 1 || $v['paytype'] == 2) {
+								$html .= '待付款' . "\t, ";
+							} else {
+								$html .= '等待确认' . "\t, ";
+							}
+						} elseif ($v['status'] == -1) {
+							$html .= '已取消' . "\t, ";
+						} elseif ($v['status'] == 1) {
+							$html .= '已接受' . "\t, ";
+						} elseif ($v['status'] == 2) {
+							$html .= '已拒绝' . "\t, ";
+						} elseif ($v['status'] == 3) {
+							$html .= '订单完成' . "\t, ";
+						}
+					} else {
+						if ($v['status'] == 0) {
+							$html .= '已支付等待确认'."\t, ";
+						} elseif ($v['status'] == -1) {
+							if ($v['paytype'] == 3) {
+								$html .= '已取消' . "\t, ";
+							} else {
+								$html .= '已支付，取消并退款' . "\t, ";
+							}
+						} elseif ($v['status'] == 1) {
+							$html .= '已确认，已接受' . "\t, ";
+						} elseif ($v['status'] == 2) {
+							$html .= '已支付，已退款' . "\t, ";
+						} elseif ($v['status'] == 3) {
+							$html .= '订单完成' . "\t, ";
+						}
+					}
+				} else {
+					$html .= $v[$key] . "\t, ";
+				}
+			}
+			$html .= "\n";
+		}
+		/* 输出CSV文件 */
+		header("Content-type:text/csv");
+		header("Content-Disposition:attachment; filename=全部数据.csv");
+		echo $html;
+		exit();
+	}
+	$pager = pagination($total, $pindex, $psize);
+	include $this->template('store/shop_orderlist');
 }
 
 if ($op == 'edit') {
@@ -333,185 +512,4 @@ if ($op == 'check_print_plugin') {
 	} else {
 		message('该微擎版本不支持打印机插件！', referer(), 'error');
 	}
-}
-
-if ($op == 'display') {
-	$realname = $_GPC['realname'];
-	$mobile = $_GPC['mobile'];
-	$ordersn = $_GPC['ordersn'];
-	$roomtitle = $_GPC['roomtitle'];
-	$condition = '';
-	$params = array();
-	if (!empty($roomtitle)) {
-		$condition .= ' AND r.title LIKE :roomtitle';
-		$params[':roomtitle'] = "%{$roomtitle}%";
-	}
-	if (!empty($realname)) {
-		$condition .= ' AND o.name LIKE :realname';
-		$params[':realname'] = "%{$realname}%";
-	}
-	if (!empty($mobile)) {
-		$condition .= ' AND o.mobile LIKE :mobile';
-		$params[':mobile'] = "%{$mobile}%";
-	}
-	if (!empty($ordersn)) {
-		$condition .= ' AND o.ordersn LIKE :ordersn';
-		$params[':ordersn'] = "%{$ordersn}%";
-	}
-	if (!empty($storeid)) {
-		$condition .= " AND o.hotelid=" . $storeid;
-	}
-	if (!empty($roomid)) {
-		$condition .= " AND o.roomid=" . $roomid;
-	}
-	$status = $_GPC['status'];
-	if ($status != '') {
-		$condition .= " AND o.status=" . intval($status);
-	}
-	$paystatus = $_GPC['paystatus'];
-	if ($paystatus != '') {
-		$condition .= " and o.paystatus=" . intval($paystatus);
-	}
-	$date = $_GPC['date'];
-	if (!empty($date) && $date['start'] != $date['end'] && $date['start'] != date('Y-m-d', time())) {
-		$condition .= " AND o.time > ". strtotime($date['start'])." AND o.time < ".strtotime($date['end']);
-	}
-	$pindex = max(1, intval($_GPC['page']));
-	$psize = 20;
-	pdo_query('UPDATE ' . tablename('storex_order') . " SET status = -1 WHERE time < :time AND weid = '{$_W['uniacid']}' AND paystatus = 0 AND status <> 1 AND status <> 3", array(':time' => time() - 86400));
-	$field = '';
-	if ($table == 'storex_room') {
-		$field = ' , r.is_house ';
-	}
-	$show_order_lists = pdo_fetchall("SELECT o.*, h.title AS hoteltitle, r.title AS roomtitle " . $field . " FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') . " h ON o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r ON r.id = o.roomid WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
-	getOrderUniontid($show_order_lists);
-	$version = check_ims_version();
-	if (!empty($version)) {
-		$printers = pdo_getall('storex_plugin_printer', array('uniacid' => $_W['uniacid']), array('name', 'id'), 'id');
-		$stores_printers = pdo_getall('storex_plugin_printer_set', array('uniacid' => $_W['uniacid']), array('storeid','id', 'printerids'), 'storeid');
-		$printer = array();
-		if (!empty($stores_printers) && is_array($stores_printers)) {
-			foreach ($stores_printers as $storeid => $info) {
-				$info['printerids'] = iunserializer($info['printerids']);
-				if (!empty($info['printerids']) && is_array($info['printerids'])) {
-					foreach ($info['printerids'] as $p_id => $status) {
-						if ($status == 1 && !empty($printers[$p_id])) {
-							$printer[$storeid][$p_id] = array(
-								'id' => $p_id,
-								'status' => $status,
-								'name' => $printers[$p_id]['name'],
-							);
-						}
-					}
-				}
-			}
-		}
-		if (!empty($show_order_lists) && is_array($show_order_lists)) {
-			foreach ($show_order_lists as &$orderinfo) {
-				$orderinfo['printers'] = array();
-				if (!empty($printer[$orderinfo['hotelid']])) {
-					$orderinfo['printers'] = $printer[$orderinfo['hotelid']];
-				}
-			}
-		}
-	}
-	
-	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') . " AS h on o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition", $params);
-	if ($_GPC['export'] != '') {
-		$export_order_lists = pdo_fetchall("SELECT o.*, h.title as hoteltitle, r.title AS roomtitle FROM " . tablename('storex_order') . " o LEFT JOIN " . tablename('storex_bases') . " AS h on o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r ON r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC" . ',' . $psize, $params);
-		getOrderUniontid($export_order_lists);
-		/* 输入到CSV文件 */
-		$html = "\xEF\xBB\xBF";
-		/* 输出表头 */
-		$filter = array(
-			'ordersn' => '订单号',
-			'uniontid' => '商户订单号',
-			'hoteltitle' => '酒店',
-			'roomtitle' => '房型',
-			'name' => '预订人',
-			'mobile' => '手机',
-			'nums' => '预订数量',
-			'sum_price' => '总价',
-			'btime' => '到店时间',
-			'etime' => '离店时间',
-			'paytype' => '支付方式',
-			'time' => '订单生成时间',
-			'paystatus' => '订单状态'
-		);
-		foreach ($filter as $key => $title) {
-			$html .= $title . "\t,";
-		}
-		$html .= "\n";
-		foreach ($export_order_lists as $k => $v) {
-			foreach ($filter as $key => $title) {
-				if ($key == 'time') {
-					$html .= date('Y-m-d H:i:s', $v[$key]) . "\t, ";
-				} elseif ($key == 'btime') {
-					$html .= date('Y-m-d', $v[$key]) . "\t, ";
-				} elseif ($key == 'etime') {
-					$html .= date('Y-m-d', $v[$key]) . "\t, ";
-				} elseif ($key == 'paytype') {
-					if ($v[$key] == 1) {
-						$html .= '余额支付' . "\t, ";
-					}
-					if ($v[$key] == 21) {
-						$html .= '微信支付' . "\t, ";
-					}
-					if ($v[$key] == 22) {
-						$html .= '支付宝支付' . "\t, ";
-					}
-					if ($v[$key] == 3) {
-						$html .= '到店支付' . "\t, ";
-					}
-					if ($v[$key] == '0') {
-						$html .= '未支付(或其它)' . "\t, ";
-					}
-				} elseif ($key == 'paystatus') {
-					if ($v[$key] == 0) {
-						if ($v['status'] == 0) {
-							if ($v['paytype'] == 1 || $v['paytype'] == 2) {
-								$html .= '待付款' . "\t, ";
-							} else {
-								$html .= '等待确认' . "\t, ";
-							}
-						} elseif ($v['status'] == -1) {
-							$html .= '已取消' . "\t, ";
-						} elseif ($v['status'] == 1) {
-							$html .= '已接受' . "\t, ";
-						} elseif ($v['status'] == 2) {
-							$html .= '已拒绝' . "\t, ";
-						} elseif ($v['status'] == 3) {
-							$html .= '订单完成' . "\t, ";
-						}
-					} else {
-						if ($v['status'] == 0) {
-							$html .= '已支付等待确认'."\t, ";
-						} elseif ($v['status'] == -1) {
-							if ($v['paytype'] == 3) {
-								$html .= '已取消' . "\t, ";
-							} else {
-								$html .= '已支付，取消并退款' . "\t, ";
-							}
-						} elseif ($v['status'] == 1) {
-							$html .= '已确认，已接受' . "\t, ";
-						} elseif ($v['status'] == 2) {
-							$html .= '已支付，已退款' . "\t, ";
-						} elseif ($v['status'] == 3) {
-							$html .= '订单完成' . "\t, ";
-						}
-					}
-				} else {
-					$html .= $v[$key] . "\t, ";
-				}
-			}
-			$html .= "\n";
-		}
-		/* 输出CSV文件 */
-		header("Content-type:text/csv");
-		header("Content-Disposition:attachment; filename=全部数据.csv");
-		echo $html;
-		exit();
-	}
-	$pager = pagination($total, $pindex, $psize);
-	include $this->template('store/shop_orderlist');
 }
