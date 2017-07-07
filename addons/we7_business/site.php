@@ -26,7 +26,7 @@ class We7_businessModuleSite extends WeModuleSite {
             $data = array(
                 'weid' => $_W['weid'],
                 'title' => $_GPC['title'],
-                'content' => $_GPC['content'],
+                'content' => strip_tags(htmlspecialchars_decode($_GPC['content'], true)),
                 'phone' => $_GPC['phone'],
                 'qq' => $_GPC['qq'],
                 'province' => $_GPC['district']['province'],
