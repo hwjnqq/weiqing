@@ -19,17 +19,17 @@ $aside_nav = array(
 	'shop_index' => array(
 		'title' => '概况',
 		'url' => $this->createWebUrl('shop_index', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'fa fa-scan'
+		'icon' => 'fa fa-columns'
 	),
 	'shop_category' => array(
 		'title' => '商品分类',
 		'url' => $this->createWebUrl('shop_category', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'fa fa-search'
+		'icon' => 'fa fa-bars'
 	),
 	'shop_goodsmanage' => array(
 		'title' => '商品管理',
 		'url' => $this->createWebUrl('shop_goodsmanage', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'fa fa-search'
+		'icon' => 'fa fa-gift'
 	),
 	'shop_comment' => array(
 		'title' => '商品评价',
@@ -41,9 +41,14 @@ $aside_nav = array(
 		'url' => $this->createWebUrl('shop_order', array('storeid' => $_GPC['storeid'])),
 		'icon' => 'fa fa-search'
 	),
+	'shop_stat' => array(
+		'title' => '数据统计',
+		'url' => $this->createWebUrl('shop_stat', array('storeid' => $_GPC['storeid'])),
+		'icon' => 'fa fa-area-chart'
+	),
 	'shop_settings' => array(
 		'title' => '店铺设置',
 		'url' => $this->createWebUrl('shop_settings', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'fa fa-search'
+		'icon' => 'fa fa-cogs'
 	),
 );
