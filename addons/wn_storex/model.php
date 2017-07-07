@@ -371,11 +371,62 @@ if (!function_exists('gettablebytype')) {
 //获取订单的商户订单号
 if (!function_exists('getOrderUniontid')) {
 	function getOrderUniontid(&$lists) {
-		if (!empty($lists)) {
-			foreach ($lists as $orderkey=>$orderinfo) {
+		if (!empty($lists) && is_array($lists)) {
+			foreach ($lists as $orderkey => &$orderinfo) {
 				$paylog = pdo_get('core_paylog', array('uniacid' => $orderinfo['weid'], 'tid' => $orderinfo['id'], 'module' => 'wn_storex'), array('uniacid', 'uniontid', 'tid'));
 				if (!empty($paylog)) {
 					$lists[$orderkey]['uniontid'] = $paylog['uniontid'];
+				}
+				if (!empty($orderinfo['thumb'])) {
+					$orderinfo['thumb'] = tomedia($orderinfo['thumb']);
+				}
+				if ($orderinfo['paytype'] == 1) {
+					$orderinfo['paytype_text'] = '余额支付';
+				} elseif ($orderinfo['paytype'] == 21) {
+					$orderinfo['paytype_text'] = '微信支付';
+				} elseif ($orderinfo['paytype'] == 22) {
+					$orderinfo['paytype_text'] = '支付宝';
+				} elseif ($orderinfo['paytype'] == 3) {
+					$orderinfo['paytype_text'] = '到店付款';
+				} elseif ($orderinfo['paytype'] == 0) {
+					$orderinfo['paytype_text'] = '未支付(或其它)';
+				}
+				if ($orderinfo['paystatus'] == 0) {
+					if ($orderinfo['status'] == 0) {
+						$orderinfo['status_text'] = "已提交订单,待付款";
+					} elseif ($orderinfo['status'] == -1) {
+						$orderinfo['status_text'] = "已取消";
+					} elseif ($orderinfo['status'] == 1) {
+						$orderinfo['status_text'] = "已接受";
+					} elseif ($orderinfo['status'] == 2) {
+						$orderinfo['status_text'] = "已拒绝";
+					} elseif ($orderinfo['status'] == 4) {
+						$orderinfo['status_text'] = "已入住";
+					} elseif ($orderinfo['status'] == 3) {
+						$orderinfo['status_text'] = "订单完成";
+					}
+				} else {
+					if ($orderinfo['status'] == 0) {
+						if ($orderinfo['paytype'] == 3) {
+							$orderinfo['status_text'] = "待付款";
+						} else {
+							$orderinfo['status_text'] = "已支付,等待确认";
+						}
+					} elseif ($orderinfo['status'] == -1) {
+						if ($orderinfo['paytype'] == 3) {
+							$orderinfo['status_text'] = "已取消";
+						} else {
+							$orderinfo['status_text'] = "已支付,取消并退款";
+						}
+					} elseif ($orderinfo['status'] == 1) {
+						$orderinfo['status_text'] = "已确认,已接受";
+					} elseif ($orderinfo['status'] == 2) {
+						$orderinfo['status_text'] = "已支付,已退款";
+					} elseif ($orderinfo['status'] == 4) {
+						$orderinfo['status_text'] = "已入住";
+					} elseif ($orderinfo['status'] == 3) {
+						$orderinfo['status_text'] = "订单完成";
+					}
 				}
 			}
 		}

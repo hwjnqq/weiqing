@@ -66,7 +66,7 @@ if ($op == 'display') {
 	if ($table == 'storex_room') {
 		$field = ' , r.is_house ';
 	}
-	$show_order_lists = pdo_fetchall("SELECT o.*, h.title AS hoteltitle, r.title AS roomtitle " . $field . " FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') . " h ON o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r ON r.id = o.roomid WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
+	$show_order_lists = pdo_fetchall("SELECT o.*, h.title AS hoteltitle, r.title AS roomtitle, r.thumb " . $field . " FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') . " h ON o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r ON r.id = o.roomid WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
 	getOrderUniontid($show_order_lists);
 	$version = check_ims_version();
 	if (!empty($version)) {
@@ -136,55 +136,9 @@ if ($op == 'display') {
 				} elseif ($key == 'etime') {
 					$html .= date('Y-m-d', $v[$key]) . "\t, ";
 				} elseif ($key == 'paytype') {
-					if ($v[$key] == 1) {
-						$html .= '余额支付' . "\t, ";
-					}
-					if ($v[$key] == 21) {
-						$html .= '微信支付' . "\t, ";
-					}
-					if ($v[$key] == 22) {
-						$html .= '支付宝支付' . "\t, ";
-					}
-					if ($v[$key] == 3) {
-						$html .= '到店支付' . "\t, ";
-					}
-					if ($v[$key] == '0') {
-						$html .= '未支付(或其它)' . "\t, ";
-					}
+					$html .= $v['paytype_text'] . "\t, ";
 				} elseif ($key == 'paystatus') {
-					if ($v[$key] == 0) {
-						if ($v['status'] == 0) {
-							if ($v['paytype'] == 1 || $v['paytype'] == 2) {
-								$html .= '待付款' . "\t, ";
-							} else {
-								$html .= '等待确认' . "\t, ";
-							}
-						} elseif ($v['status'] == -1) {
-							$html .= '已取消' . "\t, ";
-						} elseif ($v['status'] == 1) {
-							$html .= '已接受' . "\t, ";
-						} elseif ($v['status'] == 2) {
-							$html .= '已拒绝' . "\t, ";
-						} elseif ($v['status'] == 3) {
-							$html .= '订单完成' . "\t, ";
-						}
-					} else {
-						if ($v['status'] == 0) {
-							$html .= '已支付等待确认'."\t, ";
-						} elseif ($v['status'] == -1) {
-							if ($v['paytype'] == 3) {
-								$html .= '已取消' . "\t, ";
-							} else {
-								$html .= '已支付，取消并退款' . "\t, ";
-							}
-						} elseif ($v['status'] == 1) {
-							$html .= '已确认，已接受' . "\t, ";
-						} elseif ($v['status'] == 2) {
-							$html .= '已支付，已退款' . "\t, ";
-						} elseif ($v['status'] == 3) {
-							$html .= '订单完成' . "\t, ";
-						}
-					}
+					$html .= $v['status_text'] . "\t, ";
 				} else {
 					$html .= $v[$key] . "\t, ";
 				}
