@@ -26,15 +26,15 @@
 		<br>
 		<div class="panel panel-default wn-panel">
 			<div class="panel-heading">
-				<form action="" id="dashborad-form">
-					<input type="hidden" name="c" value="site">
-					<input type="hidden" name="a" value="entry">
-					<input type="hidden" name="do" value="shop_index">
-					<input type="hidden" name="op" value="dashboard">
-					<input type="hidden" name="storeid" value="{$storeid}">
-					<input type="hidden" name="m" value="wn_storex">
-					{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
-				</form>
+					<form action="" id="stat-form">
+						<input type="hidden" name="c" value="site">
+						<input type="hidden" name="a" value="entry">
+						<input type="hidden" name="do" value="shop_stat">
+						<input type="hidden" name="op" value="display">
+						<input type="hidden" name="storeid" value="{$storeid}">
+						<input type="hidden" name="m" value="wn_storex">
+						{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
+					</form>
 			</div>
 			<div class="panel-body">
 				<div id="myChart" style="height: 500px"></div>
@@ -51,19 +51,19 @@
 	var chart_data = {php echo json_encode($chart_data);};
 	require(['echart', 'daterangepicker'], function(echarts) {
 		$('.daterange').on('apply.daterangepicker', function(ev, picker) {
-			$('#dashborad-form')[0].submit();
+			$('#stat-form')[0].submit();
 		});
 		var myChart = echarts.init(document.getElementById('myChart'));
 		// 指定图表的配置项和数据
 		option = {
 			title: {
-				text: '营业额趋势图'
+				text: '订单量趋势图'
 			},
 			tooltip: {
 				trigger: 'axis'
 			},
 			legend: {
-				data:['营业额']
+				data:['未确认的订单', '取消的订单', '退款的订单', '已完成的订单']
 			},
 			grid: {
 				left: '3%',
@@ -86,10 +86,28 @@
 			},
 			series: [
 				{
-					name:'营业额',
+					name:'未确认的订单',
 					type:'line',
 					stack: '总量',
-					data: chart_data.series_data
+					data: chart_data.series_data.not_confirmed_order
+				},
+				{
+					name:'取消的订单',
+					type:'line',
+					stack: '总量',
+					data: chart_data.series_data.canceled_order
+				},
+				{
+					name:'退款的订单',
+					type:'line',
+					stack: '总量',
+					data: chart_data.series_data.refund_order
+				},
+				{
+					name:'已完成的订单',
+					type:'line',
+					stack: '总量',
+					data: chart_data.series_data.completed_order
 				}
 			]
 		};
