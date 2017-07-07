@@ -37,7 +37,7 @@ if ($op == 'dashboard') {
 		$stat[$key] = 0;
 	}
 	$sum_list = pdo_fetchall("SELECT id, time, sum_price, hotelid FROM " . tablename('storex_order') . " WHERE weid = :uniacid AND time >= :starttime AND time <= :endtime AND status = :status AND hotelid = :storeid ORDER BY time ASC", array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime, ':status' => 3, ':storeid' => $storeid));
-	if (!empty($sum_list)) {
+	if (!empty($sum_list) && is_array($sum_list)) {
 		foreach ($sum_list as $value) {
 			$key = date('m-d', $value['time']);
 			$stat[$key] += $value['sum_price'];

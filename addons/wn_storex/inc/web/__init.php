@@ -5,9 +5,7 @@ global $_GPC, $_W;
 define('STORE_TYPE_NORMAL', '0');
 define('STORE_TYPE_HOTEL', '1');
 
-if ($_GPC['do'] == 'shop_settings' || $_GPC['do'] == 'shop_category' 
-	|| $_GPC['do'] == 'shop_goodsmanage' || $_GPC['do'] == 'shop_comment' 
-	|| $_GPC['do'] == 'shop_index' || $_GPC['do'] == 'shop_order') {
+if ($_GPC['do'] == 'shop_settings' || $_GPC['do'] == 'shop_category' || $_GPC['do'] == 'shop_goodsmanage' || $_GPC['do'] == 'shop_comment' || $_GPC['do'] == 'shop_index' || $_GPC['do'] == 'shop_order' || $_GPC['do'] == 'shop_stat') {
 	if (empty($_GPC['storeid'])) {
 		message('请重新选择店铺', $this->createWebUrl('storemanage', array('op' => 'list')), 'error');
 	}
