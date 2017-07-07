@@ -2,13 +2,8 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('post', 'dashboard');
+$ops = array('post');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'post';
-
-if ($op == 'dashboard') {
-	include $this->template('store/dashboard');
-	exit;
-}
 
 if ($op == 'post') {
 	$store_type = intval($_W['wn_storex']['store_info']['store_type']);
