@@ -6,7 +6,7 @@
 		<img src="{php echo tomedia($_W['wn_storex']['store_info']['thumb'])}" alt="" class="wn-aside__logo">
 		<ul class="wn-aside__nav">
 			{loop $aside_nav $key $nav}
-			<li class="wn-aside__nav__item {if $_GPC['do'] == $key}wn-aside__nav__item--active{/if}"><a href="{$nav['url']}"><i class="{$nav['icon']}"></i>{$nav['title']}	</a></li>
+			<li class="wn-aside__nav__item {if in_array($_GPC['do'], $nav['active'])}wn-aside__nav__item--active{/if}"><a href="{$nav['url']}"><i class="{$nav['icon']}"></i>{$nav['title']}</a></li>
 			{/loop}
 		</ul>
 	</nav>
