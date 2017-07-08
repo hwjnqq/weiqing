@@ -183,32 +183,32 @@ if ($op == 'edit') {
 			'express_name' => trim($_GPC['express_name']),
 		);
 		if ($status > 4) {
-			if ($status == 5 && $data['goods_status'] != 5) {
-				$data['goods_status'] = 5;
-			} elseif ($status == 6 && $data['goods_status'] != 2) {
-				$data['goods_status'] = 2;
-			} elseif ($status == 7 && $data['goods_status'] != 3) {
-				$data['goods_status'] = 3;
+			if ($status == 5 && $data['goods_status'] != GOODS_STATUS_CHECKED) {
+				$data['goods_status'] = GOODS_STATUS_CHECKED;
+			} elseif ($status == 6 && $data['goods_status'] != GOODS_STATUS_SHIPPED) {
+				$data['goods_status'] = GOODS_STATUS_SHIPPED;
+			} elseif ($status == 7 && $data['goods_status'] != GOODS_STATUS_RECEIVED) {
+				$data['goods_status'] = GOODS_STATUS_RECEIVED;
 			} else {
 				message('商品状态已经是该状态了！', '', 'error');
 			}
 		} else {
 			$data['status'] = $status;
 		}
-		if ($item['status'] == 1 || $item['goods_status'] == 5 || $item['goods_status'] == 2 || $item['goods_status'] == 3 ) {
-			if (!empty($data['status']) && ($data['status'] == -1 || $data['status'] == 2)) {
+		if ($item['status'] == ORDER_STATUS_SURE || $item['goods_status'] == GOODS_STATUS_CHECKED || $item['goods_status'] == GOODS_STATUS_SHIPPED || $item['goods_status'] == GOODS_STATUS_RECEIVED ) {
+			if (!empty($data['status']) && ($data['status'] == ORDER_STATUS_CANCEL || $data['status'] == ORDER_STATUS_REFUSE)) {
 				message('订单已确认或发货，不能操作！', '', 'error');
 			}
 		}
-		if ($item['status'] == -1) {
+		if ($item['status'] == ORDER_STATUS_CANCEL) {
 			message('订单状态已经取消，不能操作！', '', 'error');
 		}
-		if ($item['status'] == 3) {
+		if ($item['status'] == ORDER_STATUS_OVER) {
 			message('订单状态已经完成，不能操作！', '', 'error');
 		}
 		if ($store_type == STORE_TYPE_HOTEL) {
 			//订单取消
-			if ($data['status'] == -1 || $data['status'] == 2) {
+			if ($data['status'] == ORDER_STATUS_CANCEL || $data['status'] == ORDER_STATUS_REFUSE) {
 				$room_date_list = pdo_getall('storex_room_price', array('roomid' => $item['roomid'], 'roomdate >=' => $item['btime'], 'roomdate <' => $item['etime'], 'status' => 1), 
 					array('id', 'roomdate', 'num', 'status'));
 				if (!empty($room_date_list)) {
@@ -224,7 +224,7 @@ if ($op == 'edit') {
 		}
 		if (!empty($data['status']) && $data['status'] != $item['status']) {
 			//订单退款
-			if ($data['status'] == 2) {
+			if ($data['status'] == ORDER_STATUS_REFUSE) {
 				if (!empty($setting['template']) && !empty($setting['refuse_templateid'])) {
 					$tplnotice = array(
 						'first' => array('value'=>'尊敬的宾客，非常抱歉的通知您，您的预订订单被拒绝。'),
@@ -242,7 +242,7 @@ if ($op == 'edit') {
 				}
 			}
 			//订单确认提醒
-			if ($data['status'] == 1) {
+			if ($data['status'] == ORDER_STATUS_SURE) {
 				//TM00217
 				if (!empty($setting['template']) && !empty($setting['templateid'])) {
 					$tplnotice = array(
@@ -277,7 +277,7 @@ if ($op == 'edit') {
 			}
 	
 			//订单完成提醒
-			if ($data['status'] == 3) {
+			if ($data['status'] == ORDER_STATUS_OVER) {
 				$uid = mc_openid2uid(trim($item['openid']));
 				//订单完成后增加积分
 				card_give_credit($uid, $item['sum_price']);
@@ -299,7 +299,7 @@ if ($op == 'edit') {
 					$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
 				}
 			}
-			if ($data['status'] == -1) {
+			if ($data['status'] == ORDER_STATUS_CANCEL) {
 				$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "订单已取消，请联系管理员！";
 				$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
 			}
@@ -307,7 +307,7 @@ if ($op == 'edit') {
 		
 		if (!empty($data['goods_status'])) {
 			//已入住提醒
-			if ($data['goods_status'] == 5) {
+			if ($data['goods_status'] == GOODS_STATUS_CHECKED) {
 				//TM00058
 				if (!empty($setting['template']) && !empty($setting['check_in_templateid'])) {
 					$tplnotice = array(
@@ -325,20 +325,20 @@ if ($op == 'edit') {
 				}
 			}
 			
-			if ($data['goods_status'] == 2) {
+			if ($data['goods_status'] == GOODS_STATUS_SHIPPED) {
 				$info = '您在' . $store['title'] . '预订的' . $room['title'] . '已发货';
 				$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
 			}
-			if ($data['goods_status'] == 3) {
+			if ($data['goods_status'] == GOODS_STATUS_RECEIVED) {
 				$info = '您在' . $store['title'] . '预订的' . $room['title'] . '管理员已代替操作收货，如有疑问请咨询管理员！';
 				$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
 			}
 		}
 		
 		if (!empty($item['coupon'])) {
-			if ($data['status'] == '-1' || $data['status'] == '2') {
+			if ($data['status'] == ORDER_STATUS_CANCEL || $data['status'] == ORDER_STATUS_REFUSE) {
 				pdo_update('storex_coupon_record', array('status' => 1), array('id' => $item['coupon']));
-			} elseif ($data['status'] == '3') {
+			} elseif ($data['status'] == ORDER_STATUS_OVER) {
 				pdo_update('storex_coupon_record', array('status' => 3), array('id' => $item['coupon']));
 			}
 		}

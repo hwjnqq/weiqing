@@ -213,144 +213,6 @@ function check_params() {
 	}
 }
 
-/**
- * action 1预定  2购买
- * 获取订单的状态
- * status -1取消，0未确认，1已确认，2退款，3完成，4已入住
- * goods_status 1待发货，2已发货，3已收货，4待入住，5已入住
- */
-function orders_check_status($item) {
-	$order_status_text = array(
-		'1' => '待付款',
-		'2' => '等待店铺确认',
-		'3' => '订单已取消',
-		'4' => '正在退款中',
-		'5' => '待入住',
-		'6' => '店铺已拒绝',
-		'7' => '已退款',
-		'8' => '已入住',
-		'9' => '已完成',
-		'10' => '未发货',
-		'11' => '已发货',
-		'12' => '已收货',
-		'13' => '订单已确认'
-	);
-	if ($item['store_type'] == 1) {
-		$good = pdo_get('storex_room', array('id' => $item['roomid']), array('id', 'is_house'));
-	}
-	
-	//1是显示,2不显示
-	$item['is_pay'] = 2;//立即付款 is_pay
-	$item['is_cancle'] = 2;//取消订单is_cancle
-	$item['is_confirm'] = 2;//确认收货is_confirm
-	$item['is_over'] = 2;//再来一单is_over
-	$item['is_comment'] = 2;//显示评价is_comment
-	if ($item['status'] == 0) {//未确认
-		if ($item['paystatus'] == 0) {
-			$status = STORE_UNPAY_STATUS;
-			$item['is_pay'] = 1;
-		} else {
-			$status = STORE_SURE_STATUS;
-		}
-		$item['is_cancle'] = 1;
-	} elseif ($item['status'] == -1) {//取消
-		if ($item['paystatus'] == 0) {
-			$status = STORE_CANCLE_STATUS;
-			$item['is_over'] = 1;
-		} elseif ($item['paystatus'] == 1) {
-			$status = STORE_REPAY_STATUS;
-		} elseif ($item['paystatus'] == 2) {
-			$item['is_over'] = 1;
-			$status = STORE_REPAY_SUCCESS_STATUS;
-		}
-	} elseif ($item['status'] == 1) {//已确认
-		if ($item['store_type'] == 1) {//酒店
-			if (!empty($good) && $good['is_house'] == 2) {//酒店，非房型
-				$item['is_cancle'] = 1;
-				if ($item['paystatus'] == 0) {
-					$item['is_pay'] = 1;
-					$status = STORE_CONFIRM_STATUS;
-				} elseif ($item['paystatus'] == 1) {
-					$status = STORE_CONFIRM_STATUS;
-				}
-			} else {
-				$status = STORE_UNLIVE_STATUS;
-				$item['is_cancle'] = 1;
-				if ($item['paystatus'] == 0) {
-					$item['is_pay'] = 1;
-				}
-			}
-		} else {//非酒店
-			if ($item['paystatus'] == 1) {//已支付
-				if ($item['mode_distribute'] == 1) {//自提
-					$item['is_cancle'] = 1;
-					$status = STORE_CONFIRM_STATUS;
-				} elseif ($item['mode_distribute'] == 2) {
-					if ($item['goods_status'] == 1) {
-						$item['is_cancle'] = 1;
-						$status = STORE_UNSENT_STATUS;
-					} elseif ($item['goods_status'] == 2) {
-						$item['is_confirm'] = 1;
-						$status = STORE_SENT_STATUS;
-					} elseif ($item['goods_status'] == 3) {
-						$status = STORE_GETGOODS_STATUS;
-					} else {
-						$item['is_cancle'] = 1;
-						$status = STORE_CONFIRM_STATUS;
-					}
-				}
-			} elseif ($item['paystatus'] == 0) {
-				if ($item['mode_distribute'] == 1 ) {//自提
-					$item['is_cancle'] = 1;
-					$item['is_pay'] = 1;
-					$status = STORE_CONFIRM_STATUS;
-				} elseif ($item['mode_distribute'] == 2) {
-					if ($item['goods_status'] == 1) {
-						$item['is_cancle'] = 1;
-						$item['is_pay'] = 1;
-						$status = STORE_UNSENT_STATUS;
-					} elseif ($item['goods_status'] == 2) {
-						$item['is_confirm'] = 1;
-						$item['is_pay'] = 1;
-						$status = STORE_SENT_STATUS;
-					} elseif ($item['goods_status'] == 3) {
-						$item['is_pay'] = 1;
-						$status = STORE_GETGOODS_STATUS;
-					} else {
-						$item['is_cancle'] = 1;
-						$item['is_pay'] = 1;
-						$status = STORE_CONFIRM_STATUS;
-					}
-				}
-			}
-		}
-	} elseif ($item['status'] == 2) {//拒绝
-		if ($item['paystatus'] == 0) {
-			$status = STORE_REFUSE_STATUS;
-		} elseif ($item['paystatus'] == 1) {
-			$status = STORE_REPAY_STATUS;
-		}
-	} elseif ($item['status'] == 4) {//入住
-		$status = STORE_LIVE_STATUS;
-		if ($item['paystatus'] == 0) {
-			$item['is_pay'] = 1;
-		}
-		$item['is_over'] = 1;
-	} elseif ($item['status'] == 3) {//完成
-		$status = STORE_OVER_STATUS;
-		$item['is_over'] = 1;
-		if ($item['comment'] == 0) {
-			$item['is_comment'] = 1;
-		}
-	}
-	$setting = pdo_get('storex_set', array('weid' => intval($_W['uniacid'])));
-	if ($setting['refund'] == 1) {
-		$item['is_cancle'] = 2;
-	}
-	$item['order_status'] = $order_status_text[$status];
-	return $item;
-}
-
 /**店员可操作订单的行为
  * $order  订单信息
  * $store_type  店铺类型
@@ -597,7 +459,7 @@ function room_special_price($goods) {
 	return $goods;
 }
 //检查条件
-function goods_check_action($action, $goods_info) {
+function goods_check_action($action = 'buy', $goods_info) {
 	if (empty($goods_info)) {
 		message(error(-1, '商品未找到, 请联系管理员!'), '', 'ajax');
 	}
@@ -606,23 +468,6 @@ function goods_check_action($action, $goods_info) {
 	}
 	if ($action == 'buy' && $goods_info['can_buy'] != 1) {
 		message(error(-1, '该商品不能购买'), '', 'ajax');
-	}
-}
-
-//检查结果
-function goods_check_result($action, $order_id) {
-	if ($action == 'reserve') {
-		if (!empty($order_id)) {
-			message(error(0, $order_id), '', 'ajax');
-		} else {
-			message(error(-1, '预定失败'), '', 'ajax');
-		}
-	} else {
-		if (!empty($order_id)) {
-			message(error(0, $order_id), '', 'ajax');
-		} else {
-			message(error(-1, '下单失败'), '', 'ajax');
-		}
 	}
 }
 

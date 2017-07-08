@@ -78,7 +78,7 @@ function orders_check_status($item) {
 		'13' => '订单已确认'
 	);
 	if ($item['store_type'] == 1) {
-		$good = pdo_get('storex_room', array('id' => $item['roomid']), array('id', 'is_house'));
+		$room = pdo_get('storex_room', array('id' => $item['roomid']), array('id', 'is_house'));
 	}
 	
 	//1是显示,2不显示
@@ -97,13 +97,13 @@ function orders_check_status($item) {
 		if ($item['paystatus'] == PAY_STATUS_UNPAID) {
 			$item['is_over'] = 1;
 		} elseif ($item['paystatus'] == PAY_STATUS_PAID) {
-			if (empty($item['refund_status'])) {
-				$item['is_refund'] = 1;
-			}
+// 			if (empty($item['refund_status'])) {
+// 				$item['is_refund'] = 1;
+// 			}
 		}
 	} elseif ($item['status'] == ORDER_STATUS_SURE) {//已确认
 		if ($item['store_type'] == 1) {//酒店
-			if (!empty($good)) {
+			if (!empty($room)) {
 				if ($item['paystatus'] == PAY_STATUS_UNPAID) {
 					$item['is_pay'] = 1;
 				}

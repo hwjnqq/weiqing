@@ -407,5 +407,14 @@ if ($op == 'order') {
 		);
 		pdo_insert('storex_member', $insert_member);
 	}
-	goods_check_result($action, $order_id);
+	//检查结果
+	if (!empty($order_id)) {
+		message(error(0, $order_id), '', 'ajax');
+	} else {
+		if ($action == 'reserve') {
+			message(error(-1, '预定失败'), '', 'ajax');
+		} else {
+			message(error(-1, '下单失败'), '', 'ajax');
+		}
+	}
 }
