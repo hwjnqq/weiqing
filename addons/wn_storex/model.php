@@ -7,6 +7,24 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
+define('STORE_TYPE_NORMAL', '0');
+define('STORE_TYPE_HOTEL', '1');
+define('ORDER_STATUS_CANCEL', '-1');
+define('ORDER_STATUS_NOT_SURE', '0');
+define('ORDER_STATUS_SURE', '1');
+define('ORDER_STATUS_REFUSE', '2');
+define('ORDER_STATUS_OVER', '3');
+define('PAY_STATUS_UNPAID', '0');
+define('PAY_STATUS_PAID', '1');
+define('PAY_STATUS_REFUND', '2');
+define('GOODS_STATUS_NOT_SHIPPED', '1');
+define('GOODS_STATUS_SHIPPED', '2');
+define('GOODS_STATUS_RECEIVED', '3');
+define('GOODS_STATUS_NOT_CHECKED', '4');
+define('GOODS_STATUS_CHECKED', '5');
+define('REFUND_STATUS_PROCESS', '1');
+define('REFUND_STATUS_SUCCESS', '2');
+define('REFUND_STATUS_FAILED', '3');
 
 function mload() {
 	static $mloader;

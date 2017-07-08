@@ -2,21 +2,6 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_GPC, $_W;
-define('STORE_TYPE_NORMAL', '0');
-define('STORE_TYPE_HOTEL', '1');
-define('ORDER_STATUS_CANCEL', '-1');
-define('ORDER_STATUS_NOT_SURE', '0');
-define('ORDER_STATUS_SURE', '1');
-define('ORDER_STATUS_REFUSE', '2');
-define('ORDER_STATUS_OVER', '3');
-define('PAY_STATUS_UNPAID', '0');
-define('PAY_STATUS_PAID', '1');
-define('PAY_STATUS_REFUND', '2');
-define('GOODS_STATUS_NOT_SHIPPED', '1');
-define('GOODS_STATUS_SHIPPED', '2');
-define('GOODS_STATUS_RECEIVED', '3');
-define('GOODS_STATUS_NOT_CHECKED', '4');
-define('GOODS_STATUS_CHECKED', '5');
 
 if ($_GPC['do'] == 'shop_settings' || $_GPC['do'] == 'shop_category' || $_GPC['do'] == 'shop_goodsmanage' || $_GPC['do'] == 'shop_comment' || $_GPC['do'] == 'shop_index' || $_GPC['do'] == 'shop_order' || $_GPC['do'] == 'shop_stat') {
 	if (empty($_GPC['storeid'])) {
