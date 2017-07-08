@@ -1,9 +1,7 @@
 {template 'common/header-base'}
-
 {template 'common/common'}
-
 <aside class="wn-aside clearfix">
-	<div class="wn-aside__back"><a href=""> <i></i>返回主模块</a></div>
+	<div class="wn-aside__back"><a href="{php echo url('home/welcome/ext', array('m' => 'wn_storex'))}"> <i></i>返回主模块</a></div>
 	<nav class="wn-aside__menu">
 		<img src="{php echo tomedia($_W['wn_storex']['store_info']['thumb'])}" alt="" class="wn-aside__logo">
 		<ul class="wn-aside__nav">

@@ -2,7 +2,7 @@
 <div class="wn-main wn-main--without">
 	<div class="wn-main__head">概况</div>
 	<div class="wn-main__content">
-		<div class="wn-dashboard">
+		<div class="wn-dashboard" style="display:none;">
 			<div class="wn-dashboard__order wn-flex">
 				<div class="wn-flex__item">
 					<p>待确认订单</p>
@@ -26,18 +26,19 @@
 		<br>
 		<div class="panel panel-default wn-panel">
 			<div class="panel-heading">
-					<form action="" id="stat-form">
-						<input type="hidden" name="c" value="site">
-						<input type="hidden" name="a" value="entry">
-						<input type="hidden" name="do" value="shop_stat">
-						<input type="hidden" name="op" value="display">
-						<input type="hidden" name="storeid" value="{$storeid}">
-						<input type="hidden" name="m" value="wn_storex">
-						{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
-					</form>
+				<form action="" id="stat-form">
+					<input type="hidden" name="c" value="site">
+					<input type="hidden" name="a" value="entry">
+					<input type="hidden" name="do" value="shop_stat">
+					<input type="hidden" name="op" value="display">
+					<input type="hidden" name="storeid" value="{$storeid}">
+					<input type="hidden" name="m" value="wn_storex">
+					{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
+				</form>
 			</div>
 			<div class="panel-body">
 				<div id="myChart" style="height: 500px"></div>
+				<div id="myChart1" style="height:500px"></div>
 			</div>
 		</div>
 	</div>
@@ -54,6 +55,7 @@
 			$('#stat-form')[0].submit();
 		});
 		var myChart = echarts.init(document.getElementById('myChart'));
+		var myChart1 = echarts.init(document.getElementById('myChart1'));
 		// 指定图表的配置项和数据
 		option = {
 			title: {
@@ -113,6 +115,7 @@
 		};
 		// 使用刚指定的配置项和数据显示图表。
 		myChart.setOption(option);
+		myChart1.setOption(option);
 	});
 </script>
 {template 'common/footer-storex'}

@@ -70,7 +70,7 @@
 			<tr>
 				<td></td>
 				<td colspan="6">
-					<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
+					<input type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="bottom"  title="删除选择的" name="deleteall" value="删除选择的" />
 					<div class="pull-right">
 						{$pager}
 					</div>
@@ -82,7 +82,7 @@
 	</div>
 </div>
 <script>
-	require(['bootstrap'],function($) {
+	require(['bootstrap'],function($){
 		$('.btn').tooltip();
 	});
 	$(function() {
