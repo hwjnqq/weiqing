@@ -140,7 +140,7 @@
 			</div>
 			<div class="wn-order__action">
 				<form action="" class="form-horizontal form wn-form" method="post" enctype="multipart/form-data" onsubmit="return formcheck();">
-					{if $item['mode_distribute'] == 2}
+					{if $store_type != STORE_TYPE_HOTEL && $item['mode_distribute'] == 2}
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label">常用快递公司</label>
 						<div class="col-sm-9 col-xs-12">
@@ -218,7 +218,7 @@
 								{/if}
 								{if $store_type == STORE_TYPE_HOTEL}
 									{if !empty($good_info) && $good_info['is_house'] == 1}
-										<button type="button" class="btn but{if $item['goods_status'] == 4} btn-primary{/if} btn-default" value="5" >已入住</button>
+										<button type="button" class="btn but{if $item['goods_status'] == 5} btn-primary{/if} btn-default" value="5" >已入住</button>
 										<input type="hidden" id="goods_status" name="goods_status" value="5">
 									{/if}
 								{else}

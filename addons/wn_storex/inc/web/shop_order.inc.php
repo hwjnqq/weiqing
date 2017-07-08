@@ -343,7 +343,7 @@ if ($op == 'edit') {
 			}
 		}
 		pdo_update('storex_order', $data, array('id' => $id));
-		message('订单信息处理完成！', $this->createWebUrl('shop_order', array('storeid' => $storeid)), 'success');
+		message('订单信息处理完成！', $this->createWebUrl('shop_order', array('op' => 'edit', 'id' => $id, 'roomid' => $roomid, 'storeid' => $storeid)), 'success');
 	}
 	if ($store_type == STORE_TYPE_HOTEL && !empty($good_info) && $good_info['is_house'] == 1) {
 		$btime = $item['btime'];
