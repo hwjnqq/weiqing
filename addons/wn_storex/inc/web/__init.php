@@ -42,6 +42,11 @@ $aside_nav = array(
 		'url' => $this->createWebUrl('shop_stat', array('storeid' => $_GPC['storeid'])),
 		'icon' => 'fa fa-area-chart'
 	),
+	'shop_plugin' => array(
+		'title' => '应用',
+		'url' => $this->createWebUrl('shop_plugin', array('storeid' => $_GPC['storeid'])),
+		'icon' => 'fa fa-th-large'
+	),
 	'shop_settings' => array(
 		'title' => '店铺设置',
 		'url' => $this->createWebUrl('shop_settings', array('storeid' => $_GPC['storeid'])),
