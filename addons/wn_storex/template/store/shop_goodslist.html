@@ -105,17 +105,13 @@
 	</div>
 </div>
 <script type="text/javascript">
-	require(['bootstrap'],function($) {
-		$('.btn').tooltip();
-	});
-	
 	$(function() {
 		$('.check_all').click(function() {
 			var checked = $(this).get(0).checked;
 			$('input[type=checkbox]').prop("checked",checked);
 		});
 		$('input[name=deleteall]').click(function() {
-			var check = $('input[name='check']:checked');
+			var check = $("input[name='check']:checked");
 			if (check.length < 1) {
 				util.message('请选择要删除的记录!');
 				return;
