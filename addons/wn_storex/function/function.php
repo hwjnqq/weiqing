@@ -216,7 +216,8 @@ function check_params() {
 /**
  * action 1预定  2购买
  * 获取订单的状态
- * status -1取消，0未确认，1已确认，2退款，3完成，4已入住 
+ * status -1取消，0未确认，1已确认，2退款，3完成，4已入住
+ * goods_status 1待发货，2已发货，3已收货，4待入住，5已入住
  */
 function orders_check_status($item) {
 	$order_status_text = array(
@@ -244,86 +245,43 @@ function orders_check_status($item) {
 	$item['is_confirm'] = 2;//确认收货is_confirm
 	$item['is_over'] = 2;//再来一单is_over
 	$item['is_comment'] = 2;//显示评价is_comment
-	if ($item['status'] == 0) {
-		if ($item['action'] == 1) {
-			$status = STORE_SURE_STATUS;
+	if ($item['status'] == 0) {//未确认
+		if ($item['paystatus'] == 0) {
+			$status = STORE_UNPAY_STATUS;
+			$item['is_pay'] = 1;
 		} else {
-			if ($item['paystatus'] == 0) {
-				$status = STORE_UNPAY_STATUS;
-				$item['is_pay'] = 1;
-			} else {
-				$status = STORE_SURE_STATUS;
-			}
+			$status = STORE_SURE_STATUS;
 		}
 		$item['is_cancle'] = 1;
-	} elseif ($item['status'] == -1) {
+	} elseif ($item['status'] == -1) {//取消
 		if ($item['paystatus'] == 0) {
 			$status = STORE_CANCLE_STATUS;
 			$item['is_over'] = 1;
-		} else {
+		} elseif ($item['paystatus'] == 1) {
 			$status = STORE_REPAY_STATUS;
+		} elseif ($item['paystatus'] == 2) {
+			$item['is_over'] = 1;
+			$status = STORE_REPAY_SUCCESS_STATUS;
 		}
-	} elseif ($item['status'] == 1) {
+	} elseif ($item['status'] == 1) {//已确认
 		if ($item['store_type'] == 1) {//酒店
-			if ($item['action'] == 1) {
-				if (!empty($good) && $good['is_house'] == 2) {
-					if ($item['mode_distribute'] == 1) {//自提
-						$item['is_cancle'] = 1;
-						$status = STORE_CONFIRM_STATUS;
-					} elseif ($item['mode_distribute'] == 2) {
-						if ($item['goods_status'] == 1) {
-							$item['is_cancle'] = 1;
-							$status = STORE_UNSENT_STATUS;
-						} elseif ($item['goods_status'] == 2) {
-							$item['is_confirm'] = 1;
-							$status = STORE_SENT_STATUS;
-						} elseif ($item['goods_status'] == 3) {
-							$status = STORE_GETGOODS_STATUS;
-						} else {
-							$item['is_cancle'] = 1;
-							$status = STORE_CONFIRM_STATUS;
-						}
-					}
-				} else {
+			if (!empty($good) && $good['is_house'] == 2) {//酒店，非房型
+				$item['is_cancle'] = 1;
+				if ($item['paystatus'] == 0) {
+					$item['is_pay'] = 1;
 					$status = STORE_CONFIRM_STATUS;
-					$item['is_cancle'] = 1;
+				} elseif ($item['paystatus'] == 1) {
+					$status = STORE_CONFIRM_STATUS;
 				}
 			} else {
-				if (!empty($good) && $good['is_house'] == 2) {
-					if ($item['paystatus'] == 0 || $item['paystatus'] == 1) {
-						if ($item['mode_distribute'] == 1 ) {//自提
-							$item['is_cancle'] = 1;
-							$item['is_pay'] = 1;
-							$status = STORE_CONFIRM_STATUS;
-						} elseif ($item['mode_distribute'] == 2) {
-							if ($item['goods_status'] == 1) {
-								$item['is_cancle'] = 1;
-								$item['is_pay'] = 1;
-								$status = STORE_UNSENT_STATUS;
-							} elseif ($item['goods_status'] == 2) {
-								$item['is_confirm'] = 1;
-								$status = STORE_SENT_STATUS;
-							} elseif ($item['goods_status'] == 3) {
-								$status = STORE_GETGOODS_STATUS;
-							} else {
-								$item['is_cancle'] = 1;
-								$item['is_pay'] = 1;
-								$status = STORE_CONFIRM_STATUS;
-							}
-						}
-					} else {
-						$status = STORE_REPAY_STATUS;
-					}
-				} else {
-					$status = STORE_UNLIVE_STATUS;
-					$item['is_cancle'] = 1;
-					if ($item['paystatus'] == 0) {
-						$item['is_pay'] = 1;
-					}
+				$status = STORE_UNLIVE_STATUS;
+				$item['is_cancle'] = 1;
+				if ($item['paystatus'] == 0) {
+					$item['is_pay'] = 1;
 				}
 			}
-		} else {
-			if ($item['action'] == 1 || $item['paystatus'] == 1) {//预定
+		} else {//非酒店
+			if ($item['paystatus'] == 1) {//已支付
 				if ($item['mode_distribute'] == 1) {//自提
 					$item['is_cancle'] = 1;
 					$status = STORE_CONFIRM_STATUS;
@@ -341,43 +299,44 @@ function orders_check_status($item) {
 						$status = STORE_CONFIRM_STATUS;
 					}
 				}
-			} else {
-				if ($item['paystatus'] == 0) {
-					if ($item['mode_distribute'] == 1 ) {//自提
+			} elseif ($item['paystatus'] == 0) {
+				if ($item['mode_distribute'] == 1 ) {//自提
+					$item['is_cancle'] = 1;
+					$item['is_pay'] = 1;
+					$status = STORE_CONFIRM_STATUS;
+				} elseif ($item['mode_distribute'] == 2) {
+					if ($item['goods_status'] == 1) {
+						$item['is_cancle'] = 1;
+						$item['is_pay'] = 1;
+						$status = STORE_UNSENT_STATUS;
+					} elseif ($item['goods_status'] == 2) {
+						$item['is_confirm'] = 1;
+						$item['is_pay'] = 1;
+						$status = STORE_SENT_STATUS;
+					} elseif ($item['goods_status'] == 3) {
+						$item['is_pay'] = 1;
+						$status = STORE_GETGOODS_STATUS;
+					} else {
 						$item['is_cancle'] = 1;
 						$item['is_pay'] = 1;
 						$status = STORE_CONFIRM_STATUS;
-					} elseif ($item['mode_distribute'] == 2) {
-						if ($item['goods_status'] == 1) {
-							$item['is_cancle'] = 1;
-							$item['is_pay'] = 1;
-							$status = STORE_UNSENT_STATUS;
-						} elseif ($item['goods_status'] == 2) {
-							$item['is_confirm'] = 1;
-							$status = STORE_SENT_STATUS;
-						} elseif ($item['goods_status'] == 3) {
-							$status = STORE_GETGOODS_STATUS;
-						} else {
-							$item['is_cancle'] = 1;
-							$item['is_pay'] = 1;
-							$status = STORE_CONFIRM_STATUS;
-						}
 					}
-				} else {
-					$status = STORE_REPAY_STATUS;
 				}
 			}
 		}
-	} elseif ($item['status'] == 2) {
+	} elseif ($item['status'] == 2) {//拒绝
 		if ($item['paystatus'] == 0) {
 			$status = STORE_REFUSE_STATUS;
-		} else {
-			$status = STORE_REPAY_SUCCESS_STATUS;
+		} elseif ($item['paystatus'] == 1) {
+			$status = STORE_REPAY_STATUS;
 		}
-	} elseif ($item['status'] == 4) {
+	} elseif ($item['status'] == 4) {//入住
 		$status = STORE_LIVE_STATUS;
+		if ($item['paystatus'] == 0) {
+			$item['is_pay'] = 1;
+		}
 		$item['is_over'] = 1;
-	} elseif ($item['status'] == 3) {
+	} elseif ($item['status'] == 3) {//完成
 		$status = STORE_OVER_STATUS;
 		$item['is_over'] = 1;
 		if ($item['comment'] == 0) {
