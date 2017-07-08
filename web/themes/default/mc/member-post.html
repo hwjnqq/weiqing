@@ -16,21 +16,26 @@
 	</div>
 </div>
 <div class="btn-group we7-btn-group">
+	<a href="javascript:;" class="btn hidden">基本信息</a>
 	<a href="javascript:;" class="btn active">积分、余额、消费</a>
-	<a href="javascript:;" class="btn ">基本信息</a>
-	<a href="{php echo url('mc/member/credit_stat',array('uid' => $li['uid'], 'type' => 1))}" title="日志" class="btn">日志</a>
+	<a href="{php echo url('mc/member/credit_stat',array('uid' => $uid, 'type' => 1))}" title="日志" class="btn">日志</a>
 </div>
 
+<div class="btn-group we7-btn-group hidden">
+	<a href="javascript:;" class="btn">基本信息</a>
+	<a href="javascript:;" class="btn active">积分/余额</a>
+	<a href="javbascript:;" class="btn">数据统计</a>
+</div>
 <div class="main">
 	<form action="" class="we7-form form" method="post" enctype="multipart/form-data">
 		{if !empty($profile)}
-		<!--积分、余额、消费-->
+		<!--积分、余额-->
 		<table class="table we7-table table-hover table-form hidden">
 			<col width="140px">
 			<col />
 			<col width="100px">
 			<tr>
-				<th class="text-left" colspan="3">积分、余额、消费</th>
+				<th class="text-left" colspan="3">会员积分/余额操作</th>
 			</tr>
 			<tr>
 				<td class="table-label">积分</td>
@@ -46,26 +51,59 @@
 					<div class="link-group"><a href="javascript:;">修改</a></div>
 				</td>
 			</tr>
+		</table>
+		<table class="table we7-table table-hover table-form hidden">
+			<col width="140px">
+			<col />
+			<col width="100px">
+			<col />
+			<col />
+			<col />
 			<tr>
-				<td class="table-label">消费</td>
-				<td></td>
-				<td class="text-right">
-					<div class="link-group"><a href="javascript:;">修改</a></div>
-				</td>
+				<th colspan="6">
+					<div class="btn-group we7-btn-group">
+						<a href="javascript:;" class="btn">积分记录</a>
+						<a href="javascript:;" class="btn active">余额记录</a>
+					</div>
+				</th>
+			</tr>
+			<tr>
+				<th>账户类型</th>
+				<th class="text-center">操作员</th>
+				<th class="text-center">积分增减</th>
+				<th class="text-center">模块</th>
+				<th class="text-center">操作时间</th>
+				<th class="text-center">备注</th>
+			</tr>
+			<tr>
+				<td class="text-center">积分</td>
+				<td class="text-center">admin</td>
+				<td class="text-center">100</td>
+				<td class="text-center">官方模块示例</td>
+				<td class="text-center">2017-06-15 14:02</td>
+				<td class="text-center">123456</td>
 			</tr>
 		</table>
-		<!--end积分、余额、消费-->
+		<!--end积分、余额-->
 		<!--基本信息-->
 		<table class="table we7-table table-hover table-form hidden">
 			<col width="140px">
 			<col width="500px">
 			<tr>
-				<th class="text-left" colspan="2">密码</th>
+				<th class="text-left" colspan="3">会员信息</th>
+			</tr>
+			<tr>
+				<td class="table-label">会员名称</td>
+				<td>admin</td>
+				<td class="text-right">
+					<div class="link-group"><a href="javascript:;">修改</a></div>
+				</td>
 			</tr>
 			<tr>
 				<td class="table-label">密码</td>
+				<td>*****</td>
 				<td class="text-right">
-					<div class="link-group"><a href="javascript:;">修改密码</a></div>
+					<div class="link-group"><a href="javascript:;">修改</a></div>
 				</td>
 			</tr>
 		</table>
@@ -74,7 +112,7 @@
 			<col />
 			<col width="100px">
 			<tr>
-				<th class="text-left" colspan="3">基本资料</th>
+				<th class="text-left" colspan="3">基本信息</th>
 			</tr>
 			<tr>
 				<td class="table-label">头像</td>
@@ -85,10 +123,7 @@
 			</tr>
 			<tr>
 				<td class="table-label">用户UID</td>
-				<td>{$uid}</td>
-				<td class="text-right">
-					<div class="link-group"><a href="javascript:;">修改</a></div>
-				</td>
+				<td colspan="2">{$uid}</td>
 			</tr>
 			<tr>
 				<td class="table-label">所在会员组</td>
@@ -99,63 +134,63 @@
 			</tr>
 			<tr>
 				<td class="table-label">昵称</td>
-				<td></td>
+				<td>hahaha</td>
 				<td class="text-right">
 					<div class="link-group"><a href="javascript:;">修改</a></div>
 				</td>
 			</tr>
 			<tr>
 				<td class="table-label">真实姓名</td>
-				<td></td>
+				<td>韩梅梅</td>
 				<td class="text-right">
 					<div class="link-group"><a href="javascript:;">修改</a></div>
 				</td>
 			</tr>
 			<tr>
 				<td class="table-label">性别</td>
-				<td></td>
+				<td>女</td>
 				<td class="text-right">
 					<div class="link-group"><a href="javascript:;">修改</a></div>
 				</td>
 			</tr>
 			<tr>
 				<td class="table-label">生日</td>
-				<td></td>
+				<td>1990-01-01</td>
 				<td class="text-right">
 					<div class="link-group"><a href="javascript:;">修改</a></div>
 				</td>
 			</tr>
 			<tr>
 				<td class="table-label">户籍</td>
-				<td></td>
+				<td>山西省太原市小店区</td>
 				<td class="text-right">
 					<div class="link-group"><a href="javascript:;">修改</a></div>
 				</td>
 			</tr>
 			<tr>
 				<td class="table-label">详细地址</td>
-				<td></td>
+				<td>许坦东街锦东国际</td>
 				<td class="text-right">
 					<div class="link-group"><a href="javascript:;">修改</a></div>
 				</td>
 			</tr>
 			<tr>
 				<td class="table-label">手机</td>
-				<td></td>
+				<td>18812345678</td>
 				<td class="text-right">
 					<div class="link-group"><a href="javascript:;">修改</a></div>
 				</td>
 			</tr>
 			<tr>
 				<td class="table-label">QQ</td>
-				<td></td>
+				<td>123456</td>
 				<td class="text-right">
 					<div class="link-group"><a href="javascript:;">修改</a></div>
 				</td>
 			</tr>
 			<tr>
 				<td class="table-label">Email</td>
-				<td></td>
+				<td>123@qq.com</td>
 				<td class="text-right">
 					<div class="link-group"><a href="javascript:;">修改</a></div>
 				</td>
@@ -170,28 +205,28 @@
 			</tr>
 			<tr>
 				<td class="table-label">固定电话</td>
-				<td></td>
+				<td>0351-12345678</td>
 				<td class="text-right">
 					<div class="link-group"><a href="javascript:;">修改</a></div>
 				</td>
 			</tr>
 			<tr>
 				<td class="table-label">MSN</td>
-				<td></td>
+				<td>MSN</td>
 				<td class="text-right">
 					<div class="link-group"><a href="javascript:;">修改</a></div>
 				</td>
 			</tr>
 			<tr>
 				<td class="table-label">阿里旺旺</td>
-				<td></td>
+				<td>aliwangwang</td>
 				<td class="text-right">
 					<div class="link-group"><a href="javascript:;">修改</a></div>
 				</td>
 			</tr>
 			<tr>
 				<td class="table-label">支付宝账号</td>
-				<td></td>
+				<td>zhifubao@qq.com</td>
 				<td class="text-right">
 					<div class="link-group"><a href="javascript:;">修改</a></div>
 				</td>
@@ -438,8 +473,8 @@
 			</tr>
 		</table>
 		<!--end编辑会员-->
-		<div class="panel we7-panel hidden">
-			<div class="panel-heading">基本资料</div>
+		<div class="panel we7-panel">
+			<div class="panel-heading">修改密码</div>
 			<div class="panel-body we7-padding">
 				<div class="form-group">
 					<label class="col-sm-2 control-label">新密码</label>

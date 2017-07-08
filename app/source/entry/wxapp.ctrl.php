@@ -9,6 +9,7 @@ if (strexists($_SERVER['HTTP_REFERER'], 'https://servicewechat.com/')) {
 	$referer_url = parse_url($_SERVER['HTTP_REFERER']);
 	list($appid, $version) = explode('/', ltrim($referer_url['path'], '/'));
 }
+
 $site = WeUtility::createModuleWxapp($entry['module']);
 if(!is_error($site)) {
 	$site->appid = $appid;
@@ -19,10 +20,21 @@ if(!is_error($site)) {
 			message(error(1, '签名错误'), '', 'ajax');
 		}
 	}
-	if (!empty($_GPC['i'])) {
-		$version_info = pdo_get('wxapp_versions', array('uniacid' => $_GPC['i'], 'version' => $_GPC['v']), array('id', 'uniacid', 'template'));
-		$connection = json_decode($version_info['connection'], true);
-		$_W['uniacid'] = !empty($connection[$entry['module']]) ? $connection[$entry['module']] : $version_info['uniacid'];
+	if (!empty($_GPC['state']) && strexists($_GPC['state'], 'we7sid-') && (empty($_W['openid']) || empty($_SESSION['openid']))) {
+		$site->result(41009, '请登录');exit;
+	}
+	if (!empty($_W['uniacid'])) {
+		$version = trim($_GPC['v']);
+		$version_info = pdo_get('wxapp_versions', array('uniacid' => $_W['uniacid'], 'version' => $version), array('id', 'uniacid', 'template', 'modules'));
+		if (!empty($version_info['modules'])) {
+			$connection = iunserializer($version_info['modules'], true);
+			if (!empty($connection[$entry['module']])) {
+				$uniacid = intval($connection[$entry['module']]['uniacid']);
+				if (!empty($uniacid)) {
+					$_W['uniacid'] = $uniacid;
+				}
+			}
+		}
 	}
 	exit($site->$method());
 }

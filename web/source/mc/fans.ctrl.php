@@ -42,36 +42,22 @@ if ($do == 'display') {
 			$param[':openid'] = $nickname;
 		} else {
 			$condition .= " AND ((f.`nickname` LIKE :nickname) OR (f.`openid` LIKE :openid))";
-			$param[':nickname'] = "%".$nickname."%";
-			$param[':openid'] = "%".$nickname."%";
+			$param[':nickname'] = "%" . $nickname . "%";
+			$param[':openid'] = "%" . $nickname . "%";
 		}
 	}
-	if (!empty($_GPC['time']['start'])) {
-		$starttime = strtotime($_GPC['time']['start']);
-		$endtime = strtotime($_GPC['time']['end']) + 86399;
-	} else {
-		$starttime = strtotime('-3 month', time());
-		$endtime = time();
-	}
-	if (empty($tag)) {
-		$param[':starttime'] = $starttime;
-		$param[':endtime'] = $endtime;
-	}
+
 	$follow = intval($_GPC['follow']) ? intval($_GPC['follow']) : 1;
 	if ($follow == 1) {
 		$orderby = " ORDER BY f.`followtime` DESC";
 		$condition .= " AND f.`follow` = 1";
-		if (!empty($starttime) && empty($tag)) {
-			$condition .= " AND f.`followtime` >= :starttime AND f.`followtime` <= :endtime";
-		}
 	} elseif ($follow == 2) {
 		$orderby = " ORDER BY f.`unfollowtime` DESC";
 		$condition .= " AND f.`follow` = 0";
-		if (!empty($starttime) && empty($tag)) {
-			$condition .= " AND f.`unfollowtime` >= :starttime AND f.`unfollowtime` <= :endtime";
-		}
 	}
-	$fans_list = pdo_fetchall("SELECT f.* FROM " .tablename('mc_mapping_fans')." AS f LEFT JOIN ".tablename('mc_fans_tag_mapping')." AS m ON m.`fanid` = f.`fanid`". $condition. " GROUP BY f.`fanid`" . $orderby . " LIMIT " .($pageindex - 1) * $pagesize.",".$pagesize, $param);
+	$select_sql = "SELECT %s FROM " .tablename('mc_mapping_fans')." AS f LEFT JOIN ".tablename('mc_fans_tag_mapping')." AS m ON m.`fanid` = f.`fanid` " . $condition ." %s";
+	$fans_list_sql = sprintf($select_sql, "f.* ", " GROUP BY f.`fanid`" . $orderby . " LIMIT " .($pageindex - 1) * $pagesize.",".$pagesize);
+	$fans_list = pdo_fetchall($fans_list_sql, $param);
 	if (!empty($fans_list)) {
 		foreach ($fans_list as &$v) {
 			$v['tag_show'] = mc_show_tag($v['groupid']);
@@ -94,12 +80,15 @@ if ($do == 'display') {
 				if (!empty($v['tag']['headimgurl'])) {
 					$v['tag']['avatar'] = tomedia($v['tag']['headimgurl']);
 				}
+				if (empty($v['nickname']) && !empty($v['tag']['nickname'])) {
+					$v['nickname'] = strip_emoji($v['tag']['nickname']);
+				}
 			}
 			if (empty($v['tag'])) {
 				$v['tag'] = array();
 			}
 			if (empty($v['user']['nickname']) && !empty($v['tag']['nickname'])) {
-				$v['user']['nickname'] = $v['tag']['nickname'];
+				$v['user']['nickname'] = strip_emoji($v['tag']['nickname']);
 			}
 			if (empty($v['user']['avatar']) && !empty($v['tag']['avatar'])) {
 				$v['user']['avatar'] = $v['tag']['avatar'];
@@ -109,9 +98,10 @@ if ($do == 'display') {
 		unset($v);
 	}
 
-	$total = pdo_fetchcolumn("SELECT COUNT(DISTINCT f.`fanid`) FROM " .tablename('mc_mapping_fans')." AS f LEFT JOIN ".tablename('mc_fans_tag_mapping').' AS m ON m.`fanid` = f.`fanid`'.$condition, $param);
+	$total_sql = sprintf($select_sql, "COUNT(DISTINCT f.`fanid`) ", '');
+	$total = pdo_fetchcolumn($total_sql, $param);
 	$pager = pagination($total, $pageindex, $pagesize);
-	$fans['total'] = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_mapping_fans') . ' WHERE uniacid = :uniacid AND acid = :acid AND follow = 1', array(':uniacid' => $_W['uniacid'], ':acid' => $_W['acid']));
+	$fans['total'] = pdo_getcolumn("mc_mapping_fans", array('uniacid' => $_W['uniacid'], 'acid' => $_W['acid'], 'follow' => 1), 'count(*)');
 }
 
 if ($do == 'add_tag') {
@@ -208,7 +198,6 @@ if ($do == 'edit_fans_tag') {
 			$tags = implode(',', $tags);
 		}
 		pdo_update('mc_mapping_fans', array('groupid' => $tags), array('fanid' => $fanid));
-		cache_build_fansinfo($openid);
 	}
 	iajax(0, $result);
 }
@@ -225,17 +214,15 @@ if ($do == 'batch_edit_fans_tag') {
 
 	$account_api = WeAccount::create();
 	foreach ($tags as $tag) {
-		$result = $account_api->fansTagBatchTagging($openid_list, $tags[0]);
-		if (!is_error($result)) {
-			foreach ($openid_list as $openid) {
-				$fan_info = pdo_get('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'openid' => $openid));
-				pdo_insert('mc_fans_tag_mapping', array('fanid' => $fan_info['fanid'], 'tagid' => $tag));
-				$groupid = $fan_info['group'].",".$tag;
-				pdo_update('mc_mapping_fans', array('groupid' => $groupid), array('uniacid' => $_W['uniacid'], 'openid' => $openid));
-				cache_build_fansinfo($openid);
-			}
-		} else {
-			iajax(0, $result);
+		$result = $account_api->fansTagBatchTagging($openid_list, $tag);
+		if (is_error($result)) {
+			iajax(-1, $result);
+		}
+		foreach ($openid_list as $openid) {
+			$fan_info = pdo_get('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'openid' => $openid));
+			pdo_insert('mc_fans_tag_mapping', array('fanid' => $fan_info['fanid'], 'tagid' => $tag), true);
+			$groupid = $fan_info['group'].",".$tag;
+			pdo_update('mc_mapping_fans', array('groupid' => $groupid), array('uniacid' => $_W['uniacid'], 'openid' => $openid));
 		}
 	}
 	iajax(0, '');
@@ -269,7 +256,7 @@ if ($do == 'download_fans') {
 			}
 			if (!empty($add_fans_sql)) {
 				$add_fans_sql = rtrim($add_fans_sql, ',');
-				$add_fans_sql = 'INSERT INTO ' . tablename('mc_mapping_fans') . ' (`acid`, `uniacid`, `uid`, `openid`, `salt`, `follow`, `followtime`, `tag`) VALUES ' . $add_fans_sql;
+				$add_fans_sql = "INSERT INTO " . tablename('mc_mapping_fans') . " (`acid`, `uniacid`, `uid`, `openid`, `salt`, `follow`, `followtime`, `tag`) VALUES " . $add_fans_sql;
 				$result = pdo_query($add_fans_sql);
 			}
 			pdo_update('mc_mapping_fans', array('follow' => 1), array('openid' => $wechat_fans));
@@ -279,7 +266,7 @@ if ($do == 'download_fans') {
 		$return['next'] = $wechat_fans_list['next'];
 		iajax(0, $return, '');
 	} else {
-		iajax(1, $wechat_fans_list);
+		iajax(1, $wechat_fans_list['message']);
 	}
 }
 

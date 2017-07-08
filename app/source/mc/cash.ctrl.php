@@ -4,13 +4,18 @@
  * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
-$moduels = uni_modules();
+
 load()->model('activity');
 load()->model('module');
+load()->model('payment');
+load()->func('communication');
+
+$moduels = uni_modules();
 $params = @json_decode(base64_decode($_GPC['params']), true);
 if(empty($params) || !array_key_exists($params['module'], $moduels)) {
 	message('访问错误.');
 }
+
 $setting = uni_setting($_W['uniacid'], 'payment');
 $dos = array();
 if(!empty($setting['payment']['credit']['switch'])) {
@@ -37,16 +42,13 @@ $type = in_array($do, $dos) ? $do : '';
 if(empty($type)) {
 	message('支付方式错误,请联系商家', '', 'error');
 }
+
 if(!empty($type)) {
-	$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniacid`=:uniacid AND `module`=:module AND `tid`=:tid';
-	$pars  = array();
-	$pars[':uniacid'] = $_W['uniacid'];
-	$pars[':module'] = $params['module'];
-	$pars[':tid'] = $params['tid'];
-	$log = pdo_fetch($sql, $pars);
+	$log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $params['module'], 'tid' => $params['tid']));
 	if(!empty($log) && ($type != 'credit' && !empty($_GPC['notify'])) && $log['status'] != '0') {
 		message('这个订单已经支付成功, 不需要重复支付.');
 	}
+	
 	$update_card_log = array(
 		'is_usecard' => '0',
 		'card_type' => '0',
@@ -55,6 +57,7 @@ if(!empty($type)) {
 		'type' => $type,
 	);
 	pdo_update('core_paylog', $update_card_log, array('plid' => $log['plid']));
+	
 	$log['is_usecard'] = '0';
 	$log['card_type'] = '0';
 	$log['card_id'] = '0';
@@ -68,6 +71,7 @@ if(!empty($type)) {
 	if (empty($log['uniontid'])) {
 		$record['uniontid'] = $log['uniontid'] = date('YmdHis').$moduleid.random(8,1);
 	}
+	
 	if($type != 'delivery') {
 		$we7_coupon_info = module_fetch('we7_coupon');
 		if (!empty($we7_coupon_info)) {
@@ -110,53 +114,45 @@ if(!empty($type)) {
 			$log['is_usecard'] = $record['is_usecard'];
 		}
 	}
-	$ps = array();
-	$ps['tid'] = $log['plid'];
-	$ps['uniontid'] = $log['uniontid'];
-	$ps['user'] = $_W['fans']['from_user'];
-	$ps['fee'] = $log['card_fee'];
-	$ps['title'] = $params['title'];
-	if($type == 'alipay') {
-		if(!empty($plid)) {
-			pdo_update('core_paylog', array('openid' => $_W['member']['uid']), array('plid' => $plid));
+	$ps = array(
+		'tid' => $log['plid'],
+		'uniontid' => $log['uniontid'],
+		'user' => $_W['openid'],
+		'fee' => $log['card_fee'],
+		'title' => $params['title'],
+	);
+	if ($type == 'alipay') {
+		if (!empty($log['plid'])) {
+			pdo_update('core_paylog', array('openid' => $_W['member']['uid']), array('plid' => $log['plid']));
 		}
-		load()->model('payment');
-		load()->func('communication');
 		$ret = alipay_build($ps, $setting['payment']['alipay']);
 		if($ret['url']) {
 			echo '<script type="text/javascript" src="../payment/alipay/ap.js"></script><script type="text/javascript">_AP.pay("'.$ret['url'].'")</script>';
 			exit();
 		}
 	}
-	if($type == 'wechat') {
-		$payopenid = $_GPC['payopenid'];
-		$setting = uni_setting($_W['uniacid'], array('payment', 'recharge'));
-		if ((intval($setting['payment']['wechat']['switch']) == 2 || intval($setting['payment']['wechat']['switch']) == 3) && empty($payopenid)) { //如果开启借用权限 那么需要先去授权
-			$uniacid = !empty($setting['payment']['wechat']['service']) ? $setting['payment']['wechat']['service'] : $setting['payment']['wechat']['borrow'];
-			$acid = pdo_getcolumn('uni_account', array('uniacid' => $uniacid), 'default_acid');
-			$from = $_GPC['params'];
-			$url = $_W['siteroot'].'app'.str_replace('./', '/', murl('auth/oauth'));
-			$callback = urlencode($url);
-			$oauth_account = WeAccount::create($acid);
-			$_SESSION['pay_params'] = $from;
-			$state = 'we7sid-'.$_W['session_id'];
-			$forward = $oauth_account->getOauthCodeUrl($callback, $state);
-			header('Location: ' . $forward);
-			exit();
-		}
-		unset($_SESSION['pay_params']);
-		if(!empty($plid)) {
+	
+	if ($type == 'wechat') {
+		if(!empty($log['plid'])) {
 			$tag = array();
 			$tag['acid'] = $_W['acid'];
 			$tag['uid'] = $_W['member']['uid'];
-			pdo_update('core_paylog', array('openid' => $_W['openid'], 'tag' => iserializer($tag)), array('plid' => $plid));
+			pdo_update('core_paylog', array('openid' => $_W['openid'], 'tag' => iserializer($tag)), array('plid' => $log['plid']));
 		}
 		$ps['title'] = urlencode($params['title']);
-		load()->model('payment');
-		load()->func('communication');
 		$sl = base64_encode(json_encode($ps));
 		$auth = sha1($sl . $_W['uniacid'] . $_W['config']['setting']['authkey']);
-		header("Location:../payment/wechat/pay.php?i={$_W['uniacid']}&auth={$auth}&ps={$sl}&payopenid={$payopenid}");
+		
+		$callback = $_W['siteroot'] . "payment/wechat/pay.php?i={$_W['uniacid']}&auth={$auth}&ps={$sl}";
+		//如果有借用支付，则需要通过网页授权附带用户Openid跳转至支付，否则直接跳转
+		$proxy_pay_account = payment_proxy_pay_account();
+		if (!is_error($proxy_pay_account)) {
+			$forward = $proxy_pay_account->getOauthCodeUrl(urlencode($callback), 'we7sid-'.$_W['session_id']);
+			header('Location: ' . $forward);
+			exit;
+		}
+		
+		header("Location: $callback");
 		exit();
 	}
 	if($type == 'credit') {
@@ -169,6 +165,14 @@ if(!empty($type)) {
 		$log = pdo_fetch($sql, $pars);
 		if($log['module'] == 'recharge') {
 			message('不能使用余额支付', referer(), 'error');
+		}
+		if (!is_numeric($log['openid'])) {
+			$uid = mc_openid2uid($log['openid']);
+			if (empty($uid)) {
+				$fans_info = mc_init_fans_info($log['openid']);
+				$uid = $fans_info['uid'];
+			}
+			$log['openid'] = $uid;
 		}
 		//如果是return返回的话，处理相应付款操作
 		if(empty($_GPC['notify'])) {

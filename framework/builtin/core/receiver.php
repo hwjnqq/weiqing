@@ -98,12 +98,12 @@ class CoreModuleReceiver extends WeModuleReceiver {
 				$userinfo['avatar'] = $userinfo['headimgurl'];
 				$fans = array(
 					'unionid' => $userinfo['unionid'],
-					'nickname' => $userinfo['nickname'],
+					'nickname' => strip_emoji($userinfo['nickname']),
 					'tag' => base64_encode(iserializer($userinfo)),
-				);
+				);				
 				pdo_update('mc_mapping_fans', $fans, array('openid' => $this->message['from']));
-				cache_build_fansinfo($this->message['form']);
-				if (!empty($_W['member']['uid'])) {
+				$uid = !empty($_W['member']['uid']) ? $_W['member']['uid'] : $this->message['from'];
+				if (!empty($uid)) {
 					$member = array();
 					if (!empty($userinfo['nickname'])) {
 						$member['nickname'] = $fans['nickname'];
@@ -112,101 +112,7 @@ class CoreModuleReceiver extends WeModuleReceiver {
 						$member['avatar'] = $userinfo['headimgurl'];
 					}
 					load()->model('mc');
-					mc_update($_W['member']['uid'], $member);
-				}
-			}
-		}
-		$stat_setting = uni_setting($_W['uniacid'], 'stat');
-		$stat_setting = $stat_setting['stat'];
-		if(!is_array($stat_setting) || empty($stat_setting)) {
-			$stat_setting = array();
-			$stat_setting['msg_maxday'] = 0;
-			$stat_setting['msg_history'] = 1;
-			$stat_setting['use_ratio'] = 1;
-		}
-
-		if (!empty($stat_setting['msg_maxday']) && $stat_setting['msg_maxday'] > 0) {
-			pdo_delete('stat_msg_history', " createtime < ".TIMESTAMP.' - '. $stat_setting['msg_maxday'] * 86400);
-		}
-
-		if ($stat_setting['msg_history']) {
-			switch ($this->message['type']) {
-				case 'text':
-					$content = iserializer(array('content' => $this->message['content'], 'original' => $this->message['original'], 'redirection' => $this->message['redirection'], 'source' => $this->message['source']));
-					break;
-				case 'image':
-					$content = $this->message['url'];
-					break;
-				case 'voice':
-					$content = iserializer(array('media' => $this->message['media'], 'format' => $this->message['format']));
-					break;
-				case 'video':
-					$content = iserializer(array('media' => $this->message['media'], 'thumb' => $this->message['thumb']));
-					break;
-				case 'location':
-					$content = iserializer(array('x' => $this->message['location_x'], 'y' => $this->message['location_y']));
-					break;
-				case 'link':
-					$content = iserializer(array('title' => $this->message['title'], 'description' => $this->message['description'], 'url' => $this->message['url']));
-					break;
-				case 'subscribe':
-					$content = iserializer(array('scene' => $this->message['scene'], 'ticket' => $this->message['ticket']));
-					break;
-				case 'qr':
-					$content = iserializer(array('scene' => $this->message['scene'], 'ticket' => $this->message['ticket']));
-					break;
-				case 'click':
-					$content = $this->message['content'];
-					break;
-				case 'view':
-					$content = $this->message['url'];
-					break;
-				case 'trace':
-					$content = iserializer(array('location_x' => $this->message['location_x'], 'location_y' => $this->message['location_y'], 'precision' => $this->message['precision']));
-					break;
-				default:
-					$content = $this->message['content'];
-			}
-				
-			pdo_insert('stat_msg_history', array(
-				'uniacid' => $_W['uniacid'],
-				'module' => $this->params['module'],
-				'from_user' => $this->message['from'],
-				'rid' => intval($this->params['rule']),
-				'kid' => $this->keyword['id'],
-				'message' => $content,
-				'type' => $this->message['type'],
-				'createtime' => $this->message['time'],
-			));
-		}
-		if (!empty($stat_setting['use_ratio'])) {
-			if(!empty($this->params['rule'])) {
-				$rule_stat_found = pdo_get('stat_rule', array('rid' => $this->params['rule'], 'createtime' => strtotime(date('Y-m-d'))));
-				if (empty($rule_stat_found)) {
-					pdo_insert('stat_rule', array(
-						'uniacid' => $_W['uniacid'],
-						'rid' => $this->params['rule'],
-						'createtime' => strtotime(date('Y-m-d')),
-						'hit' => 1,
-						'lastupdate' => $this->message['time'],
-					));
-				} else {
-					pdo_query("UPDATE ".tablename('stat_rule')." SET hit = hit + 1, lastupdate = '".TIMESTAMP."' WHERE rid = :rid AND createtime = :createtime", array(':rid' => $this->params['rule'], ':createtime' => strtotime(date('Y-m-d'))));
-				}
-			}
-			if (!empty($this->keyword['id'])) {
-				$keyword_stat_found = pdo_get('stat_keyword', array('rid' => $this->params['rule'], 'createtime' => strtotime(date('Y-m-d'))));
-				if (empty($keyword_stat_found)) {
-					pdo_insert('stat_keyword', array(
-						'uniacid' => $_W['uniacid'],
-						'rid' => $this->params['rule'],
-						'kid' => $this->keyword['id'],
-						'createtime' => strtotime(date('Y-m-d')),
-						'hit' => 1,
-						'lastupdate' => $this->message['time'],
-					));
-				} else {
-					pdo_query("UPDATE ".tablename('stat_keyword')." SET hit = hit + 1, lastupdate = '".TIMESTAMP."' WHERE kid = :kid AND createtime = :createtime", array(':kid' => $this->keyword['id'], ':createtime' => strtotime(date('Y-m-d'))));
+					mc_update($uid, $member);
 				}
 			}
 		}

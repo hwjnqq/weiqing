@@ -10,7 +10,7 @@ defined('IN_IA') or exit('Access Denied');
  * 微擎系统可以将不同公众平台的公众号或同一平台的不同公众号集成为一个 <b>【统一公众号】</b> 来进行管理.
  * 微擎系统将粉丝用户与统一公众号之间的上下文对话定义为一个会话(WeSession).
  */
-class WeSession {
+class WeSession implements SessionHandlerInterface {
 	/**
 	 * 微擎系统的统一公众号编号
 	 * @var int
@@ -34,25 +34,41 @@ class WeSession {
 	 * @param int $expire 过期时间,单位秒.
 	 */
 	public static function start($uniacid, $openid, $expire = 3600) {
-		if (empty($GLOBALS['_W']['config']['setting']['memcache']['session']) || empty($GLOBALS['_W']['config']['setting']['memcache']['server'])) {
+		//php7使用memcache session有bug，只能使用memcacehd,待修复
+		if (version_compare(PHP_VERSION, '7.0.0') < 0) {
+			if (extension_loaded('memcache') && !empty($cache_setting['memcache']['server']) && !empty($cache_setting['memcache']['session'])) {
+				ini_set("session.save_handler", "memcache");
+				ini_set("session.save_path", "tcp://{$cache_setting['memcache']['server']}:{$cache_setting['memcache']['port']}");
+			} elseif (extension_loaded('redis') && !empty($cache_setting['redis']['server']) && !empty($cache_setting['redis']['session'])) {
+				ini_set("session.save_handler", "redis");
+				ini_set("session.save_path", "tcp://{$cache_setting['redis']['server']}:{$cache_setting['redis']['port']}");
+			}
+		} elseif (extension_loaded('memcached') && !empty($cache_setting['memcache']['server']) && !empty($cache_setting['memcache']['session'])) {
+			ini_set("session.save_handler", "memcached");
+			ini_set("session.save_path", "{$cache_setting['memcache']['server']}:{$cache_setting['memcache']['port']}");
+		} else {
 			WeSession::$uniacid = $uniacid;
 			WeSession::$openid = $openid;
 			WeSession::$expire = $expire;
 			$sess = new WeSession();
-			session_set_save_handler(
-				array(&$sess, 'open'),
-				array(&$sess, 'close'),
-				array(&$sess, 'read'),
-				array(&$sess, 'write'),
-				array(&$sess, 'destroy'),
-				array(&$sess, 'gc')
-			);
-			register_shutdown_function('session_write_close');
+			if (version_compare(PHP_VERSION, '5.4') >= 0) {
+				session_set_save_handler($sess, true);
+			} else {
+				session_set_save_handler(
+					array(&$sess, 'open'),
+					array(&$sess, 'close'),
+					array(&$sess, 'read'),
+					array(&$sess, 'write'),
+					array(&$sess, 'destroy'),
+					array(&$sess, 'gc')
+				);
+			}
 		}
+		register_shutdown_function('session_write_close');
 		session_start();
 	}
 
-	public function open() {
+	public function open($save_path, $session_name) {
 		return true;
 	}
 
@@ -74,7 +90,7 @@ class WeSession {
 		if(is_array($row) && !empty($row['data'])) {
 			return $row['data'];
 		}
-		return false;
+		return '';
 	}
 
 	/**

@@ -1,18 +1,17 @@
 {template 'common/header'}
-<div class="panel-heading">
-	<ol class="breadcrumb we7-breadcrumb">
-		<a href="{php echo url('site/multi')}"><i class="wi wi-back-circle"></i> </a>
-		<li>
-			<a href="{php echo url('site/multi')}">微官网列表</a>
-		</li>
-		<li>
-			编辑
-		</li>
-	</ol>
-</div>
-
 <form action="" method="post" class="panel panel-cut" id="js-wesite-post" ng-controller="WesitePost" ng-cloak>
 	<input type="hidden" name="multiid" value="{$_GPC['multiid']}">
+	<div class="panel-heading">
+		<ol class="breadcrumb we7-breadcrumb">
+			<a href="{php echo url('site/multi')}"><i class="wi wi-back-circle"></i> </a>
+			<li>
+				<a href="{php echo url('site/multi')}">微官网列表</a>
+			</li>
+			<li>
+				编辑
+			</li>
+		</ol>
+	</div>
 	<div class="panel-body">
 		<div class="site-select-tem">
 			<div class="select-tem-heading">选择模板</div>

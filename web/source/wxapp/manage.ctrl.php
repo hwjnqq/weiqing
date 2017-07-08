@@ -40,15 +40,17 @@ if ($do == 'display') {
 }
 
 if ($do == 'edit_version') {
-	if (empty($_GPC['version_info']) || !is_array($_GPC['version_info']) || empty($_GPC['version_info']['modules'])) {
+	if (empty($_GPC['version_info']) || !is_array($_GPC['version_info'])) {
 		iajax(1, '数据错误！');
+	}
+	if (empty($_GPC['version_info']['modules'])) {
+		iajax(1, '应用模块不可为空！');
 	}
 	$versionid = intval($_GPC['version_info']['id']);
 	$version_exist = wxapp_fetch($uniacid, $versionid);
 	if(empty($version_exist)) {
 		iajax(1, '版本不存在或已删除！');
 	}
-
 	$have_permission = false;
 	$wxapp_modules = wxapp_support_wxapp_modules();
 	$supoort_modulenames = array_keys($wxapp_modules);
@@ -58,6 +60,7 @@ if ($do == 'edit_version') {
 			if (!in_array($module_val['name'], $supoort_modulenames)) {
 				iajax(1, '没有模块：' . $module_val['name'] . '的权限！');
 			} else {
+				// @@todo $new_module_data数组结构
 				$new_module_data[] = array(
 					'name' => $module_val['name'],
 					'version' => $module_val['version']
@@ -70,16 +73,18 @@ if ($do == 'edit_version') {
 		$module_version = trim($_GPC['version_info']['modules'][0]['version']);
 		$have_permission = in_array($module_name, $supoort_modulenames);
 		if (!empty($have_permission)) {
-			$new_module_data[] = array(
-				'name' => $module_name,
-				'version' => $module_version
-			);
+			$new_module_data = array(
+					$module_name => array(
+						'name' => $module_name,
+						'version' => $module_version
+					)
+				);
 		} else {
 			iajax(1, '没有此模块的权限！');
 		}
 	}
 	if (empty($new_module_data)) {
-		iajax(1, '数据错误！');
+		iajax(1, '应用模块不可为空！');
 	}
 	$data = array('modules' => iserializer($new_module_data), 'version' => trim($_GPC['version_info']['version']), 'description' => trim($_GPC['version_info']['description']));
 	pdo_update('wxapp_versions', $data, array('id' => $versionid));
@@ -124,31 +129,30 @@ if($do == 'getpackage') {
 		itoast('参数错误！', '', '');
 	}
 
-	$request_cloud_data = array();
-	$account_wxapp_info = pdo_get('account_wxapp', array('uniacid' => $uniacid));
-	$wxapp_version_info = pdo_get('wxapp_versions', array('uniacid' => $uniacid, 'id' => $versionid));
-	if (empty($wxapp_version_info)) {
+	$account_wxapp_info = wxapp_fetch($uniacid, $versionid);
+	if (empty($account_wxapp_info)) {
 		itoast('版本不存在！', referer(), 'error');
 	}
-	$request_cloud_data['name'] = $account_wxapp_info['name'];
-	$zipname = $request_cloud_data['name'];
-	$request_cloud_data['modules'] = iunserializer($wxapp_version_info['modules'], true);
-	$request_cloud_data['siteInfo'] = array(
+	$request_cloud_data = array(
+		'name' => $account_wxapp_info['name'],
+		'modules' => $account_wxapp_info['version']['modules'],
+		'siteInfo' => array(
 			'uniacid' => $account_wxapp_info['uniacid'],
 			'acid' => $account_wxapp_info['acid'],
-			'multiid' => $wxapp_version_info['multiid'],
-			'version' => $wxapp_version_info['version'],
+			'multiid' => $account_wxapp_info['version']['multiid'],
+			'version' => $account_wxapp_info['version']['version'],
 			'siteroot' => $_W['siteroot'].'app/index.php',
-			'design_method' => $wxapp_version_info['design_method']
-		);
-	$request_cloud_data['tabBar'] = json_decode($wxapp_version_info['quickmenu'], true);
+			'design_method' => $account_wxapp_info['version']['design_method']
+		),
+		'tabBar' => json_decode($account_wxapp_info['version']['quickmenu'], true),
+	);
 	$result = wxapp_getpackage($request_cloud_data);
 
 	if(is_error($result)) {
 		itoast($result['message'], '', '');
 	}else {
 		header('content-type: application/zip');
-		header('content-disposition: attachment; filename="'.$zipname.'.zip"');
+		header('content-disposition: attachment; filename="' . $request_cloud_data['name'] . '.zip"');
 		echo $result;
 	}
 	exit;

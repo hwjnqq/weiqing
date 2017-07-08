@@ -147,9 +147,6 @@ if ($do == 'del') {
 	if(pdo_delete('rule', array('id' => $rid, 'uniacid' => $_W['uniacid'])) !== false) {
 		pdo_delete('rule_keyword', array('rid' => $rid));
 		pdo_delete('cover_reply', array('rid' => $rid, 'multiid' => $id));
-		//删除统计相关数据
-		pdo_delete('stat_rule', array('rid' => $rid));
-		pdo_delete('stat_keyword', array('rid' => $rid));
 	}
 	//删除微站信息
 	pdo_delete('site_multi', array('uniacid' => $_W['uniacid'], 'id' => $id));

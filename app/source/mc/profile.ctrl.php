@@ -14,7 +14,7 @@ $navs = app_navs('profile');
 $profile = mc_fetch($_W['member']['uid']);
 //如果有openid,获取从公众平台同步的用户信息
 if(!empty($_W['openid'])) {
-	$map_fans = pdo_fetchcolumn('SELECT tag FROM ' . tablename('mc_mapping_fans') . ' WHERE uniacid = :uniacid AND openid = :openid', array(':uniacid' => $_W['uniacid'], ':openid' => $_W['openid']));
+	$map_fans = pdo_getcolumn('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'openid' => $_W['openid']), 'tag');
 	if(!empty($map_fans)) {
 		if (is_base64($map_fans)){
 			$map_fans = base64_decode($map_fans);
@@ -24,7 +24,7 @@ if(!empty($_W['openid'])) {
 		}
 		if(!empty($map_fans) && is_array($map_fans)) {
 			//如果用户的资料中有这些信息,以用户的信息为准
-			empty($profile['nickname']) ? ($data['nickname'] = $map_fans['nickname']) : '';
+			empty($profile['nickname']) ? ($data['nickname'] = strip_emoji($map_fans['nickname'])) : '';
 			empty($profile['gender']) ? ($data['gender'] = $map_fans['sex']) : '';
 			empty($profile['residecity']) ? ($data['residecity'] = ($map_fans['city']) ? $map_fans['city'] . '市' : '') : '';
 			empty($profile['resideprovince']) ? ($data['resideprovince'] = ($map_fans['province']) ? $map_fans['province'] . '省' : '') : '';

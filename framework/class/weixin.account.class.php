@@ -757,7 +757,7 @@ class WeiXinAccount extends WeAccount {
 		$url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$this->account['key']}&secret={$this->account['secret']}";
 		$content = ihttp_get($url);
 		if(is_error($content)) {
-			itoast('获取微信公众号授权失败, 请稍后重试！错误详情: ' . $content['message'], '', 'error');
+			message('获取微信公众号授权失败, 请稍后重试！错误详情: ' . $content['message'], '', 'error');
 		}
 		if (empty($content['content'])) {
 			return error('-1', 'AccessToken获取失败，请检查appid和appsecret的值是否与微信公众平台一致！');
@@ -766,7 +766,7 @@ class WeiXinAccount extends WeAccount {
 		if(empty($token) || !is_array($token) || empty($token['access_token']) || empty($token['expires_in'])) {
 			$errorinfo = substr($content['meta'], strpos($content['meta'], '{'));
 			$errorinfo = @json_decode($errorinfo, true);
-			itoast('获取微信公众号授权失败, 请稍后重试！ 公众平台返回原始数据为: 错误代码-' . $errorinfo['errcode'] . '，错误信息-' . $errorinfo['errmsg'], '', 'error');
+			message('获取微信公众号授权失败, 请稍后重试！ 公众平台返回原始数据为: 错误代码-' . $errorinfo['errcode'] . '，错误信息-' . $errorinfo['errmsg'], '', 'error');
 		}
 		$record = array();
 		$record['token'] = $token['access_token'];
@@ -801,8 +801,16 @@ class WeiXinAccount extends WeAccount {
 	}
 	
 	public function clearAccessToken() {
-		$cachekey = "accesstoken:{$this->account['acid']}";
-		cache_delete($cachekey);
+		$access_token = $this->getAccessToken();
+		if(is_error($access_token)){
+			return $access_token;
+		}
+		$url = 'https://api.weixin.qq.com/cgi-bin/getcallbackip?access_token=' . $access_token;
+		$response = $this->requestApi($url);
+		if (is_error($response) && $response['errno'] == '40001') {
+			$cachekey = "accesstoken:{$this->account['acid']}";
+			cache_delete($cachekey);
+		}
 		return true;
 	}
 	
@@ -1856,38 +1864,31 @@ class WeiXinAccount extends WeAccount {
 			return $token;
 		}
 		$url = "https://api.weixin.qq.com/datacube/getusersummary?access_token={$token}";
-		$response = ihttp_request($url, '{"begin_date": "'.date('Y-m-d', strtotime('-7 days')).'", "end_date": "'.date('Y-m-d', strtotime('-1 days')).'"}');
-		if(is_error($response)) {
-			return error(-1, "访问公众平台接口失败, 错误: {$response['message']}");
+		$data = array(
+			'begin_date' => date('Y-m-d', strtotime('-7 days')),
+			'end_date' => date('Y-m-d', strtotime('-1 days'))
+		);
+		$summary_response = $this->requestApi($url, json_encode($data));
+		if (is_error($summary_response)) {
+			return $summary_response;
 		}
-		$summary = @json_decode($response['content'], true);
-		if(empty($summary)) {
-			return error(-1, "接口调用失败, 元数据: {$response['meta']}");
-		} elseif (!empty($summary['errcode'])) {
-			return error(-1, "访问微信接口错误, 错误代码: {$summary['errcode']}, 错误信息: {$summary['errmsg']},信息详情：{$this->error_code($summary['errcode'])}");
-		}
+
 		$url = "https://api.weixin.qq.com/datacube/getusercumulate?access_token={$token}";
-		$response = ihttp_request($url, '{"begin_date": "'.date('Y-m-d', strtotime('-7 days')).'", "end_date": "'.date('Y-m-d', strtotime('-1 days')).'"}');
-	
-		if(is_error($response)) {
-			return error(-1, "访问公众平台接口失败, 错误: {$response['message']}");
+		$cumulate_response = $this->requestApi($url, json_encode($data));
+		if(is_error($cumulate_response)) {
+			return $cumulate_response;
 		}
-		$cumulate = @json_decode($response['content'], true);
-		if(empty($cumulate)) {
-			return error(-1, "接口调用失败, 元数据: {$response['meta']}");
-		} elseif(!empty($cumulate['errcode'])) {
-			return error(-1, "访问微信接口错误, 错误代码: {$cumulate['errcode']}, 错误信息: {$cumulate['errmsg']},信息详情：{$this->error_code($cumulate['errcode'])}");
-		}
+
 		$result = array();
-		if (!empty($summary['list'])) {
-			foreach ($summary['list'] as $row) {
+		if (!empty($summary_response['list'])) {
+			foreach ($summary_response['list'] as $row) {
 				$key = str_replace('-', '', $row['ref_date']);
 				$result[$key]['new'] = intval($result[$key]['new']) + $row['new_user'];
 				$result[$key]['cancel'] = intval($result[$key]['cancel']) + $row['cancel_user'];
 			}
 		}
-		if (!empty($cumulate['list'])) {
-			foreach ($cumulate['list'] as $row) {
+		if (!empty($cumulate_response['list'])) {
+			foreach ($cumulate_response['list'] as $row) {
 				$key = str_replace('-', '', $row['ref_date']);
 				$result[$key]['cumulate'] = $row['cumulate_user'];
 			}

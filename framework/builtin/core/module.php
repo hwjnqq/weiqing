@@ -118,13 +118,7 @@ class CoreModule extends WeModule {
 					//选择多种素材
 					if($_GPC['a'] == 'reply' && (!empty($_GPC['m']) && $_GPC['m'] == 'keyword')) {
 						foreach ($this->tablename as $key => $tablename) {
-							if ($key == 'keyword') {
-								// $replies['keyword'][0]['name'] = $isexists['name'];
-								// $keyword = pdo_fetchall("SELECT * FROM ".tablename('rule_keyword')." WHERE uniacid = :uniacid AND rid = :rid ORDER BY `id`", array(':uniacid' => $_W['uniacid'], ':rid' => $rid));
-								// foreach ($keyword as $val) {
-								// 	$replies['keyword'][0]['content'] .= $val['content'].'&nbsp;&nbsp;';
-								// }
-							} else {
+							if ($key != 'keyword') {
 								$replies[$key] = pdo_fetchall("SELECT * FROM ".tablename($tablename)." WHERE rid = :rid ORDER BY `id`", array(':rid' => $rid));
 								switch ($key) {
 									case 'image':
@@ -207,7 +201,7 @@ class CoreModule extends WeModule {
 				pdo_delete($tablename, array('rid' => $rid));
 			}
 		}
-
+		
 		foreach ($this->modules as $val) {
 			$replies = array();
 
@@ -244,7 +238,7 @@ class CoreModule extends WeModule {
 							if ($reply['model'] == 'local') {
 								$reply['mediaid'] = $reply['attach_id'];
 							}
-							pdo_insert ($tablename, array ('rid' => $rid, 'parent_id' => $reply['parent_id'], 'title' => $reply['title'], 'thumb' => tomedia($reply['thumb']), 'createtime' => $reply['createtime'], 'media_id' => $reply['mediaid'], 'displayorder' => $reply['displayorder']));
+							pdo_insert ($tablename, array ('rid' => $rid, 'parent_id' => $reply['parent_id'], 'title' => $reply['title'], 'thumb' => tomedia($reply['thumb']), 'createtime' => $reply['createtime'], 'media_id' => $reply['mediaid'], 'displayorder' => $reply['displayorder'], 'description' => $reply['description']));
 							if (empty($attach_id) || $reply['attach_id'] != $attach_id) {
 								$parent_id = pdo_insertid();
 							}

@@ -92,7 +92,7 @@ function mc_update($uid, $fields) {
 			$fields['avatar'] = str_replace($_W['attachurl'], '', $fields['avatar']);
 		}
 	}
-	$isexists = pdo_fetchcolumn("SELECT uid FROM " . tablename('mc_members') . " WHERE uid = :uid", array(':uid' => $uid));
+	$isexists = pdo_getcolumn('mc_members', array('uid' => $uid), 'uid');
 	$condition = '';
 	if (!empty($isexists)) {
 		$condition = ' AND uid != ' . $uid;
@@ -120,7 +120,6 @@ function mc_update($uid, $fields) {
 		$insert_id = pdo_insertid();
 		if (!empty($openid)) {
 			pdo_update('mc_mapping_fans', array('uid' => $insert_id), array('uniacid' => $_W['uniacid'], 'openid' => $openid));
-			cache_build_fansinfo($openid);
 		}
 		return $insert_id;
 	} else {
@@ -239,12 +238,10 @@ function mc_fansinfo($openidOruid, $acid = 0, $uniacid = 0){
 	} else {
 		$openid = $openidOruid;
 	}
-
-	$cachekey = cache_system_key("fansinfo:{$openid}");
-	$cache = cache_load($cachekey);
-	if (!empty($cache)) {
-		return $cache;
-	}
+	
+	/**
+	暂时先把缓存注释，查看是否重复会员问题
+	**/
 	$params = array();
 	$condition = '`openid` = :openid';
 	$params[':openid'] = $openid;
@@ -270,7 +267,9 @@ function mc_fansinfo($openidOruid, $acid = 0, $uniacid = 0){
 			if (is_array($fan['tag']) && !empty($fan['tag']['headimgurl'])) {
 				$fan['tag']['avatar'] = tomedia($fan['tag']['headimgurl']);
 				unset($fan['tag']['headimgurl']);
-				$fan['nickname'] = $fan['tag']['nickname'];
+				if (empty($fan['nickname']) && !empty($fan['tag']['nickname'])) {
+					$fan['nickname'] = strip_emoji($fan['tag']['nickname']);
+				}
 				$fan['gender'] = $fan['sex'] = $fan['tag']['sex'];
 				$fan['avatar'] = $fan['headimgurl'] = $fan['tag']['avatar'];
 			}
@@ -283,7 +282,9 @@ function mc_fansinfo($openidOruid, $acid = 0, $uniacid = 0){
 		$fan['uid'] = 0;
 		$fan['openid'] = $fan['tag']['openid'];
 		$fan['follow'] = 0;
-		$fan['nickname'] = $fan['tag']['nickname'];
+		if (empty($fan['nickname']) && !empty($fan['tag']['nickname'])) {
+			$fan['nickname'] = strip_emoji($fan['tag']['nickname']);
+		}
 		$fan['gender'] = $fan['sex'] = $fan['tag']['sex'];
 		$fan['avatar'] = $fan['headimgurl'] = $fan['tag']['headimgurl'];
 		$mc_oauth_fan = mc_oauth_fans($fan['openid']);
@@ -291,7 +292,6 @@ function mc_fansinfo($openidOruid, $acid = 0, $uniacid = 0){
 			$fan['uid'] = $mc_oauth_fan['uid'];
 		}
 	}
-	cache_write($cachekey, $fan);
 	return $fan;
 }
 
@@ -349,7 +349,6 @@ function mc_oauth_userinfo($acid = 0) {
 					'tag' => base64_encode(iserializer($userinfo))
 				);
 				pdo_update('mc_mapping_fans', $record, array('openid' => $_SESSION['openid'], 'acid' => $_W['acid'], 'uniacid' => $_W['uniacid']));
-				cache_build_fansinfo($_SESSION['openid']);
 			} else {
 				$record = array();
 				$record['updatetime'] = TIMESTAMP;
@@ -538,7 +537,6 @@ function mc_require($uid, $fields, $pre = '') {
 			if (empty($uid)) {
 				pdo_update('mc_oauth_fans', array('uid' => $insertuid), array('oauth_openid' => $_W['openid']));
 				pdo_update('mc_mapping_fans', array('uid' => $insertuid), array('openid' => $_W['openid']));
-				cache_build_fansinfo($_W['openid']);
 			}
 			itoast('资料完善成功.', 'refresh', 'success');
 		}
@@ -771,10 +769,8 @@ function mc_fans_groups($force_update = false) {
  */
 function _mc_login($member) {
 	global $_W;
-
-	if (!empty($member) && !empty($member['uid'])) {
-		$sql = 'SELECT `uid`,`realname`,`mobile`,`email`,`groupid`,`credit1`,`credit2`,`credit6` FROM ' . tablename('mc_members') . ' WHERE `uid`=:uid AND `uniacid`=:uniacid';
-		$member = pdo_fetch($sql, array(':uid' => $member['uid'], ':uniacid' => $_W['uniacid']));
+	if (!empty($member) && !empty($member['uid'])) {	
+		$member = pdo_get('mc_members', array('uid' => $member['uid'], 'uniacid' => $_W['uniacid']), array('uid', 'realname', 'mobile', 'email', 'groupid', 'credit1', 'credit2', 'credit6'));
 		if (!empty($member) && (!empty($member['mobile']) || !empty($member['email']))) {
 			$_W['member'] = $member;
 			$_W['member']['groupname'] = $_W['uniaccount']['groups'][$member['groupid']]['title'];
@@ -940,15 +936,8 @@ function mc_openid2uid($openid) {
 	if (is_numeric($openid)) {
 		return $openid;
 	}
-	$cachekey = cache_system_key("uid:{$openid}");
-	$cache = cache_load($cachekey);
-	if (!empty($cache)) {
-		return $cache;
-	}
-
 	if (is_string($openid)) {
 		$fans_info = pdo_get('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'openid' => $openid), array('uid'));
-		cache_write($cachekey, $fans_info['uid']);
 		return !empty($fans_info) ? $fans_info['uid'] : false;
 	}
 	if (is_array($openid)) {
@@ -979,16 +968,8 @@ function mc_openid2uid($openid) {
 */
 function mc_uid2openid($uid) {
 	global $_W;
-
-	$cachekey = cache_system_key("openid:{$uid}");
-	$cache = cache_load($cachekey);
-	if (!empty($cache)) {
-		return $cache;
-	}
-
 	if (is_numeric($uid)) {
 		$fans_info = pdo_get('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'uid' => $uid), 'openid');
-		cache_write($cachekey, $fans_info['openid']);
 		return !empty($fans_info['openid']) ? $fans_info['openid'] : false;
 	}
 	if (is_string($uid)) {
@@ -1761,8 +1742,7 @@ function mc_init_fans_info($openid, $force_init_member = false){
 	}
 	//如果粉丝已经取消关注，则只更新状态
 	if (empty($fans['subscribe'])) {
-		pdo_update('mc_mapping_fans', array('follow' => 0, 'unfollowtime' => TIMESTAMP), array('fanid' => $openid));
-		cache_build_fansinfo($openid);
+		pdo_update('mc_mapping_fans', array('follow' => 0, 'unfollowtime' => TIMESTAMP), array('openid' => $openid));
 		return true;
 	}
 	$fans_mapping = mc_fansinfo($openid);
@@ -1773,7 +1753,7 @@ function mc_init_fans_info($openid, $force_init_member = false){
 		'updatetime' => TIMESTAMP,
 		'followtime' => $fans['subscribe_time'],
 		'follow' => $fans['subscribe'],
-		'nickname' => stripcslashes($fans['nickname']),
+		'nickname' => strip_emoji(stripcslashes($fans['nickname'])),
 		'tag' => base64_encode(iserializer($fans)),
 		'unionid' => $fans['unionid'],
 		'groupid' => !empty($fans['tagid_list']) ? (','.join(',', $fans['tagid_list']).',') : '',
@@ -1815,7 +1795,6 @@ function mc_init_fans_info($openid, $force_init_member = false){
 
 	if (!empty($fans_mapping)) {
 		pdo_update('mc_mapping_fans', $fans_update_info, array('fanid' => $fans_mapping['fanid']));
-		cache_build_fansinfo($openid);
 	} else {
 		$fans_update_info['salt'] = random(8);
 		$fans_update_info['unfollowtime'] = 0;

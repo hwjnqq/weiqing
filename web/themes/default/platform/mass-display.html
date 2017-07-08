@@ -3,11 +3,11 @@
 	素材定时群发
 </div>
 <ul class="we7-page-tab">
-	<li {if $_GPC['a'] == 'mass'  && $do == 'list'}class="active"{/if}>
-		<a href="{php echo url('platform/mass/')}" >素材定时群发</a>
+	<li {if $_GPC['a'] == 'mass'  && $do == 'post'}class="active"{/if}>
+	<a href="{php echo url('platform/mass/post')}" >素材编辑</a>
 	</li>
 	<li {if $_GPC['a'] == 'mass' && $do == 'send'}class="active"{/if}>
-		<a href="{php echo url('platform/mass/send')}">定时群发记录</a>
+		<a href="{php echo url('platform/mass/send')}">群发记录</a>
 	</li>
 </ul>
 <div class="alert we7-page-alert">

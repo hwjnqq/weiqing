@@ -9,9 +9,8 @@ load()->model('account');
 
 $_W['page']['title'] = '小程序列表';
 
-$dos = array('display', 'switch', 'rank' , 'home');
+$dos = array('display', 'switch', 'rank', 'home');
 $do = in_array($do, $dos) ? $do : 'display';
-
 if ($do == 'rank' || $do == 'switch') {
 	$uniacid = intval($_GPC['uniacid']);
 	if (!empty($uniacid)) {
@@ -21,25 +20,26 @@ if ($do == 'rank' || $do == 'switch') {
 		}
 	}
 }
-
 if ($do == 'home') {
 	$last_uniacid = uni_account_last_switch();
+	$url = url('wxapp/display');
 	if (empty($last_uniacid)) {
-		itoast('', url('wxapp/display'), 'info');
-	} else {
-		$last_version = wxapp_fetch($last_uniacid);
-		if (!empty($last_version)) {
-			uni_account_switch($last_uniacid);
-			header('Location: ' . url('wxapp/version/manage', array('version_id' => $last_version['version']['id'])));
-			exit;
-		} else {
-			itoast('', url('wxapp/display'), 'info');
-		}
+		itoast('', $url, 'info');
 	}
+	$permission = uni_permission($_W['uid'], $last_uniacid);
+	if (empty($permission)) {
+		itoast('', $url, 'info');
+	}
+	$last_version = wxapp_fetch($last_uniacid);
+	if (!empty($last_version)) {
+		uni_account_switch($last_uniacid);
+		$url = url('wxapp/version/home', array('version_id' => $last_version['version']['id']));
+	}
+	itoast('', $url, 'info');
 } elseif ($do == 'display') {
 	//模版调用，显示该用户所在用户组可添加的主公号数量，已添加的数量，还可以添加的数量
 	$account_info = uni_user_account_permission();
-	
+
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	$start = ($pindex - 1) * $psize;
@@ -69,23 +69,33 @@ if ($do == 'home') {
 			$condition .= " AND a.`title_initial` = ''";
 		}
 	}
-	$tsql = "SELECT COUNT(*) FROM " . tablename('uni_account'). " as a LEFT JOIN". tablename('account'). " as b ON a.default_acid = b.acid {$condition} {$order_by}, a.`uniacid` DESC";
-	$sql = "SELECT * FROM ". tablename('uni_account'). " as a LEFT JOIN". tablename('account'). " as b ON a.default_acid = b.acid  {$condition} {$order_by}, a.`uniacid` DESC LIMIT {$start}, {$psize}";
+	$tsql = "SELECT COUNT(*) FROM " . tablename('uni_account'). " as a LEFT JOIN ". tablename('account'). " as b ON a.default_acid = b.acid {$condition} {$order_by}, a.`uniacid` DESC";
+	$sql = "SELECT * FROM ". tablename('uni_account'). " as a LEFT JOIN ". tablename('account'). " as b ON a.default_acid = b.acid  {$condition} {$order_by}, a.`uniacid` DESC LIMIT {$start}, {$psize}";
 	$total = pdo_fetchcolumn($tsql, $param);
-	$wxapp_lists = pdo_fetchall($sql, $param, 'uniacid');
+	$wxapp_lists = pdo_fetchall($sql, $param);
 	if (!empty($wxapp_lists)) {
+		$wxapp_cookie_uniacids = array();
+		if (!empty($_GPC['__wxappversionids'])) {
+			$wxappversionids = json_decode(htmlspecialchars_decode($_GPC['__wxappversionids']), true);
+			foreach ($wxappversionids as $version_val) {
+				$wxapp_cookie_uniacids[] = $version_val['uniacid'];
+			}
+		}
 		foreach ($wxapp_lists as &$account) {
-			$account['url'] = url('wxapp/display/switch', array('uniacid' => $account['uniacid']));
-			$account['details'] = uni_accounts($account['uniacid']);
-			if (!empty($account['details'])) {
-				foreach ($account['details'] as &$account_val) {
-					$account_val['thumb'] = tomedia('headimg_'.$account_val['acid']. '.jpg').'?time='.time();
+			$account['thumb'] = tomedia('headimg_'.$account['acid']. '.jpg').'?time='.time();
+			$account['versions'] = wxapp_get_some_lastversions($account['uniacid']);
+			$account['current_version'] = array();
+			if (!empty($account['versions'])) {
+				foreach ($account['versions'] as $version) {
+					if (!empty($wxapp_cookie_uniacids) && !empty($wxappversionids[$version['uniacid']]) && in_array($version['id'], $wxappversionids[$version['uniacid']])) {
+						$account['current_version'] = $version;
+						break;
+					}
+				}
+				if (empty($account['current_version'])) {
+					$account['current_version'] = $account['versions'][0];
 				}
 			}
-			$account['role'] = uni_permission($_W['uid'], $account['uniacid']);
-			$account['setmeal'] = uni_setmeal($account['uniacid']);
-			$current_versions = pdo_fetch("SELECT * FROM " . tablename('wxapp_versions'). ' WHERE uniacid = :uniacid ORDER BY version DESC', array(':uniacid' => $account['uniacid']));
-			$account['versions'] = $current_versions;
 		}
 		unset($account_val);
 		unset($account);
@@ -94,18 +104,27 @@ if ($do == 'home') {
 	template('wxapp/account-display');
 } elseif ($do == 'switch') {
 	$module_name = trim($_GPC['module']);
-	$version_id = intval($_GPC['version_id']);
-	
+	$version_id = !empty($_GPC['version_id']) ? intval($_GPC['version_id']) : $wxapp_info['version']['id'];
 	if (!empty($module_name) && !empty($version_id)) {
 		$version_info = wxapp_version($version_id);
-		if (empty($version_id) || empty($version_info['modules'][$module_name])) {
+		$module_info = array();
+		if (!empty($version_info['modules'])) {
+			foreach ($version_info['modules'] as $key => $module_val) {
+				if ($module_val['name'] == $module_name) {
+					$module_info = $module_val;
+				}
+			}
+		}
+		if (empty($version_id) || empty($module_info)) {
 			itoast('版本信息错误');
 		}
-		$uniacid = !empty($version_info['modules'][$module_name]['account']['uniacid']) ? $version_info['modules'][$module_name]['account']['uniacid'] : $version_info['uniacid'];
-		uni_account_switch($uniacid, url('home/welcome/ext/', array('m' => $module_name)));
+		$uniacid = !empty($module_info['account']['uniacid']) ? $module_info['account']['uniacid'] : $version_info['uniacid'];
+		uni_account_switch($uniacid, url('home/welcome/ext/', array('m' => $module_name, 'version_id' => $version_id)));
 	}
+	uni_account_switch($uniacid);
 	wxapp_save_switch($uniacid);
-	header('Location: ' . url('wxapp/version/manage', array('version_id' => $wxapp_info['version']['id'])));
+	wxapp_update_last_use_version($uniacid, $version_id);
+	header('Location: ' . url('wxapp/version/home', array('version_id' => $version_id)));
 	exit;
 } elseif ($do == 'rank') {
 	uni_account_rank_top($uniacid);

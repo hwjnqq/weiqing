@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  * $sn$
@@ -11,7 +11,7 @@ $dos = array('module', 'post');
 $do = in_array($do, $dos) ? $do : 'module';
 
 $system_modules = system_modules();
-if (!in_array($_GPC['m'], $system_modules)) {
+if (!in_array($_GPC['m'], $system_modules) && $do == 'post') {
 	uni_user_permission_check('', true, 'cover');
 }
 define('IN_MODULE', true);
@@ -42,7 +42,12 @@ if ($do == 'module') {
 	foreach ($replies as $replay){
 		$cover_keywords[$replay['do']][] = $replay;
 	}
-	foreach ($entries['cover'] as &$cover){
+	$module_permission = uni_user_menu_permission($_W['uid'], $_W['uniacid'], $modulename);
+	foreach ($entries['cover'] as $key => &$cover){
+		$permission_name = $modulename . '_cover_' . trim($cover['do']);
+		if ($module_permission[0] != 'all' && !in_array($permission_name, $module_permission)) {
+			unset($entries['cover'][$key]);
+		}
 		if (!empty($cover_keywords[$cover['do']])){
 			$cover['cover']['rule']['keywords'] = $cover_keywords[$cover['do']];
 		}
@@ -59,7 +64,7 @@ if ($do == 'module') {
 	}
 	$module = $_W['current_module'] = module_fetch($entry['module']);
 	$reply = pdo_get('cover_reply', array('module' => $entry['module'], 'do' => $entry['do'], 'uniacid' => $_W['uniacid']));
-	
+
 	if (checksubmit('submit')) {
 		if (trim($_GPC['keywords']) == '') {
 			itoast('必须输入触发关键字.', '', '');
@@ -73,7 +78,6 @@ if ($do == 'module') {
 			'name' => $entry['title'],
 			'module' => 'cover',
 			'containtype' => '',
-			'reply_type' => intval($_GPC['reply_type']) == 2 ? 2 : 1,
 			'status' => $_GPC['status'] == 'true' ? 1 : 0,
 			'displayorder' => intval($_GPC['displayorder_rule']),
 		);
@@ -89,7 +93,7 @@ if ($do == 'module') {
 			$result = pdo_insert('rule', $rule);
 			$rid = pdo_insertid();
 		}
-	
+
 		if (!empty($rid)) {
 			//更新，添加，删除关键字
 			pdo_delete('rule_keyword', array('rid' => $rid, 'uniacid' => $_W['uniacid']));
@@ -106,7 +110,7 @@ if ($do == 'module') {
 				$keyword_insert['content'] = $keyword['content'];
 				pdo_insert('rule_keyword', $keyword_insert);
 			}
-	
+
 			$entry = array(
 				'uniacid' => $_W['uniacid'],
 				'multiid' => 0,
@@ -128,7 +132,7 @@ if ($do == 'module') {
 			itoast('封面保存失败, 请联系网站管理员！', '', 'error');
 		}
 	}
-	
+
 	if (!empty($module['isrulefields'])) {
 		$url = url('platform/reply', array('m' => $module['name']));
 	}
@@ -136,7 +140,7 @@ if ($do == 'module') {
 		$url = url('platform/cover', array('m' => $module['name']));
 	}
 	define('ACTIVE_FRAME_URL', $url);
-	
+
 	if (!empty($reply)) {
 		if (!empty($reply['thumb'])) {
 			$reply['src'] = tomedia($reply['thumb']);
@@ -148,7 +152,6 @@ if ($do == 'module') {
 			'title' => $entry['title'],
 			'url_show' => $entry['url_show'],
 			'rule' => array(
-				'reply_type' => '2',
 				'displayorder' => '0',
 			)
 		);

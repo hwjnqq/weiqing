@@ -95,7 +95,7 @@ if($do == 'basic') {
 		if (_mc_login($user)) {
 			message('登录成功！', referer(), 'success');
 		}
-		message('未知错误导致登陆失败', '', 'error');
+		message('未知错误导致登录失败', '', 'error');
 	}
 	template('auth/login');
 	exit;
@@ -125,7 +125,7 @@ if($do == 'basic') {
 			if(_mc_login($user)) {
 				exit('success');
 			} else {
-				exit('未知错误导致登陆失败');
+				exit('未知错误导致登录失败');
 			}
 		} else {
 			if (!empty($_SESSION['openid'])) {
@@ -142,12 +142,11 @@ if($do == 'basic') {
 				$uid = pdo_insertid();
 				pdo_insert('mc_mapping_ucenter', array('uniacid' => $_W['uniacid'], 'uid' => $uid, 'centeruid' => $data[0]));
 				pdo_update('mc_mapping_fans', array('uid' => $uid), array('uniacid' => $_W['uniacid'], 'acid' => $_W['acid'], 'openid' => $_SESSION['openid']));
-				cache_build_fansinfo($_SESSION['openid']);
 				$user['uid'] = $uid;
 				if (_mc_login($user)) {
 					exit('success');
 				} else {
-					exit('未知错误导致登陆失败');
+					exit('未知错误导致登录失败');
 				}
 			}
 			exit('该' . $uc_setting['title'] . '账号尚未绑定系统账号');

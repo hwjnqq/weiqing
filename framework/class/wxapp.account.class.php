@@ -53,19 +53,70 @@ class WxappAccount extends WeAccount {
 		return $result;
 	}
 	
+	public function getAccessToken() {
+		$cachekey = "accesstoken:{$this->account['key']}";
+		$cache = cache_load($cachekey);
+		if (!empty($cache) && !empty($cache['token']) && $cache['expire'] > TIMESTAMP) {
+			$this->account['access_token'] = $cache;
+			return $cache['token'];
+		}
+		
+		if (empty($this->account['key']) || empty($this->account['secret'])) {
+			return error('-1', '未填写小程序的 appid 或 appsecret！');
+		}
+		
+		$url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$this->account['key']}&secret={$this->account['secret']}";
+		$response = $this->requestApi($url);
+	
+		$record = array();
+		$record['token'] = $response['access_token'];
+		$record['expire'] = TIMESTAMP + $response['expires_in'] - 200;
+		
+		$this->account['access_token'] = $record;
+		cache_write($cachekey, $record);
+		return $record['token'];
+	}
+	
 	public function getJssdkConfig($url = ''){
 		return array();
 	}
 	
-	/**
-	 * 调用系统的支付功能, 只能在 Mobile 端调用
-	 * @param array $params
-	 * $params['tid'] 支付订单编号, 应保证在同一模块内部唯一
-	 * $params['title'] 商家名称
-	 * $params['fee'] 总费用, 只能大于 0
-	 * $params['user'] 付款用户, 付款的用户名(选填项)
-	 */
-	public function pay($params = array()) {
+	public function getCodeWithPath($path) {
+		
+	}
+	
+	public function getCodeUnlimit($scene, $width = '430', $option = array()) {
+		if (!preg_match('/[0-9a-zA-Z\!\#\$\&\'\(\)\*\+\,\/\:\;\=\?\@\-\.\_\~]{1,32}/', $scene)) {
+			return error(1, '场景值不合法');
+		}
+		$access_token = $this->getAccessToken();
+		if(is_error($access_token)){
+			return $access_token;
+		}
+		$data = array(
+			'scene' => $scene,
+			'width' => intval($width),
+		);
+		if (!empty($data['auto_color'])) {
+			$data['auto_color'] = intval($data['auto_color']);
+		}
+		if (!empty($option['line_color'])) {
+			$data['line_color'] = array(
+				'r' => $option['line_color']['r'],
+				'g' => $option['line_color']['g'],
+				'b' => $option['line_color']['b'],
+			);
+			$data['auto_color'] = false;
+		}
+		$url = "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=" . $access_token;
+		$response = $this->requestApi($url, json_encode($data));
+		if (is_error($response)) {
+			return $response;
+		}
+		return $response['content'];
+	}
+	
+	public function getQrcode() {
 		
 	}
 	
@@ -192,7 +243,7 @@ class WxappAccount extends WeAccount {
 			return error($result['errcode'], "访问公众平台接口失败, 错误详情: {$this->errorCode($result['errcode'])}");
 		}
 		if(empty($result)) {
-			return error(-1, "接口调用失败, 元数据: {$response['meta']}");
+			return $response;
 		} elseif(!empty($result['errcode'])) {
 			return error($result['errcode'], "访问公众平台接口失败, 错误: {$result['errmsg']},错误详情：{$this->errorCode($result['errcode'])}");
 		}
@@ -205,5 +256,24 @@ class WxappAccount extends WeAccount {
 			'message' => $message,
 			'data' => $data,
 		)));
+	}
+	
+	public function getDailyVisitTrend() {
+		global $_W;
+		$token = $this->getAccessToken();
+		if (is_error($token)) {
+			return $token;
+		}
+		$url = "https://api.weixin.qq.com/datacube/getweanalysisappiddailyvisittrend?access_token={$token}";
+		$data = array(
+			'begin_date' => date('Y-m-d', strtotime('-1 days')),
+			'end_date' => date('Y-m-d', strtotime('-1 days'))
+		);
+
+		$response = $this->requestApi($url, json_encode($data));
+		if (is_error($response)) {
+			return $response;
+		}
+		return $response['list'][0];
 	}
 }

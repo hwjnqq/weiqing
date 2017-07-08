@@ -120,3 +120,28 @@ define('MODULE_SUPPORT_ACCOUNT', 2);
 define('PERMISSION_ACCOUNT', 'system');
 define('PERMISSION_WXAPP', 'wxapp');
 define('PERMISSION_SYSTEM', 'site');
+
+//微信支付类型
+define('PAYMENT_WECHAT_TYPE_NORMAL', 1);
+define('PAYMENT_WECHAT_TYPE_BORROW', 2);
+define('PAYMENT_WECHAT_TYPE_SERVICE', 3);
+define('PAYMENT_WECHAT_TYPE_CLOSE', 4);
+
+//平台给粉丝发消息的类型
+define('FANS_CHATS_FROM_SYSTEM', 1);
+
+//小程序数据常规分析常量
+define('WXAPP_STATISTICS_DAILYVISITTREND', 2);
+//DIY小程序
+define('WXAPP_DIY', 1);
+//选择模版小程序
+define('WXAPP_TEMPLATE', 2);
+//跳转模块小程序
+define('WXAPP_MODULE', 3);
+
+define('MATERIAL_LOCAL', 'local');//服务器素材类型
+define('MATERIAL_WEXIN', 'perm');//微信素材类型
+
+//自定义菜单类型
+define('MENU_CURRENTSELF', 1);
+define('MENU_CONDITIONAL', 3);

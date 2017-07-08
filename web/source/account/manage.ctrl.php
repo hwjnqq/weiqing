@@ -100,7 +100,7 @@ if ($do == 'delete') {
 		if($_GPC['uniacid'] == $_W['uniacid']) {
 			isetcookie('__uniacid', '');
 		}
-		cache_delete("unicount:{$uniacid}");
+		cache_delete("uniaccount:{$uniacid}");
 		cache_delete("unisetting:{$uniacid}");
 	}
 	itoast('停用成功！，您可以在回收站中恢复', url('account/manage', array('account_type' => ACCOUNT_TYPE)), 'success');

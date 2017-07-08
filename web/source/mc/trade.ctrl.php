@@ -1,7 +1,7 @@
 <?php
 /**
- * 会员交易
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -12,29 +12,9 @@ load()->model('module');
 $_W['page']['title'] = '会员交易-会员管理';
 $dos = array('consume', 'user', 'modal', 'credit', 'card', 'cardsn', 'tpl', 'cardconsume');
 $do = in_array($do, $dos) ? $do : 'tpl';
-
-$user_permission_lists = pdo_get('users_permission', array('uniacid' => $_W['uniacid'], 'uid' => $_W['user']['uid'], 'type' => 'we7_coupon'), array('permission'));
-$user_permission = (array)explode('|', $user_permission_lists['permission']);
-
-$clerk_menu_permission = pdo_getall('activity_clerk_menu', array('system' => 1, 'type' => 'modal', 'pid <>' => 0));
-foreach ($clerk_menu_permission as $key => $value) {
-	$clerk_menu[$value['url']] = $value['permission'];
-}
-$is_user_available = false;
-foreach ($user_permission as $k=>$val) {
-	if (in_array($val, $clerk_menu)) {
-		$is_user_available = true;
-		break;
-	}
-}
-if ($do == 'user' && !$is_user_available) {
-	uni_user_permission_check('mc_member');
-}
-if (in_array($do, array('consume', 'credit', 'card', 'cardconsume'))) {
-	if (!in_array($clerk_menu[$do], $user_permission) && !(in_array($clerk_menu['credit1'], $user_permission) || in_array($clerk_menu['credit2'], $user_permission))) {
-		uni_user_permission_check('mc_member');
-	}	
-}
+// if($_W['role'] != 'clerk') {
+// 	uni_user_permission_check('mc_member');
+// }
 
 if($do == 'user') {
 	$type = trim($_GPC['type']);
@@ -230,8 +210,7 @@ if($do == 'consume') {
 	$tips = "用户消费{$money}元,使用{$data['credit1']}积分,抵现{$data['credit1_fee']}元,使用余额支付{$data['credit2']}元,现金支付{$data['final_cash']}元";
 	$recharges_set = card_params_setting('cardRecharge');
 	$grant_rate_switch = intval($recharges_set['params']['grant_rate_switch']);
-	//赠送积分（按照会员卡的积分比率进行赠送）,会员卡开启充值优惠设置则不赠送积分,现金消费除外
-	$grant_credit1_enable = false;
+		$grant_credit1_enable = false;
 	$grant_money = $money;
 	if (!empty($card) && $card['grant_rate'] > 0 && !empty($member)) {
 		if (empty($recharges_set['params']['recharge_type'])) {
@@ -253,8 +232,7 @@ if($do == 'consume') {
 		$tips .= "，积分赠送比率为:【1：{$card['grant_rate']}】,共赠送【{$num}】积分";
 		mc_credit_update($uid, 'credit1', $num, array(0, $tips, 'system', $_W['user']['clerk_id'], $_W['user']['store_id'], $_W['user']['clerk_type']));
 	}
-	//通知
-	$openid = pdo_fetchcolumn('SELECT openid FROM ' . tablename('mc_mapping_fans') . ' WHERE acid = :acid AND uid = :uid', array(':acid' => $_W['acid'], ':uid' => $uid));
+		$openid = pdo_fetchcolumn('SELECT openid FROM ' . tablename('mc_mapping_fans') . ' WHERE acid = :acid AND uid = :uid', array(':acid' => $_W['acid'], ':uid' => $uid));
 	$consume_tips = array(
 		'uid' => $uid,
 		'credit2_num' => $money,
@@ -280,8 +258,7 @@ if($do == 'credit') {
 	if(is_error($status)) {
 		exit($status['message']);
 	}
-	//变更会员组
-	if($type == 'credit1') {
+		if($type == 'credit1') {
 		mc_group_update($uid);
 	}
 	$openid = pdo_fetchcolumn('SELECT openid FROM ' . tablename('mc_mapping_fans') . ' WHERE acid = :acid AND uid = :uid', array(':acid' => $_W['acid'], ':uid' => $uid));
@@ -334,8 +311,7 @@ if($do == 'card') {
 	);
 	if(pdo_insert('mc_card_members', $record)) {
 		pdo_update('mc_card', array('snpos' => $card['snpos']), array('uniacid' => $_W['uniacid'], 'id' => $card['id']));
-		//赠送积分.余额.优惠券
-		$notice = '';
+				$notice = '';
 		if($card['grant']['credit1'] > 0) {
 			$log = array(
 				$uid,

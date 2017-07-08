@@ -20,10 +20,10 @@
 	</div>
 	<table class="table we7-table table-hover vertical-middle" id="js-qr-list" ng-controller="QrDisplay" ng-cloak>
 		<col width="100px"/>
-		<col width="150px" />
-		<col width="140px" />
-		<col/>
-		<col width="180px"/>
+		<col width="120px" />
+		<col width="120px" />
+		<col width="115px" />
+		<col width="115px"/>
 		<col>
 		<tr>
 			<th></th>
@@ -38,10 +38,11 @@
 			<td><a href="{$row['showurl']}" target="_blank"><img src="{$row['showurl']}" alt="12312"  width="50px" height="50px"/></a></td>
 			<td title="{$row['name']}">{php echo cutstr($row['name'], 8)}</td>
 			<td title="{$row['keyword']}">{php echo cutstr($row['keyword'], 8)}</td>
-			<td class="text-left">{php echo date('Y-m-d <br /> H:i:s', $row[createtime]);}</td>
+			<td class="text-left">{php echo date('Y-m-d H:i:s', $row[createtime]);}</td>
 			<td>{$row[endtime]}</td>
 			<td>
 				<div class="link-group">
+					<a href="javascript:;" data-url="{$row['showurl']}" class="we7-margin-right-sm js-clip">复制链接</a>
 					<a href="{php echo url('platform/qr/down_qr', array('id' => $row['id']))}">下载</a>
 					<a href="{php echo url('platform/qr/post', array('id'=> $row['id']))}" >编辑</a>
 					{if $row['model'] == 2}
@@ -60,7 +61,6 @@
 	<div class="text-right">
 		{$pager}
 	</div>
-</div>
 <script>
 	angular.bootstrap($('#js-qr-list'), ['qrApp']);
 </script>

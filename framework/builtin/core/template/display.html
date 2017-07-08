@@ -20,10 +20,9 @@
 		<ul class="keywords-list">
 		</ul>
 		<div class="we7-select-msg">
-			<div class="add" onclick="$(this).addClass('hide').next('ul').removeClass('hide');"><i class="wi wi-registersite"></i>添加回复</div>
-			<ul class="tab-navs hide">
+			<ul class="tab-navs">
 				<li class="tab-nav tab-appmsg active {if $options['news']}hidden{/if}">
-					<a href="javascript:void(0);" onclick="select_mediaid('news');">&nbsp;<i class="wi wi-appmsg"></i><span class="msg-tab-title">图文</span></a>
+					<a href="javascript:void(0);"{if $_GPC['a'] == 'mass'} onclick="select_mediaid('news', 'wx')"{else} onclick="select_mediaid('news')"{/if}>&nbsp;<i class="wi wi-appmsg"></i><span class="msg-tab-title">图文</span></a>
 				</li>
 				<li class="tab-nav tab-text {if $options['basic']}hidden{/if}">
 					<a href="javascript:void(0);" onclick="select_mediaid('basic');">&nbsp;<i class="wi wi-text"></i><span class="msg-tab-title">文字</span></a>
@@ -166,10 +165,9 @@
 		$(ele).parent().parent('.del-'+type+'-media').parent('li').remove();
 	};
 
-	window.select_mediaid = function(type, val){
+	window.select_mediaid = function(type, otherVal){
 		var option = {
 			type: type,
-			typeVal: angular.isDefined(val) ? val : null,
 			ignore: {
 				basic: type === 'basic' ? false : true,
 				wxcard: type === 'wxcard' ? false : true,
@@ -180,6 +178,15 @@
 				voice: type === 'voice' ? false : true,
 				keyword: type === 'keyword' ? false : true,
 				module: type === 'module' ? false : true
+			},
+			others: {
+				basic: {
+					typeVal: angular.isDefined(otherVal) ? otherVal : null,
+				},
+				news: {
+					showwx: angular.isDefined(otherVal) ? otherVal === 'wx' ? true : false : true,
+					showlocal: angular.isDefined(otherVal) ? otherVal === 'local' ? true : false : true
+				}
 			}
 		};
 		if (type == 'module') {
@@ -189,17 +196,18 @@
 			var replyVal = [];
 			$(':hidden[name="reply[reply_'+type+']"]').val() == '' ? '' : replyVal.push($(':hidden[name="reply[reply_'+type+']"]').val());
 			if (type == 'basic') {
-				if (angular.isDefined(val)) {
+				if (angular.isDefined(otherVal)) {
 					var editmedia = $(".del-basic-media");
 					for (var i = 0; i < editmedia.length; i++) {
-						if (htmlEncode($(editmedia.get(i)).find('.edit-gray').data('media')) == htmlEncode(angular.toJson(val))) {
+						if (htmlEncode($(editmedia.get(i)).find('.edit-gray').data('media')) == htmlEncode(angular.toJson(otherVal))) {
 							var inputVal = $(':hidden[name="reply[reply_'+type+']"]').val();
 							var inputValArr = inputVal.split(',');
 							var middleVal = angular.copy(inputValArr);
 							angular.forEach(inputValArr, function(val, key) {
 								inputValArr[key] = htmlEncode(val);
 							});
-							var index = _.indexOf(inputValArr, htmlEncode(angular.toJson(val)));
+							var index = _.indexOf(inputValArr, htmlEncode(angular.toJson(otherVal)));
+							material.content = material.content.replace(/,/g, '，');
 							middleVal[index] = angular.toJson(material.content);
 							replyVal = middleVal.join(',');
 							$(':hidden[name="reply[reply_'+type+']"]').val(replyVal);
@@ -222,6 +230,7 @@
 					if($.trim(material.content).length == 0) {
 						return false;
 					}
+					material.content = material.content.replace(/,/g, '，');
 					replyVal.push(angular.toJson(material.content));
 					$(':hidden[name="reply[reply_'+type+']"]').val(replyVal);
 					$('.keywords-list').append(
@@ -328,7 +337,6 @@
 								author: newsV.author,
 								description: newsV.digest,
 								thumb: newsV.thumb_url,
-								content: newsV.content,
 								url: newsV.content_source_url,
 								createtime: material.createtime,
 								displayorder: newsV.displayorder ? newsV.displayorder : 0,
@@ -518,7 +526,6 @@
 							author: newsVal.author,
 							description: newsVal.description ? newsVal.description : newsVal.digest,
 							thumb: newsVal.thumb ? newsVal.thumb : newsVal.thumb_url,
-							content: newsVal.content,
 							url: newsVal.url,
 							createtime: newsVal.createtime,
 							displayorder: newsVal.displayorder ? newsVal.displayorder : 0,
@@ -537,7 +544,7 @@
 								'			<div class="appmsgSendedItem">'+
 								'				<a class="title-wrp" href="javascript:;">'+
 								'					<span class="icon cover" style="background-image:url('+(newsVal.thumb ? newsVal.thumb : newsVal.thumb_url)+');"></span>'+
-								'					<span class="title">[图文消息]'+newsVal.title+(newsVal.attach_id ? '<span class="color-red">（素材不存在或已被删除）</span>' : '')+
+								'					<span class="title">[图文消息]'+newsVal.title+(!newsVal.attach_id ? '<span class="color-red">（素材不存在或已被删除）</span>' : '')+
 								'					</span>'+
 								'				</a>'+
 								'				<p class="desc"><a href="javascript:;" class="appmsg-desc">'+(newsVal.description ? newsVal.description : '')+'</a></p>'+
@@ -545,7 +552,7 @@
 								'		</div>'+
 								'	</div>'+
 								'	<div class="opr">'+
-								'		<a href="./index.php?c=platform&a=material-post&type=reply&newsid='+(newsVal.attach_id ? newsVal.attach_id : '')+'&reply_news_id='+newsVal.id+'" target="_blank" class="del-gray">编辑</a>'+
+										'<a href="./index.php?c=platform&a=material-post&type=reply&newsid='+(newsVal.attach_id ? newsVal.attach_id : '')+'&reply_news_id='+newsVal.id+'" target="_blank" class="del-gray">编辑</a>'  +
 								'		<a href="javascript:;" data-media="'+newsVal.media_id+'" class="del-gray" onclick="delmedia(\''+type+'\', this)">删除</a>'+
 								'	</div>'+
 								'</div>'+

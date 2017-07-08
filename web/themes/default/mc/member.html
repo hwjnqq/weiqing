@@ -45,12 +45,6 @@
 			<input type="hidden" name="c" value="mc">
 			<input type="hidden" name="a" value="member">
 			<div class="form-group">
-				<label class="col-sm-2 control-label">注册时间</label>
-				<div class="col-sm-5">
-					{php echo tpl_form_field_daterange('createtime', array('starttime' => date('Y-m-d', $starttime), 'endtime' => date('Y-m-d', $endtime),));}
-				</div>
-			</div>
-			<div class="form-group">
 				<label class="col-sm-2 control-label">昵称/姓名/手机号码/openid</label>
 				<div class="col-sm-5">
 					<div class="input-group">
@@ -152,16 +146,16 @@
 							<a href="javascript:;" title="消费" class="modal-trade-consume" data-type="consume" data-uid="{$li['uid']}">消费</a>
 							<div class="btn-group">
 								<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-									{if count($_W['account']['groups']) > 0}
-										{$_W['account']['groups'][$li['groupid']]['title']}
+									{if !empty($groups)}
+										{$groups[$li['groupid']]['title']}
 										<span class="caret"></span>
 									{else}
 										暂无分组
 									{/if}
 								</a>
 								<ul class="dropdown-menu more-group">
-									{loop $_W['account']['groups'] $group}
-									{if $group ['groupid'] != $li['groupid']}
+									{loop $groups $group}
+									{if $group['groupid'] != $li['groupid']}
 									<li class="user-group" data-id="{$group['groupid']}" data-uid="{$li['uid']}"><a href="javascript:;">{$group['title']}</a></li>
 									{/if}
 									{/loop}
@@ -169,7 +163,7 @@
 							</div>
 							<a href="{php echo url('mc/member/post',array('uid' => $li['uid']))}" title="编辑" class="">编辑</a>
 							<a href="{php echo url('mc/member/credit_stat',array('uid' => $li['uid'], 'type' => 1))}" title="日志" class="">日志</a>
-							<!--<a href="">管理设置</a>-->
+							<!--<a href="javasctipt:;">管理设置</a>-->
 							<a href="{php echo url('mc/member/del',array('uid' => $li['uid']))}" onclick="return confirm('确定删除会员吗?')" title="删除" class="">删除</a>
 						</div>
 					</td>
@@ -800,7 +794,7 @@
 				</div>
 			</div>
 			<div class="form-group">
-				<label class="col-sm-2 control-label">登陆密码</label>
+				<label class="col-sm-2 control-label">登录密码</label>
 				<div class="col-sm-9 col-xs-12">
 					<input type="password" name="password" value="" class="form-control"/>
 				</div>
@@ -978,6 +972,38 @@
 {/if}
 
 {if $do == 'credit_stat'}
+<table class="table we7-table table-form hidden">
+	<tr>
+		<th colspan="2">数据统计</th>
+	</tr>
+	<tr>
+		<td colspan="2">
+			<span class="color-gray we7-margin-right">选择范围</span>
+			<a href="{php echo url('mc/member/credit_stat', array('uid' => $uid, type => 1));}" class="btn {if $_GPC['type'] == 1}btn-primary{else}btn-default{/if} btn-sm">今日</a>
+			<a href="{php echo url('mc/member/credit_stat', array('uid' => $uid, type => -1));}" class="btn {if $_GPC['type'] == -1}btn-primary{else}btn-default{/if} btn-sm">昨日</a>
+			<form class="" role="search" id="form1" style="display: inline;">
+				<input name="c" value="mc" type="hidden" />
+				<input name="a" value="member" type="hidden" />
+				<input name="do" value="credit_stat" type="hidden" />
+				<input name="uid" value="{$uid}" type="hidden" />
+				{php echo tpl_form_field_daterange('datelimit', array('start' => date('Y-m-d', $starttime),'end' => date('Y-m-d', $endtime)), '')}
+			</form>
+		</td>
+	</tr>
+	<tr>
+		{loop $credits $key $li}
+		<td class="text-center credits-count-data">
+			<div class="box">
+				<strong>{$li}</strong>
+				<div id="rule" class="stat">
+					<div>增加 <strong><span class="text-success">{$data[$key]['add']}</span></strong></div>
+					<div>减少 <strong><span class="text-danger">{$data[$key]['del']}</span></strong></div>
+				</div>
+			</div>
+		</td>
+		{/loop}
+	</tr>
+</table>
 <style>
 	.account-stat{overflow:hidden; color:#666;}
 	.account-stat .account-stat-btn{width:100%; overflow:hidden;}
@@ -1033,17 +1059,60 @@
 		<tr>
 			<th class="text-left" colspan="4">支付参数</th>
 		</tr>
-		<tr ng-repeat="(key, credit) in creditSetting  track by key">
-			<td >{{ key }}</td>
-			<td>{{ credit.title }}</td>
+		<tr>
+			<td >credit1</td>
+			<td>{{ creditSetting.credit1.title }}</td>
 			<td>
 				<label>
 					<input name="" class="form-control" type="checkbox"  style="display: none;">
-					<div ng-class="credit.enabled == 1 ? 'switch switchOn' : 'switch'" ng-if="key != 'credit1' && key != 'credit2'"  ng-click="changeEnabled(key)"></div>
-					<div ng-class="credit.enabled == 1 ? 'switch switchOn' : 'switch'" ng-if="key == 'credit1' || key == 'credit2'" style="opacity : 0.3"></div>
+					<div ng-class="credit.enabled == 1 ? 'switch switchOn' : 'switch'" style="opacity : 0.3"></div>
 				</label>
 			</td>
 			<td class="pull-right"><div class="link-group"><a href="javascript:;" ng-click="editCreditName(key)">设置名称</a></div></td>
+		</tr>
+		<tr>
+			<td >credit2</td>
+			<td>{{ creditSetting.credit2.title }}</td>
+			<td>
+				<label>
+					<input name="" class="form-control" type="checkbox"  style="display: none;">
+					<div ng-class="credit.enabled == 1 ? 'switch switchOn' : 'switch'" style="opacity : 0.3"></div>
+				</label>
+			</td>
+			<td class="pull-right"><div class="link-group"><a href="javascript:;" ng-click="editCreditName(key)">设置名称</a></div></td>
+		</tr>
+		<tr>
+			<td >credit3</td>
+			<td>{{ creditSetting.credit3.title }}</td>
+			<td>
+				<label>
+					<input name="" class="form-control" type="checkbox"  style="display: none;">
+					<div ng-class="creditSetting.credit3.enabled == 1 ? 'switch switchOn' : 'switch'"  ng-click="changeEnabled('credit3')"></div>
+				</label>
+			</td>
+			<td class="pull-right"><div class="link-group"><a href="javascript:;" ng-click="editCreditName('credit3')">设置名称</a></div></td>
+		</tr>
+		<tr>
+			<td >credit4</td>
+			<td>{{ creditSetting.credit4.title }}</td>
+			<td>
+				<label>
+					<input name="" class="form-control" type="checkbox"  style="display: none;">
+					<div ng-class="creditSetting.credit4.enabled == 1 ? 'switch switchOn' : 'switch'"  ng-click="changeEnabled('credit4')"></div>
+				</label>
+			</td>
+			<td class="pull-right"><div class="link-group"><a href="javascript:;" ng-click="editCreditName('credit4')">设置名称</a></div></td>
+		</tr>
+		<tr>
+			<td >credit5</td>
+			<td>{{ creditSetting.credit5.title }}</td>
+			<td>
+				<label>
+					<input name="" class="form-control" type="checkbox"  style="display: none;">
+					<div ng-class="creditSetting.credit5.enabled == 1 ? 'switch switchOn' : 'switch'"  ng-click="changeEnabled('credit5')"></div>
+				</label>
+			</td>
+			<td class="pull-right"><div class="link-group"><a href="javascript:;" ng-click="editCreditName('credit5')">设置名称</a></div></td>
 		</tr>
 	</table>
 
@@ -1085,13 +1154,13 @@
 					<div class="we7-form">
 						<div class="form-group">
 							<div class="form-controls">
-								<input type="text" name="" class="form-control" ng-model="creditTitle" placeholder="输入积分名称" ng-model="paysetting.alipay.partner">
+								<input type="text" name="" class="form-control" ng-model="creditTitle" placeholder="输入积分名称">
 							</div>
 						</div>
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-primary" ng-click="setCreditName(key)" data-dismiss="modal">确定</button>
+					<button type="button" class="btn btn-primary" ng-click="setCreditName()" data-dismiss="modal">确定</button>
 				</div>
 			</div>
 		</div>

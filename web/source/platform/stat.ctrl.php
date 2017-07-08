@@ -140,15 +140,14 @@ if ($do == 'history') {
 								$html .= $module. "\t, ";
 							}
 					}
-				    if ($rules[$row['rid']]['module'] && empty($module)) {
-					    $row['module'] = str_replace('cover->', '', $rules[$row['rid']]['module']);
-					    $module =  pdo_fetchcolumn("SELECT title from ".tablename('modules')." WHERE  name = :name", array(':name' => $row['module']));
-					    $html .= $module ." \t, ";
-					}
-					 else {
-						 if (empty($module)){
+					if ($rules[$row['rid']]['module'] && empty($module)) {
+						$row['module'] = str_replace('cover->', '', $rules[$row['rid']]['module']);
+						$module =  pdo_fetchcolumn("SELECT title from ".tablename('modules')." WHERE  name = :name", array(':name' => $row['module']));
+						$html .= $module ." \t, ";
+					} else {
+						if (empty($module)){
 							 $html .= "未触发模块". "\t, ";
-						 }
+						}
 					}
 				}
 

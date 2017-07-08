@@ -1,7 +1,9 @@
 {template 'common/header'}
 {template 'account/account-header'}
 <div id="js-account-manage-modules-tpl" ng-controller="AccountMangeModulesTpl" ng-cloak>
-
+	<div class="alert alert-info">
+		<p><i class="fa fa-exclamation-circle"></i> 无主管理员时，创始人为默认主管理员，公众号拥有所有权限</p>
+	</div>
 	<table class="table we7-table table-hover" ng-repeat="module_tpl in modules_tpl">
 		<tr>
 			<th colspan="6" class="text-left we7-padding-right">
@@ -10,22 +12,22 @@
 		</tr>
 		<tr>
 			<td colspan="5">
-				<div class="col-sm-1 color-gray text-left we7-padding-none">应用</div>
+				<div class="col-sm-1 color-gray text-left we7-padding-none">公众号应用</div>
 				<div class="col-sm-11">
-					<div class="col-sm-3 text-left we7-margin-bottom" ng-if="module_tpl.id != -1">
-						<a href="javascript:;" class="label label-success">系统模块</a>
-					</div>
 					<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="module in module_tpl.modules">
-						<a href="javascript:;" class="label label-info" ng-bind="module.title"></a>
+						<div ng-if="module.name != 'all'" class="text-over text-left">
+							<img ng-src="{{ module.logo }}" alt="" style="width:50px;height:50px;">
+							{{ module.title }}
+						</div>
+						<label class="label label-info" ng-if="module.name == 'all'">所有模块</label>
 					</div>
-					
 				</div>
 			</td>
 			<td class="we7-padding-right color-default"></td>
 		</tr>
 		<tr style="display:none;">
 			<td colspan="5">
-				<div class="col-sm-1 color-gray text-left we7-padding-none">小程序</div>
+				<div class="col-sm-1 color-gray text-left we7-padding-none">小程序应用</div>
 				<div class="col-sm-11">
 					<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="module in module_tpl.wxapp">
 						<a href="javascript:;" class="label label-info" ng-bind="module.title"></a>
@@ -39,9 +41,6 @@
 			<td colspan="5">
 				<div class="col-sm-1 color-gray text-left we7-padding-none">模板</div>
 				<div class="col-sm-11">
-					<div class="col-sm-3 text-left we7-margin-bottom" ng-if="module_tpl.id != -1">
-						<a href="javascript:;" class="label label-success">系统模板</a>
-					</div>
 					<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="tpl in module_tpl.templates">
 						<a href="javascript:;" class="label label-info" ng-bind="tpl.title"></a>
 					</div>
@@ -51,17 +50,21 @@
 			<td class="we7-padding-right color-default"></td>
 		</tr>
 	</table>
-	{if !in_array($ownerid, $founders)}
+	{if !in_array($owner['uid'], $founders)}
 	<table class="table we7-table table-hover account-package-extra">
 		<tr>
 			<th colspan="6" class="text-left we7-padding-right"><span>附加权限</span></th>
 		</tr>
 		<tr>
 			<td colspan="5">
-				<div class="col-sm-1 color-gray text-left we7-padding-none">应用</div>
+				<div class="col-sm-1 color-gray text-left we7-padding-none">公众号应用</div>
 				<div class="col-sm-11 js-extra-modules">
 					<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="module in extend.modules" ng-if="extend.modules">
-						<a href="javascript:;" class="label label-info" ng-bind="module.title"></a>
+						<div ng-if="module.name != 'all'" class="text-over text-left">
+							<img ng-src="{{ module.logo }}" alt="" style="width:50px;height:50px;">
+							{{ module.title }}
+						</div>
+						<label class="label label-info" ng-if="module.name == 'all'">所有模块</label>
 					</div>
 					<div class="col-sm-3 text-left we7-margin-bottom" ng-if="!extend.modules">
 						<a href="javascript:;">---</a>
@@ -84,7 +87,7 @@
 		</tr>
 	</table>
 	{/if}
-	{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($ownerid, $founders)}
+	{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders)}
 	<p>
 		<a href="javascript:;" class="btn btn-primary" data-toggle="modal" data-target="#change-group">修改套餐</a>
 		<a href="javascript:;" class="btn btn-primary" data-toggle="modal" data-target="#jurisdiction-add">修改附加权限</a>

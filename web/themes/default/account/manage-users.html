@@ -14,11 +14,11 @@
 			<th class="text-left">用户名</th>
 			<th>权限身份</th>
 			<th class="text-right">
-				{if $_W['isfounder'] && empty($owner)}<span class="btn btn-link color-default" data-toggle="modal" data-target="#owner-modal">添加主管理员</span>{/if}
+				{if $_W['isfounder'] && empty($owner['uid'])}<span class="btn btn-link color-default" data-toggle="modal" data-target="#owner-modal">添加主管理员</span>{/if}
 				<span class="btn btn-link color-default" data-toggle="modal" data-target="#user-modal">添加使用者</span>
 			</th>
 		</tr>
-		<tr ng-repeat="permission in permissions">
+		<tr ng-repeat="permission in permissions" ng-if="permission.uid">
 			<td class="text-left" ng-bind="permission.username"></td>
 			<td ng-if="permission.isfounder == 1">创始人</td>
 			<td ng-if="permission.role == 'owner' && permission.isfounder == 0">主管理员</td>
@@ -97,6 +97,7 @@
 	angular.module('accountApp').value('config', {
 		permissions: {php echo !empty($permissions) ? json_encode($permissions) : 'null'},
 		state: {php echo !empty($state) ? json_encode($state) : 'null'},
+		accountType: {php echo !empty($_GPC['account_type']) ? json_encode($_GPC['account_type']) : '1'},
 		links: {
 			delete: "{php echo url('account/post-user/delete', array('acid' => $acid, 'uniacid' => $uniacid))}",
 			setPermission: "{php echo url('account/post-user/set_permission', array('acid' => $acid, 'uniacid' => $uniacid));}",

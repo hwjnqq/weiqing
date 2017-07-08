@@ -6,34 +6,33 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-cache_type($_W['config']['setting']['cache']);
+load()->func('cache.' . cache_type());
 
 /**
  * 获取缓存类型
  * @param $cache_type
  */
-function cache_type($cache_type) {
+function cache_type() {
 	global $_W;
+	$cacher = $connect = '';
+	$cache_type = strtolower($_W['config']['setting']['cache']);
+	
 	if (extension_loaded($cache_type)) {
 		$config = $_W['config']['setting'][$cache_type];
 		if (!empty($config['server']) && !empty($config['port'])) {
 			if ($cache_type == 'memcache') {
-				$obj = new Memcache();
-			} else {
-				$obj = new Redis();
+				$cacher = new Memcache();
+			} elseif ($cache_type == 'redis') {
+				$cacher = new Redis();
 			}
-			$connect = @$obj->connect($config['server'], $config['port']);
-			if (empty($obj) || empty($connect)) {
-				$_W['config']['setting']['cache'] = 'mysql';
-			}
-		} else {
-			$_W['config']['setting']['cache'] = 'mysql';
+			$connect = @$cacher->connect($config['server'], $config['port']);
 		}
-	} else {
-		$_W['config']['setting']['cache'] = 'mysql';
 	}
+	if (empty($cacher) || empty($connect)) {
+		$cache_type = 'mysql';
+	}
+	return $cache_type;
 }
-load()->func('cache.' . $_W['config']['setting']['cache']);
 
 /**
  * 读取缓存，并将缓存加载至 $_W 全局变量中

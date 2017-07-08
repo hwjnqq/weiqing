@@ -26,8 +26,10 @@ function _cloud_build_params() {
 	$pars['family'] = IMS_FAMILY;
 	$pars['version'] = IMS_VERSION;
 	$pars['release'] = IMS_RELEASE_DATE;
-	$pars['key'] = $_W['setting']['site']['key'];
-	$pars['password'] = md5($_W['setting']['site']['key'] . $_W['setting']['site']['token']);
+	if (!empty($_W['setting']['site'])) {
+		$pars['key'] = $_W['setting']['site']['key'];
+		$pars['password'] = md5($_W['setting']['site']['key'] . $_W['setting']['site']['token']);
+	}
 	$clients = cloud_client_define();
 	$string = '';
 	foreach($clients as $cli) {
@@ -59,6 +61,16 @@ function _cloud_shipping_parse($dat, $file) {
 		return error(-1, '抱歉，您的站点已被列入云服务黑名单，云服务一切业务已被禁止，请联系微擎客服！');
 	}
 	if (strlen($dat['content']) != 32) {
+		$dat['content'] = unserialize($dat['content']);
+		if (is_array($dat['content']) && isset($dat['content']['files'])) {
+			if (!empty($dat['content']['manifest'])) {
+				$dat['content']['manifest'] = base64_decode($dat['content']['manifest']);
+			}
+			if (!empty($dat['content']['scripts'])) {
+				$dat['content']['scripts'] = base64_decode($dat['content']['scripts']);
+			}
+			return $dat['content'];
+		}
 		return error(-1, '云服务平台向您的服务器传输数据过程中出现错误, 这个错误可能是由于您的通信密钥和云服务不一致, 请尝试诊断云服务参数(重置站点ID和通信密钥). 传输原始数据:' . $dat['meta']);
 	}
 	$data = @file_get_contents($file);
@@ -243,6 +255,21 @@ function cloud_download($path, $type = '') {
 			load()->func('file');
 			@mkdirs(dirname($path));
 			if (file_put_contents($path, $file)) {
+				if (!empty($ret['extend'])) {
+					foreach ($ret['extend'] as $file) {
+						$path = base64_decode($file['path']);
+						$file = base64_decode($file['file']);
+						if (empty($path) || empty($file)) {
+							continue;
+						}
+						if($gz) {
+							$file = gzuncompress($file);
+						}
+						$path = IA_ROOT . $path;
+						@mkdirs(dirname($path));
+						file_put_contents($path, $file);
+					}
+				}
 				return true;
 			} else {
 				return error(-1, '写入失败');
@@ -285,6 +312,7 @@ function cloud_m_build($modulename, $type = '') {
 	$pars['method'] = 'module.build';
 	$pars['module'] = $modulename;
 	$pars['type'] = $type;
+	$pars['token'] = cloud_build_transtoken();
 	if (!empty($module)) {
 		$pars['module_version'] = $module['version'];
 	}
@@ -340,10 +368,17 @@ function cloud_m_build($modulename, $type = '') {
  * 获取当前站点本地和云服务所有模块详细信息
  * @return array 应用或错误信息
  */
-function cloud_m_query() {
+function cloud_m_query($module = array()) {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'module.query';
-	$pars['module'] = cloud_extra_module();
+	if (empty($module)) {
+		$pars['module'] = cloud_extra_module();
+	} else {
+		if (!is_array($module)) {
+			$module = array($module);
+		}
+		$pars['module'] = base64_encode(iserializer($module));
+	}
 	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/module.query';
 	$ret = _cloud_shipping_parse($dat, $file);
@@ -1170,5 +1205,57 @@ function cloud_flow_site_stat_day($condition) {
 	$ret = @json_decode($dat['content'], true);
 	cache_write($cachekey, array('expire' => TIMESTAMP + 300, 'info' => $ret));
 	return $ret;
-	
+}
+
+function cloud_build_transtoken() {
+	$pars = _cloud_build_params();
+	$pars['method'] = 'application.token';
+	$dat = cloud_request(CLOUD_GATEWAY_URL_NORMAL, $pars);
+	$file = IA_ROOT . '/data/application.build';
+	$ret = _cloud_shipping_parse($dat, $file);
+	cache_write('cloud:transtoken', authcode($ret['token'], 'ENCODE'));
+	return $ret['token'];
+}
+/**
+ * 数据库更新信息
+ * @param $schems array 云服务返回的数据库信息
+ * @return array 数据库更新信息
+ */
+function cloud_build_schemas($schems) {
+	$database = array();
+	if (empty($schems)) {
+		return $database;
+	}
+	foreach ($schemas as $remote) {
+		$row = array();
+		$row['tablename'] = $remote['tablename'];
+		$name = substr($remote['tablename'], 4);
+		$local = db_table_schema(pdo(), $name);
+		unset($remote['increment']);
+		unset($local['increment']);
+		if (empty($local)) {
+			$row['new'] = true;
+		} else {
+			$row['new'] = false;
+			$row['fields'] = array();
+			$row['indexes'] = array();
+			$diffs = db_schema_compare($local, $remote);
+			if (!empty($diffs['fields']['less'])) {
+				$row['fields'] = array_merge($row['fields'], $diffs['fields']['less']);
+			}
+			if (!empty($diffs['fields']['diff'])) {
+				$row['fields'] = array_merge($row['fields'], $diffs['fields']['diff']);
+			}
+			if (!empty($diffs['indexes']['less'])) {
+				$row['indexes'] = array_merge($row['indexes'], $diffs['indexes']['less']);
+			}
+			if (!empty($diffs['indexes']['diff'])) {
+				$row['indexes'] = array_merge($row['indexes'], $diffs['indexes']['diff']);
+			}
+			$row['fields'] = implode($row['fields'], ' ');
+			$row['indexes'] = implode($row['indexes'], ' ');
+		}
+		$database[] = $row;
+	}
+	return $database;
 }

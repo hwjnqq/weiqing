@@ -65,6 +65,9 @@ if ($do == 'upload_file') {
 		if (empty($_FILES['file']['tmp_name'])) {
 			itoast('请选择文件', url('profile/common/upload_file'), 'error');
 		}
+		if ($_FILES['file']['type'] != 'text/plain') {
+			itoast('文件类型错误', url('profile/common/upload_file'), 'error');
+		}
 		$file = file_get_contents($_FILES['file']['tmp_name']);
 		$file_name = 'MP_verify_'. $file. ".txt";
 		if ($file_name != $_FILES['file']['name'] || !preg_match("/^[A-Za-z0-9]+$/", $file)) {

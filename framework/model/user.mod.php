@@ -274,10 +274,21 @@ function user_group_detail_info($groupid = 0) {
  *@return array
  */
 function user_account_detail_info($uid) {
-	$wxapps = $wechats = $account_lists = array();
+	global $_W;
+	$account_lists = array();
+	$uid = intval($uid);
+	if (empty($uid)) {
+		return $account_lists;
+	}
 
-	$sql = "SELECT b.uniacid, b.role, a.type FROM " . tablename('account'). " AS a LEFT JOIN ". tablename('uni_account_users') . " AS b ON a.uniacid = b.uniacid WHERE a.acid <> 0 AND a.isdeleted <> 1 AND b.uid = :uid";
-	$account_users_info = pdo_fetchall($sql, array(':uid' => $uid), 'uniacid');
+	$sql = "SELECT b.uniacid, b.role, a.type FROM " . tablename('account'). " AS a LEFT JOIN ". tablename('uni_account_users') . " AS b ON a.uniacid = b.uniacid WHERE a.acid <> 0 AND a.isdeleted <> 1";
+	$param = array();
+	$founders = explode(',', $_W['config']['setting']['founder']);
+	if (!in_array($uid, $founders)) {
+		$sql .= " AND b.uid = :uid";
+		$param[':uid'] = $uid;
+	}
+	$account_users_info = pdo_fetchall($sql, $param, 'uniacid');
 	foreach ($account_users_info as $uniacid => $account) {
 		if ($account['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $account['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
 			$app_user_info[$uniacid] = $account;
@@ -285,6 +296,7 @@ function user_account_detail_info($uid) {
 			$wxapp_user_info[$uniacid] = $account;
 		}
 	}
+	$wxapps = $wechats = array();
 	if (!empty($wxapp_user_info)) {
 		$wxapps = pdo_fetchall("SELECT w.name, w.level, w.acid, a.* FROM " . tablename('uni_account') . " a INNER JOIN " . tablename(uni_account_tablename(ACCOUNT_TYPE_APP_NORMAL)) . " w USING(uniacid) WHERE a.uniacid IN (".implode(',', array_keys($wxapp_user_info)).") ORDER BY a.uniacid ASC", array(), 'acid');
 	}
@@ -298,6 +310,7 @@ function user_account_detail_info($uid) {
 			foreach ($account_users_info as $uniacid => $user_info) {
 				if ($account_val['uniacid'] == $uniacid) {
 					$account_val['role'] = $user_info['role'];
+					$account_val['type'] = $user_info['type'];
 					if ($user_info['type'] == ACCOUNT_TYPE_APP_NORMAL) {
 						$account_lists['wxapp'][$uniacid] = $account_val;
 					} elseif ($user_info['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $user_info['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
@@ -310,7 +323,6 @@ function user_account_detail_info($uid) {
 	}
 	return $account_lists;
 }
-
 
 /**
  * 获取当前用户拥有的所有模块及小程序的标识
@@ -344,14 +356,17 @@ function user_modules($uid) {
 			} else {
 				//此处缺少公众号专属套餐
 				$package_group = pdo_getall('uni_group', array('id' => $packageids));
-				$package_group_module = array();
 				if (!empty($package_group)) {
 					foreach ($package_group as $row) {
 						if (!empty($row['modules'])) {
 							$row['modules'] = (array)unserialize($row['modules']);
 						}
+						$package_group_module = array();
 						if (!empty($row['modules'])) {
-							foreach ($row['modules'] as $modulename) {
+							foreach ($row['modules'] as $modulename => $module) {
+								if (!is_array($module)) {
+									$modulename = $module;
+								}
 								$package_group_module[$modulename] = $modulename;
 							}
 						}
@@ -371,7 +386,9 @@ function user_modules($uid) {
 			foreach ($plugin_list as $plugin) {
 				$have_plugin_module[$plugin['main_module']][$plugin['name']] = $plugin['name'];
 				$module_key = array_search($plugin['name'], $module_list);
-				unset($module_list[$module_key]);
+				if ($module_key !== false) {
+					unset($module_list[$module_key]);
+				}
 			}
 		}
 		if (!empty($module_list)) {
@@ -395,6 +412,62 @@ function user_modules($uid) {
 				$module_list[$module] = $module_info;
 			}
 		}
+	}
+	return $module_list;
+}
+
+/**
+ * 获取用户登录后要跳转的地址
+ * @param string $forward 要跳转的地址
+ * return string
+ */
+function user_login_forward($forward = '') {
+	global $_W;
+	$login_forward = trim($forward);
+
+	if (!empty($forward)) {
+		return $login_forward;
+	}
+	if (!empty($_W['isfounder'])) {
+		return url('home/welcome/system');
+	}
+
+	$login_forward = url('account/display');
+	if (!empty($_W['uniacid']) && !empty($_W['account'])) {
+		$permission = uni_permission($_W['uid'], $_W['uniacid']);
+		if (empty($permission)) {
+			return $login_forward;
+		}
+		if ($_W['account']['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $_W['account']['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
+			$login_forward = url('home/welcome');
+		} elseif ($_W['account']['type'] == ACCOUNT_TYPE_APP_NORMAL) {
+			$login_forward = url('wxapp/display/home');
+		}
+	}
+
+	return $login_forward;
+}
+/**
+ * 获取公众号所有应用或者小程序所有应用
+ * @param string $type 模块类型(account/wxapp)
+ * @return array $modules 模块信息
+ */
+function user_module_by_account_type($type) {
+	global $_W;
+	$module_list = user_modules($_W['uid']);
+	if (!empty($module_list)) {
+		foreach ($module_list as $key => &$module) {
+			if ((!empty($module['issystem']) && $module['name'] != 'we7_coupon')) {
+				unset($module_list[$key]);
+			}
+			if ($module['wxapp_support'] != 2 && $type == 'wxapp') {
+				unset($module_list[$key]);
+			}
+			if ($module['app_support'] != 2 && $type == 'account') {
+				unset($module_list[$key]);
+			}
+		}
+		unset($module);
 	}
 	return $module_list;
 }

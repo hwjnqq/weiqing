@@ -379,7 +379,7 @@ function tpl_form_field_industry($name, $pvalue = '', $cvalue = '', $parentid = 
 function tpl_form_field_coordinate($field, $value = array()) {
 	$s = '';
 	if(!defined('TPL_INIT_COORDINATE')) {
-		$s .= '<script type="text/javascript">
+		$s .= '<script type="text/javascript" src="https://api.map.baidu.com/api?v=2.0&ak=F51571495f717ff1194de02366bb8da9&s=1"></script><script type="text/javascript">
 				function showCoordinate(elm) {
 					require(["util"], function(util){
 						var val = {};

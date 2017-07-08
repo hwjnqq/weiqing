@@ -84,6 +84,8 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 				$endtime = strtotime($_GPC['endtime']);
 			}
 			$result = pdo_update('users', array('endtime' => $endtime), array('uid' => $uid));
+			$uni_account_user = pdo_get('uni_account_users', array('uid' => $uid, 'role' => 'owner'));
+			cache_delete("uniaccount:{$uni_account_user['uniacid']}");
 			break;
 		case 'realname':
 			if ($users_profile_exist) {

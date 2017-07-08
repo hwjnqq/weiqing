@@ -153,7 +153,6 @@ class CoreModuleSite extends WeModuleSite {
 		), array('plid' => $paylog['plid']));
 		
 		$_W['uniacid'] = $paylog['uniacid'];
-		$_W['openid'] = $paylog['openid'];
 		
 		$setting = uni_setting($_W['uniacid'], array('payment'));
 		$wechat_payment = $setting['payment']['wechat'];
@@ -170,8 +169,25 @@ class CoreModuleSite extends WeModuleSite {
 			'title' => urldecode($paylog['title']),
 			'uniontid' => $paylog['uniontid'],
 		);
-		if (intval($wechat_payment['switch']) == 2 || intval($wechat_payment['switch']) == 3) {
-			$wechat_payment_params = wechat_proxy_build($params, $wechat_payment);
+		if (intval($wechat_payment['switch']) == PAYMENT_WECHAT_TYPE_SERVICE || intval($wechat_payment['switch']) == PAYMENT_WECHAT_TYPE_BORROW) {
+			if (!empty($_W['openid'])) {
+				$params['sub_user'] = $_W['openid'];
+				$wechat_payment_params = wechat_proxy_build($params, $wechat_payment);
+			} else {
+				$params['tid'] = $paylog['plid'];
+				//借用服务商支付时，没有获取到当前公众号的Openid时，只能跳转至收银台继续付款
+				$params['title'] = urlencode($params['title']);
+				$sl = base64_encode(json_encode($params));
+				$auth = sha1($sl . $paylog['uniacid'] . $_W['config']['setting']['authkey']);
+				
+				$callback = urlencode($_W['siteroot'] . "payment/wechat/pay.php?i={$_W['uniacid']}&auth={$auth}&ps={$sl}");
+				$proxy_pay_account = payment_proxy_pay_account();
+				if (!is_error($proxy_pay_account)) {
+					$forward = $proxy_pay_account->getOauthCodeUrl($callback, 'we7sid-'.$_W['session_id']);
+					message(error(2, $forward), $forward, 'ajax');
+					exit;
+				}
+			}
 		} else {
 			unset($wechat_payment['sub_mch_id']);
 			$wechat_payment_params = wechat_build($params, $wechat_payment);
@@ -210,6 +226,7 @@ class CoreModuleSite extends WeModuleSite {
 		$id = intval($_GPC['id']);
 		$sql = "SELECT * FROM " . tablename('news_reply') . " WHERE `id`=:id";
 		$row = pdo_fetch($sql, array(':id'=>$id));
+		$createtime = $row['createtime'];
 		if (!empty($row['url'])) {
 			header("Location: ".$row['url']);
 			exit;
@@ -217,6 +234,7 @@ class CoreModuleSite extends WeModuleSite {
 		//兼容0.8写法，在此回复新版1.0本地素材
 		if (!empty($row['media_id']) && intval($row['media_id']) != 0) {
 			$row = pdo_get('wechat_news', array('attach_id' => $row['media_id'], 'displayorder' => $row['displayorder']));
+			$row['createtime'] = $createtime;
 			if (!empty($row['content_source_url'])) {
 				header("Location: ".$row['content_source_url']);
 				exit;

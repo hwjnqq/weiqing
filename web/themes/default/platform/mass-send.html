@@ -7,7 +7,7 @@
 		<a href="{php echo url('platform/mass/')}" >素材定时群发</a>
 	</li>
 	<li {if $_GPC['a'] == 'mass' && $do == 'send'}class="active"{/if}>
-		<a href="{php echo url('platform/mass/send')}">定时群发记录</a>
+		<a href="{php echo url('platform/mass/send')}">群发记录</a>
 	</li>
 </ul>
 <div class="mass-send" id="js-mass-send" ng-controller="MassSend" ng-cloak>
@@ -45,6 +45,8 @@
 					{if !$list['cron_id'] && $list['sendtime'] > TIMESTAMP}
 					<a href="{php echo url('platform/mass/cron', array('id' => $list['id']));}" class="btn btn-danger btn-sm">同步到云服务</a>
 					{/if}
+					<a href="{php echo url('platform/mass/post', array('id' => $list['id']));}" data-toggle="tooltip" data-placement="bottom">编辑</a>
+					<a href="{php echo url('platform/mass/del', array('id' => $list['id']));}" data-toggle="tooltip" data-placement="bottom">删除</a>
 				{/if}
 			</td>
 		</tr>

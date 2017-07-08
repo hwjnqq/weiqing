@@ -6,7 +6,7 @@
 </ol>
 <div class="media media-wechat-setting">
 	<a class="media-left">
-		<span class="icon"><i class="wi wi-small-routine"></i></span>
+		<span class="icon"><i class="wi wi-wxapp"></i></span>
 		<img src="{media 'headimg_'.$acid.'.jpg'}" class="wechat-img">
 	</a>
 	<div class="media-body media-middle ">
@@ -49,14 +49,14 @@
 			</td>
 			<td class="clearfix">
 				<div class="item col-sm-6" ng-if="version.modules" ng-repeat="module in version.modules">
-					<img src="{{module.module_info.logo}}" class="icon"/>
-					<div class="name" ng-bind="module.name"></div>
+					<img src="{{module.logo}}" class="icon"/>
+					<div class="name" ng-bind="module.title"></div>
 					<div ng-bind="module.version"></div>
 				</div>
 			</td>
 			<td class="text-right">
 				<div class="link-group">
-					<a href="./index.php?c=wxapp&a=version&do=manage&multiid={{version.multiid}}&uniacid={{version.uniacid}}&version_id={{version.id}}">进入</a>
+					<a href="./index.php?c=wxapp&a=display&do=switch&uniacid={{version.uniacid}}&version_id={{version.id}}">进入</a>
 					<a href="./index.php?c=wxapp&a=manage&do=getpackage&uniacid={{version.uniacid}}&versionid={{version.id}}">下载</a>
 					<a href="javascript:;" ng-click="showEditVersionInfoModal(version)">修改</a>
 					<a href="javascript:;" class="del" ng-click="delWxappVersion(version.id)">删除</a>
@@ -91,14 +91,14 @@
 							<td class="wxapp-module-list">
 								<div class="col-sm-6" ng-if="activeVersion.modules" ng-repeat="module in activeVersion.modules">
 									<div class="item">
-										<img src="{{module.module_info.logo}}" class="icon"/>
-										<div class="name" ng-bind="module.name"></div>
+										<img src="{{module.logo}}" class="icon"/>
+										<div class="name" ng-bind="module.title"></div>
 										<div ng-bind="module.version"></div>
 										<div class="cover-dark"><a href="javascript:;" class="cover-delect" ng-click="delModule(module);"><i class="fa fa-minus-circle"></i>删除</a></div>
 									</div>
 								</div>
 								<div class="col-sm-6">
-									<div class="add" ng-click="showEditModuleModal()">+</div>
+									<div class="add" ng-click="showEditModuleModal()" ng-style="{'display': 'none'}">+</div>
 								</div>
 							</td>
 						</tr>
@@ -106,7 +106,7 @@
 				</div>
 				<div class="modal-footer" ng-if="wxapp_modules">
 					<button type="button" class="btn btn-primary" ng-click="editVersionInfo()">确定</button>
-					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal" ng-click="cancelVersionInfo()">取消</button>
 				</div>
 			</div>
 		</div>

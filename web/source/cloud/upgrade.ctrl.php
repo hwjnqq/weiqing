@@ -55,38 +55,7 @@ if ($do == 'upgrade') {
 	}
 	cache_delete('cloud:transtoken');
 	if (!empty($upgrade['schemas'])) {
-		$upgrade['database'] = array();
-		foreach ($upgrade['schemas'] as $remote) {
-			$row = array();
-			$row['tablename'] = $remote['tablename'];
-			$name = substr($remote['tablename'], 4);
-			$local = db_table_schema(pdo(), $name);
-			unset($remote['increment']);
-			unset($local['increment']);
-			if (empty($local)) {
-				$row['new'] = true;
-			} else {
-				$row['new'] = false;
-				$row['fields'] = array();
-				$row['indexes'] = array();
-				$diffs = db_schema_compare($local, $remote);
-				if (!empty($diffs['fields']['less'])) {
-					$row['fields'] = array_merge($row['fields'], $diffs['fields']['less']);
-				}
-				if (!empty($diffs['fields']['diff'])) {
-					$row['fields'] = array_merge($row['fields'], $diffs['fields']['diff']);
-				}
-				if (!empty($diffs['indexes']['less'])) {
-					$row['indexes'] = array_merge($row['indexes'], $diffs['indexes']['less']);
-				}
-				if (!empty($diffs['indexes']['diff'])) {
-					$row['indexes'] = array_merge($row['indexes'], $diffs['indexes']['diff']);
-				}
-				$row['fields'] = implode($row['fields'], ' ');
-				$row['indexes'] = implode($row['indexes'], ' ');
-			}
-			$upgrade['database'][] = $row;
-		}
+		$upgrade['database'] = cloud_build_schemas($upgrade['schemas']);
 	}
 	$path = IA_ROOT . '/data/patch/' . date('Ymd') . '/';
 	if (is_dir($path)) {

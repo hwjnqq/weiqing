@@ -77,7 +77,7 @@ function template_compile($from, $to, $inmodule = false) {
 		mkdirs($path);
 	}
 	$content = template_parse(file_get_contents($from), $inmodule);
-	if(IMS_FAMILY == 'x' && !preg_match('/(footer|header|account\/welcome|login|register)+/', $from)) {
+	if(IMS_FAMILY == 'x' && !preg_match('/(footer|header|account\/welcome|login|register|home\/welcome)+/', $from)) {
 		$content = str_replace('微擎', '系统', $content);
 	}
 	file_put_contents($to, $content);

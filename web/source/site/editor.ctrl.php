@@ -8,7 +8,7 @@ load()->model('site');
 load()->model('module');
 
 $do = !empty($do) ? $do : 'uc';
-$do = in_array($do, array('quickmenu', 'uc')) ? $do : 'uc';
+$do = in_array($do, array('quickmenu', 'uc', 'qrcode')) ? $do : 'uc';
 uni_user_permission_check('platform_site');
 
 if ($do == 'uc') {
@@ -111,7 +111,6 @@ if ($do == 'uc') {
 	$_W['page']['title'] = '快捷菜单 - 站点管理 - 微站功能';
 	$multiid = intval($_GPC['multiid']);
 	$type = intval($_GPC['type']) ? intval($_GPC['type']) : 2;
-
 	if ($_GPC['wapeditor']) {
 		$params = $_GPC['wapeditor']['params'];
 		if (empty($params)) {
@@ -164,4 +163,10 @@ if ($do == 'uc') {
 	pdo_delete('site_page', array('id' => $id, 'uniacid' => $_W['uniacid']));
 	site_cover_delete($id);
 	itoast('删除微页面成功', referer(), 'success');
+} elseif ($do == 'qrcode') {
+	require_once(IA_ROOT.'/framework/library/qrcode/phpqrcode.php');
+	$error_correction_level = "L";
+	$matrix_point_size = "8";
+	$text = trim($_GPC['text']);
+	QRcode::png($text, false, $error_correction_level, $matrix_point_size);
 }

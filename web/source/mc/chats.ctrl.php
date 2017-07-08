@@ -24,8 +24,10 @@ if ($do == 'chats') {
 	$chat_record = pdo_getslice('mc_chats_record', array('uniacid' => $_W['uniacid'], 'openid' => $openid), array('1', 20), $total, array(), '', 'createtime desc');
 	if (!empty($chat_record)) {
 		foreach ($chat_record as &$record) {
-			$record['content'] = iunserializer($record['content']);
-			$record['content'] = urldecode($record['content']['content']);
+			if ($record['flag'] == FANS_CHATS_FROM_SYSTEM) {
+				$record['content'] = iunserializer($record['content']);
+				$record['content'] = urldecode($record['content']['content']);
+			}
 			$record['createtime'] = date('Y-m-d H:i', $record['createtime']);
 		}
 	}
@@ -68,7 +70,7 @@ if ($do == 'send') {
 	$account_api = WeAccount::create($_W['acid']);
 	$result = $account_api->sendCustomNotice($send);
 	if (is_error($result)) {
-		iajax(1, $result);
+		iajax(-1, $result['meaasge']);
 	} else {
 		//生成上下文
 		$account = account_fetch($_W['acid']);

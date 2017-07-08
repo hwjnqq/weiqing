@@ -21,11 +21,11 @@ if ($do == 'get_setting') {
 		$pay_setting = array(
 			'delivery' => array('switch' => false),
 			'credit' => array('switch' => false),
-			'alipay' => array('switch' => false, 'account' => '', 'partner' => '', 'secret' => ''),
-			'wechat' => array('switch' => false, 'account' => '', 'signkey' => '', 'partner' => '', 'key' => '', 'version' => '', 'mchid' => '', 'apikey' => '', 'service' => '', 'borrow' => '', 'sub_mch_id' => ''),
-			'unionpay' => array('switch' => false, 'signcertpwd' => '', 'merid' => ''),
-			'baifubao' => array('switch' => false, 'signkey' => '', 'mchid' => ''),
-			'line' => array('switch' => false, 'message' => ''),
+			'alipay' => array('switch' => false),
+			'wechat' => array('switch' => false),
+			'unionpay' => array('switch' => false),
+			'baifubao' => array('switch' => false),
+			'line' => array('switch' => false),
 		);
 	}
 	iajax(0, $pay_setting, '');
@@ -118,7 +118,11 @@ MFF/yA==
 	}
 	$pay_setting[$type] = $param;
 	$payment = iserializer($pay_setting);
-	pdo_update('uni_settings', array('payment' => $payment), array('uniacid' => $_W['uniacid']));
+	if ($setting) {
+		pdo_update('uni_settings', array('payment' => $payment), array('uniacid' => $_W['uniacid']));
+	} else {
+		pdo_insert('uni_settings', array('payment' => $payment, 'uniacid' => $_W['uniacid']));
+	}
 	cache_delete("unisetting:{$_W['uniacid']}");
 	if ($type == 'unionpay') {
 		header('LOCATION: '.url('profile/payment'));
@@ -138,19 +142,19 @@ if ($do == 'display') {
 		$pay_setting['delivery'] = array('switch' => false);
 	}
 	if (empty($pay_setting['alipay'])) {
-		$pay_setting['alipay'] = array('switch' => false, 'account' => '', 'partner' => '', 'secret' => '');
+		$pay_setting['alipay'] = array('switch' => false);
 	}
 	if (empty($pay_setting['wechat'])) {
-		$pay_setting['wechat'] = array('switch' => false, 'account' => '', 'signkey' => '', 'partner' => '', 'key' => '', 'version' => '', 'mchid' => '', 'apikey' => '', 'service' => '', 'borrow' => '', 'sub_mch_id' => '');
+		$pay_setting['wechat'] = array('switch' => false);
 	}
 	if (empty($pay_setting['unionpay'])) {
-		$pay_setting['unionpay'] = array('switch' => false, 'signcertpwd' => '', 'merid' => '');
+		$pay_setting['unionpay'] = array('switch' => false);
 	}
 	if (empty($pay_setting['baifubao'])) {
-		$pay_setting['baifubao'] = array('switch' => false, 'signkey' => '', 'mchid' => '');
+		$pay_setting['baifubao'] = array('switch' => false);
 	}
 	if (empty($pay_setting['line'])) {
-		$pay_setting['line'] = array('switch' => false, 'message' => '');
+		$pay_setting['line'] = array('switch' => false);
 	}
 	//废弃微信借用支付
 	if (empty($_W['isfounder'])) {

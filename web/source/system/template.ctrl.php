@@ -47,7 +47,7 @@ if ($do == 'check_upgrade') {
 	foreach ($template_list as &$template) {
 		$manifest = ext_template_manifest($template['name'], false);
 		if (!empty($manifest)&& is_array($manifest)) {
-			if (ver_compare($template['version'], $manifest['application']['version']) == '-1') {
+			if (version_compare($template['version'], $manifest['application']['version']) == '-1') {
 				$template['upgrade'] = 1;
 			} else {
 				$template['upgrade'] = 0;
@@ -59,7 +59,7 @@ if ($do == 'check_upgrade') {
 				$site_branch = $cloud_template_list[$template['name']]['branch'];//当前站点模块分之号
 				$cloud_branch_version = $cloud_template_list[$template['name']]['branches'][$site_branch]['version'];//云服务模块分之版本号
 				$best_branch = current($cloud_template_list[$template['name']]['branches']);
-				if (ver_compare($template['version'], $cloud_branch_version) == -1 || ($cloud_template_list[$template['name']]['branch'] < $best_branch['id'])) {
+				if (version_compare($template['version'], $cloud_branch_version) == -1 || ($cloud_template_list[$template['name']]['branch'] < $best_branch['id'])) {
 					$template['upgrade'] = 1;
 				} else {
 					$template['upgrade'] = 0;
@@ -240,7 +240,7 @@ if($do == 'upgrade') {
 	if (empty($manifest)) {
 		itoast('模块安装配置文件不存在或是格式不正确！', '', 'error');
 	}
-	if(ver_compare($template['version'], $packet['version']) != -1) {
+	if(version_compare($template['version'], $packet['version']) != -1) {
 		itoast('已安装的模板版本不低于要更新的版本, 操作无效.', '', 'error');
 	}
 	pdo_update('site_templates', array('version' => $packet['version']), array('id' => $template['id']));

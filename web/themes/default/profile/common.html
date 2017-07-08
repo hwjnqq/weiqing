@@ -173,9 +173,8 @@
 	angular.bootstrap($('.js-profile-uc'), ['profileApp']);
 	//处理快速录入
 </script>
-
 {elseif $do == 'upload_file'}
-<div class="main" >
+<div class="main">
 	<form id="form21" action="{php echo url('profile/common/upload_file')}" method="post" class="we7-form form" enctype="multipart/form-data">
 		<div class="panel-body">
 			<div class="alert alert-info">
@@ -195,7 +194,7 @@
 					<td class="color-gray"></td>
 					<td class="text-right">
 						<div class="link-group">
-							<a href="javascript:;">修改</a>
+							<a href="javascript:;"  data-toggle="modal" data-target="#jsauth_acid">修改</a>
 						</div>
 					</td>
 				</tr>

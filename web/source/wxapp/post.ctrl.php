@@ -8,7 +8,7 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('module');
 load()->model('wxapp');
 
-$dos = array('design_method', 'post', 'get_wxapp_modules', 'getpackage');
+$dos = array('design_method', 'post', 'get_wxapp_modules');
 $do = in_array($do, $dos) ? $do : 'post';
 $_W['page']['title'] = '小程序 - 新建版本';
 $account_info = uni_user_account_permission();
@@ -30,8 +30,8 @@ if($do == 'post') {
 	}
 	
 	if (checksubmit('submit')) {
-		if ($account_info['wxapp_limit'] <= 0 && empty($uniacid)) {
-			itoast('创建的小程序已达上限！');
+		if ($account_info['wxapp_limit'] <= 0 && empty($uniacid) && !$_W['isfounder']) {
+			iajax(-1, '创建的小程序已达上限！');
 		}
 		if ($design_method == WXAPP_TEMPLATE && empty($_GPC['select']['modules'])) {
 			iajax(2, '请选择要打包的模块应用', url('wxapp/post'));
@@ -89,7 +89,7 @@ if($do == 'post') {
 		if (!empty($_GPC['select']['modules'])) {
 			$select_modules = array();
 			foreach ($_GPC['select']['modules'] as $module) {
-				$module = module_fetch($module);
+				$module = module_fetch($module['module']);
 				if (empty($module) || $module['wxapp_support'] != MODULE_SUPPORT_WXAPP) {
 					continue;
 				}

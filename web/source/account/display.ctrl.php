@@ -19,9 +19,15 @@ if($do == 'switch') {
 	if(empty($role)) {
 		itoast('操作失败, 非法访问.', '', 'error');
 	}
-
 	uni_account_save_switch($uniacid);
-	uni_account_switch($uniacid,  url('home/welcome'));
+	$module_name = trim($_GPC['module_name']);
+	$version_id = intval($_GPC['version_id']);
+	if (empty($module_name)) {
+		$url = url('home/welcome');
+	} else {
+		$url = url('home/welcome/ext', array('m' => $module_name, 'version_id' => $version_id));
+	}
+	uni_account_switch($uniacid, $url);
 }
 
 if ($do == 'rank' && $_W['isajax'] && $_W['ispost']) {
@@ -37,9 +43,8 @@ if ($do == 'rank' && $_W['isajax'] && $_W['ispost']) {
 
 if ($do == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
-	$psize = 8;
+	$psize = 15;
 	$start = ($pindex - 1) * $psize;
-
 	$condition = '';
 	$param = array();
 	$keyword = trim($_GPC['keyword']);
@@ -65,9 +70,9 @@ if ($do == 'display') {
 		}
 	}
 
-	$tsql = "SELECT COUNT(*) FROM " . tablename('uni_account'). " as a LEFT JOIN". tablename('account'). " as b ON a.default_acid = b.acid {$condition} {$order_by}, a.`uniacid` DESC";
+	$tsql = "SELECT COUNT(*) FROM " . tablename('uni_account'). " as a LEFT JOIN". tablename('account'). " as b ON a.uniacid = b.uniacid AND a.default_acid = b.acid {$condition} {$order_by}, a.`uniacid` DESC";
 	$total = pdo_fetchcolumn($tsql, $param);
-	$sql = "SELECT * FROM ". tablename('uni_account'). " as a LEFT JOIN". tablename('account'). " as b ON a.default_acid = b.acid  {$condition} {$order_by}, a.`uniacid` DESC LIMIT {$start}, {$psize}";
+	$sql = "SELECT * FROM ". tablename('uni_account'). " as a LEFT JOIN". tablename('account'). " as b ON a.uniacid = b.uniacid AND a.default_acid = b.acid  {$condition} {$order_by}, a.`uniacid` DESC LIMIT {$start}, {$psize}";
 	$list = pdo_fetchall($sql, $param);
 	if(!empty($list)) {
 		foreach($list as &$account) {
@@ -80,12 +85,11 @@ if ($do == 'display') {
 			}
 			$account['role'] = uni_permission($_W['uid'], $account['uniacid']);
 			$account['setmeal'] = uni_setmeal($account['uniacid']);
+
 		}
 		unset($account_val);
 		unset($account);
 	}
-	//$pager = pagination($total, $pindex, $psize);
-	$total_page = ceil($total / $psize);
 	if ($_W['isajax'] && $_W['ispost']) {
 		iajax(0, $list);
 	}

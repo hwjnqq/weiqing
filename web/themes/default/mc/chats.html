@@ -49,10 +49,15 @@
 		<h2 class="notice-list-head">最近20条聊天记录</h2>
 			<div class="media notice-item" ng-repeat="log in chatLogs">
 				<a class="media-left" href="#">
-					<img src="{php echo tomedia($fans_info['tag']['avatar'])}" width="48">
+					<img src="{php echo $_W['account']['logo']}" width="48" class="head-logo" ng-if="log.flag == 1">
+					<img src="{php echo tomedia($fans_info['tag']['avatar'])}?time={php echo time()}" width="48" ng-if="log.flag == 2">
 				</a>
 				<div class="media-body">
-					<div class="media-heading">
+					<div class="media-heading" ng-if="log.flag == 1">
+						{$_W['account']['name']}
+						<span class="notice-item-time">{{ log.createtime }}</span>
+					</div>
+					<div class="media-heading" ng-if="log.flag == 2">
 						{$fans_info['nickname']}
 						<span class="notice-item-time">{{ log.createtime }}</span>
 					</div>

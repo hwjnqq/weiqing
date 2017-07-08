@@ -8,7 +8,7 @@ class PaycenterModuleSite extends WeModuleSite {
 	public function __construct() {
 		global $_W, $_GPC;
 		load()->model('paycenter');
-		if($_GPC['do'] != 'pay') {
+		if($_GPC['do'] != 'pay' && $_GPC['do'] != 'consume') {
 			$session = json_decode(base64_decode($_GPC['_pc_session']), true);
 			if(is_array($session)) {
 				load()->model('user');
@@ -247,62 +247,8 @@ class PaycenterModuleSite extends WeModuleSite {
 	}
 	public function doMobileConsume() {
 		global $_GPC, $_W;
-		load() -> model('activity');
-		$colors = activity_coupon_colors();
-		$source = trim($_GPC['source']);
-		$card_id = trim($_GPC['card_id']);
-		$encrypt_code = trim($_GPC['encrypt_code']);
-		$openid = trim($_GPC['openid']);
-		if(empty($card_id) || empty($encrypt_code)) {
-			message('卡券签名参数错误');
-		}
-		if ($source == '1') {
-			$card = pdo_get('coupon', array('uniacid' => $_W['uniacid'], 'id' => $card_id));
-		} else {
-			$card = pdo_get('coupon', array('uniacid' => $_W['uniacid'], 'card_id' => $card_id));
-		}
-		if(empty($card)) {
-			message('卡券不存在或已删除');
-		}
-		$card['date_info'] = iunserializer($card['date_info']);
-		$card['logo_url'] = tomedia($card['logo_url']);
-		$error_code = 0;
-		if ($source == '1') {
-			$code = $encrypt_code;
-		} else {
-			load() -> classs('coupon');
-			$coupon = new coupon($_W['acid']);
-			if (is_null($coupon)) {
-				message('系统错误');
-			}
-			$code = $coupon->DecryptCode(array('encrypt_code' => $encrypt_code));
-			$code = $code['code'];
-		}
-		
-		if(is_error($code)) {
-			$error_code = 1;
-		}
-		if(checksubmit()) {
-			$password = trim($_GPC['password']);
-			$clerk = pdo_get('activity_clerks', array('uniacid' => $_W['uniacid'], 'password' => $password));
-			$_W['user']['name'] = $clerk['name'];
-			$_W['user']['clerk_id'] = $clerk['id'];
-			$_W['user']['clerk_type'] = 3;
-			$_W['user']['store_id'] = $clerk['storeid'];
-			if(empty($clerk)) {
-				message('店员密码错误', referer(), 'error');
-			}
-			if(!$code) {
-				message('code码错误', referer(), 'error');
-			}
-			load() -> model('activity');
-			$record = pdo_get('coupon_record', array('code' => $code, 'uniacid' => $_W['uniacid']));
-			$status = activity_coupon_use($card['id'], $record['id'], 'paycenter');
-			if(is_error($status)) {
-				message($status['message'], referer(), 'error');
-			}
-			message('核销卡券成功', url('activity/coupon/mine'), 'success');
-		}
-		include $this->template('consume');
+		$url = murl('entry', array('m' => 'we7_coupon', 'do' => 'consume', 'card_id' => trim($_GPC['card_id']), 'encrypt_code' => trim($_GPC['encrypt_code']), 'openid' => trim($_GPC['openid'])));
+		header("Location: $url");
+		exit;
 	}
 }

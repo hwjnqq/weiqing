@@ -8,15 +8,13 @@ require '../../framework/bootstrap.inc.php';
 require '../../app/common/bootstrap.app.inc.php';
 load()->app('common');
 load()->app('template');
+load()->model('payment');
 
 $sl = $_GPC['ps'];
 $payopenid = $_GPC['payopenid'];
 $params = @json_decode(base64_decode($sl), true);
 if($_GPC['done'] == '1') {
-	$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `plid`=:plid';
-	$pars = array();
-	$pars[':plid'] = $params['tid'];
-	$log = pdo_fetch($sql, $pars);
+	$log = pdo_get('core_paylog', array('plid' => $params['tid']));
 	if(!empty($log) && !empty($log['status'])) {
 		if (!empty($log['tag'])) {
 			$tag = iunserializer($log['tag']);
@@ -47,8 +45,7 @@ if($_GPC['done'] == '1') {
 	}
 }
 
-$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `plid`=:plid';
-$log = pdo_fetch($sql, array(':plid' => $params['tid']));
+$log = pdo_get('core_paylog', array('plid' => $params['tid']));
 if(!empty($log) && $log['status'] != '0') {
 	exit('这个订单已经支付成功, 不需要重复支付.');
 }
@@ -56,13 +53,26 @@ $auth = sha1($sl . $log['uniacid'] . $_W['config']['setting']['authkey']);
 if($auth != $_GPC['auth']) {
 	exit('参数传输错误.');
 }
-load()->model('payment');
+
+$setting = uni_setting($_W['uniacid'], array('payment'));
+
+//如果GET参数中包含code参数，则更新粉丝openid
+if (!empty($_GPC['code'])) {
+	$proxy_pay_account = payment_proxy_pay_account();
+	$oauth = $proxy_pay_account->getOauthInfo($_GPC['code']);
+	if (!empty($oauth['openid'])) {
+		$log['openid'] = $oauth['openid'];
+		pdo_update('core_paylog', array('openid' => $oauth['openid']), array('plid' => $log['plid']));
+	}
+}
+
 $_W['uniacid'] = $log['uniacid'];
 $_W['openid'] = $log['openid'];
-$setting = uni_setting($_W['uniacid'], array('payment'));
+
 if(!is_array($setting['payment'])) {
 	exit('没有设定支付参数.');
 }
+
 $wechat = $setting['payment']['wechat'];
 $sql = 'SELECT `key`,`secret` FROM ' . tablename('account_wechats') . ' WHERE `acid`=:acid';
 $row = pdo_fetch($sql, array(':acid' => $wechat['account']));

@@ -76,6 +76,8 @@ if ($do == 'recover') {
 	}
 	if (!empty($uniacid)) {
 		pdo_update('account', array('isdeleted' => 0), array('uniacid' => $uniacid));
+		cache_delete("uniaccount:{$uniacid}");
+		cache_delete("unisetting:{$uniacid}");
 	} else {
 		pdo_update('account', array('isdeleted' => 0), array('acid' => $acid));
 	}
@@ -89,6 +91,6 @@ if($do == 'delete') {
 	if($state != ACCOUNT_MANAGE_NAME_FOUNDER && $state != ACCOUNT_MANAGE_NAME_OWNER) {
 		itoast('没有权限！', referer(), 'error');
 	}
-    account_delete($acid);
+	account_delete($acid);
 	itoast('删除成功！', referer(), 'success');
 }

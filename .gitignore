@@ -34,5 +34,5 @@ addons/**/*
 .tags
 deployment.properties
 .tags_sorted_by_file
-web/resource/js/app/common.min.js
-web/resource/js/app/common.min.js
+web/resource/components/**/*
+web/resource/js/**/*

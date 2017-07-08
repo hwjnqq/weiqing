@@ -10,6 +10,7 @@ load()->model('cloud');
 load()->model('cache');
 load()->classs('weixin.platform');
 load()->model('wxapp');
+load()->model('utility');
 
 $uniacid = intval($_GPC['uniacid']);
 $acid = intval($_GPC['acid']);
@@ -17,12 +18,16 @@ if (empty($uniacid) || empty($acid)) {
 	itoast('请选择要编辑的公众号', url('account/manager'), 'error');
 }
 $state = uni_permission($_W['uid'], $uniacid);
-
 $dos = array('base', 'sms', 'modules_tpl');
 if ($state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER) {
 	$do = in_array($do, $dos) ? $do : 'base';
 } elseif ($state == ACCOUNT_MANAGE_NAME_MANAGER) {
-	$do = in_array($do, $dos) ? $do : 'modules_tpl';
+	if (ACCOUNT_TYPE == ACCOUNT_TYPE_APP_NORMAL) {
+		header('Location: ' . url('wxapp/manage/display', array('uniacid' => $uniacid, 'acid' => $acid)));
+		exit;
+	} else {
+		$do = in_array($do, $dos) ? $do : 'modules_tpl';
+	}
 } else {
 	itoast('您是该公众号的操作员，无权限操作！', url('account/manager'), 'error');
 }
@@ -46,28 +51,11 @@ if($do == 'base') {
 		switch ($type) {
 			case 'qrcodeimgsrc':
 			case 'headimgsrc':
-				if(!empty($_GPC['imgsrc'])) {
-					if(parse_path($_GPC['imgsrc'])) {
-						if($type == 'qrcodeimgsrc') {
-							if(file_exists($qrcodeimgsrc)) {
-								unlink($qrcodeimgsrc);
-								$result = copy($_GPC['imgsrc'], IA_ROOT . '/attachment/qrcode_'.$acid.'.jpg');
-							}else {
-								$result = copy($_GPC['imgsrc'], IA_ROOT . '/attachment/qrcode_'.$acid.'.jpg');
-							}
-						}
-						if($type == 'headimgsrc') {
-							if(file_exists($headimgsrc)) {
-								unlink($headimgsrc);
-								$result = copy($_GPC['imgsrc'], IA_ROOT . '/attachment/headimg_'.$acid.'.jpg');
-							}else {
-								$result = copy($_GPC['imgsrc'], IA_ROOT . '/attachment/headimg_'.$acid.'.jpg');
-							}
-						}
-					}else {
-						iajax(40035, '参数错误！', '');
-					}
-				}
+				$image_type = array(
+					'qrcodeimgsrc' => ATTACHMENT_ROOT . 'qrcode_' . $acid . '.jpg',
+					'headimgsrc' => ATTACHMENT_ROOT . 'headimg_' . $acid . '.jpg'
+				);
+				$result = utility_image_rename($_GPC['imgsrc'], $image_type[$type]);
 				break;
 			case 'name':
 				$uni_account = pdo_update('uni_account', array('name' => trim($_GPC['request_data'])), array('uniacid' => $uniacid));
@@ -87,7 +75,7 @@ if($do == 'base') {
 			case 'token':
 				$oauth = (array)uni_setting($uniacid, array('oauth'));
 				if($oauth['oauth'] == $acid && $account['level'] != 4) {
-					$acid = pdo_fetchcolumn('SELECT acid FROM ' . tablename('account_wechats') . " WHERE uniacid = :uniacid AND level = 4 AND secret != '' AND `key` != ''", array(':uniacid' => $uniacid));
+					$acid = pdo_fetchcolumn("SELECT acid FROM " . tablename('account_wechats') . " WHERE uniacid = :uniacid AND level = 4 AND secret != '' AND `key` != ''", array(':uniacid' => $uniacid));
 					pdo_update('uni_settings', array('oauth' => iserializer(array('account' => $acid, 'host' => $oauth['oauth']['host']))), array('uniacid' => $uniacid));
 				}
 				$data = array('token' => trim($_GPC['request_data']));
@@ -95,7 +83,7 @@ if($do == 'base') {
 			case 'encodingaeskey':
 				$oauth = (array)uni_setting($uniacid, array('oauth'));
 				if($oauth['oauth'] == $acid && $account['level'] != 4) {
-					$acid = pdo_fetchcolumn('SELECT acid FROM ' . tablename('account_wechats') . " WHERE uniacid = :uniacid AND level = 4 AND secret != '' AND `key` != ''", array(':uniacid' => $uniacid));
+					$acid = pdo_fetchcolumn("SELECT acid FROM " . tablename('account_wechats') . " WHERE uniacid = :uniacid AND level = 4 AND secret != '' AND `key` != ''", array(':uniacid' => $uniacid));
 					pdo_update('uni_settings', array('oauth' => iserializer(array('account' => $acid, 'host' => $oauth['oauth']['host']))), array('uniacid' => $uniacid));
 				}
 				$data = array('encodingaeskey' => trim($_GPC['request_data']));
@@ -222,18 +210,19 @@ if($do == 'modules_tpl') {
 						));
 					}
 				}
+				cache_build_account_modules($uniacid);
+				cache_build_account($uniacid);
 				iajax(0, '修改成功！', '');
 			}else {
 				pdo_delete('uni_account_group', array('uniacid' => $uniacid));
+				cache_build_account_modules($uniacid);
+				cache_build_account($uniacid);
 				iajax(0, '修改成功！', '');
 			}
-			cache_build_account_modules($uniacid);
-			cache_build_account($uniacid);
 		}
 
 		if($_GPC['type'] == 'extend') {
 			//如果有附加的权限，则生成专属套餐组
-			
 			$module = $_GPC['module'];
 			$tpl = $_GPC['tpl'];
 			if (!empty($module) || !empty($tpl)) {
@@ -314,6 +303,11 @@ if($do == 'modules_tpl') {
 	$extend['templates'] = iunserializer($extend['templates']);
 	if (!empty($extend['modules'])) {
 		$extend['modules'] = pdo_getall('modules', array('name' => $extend['modules']), array('mid', 'title', 'name'));
+		if (!empty($extend['modules'])) {
+			foreach ($extend['modules'] as &$module_info) {
+				$module_info['logo'] = IA_ROOT . "/addons/" . $module_info['name'] . '/icon-custom.jpg';
+			}
+		}
 	}
 	if (!empty($extend['templates'])) {
 		$extend['templates'] = pdo_getall('site_templates', array('id' => $extend['templates']), array('id', 'name', 'title'));

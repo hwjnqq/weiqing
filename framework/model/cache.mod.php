@@ -28,7 +28,7 @@ function cache_build_setting() {
  * 更新盗版模块数据及缓存
  * @return mixed
  */
-function cache_build_module_ban() {
+function cache_build_module_status() {
 	load()->model('cloud');
 	$cloud_modules = cloud_m_query();
 	$module_ban = is_array($cloud_modules['pirate_apps']) ? $cloud_modules['pirate_apps'] : array();
@@ -40,6 +40,7 @@ function cache_build_module_ban() {
 		}
 	}
 	setting_save($module_ban, 'module_ban');
+	setting_save(array(), 'module_upgrade');
 }
 
 /**
@@ -79,17 +80,6 @@ function cache_build_account($uniacid = 0) {
 		cache_delete("defaultgroupid:{$uniacid}");
 	}
 
-}
-
-/**
- * 重建粉丝缓存
- * @param string openid 要重建缓存的openid
- */
-function cache_build_fansinfo($openid) {
-	$openid = trim($openid);
-	$cachekey = cache_system_key("fansinfo:{$openid}");
-	cache_delete($cachekey);
-	return true;
 }
 
 /**
@@ -254,7 +244,7 @@ function cache_build_module_subscribe_type() {
 	foreach ($subscribe as $event => $module_group) {
 		if (!empty($module_group)) {
 			foreach ($module_group as $index => $module) {
-				if (!empty($module_ban[$module])) {
+				if (empty($module_ban[$module])) {
 					unset($subscribe[$event][$index]);
 				}
 			}
@@ -288,35 +278,30 @@ function cache_build_cloud_ad() {
 function cache_build_uninstalled_module() {
 	load()->model('cloud');
 	load()->classs('cloudapi');
+	load()->model('extension');
+	load()->func('file');
 	$cloud_api = new CloudApi();
 	$cloud_m_count = $cloud_api->get('site', 'stat', array('module_quantity' => 1), 'json');
-	$all_module = pdo_getall('modules');
-	$installed_module = array();
-	if (!empty($all_module)) {
-		foreach ($all_module as $module) {
-			$installed_module[] = $module['name'];
-		}
-	}
+	$installed_module = pdo_getall('modules', array(), array(), 'name');
+
 	$uninstallModules = array('recycle' => array(), 'uninstalled' => array());
 	$recycle_modules = pdo_getall('modules_recycle', array(), array(), 'modulename');
 	$recycle_modules = array_keys($recycle_modules);
 	$cloud_module = cloud_m_query();
-	unset($cloud_module['pirate_apps']);
+
 	if (!empty($cloud_module) && !is_error($cloud_module)) {
 		foreach ($cloud_module as $module) {
-			if (!in_array($module['name'], $installed_module)) {
-				if (!empty($module['main_module'])) {
-					$plugin_exist = pdo_get('modules_plugin', array('main_module' => $module['main_module'], 'name' => $module['name']));
-					if (empty($plugin_exist)) {
-						continue;
-					}
-				}
+			$upgrade_support_module = false;
+			$wxapp_support = !empty($module['site_branch']['wxapp_support']) && in_array('wxapp', $module['site_branch']['bought']) ? $module['site_branch']['wxapp_support'] : 1;
+			$app_support = !empty($module['site_branch']['app_support']) && in_array('app', $module['site_branch']['bought']) ? $module['site_branch']['app_support'] : 1;
+			if ($wxapp_support ==  1 && $app_support == 1) {
+				$app_support = 2;
+			}
+			if (!empty($installed_module[$module['name']]) && ($installed_module[$module['name']]['app_support'] != $app_support || $installed_module[$module['name']]['wxapp_support'] != $wxapp_support)) {
+				$upgrade_support_module = true;
+			}
+			if (!in_array($module['name'], array_keys($installed_module)) || $upgrade_support_module) {
 				$status = in_array($module['name'], $recycle_modules) ? 'recycle' : 'uninstalled';
-				$wxapp_support = !empty($module['site_branch']['wxapp_support']) ? $module['site_branch']['wxapp_support'] : 1;
-				$app_support = !empty($module['site_branch']['app_support']) ? $module['site_branch']['app_support'] : 2;
-				if ($wxapp_support ==  1 && $app_support == 1) {
-					$app_support = 2;
-				}
 				if (!empty($module['id'])) {
 					$cloud_module_info = array (
 						'from' => 'cloud',
@@ -326,13 +311,23 @@ function cache_build_uninstalled_module() {
 						'thumb' => $module['thumb'],
 						'wxapp_support' => $wxapp_support,
 						'app_support' => $app_support,
-						'main_module' => empty($module['main_module']) ? '' : $module['main_module']
+						'main_module' => empty($module['main_module']) ? '' : $module['main_module'],
+						'upgrade_support' => $upgrade_support_module
 					);
-					if ($wxapp_support == 2) {
-						$uninstallModules[$status]['wxapp'][$module['name']] = $cloud_module_info;
-					}
-					if ($app_support == 2) {
-						$uninstallModules[$status]['app'][$module['name']] = $cloud_module_info;
+					if ($upgrade_support_module) {
+						if ($wxapp_support == 2 && $installed_module[$module['name']]['wxapp_support'] != 2) {
+							$uninstallModules[$status]['wxapp'][$module['name']] = $cloud_module_info;
+						}
+						if ($app_support == 2 && $installed_module[$module['name']]['app_support'] != 2) {
+							$uninstallModules[$status]['app'][$module['name']] = $cloud_module_info;
+						}
+					} else {
+						if ($wxapp_support == 2) {
+							$uninstallModules[$status]['wxapp'][$module['name']] = $cloud_module_info;
+						}
+						if ($app_support == 2) {
+							$uninstallModules[$status]['app'][$module['name']] = $cloud_module_info;
+						}
 					}
 				}
 			}
@@ -340,26 +335,22 @@ function cache_build_uninstalled_module() {
 	}
 	$path = IA_ROOT . '/addons/';
 	mkdirs($path);
-	
+
 	$module_file = glob($path . '*');
 	if (is_array($module_file) && !empty($module_file)) {
 		foreach ($module_file as $modulepath) {
+			$upgrade_support_module = false;
 			$modulepath = str_replace($path, '', $modulepath);
 			$manifest = ext_module_manifest($modulepath);
-
 			if (!is_array($manifest) || empty($manifest) || empty($manifest['application']['identifie'])) {
 				continue;
 			}
-
-			if (!in_array($manifest['application']['identifie'], $installed_module)) {
-				if (!empty($manifest['platform']['main_module'])) {
-					$plugin_exist = pdo_get('modules_plugin', array('name' => $manifest['application']['identifie']));
-					if (empty($plugin_exist)) {
-						continue;
-					}
-				}
-				$manifest = ext_module_convert($manifest);
-
+			$main_module = empty($manifest['platform']['main_module']) ? '' : $manifest['platform']['main_module'];
+			$manifest = ext_module_convert($manifest);
+			if (!empty($installed_module[$modulepath]) && ($manifest['app_support'] != $installed_module[$modulepath]['app_support'] || $manifest['wxapp_support'] != $installed_module[$modulepath]['wxapp_support'])) {
+				$upgrade_support_module = true;
+			}
+			if (!in_array($manifest['name'], array_keys($installed_module)) || $upgrade_support_module) {
 				$module[$manifest['name']] = $manifest;
 				$module_info = array(
 					'from' => 'local',
@@ -368,14 +359,24 @@ function cache_build_uninstalled_module() {
 					'title' => $manifest['title'],
 					'app_support' => $manifest['app_support'],
 					'wxapp_support' => $manifest['wxapp_support'],
-					'main_module' => empty($manifest['platform']['main_module']) ? '' : $manifest['platform']['main_module']
+					'main_module' => $main_module,
+					'upgrade_support' => $upgrade_support_module
 				);
 				$module_type = in_array($manifest['name'], $recycle_modules) ? 'recycle' : 'uninstalled';
-				if ($module_info['app_support'] == 2) {
-					$uninstallModules[$module_type]['app'][$manifest['name']] = $module_info;
-				}
-				if ($module_info['wxapp_support'] == 2) {
-					$uninstallModules[$module_type]['wxapp'][$manifest['name']] = $module_info;
+				if ($upgrade_support_module) {
+					if ($module_info['app_support'] == 2 && $installed_module[$module_info['name']]['app_support'] != 2) {
+						$uninstallModules['uninstalled']['app'][$manifest['name']] = $module_info;
+					}
+					if ($module_info['wxapp_support'] == 2 && $installed_module[$module_info['name']]['wxapp_support'] != 2) {
+						$uninstallModules['uninstalled']['wxapp'][$manifest['name']] = $module_info;
+					}
+				} else {
+					if ($module_info['app_support'] == 2) {
+						$uninstallModules[$module_type]['app'][$manifest['name']] = $module_info;
+					}
+					if ($module_info['wxapp_support'] == 2) {
+						$uninstallModules[$module_type]['wxapp'][$manifest['name']] = $module_info;
+					}
 				}
 			}
 		}
@@ -402,6 +403,8 @@ function cache_build_proxy_wechatpay_account() {
 	}
 	$sql = "SELECT * FROM " . tablename('uni_account') . $where;
 	$uniaccounts = pdo_fetchall($sql, $params);
+	$service = array();
+	$borrow = array();
 	if (!empty($uniaccounts)) {
 		foreach ($uniaccounts as $uniaccount) {
 			$account = account_fetch($uniaccount['default_acid']);
@@ -439,4 +442,60 @@ function cache_build_module_info($module_name) {
  */
 function cache_build_uni_group() {
 	cache_delete(cache_system_key(CACHE_KEY_UNI_GROUP));
+}
+
+/**
+ * 构建所有已购买安装并有更新的模块的缓存
+ */
+function cache_build_cloud_upgrade_module() {
+	load()->model('cloud');
+	load()->model('extension');
+
+	$module_list = pdo_getall('modules', array(), array(), 'name');
+	$cloud_module = cloud_m_query();
+	$modules = array();
+	if (is_array($module_list) && !empty($module_list)) {
+		foreach ($module_list as $module) {
+			if (in_array($module['name'], array_keys($cloud_module))) {
+				$cloud_m_info = $cloud_module[$module['name']];
+				$module['site_branch'] = $cloud_m_info['site_branch']['id'];
+				if (empty($module['site_branch'])) {
+					$module['site_branch'] = $cloud_m_info['branch'];
+				}
+				$cloud_branch_version = $cloud_m_info['branches'][$module['site_branch']]['version'];
+				if (!empty($cloud_m_info['branches'])) {
+					$best_branch_id = 0;
+					foreach ($cloud_m_info['branches'] as $branch) {
+						if ($best_branch_id == 0) {
+							$best_branch_id = $branch['id'];
+						} else {
+							if ($branch['displayorder'] > $cloud_m_info['branches'][$best_branch_id]['displayorder']) {
+								$best_branch_id = $branch['id'];
+							}
+						}
+					}
+				} else {
+					continue;
+				}
+				$module['branches'] = $cloud_m_info['branches'];
+				$best_branch = $cloud_m_info['branches'][$best_branch_id];
+				$module['from'] = 'cloud';
+				if (version_compare($module['version'], $cloud_branch_version) == -1) {
+					$module['upgrade_branch'] = true;
+					$module['upgrade'] = true;
+				}
+				if ($cloud_m_info['displayorder'] < $best_branch['displayorder']) {
+					$module['new_branch'] = true;
+					$module['upgrade'] = true;
+				}
+				if ($module['upgrade']) {
+					$modules[$module['name']] = $module;
+				}
+			}
+		}
+	} else {
+		return array();
+	}
+	cache_write(cache_system_key('all_cloud_upgrade_module:'), $modules, 1800);
+	return $modules;
 }

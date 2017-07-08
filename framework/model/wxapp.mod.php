@@ -8,10 +8,9 @@ defined('IN_IA') or exit('Access Denied');
 
 function wxapp_getpackage($data, $if_single = false) {
 	load()->classs('cloudapi');
-
+	
 	$api = new CloudApi();
 	$result = $api->post('wxapp', 'download', $data, 'html');
-
 	if (is_error($result)) {
 			return error(-1, $result['message']);
 	} else {
@@ -27,6 +26,7 @@ function wxapp_account_create($account) {
 	$uni_account_data = array(
 		'name' => $account['name'],
 		'description' => $account['description'],
+		'title_initial' => get_first_pinyin($account['name']),
 		'groupid' => 0,
 	);
 	if (!pdo_insert('uni_account', $uni_account_data)) {
@@ -93,15 +93,16 @@ function wxapp_support_wxapp_modules() {
 }
 
 /*
- * 获取小程序信息(包括最新版本信息)
+ * 获取小程序信息(包括上一次使用版本的版本信息，若从未使用过任何版本则取最新版本信息)
  * @params int $uniacid
- * @params int $versionid 不包含版本ID，默认获取最新版
+ * @params int $versionid 不包含版本ID，默认获取上一次使用的版本，若从未使用过则取最新版本信息
  * @return array
 */
 function wxapp_fetch($uniacid, $version_id = '') {
+	global $_GPC;
+	load()->model('extension');
 	$wxapp_info = array();
 	$uniacid = intval($uniacid);
-	
 	if (empty($uniacid)) {
 		return $wxapp_info;
 	}
@@ -115,15 +116,40 @@ function wxapp_fetch($uniacid, $version_id = '') {
 	}
 	
 	if (empty($version_id)) {
-		$sql ="SELECT * FROM " . tablename('wxapp_versions') . " WHERE `uniacid`=:uniacid ORDER BY `id` DESC";
-		$wxapp_version_info = pdo_fetch($sql, array(':uniacid' => $uniacid));
+		$wxapp_cookie_uniacids = array();
+		if (!empty($_GPC['__wxappversionids'])) {
+			$wxappversionids = json_decode(htmlspecialchars_decode($_GPC['__wxappversionids']), true);
+			foreach ($wxappversionids as $version_val) {
+				$wxapp_cookie_uniacids[] = $version_val['uniacid'];
+			}
+		}
+		if (in_array($uniacid, $wxapp_cookie_uniacids)) {
+			$wxapp_version_info = wxapp_version($wxappversionids[$uniacid]['version_id']);
+		}
+		
+		if (empty($wxapp_version_info)) {
+			$sql ="SELECT * FROM " . tablename('wxapp_versions') . " WHERE `uniacid`=:uniacid ORDER BY `id` DESC";
+			$wxapp_version_info = pdo_fetch($sql, array(':uniacid' => $uniacid));
+		}
 	} else {
 		$wxapp_version_info = pdo_get('wxapp_versions', array('id' => $version_id));
 	}
-	if (!empty($wxapp_version_info)) {
-		$wxapp_info['version'] = $wxapp_version_info;
-		$wxapp_info['version_num'] = explode('.', $wxapp_version_info['version']);
+	if (!empty($wxapp_version_info) && !empty($wxapp_version_info['modules'])) {
+		$wxapp_version_info['modules'] = iunserializer($wxapp_version_info['modules']);
+		//如果是单模块版并且本地模块，应该是开发者开发小程序，则模块版本号本地最新的。
+		if ($wxapp_version_info['design_method'] == WXAPP_MODULE) {
+			$module = current($wxapp_version_info['modules']);
+			$manifest = ext_module_manifest($module['name']);
+			if (!empty($manifest)) {
+				$wxapp_version_info['modules'][$module['name']]['version'] = $manifest['application']['version'];
+			} else {
+				$last_install_module = module_fetch($module['name']);
+				$wxapp_version_info['modules'][$module['name']]['version'] = $last_install_module['version'];
+			}
+		}
 	}
+	$wxapp_info['version'] = $wxapp_version_info;
+	$wxapp_info['version_num'] = explode('.', $wxapp_version_info['version']);
 	return  $wxapp_info;
 }
 /*  
@@ -140,19 +166,71 @@ function wxapp_version_all($uniacid) {
 		return $wxapp_versions;
 	}
 	
-	$wxapp_versions = pdo_getall('wxapp_versions', array('uniacid' => $uniacid), array(), '', array("id DESC"), array());
+	$wxapp_versions = pdo_getall('wxapp_versions', array('uniacid' => $uniacid), array('id'), '', array("id DESC"));
 	if (!empty($wxapp_versions)) {
-		foreach ($wxapp_versions as &$modules_val) {
-			$modules_val['modules'] = iunserializer($modules_val['modules']);
-			if (!empty($modules_val['modules'])) {
-				foreach ($modules_val['modules'] as &$module_val) {
-					$module_val['module_info'] = module_fetch($module_val['name']);
-				}
-			}
+		foreach ($wxapp_versions as &$version) {
+			$version = wxapp_version($version['id']);
 		}
-		unset($module_val, $modules_val);
 	}
 	return $wxapp_versions;
+}
+
+/**
+ * 获取某一小程序最新一些版本信息
+ * @param int $uniacid
+ * @param int $page
+ * @param int $pagesize
+ * return array
+ */
+function wxapp_get_some_lastversions($uniacid) {
+	$version_lasts = array();
+	$uniacid = intval($uniacid);
+	if (empty($uniacid)) {
+		return $version_lasts;
+	}
+	$param = array(':uniacid' => $uniacid);
+	$sql = "SELECT * FROM ". tablename('wxapp_versions'). " WHERE uniacid = :uniacid ORDER BY id DESC LIMIT 0, 4";
+	$version_lasts = pdo_fetchall($sql, $param);
+	return $version_lasts;
+}
+
+/**
+ * 更新最新使用版本
+ * @param int $version_id
+ * return boolean
+ */
+function wxapp_update_last_use_version($uniacid, $version_id) {
+	global $_GPC;
+	$uniacid = intval($uniacid);
+	$version_id = intval($version_id);
+	if (empty($uniacid) || empty($version_id)) {
+		return false;
+	}
+	$cookie_val = array();
+	if (!empty($_GPC['__wxappversionids'])) {
+		$wxapp_uniacids = array();
+		$cookie_val = json_decode(htmlspecialchars_decode($_GPC['__wxappversionids']), true);
+		if (!empty($cookie_val)) {
+			foreach ($cookie_val as &$version) {
+				$wxapp_uniacids[] = $version['uniacid'];
+				if ($version['uniacid'] == $uniacid) {
+					$version['version_id'] = $version_id;
+					$wxapp_uniacids = array();
+					break;
+				}
+			}
+			unset($version);
+		}
+		if (!empty($wxapp_uniacids) && !in_array($uniacid, $wxapp_uniacids)) {
+			$cookie_val[$uniacid] = array('uniacid' => $uniacid,'version_id' => $version_id);
+		}
+	} else {
+		$cookie_val = array(
+				$uniacid => array('uniacid' => $uniacid,'version_id' => $version_id)
+			);
+	}
+	isetcookie('__wxappversionids', json_encode($cookie_val));
+	return true;
 }
 
 /**
@@ -178,8 +256,10 @@ function wxapp_version($version_id) {
 				if (!empty($module['uniacid'])) {
 					$account = uni_fetch($module['uniacid']);
 				}
-				$version_info['modules'][$module['name']] = module_fetch($module['name']);
-				$version_info['modules'][$module['name']]['account'] = $account;
+				$module_info = module_fetch($module['name']);
+				$module_info['account'] = $account;
+				unset($version_info['modules'][$module['name']]);
+				$version_info['modules'][] = $module_info;
 			}
 		}
 	}
@@ -208,7 +288,7 @@ function wxapp_save_switch($uniacid) {
 		$cache_lastaccount['wxapp'] = $uniacid;
 	}
 	cache_write($cache_key, $cache_lastaccount);
-	isetcookie('__switch', $_GPC['__switch']);
+	isetcookie('__switch', $_GPC['__switch'], 7 * 86400);
 	return true;
 }
 
@@ -216,7 +296,6 @@ function wxapp_site_info($multiid) {
 	global $_GPC;
 	$site_info = array();
 	$multiid = intval($multiid);
-	$uniacid = intval($_GPC['uniacid']);
 	
 	if (empty($multiid)) {
 		return array();
@@ -230,6 +309,73 @@ function wxapp_site_info($multiid) {
 		}
 		unset($nav);
 	}
-	$site_info['recommend'] = pdo_getall('site_article', array('uniacid' => $uniacid));
+	$recommend_sql = "SELECT a.name, b.* FROM " . tablename('site_category') . " AS a LEFT JOIN " . tablename('site_article') . " AS b ON a.id = b.pcate WHERE a.parentid = 0 AND a.multiid = :multiid";
+	$site_info['recommend'] = pdo_fetchall($recommend_sql, array(':multiid' => $multiid));
 	return $site_info;
+}
+
+/**
+ * 获取小程序支付参数
+ * @return mixed
+ */
+function wxapp_payment_param() {
+	global $_W;
+	$setting = uni_setting_load('payment', $_W['uniacid']);
+	$pay_setting = $setting['payment'];
+	return $pay_setting;
+}
+
+function wxapp_update_daily_visittrend() {
+	global $_W;
+	$yesterday = date('Ymd', strtotime('-1 days'));
+	$trend = pdo_get('wxapp_general_analysis', array('uniacid' => $_W['uniacid'], 'type' => WXAPP_STATISTICS_DAILYVISITTREND, 'ref_date' => $yesterday));
+	if (!empty($trend)) {
+		return true;
+	}
+	$account_api = WeAccount::create();
+	$wxapp_stat = $account_api->getDailyVisitTrend();
+	if (is_error($wxapp_stat) || empty($wxapp_stat)) {
+		return error(-1, '调用微信接口错误');
+	} else {
+		$update_stat = array(
+			'uniacid' => $_W['uniacid'],
+			'session_cnt' => $wxapp_stat['session_cnt'],
+			'visit_pv' => $wxapp_stat['visit_pv'],
+			'visit_uv' => $wxapp_stat['visit_uv'],
+			'visit_uv_new' => $wxapp_stat['visit_uv_new'],
+			'type' => WXAPP_STATISTICS_DAILYVISITTREND,
+			'stay_time_uv' => $wxapp_stat['stay_time_uv'],
+			'stay_time_session' => $wxapp_stat['stay_time_session'],
+			'visit_depth' => $wxapp_stat['visit_depth'],
+			'ref_date' => $wxapp_stat['ref_date'],
+		);
+		pdo_insert('wxapp_general_analysis', $update_stat);
+	}
+	return true;
+}
+
+function wxapp_search_link_account($module_name = '') {
+	global $_W;
+	$module_name = trim($module_name);
+	if (empty($module_name)) {
+		return array();
+	}
+	$owned_account = uni_owned();
+	if (!empty($owned_account)) {
+		foreach ($owned_account as $key => $account) {
+			$account['role'] = uni_permission($_W['uid'], $account['uniacid']);
+			if (!in_array($account['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER))) {
+				unset($owned_account[$key]);
+			}
+		}
+		foreach ($owned_account as $key => $account) {
+			$account_modules = uni_modules_by_uniacid($account['uniacid']);
+			if (empty($account_modules[$module_name])) {
+				unset($owned_account[$key]);
+			} elseif ($account_modules[$module_name]['app_support'] != MODULE_SUPPORT_ACCOUNT || $account_modules[$module_name]['wxapp_support'] != MODULE_SUPPORT_WXAPP) {
+				unset($owned_account[$key]);
+			}
+		}
+	}
+	return $owned_account;
 }

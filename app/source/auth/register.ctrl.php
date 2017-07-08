@@ -123,7 +123,7 @@ if($do == 'register') {
 			$data['mobile'] = $username;
 		}
 		if(!empty($map_fans)) {
-			$data['nickname'] = $map_fans['nickname'];
+			$data['nickname'] = strip_emoji($map_fans['nickname']);
 			$data['gender'] = $map_fans['sex'];
 			$data['residecity'] = $map_fans['city'] ? $map_fans['city'] . '市' : '';
 			$data['resideprovince'] = $map_fans['province'] ? $map_fans['province'] . '省' : '';
@@ -135,7 +135,6 @@ if($do == 'register') {
 		$user['uid'] = pdo_insertid();
 		if (!empty($fan) && !empty($fan['fanid'])) {
 			pdo_update('mc_mapping_fans', array('uid'=>$user['uid']), array('fanid'=>$fan['fanid']));
-			cache_build_fansinfo($fan['openid']);
 		}
 		if(_mc_login($user)) {
 			message('注册成功！', referer(), 'success');

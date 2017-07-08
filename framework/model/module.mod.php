@@ -73,7 +73,7 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 	} else {
 		$types = array_intersect($types, $ts);
 	}
-	$bindings = pdo_getall('modules_bindings', array('module' => $name, 'entry' => $types));
+	$bindings = pdo_getall('modules_bindings', array('module' => $name, 'entry' => $types), array(), '', 'eid ASC');
 	$entries = array();
 	foreach($bindings as $bind) {
 		if(!empty($bind['call'])) {
@@ -183,7 +183,7 @@ function module_app_entries($name, $types = array(), $args = null) {
 }
 
 function module_entry($eid) {
-	$sql = 'SELECT * FROM ' . tablename('modules_bindings') . ' WHERE `eid`=:eid';
+	$sql = "SELECT * FROM " . tablename('modules_bindings') . " WHERE `eid`=:eid";
 	$pars = array();
 	$pars[':eid'] = $eid;
 	$entry = pdo_fetch($sql, $pars);
@@ -201,7 +201,7 @@ function module_entry($eid) {
 	if (!empty($entry['state'])) {
 		$querystring['state'] = $entry['state'];
 	}
-	
+
 	$entry['url'] = murl('entry', $querystring);
 	$entry['url_show'] = murl('entry', $querystring, true, true);
 	return $entry;
@@ -268,9 +268,14 @@ function module_fetch($name) {
 		if ($module_info['app_support'] != 2 && $module_info['wxapp_support'] != 2) {
 			$module_info['app_support'] = 2;
 		}
+		$module_info['is_relation'] = $module_info['app_support'] ==2 && $module_info['wxapp_support'] == 2 ? true : false;
 		$module_ban = setting_load('module_ban');
-		if (in_array($name, $module_ban)) {
+		if (in_array($name, $module_ban['module_ban'])) {
 			$module_info['is_ban'] = true;
+		}
+		$module_upgrade = setting_load('module_upgrade');
+		if (in_array($name, array_keys($module_upgrade['module_upgrade']))) {
+			$module_info['is_upgrade'] = true;
 		}
 		$module = $module_info;
 		cache_write($cachekey, $module_info);
@@ -298,9 +303,9 @@ function module_fetch($name) {
  */
 function module_build_privileges() {
 	load()->model('account');
-	$uniacid_arr = pdo_fetchall('SELECT uniacid FROM ' . tablename('uni_account'));
+	$uniacid_arr = pdo_fetchall("SELECT uniacid FROM " . tablename('uni_account'));
 	foreach($uniacid_arr as $row){
-		$modules = uni_modules(false);
+		$modules = uni_modules_by_uniacid($row['uniacid'], false);
 		//得到模块标识
 		$mymodules = pdo_getall('uni_account_modules', array('uniacid' => $row['uniacid']), array('module'), 'module');
 		$mymodules = array_keys($mymodules);
@@ -346,9 +351,11 @@ function module_get_all_unistalled($status)  {
 		$uninstallModules['modules'] = (array)$uninstallModules['modules'][$status]['wxapp'];
 		$uninstallModules['module_count'] = $uninstallModules['wxapp_count'];
 		return $uninstallModules;
-	} else {
+	} elseif (ACCOUNT_TYPE == ACCOUNT_TYPE_OFFCIAL_NORMAL) {
 		$uninstallModules['modules'] = (array)$uninstallModules['modules'][$status]['app'];
 		$uninstallModules['module_count'] = $uninstallModules['app_count'];
+		return $uninstallModules;
+	} else {
 		return $uninstallModules;
 	}
 }
@@ -418,7 +425,7 @@ function module_uninstall($module_name, $is_clean_rule = false) {
 	if (!empty($module['issystem'])) {
 		return error(1, '系统模块不能卸载！');
 	}
-	if (!empty($module['plugin'])) {
+	if (!empty($module['plugin_list'])) {
 		pdo_delete('modules_plugin', array('main_module' => $module_name));
 	}
 	$modulepath = IA_ROOT . '/addons/' . $module_name . '/';
@@ -478,24 +485,317 @@ function module_get_plugin_list($module_name) {
 }
 
 /**
- *  判断模块是否为盗版模块
+ *  返回模块的盗版信息与升级信息
  * @param string $module 模块标识
- * @return bool
+ * @return array
  */
-function module_ban($module) {
+function module_status($module) {
 	load()->model('cloud');
-	$cloud_m_query = cloud_m_query(array($module));
-	$module_ban = setting_load('module_ban');
-	if (!in_array($module, $module_ban) && !empty($cloud_m_query['pirate_apps'])) {
-		$module_ban[] = $module;
-		cache_build_module_info($module);
-		setting_save($module_ban, 'module_ban');
+	$module_status = array('upgrade' => array('upgrade' => 0), 'ban' => 0);
+
+	$cloud_m_query = cloud_m_query($module);
+	$cloud_m_query['pirate_apps'] = is_array($cloud_m_query['pirate_apps']) ? $cloud_m_query['pirate_apps'] : array();
+	$module_status['ban'] = in_array($module, $cloud_m_query['pirate_apps']) ? 1 : 0;
+
+	$cloud_m_info = cloud_m_info($module);
+	$module_info = module_fetch($module);
+	if (!empty($cloud_m_info) && !empty($cloud_m_info['version']['version'])) {
+		if (version_compare($module_info['version'], $cloud_m_info['version']['version'])) {
+			$module_status['upgrade'] = array('name' => $module_info['title'], 'version' => $cloud_m_info['version']['version'], 'upgrade' => 1);
+		}
+	} else {
+		$manifest = ext_module_manifest($module);
+		if (!empty($manifest)) {
+			if (version_compare($module_info['version'], $manifest['application']['version'])) {
+				$module_status['upgrade'] = array('name' => $module_info['title'], 'version' => $manifest['application']['version'], 'upgrade' => 1);
+			}
+		}
 	}
-	if (in_array($module, $module_ban) && empty($cloud_m_query['pirate_apps'])) {
-		$key = array_search($module, $module_ban);
-		unset($module_ban[$key]);
-		cache_build_module_info($module);
-		setting_save($module_ban, 'module_ban');
+
+	$cache_build_module = false;
+	$module_ban_setting = setting_load('module_ban');
+	$module_ban_setting = is_array($module_ban_setting['module_ban']) ? $module_ban_setting['module_ban'] : array();
+	if (!in_array($module, $module_ban_setting) && !empty($module_status['ban'])) {
+		$module_ban_setting[] = $module;
+		$cache_build_module = true;
+		setting_save($module_ban_setting, 'module_ban');
 	}
-	return in_array($module, $module_ban);
+	if (in_array($module, $module_ban_setting) && empty($module_status['ban'])) {
+		$key = array_search($module, $module_ban_setting);
+		unset($module_ban_setting[$key]);
+		$cache_build_module = true;
+		setting_save($module_ban_setting, 'module_ban');
+	}
+
+	$module_upgrade_setting = setting_load('module_upgrade');
+	$module_upgrade_setting = is_array($module_upgrade_setting['module_upgrade']) ? $module_upgrade_setting['module_upgrade'] : array();
+	if (!in_array($module, array_keys($module_upgrade_setting)) && !empty($module_status['upgrade']['upgrade'])) {
+		$module_upgrade_setting[$module] = $module_status['upgrade'];
+		$cache_build_module = true;
+		setting_save($module_upgrade_setting, 'module_upgrade');
+	}
+	if (in_array($module, array_keys($module_upgrade_setting)) && empty($module_status['upgrade']['upgrade'])) {
+		unset($module_upgrade_setting[$module]);
+		$cache_build_module = true;
+		setting_save($module_upgrade_setting, 'module_upgrade');
+	}
+
+	if ($cache_build_module) {
+		cache_build_module_info($module);
+	}
+	return $module_status;
+}
+
+/**
+ * 过滤传入的模块返回其中有更新的模块及模块信息
+ * @param array $module_list 模块标识
+ * @return array $modules 有升级的模块及升级信息
+ */
+function module_filter_upgrade($module_list) {
+	$modules = array();
+	$installed_module = pdo_getall('modules', array('name' => $module_list), array('version', 'name'), 'name');
+	$all_upgrade_cloud_module = cache_load(cache_system_key('all_cloud_upgrade_module:'));
+	if (empty($all_upgrade_cloud_module)) {
+		$all_upgrade_cloud_module = cache_build_cloud_upgrade_module();
+	}
+	if (!empty($module_list) && is_array($module_list) && !empty($installed_module)) {
+		foreach ($module_list as $key => $module) {
+			if (empty($installed_module[$module])) {
+				continue;
+			}
+			$manifest = ext_module_manifest($module);
+			if (!empty($manifest)&& is_array($manifest)) {
+				$module = array('name' => $module);
+				$module['from'] = 'local';
+				if (version_compare($installed_module[$module['name']]['version'], $manifest['application']['version']) == '-1') {
+					$module['upgrade'] = true;
+					$module['upgrade_branch'] = true;
+					$modules[$module['name']] = $module;
+				}
+			} else {
+				if (is_array($all_upgrade_cloud_module) && !empty($all_upgrade_cloud_module[$module])) {
+					$modules[$module] = $all_upgrade_cloud_module[$module];
+				}
+			}
+		}
+	}
+	return $modules;
+}
+/**
+ * 得到最新可升级应用
+ * @param type account/wxapp
+ * @return array 升级的模块列表
+ */
+function module_upgrade_new($type = 'account') {
+	if ($type == 'wxapp') {
+		$module_list = user_module_by_account_type('wxapp');
+	} else {
+		$module_list = user_module_by_account_type('account');
+	}
+	$upgrade_modules = module_filter_upgrade(array_keys($module_list));
+	if (!empty($upgrade_modules)) {
+		foreach ($upgrade_modules as $key => &$module) {
+			$module_fetch = module_fetch($key);
+			$module['logo'] = $module_fetch['logo'];
+			$module['link'] = url('module/manage-system/module_detail', array('name' => $module['name'], 'show' => 'upgrade'));
+		}
+		unset($module);
+	}
+	return $upgrade_modules;
+}
+
+/**
+ * 获取操作员有某一模块权限的所有公众号和小程序
+ * @param int $uid 用户UID
+ * @param string $module_name 模块name
+ * @return array()
+ */
+function module_get_user_account_list($uid, $module_name) {
+	$accounts_list = array();
+	$uid = intval($uid);
+	$module_name = trim($module_name);
+	if (empty($uid) || empty($module_name)) {
+		return $accounts_list;
+	}
+	$module_info = module_fetch($module_name);
+	if (empty($module_info)) {
+		return $accounts_list;
+	}
+	$accounts = user_account_detail_info($uid);
+	if (empty($accounts)) {
+		return $accounts_list;
+	}
+	if (!empty($accounts['wxapp'])) {
+		foreach ($accounts['wxapp'] as $wxapp_value) {
+			if (empty($wxapp_value['uniacid'])) {
+				continue;
+			}
+			$wxapp_modules = uni_modules_by_uniacid($wxapp_value['uniacid']);
+			$wxapp_modules = array_keys($wxapp_modules);
+			$module_permission_exist = uni_user_menu_permission($uid, $wxapp_value['uniacid'], $module_name);
+			if (in_array($module_name, $wxapp_modules) && (in_array('all',$module_permission_exist) || !empty($module_permission_exist))) {
+				$accounts_list[$wxapp_value['uniacid']] = $wxapp_value;
+			}
+		}
+	}
+	if (!empty($accounts['wechat'])) {
+		foreach ($accounts['wechat'] as $wechat_value) {
+			if (empty($wechat_value['uniacid'])) {
+				continue;
+			}
+			$wechat_modules = uni_modules_by_uniacid($wechat_value['uniacid']);
+			$wechat_modules = array_keys($wechat_modules);
+			$module_permission_exist = uni_user_menu_permission($uid, $wxapp_value['uniacid'], $module_name);
+			if (in_array($module_name, $wechat_modules) && (in_array('all',$module_permission_exist) || !empty($module_permission_exist))) {
+				$accounts_list[$wechat_value['uniacid']] = $wechat_value;
+			}
+		}
+	}
+
+	foreach ($accounts_list as $key => $account_value) {
+		if ($module_info['wxapp_support'] == MODULE_SUPPORT_WXAPP && $module_info['app_support'] == MODULE_SUPPORT_ACCOUNT) {
+			continue;
+		} elseif ($module_info['wxapp_support'] == MODULE_SUPPORT_WXAPP && $account_value['type'] != ACCOUNT_TYPE_APP_NORMAL) {
+			unset($accounts_list[$key]);
+		} elseif ($module_info['app_support'] == MODULE_SUPPORT_ACCOUNT && !in_array($account_value['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
+			unset($accounts_list[$key]);
+		}
+	}
+
+	return $accounts_list;
+}
+
+/**
+ * 获取操作员对某一模块，公众号与小程序关联信息
+ */
+function module_link_uniacid_fetch($uid, $module_name) {
+	$result = array();
+	$uid = intval($uid);
+	$module_name = trim($module_name);
+	if (empty($uid) || empty($module_name)) {
+		return $result;
+	}
+	$accounts_list = module_get_user_account_list($uid, $module_name);
+	if (empty($accounts_list)) {
+		return $result;
+	}
+	$accounts_link_result = array();
+	foreach ($accounts_list as $key => $account_value) {
+		if ($account_value['type'] == ACCOUNT_TYPE_APP_NORMAL) {
+			$account_value['versions'] = wxapp_version_all($account_value['uniacid']);
+			if (empty($account_value['versions'])) {
+				$accounts_link_result[$key] = $account_value;
+				continue;
+			}
+			foreach ($account_value['versions'] as $version_key => $version_value) {
+				if ($version_value['modules'][0]['name'] != $module_name) {
+					continue;
+				}
+				if (empty($version_value['modules'][0]['account']) || !is_array($version_value['modules'][0]['account'])) {
+					$accounts_link_result[$key] = $account_value;
+					continue;
+				}
+				if (!empty($version_value['modules'][0]['account']['uniacid'])) {
+					$accounts_link_result[$version_value['modules'][0]['account']['uniacid']][] = array(
+						'uniacid' => $key,
+						'version' => $version_value['version'],
+						'version_id' => $version_value['id'],
+						'name' => $account_value['name'],
+					);
+					unset($account_value['versions'][$version_key]);
+				}
+
+			}
+		}
+		if ($account_value['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $account_value['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
+			if (empty($accounts_link_result[$key])) {
+				$accounts_link_result[$key] = $account_value;
+			} else {
+				$link_wxapp = $accounts_link_result[$key];
+				$accounts_link_result[$key] = $account_value;
+				$accounts_link_result[$key]['link_wxapp'] = $link_wxapp;
+			}
+		}
+	}
+	if (!empty($accounts_link_result)) {
+		foreach ($accounts_link_result as $link_key => $link_value) {
+			if (in_array($link_value['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)) && !empty($link_value['link_wxapp']) && is_array($link_value['link_wxapp'])) {
+				foreach ($link_value['link_wxapp'] as $value) {
+					$result[] = array(
+						'app_name' => $link_value['name'],
+						'wxapp_name' => $value['name'] . ' ' . $value['version'],
+						'uniacid' => $link_value['uniacid'],
+						'version_id' => $value['version_id'],
+					);
+				}
+			} elseif ($link_value['type'] == ACCOUNT_TYPE_APP_NORMAL && !empty($link_value['versions']) && is_array($link_value['versions'])) {
+				foreach ($link_value['versions'] as $value) {
+					$result[] = array(
+						'app_name' => '',
+						'wxapp_name' => $link_value['name'] . ' ' . $value['version'],
+						'uniacid' => $link_value['uniacid'],
+						'version_id' => $value['id'],
+					);
+				}
+			} else {
+				$result[] = array(
+					'app_name' => $link_value['name'],
+					'wxapp_name' => '',
+					'uniacid' => $link_value['uniacid'],
+					'version_id' => '',
+				);
+			}
+		}
+	}
+
+	return $result;
+}
+
+/**
+ * 对某一模块，保留最后一次进入的小程序OR公众号，以便点进入列表页时可以默认进入
+ * @param unknown $uniacid
+ * @return boolean
+ */
+function module_save_switch($module_name, $uniacid = 0, $version_id = 0) {
+	global $_W, $_GPC;
+	if (empty($_GPC['__switch'])) {
+		$_GPC['__switch'] = random(5);
+	}
+
+	$cache_key = cache_system_key(CACHE_KEY_ACCOUNT_SWITCH, $_GPC['__switch']);
+	$cache_lastaccount = cache_load($cache_key);
+	if (empty($cache_lastaccount)) {
+		$cache_lastaccount = array(
+			$module_name => array(
+				'module_name' => $module_name,
+				'uniacid' => $uniacid,
+				'version_id' => $version_id
+			)
+		);
+	} else {
+		$cache_lastaccount[$module_name] = array(
+			'module_name' => $module_name,
+			'uniacid' => $uniacid,
+			'version_id' => $version_id
+		);
+	}
+	cache_write($cache_key, $cache_lastaccount);
+	isetcookie('__switch', $_GPC['__switch'], 7 * 86400);
+	return true;
+}
+
+
+
+/**
+ * 获取用户上一次进入模块的公众号OR小程序信息
+ */
+function module_last_switch($module_name) {
+	global $_GPC;
+	$module_name = trim($module_name);
+	if (empty($module_name)) {
+		return array();
+	}
+	$cache_key = cache_system_key(CACHE_KEY_ACCOUNT_SWITCH, $_GPC['__switch']);
+	$cache_lastaccount = (array)cache_load($cache_key);
+	return $cache_lastaccount[$module_name];
 }

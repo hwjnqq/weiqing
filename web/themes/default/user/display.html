@@ -41,7 +41,7 @@
 		<th class="text-right">操作</th>
 	</tr>
 	<tr ng-repeat="user in users" ng-if="users">
-		<td><img ng-src="user.avatar" alt="" class="img-responsive icon"/></td>
+		<td><img src="{{user.avatar}}" alt="" class="img-responsive icon"/></td>
 		<td class="text-left" ng-bind="user.username">{$user['username']}</td>
 		<td>
 			<span class="color-default" ng-if="user.founder">管理员</span>

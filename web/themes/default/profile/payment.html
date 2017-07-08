@@ -78,14 +78,14 @@
 			<td>
 				<div class="related-info">
 					<div>接口类型:新版(2014年9月之后申请的)</div>
-					<div>支付账号:微擎</div>
+					<div>支付账号:{$_W['uniaccount']['account']}</div>
 				</div>
 			</td>
 			<td >
-				{{  paysetting.wechat.switch !== 4 && paysetting.wechat.switch !== false  ? '开启' : '关闭'  }}
+				{{  paysetting.wechat.switch != 4 && paysetting.wechat.switch !== false  ? '开启' : '关闭'  }}
 			</td>
 			<td class="text-center">
-				<div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#weixin">修改</a></div>
+				<div class="link-group"><a href="javascript:;" ng-click="check_wechat()">修改</a></div>
 			</td>
 		</tr>
 		<tr>
@@ -236,10 +236,10 @@
 									<a href="https://mp.weixin.qq.com/paymch/readtemplate?t=mp/business/faq_tmpl" class="color-default" target="_blank">申请及详情请查看这里</a>
 								</div>
 								<div class="alert alert-warning">
-									<p>微擎0.6以上支持微信支付接口，注意你的微擎访问地址一定不要写错了，这里我们用访问地址代替下面说明中出现的链接，申请微信支付的接口说明如下：</p>
+									<p>微信支付的接口说明如下：</p>
 									<br>
 									<h4>JS API网页支付参数</h4>
-									<p>支付授权目录: {$_W['siteroot']}payment/wechat/</p>
+									<p>支付授权目录: {$_W['siteroot']}payment/wechat/ 和 {$_W['siteroot']}app/</p>
 									<p>支付请求实例: {$_W['siteroot']}payment/wechat/pay.php</p>
 									<p>共享收货地址: 选择"是"</p>
 									<br>
@@ -248,9 +248,11 @@
 									<p>维权通知URL: {$_W['siteroot']}payment/wechat/rights.php</p>
 									<p>警告通知URL: {$_W['siteroot']}payment/wechat/warning.php</p>
 								</div>
-								{if $accounts[$_W['acid']]['level'] > 2}
+								{if $accounts[$_W['acid']]['level'] > ACCOUNT_SERVICE}
+								{if $accounts[$_W['acid']]['level'] == ACCOUNT_SERVICE_VERIFY}
 								<input id='radio-11' type="radio" name='wechat[switch]' ng-checked='paysetting.wechat.switch == 1' ng-click="changeSwitch('wechat', 1)" value="1"/>
 								<label for="radio-11">微信支付  </label>
+								{/if}
 								{if !empty($proxy_wechatpay_account['borrow'])}
 								<input id='radio-12' type="radio" name='wechat[switch]' ng-checked='paysetting.wechat.switch == 2' ng-click="changeSwitch('wechat', 2)" value="2"/>
 								<label for="radio-12">借用支付  </label>
@@ -260,8 +262,8 @@
 								<label for="radio-24">关闭 </label>
 							</div>
 						</div>
-						{if $accounts[$_W['acid']]['level'] > 2}
-						{if $accounts[$_W['acid']]['level'] == 4}
+						{if $accounts[$_W['acid']]['level'] > ACCOUNT_SERVICE}
+						{if $accounts[$_W['acid']]['level'] == ACCOUNT_SERVICE_VERIFY}
 						<div ng-show="paysetting.wechat.switch == 1">
 							<div class="form-group">
 								<label for="" class="control-label col-sm-2">接口类型</label>
@@ -361,6 +363,7 @@
 						{if !empty($proxy_wechatpay_account['borrow'])}
 						<div ng-show="paysetting.wechat.switch == 2">
 							<div class="form-group">
+							<label for="" class="control-label col-sm-2">借用公众号</label>
 								<div class="form-controls col-sm-10">
 									<select name="borrow" class="we7-select" ng-model="paysetting.wechat.borrow">
 										<option value="" ng-selected="paysetting.wechat.borrow == 0 || paysetting.wechat.borrow == '' || paysetting.wechat.borrow == undefined">请选择要借用的公众号</option>
@@ -517,7 +520,8 @@
 		'saveurl' : "{php echo url('profile/payment/save_setting')}",
 		'text_alipay_url' : "{php echo url('profile/payment/test_alipay')}",
 		'borrows' : {php echo json_encode($proxy_wechatpay_account['borrow'])},
-		'get_setting_url' : "{php echo url('profile/payment/get_setting')}"
+		'get_setting_url' : "{php echo url('profile/payment/get_setting')}",
+		'account_level' : "{$accounts[$_W['acid']]['level']}"
 	});
 	angular.bootstrap($('.js-profile-payment'), ['profileApp']);
 </script>

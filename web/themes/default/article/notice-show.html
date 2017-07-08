@@ -5,14 +5,14 @@
 			<div class="panel-heading">
 				<span class="font-lg">公告列表</span>
 			</div>
-			<div class="panel-body welcome-container we7-padding">
+			<div class="panel-body we7-padding">
 				<div class="btn-group we7-btn-group we7-margin-bottom btn-group-justified">
 					<a href="{php echo url('article/notice-show/list');}" class="btn {if !$cateid}active{/if}">全部</a>
 					{loop $categroys $key $categroy}
 					{if $key}
 						<a href="{php echo url('article/notice-show/list', array('cateid' => $categroy['id']));}" class="btn {if $cateid == $categroy['id']}active{/if}">{$categroy['title']}</a>
 					{/if}
-				{/loop}
+					{/loop}
 				</div>
 				{if !empty($data)}
 				<div class="notice">

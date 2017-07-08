@@ -168,20 +168,21 @@ function file_upload($file, $type = 'image', $name = '') {
 	global $_W;
 	$ext = pathinfo($file['name'], PATHINFO_EXTENSION);
 	$ext = strtolower($ext);
+	$setting = setting_load('upload');
 	switch ($type) {
 		case 'image' :
 		case 'thumb' :
 			$allowExt = array('gif', 'jpg', 'jpeg', 'bmp', 'png', 'ico');
-			$limit = 4 * 1024;
+			$limit = $setting['upload']['image']['limit'];
 			break;
 		case 'voice' :
 		case 'audio' :
 			$allowExt = array('mp3', 'wma', 'wav', 'amr');
-			$limit = 6 * 1024;
+			$limit = $setting['upload']['audio']['limit'];
 			break;
 		case 'video' :
 			$allowExt = array('rm', 'rmvb', 'wmv', 'avi', 'mpg', 'mpeg', 'mp4');
-			$limit = 20 * 1024;
+			$limit = $setting['upload']['audio']['limit'];
 			break;
 	}
 	$setting = $_W['setting']['upload'][$type];

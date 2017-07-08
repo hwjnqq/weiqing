@@ -50,7 +50,7 @@ if ($do == 'buybranch') {
 	$response = json_decode($response['content'], true);
 
 	if (is_error($response['message'])) {
-		itoast($response['message']['message'], url('system/module'), 'error');
+		itoast($response['message']['message'], url('module/manage-system'), 'error');
 	}
 
 	$params = array(

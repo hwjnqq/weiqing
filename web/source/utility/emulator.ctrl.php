@@ -4,7 +4,6 @@
  * [WeEngine System] Copyright (c) 2013 we7.cc
  */
 $_W['page']['title'] = '模拟测试';
-
 $development = 1;
 $accounts = uni_owned();
 foreach($accounts as &$account) {
@@ -48,7 +47,7 @@ template('common/header');
 .chatPanel .mediaFullText .mediaImg{width:255px;padding:0;margin:0 15px;overflow:hidden;max-height:164px;}
 .chatPanel .mediaFullText .mediaImg img{/*margin-top:17px;position:absolute;*/}
 .chatPanel .mediaFullText .mediaContent{padding:0 0 8px;font-size:16px;line-height:1.5em;text-align:left;color:#222222;}
-.chatPanel .mediaFullText .mediaContentP{margin:12px 15px 0px;}
+.chatPanel .mediaFullText .mediaContentP{margin:12px 15px 0px; word-break: break-all;}
 .chatPanel .media .mediaHead .time{margin:0px;margin-top:21px;color:#8C8C8C;background:none;width:auto;font-size:12px;}
 .chatPanel .media .mediaFooter{-webkit-border-radius:0px 0px 12px 12px;-moz-border-radius:0px 0px 12px 12px;border-radius:0px 0px 12px 12px;padding:0px;}
 .chatPanel .media .mediaFooter a{color:#222222;font-size:16px;padding:0;}
@@ -426,6 +425,7 @@ template('common/header');
 			buildRequest(curtype);
 			$('#svtext').hide();$('#svurlbox').hide();$('#svinfolist').hide();
 			$('div.mediaFooterbox', $('#demoSendBox')).show();
+			console.log($('#account').val());
 			$.ajax($('#account').val(), {
 				type : 'POST',
 				headers : {"Content-type" : "text/xml"},
@@ -495,6 +495,7 @@ template('common/header');
 							}
 						}
 					}
+					console.log(s);
 					$('#receive').text(s);
 				}else{
 					$('#receive').text('模拟取消关注成功');

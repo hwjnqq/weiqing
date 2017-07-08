@@ -135,6 +135,7 @@ if ($do == 'edit') {
 		iajax(-1, '参数错误，请刷新重试！', '');
 	}
 } elseif ($do == 'set_permission') {
+
 	$uid = intval($_GPC['uid']);
 	$user = user_single(array('uid' => $uid));
 	if (empty($user)) {
@@ -149,14 +150,40 @@ if ($do == 'edit') {
 		//获取系统权限
 		$user_menu_permission_account = uni_user_menu_permission($uid, $uniacid, PERMISSION_ACCOUNT);
 		//获取模块权限
-		$module_permission = uni_getall_user_module_permission($uid, $uniacid);
+		$module_permission = uni_user_menu_permission($uid, $uniacid, 'modules');
+		if (is_error($user_menu_permission_account) || is_error($module_permission)) {
+			itoast('参数错误！');
+		}
 		$module_permission_keys = array_keys($module_permission);
-		$module = uni_modules();
+		$module = uni_modules_by_uniacid($uniacid);
 	} elseif ($account['type'] == ACCOUNT_TYPE_APP_NORMAL) {
 		//获取小程序权限
 		$user_menu_permission_wxapp = uni_user_menu_permission($uid, $uniacid, PERMISSION_WXAPP);
+		if (is_error($user_menu_permission_wxapp)) {
+			itoast('参数错误！');
+		}
 	}
 
+	} elseif ($account['type'] == ACCOUNT_TYPE_APP_NORMAL) {
+		$all_menu_permission = uni_permission_name();
+		if ($account['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $account['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
+			//公众号权限
+			if (!empty($_GPC['system'])) {
+				foreach ($_GPC['system'] as $permission_name) {
+					if (in_array($permission_name, $all_menu_permission)) {
+						$user_menu_permission_new[] = $permission_name;
+					}
+				}
+				$data = array(
+					'type' => PERMISSION_ACCOUNT,
+					'permission' => implode('|', $user_menu_permission_new)
+				$result = uni_update_user_permission($uid, $uniacid, $data);
+				if (is_error($result)) {
+					itoast($result['message']);
+				}
+			} else {
+				pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $uid, 'type' => PERMISSION_ACCOUNT));
+			}
 	$menus = system_menu_permission_list($role);
 	if (checksubmit('submit')) {
 		if ($account['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $account['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
@@ -185,6 +212,26 @@ if ($do == 'edit') {
 							pdo_insert('users_permission', $insert);
 						}
 					}
+				}
+			}
+		} elseif ($account['type'] == ACCOUNT_TYPE_APP_NORMAL) {
+			//小程序权限
+			if (!empty($_GPC['wxapp'])) {
+				foreach ($_GPC['wxapp'] as $permission_name) {
+					if (in_array($permission_name, $all_menu_permission)) {
+						$user_menu_permission_new[] = $permission_name;
+					}
+				}
+				$data = array(
+					'type' => PERMISSION_WXAPP,
+					'permission' => implode('|', $user_menu_permission_new)
+				);
+				$result = uni_update_user_permission($uid, $uniacid, $data);
+				if (is_error($result)) {
+					itoast($result['message']);
+				}
+			} else {
+				pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $uid, 'type' => PERMISSION_WXAPP));
 				}
 			}
 		} elseif ($account['type'] == ACCOUNT_TYPE_APP_NORMAL) {

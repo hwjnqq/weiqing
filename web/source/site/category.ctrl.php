@@ -5,7 +5,7 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-load()->func('file');
+load()->model('article');
 
 $do = !empty($do) ? $do : 'display';
 $do = in_array($do, array('display', 'post', 'delete', 'change_status')) ? $do : 'display';
@@ -160,35 +160,18 @@ if ($do == 'display') {
 } elseif ($do == 'delete') {
 	if (checksubmit('submit')) {
 		foreach ($_GPC['rid'] as $key => $id) {
-			$id = intval($id);
-			$category = pdo_fetch("SELECT id, parentid, nid FROM ".tablename('site_category')." WHERE id = '$id'");
-			if (empty($category)) {
+			$category_delete = article_category_delete($id);
+			if (empty($category_delete)) {
 				itoast('抱歉，分类不存在或是已经被删除！', referer(), 'error');
 			}
-			$navs = pdo_fetchall("SELECT icon, id FROM ".tablename('site_nav')." WHERE id IN (SELECT nid FROM ".tablename('site_category')." WHERE id = {$id} OR parentid = '$id')", array(), 'id');
-			if (!empty($navs)) {
-				foreach ($navs as $row) {
-					file_delete($row['icon']);
-				}
-				pdo_query("DELETE FROM ".tablename('site_nav')." WHERE id IN (".implode(',', array_keys($navs)).")");
-			}
-			pdo_delete('site_category', array('id' => $id));
 		}
 		itoast('分类批量删除成功！', referer(), 'success');
 	} else {
 		$id = intval($_GPC['id']);
-		$category = pdo_fetch("SELECT id, parentid, nid FROM ".tablename('site_category')." WHERE id = '$id'");
-		if (empty($category)) {
+		$category_delete = article_category_delete($id);
+		if (empty($category_delete)) {
 			itoast('抱歉，分类不存在或是已经被删除！', referer(), 'error');
 		}
-		$navs = pdo_fetchall("SELECT icon, id FROM ".tablename('site_nav')." WHERE id IN (SELECT nid FROM ".tablename('site_category')." WHERE id = {$id} OR parentid = '$id')", array(), 'id');
-		if (!empty($navs)) {
-			foreach ($navs as $row) {
-				file_delete($row['icon']);
-			}
-			pdo_query("DELETE FROM ".tablename('site_nav')." WHERE id IN (".implode(',', array_keys($navs)).")");
-		}
-		pdo_delete('site_category', array('id' => $id, 'parentid' => $id), 'OR');
 		itoast('分类删除成功！', referer(), 'success');
 	}
 } else if ($do == 'change_status') {

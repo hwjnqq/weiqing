@@ -778,13 +778,13 @@ class WeUtility {
  */
 abstract class WeBase {
 	/**
+	 * @var array 当前模块参数及配置信息
+	 */
+	private $module;
+	/**
 	 * @var string 当前模块名称 {identifie}
 	 */
 	public $modulename;
-	/**
-	 * @var array 当前模块参数及配置信息
-	 */
-	public $module;
 	/**
 	 * @var int 当前统一公众号编号
 	 */
@@ -914,6 +914,62 @@ abstract class WeBase {
 			template_compile($source, $compile, true);
 		}
 		return $compile;
+	}
+	
+	/**
+	 * 保存一个流数据到本地
+	 * @param string $file_string 文件流
+	 * @param string $ext 要保存的文件扩展名
+	 * @return 保存的文件路径
+	 */
+	protected function fileSave($file_string, $type = 'jpg', $name = 'auto') {
+		global $_W;
+		load()->func('file');
+		
+		$allow_ext = array(
+			'images' => array('gif', 'jpg', 'jpeg', 'bmp', 'png', 'ico'), 
+			'audios' => array('mp3', 'wma', 'wav', 'amr'),
+			'videos' => array('wmv', 'avi', 'mpg', 'mpeg', 'mp4'),
+		);
+		if (in_array($type, $allow_ext['images'])) {
+			$type_path = 'images';
+		} elseif (in_array($type, $allow_ext['audios'])) {
+			$type_path = 'audios';
+		} elseif (in_array($type, $allow_ext['videos'])) {
+			$type_path = 'videos';
+		}
+		
+		if (empty($type_path)) {
+			return error(1, '禁止保存文件类型');
+		}
+		
+		if (empty($name) || $name == 'auto') {
+			$uniacid = intval($_W['uniacid']);
+			$path = "{$type_path}/{$uniacid}/{$this->module['name']}/" . date('Y/m/');
+			mkdirs(ATTACHMENT_ROOT . '/' . $path);
+			
+			$filename = file_random_name(ATTACHMENT_ROOT . '/' . $path, $type);
+		} else {
+			$path = "{$type_path}/{$uniacid}/{$this->module['name']}/";
+			mkdirs(dirname(ATTACHMENT_ROOT . '/' . $path));
+			
+			$filename = $name;
+			if (!strexists($filename, $type)) {
+				$filename .= '.' . $type;
+			}
+		}
+		
+		if (file_put_contents(ATTACHMENT_ROOT . '/' . $path . $filename, $file_string)) {
+			file_remote_upload($path);
+			return $path . $filename;
+		} else {
+			return false;
+		}
+	}
+	
+	protected function fileUpload($file_string, $type = 'image') {
+		$types = array('image', 'video', 'audio');
+	
 	}
 }
 
@@ -1369,6 +1425,16 @@ abstract class WeModuleSite extends WeBase {
 		trigger_error("访问的方法 {$name} 不存在.", E_USER_WARNING);
 		return null;
 	}
+	
+	public function __get($name) {
+		if ($name == 'module') {
+			if (!empty($this->module)) {
+				return $this->module;
+			} else {
+				return getglobal('current_module');
+			}
+		}
+	}
 
 	/**
 	 * 调用系统的支付功能, 只能在 Mobile 端调用
@@ -1387,7 +1453,7 @@ abstract class WeModuleSite extends WeBase {
 		load()->model('module');
 		activity_coupon_type_init();
 		if(!$this->inMobile) {
-			itoast('支付功能只能在手机上使用', '', '');
+			message('支付功能只能在手机上使用', '', '');
 		}
 		$params['module'] = $this->module['name'];
 //		如果价格为0 直接执行模块支付回调方法
@@ -1419,11 +1485,11 @@ abstract class WeModuleSite extends WeBase {
 			pdo_insert('core_paylog', $log);
 		}
 		if($log['status'] == '1') {
-			itoast('这个订单已经支付成功, 不需要重复支付.', '', 'info');
+			message('这个订单已经支付成功, 不需要重复支付.', '', 'info');
 		}
 		$setting = uni_setting($_W['uniacid'], array('payment', 'creditbehaviors'));
 		if(!is_array($setting['payment'])) {
-			itoast('没有有效的支付方式, 请联系网站管理员.', '', 'error');
+			message('没有有效的支付方式, 请联系网站管理员.', '', 'error');
 		}
 		$pay = $setting['payment'];
 		$we7_coupon_info = module_fetch('we7_coupon');
@@ -1478,9 +1544,9 @@ abstract class WeModuleSite extends WeBase {
 		global $_W;
 		if($ret['from'] == 'return') {
 			if ($ret['type'] == 'credit2') {
-				itoast('已经成功支付', url('mobile/channel', array('name' => 'index', 'weid' => $_W['weid'])), 'success');
+				message('已经成功支付', url('mobile/channel', array('name' => 'index', 'weid' => $_W['weid'])), 'success');
 			} else {
-				itoast('已经成功支付', '../../' . url('mobile/channel', array('name' => 'index', 'weid' => $_W['weid'])), 'success');
+				message('已经成功支付', '../../' . url('mobile/channel', array('name' => 'index', 'weid' => $_W['weid'])), 'success');
 			}
 		}
 	}
@@ -1607,7 +1673,7 @@ abstract class WeModuleWxapp extends WeBase {
 	public $appid;
 	public $version;
 	
-	public function result($errno, $message, $data) {
+	public function result($errno, $message, $data = '') {
 		exit(json_encode(array(
 			'errno' => $errno,
 			'message' => $message,
@@ -1655,6 +1721,67 @@ abstract class WeModuleWxapp extends WeBase {
 		} else {
 			return false;
 		}
+	}
+	
+	protected function pay($order) {
+		global $_W, $_GPC;
+	
+		load()->model('payment');
+		load()->model('account');
+		
+		$moduels = uni_modules();
+		if(empty($order) || !array_key_exists($this->module['name'], $moduels)) {
+			return error(1, '模块不存在');
+		}
+		$moduleid = empty($this->module['mid']) ? '000000' : sprintf("%06d", $this->module['mid']);
+		$uniontid = date('YmdHis').$moduleid.random(8,1);
+		$wxapp_uniacid = intval($_W['account']['uniacid']);
+		
+		$paylog = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $this->module['name'], 'tid' => $order['tid']));
+		if (empty($paylog)) {
+			$paylog = array(
+				'uniacid' => $_W['uniacid'],
+				'acid' => $_W['acid'],
+				'openid' => $_W['openid'],
+				'module' => $this->module['name'],
+				'tid' => $order['tid'],
+				'uniontid' => $uniontid,
+				'fee' => floatval($order['fee']),
+				'card_fee' => floatval($order['fee']),
+				'status' => '0',
+				'is_usecard' => '0',
+				'tag' => iserializer(array('acid' => $_W['acid'], 'uid' => $_W['member']['uid']))
+			);
+			pdo_insert('core_paylog', $paylog);
+			$paylog['plid'] = pdo_insertid();
+		}
+		if(!empty($paylog) && $paylog['status'] != '0') {
+			return error(1, '这个订单已经支付成功, 不需要重复支付.');
+		}
+		if (!empty($paylog) && empty($paylog['uniontid'])) {
+			pdo_update('core_paylog', array(
+				'uniontid' => $uniontid,
+			), array('plid' => $paylog['plid']));
+			$paylog['uniontid'] = $uniontid;
+		}
+		
+		$_W['openid'] = $paylog['openid'];
+	
+		$params = array(
+			'tid' => $paylog['tid'],
+			'fee' => $paylog['card_fee'],
+			'user' => $paylog['openid'],
+			'uniontid' => $paylog['uniontid'],
+			'title' => $order['title'],
+		);
+		$setting = uni_setting($wxapp_uniacid, array('payment'));
+		$wechat_payment = array(
+			'appid' => $_W['account']['key'],
+			'signkey' => $setting['payment']['wechat']['signkey'],
+			'mchid' => $setting['payment']['wechat']['mchid'],
+			'version' => 2,
+		);
+		return wechat_build($params, $wechat_payment);
 	}
 }
 

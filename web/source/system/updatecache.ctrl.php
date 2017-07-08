@@ -20,7 +20,8 @@ if (checksubmit('submit', true)) {
 	unset($account_ticket_cache);
 	cache_build_template();
 	cache_build_users_struct();
-	cache_build_module_ban();
+	cache_build_module_status();
+	cache_build_cloud_upgrade_module();
 	cache_build_setting();
 	cache_build_frame_menu();
 	cache_build_module_subscribe_type();

@@ -7,6 +7,8 @@
 
 defined('IN_IA') or exit('Access Denied');
 
+load()->func('cache');
+
 $dos = array('opcache');
 $do = in_array($do, $dos) ? $do : 'index';
 $_W['page']['title'] = '性能优化 - 常用系统工具 - 系统管理';
@@ -15,22 +17,18 @@ if ($do == 'opcache') {
 	opcache_reset();
 	itoast('清空缓存成功', url('system/optimize'), 'success');
 } else {
+	$cache_type = cache_type();
+	$clear = array('url' => url('system/updatecache'), 'title' => '更新缓存');
 	$extensions = array(
 		'memcache' => array(
 			'support' => extension_loaded('memcache'),
-			'status' => ($_W['config']['setting']['cache'] == 'memcache'),
-			'clear' => array(
-				'url' => url('system/updatecache'),
-				'title' => '更新缓存',
-			),
+			'status' => $cache_type == 'memcache',
+			'clear' => $clear
 		),
 		'redis' => array(
 			'support' => extension_loaded('redis'),
-			'status' => ($_W['config']['setting']['cache'] == 'redis'),
-			'clear' => array(
-					'url' => url('system/updatecache'),
-					'title' => '更新缓存',
-			),
+			'status' => $cache_type == 'redis',
+			'clear' => $clear
 		),
 		'eAccelerator' => array(
 			'support' => function_exists('eaccelerator_optimizer'),

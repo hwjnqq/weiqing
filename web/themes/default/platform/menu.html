@@ -1,8 +1,5 @@
 {template 'common/header'}
 {if $do == 'display'}
-{if empty($data) && $_GPC['status'] == 'history'}
-<div class="alert alert-info">没有历史菜单</div>
-{else}
 <div class="we7-page-title">
 	自定义菜单
 </div>
@@ -16,8 +13,9 @@
 			<div class="input-group pull-left col-sm-4">
 				<input type="hidden" name="c" value="platform">
 				<input type="hidden" name="a" value="menu">
+				<input type="hidden" name="type" value="{$_GPC['type']}">
 				<input type="hidden" name="token" value="{$_W['token']}"/>
-				<input type="text" name="keyword" id="" value="" class="form-control" placeholder="搜索关键字"/>
+				<input type="text" name="keyword" id="" value="{$_GPC['keyword']}" class="form-control" placeholder="搜索关键字"/>
 				<span class="input-group-btn"><button class="btn btn-default"><i class="fa fa-search"></i></button></span>
 			</div>
 		</form>
@@ -85,17 +83,17 @@
 			<td>
 				<div class="link-group">
 				{if $da['type'] == 1}
-					<a href="{php echo url('platform/menu/post', array('id' => $da['id'], 'type'=> 1));}" class="we7-margin-right">编辑</a>
+					<a href="{php echo url('platform/menu/post', array('id' => $da['id'], 'type'=> 1));}">编辑</a>
 				{else}
-					<a href="{php echo url('platform/menu/post', array('id' => $da['id'], 'type'=> $da['type']));}" class="we7-margin-right">查看</a>
+					<a href="{php echo url('platform/menu/post', array('id' => $da['id'], 'type'=> $da['type']));}">查看</a>
 				{/if}
 				{if $da['type'] == 3}
 					{if $_GPC['status'] != 'history'}
-					<a href="{php echo url('platform/menu/copy', array('id' => $da['id']));}" class="we7-margin-right" onclick="if(!confirm('确定复制吗')) return false;">复制</a>
+					<a href="{php echo url('platform/menu/copy', array('id' => $da['id']));}" onclick="if(!confirm('确定复制吗')) return false;">复制</a>
 					{/if}
 				{/if}
 				{if $da['type'] != 1 || ($da['type'] == 1 && $da['status'] == '0')}
-				<a href="{php echo url('platform/menu/delete', array('id' => $da['id'], 'status' => 'history'));}" class="del" onclick="if(!confirm('{if $da['type'] == 1}删除默认菜单会清空所有菜单记录，确定吗？{else}确定删除菜单?{/if}')) return false;">删除</a>
+				<a href="{php echo url('platform/menu/delete', array('id' => $da['id']));}" class="del" onclick="if(!confirm('{if $da['type'] == 1}删除默认菜单会清空所有菜单记录，确定吗？{else}确定删除菜单?{/if}')) return false;">删除</a>
 				{/if}
 				</div>
 			</td>
@@ -106,8 +104,6 @@
 		{$pager}
 	</div>
 </div>
-
-{/if}
 {/if}
 
 {if $do == 'post'}
@@ -190,14 +186,14 @@
 											{{but.name}}
 										</a>
 										<div class="sub-pre-menu-box">
-											<ul class="sub-pre-menu-list designer-y">
-												<li ng-repeat="subBut in but.sub_button">
+											<ul class="sub-pre-menu-list sub-designer-y">
+												<li ng-repeat="subBut in but.sub_button" class='sub-js-sortable'>
 													<input type="hidden" data-role="sub" data-hash="{{subBut.$$hashKey}}"/>
 													<span class="sub-pre-menu-inner" ng-click="context.editBut(subBut, but, {$id});">
 														<span>{{subBut.name}}</span>
 													</span>
 												</dd>
-												<li ng-if="but.sub_button.length < 5" ng-click="context.addSubBut(but);"><i class="fa fa-plus"></i></a>
+												<li ng-if="but.sub_button.length < 5" ng-click="context.addSubBut(but);" class="sub-js-not-sortable"><i class="fa fa-plus"></i></a>
 												</dd>
 											</ul>
 										</div>
@@ -312,7 +308,7 @@
 															<a class="title-wrp" href="javascript:;">
 																<span class="title">[关键字]{{context.activeItem.material[0].name}}</span>
 															</a>
-															<p class="desc"><a href="javascript:;" class="appmsg-desc">{{context.activeItem.material[0].child_items[0].content}}</a></p>
+															<p class="desc"><a href="javascript:;" class="appmsg-desc">{{context.activeItem.material[0].content}}</a></p>
 														</div>
 													</div>
 												</div>
@@ -334,8 +330,7 @@
 											</li>
 										</ul>
 										<div class="we7-select-msg we7-padding-vertical-max">
-											<div class="add" onclick="$(this).addClass('hide').next('ul').removeClass('hide');"><i class="wi wi-registersite"></i>继续添加</div>
-											<ul class="tab-navs hide">
+											<ul class="tab-navs">
 												<li class="tab-nav tab-video" ng-click="context.select_mediaid('module');">
 													<a href="javascript:void(0);">&nbsp;<i class="icon-msg-sender "></i><span class="msg-tab-title">模块</span></a>
 												</li>
@@ -357,7 +352,7 @@
 													<div class="desc">
 														<div class="media-content">
 															<a class="title-wrp" href="javascript:;">
-																<span class="title">[关键字]{{context.activeItem.material[0].child_items[0].content ? context.activeItem.material[0].child_items[0].content : context.activeItem.key}}</span>
+																<span class="title">[关键字]{{context.activeItem.material[0].content ? context.activeItem.material[0].content : context.activeItem.key}}</span>
 															</a>
 														</div>
 													</div>
@@ -425,9 +420,8 @@
 											</li>
 										</ul>
 										<div class="we7-select-msg we7-padding-vertical-max">
-											<div class="add" onclick="$(this).addClass('hide').next('ul').removeClass('hide');"><i class="wi wi-registersite"></i>继续添加</div>
-											<ul class="tab-navs hide">
-												<li class="tab-nav tab-appmsg" ng-click="context.select_mediaid('news');">
+											<ul class="tab-navs">
+												<li class="tab-nav tab-appmsg" ng-click="context.select_mediaid('news', 'wx');">
 													<a href="javascript:void(0);">&nbsp;<i class="wi wi-appmsg"></i><span class="msg-tab-title">图文</span></a>
 												</li>
 												<li class="tab-nav tab-img" ng-click="context.select_mediaid('image');">

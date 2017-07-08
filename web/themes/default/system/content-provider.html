@@ -1,9 +1,9 @@
 {template 'common/header'}
 <ul class="nav nav-tabs">
 	<li{if $do == 'finance_info' || $do == 'account_list' || $do == 'display' || $do == 'register_flow' || $do == 'flow_control'} class="active"{/if}>
-	<a href="{php echo url('adviertisement/content-provider/account_list');}">流量主</a>
+	<a href="{php echo url('advertisement/content-provider/account_list');}">流量主</a>
 	</li>
-	<li{if $do == 'content_provider'} class="active"{/if}><a href="{php echo url('adviertisement/content-provider/content_provider');}">广告主</a></li>
+	<li{if $do == 'content_provider'} class="active"{/if}><a href="{php echo url('advertisement/content-provider/content_provider');}">广告主</a></li>
 </ul>
 <style>
 	.nav .nav-tabs-flow {
@@ -40,13 +40,13 @@
 	<ul class="nav nav-tabs-flow">
 		<li{if $do == 'account_list' || $do == 'display' || $do == 'register_flow' || $do == 'flow_control'} class="active"{/if}>
 		{if $flow_master_info['status'] == 4 || IMS_FAMILY == 'v'}
-		<a href="{php echo url('adviertisement/content-provider/account_list');}">流量管理</a>
+		<a href="{php echo url('advertisement/content-provider/account_list');}">流量管理</a>
 		{elseif $flow_master_info['status'] != 4}
-		<a href="{php echo url('adviertisement/content-provider/display');}">流量管理</a>
+		<a href="{php echo url('advertisement/content-provider/display');}">流量管理</a>
 		{/if}
 		</li>
 		{if !empty($commission_show) || $flow_master_info['status'] == 4}
-		<li{if $do == 'finance_info'} class="active"{/if}><a href="{php echo url('adviertisement/content-provider/finance_info');}">财务信息</a></li>
+		<li{if $do == 'finance_info'} class="active"{/if}><a href="{php echo url('advertisement/content-provider/finance_info');}">财务信息</a></li>
 		{/if}
 	</ul>
 	{/if}
@@ -66,7 +66,7 @@
 			{if is_error($flow_master_info) || (!is_error($flow_master_info) && ($flow_master_info['status'] == 1 || $flow_master_info['status'] == 3))}
 			<div class="col-xs-5">
 				<span class="pull-right">
-					<a class="btn btn-primary" href="{php echo url('adviertisement/content-provider/register_flow')}">申请流量主</a>
+					<a class="btn btn-primary" href="{php echo url('advertisement/content-provider/register_flow')}">申请流量主</a>
 				</span>
 			</div>
 			{/if}
@@ -182,7 +182,7 @@
 		<div class="panel-heading">筛选</div>
 		<div class="panel-body">
 			<form action="./index.php" method="get" role="form" class="form-horizontal">
-				<input type="hidden" name="c" value="adviertisement">
+				<input type="hidden" name="c" value="advertisement">
 				<input type="hidden" name="a" value="content-provider">
 
 				<div class="form-group" style="margin-top:20px;margin-left: 40px">
@@ -264,7 +264,7 @@
 					</td>
 					<td>
 						<div class="link-group">
-							<a href="{php echo url('adviertisement/content-provider/flow_control', array('uniacid' => $account['uniacid']))}">
+							<a href="{php echo url('advertisement/content-provider/flow_control', array('uniacid' => $account['uniacid']))}">
 							{if IMS_FAMILY == 'v' ||$uni['flow_setting_enable'] == 2}
 							设置
 							{elseif $uni['flow_setting_enable'] == 1}
@@ -466,7 +466,7 @@
 			}
 			$('.js-types-show').html(html);
 			$('.js-select-types').data('module_name', module_name);
-			$.post("{php echo url('adviertisement/content-provider/ad_type_get')}", {'module_name' : module_name, 'uniacid' : uniacid}, function(data) {
+			$.post("{php echo url('advertisement/content-provider/ad_type_get')}", {'module_name' : module_name, 'uniacid' : uniacid}, function(data) {
 				data = $.parseJSON(data);
 				if (data.message.errno == 0) {
 					for (var i in data.message.message) {
@@ -501,7 +501,7 @@
 			} else {
 				$('.js-select-tag-error').html('');
 				$(this).attr('data-dismiss', 'modal');
-				$.post("{php echo url('adviertisement/content-provider/flow_control')}", {'type' : 'tags', 'tagids' : tagids, 'enable' : 2, 'uniacid' : uniacid}, function(data) {
+				$.post("{php echo url('advertisement/content-provider/flow_control')}", {'type' : 'tags', 'tagids' : tagids, 'enable' : 2, 'uniacid' : uniacid}, function(data) {
 					data = $.parseJSON(data);
 					if (data.message.errno == 0) {
 						util.message(data.message.message, data.redirect, 'success');
@@ -524,7 +524,7 @@
 			} else {
 				$('input[name=type-select]').val('');
 			}
-			$.post("{php echo url('adviertisement/content-provider/flow_control')}", {'type' : 'types', 'typeids' : typeids, 'enable' : 2, 'module_name' : module_name, 'uniacid' : uniacid}, function(data) {
+			$.post("{php echo url('advertisement/content-provider/flow_control')}", {'type' : 'types', 'typeids' : typeids, 'enable' : 2, 'module_name' : module_name, 'uniacid' : uniacid}, function(data) {
 				data = $.parseJSON(data);
 				if (data.message.errno == 0) {
 					util.message(data.message.message, data.redirect, 'success');
@@ -535,7 +535,7 @@
 		});
 		$(document).on('click', '.js-stop-provider', function() {
 			var uniacid = $(this).data('uniacid');
-			$.post("{php echo url('adviertisement/content-provider/flow_control')}", {'type' : 'tags', 'enable' : 1, 'uniacid' : uniacid}, function(data) {
+			$.post("{php echo url('advertisement/content-provider/flow_control')}", {'type' : 'tags', 'enable' : 1, 'uniacid' : uniacid}, function(data) {
 				data = $.parseJSON(data);
 				if (data.message.errno == 0) {
 					util.message(data.message.message, data.redirect, 'success');
@@ -549,10 +549,10 @@
 	{if $do == 'finance_info'}
 	<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin: 10px -1em 1em 0px;">
 		<div class="navbar-header">
-			<a class="navbar-brand" href="{php echo url('adviertisement/content-provider/finance_info')}">数据统计</a>
+			<a class="navbar-brand" href="{php echo url('advertisement/content-provider/finance_info')}">数据统计</a>
 			<ul class="nav navbar-nav navbar-right">
-				<li {if $_GPC['type'] == 1}class="active"{/if}><a href="{php echo url('adviertisement/content-provider/finance_info', array('type' => '1'))}">今日</a></li>
-				<li {if $_GPC['type'] == 2}class="active"{/if}><a href="{php echo url('adviertisement/content-provider/finance_info', array('type' => '2'))}">昨日</a></li>
+				<li {if $_GPC['type'] == 1}class="active"{/if}><a href="{php echo url('advertisement/content-provider/finance_info', array('type' => '1'))}">今日</a></li>
+				<li {if $_GPC['type'] == 2}class="active"{/if}><a href="{php echo url('advertisement/content-provider/finance_info', array('type' => '2'))}">昨日</a></li>
 				<form class="navbar-form navbar-left" role="search" id="form1">
 					<input name="c" value="system" type="hidden">
 					<input name="a" value="content_provider" type="hidden">

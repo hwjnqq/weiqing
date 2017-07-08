@@ -26,26 +26,9 @@
 	<p><i class="wi wi-info-sign"></i> 系统会根据会员的总积分(积分+贡献)多少自动对会员的分组进行调整</p>
 </div>
 <div id="js-member-group" ng-controller="group" ng-cloak>
-	<div class="panel we7-panel">
-		<div class="panel-heading">筛选</div>
-		<div class="panel-body we7-padding">
-			<form action="" method="get" class="we7-form" role="form">
-				<div class="form-group">
-					<label class="col-sm-2 control-label">会员组变更设置</label>
-					<div class="col-sm-5">
-						<select name="grouplevel" ng-model="group_level">
-							<option value="0" ng-selected="group_level == 0">不自动变更新</option>
-							<option value="1" ng-selected="group_level == 1">根据总积分多少自动升降</option>
-							<option value="2" ng-selected="group_level == 2">根据总积分多少只升不降</option>
-						</select>
-					</div>
-					<div class="pull-right col-sm-5">
-						<button class="btn btn-primary" ng-click="change_group_level()">变更</button>
-						<button type="button" class="btn btn-primary" ng-click="set_group_detail_info()">增加会员组</button>
-					</div>
-				</div>
-			</form>
-		</div>
+	<div class="text-right we7-margin-bottom">
+		<button class="btn btn-default" data-toggle="modal" data-target="#modal-change-group">会员组变更设置</button>
+		<button type="button" class="btn btn-primary" ng-click="set_group_detail_info()">增加会员组</button>
 	</div>
 	<table class="table we7-table table-hover vertical-middle">
 		<col width="200px"/>
@@ -74,6 +57,47 @@
 			</td>
 		</tr>
 	</table>
+
+	<div class="modal fade modal-change-group" id="modal-change-group"  tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog we7-modal-dialog" style="width:800px">
+			<div class="modal-content">
+				<form action="" method="post" enctype="multipart/form-data" class="form-horizontal form we7-form" id="">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+						<h4 class="modal-title">会员组变更设置</h4>
+					</div>
+					<div class="modal-body we7-padding-horizontal">
+						<div class="form-group">
+							<input type="radio" name="grouplevel" value="0" id="group_level-0" ng-model="group_level"/>
+							<label for="group_level-0">不自动变更</label>
+							<span class="help-block">
+								会员组的变更只能通过管理员来变更。
+							</span>
+						</div>
+						<div class="form-group">
+							<input type="radio" name="grouplevel" value="1" id="group_level-1" ng-model="group_level"/>
+							<label for="group_level-1">根据积分多少自动升降</label>
+							<span class="help-block">
+								系统根据当前会员的总积分，按照每个会员组所需总积分的设置进行变更。可自动升降。
+							</span>
+						</div>
+						<div class="form-group">
+							<input type="radio" name="grouplevel" value="2" id="group_level-2" ng-model="group_level"/>
+							<label for="group_level-2">根据积分多少只升不降</label>
+							<span class="help-block">
+								系统根据当前会员的总积分，如果会员的总积分达到更高一级的会员组，则变更会员组，如果积分少于当前所在会员组所需总积分，保持当前会员组不变，不会降级。
+							</span>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button  class="btn btn-primary" type="button" ng-click="change_group_level()">保存</button>
+						<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+						<input type="hidden" name="token" value="c781f0df">
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
 	<div class="modal fade" id="group_detail"  tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 		<div class="modal-dialog we7-modal-dialog" style="width:800px">
 			<div class="modal-content">

@@ -225,17 +225,6 @@
 
 		</div>
 		<div class="form-group">
-
-			<div class="col-sm-9">
-				<span class="text-danger" id="mistake" style="display: none;">
-					填写的Access Key ID 或 Access Key Secret 错误，请重新填写。
-				</span>
-				<span class="text-danger" id="warning" style="display: none;">
-					请填写完整Access Key ID  Access Key Secret。
-				</span>
-			</div>
-		</div>
-		<div class="form-group">
 			<label class="col-sm-2 control-label">Access Key ID</label>
 			<div class="col-sm-9">
 				<input type="text" name="alioss[key]" class="form-control" value="{$remote['alioss']['key']}" placeholder="" />
@@ -257,9 +246,6 @@
 			<label class="col-sm-2 control-label">Bucket选择</label>
 			<div class="col-sm-9">
 				<select name="alioss[bucket]" class="form-control">
-					{loop $buckets $value}
-					<option value="{$value['name']}@@{$value['location']}" {if $value['name'] == $remote['alioss']['bucket'] || $remote['alioss']['bucket'] == $value['name'].'@@'.$value['location']} selected{/if}>{$value['name']}@@{$bucket_datacenter[$value['location']]}</option>
-					{/loop}
 				</select>
 				<span class="help-block">
 					完善Access Key ID和Access Key Secret资料后可以选择存在的Bucket(请保证bucket为可公共读取的)，否则请手动输入。
@@ -526,6 +512,7 @@
 			}
 		});
 	});
+	var alibucket = '{$_W['setting']['remote']['alioss']['bucket']}';
 	var buck =  function() {
 		var key = $(':text[name="alioss[key]"]').val();
 		var secret = $(':text[name="alioss[secret]"]').val();
@@ -533,38 +520,41 @@
 			secret = '{$_W['setting']['remote']['alioss']['secret']}';
 		}
 		if (key == '' || secret == '') {
-			$('#warning').show();
-			$('#mistake').hide();
-			$('[name="submit"]').prop('disabled', true);
+			$('#bucket').hide();
 			return false;
 		}
 		$.post("{php echo url('system/attachment/buckets')}", {'key' : key, 'secret' : secret}, function(data) {
-			var data = $.parseJSON(data);
+			try {
+				var data = $.parseJSON(data);
+			} catch (error) {
+				util.message('Access Key ID 或 Access Key Secret 填写错误，请重新填写。', '', 'error');
+				$('#bucket').hide();
+				$('select[name="alioss[bucket]"]').val('');
+				return false;
+			}
+
 			if (data.message.errno < 0 ) {
-				$('#warning').hide();
-				$('#mistake').show();
-				$('[name="submit"]').prop('disabled', true);
 				return false;
 			} else {
 				$('#bucket').show();
-				$('#warning').hide();
-				$('#mistake').hide();
-				$('[name="submit"]').prop('disabled', false);
 				var bucket = $('select[name="alioss[bucket]"]');
 				bucket.empty();
 				var buckets = eval(data.message.message);
 				for (var i in buckets) {
-					bucket.append('<option value='+buckets[i]['name']+'@@'+buckets[i]['location']+'>'+buckets[i]['loca_name']+'</option>');
+					var selected = alibucket == buckets[i]['name'] || alibucket ==  buckets[i]['name'] + '@@' + buckets[i]['location'] ? 'selected' : '';
+					bucket.append('<option value="' + buckets[i]['name'] + '@@' + buckets[i]['location'] + '"' + selected + '>'+buckets[i]['loca_name'] + '</option>');
 				}
 			}
 		});
-		var mistake_dis = $('#mistake').css('display');
-		var warning_dis = $('#warning').css('display');
-		if (mistake_dis == 'inline' || warning_dis == 'inline') {
-			$(':text[name="alioss[key]"]').blur(buck);
-		}
 	};
-	$(':text[name="alioss[secret]"]').blur(buck);
+	buck();
+	$(':text[name="alioss[secret]"]').blur(function() {buck();});
+	$('form').submit(function() {
+		if ($('[name="type"]:checked').val() == 2 && ($('select[name="alioss[bucket]"]').val() == null || $('select[name="alioss[bucket]"]').val() == '')) {
+			util.message('请完善信息后再保存设置！');
+			return false;
+		}
+	});
 </script>
 {/if}
 {template 'common/footer'}

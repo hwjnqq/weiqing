@@ -10,7 +10,6 @@ uni_user_permission_check('mc_member');
 
 $dos = array('display', 'post','del', 'add', 'group', 'credit_record', 'credit_stat', 'register_setting', 'credit_setting', 'save_credit_setting', 'save_tactics_setting');
 $do = in_array($do, $dos) ? $do : 'display';
-
 if ($do == 'save_tactics_setting') {
 	$setting = $_GPC['setting'];
 	if (empty($setting)) {
@@ -72,15 +71,12 @@ if($do == 'display') {
 
 	$condition = '';
 	$params = array(':uniacid' => $_W['uniacid']);
-	$starttime = empty($_GPC['createtime']['start']) ? strtotime('-90 days') : strtotime($_GPC['createtime']['start']);
-	$endtime = empty($_GPC['createtime']['end']) ? TIMESTAMP + 86399 : strtotime($_GPC['createtime']['end']) + 86399;
-	$condition .= " AND createtime >= {$starttime} AND createtime <= {$endtime}";
 	if (!empty($_GPC['username'])) {
 		if ($search_mod == 1) {
 			$condition .= " AND ((`uid` = :openid) OR ( `realname` = :username ) OR ( `nickname` = :username ) OR ( `mobile` = :username ))";
 			$params[':username'] = trim($_GPC['username']);
 			if (!is_numeric(trim($_GPC['username']))) {
-				$uid = pdo_fetchcolumn('SELECT `uid` FROM'. tablename('mc_mapping_fans')." WHERE openid = :openid", array(':openid' => trim($_GPC['username'])));
+				$uid = pdo_fetchcolumn("SELECT `uid` FROM". tablename('mc_mapping_fans')." WHERE openid = :openid", array(':openid' => trim($_GPC['username'])));
 				$uid = empty($uid) ? $uid : '';
 				$params[':openid'] = $uid;
 			} else {
@@ -90,7 +86,7 @@ if($do == 'display') {
 			$condition .= " AND ((`uid` = :openid) OR ( `realname` LIKE :username ) OR ( `nickname` LIKE :username ) OR ( `mobile` LIKE :username ))";
 			$params[':username'] =  '%'.trim($_GPC['username']).'%';
 			if (!is_numeric(trim($_GPC['username']))) {
-				$uid = pdo_fetchcolumn('SELECT `uid` FROM'. tablename('mc_mapping_fans')." WHERE openid = :openid", array(':openid' => trim($_GPC['username'])));
+				$uid = pdo_fetchcolumn("SELECT `uid` FROM". tablename('mc_mapping_fans')." WHERE openid = :openid", array(':openid' => trim($_GPC['username'])));
 				$params[':openid'] =  empty($uid) ? "" : $uid;
 			} else {
 				$params[':openid'] =  "%". $_GPC['username']. "%";
@@ -123,6 +119,7 @@ if($do == 'display') {
 				$size = ceil(count($list) / 500);
 				for ($i = 0; $i < $size; $i++) {
 					$buffer = array_slice($list, $i * 500, 500);
+					$user = array();
 					foreach ($buffer as $row) {
 						if (strexists($row['email'], 'we7.cc')) {
 							$row['email'] = '';
@@ -135,7 +132,7 @@ if($do == 'display') {
 						$user[] = implode("\t ,", $data) . "\t ,";
 						unset($data);
 					}
-					$html .= implode("\n", $user);
+					$html .= implode("\n", $user) . "\n";
 				}
 			}
 		}
@@ -279,7 +276,6 @@ if($do == 'post') {
 				pdo_insert('mc_members', $_GPC);
 				$uid = pdo_insertid();
 				pdo_update('mc_mapping_fans', array('uid' => $uid), array('fanid' => $fanid, 'uniacid' => $_W['uniacid']));
-				cache_build_fansinfo($fan_info['openid']);
 				itoast('更新资料成功！', url('mc/member'), 'success');
 			} else {
 				$email_effective = intval($_GPC['email_effective']);

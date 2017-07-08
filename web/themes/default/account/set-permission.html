@@ -28,17 +28,17 @@
 					{php $i=1;}
 					{loop $section['menu'] $menu_id $menu}
 						{if $i%4 == 1 || $i == 1}<tr>{/if}
-						<td class="text-left " style="overflow:inherit;">
+						<td class="text-left vertical-middle" style="overflow:inherit;">
 							<div class="dropdown system-select-dropdown">
 								<span>
-									<input id="check-child-{$menu_id}" type="checkbox" we7-check-all="1" value="{$menu['permission_name']}" {if in_array($menu['permission_name'], $user_menu_permission_account['permission'])}checked{/if} name="system[]" autocomplete="off" />
-									<label for="check-child-{$menu_id}" class="text-over we7-margin-horizontal-none" data-toggle="tooltip">{$menu['title']}</label>
+									<input id="check-child-{$menu_id}" type="checkbox" we7-check-all="1" value="{$menu['permission_name']}" {if in_array($menu['permission_name'], $user_menu_permission_account)}checked{/if} name="system[]" autocomplete="off" />
+									<label for="check-child-{$menu_id}" class="we7-margin-horizontal-none" data-toggle="tooltip">{$menu['title']}</label>
 								</span>
 								{if $menu['sub_permission']}
 								<ul class="dropdown-menu">
 									{loop $menu['sub_permission'] $sub_permission}
 									<li class="text-left">
-										<input id="check-child-{$sub_permission['permission_name']}"  we7-check-all="1" type="checkbox" value="{$sub_permission['permission_name']}" {if in_array($sub_permission['permission_name'], $user_menu_permission_account['permission'])}checked{/if} name="system[]">
+										<input id="check-child-{$sub_permission['permission_name']}"  we7-check-all="1" type="checkbox" value="{$sub_permission['permission_name']}" {if in_array($sub_permission['permission_name'], $user_menu_permission_account)}checked{/if} name="system[]">
 										<label class="we7-margin-horizontal-none">
 											{$sub_permission['title']}
 										</label>
@@ -82,17 +82,17 @@
 					{php $i=1;}
 					{loop $section['menu'] $menu_id $menu}
 						{if $i%4 == 1 || $i == 1}<tr>{/if}
-						<td class="text-left " style="overflow:inherit;">
+						<td class="text-left vertical-middle" style="overflow:inherit;">
 							<div class="dropdown system-select-dropdown">
 								<span>
-									<input id="check-child-{$menu_id}" type="checkbox" we7-check-all="1" value="{$menu['permission_name']}" {if in_array($menu['permission_name'], $user_menu_permission_wxapp['permission'])}checked{/if} name="wxapp[]" autocomplete="off" />
-									<label for="check-child-{$menu_id}" class="text-over we7-margin-horizontal-none" data-toggle="tooltip">{$menu['title']}</label>
+									<input id="check-child-{$menu_id}" type="checkbox" we7-check-all="1" value="{$menu['permission_name']}" {if in_array($menu['permission_name'], $user_menu_permission_wxapp)}checked{/if} name="wxapp[]" autocomplete="off" />
+									<label for="check-child-{$menu_id}" class="we7-margin-horizontal-none" data-toggle="tooltip">{$menu['title']}</label>
 								</span>
 								{if $menu['sub_permission']}
 								<ul class="dropdown-menu">
 									{loop $menu['sub_permission'] $sub_permission}
 									<li class="text-left">
-										<input id="check-child-{$sub_permission['permission_name']}"  we7-check-all="1" type="checkbox" value="{$sub_permission['permission_name']}" {if in_array($menu['permission_name'], $user_menu_permission_wxapp['permission'])}checked{/if} name="wxapp[]">
+										<input id="check-child-{$sub_permission['permission_name']}"  we7-check-all="1" type="checkbox" value="{$sub_permission['permission_name']}" {if in_array($menu['permission_name'], $user_menu_permission_wxapp)}checked{/if} name="wxapp[]">
 										<label class="we7-margin-horizontal-none">
 											{$sub_permission['title']}
 										</label>
@@ -123,13 +123,13 @@
 
 	{if !empty($module) && in_array($account['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))}
 	<table class="table we7-table table-hover vertical-middle we7-form">
-		<div class="we7-page-title">模块</div>
+		<div class="we7-page-title">应用</div>
 		<thead>
 			<tr>
 				<th colspan="4" class="text-left">
 					<div class="">
 						<!-- <input type="checkbox"  we7-check-all="1" name="module[]" onChange="selectall(this, 'module_select')"> -->
-						<label class=" we7-margin-horizontal-none">模块权限</label>
+						<label class=" we7-margin-horizontal-none">应用权限</label>
 					</div>
 				</th>
 			</tr>
@@ -139,11 +139,11 @@
 			{loop $module $k $m}
 				{if empty($m['issystem'])}
 				{if $i%4 == 1 || $i == 1}<tr>{/if}
-					<td  class="text-left text-over" style="overflow:inherit;width:25%">
+					<td  class="text-left vertical-middle" style="overflow:inherit;width:25%">
 						<div class="dropdown system-select-dropdown">
 							<span class="" data-id="{$k}">
 								<input id="check-module-{$k}" type="checkbox" value="{$k}" name="module[]" we7-check-all="1" {if in_array($k, $module_permission_keys)}checked{/if}>
-								<label for="check-module-{$k}" class="text-over" title="{$m['title']}" style="width: 128px;">{php echo mb_substr($m['title'], 0, 12, 'utf-8')}</label>
+								<label for="check-module-{$k}" title="{$m['title']}">{php echo mb_substr($m['title'], 0, 12, 'utf-8')}</label>
 							</span>
 							<ul class="dropdown-menu" role="menu">
 							</ul>
@@ -182,12 +182,26 @@ $(function(){
 		if(!length) {
 			$.post("{php echo url('account/post-user/module')}", {'m' : m, 'uid' : uid, 'uniacid' : uniacid, 'acid' : acid}, function(data) {
 				console.log(data);
-				var html = '<li><label class="checkbox-inline info">已选0项</label></li>';
 				if(!data.message.errno) {
+					var li_nums = data.message.message.length;
+					var li_checked = 0;
+					var li_contents = '';
+					var html = '';
 					$.each(data.message.message, function(k, v){
-						var check = v.checked ? 'checked' : '';
+						var check = '';
+						if (v.checked) {
+							check = 'checked';
+							li_checked ++;
+						}
 						html += '<li><a href="javascript:;"><input id="check-moduledetail-'+m+'-'+k+'" we7-check-all="1"  type="checkbox" name="module_'+m+'[]" value="'+ v.permission +'" '+check+'/><label for="check-moduledetail-'+m+'-'+k+'" class="we7-padding-left we7-margin-horizontal-none checkbox-inline">'+ v.title +'</label></a></li>';
 					});
+					if (li_nums == li_checked) {
+						li_contents = '已全选';
+					} else {
+						li_contents = '已选' + li_checked + '项';
+					}
+					var _html = '<li><label class="checkbox-inline info">' + li_contents + '</label></li>';
+					html = _html + html;
 				}
 				_this.next().html(html);
 			}, 'json');

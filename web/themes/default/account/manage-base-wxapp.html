@@ -1,18 +1,12 @@
 {template 'common/header'}
 {template 'account/account-header'}
 <div id="js-account-manage-base" ng-controller="AccountManageBase" ng-cloak>
-	{if $_W['uniaccount']['isconnect'] == 0}
-	<div class="alert alert-info">
-		<p><i class="wi wi-info-sign"></i>接入状态：未接入。</p>
-		<p><i class="wi wi-info-sign"></i>解决方案：进入微信公众平台，依次选择: 开发者中心 -> 修改配置，然后将对应公众号在平台的url和token复制到微信公众平台对应的选项，公众平台会自动进行检测</p>
-	</div>
-	{/if}
 	<table class="table we7-table table-hover table-form">
 		<col width="140px" />
 		<col />
 		<col width="100px" />
 		<tr>
-			<th class="text-left" colspan="3">小程序设置</th>
+			<th class="text-left" colspan="3">小程序应用设置</th>
 		</tr>
 		<tr>
 			<td class="table-label">头像</td>
@@ -162,7 +156,7 @@
 		<col width="140px " />
 		<col />
 		<col width="100px" />
-		<tr><th class="text-left" colspan="3">自定义菜单通讯设置</th></tr>
+		<tr><th class="text-left" colspan="3">开发者ID</th></tr>
 		<tr>
 			<td class="table-label">AppId</td>
 			<td ng-bind="account.key"></td>
@@ -218,7 +212,7 @@
 		<col width="160px " />
 		<col />
 		<col />
-		<tr><th class="text-left" colspan="3">服务器配置</th></tr>
+		<tr><th class="text-left" colspan="3">服务器配置信息</th></tr>
 		<tr>
 			<td class="table-label">request合法域名</td>
 			<td>

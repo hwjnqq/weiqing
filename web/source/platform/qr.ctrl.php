@@ -94,7 +94,7 @@ if ($do == 'post') {
 		$uniacccount = WeAccount::create($acid);
 		$id = intval($_GPC['id']);
 		$keyword_id = intval(trim(htmlspecialchars_decode($_GPC['reply']['reply_keyword']), "\""));;
-		$keyword = pdo_get('rule_keyword', array('rid' => $keyword_id, 'type' => 1), array('content'));
+		$keyword = pdo_get('rule_keyword', array('rid' => $keyword_id), array('content'));
 		if (!empty($id)) {
 			$update = array(
 				'keyword' => $keyword['content'],

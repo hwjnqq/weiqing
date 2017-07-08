@@ -125,7 +125,7 @@ function tpl_form_field_link($name, $value = '', $options = array()) {
 			function mapLinkDialog(elm) {
 				var ipt = $(elm).parent().parent().parent().prev();
 				util.map(elm, function(val){
-					var href = \'http://api.map.baidu.com/marker?location=\'+val.lat+\',\'+val.lng+\'&output=html&src=we7\';
+					var href = \'https://api.map.baidu.com/marker?location=\'+val.lat+\',\'+val.lng+\'&output=html&src=we7\';
 					var multiid = "'. $_GPC['multiid'] .'";
 					if (multiid) {
 						href = /(&)?t=/.test(href) ? href : href + "&t=" + multiid;

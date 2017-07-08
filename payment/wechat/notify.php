@@ -77,7 +77,15 @@ if(is_array($setting['payment'])) {
 				 	$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $log['module']);
 				}
 
-				$site = WeUtility::createModuleSite($log['module']);
+				$module = module_fetch($log['module']);
+				if (empty($module)) {
+					exit('success');
+				}
+				if ($module['app_support'] == MODULE_SUPPORT_ACCOUNT) {
+					$site = WeUtility::createModuleSite($log['module']);
+				} elseif ($module['wxapp_support'] == MODULE_SUPPORT_WXAPP) {
+					$site = WeUtility::createModuleWxapp($log['module']);
+				}
 				if(!is_error($site)) {
 					$method = 'payResult';
 					if (method_exists($site, $method)) {
