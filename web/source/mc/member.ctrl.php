@@ -7,7 +7,8 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('mc');
 
 uni_user_permission_check('mc_member');
-$dos = array('display', 'profile','del', 'add', 'address', 'group', 'credit_record', 'credit_stat', 'register_setting', 'credit_setting', 'save_credit_setting', 'save_tactics_setting');
+
+$dos = array('display', 'post','del', 'add', 'group', 'credit_record', 'credit_stat', 'register_setting', 'credit_setting', 'save_credit_setting', 'save_tactics_setting');
 $do = in_array($do, $dos) ? $do : 'display';
 if ($do == 'save_tactics_setting') {
 	$setting = $_GPC['setting'];
@@ -26,6 +27,7 @@ if ($do == 'save_credit_setting') {
 	uni_setting_save('creditnames', $credit_setting);
 	iajax(0, '');
 }
+
 if ($do == 'register_setting') {
 	$_W['page']['title'] = '注册设置';
 	if (checksubmit('submit')) {
@@ -158,9 +160,134 @@ if($do == 'display') {
 	template('mc/member');
 }
 
-if($do == 'profile') {
+if($do == 'post') {
 	$_W['page']['title'] = '编辑会员资料 - 会员 - 会员中心';
 	$uid = intval($_GPC['uid']);
+	if ($_W['ispost'] && $_W['isajax']) {
+		if ($_GPC['op'] == 'addaddress' || $_GPC['op'] == 'editaddress') {
+			$post = array(
+				'uniacid' => $_W['uniacid'],
+				'province' => trim($_GPC['province']),
+				'city' => trim($_GPC['city']),
+				'district' => trim($_GPC['district']),
+				'address' => trim($_GPC['detail']),
+				'uid' => intval($_GPC['uid']),
+				'username' => trim($_GPC['name']),
+				'mobile' => trim($_GPC['phone']),
+				'zipcode' => trim($_GPC['code'])
+			);
+			if ($_GPC['op'] == 'addaddress') {
+				$sql = "SELECT COUNT(*) FROM ". tablename('mc_member_address'). " WHERE uniacid = :uniacid AND uid = :uid";
+				$exist_address = pdo_fetchcolumn($sql, array(':uniacid' => $post['uniacid'], ':uid' => $uid));
+				if (!$exist_address) {
+					$post['isdefault'] = 1;
+				}
+				pdo_insert('mc_member_address', $post);
+				$post['id'] = pdo_insertid();
+				iajax(1, $post, '');
+			} else {
+				pdo_update('mc_member_address', $post, array('id' => intval($_GPC['id']), 'uniacid' => $_W['uniacid']));
+				$post['id'] = intval($_GPC['id']);
+				iajax(1, $post, '');
+			}
+		}
+		if ($_GPC['op'] == 'del') {
+			$id = intval($_GPC['id']);
+			pdo_delete('mc_member_address', array('id' => $id, 'uniacid' => $_W['uniacid']));
+			iajax(1, '');
+		}
+		if ($_GPC['op'] == 'isdefault') {
+			$id = intval($_GPC['id']);
+			$uid = intval($_GPC['uid']);
+			pdo_update('mc_member_address', array('isdefault' => 0), array('uid' => $uid, 'uniacid' => $_W['uniacid']));
+			pdo_update('mc_member_address', array('isdefault' => 1), array('id' => $id, 'uniacid' => $_W['uniacid']));
+			iajax(1, '');
+		}
+		$password = $_GPC['password'];
+		$sql = 'SELECT `uid`, `salt` FROM ' . tablename('mc_members') . " WHERE `uniacid`=:uniacid AND `uid` = :uid";
+		$user = pdo_fetch($sql, array(':uniacid' => $_W['uniacid'], ':uid' => $uid));
+		if(empty($user) || $user['uid'] != $uid) {
+			exit('error');
+		}
+		$password = md5($password . $user['salt'] . $_W['config']['setting']['authkey']);
+		if (mc_update($uid, array('password' => $password))) {
+			exit('success');
+		}
+		exit('othererror');
+	}
+	if (checksubmit('submit')) {
+		$uid = intval($_GPC['uid']);
+		if (!empty($_GPC)) {
+			if (!empty($_GPC['birth'])) {
+				$_GPC['birthyear'] = $_GPC['birth']['year'];
+				$_GPC['birthmonth'] = $_GPC['birth']['month'];
+				$_GPC['birthday'] = $_GPC['birth']['day'];
+			}
+			if (!empty($_GPC['reside'])) {
+				$_GPC['resideprovince'] = $_GPC['reside']['province'];
+				$_GPC['residecity'] = $_GPC['reside']['city'];
+				$_GPC['residedist'] = $_GPC['reside']['district'];
+			}
+			unset($_GPC['uid']);
+			if(!empty($_GPC['fanid'])) {
+				//将粉丝注册为会员
+				if(empty($_GPC['email']) && empty($_GPC['mobile'])) {
+					$_GPC['email'] = md5($_GPC['openid']) . '@we7.cc';
+				}
+				$fanid = intval($_GPC['fanid']);
+				$fan_info = pdo_get('mc_mapping_fans', array('fanid' => $fanid), 'openid');
+				//没有使用mc_update函数
+				$struct = array_keys(mc_fields());
+				$struct[] = 'birthyear';
+				$struct[] = 'birthmonth';
+				$struct[] = 'birthday';
+				$struct[] = 'resideprovince';
+				$struct[] = 'residecity';
+				$struct[] = 'residedist';
+				$struct[] = 'groupid';
+				unset($_GPC['reside'], $_GPC['birth']);
+				foreach ($_GPC as $field => $value) {
+					if(!in_array($field, $struct)) {
+						unset($_GPC[$field]);
+					}
+				}
+
+				if(!empty($_GPC['avatar'])) {
+					if(strexists($_GPC['avatar'], 'attachment/images/global/avatars/avatar_')) {
+						$_GPC['avatar'] = str_replace($_W['attachurl'], '', $_GPC['avatar']);
+					}
+				}
+				$condition = '';
+				//判断email,mobile是否唯一
+				if(!empty($_GPC['email'])) {
+					$emailexists = pdo_fetchcolumn("SELECT email FROM ".tablename('mc_members')." WHERE uniacid = :uniacid AND email = :email " . $condition, array(':uniacid' => $_W['uniacid'], ':email' => trim($_GPC['email'])));
+					if($emailexists) {
+						unset($_GPC['email']);
+					}
+				}
+				if(!empty($_GPC['mobile'])) {
+					$mobilexists = pdo_fetchcolumn("SELECT mobile FROM ".tablename('mc_members')." WHERE uniacid = :uniacid AND mobile = :mobile " . $condition, array(':uniacid' => $_W['uniacid'], ':mobile' => trim($_GPC['mobile'])));
+					if($mobilexists) {
+						unset($_GPC['mobile']);
+					}
+				}
+				$_GPC['uniacid'] = $_W['uniacid'];
+				$_GPC['createtime'] = TIMESTAMP;
+				pdo_insert('mc_members', $_GPC);
+				$uid = pdo_insertid();
+				pdo_update('mc_mapping_fans', array('uid' => $uid), array('fanid' => $fanid, 'uniacid' => $_W['uniacid']));
+				itoast('更新资料成功！', url('mc/member'), 'success');
+			} else {
+				$email_effective = intval($_GPC['email_effective']);
+				if(($email_effective == 1 && empty($_GPC['email']))) {
+					unset($_GPC['email']);
+				}
+				unset($_GPC['addresss']);
+				$uid = mc_update($uid, $_GPC);
+			}
+		}
+		itoast('更新资料成功！', url('mc/member'), 'success');
+	}
 	$groups = mc_groups($_W['uniacid']);
 	$profile = pdo_get('mc_members', array('uniacid' => $_W['uniacid'], 'uid' => $uid));
 	if(!empty($profile)) {
@@ -215,6 +342,7 @@ if($do == 'profile') {
 	$addresss = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => $_W['uniacid']));
 	template('mc/member-post');
 }
+
 if($do == 'del') {
 	if(!empty($_GPC['uid'])) {
 		if (is_array($_GPC['uid'])) {
@@ -330,11 +458,9 @@ if($do == 'credit_record') {
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('mc_credits_record') . ' WHERE uid = :uid AND uniacid = :uniacid AND credittype = :credittype ', array(':uniacid' => $_W['uniacid'], ':uid' => $uid, ':credittype' => $type));
 	$data = pdo_fetchall("SELECT r.*, u.username FROM " . tablename('mc_credits_record') . ' AS r LEFT JOIN ' .tablename('users') . ' AS u ON r.operator = u.uid ' . ' WHERE r.uid = :uid AND r.uniacid = :uniacid AND r.credittype = :credittype ORDER BY id DESC LIMIT ' . ($pindex - 1) * $psize .',' . $psize, array(':uniacid' => $_W['uniacid'], ':uid' => $uid, ':credittype' => $type));
 	$pager = pagination($total, $pindex, $psize);
-	
 	$modules = pdo_getall('modules', array('issystem' => 0), array('title', 'name'), 'name');
 	$modules['card'] = array('title' => '会员卡', 'name' => 'card');
-	$consume = pdo_get('mc_members', array('uniacid' => $_W['uniacid'], 'uid' => $uid), array('credit1', 'credit2', 'credit3'));
-	template('mc/member-consume');
+	template('mc/member');
 }
 
 if($do == 'credit_stat') {
@@ -366,59 +492,4 @@ if($do == 'credit_stat') {
 		}
 	}
 	template('mc/member');
-}
-
-if ($do == 'address') {
-	if ($_W['ispost'] && $_W['isajax']) {
-		if ($_GPC['op'] == 'addaddress' || $_GPC['op'] == 'editaddress') {
-			$post = array(
-					'uniacid' => $_W['uniacid'],
-					'province' => trim($_GPC['province']),
-					'city' => trim($_GPC['city']),
-					'district' => trim($_GPC['district']),
-					'address' => trim($_GPC['detail']),
-					'uid' => intval($_GPC['uid']),
-					'username' => trim($_GPC['name']),
-					'mobile' => trim($_GPC['phone']),
-					'zipcode' => trim($_GPC['code'])
-			);
-			if ($_GPC['op'] == 'addaddress') {
-				$sql = "SELECT COUNT(*) FROM ". tablename('mc_member_address'). " WHERE uniacid = :uniacid AND uid = :uid";
-				$exist_address = pdo_fetchcolumn($sql, array(':uniacid' => $post['uniacid'], ':uid' => $post['uid']));
-				if (!$exist_address) {
-					$post['isdefault'] = 1;
-				}
-				pdo_insert('mc_member_address', $post);
-				$post['id'] = pdo_insertid();
-				iajax(1, $post, '');
-			} else {
-				pdo_update('mc_member_address', $post, array('id' => intval($_GPC['id']), 'uniacid' => $_W['uniacid']));
-				$post['id'] = intval($_GPC['id']);
-				iajax(1, $post, '');
-			}
-		}
-		if ($_GPC['op'] == 'del') {
-			$id = intval($_GPC['id']);
-			pdo_delete('mc_member_address', array('id' => $id, 'uniacid' => $_W['uniacid']));
-			iajax(1, '');
-		}
-		if ($_GPC['op'] == 'isdefault') {
-			$id = intval($_GPC['id']);
-			$uid = intval($_GPC['uid']);
-			pdo_update('mc_member_address', array('isdefault' => 0), array('uid' => $uid, 'uniacid' => $_W['uniacid']));
-			pdo_update('mc_member_address', array('isdefault' => 1), array('id' => $id, 'uniacid' => $_W['uniacid']));
-			iajax(1, '');
-		}
-		$password = $_GPC['password'];
-		$sql = 'SELECT `uid`, `salt` FROM ' . tablename('mc_members') . " WHERE `uniacid`=:uniacid AND `uid` = :uid";
-		$user = pdo_fetch($sql, array(':uniacid' => $_W['uniacid'], ':uid' => $uid));
-		if(empty($user) || $user['uid'] != $uid) {
-			exit('error');
-		}
-		$password = md5($password . $user['salt'] . $_W['config']['setting']['authkey']);
-		if (mc_update($uid, array('password' => $password))) {
-			exit('success');
-		}
-		exit('othererror');
-	}
 }

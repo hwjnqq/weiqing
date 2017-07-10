@@ -232,6 +232,7 @@ function _ext_module_manifest_entries($elm) {
 		$entries = $elm->getElementsByTagName('entry');
 		for ($i = 0; $i < $entries->length; $i++) {
 			$entry = $entries->item($i);
+			$direct = $entry->getAttribute('direct');
 			$row = array(
 				'title' => $entry->getAttribute('title'),
 				'do' => $entry->getAttribute('do'),
