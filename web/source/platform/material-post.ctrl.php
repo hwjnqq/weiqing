@@ -82,12 +82,14 @@ if ($do == 'addnews') {
 	$is_sendto_wechat = trim($_GPC['target']) == 'wechat' ? true : false;
 	$attach_id = intval($_GPC['attach_id']);
 	if (empty($_GPC['news'])) {
-		iajax(- 1, '提交内容参数有误');
+		iajax(-1, '提交内容参数有误');
 	}
+	print_r($_GPC['news']);exit;
 	$attach_id = material_news_set($_GPC['news'], $attach_id);
 	if (is_error($attach_id)) {
 		iajax(-1, $attach_id['message']);
 	}
+	
 	if ($is_sendto_wechat) {
 		$result = material_local_news_upload($attach_id);
 	}
