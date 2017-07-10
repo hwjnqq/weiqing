@@ -96,7 +96,7 @@ if ($op == 'store_detail') {
 		$store_detail['detail_thumbs'] = format_url($store_detail['detail_thumbs']);
 	}
 	if ($store_detail['store_type'] == 1) {
-		$store_extend_info = pdo_get($store_detail['extend_table'], array('weid' => $_W['uniacid'], 'store_base_id' => $store_id));
+		$store_extend_info = pdo_get('storex_hotel', array('weid' => $_W['uniacid'], 'store_base_id' => $store_id));
 		if (!empty($store_extend_info)) {
 			unset($store_extend_info['id']);
 			if (empty($store_extend_info['device'])) {

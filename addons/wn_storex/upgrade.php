@@ -515,6 +515,16 @@ if (pdo_get('modules_bindings', array('module' => 'wn_storex', 'do' => 'business
 if (pdo_get('modules_bindings', array('module' => 'wn_storex', 'do' => 'brand', 'title' => '品牌管理'))) {
 	pdo_delete('modules_bindings', array('module' => 'wn_storex', 'do' => 'brand'));
 }
+$delete_fields = array('ordermax', 'numsmax', 'daymax', 'sales', 'level', 'brandid', 'businessid');
+foreach ($delete_fields as $field) {
+	if (pdo_fieldexists('storex_hotel', $field)) {
+		pdo_query("ALTER TABLE " . tablename('storex_hotel') . " DROP " . $field);
+	}
+}
+if (pdo_fieldexists('storex_bases', 'extend_table')) {
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " DROP `extend_table`;");
+}
+
 //酒店的分类只有一级分类，将已有的二级分类的数据兼容到一级下
 $stores = pdo_getall('storex_bases', array('store_type' => 1), array('id'), 'id');
 $category = pdo_getall('storex_categorys', array('parentid !=' => 0, 'store_base_id' => array_keys($stores)), array('id', 'store_base_id', 'parentid', 'category_type'), 'id');

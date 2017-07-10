@@ -4,15 +4,8 @@ $sql = "
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`store_base_id` int(11) NOT NULL COMMENT '店铺基表对应的id',
 	`weid` int(11) DEFAULT '0',
-	`ordermax` int(11) DEFAULT '0',
-	`numsmax` int(11) DEFAULT '0',
-	`daymax` int(11) DEFAULT '0',
 	`roomcount` int(11) DEFAULT '0',
-	`sales` text,
-	`level` int(11) DEFAULT '0',
 	`device` text,
-	`brandid` int(11) DEFAULT '0',
-	`businessid` int(11) DEFAULT '0',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
@@ -279,7 +272,6 @@ $sql = "
 	`detail_thumbs` text COMMENT '详情页图片',
 	`displayorder` int(11) DEFAULT '0',
 	`store_type` int(8) NOT NULL DEFAULT '0' COMMENT '店铺类型',
-	`extend_table` varchar(50) NOT NULL COMMENT '该店铺对应的扩张表',
 	`timestart` varchar(50) NOT NULL DEFAULT '0' COMMENT '运营开始时间',
 	`timeend` varchar(50) NOT NULL DEFAULT '0' COMMENT '运营结束时间',
 	PRIMARY KEY (`id`),
@@ -784,21 +776,14 @@ if (!empty($module)){
 	}
 	
 	//storex_bases 字段
-	$storex_base = array('id', 'weid', 'title', 'lng', 'lat', 'address', 'location_p', 'location_c', 'location_a', 'status', 'phone', 'mail', 'thumb', 'thumborder', 'description', 'content', 'store_info', 'traffic', 'thumbs', 'detail_thumbs', 'displayorder', 'store_type', 'extend_table', 'timestart', 'timeend');
+	$storex_base = array('id', 'weid', 'title', 'lng', 'lat', 'address', 'location_p', 'location_c', 'location_a', 'status', 'phone', 'mail', 'thumb', 'thumborder', 'description', 'content', 'store_info', 'traffic', 'thumbs', 'detail_thumbs', 'displayorder', 'store_type', 'timestart', 'timeend');
 	
 	//storex_hotel 现有字段
 	$storex_hotel = array(
 		'store_base_id',
 		'weid',
-		'ordermax',
-		'numsmax',
-		'daymax',
 		'roomcount',
-		'sales',
-		'level',
 		'device',
-		'brandid',
-		'businessid',
 	);
 	//微酒店的hotel2表，将hotel2的数据分到storex_bases表和扩展表storex_hotel
 	$hotel2_beifen = pdo_getall('hotel2');
@@ -808,9 +793,6 @@ if (!empty($module)){
 			foreach ($storex_base as $field) {
 				if (isset($val[$field])) {
 					$store_insert[$field] = $val[$field];
-				}
-				if ($field == 'extend_table') {
-					$store_insert[$field] = 'storex_hotel';
 				}
 				if ($field == 'store_type') {
 					$store_insert[$field] = 1;

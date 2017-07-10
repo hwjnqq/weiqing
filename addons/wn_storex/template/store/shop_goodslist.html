@@ -33,7 +33,9 @@
 						<input type="checkbox" class="check_all" />
 					</th>
 					<th style="width:100px;">一级分类</th>
+					{if $store_type != STORE_TYPE_HOTEL}
 					<th style="width:100px;">二级分类</th>
+					{/if}
 					<th style="width:150px;">商品名称</th>
 					{if !empty($store_type)}
 					<th style="width:100px;">商品类型</th>
@@ -55,10 +57,12 @@
 					<input type="checkbox" name="check" value="{$item['id']}">
 				</td>
 				<td>{$item['pcate']}</td>
-				{if $item['ccate'] <> '0'}
-				<td>{$item['ccate']}</td>
-				{else}
-				<td></td>
+				{if $store_type != STORE_TYPE_HOTEL}
+					{if $item['ccate'] <> '0'}
+					<td>{$item['ccate']}</td>
+					{else}
+					<td></td>
+					{/if}
 				{/if}
 				<td>{$item['title']}</td>
 				{if $store_type == STORE_TYPE_HOTEL}
@@ -80,6 +84,10 @@
 				</td>
 				<td>
 					<div class="wn-table__link">
+						<!-- {if $store_type == STORE_TYPE_HOTEL && !empty($item['is_house']) && $item['is_house'] == 1}
+							<a href="{php echo $this->createWebUrl('shop_room_status', array('storeid' => $storeid, 'id' => $item['id']))}" class="wn-table__link__item" title="维护房量/房态">维护房量/房态</a>
+							<a href="{php echo $this->createWebUrl('shop_room_price', array('storeid' => $storeid, 'id' => $item['id']))}" class="wn-table__link__item" title="维护房价">维护房价</a>
+						{/if} -->
 						<a href="{php echo $this->createWebUrl('shop_comment',array('storeid' => $storeid,'id' => $item['id'],'title' => $item['title']))}" class="wn-table__link__item" title="查看评价">查看评价</a>
 						<a href="{php echo $this->createWebUrl('shop_order',array('storeid' => $storeid,'roomid' => $item['id']))}" class="wn-table__link__item" title="订单查看">订单查看</a>
 						<a href="{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'copyroom','storeid' => $storeid,'id' => $item['id']))}" class="wn-table__link__item">复制</a>
@@ -90,7 +98,7 @@
 			</tr>
 			{/loop}
 			<tr>
-				<td {if $store_type == STORE_TYPE_HOTEL} colspan="11" {else} <td colspan="10">{/if}>
+				<td colspan="10">
 					<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
 					<input type="button" class="btn btn-primary edit_all" name="showall" value="批量显示" />
 					<input type="button" class="btn btn-primary edit_all" name="hideall" value="批量隐藏" />

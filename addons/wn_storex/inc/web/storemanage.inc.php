@@ -109,8 +109,7 @@ if ($op == 'edit') {
 		);
 		$common_insert['thumbs'] = empty($_GPC['thumbs']) ? '' : iserializer($_GPC['thumbs']);
 		$common_insert['detail_thumbs'] = empty($_GPC['detail_thumbs']) ? '' : iserializer($_GPC['detail_thumbs']);
-		if ($_GPC['store_type']) {
-			$common_insert['extend_table'] = 'storex_hotel';
+		if (!empty($_GPC['store_type'])) {
 			$insert = array(
 				'weid' => $_W['uniacid'],
 				'sales' => $_GPC['sales'],
@@ -118,7 +117,7 @@ if ($op == 'edit') {
 				'brandid' => $_GPC['brandid'],
 				'businessid' => $_GPC['businessid'],
 			);
-			if ($_GPC['device']) {
+			if (!empty($_GPC['device']) && is_array($_GPC['device'])) {
 				$devices = array();
 				foreach ($_GPC['device'] as $key => $device) {
 					if ($device != '') {
@@ -130,7 +129,7 @@ if ($op == 'edit') {
 		}
 		if (empty($id)) {
 			pdo_insert('storex_bases', $common_insert);
-			if ($_GPC['store_type']) {
+			if (!empty($_GPC['store_type'])) {
 				$insert['store_base_id'] = pdo_insertid();
 				pdo_insert('storex_hotel', $insert);
 			}
@@ -141,8 +140,8 @@ if ($op == 'edit') {
 				pdo_update('storex_room', array('status' => 1), array('hotelid'=> $id, 'weid' => $_W['uniacid'], 'is_house' => 2));
 			}
 			pdo_update('storex_bases', $common_insert, array('id' => $id));
-			if ($_GPC['store_type']) {
-				pdo_update($common_insert['extend_table'], $insert, array('store_base_id' => $id));
+			if (!empty($_GPC['store_type'])) {
+				pdo_update('storex_hotel', $insert, array('store_base_id' => $id));
 			}
 		}
 		message('店铺信息保存成功!', $this->createWebUrl('storemanage'), 'success');

@@ -379,7 +379,7 @@
 	window.showFans= function(page, nickname) {
 		nickname = nickname == undefined ? '' : nickname;
 		var footer = '<button type="button" class="btn btn-primary" id="save" data-dismiss="modal">添加</button>';
-		var modalobj = util.dialog('粉丝列表', ['./index.php?c=utility&a=fans&page='+ page+'&nickname='+nickname], footer, {containerName:'link-container'})
+		var modalobj = util.dialog('粉丝列表', ['./index.php?c=site&a=entry&do=couponmarket&op=fans&m=wn_storex&page='+ page+'&nickname='+nickname], footer, {containerName:'link-container'})
 		modalobj.find('.modal-body').css({'overflow-y':'auto' });
 		modalobj.modal('show');
 	};

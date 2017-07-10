@@ -40,7 +40,6 @@ if ($op == 'post') {
 		);
 		$common_insert['thumbs'] = empty($_GPC['thumbs']) ? '' : iserializer($_GPC['thumbs']);
 		if (!empty($store_type)) {
-			$common_insert['extend_table'] = 'storex_hotel';
 			$insert = array(
 				'weid' => $_W['uniacid'],
 			);
