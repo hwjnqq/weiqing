@@ -22,7 +22,7 @@ $sql = "
 	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 	  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
 	  `storeid` int(10) unsigned NOT NULL COMMENT '店铺ID',
-	  `printerids` varchar(800) NOT NULL COMMENT '打印机ID',
+	  `printerids` int(10) unsigned NOT NULL COMMENT '打印机ID',
 	  PRIMARY KEY (`id`),
 	  KEY `uniacid` (`uniacid`),
 	  KEY `storeid` (`storeid`)

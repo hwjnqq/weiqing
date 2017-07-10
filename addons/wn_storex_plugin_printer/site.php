@@ -62,12 +62,17 @@ class Wn_storex_plugin_printerModuleSite extends WeModuleSite {
 			if (!empty($store_list) && is_array($store_list)) {
 				foreach ($store_list as $key => $value) {
 					$storeids[] = $value['id'];
+					foreach ($printer_list as $printer) {
+						$printer_sets[$value['id']][$printer['id']] = 2;
+					}
 				}
 			}
-			$printer_set = pdo_getall('storex_plugin_printer_set', array('uniacid' => $_W['uniacid'], 'storeid' => $storeids), array(), 'storeid');
+			$printer_set = pdo_getall('storex_plugin_printer_set', array('uniacid' => $_W['uniacid'], 'storeid' => $storeids));
 			if (!empty($printer_set) && is_array($printer_set)) {
-				foreach ($printer_set as $storeid => &$value) {
-					$printer_sets[$storeid] = iunserializer($value['printerids']);
+				foreach ($printer_set as $value) {
+					if (in_array($value['printerids'], array_keys($printer_sets[$value['storeid']]))) {
+						$printer_sets[$value['storeid']][$value['printerids']] = 1;
+					}
 				}
 			}
 			if (!empty($store_list) && is_array($store_list)) {
@@ -91,14 +96,20 @@ class Wn_storex_plugin_printerModuleSite extends WeModuleSite {
 				$select_list = $_GPC['select'];
 				$storeid = intval($_GPC['storeid']);
 				$current_printer = $_GPC['select'][$storeid];
-				$printerset_list = pdo_get('storex_plugin_printer_set', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid), array('id'));
-				if (!empty($_GPC['select'][$storeid]) && is_array($_GPC['select'][$storeid])) {
-					if (empty($printerset_list)) {
-						pdo_insert('storex_plugin_printer_set', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'printerids' => iserializer($_GPC['select'][$storeid])));
-					} else {
-						pdo_update('storex_plugin_printer_set', array('printerids' => iserializer($_GPC['select'][$storeid])), array('id' => $printerset_list['id']));
+				$printerids = array_keys($current_printer);
+				$printerset_list = pdo_getall('storex_plugin_printer_set', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'printerids' => $printerids), array(), 'printerids');
+				if (!empty($current_printer) && is_array($current_printer)) {
+					foreach ($current_printer as $id => $printer) {
+						if ($printer == 1) {
+							if (empty($printerset_list[$id])) {
+								pdo_insert('storex_plugin_printer_set', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'printerids' => $id));
+							}
+						} elseif ($printer == 2) {
+							if (!empty($printerset_list[$id])) {
+								pdo_delete('storex_plugin_printer_set', array('storeid' => $storeid, 'uniacid' => $_W['uniacid'], 'printerids' => $id));
+							}
+						}
 					}
-					
 				}
 				message(error(0, ''), $this->createWebUrl('printerset'), 'ajax');
 			}
