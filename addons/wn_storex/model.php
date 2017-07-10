@@ -446,14 +446,28 @@ if (!function_exists('getOrderpaytext')) {
 				if ($order['paytype'] == 3) {
 					$order['status_text'] = "已取消";
 				} else {
-					$order['status_text'] = "已支付,取消并退款";
+					if ($order['refund_status'] == 1) {
+						$order['status_text'] = "已支付,取消退款中";
+					} elseif ($order['refund_status'] == 2){
+						$order['status_text'] = "已支付,取消退款成功";
+					} elseif ($order['refund_status'] == 3) {
+						$order['status_text'] = "已支付,取消退款失败";
+					} else {
+						$order['status_text'] = "已支付,取消并退款";
+					}
 				}
 			} elseif ($order['status'] == 1) {
 				$order['status_text'] = "已确认,已接受";
 			} elseif ($order['status'] == 2) {
-				$order['status_text'] = "已支付,已退款";
-			} elseif ($order['status'] == 4) {
-				$order['status_text'] = "已入住";
+				if ($order['refund_status'] == 1) {
+					$order['status_text'] = "已支付,拒绝退款中";
+				} elseif ($order['refund_status'] == 2){
+					$order['status_text'] = "已支付,拒绝退款成功";
+				} elseif ($order['refund_status'] == 3) {
+					$order['status_text'] = "已支付,拒绝退款失败";
+				} else {
+					$order['status_text'] = "已支付,拒绝并退款";
+				}
 			} elseif ($order['status'] == 3) {
 				$order['status_text'] = "订单完成";
 			}

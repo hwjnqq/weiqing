@@ -182,7 +182,7 @@ if ($op == 'edit') {
 			'track_number' => trim($_GPC['track_number']),
 			'express_name' => trim($_GPC['express_name']),
 		);
-		if ($status > 4) {
+		if ($status > 4 && 8 > $status) {
 			if ($status == 5 && $data['goods_status'] != GOODS_STATUS_CHECKED) {
 				$data['goods_status'] = GOODS_STATUS_CHECKED;
 			} elseif ($status == 6 && $data['goods_status'] != GOODS_STATUS_SHIPPED) {
@@ -191,6 +191,12 @@ if ($op == 'edit') {
 				$data['goods_status'] = GOODS_STATUS_RECEIVED;
 			} else {
 				message('商品状态已经是该状态了！', '', 'error');
+			}
+		} elseif ($status == 8) {
+			if (($item['status'] == ORDER_STATUS_CANCEL || $item['status'] == ORDER_STATUS_SURE) && $item['paystatus'] == PAY_STATUS_PAID && $item['refund_status'] != REFUND_STATUS_SUCCESS) {
+				$data['refund_status'] = REFUND_STATUS_PROCESS;
+			} else {
+				message('该订单不符合退款要求！', '', 'error');
 			}
 		} else {
 			$data['status'] = $status;
@@ -206,9 +212,26 @@ if ($op == 'edit') {
 		if ($item['status'] == ORDER_STATUS_OVER) {
 			message('订单状态已经完成，不能操作！', '', 'error');
 		}
+		
+// 		if (!empty($data['refund_status']) && $data['refund_status'] == 1) {
+// 			//处理退款的逻辑，
+// 			$message = array();
+// 			if (is_error($message)) {
+// 				$data['refund_status'] = 3;
+// 				pdo_update('storex_order', $data, array('id' => $id));
+// 				message('该订单退款失败！', '', 'error');
+// 			} else {
+// 				$data['refund_status'] = 2;
+// 				pdo_update('storex_order', $data, array('id' => $id));
+// 			}
+// 		}
+		
 		if ($store_type == STORE_TYPE_HOTEL) {
 			//订单取消
 			if ($data['status'] == ORDER_STATUS_CANCEL || $data['status'] == ORDER_STATUS_REFUSE) {
+				if ($item['paystatus'] == PAY_STATUS_PAID) {
+					$data['refund_status'] = REFUND_STATUS_PROCESS;
+				}
 				$room_date_list = pdo_getall('storex_room_price', array('roomid' => $item['roomid'], 'roomdate >=' => $item['btime'], 'roomdate <' => $item['etime'], 'status' => 1), 
 					array('id', 'roomdate', 'num', 'status'));
 				if (!empty($room_date_list)) {
@@ -222,6 +245,7 @@ if ($op == 'edit') {
 				}
 			}
 		}
+		
 		if (!empty($data['status']) && $data['status'] != $item['status']) {
 			//订单退款
 			if ($data['status'] == ORDER_STATUS_REFUSE) {
