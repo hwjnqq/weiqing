@@ -8,7 +8,7 @@ load()->model('mc');
 load()->classs('coupon');
 mload()->model('activity');
 
-$ops = array('display', 'post', 'get_member_num', 'checkcoupon', 'delete');
+$ops = array('display', 'post', 'get_member_num', 'checkcoupon', 'delete', 'fans');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 activity_get_coupon_type();
@@ -159,5 +159,21 @@ if ($op == 'delete') {
 	$id = intval($_GPC['id']);
 	pdo_delete('storex_coupon_activity', array('id' => $id, 'uniacid' => $_W['uniacid']));
 	message('删除活动成功', $this->createWeburl('couponmarket', array('op' => 'display')), 'success');
+}
+
+if ($op == 'fans') {
+	$pindex = intval($_GPC['page']);
+	$psize = 20;
+	$condition = '';
+	if (!empty($_GPC['nickname'])) {
+		$condition .= " AND nickname LIKE '%" . trim($_GPC['nickname']) . "%'" ;
+	}
+	$check_fans = json_decode($_COOKIE['fans_openids' . $_W['uniacid']]);
+	$check_fans = empty($check_fans) ? array() : $check_fans;
+	$fans = pdo_fetchall("SELECT * FROM " . tablename('mc_mapping_fans') ." WHERE uniacid = :uniacid AND acid = :acid AND nickname <> '' " . $condition . " LIMIT " . ($pindex-1) * $psize . " , " . $psize, array(':uniacid' => $_W['uniacid'], ':acid' => $_W['acid']));
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('mc_mapping_fans') . " WHERE uniacid = :uniacid AND acid = :acid AND nickname <> '' " . $condition, array(':uniacid' => $_W['uniacid'], ':acid' => $_W['acid']));
+	$pager = pagination($total, $pindex, $psize, '', array('before' => '3', 'after' => '2', 'ajaxcallback' => 'true'));
+	include $this->template('fans');
+	exit;
 }
 include $this->template('couponmarket');
