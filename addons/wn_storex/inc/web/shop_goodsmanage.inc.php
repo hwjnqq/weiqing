@@ -18,13 +18,11 @@ if (empty($parent)) {
 }
 
 $children = array();
-if ($store_type != STORE_TYPE_HOTEL) {
-	$category = pdo_getall('storex_categorys', array('store_base_id' => $storeid, 'parentid !=' => 0), array(), 'id', array('parentid', 'displayorder DESC'));
-	if (!empty($category) && is_array($category)) {
-		foreach ($category as $cid => $cate) {
-			if (!empty($cate['parentid'])) {
-				$children[$cate['parentid']][] = $cate;
-			}
+$category = pdo_getall('storex_categorys', array('store_base_id' => $storeid), array(), 'id', array('parentid', 'displayorder DESC'));
+if (!empty($category) && is_array($category)) {
+	foreach ($category as $cid => $cate) {
+		if (!empty($cate['parentid'])) {
+			$children[$cate['parentid']][] = $cate;
 		}
 	}
 }

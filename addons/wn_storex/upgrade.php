@@ -495,6 +495,7 @@ if (!pdo_fieldexists('storex_goods', 'express_set')) {
 if (!pdo_fieldexists('storex_sign_set', 'status')) {
 	pdo_query("ALTER TABLE " . tablename('storex_sign_set') . " ADD `status` TINYINT(2) NOT NULL COMMENT '开启状态 1开启，2关闭';");
 }
+
 if (!pdo_fieldexists('storex_order', 'static_price')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `static_price` DECIMAL(10,2) NOT NULL DEFAULT '0.00' COMMENT '初始订单的价格，不可更改';");
 	$orders = pdo_getall('storex_order', array(), array('id', 'sum_price'));
@@ -502,6 +503,30 @@ if (!pdo_fieldexists('storex_order', 'static_price')) {
 		foreach ($orders as $info) {
 			pdo_update('storex_order', array('static_price' => $info['sum_price']), array('id' => $info['id']));
 		}
+	}
+}
+if (!pdo_fieldexists('storex_order', 'refund_status')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `refund_status` TINYINT(2) NOT NULL COMMENT '退款状态 1退款中，2成功，3失败';");
+}
+//删除商圈和品牌不必要功能
+if (pdo_get('modules_bindings', array('module' => 'wn_storex', 'do' => 'business', 'title' => '商圈管理'))) {
+	pdo_delete('modules_bindings', array('module' => 'wn_storex', 'do' => 'business'));
+}
+if (pdo_get('modules_bindings', array('module' => 'wn_storex', 'do' => 'brand', 'title' => '品牌管理'))) {
+	pdo_delete('modules_bindings', array('module' => 'wn_storex', 'do' => 'brand'));
+}
+//酒店的分类只有一级分类，将已有的二级分类的数据兼容到一级下
+$stores = pdo_getall('storex_bases', array('store_type' => 1), array('id'), 'id');
+$category = pdo_getall('storex_categorys', array('parentid !=' => 0, 'store_base_id' => array_keys($stores)), array('id', 'store_base_id', 'parentid', 'category_type'), 'id');
+if (!empty($category) && is_array($category)) {
+	$storex_rooms = pdo_getall('storex_room', array('ccate' => array_keys($category)), array('id', 'pcate', 'ccate'), 'id');
+	if (!empty($storex_rooms) && is_array($storex_rooms)) {
+		foreach ($storex_rooms as $id => $info) {
+			pdo_update('storex_room', array('ccate' => 0), array('id' => $id));
+		}
+	}
+	foreach ($category as $cid => $cinfo) {
+		pdo_delete('storex_categorys', array('id' => $cid));
 	}
 }
 
@@ -549,6 +574,7 @@ if (!empty($svg_diff_files)) {
 }
 $unused_files = array(
 	IA_ROOT . '/addons/wn_storex/template/manage.html',
+	IA_ROOT . '/addons/wn_storex/template/query.html',
 );
 if (!empty($unused_files)) {
 	foreach ($unused_files as $file) {

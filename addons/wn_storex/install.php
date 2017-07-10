@@ -113,6 +113,7 @@ $sql = "
 	`order_time` int(11) NOT NULL DEFAULT '0' COMMENT '自提是自提时间，配送是配送时间',
 	`addressid` int(11) NOT NULL COMMENT '配送选择的地址id',
 	`goods_status` int(11) NOT NULL COMMENT '货物状态：1未发送，2已发送，3已收货',
+	`refund_status` tinyint(2) NOT NULL COMMENT '退款状态 1退款中，2成功，3失败',
 	`paytype` int(11) DEFAULT '0',
 	`action` int(11) NOT NULL DEFAULT '2' COMMENT '1预定  2购买',
 	`paystatus` int(11) DEFAULT '0',
