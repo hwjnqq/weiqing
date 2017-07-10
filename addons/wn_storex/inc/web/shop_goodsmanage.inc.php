@@ -14,7 +14,7 @@ $store_type = $store['store_type'];
 
 $parent = pdo_getall('storex_categorys', array('store_base_id' => $storeid, 'parentid' => 0), array(), 'id', array('parentid', 'displayorder DESC'));
 if (empty($parent)) {
-	message('请先给该店铺添加一级分类！', '', 'error');
+	message('请先给该店铺添加一级分类！', $this->createWebUrl('shop_category', array('storeid' => $storeid)), 'error');
 }
 
 $children = array();

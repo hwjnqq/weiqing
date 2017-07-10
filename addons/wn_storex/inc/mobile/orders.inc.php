@@ -110,11 +110,19 @@ if ($op == 'cancel') {
 	if ($order_info['is_cancle'] == 2 || $order_info['status'] == 3) {
 		message(error(-1, '该订单不能取消！'), '', 'ajax');
 	}
-	pdo_update('storex_order', array('status' => -1), array('id' => $id, 'weid' => $_W['uniacid']));
+	$update_data = array('status' => -1);
+	if ($order_info['paystatus'] == 1) {
+		$update_data['refund_status'] = 1;
+	}
+	$result = pdo_update('storex_order', $update_data, array('id' => $id, 'weid' => $_W['uniacid']));
 	if (!empty($order_info['coupon'])) {
 		pdo_update('storex_coupon_record', array('status' => 1), array('id' => $order_info['coupon']));
-	}	
-	message(error(0, '订单成功取消！'), '', 'ajax');
+	}
+	if (!empty($result)) {
+		message(error(0, '订单成功取消！'), '', 'ajax');
+	} else {
+		message(error(-1, '订单取消失败！'), '', 'ajax');
+	}
 }
 
 if ($op == 'confirm_goods') {
@@ -132,11 +140,15 @@ if ($op == 'confirm_goods') {
 	if ($order_info['mode_distribute'] == 1) {
 		message(error(-1, '订单方式不是配送！'), '', 'ajax');
 	}
-	pdo_update('storex_order', array('goods_status' => 3), array('id' => $id, 'weid' => $_W['uniacid']));
+	$result = pdo_update('storex_order', array('goods_status' => 3), array('id' => $id, 'weid' => $_W['uniacid']));
 	if (!empty($order_info['coupon'])) {
 		pdo_update('storex_coupon_record', array('status' => 3), array('id' => $order_info['coupon']));
 	}
-	message(error(0, '订单收货成功！'), '', 'ajax');
+	if (!empty($result)) {
+		message(error(0, '订单收货成功！'), '', 'ajax');
+	} else {
+		message(error(-1, '订单收货失败！'), '', 'ajax');
+	}
 }
 
 if ($op == 'order_comment') {
