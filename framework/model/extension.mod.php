@@ -235,7 +235,7 @@ function _ext_module_manifest_entries($elm) {
 			$row = array(
 				'title' => $entry->getAttribute('title'),
 				'do' => $entry->getAttribute('do'),
-				'direct' => $entry->getAttribute('direct') ? true : false,
+				'direct' => !empty($entry->getAttribute('direct')) && $entry->getAttribute('direct') != 'false' ? true : false,
 				'state' => $entry->getAttribute('state')
 			);
 			if (!empty($row['title']) && !empty($row['do'])) {
