@@ -669,3 +669,75 @@ function store_printers($storeid = '') {
 	}
 	return $printer_list;
 }
+
+/**
+ * 二级分类选择器
+ * @param string $name 表单名称
+ * @param array $parents 父分类,
+ * @param array $children 子分类,
+ * @param int $parentid 选择的父 id
+ * @param int $childid 选择的子id
+ * @param int $store_type 店铺类型
+ * @return string Html代码
+ */
+function wn_tpl_category_2level($name, $parents, $children, $parentid, $childid, $store_type = 0){
+	$html = '
+		<script type="text/javascript">
+			window._' . $name . ' = ' . json_encode($children) . ';
+		</script>';
+	if (!defined('TPL_INIT_CATEGORY')) {
+		$html .= '
+		<script type="text/javascript">
+			function renderCategory(obj, name){
+				var index = obj.options[obj.selectedIndex].value;
+				require([\'jquery\', \'util\'], function($, u){
+					$selectChild = $(\'#\'+name+\'_child\');
+					var html = \'<option value="0">请选择二级分类</option>\';
+					if (!window[\'_\'+name] || !window[\'_\'+name][index]) {
+						$selectChild.html(html);
+						return false;
+					}
+					for(var i=0; i< window[\'_\'+name][index].length; i++){
+						html += \'<option value="\'+window[\'_\'+name][index][i][\'id\']+\'">\'+window[\'_\'+name][index][i][\'name\']+\'</option>\';
+					}
+					$selectChild.html(html);
+				});
+			}
+		</script>
+					';
+		define('TPL_INIT_CATEGORY', true);
+	}
+
+	$html .=
+	'<div class="row row-fix tpl-category-container">
+			<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+				<select class="form-control tpl-category-parent" id="' . $name . '_parent" name="' . $name . '[parentid]" onchange="renderCategory(this,\'' . $name . '\')">
+					<option value="0">请选择一级分类</option>';
+	$ops = '';
+	foreach ($parents as $row) {
+		$html .= '
+					<option value="' . $row['id'] . '" ' . (($row['id'] == $parentid) ? 'selected="selected"' : '') . '>' . $row['name'] . '</option>';
+	}
+	$html .= '
+				</select>
+			</div>';
+	if ($store_type != STORE_TYPE_HOTEL) {
+		$html .= '
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<select class="form-control tpl-category-child" id="' . $name . '_child" name="' . $name . '[childid]">
+						<option value="0">请选择二级分类</option>';
+		if (!empty($parentid) && !empty($children[$parentid])) {
+			foreach ($children[$parentid] as $row) {
+				$html .= '
+						<option value="' . $row['id'] . '"' . (($row['id'] == $childid) ? 'selected="selected"' : '') . '>' . $row['name'] . '</option>';
+			}
+		}
+		$html .= '
+					</select>
+				</div>';
+	}
+	$html .= '
+		</div>
+	';
+	return $html;
+}
