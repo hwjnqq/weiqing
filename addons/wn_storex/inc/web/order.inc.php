@@ -380,7 +380,13 @@ if ($op == 'display') {
 	}
 	$date = $_GPC['date'];
 	if (!empty($date)) {
-		$condition .= " AND o.time > ". strtotime($date['start'])." AND o.time < ".strtotime($date['end']);
+		$start = strtotime($date['start']);
+		if ($date['start'] == $date['end'] || $date['end'] == date('Y-m-d', TIMESTAMP)) {
+			$end = strtotime($date['end']) + 86399;
+		} else {
+			$end = strtotime($date['end']);
+		}
+		$condition .= " AND o.time > " . $start . " AND o.time < " . $end;
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
