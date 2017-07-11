@@ -27,7 +27,6 @@ if ($op == 'goods_list') {
 	if (empty($first_class)) {
 		message(error(-1, '分类不存在'), '', 'ajax');
 	}
-	$can_reserve = intval($_GPC['can_reserve']);
 	$sub_class = category_sub_class();
 	//存在二级分类就找其下的商品
 	$fields = array('id', 'title', 'thumb', 'oprice', 'cprice', 'sold_num', 'sales');
@@ -37,9 +36,6 @@ if ($op == 'goods_list') {
 		$goods = $sub_class;
 		$list['have_subclass'] = 1;
 		$condition = array('weid' => $_W['uniacid'], 'pcate' => $first_id, 'status' => 1);
-		if (!empty($can_reserve)) {
-			$condition['can_reserve'] = 1;
-		}
 		if ($store_info['store_type'] == 1) {//酒店
 			$condition['hotelid'] = $store_id;
 			$fields[] = 'hotelid';
@@ -66,9 +62,6 @@ if ($op == 'goods_list') {
 	} else {
 		$list['have_subclass'] = 0;
 		$condition = array('weid' => $_W['uniacid'], 'pcate' => $first_id, 'status' => 1);
-		if (!empty($can_reserve)) {
-			$condition['can_reserve'] = 1;
-		}
 		if ($store_info['store_type'] == 1) {
 			$fields[] = 'hotelid';
 			$condition['hotelid'] = $store_id;
@@ -112,10 +105,6 @@ if ($op == 'more_goods') {
 			$condition['ccate'] = $sub_classid;
 		}
 	}
-	$can_reserve = intval($_GPC['can_reserve']);
-	if (!empty($can_reserve)) {
-		$condition['can_reserve'] = 1;
-	}
 	$keyword = trim($_GPC['keyword']);
 	if (!empty($keyword)) {
 		$condition['title LIKE'] = "%{$keyword}%";
@@ -138,6 +127,9 @@ if ($op == 'more_goods') {
 				$goods_info['reduced_price'] = ($goods_info['oprice'] * 100000 - $goods_info['cprice'] * 100000) / 100000;
 			} else {
 				$goods_info['reduced_price'] = 0;
+			}
+			if (isset($goods_info['can_reserve']) && !empty($goods_info['can_reserve'])) {
+				$goods_info['can_reserve'] = 0;
 			}
 		}
 	}

@@ -149,7 +149,6 @@ $sql = "
 	`cprice` decimal(10,2) DEFAULT '0.00',
 	`thumbs` text,
 	`device` text,
-	`reserve_device` text COMMENT '预定说明',
 	`area` varchar(255) DEFAULT '',
 	`floor` varchar(255) DEFAULT '',
 	`smoke` varchar(255) DEFAULT '',
@@ -157,7 +156,6 @@ $sql = "
 	`persons` int(11) DEFAULT '0',
 	`bedadd` varchar(30) DEFAULT '',
 	`status` int(11) DEFAULT '0',
-	`can_reserve` int(11) NOT NULL DEFAULT '1' COMMENT '预定设置',
 	`can_buy` int(11) NOT NULL DEFAULT '1' COMMENT '购买设置',
 	`isshow` int(11) DEFAULT '0',
 	`sales` text,
@@ -305,10 +303,8 @@ $sql = "
 	`cprice` decimal(10,2) DEFAULT '0.00',
 	`thumbs` text,
 	`device` text,
-	`reserve_device` text COMMENT '预定说明',
 	`status` int(11) DEFAULT '0',
 	`sales` text,
-	`can_reserve` int(11) NOT NULL DEFAULT '1' COMMENT '预定设置',
 	`can_buy` int(11) NOT NULL DEFAULT '1' COMMENT '购买设置',
 	`isshow` int(11) DEFAULT '0',
 	`score` int(11) DEFAULT '0' COMMENT '购买商品积分',
@@ -835,8 +831,6 @@ if (!empty($module)){
 	//给hotel2_room新加的字段赋值
 	// pcate	一级分类id
 	// ccate	二级分类
-	// reserve_device	预定说明
-	// can_reserve		能否预定
 	// can_buy			能否购买
 	// sold_num			商品卖的数量
 	// store_type		所属店铺的类型
@@ -845,7 +839,6 @@ if (!empty($module)){
 	if (!empty($storex_room)) {
 		foreach ($storex_room as $room_info) {
 			$update_room = array(
-				'can_reserve' => 1,
 				'can_buy' => 1,
 				'is_house' => 1,
 			);

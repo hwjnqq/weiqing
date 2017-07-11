@@ -42,9 +42,6 @@ if ($op == 'goods_info') {
 	if (!empty($goods_info['thumbs'])) {
 		$goods_info['thumbs'] = format_url($goods_info['thumbs']);
 	}
-	if (!empty($goods_info['reserve_device'])) {
-		$goods_info['reserve_device'] = htmlspecialchars_decode($goods_info['reserve_device']);
-	}
 	if (!empty($goods_info['device'])) {
 		$goods_info['device'] = htmlspecialchars_decode($goods_info['device']);
 	}
@@ -144,14 +141,12 @@ if ($op == 'order') {
 		message(error(-1, '数量不能是零'), '', 'ajax');
 	}
 	$action = trim($_GPC['action']);//是预定还是购买
-	if ($action == 'reserve') {
-		$order_info['action'] = 1;
-		$order_info['paytype'] = 3;//支付方式，表示预定，只能到店支付
-	} elseif ($action == 'buy') {
-		$order_info['action'] = 2;
-		$paysetting = uni_setting(intval($_W['uniacid']), array('payment', 'creditbehaviors'));
-		$_W['account'] = array_merge($_W['account'], $paysetting);
+	if (empty($action) || $action != 'buy') {
+		$action = 'buy';
 	}
+	$order_info['action'] = 2;
+	$paysetting = uni_setting(intval($_W['uniacid']), array('payment', 'creditbehaviors'));
+	$_W['account'] = array_merge($_W['account'], $paysetting);
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
 	if (empty($order_info['contact_name'])) {
 		message(error(-1, '联系人不能为空!'), '', 'ajax');
@@ -411,10 +406,6 @@ if ($op == 'order') {
 	if (!empty($order_id)) {
 		message(error(0, $order_id), '', 'ajax');
 	} else {
-		if ($action == 'reserve') {
-			message(error(-1, '预定失败'), '', 'ajax');
-		} else {
-			message(error(-1, '下单失败'), '', 'ajax');
-		}
+		message(error(-1, '下单失败'), '', 'ajax');
 	}
 }

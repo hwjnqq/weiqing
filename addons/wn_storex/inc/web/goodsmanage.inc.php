@@ -128,8 +128,6 @@ if ($op == 'edit') {
 			'score' => intval($_GPC['score']),
 			'status' => $_GPC['status'],
 			'sales' => $_GPC['sales'],
-			'can_reserve' => intval($_GPC['can_reserve']),
-			'reserve_device' => $_GPC['reserve_device'],
 			'can_buy' => intval($_GPC['can_buy']),
 			'sortid'=>intval($_GPC['sortid']),
 			'sold_num' => intval($_GPC['sold_num']),

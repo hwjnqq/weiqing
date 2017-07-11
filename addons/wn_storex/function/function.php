@@ -337,6 +337,9 @@ function category_store_goods($table, $condition, $fields, $limit = array()) {
 				$goods[$k]['thumbs'][$key] = tomedia($url);
 			}
 		}
+		if (isset($goods_info['can_reserve']) && !empty($info['can_reserve'])) {
+			$goods[$k]['can_reserve'] = 0;
+		}
 	}
 	if ($table == 'storex_room') {
 		$goods = room_special_price($goods);
@@ -462,9 +465,6 @@ function room_special_price($goods) {
 function goods_check_action($action = 'buy', $goods_info) {
 	if (empty($goods_info)) {
 		message(error(-1, '商品未找到, 请联系管理员!'), '', 'ajax');
-	}
-	if ($action == 'reserve' && $goods_info['can_reserve'] != 1) {
-		message(error(-1, '该商品不能预定'), '', 'ajax');
 	}
 	if ($action == 'buy' && $goods_info['can_buy'] != 1) {
 		message(error(-1, '该商品不能购买'), '', 'ajax');
