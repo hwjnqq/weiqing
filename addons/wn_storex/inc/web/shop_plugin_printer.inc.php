@@ -8,22 +8,7 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 $store_info = $_W['wn_storex']['store_info'];
 $storeid = intval($store_info['id']);
 if ($op == 'display') {
-	$printer_list = pdo_getall('storex_plugin_printer', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid), array(), 'id');
-	$printer_set = pdo_getall('storex_plugin_printer_set', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid), array('printerids'));
-
-	if (!empty($printer_set) && is_array($printer_set)) {
-		foreach ($printer_set as $key => $value) {
-			$printer_ids[] = $value['printerids'];
-		}
-	}
-	if (!empty($printer_list) && is_array($printer_list)) {
-		foreach ($printer_list as $key => &$value) {
-			$value['disabled'] = 2;
-			if (!in_array($key, $printer_ids)) {
-				$value['disabled'] = 1;
-			}
-		}
-	}
+	$printer_list = store_printers($storeid);
 }
 
 if ($op == 'post') {
@@ -59,6 +44,7 @@ if ($op == 'delete') {
 		message('打印机信息不存在', referer(), 'error');
 	}
 	pdo_delete('storex_plugin_printer', array('id' => $id, 'uniacid' => $_W['uniacid']));
+	pdo_delete('storex_plugin_printer_set', array('printerids' => $id, 'uniacid' => $_W['uniacid']));
 	message('删除成功', referer(), 'success');
 }
 

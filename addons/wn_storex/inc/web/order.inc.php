@@ -394,33 +394,7 @@ if ($op == 'display') {
 	
 	$version = check_ims_version();
 	if (!empty($version)) {
-		$printers = pdo_getall('storex_plugin_printer', array('uniacid' => $_W['uniacid']), array('name', 'id'), 'id');
-		$stores_printers = pdo_getall('storex_plugin_printer_set', array('uniacid' => $_W['uniacid']), array('storeid','id', 'printerids'), 'storeid');
-		$printer = array();
-		if (!empty($stores_printers) && is_array($stores_printers)) {
-			foreach ($stores_printers as $storeid => $info) {
-				$info['printerids'] = iunserializer($info['printerids']);
-				if (!empty($info['printerids']) && is_array($info['printerids'])) {
-					foreach ($info['printerids'] as $p_id => $status) {
-						if ($status == 1 && !empty($printers[$p_id])) {
-							$printer[$storeid][$p_id] = array(
-								'id' => $p_id,
-								'status' => $status,
-								'name' => $printers[$p_id]['name'],
-							);
-						}
-					}
-				}
-			}
-		}
-		if (!empty($show_order_lists) && is_array($show_order_lists)) {
-			foreach ($show_order_lists as &$orderinfo) {
-				$orderinfo['printers'] = array();
-				if (!empty($printer[$orderinfo['hotelid']])) {
-					$orderinfo['printers'] = $printer[$orderinfo['hotelid']];
-				}
-			}
-		}
+		$printer_list = store_printers();
 	}
 	
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') . " AS h on o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition", $params);
