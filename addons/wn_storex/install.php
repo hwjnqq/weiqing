@@ -681,7 +681,17 @@ $sql = "
 	`permission` varchar(50) NOT NULL,
 	`system` int(2) NOT NULL DEFAULT '0',
 	PRIMARY KEY (`id`)
-	) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_sales` (
+	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	  `uniacid` int(10) unsigned NOT NULL,
+	  `storeid` int(10) unsigned NOT NULL,
+	  `cumulate` decimal(10,2) DEFAULT '0.00',
+	  `date` varchar(8) NOT NULL DEFAULT '',
+	  PRIMARY KEY (`id`),
+	  KEY `uniacid` (`uniacid`,`date`)
+	) DEFAULT CHARSET=utf8;
 ";
 
 pdo_run($sql);
