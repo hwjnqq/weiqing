@@ -633,3 +633,39 @@ function store_type_info($store_type) {
 	);
 	return $store_type_list[$store_type];
 }
+
+function store_printers($storeid = '') {
+	global $_W;
+	$condition = array('uniacid' => $_W['uniacid']);
+	if (!empty($storeid)) {
+		$condition['storeid'] = $storeid;
+	}
+	$printer_list = pdo_getall('storex_plugin_printer', $condition, array(), 'id');
+	$printer_set = pdo_getall('storex_plugin_printer_set', $condition, array('storeid', 'id', 'printerids'));
+	if (!empty($storeid)) {
+		if (!empty($printer_set) && is_array($printer_set)) {
+			foreach ($printer_set as $info) {
+				$printer_ids[] = $info['printerids'];
+			}
+		}
+		if (!empty($printer_list) && is_array($printer_list)) {
+			foreach ($printer_list as $key => &$value) {
+				$value['disabled'] = 2;
+				if (!in_array($key, $printer_ids)) {
+					$value['disabled'] = 1;
+				}
+			}
+		}
+	} else {
+		$store_printer_list = array();
+		if (!empty($printer_set) && is_array($printer_set)) {
+			foreach ($printer_set as $val) {
+				if (!empty($printer_list[$val['printerids']])) {
+					$store_printer_list[$val['storeid']][] = $printer_list[$val['printerids']];
+				}
+			}
+		}
+		return $store_printer_list;
+	}
+	return $printer_list;
+}
