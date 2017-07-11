@@ -24,6 +24,7 @@ if ($op == 'display') {
 			foreach ($stores as $store_info) {
 				if ($row_info['store_base_id'] == $store_info['id']) {
 					$row_info['store_title'] = $store_info['title'];
+					$row_info['store_type'] = $store_info['store_type'];
 				}
 			}
 			if (empty($row_info['store_title'])) {

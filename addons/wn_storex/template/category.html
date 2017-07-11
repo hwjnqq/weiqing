@@ -145,8 +145,9 @@
 							<td>
 								<img src="{php echo tomedia($row['thumb']);}" width='30' height="30" onerror="$(this).remove()" style='padding:1px;border: 1px solid #ccc;float:left;' />
 								<div class="type-parent">{$row['name']}
-									{if empty($row['parentid'])}
-									<a href="{php echo $this->createWebUrl('goodscategory', array('parentid' => $row['id'], 'op' => 'post', 'store_base_id' => $row['store_base_id']))}"><i class="fa fa-plus-circle"></i> 添加子分类</a>{/if}
+									{if empty($row['parentid']) && $row['store_type'] != STORE_TYPE_HOTEL}
+									<a href="{php echo $this->createWebUrl('goodscategory', array('parentid' => $row['id'], 'op' => 'post', 'store_base_id' => $row['store_base_id']))}"><i class="fa fa-plus-circle"></i> 添加子分类</a>
+									{/if}
 								</div>
 							</td>
 							<td>
