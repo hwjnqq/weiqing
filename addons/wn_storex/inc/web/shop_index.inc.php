@@ -33,14 +33,15 @@ if ($op == 'dashboard') {
 	$stat = array();
 	for ($i = 0; $i < $num; $i++) {
 		$time = $i * 86400 + $starttime;
-		$key = date('m-d', $time);
+		$key = date('Ymd', $time);
 		$stat[$key] = 0;
 	}
-	$sum_list = pdo_fetchall("SELECT id, time, sum_price, hotelid FROM " . tablename('storex_order') . " WHERE weid = :uniacid AND time >= :starttime AND time <= :endtime AND status = :status AND hotelid = :storeid ORDER BY time ASC", array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime, ':status' => 3, ':storeid' => $storeid));
+	$sum_list = pdo_getall('storex_sales', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid), array('date', 'cumulate'));
 	if (!empty($sum_list) && is_array($sum_list)) {
-		foreach ($sum_list as $value) {
-			$key = date('m-d', $value['time']);
-			$stat[$key] += $value['sum_price'];
+		foreach ($sum_list as $key => $value) {
+			if (!empty($value['date']) && strtotime($value['date']) >= $starttime && strtotime($value['date']) <= $endtime) {
+				$stat[$value['date']] = $value['cumulate'];
+			}
 		}
 	}
 	$chart_data['label'] = array_keys($stat);
