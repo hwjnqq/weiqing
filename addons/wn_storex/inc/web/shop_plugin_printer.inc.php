@@ -44,6 +44,7 @@ if ($op == 'delete') {
 		message('打印机信息不存在', referer(), 'error');
 	}
 	pdo_delete('storex_plugin_printer', array('id' => $id, 'uniacid' => $_W['uniacid']));
+	pdo_delete('storex_plugin_printer_set', array('printerids' => $id, 'uniacid' => $_W['uniacid']));
 	message('删除成功', referer(), 'success');
 }
 
