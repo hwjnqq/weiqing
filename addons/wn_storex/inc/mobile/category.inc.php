@@ -27,7 +27,8 @@ if ($op == 'goods_list') {
 	if (empty($first_class)) {
 		message(error(-1, '分类不存在'), '', 'ajax');
 	}
-	$sub_class = category_sub_class();
+	//获取某一级分类下的所有二级分类
+	$sub_class = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'parentid' => $first_id, 'enabled' => 1), array(), '', 'displayorder DESC');
 	//存在二级分类就找其下的商品
 	$fields = array('id', 'title', 'thumb', 'oprice', 'cprice', 'sold_num', 'sales');
 	$list = array();
@@ -115,7 +116,7 @@ if ($op == 'more_goods') {
 		$goods_list = pdo_getall('storex_room', $condition);
 		if (!empty($goods_list)) {
 			$goods_list = category_room_status($goods_list);
-			$goods_list = room_special_price($goods_list);
+			$goods_list = room_special_price($goods_list, true);
 		}
 	} else {
 		$condition['store_base_id'] = $storex_bases['id'];

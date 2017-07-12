@@ -47,7 +47,7 @@ if ($op == 'goods_info') {
 	}
 	$goods_info = get_room_params($goods_info);
 	if ($store_info['store_type'] == 1) {
-		$goods_info = check_price($goods_info);
+		$goods_info = room_special_price($goods_info, false);
 	}
 	if (!empty($goods_info['express_set'])) {
 		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
@@ -75,7 +75,7 @@ if ($op == 'info') {
 		$condition['hotelid'] = $store_id;
 		$table = 'storex_room';
 		$goods_info = pdo_get($table, $condition);
-		$goods_info = check_price($goods_info);
+		$goods_info = room_special_price($goods_info, false);
 	} else {
 		$condition['store_base_id'] = $store_id;
 		$table = 'storex_goods';

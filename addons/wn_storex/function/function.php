@@ -13,10 +13,6 @@ function check_params() {
 		'common' => array(
 			'uniacid' => intval($_W['uniacid'])
 		),
-		'user' => array(
-			'login' => array(),
-			'register' => array(),
-		),
 		'store' => array(
 			'common' => array(
 				'uniacid' => intval($_W['uniacid'])
@@ -219,12 +215,12 @@ function check_params() {
 */
 function clerk_order_operation ($order, $store_type) {
 	$status = array(
-			'is_cancel' => false,	//-1
-			'is_confirm' => false,	//1
-			'is_refuse' => false,	//2
-			'is_over' => false,		//3
-			'is_send' => false,		//goods_status 2
-			'is_access' => false,	//4
+		'is_cancel' => false,	//-1
+		'is_confirm' => false,	//1
+		'is_refuse' => false,	//2
+		'is_over' => false,		//3
+		'is_send' => false,		//goods_status 2
+		'is_access' => false,	//4
 	);
 	if ($order['status'] == -1 || $order['status'] == 3 || $order['status'] == 2) {
 		$status = array();
@@ -262,7 +258,7 @@ function format_url($urls) {
 }
 //获取店铺信息
 function get_store_info($id) {
-	global $_W, $_GPC;
+	global $_W;
 	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone', 'category_set'));
 	if (empty($store_info)) {
 		message(error(-1, '店铺不存在'), '', 'ajax');
@@ -314,17 +310,6 @@ function pay_info($order_id) {
 	}
 }
 
-//获取某一级分类下的所有二级分类
-function category_sub_class() {
-	global $_W, $_GPC;
-	return pdo_getall('storex_categorys', array('weid' => $_W['uniacid'],'parentid' => intval($_GPC['first_id']), 'enabled' => 1), array(), '', 'displayorder DESC');
-}
-function check_price($goods_info) {
-	$goods[] = $goods_info;
-	$goods = room_special_price($goods);
-	$goods_info = $goods['0'];
-	return $goods_info;
-}
 //获取一二级分类下的商品信息
 function category_store_goods($table, $condition, $fields, $limit = array()) {
 	$goods = pdo_getall($table, $condition, $fields, '', 'sortid DESC', $limit);
@@ -342,10 +327,11 @@ function category_store_goods($table, $condition, $fields, $limit = array()) {
 		}
 	}
 	if ($table == 'storex_room') {
-		$goods = room_special_price($goods);
+		$goods = room_special_price($goods, true);
 	}
 	return $goods;
 }
+
 //根据日期和数量获取可预定的房型
 function category_room_status($goods_list) {
 	global $_GPC,$_W;
@@ -437,7 +423,7 @@ function get_dates($btime, $days) {
 	return $dates;
 }
 //根据信息获取房型的某一天的价格
-function room_special_price($goods) {
+function room_special_price($goods, $plural = true) {
 	global $_W;
 	if (!empty($goods)) {
 		$btime = strtotime(date('Y-m-d'));
@@ -445,17 +431,31 @@ function room_special_price($goods) {
 		$sql = 'SELECT `id`, `roomdate`, `num`, `status`, `oprice`, `cprice`, `roomid` FROM ' . tablename('storex_room_price') . ' WHERE `weid` = :weid AND `roomdate` >= :btime AND `roomdate` < :etime ORDER BY roomdate DESC';
 		$params = array(':weid' => $_W['uniacid'], ':btime' => $btime, ':etime' => $etime);
 		$room_price_list = pdo_fetchall($sql, $params, 'roomid');
-		foreach ($goods as $key => $val) {
-			if (!empty($room_price_list[$val['id']])) {
-				$goods[$key]['oprice'] = $room_price_list[$val['id']]['oprice'];
-				$goods[$key]['cprice'] = $room_price_list[$val['id']]['cprice'];
-				if ($room_price_list[$val['id']]['num'] == -1) {
-					$goods[$key]['max_room'] = 8;
+		if (!empty($plural)) {
+			foreach ($goods as $key => $val) {
+				if (!empty($room_price_list[$val['id']])) {
+					$goods[$key]['oprice'] = $room_price_list[$val['id']]['oprice'];
+					$goods[$key]['cprice'] = $room_price_list[$val['id']]['cprice'];
+					if ($room_price_list[$val['id']]['num'] == -1) {
+						$goods[$key]['max_room'] = 8;
+					} else {
+						$goods[$key]['max_room'] = $room_price_list[$val['id']]['num'];
+					}
 				} else {
-					$goods[$key]['max_room'] = $room_price_list[$val['id']]['num'];
+					$goods[$key]['max_room'] = 8;
+				}
+			}
+		} else {
+			if (!empty($room_price_list[$goods['id']])) {
+				$goods['oprice'] = $room_price_list[$goods['id']]['oprice'];
+				$goods['cprice'] = $room_price_list[$goods['id']]['cprice'];
+				if ($room_price_list[$goods['id']]['num'] == -1) {
+					$goods['max_room'] = 8;
+				} else {
+					$goods['max_room'] = $room_price_list[$goods['id']]['num'];
 				}
 			} else {
-				$goods[$key]['max_room'] = 8;
+				$goods['max_room'] = 8;
 			}
 		}
 	}
@@ -617,7 +617,7 @@ function check_wxapp() {
 	return false;
 }
 
-function check_ims_version () {
+function check_ims_version() {
 	$compare = ver_compare(IMS_VERSION, '1.0');
 	if ($compare != -1) {
 		return true;
@@ -680,7 +680,7 @@ function store_printers($storeid = '') {
  * @param int $store_type 店铺类型
  * @return string Html代码
  */
-function wn_tpl_category_2level($name, $parents, $children, $parentid, $childid, $store_type = 0){
+function wn_tpl_category_2level($name, $parents, $children, $parentid, $childid, $store_type = 0) {
 	$html = '
 		<script type="text/javascript">
 			window._' . $name . ' = ' . json_encode($children) . ';
@@ -740,4 +740,27 @@ function wn_tpl_category_2level($name, $parents, $children, $parentid, $childid,
 		</div>
 	';
 	return $html;
+}
+
+function set_order_statuslog($log_data, $data) {
+	$state_fields = array('status', 'paystatus', 'goods_status', 'refund_status');
+	if (!empty($log_data['orderid']) && !empty($log_data['storeid']) && !empty($log_data['goodsid'])) {
+		$state_fields[] = 'id';
+		$state_fields[] = 'hotelid';
+		$state_fields[] = 'roomid';
+		$order_info = pdo_get('storex_order', array('id' => $log_data['orderid']), $state_fields);
+		foreach ($state_fields as $field) {
+			if (!empty($data[$field])) {
+				$log_data['orderid'] = $order_info['id'];
+				$log_data['storeid'] = $order_info['hotelid'];
+				$log_data['goodsid'] = $order_info['roomid'];
+				
+				$log_data['old_state'] = $order_info[$field];
+				$log_data['new_state'] = $data[$field];
+				$log_data['state_type'] = $field;
+				$log_data['time'] = TIMESTAMP;
+				pdo_insert('storex_order_statuslog', $log_data);
+			}
+		}
+	}
 }
