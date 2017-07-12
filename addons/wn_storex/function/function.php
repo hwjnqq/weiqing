@@ -230,7 +230,9 @@ function clerk_order_operation ($order, $store_type) {
 		$status = array();
 	} elseif ($order['status'] == 1) {
 		if ($store_type == 1) {
-			$status['is_access'] = true;
+			if ($order['goods_status'] == 4 || empty($order['goods_status'])) {
+				$status['is_access'] = true;
+			} 
 		} else {
 			if ($order['mode_distribute'] == 2) {//配送
 				if ($order['goods_status'] == 1 || empty($order['goods_status'])) {
@@ -238,8 +240,6 @@ function clerk_order_operation ($order, $store_type) {
 				}
 			}
 		}
-		$status['is_over'] = true;
-	} elseif ($order['status'] == 4) {
 		$status['is_over'] = true;
 	} else {
 		$status['is_cancel'] = true;

@@ -90,7 +90,6 @@ if ($op == 'edit_order') {
 		'is_confirm' => 1,	//确认
 		'is_refuse' => 2,	//拒绝
 		'is_over' => 3,		//完成
-		'is_access' => 4,	//已入住
 	);
 	$type = trim($_GPC['type']);
 	$data = array(
@@ -101,6 +100,9 @@ if ($op == 'edit_order') {
 	);
 	if (!empty($actions_status[$type])) {
 		$data['status'] = $actions_status[$type];
+	}
+	if ($type == 'is_access') {
+		$data['goods_status'] = 5;
 	}
 	if ($type == 'is_send') {
 		$data['goods_status'] = 2;
@@ -120,22 +122,30 @@ if ($op == 'edit_order') {
 		}
 	}
 	
-	if (!empty($data['goods_status']) && $data['goods_status'] == 2 && $item['status'] != 1) {
-		if ($item['goods_status'] == 3) {
-			message(error(-1, '已收货，不要再发了！'), '', 'ajax');
-		}
-		if ($item['goods_status'] == 2) {
-			message(error(-1, '已发货，不要重复操做！'), '', 'ajax');
-		}
+	if (!empty($data['goods_status']) && ($data['goods_status'] == 2 || $data['goods_status'] == 5)) {
 		if ($item['status'] != 1) {
 			message(error(-1, '请先确认订单！'), '', 'ajax');
+		} else {
+			if ($item['goods_status'] == 3) {
+				message(error(-1, '已收货，不要再发了！'), '', 'ajax');
+			}
+			if ($item['goods_status'] == 2) {
+				message(error(-1, '已发货，不要重复操做！'), '', 'ajax');
+			}
+			if ($item['goods_status'] == 5) {
+				message(error(-1, '已入住！'), '', 'ajax');
+			}
 		}
+		
 	}
 	if (empty($data['status']) && empty($data['goods_status'])) {
 		message(error(-1, '操作失败！'), '', 'ajax');
 	}
 	//订单取消
 	if ($data['status'] == -1 || $data['status'] == 2) {
+		if ($item['paystatus'] == 1) {
+			$data['refund_status'] = 1;
+		}
 		if ($store_info['store_type'] == 1) {
 			$params = array();
 			$sql = "SELECT id, roomdate, num FROM " . tablename('storex_room_price');
@@ -157,8 +167,8 @@ if ($op == 'edit_order') {
 			}
 		}
 	}
-	if ($data['status'] != $item['status']) {
-		//订单退款
+	if ($data['status'] != $item['status'] || $data['goods_status'] != $item['goods_status']) {
+		//订单拒绝
 		if ($data['status'] == 2) {
 			if (!empty($setting['template']) && !empty($setting['refuse_templateid'])) {
 				$tplnotice = array(
@@ -213,7 +223,7 @@ if ($op == 'edit_order') {
 			}
 		}
 		//已入住提醒
-		if ($data['status'] == 4) {
+		if (!empty($data['goods_status']) && $data['goods_status'] == 5) {
 			//TM00058
 			if (!empty($setting['template']) && !empty($setting['check_in_templateid'])) {
 				$tplnotice = array(
@@ -269,6 +279,8 @@ if ($op == 'edit_order') {
 		}
 		pdo_update('storex_order', $data, array('id' => $orderid));
 		message(error(0, '处理订单成功！'), '', 'ajax');
+	} else {
+		message(error(0, '处理订单失败！'), '', 'ajax');
 	}
 }
 
