@@ -197,7 +197,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 		$store = pdo_get('storex_bases', array('id' => $id), array('id', 'skin_style'));
 		$style = array('display', 'black');
 		$skin_style = in_array($store['skin_style'], $style) ? $store['skin_style'] : 'display';
-		return $skin_style;
+		return 'black';
 	}
 
 	//登录页
