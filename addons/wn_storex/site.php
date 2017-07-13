@@ -313,15 +313,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 		global $_GPC, $_W;
 		load()->model('mc');
 		mload()->model('card');
-		if ($params['type'] == 'credit') {
-			$paytype = 1;
-		} elseif ($params['type'] == 'wechat') {
-			$paytype = 21;
-		} elseif ($params['type'] == 'alipay') {
-			$paytype = 22;
-		} elseif ($params['type'] == 'delivery') {
-			$paytype = 3;
-		}
 		$recharge_info = pdo_get('mc_credits_recharge', array('uniacid' => $_W['uniacid'], 'tid' => $params['tid']), array('id', 'backtype', 'fee', 'openid', 'uid', 'type'));
 		if (!empty($recharge_info)) {
 			if ($params['result'] == 'success' && $params['from'] == 'notify') {
@@ -442,7 +433,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			$weid = intval($_W['uniacid']);
 			$order = pdo_get('storex_order', array('id' => $params['tid'], 'weid' => $weid));
 			$storex_bases = pdo_get('storex_bases', array('id' => $order['hotelid'], 'weid' => $weid), array('id', 'store_type', 'title'));
-			pdo_update('storex_order', array('paystatus' => 1, 'paytype' => $paytype), array('id' => $params['tid']));
+			pdo_update('storex_order', array('paystatus' => 1, 'paytype' => $params['type']), array('id' => $params['tid']));
 			$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('email', 'mobile', 'nickname', 'template', 'confirm_templateid', 'templateid'));
 			$starttime = $order['btime'];
 			if ($setInfo['email']) {
@@ -597,7 +588,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 						pdo_update('storex_coupon_record', array('status' => 3), array('id' => $order['coupon']));
 					}
 				}
-				if ($paytype == 3) {
+				if ($params['type'] == 'delivery') {
 					message('提交成功！', '../../app/' . $this->createMobileUrl('detail', array('hid' => $room['hotelid'])), 'success');
 				} else {
 					message('支付成功！', $this->createMobileurl('display', array('orderid' => $params['tid'], 'id' => $order['hotelid'])), 'success');

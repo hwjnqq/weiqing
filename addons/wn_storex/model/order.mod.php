@@ -257,7 +257,7 @@ function order_query_refund($orderid) {
 			$update['status'] = REFUND_STATUS_SUCCESS;
 			pdo_update('storex_refund_logs', array('status' => REFUND_STATUS_SUCCESS, 'time' => TIMESTAMP), array('uniacid' => $_W['uniacid'], 'id' => $refund['id']));
 		} else {
-			pdo_update('storex_refund_logs', $update, array('status' => REFUND_STATUS_SUCCESS, 'time' => TIMESTAMP), 'id' => $refund['id']));
+			pdo_update('storex_refund_logs', $update, array('status' => REFUND_STATUS_SUCCESS, 'time' => TIMESTAMP), array('id' => $refund['id']));
 		}
 		return true;
 	}
