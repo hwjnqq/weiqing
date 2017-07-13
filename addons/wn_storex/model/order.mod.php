@@ -155,7 +155,12 @@ function orders_check_status($item) {
 	if ($setting['refund'] == 1) {
 		$item['is_cancle'] = 2;
 	}
-	$item['order_status'] = order_status($item['status']);
+	$item['order_status_cn'] = order_status($item['status']);
+	$item['pay_status_cn'] = order_pay_status($item['paystatus']);
+	$item['goods_status_cn'] = '';
+	if (!empty($item['goods_status'])) {
+		$item['goods_status_cn'] = order_goods_status($item['goods_status']);
+	}
 	return $item;
 }
 
