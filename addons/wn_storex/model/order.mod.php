@@ -98,9 +98,9 @@ function orders_check_status($item) {
 		if ($item['paystatus'] == PAY_STATUS_UNPAID) {
 			$item['is_over'] = 1;
 		} elseif ($item['paystatus'] == PAY_STATUS_PAID) {
-// 			if (empty($item['refund_status'])) {
-// 				$item['is_refund'] = 1;
-// 			}
+			if (empty($item['refund_status'])) {
+				$item['is_refund'] = 1;
+			}
 		}
 	} elseif ($item['status'] == ORDER_STATUS_SURE) {//已确认
 		if ($item['store_type'] == 1) {//酒店
@@ -186,7 +186,7 @@ function order_build_refund($orderid) {
 		'status' => REFUND_STATUS_APPLY,
 		'time' => TIMESTAMP
 	);
-	pdo_update('storex_order', array('is_refund' => 2), array('id' => $id));
+	pdo_update('storex_order', array('refund_status' => 1), array('id' => $id));
 	pdo_insert('storex_refund_logs', $logs);
 	return pdo_insertid();
 }

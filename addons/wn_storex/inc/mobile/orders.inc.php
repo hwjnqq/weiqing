@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 mload()->model('order');
 
-$ops = array('order_list', 'order_detail', 'orderpay', 'cancel', 'confirm_goods', 'order_comment');
+$ops = array('order_list', 'order_detail', 'orderpay', 'cancel', 'confirm_goods', 'order_comment', 'refund');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -123,6 +123,11 @@ if ($op == 'cancel') {
 	} else {
 		message(error(-1, '订单取消失败！'), '', 'ajax');
 	}
+}
+
+if ($op == 'refund') {
+	$id = intval($_GPC['id']);
+	order_build_refund($id);
 }
 
 if ($op == 'confirm_goods') {
