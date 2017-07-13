@@ -39,18 +39,25 @@ if ($op == 'display') {
 		}
 	}
 	if (!empty($storeid)) {
-		$condition .= " AND o.hotelid=" . $storeid;
+		$condition .= " AND o.hotelid = " . $storeid;
 	}
 	if (!empty($roomid)) {
-		$condition .= " AND o.roomid=" . $roomid;
+		$condition .= " AND o.roomid = " . $roomid;
 	}
-	$status = $_GPC['status'];
-	if ($status != '') {
-		$condition .= " AND o.status=" . intval($status);
+	if (!empty($_GPC['status'])) {
+		if ($_GPC['status'] == 4) {
+			$condition .= " AND o.status = 0";
+		} else {
+			$condition .= " AND o.status =" . intval($_GPC['status']);
+		}
 	}
 	$paystatus = $_GPC['paystatus'];
-	if ($paystatus != '') {
-		$condition .= " and o.paystatus=" . intval($paystatus);
+	if (!empty($_GPC['paystatus'])) {
+		if ($_GPC['paystatus'] == 2) {
+			$condition .= " and o.paystatus = 0";
+		} else {
+			$condition .= " and o.paystatus = " . intval($_GPC['paystatus']);
+		}
 	}
 	$date = $_GPC['date'];
 	if (!empty($date)) {
