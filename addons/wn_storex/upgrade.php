@@ -591,3 +591,27 @@ if (!empty($unused_files)) {
 		file_delete($file);
 	}
 }
+//order表paytype修改
+if (pdo_fieldexists('storex_order', 'paytype')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " CHANGE `paytype` `paytype` VARCHAR(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '';");
+}
+$order_lists = pdo_getall('storex_order');
+$pay_type_list = array('credit', 'wechat', 'delivery', 'alipay');
+if (!empty($order_lists) && is_array($order_lists)) {
+	foreach ($order_lists as $key => $value) {
+		if (!empty($value['paytype']) && !in_array($value['paytype'], $pay_type_list)) {
+			if (in_array($value['paytype'], array('1', '21', '22', '3'))) {
+				if ($value['paytype'] == 1) {
+					$update['paytype'] = 'credit';
+				} elseif ($value['paytype'] == 21) {
+					$update['paytype'] = 'wechat';
+				} elseif ($value['paytype'] == 22) {
+					$update['paytype'] = 'alipay';
+				} elseif ($value['paytype'] == 3) {
+					$update['paytype'] = 'delivery';
+				}
+				pdo_update('storex_order', $update, array('id' => $value['id']));
+			}
+		}
+	}
+}

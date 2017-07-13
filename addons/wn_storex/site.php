@@ -596,6 +596,18 @@ class Wn_storexModuleSite extends WeModuleSite {
 			}
 		}
 	}
+	
+	public function refundResult($params) {
+		global $_GPC, $_W;
+		mload->model('order');
+		$orderid = $params['tid'];
+		$result = order_begin_refund($orderid);
+		if (is_error($result)) {
+			message($result, '', 'ajax');
+		} else {
+			message(error(0, '退款成功'), '', 'ajax');
+		}
+	}
 
 	//用户注册
 	public function doMobileregister() {

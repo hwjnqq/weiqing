@@ -32,7 +32,6 @@ function order_pay_status($status) {
  */
 function order_refund_status($status) {
 	$order_refund_status = array(
-		REFUND_STATUS_APPLY => '退款申请',
 		REFUND_STATUS_PROCESS => '退款处理中',
 		REFUND_STATUS_SUCCESS => '退款成功',
 		REFUND_STATUS_FAILED => '退款失败'
@@ -98,7 +97,7 @@ function orders_check_status($item) {
 		if ($item['paystatus'] == PAY_STATUS_UNPAID) {
 			$item['is_over'] = 1;
 		} elseif ($item['paystatus'] == PAY_STATUS_PAID) {
-			if (empty($item['refund_status'])) {
+			if ($item['refund_status'] == 2) {
 				$item['is_refund'] = 1;
 			}
 		}
@@ -168,27 +167,35 @@ function orders_check_status($item) {
 function order_build_refund($orderid) {
 	global $_W;
 	$order = pdo_get('storex_order', array('id' => $orderid));
+	$refund = pdo_get('storex_refund_logs', array('orderid' => $orderid));
 	if (empty($order)) {
 		return error(-1, '订单不存在或已删除');
 	}
 	if ($order['sum_price'] <= 0) {
 		return error(-1, '订单支付金额为0, 不能发起退款申请');
 	}
-	$moduleid = pdo_fetchcolumn("SELECT mid FROM " . tablename('modules') . " WHERE name = :name", array(':name' => 'wn_storex'));
-	$moduleid = empty($moduleid) ? '000000' : sprintf("%06d", $moduleid);
 	$logs = array(
 		'type' => $order['paytype'],
 		'uniacid' => $_W['uniacid'],
 		'orderid' => intval($orderid),
-		'out_refund_no' => date('YmdHis') . $moduleid . random(8, 1),
 		'refund_fee' => $order['sum_price'],
 		'total_fee' => $order['sum_price'],
-		'status' => REFUND_STATUS_APPLY,
+		'status' => REFUND_STATUS_PROCESS,
 		'time' => TIMESTAMP
 	);
-	pdo_update('storex_order', array('refund_status' => 1), array('id' => $id));
-	pdo_insert('storex_refund_logs', $logs);
-	return pdo_insertid();
+	if (empty($refund)) {
+		pdo_update('storex_order', array('refund_status' => 1), array('id' => $orderid));
+		pdo_insert('storex_refund_logs', $logs);
+	} else {
+		if ($refund['status'] == REFUND_STATUS_SUCCESS) {
+			return error(-1, '退款已成功, 不能发起退款');
+		} elseif ($refund['status'] == REFUND_STATUS_PROCESS) {
+			return error(-1, '退款处理中');
+		} elseif ($refund['status'] == REFUND_STATUS_FAILED) {
+			return error(-1, 'dasd');
+		}
+	}
+	return true;
 }
 
 function order_begin_refund($orderid) {
@@ -240,7 +247,7 @@ function order_query_refund($orderid) {
 	if (empty($refund)) {
 		return error(-1, '退款申请不存在或已删除');
 	}
-	if ($refund['pay_type'] == 'wechat') {
+	if ($refund['type'] == 'wechat') {
 		//只有微信需要查询,余额和支付宝不需要
 		load()->classs('weixin.pay');
 		$wxpay_api = new WeiXinPay();
@@ -257,7 +264,7 @@ function order_query_refund($orderid) {
 			$update['status'] = REFUND_STATUS_SUCCESS;
 			pdo_update('storex_refund_logs', array('status' => REFUND_STATUS_SUCCESS, 'time' => TIMESTAMP), array('uniacid' => $_W['uniacid'], 'id' => $refund['id']));
 		} else {
-			pdo_update('storex_refund_logs', $update, array('status' => REFUND_STATUS_SUCCESS, 'time' => TIMESTAMP), array('id' => $refund['id']));
+			pdo_update('storex_refund_logs', array('status' => REFUND_STATUS_FAILED, 'time' => TIMESTAMP), array('uniacid' => $_W['uniacid'], 'id' => $refund['id']));
 		}
 		return true;
 	}
