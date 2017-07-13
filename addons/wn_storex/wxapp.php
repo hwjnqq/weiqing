@@ -20,6 +20,8 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		$params = json_decode(htmlspecialchars_decode($_GPC['params']), true);
 		$params['u_openid'] = trim($_SESSION['openid']);
 		$params['from'] = 'wxapp';
+		$params['wxapp_uniacid'] = $_GPC['i'];
+		$params['acid'] = $_W['account']['acid'];
 		if (empty($params['u_openid'])) {
 			return $this->result(41009, '请重新登录!', array());
 		}

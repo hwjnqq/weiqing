@@ -2,7 +2,9 @@
 //检查每个文件的传值是否为空
 function check_params() {
 	global $_W, $_GPC;
-	if (!empty($_GPC['u_openid'])) {
+	if (!empty($_GPC['from']) && $_GPC['from'] == 'wxapp') {
+		$acid = $_GPC['acid'];
+		$_W['account'] = account_fetch($acid);
 		$user_info = pdo_get('mc_mapping_fans', array('openid' => $_GPC['u_openid']), array('openid', 'uid'));
 		load()->model('cache');
 		$cachekey = cache_system_key("uid:{$user_info['openid']}");
@@ -525,8 +527,8 @@ function clerk_permission_storex($type) {
 	return $manage_storex_ids;
 }
 function send_custom_notice($msgtype, $text, $touser) {
-	$acc = WeAccount::create();
 	if (!check_wxapp()) {
+		$acc = WeAccount::create();
 		$custom = array(
 			'msgtype' => $msgtype,
 			'text' => $text,
@@ -610,7 +612,7 @@ function get_plugin_list() {
 function check_wxapp() {
 	global $_W;
 	if ($_W['account']['type'] == 4) {
-		if ($_W['account']['uniacid'] == $_W['uniacid']) {
+		if ($_W['account']['uniacid'] != $_W['uniacid']) {
 			return true;
 		}
 	}

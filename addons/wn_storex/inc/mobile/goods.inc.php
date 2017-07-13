@@ -374,7 +374,6 @@ if ($op == 'order') {
 		}
 	}
 	
-	$acc = WeAccount::create($_W['acid']);
 	$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('email', 'mobile', 'nickname', 'template', 'confirm_templateid', 'templateid'));
 	$clerk = array();
 	if (!empty($setInfo['nickname'])) {

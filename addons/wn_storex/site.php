@@ -485,84 +485,87 @@ class Wn_storexModuleSite extends WeModuleSite {
 				}
 				$score = intval($goodsinfo['score']);
 				$acc = WeAccount::create($_W['acid']);
+				
 				if ($params['result'] == 'success' && $_SESSION['ewei_hotel_pay_result'] != $params['tid']) {
-					//发送模板消息提醒
-					if (!empty($setInfo['template']) && !empty($setInfo['confirm_templateid'])) {
-						// $acc = WeAccount::create($_W['acid']);
-						$time = '';
-						$time.= date('Y年m月d日',$order['btime']);
-						$time.='-';
-						$time.= date('Y年m月d日',$order['etime']);
-						$data = array(
-							'first' => array('value' =>'你好，你已成功提交订单'),
-							'keyword1' => array('value' => $order['style']),
-							'keyword2' => array('value' => $time),
-							'keyword3' => array('value' => $order['contact_name']),
-							'keyword4' => array('value' => $order['sum_price']),
-							'keyword5' => array('value' => $order['ordersn']),
-							'remark' => array('value' => '如有疑问，请咨询店铺前台'),
-						);
-						$acc->sendTplNotice($_W['uniacid'], $setInfo['confirm_templateid'], $data);
-
-					} else {
-						$info = '您在' . $storex_bases['title'] . '预订的' . $goodsinfo['title'] . "已预订成功";
-						$custom = array(
-							'msgtype' => 'text',
-							'text' => array('content' => urlencode($info)),
-							'touser' => $_W['openid'],
-						);
-						$status = $acc->sendCustomNotice($custom);
-					}
-
-					//TM00217
-					$clerks = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'status'=>1));
-					if (!empty($clerks)) {
-						foreach ($clerks as $k => $info) {
-							$permission = iunserializer($info['permission']);
-							if (!empty($permission[$order['hotelid']])) {
-								$is_permit = false;
-								foreach ($permission[$order['hotelid']] as $permit) {
-									if ($permit == 'wn_storex_permission_order') {
-										$is_permit = true;
-										continue;
-									}
-								}
-								if (empty($is_permit)) {
-									unset($clerks[$k]);
-								}
-							}
-						}
-					}
-					if (!empty($setInfo['nickname'])) {
-						$from_user = pdo_get('mc_mapping_fans', array('nickname' => $setInfo['nickname'], 'uniacid' => $_W['uniacid']));
-						if (!empty($from_user)) {
-							$clerks[]['from_user'] = $from_user['openid'];
-						}
-					}
-					if (!empty($setInfo['template']) && !empty($setInfo['templateid'])) {
-						$tplnotice = array(
-							'first' => array('value' => '您好，店铺有新的订单等待处理'),
-							'order' => array('value' => $order['ordersn']),
-							'Name' => array('value' => $order['contact_name']),
-							'datein' => array('value' => date('Y-m-d', $order['btime'])),
-							'dateout' => array('value' => date('Y-m-d', $order['etime'])),
-							'number' => array('value' => $order['nums']),
-							'room type' => array('value' => $order['style']),
-							'pay' => array('value' => $order['sum_price']),
-							'remark' => array('value' => '为保证用户体验度，请及时处理！')
-						);
-						foreach ($clerks as $clerk) {
-							$acc->sendTplNotice($clerk['from_user'], $setInfo['templateid'], $tplnotice);
-						}
-					} else {
-						foreach ($clerks as $clerk) {
-							$info = '店铺有新的订单,为保证用户体验度，请及时处理!';
+					if (!check_wxapp()) {
+						//发送模板消息提醒
+						if (!empty($setInfo['template']) && !empty($setInfo['confirm_templateid'])) {
+							// $acc = WeAccount::create($_W['acid']);
+							$time = '';
+							$time.= date('Y年m月d日',$order['btime']);
+							$time.='-';
+							$time.= date('Y年m月d日',$order['etime']);
+							$data = array(
+								'first' => array('value' =>'你好，你已成功提交订单'),
+								'keyword1' => array('value' => $order['style']),
+								'keyword2' => array('value' => $time),
+								'keyword3' => array('value' => $order['contact_name']),
+								'keyword4' => array('value' => $order['sum_price']),
+								'keyword5' => array('value' => $order['ordersn']),
+								'remark' => array('value' => '如有疑问，请咨询店铺前台'),
+							);
+							$acc->sendTplNotice($_W['uniacid'], $setInfo['confirm_templateid'], $data);
+	
+						} else {
+							$info = '您在' . $storex_bases['title'] . '预订的' . $goodsinfo['title'] . "已预订成功";
 							$custom = array(
 								'msgtype' => 'text',
 								'text' => array('content' => urlencode($info)),
-								'touser' => $clerk['from_user'],
+								'touser' => $_W['openid'],
 							);
 							$status = $acc->sendCustomNotice($custom);
+						}
+	
+						//TM00217
+						$clerks = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'status'=>1));
+						if (!empty($clerks)) {
+							foreach ($clerks as $k => $info) {
+								$permission = iunserializer($info['permission']);
+								if (!empty($permission[$order['hotelid']])) {
+									$is_permit = false;
+									foreach ($permission[$order['hotelid']] as $permit) {
+										if ($permit == 'wn_storex_permission_order') {
+											$is_permit = true;
+											continue;
+										}
+									}
+									if (empty($is_permit)) {
+										unset($clerks[$k]);
+									}
+								}
+							}
+						}
+						if (!empty($setInfo['nickname'])) {
+							$from_user = pdo_get('mc_mapping_fans', array('nickname' => $setInfo['nickname'], 'uniacid' => $_W['uniacid']));
+							if (!empty($from_user)) {
+								$clerks[]['from_user'] = $from_user['openid'];
+							}
+						}
+						if (!empty($setInfo['template']) && !empty($setInfo['templateid'])) {
+							$tplnotice = array(
+								'first' => array('value' => '您好，店铺有新的订单等待处理'),
+								'order' => array('value' => $order['ordersn']),
+								'Name' => array('value' => $order['contact_name']),
+								'datein' => array('value' => date('Y-m-d', $order['btime'])),
+								'dateout' => array('value' => date('Y-m-d', $order['etime'])),
+								'number' => array('value' => $order['nums']),
+								'room type' => array('value' => $order['style']),
+								'pay' => array('value' => $order['sum_price']),
+								'remark' => array('value' => '为保证用户体验度，请及时处理！')
+							);
+							foreach ($clerks as $clerk) {
+								$acc->sendTplNotice($clerk['from_user'], $setInfo['templateid'], $tplnotice);
+							}
+						} else {
+							foreach ($clerks as $clerk) {
+								$info = '店铺有新的订单,为保证用户体验度，请及时处理!';
+								$custom = array(
+									'msgtype' => 'text',
+									'text' => array('content' => urlencode($info)),
+									'touser' => $clerk['from_user'],
+								);
+								$status = $acc->sendCustomNotice($custom);
+							}
 						}
 					}
 

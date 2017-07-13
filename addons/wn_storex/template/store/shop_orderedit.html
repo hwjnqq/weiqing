@@ -245,7 +245,7 @@
 						<input type="hidden" name="id" value="{$item['id']}">
 						<input type="hidden" name="storeid" value="{$storeid}" />
 						<input type="hidden" name="old_status" value="{$item['status']}" />
-						<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+						<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" {if $item['status'] == 3 || ($item['paystatus'] !=1 && ($item['status'] == -1 || $item['status'] == 2))}disabled{/if}/>
 						<input type="hidden" name="token" value="{$_W['token']}" />
 					</div>
 				</form>
