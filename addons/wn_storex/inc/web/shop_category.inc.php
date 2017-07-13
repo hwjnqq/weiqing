@@ -51,9 +51,6 @@ if ($op == 'post') {
 		}
 	}
 	if (checksubmit('submit')) {
-		if (empty($storeid)) {
-			message('请选择店铺', 'refresh', 'error');
-		}
 		if (empty($_GPC['name'])) {
 			message('抱歉，请输入分类名称！', 'refresh', 'error');
 		}
@@ -82,7 +79,6 @@ if ($op == 'post') {
 			}
 		} else {
 			pdo_insert('storex_categorys', $data);
-			$id = pdo_insertid();
 		}
 		message('更新分类成功！', $this->createWebUrl('shop_category', array('op' => 'display', 'storeid' => $storeid)), 'success');
 	}

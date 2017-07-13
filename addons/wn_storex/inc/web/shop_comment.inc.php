@@ -27,8 +27,8 @@ if ($op == 'display') {
 		$param[':title'] = "%{$search_title}%";
 	}
 	
-	$comments = pdo_fetchall("SELECT c.*, g.title FROM " . tablename('storex_comment') . " AS c LEFT JOIN " .tablename($table). " AS g ON c.goodsid = g.id WHERE c.hotelid = :store_base_id AND g.weid = :weid " . $condition . "LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $param);
-	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_comment') . " AS c LEFT JOIN " .tablename($table) . " AS g ON c.goodsid = g.id WHERE c.hotelid = :store_base_id AND g.weid = :weid " . $condition, $param);
+	$comments = pdo_fetchall("SELECT c.*, g.title FROM " . tablename('storex_comment') . " AS c LEFT JOIN " .tablename($table) . " AS g ON c.goodsid = g.id WHERE c.hotelid = :store_base_id AND g.weid = :weid " . $condition . "LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $param);
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_comment') . " AS c LEFT JOIN " . tablename($table) . " AS g ON c.goodsid = g.id WHERE c.hotelid = :store_base_id AND g.weid = :weid " . $condition, $param);
 	if (!empty($comments) && is_array($comments)) {
 		foreach ($comments as &$val) {
 			$val['createtime'] = date('Y-m-d H:i:s', $val['createtime']);

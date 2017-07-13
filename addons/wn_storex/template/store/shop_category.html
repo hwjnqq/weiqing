@@ -29,7 +29,7 @@
 						</div>
 					</td>
 					<td>
-						{if $row['enabled']==1}
+						{if $row['enabled'] == 1}
 						<span class='label label-success'>显示</span>
 						{else}
 						<span class='label label-danger'>隐藏</span>
@@ -49,12 +49,12 @@
 						<input type="text" class="form-control col-lg-2" style = "width:50%;" name="displayorder[{$rows['id']}]" value="{$rows['displayorder']}">
 					</td>
 					<td>
-						<div style="padding-left:50px;height:30px;line-height:30px;background:url('./resource/images/bg_repno.gif') no-repeat -245px -545px;">{$rows['name']}
+						<div>{$rows['name']}
 							<img src="{php echo tomedia($rows['thumb']);}" width='30' height="30" onerror="$(this).remove()" style='padding:1px;border: 1px solid #ccc;float:left;' />&nbsp;&nbsp;
 						</div>
 					</td>
 					<td>
-						{if $rows['enabled']==1}
+						{if $rows['enabled'] == 1}
 						<span class='label label-success'>显示</span>
 						{else}
 						<span class='label label-danger'>隐藏</span>
