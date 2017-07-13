@@ -278,22 +278,22 @@
 <script type="text/javascript">
 	function formcheck() {
 		var ok = true;
-		if ($("#status").val() == 1 && $("#oldstatus").val() != 1) {
+		if ($("#status").val() == 1) {
 			$("#room_list option").each(function() {
 				var val = $(this).val().split("|");
 				if (val[1] == 0) {
-					alert(val[0] + "无房");
+					util.message(val[0] + "无房");
 					ok = false;
 					return false;
 				} else {
 					if (val[2] != '不限') {
 						if (parseInt(val[2]) == 0) {
-							alert(val[0] + "没有空房间");
+							util.message(val[0] + "没有空房间");
 							ok =false;
 							return false;
 						}
 						if (parseInt(val[2]) > 0 && parseInt(val[2]) < {$item['nums']}) {
-							alert(val[0] + "房间数量不够");
+							util.message(val[0] + "房间数量不够");
 							ok =false;
 							return false;
 						}
