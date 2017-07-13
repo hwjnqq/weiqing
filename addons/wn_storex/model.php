@@ -25,6 +25,7 @@ define('GOODS_STATUS_RECEIVED', '3');
 define('GOODS_STATUS_NOT_CHECKED', '4');
 define('GOODS_STATUS_CHECKED', '5');
 
+define('REFUND_STATUS_APPLY', '0');
 define('REFUND_STATUS_PROCESS', '1');
 define('REFUND_STATUS_SUCCESS', '2');
 define('REFUND_STATUS_FAILED', '3');
