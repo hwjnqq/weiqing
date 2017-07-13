@@ -39,14 +39,35 @@ if ($store_type == STORE_TYPE_HOTEL) {
 }
 
 if ($op == 'display') {
+	$category = pdo_getall('storex_categorys', array('store_base_id' => $storeid, 'enabled' => 1), array('id', 'name', 'store_base_id', 'parentid'), '', 'parentid ASC');
+	$category_set = array();
+	if (!empty($category) && is_array($category)) {
+		foreach ($category as $info) {
+			if (empty($info['parentid'])) {
+				$category_set[$info['id']] = $info;
+				$category_set[$info['id']]['sub_class'] = array();
+			} else {
+				if (!empty($category_set[$info['parentid']])) {
+					$category_set[$info['parentid']]['sub_class'][] = $info;
+				}
+			}
+		}
+	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	$sql .= ' AND ' . $store_field . ' = ' . $storeid;
 	$params = array();
+	
 	if (!empty($_GPC['title'])) {
 		$sql .= ' AND r.title LIKE :keywordds';
 		$params[':keywordds'] = "%{$_GPC['title']}%";
 	}
+	if (!empty($_GPC['category_id'])) {
+		$category_id = intval($_GPC['category_id']);
+		$sql .= ' AND ( r.pcate = :category_id OR r.ccate = :category_id)';
+		$params[':category_id'] = $category_id;
+	}
+	
 	$hotelid_as = '';
 	if ($store_type == STORE_TYPE_HOTEL) {
 		$hotelid_as = ' r.hotelid AS store_base_id,';

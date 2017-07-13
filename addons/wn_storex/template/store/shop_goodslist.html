@@ -12,8 +12,29 @@
 					<input type="hidden" name="storeid" value="{$storeid}">
 					<div class="form-group">
 						<div class="col-xs-12 col-sm-8 col-lg-9">
+							<select name="category_id" class="form-control input-medium">
+								<option value="">分类搜索</option>
+								{loop $category_set $class}
+									<option value="{$class['id']}" {if $category_id == $class['id']} selected="selected" {/if}>{$class['name']}</option>
+									{if !empty($class['sub_class'])}
+										{loop $class['sub_class'] $sub_class}
+											<option value="{$sub_class['id']}" {if $category_id == $sub_class['id']} selected="selected" {/if}>----{$sub_class['name']}</option>
+										{/loop}
+									{/if}
+								{/loop}
+							</select>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-xs-12 col-sm-8 col-lg-9">
 							<div class="input-group">
 								<input class="form-control" name="title" placeholder="请输入商品名称" id="" type="text" value="{$_GPC['title']}">
+							</div>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-xs-12 col-sm-8 col-lg-9">
+							<div class="input-group">
 								<span class="input-group-btn">
 									<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
 								</span>
