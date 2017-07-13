@@ -148,48 +148,45 @@ if ($op == 'edit') {
 				$is_house = 2;
 			}
 		}
-		$goods = array(
-			'store_base_id' => $store_base_id,
-		);
-		$room = array(
-			'hotelid' => $store_base_id,
-			'breakfast' => $_GPC['breakfast'],
-			'area' => $_GPC['area'],
-			'area_show' => $_GPC['area_show'],
-			'bed' => $_GPC['bed'],
-			'bed_show' => $_GPC['bed_show'],
-			'bedadd' => $_GPC['bedadd'],
-			'bedadd_show' => $_GPC['bedadd_show'],
-			'persons' => $_GPC['persons'],
-			'persons_show' => $_GPC['persons_show'],
-			'floor' => $_GPC['floor'],
-			'floor_show' => $_GPC['floor_show'],
-			'smoke' => $_GPC['smoke'],
-			'smoke_show' => $_GPC['smoke_show'],
-			'service' => intval($_GPC['service']),
-			'is_house' => $is_house,
-		);
-	
 		if (is_array($_GPC['thumbs'])) {
 			$common['thumbs'] = serialize($_GPC['thumbs']);
 		} else {
 			$common['thumbs'] = serialize(array());
 		}
 		if ($store_type == 1) {
+			$room = array(
+				'hotelid' => $store_base_id,
+				'breakfast' => $_GPC['breakfast'],
+				'area' => $_GPC['area'],
+				'area_show' => $_GPC['area_show'],
+				'bed' => $_GPC['bed'],
+				'bed_show' => $_GPC['bed_show'],
+				'bedadd' => $_GPC['bedadd'],
+				'bedadd_show' => $_GPC['bedadd_show'],
+				'persons' => $_GPC['persons'],
+				'persons_show' => $_GPC['persons_show'],
+				'floor' => $_GPC['floor'],
+				'floor_show' => $_GPC['floor_show'],
+				'smoke' => $_GPC['smoke'],
+				'smoke_show' => $_GPC['smoke_show'],
+				'service' => intval($_GPC['service']),
+				'is_house' => $is_house,
+			);
 			$data = array_merge($room, $common);
-			if (empty($id)) {
-				pdo_insert($table, $data);
-			} else {
-				pdo_update($table, $data, array('id' => $id));
-			}
-			pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT count(*) FROM " . tablename('storex_room') . " WHERE hotelid = :store_base_id AND is_house = :is_house) WHERE store_base_id = :store_base_id", array(':store_base_id' => $store_base_id, ':is_house' => $data['is_house']));
 		} else {
+			$goods = array(
+				'store_base_id' => $store_base_id,
+			);
 			$data = array_merge($goods, $common);
-			if (empty($id)) {
-				pdo_insert($table, $data);
-			} else {
-				pdo_update($table, $data, array('id' => $id));
-			}
+		}
+		
+		if (empty($id)) {
+			pdo_insert($table, $data);
+		} else {
+			pdo_update($table, $data, array('id' => $id));
+		}
+		if ($store_type == 1) {
+			pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT count(*) FROM " . tablename('storex_room') . " WHERE hotelid = :store_base_id AND is_house = :is_house) WHERE store_base_id = :store_base_id", array(':store_base_id' => $store_base_id, ':is_house' => $data['is_house']));
 		}
 		message('商品信息更新成功！', $this->createWebUrl('goodsmanage', array('store_type' => $data['store_type'])), 'success');
 	}

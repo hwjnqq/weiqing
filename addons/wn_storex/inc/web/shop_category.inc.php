@@ -94,23 +94,19 @@ if ($op == 'delete') {
 	if (empty($category)) {
 		message('抱歉，分类不存在或是已经被删除！', $this->createWebUrl('shop_category', array('op' => 'display', 'storeid' => $storeid)), 'error');
 	}
-	if ($store['store_type'] == STORE_TYPE_HOTEL ) {
-		if ($category['parentid'] == 0) {
-			pdo_delete('storex_room', array('pcate' => $id, 'weid' => $_W['uniacid']));
-			pdo_delete('storex_categorys', array('id' => $id, 'parentid' => $id), 'OR');
-			message('分类删除成功！', $this->createWebUrl('shop_category', array('op' => 'display', 'storeid' => $storeid)), 'success');
-		}
-		pdo_delete('storex_room', array('ccate' => $id, 'weid' => $_W['uniacid']));
-		pdo_delete('storex_categorys', array('id' => $id, 'weid' => $_W['uniacid']));
-		message('分类删除成功！', $this->createWebUrl('shop_category', array('op' => 'display', 'storeid' => $storeid)), 'success');
+	$table = get_goods_table($store['store_type']);
+	$relation = 'AND';
+	$condition_goods['weid'] = $_W['uniacid'];
+	if (empty($category['parentid'])) {
+		$condition_goods['pcate'] = $id;
+		$condition_category['parentid'] = $id;
+		$relation = 'OR';
+	} else {
+		$condition_goods['ccate'] = $id;
+		$condition_category['weid'] = $_W['uniacid'];
 	}
-	if ($category['parentid'] == 0) {
-		pdo_delete('storex_goods', array('pcate' => $id, 'weid' => $_W['uniacid']));
-		pdo_delete('storex_categorys', array('id' => $id, 'parentid' => $id), 'OR');
-		message('分类删除成功！', $this->createWebUrl('shop_category', array('op' => 'display', 'storeid' => $storeid)), 'success');
-	}
-	pdo_delete('storex_goods', array('ccate' => $id, 'weid' => $_W['uniacid']));
-	pdo_delete('storex_categorys', array('id' => $id, 'weid' => $_W['uniacid']));
+	pdo_delete($table, $condition_goods);
+	pdo_delete('storex_categorys', $condition_category, $relation);
 	message('分类删除成功！', $this->createWebUrl('shop_category', array('op' => 'display', 'storeid' => $storeid)), 'success');
 }
 include $this->template('store/shop_category');

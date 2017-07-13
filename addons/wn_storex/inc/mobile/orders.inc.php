@@ -111,9 +111,6 @@ if ($op == 'cancel') {
 		message(error(-1, '该订单不能取消！'), '', 'ajax');
 	}
 	$update_data = array('status' => -1);
-	if ($order_info['paystatus'] == 1) {
-		$update_data['refund_status'] = 1;
-	}
 	$result = pdo_update('storex_order', $update_data, array('id' => $id, 'weid' => $_W['uniacid']));
 	if (!empty($order_info['coupon'])) {
 		pdo_update('storex_coupon_record', array('status' => 1), array('id' => $order_info['coupon']));

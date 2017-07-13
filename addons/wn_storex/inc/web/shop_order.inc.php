@@ -88,7 +88,7 @@ if ($op == 'display') {
 	}
 
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') . " AS h on o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r on r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition", $params);
-	if ($_GPC['export'] != '') {
+	if (!empty($_GPC['export'])) {
 		$export_order_lists = pdo_fetchall("SELECT o.*, h.title as hoteltitle, r.title AS roomtitle FROM " . tablename('storex_order') . " o LEFT JOIN " . tablename('storex_bases') . " AS h on o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r ON r.id = o.roomid  WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC" . ',' . $psize, $params);
 		getOrderUniontid($export_order_lists);
 		/* 输入到CSV文件 */
@@ -144,12 +144,12 @@ if ($op == 'display') {
 }
 
 if ($op == 'edit') {
-	$id = $_GPC['id'];
+	$id = intval($_GPC['id']);
 	if (!empty($id)) {
 		$item = pdo_get('storex_order', array('id' => $id));
 		$paylog = pdo_get('core_paylog', array('uniacid' => $item['weid'], 'tid' => $item['id'], 'module' => 'wn_storex'), array('uniacid', 'uniontid', 'tid'));
 		if (empty($item)) {
-			message('抱歉，订单不存在或是已经删除！', '', 'error');
+			message('抱歉，订单不存在或是已经删除！', referer(), 'error');
 		}
 		if ($store_type == STORE_TYPE_HOTEL) {
 			$good_info = pdo_get('storex_room', array('hotelid' => $storeid, 'id' => $item['roomid']), array('id', 'is_house'));
@@ -164,7 +164,7 @@ if ($op == 'edit') {
 		$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']));
 		$status = intval($_GPC['status']);
 		if ($item['status'] == $status) {
-			message('订单状态已经是该状态了，请勿重复操作！', '', 'error');
+			message('订单状态已经是该状态了，请勿重复操作！', referer(), 'error');
 		}
 		
 		$data = array(
@@ -178,27 +178,27 @@ if ($op == 'edit') {
 			} elseif ($status == 7 && $data['goods_status'] != GOODS_STATUS_RECEIVED) {
 				$data['goods_status'] = GOODS_STATUS_RECEIVED;
 			} else {
-				message('商品状态已经是该状态了！', '', 'error');
+				message('商品状态已经是该状态了！', referer(), 'error');
 			}
 		} elseif ($status == 8) {
 			if (($item['status'] == ORDER_STATUS_CANCEL || $item['status'] == ORDER_STATUS_SURE) && $item['paystatus'] == PAY_STATUS_PAID && $item['refund_status'] != REFUND_STATUS_SUCCESS) {
 				$data['refund_status'] = REFUND_STATUS_PROCESS;
 			} else {
-				message('该订单不符合退款要求！', '', 'error');
+				message('该订单不符合退款要求！', referer(), 'error');
 			}
 		} else {
 			$data['status'] = $status;
 		}
 		if ($item['status'] == ORDER_STATUS_SURE || $item['goods_status'] == GOODS_STATUS_CHECKED || $item['goods_status'] == GOODS_STATUS_SHIPPED || $item['goods_status'] == GOODS_STATUS_RECEIVED ) {
 			if (!empty($data['status']) && ($data['status'] == ORDER_STATUS_CANCEL || $data['status'] == ORDER_STATUS_REFUSE)) {
-				message('订单已确认或发货，不能操作！', '', 'error');
+				message('订单已确认或发货，不能操作！', referer(), 'error');
 			}
 		}
 		if ($item['status'] == ORDER_STATUS_CANCEL) {
-			message('订单状态已经取消，不能操作！', '', 'error');
+			message('订单状态已经取消，不能操作！', referer(), 'error');
 		}
 		if ($item['status'] == ORDER_STATUS_OVER) {
-			message('订单状态已经完成，不能操作！', '', 'error');
+			message('订单状态已经完成，不能操作！', referer(), 'error');
 		}
 		
 // 		if (!empty($data['refund_status']) && $data['refund_status'] == 1) {
@@ -241,7 +241,7 @@ if ($op == 'edit') {
 					$tplnotice = array(
 						'first' => array('value'=>'尊敬的宾客，非常抱歉的通知您，您的预订订单被拒绝。'),
 						'keyword1' => array('value' => $item['ordersn']),
-						'keyword2' => array('value' => date('Y.m.d', $item['btime']). '-'. date('Y.m.d', $item['etime'])),
+						'keyword2' => array('value' => date('Y.m.d', $item['btime']) . '-' . date('Y.m.d', $item['etime'])),
 						'keyword3' => array('value' => $item['nums']),
 						'keyword4' => array('value' => $item['sum_price']),
 						'keyword5' => array('value' => '商品不足'),
@@ -249,7 +249,7 @@ if ($op == 'edit') {
 					$acc = WeAccount::create();
 					$acc->sendTplNotice($item['openid'], $setting['refuse_templateid'], $tplnotice);
 				} else {
-					$info = '您在'.$store['title'].'预订的'.$room['title']."不足。已为您取消订单";
+					$info = '您在' . $store['title'] . '预订的' . $room['title'] . "不足。已为您取消订单";
 					$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
 				}
 			}
@@ -306,15 +306,15 @@ if ($op == 'edit') {
 				if (!empty($setting['template']) && !empty($setting['finish_templateid']) && $store_type == STORE_TYPE_HOTEL) {
 					$tplnotice = array(
 						'first' => array('value' =>'您已成功办理离店手续，您本次入住酒店的详情为'),
-						'keyword1' => array('value' =>date('Y-m-d', $item['btime'])),
-						'keyword2' => array('value' =>date('Y-m-d', $item['etime'])),
-						'keyword3' => array('value' =>$item['sum_price']),
+						'keyword1' => array('value' => date('Y-m-d', $item['btime'])),
+						'keyword2' => array('value' => date('Y-m-d', $item['etime'])),
+						'keyword3' => array('value' => $item['sum_price']),
 						'remark' => array('value' => '欢迎您的下次光临。')
 					);
 					$acc = WeAccount::create();
 					$result = $acc->sendTplNotice($item['openid'], $setting['finish_templateid'], $tplnotice);
 				} else {
-					$info = '您在'.$store['title'] . '预订的' . $room['title'] . '订单已完成,欢迎下次光临';
+					$info = '您在' . $store['title'] . '预订的' . $room['title'] . '订单已完成,欢迎下次光临';
 					$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
 				}
 			}
@@ -330,7 +330,7 @@ if ($op == 'edit') {
 				//TM00058
 				if (!empty($setting['template']) && !empty($setting['check_in_templateid'])) {
 					$tplnotice = array(
-							'first' =>array('value' =>'您好,您已入住' . $store['title'] . $room['title']),
+							'first' =>array('value' => '您好,您已入住' . $store['title'] . $room['title']),
 							'hotelName' => array('value' => $store['title']),
 							'roomName' => array('value' => $room['title']),
 							'date' => array('value' => date('Y-m-d', $item['btime'])),
@@ -431,7 +431,7 @@ if ($op == 'delete') {
 	$id = intval($_GPC['id']);
 	$item = pdo_get('storex_order', array('id' => $id), array('id'));
 	if (empty($item)) {
-		message('抱歉，订单不存在或是已经删除！', '', 'error');
+		message('抱歉，订单不存在或是已经删除！', referer(), 'error');
 	}
 	pdo_delete('storex_order', array('id' => $id));
 	message('删除成功！', referer(), 'success');

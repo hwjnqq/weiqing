@@ -147,9 +147,6 @@ if ($op == 'edit_order') {
 	}
 	//订单取消
 	if ($data['status'] == -1 || $data['status'] == 2) {
-		if ($item['paystatus'] == 1) {
-			$data['refund_status'] = 1;
-		}
 		if ($store_info['store_type'] == 1) {
 			$params = array();
 			$sql = "SELECT id, roomdate, num FROM " . tablename('storex_room_price');

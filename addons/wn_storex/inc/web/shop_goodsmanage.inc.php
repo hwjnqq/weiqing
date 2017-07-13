@@ -97,27 +97,27 @@ if ($op == 'edit') {
 		$store_base_id = $item[$store_field];
 		if (empty($item)) {
 			if ($store_type == STORE_TYPE_HOTEL) {
-				message('抱歉，房型不存在或是已经删除！', '', 'error');
+				message('抱歉，房型不存在或是已经删除！', referer(), 'error');
 			} else {
-				message('抱歉，商品不存在或是已经删除！', '', 'error');
+				message('抱歉，商品不存在或是已经删除！', referer(), 'error');
 			}
 		}
 		$piclist = iunserializer($item['thumbs']);
 	}
 	if (checksubmit('submit')) {
 		if (empty($_GPC['title'])) {
-			message('请输入房型！', '', 'error');
+			message('请输入房型！', referer(), 'error');
 		}
 		if ($store['category_set'] == 1) {
 			if (empty($_GPC['category']['parentid'])) {
-				message('一级分类不能为空！', '', 'error');
+				message('一级分类不能为空！', referer(), 'error');
 			}
 		}
 		if ($store_type == STORE_TYPE_HOTEL && empty($_GPC['device'])) {
-			message('商品说明不能为空！', '', 'error');
+			message('商品说明不能为空！', referer(), 'error');
 		}
 		if (empty($_GPC['oprice']) || $_GPC['oprice'] <= 0 || empty($_GPC['cprice']) || $_GPC['cprice'] <= 0) {
-			message('商品原价和优惠价不能为空！', '', 'error');
+			message('商品原价和优惠价不能为空！', referer(), 'error');
 		}
 		
 		$common = array(
@@ -149,7 +149,11 @@ if ($op == 'edit') {
 				$is_house = 2;
 			}
 		}
-		
+		if (is_array($_GPC['thumbs'])) {
+			$common['thumbs'] = iserializer($_GPC['thumbs']);
+		} else {
+			$common['thumbs'] = iserializer(array());
+		}
 		if (empty($store_type)) {
 			$goods = array(
 				'store_base_id' => $store_base_id,
@@ -159,46 +163,35 @@ if ($op == 'edit') {
 				'full_free' => is_numeric($_GPC['full_free']) ? $_GPC['full_free'] : 0,
 			);
 			$goods['express_set'] = iserializer($express_set);
-		}
-		$room = array(
-			'hotelid' => $store_base_id,
-			'breakfast' => $_GPC['breakfast'],
-			'area' => $_GPC['area'],
-			'area_show' => $_GPC['area_show'],
-			'bed' => $_GPC['bed'],
-			'bed_show' => $_GPC['bed_show'],
-			'bedadd' => $_GPC['bedadd'],
-			'bedadd_show' => $_GPC['bedadd_show'],
-			'persons' => $_GPC['persons'],
-			'persons_show' => $_GPC['persons_show'],
-			'floor' => $_GPC['floor'],
-			'floor_show' => $_GPC['floor_show'],
-			'smoke' => $_GPC['smoke'],
-			'smoke_show' => $_GPC['smoke_show'],
-			'service' => intval($_GPC['service']),
-			'is_house' => $is_house,
-		);
-	
-		if (is_array($_GPC['thumbs'])) {
-			$common['thumbs'] = serialize($_GPC['thumbs']);
+			$data = array_merge($goods, $common);
 		} else {
-			$common['thumbs'] = serialize(array());
+			$room = array(
+				'hotelid' => $store_base_id,
+				'breakfast' => $_GPC['breakfast'],
+				'area' => $_GPC['area'],
+				'area_show' => $_GPC['area_show'],
+				'bed' => $_GPC['bed'],
+				'bed_show' => $_GPC['bed_show'],
+				'bedadd' => $_GPC['bedadd'],
+				'bedadd_show' => $_GPC['bedadd_show'],
+				'persons' => $_GPC['persons'],
+				'persons_show' => $_GPC['persons_show'],
+				'floor' => $_GPC['floor'],
+				'floor_show' => $_GPC['floor_show'],
+				'smoke' => $_GPC['smoke'],
+				'smoke_show' => $_GPC['smoke_show'],
+				'service' => intval($_GPC['service']),
+				'is_house' => $is_house,
+			);
+			$data = array_merge($room, $common);
+		}
+		if (empty($id)) {
+			pdo_insert($table, $data);
+		} else {
+			pdo_update($table, $data, array('id' => $id));
 		}
 		if ($store_type == STORE_TYPE_HOTEL) {
-			$data = array_merge($room, $common);
-			if (empty($id)) {
-				pdo_insert($table, $data);
-			} else {
-				pdo_update($table, $data, array('id' => $id));
-			}
 			pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT count(*) FROM " . tablename('storex_room') . " WHERE hotelid = :store_base_id AND is_house = :is_house) WHERE store_base_id = :store_base_id", array(':store_base_id' => $store_base_id, ':is_house' => $data['is_house']));
-		} else {
-			$data = array_merge($goods, $common);
-			if (empty($id)) {
-				pdo_insert($table, $data);
-			} else {
-				pdo_update($table, $data, array('id' => $id));
-			}
 		}
 		message('商品信息更新成功！', $this->createWebUrl('shop_goodsmanage', array('storeid' => $storeid)), 'success');
 	}
@@ -241,11 +234,11 @@ if ($op == 'showall') {
 if ($op == 'status') {
 	$id = intval($_GPC['id']);
 	if (empty($id)) {
-		message('抱歉，传递的参数错误！', '', 'error');
+		message('抱歉，传递的参数错误！', referer(), 'error');
 	}
 	$temp = pdo_update($table, array('status' => $_GPC['status']), array('id' => $id));
 	if ($temp == false) {
-		message('抱歉，刚才操作数据失败！', '', 'error');
+		message('抱歉，刚才操作数据失败！', referer(), 'error');
 	} else {
 		message('状态设置成功！', referer(), 'success');
 	}
@@ -254,7 +247,7 @@ if ($op == 'status') {
 if ($op == 'copyroom') {
 	$id = intval($_GPC['id']);
 	if (empty($storeid) || empty($id)) {
-		message('参数错误', 'refresh', 'error');
+		message('参数错误', referer(), 'error');
 	}
 	$item = pdo_get($table, array('id' => $id, 'weid' => $_W['uniacid']));
 	unset($item['id']);

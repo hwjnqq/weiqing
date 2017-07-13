@@ -745,7 +745,7 @@ function wn_tpl_category_2level($name, $parents, $children, $parentid, $childid,
 }
 
 function set_order_statuslog($log_data, $data) {
-	$state_fields = array('status', 'paystatus', 'goods_status', 'refund_status');
+	$state_fields = array('status', 'paystatus', 'goods_status');
 	if (!empty($log_data['orderid']) && !empty($log_data['storeid']) && !empty($log_data['goodsid'])) {
 		$state_fields[] = 'id';
 		$state_fields[] = 'hotelid';
