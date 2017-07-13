@@ -30,26 +30,20 @@ if ($op == 'display') {
 	$comments = pdo_fetchall("SELECT c.*, g.title FROM " . tablename('storex_comment') . " AS c LEFT JOIN " .tablename($table). " AS g ON c.goodsid = g.id WHERE c.hotelid = :store_base_id AND g.weid = :weid " . $condition . "LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $param);
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_comment') . " AS c LEFT JOIN " .tablename($table) . " AS g ON c.goodsid = g.id WHERE c.hotelid = :store_base_id AND g.weid = :weid " . $condition, $param);
 	if (!empty($comments) && is_array($comments)) {
-		foreach ($comments as $k => $val) {
-			$comments[$k]['createtime'] = date('Y-m-d :H:i:s', $val['createtime']);
+		foreach ($comments as &$val) {
+			$val['createtime'] = date('Y-m-d H:i:s', $val['createtime']);
 			$uids[] = $val['uid'];
 		}
+		unset($val);
 		if (!empty($uids) && is_array($uids)) {
-			$user_info = pdo_getall('mc_members', array('uid' => $uids), array('uid', 'avatar', 'nickname'), 'uid');
-			if (!empty($user_info) && is_array($user_info)) {
-				foreach ($user_info as &$val) {
-					if (!empty($val['avatar'])) {
-						$val['avatar'] = tomedia($val['avatar']);
-					}
-				}
-				unset($val);
-			}
-			foreach ($comments as $key => $infos) {
-				$comments[$key]['user_info'] = array();
+			$user_info = pdo_getall('mc_mapping_fans', array('uid' => $uids), array('uid', 'nickname'), 'uid');
+			foreach ($comments as &$infos) {
+				$infos['user_info'] = array();
 				if (!empty($user_info[$infos['uid']])) {
-					$comments[$key]['user_info'] = $user_info[$infos['uid']];
+					$infos['user_info'] = $user_info[$infos['uid']];
 				}
 			}
+			unset($infos);
 		}
 	}
 	$pager = pagination($total, $pindex, $psize);
@@ -62,7 +56,7 @@ if ($op == 'delete') {
 		pdo_delete('storex_comment', array('id' => $cid));
 		message('删除成功！', referer(), 'success');
 	} else {
-		message('参数错误！', '', 'error');
+		message('参数错误！', referer(), 'error');
 	}
 }
 
