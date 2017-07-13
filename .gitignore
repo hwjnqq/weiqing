@@ -39,3 +39,4 @@ addons/wn_storex/template/resource/css/common.css.map
 addons/wn_storex/template/resource/autoprefixer.json
 addons/wn_storex/template/style/autoprefixer.json
 addons/wn_storex/template/style/sass/**
+addons/wn_storex/template/style/css/store.css.map
