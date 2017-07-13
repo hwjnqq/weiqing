@@ -153,11 +153,11 @@
 							<textarea style="height:100px;" class="form-control richtext-clone" name="msg" cols="70" id="reply-add-text">{$item['msg']}</textarea>
 						</div>
 					</div>
-					<div class="form-group col-sm-12">
+					<div class="form-group">
 						<input type="hidden" name="id" value="{$item['id']}">
 						<input type="hidden" name="op" value="edit_msg">
 						<input type="hidden" name="storeid" value="{$storeid}" />
-						<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+						<input type="submit" name="submit" value="提交" class="btn btn-primary" />
 						<input type="hidden" name="token" value="{$_W['token']}" />
 					</div>
 				</form>
@@ -204,51 +204,75 @@
 						<div class="col-sm-9 col-xs-12 form-control-static">
 							{if $item['status'] != 1 && $item['goods_status'] != 2 && $item['goods_status'] != 3 && $item['goods_status'] != 5 && $item['status'] != 3}
 								{if $item['status'] != 2}
-								<button type="button" class="btn but{if $item['status'] == -1} btn-primary{/if} btn-default" value="-1">订单取消</button>
+								<button type="button" data-toggle="modal" data-target="#oderConfirm" class="btn but{if $item['status'] == -1} btn-primary{/if} btn-default" value="-1" {if $item['status'] == -1} disabled{/if}>订单取消</button>
 								{/if}
 								{if $item['status'] != -1}
-								<button type="button" class="btn but{if $item['status'] == 2} btn-primary{/if} btn-default" value="2">订单拒绝</button>
+								<button type="button" data-toggle="modal" data-target="#oderConfirm" class="btn but{if $item['status'] == 2} btn-primary{/if} btn-default" value="2" disabled="{if $item['status'] == 2} disabled{/if}">订单拒绝</button>
 								{/if}
 								{if ($item['status'] == -1 || $item['status'] == 2) && $item['paystatus'] == 1}
-									<button type="button" class="btn but btn-default" value="8">订单退款</button>
+									<button type="button" data-toggle="modal" data-target="#oderConfirm" class="btn but btn-default" value="8">订单退款</button>
 								{/if}
 							{/if}
 							{if $item['status'] != -1}
 								{if $item['status'] <= 1}
-									<button type="button" class="btn but{if $item['status'] == 1} btn-primary{/if} btn-default" value="1">订单确认</button>
+									<button type="button" data-toggle="modal" data-target="#oderConfirm" class="btn but{if $item['status'] == 1} btn-primary{/if} btn-default" value="1" {if $item['status'] == 1} disabled{/if}>订单确认</button>
 								{/if}
 								{if $item['status'] != 2}
 									{if $store_type == STORE_TYPE_HOTEL}
 										{if !empty($good_info) && $good_info['is_house'] == 1}
-											<button type="button" class="btn but{if $item['goods_status'] == 5} btn-primary{/if} btn-default" value="5" >已入住</button>
+											<button type="button" data-toggle="modal" data-target="#oderConfirm" class="btn but{if $item['goods_status'] == 5} btn-primary{/if} btn-default" value="5" {if $item['goods_status'] == 5} disabled{/if}>已入住</button>
 										{/if}
 									{else}
 										{if $item['status'] != 3 && $item['mode_distribute'] == 2}
 											{if $item['goods_status'] == 1}
-												<button type="button" class="btn but btn-default" value="6">已发货</button>
+												<button type="button" data-toggle="modal" data-target="#oderConfirm" class="btn but btn-default" value="6">已发货</button>
 											{elseif $item['goods_status'] == 2 || $item['goods_status'] == 3}
-												<button type="button" class="btn but{if $item['goods_status'] == 3} btn-primary{/if} btn-default" value="7">已收货</button>
+												<button type="button" data-toggle="modal" data-target="#oderConfirm" class="btn but{if $item['goods_status'] == 3} btn-primary{/if} btn-default" value="7"  {if $item['goods_status'] == 3} disabled{/if}>已收货</button>
 											{/if}
 										{/if}
 									{/if}
 								{/if}
 								{if $item['status'] != 2}
-								<button type="button" class="btn but{if $item['status'] == 3} btn-primary{/if} btn-default"  value="3">订单完成</button>
+								<button type="button" data-toggle="modal" data-target="#oderConfirm" class="btn but{if $item['status'] == 3} btn-primary{/if} btn-default"  value="3"  {if $item['status'] == 3} disabled{/if}>订单完成</button>
 								{/if}
 							{/if}
-							<input type="hidden" id="status" name="status" value="{$item['status']}">
+							<!--<input type="hidden" id="status" name="status" value="{$item['status']}">-->
 						</div>
 					</div>
-					<div class="form-group col-sm-12">
-						<input type="hidden" name="id" value="{$item['id']}">
-						<input type="hidden" name="storeid" value="{$storeid}" />
-						<input type="hidden" name="old_status" value="{$item['status']}" />
-						<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" {if $item['status'] == 3 || ($item['paystatus'] !=1 && ($item['status'] == -1 || $item['status'] == 2))}disabled{/if}/>
-						<input type="hidden" name="token" value="{$_W['token']}" />
-					</div>
+					<!--<div class="form-group">-->
+						<!--<input type="hidden" name="id" value="{$item['id']}">-->
+						<!--<input type="hidden" name="storeid" value="{$storeid}" />-->
+						<!--<input type="hidden" name="old_status" value="{$item['status']}" />-->
+						<!--<input type="submit" name="submit" value="提交" class="btn btn-primary" {if $item['status'] == 3 || ($item['paystatus'] !=1 && ($item['status'] == -1 || $item['status'] == 2))}disabled{/if}/>-->
+						<!--<input type="hidden" name="token" value="{$_W['token']}" />-->
+					<!--</div>-->
 				</form>
 			</div>
 		</div>
+	</div>
+</div>
+<div class="modal fade" id="oderConfirm" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+	<div class="modal-dialog" role="document">
+
+		<form action="" class="form-horizontal form wn-form" method="post" enctype="multipart/form-data" onsubmit="return formcheck();">
+		<div class="modal-content">
+			<div class="modal-header">
+				确认操作
+			</div>
+			<div class="modal-body">
+					sfsdlfdsljhf
+				<input type="hidden" name="id" value="{$item['id']}">
+				<input type="hidden" name="storeid" value="{$storeid}" />
+				<input type="hidden" name="old_status" value="{$item['status']}" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+				<input type="hidden" id="status" name="status" value="{$item['status']}">
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				<input type="submit" name="submit" value="提交" class="btn btn-primary"/>
+			</div>
+		</div>
+		</form>
 	</div>
 </div>
 <script type="text/javascript">
@@ -286,11 +310,15 @@
 	}
 	
 	require(['bootstrap'],function($) {
-		$('.but').click(function() {
-			$('.but').removeClass('btn-primary');
-			$(this).addClass('btn-primary');
-			$('#status').val($(this).val()) ;
-		});
+//		$('.but').click(function() {
+//			$('.but').removeClass('btn-primary');
+//			$(this).addClass('btn-primary');
+//			$('#status').val($(this).val()) ;
+//		});
+
+        $('#oderConfirm').on('show.bs.modal', function (e) {
+            $('#status').val(e.relatedTarget.value);
+        });
 	});
 </script>
 {template 'common/footer'}
