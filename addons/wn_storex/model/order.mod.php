@@ -195,15 +195,15 @@ function order_begin_refund($orderid) {
 	global $_W;
 	$refund = pdo_get('storex_refund_logs', array('uniacid' => $_W['uniacid'], 'orderid' => $orderid));
 	$order = pdo_get('storex_order', array('uniacid' => $_W['uniacid'], 'orderid' => $orderid));
-	if(empty($refund)) {
+	if (empty($refund)) {
 		return error(-1, '退款申请不存在或已删除');
 	}
-	if($refund['status'] == REFUND_STATUS_SUCCESS) {
+	if ($refund['status'] == REFUND_STATUS_SUCCESS) {
 		return error(-1, '退款已成功, 不能发起退款');
 	}
 
-	if($refund['type'] == 'credit') {
-		if($order['openid'] > 0) {
+	if ($refund['type'] == 'credit') {
+		if ($order['openid'] > 0) {
 			$log = array(
 				$order['openid'],
 				"万能小店订单退款, 订单号:{$order['ordersn']}, 退款金额:{$ordersn['sum_price']}元",
@@ -224,12 +224,12 @@ function order_begin_refund($orderid) {
 			'out_refund_no' => $refund['out_refund_no'],
 		);
 		$response = $pay->refundOrder($params);
-		if(is_error($response)) {
+		if (is_error($response)) {
 			return error(-1, $response['message']);
 		}
 		pdo_update('storex_refund_logs', array('status' => REFUND_STATUS_SUCCESS, 'time' => TIMESTAMP), array('id' => $refund['id'], 'uniacid' => $_W['uniacid']));
 		return true;
-	} elseif($refund['pay_type'] == 'alipay') {
+	} elseif ($refund['pay_type'] == 'alipay') {
 		
 	}
 }
@@ -244,15 +244,15 @@ function order_query_refund($orderid) {
 		//只有微信需要查询,余额和支付宝不需要
 		load()->classs('weixin.pay');
 		$wxpay_api = new WeiXinPay();
-		$response = $pay->payRefund_query(array('out_refund_no' => $refund['out_refund_no']));
+		$response = $pay->refundQuery(array('out_refund_no' => $refund['out_refund_no']));
 		if (is_error($response)) {
-			return $response;
+			return error(-1, $response['message']);
 		}
 		$wechat_status = $pay->payRefund_status();
 		$update = array(
 			'refund_status' => $wechat_status[$response['refund_status_0']]['value'],
 		);
-		if($response['refund_status_0'] == 'SUCCESS') {
+		if ($response['refund_status_0'] == 'SUCCESS') {
 			$update['time'] = TIMESTAMP;
 			$update['status'] = REFUND_STATUS_SUCCESS;
 			pdo_update('storex_refund_logs', array('status' => REFUND_STATUS_SUCCESS, 'time' => TIMESTAMP), array('uniacid' => $_W['uniacid'], 'id' => $refund['id']));
