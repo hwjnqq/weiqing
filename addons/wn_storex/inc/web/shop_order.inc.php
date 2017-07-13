@@ -258,6 +258,13 @@ if ($op == 'edit') {
 			}
 			//订单确认提醒
 			if ($data['status'] == ORDER_STATUS_SURE) {
+				if ($store_type == STORE_TYPE_HOTEL) {
+					if (!empty($good_info) && $good_info['is_house'] == 1) {
+						$data['goods_status'] = 4;
+					}
+				} else {
+					$data['goods_status'] = 1;
+				}
 				//TM00217
 				if (!empty($setting['template']) && !empty($setting['templateid'])) {
 					$tplnotice = array(

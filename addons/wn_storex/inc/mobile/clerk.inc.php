@@ -83,7 +83,11 @@ if ($op == 'edit_order') {
 	$storex_info = pdo_get('storex_bases', array('id' => $item['hotelid']), array('id', 'store_type'));
 	$table = get_goods_table($storex_info['store_type']);
 	$goodsid = intval($item['roomid']);
-	$goods_info = pdo_get($table, array('id' => $goodsid), array('id', 'title'));
+	$fields = array('id', 'title');
+	if ($table == 'storex_room') {
+		$fields = array('id', 'title', 'is_house');
+	}
+	$goods_info = pdo_get($table, array('id' => $goodsid), $fields);
 	$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']));
 	$actions_status = array(
 		'is_cancel' => -1,	//取消
@@ -190,6 +194,13 @@ if ($op == 'edit_order') {
 		}
 		//订单确认提醒
 		if ($data['status'] == 1) {
+			if ($storex_info['store_type'] == STORE_TYPE_HOTEL) {
+				if (!empty($goods_info) && $goods_info['is_house'] == 1) {
+					$data['goods_status'] = 4;
+				}
+			} else {
+				$data['goods_status'] = 1;
+			}
 			//TM00217
 			if (!empty($setting['template']) && !empty($setting['templateid'])) {
 				$tplnotice = array(
