@@ -21,7 +21,7 @@
 					<input type="hidden" name="op" value="sales_stat">
 					<input type="hidden" name="storeid" value="{$storeid}">
 					<input type="hidden" name="m" value="wn_storex">
-					{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
+					{php echo tpl_form_field_daterange('time', array('starttime' => date('Y-m-d', $starttime),'endtime' => date('Y-m-d', $endtime)));}
 				</form>
 			</div>
 			<div class="panel-body">
@@ -40,7 +40,7 @@
 						<td>{$date}</td>
 						<td>{$sales}</td>
 						<td>
-							<a href="{php echo $this->createWebUrl('shop_order', array('op' => 'display', 'storeid' => $_GPC['storeid'], 'time' => array('start' => date('Y-m-d', strtotime($date)), 'end' => date('Y-m-d', strtotime($date)))))}">查看订单</a>
+							<a href="{php echo $this->createWebUrl('shop_order', array('op' => 'display', 'storeid' => $_GPC['storeid'], 'date' => array('start' => date('Y-m-d', strtotime($date)), 'end' => date('Y-m-d', strtotime($date)))))}">查看订单</a>
 						</td>
 					</tr>
 					{/loop}
