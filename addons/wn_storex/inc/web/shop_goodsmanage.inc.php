@@ -97,9 +97,9 @@ if ($op == 'edit') {
 		$store_base_id = $item[$store_field];
 		if (empty($item)) {
 			if ($store_type == STORE_TYPE_HOTEL) {
-				message('抱歉，房型不存在或是已经删除！', referer(), 'error');
+				message('房型不存在或是已经删除！', referer(), 'error');
 			} else {
-				message('抱歉，商品不存在或是已经删除！', referer(), 'error');
+				message('商品不存在或是已经删除！', referer(), 'error');
 			}
 		}
 		$piclist = iunserializer($item['thumbs']);
@@ -191,7 +191,7 @@ if ($op == 'edit') {
 			pdo_update($table, $data, array('id' => $id));
 		}
 		if ($store_type == STORE_TYPE_HOTEL) {
-			pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT count(*) FROM " . tablename('storex_room') . " WHERE hotelid = :store_base_id AND is_house = :is_house) WHERE store_base_id = :store_base_id", array(':store_base_id' => $store_base_id, ':is_house' => $data['is_house']));
+			pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT COUNT(*) FROM " . tablename('storex_room') . " WHERE hotelid = :store_base_id AND is_house = :is_house) WHERE store_base_id = :store_base_id", array(':store_base_id' => $store_base_id, ':is_house' => $data['is_house']));
 		}
 		message('商品信息更新成功！', $this->createWebUrl('shop_goodsmanage', array('storeid' => $storeid)), 'success');
 	}
@@ -202,7 +202,7 @@ if ($op == 'delete') {
 	$id = intval($_GPC['id']);
 	pdo_delete($table, array('id' => $id, 'weid' => $_W['uniacid']));
 	if ($store_type == STORE_TYPE_HOTEL) {
-		pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT count(*) FROM " . tablename('storex_room') . " WHERE hotelid = :store_base_id) WHERE store_base_id = :store_base_id", array(':store_base_id' => $store_base_id));
+		pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT COUNT(*) FROM " . tablename('storex_room') . " WHERE hotelid = :store_base_id) WHERE store_base_id = :store_base_id", array(':store_base_id' => $store_base_id));
 	}
 	message('删除成功！', referer(), 'success');
 }
@@ -212,7 +212,7 @@ if ($op == 'deleteall') {
 		$id = intval($id);
 		pdo_delete($table, array('id' => $id, 'weid' => $_W['uniacid']));
 		if ($store_type == STORE_TYPE_HOTEL) {
-			pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT count(*) FROM " . tablename('storex_room') . " WHERE hotelid = :hotelid) WHERE id = :hotelid", array(':hotelid' => $id));
+			pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT COUNT(*) FROM " . tablename('storex_room') . " WHERE hotelid = :hotelid) WHERE id = :hotelid", array(':hotelid' => $id));
 		}
 	}
 	message(error(0, '删除成功！'), '', 'ajax');
@@ -234,13 +234,13 @@ if ($op == 'showall') {
 if ($op == 'status') {
 	$id = intval($_GPC['id']);
 	if (empty($id)) {
-		message('抱歉，传递的参数错误！', referer(), 'error');
+		message('参数错误！', referer(), 'error');
 	}
-	$temp = pdo_update($table, array('status' => $_GPC['status']), array('id' => $id));
-	if ($temp == false) {
-		message('抱歉，刚才操作数据失败！', referer(), 'error');
+	$status = pdo_update($table, array('status' => $_GPC['status']), array('id' => $id));
+	if (!empty($status)) {
+		message('设置成功！', referer(), 'success');
 	} else {
-		message('状态设置成功！', referer(), 'success');
+		message('操作失败！', referer(), 'error');
 	}
 }
 

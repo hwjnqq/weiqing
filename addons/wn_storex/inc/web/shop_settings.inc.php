@@ -82,7 +82,7 @@ if ($op == 'post') {
 	} else {
 		$devices = iunserializer($item['device']);
 	}
-	$storex_bases['thumbs'] =  iunserializer($storex_bases['thumbs']);
+	$storex_bases['thumbs'] = iunserializer($storex_bases['thumbs']);
 }
 
 include $this->template('store/shop_settings');
