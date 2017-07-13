@@ -478,7 +478,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				$acc = WeAccount::create($_W['acid']);
 				
 				if ($params['result'] == 'success' && $_SESSION['ewei_hotel_pay_result'] != $params['tid']) {
-					if (!check_wxapp()) {
+					if ($_W['account']['type'] != 4 || $_W['account']['uniacid'] == $_W['uniacid']) {
 						//发送模板消息提醒
 						if (!empty($setInfo['template']) && !empty($setInfo['confirm_templateid'])) {
 							// $acc = WeAccount::create($_W['acid']);

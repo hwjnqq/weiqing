@@ -611,10 +611,8 @@ function get_plugin_list() {
 
 function check_wxapp() {
 	global $_W;
-	if ($_W['account']['type'] == 4) {
-		if ($_W['account']['uniacid'] != $_W['uniacid']) {
-			return true;
-		}
+	if ($_W['account']['type'] == 4 && $_W['account']['uniacid'] != $_W['uniacid']) {
+		return true;
 	}
 	return false;
 }

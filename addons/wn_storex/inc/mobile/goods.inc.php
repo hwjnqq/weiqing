@@ -75,6 +75,9 @@ if ($op == 'info') {
 		$condition['hotelid'] = $store_id;
 		$table = 'storex_room';
 		$goods_info = pdo_get($table, $condition);
+		if (isset($goods_info['express_set'])) {
+			unset($goods_info['express_set']);
+		}
 		$goods_info = room_special_price($goods_info, false);
 	} else {
 		$condition['store_base_id'] = $store_id;
@@ -289,7 +292,9 @@ if ($op == 'order') {
 	}
 	$insert['static_price'] = $insert['sum_price'];
 	//计算运费
-	$insert = calculate_express($goods_info, $insert);
+	if ($store_info['store_type'] != STORE_TYPE_HOTEL) {
+		$insert = calculate_express($goods_info, $insert);
+	}
 	
 	$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
 	$post_total = trim($_GPC['order']['total']);
