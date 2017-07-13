@@ -754,7 +754,7 @@ function file_lists($filepath, $subdir = 1, $ex = '', $isdir = 0, $md5 = 0, $enf
  * @return string 文件path
  *        
  */
-function file_fetch($url, $limit = 0, $path = '') {
+function file_remote_attach_fetch($url, $limit = 0, $path = '') {
 	global $_W;
 	$url = trim($url);
 	if (empty($url)) {
@@ -771,6 +771,7 @@ function file_fetch($url, $limit = 0, $path = '') {
 	$ext = $type = '';
 	switch ($resp['headers']['Content-Type']) {
 		case 'application/x-jpg' :
+		case 'image/jpg' :
 		case 'image/jpeg' :
 			$ext = 'jpg';
 			$type = 'images';
@@ -816,7 +817,7 @@ function file_fetch($url, $limit = 0, $path = '') {
 	if (! $path){
 		return error(- 1, '提取文件失败: 上传路径配置有误.');
 	}
-	if (! file_exists(ATTACHMENT_ROOT . $path) && mkdir(ATTACHMENT_ROOT . $path, 0700, true)) {
+	if (!file_exists(ATTACHMENT_ROOT . $path) && mkdirs(ATTACHMENT_ROOT . $path, 0700, true)) {
 		return error(- 1, '提取文件失败: 权限不足.');
 	}
 	/* 文件大小过滤 */
@@ -841,6 +842,9 @@ function file_fetch($url, $limit = 0, $path = '') {
 	return $pathname;
 }
 function file_is_image($url) {
+	if (!parse_path($url)) {
+		return false;
+	}
 	$pathinfo = pathinfo($url);
 	$extension = strtolower($pathinfo['extension']);
 	return !empty($extension) && in_array($extension, array('jpg', 'jpeg', 'gif', 'png'));

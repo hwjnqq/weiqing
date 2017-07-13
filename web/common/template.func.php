@@ -27,7 +27,6 @@ defined('IN_IA') or exit('Access Denied');
   *	include template('common/template', TEMPLATE_INCLUDEPATH);
   *	//嵌入模板编译路径`
   */
-
 function template($filename, $flag = TEMPLATE_DISPLAY) {
 	global $_W;
 	$source = IA_ROOT . "/web/themes/{$_W['template']}/{$filename}.html";
@@ -38,7 +37,8 @@ function template($filename, $flag = TEMPLATE_DISPLAY) {
 	}
 
 	if(!is_file($source)) {
-		exit("Error: template source '{$filename}' is not exist!");
+		echo "template source '{$filename}' is not exist!";
+		return '';
 	}
 	if(DEVELOPMENT || !is_file($compile) || filemtime($source) > filemtime($compile)) {
 		template_compile($source, $compile);

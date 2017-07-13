@@ -958,8 +958,7 @@ abstract class WeBase {
 				$filename .= '.' . $type;
 			}
 		}
-		
-		if (file_put_contents(ATTACHMENT_ROOT . '/' . $path . $filename, $file_string)) {
+		if (file_put_contents(ATTACHMENT_ROOT . $path . $filename, $file_string)) {
 			file_remote_upload($path);
 			return $path . $filename;
 		} else {

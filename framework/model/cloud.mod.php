@@ -125,7 +125,6 @@ function cloud_prepare() {
 function cloud_build() {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'application.build2';
-	$pars['extra'] = cloud_extra_account();
 	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/application.build';
 	$ret = _cloud_shipping_parse($dat, $file);

@@ -12,6 +12,7 @@ $_W['uniacid'] = intval($_GPC['i']);
 if (empty($_W['uniacid'])) {
 	iajax(1, '请先指定公众号');
 }
+$_W['account'] = uni_fetch($_W['uniacid']);
 
 if ($do == 'receive') {
 	ignore_user_abort(true);

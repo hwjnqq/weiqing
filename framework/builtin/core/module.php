@@ -135,6 +135,7 @@ class CoreModule extends WeModule {
 												if (!is_error($news_material)) {
 													$news_value['attach_id'] = $news_material['id'];
 													$news_value['model'] = $news_material['model'];
+													$news_value['description'] = $news_material['news'][0]['digest'];
 													$news_value['thumb'] = tomedia($news_material['news'][0]['thumb_url']);
 												}
 											} else {

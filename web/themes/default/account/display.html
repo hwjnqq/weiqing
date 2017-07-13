@@ -1,7 +1,7 @@
 {template 'common/header'}
 <div class="panel panel-cut" id="js-account-display" ng-controller="AccountDisplay" ng-cloak>
 	<div class="panel-heading">
-		请选择您要操作的公众号
+		<i class="wi wi-wechat" style="font-size: 24px; margin-right: 10px; vertical-align:middle;"></i>请选择您要操作的公众号
 		<div class="font-default pull-right">
 			{if !empty($account_info['uniacid_limit'])}
 			<a href="./index.php?c=account&a=post-step" class="color-default"><i class="fa fa-plus"></i>新增公众号</a>

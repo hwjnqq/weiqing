@@ -78,7 +78,7 @@ if ($do == 'upload_file') {
 	}
 }
 
-template('profile/common');
+template('profile/uc');
 
 
 

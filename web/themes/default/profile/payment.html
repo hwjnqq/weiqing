@@ -1,27 +1,16 @@
 {template 'common/header'}
 <div class="we7-page-title">
-	参数设置
+	支付参数设置
 </div>
 <ul class="we7-page-tab">
-	<li>
-		<a href="{php echo url('profile/passport')}">借用权限</a>
+	<li {if $do == 'display'} class="active"{/if}>
+		<a href="{php echo url('profile/payment/display')}">支付配置</a>
 	</li>
-	<li class="active">
-		<a href="{php echo url('profile/payment')}">支付参数</a>
-	</li>
-	<li>
-		<a href="{php echo url('profile/tplnotice')}">微信通知设置</a>
-	</li>
-	<li>
-		<a href="{php echo url('profile/notify')}">邮件通知参数</a>
-	</li>
-	<li>
-		<a href="{php echo url('profile/common/uc_setting')}">uc站点整合</a>
-	</li>
-	<li>
-		<a href="{php echo url('profile/common/upload_file')}">上传js接口文件</a>
+	<li {if $do == 'refund'} class="active"{/if}>
+		<a href="{php echo url('profile/payment/refund')}">退款配置</a>
 	</li>
 </ul>
+{if $do == 'display'}
 <div class="js-profile-payment" ng-controller="paymentCtrl" ng-cloak>
 	<table class="table we7-table table-hover table-form">
 		<col width="140px " />
@@ -525,4 +514,42 @@
 	});
 	angular.bootstrap($('.js-profile-payment'), ['profileApp']);
 </script>
+{elseif $do == 'refund'}
+<div class="main" id="js-profile-refund" ng-app="app" ng-controller="refund">
+	<form id="form21" action="{php echo url('profile/common/upload_file')}" method="post" class="we7-form form" enctype="multipart/form-data">
+		<div class="panel-body">
+			<table class="we7-table table-hover table-form">
+				<col width="150px"/>
+				<col />
+				<col width="150px"/>
+				<tr>
+					<th colspan="3">微信退款设置</th>
+				</tr>
+				<tr>
+					<td>微信退款</td>
+					<td class="color-gray"></td>
+					<td class="text-right">
+						<label>
+							<input name="" class="form-control" type="checkbox"  style="display: none;" ng-click="saveEdit('delivery')">
+							<div ng-class="refund.wechat.switch == 1 ? 'switch switchOn' : 'switch'"></div>
+						</label>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</form>
+</div>
+<script>
+//	angular.module('profileApp').value('config', {
+//		'refund' : {php echo json_encode($refund)},
+//		'get_setting_url' : "{php echo url('profile/payment/get_setting')}"
+//	});
+//	angular.bootstrap($('#js-profile-refund'), ['profileApp']);
+config = {};
+config.refund = {php echo json_encode($refund)};
+	angular.module('app', []).controller('refund', function($scope, $http) {
+		$scope.refund = config.refund;
+	});
+</script>
+{/if}
 {template 'common/footer'}

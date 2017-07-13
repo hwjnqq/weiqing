@@ -27,6 +27,8 @@ function template_page($id, $flag = TEMPLATE_DISPLAY) {
 	if (empty($page['html'])) {
 		return '';
 	}
+	$page['html'] = str_replace(array('<?', '<%', '<?php', '{php'), '_', $page['html']);
+	$page['html'] = preg_replace('/<\s*?script.*(src|language)+/i', '_', $page['html']);
 	$page['params'] = json_decode($page['params'], true);
 	$GLOBALS['title'] = htmlentities($page['title'], ENT_QUOTES, 'UTF-8');
 	$GLOBALS['_share'] = array('desc' => $page['description'], 'title' => $page['title'], 'imgUrl' => tomedia($page['params']['0']['params']['thumb']));;
@@ -475,7 +477,7 @@ function site_quickmenu() {
 		$multiid = intval($_GPC['t']);
 		if (empty($multiid) && !empty($_GPC['__multiid'])) {
 			$id = intval($_GPC['__multiid']);
-			$site_multi_info = pdo_get('site_multi', array('id' => $id,'uniacid' => $_W['uniacid']));		
+			$site_multi_info = pdo_get('site_multi', array('id' => $id,'uniacid' => $_W['uniacid']));
 			$multiid = empty($site_multi_info) ? '' : $id;
 		} else {
 			if(!($_GPC['c'] == 'home' && $_GPC['a'] == 'page')){

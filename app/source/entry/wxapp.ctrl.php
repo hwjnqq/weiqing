@@ -21,7 +21,7 @@ if(!is_error($site)) {
 		}
 	}
 	if (!empty($_GPC['state']) && strexists($_GPC['state'], 'we7sid-') && (empty($_W['openid']) || empty($_SESSION['openid']))) {
-		$site->result(41009, '请登录');exit;
+		$site->result(41009, '请登录');
 	}
 	if (!empty($_W['uniacid'])) {
 		$version = trim($_GPC['v']);
@@ -32,6 +32,7 @@ if(!is_error($site)) {
 				$uniacid = intval($connection[$entry['module']]['uniacid']);
 				if (!empty($uniacid)) {
 					$_W['uniacid'] = $uniacid;
+					$_W['account']['link_uniacid'] = $uniacid;
 				}
 			}
 		}

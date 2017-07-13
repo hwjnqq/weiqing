@@ -1,5 +1,6 @@
 <?php
 defined('IN_IA') or exit('Access Denied');
+load()->func('file');
 
 /**
  * 同步微信素材
@@ -286,7 +287,7 @@ function material_parse_content($content) {
 	$images = material_get_image_url($content);
 	if (!empty($images)) {
 		foreach ($images as $image) {
-			$thumb = file_fetch(tomedia($image), 1024, 'material/images');
+			$thumb = file_remote_attach_fetch(tomedia($image), 1024, 'material/images');
 			if(is_error($thumb)) {
 				return $thumb;
 			}
@@ -374,7 +375,7 @@ function material_local_upload_by_url($url, $type='images') {
 	$account_api = WeAccount::create($_W['acid']);
 	if (! empty($_W['setting']['remote']['type'])) {
 		$remote_file_url = tomedia($url);
-		$filepath = file_fetch($remote_file_url,0,'');
+		$filepath = file_remote_attach_fetch($remote_file_url,0,'');
 		if(is_error($filepath)) {
 			return $filepath;
 		}

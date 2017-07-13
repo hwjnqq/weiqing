@@ -34,6 +34,10 @@ function ihttp_request($url, $post = '', $extra = array(), $timeout = 60) {
 		}
 	}
 	$urlset = ihttp_parse_url($url, true);
+	if (!empty($urlset['ip'])) {
+		$urlset['host'] = $urlset['ip'];
+	}
+	
 	$body = ihttp_build_httpbody($url, $post, $extra);
 	
 	if ($urlset['scheme'] == 'https') {

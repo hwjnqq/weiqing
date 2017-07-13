@@ -38,13 +38,13 @@ if ($do == 'news') {
 			if (!empty($news_list)) {
 				foreach ($news_list as $key => &$row_news) {
 					$row_news = array(
-						'uniacid' 	=> $_W['uniacid'],
+						'uniacid' => $_W['uniacid'],
 						'thumb_url' => $row_news['thumb'],
-						'title' 	=> $row_news['title'],
-						'author' 	=> $row_news['author'],
-						'digest' 	=> $row_news['description'],
-						'content' 	=> $row_news['content'],
-						'url'		=> $row_news['url'],
+						'title' => $row_news['title'],
+						'author' => $row_news['author'],
+						'digest' => $row_news['description'],
+						'content' => $row_news['content'],
+						'url' => $row_news['url'],
 						'displayorder' => $key,
 						'show_cover_pic' => intval($row_news['incontent']),
 						'content_source_url' => $row_news['content_source_url']
@@ -58,7 +58,7 @@ if ($do == 'news') {
 		if (is_error($attachment)){
 			itoast('图文素材不存在，或已删除', url('platform/material'), 'warning');
 		}
-		$news_list = $attachment['news'];	
+		$news_list = $attachment['news'];
 	}
 	if (!empty($_GPC['new_type'])) {
 		$new_type = trim($_GPC['new_type']);
@@ -87,6 +87,9 @@ if ($do == 'addnews') {
 	$attach_id = material_news_set($_GPC['news'], $attach_id);
 	if (is_error($attach_id)) {
 		iajax(-1, $attach_id['message']);
+	}
+	if (!empty($_GPC['news_rid'])) {
+		pdo_update('news_reply', array('media_id' => $attach_id), array('id' => intval($_GPC['news_rid'])));
 	}
 	if ($is_sendto_wechat) {
 		$result = material_local_news_upload($attach_id);

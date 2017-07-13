@@ -564,7 +564,7 @@
 														</div>
 													</div>
 												</div>
-												<div ng-show="menu.submenus.length < 5" ng-click="menu.submenus.length >= 5 ? '' : addSubMenu(menu);" class="add-shopNav">+ 添加二级导航</div>
+												<div ng-show="!menu.submenus || menu.submenus.length < 5" ng-click="menu.submenus.length >= 5 ? '' : addSubMenu(menu);" class="add-shopNav">+ 添加二级导航</div>
 												<!--最多可添加5个-->
 											</div>
 										</div>
@@ -616,7 +616,7 @@
 											</div>
 										</div>
 									</div>
-									<div class="add-shopNav text-center" ng-show="activeItem.menus.length < 5" ng-click="activeItem.menus.length >= 5 ? '' : addMenu();">+添加导航</div>
+									<div class="add-shopNav text-center" ng-show="!activeItem.menus || activeItem.menus.length < 5" ng-click="activeItem.menus.length >= 5 ? '' : addMenu();">+添加导航</div>
 								</div>
 								<!--end APP导航样式-->
 
@@ -684,13 +684,13 @@
 											</div>
 										</div>
 									</div>
-									<div class="add-shopNav text-center" ng-show="activeItem.menus.length < 4" ng-click="activeItem.menus.length >= 4 ? '' : addMenu();">+添加导航</div>
+									<div class="add-shopNav text-center" ng-show="!activeItem.menus || activeItem.menus.length < 4" ng-click="activeItem.menus.length >= 4 ? '' : addMenu();">+添加导航</div>
 								</div>
 								<!--end 带购物车导航模板-->
 
 								<!--Path展开形式导航模板-->
 								<div class="shopNav-path" ng-show="activeItem.navStyle == 4">
-										<p class="help-block">此导航模板建议您用三个自定义图标效果最佳哦！</p>
+										<p class="help-block">此导航模板建议您用三个自定义图标效果最佳哦1！</p>
 										<div class="card" ng-repeat="menu in activeItem.menus">
 											<div class="btns">
 												<a href="javascript:;" ng-click="removeMenu(menu)"><i class="fa fa-times"></i></a>
@@ -713,7 +713,7 @@
 												</div>
 											</div>
 										</div>
-										<div class="add-shopNav text-center" ng-show="activeItem.menus.length < 4" ng-click="activeItem.menus.length >= 4 ? '' : addMenu();">+添加导航</div>
+										<div class="add-shopNav text-center" ng-show="!activeItem.menus || activeItem.menus.length < 4" ng-click="activeItem.menus.length >= 4 ? '' : addMenu();">+添加导航</div>
 										<!--最多可添加4个-->
 								</div>
 								<!--end Path展开形式导航模板-->
@@ -780,7 +780,7 @@
 												</div>
 											</div>
 										</div>
-										<div class="add-shopNav text-center" ng-show="activeItem.menus.length < 4" ng-click="activeItem.menus.length >= 4 ? '' : addMenu();">+添加导航</div>
+										<div class="add-shopNav text-center" ng-show="!activeItem.menus || activeItem.menus.length < 4" ng-click="activeItem.menus.length >= 4 ? '' : addMenu();">+添加导航</div>
 										<!--最多可添加4个-->
 								</div>
 								<!--end 两侧展开导航模板-->

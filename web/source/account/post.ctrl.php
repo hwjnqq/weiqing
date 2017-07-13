@@ -305,7 +305,11 @@ if($do == 'modules_tpl') {
 		$extend['modules'] = pdo_getall('modules', array('name' => $extend['modules']), array('mid', 'title', 'name'));
 		if (!empty($extend['modules'])) {
 			foreach ($extend['modules'] as &$module_info) {
-				$module_info['logo'] = IA_ROOT . "/addons/" . $module_info['name'] . '/icon-custom.jpg';
+				if (file_exists(IA_ROOT.'/addons/'.$module_info['name'].'/icon-custom.jpg')) {
+					$module_info['logo'] = tomedia(IA_ROOT.'/addons/'.$module_info['name'].'/icon-custom.jpg');
+				} else {
+					$module_info['logo'] = tomedia(IA_ROOT.'/addons/'.$module_info['name'].'/icon.jpg');
+				}
 			}
 		}
 	}

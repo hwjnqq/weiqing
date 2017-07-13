@@ -82,23 +82,11 @@
 		<div class="content-head panel-heading main-panel-heading">
 			{if ($_GPC['c'] != 'cloud' && !empty($_GPC['m']) && !in_array($_GPC['m'], array('keyword', 'special', 'welcome', 'default', 'userapi', 'service'))) || defined('IN_MODULE')}
 				{template 'common/header-module'}
-			{elseif FRAME == 'account'}
-				{template 'common/header-account'}
+			{else}
+				{template 'common/header-' . FRAME}
 			{/if}
-			{if FRAME == 'system'}
-				{template 'common/header-system'}
-			{/if}
-			{if FRAME == 'site'}
-				{template 'common/header-site'}
-			{/if}
-			{if FRAME == 'advertisement'}
-				{template 'common/header-advertisement'}
-			{/if}
-			{if FRAME == 'wxapp'}
-				{template 'common/header-wxapp'}
 					{if in_array($role, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER))}
 					{/if}
-			{/if}
 		</div>
 	<div class="panel-body clearfix main-panel-body {if !empty($_W['setting']['copyright']['leftmenufixed'])}menu-fixed{/if}">
 		<div class="left-menu">

@@ -1,27 +1,5 @@
 {template 'common/header'}
-<div class="we7-page-title">
-	参数设置
-</div>
-<ul class="we7-page-tab">
-	<li>
-		<a href="{php echo url('profile/passport')}">借用权限</a>
-	</li>
-	<li>
-		<a href="{php echo url('profile/payment')}">支付参数</a>
-	</li>
-	<li class="active">
-		<a href="{php echo url('profile/tplnotice')}">微信通知设置</a>
-	</li>
-	<li>
-		<a href="{php echo url('profile/notify')}">邮件通知参数</a>
-	</li>
-	<li>
-		<a href="{php echo url('profile/common/uc_setting')}">uc站点整合</a>
-	</li>
-	<li>
-		<a href="{php echo url('profile/common/upload_file')}">上传js接口文件</a>
-	</li>
-</ul>
+{template 'profile/common'}
 <div id="js-profile-tplnotice" ng-controller="tplCtrl" ng-cloak>
 	<table class="table we7-table table-hover table-form">
 		<col width="200px " />

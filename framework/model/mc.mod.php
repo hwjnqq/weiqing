@@ -5,36 +5,6 @@
  */
 
 /**
- * 检测会员信息是否存在(邮箱和手机号)
- * @param array $data 会员信息
- * @return mixed
- */
-function mc_check($data) {
-	global $_W;
-	if (!empty($data['email'])) {
-		$email = trim($data['email']);
-		if (!preg_match(REGULAR_EMAIL, $email)) {
-			return error(-1, '邮箱格式不正确');
-		}
-		$isexist = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_members') . ' WHERE uniacid = :uniacid AND email = :email AND uid != :uid', array(':uniacid' => $_W['uniacid'], ':email' => $email, ':uid' => $_W['member']['uid']));
-		if ($isexist >= 1) {
-			return error(-1, '邮箱已被注册');
-		}
-	}
-	if (!empty($data['mobile'])) {
-		$mobile = trim($data['mobile']);
-		if (!preg_match(REGULAR_MOBILE, $mobile)) {
-			return error(-1, '手机号格式不正确');
-		}
-		$isexist = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_members') . ' WHERE uniacid = :uniacid AND mobile = :mobile AND uid != :uid', array(':uniacid' => $_W['uniacid'], ':mobile' => $mobile, ':uid' => $_W['member']['uid']));
-		if ($isexist >= 1) {
-			return error(-1, '手机号已被注册');
-		}
-	}
-	return true;
-}
-
-/**
  * 更新会员个人信息.
  * 此函数不能更新用户的积分数量，更新积分数量使用 mc_credit_update
  * @param mixed $uid 会员id
@@ -99,13 +69,13 @@ function mc_update($uid, $fields) {
 	}
 	//判断email,mobile是否唯一
 	if (!empty($fields['email'])) {
-		$emailexists = pdo_fetchcolumn("SELECT email FROM " . tablename('mc_members') . " WHERE uniacid = :uniacid AND email = :email " . $condition, array(':uniacid' => $_W['uniacid'], ':email' => trim($fields['email'])));
+		$emailexists = pdo_fetchcolumn("SELECT email FROM " . tablename('mc_members') . " WHERE uniacid = :uniacid AND email = :email " . $condition, array(':uniacid' => mc_current_real_uniacid(), ':email' => trim($fields['email'])));
 		if ($emailexists) {
 			unset($fields['email']);
 		}
 	}
 	if (!empty($fields['mobile'])) {
-		$mobilexists = pdo_fetchcolumn("SELECT mobile FROM " . tablename('mc_members') . " WHERE uniacid = :uniacid AND mobile = :mobile " . $condition, array(':uniacid' => $_W['uniacid'], ':mobile' => trim($fields['mobile'])));
+		$mobilexists = pdo_fetchcolumn("SELECT mobile FROM " . tablename('mc_members') . " WHERE uniacid = :uniacid AND mobile = :mobile " . $condition, array(':uniacid' => mc_current_real_uniacid(), ':mobile' => trim($fields['mobile'])));
 		if ($mobilexists) {
 			unset($fields['mobile']);
 		}
@@ -114,12 +84,12 @@ function mc_update($uid, $fields) {
 		if(empty($fields['mobile']) && empty($fields['email'])) {
 			return false;
 		}
-		$fields['uniacid'] = $_W['uniacid'];
+		$fields['uniacid'] = mc_current_real_uniacid();
 		$fields['createtime'] = TIMESTAMP;
 		pdo_insert('mc_members', $fields);
 		$insert_id = pdo_insertid();
 		if (!empty($openid)) {
-			pdo_update('mc_mapping_fans', array('uid' => $insert_id), array('uniacid' => $_W['uniacid'], 'openid' => $openid));
+			pdo_update('mc_mapping_fans', array('uid' => $insert_id), array('uniacid' => mc_current_real_uniacid(), 'openid' => $openid));
 		}
 		return $insert_id;
 	} else {
@@ -937,7 +907,7 @@ function mc_openid2uid($openid) {
 		return $openid;
 	}
 	if (is_string($openid)) {
-		$fans_info = pdo_get('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'openid' => $openid), array('uid'));
+		$fans_info = pdo_get('mc_mapping_fans', array('uniacid' => mc_current_real_uniacid(), 'openid' => $openid), array('uid'));
 		return !empty($fans_info) ? $fans_info['uid'] : false;
 	}
 	if (is_array($openid)) {
@@ -951,7 +921,7 @@ function mc_openid2uid($openid) {
 		}
 		if (!empty($fans)) {
 			$sql = 'SELECT uid, openid FROM ' . tablename('mc_mapping_fans') . " WHERE `uniacid`=:uniacid AND `openid` IN ('" . implode("','", $fans) . "')";
-			$pars = array(':uniacid' => $_W['uniacid']);
+			$pars = array(':uniacid' => mc_current_real_uniacid());
 			$fans = pdo_fetchall($sql, $pars, 'uid');
 			$fans = array_keys($fans);
 			$uids = array_merge((array)$uids, $fans);
@@ -969,7 +939,7 @@ function mc_openid2uid($openid) {
 function mc_uid2openid($uid) {
 	global $_W;
 	if (is_numeric($uid)) {
-		$fans_info = pdo_get('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'uid' => $uid), 'openid');
+		$fans_info = pdo_get('mc_mapping_fans', array('uniacid' => mc_current_real_uniacid(), 'uid' => $uid), 'openid');
 		return !empty($fans_info['openid']) ? $fans_info['openid'] : false;
 	}
 	if (is_string($uid)) {
@@ -992,7 +962,7 @@ function mc_uid2openid($uid) {
 		}
 		if (!empty($uids)) {
 			$sql = 'SELECT openid FROM ' . tablename('mc_mapping_fans') . " WHERE `uniacid`=:uniacid AND `uid` IN (" . implode(",", $uids) . ")";
-			$pars = array(':uniacid' => $_W['uniacid']);
+			$pars = array(':uniacid' => mc_current_real_uniacid());
 			$fans_info = pdo_fetchall($sql, $pars, 'openid');
 			$fans_info = array_keys($fans_info);
 			$openids = array_merge($openids, $fans_info);
@@ -1944,5 +1914,17 @@ function mc_card_grant_credit($openid, $card_fee, $storeid = 0, $modulename) {
 		return error(0, $num);
 	} else {
 		return error(-1, '');
+	}
+}
+
+/**
+ * 由于小程序可能会绑定某个公众号，此函数获取真正的当前的Uniacid
+ */
+function mc_current_real_uniacid() {
+	global $_W;
+	if (!empty($_W['account']['link_uniacid']) || (!empty($_W['account']) && $_W['uniacid'] != $_W['account']['uniacid'])) {
+		return $_W['account']['uniacid'];
+	} else {
+		return $_W['uniacid'];
 	}
 }
