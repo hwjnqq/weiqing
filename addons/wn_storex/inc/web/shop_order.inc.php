@@ -5,7 +5,7 @@ global $_W, $_GPC;
 load()->model('mc');
 mload()->model('card');
 
-$ops = array('display', 'edit', 'delete', 'deleteall', 'edit_price', 'print_order', 'check_print_plugin');
+$ops = array('display', 'edit', 'delete', 'deleteall', 'edit_msg','edit_price', 'print_order', 'check_print_plugin');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $storeid = intval($_GPC['storeid']);
@@ -168,10 +168,7 @@ if ($op == 'edit') {
 		}
 		
 		$data = array(
-			'msg' => $_GPC['msg'],
 			'mngtime' => TIMESTAMP,
-			'track_number' => trim($_GPC['track_number']),
-			'express_name' => trim($_GPC['express_name']),
 		);
 		if ($status > 4 && 8 > $status) {
 			if ($status == 5 && $data['goods_status'] != GOODS_STATUS_CHECKED) {
@@ -446,6 +443,24 @@ if ($op == 'deleteall') {
 		pdo_delete('storex_order', array('id' => $id));
 	}
 	message(error(0, '删除成功！'), '', 'ajax');
+}
+
+if ($op == 'edit_msg') {
+	$data = array(
+		'msg' => trim($_GPC['msg']),
+		'track_number' => trim($_GPC['track_number']),
+		'express_name' => trim($_GPC['express_name']),
+	);
+	$order = pdo_get('storex_order', array('id' => intval($_GPC['id'])), array('id'));
+	if (empty($order)) {
+		message('抱歉，订单不存在或是已经删除！', referer(), 'error');
+	}
+	$result = pdo_update('storex_order', $data, array('id' => intval($_GPC['id'])));
+	if (!empty($result)) {
+		message('备注修改成功！', referer(), 'success');
+	} else {
+		message('备注修改失败！', referer(), 'error');
+	}
 }
 
 if ($op == 'edit_price') {

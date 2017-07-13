@@ -137,7 +137,7 @@
 				</div>
 			</div>
 			<div class="wn-order__action">
-				<form action="" class="form-horizontal form wn-form" method="post" enctype="multipart/form-data" onsubmit="return formcheck();">
+				<form action="" class="form-horizontal form wn-form" method="post" enctype="multipart/form-data" onsubmit="">
 					{if $store_type != STORE_TYPE_HOTEL && $item['mode_distribute'] == 2}
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label">常用快递公司</label>
@@ -165,6 +165,16 @@
 							<textarea style="height:100px;" class="form-control richtext-clone" name="msg" cols="70" id="reply-add-text">{$item['msg']}</textarea>
 						</div>
 					</div>
+					<div class="form-group col-sm-12">
+						<input type="hidden" name="id" value="{$item['id']}">
+						<input type="hidden" name="op" value="edit_msg">
+						<input type="hidden" name="storeid" value="{$storeid}" />
+						<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+						<input type="hidden" name="token" value="{$_W['token']}" />
+					</div>
+				</form>
+				
+				<form action="" class="form-horizontal form wn-form" method="post" enctype="multipart/form-data" onsubmit="return formcheck();">
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label">支付状态</label>
 						<div class="col-sm-9 col-xs-12 form-control-static">
@@ -286,7 +296,7 @@
 		}
 		return ok;
 	}
-
+	
 	require(['bootstrap'],function($) {
 		$('.but').click(function() {
 			$('.but').removeClass('btn-primary');
