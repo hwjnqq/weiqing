@@ -162,7 +162,7 @@
 					</div>
 				</form>
 				
-				<form action="" class="form-horizontal form wn-form" method="post" enctype="multipart/form-data" onsubmit="return formcheck();">
+				<form action="" class="form-horizontal form wn-form" method="post" enctype="multipart/form-data">
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label">支付状态</label>
 						<div class="col-sm-9 col-xs-12 form-control-static">
@@ -199,59 +199,22 @@
 						</div>
 					</div>
 					{/if}
+					{if !empty($actions) && is_array($actions)}
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label">操作</label>
 						<div class="col-sm-9 col-xs-12 form-control-static">
-							{if $item['status'] != 1 && $item['goods_status'] != 2 && $item['goods_status'] != 3 && $item['goods_status'] != 5 && $item['status'] != 3}
-								{if $item['status'] != 2}
-								<button type="button" data-toggle="modal" data-target="#oderConfirm" class="btn but{if $item['status'] == -1} btn-primary{/if} btn-default" value="-1" {if $item['status'] == -1} disabled{/if}>订单取消</button>
-								{/if}
-								{if $item['status'] != -1}
-								<button type="button" data-toggle="modal" data-target="#oderConfirm" class="btn but{if $item['status'] == 2} btn-primary{/if} btn-default" value="2" disabled="{if $item['status'] == 2} disabled{/if}">订单拒绝</button>
-								{/if}
-								{if ($item['status'] == -1 || $item['status'] == 2) && $item['paystatus'] == 1}
-									<button type="button" data-toggle="modal" data-target="#oderConfirm" class="btn but btn-default" value="8">订单退款</button>
-								{/if}
-							{/if}
-							{if $item['status'] != -1}
-								{if $item['status'] <= 1}
-									<button type="button" data-toggle="modal" data-target="#oderConfirm" class="btn but{if $item['status'] == 1} btn-primary{/if} btn-default" value="1" {if $item['status'] == 1} disabled{/if}>订单确认</button>
-								{/if}
-								{if $item['status'] != 2}
-									{if $store_type == STORE_TYPE_HOTEL}
-										{if !empty($good_info) && $good_info['is_house'] == 1}
-											<button type="button" data-toggle="modal" data-target="#oderConfirm" class="btn but{if $item['goods_status'] == 5} btn-primary{/if} btn-default" value="5" {if $item['goods_status'] == 5} disabled{/if}>已入住</button>
-										{/if}
-									{else}
-										{if $item['status'] != 3 && $item['mode_distribute'] == 2}
-											{if $item['goods_status'] == 1}
-												<button type="button" data-toggle="modal" data-target="#oderConfirm" class="btn but btn-default" value="6">已发货</button>
-											{elseif $item['goods_status'] == 2 || $item['goods_status'] == 3}
-												<button type="button" data-toggle="modal" data-target="#oderConfirm" class="btn but{if $item['goods_status'] == 3} btn-primary{/if} btn-default" value="7"  {if $item['goods_status'] == 3} disabled{/if}>已收货</button>
-											{/if}
-										{/if}
-									{/if}
-								{/if}
-								{if $item['status'] != 2}
-								<button type="button" data-toggle="modal" data-target="#oderConfirm" class="btn but{if $item['status'] == 3} btn-primary{/if} btn-default"  value="3"  {if $item['status'] == 3} disabled{/if}>订单完成</button>
-								{/if}
-							{/if}
-							<!--<input type="hidden" id="status" name="status" value="{$item['status']}">-->
+						{loop $actions $ac $text}
+							<button type="button" data-toggle="modal" data-target="#orderConfirm" class="btn but btn-default" value="{$ac}" >{$text}</button>
+						{/loop}
 						</div>
 					</div>
-					<!--<div class="form-group">-->
-						<!--<input type="hidden" name="id" value="{$item['id']}">-->
-						<!--<input type="hidden" name="storeid" value="{$storeid}" />-->
-						<!--<input type="hidden" name="old_status" value="{$item['status']}" />-->
-						<!--<input type="submit" name="submit" value="提交" class="btn btn-primary" {if $item['status'] == 3 || ($item['paystatus'] !=1 && ($item['status'] == -1 || $item['status'] == 2))}disabled{/if}/>-->
-						<!--<input type="hidden" name="token" value="{$_W['token']}" />-->
-					<!--</div>-->
+					{/if}
 				</form>
 			</div>
 		</div>
 	</div>
 </div>
-<div class="modal fade" id="oderConfirm" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+<div class="modal fade" id="orderConfirm" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
 	<div class="modal-dialog" role="document">
 
 		<form action="" class="form-horizontal form wn-form" method="post" enctype="multipart/form-data" onsubmit="return formcheck();">
@@ -260,65 +223,47 @@
 				确认操作
 			</div>
 			<div class="modal-body">
-					sfsdlfdsljhf
+				确认此操作？
 				<input type="hidden" name="id" value="{$item['id']}">
 				<input type="hidden" name="storeid" value="{$storeid}" />
-				<input type="hidden" name="old_status" value="{$item['status']}" />
 				<input type="hidden" name="token" value="{$_W['token']}" />
-				<input type="hidden" id="status" name="status" value="{$item['status']}">
+				<input type="hidden" id="action" name="action" value="{$ac}">
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-				<input type="submit" name="submit" value="提交" class="btn btn-primary"/>
+				<a class="btn btn-primary js-submit">提交</a>
 			</div>
 		</div>
 		</form>
 	</div>
 </div>
 <script type="text/javascript">
-	function formcheck() {
-		var ok = true;
-		if ($("#status").val() == 1) {
-			$("#room_list option").each(function() {
-				var val = $(this).val().split("|");
-				if (val[1] == 0) {
-					util.message(val[0] + "无房");
-					ok = false;
-					return false;
+	var storeid = {$storeid};
+	var id = {$item['id']};
+	require(['bootstrap'],function($) {
+		$('#orderConfirm').on('show.bs.modal', function(e) {
+			$('#action').val(e.relatedTarget.value);
+		});
+		$('.js-submit').click(function() {
+			var action = $('#action').val();
+			$.post("{php echo $this->createWebUrl('shop_order', array('op' => 'edit'))}", {storeid : storeid, id : id, action : action}, function(data) {
+				data = $.parseJSON(data);
+				console.dir(data);
+				if (data.message.errno == 0) {
+					util.message(data.message.message, 'refresh', 'success');
 				} else {
-					if (val[2] != '不限') {
-						if (parseInt(val[2]) == 0) {
-							util.message(val[0] + "没有空房间");
-							ok =false;
-							return false;
-						}
-						if (parseInt(val[2]) > 0 && parseInt(val[2]) < {$item['nums']}) {
-							util.message(val[0] + "房间数量不够");
-							ok =false;
-							return false;
-						}
-					}
+					util.message(data.message.message);
 				}
 			});
-		}
-		if ($("#status").val() == 5 || $("#status").val() == 6 || $("#status").val() == 7 || $("#status").val() == 8) {
+		});
+	});
+
+	function formcheck() {
+		if ($("#action").val() == 'is_refund' || $("#action").val() == '+' || $("#action").val() == 'is_live' || $("#status").val() == 8) {
 			if (!confirm("请确认客户已支付过订单再做此操作！")){
 				return false;
 			}
 		}
-		return ok;
 	}
-	
-	require(['bootstrap'],function($) {
-//		$('.but').click(function() {
-//			$('.but').removeClass('btn-primary');
-//			$(this).addClass('btn-primary');
-//			$('#status').val($(this).val()) ;
-//		});
-
-        $('#oderConfirm').on('show.bs.modal', function (e) {
-            $('#status').val(e.relatedTarget.value);
-        });
-	});
 </script>
 {template 'common/footer'}

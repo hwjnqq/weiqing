@@ -106,8 +106,8 @@ $sql = "
 	`order_time` int(11) NOT NULL DEFAULT '0' COMMENT '自提是自提时间，配送是配送时间',
 	`addressid` int(11) NOT NULL COMMENT '配送选择的地址id',
 	`goods_status` int(11) NOT NULL COMMENT '货物状态：1未发送，2已发送，3已收货',
-	`refund_status` tinyint(2) NOT NULL COMMENT '退款状态 1退款中，2成功，3失败',
-	`paytype` int(11) DEFAULT '0',
+	`refund_status` tinyint(2) NOT NULL DEFAULT '2' COMMENT '1是退款，2是不退款',
+	`paytype` varchar(20) NOT NULL DEFAULT '',
 	`action` int(11) NOT NULL DEFAULT '2' COMMENT '1预定  2购买',
 	`paystatus` int(11) DEFAULT '0',
 	`comment` int(3) NOT NULL DEFAULT '0',
@@ -772,7 +772,21 @@ if (!empty($module)){
 					$insert = array();
 					foreach ($hotel2_all_table[$hotel2_table] as $field) {
 						if (isset($val[$field])) {
-							$insert[$field] = $val[$field];
+							if ($hotel2_table == 'hotel2_order' && $field == 'paytype') {
+								if ($val[$field] == 1) {
+									$insert[$field] = 'credit';
+								} elseif ($val[$field] == 21) {
+									$insert[$field] = 'wechat';
+								} elseif ($val[$field] == 22) {
+									$insert[$field] = 'alipay';
+								} elseif ($val[$field] == 3) {
+									$insert[$field] = 'delivery';
+								} else {
+									$insert[$field] = '';
+								}
+							} else {
+								$insert[$field] = $val[$field];
+							}
 						}
 					}
 					pdo_insert($storex_table, $insert);

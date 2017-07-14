@@ -113,13 +113,13 @@ if ($op == 'edit_order') {
 	}
 	if (!empty($data['status'])) {
 		if ($item['status'] == -1) {
-			message(error(-1, '订单状态已经取消，不能操做！'), '', 'ajax');
+			message(error(-1, '订单状态已经取消，不能操作！'), '', 'ajax');
 		}
 		if ($item['status'] == 3) {
-			message(error(-1, '订单状态已经完成，不能操做！'), '', 'ajax');
+			message(error(-1, '订单状态已经完成，不能操作！'), '', 'ajax');
 		}
 		if ($item['status'] == 2) {
-			message(error(-1, '订单状态已拒绝，不能操做！'), '', 'ajax');
+			message(error(-1, '订单状态已拒绝，不能操作！'), '', 'ajax');
 		}
 		if ($data['status'] == $item['status']) {
 			message(error(-1, '订单状态已经是该状态了，不要重复操作！'), '', 'ajax');
@@ -134,7 +134,7 @@ if ($op == 'edit_order') {
 				message(error(-1, '已收货，不要再发了！'), '', 'ajax');
 			}
 			if ($item['goods_status'] == 2) {
-				message(error(-1, '已发货，不要重复操做！'), '', 'ajax');
+				message(error(-1, '已发货，不要重复操作！'), '', 'ajax');
 			}
 			if ($item['goods_status'] == 5) {
 				message(error(-1, '已入住！'), '', 'ajax');

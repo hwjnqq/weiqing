@@ -49,14 +49,14 @@ if ($op == 'edit') {
 		);
 		if ($item['status'] == 1 || $item['status'] == 4 || $item['goods_status'] == 2 || $item['goods_status'] == 3 ) {
 			if ($data['status'] == -1 || $data['status'] == 2) {
-				message('订单已确认或发货，不能操做！', '', 'error');
+				message('订单已确认或发货，不能操作！', '', 'error');
 			}
 		}
 		if ($item['status'] == -1) {
-			message('订单状态已经取消，不能操做！', '', 'error');
+			message('订单状态已经取消，不能操作！', '', 'error');
 		}
 		if ($item['status'] == 3) {
-			message('订单状态已经完成，不能操做！', '', 'error');
+			message('订单状态已经完成，不能操作！', '', 'error');
 		}
 		if ($data['status'] == $item['status']) {
 			message('订单状态已经是该状态了，不要重复操作！', '', 'error');

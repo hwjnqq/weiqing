@@ -408,6 +408,57 @@ if (!function_exists('getOrderUniontid')) {
 		return $list;
 	}
 }
+/**
+* is_cancle 订单取消
+* is_refund 订单退款
+* is_refuse 订单拒绝
+* is_confirm 订单确认
+* is_send 订单发货
+* is_live 订单入住
+* is_over 订单完成
+*/
+if (!function_exists('getOrderAction')) {
+	function getOrderAction($order, $store_type, $is_house) {
+		global $_W;
+		$actions = array();
+		
+		if ($order['paystatus'] == 1) {
+			$order_refund = pdo_get('storex_refund_logs', array('uniacid' => $_W['uniacid'], 'orderid' => $order['id']), array('id', 'status'));
+			if ($order['status'] == -1 || $order['status'] == 2) {
+				if (!empty($order_refund) && ($order_refund['status'] == 1 || $order_refund['status'] == 3)) {
+					$actions['is_refund'] = '订单退款';
+				}
+			} elseif($order['status'] == 0) {
+				$actions['is_cancle'] = '订单取消';
+				$actions['is_refuse'] = '订单拒绝';
+				$actions['is_confirm'] = '订单确认';
+			} elseif($order['status'] == 1) {
+				if ($store_type == 1) {
+					if ($is_house == 1) {
+						$actions['is_live'] = '订单入住';
+					} else {
+						$actions['is_over'] = '订单完成';
+					}
+				} else {
+					if ($order['mode_distribute'] == 1) {
+						$actions['is_over'] = '订单完成';
+					} else {
+						$actions['is_send'] = '订单发货';
+					}
+				}
+			}
+		} else {
+			if ($order['status'] != -1 && $order['status'] != 2) {
+				if ($order['status'] == 0) {
+					$actions['is_cancle'] = '订单取消';
+					$actions['is_refuse'] = '订单拒绝';
+					$actions['is_confirm'] = '订单确认';
+				}
+			}
+		}
+		return $actions;
+	}
+}
 
 if (!function_exists('getOrderpaytext')) {
 	function getOrderpaytext(&$order) {
@@ -431,8 +482,6 @@ if (!function_exists('getOrderpaytext')) {
 				$order['status_text'] = "已接受";
 			} elseif ($order['status'] == 2) {
 				$order['status_text'] = "已拒绝";
-			} elseif ($order['status'] == 4) {
-				$order['status_text'] = "已入住";
 			} elseif ($order['status'] == 3) {
 				$order['status_text'] = "订单完成";
 			}

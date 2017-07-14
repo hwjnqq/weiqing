@@ -4,6 +4,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 mload()->model('card');
+mload()->model('template');
 
 $ops = array('display', 'edit', 'delete', 'deleteall', 'edit_msg','edit_price', 'print_order', 'check_print_plugin');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
@@ -154,222 +155,156 @@ if ($op == 'edit') {
 	$id = intval($_GPC['id']);
 	if (!empty($id)) {
 		$item = pdo_get('storex_order', array('id' => $id));
-		$paylog = pdo_get('core_paylog', array('uniacid' => $item['weid'], 'tid' => $item['id'], 'module' => 'wn_storex'), array('uniacid', 'uniontid', 'tid'));
 		if (empty($item)) {
-			message('抱歉，订单不存在或是已经删除！', referer(), 'error');
+			message(error(-1, '抱歉，订单不存在或是已经删除！'), '', 'ajax');
 		}
+		$is_house = 2;
 		if ($store_type == STORE_TYPE_HOTEL) {
 			$good_info = pdo_get('storex_room', array('hotelid' => $storeid, 'id' => $item['roomid']), array('id', 'is_house'));
+			$is_house = $good_info['is_house'];
 		}
+		$paylog = pdo_get('core_paylog', array('uniacid' => $item['weid'], 'tid' => $item['id'], 'module' => 'wn_storex'), array('uniacid', 'uniontid', 'tid'));
 		if (!empty($paylog)) {
 			$item['uniontid'] = $paylog['uniontid'];
 		}
+		$actions = getOrderAction($item, $store_type, $is_house);
 		getOrderpaytext($item);
 	}
 	$express = express_name();
-	if (checksubmit('submit')) {
+	if ($_W['isajax'] && $_W['ispost']) {
 		$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']));
-		$status = intval($_GPC['status']);
-		if ($item['status'] == $status) {
-			message('订单状态已经是该状态了，请勿重复操作！', referer(), 'error');
-		}
-		
+		$all_actions = array('is_cancle', 'is_refund', 'is_refuse', 'is_confirm', 'is_send', 'is_live', 'is_over');
 		$data = array(
 			'mngtime' => TIMESTAMP,
 		);
-		if ($status > 4 && 8 > $status) {
-			if ($status == 5 && $data['goods_status'] != GOODS_STATUS_CHECKED) {
-				$data['goods_status'] = GOODS_STATUS_CHECKED;
-			} elseif ($status == 6 && $data['goods_status'] != GOODS_STATUS_SHIPPED) {
-				$data['goods_status'] = GOODS_STATUS_SHIPPED;
-			} elseif ($status == 7 && $data['goods_status'] != GOODS_STATUS_RECEIVED) {
-				$data['goods_status'] = GOODS_STATUS_RECEIVED;
-			} else {
-				message('商品状态已经是该状态了！', referer(), 'error');
+		$action = $_GPC['action'];
+		if (in_array($action, $all_actions) && !empty($actions) && !empty($actions[$action])) {
+			if ($action == 'is_cancle') {
+				$data['status'] = -1;
+			} elseif ($action == 'is_refund') {
+				
+			} elseif ($action == 'is_refuse') {
+				$data['status'] = 2;
+			} elseif ($action == 'is_confirm') {
+				$data['status'] = 1;
+			} elseif ($action == 'is_send') {
+				$data['goods_status'] = 2;
+			} elseif ($action == 'is_live') {
+				$data['goods_status'] = 5;
+			} elseif ($action == 'is_over') {
+				$data['status'] = 3;
 			}
-		} elseif ($status == 8) {
-			if (($item['status'] == ORDER_STATUS_CANCEL || $item['status'] == ORDER_STATUS_SURE) && $item['paystatus'] == PAY_STATUS_PAID && $item['refund_status'] != REFUND_STATUS_SUCCESS) {
-				$data['refund_status'] = REFUND_STATUS_PROCESS;
-			} else {
-				message('该订单不符合退款要求！', referer(), 'error');
-			}
-		} else {
-			$data['status'] = $status;
-		}
-		if ($item['status'] == ORDER_STATUS_SURE || $item['goods_status'] == GOODS_STATUS_CHECKED || $item['goods_status'] == GOODS_STATUS_SHIPPED || $item['goods_status'] == GOODS_STATUS_RECEIVED ) {
-			if (!empty($data['status']) && ($data['status'] == ORDER_STATUS_CANCEL || $data['status'] == ORDER_STATUS_REFUSE)) {
-				message('订单已确认或发货，不能操作！', referer(), 'error');
-			}
-		}
-		if ($item['status'] == ORDER_STATUS_CANCEL) {
-			message('订单状态已经取消，不能操作！', referer(), 'error');
-		}
-		if ($item['status'] == ORDER_STATUS_OVER) {
-			message('订单状态已经完成，不能操作！', referer(), 'error');
-		}
-		
-// 		if (!empty($data['refund_status']) && $data['refund_status'] == 1) {
-// 			//处理退款的逻辑，
-// 			$message = array();
-// 			if (is_error($message)) {
-// 				$data['refund_status'] = 3;
-// 				pdo_update('storex_order', $data, array('id' => $id));
-// 				message('该订单退款失败！', '', 'error');
-// 			} else {
-// 				$data['refund_status'] = 2;
-// 				pdo_update('storex_order', $data, array('id' => $id));
-// 			}
-// 		}
-		
-		if ($store_type == STORE_TYPE_HOTEL) {
-			//订单取消
-			if ($data['status'] == ORDER_STATUS_CANCEL || $data['status'] == ORDER_STATUS_REFUSE) {
-				if ($item['paystatus'] == PAY_STATUS_PAID) {
-					$data['refund_status'] = REFUND_STATUS_PROCESS;
-				}
-				$room_date_list = pdo_getall('storex_room_price', array('roomid' => $item['roomid'], 'roomdate >=' => $item['btime'], 'roomdate <' => $item['etime'], 'status' => 1), 
-					array('id', 'roomdate', 'num', 'status'));
-				if (!empty($room_date_list)) {
-					foreach ($room_date_list as $key => $value) {
-						$num = $value['num'];
-						if ($num >= 0) {
-							$now_num = $num + $item['nums'];
-							pdo_update('storex_room_price', array('num' => $now_num), array('id' => $value['id']));
+			if ($store_type == STORE_TYPE_HOTEL) {
+				//订单取消和拒绝
+				if ($data['status'] == ORDER_STATUS_CANCEL || $data['status'] == ORDER_STATUS_REFUSE) {
+					if ($item['paystatus'] == PAY_STATUS_PAID) {
+						$data['refund_status'] = REFUND_STATUS_PROCESS;
+					}
+					$room_date_list = pdo_getall('storex_room_price', array('roomid' => $item['roomid'], 'roomdate >=' => $item['btime'], 'roomdate <' => $item['etime'], 'status' => 1), array('id', 'roomdate', 'num', 'status'));
+					if (!empty($room_date_list)) {
+						foreach ($room_date_list as $key => $value) {
+							$num = $value['num'];
+							if ($num >= 0) {
+								$now_num = $num + $item['nums'];
+								pdo_update('storex_room_price', array('num' => $now_num), array('id' => $value['id']));
+							}
 						}
 					}
 				}
 			}
-		}
-		
-		if (!empty($data['status']) && $data['status'] != $item['status']) {
-			//订单退款
-			if ($data['status'] == ORDER_STATUS_REFUSE) {
-				if (!empty($setting['template']) && !empty($setting['refuse_templateid'])) {
-					$tplnotice = array(
-						'first' => array('value'=>'尊敬的宾客，非常抱歉的通知您，您的预订订单被拒绝。'),
-						'keyword1' => array('value' => $item['ordersn']),
-						'keyword2' => array('value' => date('Y.m.d', $item['btime']) . '-' . date('Y.m.d', $item['etime'])),
-						'keyword3' => array('value' => $item['nums']),
-						'keyword4' => array('value' => $item['sum_price']),
-						'keyword5' => array('value' => '商品不足'),
-					);
-					$acc = WeAccount::create();
-					$acc->sendTplNotice($item['openid'], $setting['refuse_templateid'], $tplnotice);
-				} else {
-					$info = '您在' . $store['title'] . '预订的' . $room['title'] . "不足。已为您取消订单";
-					$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
-				}
-			}
-			//订单确认提醒
-			if ($data['status'] == ORDER_STATUS_SURE) {
-				if ($store_type == STORE_TYPE_HOTEL) {
-					if (!empty($good_info) && $good_info['is_house'] == 1) {
-						$data['goods_status'] = 4;
-					}
-				} else {
-					$data['goods_status'] = 1;
-				}
-				//TM00217
-				if (!empty($setting['template']) && !empty($setting['templateid'])) {
-					$tplnotice = array(
-						'first' => array('value' => '您好，您已成功预订' . $store['title'] . '！'),
-						'order' => array('value' => $item['ordersn']),
-						'Name' => array('value' => $item['contact_name']),
-						'datein' => array('value' => date('Y-m-d', $item['btime'])),
-						'dateout' => array('value' => date('Y-m-d', $item['etime'])),
-						'number' => array('value' => $item['nums']),
-						'room type' => array('value' => $item['style']),
-						'pay' => array('value' => $item['sum_price']),
-						'remark' => array('value' => '酒店预订成功')
-					);
-					$acc = WeAccount::create();
-					$result = $acc->sendTplNotice($item['openid'], $setting['templateid'], $tplnotice);
-				} else {
-					$info = '您在' . $store['title'] . '预订的' . $room['title'] . '已预订成功';
-					$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
-				}
-				if (check_ims_version()) {
-					$plugins = get_plugin_list();
-					if (!empty($plugins) && !empty($plugins['wn_storex_plugin_sms'])) {
-						mload()->model('sms');
-						$content = array(
-							'store' => $store['title'],
-							'ordersn' => $item['ordersn'],
-							'price' => $item['sum_price'],
-						);
-						sms_send($item['mobile'], $content, 'user');
+			if (!empty($data['status'])) {
+				//订单拒绝
+				if ($data['status'] == ORDER_STATUS_REFUSE) {
+					if (!empty($setting['template']) && !empty($setting['refuse_templateid'])) {
+						order_status_refuse($item, $setting['refuse_templateid']);
+					} else {
+						$info = '您在' . $store['title'] . '预订的' . $room['title'] . "不足。已为您取消订单";
+						$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
 					}
 				}
-			}
-	
-			//订单完成提醒
-			if ($data['status'] == ORDER_STATUS_OVER) {
-				$uid = mc_openid2uid(trim($item['openid']));
-				//订单完成后增加积分
-				card_give_credit($uid, $item['sum_price']);
-				//增加出售货物的数量
-				add_sold_num($room);
-				//OPENTM203173461
-				if (!empty($setting['template']) && !empty($setting['finish_templateid']) && $store_type == STORE_TYPE_HOTEL) {
-					$tplnotice = array(
-						'first' => array('value' =>'您已成功办理离店手续，您本次入住酒店的详情为'),
-						'keyword1' => array('value' => date('Y-m-d', $item['btime'])),
-						'keyword2' => array('value' => date('Y-m-d', $item['etime'])),
-						'keyword3' => array('value' => $item['sum_price']),
-						'remark' => array('value' => '欢迎您的下次光临。')
-					);
-					$acc = WeAccount::create();
-					$result = $acc->sendTplNotice($item['openid'], $setting['finish_templateid'], $tplnotice);
-				} else {
-					$info = '您在' . $store['title'] . '预订的' . $room['title'] . '订单已完成,欢迎下次光临';
-					$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
+				//订单确认提醒
+				if ($data['status'] == ORDER_STATUS_SURE) {
+					if ($store_type == STORE_TYPE_HOTEL) {
+						if (!empty($good_info) && $is_house == 1) {
+							$data['goods_status'] = 4;
+						}
+					} else {
+						$data['goods_status'] = 1;
+					}
+					//TM00217
+					if (!empty($setting['template']) && !empty($setting['templateid'])) {
+						order_status_sure($item, $setting['templateid'], $store);
+					} else {
+						$info = '您在' . $store['title'] . '预订的' . $room['title'] . '已预订成功';
+						$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
+					}
+					if (check_ims_version()) {
+						$plugins = get_plugin_list();
+						if (!empty($plugins) && !empty($plugins['wn_storex_plugin_sms'])) {
+							mload()->model('sms');
+							$content = array(
+								'store' => $store['title'],
+								'ordersn' => $item['ordersn'],
+								'price' => $item['sum_price'],
+							);
+							sms_send($item['mobile'], $content, 'user');
+						}
+					}
 				}
-			}
-			if ($data['status'] == ORDER_STATUS_CANCEL) {
-				$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "订单已取消，请联系管理员！";
-				$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
-			}
-		}
-		
-		if (!empty($data['goods_status'])) {
-			//已入住提醒
-			if ($data['goods_status'] == GOODS_STATUS_CHECKED) {
-				//TM00058
-				if (!empty($setting['template']) && !empty($setting['check_in_templateid'])) {
-					$tplnotice = array(
-							'first' =>array('value' => '您好,您已入住' . $store['title'] . $room['title']),
-							'hotelName' => array('value' => $store['title']),
-							'roomName' => array('value' => $room['title']),
-							'date' => array('value' => date('Y-m-d', $item['btime'])),
-							'remark' => array('value' => '如有疑问，请咨询' . $store['phone'] . '。'),
-					);
-					$acc = WeAccount::create();
-					$result = $acc->sendTplNotice($item['openid'], $setting['check_in_templateid'], $tplnotice);
-				} else {
-					$info = '您已成功入住' . $store['title'] . '预订的' . $room['title'];
+			
+				//订单完成提醒
+				if ($data['status'] == ORDER_STATUS_OVER) {
+					$uid = mc_openid2uid(trim($item['openid']));
+					//订单完成后增加积分
+					card_give_credit($uid, $item['sum_price']);
+					//增加出售货物的数量
+					add_sold_num($room);
+					//OPENTM203173461
+					if (!empty($setting['template']) && !empty($setting['finish_templateid']) && $store_type == STORE_TYPE_HOTEL) {
+						order_status_over($item, $setting['finish_templateid']);
+					} else {
+						$info = '您在' . $store['title'] . '预订的' . $room['title'] . '订单已完成,欢迎下次光临';
+						$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
+					}
+				}
+				if ($data['status'] == ORDER_STATUS_CANCEL) {
+					$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "订单已取消，请联系管理员！";
 					$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
 				}
 			}
 			
-			if ($data['goods_status'] == GOODS_STATUS_SHIPPED) {
-				$info = '您在' . $store['title'] . '预订的' . $room['title'] . '已发货';
-				$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
+			if (!empty($data['goods_status'])) {
+				//已入住提醒
+				if ($data['goods_status'] == GOODS_STATUS_CHECKED) {
+					//TM00058
+					if (!empty($setting['template']) && !empty($setting['check_in_templateid'])) {
+						$info['room'] = $room['title'];
+						$info['store'] = $store['title'];
+						$info['phone'] = $store['phone'];
+						goods_status_checked($item, $check_in_templateid, $info);
+					} else {
+						$info = '您已成功入住' . $store['title'] . '预订的' . $room['title'];
+						$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
+					}
+				}
+				if ($data['goods_status'] == GOODS_STATUS_SHIPPED) {
+					$info = '您在' . $store['title'] . '预订的' . $room['title'] . '已发货';
+					$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
+				}
 			}
-			if ($data['goods_status'] == GOODS_STATUS_RECEIVED) {
-				$info = '您在' . $store['title'] . '预订的' . $room['title'] . '管理员已代替操作收货，如有疑问请咨询管理员！';
-				$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
+			//卡券状态修改
+			if (!empty($item['coupon'])) {
+				if ($data['status'] == ORDER_STATUS_CANCEL || $data['status'] == ORDER_STATUS_REFUSE) {
+					pdo_update('storex_coupon_record', array('status' => 1), array('id' => $item['coupon']));
+				} elseif ($data['status'] == ORDER_STATUS_OVER) {
+					pdo_update('storex_coupon_record', array('status' => 3), array('id' => $item['coupon']));
+				}
 			}
+			pdo_update('storex_order', $data, array('id' => $id));
+			message(error('0', '订单信息处理完成！'), '', 'ajax');
+		} else {
+			message(error('-1', '订单操作错误！'), '', 'ajax');
 		}
-		
-		if (!empty($item['coupon'])) {
-			if ($data['status'] == ORDER_STATUS_CANCEL || $data['status'] == ORDER_STATUS_REFUSE) {
-				pdo_update('storex_coupon_record', array('status' => 1), array('id' => $item['coupon']));
-			} elseif ($data['status'] == ORDER_STATUS_OVER) {
-				pdo_update('storex_coupon_record', array('status' => 3), array('id' => $item['coupon']));
-			}
-		}
-		pdo_update('storex_order', $data, array('id' => $id));
-		message('订单信息处理完成！', $this->createWebUrl('shop_order', array('op' => 'edit', 'id' => $id, 'roomid' => $roomid, 'storeid' => $storeid)), 'success');
 	}
 	if ($store_type == STORE_TYPE_HOTEL && !empty($good_info) && $good_info['is_house'] == 1) {
 		$btime = $item['btime'];
