@@ -175,7 +175,7 @@
 							{/if}
 						</div>
 					</div>
-					{if empty($good_info) || $good_info['is_house'] != 2}
+					{if (empty($good_info) || $good_info['is_house'] != 2) && $item['status'] != -1 && $item['status'] != 2}
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品状态</label>
 						<div class="col-sm-9 col-xs-12 form-control-static">
