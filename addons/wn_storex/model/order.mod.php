@@ -262,82 +262,88 @@ function order_query_refund($orderid) {
 	return true;
 }
 
-function order_send_notice($openid, $templateid, $tplnotice) {
-	$account_api = WeAccount::create();
-	$account_api->sendTplNotice($openid, $templateid, $tplnotice);
-}
-
 //订单拒绝
-function order_refuse_notice($item, $infos) {
-	if (!empty($infos['template']) && !empty($infos['refuse_templateid'])) {
-		$tplnotice = array(
-			'first' => array('value'=>'尊敬的宾客，非常抱歉的通知您，您的预订订单被拒绝。'),
-			'keyword1' => array('value' => $item['ordersn']),
-			'keyword3' => array('value' => $item['nums']),
-			'keyword4' => array('value' => $item['sum_price']),
-			'keyword5' => array('value' => '商品不足'),
-		);
-		if ($infos['store_type'] == STORE_TYPE_HOTEL) {
-			$tplnotice['keyword2'] = array('value' => date('Y.m.d', $item['btime']) . '-' . date('Y.m.d', $item['etime']));
-		}
-		order_send_notice($item['openid'], $infos['refuse_templateid'], $tplnotice);
+function order_refuse_notice($params) {
+	if (!empty($params['tpl_status']) && !empty($params['refuse_templateid'])) {
+		order_notice_tpl($params['openid'], 'refuse_templateid', $params, $params['refuse_templateid']);
 	} else {
-		$info = '您在' . $infos['store'] . '预订的' . $infos['room'] . "不足。已为您取消订单";
-		$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
+		$info = '您在' . $params['store'] . '预订的' . $params['room'] . "不足。已为您取消订单";
+		$status = send_custom_notice('text', array('content' => urlencode($info)), $params['openid']);
 	}
 }
 
 //订单确认
-function order_sure_notice($item, $infos) {
-	if (!empty($infos['template']) && !empty($infos['templateid'])) {
-		$tplnotice = array(
-			'first' => array('value' => '您好，您已成功预订' . $infos['store'] . '！'),
-			'order' => array('value' => $item['ordersn']),
-			'Name' => array('value' => $item['contact_name']),
-			'datein' => array('value' => date('Y-m-d', $item['btime'])),
-			'dateout' => array('value' => date('Y-m-d', $item['etime'])),
-			'number' => array('value' => $item['nums']),
-			'room type' => array('value' => $item['style']),
-			'pay' => array('value' => $item['sum_price']),
-			'remark' => array('value' => '酒店预订成功')
-		);
-		order_send_notice($item['openid'], $infos['templateid'], $tplnotice);
+function order_sure_notice($params) {
+	if (!empty($params['tpl_status']) && !empty($params['templateid'])) {
+		order_notice_tpl($params['openid'], 'templateid', $params, $params['templateid']);
 	} else {
-		$info = '您在' . $infos['store'] . '预订的' . $infos['room'] . '已预订成功';
-		$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
+		$info = '您在' . $params['store'] . '预订的' . $params['room'] . '已预订成功';
+		$status = send_custom_notice('text', array('content' => urlencode($info)), $params['openid']);
 	}
 }
 
 //订单完成
-function order_over_notice($item, $infos) {
-	if (!empty($infos['template']) && !empty($infos['finish_templateid']) && $infos['store_type'] == STORE_TYPE_HOTEL) {
-		$tplnotice = array(
-			'first' => array('value' =>'您已成功办理离店手续，您本次入住酒店的详情为'),
-			'keyword1' => array('value' => date('Y-m-d', $item['btime'])),
-			'keyword2' => array('value' => date('Y-m-d', $item['etime'])),
-			'keyword3' => array('value' => $item['sum_price']),
-			'remark' => array('value' => '欢迎您的下次光临。')
-		);
-		order_send_notice($item['openid'], $infos['finish_templateid'], $tplnotice);
+function order_over_notice($params) {
+	if (!empty($params['tpl_status']) && !empty($params['finish_templateid']) && $params['store_type'] == STORE_TYPE_HOTEL) {
+		order_notice_tpl($params['openid'], 'finish_templateid', $params, $params['finish_templateid']);
 	} else {
-		$info = '您在' . $infos['store'] . '预订的' . $infos['room'] . '订单已完成,欢迎下次光临';
-		$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
+		$info = '您在' . $params['store'] . '预订的' . $params['room'] . '订单已完成,欢迎下次光临';
+		$status = send_custom_notice('text', array('content' => urlencode($info)), $params['openid']);
 	}
 }
 
 //订单入住
-function order_checked_notice($item, $infos) {
-	if (!empty($infos['template']) && !empty($infos['check_in_templateid'])) {
-		$tplnotice = array(
-			'first' =>array('value' => '您好,您已入住' . $infos['store'] . $infos['room']),
-			'hotelName' => array('value' => $infos['store']),
-			'roomName' => array('value' => $infos['room']),
-			'date' => array('value' => date('Y-m-d', $item['btime'])),
-			'remark' => array('value' => '如有疑问，请咨询' . $infos['phone'] . '。'),
-		);
-		order_send_notice($item['openid'], $infos['check_in_templateid'], $tplnotice);
+function order_checked_notice($params) {
+	if (!empty($params['tpl_status']) && !empty($params['check_in_templateid'])) {
+		order_notice_tpl($params['openid'], 'check_in_templateid', $params, $params['check_in_templateid']);
 	} else {
-		$info = '您已成功入住' . $infos['store'] . '预订的' . $infos['room'];
-		$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
+		$info = '您已成功入住' . $params['store'] . '预订的' . $params['room'];
+		$status = send_custom_notice('text', array('content' => urlencode($info)), $params['openid']);
 	}
+}
+
+function order_notice_tpl($openid, $type, $params, $templateid) {
+	if (!in_array($type, array('refuse_templateid', 'templateid', 'finish_templateid', 'check_in_templateid'))) {
+		return false;
+	}
+	$tplnotice_list = array(
+		'refuse_templateid' => array(
+			'first' => array('value' => '尊敬的宾客，非常抱歉的通知您，您的预订订单被拒绝。'),
+			'keyword1' => array('value' => $params['ordersn']),
+			'keyword3' => array('value' => $params['nums']),
+			'keyword4' => array('value' => $params['sum_price']),
+			'keyword5' => array('value' => '商品不足'),
+		),
+		'templateid' => array(
+			'first' => array('value' => '您好，您已成功预订' . $params['store'] . '！'),
+			'order' => array('value' => $params['ordersn']),
+			'Name' => array('value' => $params['contact_name']),
+			'datein' => array('value' => date('Y-m-d', $params['btime'])),
+			'dateout' => array('value' => date('Y-m-d', $params['etime'])),
+			'number' => array('value' => $params['nums']),
+			'room type' => array('value' => $params['style']),
+			'pay' => array('value' => $params['sum_price']),
+			'remark' => array('value' => '酒店预订成功')
+		),
+		'finish_templateid' => array(
+			'first' => array('value' =>'您已成功办理离店手续，您本次入住酒店的详情为'),
+			'keyword1' => array('value' => date('Y-m-d', $params['btime'])),
+			'keyword2' => array('value' => date('Y-m-d', $params['etime'])),
+			'keyword3' => array('value' => $params['sum_price']),
+			'remark' => array('value' => '欢迎您的下次光临。')
+		),
+		'check_in_templateid' => array(
+			'first' =>array('value' => '您好,您已入住' . $params['store'] . $params['room']),
+			'hotelName' => array('value' => $params['store']),
+			'roomName' => array('value' => $params['room']),
+			'date' => array('value' => date('Y-m-d', $params['btime'])),
+			'remark' => array('value' => '如有疑问，请咨询' . $params['phone'] . '。'),
+		),
+	);
+	$tplnotice = $tplnotice_list[$type];
+	if ($type == 'refuse_templateid' && $params['store_type'] == STORE_TYPE_HOTEL) {
+		$tplnotice['keyword2'] = array('value' => date('Y.m.d', $params['btime']) . '-' . date('Y.m.d', $params['etime']));
+	}
+	$account_api = WeAccount::create();
+	$account_api->sendTplNotice($openid, $templateid, $tplnotice);
 }

@@ -79,15 +79,24 @@ if ($op == 'edit') {
 			}
 		}
 		if ($data['status'] != $item['status']) {
-			$infos = array();
-			$infos['room'] = $room['title'];
-			$infos['store'] = $hotel['title'];
-			$infos['store_type'] = $hotel['store_type'];
-			$infos['template'] = $setting['template'];
+			$params = array();
+			$params['room'] = $room['title'];
+			$params['store'] = $hotel['title'];
+			$params['store_type'] = $hotel['store_type'];
+			$params['openid'] = $item['openid'];
+			$params['btime'] = $item['btime'];
+			$params['tpl_status'] = false;
+			if (!empty($setting['template'])) {
+				$params['tpl_status'] = true;
+			}
 			//订单拒绝
 			if ($data['status'] == 2) {
-				$infos['refuse_templateid'] = $setting['refuse_templateid'];
-				order_refuse_notice($item, $infos);
+				$params['ordersn'] = $item['ordersn'];
+				$params['nums'] = $item['nums'];
+				$params['sum_price'] = $item['sum_price'];
+				$params['etime'] = $item['etime'];
+				$params['refuse_templateid'] = $setting['refuse_templateid'];
+				order_refuse_notice($item, $params);
 			}
 			//订单确认提醒
 			if ($data['status'] == 1) {
@@ -99,8 +108,14 @@ if ($op == 'edit') {
 					$data['goods_status'] = 1;
 				}
 				//TM00217
-				$infos['templateid'] = $setting['templateid'];
-				order_sure_notice($item, $infos);
+				$params['ordersn'] = $item['ordersn'];
+				$params['contact_name'] = $item['contact_name'];
+				$params['sum_price'] = $item['sum_price'];
+				$params['etime'] = $item['etime'];
+				$params['nums'] = $item['nums'];
+				$params['style'] = $item['style'];
+				$params['templateid'] = $setting['templateid'];
+				order_sure_notice($item, $params);
 				if (check_ims_version()) {
 					$plugins = get_plugin_list();
 					if (!empty($plugins) && !empty($plugins['wn_storex_plugin_sms'])) {
@@ -118,10 +133,10 @@ if ($op == 'edit') {
 			if ($data['status'] == 4) {
 				$data['goods_status'] = 5;
 				$data['status'] = 1;
-				$infos['phone'] = $hotel['phone'];
+				$params['phone'] = $hotel['phone'];
 				//TM00058
-				$infos['check_in_templateid'] = $setting['check_in_templateid'];
-				order_checked_notice($item, $infos);
+				$params['check_in_templateid'] = $setting['check_in_templateid'];
+				order_checked_notice($item, $params);
 			}
 	
 			//订单完成提醒
@@ -132,8 +147,10 @@ if ($op == 'edit') {
 				//增加出售货物的数量
 				add_sold_num($room);
 				//OPENTM203173461
-				$infos['finish_templateid'] = $setting['finish_templateid'];
-				order_over_notice($item, $infos);
+				$params['sum_price'] = $item['sum_price'];
+				$params['etime'] = $item['etime'];
+				$params['finish_templateid'] = $setting['finish_templateid'];
+				order_over_notice($item, $params);
 				mload()->model('sales');
 				sales_update(array('storeid' => $item['hotelid'], 'sum_price' => $item['sum_price']));
 			}
