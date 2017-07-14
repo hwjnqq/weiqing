@@ -107,7 +107,7 @@ if ($op == 'cancel') {
 		message(error(-1, '该店铺不能取消订单！'), '', 'ajax');
 	}
 	$order_info = orders_check_status($order_info);
-	if ($order_info['is_cancle'] == 2 || $order_info['status'] == 3) {
+	if ($order_info['is_cancel'] == 2 || $order_info['status'] == 3) {
 		message(error(-1, '该订单不能取消！'), '', 'ajax');
 	}
 	$update_data = array('status' => -1);
