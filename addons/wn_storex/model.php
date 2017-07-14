@@ -409,7 +409,7 @@ if (!function_exists('getOrderUniontid')) {
 	}
 }
 /**
-* cancle 订单取消
+* cancel 订单取消
 * refund 订单退款
 * refuse 订单拒绝
 * confirm 订单确认
@@ -428,7 +428,7 @@ if (!function_exists('getOrderAction')) {
 					$actions['refund'] = '订单退款';
 				}
 			} elseif($order['status'] == ORDER_STATUS_NOT_SURE) {
-				$actions['cancle'] = '订单取消';
+				$actions['cancel'] = '订单取消';
 				$actions['refuse'] = '订单拒绝';
 				$actions['confirm'] = '订单确认';
 			} elseif($order['status'] == ORDER_STATUS_SURE) {
@@ -459,7 +459,7 @@ if (!function_exists('getOrderAction')) {
 		} else {
 			if ($order['status'] != ORDER_STATUS_CANCEL && $order['status'] != ORDER_STATUS_REFUSE) {
 				if ($order['status'] == ORDER_STATUS_NOT_SURE) {
-					$actions['cancle'] = '订单取消';
+					$actions['cancel'] = '订单取消';
 					$actions['refuse'] = '订单拒绝';
 					$actions['confirm'] = '订单确认';
 				}

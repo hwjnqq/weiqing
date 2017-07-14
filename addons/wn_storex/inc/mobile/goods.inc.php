@@ -10,8 +10,8 @@ check_params();
 mload()->model('activity');
 mload()->model('card');
 $uid = mc_openid2uid($_W['openid']);
-$store_id = intval($_GPC['id']);//店铺id
-$goodsid = intval($_GPC['goodsid']);//商品id
+$store_id = intval($_GPC['id']);
+$goodsid = intval($_GPC['goodsid']);
 $max_room = 8;
 
 //获取某个商品的详细信息
@@ -52,7 +52,6 @@ if ($op == 'goods_info') {
 	if (!empty($goods_info['express_set'])) {
 		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
 	}
-	// $goods_info['cprice'] = card_discount_price($uid, $goods_info['cprice']);
 	message(error(0, $goods_info), '', 'ajax');
 }
 
@@ -88,7 +87,6 @@ if ($op == 'info') {
 		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
 	}
 	$paycenter_couponlist = activity_paycenter_get_coupon();
-	// $goods_info['cprice'] = card_discount_price($uid, $goods_info['cprice']);
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;
 	$infos['goods_info'] = $goods_info;
@@ -120,12 +118,12 @@ if ($op == 'order') {
 		'weid' => intval($_W['uniacid']),
 		'hotelid' => $store_id,
 		'openid' => $_W['openid'],
-		'contact_name' => trim($_GPC['order']['contact_name']),//联系人
-		'roomid' => $goodsid,					//商品id
+		'contact_name' => trim($_GPC['order']['contact_name']),
+		'roomid' => $goodsid,
 		'mobile' => trim($_GPC['order']['mobile']),
-		'remark' => trim($_GPC['order']['remark']),		//留言
-		'nums' => intval($_GPC['order']['nums']),				//数量
-		'time' => TIMESTAMP,					//下单时间（TIMESTAMP）
+		'remark' => trim($_GPC['order']['remark']),
+		'nums' => intval($_GPC['order']['nums']),
+		'time' => TIMESTAMP,
 	);
 	$selected_coupon = $_GPC['order']['coupon'];
 	if ($selected_coupon['type'] == 3) {
@@ -143,10 +141,6 @@ if ($op == 'order') {
 	if ($order_info['nums'] <= 0) {
 		message(error(-1, '数量不能是零'), '', 'ajax');
 	}
-	$action = trim($_GPC['action']);//是预定还是购买
-	if (empty($action) || $action != 'buy') {
-		$action = 'buy';
-	}
 	$order_info['action'] = 2;
 	$paysetting = uni_setting(intval($_W['uniacid']), array('payment', 'creditbehaviors'));
 	$_W['account'] = array_merge($_W['account'], $paysetting);
@@ -156,7 +150,7 @@ if ($op == 'order') {
 	}
 	$user_info = hotel_get_userinfo();
 	$memberid = intval($user_info['id']);
-	//预定直接将数据加进order表
+	
 	if ($store_info['store_type'] == 1) {
 		$table = 'storex_room';
 		$condition['hotelid'] = $store_id;
@@ -165,7 +159,7 @@ if ($op == 'order') {
 		$condition['store_base_id'] = $store_id;
 	}
 	$goods_info = pdo_get($table, $condition);
-	goods_check_action($action, $goods_info);//检查是否符合条件
+	goods_check_action($goods_info);
 	$insert = array(
 		'ordersn' => date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1),
 		'memberid' => $memberid,
@@ -180,7 +174,20 @@ if ($op == 'order') {
 	if (empty($reply)) {
 		message(error(-1, '店铺未找到, 请联系管理员!'), '', 'ajax');
 	}
-	if ($store_info['store_type'] == 1) {//酒店
+	$today_start = strtotime(date('Y-m-d'), TIMESTAMP);
+	$today_end = $today_start + 86399;
+	$param = array(
+		':hotelid' => $order_info['hotelid'],
+		':roomid' => $order_info['roomid'],
+		':openid' => $_W['openid'],
+		':today_start' => $today_start,
+		':today_end' => $today_end,
+	);
+	$order_exist = pdo_fetch("SELECT id FROM " . tablename('storex_order') . "WHERE hotelid = :hotelid AND roomid = :roomid AND openid = :openid AND paystatus = 0 AND time >= :today_start AND time < :today_end AND status != -1 AND status != 2", $param);
+	if (!empty($order_exist)) {
+		message(error(-1, "您有未支付该类订单,不要重复下单"), '', 'ajax');
+	}
+	if ($store_info['store_type'] == STORE_TYPE_HOTEL) {
 		$setInfo = pdo_get('storex_set', array('weid' => intval($_W['uniacid'])), array('weid', 'tel', 'is_unify', 'email', 'template', 'templateid', 'smscode'));
 		if ($goods_info['is_house'] == 1) {
 			$order_info['btime'] = strtotime($_GPC['order']['btime']);
@@ -264,10 +271,6 @@ if ($op == 'order') {
 			$insert = array_merge($order_info, $insert);
 			$insert['sum_price'] = ($goods_info['cprice'] + $goods_info['service']) * $days * $insert['nums'];
 			pdo_query('UPDATE ' . tablename('storex_order') . " SET status = '-1' WHERE time < :time AND weid = :weid AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400, ':weid' => $_W['uniacid']));
-			$order_exist = pdo_get('storex_order', array('hotelid' => $insert['hotelid'], 'roomid' => $insert['roomid'], 'openid' => $insert['openid'], 'status' => 0));
-			if ($order_exist) {
-				//message(error(0, "您有未完成订单,不能重复下单"), '', 'ajax');
-			}
 		} else {
 			$insert = general_goods_order($order_info, $goods_info, $insert);
 		}
@@ -291,7 +294,7 @@ if ($op == 'order') {
 		$insert['sum_price'] = card_discount_price($uid, $insert['sum_price']);
 	}
 	$insert['static_price'] = $insert['sum_price'];
-	//计算运费
+	
 	if ($store_info['store_type'] != STORE_TYPE_HOTEL) {
 		$insert = calculate_express($goods_info, $insert);
 	}

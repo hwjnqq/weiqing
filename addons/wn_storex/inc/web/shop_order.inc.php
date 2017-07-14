@@ -173,13 +173,13 @@ if ($op == 'edit') {
 	$express = express_name();
 	if ($_W['isajax'] && $_W['ispost']) {
 		$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']));
-		$all_actions = array('cancle', 'refund', 'refuse', 'confirm', 'send', 'live', 'over');
+		$all_actions = array('cancel', 'refund', 'refuse', 'confirm', 'send', 'live', 'over');
 		$data = array(
 			'mngtime' => TIMESTAMP,
 		);
 		$action = $_GPC['action'];
 		if (in_array($action, $all_actions) && !empty($actions) && !empty($actions[$action])) {
-			if ($action == 'cancle') {
+			if ($action == 'cancel') {
 				$data['status'] = ORDER_STATUS_CANCEL;
 			} elseif ($action == 'refund') {
 				

@@ -464,11 +464,11 @@ function room_special_price($goods, $plural = true) {
 	return $goods;
 }
 //检查条件
-function goods_check_action($action = 'buy', $goods_info) {
+function goods_check_action($goods_info) {
 	if (empty($goods_info)) {
 		message(error(-1, '商品未找到, 请联系管理员!'), '', 'ajax');
 	}
-	if ($action == 'buy' && $goods_info['can_buy'] != 1) {
+	if ($goods_info['can_buy'] != 1) {
 		message(error(-1, '该商品不能购买'), '', 'ajax');
 	}
 }
