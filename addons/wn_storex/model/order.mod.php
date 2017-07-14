@@ -264,12 +264,12 @@ function order_query_refund($orderid) {
 
 function order_send_notice($openid, $templateid, $tplnotice) {
 	$account_api = WeAccount::create();
-	return $account_api->sendTplNotice($item['openid'], $setting['refuse_templateid'], $tplnotice);
+	$account_api->sendTplNotice($openid, $templateid, $tplnotice);
 }
 
 //订单拒绝
-function order_refuse_notice($item, $setting, $store_type, $infos) {
-	if (!empty($setting['template']) && !empty($setting['refuse_templateid'])) {
+function order_refuse_notice($item, $infos) {
+	if (!empty($infos['template']) && !empty($infos['refuse_templateid'])) {
 		$tplnotice = array(
 			'first' => array('value'=>'尊敬的宾客，非常抱歉的通知您，您的预订订单被拒绝。'),
 			'keyword1' => array('value' => $item['ordersn']),
@@ -277,10 +277,10 @@ function order_refuse_notice($item, $setting, $store_type, $infos) {
 			'keyword4' => array('value' => $item['sum_price']),
 			'keyword5' => array('value' => '商品不足'),
 		);
-		if ($store_type == STORE_TYPE_HOTEL) {
+		if ($infos['store_type'] == STORE_TYPE_HOTEL) {
 			$tplnotice['keyword2'] = array('value' => date('Y.m.d', $item['btime']) . '-' . date('Y.m.d', $item['etime']));
 		}
-		$result = order_send_notice($item['openid'], $setting['refuse_templateid'], $tplnotice);
+		order_send_notice($item['openid'], $infos['refuse_templateid'], $tplnotice);
 	} else {
 		$info = '您在' . $infos['store'] . '预订的' . $infos['room'] . "不足。已为您取消订单";
 		$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
@@ -288,8 +288,8 @@ function order_refuse_notice($item, $setting, $store_type, $infos) {
 }
 
 //订单确认
-function order_sure_notice($item, $setting, $infos) {
-	if (!empty($setting['template']) && !empty($setting['templateid'])) {
+function order_sure_notice($item, $infos) {
+	if (!empty($infos['template']) && !empty($infos['templateid'])) {
 		$tplnotice = array(
 			'first' => array('value' => '您好，您已成功预订' . $infos['store'] . '！'),
 			'order' => array('value' => $item['ordersn']),
@@ -301,7 +301,7 @@ function order_sure_notice($item, $setting, $infos) {
 			'pay' => array('value' => $item['sum_price']),
 			'remark' => array('value' => '酒店预订成功')
 		);
-		$result = order_send_notice($item['openid'], $setting['templateid'], $tplnotice);
+		order_send_notice($item['openid'], $infos['templateid'], $tplnotice);
 	} else {
 		$info = '您在' . $infos['store'] . '预订的' . $infos['room'] . '已预订成功';
 		$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
@@ -309,8 +309,8 @@ function order_sure_notice($item, $setting, $infos) {
 }
 
 //订单完成
-function order_over_notice($item, $setting, $store_type, $infos) {
-	if (!empty($setting['template']) && !empty($setting['finish_templateid']) && $store_type == STORE_TYPE_HOTEL) {
+function order_over_notice($item, $infos) {
+	if (!empty($infos['template']) && !empty($infos['finish_templateid']) && $infos['store_type'] == STORE_TYPE_HOTEL) {
 		$tplnotice = array(
 			'first' => array('value' =>'您已成功办理离店手续，您本次入住酒店的详情为'),
 			'keyword1' => array('value' => date('Y-m-d', $item['btime'])),
@@ -318,7 +318,7 @@ function order_over_notice($item, $setting, $store_type, $infos) {
 			'keyword3' => array('value' => $item['sum_price']),
 			'remark' => array('value' => '欢迎您的下次光临。')
 		);
-		$result = order_send_notice($item['openid'], $setting['finish_templateid'], $tplnotice);
+		order_send_notice($item['openid'], $infos['finish_templateid'], $tplnotice);
 	} else {
 		$info = '您在' . $infos['store'] . '预订的' . $infos['room'] . '订单已完成,欢迎下次光临';
 		$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
@@ -326,8 +326,8 @@ function order_over_notice($item, $setting, $store_type, $infos) {
 }
 
 //订单入住
-function order_checked_notice($item, $setting, $infos) {
-	if (!empty($setting['template']) && !empty($setting['check_in_templateid'])) {
+function order_checked_notice($item, $infos) {
+	if (!empty($infos['template']) && !empty($infos['check_in_templateid'])) {
 		$tplnotice = array(
 			'first' =>array('value' => '您好,您已入住' . $infos['store'] . $infos['room']),
 			'hotelName' => array('value' => $infos['store']),
@@ -335,7 +335,7 @@ function order_checked_notice($item, $setting, $infos) {
 			'date' => array('value' => date('Y-m-d', $item['btime'])),
 			'remark' => array('value' => '如有疑问，请咨询' . $infos['phone'] . '。'),
 		);
-		$result = order_send_notice($item['openid'], $setting['check_in_templateid'], $tplnotice);
+		order_send_notice($item['openid'], $infos['check_in_templateid'], $tplnotice);
 	} else {
 		$info = '您已成功入住' . $infos['store'] . '预订的' . $infos['room'];
 		$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);

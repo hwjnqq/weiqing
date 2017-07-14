@@ -223,13 +223,16 @@ if ($op == 'edit') {
 					}
 				}
 			}
+			$infos = array();
+			$infos['room'] = $room['title'];
+			$infos['store'] = $store['title'];
+			$infos['store_type'] = $store['store_type'];
+			$infos['template'] = $setting['template'];
 			if (!empty($data['status'])) {
-				$infos = array();
-				$infos['room'] = $room['title'];
-				$infos['store'] = $store['title'];
 				//订单拒绝
 				if ($data['status'] == ORDER_STATUS_REFUSE) {
-					order_refuse_notice($item, $setting, $store_type, $infos);
+					$infos['refuse_templateid'] = $setting['refuse_templateid'];
+					order_refuse_notice($item, $infos);
 				}
 				//订单确认提醒   TM00217
 				if ($data['status'] == ORDER_STATUS_SURE) {
@@ -240,7 +243,8 @@ if ($op == 'edit') {
 					} else {
 						$data['goods_status'] = GOODS_STATUS_NOT_SHIPPED;
 					}
-					order_sure_notice($item, $setting, $infos);
+					$infos['templateid'] = $setting['templateid'];
+					order_sure_notice($item, $infos);
 					
 					if (check_ims_version()) {
 						$plugins = get_plugin_list();
@@ -263,7 +267,8 @@ if ($op == 'edit') {
 					card_give_credit($uid, $item['sum_price']);
 					//增加出售货物的数量
 					add_sold_num($room);
-					order_over_notice($item, $setting, $store_type, $infos);
+					$infos['finish_templateid'] = $setting['finish_templateid'];
+					order_over_notice($item, $infos);
 					
 					mload()->model('sales');
 					sales_update(array('storeid' => $item['hotelid'], 'sum_price' => $item['sum_price']));
@@ -278,7 +283,8 @@ if ($op == 'edit') {
 				$infos['phone'] = $store['phone'];
 				//已入住提醒   TM00058
 				if ($data['goods_status'] == GOODS_STATUS_CHECKED) {
-					order_checked_notice($item, $setting, $infos);
+					$infos['check_in_templateid'] = $setting['check_in_templateid'];
+					order_checked_notice($item, $infos);
 				}
 				if ($data['goods_status'] == GOODS_STATUS_SHIPPED) {
 					$info = '您在' . $store['title'] . '预订的' . $room['title'] . '已发货';
