@@ -277,6 +277,8 @@ if ($op == 'edit') {
 						$info = '您在' . $store['title'] . '预订的' . $room['title'] . '订单已完成,欢迎下次光临';
 						$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
 					}
+					mload()->model('sales');
+					sales_update(array('storeid' => $item['hotelid'], 'sum_price' => $item['sum_price']));
 				}
 				if ($data['status'] == ORDER_STATUS_CANCEL) {
 					$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "订单已取消，请联系管理员！";
