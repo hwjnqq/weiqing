@@ -167,7 +167,7 @@
 	});
 	$('.js-select-store').click(function() {
 		type = $('#storetype-modal input[type=radio]:checked').val() ? $('#storetype-modal input[type=radio]:checked').val() : 1;
-		location.href = "{php echo $this->createWeburl('storebackstage', array('op' => 'post'))}&store_type=" + type;
+		location.href = "{php echo $this->createWeburl('shop_settings', array('op' => 'post', 'action' => 'add'))}&store_type=" + type;
 	});
 	$('#entry-modal').on('shown.bs.modal', function () {
 		util.clip($('.clip-store p a'), $('.clip-store p a').text());

@@ -5,7 +5,7 @@ global $_GPC, $_W;
 
 $dos = array('shop_settings', 'shop_category', 'shop_goodsmanage', 'shop_comment', 'shop_index', 'shop_order', 'shop_stat', 'shop_plugin', 'shop_plugin_printer');
 if (in_array($_GPC['do'], $dos)) {
-	if (empty($_GPC['storeid'])) {
+	if (empty($_GPC['storeid']) && !($_GPC['do'] == 'shop_settings' && $_GPC['action'] == 'add')) {
 		message('请重新选择店铺', $this->createWebUrl('storemanage', array('op' => 'list')), 'error');
 	}
 	$storex_bases = pdo_get('storex_bases', array('id' => $_GPC['storeid']));

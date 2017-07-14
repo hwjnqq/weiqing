@@ -59,13 +59,14 @@ if ($op == 'post') {
 				$insert['store_base_id'] = pdo_insertid();
 				pdo_insert('storex_hotel', $insert);
 			}
+			$id = pdo_insertid();
 		} else {
 			pdo_update('storex_bases', $common_insert, array('id' => $id));
 			if (!empty($store_type)) {
 				pdo_update('storex_hotel', $insert, array('store_base_id' => $id));
 			}
 		}
-		message('店铺信息保存成功!', referer(), 'success');
+		message('店铺信息保存成功!', $this->createWebUrl('shop_index', array('storeid' => $id)), 'success');
 	}
 	$storex_bases = pdo_get('storex_bases', array('id' => $id));
 	$item = pdo_get('storex_hotel', array('store_base_id' => $id), array('id', 'store_base_id', 'device'));

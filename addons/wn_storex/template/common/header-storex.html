@@ -2,6 +2,7 @@
 {template 'common/common'}
 <aside class="wn-aside clearfix">
 	<div class="wn-aside__back"><a href="{php echo url('home/welcome/ext', array('m' => 'wn_storex'))}"> <i></i>返回主模块</a></div>
+	{if !($_GPC['do'] == 'shop_settings' && $_GPC['op'] == 'post' && $_GPC['action'] == 'add')}
 	<nav class="wn-aside__menu">
 		<img src="{php echo tomedia($_W['wn_storex']['store_info']['thumb'])}" alt="" class="wn-aside__logo">
 		<ul class="wn-aside__nav">
@@ -10,6 +11,7 @@
 			{/loop}
 		</ul>
 	</nav>
+	{/if}
 	<nav class="wn-aside__submenu" style="display:none;">
 		<div class="wn-aside__title">设置</div>
 		<ul class="wn-aside__sub">
