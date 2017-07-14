@@ -207,27 +207,27 @@ function order_build_refund($orderid) {
 function order_begin_refund($orderid) {
 	global $_W;
 	$refund = pdo_get('storex_refund_logs', array('uniacid' => $_W['uniacid'], 'orderid' => $orderid));
-	$order = pdo_get('storex_order', array('uniacid' => $_W['uniacid'], 'orderid' => $orderid));
+	$order = pdo_get('storex_order', array('weid' => $_W['uniacid'], 'id' => $orderid));
 	if (empty($refund)) {
 		return error(-1, '退款申请不存在或已删除');
 	}
 	if ($refund['status'] == REFUND_STATUS_SUCCESS) {
 		return error(-1, '退款已成功, 不能发起退款');
 	}
-
-	if ($refund['type'] == 'credit') {
-		if ($order['openid'] > 0) {
+	if ($order['paytype'] == 'credit') {
+		load()->model('mc');
+		$uid = mc_openid2uid($order['openid']);
+		if (!empty($uid)) {
 			$log = array(
-				$order['openid'],
-				"万能小店订单退款, 订单号:{$order['ordersn']}, 退款金额:{$ordersn['sum_price']}元",
+				$uid,
+				"万能小店订单退款, 订单号:{$order['ordersn']}, 退款金额:{$order['sum_price']}元",
 				'wn_storex'
 			);
-			load()->model('mc');
-			mc_credit_update($order['openid'], 'credit2', $order['sum_price'], $log);
+			mc_credit_update($uid, 'credit2', $order['sum_price'], $log);
 			pdo_update('storex_refund_logs', array('status' => REFUND_STATUS_SUCCESS, 'time' => TIMESTAMP), array('id' => $refund['id'], 'uniacid' => $_W['uniacid']));
 		}
 		return true;
-	} elseif ($refund['type'] == 'wechat') {
+	} elseif ($order['paytype'] == 'wechat') {
 		load()->classs('weixin.pay');
 		$wxpay_api = new WeiXinPay();
 		$params = array(
@@ -242,7 +242,7 @@ function order_begin_refund($orderid) {
 		}
 		pdo_update('storex_refund_logs', array('status' => REFUND_STATUS_SUCCESS, 'time' => TIMESTAMP), array('id' => $refund['id'], 'uniacid' => $_W['uniacid']));
 		return true;
-	} elseif ($refund['pay_type'] == 'alipay') {
+	} elseif ($order['paytype'] == 'alipay') {
 		
 	}
 }

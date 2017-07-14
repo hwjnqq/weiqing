@@ -170,6 +170,9 @@
 								未支付
 							{elseif $item['paystatus'] == 1}
 								已支付
+								{if $refund_logs['status'] == REFUND_STATUS_SUCCESS}
+								,已退款成功
+								{/if}
 							{else}
 								其他
 							{/if}

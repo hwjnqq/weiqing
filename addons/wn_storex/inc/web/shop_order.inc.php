@@ -167,6 +167,7 @@ if ($op == 'edit') {
 		if (!empty($paylog)) {
 			$item['uniontid'] = $paylog['uniontid'];
 		}
+		$refund_logs = pdo_get('storex_refund_logs', array('uniacid' => $_W['uniacid'], 'orderid' => $item['id']), array('id', 'status'));
 		$actions = getOrderAction($item, $store_type, $is_house);
 		getOrderpaytext($item);
 	}
@@ -182,7 +183,17 @@ if ($op == 'edit') {
 			if ($action == 'cancel') {
 				$data['status'] = ORDER_STATUS_CANCEL;
 			} elseif ($action == 'refund') {
-				
+				if ($item['paytype'] == 'credit') {
+					mload()->model('order');
+					$result = order_begin_refund($item['id']);
+					if (is_error($result)) {
+						message($result, '', 'ajax');
+					} else {
+						message(error(0, '退款成功'), '', 'ajax');
+					}
+				} elseif ($item['paytype'] == 'wechat') {
+					$this->refund(array('module' => 'wn_storex', 'tid' => $item['id']));
+				}
 			} elseif ($action == 'refuse') {
 				$data['status'] = ORDER_STATUS_REFUSE;
 			} elseif ($action == 'confirm') {
