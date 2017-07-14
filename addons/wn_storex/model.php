@@ -421,7 +421,6 @@ if (!function_exists('getOrderAction')) {
 	function getOrderAction($order, $store_type, $is_house) {
 		global $_W;
 		$actions = array();
-		
 		if ($order['paystatus'] == 1) {
 			$order_refund = pdo_get('storex_refund_logs', array('uniacid' => $_W['uniacid'], 'orderid' => $order['id']), array('id', 'status'));
 			if ($order['status'] == -1 || $order['status'] == 2) {
@@ -435,7 +434,12 @@ if (!function_exists('getOrderAction')) {
 			} elseif($order['status'] == 1) {
 				if ($store_type == 1) {
 					if ($is_house == 1) {
-						$actions['is_live'] = '订单入住';
+						if (empty($order['goods_status']) || $order['goods_status'] == 4) {
+							$actions['is_live'] = '订单入住';
+						}
+						if ($order['goods_status'] == 5) {
+							$actions['is_over'] = '订单完成';
+						}
 					} else {
 						$actions['is_over'] = '订单完成';
 					}
@@ -443,7 +447,12 @@ if (!function_exists('getOrderAction')) {
 					if ($order['mode_distribute'] == 1) {
 						$actions['is_over'] = '订单完成';
 					} else {
-						$actions['is_send'] = '订单发货';
+						if (empty($order['goods_status']) || $order['goods_status'] == 1) {
+							$actions['is_send'] = '订单发货';
+						}
+						if ($order['goods_status'] == 3) {
+							$actions['is_over'] = '订单完成';
+						}
 					}
 				}
 			}
