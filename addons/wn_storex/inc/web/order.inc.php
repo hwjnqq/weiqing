@@ -5,6 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 mload()->model('card');
+mload()->model('order');
 
 $ops = array('edit', 'post', 'delete', 'deleteall', 'edit_price', 'print_order', 'display', 'check_print_plugin');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
@@ -14,7 +15,7 @@ $store_type = isset($_GPC['store_type']) ? $_GPC['store_type'] : 0;
 $table = gettablebytype($store_type);
 $hotelid = intval($_GPC['hotelid']);
 if (!empty($hotelid)) {
-	$hotel = pdo_get('storex_bases', array('id' => $hotelid), array('id', 'title', 'phone'));
+	$hotel = pdo_get('storex_bases', array('id' => $hotelid), array('id', 'title', 'phone', 'store_type'));
 }
 $roomid = intval($_GPC['roomid']);
 if (!empty($roomid)) {
@@ -78,23 +79,12 @@ if ($op == 'edit') {
 			}
 		}
 		if ($data['status'] != $item['status']) {
-			//订单退款
+			$infos = array();
+			$infos['room'] = $room['title'];
+			$infos['store'] = $hotel['title'];
+			//订单拒绝
 			if ($data['status'] == 2) {
-				if (!empty($setting['template']) && !empty($setting['refuse_templateid'])) {
-					$tplnotice = array(
-						'first' => array('value'=>'尊敬的宾客，非常抱歉的通知您，您的预订订单被拒绝。'),
-						'keyword1' => array('value' => $item['ordersn']),
-						'keyword2' => array('value' => date('Y.m.d', $item['btime']). '-'. date('Y.m.d', $item['etime'])),
-						'keyword3' => array('value' => $item['nums']),
-						'keyword4' => array('value' => $item['sum_price']),
-						'keyword5' => array('value' => '商品不足'),
-					);
-					$acc = WeAccount::create();
-					$acc->sendTplNotice($item['openid'], $setting['refuse_templateid'], $tplnotice);
-				} else {
-					$info = '您在'.$hotel['title'].'预订的'.$room['title']."不足。已为您取消订单";
-					$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
-				}
+				order_refuse_notice($item, $setting, $hotel['store_type'], $infos);
 			}
 			//订单确认提醒
 			if ($data['status'] == 1) {
@@ -106,24 +96,7 @@ if ($op == 'edit') {
 					$data['goods_status'] = 1;
 				}
 				//TM00217
-				if (!empty($setting['template']) && !empty($setting['templateid'])) {
-					$tplnotice = array(
-						'first' => array('value' => '您好，您已成功预订' . $hotel['title'] . '！'),
-						'order' => array('value' => $item['ordersn']),
-						'Name' => array('value' => $item['contact_name']),
-						'datein' => array('value' => date('Y-m-d', $item['btime'])),
-						'dateout' => array('value' => date('Y-m-d', $item['etime'])),
-						'number' => array('value' => $item['nums']),
-						'room type' => array('value' => $item['style']),
-						'pay' => array('value' => $item['sum_price']),
-						'remark' => array('value' => '酒店预订成功')
-					);
-					$acc = WeAccount::create();
-					$result = $acc->sendTplNotice($item['openid'], $setting['templateid'], $tplnotice);
-				} else {
-					$info = '您在' . $hotel['title'] . '预订的' . $room['title'] . '已预订成功';
-					$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
-				}
+				order_sure_notice($item, $setting, $infos);
 				if (check_ims_version()) {
 					$plugins = get_plugin_list();
 					if (!empty($plugins) && !empty($plugins['wn_storex_plugin_sms'])) {
@@ -139,21 +112,11 @@ if ($op == 'edit') {
 			}
 			//已入住提醒
 			if ($data['status'] == 4) {
+				$data['goods_status'] = 5;
+				$data['status'] = 1;
+				$infos['phone'] = $hotel['phone'];
 				//TM00058
-				if (!empty($setting['template']) && !empty($setting['check_in_templateid'])) {
-					$tplnotice = array(
-						'first' =>array('value' =>'您好,您已入住' . $hotel['title'] . $room['title']),
-						'hotelName' => array('value' => $hotel['title']),
-						'roomName' => array('value' => $room['title']),
-						'date' => array('value' => date('Y-m-d', $item['btime'])),
-						'remark' => array('value' => '如有疑问，请咨询' . $hotel['phone'] . '。'),
-					);
-					$acc = WeAccount::create();
-					$result = $acc->sendTplNotice($item['openid'], $setting['check_in_templateid'], $tplnotice);
-				} else {
-					$info = '您已成功入住' . $hotel['title'] . '预订的' . $room['title'];
-					$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
-				}
+				order_checked_notice($item, $setting, $infos);
 			}
 	
 			//订单完成提醒
@@ -164,20 +127,7 @@ if ($op == 'edit') {
 				//增加出售货物的数量
 				add_sold_num($room);
 				//OPENTM203173461
-				if (!empty($setting['template']) && !empty($setting['finish_templateid']) && $store_type == 1) {
-					$tplnotice = array(
-						'first' => array('value' =>'您已成功办理离店手续，您本次入住酒店的详情为'),
-						'keyword1' => array('value' =>date('Y-m-d', $item['btime'])),
-						'keyword2' => array('value' =>date('Y-m-d', $item['etime'])),
-						'keyword3' => array('value' =>$item['sum_price']),
-						'remark' => array('value' => '欢迎您的下次光临。')
-					);
-					$acc = WeAccount::create();
-					$result = $acc->sendTplNotice($item['openid'], $setting['finish_templateid'], $tplnotice);
-				} else {
-					$info = '您在'.$hotel['title'] . '预订的' . $room['title'] . '订单已完成,欢迎下次光临';
-					$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
-				}
+				order_over_notice($item, $setting, $hotel['store_type'], $infos);
 				mload()->model('sales');
 				sales_update(array('storeid' => $item['hotelid'], 'sum_price' => $item['sum_price']));
 			}

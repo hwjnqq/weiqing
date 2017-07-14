@@ -528,13 +528,13 @@ function clerk_permission_storex($type) {
 }
 function send_custom_notice($msgtype, $text, $touser) {
 	if (!check_wxapp()) {
-		$acc = WeAccount::create();
+		$account_api = WeAccount::create();
 		$custom = array(
 			'msgtype' => $msgtype,
 			'text' => $text,
 			'touser' => $touser,
 		);
-		$status = $acc->sendCustomNotice($custom);
+		$status = $account_api->sendCustomNotice($custom);
 		return $status;
 	}
 }

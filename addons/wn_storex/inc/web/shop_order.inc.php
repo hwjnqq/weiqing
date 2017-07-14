@@ -4,7 +4,6 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 mload()->model('card');
-mload()->model('template');
 
 $ops = array('display', 'edit', 'delete', 'deleteall', 'edit_msg','edit_price', 'print_order', 'check_print_plugin');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
@@ -224,16 +223,14 @@ if ($op == 'edit') {
 				}
 			}
 			if (!empty($data['status'])) {
+				$infos = array();
+				$infos['room'] = $room['title'];
+				$infos['store'] = $store['title'];
 				//订单拒绝
 				if ($data['status'] == ORDER_STATUS_REFUSE) {
-					if (!empty($setting['template']) && !empty($setting['refuse_templateid'])) {
-						order_status_refuse($item, $setting['refuse_templateid']);
-					} else {
-						$info = '您在' . $store['title'] . '预订的' . $room['title'] . "不足。已为您取消订单";
-						$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
-					}
+					order_refuse_notice($item, $setting, $store_type, $infos);
 				}
-				//订单确认提醒
+				//订单确认提醒   TM00217
 				if ($data['status'] == ORDER_STATUS_SURE) {
 					if ($store_type == STORE_TYPE_HOTEL) {
 						if (!empty($good_info) && $is_house == 1) {
@@ -242,13 +239,8 @@ if ($op == 'edit') {
 					} else {
 						$data['goods_status'] = GOODS_STATUS_NOT_SHIPPED;
 					}
-					//TM00217
-					if (!empty($setting['template']) && !empty($setting['templateid'])) {
-						order_status_sure($item, $setting['templateid'], $store);
-					} else {
-						$info = '您在' . $store['title'] . '预订的' . $room['title'] . '已预订成功';
-						$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
-					}
+					order_sure_notice($item, $setting, $infos);
+					
 					if (check_ims_version()) {
 						$plugins = get_plugin_list();
 						if (!empty($plugins) && !empty($plugins['wn_storex_plugin_sms'])) {
@@ -263,42 +255,29 @@ if ($op == 'edit') {
 					}
 				}
 			
-				//订单完成提醒
+				//订单完成提醒   OPENTM203173461
 				if ($data['status'] == ORDER_STATUS_OVER) {
 					$uid = mc_openid2uid(trim($item['openid']));
 					//订单完成后增加积分
 					card_give_credit($uid, $item['sum_price']);
 					//增加出售货物的数量
 					add_sold_num($room);
-					//OPENTM203173461
-					if (!empty($setting['template']) && !empty($setting['finish_templateid']) && $store_type == STORE_TYPE_HOTEL) {
-						order_status_over($item, $setting['finish_templateid']);
-					} else {
-						$info = '您在' . $store['title'] . '预订的' . $room['title'] . '订单已完成,欢迎下次光临';
-						$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
-					}
+					order_over_notice($item, $setting, $store_type, $infos);
+					
 					mload()->model('sales');
 					sales_update(array('storeid' => $item['hotelid'], 'sum_price' => $item['sum_price']));
 				}
 				if ($data['status'] == ORDER_STATUS_CANCEL) {
-					$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "订单已取消，请联系管理员！";
+					$info = '您在' . $store['title'] . '预订的' . $room['title'] . "订单已取消，请联系管理员！";
 					$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
 				}
 			}
 			
 			if (!empty($data['goods_status'])) {
-				//已入住提醒
+				$infos['phone'] = $store['phone'];
+				//已入住提醒   TM00058
 				if ($data['goods_status'] == GOODS_STATUS_CHECKED) {
-					//TM00058
-					if (!empty($setting['template']) && !empty($setting['check_in_templateid'])) {
-						$info['room'] = $room['title'];
-						$info['store'] = $store['title'];
-						$info['phone'] = $store['phone'];
-						goods_status_checked($item, $check_in_templateid, $info);
-					} else {
-						$info = '您已成功入住' . $store['title'] . '预订的' . $room['title'];
-						$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
-					}
+					order_checked_notice($item, $setting, $infos);
 				}
 				if ($data['goods_status'] == GOODS_STATUS_SHIPPED) {
 					$info = '您在' . $store['title'] . '预订的' . $room['title'] . '已发货';

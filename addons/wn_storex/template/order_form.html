@@ -164,7 +164,7 @@
 						{if $item['status'] != -1}
 							<button type="button" class="btn but{if $item['status'] == 1 && ($item['mode_distribute'] != 2 || ($item['goods_status'] != 2 && $item['goods_status'] != 3))} btn-primary{/if} btn-default"  value="1">订单确认</button>
 							<button type="button" class="btn but{if $item['status'] == 2} btn-primary{/if} btn-default"  value="2">{if $item['paytype']==0}订单拒绝{else}订单退款{/if}</button>
-							{if $store_type == 1 && !empty($good_info) && $good_info['is_house'] == 1}
+							{if $store_type == 1 && !empty($good_info) && $good_info['is_house'] == 1  && $item['goods_status'] != 5}
 							<button type="button" class="btn but{if $item['status'] == 4} btn-primary{/if} btn-default"  value="4" >已入住</button>
 							{/if}
 							{if $item['mode_distribute'] == 2}
