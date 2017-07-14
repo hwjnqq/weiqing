@@ -526,19 +526,8 @@ if (pdo_fieldexists('storex_bases', 'extend_table')) {
 }
 
 //酒店的分类只有一级分类，将已有的二级分类的数据兼容到一级下
-$stores = pdo_getall('storex_bases', array('store_type' => 1), array('id'), 'id');
-$category = pdo_getall('storex_categorys', array('parentid !=' => 0, 'store_base_id' => array_keys($stores)), array('id', 'store_base_id', 'parentid', 'category_type'), 'id');
-if (!empty($category) && is_array($category)) {
-	$storex_rooms = pdo_getall('storex_room', array('ccate' => array_keys($category)), array('id', 'pcate', 'ccate'), 'id');
-	if (!empty($storex_rooms) && is_array($storex_rooms)) {
-		foreach ($storex_rooms as $id => $info) {
-			pdo_update('storex_room', array('ccate' => 0), array('id' => $id));
-		}
-	}
-	foreach ($category as $cid => $cinfo) {
-		pdo_delete('storex_categorys', array('id' => $cid));
-	}
-}
+pdo_update('storex_room', array('ccate' => 0));
+pdo_delete('storex_categorys', array('category_type' => 1, 'parentid !=' => 0));
 
 $subscribes = array('user_get_card', 'user_del_card', 'user_consume_card',);
 $subscribes = iserializer($subscribes);
