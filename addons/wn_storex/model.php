@@ -409,59 +409,59 @@ if (!function_exists('getOrderUniontid')) {
 	}
 }
 /**
-* is_cancle 订单取消
-* is_refund 订单退款
-* is_refuse 订单拒绝
-* is_confirm 订单确认
-* is_send 订单发货
-* is_live 订单入住
-* is_over 订单完成
+* cancle 订单取消
+* refund 订单退款
+* refuse 订单拒绝
+* confirm 订单确认
+* send 订单发货
+* live 订单入住
+* over 订单完成
 */
 if (!function_exists('getOrderAction')) {
 	function getOrderAction($order, $store_type, $is_house) {
 		global $_W;
 		$actions = array();
-		if ($order['paystatus'] == 1) {
+		if ($order['paystatus'] == PAY_STATUS_PAID) {
 			$order_refund = pdo_get('storex_refund_logs', array('uniacid' => $_W['uniacid'], 'orderid' => $order['id']), array('id', 'status'));
-			if ($order['status'] == -1 || $order['status'] == 2) {
-				if (!empty($order_refund) && ($order_refund['status'] == 1 || $order_refund['status'] == 3)) {
-					$actions['is_refund'] = '订单退款';
+			if ($order['status'] == ORDER_STATUS_CANCEL || $order['status'] == ORDER_STATUS_REFUSE) {
+				if (!empty($order_refund) && ($order_refund['status'] == REFUND_STATUS_PROCESS || $order_refund['status'] == REFUND_STATUS_FAILED)) {
+					$actions['refund'] = '订单退款';
 				}
-			} elseif($order['status'] == 0) {
-				$actions['is_cancle'] = '订单取消';
-				$actions['is_refuse'] = '订单拒绝';
-				$actions['is_confirm'] = '订单确认';
-			} elseif($order['status'] == 1) {
-				if ($store_type == 1) {
+			} elseif($order['status'] == ORDER_STATUS_NOT_SURE) {
+				$actions['cancle'] = '订单取消';
+				$actions['refuse'] = '订单拒绝';
+				$actions['confirm'] = '订单确认';
+			} elseif($order['status'] == ORDER_STATUS_SURE) {
+				if ($store_type == STORE_TYPE_HOTEL) {
 					if ($is_house == 1) {
-						if (empty($order['goods_status']) || $order['goods_status'] == 4) {
-							$actions['is_live'] = '订单入住';
+						if (empty($order['goods_status']) || $order['goods_status'] == GOODS_STATUS_NOT_CHECKED) {
+							$actions['live'] = '订单入住';
 						}
-						if ($order['goods_status'] == 5) {
-							$actions['is_over'] = '订单完成';
+						if ($order['goods_status'] == GOODS_STATUS_CHECKED) {
+							$actions['over'] = '订单完成';
 						}
 					} else {
-						$actions['is_over'] = '订单完成';
+						$actions['over'] = '订单完成';
 					}
 				} else {
 					if ($order['mode_distribute'] == 1) {
-						$actions['is_over'] = '订单完成';
+						$actions['over'] = '订单完成';
 					} else {
-						if (empty($order['goods_status']) || $order['goods_status'] == 1) {
-							$actions['is_send'] = '订单发货';
+						if (empty($order['goods_status']) || $order['goods_status'] == GOODS_STATUS_NOT_SHIPPED) {
+							$actions['send'] = '订单发货';
 						}
-						if ($order['goods_status'] == 3) {
-							$actions['is_over'] = '订单完成';
+						if ($order['goods_status'] == GOODS_STATUS_RECEIVED) {
+							$actions['over'] = '订单完成';
 						}
 					}
 				}
 			}
 		} else {
-			if ($order['status'] != -1 && $order['status'] != 2) {
-				if ($order['status'] == 0) {
-					$actions['is_cancle'] = '订单取消';
-					$actions['is_refuse'] = '订单拒绝';
-					$actions['is_confirm'] = '订单确认';
+			if ($order['status'] != ORDER_STATUS_CANCEL && $order['status'] != ORDER_STATUS_REFUSE) {
+				if ($order['status'] == ORDER_STATUS_NOT_SURE) {
+					$actions['cancle'] = '订单取消';
+					$actions['refuse'] = '订单拒绝';
+					$actions['confirm'] = '订单确认';
 				}
 			}
 		}

@@ -173,26 +173,26 @@ if ($op == 'edit') {
 	$express = express_name();
 	if ($_W['isajax'] && $_W['ispost']) {
 		$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']));
-		$all_actions = array('is_cancle', 'is_refund', 'is_refuse', 'is_confirm', 'is_send', 'is_live', 'is_over');
+		$all_actions = array('cancle', 'refund', 'refuse', 'confirm', 'send', 'live', 'over');
 		$data = array(
 			'mngtime' => TIMESTAMP,
 		);
 		$action = $_GPC['action'];
 		if (in_array($action, $all_actions) && !empty($actions) && !empty($actions[$action])) {
-			if ($action == 'is_cancle') {
-				$data['status'] = -1;
-			} elseif ($action == 'is_refund') {
+			if ($action == 'cancle') {
+				$data['status'] = ORDER_STATUS_CANCEL;
+			} elseif ($action == 'refund') {
 				
-			} elseif ($action == 'is_refuse') {
-				$data['status'] = 2;
-			} elseif ($action == 'is_confirm') {
-				$data['status'] = 1;
-			} elseif ($action == 'is_send') {
-				$data['goods_status'] = 2;
-			} elseif ($action == 'is_live') {
-				$data['goods_status'] = 5;
-			} elseif ($action == 'is_over') {
-				$data['status'] = 3;
+			} elseif ($action == 'refuse') {
+				$data['status'] = ORDER_STATUS_REFUSE;
+			} elseif ($action == 'confirm') {
+				$data['status'] = ORDER_STATUS_SURE;
+			} elseif ($action == 'send') {
+				$data['goods_status'] = GOODS_STATUS_SHIPPED;
+			} elseif ($action == 'live') {
+				$data['goods_status'] = GOODS_STATUS_CHECKED;
+			} elseif ($action == 'over') {
+				$data['status'] = ORDER_STATUS_OVER;
 			}
 			if ($store_type == STORE_TYPE_HOTEL) {
 				//订单取消和拒绝
@@ -226,10 +226,10 @@ if ($op == 'edit') {
 				if ($data['status'] == ORDER_STATUS_SURE) {
 					if ($store_type == STORE_TYPE_HOTEL) {
 						if (!empty($good_info) && $is_house == 1) {
-							$data['goods_status'] = 4;
+							$data['goods_status'] = GOODS_STATUS_NOT_CHECKED;
 						}
 					} else {
-						$data['goods_status'] = 1;
+						$data['goods_status'] = GOODS_STATUS_NOT_SHIPPED;
 					}
 					//TM00217
 					if (!empty($setting['template']) && !empty($setting['templateid'])) {

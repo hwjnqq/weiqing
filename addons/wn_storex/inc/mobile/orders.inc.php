@@ -124,7 +124,8 @@ if ($op == 'cancel') {
 
 if ($op == 'refund') {
 	$id = intval($_GPC['id']);
-	order_build_refund($id);
+	$result = order_build_refund($id);
+	message($result, '', 'ajax');
 }
 
 if ($op == 'confirm_goods') {

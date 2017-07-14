@@ -62,6 +62,7 @@ function order_goods_status($status) {
  * goods_status 1待发货，2已发货，3已收货，4待入住，5已入住
  */
 function orders_check_status($item) {
+	global $_W;
 	$order_status_text = array(
 		'1' => '待付款',
 		'2' => '等待店铺确认',
@@ -77,10 +78,12 @@ function orders_check_status($item) {
 		'12' => '已收货',
 		'13' => '订单已确认'
 	);
-	if ($item['store_type'] == 1) {
+	if ($item['store_type'] == STORE_TYPE_HOTEL) {
 		$room = pdo_get('storex_room', array('id' => $item['roomid']), array('id', 'is_house'));
 	}
-	
+	if ($item['paystatus'] == PAY_STATUS_PAID) {
+		$refund_log = pdo_get('storex_refund_logs', array('uniacid' => $_W['uniacid'], 'orderid' => $item['id']), array('id', 'status'));
+	}
 	//1是显示,2不显示
 	$item['is_pay'] = 2;//立即付款 is_pay
 	$item['is_cancle'] = 2;//取消订单is_cancle
@@ -88,6 +91,7 @@ function orders_check_status($item) {
 	$item['is_over'] = 2;//再来一单is_over
 	$item['is_comment'] = 2;//显示评价is_comment
 	$item['is_refund'] = 2;//显示退款is_refund
+	
 	if ($item['status'] == ORDER_STATUS_NOT_SURE) {//未确认
 		if ($item['paystatus'] == PAY_STATUS_UNPAID) {
 			$item['is_pay'] = 1;
@@ -97,12 +101,12 @@ function orders_check_status($item) {
 		if ($item['paystatus'] == PAY_STATUS_UNPAID) {
 			$item['is_over'] = 1;
 		} elseif ($item['paystatus'] == PAY_STATUS_PAID) {
-			if ($item['refund_status'] == 2) {
+			if ($item['refund_status'] == 1 && empty($refund_log)) {
 				$item['is_refund'] = 1;
 			}
 		}
 	} elseif ($item['status'] == ORDER_STATUS_SURE) {//已确认
-		if ($item['store_type'] == 1) {//酒店
+		if ($item['store_type'] == STORE_TYPE_HOTEL) {//酒店
 			if (!empty($room)) {
 				if ($item['paystatus'] == PAY_STATUS_UNPAID) {
 					$item['is_pay'] = 1;
@@ -140,8 +144,10 @@ function orders_check_status($item) {
 			}
 		}
 	} elseif ($item['status'] == ORDER_STATUS_REFUSE) {//拒绝
-		if ($item['paystatus'] == 1) {
-			$item['is_refund'] = 1;
+		if ($item['paystatus'] == PAY_STATUS_PAID) {
+			if ($item['refund_status'] == 1 && empty($refund_log)) {
+				$item['is_refund'] = 1;
+			}
 			$item['is_over'] = 1;
 		}
 	} elseif ($item['status'] == ORDER_STATUS_OVER) {//完成
