@@ -3,21 +3,11 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('category_list', 'goods_list', 'more_goods', 'class', 'sub_class');
+$ops = array('goods_list', 'more_goods', 'class', 'sub_class');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
 
-//获取店铺分类
-if ($op == 'category_list') {
-	$pcate_lists = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'parentid' => '0', 'store_base_id' => intval($_GPC['id']), 'enabled' => 1), array('id', 'name', 'category_type'), '', 'displayorder DESC');
-	if (!empty($pcate_lists)) {
-		foreach ($pcate_lists as $val) {
-			$storex_categorys[$val['id']] = $val['name'];
-		}
-	}
-	message(error(0, $storex_categorys), '', 'ajax');
-}
 //获取一级分类下的二级分类以及商品
 if ($op == 'goods_list') {
 	$store_id = intval($_GPC['id']);

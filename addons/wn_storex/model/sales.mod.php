@@ -22,7 +22,6 @@ function sales_update($sales_info) {
 		$sales_update = array(
 			'cumulate' => $today_sales['cumulate'] + $sales_info['sum_price'],
 		);
-		// return $sales_update;
 		pdo_update('storex_sales', $sales_update, array('id' => $today_sales));
 	}
 	return true;

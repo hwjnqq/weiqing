@@ -450,8 +450,8 @@ function activity_storex_sync() {
 		if ($val['status'] == 3) {
 			continue;
 		}
-		$acc = new coupon($_W['acid']);
-		$location = $acc->LocationGet($val['location_id']);
+		$account_api = new coupon($_W['acid']);
+		$location = $account_api->LocationGet($val['location_id']);
 		if (is_error($location)) {
 			return error(-1, $location['message']);
 		}

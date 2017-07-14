@@ -475,13 +475,12 @@ class Wn_storexModuleSite extends WeModuleSite {
 					$goodsinfo = pdo_get('storex_goods', array('id' => $order['roomid'], 'weid' => $weid));
 				}
 				$score = intval($goodsinfo['score']);
-				$acc = WeAccount::create($_W['acid']);
+				$account_api = WeAccount::create($_W['acid']);
 				
 				if ($params['result'] == 'success' && $_SESSION['ewei_hotel_pay_result'] != $params['tid']) {
 					if ($_W['account']['type'] != 4 || $_W['account']['uniacid'] == $_W['uniacid']) {
 						//发送模板消息提醒
 						if (!empty($setInfo['template']) && !empty($setInfo['confirm_templateid'])) {
-							// $acc = WeAccount::create($_W['acid']);
 							$time = '';
 							$time.= date('Y年m月d日',$order['btime']);
 							$time.='-';
@@ -495,7 +494,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 								'keyword5' => array('value' => $order['ordersn']),
 								'remark' => array('value' => '如有疑问，请咨询店铺前台'),
 							);
-							$acc->sendTplNotice($_W['uniacid'], $setInfo['confirm_templateid'], $data);
+							$account_api->sendTplNotice($_W['uniacid'], $setInfo['confirm_templateid'], $data);
 	
 						} else {
 							$info = '您在' . $storex_bases['title'] . '预订的' . $goodsinfo['title'] . "已预订成功";
@@ -504,7 +503,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 								'text' => array('content' => urlencode($info)),
 								'touser' => $_W['openid'],
 							);
-							$status = $acc->sendCustomNotice($custom);
+							$status = $account_api->sendCustomNotice($custom);
 						}
 	
 						//TM00217
@@ -545,7 +544,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 								'remark' => array('value' => '为保证用户体验度，请及时处理！')
 							);
 							foreach ($clerks as $clerk) {
-								$acc->sendTplNotice($clerk['from_user'], $setInfo['templateid'], $tplnotice);
+								$account_api->sendTplNotice($clerk['from_user'], $setInfo['templateid'], $tplnotice);
 							}
 						} else {
 							foreach ($clerks as $clerk) {
@@ -555,7 +554,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 									'text' => array('content' => urlencode($info)),
 									'touser' => $clerk['from_user'],
 								);
-								$status = $acc->sendCustomNotice($custom);
+								$status = $account_api->sendCustomNotice($custom);
 							}
 						}
 					}
