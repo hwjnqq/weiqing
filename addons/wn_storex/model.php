@@ -85,88 +85,6 @@ class Mloader {
 	}
 }
 
-
-/**
- * 计算用户密码hash
- * @param int $flag 0注册，1登录
- * @param array $member 用户数据
- * @return string
- */
-if (!function_exists('hotel_set_userinfo')) {
-	function hotel_set_userinfo($flag = 0, $member) {
-		global $_GPC, $_W;
-		unset($member['password']);
-		unset($member['salt']);
-		insert_cookie('__hotel_member', $member);
-	}
-}
-
-
-
-if (!function_exists('hotel_get_userinfo')) {
-	function hotel_get_userinfo() {
-		global $_W;
-		$key = '__hotel_member';
-		return get_cookie($key);
-	}
-}
-
-
-
-if (!function_exists('get_cookie')) {
-	function get_cookie($key) {
-		global $_W;
-		$key = $_W['config']['cookie']['pre'] . $key;
-		return json_decode(base64_decode($_COOKIE[$key]), true);
-	}
-}
-
-
-
-if (!function_exists('insert_cookie')) {
-	function insert_cookie($key, $data) {
-		global $_W, $_GPC;
-		$session = base64_encode(json_encode($data));
-		setcookie($_W['config']['cookie']['pre'] . $key, $session);
-	}
-}
-
-//检查用户是否登录
-if (!function_exists('check_hotel_user_login')) {
-	function check_hotel_user_login($set) {
-		global $_W;
-		$weid = $_W['uniacid'];
-		$from_user = $_W['fans']['from_user'];
-		$user_info = hotel_get_userinfo();
-		if (empty($user_info['id'])) {
-			return 0;
-		} else {
-			if ($weid != $user_info['weid']) {
-				return 0;
-			}
-			if ($from_user == $user_info['from_user']) {
-				if ($set['user'] == 2 && $user_info['user_set'] != 2) {
-					return 0;
-				} else {
-					return 1;
-				}
-			} else {
-				if ($set['bind'] == 1) {
-					return 1;
-				} elseif ($set['bind'] == 2) {
-					return 0;
-				} elseif ($set['bind'] == 3) {
-					if ($user_info['userbind'] == 0) {
-						return 1;
-					} else {
-						return 0;
-					}
-				}
-			}
-		}
-	}
-}
-
 /**
  * 计算用户密码hash
  * @param string $input 输入字符串
@@ -178,53 +96,6 @@ if (!function_exists('hotel_member_hash')) {
 		global $_W;
 		$input = "{$input}-{$salt}-{$_W['config']['setting']['authkey']}";
 		return sha1($input);
-	}
-}
-
-/**
- * 用户注册
- * PS:密码字段不要加密
- * @param array $member 用户注册信息，需要的字段必须包括 username, password, remark
- * @return int 成功返回新增的用户编号，失败返回 0
- */
-if (!function_exists('hotel_member_check')) {
-	function hotel_member_check($member) {
-		$sql = "SELECT `password`,`salt` FROM " . tablename('storex_member') . " WHERE 1";
-		$params = array();
-		if (!empty($member['uid'])) {
-			$sql .= " AND `uid` = :uid";
-			$params[':uid'] = intval($member['uid']);
-		}
-		if (!empty($member['weid'])) {
-			$sql .= " AND `weid` = :weid";
-			$params[':weid'] = intval($member['weid']);
-		}
-		if (!empty($member['username'])) {
-			$sql .= " AND `username` = :username";
-			$params[':username'] = $member['username'];
-		}
-		if (!empty($member['from_user'])) {
-			$sql .= " AND `from_user` = :from_user";
-			$params[':from_user'] = $member['from_user'];
-		}
-		if (!empty($member['status'])) {
-			$sql .= " AND `status` = :status";
-			$params[':status'] = intval($member['status']);
-		}
-		if (!empty($member['id'])) {
-			$sql .= " AND `id` != :id";
-			$params[':id'] = intval($member['id']);
-		}
-		$sql .= " LIMIT 1";
-		$record = pdo_fetch($sql, $params);
-		if (!$record || empty($record['password']) || empty($record['salt'])) {
-			return false;
-		}
-		if (!empty($member['password'])) {
-			$password = hotel_member_hash($member['password'], $record['salt']);
-			return $password == $record['password'];
-		}
-		return true;
 	}
 }
 
@@ -539,7 +410,7 @@ if (!function_exists('format_list')) {
 }
 
 if (!function_exists('express_name')) {
-	function express_name () {
+	function express_name() {
 		return array(
 			"shunfeng" => "顺丰",
 			"shentong" => "申通",

@@ -148,9 +148,6 @@ if ($op == 'order') {
 	if (empty($order_info['contact_name'])) {
 		message(error(-1, '联系人不能为空!'), '', 'ajax');
 	}
-	$user_info = hotel_get_userinfo();
-	$memberid = intval($user_info['id']);
-	
 	if ($store_info['store_type'] == 1) {
 		$table = 'storex_room';
 		$condition['hotelid'] = $store_id;
@@ -162,7 +159,6 @@ if ($op == 'order') {
 	goods_check_action($goods_info);
 	$insert = array(
 		'ordersn' => date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1),
-		'memberid' => $memberid,
 		'style' => $goods_info['title'],
 		'oprice' => $goods_info['oprice'],
 		'cprice' => $goods_info['cprice'],

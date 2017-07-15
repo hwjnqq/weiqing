@@ -2,7 +2,7 @@
 /**
  * 万能小店
  *
- * @author WeEngine Team & ewei
+ * @author 萬能君
  * @url
  */
 
@@ -11,25 +11,6 @@ defined('IN_IA') or exit('Access Denied');
 include "model.php";
 
 class Wn_storexModuleSite extends WeModuleSite {
-	public $_from_user = '';
-
-	public $_weid = '';
-
-	public $_version = 0;
-
-	public $_hotel_level_config = array(5 => '五星级酒店', 4 => '四星级酒店', 3 => '三星级酒店', 2 => '两星级以下', 15 => '豪华酒店', 14 => '高档酒店', 13 => '舒适酒店', 12 => '经济型酒店', );
-
-	public $_set_info = array();
-
-	public $_user_info = array();
-
-	function __construct() {
-		global $_W;
-		$this->_from_user = $_W['fans']['from_user'];
-		$this->_weid = $_W['uniacid'];
-		$this->_set_info = get_storex_set();
-		$this->_version = $this->_set_info['version'];
-	}
 
 	public function __call($name, $arguments) {
 		$isWeb = stripos($name, 'doWeb') === 0;
@@ -87,78 +68,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 		return $urls;
 	}
 
-	//入口文件
-	public function doMobileIndex() {
-		global $_GPC, $_W;
-		$weid = $this->_weid;
-		$from_user = $this->_from_user;
-		$set = $this->_set_info;
-		$hid = $_GPC['hid'];
-		$user_info = pdo_fetch("SELECT * FROM " . tablename('storex_member') . " WHERE from_user = :from_user AND weid = :weid limit 1", array(':from_user' => $from_user, ':weid' => $weid));
-		//独立用户
-		if ($set['user'] == 2) {
-
-			if (empty($user_info['id'])) {
-				//用户不存在
-				if ($set['reg'] == 1) {
-					//开启注册
-					$url = $this->createMobileUrl('register');
-				} else {
-					//禁止注册
-					$url = $this->createMobileUrl('login');
-				}
-			} else {
-				//用户已经存在，判断用户是否登录
-				$check = check_hotel_user_login($this->_set_info);
-				if ($check) {
-					if ($user_info['status'] == 1) {
-						$url = $this->createMobileUrl('search');
-					} else {
-						$url = $this->createMobileUrl('login');
-					}
-				} else {
-					$url = $this->createMobileUrl('login');
-				}
-			}
-		} else {
-			//微信用户
-			if (empty($user_info['id'])) {
-				//用户不存在，自动添加一个用户
-				$member = array();
-				$member['weid'] = $weid;
-				$member['from_user'] = $from_user;
-
-				$member['createtime'] = time();
-				$member['isauto'] = 1;
-				$member['status'] = 1;
-				pdo_insert('storex_member', $member);
-				$member['id'] = pdo_insertid();
-				$member['user_set'] = $set['user'];
-				//自动添加成功，将用户信息放入cookie
-				hotel_set_userinfo(0, $member);
-			} else {
-				if ($user_info['status'] == 1) {
-					$user_info['user_set'] = $set['user'];
-					//用户已经存在，将用户信息放入cookie
-					hotel_set_userinfo(1, $user_info);
-				} else {
-					//用户帐号被禁用
-					$msg = "抱歉，你的帐号被禁用，请联系管理员解决。";
-					if ($this->_set_info['is_unify'] == 1) {
-						$msg .= "店铺电话：" . $this->_set_info['tel'] . "。";
-					}
-					$url = $this->createMobileUrl('error',array('msg' => $msg));
-					header("Location: $url");
-					exit;
-				}
-			}
-			//微信粉丝，可以直接使用
-			$url = $this->createMobileUrl('display');
-		}
-		header("Location: $url");
-		exit;
-	}
-
 	public function doMobiledisplay() {
 		global $_GPC, $_W;
 		load()->model('mc');
@@ -200,115 +109,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 		return 'black';
 	}
 
-	//登录页
-	public function doMobilelogin() {
-		global $_GPC, $_W;;
-		$set = $this->_set_info;
-		if (checksubmit()) {
-			$member = array();
-			$username = trim($_GPC['username']);
-			if (empty($username)) {
-				die(json_encode(array("result" => 2, "error" => "请输入要登录的用户名")));
-			}
-			$member['username'] = $username;
-			$member['password'] = $_GPC['password'];
-			// $member['status'] = 1;
-			if (empty($member['password'])) {
-				die(json_encode(array("result" => 3, "error" => "请输入登录密码")));
-			}
-			$weid = $this->_weid;
-			$from_user = $this->_from_user;
-			$set = $this->_set_info;
-			$member['weid'] = $weid;
-			$record = hotel_member_single($member);
-			if (!empty($record)) {
-				if ( ($set['bind'] == 3 && ($record['userbind'] == 1) || $set['bind'] == 2)) {
-					if (!empty($record['from_user'])) {
-						if ($record['from_user'] != $this->_from_user) {
-							die(json_encode(array("result" => 0, "error" => "登录失败，您的帐号与绑定的微信帐号不符！")));
-						}
-					}
-				}
-				if (empty($record['status'])) {
-					die(json_encode(array("result" => 0, "error" => "登录失败，您的帐号被禁止登录，请联系酒店解决！")));
-				}
-				$record['user_set'] = $set['user'];
-				//登录成功
-				hotel_set_userinfo(0, $record);
-				$url = $this->createMobileUrl('search');
-				die(json_encode(array("result" => 1, "url" => $url)));
-			} else {
-				die(json_encode(array("result" => 0, "error" => "登录失败，请检查您输入的用户名和密码！")));
-			}
-		} else {
-			include $this->template('login');
-		}
-	}
-
-	//发送短信验证码
-	public function doMobilecode() {
-		global $_GPC, $_W;
-		$mobile = $_GPC['mobile'];
-		$weid = $this->_weid;
-		$code = random(4);
-		if (empty($mobile)) {
-			exit('请输入手机号');
-		}
-		$sql = 'DELETE FROM ' . tablename('hotel12_code') . ' WHERE `mobile` = :mobile and `createtime`< :time and `weid` = :weid ';
-		$delete = pdo_query($sql,array('mobile' => $mobile, 'time'=> TIMESTAMP - 1800, 'weid'=> $weid));
-		$sql = 'SELECT * FROM ' . tablename('hotel12_code') . ' WHERE `mobile` = :mobile AND `weid` = :weid ';
-		$pars = array();
-		$pars['mobile'] = $mobile;
-		$pars['weid'] = $weid;
-		$row = pdo_fetch($sql, $pars);
-		$record = array();
-		if ($row['total'] >= 5) {
-			message(error(1,'您发送的验证码太频繁'), '', 'ajax');
-			exit;
-			$code = $row['code'];
-			$record['total'] = $row['total'] + 1;
-		} else {
-			$record['weid'] = $weid;
-			$record['code'] = $code;
-			$record['createtime'] = TIMESTAMP;
-			$record['total'] = $row['total'] + 1;
-			$record['mobile'] = $mobile;
-		}
-		if (!empty($row)) {
-			pdo_update('hotel12_code', $record, array('id' => $row['id']));
-		} else {
-			pdo_insert('hotel12_code', $record);
-		}
-		if (!empty($mobile)) {
-			load()->model('cloud');
-			cloud_prepare();
-			$postdata = array(
-				'verify_code' => '万能小店订单验证码为' . $code ,
-			);
-			$result = cloud_sms_send($mobile, '800010', $postdata);
-			if (is_error($result)) {
-				message($result, '', 'ajax');
-			} else {
-				message(error(0, '发送成功'), '', 'ajax');
-			}
-		}
-	}
-
-	//检查用户是否登录
-	public function check_login() {
-		$check = check_hotel_user_login($this->_set_info);
-		if ($check == 0) {
-			$url = $this->createMobileUrl('index');
-			header("Location: $url");
-		} else {
-			if (empty($this->_user_info)) {
-				$weid = $this->_weid;
-				$from_user = $this->_from_user;
-				$user_info = pdo_fetch("SELECT * FROM " . tablename('storex_member') . " WHERE from_user = :from_user AND weid = :weid limit 1", array(':from_user' => $from_user, ':weid' => $weid));
-				$this->_user_info = $user_info;
-			}
-		}
-	}
 	public function payResult($params) {
 		global $_GPC, $_W;
 		load()->model('mc');
@@ -608,88 +408,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 		}
 	}
 
-	//用户注册
-	public function doMobileregister() {
-		global $_GPC, $_W;
-		if (checksubmit()) {
-			$weid = $this->_weid;
-			$from_user = $this->_from_user;
-			$set = $this->_set_info;
-			$member = array();
-			$member['from_user'] = $from_user;
-			$member['username'] = $_GPC['username'];
-			$member['password'] = $_GPC['password'];
-			if (!preg_match(REGULAR_USERNAME, $member['username'])) {
-				die(json_encode(array("result" => 0, "error" => "必须输入用户名，格式为 3-15 位字符，可以包括汉字、字母（不区分大小写）、数字、下划线和句点。")));
-			}
-
-			// if (!preg_match(REGULAR_USERNAME, $member['from_user'])) {
-			//	die(json_encode(array("result" => 0, "error" => "微信号码获取失败。")));
-			//}
-
-			if (hotel_member_check(array('from_user' => $member['from_user'], 'weid' => $weid))) {
-				die(json_encode(array("result" => 0, "error" => "非常抱歉，此用微信号已经被注册，你可以直接使用注册时的用户名登录，或者更换微信号注册！")));
-			}
-
-			if (hotel_member_check(array('username' => $member['username'], 'weid' => $weid))) {
-				die(json_encode(array("result" => 0, "error" => "非常抱歉，此用户名已经被注册，你需要更换注册用户名！")));
-			}
-
-			if (istrlen($member['password']) < 6) {
-				die(json_encode(array("result" => 0, "error" => "必须输入密码，且密码长度不得低于6位。")));
-			}
-			$member['salt'] = random(8);
-			$member['password'] = hotel_member_hash($member['password'], $member['salt']);
-
-			$member['weid'] = $weid;
-			$member['mobile'] = $_GPC['mobile'];
-			$member['realname'] = $_GPC['realname'];
-			$member['createtime'] = time();
-			$member['status'] = 1;
-			$member['isauto'] = 0;
-			pdo_insert('storex_member', $member);
-			$member['id'] = pdo_insertid();
-			$member['user_set'] = $set['user'];
-
-			//注册成功
-			hotel_set_userinfo(1, $member);
-
-			$url = $this->createMobileUrl('search');
-			die(json_encode(array("result" => 1, "url" => $url)));
-		} else {
-			//$css_url = $this->_css_url;
-			include $this->template('register');
-		}
-	}
-
-	//错误信息提示页
-	public function doMobileError() {
-		global $_GPC, $_W;
-		$msg = $_GPC['msg'];
-		include $this->template('error');
-	}
-
-	public function doMobileAjaxdelete() {
-		global $_GPC;
-		$delurl = $_GPC['pic'];
-		if (file_delete($delurl)) {
-			echo 1;
-		} else {
-			echo 0;
-		}
-	}
-	
-	public function web_message($error, $url = '', $errno = -1) {
-		$data = array();
-		$data['errno'] = $errno;
-		if (!empty($url)) {
-			$data['url'] = $url;
-		}
-		$data['error'] = $error;
-		echo json_encode($data);
-		exit;
-	}
-	
 	protected function pay($params = array(), $mine = array()) {
 		global $_W;
 		if (!$this->inMobile) {
