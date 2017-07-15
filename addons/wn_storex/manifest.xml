@@ -3,7 +3,7 @@
 	<application setting="false">
 		<name><![CDATA[万能小店]]></name>
 		<identifie><![CDATA[wn_storex]]></identifie>
-		<version><![CDATA[1.3.8]]></version>
+		<version><![CDATA[1.3.9]]></version>
 		<type><![CDATA[business]]></type>
 		<ability><![CDATA[万能小店]]></ability>
 		<description><![CDATA[万能小店]]></description>
@@ -36,11 +36,8 @@
 		</cover>
 		<menu>
 			<entry title="店铺管理" do="storemanage" state="" direct="false" />
-			<entry title="商品分类" do="goodscategory" state="" direct="false" />
-			<entry title="商品管理" do="goodsmanage" state="" direct="false" />
 			<entry title="用户管理" do="member" state="" direct="false" />
 			<entry title="店员管理" do="clerk" state="" direct="false" />
-			<entry title="订单管理" do="order" state="" direct="false" />
 			<entry title="基本设置" do="hotelset" state="" direct="false" />
 			<entry title="扩展功能" do="extend" state="" direct="false" />
 		</menu>
