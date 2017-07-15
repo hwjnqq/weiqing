@@ -96,7 +96,7 @@ function orders_check_status($item) {
 				if ($item['paystatus'] == PAY_STATUS_UNPAID) {
 					$item['is_pay'] = 1;
 				}
-				if ($item['goods_status'] == GOODS_STATUS_NOT_CHECKED) {
+				if ($item['goods_status'] == GOODS_STATUS_NOT_CHECKED || empty($item['goods_status'])) {
 					$item['is_cancel'] = 1;
 				}
 			}
