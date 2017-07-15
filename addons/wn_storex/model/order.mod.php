@@ -87,7 +87,9 @@ function orders_check_status($item) {
 			$item['is_over'] = 1;
 		} elseif ($item['paystatus'] == PAY_STATUS_PAID) {
 			if (empty($refund_log)) {
-				$item['is_refund'] = 1;
+				if (check_ims_version() || $item['paytype'] == 'credit') {
+					$item['is_refund'] = 1;
+				}
 			}
 		}
 	} elseif ($item['status'] == ORDER_STATUS_SURE) {//已确认
@@ -186,7 +188,6 @@ function order_build_refund($orderid) {
 		} elseif ($refund['status'] == REFUND_STATUS_PROCESS) {
 			return error(-1, '退款处理中');
 		} elseif ($refund['status'] == REFUND_STATUS_FAILED) {
-			return error(-1, 'dasd');
 		}
 	}
 	return true;

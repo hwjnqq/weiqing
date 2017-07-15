@@ -183,6 +183,9 @@ if ($op == 'edit') {
 			if ($action == 'cancel') {
 				$data['status'] = ORDER_STATUS_CANCEL;
 			} elseif ($action == 'refund') {
+				if ($item['paytype'] != 'credit' && !check_ims_version()) {
+					message(error(-1, '请升级微擎系统至1.0以上，并保持最新版本'), '', 'ajax');
+				}
 				if ($item['paytype'] == 'credit') {
 					$result = order_begin_refund($item['id']);
 				} elseif ($item['paytype'] == 'wechat') {

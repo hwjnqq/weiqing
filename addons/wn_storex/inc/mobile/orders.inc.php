@@ -124,13 +124,17 @@ if ($op == 'cancel') {
 
 if ($op == 'refund') {
 	$id = intval($_GPC['id']);
-	$result = order_build_refund($id);
-	if (is_error($result)) {
-		message($result, '', 'ajax');
+	$order = pdo_get('storex_order', array('id' => $id), array('id', 'paytype'));
+	if (check_ims_version() || $item['paytype'] == 'credit') {
+		$result = order_build_refund($id);
+		if (is_error($result)) {
+			message($result, '', 'ajax');
+		} else {
+			message(error(0, '退款申请成功'), '', 'ajax');
+		}
 	} else {
-		message(error(0, '退款申请成功'), '', 'ajax');
+		message(error(-1, '退款失败'), '', 'ajax');
 	}
-	
 }
 
 if ($op == 'confirm_goods') {
