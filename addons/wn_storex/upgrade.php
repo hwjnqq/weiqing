@@ -508,13 +508,7 @@ if (!pdo_fieldexists('storex_order', 'static_price')) {
 if (!pdo_fieldexists('storex_order', 'refund_status')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `refund_status` TINYINT(2) NOT NULL COMMENT '退款状态 1退款中，2成功，3失败';");
 }
-//删除商圈和品牌不必要功能
-if (pdo_get('modules_bindings', array('module' => 'wn_storex', 'do' => 'business', 'title' => '商圈管理'))) {
-	pdo_delete('modules_bindings', array('module' => 'wn_storex', 'do' => 'business'));
-}
-if (pdo_get('modules_bindings', array('module' => 'wn_storex', 'do' => 'brand', 'title' => '品牌管理'))) {
-	pdo_delete('modules_bindings', array('module' => 'wn_storex', 'do' => 'brand'));
-}
+
 $delete_fields = array('ordermax', 'numsmax', 'daymax', 'sales', 'level', 'brandid', 'businessid');
 foreach ($delete_fields as $field) {
 	if (pdo_fieldexists('storex_hotel', $field)) {

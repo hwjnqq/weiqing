@@ -324,9 +324,6 @@ function category_store_goods($table, $condition, $fields, $limit = array()) {
 				$goods[$k]['thumbs'][$key] = tomedia($url);
 			}
 		}
-		if (isset($goods_info['can_reserve']) && !empty($info['can_reserve'])) {
-			$goods[$k]['can_reserve'] = 0;
-		}
 	}
 	if ($table == 'storex_room') {
 		$goods = room_special_price($goods, true);

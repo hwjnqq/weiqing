@@ -119,9 +119,6 @@ if ($op == 'more_goods') {
 			} else {
 				$goods_info['reduced_price'] = 0;
 			}
-			if (isset($goods_info['can_reserve']) && !empty($goods_info['can_reserve'])) {
-				$goods_info['can_reserve'] = 0;
-			}
 		}
 	}
 	$pindex = max(1, intval($_GPC['page']));
