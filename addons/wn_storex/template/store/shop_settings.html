@@ -33,9 +33,16 @@
 				</div>
 			</div>
 			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">首页图片</label>
+				<div class="col-sm-9 col-xs-12">
+					{php echo tpl_form_field_multi_image('thumbs',$item['thumbs'])}
+					<span class='help-block'>图片尺寸 （750*1232）</span>
+				</div>
+			</div>
+			<div class="form-group">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">详情页图片</label>
 				<div class="col-sm-9 col-xs-12">
-					{php echo tpl_form_field_multi_image('thumbs', $storex_bases['thumbs'])}
+					{php echo tpl_form_field_multi_image('detail_thumbs', $storex_bases['detail_thumbs'])}
 					<span class='help-block'>图片尺寸 （750*1232），首页图片会显示第一张图片</span>
 				</div>
 			</div>
