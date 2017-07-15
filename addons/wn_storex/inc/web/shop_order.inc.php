@@ -183,8 +183,9 @@ if ($op == 'edit') {
 			if ($action == 'cancel') {
 				$data['status'] = ORDER_STATUS_CANCEL;
 			} elseif ($action == 'refund') {
-				mload()->model('order');
-				$result = order_begin_refund($item['id']);
+				$params['module'] = 'wn_storex';
+				$params['tid'] = $item['id'];
+				$result = $this->refund($params);
 				if (is_error($result)) {
 					message($result, '', 'ajax');
 				} else {
