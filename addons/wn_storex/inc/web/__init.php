@@ -35,6 +35,8 @@ $aside_nav = array(
 		'icon' => 'fa fa-gift',
 		'active' => array(
 			'shop_goodsmanage',
+			'shop_room_status',
+			'shop_room_price',
 		)
 	),
 	'shop_comment' => array(
