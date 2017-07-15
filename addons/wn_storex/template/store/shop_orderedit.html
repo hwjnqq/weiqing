@@ -178,7 +178,7 @@
 							{/if}
 						</div>
 					</div>
-					{if (empty($good_info) || $good_info['is_house'] != 2) && $item['status'] != -1 && $item['status'] != 2}
+					{if (empty($good_info) || $good_info['is_house'] != 2) && $item['status'] != -1 && $item['status'] != 2 && $item['status'] != 3}
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品状态</label>
 						<div class="col-sm-9 col-xs-12 form-control-static">
@@ -191,12 +191,16 @@
 									{/if}
 								{/if}
 							{else}
-								{if empty($item['goods_status']) || $item['goods_status'] == 1}
-									待发货
-								{elseif $item['goods_status'] == 2}
-									已发货
-								{elseif $item['goods_status'] == 3}
-									已收货
+								{if $item['mode_distribute'] == 1}
+									待自提
+								{else}
+									{if empty($item['goods_status']) || $item['goods_status'] == 1}
+										待发货
+									{elseif $item['goods_status'] == 2}
+										已发货
+									{elseif $item['goods_status'] == 3}
+										已收货
+									{/if}
 								{/if}
 							{/if}
 						</div>

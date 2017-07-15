@@ -340,15 +340,15 @@ if (!function_exists('getOrderAction')) {
 
 if (!function_exists('getOrderpaytext')) {
 	function getOrderpaytext(&$order) {
-		if ($order['paytype'] == 1) {
+		if ($order['paytype'] == 'credit') {
 			$order['paytype_text'] = '余额支付';
-		} elseif ($order['paytype'] == 21) {
+		} elseif ($order['paytype'] == 'wechat') {
 			$order['paytype_text'] = '微信支付';
-		} elseif ($order['paytype'] == 22) {
+		} elseif ($order['paytype'] == 'alipay') {
 			$order['paytype_text'] = '支付宝';
-		} elseif ($order['paytype'] == 3) {
+		} elseif ($order['paytype'] == 'delivery') {
 			$order['paytype_text'] = '到店付款';
-		} elseif ($order['paytype'] == 0) {
+		} elseif (empty($order['paytype'])) {
 			$order['paytype_text'] = '未支付(或其它)';
 		}
 		if ($order['paystatus'] == 0) {
@@ -365,13 +365,13 @@ if (!function_exists('getOrderpaytext')) {
 			}
 		} else {
 			if ($order['status'] == 0) {
-				if ($order['paytype'] == 3) {
+				if ($order['paytype'] == 'delivery') {
 					$order['status_text'] = "待付款";
 				} else {
 					$order['status_text'] = "已支付,等待确认";
 				}
 			} elseif ($order['status'] == -1) {
-				if ($order['paytype'] == 3) {
+				if ($order['paytype'] == 'delivery') {
 					$order['status_text'] = "已取消";
 				} else {
 					$order['status_text'] = "已支付,取消并退款";
