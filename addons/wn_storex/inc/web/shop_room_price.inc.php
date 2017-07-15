@@ -135,9 +135,6 @@ if ($op == 'updatelot') {
 
 if ($op == 'updatelot_create') {
 	$rooms = $_GPC['rooms'];
-	if (empty($rooms)) {
-		die("");
-	}
 	$days = $_GPC['days'];
 	$days_arr = implode(',', $days);
 	$rooms_arr = implode(',', $rooms);

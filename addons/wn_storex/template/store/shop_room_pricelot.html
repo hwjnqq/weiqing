@@ -114,6 +114,12 @@
 					days.push($(this).val());
 				}
 			});
+			if (typeof(rooms) == 'undefine' || !rooms.length) {
+				util.message('房型必须选择！');
+			}
+			if (typeof(days) == 'undefines' || !days.length) {
+				util.message('日期必须选择！');
+			}
 			$("#d_list").html("正在加载...");
 			$.post("{php echo $this->createWebUrl('shop_room_price')}", {op: 'updatelot_create', storeid:{$storeid}, rooms:rooms,days:days,start:start,end:end}, function (data) {
 				data = eval("(" + data + ")");
