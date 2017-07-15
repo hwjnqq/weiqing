@@ -533,6 +533,34 @@ $subscribes = array('user_get_card', 'user_del_card', 'user_consume_card',);
 $subscribes = iserializer($subscribes);
 pdo_update('modules', array('subscribes' => $subscribes), array('name' => 'wn_storex'));
 
+//order表paytype修改
+if (pdo_fieldexists('storex_order', 'paytype')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " CHANGE `paytype` `paytype` VARCHAR(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '';");
+}
+$order_lists = pdo_getall('storex_order');
+$pay_type_list = array('credit', 'wechat', 'delivery', 'alipay');
+if (!empty($order_lists) && is_array($order_lists)) {
+	foreach ($order_lists as $key => $value) {
+		if (!empty($value['paytype']) && !in_array($value['paytype'], $pay_type_list)) {
+			if (in_array($value['paytype'], array('1', '21', '22', '3'))) {
+				if ($value['paytype'] == 1) {
+					$update['paytype'] = 'credit';
+				} elseif ($value['paytype'] == 21) {
+					$update['paytype'] = 'wechat';
+				} elseif ($value['paytype'] == 22) {
+					$update['paytype'] = 'alipay';
+				} elseif ($value['paytype'] == 3) {
+					$update['paytype'] = 'delivery';
+				}
+				pdo_update('storex_order', $update, array('id' => $value['id']));
+			}
+		}
+	}
+}
+//删除弃用的业务菜单
+pdo_delete('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu', 'do' => 'business'));
+pdo_delete('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu', 'do' => 'brand'));
+
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');
 $js_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/js');
@@ -574,33 +602,16 @@ if (!empty($svg_diff_files)) {
 $unused_files = array(
 	IA_ROOT . '/addons/wn_storex/template/manage.html',
 	IA_ROOT . '/addons/wn_storex/template/query.html',
+	IA_ROOT . '/addons/wn_storex/template/brand.html',
+	IA_ROOT . '/addons/wn_storex/template/brand_form.html',
+	IA_ROOT . '/addons/wn_storex/template/business.html',
+	IA_ROOT . '/addons/wn_storex/template/business_form.html',
+	IA_ROOT . '/addons/wn_storex/template/business_query.html',
+	IA_ROOT . '/addons/wn_storex/inc/web/business.inc.php',
+	IA_ROOT . '/addons/wn_storex/inc/web/brand.inc.php',
 );
 if (!empty($unused_files)) {
 	foreach ($unused_files as $file) {
 		file_delete($file);
-	}
-}
-//order表paytype修改
-if (pdo_fieldexists('storex_order', 'paytype')) {
-	pdo_query("ALTER TABLE " . tablename('storex_order') . " CHANGE `paytype` `paytype` VARCHAR(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '';");
-}
-$order_lists = pdo_getall('storex_order');
-$pay_type_list = array('credit', 'wechat', 'delivery', 'alipay');
-if (!empty($order_lists) && is_array($order_lists)) {
-	foreach ($order_lists as $key => $value) {
-		if (!empty($value['paytype']) && !in_array($value['paytype'], $pay_type_list)) {
-			if (in_array($value['paytype'], array('1', '21', '22', '3'))) {
-				if ($value['paytype'] == 1) {
-					$update['paytype'] = 'credit';
-				} elseif ($value['paytype'] == 21) {
-					$update['paytype'] = 'wechat';
-				} elseif ($value['paytype'] == 22) {
-					$update['paytype'] = 'alipay';
-				} elseif ($value['paytype'] == 3) {
-					$update['paytype'] = 'delivery';
-				}
-				pdo_update('storex_order', $update, array('id' => $value['id']));
-			}
-		}
 	}
 }
