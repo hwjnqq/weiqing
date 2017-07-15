@@ -39,6 +39,7 @@ if ($op == 'post') {
 			'status' => $_GPC['status'],
 		);
 		$common_insert['thumbs'] = empty($_GPC['thumbs']) ? '' : iserializer($_GPC['thumbs']);
+		$common_insert['detail_thumbs'] = empty($_GPC['detail_thumbs']) ? '' : iserializer($_GPC['detail_thumbs']);
 		if (!empty($store_type)) {
 			$insert = array(
 				'weid' => $_W['uniacid'],
@@ -84,6 +85,7 @@ if ($op == 'post') {
 		$devices = iunserializer($item['device']);
 	}
 	$storex_bases['thumbs'] = iunserializer($storex_bases['thumbs']);
+	$storex_bases['detail_thumbs'] =  iunserializer($storex_bases['detail_thumbs']);
 }
 
 include $this->template('store/shop_settings');
