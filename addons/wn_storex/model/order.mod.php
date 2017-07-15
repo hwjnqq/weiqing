@@ -216,53 +216,16 @@ function order_begin_refund($orderid) {
 		}
 		return true;
 	} elseif ($order['paytype'] == 'wechat') {
-		load()->classs('weixin.pay');
-		$wxpay_api = new WeiXinPay();
-		$params = array(
-			'total_fee' => $refund['fee'] * 100,
-			'refund_fee' => $refund['fee'] * 100,
-			'out_trade_no' => $refund['out_trade_no'],
-			'out_refund_no' => $refund['out_refund_no'],
-		);
-		$response = $pay->refundOrder($params);
-		if (is_error($response)) {
-			return error(-1, $response['message']);
+		$params['module'] = 'wn_storex';
+		$params['tid'] = $orderid;
+		$result = $this->refund($params);
+		if (is_error($result)) {
+			return $result;
 		}
-		pdo_update('storex_refund_logs', array('status' => REFUND_STATUS_SUCCESS, 'time' => TIMESTAMP), array('id' => $refund['id'], 'uniacid' => $_W['uniacid']));
 		return true;
 	} elseif ($order['paytype'] == 'alipay') {
 		
 	}
-}
-
-function order_query_refund($orderid) {
-	global $_W;
-	$refund = pdo_get('storex_refund_logs', array('uniacid' => $_W['uniacid'], 'orderid' => $orderid));
-	if (empty($refund)) {
-		return error(-1, '退款申请不存在或已删除');
-	}
-	if ($refund['type'] == 'wechat') {
-		//只有微信需要查询,余额和支付宝不需要
-		load()->classs('weixin.pay');
-		$wxpay_api = new WeiXinPay();
-		$response = $pay->refundQuery(array('out_refund_no' => $refund['out_refund_no']));
-		if (is_error($response)) {
-			return error(-1, $response['message']);
-		}
-		$wechat_status = $pay->payRefund_status();
-		$update = array(
-			'refund_status' => $wechat_status[$response['refund_status_0']]['value'],
-		);
-		if ($response['refund_status_0'] == 'SUCCESS') {
-			$update['time'] = TIMESTAMP;
-			$update['status'] = REFUND_STATUS_SUCCESS;
-			pdo_update('storex_refund_logs', array('status' => REFUND_STATUS_SUCCESS, 'time' => TIMESTAMP), array('uniacid' => $_W['uniacid'], 'id' => $refund['id']));
-		} else {
-			pdo_update('storex_refund_logs', array('status' => REFUND_STATUS_FAILED, 'time' => TIMESTAMP), array('uniacid' => $_W['uniacid'], 'id' => $refund['id']));
-		}
-		return true;
-	}
-	return true;
 }
 
 //订单拒绝

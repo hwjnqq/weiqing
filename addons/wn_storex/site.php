@@ -398,13 +398,9 @@ class Wn_storexModuleSite extends WeModuleSite {
 	
 	public function refundResult($params) {
 		global $_GPC, $_W;
-		mload()->model('order');
-		$orderid = $params['tid'];
-		$result = order_begin_refund($orderid);
-		if (is_error($result)) {
-			message($result, '', 'ajax');
-		} else {
-			message(error(0, '退款成功'), '', 'ajax');
+		$refund_log = pdo_get('storex_refund_logs', array('uniacid' => $params['uniacid'], 'orderid' => $params['tid']), array('id'));
+		if (!empty($refund_log)) {
+			pdo_update('storex_refund_logs', array('out_refund_no' => $params['refund_uniontid'], 'status' => REFUND_STATUS_SUCCESS), array('id' => $refund_log['id']));
 		}
 	}
 
