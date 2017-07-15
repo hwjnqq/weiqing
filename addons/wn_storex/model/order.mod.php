@@ -148,6 +148,9 @@ function orders_check_status($item) {
 	$item['order_status_cn'] = order_status($item['status']);
 	$item['pay_status_cn'] = order_pay_status($item['paystatus']);
 	$item['goods_status_cn'] = '';
+	if ($item['paystatus'] == 1 && !empty($refund_log['status'])) {
+		$item['pay_status_cn'] = order_refund_status($refund_log['status']);
+	}
 	if (!empty($item['goods_status'])) {
 		$item['goods_status_cn'] = order_goods_status($item['goods_status']);
 	}
@@ -284,12 +287,8 @@ function order_sure_notice($params) {
 
 //订单完成
 function order_over_notice($params) {
-// 	if (!empty($params['tpl_status']) && !empty($params['finish_templateid']) && $params['store_type'] == STORE_TYPE_HOTEL) {
-// 		order_notice_tpl($params['openid'], 'finish_templateid', $params, $params['finish_templateid']);
-// 	} else {
-		$info = '您在' . $params['store'] . '购买的' . $params['room'] . '的订单已完成,欢迎下次光临';
-		$status = send_custom_notice('text', array('content' => urlencode($info)), $params['openid']);
-// 	}
+	$info = '您在' . $params['store'] . '购买的' . $params['room'] . '的订单已完成,欢迎下次光临';
+	$status = send_custom_notice('text', array('content' => urlencode($info)), $params['openid']);
 }
 
 //订单入住
