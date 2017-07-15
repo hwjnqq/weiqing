@@ -2,6 +2,17 @@
 <div class="wn-main wn-main--without">
 	<div class="wn-main__head">商品管理</div>
 	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">商品列表</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_room_status', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">维护房量/房态</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_room_price', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">维护房价</a>
+			</div>
+		</div>
 		<div class="panel panel-info">
 			<div class="panel-heading">条件</div>
 			<div class="panel-body">
@@ -105,7 +116,7 @@
 				}
 			});
 			$("#d_list").html("正在加载...");
-			$.post("{php echo $this->createWebUrl('room_price')}", {op: 'updatelot_create', hotelid:{$hotelid}, rooms:rooms,days:days,start:start,end:end}, function (data) {
+			$.post("{php echo $this->createWebUrl('shop_room_price')}", {op: 'updatelot_create', storeid:{$storeid}, rooms:rooms,days:days,start:start,end:end}, function (data) {
 				data = eval("(" + data + ")");
 				if (data.result == 1) {
 					$("#d_list").html(data.code);

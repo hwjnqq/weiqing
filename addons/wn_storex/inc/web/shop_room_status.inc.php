@@ -184,7 +184,7 @@ if ($op == 'updatelot_submit') {
 			}
 		}
 	}
-	message('批量修改房量房态成功!', $this->createWebUrl('room_status', array('hotelid' => $storeid)), 'success');
+	message('批量修改房量房态成功!', $this->createWebUrl('shop_room_status', array('storeid' => $storeid)), 'success');
 }
 $startime = time();
 $firstday = date('Y-m-01', time());
