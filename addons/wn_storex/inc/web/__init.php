@@ -81,3 +81,9 @@ $aside_nav = array(
 		)
 	),
 );
+if (!check_ims_version()) {
+	unset($aside_nav['shop_plugin']);
+	if ($_GPC['do'] == 'shop_plugin' || $_GPC['do'] == 'shop_plugin_printer') {
+		message('请升级微擎系统至1.0以上，并保持最新版本', '', 'error');
+	}
+}

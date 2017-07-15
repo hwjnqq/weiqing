@@ -183,15 +183,19 @@ if ($op == 'edit') {
 			if ($action == 'cancel') {
 				$data['status'] = ORDER_STATUS_CANCEL;
 			} elseif ($action == 'refund') {
-				$params['module'] = 'wn_storex';
-				$params['tid'] = $item['id'];
-				$result = $this->refund($params);
+				if ($item['paytype'] == 'credit') {
+					$result = order_begin_refund($item['id']);
+				} elseif ($item['paytype'] == 'wechat') {
+					$params['module'] = 'wn_storex';
+					$params['tid'] = $item['id'];
+					$result = $this->refund($params);
+				}
 				if (is_error($result)) {
 					message($result, '', 'ajax');
 				} else {
 					if ($item['paytype'] == 'credit') {
 						message(error(0, '退款成功'), '', 'ajax');
-					} else {
+					} elseif ($item['paytype'] == 'wechat') {
 						message(error(0, '申请退款成功'), '', 'ajax');
 					}
 				}

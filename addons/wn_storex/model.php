@@ -503,3 +503,11 @@ if (!function_exists('express_name')) {
 		);
 	}
 }
+function check_ims_version() {
+	$compare = ver_compare(IMS_VERSION, '1.0');
+	if ($compare != -1) {
+		return true;
+	} else {
+		return false;
+	}
+}
