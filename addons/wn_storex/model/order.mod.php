@@ -215,16 +215,6 @@ function order_begin_refund($orderid) {
 			pdo_update('storex_refund_logs', array('status' => REFUND_STATUS_SUCCESS, 'time' => TIMESTAMP), array('id' => $refund['id'], 'uniacid' => $_W['uniacid']));
 		}
 		return true;
-	} elseif ($order['paytype'] == 'wechat') {
-		$params['module'] = 'wn_storex';
-		$params['tid'] = $orderid;
-		$result = $this->refund($params);
-		if (is_error($result)) {
-			return $result;
-		}
-		return true;
-	} elseif ($order['paytype'] == 'alipay') {
-		
 	}
 }
 
