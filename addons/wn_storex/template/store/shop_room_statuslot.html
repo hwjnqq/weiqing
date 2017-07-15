@@ -6,85 +6,83 @@
 			<div class="wn-tabs__item">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">商品列表</a>
 			</div>
-			<div class="wn-tabs__item">
+			<div class="wn-tabs__item wn-tabs__item--active">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_room_status', array('storeid' => $_GPC['storeid']))}">维护房量/房态</a>
 			</div>
 			<div class="wn-tabs__item">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_room_price', array('storeid' => $_GPC['storeid']))}">维护房价</a>
 			</div>
 		</div>
-		<div class="main">
-			<div class="panel panel-info">
-				<div class="panel-heading">条件</div>
-				<div class="panel-body">
-					<form action="./index.php" method="get" class="form-horizontal" role="form">
-						<div class="form-group">
-							<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">日期范围</label>
-							<div class="col-sm-8 col-lg-9">
-								{php echo tpl_form_field_daterange('datelimit',array('starttime'=>date('Y-m-d', $startime),'endtime'=>date('Y-m-d', $endtime)))}
-								<label class="checkbox-inline">
-									<input type="checkbox" name="days_checkall" class='days_checkall' checked/> 全选
-								</label>
-								<label class="checkbox-inline">
-									<input type="checkbox" name="days" value="1" class='days' checked/> 周一
-								</label>
-								<label class="checkbox-inline">
-									<input type="checkbox" name="days"  value="2" class='days' checked/> 周二
-								</label>
-								<label class="checkbox-inline">
-									<input type="checkbox" name="days" value="3"  class='days' checked/> 周三
-								</label>
-								<label class="checkbox-inline">
-									<input type="checkbox" name="days" value="4"  class='days' checked/> 周四
-								</label>
-								<label class="checkbox-inline">
-									<input type="checkbox" name="days"  value="5" class='days' checked/> 周五
-								</label>
-								<label class="checkbox-inline">
-									<input type="checkbox" name="days"  value="6" class='days' checked/> 周六
-								</label>
-								<label class="checkbox-inline">
-									<input type="checkbox" name="days" value="0" class='days' checked/> 周日
-								</label>
-							</div>
+		<div class="panel wn-panel">
+			<div class="panel-heading">条件</div>
+			<div class="panel-body">
+				<form action="./index.php" method="get" class="form-horizontal" role="form">
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">日期范围</label>
+						<div class="col-sm-8 col-lg-9">
+							{php echo tpl_form_field_daterange('datelimit',array('starttime'=>date('Y-m-d', $startime),'endtime'=>date('Y-m-d', $endtime)))}
+							<label class="checkbox-inline">
+								<input type="checkbox" name="days_checkall" class='days_checkall' checked/> 全选
+							</label>
+							<label class="checkbox-inline">
+								<input type="checkbox" name="days" value="1" class='days' checked/> 周一
+							</label>
+							<label class="checkbox-inline">
+								<input type="checkbox" name="days"  value="2" class='days' checked/> 周二
+							</label>
+							<label class="checkbox-inline">
+								<input type="checkbox" name="days" value="3"  class='days' checked/> 周三
+							</label>
+							<label class="checkbox-inline">
+								<input type="checkbox" name="days" value="4"  class='days' checked/> 周四
+							</label>
+							<label class="checkbox-inline">
+								<input type="checkbox" name="days"  value="5" class='days' checked/> 周五
+							</label>
+							<label class="checkbox-inline">
+								<input type="checkbox" name="days"  value="6" class='days' checked/> 周六
+							</label>
+							<label class="checkbox-inline">
+								<input type="checkbox" name="days" value="0" class='days' checked/> 周日
+							</label>
 						</div>
-						<div class="form-group">
-							<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">房型选择</label>
-							<div class="col-sm-8 col-lg-9">
-								<label class="checkbox-inline">
-									<input type="checkbox" name="checkall" class='checkall' checked/> 全选
-								</label>
-								{loop $rooms $r}
-								<label class="checkbox-inline">
-									<input type="checkbox" name="checkall" class='room' value="{$r['id']}" checked/> {$r['title']}
-								</label>
-								{/loop}
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">房态</label>
-							<div class="col-sm-8 col-lg-9">
-								<label class="radio-inline">
-									<input type="radio" name="status" value="1"/> 开
-								</label>
-								<label class="radio-inline">
-									<input type="radio" name="status" value="0"/> 关
-								</label>
-							</div>
-						</div>
-						<div class="form-group">
-							<div class=" col-sm-2 col-sm-offset-1 ">
-								<button class="btn btn-default" id='create_btn' type='button'><i class="fa fa-search"></i> 生成房量/房态表</button>
-							</div>
-						</div>
-					</form>
-				</div>
-			</div>
-			<div class="panel panel-info">
-				<div class="panel-heading">房量/房态表</div>
-				<div class="panel-body">
-					<div  id="d_list">
 					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">房型选择</label>
+						<div class="col-sm-8 col-lg-9">
+							<label class="checkbox-inline">
+								<input type="checkbox" name="checkall" class='checkall' checked/> 全选
+							</label>
+							{loop $rooms $r}
+							<label class="checkbox-inline">
+								<input type="checkbox" name="checkall" class='room' value="{$r['id']}" checked/> {$r['title']}
+							</label>
+							{/loop}
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">房态</label>
+						<div class="col-sm-8 col-lg-9">
+							<label class="radio-inline">
+								<input type="radio" name="status" value="1"/> 开
+							</label>
+							<label class="radio-inline">
+								<input type="radio" name="status" value="0"/> 关
+							</label>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class=" col-sm-2 col-sm-offset-1 ">
+							<button class="btn btn-default" id='create_btn' type='button'><i class="fa fa-search"></i> 生成房量/房态表</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+		<div class="panel wn-panel">
+			<div class="panel-heading">房量/房态表</div>
+			<div class="panel-body">
+				<div  id="d_list">
 				</div>
 			</div>
 		</div>

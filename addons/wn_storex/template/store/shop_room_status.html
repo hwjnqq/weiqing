@@ -2,42 +2,37 @@
 <div class="wn-main wn-main--without">
 	<div class="wn-main__head">商品管理</div>
 	<div class="wn-main__content">
-	<div class="wn-tabs">
-		<div class="wn-tabs__item">
-			<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">商品列表</a>
-		</div>
-		<div class="wn-tabs__item">
-			<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_room_status', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">维护房量/房态</a>
-		</div>
-		<div class="wn-tabs__item">
-			<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_room_price', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">维护房价</a>
-		</div>
-	</div>
-	<div class="main">
-		<div class="panel panel-default">
-			<div class="panel-heading">
-				维护房态/房量
+		<div class="wn-tabs">
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">商品列表</a>
 			</div>
-			<div class="panel-body">
+			<div class="wn-tabs__item wn-tabs__item--active">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_room_status', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">维护房量/房态</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_room_price', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">维护房价</a>
+			</div>
+		</div>
+
+		<div class="wn-main__search clearfix">
+			<div class="wn-main__search__form" style="width: 600px">
 				<div class="form-group">
-					<div class="col-sm-9 col-xs-12">
-						{php echo tpl_form_field_daterange('datelimit',array('starttime'=>date('Y-m-d', $startime),'endtime'=>date('Y-m-d', $endtime)))}
-						<input class="btn btn-primary" id="search_button" type="button" value="搜索">
-						<a href="{php echo $this->createWebUrl('shop_room_status', array('op'=>'updatelot','storeid' => $storeid));}" class="btn btn-primary">批量修改房量/房态</a>
-					</div>
+					{php echo tpl_form_field_daterange('datelimit',array('starttime'=>date('Y-m-d', $startime),'endtime'=>date('Y-m-d', $endtime)))}
+					<button class="btn btn-default" id="search_button" type="button"><i class="fa fa-search"></i> </button>
 				</div>
 			</div>
+			<div class="wn-main__search__action">
+				<a href="{php echo $this->createWebUrl('shop_room_status', array('op'=>'updatelot','storeid' => $storeid));}" class="btn btn-primary">批量修改房量/房态</a>
+			</div>
 		</div>
-	</div>
-
-	<div class="panel panel-default">
-		<div class="panel-heading">
-			详细数据 <span class="text-muted">点击价格可以单独修改</span>
+		<div class="panel panel-default wn-panel">
+			<div class="panel-heading">
+				详细数据 <span class="text-muted">点击价格可以单独修改</span>
+			</div>
+			<div class="panel-body table-responsive">
+				<div class="sub-content" id="d_list"></div>
+			</div>
 		</div>
-		<div class="panel-body table-responsive">
-			<div class="sub-content" id="d_list"></div>
-		</div>
-	</div>
 	</div>
 </div>
 <input type="hidden" id="hotelid" value="{$hotelid}" />

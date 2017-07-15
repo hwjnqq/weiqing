@@ -9,11 +9,11 @@
 			<div class="wn-tabs__item">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_room_status', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">维护房量/房态</a>
 			</div>
-			<div class="wn-tabs__item">
+			<div class="wn-tabs__item wn-tabs__item--active">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_room_price', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">维护房价</a>
 			</div>
 		</div>
-		<div class="panel panel-info">
+		<div class="panel wn-panel">
 			<div class="panel-heading">条件</div>
 			<div class="panel-body">
 				<form action="./index.php" method="get" class="form-horizontal" role="form">
@@ -72,15 +72,14 @@
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label"></label>
-						<div class=" col-xs-12 col-sm-2 col-lg-2">
+						<div class=" col-sm-2 col-sm-offset-1">
 							<button class="btn btn-default" id='create_btn' type='button'><i class="fa fa-search"></i> 生成价格表</button>
 						</div>
 					</div>
 				</form>
 			</div>
 		</div>
-		<div class="panel panel-info">
+		<div class="panel wn-panel">
 			<div class="panel-heading">价格表 <span style="color:red">(修改后的价格是当天购买或者预定的价格)</span></div>
 			<div class="panel-body">
 				<div  id="d_list">
