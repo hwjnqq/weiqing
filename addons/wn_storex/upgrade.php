@@ -508,7 +508,7 @@ if (!pdo_fieldexists('storex_order', 'static_price')) {
 if (!pdo_fieldexists('storex_order', 'refund_status')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `refund_status` TINYINT(2) NOT NULL COMMENT '退款状态 1退款中，2成功，3失败';");
 }
-
+//删除商圈和品牌不必要功能
 $delete_fields = array('ordermax', 'numsmax', 'daymax', 'sales', 'level', 'brandid', 'businessid');
 foreach ($delete_fields as $field) {
 	if (pdo_fieldexists('storex_hotel', $field)) {
@@ -554,6 +554,9 @@ if (!empty($order_lists) && is_array($order_lists)) {
 //删除弃用的业务菜单
 pdo_delete('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu', 'do' => 'business'));
 pdo_delete('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu', 'do' => 'brand'));
+pdo_delete('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu', 'do' => 'goodscategory'));
+pdo_delete('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu', 'do' => 'goodsmanage'));
+pdo_delete('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu', 'do' => 'order'));
 
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');
@@ -601,8 +604,16 @@ $unused_files = array(
 	IA_ROOT . '/addons/wn_storex/template/business.html',
 	IA_ROOT . '/addons/wn_storex/template/business_form.html',
 	IA_ROOT . '/addons/wn_storex/template/business_query.html',
+	IA_ROOT . '/addons/wn_storex/template/category.html',
+	IA_ROOT . '/addons/wn_storex/template/room.html',
+	IA_ROOT . '/addons/wn_storex/template/room_form.html',
+	IA_ROOT . '/addons/wn_storex/template/order.html',
+	IA_ROOT . '/addons/wn_storex/template/order_form.html',
 	IA_ROOT . '/addons/wn_storex/inc/web/business.inc.php',
 	IA_ROOT . '/addons/wn_storex/inc/web/brand.inc.php',
+	IA_ROOT . '/addons/wn_storex/template/goodscategory.inc.php',
+	IA_ROOT . '/addons/wn_storex/template/goodsmanage.inc.php',
+	IA_ROOT . '/addons/wn_storex/template/order.inc.php',
 );
 if (!empty($unused_files)) {
 	foreach ($unused_files as $file) {
