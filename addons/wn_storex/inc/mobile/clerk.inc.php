@@ -80,7 +80,7 @@ if ($op == 'edit_order') {
 	if (empty($item)) {
 		message(error(-1, '抱歉，订单不存在或是已经删除'), '', 'ajax');
 	}
-	$store_info = pdo_get('storex_bases', array('id' => $item['hotelid']), array('id', 'store_type'));
+	$store_info = pdo_get('storex_bases', array('id' => $item['hotelid']), array('id', 'store_type', 'title'));
 	$table = get_goods_table($store_info['store_type']);
 	$goodsid = intval($item['roomid']);
 	$fields = array('id', 'title');
@@ -186,7 +186,7 @@ if ($op == 'edit_order') {
 			$params['sum_price'] = $item['sum_price'];
 			$params['etime'] = $item['etime'];
 			$params['refuse_templateid'] = $setting['refuse_templateid'];
-			order_refuse_notice($item, $params);
+			order_refuse_notice($params);
 		}
 		//订单确认提醒
 		if ($data['status'] == 1) {
@@ -205,7 +205,7 @@ if ($op == 'edit_order') {
 			$params['nums'] = $item['nums'];
 			$params['style'] = $item['style'];
 			$params['templateid'] = $setting['templateid'];
-			order_sure_notice($item, $params);
+			order_sure_notice($params);
 			
 			if (check_ims_version()) {
 				$plugins = get_plugin_list();
@@ -235,7 +235,7 @@ if ($op == 'edit_order') {
 			$params['sum_price'] = $item['sum_price'];
 			$params['etime'] = $item['etime'];
 			$params['finish_templateid'] = $setting['finish_templateid'];
-			order_over_notice($item, $params);
+			order_over_notice($params);
 			
 			mload()->model('sales');
 			sales_update(array('storeid' => $item['hotelid'], 'sum_price' => $item['sum_price']));
@@ -251,7 +251,7 @@ if ($op == 'edit_order') {
 		//已入住提醒
 		if ($data['goods_status'] == 5) {
 			$params['check_in_templateid'] = $setting['check_in_templateid'];
-			order_checked_notice($item, $params);
+			order_checked_notice($params);
 		}
 		//发货设置
 		if ($data['goods_status'] == 2) {

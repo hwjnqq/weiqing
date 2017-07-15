@@ -96,7 +96,7 @@ if ($op == 'edit') {
 				$params['sum_price'] = $item['sum_price'];
 				$params['etime'] = $item['etime'];
 				$params['refuse_templateid'] = $setting['refuse_templateid'];
-				order_refuse_notice($item, $params);
+				order_refuse_notice($params);
 			}
 			//订单确认提醒
 			if ($data['status'] == 1) {
@@ -114,7 +114,7 @@ if ($op == 'edit') {
 				$params['nums'] = $item['nums'];
 				$params['style'] = $item['style'];
 				$params['templateid'] = $setting['templateid'];
-				order_sure_notice($item, $params);
+				order_sure_notice($params);
 				if (check_ims_version()) {
 					$plugins = get_plugin_list();
 					if (!empty($plugins) && !empty($plugins['wn_storex_plugin_sms'])) {
@@ -134,7 +134,7 @@ if ($op == 'edit') {
 				$data['status'] = 1;
 				$params['phone'] = $hotel['phone'];
 				$params['check_in_templateid'] = $setting['check_in_templateid'];
-				order_checked_notice($item, $params);
+				order_checked_notice($params);
 			}
 	
 			//订单完成提醒
@@ -147,7 +147,7 @@ if ($op == 'edit') {
 				$params['sum_price'] = $item['sum_price'];
 				$params['etime'] = $item['etime'];
 				$params['finish_templateid'] = $setting['finish_templateid'];
-				order_over_notice($item, $params);
+				order_over_notice($params);
 				mload()->model('sales');
 				sales_update(array('storeid' => $item['hotelid'], 'sum_price' => $item['sum_price']));
 			}
