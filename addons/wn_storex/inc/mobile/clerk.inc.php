@@ -188,7 +188,7 @@ if ($op == 'edit_order') {
 			$params['refuse_templateid'] = $setting['refuse_templateid'];
 			order_refuse_notice($item, $params);
 		}
-		//订单确认提醒   TM00217
+		//订单确认提醒
 		if ($data['status'] == 1) {
 			if ($store_info['store_type'] == STORE_TYPE_HOTEL) {
 				if (!empty($goods_info) && $goods_info['is_house'] == 1) {
@@ -221,7 +221,7 @@ if ($op == 'edit_order') {
 			}
 		}
 	
-		//订单完成提醒   OPENTM203173461
+		//订单完成提醒
 		if ($data['status'] == 3) {
 			if (empty($item['status'])) {
 				message(error(-1, '请先确认订单再完成！'), '', 'ajax');
@@ -248,7 +248,7 @@ if ($op == 'edit_order') {
 	
 	if (!empty($data['goods_status'])) {
 		$params['phone'] = $store_info['phone'];
-		//已入住提醒  TM00058
+		//已入住提醒
 		if ($data['goods_status'] == 5) {
 			$params['check_in_templateid'] = $setting['check_in_templateid'];
 			order_checked_notice($item, $params);

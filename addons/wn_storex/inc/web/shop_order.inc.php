@@ -243,7 +243,7 @@ if ($op == 'edit') {
 					$params['refuse_templateid'] = $setting['refuse_templateid'];
 					order_refuse_notice($params);
 				}
-				//订单确认提醒   TM00217
+				//订单确认提醒
 				if ($data['status'] == ORDER_STATUS_SURE) {
 					if ($store_type == STORE_TYPE_HOTEL) {
 						if (!empty($good_info) && $is_house == 1) {
@@ -275,7 +275,7 @@ if ($op == 'edit') {
 					}
 				}
 			
-				//订单完成提醒   OPENTM203173461
+				//订单完成提醒
 				if ($data['status'] == ORDER_STATUS_OVER) {
 					$uid = mc_openid2uid(trim($item['openid']));
 					//订单完成后增加积分
@@ -298,7 +298,7 @@ if ($op == 'edit') {
 			
 			if (!empty($data['goods_status'])) {
 				$params['phone'] = $store['phone'];
-				//已入住提醒   TM00058
+				//已入住提醒
 				if ($data['goods_status'] == GOODS_STATUS_CHECKED) {
 					$params['check_in_templateid'] = $setting['check_in_templateid'];
 					order_checked_notice($params);
