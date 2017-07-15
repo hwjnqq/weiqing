@@ -86,7 +86,7 @@ function orders_check_status($item) {
 		if ($item['paystatus'] == PAY_STATUS_UNPAID) {
 			$item['is_over'] = 1;
 		} elseif ($item['paystatus'] == PAY_STATUS_PAID) {
-			if ($item['refund_status'] == 1 && empty($refund_log)) {
+			if (empty($refund_log)) {
 				$item['is_refund'] = 1;
 			}
 		}
@@ -130,7 +130,7 @@ function orders_check_status($item) {
 		}
 	} elseif ($item['status'] == ORDER_STATUS_REFUSE) {//拒绝
 		if ($item['paystatus'] == PAY_STATUS_PAID) {
-			if ($item['refund_status'] == 1 && empty($refund_log)) {
+			if (empty($refund_log)) {
 				$item['is_refund'] = 1;
 			}
 			$item['is_over'] = 1;
