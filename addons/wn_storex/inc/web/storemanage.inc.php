@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('edit', 'delete', 'deleteall', 'showall', 'status', 'getbusiness', 'display');
+$ops = array('edit', 'delete', 'deleteall', 'showall', 'status', 'display');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 if ($op == 'display') {
@@ -207,11 +207,4 @@ if ($op == 'status') {
 	} else {
 		message('状态设置成功！', referer(), 'success');
 	}
-}
-
-if ($op == 'getbusiness') {
-	$kwd = trim($_GPC['keyword']);
-	$ds = pdo_getall('storex_business', array('weid' => $_W['uniacid'], 'title LIKE' => "%{$kwd}%"));
-	include $this->template('business_query');
-	exit();
 }
