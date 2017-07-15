@@ -103,9 +103,7 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		}
 		return $this->result(-1, '访问失败', array());
 	}
-	//http://prox.we7.cc/app/index.php?i=281&c=entry&a=wxapp&do=Location&m=wn_storex
-	//&coordtype=gcj02ll&pois=0&output=json&ak=WYABRjaoGklLEcobdrl2erIGvOpT4toj&sn=&timestamp=
-	//&ret_coordtype=gcj02ll&location=37.87059%2C112.548879
+
 	public function doPageLocation() {
 		global $_GPC;
 		load()->func('communication');

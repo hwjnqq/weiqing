@@ -141,8 +141,6 @@ if (!function_exists('hotel_member_single')) {
 	}
 }
 
-
-
 if (!function_exists('get_storex_set')) {
 	function get_storex_set() {
 		global $_GPC, $_W;
