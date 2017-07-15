@@ -100,7 +100,7 @@ if ($op == 'getDate') {
 	$data = array();
 	$data['result'] = 1;
 	ob_start();
-	include $this->template('room_price_list');
+	include $this->template('store/shop_room_pricelist');
 	$data['code'] = ob_get_contents();
 	ob_clean();
 	die(json_encode($data));
@@ -175,7 +175,7 @@ if ($op == 'updatelot_submit') {
 			}
 		}
 	}
-	message('批量修改房价成功!', $this->createWebUrl('room_price', array('hotelid' => $storeid)), 'success');
+	message('批量修改房价成功!', $this->createWebUrl('shop_room_price', array('storeid' => $storeid)), 'success');
 }
 $startime = time();
 $firstday = date('Y-m-01', time());
