@@ -103,7 +103,7 @@ if ($op == 'getDate') {
 	$data = array();
 	$data['result'] = 1;
 	ob_start();
-	include $this->template('store/store_room_statuslist');
+	include $this->template('store/shop_room_statuslist');
 	$data['code'] = ob_get_contents();
 	ob_clean();
 	die(json_encode($data));
