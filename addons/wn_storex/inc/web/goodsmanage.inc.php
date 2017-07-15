@@ -103,10 +103,8 @@ if ($op == 'edit') {
 		if (empty($_GPC['title'])) {
 			message('请输入房型！');
 		}
-		if ($storex_bases['category_set'] == 1) {
-			if (empty($_GPC['category']['parentid'])) {
-				message('一级分类不能为空！', '', 'error');
-			}
+		if (empty($_GPC['category']['parentid'])) {
+			message('一级分类不能为空！', '', 'error');
 		}
 		if ($store_type == 1 && empty($_GPC['device'])) {
 			message('商品说明不能为空！', '', 'error');
@@ -139,14 +137,12 @@ if ($op == 'edit') {
 		} else {
 			$is_house = 2;
 		}
-		if ($storex_bases['category_set'] == 1) {
-			$common['pcate'] = $_GPC['category']['parentid'];
-			$common['ccate'] = $_GPC['category']['childid'];
-			if (!empty($category) && !empty($category[$_GPC['category']['parentid']])) {
-				$is_house = $category[$_GPC['category']['parentid']]['category_type'];
-			} else {
-				$is_house = 2;
-			}
+		$common['pcate'] = $_GPC['category']['parentid'];
+		$common['ccate'] = $_GPC['category']['childid'];
+		if (!empty($category) && !empty($category[$_GPC['category']['parentid']])) {
+			$is_house = $category[$_GPC['category']['parentid']]['category_type'];
+		} else {
+			$is_house = 2;
 		}
 		if (is_array($_GPC['thumbs'])) {
 			$common['thumbs'] = serialize($_GPC['thumbs']);

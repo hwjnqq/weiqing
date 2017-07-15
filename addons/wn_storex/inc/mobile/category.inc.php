@@ -80,21 +80,19 @@ if ($op == 'more_goods') {
 	$store_id = intval($_GPC['id']);
 	$storex_bases = get_store_info($store_id);
 	$condition = array();
-	if ($storex_bases['category_set'] == 1) {
-		$sub_classid = intval($_GPC['sub_id']);
-		$category = pdo_get('storex_categorys', array('id' => $sub_classid, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id), array('id', 'parentid'));
-		if (empty($category)) {
+	$sub_classid = intval($_GPC['sub_id']);
+	$category = pdo_get('storex_categorys', array('id' => $sub_classid, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id), array('id', 'parentid'));
+	if (empty($category)) {
+		message(error(-1, '参数错误'), '', 'ajax');
+	}
+	if ($category['parentid'] == 0) {
+		$sub_category = pdo_getall('storex_categorys', array('parentid' => $sub_classid, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id), array('id', 'parentid'));
+		if (!empty($sub_category)) {
 			message(error(-1, '参数错误'), '', 'ajax');
 		}
-		if ($category['parentid'] == 0) {
-			$sub_category = pdo_getall('storex_categorys', array('parentid' => $sub_classid, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id), array('id', 'parentid'));
-			if (!empty($sub_category)) {
-				message(error(-1, '参数错误'), '', 'ajax');
-			}
-			$condition['pcate'] = $sub_classid;
-		} else {
-			$condition['ccate'] = $sub_classid;
-		}
+		$condition['pcate'] = $sub_classid;
+	} else {
+		$condition['ccate'] = $sub_classid;
 	}
 	$keyword = trim($_GPC['keyword']);
 	if (!empty($keyword)) {
