@@ -217,32 +217,49 @@ function check_params() {
 */
 function clerk_order_operation ($order, $store_type) {
 	$status = array(
-		'is_cancel' => false,	//-1
-		'is_confirm' => false,	//1
-		'is_refuse' => false,	//2
-		'is_over' => false,		//3
-		'is_send' => false,		//goods_status 2
-		'is_access' => false,	//4
+		'is_cancel' => false,
+		'is_confirm' => false,
+		'is_refuse' => false,
+		'is_over' => false,
+		'is_send' => false,
+		'is_access' => false,
 	);
-	if ($order['status'] == -1 || $order['status'] == 3 || $order['status'] == 2) {
+	if ($order['status'] == ORDER_STATUS_CANCEL || $order['status'] == ORDER_STATUS_REFUSE) {
 		$status = array();
-	} elseif ($order['status'] == 1) {
-		if ($store_type == 1) {
-			if ($order['goods_status'] == 4 || empty($order['goods_status'])) {
-				$status['is_access'] = true;
-			} 
-		} else {
-			if ($order['mode_distribute'] == 2) {//配送
-				if ($order['goods_status'] == 1 || empty($order['goods_status'])) {
-					$status['is_send'] = true;
+	} elseif ($order['status'] == ORDER_STATUS_SURE) {
+		if ($order['paystatus'] == PAY_STATUS_PAID) {
+			if ($store_type == STORE_TYPE_HOTEL) {
+				$room = pdo_get('storex_room', array('id' => $order['roomid']), array('id', 'is_house'));
+				if (($order['goods_status'] == GOODS_STATUS_NOT_CHECKED || empty($order['goods_status'])) && $room['is_house'] == 1) {
+					$status['is_access'] = true;
+				}
+			} else {
+				if ($order['mode_distribute'] == 2) {//配送
+					if ($order['goods_status'] == GOODS_STATUS_NOT_SHIPPED || empty($order['goods_status'])) {
+						$status['is_send'] = true;
+					}
 				}
 			}
+			$status['is_over'] = true;
 		}
-		$status['is_over'] = true;
-	} else {
+	} elseif ( $order['status'] == ORDER_STATUS_OVER){
+		$status = array();
+	}else {
 		$status['is_cancel'] = true;
 		$status['is_confirm'] = true;
 		$status['is_refuse'] = true;
+	}
+	if (!empty($status)) {
+		$op_status = false;
+		foreach ($status as $val) {
+			if (!empty($val)) {
+				$op_status = true;
+				break;
+			} 
+		}
+		if (empty($op_status)) {
+			$status = array();
+		}
 	}
 	//可以执行的操作
 	$order['operate'] = $status;
