@@ -4,6 +4,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 load()->model('mc');
+load()->func('tpl');
 
 $ops = array('getDate', 'submitPrice', 'updatelot', 'updatelot_create', 'updatelot_submit');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'diaplay';
