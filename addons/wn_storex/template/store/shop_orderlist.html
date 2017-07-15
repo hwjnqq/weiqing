@@ -117,9 +117,7 @@
 						订单编号：{$row['ordersn']}
 						<span class="text-primary">{$row['paytype_text']}</span>
 					</p>
-					<p>
-						{if $row['uniontid']} 商户订单号：{$row['uniontid']} {/if}
-					</p>
+					{if $row['uniontid']} <p>商户订单号：{$row['uniontid']}</p> {/if}
 				</td>
 				<td class="text-center">
 					<a href="{php echo $this->createWebUrl('shop_order', array('op' => 'edit', 'id' => $row['id'], 'roomid' => $row['roomid'], 'storeid' => $storeid)); }" class="color-default">查看详情</a>
