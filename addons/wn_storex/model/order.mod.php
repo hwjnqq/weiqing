@@ -148,6 +148,9 @@ function orders_check_status($item) {
 	$item['order_status_cn'] = order_status($item['status']);
 	$item['pay_status_cn'] = order_pay_status($item['paystatus']);
 	$item['goods_status_cn'] = '';
+	if ($item['paystatus'] == 1 && !empty($refund_log['status'])) {
+		$item['pay_status_cn'] = order_refund_status($refund_log['status']);
+	}
 	if (!empty($item['goods_status'])) {
 		$item['goods_status_cn'] = order_goods_status($item['goods_status']);
 	}
@@ -213,53 +216,16 @@ function order_begin_refund($orderid) {
 		}
 		return true;
 	} elseif ($order['paytype'] == 'wechat') {
-		load()->classs('weixin.pay');
-		$wxpay_api = new WeiXinPay();
-		$params = array(
-			'total_fee' => $refund['fee'] * 100,
-			'refund_fee' => $refund['fee'] * 100,
-			'out_trade_no' => $refund['out_trade_no'],
-			'out_refund_no' => $refund['out_refund_no'],
-		);
-		$response = $pay->refundOrder($params);
-		if (is_error($response)) {
-			return error(-1, $response['message']);
+		$params['module'] = 'wn_storex';
+		$params['tid'] = $orderid;
+		$result = $this->refund($params);
+		if (is_error($result)) {
+			return $result;
 		}
-		pdo_update('storex_refund_logs', array('status' => REFUND_STATUS_SUCCESS, 'time' => TIMESTAMP), array('id' => $refund['id'], 'uniacid' => $_W['uniacid']));
 		return true;
 	} elseif ($order['paytype'] == 'alipay') {
 		
 	}
-}
-
-function order_query_refund($orderid) {
-	global $_W;
-	$refund = pdo_get('storex_refund_logs', array('uniacid' => $_W['uniacid'], 'orderid' => $orderid));
-	if (empty($refund)) {
-		return error(-1, '退款申请不存在或已删除');
-	}
-	if ($refund['type'] == 'wechat') {
-		//只有微信需要查询,余额和支付宝不需要
-		load()->classs('weixin.pay');
-		$wxpay_api = new WeiXinPay();
-		$response = $pay->refundQuery(array('out_refund_no' => $refund['out_refund_no']));
-		if (is_error($response)) {
-			return error(-1, $response['message']);
-		}
-		$wechat_status = $pay->payRefund_status();
-		$update = array(
-			'refund_status' => $wechat_status[$response['refund_status_0']]['value'],
-		);
-		if ($response['refund_status_0'] == 'SUCCESS') {
-			$update['time'] = TIMESTAMP;
-			$update['status'] = REFUND_STATUS_SUCCESS;
-			pdo_update('storex_refund_logs', array('status' => REFUND_STATUS_SUCCESS, 'time' => TIMESTAMP), array('uniacid' => $_W['uniacid'], 'id' => $refund['id']));
-		} else {
-			pdo_update('storex_refund_logs', array('status' => REFUND_STATUS_FAILED, 'time' => TIMESTAMP), array('uniacid' => $_W['uniacid'], 'id' => $refund['id']));
-		}
-		return true;
-	}
-	return true;
 }
 
 //订单拒绝
@@ -284,12 +250,8 @@ function order_sure_notice($params) {
 
 //订单完成
 function order_over_notice($params) {
-// 	if (!empty($params['tpl_status']) && !empty($params['finish_templateid']) && $params['store_type'] == STORE_TYPE_HOTEL) {
-// 		order_notice_tpl($params['openid'], 'finish_templateid', $params, $params['finish_templateid']);
-// 	} else {
-		$info = '您在' . $params['store'] . '购买的' . $params['room'] . '的订单已完成,欢迎下次光临';
-		$status = send_custom_notice('text', array('content' => urlencode($info)), $params['openid']);
-// 	}
+	$info = '您在' . $params['store'] . '购买的' . $params['room'] . '的订单已完成,欢迎下次光临';
+	$status = send_custom_notice('text', array('content' => urlencode($info)), $params['openid']);
 }
 
 //订单入住
