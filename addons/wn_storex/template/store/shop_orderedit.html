@@ -243,13 +243,14 @@
 <script type="text/javascript">
 	var storeid = {$storeid};
 	var id = {$item['id']};
+	var roomid = {$item['roomid']};
 	require(['bootstrap'],function($) {
 		$('#orderConfirm').on('show.bs.modal', function(e) {
 			$('#action').val(e.relatedTarget.value);
 		});
 		$('.js-submit').click(function() {
 			var action = $('#action').val();
-			$.post("{php echo $this->createWebUrl('shop_order', array('op' => 'edit'))}", {storeid : storeid, id : id, action : action}, function(data) {
+			$.post("{php echo $this->createWebUrl('shop_order', array('op' => 'edit'))}", {storeid : storeid, id : id, action : action, roomid : roomid}, function(data) {
 				data = $.parseJSON(data);
 				console.dir(data);
 				if (data.message.errno == 0) {

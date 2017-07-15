@@ -107,7 +107,6 @@ if ($op == 'edit') {
 				} else {
 					$data['goods_status'] = 1;
 				}
-				//TM00217
 				$params['ordersn'] = $item['ordersn'];
 				$params['contact_name'] = $item['contact_name'];
 				$params['sum_price'] = $item['sum_price'];
@@ -134,7 +133,6 @@ if ($op == 'edit') {
 				$data['goods_status'] = 5;
 				$data['status'] = 1;
 				$params['phone'] = $hotel['phone'];
-				//TM00058
 				$params['check_in_templateid'] = $setting['check_in_templateid'];
 				order_checked_notice($item, $params);
 			}
@@ -146,7 +144,6 @@ if ($op == 'edit') {
 				card_give_credit($uid, $item['sum_price']);
 				//增加出售货物的数量
 				add_sold_num($room);
-				//OPENTM203173461
 				$params['sum_price'] = $item['sum_price'];
 				$params['etime'] = $item['etime'];
 				$params['finish_templateid'] = $setting['finish_templateid'];

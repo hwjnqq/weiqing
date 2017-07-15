@@ -187,8 +187,8 @@ if ($op == 'order') {
 	if (!empty($order_exist)) {
 		message(error(-1, "您有未支付该类订单,不要重复下单"), '', 'ajax');
 	}
+	$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('email', 'is_unify', 'mobile', 'nickname', 'template', 'confirm_templateid', 'smscode'));
 	if ($store_info['store_type'] == STORE_TYPE_HOTEL) {
-		$setInfo = pdo_get('storex_set', array('weid' => intval($_W['uniacid'])), array('weid', 'tel', 'is_unify', 'email', 'template', 'templateid', 'smscode'));
 		if ($goods_info['is_house'] == 1) {
 			$order_info['btime'] = strtotime($_GPC['order']['btime']);
 			$order_info['etime'] = strtotime($_GPC['order']['etime']);
@@ -370,7 +370,6 @@ if ($op == 'order') {
 			load()->func('communication');
 			ihttp_email($reply['mail'], $subject, $body);
 		}
-		$order = pdo_get('storex_order', array('id' => $order_id, 'weid' => intval($_W['uniacid'])));
 		//订单下单成功减库存
 		$starttime = $insert['btime'];
 		for ($i = 0; $i < $insert['day']; $i++) {
@@ -382,7 +381,6 @@ if ($op == 'order') {
 		}
 	}
 	
-	$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('email', 'mobile', 'nickname', 'template', 'confirm_templateid', 'templateid'));
 	$clerk = array();
 	if (!empty($setInfo['nickname'])) {
 		$from_user = pdo_get('mc_mapping_fans', array('nickname' => $setInfo['nickname'], 'uniacid' => $_W['uniacid']));
@@ -411,6 +409,21 @@ if ($op == 'order') {
 	}
 	//检查结果
 	if (!empty($order_id)) {
+		mload()->model('order');
+		$tpl_params = array(
+			'ordersn' => $insert['ordersn'],
+			'contact_name' => $insert['contact_name'],
+			'phone' => $store_info['phone'],
+			'openid' => $_W['openid'],
+			'store' => $store_info['title'],
+			'room' => $goods_info['title'],
+		);
+		$tpl_params['tpl_status'] = false;
+		if (!empty($setInfo['template'])) {
+			$tpl_params['tpl_status'] = true;
+			$tpl_params['confirm_templateid'] = $setInfo['confirm_templateid'];
+		}
+		order_confirm_notice($tpl_params);
 		message(error(0, $order_id), '', 'ajax');
 	} else {
 		message(error(-1, '下单失败'), '', 'ajax');
