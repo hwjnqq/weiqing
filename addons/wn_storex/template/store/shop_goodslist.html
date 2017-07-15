@@ -2,6 +2,17 @@
 <div class="wn-main wn-main--without">
 	<div class="wn-main__head">商品管理</div>
 	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">商品列表</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_room_status', array('storeid' => $_GPC['storeid']))}">维护房量/房态</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_room_price', array('storeid' => $_GPC['storeid']))}">维护房价</a>
+			</div>
+		</div>
 		<div class="wn-main__search clearfix">
 			<div class="wn-main__search__form" style="width: 600px">
 				<form action="./index.php" method="get" class="form-horizontal from" role="form">
@@ -95,15 +106,15 @@
 				</td>
 				<td>
 					<div class="wn-table__link">
-						<!-- {if $store_type == STORE_TYPE_HOTEL && !empty($item['is_house']) && $item['is_house'] == 1}
-							<a href="{php echo $this->createWebUrl('shop_room_status', array('storeid' => $storeid, 'id' => $item['id']))}" class="wn-table__link__item" title="维护房量/房态">维护房量/房态</a>
-							<a href="{php echo $this->createWebUrl('shop_room_price', array('storeid' => $storeid, 'id' => $item['id']))}" class="wn-table__link__item" title="维护房价">维护房价</a>
-						{/if} -->
 						<a href="{php echo $this->createWebUrl('shop_comment',array('storeid' => $storeid,'id' => $item['id'],'title' => $item['title']))}" class="wn-table__link__item" title="查看评价">查看评价</a>
 						<a href="{php echo $this->createWebUrl('shop_order',array('storeid' => $storeid,'roomid' => $item['id']))}" class="wn-table__link__item" title="订单查看">订单查看</a>
 						<a href="{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'copyroom','storeid' => $storeid,'id' => $item['id']))}" class="wn-table__link__item">复制</a>
 						<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'edit', 'id' => $item['id'], 'storeid' => $storeid))}" title="编辑">编辑</a>
 						<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'delete', 'id' => $item['id'], 'storeid' => $storeid))}');" title="删除" >删除</a>
+						<!-- {if $store_type == STORE_TYPE_HOTEL && !empty($item['is_house']) && $item['is_house'] == 1}
+							<a href="{php echo $this->createWebUrl('shop_room_status', array('storeid' => $storeid, 'id' => $item['id']))}" class="wn-table__link__item" title="维护房量/房态">维护房量/房态</a>
+							<a href="{php echo $this->createWebUrl('shop_room_price', array('storeid' => $storeid, 'id' => $item['id']))}" class="wn-table__link__item" title="维护房价">维护房价</a>
+						{/if} -->
 					</div>
 				</td>
 			</tr>
