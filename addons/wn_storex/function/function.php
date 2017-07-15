@@ -633,15 +633,6 @@ function check_wxapp() {
 	return false;
 }
 
-function check_ims_version() {
-	$compare = ver_compare(IMS_VERSION, '1.0');
-	if ($compare != -1) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
 function store_type_info($store_type) {
 	$store_type_list = array(
 		STORE_TYPE_NORMAL => '普通店铺',
