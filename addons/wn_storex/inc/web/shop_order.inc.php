@@ -192,7 +192,10 @@ if ($op == 'edit') {
 						message(error(0, '退款成功'), '', 'ajax');
 					}
 				} elseif ($item['paytype'] == 'wechat') {
-					$this->refund(array('module' => 'wn_storex', 'tid' => $item['id']));
+					//refund参数可传退款金额和退款说明,暂不传
+					$params['module'] = 'wn_storex';
+					$params['tid'] = $item['id'];
+					$this->refund($params);
 				}
 			} elseif ($action == 'refuse') {
 				$data['status'] = ORDER_STATUS_REFUSE;

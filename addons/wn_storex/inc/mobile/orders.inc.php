@@ -125,7 +125,12 @@ if ($op == 'cancel') {
 if ($op == 'refund') {
 	$id = intval($_GPC['id']);
 	$result = order_build_refund($id);
-	message($result, '', 'ajax');
+	if (is_error($result)) {
+		message($result, '', 'ajax');
+	} else {
+		message(error(0, '退款申请成功'), '', 'ajax');
+	}
+	
 }
 
 if ($op == 'confirm_goods') {
