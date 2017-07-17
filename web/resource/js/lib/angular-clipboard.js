@@ -1,1 +1,82 @@
-!function(a,b){"function"==typeof define&&define.amd?define(["angular"],b):"object"==typeof module&&module.exports?module.exports=b(require("angular")):a.angularClipboard=b(a.angular)}(this,function(a){return a.module("angular-clipboard",[]).factory("clipboard",["$document","$window",function(a,b){function c(c,d){var e=a[0].createElement("textarea");return e.style.position="absolute",e.textContent=c,e.style.left="-10000px",e.style.top=(b.pageYOffset||a[0].documentElement.scrollTop)+"px",e}function d(b){try{a[0].body.style.webkitUserSelect="initial";var c=a[0].getSelection();if(c.removeAllRanges(),b.select(),!a[0].execCommand("copy"))throw"failure copy";c.removeAllRanges()}finally{a[0].body.style.webkitUserSelect=""}}function e(b,e){var f=c(b,e);a[0].body.appendChild(f),d(f),a[0].body.removeChild(f)}return{copyText:e,supported:"queryCommandSupported"in a[0]&&a[0].queryCommandSupported("copy")}}]).directive("clipboard",["clipboard",function(b){return{restrict:"A",scope:{onCopied:"&",onError:"&",text:"=",supported:"=?"},link:function(c,d){c.supported=b.supported,d.on("click",function(e){try{b.copyText(c.text,d[0]),a.isFunction(c.onCopied)&&c.$evalAsync(c.onCopied())}catch(b){a.isFunction(c.onError)&&c.$evalAsync(c.onError({err:b}))}})}}}])});
+(function (root, factory) {
+    /* istanbul ignore next */
+    if (typeof define === 'function' && define.amd) {
+        define(['angular'], factory);
+    } else if (typeof module === 'object' && module.exports) {
+        module.exports = factory(require('angular'));
+    } else {
+        root.angularClipboard = factory(root.angular);
+  }
+}(this, function (angular) {
+
+return angular.module('angular-clipboard', [])
+    .factory('clipboard', ['$document', '$window', function ($document, $window) {
+        function createNode(text, context) {
+            var node = $document[0].createElement('textarea');
+            node.style.position = 'absolute';
+            node.textContent = text;
+            node.style.left = '-10000px';
+            node.style.top = ($window.pageYOffset || $document[0].documentElement.scrollTop) + 'px';
+            return node;
+        }
+
+        function copyNode(node) {
+            try {
+                // Set inline style to override css styles
+                $document[0].body.style.webkitUserSelect = 'initial';
+
+                var selection = $document[0].getSelection();
+                selection.removeAllRanges();
+                node.select();
+
+                if(!$document[0].execCommand('copy')) {
+                    throw('failure copy');
+                }
+                selection.removeAllRanges();
+            } finally {
+                // Reset inline style
+                $document[0].body.style.webkitUserSelect = '';
+            }
+        }
+
+        function copyText(text, context) {
+            var node = createNode(text, context);
+            $document[0].body.appendChild(node);
+            copyNode(node);
+            $document[0].body.removeChild(node);
+        }
+
+        return {
+            copyText: copyText,
+            supported: 'queryCommandSupported' in $document[0] && $document[0].queryCommandSupported('copy')
+        };
+    }])
+    .directive('clipboard', ['clipboard', function (clipboard) {
+        return {
+            restrict: 'A',
+            scope: {
+                onCopied: '&',
+                onError: '&',
+                text: '=',
+                supported: '=?'
+            },
+            link: function (scope, element) {
+                scope.supported = clipboard.supported;
+
+                element.on('click', function (event) {
+                    try {
+                        clipboard.copyText(scope.text, element[0]);
+                        if (angular.isFunction(scope.onCopied)) {
+                            scope.$evalAsync(scope.onCopied());
+                        }
+                    } catch (err) {
+                        if (angular.isFunction(scope.onError)) {
+                            scope.$evalAsync(scope.onError({err: err}));
+                        }
+                    }
+                });
+            }
+        };
+    }]);
+
+}));

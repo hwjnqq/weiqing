@@ -72,6 +72,7 @@ define(['underscore', 'jquery.wookmark', 'jquery.jplayer'], function(_){
 				}
 			}
 			$this.modalobj.modal('show');
+			initSelectEmotion();
 			return $this.modalobj;
 		},
 		//newsmodel: 微信素材wx和本地素材local
@@ -157,7 +158,7 @@ define(['underscore', 'jquery.wookmark', 'jquery.jplayer'], function(_){
 					});
 				} else {
 					if (type == 'news') {
-						$('#news').html('<div role="tabpanel"><div class="tablepanel-top text-right"><button class="btn btn-primary" type="button"><a href="./index.php?c=platform&a=material-post" target="_blank">新建图文</a></button></div><div class="info text-center"><i class="wi wi-info-circle fa-lg"></i> 暂无数据</div></div>')
+						$('#news').html('<div role="tabpanel"><div class="tablepanel-top text-right"><button class="btn btn-primary" type="button"><a href="./index.php?c=platform&a=material-post&new_type=reply" target="_blank">图文编辑</a></button> <button class="btn btn-primary" type="button"><a href="./index.php?c=platform&a=material-post&new_type=link" target="_blank">跳转链接</a></button></div><div class="info text-center"><i class="wi wi-info-circle fa-lg"></i> 暂无数据</div></div>');
 					} else {
 						$content.html('<div class="info text-center"><i class="wi wi-info-circle fa-lg"></i> 暂无数据</div>');
 					}
@@ -338,12 +339,12 @@ define(['underscore', 'jquery.wookmark', 'jquery.jplayer'], function(_){
 				'	</div>\n' +
 				'</div>';
 
-			dialog['basicDialog'] = '<textarea id="basictext" cols="116" rows="10">'+ (this.options.others.basic.typeVal ? this.options.others.basic.typeVal : "") +'</textarea>'+
-				'						<div class="help-block">'+
-				'							您还可以使用表情和链接。'+
-				'							<a class="emotion-triggers" href="javascript:;" onclick="initSelectEmotion();"><i class="fa fa-github-alt"></i> 表情</a>'+
-				'							<a class="emoji-triggers" href="javascript:;" onclick="initSelectEmoji()" title="添加表情"><i class="fa fa-github-alt"></i> Emoji</a>'+
-				'						</div>';
+			dialog['basicDialog'] = '<div class="help-block">'+
+				'						您还可以使用表情和链接。'+
+				'						<a class="emotion-triggers" href="javascript:;"><i class="fa fa-github-alt"></i> 表情</a>'+
+				'						<a class="emoji-triggers" href="javascript:;" onclick="initSelectEmoji()" title="添加表情"><i class="fa fa-github-alt"></i> Emoji</a>'+
+				'					</div>'+
+				'					<textarea id="basictext" cols="116" rows="10">'+ (this.options.others.basic.typeVal ? this.options.others.basic.typeVal : "") +'</textarea>';
 
 			dialog['imageDialog'] = '<ul class="img-list clearfix">\n' +
 				'<%var items = _.sortBy(items, function(item) {return -item.id;});%>' +
@@ -473,7 +474,8 @@ define(['underscore', 'jquery.wookmark', 'jquery.jplayer'], function(_){
 
 			dialog['newsDialog'] = '<div role="tabpanel">'+
 				'						<div class="tablepanel-top text-right">'+
-				'							<button class="btn btn-primary" type="button"><a href="./index.php?c=platform&a=material-post" target="_blank">新建图文</a></button>'+
+				'							<button class="btn btn-primary" type="button"><a href="./index.php?c=platform&a=material-post&new_type=reply" target="_blank">图文编辑</a></button>'+
+											'<button class="btn btn-primary" style="margin-left:10px" type="button"><a href="./index.php?c=platform&a=material-post&new_type=link" target="_blank">跳转链接</a></button>'+
 				'						</div>'+
 				'						<div class="tablepanel-con">'+
 				'							<div class="graphic-list material clearfix" style="position: relative;">'+
@@ -514,32 +516,19 @@ define(['underscore', 'jquery.wookmark', 'jquery.jplayer'], function(_){
 				'							</div>'+
 				'						</div>'+
 				'					</div>';
-			dialog['keywordDialog'] = '<table class="table table-hover we7-table" style="margin-bottom:0">'+
-				'						<thead class="navbar-inner">'+
-				'							<tr>'+
-				'								<th style="width:20%;text-align:center">规则名</th>'+
-				'								<th style="width:50%;text-align:center">关键词</th>'+
-				'								<th style="width:10%;text-align:center">优先级</th>'+
-				'								<th style="width:10%;text-align:center"></th>'+
-				'							</tr>'+
-				'						</thead>'+
-				'						<tbody class="history-content">'+
-				'							<%_.each(items, function(item) {%> \n' +
-				'							<tr>'+
-				'								<td align="center"><%=item.name%></td>'+
-				'								<td align="center"><%_.each(item.child_items, function(child_item) {%>'+
-				'										&nbsp;&nbsp;<%=child_item.content%>'+
-				'								<%})%></td>'+
-				'								<td align="center"><%if(item.displayorder == "255"){%>置顶<%} else {%> <%=item.displayorder%> <%}%></td>'+
-				'								<td align="center">'+
-				'									<div class="btn-group">'+
-				'										<a href="javascript:;" class="btn btn-default btn-sm checkMedia" data-media="<%=item.media_id%>" data-type="video" data-attachid="<%=item.id%>">选取</a>'+
-				'									</div>'+
-				'								</td>'+
-				'							</tr>'+
-				'							<%});%>' +
-				'						</tbody>'+
-				'					</table>';
+			dialog['keywordDialog'] = '<div class="row">\n'+
+					'       <%_.each(items, function(item) {%>' +
+					'          <div class="col-sm-2">'+
+					'             <a href="javascript:;" class="checkMedia" data-media="<%=item.media_id%>" data-type="keyword" data-attachid="<%=item.id%>">'+
+					'					<span>'+
+					'						<%_.each(item.child_items, function(child_item) {%>'+
+					'							<%=child_item.content%>' +
+					'						<%})%>'+
+					'					</span>'+
+					'				</a>'+
+					'           </div>'+
+					'        <%});%>'+
+					'</div>';
 			dialog['moduleDialog'] = '<ul class="img-list clearfix">\n' +
 				'<%var items = _.sortBy(items, function(item) {return -item.id;});%>' +
 				'<%_.each(items, function(item) {%> \n' +
@@ -559,9 +548,23 @@ define(['underscore', 'jquery.wookmark', 'jquery.jplayer'], function(_){
 		}
 	};
 	initSelectEmotion = function() {
+		var $t = $('#basictext')[0];
 		var textbox = $("#basictext").val();
 		util.emotion($('.emotion-triggers'), $("#basictext"), function(txt, elm, target){
-			$("#basictext").val(textbox+txt);
+			if ($t.selectionStart || $t.selectionStart == '0') {
+				var startPos = $t.selectionStart;
+				var endPos = $t.selectionEnd;
+				var scrollTop = $t.scrollTop;
+				$("#basictext").val($t.value.substring(0, startPos) + txt + $t.value.substring(endPos, $t.value.length));
+				$("#basictext").focus();
+				$t.selectionStart = startPos + txt.length;
+				$t.selectionEnd = startPos + txt.length;
+				$t.scrollTop = scrollTop;
+			}
+			else {
+				$("#basictext").val(textbox+txt);
+				$("#basictext").focus();
+			}
 		});
 	};
 	initSelectEmoji = function() {
