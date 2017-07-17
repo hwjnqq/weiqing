@@ -1,0 +1,329 @@
+{template 'common/header-base'}
+<div class="skin-classical" data-skin="classical">
+{php $frames = buildframes(FRAME);_calc_current_frames($frames);}
+<div class="first-sidebar">
+	<div class="{if !empty($frames['section']['platform_module_menu']['plugin_menu'])}plugin-head{/if}">
+		<a href="{$_W['siteroot']}" class="logo-wrap">
+			<img src="{if !empty($_W['setting']['copyright']['blogo'])}{php echo tomedia($_W['setting']['copyright']['blogo'])}{else}./resource/images/logo/logo.png{/if}" class="logo">
+		</a>
+		{if !empty($_W['uid'])}
+		<div class="nav">
+			<ul class="main-nav">
+				{php global $top_nav}
+				{loop $top_nav $nav}
+				<li{if FRAME == $nav['name']} class="active"{/if}>
+					<a href="{if empty($nav['url'])}{php echo url('home/welcome/' . $nav['name']);}{else}{$nav['url']}{/if}" {if !empty($nav['blank'])}target="_blank"{/if}>
+						<i class="{$nav['icon']}"></i>
+						{$nav['title']}
+					</a>
+				</li>
+				{/loop}
+			</ul>
+			<ul class="user-info">
+				<li class="dropup">
+					<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown"><i class="wi wi-user"></i>{$_W['user']['username']}</a>
+					<ul class="dropdown-menu color-gray" role="menu">
+						<li>
+							<a href="{url 'user/profile'}" target="_blank"><i class="wi wi-account color-gray"></i> 我的账号</a>
+						</li>
+						{if $_W['isfounder']}
+						<li class="divider"></li>
+						<li><a href="{url 'cloud/upgrade'}" target="_blank"><i class="wi wi-update color-gray"></i> 自动更新</a></li>
+						<li><a href="{url 'system/updatecache'}" target="_blank"><i class="wi wi-cache color-gray"></i> 更新缓存</a></li>
+						<li class="divider"></li>
+						{/if}
+						<li>
+							<a href="{url 'user/logout'}"><i class="fa fa-sign-out color-gray"></i> 退出系统</a>
+						</li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+		{else}
+		<ul class="user-info">
+			<li><a href="{php echo url('user/register');}">注册</a></li>
+			<li><a href="{php echo url('user/login');}">登陆</a></li>
+		</ul>
+		{/if}
+	</div>
+</div>
+
+<!--帮助和服务-->
+<div class="right-sidebar">
+	<div class="help-service">
+		<div class="right-sidebar-top">
+			<span class="wi wi-explain-sign"></span>帮助和服务
+		</div>
+		<div class="right-sidebar-content">
+			<div class="content">
+				<div><a href="javascript:;">如何接入公众号?</a></div>
+			</div>
+		</div>
+	</div>
+</div>
+<!--end 帮助和服务-->
+<!--提示信息-->
+<div class="system-hint fadeInUp animated">
+	<div class="hint-heading">
+		<a href="javascript:;" class="pull-right"><span class="wi wi-error"></span></a>
+		提示中心
+	</div>
+	<div class="hint-body">
+		<!--系统提示-->
+		{if $_COOKIE['private_app_notice']}
+		<div class="hint-item">
+			<div class="hint-from">
+				<a href="javascript:;" class="pull-right"><span class="wi wi-error"></span></a>
+				来自 <span>系统消息</span>
+			</div>
+			<a href="javascript:;">
+				{$_COOKIE['private_app_notice']}
+			</a>
+			<span class="tips-close" onclick="check_setmeal_hide();" ><i class="wi wi-error-sign"></i></span>
+			{php setcookie('private_app_notice', '', -1);}
+		</div>
+		{/if}
+		<!--end  系统提示-->
+		{if empty($_COOKIE['check_setmeal']) && !empty($_W['account']['endtime']) && ($_W['account']['endtime'] - TIMESTAMP < (6*86400))}
+		<div class="hint-item">
+			<div class="hint-from">
+				<a href="javascript:;" class="pull-right"><span class="wi wi-error"></span></a>
+				来自 <span>系统消息</span>
+			</div>
+			<a href="{if $_W['isfounder']}{php echo url('user/edit', array('uid' => $_W['account']['uid']));}{else}javascript:void(0);{/if}">
+				您的服务有效期限：{php echo date('Y-m-d', $_W['account']['starttime']);} ~ {php echo date('Y-m-d', $_W['account']['endtime']);}.
+				{if $_W['account']['endtime'] < TIMESTAMP}
+				目前已到期，请联系管理员续费
+				{else}
+				将在{php echo floor(($_W['account']['endtime'] - strtotime(date('Y-m-d')))/86400);}天后到期，请及时付费
+				{/if}
+			</a>
+			<span class="tips-close" onclick="check_setmeal_hide();"><i class="wi wi-error-sign"></i></span>
+			<script>
+				function check_setmeal_hide() {
+					util.cookie.set('check_setmeal', 1, 1800);
+					$('#setmeal-tips').hide();
+					return false;
+				}
+			</script>
+		</div>
+		{/if}
+	</div>
+</div>
+<!--end 提示信息-->
+<div class="main main-classical">
+{if !defined('IN_MESSAGE')}
+<div class="container">
+	{if in_array(FRAME, array('account', 'system', 'adviertisement', 'wxapp', 'site')) && !in_array($_GPC['a'], array('news-show', 'notice-show'))}
+	<div class="panel panel-content main-panel-content {if !empty($frames['section']['platform_module_menu']['plugin_menu'])}panel-content-plugin{/if}">
+	<div class="panel-body clearfix main-panel-body">
+		<div class="left-menu">
+			<div class="left-menu-top">
+				{if ($_GPC['c'] != 'cloud' && !empty($_GPC['m']) && !in_array($_GPC['m'], array('keyword', 'special', 'welcome', 'default', 'userapi', 'service'))) || defined('IN_MODULE')}
+				<div class="apply-fixed-top">
+					<span class="account-info-name">
+						<a href="{if $_W['account']['type'] == ACCOUNT_TYPE_APP_NORMAL}{php echo url('wxapp/display/home')}{else}{php echo url('home/welcome/platform')}{/if}">
+							<i class="wi wi-back-circle"></i>
+							<span>{$_W['account']['name']}</span>
+						</a>
+					</span>
+					<span class="module-info-name">
+						{if file_exists(IA_ROOT. "/addons/". $_W['current_module']['name']. "/icon-custom.jpg")}
+						<img src="{php echo tomedia("addons/".$_W['current_module']['name']."/icon-custom.jpg")}" class="head-app-logo" onerror="this.src='./resource/images/gw-wx.gif'">
+						{else}
+						<img src="{php echo tomedia("addons/".$_W['current_module']['name']."/icon.jpg")}" class="head-app-logo" onerror="this.src='./resource/images/gw-wx.gif'">
+						{/if}
+						<span>{$_W['current_module']['title']}</span>
+					</span>
+				<!-- 兼容历史性问题：模块内获取不到模块信息$module的问题-start -->
+					{if CRUMBS_NAV == 1}
+					{php global $module;}
+					{/if}
+				<!-- end -->
+				</div>
+				{elseif FRAME == 'account'}
+				<div class="left-menu-top-panel">
+					<div class="menu-title">公众号</div>
+					<div class="account-info">
+						<div class="menu-logo">
+							<img src="{php echo tomedia('headimg_'.$_W['account']['acid'].'.jpg')}?time={php echo time()}" class="head-logo">
+						</div>
+						<div class="account-popover">
+							<div class="account-name">{$_W['account']['name']}</div>
+							<div class="account-type">
+								公众号类型：
+								{if $_W['account']['level'] == 1 || $_W['account']['level'] == 3}
+									订阅号
+								{/if}
+								{if $_W['account']['level'] == 2 || $_W['account']['level'] == 4}
+									服务号
+								{/if}
+							</div>
+							<div class="account-level">
+								是否认证：
+								{if $_W['account']['level'] == 1 || $_W['account']['level'] == 3}
+									{if $_W['account']['level'] == 3}已认证{/if}
+								{/if}
+								{if $_W['account']['level'] == 2 || $_W['account']['level'] == 4}
+									{if $_W['account']['level'] == 4}已认证{/if}
+								{/if}
+							</div>
+							<div class="account-isconnect">
+								接入微信公众号：
+								{if $_W['uniaccount']['isconnect'] == 0}
+									未接入
+									<a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid'], 'acid' => $_W['acid']))}" class="text-danger">立即接入</a>
+								{else}
+									已接入
+								{/if}
+							</div>
+							<div class="account-operate">
+								<a href="{php echo url('account/display')}"><i class="wi wi-cut color-default"></i><span>切换公众号</span></a>
+								{if uni_permission($_W['uid'], $_W['uniacid']) != ACCOUNT_MANAGE_NAME_OPERATOR}
+								<a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid'], 'acid' => $_W['acid']))}" class="we7-margin-left"><i class="wi wi-appsetting"></i><span>公众号设置</span></a>
+								{/if}
+								<a href="{php echo url('utility/emulator');}" target="_blank" class="we7-margin-left"><i class="wi wi-iphone"></i><span>模拟测试</span></a>
+							</div>
+						</div>
+					</div>
+				</div>
+				{/if}
+
+				{if FRAME == 'system'}
+				<div class="left-menu-top-panel">
+					<div class="menu-title">系统管理</div>
+					<div class="menu-logo">
+						<i class="wi wi-setting"></i>
+					</div>
+				</div>
+				{/if}
+				{if FRAME == 'site'}
+				<div class="left-menu-top-panel">
+					<div class="menu-title">站点管理</div>
+					<div class="menu-logo">
+						<i class="wi wi-system-site"></i>
+					</div>
+				</div>
+				{/if}
+				{if FRAME == 'adviertisement'}
+				<div class="left-menu-top-panel">
+					<div class="menu-title">广告联盟</div>
+					<div class="menu-logo">
+						<i class="wi wi-advert"></i>
+					</div>
+				</div>
+				{/if}
+				{if FRAME == 'wxapp'}
+				<div class="left-menu-top-panel">
+					<div class="menu-title">小程序</div>
+					<div class="wxapp-info">
+						<div class="menu-logo">
+							<img src="{php echo tomedia('headimg_'.$_W['account']['acid'].'.jpg')}?time={php echo time()}" class="head-logo">
+						</div>
+						<div class="wxapp-popover">
+							<div class="wxapp-name">{$wxapp_info['name']}</div>
+							<div class="wxapp-version">
+								版本：{$version_info['version']}
+							</div>
+							<div class="operate">
+								<a href="{php echo url('wxapp/version/display', array('uniacid' => $version_info['uniacid']))}"><i class="wi wi-cut" data-toggle="tooltip" data-placement="bottom" title="切换版本"></i></a>
+								<a href="{php echo url('wxapp/manage/display', array('uniacid' => $version_info['uniacid']))}"><i class="wi wi-text" data-toggle="tooltip" data-placement="bottom" title="管理"></i></a>
+								<a href="{php echo url('wxapp/display')}"><i class="wi wi-small-routine" data-toggle="tooltip" data-placement="bottom" title="切换小程序"></i></a>
+							</div>
+						</div>
+					</div>
+				</div>
+				{/if}
+			</div>
+			{if empty($frames['section']['platform_module_menu']['plugin_menu'])}
+			{loop $frames['section'] $frame_section_id $frame_section}
+			{if !isset($frame_section['is_display']) || !empty($frame_section['is_display'])}
+			<div class="panel panel-menu">
+				<ul class="list-group">
+					{loop $frame_section['menu'] $menu_id $menu}
+					{if !empty($menu['is_display'])}
+						{if $menu_id == 'platform_module_more'}
+						<li class="list-group-item">
+							<a href="{url 'profile/module'}" target="_blank">
+								<div class="icon-more"><span class="wi wi-plus"></span></div>
+								<div>更多应用</div>
+							</a>
+						</li>
+						{else}
+						<li class="list-group-item {if $menu['active']}active{/if}">
+							<a href="{$menu['url']}" {if $frame_section_id == 'platform_module'}target="_blank"{/if}>
+								{if $menu['icon']}
+									{if $frame_section_id == 'platform_module'}
+									<img src="{$menu['icon']}"/>
+									{/if}
+								{/if}
+								<div class="text-over">{$menu['title']}</div>
+							</a>
+						</li>
+						{/if}
+					{/if}
+					{/loop}
+				</ul>
+			</div>
+			{/if}
+			{/loop}
+			{else}
+				<div class="plugin-menu clearfix">
+					<div class="plugin-menu-main pull-left">
+						<ul class="list-group">
+							<li class="list-group-item{if $_GPC['m'] == ''} active{/if}">
+								<a href="{php echo url('home/welcome/ext', array('m' => $frames['section']['platform_module_menu']['plugin_menu']['main_module']))}">
+									<i class="wi wi-main-apply"></i>
+									<div>主应用</div>
+								</a>
+							</li>
+							<li class="list-group-item">
+								<div>插件</div>
+							</li>
+							{loop $frames['section']['platform_module_menu']['plugin_menu']['menu'] $plugin_name $plugin}
+							<li class="list-group-item{if $_GPC['m'] == $plugin_name} active{/if}">
+								<a href="{php echo url('home/welcome/ext', array('m' => $plugin_name))}">
+									<img src="{$plugin['icon']}" alt="" class="img-icon" />
+									<div>{$plugin['title']}</div>
+								</a>
+							</li>
+							{/loop}
+						</ul>
+						{php unset($plugin_name);}
+						{php unset($plugin);}
+					</div>
+					<div class="plugin-menu-sub pull-left">
+						{loop $frames['section'] $frame_section_id $frame_section}
+						{if !isset($frame_section['is_display']) || !empty($frame_section['is_display'])}
+							<div class="panel panel-menu">
+								<ul class="list-group">
+									{loop $frame_section['menu'] $menu_id $menu}
+										{if !empty($menu['is_display'])}
+											{if $menu_id == 'platform_module_more'}
+											<li class="list-group-item">
+												<a href="{url 'profile/module'}" target="_blank">
+													<div class="icon-more"><span class="wi wi-plus"></span></div>
+													<div>更多应用</div>
+												</a>
+											</li>
+											{else}
+											<li class="list-group-item {if $menu['active']}active{/if}">
+												<a href="{$menu['url']}" class="text-over" {if $frame_section_id == 'platform_module'}target="_blank"{/if}>
+													{$menu['title']}
+												</a>
+											</li>
+											{/if}
+										{/if}
+									{/loop}
+								</ul>
+							</div>
+						{/if}
+						{/loop}
+					</div>
+				</div>
+			{/if}
+		</div>
+		<div class="right-content">
+			<div class="content">
+	{/if}
+{/if}

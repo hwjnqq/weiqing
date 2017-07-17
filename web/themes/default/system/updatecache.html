@@ -1,29 +1,21 @@
-{template 'common/header-gw'}
-<ol class="breadcrumb">
-	<li><a href="./?refresh"><i class="fa fa-home"></i></a></li>
-	<li><a href="{url 'system/welcome'}">系统</a></li>
-	<li class="active">更新缓存</li>
-</ol>
-<div class="clearfix">
-	<h5 class="page-header">更新缓存</h5>
-	<form action="" method="post" class="form-horizontal" role="form">
-		<div class="form-group">
-			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">缓存类型</label>
-			<div class="col-sm-10">
-				<label for="type_data" class="checkbox-inline">
-					<input type="checkbox" name="type[]" value="data" id="type_data" checked="checked" /> 数据缓存
-				</label>
-				<label for="type_template" class="checkbox-inline">
-					<input type="checkbox" name="type[]" value="template" id="type_template" checked="checked" /> 模板缓存
-				</label>
-			</div>
-		</div>
-		<div class="form-group">
-			<div class="col-sm-offset-2 col-md-offset-2 col-lg-offset-1 col-xs-12 col-sm-10 col-md-10 col-lg-11">
-				<input name="submit" type="submit" value="提交" class="btn btn-primary span3" />
-				<input type="hidden" name="token" value="{$_W['token']}" />
-			</div>
-		</div>
-	</form>
+{template 'common/header'}
+<div class="we7-page-title">更新缓存</div>
+<ul class="we7-page-tab"></ul>
+<div class="form-group we7-form" id="js-system-updatecache" ng-controller="UpdateCacheCtrl" ng-cloak>
+	<div class="col-sm-2">缓存类型</div>
+	<div class="col-sm-10 we7-form">
+		<input type="checkbox" name="type[]" value="data" id="type_data" checked="checked" />
+		<label for="type_data" class="checkbox-inline">
+			 数据缓存
+		</label>
+		<input type="checkbox" name="type[]" value="template" id="type_template" checked="checked" />
+		<label for="type_template" class="checkbox-inline">
+			 模板缓存
+		</label>
+	</div>
+	<span class="btn btn-primary we7-padding-horizontal we7-margin-top" ng-click="updateCache()">提交</span>
 </div>
-{template 'common/footer-gw'}
+<script>
+	angular.bootstrap($("#js-system-updatecache"), ['systemApp']);
+</script>
+{template 'common/footer'}

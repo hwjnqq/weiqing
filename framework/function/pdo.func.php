@@ -207,6 +207,9 @@ function pdo_fieldexists($tablename, $fieldname = '') {
 	return pdo()->fieldexists($tablename, $fieldname);
 }
 
+function pdo_fieldmatch($tablename, $fieldname, $datatype = '', $length = '') {
+	return pdo()->fieldmatch($tablename, $fieldname, $datatype, $length);
+}
 /**
  * 查询索引是否存在
  * 成功返回TRUE，失败返回FALSE

@@ -308,11 +308,11 @@ class RechargeModuleSite extends WeModuleSite {
 		$pars[':tid'] = $params['tid'];
 		$log = pdo_fetch($sql, $pars);
 		if(!empty($log) && $log['status'] == '1') {
-			message('这个订单已经支付成功, 不需要重复支付.');
+			itoast('这个订单已经支付成功, 不需要重复支付.', '', 'info');
 		}
 		$setting = uni_setting($_W['uniacid'], array('payment', 'creditbehaviors'));
 		if(!is_array($setting['payment'])) {
-			message('没有有效的支付方式, 请联系网站管理员.');
+			itoast('没有有效的支付方式, 请联系网站管理员.', '', 'error');
 		}
 		$log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $params['module'], 'tid' => $params['tid']));
 		if (empty($log)) {

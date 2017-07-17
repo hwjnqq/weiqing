@@ -90,3 +90,23 @@ if (!function_exists('hex2bin')) {
 		return $sbin;
 	}
 }
+
+if (!function_exists('mb_strlen')) {
+	function mb_strlen($string, $charset = '') {
+		return istrlen($string, $charset);
+	}
+}
+
+/**
+ * php5.4以上版本要求session hanlder继承此接口
+ */
+if (!interface_exists('SessionHandlerInterface')) {
+	interface SessionHandlerInterface  {}
+}
+
+/**
+ * php-fpm环境下，此函数可以快速响应数据，后续代码将在后台运行
+ */
+if (!function_exists("fastcgi_finish_request")) {
+	function fastcgi_finish_request() {}
+}

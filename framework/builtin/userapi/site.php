@@ -144,7 +144,7 @@ class UserApiModuleSite extends WeModuleSite {
 					}
 				}
 			}
-			message('成功导入.', referer());
+			itoast('成功导入.', referer(), 'success');
 		}
 		if($foo == 'delete') {
 			$rid = intval($_GPC['rid']);
@@ -154,20 +154,20 @@ class UserApiModuleSite extends WeModuleSite {
 			pdo_query($sql);
 			$sql = 'DELETE FROM ' . tablename($this->tablename) . " WHERE `rid`={$rid}";
 			pdo_query($sql);
-			message('成功删除.', referer());
+			itoast('成功删除.', referer(), 'success');
 		}
 		if($foo == 'post') {
 			$rid = intval($_GPC['id']);
 			require model('rule');
 			if(checksubmit()) {
 				if (empty($_GPC['name'])) {
-					message('抱歉，规则名称为必填项，请选回修改！');
+					itoast('抱歉，规则名称为必填项，请选回修改！', '', '');
 				}
 				if (($_GPC['type'] && empty($_GPC['apiurl'])) || (empty($_GPC['type']) && empty($_GPC['apilocal']))) {
-					message('请填写接口地址！');
+					itoast('请填写接口地址！', '', '');
 				}
 				if ($_GPC['type'] && empty($_GPC['token'])) {
-					message('请填写Token值！');
+					itoast('请填写Token值！', '', '');
 				}
 				$rule = array(
 					'weid' => 0,
@@ -184,7 +184,7 @@ class UserApiModuleSite extends WeModuleSite {
 					$rid = pdo_insertid();
 				}
 				if(empty($rid)) {
-					message('增加服务失败, 请稍后重试. ');
+					itoast('增加服务失败, 请稍后重试. ', '', 'error');
 				}
 				$sql = 'DELETE FROM '. tablename('rule_keyword') . ' WHERE `rid`=:rid AND `weid`=0';
 				$pars = array();
@@ -251,15 +251,15 @@ class UserApiModuleSite extends WeModuleSite {
 				);
 				if($_GPC['id']) {
 					if(pdo_update($this->tablename, $reply, array('rid' => $rid)) !== false) {
-						message('编辑服务成功. ', 'refresh');
+						itoast('编辑服务成功. ', 'refresh', 'success');
 					} else {
-						message('编辑服务失败, 请稍后重试. ');
+						itoast('编辑服务失败, 请稍后重试. ', '', 'error');
 					}
 				} else {
 					if(pdo_insert($this->tablename, $reply)) {
-						message('增加服务成功. ', 'refresh');
+						itoast('增加服务成功. ', 'refresh', 'success');
 					} else {
-						message('增加服务失败, 请稍后重试. ');
+						itoast('增加服务失败, 请稍后重试. ', '', 'error');
 					}
 				}
 			}

@@ -1,5 +1,11 @@
 <?php
 /**
+ * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * $sn$
+ */
+defined('IN_IA') or exit('Access Denied');
+
+/**
  * 设置入口封面
  * @param array $cover
  */
@@ -66,7 +72,6 @@ function site_cover($coverparams = array()) {
 	return true;
 }
 
-
 function site_cover_delete($page_id) {
 	global $_W;
 	$page_id = intval($page_id);
@@ -79,5 +84,3 @@ function site_cover_delete($page_id) {
 	}
 	return true;
 }
-
-

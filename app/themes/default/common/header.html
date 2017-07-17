@@ -3,7 +3,21 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-	<title>{if !empty($title)} {$title} {elseif !empty($_W['page']['title'])} {$_W['page']['title']}{/if}{if !empty($_W['page']['sitename'])} - {$_W['page']['sitename']}{else} - {$_W['account']['name']}{/if}{if IMS_FAMILY != 'x'} - Powered by WE7.CC{/if}</title>
+	<title>
+	{if !empty($title)} 
+		{$title} -
+	{elseif !empty($_W['page']['title'])} 
+		{$_W['page']['title']} -
+	{/if} 
+	{if !empty($_W['page']['sitename'])}
+		{$_W['page']['sitename']} 
+	{else}
+		{$_W['account']['name']} 
+	{/if} 
+	{if IMS_FAMILY != 'x'} 
+		- Powered by WE7.CC 
+	{/if}
+	</title>
 	<meta name="format-detection" content="telephone=no, address=no">
 	<meta name="apple-mobile-web-app-capable" content="yes" /> <!-- apple devices fullscreen -->
 	<meta name="apple-touch-fullscreen" content="yes"/>
@@ -11,7 +25,7 @@
 	<meta name="keywords" content="{if empty($_W['page']['keywords'])}{if IMS_FAMILY != 'x'}微擎,微信,微信公众平台,we7.cc{/if}{else}{$_W['page']['keywords']}{/if}" />
 	<meta name="description" content="{if empty($_W['page']['description'])}{if IMS_FAMILY != 'x'}公众平台自助引擎（www.we7.cc），简称微擎，微擎是一款免费开源的微信公众平台管理系统，是国内最完善移动网站及移动互联网技术解决方案。{/if}{else}{$_W['page']['description']}{/if}" />
 	<link rel="shortcut icon" href="{$_W['siteroot']}{$_W['config']['upload']['attachdir']}/{if !empty($_W['setting']['copyright']['icon'])}{$_W['setting']['copyright']['icon']}{else}images/global/wechat.jpg{/if}" />
-	<script src="http://res.wx.qq.com/open/js/jweixin-1.1.0.js"></script>
+	<script src="https://res.wx.qq.com/open/js/jweixin-1.2.0.js"></script>
 	<script type="text/javascript" src="{$_W['siteroot']}app/resource/js/app/util.js"></script>
 	<script src="{$_W['siteroot']}app/resource/js/require.js"></script>
 	<script type="text/javascript" src="{$_W['siteroot']}app/resource/js/lib/jquery-1.11.1.min.js?v=20160906"></script>

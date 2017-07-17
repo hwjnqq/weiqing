@@ -1,7 +1,6 @@
 <?php
 /**
  * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('mc');
@@ -123,6 +122,19 @@ if (!empty($unisetting['oauth']['account'])) {
 if($controller != 'utility') {
 	$_W['token'] = token();
 }
+//回调时如果有scope和code则自动获取粉丝信息
+if (!empty($_GPC['scope']) && $_GPC['scope'] == 'snsapi_base' && !empty($_GPC['code'])) {
+	$oauth_account = WeAccount::create($_W['account']['oauth']);
+	$oauth = $oauth_account->getOauthInfo($_GPC['code']);
+	$oauth['openid'] = 'oTKzFjv2FQ7EetJGLbxuGY6m0KmY';
+	$fans = mc_init_fans_info($oauth['openid'], true);
+	$_SESSION['oauth_openid'] = $oauth['openid'];
+	$_SESSION['oauth_acid'] = $_W['account']['oauth']['acid'];
+	$_SESSION['openid'] = $oauth['openid'];
+	$_SESSION['uid'] = $fans['uid'];
+	$_SESSION['userinfo'] = $fans['tag'];
+}
+
 if (!empty($_W['account']['oauth']) && $_W['account']['oauth']['level'] == '4') {
 	if (($_W['container'] == 'wechat' && !$_GPC['logout'] && empty($_W['openid']) && ($controller != 'auth' || ($controller == 'auth' && !in_array($action, array('forward', 'oauth'))))) ||
 		($_W['container'] == 'wechat' && !$_GPC['logout'] && empty($_SESSION['oauth_openid']) && ($controller != 'auth'))) {
@@ -134,7 +146,12 @@ if (!empty($_W['account']['oauth']) && $_W['account']['oauth']['level'] == '4') 
 		if(uni_is_multi_acid()) {
 			$str = "&j={$_W['acid']}";
 		}
-		$url = (!empty($unisetting['oauth']['host']) ? ($unisetting['oauth']['host'] . $sitepath . '/') : $_W['siteroot'] . 'app/') . "index.php?i={$_W['uniacid']}{$str}&c=auth&a=oauth&scope=snsapi_base";
+		if (!empty($unisetting['oauth']['host'])) {
+			$url = str_replace($_W['siteroot'], $unisetting['oauth']['host'].'/', $_W['siteurl']);
+		} else {
+			$url = $_W['siteurl'];
+		}
+		$url .= '&scope=snsapi_base';
 		$callback = urlencode($url);
 		$oauth_account = WeAccount::create($_W['account']['oauth']);
 		$forward = $oauth_account->getOauthCodeUrl($callback, $state);
@@ -163,11 +180,5 @@ if ($_W['container'] == 'wechat') {
 		}
 	}
 	unset($jsauth_acid, $account_api);
-}
-
-//卡券权限判断
-$_W['card_permission'] = 0;
-if($_W['acid'] && $_W['account']['level'] >= 3 && $_W['container'] == 'wechat') {
-	$_W['card_permission'] = 1;
 }
 load()->func('compat.biz');

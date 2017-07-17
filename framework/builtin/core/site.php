@@ -73,7 +73,7 @@ class CoreModuleSite extends WeModuleSite {
 		$params = $_POST;
 		
 		if(empty($params) || !array_key_exists($params['module'], $moduels)) {
-			message(error(1, '模块不存在'), '', 'ajax');
+			message(error(1, '模块不存在'), '', 'ajax', true);
 		}
 		
 		$setting = uni_setting($_W['uniacid'], 'payment');
@@ -98,7 +98,7 @@ class CoreModuleSite extends WeModuleSite {
 		}
 		$type = in_array($params['method'], $dos) ? $params['method'] : '';
 		if(empty($type)) {
-			message(error(1, '暂无有效支付方式,请联系商家'), '', 'ajax');
+			message(error(1, '暂无有效支付方式,请联系商家'), '', 'ajax', true);
 		}
 		$moduleid = pdo_getcolumn('modules', array('name' => $params['module']), 'mid');
 		$moduleid = empty($moduleid) ? '000000' : sprintf("%06d", $moduleid);
@@ -122,7 +122,7 @@ class CoreModuleSite extends WeModuleSite {
 			$paylog['plid'] = pdo_insertid();
 		}
 		if(!empty($paylog) && $paylog['status'] != '0') {
-			message(error(1, '这个订单已经支付成功, 不需要重复支付.'), '', 'ajax');
+			message(error(1, '这个订单已经支付成功, 不需要重复支付.'), '', 'ajax', true);
 		}
 		if (!empty($paylog) && empty($paylog['uniontid'])) {
 			pdo_update('core_paylog', array(
@@ -138,7 +138,7 @@ class CoreModuleSite extends WeModuleSite {
 			$params['tid'] = $paylog['plid'];
 			$sl = base64_encode(json_encode($params));
 			$auth = sha1($sl . $_W['uniacid'] . $_W['config']['setting']['authkey']);
-			message(error(0, $_W['siteroot'] . "/payment/{$type}/pay.php?i={$_W['uniacid']}&auth={$auth}&ps={$sl}"), '', 'ajax');
+			message(error(0, $_W['siteroot'] . "/payment/{$type}/pay.php?i={$_W['uniacid']}&auth={$auth}&ps={$sl}"), '', 'ajax', true);
 			exit();
 		}
 	}
@@ -153,7 +153,6 @@ class CoreModuleSite extends WeModuleSite {
 		), array('plid' => $paylog['plid']));
 		
 		$_W['uniacid'] = $paylog['uniacid'];
-		$_W['openid'] = $paylog['openid'];
 		
 		$setting = uni_setting($_W['uniacid'], array('payment'));
 		$wechat_payment = $setting['payment']['wechat'];
@@ -170,16 +169,33 @@ class CoreModuleSite extends WeModuleSite {
 			'title' => urldecode($paylog['title']),
 			'uniontid' => $paylog['uniontid'],
 		);
-		if (intval($wechat_payment['switch']) == 2 || intval($wechat_payment['switch']) == 3 ) {
-			$wechat_payment_params = wechat_proxy_build($params, $wechat_payment);
+		if (intval($wechat_payment['switch']) == PAYMENT_WECHAT_TYPE_SERVICE || intval($wechat_payment['switch']) == PAYMENT_WECHAT_TYPE_BORROW) {
+			if (!empty($_W['openid'])) {
+				$params['sub_user'] = $_W['openid'];
+				$wechat_payment_params = wechat_proxy_build($params, $wechat_payment);
+			} else {
+				$params['tid'] = $paylog['plid'];
+				//借用服务商支付时，没有获取到当前公众号的Openid时，只能跳转至收银台继续付款
+				$params['title'] = urlencode($params['title']);
+				$sl = base64_encode(json_encode($params));
+				$auth = sha1($sl . $paylog['uniacid'] . $_W['config']['setting']['authkey']);
+				
+				$callback = urlencode($_W['siteroot'] . "payment/wechat/pay.php?i={$_W['uniacid']}&auth={$auth}&ps={$sl}");
+				$proxy_pay_account = payment_proxy_pay_account();
+				if (!is_error($proxy_pay_account)) {
+					$forward = $proxy_pay_account->getOauthCodeUrl($callback, 'we7sid-'.$_W['session_id']);
+					message(error(2, $forward), $forward, 'ajax');
+					exit;
+				}
+			}
 		} else {
 			unset($wechat_payment['sub_mch_id']);
 			$wechat_payment_params = wechat_build($params, $wechat_payment);
 		}
 		if (is_error($wechat_payment_params)) {
-			message($wechat_payment_params, '', 'ajax');
+			message($wechat_payment_params, '', 'ajax', true);
 		} else {
-			message(error(0, $wechat_payment_params), '', 'ajax');
+			message(error(0, $wechat_payment_params), '', 'ajax', true);
 		}
 	}
 
@@ -201,8 +217,38 @@ class CoreModuleSite extends WeModuleSite {
 		);
 		$alipay_payment_params = alipay_build($params, $setting['payment']['alipay']);
 		if($alipay_payment_params['url']) {
-			message(error(0, $alipay_payment_params['url']), '', 'ajax');
+			message(error(0, $alipay_payment_params['url']), '', 'ajax', true);
 			exit();
 		}
+	}
+	public function doMobileDetail() {
+		global $_W, $_GPC;
+		$id = intval($_GPC['id']);
+		$sql = "SELECT * FROM " . tablename('news_reply') . " WHERE `id`=:id";
+		$row = pdo_fetch($sql, array(':id'=>$id));
+		$createtime = $row['createtime'];
+		if (!empty($row['url'])) {
+			header("Location: ".$row['url']);
+			exit;
+		}
+		//兼容0.8写法，在此回复新版1.0本地素材
+		if (!empty($row['media_id']) && intval($row['media_id']) != 0) {
+			$row = pdo_get('wechat_news', array('attach_id' => $row['media_id'], 'displayorder' => $row['displayorder']));
+			$row['createtime'] = $createtime;
+			if (!empty($row['content_source_url'])) {
+				header("Location: ".$row['content_source_url']);
+				exit;
+			}
+		}
+		$row = istripslashes($row);
+		$title = $row['title'];
+		/*获取引导素材*/
+		if($_W['os'] == 'android' && $_W['container'] == 'wechat' && $_W['account']['account']) {
+			$subscribeurl = "weixin://profile/{$_W['account']['account']}";
+		} else {
+			$sql = 'SELECT `subscribeurl` FROM ' . tablename('account_wechats') . " WHERE `acid` = :acid";
+			$subscribeurl = pdo_fetchcolumn($sql, array(':acid' => intval($_W['acid'])));
+		}
+		include $this->template('detail');
 	}
 }

@@ -26,10 +26,10 @@ a{color:{$_W['styles']['linkcolor']}; text-decoration:none;}
 	{data func="site_navs" item="row"}
 		{$row['html']}
 	{/data}
-	
 	<!-- 该分类下文章-start -->
-	{if $_GPC['c'] == 'site' && $_GPC['a'] == 'site'}
+	{if $_GPC['c'] == 'home' && !empty($_GPC['t'])}
 	<ul class="list list-unstyled">
+		{loop $category_list $cid $category}
 		{data func="site_article" cid=$cid return="true" assign="result"}
 			{loop $result['list'] $row}
 			<li>
@@ -39,6 +39,7 @@ a{color:{$_W['styles']['linkcolor']}; text-decoration:none;}
 				</a>
 			</li>
 			{/loop}
+		{/loop}
 	</ul>
 	{/if}
 	<!-- 该分类下文章-start -->

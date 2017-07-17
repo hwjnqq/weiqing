@@ -224,6 +224,31 @@ function array_elements($keys, $src, $default = FALSE) {
 }
 
 /**
+ * 根据键值对数组排序
+ * 
+ * @param array $array 需要排序的数组
+ * @param string $keys 用来排序的键名
+ * @param string $type 排序规则
+ * @return array
+ */
+function iarray_sort($array, $keys, $type='asc'){
+	$keysvalue = $new_array = array();
+	foreach ($array as $k => $v){
+		$keysvalue[$k] = $v[$keys];
+	}
+	if($type == 'asc'){
+		asort($keysvalue);
+	}else{
+		arsort($keysvalue);
+	}
+	reset($keysvalue);
+	foreach ($keysvalue as $k => $v){
+		$new_array[$k] = $array[$k];
+	}
+	return $new_array;
+}
+
+/**
  * 判断给定参数是否位于区间内或将参数转换为区间内的数
  *
  * @param string $num 输入参数
@@ -298,7 +323,7 @@ function iunserializer($value) {
 }
 
 /**
- * 判断是否为加密字符串
+ * 判断是否为base64加密字符串
  * @param string $str
  * @return boolean
  */
@@ -557,6 +582,9 @@ function tomedia($src, $local_path = false){
 	if (empty($src)) {
 		return '';
 	}
+	if (strexists($src, "c=utility&a=wxcode&do=image&attach=")) {
+		return $src;
+	}
 	if (strexists($src, 'addons/')) {
 		return $_W['siteroot'] . substr($src, strpos($src, 'addons/'));
 	}
@@ -567,9 +595,10 @@ function tomedia($src, $local_path = false){
 	}
 	$t = strtolower($src);
 	if (strexists($t, 'https://mmbiz.qlogo.cn') || strexists($t, 'http://mmbiz.qpic.cn')) {
-		return url('utility/wxcode/image', array('attach' => $src));
+		$url = url('utility/wxcode/image', array('attach' => $src));
+		return $_W['siteroot'] . 'web' . ltrim($url, '.');
 	}
-	if (strexists($t, 'http://') || strexists($t, 'https://') || substr($t, 0, 2) == '//') {
+	if ((substr($t, 0, 7) == 'http://') || (substr($t, 0, 8) == 'https://') || (substr($t, 0, 2) == '//')) {
 		return $src;
 	}
 	if ($local_path || empty($_W['setting']['remote']['type']) || file_exists(IA_ROOT . '/' . $_W['config']['upload']['attachdir'] . '/' . $src)) {
@@ -587,11 +616,10 @@ function tomedia($src, $local_path = false){
  * @param mixed $data 返回数据结果
  * @return array
  */
-function error($errno, $message = '', $data = null) {
+function error($errno, $message = '') {
 	return array(
 		'errno' => $errno,
 		'message' => $message,
-		'data' => $data,
 	);
 }
 
@@ -914,6 +942,26 @@ function sizecount($size) {
 }
 
 /**
+ *字节数转成 bit
+ * @param string $str 字节数
+ * @return float
+ */
+function bytecount($str) {
+	if (strtolower($str[strlen($str) -1]) == 'b') {
+		$str = substr($str, 0, -1);
+	}
+	if(strtolower($str[strlen($str) -1]) == 'k') {
+		return floatval($str) * 1024;
+	}
+	if(strtolower($str[strlen($str) -1]) == 'm') {
+		return floatval($str) * 1048576;
+	}
+	if(strtolower($str[strlen($str) -1]) == 'g') {
+		return floatval($str) * 1073741824;
+	}
+}
+
+/**
  * 获取数组的XML结构
  * @param array $arr 要转换的数组
  * @param int $level 节点层级, 1 为 Root
@@ -1008,21 +1056,86 @@ function utf8_bytes($cp) {
 		return chr($cp);
 	}
 }
+/**
+ * 将bytes转化为unicode码
+ * @param bit $utf8
+ */
+function bytes_utf8($utf8) {
+	$i = 0;
+	$l = strlen($utf8);
+	
+	$out = '';
+
+	while ($i < $l) {
+		if ((ord($utf8[$i]) & 0x80) === 0x00) {
+			// 0xxxxxxx
+			$n = ord($utf8[$i++]);
+		} elseif ((ord($utf8[$i]) & 0xE0) === 0xC0) {
+			// 110xxxxx 10xxxxxx
+			$n =
+			((ord($utf8[$i++]) & 0x1F) <<  6) |
+			((ord($utf8[$i++]) & 0x3F) <<  0)
+			;
+		} elseif ((ord($utf8[$i]) & 0xF0) === 0xE0) {
+			// 1110xxxx 10xxxxxx 10xxxxxx
+			$n =
+			((ord($utf8[$i++]) & 0x0F) << 12) |
+			((ord($utf8[$i++]) & 0x3F) <<  6) |
+			((ord($utf8[$i++]) & 0x3F) <<  0)
+			;
+		} elseif ((ord($utf8[$i]) & 0xF8) === 0xF0) {
+			// 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+			$n =
+			((ord($utf8[$i++]) & 0x07) << 18) |
+			((ord($utf8[$i++]) & 0x3F) << 12) |
+			((ord($utf8[$i++]) & 0x3F) <<  6) |
+			((ord($utf8[$i++]) & 0x3F) <<  0)
+			;
+		} elseif ((ord($utf8[$i]) & 0xFC) === 0xF8) {
+			// 111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
+			$n =
+			((ord($utf8[$i++]) & 0x03) << 24) |
+			((ord($utf8[$i++]) & 0x3F) << 18) |
+			((ord($utf8[$i++]) & 0x3F) << 12) |
+			((ord($utf8[$i++]) & 0x3F) <<  6) |
+			((ord($utf8[$i++]) & 0x3F) <<  0)
+			;
+		} elseif ((ord($utf8[$i]) & 0xFE) === 0xFC) {
+			// 1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
+			$n =
+			((ord($utf8[$i++]) & 0x01) << 30) |
+			((ord($utf8[$i++]) & 0x3F) << 24) |
+			((ord($utf8[$i++]) & 0x3F) << 18) |
+			((ord($utf8[$i++]) & 0x3F) << 12) |
+			((ord($utf8[$i++]) & 0x3F) <<  6) |
+			((ord($utf8[$i++]) & 0x3F) <<  0)
+			;
+		} else {
+			return error(1, 'Invalid utf-8 code point');
+		}
+
+		$n = strtoupper(dechex($n));
+		$pad = strlen($n) <= 4 ? strlen($n) + strlen($n) %2 : 0;
+		$n = str_pad($n, $pad, "0", STR_PAD_LEFT);
+
+		$out .= sprintf("\u%s", $n);
+	}
+	return $out;
+}
 
 function media2local($media_id, $all = false){
 	global $_W;
-	if (empty($media_id)) {
-		return '';
-	}
-	$data = pdo_fetch('SELECT * FROM ' . tablename('wechat_attachment') . ' WHERE uniacid = :uniacid AND media_id = :id', array(':uniacid' => $_W['uniacid'], ':id' => $media_id));
-	if (!empty($data)) {
+	load()->model('material');
+	$data = material_get($media_id);
+	if (!is_error($data)) {
 		$data['attachment'] = tomedia($data['attachment'], true);
 		if (!$all) {
 			return $data['attachment'];
 		}
 		return $data;
+	} else {
+		return '';
 	}
-	return '';
 }
 
 function aes_decode($message, $encodingaeskey = '', $appid = '') {
@@ -1087,6 +1200,27 @@ function aes_encode($message, $encodingaeskey = '', $appid = '') {
 	//加密后的消息
 	$encrypt_msg = base64_encode($encrypted);
 	return $encrypt_msg;
+}
+
+/**
+ *  aes_pkcs7解密函数
+ * @param $encrypt_data 待解密文件（ 经过 base64_encode 编码 ）
+ * @param $key 解密key
+ * @param bool $iv 偏移量 （经过 base64_encode 编码 ）
+ * @return array
+ */
+function aes_pkcs7_decode($encrypt_data, $key, $iv = false) {
+	require_once IA_ROOT . '/framework/library/pkcs7/pkcs7Encoder.php';
+	$encrypt_data = base64_decode($encrypt_data);
+	if (!empty($iv)) {
+		$iv = base64_decode($iv);
+	}
+	$pc = new Prpcrypt($key);
+	$result = $pc->decrypt($encrypt_data, $iv);
+	if ($result[0] != 0) {
+		return error($result[0], '解密失败');
+	}
+	return $result[1];
 }
 
 /*
@@ -1162,4 +1296,119 @@ function parse_path($path) {
 		}
 	}
 	return $path;
+}
+
+/**
+ * 文件大小
+ * @param string $dir 文件的路径
+ * @return int $size 文件大小
+ */
+function dir_size($dir) {
+	$size = 0;
+	if(is_dir($dir)) {
+		$handle = opendir($dir);
+		while (false !== ($entry = readdir($handle))) {
+			if($entry != '.' && $entry != '..') {
+				if(is_dir("{$dir}/{$entry}")) {
+					$size += dir_size("{$dir}/{$entry}");
+				} else {
+					$size += filesize("{$dir}/{$entry}");
+				}
+			}
+		}
+		closedir($handle);
+	}
+	return $size;
+}
+
+/**
+ * 获取字符串的大写英文首字母
+ * @param unknown $str
+ * @return string
+ */
+function get_first_pinyin($str) {
+	static $pinyin;
+	$first_char = '';
+	$str = trim($str);
+	if(empty($str)) {
+		return $first_char;
+	}
+	if (empty($pinyin)) {
+		include_once IA_ROOT . '/framework/library/pinyin/pinyin.php';
+		$pinyin = new Pinyin_Pinyin();
+	}
+	$first_char = $pinyin->get_first_char($str);
+	return $first_char;
+}
+
+/**
+ * 过滤字符串中的emoji表情（微信昵称过滤）
+ */
+function strip_emoji($nickname) {
+	$clean_text = "";
+	// Match Emoticons
+	$regexEmoticons = '/[\x{1F600}-\x{1F64F}]/u';
+	$clean_text = preg_replace($regexEmoticons, '', $nickname);
+	// Match Miscellaneous Symbols and Pictographs
+	$regexSymbols = '/[\x{1F300}-\x{1F5FF}]/u';
+	$clean_text = preg_replace($regexSymbols, '', $clean_text);
+	// Match Transport And Map Symbols
+	$regexTransport = '/[\x{1F680}-\x{1F6FF}]/u';
+	$clean_text = preg_replace($regexTransport, '', $clean_text);
+	// Match Miscellaneous Symbols
+	$regexMisc = '/[\x{2600}-\x{26FF}]/u';
+	$clean_text = preg_replace($regexMisc, '', $clean_text);
+	// Match Dingbats
+	$regexDingbats = '/[\x{2700}-\x{27BF}]/u';
+	$clean_text = preg_replace($regexDingbats, '', $clean_text);
+	
+	$clean_text = str_replace("'",'',$clean_text);
+	$clean_text = str_replace('"','',$clean_text);
+	$clean_text = str_replace('“','',$clean_text);
+	$clean_text = str_replace('゛','',$clean_text);
+	$search = array(" ","　","\n","\r","\t");
+	$replace = array("","","","","");
+	return str_replace($search, $replace, $clean_text);
+}
+
+/**
+ * 把一个可能包含emoji的字符串中的unicode码转换为实际的emoji
+ * @param string $string
+ */
+function emoji_unicode_decode($string) {
+	preg_match_all('/\[U\+(\\w{4,})\]/i', $string, $match);
+	if(!empty($match[1])) {
+		foreach ($match[1] as $emojiUSB) {
+			$string = str_ireplace("[U+{$emojiUSB}]", utf8_bytes(hexdec($emojiUSB)), $string);
+		}
+	}
+	return $string;
+}
+
+function emoji_unicode_encode($string) {
+	$ranges = array(
+		'\\\\ud83c[\\\\udf00-\\\\udfff]', // U+1F300 to U+1F3FF
+		'\\\\ud83d[\\\\udc00-\\\\ude4f]', // U+1F400 to U+1F64F
+		'\\\\ud83d[\\\\ude80-\\\\udeff]'  // U+1F680 to U+1F6FF
+	);
+	preg_match_all('/' . implode('|', $ranges) . '/i', $string, $match);
+	print_r($match);exit;
+}
+
+/**
+ * 获取全局变量 $_W 中的值
+ * @param string $key
+ */
+function getglobal($key) {
+	global $_W;
+	$key = explode('/', $key);
+	
+	$v = &$_W;
+	foreach ($key as $k) {
+		if (!isset($v[$k])) {
+			return null;
+		}
+		$v = &$v[$k];
+	}
+	return $v;
 }

@@ -26,6 +26,7 @@ function alipay_build($params, $alipay = array()) {
 	$set['seller_id'] = $alipay['account'];
 	$set['payment_type'] = 1;
 	$set['body'] = $_W['uniacid'];
+	$set['app_pay'] = 'Y';
 	$prepares = array();
 	foreach($set as $key => $value) {
 		if($key != 'sign' && $key != 'sign_type') {
@@ -38,6 +39,10 @@ function alipay_build($params, $alipay = array()) {
 	$set['sign'] = md5($string);
 
 	$response = ihttp_request(ALIPAY_GATEWAY . '?' . http_build_query($set, '', '&'), array(), array('CURLOPT_FOLLOWLOCATION' => 0));
+	if (empty($response['headers']['Location'])) {
+		exit(iconv('gbk', 'utf-8', $response['content']));
+		return;
+	}
 	return array('url' => $response['headers']['Location']);
 }
 
@@ -122,11 +127,15 @@ function wechat_build($params, $wechat) {
 		$wOpt['paySign'] = sha1($string);
 		return $wOpt;
 	} else {
+		//当用户传过来UID时，需要转换一下Openid
+		if (!empty($params['user']) && is_numeric($params['user'])) {
+			$params['user'] = mc_uid2openid($params['user']);
+		}
 		$package = array();
 		$package['appid'] = $wechat['appid'];
 		$package['mch_id'] = $wechat['mchid'];
 		$package['nonce_str'] = random(8);
-		$package['body'] = $params['title'];
+		$package['body'] = cutstr($params['title'], 26);
 		$package['attach'] = $_W['uniacid'];
 		$package['out_trade_no'] = $params['uniontid'];
 		$package['total_fee'] = $params['fee'] * 100;
@@ -135,9 +144,13 @@ function wechat_build($params, $wechat) {
 		$package['time_expire'] = date('YmdHis', TIMESTAMP + 600);
 		$package['notify_url'] = $_W['siteroot'] . 'payment/wechat/notify.php';
 		$package['trade_type'] = 'JSAPI';
-		$package['openid'] = empty($wechat['openid']) ? $_W['fans']['from_user'] : $wechat['openid'];
+		$package['openid'] = empty($params['user']) ? $_W['fans']['from_user'] : $params['user'];
 		if (!empty($wechat['sub_mch_id'])) {
 			$package['sub_mch_id'] = $wechat['sub_mch_id'];
+		}
+		if (!empty($params['sub_user'])) {
+			$package['sub_openid'] = $params['sub_user'];
+			unset($package['openid']);
 		}
 		ksort($package, SORT_STRING);
 		$string1 = '';
@@ -175,4 +188,56 @@ function wechat_build($params, $wechat) {
 		$wOpt['paySign'] = strtoupper(md5($string));
 		return $wOpt;
 	}
+}
+
+function payment_proxy_pay_account() {
+	global $_W;
+	$setting = uni_setting($_W['uniacid'], array('payment'));
+	$setting['payment']['wechat']['switch'] = intval($setting['payment']['wechat']['switch']);
+	
+	if ($setting['payment']['wechat']['switch'] == PAYMENT_WECHAT_TYPE_SERVICE) {
+		$uniacid = intval($setting['payment']['wechat']['service']);
+	} elseif ($setting['payment']['wechat']['switch'] == PAYMENT_WECHAT_TYPE_BORROW) {
+		$uniacid = intval($setting['payment']['wechat']['borrow']);
+	} else {
+		$uniacid = 0;
+	}
+	$pay_account = uni_fetch($uniacid);
+	if (empty($uniacid) || empty($pay_account)) {
+		return error(1);
+	}
+	return WeAccount::create($pay_account);
+}
+
+function payment_wechat_refund_build($pay_id, $refund_id) {
+	global $_W;
+	$setting = uni_setting_load('payment', $_W['uniacid']);
+	$refund_setting = $setting['payment']['wechat_refund'];
+	if ($refund_setting['switch'] != 1) {
+		return error(1, '未开启微信退款功能！');
+	}
+	if (empty($refund_setting['key']) || empty($refund_setting['cert'])) {
+		return error(1, '缺少微信证书！');
+	}
+	$paylog = pdo_get('core_paylog', array('plid' => $pay_id));
+	$refundlog = pdo_get('core_refundlog', array('id' => $refund_id));
+	$acid = pdo_getcolumn('uni_account', array('uniacid' => $paylog['uniacid']), 'default_acid');
+	$appid = pdo_getcolumn('account_wechats', array('acid' => $acid), 'key');
+
+	$refund_param = array(
+		'appid' => $appid,
+		'mch_id' => $setting['payment']['wechat']['mchid'],
+		'out_trade_no' => $paylog['uniontid'],
+		'out_refund_no' => $refundlog['refund_uniontid'],
+		'total_fee' => $paylog['card_fee'] * 100,
+		'refund_fee' => $refundlog['fee'] * 100,
+		'nonce_str' => random(8),
+		'refund_desc' => $refundlog['reason']
+	);
+
+	$cert = authcode($refund_setting['cert'], 'DECODE');
+	$key = authcode($refund_setting['key'], 'DECODE');
+	file_put_contents(ATTACHMENT_ROOT . $_W['uniacid'] . '_wechat_refund_all.pem', $cert . $key);
+
+	return $refund_param;
 }

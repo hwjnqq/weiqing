@@ -14,20 +14,27 @@ if ($do == 'delete') {
 	if ($type = 'image') {
 		$id = intval($_GPC['id']);
 		if (!empty($id)) {
-			$attachment = pdo_getcolumn('core_attachment', array('id' => $id), 'attachment');
-			load()->func('file');
-			if ($_W['setting']['remote']['type']) {
-				$result = file_remote_delete($attachment);
+			$attachment = pdo_get('core_attachment', array('id' => $id), array('attachment', 'uniacid', 'uid'));
+			if (!empty($attachment)) {
+				if ($attachment['uniacid'] != $_W['uniacid'] || empty($_W['openid']) || (!empty($_W['fans']) && $attachment['uid'] != $_W['fans']['from_user']) || (!empty($_W['member']) && $attachment['uid'] != $_W['member']['uid'])) {
+					return message(error(1, '无权删除！'), '', 'ajax');
+				}
+				load()->func('file');
+				if ($_W['setting']['remote']['type']) {
+					$result = file_remote_delete($attachment['attachment']);
+				} else {
+					$result = file_delete($attachment['attachment']);
+				}
+				if (!is_error($result)) {
+					pdo_delete('core_attachment', array('id' => $id));
+				}
+				if (!is_error($result)) {
+					return message(error('0'), '', 'ajax');
+				} else {
+					return message(error(1, $result['message']), '', 'ajax');
+				}
 			} else {
-				$result = file_delete($attachment);
-			}
-			if (!is_error($result)) {
-				pdo_delete('core_attachment', array('id' => $id));
-			}
-			if (!is_error($result)) {
-				return message(error('0'), '', 'ajax');
-			} else {
-				return message(error(1, $result['message']), '', 'ajax');
+				return message(error(1, '图片不存在或已删除！'), '', 'ajax');
 			}
 
 		}

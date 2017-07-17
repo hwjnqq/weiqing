@@ -31,15 +31,15 @@ function cache_memcache() {
  * 取出缓存的单条数据
  *
  * @param 缓存键名 ，多个层级或分组请使用:隔开
- * @param boolean $forcecache 是否强制使用缓存
  * @return mixed
  */
-function cache_read($key, $forcecache = false) {
+function cache_read($key, $forcecache = true) {
+	$key = cache_namespace($key);
+	
 	$memcache = cache_memcache();
 	if (is_error($memcache)) {
 		return $memcache;
 	}
-
 	$result = $memcache->get(cache_prefix($key));
 	if (empty($result) && empty($forcecache)) {
 		$dbcache = pdo_get('core_cache', array('key' => $key), array('value'));
@@ -50,6 +50,7 @@ function cache_read($key, $forcecache = false) {
 	}
 	return $result;
 }
+
 
 /**
  * 检索缓存中指定层级或分组的所有缓存
@@ -62,15 +63,15 @@ function cache_search($key) {
 }
 
 /**
- * 将值序列化并写入数据库( ims_core_cache )
+ * 将值序列化并写入缓存
  *
  * @param string $key
  * @param mixed $data
- * @param int $ttl 缓存超时时间
- * @param boolean $forcecache 是否强制使用缓存
  * @return mixed
  */
-function cache_write($key, $value, $ttl = 0, $forcecache = false) {
+function cache_write($key, $value, $ttl = 0, $forcecache = true) {
+	$key = cache_namespace($key);
+	
 	$memcache = cache_memcache();
 	if (is_error($memcache)) {
 		return $memcache;
@@ -91,38 +92,88 @@ function cache_write($key, $value, $ttl = 0, $forcecache = false) {
 /**
  * 删除某个键的缓存数据
  * @param string $key
- * @return mixed
+ * @return mixed 
  */
-function cache_delete($key) {
+function cache_delete($key, $forcecache = true) {
+	$origins_cache_key = $key;
+	$key = cache_namespace($key);
+	
 	$memcache = cache_memcache();
 	if (is_error($memcache)) {
 		return $memcache;
 	}
-	if ($memcache->delete(cache_prefix($key))) {
+	
+	if (empty($forcecache)) {
 		pdo_delete('core_cache', array('key' => $key));
+	}
+	
+	if ($memcache->delete(cache_prefix($key))) {
+		unset($GLOBALS['_W']['cache'][$origins_cache_key]);
 		return true;
 	} else {
-		pdo_delete('core_cache', array('key' => $key));
+		unset($GLOBALS['_W']['cache'][$origins_cache_key]);
 		return false;
 	}
 }
+
 
 /**
  * 清空缓存指定前缀或所有数据
  * @param string $prefix
  */
 function cache_clean($prefix = '') {
+	if (!empty($prefix)) {
+		$cache_namespace = cache_namespace($prefix, true);
+		unset($GLOBALS['_W']['cache']);
+		pdo_delete('core_cache', array('key LIKE' => $cache_namespace . '%'));
+		return true;
+	}
 	$memcache = cache_memcache();
 	if (is_error($memcache)) {
 		return $memcache;
 	}
 	if ($memcache->flush()) {
-		unset($_W['cache']);
+		unset($GLOBALS['_W']['cache']);
 		pdo_delete('core_cache');
 		return true;
 	} else {
 		return false;
 	}
+}
+
+/**
+ * Memcache不支持命名空间，自己实现一个
+ * 将key中第一段的值做为命名空间，方便按前缀删除（系统有自己的前缀所以以第一，第二段）
+ * @param string $key
+ * @return mixed
+ */
+function cache_namespace($key, $forcenew = false) {
+	if (!strexists($key, ':')) {
+		$namespace_cache_key = $key;
+	} else {
+		list($key1, $key2) = explode(':', $key);
+		if ($key1 == 'we7') {
+			$namespace_cache_key = $key2;
+		} else {
+			$namespace_cache_key = $key1;
+		}
+	}
+	if (!in_array($namespace_cache_key, array('unimodules', 'user_modules'))) {
+		return $key;
+	}
+	
+	//获取命名空间
+	$namespace_cache_key = 'cachensl:' . $namespace_cache_key;
+	$memcache = cache_memcache();
+	if (is_error($memcache)) {
+		return $memcache;
+	}
+	$namespace = $memcache->get(cache_prefix($namespace_cache_key));
+	if (empty($namespace) || $forcenew) {
+		$namespace = random(5);
+		$memcache->set(cache_prefix($namespace_cache_key), $namespace, MEMCACHE_COMPRESSED, 0);
+	}
+	return $namespace . ':' . $key;
 }
 
 function cache_prefix($key) {

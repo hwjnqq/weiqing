@@ -1,7 +1,7 @@
 <?php
 /**
+ * 
  * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
 $dos = array( 'detail', 'list');
@@ -12,7 +12,7 @@ if($do == 'detail') {
 	$id = intval($_GPC['id']);
 	$news = article_news_info($id);
 	if(is_error($news)) {
-		message('新闻不存在或已删除', referer(), 'error');
+		itoast('新闻不存在或已删除', referer(), 'error');
 	}
 	$_W['page']['title'] = $news['title'] . '-新闻列表';
 }

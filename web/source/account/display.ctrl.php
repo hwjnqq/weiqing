@@ -1,75 +1,44 @@
 <?php
 /**
+ * 切换公众号
  * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/web/source/account/display.ctrl.php : v 3ab687fd5968 : 2015/09/17 03:04:00 : yanghf $
  */
-$_W['page']['title'] = '公众号列表 - 公众号';
-$dos = array('rank', 'package', 'display', 'delete');
+defined('IN_IA') or exit('Access Denied');
+load()->model('user');
+$dos = array('rank', 'display', 'switch');
 $do = in_array($_GPC['do'], $dos)? $do : 'display' ;
-if ($do == 'rank' && $_W['isajax']) {
-	$rank = intval($_GPC['rank']);
+$_W['page']['title'] = '公众号列表 - 公众号';
+
+$state = uni_permission($_W['uid'], $_W['uniacid']);
+//模版调用，显示该用户所在用户组可添加的主公号数量，已添加的数量，还可以添加的数量
+$account_info = uni_user_account_permission();
+
+if($do == 'switch') {
+	$uniacid = intval($_GPC['uniacid']);
+	$role = uni_permission($_W['uid'], $uniacid);
+	if(empty($role)) {
+		itoast('操作失败, 非法访问.', '', 'error');
+	}
+	uni_account_save_switch($uniacid);
+	$module_name = trim($_GPC['module_name']);
+	$version_id = intval($_GPC['version_id']);
+	if (empty($module_name)) {
+		$url = url('home/welcome');
+	} else {
+		$url = url('home/welcome/ext', array('m' => $module_name, 'version_id' => $version_id));
+	}
+	uni_account_switch($uniacid, $url);
+}
+
+if ($do == 'rank' && $_W['isajax'] && $_W['ispost']) {
 	$uniacid = intval($_GPC['id']);
-	$rank = max(0, $rank);
-	$rank = min(5, $rank);
+
 	$exist = pdo_get('uni_account', array('uniacid' => $uniacid));
 	if (empty($exist)) {
-		message(error(1, '公众号不存在'), '', 'ajax');
+		iajax(1, '公众号不存在', '');
 	}
-	if (!empty($_W['isfounder'])) {
-		pdo_update('uni_account', array('rank' => $rank), array('uniacid' => $uniacid));
-	}else {
-		pdo_update('uni_account_users', array('rank' => $rank), array('uniacid' => $uniacid, 'uid' => $_W['uid']));
-	}
-	message(error(0), '', 'ajax');
-}
-if($do == 'package' && $_W['isajax']){
-	$uid = intval($_GPC['uid']);
-	$groupid = trim($_GPC['groupid']);
-	$uniacid = intval($_GPC['uniacid']);
-	$groupname = array();
-	$package = iunserializer(pdo_fetchcolumn('SELECT package FROM '. tablename('users_group') .' WHERE id = :groupid', array(':groupid' => $groupid)));
-	$groups = pdo_getall('uni_group', array(), array(),'id');
-	if(!empty($package)) {
-		$package_str = implode(',', $package);
-		$groupname = pdo_fetchall('SELECT name FROM '. tablename('uni_group'). " WHERE id IN ({$package_str})");
-	}
-	$groupnames = pdo_getall('uni_account_group', array('uniacid' => $uniacid), array(), 'groupid');
-	$groupnames = array_keys($groupnames);
-	foreach ($groupnames as $name) {
-		if ($key == -1) {
-			$groupname[0] = array('name' => '全部服务');
-			break;
-		}
-		if (!empty($groups[$name]['name'])) {
-			$groupname[] = array('name' => $groups[$name]['name']);
-		}
-	}
-	if(!in_array(-1, $package)) {
-		$uniacid = pdo_fetchcolumn('SELECT uniacid FROM '.tablename('uni_account_users')." WHERE uid = :uid AND role = 'owner'",array(':uid' => $uid));
-		$append = pdo_fetch('SELECT modules, templates  FROM '. tablename('uni_group') .' WHERE uniacid = :uniacid', array(':uniacid' => $uniacid));
-		$modules = array();
-		$templates = array();
-		if(!empty($append)) {
-			$modules = iunserializer($append['modules']);
-			if(!empty($modules)) {
-				$str = "'" . implode("', '", $modules) . "'";
-				$modules = pdo_fetchall('SELECT title FROM '. tablename('modules'). " WHERE name IN ($str)");
-			}
-			$templates = iunserializer($append['templates']);
-			if(!empty($templates)) {
-				$condition = implode(',',$templates);
-				$templates = pdo_fetchall('SELECT title FROM '. tablename('site_templates')." WHERE id IN ($condition)");
-			}
-		}
-	} else {
-		$groupname = array(array('name' => '所有服务'));
-	}
-	$data = array(
-		'groupname' => $groupname,
-		'modules' => $modules,
-		'templates' => $templates
-	);
-	message(error(0,$data),'','ajax');
+	uni_account_rank_top($uniacid);
+	iajax(0, '更新成功！', '');
 }
 
 if ($do == 'display') {
@@ -77,104 +46,53 @@ if ($do == 'display') {
 	$psize = 15;
 	$start = ($pindex - 1) * $psize;
 	$condition = '';
-	$pars = array();
+	$param = array();
 	$keyword = trim($_GPC['keyword']);
-	$s_uniacid = intval($_GPC['s_uniacid']);
-	if (!empty($_W['isfounder'])) {
-		$condition .= " WHERE a.default_acid <> 0 AND b.isdeleted <> 1";
-		$order_by = " ORDER BY a.`rank` DESC";
-	} else {
-		$condition .= "LEFT JOIN ". tablename('uni_account_users')." as c ON a.uniacid = c.uniacid WHERE a.default_acid <> 0 AND c.uid = :uid AND b.isdeleted <> 1";
-		$pars[':uid'] = $_W['uid'];
+	if (empty($_W['isfounder']) || user_is_vice_founder()) {
+		$condition .= "LEFT JOIN ". tablename('uni_account_users')." as c ON a.uniacid = c.uniacid WHERE a.default_acid <> 0 AND c.uid = :uid AND b.isdeleted <> 1 AND (b.type = ".ACCOUNT_TYPE_OFFCIAL_NORMAL." OR b.type = ".ACCOUNT_TYPE_OFFCIAL_AUTH.")";
+		$param[':uid'] = $_W['uid'];
 		$order_by = " ORDER BY c.`rank` DESC";
+	} else {
+		$condition .= " WHERE a.default_acid <> 0 AND b.isdeleted <> 1 AND (b.type = ".ACCOUNT_TYPE_OFFCIAL_NORMAL." OR b.type = ".ACCOUNT_TYPE_OFFCIAL_AUTH.")";
+		$order_by = " ORDER BY a.`rank` DESC";
 	}
 	if(!empty($keyword)) {
 		$condition .=" AND a.`name` LIKE :name";
-		$pars[':name'] = "%{$keyword}%";
+		$param[':name'] = "%{$keyword}%";
 	}
-	if(!empty($s_uniacid)) {
-		$condition .=" AND a.`uniacid` = :uniacid";
-		$pars[':uniacid'] = $s_uniacid;
+	if(isset($_GPC['letter']) && strlen($_GPC['letter']) == 1) {
+		$letter = trim($_GPC['letter']);
+		if(!empty($letter)){
+			$condition .= " AND a.`title_initial` = :title_initial";
+			$param[':title_initial'] = $letter;
+		}else {
+			$condition .= " AND a.`title_initial` = ''";
+		}
 	}
 
-	if(!empty($_GPC['expiretime'])) {
-		$expiretime = intval($_GPC['expiretime']);
-		$condition .= " AND a.`uniacid` IN(SELECT uniacid FROM " .tablename('uni_account_users') . " WHERE role = 'owner' AND uid IN (SELECT uid FROM " .tablename('users'). " WHERE endtime > :time AND endtime < :endtime))";
-		$pars[':time'] = time();
-		$pars[':endtime'] = strtotime(date('Y-m-d', time()+86400*($expiretime+2)));
-	}
-	if ($_GPC['type'] == '3') {
-		$condition .= " AND b.type = 3";
-	} elseif($_GPC['type'] == '1') {
-		$condition .= " AND b.type <> 3";
-	}
-	$tsql = "SELECT COUNT(*) FROM " . tablename('uni_account'). " as a LEFT JOIN". tablename('account'). " as b ON a.default_acid = b.acid {$condition} {$order_by}, a.`uniacid` DESC";
-	$total = pdo_fetchcolumn($tsql, $pars);
-	$sql = "SELECT * FROM ". tablename('uni_account'). " as a LEFT JOIN". tablename('account'). " as b ON a.default_acid = b.acid  {$condition} {$order_by}, a.`uniacid` DESC LIMIT {$start}, {$psize}";
-	$pager = pagination($total, $pindex, $psize);
-	$list = pdo_fetchall($sql, $pars);
+	$tsql = "SELECT COUNT(*) FROM " . tablename('uni_account'). " as a LEFT JOIN". tablename('account'). " as b ON a.uniacid = b.uniacid AND a.default_acid = b.acid {$condition} {$order_by}, a.`uniacid` DESC";
+	$total = pdo_fetchcolumn($tsql, $param);
+	$sql = "SELECT * FROM ". tablename('uni_account'). " as a LEFT JOIN". tablename('account'). " as b ON a.uniacid = b.uniacid AND a.default_acid = b.acid  {$condition} {$order_by}, a.`uniacid` DESC LIMIT {$start}, {$psize}";
+	$list = pdo_fetchall($sql, $param);
 	if(!empty($list)) {
-		foreach($list as $unia => &$account) {
+		foreach($list as &$account) {
+			$account['url'] = url('account/display/switch', array('uniacid' => $account['uniacid']));
 			$account['details'] = uni_accounts($account['uniacid']);
+			if(!empty($account['details'])) {
+				foreach ($account['details'] as  &$account_val) {
+					$account_val['thumb'] = tomedia('headimg_'.$account_val['acid']. '.jpg').'?time='.time();
+				}
+			}
 			$account['role'] = uni_permission($_W['uid'], $account['uniacid']);
 			$account['setmeal'] = uni_setmeal($account['uniacid']);
+
 		}
+		unset($account_val);
+		unset($account);
 	}
-
-
-	// 用户点击 '授权登录添加公众号'，判断公共号最大个数限制
-	if (!$_W['isfounder']) {
-		$stat = user_account_permission();
-		$max_tsql = "SELECT COUNT(*) FROM " . tablename('uni_account'). " as a LEFT JOIN". tablename('account'). " as b ON a.default_acid = b.acid LEFT JOIN ". tablename('uni_account_users')." as c ON a.uniacid = c.uniacid WHERE a.default_acid <> 0 AND c.uid = :uid AND b.isdeleted <> 1";
-		$max_pars[':uid'] = $_W['uid'];
-		$max_total = pdo_fetchcolumn($max_tsql, $max_pars);
-		$maxaccount = pdo_fetchcolumn('SELECT `maxaccount` FROM '. tablename('users_group') .' WHERE id = :groupid', array(':groupid' => $_W['user']['groupid']));
-		if($max_total >= $maxaccount) {
-			$authurl = "javascript:alert('您所在会员组最多只能添加 {$maxaccount} 个公众号');";
-		}
-	} 
-	if (empty($authurl) && !empty($_W['setting']['platform']['authstate'])) {
-		load()->classs('weixin.platform');
-		$account_platform = new WeiXinPlatform();
-		$authurl = $account_platform->getAuthLoginUrl();
+	if ($_W['isajax'] && $_W['ispost']) {
+		iajax(0, $list);
 	}
 }
-if ($do == 'delete') {
-	load()->func('file');
-	$uniacid = intval($_GPC['uniacid']);
-	$acid = intval($_GPC['acid']);
-	if (!empty($acid) && empty($uniacid)) {
-		$account = account_fetch($acid);
-		if (empty($account)) {
-			message('子公众号不存在或是已经被删除');
-		}
-		$state = uni_permission($uid, $uniacid);
-		if($state != 'founder' && $state != 'manager') {
-			message('没有该公众号操作权限！', url('accound/display'), 'error');
-		}
-		$uniaccount = uni_fetch($account['uniacid']);
-		if ($uniaccount['default_acid'] == $acid) {
-			message('默认子公众号不能删除');
-		}
-		pdo_update('account', array('isdeleted' => 1), array('acid' => $acid));
-		message('删除子公众号成功！您可以在回收站中回复公众号', referer(), 'success');
-	}
-	if (!empty($uniacid)) {
-		$account = pdo_fetch("SELECT * FROM ".tablename('uni_account')." WHERE uniacid = :uniacid", array(':uniacid' => $uniacid));
-		if (empty($account)) {
-			message('抱歉，帐号不存在或是已经被删除', url('account/display'), 'error');
-		}
-		$state = uni_permission($uid, $uniacid);
-		if($state != 'founder' && $state != 'manager') {
-			message('没有该公众号操作权限！', url('accound/display'), 'error');
-		}
-		pdo_update('account', array('isdeleted' => 1), array('uniacid' => $uniacid));
-		if($_GPC['uniacid'] == $_W['uniacid']) {
-			isetcookie('__uniacid', '');
-		}
-		cache_delete("unicount:{$uniacid}");
-		cache_delete("unisetting:{$uniacid}");
-	}
-	message('公众帐号信息删除成功！，您可以在回收站中回复公众号', url('account/display'), 'success');
-}
+
 template('account/display');

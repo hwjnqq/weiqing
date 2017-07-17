@@ -5,15 +5,16 @@
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('app');
+load()->func('tpl');
+
 $title = $_W['account']['name'] . '微站';
 $dos = array('index', 'editprofile', 'personal_info', 'contact_method', 'education_info', 'jobedit', 'avatar', 'address', 'addressadd');
 $do = in_array($do, $dos) ? $do : 'index';
 $navs = app_navs('profile');
-load()->func('tpl');
 $profile = mc_fetch($_W['member']['uid']);
 //如果有openid,获取从公众平台同步的用户信息
 if(!empty($_W['openid'])) {
-	$map_fans = pdo_fetchcolumn('SELECT tag FROM ' . tablename('mc_mapping_fans') . ' WHERE uniacid = :uniacid AND openid = :openid', array(':uniacid' => $_W['uniacid'], ':openid' => $_W['openid']));
+	$map_fans = pdo_getcolumn('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'openid' => $_W['openid']), 'tag');
 	if(!empty($map_fans)) {
 		if (is_base64($map_fans)){
 			$map_fans = base64_decode($map_fans);
@@ -23,7 +24,7 @@ if(!empty($_W['openid'])) {
 		}
 		if(!empty($map_fans) && is_array($map_fans)) {
 			//如果用户的资料中有这些信息,以用户的信息为准
-			empty($profile['nickname']) ? ($data['nickname'] = $map_fans['nickname']) : '';
+			empty($profile['nickname']) ? ($data['nickname'] = strip_emoji($map_fans['nickname'])) : '';
 			empty($profile['gender']) ? ($data['gender'] = $map_fans['sex']) : '';
 			empty($profile['residecity']) ? ($data['residecity'] = ($map_fans['city']) ? $map_fans['city'] . '市' : '') : '';
 			empty($profile['resideprovince']) ? ($data['resideprovince'] = ($map_fans['province']) ? $map_fans['province'] . '省' : '') : '';
@@ -83,7 +84,7 @@ if ($do == 'address') {
 	if ($_GPC['op'] == 'default') {
 		pdo_update('mc_member_address', array('isdefault' => 0), array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
 		pdo_update('mc_member_address', array('isdefault' => 1), array('id' => $_GPC['id']));
-		pdo_update('mc_members',  array('address' => $_GPC['address']),  array('uid' =>  $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
+		mc_update($_W['member']['uid'], array('address' => $_GPC['address']));
 	}
 	if ($_GPC['op'] == 'delete') {
 		pdo_delete('mc_member_address', array('id' => $_GPC['id']));
@@ -150,7 +151,7 @@ if ($do == 'addressadd') {
 			$adres = pdo_get('mc_member_address', array('uniacid' => $_W['uniacid'], 'uid' => $address['uid'], 'isdefault'=> 1));
 			if (!empty($adres)) {
 				$adres['address'] = $adres['province'].$adres['city'].$adres['district'].$adres['address'];
-				pdo_update('mc_members', array('address' => $adres['address']), array('uid' => $address['uid']));
+				mc_update($address['uid'], array('address' => $adres['address']));
 			}
 			message('地址添加成功', url('mc/profile/address'), 'success');
 		}

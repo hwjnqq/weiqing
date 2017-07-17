@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/web/source/user/__init.php : v 11b5f8a4d66a : 2014/05/29 03:01:21 : RenChao $
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
-
-define('IN_GW', true);
+defined('IN_IA') or exit('Access Denied');
+define('FRAME', 'system');

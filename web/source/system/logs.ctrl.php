@@ -1,11 +1,13 @@
 <?php 
 /**
- * 站点相关操作
+ * 查看日志
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
+
 $dos = array('wechat', 'system', 'database','sms');
 $do = in_array($do, $dos) ? $do : 'wechat';
+$_W['page']['title'] = '查看日志  - 系统管理';
 
 $params = array();
 $where  = '';
@@ -29,7 +31,7 @@ if ($do == 'wechat') {
 		$searchtime = date('Ymd', time()) . '.log';
 	}
 	$tree = array();
-	foreach ($files as $key=>$file) {
+	foreach ($files as $key => $file) {
 		if (!preg_match('/\/[0-9]+\.log/', $file)) {
 			continue;
 		}
@@ -49,7 +51,7 @@ if ($do == 'system') {
 	$where .= " WHERE `type` = '1'";
 	$sql = 'SELECT * FROM ' . tablename('core_performance') . " $where $timewhere $order LIMIT " . ($pindex - 1) * $psize .','. $psize;
 	$list = pdo_fetchall($sql, $params);
-	foreach ($list as $key=>$value) {
+	foreach ($list as $key => $value) {
 		$list[$key]['type'] = '系统日志';
 		$list[$key]['createtime'] = date('Y-m-d H:i:s', $value['createtime']);
 	}
@@ -66,7 +68,7 @@ if ($do == 'database') {
 	$where .= " WHERE `type` = '2'";
 	$sql = 'SELECT * FROM ' . tablename('core_performance') . " $where $timewhere $order LIMIT " . ($pindex - 1) * $psize .','. $psize;
 	$list = pdo_fetchall($sql, $params);
-	foreach ($list as $key=>$value) {
+	foreach ($list as $key => $value) {
 		$list[$key]['type'] = '数据库日志';
 		$list[$key]['createtime'] = date('Y-m-d H:i:s', $value['createtime']);
 	}
@@ -74,6 +76,8 @@ if ($do == 'database') {
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('core_performance'). $where . $timewhere , $params);
 	$pager = pagination($total, $pindex, $psize);
 }
+
+//短信发送日志
 if ($do == 'sms') {
 	if (!empty($_GPC['mobile'])) {
 		$timewhere .= ' AND `mobile` LIKE :mobile ';
@@ -82,9 +86,10 @@ if ($do == 'sms') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 40;
 	$params[':uniacid'] = $_W['uniacid'];
-	$list = pdo_fetchall("SELECT * FROM". tablename('core_sendsms_log'). " WHERE uniacid = :uniacid ". $timewhere. " ORDER BY id DESC LIMIT ". ($pindex-1)*$psize . ','. $psize, $params);
+	$sql = "SELECT * FROM". tablename('core_sendsms_log'). " WHERE uniacid = :uniacid ". $timewhere. " ORDER BY id DESC LIMIT ". ($pindex-1)*$psize . ','. $psize;
+	$list = pdo_fetchall($sql, $params);
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM". tablename('core_sendsms_log'). " WHERE uniacid = :uniacid". $timewhere, $params);
 	$pager = pagination($total, $pindex, $psize);
 }
-
+ 
 template('system/logs');

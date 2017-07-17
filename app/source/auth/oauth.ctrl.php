@@ -165,7 +165,6 @@ if ($scope == 'userinfo') {
 			$record['nickname'] = stripslashes($userinfo['nickname']);
 			$record['tag'] = base64_encode(iserializer($userinfo));
 			pdo_update('mc_mapping_fans', $record, array('openid' => $fan['openid'], 'acid' => $_W['acid'], 'uniacid' => $_W['uniacid']));
-
 			if (!empty($fan['uid']) || !empty($_SESSION['uid'])) {
 				$uid = $fan['uid'];
 				if(empty($uid)){
@@ -192,7 +191,7 @@ if ($scope == 'userinfo') {
 					$record['avatar'] = $userinfo['headimgurl'];
 				}
 				if(!empty($record)) {
-					pdo_update('mc_members', $record, array('uid' => intval($user['uid'])));
+					mc_update($user['uid'], $record);
 				}
 			}
 		} else {

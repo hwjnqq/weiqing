@@ -5,8 +5,8 @@
 			<div class="setting"><a href="{php echo url('mc/bond/settings') . 'wxref=mp.weixin.qq.com#wechat_redirect'}">设 置</a></div>
 			<img src="{php echo tomedia($profile['avatar']);}" alt="" class="mui-logo mui-img-circle" />
 			<div class="mui-banner-info">
-				<div class="mui-big">{if !empty($profile['nickname'])}{$profile['nickname']}{else}<a href="{php echo url('mc/profile') . 'wxref=mp.weixin.qq.com#wechat_redirect'}" style="color:red;">设置昵称</a>{/if}</div>
-				<div class="mui-mt5">{if !empty($profile['mobile'])}{$profile['mobile']}{else}<a href="{php echo url('mc/bond/mobile', array('op' => 'mobilechange'))}" class="mui-btn mui-btn-outlined">绑定手机</a>{/if}</div>
+				<div class="mui-big">{if !empty($profile['nickname'])}<span style="color:white">{$profile['nickname']}</span>{else}<a href="{php echo url('mc/profile') . 'wxref=mp.weixin.qq.com#wechat_redirect'}" style="color:red;">设置昵称</a>{/if}</div>
+				<div class="mui-mt5">{if !empty($profile['mobile'])}<span style="color:white">{$profile['mobile']}</span>{else}<a href="{php echo url('mc/bond/mobile', array('op' => 'mobilechange'))}" class="mui-btn mui-btn-outlined">绑定手机</a>{/if}</div>
 			</div>
 			<div class="mui-row banner-nav">
 				<div class="mui-col-xs-6 mui-text-center">

@@ -26,7 +26,7 @@
 	<ul class="mui-table-view ">
 		{if !empty($token)}
 		<li class="mui-table-view-cell mui-table-view-chevron">
-			<a href="#pay-select-token-modal" class="mui-navigate-right js-token">
+			<a href="javascript:;" class="mui-navigate-right js-token">
 				代金券
 				{if !empty($token)}
 				<span class="used-num">{php echo count($token);}张可用</span>
@@ -39,7 +39,7 @@
 		{/if}
 		{if !empty($coupon)}
 		<li class="mui-table-view-cell mui-table-view-chevron">
-			<a href="#pay-select-coupon-modal" class="mui-navigate-right js-coupon">
+			<a href="javascript:;" class="mui-navigate-right js-coupon">
 				折扣券
 				{if !empty($coupon)}
 				<span class="used-num">{php echo count($coupon);}张可用</span>
@@ -171,7 +171,7 @@
 {if !empty($cards)}
 <div id="pay-select-coupon-modal" class="mui-modal">
 	<header class="mui-bar mui-bar-nav">
-		<a class="mui-icon mui-icon-close mui-pull-right" href="#pay-select-coupon-modal"></a>
+		<a class="mui-icon mui-icon-close mui-pull-right" href="javascript:;"></a>
 		<h1 class="mui-title">请选择卡券</h1>
 	</header>
 	<nav class="mui-bar mui-bar-footer">
@@ -218,7 +218,7 @@
 
 <div id="pay-select-token-modal" class="mui-modal">
 	<header class="mui-bar mui-bar-nav">
-		<a class="mui-icon mui-icon-close mui-pull-right" href="#pay-select-token-modal"></a>
+		<a class="mui-icon mui-icon-close mui-pull-right" href="javascript:;"></a>
 		<h1 class="mui-title">请选择卡券</h1>
 	</header>
 	<nav class="mui-bar mui-bar-footer">
@@ -292,6 +292,16 @@
 	} else {
 		cards_str = {};
 	}
+	$(document).on('click', '.js-coupon', function() {
+		$('#pay-select-coupon-modal').addClass('mui-active');
+	});
+	$(document).on('click', '.js-token', function() {
+		$('#pay-select-token-modal').addClass('mui-active');
+	});
+	$(document).on('click', '.mui-icon-close', function() {
+		$('#pay-select-coupon-modal').removeClass('mui-active');
+		$('#pay-select-token-modal').removeClass('mui-active');
+	});
 	$(document).on('click', '.js-submit', function() {
 		var checked_card = $('input[name="couponid"]').val();
 		var price = $('.js-need-pay').data('price');

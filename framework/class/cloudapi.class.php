@@ -14,6 +14,7 @@ class CloudApi {
 	private $development = false;
 	private $module = null;
 	private $sys_call = false;
+	private $default_token = '91ec1f9324753048c0096d036a694f86';
 	
 	const ACCESS_TOKEN_EXPIRE_IN = 7200;
 	
@@ -46,7 +47,7 @@ class CloudApi {
 	private function developerCerContent(){
 		$cer = $this->getCerContent('developer.cer');
 		if (is_error($cer)) {
-			return error(1, '访问云API获取授权失败,模块中没有开发者数字证书,请到 <a href="http://s.we7.cc/index.php?c=develop&a=auth" target="_blank">开发者中心</a> 下载数字证书!');;
+			return error(1, '访问云API获取授权失败,模块中没有开发者数字证书,请到 <a href="http://s.we7.cc/index.php?c=develop&a=auth" target="_blank">开发者中心</a> 下载数字证书!');
 		}
 		
 		return $cer;
@@ -71,7 +72,7 @@ class CloudApi {
 			$pars = _cloud_build_params();
 			$pars['method'] = 'api.oauth';
 			$pars['module'] = $this->module;
-			$data = cloud_request('http://s.we7.cc/gateway.php', $pars);
+			$data = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
 			if (is_error($data)) {
 				return $data;
 			}
@@ -83,13 +84,18 @@ class CloudApi {
 		
 		$cer = $this->getCerContent($cer_filename);
 		if (is_error($cer)) {
-			return error(1, '访问云API获取授权失败,模块中未发现数字证书(module.cer).');;
+			return error(1, '访问云API获取授权失败,模块中未发现数字证书(module.cer).');
 		}
 		
 		return $cer;
 	}
 	
 	private function systemCerContent(){
+		global $_W;
+		if (empty($_W['setting']['site'])) {
+			return $this->default_token;
+		}
+		
 		$cer_filename = 'module.cer';
 		$cer_filepath = IA_ROOT.'/framework/builtin/core/module.cer';
 		
@@ -110,7 +116,7 @@ class CloudApi {
 			$pars = _cloud_build_params();
 			$pars['method'] = 'api.oauth';
 			$pars['module'] = $this->module;
-			$data = cloud_request('http://s.we7.cc/gateway.php', $pars);
+			$data = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
 			if (is_error($data)) {
 				return $data;
 			}
@@ -119,12 +125,15 @@ class CloudApi {
 				return $data;
 			}
 		}
-		$cer = file_get_contents($cer_filepath);
-		if (is_error($cer)) {
-			return error(1, '访问云API获取授权失败,模块中未发现数字证书(module.cer).');;
+		if (is_file($cer_filepath)) {
+			$cer = file_get_contents($cer_filepath);
+			if (is_error($cer)) {
+				return error(1, '访问云API获取授权失败,模块中未发现数字证书(module.cer).');
+			}
+			return $cer;
+		} else {
+			return $this->default_token;
 		}
-		
-		return $cer;
 	}
 	
 	private function deleteModuleCer() {
@@ -221,9 +230,15 @@ class CloudApi {
 		}
 		
 		$ihttp_options = array();
-		$cookiejar = $response['headers']['Set-Cookie'];
+		if ($response['headers'] && $response['headers']['Set-Cookie']) {
+			$cookiejar = $response['headers']['Set-Cookie'];
+		}
 		if (!empty($cookiejar)) {
-			$ihttp_options['CURLOPT_COOKIE'] = implode('; ', $cookiejar);
+			if (is_array($cookiejar)) {
+				$ihttp_options['CURLOPT_COOKIE'] = implode('; ', $cookiejar);
+			} else {
+				$ihttp_options['CURLOPT_COOKIE'] = $cookiejar;
+			}
 		}
 		
 		$response = ihttp_request($url, array(), $ihttp_options);
@@ -247,9 +262,15 @@ class CloudApi {
 		}
 		
 		$ihttp_options = array();
-		$cookiejar = $response['headers']['Set-Cookie'];
+		if ($response['headers'] && $response['headers']['Set-Cookie']) {
+			$cookiejar = $response['headers']['Set-Cookie'];
+		}
 		if (!empty($cookiejar)) {
-			$ihttp_options['CURLOPT_COOKIE'] = implode('; ', $cookiejar);
+			if (is_array($cookiejar)) {
+				$ihttp_options['CURLOPT_COOKIE'] = implode('; ', $cookiejar);
+			} else {
+				$ihttp_options['CURLOPT_COOKIE'] = $cookiejar;
+			}
 		}
 		
 		$response = ihttp_request($url, $post_params, $ihttp_options);

@@ -10,18 +10,31 @@ class WeiXinPay extends pay{
 		global $_W;
 		$setting = uni_setting($_W['uniacid']);
 		$wxpay = $setting['payment']['wechat'];
-		$this->wxpay = array(
-			'appid' => $_W['account']['key'],
-			'mch_id' => $wxpay['mchid'],
-			'key' => $wxpay['apikey'],
-			'notify_url' => $_W['siteroot'] . 'payment/wechat/notify.php',
-		);
+		if (intval($wxpay['switch']) == 3) {
+			$oauth_account = uni_setting($wxpay['service'], array('payment'));
+			$oauth_acid = pdo_getcolumn('uni_account', array('uniacid' => $wxpay['service']), 'default_acid');
+			$oauth_appid = pdo_getcolumn('account_wechats', array('acid' => $oauth_acid), 'key');
+			$this->wxpay = array(
+				'appid' => $oauth_appid,
+				'mch_id' => $oauth_account['payment']['wechat_facilitator']['mchid'],
+				'sub_mch_id' => $wxpay['sub_mch_id'],
+				'key' => $oauth_account['payment']['wechat_facilitator']['signkey'],
+				'notify_url' => $_W['siteroot'] . 'payment/wechat/notify.php',
+			);
+		} else {
+			$this->wxpay = array(
+				'appid' => $_W['account']['key'],
+				'mch_id' => $wxpay['mchid'],
+				'key' => $wxpay['apikey'],
+				'notify_url' => $_W['siteroot'] . 'payment/wechat/notify.php',
+			);
+		}
 	}
 
 	public function array2url($params, $force = false) {
 		$str = '';
 		foreach($params as $key => $val) {
-			if($force && empty($val)) {
+			if($force && empty($val) || is_array($val)) {
 				continue;
 			}
 			$str .= "{$key}={$val}&";
@@ -30,10 +43,10 @@ class WeiXinPay extends pay{
 		return $str;
 	}
 
-	public function bulidSign($params) {
+	public function bulidSign($params, $refund = false) {
 		unset($params['sign']);
 		ksort($params);
-		$string = $this->array2url($params, true);
+		$string = $this->array2url($params, $refund == true ? false : true);
 		$string = $string . "&key={$this->wxpay['key']}";
 		$string = md5($string);
 		$result = strtoupper($string);
@@ -43,7 +56,7 @@ class WeiXinPay extends pay{
 	/*
 	 * 解析微信返回的xml
 	 */
-	public function parseResult($result) {
+	public function parseResult($result, $refund = false) {
 		if(substr($result, 0 , 5) != "<xml>"){
 			return $result;
 		}
@@ -55,7 +68,7 @@ class WeiXinPay extends pay{
 			$msg = empty($result['return_msg']) ? $result['err_code_des'] : $result['return_msg'];
 			return error(-1, $msg);
 		}
-		if($this->bulidsign($result) != $result['sign']) {
+		if($this->bulidsign($result, $refund) != $result['sign']) {
 			return error(-1, '验证签名出错');
 		}
 		return $result;
@@ -188,10 +201,14 @@ class WeiXinPay extends pay{
 		}
 		$uniontid = $params['uniontid'];
 		unset($params['uniontid']);
+
 		$params['appid'] = $this->wxpay['appid'];
 		$params['mch_id'] = $this->wxpay['mch_id'];
 		$params['spbill_create_ip'] = CLIENT_IP;
 		$params['nonce_str'] = random(32);
+		if (!empty($this->wxpay['sub_mch_id'])) {
+			$params['sub_mch_id'] = $this->wxpay['sub_mch_id'];
+		}
 		$params['sign'] = $this->bulidSign($params);
 		$result = $this->httpWxurl('https://api.mch.weixin.qq.com/pay/micropay', $params);
 		if(is_error($result)) {
@@ -424,6 +441,7 @@ EOF;
 			'bill_date' => $date,
 			'bill_type' => $type
 		);
+
 		$params['sign'] = $this->bulidSign($params);
 		$result = $this->httpWxurl('https://api.mch.weixin.qq.com/pay/downloadbill', $params);
 		return $result;
@@ -447,5 +465,20 @@ EOF;
 		return $result;
 	}
 
-
+	/*
+	 * 申请退款
+	 * $params 退款参数
+	 * */
+	public function refund($params) {
+		global $_W;
+		load()->func('communication');
+		$params['sign'] = $this->bulidSign($params);
+		$params = array2xml($params);
+		$result = ihttp_request('https://api.mch.weixin.qq.com/secapi/pay/refund', $params, array(CURLOPT_SSLCERT => ATTACHMENT_ROOT . $_W['uniacid'] . '_wechat_refund_all.pem'));
+		if (is_error($result)) {
+			return $result;
+		}
+		$result = $this->parseResult($result['content'], true);
+		return $result;
+	}
 }

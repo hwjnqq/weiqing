@@ -1,13 +1,12 @@
 <?php
 /**
  * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
  */
 load()->func('communication');
 load()->model('cloud');
-$r = cloud_prepare();
-if (is_error($r)) {
-	message($r['message'], url('cloud/profile'), 'error');
+$prepare = cloud_prepare();
+if (is_error($prepare)) {
+	itoast($prepare['message'], url('cloud/profile'), 'error');
 }
 
 $step = $_GPC['step'];
@@ -15,8 +14,7 @@ $steps = array('files', 'schemas', 'scripts');
 $step = in_array($step, $steps) ? $step : 'files';
 
 if ($step == 'files' && $_W['ispost']) {
-	$post = $_GPC['__input'];
-	$ret = cloud_download($post['path'], $post['type']);
+	$ret = cloud_download($_GPC['path'], $_GPC['type']);
 	if (!is_error($ret)) {
 		exit('success');
 	}
@@ -24,8 +22,7 @@ if ($step == 'files' && $_W['ispost']) {
 }
 
 if ($step == 'scripts' && $_W['ispost']) {
-	$post = $_GPC['__input'];
-	$fname = $post['fname'];
+	$fname = trim($_GPC['fname']);
 	$entry = IA_ROOT . '/data/update/' . $fname;
 	if (is_file($entry) && preg_match('/^update\(\d{12}\-\d{12}\)\.php$/', $fname)) {
 		$evalret = include $entry;
@@ -50,11 +47,11 @@ if (!empty($_GPC['m'])) {
 	$is_upgrade = intval($_GPC['is_upgrade']);
 	$packet = cloud_t_build($_GPC['t']);
 } else {
+	$m = '';
 	$packet = cloud_build();
 }
 if ($step == 'schemas' && $_W['ispost']) {
-	$post = $_GPC['__input'];
-	$tablename = $post['table'];
+	$tablename = $_GPC['table'];
 	foreach ($packet['schemas'] as $schema) {
 		if (substr($schema['tablename'], 4) == $tablename) {
 			$remote = $schema;
@@ -79,7 +76,6 @@ if ($step == 'schemas' && $_W['ispost']) {
 	}
 	exit;
 }
-
 if (!empty($packet) && (!empty($packet['upgrade']) || !empty($packet['install']))) {
 	$schemas = array();
 	if (!empty($packet['schemas'])) {
@@ -123,11 +119,11 @@ DAT;
 	}
 } else {
 	if (is_error($packet)) {
-		message($packet['message'], '', 'error');
+		itoast($packet['message'], '', 'error');
 	} else {
 		cache_delete('checkupgrade:system');
 		cache_delete('cloud:transtoken');
-		message('更新已完成. ', url('cloud/upgrade'), 'info');
+		itoast('更新已完成. ', url('cloud/upgrade'), 'info');
 	}
 }
 template('cloud/process');

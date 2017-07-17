@@ -6,4 +6,5 @@
  * account 所有操作在GW界面进行
  */
 
-define('IN_GW', true);
+defined('IN_IA') or exit('Access Denied');
+define('FRAME', 'system');

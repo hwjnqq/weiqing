@@ -1,7 +1,7 @@
 <?php 
 /**
+ * 登录验证码
  * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
 error_reporting(0);

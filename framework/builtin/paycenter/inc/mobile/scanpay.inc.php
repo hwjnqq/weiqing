@@ -59,7 +59,7 @@ if($op == 'detail') {
 	$id = intval($_GPC['id']);
 	$order = pdo_get('paycenter_order', array('uniacid' => $_W['uniacid'], 'id' => $id));
 	if(empty($order)) {
-		message('订单不存在');
+		message('订单不存在', '', '');
 	} else {
 		$store_id = $order['store_id'];
 		$types = paycenter_order_types();

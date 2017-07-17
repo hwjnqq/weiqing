@@ -36,7 +36,7 @@ class DB {
 		if(empty($cfg)) {
 			exit("The master database is not found, Please checking 'data/config.php'");
 		}
-		$dsn = "mysql:dbname={$cfg['database']};host={$cfg['host']};port={$cfg['port']}";
+		$dsn = "mysql:dbname={$cfg['database']};host={$cfg['host']};port={$cfg['port']};charset={$cfg['charset']}";
 		$dbclass = '';
 		$options = array();
 		if (class_exists('PDO')) {
@@ -54,6 +54,8 @@ class DB {
 			$dbclass = 'PDO';
 		}
 		$this->pdo = new $dbclass($dsn, $cfg['username'], $cfg['password'], $options);
+		$this->pdo->setAttribute(pdo::ATTR_EMULATE_PREPARES, false);
+
 		$sql = "SET NAMES '{$cfg['charset']}';";
 		$this->pdo->exec($sql);
 		$this->pdo->exec("SET sql_mode='';");
@@ -69,10 +71,21 @@ class DB {
 	}
 
 	public function prepare($sql) {
+		$sqlsafe = SqlChecker::checkquery($sql);
+		if (is_error($sqlsafe)) {
+			trigger_error($sqlsafe['message'], E_USER_ERROR);
+			return false;
+		}
 		$statement = $this->pdo->prepare($sql);
+		if(PDO_DEBUG) {
+			$info = array();
+			$info['sql'] = $sql;
+			$info['error'] = $this->pdo->errorInfo();
+			$this->debug(false, $info);
+		}
 		return $statement;
 	}
-	
+
 	/**
 	 * 执行一条非查询语句
 	 *
@@ -83,6 +96,15 @@ class DB {
 	 *		  失败返回FALSE
 	 */
 	public function query($sql, $params = array()) {
+		$sqlsafe = SqlChecker::checkquery($sql);
+		if (is_error($sqlsafe)) {
+			trigger_error($sqlsafe['message'], E_USER_ERROR);
+			return false;
+		}
+		//为了不影响 last insertid 把缓存提前执行，可能插入失败后也会清空缓存
+		if (in_array(strtolower(substr($sql, 0, 6)), array('update', 'delete', 'insert', 'replac'))) {
+			$this->cacheNameSpace($sql, true);
+		}
 		$starttime = microtime();
 		if (empty($params)) {
 			$result = $this->pdo->exec($sql);
@@ -108,10 +130,6 @@ class DB {
 		if (!$result) {
 			return false;
 		} else {
-			//更新成功后，清空缓存
-			if (in_array(strtolower(substr($sql, 0, 6)), array('update', 'delete', 'insert', 'replac'))) {
-				$this->cacheNameSpace($sql, true);
-			}
 			return $statement->rowCount();
 		}
 	}
@@ -149,7 +167,7 @@ class DB {
 			return $data;
 		}
 	}
-	
+
 	/**
 	 * 执行SQL返回第一行
 	 *
@@ -229,74 +247,32 @@ class DB {
 			return $result;
 		}
 	}
-	
-	public function get($tablename, $params = array(), $fields = array()) {
-		$select = '*';
-		if (!empty($fields)){
-			if (is_array($fields)) {
-				$select = '`'.implode('`,`', $fields).'`';
-			} else {
-				$select = $fields;
-			}
-		}
+
+	public function get($tablename, $params = array(), $fields = array(), $orderby = array()) {
+		$select = $this->parseSelect($fields);
 		$condition = $this->implode($params, 'AND');
-		$sql = "SELECT {$select} FROM " . $this->tablename($tablename) . (!empty($condition['fields']) ? " WHERE {$condition['fields']}" : '') . " LIMIT 1";
+		$orderbysql = $this->parseOrderby($orderby);
+
+		$sql = "SELECT {$select} FROM " . $this->tablename($tablename) . (!empty($condition['fields']) ? " WHERE {$condition['fields']}" : '') . " $orderbysql LIMIT 1";
 		return $this->fetch($sql, $condition['params']);
 	}
-	
+
 	public function getall($tablename, $params = array(), $fields = array(), $keyfield = '', $orderby = array(), $limit = array()) {
-		$select = '*';
-		if (!empty($fields)){
-			if (is_array($fields)) {
-				$select = '`'.implode('`,`', $fields).'`';
-			} else {
-				$select = $fields;
-			}
-		}
+		$select = $this->parseSelect($fields);
 		$condition = $this->implode($params, 'AND');
-		
-		if (!empty($limit)) {
-			if (is_array($limit)) {
-				if (count($limit) == 1) {
-					$limitsql = " LIMIT " . $limit[0];
-				} else {
-					$limitsql = " LIMIT " . ($limit[0] - 1) * $limit[1] . ', ' . $limit[1];
-				}
-			} else {
-				$limitsql = strexists(strtoupper($limit), 'LIMIT') ? " $limit " : " LIMIT $limit";
-			}
-		}
-		
-		if (!empty($orderby)) {
-			if (is_array($orderby)) {
-				$orderbysql = implode(',', $orderby);
-			} else {
-				$orderbysql = $orderby;
-			}
-		}
-		
-		$sql = "SELECT {$select} FROM " .$this->tablename($tablename) . (!empty($condition['fields']) ? " WHERE {$condition['fields']}" : '') . (!empty($orderbysql) ? " ORDER BY $orderbysql " : '') . $limitsql;
+
+		$limitsql = $this->parseLimit($limit);
+		$orderbysql = $this->parseOrderby($orderby);
+
+		$sql = "SELECT {$select} FROM " .$this->tablename($tablename) . (!empty($condition['fields']) ? " WHERE {$condition['fields']}" : '') . $orderbysql . $limitsql;
 		return $this->fetchall($sql, $condition['params'], $keyfield);
 	}
-	
+
 	public function getslice($tablename, $params = array(), $limit = array(), &$total = null, $fields = array(), $keyfield = '', $orderby = array()) {
-		$select = '*';
-		if (!empty($fields)){
-			if (is_array($fields)) {
-				$select = '`'.implode('`,`', $fields).'`';
-			} else {
-				$select = $fields;
-			}
-		}
+		$select = $this->parseSelect($fields);
 		$condition = $this->implode($params, 'AND');
-		if (!empty($limit)) {
-			if (is_array($limit)) {
-				$limitsql = " LIMIT " . ($limit[0] - 1) * $limit[1] . ', ' . $limit[1];
-			} else {
-				$limitsql = strexists(strtoupper($limit), 'LIMIT') ? " $limit " : " LIMIT $limit";
-			}
-		}
-		
+		$limitsql = $this->parseLimit($limit);
+
 		if (!empty($orderby)) {
 			if (is_array($orderby)) {
 				$orderbysql = implode(',', $orderby);
@@ -304,16 +280,19 @@ class DB {
 				$orderbysql = $orderby;
 			}
 		}
-		
 		$sql = "SELECT {$select} FROM " . $this->tablename($tablename) . (!empty($condition['fields']) ? " WHERE {$condition['fields']}" : '') . (!empty($orderbysql) ? " ORDER BY $orderbysql " : '') . $limitsql;
 		$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename($tablename) . (!empty($condition['fields']) ? " WHERE {$condition['fields']}" : ''), $condition['params']);
 		return $this->fetchall($sql, $condition['params'], $keyfield);
 	}
-	
-	public function getcolumn($tablename, $params = array(), $field) {
-		$result = $this->get($tablename, $params, array($field));
+
+	public function getcolumn($tablename, $params = array(), $field = '') {
+		$result = $this->get($tablename, $params, $field);
 		if (!empty($result)) {
-			return $result[$field];
+			if (strexists($field, '(')) {
+				return array_shift($result);
+			} else {
+				return $result[$field];
+			}
 		} else {
 			return false;
 		}
@@ -365,7 +344,7 @@ class DB {
 		$condition = $this->implode($data, ',');
 		return $this->query("$cmd " . $this->tablename($table) . " SET {$condition['fields']}", $condition['params']);
 	}
-	
+
 	/**
 	 * 返回lastInsertId
 	 *
@@ -421,7 +400,7 @@ class DB {
 	/**
 	 * 将数组格式化为具体的字符串
 	 * 增加支持 大于 小于, 不等于, not in, +=, -=等操作符
-	 * 
+	 *
 	 * @param array $params
 	 * 		要格式化的数组
 	 * @param string $glue
@@ -453,7 +432,7 @@ class DB {
 				}
 				if (empty($operator)) {
 					$fields = trim($fields);
-					if (is_array($value)) {
+					if (is_array($value) && !empty($value)) {
 						$operator = 'IN';
 					} else {
 						$operator = '=';
@@ -462,9 +441,16 @@ class DB {
 					$operator = " = `$fields` + ";
 				} elseif ($operator == '-=') {
 					$operator = " = `$fields` - ";
+				} elseif ($operator == '!=' || $operator == '<>') {
+					//如果是数组不等于情况，则转换为NOT IN
+					if (is_array($value) && !empty($value)) {
+						$operator = 'NOT IN';
+					}
 				}
-				if (is_array($value)) {
+				if (is_array($value) && !empty($value)) {
 					$insql = array();
+					//忽略数组的键值，防止SQL注入
+					$value = array_values($value);
 					foreach ($value as $k => $v) {
 						$insql[] = ":{$suffix}{$fields}_{$k}";
 						$result['params'][":{$suffix}{$fields}_{$k}"] = is_null($v) ? '' : $v;
@@ -474,13 +460,91 @@ class DB {
 				} else {
 					$result['fields'] .= $split . "`$fields` {$operator}  :{$suffix}$fields";
 					$split = ' ' . $glue . ' ';
-					$result['params'][":{$suffix}$fields"] = is_null($value) ? '' : $value;
+					$result['params'][":{$suffix}$fields"] = is_null($value) || is_array($value) ? '' : $value;
 				}
 			}
 		}
 		return $result;
 	}
-	
+
+	private function parseSelect($field = array()) {
+		if (empty($field)) {
+			return '*';
+		}
+		if (!is_array($field)) {
+			$field = array($field);
+		}
+		$select = array();
+		$index = 0;
+		foreach ($field as $field_row) {
+			if (strexists($field_row, '*')) {
+				if (!strexists(strtolower($field_row), 'as')) {
+					$field_row .= " AS '{$index}'";
+				}
+			} elseif (strexists(strtolower($field_row), 'select')) {
+				//当前可能包含子查询，但不推荐此写法
+				if ($field_row[0] != '(') {
+					$field_row = "($field_row) AS '{$index}'";
+				}
+			} elseif (strexists($field_row, '(')) {
+				$field_row = str_replace(array('(', ')'), array('(`',  '`)'), $field_row);
+				//如果聚合函数没有指定AS字段，则添加当前索引为AS
+				if (!strexists(strtolower($field_row), 'as')) {
+					$field_row .= " AS '{$index}'";
+				}
+			} else {
+				$field_row = '`'. $field_row. '`';
+			}
+			$select[] = $field_row;
+			$index++;
+		}
+		return implode(',', $select);
+	}
+
+	private function parseLimit($limit) {
+		$limitsql = '';
+		if (empty($limit)) {
+			return $limitsql;
+		}
+		if (is_array($limit)) {
+			$limit[0] = intval($limit[0]);
+			$limit[1] = intval($limit[1]);
+
+			if (empty($limit[0]) && empty($limit[1])) {
+				$limitsql = '';
+			} elseif (!empty($limit[0]) && empty($limit[1])) {
+				$limitsql = " LIMIT " . $limit[0];
+			} else {
+				$limitsql = " LIMIT " . ($limit[0] - 1) * $limit[1] . ', ' . $limit[1];
+			}
+		} else {
+			$limit = trim($limit);
+			if (preg_match('/^(?:limit)?[\s,0-9]+$/i', $limit)) {
+				$limitsql = strexists(strtoupper($limit), 'LIMIT') ? " $limit " : " LIMIT $limit";
+			}
+		}
+		return $limitsql;
+	}
+
+	private function parseOrderby($orderby) {
+		$orderbysql = '';
+		if (empty($orderby)) {
+			return $orderbysql;
+		}
+
+		if (!is_array($orderby)) {
+			$orderby = explode(',', $orderby);
+		}
+		foreach ($orderby as $i => $row) {
+			$row = strtolower($row);
+			if (substr($row, -3) != 'asc' && substr($row, -4) != 'desc') {
+				unset($orderby[$i]);
+			}
+		}
+		$orderbysql = implode(',', $orderby);
+		return !empty($orderbysql) ? " ORDER BY $orderbysql " : '';
+	}
+
 	/**
 	 * 执行SQL文件
 	 */
@@ -508,11 +572,11 @@ class DB {
 			}
 		}
 	}
-	
+
 	/**
 	 * 查询字段是否存在
 	 * 成功返回TRUE，失败返回FALSE
-	 * 
+	 *
 	 * @param string $tablename
 	 * 		查询表名
 	 * @param string $fieldname
@@ -523,7 +587,40 @@ class DB {
 		$isexists = $this->fetch("DESCRIBE " . $this->tablename($tablename) . " `{$fieldname}`", array());
 		return !empty($isexists) ? true : false;
 	}
-	
+
+	/**
+	 * 查询字段类型是否匹配
+	 * 成功返回TRUE，失败返回FALSE，字段存在，但类型错误返回-1
+	 *
+	 * @param string $tablename
+	 * 		查询表名
+	 * @param string $fieldname
+	 * 		查询字段名
+	 * @param string $datatype
+	 * 		查询字段类型
+	 * @param string $length
+	 * 		查询字段长度
+	 * @return boolean
+	 */
+	public function fieldmatch($tablename, $fieldname, $datatype = '', $length = '') {
+		$datatype = strtolower($datatype);
+		$field_info = $this->fetch("DESCRIBE " . $this->tablename($tablename) . " `{$fieldname}`", array());
+		if (empty($field_info)) {
+			return false;
+		}
+		if (!empty($datatype)) {
+			$find = strexists($field_info['Type'], '(');
+			if (empty($find)) {
+				$length = '';
+			}
+			if (!empty($length)) {
+				$datatype .= ("({$length})");
+			}
+			return strpos($field_info['Type'], $datatype) === 0 ? true : -1;
+		}
+		return true;
+	}
+
 	/**
 	 * 查询索引是否存在
 	 * 成功返回TRUE，失败返回FALSE
@@ -546,7 +643,7 @@ class DB {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * 返回完整数据表名(加前缀)(返回是主库的数据表前缀+表明)
 	 * @param string $table 表名
@@ -583,7 +680,8 @@ class DB {
 					load()->web('common');
 					load()->web('template');
 				}
-				message("SQL: <br/>{$append['sql']}<hr/>Params: <br/>{$params}<hr/>SQL Error: <br/>{$append['error'][2]}<hr/>Traces: <br/>{$ts}");
+				WeUtility::logging('SQL Error', "SQL: <br/>{$append['sql']}<hr/>Params: <br/>{$params}<hr/>SQL Error: <br/>{$append['error'][2]}<hr/>Traces: <br/>{$ts}");
+				trigger_error("SQL: <br/>{$append['sql']}<hr/>Params: <br/>{$params}<hr/>SQL Error: <br/>{$append['error'][2]}<hr/>Traces: <br/>{$ts}", E_USER_WARNING);
 			}
 		}
 		return $this->errors;
@@ -612,7 +710,7 @@ class DB {
 			return false;
 		}
 	}
-	
+
 	private function performance($sql, $runtime = 0) {
 		global $_W;
 		if ($runtime == 0) {
@@ -637,7 +735,7 @@ class DB {
 		}
 		return true;
 	}
-	
+
 	private function cacheRead($cachekey) {
 		global $_W;
 		if (empty($cachekey) || $_W['config']['setting']['cache'] != 'memcache' || empty($_W['config']['setting']['memcache']['sql'])) {
@@ -649,7 +747,7 @@ class DB {
 		}
 		return $data;
 	}
-	
+
 	private function cacheWrite($cachekey, $data) {
 		global $_W;
 		if (empty($data) || empty($cachekey) || $_W['config']['setting']['cache'] != 'memcache' || empty($_W['config']['setting']['memcache']['sql'])) {
@@ -662,7 +760,7 @@ class DB {
 		cache_write($cachekey, $cachedata, 0, true);
 		return true;
 	}
-	
+
 	private function cacheKey($sql, $params) {
 		global $_W;
 		if ($_W['config']['setting']['cache'] != 'memcache' || empty($_W['config']['setting']['memcache']['sql'])) {
@@ -674,7 +772,7 @@ class DB {
 		}
 		return $namespace . ':' . md5($sql . serialize($params));
 	}
-	
+
 	/**
 	 * SQL缓存以表为为单位增加缓存命名空间，当更新、删除或是插入语句时批量删除此表的缓存
 	 * @param string $sql
@@ -682,24 +780,133 @@ class DB {
 	 */
 	private function cacheNameSpace($sql, $forcenew = false) {
 		global $_W;
-		if ($_W['config']['setting']['cache'] != 'memcache') {
+		if ($_W['config']['setting']['cache'] != 'memcache' || empty($_W['config']['setting']['memcache']['sql'])) {
 			return false;
 		}
+		$skip_tablename = array(
+			$this->tablename('core_cache'),
+			$this->tablename('core_queue'),
+			$this->tablename('mc_member'),
+			$this->tablename('mc_mapping_fans'),
+		);
 		//获取SQL中的表名
 		$table_prefix = str_replace('`', '', tablename(''));
 		preg_match_all('/(?!from|insert into|replace into|update) `?('.$table_prefix.'[a-zA-Z0-9_-]+)/i', $sql, $match);
 		$tablename = implode(':', $match[1]);
-		if (empty($tablename) || in_array("`{$tablename}`", array($this->tablename('core_cache'), $this->tablename('core_queue'))) ) {
+		if (empty($tablename) || in_array("`{$tablename}`", $skip_tablename)) {
 			return false;
 		}
 		$tablename = str_replace($this->tablepre, '', $tablename);
 		//获取命名空间
-		$namespace = $this->getColumn('core_cache', array('key' => 'dbcache:namespace:'.$tablename), 'value');
+		$db_cache_key = 'we7:dbkey:'.$tablename;
+		$namespace = $this->getColumn('core_cache', array('key' => $db_cache_key), 'value');
 		if (empty($namespace) || $forcenew) {
 			$namespace = random(8);
-			$this->delete('core_cache', array('key LIKE' => "%{$tablename}%", 'key !=' => 'dbkey:'.$tablename));
-			$this->insert('core_cache', array('key' => 'dbkey:'.$tablename, 'value' => $namespace), true);
+			$this->delete('core_cache', array('key LIKE' => "%{$tablename}%", 'key !=' => $db_cache_key));
+			$this->insert('core_cache', array('key' => $db_cache_key, 'value' => $namespace), true);
 		}
 		return $tablename . ':' . $namespace;
+	}
+}
+
+/**
+ * SQL安全检测
+ *
+ */
+class SqlChecker {
+	private static $checkcmd = array('SELECT', 'UPDATE', 'INSERT', 'REPLAC', 'DELETE');
+	private static $disable = array(
+		'function' => array('load_file', 'floor', 'hex', 'substring', 'if', 'ord', 'char', 'pi', 'benchmark', 'reverse', 'strcmp', 'datadir', 'updatexml', 'extractvalue', 'name_const', 'multipoint', 'database', 'user'),
+		'action' => array('@', 'intooutfile', 'intodumpfile', 'unionselect', 'uniondistinct', 'information_schema', 'current_user', 'current_date'),
+		'note' => array('/*','*/','#','--'),
+	);
+
+	public static function checkquery($sql) {
+		$cmd = strtoupper(substr(trim($sql), 0, 6));
+		if (in_array($cmd, self::$checkcmd)) {
+			$mark = $clean = '';
+			$sql = str_replace(array('\\\\', '\\\'', '\\"', '\'\''), '', $sql);
+			if (strpos($sql, '/') === false && strpos($sql, '#') === false && strpos($sql, '-- ') === false && strpos($sql, '@') === false && strpos($sql, '`') === false) {
+				$cleansql = preg_replace("/'(.+?)'/s", '', $sql);
+			} else {
+				$cleansql = self::stripSafeChar($sql);
+			}
+
+			$cleansql = preg_replace("/[^a-z0-9_\-\(\)#\*\/\"]+/is", "", strtolower($cleansql));
+			if (is_array(self::$disable['function'])) {
+				foreach (self::$disable['function'] as $fun) {
+					if (strpos($cleansql, $fun . '(') !== false) {
+						return error(1, 'SQL中包含禁用函数 - ' . $fun);
+					}
+				}
+			}
+
+			if (is_array(self::$disable['action'])) {
+				foreach (self::$disable['action'] as $action) {
+					if (strpos($cleansql, $action) !== false) {
+						return error(2, 'SQL中包含禁用操作符 - ' . $action);
+					}
+				}
+			}
+
+			if (is_array(self::$disable['note'])) {
+				foreach (self::$disable['note'] as $note) {
+					if (strpos($cleansql, $note) !== false) {
+						return error(3, 'SQL中包含注释信息');
+					}
+				}
+			}
+		} elseif (substr($cmd, 0, 2) === '/*') {
+			return error(3, 'SQL中包含注释信息');
+		}
+	}
+
+	private static function stripSafeChar($sql) {
+		$len = strlen($sql);
+		$mark = $clean = '';
+		for ($i = 0; $i < $len; $i++) {
+			$str = $sql[$i];
+			switch ($str) {
+				case '\'':
+					if (!$mark) {
+						$mark = '\'';
+						$clean .= $str;
+					} elseif ($mark == '\'') {
+						$mark = '';
+					}
+					break;
+				case '/':
+					if (empty($mark) && $sql[$i + 1] == '*') {
+						$mark = '/*';
+						$clean .= $mark;
+						$i++;
+					} elseif ($mark == '/*' && $sql[$i - 1] == '*') {
+						$mark = '';
+						$clean .= '*';
+					}
+					break;
+				case '#':
+					if (empty($mark)) {
+						$mark = $str;
+						$clean .= $str;
+					}
+					break;
+				case "\n":
+					if ($mark == '#' || $mark == '--') {
+						$mark = '';
+					}
+					break;
+				case '-':
+					if (empty($mark) && substr($sql, $i, 3) == '-- ') {
+						$mark = '-- ';
+						$clean .= $mark;
+					}
+					break;
+				default:
+					break;
+			}
+			$clean .= $mark ? '' : $str;
+		}
+		return $clean;
 	}
 }

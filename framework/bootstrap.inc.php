@@ -59,7 +59,8 @@ if(DEVELOPMENT) {
 } else {
 	error_reporting(0);
 }
-if(!in_array($_W['config']['setting']['cache'], array('mysql', 'file', 'memcache'))) {
+
+if(!in_array($_W['config']['setting']['cache'], array('mysql', 'memcache', 'redis'))) {
 	$_W['config']['setting']['cache'] = 'mysql';
 }
 load()->func('cache');
@@ -72,7 +73,16 @@ if(!empty($_W['config']['setting']['memory_limit']) && function_exists('ini_get'
 		@ini_set('memory_limit', $_W['config']['setting']['memory_limit']);
 	}
 }
-$_W['ishttps'] = !empty($_W['config']['setting']['https']) ? true : (strtolower(($_SERVER['SERVER_PORT'] == 443 || (isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != 'off') ? true : false)));
+if (isset($_W['config']['setting']['https'])) {
+	$_W['ishttps'] = $_W['config']['setting']['https'];
+} else {
+	$_W['ishttps'] = $_SERVER['SERVER_PORT'] == 443 || 
+					(isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != 'off') ||
+					strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https' ||
+					strtolower($_SERVER['HTTP_X_CLIENT_SCHEME']) == 'https' //阿里云判断方式
+					? true : false;
+}
+
 $_W['isajax'] = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
 $_W['ispost'] = $_SERVER['REQUEST_METHOD'] == 'POST';
 
@@ -122,13 +132,13 @@ if (empty($_W['setting']['upload'])) {
 }
 $_W['attachurl'] = $_W['attachurl_local'] = $_W['siteroot'] . $_W['config']['upload']['attachdir'] . '/';
 if (!empty($_W['setting']['remote']['type'])) {
-	if ($_W['setting']['remote']['type'] == 1) {
+	if ($_W['setting']['remote']['type'] == ATTACH_FTP) {
 		$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['ftp']['url'] . '/';
-	} elseif ($_W['setting']['remote']['type'] == 2) {
+	} elseif ($_W['setting']['remote']['type'] == ATTACH_OSS) {
 		$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['alioss']['url'].'/';
-	} elseif ($_W['setting']['remote']['type'] == 3) {
+	} elseif ($_W['setting']['remote']['type'] == ATTACH_QINIU) {
 		$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['qiniu']['url'].'/';
-	} elseif ($_W['setting']['remote']['type'] == 4) {
+	} elseif ($_W['setting']['remote']['type'] == ATTACH_COS) {
 		$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['cos']['url'].'/';
 	}
 }

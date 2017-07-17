@@ -5,21 +5,51 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-$do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
+$dos = array('display','post');
+$do = in_array($do, $dos) ? $do : 'display';
+
+
+if ($do == 'display') {
+	uni_user_permission_check('system_user_fields');
+	$_W['page']['title'] = '字段管理 - 用户管理';
+	$condition = '' ;
+	$params = array();
+	if (!empty($_GPC['keyword'])) {
+		$condition .= " WHERE title LIKE :title";
+		$params[':title'] = "%{$_GPC['keyword']}%";
+	}
+	if (checksubmit('submit')) {
+		if (!empty($_GPC['displayorder'])) {
+			foreach ($_GPC['displayorder'] as $id => $displayorder) {
+				pdo_update('profile_fields', array(
+				'displayorder' => intval($displayorder),
+				'available' => intval($_GPC['available'][$id]),
+				'showinregister' => intval($_GPC['showinregister'][$id]),
+				'required' => intval($_GPC['required'][$id]),
+				), array('id' => $id));
+			}
+		}
+		itoast('资料设置更新成功！', referer(), 'success');
+	}
+	$sql = "SELECT * FROM " . tablename('profile_fields'). $condition ." ORDER BY displayorder DESC";
+	$fields = pdo_fetchall($sql, $params);
+	template('user/fields-display');
+}
 
 if ($do == 'post') {
-	$_W['page']['title'] = '编辑字段 - 用户设置 - 用户管理';
+	uni_user_permission_check('system_user_fields_post');
+	$_W['page']['title'] = '编辑字段 - 用户管理';
 	$id = intval($_GPC['id']);
 
 	if (checksubmit('submit')) {
 		if (empty($_GPC['title'])) {
-			message('抱歉，请填写资料名称！');
+			itoast('抱歉，请填写资料名称！', '', '');
 		}
 		if (empty($_GPC['field'])) {
-			message('请填写字段名!');
+			itoast('请填写字段名!', '', '');
 		}
 		if (!preg_match('/^[A-Za-z0-9_]*$/', $_GPC['field'])) {
-			message('请使用字母或数字或下划线组合字段名!');
+			itoast('请使用字母或数字或下划线组合字段名!', '', '');
 		}
 		$data = array(
 			'title' => $_GPC['title'],
@@ -54,27 +84,11 @@ if ($do == 'post') {
 			}
 			pdo_update('profile_fields', $data, array('id' => $id));
 		}
-		message('更新粉丝字段成功！', url('user/fields'));
+		itoast('更新字段成功！', url('user/fields'), 'success');
 	}
+
 	if (!empty($id)) {
 		$item = pdo_fetch("SELECT * FROM ".tablename('profile_fields')." WHERE id = :id", array(':id' => $id));
 	}
-	template('user/fields');
-} else {
-	$_W['page']['title'] = '字段管理 - 用户设置 - 用户管理';
-	if (checksubmit('submit')) {
-		if (!empty($_GPC['displayorder'])) {
-			foreach ($_GPC['displayorder'] as $id => $displayorder) {
-				pdo_update('profile_fields', array(
-					'displayorder' => intval($displayorder),
-					'available' => intval($_GPC['available'][$id]),
-					'showinregister' => intval($_GPC['showinregister'][$id]),
-					'required' => intval($_GPC['required'][$id]),
-				), array('id' => $id));
-			}
-		}
-		message('资料设置更新成功！', referer(), 'success');
-	}
-	$fields = pdo_fetchall("SELECT * FROM ".tablename('profile_fields')." ORDER BY displayorder DESC");
-	template('user/fields');
+	template('user/fields-post');
 }

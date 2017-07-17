@@ -35,6 +35,7 @@ define('ACCOUNT_TYPE_OFFCIAL_AUTH', 3);
 //正常接入小程序
 define('ACCOUNT_TYPE_APP_NORMAL', 4);
 
+
 //授权登录接入
 define('ACCOUNT_OAUTH_LOGIN', 3);
 //api接入
@@ -48,7 +49,21 @@ define('ACCOUNT_OPERATE_ONLINE', 1);
 define('ACCOUNT_OPERATE_MANAGER', 2);
 //店员操作
 define('ACCOUNT_OPERATE_CLERK', 3);
-
+//操作员
+define('ACCOUNT_MANAGE_TYPE_OPERATOR', 1);
+define('ACCOUNT_MANAGE_NAME_OPERATOR', 'operator');
+//管理员
+define('ACCOUNT_MANAGE_TYPE_MANAGER', 2);
+define('ACCOUNT_MANAGE_NAME_MANAGER', 'manager');
+//所有者
+define('ACCOUNT_MANAGE_TYPE_OWNER', 3);
+define('ACCOUNT_MANAGE_NAME_OWNER', 'owner');
+//创始人
+define('ACCOUNT_MANAGE_NAME_FOUNDER', 'founder');
+//副创始人
+define('ACCOUNT_MANAGE_TYPE_VICE_FOUNDER', 4);
+define('ACCOUNT_MANAGE_NAME_VICE_FOUNDER', 'vice_founder');
+define('ACCOUNT_MANAGE_GROUP_VICE_FOUNDER', 2);
 //系统卡券
 define('SYSTEM_COUPON', 1);
 //微信卡券
@@ -70,3 +85,61 @@ define('ATTACH_FTP', 1);//远程附件类型：ftp
 define('ATTACH_OSS', 2);//远程附件类型：阿里云
 define('ATTACH_QINIU', 3);//远程附件类型：七牛
 define('ATTACH_COS', 4);//远程附件类型：腾讯云对象存储
+
+define('ATTACH_TYPE_IMAGE', 1);
+define('ATTACH_TYPE_VOICE', 2);
+define('ATTACH_TYPE_VEDIO', 3);
+define('ATTACH_TYPE_NEWS', 4);
+
+define('ATTACH_SAVE_TYPE_FIXED', 1);
+define('ATTACH_SAVE_TYPE_TEMP', 2);
+
+define('STATUS_OFF', 0); //关闭状态
+define('STATUS_ON', 1); //开启状态
+define('STATUS_SUCCESS', 0); //ajax返回成功状态，增强语义
+
+define('CACHE_EXPIRE_SHORT', 60);
+define('CACHE_EXPIRE_MIDDLE', 300);
+define('CACHE_EXPIRE_LONG', 3600);
+define('CACHE_KEY_LENGTH', 100); //缓存键的最大长度
+
+define('CACHE_KEY_MODULE_SETTING', 'module_setting:%s:%s');
+define('CACHE_KEY_MODULE_INFO', 'module_info:%s');
+define('CACHE_KEY_ACCOUNT_MODULES', 'unimodules:%s:%s');
+define('CACHE_KEY_ACCOUNT_MODULES_BINDING', 'unimodules:binding:%s');
+define('CACHE_KEY_MEMBER_INFO', 'memberinfo:%s');
+define('CACHE_KEY_UNI_GROUP', 'uni_group');
+define('CACHE_KEY_ACCOUNT_SWITCH', 'lastaccount:%s');
+
+define('MODULE_SUPPORT_WXAPP', 2);
+define('MODULE_SUPPORT_ACCOUNT', 2);
+
+//权限类型
+define('PERMISSION_ACCOUNT', 'system');
+define('PERMISSION_WXAPP', 'wxapp');
+define('PERMISSION_SYSTEM', 'site');
+
+//微信支付类型
+define('PAYMENT_WECHAT_TYPE_NORMAL', 1);
+define('PAYMENT_WECHAT_TYPE_BORROW', 2);
+define('PAYMENT_WECHAT_TYPE_SERVICE', 3);
+define('PAYMENT_WECHAT_TYPE_CLOSE', 4);
+
+//平台给粉丝发消息的类型
+define('FANS_CHATS_FROM_SYSTEM', 1);
+
+//小程序数据常规分析常量
+define('WXAPP_STATISTICS_DAILYVISITTREND', 2);
+//DIY小程序
+define('WXAPP_DIY', 1);
+//选择模版小程序
+define('WXAPP_TEMPLATE', 2);
+//跳转模块小程序
+define('WXAPP_MODULE', 3);
+
+define('MATERIAL_LOCAL', 'local');//服务器素材类型
+define('MATERIAL_WEXIN', 'perm');//微信素材类型
+
+//自定义菜单类型
+define('MENU_CURRENTSELF', 1);
+define('MENU_CONDITIONAL', 3);

@@ -95,7 +95,7 @@ if($do == 'basic') {
 		if (_mc_login($user)) {
 			message('登录成功！', referer(), 'success');
 		}
-		message('未知错误导致登陆失败', '', 'error');
+		message('未知错误导致登录失败', '', 'error');
 	}
 	template('auth/login');
 	exit;
@@ -125,7 +125,7 @@ if($do == 'basic') {
 			if(_mc_login($user)) {
 				exit('success');
 			} else {
-				exit('未知错误导致登陆失败');
+				exit('未知错误导致登录失败');
 			}
 		} else {
 			if (!empty($_SESSION['openid'])) {
@@ -146,7 +146,7 @@ if($do == 'basic') {
 				if (_mc_login($user)) {
 					exit('success');
 				} else {
-					exit('未知错误导致登陆失败');
+					exit('未知错误导致登录失败');
 				}
 			}
 			exit('该' . $uc_setting['title'] . '账号尚未绑定系统账号');

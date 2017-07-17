@@ -88,20 +88,15 @@
 				$.post(url, function(dat){});
 			}
 		{/if}
-		if($('.js-quickmenu')!=null && $('.js-quickmenu')!=''){
+		if ($('.js-quickmenu').size() > 0) {
 			var h = $('.js-quickmenu .nav-home').height()+20+'px';
 			$('body').css("padding-bottom",h);
 			$('body .mui-content').css("bottom",h);
-		}else{
-			$('body').css("padding-bottom",0);
-			$('body .mui-content').css("bottom", "0");
-		}
-			
-		if($('.nav-menu-app')!=null && $('.nav-menu-app')!=''){
+		} else if($('.nav-menu-app').size() > 0) {
 			var h = $('.nav-menu-app').height()+'px';
 			$('body').css("padding-bottom",h);
 			$('.mui-content').css('bottom',h);
-		}else{
+		} else {
 			$('body').css("padding-bottom", "0");
 			$('.mui-content').css('bottom', "0");
 		}

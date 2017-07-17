@@ -399,6 +399,16 @@ class WeiXinAccount extends WeAccount {
 		return $this->menuCreate($menu);
 	}
 	
+	public function menuCurrentQuery() {
+		$token = $this->getAccessToken();
+		if(is_error($token)){
+			return $token;
+		}
+		$url = "https://api.weixin.qq.com/cgi-bin/get_current_selfmenu_info?access_token={$token}";
+		$result = $this->requestApi($url);
+		return $result;
+	}
+
 	public function menuQuery() {
 		$token = $this->getAccessToken();
 		if(is_error($token)){
@@ -486,7 +496,7 @@ class WeiXinAccount extends WeAccount {
 		return $result['user_info_list'];
 	}
 
-	public function fansAll() {
+	public function fansAll($startopenid = '') {
 		global $_GPC;
 		$token = $this->getAccessToken();
 		if(is_error($token)){
@@ -494,7 +504,10 @@ class WeiXinAccount extends WeAccount {
 		}
 		$url = 'https://api.weixin.qq.com/cgi-bin/user/get?access_token=' . $token;
 		if(!empty($_GPC['next_openid'])) {
-			$url .= '&next_openid=' . $_GPC['next_openid'];
+			$startopenid = $_GPC['next_openid'];
+		}
+		if (!empty($startopenid)) {
+			$url .= '&next_openid=' . $startopenid;
 		}
 		$response = ihttp_get($url);
 		if(is_error($response)) {
@@ -744,13 +757,16 @@ class WeiXinAccount extends WeAccount {
 		$url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$this->account['key']}&secret={$this->account['secret']}";
 		$content = ihttp_get($url);
 		if(is_error($content)) {
-			message('获取微信公众号授权失败, 请稍后重试！错误详情: ' . $content['message']);
+			message('获取微信公众号授权失败, 请稍后重试！错误详情: ' . $content['message'], '', 'error');
+		}
+		if (empty($content['content'])) {
+			return error('-1', 'AccessToken获取失败，请检查appid和appsecret的值是否与微信公众平台一致！');
 		}
 		$token = @json_decode($content['content'], true);
 		if(empty($token) || !is_array($token) || empty($token['access_token']) || empty($token['expires_in'])) {
 			$errorinfo = substr($content['meta'], strpos($content['meta'], '{'));
 			$errorinfo = @json_decode($errorinfo, true);
-			message('获取微信公众号授权失败, 请稍后重试！ 公众平台返回原始数据为: 错误代码-' . $errorinfo['errcode'] . '，错误信息-' . $errorinfo['errmsg']);
+			message('获取微信公众号授权失败, 请稍后重试！ 公众平台返回原始数据为: 错误代码-' . $errorinfo['errcode'] . '，错误信息-' . $errorinfo['errmsg'], '', 'error');
 		}
 		$record = array();
 		$record['token'] = $token['access_token'];
@@ -785,8 +801,16 @@ class WeiXinAccount extends WeAccount {
 	}
 	
 	public function clearAccessToken() {
-		$cachekey = "accesstoken:{$this->account['acid']}";
-		cache_delete($cachekey);
+		$access_token = $this->getAccessToken();
+		if(is_error($access_token)){
+			return $access_token;
+		}
+		$url = 'https://api.weixin.qq.com/cgi-bin/getcallbackip?access_token=' . $access_token;
+		$response = $this->requestApi($url);
+		if (is_error($response) && $response['errno'] == '40001') {
+			$cachekey = "accesstoken:{$this->account['acid']}";
+			cache_delete($cachekey);
+		}
 		return true;
 	}
 	
@@ -1416,7 +1440,7 @@ class WeiXinAccount extends WeAccount {
 	 * @param string $path 文件物理路径
 	 * @param string $type 素材类型 image, voice, video, thumb
 	 */
-	public function uploadMediaFixed($path, $type = 'image') {
+	public function uploadMediaFixed($path, $type = 'images') {
 		if(empty($path)) {
 			return error(-1, '参数错误');
 		}
@@ -1433,7 +1457,45 @@ class WeiXinAccount extends WeAccount {
 		);
 		return $this->requestApi($url, $data);
 	}
-	
+
+	/**
+	 * 修改永久图文素材
+	 * @param array $data 图文素材信息
+	 */
+	public function editMaterialNews($data) {
+		$token = $this->getAccessToken();
+		if(is_error($token)){
+			return $token;
+		}
+		$url = "https://api.weixin.qq.com/cgi-bin/material/update_news?access_token={$token}";
+		$response = $this->requestApi($url, stripslashes(ijson_encode($data, JSON_UNESCAPED_UNICODE)));
+		if (is_error($response)) {
+			return $response;
+		}
+		return true;
+	}
+
+	/**
+	 * 上传图文消息内的图片获取URL
+	 * @param array $data 图片信息
+	 */
+	public function uploadNewsThumb($thumb) {
+		$token = $this->getAccessToken();
+		if(is_error($token)){
+			return $token;
+		}
+		$data = array(
+			'media' => '@'. $thumb,
+		);
+		$url = "https://api.weixin.qq.com/cgi-bin/media/uploadimg?access_token={$token}";
+		$response = $this->requestApi($url, $data);
+		if (is_error($response)) {
+			return $response;
+		} else {
+			return $response['url'];
+		}
+	}
+
 	public function uploadVideoFixed($title, $description, $path) {
 		if(empty($path) || empty($title) || empty($description)) {
 			return error(-1, '参数错误');
@@ -1507,7 +1569,6 @@ class WeiXinAccount extends WeAccount {
 			return $token;
 		}
 		$url = "https://api.weixin.qq.com/cgi-bin/material/add_news?access_token={$token}";
-		
 		$data = stripslashes(urldecode(ijson_encode($data, JSON_UNESCAPED_UNICODE)));
 		$response = $this->requestApi($url, $data);
 		if (is_error($response)) {
@@ -1803,38 +1864,31 @@ class WeiXinAccount extends WeAccount {
 			return $token;
 		}
 		$url = "https://api.weixin.qq.com/datacube/getusersummary?access_token={$token}";
-		$response = ihttp_request($url, '{"begin_date": "'.date('Y-m-d', strtotime('-7 days')).'", "end_date": "'.date('Y-m-d', strtotime('-1 days')).'"}');
-		if(is_error($response)) {
-			return error(-1, "访问公众平台接口失败, 错误: {$response['message']}");
+		$data = array(
+			'begin_date' => date('Y-m-d', strtotime('-7 days')),
+			'end_date' => date('Y-m-d', strtotime('-1 days'))
+		);
+		$summary_response = $this->requestApi($url, json_encode($data));
+		if (is_error($summary_response)) {
+			return $summary_response;
 		}
-		$summary = @json_decode($response['content'], true);
-		if(empty($summary)) {
-			return error(-1, "接口调用失败, 元数据: {$response['meta']}");
-		} elseif (!empty($summary['errcode'])) {
-			return error(-1, "访问微信接口错误, 错误代码: {$summary['errcode']}, 错误信息: {$summary['errmsg']},信息详情：{$this->error_code($summary['errcode'])}");
-		}
+
 		$url = "https://api.weixin.qq.com/datacube/getusercumulate?access_token={$token}";
-		$response = ihttp_request($url, '{"begin_date": "'.date('Y-m-d', strtotime('-7 days')).'", "end_date": "'.date('Y-m-d', strtotime('-1 days')).'"}');
-	
-		if(is_error($response)) {
-			return error(-1, "访问公众平台接口失败, 错误: {$response['message']}");
+		$cumulate_response = $this->requestApi($url, json_encode($data));
+		if(is_error($cumulate_response)) {
+			return $cumulate_response;
 		}
-		$cumulate = @json_decode($response['content'], true);
-		if(empty($cumulate)) {
-			return error(-1, "接口调用失败, 元数据: {$response['meta']}");
-		} elseif(!empty($cumulate['errcode'])) {
-			return error(-1, "访问微信接口错误, 错误代码: {$cumulate['errcode']}, 错误信息: {$cumulate['errmsg']},信息详情：{$this->error_code($cumulate['errcode'])}");
-		}
+
 		$result = array();
-		if (!empty($summary['list'])) {
-			foreach ($summary['list'] as $row) {
+		if (!empty($summary_response['list'])) {
+			foreach ($summary_response['list'] as $row) {
 				$key = str_replace('-', '', $row['ref_date']);
 				$result[$key]['new'] = intval($result[$key]['new']) + $row['new_user'];
 				$result[$key]['cancel'] = intval($result[$key]['cancel']) + $row['cancel_user'];
 			}
 		}
-		if (!empty($cumulate['list'])) {
-			foreach ($cumulate['list'] as $row) {
+		if (!empty($cumulate_response['list'])) {
+			foreach ($cumulate_response['list'] as $row) {
 				$key = str_replace('-', '', $row['ref_date']);
 				$result[$key]['cumulate'] = $row['cumulate_user'];
 			}

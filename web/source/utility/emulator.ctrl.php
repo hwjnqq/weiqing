@@ -3,9 +3,6 @@
  * 用于调试时模拟用户发送信息到微号公众号 PGCAO改良 www.kl3w.com
  * [WeEngine System] Copyright (c) 2013 we7.cc
  */
-$GLOBALS['top_nav'] = pdo_fetchall('SELECT name, title, append_title FROM ' . tablename('core_menu') . ' WHERE pid = 0 AND is_display = 1 ORDER BY displayorder DESC');
-//调用buildframes()原因是：如果是操作员，需要按照他的权限将顶部导航显示或隐藏
-buildframes();
 $_W['page']['title'] = '模拟测试';
 $development = 1;
 $accounts = uni_owned();
@@ -50,7 +47,7 @@ template('common/header');
 .chatPanel .mediaFullText .mediaImg{width:255px;padding:0;margin:0 15px;overflow:hidden;max-height:164px;}
 .chatPanel .mediaFullText .mediaImg img{/*margin-top:17px;position:absolute;*/}
 .chatPanel .mediaFullText .mediaContent{padding:0 0 8px;font-size:16px;line-height:1.5em;text-align:left;color:#222222;}
-.chatPanel .mediaFullText .mediaContentP{margin:12px 15px 0px;}
+.chatPanel .mediaFullText .mediaContentP{margin:12px 15px 0px; word-break: break-all;}
 .chatPanel .media .mediaHead .time{margin:0px;margin-top:21px;color:#8C8C8C;background:none;width:auto;font-size:12px;}
 .chatPanel .media .mediaFooter{-webkit-border-radius:0px 0px 12px 12px;-moz-border-radius:0px 0px 12px 12px;border-radius:0px 0px 12px 12px;padding:0px;}
 .chatPanel .media .mediaFooter a{color:#222222;font-size:16px;padding:0;}
@@ -66,174 +63,179 @@ template('common/header');
 #svinfolist p img{width:50px;height:50px;}
 .btn{white-space:normal;box-sizing:content-box;}
 </style>
-<div class="clearfix">
-	<div class="col-xs-12 col-sm-8">
-		<form action="" method="get" class="form-horizontal form">
-			<div class="page-header">
-				<h4>模拟测试</h4>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-2 col-md-2 control-label"></label>
-				<div class="col-sm-10 col-xs-12">
-					<input name="submit" type="button" onclick="submitform()" value="发送" class="btn btn-primary" style="margin-right:15px">
-					<input name="submit" type="button" onclick="submitprocess()" value="查看触发过程" class="btn btn-success">
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-2 col-md-2 control-label">公众号</label>
-				<div class="col-sm-10 col-xs-12">
-					<select name="account" id="account" class="form-control">
-					<?php
-						foreach($accounts as $account) {
-					?>
-						<?php
-							if(!empty($account['default_account'])) {
-								$timestamp = TIMESTAMP;
-								$nonce = random(5);
-								$token = $account['default_account']['token'];
-								$signkey = array($token, TIMESTAMP, $nonce);
-								sort($signkey, SORT_STRING);
-								$signString = implode($signkey);
-								$signString = sha1($signString);
-						?>
-						<?php if($development == 1) { ?>
-							<option <?php if ($_W['acid'] == $account['default_acid']) { ?>selected<?php } ?> value="<?php echo '../api.php?id='.$account['default_acid'] ?>&timestamp=<?php echo $timestamp ?>&nonce=<?php echo $nonce ?>&signature=<?php echo $signString ?>"><?php echo $account['default_account']['name']?></option>
-						<?php } else { ?>
-							<option <?php if ($_W['acid'] == $account['default_acid']) { ?>selected<?php } ?> value="<?php echo $account['default_acid'];?>"><?php echo $account['default_account']['name'] ?></option>
-						<?php } ?>
-						<?php
-							}
-						?>
-					<?php
-						}
-					?>
-					</select>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-2 col-md-2 control-label">消息类型</label>
-				<div class="col-sm-10 col-xs-12">
-					<div class="radio-inline"><input type="radio" name="type" value="text" id="type_text" onclick="toggle('text')" checked="checked" /><label for="type_text">&nbsp;文本</label></div>
-					<div class="radio-inline"><input type="radio" name="type" value="image" id="type_image" onclick="toggle('image')" /><label for="type_image">&nbsp;图片</label></div>
-					<div class="radio-inline"><input type="radio" name="type" value="location" id="type_location" onclick="toggle('location')" /><label for="type_location">&nbsp;位置</label></div>
-					<div class="radio-inline"><input type="radio" name="type" value="link" id="type_link" onclick="toggle('link')" /><label for="type_link">&nbsp;链接</label></div>
-					<div class="radio-inline"><input type="radio" name="type" value="event" id="type_event" onclick="toggle('event')" /><label for="type_event">&nbsp;菜单</label></div>
-					<div class="radio-inline"><input type="radio" name="type" value="subscribe" id="type_subscribe" onclick="toggle('subscribe')" /><label for="type_subscribe">&nbsp;模拟关注</label></div>
-					<div class="radio-inline"><input type="radio" name="type" value="unsubscribe" id="type_unsubscribe" onclick="toggle('unsubscribe')" /><label for="type_unsubscribe">&nbsp;取消关注</label></div>
-					<div class="radio-inline"><input type="radio" name="type" value="other" id="type_unsubscribe" onclick="toggle('other')" /><label for="type_unsubscribe">&nbsp;其他</label></div>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-2 col-md-2 control-label">发送用户</label>
-				<div class="col-sm-10 col-xs-12">
-					<input type="text" id="fromuser" value="fromUser" class="form-control" />
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-2 col-md-2 control-label">接收用户</label>
-				<div class="col-sm-10 col-xs-12">
-					<input type="text" id="touser" value="toUser" class="form-control" />
-				</div>
-			</div>
-			<div class="form-group content_type" id="text">
-				<label class="col-xs-12 col-sm-2 col-md-2 control-label">内容</label>
-				<div class="col-sm-10 col-xs-12">
-					<textarea id="contentvalue" rows="5" cols="50" class="form-control">测试内容</textarea>
-				</div>
-			</div>
-			<div class="form-group content_type" id="image">
-				<label class="col-xs-12 col-sm-2 col-md-2 control-label">图片</label>
-				<div class="col-sm-10 col-xs-12">
-					<input type="text" id="picurl" value="http://www.baidu.com/img/bdlogo.gif" class="form-control" />
-				</div>
-			</div>
-			<div id="location" class="content_type">
-				<div class="form-group">
-					<label class="col-xs-12 col-sm-2 col-md-2 control-label">X坐标</label>
-					<div class="col-sm-10 col-xs-12">
-						<input type="text" id="location_x" class="form-control" value="23.134521" />
+<div class="panel panel-content">
+		<div class="content-head panel-heading">
+			<span class="font-lg">模拟测试</span>					
+		</div>
+		<div class="panel-body">
+			<div class="col-sm-8">
+				<form action="" method="get" class="form-horizontal form">
+					<div class="page-header">
+						<h4>模拟测试</h4>
 					</div>
-				</div>
-				<div class="form-group" >
-					<label class="col-xs-12 col-sm-2 col-md-2 control-label">Y坐标</label>
-					<div class="col-sm-10 col-xs-12">
-						<input type="text" id="location_y" class="form-control" value="113.358803" />
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-2 col-md-2 control-label"></label>
+						<div class="col-sm-10 col-xs-12">
+							<input name="submit" type="button" onclick="submitform()" value="发送" class="btn btn-primary" style="margin-right:15px">
+							<input name="submit" type="button" onclick="submitprocess()" value="查看触发过程" class="btn btn-success">
+						</div>
 					</div>
-				</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-2 col-md-2 control-label">公众号</label>
+						<div class="col-sm-10 col-xs-12">
+							<select name="account" id="account" class="form-control">
+							<?php
+								foreach($accounts as $account) {
+							?>
+								<?php
+									if(!empty($account['default_account'])) {
+										$timestamp = TIMESTAMP;
+										$nonce = random(5);
+										$token = $account['default_account']['token'];
+										$signkey = array($token, TIMESTAMP, $nonce);
+										sort($signkey, SORT_STRING);
+										$signString = implode($signkey);
+										$signString = sha1($signString);
+								?>
+								<?php if($development == 1) { ?>
+									<option <?php if ($_W['acid'] == $account['default_acid']) { ?>selected<?php } ?> value="<?php echo '../api.php?id='.$account['default_acid'] ?>&timestamp=<?php echo $timestamp ?>&nonce=<?php echo $nonce ?>&signature=<?php echo $signString ?>"><?php echo $account['default_account']['name']?></option>
+								<?php } else { ?>
+									<option <?php if ($_W['acid'] == $account['default_acid']) { ?>selected<?php } ?> value="<?php echo $account['default_acid'];?>"><?php echo $account['default_account']['name'] ?></option>
+								<?php } ?>
+								<?php
+									}
+								?>
+							<?php
+								}
+							?>
+							</select>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-2 col-md-2 control-label">消息类型</label>
+						<div class="col-sm-10 col-xs-12">
+							<div class="radio-inline"><input type="radio" name="type" value="text" id="type_text" onclick="toggle('text')" checked="checked" /><label for="type_text">&nbsp;文本</label></div>
+							<div class="radio-inline"><input type="radio" name="type" value="image" id="type_image" onclick="toggle('image')" /><label for="type_image">&nbsp;图片</label></div>
+							<div class="radio-inline"><input type="radio" name="type" value="location" id="type_location" onclick="toggle('location')" /><label for="type_location">&nbsp;位置</label></div>
+							<div class="radio-inline"><input type="radio" name="type" value="link" id="type_link" onclick="toggle('link')" /><label for="type_link">&nbsp;链接</label></div>
+							<div class="radio-inline"><input type="radio" name="type" value="event" id="type_event" onclick="toggle('event')" /><label for="type_event">&nbsp;菜单</label></div>
+							<div class="radio-inline"><input type="radio" name="type" value="subscribe" id="type_subscribe" onclick="toggle('subscribe')" /><label for="type_subscribe">&nbsp;模拟关注</label></div>
+							<div class="radio-inline"><input type="radio" name="type" value="unsubscribe" id="type_unsubscribe" onclick="toggle('unsubscribe')" /><label for="type_unsubscribe">&nbsp;取消关注</label></div>
+							<div class="radio-inline"><input type="radio" name="type" value="other" id="type_other" onclick="toggle('other')" /><label for="type_other">&nbsp;其他</label></div>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-2 col-md-2 control-label">发送用户</label>
+						<div class="col-sm-10 col-xs-12">
+							<input type="text" id="fromuser" value="fromUser" class="form-control" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-2 col-md-2 control-label">接收用户</label>
+						<div class="col-sm-10 col-xs-12">
+							<input type="text" id="touser" value="toUser" class="form-control" />
+						</div>
+					</div>
+					<div class="form-group content_type" id="text">
+						<label class="col-xs-12 col-sm-2 col-md-2 control-label">内容</label>
+						<div class="col-sm-10 col-xs-12">
+							<textarea id="contentvalue" rows="5" cols="50" class="form-control">测试内容</textarea>
+						</div>
+					</div>
+					<div class="form-group content_type" id="image">
+						<label class="col-xs-12 col-sm-2 col-md-2 control-label">图片</label>
+						<div class="col-sm-10 col-xs-12">
+							<input type="text" id="picurl" value="http://www.baidu.com/img/bdlogo.gif" class="form-control" />
+						</div>
+					</div>
+					<div id="location" class="content_type">
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-2 col-md-2 control-label">X坐标</label>
+							<div class="col-sm-10 col-xs-12">
+								<input type="text" id="location_x" class="form-control" value="23.134521" />
+							</div>
+						</div>
+						<div class="form-group" >
+							<label class="col-xs-12 col-sm-2 col-md-2 control-label">Y坐标</label>
+							<div class="col-sm-10 col-xs-12">
+								<input type="text" id="location_y" class="form-control" value="113.358803" />
+							</div>
+						</div>
+					</div>
+					<div class="form-group content_type" id="link">
+						<label class="col-xs-12 col-sm-2 col-md-2 control-label">链接</label>
+						<div class="col-sm-10 col-xs-12">
+							<input type="text" id="url" class="form-control" value="http://baidu.com" />
+						</div>
+					</div>
+					<div class="form-group content_type" id="event">
+						<label class="col-xs-12 col-sm-2 col-md-2 control-label">EventKey</label>
+						<div class="col-sm-10 col-xs-12">
+							<input type="text" id="event_key" class="form-control" value="EVENTKEY" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-2 col-md-2 control-label">发送消息</label>
+						<div class="col-sm-10 col-xs-12">
+							<textarea id="sendxml" rows="10" cols="50" class="form-control" readonly="readonly"></textarea>
+						</div>
+					</div>
+					<div class="form-group" style="display:none" id="process">
+						<label class="col-xs-12 col-sm-2 col-md-2 control-label">处理过程</label>
+						<div class="col-sm-10 col-xs-12 table-responsive">
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-2 col-md-2 control-label">接收消息</label>
+						<div class="col-sm-10 col-xs-12">
+							<pre id="receive"></pre>
+						</div>
+					</div>
+				</form>
 			</div>
-			<div class="form-group content_type" id="link">
-				<label class="col-xs-12 col-sm-2 col-md-2 control-label">链接</label>
-				<div class="col-sm-10 col-xs-12">
-					<input type="text" id="url" class="form-control" value="http://baidu.com" />
-				</div>
-			</div>
-			<div class="form-group content_type" id="event">
-				<label class="col-xs-12 col-sm-2 col-md-2 control-label">EventKey</label>
-				<div class="col-sm-10 col-xs-12">
-					<input type="text" id="event_key" class="form-control" value="EVENTKEY" />
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-2 col-md-2 control-label">发送消息</label>
-				<div class="col-sm-10 col-xs-12">
-					<textarea id="sendxml" rows="10" cols="50" class="form-control" readonly="readonly"></textarea>
-				</div>
-			</div>
-			<div class="form-group" style="display:none" id="process">
-				<label class="col-xs-12 col-sm-2 col-md-2 control-label">处理过程</label>
-				<div class="col-sm-10 col-xs-12 table-responsive">
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-2 col-md-2 control-label">接收消息</label>
-				<div class="col-sm-10 col-xs-12">
-					<pre id="receive"></pre>
-				</div>
-			</div>
-		</form>
-	</div>
-	<div class="col-sm-4" id="demoSendBox">
-		<div class="chatPanel form" style="width:300px;">
-			<div class="page-header">
-				<h4>预览效果</h4>
-			</div>
-			<div id="svposttext" style="text-align:left; padding-bottom:10px;display:none;">
-				<img src="./resource/images/noavatar_middle.gif" style="width:34px;height:34px;margin-right:6px;float:right;" class="img-rounded">
-				<div id="svpostinfo" class="btn btn-success" style="margin-right: 4px;float: right;max-width: 184px;text-align:left;">发送内容</div>
-				<div style="clear:both;"></div>
-			</div>
-
-			<div class="chatItem you">
-				<div id="svtext" style="text-align:left; padding-bottom:10px;display:none;">
-					<img src="./resource/images/noavatar_middle.gif" style="width:34px;height:34px;margin-left:6px; float:left;" class="img-rounded">
-					<div class="btn btn-success" style="margin-left: 4px;float: left;max-width: 184px;text-align:left;">回复内容</div>
-					<div style="clear:both;"></div>
-				</div>
-
-				<div id="svurlbox" style="display:none;">
-					<div class="media mediaFullText">
-						<div class="mediaPanel">
-							<a href="javascript:;" id="svurl" target="_blank">
-								<div class="mediaHead"><span class="title" id="svtitle">标题</span><span class="time"><?php echo date('m月d日'); ?></span>
-									<div class="clr"></div>
+			<div class="col-sm-4" id="demoSendBox">
+				<div class="chatPanel form" style="width:300px;">
+					<div class="page-header">
+						<h4>预览效果</h4>
+					</div>
+					<div id="svposttext" style="text-align:left; padding-bottom:10px;display:none;">
+						<img src="./resource/images/noavatar_middle.gif" style="width:34px;height:34px;margin-right:6px;float:right;" class="img-rounded">
+						<div id="svpostinfo" class="btn btn-success" style="margin-right: 4px;float: right;max-width: 184px;text-align:left;">发送内容</div>
+						<div style="clear:both;"></div>
+					</div>
+		
+					<div class="chatItem you">
+						<div id="svtext" style="text-align:left; padding-bottom:10px;display:none;">
+							<img src="./resource/images/noavatar_middle.gif" style="width:34px;height:34px;margin-left:6px; float:left;" class="img-rounded">
+							<div class="btn btn-success" style="margin-left: 4px;float: left;max-width: 184px;text-align:left;">回复内容</div>
+							<div style="clear:both;"></div>
+						</div>
+		
+						<div id="svurlbox" style="display:none;">
+							<div class="media mediaFullText">
+								<div class="mediaPanel">
+									<a href="javascript:;" id="svurl" target="_blank">
+										<div class="mediaHead"><span class="title" id="svtitle">标题</span><span class="time"><?php echo date('m月d日'); ?></span>
+											<div class="clr"></div>
+										</div>
+										<div class="mediaImg"><img id="svpic" src=""></div>
+										<div class="mediaContent mediaContentP"><p id="svinfo"></p></div>
+									</a>
+									<div id="svinfolist"></div>
+									<div class="mediaFooter">
+										<div class="mediaFooterbox clearfix" onclick="opensvurl();">
+											<span class="mesgIcon right">&gt;</span>
+											<span style="line-height:50px;" class="left">查看全文</span>
+										</div>
+										<div class="clr"></div>
+									</div>
 								</div>
-								<div class="mediaImg"><img id="svpic" src=""></div>
-								<div class="mediaContent mediaContentP"><p id="svinfo"></p></div>
-							</a>
-							<div id="svinfolist"></div>
-							<div class="mediaFooter">
-								<div class="mediaFooterbox clearfix" onclick="opensvurl();">
-									<span class="mesgIcon right">&gt;</span>
-									<span style="line-height:50px;" class="left">查看全文</span>
-								</div>
-								<div class="clr"></div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-	</div>
 </div>
 <?php
 	if($development == 1) {?>

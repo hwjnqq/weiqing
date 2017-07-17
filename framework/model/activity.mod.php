@@ -473,6 +473,8 @@ function activity_goods_grant($uid, $exid){
 	return $insert_id;
 }
 
+
+
 /**
  * 获取礼品兑换信息(仅用于判断真实物品或活动参与次数)
  * @param int $exchangeid 兑换ID
@@ -611,16 +613,13 @@ function activity_get_member($type, $param = array()) {
 	if (!in_array($type, $types)) {
 		return error('1', '没有匹配的用户类型');
 	}
-	//获取会员属性
-	$propertys = activity_member_propertys();
-	//新会员，一个月内消费不超过一次
-	if ($type == 'new_member') {
+		$propertys = activity_member_propertys();
+		if ($type == 'new_member') {
 		$property_time = strtotime('-' . $propertys['newmember'] . ' month', time());
 		$members_sql = "SELECT c.openid FROM ( SELECT a.uid FROM ". tablename('mc_members')." as a LEFT JOIN ".tablename('mc_cash_record')." as b ON a.uid = b.uid WHERE a.uniacid = :uniacid AND a.createtime > :time AND (b.createtime > :time or b.id is null) GROUP BY a.uid HAVING COUNT(*) < 2) as d  LEFT JOIN ". tablename('mc_mapping_fans')." as c ON d.uid = c.uid WHERE c.openid <> ''";
 		$members = pdo_fetchall($members_sql, array(':uniacid' => $_W['uniacid'], ':time' => $property_time), 'openid');
 	}
-	//老会员，注册超过两个月的会员
-	if ($type == 'old_member') {
+		if ($type == 'old_member') {
 		$property_time = strtotime('-' . $propertys['oldmember'] . ' month', time());
 		$members = pdo_fetchall("SELECT b.openid FROM ".tablename('mc_members')." as a LEFT JOIN ". tablename('mc_mapping_fans')." as b ON a.uid = b.uid WHERE a.createtime < :time AND a.uniacid = :uniacid AND b.openid <> ''", array(':time' => $property_time, ':uniacid' => $_W['uniacid']), 'openid');
 	}
@@ -697,7 +696,6 @@ function activity_coupon_sync() {
 	cache_write($cachekey, array('expire' => time() + 1800));
 	return true;
 }
-
 function activity_coupon_download($card_list) {
 	global $_W;
 	$coupon_api = new coupon($_W['acid']);
@@ -776,7 +774,6 @@ function activity_coupon_download($card_list) {
 	}
 	return true;
 }
-
 /**
  * 同步微信门店最新状态
  */

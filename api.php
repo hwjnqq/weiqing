@@ -31,7 +31,8 @@ if(empty($id)) {
 	$id = intval($_GPC['id']);
 }
 if (!empty($id)) {
-	$_W['account'] = account_fetch($id);
+	$uniacid = pdo_getcolumn('account', array('acid' => $id), 'uniacid');
+	$_W['account'] = uni_fetch($uniacid);
 }
 if(empty($_W['account'])) {
 	exit('initial error hash or id');
@@ -102,6 +103,7 @@ class WeEngine {
 		$this->modules = array_keys($_W['modules']);
 		$this->modules[] = 'cover';
 		$this->modules[] = 'default';
+		$this->modules[] = 'reply';
 		$this->modules = array_unique($this->modules);
 	}
 
@@ -381,9 +383,7 @@ class WeEngine {
 					}
 				}
 				if(!empty($rec)){
-					pdo_update('mc_mapping_fans', $rec, array(
-						'openid' => $message['from'],
-					));
+					pdo_update('mc_mapping_fans', $rec, array('openid' => $message['from']));
 				}
 			}
 		} else {
@@ -418,6 +418,8 @@ class WeEngine {
 
 	private function receive($par, $keyword, $response) {
 		global $_W;
+		fastcgi_finish_request();
+		
 		$subscribe = cache_load('module_receive_enable');
 		$modules = uni_modules();
 		$obj = WeUtility::createModuleReceiver('core');
@@ -431,82 +433,17 @@ class WeEngine {
 		if(method_exists($obj, 'receive')) {
 			@$obj->receive();
 		}
-		if (!empty($subscribe['subscribe']) && ($this->message['event'] == 'subscribe' || $this->message['type'] == 'subscribe')) {
-			foreach($subscribe['subscribe'] as $modulename) {
-				$obj = WeUtility::createModuleReceiver($modulename);
-				$obj->message = $this->message;
-				$obj->params = $par;
-				$obj->response = $response;
-				$obj->keyword = $keyword;
-				$obj->module = $modules[$modulename];
-				$obj->uniacid = $_W['uniacid'];
-				$obj->acid = $_W['acid'];
-				if(method_exists($obj, 'receive')) {
-					@$obj->receive();
-				}
-			}
-		} elseif (!empty($subscribe['unsubscribe']) && ($this->message['event'] == 'unsubscribe' || $this->message['type'] == 'unsubscribe')) {
-			foreach($subscribe['unsubscribe'] as $modulename) {
-				$obj = WeUtility::createModuleReceiver($modulename);
-				$obj->message = $this->message;
-				$obj->params = $par;
-				$obj->response = $response;
-				$obj->keyword = $keyword;
-				$obj->module = $modules[$modulename];
-				$obj->uniacid = $_W['uniacid'];
-				$obj->acid = $_W['acid'];
-				if(method_exists($obj, 'receive')) {
-					@$obj->receive();
-				}
-			}
-		} elseif (!empty($subscribe['user_get_card']) && $this->message['event'] == 'user_get_card') {
-			foreach($subscribe['user_get_card'] as $modulename) {
-				$obj = WeUtility::createModuleReceiver($modulename);
-				$obj->message = $this->message;
-				$obj->params = $par;
-				$obj->response = $response;
-				$obj->keyword = $keyword;
-				$obj->module = $modules[$modulename];
-				$obj->uniacid = $_W['uniacid'];
-				$obj->acid = $_W['acid'];
-				if(method_exists($obj, 'receive')) {
-					@$obj->receive();
-				}
-			}
-		} elseif (!empty($subscribe['user_consume_card']) && $this->message['event'] == 'user_consume_card') {
-			foreach($subscribe['user_consume_card'] as $modulename) {
-				$obj = WeUtility::createModuleReceiver($modulename);
-				$obj->message = $this->message;
-				$obj->params = $par;
-				$obj->response = $response;
-				$obj->keyword = $keyword;
-				$obj->module = $modules[$modulename];
-				$obj->uniacid = $_W['uniacid'];
-				$obj->acid = $_W['acid'];
-				if(method_exists($obj, 'receive')) {
-					@$obj->receive();
-				}
-			}
-		} else {
-			$modules = $subscribe[$this->message['type']];
-			if (!empty($modules)) {
-				foreach ($modules as $modulename) {
-					$row = array();
-					$row['uniacid'] = $_W['uniacid'];
-					$row['acid'] = $_W['acid'];
-					$row['dateline'] = $_W['timestamp'];
-					$row['message'] = iserializer($this->message);
-					$row['keyword'] = iserializer($keyword);
-					$row['params'] = iserializer($par);
-					$row['response'] = iserializer($response);
-					$row['module'] = $modulename;
-					$row['type'] = 1;
-					pdo_insert('core_queue', $row);
-				}
-			}
-			//清除一个月之前前的数据
-			if (date('N') == '1') {
-				pdo_query("DELETE FROM ".tablename('core_queue')." WHERE dateline < '".($_W['timestamp'] - 2592000)."'");
+		load()->func('communication');
+		if (!empty($subscribe[$this->message['type']])) {
+			foreach ($subscribe[$this->message['type']] as $modulename) {
+				//fsockipen可用时，设置timeout为0可以无需等待高效请求
+				$response = ihttp_request(wurl('utility/subscribe/receive'), array(
+					'i' => $GLOBALS['uniacid'], 
+					'modulename' => $modulename,
+					'request' => json_encode($par),
+					'response' => json_encode($response),
+					'message' => json_encode($this->message),
+				), array(), 0);
 			}
 		}
 	}
@@ -561,7 +498,6 @@ class WeEngine {
 		} else {
 			$params += $this->handler($message['type']);
 		}
-
 		return $params;
 	}
 	
@@ -649,7 +585,12 @@ class WeEngine {
 		if(!isset($message['content'])) {
 			return $pars;
 		}
-		
+		//关键字先查缓存有没有匹配规则，缓存超时为5分钟
+		$cachekey = 'we7:' . $_W['uniacid'] . ':keyword:' . md5($message['content']);
+		$keyword_cache = cache_load($cachekey);
+		if (!empty($keyword_cache) && $keyword_cache['expire'] > TIMESTAMP) {
+			return $keyword_cache['data'];
+		}
 		$condition = <<<EOF
 `uniacid` IN ( 0, {$_W['uniacid']} )
 AND 
@@ -685,10 +626,16 @@ EOF;
 				'module' => $keyword['module'],
 				'rule' => $keyword['rid'],
 				'priority' => $keyword['displayorder'],
-				'keyword' => $keyword
+				'keyword' => $keyword,
+				'reply_type' => $keyword['reply_type']
 			);
 			$pars[] = $params;
 		}
+		$cache = array(
+			'data' => $pars,
+			'expire' => TIMESTAMP + 5 * 60,
+		);
+		cache_write($cachekey, $cache);
 		return $pars;
 	}
 	
@@ -845,13 +792,17 @@ EOF;
 			$card_id = trim($message['cardid']);
 			$openid = trim($message['fromusername']);
 			$code = trim($message['usercardcode']);
-			pdo_update('coupon_record', array('status' => 4), array('acid' => $_W['acid'], 'card_id' => $card_id, 'openid' => $openid, 'code' => $code));
+			pdo_update('coupon_record', array('status' => 4), array('card_id' => $card_id, 'openid' => $openid, 'code' => $code));
+			$this->receive();
 		} elseif ($message['event'] == 'user_consume_card') {
 			//核销卡券事件
 			$card_id = trim($message['cardid']);
 			$openid = trim($message['fromusername']);
 			$code = trim($message['usercardcode']);
-			pdo_update('coupon_record', array('status' => 3), array('acid' => $_W['acid'], 'card_id' => $card_id, 'openid' => $openid, 'code' => $code));
+			if (!empty($message['locationid'])) {
+				$stores_info = pdo_get('activity_stores', array('location_id' => $message['locationid']), array('id'));
+			}
+			pdo_update('coupon_record', array('status' => 3, 'usetime' => TIMESTAMP, 'store_id' => $stores_info['id']), array('card_id' => $card_id, 'openid' => $openid, 'code' => $code));
 			$this->receive();
 		}
 		//卡券的推送事件处理完成后，无需再走系统消息流程
@@ -871,19 +822,19 @@ EOF;
 		global $_W;
 		$params = array();
 		$setting = uni_setting($_W['uniacid'], array('default_message'));
-		$df = $setting['default_message'];
-		if(is_array($df) && isset($df[$type])) {
-			if (!empty($df[$type]['type']) && $df[$type]['type'] == 'keyword') {
+		$default_message = $setting['default_message'];
+		if(is_array($default_message) && !empty($default_message[$type]['type'])) {
+			if ($default_message[$type]['type'] == 'keyword') {
 				$message = $this->message;
 				$message['type'] = 'text';
 				$message['redirection'] = true;
 				$message['source'] = $type;
-				$message['content'] = $df[$type]['keyword'];
+				$message['content'] = $default_message[$type]['keyword'];
 				return $this->analyzeText($message);
 			} else {
 				$params[] = array(
 					'message' => $this->message,
-					'module' => is_array($df[$type]) ? $df[$type]['module'] : $df[$type],
+					'module' => is_array($default_message[$type]) ? $default_message[$type]['module'] : $default_message[$type],
 					'rule' => '-1',
 				);
 				return $params;
@@ -903,10 +854,14 @@ EOF;
 		if(empty($param['module']) || !in_array($param['module'], $this->modules)) {
 			return false;
 		}
-		
-		$processor = WeUtility::createModuleProcessor($param['module']);
+		if ($param['module'] == 'reply') {
+			$processor = WeUtility::createModuleProcessor('core');
+		} else {
+			$processor = WeUtility::createModuleProcessor($param['module']);
+		}
 		$processor->message = $param['message'];
 		$processor->rule = $param['rule'];
+		$processor->reply_type = $param['reply_type'];
 		$processor->priority = intval($param['priority']);
 		$processor->inContext = $param['context'] === true;
 		$response = $processor->respond();

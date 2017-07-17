@@ -21,7 +21,7 @@
 			}
 		{/if}
 		{/loop}
- */		{if $setting['register']['code']}
+ */		{if $_W['setting']['register']['code']}
 		if($.trim($(':text[name="code"]').val()) == '') {
 			util.message('没有输入验证码.', '', 'error');
 			return false;
@@ -31,65 +31,74 @@
 	var h = document.documentElement.clientHeight;
 	$(".login").css('min-height',h);
 </script>
-<style>
-	@media screen and (max-width:767px){.register .panel.panel-default{width:90%; min-width:300px;}}
-	@media screen and (min-width:768px){.register .panel.panel-default{width:70%;}}
-	@media screen and (min-width:1200px){.register .panel.panel-default{width:50%;}}
-</style>
-<div class="register">
-	<div class="logo"><a href="./?refresh" {if !empty($_W['setting']['copyright']['flogo'])}style="background:url('{php echo tomedia($_W['setting']['copyright']['flogo']);}') no-repeat;"{/if}></a></div>
-	<div class="clearfix" style="margin-bottom:5em;">
-		<div class="panel panel-default container">
+<div class="head">
+	<nav class="navbar navbar-default" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="{$_W['siteroot']}">
+					<img src="{if !empty($_W['setting']['copyright']['blogo'])}{php echo tomedia($_W['setting']['copyright']['blogo'])}{else}./resource/images/logo/logo.png{/if}" class="pull-left" width="110px" height="35px">
+				</a>
+			</div>
+		</div>
+	</nav>
+</div>
+<div class="main">
+	<div class="register" style="">
+		<div class="panel panel-default">
 			<div class="panel-body">
-				<form action="" method="post" role="form" id="form1">
+				<form action="" class="we7-form" method="post" role="form" id="form1">
 					<div class="form-group">
-						<label>用户名:<span style="color:red">*</span></label>
-						<input name="username" type="text" class="form-control" placeholder="请输入用户名">
+						<label class="control-label col-sm-1">用户名:<span class="color-red">*</span></label>
+						<div class="col-sm-11">
+							<input name="username" type="text" class="form-control" placeholder="请输入用户名">
+						</div>
 					</div>
 					<div class="form-group">
-						<label>密码:<span style="color:red">*</span></label>
-						<input name="password" type="password" id="password" class="form-control" placeholder="请输入不少于8位的密码">
+						<label class="control-label col-sm-1">密码:<span class="color-red">*</span></label>
+						<div class="col-sm-11">
+							<input name="password" type="password" id="password" class="form-control col-sm-10" placeholder="请输入不少于8位的密码">
+						</div>
 					</div>
 					<div class="form-group">
-						<label>确认密码:<span style="color:red">*</span></label>
-						<input name="password" type="password" id="repassword" class="form-control" placeholder="请再次输入不少于8位的密码">
+						<label class="control-label col-sm-1">确认密码:<span style="color:red">*</span></label>
+						<div class="col-sm-11">
+							<input name="password " type="password" id="repassword" class="form-control col-sm-10" placeholder="请再次输入不少于8位的密码">
+						</div>
 					</div>
 					{if $extendfields}
 						{loop $extendfields $item}
 							<div class="form-group">
-								<label>{$item['title']}：{if $item['required']}<span style="color:red">*</span>{/if}</label>
-								{php echo tpl_fans_form($item['field'])}
+								<label class="control-label col-sm-1">{$item['title']}:{if $item['required']}<span class="color-red">*</span>{/if}</label>
+								<div class="col-sm-11">
+									{php echo tpl_fans_form($item['field'])}
+								</div>
 							</div>
 						{/loop}
 					{/if}
-					{if $setting['register']['code']}
+					{if $_W['setting']['register']['code']}
 						<div class="form-group">
-							<label style="display:block;">验证码:<span style="color:red;">*</span></label>
-							<input name="code" type="text" class="form-control" placeholder="请输入验证码" style="width:65%;display:inline;margin-right:17px">
-							<img src="{php echo url('utility/code');}" class="img-rounded" style="cursor:pointer;" onclick="this.src='{php echo url('utility/code');}' + Math.random();" />
+							<label class="control-label col-sm-1">验证码:<span class="color-red">*</span></label>
+							<div class="col-sm-11">
+								<div class="input-group">
+									<input name="code" type="text" class="form-control" placeholder="请输入验证码">
+									<a href="javascript:;" class="input-group-btn imgverify"><img src="{php echo url('utility/code');}" onclick="this.src='{php echo url('utility/code');}' + Math.random();" /></a>
+								</div>
+							</div>
 						</div>
 					{/if}
 					<!--div class="form-group">
 						<label>邀请码:<span style="color:red">*</span></label>
 						<input name="invitation" type="text" class="form-control" placeholder="请输入邀请码">
 					</div-->
-					<div class="pull-right">
-						<a href="{url 'user/login'}" class="btn btn-link">登录</a>
-						<input type="submit" name="submit" value="注册" class="btn btn-default" />
+					<div class="login-submit text-center">
+						<input type="submit" name="submit" value="注册" class="btn btn-primary" />
+						<a href="{url 'user/login'}" class="btn btn-default">登录</a>
 						<input name="token" value="{$_W['token']}" type="hidden" />
+						<input name="uid" value="{$_GPC['uid']}" type="hidden" />
 					</div>
 				</form>
 			</div>
 		</div>
 	</div>
-	<div class="center-block footer" role="footer">
-		<div class="text-center">
-			{if empty($_W['setting']['copyright']['footerright'])}<a href="http://www.we7.cc">关于微擎</a>&nbsp;&nbsp;<a href="http://bbs.we7.cc">微擎论坛</a>&nbsp;&nbsp;<a href="http://wpa.b.qq.com/cgi/wpa.php?ln=1&key=XzkzODAwMzEzOV8xNzEwOTZfNDAwMDgyODUwMl8yXw">联系客服</a>{else}{$_W['setting']['copyright']['footerright']}{/if} &nbsp; &nbsp; {if !empty($_W['setting']['copyright']['statcode'])}{$_W['setting']['copyright']['statcode']}{/if}
-		</div>
-		<div class="text-center">
-			{if empty($_W['setting']['copyright']['footerleft'])}Powered by <a href="http://www.we7.cc"><b>微擎</b></a> v{IMS_VERSION} &copy; 2014-2015 <a href="http://www.we7.cc">www.we7.cc</a>{else}{$_W['setting']['copyright']['footerleft']}{/if}
-		</div>
-	</div>
 </div>
-</body>
-</html>
+{template 'common/footer-base'}
