@@ -1,0 +1,22 @@
+{template 'common/header-storex'}
+
+{if $op == 'display'}
+<div class="wn-main wn-main--without">
+	<div class="wn-main__head">应用</div>
+	<div class="wn-main__content">
+		<div class="wn-plugin--list">
+			<div class="wn-plugin--list__head">店铺应用</div>
+			<div class="wn-plugin--list__list">
+				<div class="wn-plugin--list__item">
+					<a href="{php echo $this->createWebUrl('shop_plugin_printer', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">
+						<img src="http://we7cloud-10016060.file.myqcloud.com/images/2017/06/29/14987341565954de4c960f6_OOo62Th1yz2t.jpg" alt="">
+						打印订单
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{/if}
+
+{template 'common/footer-storex'}

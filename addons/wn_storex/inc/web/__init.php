@@ -21,6 +21,14 @@ $aside_nav = array(
 			'shop_index',
 		)
 	),
+	'shop_homepage' => array(
+		'title' => '首页设置',
+		'url' => $this->createWebUrl('shop_homepage', array('storeid' => $_GPC['storeid'])),
+		'icon' => 'storex-shop',
+		'active' => array(
+			'shop_homepage'
+		)
+	),
 	'shop_category' => array(
 		'title' => '商品分类',
 		'url' => $this->createWebUrl('shop_category', array('storeid' => $_GPC['storeid'])),
