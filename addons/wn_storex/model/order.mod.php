@@ -174,6 +174,7 @@ function order_build_refund($orderid) {
 		'type' => $order['paytype'],
 		'uniacid' => $_W['uniacid'],
 		'orderid' => intval($orderid),
+		'storeid' => intval($order['hotelid']),
 		'refund_fee' => $order['sum_price'],
 		'total_fee' => $order['sum_price'],
 		'status' => REFUND_STATUS_PROCESS,
