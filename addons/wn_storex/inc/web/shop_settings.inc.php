@@ -55,6 +55,7 @@ if ($op == 'post') {
 			}
 		}
 		if (empty($id)) {
+			$common_insert['store_type'] = intval($_GPC['store_type']);
 			pdo_insert('storex_bases', $common_insert);
 			if (!empty($store_type)) {
 				$insert['store_base_id'] = pdo_insertid();
