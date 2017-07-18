@@ -388,6 +388,33 @@ $sql = "
 	`system` int(2) NOT NULL DEFAULT '0',
 	PRIMARY KEY (`id`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_sales` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(10) unsigned NOT NULL,
+	`storeid` int(10) unsigned NOT NULL,
+	`cumulate` decimal(10,2) DEFAULT '0.00',
+	`date` varchar(8) NOT NULL DEFAULT '',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`,`date`)
+	) DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_refund_logs` (
+	`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+	`type` varchar(20) NOT NULL DEFAULT '',
+	`uniacid` int(11) NOT NULL,
+	`orderid` int(10) unsigned NOT NULL DEFAULT '0',
+	`storeid` int(10) unsigned NOT NULL DEFAULT '0',
+	`out_refund_no` varchar(40) NOT NULL COMMENT '商户退款订单号',
+	`refund_fee` decimal(10,2) NOT NULL,
+	`total_fee` decimal(10,2) NOT NULL,
+	`status` tinyint(4) NOT NULL DEFAULT '0',
+	`time` int(11) DEFAULT '0',
+	PRIMARY KEY (`id`),
+	KEY `orderid` (`orderid`),
+	KEY `storeid` (`storeid`),
+	KEY `uniacid` (`uniacid`)
+	) DEFAULT CHARSET=utf8;
 ";
 pdo_run($sql);
 if (!pdo_fieldexists('storex_bases', 'category_set')) {
