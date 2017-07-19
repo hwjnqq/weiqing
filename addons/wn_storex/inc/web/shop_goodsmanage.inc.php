@@ -59,8 +59,8 @@ if ($op == 'display') {
 	$params = array();
 	
 	if (!empty($_GPC['title'])) {
-		$sql .= ' AND r.title LIKE :keywordds';
-		$params[':keywordds'] = "%{$_GPC['title']}%";
+		$sql .= ' AND r.title LIKE :keywords';
+		$params[':keywords'] = "%{$_GPC['title']}%";
 	}
 	if (!empty($_GPC['category_id'])) {
 		$category_id = intval($_GPC['category_id']);
