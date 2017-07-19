@@ -10,6 +10,13 @@ if (in_array($_GPC['do'], $dos)) {
 	}
 	$storex_bases = pdo_get('storex_bases', array('id' => $_GPC['storeid']));
 	$_W['wn_storex']['store_info'] = $storex_bases;
+	if (empty($_W['wn_storex']['store_info']['store_type'])) {
+		$_W['wn_storex']['goods_table'] = 'storex_goods';
+		$_W['wn_storex']['table_storeid'] = 'store_base_id';
+	} elseif ($_W['wn_storex']['store_info']['store_type'] == 1) {
+		$_W['wn_storex']['goods_table'] = 'storex_room';
+		$_W['wn_storex']['table_storeid'] = 'hotelid';
+	}
 }
 //店铺后台菜单设置
 $aside_nav = array(

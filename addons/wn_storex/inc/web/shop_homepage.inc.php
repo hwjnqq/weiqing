@@ -2,7 +2,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('display', 'post');
+$ops = array('display', 'post', 'search_goods');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $storeid = intval($_W['wn_storex']['store_info']['id']);
@@ -65,6 +65,27 @@ if ($op == 'post') {
 			}
 		}
 		message(error(-1, $insert), '', 'ajax');
+	}
+}
+
+if ($op == 'search_goods') {
+	if ($_W['ispost'] && $_W['isajax']) {
+		$condition = " WHERE weid = :uniacid AND {$_W['wn_storex']['table_storeid']} = :storeid";
+		$params[':uniacid'] = $_W['uniacid'];
+		$params[':storeid'] = $storeid;
+		if (!empty($_GPC['title'])) {
+			$condition .= " AND title LIKE :title";
+			$params[':title'] = "%{$_GPC['title']}%";
+		}
+		$search_list = array();
+		$goods_list = pdo_fetchall("SELECT id, title, thumb FROM " . tablename($_W['wn_storex']['goods_table']) . $condition, $params);
+		if (!empty($goods_list) && is_array($goods_list)) {
+			foreach ($goods_list as $key => $value) {
+				$search_list[$key] = $value;
+				$search_list[$key]['thumb'] = tomedia($search_list[$key]['thumb']);
+			}
+		}
+		message(error(0, $search_list), '', 'ajax');
 	}
 }
 
