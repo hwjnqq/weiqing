@@ -78,7 +78,7 @@ if ($op == 'search_goods') {
 			$params[':title'] = "%{$_GPC['title']}%";
 		}
 		$search_list = array();
-		$goods_list = pdo_fetchall("SELECT id, title, thumb FROM " . tablename($_W['wn_storex']['goods_table']) . $condition, $params);
+		$goods_list = pdo_fetchall("SELECT id, title, thumb, cprice FROM " . tablename($_W['wn_storex']['goods_table']) . $condition, $params);
 		if (!empty($goods_list) && is_array($goods_list)) {
 			foreach ($goods_list as $key => $value) {
 				$search_list[$key] = $value;
