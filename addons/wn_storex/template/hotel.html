@@ -102,13 +102,13 @@
 					<a href="javascript:;" class="js-entry-modal" data-id="{$item['id']}" data-store_entry="{$item['store_entry']}" data-mc_entry="{$item['mc_entry']}">查看入口</a>
 				</td>
 				<td>
-					<a href="{php echo $this->createWebUrl('shop_index', array('op' => 'dashboard', 'storeid' => $item['id']))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom" title="店铺管理" target="__black">店铺管理</a>
+					<a href="{php echo $this->createWebUrl('shop_index', array('op' => 'dashboard', 'storeid' => $item['id']))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom" title="店铺管理" target="__blank">店铺管理</a>
 					{if $item['store_type'] == 1}
-					<a href="{php echo $this->createWebUrl('room_status', array('hotelid' => $item['id']))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom" title="维护房量/房态">维护房量/房态</a>
-					<a href="{php echo $this->createWebUrl('room_price', array('hotelid' => $item['id']))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom" title="维护房价">维护房价</a>
-					<a href="{php echo $this->createWebUrl('goodsmanage', array('hotelid' => $item['id'], 'store_type' => 1))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom"  title="房型管理">房型管理</a>
+					<a href="{php echo $this->createWebUrl('shop_room_status', array('storeid' => $item['id']))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom" title="维护房量/房态" target="__blank">维护房量/房态</a>
+					<a href="{php echo $this->createWebUrl('shop_room_price', array('storeid' => $item['id']))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom" title="维护房价" target="__blank">维护房价</a>
+					<a href="{php echo $this->createWebUrl('shop_goodsmanage', array('storeid' => $item['id']))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom"  title="房型管理" target="__blank">房型管理</a>
 					{/if}
-					<a href="{php echo $this->createWebUrl('order',array('hotelid' => $item['id'], 'store_type'=>$item['store_type']))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom"  title="订单查看">订单查看</a>
+					<a href="{php echo $this->createWebUrl('shop_order',array('storeid' => $item['id']))}" class="btn  btn-default btn-small" data-toggle="tooltip" data-placement="bottom"  title="订单查看" target="__blank">订单查看</a>
 					<a class="btn  btn-default btn-sm" rel="tooltip" href="{php echo $this->createWebUrl('storemanage',array('op'=>'edit','id'=>$item['id']))}" title="编辑" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-edit"></i></a>
 					{if $item['status'] == 0}
 					<a class="btn btn-default btn-sm" title="显示" href="#" onclick="drop_confirm('您确定要显示此酒店吗?', '{php echo $this->createWebUrl('storemanage',array('op'=>'status','status'=>1, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
