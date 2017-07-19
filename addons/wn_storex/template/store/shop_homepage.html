@@ -158,6 +158,8 @@
 		}
 	})
 	require(['bootstrap'])
+	var default_module = {php echo json_encode($default_module)};
+	var homepage = {php echo json_encode($homepage_list)};
 	require(['Vue', 'vuedraggable'], function (Vue, vuedraggable) {
 		Vue.component('draggable', vuedraggable);
 		var vm = new Vue({
@@ -176,70 +178,12 @@
 					recommend: '商品推荐'
 				},
 				imageModules: ['slide', 'nav', 'cube', 'adv'],
-				modules: [
-					{
-						type: "search",
-						items: []
-					},
-					{
-						type: "slide",
-						items: []
-					},
-					{
-						type: "notice",
-						items: []
-					},
-					{
-						type: "nav",
-						items: []
-					},
-					{
-						type: "cube",
-						items: []
-					},
-					{
-						type: "adv",
-						items: []
-					},
-					{
-						type: "recommend",
-						items: []
-					}
-				],
-				openModules: [
-					{
-						type: "search",
-						item: []
-					},
-					{
-						type: "slide",
-						items: []
-					},
-					{
-						type: "notice",
-						items: []
-					},
-					{
-						type: "nav",
-						items: []
-					},
-					{
-						type: "cube",
-						items: []
-					},
-					{
-						type: "adv",
-						items: []
-					},
-					{
-						type: "recommend",
-						items: []
-					}
-				],
+				modules: default_module,
+				openModules: homepage,
 				editModule: {
-					index: 1,
-					type: 'slide',
-					items: []
+					index: 0,
+					type: homepage[0]['type'],
+					items: homepage[0]['items']
 				},
 				editValue: {},
 				editIndex: ''
@@ -313,7 +257,14 @@
 					});
 				},
 				submitModules: function () {
-					console.log(this.openModules)
+					$.post("{php echo $this->createWebUrl('shop_homepage', array('op' => 'post', 'storeid' => $_GPC['storeid']))}", {params : this.openModules}, function(data) {
+						data = $.parseJSON(data);
+						if (data.message.errno != 0) {
+							util.message(data.message.message, '', 'error');
+						} else {
+							util.message('编辑成功', '', 'success');
+						}
+					});
 				}
 			},
 			watch: {
