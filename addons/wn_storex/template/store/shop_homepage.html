@@ -150,23 +150,23 @@
 	</div>
 </div>
 <script>
-    require({
-        paths: {
-            'Vue': '/addons/wn_storex/template/style/js/vue',
-            'sortablejs': '/addons/wn_storex/template/style/js/Sortable.min',
-            'vuedraggable': '/addons/wn_storex/template/style/js/vuedraggable.min'
-        }
-    })
+	require({
+		paths: {
+			'Vue': '/addons/wn_storex/template/style/js/vue',
+			'sortablejs': '/addons/wn_storex/template/style/js/Sortable.min',
+			'vuedraggable': '/addons/wn_storex/template/style/js/vuedraggable.min'
+		}
+	})
 	require(['bootstrap'])
-    require(['Vue', 'vuedraggable'], function (Vue, vuedraggable) {
-        Vue.component('draggable', vuedraggable);
-        var vm = new Vue({
-            el: '#app',
-            name: 'Home',
-            data: {
-                drag: false,
-                showEdit: false,
-                typeValue: {
+	require(['Vue', 'vuedraggable'], function (Vue, vuedraggable) {
+		Vue.component('draggable', vuedraggable);
+		var vm = new Vue({
+			el: '#app',
+			name: 'Home',
+			data: {
+				drag: false,
+				showEdit: false,
+				typeValue: {
 					search: '搜索框',
 					slide: '幻灯片',
 					notice: '公告',
@@ -176,156 +176,156 @@
 					recommend: '商品推荐'
 				},
 				imageModules: ['slide', 'nav', 'cube', 'adv'],
-                modules: [
+				modules: [
 					{
 						type: "search",
 						items: []
 					},
 					{
 						type: "slide",
-                        items: []
+						items: []
 					},
 					{
 						type: "notice",
-                        items: []
+						items: []
 					},
 					{
 						type: "nav",
-                        items: []
+						items: []
 					},
 					{
 						type: "cube",
-                        items: []
+						items: []
 					},
 					{
 						type: "adv",
-                        items: []
+						items: []
 					},
 					{
 						type: "recommend",
-                        items: []
+						items: []
 					}
-                ],
-                openModules: [
-                    {
-                        type: "search",
-                        item: []
-                    },
-                    {
-                        type: "slide",
-                        items: []
-                    },
-                    {
-                        type: "notice",
-                        items: []
-                    },
-                    {
-                        type: "nav",
-                        items: []
-                    },
-                    {
-                        type: "cube",
-                        items: []
-                    },
-                    {
-                        type: "adv",
-                        items: []
-                    },
-                    {
-                        type: "recommend",
-                        items: []
-                    }
-                ],
-                editModule: {
+				],
+				openModules: [
+					{
+						type: "search",
+						item: []
+					},
+					{
+						type: "slide",
+						items: []
+					},
+					{
+						type: "notice",
+						items: []
+					},
+					{
+						type: "nav",
+						items: []
+					},
+					{
+						type: "cube",
+						items: []
+					},
+					{
+						type: "adv",
+						items: []
+					},
+					{
+						type: "recommend",
+						items: []
+					}
+				],
+				editModule: {
 					index: 1,
 					type: 'slide',
 					items: []
 				},
-                editValue: {},
+				editValue: {},
 				editIndex: ''
-            },
-            methods: {
-                removeModule: function (index) {
-                    var self = this;
-                    // Remove job from GUI
+			},
+			methods: {
+				removeModule: function (index) {
+					var self = this;
+					// Remove job from GUI
 					console.log(index)
-                    self.openModules.splice(index, 1);
+					self.openModules.splice(index, 1);
 					self.editModule = {}
-                },
-                addModules: function (index) {
-                    var self = this;
-                    // Remove job from GUI
-                    self.openModules.push(self.modules[index])
-                },
-                moveEnd: function (evt) {
-					if(evt.moved.oldIndex == this.editModule.index) {
-					    this.editModule.index = evt.moved.newIndex
-					}
-                },
-                edit: function (index) {
-                    var self = this;
-					var editModule =  {
-					    index: index,
-						type: self.openModules[index]['type'],
-                        items: self.openModules[index]['items']
-                    };
-                    self.editModule = editModule;
 				},
-                addImage: function () {
-                    this.showEdit = true;
-                    this.editValue = {
-                        url: '',
+				addModules: function (index) {
+					var self = this;
+					// Remove job from GUI
+					self.openModules.push(self.modules[index])
+				},
+				moveEnd: function (evt) {
+					if(evt.moved.oldIndex == this.editModule.index) {
+						this.editModule.index = evt.moved.newIndex
+					}
+				},
+				edit: function (index) {
+					var self = this;
+					var editModule =  {
+						index: index,
+						type: self.openModules[index]['type'],
+						items: self.openModules[index]['items']
+					};
+					self.editModule = editModule;
+				},
+				addImage: function () {
+					this.showEdit = true;
+					this.editValue = {
+						url: '',
 						img: '',
 						title: ''
 					}
-                },
-                editImage: function (index) {
-                    this.showEdit = true;
+				},
+				editImage: function (index) {
+					this.showEdit = true;
 					this.editValue = {
-                        img: this.openModules[this.editModule.index]['items'][index]['img'],
-                        title: this.openModules[this.editModule.index]['items'][index]['title'],
-                        url: this.openModules[this.editModule.index]['items'][index]['url'],
+						img: this.openModules[this.editModule.index]['items'][index]['img'],
+						title: this.openModules[this.editModule.index]['items'][index]['title'],
+						url: this.openModules[this.editModule.index]['items'][index]['url'],
 					};
 					this.editIndex = index;
-                },
-                hideEdit: function () {
+				},
+				hideEdit: function () {
 					this.showEdit = false;
-                },
-                saveEdit: function () {
-                    var index = this.editModule.index;
-                    var value = this.editValue;
+				},
+				saveEdit: function () {
+					var index = this.editModule.index;
+					var value = this.editValue;
 					if(!this.editIndex && typeof this.editIndex != 'number') {
 						this.openModules[index]['items'].push(value)
 					} else {
-                        this.openModules[index]['items'][this.editIndex] = value
+						this.openModules[index]['items'][this.editIndex] = value
 					}
 					this.showEdit = false;
-                },
-                uploadImage: function(target, key) {
-                    const self = this;
-                    require(['fileUploader'], function(uploader) {
-                        uploader.show(function(img) {
-                            self.$set(target, key, img.url)
-                        }, {
-                            'direct': true,
-                            'multiple': false
-                        });
-                    });
-                },
-                submitModules: function () {
+				},
+				uploadImage: function(target, key) {
+					const self = this;
+					require(['fileUploader'], function(uploader) {
+						uploader.show(function(img) {
+							self.$set(target, key, img.url)
+						}, {
+							'direct': true,
+							'multiple': false
+						});
+					});
+				},
+				submitModules: function () {
 					console.log(this.openModules)
-                }
-            },
+				}
+			},
 			watch: {
-                'showEdit': function (value) {
+				'showEdit': function (value) {
 					if(!value) {
-					    this.editValue = {};
-					    this.editIndex = '';
+						this.editValue = {};
+						this.editIndex = '';
 					}
-                }
+				}
 			}
-        })
-    })
+		})
+	})
 </script>
 {/if}
 
