@@ -117,7 +117,6 @@ if ($op == 'edit') {
 		if (empty($_GPC['oprice']) || $_GPC['oprice'] <= 0 || empty($_GPC['cprice']) || $_GPC['cprice'] <= 0) {
 			message('商品原价和优惠价不能为空！', referer(), 'error');
 		}
-		
 		$common = array(
 			'weid' => $_W['uniacid'],
 			'title' => $_GPC['title'],
@@ -132,6 +131,7 @@ if ($op == 'edit') {
 			'sortid'=>intval($_GPC['sortid']),
 			'sold_num' => intval($_GPC['sold_num']),
 			'store_type' => intval($store_type),
+			'sub_title' => trim($_GPC['sub_title']),
 		);
 		if ($store_type == STORE_TYPE_HOTEL) {
 			$is_house = 1;

@@ -585,6 +585,15 @@ pdo_delete('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu',
 pdo_delete('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu', 'do' => 'goodsmanage'));
 pdo_delete('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu', 'do' => 'order'));
 
+//商品增加副标题
+if (!pdo_fieldexists('storex_room', 'sub_title')) {
+	pdo_query("ALTER TABLE " . tablename('storex_room') . " ADD `sub_title` VARCHAR(12) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '副标题';");
+}
+if (!pdo_fieldexists('storex_goods', 'sub_title')) {
+	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `sub_title` VARCHAR(12) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '副标题';");
+}
+
+
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');
 $js_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/js');
