@@ -33,10 +33,6 @@ if (!empty($category) && is_array($category)) {
 		}
 	}
 }
-echo "<pre>";
-print_r($category_list);
-echo "</pre>";
-exit;
 
 if ($op == 'display') {
 	$default_module = array(
