@@ -3,7 +3,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_GPC, $_W;
 
-$dos = array('shop_settings', 'shop_category', 'shop_goodsmanage', 'shop_comment', 'shop_index', 'shop_order', 'shop_stat', 'shop_plugin', 'shop_plugin_printer', 'shop_homepage');
+$dos = array('shop_settings', 'shop_category', 'shop_goodsmanage', 'shop_comment', 'shop_index', 'shop_order', 'shop_stat', 'shop_plugin', 'shop_plugin_printer', 'shop_homepage', 'shop_member', 'shop_clerk');
 if (in_array($_GPC['do'], $dos)) {
 	if (empty($_GPC['storeid']) && !($_GPC['do'] == 'shop_settings' && $_GPC['action'] == 'add')) {
 		message('请重新选择店铺', $this->createWebUrl('storemanage', array('op' => 'list')), 'error');
@@ -93,6 +93,22 @@ $aside_nav = array(
 		'icon' => 'storex-set',
 		'active' => array(
 			'shop_settings',
+		)
+	),
+	'shop_member' => array(
+		'title' => '用户管理',
+		'url' => $this->createWebUrl('shop_member', array('storeid' => $_GPC['storeid'])),
+		'icon' => 'storex-set',
+		'active' => array(
+			'shop_member',
+		)
+	),
+	'shop_clerk' => array(
+		'title' => '店员管理',
+		'url' => $this->createWebUrl('shop_clerk', array('storeid' => $_GPC['storeid'])),
+		'icon' => 'storex-set',
+		'active' => array(
+			'shop_clerk',
 		)
 	),
 );
