@@ -32,7 +32,7 @@ if ($op == 'edit') {
 	if (!empty($id)) {
 		$item = pdo_get('storex_clerk', array('id' => $id, 'weid' => $_W['uniacid']));
 		if (empty($item)) {
-			message('抱歉，用户不存在或是已经删除！', '', 'error');
+			message('用户不存在或是已经删除', '', 'error');
 		}
 		if (!empty($item['permission'])) {
 			$item['permission'] = iunserializer($item['permission']);
@@ -51,16 +51,17 @@ if ($op == 'edit') {
 		}
 	}
 	if (!empty($item['from_user'])) {
-		load()->model('mc');
 		$uid = mc_openid2uid($item['from_user']);
 		$address_info = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => $_W['uniacid']), '', '', 'isdefault DESC');
 	}
 	$stores = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid'])), array('id', 'title', 'store_type', 'thumb'), 'id');
-	foreach ($stores as &$value) {
-		$value['thumb'] = tomedia($value['thumb']);
+	if (!empty($stores) && is_array($stores)) {
+		foreach ($stores as &$value) {
+			$value['thumb'] = tomedia($value['thumb']);
+		}
 	}
 	if (checksubmit('submit')) {
-		$data = array(
+		$insert = array(
 			'weid' => intval($_W['uniacid']),
 			'username' => trim($_GPC['username']),
 			'realname' => trim($_GPC['realname']),
@@ -70,30 +71,30 @@ if ($op == 'edit') {
 			'permission' => iserializer($_GPC['permission']),
 		);
 		if (empty($id)) {
-			if (empty($data['from_user'])) {
-				message('请填写店员的微信openid，否则无法获取到店员信息', '', 'info');
+			if (empty($insert['from_user'])) {
+				message('店员的微信openid不能为空', '', 'info');
 			}
 		}
-		$from_user = pdo_get('mc_mapping_fans', array('openid' => $data['from_user'], 'uniacid' => $_W['uniacid']));
-		if (empty($from_user)) {
+		$fans_info = pdo_get('mc_mapping_fans', array('openid' => $insert['from_user'], 'uniacid' => $_W['uniacid']));
+		if (empty($fans_info)) {
 			message('关注公众号后才能成为店员', referer(), 'info');
 		}
 		if (empty($id)) {
-			$exist = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_clerk') . " WHERE username=:username ", array(":username" => $data['username']));
+			$exist = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_clerk') . " WHERE username=:username ", array(":username" => $insert['username']));
 			if ($exist > 0) {
-				message("用户名 " . $data['username'] . " 已经存在!", "", "error");
+				message('用户名 ' . $insert['username'] . ' 已经存在', '', 'error');
 			}
-			$data['createtime'] = time();
-			$result = pdo_get('storex_clerk', array('from_user' => $data['from_user'], 'weid' => $_W['uniacid']));
-			if (!empty($result)) {
-				pdo_update('storex_clerk', $data, array('id' => $result['id']));
+			$insert['createtime'] = time();
+			$clerk = pdo_get('storex_clerk', array('from_user' => $insert['from_user'], 'weid' => $_W['uniacid']));
+			if (!empty($clerk)) {
+				pdo_update('storex_clerk', $insert, array('id' => $clerk['id']));
 			} else {
-				pdo_insert('storex_clerk', $data);
+				pdo_insert('storex_clerk', $insert);
 			}
 		} else {
-			pdo_update('storex_clerk', $data, array('id' => $id, 'weid' => intval($_W['uniacid'])));
+			pdo_update('storex_clerk', $insert, array('id' => $id, 'weid' => intval($_W['uniacid'])));
 		}
-		message('用户信息更新成功！', $this->createWebUrl('clerk'), 'success');
+		message('用户信息更新成功', $this->createWebUrl('clerk'), 'success');
 	}
 	include $this->template('store/shop_clerk_form');
 }
@@ -101,7 +102,7 @@ if ($op == 'edit') {
 if ($op == 'delete') {
 	$id = intval($_GPC['id']);
 	pdo_delete('storex_clerk', array('id' => $id));
-	message('删除成功！', referer(), 'success');
+	message('删除成功', referer(), 'success');
 }
 
 if ($op == 'deleteall') {
@@ -109,7 +110,7 @@ if ($op == 'deleteall') {
 		$id = intval($id);
 		pdo_delete('storex_clerk', array('id' => $id));
 	}
-	message(error(0, '操作成功！'), '', 'ajax');
+	message(error(0, '操作成功'), '', 'ajax');
 }
 
 if ($op == 'showall') {
@@ -124,34 +125,18 @@ if ($op == 'showall') {
 			pdo_update('storex_clerk', array('status' => $show_status), array('id' => $id));
 		}
 	}
-	message(error(0, '操作成功！'), '', 'ajax');
+	message(error(0, '操作成功'), '', 'ajax');
 }
 
 if ($op == 'status') {
 	$id = intval($_GPC['id']);
 	if (empty($id)) {
-		message('抱歉，传递的参数错误！', '', 'error');
+		message('参数错误', '', 'error');
 	}
-	$temp = pdo_update('storex_clerk', array('status' => $_GPC['status']), array('id' => $id));
-	
-	if ($temp == false) {
-		message('抱歉，刚才操作数据失败！', '', 'error');
+	$clerk = pdo_update('storex_clerk', array('status' => $_GPC['status']), array('id' => $id));
+	if ($clerk == false) {
+		message('操作失败', '', 'error');
 	} else {
-		message('状态设置成功！', referer(), 'success');
+		message('设置成功', referer(), 'success');
 	}
-}
-
-if ($op == 'clerkcommentlist') {
-	$id = intval($_GPC['id']);
-	$where = ' WHERE `uniacid` = :uniacid';
-	$params = array(':uniacid' => intval($_W['uniacid']));
-	$sql = 'SELECT COUNT(*) FROM ' . tablename('storex_comment_clerk') . $where;
-	$total = pdo_fetchcolumn($sql, $params);
-	if ($total > 0) {
-		$pindex = max(1, intval($_GPC['page']));
-		$psize = 10;
-		$comments = pdo_getall('storex_comment_clerk', array('uniacid' => intval($_W['uniacid'])), array(), '', 'id DESC', ($pindex - 1) * $psize . ',' . $psize);
-		$pager = pagination($total, $pindex, $psize);
-	}
-	include $this->template('clerk_comment');
 }

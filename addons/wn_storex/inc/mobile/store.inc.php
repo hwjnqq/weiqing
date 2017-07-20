@@ -77,12 +77,12 @@ if ($op == 'store_detail') {
 	$store_id = intval($_GPC['store_id']);//店铺id
 	$store_detail = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $store_id));
 	if (empty($store_detail)) {
-        message(error(-1, '店铺不存在'), '', 'ajax');
-    } else {
-        if ($store_detail['status'] == 0) {
-            message(error(-1, '店铺已隐藏'), '', 'ajax');
-        }
-    }
+		message(error(-1, '店铺不存在'), '', 'ajax');
+	} else {
+		if ($store_detail['status'] == 0) {
+			message(error(-1, '店铺已隐藏'), '', 'ajax');
+		}
+	}
 	if (!empty($store_detail['store_info'])) {
 		$store_detail['store_info'] = htmlspecialchars_decode($store_detail['store_info']);
 	}
