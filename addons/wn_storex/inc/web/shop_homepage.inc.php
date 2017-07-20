@@ -57,7 +57,7 @@ if ($op == 'display') {
 			'items' => array()
 		),
 		array(
-			'type' => 'nav',
+			'type' => 'adv',
 			'items' => array()
 		),
 		array(
