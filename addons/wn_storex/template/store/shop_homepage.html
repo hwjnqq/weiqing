@@ -13,24 +13,17 @@
 						<div>
 							<div class="weui-tab">
 								<div class="wn-home__preview">
-									<draggable :list="openModules" element="div" :options="{group:'modules'}"
-									           :no-transition-on-drag="true" @start="drag=true;" @end="drag=false;"
-									           @change="moveEnd">
+									<draggable :list="openModules" element="div" :options="{group:'modules'}" :no-transition-on-drag="true" @start="drag=true;" @end="drag=false;" @change="moveEnd">
 										<transition-group :name="!drag? 'list-complete' : null" :css="true">
-											<div v-for="(open, index) in openModules" :key="open.type"
-											     class="wn-home__preview__item"
-											     :class="{'active': index === editModuleIndex}">
+											<div v-for="(open, index) in openModules" :key="open.type" class="wn-home__preview__item" :class="{'active': index === editModuleIndex}">
 												<div @click="edit(index)" class="content">
 													<div class="" v-if="open.type == 'search' && open.items && false">
 														<div class="form-group">
-															<input type="text" class="form-control"
-															       :placeholder="open.items" :value="open.items"
-															       disabled>
+															<input type="text" class="form-control" :placeholder="open.items" :value="open.items" disabled>
 														</div>
 													</div>
 													<div class="image" v-else>
-														<img :src="'../addons/wn_storex/template/style/img/home/' + open.type + '.png'"
-														     alt="">
+														<img :src="'../addons/wn_storex/template/style/img/home/' + open.type + '.png'">
 													</div>
 												</div>
 												<div class="remove" v-on:click="removeModule(index)">
@@ -47,12 +40,9 @@
 				<div class="app-side">
 					<div class="editor">
 						<div class="wn-home__modules">
-							<draggable :list="modules" element="div"
-							           :options="{group:{name:'modules', pull:'clone', put:false }}"
-							           :no-transition-on-drag="true" @start="drag=true;" @end="drag=false">
+							<draggable :list="modules" element="div" :options="{group:{name:'modules', pull:'clone', put:false }}" :no-transition-on-drag="true" @start="drag=true;" @end="drag=false">
 								<div v-for="(module, index) in modules" :key="index" class="wn-home__modules__item">
-									<div @click="addModules(index)" class="content"
-									     :style="'background-image: url(../addons/wn_storex/template/style/img/home/' + module.type + '.png)'">
+									<div @click="addModules(index)" class="content" :style="'background-image: url(../addons/wn_storex/template/style/img/home/' + module.type + '.png)'">
 										{{typeValue[module.type]}}
 									</div>
 								</div>
@@ -63,16 +53,13 @@
 							<h2 class="wn-home__edit__head">{{typeValue[openModules[editModuleIndex]['type']]}}</h2>
 							<div class="wn-home__editSearch wn-home__edit__item" v-if="openModules[editModuleIndex]['type'] == 'search'">
 								<div class="form-group">
-									<input type="text" class="form-control"
-									       v-model.trim="openModules[editModuleIndex]['items']" placeholder="搜索框提示语">
+									<input type="text" class="form-control" v-model.trim="openModules[editModuleIndex]['items']" placeholder="搜索框提示语">
 								</div>
 							</div>
 							<div class="wn-home__editGoods row" v-if="openModules[editModuleIndex]['type'] == 'recommend'">
 								<div class="col-sm-6">
 									已选商品
-									<draggable :list="openModules[editModuleIndex]['items']" element="div"
-									           :options="{group:{name:'goods'}}" :no-transition-on-drag="true"
-									           @start="drag=true" @end="drag=false" v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
+									<draggable :list="openModules[editModuleIndex]['items']" element="div" :options="{group:{name:'goods'}}" :no-transition-on-drag="true" @start="drag=true" @end="drag=false" v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
 										<div class="media" v-for="(goods, index) in openModules[editModuleIndex]['items']">
 											<div class="media-left">
 												<a href="#">
@@ -92,8 +79,7 @@
 								<div class="col-sm-6">
 									<div class="form-group">
 										<div class="input-group">
-											<input type="text" class="form-control"
-											       v-model.trim="goodsParams" placeholder="商品搜索">
+											<input type="text" class="form-control" v-model.trim="goodsParams" placeholder="商品搜索">
 											<div class="input-group-btn">
 												<button class="btn btn-default" @click="searchGoods"><i class="fa fa-search"></i></button>
 											</div>
@@ -133,11 +119,8 @@
 										</div>
 									</div>
 								</div>
-								<draggable :list="openModules[editModuleIndex]['items']" element="div"
-								           :options="{group:{name:'slide'}}" :no-transition-on-drag="true"
-								           @start="drag=true" @end="drag=false" v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
-									<div v-for="(item, index) in openModules[editModuleIndex]['items']" :key="index"
-									     class="wn-home__editImage__item wn-home__editImage__item--slide">
+								<draggable :list="openModules[editModuleIndex]['items']" element="div" :options="{group:{name:'slide'}}" :no-transition-on-drag="true" @start="drag=true" @end="drag=false" v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
+									<div v-for="(item, index) in openModules[editModuleIndex]['items']" :key="index" class="wn-home__editImage__item wn-home__editImage__item--slide">
 										<div @click="editImage(index)" class="content row">
 											<div class="col-sm-2">
 												{{index}}
@@ -159,19 +142,16 @@
 								<div class="" v-if="showEdit">
 									<h5>编辑</h5>
 									<div class="form-group">
-										<input type="text" class="form-control" v-model.trim="editValue.title"
-										       placeholder="标题">
+										<input type="text" class="form-control" v-model.trim="editValue.title" placeholder="标题">
 										<div class="help-block">设置{{typeValue[openModules[editModuleIndex]['type']]}}标题</div>
 									</div>
 									<div class="form-group">
-										<input type="text" class="form-control" v-model.trim="editValue.url"
-										       placeholder="链接">
+										<input type="text" class="form-control" v-model.trim="editValue.url" placeholder="链接">
 										<div class="help-block">设置{{typeValue[openModules[editModuleIndex]['type']]}}链接</div>
 									</div>
 									<div class="form-group" v-if="openModules[editModuleIndex]['type'] != 'notice'">
 										<div class="input-group">
-											<input type="text" disabled class="form-control"
-											       v-model.trim="editValue.img" placeholder="图片地址">
+											<input type="text" disabled class="form-control" v-model.trim="editValue.img" placeholder="图片地址">
 											<span class="input-group-btn" @click="uploadImage(editValue, 'img')">
 												<button class="btn btn-default" type="button"><i
 														class="fa fa-plus-circle green"></i>&nbsp;选择图片</button>

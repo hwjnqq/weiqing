@@ -2,10 +2,42 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('display', 'post', 'search_goods');
+$ops = array('display', 'post', 'search_goods', 'link');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $storeid = intval($_W['wn_storex']['store_info']['id']);
+
+$category = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'enabled' => 1), array('id', 'name', 'thumb', 'parentid', 'category_type'));
+if (!empty($category) && is_array($category)) {
+	foreach ($category as $key => &$info) {
+		$info['thumb'] = tomedia($info['thumb']);
+		if (empty($info['parentid'])) {
+			$category_list[$info['id']] = $info;
+			if ($info['category_type'] == 1) {
+				$vue_route = '#/Category/HotelList/' . $storeid . '/';
+			} elseif ($info['category_type'] == 2) {
+				if (empty($_W['wn_storex']['store_info']['store_type'])) {
+					$vue_route = '#/Category/Child/' . $storeid . '/';
+				} elseif ($_W['wn_storex']['store_info']['store_type'] == 1) {
+					$vue_route = '#/Category/GoodList/' . $storeid . '/';
+				}				
+			}
+			$category_list[$info['id']]['link'] = $this->createMobileUrl('display', array('id' => $storeid)) . $vue_route . $info['id'];
+			$category_list[$info['id']]['sub_class'] = array();
+		} else {
+			if (!empty($category_list[$info['parentid']])) {
+				$category_list[$info['parentid']]['sub_class'][$key] = $info;
+			}
+			$vue_route = '#/Category/GoodList/' . $storeid . '/';
+			$category_list[$info['parentid']]['sub_class'][$key]['link'] = $this->createMobileUrl('display', array('id' => $storeid)) . $vue_route . $info['id'];
+		}
+	}
+}
+echo "<pre>";
+print_r($category_list);
+echo "</pre>";
+exit;
+
 if ($op == 'display') {
 	$default_module = array(
 		array(
@@ -73,6 +105,10 @@ if ($op == 'search_goods') {
 		$condition = " WHERE weid = :uniacid AND {$_W['wn_storex']['table_storeid']} = :storeid";
 		$params[':uniacid'] = $_W['uniacid'];
 		$params[':storeid'] = $storeid;
+		if ($_W['wn_storex']['store_info']['store_type'] == 1) {
+			$condition .= " AND is_house = :is_house";
+			$params[':is_house'] = 2;
+		} 
 		if (!empty($_GPC['title'])) {
 			$condition .= " AND title LIKE :title";
 			$params[':title'] = "%{$_GPC['title']}%";
@@ -86,6 +122,12 @@ if ($op == 'search_goods') {
 			}
 		}
 		message(error(0, $search_list), '', 'ajax');
+	}
+}
+
+if ($op == 'link') {
+	if ($_W['ispost'] && $_W['isajax']) {
+		$category = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'enabled' => 1));
 	}
 }
 
