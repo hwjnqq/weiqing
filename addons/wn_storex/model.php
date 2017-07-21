@@ -696,7 +696,7 @@ function goods_entry_fetch($storeid, $type = '', $params = array()) {
 			);
 		}
 	}
-	if (!empty($type) && !empty($params['goodsid'])) {
+	if (!empty($params['goodsid'])) {
 		return $goods_vue_routes[$params['goodsid']]['link'];
 	}
 	return $goods_vue_routes;
@@ -736,14 +736,12 @@ function category_entry_fetch($storeid, $type = '', $params = array()) {
 			}
 		}
 		unset($v);
-		if (!empty($type)) {
-			if (!empty($params['classid'])) {
-				return $category_list[$params['classid']]['link'];
-			}
-			if (!empty($params['sub_classid'])) {
-				$class = $category[$params['sub_classid']]['parentid'];
-				return $category_list[$class][$params['sub_classid']]['link'];
-			}
+		if (!empty($params['classid'])) {
+			return $category_list[$params['classid']]['link'];
+		}
+		if (!empty($params['sub_classid'])) {
+			$class = $category[$params['sub_classid']]['parentid'];
+			return $category_list[$class][$params['sub_classid']]['link'];
 		}
 	}
 	return $category_list;
