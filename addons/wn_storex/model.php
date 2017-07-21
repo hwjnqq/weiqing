@@ -548,8 +548,10 @@ function entry_fetch($storeid, $type = '', $params = array()) {
 			'type' => 'storeindex',
 			'name' => '店铺首页',
 			'group' => array(
-				'name' => '店铺首页',
-				'link' => $url . '#/StoreIndex/' . $storeid,
+				array(
+					'name' => '店铺首页',
+					'link' => $url . '#/StoreIndex/' . $storeid,
+				),
 			),
 		),
 		array(
@@ -583,96 +585,120 @@ function usercenter_entry_fetch($storeid) {
 			'type' => 'usercenter',
 			'name' => '个人中心',
 			'group' => array(
-				'name' => '个人中心',
-				'link' => $url . '#/Home/Index',
+				array(
+					'name' => '个人中心',
+					'link' => $url . '#/Home/Index',
+				),
 			),
 		),
 		array(
 			'type' => 'orderlist',
 			'name' => '订单中心',
 			'group' => array(
-				'name' => '订单中心',
-				'link' => $url . '#/Home/OrderList',
-			)
+				array(
+					'name' => '订单中心',
+					'link' => $url . '#/Home/OrderList',
+				),
+			),
 		),
 		array(
 			'type' => 'mycouponlist',
 			'name' => '我的卡券',
 			'group' => array(
-				'name' => '我的卡券',
-				'link' => $url . '#/Home/MyCouponList',
+				array(
+					'name' => '我的卡券',
+					'link' => $url . '#/Home/MyCouponList',
+				),
 			),
 		),
 		array(
 			'type' => 'userinfo',
 			'name' => '用户信息',
 			'group' => array(
-				'name' => '用户信息',
-				'link' => $url . '#/Home/UserInfo',
+				array(
+					'name' => '用户信息',
+					'link' => $url . '#/Home/UserInfo',
+				),
 			),
 		),
 		array(
 			'type' => 'address',
 			'name' => '地址管理',
 			'group' => array(
-				'name' => '地址管理',
-				'link' => $url . '#/Home/Address',
+				array(
+					'name' => '地址管理',
+					'link' => $url . '#/Home/Address',
+				),
 			),
 		),
 		array(
 			'type' => 'sign',
 			'name' => '签到',
 			'group' => array(
-				'name' => '签到',
-				'link' => $url . '#/Home/Sign',
+				array(
+					'name' => '签到',
+					'link' => $url . '#/Home/Sign',
+				),
 			),
 		),
 		array(
 			'type' => 'message',
 			'name' => '通知',
 			'group' => array(
-				'name' => '通知',
-				'link' => $url . '#/Home/Message',
+				array(
+					'name' => '通知',
+					'link' => $url . '#/Home/Message',
+				),
 			),
 		),
 		array(
 			'type' => 'credit',
 			'name' => '我的余额',
 			'group' => array(
-				'name' => '我的余额',
-				'link' => $url . '#/Home/Credit/',
+				array(
+					'name' => '我的余额',
+					'link' => $url . '#/Home/Credit/',
+				),
 			),
 		),
 		array(
 			'type' => 'recharge_credit',
 			'name' => '余额充值',
 			'group' => array(
-				'name' => '余额充值',
-				'link' => $url . '#/Home/Recharge/credit',
+				array(
+					'name' => '余额充值',
+					'link' => $url . '#/Home/Recharge/credit',
+				),
 			),
 		),
 		array(
 			'type' => 'recharge_nums',
 			'name' => '会员卡次数充值',
 			'group' => array(
-				'name' => '会员卡次数充值',
-				'link' => $url . '#/Home/Recharge/nums',
+				array(
+					'name' => '会员卡次数充值',
+					'link' => $url . '#/Home/Recharge/nums',
+				),
 			),
 		),
 		array(
 			'type' => 'recharge_times',
 			'name' => '会员卡时间充值',
 			'group' => array(
-				'name' => '会员卡时间充值',
-				'link' => $url . '#/Home/Recharge/times',
+				array(
+					'name' => '会员卡时间充值',
+					'link' => $url . '#/Home/Recharge/times',
+				),
 			),
 		),
 		array(
 			'type' => 'creditsrecord',
 			'name' => '余额记录',
 			'group' => array(
-				'name' => '余额记录',
-				'link' => $url . '#/Home/CreditsRecord',
+				array(
+					'name' => '余额记录',
+					'link' => $url . '#/Home/CreditsRecord',
+				),
 			),
 		),
 	);
