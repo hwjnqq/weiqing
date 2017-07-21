@@ -47,6 +47,7 @@ if ($op == 'edit') {
 					$store_info['thumb'] = tomedia($store_info['thumb']);
 					$store_info['permission'] = $item['permission'][$key];
 				}
+				unset($store_info);
 			}
 		}
 	}
@@ -59,6 +60,7 @@ if ($op == 'edit') {
 		foreach ($stores as &$value) {
 			$value['thumb'] = tomedia($value['thumb']);
 		}
+		unset($value);
 	}
 	if (checksubmit('submit')) {
 		$insert = array(

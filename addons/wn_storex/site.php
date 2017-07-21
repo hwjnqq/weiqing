@@ -72,8 +72,20 @@ class Wn_storexModuleSite extends WeModuleSite {
 		global $_GPC, $_W;
 		load()->model('mc');
 		mc_oauth_userinfo();
+		$url = entry_fetch();
+		if (!empty($url)) {
+			header("Location: $url");
+		}
 		$id = intval($_GPC['id']);
 		$setting = get_storex_set();
+		
+		$member = array(
+			'weid' => $_W['uniacid'],
+			'from_user' => $_W['openid'],
+		);
+		if (!hotel_member_single($member)) {
+			insert_member($member);
+		}
 		if (empty($id) && $setting['version'] == 0 && empty($_GPC['orderid']) && $_GPC['pay_type'] != 'recharge') {
 			$storex_base = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'status' => 1), array('id'), '', 'displayorder DESC');
 			if (empty($storex_base)) {
@@ -113,6 +125,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 		global $_GPC, $_W;
 		load()->model('mc');
 		mload()->model('card');
+		$uid = mc_openid2uid($params['user']);
 		$recharge_info = pdo_get('mc_credits_recharge', array('uniacid' => $_W['uniacid'], 'tid' => $params['tid']), array('id', 'backtype', 'fee', 'openid', 'uid', 'type'));
 		if (!empty($recharge_info)) {
 			if ($params['result'] == 'success' && $params['from'] == 'notify') {
@@ -122,7 +135,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				//如果是微信支付，需要记录transaction_id。
 				if ($params['type'] == 'wechat') {
 					$data['transid'] = $params['tag']['transaction_id'];
-					$params['user'] = mc_openid2uid($params['user']);
+					$params['user'] = $uid;
 				}
 				pdo_update('mc_credits_recharge', $data, array('tid' => $params['tid']));
 				$paydata = array('wechat' => '微信', 'alipay' => '支付宝', 'baifubao' => '百付宝', 'unionpay' => '银联');
@@ -234,9 +247,23 @@ class Wn_storexModuleSite extends WeModuleSite {
 			$order = pdo_get('storex_order', array('id' => $params['tid'], 'weid' => $weid));
 			$storex_bases = pdo_get('storex_bases', array('id' => $order['hotelid'], 'weid' => $weid), array('id', 'store_type', 'title'));
 			pdo_update('storex_order', array('paystatus' => 1, 'paytype' => $params['type']), array('id' => $params['tid']));
+			if (!pdo_get('storex_order_logs', array('orderid' => $order['id'], 'type' => 'paystatus', 'after_change' => 1))) {
+				$logs = array(
+					'table' => 'storex_order_logs',
+					'time' => TIMESTAMP,
+					'before_change' => 0,
+					'after_change' => 1,
+					'type' => 'paystatus',
+					'uid' => $uid,
+					'clerk_type' => 1,
+					'orderid' => $order['id'],
+					'remark' => '支付成功',
+				);
+				write_log($logs);
+			}
 			$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('email', 'mobile', 'nickname', 'template', 'confirm_templateid', 'templateid'));
 			$starttime = $order['btime'];
-			if ($setInfo['email']) {
+			if (!empty($setInfo['email'])) {
 				$body = "<h3>店铺订单</h3> <br />";
 				$body .= '订单编号：' . $order['ordersn'] . '<br />';
 				$body .= '姓名：' . $order['contact_name'] . '<br />';
@@ -256,7 +283,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 					ihttp_email($setInfo['email'], '万能小店订单提醒', $body);
 				}
 			}
-			if ($setInfo['mobile']) {
+			if (!empty($setInfo['mobile'])) {
 				// 发送短信提醒
 				if (!empty($setInfo['mobile'])) {
 					load()->model('cloud');
@@ -364,7 +391,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 						pdo_update('storex_room_price', array('num' => $day['num'] - $order['nums']), array('id' => $day['id']));
 						$starttime += 86400;
 					}
-					if ($score) {
+					if (!empty($score)) {
 						$from_user = $_W['openid'];
 						pdo_fetch("UPDATE " . tablename('storex_member') . " SET score = (score + " . $score . ") WHERE from_user = '" . $from_user . "' AND weid = " . $weid . "");
 						//会员送积分
