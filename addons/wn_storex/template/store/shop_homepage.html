@@ -4,6 +4,9 @@
 <div class="wn-main wn-main--without">
 	<div class="wn-main__head">店铺设置</div>
 	<div class="wn-main__content">
+		<div class="alert alert-info" role="alert">
+
+		</div>
 		<div class="wn-home__module" id="app">
 			<div class="app">
 				<div class="app-preview">
@@ -39,7 +42,7 @@
 				</div>
 				<div class="app-side">
 					<div class="editor">
-						<div class="wn-home__modules">
+						<div class="wn-home__modules" data-toggle="tooltip" data-placement="bottom" title="Tooltip on bottom" ref="tooltip">
 							<draggable :list="modules" element="div" :options="{group:{name:'modules', pull:'clone', put:false }}" :no-transition-on-drag="true" @start="drag=true;" @end="drag=false">
 								<div v-for="(module, index) in modules" :key="index" class="wn-home__modules__item">
 									<div @click="addModules(index)" class="content" :style="'background-image: url(../addons/wn_storex/template/style/img/home/' + module.type + '.png)'">
@@ -50,7 +53,27 @@
 						</div>
 						<div class="clearfix"></div>
 						<div class="wn-home__edit" v-if="typeof editModuleIndex == 'number'">
-							<h2 class="wn-home__edit__head">{{typeValue[openModules[editModuleIndex]['type']]}}</h2>
+							<div class="wn-home__edit__head">
+								{{typeValue[openModules[editModuleIndex]['type']]}}
+								<span v-if="openModules[editModuleIndex]['type'] == 'slide'">
+									拖动排序，每组最多上传4张
+								</span>
+								<span v-if="openModules[editModuleIndex]['type'] == 'notice'">
+									拖动排序
+								</span>
+								<span v-if="openModules[editModuleIndex]['type'] == 'nav'">
+									拖动排序，推荐每组上传5个或10个
+								</span>
+								<span v-if="openModules[editModuleIndex]['type'] == 'cube'">
+									拖动排序, 每组最多上传4张
+								</span>
+								<span v-if="openModules[editModuleIndex]['type'] == 'recommend'">
+									拖动排序
+								</span>
+							</div>
+							<div class="wn-home__edit__help">
+								
+							</div>
 							<div class="wn-home__editSearch wn-home__edit__item" v-if="openModules[editModuleIndex]['type'] == 'search'">
 								<div class="form-group">
 									<input type="text" class="form-control" v-model.trim="openModules[editModuleIndex]['items']" placeholder="搜索框提示语">
@@ -426,6 +449,9 @@
 			},
 			created: function () {
 				this.editModuleIndex = 0;
+				this.$nextTick(function () {
+					$(this.$refs.tooltip).tooltip()
+				})
 			}
 		})
 

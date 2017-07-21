@@ -875,6 +875,7 @@ li {
 }
 .wn-home__modules {
   width: 100%;
+  overflow: hidden;
 }
 .wn-home__modules__item {
   float: left;
