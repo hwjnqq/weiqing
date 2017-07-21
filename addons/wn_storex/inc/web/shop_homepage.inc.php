@@ -37,10 +37,6 @@ if (!empty($category) && is_array($category)) {
 if ($op == 'display') {
 	$default_module = array(
 		array(
-			'type' => 'search',
-			'items' => array()
-		),
-		array(
 			'type' => 'slide',
 			'items' => array()
 		),
@@ -67,10 +63,22 @@ if ($op == 'display') {
 	);
 	$homepage_list = pdo_getall('storex_homepage', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid), array(), 'displayorder', 'displayorder ASC');
 	if (!empty($homepage_list) && is_array($homepage_list)) {
-		 foreach ($homepage_list as $key => &$value) {
-		 	unset($value['id'], $value['displayorder'], $value['uniacid'], $value['storeid']);
-		 	$value['items'] = !empty($value['items']) ? iunserializer($value['items']) : '';
-		 }
+		foreach ($homepage_list as $key => &$value) {
+			unset($value['id'], $value['displayorder'], $value['uniacid'], $value['storeid']);
+			$value['items'] = !empty($value['items']) ? iunserializer($value['items']) : '';
+			if ($value['type'] == 'recommend') {
+				$recommend_key = $key;
+				$recommend_info = $value;
+			}
+		}
+		if (!empty($recommend_info['items']) && is_array($recommend_info['items'])) {
+			$goodslist = pdo_getall($_W['wn_storex']['goods_table'], array('id' => array_values($recommend_info['items'])), array('id', 'thumb', 'title', 'cprice'), 'id');
+			foreach ($recommend_info['items'] as $key => &$value) {
+				$value = $goodslist[$value];
+				$value['thumb'] = tomedia($value['thumb']);
+			}
+		}
+		$homepage_list[$recommend_key] = $recommend_info;
 	} else {
 		$homepage_list = $default_module;
 	}
@@ -82,6 +90,15 @@ if ($op == 'post') {
 		if (!empty($params) && is_array($params)) {
 			pdo_delete('storex_homepage', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid));
 			foreach ($params as $key => $value) {
+				if ($value['type'] == 'recommend') {
+					if (!empty($value['items']) && is_array($value['items'])) {
+						foreach ($value['items'] as $k => $val) {
+							$id = $value['items'][$k]['id'];
+							unset($value['items'][$k]['cprice'], $value['items'][$k]['thumb'], $value['items'][$k]['title'], $value['items'][$k]['id']);
+							$value['items'][$k] = $id;
+						}
+					}
+				}
 				$insert = array(
 					'type' => $value['type'],
 					'items' => !empty($value['items']) ? iserializer($value['items']) : '',
@@ -92,7 +109,7 @@ if ($op == 'post') {
 				pdo_insert('storex_homepage', $insert);
 			}
 		}
-		message(error(-1, $insert), '', 'ajax');
+		message(error(0, '编辑成功'), '', 'ajax');
 	}
 }
 
