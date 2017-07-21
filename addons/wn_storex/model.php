@@ -543,70 +543,34 @@ function entry_fetch($storeid, $type = '', $params = array()) {
 	global $_W, $_GPC;
 	$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
 	$category_vue_routes = category_entry_fetch($storeid);
-	$class = array();
-	$sub_class = array();
-	if (!empty($category_vue_routes) && is_array($category_vue_routes)) {
-		foreach ($category_vue_routes as $classid => $category) {
-			if (!empty($category['sub_class']) && is_array($category['sub_class'])) {
-				foreach ($category['sub_class'] as $val) {
-					$sub_class[$val['id']] = $val;
-				}
-			}
-			unset($category['sub_class']);
-			$class[$classid] = $category;
-		}
-	}
 	$urls = array(
-		'storeindex' => array(
-			'name' => '店铺详情',
-			'link' => $url . '#/StoreIndex/' . $storeid,
+		array(
+			'type' => 'storeindex',
+			'name' => '店铺首页',
+			'group' => array(
+				'name' => '店铺首页',
+				'link' => $url . '#/StoreIndex/' . $storeid,
+			),
 		),
-		'class' => array(
-			'name' => '店铺分类',
+		array(
+			'type' => 'sub_class',
+			'name' => '店铺分类列表',
 			'link' => $url . '#/Category/' . $storeid,
-		),
-		'sub_class' => array(
-			'name' => '二级分类或商品',
-			'link' => $class,
-		),
-		'goods_list' => array(
-			'name' => '分类下商品',
-			'link' => $sub_class,
+			'group' => $category_vue_routes,
 		),
 	);
+	$urls[] = array(
+		'type' => 'goods_info',
+		'name' => '商品详情',
+		'group' => goods_entry_fetch($storeid),
+	);
+	
 	$usercenter_vue_routes = usercenter_entry_fetch($storeid);
 	$urls = array_merge($urls, $usercenter_vue_routes);
 	
-	if (!empty($params['orderid'])) {
-		$urls['orderinfo'] = array(
-			'name' => '订单详情',
-			'link' => '#/Home/OrderInfo/' . $params['orderid'],
-		);
-	}
-	if (!empty($params['addressid'])) {
-		$urls['addressedit'] = array(
-			'name' => '地址修改',
-			'link' => $url . '#/Home/AddressEdit/' . $params['addressid'],
-		);
-	}
-	$urls['goods_info'] = goods_entry_fetch($storeid, $params['goodsid']);
-	
-	if (!empty($type)) {
-		$vue_url = '';
-		if (!empty($urls[$type]['link'])) {
-			$vue_url = $urls[$type]['link'];
-		}
-		if ($type == 'sub_class') {
-			if (!empty($params['classid'])) {
-				$vue_url = $urls[$type]['link'][$params['classid']]['link'];
-			}
-			if (!empty($params['sub_classid']) && !empty($urls['goods_list'])) {
-				$vue_url = $urls['goods_list']['link'][$params['sub_classid']]['link'];
-			}
-		}
-		if (!empty($params['goodsid']) && $type == 'goods_info') {
-			$vue_url = $urls[$type][$params['goodsid']]['link'];
-		}
+	if (!empty($type) && !empty($params)) {
+		$vue_url = category_entry_fetch($storeid, $type, $params);
+		$vue_url = goods_entry_fetch($storeid, $type, $params);
 		return $vue_url;
 	}
 	return $urls;
@@ -615,63 +579,107 @@ function entry_fetch($storeid, $type = '', $params = array()) {
 function usercenter_entry_fetch($storeid) {
 	$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
 	$usercenter_vue_routes = array(
-		'usercenter' => array(
+		array(
+			'type' => 'usercenter',
 			'name' => '个人中心',
-			'link' => $url . '#/Home/Index',
+			'group' => array(
+				'name' => '个人中心',
+				'link' => $url . '#/Home/Index',
+			),
 		),
-		'orderlist' => array(
+		array(
+			'type' => 'orderlist',
 			'name' => '订单中心',
-			'link' => $url . '#/Home/OrderList',
+			'group' => array(
+				'name' => '订单中心',
+				'link' => $url . '#/Home/OrderList',
+			)
 		),
-		'mycouponlist' => array(
+		array(
+			'type' => 'mycouponlist',
 			'name' => '我的卡券',
-			'link' => $url . '#/Home/MyCouponList',
+			'group' => array(
+				'name' => '我的卡券',
+				'link' => $url . '#/Home/MyCouponList',
+			),
 		),
-		'userinfo' => array(
+		array(
+			'type' => 'userinfo',
 			'name' => '用户信息',
-			'link' => $url . '#/Home/UserInfo',
+			'group' => array(
+				'name' => '用户信息',
+				'link' => $url . '#/Home/UserInfo',
+			),
 		),
-		'address' => array(
+		array(
+			'type' => 'address',
 			'name' => '地址管理',
-			'link' => $url . '#/Home/Address',
+			'group' => array(
+				'name' => '地址管理',
+				'link' => $url . '#/Home/Address',
+			),
 		),
-		'addressnew' => array(
-			'name' => '地址编辑',
-			'link' => $url . '#/Home/AddressEdit/new',
-		),
-		'sign' => array(
+		array(
+			'type' => 'sign',
 			'name' => '签到',
-			'link' => $url . '#/Home/Sign',
+			'group' => array(
+				'name' => '签到',
+				'link' => $url . '#/Home/Sign',
+			),
 		),
-		'message' => array(
+		array(
+			'type' => 'message',
 			'name' => '通知',
-			'link' => $url . '#/Home/Message',
+			'group' => array(
+				'name' => '通知',
+				'link' => $url . '#/Home/Message',
+			),
 		),
-		'credit' => array(
+		array(
+			'type' => 'credit',
 			'name' => '我的余额',
-			'link' => $url . '#/Home/Credit/',
+			'group' => array(
+				'name' => '我的余额',
+				'link' => $url . '#/Home/Credit/',
+			),
 		),
-		'recharge_credit' => array(
+		array(
+			'type' => 'recharge_credit',
 			'name' => '余额充值',
-			'link' => $url . '#/Home/Recharge/credit',
+			'group' => array(
+				'name' => '余额充值',
+				'link' => $url . '#/Home/Recharge/credit',
+			),
 		),
-		'recharge_nums' => array(
+		array(
+			'type' => 'recharge_nums',
 			'name' => '会员卡次数充值',
-			'link' => $url . '#/Home/Recharge/nums',
+			'group' => array(
+				'name' => '会员卡次数充值',
+				'link' => $url . '#/Home/Recharge/nums',
+			),
 		),
-		'recharge_credit' => array(
+		array(
+			'type' => 'recharge_times',
 			'name' => '会员卡时间充值',
-			'link' => $url . '#/Home/Recharge/times',
+			'group' => array(
+				'name' => '会员卡时间充值',
+				'link' => $url . '#/Home/Recharge/times',
+			),
 		),
-		'creditsrecord' => array(
+		array(
+			'type' => 'creditsrecord',
 			'name' => '余额记录',
-			'link' => $url . '#/Home/CreditsRecord',
+			'group' => array(
+				'name' => '余额记录',
+				'link' => $url . '#/Home/CreditsRecord',
+			),
 		),
 	);
 	return $usercenter_vue_routes;
 }
 
-function goods_entry_fetch($storeid) {
+function goods_entry_fetch($storeid, $type = '', $params = array()) {
 	$storeinfo = pdo_get('storex_bases', array('id' => $storeid), array('store_type'));
 	if ($storeinfo['store_type'] == 1) {
 		$goodsinfo = pdo_getall('storex_room', array('hotelid' => $storeid, 'is_house !=' => 1), array('id', 'title', 'is_house'), 'id');
@@ -688,16 +696,18 @@ function goods_entry_fetch($storeid) {
 			);
 		}
 	}
+	if (!empty($type) && !empty($params['goodsid'])) {
+		return $goods_vue_routes[$params['goodsid']]['link'];
+	}
 	return $goods_vue_routes;
 }
 
-function category_entry_fetch($storeid) {
+function category_entry_fetch($storeid, $type = '', $params = array()) {
 	global $_W;
-	$category = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'enabled' => 1), array('id', 'name', 'thumb', 'parentid', 'category_type'), 'id');
+	$category = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'enabled' => 1), array('id', 'name', 'parentid', 'category_type'), 'id');
 	$category_list = array();
 	if (!empty($category) && is_array($category)) {
 		foreach ($category as $key => &$info) {
-			$info['thumb'] = tomedia($info['thumb']);
 			if (empty($info['parentid'])) {
 				$category_list[$info['id']] = $info;
 				if ($info['category_type'] == 1) {
@@ -710,22 +720,31 @@ function category_entry_fetch($storeid) {
 					}
 				}
 				$category_list[$info['id']]['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $vue_route . $info['id'];
-				$category_list[$info['id']]['sub_class'] = array();
+				$category_list[$info['id']]['group'] = array();
 			} else {
 				if (!empty($category_list[$info['parentid']])) {
-					$category_list[$info['parentid']]['sub_class'][$key] = $info;
+					$category_list[$info['parentid']]['group'][$key] = $info;
 				}
 				$vue_route = '#/Category/GoodList/' . $storeid . '/';
-				$category_list[$info['parentid']]['sub_class'][$key]['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $vue_route . $info['id'];
+				$category_list[$info['parentid']]['group'][$key]['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $vue_route . $info['id'];
 			}
 		}
 		unset($info);
 		foreach ($category_list as $k => &$v) {
-			if (empty($v['sub_class']) && $v['category_type'] != 1) {
+			if (empty($v['group']) && $v['category_type'] != 1) {
 				$v['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . '#/Category/GoodList/' . $storeid . '/' .$k;
 			}
 		}
 		unset($v);
+		if (!empty($type)) {
+			if (!empty($params['classid'])) {
+				return $category_list[$params['classid']]['link'];
+			}
+			if (!empty($params['sub_classid'])) {
+				$class = $category[$params['sub_classid']]['parentid'];
+				return $category_list[$class][$params['sub_classid']]['link'];
+			}
+		}
 	}
 	return $category_list;
 }

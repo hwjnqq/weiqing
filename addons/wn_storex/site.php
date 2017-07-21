@@ -73,10 +73,9 @@ class Wn_storexModuleSite extends WeModuleSite {
 		load()->model('mc');
 		mc_oauth_userinfo();
 		$id = intval($_GPC['id']);
+		entry_fetch($id);
 		if (!empty($id) && !empty($_GPC['type'])) {
 			$params = array(
-				'orderid' => $_GPC['orderid'],
-				'addressid' => $_GPC['addressid'],
 				'goodsid' => $_GPC['goodsid'],
 				'classid' => $_GPC['classid'],
 				'sub_classid' => $_GPC['sub_classid'],
