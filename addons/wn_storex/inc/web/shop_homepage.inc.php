@@ -6,34 +6,6 @@ $ops = array('display', 'post', 'search_goods', 'link');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $storeid = intval($_W['wn_storex']['store_info']['id']);
-
-$category = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'enabled' => 1), array('id', 'name', 'thumb', 'parentid', 'category_type'));
-if (!empty($category) && is_array($category)) {
-	foreach ($category as $key => &$info) {
-		$info['thumb'] = tomedia($info['thumb']);
-		if (empty($info['parentid'])) {
-			$category_list[$info['id']] = $info;
-			if ($info['category_type'] == 1) {
-				$vue_route = '#/Category/HotelList/' . $storeid . '/';
-			} elseif ($info['category_type'] == 2) {
-				if (empty($_W['wn_storex']['store_info']['store_type'])) {
-					$vue_route = '#/Category/Child/' . $storeid . '/';
-				} elseif ($_W['wn_storex']['store_info']['store_type'] == 1) {
-					$vue_route = '#/Category/GoodList/' . $storeid . '/';
-				}				
-			}
-			$category_list[$info['id']]['link'] = $this->createMobileUrl('display', array('id' => $storeid)) . $vue_route . $info['id'];
-			$category_list[$info['id']]['sub_class'] = array();
-		} else {
-			if (!empty($category_list[$info['parentid']])) {
-				$category_list[$info['parentid']]['sub_class'][$key] = $info;
-			}
-			$vue_route = '#/Category/GoodList/' . $storeid . '/';
-			$category_list[$info['parentid']]['sub_class'][$key]['link'] = $this->createMobileUrl('display', array('id' => $storeid)) . $vue_route . $info['id'];
-		}
-	}
-}
-
 if ($op == 'display') {
 	$default_module = array(
 		array(
@@ -140,7 +112,8 @@ if ($op == 'search_goods') {
 
 if ($op == 'link') {
 	if ($_W['ispost'] && $_W['isajax']) {
-		$category = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'enabled' => 1));
+		$entries = entry_fetch($storeid);
+		message(error(0, $entries), '', 'ajax');
 	}
 }
 
