@@ -829,6 +829,10 @@ li {
   margin-bottom: 0;
 }
 
+.wn-home__help {
+  background-color: #d2eaf9;
+  color: #4f5f6f;
+}
 .wn-home__module .app .app-side {
   float: left;
 }
@@ -893,6 +897,12 @@ li {
   background-repeat: no-repeat;
   background-size: 100% 100%;
 }
+.wn-home__modules + .tooltip .tooltip-arrow {
+  border-bottom-color: #59c2e6;
+}
+.wn-home__modules + .tooltip .tooltip-inner {
+  background-color: #59c2e6;
+}
 .wn-home__edit {
   margin-top: 30px;
   border: 1px solid #ddd;
@@ -904,6 +914,14 @@ li {
   margin: -15px -15px 20px;
   padding: 10px 0 10px 30px;
   border-bottom: 1px solid #ddd;
+}
+.wn-home__edit__help {
+  border-bottom: 1px solid #e7ebf0;
+  padding-bottom: 15px;
+  margin: 20px -15px;
+}
+.wn-home__edit__help img {
+  width: 100%;
 }
 .wn-home__editImage__item .content {
   border-bottom: 1px solid #e7ebf0;

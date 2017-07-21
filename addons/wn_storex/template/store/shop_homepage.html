@@ -4,8 +4,15 @@
 <div class="wn-main wn-main--without">
 	<div class="wn-main__head">店铺设置</div>
 	<div class="wn-main__content">
-		<div class="alert alert-info" role="alert">
-
+		<div class="alert alert-info alert-dismissible wn-home__help" role="alert">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+			</button>
+			<h4>设置说明</h4>
+			<p>左侧展示区，可拖动排序</p>
+			<p>右侧头部组件区，显示所有可添加的组件，每个组件可多次添加，可直接拖动到左侧排序添加，也可以直接点击添加到左侧最下方</p>
+			<p>右侧下方组件编辑区，设置每个组件的具体内容，也可拖动排序，有单独的保存按钮</p>
+			<p>编辑完成后，点击最下方悬浮 <b>提交</b> 按钮保存</p>
 		</div>
 		<div class="wn-home__module" id="app">
 			<div class="app">
@@ -18,14 +25,9 @@
 								<div class="wn-home__preview">
 									<draggable :list="openModules" element="div" :options="{group:'modules'}" :no-transition-on-drag="true" @start="drag=true;" @end="drag=false;" @change="moveEnd">
 										<transition-group :name="!drag? 'list-complete' : null" :css="true">
-											<div v-for="(open, index) in openModules" :key="open.type" class="wn-home__preview__item" :class="{'active': index === editModuleIndex}">
+											<div v-for="(open, index) in openModules" :key="open.type" class="wn-home__preview__item" :class="{'active': index === editModuleIndex}" >
 												<div @click="edit(index)" class="content">
-													<div class="" v-if="open.type == 'search' && open.items && false">
-														<div class="form-group">
-															<input type="text" class="form-control" :placeholder="open.items" :value="open.items" disabled>
-														</div>
-													</div>
-													<div class="image" v-else>
+													<div class="image">
 														<img :src="'../addons/wn_storex/template/style/img/home/' + open.type + '.png'">
 													</div>
 												</div>
@@ -42,7 +44,7 @@
 				</div>
 				<div class="app-side">
 					<div class="editor">
-						<div class="wn-home__modules" data-toggle="tooltip" data-placement="bottom" title="Tooltip on bottom" ref="tooltip">
+						<div class="wn-home__modules" data-toggle="tooltip" data-placement="bottom" title="拖动到左侧排序添加或直接点击添加到最下方" ref="tooltip">
 							<draggable :list="modules" element="div" :options="{group:{name:'modules', pull:'clone', put:false }}" :no-transition-on-drag="true" @start="drag=true;" @end="drag=false">
 								<div v-for="(module, index) in modules" :key="index" class="wn-home__modules__item">
 									<div @click="addModules(index)" class="content" :style="'background-image: url(../addons/wn_storex/template/style/img/home/' + module.type + '.png)'">
@@ -71,8 +73,8 @@
 									拖动排序
 								</span>
 							</div>
-							<div class="wn-home__edit__help">
-								
+							<div class="wn-home__edit__help" v-if="openModules[editModuleIndex]['type'] == 'cube'">
+								<img src="../addons/wn_storex/template/style/img/home/cubeview.jpg" alt="" >
 							</div>
 							<div class="wn-home__editSearch wn-home__edit__item" v-if="openModules[editModuleIndex]['type'] == 'search'">
 								<div class="form-group">
@@ -454,8 +456,6 @@
 				})
 			}
 		})
-
-		console.log(vm);
 	})
 </script>
 {/if}
