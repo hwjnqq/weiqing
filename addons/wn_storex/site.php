@@ -72,7 +72,8 @@ class Wn_storexModuleSite extends WeModuleSite {
 		global $_GPC, $_W;
 		load()->model('mc');
 		mc_oauth_userinfo();
-		if (!empty($_GPC['id']) && !empty($_GPC['type'])) {
+		$id = intval($_GPC['id']);
+		if (!empty($id) && !empty($_GPC['type'])) {
 			$params = array(
 				'orderid' => $_GPC['orderid'],
 				'addressid' => $_GPC['addressid'],
@@ -80,12 +81,11 @@ class Wn_storexModuleSite extends WeModuleSite {
 				'classid' => $_GPC['classid'],
 				'sub_classid' => $_GPC['sub_classid'],
 			);
-			$url = entry_fetch($_GPC['id'], $_GPC['type'], $params);
+			$url = entry_fetch($id, $_GPC['type'], $params);
 			if (!empty($url)) {
 				header("Location: $url");
 			}
 		}
-		$id = intval($_GPC['id']);
 		$setting = get_storex_set();
 		
 		$member = array(
