@@ -14,17 +14,17 @@ $uid = mc_openid2uid($_W['openid']);
 $extend_switch = extend_switch_fetch();
 
 if ($extend_switch['card'] == 2) {
-	message(error(-1, '管理员未开启会员卡！'), '', 'ajax');
+	wmessage(error(-1, '管理员未开启会员卡！'), '', 'ajax');
 }
 $card_info = card_setting_info();
 if (empty($card_info)) {
-	message(error(-1, '公众号尚未开启会员卡功能！'), '', 'ajax');
+	wmessage(error(-1, '公众号尚未开启会员卡功能！'), '', 'ajax');
 }
 
 if ($op == 'receive_info') {
 	$receive_info = array();
 	if (empty($card_info['params'])) {
-		message(error(-1, '会员卡信息未设置，请咨询管理员！'), '', 'ajax');
+		wmessage(error(-1, '会员卡信息未设置，请咨询管理员！'), '', 'ajax');
 	}
 	if (!empty($card_info['params']['cardBasic']['params']['fields'])) {
 		foreach ($card_info['params']['cardBasic']['params']['fields'] as $val) {
@@ -36,30 +36,30 @@ if ($op == 'receive_info') {
 			);
 		}
 	}
-	message(error(0, $receive_info), '', 'ajax');
+	wmessage(error(0, $receive_info), '', 'ajax');
 }
 
 if ($op == 'receive_card') {
 	$mcard = pdo_get('storex_mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $uid), array('id'));
 	if (!empty($mcard)) {
-		message(error(-1, '请勿重复领取'), '', 'ajax');
+		wmessage(error(-1, '请勿重复领取'), '', 'ajax');
 	}
 	$cardBasic = $card_info['params']['cardBasic'];
 	$extend_info = $_GPC['extend_info'];
 	$insert = array();
 	foreach ($extend_info as $k => $value) {
 		if (!empty($value['require']) && empty($value['value'])) {
-			message(error(-1, '请输入' . $value['title']), '', 'ajax');
+			wmessage(error(-1, '请输入' . $value['title']), '', 'ajax');
 		}
 		if ($value['bind'] == 'mobile') {
 			if (!preg_match(REGULAR_MOBILE, $value['value'])) {
-				message(error(-1, $value['title'] . '为手机号格式不正确'), '', 'ajax');
+				wmessage(error(-1, $value['title'] . '为手机号格式不正确'), '', 'ajax');
 			}
 			$insert['mobile'] = $value['value'];
 		}
 		if ($value['bind'] == 'email') {
 			if (!preg_match(REGULAR_EMAIL, $value['value'])) {
-				message(error(-1, $value['title'] . '为邮箱格式不正确'), '', 'ajax');
+				wmessage(error(-1, $value['title'] . '为邮箱格式不正确'), '', 'ajax');
 			}
 			$insert['email'] = $value['value'];
 		}
@@ -110,8 +110,8 @@ if ($op == 'receive_card') {
 		$info = "您在{$time}成功领取会员卡，{$notice}。\n\n";
 		$info .= "<a href='{$url}'>点击查看详情</a>";
 		$status = mc_notice_custom_text($_W['openid'], $title, $info);
-		message(error(0, '领取会员卡成功!'), '', 'ajax');
+		wmessage(error(0, '领取会员卡成功!'), '', 'ajax');
 	} else {
-		message(error(-1, '领取会员卡失败!'), '', 'ajax');
+		wmessage(error(-1, '领取会员卡失败!'), '', 'ajax');
 	}
 }

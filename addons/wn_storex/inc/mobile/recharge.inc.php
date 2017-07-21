@@ -35,14 +35,14 @@ if ($op == 'card_recharge') {
 			}
 		}
 	}
-	message(error(0, $recharge_lists), '', 'ajax');
+	wmessage(error(0, $recharge_lists), '', 'ajax');
 }
 
 if ($op == 'recharge_add') {
 	$type = trim($_GPC['type']) ? trim($_GPC['type']) : 'credit';
 	$fee = floatval($_GPC['fee']);
 	if (empty($fee) || $fee <= 0) {
-		message(error(-1, '请输入正确金额'), '', 'ajax');
+		wmessage(error(-1, '请输入正确金额'), '', 'ajax');
 	}
 	$card_setting = card_setting_info();
 	$recharge_record = array(
@@ -110,14 +110,14 @@ if ($op == 'recharge_add') {
 	}
 	if ($type == 'card_nums' || $type == 'card_times') {
 		if (empty($recharge_record['tag'])) {
-			message(error(-1, '充值金额错误'), '', 'ajax');
+			wmessage(error(-1, '充值金额错误'), '', 'ajax');
 		}
 	}
 	if (!pdo_insert('mc_credits_recharge', $recharge_record)) {
-		message(error(-1, '创建充值订单失败'), '', 'ajax');
+		wmessage(error(-1, '创建充值订单失败'), '', 'ajax');
 	}
 	$recharge_id = pdo_insertid();
-	message(error(0, $recharge_id), '', 'ajax');
+	wmessage(error(0, $recharge_id), '', 'ajax');
 }
 
 if ($op == 'recharge_pay') {
@@ -136,7 +136,7 @@ if ($op == 'recharge_pay') {
 		'user' => $uid
 	);
 	$pay_info = $this->pay($params, $mine);
-	message(error(0, $pay_info), '', 'ajax');
+	wmessage(error(0, $pay_info), '', 'ajax');
 }
 
 if($op == 'recharge_record') {
@@ -161,7 +161,7 @@ if($op == 'recharge_record') {
 		':endtime' => strtotime($endtime)
 	);
 	$recharge_info['record'] = pdo_fetchall('SELECT * FROM ' . tablename('storex_mc_card_record') . $where . ' ORDER BY id DESC ', $params);
-	message(error(0, $recharge_info), '', 'ajax');
+	wmessage(error(0, $recharge_info), '', 'ajax');
 }
 
 

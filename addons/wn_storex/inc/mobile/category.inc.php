@@ -15,7 +15,7 @@ if ($op == 'goods_list') {
 	$first_id = intval($_GPC['first_id']);
 	$first_class = pdo_get('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $store_id, 'id' => $first_id));
 	if (empty($first_class)) {
-		message(error(-1, '分类不存在'), '', 'ajax');
+		wmessage(error(-1, '分类不存在'), '', 'ajax');
 	}
 	//获取某一级分类下的所有二级分类
 	$sub_class = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'parentid' => $first_id, 'enabled' => 1), array(), '', 'displayorder DESC');
@@ -72,7 +72,7 @@ if ($op == 'goods_list') {
 		}
 	}
 	$list['list'] = $goods;
-	message(error(0, $list), '', 'ajax');
+	wmessage(error(0, $list), '', 'ajax');
 }
 
 //获取更多的商品信息
@@ -83,12 +83,12 @@ if ($op == 'more_goods') {
 	$sub_classid = intval($_GPC['sub_id']);
 	$category = pdo_get('storex_categorys', array('id' => $sub_classid, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id), array('id', 'parentid'));
 	if (empty($category)) {
-		message(error(-1, '参数错误'), '', 'ajax');
+		wmessage(error(-1, '参数错误'), '', 'ajax');
 	}
 	if ($category['parentid'] == 0) {
 		$sub_category = pdo_getall('storex_categorys', array('parentid' => $sub_classid, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id), array('id', 'parentid'));
 		if (!empty($sub_category)) {
-			message(error(-1, '参数错误'), '', 'ajax');
+			wmessage(error(-1, '参数错误'), '', 'ajax');
 		}
 		$condition['pcate'] = $sub_classid;
 	} else {
@@ -155,7 +155,7 @@ if ($op == 'more_goods') {
 			$list['list'][$k]['thumbs'] = format_url(iunserializer($info['thumbs']));
 		}
 	}
-	message(error(0, $list), '', 'ajax');
+	wmessage(error(0, $list), '', 'ajax');
 }
 //获取该店铺下的一级分类
 if ($op == 'class') {
@@ -181,7 +181,7 @@ if ($op == 'class') {
 			}
 		}
 	}
-	message(error(0, $pcate_lists), '', 'ajax');
+	wmessage(error(0, $pcate_lists), '', 'ajax');
 }
 //获取一级分类下的二级分类列表
 if ($op == 'sub_class') {
@@ -189,7 +189,7 @@ if ($op == 'sub_class') {
 	$class = pdo_get('storex_categorys', array('weid' => intval($_W['uniacid']), 'id' => $id), array('id', 'store_base_id', 'name'));
 	$sub_class = pdo_getall('storex_categorys', array('weid' => intval($_W['uniacid']), 'parentid' => $id), array('id', 'store_base_id', 'name', 'thumb', 'category_type'), '', 'displayorder DESC');
 	if (empty($sub_class)) {
-		message(error(-1, '无子分类'), '', 'ajax');
+		wmessage(error(-1, '无子分类'), '', 'ajax');
 	} else {
 		foreach ($sub_class as $k => $info) {
 			if (!empty($info['thumb'])) {
@@ -199,6 +199,6 @@ if ($op == 'sub_class') {
 		}
 		$list['list'] = $sub_class;
 		$list['class'] = $class;
-		message(error(0, $list), '', 'ajax');
+		wmessage(error(0, $list), '', 'ajax');
 	}
 }

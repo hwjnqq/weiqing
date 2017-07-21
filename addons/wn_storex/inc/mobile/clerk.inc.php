@@ -16,14 +16,14 @@ check_params();
 if ($op == 'clerkindex') {
 	$id = intval($_GPC['id']);
 	$clerk_info = get_clerk_permission($id);
-	message(error(0, $clerk_info), '', 'ajax');
+	wmessage(error(0, $clerk_info), '', 'ajax');
 }
 
 if ($op == 'permission_storex') {
 	$type = trim($_GPC['type']);
 	$manage_storex_ids = clerk_permission_storex($type);
 	$manage_storex_lists = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $manage_storex_ids), array('id', 'title'));
-	message(error(0, $manage_storex_lists), '', 'ajax');
+	wmessage(error(0, $manage_storex_lists), '', 'ajax');
 }
 
 if ($op == 'order') {
@@ -53,9 +53,9 @@ if ($op == 'order') {
 		unset($info);
 		$order_data = array();
 		$order_data['order_lists'] = $lists;
-		message(error(0, $order_data), '', 'ajax');
+		wmessage(error(0, $order_data), '', 'ajax');
 	} else {
-		message(error(-1, '没有订单可操作！'), '', 'ajax');
+		wmessage(error(-1, '没有订单可操作！'), '', 'ajax');
 	}
 }
 
@@ -71,21 +71,21 @@ if ($op == 'order_info') {
 			$order['title'] = $store_info['title'];
 			$order['thumb'] = tomedia($goods['thumb']);
 			$order = clerk_order_operation($order, $store_info['store_type']);
-			message(error(0, $order), '', 'ajax');
+			wmessage(error(0, $order), '', 'ajax');
 		}
 	}
-	message(error(-1, '抱歉，订单不存在或是已经删除！'), '', 'ajax');
+	wmessage(error(-1, '抱歉，订单不存在或是已经删除！'), '', 'ajax');
 }
 
 if ($op == 'edit_order') {
 	$orderid = intval($_GPC['orderid']);
 	if (empty($orderid)) {
-		message(error(-1, '参数错误！'), '', 'ajax');
+		wmessage(error(-1, '参数错误！'), '', 'ajax');
 	}
 	$item = pdo_get('storex_order', array('id' => $orderid));
 	check_clerk_permission($item['hotelid'], 'wn_storex_permission_order');
 	if (empty($item)) {
-		message(error(-1, '抱歉，订单不存在或是已经删除'), '', 'ajax');
+		wmessage(error(-1, '抱歉，订单不存在或是已经删除'), '', 'ajax');
 	}
 	$store_info = pdo_get('storex_bases', array('id' => $item['hotelid']), array('id', 'store_type', 'title'));
 	$table = gettablebytype($store_info['store_type']);
@@ -120,36 +120,36 @@ if ($op == 'edit_order') {
 	}
 	if (!empty($data['status'])) {
 		if ($item['status'] == ORDER_STATUS_CANCEL) {
-			message(error(-1, '订单状态已经取消，不能操作！'), '', 'ajax');
+			wmessage(error(-1, '订单状态已经取消，不能操作！'), '', 'ajax');
 		}
 		if ($item['status'] == ORDER_STATUS_OVER) {
-			message(error(-1, '订单状态已经完成，不能操作！'), '', 'ajax');
+			wmessage(error(-1, '订单状态已经完成，不能操作！'), '', 'ajax');
 		}
 		if ($item['status'] == ORDER_STATUS_REFUSE) {
-			message(error(-1, '订单状态已拒绝，不能操作！'), '', 'ajax');
+			wmessage(error(-1, '订单状态已拒绝，不能操作！'), '', 'ajax');
 		}
 		if ($data['status'] == $item['status']) {
-			message(error(-1, '订单状态已经是该状态了，不要重复操作！'), '', 'ajax');
+			wmessage(error(-1, '订单状态已经是该状态了，不要重复操作！'), '', 'ajax');
 		}
 	}
 	
 	if (!empty($data['goods_status']) && ($data['goods_status'] == GOODS_STATUS_SHIPPED || $data['goods_status'] == GOODS_STATUS_CHECKED)) {
 		if ($item['status'] != ORDER_STATUS_SURE) {
-			message(error(-1, '请先确认订单！'), '', 'ajax');
+			wmessage(error(-1, '请先确认订单！'), '', 'ajax');
 		}
 		if ($item['goods_status'] == GOODS_STATUS_RECEIVED) {
-			message(error(-1, '已收货，不要再发了！'), '', 'ajax');
+			wmessage(error(-1, '已收货，不要再发了！'), '', 'ajax');
 		}
 		if ($item['goods_status'] == GOODS_STATUS_SHIPPED) {
-			message(error(-1, '已发货，不要重复操作！'), '', 'ajax');
+			wmessage(error(-1, '已发货，不要重复操作！'), '', 'ajax');
 		}
 		if ($item['goods_status'] == GOODS_STATUS_CHECKED) {
-			message(error(-1, '已入住！'), '', 'ajax');
+			wmessage(error(-1, '已入住！'), '', 'ajax');
 		}
 		
 	}
 	if (empty($data['status']) && empty($data['goods_status'])) {
-		message(error(-1, '操作失败！'), '', 'ajax');
+		wmessage(error(-1, '操作失败！'), '', 'ajax');
 	}
 	//订单取消
 	if ($data['status'] == ORDER_STATUS_CANCEL || $data['status'] == ORDER_STATUS_REFUSE) {
@@ -240,7 +240,7 @@ if ($op == 'edit_order') {
 		//订单完成提醒
 		if ($data['status'] == ORDER_STATUS_OVER) {
 			if (empty($item['status'])) {
-				message(error(-1, '请先确认订单再完成！'), '', 'ajax');
+				wmessage(error(-1, '请先确认订单再完成！'), '', 'ajax');
 			}
 			$uid = mc_openid2uid(trim($item['openid']));
 			//订单完成后增加积分
@@ -283,9 +283,9 @@ if ($op == 'edit_order') {
 	$result = pdo_update('storex_order', $data, array('id' => $orderid));
 	if (!empty($result)) {
 		write_log($logs);
-		message(error(0, '处理订单成功！'), '', 'ajax');
+		wmessage(error(0, '处理订单成功！'), '', 'ajax');
 	} else {
-		message(error(-1, '处理订单失败！'), '', 'ajax');
+		wmessage(error(-1, '处理订单失败！'), '', 'ajax');
 	}
 }
 
@@ -303,14 +303,14 @@ if ($op == 'room') {
 			}
 		}
 	}
-	message(error(0, $room_list), '', 'ajax');
+	wmessage(error(0, $room_list), '', 'ajax');
 }
 
 if ($op == 'room_info') {
 	$room_id = intval($_GPC['room_id']);
 	$room_info = pdo_get('storex_room', array('id' => $room_id), array('id', 'hotelid', 'weid', 'title', 'oprice', 'cprice', 'thumb'));
 	if (empty($room_info)) {
-		message(error(-1, '不存在此房型！'), '', 'ajax');
+		wmessage(error(-1, '不存在此房型！'), '', 'ajax');
 	}
 	$room_info['thumb'] = tomedia($room_info['thumb']);
 	check_clerk_permission($room_info['hotelid'], 'wn_storex_permission_room');
@@ -380,14 +380,14 @@ if ($op == 'room_info') {
 			$room_info['price_list'][$k]['cprice'] = $room_info['cprice'];
 		}
 	}
-	message(error(0, $room_info), '', 'ajax');
+	wmessage(error(0, $room_info), '', 'ajax');
 }
 
 if ($op == 'edit_room') {
 	$room_id = intval($_GPC['room_id']);
 	$room_info = pdo_get('storex_room', array('id' => $room_id), array('id', 'hotelid', 'weid', 'title', 'oprice', 'cprice', 'thumb'));
 	if (empty($room_info)) {
-		message(error(-1, '不存在此房型！'), '', 'ajax');
+		wmessage(error(-1, '不存在此房型！'), '', 'ajax');
 	}
 	$room_info['thumb'] = tomedia($room_info['thumb']);
 	check_clerk_permission($room_info['hotelid'], 'wn_storex_permission_room');
@@ -403,15 +403,15 @@ if ($op == 'edit_room') {
 		$status = 0;
 	}
 	if ($num < -1) {
-		message(error(-1, '房间数量错误！'), '', 'ajax');
+		wmessage(error(-1, '房间数量错误！'), '', 'ajax');
 	}
 	$oprice = sprintf('%.2f', $_GPC['oprice']);
 	$cprice = sprintf('%.2f', $_GPC['cprice']);
 	if ($oprice <= 0 || $cprice <= 0) {
-		message(error(-1, '价格不能小于等于0！'), '', 'ajax');
+		wmessage(error(-1, '价格不能小于等于0！'), '', 'ajax');
 	}
 	if ($oprice < $cprice) {
-		message(error(-1, '价格错误！'), '', 'ajax');
+		wmessage(error(-1, '价格错误！'), '', 'ajax');
 	}
 	if (!empty($dates) && is_array($dates)) {
 		foreach ($dates as $date) {
@@ -427,5 +427,5 @@ if ($op == 'edit_room') {
 			}
 		}
 	}
-	message(error(0, '更新房态成功！'), '', 'ajax');
+	wmessage(error(0, '更新房态成功！'), '', 'ajax');
 }

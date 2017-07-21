@@ -20,7 +20,7 @@ if ($op == 'display') {
 	if (!empty($storex_exchange)) {
 		$ids = array_keys($storex_exchange);
 	} else {
-		message(error(0, array()), '', 'ajax');
+		wmessage(error(0, array()), '', 'ajax');
 	}
 	$storex_coupon = pdo_getall('storex_coupon', array('uniacid' => intval($_W['uniacid']), 'id' => $ids, 'source' => COUPON_TYPE, 'status' => 3), array('id', 'type', 'logo_url', 'title', 'description', 'get_limit', 'date_info', 'sub_title', 'extra', 'quantity'), 'id');
 	if (!empty($storex_coupon)) {
@@ -63,37 +63,37 @@ if ($op == 'display') {
 			$storex_exchange[$id]['coupon'] = $storex_coupon[$id];
 		}
 	}
-	message(error(0, $storex_exchange), '', 'ajax');
+	wmessage(error(0, $storex_exchange), '', 'ajax');
 }
 
 if ($op == 'exchange') {
 	$id = intval($_GPC['id']);
 	$storex_exchange = pdo_get('storex_activity_exchange', array('uniacid' => $_W['uniacid'], 'extra' => $id));
 	if (empty($storex_exchange)) {
-		message(error(-1, '兑换券不存在'), '', 'ajax');
+		wmessage(error(-1, '兑换券不存在'), '', 'ajax');
 	}
 	if ($storex_exchange['status'] != 1) {
-		message(error(-1, '未开启兑换'), '', 'ajax');
+		wmessage(error(-1, '未开启兑换'), '', 'ajax');
 	}
 	$creditnames = array('credit1' => '积分', 'credit2' => '余额');
 	$credit = mc_credit_fetch($uid, array($storex_exchange['credittype']));
 	if (intval($credit[$storex_exchange['credittype']]) < $storex_exchange['credit']) {
-		message(error(-1, $creditnames[$storex_exchange['credittype']] . '不足'), '', 'ajax');
+		wmessage(error(-1, $creditnames[$storex_exchange['credittype']] . '不足'), '', 'ajax');
 	}
 	$received_num = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_coupon_record') . " WHERE `uniacid` = :uniacid AND `uid` = :uid AND `couponid` = :id", array(':id' => $id, ':uid' => $uid, ':uniacid' => intval($_W['uniacid'])));
 	if ($received_num >= $storex_exchange['pretotal']) {
-		message(error(-1, '兑换次数不足'), '', 'ajax');
+		wmessage(error(-1, '兑换次数不足'), '', 'ajax');
 	}
 	$coupon_info = activity_get_coupon_info($id);
 	if ($storex_exchange['starttime'] > TIMESTAMP) {
-		message(error(-1, '活动未开始'), '', 'ajax');
+		wmessage(error(-1, '活动未开始'), '', 'ajax');
 	}
 	if ($storex_exchange['endtime'] < TIMESTAMP) {
-		message(error(-1, '活动已结束'), '', 'ajax');
+		wmessage(error(-1, '活动已结束'), '', 'ajax');
 	}
 	$status = activity_user_get_coupon($id, $_W['member']['uid']);
 	if (is_error($status)) {
-		message(error(-1, $status['message']), '', 'ajax');
+		wmessage(error(-1, $status['message']), '', 'ajax');
 	} else {
 		mc_credit_update($_W['member']['uid'], $storex_exchange['credittype'], -1 * $storex_exchange['credit']);
 		if ($storex_exchange['credittype'] == 'credit1') {
@@ -107,7 +107,7 @@ if ($op == 'exchange') {
 			}
 			mc_notice_credit2($_W['openid'], $_W['member']['uid'], -1 * $storex_exchange['credit'], $grant_rate * $storex_exchange['credit'], '兑换卡券消耗余额');
 		}
-		message(error(0, '兑换卡券成功!'), '', 'ajax');
+		wmessage(error(0, '兑换卡券成功!'), '', 'ajax');
 	}
 }
 
@@ -115,7 +115,7 @@ if ($op == 'mine') {
 	$couponlist = activity_get_user_couponlist();
 	$coupon_owned['lists'] = $couponlist;
 	$coupon_owned['source'] = COUPON_TYPE;
-	message(error(0, $coupon_owned), '', 'ajax');
+	wmessage(error(0, $coupon_owned), '', 'ajax');
 }
 
 if ($op == 'opencard') {
@@ -125,11 +125,11 @@ if ($op == 'opencard') {
 	if ($_W['isajax'] && $_W['ispost']) {
 		$card = $coupon_api->BuildCardExt($id);
 		if (is_error($card)) {
-			message(error(1, $card['message']), '', 'ajax');
+			wmessage(error(1, $card['message']), '', 'ajax');
 		} else {
 			$opencard['card_id'] = $card['card_id'];
 			$opencard['code'] = $code;
-			message(error(0, $opencard), '', 'ajax');
+			wmessage(error(0, $opencard), '', 'ajax');
 		}
 	}
 }
@@ -139,9 +139,9 @@ if ($op == 'addcard') {
 	if ($_W['isajax'] && $_W['ispost']) {
 		$card = $coupon_api->BuildCardExt($id);
 		if (is_error($card)) {
-			message(error(1, $card['message']), '', 'ajax');
+			wmessage(error(1, $card['message']), '', 'ajax');
 		} else {
-			message(error(0, $card), '', 'ajax');
+			wmessage(error(0, $card), '', 'ajax');
 		}
 	}
 }
@@ -175,7 +175,7 @@ if ($op == 'detail') {
 	}
 	$coupon_colors = activity_get_coupon_colors();
 	$coupon_info['color_value'] = !empty($coupon_colors[$coupon_info['color']]) ? $coupon_colors[$coupon_info['color']] : '#a9d92d';
-	message(error(0, $coupon_info), '', 'ajax');
+	wmessage(error(0, $coupon_info), '', 'ajax');
 }
 
 if ($op == 'publish') {
@@ -184,7 +184,7 @@ if ($op == 'publish') {
 	$url = $this->createMobileurl('display');
 	if (is_error($status)) {
 		$url .= '#/wechat_redirect';
-		message($status['message'], $url, 'error');
+		wmessage($status['message'], $url, 'error');
 	} else {
 		$record = pdo_get('storex_coupon_record', array('uniacid' => $_W['uniacid'], 'id' => $status), array('id', 'couponid'));
 		$store = pdo_getall('storex_bases', array('weid' => $_W['uniacid']), array('id'), '', 'displayorder DESC', array(1,1));

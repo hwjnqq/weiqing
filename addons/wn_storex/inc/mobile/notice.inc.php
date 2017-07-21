@@ -13,7 +13,7 @@ $uid = mc_openid2uid($_W['openid']);
 
 if ($op == 'notice_list') {
 	$notices = card_notices();
-	message(error(0, $notices), '', 'ajax');
+	wmessage(error(0, $notices), '', 'ajax');
 }
 
 if ($op == 'read_notice') {
@@ -31,8 +31,8 @@ if ($op == 'read_notice') {
 			);
 			pdo_insert('storex_notices_unread', $insert_record);
 		}
-		message(error(0, $notice), '', 'ajax');
+		wmessage(error(0, $notice), '', 'ajax');
 	} else {
-		message(error(-1, '通知已过期！'), '', 'ajax');
+		wmessage(error(-1, '通知已过期！'), '', 'ajax');
 	}
 }

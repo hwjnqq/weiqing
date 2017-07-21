@@ -28,10 +28,10 @@ if ($op == 'goods_info') {
 	}
 	$goods_info = pdo_get($table, $condition);
 	if (empty($goods_info)) {
-		message(error(-1, '商品不存在'), '', 'ajax');
+		wmessage(error(-1, '商品不存在'), '', 'ajax');
 	} else {
 		if ($goods_info['status'] == 0) {
-			message(error(-1, '店铺已隐藏'), '', 'ajax');
+			wmessage(error(-1, '店铺已隐藏'), '', 'ajax');
 		}
 	}
 	$goods_info['store_type'] = $store_info['store_type'];
@@ -52,7 +52,7 @@ if ($op == 'goods_info') {
 	if (!empty($goods_info['express_set'])) {
 		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
 	}
-	message(error(0, $goods_info), '', 'ajax');
+	wmessage(error(0, $goods_info), '', 'ajax');
 }
 
 //进入预定页面的信息
@@ -107,7 +107,7 @@ if ($op == 'info') {
 		}
 		$infos['card_disounts_info'] = $discount_info;
 	}
-	message(error(0, $infos), '', 'ajax');
+	wmessage(error(0, $infos), '', 'ajax');
 }
 
 //预定提交预定信息
@@ -129,24 +129,24 @@ if ($op == 'order') {
 	if ($selected_coupon['type'] == 3) {
 		$coupon_info = activity_get_coupon_info($selected_coupon['couponid']);
 		if (empty($coupon_info)) {
-			message(error(-1, '卡券信息有误'), '', 'ajax');
+			wmessage(error(-1, '卡券信息有误'), '', 'ajax');
 		}
 	}
 	if (empty($order_info['mobile'])) {
-		message(error(-1, '手机号码不能为空'), '', 'ajax');
+		wmessage(error(-1, '手机号码不能为空'), '', 'ajax');
 	}
 	if (!preg_match(REGULAR_MOBILE, $order_info['mobile'])) {
-		message(error(-1, '手机号码格式不正确'), '', 'ajax');
+		wmessage(error(-1, '手机号码格式不正确'), '', 'ajax');
 	}
 	if ($order_info['nums'] <= 0) {
-		message(error(-1, '数量不能是零'), '', 'ajax');
+		wmessage(error(-1, '数量不能是零'), '', 'ajax');
 	}
 	$order_info['action'] = 2;
 	$paysetting = uni_setting(intval($_W['uniacid']), array('payment', 'creditbehaviors'));
 	$_W['account'] = array_merge($_W['account'], $paysetting);
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
 	if (empty($order_info['contact_name'])) {
-		message(error(-1, '联系人不能为空!'), '', 'ajax');
+		wmessage(error(-1, '联系人不能为空!'), '', 'ajax');
 	}
 	if ($store_info['store_type'] == 1) {
 		$table = 'storex_room';
@@ -164,11 +164,11 @@ if ($op == 'order') {
 		'cprice' => $goods_info['cprice'],
 	);
 	if ($goods_info['cprice'] == 0) {
-		message(error(-1, '商品价格不能是0，请联系管理员!'), '', 'ajax');
+		wmessage(error(-1, '商品价格不能是0，请联系管理员!'), '', 'ajax');
 	}
 	$reply = pdo_get('storex_bases', array('id' => $store_id), array('title', 'mail', 'phone', 'thumb', 'description'));
 	if (empty($reply)) {
-		message(error(-1, '店铺未找到, 请联系管理员!'), '', 'ajax');
+		wmessage(error(-1, '店铺未找到, 请联系管理员!'), '', 'ajax');
 	}
 	$today_start = strtotime(date('Y-m-d'), TIMESTAMP);
 	$today_end = $today_start + 86399;
@@ -181,7 +181,7 @@ if ($op == 'order') {
 	);
 	$order_exist = pdo_fetch("SELECT id FROM " . tablename('storex_order') . "WHERE hotelid = :hotelid AND roomid = :roomid AND openid = :openid AND paystatus = 0 AND time >= :today_start AND time < :today_end AND status != -1 AND status != 2", $param);
 	if (!empty($order_exist)) {
-		message(error(-1, "您有未支付该类订单,不要重复下单"), '', 'ajax');
+		wmessage(error(-1, "您有未支付该类订单,不要重复下单"), '', 'ajax');
 	}
 	$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('email', 'is_unify', 'mobile', 'nickname', 'template', 'confirm_templateid', 'smscode'));
 	if ($store_info['store_type'] == STORE_TYPE_HOTEL) {
@@ -194,13 +194,13 @@ if ($op == 'order') {
 				$order_info['day'] = ceil(($order_info['etime'] - $order_info['btime'])/86400);
 			}
 			if ($order_info['day'] <= 0) {
-				message(error(-1, '天数不能是零'), '', 'ajax');
+				wmessage(error(-1, '天数不能是零'), '', 'ajax');
 			}
 			if ($order_info['btime'] < strtotime('today')) {
-				message(error(-1, '预定的开始日期不能小于当日的日期!'), '', 'ajax');
+				wmessage(error(-1, '预定的开始日期不能小于当日的日期!'), '', 'ajax');
 			}
 			if ($max_room < $order_info['nums']) {
-				message(error(-1, '订单购买数量超过最大限制!'), '', 'ajax');
+				wmessage(error(-1, '订单购买数量超过最大限制!'), '', 'ajax');
 			}
 			$btime = $order_info['btime'];
 			$bdate = date('Y-m-d', $order_info['btime']);
@@ -244,7 +244,7 @@ if ($op == 'order') {
 						}
 					}
 					if ($max_room == 0 || $max_room < $order_info['nums']) {
-						message(error(-1, '房间数量不足,请选择其他房型或日期!'), '', 'ajax');
+						wmessage(error(-1, '房间数量不足,请选择其他房型或日期!'), '', 'ajax');
 					}
 				}
 			}
@@ -256,12 +256,12 @@ if ($op == 'order') {
 				$goods_info['cprice'] = $price_list['cprice'];
 			}
 			if ($order_info['nums'] > $max_room) {
-				message(error(-1, '您的预定数量超过最大限制!'), '', 'ajax');
+				wmessage(error(-1, '您的预定数量超过最大限制!'), '', 'ajax');
 			}
 			if ($setInfo['smscode'] == 1) {
 				$code = pdo_get('storex_code', array('mobile' => $mobile, 'weid' => intval($_W['uniacid'])), array('code'));
 				if ($mobilecode != $code['code']) {
-					message(error(-1, '您的验证码错误，请重新输入!'), '', 'ajax');
+					wmessage(error(-1, '您的验证码错误，请重新输入!'), '', 'ajax');
 				}
 			}
 			$insert = array_merge($order_info, $insert);
@@ -298,15 +298,15 @@ if ($op == 'order') {
 	$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
 	$post_total = trim($_GPC['order']['total']);
 	if ($post_total != $insert['sum_price']) {
-		message(error(-1, '价格错误'), '', 'ajax');
+		wmessage(error(-1, '价格错误'), '', 'ajax');
 	}
 	if ($insert['sum_price'] <= 0) {
-		message(error(-1, '总价为零，请联系管理员！'), '', 'ajax');
+		wmessage(error(-1, '总价为零，请联系管理员！'), '', 'ajax');
 	}
 	if ($selected_coupon['type'] == 3) {
 		$result = activity_coupon_consume($selected_coupon['couponid'], $selected_coupon['recid'], $store_info['id']);
 		if (is_error($result)) {
-			message($result, '', 'ajax');
+			wmessage($result, '', 'ajax');
 		}
 	}
 	pdo_insert('storex_order', $insert);
@@ -420,8 +420,8 @@ if ($op == 'order') {
 			$tpl_params['confirm_templateid'] = $setInfo['confirm_templateid'];
 		}
 		order_confirm_notice($tpl_params);
-		message(error(0, $order_id), '', 'ajax');
+		wmessage(error(0, $order_id), '', 'ajax');
 	} else {
-		message(error(-1, '下单失败'), '', 'ajax');
+		wmessage(error(-1, '下单失败'), '', 'ajax');
 	}
 }

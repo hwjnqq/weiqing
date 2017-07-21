@@ -61,14 +61,14 @@ if ($op == 'order_list') {
 			}
 		}
 	}
-	message(error(0, $order_list), '', 'ajax');
+	wmessage(error(0, $order_list), '', 'ajax');
 }
 
 if ($op == 'order_detail') {
 	$id = intval($_GPC['id']);
 	$order_info = pdo_get('storex_order', array('weid' => intval($_W['uniacid']), 'id' => $id, 'openid' => $_W['openid']));
 	if (empty($order_info)) {
-		message(error(-1, '找不到该订单了'), '', 'ajax');
+		wmessage(error(-1, '找不到该订单了'), '', 'ajax');
 	}
 	//时间戳转换
 	$order_info['btime'] = date('Y-m-d', $order_info['btime']);
@@ -95,14 +95,14 @@ if ($op == 'order_detail') {
 	}
 	//订单状态
 	$order_info = orders_check_status($order_info);
-	message(error(0, $order_info), '', 'ajax');
+	wmessage(error(0, $order_info), '', 'ajax');
 }
 
 if ($op == 'orderpay') {
 	$order_id = intval($_GPC['id']);
 	$params = pay_info($order_id);
 	$pay_info = $this->pay($params);
-	message(error(0, $pay_info), '', 'ajax');
+	wmessage(error(0, $pay_info), '', 'ajax');
 }
 
 if ($op == 'cancel') {
@@ -112,11 +112,11 @@ if ($op == 'cancel') {
 	$order_info['store_type'] = $store_info['store_type'];
 	$setting = pdo_get('storex_set', array('weid' => intval($_W['uniacid'])));
 	if ($setting['refund'] == 1) {
-		message(error(-1, '该店铺不能取消订单！'), '', 'ajax');
+		wmessage(error(-1, '该店铺不能取消订单！'), '', 'ajax');
 	}
 	$order_info = orders_check_status($order_info);
 	if ($order_info['is_cancel'] == 2 || $order_info['status'] == 3) {
-		message(error(-1, '该订单不能取消！'), '', 'ajax');
+		wmessage(error(-1, '该订单不能取消！'), '', 'ajax');
 	}
 	$update_data = array('status' => -1);
 	$result = pdo_update('storex_order', $update_data, array('id' => $id, 'weid' => $_W['uniacid']));
@@ -128,9 +128,9 @@ if ($op == 'cancel') {
 		$logs['after_change'] = -1;
 		$logs['type'] = 'status';
 		write_log($logs);
-		message(error(0, '订单成功取消！'), '', 'ajax');
+		wmessage(error(0, '订单成功取消！'), '', 'ajax');
 	} else {
-		message(error(-1, '订单取消失败！'), '', 'ajax');
+		wmessage(error(-1, '订单取消失败！'), '', 'ajax');
 	}
 }
 
@@ -140,7 +140,7 @@ if ($op == 'refund') {
 	if (check_ims_version() || $item['paytype'] == 'credit') {
 		$result = order_build_refund($id);
 		if (is_error($result)) {
-			message($result, '', 'ajax');
+			wmessage($result, '', 'ajax');
 		} else {
 			$logs['before_change'] = $order['refund_status'];
 			$logs['after_change'] = 1;
@@ -149,7 +149,7 @@ if ($op == 'refund') {
 			message(error(0, '退款申请成功'), '', 'ajax');
 		}
 	} else {
-		message(error(-1, '退款失败'), '', 'ajax');
+		wmessage(error(-1, '退款失败'), '', 'ajax');
 	}
 }
 
@@ -160,13 +160,13 @@ if ($op == 'confirm_goods') {
 	$order_info['store_type'] = $store_info['store_type'];
 	$order_info = orders_check_status($order_info);
 	if ($order_info['status'] == -1) {
-		message(error(-1, '该订单已经取消了！'), '', 'ajax');
+		wmessage(error(-1, '该订单已经取消了！'), '', 'ajax');
 	}
 	if ($order_info['status'] == 3) {
-		message(error(-1, '该订单已经完成了！'), '', 'ajax');
+		wmessage(error(-1, '该订单已经完成了！'), '', 'ajax');
 	}
 	if ($order_info['mode_distribute'] == 1) {
-		message(error(-1, '订单方式不是配送！'), '', 'ajax');
+		wmessage(error(-1, '订单方式不是配送！'), '', 'ajax');
 	}
 	$result = pdo_update('storex_order', array('goods_status' => 3), array('id' => $id, 'weid' => $_W['uniacid']));
 	if (!empty($order_info['coupon'])) {
@@ -177,9 +177,9 @@ if ($op == 'confirm_goods') {
 		$logs['after_change'] = 3;
 		$logs['type'] = 'goods_status';
 		write_log($logs);
-		message(error(0, '订单收货成功！'), '', 'ajax');
+		wmessage(error(0, '订单收货成功！'), '', 'ajax');
 	} else {
-		message(error(-1, '订单收货失败！'), '', 'ajax');
+		wmessage(error(-1, '订单收货失败！'), '', 'ajax');
 	}
 }
 
@@ -188,11 +188,11 @@ if ($op == 'order_comment') {
 	$comment_level = intval($_GPC['comment_level']);
 	$comment = trim($_GPC['comment']);
 	if (empty($comment)) {
-		message(error(-1, '评价不能为空！'), '', 'ajax');
+		wmessage(error(-1, '评价不能为空！'), '', 'ajax');
 	}
 	$order_info = pdo_get('storex_order', array('weid' => intval($_W['uniacid']), 'id' => $id, 'openid' => $_W['openid']));
 	if (empty($order_info)) {
-		message(error(-1, '找不到该订单了！'), '', 'ajax');
+		wmessage(error(-1, '找不到该订单了！'), '', 'ajax');
 	}
 	if ($comment_level > 5 || $comment_level < 1 || empty($comment_level)) {
 		$comment_level = 5;
@@ -209,8 +209,8 @@ if ($op == 'order_comment') {
 		);
 		pdo_insert('storex_comment', $comment_info);
 		pdo_update('storex_order', array('comment' => 1), array('weid' => $_W['uniacid'], 'id' => $id));
-		message(error(0, '评论成功！'), '', 'ajax');
+		wmessage(error(0, '评论成功！'), '', 'ajax');
 	} else {
-		message(error(-1, '订单已经评价过了！'), '', 'ajax');
+		wmessage(error(-1, '订单已经评价过了！'), '', 'ajax');
 	}
 }

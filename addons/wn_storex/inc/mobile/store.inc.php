@@ -69,7 +69,7 @@ if ($op == 'store_list') {
 	$store_list = array();
 	$store_list['version'] = $setting['version'];
 	$store_list['stores'] = $storex_bases;
-	message(error(0, $store_list), '', 'ajax');
+	wmessage(error(0, $store_list), '', 'ajax');
 }
 //获取某个店铺的详细信息
 if ($op == 'store_detail') {
@@ -77,10 +77,10 @@ if ($op == 'store_detail') {
 	$store_id = intval($_GPC['store_id']);//店铺id
 	$store_detail = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $store_id));
 	if (empty($store_detail)) {
-		message(error(-1, '店铺不存在'), '', 'ajax');
+		wmessage(error(-1, '店铺不存在'), '', 'ajax');
 	} else {
 		if ($store_detail['status'] == 0) {
-			message(error(-1, '店铺已隐藏'), '', 'ajax');
+			wmessage(error(-1, '店铺已隐藏'), '', 'ajax');
 		}
 	}
 	if (!empty($store_detail['store_info'])) {
@@ -101,13 +101,13 @@ if ($op == 'store_detail') {
 			unset($store_extend_info['id']);
 			if (empty($store_extend_info['device'])) {
 				$devices = array(
-						array('isdel' => 0, 'value' => '有线上网'),
-						array('isdel' => 0, 'isshow' => 0, 'value' => 'WIFI无线上网'),
-						array('isdel' => 0, 'isshow' => 0, 'value' => '可提供早餐'),
-						array('isdel' => 0, 'isshow' => 0, 'value' => '免费停车场'),
-						array('isdel' => 0, 'isshow' => 0, 'value' => '会议室'),
-						array('isdel' => 0, 'isshow' => 0, 'value' => '健身房'),
-						array('isdel' => 0, 'isshow' => 0, 'value' => '游泳池')
+					array('isdel' => 0, 'value' => '有线上网'),
+					array('isdel' => 0, 'isshow' => 0, 'value' => 'WIFI无线上网'),
+					array('isdel' => 0, 'isshow' => 0, 'value' => '可提供早餐'),
+					array('isdel' => 0, 'isshow' => 0, 'value' => '免费停车场'),
+					array('isdel' => 0, 'isshow' => 0, 'value' => '会议室'),
+					array('isdel' => 0, 'isshow' => 0, 'value' => '健身房'),
+					array('isdel' => 0, 'isshow' => 0, 'value' => '游泳池')
 				);
 			} else {
 				$store_extend_info['device'] = iunserializer($store_extend_info['device']);
@@ -116,7 +116,7 @@ if ($op == 'store_detail') {
 		}
 	}
 	$store_detail['version'] = $setting['version'];
-	message(error(0, $store_detail), '', 'ajax');
+	wmessage(error(0, $store_detail), '', 'ajax');
 }
 //获取店铺的所有评论
 if ($op == 'store_comment') {
@@ -129,7 +129,7 @@ if ($op == 'store_comment') {
 			$table = 'storex_goods';
 		}
 	} else {
-		message(error(-1, '店铺不存在'), '', 'ajax');
+		wmessage(error(-1, '店铺不存在'), '', 'ajax');
 	}
 	$comments = pdo_fetchall("SELECT c.*,g.id AS gid,g.title FROM " . tablename('storex_comment') ." c LEFT JOIN " . tablename($table) ." g ON c.goodsid = g.id WHERE c.hotelid = :hotelid AND g.weid = :weid ORDER BY c.createtime DESC", array(':hotelid' => $id, ':weid' => $_W['uniacid']));
  	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM" . tablename('storex_comment') . " c LEFT JOIN " . tablename($table) . " g ON c.goodsid = g.id WHERE c.hotelid = :hotelid AND g.weid = :weid", array(':hotelid' => $id, ':weid' => $_W['uniacid']));
@@ -181,5 +181,5 @@ if ($op == 'store_comment') {
 	if ($page_data['isshow'] == 1) {
 		$comment_list['nindex'] = $page_data['nindex'];
 	}
-	message(error(0, $comment_list), '', 'ajax');
+	wmessage(error(0, $comment_list), '', 'ajax');
 }

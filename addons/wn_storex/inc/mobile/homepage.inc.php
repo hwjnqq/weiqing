@@ -63,5 +63,5 @@ if ($op == 'display') {
 	} else {
 		$homepage_list = $default_module;
 	}
-	message(error(0, $homepage_list), '', 'ajax');
+	wmessage(error(0, $homepage_list), '', 'ajax');
 }

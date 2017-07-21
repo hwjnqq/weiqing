@@ -775,3 +775,14 @@ function wn_tpl_form_field_location_category($name, $values = array(), $del = fa
 
 	return $html;
 }
+
+function wmessage($msg, $link = '', $type = '') {
+	global $_W;
+	if ($_W['isajax'] || $type == 'ajax') {
+		$vars = array();
+		$vars['message'] = $msg;
+		$vars['link'] = $link;
+		$vars['type'] = $type;
+		exit(json_encode($vars));
+	}
+}
