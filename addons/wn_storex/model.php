@@ -670,3 +670,49 @@ function category_entry_fetch($storeid) {
 	}
 	return $category_list;
 }
+
+function wn_tpl_form_field_location_category($name, $values = array(), $del = false) {
+	$html = '';
+	if (!defined('TPL_INIT_LOCATION_CATEGORY')) {
+		$html .= '
+		<script type="text/javascript" src="../addons/wn_storex/template/style/js/location.js"></script>';
+		define('TPL_INIT_LOCATION_CATEGORY', true);
+	}
+	if (empty($values) || !is_array($values)) {
+		$values = array('cate'=>'','sub'=>'','clas'=>'');
+	}
+	if (empty($values['cate'])) {
+		$values['cate'] = '';
+	}
+	if (empty($values['sub'])) {
+		$values['sub'] = '';
+	}
+	if (empty($values['clas'])) {
+		$values['clas'] = '';
+	}
+	$html .= '
+		<div class="row row-fix tpl-location-container">
+			<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
+				<select name="' . $name . '[cate]" data-value="' . $values['cate'] . '" class="form-control tpl-cate">
+				</select>
+			</div>
+			<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
+				<select name="' . $name . '[sub]" data-value="' . $values['sub'] . '" class="form-control tpl-sub">
+				</select>
+			</div>
+			<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
+				<select name="' . $name . '[clas]" data-value="' . $values['clas'] . '" class="form-control tpl-clas">
+				</select>
+			</div>';
+	if ($del) {
+		$html .='
+			<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3" style="padding-top:5px">
+				<a title="删除" onclick="$(this).parents(\'.tpl-location-container\').remove();return false;"><i class="fa fa-times-circle"></i></a>
+			</div>
+		</div>';
+	} else {
+		$html .= '</div>';
+	}
+
+	return $html;
+}
