@@ -904,15 +904,36 @@ li {
   padding: 10px 0 10px 30px;
   border-bottom: 1px solid #ddd;
 }
-.wn-home__editImage__item--slide .content {
+.wn-home__editImage__item .content {
   border-bottom: 1px solid #e7ebf0;
   margin-bottom: 20px;
   padding-bottom: 20px;
   cursor: move;
 }
-.wn-home__editImage__item--slide img {
+.wn-home__editImage__item img {
   width: 187.5px;
   height: 85.75px;
+}
+.wn-home__editImage__item a {
+  color: #59c2e6;
+  cursor: default;
+}
+.wn-home__editImage__nav img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.wn-home__navbar {
+  left: 180px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  text-align: center;
+  overflow: hidden;
+  opacity: .8;
+}
+.wn-home__navbar > .btn {
+  padding: 5px 40px;
 }
 
 /*# sourceMappingURL=store.css.map */

@@ -1,5 +1,6 @@
 {template 'common/header-storex'}
 <link rel="stylesheet" href="../addons/wn_storex/template/style/css/membercard.css">
+<link rel="stylesheet" href="../addons/wn_storex/template/style/css/vux.min.css">
 {if $op == 'display'}
 <div class="wn-main wn-main--without">
 	<div class="wn-main__head">店铺设置</div>
@@ -49,7 +50,7 @@
 							</draggable>
 						</div>
 						<div class="clearfix"></div>
-						<div class="wn-home__edit" v-if="editModuleIndex">
+						<div class="wn-home__edit" v-if="typeof editModuleIndex == 'number'">
 							<h2 class="wn-home__edit__head">{{typeValue[openModules[editModuleIndex]['type']]}}</h2>
 							<div class="wn-home__editSearch wn-home__edit__item" v-if="openModules[editModuleIndex]['type'] == 'search'">
 								<div class="form-group">
@@ -102,42 +103,93 @@
 								</div>
 								<div class="clearfix"></div>
 							</div>
-							<div class="wn-home__editImage" v-if="imageModules.indexOf(openModules[editModuleIndex]['type']) != -1">
+							<div class="wn-home__editImage" v-if="openModules[editModuleIndex]['type'] == 'notice'">
 								<div class="wn-home__editImage__item wn-home__editImage__item--slide" v-if="!showEdit">
 									<div class="content row">
 										<div class="col-sm-2">
 											排序
 										</div>
-										<div class="col-sm-4" v-if="openModules[editModuleIndex]['type'] != 'notice'">
-											图片
-										</div>
-										<div class="col-sm-3">
+										<div class="col-sm-7">
 											标题
 										</div>
 										<div class="col-sm-3">
-											链接
+											操作
 										</div>
 									</div>
 								</div>
-								<draggable :list="openModules[editModuleIndex]['items']" element="div" :options="{group:{name:'slide'}}" :no-transition-on-drag="true" @start="drag=true" @end="drag=false" v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
+								<draggable :list="openModules[editModuleIndex]['items']" element="div" :options="{group:{name:'notice'}}" :no-transition-on-drag="true" @start="drag=true" @end="drag=false" v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
 									<div v-for="(item, index) in openModules[editModuleIndex]['items']" :key="index" class="wn-home__editImage__item wn-home__editImage__item--slide">
-										<div @click="editImage(index)" class="content row">
+										<div class="content row">
 											<div class="col-sm-2">
 												{{index}}
 											</div>
-											<div class="col-sm-4" v-if="openModules[editModuleIndex]['type'] != 'notice'">
-												<img :src="item.img" alt="">
-											</div>
-											<div class="col-sm-3">
+											<div class="col-sm-7">
 												<div class="text-over">{{item.title}}</div>
 											</div>
 											<div class="col-sm-3">
-												<div class="text-over">{{item.url}}</div>
+												<a @click="editNotice(index)">编辑</a>
+												<a @click="removeItem(index)">删除</a>
 											</div>
 										</div>
 									</div>
 								</draggable>
-								<div @click="addImage()" v-show="!showEdit" class="btn btn-primary">点击添加</div>
+								<div @click="addNotice()" v-show="!showEdit" class="btn btn-primary">点击添加</div>
+								<div class="clearfix"></div>
+								<div class="" v-if="showEdit">
+									<h5>编辑</h5>
+									<div class="form-group">
+										<input type="text" class="form-control" v-model.trim="editValue.title" placeholder="标题">
+										<div class="help-block">设置{{typeValue[openModules[editModuleIndex]['type']]}}标题</div>
+									</div>
+									<div class="form-group">
+										<a @click="showEdit = false" class="btn btn-default">取消</a>
+										<a class="btn btn-primary" @click="saveItem">保存</a>
+									</div>
+								</div>
+							</div>
+							<div class="wn-home__editImage" v-if="imageModules.indexOf(openModules[editModuleIndex]['type']) != -1">
+								<div class="wn-home__editImage__item wn-home__editImage__item--slide" v-if="!showEdit">
+									<div class="content row">
+										<div class="col-sm-1">
+
+										</div>
+										<div class="col-sm-4">
+											图片
+										</div>
+										<div class="col-sm-2">
+											标题
+										</div>
+										<div class="col-sm-2">
+											链接
+										</div>
+										<div class="col-sm-3">
+											操作
+										</div>
+									</div>
+								</div>
+								<draggable :list="openModules[editModuleIndex]['items']" element="div" :options="{group:{name:'slide'}}" :no-transition-on-drag="true" @start="drag=true" @end="drag=false" v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
+									<div v-for="(item, index) in openModules[editModuleIndex]['items']" :key="index" class="wn-home__editImage__item" :class="'wn-home__editImage__' + openModules[editModuleIndex]['type']">
+										<div class="content row">
+											<div class="col-sm-1">
+												{{index}}
+											</div>
+											<div class="col-sm-4">
+												<img :src="item.img" alt="">
+											</div>
+											<div class="col-sm-2">
+												<div class="text-over">{{item.title}}</div>
+											</div>
+											<div class="col-sm-2">
+												<div class="text-over">{{item.url}}</div>
+											</div>
+											<div class="col-sm-3">
+												<a @click="editImage(index)">编辑</a>
+												<a @click="removeItem(index)">删除</a>
+											</div>
+										</div>
+									</div>
+								</draggable>
+								<div @click="addImage()" v-show="!showEdit && openModules[editModuleIndex]['items'].length < max[openModules[editModuleIndex]['type']]" class="btn btn-primary">点击添加</div>
 								<div class="clearfix"></div>
 								<div class="" v-if="showEdit">
 									<h5>编辑</h5>
@@ -149,12 +201,11 @@
 										<input type="text" class="form-control" v-model.trim="editValue.url" placeholder="链接">
 										<div class="help-block">设置{{typeValue[openModules[editModuleIndex]['type']]}}链接</div>
 									</div>
-									<div class="form-group" v-if="openModules[editModuleIndex]['type'] != 'notice'">
+									<div class="form-group">
 										<div class="input-group">
 											<input type="text" disabled class="form-control" v-model.trim="editValue.img" placeholder="图片地址">
 											<span class="input-group-btn" @click="uploadImage(editValue, 'img')">
-												<button class="btn btn-default" type="button"><i
-														class="fa fa-plus-circle green"></i>&nbsp;选择图片</button>
+												<button class="btn btn-default" type="button"><i class="fa fa-plus-circle green"></i>&nbsp;选择图片</button>
 											</span>
 										</div>
 										<div class="help-block">
@@ -163,7 +214,7 @@
 									</div>
 									<div class="form-group">
 										<a @click="showEdit = false" class="btn btn-default">取消</a>
-										<a class="btn btn-primary" @click="saveEdit">保存</a>
+										<a class="btn btn-primary" @click="saveItem">保存</a>
 									</div>
 								</div>
 							</div>
@@ -172,29 +223,9 @@
 				</div>
 			</div>
 			<div class="clearfix"></div>
-			<div class="btn btn-primary" @click="submitModules">提交</div>
-			<!--<div class="modal fade" tabindex="-1" role="dialog" :style="{display: showModal ? 'block' : 'none'}"  :class="{in: showModal}">-->
-			<!--<div class="modal-dialog" role="document">-->
-			<!--<div class="modal-content">-->
-			<!--<div class="modal-header">-->
-			<!--<button type="button" class="close" @click="showModal = false"><span>&times;</span></button>-->
-			<!--<h4 class="modal-title">编辑</h4>-->
-			<!--</div>-->
-			<!--<div class="modal-body">-->
-			<!--<div class="form-group">-->
-			<!--<input type="text" class="form-control" v-model.trim="slideValue.url" placeholder="链接">-->
-			<!--</div>-->
-			<!--<div class="form-group">-->
-			<!--<input type="text" class="form-control" v-model.trim="slideValue.title" placeholder="标题">-->
-			<!--</div>-->
-			<!--</div>-->
-			<!--<div class="modal-footer">-->
-			<!--<button type="button" class="btn btn-default" @click="showModal = false">取消</button>-->
-			<!--<button type="button" class="btn btn-primary">保存</button>-->
-			<!--</div>-->
-			<!--</div>-->
-			<!--</div>-->
-			<!--</div>-->
+			<nav class="navbar navbar-default navbar-fixed-bottom wn-home__navbar">
+				<div class="btn btn-primary" @click="submitModules">提交</div>
+			</nav>
 		</div>
 	</div>
 </div>
@@ -203,17 +234,20 @@
 		paths: {
 			'Vue': '/addons/wn_storex/template/style/js/vue',
 			'sortablejs': '/addons/wn_storex/template/style/js/Sortable.min',
-			'vuedraggable': '/addons/wn_storex/template/style/js/vuedraggable.min'
+			'vuedraggable': '/addons/wn_storex/template/style/js/vuedraggable.min',
+			'Vux': '/addons/wn_storex/template/style/js/vux/vux.min',
 		}
 	})
 	require(['bootstrap'])
 	var default_module = {php echo json_encode($default_module)};
 	var homepage = {php echo json_encode($homepage_list)};
-	require(['Vue', 'vuedraggable'], function (Vue, vuedraggable) {
+	require(['Vue', 'vuedraggable', 'Vux'], function (Vue, vuedraggable, Vux) {
 		Vue.component('draggable', vuedraggable);
+		Vue.component('search', vuxSearch);
+		Vue.component('group', vuxGroup)
+		Vue.component('cell', vuxCell)
 		var vm = new Vue({
 			el: '#app',
-			name: 'Home',
 			data: {
 				drag: false,
 				showEdit: false,
@@ -226,7 +260,13 @@
 					adv: '广告条',
 					recommend: '商品推荐'
 				},
-				imageModules: ['slide', 'nav', 'cube', 'adv', 'notice'],
+				max: {
+					'slide': 4,
+					nav: 10,
+					cube: 4,
+					adv: 1
+				},
+				imageModules: ['slide', 'nav', 'cube', 'adv'],
 				modules: default_module,
 				openModules: homepage,
 				editModuleIndex: '',
@@ -293,10 +333,26 @@
 					};
 					this.editIndex = index;
 				},
+				addNotice: function () {
+					this.showEdit = true;
+					this.editValue = {
+						title: ''
+					}
+				},
+				editNotice: function (index) {
+					this.showEdit = true;
+					this.editValue = {
+						title: this.openModules[this.editModuleIndex]['items'][index]['title']
+					};
+					this.editIndex = index;
+				},
 				hideEdit: function () {
 					this.showEdit = false;
 				},
-				saveEdit: function () {
+				removeItem: function (index) {
+					this.openModules[this.editModuleIndex]['items'].splice(index, 1);
+				},
+				saveItem: function () {
 					var index = this.editModuleIndex;
 					var value = this.editValue;
 					for (var key in value) {
@@ -368,15 +424,17 @@
 					}
 				},
 				'editModuleIndex': function (index) {
-					if (this.openModules[index] && typeof this.openModules[index]['items'] != 'object') {
+					if (this.openModules[index] && typeof this.openModules[index]['items'] != 'object' && this.openModules[index]['type'] != 'search') {
 						this.openModules[index]['items'] = []
 					}
 				}
 			},
 			created: function () {
-				this.editModuleIndex = 6;
+				this.editModuleIndex = 0;
 			}
 		})
+
+		console.log(vm);
 	})
 </script>
 {/if}
