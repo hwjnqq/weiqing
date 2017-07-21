@@ -12,13 +12,14 @@ load()->classs('weixin.platform');
 load()->model('wxapp');
 load()->model('utility');
 
-$uniacid = intval($_GPC['uniacid']);
-$acid = intval($_GPC['acid']);
-if (empty($uniacid) || empty($acid)) {
-	itoast('请选择要编辑的公众号', url('account/manager'), 'error');
+if (empty($_W['uniacid'])) {
+	header("Location: " . url('account/post-step'));
 }
+$uniacid = $_W['uniacid'];
+$acid = $_W['acid'];
 $state = uni_permission($_W['uid'], $uniacid);
 $dos = array('base', 'sms', 'modules_tpl');
+
 if ($state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER) {
 	$do = in_array($do, $dos) ? $do : 'base';
 } elseif ($state == ACCOUNT_MANAGE_NAME_MANAGER) {

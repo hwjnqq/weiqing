@@ -104,6 +104,7 @@ if(MAGIC_QUOTES_GPC) {
 	$_POST = istripslashes($_POST);
 	$_COOKIE = istripslashes($_COOKIE);
 }
+
 $cplen = strlen($_W['config']['cookie']['pre']);
 foreach($_COOKIE as $key => $value) {
 	if(substr($key, 0, $cplen) == $_W['config']['cookie']['pre']) {

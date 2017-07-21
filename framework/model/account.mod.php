@@ -944,58 +944,6 @@ function uni_account_rank_top($uniacid) {
 	return true;
 }
 
-function uni_account_last_switch() {
-	global $_W, $_GPC;
-	$cache_key = cache_system_key(CACHE_KEY_ACCOUNT_SWITCH, $_GPC['__switch']);
-	$cache_lastaccount = (array)cache_load($cache_key);
-	if (strexists($_W['siteurl'], 'c=wxapp')) {
-		$uniacid = $cache_lastaccount['wxapp'];
-	} else {
-		$uniacid = $cache_lastaccount['account'];
-	}
-	if (!empty($uniacid)) {
-		$account_info = uni_fetch($uniacid);
-		if (!empty($account_info) && $account_info['isdeleted'] == 1) {
-			$uniacid = '';
-		}
-	}
-	return $uniacid;
-}
-
-function uni_account_switch($uniacid, $redirect = '') {
-	global $_W;
-	isetcookie('__uniacid', $uniacid, 7 * 86400);
-	isetcookie('__uid', $_W['uid'], 7 * 86400);
-	if (!empty($redirect)) {
-		header('Location: ' . $redirect);
-		exit;
-	}
-	return true;
-}
-
-/**
- * 切换公众号时，保留最后一次操作的小程序，以便点公众号时再切换回
- */
-function uni_account_save_switch($uniacid) {
-	global $_W, $_GPC;
-	if (empty($_GPC['__switch'])) {
-		$_GPC['__switch'] = random(5);
-	}
-
-	$cache_key = cache_system_key(CACHE_KEY_ACCOUNT_SWITCH, $_GPC['__switch']);
-	$cache_lastaccount = cache_load($cache_key);
-	if (empty($cache_lastaccount)) {
-		$cache_lastaccount = array(
-			'account' => $uniacid,
-		);
-	} else {
-		$cache_lastaccount['account'] = $uniacid;
-	}
-	cache_write($cache_key, $cache_lastaccount);
-	isetcookie('__switch', $_GPC['__switch'], 7 * 86400);
-	return true;
-}
-
 function uni_account_list($condition, $pager) {
 	global $_W;
 	load()->model('wxapp');

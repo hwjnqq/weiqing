@@ -184,7 +184,7 @@ $we7_system_menu['system'] = array(
 			'menu' => array(
 				'system_account' => array(
 					'title' => ' 微信公众号',
-					'url' => url('account/manage', array('account_type' => '1')),
+					'url' => url('account/post'),
 					'icon' => 'wi wi-wechat',
 					'permission_name' => 'system_account',
 					'sub_permission' => array(
@@ -290,33 +290,6 @@ $we7_system_menu['system'] = array(
 								'title' => '用户注册设置',
 								'permission_name' => 'system_user_registerset',
 							),
-					),
-				),
-			)
-		),
-		'permission' => array(
-			'title' => '权限管理',
-			'menu' => array(
-				'system_module_group' => array(
-					'title' => '应用权限组',
-					'url' => url('module/group'),
-					'icon' => 'wi wi-appjurisdiction',
-					'permission_name' => 'system_module_group',
-				),
-				'system_user_group' => array(
-					'title' => '用户权限组',
-					'url' => url('user/group'),
-					'icon' => 'wi wi-userjurisdiction',
-					'permission_name' => 'system_user_group',
-					'sub_permission' => array(
-						array(
-							'title' => '编辑用户组',
-							'permission_name' => 'system_user_group_post',
-						),
-						array(
-							'title' => '删除用户组',
-							'permission_name' => 'system_user_group_del',
-						),
 					),
 				),
 			)

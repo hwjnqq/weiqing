@@ -7,42 +7,12 @@ defined('IN_IA') or exit('Access Denied');
 
 load()->func('file');
 load()->model('user');
-$dos = array('display', 'delete');
-$do = in_array($_GPC['do'], $dos)? $do : 'display';
-
+$do = in_array($_GPC['do'], $dos)? $do : 'delete';
 
 $_W['page']['title'] = $account_typename . '列表 - ' . $account_typename;
 //模版调用，显示该用户所在用户组可添加的主公号数量，已添加的数量，还可以添加的数量
 $account_info = uni_user_account_permission();
 
-if ($do == 'display') {
-	$pindex = max(1, intval($_GPC['page']));
-	$psize = 20;
-
-	$condition = array();
-	
-
-	$type_condition = array(
-		ACCOUNT_TYPE_APP_NORMAL => array(ACCOUNT_TYPE_APP_NORMAL),
-		ACCOUNT_TYPE_OFFCIAL_NORMAL => array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH),
-	);
-	$condition['type'] = $type_condition[ACCOUNT_TYPE];
-	
-	$keyword = trim($_GPC['keyword']);
-	if (!empty($keyword)) {
-		$condition['name'] = trim($_GPC['keyword']);
-	}
-	
-	if(isset($_GPC['letter']) && strlen($_GPC['letter']) == 1) {
-		$condition['letter'] = trim($_GPC['letter']);
-	}
-	
-	$account_lists = uni_account_list($condition, array($pindex, $psize));
-	$list = $account_lists['list'];
-	$total = $account_lists['total'];
-	$pager = pagination($total, $pindex, $psize);
-	template('account/manage-display' . ACCOUNT_TYPE_TEMPLATE);
-}
 if ($do == 'delete') {
 	$uniacid = intval($_GPC['uniacid']);
 	$acid = intval($_GPC['acid']);
