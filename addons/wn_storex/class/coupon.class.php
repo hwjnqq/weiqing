@@ -8,7 +8,7 @@ class WnCoupon extends coupon {
 	 * $openid 粉丝openid 如果不为空,则只有该粉丝可以领取发放的卡券
 	 * $type 发送卡券类型 membercard（会员卡） 或 coupon（卡券） 默认为coupon
 	 * */
-	public function BuildCardExt($id, $openid = '') {
+	public function BuildCardExt($id, $openid = '', $type = 'coupon') {
 		$card_id = pdo_fetchcolumn('SELECT card_id FROM ' . tablename('storex_coupon') . ' WHERE id = :id', array(':id' => $id));
 		if (empty($card_id)) {
 			return error(-1, '卡券id不合法');

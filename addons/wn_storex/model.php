@@ -141,6 +141,20 @@ if (!function_exists('hotel_member_single')) {
 	}
 }
 
+if (!function_exists('insert_member')) {
+	function insert_member($member) {
+		if (!isset($member['userid']) || empty($member['userid'])) {
+			load()->model('mc');
+			$member['userid'] = mc_openid2uid($_W['openid']);
+		}
+		$member['createtime'] = TIMESTAMP;
+		$member['isauto'] = 1;
+		$member['status'] = 1;
+		pdo_insert('storex_member', $member);
+		return pdo_insertid();
+	}
+}
+
 if (!function_exists('get_storex_set')) {
 	function get_storex_set() {
 		global $_GPC, $_W;
@@ -510,4 +524,195 @@ function check_ims_version() {
 	} else {
 		return false;
 	}
+}
+
+function write_log($logs) {
+	if (is_array($logs) && !empty($logs['table'])) {
+		$table = $logs['table'];
+		unset($logs['table']);
+		if ($table == 'storex_order_logs') {
+			$types = array('status', 'goods_status', 'paystatus', 'refund', 'refund_status');
+			if (in_array($logs['type'], $types)) {
+				pdo_insert($table, $logs);
+			}
+		}
+	}
+}
+
+function entry_fetch() {
+	global $_W, $_GPC;
+	$storeid = intval($_GPC['id']);
+	$sign_type = $_GPC['sign_type'];
+	$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
+	if ($sign_type == 'store_detail') {
+		return $url . '#/StoreIndex/' . $storeid;
+	}
+	if ($sign_type == 'class') {
+		return $url . '#/Category/' . $storeid;
+	}
+	if ($sign_type == 'sub_class') {
+		$classid = $_GPC['classid'];
+		$sub_classid = $_GPC['sub_classid'];
+		$category_urls = category_entry_fetch($storeid);
+		if (!empty($classid)) {
+			return $category_urls[$classid]['link'];
+		}
+		if (!empty($sub_classid)) {
+			$sub_classinfo = pdo_get('storex_categorys', array('id' => $sub_classid), array('parentid'));
+			return $category_urls[$sub_classinfo['parentid']]['sub_class'][$sub_classid]['link'];
+		}
+	}
+	if (!empty($_GPC['goodsid'])) {
+		//????
+		$param = array(
+			'id' => $_GPC['id'],
+			'btime' => $_GPC['btime'],
+			'etime' => $_GPC['etime'],
+			'nums' => $_GPC['nums'],
+			'sign_type' => $sign_type,
+		);
+		return goodinfo_entry_fetch($storeid, $_GPC['goodsid'], $param);
+	}
+	if ($sign_type == 'orderinfo' && !empty($_GPC['orderid'])) {
+		return $url . '#/Home/OrderInfo/' . $_GPC['orderid'];
+	}
+	if ($sign_type == 'addressedit' && !empty($_GPC['addressid'])) {
+		return $url . '#/Home/AddressEdit/' . $_GPC['addressid'];
+	}
+	if ($sign_type == 'clerkroominfo' && !empty($_GPC['roomid'])) {
+		return $url . '#/Home/CLerk/RoomInfo/' . $_GPC['roomid'];
+	}
+	return usercenter_entry_fetch($storeid, $sign_type);
+}
+
+function usercenter_entry_fetch($storeid, $sign_type) {
+	$sign_types = array(
+		'usercenter' => '#/Home/Index',
+		'orderlist' => '#/Home/OrderList',
+		'mycouponlist' => '#/Home/MyCouponList',
+		'userinfo' => '#/Home/UserInfo',
+		'address' => '#/Home/Address',
+		'addressedit' => '#/Home/AddressEdit/new',
+		'sign' => '#/Home/Sign',
+		'message' => '#/Home/Message',
+		'storemanage' => '#/Home/Clerk/Index',
+		'credit' => '#/Home/Credit/',
+		'recharge_credit' => '#/Home/Recharge/credit',
+		'recharge_nums' => '#/Home/Recharge/nums',
+		'recharge_times' => '#/Home/Recharge/times',
+		'creditsrecord' => '#/Home/CreditsRecord',
+		'clerkorderlist' => '#/Home/Clerk/OrderList',
+		'clerkroomlist' => '#/Home/Clerk/Roomlist',
+	);
+	if (!empty($sign_types[$sign_type])) {
+		return murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $sign_types[$sign_type];
+	}
+}
+
+function goodinfo_entry_fetch($storeid, $goodsid, $param) {
+	$storeinfo = pdo_get('storex_bases', array('id' => $storeid));
+	if ($storeinfo['store_type'] == 1) {
+		$table = 'storex_room';
+	} else {
+		$table = 'storex_goods';
+	}
+	$goodsinfo = pdo_get($table, array('id' => $goodsid));
+	if ($param['sign_type'] == 'buy') {
+		$vue_route = "#/Buy/buy/";
+	} else {
+		$vue_route = "#/GoodInfo/buy/";
+	}
+	unset($param['sign_type']);
+	if ($goodsinfo['is_house'] == 1) {
+		$param['do'] = 'display';
+		$param['m'] = 'wn_storex';
+		return murl('entry', $param, true, true) . $vue_route . $storeid . '/' . $goodsid;
+	} else {
+		return murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $vue_route . $storeid . '/' . $goodsid;
+	}
+}
+
+function category_entry_fetch($storeid) {
+	global $_W;
+	$category = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'enabled' => 1), array('id', 'name', 'thumb', 'parentid', 'category_type'), 'id');
+	$category_list = array();
+	if (!empty($category) && is_array($category)) {
+		foreach ($category as $key => &$info) {
+			$info['thumb'] = tomedia($info['thumb']);
+			if (empty($info['parentid'])) {
+				$category_list[$info['id']] = $info;
+				if ($info['category_type'] == 1) {
+					$vue_route = '#/Category/HotelList/' . $storeid . '/';
+				} elseif ($info['category_type'] == 2) {
+					if (empty($_W['wn_storex']['store_info']['store_type'])) {
+						$vue_route = '#/Category/Child/' . $storeid . '/';
+					} elseif ($_W['wn_storex']['store_info']['store_type'] == 1) {
+						$vue_route = '#/Category/GoodList/' . $storeid . '/';
+					}
+				}
+				$category_list[$info['id']]['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $vue_route . $info['id'];
+				$category_list[$info['id']]['sub_class'] = array();
+			} else {
+				if (!empty($category_list[$info['parentid']])) {
+					$category_list[$info['parentid']]['sub_class'][$key] = $info;
+				}
+				$vue_route = '#/Category/GoodList/' . $storeid . '/';
+				$category_list[$info['parentid']]['sub_class'][$key]['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $vue_route . $info['id'];
+			}
+		}
+		unset($info);
+		foreach ($category_list as $k => &$v) {
+			if (empty($v['sub_class']) && $v['category_type'] != 1) {
+				$v['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . '#/Category/GoodList/' . $storeid . '/' .$k;
+			}
+		}
+		unset($v);
+	}
+	return $category_list;
+}
+
+function wn_tpl_form_field_location_category($name, $values = array(), $del = false) {
+	$html = '';
+	if (!defined('TPL_INIT_LOCATION_CATEGORY')) {
+		$html .= '
+		<script type="text/javascript" src="../addons/wn_storex/template/style/js/location.js"></script>';
+		define('TPL_INIT_LOCATION_CATEGORY', true);
+	}
+	if (empty($values) || !is_array($values)) {
+		$values = array('cate'=>'','sub'=>'','clas'=>'');
+	}
+	if (empty($values['cate'])) {
+		$values['cate'] = '';
+	}
+	if (empty($values['sub'])) {
+		$values['sub'] = '';
+	}
+	if (empty($values['clas'])) {
+		$values['clas'] = '';
+	}
+	$html .= '
+		<div class="row row-fix tpl-location-container">
+			<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
+				<select name="' . $name . '[cate]" data-value="' . $values['cate'] . '" class="form-control tpl-cate">
+				</select>
+			</div>
+			<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
+				<select name="' . $name . '[sub]" data-value="' . $values['sub'] . '" class="form-control tpl-sub">
+				</select>
+			</div>
+			<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
+				<select name="' . $name . '[clas]" data-value="' . $values['clas'] . '" class="form-control tpl-clas">
+				</select>
+			</div>';
+	if ($del) {
+		$html .='
+			<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3" style="padding-top:5px">
+				<a title="删除" onclick="$(this).parents(\'.tpl-location-container\').remove();return false;"><i class="fa fa-times-circle"></i></a>
+			</div>
+		</div>';
+	} else {
+		$html .= '</div>';
+	}
+
+	return $html;
 }
