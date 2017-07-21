@@ -1,6 +1,5 @@
 {template 'common/header-storex'}
 <link rel="stylesheet" href="../addons/wn_storex/template/style/css/membercard.css">
-<link rel="stylesheet" href="../addons/wn_storex/template/style/css/vux.min.css">
 {if $op == 'display'}
 <div class="wn-main wn-main--without">
 	<div class="wn-main__head">店铺设置</div>
@@ -235,17 +234,13 @@
 			'Vue': '/addons/wn_storex/template/style/js/vue',
 			'sortablejs': '/addons/wn_storex/template/style/js/Sortable.min',
 			'vuedraggable': '/addons/wn_storex/template/style/js/vuedraggable.min',
-			'Vux': '/addons/wn_storex/template/style/js/vux/vux.min',
 		}
 	})
 	require(['bootstrap'])
 	var default_module = {php echo json_encode($default_module)};
 	var homepage = {php echo json_encode($homepage_list)};
-	require(['Vue', 'vuedraggable', 'Vux'], function (Vue, vuedraggable, Vux) {
+	require(['Vue', 'vuedraggable'], function (Vue, vuedraggable) {
 		Vue.component('draggable', vuedraggable);
-		Vue.component('search', vuxSearch);
-		Vue.component('group', vuxGroup)
-		Vue.component('cell', vuxCell)
 		var vm = new Vue({
 			el: '#app',
 			data: {
