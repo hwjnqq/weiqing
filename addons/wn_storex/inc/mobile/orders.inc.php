@@ -10,6 +10,14 @@ $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
 $uid = mc_openid2uid($_W['openid']);
+
+$logs = array(
+	'table' => 'storex_order_logs',
+	'time' => TIMESTAMP,
+	'uid' => $uid,
+	'clerk_type' => 1,
+	'orderid' => intval($_GPC['id']),
+);
 if ($op == 'order_list') {
 	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status', 'openid', 'action', 'track_number', 'express_name');
 	$orders = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'openid' => $_W['openid']), $field, '', 'time DESC');
@@ -116,6 +124,10 @@ if ($op == 'cancel') {
 		pdo_update('storex_coupon_record', array('status' => 1), array('id' => $order_info['coupon']));
 	}
 	if (!empty($result)) {
+		$logs['before_change'] = $order_info['status'];
+		$logs['after_change'] = -1;
+		$logs['type'] = 'status';
+		write_log($logs);
 		message(error(0, '订单成功取消！'), '', 'ajax');
 	} else {
 		message(error(-1, '订单取消失败！'), '', 'ajax');
@@ -124,12 +136,16 @@ if ($op == 'cancel') {
 
 if ($op == 'refund') {
 	$id = intval($_GPC['id']);
-	$order = pdo_get('storex_order', array('id' => $id), array('id', 'paytype'));
+	$order = pdo_get('storex_order', array('id' => $id), array('id', 'paytype', 'refund_status'));
 	if (check_ims_version() || $item['paytype'] == 'credit') {
 		$result = order_build_refund($id);
 		if (is_error($result)) {
 			message($result, '', 'ajax');
 		} else {
+			$logs['before_change'] = $order['refund_status'];
+			$logs['after_change'] = 1;
+			$logs['type'] = 'refund_status';
+			write_log($logs);
 			message(error(0, '退款申请成功'), '', 'ajax');
 		}
 	} else {
@@ -157,6 +173,10 @@ if ($op == 'confirm_goods') {
 		pdo_update('storex_coupon_record', array('status' => 3), array('id' => $order_info['coupon']));
 	}
 	if (!empty($result)) {
+		$logs['before_change'] = $order_info['goods_status'];
+		$logs['after_change'] = 3;
+		$logs['type'] = 'goods_status';
+		write_log($logs);
 		message(error(0, '订单收货成功！'), '', 'ajax');
 	} else {
 		message(error(-1, '订单收货失败！'), '', 'ajax');

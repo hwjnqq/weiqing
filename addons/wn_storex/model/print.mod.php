@@ -54,7 +54,7 @@ function print_get_content($printer_info, $orderid) {
 	}
 	$storeid = $order_info['hotelid'];
 	$storeinfo = get_store_info($order_info['hotelid']);
-	$goods_table = get_goods_table($storeinfo['store_type']);
+	$goods_table = gettablebytype($storeinfo['store_type']);
 	$fields = array('title', 'express_set');
 	if ($goods_table == 'storex_room') {
 		$fields[] = 'is_house';

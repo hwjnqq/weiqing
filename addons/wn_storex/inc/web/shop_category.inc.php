@@ -90,7 +90,7 @@ if ($op == 'delete') {
 	if (empty($category)) {
 		message('抱歉，分类不存在或是已经被删除！', $this->createWebUrl('shop_category', array('op' => 'display', 'storeid' => $storeid)), 'error');
 	}
-	$table = get_goods_table($store['store_type']);
+	$table = gettablebytype($store['store_type']);
 	$relation = 'AND';
 	$condition_goods['weid'] = $_W['uniacid'];
 	if (empty($category['parentid'])) {

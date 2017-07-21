@@ -10,6 +10,7 @@ mload()->model('order');
 $ops = array('clerkindex', 'permission_storex', 'order', 'order_info', 'edit_order', 'room', 'room_info', 'edit_room');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
+$uid = mc_openid2uid($_W['openid']);
 check_params();
 
 if ($op == 'clerkindex') {
@@ -38,7 +39,7 @@ if ($op == 'order') {
 			if (!empty($manage_storex_lists[$info['hotelid']])) {
 				$store_type = $manage_storex_lists[$info['hotelid']]['store_type'];
 				$info = clerk_order_operation($info, $store_type);
-				$table = get_goods_table($store_type);
+				$table = gettablebytype($store_type);
 				if (empty($info['operate'])) {
 					continue;
 				}
@@ -65,7 +66,7 @@ if ($op == 'order_info') {
 		if (!empty($order)) {
 			check_clerk_permission($order['hotelid'], 'wn_storex_permission_order');
 			$store_info = pdo_get('storex_bases', array('id' => $order['hotelid']), array('id', 'title', 'store_type'));
-			$table = get_goods_table($store_info['store_type']);
+			$table = gettablebytype($store_info['store_type']);
 			$goods = pdo_get($table, array('id' => $order['roomid']), array('id', 'thumb'));
 			$order['title'] = $store_info['title'];
 			$order['thumb'] = tomedia($goods['thumb']);
@@ -87,7 +88,7 @@ if ($op == 'edit_order') {
 		message(error(-1, '抱歉，订单不存在或是已经删除'), '', 'ajax');
 	}
 	$store_info = pdo_get('storex_bases', array('id' => $item['hotelid']), array('id', 'store_type', 'title'));
-	$table = get_goods_table($store_info['store_type']);
+	$table = gettablebytype($store_info['store_type']);
 	$goodsid = intval($item['roomid']);
 	$fields = array('id', 'title');
 	if ($table == 'storex_room') {
@@ -173,6 +174,13 @@ if ($op == 'edit_order') {
 			}
 		}
 	}
+	$logs = array(
+		'time' => TIMESTAMP,
+		'uid' => $uid,
+		'clerk_type' => 3,
+		'orderid' => $item['id'],
+		'table' => 'storex_order_logs',
+	);
 	$params = array();
 	$params['room'] = $goods_info['title'];
 	$params['store'] = $store_info['title'];
@@ -184,6 +192,9 @@ if ($op == 'edit_order') {
 		$params['tpl_status'] = true;
 	}
 	if (!empty($data['status']) && $data['status'] != $item['status']) {
+		$logs['type'] = 'status';
+		$logs['before_change'] = $item['status'];
+		$logs['after_change'] = $data['status'];
 		//订单拒绝
 		if ($data['status'] == ORDER_STATUS_REFUSE) {
 			$params['ordersn'] = $item['ordersn'];
@@ -249,10 +260,15 @@ if ($op == 'edit_order') {
 			$info = '您在' . $store_info['title'] . '预订的' . $goods_info['title'] . "订单" . $item['ordersn'] . "已取消，请联系管理员！";
 			$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
 		}
-	} 
+	}
 	
 	if (!empty($data['goods_status'])) {
 		$params['phone'] = $store_info['phone'];
+		if ($data['goods_status'] == GOODS_STATUS_CHECKED || $data['goods_status'] == GOODS_STATUS_SHIPPED) {
+			$logs['type'] = 'goods_status';
+			$logs['before_change'] = $item['goods_status'];
+			$logs['after_change'] = $data['goods_status'];
+		}
 		//已入住提醒
 		if ($data['goods_status'] == GOODS_STATUS_CHECKED) {
 			$params['check_in_templateid'] = $setting['check_in_templateid'];
@@ -266,6 +282,7 @@ if ($op == 'edit_order') {
 	}
 	$result = pdo_update('storex_order', $data, array('id' => $orderid));
 	if (!empty($result)) {
+		write_log($logs);
 		message(error(0, '处理订单成功！'), '', 'ajax');
 	} else {
 		message(error(-1, '处理订单失败！'), '', 'ajax');
