@@ -23,7 +23,7 @@ $aside_nav = array(
 	'shop_index' => array(
 		'title' => '概况',
 		'url' => $this->createWebUrl('shop_index', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'storex-shop',
+		'icon' => 'storex-menu-index',
 		'active' => array(
 			'shop_index',
 		)
@@ -31,7 +31,7 @@ $aside_nav = array(
 	'shop_homepage' => array(
 		'title' => '首页设置',
 		'url' => $this->createWebUrl('shop_homepage', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'storex-shop',
+		'icon' => 'storex-menu-home',
 		'active' => array(
 			'shop_homepage'
 		)
@@ -39,7 +39,7 @@ $aside_nav = array(
 	'shop_category' => array(
 		'title' => '商品分类',
 		'url' => $this->createWebUrl('shop_category', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'storex-category-selected',
+		'icon' => 'storex-menu-category',
 		'active' => array(
 			'shop_category',
 		)
@@ -47,7 +47,7 @@ $aside_nav = array(
 	'shop_goodsmanage' => array(
 		'title' => '商品管理',
 		'url' => $this->createWebUrl('shop_goodsmanage', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'fa fa-gift',
+		'icon' => 'storex-menu-goods',
 		'active' => array(
 			'shop_goodsmanage',
 			'shop_room_status',
@@ -57,7 +57,7 @@ $aside_nav = array(
 	'shop_comment' => array(
 		'title' => '商品评价',
 		'url' => $this->createWebUrl('shop_comment', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'fa fa-search',
+		'icon' => 'storex-menu-comment',
 		'active' => array(
 			'shop_comment',
 		)
@@ -65,7 +65,7 @@ $aside_nav = array(
 	'shop_order' => array(
 		'title' => '店铺订单',
 		'url' => $this->createWebUrl('shop_order', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'storex-order',
+		'icon' => 'storex-menu-order',
 		'active' => array(
 			'shop_order',
 		)
@@ -73,7 +73,7 @@ $aside_nav = array(
 	'shop_stat' => array(
 		'title' => '数据统计',
 		'url' => $this->createWebUrl('shop_stat', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'storex-sign',
+		'icon' => 'storex-menu-stat',
 		'active' => array(
 			'shop_stat',
 		)
@@ -81,7 +81,7 @@ $aside_nav = array(
 	'shop_member' => array(
 		'title' => '用户管理',
 		'url' => $this->createWebUrl('shop_member', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'storex-set',
+		'icon' => 'storex-menu-user',
 		'active' => array(
 			'shop_member',
 		)
@@ -89,7 +89,7 @@ $aside_nav = array(
 	'shop_clerk' => array(
 		'title' => '店员管理',
 		'url' => $this->createWebUrl('shop_clerk', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'storex-set',
+		'icon' => 'storex-menu-clerk',
 		'active' => array(
 			'shop_clerk',
 		)
@@ -97,7 +97,7 @@ $aside_nav = array(
 	'shop_plugin' => array(
 		'title' => '应用',
 		'url' => $this->createWebUrl('shop_plugin', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'storex-tag',
+		'icon' => 'storex-menu-app',
 		'active' => array(
 			'shop_plugin',
 			'shop_plugin_printer'
@@ -106,7 +106,7 @@ $aside_nav = array(
 	'shop_settings' => array(
 		'title' => '店铺设置',
 		'url' => $this->createWebUrl('shop_settings', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'storex-set',
+		'icon' => 'storex-menu-setting',
 		'active' => array(
 			'shop_settings',
 		)
