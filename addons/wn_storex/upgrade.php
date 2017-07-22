@@ -611,6 +611,8 @@ pdo_delete('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu',
 pdo_delete('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu', 'do' => 'goodscategory'));
 pdo_delete('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu', 'do' => 'goodsmanage'));
 pdo_delete('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu', 'do' => 'order'));
+pdo_delete('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu', 'do' => 'member'));
+pdo_delete('modules_bindings', array('module' => 'wn_storex', 'entry' => 'menu', 'do' => 'clerk'));
 
 //商品增加副标题
 if (!pdo_fieldexists('storex_room', 'sub_title')) {

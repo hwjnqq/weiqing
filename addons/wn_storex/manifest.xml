@@ -36,8 +36,6 @@
 		</cover>
 		<menu>
 			<entry title="店铺管理" do="storemanage" state="" direct="false" />
-			<entry title="用户管理" do="member" state="" direct="false" />
-			<entry title="店员管理" do="clerk" state="" direct="false" />
 			<entry title="基本设置" do="hotelset" state="" direct="false" />
 			<entry title="扩展功能" do="extend" state="" direct="false" />
 		</menu>
