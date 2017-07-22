@@ -539,19 +539,20 @@ function write_log($logs) {
 	}
 }
 
-function entry_url($storeid, $type, $params) {
+function entry_fetch($storeid, $type, $params) {
+	$entry_url = '';
 	if ($type == 'sub_class') {
 		if (empty($params['classid']) && empty($params['sub_classid'])) {
-			$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $url . '#/Category/' . $storeid;
+			$entry_url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . '#/Category/' . $storeid;
 		} else {
-			$url = category_entry_fetch($storeid, $params);
+			$entry_url = category_entry_fetch($storeid, $params);
 		}
 	} elseif ($type == 'goods_info') {
-		$url = goods_entry_fetch($storeid, $params);
-	} else {
-		$url = usercenter_entry_fetch($storeid, $type);
+		$entry_url = goods_entry_fetch($storeid, $params);
+	} elseif ($type == 'usercenter') {
+		$entry_url = usercenter_entry_fetch($storeid, $params);
 	}
-	return is_string($url) ? $url : '';
+	return is_string($entry_url) ? $entry_url : '';
 }
 
 function entry_fetchall($storeid) {
@@ -582,140 +583,85 @@ function entry_fetchall($storeid) {
 		'group' => goods_entry_fetch($storeid),
 	);
 	
-	$usercenter_vue_routes = usercenter_entry_fetch($storeid);
+	$usercenter_vue_routes[] = array(
+		'type' => 'usercenter',
+		'name' => '个人中心',
+		'group' => usercenter_entry_fetch($storeid),
+	);
+
 	$entrys = array_merge($entrys, $usercenter_vue_routes);
 	return $entrys;
 }
 
-function usercenter_entry_fetch($storeid, $type = '') {
+function usercenter_entry_fetch($storeid, $params = array()) {
 	$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
 	$usercenter_entry_routes = array(
 		array(
 			'type' => 'usercenter',
 			'name' => '个人中心',
-			'group' => array(
-				array(
-					'name' => '个人中心',
-					'link' => $url . '#/Home/Index',
-				),
-			),
+			'link' => $url . '#/Home/Index',
 		),
 		array(
 			'type' => 'orderlist',
 			'name' => '订单中心',
-			'group' => array(
-				array(
-					'name' => '订单中心',
-					'link' => $url . '#/Home/OrderList',
-				),
-			),
+			'link' => $url . '#/Home/OrderList',
 		),
 		array(
 			'type' => 'mycouponlist',
 			'name' => '我的卡券',
-			'group' => array(
-				array(
-					'name' => '我的卡券',
-					'link' => $url . '#/Home/MyCouponList',
-				),
-			),
+			'link' => $url . '#/Home/MyCouponList',
 		),
 		array(
 			'type' => 'userinfo',
 			'name' => '用户信息',
-			'group' => array(
-				array(
-					'name' => '用户信息',
-					'link' => $url . '#/Home/UserInfo',
-				),
-			),
+			'link' => $url . '#/Home/UserInfo',
 		),
 		array(
 			'type' => 'address',
 			'name' => '地址管理',
-			'group' => array(
-				array(
-					'name' => '地址管理',
-					'link' => $url . '#/Home/Address',
-				),
-			),
+			'link' => $url . '#/Home/Address',
 		),
 		array(
 			'type' => 'sign',
 			'name' => '签到',
-			'group' => array(
-				array(
-					'name' => '签到',
-					'link' => $url . '#/Home/Sign',
-				),
-			),
+			'link' => $url . '#/Home/Sign',
 		),
 		array(
 			'type' => 'message',
 			'name' => '通知',
-			'group' => array(
-				array(
-					'name' => '通知',
-					'link' => $url . '#/Home/Message',
-				),
-			),
+			'link' => $url . '#/Home/Message',
 		),
 		array(
 			'type' => 'credit',
 			'name' => '我的余额',
-			'group' => array(
-				array(
-					'name' => '我的余额',
-					'link' => $url . '#/Home/Credit/',
-				),
-			),
+			'link' => $url . '#/Home/Credit/',
 		),
 		array(
 			'type' => 'recharge_credit',
 			'name' => '余额充值',
-			'group' => array(
-				array(
-					'name' => '余额充值',
-					'link' => $url . '#/Home/Recharge/credit',
-				),
-			),
+			'link' => $url . '#/Home/Recharge/credit',
 		),
 		array(
 			'type' => 'recharge_nums',
 			'name' => '会员卡次数充值',
-			'group' => array(
-				array(
-					'name' => '会员卡次数充值',
-					'link' => $url . '#/Home/Recharge/nums',
-				),
-			),
+			'link' => $url . '#/Home/Recharge/nums',
 		),
 		array(
 			'type' => 'recharge_times',
 			'name' => '会员卡时间充值',
-			'group' => array(
-				array(
-					'name' => '会员卡时间充值',
-					'link' => $url . '#/Home/Recharge/times',
-				),
-			),
+			'link' => $url . '#/Home/Recharge/times',
 		),
 		array(
 			'type' => 'creditsrecord',
 			'name' => '余额记录',
-			'group' => array(
-				array(
-					'name' => '余额记录',
-					'link' => $url . '#/Home/CreditsRecord',
-				),
-			),
+			'link' => $url . '#/Home/CreditsRecord',
 		),
 	);
 	$entry_url = '';
 	if (!empty($type)) {
 		foreach ($usercenter_entry_routes as $val) {
-			if ($type == $val['type']) {
-				$entry_url = $val['group']['link'];
+			if ($params['sign'] == $val['type']) {
+				$entry_url = $val['link'];
 				break;
 			}
 		}

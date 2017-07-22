@@ -78,8 +78,9 @@ class Wn_storexModuleSite extends WeModuleSite {
 				'goodsid' => $_GPC['goodsid'],
 				'classid' => $_GPC['classid'],
 				'sub_classid' => $_GPC['sub_classid'],
+				'sign' => $_GPC['sign'],
 			);
-			$url = entry_url($id, $_GPC['type'], $params);
+			$url = entry_fetch($id, $_GPC['type'], $params);
 			if (!empty($url)) {
 				header("Location: $url");
 			}
