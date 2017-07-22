@@ -36,6 +36,7 @@ $wn_storex_table = array(
 	'storex_activity_clerk_menu',
 	'storex_refund_logs',
 	'storex_sales',
+	'storex_homepage'
 );
 foreach ($wn_storex_table as $table){
 	if(pdo_tableexists($table)){

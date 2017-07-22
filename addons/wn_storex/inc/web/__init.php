@@ -78,6 +78,22 @@ $aside_nav = array(
 			'shop_stat',
 		)
 	),
+	'shop_member' => array(
+		'title' => '用户管理',
+		'url' => $this->createWebUrl('shop_member', array('storeid' => $_GPC['storeid'])),
+		'icon' => 'storex-set',
+		'active' => array(
+			'shop_member',
+		)
+	),
+	'shop_clerk' => array(
+		'title' => '店员管理',
+		'url' => $this->createWebUrl('shop_clerk', array('storeid' => $_GPC['storeid'])),
+		'icon' => 'storex-set',
+		'active' => array(
+			'shop_clerk',
+		)
+	),
 	'shop_plugin' => array(
 		'title' => '应用',
 		'url' => $this->createWebUrl('shop_plugin', array('storeid' => $_GPC['storeid'])),
@@ -93,22 +109,6 @@ $aside_nav = array(
 		'icon' => 'storex-set',
 		'active' => array(
 			'shop_settings',
-		)
-	),
-	'shop_member' => array(
-		'title' => '用户管理',
-		'url' => $this->createWebUrl('shop_member', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'storex-set',
-		'active' => array(
-			'shop_member',
-		)
-	),
-	'shop_clerk' => array(
-		'title' => '店员管理',
-		'url' => $this->createWebUrl('shop_clerk', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'storex-set',
-		'active' => array(
-			'shop_clerk',
 		)
 	),
 );

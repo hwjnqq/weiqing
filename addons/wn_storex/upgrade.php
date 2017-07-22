@@ -415,6 +415,18 @@ $sql = "
 	KEY `storeid` (`storeid`),
 	KEY `uniacid` (`uniacid`)
 	) DEFAULT CHARSET=utf8;
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_homepage` (
+	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+	  `storeid` int(10) unsigned NOT NULL DEFAULT '0',
+	  `type` varchar(15) NOT NULL COMMENT '首页块类型',
+	  `items` longtext NOT NULL,
+	  `displayorder` int(10) unsigned NOT NULL DEFAULT '0',
+	  PRIMARY KEY (`id`),
+	  KEY `uniacid` (`uniacid`),
+	  KEY `storeid` (`storeid`)
+	) DEFAULT CHARSET=utf8;
 ";
 pdo_run($sql);
 if (!pdo_fieldexists('storex_bases', 'category_set')) {

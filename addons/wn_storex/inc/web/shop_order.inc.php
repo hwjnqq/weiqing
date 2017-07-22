@@ -195,9 +195,9 @@ if ($op == 'edit') {
 				if ($item['paytype'] == 'credit') {
 					$result = order_begin_refund($item['id']);
 				} elseif ($item['paytype'] == 'wechat') {
-					$params['module'] = 'wn_storex';
-					$params['tid'] = $item['id'];
-					$result = $this->refund($params);
+					$result = $this->refund($item['id']);
+				} elseif ($item['paytype'] == 'alipay') {
+
 				}
 				if (is_error($result)) {
 					message($result, '', 'ajax');
