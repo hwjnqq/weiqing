@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('display', 'edit', 'delete', 'deleteall', 'showall', 'status', 'copyroom');
+$ops = array('display', 'edit', 'delete', 'deleteall', 'showall', 'status', 'copyroom', 'qrcode_entry');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $storeid = intval($_GPC['storeid']);
@@ -253,4 +253,16 @@ if ($op == 'copyroom') {
 	$url = $this->createWebUrl('shop_goodsmanage', array('op' => 'edit', 'storeid' => $storeid, 'id' => $id));
 	header("Location: $url");
 	exit;
+}
+
+if ($op == 'qrcode_entry') {
+	if ($_W['ispost'] && $_W['isajax']) {
+		$goodsid = intval($_GPC['id']);
+		if (!empty($goodsid)) {
+			$url = murl('entry', array('m' => 'wn_storex', 'id' => $storeid, 'do' => 'display', 'type' => 'goods_info', 'goodsid' => $_GPC['id']), true, true);
+			message(error(0, $url), '', 'ajax');
+		} else {
+			message(error(-1, '参数错误'), '', 'ajax');
+		}
+	}
 }

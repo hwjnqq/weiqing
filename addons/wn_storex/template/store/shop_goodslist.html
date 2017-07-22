@@ -106,15 +106,14 @@
 				</td>
 				<td>
 					<div class="wn-table__link">
+						{if $item['is_house'] != 1}
+						<a href="javascript:;" class="wn-table__link__item js-qrcode-entry" data-id="{$item['id']}">查看二维码入口</a>
+						{/if}
 						<a href="{php echo $this->createWebUrl('shop_comment',array('storeid' => $storeid,'id' => $item['id'],'title' => $item['title']))}" class="wn-table__link__item" title="查看评价">查看评价</a>
 						<a href="{php echo $this->createWebUrl('shop_order',array('storeid' => $storeid,'roomid' => $item['id']))}" class="wn-table__link__item" title="订单查看">订单查看</a>
 						<a href="{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'copyroom','storeid' => $storeid,'id' => $item['id']))}" class="wn-table__link__item">复制</a>
 						<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'edit', 'id' => $item['id'], 'storeid' => $storeid))}" title="编辑">编辑</a>
 						<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'delete', 'id' => $item['id'], 'storeid' => $storeid))}');" title="删除" >删除</a>
-						<!-- {if $store_type == STORE_TYPE_HOTEL && !empty($item['is_house']) && $item['is_house'] == 1}
-							<a href="{php echo $this->createWebUrl('shop_room_status', array('storeid' => $storeid, 'id' => $item['id']))}" class="wn-table__link__item" title="维护房量/房态">维护房量/房态</a>
-							<a href="{php echo $this->createWebUrl('shop_room_price', array('storeid' => $storeid, 'id' => $item['id']))}" class="wn-table__link__item" title="维护房价">维护房价</a>
-						{/if} -->
 					</div>
 				</td>
 			</tr>
@@ -134,8 +133,59 @@
 		</table>
 	</div>
 </div>
+<div class="modal fade" id="entry-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel">商品入口查看</h4>
+			</div>
+			<div class="modal-body clearfix form-horizontal">
+				<div role="tabpanel" class="tab-pane active text-center" id="put-qrcode">
+					<div class="alert alert-info text-left">
+						扫描二维码或复制链接
+					</div>
+					<div class="js-qrcode-block" style="margin:50px 0 50px 0"></div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 control-label"><span class="text-danger"></span> 入口链接：</label>
+					<div class="col-sm-10 col-xs-12">
+						<input class="js-url-show form-control" readonly>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+			</div>
+		</div>
+	</div>
+</div>
 <script type="text/javascript">
 	$(function() {
+		require(['jquery.qrcode'], function(){
+			$('.js-qrcode-entry').click(function() {
+				id = $(this).data('id');
+				if (id) {
+					$.post("{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'qrcode_entry', 'storeid' => $_GPC['storeid']))}", {id : id}, function(data) {
+						data = $.parseJSON(data);
+						if (data.message.errno == 0) {
+							$('.js-qrcode-block').html('').qrcode({
+								render: 'canvas',
+								width: 300,
+								height: 300,
+								text: data.message.message,
+							});
+							$('.js-url-show').val(data.message.message);
+							$('#entry-modal').modal('show');
+						} else {
+							util.message(data.message.message);
+							$('#entry-modal').modal('hide');
+						}
+					});
+				}
+			});
+		});
+		
 		$('.check_all').click(function() {
 			var checked = $(this).get(0).checked;
 			$('input[type=checkbox]').prop("checked",checked);
