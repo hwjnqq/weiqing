@@ -439,13 +439,24 @@ function calcul_roon_sumprice($dates, $search_data, $goods_info) {
 	$sumprice = 0;
 	$noexist_date = 0;
 	$exist_date = 0;
+	$price_detail = array();
 	if (!empty($dates) && is_array($dates)) {
 		foreach ($dates as $date) {
 			if (!empty($goods_info['price_list']) && !empty($goods_info['price_list'][$date['date']])) {
 				$sumprice += $goods_info['price_list'][$date['date']]['cprice'];
 				$exist_date += 1;
+				$price_detail[] = array(
+					'date' => $date['date'],
+					'oprice' => $goods_info['price_list'][$date['date']]['oprice'],
+					'cprice' => $goods_info['price_list'][$date['date']]['cprice'],
+				);
 			} else {
 				$noexist_date += 1;
+				$price_detail[] = array(
+					'date' => $date['date'],
+					'oprice' => $prices['oprice'],
+					'cprice' => $prices['cprice'],
+				);
 			}
 		}
 	}
@@ -454,6 +465,7 @@ function calcul_roon_sumprice($dates, $search_data, $goods_info) {
 	}
 	$sumprice += $noexist_date * $prices['cprice'];
 	$goods_info['sum_price'] = ($sumprice + $goods_info['service'] * count($dates)) * $search_data['nums'];
+	$goods_info['price_list'] = $price_detail;
 	return $goods_info;
 }
 
@@ -486,6 +498,7 @@ function room_special_price($goods, $search_data = array(), $plural = true) {
 		}
 		if (!empty($plural)) {
 			foreach ($goods as $key => $val) {
+				$goods[$key]['price_list'] = array();
 				if (!empty($edit_price_list[$val['id']]) && !empty($edit_price_list[$val['id']][$search_data['btime']])) {
 					$goods[$key]['oprice'] = $edit_price_list[$val['id']][$search_data['btime']]['oprice'];
 					$goods[$key]['cprice'] = $edit_price_list[$val['id']][$search_data['btime']]['cprice'];
@@ -500,6 +513,7 @@ function room_special_price($goods, $search_data = array(), $plural = true) {
 				}
 			}
 		} else {
+			$goods['price_list'] = array();
 			if (!empty($edit_price_list[$goods['id']])) {
 				$goods['oprice'] = $edit_price_list[$goods['id']][$search_data['btime']]['oprice'];
 				$goods['cprice'] = $edit_price_list[$goods['id']][$search_data['btime']]['cprice'];
