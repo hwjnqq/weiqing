@@ -112,7 +112,7 @@ if ($op == 'search_goods') {
 
 if ($op == 'link') {
 	if ($_W['ispost'] && $_W['isajax']) {
-		$entries = entry_fetch($storeid);
+		$entries = entry_fetchall($storeid);
 		message(error(0, $entries), '', 'ajax');
 	}
 }

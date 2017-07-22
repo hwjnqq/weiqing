@@ -554,7 +554,7 @@ function entry_url($storeid, $type, $params) {
 	return is_string($url) ? $url : '';
 }
 
-function entry_fetch($storeid) {
+function entry_fetchall($storeid) {
 	global $_W, $_GPC;
 	$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
 	$category_entry_routes = category_entry_fetch($storeid);
@@ -587,7 +587,7 @@ function entry_fetch($storeid) {
 	return $entrys;
 }
 
-function usercenter_entry_fetch($storeid, $type) {
+function usercenter_entry_fetch($storeid, $type = '') {
 	$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
 	$usercenter_entry_routes = array(
 		array(
@@ -767,6 +767,7 @@ function category_entry_fetch($storeid, $params = array()) {
 				$category_list[$info['id']]['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $vue_route . $info['id'];
 				$category_list[$info['id']]['group'] = array();
 			} else {
+
 				if (!empty($category_list[$info['parentid']])) {
 					$category_list[$info['parentid']]['group'][$key] = $info;
 				}
