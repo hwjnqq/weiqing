@@ -83,9 +83,9 @@ class Wn_storexModuleSite extends WeModuleSite {
 			$url = entry_fetch($id, $_GPC['type'], $params);
 			if (!empty($url)) {
 				header("Location: $url");
+				exit;
 			}
 		}
-		$setting = get_storex_set();
 		
 		$member = array(
 			'weid' => $_W['uniacid'],
@@ -93,15 +93,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 		);
 		if (!hotel_member_single($member)) {
 			insert_member($member);
-		}
-		if (empty($id) && $setting['version'] == 0 && empty($_GPC['orderid']) && $_GPC['pay_type'] != 'recharge') {
-			$storex_base = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'status' => 1), array('id'), '', 'displayorder DESC');
-			if (empty($storex_base)) {
-				message('暂时没有店铺！', '', 'error');
-			}
-			$url = $_W['siteroot'] . 'app/index.php?i=' . $_W['uniacid'] . '&c=entry&m=wn_storex&do=display&id='
-					 . $storex_base['id'] . '#/StoreIndex/' . $storex_base['id'];
-			header("Location: $url");
 		}
 		$url = $this->createMobileurl('display', array('id' => $id));
 		if (!empty($_GPC['orderid'])) {

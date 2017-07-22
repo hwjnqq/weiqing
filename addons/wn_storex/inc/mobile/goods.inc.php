@@ -47,7 +47,7 @@ if ($op == 'goods_info') {
 	}
 	$goods_info = get_room_params($goods_info);
 	if ($store_info['store_type'] == 1) {
-		if ($store_info['is_house'] == 1) {
+		if ($goods_info['is_house'] == 1) {
 			$days = ceil((strtotime($_GPC['etime']) - strtotime($_GPC['btime']))/86400);
 			$dates = get_dates($_GPC['btime'], $days);
 			$search_data = array(
@@ -181,10 +181,10 @@ if ($op == 'order') {
 	}
 	$goods_info = pdo_get($table, $condition);
 	if (empty($goods_info)) {
-		message(error(-1, '商品未找到, 请联系管理员!'), '', 'ajax');
+		wmessage(error(-1, '商品未找到, 请联系管理员!'), '', 'ajax');
 	}
 	if ($goods_info['can_buy'] != 1) {
-		message(error(-1, '该商品不能购买'), '', 'ajax');
+		wmessage(error(-1, '该商品不能购买'), '', 'ajax');
 	}
 	$insert = array(
 		'ordersn' => date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1),

@@ -146,7 +146,7 @@ if ($op == 'refund') {
 			$logs['after_change'] = 1;
 			$logs['type'] = 'refund_status';
 			write_log($logs);
-			message(error(0, '退款申请成功'), '', 'ajax');
+			wmessage(error(0, '退款申请成功'), '', 'ajax');
 		}
 	} else {
 		wmessage(error(-1, '退款失败'), '', 'ajax');
