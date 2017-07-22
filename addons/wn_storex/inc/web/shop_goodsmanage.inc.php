@@ -17,6 +17,12 @@ if (empty($parent)) {
 	message('请先给该店铺添加一级分类！', $this->createWebUrl('shop_category', array('storeid' => $storeid)), 'error');
 }
 
+$delete_cache_ops = array('delete', 'deleteall', 'showall', 'status', 'copyroom');
+if (in_array($op, $delete_cache_ops) || ($op == 'edit' && empty($_GPC['id']))) {
+	$cachekey = "wn_storex_goods_entry_fetch:{$storeid}";
+	cache_delete($cachekey);
+}
+
 $children = array();
 $category = pdo_getall('storex_categorys', array('store_base_id' => $storeid), array(), 'id', array('parentid', 'displayorder DESC'));
 if (!empty($category) && is_array($category)) {
@@ -182,6 +188,8 @@ if ($op == 'edit') {
 			$data = array_merge($room, $common);
 		}
 		if (empty($id)) {
+			$cachekey = "wn_storex_goods_entry_fetch:{$storeid}";
+			cache_delete($cachekey);
 			pdo_insert($table, $data);
 		} else {
 			pdo_update($table, $data, array('id' => $id));

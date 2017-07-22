@@ -78,6 +78,8 @@ if ($op == 'post') {
 				pdo_update('storex_room', array('is_house' => $data['category_type']), array('pcate' => $id, 'weid' => $_W['uniacid'], 'hotelid' => $storeid));
 			}
 		} else {
+			$cachekey = "wn_storex_category_entry_fetch:{$storeid}";
+			cache_delete($cachekey);
 			pdo_insert('storex_categorys', $data);
 		}
 		message('更新分类成功！', $this->createWebUrl('shop_category', array('op' => 'display', 'storeid' => $storeid)), 'success');
@@ -103,6 +105,10 @@ if ($op == 'delete') {
 	}
 	pdo_delete($table, $condition_goods);
 	pdo_delete('storex_categorys', $condition_category, $relation);
+	$categorycachekey = "wn_storex_category_entry_fetch:{$storeid}";
+	cache_delete($categorycachekey);
+	$goodscachekey = "wn_storex_goods_entry_fetch:{$storeid}";
+	cache_delete($goodscachekey);
 	message('分类删除成功！', $this->createWebUrl('shop_category', array('op' => 'display', 'storeid' => $storeid)), 'success');
 }
 include $this->template('store/shop_category');

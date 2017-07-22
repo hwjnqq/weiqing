@@ -672,21 +672,26 @@ function usercenter_entry_fetch($storeid, $params = array()) {
 }
 
 function goods_entry_fetch($storeid, $params = array()) {
-	$storeinfo = pdo_get('storex_bases', array('id' => $storeid), array('store_type'));
-	if ($storeinfo['store_type'] == 1) {
-		$goodsinfo = pdo_getall('storex_room', array('hotelid' => $storeid, 'is_house !=' => 1), array('id', 'title', 'is_house'), 'id');
-	} else {
-		$goodsinfo = pdo_getall('storex_goods', array('store_base_id' => $storeid), array('id', 'title'), 'id');
-	}
-	$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
-	$goods_entry_routes = array();
-	if (!empty($goodsinfo) && is_array($goodsinfo)) {
-		foreach ($goodsinfo as $id => $val) {
-			$goods_entry_routes[$id] = array(
-				'name' => $val['title'],
-				'link' => $url . '#/GoodInfo/buy/' . $storeid . '/' . $id,
-			);
+	$cachekey = "wn_storex_goods_entry_fetch:{$storeid}";
+	$goods_entry_routes = cache_load($cachekey);
+	if (empty($goods_entry_routes)) {
+		$storeinfo = pdo_get('storex_bases', array('id' => $storeid), array('store_type'));
+		if ($storeinfo['store_type'] == 1) {
+			$goodsinfo = pdo_getall('storex_room', array('hotelid' => $storeid, 'is_house !=' => 1, 'status' => 1), array('id', 'title', 'is_house'), 'id');
+		} else {
+			$goodsinfo = pdo_getall('storex_goods', array('store_base_id' => $storeid, 'status' => 1), array('id', 'title'), 'id');
 		}
+		$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
+		$goods_entry_routes = array();
+		if (!empty($goodsinfo) && is_array($goodsinfo)) {
+			foreach ($goodsinfo as $id => $val) {
+				$goods_entry_routes[$id] = array(
+						'name' => $val['title'],
+						'link' => $url . '#/GoodInfo/buy/' . $storeid . '/' . $id,
+				);
+			}
+		}
+		cache_write($cachekey, $goods_entry_routes);
 	}
 	$entry_url = '';
 	if (!empty($params['goodsid'])) {
@@ -697,39 +702,45 @@ function goods_entry_fetch($storeid, $params = array()) {
 
 function category_entry_fetch($storeid, $params = array()) {
 	global $_W;
-	$category = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'enabled' => 1), array('id', 'name', 'parentid', 'category_type'), 'id');
 	$category_list = array();
+	$category = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'enabled' => 1), array('id', 'name', 'parentid', 'category_type'), 'id');
 	if (!empty($category) && is_array($category)) {
-		foreach ($category as $key => &$info) {
-			if (empty($info['parentid'])) {
-				$category_list[$info['id']] = $info;
-				if ($info['category_type'] == 1) {
-					$vue_route = '#/Category/HotelList/' . $storeid . '/';
-				} elseif ($info['category_type'] == 2) {
-					if (empty($_W['wn_storex']['store_info']['store_type'])) {
-						$vue_route = '#/Category/Child/' . $storeid . '/';
-					} elseif ($_W['wn_storex']['store_info']['store_type'] == 1) {
-						$vue_route = '#/Category/GoodList/' . $storeid . '/';
+		$cachekey = "wn_storex_category_entry_fetch:{$storeid}";
+		$category_list = cache_load($cachekey);
+		if (empty($category_list)) {
+			foreach ($category as $key => &$info) {
+				if (empty($info['parentid'])) {
+					$category_list[$info['id']] = $info;
+					if ($info['category_type'] == 1) {
+						$vue_route = '#/Category/HotelList/' . $storeid . '/';
+					} elseif ($info['category_type'] == 2) {
+						if (empty($_W['wn_storex']['store_info']['store_type'])) {
+							$vue_route = '#/Category/Child/' . $storeid . '/';
+						} elseif ($_W['wn_storex']['store_info']['store_type'] == 1) {
+							$vue_route = '#/Category/GoodList/' . $storeid . '/';
+						}
 					}
+					$category_list[$info['id']]['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $vue_route . $info['id'];
+					$category_list[$info['id']]['group'] = array();
+				} else {
+			
+					if (!empty($category_list[$info['parentid']])) {
+						$category_list[$info['parentid']]['group'][$key] = $info;
+					}
+					$vue_route = '#/Category/GoodList/' . $storeid . '/';
+					$category_list[$info['parentid']]['group'][$key]['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $vue_route . $info['id'];
 				}
-				$category_list[$info['id']]['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $vue_route . $info['id'];
-				$category_list[$info['id']]['group'] = array();
-			} else {
-
-				if (!empty($category_list[$info['parentid']])) {
-					$category_list[$info['parentid']]['group'][$key] = $info;
+			}
+			unset($info);
+			foreach ($category_list as $k => &$v) {
+				if (empty($v['group']) && $v['category_type'] != 1) {
+					$v['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . '#/Category/GoodList/' . $storeid . '/' .$k;
 				}
-				$vue_route = '#/Category/GoodList/' . $storeid . '/';
-				$category_list[$info['parentid']]['group'][$key]['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $vue_route . $info['id'];
 			}
+			unset($v);
+			cache_write($cachekey, $category_list);
 		}
-		unset($info);
-		foreach ($category_list as $k => &$v) {
-			if (empty($v['group']) && $v['category_type'] != 1) {
-				$v['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . '#/Category/GoodList/' . $storeid . '/' .$k;
-			}
-		}
-		unset($v);
+		
 		$entry_url = '';
 		if (!empty($params['classid'])) {
 			$entry_url = $category_list[$params['classid']]['link'];

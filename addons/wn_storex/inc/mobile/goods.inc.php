@@ -378,8 +378,8 @@ if ($op == 'order') {
 			if (!empty($clerks)) {
 				mload()->model('sms');
 				$content = array(
-						'store' => $store_info['title'],
-						'price' => $insert['sum_price'],
+					'store' => $store_info['title'],
+					'price' => $insert['sum_price'],
 				);
 				foreach ($clerks as $value) {
 					sms_send($value['mobile'], $content, 'clerk');
@@ -387,10 +387,9 @@ if ($op == 'order') {
 			}
 		}
 	}
-	
 	if ($store_info['store_type'] == 1 && $goods_info['is_house'] == 1) {
 		//如果有接受订单的邮件,
-		if (!empty($reply['mail'])) {
+		if (!empty($reply['mail']) && false) {
 			$subject = "微信公共帐号 [" . $_W['account']['name'] . "] 万能小店订单提醒.";
 			$body = "您后台有一个预定订单: <br/><br/>";
 			$body .= "预定店铺: " . $reply['title'] . "<br/>";
