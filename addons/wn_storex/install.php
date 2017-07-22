@@ -713,16 +713,31 @@ $sql = "
 	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_homepage` (
-	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-	  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
-	  `storeid` int(10) unsigned NOT NULL DEFAULT '0',
-	  `type` varchar(15) NOT NULL COMMENT '首页块类型',
-	  `items` longtext NOT NULL,
-	  `displayorder` int(10) unsigned NOT NULL DEFAULT '0',
-	  PRIMARY KEY (`id`),
-	  KEY `uniacid` (`uniacid`),
-	  KEY `storeid` (`storeid`)
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+	`storeid` int(10) unsigned NOT NULL DEFAULT '0',
+	`type` varchar(15) NOT NULL COMMENT '首页块类型',
+	`items` longtext NOT NULL,
+	`displayorder` int(10) unsigned NOT NULL DEFAULT '0',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `storeid` (`storeid`)
 	) DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_order_logs` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`time` int(11) NOT NULL COMMENT '操作时间',
+	`before_change` tinyint(2) NOT NULL COMMENT '更改前的状态',
+	`after_change` tinyint(2) NOT NULL COMMENT '更改后的状态',
+	`type` varchar(50) CHARACTER SET utf8 NOT NULL COMMENT '状态类型',
+	`remark` varchar(500) CHARACTER SET utf8 NOT NULL COMMENT '内容',
+	`uid` int(10) NOT NULL,
+	`clerk_id` int(11) NOT NULL COMMENT '店员id，0 后台操作',
+	`clerk_type` tinyint(3) NOT NULL COMMENT '1线上操作，2系统后台，3店员',
+	`orderid` int(11) NOT NULL,
+	PRIMARY KEY (`id`),
+	KEY `orderid` (`orderid`)
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 ";
 
 pdo_run($sql);
