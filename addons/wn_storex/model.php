@@ -672,7 +672,7 @@ function usercenter_entry_fetch($storeid, $params = array()) {
 }
 
 function goods_entry_fetch($storeid, $params = array()) {
-	$cachekey = "wn_storex_goods_entry_fetch:{$storeid}";
+	$cachekey = "wn_storex:goods_entry:{$storeid}";
 	$goods_entry_routes = cache_load($cachekey);
 	if (empty($goods_entry_routes)) {
 		$storeinfo = pdo_get('storex_bases', array('id' => $storeid), array('store_type'));
@@ -703,11 +703,11 @@ function goods_entry_fetch($storeid, $params = array()) {
 function category_entry_fetch($storeid, $params = array()) {
 	global $_W;
 	$category_list = array();
-	$category = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'enabled' => 1), array('id', 'name', 'parentid', 'category_type'), 'id');
-	if (!empty($category) && is_array($category)) {
-		$cachekey = "wn_storex_category_entry_fetch:{$storeid}";
-		$category_list = cache_load($cachekey);
-		if (empty($category_list)) {
+	$cachekey = "wn_storex:category_entry:{$storeid}";
+	$category_list = cache_load($cachekey);
+	if (empty($category_list)) {
+		$category = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'enabled' => 1), array('id', 'name', 'parentid', 'category_type'), 'id');
+		if (!empty($category) && is_array($category)) {
 			foreach ($category as $key => &$info) {
 				if (empty($info['parentid'])) {
 					$category_list[$info['id']] = $info;
@@ -738,17 +738,16 @@ function category_entry_fetch($storeid, $params = array()) {
 				}
 			}
 			unset($v);
-			cache_write($cachekey, $category_list);
 		}
-		
-		$entry_url = '';
-		if (!empty($params['classid'])) {
-			$entry_url = $category_list[$params['classid']]['link'];
-		}
-		if (!empty($params['sub_classid'])) {
-			$class = $category[$params['sub_classid']]['parentid'];
-			$entry_url = $category_list[$class][$params['sub_classid']]['link'];
-		}
+		cache_write($cachekey, $category_list);
+	}
+	$entry_url = '';
+	if (!empty($params['classid'])) {
+		$entry_url = $category_list[$params['classid']]['link'];
+	}
+	if (!empty($params['sub_classid'])) {
+		$class = $category[$params['sub_classid']]['parentid'];
+		$entry_url = $category_list[$class][$params['sub_classid']]['link'];
 	}
 	return !empty($entry_url) ? $entry_url : $category_list;
 }

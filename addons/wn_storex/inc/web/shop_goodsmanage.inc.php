@@ -18,8 +18,8 @@ if (empty($parent)) {
 }
 
 $delete_cache_ops = array('delete', 'deleteall', 'showall', 'status', 'copyroom');
-if (in_array($op, $delete_cache_ops) || ($op == 'edit' && empty($_GPC['id']))) {
-	$cachekey = "wn_storex_goods_entry_fetch:{$storeid}";
+if (in_array($op, $delete_cache_ops)) {
+	$cachekey = "wn_storex:goods_entry:{$storeid}";
 	cache_delete($cachekey);
 }
 
@@ -188,9 +188,9 @@ if ($op == 'edit') {
 			$data = array_merge($room, $common);
 		}
 		if (empty($id)) {
-			$cachekey = "wn_storex_goods_entry_fetch:{$storeid}";
-			cache_delete($cachekey);
 			pdo_insert($table, $data);
+			$cachekey = "wn_storex:goods_entry:{$storeid}";
+			cache_delete($cachekey);
 		} else {
 			pdo_update($table, $data, array('id' => $id));
 		}
