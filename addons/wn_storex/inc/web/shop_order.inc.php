@@ -411,7 +411,7 @@ if ($op == 'edit') {
 		}
 	}
 	$member_info = pdo_get('storex_member', array('id' => $item['memberid']), array('from_user', 'isauto'));
-	$logs = get_status_logs($id);
+	$logs = order_status_logs($id);
 	include $this->template('store/shop_orderedit');
 }
 

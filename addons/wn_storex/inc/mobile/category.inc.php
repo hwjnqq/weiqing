@@ -124,6 +124,7 @@ if ($op == 'more_goods') {
 			}
 		}
 	}
+	sort($goods_list);
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 10;
 	$list = array();

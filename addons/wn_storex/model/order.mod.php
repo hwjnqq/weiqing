@@ -318,7 +318,7 @@ function order_notice_tpl($openid, $type, $params, $templateid) {
 	$account_api->sendTplNotice($openid, $templateid, $tplnotice);
 }
 
-function get_status_logs($id) {
+function order_status_logs($id) {
 	$logs = pdo_getall('storex_order_logs', array('orderid' => $id), array(), '', 'time ASC');
 	if (!empty($logs) && is_array($logs)) {
 		$types = array('status', 'goods_status', 'paystatus', 'refund', 'refund_status');
