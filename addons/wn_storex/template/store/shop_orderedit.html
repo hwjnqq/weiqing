@@ -234,9 +234,6 @@
 			<table class="table table-bordered wn-table text-center">
 				<tr>
 					<th class="text-center">时间</th>
-					<th class="text-center">类型</th>
-					<th class="text-center">更改前状态</th>
-					<th class="text-center">更改后状态</th>
 					<th class="text-center">UID</th>
 					<th class="text-center">操作者</th>
 					<th class="text-center">内容</th>
@@ -244,9 +241,6 @@
 				{loop $logs $log}
 				<tr>
 					<td>{$log['time']}</td>
-					<td>{$log['type']}</td>
-					<td>{$log['before_change']}</td>
-					<td>{$log['after_change']}</td>
 					<td>{$log['uid']}</td>
 					<td>{if $log['clerk_type'] == 1}线上操作{elseif $log['clerk_type'] == 2}后台操作{else}店员操作{/if}</td>
 					<td>{$log['msg']}</td>

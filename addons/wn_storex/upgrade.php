@@ -627,19 +627,19 @@ $js_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/js
 $css_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/css');
 $svg_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/img');
 $current_js_files = array(
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/black.20170715139.js',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/display.20170715139.js',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/manifest.20170715139.js',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/vendor.20170715139.js',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/service.20170715139.js'
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/black.20170722139.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/display.20170722139.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/manifest.20170722139.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/vendor.20170722139.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/service.20170722139.js'
 );
 $current_css_files = array(
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/black.20170715139.css',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/display.20170715139.css',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/service.20170715139.css',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/black.20170722139.css',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/display.20170722139.css',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/service.20170722139.css',
 );
 $current_svg_files = array(
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/img/storex.20170715139.svg',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/img/storex.20170722139.svg',
 );
 $css_diff_files = array_diff($css_file_trees, $current_css_files);
 $js_diff_files = array_diff($js_file_trees, $current_js_files);
