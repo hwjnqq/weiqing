@@ -192,19 +192,19 @@ function check_params() {
 				if (empty($val)) {
 					if ($key == 'openid') {
 						if ($_GPC['from'] == 'wxapp') {
-							message(error(41009, '未登录！'), '', 'ajax');
+							wmessage(error(41009, '未登录！'), '', 'ajax');
 						} else {
-							message(error(41009, '请先关注公众号' . $_W['account']['name']), '', 'ajax');
+							wmessage(error(41009, '请先关注公众号' . $_W['account']['name']), '', 'ajax');
 						}
 					}
-					message(error(-1, '参数错误'), '', 'ajax');
+					wmessage(error(-1, '参数错误'), '', 'ajax');
 				}
 			}
 		}
 		if (!empty($permission_lists[$do][$op])) {
 			foreach ($permission_lists[$do][$op] as $val) {
 				if (empty($val)) {
-					message(error(-1, '参数错误'), '', 'ajax');
+					wmessage(error(-1, '参数错误'), '', 'ajax');
 				}
 			}
 		}
@@ -215,7 +215,7 @@ function check_params() {
  * $order  订单信息
  * $store_type  店铺类型
 */
-function clerk_order_operation ($order, $store_type) {
+function clerk_order_operation($order, $store_type) {
 	$status = array(
 		'is_cancel' => false,
 		'is_confirm' => false,
@@ -278,12 +278,12 @@ function format_url($urls) {
 //获取店铺信息
 function get_store_info($id) {
 	global $_W;
-	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone', 'thumb'));
+	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone'));
 	if (empty($store_info)) {
-		message(error(-1, '店铺不存在'), '', 'ajax');
+		wmessage(error(-1, '店铺不存在'), '', 'ajax');
 	} else {
 		if ($store_info['status'] == 0) {
-			message(error(-1, '店铺已隐藏'), '', 'ajax');
+			wmessage(error(-1, '店铺已隐藏'), '', 'ajax');
 		} else {
 			return $store_info;
 		}
@@ -317,7 +317,7 @@ function pay_info($order_id) {
 		);
 		return $params;
 	} else {
-		message(error(-1, '获取订单信息失败'), '', 'ajax');
+		wmessage(error(-1, '获取订单信息失败'), '', 'ajax');
 	}
 }
 
@@ -348,7 +348,7 @@ function category_room_status($goods_list, $search_data) {
 	$num = $search_data['num'];
 	if (!empty($btime) && !empty($etime) && !empty($num)) {
 		if ($num <= 0 || strtotime($etime) < strtotime($btime) || strtotime($btime) < strtotime('today')) {
-			message(error(-1, '搜索参数错误！'), '', 'ajax');
+			wmessage(error(-1, '搜索参数错误！'), '', 'ajax');
 		}
 	} else {
 		$num = 1;
@@ -523,7 +523,7 @@ function get_clerk_permission($id = 0) {
 	$clerk_info = pdo_get('storex_clerk', array('from_user' => trim($_W['openid']), 'weid' => intval($_W['uniacid'])));
 	if (!empty($clerk_info) && !empty($clerk_info['permission'])) {
 		if ($clerk_info['status'] != 1) {
-			message(error(-1, '您没有进行此操作的权限！'), '', 'ajax');
+			wmessage(error(-1, '您没有进行此操作的权限！'), '', 'ajax');
 		}
 		$clerk_info['permission'] = iunserializer($clerk_info['permission']);
 		if (!empty($id)) {
@@ -535,7 +535,7 @@ function get_clerk_permission($id = 0) {
 		}
 		
 	}
-	message(error(-1, '您没有进行此操作的权限！'), '', 'ajax');
+	wmessage(error(-1, '您没有进行此操作的权限！'), '', 'ajax');
 }
 function check_clerk_permission($storexid, $permit) {
 	$clerk_info = get_clerk_permission($storexid);
@@ -547,7 +547,7 @@ function check_clerk_permission($storexid, $permit) {
 		}
 	}
 	if (empty($is_permission)) {
-		message(error(-1, '您没有进行此操作的权限！'), '', 'ajax');
+		wmessage(error(-1, '您没有进行此操作的权限！'), '', 'ajax');
 	}
 }
 function clerk_permission_storex($type) {
@@ -616,12 +616,12 @@ function general_goods_order($order_info, $goods_info, $insert) {
 	if ($goods_info['store_type'] != STORE_TYPE_HOTEL) {
 		$order_info['mode_distribute'] = intval($_GPC['order']['mode_distribute']);
 		if (empty($_GPC['order']['order_time'])) {
-			message(error(-1, '请选择时间！'), '', 'ajax');
+			wmessage(error(-1, '请选择时间！'), '', 'ajax');
 		}
 		$order_info['order_time'] = strtotime(intval($_GPC['order']['order_time']));
 		if ($order_info['mode_distribute'] == 2) {//配送
 			if (empty($_GPC['order']['addressid'])) {
-				message(error(-1, '地址不能为空！'), '', 'ajax');
+				wmessage(error(-1, '地址不能为空！'), '', 'ajax');
 			}
 			$order_info['addressid'] = intval($_GPC['order']['addressid']);
 			$order_info['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
