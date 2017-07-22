@@ -14,7 +14,7 @@ if ($op == 'card_recharge') {
 	$card_member_info = pdo_get('storex_mc_card_members', array('uniacid' => $_W['uniacid'], 'openid' => $_W['openid']), array('id'));
 	$card_setting = card_setting_info();
 	$recharge_lists = array();
-	$recharge_lists['type'] = $type = $_GPC['type'];
+	$type = $_GPC['type'];
 	if (!empty($card_member_info)) {
 		if (!empty($type)) {
 			if ($type == 'nums') {
@@ -34,8 +34,14 @@ if ($op == 'card_recharge') {
 				$recharge_lists = $card_recharge['params']['recharges'];
 			}
 		}
+	} else {
+		wmessage(error(-1, '请先领取会员卡'), '', 'ajax');
 	}
-	wmessage(error(0, $recharge_lists), '', 'ajax');
+	if (!empty($recharge_lists)) {
+		wmessage(error(0, $recharge_lists), '', 'ajax');
+	} else {
+		wmessage(error(-1, '充值选项为空'), '', 'ajax');
+	}
 }
 
 if ($op == 'recharge_add') {
