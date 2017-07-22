@@ -65,7 +65,7 @@ if ($op == 'goods_info') {
 		'title' => $goods_info['title'],
 		'desc' => $goods_info['title'] . '--万能小店',
 		'link' => murl('entry', array('do' => 'display', 'id' => $id, 'm' => 'wn_storex', 'type' => 'goods_info', 'goodsid' => $goodsid), true, true),
-		'imgUrl' => tomedia($store_info['thumb'])
+		'imgUrl' => tomedia($goods_info['thumb'])
 	);
 	wmessage(error(0, $goods_info), $share_data, 'ajax');
 }
