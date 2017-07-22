@@ -551,6 +551,8 @@ function entry_fetch($storeid, $type, $params) {
 		$entry_url = goods_entry_fetch($storeid, $params);
 	} elseif ($type == 'usercenter') {
 		$entry_url = usercenter_entry_fetch($storeid, $params);
+	} elseif ($type == 'storeindex') {
+		$entry_url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . '#/StoreIndex/' . $storeid;
 	}
 	return is_string($entry_url) ? $entry_url : '';
 }
