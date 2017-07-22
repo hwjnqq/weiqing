@@ -73,14 +73,13 @@ class Wn_storexModuleSite extends WeModuleSite {
 		load()->model('mc');
 		mc_oauth_userinfo();
 		$id = intval($_GPC['id']);
-		entry_fetch($id);
 		if (!empty($id) && !empty($_GPC['type'])) {
 			$params = array(
 				'goodsid' => $_GPC['goodsid'],
 				'classid' => $_GPC['classid'],
 				'sub_classid' => $_GPC['sub_classid'],
 			);
-			$url = entry_fetch($id, $_GPC['type'], $params);
+			$url = entry_url($id, $_GPC['type'], $params);
 			if (!empty($url)) {
 				header("Location: $url");
 			}

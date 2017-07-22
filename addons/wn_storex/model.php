@@ -539,11 +539,26 @@ function write_log($logs) {
 	}
 }
 
-function entry_fetch($storeid, $type = '', $params = array()) {
+function entry_url($storeid, $type, $params) {
+	if ($type == 'sub_class') {
+		if (empty($params['classid']) && empty($params['sub_classid'])) {
+			$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $url . '#/Category/' . $storeid;
+		} else {
+			$url = category_entry_fetch($storeid, $params);
+		}
+	} elseif ($type == 'goods_info') {
+		$url = goods_entry_fetch($storeid, $params);
+	} else {
+		$url = usercenter_entry_fetch($storeid, $type);
+	}
+	return is_string($url) ? $url : '';
+}
+
+function entry_fetch($storeid) {
 	global $_W, $_GPC;
 	$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
-	$category_vue_routes = category_entry_fetch($storeid);
-	$urls = array(
+	$category_entry_routes = category_entry_fetch($storeid);
+	$entrys= array(
 		array(
 			'type' => 'storeindex',
 			'name' => '店铺首页',
@@ -558,29 +573,23 @@ function entry_fetch($storeid, $type = '', $params = array()) {
 			'type' => 'sub_class',
 			'name' => '店铺分类列表',
 			'link' => $url . '#/Category/' . $storeid,
-			'group' => $category_vue_routes,
+			'group' => $category_entry_routes,
 		),
 	);
-	$urls[] = array(
+	$entrys[] = array(
 		'type' => 'goods_info',
 		'name' => '商品详情',
 		'group' => goods_entry_fetch($storeid),
 	);
 	
 	$usercenter_vue_routes = usercenter_entry_fetch($storeid);
-	$urls = array_merge($urls, $usercenter_vue_routes);
-	
-	if (!empty($type) && !empty($params)) {
-		$vue_url = category_entry_fetch($storeid, $type, $params);
-		$vue_url = goods_entry_fetch($storeid, $type, $params);
-		return $vue_url;
-	}
-	return $urls;
+	$entrys = array_merge($entrys, $usercenter_vue_routes);
+	return $entrys;
 }
 
-function usercenter_entry_fetch($storeid) {
+function usercenter_entry_fetch($storeid, $type) {
 	$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
-	$usercenter_vue_routes = array(
+	$usercenter_entry_routes = array(
 		array(
 			'type' => 'usercenter',
 			'name' => '个人中心',
@@ -702,10 +711,19 @@ function usercenter_entry_fetch($storeid) {
 			),
 		),
 	);
-	return $usercenter_vue_routes;
+	$entry_url = '';
+	if (!empty($type)) {
+		foreach ($usercenter_entry_routes as $val) {
+			if ($type == $val['type']) {
+				$entry_url = $val['group']['link'];
+				break;
+			}
+		}
+	}
+	return !empty($entry_url) ? $entry_url : $usercenter_entry_routes;
 }
 
-function goods_entry_fetch($storeid, $type = '', $params = array()) {
+function goods_entry_fetch($storeid, $params = array()) {
 	$storeinfo = pdo_get('storex_bases', array('id' => $storeid), array('store_type'));
 	if ($storeinfo['store_type'] == 1) {
 		$goodsinfo = pdo_getall('storex_room', array('hotelid' => $storeid, 'is_house !=' => 1), array('id', 'title', 'is_house'), 'id');
@@ -713,22 +731,23 @@ function goods_entry_fetch($storeid, $type = '', $params = array()) {
 		$goodsinfo = pdo_getall('storex_goods', array('store_base_id' => $storeid), array('id', 'title'), 'id');
 	}
 	$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
-	$goods_vue_routes = array();
+	$goods_entry_routes = array();
 	if (!empty($goodsinfo) && is_array($goodsinfo)) {
 		foreach ($goodsinfo as $id => $val) {
-			$goods_vue_routes[$id] = array(
+			$goods_entry_routes[$id] = array(
 				'name' => $val['title'],
 				'link' => $url . '#/GoodInfo/buy/' . $storeid . '/' . $id,
 			);
 		}
 	}
+	$entry_url = '';
 	if (!empty($params['goodsid'])) {
-		return $goods_vue_routes[$params['goodsid']]['link'];
+		$entry_url = $goods_entry_routes[$params['goodsid']]['link'];
 	}
-	return $goods_vue_routes;
+	return !empty($entry_url) ? $entry_url : $goods_entry_routes;
 }
 
-function category_entry_fetch($storeid, $type = '', $params = array()) {
+function category_entry_fetch($storeid, $params = array()) {
 	global $_W;
 	$category = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'enabled' => 1), array('id', 'name', 'parentid', 'category_type'), 'id');
 	$category_list = array();
@@ -762,15 +781,16 @@ function category_entry_fetch($storeid, $type = '', $params = array()) {
 			}
 		}
 		unset($v);
+		$entry_url = '';
 		if (!empty($params['classid'])) {
-			return $category_list[$params['classid']]['link'];
+			$entry_url = $category_list[$params['classid']]['link'];
 		}
 		if (!empty($params['sub_classid'])) {
 			$class = $category[$params['sub_classid']]['parentid'];
-			return $category_list[$class][$params['sub_classid']]['link'];
+			$entry_url = $category_list[$class][$params['sub_classid']]['link'];
 		}
 	}
-	return $category_list;
+	return !empty($entry_url) ? $entry_url : $category_list;
 }
 
 function wn_tpl_form_field_location_category($name, $values = array(), $del = false) {
