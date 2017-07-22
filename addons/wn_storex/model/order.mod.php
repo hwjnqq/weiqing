@@ -317,3 +317,50 @@ function order_notice_tpl($openid, $type, $params, $templateid) {
 	$account_api = WeAccount::create();
 	$account_api->sendTplNotice($openid, $templateid, $tplnotice);
 }
+
+function get_status_logs($id) {
+	$logs = pdo_getall('storex_order_logs', array('orderid' => $id), array(), '', 'time ASC');
+	if (!empty($logs) && is_array($logs)) {
+		$types = array('status', 'goods_status', 'paystatus', 'refund', 'refund_status');
+		foreach ($logs as &$val) {
+			if (in_array($val['type'], $types)) {
+				$val['time'] = date('Y-m-d H:i', $val['time']);
+				if ($val['type'] == 'status') {
+					if ($val['after_change'] == -1) {
+						$val['msg'] = "订单取消";
+					} elseif ($val['after_change'] == 1) {
+						$val['msg'] = "订单确认";
+					} elseif ($val['after_change'] == 2) {
+						$val['msg'] = "订单拒绝";
+					} elseif ($val['after_change'] == 3) {
+						$val['msg'] = "订单完成";
+					} elseif ($val['after_change'] == 0) {
+						$val['msg'] = "下单成功";
+					}
+				} elseif ($val['type'] == 'goods_status') {
+					if ($val['after_change'] == '5') {
+						$val['msg'] = "客户入住";
+					} elseif ($val['after_change'] == '2') {
+						$val['msg'] = "商家发货";
+					} elseif ($val['after_change'] == '3') {
+						$val['msg'] = "客户收货";
+					}
+				} elseif ($val['type'] == 'paystatus') {
+					if ($val['after_change'] == '1') {
+						$val['msg'] = "订单支付成功";
+					}
+				} elseif ($val['type'] == 'refund') {
+					if ($val['after_change'] == '1') {
+						$val['msg'] = "订单退款申请成功";
+					}
+				} elseif ($val['type'] == 'refund_status') {
+					if ($val['after_change'] == '2') {
+						$val['msg'] = "订单退款成功";
+					}
+				}
+			}
+		}
+		unset($val);
+	}
+	return $logs;
+}

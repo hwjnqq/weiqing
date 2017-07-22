@@ -47,7 +47,16 @@ if ($op == 'goods_info') {
 	}
 	$goods_info = get_room_params($goods_info);
 	if ($store_info['store_type'] == 1) {
-		$goods_info = room_special_price($goods_info, false);
+		if ($store_info['is_house'] == 1) {
+			$days = ceil((strtotime($_GPC['etime']) - strtotime($_GPC['btime']))/86400);
+			$dates = get_dates($_GPC['btime'], $days);
+			$search_data = array(
+				'btime' => $_GPC['btime'],
+				'etime' => $_GPC['etime'],
+				'nums' => $_GPC['nums'],
+			);
+			$goods_info = calcul_roon_sumprice($dates, $search_data, $goods_info);
+		}
 	}
 	if (!empty($goods_info['express_set'])) {
 		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
@@ -77,7 +86,16 @@ if ($op == 'info') {
 		if (isset($goods_info['express_set'])) {
 			unset($goods_info['express_set']);
 		}
-		$goods_info = room_special_price($goods_info, false);
+		if ($goods_info['is_house'] == 1) {
+			$days = ceil((strtotime($_GPC['etime']) - strtotime($_GPC['btime']))/86400);
+			$dates = get_dates($_GPC['btime'], $days);
+			$search_data = array(
+				'btime' => $_GPC['btime'],
+				'etime' => $_GPC['etime'],
+				'nums' => $_GPC['nums'],
+			);
+			$goods_info = calcul_roon_sumprice($dates, $search_data, $goods_info);
+		}
 	} else {
 		$condition['store_base_id'] = $store_id;
 		$table = 'storex_goods';
@@ -156,7 +174,12 @@ if ($op == 'order') {
 		$condition['store_base_id'] = $store_id;
 	}
 	$goods_info = pdo_get($table, $condition);
-	goods_check_action($goods_info);
+	if (empty($goods_info)) {
+		message(error(-1, '商品未找到, 请联系管理员!'), '', 'ajax');
+	}
+	if ($goods_info['can_buy'] != 1) {
+		message(error(-1, '该商品不能购买'), '', 'ajax');
+	}
 	$insert = array(
 		'ordersn' => date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1),
 		'style' => $goods_info['title'],
@@ -248,16 +271,14 @@ if ($op == 'order') {
 					}
 				}
 			}
-			$day_date = date('Y-m-d', time());
-			$price_list = pdo_get('storex_room_price', array('thisdate' => $day_date, 'roomid' => $goodsid, 'weid' => intval($_W['uniacid']), 'hotelid' => $store_id));
-			if (!empty($price_list)) {
-				//价格表中存在
-				$goods_info['oprice'] = $price_list['oprice'];
-				$goods_info['cprice'] = $price_list['cprice'];
-			}
-			if ($order_info['nums'] > $max_room) {
-				wmessage(error(-1, '您的预定数量超过最大限制!'), '', 'ajax');
-			}
+			
+			$search_data = array(
+				'btime' => $bdate,
+				'etime' => $edate,
+				'nums' => $_GPC['order']['nums']
+			);
+			$goods_info = calcul_roon_sumprice($dates, $search_data, $goods_info);
+			$insert['sum_price'] = $goods_info['sum_price'];
 			if ($setInfo['smscode'] == 1) {
 				$code = pdo_get('storex_code', array('mobile' => $mobile, 'weid' => intval($_W['uniacid'])), array('code'));
 				if ($mobilecode != $code['code']) {
@@ -265,7 +286,6 @@ if ($op == 'order') {
 				}
 			}
 			$insert = array_merge($order_info, $insert);
-			$insert['sum_price'] = ($goods_info['cprice'] + $goods_info['service']) * $days * $insert['nums'];
 			pdo_query('UPDATE ' . tablename('storex_order') . " SET status = '-1' WHERE time < :time AND weid = :weid AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400, ':weid' => $_W['uniacid']));
 		} else {
 			$insert = general_goods_order($order_info, $goods_info, $insert);
@@ -311,6 +331,19 @@ if ($op == 'order') {
 	}
 	pdo_insert('storex_order', $insert);
 	$order_id = pdo_insertid();
+	if (!empty($order_id)) {
+		$logs = array(
+			'table' => 'storex_order_logs',
+			'time' => TIMESTAMP,
+			'after_change' => 0,
+			'type' => 'status',
+			'uid' => $uid,
+			'clerk_type' => 1,
+			'orderid' => $order_id,
+			'remark' => '下单成功',
+		);
+		write_log($logs);
+	}
 	
 	if (check_ims_version()) {
 		$plugins = get_plugin_list();
@@ -387,22 +420,17 @@ if ($op == 'order') {
 		}
 	}
 	
-	$member = pdo_get('storex_member', array('weid' => intval($_W['uniacid']), 'from_user' => $_W['openid']));
-	if (!empty($member)) {
-		pdo_update('storex_member', array('userid' => $uid, 'mobile' => $insert['mobile'], 'realname' => $insert['contact_name']), array('weid' => intval($_W['uniacid']), 'from_user' => $_W['openid']));
-	} else {
-		$insert_member = array(
-			'weid' => intval($_W['uniacid']),
-			'userid' => $uid,
-			'from_user' => $_W['openid'],
-			'realname' => $insert['contact_name'],
-			'mobile' => $insert['mobile'],
-			'createtime' => TIMESTAMP,
-			'isauto' => 1,
-			'status' => 1,
-		);
-		pdo_insert('storex_member', $insert_member);
+	$member = array(
+		'weid' => intval($_W['uniacid']),
+		'from_user' => $_W['openid'],
+		'userid' => $uid,
+		'realname' => $insert['contact_name'],
+		'mobile' => $insert['mobile'],
+	);
+	if (!hotel_member_single($member)) {
+		insert_member($member);
 	}
+	
 	//检查结果
 	if (!empty($order_id)) {
 		mload()->model('order');

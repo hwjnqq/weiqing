@@ -180,12 +180,18 @@ if ($op == 'edit') {
 		);
 		$action = $_GPC['action'];
 		if (in_array($action, $all_actions) && !empty($actions) && !empty($actions[$action])) {
+			$logs = array(
+				'time' => TIMESTAMP,
+				'orderid' => $item['id'],
+				'table' => 'storex_order_logs',
+			);
 			if ($action == 'cancel') {
 				$data['status'] = ORDER_STATUS_CANCEL;
 			} elseif ($action == 'refund') {
 				if ($item['paytype'] != 'credit' && !check_ims_version()) {
 					message(error(-1, '请升级微擎系统至1.0以上，并保持最新版本'), '', 'ajax');
 				}
+				$refund = pdo_get('storex_refund_logs', array('uniacid' => $_W['uniacid'], 'orderid' => $orderid), array('status'));
 				if ($item['paytype'] == 'credit') {
 					$result = order_begin_refund($item['id']);
 				} elseif ($item['paytype'] == 'wechat') {
@@ -196,6 +202,11 @@ if ($op == 'edit') {
 				if (is_error($result)) {
 					message($result, '', 'ajax');
 				} else {
+					$logs['type'] = 'refund';
+					$logs['before_change'] = $refund['status'];
+					$logs['after_change'] = REFUND_STATUS_SUCCESS;
+					$logs['clerk_type'] = 2;
+					write_log($logs);
 					if ($item['paytype'] == 'credit') {
 						message(error(0, '退款成功'), '', 'ajax');
 					} elseif ($item['paytype'] == 'wechat') {
@@ -242,6 +253,9 @@ if ($op == 'edit') {
 				$params['tpl_status'] = true;
 			}
 			if (!empty($data['status'])) {
+				$logs['type'] = 'status';
+				$logs['before_change'] = $item['status'];
+				$logs['after_change'] = $data['status'];
 				//订单拒绝
 				if ($data['status'] == ORDER_STATUS_REFUSE) {
 					$params['ordersn'] = $item['ordersn'];
@@ -306,6 +320,11 @@ if ($op == 'edit') {
 			
 			if (!empty($data['goods_status'])) {
 				$params['phone'] = $store['phone'];
+				if ($data['goods_status'] == GOODS_STATUS_CHECKED || $data['goods_status'] == GOODS_STATUS_SHIPPED) {
+					$logs['type'] = 'goods_status';
+					$logs['before_change'] = $item['goods_status'];
+					$logs['after_change'] = $data['goods_status'];
+				}
 				//已入住提醒
 				if ($data['goods_status'] == GOODS_STATUS_CHECKED) {
 					$params['check_in_templateid'] = $setting['check_in_templateid'];
@@ -324,7 +343,9 @@ if ($op == 'edit') {
 					pdo_update('storex_coupon_record', array('status' => 3), array('id' => $item['coupon']));
 				}
 			}
+			$logs['clerk_type'] = 2;
 			pdo_update('storex_order', $data, array('id' => $id));
+			write_log($logs);
 			message(error('0', '订单信息处理完成！'), '', 'ajax');
 		} else {
 			message(error('-1', '订单操作错误！'), '', 'ajax');
@@ -390,6 +411,7 @@ if ($op == 'edit') {
 		}
 	}
 	$member_info = pdo_get('storex_member', array('id' => $item['memberid']), array('from_user', 'isauto'));
+	$logs = get_status_logs($id);
 	include $this->template('store/shop_orderedit');
 }
 

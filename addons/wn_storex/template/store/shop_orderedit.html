@@ -2,6 +2,15 @@
 <div class="wn-main wn-main--without">
 	<div class="wn-main__head"><a href="{php echo $this->createWebUrl('shop_order',array('op' => 'list', 'storeid' => $storeid));}">订单管理</a> / 订单编辑</div>
 	<div class="wn-main__content">
+		{if !empty($logs)}
+			<ul class="nav nav-pills nav-justified step step-round">
+				{loop $logs $log}
+					<li class="active">
+						<a>{$log['time']}--{$log['msg']}</a>
+					</li>
+				{/loop}
+			</ul>
+		{/if}
 		<table class="table table-bordered wn-table text-center">
 			<tr>
 				<th class="text-center">商品</th>
@@ -219,6 +228,33 @@
 				</form>
 			</div>
 		</div>
+		{if !empty($logs)}
+		<div><h3 style="text-align:center">订单操作记录</h3></div>
+		<div>
+			<table class="table table-bordered wn-table text-center">
+				<tr>
+					<th class="text-center">时间</th>
+					<th class="text-center">类型</th>
+					<th class="text-center">更改前状态</th>
+					<th class="text-center">更改后状态</th>
+					<th class="text-center">UID</th>
+					<th class="text-center">操作者</th>
+					<th class="text-center">内容</th>
+				</tr>
+				{loop $logs $log}
+				<tr>
+					<td>{$log['time']}</td>
+					<td>{$log['type']}</td>
+					<td>{$log['before_change']}</td>
+					<td>{$log['after_change']}</td>
+					<td>{$log['uid']}</td>
+					<td>{if $log['clerk_type'] == 1}线上操作{elseif $log['clerk_type'] == 2}后台操作{else}店员操作{/if}</td>
+					<td>{$log['msg']}</td>
+				</tr>
+				{/loop}
+			</table>
+		</div>
+		{/if}
 	</div>
 </div>
 <div class="modal fade" id="orderConfirm" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">

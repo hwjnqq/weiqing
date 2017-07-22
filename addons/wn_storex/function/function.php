@@ -289,14 +289,6 @@ function get_store_info($id) {
 		}
 	}
 }
-//根据店铺的类型返回表名
-function get_goods_table($store_type) {
-	if ($store_type == 1) {
-		return 'storex_room';
-	} else {
-		return 'storex_goods';
-	}
-}
 //根据坐标计算距离
 function distanceBetween($longitude1, $latitude1, $longitude2, $latitude2) {
 	$radLat1 = radian($latitude1);
@@ -343,27 +335,28 @@ function category_store_goods($table, $condition, $fields, $limit = array()) {
 		}
 	}
 	if ($table == 'storex_room') {
-		$goods = room_special_price($goods, true);
+		$goods = room_special_price($goods, array(), true);
 	}
 	return $goods;
 }
 
 //根据日期和数量获取可预定的房型
-function category_room_status($goods_list) {
+function category_room_status($goods_list, $search_data) {
 	global $_GPC,$_W;
-	$btime = $_GPC['btime'];
-	$etime = $_GPC['etime'];
-	$num = intval($_GPC['num']);
+	$btime = $search_data['btime'];
+	$etime = $search_data['etime'];
+	$num = $search_data['num'];
 	if (!empty($btime) && !empty($etime) && !empty($num)) {
 		if ($num <= 0 || strtotime($etime) < strtotime($btime) || strtotime($btime) < strtotime('today')) {
 			message(error(-1, '搜索参数错误！'), '', 'ajax');
 		}
 	} else {
+		$num = 1;
 		$btime = date('Y-m-d');
 		$etime = date('Y-m-d', time() + 86400);
 	}
 	$days = ceil((strtotime($etime) - strtotime($btime)) / 86400);
-	$sql = "SELECT * FROM " . tablename('storex_room_price') . " WHERE weid = :weid AND roomdate >= :btime AND roomdate <= :etime ";
+	$sql = "SELECT * FROM " . tablename('storex_room_price') . " WHERE weid = :weid AND roomdate >= :btime AND roomdate <= :etime ORDER BY roomdate ASC";
 	$modify_recored = pdo_fetchall($sql, array(':weid' => intval($_W['uniacid']), ':btime' => strtotime($btime), ':etime' => strtotime($etime)));
 	if (!empty($modify_recored)) {
 		foreach ($modify_recored as $value) {
@@ -438,53 +431,90 @@ function get_dates($btime, $days) {
 	}
 	return $dates;
 }
+
+//计算所选房型的总价
+function calcul_roon_sumprice($dates, $search_data, $goods_info) {
+	$prices = array('oprice' => $goods_info['oprice'], 'cprice' => $goods_info['cprice']);
+	$goods_info = room_special_price($goods_info, $search_data, false);
+	$sumprice = 0;
+	$noexist_date = 0;
+	$exist_date = 0;
+	if (!empty($dates) && is_array($dates)) {
+		foreach ($dates as $date) {
+			if (!empty($goods_info['price_list']) && !empty($goods_info['price_list'][$date['date']])) {
+				$sumprice += $goods_info['price_list'][$date['date']]['cprice'];
+				$exist_date += 1;
+			} else {
+				$noexist_date += 1;
+			}
+		}
+	}
+	if (($exist_date + $noexist_date) < count($dates)) {
+		$noexist_date += count($dates) - ($exist_date + $noexist_date);
+	}
+	$sumprice += $noexist_date * $prices['cprice'];
+	$goods_info['sum_price'] = ($sumprice + $goods_info['service'] * count($dates)) * $search_data['nums'];
+	return $goods_info;
+}
+
 //根据信息获取房型的某一天的价格
-function room_special_price($goods, $plural = true) {
+function room_special_price($goods, $search_data = array(), $plural = true) {
 	global $_W;
 	if (!empty($goods)) {
-		$btime = strtotime(date('Y-m-d'));
-		$etime = $btime + 86400;
-		$sql = 'SELECT `id`, `roomdate`, `num`, `status`, `oprice`, `cprice`, `roomid` FROM ' . tablename('storex_room_price') . ' WHERE `weid` = :weid AND `roomdate` >= :btime AND `roomdate` < :etime ORDER BY roomdate DESC';
+		if (!empty($search_data) && !empty($search_data['btime']) && !empty($search_data['etime'])) {
+			$btime = strtotime($search_data['btime']);
+			$etime = strtotime($search_data['etime']);
+		} else {
+			$search_data['btime'] = date('Y-m-d');
+			$search_data['etime'] = date('Y-m-d', TIMESTAMP + 86400);
+			$btime = strtotime(date('Y-m-d'));
+			$etime = $btime + 86400;
+		}
+		$condition = '';
 		$params = array(':weid' => $_W['uniacid'], ':btime' => $btime, ':etime' => $etime);
-		$room_price_list = pdo_fetchall($sql, $params, 'roomid');
+		if (empty($plural)) {
+			$condition = ' AND roomid = :roomid ';
+			$params[':roomid'] = $goods['id'];
+		}
+		$sql = "SELECT * FROM " . tablename('storex_room_price') . " WHERE `weid` = :weid AND `roomdate` >= :btime AND `roomdate` < :etime {$condition} ORDER BY roomdate ASC";
+		$room_price_list = pdo_fetchall($sql, $params);
+		$edit_price_list = array();
+		if (!empty($room_price_list) && is_array($room_price_list)) {
+			foreach ($room_price_list as $val) {
+				$edit_price_list[$val['roomid']][$val['thisdate']] = $val;
+			}
+		}
 		if (!empty($plural)) {
 			foreach ($goods as $key => $val) {
-				if (!empty($room_price_list[$val['id']])) {
-					$goods[$key]['oprice'] = $room_price_list[$val['id']]['oprice'];
-					$goods[$key]['cprice'] = $room_price_list[$val['id']]['cprice'];
-					if ($room_price_list[$val['id']]['num'] == -1) {
+				if (!empty($edit_price_list[$val['id']]) && !empty($edit_price_list[$val['id']][$search_data['btime']])) {
+					$goods[$key]['oprice'] = $edit_price_list[$val['id']][$search_data['btime']]['oprice'];
+					$goods[$key]['cprice'] = $edit_price_list[$val['id']][$search_data['btime']]['cprice'];
+					if ($edit_price_list[$val['id']][$search_data['btime']]['num'] == -1) {
 						$goods[$key]['max_room'] = 8;
 					} else {
-						$goods[$key]['max_room'] = $room_price_list[$val['id']]['num'];
+						$goods[$key]['max_room'] = $edit_price_list[$val['id']][$search_data['btime']]['num'];
 					}
+					$goods[$key]['price_list'] = $edit_price_list[$val['id']];
 				} else {
 					$goods[$key]['max_room'] = 8;
 				}
 			}
 		} else {
-			if (!empty($room_price_list[$goods['id']])) {
-				$goods['oprice'] = $room_price_list[$goods['id']]['oprice'];
-				$goods['cprice'] = $room_price_list[$goods['id']]['cprice'];
-				if ($room_price_list[$goods['id']]['num'] == -1) {
+			if (!empty($edit_price_list[$goods['id']])) {
+				$goods['oprice'] = $edit_price_list[$goods['id']][$search_data['btime']]['oprice'];
+				$goods['cprice'] = $edit_price_list[$goods['id']][$search_data['btime']]['cprice'];
+				if ($edit_price_list[$goods['id']][$search_data['btime']]['num'] == -1) {
 					$goods['max_room'] = 8;
 				} else {
-					$goods['max_room'] = $room_price_list[$goods['id']]['num'];
+					$goods['max_room'] = $edit_price_list[$goods['id']][$search_data['btime']]['num'];
 				}
+				$goods['price_list'] = $edit_price_list[$goods['id']];
 			} else {
 				$goods['max_room'] = 8;
 			}
 		}
 	}
 	return $goods;
-}
-//检查条件
-function goods_check_action($goods_info) {
-	if (empty($goods_info)) {
-		message(error(-1, '商品未找到, 请联系管理员!'), '', 'ajax');
-	}
-	if ($goods_info['can_buy'] != 1) {
-		message(error(-1, '该商品不能购买'), '', 'ajax');
-	}
 }
 
 //检查店员    id:店铺id
