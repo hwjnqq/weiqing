@@ -12,8 +12,8 @@ load()->model('wxapp');
 $dos = array('delete', 'display', 'edit_version', 'del_version', 'get_available_apps', 'getpackage');
 $do = in_array($do, $dos) ? $do : 'display';
 
-$uniacid = intval($_GPC['uniacid']);
-$acid = intval($_GPC['acid']);
+$uniacid = intval($_W['uniacid']);
+$acid = intval($_W['acid']);
 if (empty($uniacid)) {
 	itoast('请选择要编辑的小程序', referer(), 'error');
 }

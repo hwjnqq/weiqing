@@ -523,11 +523,10 @@
 							<p># 检查公众平台配置</p>
 							<p># 编辑公众号 <a ng-href="{{links.post}}acid={{account.acid}}&uniacid={{account.uniacid}}">{$account['name']}</a></p>
 							<a href="javascript:window.location.reload();" class="btn btn-success">检测是否接入成功</a>&nbsp;
-							<a ng-href="{{links.switch}}uniacid={{account.uniacid}}" class="btn btn-primary">暂不接入，先去查看公众号功能</a>&nbsp;
-							<a ng-href="{{links.manage}}" class="btn btn-info">返回公众号列表</a>
+							<a href="{php echo url('account/post', array('account_type' => ACCOUNT_TYPE))}" class="btn btn-primary">暂不接入，先去查看公众号功能</a>&nbsp;
 						</div>
 						<div ng-if="account.isconnect == 1">
-							<a ng-href="{{links.post}}acid={{account.acid}}&uniacid={{account.uniacid}}" class="btn btn-primary">管理公众号</a>
+							<a ng-href="{php echo url('account/post', array('account_type' => ACCOUNT_TYPE))}" class="btn btn-primary">管理公众号</a>
 						</div>
 					</div>
 				</div>

@@ -13,8 +13,13 @@ load()->model('wxapp');
 load()->model('utility');
 
 if (empty($_W['uniacid'])) {
-	header("Location: " . url('account/post-step'));
+	if (ACCOUNT_TYPE == ACCOUNT_TYPE_OFFCIAL_NORMAL) {
+		header("Location: " . url('account/post-step'));
+	} else {
+		header("Location: " . url('wxapp/post/design_method'));
+	}
 }
+
 $uniacid = $_W['uniacid'];
 $acid = $_W['acid'];
 $state = uni_permission($_W['uid'], $uniacid);
