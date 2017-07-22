@@ -1,13 +1,15 @@
 {php echo register_jssdk();}
-<script type="text/javascript">
-    wx.ready(function () {
-        sharedata = {
-            title: '万能小店',
-            desc: "万能小店 - {$_W['account']['name']}",
-            link: "{$_W['siteurl']}",
-            imgUrl: {if empty($shareThumb)}"{$_W['siteroot']}addons/wn_storex/preview.jpg"{else}"{$shareThumb}"{/if}
 
-        };
+<script type="text/javascript">
+
+	sharedata = {
+		title: '万能小店',
+		desc: "万能小店 - {$_W['account']['name']}",
+		link: "{$_W['siteurl']}",
+		imgUrl: {if empty($shareThumb)}"{$_W['siteroot']}addons/wn_storex/preview.jpg"{else}"{$shareThumb}"{/if}
+
+	};
+    wx.ready(function () {
         wx.onMenuShareAppMessage(sharedata);
         wx.onMenuShareTimeline(sharedata);
     });

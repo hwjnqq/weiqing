@@ -47,8 +47,7 @@
 						<div class="wn-home__modules" data-toggle="tooltip" data-placement="bottom" title="拖动到左侧排序添加或直接点击添加到最下方" ref="tooltip">
 							<draggable :list="modules" element="div" :options="{group:{name:'modules', pull:'clone', put:false }}" :no-transition-on-drag="true" @start="drag=true;" @end="drag=false">
 								<div v-for="(module, index) in modules" :key="index" class="wn-home__modules__item">
-									<div @click="addModules(index)" class="content" :style="'background-image: url(../addons/wn_storex/template/style/img/home/' + module.type + '.png)'">
-										{{typeValue[module.type]}}
+									<div @click="addModules(index)" class="content" :style="'background-image: url(../addons/wn_storex/template/style/img/home/module-' + module.type + '.png)'">
 									</div>
 								</div>
 							</draggable>
@@ -222,7 +221,12 @@
 										<div class="help-block">设置{{typeValue[openModules[editModuleIndex]['type']]}}标题</div>
 									</div>
 									<div class="form-group">
-										<input type="text" class="form-control" v-model.trim="editValue.url" placeholder="http://链接">
+										<div class="input-group">
+											<input type="text" class="form-control" v-model.trim="editValue.url" placeholder="http://链接">
+											<span class="input-group-btn">
+												<button class="btn btn-default" type="button" ref="modal" data-toggle="modal" data-target="#link"><i class="fa fa-plus-circle green"></i>&nbsp;选择链接</button>
+											</span>
+										</div>
 										<div class="help-block">设置{{typeValue[openModules[editModuleIndex]['type']]}}链接,请填写http://或https://完整地址</div>
 									</div>
 									<div class="form-group">
@@ -247,6 +251,34 @@
 				</div>
 			</div>
 			<div class="clearfix"></div>
+			<div class="modal fade" tabindex="-1" role="dialog" id="link">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<h4 class="modal-title">链接列表</h4>
+						</div>
+						<div class="modal-body">
+							<div class="link-browser wn-home__link">
+								<template v-for="link in linkGroup">
+									<div class="page-header">
+										<h4><i class="fa fa-folder-open-o"></i> {{link.name}}</h4>
+									</div>
+									<div v-if="link.link" class="link">
+										<div class="btn btn-default" @click="addLink(editValue, link.link)" >{{link.name}}</div>
+									</div>
+									<template v-for="sub in link.group">
+										<div class="btn btn-default" @click="addLink(editValue, sub.link)" class="category">{{sub.name}}</div>
+										<div v-if="sub.group" class="subcategory">
+											<div class="btn btn-default" v-for="cat in sub.group" @click="addLink(editValue, cat.link)">{{cat.name}}</div>
+										</div>
+									</template>
+								</template>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 			<nav class="navbar navbar-default navbar-fixed-bottom wn-home__navbar">
 				<div class="btn btn-primary" @click="submitModules">提交</div>
 			</nav>
@@ -293,7 +325,8 @@
 				editValue: {},
 				editIndex: '',
 				goodsParams: '',
-				goodsList: []
+				goodsList: [],
+				linkGroup: []
 			},
 			methods: {
 				removeModule: function (index) {
@@ -399,6 +432,12 @@
 						});
 					});
 				},
+				addLink: function (target, url) {
+					this.$set(target, 'url', url);
+					this.$nextTick(function () {
+						$('#link').modal('hide')
+					})
+				},
 				searchGoods: function () {
 					const self = this;
 					$.post("{php echo $this->createWebUrl('shop_homepage', array('op' => 'search_goods', 'storeid' => $_GPC['storeid']))}", {title: this.goodsParams}, function (data) {
@@ -428,7 +467,6 @@
 					$.post("{php echo $this->createWebUrl('shop_homepage', array('op' => 'post', 'storeid' => $_GPC['storeid']))}", {params: this.openModules}, function (data) {
 						data = $.parseJSON(data);
 						if (data.message.errno != 0) {
-							console.log(data)
 							util.message(data.message.message, '', 'error');
 						} else {
 							util.message('编辑成功', '', 'success');
@@ -450,9 +488,21 @@
 				}
 			},
 			created: function () {
+				const self = this;
 				this.editModuleIndex = 0;
 				this.$nextTick(function () {
 					$(this.$refs.tooltip).tooltip()
+					$(this.$refs.modal).modal()
+					$('#link').on('show.bs.modal', function (event) {
+						$.post("{php echo $this->createWebUrl('shop_homepage', array('op' => 'link', 'storeid' => $_GPC['storeid']))}", {params: this.openModules}, function (data) {
+							data = $.parseJSON(data);
+							if (data.message.errno != 0) {
+								util.message(data.message.message, '', 'error');
+							} else {
+								self.linkGroup = data.message.message;
+							}
+						});
+					})
 				})
 			}
 		})

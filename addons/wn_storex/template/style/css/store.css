@@ -887,8 +887,8 @@ li {
   height: 60px;
   line-height: 60px;
   text-align: center;
-  border: 1px solid #ddd;
-  margin-right: -1px;
+  border-radius: 5px;
+  margin-right: 5px;
   cursor: move;
 }
 .wn-home__modules__item .content {
@@ -941,6 +941,12 @@ li {
   width: 40px;
   height: 40px;
   border-radius: 50%;
+}
+.wn-home__link .btn {
+  margin: 5px 5px;
+}
+.wn-home__link .subcategory {
+  margin-left: 15px;
 }
 
 .wn-home__navbar {
