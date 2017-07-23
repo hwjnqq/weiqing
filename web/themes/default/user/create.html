@@ -37,19 +37,6 @@
 				<div class="help-block">重复输入密码，确认正确输入</div>
 			</div>
 		</div>
-		{if $_GPC['do'] != ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
-		<div class="form-group">
-			<label for="" class="control-label col-sm-2">所属用户组</label>
-			<div class="form-controls col-sm-8">
-				<select name="groupid" class="we7-select" id="groupid">
-					<option value="0">请选择所属用户组</option>
-					<option ng-repeat="group in groups" ng-value="group.id" ng-bind="group.name"></option>
-				</select>
-				<span class="help-block"> 分配用户所属用户组后，该用户会自动拥有此用户组内的模块操作权限</span>
-				<span class="help-block"><strong class="text-danger">设置用户组后，系统会根据对应用户组的服务期限对用户的服务开始时间和结束时间进行初始化</strong></span>
-			</div>
-		</div>
-		{/if}
 		<div class="form-group">
 			<label for="" class="control-label col-sm-2">备注</label>
 			<div class="form-controls col-sm-8">

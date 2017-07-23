@@ -8,13 +8,13 @@
 		</ol>
 		<div class="panel we7-panel">
 			{if !$_W['isfounder']}
-				<div class="alert alert-warning">
-					温馨提示：
-					<i class="fa fa-info-circle"></i>
-					Hi，<span class="text-strong">{$_W['username']}</span>，您所在的会员组： <span class="text-strong">{$account_info['group_name']}</span>，
-					账号有效期限：<span class="text-strong">{php echo date('Y-m-d', $_W['user']['starttime'])} ~~ {if empty($_W['user']['endtime'])}无限制{else}{php echo date('Y-m-d', $_W['user']['endtime'])}{/if}</span>，
-					可创建 <span class="text-strong">{$account_info['maxaccount']} </span>个公众号，已创建<span class="text-strong"> {$account_info['uniacid_num']} </span>个，还可创建 <span class="text-strong">{$account_info['uniacid_limit']} </span>个公众号。
-				</div>
+			<div class="alert alert-warning">
+				温馨提示：
+				<i class="fa fa-info-circle"></i>
+				Hi，<span class="text-strong">{$_W['username']}</span>，您所在的会员组： <span class="text-strong">{$account_info['group_name']}</span>，
+				账号有效期限：<span class="text-strong">{php echo date('Y-m-d', $_W['user']['starttime'])} ~~ {if empty($_W['user']['endtime'])}无限制{else}{php echo date('Y-m-d', $_W['user']['endtime'])}{/if}</span>，
+				可创建 <span class="text-strong">{$account_info['maxaccount']} </span>个公众号，已创建<span class="text-strong"> {$account_info['uniacid_num']} </span>个，还可创建 <span class="text-strong">{$account_info['uniacid_limit']} </span>个公众号。
+			</div>
 			{/if}
 			<div class="panel-body we7-padding">
 				<div class="col-lg-6">
@@ -26,7 +26,7 @@
 						手动绑定需同步微信接口，在微信后台，基本设置可以获取appid和appsecret，绑定成功后，将获取的服务器配置接口绑定到微信后台（切记：绑定过程中，一定要注意保持接口参数一致）
 					</div>
 					<div>
-						<a href="{php echo url('account/post-step', array('step' => 2))}" class="btn btn-primary">手动添加公众号</a>
+						<a href="{php echo url('account/post-step', array('step' => 2))}" class="btn btn-primary" {if !$_W['isfounder']}disabled{/if}>手动添加公众号</a>
 					</div>
 				</div>
 				<div class="col-lg-6">
@@ -38,7 +38,7 @@
 						使用授权登录需认证微信开放平台和全网发布，认证微信开放平台和全网发布教程 <a href="{php echo url('system/platform')}" class="color-default">微信开放平台设置</a>
 					</div>
 					<div>
-						<a href="{$authurl}" class="btn btn-primary">授权添加公众号</a>
+						<a href="{$authurl}" class="btn btn-primary" {if !$_W['isfounder']}disabled{/if}>授权添加公众号</a>
 					</div>
 				</div>
 			</div>
@@ -225,133 +225,8 @@
 							<span class="help-block">如果是新用户,请先 <a href="{url 'user/create'}" target="_blank" class="color-default">添加用户</a></span>
 						</div>
 					</div>
-					<div class="form-group">
-						<label for="" class="control-label col-sm-2">修改管理员用户权限组</label>
-						<div class="form-controls col-sm-8">
-							<select name="groupid" class="we7-select col-sm-3" id="groupid" ng-model="owner.groupid" ng-change="changeGroup()">
-								<option value="0">不设置</option>
-								{loop $groups $row}
-								{php $package = $row['package'] ? implode(',', iunserializer($row['package'])) : '';}
-								<option value="{$row['id']}" {if $row['id'] == $owner['groupid']}selected{/if} data-package="[{$package}]">{$row['name']}</option>
-								{/loop}
-							</select>
-						</div>
-					</div>
 				</div>
 			</div>
-			<table class="table we7-table table-hover">
-				<tr>
-					<td colspan="2" class="text-left bg-light-gray">公众号可使用应用权限组（各权限组均包含系统模块和微站默认模板）</td>
-				</tr>
-				<tr>
-					<th class="text-left bg-light-gray">应用权限组</th>
-					<th class="text-right bg-light-gray">操作</th>
-				</tr>
-				<tr>
-					<td class="text-left">
-						<input id="check-0" type="checkbox" name="package[]" autocomplete="off" value="-1" {if is_array($owner['group']['package']) && in_array('-1', $owner['group']['package'])}checked disabled{/if}{if is_array($extend['package']) && !empty($extend['package'][-1])}checked {/if} />
-						<label for="check-0" class="we7-padding-left we7-margin-horizontal-none">所有服务</label>
-					</td>
-					<td>
-						<div class="link-group">
-							<a href="javascript:void(0);" class="js-unfold" data-toggle="collapse" data-target="#extend0" ng-click="changeText($event)">展开</a>
-						</div>
-					</td>
-				</tr>
-				<tr class="collapse bg-light-gray" aria-expanded="true" id="extend0">
-					<td colspan="2">
-						<div class="col-sm-1 color-gray text-left we7-padding-none">应用权限</div>
-						<div class="col-sm-11">
-							<div class="col-sm-3 text-left">
-								<span class="label label-danger">系统所有模块</span>
-							</div>
-						</div>
-						<div class="col-sm-1 color-gray text-left we7-padding-none">模板权限</div>
-						<div class="col-sm-11">
-							<div class="col-sm-3 text-left">
-								<span class="label label-danger">系统所有模板</span>
-							</div>
-						</div>
-					</td>
-				</tr>
-				{loop $unigroups $package}
-					<tr>
-						<td class="text-left">
-							<input id="check-{$package['id']}" type="checkbox" name="package[]" autocomplete="off" {if is_array($owner['group']['package']) && in_array($package['id'], $owner['group']['package'])}checked disabled{/if} {if is_array($extend['package']) && !empty($extend['package'][$package['id']])}checked {/if} value="{$package['id']}" />
-							<label for="check-{$package['id']}" class="we7-padding-left we7-margin-horizontal-none">{$package['name']}</label>
-						</td>
-						<td class="text-left">
-							<div class="link-group">
-								<a href="javascript:void(0);" class="color-default js-unfold" data-toggle="collapse" data-target="#extend{$package['id']}" ng-click="changeText($event)">展开</a>
-							</div>
-						</td>
-					</tr>
-					<tr class="collapse bg-light-gray" aria-expanded="true" id="extend{$package['id']}">
-						<td colspan="2">
-							<div>
-								<div class="col-sm-1 color-gray text-left we7-padding-none">应用权限</div>
-								<div class="col-sm-11">
-									{if !empty($package['modules'])}
-									{loop $package['modules'] $module}
-									<div class="col-sm-3 text-left">
-										<img src="{$module['logo']}" style="width:50px;height:50px;">
-										<a href="javascript:void(0);">{$module['title']}</a>
-									</div>
-									{/loop}
-									{else}
-									<div class="col-sm-3 text-left">---</div>
-									{/if}
-								</div>
-							</div>
-							<div>
-								<div class="col-sm-1 color-gray text-left we7-padding-none">模板权限</div>
-								<div class="col-sm-11">
-									{if !empty($package['templates']) && $package['templates'] != 'N;'}
-									{loop $package['templates'] $template}
-									<div class="col-sm-3 text-left">
-										<i class="glyphicon glyphicon-th-large"></i>
-										<a href="javascript:void(0);">{$template['title']}</a>
-									</div>
-									{/loop}
-									{else}
-									<div class="col-sm-3 text-left">
-										<a href="">---</a>
-									</div>
-									{/if}
-								</div>
-							</div>
-						</td>
-					</tr>
-				{/loop}
-				<tr class="account-package-extra" {if empty($owner['extend'])}style="display:none;"{/if}>
-					<td class="text-left bg-light-gray" colspan="2">添加其他应用权限</td>
-				</tr>
-				<tr class="account-package-extra" {if empty($owner['extend'])}style="display:none;"{/if}>
-					<td class="text-left">
-						应用权限：
-						<span class="js-extra-modules">
-							{loop $owner['extend']['modules'] $module}
-							<span class="label label-info">{$module['title']}</span>
-							<input type="hidden" value="{$module['name']}" name="extra[modules][]">
-							{/loop}
-						</span>
-					</td>
-					<td class="text-left">
-						模板权限：
-						<span class="js-extra-templates">
-							{loop $owner['extend']['templates'] $template}
-							<span class="label label-info">{$template['title']}</span>
-							<input type="hidden" value="{$template['id']}" name="extra[templates][]">
-							{/loop}
-						</span>
-					</td>
-				</tr>
-				<tr>
-					<td class="text-center" colspan="2">
-						<span class="btn btn-primary" data-toggle="modal" data-target="#jurisdiction-add">添加权限</span>
-					</td>
-				</tr>
-			</table>
 			<div class="form-group">
 				<input type="submit" name="submit" value="下一步" class="btn btn-primary btn-submit"/>
 				<input type="hidden" name="token" value="{$_W['token']}">

@@ -30,9 +30,6 @@ if (checksubmit()) {
 	if (trim($_GPC['password']) !== trim($_GPC['repassword'])) {
 		itoast('两次密码不一致！', '', '');
 	}
-	if (!intval($_GPC['groupid'])) {
-		itoast('请选择所属用户组', '', '');
-	}
 	if ($group_id > 0) {
 		$group = pdo_fetch("SELECT id,timelimit FROM ".tablename('users_group')." WHERE id = :id", array(':id' => intval($_GPC['groupid'])));
 		if (empty($group)) {

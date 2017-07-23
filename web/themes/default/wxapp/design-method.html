@@ -31,7 +31,7 @@
 								打包生成小程序，仅针对开发者单个小程序插件.
 							</div>
 							<div>
-								<a href="{php echo url('wxapp/post/post', array('design_method' => WXAPP_MODULE, 'uniacid' => $uniacid))}" class="btn btn-primary">新建小程序</a>
+								<a href="{php echo url('wxapp/post/post', array('design_method' => WXAPP_MODULE, 'uniacid' => $uniacid))}" {if !$_W['isfounder']}disabled{/if} class="btn btn-primary">新建小程序</a>
 							</div>
 						</div>
 						<div class="col-sm-6">

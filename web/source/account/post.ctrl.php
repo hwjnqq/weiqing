@@ -15,8 +15,10 @@ load()->model('utility');
 if (empty($_W['uniacid'])) {
 	if (ACCOUNT_TYPE == ACCOUNT_TYPE_OFFCIAL_NORMAL) {
 		header("Location: " . url('account/post-step'));
+		exit();
 	} else {
 		header("Location: " . url('wxapp/post/design_method'));
+		exit();
 	}
 }
 
