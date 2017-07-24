@@ -28,7 +28,7 @@ $sql = "
 	  KEY `storeid` (`storeid`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 	
-	CREATE TABLE `ims_storex_plugin_print_logs` (
+	CREATE TABLE IF NOT EXISTS `ims_storex_plugin_print_logs` (
 	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 	  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
 	  `storeid` int(10) unsigned NOT NULL COMMENT '店铺ID',
