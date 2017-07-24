@@ -8,6 +8,10 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 $store_info = $_W['wn_storex']['store_info'];
 $storeid = intval($store_info['id']);
 if ($op == 'display') {
+	$plugin_list = get_plugin_list();
+	if (empty($plugin_list['wn_storex_plugin_printer'])) {
+		message('插件未安装', '', 'error');
+	}
 	$printer_list = store_printers($storeid);
 }
 
