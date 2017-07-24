@@ -130,7 +130,7 @@
 		<script type="text/javascript">
 			require({
 				paths: {
-					'vue': 'https://unpkg.com/vue@2.2.6/dist/vue',
+					'vue': "{php echo SCRIPT_URL . '/vue'}",
 				}
 			});
 			printer_info ={php echo json_encode($printer_info);};

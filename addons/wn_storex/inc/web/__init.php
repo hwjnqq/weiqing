@@ -2,7 +2,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_GPC, $_W;
-
+define('SCRIPT_URL', $_W['siteroot'] . '/addons/wn_storex/template/style/js');
 $dos = array('shop_settings', 'shop_category', 'shop_goodsmanage', 'shop_comment', 'shop_index', 'shop_order', 'shop_stat', 'shop_plugin', 'shop_plugin_printer', 'shop_homepage', 'shop_member', 'shop_clerk');
 if (in_array($_GPC['do'], $dos)) {
 	if (empty($_GPC['storeid']) && !($_GPC['do'] == 'shop_settings' && $_GPC['action'] == 'add')) {

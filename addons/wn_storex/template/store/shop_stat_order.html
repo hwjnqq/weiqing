@@ -78,7 +78,7 @@
 <script type="text/javascript">
 	require({
 		paths: {
-			'echart': '../../../../addons/wn_storex/template/style/js/echarts'
+			'echart': "{php echo SCRIPT_URL . '/echarts'}"
 		}
 	});
 	var chart_data = {php echo json_encode($chart_data);};
