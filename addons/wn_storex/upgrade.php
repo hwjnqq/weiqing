@@ -444,9 +444,7 @@ $sql = "
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 ";
 pdo_run($sql);
-if (!pdo_fieldexists('storex_bases', 'category_set')) {
-	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `category_set` TINYINT NOT NULL DEFAULT '1' COMMENT '分类开启设置1开启，2关闭';");
-}
+
 if (!pdo_fieldexists('storex_bases', 'skin_style')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `skin_style` VARCHAR(48) NOT NULL DEFAULT 'display' COMMENT '皮肤选择';");
 }
@@ -620,6 +618,9 @@ if (!pdo_fieldexists('storex_room', 'sub_title')) {
 }
 if (!pdo_fieldexists('storex_goods', 'sub_title')) {
 	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `sub_title` VARCHAR(12) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '副标题';");
+}
+if (pdo_fieldexists('storex_bases', 'category_set')) {
+	pdo_query("UPDATE " . tablename('storex_bases') . " SET `category_set` = 1;");
 }
 
 

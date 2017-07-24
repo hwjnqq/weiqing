@@ -251,7 +251,6 @@ $sql = "
 	`weid` int(11) DEFAULT '0',
 	`title` varchar(255) DEFAULT '',
 	`skin_style` varchar(48) NOT NULL DEFAULT 'display' COMMENT '皮肤选择',
-	`category_set` tinyint(4) NOT NULL DEFAULT '1' COMMENT '分类开启设置1开启，2关闭',
 	`lng` decimal(10,6) DEFAULT '0.00',
 	`lat` decimal(10,6) DEFAULT '0.00',
 	`address` varchar(255) DEFAULT '',

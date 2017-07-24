@@ -326,6 +326,7 @@ function order_status_logs($id) {
 			if (in_array($val['type'], $types)) {
 				$val['time'] = date('Y-m-d H:i', $val['time']);
 				if ($val['type'] == 'status') {
+					$val['type'] = "订单状态为";
 					if ($val['after_change'] == -1) {
 						$val['msg'] = "订单取消";
 					} elseif ($val['after_change'] == 1) {
@@ -335,29 +336,41 @@ function order_status_logs($id) {
 					} elseif ($val['after_change'] == 3) {
 						$val['msg'] = "订单完成";
 					} elseif ($val['after_change'] == 0) {
+						$val['type'] = "";
 						$val['msg'] = "下单成功";
 					}
 				} elseif ($val['type'] == 'goods_status') {
-					if ($val['after_change'] == '5') {
+					$val['type'] = "商品状态为";
+					if ($val['after_change'] == 5) {
 						$val['msg'] = "客户入住";
-					} elseif ($val['after_change'] == '2') {
+					} elseif ($val['after_change'] == 2) {
 						$val['msg'] = "商家发货";
-					} elseif ($val['after_change'] == '3') {
+					} elseif ($val['after_change'] == 3) {
 						$val['msg'] = "客户收货";
 					}
 				} elseif ($val['type'] == 'paystatus') {
-					if ($val['after_change'] == '1') {
-						$val['msg'] = "订单支付成功";
+					$val['type'] = "";
+					if ($val['after_change'] == 1) {
+						$val['msg'] = "成功支付订单";
 					}
 				} elseif ($val['type'] == 'refund') {
-					if ($val['after_change'] == '1') {
-						$val['msg'] = "订单退款申请成功";
+					$val['type'] = "";
+					if ($val['after_change'] == 1) {
+						$val['msg'] = "退款申请成功";
 					}
 				} elseif ($val['type'] == 'refund_status') {
-					if ($val['after_change'] == '2') {
+					if ($val['after_change'] == 2) {
+						$val['type'] = "退款状态为";
 						$val['msg'] = "订单退款成功";
 					}
 				}
+			}
+			if ($val['clerk_type'] == 1) {
+				$val['clerk_type'] = '用户';
+			} elseif ($val['clerk_type'] == 2) {
+				$val['clerk_type'] = '后台操作';
+			} elseif ($val['clerk_type'] == 3) {
+				$val['clerk_type'] = '店员操作';
 			}
 		}
 		unset($val);
