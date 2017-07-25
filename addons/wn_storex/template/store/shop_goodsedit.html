@@ -72,6 +72,22 @@
 			</div>
 			{if $store['store_type'] != STORE_TYPE_HOTEL}
 			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">单位</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="unit" id="unit" value="{$item['unit']}" class="form-control">
+					<span class="help-block">单位只能是2个字符</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">重量</label>
+				<div class="col-sm-9 col-xs-12">
+					<div class="input-group">
+					<input type="text" name="weight" id="weight" value="{$item['weight']}" class="form-control">
+					<span class="input-group-addon">千克</span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">运费设置</label>
 				<div class="col-sm-9 col-xs-12">
 					<div class="input-group">
@@ -216,12 +232,20 @@
 			}
 		});
 	});
-	$("#sub_title").blur(function(){
+	$("#sub_title").blur(function() {
 		var sub_title = $("#sub_title").val();
 		if (sub_title.length > 12) {
 			slice_sub_title = sub_title.slice(0, 12);
 			$("#sub_title").val(slice_sub_title);
 			util.message("副标题超出范围");
+		}
+	});
+	$("#unit").blur(function() {
+		var unit = $("#unit").val();
+		if (unit.length > 2) {
+			slice_unit = unit.slice(0, 2);
+			$("#unit").val(slice_unit);
+			util.message("单位超出范围");
 		}
 	});
 </script>

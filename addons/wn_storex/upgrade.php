@@ -632,9 +632,15 @@ if (!pdo_fieldexists('storex_goods', 'sub_title')) {
 if (pdo_fieldexists('storex_bases', 'category_set')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " DROP `category_set`;");
 }
-
+//商品增加标签，单位，重量属性
 if (!pdo_fieldexists('storex_goods', 'tag')) {
 	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `tag` INT(11) NOT NULL;");
+}
+if (!pdo_fieldexists('storex_goods', 'unit')) {
+	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `unit` VARCHAR(12) NOT NULL COMMENT '单位';");
+}
+if (!pdo_fieldexists('storex_goods', 'weight')) {
+	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `weight` DOUBLE NOT NULL COMMENT '重量';");
 }
 
 //处理mobile更新遗留的js，css和svg文件

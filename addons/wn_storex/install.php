@@ -314,6 +314,8 @@ $sql = "
 	`store_type` int(8) NOT NULL DEFAULT '0',
 	`express_set` text NOT NULL COMMENT '运费设置',
 	`tag` int(11) NOT NULL,
+	`unit` varchar(12) NOT NULL COMMENT '单位',
+	`weight` double NOT NULL COMMENT '重量',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;

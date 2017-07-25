@@ -166,6 +166,8 @@ if ($op == 'edit') {
 				'full_free' => is_numeric($_GPC['full_free']) ? $_GPC['full_free'] : 0,
 			);
 			$goods['express_set'] = iserializer($express_set);
+			$goods['unit'] = trim($_GPC['unit']);
+			$goods['weight'] = sprintf("%.2f", $_GPC['weight']);
 			$data = array_merge($goods, $common);
 		} else {
 			$room = array(
