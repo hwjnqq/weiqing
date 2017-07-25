@@ -442,6 +442,16 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `orderid` (`orderid`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_tags` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`uniacid` int(11) NOT NULL,
+	`storeid` int(11) NOT NULL,
+	`title` varchar(48) NOT NULL COMMENT '标签名称',
+	`status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态 1开启，2关闭',
+	`displayorder` int(10) NOT NULL COMMENT '排序',
+	PRIMARY KEY (`id`)
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 ";
 pdo_run($sql);
 
@@ -623,6 +633,9 @@ if (pdo_fieldexists('storex_bases', 'category_set')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " DROP `category_set`;");
 }
 
+if (!pdo_fieldexists('storex_goods', 'tag')) {
+	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `tag` INT(11) NOT NULL;");
+}
 
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');

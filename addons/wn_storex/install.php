@@ -313,6 +313,7 @@ $sql = "
 	`sold_num` int(11) NOT NULL DEFAULT '0' COMMENT '已售的数量',
 	`store_type` int(8) NOT NULL DEFAULT '0',
 	`express_set` text NOT NULL COMMENT '运费设置',
+	`tag` int(11) NOT NULL,
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
@@ -737,6 +738,16 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `orderid` (`orderid`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_tags` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`uniacid` int(11) NOT NULL,
+	`storeid` int(11) NOT NULL,
+	`title` varchar(48) NOT NULL COMMENT '标签名称',
+	`status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态 1开启，2关闭',
+	`displayorder` int(10) NOT NULL COMMENT '排序',
+	PRIMARY KEY (`id`)
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 ";
 
 pdo_run($sql);

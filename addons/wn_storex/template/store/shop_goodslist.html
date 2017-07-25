@@ -6,12 +6,19 @@
 			<div class="wn-tabs__item wn-tabs__item--active">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">商品列表</a>
 			</div>
+			{if $store['store_type'] == STORE_TYPE_HOTEL}
 			<div class="wn-tabs__item">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_room_status', array('storeid' => $_GPC['storeid']))}">维护房量/房态</a>
 			</div>
 			<div class="wn-tabs__item">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_room_price', array('storeid' => $_GPC['storeid']))}">维护房价</a>
 			</div>
+			{/if}
+			{if $store['store_type'] != STORE_TYPE_HOTEL}
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_tagmanage', array('storeid' => $_GPC['storeid']))}">标签管理</a>
+			</div>
+			{/if}
 		</div>
 		<div class="wn-main__search clearfix">
 			<div class="wn-main__search__form" style="width: 600px">
@@ -63,9 +70,10 @@
 					<th style="width:100px;">商品类型</th>
 					<th style="width:100px;">房型排序号</th>
 					{else}
+					<th style='width:100px;'>商品标签</th>
 					<th style="width:100px;">商品排序号</th>
 					{/if}
-					<th style='width:200px;'>前台价（原价)</th>
+					<th style='width:120px;'>前台价（原价)</th>
 					<th style='width:120px;'>优惠价（现价)</th>
 					<th style='width:100px;'>积分</th>
 					<th style='width:100px;'>状态</th>
@@ -93,6 +101,10 @@
 					{else}
 					<td>非房型</td>
 					{/if}
+				{else}
+				<td>
+					<a title="标签" class="tag_select_mode" data-id="{$item['id']}"> <span class='label label-success'>{if !empty($tags[$item['tag']])}{$tags[$item['tag']]['title']}{else}打标签{/if}</span></a>
+				</td>
 				{/if}
 				<td>{$item['sortid']}</td>
 				<td>{$item['oprice']}</td>
@@ -119,7 +131,7 @@
 			</tr>
 			{/loop}
 			<tr>
-				<td colspan="10">
+				<td colspan="11">
 					<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
 					<input type="button" class="btn btn-primary edit_all" name="showall" value="批量显示" />
 					<input type="button" class="btn btn-primary edit_all" name="hideall" value="批量隐藏" />
@@ -133,6 +145,28 @@
 		</table>
 	</div>
 </div>
+
+<div class="modal fade" id="tag-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel">标签选择</h4>
+			</div>
+			<div class="modal-body clearfix form-horizontal">
+				<input name="goodsid" value="" type="hidden">
+				{if !empty($tags)}
+				{loop $tags $tid $info}
+				<button type="button" class="btn btn-default tag_check" data-tid="{$tid}">{$info['title']}</button>
+				{/loop}
+				{else}
+				暂无标签
+				{/if}
+			</div>
+		</div>
+	</div>
+</div>
+
 <div class="modal fade" id="entry-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
 	<div class="modal-dialog">
 		<div class="modal-content">
@@ -186,6 +220,27 @@
 			});
 		});
 		
+		$('.tag_select_mode').click(function() {
+			var id = $(this).data('id');
+			$('input[name=goodsid]').val(id);
+			$('#tag-modal').modal('show');
+		});
+		
+		$('.tag_check').click(function() {
+			var tid = $(this).data('tid');
+			var goodsid = $('input[name=goodsid]').val();
+			$.post("{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'set_tag', 'storeid' => $storeid))}", {tid : tid, goodsid : goodsid},function(data) {
+				if (data.message.errno ==0) {
+					util.message(data.message.message, 'refresh', 'success');
+					return;
+				} else {
+					util.message(data.message.message);
+					return;
+				}
+			}, 'json');
+			$('#tag-modal').modal('hide');
+		});
+		
 		$('.check_all').click(function() {
 			var checked = $(this).get(0).checked;
 			$('input[type=checkbox]').prop("checked",checked);
@@ -201,7 +256,7 @@
 				check.each(function(i) {
 					id[i] = $(this).val();
 				});
-				$.post("{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'deleteall', 'storeid' => $storeid))}", {idArr:id},function(data) {
+				$.post("{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'deleteall', 'storeid' => $storeid))}", {idArr : id}, function(data) {
 					if (data.message.errno ==0) {
 						util.message(data.message.message, 'refresh', 'success');
 						return;

@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('display', 'edit', 'delete', 'deleteall', 'showall', 'status', 'copyroom', 'qrcode_entry');
+$ops = array('display', 'edit', 'delete', 'deleteall', 'showall', 'status', 'copyroom', 'qrcode_entry', 'set_tag');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $storeid = intval($_GPC['storeid']);
@@ -85,6 +85,7 @@ if ($op == 'display') {
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename($table) . " r LEFT JOIN " . tablename('storex_bases') . " h ON " . $join_condition . " WHERE r.weid = '{$_W['uniacid']}' $sql", $params);
 	$list = format_list($category, $list);
 	$pager = pagination($total, $pindex, $psize);
+	$tags = pdo_getall('storex_tags', array('storeid' => $storeid, 'uniacid' => $_W['uniacid']), array(), 'id');
 	include $this->template('store/shop_goodslist');
 }
 
@@ -272,5 +273,20 @@ if ($op == 'qrcode_entry') {
 		} else {
 			message(error(-1, '参数错误'), '', 'ajax');
 		}
+	}
+}
+
+if ($op == 'set_tag') {
+	$tid = $_GPC['tid'];
+	$goodsid = $_GPC['goodsid'];
+	if (!empty($tid) && !empty($goodsid)) {
+		$result = pdo_update('storex_goods', array('tag' => $tid), array('weid' => $_W['uniacid'], 'id' => $goodsid));
+		if (!is_error($result)) {
+			message(error(0, '设置标签成功'), '', 'ajax');
+		} else {
+			message(error(-1, '设置标签成功'), '', 'ajax');
+		}
+	} else {
+		message(error(-1, '参数错误'), '', 'ajax');
 	}
 }

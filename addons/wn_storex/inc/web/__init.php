@@ -52,6 +52,7 @@ $aside_nav = array(
 			'shop_goodsmanage',
 			'shop_room_status',
 			'shop_room_price',
+			'shop_tagmanage',
 		)
 	),
 	'shop_comment' => array(
