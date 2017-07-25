@@ -1,0 +1,174 @@
+{template 'common/header-storex'}
+<div class="wn-main wn-main--without">
+	<div class="wn-main__head">标签管理</div>
+	<div class="wn-main__content">
+		{if $op == 'display'}
+		<div class="wn-tabs">
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">商品列表</a>
+			</div>
+			<div class="wn-tabs__item wn-tabs__item--active">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_tagmanage', array('storeid' => $_GPC['storeid']))}">标签管理</a>
+			</div>
+		</div>
+		<div class="wn-main__search__action">
+			<a href="{php echo $this->createWebUrl('shop_tagmanage', array('op' => 'edit', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">+添加标签</a>
+		</div>
+		{if !empty($tags)}
+		<table class="table table-hover wn-table table-bordered" >
+			<thead class="navbar-inner">
+				<tr>
+					<th class='with-checkbox' style='width:30px;'>
+						<input type="checkbox" class="check_all" />
+					</th>
+					<th style="width:100px;">标签名称</th>
+					<th style="width:100px;">标签排序</th>
+					<th style="width:150px;">标签状态</th>
+					<th style="width:420px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+			{loop $tags $tag}
+				<tr>
+					<td class="with-checkbox">
+						<input type="checkbox" name="check" value="{$tag['id']}">
+					</td>
+					<td>{$tag['title']}</td>
+					<td>{$tag['displayorder']}</td>
+					<td>{if $tag['status'] == 2}
+						<a title="隐藏" href="javascript:;" onclick="drop_confirm('您确定要开启此标签吗?', '{php echo $this->createWebUrl('shop_tagmanage',array('op' => 'status', 'status' => 1, 'id' => $tag['id'], 'storeid' => $storeid))}');"><span class='label label-default'>隐藏</span></a>
+						{elseif $tag['status'] == 1}
+						<a title="显示" href="javascript:;" onclick="drop_confirm('您确定要停用此标签吗?', '{php echo $this->createWebUrl('shop_tagmanage',array('op' => 'status', 'status' => 2, 'id' => $tag['id'], 'storeid' => $storeid))}');"><span class='label label-success'>显示</span></a>
+						{/if}
+					</td>
+					<td>
+						<div class="wn-table__link">
+							<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_tagmanage',array('op' => 'edit', 'id' => $tag['id'], 'storeid' => $storeid))}" title="编辑">编辑</a>
+							<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('shop_tagmanage',array('op' => 'delete', 'id' => $tag['id'], 'storeid' => $storeid))}');" title="删除" >删除</a>
+						</div>
+					</td>
+				</tr>
+				{/loop}
+				<tr>
+					<td colspan="10">
+						<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
+						<input type="button" class="btn btn-primary edit_all" name="showall" value="批量显示" />
+						<input type="button" class="btn btn-primary edit_all" name="hideall" value="批量隐藏" />
+						<div class="pull-right">
+							{$pager}
+						</div>
+					</td>
+				</tr>
+			</tbody>
+			<input name="token" type="hidden" value="{$_W['token']}" />
+		</table>
+		{else}
+		暂无标签
+		{/if}
+		{/if}
+		{if $op == 'edit'}
+		<div class="wn-main__search__action">
+			<a href="{php echo $this->createWebUrl('shop_tagmanage', array('op' => 'display', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">+返回标签列表</a>
+		</div>
+		<div class="wn-main__content">
+			<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+				<input type="hidden" name="id" value="{$tag['id']}">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">标签名称</label>
+					<div class="col-sm-6 col-xs-12">
+						<input type="text" name="title" id="title" value="{$tag['title']}" class="form-control">
+						<span class='help-block'>最多只能填写4个字符</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">标签排序编号</label>
+					<div class="col-sm-6 col-xs-12">
+						<input type="text" name="displayorder" value="{$tag['displayorder']}" class="form-control">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">开启状态</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="status" value="1" {if $tag['status'] == 1 || empty($tag['status'])} checked {/if}/>启用
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="status" value="2" {if $tag['status'] == 2} checked {/if}/>停用
+						</label>
+						<span class='help-block'>手机前台是否启用</span>
+					</div>
+				</div>
+				<div class="form-group col-sm-12">
+					<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</div>
+			</form>
+		</div>
+		{/if}
+	</div>
+</div>
+<script type="text/javascript">
+	$(function() {
+		$('.check_all').click(function() {
+			var checked = $(this).get(0).checked;
+			$('input[type=checkbox]').prop("checked",checked);
+		});
+		$('input[name=deleteall]').click(function() {
+			var check = $("input[name='check']:checked");
+			if (check.length < 1) {
+				util.message('请选择要删除的记录!');
+				return;
+			}
+			if (confirm("确认要删除选择的记录?")) {
+				var id = new Array();
+				check.each(function(i) {
+					id[i] = $(this).val();
+				});
+				$.post("{php echo $this->createWebUrl('shop_tagmanage',array('op' => 'deleteall', 'storeid' => $storeid))}", {idArr:id},function(data) {
+					if (data.message.errno ==0) {
+						util.message(data.message.message, 'refresh', 'success');
+						return;
+					} else {
+						util.message(data.message.message);
+						return;
+					}
+				},'json');
+			}
+		});
+		
+		$('.edit_all').click(function() {
+			var name = $(this).attr('name');
+			var check = $("input[name='check']:checked");
+			if (check.length < 1) {
+				util.message('请选择要操作的记录!');
+			}
+			var id = new Array();
+			check.each(function(i) {
+				id[i] = $(this).val();
+			});
+			$.post("{php echo $this->createWebUrl('shop_tagmanage',array('op' => 'showall', 'storeid' => $storeid))}", {idArr:id, show_name:name},function(data) {
+				if (data.message.errno ==0) {
+					util.message(data.message.message, 'refresh', 'success');
+				} else {
+					util.message(data.message.message);
+				}
+			},'json');
+		});
+	});
+	
+	$("#title").blur(function(){
+		var title = $("#title").val();
+		if (title.length > 4) {
+			slice_title = title.slice(0, 4);
+			$("#title").val(slice_title);
+			util.message("标签长度超出范围");
+		}
+	});
+	
+	function drop_confirm(msg, url) {
+		if (confirm(msg)) {
+			window.location = url;
+		}
+	}
+</script>
+{template 'common/footer-storex'}
