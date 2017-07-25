@@ -65,7 +65,13 @@ if ($op == 'post') {
 		} else {
 			pdo_update('storex_bases', $common_insert, array('id' => $id));
 			if (!empty($store_type)) {
-				pdo_update('storex_hotel', $insert, array('store_base_id' => $id));
+				$hotel_info = pdo_get('storex_hotel', array('weid' => $_W['uniacid'], 'store_base_id' => $id), array('id'));
+				if (!empty($hotel_info)) {
+					pdo_update('storex_hotel', $insert, array('store_base_id' => $id));
+				} else {
+					$insert['store_base_id'] = $id;
+					pdo_insert('storex_hotel', $insert);
+				}
 			}
 		}
 		message('店铺信息保存成功!', $this->createWebUrl('shop_index', array('storeid' => $id)), 'success');

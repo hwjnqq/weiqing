@@ -50,7 +50,9 @@ if ($op == 'display') {
 				$value['thumb'] = tomedia($value['thumb']);
 			}
 		}
-		$homepage_list[$recommend_key] = $recommend_info;
+		if (!empty($recommend_key)) {
+			$homepage_list[$recommend_key] = $recommend_info;
+		}
 	} else {
 		$homepage_list = $default_module;
 	}
