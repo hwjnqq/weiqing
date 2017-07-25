@@ -620,7 +620,7 @@ if (!pdo_fieldexists('storex_goods', 'sub_title')) {
 	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `sub_title` VARCHAR(12) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '副标题';");
 }
 if (pdo_fieldexists('storex_bases', 'category_set')) {
-	pdo_query("UPDATE " . tablename('storex_bases') . " SET `category_set` = 1;");
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " DROP `category_set`;");
 }
 
 

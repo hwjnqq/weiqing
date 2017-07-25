@@ -79,9 +79,11 @@ if ($op == 'display') {
 	}
 	$show_order_lists = pdo_fetchall("SELECT o.*, h.title AS hoteltitle, r.title AS roomtitle, r.thumb " . $field . " FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') . " h ON o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r ON r.id = o.roomid WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
 	getOrderUniontid($show_order_lists);
+	$version = false;
 	if (check_ims_version()) {
 		$plugin_list = get_plugin_list();
 		if (!empty($plugin_list) && !empty($plugin_list['wn_storex_plugin_printer'])) {
+			$version = true;
 			$printers = store_printers($storeid);
 			if (!empty($printers) && is_array($printers)) {
 				foreach ($printers as $k => $print) {
