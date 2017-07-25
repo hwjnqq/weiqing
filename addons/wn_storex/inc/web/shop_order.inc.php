@@ -79,21 +79,18 @@ if ($op == 'display') {
 	}
 	$show_order_lists = pdo_fetchall("SELECT o.*, h.title AS hoteltitle, r.title AS roomtitle, r.thumb " . $field . " FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') . " h ON o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r ON r.id = o.roomid WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
 	getOrderUniontid($show_order_lists);
-	$version = false;
-	if (check_ims_version()) {
-		$plugin_list = get_plugin_list();
-		if (!empty($plugin_list) && !empty($plugin_list['wn_storex_plugin_printer'])) {
-			$version = true;
-			$printers = store_printers($storeid);
-			if (!empty($printers) && is_array($printers)) {
-				foreach ($printers as $k => $print) {
-					if ($print['disabled'] == 2) {
-						if ($print['status'] != 2) {
-							unset($printers[$k]);
-						}
-					} elseif ($print['disabled'] == 1) {
+	$printer_plugin_status = false;
+	if (check_plugin_isopen('wn_storex_plugin_printer')) {
+		$printer_plugin_status = true;
+		$printers = store_printers($storeid);
+		if (!empty($printers) && is_array($printers)) {
+			foreach ($printers as $k => $print) {
+				if ($print['disabled'] == 2) {
+					if ($print['status'] != 2) {
 						unset($printers[$k]);
 					}
+				} elseif ($print['disabled'] == 1) {
+					unset($printers[$k]);
 				}
 			}
 		}
@@ -287,17 +284,14 @@ if ($op == 'edit') {
 					$params['templateid'] = $setting['templateid'];
 					order_sure_notice($params);
 					
-					if (check_ims_version()) {
-						$plugins = get_plugin_list();
-						if (!empty($plugins) && !empty($plugins['wn_storex_plugin_sms'])) {
-							mload()->model('sms');
-							$content = array(
-								'store' => $store['title'],
-								'ordersn' => $item['ordersn'],
-								'price' => $item['sum_price'],
-							);
-							sms_send($item['mobile'], $content, 'user');
-						}
+					if (check_plugin_isopen('wn_storex_plugin_sms')) {
+						mload()->model('sms');
+						$content = array(
+							'store' => $store['title'],
+							'ordersn' => $item['ordersn'],
+							'price' => $item['sum_price'],
+						);
+						sms_send($item['mobile'], $content, 'user');
 					}
 				}
 			
@@ -500,17 +494,11 @@ if ($op == 'print_order') {
 }
 
 if ($op == 'check_print_plugin') {
-	$plugins = array();
-	if (check_ims_version()) {
-		$plugins = get_plugin_list();
-		if (!empty($plugins) && !empty($plugins['wn_storex_plugin_printer'])) {
-			$url = wurl('site/entry/printerset', array('op' => 'display', 'm'=> 'wn_storex_plugin_printer'), true);
-			header("Location: {$url}");
-			exit;
-		} else {
-			message('该店铺未安装或设置打印机插件！', referer(), 'error');
-		}
+	if (check_plugin_isopen('wn_storex_plugin_printer')) {
+		$url = wurl('site/entry/shop_plugin_printer', array('op' => 'post', 'm'=> 'wn_storex', 'storeid' => $storeid), true);
+		header("Location: {$url}");
+		exit;
 	} else {
-		message('该微擎版本不支持打印机插件！', referer(), 'error');
+		message('微擎版本不支持插件或店铺未安装或未设置打印机插件', referer(), 'error');
 	}
 }

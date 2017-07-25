@@ -223,17 +223,14 @@ if ($op == 'edit_order') {
 			$params['templateid'] = $setting['templateid'];
 			order_sure_notice($params);
 			
-			if (check_ims_version()) {
-				$plugins = get_plugin_list();
-				if (!empty($plugins) && !empty($plugins['wn_storex_plugin_sms'])) {
-					mload()->model('sms');
-					$content = array(
-						'store' => $store_info['title'],
-						'ordersn' => $item['ordersn'],
-						'price' => $item['sum_price'],
-					);
-					sms_send($item['mobile'], $content, 'user');
-				}
+			if (check_plugin_isopen('wn_storex_plugin_sms')) {
+				mload()->model('sms');
+				$content = array(
+					'store' => $store_info['title'],
+					'ordersn' => $item['ordersn'],
+					'price' => $item['sum_price'],
+				);
+				sms_send($item['mobile'], $content, 'user');
 			}
 		}
 	

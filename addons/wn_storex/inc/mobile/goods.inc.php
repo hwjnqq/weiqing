@@ -351,39 +351,36 @@ if ($op == 'order') {
 		write_log($logs);
 	}
 	
-	if (check_ims_version()) {
-		$plugins = get_plugin_list();
-		if (!empty($plugins) && !empty($plugins['wn_storex_plugin_sms'])) {
-			$clerks = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'status' => 1), array('mobile', 'permission'));
-			if (!empty($clerks)) {
-				foreach ($clerks as $k => $val) {
-					if (!preg_match(REGULAR_MOBILE, $val['mobile'])) {
-						unset($clerks[$k]);
-						continue;
+	if (check_plugin_isopen('wn_storex_plugin_sms')) {
+		$clerks = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'status' => 1), array('mobile', 'permission'));
+		if (!empty($clerks)) {
+			foreach ($clerks as $k => $val) {
+				if (!preg_match(REGULAR_MOBILE, $val['mobile'])) {
+					unset($clerks[$k]);
+					continue;
+				}
+				$permission = iunserializer($val['permission']);
+				if (!empty($permission[$store_info['id']])) {
+					$exist = false;
+					foreach ($permission[$store_info['id']] as $v) {
+						if ($v == 'wn_storex_permission_order') {
+							$exist = true;
+						}
 					}
-					$permission = iunserializer($val['permission']);
-					if (!empty($permission[$store_info['id']])) {
-						$exist = false;
-						foreach ($permission[$store_info['id']] as $v) {
-							if ($v == 'wn_storex_permission_order') {
-								$exist = true;
-							}
-						}
-						if (empty($exist)) {
-							unset($clerks[$k]);
-						}
+					if (empty($exist)) {
+						unset($clerks[$k]);
 					}
 				}
 			}
-			if (!empty($clerks)) {
-				mload()->model('sms');
-				$content = array(
-					'store' => $store_info['title'],
-					'price' => $insert['sum_price'],
-				);
-				foreach ($clerks as $value) {
-					sms_send($value['mobile'], $content, 'clerk');
-				}
+		}
+		if (!empty($clerks)) {
+			mload()->model('sms');
+			$content = array(
+				'store' => $store_info['title'],
+				'price' => $insert['sum_price'],
+			);
+			foreach ($clerks as $value) {
+				sms_send($value['mobile'], $content, 'clerk');
 			}
 		}
 	}

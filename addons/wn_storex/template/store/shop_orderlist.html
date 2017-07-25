@@ -141,7 +141,7 @@
 				<td class="wn-table--border">{$row['sum_price']}</td>
 				<td class="text-left">
 					<div class="wn-table__link">
-						{if !empty($version)}
+						{if !empty($printer_plugin_status)}
 						<div class="dropdown" style="display: inline-block">
 							<a id="dLabel" data-target="#" href="#" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" class="wn-table__link__item">打印小票</i></a>
 							<ul class="dropdown-menu" aria-labelledby="dLabel">
@@ -150,7 +150,7 @@
 									<li><a onclick="return confirm('是否打印小票?');return false;" href="{php echo $this->createWebUrl('shop_order', array('op' => 'print_order', 'id' => $row['id'], 'print' => $p['id'], 'storeid' => $storeid))}">{$p['name']}</a></li>
 									{/loop}
 								{else}
-									<li><a href="{php echo $this->createWebUrl('shop_order', array('op'=>'check_print_plugin'))}" target="_blank">添加打印机</a></li>
+									<li><a href="{php echo $this->createWebUrl('shop_order', array('op'=>'check_print_plugin', 'storeid' => $storeid))}" target="_blank">添加打印机</a></li>
 								{/if}
 							</ul>
 						</div>
