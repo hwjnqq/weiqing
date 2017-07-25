@@ -3,7 +3,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('goods_list', 'more_goods', 'class', 'sub_class');
+$ops = array('goods_list', 'more_goods', 'class', 'sub_class', 'goods_search');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -207,4 +207,48 @@ if ($op == 'sub_class') {
 		$list['class'] = $class;
 		wmessage(error(0, $list), '', 'ajax');
 	}
+}
+
+if ($op == 'goods_search') {
+	$id = intval($_GPC['id']);
+	$keywords = trim($_GPC['keywords']);
+	$store = get_store_info($id);
+	$table = gettablebytype($store['store_type']);
+	$condition = array('title LIKE' => '%' . $keywords . '%', 'status' => 1);
+	$fields = array('id', 'title', 'thumb', 'thumbs', 'sub_title', 'oprice', 'cprice', 'device');
+	if ($table == 'storex_room') {
+		$condition['is_house !='] = 1;
+		$condition['hotelid'] = $id;
+		$fields[] = 'hotelid';
+		$fields[] = 'is_house';
+	} else {
+		$fields[] = 'store_base_id';
+		$condition['store_base_id'] = $id;
+	}
+	$pindex = max(1, intval($_GPC['page']));
+	$psize = 1;
+
+	$goods = pdo_getall($table, $condition, $fields, '', 'displayorder DESC', array($pindex, $psize));
+	$total = count(pdo_getall($table, $condition));
+	if (!empty($goods) && is_array($goods)) {
+		foreach ($goods as &$info) {
+			if (!empty($info['thumb'])) {
+				$info['thumb'] = tomedia($info['thumb']);
+			}
+			if (!empty($info['thumbs'])) {
+				$info['thumbs'] = format_url(iunserializer($info['thumbs']));
+			}
+		}
+		unset($info);
+	}
+	$page_array = get_page_array($total, $pindex, $psize);
+	$list = array(
+		'list' => $goods,
+		'psize' => $psize,
+		'result' => 1,
+		'total' => $total,
+		'isshow' => $page_array['isshow'],
+		'nindex' => $page_array['nindex'],
+	);
+	wmessage(error(0, $list), '', 'ajax');
 }
