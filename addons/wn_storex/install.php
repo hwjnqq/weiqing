@@ -750,6 +750,19 @@ $sql = "
 	`displayorder` int(10) NOT NULL COMMENT '排序',
 	PRIMARY KEY (`id`)
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_room_items` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+	`storeid` int(10) unsigned NOT NULL DEFAULT '0',
+	`roomid` int(10) unsigned NOT NULL DEFAULT '0',
+	`roomnumber` varchar(100) NOT NULL COMMENT '房间号',
+	`status` int(11) DEFAULT '0',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `storeid` (`storeid`),
+	KEY `roomid` (`roomid`)
+	) DEFAULT CHARSET=utf8;
 ";
 
 pdo_run($sql);
