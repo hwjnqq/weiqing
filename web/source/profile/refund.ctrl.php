@@ -18,6 +18,9 @@ if ($do == 'display') {
 	if (empty($setting['wechat_refund'])) {
 		$setting['wechat_refund'] = array('switch' => 0, 'key' => '', 'cert' => '');
 	}
+	if (empty($setting['ali_refund'])) {
+		$setting['ali_refund'] = array('switch' => 0, 'private_key' => '');
+	}
 }
 
 if ($do == 'save_setting') {
@@ -49,6 +52,19 @@ if ($do == 'save_setting') {
 				itoast('apiclient_key.pem证书内容不合法，请重新上传');
 			}
 			$param['key'] = authcode($param['key'], 'ENCODE');
+		}
+	} elseif ($type == 'ali_refund') {
+		if (empty($_FILES['private_key']['tmp_name'])) {
+			if (empty($setting['payment']['ali_refund']['private_key']) && $param['switch'] == 1) {
+				itoast('请上传rsa_private_key.pem证书', '', 'info');
+			}
+			$param['private_key'] = $setting['payment']['ali_refund']['private_key'];
+		} else {
+			$param['private_key'] = file_get_contents($_FILES['private_key']['tmp_name']);
+			if (strexists($param['private_key'], '<?php') || substr($param['private_key'], 0, 27) != '-----BEGIN RSA PRIVATE KEY-' || substr($param['private_key'], -24, 23) != 'ND RSA PRIVATE KEY-----') {
+				itoast('rsa_private_key.pem证书内容不合法，请重新上传');
+			}
+			$param['private_key'] = authcode($param['private_key'], 'ENCODE');
 		}
 	}
 	$pay_setting[$type] = $param;

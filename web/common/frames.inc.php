@@ -132,6 +132,19 @@ $we7_system_menu['wxapp'] = array(
 	'icon' => 'wi wi-small-routine',
 	'url' => url('wxapp/display/home'),
 	'section' => array(
+		'wxapp_entrance' => array(
+			'title' => '小程序入口',
+			'menu' => array(
+				'module_link' => array(
+					'title' => "入口页面",
+					'url' => url('wxapp/version/module_entrance_link'),
+					'is_display' => 1,
+					'icon' => 'wi wi-data-synchro',
+					'permission_name' => 'wxapp_module_entrance_link',
+				),
+			),
+			'is_display' => true,
+		),
 		'wxapp_module' => array(
 			'title' => '应用',
 			'menu' => array(),
@@ -242,6 +255,32 @@ $we7_system_menu['system'] = array(
 					'url' => url('account/manage', array('account_type' => '4')),
 					'icon' => 'wi wi-wxapp',
 					'permission_name' => 'system_wxapp',
+					'sub_permission' => array(
+						array(
+							'title' => '小程序管理设置',
+							'permission_name' => 'system_wxapp_manage',
+						),
+						array(
+							'title' => '添加小程序',
+							'permission_name' => 'system_wxapp_post',
+						),
+						array(
+							'title' => '小程序停用',
+							'permission_name' => 'system_wxapp_stop',
+						),
+						array(
+							'title' => '小程序回收站',
+							'permission_name' => 'system_wxapp_recycle',
+						),
+						array(
+							'title' => '小程序删除',
+							'permission_name' => 'system_wxapp_delete',
+						),
+						array(
+							'title' => '小程序恢复',
+							'permission_name' => 'system_wxapp_recover',
+						),
+					),
 				),
 				'system_module_wxapp' => array(
 					'title' => '小程序应用',
@@ -302,6 +341,20 @@ $we7_system_menu['system'] = array(
 					'url' => url('module/group'),
 					'icon' => 'wi wi-appjurisdiction',
 					'permission_name' => 'system_module_group',
+					'sub_permission' => array(
+						array(
+							'title' => '添加应用权限组',
+							'permission_name' => 'system_module_group_add',
+						),
+						array(
+							'title' => '编辑应用权限组',
+							'permission_name' => 'system_module_group_post',
+						),
+						array(
+							'title' => '删除应用权限组',
+							'permission_name' => 'system_module_group_del',
+						),
+					),
 				),
 				'system_user_group' => array(
 					'title' => '用户权限组',
@@ -309,6 +362,10 @@ $we7_system_menu['system'] = array(
 					'icon' => 'wi wi-userjurisdiction',
 					'permission_name' => 'system_user_group',
 					'sub_permission' => array(
+						array(
+							'title' => '添加用户组',
+							'permission_name' => 'system_user_group_add',
+						),
 						array(
 							'title' => '编辑用户组',
 							'permission_name' => 'system_user_group_post',
@@ -321,7 +378,7 @@ $we7_system_menu['system'] = array(
 				),
 			)
 		),
-		'acticle' => array(
+		'article' => array(
 			'title' => '文章/公告',
 			'menu' => array(
 				'system_article' => array(

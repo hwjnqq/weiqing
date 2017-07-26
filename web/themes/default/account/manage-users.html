@@ -14,7 +14,6 @@
 			<th class="text-left">用户名</th>
 			<th>权限身份</th>
 			<th class="text-right">
-				{if $_W['isfounder'] && $_W['user']['founder_groupid'] != ACCOUNT_MANAGE_GROUP_VICE_FOUNDER}<span class="btn btn-link color-default" data-toggle="modal" data-target="#user-vice-modal">添加副创始人</span>{/if}
 				{if $_W['isfounder'] && empty($owner['uid'])}<span class="btn btn-link color-default" data-toggle="modal" data-target="#owner-modal">添加主管理员</span>{/if}
 				<span class="btn btn-link color-default" data-toggle="modal" data-target="#user-modal">添加使用者</span>
 			</th>
@@ -30,7 +29,7 @@
 				<div class="link-group">
 					<a href="javascript:;" ng-if="permission.isfounder == 1">创始人拥有系统最高权限 </a>
 					{if $_W['isfounder']}<a href="javascript:;" ng-if="permission.role == 'owner' && permission.isfounder == 0" ng-click="changeOwner(permission.username)">修改</a>{/if}
-					{if $_W['isfounder'] && $_W['user']['founder_groupid'] != ACCOUNT_MANAGE_GROUP_VICE_FOUNDER}<a href="javascript:;" ng-if="permission.role == 'vice_founder' && permission.isfounder == 0" ng-click="changeVice(permission.username)">修改</a>{/if}
+					{if $_W['isfounder'] && uni_user_permission_check('system_edit_vice_founder')}<a href="javascript:;" ng-if="permission.role == 'vice_founder' && permission.isfounder == 0" ng-click="changeVice(permission.username)">修改</a>{/if}
 					<a href="javascript:;" ng-if="permission.isfounder == 0 && (((state == 'founder' || state == 'owner') && (permission.role == 'manager' || permission.role == 'operator')) || (state == 'manager' && permission.role == 'operator'))" ng-click="setPermission(permission.uid)">权限设置  </a>
 					<a href="javascript:;" ng-if="permission.isfounder == 0 && (((state == 'founder' || state == 'owner') && (permission.role == 'manager' || permission.role == 'operator')) || (state == 'manager' && permission.role == 'operator'))" ng-click="delPermission(permission.uid)">删除 </a>
 				</div>

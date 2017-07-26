@@ -6,6 +6,7 @@
 defined('IN_IA') or exit('Access Denied');
 load()->model('module');
 load()->model('user');
+load()->model('module');
 
 $dos = array('display', 'delete', 'post', 'save');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
@@ -20,50 +21,20 @@ if ($do != 'display' && $_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER) {
 if ($do == 'save') {
 	$modules = empty($_GPC['modules']) ? array() : (array)$_GPC['modules'];
 	$wxapp = empty($_GPC['wxapp']) ? array() : (array)array_keys($_GPC['wxapp']);
+
 	$package_info = array(
 		'id' => intval($_GPC['id']),
 		'name' => $_GPC['name'],
 		'modules' => array_merge($modules, $wxapp),
-		'templates' => $_GPC['templates']
+		'templates' => $_GPC['templates'],
 	);
-	if (user_is_vice_founder()) {
-		$package_info['owner_uid'] = $_W['uid'];
-	}
-	if (empty($package_info['name'])) {
-		iajax(1, '请输入套餐名');
-	}
 
-	if (!empty($package_info['modules'])) {
-		$package_info['modules'] = iserializer($package_info['modules']);
-	}
-	if (!empty($package_info['templates'])) {
-		$templates = array();
-		foreach ($package_info['templates'] as $template) {
-			$templates[] = $template['id'];
-		}
-		$package_info['templates'] = iserializer($templates);
-	}
-	if (!empty($package_info['id'])) {
-		$name_exist = pdo_get('uni_group', array('uniacid' => 0, 'id <>' => $package_info['id'], 'name' => $package_info['name']));
-		if (!empty($name_exist)) {
-			iajax(1, '套餐名已存在');
-		}
-		$packageid = $package_info['id'];
-		unset($package_info['id']);
-		pdo_update('uni_group', $package_info, array('id' => $packageid));
-		cache_build_uni_group();
-		cache_build_account_modules();
+	$package_info = module_save_group_package($package_info);
 
-		iajax(0, '', url('module/group'));
-	} else {
-		$name_exist = pdo_get('uni_group', array('uniacid' => 0, 'name' => $package_info['name']));
-		if (!empty($name_exist)) {
-			iajax(1, '套餐名已存在', '');
-		}
-		pdo_insert('uni_group', $package_info);
-		cache_build_uni_group();
-		iajax(0, '', url('module/group'));
+	if (is_error($package_info)) {
+		iajax(1, $package_info['message'], '');
 	}
+	iajax(0, '', url('module/group'));
 }
 
 if ($do == 'display') {
@@ -73,16 +44,10 @@ if ($do == 'display') {
 		$param['name like'] = "%". trim($_GPC['name']) ."%";
 	}
 	$modules = user_modules($_W['uid']);
+	
 	$modules_group_list = uni_groups();
-
 	if (!empty($modules_group_list)) {
 		foreach ($modules_group_list as $group_key => &$group) {
-			if (user_is_vice_founder()) {
-				if ($group['owner_uid'] != $_W['uid']) {
-					unset($modules_group_list[$group_key]);
-					continue;
-				}
-			}
 			if (empty($group['modules'])) {
 				$group['modules'] = array();
 			}

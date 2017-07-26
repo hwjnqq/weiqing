@@ -57,13 +57,6 @@
 			<td ng-bind="user.end"></td>
 			<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#endtime">修改</a></div></td>
 		</tr>
-		{if !empty($_W['isfounder']) && $user['founder_groupid'] != ACCOUNT_MANAGE_GROUP_VICE_FOUNDER}
-		<tr>
-			<td class="table-label">副创始人姓名</td>
-			<td ng-bind="user.vice_founder_name"></td>
-			<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#vice_founder_name" ng-click="editInfo('vice_founder_name', user.vice_founder_name)">修改</a></div></td>
-		</tr>
-		{/if}
 		{if !empty($user['founder_groupid'])}
 		<tr>
 			<td class="table-label">注册链接</td>

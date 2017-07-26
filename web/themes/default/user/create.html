@@ -49,18 +49,6 @@
 				<span class="help-block"><strong class="text-danger">设置用户组后，系统会根据对应用户组的服务期限对用户的服务开始时间和结束时间进行初始化</strong></span>
 			</div>
 		</div>
-		{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && $_W['user']['founder_groupid'] != ACCOUNT_MANAGE_GROUP_VICE_FOUNDER}
-		<div class="form-group">
-			<label for="" class="control-label col-sm-2">所属副创始人</label>
-			<div class="form-controls col-sm-8">
-				<input type="text" name="vice_founder_name" id="vice_founder" ng-style="{'width': '200px'}" class="form-control" ng-model="user.vice_founder_name" placeholder="" autocomplete="off">
-				<div class="help-block">请输入副创始人姓名</div>
-			</div>
-		</div>
-		{/if}
-		{else}
-		<input type="hidden" name="groupid" value="-1" />
-		<input type="hidden" name="founder_groupid" value="{ACCOUNT_MANAGE_GROUP_VICE_FOUNDER}" />
 		{/if}
 		<div class="form-group">
 			<label for="" class="control-label col-sm-2">备注</label>

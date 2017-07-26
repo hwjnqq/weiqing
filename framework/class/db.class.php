@@ -55,7 +55,6 @@ class DB {
 		}
 		$this->pdo = new $dbclass($dsn, $cfg['username'], $cfg['password'], $options);
 		$this->pdo->setAttribute(pdo::ATTR_EMULATE_PREPARES, false);
-
 		$sql = "SET NAMES '{$cfg['charset']}';";
 		$this->pdo->exec($sql);
 		$this->pdo->exec("SET sql_mode='';");
@@ -82,6 +81,7 @@ class DB {
 			$info['sql'] = $sql;
 			$info['error'] = $this->pdo->errorInfo();
 			$this->debug(false, $info);
+
 		}
 		return $statement;
 	}
@@ -422,7 +422,9 @@ class DB {
 		}
 		if (is_array($params)) {
 			$result['fields'] = '';
+			$index = 0; //字段 操作数组
 			foreach ($params as $fields => $value) {
+				$index++;
 				$operator = '';
 				if (strpos($fields, ' ') !== FALSE) {
 					list($fields, $operator) = explode(' ', $fields, 2);
@@ -451,16 +453,17 @@ class DB {
 					$insql = array();
 					//忽略数组的键值，防止SQL注入
 					$value = array_values($value);
-					foreach ($value as $k => $v) {
-						$insql[] = ":{$suffix}{$fields}_{$k}";
-						$result['params'][":{$suffix}{$fields}_{$k}"] = is_null($v) ? '' : $v;
+					foreach ($value as $v) {
+						$insql[] = ":{$suffix}{$fields}_{$index}";
+						$result['params'][":{$suffix}{$fields}_{$index}"] = is_null($v) ? '' : $v;
+						$index++;
 					}
 					$result['fields'] .= $split . "`$fields` {$operator} (".implode(",", $insql).")";
 					$split = ' ' . $glue . ' ';
 				} else {
-					$result['fields'] .= $split . "`$fields` {$operator}  :{$suffix}$fields";
+					$result['fields'] .= $split . "`$fields` {$operator}  :{$suffix}{$fields}_{$index}";
 					$split = ' ' . $glue . ' ';
-					$result['params'][":{$suffix}$fields"] = is_null($value) || is_array($value) ? '' : $value;
+					$result['params'][":{$suffix}{$fields}_{$index}"] = is_null($value) || is_array($value) ? '' : $value;
 				}
 			}
 		}

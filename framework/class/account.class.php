@@ -1529,52 +1529,17 @@ abstract class WeModuleSite extends WeBase {
 	/**
 	 * 调用系统的退款功能
 	 * @param array $params
-	 * $params['tid'] 支付订单编号, 应保证在同一模块内部唯一
-	 * $params['module'] 模块名称
-	 * $params['fee'] 退款金额（选填，默认全额退款）
-	 * $params['reason'] 退款原因(选填项)
+	 * $tid 支付订单编号, 应保证在同一模块内部唯一
+	 * $fee 退款金额（选填，默认全额退款）
+	 * $reason 退款原因(选填项)
 	 */
-	protected function refund($params = array()) {
-		global $_W;
-		load()->model('payment');
-		load()->classs('pay');
-		load()->classs('weixin.pay');
-		$params['module'] = $this->module['name'];
-		$paylog = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'tid' => $params['tid']));
-		if (empty($paylog)) {
-			return error(1, '订单不存在');
+	protected function refund($tid, $fee = 0, $reason = '') {
+		load()->model('refund');
+		$refund_id = refund_create_order($tid, $this->module['name'], $fee, $reason);
+		if (is_error($refund_id)) {
+			return $refund_id;
 		}
-		if ($paylog['status'] != 1) {
-			return error(1, '此订单还未支付成功不可退款');
-		}
-		$refund_amount = pdo_getcolumn('core_refundlog', array('uniacid' => $_W['uniacid'], 'status' => 1, 'uniontid' => $paylog['uniontid']), 'SUM(fee)');
-		if ($refund_amount >= $paylog['card_fee']) {
-			return error(1, '订单已退款成功');
-		}
-		$moduleid = empty($this->module['mid']) ? '000000' : sprintf("%06d", $this->module['mid']);
-		$refund_uniontid = date('YmdHis') . $moduleid . random(8,1);
-		$refund = array(
-			'uniacid' => $_W['uniacid'],
-			'uniontid' => $paylog['uniontid'],
-			'fee' => empty($params['fee']) ? $paylog['card_fee'] : $params['fee'],
-			'status' => 0,
-			'refund_uniontid' => $refund_uniontid,
-			'reason' => $params['reason']
-		);
-		pdo_insert('core_refundlog', $refund);
-		$refund_id = pdo_insertid();
-		if ($paylog['type'] == 'wechat') {
-			$refund_param = payment_wechat_refund_build($paylog['plid'], $refund_id);
-			$wechat = new WeiXinPay($_W['acid']);
-			$response = $wechat->refund($refund_param);
-			unlink(ATTACHMENT_ROOT . $_W['uniacid'] . '_wechat_refund_all.pem');
-			if (is_error($response)) {
-				pdo_delete('core_refundlog', array('id' => $refund_id));
-				return $response;
-			} else {
-				return $response;
-			}
-		}
+		return refund($refund_id);
 	}
 
 	/**

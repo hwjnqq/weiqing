@@ -46,6 +46,7 @@ function _login($forward = '') {
 		}
 		$_W['uid'] = $record['uid'];
 		$_W['isfounder'] = user_is_founder($record['uid']);
+		$_W['user'] = $record;
 
 		if (empty($_W['isfounder'])) {
 			if (!empty($record['endtime']) && $record['endtime'] < TIMESTAMP) {
@@ -67,15 +68,7 @@ function _login($forward = '') {
 		$status['lastvisit'] = TIMESTAMP;
 		$status['lastip'] = CLIENT_IP;
 		user_update($status);
-		if ($record['type'] == ACCOUNT_OPERATE_CLERK) {
-// 			$role = uni_permission($record['uid'], $record['uniacid']);
-			isetcookie('__uniacid', $record['uniacid'], 7 * 86400);
-			isetcookie('__uid', $record['uid'], 7 * 86400);
-			itoast('登录成功！' ,url('site/entry/clerkdesk', array('uniacid' => $record['uniacid'], 'op' => 'index', 'm' => 'we7_coupon')), 'success');
-// 			if ($_W['role'] == 'clerk' || $role == 'clerk') {
-// 				itoast('登录成功', url('activity/desk', array('uniacid' => $record['uniacid'])), 'success');
-// 			}
-		}
+
 		if (empty($forward)) {
 			$forward = user_login_forward($_GPC['forward']);
 		}

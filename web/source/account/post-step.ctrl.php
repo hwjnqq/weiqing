@@ -23,6 +23,8 @@ if($step == 1) {
 		$max_tsql = "SELECT COUNT(*) FROM " . tablename('uni_account'). " as a LEFT JOIN". tablename('account'). " as b ON a.default_acid = b.acid LEFT JOIN ". tablename('uni_account_users')." as c ON a.uniacid = c.uniacid WHERE a.default_acid <> 0 AND c.uid = :uid AND b.isdeleted <> 1";
 		$max_pars[':uid'] = $_W['uid'];
 		$max_total = pdo_fetchcolumn($max_tsql, $max_pars);
+
+
 		$maxaccount = pdo_fetchcolumn('SELECT `maxaccount` FROM '. tablename('users_group') .' WHERE id = :groupid', array(':groupid' => $_W['user']['groupid']));
 		if($max_total >= $maxaccount) {
 			$authurl = "javascript:alert('您所在会员组最多只能添加 {$maxaccount} 个公众号);";
@@ -33,7 +35,7 @@ if($step == 1) {
 		$account_platform = new WeiXinPlatform();
 		$authurl = $account_platform->getAuthLoginUrl();
 	}
-}elseif ($step == 2) {
+} elseif ($step == 2) {
 	if (!empty($uniacid)) {
 		$state = uni_permission($uid, $uniacid);
 		if ($state != ACCOUNT_MANAGE_NAME_FOUNDER && $state != ACCOUNT_MANAGE_NAME_OWNER) {
@@ -79,9 +81,7 @@ if($step == 1) {
 				itoast('添加公众号失败', '', '');
 			}
 			$uniacid = pdo_insertid();
-			if (user_is_vice_founder()) {
-				uni_user_account_role($uniacid, $_W['uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
-			}
+
 			//获取默认模板的id
 			$template = pdo_fetch('SELECT id,title FROM ' . tablename('site_templates') . " WHERE name = 'default'");
 			$styles['uniacid'] = $uniacid;
@@ -126,6 +126,9 @@ if($step == 1) {
 		$update['secret'] = trim($_GPC['secret']);
 		$update['type'] = ACCOUNT_TYPE_OFFCIAL_NORMAL;
 		$update['encodingaeskey'] = trim($_GPC['encodingaeskey']);
+		if (user_is_vice_founder()) {
+			uni_user_account_role($uniacid, $_W['uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
+		}
 		if (empty($acid)) {
 			$acid = account_create($uniacid, $update);
 			if(is_error($acid)) {
@@ -133,10 +136,10 @@ if($step == 1) {
 			}
 			pdo_update('uni_account', array('default_acid' => $acid), array('uniacid' => $uniacid));
 			if (empty($_W['isfounder'])) {
-				pdo_insert('uni_account_users', array('uniacid' => $uniacid, 'uid' => $_W['uid'], 'role' => 'owner'));
+				uni_user_account_role($uniacid, $_W['uid'], ACCOUNT_MANAGE_NAME_OWNER);
 			}
 			if (!empty($_W['user']['owner_uid'])) {
-				pdo_insert('uni_account_users', array('uniacid' => $uniacid, 'uid' => $_W['user']['owner_uid'], 'role' => 'vice_founder'));
+				uni_user_account_role($uniacid, $_W['user']['owner_uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
 			}
 		} else {
 			pdo_update('account', array('type' => ACCOUNT_TYPE_OFFCIAL_NORMAL, 'hash' => ''), array('acid' => $acid, 'uniacid' => $uniacid));
@@ -178,7 +181,7 @@ if($step == 1) {
 		}
 		$result['username'] = $user['username'];
 		$result['uid'] = $user['uid'];
-		$result['group'] = pdo_fetch("SELECT id, name, package FROM ".tablename('users_group')." WHERE id = :id", array(':id' => $user['groupid']));
+		$result['group'] = user_group_detail_info($user['groupid']);
 		$result['package'] = iunserializer($result['group']['package']);
 		iajax(0, $result, '');
 		exit;
@@ -198,8 +201,7 @@ if($step == 1) {
 			if (!empty($owner)) {
 				pdo_update('uni_account_users', array('uid' => $uid), array('uniacid' => $uniacid, 'role' => 'owner'));
 			} else {
-				$account_users = array('uniacid' => $uniacid, 'uid' => $uid, 'role' => 'owner');
-				pdo_insert('uni_account_users', $account_users);
+				uni_user_account_role($uniacid, $uid, ACCOUNT_MANAGE_NAME_OWNER);
 			}
 			$user_vice_id = pdo_getcolumn('users', array('uid' => $uid), 'owner_uid');
 			if ($_W['user']['founder_groupid'] != ACCOUNT_MANAGE_GROUP_VICE_FOUNDER && !empty($user_vice_id)) {
@@ -278,14 +280,7 @@ if($step == 1) {
 	}
 
 	$unigroups = uni_groups();
-	if (!empty($unigroups) && user_is_vice_founder()) {
-		foreach ($unigroups as $key => &$unigroup_info) {
-			if ($unigroup_info['owner_uid'] != $_W['uid']) {
-				unset($unigroups[$key]);
-				continue;
-			}
-		}
-	}
+
 	if(!empty($unigroups['modules'])) {
 		foreach ($unigroups['modules'] as $module_key => $module_val) {
 			if(file_exists(IA_ROOT.'/addons/'.$module_val['name'].'/icon-custom.jpg')) {
@@ -326,13 +321,7 @@ if($step == 1) {
 		$owner['extend']['templates'] = pdo_getall('site_templates', array('id' => $extend['templates']));
 	}
 	$extend['package'] = pdo_getall('uni_account_group', array('uniacid' => $uniacid), array(), 'groupid');
-	$where = '';
-	if (user_is_vice_founder()) {
-		$user_own_groupids = pdo_getall('users', array('owner_uid' => $_W['uid']), 'groupid', 'groupid');
-		$user_own_groupids = implode(',', array_keys($user_own_groupids));
-		$where = " WHERE `owner_uid` = {$_W['uid']} OR `id` IN ({$user_own_groupids})";
-	}
-	$groups = pdo_fetchall("SELECT id, name, package FROM ".tablename('users_group') ." {$where}  ORDER BY id ASC", array(), 'id');
+	$groups = user_group();
 	$modules = pdo_fetchall("SELECT mid, name, title FROM " . tablename('modules') . ' WHERE issystem != 1', array(), 'name');
 	$templates  = pdo_fetchall("SELECT * FROM ".tablename('site_templates'));
 } elseif($step == 4) {

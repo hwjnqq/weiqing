@@ -227,6 +227,55 @@ function module_build_form($name, $rid, $option = array()) {
 }
 
 /**
+ * 添加应用权限组
+ * @param $package
+ * @return bool
+ */
+function module_save_group_package($package) {
+	global $_W;
+	load()->model('user');
+	load()->model('cache');
+
+	if (empty($package['name'])) {
+		return error(-1, '请输入套餐名');
+	}
+
+	if (user_is_vice_founder()) {
+		$package['owner_uid'] = $_W['uid'];
+	}
+	if (!empty($package['modules'])) {
+		$package['modules'] = iserializer($package['modules']);
+	}
+
+	if (!empty($package['templates'])) {
+		$templates = array();
+		foreach ($package['templates'] as $template) {
+			$templates[] = $template['id'];
+		}
+		$package['templates'] = iserializer($templates);
+	}
+
+	if (!empty($package['id'])) {
+		$name_exist = pdo_get('uni_group', array('uniacid' => 0, 'id <>' => $package['id'], 'name' => $package['name']));
+	} else {
+		$name_exist = pdo_get('uni_group', array('uniacid' => 0, 'name' => $package['name']));
+	}
+
+	if (!empty($name_exist)) {
+		return error(-1, '套餐名已存在');
+	}
+
+	if (!empty($package['id'])) {
+		pdo_update('uni_group', $package, array('id' => $package['id']));
+		cache_build_account_modules();
+	} else {
+		pdo_insert('uni_group', $package);
+	}
+
+	cache_build_uni_group();
+	return error(0, '添加成功');
+}
+/**
  * 获取指定模块及模块信息
  *
  * @param string $name 模块名称

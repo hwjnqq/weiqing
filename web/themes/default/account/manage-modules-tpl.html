@@ -115,11 +115,11 @@
 									<th>模块标识</th>
 									<th></th>
 								</tr>
-								{loop $modules $module}
+								{loop $modules $module_name $module}
 								<tr>
 									<td>{$module['title']}{if $module['issystem']}<span class="label label-success">系统模块</span>{/if}</td>
 									<td>{$module['name']}</td>
-									<td><a class="btn btn-default js-btn-select {if is_array($extend['modules']) && in_array($module, $extend['modules'])}btn-primary{/if}" data-title="{$module['title']}" data-name="{$module['name']}" onclick="$(this).toggleClass('btn-primary')">选取</a></td>
+									<td><a class="btn btn-default js-btn-select {if is_array($current_module_names) && in_array($module_name, $current_module_names)}btn-primary{/if}" data-title="{$module['title']}" data-name="{$module['name']}" onclick="$(this).toggleClass('btn-primary')">选取</a></td>
 								</tr>
 								{/loop}
 							</table>

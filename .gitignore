@@ -30,7 +30,6 @@ local.properties
 data/**/*
 attachment/**/*
 !attachment/images/global/**/*
-
 !addons/wn_storex/**/*
 web/test.php
 framework/builtin/core/module.cer
@@ -46,3 +45,7 @@ addons/wn_storex/template/resource/autoprefixer.json
 addons/wn_storex/template/style/autoprefixer.json
 addons/wn_storex/template/style/sass/**
 addons/wn_storex/template/style/css/store.css.map
+framework/builtin/core/module.cer
+
+we7/**/*
+vendor/**/*

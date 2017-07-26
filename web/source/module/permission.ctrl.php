@@ -64,7 +64,7 @@ if ($do == 'post') {
 				'remark' => trim($_GPC['remark']),
 				'password' => trim($_GPC['password']),
 				'repassword' => trim($_GPC['repassword']),
-				'type' => 3
+				'type' => ACCOUNT_OPERATE_CLERK
 			);
 		if (empty($insert_user['username'])) {
 			itoast('必须输入用户名，格式为 1-15 位字符，可以包括汉字、字母（不区分大小写）、数字、下划线和句点。');
@@ -117,9 +117,9 @@ if ($do == 'post') {
 
 		$role = uni_permission($uid, $_W['uniacid']);
 		if (empty($role)) {
-			pdo_insert('uni_account_users', array('uniacid' => $_W['uniacid'], 'uid' => $uid, 'role' => 'operator'));
+			pdo_insert('uni_account_users', array('uniacid' => $_W['uniacid'], 'uid' => $uid, 'role' => 'clerk'));
 		} else {
-			pdo_update('uni_account_users', array('role' => 'operator'), array('uniacid' => $_W['uniacid'], 'uid' => $uid));
+			pdo_update('uni_account_users', array('role' => 'clerk'), array('uniacid' => $_W['uniacid'], 'uid' => $uid));
 		}
 		itoast('编辑店员资料成功', url('module/permission', array('m' => $module_name)), 'success');
 	}
@@ -142,7 +142,7 @@ if ($do == 'delete') {
 	} else {
 		$user = pdo_get('users', array('uid' => $operator_id), array('uid'));
 		if (!empty($user)) {
-			$delete_account_users = pdo_delete('uni_account_users', array('uid' => $operator_id, 'role' => 'operator', 'uniacid' => $_W['uniacid']));
+			$delete_account_users = pdo_delete('uni_account_users', array('uid' => $operator_id, 'role' => 'clerk', 'uniacid' => $_W['uniacid']));
 			$delete_user_permission = pdo_delete('users_permission', array('uid' => $operator_id, 'type' => $module_name, 'uniacid' => $_W['uniacid']));
 			if (!empty($delete_account_users) && !empty($delete_user_permission)) {
 				pdo_delete('users', array('uid' => $operator_id));

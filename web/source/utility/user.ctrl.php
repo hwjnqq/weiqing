@@ -38,15 +38,10 @@ if ($do == 'browser') {
 	$psize = 10;
 	$total = 0;
 
-	$group = array();
-	if (user_is_vice_founder()) {
-		$where .= " AND  owner_uid = ".$_W['uid'];
-		$group['owner_uid'] = $_W['uid'];
-	}
 	$list = pdo_fetchall("SELECT uid, groupid, username, remark FROM ".tablename('users')." {$where} ORDER BY `uid` LIMIT ".(($pindex - 1) * $psize).",{$psize}", $params);
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('users'). $where , $params);
 	$pager = pagination($total, $pindex, $psize, '', array('ajaxcallback'=>'null','mode'=>$mode,'uids'=>$uids));
-	$usergroups = pdo_fetchall('SELECT id, name FROM '.tablename('users_group'), $group, 'id');
+	$usergroups = user_group();
 	template('utility/user-browser');
 	exit;
 }

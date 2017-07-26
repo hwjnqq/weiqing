@@ -18,7 +18,7 @@ $result = array(
 	'data' => '' 
 );
 
-$type = $_COOKIE['__fileupload_type'];
+$type = $type =  $_GPC['upload_type'];//$_COOKIE['__fileupload_type'];
 $type = in_array($type, array('image','audio','video')) ? $type : 'image';
 $option = array();
 $option = array_elements(array('uploadtype', 'global', 'dest_dir'), $_POST);

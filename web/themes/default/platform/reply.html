@@ -247,7 +247,7 @@
 		<div class="we7-form" ng-controller="WelcomeDisplay">
 			<form id="reply-form" class="form-horizontal form" action="{php echo url('platform/reply/post', array('m' => $m, 'rid' => $rid))}" method="post" enctype="multipart/form-data">
 				<div>
-					{php echo module_build_form('core', $ruleid, array('keyword' => false))}
+					{php echo module_build_form('core', $rule_keyword_id, array('keyword' => false))}
 				</div>
 				<input type="submit" name="submit"  value="保存" class="btn btn-primary" style="padding: 6px 50px;"/>
 				<input type="hidden" name="token" value="{$_W['token']}">
@@ -269,7 +269,7 @@
 		<div id="a" class="we7-form" ng-controller="DefaultDisplay">
 			<form id="reply-form" class="form-horizontal form" action="{php echo url('platform/reply/post', array('m' => $m, 'rid' => $rid))}" method="post" enctype="multipart/form-data">
 				<div>
-					{php echo module_build_form('core', $ruleid, array('keyword' => false))}
+					{php echo module_build_form('core', $rule_keyword_id, array('keyword' => false))}
 				</div>
 				<input type="submit" name="submit"  value="保存" class="btn btn-primary" style="padding: 6px 50px;"/>
 				<input type="hidden" name="token" value="{$_W['token']}">

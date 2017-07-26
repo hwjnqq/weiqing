@@ -59,7 +59,7 @@ function wxapp_account_create($account) {
 	pdo_insert('account_wxapp', $wxapp_data);
 	
 	if (empty($_W['isfounder']) || user_is_vice_founder()) {
-		pdo_insert('uni_account_users', array('uniacid' => $uniacid, 'uid' => $_W['uid'], 'role' => 'owner'));
+		uni_user_account_role($uniacid, $_W['uid'], ACCOUNT_MANAGE_NAME_OWNER);
 	}
 	if (!empty($_W['user']['owner_uid'])) {
 		uni_user_account_role($uniacid, $_W['user']['owner_uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);

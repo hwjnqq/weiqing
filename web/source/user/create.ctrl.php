@@ -34,7 +34,7 @@ if (checksubmit()) {
 		itoast('请选择所属用户组', '', '');
 	}
 	if ($group_id > 0) {
-		$group = pdo_fetch("SELECT id,timelimit FROM ".tablename('users_group')." WHERE id = :id", array(':id' => intval($_GPC['groupid'])));
+		$group = user_group_detail_info(intval($_GPC['groupid']));
 		if (empty($group)) {
 			itoast('会员组不存在', '', '');
 		}
@@ -58,7 +58,6 @@ if (checksubmit()) {
 	if (user_is_vice_founder()) {
 		$data['owner_uid'] = $_W['uid'];
 	}
-
 	$uid = user_register($data);
 	if ($uid > 0) {
 		unset($data);
@@ -66,9 +65,5 @@ if (checksubmit()) {
 	}
 	itoast('增加失败，请稍候重试或联系网站管理员解决！', '', '');
 }
-$group_condition = array();
-if (user_is_vice_founder()) {
-	$group_condition['owner_uid'] = $_W['uid'];
-}
-$groups = pdo_getall('users_group', $group_condition, array('id', 'name'));
+$groups = user_group();
 template('user/create');

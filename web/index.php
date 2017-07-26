@@ -11,7 +11,6 @@ load()->web('template');
 if (empty($_W['isfounder']) && ! empty($_W['user']) && $_W['user']['status'] == 1) {
 	message('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决！');
 }
-// @@todo 还需要判断各角色的权限
 $_W['acl'] = $acl = array(
 	'account' => array(
 		'default' => '',
@@ -32,7 +31,11 @@ $_W['acl'] = $acl = array(
 		'founder' => array(
 			'news',
 			'notice' 
-		) 
+		),
+		'vice-founder' => array(
+			'notice-show',
+			'news-show'
+		),
 	),
 	'cloud' => array(
 		'default' => 'touch',
@@ -47,7 +50,8 @@ $_W['acl'] = $acl = array(
 			'upgrade',
 			'process',
 			'device' 
-		) 
+		),
+		'vice-founder' => array(),
 	),
 	'home' => array(
 		'default' => 'welcome',
@@ -121,7 +125,12 @@ $_W['acl'] = $acl = array(
 			'platform',
 			'updatecache',
 			'module' 
-		) 
+		),
+		'vice-founder' => array(
+			'platform',
+			'template',
+			'updatecache'
+		),
 	),
 	'cron' => array(
 		'direct' => array(
@@ -199,6 +208,10 @@ if (is_array($acl[$controller]['founder']) && in_array($action, $acl[$controller
 	if (! $_W['isfounder']) {
 		message('不能访问, 需要创始人权限才能访问.');
 	}
+}
+//存在角色权限，只能访问存在的权限
+if (user_is_vice_founder($_W['uid']) && is_array($acl[$controller]['vice-founder']) && !in_array($action, $acl[$controller]['vice-founder'])) {
+	message('不能访问, 需要相应的权限才能访问.');
 }
 checklogin();
 // 用户权限判断

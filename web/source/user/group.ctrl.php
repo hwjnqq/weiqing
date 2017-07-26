@@ -71,16 +71,9 @@ if ($do == 'post') {
 		$group_info['package'] = iunserializer($group_info['package']);
 		if (!empty($group_info['package']) && in_array(-1, $group_info['package'])) $group_info['check_all'] = true;
 	}
-
 	$packages = uni_groups();
 	if (!empty($packages)) {
 		foreach ($packages as $key => &$package_val) {
-			if (user_is_vice_founder()) {
-				if ($package_val['owner_uid'] != $_W['uid']) {
-					unset($packages[$key]);
-					continue;
-				}
-			}
 			if (!empty($group_info['package']) && in_array($key, $group_info['package'])) {
 				$package_val['checked'] = true;
 			} else {
@@ -88,31 +81,21 @@ if ($do == 'post') {
 			}
 		}
 	}
-
 	unset($package_val);
 	if (checksubmit('submit')) {
-		if (empty($_GPC['name'])) {
-			itoast('请输入用户组名称！', '', '');
-		}
-		if (!empty($_GPC['package'])) {
-			foreach ($_GPC['package'] as $value) {
-				$package[] = intval($value);
-			}
-		}
-		$data = array(
+
+		$user_group = array(
+			'id' => intval($_GPC['id']),
 			'name' => $_GPC['name'],
-			'package' => iserializer($package),
+			'package' => $_GPC['package'],
 			'maxaccount' => intval($_GPC['maxaccount']),
 			'maxwxapp' => intval($_GPC['maxwxapp']),
 			'timelimit' => intval($_GPC['timelimit'])
 		);
-		if (user_is_vice_founder()) {
-			$data['owner_uid'] = $_W['uid'];
-		}
-		if (empty($id)) {
-			pdo_insert('users_group', $data);
-		} else {
-			pdo_update('users_group', $data, array('id' => $id));
+
+		$user_group_info = user_save_group($user_group);
+		if (is_error($user_group_info)) {
+			itoast($user_group_info['message'], '', '');
 		}
 		itoast('用户组更新成功！', url('user/group/display'), 'success');
 	}

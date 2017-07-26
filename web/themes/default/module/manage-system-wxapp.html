@@ -34,7 +34,7 @@
 	</ul>
 
 	<form action="" method="get">
-		<table class="table we7-table table-hover vertical-middle table-manage">
+		<table class="table we7-table table-hover vertical-middle table-manage table-manage-td">
 			<col width="120px" />
 			<col width="350px"/>
 			<col width="230px" />
@@ -54,13 +54,20 @@
 				</td>
 				<!--<td >{{ module.use_account }}</td>-->
 				<!--<td >{{ module.enabled_use_account }}</td>-->
-				<td class="text-left">
+				<td class="text-left vertical-middle table-manage-td">
 					<div class="link-group">
 						<a ng-href="{{ './index.php?c=module&a=manage-system&do=upgrade&module_name='+module.name}}&account_type={ACCOUNT_TYPE}" class="color-red" ng-if="module.upgrade && module.from != 'cloud' && isFounder == 1">升级</a>
 						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&show=upgrade&account_type={ACCOUNT_TYPE}" class="color-red del" ng-if="module.upgrade && module.from == 'cloud' && isFounder == 1">升级</a>
 						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&account_type={ACCOUNT_TYPE}" ng-if="isFounder == 1">管理设置</a>
 						<!--<a href="javascript:;" ng-if="isFounder == 1" ng-click="editModule(module.mid)">编辑</a>-->
+						{if uni_user_permission_check('system_wxapp_stop')}
 						<a href="{php echo url('module/manage-system/uninstall', array('account_type' => 4))}&name={{ module.name }}&account_type={ACCOUNT_TYPE}" ng-if="isFounder == 1" class="del">停用</a>
+						{/if}
+					</div>
+					<div class="manage-option text-right">
+						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&account_type={ACCOUNT_TYPE}" ng-if="isFounder == 1">基本信息</a>
+						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&account_type={ACCOUNT_TYPE}&show=group" ng-if="isFounder == 1">应用权限组</a>
+						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&account_type={ACCOUNT_TYPE}&show=subscribe" ng-if="isFounder == 1 && module.subscribes.length">订阅消息</a>
 					</div>
 				</td>
 			</tr>
@@ -326,6 +333,7 @@
 				<div class="link-group"><a href="javascript:;" ng-click="editModule('title', moduleinfo.title)">修改</a></div>
 			</td>
 		</tr>
+		{if uni_user_permission_check('system_see_more_info')}
 		<tr>
 			<td class="table-label">模块作者</td>
 			<td colspan="2">{{ moduleinfo.author }}</td>
@@ -334,6 +342,7 @@
 			<td class="table-label">模块版本</td>
 			<td colspan="2">{{ moduleinfo.version }}</td>
 		</tr>
+		{/if}
 		<tr>
 			<td class="table-label">模块简述</td>
 			<td>{{ moduleinfo.ability }}</td>
@@ -495,7 +504,9 @@
 					应用权限组
 				</th>
 				<th class="text-right">
+					{if uni_user_permission_check('system_module_group_add')}
 					<a href="{php echo url('module/group')}" class="color-default">添加</a>
+					{/if}
 				</th>
 			</tr>
 			<tr>
@@ -511,7 +522,9 @@
 					<span>{$group['name']}</span>
 				</td>
 				<td class="text-right">
+					{if uni_user_permission_check('system_module_group_post')}
 					<div class="link-group"><a href="{php echo url('module/group/post', array('id' => $group['id']))}">设置</a></div>
+					{/if}
 				</td>
 			</tr>
 			{/loop}

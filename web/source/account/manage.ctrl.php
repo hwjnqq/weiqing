@@ -18,50 +18,28 @@ $account_info = uni_user_account_permission();
 if ($do == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	$start = ($pindex - 1) * $psize;
 
-	$condition = '';
-	$param = array();
-	$keyword = trim($_GPC['keyword']);
+	$condition = array();
 	
+
 	$type_condition = array(
 		ACCOUNT_TYPE_APP_NORMAL => array(ACCOUNT_TYPE_APP_NORMAL),
 		ACCOUNT_TYPE_OFFCIAL_NORMAL => array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH),
-		ACCOUNT_TYPE_OFFCIAL_AUTH => array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH),
 	);
-	$type_condition_sql = "'".implode("','", $type_condition[ACCOUNT_TYPE])."'";
-
-	if (empty($_W['isfounder']) || user_is_vice_founder()) {
-		$condition .= "LEFT JOIN ". tablename('uni_account_users')." as c ON a.uniacid = c.uniacid WHERE a.acid <> 0 AND c.uid = :uid AND b.isdeleted <> 1 AND b.type IN ($type_condition_sql)";
-		$param[':uid'] = $_W['uid'];
-		$order_by = " ORDER BY c.`rank` DESC, a.`acid` DESC";
-	} else {
-		$condition .= " WHERE a.acid <> 0 AND b.isdeleted <> 1 AND b.type IN ($type_condition_sql)";
-		$order_by = " ORDER BY a.`acid` DESC";
+	$condition['type'] = $type_condition[ACCOUNT_TYPE];
+	
+	$keyword = trim($_GPC['keyword']);
+	if (!empty($keyword)) {
+		$condition['keyword'] = $keyword;
 	}
-
-	if(!empty($keyword)) {
-		$condition .=" AND a.`name` LIKE :name";
-		$param[':name'] = "%{$keyword}%";
+	
+	if(isset($_GPC['letter']) && strlen($_GPC['letter']) == 1) {
+		$condition['letter'] = trim($_GPC['letter']);
 	}
-	$tsql = "SELECT COUNT(*) FROM " . tablename(uni_account_tablename(ACCOUNT_TYPE)). " as a LEFT JOIN". tablename('account'). " as b ON a.acid = b.acid {$condition} {$order_by}, a.`uniacid` DESC";
-	$sql = "SELECT * FROM ". tablename(uni_account_tablename(ACCOUNT_TYPE)). " as a LEFT JOIN". tablename('account'). " as b ON a.acid = b.acid {$condition} {$order_by}, a.`uniacid` DESC LIMIT {$start}, {$psize}";
-	$total = pdo_fetchcolumn($tsql, $param);
-	$list = pdo_fetchall($sql, $param);
-	if(!empty($list)) {
-		foreach($list as &$account) {
-			$settings = uni_setting($account['uniacid'], array('notify'));
-			if(!empty($settings['notify'])) {
-				$account['sms'] = $settings['notify']['sms']['balance'];
-			}else {
-				$account['sms'] = 0;
-			}
-			$account['thumb'] = tomedia('headimg_'.$account['acid']. '.jpg').'?time='.time();
-			$account['role'] = uni_permission($_W['uid'], $account['uniacid']);
-			$account['setmeal'] = uni_setmeal($account['uniacid']);
-		}
-		unset($account);
-	}
+	
+	$account_lists = uni_account_list($condition, array($pindex, $psize));
+	$list = $account_lists['list'];
+	$total = $account_lists['total'];
 	$pager = pagination($total, $pindex, $psize);
 	template('account/manage-display' . ACCOUNT_TYPE_TEMPLATE);
 }

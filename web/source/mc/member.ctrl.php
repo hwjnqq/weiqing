@@ -38,7 +38,7 @@ if ($do == 'register_setting') {
 		}
 	}
 	$setting = uni_setting_load('passport');
-	$register_setting = $setting['passport'];
+	$register_setting = !empty($setting['passport']) ? $setting['passport'] : array();
 	template('mc/member');
 }
 

@@ -208,36 +208,3 @@ function payment_proxy_pay_account() {
 	}
 	return WeAccount::create($pay_account);
 }
-
-function payment_wechat_refund_build($pay_id, $refund_id) {
-	global $_W;
-	$setting = uni_setting_load('payment', $_W['uniacid']);
-	$refund_setting = $setting['payment']['wechat_refund'];
-	if ($refund_setting['switch'] != 1) {
-		return error(1, '未开启微信退款功能！');
-	}
-	if (empty($refund_setting['key']) || empty($refund_setting['cert'])) {
-		return error(1, '缺少微信证书！');
-	}
-	$paylog = pdo_get('core_paylog', array('plid' => $pay_id));
-	$refundlog = pdo_get('core_refundlog', array('id' => $refund_id));
-	$acid = pdo_getcolumn('uni_account', array('uniacid' => $paylog['uniacid']), 'default_acid');
-	$appid = pdo_getcolumn('account_wechats', array('acid' => $acid), 'key');
-
-	$refund_param = array(
-		'appid' => $appid,
-		'mch_id' => $setting['payment']['wechat']['mchid'],
-		'out_trade_no' => $paylog['uniontid'],
-		'out_refund_no' => $refundlog['refund_uniontid'],
-		'total_fee' => $paylog['card_fee'] * 100,
-		'refund_fee' => $refundlog['fee'] * 100,
-		'nonce_str' => random(8),
-		'refund_desc' => $refundlog['reason']
-	);
-
-	$cert = authcode($refund_setting['cert'], 'DECODE');
-	$key = authcode($refund_setting['key'], 'DECODE');
-	file_put_contents(ATTACHMENT_ROOT . $_W['uniacid'] . '_wechat_refund_all.pem', $cert . $key);
-
-	return $refund_param;
-}

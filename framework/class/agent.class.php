@@ -127,13 +127,12 @@ class Agent
 			return self::IOS6_NOT;
 		}
 	}
-	
 	// 检查是否在微信中打开
 	public static function isMicroMessage($agent = '')
 	{
 		$agent = self::getAgent($agent);
 		
-		if (stripos($agent, 'MicroMessenger') !== false && stripos($agent, 'wechatdevtools') !== false) {
+		if (stripos($agent, 'MicroMessenger') !== false) {
 			return self::MICRO_MESSAGE_YES;
 		} else {
 			return self::MICRO_MESSAGE_NOT;

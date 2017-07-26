@@ -77,8 +77,11 @@ class CoreModule extends WeModule {
 				break;
 			//默认为自动回复
 			default:
-				if(!empty($rid) && $rid > 0) {
+				if(!empty($rid) && $rid > 0 && !in_array($_GPC['m'], array('welcome', 'default'))) {
 					$isexists = pdo_fetch("SELECT id, name, module FROM ".tablename('rule')." WHERE id = :id", array(':id' => $rid));
+				} else if(!empty($rid) && $rid > 0 && in_array($_GPC['m'], array('welcome', 'default'))) {
+					$rule_rid = pdo_getcolumn('rule_keyword', array('id' => $rid), 'rid');
+					$isexists = pdo_fetch("SELECT id, name, module FROM ".tablename('rule')." WHERE id = :id", array(':id' => $rule_rid));
 				}
 				if ($_GPC['m'] == 'special') {
 					$default_setting = uni_setting_load('default_message', $_W['uniacid']);
@@ -150,11 +153,9 @@ class CoreModule extends WeModule {
 					//只选择关键字
 					}else {
 						$replies['keyword'][0]['name'] = $isexists['name'];
-						$keyword = pdo_fetchall("SELECT content FROM ". tablename('rule_keyword') ." WHERE uniacid = :uniacid AND rid = :rid", array(':uniacid' => $_W['uniacid'], ':rid' => $rid));
-						$replies['keyword'][0]['rid'] = $rid;
-						foreach ($keyword as $val) {
-							$replies['keyword'][0]['content'] .= $val['content'].'&nbsp;&nbsp;';
-						}
+						$keyword = pdo_getcolumn('rule_keyword', array('uniacid' => $_W['uniacid'], 'id' => $rid), 'content');
+						$replies['keyword'][0]['id'] = $rid;
+						$replies['keyword'][0]['content'] = $keyword;
 					}
 				}
 				break;

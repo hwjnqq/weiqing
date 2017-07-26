@@ -42,37 +42,23 @@ if ($do == 'home') {
 
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	$start = ($pindex - 1) * $psize;
-
-	$condition = '';
-	$param = array();
+	$condition = array();
 	$keyword = trim($_GPC['keyword']);
-	if (empty($_W['isfounder']) || user_is_vice_founder()) {
-		$condition .= "LEFT JOIN ". tablename('uni_account_users')." as c ON a.uniacid = c.uniacid WHERE a.default_acid <> 0 AND c.uid = :uid AND b.isdeleted <> 1 AND b.type = " . ACCOUNT_TYPE_APP_NORMAL;
-		$param[':uid'] = $_W['uid'];
-		$order_by = " ORDER BY c.`rank` DESC";
-	} else {
-		$condition .= " WHERE a.default_acid <> 0 AND b.isdeleted <> 1 AND b.type = " . ACCOUNT_TYPE_APP_NORMAL;
-		$order_by = " ORDER BY a.`rank` DESC";
-	}
+
+	$condition['type'] = array(ACCOUNT_TYPE_APP_NORMAL);
 
 	if (!empty($keyword)) {
-		$condition .=" AND a.`name` LIKE :name";
-		$param[':name'] = "%{$keyword}%";
+		$condition['keyword'] = trim($_GPC['keyword']);
 	}
-	if (isset($_GPC['letter']) && strlen($_GPC['letter']) == 1) {
-		$letter = trim($_GPC['letter']);
-		if (!empty($letter)) {
-			$condition .= " AND a.`title_initial` = :title_initial";
-			$param[':title_initial'] = $letter;
-		} else {
-			$condition .= " AND a.`title_initial` = ''";
-		}
+	if(isset($_GPC['letter']) && strlen($_GPC['letter']) == 1) {
+		$condition['letter'] = trim($_GPC['letter']);
 	}
-	$tsql = "SELECT COUNT(*) FROM " . tablename('uni_account'). " as a LEFT JOIN ". tablename('account'). " as b ON a.default_acid = b.acid {$condition} {$order_by}, a.`uniacid` DESC";
-	$sql = "SELECT * FROM ". tablename('uni_account'). " as a LEFT JOIN ". tablename('account'). " as b ON a.default_acid = b.acid  {$condition} {$order_by}, a.`uniacid` DESC LIMIT {$start}, {$psize}";
-	$total = pdo_fetchcolumn($tsql, $param);
-	$wxapp_lists = pdo_fetchall($sql, $param);
+
+	$wxapp_account_lists = uni_account_list($condition, array($pindex, $psize));
+	
+	$wxapp_lists = $wxapp_account_lists['list'];
+	$total = $wxapp_account_lists['total'];
+	
 	if (!empty($wxapp_lists)) {
 		$wxapp_cookie_uniacids = array();
 		if (!empty($_GPC['__wxappversionids'])) {
@@ -81,24 +67,6 @@ if ($do == 'home') {
 				$wxapp_cookie_uniacids[] = $version_val['uniacid'];
 			}
 		}
-		foreach ($wxapp_lists as &$account) {
-			$account['thumb'] = tomedia('headimg_'.$account['acid']. '.jpg').'?time='.time();
-			$account['versions'] = wxapp_get_some_lastversions($account['uniacid']);
-			$account['current_version'] = array();
-			if (!empty($account['versions'])) {
-				foreach ($account['versions'] as $version) {
-					if (!empty($wxapp_cookie_uniacids) && !empty($wxappversionids[$version['uniacid']]) && in_array($version['id'], $wxappversionids[$version['uniacid']])) {
-						$account['current_version'] = $version;
-						break;
-					}
-				}
-				if (empty($account['current_version'])) {
-					$account['current_version'] = $account['versions'][0];
-				}
-			}
-		}
-		unset($account_val);
-		unset($account);
 	}
 	$pager = pagination($total, $pindex, $psize);
 	template('wxapp/account-display');

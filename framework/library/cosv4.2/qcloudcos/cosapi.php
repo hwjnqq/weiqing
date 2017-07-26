@@ -19,7 +19,7 @@ class Cosapi {
 
     //HTTP请求超时时间
     private static $timeout = 60;
-    private static $region = 'gz'; // default region is guangzou
+    private static $region = 'gz'; // default region is guangzhou
 
 	/**
      * 设置HTTP请求超时时间

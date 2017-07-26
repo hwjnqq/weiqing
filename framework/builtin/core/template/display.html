@@ -256,8 +256,8 @@
 				replyVal.push(angular.toJson(material.id));
 				$(':hidden[name="reply[reply_'+type+']"]').val(replyVal);
 				var keywords = [];
-				for(var i = 0; i < material.child_items.length; i++) {
-					keywords += '&nbsp;&nbsp;' + material.child_items[i].content;
+				for(var i = 0; i < material.length; i++) {
+					keywords += '&nbsp;&nbsp;' + material.content;
 				}
 				$('.keywords-list').append(
 					'<li>'+
@@ -265,13 +265,13 @@
 					'	<div class="desc">'+
 					'		<div class="media-content">'+
 					'				<a class="title-wrp" href="javascript:;">'+
-					'					<span class="title">[关键字]'+material.name+'</span>'+
+					'					<span class="title">[关键字]'+material.content+'</span>'+
 					'				</a>'+
 					'				<p class="desc"><a href="javascript:;" class="appmsg-desc">'+keywords+'</a></p>'+
 					'		</div>'+
 					'	</div>'+
 					'	<div class="opr">'+
-					'		<a href="javascript:;" data-media="'+material.name+'" class="del-gray" onclick="delmedia(\''+type+'\', this)">删除</a>'+
+					'		<a href="javascript:;" data-media="'+material.content+'" class="del-gray" onclick="delmedia(\''+type+'\', this)">删除</a>'+
 					'	</div>'+
 					'</div>'+
 					'</li>'
@@ -317,7 +317,7 @@
 							'		<div class="media-content">'+
 							'			<div class="appmsgSendedItem">'+
 							'				<a class="title-wrp" href="javascript:;">'+
-							'					 <span class="icon cover" style="background-image:'+material.url+';"></span>'+
+							'					 <span class="icon cover" style="background-image:url('+material.url+');"></span>'+
 							'					<span class="title">[图片]</span>'+
 							'				</a>'+
 							'			</div>'+
@@ -681,7 +681,7 @@
 					break;
 				case 'keyword':
 					angular.forEach(val, function(keywordVal, keywordKey) {
-						replyVal.push(angular.toJson(keywordVal.rid));
+						replyVal.push(angular.toJson(keywordVal.id));
 						var keywords = '&nbsp;&nbsp;' + keywordVal.content;
 						$('.keywords-list').append(
 
