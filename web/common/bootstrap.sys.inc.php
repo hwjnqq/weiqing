@@ -25,7 +25,11 @@ if(is_array($session)) {
 	unset($user);
 }
 unset($session);
-$_W['uniacid'] = pdo_getcolumn('account', array('type' => $_GPC['account_type'] == 4 || $controller == 'wxapp' ? 4 : 1), 'uniacid');
+if (!empty($_GPC['__uniacid'])) {
+	$_W['uniacid'] = intval($_GPC['__uniacid']);
+} else {
+	$_W['uniacid'] = uni_account_last_switch();
+}
 
 if (!empty($_W['uniacid'])) {
 	$_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);

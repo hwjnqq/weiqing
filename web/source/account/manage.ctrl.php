@@ -15,7 +15,30 @@ $_W['page']['title'] = $account_typename . '列表 - ' . $account_typename;
 $account_info = uni_user_account_permission();
 
 if ($do == 'display') {
-	header("Location: " . url('account/post', array('account_type' => ACCOUNT_TYPE_APP_NORMAL)));
+	$pindex = max(1, intval($_GPC['page']));
+	$psize = 20;
+	$condition = array();
+
+	$type_condition = array(
+		ACCOUNT_TYPE_APP_NORMAL => array(ACCOUNT_TYPE_APP_NORMAL),
+		ACCOUNT_TYPE_OFFCIAL_NORMAL => array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH),
+	);
+	$condition['type'] = $type_condition[ACCOUNT_TYPE];
+
+	$keyword = trim($_GPC['keyword']);
+	if (!empty($keyword)) {
+		$condition['keyword'] = $keyword;
+	}
+
+	if(isset($_GPC['letter']) && strlen($_GPC['letter']) == 1) {
+		$condition['letter'] = trim($_GPC['letter']);
+	}
+
+	$account_lists = uni_account_list($condition, array($pindex, $psize));
+	$list = $account_lists['list'];
+	$total = $account_lists['total'];
+	$pager = pagination($total, $pindex, $psize);
+	template('account/manage-display' . ACCOUNT_TYPE_TEMPLATE);
 }
 
 if ($do == 'delete') {
