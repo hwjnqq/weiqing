@@ -15,6 +15,10 @@ if ($controller == 'account' && $action == 'manage') {
 		define('ACTIVE_FRAME_URL', url('account/manage/display', array('account_type' => ACCOUNT_TYPE_APP_NORMAL)));
 	}
 }
+if ($action == 'display') {
+	header("Location: " . url('account/post', array('account_type' => ACCOUNT_TYPE_APP_NORMAL)));
+	exit();
+}
 
 $_GPC['account_type'] = !empty($_GPC['account_type']) ? $_GPC['account_type'] : ACCOUNT_TYPE_OFFCIAL_NORMAL;
 if ($_GPC['account_type'] == ACCOUNT_TYPE_APP_NORMAL) {

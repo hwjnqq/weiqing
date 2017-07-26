@@ -12,8 +12,8 @@ load()->classs('weixin.platform');
 load()->model('wxapp');
 load()->model('utility');
 
-$uniacid = intval($_GPC['uniacid']);
-$acid = intval($_GPC['acid']);
+$uniacid = empty($_GPC['uniacid']) ? $_W['uniacid'] : intval($_GPC['uniacid']);
+$acid = empty($_GPC['acid']) ? $_W['acid'] : intval($_GPC['acid']);
 if (empty($uniacid) || empty($acid)) {
 	itoast('请选择要编辑的公众号', url('account/manager'), 'error');
 }
