@@ -1,7 +1,7 @@
 <?php
 /**
- * 公众号回收站
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -9,7 +9,6 @@ load()->model('account');
 
 $dos = array('display', 'recover', 'delete');
 $do = in_array($do, $dos) ? $do : 'display';
-//只有创始人、主管理员才有权限使用回收站功能
 if ($_W['role'] != ACCOUNT_MANAGE_NAME_OWNER && $_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER) {
 	itoast('无权限操作！', referer(), 'error');
 }

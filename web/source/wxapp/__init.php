@@ -5,7 +5,7 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-if ($action != 'post') {
+if (!in_array($action, array('display', 'post'))) {
 	checkwxapp();
 }
 

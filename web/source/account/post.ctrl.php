@@ -1,7 +1,7 @@
 <?php
 /**
- * 管理公众号
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -12,21 +12,13 @@ load()->classs('weixin.platform');
 load()->model('wxapp');
 load()->model('utility');
 
-if (empty($_W['uniacid'])) {
-	if (ACCOUNT_TYPE == ACCOUNT_TYPE_OFFCIAL_NORMAL) {
-		header("Location: " . url('account/post-step'));
-		exit();
-	} else {
-		header("Location: " . url('wxapp/post/design_method'));
-		exit();
-	}
+$uniacid = intval($_GPC['uniacid']);
+$acid = intval($_GPC['acid']);
+if (empty($uniacid) || empty($acid)) {
+	itoast('请选择要编辑的公众号', url('account/manager'), 'error');
 }
-
-$uniacid = $_W['uniacid'];
-$acid = $_W['acid'];
 $state = uni_permission($_W['uid'], $uniacid);
 $dos = array('base', 'sms', 'modules_tpl');
-
 if ($state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER) {
 	$do = in_array($do, $dos) ? $do : 'base';
 } elseif ($state == ACCOUNT_MANAGE_NAME_MANAGER) {
@@ -205,7 +197,6 @@ if($do == 'modules_tpl') {
 		if($_GPC['type'] == 'group') {
 			$groups = $_GPC['groupdata'];
 			if(!empty($groups)) {
-				//附加套餐组
 				pdo_delete('uni_account_group', array('uniacid' => $uniacid));
 				$group = pdo_get('users_group', array('id' => $owner['groupid']));
 				$group['package'] = (array)iunserializer($group['package']);
@@ -230,7 +221,6 @@ if($do == 'modules_tpl') {
 		}
 
 		if($_GPC['type'] == 'extend') {
-			//如果有附加的权限，则生成专属套餐组
 			$module = $_GPC['module'];
 			$tpl = $_GPC['tpl'];
 			if (!empty($module) || !empty($tpl)) {
@@ -284,7 +274,6 @@ if($do == 'modules_tpl') {
 				}
 			}
 		}
-		//附加套餐
 		$extendpackage = pdo_getall('uni_account_group', array('uniacid' => $uniacid), array(), 'groupid');
 		if(!empty($extendpackage)) {
 			foreach ($extendpackage as $extendpackage_val) {
@@ -307,18 +296,11 @@ if($do == 'modules_tpl') {
 	$modules = pdo_getall('modules', array('issystem !=' => 1), array('mid', 'name', 'title'), 'name');
 	$templates = pdo_getall('site_templates', array(), array('id', 'name', 'title'));
 	$extend = pdo_get('uni_group', array('uniacid' => $uniacid));
-	$extend['modules'] = iunserializer($extend['modules']);
+	$extend['modules'] = $current_module_names = iunserializer($extend['modules']);
 	$extend['templates'] = iunserializer($extend['templates']);
 	if (!empty($extend['modules'])) {
-		$extend['modules'] = pdo_getall('modules', array('name' => $extend['modules']), array('mid', 'title', 'name'));
-		if (!empty($extend['modules'])) {
-			foreach ($extend['modules'] as &$module_info) {
-				if (file_exists(IA_ROOT.'/addons/'.$module_info['name'].'/icon-custom.jpg')) {
-					$module_info['logo'] = tomedia(IA_ROOT.'/addons/'.$module_info['name'].'/icon-custom.jpg');
-				} else {
-					$module_info['logo'] = tomedia(IA_ROOT.'/addons/'.$module_info['name'].'/icon.jpg');
-				}
-			}
+		foreach ($extend['modules'] as $module_key => $module_val) {
+			$extend['modules'][$module_key] = module_fetch($module_val);
 		}
 	}
 	if (!empty($extend['templates'])) {

@@ -14,10 +14,14 @@ load()->model('module');
 load()->model('system');
 $dos = array('platform', 'system', 'ext', 'get_fans_kpi', 'get_last_modules', 'get_system_upgrade', 'get_upgrade_modules', 'get_module_statistics');
 $do = in_array($do, $dos) ? $do : 'platform';
+if ($do == 'platform' || $do == 'ext') {
+	checkaccount();
+}
 
 if ($do == 'platform') {
-	if (empty($_W['uniacid'])) {
-		header("Location: " . url('account/post-step'));
+	$last_uniacid = uni_account_last_switch();
+	if (empty($last_uniacid)) {
+		itoast('', url('account/display'), 'info');
 	}
 	if (!empty($last_uniacid) && $last_uniacid != $_W['uniacid']) {
 		uni_account_switch($last_uniacid,  url('home/welcome'));
