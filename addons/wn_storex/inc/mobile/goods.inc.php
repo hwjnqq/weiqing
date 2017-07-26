@@ -45,9 +45,9 @@ if ($op == 'goods_info') {
 	if (!empty($goods_info['device'])) {
 		$goods_info['device'] = htmlspecialchars_decode($goods_info['device']);
 	}
-	$goods_info = get_room_params($goods_info);
 	if ($store_info['store_type'] == 1) {
 		if ($goods_info['is_house'] == 1) {
+			$goods_info = get_room_params($goods_info);
 			$days = ceil((strtotime($_GPC['etime']) - strtotime($_GPC['btime']))/86400);
 			$dates = get_dates($_GPC['btime'], $days);
 			$search_data = array(
@@ -57,6 +57,9 @@ if ($op == 'goods_info') {
 			);
 			$goods_info = calcul_roon_sumprice($dates, $search_data, $goods_info);
 		}
+	} else {
+		$tags = store_goods_tags($store_info['id']);
+		$goods_info['tag'] = get_goods_tag($tags, $goods_info['tag']);
 	}
 	if (!empty($goods_info['express_set'])) {
 		$goods_info['express_set'] = iunserializer($goods_info['express_set']);

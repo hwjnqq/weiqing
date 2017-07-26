@@ -157,10 +157,17 @@ if ($op == 'more_goods') {
 		$list['nindex'] = $page_array['nindex'];
 	}
 	if (!empty($list['list'])) {
-		foreach ($list['list'] as $k => $info) {
-			$list['list'][$k]['thumb'] = tomedia($info['thumb']);
-			$list['list'][$k]['thumbs'] = format_url(iunserializer($info['thumbs']));
+		if ($storex_bases['store_type'] != STORE_TYPE_HOTEL) {
+			$tags = store_goods_tags($storex_bases['id']);
 		}
+		foreach ($list['list'] as &$info) {
+			$info['thumb'] = tomedia($info['thumb']);
+			$info['thumbs'] = format_url(iunserializer($info['thumbs']));
+			if ($storex_bases['store_type'] != STORE_TYPE_HOTEL) {
+				$info['tag'] = get_goods_tag($tags, $info['tag']);
+			}
+		}
+		unset($info);
 	}
 	wmessage(error(0, $list), '', 'ajax');
 }
@@ -223,22 +230,28 @@ if ($op == 'goods_search') {
 		$fields[] = 'hotelid';
 		$fields[] = 'is_house';
 	} else {
-		$goods_fields = array('store_base_id', 'unit', 'weight', 'stock', 'min_buy', 'max_buy');
+		$goods_fields = array('store_base_id', 'unit', 'weight', 'stock', 'min_buy', 'max_buy', 'tag');
 		$fields = array_merge($fields, $goods_fields);
 		$condition['store_base_id'] = $id;
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 1;
 
-	$goods = pdo_getall($table, $condition, $fields, '', 'displayorder DESC', array($pindex, $psize));
+	$goods = pdo_getall($table, $condition, $fields, '', 'sortid DESC', array($pindex, $psize));
 	$total = count(pdo_getall($table, $condition));
 	if (!empty($goods) && is_array($goods)) {
+		if ($store['store_type'] != STORE_TYPE_HOTEL) {
+			$tags = store_goods_tags($store['id']);
+		}
 		foreach ($goods as &$info) {
 			if (!empty($info['thumb'])) {
 				$info['thumb'] = tomedia($info['thumb']);
 			}
 			if (!empty($info['thumbs'])) {
 				$info['thumbs'] = format_url(iunserializer($info['thumbs']));
+			}
+			if ($store['store_type'] != STORE_TYPE_HOTEL) {
+				$info['tag'] = get_goods_tag($tags, $info['tag']);
 			}
 		}
 		unset($info);

@@ -815,3 +815,16 @@ function set_order_statuslog($log_data, $data) {
 		}
 	}
 }
+
+function store_goods_tags($storeid) {
+	global $_W;
+	return pdo_getall('storex_tags', array('storeid' => $storeid, 'uniacid' => $_W['uniacid'], 'status' => 1), array(), 'id');
+}
+
+function get_goods_tag($tags, $tagid) {
+	$tag = '';
+	if (!empty($tags[$tagid])) {
+		$tag = $tags[$tagid]['title'];
+	}
+	return $tag;
+}

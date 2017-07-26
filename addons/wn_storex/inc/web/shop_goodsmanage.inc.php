@@ -85,7 +85,7 @@ if ($op == 'display') {
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename($table) . " r LEFT JOIN " . tablename('storex_bases') . " h ON " . $join_condition . " WHERE r.weid = '{$_W['uniacid']}' $sql", $params);
 	$list = format_list($category, $list);
 	$pager = pagination($total, $pindex, $psize);
-	$tags = pdo_getall('storex_tags', array('storeid' => $storeid, 'uniacid' => $_W['uniacid']), array(), 'id');
+	$tags = store_goods_tags($storeid);
 	include $this->template('store/shop_goodslist');
 }
 
