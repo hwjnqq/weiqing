@@ -22,7 +22,7 @@
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">用户名</label>
 					<div class="col-sm-9 col-xs-12">
-						<input type="text" name="username" id="username" value="{$item['username']}" class="form-control" {if !empty($item)}readonly{/if}>
+						<input type="text" name="username" id="username" value="{$user_info['username']}" class="form-control" readonly>
 					</div>
 				</div>
 				<div class="form-group">
@@ -53,18 +53,6 @@
 					</div>
 					{/if}
 				</span>
-				<div class="form-group">
-					<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否绑定微信号</label>
-					<div class="col-sm-9 col-xs-12">
-						<label class="radio-inline">
-							<input type="radio" name="userbind" value="1" {if $item['userbind'] == 1}checked{/if}/>绑定
-						</label>
-						<label class="radio-inline">
-							<input type="radio" name="userbind" value="0" {if $item['userbind'] == 0}checked{/if}/>不绑定
-						</label>
-						<span class='help-block'>绑定之后，此账户与微信用户绑定，帐号不能从其他微信登录</span>
-					</div>
-				</div>
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
 					<div class="col-sm-9 col-xs-12">
@@ -104,20 +92,32 @@
 					</div>
 				</div>
 				<div class="form-group">
-					<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺管理权限</label>
+					<!-- <label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺管理权限</label>
 					<div class="col-sm-9 col-xs-12">
 						<div id="permission">
 
 						</div>
-					</div>
-					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					</div> -->
+					<!-- <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
 					<div class="col-md-10">
 						<span class='help-block'>设置店员可以在手机端管理哪些店铺订单</span>
+					</div> -->
+					<div class="panel panel-default">
+						<div class="panel-heading">权限清单</div>
+						<div class="panel-body table-responsive">
+							{if !empty($user_permissions[$_GPC['uid']]['permission'])}
+							{loop $user_permissions[$_GPC['uid']]['permission'] $permission}
+								<div class="col-sm-3">
+									<span class="">{$permission}</span>
+								</div>
+							{/loop}
+							{/if}
+						</div>
 					</div>
-					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<!-- <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
 					<div class="col-md-10" style="padding-left: 0px;">
 						<h4><a href="javascript:;" class='btn btn-primary js-permission-modal' style="margin-top:10px;margin-bottom:10px;"title="添加权限"><i class='fa fa-plus'></i> 添加权限</a>
-					</div>
+					</div> -->
 				</div>
 			</div>
 			<div class="form-group col-sm-12">

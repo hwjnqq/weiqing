@@ -654,6 +654,12 @@ if (!pdo_fieldexists('storex_goods', 'min_buy')) {
 if (!pdo_fieldexists('storex_goods', 'max_buy')) {
 	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `max_buy` INT(11) NOT NULL DEFAULT '-1' COMMENT '单次最多购买 -1不限';");
 }
+if (!pdo_fieldexists('storex_clerk', 'storeid')) {
+	pdo_query("ALTER TABLE " . tablename('storex_clerk') . " ADD `storeid` int(11) NOT NULL DEFAULT '0', ADD INDEX (`storeid`);");
+}
+if (pdo_fieldexists('storex_clerk', 'userid')) {
+	pdo_query("ALTER TABLE " . tablename('storex_clerk') . " CHANGE `userid` `userid` INT(11) NULL DEFAULT '0'");
+}
 
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');

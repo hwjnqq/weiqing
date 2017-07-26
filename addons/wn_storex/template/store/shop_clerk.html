@@ -12,14 +12,6 @@
 					<input type="hidden" name="storeid" value="{$_GPC['storeid']}" />
 					<div class="form-group">
 						<div class="col-sm-10">
-							<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">身份</label>
-							<div class="col-sm-9 col-xs-12">
-								<a href="#" class="btn btn-primary" style="width: 90px">店员</a>
-							</div>
-						</div>
-					</div>
-					<div class="form-group">
-						<div class="col-sm-10">
 							<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">姓名</label>
 							<div class="col-xs-12 col-sm-8 col-lg-9">
 								<input class="form-control" name="realname" type="text" value="{$_GPC['realname']}">
@@ -40,10 +32,48 @@
 				</form>
 			</div>
 			<div class="wn-main__search__action">
-				<a href="{php echo $this->createWebUrl('shop_clerk', array('op' => 'edit', 'storeid' => $_GPC['storeid']));}" class="btn btn-primary we7-padding-horizontal">+添加店员</a>
+				<a href="javascript:;" data-toggle="modal" data-target="#clerk-modal" class="btn btn-primary we7-padding-horizontal">+添加店员</a>
 			</div>
 		</div>
-	
+		<div class="modal fade" id="clerk-modal" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" id="myModalLabel">选择你要创建店员</h4>
+					</div>
+					<div class="modal-body clearfix form-horizontal">
+						{if !empty($available_user)}
+						{loop $available_user $user}
+						<div class="form-group marbot0">
+							<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+							<div class="col-sm-9 col-xs-12">
+								<label class="radio-inline">
+									<input type="radio" name="uid" value="{$user['uid']}"/>{$user['user_info']['username']}
+								</label>
+								<div class="help-block">
+									{loop $user['permission'] $permission}
+									<span class="label label-success">{$permission}</span>
+									{/loop}
+								</div>
+							</div>
+						</div>
+						{/loop}
+						{else}
+						<div class="form-group marbot0 text-center">
+							暂无可用操作员(<a href="{php echo url('module/permission', array('m' => 'wn_storex'))}">点击进入权限设置，添加操作员</a>)
+						</div>
+						{/if}
+					</div>
+					{if !empty($available_user)}
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+						<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="location.href='{php echo $this->createWeburl('shop_clerk', array('op' => 'edit', 'storeid' => $_GPC['storeid']))}&uid=' + $('#clerk-modal input[type=radio]:checked').val()">确定</button>
+					</div>
+					{/if}
+				</div>
+			</div>
+		</div>
 		<table class="table table-hover wn-table table-bordered">
 			<thead class="navbar-inner">
 				<tr>
@@ -91,17 +121,17 @@
 				</td>
 				<td>{php echo date('Y-m-d H:i',$item['createtime'])}</td>
 				<td>
-					{if $item['status']==1}
+					{if $item['status'] == 1}
 					<span class='label label-success'>启用</span>
 					{else}
 					<span class='label label-default'>禁用</span>
 					{/if}
 				</td>
 				<td>
-					<a class="btn btn-default " data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('shop_clerk', array('op' => 'edit','id' => $item['id'], 'storeid' => $_GPC['storeid']))}" title="编辑"><i class="fa fa-edit"></i></a>
-					{if $item['status']==0}
+					<a class="btn btn-default " data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('shop_clerk', array('op' => 'edit','id' => $item['id'], 'storeid' => $_GPC['storeid'], 'uid' => $item['userid']))}" title="编辑"><i class="fa fa-edit"></i></a>
+					{if $item['status'] == 0}
 					<a class="btn btn-default" title="显示" href="#" onclick="drop_confirm('您确定要启用此用户吗?', '{php echo $this->createWebUrl('shop_clerk', array('op' => 'status', 'status' => 1, 'id' => $item['id'], 'storeid' => $_GPC['storeid']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
-					{elseif $item['status']==1}
+					{elseif $item['status'] == 1}
 					<a class="btn btn-default" title="隐藏" href="#" onclick="drop_confirm('您确定要禁用此用户吗?', '{php echo $this->createWebUrl('shop_clerk', array('op' => 'status', 'status' => 0, 'id' => $item['id'], 'storeid' => $_GPC['storeid']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
 					{/if}
 					<a class="btn btn-default" data-toggle="tooltip" data-placement="bottom" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('shop_clerk', array('op' => 'delete', 'id' => $item['id'], 'storeid' => $_GPC['storeid']))}');" title="删除" ><i class="fa fa-times"></i></a>
