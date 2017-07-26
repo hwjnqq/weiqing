@@ -39,7 +39,8 @@ if ($op == 'goods_list') {
 				}
 			}
 		} else {
-			$fields[] = 'store_base_id';
+			$goods_fields = array('store_base_id', 'unit', 'weight', 'stock', 'min_buy', 'max_buy');
+			$fields = array_merge($fields, $goods_fields);
 			$condition['store_base_id'] = $store_id;
 			foreach ($sub_class as $key => $sub_classinfo) {
 				$condition['ccate'] = $sub_classinfo['id'];
@@ -222,7 +223,8 @@ if ($op == 'goods_search') {
 		$fields[] = 'hotelid';
 		$fields[] = 'is_house';
 	} else {
-		$fields[] = 'store_base_id';
+		$goods_fields = array('store_base_id', 'unit', 'weight', 'stock', 'min_buy', 'max_buy');
+		$fields = array_merge($fields, $goods_fields);
 		$condition['store_base_id'] = $id;
 	}
 	$pindex = max(1, intval($_GPC['page']));

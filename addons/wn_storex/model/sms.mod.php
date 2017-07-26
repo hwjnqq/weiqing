@@ -15,7 +15,7 @@ function sms_send($mobile, $content, $type) {
 	$smsset = pdo_get('storex_plugin_smsset', array('uniacid' => $_W['uniacid']));
 	$sms_template_list = pdo_get('storex_plugin_smsnotice', array('uniacid' => $_W['uniacid']));
 	$sms_notices = iunserializer($sms_template_list['notice']);
-	if ($sms_notices[$type]['status'] != 2) {
+	if (empty($sms_notices[$type]) || $sms_notices[$type]['status'] != 2) {
 		sms_insert_log(array('mobile' => $mobile, 'status' => 1, 'message' => '未开启模板通知'));
 		return error(-1, '未开启模板通知');
 	}

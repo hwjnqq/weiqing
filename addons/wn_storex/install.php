@@ -316,6 +316,10 @@ $sql = "
 	`tag` int(11) NOT NULL,
 	`unit` varchar(12) NOT NULL COMMENT '单位',
 	`weight` double NOT NULL COMMENT '重量',
+	`stock` int(11) NOT NULL DEFAULT '-1' COMMENT '库存',
+	`stock_control` tinyint(4) NOT NULL DEFAULT '1' COMMENT '1永不减库存，2拍下减库存，3付款减库存',
+	`min_buy` int(11) NOT NULL DEFAULT '1' COMMENT '单次最小购买',
+	`max_buy` int(11) NOT NULL DEFAULT '-1' COMMENT '单次最多购买 -1不限',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;

@@ -82,9 +82,44 @@
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">重量</label>
 				<div class="col-sm-9 col-xs-12">
 					<div class="input-group">
-					<input type="text" name="weight" id="weight" value="{$item['weight']}" class="form-control">
-					<span class="input-group-addon">千克</span>
+						<input type="text" name="weight" id="weight" value="{$item['weight']}" class="form-control">
+						<span class="input-group-addon">千克</span>
 					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">库存</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="stock" id="stock" value="{$item['stock']}" class="form-control">
+					<span class="help-block">-1则库存不限</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">减库存方式</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" name="stock_control" value="1" {if $item['stock_control'] == 1} checked {/if}/>永不减库存
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="stock_control" value="2" {if $item['stock_control'] == 2} checked {/if}/>拍下减库存
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="stock_control" value="3" {if $item['stock_control'] == 3} checked {/if}/>付款减库存
+					</label>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">单次最少购买</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="min_buy" id="min_buy" value="{$item['min_buy']}" class="form-control">
+					<span class="help-block">最小值是1</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">单次最多购买</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="max_buy" id="max_buy" value="{$item['max_buy']}" class="form-control">
+					<span class="help-block">-1单次最多购买不限制</span>
 				</div>
 			</div>
 			<div class="form-group">

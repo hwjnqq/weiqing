@@ -160,14 +160,24 @@ if ($op == 'edit') {
 		if (empty($store_type)) {
 			$goods = array(
 				'store_base_id' => $store_base_id,
+				'unit' => trim($_GPC['unit']),
+				'weight' => sprintf("%.2f", $_GPC['weight']),
+				'stock' => intval($_GPC['stock']),
+				'stock_control' => intval($_GPC['stock_control']),
+				'min_buy' => intval($_GPC['min_buy']),
+				'max_buy' => intval($_GPC['max_buy']),
 			);
+			if ($goods['stock'] < -1) {
+				$goods['stock'] = 0;
+			}
+			if ($goods['max_buy'] != -1 && $goods['min_buy'] > $goods['max_buy']) {
+				message('单次最小购买量大于单次最大购买量', referer(), 'error');
+			}
 			$express_set = array(
 				'express' => is_numeric($_GPC['express']) ? $_GPC['express'] : 0,
 				'full_free' => is_numeric($_GPC['full_free']) ? $_GPC['full_free'] : 0,
 			);
 			$goods['express_set'] = iserializer($express_set);
-			$goods['unit'] = trim($_GPC['unit']);
-			$goods['weight'] = sprintf("%.2f", $_GPC['weight']);
 			$data = array_merge($goods, $common);
 		} else {
 			$room = array(

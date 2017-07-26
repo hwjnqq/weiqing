@@ -632,7 +632,7 @@ if (!pdo_fieldexists('storex_goods', 'sub_title')) {
 if (pdo_fieldexists('storex_bases', 'category_set')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " DROP `category_set`;");
 }
-//商品增加标签，单位，重量属性
+//商品增加标签，单位，重量，库存属性
 if (!pdo_fieldexists('storex_goods', 'tag')) {
 	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `tag` INT(11) NOT NULL;");
 }
@@ -641,6 +641,18 @@ if (!pdo_fieldexists('storex_goods', 'unit')) {
 }
 if (!pdo_fieldexists('storex_goods', 'weight')) {
 	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `weight` DOUBLE NOT NULL COMMENT '重量';");
+}
+if (!pdo_fieldexists('storex_goods', 'stock')) {
+	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `stock` INT(11) NOT NULL DEFAULT '-1' COMMENT '库存';");
+}
+if (!pdo_fieldexists('storex_goods', 'stock_control')) {
+	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `stock_control` TINYINT(4) NOT NULL DEFAULT '1' COMMENT '1永不减库存，2拍下减库存，3付款减库存';");
+}
+if (!pdo_fieldexists('storex_goods', 'min_buy')) {
+	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `min_buy` INT(11) NOT NULL DEFAULT '1' COMMENT '单次最小购买';");
+}
+if (!pdo_fieldexists('storex_goods', 'max_buy')) {
+	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `max_buy` INT(11) NOT NULL DEFAULT '-1' COMMENT '单次最多购买 -1不限';");
 }
 
 //处理mobile更新遗留的js，css和svg文件

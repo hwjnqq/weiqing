@@ -297,6 +297,10 @@ if ($op == 'order') {
 			$insert = general_goods_order($order_info, $goods_info, $insert);
 		}
 	} else {
+		$stock = check_goods_stock($goodsid, $order_info['nums']);
+		if (is_error($stock)) {
+			wmessage($stock, '', 'ajax');
+		}
 		$insert = general_goods_order($order_info, $goods_info, $insert);
 	}
 	//根据优惠方式计算总价
@@ -349,6 +353,9 @@ if ($op == 'order') {
 			'remark' => '下单成功',
 		);
 		write_log($logs);
+		if ($store_info['store_type'] != STORE_TYPE_HOTEL) {
+			stock_control($goodsid, $insert['nums'], 'order');
+		}
 	}
 	
 	if (check_plugin_isopen('wn_storex_plugin_sms')) {

@@ -260,6 +260,9 @@ class Wn_storexModuleSite extends WeModuleSite {
 				);
 				write_log($logs);
 			}
+			if ($storex_bases['store_type'] != STORE_TYPE_HOTEL) {
+				stock_control($order['roomid'], $order['nums'], 'pay');
+			}
 			$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('email', 'mobile', 'nickname', 'template', 'confirm_templateid', 'templateid'));
 			$starttime = $order['btime'];
 			if (!empty($setInfo['email'])) {
