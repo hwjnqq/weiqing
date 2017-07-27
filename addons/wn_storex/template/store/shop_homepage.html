@@ -1,5 +1,5 @@
 {template 'common/header-storex'}
-<link rel="stylesheet" href="../addons/wn_storex/template/style/css/membercard.css">
+<link rel="stylesheet" href="{php echo $_W['siteroot'] . 'addons/wn_storex/template/style/css/membercard.css'}">
 {if $op == 'display'}
 <div class="wn-main wn-main--without">
 	<div class="wn-main__head">店铺设置</div>
@@ -57,7 +57,7 @@
 							<div class="wn-home__edit__head">
 								{{typeValue[openModules[editModuleIndex]['type']]}}
 								<span v-if="openModules[editModuleIndex]['type'] == 'slide'">
-									拖动排序，每组最多上传4张
+									拖动排序，每组最多上传 <span class="c-active">4</span> 张，<span class="c-active">图片尺寸比例750px * 341px</span>
 								</span>
 								<span v-if="openModules[editModuleIndex]['type'] == 'notice'">
 									拖动排序
@@ -288,9 +288,9 @@
 <script>
 	require({
 		paths: {
-			'Vue': "{php echo SCRIPT_URL . '/vue'}",
-			'sortablejs': "{php echo SCRIPT_URL . '/Sortable.min'}",
-			'vuedraggable': "{php echo SCRIPT_URL . '/vuedraggable.min'}",
+			'Vue': "{php echo $_W['siteroot'] . 'addons/wn_storex/template/style/js/vue'}",
+			'sortablejs': "{php echo $_W['siteroot'] . 'addons/wn_storex/template/style/js/Sortable.min'}",
+			'vuedraggable': "{php echo $_W['siteroot'] . 'addons/wn_storex/template/style/js/vuedraggable.min'}",
 		}
 	})
 	require(['bootstrap'])

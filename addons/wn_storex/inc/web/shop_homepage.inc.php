@@ -9,6 +9,10 @@ $storeid = intval($_W['wn_storex']['store_info']['id']);
 if ($op == 'display') {
 	$default_module = array(
 		array(
+			'type' => 'search',
+			'items' => array()
+		),
+		array(
 			'type' => 'slide',
 			'items' => array()
 		),

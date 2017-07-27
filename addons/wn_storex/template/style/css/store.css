@@ -875,6 +875,10 @@ li {
   margin-bottom: 0;
 }
 
+.c-active {
+  color: #59c2e6;
+}
+
 .wn-home__help {
   background-color: #d2eaf9;
   color: #4f5f6f;
@@ -929,7 +933,7 @@ li {
 }
 .wn-home__modules__item {
   float: left;
-  width: 14.28571%;
+  width: calc((100% / 7) - 5px);
   height: 60px;
   line-height: 60px;
   text-align: center;
@@ -977,7 +981,7 @@ li {
 }
 .wn-home__editImage__item img {
   width: 187.5px;
-  height: 85.75px;
+  height: 85.25px;
 }
 .wn-home__editImage__item a {
   color: #59c2e6;
