@@ -70,6 +70,7 @@ if ($op == 'goods_info') {
 		'link' => murl('entry', array('do' => 'display', 'id' => $id, 'm' => 'wn_storex', 'type' => 'goods_info', 'goodsid' => $goodsid), true, true),
 		'imgUrl' => tomedia($goods_info['thumb'])
 	);
+	$goods_info['defined'] = get_goods_defined($id, $goodsid);
 	wmessage(error(0, $goods_info), $share_data, 'ajax');
 }
 
@@ -113,6 +114,7 @@ if ($op == 'info') {
 	if (!empty($goods_info['express_set'])) {
 		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
 	}
+	$goods_info['defined'] = get_goods_defined($id, $goodsid);
 	$paycenter_couponlist = activity_paycenter_get_coupon();
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;
@@ -159,12 +161,6 @@ if ($op == 'order') {
 			wmessage(error(-1, '卡券信息有误'), '', 'ajax');
 		}
 	}
-	if (empty($order_info['mobile'])) {
-		wmessage(error(-1, '手机号码不能为空'), '', 'ajax');
-	}
-	if (!preg_match(REGULAR_MOBILE, $order_info['mobile'])) {
-		wmessage(error(-1, '手机号码格式不正确'), '', 'ajax');
-	}
 	if ($order_info['nums'] <= 0) {
 		wmessage(error(-1, '数量不能是零'), '', 'ajax');
 	}
@@ -172,9 +168,6 @@ if ($op == 'order') {
 	$paysetting = uni_setting(intval($_W['uniacid']), array('payment', 'creditbehaviors'));
 	$_W['account'] = array_merge($_W['account'], $paysetting);
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
-	if (empty($order_info['contact_name'])) {
-		wmessage(error(-1, '联系人不能为空!'), '', 'ajax');
-	}
 	if ($store_info['store_type'] == 1) {
 		$table = 'storex_room';
 		$condition['hotelid'] = $store_id;
@@ -183,6 +176,17 @@ if ($op == 'order') {
 		$condition['store_base_id'] = $store_id;
 	}
 	$goods_info = pdo_get($table, $condition);
+	if ($store_info['store_type'] != 1 || ($store_info['store_type'] == 1 && $goods_info['is_house'] == 1)) {
+		if (empty($order_info['mobile'])) {
+			wmessage(error(-1, '手机号码不能为空'), '', 'ajax');
+		}
+		if (!preg_match(REGULAR_MOBILE, $order_info['mobile'])) {
+			wmessage(error(-1, '手机号码格式不正确'), '', 'ajax');
+		}
+		if (empty($order_info['contact_name'])) {
+			wmessage(error(-1, '联系人不能为空!'), '', 'ajax');
+		}
+	}
 	if (empty($goods_info)) {
 		wmessage(error(-1, '商品未找到, 请联系管理员!'), '', 'ajax');
 	}
@@ -357,7 +361,7 @@ if ($op == 'order') {
 		}
 	}
 	
-	if (check_plugin_isopen('wn_storex_plugin_sms')) {
+	if (!check_plugin_isopen('wn_storex_plugin_sms')) {
 		$clerks = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'status' => 1), array('mobile', 'permission'));
 		if (!empty($clerks)) {
 			foreach ($clerks as $k => $val) {

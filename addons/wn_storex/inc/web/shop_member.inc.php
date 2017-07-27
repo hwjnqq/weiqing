@@ -164,36 +164,3 @@ if ($op == 'status') {
 		message('设置成功', referer(), 'success');
 	}
 }
-
-if ($op == 'clerk') {
-	$id = intval($_GPC['id']);
-	if (empty($id)) {
-		message('参数错误', '', 'error');
-	}
-	$member = pdo_get('storex_member', array('id' => $id, 'weid' => intval($_W['uniacid'])));
-	$clerk = pdo_get('storex_clerk', array('weid' => intval($_W['uniacid']), 'from_user' => $member['from_user']));
-	if ($member['clerk'] == 1 && !empty($clerk)) {
-		message('已经是店员了，不要重复操作', '', 'error');
-	}
-	if ($member['clerk'] != 1) {
-		$temp = pdo_update('storex_member', array('clerk' => 1), array('id' => $id, 'weid' => intval($_W['uniacid'])));
-		if ($temp == false) {
-			message('操作失败', '', 'error');
-		}
-	}
-	$fields = array('weid', 'userid', 'from_user', 'realname', 'mobile', 'score', 'createtime', 'userbind', 'status', 'username', 'password', 'salt', 'nickname', 'permission');
-	$insert = array();
-	foreach ($fields as $val) {
-		if (!empty($member[$val])) {
-			$insert[$val] = $member[$val];
-		} else {
-			$insert[$val] = '';
-		}
-		if ($val == 'createtime') {
-			$insert['createtime'] = time();
-		}
-	}
-	pdo_insert('storex_clerk', $insert);
-	$insert_id = pdo_insertid();
-	message('状态设置成功', $this->createWebUrl('clerk', array('op' => 'edit', 'id' => $insert_id)), 'success');
-}

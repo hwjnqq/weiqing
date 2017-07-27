@@ -225,6 +225,27 @@
 				</div>
 			</div>
 			<div class="form-group">
+				<label class="col-xs-12 col-md-2 control-label">自定义字段</label>
+				<div class="col-md-10" id="defined-container" style="padding-left: 0px;">
+					{loop $user_defined $key $content}
+					<div class="col-sm-11" style="margin: 5px 0px;">
+						<div class="input-group">
+							<span class="input-group-addon">字段名称</span>
+							<input type="text" class="form-control defined-input" maxlength="6" name="defined[{$key}][title]" value="{$content['title']}">
+							<span class="input-group-addon">内容</span>
+							<input type="text" class="form-control" name="defined[{$key}][content]" value="{$content['content']}" />
+							<span class="input-group-btn">
+								<button class="btn btn-default defined-delete" type="button">删除</button>
+							</span>
+						</div>
+					</div>
+					{/loop}
+					<div class="col-sm-5">
+						<button type="button" id="add_defined" class="btn btn-default"><i class="fa fa-plus"></i> 添加</button>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
 				<div class="col-sm-9 col-xs-12">
 					<label class="radio-inline">
@@ -282,6 +303,27 @@
 			$("#unit").val(slice_unit);
 			util.message("单位超出范围");
 		}
+	});
+	
+	$("#add_defined").click(function() {
+		var index = $('.defined-input').length;
+		var html =
+			'<div class="col-sm-11" style="margin: 5px 0px;">' +
+				'<div class="input-group">' +
+					'<span class="input-group-addon">字段名称</span>' +
+					'<input type="text" class="form-control defined-input" maxlength="6" name="defined[' + index + '][title]" value="">' +
+					'<span class="input-group-addon">内容</span>' +
+					'<input type="text" class="form-control" name="defined[' + index + '][content]" value="">' +
+					'<span class="input-group-btn">' +
+						'<button class="btn btn-default defined-delete" type="button">删除</button>' +
+					'</span>' +
+				'</div>' +
+			'</div>';
+
+		$(this).parent().before(html);
+	});
+	$(document).on('click', '.defined-delete', function() {
+		$(this).parent().parent().parent().remove();
 	});
 </script>
 {template 'common/footer-storex'}

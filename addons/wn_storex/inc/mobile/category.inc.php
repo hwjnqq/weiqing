@@ -235,7 +235,7 @@ if ($op == 'goods_search') {
 		$condition['store_base_id'] = $id;
 	}
 	$pindex = max(1, intval($_GPC['page']));
-	$psize = 1;
+	$psize = 10;
 
 	$goods = pdo_getall($table, $condition, $fields, '', 'sortid DESC', array($pindex, $psize));
 	$total = count(pdo_getall($table, $condition));
@@ -253,6 +253,7 @@ if ($op == 'goods_search') {
 			if ($store['store_type'] != STORE_TYPE_HOTEL) {
 				$info['tag'] = get_goods_tag($tags, $info['tag']);
 			}
+			$info['defined'] = get_goods_defined($id, $info['id']);
 		}
 		unset($info);
 	}

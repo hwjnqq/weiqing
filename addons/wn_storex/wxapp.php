@@ -315,7 +315,7 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 			
 			$emails = array();
 			if (!empty($storex_bases['emails'])) {
-				$emails = iserializer($storex_bases['emails']);
+				$emails = iunserializer($storex_bases['emails']);
 			}
 			if (!empty($storex_bases['mail'])) {
 				$emails[] = $storex_bases['mail'];
@@ -342,7 +342,7 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 				}
 			}
 			if (!empty($storex_bases['phones'])) {
-				$storex_bases['phones'] = iserializer($storex_bases['phones']);
+				$storex_bases['phones'] = iunserializer($storex_bases['phones']);
 				// 发送短信提醒
 				load()->model('cloud');
 				foreach ($storex_bases['phones'] as $phone) {

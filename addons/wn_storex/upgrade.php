@@ -489,6 +489,16 @@ $sql = "
 	`status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态 1开启，2关闭',
 	PRIMARY KEY (`id`)
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_goods_extend` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`defined` text NOT NULL COMMENT '自定义字段的键值',
+	`goodsid` int(11) NOT NULL COMMENT '商品id',
+	`uniacid` int(11) NOT NULL,
+	`storeid` int(11) NOT NULL COMMENT '酒店id',
+	`goods_table` varchar(24) NOT NULL COMMENT '商品表名',
+	PRIMARY KEY (`id`)
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
 ";
 pdo_run($sql);
 
