@@ -95,6 +95,7 @@ if ($op == 'delete') {
 	$table = gettablebytype($store['store_type']);
 	$relation = 'AND';
 	$condition_goods['weid'] = $_W['uniacid'];
+	$condition_category['id'] = $id;
 	if (empty($category['parentid'])) {
 		$condition_goods['pcate'] = $id;
 		$condition_category['parentid'] = $id;

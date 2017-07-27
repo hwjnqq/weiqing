@@ -296,6 +296,20 @@
 			util.message("副标题超出范围");
 		}
 	});
+	$("#weight").blur(function() {
+		var weight = $("#weight").val();
+		if (weight <= 0) {
+			$("#weight").val(0.1);
+			util.message("重量不能小于0");
+		}
+	});
+	$("#min_buy").blur(function() {
+		var min_buy = $("#min_buy").val();
+		if (min_buy <= 0) {
+			$("#min_buy").val(1);
+			util.message("最小购买量是1");
+		}
+	});
 	$("#unit").blur(function() {
 		var unit = $("#unit").val();
 		if (unit.length > 2) {

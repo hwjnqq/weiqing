@@ -2,6 +2,14 @@
 <div class="wn-main wn-main--without">
 	<div class="wn-main__head">用户管理</div>
 	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item wn-tabs__item--active">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_member', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">用户管理</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_memberlevel', array('storeid' => $_GPC['storeid']))}">会员组管理</a>
+			</div>
+		</div>
 		<div class="wn-main__search clearfix">
 			<div class="wn-main__search__form" style="width: 600px">
 				<form action="./index.php" method="get" class="form-horizontal" role="form">

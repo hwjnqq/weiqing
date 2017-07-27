@@ -19,6 +19,7 @@ if (in_array($_GPC['do'], $dos)) {
 	}
 	$aside_show = true;
 	if ($_W['user']['type'] == 3) {
+		mload()->model('clerk');
 		$clerk_permission = clerk_permission($_GPC['storeid'], $_W['uid']);
 		$permission_check = true;
 		if ($_GPC['do'] == 'shop_order' && (empty($clerk_permission) || !in_array('wn_storex_permission_order', $clerk_permission))) {
@@ -111,13 +112,6 @@ $aside_nav = array(
 		'icon' => 'storex-menu-user',
 		'active' => array(
 			'shop_member',
-		)
-	),
-	'shop_memberlevel' => array(
-		'title' => '会员等级分组',
-		'url' => $this->createWebUrl('shop_memberlevel', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'storex-menu-user',
-		'active' => array(
 			'shop_memberlevel',
 		)
 	),
