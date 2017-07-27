@@ -220,6 +220,7 @@ if ($op == 'edit') {
 		}
 		if (empty($id)) {
 			pdo_insert($table, $data);
+			$goodsid = pdo_insertid();
 			$cachekey = "wn_storex:goods_entry:{$storeid}";
 			cache_delete($cachekey);
 		} else {
@@ -229,7 +230,7 @@ if ($op == 'edit') {
 			if (!empty($id)) {
 				pdo_update('storex_goods_extend', $defined, array('goodsid' => $id, 'storeid' => $storeid));
 			} else {
-				$defined['goodsid'] = pdo_insertid();
+				$defined['goodsid'] = $goodsid;
 				pdo_insert('storex_goods_extend', $defined);
 			}
 		}
