@@ -777,6 +777,19 @@ $sql = "
 	KEY `roomid` (`roomid`)
 	) DEFAULT CHARSET=utf8;
 	
+	CREATE TABLE IF NOT EXISTS `ims_storex_market` (
+	`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(11) unsigned NOT NULL DEFAULT '0',
+	`storeid` int(11) unsigned NOT NULL DEFAULT '0',
+	`type` varchar(15) NOT NULL COMMENT '活动类型',
+	`items` varchar(1000) NOT NULL,
+	`starttime` int(11) unsigned NOT NULL,
+	`endtime` int(11) unsigned NOT NULL,
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `storeid` (`storeid`)
+	) DEFAULT CHARSET=utf8;
+
 	CREATE TABLE IF NOT EXISTS `ims_storex_member_level` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`uniacid` int(11) NOT NULL,

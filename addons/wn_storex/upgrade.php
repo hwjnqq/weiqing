@@ -452,7 +452,33 @@ $sql = "
 	`displayorder` int(10) NOT NULL COMMENT '排序',
 	PRIMARY KEY (`id`)
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
-		
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_room_items` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+	`storeid` int(10) unsigned NOT NULL DEFAULT '0',
+	`roomid` int(10) unsigned NOT NULL DEFAULT '0',
+	`roomnumber` varchar(100) NOT NULL COMMENT '房间号',
+	`status` int(11) DEFAULT '0',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `storeid` (`storeid`),
+	KEY `roomid` (`roomid`)
+	) DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_market` (
+	`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(11) unsigned NOT NULL DEFAULT '0',
+	`storeid` int(11) unsigned NOT NULL DEFAULT '0',
+	`type` varchar(15) NOT NULL COMMENT '活动类型',
+	`items` varchar(1000) NOT NULL,
+	`starttime` int(11) unsigned NOT NULL,
+	`endtime` int(11) unsigned NOT NULL,
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `storeid` (`storeid`)
+	) DEFAULT CHARSET=utf8;
+	
 	CREATE TABLE IF NOT EXISTS `ims_storex_member_level` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`uniacid` int(11) NOT NULL,
