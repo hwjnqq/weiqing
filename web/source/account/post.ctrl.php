@@ -200,6 +200,7 @@ if($do == 'modules_tpl') {
 		if($_GPC['type'] == 'group') {
 			$groups = $_GPC['groupdata'];
 			if(!empty($groups)) {
+				//附加套餐组
 				pdo_delete('uni_account_group', array('uniacid' => $uniacid));
 				$group = pdo_get('users_group', array('id' => $owner['groupid']));
 				$group['package'] = (array)iunserializer($group['package']);
@@ -224,6 +225,7 @@ if($do == 'modules_tpl') {
 		}
 
 		if($_GPC['type'] == 'extend') {
+			//如果有附加的权限，则生成专属套餐组
 			$module = $_GPC['module'];
 			$tpl = $_GPC['tpl'];
 			if (!empty($module) || !empty($tpl)) {
@@ -277,6 +279,7 @@ if($do == 'modules_tpl') {
 				}
 			}
 		}
+		//附加套餐
 		$extendpackage = pdo_getall('uni_account_group', array('uniacid' => $uniacid), array(), 'groupid');
 		if(!empty($extendpackage)) {
 			foreach ($extendpackage as $extendpackage_val) {

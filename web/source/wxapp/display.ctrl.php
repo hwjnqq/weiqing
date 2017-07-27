@@ -29,6 +29,7 @@ if ($do == 'home') {
 	}
 	itoast('', $url, 'info');
 } elseif ($do == 'display') {
+	//模版调用，显示该用户所在用户组可添加的主公号数量，已添加的数量，还可以添加的数量
 	$account_info = uni_user_account_permission();
 
 	$pindex = max(1, intval($_GPC['page']));
@@ -46,10 +47,10 @@ if ($do == 'home') {
 	}
 
 	$wxapp_account_lists = uni_account_list($condition, array($pindex, $psize));
-
+	
 	$wxapp_lists = $wxapp_account_lists['list'];
 	$total = $wxapp_account_lists['total'];
-
+	
 	if (!empty($wxapp_lists)) {
 		$wxapp_cookie_uniacids = array();
 		if (!empty($_GPC['__wxappversionids'])) {
