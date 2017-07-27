@@ -226,9 +226,16 @@ if ($op == 'edit') {
 		} else {
 			pdo_update($table, $data, array('id' => $id));
 		}
+		
 		if (isset($defined['defined']) && !empty($defined['defined'])) {
 			if (!empty($id)) {
-				pdo_update('storex_goods_extend', $defined, array('goodsid' => $id, 'storeid' => $storeid));
+				$extend_defined = get_goods_defined($storeid, $id);
+				if (!empty($extend_defined)) {
+					pdo_update('storex_goods_extend', $defined, array('goodsid' => $id, 'storeid' => $storeid));
+				} else {
+					$defined['goodsid'] = $id;
+					pdo_insert('storex_goods_extend', $defined);
+				}
 			} else {
 				$defined['goodsid'] = $goodsid;
 				pdo_insert('storex_goods_extend', $defined);
