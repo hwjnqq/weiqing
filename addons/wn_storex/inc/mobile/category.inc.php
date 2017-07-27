@@ -235,7 +235,7 @@ if ($op == 'goods_search') {
 		$condition['store_base_id'] = $id;
 	}
 	$pindex = max(1, intval($_GPC['page']));
-	$psize = 1;
+	$psize = 10;
 
 	$goods = pdo_getall($table, $condition, $fields, '', 'sortid DESC', array($pindex, $psize));
 	$total = count(pdo_getall($table, $condition));
