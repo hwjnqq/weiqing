@@ -589,7 +589,7 @@ function uni_user_permission($type = 'system') {
 	if (!empty($permission_append[$_W['role']])) {
 		$user_permission = array_merge($user_permission, $permission_append[$_W['role']]);
 	}
-	
+	//未分配公众号的新用户用户权限取操作员相同权限
 	if (empty($_W['role']) && empty($_W['uniacid'])) {
 		$user_permission = array_merge($user_permission, $permission_append['operator']);
 	}
