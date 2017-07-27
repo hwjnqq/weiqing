@@ -38,6 +38,7 @@ $wn_storex_table = array(
 	'storex_sales',
 	'storex_homepage',
 	'storex_order_logs',
+	'storex_member_level',
 );
 foreach ($wn_storex_table as $table){
 	if(pdo_tableexists($table)){
