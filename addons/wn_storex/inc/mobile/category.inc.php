@@ -246,10 +246,22 @@ if ($op == 'goods_search') {
 			if (!empty($info['thumbs'])) {
 				$info['thumbs'] = format_url(iunserializer($info['thumbs']));
 			}
-			if ($store['store_type'] != STORE_TYPE_HOTEL) {
-				$info['tag'] = get_goods_tag($tags, $info['tag']);
-			}
 			$info['defined'] = get_goods_defined($id, $info['id']);
+			if ($store['store_type'] != STORE_TYPE_HOTEL) {
+				$info['defined'][] = array(
+					'title' => '标签',
+					'content' => get_goods_tag($tags, $info['tag']),
+				); 
+			}
+			$defined = array('unit' => '单位', 'weight' => '重量', 'stock' => '库存', 'min_buy' => '单次最小购买', 'max_buy' => '单次最大购买');
+			foreach ($defined as $k => $v) {
+				if (!empty($info[$k])) {
+					$info['defined'][] = array(
+						'title' => $v,
+						'content' => $info[$k],
+					); 
+				}
+			}
 		}
 		unset($info);
 	}
