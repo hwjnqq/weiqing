@@ -818,16 +818,24 @@ function set_order_statuslog($log_data, $data) {
 		}
 	}
 }
-
+//获取店铺下的所有商品标签
 function store_goods_tags($storeid) {
 	global $_W;
 	return pdo_getall('storex_tags', array('storeid' => $storeid, 'uniacid' => $_W['uniacid'], 'status' => 1), array(), 'id');
 }
-
+//获取商品标签
 function get_goods_tag($tags, $tagid) {
 	$tag = '';
 	if (!empty($tags[$tagid])) {
 		$tag = $tags[$tagid]['title'];
 	}
 	return $tag;
+}
+//获取商品自定义字段值
+function get_goods_defined($storeid, $goodsid) {
+	$goods_extend = pdo_get('storex_goods_extend', array('storeid' => $storeid, 'goodsid' => $goodsid));
+	if (!empty($goods_extend) && !empty($goods_extend['defined'])) {
+		return iunserializer($goods_extend['defined']);
+	}
+	return array();
 }

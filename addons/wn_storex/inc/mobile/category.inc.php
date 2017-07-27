@@ -253,6 +253,7 @@ if ($op == 'goods_search') {
 			if ($store['store_type'] != STORE_TYPE_HOTEL) {
 				$info['tag'] = get_goods_tag($tags, $info['tag']);
 			}
+			$info['defined'] = get_goods_defined($id, $info['id']);
 		}
 		unset($info);
 	}

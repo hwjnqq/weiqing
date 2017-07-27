@@ -110,6 +110,7 @@ if ($op == 'edit') {
 			}
 		}
 		$piclist = iunserializer($item['thumbs']);
+		$user_defined = get_goods_defined($storeid, $id);
 	}
 	if (checksubmit('submit')) {
 		if (empty($_GPC['title'])) {
@@ -156,6 +157,23 @@ if ($op == 'edit') {
 			$common['thumbs'] = iserializer($_GPC['thumbs']);
 		} else {
 			$common['thumbs'] = iserializer(array());
+		}
+		$defined = array();
+		if (!empty($_GPC['defined'])) {
+			$defined = array(
+				'uniacid' => intval($_W['uniacid']),
+				'storeid' => $storeid,
+				'goods_table' => $table,
+			);
+			$content = array();
+			foreach ($_GPC['defined'] as $val) {
+				if (!empty($val['title']) && !empty($val['content'])) {
+					$content[] = $val;
+				}
+			}
+			if (!empty($content)) {
+				$defined['defined'] = iserializer($content);
+			}
 		}
 		if (empty($store_type)) {
 			$goods = array(
@@ -206,6 +224,14 @@ if ($op == 'edit') {
 			cache_delete($cachekey);
 		} else {
 			pdo_update($table, $data, array('id' => $id));
+		}
+		if (isset($defined['defined']) && !empty($defined['defined'])) {
+			if (!empty($id)) {
+				pdo_update('storex_goods_extend', $defined, array('goodsid' => $id, 'storeid' => $storeid));
+			} else {
+				$defined['goodsid'] = pdo_insertid();
+				pdo_insert('storex_goods_extend', $defined);
+			}
 		}
 		if ($store_type == STORE_TYPE_HOTEL) {
 			pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT COUNT(*) FROM " . tablename('storex_room') . " WHERE hotelid = :store_base_id AND is_house = :is_house) WHERE store_base_id = :store_base_id", array(':store_base_id' => $store_base_id, ':is_house' => $data['is_house']));

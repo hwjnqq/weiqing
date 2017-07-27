@@ -70,6 +70,7 @@ if ($op == 'goods_info') {
 		'link' => murl('entry', array('do' => 'display', 'id' => $id, 'm' => 'wn_storex', 'type' => 'goods_info', 'goodsid' => $goodsid), true, true),
 		'imgUrl' => tomedia($goods_info['thumb'])
 	);
+	$goods_info['defined'] = get_goods_defined($id, $goodsid);
 	wmessage(error(0, $goods_info), $share_data, 'ajax');
 }
 
@@ -113,6 +114,7 @@ if ($op == 'info') {
 	if (!empty($goods_info['express_set'])) {
 		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
 	}
+	$goods_info['defined'] = get_goods_defined($id, $goodsid);
 	$paycenter_couponlist = activity_paycenter_get_coupon();
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;
