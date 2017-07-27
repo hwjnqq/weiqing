@@ -96,9 +96,9 @@ if ($op == 'personal_info') {
 		}
 	}
 	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']));
-	$user_info['password_lock'] = 0;
-	if (!empty($member)) {
-		$user_info['password_lock'] = 1;
+	$user_info['password'] = 0;
+	if (!empty($member['credit_password']) && !empty($member['password_lock'])) {
+		$user_info['password'] = 1;
 	}
 	wmessage(error(0, $user_info), '', 'ajax');
 }
