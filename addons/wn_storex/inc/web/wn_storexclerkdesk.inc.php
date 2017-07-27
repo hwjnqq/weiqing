@@ -10,14 +10,11 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 if ($op == 'display') {
 	$storeid = intval($_GPC['storeid']);
 	$clerk_list = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'userid' => $_W['uid']), array('userid', 'permission', 'storeid'), 'storeid');
-	echo "<pre>";
-	print_r($clerk_list);
-	echo "</pre>";
 	if (!empty($clerk_list) && is_array($clerk_list)) {
 		$storeids = array_keys($clerk_list);
 	}
 	if (!in_array($storeid, $storeids)) {
-		message('您没有管理该店铺的权限', '', 'error');
+		$storeid = $storeids[0];
 	}
 	$store_list = pdo_getall('storex_bases', array('id' => $storeids), array('id', 'title', 'thumb'), 'id');
 	$current_user_permission_info = pdo_get('users_permission', array('uniacid' => $_W['uniacid'], 'uid' => $_W['uid'], 'type' => $this->module['name']));
@@ -34,10 +31,10 @@ if ($op == 'display') {
 					'permission' => 'wn_storex_permission_order'
 				),
 				array(
-					'title' => '房型管理',
+					'title' => '商品管理',
 					'icon' => 'fa fa-bar-chart',
 					'type' => 'url',
-					'url' => '',
+					'url' => $this->createWebUrl('shop_goodsmanage', array('storeid' => $storeid)),
 					'permission' => 'wn_storex_permission_room'
 				),
 			),

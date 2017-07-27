@@ -1,6 +1,7 @@
 {template 'common/header-base'}
 {template 'common/common'}
 <aside class="wn-aside clearfix">
+	{if !empty($aside_show)}
 	<div class="wn-aside__back"><a href="{php echo $this->createWebUrl('storemanage', array('op' => 'list'))}"> <i class="fa fa-backward"></i>返回主模块 ({$_W['wn_storex']['store_info']['title']})</a></div>
 	{if !($_GPC['do'] == 'shop_settings' && $_GPC['op'] == 'post' && $_GPC['action'] == 'add')}
 	<nav class="wn-aside__menu">
@@ -22,4 +23,5 @@
 			<li class="wn-aside__sub__item"><a href="">设置设置设置设置设置5</a></li>
 		</ul>
 	</nav>
+	{/if}
 </aside>

@@ -17,7 +17,32 @@ if (in_array($_GPC['do'], $dos)) {
 		$_W['wn_storex']['goods_table'] = 'storex_room';
 		$_W['wn_storex']['table_storeid'] = 'hotelid';
 	}
+	$aside_show = true;
+	if ($_W['user']['type'] == 3) {
+		$clerk_permission = clerk_permission($_GPC['storeid'], $_W['uid']);
+		$permission_check = true;
+		if ($_GPC['do'] == 'shop_order' && (empty($clerk_permission) || !in_array('wn_storex_permission_order', $clerk_permission))) {
+			$permission_check = false;
+		}
+		if ($_GPC['do'] == 'shop_goodsmanage' && (empty($clerk_permission) || !in_array('wn_storex_permission_room', $clerk_permission))) {
+			$permission_check = false;
+		}
+		if ($_GPC['do'] == 'shop_room_status' && (empty($clerk_permission) || !in_array('wn_storex_permission_room', $clerk_permission))) {
+			$permission_check = false;
+		}
+		if ($_GPC['do'] == 'shop_room_price' && (empty($clerk_permission) || !in_array('wn_storex_permission_room', $clerk_permission))) {
+			$permission_check = false;
+		}
+		if (empty($permission_check)) {
+			message('您没有管理该店铺的权限', '', 'error');
+		}
+		$aside_show = false;
+		if (in_array('wn_storex_menu_storemanage', $clerk_permission)) {
+			$aside_show = true;
+		}
+	}
 }
+
 //店铺后台菜单设置
 $aside_nav = array(
 	'shop_index' => array(
