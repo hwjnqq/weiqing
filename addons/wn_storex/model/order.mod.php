@@ -143,9 +143,9 @@ function orders_check_status($item) {
 		}
 		$item['is_over'] = 1;
 	}
-	$setting = pdo_get('storex_set', array('weid' => intval($_W['uniacid'])));
-	if ($setting['refund'] == 1) {
-		$item['is_cancel'] = 2;
+	$store_info = get_store_info($item['hotelid']);
+	if ($store_info['refund'] == 2) {
+		$item['is_refund'] = 2;
 	}
 	$item['order_status_cn'] = order_status($item['status']);
 	$item['pay_status_cn'] = order_pay_status($item['paystatus']);

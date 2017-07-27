@@ -244,7 +244,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 		} else {
 			$weid = intval($_W['uniacid']);
 			$order = pdo_get('storex_order', array('id' => $params['tid'], 'weid' => $weid));
-			$storex_bases = pdo_get('storex_bases', array('id' => $order['hotelid'], 'weid' => $weid), array('id', 'store_type', 'title'));
+			$storex_bases = pdo_get('storex_bases', array('id' => $order['hotelid'], 'weid' => $weid), array('id', 'store_type', 'title', 'emails', 'phones', 'openids', 'mail',));
 			pdo_update('storex_order', array('paystatus' => 1, 'paytype' => $params['type']), array('id' => $params['tid']));
 			if (!pdo_get('storex_order_logs', array('orderid' => $order['id'], 'type' => 'paystatus', 'after_change' => 1))) {
 				$logs = array(
@@ -263,37 +263,47 @@ class Wn_storexModuleSite extends WeModuleSite {
 			if ($storex_bases['store_type'] != STORE_TYPE_HOTEL) {
 				stock_control($order['roomid'], $order['nums'], 'pay');
 			}
-			$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('email', 'mobile', 'nickname', 'template', 'confirm_templateid', 'templateid'));
+			$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('template', 'confirm_templateid', 'templateid'));
 			$starttime = $order['btime'];
-			if (!empty($setInfo['email'])) {
-				$body = "<h3>店铺订单</h3> <br />";
-				$body .= '订单编号：' . $order['ordersn'] . '<br />';
-				$body .= '姓名：' . $order['contact_name'] . '<br />';
-				$body .= '手机：' . $order['mobile'] . '<br />';
-				$body .= '名称：' . $order['style'] . '<br />';
-				$body .= '订购数量' . $order['nums'] . '<br />';
-				$body .= '原价：' . $order['oprice'] . '<br />';
-				$body .= '优惠价：' . $order['cprice'] . '<br />';
-				if ($storex_bases['store_type'] == 1) {
-					$body .= '入住日期：' . date('Y-m-d', $order['btime']) . '<br />';
-					$body .= '退房日期：' . date('Y-m-d', $order['etime']) . '<br />';
-				}
-				$body .= '总价:' . $order['sum_price'];
-				// 发送邮件提醒
-				if (!empty($setInfo['email'])) {
-					load()->func('communication');
-					ihttp_email($setInfo['email'], '万能小店订单提醒', $body);
+			
+			$emails = array();
+			if (!empty($storex_bases['emails'])) {
+				$emails = iserializer($storex_bases['emails']);
+			}
+			if (!empty($storex_bases['mail'])) {
+				$emails[] = $storex_bases['mail'];
+			}
+			$emails = array_unique($emails);
+			if (!empty($emails) && is_array($emails)) {
+				load()->func('communication');
+				foreach ($emails as $mail) {
+					$body = "<h3>店铺订单</h3> <br />";
+					$body .= '订单编号：' . $order['ordersn'] . '<br />';
+					$body .= '姓名：' . $order['contact_name'] . '<br />';
+					$body .= '手机：' . $order['mobile'] . '<br />';
+					$body .= '名称：' . $order['style'] . '<br />';
+					$body .= '订购数量' . $order['nums'] . '<br />';
+					$body .= '原价：' . $order['oprice'] . '<br />';
+					$body .= '优惠价：' . $order['cprice'] . '<br />';
+					if ($storex_bases['store_type'] == 1) {
+						$body .= '入住日期：' . date('Y-m-d', $order['btime']) . '<br />';
+						$body .= '退房日期：' . date('Y-m-d', $order['etime']) . '<br />';
+					}
+					$body .= '总价:' . $order['sum_price'];
+					ihttp_email($mail, '万能小店订单提醒', $body);
 				}
 			}
-			if (!empty($setInfo['mobile'])) {
+			
+			if (!empty($storex_bases['phones'])) {
+				$storex_bases['phones'] = iserializer($storex_bases['phones']);
 				// 发送短信提醒
-				if (!empty($setInfo['mobile'])) {
-					load()->model('cloud');
+				load()->model('cloud');
+				foreach ($storex_bases['phones'] as $tel) {
 					cloud_prepare();
 					$body = 'df';
 					$body = '用户' . $order['contact_name'] . ',电话:' . $order['mobile'] . '于' . date('m月d日H:i') . '成功支付万能小店订单' . $order['ordersn']
-						. ',总金额' . $order['sum_price'] . '元' . '.' . random(3);
-					cloud_sms_send($setInfo['mobile'], $body);
+					. ',总金额' . $order['sum_price'] . '元' . '.' . random(3);
+					cloud_sms_send($tel, $body);
 				}
 			}
 
@@ -354,11 +364,8 @@ class Wn_storexModuleSite extends WeModuleSite {
 								}
 							}
 						}
-						if (!empty($setInfo['nickname'])) {
-							$from_user = pdo_get('mc_mapping_fans', array('nickname' => $setInfo['nickname'], 'uniacid' => $_W['uniacid']));
-							if (!empty($from_user)) {
-								$clerks[]['from_user'] = $from_user['openid'];
-							}
+						if (!empty($storex_bases['openids'])) {
+							$clerks = iserializer($storex_bases['openids']);
 						}
 						if (!empty($setInfo['template']) && !empty($setInfo['templateid'])) {
 							$tplnotice = array(
@@ -373,7 +380,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 								'remark' => array('value' => '为保证用户体验度，请及时处理！')
 							);
 							foreach ($clerks as $clerk) {
-								$account_api->sendTplNotice($clerk['from_user'], $setInfo['templateid'], $tplnotice);
+								$account_api->sendTplNotice($clerk, $setInfo['templateid'], $tplnotice);
 							}
 						} else {
 							foreach ($clerks as $clerk) {
@@ -381,7 +388,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 								$custom = array(
 									'msgtype' => 'text',
 									'text' => array('content' => urlencode($info)),
-									'touser' => $clerk['from_user'],
+									'touser' => $clerk,
 								);
 								$status = $account_api->sendCustomNotice($custom);
 							}

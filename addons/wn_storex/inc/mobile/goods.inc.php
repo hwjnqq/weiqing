@@ -198,10 +198,6 @@ if ($op == 'order') {
 	if ($goods_info['cprice'] == 0) {
 		wmessage(error(-1, '商品价格不能是0，请联系管理员!'), '', 'ajax');
 	}
-	$reply = pdo_get('storex_bases', array('id' => $store_id), array('title', 'mail', 'phone', 'thumb', 'description'));
-	if (empty($reply)) {
-		wmessage(error(-1, '店铺未找到, 请联系管理员!'), '', 'ajax');
-	}
 	$today_start = strtotime(date('Y-m-d'), TIMESTAMP);
 	$today_end = $today_start + 86399;
 	$param = array(
@@ -215,7 +211,7 @@ if ($op == 'order') {
 	if (!empty($order_exist)) {
 		wmessage(error(-1, "您有未支付该类订单,不要重复下单"), '', 'ajax');
 	}
-	$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('email', 'is_unify', 'mobile', 'nickname', 'template', 'confirm_templateid', 'smscode'));
+	$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('template', 'confirm_templateid', 'smscode'));
 	if ($store_info['store_type'] == STORE_TYPE_HOTEL) {
 		if ($goods_info['is_house'] == 1) {
 			$order_info['btime'] = strtotime($_GPC['order']['btime']);
@@ -394,23 +390,34 @@ if ($op == 'order') {
 			}
 		}
 	}
-	if ($store_info['store_type'] == 1 && $goods_info['is_house'] == 1) {
-		//如果有接受订单的邮件,
-		if (!empty($reply['mail']) && false) {
+	//如果有接受订单的邮件
+	$emails = array();
+	if (!empty($store_info['emails'])) {
+		$emails = $store_info['emails'];
+	}
+	if (!empty($store_info['mail'])) {
+		$emails[] = $store_info['mail'];
+	}
+	$emails = array_unique($emails);
+	if (!empty($emails) && is_array($emails) && false) {
+		foreach ($emails as $mail) {
 			$subject = "微信公共帐号 [" . $_W['account']['name'] . "] 万能小店订单提醒.";
 			$body = "您后台有一个预定订单: <br/><br/>";
-			$body .= "预定店铺: " . $reply['title'] . "<br/>";
+			$body .= "预定店铺: " . $store_info['title'] . "<br/>";
 			$body .= "预定商品: " . $goods_info['title'] . "<br/>";
 			$body .= "预定数量: " . $insert['nums'] . "<br/>";
 			$body .= "预定价格: " . $insert['sum_price'] . "<br/>";
 			$body .= "预定人: " . $insert['contact_name'] . "<br/>";
 			$body .= "预定电话: " . $insert['mobile'] . "<br/>";
-			$body .= "到店时间: " . $bdate . "<br/>";
-			$body .= "离店时间: " . $edate . "<br/><br/>";
-			$body .= "请您到管理后台仔细查看. <a href='" . $_W['siteroot'] . create_url('member/login') . "' target='_blank'>立即登录后台</a>";
+			if ($store_info['store_type'] == 1 && $goods_info['is_house'] == 1) {
+				$body .= "到店时间: " . $bdate . "<br/>";
+				$body .= "离店时间: " . $edate . "<br/><br/>";
+			}
 			load()->func('communication');
-			ihttp_email($reply['mail'], $subject, $body);
+			ihttp_email($mail, $subject, $body);
 		}
+	}
+	if ($store_info['store_type'] == 1 && $goods_info['is_house'] == 1) {
 		//订单下单成功减库存
 		$starttime = $insert['btime'];
 		for ($i = 0; $i < $insert['day']; $i++) {
@@ -423,12 +430,10 @@ if ($op == 'order') {
 	}
 	
 	$clerk = array();
-	if (!empty($setInfo['nickname'])) {
-		$from_user = pdo_get('mc_mapping_fans', array('nickname' => $setInfo['nickname'], 'uniacid' => $_W['uniacid']));
-		if (!empty($from_user)) {
-			$clerk['from_user'] = $from_user['openid'];
+	if (!empty($store_info['openids']) && is_array($store_info['openids'])) {
+		foreach ($store_info['openids'] as $openid) {
 			$info = '店铺有新的订单,为保证用户体验度，请及时处理!';
-			$status = send_custom_notice('text', array('content' => urlencode($info)), $clerk['from_user']);
+			$status = send_custom_notice('text', array('content' => urlencode($info)), $openid);
 		}
 	}
 	

@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 mload()->model('order');
 
-$ops = array('order_list', 'order_detail', 'orderpay', 'cancel', 'confirm_goods', 'order_comment', 'refund');
+$ops = array('order_list', 'order_detail', 'orderpay', 'credit_password', 'cancel', 'confirm_goods', 'order_comment', 'refund');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -105,15 +105,24 @@ if ($op == 'orderpay') {
 	wmessage(error(0, $pay_info), '', 'ajax');
 }
 
+if ($op == 'credit_password') {
+	if (empty($_GPC['password'])) {
+		wmessage(error(-1, '余额支付密码不能为空'), '', 'ajax');
+	}
+	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('id', 'credit_password', 'credit_salt'));
+	$password = hotel_member_hash($_GPC['password'], $member['credit_salt']);
+	if ($password != $member['credit_password']) {
+		wmessage(error(-1, '余额支付密码错误'), '', 'ajax');
+	} else {
+		wmessage(error(0, '密码正确'), '', 'ajax');
+	}
+}
+
 if ($op == 'cancel') {
 	$id = intval($_GPC['id']);
 	$order_info = pdo_get('storex_order', array('weid' => intval($_W['uniacid']), 'id' => $id, 'openid' => $_W['openid']));
-	$store_info = pdo_get('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $order_info['hotelid']), array('id', 'store_type'));
+	$store_info = get_store_info($order_info['hotelid']);
 	$order_info['store_type'] = $store_info['store_type'];
-	$setting = pdo_get('storex_set', array('weid' => intval($_W['uniacid'])));
-	if ($setting['refund'] == 1) {
-		wmessage(error(-1, '该店铺不能取消订单！'), '', 'ajax');
-	}
 	$order_info = orders_check_status($order_info);
 	if ($order_info['is_cancel'] == 2 || $order_info['status'] == 3) {
 		wmessage(error(-1, '该订单不能取消！'), '', 'ajax');
@@ -136,8 +145,9 @@ if ($op == 'cancel') {
 
 if ($op == 'refund') {
 	$id = intval($_GPC['id']);
-	$order = pdo_get('storex_order', array('id' => $id), array('id', 'paytype', 'refund_status'));
-	if (check_ims_version() || $item['paytype'] == 'credit') {
+	$order = pdo_get('storex_order', array('id' => $id), array('id', 'paytype', 'refund_status', 'hotelid'));
+	$store_info = get_store_info($order['hotelid']);
+	if ($store_info['refund'] == 1 && (check_ims_version() || $item['paytype'] == 'credit')) {
 		$result = order_build_refund($id);
 		if (is_error($result)) {
 			wmessage($result, '', 'ajax');

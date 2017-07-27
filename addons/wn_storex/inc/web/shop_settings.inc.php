@@ -5,6 +5,8 @@ global $_W, $_GPC;
 $ops = array('post');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'post';
 
+load()->model('mc');
+
 if ($op == 'post') {
 	$store_type = intval($_W['wn_storex']['store_info']['store_type']);
 	$id = intval($_GPC['storeid']);
@@ -37,7 +39,30 @@ if ($op == 'post') {
 			'store_info' => $_GPC['store_info'],
 			'traffic' => $_GPC['traffic'],
 			'status' => $_GPC['status'],
+			'refund' => intval($_GPC['refund']),
 		);
+		$receives = array('emails' => 'email', 'phones' => 'tel', 'openids' => 'openid');
+		foreach ($receives as $field => $type) {
+			if (!empty($_GPC[$type]) && is_array($_GPC[$type])) {
+				$_GPC[$type] = array_unique($_GPC[$type]);
+				$param = array();
+				foreach ($_GPC[$type] as $val) {
+					if ($type == 'email' && preg_match(REGULAR_EMAIL, $val)) {
+						$param[] = $val;
+					}
+					if ($type == 'tel' && preg_match(REGULAR_MOBILE, $val)) {
+						$param[] = $val;
+					}
+					if ($type == 'openid') {
+						$user = mc_fansinfo($val);
+						if (!empty($user)) {
+							$param[] = $val;
+						}
+					}
+				}
+				$common_insert[$field] = iserializer($param);
+			}
+		}
 		$common_insert['thumbs'] = empty($_GPC['thumbs']) ? '' : iserializer($_GPC['thumbs']);
 		$common_insert['detail_thumbs'] = empty($_GPC['detail_thumbs']) ? '' : iserializer($_GPC['detail_thumbs']);
 		if (!empty($store_type)) {
@@ -93,6 +118,9 @@ if ($op == 'post') {
 	}
 	$storex_bases['thumbs'] = iunserializer($storex_bases['thumbs']);
 	$storex_bases['detail_thumbs'] =  iunserializer($storex_bases['detail_thumbs']);
+	$emails = iunserializer($storex_bases['emails']);
+	$tels = iunserializer($storex_bases['phones']);
+	$openids = iunserializer($storex_bases['openids']);
 }
 
 include $this->template('store/shop_settings');

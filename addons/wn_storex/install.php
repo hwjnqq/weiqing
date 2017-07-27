@@ -77,6 +77,9 @@ $sql = "
 	`islogin` tinyint(3) NOT NULL DEFAULT '0',
 	`isauto` tinyint(1) NOT NULL DEFAULT '0' COMMENT '自动添加，0否，1是',
 	`nickname` varchar(255) NOT NULL DEFAULT '',
+	`credit_password` varchar(200) NOT NULL COMMENT '余额支付密码',
+	`credit_salt` varchar(8) NOT NULL COMMENT '加密盐',
+	`password_lock` varchar(24) NOT NULL COMMENT '改密码的依据',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
@@ -272,6 +275,10 @@ $sql = "
 	`store_type` int(8) NOT NULL DEFAULT '0' COMMENT '店铺类型',
 	`timestart` varchar(50) NOT NULL DEFAULT '0' COMMENT '运营开始时间',
 	`timeend` varchar(50) NOT NULL DEFAULT '0' COMMENT '运营结束时间',
+	`refund` tinyint(4) NOT NULL DEFAULT '1' COMMENT '是否可退款 1可以 ，2不可以',
+	`emails` varchar(200) NOT NULL COMMENT '接收所有邮箱',
+	`phones` varchar(200) NOT NULL COMMENT '接收所有电话',
+	`openids` varchar(200) NOT NULL COMMENT '接收所有微信',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;

@@ -661,6 +661,31 @@ if (pdo_fieldexists('storex_clerk', 'userid')) {
 	pdo_query("ALTER TABLE " . tablename('storex_clerk') . " CHANGE `userid` `userid` INT(11) NULL DEFAULT '0'");
 }
 
+//用户表增加余额支付的密码和加密盐,改密码的依据
+if (!pdo_fieldexists('storex_member', 'credit_password')) {
+	pdo_query("ALTER TABLE " . tablename('storex_member') . " ADD `credit_password` VARCHAR(200) NOT NULL COMMENT '余额支付密码';");
+}
+if (!pdo_fieldexists('storex_member', 'credit_salt')) {
+	pdo_query("ALTER TABLE " . tablename('storex_member') . " ADD `credit_salt` VARCHAR(8) NOT NULL COMMENT '加密盐';");
+}
+if (!pdo_fieldexists('storex_member', 'password_lock')) {
+	pdo_query("ALTER TABLE " . tablename('storex_member') . " ADD `password_lock` VARCHAR(24) NOT NULL COMMENT '改密码的依据';");
+}
+
+//店铺表增加字段refund，emails，phones，openids
+if (!pdo_fieldexists('storex_bases', 'refund')) {
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `refund` TINYINT(4) NOT NULL DEFAULT '1' COMMENT '是否可退款 1可以 ，2不可以';");
+}
+if (!pdo_fieldexists('storex_bases', 'emails')) {
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `emails` VARCHAR(200) NOT NULL COMMENT '接收所有邮箱';");
+}
+if (!pdo_fieldexists('storex_bases', 'phones')) {
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `phones` VARCHAR(200) NOT NULL COMMENT '接收所有电话';");
+}
+if (!pdo_fieldexists('storex_bases', 'openids')) {
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `openids` VARCHAR(200) NOT NULL COMMENT '接收所有微信';");
+}
+
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');
 $js_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/js');

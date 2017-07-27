@@ -189,6 +189,10 @@ if ($op == 'edit') {
 			if ($action == 'cancel') {
 				$data['status'] = ORDER_STATUS_CANCEL;
 			} elseif ($action == 'refund') {
+				$store_info = get_store_info($item['hotelid']);
+				if ($store_info['refund'] == 2) {
+					message(error(-1, '后台未开启退款设置'), '', 'ajax');
+				}
 				if ($item['paytype'] != 'credit' && !check_ims_version()) {
 					message(error(-1, '请升级微擎系统至1.0以上，并保持最新版本'), '', 'ajax');
 				}

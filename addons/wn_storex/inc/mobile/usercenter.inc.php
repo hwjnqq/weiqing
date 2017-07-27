@@ -4,7 +4,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 
-$ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete', 'extend_switch');
+$ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete', 'extend_switch', 'check_password_lock', 'set_credit_password');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -95,6 +95,11 @@ if ($op == 'personal_info') {
 			$user_info['mycard']['cardTimes']['endtime'] = $user_info['mycard']['endtime'];
 		}
 	}
+	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']));
+	$user_info['password_lock'] = 0;
+	if (!empty($member)) {
+		$user_info['password_lock'] = 1;
+	}
 	wmessage(error(0, $user_info), '', 'ajax');
 }
 if ($op == 'personal_update') {
@@ -173,4 +178,36 @@ if ($op == 'address_default') {
 if ($op == 'address_delete') {
 	$result = pdo_delete('mc_member_address', array('id' => intval($_GPC['id'])));
 	wmessage(error(0, '删除成功'), '', 'ajax');
+}
+
+if ($op == 'check_password_lock') {
+	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('id', 'password_lock'));
+	if ($member['password_lock'] != trim($_GPC['password_lock'])) {
+		wmessage(error(-1, '更改密码依据输入错误'), '', 'ajax');
+	} else {
+		wmessage(error(0, trim($_GPC['password_lock'])), '', 'ajax');
+	}
+}
+
+if ($op == 'set_credit_password') {
+	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']));
+	$password = $_GPC['password'];
+	$password_lock = $_GPC['password_lock'];
+	if (istrlen($password) < 6) {
+		wmessage(error(-1, '密码长度至少6位'), '', 'ajax');
+	}
+	if (istrlen($password_lock) > 10) {
+		wmessage(error(-1, '改密依据不要太长'), '', 'ajax');
+	}
+	if (istrlen($password_lock) < 4) {
+		wmessage(error(-1, '改密依据太短'), '', 'ajax');
+	}
+	$salt = random(8);
+	$password = hotel_member_hash($password, $salt);
+	$result = pdo_update('storex_member', array('credit_password' => $password, 'credit_salt' => $salt, 'password_lock' => $password_lock), array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']));
+	if (!empty($result)) {
+		wmessage(error(0, '设置密码成功'), '', 'ajax');
+	} else {
+		wmessage(error(-1, '设置密码失败'), '', 'ajax');
+	}
 }
