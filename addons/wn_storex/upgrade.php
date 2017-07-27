@@ -722,7 +722,11 @@ if (!pdo_fieldexists('storex_bases', 'phones')) {
 if (!pdo_fieldexists('storex_bases', 'openids')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `openids` VARCHAR(200) NOT NULL COMMENT '接收所有微信';");
 }
-
+//加入营销开关
+if (!pdo_fieldexists('storex_bases', 'market_status')) {
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `market_status` INT UNSIGNED NOT NULL DEFAULT '0' COMMENT '营销开关';");
+}
+ALTER TABLE `ims_storex_bases` ADD `market_status` INT UNSIGNED NOT NULL DEFAULT '0' COMMENT '营销开关' ;
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');
 $js_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/js');

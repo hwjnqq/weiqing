@@ -279,6 +279,7 @@ $sql = "
 	`emails` varchar(200) NOT NULL COMMENT '接收所有邮箱',
 	`phones` varchar(200) NOT NULL COMMENT '接收所有电话',
 	`openids` varchar(200) NOT NULL COMMENT '接收所有微信',
+	`market_status` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '营销开关',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
