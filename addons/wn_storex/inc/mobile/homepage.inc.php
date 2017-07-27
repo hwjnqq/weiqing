@@ -55,8 +55,12 @@ if ($op == 'display') {
 		if (!empty($recommend_info['items']) && is_array($recommend_info['items'])) {
 			$goodslist = pdo_getall($tablaname, array('id' => array_values($recommend_info['items'])), array('id', 'thumb', 'title', 'cprice'), 'id');
 			foreach ($recommend_info['items'] as $key => &$value) {
-				$value = $goodslist[$value];
-				$value['thumb'] = tomedia($value['thumb']);
+				if (!empty($value)) {
+					$value = $goodslist[$value];
+					$value['thumb'] = tomedia($value['thumb']);
+				} else {
+					unset($recommend_info['items'][$key]);
+				}
 			}
 		}
 		if (!empty($recommend_key)) {

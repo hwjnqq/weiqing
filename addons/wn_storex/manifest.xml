@@ -26,6 +26,10 @@
 			<message type="user_del_card" />
 			<message type="user_consume_card" />
 		</subscribes>
+		<handles>
+			<message type="text" />
+		</handles>
+		<rule embed="true" />
 	</platform>
 	<bindings>
 		<cover>

@@ -14,7 +14,7 @@ class Wn_storexModuleProcessor extends WeModuleProcessor {
 		global $_W;
 		$rid = $this->rule;
 		$content = trim($this->message['content']);
-		$code = str_replace('hx', '', $content);
+		$code = substr($content, 2);
 		$coupon_record = pdo_get('storex_coupon_record', array('uniacid' => $_W['uniacid'], 'openid' => $_W['openid'], 'code' => $code), array('couponid', 'id'));
 		if (empty($coupon_record)) {
 			$message = '未找到该卡券记录';
