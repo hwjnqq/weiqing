@@ -176,18 +176,20 @@ function mc_fetch_one($uid) {
 		return $cache;
 	}
 	$result = pdo_get('mc_members', array('uid' => $uid));
-	$result['avatar'] = tomedia($result['avatar']);
-	$result['credit1'] = floatval($result['credit1']);
-	$result['credit2'] = floatval($result['credit2']);
-	$result['credit3'] = floatval($result['credit3']);
-	$result['credit4'] = floatval($result['credit4']);
-	$result['credit5'] = floatval($result['credit5']);
-	$result['credit6'] = floatval($result['credit6']);
-
+	if (!empty($result)) {
+		$result['avatar'] = tomedia($result['avatar']);
+		$result['credit1'] = floatval($result['credit1']);
+		$result['credit2'] = floatval($result['credit2']);
+		$result['credit3'] = floatval($result['credit3']);
+		$result['credit4'] = floatval($result['credit4']);
+		$result['credit5'] = floatval($result['credit5']);
+		$result['credit6'] = floatval($result['credit6']);
+	} else {
+		$result = array();
+	}
 	cache_write($cachekey, $result);
 	return $result;
 }
-
 /**
  * 获取粉丝信息
  * @param mixed $openidOruid 粉丝或会员ID
@@ -993,7 +995,7 @@ function mc_group_update($uid = 0) {
 	}
 	$groupid = $user['groupid'];
 	$credit = $user['credit1'] + $user['credit6'];
-	$groups = $_W['uniaccount']['groups'];
+	$groups = mc_groups();
 	if(empty($groups)) {
 		return false;
 	}

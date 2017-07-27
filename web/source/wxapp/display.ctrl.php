@@ -21,16 +21,8 @@ if ($do == 'rank' || $do == 'switch') {
 	}
 }
 if ($do == 'home') {
-	$last_uniacid = uni_account_last_switch();
+	$last_version = wxapp_fetch($_W['uniacid']);
 	$url = url('wxapp/post/design_method');
-	if (empty($last_uniacid)) {
-		itoast('', $url, 'info');
-	}
-	$permission = uni_permission($_W['uid'], $last_uniacid);
-	if (empty($permission)) {
-		itoast('', $url, 'info');
-	}
-	$last_version = wxapp_fetch($last_uniacid);
 	if (!empty($last_version)) {
 		uni_account_switch($last_uniacid);
 		$url = url('wxapp/version/home', array('version_id' => $last_version['version']['id']));

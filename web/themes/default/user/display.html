@@ -1,12 +1,5 @@
 {template 'common/header'}
-<div class="we7-page-title">用户管理 </div>
-<ul class="we7-page-tab">
-	<li {if $_GPC['do'] == 'display' || $_GPC['do'] == ''}class="active"{/if}><a href="{url 'user/display'}">用户管理</a></li>
-	<li {if $_GPC['do'] == 'check_display'}class="active"{/if}><a href="{url 'user/display/check_display'}">审核用户</a></li>
-	<li {if $_GPC['do'] == 'recycle_display'}class="active"{/if}><a href="{url 'user/display/recycle_display'}">用户回收站</a></li>
-	<li><a href="{url 'user/fields/display'}">用户属性设置</a></li>
-	<li><a href="{url 'user/registerset'}">用户注册设置</a></li>
-</ul>
+{template 'user/user-header'}
 <div class="keyword-list-head clearfix we7-margin-bottom">
 	<form action="" method="get">
 		<input type="hidden" name="c" value="user">
@@ -22,7 +15,7 @@
 		{if $_GPC['do'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER}<a href="{url 'user/create/vice_founder'}" class="btn btn-primary">+添加副创始人</a>{/if}
 	</div>
 </div>
-<table class="table we7-table table-hover table-manage vertical-middle" id="js-users-display" ng-controller="UsersDisplay" ng-cloak>
+<table class="table we7-table table-hover table-manage vertical-middle table-manage-td" id="js-users-display" ng-controller="UsersDisplay" ng-cloak>
 	<col width="120px"/>
 	<col width="150px">
 	{if $do != 'vice_founder'}
@@ -64,7 +57,7 @@
 		<td>
 			<span ng-bind="user.endtime"></span>
 		</td>
-		<td>
+		<td class="vertical-middle table-manage-td">
 			{if $do != 'vice_founder'}
 			<div class="link-group" ng-if="!user.founder">
 				<a ng-href="{{links.edit}}uid={{user.uid}}" ng-if="do == 'display'">编辑</a>
@@ -80,6 +73,11 @@
 				<a ng-href="{{links.recycleDel}}uid={{user.uid}}" class="del" ng-if="do == 'vice_founder'">删除</a>
 			</div>
 			{/if}
+			<div class="manage-option text-right">
+				<a href="{{links.edit}}uid={{user.uid}}">基础信息</a>
+				<a href="{{links.edit}}&do=edit_modules_tpl&uid={{user.uid}}">应用模板权限</a>
+				<a href="{{links.edit}}&do=edit_account&uid={{user.uid}}">使用账号列表</a>
+			</div>
 		</td>
 	</tr>
 	<tr ng-if="!users">

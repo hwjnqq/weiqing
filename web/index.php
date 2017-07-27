@@ -51,7 +51,8 @@ $_W['acl'] = $acl = array(
 			'upgrade',
 			'process',
 			'device' 
-		) 
+		),
+		'vice-founder' => array(),
 	),
 	'home' => array(
 		'default' => 'welcome',
@@ -125,7 +126,12 @@ $_W['acl'] = $acl = array(
 			'platform',
 			'updatecache',
 			'module' 
-		) 
+		),
+		'vice-founder' => array(
+			'platform',
+			'template',
+			'updatecache'
+		),
 	),
 	'cron' => array(
 		'direct' => array(

@@ -505,7 +505,7 @@ function material_url_check($url) {
 	}
 }
 
-function material_news_list($server = '', $search ='', $page = array('page_index' => 1, 'page_size' => 24)) {
+function material_news_list($server = '', $search ='', $page = array('page_index' => 1, 'page_size' => 24), $isajax = false) {
 	global $_W;
 	$conditions[':uniacid'] = $_W['uniacid'];
 	$news_model_sql = '';
@@ -534,26 +534,26 @@ function material_news_list($server = '', $search ='', $page = array('page_index
 				$material_list[$news['attach_id']]['items'][$news['displayorder']] = $news;
 			}else{
 				$material_list[$news['attach_id']] = array(
-						'id' => $news['id'],
-						'filename' => $news['filename'],
-						'attachment' => $news['attachment'],
-						'media_id' => $news['media_id'],
-						'type' => $news['type'],
-						'model' => $news['model'],
-						'tag' => $news['tag'],
-						'createtime' => $news['createtime'],
-						'items' => array($news['displayorder'] => $news),
+					'id' => $news['id'],
+					'filename' => $news['filename'],
+					'attachment' => $news['attachment'],
+					'media_id' => $news['media_id'],
+					'type' => $news['type'],
+					'model' => $news['model'],
+					'tag' => $news['tag'],
+					'createtime' => $news['createtime'],
+					'items' => array($news['displayorder'] => $news),
 				);
 			}
 		}
 	}
 	unset($news_list);
-	$pager = pagination($total, $page['page_index'], $page['page_size']);
+	$pager = pagination($total, $page['page_index'], $page['page_size'],'',$context = array('before' => 5, 'after' => 4, 'isajax' => $isajax));
 	$material_news = array('material_list' => $material_list, 'page' => $pager);
 	return $material_news;
 }
 
-function material_list($type = '', $server = '', $page = array('page_index' => 1, 'page_size' => 24)) {
+function material_list($type = '', $server = '', $page = array('page_index' => 1, 'page_size' => 24), $isajax = false) {
 	global $_W;
 	$tables = array(MATERIAL_LOCAL => 'core_attachment', MATERIAL_WEXIN => 'wechat_attachment');
 	$conditions['uniacid'] = $_W['uniacid'];
@@ -581,7 +581,7 @@ function material_list($type = '', $server = '', $page = array('page_index' => 1
 				unset($row);
 			}
 		}
-		$pager = pagination($total, $page['page_index'], $page['page_size']);
+		$pager = pagination($total, $page['page_index'], $page['page_size'],'',$context = array('before' => 5, 'after' => 4, 'isajax' => $isajax));
 		$material_news = array('material_list' => $material_list, 'page' => $pager);
 		return $material_news;
 }

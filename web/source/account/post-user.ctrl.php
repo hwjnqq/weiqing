@@ -10,12 +10,15 @@ load()->model('system');
 $dos = array('delete', 'edit', 'set_permission', 'set_manager', 'module');
 $do = in_array($do, $dos) ? $do : 'edit';
 
-$uniacid = intval($_GPC['uniacid']);
-$acid = intval($_GPC['acid']);
-$_W['page']['title'] = '管理设置 - 微信' . ACCOUNT_TYPE_NAME . '管理';
-if (empty($uniacid) || empty($acid)) {
-	itoast('请选择要编辑的公众号', referer(), 'error');
+$account = uni_site_account(ACCOUNT_TYPE);
+if (empty($account)) {
+	$url = ACCOUNT_TYPE == ACCOUNT_TYPE_APP_NORMAL ? url('wxapp/post/design_method') : url('account/post-step');
+	itoast('', $url, 'info');
 }
+$uniacid = intval($account['uniacid']);
+$acid = intval($account['acid']);
+$_W['page']['title'] = '管理设置 - 微信' . ACCOUNT_TYPE_NAME . '管理';
+
 $state = uni_permission($_W['uid'], $uniacid);
 if ($state != ACCOUNT_MANAGE_NAME_OWNER && $state != ACCOUNT_MANAGE_NAME_FOUNDER && $state != ACCOUNT_MANAGE_NAME_MANAGER) {
 	itoast('无权限操作！', referer(), 'error');
@@ -147,7 +150,7 @@ if ($do == 'edit') {
 	if (empty($role)) {
 		itoast('此用户没有操作该统一公众号的权限，请选指派“管理员”或是“操作员”权限！', '', '');
 	}
-	
+
 	if ($account['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $account['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
 		$user_menu_permission_account = uni_user_menu_permission($uid, $uniacid, PERMISSION_ACCOUNT);
 		$module_permission = uni_user_menu_permission($uid, $uniacid, 'modules');

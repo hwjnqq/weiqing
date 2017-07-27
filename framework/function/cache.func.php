@@ -25,7 +25,7 @@ function cache_type() {
 			} elseif ($cache_type == 'redis') {
 				$cacher = new Redis();
 			}
-			$connect = @$cacher->connect($config['server'], $config['port']);
+			$connect = $cacher->connect($config['server'], $config['port']);
 		}
 	}
 	if (empty($cacher) || empty($connect)) {

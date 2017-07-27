@@ -190,13 +190,10 @@ function buildframes($framename = ''){
 					if (!empty($module)) {
 						$frames['account']['section']['platform_module']['menu']['platform_' . $module['name']] = array(
 							'title' => $module['title'],
-							'icon' =>  tomedia("addons/{$module['name']}/icon.jpg"),
+							'icon' =>  $module['logo'],
 							'url' => url('home/welcome/ext', array('m' => $module['name'])),
 							'is_display' => 1,
 						);
-					}
-					if (file_exists(IA_ROOT. "/addons/{$module['name']}/icon-custom.jpg")) {
-						$frames['account']['section']['platform_module']['menu']['platform_' . $module['name']]['icon'] = tomedia("addons/{$module['name']}/icon-custom.jpg");
 					}
 				}
 			}
@@ -213,13 +210,10 @@ function buildframes($framename = ''){
 					if (!empty($module) && !empty($modules[$module['name']]) && empty($module['main_module']) && $module['app_support'] == 2) {
 						$frames['account']['section']['platform_module']['menu']['platform_' . $module['name']] = array(
 							'title' => $module['title'],
-							'icon' =>  tomedia("addons/{$module['name']}/icon.jpg"),
+							'icon' =>  $module['logo'],
 							'url' => url('home/welcome/ext', array('m' => $module['name'])),
 							'is_display' => 1,
 						);
-					}
-					if (file_exists(IA_ROOT. "/addons/{$module['name']}/icon-custom.jpg")) {
-						$frames['account']['section']['platform_module']['menu']['platform_' . $module['name']]['icon'] = tomedia("addons/{$module['name']}/icon-custom.jpg");
 					}
 				}
 			}
@@ -235,13 +229,10 @@ function buildframes($framename = ''){
 				}
 				$frames['account']['section']['platform_module']['menu']['platform_' . $module['name']] = array(
 					'title' => $module['title'],
-					'icon' =>  tomedia("addons/{$module['name']}/icon.jpg"),
+					'icon' =>  $module['logo'],
 					'url' => url('home/welcome/ext', array('m' => $module['name'])),
 					'is_display' => 1,
 				);
-				if (file_exists(IA_ROOT. "/addons/{$module['name']}/icon-custom.jpg")) {
-					$frames['account']['section']['platform_module']['menu']['platform_' . $module['name']]['icon'] = tomedia("addons/{$module['name']}/icon-custom.jpg");
-				}
 				$i++;
 			}
 		}
@@ -260,6 +251,9 @@ function buildframes($framename = ''){
 	if (!empty($_W['role']) && ($_W['role'] == ACCOUNT_MANAGE_NAME_OPERATOR || $_W['role'] == ACCOUNT_MANAGE_NAME_MANAGER || $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER)) {
 		$user_permission = uni_user_permission('system');
 	}
+	if (empty($_W['role']) && empty($_W['uniacid'])) {
+		$user_permission = uni_user_permission('system');
+	}
 	//@@todo 店员界面菜单
 	if (!empty($_W['role']) && $_W['role'] == 'clerk') {
 
@@ -274,12 +268,14 @@ function buildframes($framename = ''){
 				if ($nav_id == 'account') {
 					if ($status && !empty($module_permission) && in_array("account*", $user_permission) && $section_id != 'platform_module' && uni_permission($_W['uid'], $_W['uniacid']) != ACCOUNT_MANAGE_NAME_OWNER) {
 						$frames['account']['section'][$section_id]['is_display'] = false;
+						continue;
 					} else {
 						if (in_array("account*", $user_permission)) {
 							continue;
 						}
 					}
 				}
+
 				if ($nav_id != 'wxapp') {
 					$section_show = false;
 					$secion['if_fold'] = !empty($_GPC['menu_fold_tag:'.$section_id]) ? 1 : 0;
@@ -295,6 +291,11 @@ function buildframes($framename = ''){
 					}
 				}
 			}
+		}
+	} else {
+		if (user_is_vice_founder()) {
+			$frames['system']['section']['article']['is_display'] = false;
+			$frames['system']['section']['wxplatform']['menu']['system_platform']['is_display'] = false;
 		}
 	}
 	//进入模块界面后权限
@@ -421,6 +422,13 @@ function buildframes($framename = ''){
 				}
 			}
 		}
+		if ($_W['role'] == ACCOUNT_MANAGE_NAME_CLERK) {
+			$frames['account']['section']['platform_module_common']['menu']['platform_module_clerkdesk'] = array(
+				'title' => "<i class='fa fa-plane'></i> 店员工作台",
+				'url' => url('site/entry/clerkdeskwelcome', array('uniacid' => $_W['uniacid'], 'op' => 'index', 'm' => $modulename)),
+				'is_display' => 1,
+			);
+		}
 		if (!empty($module['plugin_list']) || !empty($module['main_module'])) {
 			if (!empty($module['main_module'])) {
 				$main_module = module_fetch($module['main_module']);
@@ -468,7 +476,7 @@ function buildframes($framename = ''){
 			foreach ($frames['wxapp']['section'] as $wxapp_section_id => $wxapp_section) {
 				if (!empty($wxapp_section['menu']) && $wxapp_section_id != 'wxapp_module') {
 					foreach ($wxapp_section['menu'] as $wxapp_menu_id => $wxapp_menu) {
-						if ($wxapp_section_id == 'platform_manage_menu') {
+						if ($wxapp_section_id == 'platform_manage_menu' || $wxapp_section_id == 'wxapp_entrance') {
 							$frames['wxapp']['section'][$wxapp_section_id]['menu'][$wxapp_menu_id]['url'] .= 'version_id=' . $version_id;
 						}
 						if (!in_array('wxapp*', $wxapp_permission) && !in_array($wxapp_menu['permission_name'], $wxapp_permission)) {
@@ -480,7 +488,7 @@ function buildframes($framename = ''){
 		}
 	}
 	foreach ($frames as $menuid => $menu) {
-		if (!empty($menu['founder']) && empty($_W['isfounder'])) {
+		if (!empty($menu['founder']) && empty($_W['isfounder']) || user_is_vice_founder() && in_array($menuid, array('site', 'advertisement', 'appmarket'))) {
 			continue;
 		}
 		$top_nav[] = array(

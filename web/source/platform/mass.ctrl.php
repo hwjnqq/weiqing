@@ -176,7 +176,7 @@ if ($do == 'post') {
 			$account_api = WeAccount::create();
 			$result = $account_api->fansSendAll($group['id'], $msgtype, $mass_record['media_id']);
 			if (is_error($result)) {
-				itoast($result['message'], url('platform/mass/send'), 'info');
+				itoast($result['message'], url('platform/mass'), 'info');
 			}
 			$mass_record['status'] = 0;
 			pdo_insert('mc_mass_record', $mass_record);

@@ -21,7 +21,7 @@
 				<col />
 				<col width="120px" />
 				<tr>
-					<th class="text-left" colspan="3">账户设置设置</th>
+					<th class="text-left" colspan="3">账户设置</th>
 				</tr>
 				<tr>
 					<td class="table-label">头像</td>
@@ -252,7 +252,7 @@
 				<div class="panel-heading">
 					<span>所属用户组：<span ng-bind="group_info.name"></span></span>
 				</div>
-				<div class="panel-body" ng-repeat="pack in group_info.module_and_tpl">
+				<div class="panel-body" ng-repeat="pack in group_info.package_detail">
 					<div class="permission-heading">
 						<span ng-bind="pack.name"></span>
 						<div class="pull-right permission-edit" ng-style="{'width': 'auto'}">

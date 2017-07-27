@@ -29,12 +29,73 @@
 					</td>
 				</tr>
 			</table>
+
+			<table class="we7-table table-hover table-form">
+				<col width="150px"/>
+				<col />
+				<col width="150px"/>
+				<tr>
+					<th colspan="4">支付宝退款设置</th>
+				</tr>
+				<tr>
+					<td>支付宝退款</td>
+					<td class="color-gray"></td>
+					<td class="color-gray">{{ ali_refund.switch == 1 ? '开启' :  '关闭' }}</td>
+					<td class="text-right">
+						<div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#ali_refund">修改</a></div>
+					</td>
+				</tr>
+			</table>
 		</div>
 	</form>
+	<div class="modal fade" id="ali_refund" tabindex="-1" role="dialog" aria-hidden="true" ng-cloak>
+		<div class="we7-modal-dialog modal-dialog">
+			<div class="modal-content">
+				<form action="{php echo url('profile/refund/save_setting')}" id="form_ali" method="post" class="we7-form form" enctype="multipart/form-data">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+						<div class="modal-title">支付宝退款设置</div>
+					</div>
+					<div class="modal-body">
+						<div class="we7-form">
+							<div class="form-group">
+								<label for="" class="control-label col-sm-3"><span class="pull-right">支付宝退款设置</span></label>
+								<div class="form-controls col-sm-7 pull-right">
+									<input type="radio" id="radio-wechat-3" name="param[switch]" value="1" ng-checked="ali_refund.switch == 1" ng-click="change_switch('ali_refund', 1)"/>
+									<label for="radio-wechat-3">开启 </label>
+									<input type="radio" id="raido-wechat-4" name="param[switch]" value="0" ng-checked="ali_refund.switch != 1" ng-click="change_switch('ali_refund', 0)"/>
+									<label for="raido-wechat-4">关闭 </label>
+								</div>
+							</div>
+							<input type="hidden" name="type" value="ali_refund">
+							<div class="form-group">
+								<label for="" class="control-label col-sm-3"><span class="pull-right">app_id</span></label>
+								<div class="form-controls col-sm-4" style="margin-left: 10ex;">
+									<input type="text" class="form-control" name="param[app_id]" value="" ng-model="ali_refund.app_id">
+								</div>
+							</div>
+							<div class="form-group">
+								<label for="" class="control-label col-sm-5">rsa_private_key.pem 证书</label>
+								<span class="text-success  col-sm-4">{{ ali_refund.private_key != '' && ali_refund.private_key != undefind ? '已上传' : '' }}</span>
+								<div class="form-controls col-sm-3">
+									<input type="file" id="private_key" class="hidden" name="private_key">
+									<a class="color-default" href="javascript:;" onclick="private_key.click()">上传证书</a>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="submit" class="btn btn-primary">确定</button>
+						<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
 	<div class="modal fade" id="wechat_refund" tabindex="-1" role="dialog" aria-hidden="true" ng-cloak>
 		<div class="we7-modal-dialog modal-dialog">
 			<div class="modal-content">
-				<form action="{php echo url('profile/refund/save_setting')}" method="post" class="we7-form form" enctype="multipart/form-data">
+				<form action="{php echo url('profile/refund/save_setting')}" method="post" class="we7-form form" id="form_wechat" enctype="multipart/form-data">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 						<div class="modal-title">微信退款设置</div>
@@ -89,6 +150,7 @@
 			</div>
 		</div>
 	</div>
+
 </div>
 <script>
 	angular.module('profileApp').value('config', {

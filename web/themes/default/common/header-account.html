@@ -10,10 +10,10 @@
 {if $_W['uniaccount']['isconnect'] == 0}
 	<span class="tips-danger">
 		<i class="wi wi-warning-sign"></i>未接入微信公众号
-		<a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid'], 'acid' => $_W['acid']))}">立即接入</a>
+		<a href="{php echo url('account/post')}">立即接入</a>
 	</span>
 	{/if}
 {if uni_permission($_W['uid'], $_W['uniacid']) != ACCOUNT_MANAGE_NAME_OPERATOR}
-	<span class="pull-right"><a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid'], 'acid' => $_W['acid']))}"><i class="wi wi-appsetting"></i>公众号设置</a></span>
+	<span class="pull-right"><a href="{php echo url('account/post')}"><i class="wi wi-appsetting"></i>公众号设置</a></span>
 {/if}
 <span class="pull-right"><a href="{php echo url('utility/emulator');}" target="_blank"><i class="wi wi-iphone"></i>模拟测试</a></span>

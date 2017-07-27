@@ -80,8 +80,53 @@ function refund($refund_id) {
 		} else {
 			return $response;
 		}
+	} elseif ($paylog['type'] == 'alipay') {
+		$refund_param = reufnd_ali_build($refund_id);
+		$ali = Pay::create('alipay');
+		$response = $ali->refund($refund_param, $refund_id);
+		if (is_error($response)) {
+			pdo_update('core_refundlog', array('status' => '-1'), array('id' => $refund_id));
+			return $response;
+		} else {
+			return $response;
+		}
 	}
 	return error(1, '此订单退款方式不存在');
+}
+
+/**
+ * 构造支付宝退款参数
+ * @params int $refund_id  退款单id
+ * @return array  成功返回请求支付宝退款接口所需参数，失败返回error结构错误
+ */
+function reufnd_ali_build($refund_id) {
+	global $_W;
+	$setting = uni_setting_load('payment', $_W['uniacid']);
+	$refund_setting = $setting['payment']['ali_refund'];
+	if ($refund_setting['switch'] != 1) {
+		return error(1, '未开启支付宝退款功能！');
+	}
+	if (empty($refund_setting['private_key'])) {
+		return error(1, '缺少支付宝秘钥证书！');
+	}
+
+	$refundlog = pdo_get('core_refundlog', array('id' => $refund_id));
+	$paylog = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'uniontid' => $refundlog['uniontid']));
+	$refund_param = array(
+		'app_id' => $refund_setting['app_id'],
+		'method' => 'alipay.trade.refund',
+		'charset' => 'utf-8',
+		'sign_type' => 'RSA2',
+		'timestamp' => date('Y-m-d H:i:s'),
+		'version' => '1.0',
+		'biz_content' => array(
+			'out_trade_no' => $paylog['tid'],
+			'refund_amount' => $refundlog['fee'],
+			'refund_reason' => $refundlog['reason'],
+		)
+	);
+	$refund_param['biz_content'] = json_encode($refund_param['biz_content']);
+	return $refund_param;
 }
 
 /**

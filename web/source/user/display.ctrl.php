@@ -28,7 +28,7 @@ if (in_array($do, array('display', 'recycle_display', 'check_display', 'vice_fou
 			break;
 		default:
 			uni_user_permission_check('system_user');
-			$condition = ' WHERE u.status = 2 ';
+			$condition = ' WHERE u.status = 2 AND u.founder_groupid = 0';
 			break;
 	}
 	if (user_is_vice_founder()) {
@@ -87,7 +87,7 @@ if (in_array($do, array('display', 'recycle_display', 'check_display', 'vice_fou
 		$user['module_nums'] = count($user['module_num']) + $system_module_num;
 	}
 	unset($user);
-	$usergroups = pdo_getall('users_group', array(), array(), 'id');
+	$usergroups = user_group();
 	template('user/display');
 }
 
@@ -117,31 +117,12 @@ if (in_array($do, array('recycle', 'recycle_delete', 'recycle_restore', 'check_p
 			itoast('更新成功！', referer(), 'success');
 			break;
 		case 'recycle'://删除用户到回收站
-			$data = array('status' => 3);
-			pdo_update('users', $data , array('uid' => $uid));
+			user_delete($uid, true);
 			itoast('更新成功！', referer(), 'success');
 			break;
 		case 'recycle_delete'://永久删除用户
-			$founder_groupid = pdo_getcolumn('users', array('uid' => $uid), 'founder_groupid');
-			if ($founder_groupid == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
-				pdo_update('users', array('owner_uid' => 0), array('owner_uid' => $uid));
-				pdo_update('users_group', array('owner_uid' => 0), array('owner_uid' => $uid));
-				pdo_update('uni_group', array('owner_uid' => 0), array('owner_uid' => $uid));
-			}
-			if (pdo_delete('users', array('uid' => $uid)) === 1) {
-				//把该用户所属的公众号返给创始人
-				$user_set_account = pdo_getall('uni_account_users', array('uid' => $uid, 'role' => 'owner'));
-				if (!empty($user_set_account)) {
-					foreach ($user_set_account as $account) {
-						cache_build_account_modules($account['uniacid']);
-					}
-				}
-				pdo_delete('uni_account_users', array('uid' => $uid));
-				pdo_delete('users_profile', array('uid' => $uid));
-				itoast('删除成功！', referer(), 'success');
-			} else {
-				itoast('删除失败！', referer(), 'error');
-			}
+			user_delete($uid);
+			itoast('删除成功！', referer(), 'success');
 			break;
 		case 'recycle_restore':
 			$data = array('status' => 2);

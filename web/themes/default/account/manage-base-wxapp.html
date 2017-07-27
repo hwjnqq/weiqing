@@ -39,8 +39,8 @@
 		</tr>
 		<tr>
 			<td class="table-label">到期时间</td>
-			<td ng-bind="account.end"></td>
-			<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#endtime" ng-click="editInfo('endtype', account.endtype)">修改</a></div></td>
+			<td><span ng-bind="account.end"></span><span class="color-gray">（随该公众号主管理员的到期时间，未设置主管理员时默认为创始人）</span></td>
+			<td><div class="link-group"></div></td>
 		</tr>
 	</table>
 	<div class="modal fade" id="name" tabindex="-1" role="dialog" aria-hidden="true">

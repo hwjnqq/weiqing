@@ -21,7 +21,7 @@
 	</div>
 	{if $state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER}
 	<div class="media-right media-middle">
-		<a href="{php echo url('account/manage/delete', array('uniacid' => $_GPC['uniacid'], 'acid' => $_GPC['acid'], 'account_type' => ACCOUNT_TYPE))}" class="btn btn-primary" onclick="return confirm('确认放入回收站吗？')">停  用</a>
+		<a href="{php echo url('account/recycle/delete', array('uniacid' => $uniacid, 'acid' => $acid, 'account_type' => ACCOUNT_TYPE))}" class="btn btn-primary" onclick="return confirm('确认删除吗？')">删除</a>
 	</div>
 	{/if}
 </div>

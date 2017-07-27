@@ -1,18 +1,10 @@
 {template 'common/header'}
 <div class="new-keyword">
-	{if $_GPC['do'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
-		<ol class="breadcrumb we7-breadcrumb">
-			<a href="{url 'user/display'}"><i class="wi wi-back-circle"></i> </a>
-			<li><a href="{url 'user/display/vice_founder'}">副创始人管理</a></li>
-			<li>添加副创始人</li>
-		</ol>
-	{else}
-		<ol class="breadcrumb we7-breadcrumb">
-			<a href="{url 'user/display'}"><i class="wi wi-back-circle"></i> </a>
-			<li><a href="{url 'user/display'}">用户管理</a></li>
-			<li>添加用户</li>
-		</ol>
-	{/if}
+	<ol class="breadcrumb we7-breadcrumb">
+		<a href="{url 'user/display'}"><i class="wi wi-back-circle"></i> </a>
+		<li><a href="{url 'user/display'}">用户管理</a></li>
+		<li>添加用户</li>
+	</ol>
 	<form action="" class="we7-form" method="post" id="js-user-create" ng-controller="UserCreate" ng-cloak>
 		
 		<div class="form-group">

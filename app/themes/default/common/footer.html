@@ -55,11 +55,12 @@
 		}
 		if(sharedata.imgUrl == ''){
 			var _share_img = $('body img:eq(0)').attr("src");
-			if(_share_img == ""){
-				sharedata['imgUrl'] = window.sysinfo.attachurl + 'images/global/wechat_share.png';
-			} else {
+			if(_share_img){
 				sharedata['imgUrl'] = util.tomedia(_share_img);
 			}
+		}
+		if(sharedata.imgUrl == ""){
+			sharedata.imgUrl = window.sysinfo.attachurl + 'images/global/wechat_share.jpg';
 		}
 		if(sharedata.desc == ''){
 			var _share_content = util.removeHTMLTag($('body').html());

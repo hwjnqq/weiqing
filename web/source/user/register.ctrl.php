@@ -64,13 +64,16 @@ if(checksubmit()) {
 		$member['groupid'] = pdo_fetchcolumn('SELECT id FROM '.tablename('users_group').' ORDER BY id ASC LIMIT 1');
 		$member['groupid'] = intval($member['groupid']);
 	}
-	$group = pdo_fetch('SELECT * FROM '.tablename('users_group').' WHERE id = :id', array(':id' => $member['groupid']));
+	$group = user_group_detail_info($member['groupid']);
+	
 	$timelimit = intval($group['timelimit']);
 	if($timelimit > 0) {
 		$member['endtime'] = strtotime($timelimit . ' days');
 	}
 	$member['starttime'] = TIMESTAMP;
-	
+	if (!empty($owner_uid)) {
+		$member['owner_uid'] = pdo_getcolumn('users', array('uid' => $owner_uid, 'founder_groupid' => ACCOUNT_MANAGE_GROUP_VICE_FOUNDER), 'uid');
+	}
 	$uid = user_register($member);
 	if($uid > 0) {
 		unset($member['password']);

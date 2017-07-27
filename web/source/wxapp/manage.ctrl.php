@@ -17,6 +17,7 @@ $acid = intval($_W['acid']);
 if (empty($uniacid)) {
 	itoast('请选择要编辑的小程序', referer(), 'error');
 }
+$uniacid = intval($account['uniacid']);
 
 $state = uni_permission($_W['uid'], $uniacid);
 //只有创始人、主管理员、管理员才有权限
