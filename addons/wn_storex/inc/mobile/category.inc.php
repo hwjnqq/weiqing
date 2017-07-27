@@ -223,21 +223,17 @@ if ($op == 'goods_search') {
 	$store = get_store_info($id);
 	$table = gettablebytype($store['store_type']);
 	$condition = array('title LIKE' => '%' . $keywords . '%', 'status' => 1);
-	$fields = array('id', 'title', 'thumb', 'thumbs', 'sub_title', 'oprice', 'cprice', 'device');
+	$pindex = max(1, intval($_GPC['page']));
+	$psize = 10;
 	if ($table == 'storex_room') {
 		$condition['is_house !='] = 1;
 		$condition['hotelid'] = $id;
-		$fields[] = 'hotelid';
-		$fields[] = 'is_house';
+		$goods = pdo_getall($table, $condition, array('id', 'hotelid', 'weid', 'pcate', 'ccate', 'title', 'sub_title', 'thumb', 'oprice', 'cprice', 'thumbs', 'device', 'status', 'can_buy', 'isshow', 'sales', 'displayorder', 'score', 'sortid', 'sold_num', 'store_type', 'is_house'), '', 'sortid DESC', array($pindex, $psize));
 	} else {
 		$goods_fields = array('store_base_id', 'unit', 'weight', 'stock', 'min_buy', 'max_buy', 'tag');
-		$fields = array_merge($fields, $goods_fields);
 		$condition['store_base_id'] = $id;
+		$goods = pdo_getall($table, $condition, array(), '', 'sortid DESC', array($pindex, $psize));
 	}
-	$pindex = max(1, intval($_GPC['page']));
-	$psize = 10;
-
-	$goods = pdo_getall($table, $condition, $fields, '', 'sortid DESC', array($pindex, $psize));
 	$total = count(pdo_getall($table, $condition));
 	if (!empty($goods) && is_array($goods)) {
 		if ($store['store_type'] != STORE_TYPE_HOTEL) {
