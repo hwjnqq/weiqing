@@ -206,7 +206,8 @@ if ($op == 'order_comment') {
 			'comment_level' => $comment_level,
 			'type' => 1,
 			'cid' => 0,
-			'nickname' => $fans_info['nickname']
+			'nickname' => $fans_info['nickname'],
+			'thumb' => $fans_info['headimgurl']
 		);
 		pdo_insert('storex_comment', $comment_info);
 		pdo_update('storex_order', array('comment' => 1), array('weid' => $_W['uniacid'], 'id' => $id));

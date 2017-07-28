@@ -1,5 +1,4 @@
 <?php
-
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
@@ -72,6 +71,10 @@ if ($op == 'goods_info') {
 		'imgUrl' => tomedia($goods_info['thumb'])
 	);
 	$goods_info['defined'] = get_goods_defined($id, $goodsid);
+	$single_comment = pdo_get('storex_comment', array('uniacid' => $_W['uniacid'], 'hotelid' => $store_id, 'goodsid' => $goodsid, 'comment <>' => ''), array('createtime', 'comment', 'nickname', 'thumb'));
+	$single_comment['thumb'] = tomedia($single_comment['thumb']);
+	$single_comment['createtime'] = date('Y-m-d', $single_comment['createtime']);
+	$goods_info['comment'] = $single_comment;
 	wmessage(error(0, $goods_info), $share_data, 'ajax');
 }
 

@@ -56,10 +56,11 @@ if ($op == 'post') {
 		$comment_info = pdo_get('storex_comment', array('id' => $id));
 		$insert = array(
 			'createtime' => time(),
-			'comment' => $_GPC['comment'],
+			'comment' => trim($_GPC['comment']),
 			'goodsid' => intval($_GPC['goodsid']),
 			'type' => 2,
-			'nickname' => $_GPC['nickname'],
+			'thumb' => trim($_GPC['thumb']),
+			'nickname' => trim($_GPC['nickname']),
 			'comment_level' => $_GPC['comment_level']
 		);
 		if (empty($insert['goodsid']) || empty($insert['nickname']) || empty($insert['comment']) || empty($insert['comment_level'])) {

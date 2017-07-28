@@ -56,7 +56,10 @@
 				<td>{$item['comment']}</td>
 				<td>{$item['comment_level']}</td>
 				<td>{$item['createtime']}</td>
-				<td>{$item['nickname']}</td>
+				<td>
+					<img src="{php echo tomedia($item['thumb'])}" width="33px">
+					{$item['nickname']}
+				</td>
 				<td>
 					<div class="wn-table__link">
 						<a class="wn-table__link__item js-reply-comment" href="javascript:;" data-id="{$item['id']}" data-goodsid="{$item['goodsid']}">回复</a>
