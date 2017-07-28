@@ -212,6 +212,9 @@ if ($op == 'set_credit_password') {
 	if (istrlen($password) < 6) {
 		wmessage(error(-1, '密码长度至少6位'), '', 'ajax');
 	}
+	if (istrlen($password) > 16) {
+		wmessage(error(-1, '密码长度最多16位'), '', 'ajax');
+	}
 	if (istrlen($password_lock) > 10) {
 		wmessage(error(-1, '改密依据不要太长'), '', 'ajax');
 	}
