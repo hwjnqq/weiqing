@@ -907,10 +907,6 @@ li {
   font-size: 12px;
   cursor: default;
 }
-.wn-home__preview__item .content {
-  width: 100%;
-  height: 100%;
-}
 .wn-home__preview__item.active {
   border: 1px dashed #59c2e6;
 }

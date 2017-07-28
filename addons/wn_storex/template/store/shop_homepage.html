@@ -1,4 +1,4 @@
-{template 'common/header-storex'}
+<script src="../../../../../grunt/web/_src/application/util.js"></script>{template 'common/header-storex'}
 <link rel="stylesheet" href="{php echo $_W['siteroot'] . 'addons/wn_storex/template/style/css/membercard.css'}">
 {if $op == 'display'}
 <div class="wn-main wn-main--without">
@@ -165,7 +165,11 @@
 										<div class="help-block">设置{{typeValue[openModules[editModuleIndex]['type']]}}标题</div>
 									</div>
 									<div class="form-group">
-										<a @click="showEdit = false" class="btn btn-default">取消</a>
+										<textarea v-model="editValue.value" ref="ueditor" id="ueditor"></textarea>
+										<div class="help-block">设置{{typeValue[openModules[editModuleIndex]['type']]}}标题</div>
+									</div>
+									<div class="form-group">
+										<a @click="hideEdit" class="btn btn-default">取消</a>
 										<a class="btn btn-primary" @click="saveItem">保存</a>
 									</div>
 								</div>
@@ -292,11 +296,11 @@
 			'sortablejs': "{php echo $_W['siteroot'] . 'addons/wn_storex/template/style/js/Sortable.min'}",
 			'vuedraggable': "{php echo $_W['siteroot'] . 'addons/wn_storex/template/style/js/vuedraggable.min'}",
 		}
-	})
-	require(['bootstrap'])
+	});
+	require(['bootstrap']);
 	var default_module = {php echo json_encode($default_module)};
 	var homepage = {php echo json_encode($homepage_list)};
-	require(['Vue', 'vuedraggable'], function (Vue, vuedraggable) {
+	require(['Vue', 'vuedraggable', 'util'], function (Vue, vuedraggable, util) {
 		Vue.component('draggable', vuedraggable);
 		var vm = new Vue({
 			el: '#app',
@@ -326,7 +330,8 @@
 				editIndex: '',
 				goodsParams: '',
 				goodsList: [],
-				linkGroup: []
+				linkGroup: [],
+				ueditor: null
 			},
 			methods: {
 				removeModule: function (index) {
@@ -389,15 +394,35 @@
 				addNotice: function () {
 					this.showEdit = true;
 					this.editValue = {
-						title: ''
-					}
+						title: '',
+						value: ''
+					};
+					this.showUeditor()
+				},
+				showUeditor: function () {
+					const self = this;
+					this.$nextTick(function () {
+						this.$refs.ueditor.id = Math.random().toString(36).substr(2) + 'ueditorId';
+						util.editor(this.$refs.ueditor.id, {
+							height : 200,
+							dest_dir : '',
+							image_limit : 4096000,
+							allow_upload_video : true,
+							audio_limit : 5120000,
+							callback : function (elm, ue) {
+								self.$set(self, 'ueditor', ue)
+							}
+						});
+					})
 				},
 				editNotice: function (index) {
 					this.showEdit = true;
 					this.editValue = {
-						title: this.openModules[this.editModuleIndex]['items'][index]['title']
+						title: this.openModules[this.editModuleIndex]['items'][index]['title'],
+						value: this.openModules[this.editModuleIndex]['items'][index]['value']
 					};
 					this.editIndex = index;
+					this.showUeditor()
 				},
 				hideEdit: function () {
 					this.showEdit = false;
@@ -406,6 +431,10 @@
 					this.openModules[this.editModuleIndex]['items'].splice(index, 1);
 				},
 				saveItem: function () {
+					console.log(typeof this.ueditor);
+					if(typeof this.ueditor == 'object') {
+						this.editValue.value = this.ueditor.getContent()
+					}
 					var index = this.editModuleIndex;
 					var value = this.editValue;
 					for (var key in value) {
@@ -491,8 +520,8 @@
 				const self = this;
 				this.editModuleIndex = 0;
 				this.$nextTick(function () {
-					$(this.$refs.tooltip).tooltip()
-					$(this.$refs.modal).modal()
+					$(this.$refs.tooltip).tooltip();
+					$(this.$refs.modal).modal();
 					$('#link').on('show.bs.modal', function (event) {
 						$.post("{php echo $this->createWebUrl('shop_homepage', array('op' => 'link', 'storeid' => $_GPC['storeid']))}", {params: this.openModules}, function (data) {
 							data = $.parseJSON(data);
