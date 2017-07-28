@@ -28,6 +28,9 @@
 					</div>
 				</form>
 			</div>
+			<div class="wn-main__search__action">
+				<a href="{php echo $this->createWebUrl('shop_comment', array('op' => 'post', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">+添加虚拟评价</a>
+			</div>
 		</div>
 		<table class="table table-hover table-bordered wn-table" >
 			<thead class="navbar-inner">
@@ -53,18 +56,27 @@
 				<td>{$item['comment']}</td>
 				<td>{$item['comment_level']}</td>
 				<td>{$item['createtime']}</td>
-				{if !empty($item['user_info'])}
-				<td>{$item['user_info']['nickname']}</td>
-				{else}
-				<td>{$item['uid']}</td>
-				{/if}
+				<td>{$item['nickname']}</td>
 				<td>
 					<div class="wn-table__link">
-						<a class="wn-table__link__item" href="#" onclick="drop_confirm('您确定要删除该评论吗?', '{php echo $this->createWebUrl('shop_comment',array('op'=>'delete', 'cid'=>$item['id'],'storeid'=>$storeid,'id'=>$item['goodsid']))}');" title="删除" >删除</a>
+						<a class="wn-table__link__item js-reply-comment" href="javascript:;" data-id="{$item['id']}" data-goodsid="{$item['goodsid']}">回复</a>
+						<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_comment',array('op' => 'post', 'id' => $item['id'], 'storeid' => $storeid))}" title="编辑">编辑</a>
+						<a class="wn-table__link__item" href="#" onclick="drop_confirm('您确定要删除该评论吗?', '{php echo $this->createWebUrl('shop_comment',array('op' => 'delete', 'cid' => $item['id'], 'storeid' => $storeid, 'id' => $item['goodsid']))}');" title="删除">删除</a>
 					</div>
 
 				</td>
 			</tr>
+			{loop $item['reply'] $reply}
+			<tr>
+				<td colspan="2" class="text-center">商家回复</td>
+				<td colspan="2">{$reply['comment']}</td>
+				<td>{$reply['createtime']}</td>
+				<td>{$reply['nickname']}</td>
+				<td>
+					<a class="wn-table__link__item" href="#" onclick="drop_confirm('您确定要删除该评论吗?', '{php echo $this->createWebUrl('shop_comment',array('op' => 'delete', 'cid' => $reply['id'], 'storeid' => $storeid, 'id' => $reply['goodsid']))}');" title="删除">删除</a
+				</td>
+			</tr>
+			{/loop}
 			{/loop}
 			<tr>
 				<td></td>
@@ -79,11 +91,51 @@
 		</table>
 	</div>
 </div>
+<div class="modal fade" id="reply-modal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel">回复评论</h4>
+			</div>
+			<div class="modal-body clearfix form-horizontal">
+				<input type="text" class="form-control" name="reply" />
+				<input type="hidden" name="cid">
+				<input type="hidden" name="goodsid">
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				<button type="button" class="btn btn-primary js-reply-submit">确定</button>
+			</div>
+		</div>
+	</div>
+</div>
 <script>
-	require(['bootstrap'],function($){
-		$('.btn').tooltip();
-	});
 	$(function() {
+		$('.js-reply-comment').click(function() {
+			cid = $(this).data('id');
+			goodsid = $(this).data('goodsid');
+			$('input[name="cid"]').val(cid);
+			$('input[name="goodsid"]').val(goodsid);
+			$('#reply-modal').modal('show');
+		});
+		$('.js-reply-submit').click(function() {
+			cid = $('input[name="cid"]').val();
+			goodsid = $('input[name="goodsid"]').val();
+			reply = $('input[name="reply"]').val();
+			if (!reply) {
+				util.message('回复内容不能为空');
+			}
+			$.post("{php echo $this->createWebUrl('shop_comment', array('op' => 'reply', 'storeid' => $_GPC['storeid']))}", {cid : cid, comment : reply, goodsid : goodsid}, function(data) {
+				data = $.parseJSON(data);
+				if (data.message.errno != 0) {
+					util.message(data.message.message, '', 'error');
+				} else {
+					util.message('回复成功', location.href, 'success');
+				}
+				$('#reply-modal').modal('hide');
+			});
+		});
 		$(".check_all").click(function() {
 			var checked = $(this).get(0).checked;
 			$("input[type=checkbox]").prop("checked",checked);
