@@ -241,3 +241,90 @@ function storex_user_permission($type = 'system', $uid = 0, $uniacid = 0) {
 	}
 	return $permission;
 }
+
+//获取店员权限
+function clerk_permission($storeid, $uid) {
+	global $_W;
+	$clerk_info = pdo_get('storex_clerk', array('weid' => $_W['uniacid'], 'userid' => $uid, 'storeid' => $storeid), array('permission'));
+	$current_user_permission_info = pdo_get('users_permission', array('uniacid' => $_W['uniacid'], 'uid' => $uid, 'type' => 'wn_storex'));
+	pdo_update('storex_clerk', array('permission' => $current_user_permission_info['permission']), array('weid' => $_W['uniacid'], 'storeid' => $storeid, 'userid' => $uid));
+	$permission = !empty($current_user_permission_info['permission']) ? explode('|', $current_user_permission_info['permission']) : '';
+	return $permission;
+}
+
+/**店员可操作订单的行为
+* $order 订单信息
+* $store_type 店铺类型
+*/
+function clerk_order_operation($order, $store_type) {
+	$status = array(
+		'is_cancel' => false,
+		'is_confirm' => false,
+		'is_refuse' => false,
+		'is_over' => false,
+		'is_send' => false,
+		'is_access' => false,
+	);
+	if ($order['status'] == ORDER_STATUS_CANCEL || $order['status'] == ORDER_STATUS_REFUSE) {
+		$status = array();
+	} elseif ($order['status'] == ORDER_STATUS_SURE) {
+		if ($order['paystatus'] == PAY_STATUS_PAID) {
+			if ($store_type == STORE_TYPE_HOTEL) {
+				$room = pdo_get('storex_room', array('id' => $order['roomid']), array('id', 'is_house'));
+				if (($order['goods_status'] == GOODS_STATUS_NOT_CHECKED || empty($order['goods_status'])) && $room['is_house'] == 1) {
+					$status['is_access'] = true;
+				}
+			} else {
+				if ($order['mode_distribute'] == 2) {//配送
+					if ($order['goods_status'] == GOODS_STATUS_NOT_SHIPPED || empty($order['goods_status'])) {
+						$status['is_send'] = true;
+					}
+				}
+			}
+			$status['is_over'] = true;
+		}
+	} elseif ( $order['status'] == ORDER_STATUS_OVER){
+		$status = array();
+	}else {
+		$status['is_cancel'] = true;
+		$status['is_confirm'] = true;
+		$status['is_refuse'] = true;
+	}
+	if (!empty($status)) {
+		$op_status = false;
+		foreach ($status as $val) {
+			if (!empty($val)) {
+				$op_status = true;
+				break;
+			}
+		}
+		if (empty($op_status)) {
+			$status = array();
+		}
+	}
+	//可以执行的操作
+	$order['operate'] = $status;
+	return $order;
+}
+
+function clerk_permission_storex($type, $storeid = '') {
+	global $_W;
+	$condition = array(
+		'from_user' => $_W['openid']
+	);
+	if (!empty($storeid)) {
+		$condition['storeid'] = $storeid;
+	}
+	$clerks = pdo_getall('storex_clerk', $condition, array(), 'storeid');
+	$stores = array();
+	if (!empty($clerks) && is_array($clerks)) {
+		foreach ($clerks as $k => $v) {
+			$permission = clerk_permission($k, $v['userid']);
+			if (in_array('wn_storex_permission_' . $type, $permission)) {
+				$stores[] = $k;
+			}
+		}
+	}
+	$manage_storex_lists = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $stores), array('id', 'title', 'store_type'), 'id');
+	return $manage_storex_lists;
+}

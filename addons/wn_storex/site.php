@@ -346,26 +346,25 @@ class Wn_storexModuleSite extends WeModuleSite {
 						}
 	
 						//TM00217
-						$clerks = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'status'=>1));
+						$clerks_openids = array();
+						$clerks = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'status'=>1, 'storeid' => $order['hotelid']));
 						if (!empty($clerks)) {
+							mload()->model('clerk');
 							foreach ($clerks as $k => $info) {
-								$permission = iunserializer($info['permission']);
-								if (!empty($permission[$order['hotelid']])) {
-									$is_permit = false;
-									foreach ($permission[$order['hotelid']] as $permit) {
-										if ($permit == 'wn_storex_permission_order') {
-											$is_permit = true;
-											continue;
-										}
-									}
-									if (empty($is_permit)) {
-										unset($clerks[$k]);
-									}
+								if (empty($info['from_user']) || empty($info['userid'])) {
+									unset($clerks[$k]);
+									continue;
 								}
+								$permission = clerk_permission($order['hotelid'], $info['userid']);
+								if (!in_array('wn_storex_permission_order', $permission)) {
+									unset($clerks[$k]);
+									continue;
+								}
+								$clerks_openids[] = $info['from_user'];
 							}
 						}
 						if (!empty($storex_bases['openids'])) {
-							$clerks = iunserializer($storex_bases['openids']);
+							$clerks_openids = array_merge($clerks_openids, iunserializer($storex_bases['openids']));
 						}
 						if (!empty($setInfo['template']) && !empty($setInfo['templateid'])) {
 							$tplnotice = array(
@@ -379,11 +378,11 @@ class Wn_storexModuleSite extends WeModuleSite {
 								'pay' => array('value' => $order['sum_price']),
 								'remark' => array('value' => '为保证用户体验度，请及时处理！')
 							);
-							foreach ($clerks as $clerk) {
+							foreach ($clerks_openids as $clerk) {
 								$account_api->sendTplNotice($clerk, $setInfo['templateid'], $tplnotice);
 							}
 						} else {
-							foreach ($clerks as $clerk) {
+							foreach ($clerks_openids as $clerk) {
 								$info = '店铺有新的订单,为保证用户体验度，请及时处理!';
 								$custom = array(
 									'msgtype' => 'text',

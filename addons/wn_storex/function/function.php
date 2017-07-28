@@ -211,61 +211,6 @@ function check_params() {
 	}
 }
 
-/**店员可操作订单的行为
- * $order  订单信息
- * $store_type  店铺类型
-*/
-function clerk_order_operation($order, $store_type) {
-	$status = array(
-		'is_cancel' => false,
-		'is_confirm' => false,
-		'is_refuse' => false,
-		'is_over' => false,
-		'is_send' => false,
-		'is_access' => false,
-	);
-	if ($order['status'] == ORDER_STATUS_CANCEL || $order['status'] == ORDER_STATUS_REFUSE) {
-		$status = array();
-	} elseif ($order['status'] == ORDER_STATUS_SURE) {
-		if ($order['paystatus'] == PAY_STATUS_PAID) {
-			if ($store_type == STORE_TYPE_HOTEL) {
-				$room = pdo_get('storex_room', array('id' => $order['roomid']), array('id', 'is_house'));
-				if (($order['goods_status'] == GOODS_STATUS_NOT_CHECKED || empty($order['goods_status'])) && $room['is_house'] == 1) {
-					$status['is_access'] = true;
-				}
-			} else {
-				if ($order['mode_distribute'] == 2) {//配送
-					if ($order['goods_status'] == GOODS_STATUS_NOT_SHIPPED || empty($order['goods_status'])) {
-						$status['is_send'] = true;
-					}
-				}
-			}
-			$status['is_over'] = true;
-		}
-	} elseif ( $order['status'] == ORDER_STATUS_OVER){
-		$status = array();
-	}else {
-		$status['is_cancel'] = true;
-		$status['is_confirm'] = true;
-		$status['is_refuse'] = true;
-	}
-	if (!empty($status)) {
-		$op_status = false;
-		foreach ($status as $val) {
-			if (!empty($val)) {
-				$op_status = true;
-				break;
-			} 
-		}
-		if (empty($op_status)) {
-			$status = array();
-		}
-	}
-	//可以执行的操作
-	$order['operate'] = $status;
-	return $order;
-}
-
 /**格式化图片的路径
  * $urls  url数组
  */
@@ -534,59 +479,6 @@ function room_special_price($goods, $search_data = array(), $plural = true) {
 	return $goods;
 }
 
-//检查店员    id:店铺id
-function get_clerk_permission($id = 0) {
-	global $_W;
-	$clerk_info = pdo_get('storex_clerk', array('from_user' => trim($_W['openid']), 'weid' => intval($_W['uniacid'])));
-	if (!empty($clerk_info) && !empty($clerk_info['permission'])) {
-		if ($clerk_info['status'] != 1) {
-			wmessage(error(-1, '您没有进行此操作的权限！'), '', 'ajax');
-		}
-		$clerk_info['permission'] = iunserializer($clerk_info['permission']);
-		if (!empty($id)) {
-			if (!empty($clerk_info['permission'][$id])) {
-				return $clerk_info['permission'][$id];
-			}
-		} else {
-			return $clerk_info['permission'];
-		}
-		
-	}
-	wmessage(error(-1, '您没有进行此操作的权限！'), '', 'ajax');
-}
-function check_clerk_permission($storexid, $permit) {
-	$clerk_info = get_clerk_permission($storexid);
-	$is_permission = false;
-	foreach ($clerk_info as $permission) {
-		if ($permission == $permit) {
-			$is_permission = true;
-			break;
-		}
-	}
-	if (empty($is_permission)) {
-		wmessage(error(-1, '您没有进行此操作的权限！'), '', 'ajax');
-	}
-}
-function clerk_permission_storex($type) {
-	global $_W;
-	$clerk_info = get_clerk_permission();
-	foreach ($clerk_info as $id => $permission) {
-		if (!empty($permission) && is_array($permission)) {
-			$exist = false;
-			foreach ($permission as $v) {
-				if ($v == 'wn_storex_permission_' . $type) {
-					$exist = true;
-					break;
-				}
-			}
-			if (empty($exist)) {
-				unset($clerk_info[$id]);
-			}
-		}
-	}
-	$manage_storex_ids = array_keys($clerk_info);
-	return $manage_storex_ids;
-}
 function send_custom_notice($msgtype, $text, $touser) {
 	if (!check_wxapp()) {
 		$account_api = WeAccount::create();

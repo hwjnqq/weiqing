@@ -9,6 +9,7 @@ $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 check_params();
 mload()->model('activity');
 mload()->model('card');
+mload()->model('clerk');
 $uid = mc_openid2uid($_W['openid']);
 $store_id = intval($_GPC['id']);
 $goodsid = intval($_GPC['goodsid']);
@@ -362,35 +363,24 @@ if ($op == 'order') {
 	}
 	
 	if (!check_plugin_isopen('wn_storex_plugin_sms')) {
-		$clerks = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'status' => 1), array('mobile', 'permission'));
-		if (!empty($clerks)) {
-			foreach ($clerks as $k => $val) {
-				if (!preg_match(REGULAR_MOBILE, $val['mobile'])) {
-					unset($clerks[$k]);
-					continue;
-				}
-				$permission = iunserializer($val['permission']);
-				if (!empty($permission[$store_info['id']])) {
-					$exist = false;
-					foreach ($permission[$store_info['id']] as $v) {
-						if ($v == 'wn_storex_permission_order') {
-							$exist = true;
-						}
-					}
-					if (empty($exist)) {
-						unset($clerks[$k]);
-					}
-				}
-			}
-		}
+		$clerks = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'status' => 1, 'storeid' => $insert['hotelid']), array('id', 'userid', 'mobile'));
 		if (!empty($clerks)) {
 			mload()->model('sms');
 			$content = array(
 				'store' => $store_info['title'],
 				'price' => $insert['sum_price'],
 			);
-			foreach ($clerks as $value) {
-				sms_send($value['mobile'], $content, 'clerk');
+			foreach ($clerks as $k => $val) {
+				if (!preg_match(REGULAR_MOBILE, $val['mobile'])) {
+					unset($clerks[$k]);
+					continue;
+				}
+				$permission = clerk_permission($insert['hotelid'], $val['userid']);
+				if (!in_array('wn_storex_permission_order', $permission)) {
+					unset($clerks[$k]);
+					continue;
+				}
+				sms_send($val['mobile'], $content, 'clerk');
 			}
 		}
 	}

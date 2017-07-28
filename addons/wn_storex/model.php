@@ -845,12 +845,3 @@ function stock_control($goodsid, $buynums, $type) {
 		}
 	}
 }
-//获取店员权限
-function clerk_permission($storeid, $uid) {
-	global $_W;
-	$clerk_info = pdo_get('storex_clerk', array('weid' => $_W['uniacid'], 'userid' => $uid, 'storeid' => $storeid), array('permission'));
-	$current_user_permission_info = pdo_get('users_permission', array('uniacid' => $_W['uniacid'], 'uid' => $uid, 'type' => 'wn_storex'));
-	pdo_update('storex_clerk', array('permission' => $current_user_permission_info['permission']), array('weid' => $_W['uniacid'], 'storeid' => $storeid, 'userid' => $uid));
-	$permission = !empty($current_user_permission_info['permission']) ? explode('|', $current_user_permission_info['permission']) : '';
-	return $permission;
-}
