@@ -195,6 +195,7 @@ if ($op == 'order_comment') {
 		$comment_level = 5;
 	}
 	if ($order_info['status'] == 3 && $order_info['comment'] == 0) {
+		$fans_info = mc_fansinfo($uid);
 		$comment_info = array(
 			'uniacid' => $_W['uniacid'],
 			'uid' => $uid,
@@ -203,6 +204,9 @@ if ($op == 'order_comment') {
 			'hotelid' => $order_info['hotelid'],
 			'goodsid' => $order_info['roomid'], 
 			'comment_level' => $comment_level,
+			'type' => 1,
+			'cid' => 0,
+			'nickname' => $fans_info['nickname']
 		);
 		pdo_insert('storex_comment', $comment_info);
 		pdo_update('storex_order', array('comment' => 1), array('weid' => $_W['uniacid'], 'id' => $id));
