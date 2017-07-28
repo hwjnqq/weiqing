@@ -32,7 +32,7 @@
 				</form>
 			</div>
 			<div class="wn-main__search__action">
-				<a href="javascript:;" data-toggle="modal" data-target="#clerk-modal" class="btn btn-primary we7-padding-horizontal">+添加店员</a>
+				<a href="javascript:;" class="btn btn-primary we7-padding-horizontal js-add-clerk">+添加店员</a>
 			</div>
 		</div>
 		<div class="modal fade" id="clerk-modal" tabindex="-1" role="dialog" aria-hidden="true">
@@ -156,6 +156,14 @@
 		$('.btn').tooltip();
 	});
 	$(function() {
+		$('.js-add-clerk').click(function() {
+			check_version = "{php echo check_ims_version()}";
+			if (!check_version) {
+				util.message('请升级微擎系统至1.0,店员功能才可正常使用');
+				return;
+			}
+			$('#clerk-modal').modal('show');
+		});
 		$(".check_all").click(function() {
 			var checked = $(this).get(0).checked;
 			$(':checkbox').each(function(){
