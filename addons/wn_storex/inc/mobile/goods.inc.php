@@ -94,6 +94,7 @@ if ($op == 'goods_comments') {
 			}
 		}
 	}
+	$comment_list = array_values($comment_list);
 	wmessage(error(0, $comment_list), '', 'ajax');
 }
 
