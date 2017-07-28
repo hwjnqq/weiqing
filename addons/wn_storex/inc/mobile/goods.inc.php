@@ -2,7 +2,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('goods_info', 'info', 'order');
+$ops = array('goods_info', 'info', 'order', 'goods_comments');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -71,11 +71,30 @@ if ($op == 'goods_info') {
 		'imgUrl' => tomedia($goods_info['thumb'])
 	);
 	$goods_info['defined'] = get_goods_defined($id, $goodsid);
+	$single_comment = array();
 	$single_comment = pdo_get('storex_comment', array('uniacid' => $_W['uniacid'], 'hotelid' => $store_id, 'goodsid' => $goodsid, 'comment <>' => ''), array('createtime', 'comment', 'nickname', 'thumb'));
-	$single_comment['thumb'] = tomedia($single_comment['thumb']);
-	$single_comment['createtime'] = date('Y-m-d', $single_comment['createtime']);
+	if (!empty($single_comment)) {
+		$single_comment['thumb'] = tomedia($single_comment['thumb']);
+		$single_comment['createtime'] = date('Y-m-d', $single_comment['createtime']);
+	}
 	$goods_info['comment'] = $single_comment;
 	wmessage(error(0, $goods_info), $share_data, 'ajax');
+}
+
+if ($op == 'goods_comments') {
+	$comment_list = array();
+	$comment_list = pdo_getall('storex_comment', array('uniacid' => $_W['uniacid'], 'hotelid' => $store_id, 'goodsid' => $goodsid), array(), 'id');
+	if (!empty($comment_list) && is_array($comment_list)) {
+		foreach ($comment_list as $key => &$value) {
+			$value['thumb'] = tomedia($value['thumb']);
+			$value['createtime'] = date('Y-m-d', $value['createtime']);
+			if ($value['type'] == 3) {
+				$comment_list[$value['cid']]['reply'][] = $value;
+				unset($comments[$key]);
+			}
+		}
+	}
+	wmessage(error(0, $comment_list), '', 'ajax');
 }
 
 //进入预定页面的信息
