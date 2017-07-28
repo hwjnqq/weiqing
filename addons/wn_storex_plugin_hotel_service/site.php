@@ -232,15 +232,9 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 				pdo_insert('storex_plugin_room_item', array('openid' => $_W['openid'], 'storeid' => intval($_GPC['storeid']), 'uniacid' => $_W['uniacid'], 'items' => iserializer($room_service), 'time' => TIMESTAMP));
 				$item_id = pdo_insertid();
 				if (!empty($item_id)) {
-					$clerk_list = pdo_getall('storex_clerk', array('weid' => $_W['uniacid']), '', 'id');
+					$clerk_list = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'storeid' => intval($_GPC['storeid']), 'status' => 1, 'from_user !=' => '' ), '', 'from_user');
 					if (!empty($clerk_list) && is_array($clerk_list)) {
-						foreach ($clerk_list as $key => $clerk) {
-							$permission = iunserializer($clerk['permission']);
-							$storeids = array_keys($permission);
-							if (in_array($_GPC['storeid'], $storeids)) {
-								$clerk_openids[] = $clerk['from_user'];
-							}
-						}
+						$clerk_openids = array_keys($clerk_list);
 					}
 					$info = $room_service['room'] . '住户需要以下服务：【' . $room_service['time'] . '】牙刷牙膏' . $room_service['brush'] . '个，毛巾' . $room_service['towel'] . '个，卫生纸' . $room_service['paper'] . '卷。' . $room_service['other'];
 					$account_api = WeAccount::create();
