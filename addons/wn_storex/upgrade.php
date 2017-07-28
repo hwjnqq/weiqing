@@ -736,7 +736,9 @@ if (!pdo_fieldexists('storex_bases', 'openids')) {
 if (!pdo_fieldexists('storex_bases', 'market_status')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `market_status` INT UNSIGNED NOT NULL DEFAULT '0' COMMENT '营销开关';");
 }
-ALTER TABLE `ims_storex_bases` ADD `market_status` INT UNSIGNED NOT NULL DEFAULT '0' COMMENT '营销开关' ;
+if (!pdo_fieldexists('storex_bases', 'roomitemid')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `roomitemid` INT(11) UNSIGNED NOT NULL DEFAULT '0' COMMENT '房间号ID'");
+}
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');
 $js_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/js');

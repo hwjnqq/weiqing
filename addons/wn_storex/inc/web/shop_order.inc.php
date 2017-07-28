@@ -6,7 +6,7 @@ load()->model('mc');
 mload()->model('card');
 mload()->model('order');
 
-$ops = array('display', 'edit', 'delete', 'deleteall', 'edit_msg','edit_price', 'print_order', 'check_print_plugin');
+$ops = array('display', 'edit', 'delete', 'deleteall', 'edit_msg','edit_price', 'print_order', 'check_print_plugin', 'assign_room');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $storeid = intval($_GPC['storeid']);
@@ -161,7 +161,7 @@ if ($op == 'edit') {
 		}
 		$is_house = 2;
 		if ($store_type == STORE_TYPE_HOTEL) {
-			$good_info = pdo_get('storex_room', array('hotelid' => $storeid, 'id' => $item['roomid']), array('id', 'is_house'));
+			$good_info = pdo_get('storex_room', array('hotelid' => $storeid, 'id' => $item['roomid']), array('id', 'is_house', 'thumb'));
 			$is_house = $good_info['is_house'];
 		}
 		$paylog = pdo_get('core_paylog', array('uniacid' => $item['weid'], 'tid' => $item['id'], 'module' => 'wn_storex'), array('uniacid', 'uniontid', 'tid'));
@@ -171,6 +171,10 @@ if ($op == 'edit') {
 		$refund_logs = pdo_get('storex_refund_logs', array('uniacid' => $_W['uniacid'], 'orderid' => $item['id']), array('id', 'status'));
 		$actions = getOrderAction($item, $store_type, $is_house);
 		getOrderpaytext($item);
+		if ($is_house == 1) {
+			$room_list = pdo_getall('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'roomid' => $item['roomid']));
+			$room_item = pdo_get('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'id' => $item['roomitemid']), array('id', 'roomnumber'));
+		}
 	}
 	$express = express_name();
 	if ($_W['isajax'] && $_W['ispost']) {
@@ -504,5 +508,19 @@ if ($op == 'check_print_plugin') {
 		exit;
 	} else {
 		message('微擎版本不支持插件或店铺未安装或未设置打印机插件', referer(), 'error');
+	}
+}
+
+if ($op == 'assign_room') {
+	if ($_W['ispost'] && $_W['isajax']) {
+		$room_item_id = intval($_GPC['room_item_id']);
+		$orderid = intval($_GPC['id']);
+		$roomid = intval($_GPC['roomid']);
+		$order_info = pdo_get('storex_order', array('id' => $orderid, 'roomid' => $roomid, 'weid' => $_W['uniacid']));
+		if (empty($order_info)) {
+			message(error(-1, '订单信息错误'), '', 'ajax');
+		}
+		pdo_update('storex_order', array('roomitemid' => $room_item_id), array('id' => $orderid));
+		message(error(0, ''), referer(), 'ajax');
 	}
 }

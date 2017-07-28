@@ -225,6 +225,17 @@
 						</div>
 					</div>
 					{/if}
+					{if $is_house == 1}
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">分配房间号</label>
+						<div class="col-sm-2 col-xs-12 form-control-static">
+							<div>{$room_item['roomnumber']}</div>
+						</div>
+						<div class="col-sm-6 col-xs-12">
+							<button type="button" data-toggle="modal" data-target="#room-modal" class="btn but btn-default">分配房间</button>
+						</div>
+					</div>
+					{/if}
 				</form>
 			</div>
 		</div>
@@ -245,9 +256,49 @@
 		{/if}
 	</div>
 </div>
+
+<div id="room-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-default modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				<h3>
+					<ul role="tablist" class="nav nav-pills" style="font-size:14px; margin-top:-20px;">
+						<li role="presentation" class="basic">
+							<a data-toggle="tab" data-type="basic" role="tab" aria-controls="baisc" href="#basic">选择房间</a>
+						</li>
+					</ul>
+				</h3>
+			</div>
+			<div class="modal-body modules-content">
+				<div class="tab-content">
+					<ul class="app-allow-list">
+						{if !empty($room_list) && false}
+						{loop $room_list $room}
+						<li class="js-select-room" data-id="{$room['id']}">
+							<div class="app-info">
+								<img src="{php echo tomedia($good_info['thumb'])}"/>
+								<p>{$room['roomnumber']}</p>
+							</div>
+							<a href="javascript:;" class="cover-dark">
+								<i class="fa fa-check cover-selected"></i>
+							</a>
+						</li>
+						{/loop}
+						{else}
+						<div class="text-center">未设置房间</div>
+						{/if}
+					</ul>
+				</div>
+			</div>
+			<div class="modal-footer">
+			</div>
+		</div>
+	</div>
+</div>
+
 <div class="modal fade" id="orderConfirm" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
 	<div class="modal-dialog" role="document">
-
 		<form action="" class="form-horizontal form wn-form" method="post" enctype="multipart/form-data" onsubmit="return formcheck();">
 		<div class="modal-content">
 			<div class="modal-header">
@@ -297,5 +348,19 @@
 			}
 		}
 	}
+
+	$('.js-select-room').click(function() {
+		room_item_id = $(this).data('id');
+		$.post("{php echo $this->createWebUrl('shop_order', array('op' => 'assign_room', 'storeid' => $_GPC['storeid']))}", {room_item_id : room_item_id, id : id, roomid : roomid}, function(data) {
+			data = $.parseJSON(data);
+			console.dir(data);
+			if (data.message.errno != 0) {
+				util.message(data.message.message, '', 'error');
+			} else {
+				util.message('分配成功', location.href, 'success');
+			}
+			$('#room-modal').modal('hide');
+		});
+	});
 </script>
 {template 'common/footer'}
