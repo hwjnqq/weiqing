@@ -207,23 +207,41 @@ if ($op == 'check_password_lock') {
 
 if ($op == 'set_credit_password') {
 	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']));
-	$password = $_GPC['password'];
-	$password_lock = $_GPC['password_lock'];
+	$password = trim($_GPC['password']);
+	$password_lock = trim($_GPC['password_lock']);
 	if (istrlen($password) < 6) {
 		wmessage(error(-1, '密码长度至少6位'), '', 'ajax');
 	}
 	if (istrlen($password) > 16) {
 		wmessage(error(-1, '密码长度最多16位'), '', 'ajax');
 	}
-	if (istrlen($password_lock) > 10) {
-		wmessage(error(-1, '改密依据不要太长'), '', 'ajax');
+	$update = array();
+	$check_password_lock = false;
+	if (empty($member['password_lock'])) {
+		if (!empty($password_lock)) {
+			$check_password_lock = true;
+		} else {
+			wmessage(error(-1, '改密依据不能为空'), '', 'ajax');
+		}
+	} else {
+		if (!empty($password_lock)) {
+			$check_password_lock = true;
+		}
 	}
-	if (istrlen($password_lock) < 4) {
-		wmessage(error(-1, '改密依据太短'), '', 'ajax');
+	if (!empty($check_password_lock)) {
+		if (istrlen($password_lock) > 10) {
+			wmessage(error(-1, '改密依据不要太长'), '', 'ajax');
+		}
+		if (istrlen($password_lock) < 4) {
+			wmessage(error(-1, '改密依据太短'), '', 'ajax');
+		}
+		$update['password_lock'] = $password_lock;
 	}
 	$salt = random(8);
 	$password = hotel_member_hash($password, $salt);
-	$result = pdo_update('storex_member', array('credit_password' => $password, 'credit_salt' => $salt, 'password_lock' => $password_lock), array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']));
+	$update['credit_password'] = $password;
+	$update['credit_salt'] = $salt;
+	$result = pdo_update('storex_member', $update, array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']));
 	if (!empty($result)) {
 		wmessage(error(0, '设置密码成功'), '', 'ajax');
 	} else {
