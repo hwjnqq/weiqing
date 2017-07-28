@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 mload()->model('order');
 
-$ops = array('order_list', 'order_detail', 'orderpay', 'credit_password', 'cancel', 'confirm_goods', 'order_comment', 'refund');
+$ops = array('order_list', 'order_detail', 'orderpay', 'cancel', 'confirm_goods', 'order_comment', 'refund');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -103,19 +103,6 @@ if ($op == 'orderpay') {
 	$params = pay_info($order_id);
 	$pay_info = $this->pay($params);
 	wmessage(error(0, $pay_info), '', 'ajax');
-}
-
-if ($op == 'credit_password') {
-	if (empty($_GPC['password'])) {
-		wmessage(error(-1, '余额支付密码不能为空'), '', 'ajax');
-	}
-	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('id', 'credit_password', 'credit_salt'));
-	$password = hotel_member_hash($_GPC['password'], $member['credit_salt']);
-	if ($password != $member['credit_password']) {
-		wmessage(error(-1, '余额支付密码错误'), '', 'ajax');
-	} else {
-		wmessage(error(0, '密码正确'), '', 'ajax');
-	}
 }
 
 if ($op == 'cancel') {

@@ -4,7 +4,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 
-$ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete', 'extend_switch', 'check_password_lock', 'set_credit_password');
+$ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete', 'extend_switch', 'credit_password', 'check_password_lock', 'set_credit_password');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -178,6 +178,19 @@ if ($op == 'address_default') {
 if ($op == 'address_delete') {
 	$result = pdo_delete('mc_member_address', array('id' => intval($_GPC['id'])));
 	wmessage(error(0, '删除成功'), '', 'ajax');
+}
+
+if ($op == 'credit_password') {
+	if (empty($_GPC['password'])) {
+		wmessage(error(-1, '余额支付密码不能为空'), '', 'ajax');
+	}
+	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('id', 'credit_password', 'credit_salt'));
+	$password = hotel_member_hash($_GPC['password'], $member['credit_salt']);
+	if ($password != $member['credit_password']) {
+		wmessage(error(-1, '余额支付密码错误'), '', 'ajax');
+	} else {
+		wmessage(error(0, '密码正确'), '', 'ajax');
+	}
 }
 
 if ($op == 'check_password_lock') {
