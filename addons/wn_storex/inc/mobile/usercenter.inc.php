@@ -40,7 +40,7 @@ if ($op == 'extend_switch') {
 
 if ($op == 'personal_info') {
 	$user_info = mc_fetch($_W['openid']);
-	$storex_clerk = pdo_get('storex_clerk', array('weid' => intval($_W['uniacid']), 'from_user' => trim($_W['openid']), 'status !=' => -1), array('id', 'from_user'));
+	$storex_clerk = pdo_get('storex_clerk', array('weid' => intval($_W['uniacid']), 'from_user' => trim($_W['openid']), 'status !=' => -1, 'storeid !=' => 0), array('id', 'from_user'));
 	if (!empty($storex_clerk)) {
 		$user_info['clerk'] = 1;
 	} else {
@@ -185,6 +185,9 @@ if ($op == 'credit_password') {
 		wmessage(error(-1, '余额支付密码不能为空'), '', 'ajax');
 	}
 	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('id', 'credit_password', 'credit_salt'));
+	if (empty($member['credit_password'])) {
+		wmessage(error(1, '余额未设置支付密码'), '', 'ajax');
+	}
 	$password = hotel_member_hash($_GPC['password'], $member['credit_salt']);
 	if ($password != $member['credit_password']) {
 		wmessage(error(-1, '余额支付密码错误'), '', 'ajax');
