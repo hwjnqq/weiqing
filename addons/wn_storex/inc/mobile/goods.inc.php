@@ -90,7 +90,7 @@ if ($op == 'goods_comments') {
 			$value['createtime'] = date('Y-m-d', $value['createtime']);
 			if ($value['type'] == 3) {
 				$comment_list[$value['cid']]['reply'][] = $value;
-				unset($comments[$key]);
+				unset($comment_list[$key]);
 			}
 		}
 	}
