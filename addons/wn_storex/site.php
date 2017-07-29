@@ -274,7 +274,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				$emails[] = $storex_bases['mail'];
 			}
 			$emails = array_unique($emails);
-			if (!empty($emails) && is_array($emails)) {
+			if (!empty($emails) && is_array($emails) && false) {
 				load()->func('communication');
 				foreach ($emails as $mail) {
 					$body = "<h3>店铺订单</h3> <br />";
