@@ -136,23 +136,9 @@ if ($op == 'store_comment') {
 	if (!empty($comments)) {
 		foreach ($comments as $k => $info) {
 			$comments[$k]['createtime'] = date('Y-m-d H:i:s', $info['createtime']);
-			$uids[] = $info['uid'];
-		}
-		$uids = array_unique($uids);
-		if (!empty($uids)) {
-  			$user_info = pdo_getall('mc_members', array('uid' => $uids), array('uid', 'avatar', 'nickname'), 'uid');
-			if (!empty($user_info)) {
-				foreach ($user_info as &$val) {
-					if (!empty($val['avatar'])) {
-						$val['avatar'] = tomedia($val['avatar']);
-					}
-				}
-			}
-			foreach ($comments as $key => $infos) {
-				$comments[$key]['user_info'] = array();
-				if (!empty($user_info[$infos['uid']])) {
-					$comments[$key]['user_info'] = $user_info[$infos['uid']];
-				}
+			if ($val['type'] == 3) {
+				$comments[$val['cid']]['reply'][] = $val;
+				unset($comments[$key]);
 			}
 		}
 	}
