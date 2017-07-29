@@ -7,6 +7,8 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
+include "model/activity.mod.php";
+
 class We7_couponModuleSite extends WeModuleSite {
 
 	public $settings;
@@ -53,7 +55,6 @@ class We7_couponModuleSite extends WeModuleSite {
 		load()->model('mc');
 		load()->model('activity');
 		activity_coupon_type_init();
-		uni_user_permission_check('mc_card_editor');
 		$op = !empty($_GPC['op']) ? $_GPC['op'] : 'editor';
 		$unisetting = uni_setting_load('creditnames');
 		if (empty($unisetting['creditnames'])) {
@@ -81,6 +82,7 @@ class We7_couponModuleSite extends WeModuleSite {
 							$value['originParams']['description'] = str_replace(array("\r\n", "\n"), '<br/>', $value['originParams']['description']);
 						}
 					}
+					unset($value);
 				}
 				if (!empty($params[$recharges_key])) {
 					foreach ($params[$recharges_key]['params']['recharges'] as &$row) {
@@ -90,6 +92,7 @@ class We7_couponModuleSite extends WeModuleSite {
 							$row['backunit'] = '积分';
 						}
 					}
+					unset($row);
 				}
 				$html = htmlspecialchars_decode($_GPC['wapeditor']['html'], ENT_QUOTES);
 				$html = str_replace(array("{\$_W['uniacid']}", "{\$_W['acid']}"), array($_W['uniacid'], $_W['acid']), $html);
@@ -101,14 +104,14 @@ class We7_couponModuleSite extends WeModuleSite {
 				$title = trim($basic['title']) ? trim($basic['title']) : message('名称不能为空');
 				$format_type = 1;
 				$format = trim($basic['format']);
-				if(!empty($basic['fields'])) {
+				if (!empty($basic['fields'])) {
 					foreach($basic['fields'] as $field) {
 						if(!empty($field['title']) && !empty($field['bind'])) {
 							$fields[] = $field;
 						}
 					}
 				}
-				if($basic['background']['type'] == 'system') {
+				if ($basic['background']['type'] == 'system') {
 					$image = pathinfo($basic['background']['image']);
 					$basic['background']['image'] = $image['filename'];
 				}
@@ -149,7 +152,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					'nums_text' => trim($nums['nums_text']),
 					'times_status' => intval($times['times_status']),
 					'times_text' => trim($times['times_text']),
-					'params' => json_encode($params),
+					'params' => stripslashes(ijson_encode($params, JSON_UNESCAPED_UNICODE)),
 					'html' => $html
 				);
 				$grant = iunserializer($update['grant']);
@@ -159,9 +162,9 @@ class We7_couponModuleSite extends WeModuleSite {
 				if ($update['offset_rate'] < 0 || $update['offset_max'] < 0) {
 					message('抵现比率的数值不能为负数或零', referer(), 'error');
 				}
-				if($update['discount_type'] != 0 && !empty($activity['discounts'])) {
+				if ($update['discount_type'] != 0 && !empty($activity['discounts'])) {
 					$update['discount'] = array();
-					foreach($activity['discounts'] as $discount) {
+					foreach ($activity['discounts'] as $discount) {
 						if ($update['discount_type'] == 1) {
 							if (!empty($discount['condition_1']) || !empty($discount['discount_1'])) {
 								if ($discount['condition_1'] < 0 || $discount['discount_1'] < 0) {
@@ -176,7 +179,7 @@ class We7_couponModuleSite extends WeModuleSite {
 							}
 						}
 						$groupid = intval($discount['groupid']);
-						if($groupid <= 0) continue;
+						if ($groupid <= 0) continue;
 						$update['discount'][$groupid] = array(
 							'condition_1' => trim($discount['condition_1']),
 							'discount_1' => trim($discount['discount_1']),
@@ -186,15 +189,15 @@ class We7_couponModuleSite extends WeModuleSite {
 					}
 					$update['discount'] = iserializer($update['discount']);
 				}
-				if($update['nums_status'] != 0 && !empty($nums['nums'])) {
+				if ($update['nums_status'] != 0 && !empty($nums['nums'])) {
 					$update['nums'] = array();
-					foreach($nums['nums'] as $row) {
+					foreach ($nums['nums'] as $row) {
 						if ($row['num'] <= 0 || $row['recharge'] <= 0) {
 							message('充值返次数设置不能为负数或零', referer(), 'error');
 						}
 						$num = floatval($row['num']);
 						$recharge = trim($row['recharge']);
-						if($num <= 0 || $recharge <= 0) continue;
+						if ($num <= 0 || $recharge <= 0) continue;
 						$update['nums'][$recharge] = array(
 							'recharge' => $recharge,
 							'num' => $num
@@ -202,15 +205,15 @@ class We7_couponModuleSite extends WeModuleSite {
 					}
 					$update['nums'] = iserializer($update['nums']);
 				}
-				if($update['times_status'] != 0 && !empty($times['times'])) {
+				if ($update['times_status'] != 0 && !empty($times['times'])) {
 					$update['times'] = array();
-					foreach($times['times'] as $row) {
+					foreach ($times['times'] as $row) {
 						if ($row['time'] <= 0 || $row['recharge'] <= 0) {
 							message('充值返时长设置不能为负数或零', referer(), 'error');
 						}
 						$time = intval($row['time']);
 						$recharge = trim($row['recharge']);
-						if($time <= 0 || $recharge <= 0) continue;
+						if ($time <= 0 || $recharge <= 0) continue;
 						$update['times'][$recharge] = array(
 							'recharge' => $recharge,
 							'time' => $time
@@ -230,7 +233,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			$unisetting = uni_setting_load('creditnames');
 			$fields_temp = mc_acccount_fields();
 			$fields = array();
-			foreach($fields_temp as $key => $val) {
+			foreach ($fields_temp as $key => $val) {
 				$fields[$key] = array(
 					'title' => $val,
 					'bind' => $key
@@ -245,17 +248,18 @@ class We7_couponModuleSite extends WeModuleSite {
 					$card_params[$key] = $value;
 					$params_new[$value['id']] = $value;
 				}
+				unset($value);
 			}
 			$setting['params'] = json_encode($card_params);
 			$discounts_params = $params_new['cardActivity']['params']['discounts'];
 			$discounts_temp = array();
-			if(!empty($discounts_params)) {
-				foreach($discounts_params as $row) {
+			if (!empty($discounts_params)) {
+				foreach ($discounts_params as $row) {
 					$discounts_temp[$row['groupid']] = $row;
 				}
 			}
 			$discounts = array();
-			foreach($_W['account']['groups'] as $group) {
+			foreach ($_W['account']['groups'] as $group) {
 				$discounts[$group['groupid']] = array(
 					'groupid' => $group['groupid'],
 					'title' => $group['title'],
@@ -270,7 +274,7 @@ class We7_couponModuleSite extends WeModuleSite {
 		}
 		
 		if ($op == 'cardstatus') {
-			if(empty($setting)) {
+			if (empty($setting)) {
 				$open = array(
 					'uniacid' => $_W['uniacid'],
 					'title' => '我的会员卡',
@@ -295,7 +299,6 @@ class We7_couponModuleSite extends WeModuleSite {
 		global $_GPC, $_W;
 		$op = !empty($_GPC['op']) ? $_GPC['op'] : 'display';
 		$setting = $this->settings;
-		uni_user_permission_check('mc_card_manage');
 		if ($op == 'display') {
 			$cardid = intval($_GPC['cardid']);
 			if ($_W['ispost']) {
@@ -313,7 +316,7 @@ class We7_couponModuleSite extends WeModuleSite {
 
 			$param = array(':uniacid' => $_W['uniacid']);
 			$cardsn = trim($_GPC['cardsn']);
-			if(!empty($cardsn)) {
+			if (!empty($cardsn)) {
 				$where .= ' AND a.cardsn LIKE :cardsn';
 				$param[':cardsn'] = "%{$cardsn}%";
 			}
@@ -323,21 +326,21 @@ class We7_couponModuleSite extends WeModuleSite {
 				$param[':status'] = $status;
 			}
 			$num = isset($_GPC['num']) ? intval($_GPC['num']) : -1;
-			if($num >= 0) {
-				if(!$num) {
+			if ($num >= 0) {
+				if (!$num) {
 					$where .= " AND a.nums = 0";
 				} else {
 					$where .= " AND a.nums > 0";
 				}
 			}
 			$endtime = isset($_GPC['endtime']) ? intval($_GPC['endtime']) : -1;
-			if($endtime >= 0) {
+			if ($endtime >= 0) {
 				$where .= " AND a.endtime <= :endtime";
 				$param[':endtime'] = strtotime($endtime . 'days');
 			}
 
 			$keyword = trim($_GPC['keyword']);
-			if(!empty($keyword)) {
+			if (!empty($keyword)) {
 				$where .= " AND (b.mobile LIKE '%{$keyword}%' OR b.realname LIKE '%{$keyword}%')";
 			}
 			$sql = 'SELECT a.*, b.realname, b.groupid, b.credit1, b.credit2, b.mobile FROM ' . tablename('mc_card_members') . " AS a LEFT JOIN " . tablename('mc_members') . " AS b ON a.uid = b.uid WHERE a.uniacid = :uniacid $where ORDER BY a.id DESC LIMIT ".($pindex - 1) * $psize.','.$psize;
@@ -350,11 +353,11 @@ class We7_couponModuleSite extends WeModuleSite {
 			$where = ' WHERE uniacid = :uniacid AND uid = :uid';
 			$param = array(':uniacid' => $_W['uniacid'], ':uid' => $uid);
 			$type = trim($_GPC['type']);
-			if(!empty($type)) {
+			if (!empty($type)) {
 				$where .= ' AND type = :type';
 				$param[':type'] = $type;
 			}
-			if(empty($_GPC['endtime']['start'])) {
+			if (empty($_GPC['endtime']['start'])) {
 				$starttime = strtotime('-30 days');
 				$endtime = TIMESTAMP;
 			} else {
@@ -382,7 +385,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			$uid = intval($_GPC['uid']);
 			$setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid']));
 			$card = pdo_get('mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $uid));
-			if(empty($card)) {
+			if (empty($card)) {
 				exit('error');
 			}
 			include $this->template('cardmodel');
@@ -392,14 +395,14 @@ class We7_couponModuleSite extends WeModuleSite {
 			$uid = intval($_GPC['uid']);
 			$setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid']));
 			$card = pdo_get('mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $uid));
-			if(empty($card)) {
+			if (empty($card)) {
 				message('用户会员卡信息不存在', referer(), 'error');
 			}
 			$type = trim($_GPC['type']);
-			if($type == 'nums_plus') {
+			if ($type == 'nums_plus') {
 				$fee = floatval($_GPC['fee']);
 				$tag = intval($_GPC['nums']);
-				if(!$fee && !$tag) {
+				if (!$fee && !$tag) {
 					message('请完善充值金额和充值次数', referer(), 'error');
 				}
 				$total_num = $card['nums'] + $tag;
@@ -419,12 +422,12 @@ class We7_couponModuleSite extends WeModuleSite {
 				mc_notice_nums_plus($card['openid'], $setting['nums_text'], $tag, $total_num);
 			}
 
-			if($type == 'nums_times') {
+			if ($type == 'nums_times') {
 				$tag = intval($_GPC['nums']);
-				if(!$tag) {
+				if (!$tag) {
 					message('请填写消费次数', referer(), 'error');
 				}
-				if($card['nums'] < $tag) {
+				if ($card['nums'] < $tag) {
 					message('当前用户的消费次数不够', referer(), 'error');
 				}
 				$total_num = $card['nums'] - $tag;
@@ -444,17 +447,17 @@ class We7_couponModuleSite extends WeModuleSite {
 				mc_notice_nums_times($card['openid'], $card['cardsn'], $setting['nums_text'], $total_num);
 			}
 
-			if($type == 'times_plus') {
+			if ($type == 'times_plus') {
 				$fee = floatval($_GPC['fee']);
 				$endtime = strtotime($_GPC['endtime']);
 				$days = intval($_GPC['days']);
-				if($endtime <= $card['endtime'] && !$days) {
+				if ($endtime <= $card['endtime'] && !$days) {
 					message('服务到期时间不能小于会员当前的服务到期时间或未填写延长服务天数', '', 'error');
 				}
 				$tag = floor(($endtime - $card['endtime']) / 86400);
-				if($days > 0) {
+				if ($days > 0) {
 					$tag = $days;
-					if($card['endtime'] > TIMESTAMP) {
+					if ($card['endtime'] > TIMESTAMP) {
 						$endtime = $card['endtime'] + $days * 86400;
 					} else {
 						$endtime = strtotime($days . 'days');
@@ -477,13 +480,13 @@ class We7_couponModuleSite extends WeModuleSite {
 				mc_notice_times_plus($card['openid'], $card['cardsn'], $setting['times_text'], $fee, $tag, $endtime);
 			}
 
-			if($type == 'times_times') {
+			if ($type == 'times_times') {
 				$endtime = strtotime($_GPC['endtime']);
-				if($endtime > $card['endtime']) {
+				if ($endtime > $card['endtime']) {
 					message("该会员的{$setting['times_text']}到期时间为：" . date('Y-m-d', $card['endtime']) . ",您当前在进行消费操作，设置到期时间不能超过" . date('Y-m-d', $card['endtime']) , '', 'error');
 				}
 				$flag = intval($_GPC['flag']);
-				if($flag) {
+				if ($flag) {
 					$endtime = TIMESTAMP;
 				}
 				$tag = floor(($card['endtime'] - $endtime) / 86400);
@@ -520,7 +523,7 @@ class We7_couponModuleSite extends WeModuleSite {
 		if (empty($property)) {
 			$property = json_encode('');
 		}
-		if($_W['isajax'] && $_W['ispost']) {
+		if ($_W['isajax'] && $_W['ispost']) {
 			$member_property = $_GPC['__input'];
 			$insert_data = array(
 				'property' => json_encode($member_property)
@@ -563,12 +566,12 @@ class We7_couponModuleSite extends WeModuleSite {
 			$condition_sql .= " AND c.source = :source";
 			$condition[':source'] = COUPON_TYPE;
 			
-			if(!empty($_GPC['status'])) {
+			if (!empty($_GPC['status'])) {
 				$condition_sql .= " AND c.status = :status";
 				$condition[':status'] = intval($_GPC['status']);
 			}
 			
-			if(!empty($_GPC['title'])) {
+			if (!empty($_GPC['title'])) {
 				$condition_sql .= " AND c.title LIKE :title";
 				$condition[':title'] = "%".$_GPC['title']."%";
 			}
@@ -597,14 +600,14 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 			$couponlist = pdo_fetchall("SELECT * FROM " . tablename('coupon') . " AS c " . $join_sql . " WHERE  " . $condition_sql . " ORDER BY c.id DESC LIMIT ".($pageindex - 1) * $psize.','.$psize, $condition);
 			$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('coupon') . " AS c " . $join_sql . " WHERE  " . $condition_sql, $condition);
-			foreach($couponlist as &$row) {
+			foreach ($couponlist as &$row) {
 				if (empty($row['card_id'])) {
 					pdo_delete('coupon', array('id' => $row['id']));
 				}
 				$row['date_info'] = iunserializer($row['date_info']);
 				if ($row['date_info']['time_type'] == 1) {
 					$row['date_info'] = $row['date_info']['time_limit_start'].'-'. $row['date_info']['time_limit_end'];
-				} elseif($row['date_info']['time_type'] == 2) {
+				} elseif ($row['date_info']['time_type'] == 2) {
 					$row['date_info'] = '领取后'.$row['date_info']['limit'].'天有效';
 				}
 				$row['type'] = activity_coupon_type_label($row['type']);
@@ -645,7 +648,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					$coupon->setDateinfoFix($_GPC['deadline'], $_GPC['limit']);
 				}
 				//自定义菜单
-				if(!empty($_GPC['promotion_url_name']) && !empty($_GPC['promotion_url'])) {
+				if (!empty($_GPC['promotion_url_name']) && !empty($_GPC['promotion_url'])) {
 					$coupon->setPromotionMenu($_GPC['promotion_url_name'], $_GPC['promotion_url_sub_title'], $_GPC['promotion_url']);
 				}
 				//启用门店
@@ -693,7 +696,7 @@ class We7_couponModuleSite extends WeModuleSite {
 				$cardinsert['uniacid'] = $_W['uniacid'];
 				$cardinsert['acid'] = $_W['acid'];
 				$card_exists = pdo_get('coupon', array('card_id' => $coupon->card_id), array('id'));
-				if(empty($card_exists)) {
+				if (empty($card_exists)) {
 					pdo_insert('coupon', $cardinsert);
 					$cardid = pdo_insertid();
 				} else {
@@ -702,10 +705,10 @@ class We7_couponModuleSite extends WeModuleSite {
 					pdo_update('coupon', $cardinsert, array('id' => $cardid));
 				}
 				$_GPC['module-select'] = trim($_GPC['module-select']);
-				if(!empty($_GPC['module-select'])) {
+				if (!empty($_GPC['module-select'])) {
 					$enabled_modules = explode('@', $_GPC['module-select']);
 					pdo_delete('coupon_modules', array('couponid' => $cardid));
-					foreach($enabled_modules as $modulename) {
+					foreach ($enabled_modules as $modulename) {
 						$data = array(
 							'uniacid' => $_W['uniacid'],
 							'acid' => $_W['acid'],
@@ -751,7 +754,7 @@ class We7_couponModuleSite extends WeModuleSite {
 		if ($op == 'selfconsume') {
 			$id = intval($_GPC['id']);
 			$coupon = activity_coupon_info($id);
-			if(empty($coupon)) {
+			if (empty($coupon)) {
 				message('抱歉，卡券不存在或是已经被删除！');
 			}
 			if (empty($coupon['location_id_list'])) {
@@ -764,7 +767,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					'is_open' => empty($coupon['is_selfconsume']) ? true : false,
 				);
 				$return = $coupon_api->selfConsume($data);
-				if(is_error($return)) {
+				if (is_error($return)) {
 					message(error(1, '设置自助核销失败，错误为' . $return['message']), '', 'ajax');
 				}
 			}
@@ -775,7 +778,7 @@ class We7_couponModuleSite extends WeModuleSite {
 		if ($op == 'publish') {
 			$cid = intval($_GPC['cid']);
 			$coupon = pdo_get('coupon', array('id' => $cid));
-			if(empty($coupon)) {
+			if (empty($coupon)) {
 				return message('卡券不存在或已经删除', '', 'error');
 			}
 			//二维码投入场景Id,文档中是写的19位的longint型，实际测试大于14位会丢失精度
@@ -828,6 +831,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					$row['avatar'] = $fans['avatar'];
 					$row['createtime'] = date('Y-m-d H:i:s', $row['createtime']);
 				}
+				unset($row);
 			}
 			message(error('0', array('coupon' => $coupon_qrcode, 'record' => $qrcode_list, 'total' => $total)), '', 'ajax');
 		}
@@ -836,7 +840,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			$id = intval($_GPC['id']);
 			$quantity = intval($_GPC['quantity']);
 			$coupon = activity_coupon_info($id);
-			if(empty($coupon)) {
+			if (empty($coupon)) {
 				message('抱歉，卡券不存在或是已经被删除！');
 			}
 			pdo_update('coupon', array('quantity' => $quantity), array('id' => $id, 'uniacid' => $_W['uniacid']));
@@ -844,7 +848,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			$modify_quantity = $quantity - $coupon['quantity'];
 			if ($coupon['source'] == WECHAT_COUPON) {
 				$return = $coupon_api->ModifyStockCard($coupon['card_id'], $modify_quantity);
-				if(is_error($return)) {
+				if (is_error($return)) {
 					message(error(1, '修改卡券库存失败，错误为' . $return['message']), '', 'ajax');
 				}
 			}
@@ -854,7 +858,7 @@ class We7_couponModuleSite extends WeModuleSite {
 		if ($op == 'toggle') {
 			$id = intval($_GPC['id']);
 			$display_status = pdo_getcolumn('coupon', array('id' => $id, 'uniacid' => $_W['uniacid']), 'is_display');
-			if($display_status == 1) {
+			if ($display_status == 1) {
 				pdo_update('coupon', array('is_display' => 0), array('uniacid' => $_W['uniacid'], 'id' => $id));
 			} else {
 				pdo_update('coupon', array('is_display' => 1), array('uniacid' => $_W['uniacid'], 'id' => $id));
@@ -870,9 +874,9 @@ class We7_couponModuleSite extends WeModuleSite {
 			$groups = mc_fans_groups();
 			$colors = activity_coupon_colors();
 			
-			if(!empty($id)) {
+			if (!empty($id)) {
 				$coupon = activity_coupon_info($id);
-				if(empty($coupon)) {
+				if (empty($coupon)) {
 					message('卡券不存在或是已经删除', '', 'error');
 				}
 			}
@@ -891,7 +895,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 			if (COUPON_TYPE == WECHAT_COUPON) {
 				$return = $coupon_api->DeleteCard($row['card_id']);
-				if(is_error($return)) {
+				if (is_error($return)) {
 					message('删除卡券失败，错误为' . $return['message'], '', 'error');
 				}
 			}
@@ -1005,7 +1009,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			$psize = 20;
 			$list = pdo_fetchall("SELECT a.status AS rstatus,a.id AS recid, a.*, b.* FROM ".tablename('coupon_record'). ' AS a LEFT JOIN ' . tablename('coupon') . ' AS b ON a.couponid = b.id ' . " $where AND a.code <> '' ORDER BY a.addtime DESC, a.status DESC, a.couponid DESC,a.id DESC LIMIT ".($pindex - 1) * $psize.','.$psize, $params);
 			$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('coupon_record') . ' AS a LEFT JOIN ' . tablename('coupon') . ' AS b ON a.couponid = b.id '. $where ." AND a.code <> ''", $params);
-			if(!empty($list)) {
+			if (!empty($list)) {
 				$uids = array();
 				foreach ($list as &$row) {
 					if (empty($row['store_id'])) {
@@ -1018,7 +1022,7 @@ class We7_couponModuleSite extends WeModuleSite {
 						}
 					}
 					$uids[] = $row['uid'];
-					if($row['status'] == 2) {
+					if ($row['status'] == 2) {
 						$operator = mc_account_change_operator($row['clerk_type'], $row['store_id'], $row['clerk_id']);
 						$row['clerk_cn'] = $operator['clerk_cn'];
 						$row['store_cn'] = $operator['store_cn'];
@@ -1051,7 +1055,7 @@ class We7_couponModuleSite extends WeModuleSite {
 		} elseif ($op == 'consume') {
 			$recid = intval($_GPC['id']);
 			$record = pdo_get('coupon_record', array('uniacid' => $_W['uniacid'], 'id' => $recid));
-			if(empty($record)) {
+			if (empty($record)) {
 				message(error(-1, '兑换记录不存在'), referer(), 'ajax');
 			}
 			$source = intval($_GPC['source']);
@@ -1066,7 +1070,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			);
 			if ($source == '2') {
 				$status = $coupon_api->ConsumeCode(array('code' => $record['code']));
-				if(is_error($status)) {
+				if (is_error($status)) {
 					if (strexists($status['message'], '40127')) {
 						$status['message'] = '卡券已失效';
 						pdo_update('coupon_record', array('status' => '2'), array('uniacid' => $_W['uniacid'], 'id' => $recid));
@@ -1085,7 +1089,7 @@ class We7_couponModuleSite extends WeModuleSite {
 		} elseif ($op == 'delete') {
 			$recid = intval($_GPC['id']);
 			$record = pdo_get('coupon_record', array('uniacid' => $_W['uniacid'], 'id' => $recid));
-			if(empty($record)) {
+			if (empty($record)) {
 				message(error(-1, '没有要删除的记录'), '', 'ajax');
 			}
 			$source = intval($_GPC['source']);
@@ -1126,10 +1130,10 @@ class We7_couponModuleSite extends WeModuleSite {
 				$param['start'] = strtotime($param['start']);
 				$param['end'] = strtotime($param['end']);
 			}
-			$members = activity_get_member($type, $param);
+			$members = we7_coupon_activity_get_member($type, $param);
 			message(error(0, $members['total']),'', 'ajax');
 		}
-		if($op == 'display') {
+		if ($op == 'display') {
 			$_W['page']['title'] = '卡券活动列表';
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 30;
@@ -1141,12 +1145,13 @@ class We7_couponModuleSite extends WeModuleSite {
 			foreach ($list as &$data) {
 				$data['members'] = empty($data['members']) ? array() : iunserializer($data['members']);
 				if (!empty($data['members'])) {
-					if(in_array('group_member', $data['members'])) {
+					if (in_array('group_member', $data['members'])) {
 						$groups = pdo_getall('mc_groups', array('uniacid' => $_W['uniacid']), array(), 'groupid');
 						$data['members']['group_name'] = $groups[$data['members']['groupid']]['title'];
 					}
 				}
 			}
+			unset($data);
 			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM '. tablename('coupon_activity')." WHERE uniacid = {$_W['uniacid']} AND type = 1 ".$condition);
 			$pager = pagination($total, $pindex, $psize);
 		} elseif ($op == 'post') {
@@ -1209,14 +1214,14 @@ class We7_couponModuleSite extends WeModuleSite {
 						if ($post['members'][0] == 'group_member') {
 							$param['groupid'] = intval($_GPC['groupid']);
 						}
-						$openids = activity_get_member($post['members'][0], $param);
+						$openids = we7_coupon_activity_get_member($post['members'][0], $param);
 						$openids = $openids['members'];
 						$account_api = WeAccount::create();
 						foreach ($post['coupons'] as $coupon) {
 							$post['members'] = serialize($post['members']);
 							$post['coupons'] = serialize($post['coupons']);
 							foreach ($openids as $openid) {
-								$result = activity_coupon_grant($coupon, $openid);
+								$result = we7_coupon_activity_coupon_grant($coupon, $openid);
 								$coupon_info = activity_coupon_info($coupon);
 								$send['touser'] = $openid;
 								$send['msgtype'] = 'text';
@@ -1287,7 +1292,6 @@ class We7_couponModuleSite extends WeModuleSite {
 		global $_W, $_GPC;
 		$uni_setting = pdo_get('uni_settings', array('uniacid' => $_W['uniacid']), array('exchange_enable'));
 		$cfg = $this->module['config'];
-		uni_user_permission_check('activity_coupon_display');
 		$op = !empty($_GPC['op']) ? $_GPC['op'] : 'display';
 		if ($op == 'coupon_info') {
 			$coupon = activity_coupon_info(intval($_GPC['id']));
@@ -1366,7 +1370,8 @@ class We7_couponModuleSite extends WeModuleSite {
 					$ex['coupon'] = activity_coupon_info($ex['extra']);
 					$ex['starttime'] = date('Y-m-d', $ex['starttime']);
 					$ex['endtime'] = date('Y-m-d', $ex['endtime']);
-				}unset($ex);
+				}
+				unset($ex);
 			}
 			$pager = pagination($total, $pindex, $psize);
 		}
@@ -1385,9 +1390,6 @@ class We7_couponModuleSite extends WeModuleSite {
 	public function doWebGoodsexchange() {
 		global $_W, $_GPC;
 		$uni_setting = pdo_get('uni_settings', array('uniacid' => $_W['uniacid']), array('exchange_enable'));
-		uni_user_permission_check('activity_goods_display');
-		// $dos = array('display', 'post', 'del', 'record', 'deliver', 'receiver', 'record-del');  
-		// $do = in_array($do, $dos) ? $do : 'display';
 		$op = !empty($_GPC['op']) ? $_GPC['op'] : 'display';
 		/*获取积分类型*/
 		$creditnames = array();
@@ -1397,11 +1399,11 @@ class We7_couponModuleSite extends WeModuleSite {
 				$creditnames[$key] = $credit['title'];
 			}
 		}
-		if($op == 'post') {
+		if ($op == 'post') {
 			$id = intval($_GPC['id']);
-			if(!empty($id)){
+			if (!empty($id)) {
 				$item = pdo_get('activity_exchange', array('id' => $id, 'uniacid' => $_W['uniacid']));
-				if(empty($item)) {
+				if (empty($item)) {
 					message('未找到指定兑换礼品或已删除.', $this->createWeburl('goodsexchange', array('op' => 'display')),'error');
 				} else {
 					$item['extra'] = iunserializer($item['extra']);
@@ -1410,11 +1412,11 @@ class We7_couponModuleSite extends WeModuleSite {
 				$item['starttime'] = TIMESTAMP;
 				$item['endtime'] = TIMESTAMP + 6 * 86400;
 			}
-			if(checksubmit('submit')) {
+			if (checksubmit('submit')) {
 				$data['title'] = !empty($_GPC['title']) ? trim($_GPC['title']) : message('请输入兑换名称！');
 				$data['credittype'] = !empty($_GPC['credittype']) ? trim($_GPC['credittype']) : message('请选择积分类型！');
 				$data['credit'] = intval($_GPC['credit']);
-				if(empty($_GPC['extra']['title'])) {
+				if (empty($_GPC['extra']['title'])) {
 					message('请输入兑换礼品的名称');
 				}
 				$data['extra'] = iserializer($_GPC['extra']);
@@ -1432,7 +1434,7 @@ class We7_couponModuleSite extends WeModuleSite {
 				}
 				$data['starttime'] = $starttime;
 				$data['endtime'] = $endtime;
-				if(empty($id)) {
+				if (empty($id)) {
 					$data['uniacid'] = $_W['uniacid'];
 					pdo_insert('activity_exchange', $data);
 					message('添加真实物品兑换成功', $this->createWeburl('goodsexchange', array('op' => 'display')), 'success');
@@ -1442,7 +1444,7 @@ class We7_couponModuleSite extends WeModuleSite {
 				}
 			}
 		}
-		if($op == 'display') {
+		if ($op == 'display') {
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 10;
 			$where = ' WHERE type = 3 AND uniacid = :uniacid ';
@@ -1460,22 +1462,23 @@ class We7_couponModuleSite extends WeModuleSite {
 				$row['extra'] = $extra;
 				$row['thumb'] = tomedia($row['thumb']);
 			}
+			unset($row);
 		}
-		if($op == 'delete') {
+		if ($op == 'delete') {
 			$id = intval($_GPC['id']);
-			if(!empty($id)){
+			if (!empty($id)){
 				$item = pdo_get('activity_exchange', array('id' => $id, 'uniacid' => $_W['uniacid']), array('id'));
 			}
-			if(empty($item)) {
+			if (empty($item)) {
 				message('删除失败,指定兑换不存在或已删除.');
 			}
 			pdo_delete('activity_exchange', array('id'=>$id, 'uniacid'=>$_W['uniacid']));
 			message('删除成功.', referer(),'success');
 		}
 		//发货记录
-		if($op == 'deliver') {
+		if ($op == 'deliver') {
 			$exchanges = pdo_fetchall('SELECT id, title FROM ' . tablename('activity_exchange') . ' WHERE uniacid = :uniacid ORDER BY id DESC', array(':uniacid' => $_W['uniacid']));
-			$starttime = empty($_GPC['time']['start']) ? strtotime('-1 month') : strtotime($_GPC['time']['start']);
+			$starttime = empty($_GPC['time']['start']) ? strtotime('-6 month') : strtotime($_GPC['time']['start']);
 			$endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
 			$where = " WHERE a.uniacid=:uniacid AND a.createtime >= :starttime AND a.createtime <= :endtime";
 			$params = array(
@@ -1496,7 +1499,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			$psize = 20;
 			$list = pdo_fetchall("SELECT a.*, b.title,b.extra,b.thumb FROM ".tablename('activity_exchange_trades_shipping'). ' AS a LEFT JOIN ' . tablename('activity_exchange') . ' AS b ON a.exid = b.id ' . " $where ORDER BY tid DESC LIMIT ".($pindex - 1) * $psize.','.$psize, $params);
 			$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('activity_exchange_trades_shipping') . ' AS a LEFT JOIN ' . tablename('activity_exchange') . ' AS b ON a.exid = b.id '. $where , $params);
-			if (checksubmit('export')) {
+			if (checksubmit('export', true)) {
 				$header = array(
 					'title' => '标题', 'extra' => '兑换物品', 'name' => '收件人','createtime' => '兑换时间', 'mobile' => '收件人电话', 'zipcode' => '收件人邮编', 'address' => '收件地址', 'status' => '状态'
 				);
@@ -1513,7 +1516,7 @@ class We7_couponModuleSite extends WeModuleSite {
 							$extra = iunserializer($deliver[$key]);
 							$html .= $extra['title']. "\t ,";
 						} elseif ($key == 'status') {
-							switch ($deliver['status']){
+							switch ($deliver['status']) {
 								case '0' :
 									$status = '待发货';
 									break;
@@ -1540,7 +1543,7 @@ class We7_couponModuleSite extends WeModuleSite {
 				echo $html;
 				exit();
 			}
-			if(!empty($list)) {
+			if (!empty($list)) {
 				$uids = array();
 				foreach ($list as $row) {
 					$uids[] = $row['uid'];
@@ -1551,14 +1554,15 @@ class We7_couponModuleSite extends WeModuleSite {
 					$row['nickname'] = $members[$row['uid']]['nickname'];
 					$row['thumb'] = tomedia($row['thumb']);
 				}
+				unset($row);
 			}
 
 			$pager = pagination($total, $pindex, $psize);
 		}
-		if($op == 'receiver') {
+		if ($op == 'receiver') {
 			$id = intval($_GPC['id']);
 			$shipping = pdo_get('activity_exchange_trades_shipping', array('uniacid' => $_W['uniacid'], 'tid' => $id));
-			if(checksubmit('submit')) {
+			if (checksubmit('submit')) {
 				$data = array(
 					'name'=>$_GPC['realname'],
 					'mobile'=>$_GPC['mobile'],
@@ -1599,7 +1603,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			$list = pdo_fetchall("SELECT a.*, b.title,b.extra,b.thumb FROM ".tablename('activity_exchange_trades'). ' AS a LEFT JOIN ' . tablename('activity_exchange') . ' AS b ON a.exid = b.id ' . " $where ORDER BY tid DESC LIMIT ".($pindex - 1) * $psize.','.$psize, $params);
 			$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('activity_exchange_trades') . ' AS a LEFT JOIN ' . tablename('activity_exchange') . ' AS b ON a.exid = b.id '. $where , $params);
 			$pager = pagination($total, $pindex, $psize);
-			if(!empty($list)) {
+			if (!empty($list)) {
 				$uids = array();
 				foreach ($list as $row) {
 					$uids[] = $row['uid'];
@@ -1615,9 +1619,9 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 		}
 		//删除兑换记录
-		if($op == 'record-del') {
+		if ($op == 'record-del') {
 			$tid = intval($_GPC['id']);
-			if(empty($tid)) {
+			if (empty($tid)) {
 				message('没有指定的兑换记录', referer(), 'error');
 			}
 			pdo_delete('activity_exchange_trades_shipping', array('uniacid' => $_W['uniacid'], 'tid' => $tid));
@@ -1631,25 +1635,24 @@ class We7_couponModuleSite extends WeModuleSite {
 		global $_W, $_GPC;
 		$coupon_api = new coupon();
 		$_W['page']['title'] = '商家设置-粉丝营销';
-		uni_user_permission_check('activity_store_list');
 		$op = !empty($_GPC['op']) ? $_GPC['op'] : 'display';
-		if($op == 'post') {
+		if ($op == 'post') {
 			$id = intval($_GPC['id']);
-			if($id > 0) {
+			if ($id > 0) {
 				$location = pdo_get('activity_stores', array('id' => $id, 'uniacid' => $_W['uniacid']));
 				if (empty($location)) {
 					message('商家不存在', referer(), 'info');
 				}
 				if (COUPON_TYPE == WECHAT_COUPON) {
 					$location_info = $coupon_api->LocationGet($location['location_id']);
-					if(is_error($location_info)) {
+					if (is_error($location_info)) {
 						message("从微信获取门店信息失败,错误详情:{$location_info['message']}", referer(), 'error');
 					}
 					$update_status = $location_info['business']['base_info']['update_status'];
 					$location['open_time_start'] = '8:00';
 					$location['open_time_end'] = '24:00';
 					$open_time = explode('-', $location['open_time']);
-					if(!empty($open_time)) {
+					if (!empty($open_time)) {
 						$location['open_time_start'] = $open_time[0];
 						$location['open_time_end'] = $open_time[1];
 					}
@@ -1660,9 +1663,9 @@ class We7_couponModuleSite extends WeModuleSite {
 					$location['baidumap'] = array('lng' => $location['longitude'], 'lat' => $location['latitude']);
 					$photo_lists = iunserializer($location['photo_list']);
 					$location['photo_list'] = array();
-					if(!empty($photo_lists)) {
-						foreach($photo_lists as $li) {
-							if(!empty($li['photo_url'])) {
+					if (!empty($photo_lists)) {
+						foreach ($photo_lists as $li) {
+							if (!empty($li['photo_url'])) {
 								$location['photo_list'][] = $li['photo_url'];
 							}
 						}
@@ -1673,34 +1676,35 @@ class We7_couponModuleSite extends WeModuleSite {
 					foreach ($location['photo_list'] as &$photo) {
 						$photo = $photo['photo_url'];
 					}
+					unset($photo);
 					$location['opentime'] = explode('-', $location['open_time']);
 					$location['open_time_start'] = $location['opentime'][0];
 					$location['open_time_end'] = $location['opentime'][1];
 					$item = $location;
 				}
-			}else {
+			} else {
 				$item['open_time_start'] = '8:00';
 				$item['open_time_end'] = '24:00';
 			}
-			if(checksubmit('submit')) {
+			if (checksubmit('submit')) {
 				if (COUPON_TYPE == WECHAT_COUPON && $id) {
-					if(empty($location['location_id'])) {
+					if (empty($location['location_id'])) {
 						message('门店正在审核中或审核未通过，不能更新门店信息', referer(), 'error');
 					}
-					if($update_status == 1) {
+					if ($update_status == 1) {
 						message('服务信息正在更新中，尚未生效，不允许再次更新', referer(), 'error');
 					}
 					$data['telephone'] = trim($_GPC['telephone']) ? trim($_GPC['telephone']) : message('门店电话不能为空');
-					if(empty($_GPC['photo_list'])) {
+					if (empty($_GPC['photo_list'])) {
 						message('门店图片不能为空');
 					} else {
 						foreach($_GPC['photo_list'] as $val) {
-							if(empty($val)) continue;
+							if (empty($val)) continue;
 							$data['photo_list'][] = array('photo_url' => $val);
 						}
 					}
 					$data['avg_price'] = intval($_GPC['avg_price']);
-					if(empty($_GPC['open_time_start']) || empty($_GPC['open_time_end'])) {
+					if (empty($_GPC['open_time_start']) || empty($_GPC['open_time_end'])) {
 						message('营业时间不能为空');
 					} else {
 						$data['open_time'] = $_GPC['open_time_start'] . '-' . $_GPC['open_time_end'];
@@ -1710,7 +1714,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					$data['introduction'] = urlencode(trim($_GPC['introduction']));
 					$data['poi_id'] = $location['location_id'];
 					$status = $coupon_api->LocationEdit($data);
-					if(is_error($status)) {
+					if (is_error($status)) {
 						message($status['message'], '', 'error');
 					} else {
 						unset($data['poi_id']);
@@ -1746,7 +1750,7 @@ class We7_couponModuleSite extends WeModuleSite {
 				if (empty($store_data['business_name'])) {
 					message('门店名称不能为空');
 				}
-				if(empty($store_data['category']['cate'])) {
+				if (empty($store_data['category']['cate'])) {
 					message('门店类目不能为空');
 				}
 				if (empty($store_data['province']) || empty($store_data['city']) || empty($store_data['district']) || empty($store_data['address'])) {
@@ -1758,24 +1762,24 @@ class We7_couponModuleSite extends WeModuleSite {
 				if (empty($store_data['telephone'])) {
 					message('门店电话不能为空');
 				}
-				if(empty($store_data['open_time'])) {
+				if (empty($store_data['open_time'])) {
 					message('请设置营业时间');
 				}
-				if(empty($_GPC['photo_list'])) {
+				if (empty($_GPC['photo_list'])) {
 					message('门店图片不能为空');
 				}
-				foreach($_GPC['photo_list'] as $photourl) {
+				foreach ($_GPC['photo_list'] as $photourl) {
 					if (!empty($photourl)) {
 						$store_data['photo_list'][] = array('photo_url' => $photourl);
 					}
 				}
 				if (!empty($id)) {
-						$insert = $store_data;
-						unset($insert['sid']);
-						$insert['source'] = COUPON_TYPE;
-						$insert['category'] = iserializer($insert['category']);
-						$insert['photo_list'] = iserializer($insert['photo_list']);
-						pdo_update('activity_stores',$insert,array('id' => $id, 'uniacid' => $_W['uniacid']));
+					$insert = $store_data;
+					unset($insert['sid']);
+					$insert['source'] = COUPON_TYPE;
+					$insert['category'] = iserializer($insert['category']);
+					$insert['photo_list'] = iserializer($insert['photo_list']);
+					pdo_update('activity_stores',$insert,array('id' => $id, 'uniacid' => $_W['uniacid']));
 					message('门店信息更新成功', $this->createWeburl('storelist'), 'success');
 				} else {
 					$insert = $store_data;
@@ -1790,7 +1794,7 @@ class We7_couponModuleSite extends WeModuleSite {
 						$insert['status'] = 2;
 						$store_data['sid'] = pdo_insertid();
 						$status = $coupon_api->LocationAdd($store_data);
-						if(is_error($status)) {
+						if (is_error($status)) {
 							pdo_delete('activity_stores', array('uniacid' => $_W['uniacid'], 'id' => $store_data['sid']));
 							message($status['message'], '', 'error');
 						}
@@ -1800,41 +1804,42 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 		}
 
-		if($op == 'display') {
+		if ($op == 'display') {
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 15;
 			$limit = 'ORDER BY id DESC LIMIT ' . ($pindex - 1) * $psize . ", {$psize}";
 			$total  = pdo_fetchcolumn('SELECT COUNT(*) FROM '. tablename('activity_stores')." WHERE uniacid = :uniacid AND source = :source", array(':uniacid' => $_W['uniacid'], ':source' => COUPON_TYPE));
 			$list = pdo_getslice('activity_stores',  array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array($pindex, $psize));
 			$pager = pagination($total,$pindex,$psize);
-			foreach($list as &$key) {
+			foreach ($list as &$key) {
 				$key['category'] = iunserializer($key['category']);
 				$key['category_'] = implode('-', $key['category']);
 			}
+			unset($key);
 		}
-		if($op =='delete') {
+		if ($op =='delete') {
 			$id = intval($_GPC['id']);
 			$count = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('activity_clerks') . ' WHERE uniacid = :uniacid AND storeid = :id', array(':id' => $id, ':uniacid' => $_W['uniacid']));
 			$count = intval($count);
-			if($count > 0) {
+			if ($count > 0) {
 				message("该门店下有{$count}名店员.请将店员变更到其他门店后,再进行删除操作", referer(), 'error');
 			}
 			pdo_delete('activity_stores',array('id' => $id, 'uniacid' => $_W['uniacid']));
 			if (COUPON_TYPE == WECHAT_COUPON) {
 				$location = pdo_get('activity_stores', array('uniacid' => $_W['uniacid'], 'id' => $id), array('status', 'location_id'));
-				if(!empty($location['location_id'])) {
+				if (!empty($location['location_id'])) {
 					$status = $coupon_api->LocationDel($location['location_id']);
 				}
-				if(is_error($status)) {
+				if (is_error($status)) {
 					message("删除本地门店数据成功<br>通过微信接口删除微信门店数据失败,请登陆微信公众平台手动删除门店<br>错误原因：{$status['message']}", $this->createWeburl('storelist'), 'error');
 				}
 			}
 			message('删除成功',referer(), 'success');
 		}
-		if($op == 'import') {
+		if ($op == 'import') {
 			$begin = intval($_GPC['begin']);
 			$data = $coupon_api->LocationBatchGet(array('begin' => $begin));
-			if(is_error($data)) {
+			if (is_error($data)) {
 				message($data['message'], referer(), 'error');
 			}
 			if (empty($begin)) {
@@ -1842,18 +1847,18 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 			$location = $data['business_list'];
 			$status2local = array('', 3, 2, 1, 3);
-			if(!empty($location)) {
-				foreach($location as $row) {
+			if (!empty($location)) {
+				foreach ($location as $row) {
 					$isexist = array();
 					$store_info = array();
 					$store_info = $row['base_info'];
 					//门店是否可用状态。1表示系统错误、2表示审核中、3审核通过、 4审核驳回。
 					//如果不是审核通过的门店没有通过审核,优先查找sid,如果没有sid(微信公众平台添加的门店没有sid),则查找poi_id(这个poi_id在审核通过后会变(这里就会造成重复))
-					if(!empty($store_info['sid'])) {
+					if (!empty($store_info['sid'])) {
 						$select_type = 'sid';
 						$isexist = pdo_getcolumn('activity_stores', array('uniacid' => $_W['uniacid'], 'id' => $store_info['sid']), 'id');
 					}
-					if(empty($isexist)) {
+					if (empty($isexist)) {
 						$select_type = 'poi_id';
 						$isexist = pdo_get('activity_stores', array('uniacid' => $_W['uniacid'], 'location_id' => $store_info['poi_id']));
 					}
@@ -1866,8 +1871,8 @@ class We7_couponModuleSite extends WeModuleSite {
 					$store_info['photo_list'] = iserializer($store_info['photo_list']);
 					$store_info['source'] = 2;
 					$storeid = $select_type == 'poi_id' ? $store_info['poi_id'] : $store_info['sid'];
-					unset($store_info['categories'], $store_info['poi_id'], $store_info['update_status'], $store_info['available_state'],$store_info['offset_type'], $store_info['type'], $store_info['sid'], $store_info['qualification_list']);
-					if(empty($isexist)) {
+					unset($store_info['categories'], $store_info['poi_id'], $store_info['update_status'], $store_info['available_state'],$store_info['offset_type'], $store_info['type'], $store_info['sid'], $store_info['qualification_list'], $store_info['upgrade_comment'], $store_info['upgrade_status'], $store_info['mapid']);
+					if (empty($isexist)) {
 						pdo_insert('activity_stores', $store_info);
 					} else {
 						if ($select_type == 'poi_id') {
@@ -1882,13 +1887,13 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 			message('导入门店成功', $this->createWeburl('storelist'), 'success');
 		}
-		if($op == 'sync') {
+		if ($op == 'sync') {
 			$type = trim($_GPC['type']);
 			if ($type == '1') {
 				$cachekey = "storesync:{$_W['uniacid']}";
 				$cache = cache_delete($cachekey);
 			}
-			activity_store_sync();
+			we7_coupon_activity_store_sync();
 			message(error(0, '更新门店信息成功'), $this->createWeburl('storelist'), 'ajax');
 		}
 		include $this->template('storelist');
@@ -1897,7 +1902,37 @@ class We7_couponModuleSite extends WeModuleSite {
 	public function doWebClerklist() {
 		global $_W, $_GPC;
 		$op = !empty($_GPC['op']) ? $_GPC['op'] : 'display';
-		uni_user_permission_check('activity_clerk_list');
+
+		$user_permissions = pdo_getall('users_permission', array('uniacid' => $_W['uniacid'], 'type' => $this->module['name'], 'uid <>' => ''), '', 'uid');
+		$uids = !empty($user_permissions) && is_array($user_permissions) ? array_keys($user_permissions) : array();
+		$users_lists = array();
+		if (!empty($uids)) {
+			$users_lists = pdo_getall('users', array('uid' => $uids), '', 'uid');
+		}
+		$current_module_permission = module_permission_fetch($this->module['name']);
+		if (!empty($current_module_permission)) {
+			foreach ($current_module_permission as $key => $permission) {
+				$permission_name[$permission['permission']] = $permission['title'];
+			}
+		}
+		if (!empty($user_permissions)) {
+			foreach ($user_permissions as $key => &$permission) {
+				$permission['permission'] = explode('|', $permission['permission']);
+				foreach ($permission['permission'] as $k => $val) {
+					$permission['permission'][$val] = $permission_name[$val];
+					unset($permission['permission'][$k]);
+				}
+				$permission['user_info'] = $users_lists[$key];
+			}
+			unset($permission);
+		}
+		$clerk_list = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), '', 'uid');
+		$available_user = $user_permissions;
+		foreach ($available_user as $key => $value) {
+			if (!empty($clerk_list[$key])) {
+				unset($available_user[$key]);
+			}
+		}
 		if ($op == 'display') {
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 30;
@@ -1905,7 +1940,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('activity_clerks')." WHERE uniacid = :uniacid ", array(':uniacid' => $_W['uniacid']));
 			$list = pdo_fetchall("SELECT * FROM ".tablename('activity_clerks')." WHERE uniacid = :uniacid {$limit}", array(':uniacid' => $_W['uniacid']));
 			$uids = array(0);
-			foreach($list as $row) {
+			foreach ($list as $row) {
 				if ($row['uid'] > 0) {
 					$uids[] = $row['uid'];
 				}
@@ -1925,126 +1960,28 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 			if (empty($exist)) {
 				message(error(1), '', 'ajax');
-			}else {
+			} else {
 				message(error(0), '', 'ajax');
 			}
 		}
 		if ($op == 'post') {
+			$uid = intval($_GPC['uid']);
+			$user_info = user_single($uid);
 			$id = intval($_GPC['id']);
-			if (!empty($id)){
+			if (!empty($id)) {
 				$clerk = pdo_get('activity_clerks', array('id' => $id, 'uniacid' => $_W['uniacid']));
-				if (empty($clerk)) {
-					message('店员不存在', referer(), 'error');
-				}
-				if (!empty($clerk['uid'])) {
-					$user = pdo_get('users', array('uid' => $clerk['uid']));
-					$clerk['username'] = $user['username'];
-					$clerk['uid'] = $user['uid'];
-					if (!$clerk['uid']) {
-						$_W['uid'] = 0;
-					}
-					$clerk['permission'] = uni_user_permission('system', $clerk['uid']);
-				}
-			} else {
-				$clerk = array(
-					'permission' => array()
-				);
 			}
 			if (checksubmit()) {
 				$name = trim($_GPC['name']) ? trim($_GPC['name']) : message('店员名称不能为空');
 				$mobile =  trim($_GPC['mobile']) ? trim($_GPC['mobile']) : message('手机号不能为空');
 				$storeid =  intval($_GPC['storeid']) ? intval($_GPC['storeid']) : message('请选择所在门店');
-				if (!$clerk['uid']) {
-					$user = array();
-					$user['username'] = trim($_GPC['username']);
-					if (empty($user['username'])) {
-						message('必须输入用户名，格式为 1-15 位字符，可以包括汉字、字母（不区分大小写）、数字、下划线和句点。');
-					}
-					if (user_check(array('username' => $user['username']))) {
-						message('非常抱歉，此用户名已经被注册，你需要更换注册名称！');
-					}
-					$user['password'] = trim($_GPC['password']);
-					if (istrlen($user['password']) < 8) {
-						message('必须输入密码，且密码长度不得低于8位。');
-					}
-					$password_exist = pdo_get('activity_clerks', array('uniacid' => $_W['uniacid'], 'password' => $_GPC['password']));
-					if (!empty($password_exist)) {
-						message('密码已存在，请重新输入密码');
-					}
-					$user['type'] = 3;
-					$clerk['uid'] = user_register($user);
-					if (!$clerk['uid']) {
-						message('注册账号失败');
-					}
-				} else {
-					$_GPC['username'] = trim($_GPC['username']);
-					if (!preg_match(REGULAR_USERNAME, $_GPC['username'])) {
-						message('必须输入用户名，格式为 3-15 位字符，可以包括汉字、字母（不区分大小写）、数字、下划线和句点。');
-					}
-					$is_exist = pdo_fetchcolumn('SELECT uid FROM ' . tablename('users') . ' WHERE username = :username AND uid != :uid', array(':username' => $_GPC['username'], ':uid' => $clerk['uid']));
-					if (!empty($is_exist)) {
-						message('非常抱歉，此用户名已经被注册，你需要更换注册名称！');
-					}
-					$_GPC['password'] = trim($_GPC['password']);
-					if (!empty($_GPC['password'])) {
-						if (istrlen($_GPC['password']) < 8) {
-							message('必须输入密码，且密码长度不得低于8位。');
-						}
-						$password_exist = pdo_get('activity_clerks', array('uniacid' => $_W['uniacid'], 'password' => $_GPC['password']));
-						if (!empty($password_exist)) {
-							message('密码已存在，请重新输入密码');
-						}
-					}
-					$record = array();
-					$record['uid'] = $clerk['uid'];
-					$record['password'] = $_GPC['password'];
-					$record['salt'] = $user['salt'];
-					$record['username'] = $_GPC['username'];
-					$record['type'] = 3;
-					user_update($record);
+				$password = trim($_GPC['password']);
+				if (istrlen($password) < 8) {
+					message('必须输入核销密码，且密码长度不得低于8位。');
 				}
-				$permission = $_GPC['permission'];
-				if (!empty($permission)) {
-					$permission = implode('|', array_unique($permission));
-				} else {
-					$permission = '';
-				}
-				$permission_exist = pdo_get('users_permission', array('uniacid' => $_W['uniacid'], 'uid' => $clerk['uid'], 'type' => 'system'));
-				if (empty($permission_exist)) {
-					pdo_insert('users_permission', array('uniacid' => $_W['uniacid'], 'uid' => $clerk['uid'], 'type' => 'system', 'permission' => $permission));
-				} else {
-					pdo_update('users_permission', array('permission' => $permission), array('uniacid' => $_W['uniacid'], 'uid' => $clerk['uid'], 'type' => 'system'));
-				}
-				$permission = $_GPC['permission'];
-				$modules_permission = array();
-				foreach ($permission as $permi) {
-					if (strexists($permi, 'menu')) {
-						$permis = $permi;
-						$permi = explode('_', $permi);
-						$num = count($permi);
-						unset($permi[$num-1]);
-						unset($permi[$num-2]);
-						$module_name = implode('_', $permi);
-						$modules = uni_modules_app_binding();
-						if (in_array($module_name, array_keys($modules))) {
-							$modules_permission[$module_name] = $permis.'|'.$modules_permission[$module_name];
-						}
-					}
-				}
-				foreach ($modules_permission as $module_name => $module_p) {
-					$module_p = trim($module_p, '|');
-					$module_permission = pdo_get('users_permission', array('uniacid' => $_W['uniacid'], 'uid' => $clerk['uid'], 'type' => $module_name));
-					if (!empty($module_permission)) {
-						pdo_update('users_permission', array('permission' => $module_p), array('uniacid' => $_W['uniacid'], 'uid' => $clerk['uid'], 'type' => $module_name));
-					} else {
-						pdo_insert('users_permission', array('permission' => $module_p.'|'.$permis, 'uniacid' => $_W['uniacid'], 'uid' => $clerk['uid'], 'type' => $module_name));
-					}
-				}
-				$account_user = pdo_get('uni_account_users', array('uniacid' => $_W['uniacid'], 'uid' => $clerk['uid']));
-				if (empty($account_user)) {
-					pdo_insert('uni_account_users', array('uniacid' => $_W['uniacid'], 'uid' => $clerk['uid'], 'role' => 'clerk'));
-				} else {
-					pdo_update('uni_account_users', array('role' => 'clerk'), array('uniacid' => $_W['uniacid'], 'uid' => $clerk['uid']));
+				$password_exist = pdo_get('activity_clerks', array('uniacid' => $_W['uniacid'], 'password' => $password, 'id <>' => $id));
+				if (!empty($password_exist)) {
+					message('密码已存在，请重新输入密码');
 				}
 				$data = array(
 					'uniacid' => $_W['uniacid'],
@@ -2053,7 +1990,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					'mobile' => $mobile,
 					'openid' => trim($_GPC['openid']),
 					'nickname' => trim($_GPC['nickname']),
-					'uid' => $clerk['uid'],
+					'uid' => $uid,
 					'password' => $_GPC['password']
 				);
 				if (empty($_GPC['password'])) {
@@ -2067,17 +2004,6 @@ class We7_couponModuleSite extends WeModuleSite {
 				message('编辑店员资料成功', $this->createWeburl('clerklist'), 'success');
 			}
 			$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array('id', 'business_name', 'branch_name'));
-			$permission = clerk_permission_list();
-			$clerk_p = pdo_fetchall("SELECT * FROM ". tablename('activity_clerk_menu'). " WHERE (uniacid = :uniacid OR system = '1') AND pid = 0 ORDER BY system DESC", array(':uniacid' =>  $_W['uniacid']), 'group_name');
-			$clerk_c = pdo_fetchall("SELECT * FROM ". tablename('activity_clerk_menu'). " WHERE (uniacid = :uniacid OR system = '1') AND pid <> 0 ORDER BY displayorder ASC,system DESC", array(':uniacid' =>  $_W['uniacid']));
-			$permission = array();
-			foreach ($clerk_p as $p) {
-				$permission[$p['id']]['title'] = $p['title'];
-				$permission[$p['id']]['group_name'] = $p['group_name'];
-			}
-			foreach ($clerk_c as $c) {
-				$permission[$c['pid']]['items'][] = $c;
-			}
 		}
 
 		if ($op == 'verify') {
@@ -2097,11 +2023,6 @@ class We7_couponModuleSite extends WeModuleSite {
 		}
 		if ($op == 'delete') {
 			$id = intval($_GPC['id']);
-			$clerk = pdo_get('activity_clerks', array('id' => $id, 'uniacid' => $_W['uniacid']));
-			if ($clerk['uid'] > 0) {
-				pdo_delete('users',array('uid' => $clerk['uid']));
-				pdo_delete('uni_account_users',array('uid' => $clerk['uid'], 'uniacid' => $_W['uniacid']));
-			}
 			pdo_delete('activity_clerks',array('id' => intval($_GPC['id']), 'uniacid' => $_W['uniacid']));
 			message("删除成功",referer(),'success');
 		}
@@ -2114,7 +2035,12 @@ class We7_couponModuleSite extends WeModuleSite {
 			$cookie['lastvisit'] = $user['lastvisit'];
 			$cookie['lastip'] = $user['lastip'];
 			$cookie['hash'] = md5($user['password'] . $user['salt']);
-			$session = base64_encode(json_encode($cookie));
+			$compare = ver_compare(IMS_VERSION, '1.0');
+			if ($compare == -1) {
+				$session = base64_encode(json_encode($cookie));
+			} else {
+				$session = authcode(json_encode($cookie), 'encode');
+			}
 			isetcookie('__session', $session, 7 * 86400);
 			header('Location:' . $this->createWeburl('clerkdesk', array('uniacid' => $clerk['uniacid'], 'op' => 'index')));
 			exit;
@@ -2122,212 +2048,222 @@ class We7_couponModuleSite extends WeModuleSite {
 		include $this->template('clerklist');
 	}
 
-	public function doWebClerkdesk() {
+	public function doWebClerkdeskwelcome() {
 		global $_W, $_GPC;
 		$_W['page']['title'] = '店员工作台';
 		$op = !empty($_GPC['op']) ? $_GPC['op'] : 'index';
-		if($op == 'index') {
-			$clerk_p = pdo_fetchall("SELECT * FROM ". tablename('activity_clerk_menu'). " WHERE (uniacid = :uniacid OR system = '1') AND pid = 0", array(':uniacid' =>  $_W['uniacid']));
-			$clerk_c = pdo_fetchall("SELECT * FROM ". tablename('activity_clerk_menu'). " WHERE (uniacid = :uniacid OR system = '1') AND pid <> 0 ORDER BY displayorder ASC, system DESC", array(':uniacid' =>  $_W['uniacid']));
-			$permission = array();
-			foreach ($clerk_p as $p) {
-				$permission[$p['id']]['id'] = $p['id'];
-				$permission[$p['id']]['pid'] = $p['id'];
-				$permission[$p['id']]['title'] = $p['title'];
-				$permission[$p['id']]['system'] = $p['system'];
-			}
-			foreach ($clerk_c as $c) {
-				if (empty($c['permission'])) {
-					pdo_update('activity_clerk_menu', array('permission' => 'clerk_'.$c['id']), array('uniacid' => $_W['uniacid'], 'id' => $c['id']));
-				}
-				$permission[$c['pid']]['items'][] = $c;
-			}
-			$user_permission = uni_user_permission_exist();
-			if (is_error ($user_permission)) {
-				$user_permission = uni_user_permission ('system');
-				$permission_list = array();
-				foreach ($user_permission as $value) {
-					if (!is_numeric($value)) {
-						continue;
-					}
-					$clerk_perm = pdo_get('activity_clerk_menu', array('uniacid' => $_W['uniacid'], 'id' => $value));
-					$permission_list[] = $clerk_perm['permission'];
-				}
-				if (!empty($permission_list)) {
-					$post = implode('|', $permission_list);
-					pdo_update('users_permission', array('permission' => $post), array('uniacid' => $_W['uniacid'], 'uid' => $_W['uid'], 'type' => 'system'));
-				}
-				foreach ($permission as $key => &$row) {
-					$has = 0;
-					foreach ($row['items'] as $key1 => &$row1) {
-						if (!in_array ($row1['permission'], $user_permission)) {
+		if ($op == 'index') {
+			$current_user_permission_info = pdo_get('users_permission', array('uniacid' => $_W['uniacid'], 'uid' => $_W['uid'], 'type' => $this->module['name']));
+			$current_user_permission = explode('|', $current_user_permission_info['permission']);
+			$permissions = array(
+				array(
+					'title' => '快捷交易',
+					'items' => array(
+						array(
+							'title' => '积分充值',
+							'icon' => 'fa fa-bar-chart',
+							'type' => 'modal',
+							'url' => 'credit1',
+							'permission' => 'we7_coupon_permission_mc_credit1'
+						),
+						array(
+							'title' => '余额充值',
+							'icon' => 'fa fa-bar-chart',
+							'type' => 'modal',
+							'url' => 'credit2',
+							'permission' => 'we7_coupon_permission_mc_credit2'
+						),
+						array(
+							'title' => '消费',
+							'icon' => 'fa fa-bar-chart',
+							'type' => 'modal',
+							'url' => 'consume',
+							'permission' => 'we7_coupon_permission_mc_conusme'
+						),
+						array(
+							'title' => '发放会员卡',
+							'icon' => 'fa fa-bar-chart',
+							'type' => 'modal',
+							'url' => 'card',
+							'permission' => 'we7_coupon_permission_mc_card'
+						),
+					),
+				),
+				array(
+					'title' => '卡券核销',
+					'items' => array(
+						array(
+							'title' => '卡券核销',
+							'icon' => 'fa fa-bar-chart',
+							'type' => 'modal',
+							'url' => 'cardconsume',
+							'permission' => 'we7_coupon_permission_coupon_consume'
+						),
+					)
+				)
+			);
+			if ($_W['user']['type'] == 3) {
+				foreach ($permissions as $key => &$row) {
+					foreach ($row['items'] as $key1 => $row1) {
+						if (!in_array($row1['permission'], $current_user_permission)) {
 							unset($row['items'][$key1]);
-						} else {
-							if (!$has) {
-								$has = 1;
-							}
 						}
 					}
-					if (!$has) {
-						unset($permission[$key]);
-					}
 				}
+				unset($row);
 			}
 		}
 		include $this->template('clerkdesk');
 	}
 
-	public function doWebClerkdeskmenu() {
-		global $_W, $_GPC;
-		uni_user_permission_check('profile_deskmenu');
-		$_W['page']['title'] = '功能选项 - 公众号选项 - 工作台菜单设置';
-		$op = !empty($_GPC['op']) ? $_GPC['op'] : 'index';
-		if($op == 'index') {
-			$clerk_p = pdo_fetchall("SELECT * FROM ". tablename('activity_clerk_menu'). " WHERE (uniacid = :uniacid OR system = '1') AND pid = 0", array(':uniacid' =>  $_W['uniacid']));
-			$clerk_c = pdo_fetchall("SELECT * FROM ". tablename('activity_clerk_menu'). " WHERE (uniacid = :uniacid OR system = '1') AND pid <> 0 ORDER BY displayorder ASC, system DESC", array(':uniacid' =>  $_W['uniacid']));
-			$permission = array();
-			foreach ($clerk_p as $p) {
-				$permission[$p['id']]['id'] = $p['id'];
-				$permission[$p['id']]['pid'] = $p['id'];
-				$permission[$p['id']]['title'] = $p['title'];
-				$permission[$p['id']]['system'] = $p['system'];
-			}
-			foreach ($clerk_c as $c) {
-				if (empty($c['permission'])) {
-					pdo_update('activity_clerk_menu', array('permission' => 'clerk_'.$c['id']), array('uniacid' => $_W['uniacid'], 'id' => $c['id']));
-				}
-				$permission[$c['pid']]['items'][] = $c;
-			}
-			$user_permission = uni_user_permission_exist ();
-			if (is_error ($user_permission)) {
-				$user_permission = uni_user_permission ('system');
-				foreach ($permission as $key => &$row) {
-					$has = 0;
-					foreach ($row['items'] as $key1 => &$row1) {
-						if (!in_array ($row1['id'], $user_permission)) {
-							unset($row['items'][$key1]);
-						} else {
-							if (!$has) {
-								$has = 1;
-							}
-						}
-					}
-					if (!$has) {
-						unset($permission[$key]);
-					}
-				}
-			}
-		}
-		if ($_W['isajax']) {
-			$post = array();
-			$post['title'] = trim($_GPC['title']);
-			$post['displayorder'] = intval($_GPC['displayorder']);
-			$post['icon'] = trim($_GPC['icon']) == '' ? 'glyphicon glyphicon-th' : trim($_GPC['icon']);
-			$post['url'] = trim($_GPC['url']);
-			$op = $_GPC['op'];
-			if ($op == 'edit') {
-				if (!empty($_GPC['permission'])) {
-					$post['permission'] = trim($_GPC['permission']);
-				}
-				if (pdo_update('activity_clerk_menu', $post, array('uniacid' => $_W['uniacid'], 'id' => $_GPC['id']))) {
-					message(error(1, '编辑成功'), '', 'ajax');
-				} else {
-					message(error(0, '编辑失败'), '', 'ajax');
-				}
-			}
-			if ($op == 'editmain') {
-				$post = array();
-				$post['title'] = $_GPC['title'];
-				if (pdo_update('activity_clerk_menu', $post, array('uniacid' => $_W['uniacid'], 'id' => $_GPC['id']))) {
-					message(error(1, '编辑成功'), '', 'ajax');
-				}
-			}
-			if ($op == 'add') {
-				if (!empty($_GPC['permission'])) {
-					$post['permission'] = trim($_GPC['permission']);
-				}
-				$post['system'] = 0;
-				$post['pid'] = $_GPC['pid'];
-				$post['uniacid'] = $_W['uniacid'];
-				$post['type'] = 'url';
-				if (pdo_insert('activity_clerk_menu', $post)) {
-					message(error(1, '添加子菜单成功'), '', 'ajax');
-				} else {
-					message(error(0, '添加子菜单失败'), '', 'ajax');
-				}
-			}
-			if ($op == 'addmain') {
-				$post = array();
-				$post['system'] = 0;
-				$post['title'] = $_GPC['main_title'];
-				$post['uniacid'] = $_W['uniacid'];
-				if (pdo_insert('activity_clerk_menu', $post)) {
-					message(error(1, '添加主菜单成功'), '', 'ajax');
-				} else {
-					message(error(0, '添加主菜单失败'), '', 'ajax');
-				}
-			}
-			if ($op == 'delete') {
-				$id = $_GPC['id'];
-				$type = $_GPC['type'];
-				if (empty($type)) {
-					if (pdo_delete('activity_clerk_menu', array('id' => $id, 'uniacid' => $_W['uniacid']))) {
-						message(error('1', '删除成功'), '' , 'ajax');
-					}
-					else {
-						message(error('0', '删除失败'), '' , 'ajax');
-					}
-				} else {
-					$result = pdo_delete('activity_clerk_menu', array('id' => $id, 'uniacid' => $_W['uniacid']));
-					$resultall = pdo_delete('activity_clerk_menu', array('pid' => $id, 'uniacid' => $_W['uniacid']));
-					if ($result && $resultall) {
-						message(error('1', '删除成功'), '' , 'ajax');
-					} else {
-						message(error('0', '删除失败'), '' , 'ajax');
-					}
-				}
-			}
-		}
-		include $this->template('clerkdeskmenu');
-	}
+	// public function doWebClerkdeskmenu() {
+	// 	global $_W, $_GPC;
+	// 	$_W['page']['title'] = '功能选项 - 公众号选项 - 工作台菜单设置';
+	// 	$op = !empty($_GPC['op']) ? $_GPC['op'] : 'index';
+	// 	if ($op == 'index') {
+	// 		$clerk_p = pdo_fetchall("SELECT * FROM ". tablename('activity_clerk_menu'). " WHERE (uniacid = :uniacid OR system = '1') AND pid = 0", array(':uniacid' =>  $_W['uniacid']));
+	// 		$clerk_c = pdo_fetchall("SELECT * FROM ". tablename('activity_clerk_menu'). " WHERE (uniacid = :uniacid OR system = '1') AND pid <> 0 ORDER BY displayorder ASC, system DESC", array(':uniacid' =>  $_W['uniacid']));
+	// 		$permission = array();
+	// 		foreach ($clerk_p as $p) {
+	// 			$permission[$p['id']]['id'] = $p['id'];
+	// 			$permission[$p['id']]['pid'] = $p['id'];
+	// 			$permission[$p['id']]['title'] = $p['title'];
+	// 			$permission[$p['id']]['system'] = $p['system'];
+	// 		}
+	// 		foreach ($clerk_c as $c) {
+	// 			if (empty($c['permission'])) {
+	// 				pdo_update('activity_clerk_menu', array('permission' => 'clerk_'.$c['id']), array('uniacid' => $_W['uniacid'], 'id' => $c['id']));
+	// 			}
+	// 			$permission[$c['pid']]['items'][] = $c;
+	// 		}
+	// 		$user_permission = uni_user_permission_exist ();
+	// 		if (is_error ($user_permission)) {
+	// 			$user_permission = uni_user_permission ('system');
+	// 			foreach ($permission as $key => &$row) {
+	// 				$has = 0;
+	// 				foreach ($row['items'] as $key1 => &$row1) {
+	// 					if (!in_array ($row1['id'], $user_permission)) {
+	// 						unset($row['items'][$key1]);
+	// 					} else {
+	// 						if (!$has) {
+	// 							$has = 1;
+	// 						}
+	// 					}
+	// 				}
+	// 				if (!$has) {
+	// 					unset($permission[$key]);
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// 	if ($_W['isajax']) {
+	// 		$post = array();
+	// 		$post['title'] = trim($_GPC['title']);
+	// 		$post['displayorder'] = intval($_GPC['displayorder']);
+	// 		$post['icon'] = trim($_GPC['icon']) == '' ? 'glyphicon glyphicon-th' : trim($_GPC['icon']);
+	// 		$post['url'] = trim($_GPC['url']);
+	// 		$op = $_GPC['op'];
+	// 		if ($op == 'edit') {
+	// 			if (!empty($_GPC['permission'])) {
+	// 				$post['permission'] = trim($_GPC['permission']);
+	// 			}
+	// 			if (pdo_update('activity_clerk_menu', $post, array('uniacid' => $_W['uniacid'], 'id' => $_GPC['id']))) {
+	// 				message(error(1, '编辑成功'), '', 'ajax');
+	// 			} else {
+	// 				message(error(0, '编辑失败'), '', 'ajax');
+	// 			}
+	// 		}
+	// 		if ($op == 'editmain') {
+	// 			$post = array();
+	// 			$post['title'] = $_GPC['title'];
+	// 			if (pdo_update('activity_clerk_menu', $post, array('uniacid' => $_W['uniacid'], 'id' => $_GPC['id']))) {
+	// 				message(error(1, '编辑成功'), '', 'ajax');
+	// 			}
+	// 		}
+	// 		if ($op == 'add') {
+	// 			if (!empty($_GPC['permission'])) {
+	// 				$post['permission'] = trim($_GPC['permission']);
+	// 			}
+	// 			$post['system'] = 0;
+	// 			$post['pid'] = $_GPC['pid'];
+	// 			$post['uniacid'] = $_W['uniacid'];
+	// 			$post['type'] = 'url';
+	// 			if (pdo_insert('activity_clerk_menu', $post)) {
+	// 				message(error(1, '添加子菜单成功'), '', 'ajax');
+	// 			} else {
+	// 				message(error(0, '添加子菜单失败'), '', 'ajax');
+	// 			}
+	// 		}
+	// 		if ($op == 'addmain') {
+	// 			$post = array();
+	// 			$post['system'] = 0;
+	// 			$post['title'] = $_GPC['main_title'];
+	// 			$post['uniacid'] = $_W['uniacid'];
+	// 			if (pdo_insert('activity_clerk_menu', $post)) {
+	// 				message(error(1, '添加主菜单成功'), '', 'ajax');
+	// 			} else {
+	// 				message(error(0, '添加主菜单失败'), '', 'ajax');
+	// 			}
+	// 		}
+	// 		if ($op == 'delete') {
+	// 			$id = $_GPC['id'];
+	// 			$type = $_GPC['type'];
+	// 			if (empty($type)) {
+	// 				if (pdo_delete('activity_clerk_menu', array('id' => $id, 'uniacid' => $_W['uniacid']))) {
+	// 					message(error('1', '删除成功'), '' , 'ajax');
+	// 				}
+	// 				else {
+	// 					message(error('0', '删除失败'), '' , 'ajax');
+	// 				}
+	// 			} else {
+	// 				$result = pdo_delete('activity_clerk_menu', array('id' => $id, 'uniacid' => $_W['uniacid']));
+	// 				$resultall = pdo_delete('activity_clerk_menu', array('pid' => $id, 'uniacid' => $_W['uniacid']));
+	// 				if ($result && $resultall) {
+	// 					message(error('1', '删除成功'), '' , 'ajax');
+	// 				} else {
+	// 					message(error('0', '删除失败'), '' , 'ajax');
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// 	include $this->template('clerkdeskmenu');
+	// }
 
 	public function doWebPaycenter() {
 		global $_W, $_GPC;
 		$op = !empty($_GPC['op']) ? $_GPC['op'] : 'pay';
-		uni_user_permission_check('paycenter_wxmicro_pay');
 		$_W['page']['title'] = '刷卡支付-微信收款';
-		load()->model('paycenter');
-		if($op == 'pay') {
-			if($_W['isajax']) {
+		if ($op == 'pay') {
+			if ($_W['isajax']) {
 				$post = $_GPC['__input'];
 				$fee = trim($post['fee']) ? trim($post['fee']) : message(error(-1, '订单金额不能为空'),  '', 'ajax');
 				$body = trim($post['body']) ? trim($post['body']) : message(error(-1, '商品名称不能为空'),  '', 'ajax');
 				$code = trim($post['code']);
 				$uid = intval($post['member']['uid']);
 				
-				if($post['cash'] > 0 && empty($post['code'])) {
+				if ($post['cash'] > 0 && empty($post['code'])) {
 					message(error(-1, '授权码不能为空'), '', 'ajax');
 				}
 				$total = $money = floatval($post['fee']);
-				if(!$total) {
+				if (!$total) {
 					message(error(-1, '消费金额不能为空'), '', 'ajax');
 				}
 				$log = "系统日志:会员消费【{$total}】元";
-				if($uid > 0) {
+				if ($uid > 0) {
 					$user = pdo_get('mc_members', array('uniacid' => $_W['uniacid'], 'uid' => $uid));
-					if(empty($user)) {
+					if (empty($user)) {
 						message(error(-1, '用户不存在'), '', 'ajax');
 					}
 					$user['groupname'] = $_W['account']['groups'][$user['groupid']]['title'];
 					load()->model('card');
 					$card = card_setting();
 					$member = pdo_get('mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $user['uid']));
-					if(!empty($card) && $card['status'] == 1 && !empty($member)) {
+					if (!empty($card) && $card['status'] == 1 && !empty($member)) {
 						$user['discount'] = $card['discount'][$user['groupid']];
-						if(!empty($user['discount']) && !empty($user['discount']['discount'])) {
-							if($total >= $user['discount']['condition']) {
+						if (!empty($user['discount']) && !empty($user['discount']['discount'])) {
+							if ($total >= $user['discount']['condition']) {
 								$log .= ",所在会员组【{$user['groupname']}】,可享受满【{$user['discount']['condition']}】元";
-								if($card['discount_type'] == 1) {
+								if ($card['discount_type'] == 1) {
 									$log .= "减【{$user['discount']['discount']}】元";
 									$money = $total - $user['discount']['discount'];
 								} else {
@@ -2335,33 +2271,33 @@ class We7_couponModuleSite extends WeModuleSite {
 									$log .= "打【{$discount}】折";
 									$money = $total * $user['discount']['discount'];
 								}
-								if($money < 0) {
+								if ($money < 0) {
 									$money = 0;
 								}
 								$log .= ",实收金额【{$money}】元";
 							}
 						}
 						$post_money = strval($post['fact_fee']);
-						if($post_money != $money) {
+						if ($post_money != $money) {
 							message(error(-1, '实收金额错误'),  '', 'ajax');
 						}
 
 						$post_credit1 = intval($post['credit1']);
-						if($post_credit1 > 0) {
-							if($post_credit1 > $user['credit1']) {
+						if ($post_credit1 > 0) {
+							if ($post_credit1 > $user['credit1']) {
 								message(error(-1, '超过会员账户可用积分'),  '', 'ajax');
 							}
 						}
 
 						$post_offset_money = trim($post['offset_money']);
 						$offset_money = 0;
-						if($post_credit1 && $card['offset_rate'] > 0 && $card['offset_max'] >= 0) {
+						if ($post_credit1 && $card['offset_rate'] > 0 && $card['offset_max'] >= 0) {
 							if ($card['offset_max'] == '0') {
 								$offset_money = $post_credit1/$card['offset_rate'];
 							} else {
 								$offset_money = min($card['offset_max'], $post_credit1/$card['offset_rate']);
 							}
-							if($offset_money != $post_offset_money) {
+							if ($offset_money != $post_offset_money) {
 								message(error(-1, '积分抵消金额错误'),  '', 'ajax');
 							}
 							$credit1 = $post_credit1;
@@ -2369,8 +2305,8 @@ class We7_couponModuleSite extends WeModuleSite {
 						}
 					}
 					$credit2 = floatval($post['credit2']);
-					if($credit2 > 0) {
-						if($credit2 > $user['credit2']) {
+					if ($credit2 > 0) {
+						if ($credit2 > $user['credit2']) {
 							message(error(-1, '超过会员账户可用余额'),  '', 'ajax');
 						}
 						$log .= ",使用余额支付【{$credit2}】元";
@@ -2381,11 +2317,11 @@ class We7_couponModuleSite extends WeModuleSite {
 				$cash = floatval($post['cash']);
 				$sum = strval($credit2 + $cash + $offset_money);
 				$money = strval($money);
-				if($sum != $money) {
+				if ($sum != $money) {
 					message(error(-1, '支付金额不等于实收金额'),  '', 'ajax');
 				}
 				$realname = $post['member']['realname'] ? $post['member']['realname'] :$post['member']['realname'];
-				if($cash <= 0) {
+				if ($cash <= 0) {
 					//直接扣除积分和余额
 					$data = array(
 						'uniacid' => $_W['uniacid'],
@@ -2413,23 +2349,22 @@ class We7_couponModuleSite extends WeModuleSite {
 					);
 					pdo_insert('paycenter_order', $data);
 					load()->model('mc');
-					if($post_credit1 > 0) {
+					if ($post_credit1 > 0) {
 						$status = mc_credit_update($member['uid'], 'credit1', -$post_credit1, array(0, "会员刷卡消费,使用积分抵现,扣除{$post_credit1积分}", 'system', $_W['user']['clerk_id'], $_W['user']['store_id'], $_W['user']['clerk_type']));
 					}
-					if($credit2 > 0) {
+					if ($credit2 > 0) {
 						$status = mc_credit_update($member['uid'], 'credit2', -$credit2, array(0, "会员刷卡消费,使用余额支付,扣除{$credit2}余额", 'system', $_W['user']['clerk_id'], $_W['user']['store_id'], $_W['user']['clerk_type']));
 						mc_notice_credit2($member['openid'], $member['uid'], $credit2, '', '收银台消费');
 					}
 					message(error(0, '支付成功'), $this->createWeburl('paycenter'), 'ajax');
 				} else {
 					$log .= ",使用刷卡支付【{$cash}】元";
-					if(!empty($_GPC['remark'])) {
+					if (!empty($_GPC['remark'])) {
 						$note = "店员备注：{$_GPC['remark']}";
 					}
-					$log = $note.$log;
-
+					$log = $note . $log;
 					$isexist = pdo_get('paycenter_order', array('uniacid' => $_W['uniacid'], 'auth_code' => $code));
-					if($isexist) {
+					if ($isexist) {
 						message(error(-1, '每个二维码仅限使用一次，请刷新再试'), '', 'ajax');
 					}
 					$data = array(
@@ -2467,7 +2402,7 @@ class We7_couponModuleSite extends WeModuleSite {
 						'auth_code' => $code,
 					);
 					$pid = $pay->buildPayLog($params);
-					if(is_error($pid)) {
+					if (is_error($pid)) {
 						message($pid,  '', 'ajax');
 					}
 					$log = pdo_get('core_paylog', array('plid' => $pid));
@@ -2482,11 +2417,11 @@ class We7_couponModuleSite extends WeModuleSite {
 					
 					$result = $pay->buildMicroOrder($data);
 					if ($result['result_code'] == 'SUCCESS') {
-						if(is_error($result)) {
+						if (is_error($result)) {
 							message($result,  '', 'ajax');
 						} else {
 							$status = $pay->NoticeMicroSuccessOrder($result);
-							if(is_error($status)) {
+							if (is_error($status)) {
 								message($status, '', 'ajax');
 							}
 							message(error(0, '支付成功'), $this->createWeburl('paycenter'), 'ajax');
@@ -2516,19 +2451,19 @@ class We7_couponModuleSite extends WeModuleSite {
 			$card_set_str = json_encode($card_set);
 		}
 
-		if($op == 'query') {
-			if($_W['isajax']) {
+		if ($op == 'query') {
+			if ($_W['isajax']) {
 				$post = $_GPC['__input'];
 				$uniontid = trim($post['uniontid']);
 				load()->classs('pay');
 				$pay = Pay::create();
 				$result = $pay->queryOrder($uniontid, 2);
-				if(is_error($result)) {
+				if (is_error($result)) {
 					message($result, '', 'ajax');
 				}
-				if($result['trade_state'] == 'SUCCESS') {
+				if ($result['trade_state'] == 'SUCCESS') {
 					$status = $pay->NoticeMicroSuccessOrder($result);
-					if(is_error($status)) {
+					if (is_error($status)) {
 						message($status, '', 'ajax');
 					}
 					message(error(0, '支付成功'), '', 'ajax');
@@ -2538,18 +2473,18 @@ class We7_couponModuleSite extends WeModuleSite {
 		}
 
 		if ($op == 'checkpay') {
-			if($_W['isajax']) {
+			if ($_W['isajax']) {
 				$post = $_GPC['__input'];
 				$uniontid = trim($post['uniontid']);
 				load()->classs('pay');
 				$pay = Pay::create();
 				$result = $pay->queryOrder($uniontid, 2);
-				if(is_error($result)) {
+				if (is_error($result)) {
 					message($result, '', 'ajax');
 				}
-				if($result['trade_state'] == 'SUCCESS') {
+				if ($result['trade_state'] == 'SUCCESS') {
 					$status = $pay->NoticeMicroSuccessOrder($result);
-					if(is_error($status)) {
+					if (is_error($status)) {
 						message($status, '', 'ajax');
 					}
 					message($result, '', 'ajax');
@@ -2559,26 +2494,26 @@ class We7_couponModuleSite extends WeModuleSite {
 		}
 
 
-		if($op == 'check') {
+		if ($op == 'check') {
 			$set = card_setting();
-			if(is_error($set)) {
+			if (is_error($set)) {
 				message($set, '', 'ajax');
 			}
 			$_GPC = $_GPC['__input'];
 			$cardsn = trim($_GPC['cardsn']);
 			$card_member = pdo_getall('mc_card_members', array('uniacid' => $_W['uniacid'], 'cardsn' => $cardsn));
-			if(empty($card_member)) {
+			if (empty($card_member)) {
 				message(error(-1, '卡号不存在或已经删除'), '', 'ajax');
 			}
-			if(count($card_member) > 1) {
+			if (count($card_member) > 1) {
 				message(error(-1, '卡号对应用户不唯一'), '', 'ajax');
 			}
 			$card_member = $card_member[0];
-			if($card_member['status'] != 1) {
+			if ($card_member['status'] != 1) {
 				message(error(-1, '该会员卡已被禁用'), '', 'ajax');
 			}
 			$member = pdo_get('mc_members', array('uniacid' => $_W['uniacid'], 'uid' => $card_member['uid']));
-			if(empty($member)) {
+			if (empty($member)) {
 				message(error(-1, '会员卡对应的会员不存在'), '', 'ajax');
 			}
 			$member['openid'] = $card_member['openid'];
@@ -2592,12 +2527,12 @@ class We7_couponModuleSite extends WeModuleSite {
 			$member['credit2'] = floatval($member['credit2']);
 			$member['offset_rate'] = $set['offset_rate'];
 			$member['offset_max'] = $set['offset_max'];
-			if($set['discount_type'] > 0 && !empty($set['discount'])) {
+			if ($set['discount_type'] > 0 && !empty($set['discount'])) {
 				$discount = $set['discount'][$member['groupid']];
-				if(!empty($discount)) {
+				if (!empty($discount)) {
 					$member['discount'] = $discount;
 					$member['discount_type'] = $set['discount_type'];
-					if($set['discount_type'] == 1 ) {
+					if ($set['discount_type'] == 1 ) {
 						$member['discount_cn'] = "满 {$discount['condition']} 元减 {$discount['discount']}元";
 					} else {
 						$zhe = $discount['discount'] * 10;
@@ -2612,17 +2547,16 @@ class We7_couponModuleSite extends WeModuleSite {
 
 	public function doWebSignmanage() {
 		global $_W, $_GPC;
-		uni_user_permission_check('mc_card_other');
 		$setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid']));
 		$op = trim($_GPC['op']) ? trim($_GPC['op']) : 'sign-credit';
 		if ($op == 'sign-credit') {
 			$set = pdo_get('mc_card_credit_set', array('uniacid' => $_W['uniacid']));
-			if(empty($set)) {
+			if (empty($set)) {
 				$set = array();
 			} else {
 				$set['sign'] = iunserializer($set['sign']);
 			}
-			if(checksubmit()) {
+			if (checksubmit()) {
 				$data = array(
 					'uniacid' => $_W['uniacid'],
 					'sign' => array(
@@ -2638,7 +2572,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					'content' => htmlspecialchars_decode($_GPC['content']),
 				);
 				$data['sign'] = iserializer($data['sign']);
-				if(empty($set['uniacid'])) {
+				if (empty($set['uniacid'])) {
 					pdo_insert('mc_card_credit_set', $data);
 				} else {
 					pdo_update('mc_card_credit_set', $data, array('uniacid' => $_W['uniacid']));
@@ -2649,20 +2583,21 @@ class We7_couponModuleSite extends WeModuleSite {
 		if ($op == 'record-list') {
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 20;
-			$list = pdo_fetchall("SELECT * FROM ". tablename('mc_card_sign_record'). " WHERE uniacid = :uniacid ORDER BY id DESC LIMIT " . ($pindex - 1)*$psize. ','. $psize, array(':uniacid' => $_W['uniacid']));
+			$list = pdo_fetchall("SELECT * FROM " . tablename('mc_card_sign_record') . " WHERE uniacid = :uniacid ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, array(':uniacid' => $_W['uniacid']));
 			foreach ($list as $key => &$value){
 				$value['addtime'] = date('Y-m-d H:i:s', $value['addtime']);
 				$value['realname'] = pdo_fetchcolumn("SELECT realname FROM ". tablename('mc_members'). ' WHERE uniacid = :uniacid AND uid = :uid', array(':uniacid' => $_W['uniacid'], ':uid' => $value['uid']));
 			}
+			unset($value);
 			$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ". tablename('mc_card_sign_record'). " WHERE uniacid = :uniacid", array(':uniacid' => $_W['uniacid']));
 			$pager = pagination($total, $pindex, $psize);
 		}
 		if ($op == 'sign-status') {
-			if(empty($setting)) {
+			if (empty($setting)) {
 				message(error(-1, '还没有开启会员卡,请先开启会员卡'), '', 'ajax');
 			}
 			$field = trim($_GPC['field']);
-			if(!in_array($field, array('recommend_status', 'sign_status'))) {
+			if (!in_array($field, array('recommend_status', 'sign_status'))) {
 				message(error(-1, '非法操作'), '', 'ajax');
 			}
 			pdo_update('mc_card', array($field => intval($_GPC['status'])), array('uniacid' => $_W['uniacid']));
@@ -2673,9 +2608,8 @@ class We7_couponModuleSite extends WeModuleSite {
 
 	public function doWebNoticemanage() {
 		global $_W, $_GPC;
-		uni_user_permission_check('mc_card_other');
 		$op = trim($_GPC['op']) ? trim($_GPC['op']) : 'list';
-		if($op == 'list') {
+		if ($op == 'list') {
 			$pindex = max(1, intval($_GPC['page']));
 			$psize = 30;
 			$limit = " ORDER BY id DESC LIMIT " . ($pindex -1) * $psize . ", {$psize}";
@@ -2688,15 +2622,15 @@ class We7_couponModuleSite extends WeModuleSite {
 			$notices = pdo_fetchall('SELECT * FROM ' . tablename('mc_card_notices') . " {$where} {$limit}", $param);
 			$pager = pagination($total, $pindex, $psize);
 		}
-		if($op == 'post') {
+		if ($op == 'post') {
 			$id = intval($_GPC['id']);
-			if($id > 0) {
+			if ($id > 0) {
 				$notice = pdo_get('mc_card_notices', array('uniacid' => $_W['uniacid'], 'id' => $id));
-				if(empty($notice)) {
+				if (empty($notice)) {
 					message('通知不存在或已被删除', referer(), 'error');
 				}
 			}
-			if(checksubmit()) {
+			if (checksubmit()) {
 				$title = trim($_GPC['title']) ? trim($_GPC['title']) : message('通知标题不能为空');
 				$content = trim($_GPC['content']) ? trim($_GPC['content']) : message('通知内容不能为空');
 				$data = array(
@@ -2709,7 +2643,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					'content' => htmlspecialchars_decode($_GPC['content']),
 					'addtime' => TIMESTAMP
 				);
-				if($id > 0) {
+				if ($id > 0) {
 					pdo_update('mc_card_notices', $data, array('uniacid' => $_W['uniacid'], 'id' => $id));
 				} else {
 					pdo_insert('mc_card_notices', $data);
@@ -2718,7 +2652,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 		}
 
-		if($op == 'del') {
+		if ($op == 'del') {
 			$id = intval($_GPC['id']);
 			pdo_delete('mc_card_notices', array('uniacid' => $_W['uniacid'], 'id' => $id));
 			message('删除成功', referer(), 'success');
@@ -2730,33 +2664,32 @@ class We7_couponModuleSite extends WeModuleSite {
 		global $_W, $_GPC;
 		$op = trim($_GPC['op']) ? trim($_GPC['op']) : 'index';
 		load()->model('mc');
-		uni_user_permission_check('stat_credit1');
 		$_W['page']['title'] = "积分统计-会员中心";
 		$starttime = empty($_GPC['time']['start']) ? mktime(0, 0, 0, date('m') , 1, date('Y')) : strtotime($_GPC['time']['start']);
 		$endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
 		$num = ($endtime + 1 - $starttime) / 86400;
 
-		if($op == 'index') {
+		if ($op == 'index') {
 			$clerks = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name'), 'id');
 			$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array('id', 'business_name', 'branch_name'), 'id');
 			$condition = ' WHERE uniacid = :uniacid AND credittype = :credittype AND createtime >= :starttime AND createtime <= :endtime';
 			$params = array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => $starttime, ':endtime' => $endtime);
 			$num = intval($_GPC['num']);
-			if($num > 0) {
-				if($num == 1) {
+			if ($num > 0) {
+				if ($num == 1) {
 					$condition .= ' AND num >= 0';
 				} else {
 					$condition .= ' AND num <= 0';
 				}
 			}
 			$min = intval($_GPC['min']);
-			if($min > 0 ) {
+			if ($min > 0 ) {
 				$condition .= ' AND abs(num) >= :minnum';
 				$params[':minnum'] = $min;
 			}
 
 			$max = intval($_GPC['max']);
-			if($max > 0 ) {
+			if ($max > 0 ) {
 				$condition .= ' AND abs(num) <= :maxnum';
 				$params[':maxnum'] = $max;
 			}
@@ -2771,7 +2704,7 @@ class We7_couponModuleSite extends WeModuleSite {
 				$params[':store_id'] = $store_id;
 			}
 			$user = trim($_GPC['user']);
-			if(!empty($user)) {
+			if (!empty($user)) {
 				$condition .= ' AND (uid IN (SELECT uid FROM '.tablename('mc_members').' WHERE uniacid = :uniacid AND (realname LIKE :username OR uid = :uid OR mobile LIKE :mobile)))';
 				$params[':username'] = "%{$user}%";
 				$params[':uid'] = intval($user);
@@ -2783,10 +2716,10 @@ class We7_couponModuleSite extends WeModuleSite {
 			$limit = " ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ", {$psize}";
 			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_credits_record') . $condition, $params);
 			$data = pdo_fetchall('SELECT * FROM ' . tablename('mc_credits_record') . $condition . $limit, $params);
-			if(!empty($data)) {
+			if (!empty($data)) {
 				$uids = array();
-				foreach($data as &$da) {
-					if(!in_array($da['uid'], $uids)) {
+				foreach ($data as &$da) {
+					if (!in_array($da['uid'], $uids)) {
 						$uids[] = $da['uid'];
 					}
 					$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
@@ -2801,10 +2734,10 @@ class We7_couponModuleSite extends WeModuleSite {
 
 			if ($_GPC['export'] != '') {
 				$exports = pdo_fetchall('SELECT * FROM ' . tablename('mc_credits_record') . $condition . " ORDER BY id DESC", $params);
-				if(!empty($exports)) {
+				if (!empty($exports)) {
 					$uids = array();
-					foreach($exports as &$da) {
-						if(!in_array($da['uid'], $uids)) {
+					foreach ($exports as &$da) {
+						if (!in_array($da['uid'], $uids)) {
 							$uids[] = $da['uid'];
 						}
 						$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
@@ -2840,13 +2773,13 @@ class We7_couponModuleSite extends WeModuleSite {
 							$html .= $users[$v['uid']]['realname']. "\t, ";
 						} elseif ($key == 'phone') {
 							$html .= $users[$v['uid']]['mobile']. "\t, ";
-						}elseif ($key == 'type') {
+						} elseif ($key == 'type') {
 							if ($v['num'] > 0) {
 								$html .= "充值\t, ";
 							} else {
 								$html .= "消费\t, ";
 							}
-						}elseif ($key == 'num') {
+						} elseif ($key == 'num') {
 							$html .= abs($v[$key]). "\t, ";
 						} elseif ($key == 'store') {
 							if ($v['store_id'] > 0) {
@@ -2854,7 +2787,7 @@ class We7_couponModuleSite extends WeModuleSite {
 							} else {
 								$html .= "未知\t, ";
 							}
-						}elseif ($key == 'operator') {
+						} elseif ($key == 'operator') {
 							if ($v['clerk_id'] > 0) {
 								$html .= $clerks[$v['clerk_id']]['name']. "\t, ";
 							} elseif ($v['clerk_type'] == 1) {
@@ -2862,11 +2795,11 @@ class We7_couponModuleSite extends WeModuleSite {
 							} else {
 								$html .= "未知\t, ";
 							}
-						}elseif ($key == 'createtime') {
+						} elseif ($key == 'createtime') {
 							$html .= date('Y-m-d H:i', $v['createtime']). "\t, ";
-						}elseif ($key == 'remark') {
+						} elseif ($key == 'remark') {
 							$html .= cutstr($v['remark'], '30', '...'). "\t, ";
-						}else {
+						} else {
 							$html .= $v[$key]. "\t, ";
 						}
 					}
@@ -2880,14 +2813,14 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 		}
 
-		if($op == 'chart') {
+		if ($op == 'chart') {
 			$today_recharge = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num > 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => strtotime(date('Y-m-d')), ':endtime' => TIMESTAMP)));
 			$today_consume = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num < 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => strtotime(date('Y-m-d')), ':endtime' => TIMESTAMP)));
 			$total_recharge = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num > 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => $starttime, ':endtime' => $endtime)));
 			$total_consume = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num < 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => $starttime, ':endtime' => $endtime)));
-			if($_W['isajax']) {
+			if ($_W['isajax']) {
 				$stat = array();
-				for($i = 0; $i < $num; $i++) {
+				for ($i = 0; $i < $num; $i++) {
 					$time = $i * 86400 + $starttime;
 					$key = date('m-d', $time);
 					$stat['consume'][$key] = 0;
@@ -2895,10 +2828,10 @@ class We7_couponModuleSite extends WeModuleSite {
 				}
 				$data = pdo_fetchall('SELECT id,num,credittype,createtime,uniacid FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit1', ':starttime' => $starttime, ':endtime' => $endtime));
 
-				if(!empty($data)) {
-					foreach($data as $da) {
+				if (!empty($data)) {
+					foreach ($data as $da) {
 						$key = date('m-d', $da['createtime']);
-						if($da['num'] > 0) {
+						if ($da['num'] > 0) {
 							$stat['recharge'][$key] += $da['num'];
 						} else {
 							$stat['consume'][$key] += abs($da['num']);
@@ -2919,37 +2852,36 @@ class We7_couponModuleSite extends WeModuleSite {
 		global $_W, $_GPC;
 		$op = trim($_GPC['op']) ? trim($_GPC['op']) : 'index';
 		load()->model('mc');
-		uni_user_permission_check('stat_credit2');
 		$_W['page']['title'] = "余额统计-会员中心";
 		$starttime = empty($_GPC['time']['start']) ? mktime(0, 0, 0, date('m') , 1, date('Y')) : strtotime($_GPC['time']['start']);
 		$endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
 		$num = ($endtime + 1 - $starttime) / 86400;
 
-		if($op == 'index') {
+		if ($op == 'index') {
 			$clerks = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name'), 'id');
 			$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array('id', 'business_name', 'branch_name'), 'id');
 			$condition = ' WHERE uniacid = :uniacid AND credittype = :credittype AND createtime >= :starttime AND createtime <= :endtime';
 			$params = array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => $starttime, ':endtime' => $endtime);
-			if(intval($_W['user']['clerk_type']) == ACCOUNT_OPERATE_CLERK) {
+			if (intval($_W['user']['clerk_type']) == ACCOUNT_OPERATE_CLERK) {
 				$condition .= ' AND clerk_id = :clerk_id';
 				$params[':clerk_id'] = $_W['user']['clerk_id'];
 			}
 			$num = intval($_GPC['num']);
-			if($num > 0) {
-				if($num == 1) {
+			if ($num > 0) {
+				if ($num == 1) {
 					$condition .= ' AND num >= 0';
 				} else {
 					$condition .= ' AND num <= 0';
 				}
 			}
 			$min = intval($_GPC['min']);
-			if($min > 0 ) {
+			if ($min > 0 ) {
 				$condition .= ' AND abs(num) >= :minnum';
 				$params[':minnum'] = $min;
 			}
 
 			$max = intval($_GPC['max']);
-			if($max > 0 ) {
+			if ($max > 0 ) {
 				$condition .= ' AND abs(num) <= :maxnum';
 				$params[':maxnum'] = $max;
 			}
@@ -2965,7 +2897,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 
 			$user = trim($_GPC['user']);
-			if(!empty($user)) {
+			if (!empty($user)) {
 				$condition .= ' AND (uid IN (SELECT uid FROM '.tablename('mc_members').' WHERE uniacid = :uniacid AND (realname LIKE :username OR uid = :uid OR mobile LIKE :mobile)))';
 				$params[':username'] = "%{$user}%";
 				$params[':uid'] = intval($user);
@@ -2978,11 +2910,11 @@ class We7_couponModuleSite extends WeModuleSite {
 			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_credits_record') . $condition, $params);
 			$data = pdo_fetchall('SELECT * FROM ' . tablename('mc_credits_record') . $condition . $limit, $params);
 
-			if(!empty($data)) {
+			if (!empty($data)) {
 				load()->model('clerk');
 				$uids = array();
-				foreach($data as &$da) {
-					if(!in_array($da['uid'], $uids)) {
+				foreach ($data as &$da) {
+					if (!in_array($da['uid'], $uids)) {
 						$uids[] = $da['uid'];
 					}
 					$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
@@ -2996,11 +2928,11 @@ class We7_couponModuleSite extends WeModuleSite {
 			$pager = pagination($total, $pindex, $psize);
 			if ($_GPC['export'] != '') {
 				$exports = pdo_fetchall('SELECT * FROM '.tablename('mc_credits_record'). $condition . ' ORDER BY id DESC', $params);
-				if(!empty($exports)) {
+				if (!empty($exports)) {
 					load()->model('clerk');
 					$uids = array();
-					foreach($exports as &$da) {
-						if(!in_array($da['uid'], $uids)) {
+					foreach ($exports as &$da) {
+						if (!in_array($da['uid'], $uids)) {
 							$uids[] = $da['uid'];
 						}
 						$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
@@ -3036,14 +2968,13 @@ class We7_couponModuleSite extends WeModuleSite {
 							$html .= $user[$v['uid']]['realname']. "\t, ";
 						} elseif ($key == 'phone') {
 							$html .= $user[$v['uid']]['mobile']. "\t, ";
-						}elseif ($key == 'type') {
+						} elseif ($key == 'type') {
 							if ($v['num'] > 0) {
 								$html .= "充值\t, ";
 							} else {
 								$html .= "消费\t, ";
 							}
-						}
-						elseif ($key == 'num') {
+						} elseif ($key == 'num') {
 							$html .= abs($v[$key]). "\t, ";
 						} elseif ($key == 'store') {
 							if ($v['store_id'] > 0) {
@@ -3051,19 +2982,19 @@ class We7_couponModuleSite extends WeModuleSite {
 							} else {
 								$html .= "未知\t, ";
 							}
-						}elseif ($key == 'operator') {
+						} elseif ($key == 'operator') {
 							if ($v['clerk_id'] > 0) {
 								$html .= $v['clerk_cn']. "\t, ";
 							} elseif ($v['clerk_type'] == 1) {
 								$html .= "系统\t, ";
-							}else {
+							} else {
 								$html .= "未知\t, ";
 							}
-						}elseif ($key == 'createtime') {
+						} elseif ($key == 'createtime') {
 							$html .= date('Y-m-d H:i', $v['createtime']). "\t, ";
-						}elseif ($key == 'remark') {
+						} elseif ($key == 'remark') {
 							$html .= cutstr($v['remark'], '30', '...'). "\t, ";
-						}else {
+						} else {
 							$html .= $v[$key]. "\t, ";
 						}
 					}
@@ -3077,14 +3008,14 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 		}
 
-		if($op == 'chart') {
+		if ($op == 'chart') {
 			$today_recharge = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num > 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => strtotime(date('Y-m-d')), ':endtime' => TIMESTAMP)));
 			$today_consume = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num < 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => strtotime(date('Y-m-d')), ':endtime' => TIMESTAMP)));
 			$total_recharge = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num > 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => $starttime, ':endtime' => $endtime)));
 			$total_consume = floatval(pdo_fetchcolumn('SELECT SUM(num) FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND num < 0 AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => $starttime, ':endtime' => $endtime)));
-			if($_W['isajax']) {
+			if ($_W['isajax']) {
 				$stat = array();
-				for($i = 0; $i < $num; $i++) {
+				for ($i = 0; $i < $num; $i++) {
 					$time = $i * 86400 + $starttime;
 					$key = date('m-d', $time);
 					$stat['consume'][$key] = 0;
@@ -3092,10 +3023,10 @@ class We7_couponModuleSite extends WeModuleSite {
 				}
 				$data = pdo_fetchall('SELECT id,num,credittype,createtime,uniacid FROM ' . tablename('mc_credits_record') . ' WHERE uniacid = :uniacid AND credittype = :credittype AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':credittype' => 'credit2', ':starttime' => $starttime, ':endtime' => $endtime));
 
-				if(!empty($data)) {
-					foreach($data as $da) {
+				if (!empty($data)) {
+					foreach ($data as $da) {
 						$key = date('m-d', $da['createtime']);
-						if($da['num'] > 0) {
+						if ($da['num'] > 0) {
 							$stat['recharge'][$key] += $da['num'];
 						} else {
 							$stat['consume'][$key] += abs($da['num']);
@@ -3116,18 +3047,17 @@ class We7_couponModuleSite extends WeModuleSite {
 		global $_W, $_GPC;
 		$op = trim($_GPC['op']) ? trim($_GPC['op']) : 'index';
 		load()->model('mc');
-		uni_user_permission_check('stat_cash');
 		$_W['page']['title'] = "现金统计-会员中心";
 		$starttime = empty($_GPC['time']['start']) ? mktime(0, 0, 0, date('m') , 1, date('Y')) : strtotime($_GPC['time']['start']);
 		$endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
 		$num = ($endtime + 1 - $starttime) / 86400;
 
-		if($op == 'chart') {
+		if ($op == 'chart') {
 			$today_consume = floatval(pdo_fetchcolumn('SELECT SUM(final_cash) FROM ' . tablename('mc_cash_record') . ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => strtotime(date('Y-m-d')), ':endtime' => TIMESTAMP)));
 			$total_consume = floatval(pdo_fetchcolumn('SELECT SUM(final_cash) FROM ' . tablename('mc_cash_record') . ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime)));
-			if($_W['isajax']) {
+			if ($_W['isajax']) {
 				$stat = array();
-				for($i = 0; $i < $num; $i++) {
+				for ($i = 0; $i < $num; $i++) {
 					$time = $i * 86400 + $starttime;
 					$key = date('m-d', $time);
 					$stat['consume'][$key] = 0;
@@ -3136,20 +3066,19 @@ class We7_couponModuleSite extends WeModuleSite {
 
 				$data = pdo_fetchall('SELECT * FROM ' . tablename('mc_cash_record') . ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime));
 
-				if(!empty($data)) {
-					foreach($data as $da) {
+				if (!empty($data)) {
+					foreach ($data as $da) {
 						$key = date('m-d', $da['createtime']);
 						$stat['consume'][$key] += abs($da['final_cash']);
 					}
 				}
-
 				$out['label'] = array_keys($stat['consume']);
 				$out['datasets'] = array('recharge' => array_values($stat['recharge']), 'consume' => array_values($stat['consume']));
 				exit(json_encode($out));
 			}
 		}
 
-		if($op == 'index') {
+		if ($op == 'index') {
 			$clerks = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name'), 'id');
 			$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array('id', 'business_name', 'branch_name'), 'id');
 
@@ -3160,13 +3089,13 @@ class We7_couponModuleSite extends WeModuleSite {
 				$current_clerk_id = $_W['user']['clerk_id'];
 				$condition .= " AND clerk_type = 3 AND clerk_id = {$current_clerk_id}";
 			}
-			if($min > 0 ) {
+			if ($min > 0 ) {
 				$condition .= ' AND abs(final_fee) >= :minnum';
 				$params[':minnum'] = $min;
 			}
 
 			$max = intval($_GPC['max']);
-			if($max > 0 ) {
+			if ($max > 0 ) {
 				$condition .= ' AND abs(final_fee) <= :maxnum';
 				$params[':maxnum'] = $max;
 			}
@@ -3182,7 +3111,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 
 			$user = trim($_GPC['user']);
-			if(!empty($user)) {
+			if (!empty($user)) {
 				$condition .= ' AND (uid IN (SELECT uid FROM '.tablename('mc_members').' WHERE uniacid = :uniacid AND (realname LIKE :username OR uid = :uid OR mobile LIKE :mobile)))';
 				$params[':username'] = "%{$user}%";
 				$params[':uid'] = intval($user);
@@ -3195,11 +3124,11 @@ class We7_couponModuleSite extends WeModuleSite {
 			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_cash_record') . $condition, $params);
 			$data = pdo_fetchall('SELECT * FROM ' . tablename('mc_cash_record') . $condition . $limit, $params);
 
-			if(!empty($data)) {
+			if (!empty($data)) {
 				load()->model('clerk');
 				$uids = array();
-				foreach($data as &$da) {
-					if(!in_array($da['uid'], $uids)) {
+				foreach ($data as &$da) {
+					if (!in_array($da['uid'], $uids)) {
 						$uids[] = $da['uid'];
 					}
 					$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
@@ -3263,7 +3192,7 @@ class We7_couponModuleSite extends WeModuleSite {
 							$html .= $user[$v['uid']]['mobile'] . "\t, ";
 						}  elseif ($key == 'createtime') {
 							$html .= date ('Y-m-d H:i', $v['createtime']) . "\t, ";
-						}else {
+						} else {
 							$html .= $v[$key] . "\t, ";
 						}
 					}
@@ -3284,21 +3213,20 @@ class We7_couponModuleSite extends WeModuleSite {
 		global $_W, $_GPC;
 		$op = trim($_GPC['op']) ? trim($_GPC['op']) : 'index';
 		load()->model('mc');
-		uni_user_permission_check('stat_card');
 		$_W['page']['title'] = "会员卡领卡统计-会员中心";
 		$starttime = empty($_GPC['time']['start']) ? mktime(0, 0, 0, date('m') , 1, date('Y')) : strtotime($_GPC['time']['start']);
 		$endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
 		$num = ($endtime + 1 - $starttime) / 86400;
-		if($_W['isajax']) {
+		if ($_W['isajax']) {
 			$stat = array();
-			for($i = 0; $i < $num; $i++) {
+			for ($i = 0; $i < $num; $i++) {
 				$time = $i * 86400 + $starttime;
 				$key = date('m-d', $time);
 				$stat[$key] = 0;
 			}
 			$data = pdo_fetchall('SELECT id,createtime FROM ' . tablename('mc_card_members') . ' WHERE uniacid = :uniacid AND createtime >= :starttime AND createtime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime));
-			if(!empty($data)) {
-				foreach($data as $da) {
+			if (!empty($data)) {
+				foreach ($data as $da) {
 					$key = date('m-d', $da['createtime']);
 					$stat[$key] += 1;
 				}
@@ -3323,7 +3251,7 @@ class We7_couponModuleSite extends WeModuleSite {
 		load()->model('paycenter');
 		$_W['page']['title'] = "收银台收银统计-会员中心";
 
-		if($op == 'index') {
+		if ($op == 'index') {
 			$clerks = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name'), 'id');
 			$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid'], 'source' => COUPON_TYPE), array('id', 'business_name', 'branch_name'), 'id');
 			$pindex = max(1, intval($_GPC['page']));
@@ -3345,7 +3273,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			$orders = pdo_fetchall('SELECT * FROM ' . tablename('paycenter_order') . $condition . $limit, $params);
 			$pager = pagination($total, $pindex, $psize);
 			$status = paycenter_order_status();
-			if(!empty($orders)) {
+			if (!empty($orders)) {
 				foreach ($orders as &$value) {
 					$operator = mc_account_change_operator($value['clerk_type'], $value['store_id'], $value['clerk_id']);
 					$value['clerk_cn'] = $operator['clerk_cn'];
@@ -3355,13 +3283,13 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 		}
 
-		if($op == 'detail') {
-			if($_W['isajax']) {
+		if ($op == 'detail') {
+			if ($_W['isajax']) {
 				$id = intval($_GPC['id']);
 				$order = pdo_get('paycenter_order', array('uniacid' => $_W['uniacid'], 'id' => $id));
-				if(empty($order)) {
+				if (empty($order)) {
 					$info = '订单不存在';
-				} elseif($order['status'] == 0) {
+				} elseif ($order['status'] == 0) {
 					$info = '订单尚未支付';
 				} else {
 					$order['createtime_text'] = date('Y-m-d H:i:s', $order['createtime']);
@@ -3376,7 +3304,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 		}
 
-		if($op == 'chart') {
+		if ($op == 'chart') {
 			$today_starttime = strtotime(date('Y-m-d'));
 			$today_endtime = $today_starttime + 86400;
 			$yesterday_starttime = $today_starttime - 86400;
@@ -3387,8 +3315,8 @@ class We7_couponModuleSite extends WeModuleSite {
 			$yesterday_fee = floatval(pdo_fetchcolumn('SELECT SUM(final_fee) FROM ' . tablename('paycenter_order') . ' WHERE uniacid = :uniacid AND status = 1 AND paytime >= :starttime AND paytime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $yesterday_starttime, ':endtime' => $yesterday_endtime)));
 			$month_fee = floatval(pdo_fetchcolumn('SELECT SUM(final_fee) FROM ' . tablename('paycenter_order') . ' WHERE uniacid = :uniacid AND status = 1 AND paytime >= :starttime AND paytime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => strtotime($month_starttime), ':endtime' => $month_endtime)));
 			$type = trim($_GPC['type']);
-			if($_W['isajax']) {
-				if($type == 'date') {
+			if ($_W['isajax']) {
+				if ($type == 'date') {
 					$now = strtotime(date('Y-m-d'));
 					$starttime = empty($_GPC['start']) ? $now - 30*86400 : strtotime($_GPC['start']);
 					$endtime = empty($_GPC['end']) ? TIMESTAMP : strtotime($_GPC['end']) + 86399;
@@ -3397,14 +3325,14 @@ class We7_couponModuleSite extends WeModuleSite {
 					$stat = array(
 						'flow1' => array()
 					);
-					for($i = 0; $i < $num; $i++) {
+					for ($i = 0; $i < $num; $i++) {
 						$time = $i * 86400 + $starttime;
 						$key = date('m-d', $time);
 						$stat['flow1'][$key] = 0;
 					}
 					$data = pdo_fetchall('SELECT id, final_fee, paytime, uniacid FROM ' . tablename('paycenter_order') . ' WHERE uniacid = :uniacid AND status = 1 AND paytime >= :starttime AND paytime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime));
-					if(!empty($data)) {
-						foreach($data as $da) {
+					if (!empty($data)) {
+						foreach ($data as $da) {
 							$key = date('m-d', $da['paytime']);
 							$stat['flow1'][$key] += $da['final_fee'];
 						}
@@ -3424,14 +3352,14 @@ class We7_couponModuleSite extends WeModuleSite {
 					$stat = array(
 						'flow1' => array()
 					);
-					for($i = 0; $i < $num; $i++) {
+					for ($i = 0; $i < $num; $i++) {
 						$time = $i * 86400 + $starttime;
 						$key = date('Y-m', $time);
 						$stat['flow1'][$key] = 0;
 					}
 					$data = pdo_fetchall('SELECT id, final_fee, paytime, uniacid FROM ' . tablename('paycenter_order') . ' WHERE uniacid = :uniacid AND status = 1 AND paytime >= :starttime AND paytime <= :endtime', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime));
-					if(!empty($data)) {
-						foreach($data as $da) {
+					if (!empty($data)) {
+						foreach ($data as $da) {
 							$key = date('Y-m', $da['paytime']);
 							$stat['flow1'][$key] += $da['final_fee'];
 						}
@@ -3460,11 +3388,11 @@ class We7_couponModuleSite extends WeModuleSite {
 		$notice_count = card_notice_stat();
 		$op = trim($_GPC['op']) ? trim($_GPC['op']) : 'mycard';
 		$setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid']));
-		if($op == 'sign_display') {
+		if ($op == 'sign_display') {
 			$title = '签到-会员卡';
 			$credit_set = card_credit_setting();
 			$sign_set = $credit_set['sign'];
-			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_card_sign_record') . ' WHERE uniacid = :uniacid AND uid = :uid', array(':uniacid' => $_W['uniacid'], ':uid' => $_W['member']['uid']));
+			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_card_sign_record') . ' WHERE uniacid = :uniacid AND uid = :uid AND addtime >= :addtime', array(':uniacid' => $_W['uniacid'], ':uid' => $_W['member']['uid'], ':addtime' => strtotime(date("Y-m-1",time()))));
 			$current_month_days = date('t', TIMESTAMP);
 			$sign_rules = array(
 				$sign_set['first_group_day'] => $sign_set['first_group_num'],
@@ -3492,7 +3420,7 @@ class We7_couponModuleSite extends WeModuleSite {
 				'addtime' => TIMESTAMP,
 			);
 			$today_signed = pdo_get('mc_card_sign_record', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid'], 'addtime >' => strtotime(date('Y-m-d'))), 'id');
-			if(empty($today_signed)) {
+			if (empty($today_signed)) {
 				$status = pdo_insert('mc_card_sign_record', $data);
 				if (!empty($status) && $today_sign_credit > 0) {
 					$log = "用户签到赠送【{$today_sign_credit}】积分";
@@ -3503,7 +3431,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 		}
 
-		if($op == 'sign_record') {
+		if ($op == 'sign_record') {
 			$title = '签到记录-会员卡';
 			$psize = 20;
 			$pindex = max(1, intval($_GPC['page']));
@@ -3511,11 +3439,11 @@ class We7_couponModuleSite extends WeModuleSite {
 			if ($period == '1') {
 				$starttime = date('Ym01',strtotime(0));
 				$endtime = date('Ymd His', time());
-			} elseif($period == '0') {
-				$starttime = date('Ym01', strtotime(1*$period . "month"));
+			} elseif ($period == '0') {
+				$starttime = date('Ym01', strtotime(1 * $period . "month"));
 				$endtime = date('Ymd', strtotime("$starttime + 1 month - 1 day"));
 			} else {
-				$starttime = date('Ym01', strtotime(1*$period . "month"));
+				$starttime = date('Ym01', strtotime(1 * $period . "month"));
 				$endtime = date('Ymd', strtotime("$starttime + 1 month - 1 day"));
 			}
 			$where = '';
@@ -3531,7 +3459,8 @@ class We7_couponModuleSite extends WeModuleSite {
 			foreach ($data as &$value) {
 				$value['addtime'] = date('Y.m.d', $value['addtime']);
 			}
-			if($_W['isajax'] && $_W['ispost']) {
+			unset($value);
+			if ($_W['isajax'] && $_W['ispost']) {
 				if (!empty($data)){
 					message(error(0, $data), '', 'ajax');
 				} else {
@@ -3540,16 +3469,16 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 		}
 
-		if($op == 'sign_strategy') {
+		if ($op == 'sign_strategy') {
 			$set = card_credit_setting();
 			$content = $set['content'];
 		}
 
-		if($op == 'notice') {
+		if ($op == 'notice') {
 			$title = '系统消息-会员卡';
-			if($_W['isajax']) {
+			if ($_W['isajax']) {
 				$id = intval($_GPC['id']);
-				if($id > 0) {
+				if ($id > 0) {
 					pdo_update('mc_card_notices_unread', array('is_new' => 0), array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid'], 'notice_id' => $id));
 					$total = card_notice_stat();
 					exit($total);
@@ -3566,7 +3495,7 @@ class We7_couponModuleSite extends WeModuleSite {
 		/*会员卡中心*/
 		if ($op == 'receive_card') {
 			$mcard = pdo_get('mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']), array('id'));
-			if(!empty($mcard)) {
+			if (!empty($mcard)) {
 				header('Location:' . $this->createMobileurl('card', array('op' => 'mycard')));
 				exit;
 			}
@@ -3591,14 +3520,14 @@ class We7_couponModuleSite extends WeModuleSite {
 				message('公众号尚未开启会员卡功能', $this->createMobileurl('card'), 'error');
 			}
 
-			if(!empty($setting['fields'])) {
+			if (!empty($setting['fields'])) {
 				$fields = array('email');
-				foreach($setting['fields'] as $li) {
-					if($li['bind'] == 'birth') {
+				foreach ($setting['fields'] as $li) {
+					if ($li['bind'] == 'birth') {
 						$fields[] = 'birthyear';
 						$fields[] = 'birthmonth';
 						$fields[] = 'birthday';
-					} elseif($li['bind'] == 'reside') {
+					} elseif ($li['bind'] == 'reside') {
 						$fields[] = 'resideprovince';
 						$fields[] = 'residecity';
 						$fields[] = 'residedist';
@@ -3608,7 +3537,7 @@ class We7_couponModuleSite extends WeModuleSite {
 				}
 				$member_info = mc_fetch($_W['member']['uid'], $fields);
 				$reregister = 0;
-				if(strlen($member_info['email']) == 39 && strexists($member_info['email'], '@we7.cc')) {
+				if (strlen($member_info['email']) == 39 && strexists($member_info['email'], '@we7.cc')) {
 					$member_info['email'] = '';
 					$reregister = 1;
 				}
@@ -3616,7 +3545,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			if ($_W['isajax'] && $_W['ispost']) {
 				$data = array();
 				$realname = trim($_GPC['realname']);
-				if(empty($realname)) {
+				if (empty($realname)) {
 					message('请输入姓名', referer(), 'info');
 				}
 				$data['realname'] = $realname;
@@ -3644,7 +3573,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					}
 				}
 				$check = mc_check($data);
-				if(is_error($check)) {
+				if (is_error($check)) {
 					message($check['message'], referer(), 'error');
 				}
 				/*判断会员是否已经领取过*/
@@ -3665,14 +3594,14 @@ class We7_couponModuleSite extends WeModuleSite {
 					'endtime' => TIMESTAMP
 				);
 
-				if(pdo_insert('mc_card_members', $record)) {
-					if(!empty($data)){
+				if (pdo_insert('mc_card_members', $record)) {
+					if (!empty($data)){
 						mc_update($_W['member']['uid'], $data);
 					}
 					//赠送积分.余额.优惠券
 					$notice = '';
-					if(is_array($setting['grant'])) {
-						if($setting['grant']['credit1'] > 0) {
+					if (is_array($setting['grant'])) {
+						if ($setting['grant']['credit1'] > 0) {
 							$log = array(
 								$_W['member']['uid'],
 								"领取会员卡，赠送{$setting['grant']['credit1']}积分"
@@ -3680,7 +3609,7 @@ class We7_couponModuleSite extends WeModuleSite {
 							mc_credit_update($_W['member']['uid'], 'credit1', $setting['grant']['credit1'], $log);
 							$notice .= "赠送【{$setting['grant']['credit1']}】积分";
 						}
-						if($setting['grant']['credit2'] > 0) {
+						if ($setting['grant']['credit2'] > 0) {
 							$log = array(
 								$_W['member']['uid'],
 								"领取会员卡，赠送{$setting['credit2']['credit1']}余额"
@@ -3690,8 +3619,8 @@ class We7_couponModuleSite extends WeModuleSite {
 						}
 						if (!empty($setting['grant']['coupon']) && is_array($setting['grant']['coupon'])) {
 							foreach ($setting['grant']['coupon'] as $grant_coupon) {
-								$status = activity_coupon_grant($grant_coupon['coupon'], $_W['member']['uid']);
-								if(!is_error($status)) {
+								$status = we7_coupon_activity_coupon_grant($grant_coupon['coupon'], $_W['member']['uid']);
+								if (!is_error($status)) {
 									$coupon_title .= ",{$grant_coupon['couponTitle']}";
 								}
 							}
@@ -3716,22 +3645,22 @@ class We7_couponModuleSite extends WeModuleSite {
 		if ($op == 'mycard') {
 			$mcard = pdo_get('mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
 			$title = $setting['title'];
-			if(empty($mcard)) {
+			if (empty($mcard)) {
 				header('Location:' . $this->createMobileurl('card', array('op' => 'receive_card')));
 			}
 			$new_notice_total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_card_notices_unread') . ' WHERE uniacid = :uniacid AND uid = :uid AND type = :type AND is_new = :is_new', array(':uniacid' => $_W['uniacid'], ':uid' => $_W['member']['uid'], ':type' => '1', ':is_new' => '1'));
-			if(empty($mcard['openid']) && !empty($_W['openid'])) {
+			if (empty($mcard['openid']) && !empty($_W['openid'])) {
 				pdo_update('mc_card_members', array('openid' => $_W['openid']), array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
 			}
 			if (!empty($mcard['status'])) {
 				$setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid']));
-				if(!empty($setting)) {
+				if (!empty($setting)) {
 					$setting['color'] = iunserializer($setting['color']);
 					$setting['background'] = iunserializer($setting['background']);;
 				}
 			}
 			load()->model('activity');
-			$coupons = activity_coupon_owned();
+			$coupons = we7_coupon_activity_coupon_owned();
 			$nums_recharge = iunserializer($setting['nums']);
 			$times_recharge = iunserializer($setting['times']);
 			$total = count($coupons);
@@ -3815,7 +3744,7 @@ class We7_couponModuleSite extends WeModuleSite {
 		}
 
 		/*增加次数*/
-		if($op == 'add_recharge') {
+		if ($op == 'add_recharge') {
 			$type = trim($_GPC['type']);
 			$mcard = pdo_get('mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
 			$mcard['status'] = '1';
@@ -3825,7 +3754,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 		}
 
-		if($op == 'recharge_record') {
+		if ($op == 'recharge_record') {
 			$period = $_GPC['period'];
 			$period_date = ($period == '1') ? date('Y.m', strtotime('now')) : date('Y.m', strtotime('now' . ($_GPC['period'] * 1) . ' month'));
 			$starttime = ($period == '1') ? date('Ym01') : date('Ym01', strtotime(1*$period . "month"));
@@ -3881,7 +3810,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					}
 				}
 			}
-			if(checksubmit()) {
+			if (checksubmit()) {
 				$fee = trim($_GPC['fee']);
 				$store_id = intval($_GPC['store_id']);
 				$body = '会员卡消费' . $fee . '元';
@@ -3926,7 +3855,7 @@ class We7_couponModuleSite extends WeModuleSite {
 		if ($period == '1') {
 			$starttime = date('Ym01',strtotime(0));
 			$endtime = date('Ymd His', time());
-		} elseif($period == '0') {
+		} elseif ($period == '0') {
 			$starttime = date('Ym01', strtotime(1*$period . "month"));
 			$endtime = date('Ymd', strtotime("$starttime + 1 month - 1 day"));
 		} else {
@@ -4006,7 +3935,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			$pagenums = ceil($total / $psize);
 		}
 		
-		if($_W['isajax'] && $_W['ispost']) {
+		if ($_W['isajax'] && $_W['ispost']) {
 			if (!empty($data)){
 				exit(json_encode($data));
 			} else {
@@ -4061,8 +3990,8 @@ class We7_couponModuleSite extends WeModuleSite {
 		$colors = activity_coupon_colors();
 		$op = trim($_GPC['op']) ? trim($_GPC['op']) : 'display';
 		$activity_type = trim($_GPC['activity_type']) ? trim($_GPC['activity_type']) : 'coupon';
-		$cachekey = "modulesetting:{$_W['uniacid']}:we7_coupon";
-		$we7_coupon_settings = cache_load($cachekey);
+		$we7_coupon_info = module_fetch('we7_coupon');
+		$we7_coupon_settings = $we7_coupon_info['config'];
 		if ($activity_type == 'coupon') {
 			//兑换列表
 			if($op == 'display') {
@@ -4072,7 +4001,7 @@ class We7_couponModuleSite extends WeModuleSite {
 				$user = mc_fetch($_W['member']['uid'], array('groupid'));
 				$fan = pdo_get('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
 				$groupid = $user['groupid'];
-				$exchanges = pdo_fetchall("SELECT * FROM ". tablename('activity_exchange')." WHERE uniacid = :uniacid AND type = ".COUPON_TYPE." AND status = '1' AND starttime <= :time AND endtime >= :time", array(':uniacid' => $_W['uniacid'], ':time' => strtotime(date('Y-m-d'))), 'extra');
+				$exchanges = pdo_getall('activity_exchange', array('type' => COUPON_TYPE, 'uniacid' => $_W['uniacid'], 'status' => 1, 'starttime <=' => strtotime(date('Y-m-d')), 'endtime >=' => strtotime(date('Y-m-d'))), '', 'extra');
 				foreach ($exchanges as $key => &$list) {
 					$coupon_info = activity_coupon_info($list['extra']);
 					$exchange_lists[$list['extra']] = $coupon_info;
@@ -4100,7 +4029,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					}
 					if (!empty($_W['current_module'])) {
 						$coupon_modules = pdo_getall('coupon_modules', array('uniacid' => $_W['uniacid'], 'couponid' => $list['extra']), array(), 'module');
-						if (!empty($coupon_modules) && empty($coupon_modules[$_W['current_module']['name']])) {
+						if (!empty($coupon_modules) && empty($coupon_modules[$_W['current_module']['name']]) && $_W['current_module']['name'] != 'we7_coupon') {
 							unset($exchange_lists[$list['extra']]);
 							continue;
 						}
@@ -4111,9 +4040,10 @@ class We7_couponModuleSite extends WeModuleSite {
 						$exchange_lists[$list['extra']]['extra_func']['pic'] = 'resource/images/icon-signed.png';
 					}
 				}
+				unset($list);
 			}
 			//兑换过程
-			if($op == 'exchange') {
+			if ($op == 'exchange') {
 				if ($we7_coupon_settings['exchange_enable'] != '1') {
 					message(error(-1, '未开启兑换功能'), '', 'ajax');
 				}
@@ -4136,7 +4066,7 @@ class We7_couponModuleSite extends WeModuleSite {
 				if ($activity_exchange['endtime'] < strtotime(date('Y-m-d'))) {
 					message(error(-1, '活动已结束'), '', 'ajax');
 				}
-				$status = activity_coupon_grant($id, $_W['member']['uid']);
+				$status = we7_coupon_activity_coupon_grant($id, $_W['member']['uid']);
 				if (is_error($status)) {
 					message(error(-1, $status['message']), '', 'ajax');
 				} else {
@@ -4157,13 +4087,13 @@ class We7_couponModuleSite extends WeModuleSite {
 				}
 			}
 			//我的代金券
-			if($op == 'mine') {
+			if ($op == 'mine') {
 				$title = '我的卡券';
-				activity_coupon_give();
-				$coupon_records = activity_coupon_owned();
+				we7_coupon_activity_coupon_give();
+				$coupon_records = we7_coupon_activity_coupon_owned();
 			}
 			//使用代金券
-			if($op == 'use') {
+			if ($op == 'use') {
 				$recid = intval($_GPC['recid']);
 				$coupon_record = pdo_get('coupon_record', array('id' => $recid));
 				$coupon_info = activity_coupon_info(trim($coupon_record['couponid']));
@@ -4206,7 +4136,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			if ($op == 'opencard') {
 				$id = intval($_GPC['id']);
 				$code = trim($_GPC['code']);
-				if($_W['isajax'] && $_W['ispost']) {
+				if ($_W['isajax'] && $_W['ispost']) {
 					$card = $coupon_api->BuildCardExt($id);
 					if (is_error($card)) {
 						message(error(1, $card['message']), '', 'ajax');
@@ -4219,7 +4149,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 			if ($op == 'addcard') {
 				$id = intval($_GPC['id']);
-				if($_W['isajax'] && $_W['ispost']) {
+				if ($_W['isajax'] && $_W['ispost']) {
 					$card = $coupon_api->BuildCardExt($id);
 					if (is_error($card)) {
 						message(error(1, $card['message']), '', 'ajax');
@@ -4231,20 +4161,21 @@ class We7_couponModuleSite extends WeModuleSite {
 		} elseif ($activity_type == 'goods') {
 			$profile = mc_fetch($_W['member']['uid']);
 			//真实物品列表
-			if($op == 'display') {
+			if ($op == 'display') {
 				if ($we7_coupon_settings['exchange_enable'] != '1') {
 					message('未开启兑换功能');
 				}
 				$lists = pdo_fetchall('SELECT id,title,extra,thumb,type,credittype,endtime,description,credit FROM ' . tablename('activity_exchange') . ' WHERE uniacid = :uniacid AND type = :type AND endtime > :endtime AND status = 1 ORDER BY endtime ASC ', array(':uniacid' => $_W['uniacid'], ':type' => 3, ':endtime' => TIMESTAMP));
-				foreach($lists as &$li) {
+				foreach ($lists as &$li) {
 					$li['extra'] = iunserializer($li['extra']);
 					if(!is_array($li['extra'])) {
 						$li['extra'] = array();
 					}
 				}
+				unset($li);
 			}
 			//兑换过程
-			if($op == 'post') {
+			if ($op == 'post') {
 				if ($we7_coupon_settings['exchange_enable'] != '1') {
 					message(error(-1, '未开启兑换功能'), '', 'ajax');
 				}
@@ -4264,7 +4195,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					}
 				}
 				$goods = activity_exchange_info($id, $_W['uniacid']);
-				if(empty($goods)){
+				if (empty($goods)){
 					message(error(-1, '没有指定的礼品兑换'), '', 'ajax');
 				}
 				$credit = mc_credit_fetch($_W['member']['uid'], array($goods['credittype']));
@@ -4272,13 +4203,13 @@ class We7_couponModuleSite extends WeModuleSite {
 					message(error(-1, "{$creditnames[$goods['credittype']]}不足"), '', 'ajax');
 				}
 				$ret = activity_goods_grant($_W['member']['uid'], $id);
-				if(is_error($ret)) {
+				if (is_error($ret)) {
 					message($ret, '', 'ajax');
 				}
 				pdo_update('activity_exchange_trades_shipping', $shipping_data, array('tid' => $ret));
 				mc_credit_update($_W['member']['uid'], $goods['credittype'], -1 * $goods['credit'], array($_W['member']['uid'], '礼品兑换:' . $goods['title'] . ' 消耗 ' . $creditnames[$goods['credittype']] . ':' . $goods['credit']));
 				//微信通知
-				if($goods['credittype'] == 'credit1') {
+				if ($goods['credittype'] == 'credit1') {
 					mc_notice_credit1($_W['openid'], $_W['member']['uid'], -1 * $goods['credit'], '兑换礼品消耗积分');
 				} else {
 					mc_notice_credit2($_W['openid'], $_W['member']['uid'], -1 * $goods['credit'], 0, '线上消费，兑换礼品');
@@ -4286,7 +4217,7 @@ class We7_couponModuleSite extends WeModuleSite {
 				message(error($ret, "兑换成功"), $this->createMobileurl('activity', array('activity_type' => 'goods', 'op' => 'mine')), 'ajax');
 			}
 			//收获地址
-			if($op == 'deliver') {
+			if ($op == 'deliver') {
 				$tid = intval($_GPC['tid']);//收货人信息id
 				$id = intval($_GPC['id']);
 				$type = trim($_GPC['type']);
@@ -4314,7 +4245,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					$address_data = pdo_get('activity_exchange_trades_shipping', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid'], 'tid' => $tid));
 					$address_data['username'] = $address_data['name'];
 				}
-				if($_W['isajax']) {
+				if ($_W['isajax']) {
 					$data = array(
 						'name' => trim($_GPC['username']),
 						'mobile' => trim($_GPC['mobile']),
@@ -4329,25 +4260,26 @@ class We7_couponModuleSite extends WeModuleSite {
 				}
 			}
 			//我的实物
-			if($op == 'mine') {
+			if ($op == 'mine') {
 				$psize = 10;
 				$pindex = max(1, intval($_GPC['page']));
 				$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('activity_exchange_trades_shipping') . ' WHERE uid = :uid', array(':uid' => $_W['member']['uid'])); 
 				$lists = pdo_fetchall("SELECT a.*, b.id AS gid,b.title,b.extra,b.thumb,b.type,b.credittype,b.endtime,b.description,b.credit FROM " . tablename('activity_exchange_trades_shipping') . " AS a LEFT JOIN " . tablename('activity_exchange'). " AS b ON a.exid = b.id WHERE a.uid = :uid ORDER BY a.status LIMIT " . ($pindex - 1) * $psize . "," . $psize, array(':uid' => $_W['member']['uid']));
-				foreach($lists as &$list) {
+				foreach ($lists as &$list) {
 					$list['extra'] = iunserializer($list['extra']);
-					if(!is_array($list['extra'])) {
+					if (!is_array($list['extra'])) {
 						$list['extra'] = array();
 					}
 				}
+				unset($list);
 				$pager = pagination($total, $pindex, $psize);
 			}
 			//确认收货
-			if($op == 'confirm') {
+			if ($op == 'confirm') {
 				if ($_W['isajax']) {
 					$tid = intval($_GPC['tid']);
 					$ship = pdo_get('activity_exchange_trades_shipping', array('tid' => $tid, 'uid' => $_W['member']['uid']), array('id'));
-					if(empty($ship)) {
+					if (empty($ship)) {
 						message(error(-1,'订单信息不存在'), '', 'ajax');
 					}
 					pdo_update('activity_exchange_trades_shipping', array('status' => 2), array('uid' => $_W['member']['uid'], 'tid' => $tid));
@@ -4363,14 +4295,14 @@ class We7_couponModuleSite extends WeModuleSite {
 		global $_W, $_GPC;
 		load()->model('paycenter');
 		$op = trim($_GPC['op']) ? trim($_GPC['op']) : 'home';
-		if($_GPC['op'] != 'pay') {
+		if ($_GPC['op'] != 'pay') {
 			$session = json_decode(base64_decode($_GPC["paycenter_session_{$_W['uniacid']}"]), true);
-			if(is_array($session)) {
+			if (is_array($session)) {
 				load()->model('user');
-				$user = user_single(array('uid'=>$session['uid']));
-				if(is_array($user) && $session['hash'] == md5($user['password'] . $user['salt'])) {
+				$user = user_single(array('uid' => $session['uid']));
+				if (is_array($user) && $session['hash'] == md5($user['password'] . $user['salt'])) {
 					$clerk = pdo_get('activity_clerks', array('uniacid' => $_W['uniacid'], 'uid' => $user['uid']));
-					if(empty($clerk)) {
+					if (empty($clerk)) {
 						message('您没有管理该店铺的权限', referer(), 'error');
 					}
 					$_W['uid'] = $user['uid'];
@@ -4383,11 +4315,11 @@ class We7_couponModuleSite extends WeModuleSite {
 			} else {
 				isetcookie("paycenter_session_{$_W['uniacid']}", false, -100);
 			}	
-			if(empty($_W['user']) && $_W['openid'] && $_GPC['_wechat_logout'] != '1') {
+			if (empty($_W['user']) && $_W['openid'] && $_GPC['_wechat_logout'] != '1') {
 				$clerk = pdo_get('activity_clerks', array('openid' => $_W['openid'], 'uniacid' => $_W['uniacid']));
-				if(!empty($clerk)) {
+				if (!empty($clerk)) {
 					$user = pdo_get('users', array('uid' => $clerk['uid']));
-					if(!empty($user)) {
+					if (!empty($user)) {
 						$cookie = array();
 						$cookie['uid'] = $user['uid'];
 						$cookie['username'] = $user['username'];
@@ -4427,24 +4359,24 @@ class We7_couponModuleSite extends WeModuleSite {
 
 	public function doMobileClerklogin() {
 		global $_W, $_GPC;
-		if(!empty($_W['user'])) {
+		if (!empty($_W['user'])) {
 			header('Location:' . $this->createMobileUrl('clerk', array('op' => 'home')));
-			die;
+			exit;
 		}
-		if($_W['isajax']) {
+		if ($_W['isajax']) {
 			load()->model('user');
 			$user['username'] = trim($_GPC['username']);
 			$user['password'] = trim($_GPC['password']);
 
 			$user = user_single($user);
-			if(empty($user)) {
+			if (empty($user)) {
 				message(error(-1, '账号或密码错误'), '', 'ajax');
 			}
-			if($user['status'] == 1) {
+			if ($user['status'] == 1) {
 				message(error(-1, '您的账号正在审核或是已经被系统禁止，请联系网站管理员解决'), '', 'ajax');
 			}
 			$clerk = pdo_get('activity_clerks', array('uniacid' => $_W['uniacid'], 'uid' => $user['uid']));
-			if(empty($clerk)) {
+			if (empty($clerk)) {
 				message(error(-1, '您没有管理该店铺的权限'), '', 'ajax');
 			}
 			$cookie = array();
@@ -4452,7 +4384,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			$cookie['hash'] = md5($user['password'] . $user['salt']);
 			$session = base64_encode(json_encode($cookie));
 			isetcookie("paycenter_session_{$_W['uniacid']}", $session, !empty($_GPC['rember']) ? 7 * 86400 : 0, true);
-			message(error(0, ''), '', 'ajax');
+			message(error(0, ''), $this->createMobileUrl('clerk', array('op' => 'home')), 'ajax');
 		}
 		include $this->template('clerklogin');
 	}
@@ -4462,7 +4394,7 @@ class We7_couponModuleSite extends WeModuleSite {
 		isetcookie("paycenter_session_{$_W['uniacid']}", '', -10000);
 		isetcookie('_wechat_logout', '1', 180);
 		$forward = $_GPC['forward'];
-		if(empty($forward)) {
+		if (empty($forward)) {
 			$forward = './?refersh';
 		}
 		header('Location:' . $this->createMobileUrl('clerk', array('op' => 'login')));
@@ -4471,8 +4403,10 @@ class We7_couponModuleSite extends WeModuleSite {
 
 	public function doMobileClerkhome() {
 		global $_W, $_GPC;
-		paycenter_check_login();
-		$user_permission = uni_user_permission('system');
+		we7_coupon_paycenter_check_login();
+		$clerk_info = pdo_get('activity_clerks', array('id' => $_W['user']['clerk_id']));
+		$fans_info = mc_fansinfo($clerk_info['openid']);
+		$headimg = !empty($fans_info['headimgurl']) ? $fans_info['headimgurl'] : './resource/images/avatar.png';
 		$today_revenue = $this->revenue(0);
 		$yesterday_revenue = $this->revenue(-1);
 		$seven_revenue = $this->revenue(-7);
@@ -4480,24 +4414,23 @@ class We7_couponModuleSite extends WeModuleSite {
 	}
 	public function doMobileClerkmore() {
 		global $_W, $_GPC;
-		$user_permission = uni_user_permission('system');
+		we7_coupon_paycenter_check_login();
 		$store_name = $_W['user']['store_name'];
 		$clerk_name = $_W['user']['name'];
-		if($_GPC['do'] == 'more') {
-			$clerk_info = pdo_get('mc_members',array('uid' => $_W['user']['uid']),array('mobile'));
-		}
+		$clerk_info = pdo_get('activity_clerks', array('id' => $_W['user']['clerk_id']));
+		$fans_info = mc_fansinfo($clerk_info['openid']);
+		$headimg = !empty($fans_info['headimgurl']) ? $fans_info['headimgurl'] : './resource/images/avatar.png';
 		include $this->template('clerkmore');
 	}
 	public function doMobileClerkscanpay() {
 		global $_W, $_GPC;
-		paycenter_check_login();
-		$user_permission = uni_user_permission('system');
+		we7_coupon_paycenter_check_login();
 		$scan_type = trim($_GPC['scan_type']) ? trim($_GPC['scan_type']) : 'index';
 		if ($_W['account']['level'] != ACCOUNT_SERVICE_VERIFY) {
 			message('公众号权限不足', '', 'error');
 		}
-		if($scan_type == 'post') {
-			if(checksubmit()) {
+		if ($scan_type == 'post') {
+			if (checksubmit()) {
 				$fee = trim($_GPC['fee']) ? trim($_GPC['fee']) : message('收款金额有误', '', 'error');
 				$body = trim($_GPC['body']) ? trim($_GPC['body']) : '收银台收款' . $fee;
 				$data = array(
@@ -4518,7 +4451,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 		}
 
-		if($scan_type == 'qrcode') {
+		if ($scan_type == 'qrcode') {
 			$id = intval($_GPC['id']);
 			$order = pdo_get('paycenter_order', array('uniacid' => $_W['uniacid'], 'id' => $id));
 			if(empty($order)) {
@@ -4529,11 +4462,11 @@ class We7_couponModuleSite extends WeModuleSite {
 			}
 		}
 
-		if($scan_type == 'list') {
+		if ($scan_type == 'list') {
 			$condition = ' WHERE uniacid = :uniacid AND status = 1 AND clerk_id = :clerk_id ';
 			$params = array(':uniacid' => $_W['uniacid'], ':clerk_id' => $_W['user']['clerk_id']);
 			$period = intval($_GPC['period']);
-			if($period <= 0) {
+			if ($period <= 0) {
 				$starttime = strtotime(date('Y-m-d')) + $period * 86400;
 				$endtime = $starttime + 86400;
 				$condition .= ' AND paytime >= :starttime AND paytime <= :endtime ';
@@ -4543,16 +4476,16 @@ class We7_couponModuleSite extends WeModuleSite {
 			$orders = pdo_fetchall('SELECT * FROM ' . tablename('paycenter_order') . $condition . ' ORDER BY paytime DESC ', $params);
 		}
 
-		if($scan_type == 'detail') {
+		if ($scan_type == 'detail') {
 			$id = intval($_GPC['id']);
 			$order = pdo_get('paycenter_order', array('uniacid' => $_W['uniacid'], 'id' => $id));
-			if(empty($order)) {
+			if (empty($order)) {
 				message('订单不存在');
 			} else {
 				$store_id = $order['store_id'];
-				$types = paycenter_order_types();
-				$trade_types = paycenter_order_trade_types();
-				$status = paycenter_order_status();
+				$types = we7_coupon_paycenter_order_types();
+				$trade_types = we7_coupon_paycenter_order_trade_types();
+				$status = we7_coupon_paycenter_order_status();
 				$store_info = pdo_get('activity_stores', array('id' => $store_id), array('business_name'));
 			}
 		}
@@ -4562,7 +4495,6 @@ class We7_couponModuleSite extends WeModuleSite {
 	public function doMobileClerkcardconsume() {
 		global $_W, $_GPC;
 		load()->model('activity');
-		$user_permission = uni_user_permission('system');
 		$qrcode = trim($_GPC['code']);
 		if($_W['isajax']) {
 			$code = trim($_GPC['code']);
@@ -4583,23 +4515,23 @@ class We7_couponModuleSite extends WeModuleSite {
 		global $_W, $_GPC;
 		$id = intval($_GPC['id']);
 		$order = pdo_get('paycenter_order', array('id' => $id, 'uniacid' => $_W['uniacid']));
-		if(empty($order)) {
+		if (empty($order)) {
 			message('订单不存在或已删除', '', 'error');
 		}
-		if($order['store_id'] > 0) {
+		if ($order['store_id'] > 0) {
 			$store = pdo_get('activity_stores', array('id' => $order['store_id']), array('business_name'));
 		}
 		include $this->template('paydetail');
 	}
 	public function doMobileConsume() {
 		global $_GPC, $_W;
-		load() -> model('activity');
+		load()->model('activity');
 		$colors = activity_coupon_colors();
 		$source = trim($_GPC['source']);
 		$card_id = trim($_GPC['card_id']);
 		$encrypt_code = trim($_GPC['encrypt_code']);
 		$openid = trim($_GPC['openid']);
-		if(empty($card_id) || empty($encrypt_code)) {
+		if (empty($card_id) || empty($encrypt_code)) {
 			message('卡券签名参数错误');
 		}
 		if ($source == '1') {
@@ -4607,7 +4539,7 @@ class We7_couponModuleSite extends WeModuleSite {
 		} else {
 			$card = pdo_get('coupon', array('uniacid' => $_W['uniacid'], 'card_id' => $card_id));
 		}
-		if(empty($card)) {
+		if (empty($card)) {
 			message('卡券不存在或已删除');
 		}
 		$card['date_info'] = iunserializer($card['date_info']);
@@ -4616,7 +4548,7 @@ class We7_couponModuleSite extends WeModuleSite {
 		if ($source == '1') {
 			$code = $encrypt_code;
 		} else {
-			load() -> classs('coupon');
+			load()->classs('coupon');
 			$coupon = new coupon($_W['acid']);
 			if (is_null($coupon)) {
 				message('系统错误');
@@ -4625,31 +4557,36 @@ class We7_couponModuleSite extends WeModuleSite {
 			$code = $code['code'];
 		}
 		
-		if(is_error($code)) {
+		if (is_error($code)) {
 			$error_code = 1;
 		}
-		if(checksubmit()) {
+		if (checksubmit()) {
 			$password = trim($_GPC['password']);
 			$clerk = pdo_get('activity_clerks', array('uniacid' => $_W['uniacid'], 'password' => $password));
 			$_W['user']['name'] = $clerk['name'];
 			$_W['user']['clerk_id'] = $clerk['id'];
 			$_W['user']['clerk_type'] = 3;
 			$_W['user']['store_id'] = $clerk['storeid'];
-			if(empty($clerk)) {
+			if (empty($clerk)) {
 				message('店员密码错误', referer(), 'error');
 			}
-			if(!$code) {
+			if (!$code) {
 				message('code码错误', referer(), 'error');
 			}
-			load() -> model('activity');
-			$record = pdo_get('coupon_record', array('code' => $code, 'uniacid' => $_W['uniacid']));
+			load()->model('activity');
+			$record = pdo_get('coupon_record', array('code' => $code));
 			$status = activity_coupon_use($card['id'], $record['id'], 'paycenter');
-			if(is_error($status)) {
+			if (is_error($status)) {
 				message($status['message'], referer(), 'error');
 			}
 			message('核销卡券成功',  $this->createMobileurl('activity', array('op' => 'mine', 'activity_type' => 'coupon')), 'success');
 		}
 		include $this->template('consume');
+	}
+	public function doMobileCouponcode() {
+		global $_GPC;
+		$code = trim($_GPC['code']);
+		include $this->template('couponcode');
 	}
 	/** 
 	* 
@@ -4658,7 +4595,7 @@ class We7_couponModuleSite extends WeModuleSite {
 	*/
 	public function revenue($period) {
 		global $_W;
-		if($period == '0') {
+		if ($period == '0') {
 			$starttime = strtotime(date('Y-m-d'));
 			$endtime = $starttime + 86400;
 		} elseif ($period == '-1') {
@@ -4678,13 +4615,13 @@ class We7_couponModuleSite extends WeModuleSite {
 		global $_W, $_GPC;
 		$id = intval($_GPC['id']);
 		$order = pdo_get('paycenter_order', array('uniacid' => $_W['uniacid'], 'id' => $id));
-		if(empty($order)) {
+		if (empty($order)) {
 			message('订单不存在或已删除', '', 'error');
 		}
-		if($order['status'] == 1) {
+		if ($order['status'] == 1) {
 			message('该订单已付款', '', 'error');
 		}
-		if(!empty($_W['member']['uid']) || !empty($_W['fans'])) {
+		if (!empty($_W['member']['uid']) || !empty($_W['fans'])) {
 			$update = array(
 				'uid' => $_W['member']['uid'],
 				'openid' => $_W['openid'],
@@ -4704,16 +4641,19 @@ class We7_couponModuleSite extends WeModuleSite {
 
 	public function payResult($params) {
 		global $_W;
-		if($params['result'] == 'success' && $params['from'] == 'notify') {
+		if ($params['type'] == 'delivery') {
+			message('请及时付款', $this->createMobileUrl('clerk', array('m' => 'we7_coupon', 'op' => 'paydetail', 'id' => $params['tid'])), 'success');
+		}
+		if ($params['result'] == 'success' && $params['from'] == 'notify') {
 			$order = pdo_get('paycenter_order', array('id' => $params['tid'], 'uniacid' => $_W['uniacid']));
-			if(!empty($order)) {
+			if (!empty($order)) {
 				$log = pdo_get('core_paylog', array('tid' => $params['tid'], 'uniacid' => $_W['uniacid']));
 				if ($log['type'] != 'credit') {
 					load()->model('mc');
 					mc_card_grant_credit($log['openid'], $log['card_fee'], $order['store_id']);
 				}
 				
-				if(!empty($params['tag'])) {
+				if (!empty($params['tag'])) {
 					$params['tag'] = iunserializer($params['tag']);
 				}
 				$data = array(
@@ -4726,12 +4666,12 @@ class We7_couponModuleSite extends WeModuleSite {
 					'follow' => intval($params['follow']),
 					'final_fee' => $params['card_fee'],
 				);
-				if($params['type'] == 'credit') {
+				if ($params['type'] == 'credit') {
 					$data['credit2'] = $params['card_fee'];
 				} else {
 					$data['cash'] = $params['card_fee'];
 				}
-				if($params['is_usecard'] == 1) {
+				if ($params['is_usecard'] == 1) {
 					$discount_fee = $order['fee'] - $params['card_fee'];
 					$data['remark'] = "使用优惠券减免{$discount_fee}元";
 				}
@@ -4757,8 +4697,253 @@ class We7_couponModuleSite extends WeModuleSite {
 				pdo_insert('mc_cash_record', $cash_data);
 			}
 		}
-		if($params['result'] == 'success' && $params['from'] == 'return') {
+		if ($params['result'] == 'success' && $params['from'] == 'return') {
 			message('支付成功！', $this->createMobileUrl('clerk', array('m' => 'we7_coupon', 'op' => 'paydetail', 'id' => $params['tid'])), 'success');
 		}
 	}
+	public function doWebWxcardreply() {
+		global $_W, $_GPC;
+		$op = !empty($_GPC['op']) ? $_GPC['op'] : 'display';
+		load()->model('reply');
+		load()->model('module');
+		if ($op == 'display') {
+			$pindex = max(1, intval($_GPC['page']));
+			$psize = 20;
+			$cids = $parentcates = $list =  array();
+			$types = array('', '等价', '包含', '正则表达式匹配', '直接接管');
+			
+			$condition = 'uniacid = :uniacid AND `module`=:module';
+			$params = array();
+			$params[':uniacid'] = $_W['uniacid'];
+			$params[':module'] = 'wxcard';
+			$status = isset($_GPC['status']) ? intval($_GPC['status']) : -1;
+			if ($status != -1){
+				$condition .= " AND status = '{$status}'";
+			}
+			if (isset($_GPC['keyword'])) {
+				$condition .= ' AND `name` LIKE :keyword';
+				$params[':keyword'] = "%{$_GPC['keyword']}%";
+			}
+			$replies = reply_search($condition, $params, $pindex, $psize, $total);
+			$pager = pagination($total, $pindex, $psize);
+			if (!empty($replies)) {
+				foreach ($replies as &$item) {
+					$condition = '`rid`=:rid';
+					$params = array();
+					$params[':rid'] = $item['id'];
+					$item['keywords'] = reply_keywords_search($condition, $params);
+					$entries = module_entries('wxcard', array('rule'),$item['id']);
+					if (!empty($entries)) {
+						$item['options'] = $entries['rule'];
+					}
+				}
+				unset($item);
+			}
+		}
+		if ($op == 'post') {
+			if ($_W['isajax'] && $_W['ispost']) {
+				/*检测规则是否已经存在*/
+				$sql = 'SELECT `rid` FROM ' . tablename('rule_keyword') . " WHERE `uniacid` = :uniacid  AND `content` = :content";
+				$result = pdo_fetchall($sql, array(':uniacid' => $_W['uniacid'], ':content' => $_GPC['keyword']));
+				if (!empty($result)) {
+					$keywords = array();
+					foreach ($result as $reply) {
+						$keywords[] = $reply['rid'];
+					}
+					$rids = implode($keywords, ',');
+					$sql = 'SELECT `id`, `name` FROM ' . tablename('rule') . " WHERE `id` IN ($rids)";
+					$rules = pdo_fetchall($sql);
+					exit(@json_encode($rules));
+				}
+				exit('success');
+			}
+			$rid = intval($_GPC['rid']);
+			if (!empty($rid)) {
+				$reply = reply_single($rid);
+				if (empty($reply) || $reply['uniacid'] != $_W['uniacid']) {
+					message('抱歉，您操作的规则不在存或是已经被删除！', $this->createWebUrl('wxcardreply', array('op' => 'display')), 'error');
+				}
+				foreach ($reply['keywords'] as &$kw) {
+					$kw = array_elements(array('type', 'content'), $kw);
+				}
+				unset($kw);
+			}
+			if (checksubmit('submit')) {
+				if (empty($_GPC['name'])) {
+					message('必须填写回复规则名称.');
+				}
+				$keywords = @json_decode(htmlspecialchars_decode($_GPC['keywords']), true);
+				if (empty($keywords)) {
+					message('必须填写有效的触发关键字.');
+				}
+				$rule = array(
+					'uniacid' => $_W['uniacid'],
+					'name' => $_GPC['name'],
+					'module' => 'wxcard',
+					'status' => intval($_GPC['status']),
+					'displayorder' => intval($_GPC['displayorder_rule']),
+				);
+				if (!empty($_GPC['istop'])) {
+					$rule['displayorder'] = 255;
+				} else {
+					$rule['displayorder'] = range_limit($rule['displayorder'], 0, 254);
+				}
+				$module = WeUtility::createModule('wxcard');
+				
+				if (empty($module)) {
+					message('抱歉，模块不存在！');
+				}
+				$msg = $module->fieldsFormValidate();
+				
+				if (is_string($msg) && trim($msg) != '') {
+					message($msg);
+				}
+				if (!empty($rid)) {
+					$result = pdo_update('rule', $rule, array('id' => $rid));
+				} else {
+					$result = pdo_insert('rule', $rule);
+					$rid = pdo_insertid();
+				}
+				if (!empty($rid)) {
+					//更新，添加，删除关键字
+					$sql = 'DELETE FROM '. tablename('rule_keyword') . ' WHERE `rid`=:rid AND `uniacid`=:uniacid';
+					$pars = array();
+					$pars[':rid'] = $rid;
+					$pars[':uniacid'] = $_W['uniacid'];
+					pdo_query($sql, $pars);
+			
+					$rowtpl = array(
+						'rid' => $rid,
+						'uniacid' => $_W['uniacid'],
+						'module' => $rule['module'],
+						'status' => $rule['status'],
+						'displayorder' => $rule['displayorder'],
+					);
+					foreach ($keywords as $kw) {
+						$krow = $rowtpl;
+						$krow['type'] = range_limit($kw['type'], 1, 4);
+						$krow['content'] = $kw['content'];
+						pdo_insert('rule_keyword', $krow);
+					}
+					$rowtpl['incontent'] = $_GPC['incontent'];
+					$module->fieldsFormSubmit($rid);
+					message('回复规则保存成功！', $this->createWebUrl('wxcardreply', array('op' => 'display', 'rid' => $rid)));
+				} else {
+					message('回复规则保存失败, 请联系网站管理员！');
+				}
+			} 
+		}
+
+		if ($op == 'delete') {
+			$rids = $_GPC['rid'];
+			if (!is_array($rids)) {
+				$rids = array($rids);
+			}
+			if (empty($rids)) {
+				message('非法访问.');
+			}
+			foreach ($rids as $rid) {
+				$rid = intval($rid);
+				$reply = reply_single($rid);
+				if (empty($reply) || $reply['uniacid'] != $_W['uniacid']) {
+					message('抱歉，您操作的规则不在存或是已经被删除！', referer(), 'error');
+				}
+				//删除回复，关键字及规则
+				if (pdo_delete('rule', array('id' => $rid))) {
+					pdo_delete('rule_keyword', array('rid' => $rid));
+					//删除统计相关数据
+					pdo_delete('stat_rule', array('rid' => $rid));
+					pdo_delete('stat_keyword', array('rid' => $rid));
+					//调用模块中的删除
+					$module = WeUtility::createModule($reply['module']);
+					if (method_exists($module, 'ruleDeleted')) {
+						$module->ruleDeleted($rid);
+					}
+				}
+			}
+			message('规则操作成功！', referer(), 'success');
+		}
+
+		if ($op == 'stat-trend') {
+			$_W['page']['title'] = '关键指标详解 - 数据统计';
+			$id = intval($_GPC['id']);
+			$starttime = empty($_GPC['time']['start']) ? strtotime(date('Y-m-d')) - 7 * 86400 : strtotime($_GPC['time']['start']);
+			$endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
+			$list = pdo_fetchall("SELECT createtime, hit  FROM " . tablename('stat_rule') . " WHERE uniacid = '{$_W['uniacid']}' AND rid = :rid AND createtime >= :createtime AND createtime <= :endtime ORDER BY createtime ASC", array(':rid' => $id, ':createtime' => $starttime, ':endtime' => $endtime));
+			$day = $hit = array();
+			if (!empty($list)) {
+				foreach ($list as $row) {
+					$day[] = date('m-d', $row['createtime']);
+					$hit[] = intval($row['hit']);
+				}
+			}
+			/*添加规则默认数据*/
+			for ($i = 0; $i = count($hit) < 2; $i++) {
+				$day[] = date('m-d', $endtime);
+				$hit[] = $day[$i] == date('m-d', $endtime) ? $hit[0] : '0';
+			}
+			$list = pdo_fetchall("SELECT createtime, hit, rid, kid FROM " . tablename('stat_keyword') . " WHERE uniacid = '{$_W['uniacid']}' AND rid = :rid AND createtime >= :createtime AND createtime <= :endtime ORDER BY createtime ASC", array(':rid' => $id, ':createtime' => $starttime, ':endtime' => $endtime));
+			if (!empty($list)) {
+				foreach ($list as $row) {
+					$keywords[$row['kid']]['hit'][] = $row['hit'];
+					$keywords[$row['kid']]['day'][] = date('m-d', $row['createtime']);
+				}
+				foreach ($keywords as &$value) {
+					/*添加所属关键字默认数据*/
+					if (count($value['hit']) < 2) {
+						$value['hit'][] = $value['day'][0] == date('m-d', $endtime) ? $value['hit'][0] : '0';
+						$value['day'][] = date('m-d', $endtime);
+					}
+				}
+				unset($value);
+				$keywordnames = pdo_fetchall("SELECT content, id FROM " . tablename('rule_keyword') . " WHERE id IN (" . implode(',', array_keys($keywords)) . ")", array(), 'id');
+			}
+		}
+		include $this->template('wxcardreply');
+	}
+}
+function we7_coupon_tpl_form_field_location_category($name, $values = array(), $del = false) {
+	$html = '';
+	if (!defined('TPL_INIT_LOCATION_CATEGORY')) {
+		$html .= '
+		<script type="text/javascript" src="../addons/we7_coupon/template/style/js/location.js"></script>';
+		define('TPL_INIT_LOCATION_CATEGORY', true);
+	}
+	if (empty($values) || !is_array($values)) {
+		$values = array('cate'=>'','sub'=>'','clas'=>'');
+	}
+	if (empty($values['cate'])) {
+		$values['cate'] = '';
+	}
+	if (empty($values['sub'])) {
+		$values['sub'] = '';
+	}
+	if (empty($values['clas'])) {
+		$values['clas'] = '';
+	}
+	$html .= '
+		<div class="row row-fix tpl-location-container">
+			<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
+				<select name="' . $name . '[cate]" data-value="' . $values['cate'] . '" class="form-control tpl-cate">
+				</select>
+			</div>
+			<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
+				<select name="' . $name . '[sub]" data-value="' . $values['sub'] . '" class="form-control tpl-sub">
+				</select>
+			</div>
+			<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3">
+				<select name="' . $name . '[clas]" data-value="' . $values['clas'] . '" class="form-control tpl-clas">
+				</select>
+			</div>';
+	if ($del) {
+		$html .='
+			<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3" style="padding-top:5px">
+				<a title="删除" onclick="$(this).parents(\'.tpl-location-container\').remove();return false;"><i class="fa fa-times-circle"></i></a>
+			</div>
+		</div>';
+	} else {
+		$html .= '</div>';
+	}
+
+	return $html;
 }

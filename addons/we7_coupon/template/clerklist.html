@@ -7,8 +7,47 @@
 </style>
 <ul class="nav nav-tabs">
 	<li{if $op == 'display'} class="active"{/if}><a href="{php echo $this->createWeburl('clerklist');}">店员管理</a></li>
-	<li{if $op == 'post'} class="active"{/if}><a href="{php echo $this->createWeburl('clerklist', array('op' => 'post', 'id' => $id));}">{if $id > 0}编辑店员{else}添加店员{/if}</a></li>
+	<li{if $op == 'post'} class="active"{/if}><a href="javascript:;" data-toggle="modal" data-target="#clerk-modal">{if $id > 0}编辑店员{else}添加店员{/if}</a></li>
 </ul>
+<div class="modal fade" id="clerk-modal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel">选择你要创建店员</h4>
+			</div>
+			<div class="modal-body clearfix form-horizontal">
+				{if !empty($available_user)}
+				{loop $available_user $user}
+				<div class="form-group marbot0">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="uid" value="{$user['uid']}"/>{$user['user_info']['username']}
+						</label>
+						<div class="help-block">
+							{loop $user['permission'] $permission}
+							<span class="label label-success">{$permission}</span>
+							{/loop}
+						</div>
+					</div>
+				</div>
+				{/loop}
+				{else}
+				<div class="form-group marbot0 text-center">
+					暂无可用操作员(<a href="{php echo url('profile/module/permissions', array('m' => 'we7_coupon'))}">点击进入权限设置，添加操作员</a>)
+				</div>
+				{/if}
+			</div>
+			{if !empty($available_user)}
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="location.href='{php echo $this->createWeburl('clerklist', array('op' => 'post'))}&uid=' + $('#clerk-modal input[type=radio]:checked').val()">确定</button>
+			</div>
+			{/if}
+		</div>
+	</div>
+</div>
 {if $op == 'display'}
 <div class="alert alert-info">
 	<p>1、系统中所有的店员信息不可重复</p>
@@ -61,7 +100,7 @@
 							<a onclick="if (confirm('使用该店员帐号后，会更改您当前登录的用户，是否继续？')) {alert('使用完毕后，您退出店员帐号重新登录管理帐号即可。')} else { return false;}" href="{php echo $this->createWeburl('clerklist',array('op' => 'switch', 'id' => $item['id']));}" title="编辑">使用该店员帐号</a>&nbsp;-&nbsp;
 							{/if}
 
-							<a href="{php echo $this->createWeburl('clerklist',array('op' => 'post', 'id' => $item['id']));}" title="编辑">编辑</a>&nbsp;-&nbsp;
+							<a href="{php echo $this->createWeburl('clerklist',array('op' => 'post', 'id' => $item['id'], 'uid' => $item['uid']));}" title="编辑">编辑</a>&nbsp;-&nbsp;
 							<a href="{php echo $this->createWeburl('clerklist', array('op' => 'delete', 'id' => $item['id']))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" title="删除">删除</a>
 						</td>
 					</tr>
@@ -100,36 +139,20 @@
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">*</span>店员姓名</label>
 					<div class="col-sm-9 col-xs-12">
-						<div class="input-group">
-							<input type="text" name="name"  value="{$clerk['name']}" class="form-control" data-type={if !empty($clerk['id'])}"1"{else} ""{/if} placeholder="请填写店员姓名">
-								<span class="input-group-addon" >
-									<input type="checkbox" name="same" aria-label="">
-									使用店员姓名作为登录账号
-								</span>
-						</div>
-						<div class="help-block" id="warning" style="display: none"><p class="text-danger">登录账号已存在，请重新输入登录账号</p></div>
-					</div>
-				</div>
-				<div class="form-group" id="username">
-					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">*</span>登录账号</label>
-					<div class="col-sm-9 col-xs-12">
-						<input type="text" name="username" value="{$clerk['username']}" data-type={if !empty($clerk['id'])}"1"{else} ""{/if} class="form-control">
-						<div class="help-block">请输入登陆账号，登陆账号为 3 到 15 个字符组成，包括汉字，大小写字母（不区分大小写）</div>
-						<div class="help-block" id="u_warning" style="display: none"><p class="text-danger">登录账号已存在，请重新输入登录账号</p></div>
+						<input type="text" name="name"  value="{$clerk['name']}" class="form-control">
 					</div>
 				</div>
 				<div class="form-group">
-					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">*</span>密码</label>
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">*</span>登陆账号</label>
 					<div class="col-sm-9 col-xs-12">
-						<input type="password" name="password" value="" class="form-control">
-						<div class="help-block">请填写密码，最小长度为 8 个字符.{if $clerk['uid'] > 0}如果不更改密码此处请留空{/if}</div>
+						<input type="text" name="username"  value="{$user_info['username']}" class="form-control" readonly>
 					</div>
 				</div>
 				<div class="form-group">
-					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">*</span>确认密码</label>
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">*</span>核销密码</label>
 					<div class="col-sm-9 col-xs-12">
-						<input type="password" name="repassword" value="" class="form-control">
-						<div class="help-block">重复输入密码，确认正确输入.{if $clerk['uid'] > 0}如果不更改密码此处请留空{/if}</div>
+						<input type="text" name="password"  value="{$clerk['password']}" class="form-control">
+						<div class="help-block"><strong class="text-danger">核销密码是用户核销卡券时使用的密码</strong></div>
 					</div>
 				</div>
 				<div class="form-group">
@@ -177,36 +200,19 @@
 			</div>
 		</div>
 		<div class="panel panel-default">
-			<div class="panel-heading">权限设置 （<a href="{url 'profile/deskmenu'}" target="_blank">自定义工作台菜单？</a>）</div>
+			<div class="panel-heading">权限清单</div>
 			<div class="panel-body table-responsive">
-				<table class="table">
-					{loop $permission $name $row}
-						<thead>
-						<tr class="info">
-							<th colspan="6">
-								<div class="checkbox">
-									<label class="permission permission-{$name}" data-name="{$name}"><input type="checkbox">{$row['title']}</label>
-								</div>
-							</th>
-						</tr>
-						</thead>
-						{php $i=1;}
-						{loop $row['items'] $item}
-							{if $i%6 == 1 || $i == 1}<tr>{/if}
-							<td>
-								<div class="checkbox">
-									<label class="permission-child permission-child-{$name}" data-name="{$name}"><input type="checkbox" value="{php echo empty($item['permission'])? 'clerk_'.$item['id'] : $item['permission'];}" {if in_array($item['permission'], $clerk['permission'])}checked{/if} name="permission[]">{$item['title']}</label>
-								</div>
-							</td>
-							{if $i%6 == 0}</tr>{/if}
-							{php $i++;}
-						{/loop}
-					{/loop}
-				</table>
+				{if !empty($user_permissions[$uid]['permission'])}
+				{loop $user_permissions[$uid]['permission'] $permission}
+					<div class="col-sm-3">
+						<span class="">{$permission}</span>
+					</div>
+				{/loop}
+				{/if}
 			</div>
 		</div>
 		<div class="form-group col-sm-12">
-			<input name="uid"  type="hidden" value="{$clerk['uid']}" >
+			<input name="uid"  type="hidden" value="{$uid}" >
 			<input name="id" type="hidden" value="{$clerk['id']}" >
 			<input name="submit" id="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
 			<input type="hidden" name="token" value="{$_W['token']}" />
@@ -274,33 +280,15 @@
 			util.message('请填写店员名称');
 			return false;
 		}
-		var username = $.trim($(':text[name="username"]').val());
-		if (!username && !($('[name="same"]').is(':checked'))) {
-			util.message('请填写登陆账号');
-			return false;
-		}
-		if ($(':text[name="username"]').data('type') == 0) {
-			util.message('登录账号已存在');
-			return false;
-		}
 		var password = $.trim($('input[name="password"]').val());
-		var repassword = $.trim($('input[name="repassword"]').val());
 		{if !$clerk['uid']}
 			if (!password || password.length < 8) {
-				util.message('密码不能小于8位数');
-				return false;
-			}
-			if (password != repassword) {
-				util.message('两次密码输入不一致');
+				util.message('核销密码不能小于8位数');
 				return false;
 			}
 		{else}
-			if (password != ''&& password.length < 8) {
+			if (password != '' && password.length < 8) {
 				util.message('密码不能小于8位数');
-				return false;
-			}
-			if (password != '' && password != repassword) {
-				util.message('两次密码输入不一致');
 				return false;
 			}
 		{/if}

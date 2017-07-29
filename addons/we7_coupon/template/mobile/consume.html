@@ -61,7 +61,7 @@
 				{if $error_code == 1}
 				<div class="text-muted">code码错误</div>
 				{else}
-				<div class="qrcode-block" data-url="{php echo murl('entry', array('m' => 'we7_coupon', 'do' => 'clerk', 'op' => 'cardconsume', 'code' => $code), true, true);}" style="margin-top:20px"></div>
+				<div class="qrcode-block" data-url="{php echo murl('entry', array('m' => 'we7_coupon', 'do' => 'couponcode', 'code' => $code), true, true);}" style="margin-top:20px"></div>
 				<div class="text-muted">店员可使用微信扫描上面二维码进行核销</div>
 				<div class="text-muted">code码：{$code}</div>
 				{/if}

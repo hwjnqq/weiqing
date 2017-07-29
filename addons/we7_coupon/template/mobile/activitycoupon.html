@@ -231,7 +231,7 @@ $(document).on('click', '.js-coupon-info', function() {
 			<div class="title">{$coupon_info['title']}</div>
 			<div class="hr"></div>
 			<div class="img">
-				<div class="qrcode-block" data-url="{php echo murl('entry', array('m' => 'we7_coupon', 'do' => 'clerkcardconsume', 'code' => $coupon_info['code']), true, true);}" style="margin-top:20px"></div>
+				<div class="qrcode-block" data-url="{php echo murl('entry', array('m' => 'we7_coupon', 'do' => 'couponcode', 'code' => $coupon_info['code']), true, true);}" style="margin-top:20px"></div>
 			</div>
 			<div class="bar-code">{$coupon_info['code']}</div>
 			<div class="mui-text-muted">请在付款时出示此券</div>
