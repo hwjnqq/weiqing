@@ -23,7 +23,7 @@ if ($op == 'permission_storex') {
 if ($op == 'order') {
 	$manage_storex_lists = clerk_permission_storex($op);
 	$manage_storex_ids = array_keys($manage_storex_lists);
-	pdo_query("UPDATE " . tablename('storex_order') . " SET status = -1 WHERE time < :time AND weid = :uniacid AND paystatus = 0 AND status <> 1 AND status <> 3", array(':time' => time() - 86400, ':uniacid' => intval($_W['uniacid'])));
+	pdo_query("UPDATE " . tablename('storex_order') . " SET status = -1, newuser = 0 WHERE time < :time AND weid = :uniacid AND paystatus = 0 AND status <> 1 AND status <> 3", array(':time' => TIMESTAMP - 86400, ':uniacid' => intval($_W['uniacid'])));
 	$operation_status = array(ORDER_STATUS_CANCEL, ORDER_STATUS_NOT_SURE, ORDER_STATUS_SURE, ORDER_STATUS_REFUSE);
 	$goods_status = array(0, GOODS_STATUS_NOT_SHIPPED, GOODS_STATUS_SHIPPED, GOODS_STATUS_NOT_CHECKED);
 	$order_lists = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'hotelid' => $manage_storex_ids, 'status' => $operation_status, 'goods_status' => $goods_status), array('id', 'weid', 'hotelid', 'paystatus','roomid', 'style', 'status', 'goods_status', 'mode_distribute', 'nums', 'sum_price', 'day'), '', 'id DESC');
@@ -273,6 +273,12 @@ if ($op == 'edit_order') {
 	$result = pdo_update('storex_order', $data, array('id' => $orderid));
 	if (!empty($result)) {
 		write_log($logs);
+		if (in_array($data['status'], array(-1, 2))) {
+			order_update_newuser($orderid);
+		}
+		if ($data['status'] == ORDER_STATUS_OVER) {
+			order_market_gift($id);
+		}
 		wmessage(error(0, '处理订单成功！'), '', 'ajax');
 	} else {
 		wmessage(error(-1, '处理订单失败！'), '', 'ajax');

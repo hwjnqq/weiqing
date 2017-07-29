@@ -223,7 +223,7 @@ function format_url($urls) {
 //获取店铺信息
 function get_store_info($id) {
 	global $_W;
-	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone', 'thumb', 'emails', 'phones', 'openids', 'mail', 'refund'));
+	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone', 'thumb', 'emails', 'phones', 'openids', 'mail', 'refund', 'market_status'));
 	if (empty($store_info)) {
 		wmessage(error(-1, '店铺不存在'), '', 'ajax');
 	} else {
@@ -730,4 +730,53 @@ function get_goods_defined($storeid, $goodsid) {
 		return iunserializer($goods_extend['defined']);
 	}
 	return array();
+}
+
+function check_new_user() {
+	global $_W;
+	$order = pdo_get('storex_order', array('openid' => $_W['openid'], 'newuser' => 1), array('id', 'newuser', 'openid'));
+	if (!empty($order)) {
+		return false;
+	}
+	return true;
+}
+
+function get_store_market($storeid) {
+	$condition = array(
+		'storeid' => $storeid,
+		'starttime <=' => TIMESTAMP,
+		'endtime >' => TIMESTAMP,
+	);
+	if (empty(check_new_user())) {
+		$condition['type !='] = 'new';
+	}
+	$storex_market = pdo_getall('storex_market', $condition, array('storeid', 'type', 'items'), 'type');
+	$markets = array();
+	$types = array('new', 'cut', 'gift', 'pickup');
+	foreach ($types as $type) {
+		if (!empty($storex_market[$type])) {
+			if ($type == 'new') {
+				$markets[] = $storex_market[$type];
+			} else {
+				$storex_market[$type]['items'] = iunserializer($storex_market[$type]['items']);
+				$markets[] = $storex_market[$type];
+			}
+		} else {
+			if ($type == 'new') {
+				$markets[] = array(
+					'type' => 'new',
+					'items' => 0,
+				);
+			} else {
+				$markets[] = array(
+					'type' => $type,
+					'items' => array(
+						'condition' => 0,
+						'back' => 0,
+					),
+				);
+			}
+		}
+	}
+	return $markets;
 }

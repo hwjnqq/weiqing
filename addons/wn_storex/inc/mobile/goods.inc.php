@@ -9,6 +9,7 @@ check_params();
 mload()->model('activity');
 mload()->model('card');
 mload()->model('clerk');
+mload()->model('order');
 $uid = mc_openid2uid($_W['openid']);
 $store_id = intval($_GPC['id']);
 $goodsid = intval($_GPC['goodsid']);
@@ -16,8 +17,7 @@ $max_room = 8;
 
 //获取某个商品的详细信息
 if ($op == 'goods_info') {
-	$id = intval($_GPC['id']);
-	$store_info = get_store_info($id);
+	$store_info = get_store_info($store_id);
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
 	if ($store_info['store_type'] == 1) {
 		$condition['hotelid'] = $store_id;
@@ -67,10 +67,10 @@ if ($op == 'goods_info') {
 	$share_data = array(
 		'title' => $goods_info['title'],
 		'desc' => $goods_info['title'] . '--' . $store_info['title'],
-		'link' => murl('entry', array('do' => 'display', 'id' => $id, 'm' => 'wn_storex', 'type' => 'goods_info', 'goodsid' => $goodsid), true, true),
+		'link' => murl('entry', array('do' => 'display', 'id' => $store_id, 'm' => 'wn_storex', 'type' => 'goods_info', 'goodsid' => $goodsid), true, true),
 		'imgUrl' => tomedia($goods_info['thumb'])
 	);
-	$goods_info['defined'] = get_goods_defined($id, $goodsid);
+	$goods_info['defined'] = get_goods_defined($store_id, $goodsid);
 	$single_comment = array();
 	$single_comment = pdo_get('storex_comment', array('uniacid' => $_W['uniacid'], 'hotelid' => $store_id, 'goodsid' => $goodsid, 'comment <>' => ''), array('createtime', 'comment', 'nickname', 'thumb'));
 	if (!empty($single_comment)) {
@@ -100,8 +100,7 @@ if ($op == 'goods_comments') {
 
 //进入预定页面的信息
 if ($op == 'info') {
-	$id = intval($_GPC['id']);
-	$store_info = get_store_info($id);
+	$store_info = get_store_info($store_id);
 	$member = array();
 	$member['from_user'] = $_W['openid'];
 	$member['weid'] = intval($_W['uniacid']);
@@ -138,35 +137,38 @@ if ($op == 'info') {
 	if (!empty($goods_info['express_set'])) {
 		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
 	}
-	$goods_info['defined'] = get_goods_defined($id, $goodsid);
-	$paycenter_couponlist = activity_paycenter_get_coupon();
+	$goods_info['defined'] = get_goods_defined($store_id, $goodsid);
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;
 	$infos['goods_info'] = $goods_info;
 	$infos['address'] = $address;
-	$infos['coupon_list'] = $paycenter_couponlist;
-	$card_activity_info = card_return_credit_info();
-	$infos['card_disounts_info'] = array();
-	if (!empty($card_activity_info)) {
-		$user_group = card_group_id($uid);
-		if ($card_activity_info['discount_type'] == 1) {
-			$discount_info['discount_type'] = 1;
-			$discount_info['condition'] = $card_activity_info['discounts'][$user_group['groupid']]['condition_1'];
-			$discount_info['discount'] = $card_activity_info['discounts'][$user_group['groupid']]['discount_1'];
-		} elseif ($card_activity_info['discount_type'] == 2) {
-			$discount_info['discount_type'] = 2;
-			$discount_info['condition'] = $card_activity_info['discounts'][$user_group['groupid']]['condition_2'];
-			$discount_info['discount'] = $card_activity_info['discounts'][$user_group['groupid']]['discount_2'];
+	if ($store_info['market_status'] == 1) {
+		$infos['market'] = get_store_market($store_id);
+	} else {
+		$paycenter_couponlist = activity_paycenter_get_coupon();
+		$infos['coupon_list'] = $paycenter_couponlist;
+		$card_activity_info = card_return_credit_info();
+		$infos['card_disounts_info'] = array();
+		if (!empty($card_activity_info)) {
+			$user_group = card_group_id($uid);
+			if ($card_activity_info['discount_type'] == 1) {
+				$discount_info['discount_type'] = 1;
+				$discount_info['condition'] = $card_activity_info['discounts'][$user_group['groupid']]['condition_1'];
+				$discount_info['discount'] = $card_activity_info['discounts'][$user_group['groupid']]['discount_1'];
+			} elseif ($card_activity_info['discount_type'] == 2) {
+				$discount_info['discount_type'] = 2;
+				$discount_info['condition'] = $card_activity_info['discounts'][$user_group['groupid']]['condition_2'];
+				$discount_info['discount'] = $card_activity_info['discounts'][$user_group['groupid']]['discount_2'];
+			}
+			$infos['card_disounts_info'] = $discount_info;
 		}
-		$infos['card_disounts_info'] = $discount_info;
 	}
 	wmessage(error(0, $infos), '', 'ajax');
 }
 
 //预定提交预定信息
 if ($op == 'order') {
-	$id = intval($_GPC['id']);
-	$store_info = get_store_info($id);
+	$store_info = get_store_info($store_id);
 	$order_info = array(
 		'weid' => intval($_W['uniacid']),
 		'hotelid' => $store_id,
@@ -178,11 +180,13 @@ if ($op == 'order') {
 		'nums' => intval($_GPC['order']['nums']),
 		'time' => TIMESTAMP,
 	);
-	$selected_coupon = $_GPC['order']['coupon'];
-	if ($selected_coupon['type'] == 3) {
-		$coupon_info = activity_get_coupon_info($selected_coupon['couponid']);
-		if (empty($coupon_info)) {
-			wmessage(error(-1, '卡券信息有误'), '', 'ajax');
+	if ($store_info['market_status'] != 1) {
+		$selected_coupon = $_GPC['order']['coupon'];
+		if ($selected_coupon['type'] == 3) {
+			$coupon_info = activity_get_coupon_info($selected_coupon['couponid']);
+			if (empty($coupon_info)) {
+				wmessage(error(-1, '卡券信息有误'), '', 'ajax');
+			}
 		}
 	}
 	if ($order_info['nums'] <= 0) {
@@ -319,7 +323,7 @@ if ($op == 'order') {
 				}
 			}
 			$insert = array_merge($order_info, $insert);
-			pdo_query('UPDATE ' . tablename('storex_order') . " SET status = '-1' WHERE time < :time AND weid = :weid AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400, ':weid' => $_W['uniacid']));
+			pdo_query('UPDATE ' . tablename('storex_order') . " SET status = -1, newuser = 0 WHERE time < :time AND weid = :weid AND paystatus = '0' AND status <> '1' AND status <> '3'", array(':time' => time() - 86400, ':weid' => $_W['uniacid']));
 		} else {
 			$insert = general_goods_order($order_info, $goods_info, $insert);
 		}
@@ -331,21 +335,49 @@ if ($op == 'order') {
 		$insert = general_goods_order($order_info, $goods_info, $insert);
 	}
 	//根据优惠方式计算总价
-	if ($selected_coupon['type'] == 3) {
-		$extra_info = $coupon_info['extra'];
-		if ($coupon_info['type'] == COUPON_TYPE_DISCOUNT) {
-			$insert['sum_price'] = $insert['sum_price'] * $extra_info['discount'] / 100;
-		} elseif ($coupon_info['type'] == COUPON_TYPE_CASH) {
-			$least_cost = $extra_info['least_cost'] * 0.01;
-			$reduce_cost = $extra_info['reduce_cost'] * 0.01;
-			if ($insert['sum_price'] >= $least_cost) {
-				$insert['sum_price'] = $insert['sum_price'] - $reduce_cost;
+	$market_types = array();
+	if ($store_info['market_status'] == 1) {
+		$markets = get_store_market($storeid);
+		if (!empty($markets) && is_array($markets)) {
+			foreach ($markets as $info) {
+				if ($info['type'] == 'new' && $info['items'] > 0 && $insert['sum_price'] > $info['items']) {
+					$market_types[] = 'new';
+					$insert['newuser'] = 1;
+					$insert['sum_price'] -= $info['items'];
+					continue;
+				}
+				if ($info['items']['condition'] > 0 && $insert['sum_price'] >= $info['items']['condition'] && $info['items']['back'] > 0) {
+					$market_types[] = $info['type'];
+					if ($info['type'] == 'cut') {
+						$insert['sum_price'] -= $info['items']['back'];
+					}
+					if ($info['type'] == 'pickup') {
+						$insert['sum_price'] *= $info['items']['back'] * 0.1;
+					}
+				}
+			}
+			if (!empty($market_types)) {
+				$insert['market_types'] = iserializer($market_types);
 			}
 		}
-		$insert['coupon'] = $selected_coupon['recid'];
-	} elseif ($selected_coupon['type'] == 2) {
-		$insert['sum_price'] = card_discount_price($uid, $insert['sum_price']);
+	} else {
+		if ($selected_coupon['type'] == 3) {
+			$extra_info = $coupon_info['extra'];
+			if ($coupon_info['type'] == COUPON_TYPE_DISCOUNT) {
+				$insert['sum_price'] = $insert['sum_price'] * $extra_info['discount'] / 100;
+			} elseif ($coupon_info['type'] == COUPON_TYPE_CASH) {
+				$least_cost = $extra_info['least_cost'] * 0.01;
+				$reduce_cost = $extra_info['reduce_cost'] * 0.01;
+				if ($insert['sum_price'] >= $least_cost) {
+					$insert['sum_price'] = $insert['sum_price'] - $reduce_cost;
+				}
+			}
+			$insert['coupon'] = $selected_coupon['recid'];
+		} elseif ($selected_coupon['type'] == 2) {
+			$insert['sum_price'] = card_discount_price($uid, $insert['sum_price']);
+		}
 	}
+	
 	$insert['static_price'] = $insert['sum_price'];
 	
 	if ($store_info['store_type'] != STORE_TYPE_HOTEL) {
@@ -359,12 +391,6 @@ if ($op == 'order') {
 	}
 	if ($insert['sum_price'] <= 0) {
 		wmessage(error(-1, '总价为零，请联系管理员！'), '', 'ajax');
-	}
-	if ($selected_coupon['type'] == 3) {
-		$result = activity_coupon_consume($selected_coupon['couponid'], $selected_coupon['recid'], $store_info['id']);
-		if (is_error($result)) {
-			wmessage($result, '', 'ajax');
-		}
 	}
 	pdo_insert('storex_order', $insert);
 	$order_id = pdo_insertid();
@@ -382,6 +408,14 @@ if ($op == 'order') {
 		write_log($logs);
 		if ($store_info['store_type'] != STORE_TYPE_HOTEL) {
 			stock_control($goodsid, $insert['nums'], 'order');
+		}
+		if ($store_info['market_status'] != 1) {
+			if ($selected_coupon['type'] == 3) {
+				$result = activity_coupon_consume($selected_coupon['couponid'], $selected_coupon['recid'], $store_info['id']);
+				if (is_error($result)) {
+					wmessage($result, '', 'ajax');
+				}
+			}
 		}
 	}
 	

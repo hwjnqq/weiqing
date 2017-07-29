@@ -72,7 +72,7 @@ if ($op == 'display') {
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	pdo_query('UPDATE ' . tablename('storex_order') . " SET status = -1 WHERE time < :time AND weid = '{$_W['uniacid']}' AND paystatus = 0 AND status <> 1 AND status <> 3", array(':time' => time() - 86400));
+	pdo_query('UPDATE ' . tablename('storex_order') . " SET status = -1, newuser = 0 WHERE time < :time AND weid = '{$_W['uniacid']}' AND paystatus = 0 AND status <> 1 AND status <> 3", array(':time' => time() - 86400));
 	$field = '';
 	if ($table == 'storex_room') {
 		$field = ' , r.is_house ';
@@ -352,6 +352,12 @@ if ($op == 'edit') {
 			$logs['clerk_type'] = 2;
 			pdo_update('storex_order', $data, array('id' => $id));
 			write_log($logs);
+			if (in_array($data['status'], array(ORDER_STATUS_CANCEL, ORDER_STATUS_REFUSE))) {
+				order_update_newuser($id);
+			}
+			if ($data['status'] == ORDER_STATUS_OVER) {
+				order_market_gift($id);
+			}
 			message(error('0', '订单信息处理完成！'), '', 'ajax');
 		} else {
 			message(error('-1', '订单操作错误！'), '', 'ajax');

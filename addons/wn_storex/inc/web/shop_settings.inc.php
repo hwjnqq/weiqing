@@ -40,6 +40,7 @@ if ($op == 'post') {
 			'traffic' => $_GPC['traffic'],
 			'status' => $_GPC['status'],
 			'refund' => intval($_GPC['refund']),
+			'market_status' => intval($_GPC['market_status']),
 		);
 		$receives = array('emails' => 'email', 'phones' => 'tel', 'openids' => 'openid');
 		foreach ($receives as $field => $type) {

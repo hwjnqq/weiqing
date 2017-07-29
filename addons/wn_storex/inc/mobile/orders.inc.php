@@ -124,6 +124,7 @@ if ($op == 'cancel') {
 		$logs['after_change'] = -1;
 		$logs['type'] = 'status';
 		write_log($logs);
+		order_update_newuser($id);
 		wmessage(error(0, '订单成功取消！'), '', 'ajax');
 	} else {
 		wmessage(error(-1, '订单取消失败！'), '', 'ajax');

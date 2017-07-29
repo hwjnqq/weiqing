@@ -377,3 +377,32 @@ function order_status_logs($id) {
 	}
 	return $logs;
 }
+
+function order_update_newuser($orderid) {
+	$order = pdo_get('storex_order', array('id' => $orderid, 'newuser' => 1), array('id', 'newuser'));
+	if (!empty($order)) {
+		pdo_update('storex_order', array('newuser' => 0), array('id' => $orderid));
+	}
+}
+
+function order_market_gift($orderid) {
+	$order = pdo_get('storex_order', array('id' => $orderid, 'market_types !=' => ''), array('id', 'market_types', 'hotelid', 'style', 'openid'));
+	if (!empty($order)) {
+		$order['market_types'] = iunserializer($order['market_types']);
+		if (in_array('gift', $order['market_types'])) {
+			$market = pdo_get('storex_market', array('storeid' => $order['hotelid'], 'type' => 'gift'));
+			if (!empty($market)) {
+				$market['items'] = iunserializer($market['items']);
+				if ($market['items']['condition'] > 0 && $market['items']['back'] > 0) {
+					load()->model('mc');
+					$uid = mc_openid2uid($order['openid']);
+					$remark = '您的订单' . $order['style'] . '满' . $market['items']['condition'] . '元，赠送余额' . $market['items']['back'] . '元';
+					$record[] = $uid;
+					$record[] = $remark;
+					$record[] = 'wn_storex';
+					mc_credit_update($uid, 'credit2', $market['items']['back'], $record);
+				}
+			}
+		}
+	}
+}
