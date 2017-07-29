@@ -74,7 +74,7 @@ if (checksubmit()) {
 			pdo_update('storex_market', $pickup_info, array('id' => $market_list['pickup']['id']));
 		}
 	}
-	message('编辑成功', '', 'success');
+	message('编辑成功', referer(), 'success');
 }
 
 include $this->template('store/shop_market');

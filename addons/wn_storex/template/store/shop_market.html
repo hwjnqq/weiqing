@@ -87,10 +87,10 @@
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
 				<div class="col-sm-9 col-xs-12">
 					<label class="radio-inline">
-						<input type="radio" name="status" value="1" {if empty($new_list['status']) || $new_list['status'] == 1} checked {/if}/>启用
+						<input type="radio" name="status" value="1" {if empty($cut_list['status']) || $cut_list['status'] == 1} checked {/if}/>启用
 					</label>
 					<label class="radio-inline">
-						<input type="radio" name="status" value="2" {if $new_list['status'] == 2} checked {/if}/>禁用
+						<input type="radio" name="status" value="2" {if $cut_list['status'] == 2} checked {/if}/>禁用
 					</label>
 					<span class='help-block'>是否使用该活动</span>
 				</div>
@@ -126,10 +126,10 @@
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
 				<div class="col-sm-9 col-xs-12">
 					<label class="radio-inline">
-						<input type="radio" name="status" value="1" {if empty($new_list['status']) || $new_list['status'] == 1} checked {/if}/>启用
+						<input type="radio" name="status" value="1" {if empty($pickup_list['status']) || $pickup_list['status'] == 1} checked {/if}/>启用
 					</label>
 					<label class="radio-inline">
-						<input type="radio" name="status" value="2" {if $new_list['status'] == 2} checked {/if}/>禁用
+						<input type="radio" name="status" value="2" {if $pickup_list['status'] == 2} checked {/if}/>禁用
 					</label>
 					<span class='help-block'>是否使用该活动</span>
 				</div>
