@@ -732,9 +732,9 @@ function get_goods_defined($storeid, $goodsid) {
 	return array();
 }
 
-function check_new_user() {
+function check_new_user($storeid) {
 	global $_W;
-	$order = pdo_get('storex_order', array('openid' => $_W['openid'], 'newuser' => 1), array('id', 'newuser', 'openid'));
+	$order = pdo_get('storex_order', array('hotelid' => $storeid, 'openid' => $_W['openid'], 'newuser' => 1), array('id', 'newuser', 'openid'));
 	if (!empty($order)) {
 		return false;
 	}
@@ -748,7 +748,7 @@ function get_store_market($storeid) {
 		'endtime >' => TIMESTAMP,
 		'status' => 1,
 	);
-	if (empty(check_new_user())) {
+	if (empty(check_new_user($storeid))) {
 		$condition['type !='] = 'new';
 	}
 	$storex_market = pdo_getall('storex_market', $condition, array('storeid', 'type', 'items'), 'type');
