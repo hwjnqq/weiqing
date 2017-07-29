@@ -88,5 +88,5 @@ if ($op == 'notice') {
 			wmessage(error(0, $notice_info['items'][$noticekey]), '', 'ajax');
 		}
 	}
-	wmessage(error(-1, '公告没有详情'), $share_data, 'ajax');
+	wmessage(error(0, array()), '', 'ajax');
 }
