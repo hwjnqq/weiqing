@@ -351,6 +351,9 @@ if ($op == 'order') {
 						$market_types[] = $info['type'];
 						$insert['sum_price'] -= $info['items']['back'];
 					}
+					if ($info['type'] == 'gift') {
+						$market_types[] = $info['type'];
+					}
 					if (!empty($insert['mode_distribute']) && $insert['mode_distribute'] == 1 && $info['type'] == 'pickup') {
 						$market_types[] = $info['type'];
 						$insert['sum_price'] *= $info['items']['back'] * 0.1;
