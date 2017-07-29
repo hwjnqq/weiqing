@@ -4,7 +4,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 
-$ops = array('display', 'goods_search');
+$ops = array('display', 'notice');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -44,7 +44,7 @@ if ($op == 'display') {
 	$homepage_list = pdo_getall('storex_homepage', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid), array(), 'displayorder', 'displayorder ASC');
 	if (!empty($homepage_list) && is_array($homepage_list)) {
 		foreach ($homepage_list as $key => &$value) {
-			unset($value['id'], $value['displayorder'], $value['uniacid'], $value['storeid']);
+			unset($value['displayorder'], $value['uniacid'], $value['storeid']);
 			$value['items'] = !empty($value['items']) ? iunserializer($value['items']) : '';
 			if ($value['type'] == 'recommend') {
 				$recommend_key = $key;
@@ -76,4 +76,17 @@ if ($op == 'display') {
 		'imgUrl' => tomedia($store_info['thumb'])
 	);
 	wmessage(error(0, $homepage_list), $share_data, 'ajax');
+}
+
+if ($op == 'notice') {
+	$noticeid = $_GPC['noticeid'];
+	$noticekey = $_GPC['noticekey'];
+	$notice_info = pdo_get('storex_homepage', array('id' => $noticeid, 'uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'type' => 'notice'));
+	if (!empty($notice_info) && !empty($notice_info['items'])) {
+		$notice_info['items'] = iunserializer($notice_info['items']);
+		if (!empty($notice_info['items'][$noticekey])) {
+			wmessage(error(0, $notice_info['items'][$noticekey]), '', 'ajax');
+		}
+	}
+	wmessage(error(-1, '公告没有详情'), $share_data, 'ajax');
 }
