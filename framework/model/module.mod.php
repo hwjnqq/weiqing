@@ -349,15 +349,16 @@ function module_fetch($name) {
 /**
  * 获取所有未安装的模块
  * @param string $status 模块状态，unistalled : 未安装模块, recycle : 回收站模块;
+ * @param string $cache 是否直接读取缓存数据;
  */
-function module_get_all_unistalled($status)  {
+function module_get_all_unistalled($status, $cache = true)  {
 	global $_GPC;
 	load()->func('communication');
 	load()->model('cloud');
 	load()->classs('cloudapi');
 	$status = $status == 'recycle' ? 'recycle' : 'uninstalled';
 	$uninstallModules =  cache_load(cache_system_key('module:all_uninstall'));
-	if ($_GPC['c'] == 'system' && $_GPC['a'] == 'module' && $_GPC['do'] == 'not_installed' && $status == 'uninstalled') {
+	if (!$cache && $status == 'uninstalled') {
 		$cloud_api = new CloudApi();
 		$get_cloud_m_count = $cloud_api->get('site', 'stat', array('module_quantity' => 1), 'json');
 		$cloud_m_count = $get_cloud_m_count['module_quantity'];

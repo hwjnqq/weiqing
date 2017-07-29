@@ -71,7 +71,7 @@ function refund($refund_id) {
 	$paylog = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'uniontid' => $refundlog['uniontid']));
 	if ($paylog['type'] == 'wechat') {
 		$refund_param = reufnd_wechat_build($refund_id);
-		$wechat = Pay::create('weixin');
+		$wechat = Pay::create('wechat');
 		$response = $wechat->refund($refund_param);
 		unlink(ATTACHMENT_ROOT . $_W['uniacid'] . '_wechat_refund_all.pem');
 		if (is_error($response)) {
@@ -83,7 +83,13 @@ function refund($refund_id) {
 	} elseif ($paylog['type'] == 'alipay') {
 		$refund_param = reufnd_ali_build($refund_id);
 		$ali = Pay::create('alipay');
-		$response = $ali->refund($refund_param);
+		$response = $ali->refund($refund_param, $refund_id);
+		if (is_error($response)) {
+			pdo_update('core_refundlog', array('status' => '-1'), array('id' => $refund_id));
+			return $response;
+		} else {
+			return $response;
+		}
 	}
 	return error(1, '此订单退款方式不存在');
 }

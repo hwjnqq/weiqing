@@ -45,14 +45,14 @@ function ihttp_request($url, $post = '', $extra = array(), $timeout = 60) {
 	} else {
 		$fp = ihttp_socketopen($urlset['host'], $urlset['port'], $errno, $error);
 	}
-	stream_set_blocking($fp, true);
-	stream_set_timeout($fp, $timeout);
+	stream_set_blocking($fp, $timeout > 0 ? true : false);
+	stream_set_timeout($fp, ini_get('default_socket_timeout'));
 	if (!$fp) {
 		return error(1, $error);
 	} else {
 		fwrite($fp, $body);
+		$content = '';
 		if($timeout > 0) {
-			$content = '';
 			while (!feof($fp)) {
 				$content .= fgets($fp, 512);
 			}

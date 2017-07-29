@@ -33,12 +33,12 @@
 											<a onclick="return false;" class="sort-up" href="javascript:;" ng-click="changeOrder('up', $index)" data-toggle="tooltip" data-placement="bottom" title="上移" ng-if="$index != 0"><i class="wi wi-stick-sign"></i></a>
 											<a onclick="return false;" class="sort-down" href="javascript:;" ng-click="changeOrder('down', $index)" data-toggle="tooltip" data-placement="bottom" title="下移" ng-if="$index != (materialList.length - 1)"><i class="wi wi-down-sign"></i></a>
 											<a href="javascript:;" ng-click="exportFromCms()">导入文章</a>
-											<a onclick="return false;" class="del" href="javascript:;" ng-if="$index != 0 && operate == 'add'" ng-click="deleteMaterial($index)" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="wi wi-delete2"></i></a>
+											<a onclick="return false;" class="del" href="javascript:;" ng-if="$index != 0 && (operate == 'add' || model == 'local')" ng-click="deleteMaterial($index)" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="wi wi-delete2"></i></a>
 										</div>
 									</div>
 								</div>
 							</div>
-							<a title="添加一篇图文" ng-click="addMaterial()" ng-show="materialList.length < 8 && operate == 'add'" class="appmsg-add" href="javascript:void(0);" style="display: block;">
+							<a title="添加一篇图文" ng-click="addMaterial()" ng-show="(materialList.length < 8 && operate == 'add') || (operate == 'edit' && model == 'local')" class="appmsg-add" href="javascript:void(0);" style="display: block;">
 								<i class="add-gray">+</i>
 							</a>
 						</div>
@@ -124,8 +124,8 @@
 							<a type="button" class="btn btn-default">预览</a>
 							<a type="button" class="btn btn-default">保存并群发</a>
 						</div>
-						<a type="button" class="btn btn-primary" ng-click="saveNews('local')">保存到本地</a>
-						<a id="savewechat" type="button" class="btn btn-primary" ng-click="saveNews('wechat')" ng-show="!hidenbutton">保存并上传到微信</a>
+						<a type="button" class="btn btn-primary" ng-if="model == 'local'" ng-click="saveNews('local')">保存到本地</a>
+						<a id="savewechat" type="button" class="btn btn-primary" ng-click="saveNews('wechat')" ng-show="!hidenbutton && materialList.length < 8">保存并上传到微信</a>
 					</div>
 				</div>
 			</nav>
@@ -140,6 +140,7 @@
 			'type' : '{$type}',
 			'news_rid' : '{$reply_news_id}',
 			'operate' : {if !empty($newsid)}'edit'{else}'add'{/if},
+			'model' : {if !empty($attachment['model'])}'{$attachment['model']}'{else}''{/if},
 			'url' : "{php echo url('platform/material-post/tomedia')}",
 			'newsUpload_url' : "{php echo url('platform/material-post/addnews')}",
 			'msg_url' : "{php echo url('platform/material/display')}",

@@ -668,7 +668,7 @@ if ($do == 'not_installed') {
 	$pageindex = max($_GPC['page'], 1);
 	$pagesize = 20;
 
-	$uninstallModules = module_get_all_unistalled($status);
+	$uninstallModules = module_get_all_unistalled($status, false);
 	$total_uninstalled = $uninstallModules['module_count'];
 	$uninstallModules = (array)$uninstallModules['modules'];
 	if (!empty($uninstallModules)) {

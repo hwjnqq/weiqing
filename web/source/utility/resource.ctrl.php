@@ -12,8 +12,8 @@ load()->func('file');
 
 load()->classs('resource');
 
-if( in_array($do,array('keyword','news','video','voice','module','image'))) {
-	$result=Resource::getResource($do)->getResources();
+if (in_array($do, array('keyword', 'news', 'video', 'voice', 'module', 'image'))) {
+	$result = Resource::getResource($do)->getResources();
 	iajax(0, $result);
 	return ;
 }
