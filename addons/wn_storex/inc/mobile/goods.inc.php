@@ -337,7 +337,7 @@ if ($op == 'order') {
 	//根据优惠方式计算总价
 	$market_types = array();
 	if ($store_info['market_status'] == 1) {
-		$markets = get_store_market($storeid);
+		$markets = get_store_market($store_id);
 		if (!empty($markets) && is_array($markets)) {
 			foreach ($markets as $info) {
 				if ($info['type'] == 'new' && $info['items'] > 0 && $insert['sum_price'] > $info['items']) {
