@@ -362,8 +362,6 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 			if ($score && false) {
 				$from_user = $_SESSION['openid'];
 				pdo_fetch("UPDATE " . tablename('storex_member') . " SET score = (score + " . $score . ") WHERE from_user = '" . $from_user . "' AND weid = " . $_W['uniacid'] . "");
-				//会员送积分
-				$_SESSION['ewei_hotel_pay_result'] = $orderid;
 				//判断公众号是否卡其会员卡功能
 				$card_setting = pdo_get('storex_mc_card', array('uniacid' => intval($_W['uniacid'])));
 				$card_status = $card_setting['status'];

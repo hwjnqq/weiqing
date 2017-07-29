@@ -293,7 +293,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 					ihttp_email($mail, '万能小店订单提醒', $body);
 				}
 			}
-			
 			if (!empty($storex_bases['phones'])) {
 				$storex_bases['phones'] = iunserializer($storex_bases['phones']);
 				// 发送短信提醒
@@ -306,7 +305,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 					cloud_sms_send($tel, $body);
 				}
 			}
-
 			if ($params['from'] == 'return') {
 				if ($storex_bases['store_type'] == 1) {
 					$goodsinfo = pdo_get('storex_room', array('id' => $order['roomid'], 'weid' => $weid));
@@ -316,7 +314,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				$score = intval($goodsinfo['score']);
 				$account_api = WeAccount::create($_W['acid']);
 				
-				if ($params['result'] == 'success' && $_SESSION['ewei_hotel_pay_result'] != $params['tid']) {
+				if ($params['result'] == 'success') {
 					if ($_W['account']['type'] != 4 || $_W['account']['uniacid'] == $_W['uniacid']) {
 						//发送模板消息提醒
 						if (!empty($setInfo['template']) && !empty($setInfo['confirm_templateid'])) {
@@ -403,7 +401,6 @@ class Wn_storexModuleSite extends WeModuleSite {
 						$from_user = $_W['openid'];
 						pdo_fetch("UPDATE " . tablename('storex_member') . " SET score = (score + " . $score . ") WHERE from_user = '" . $from_user . "' AND weid = " . $weid . "");
 						//会员送积分
-						$_SESSION['ewei_hotel_pay_result'] = $params['tid'];
 						//判断公众号是否卡其会员卡功能
 						$card_setting = pdo_get('mc_card', array('uniacid' => intval($_W['uniacid'])));
 						$card_status = $card_setting['status'];
