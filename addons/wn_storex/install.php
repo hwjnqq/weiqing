@@ -785,6 +785,7 @@ $sql = "
 	`storeid` int(11) unsigned NOT NULL DEFAULT '0',
 	`type` varchar(15) NOT NULL COMMENT '活动类型',
 	`items` varchar(1000) NOT NULL,
+	`status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态',
 	`starttime` int(11) unsigned NOT NULL,
 	`endtime` int(11) unsigned NOT NULL,
 	PRIMARY KEY (`id`),

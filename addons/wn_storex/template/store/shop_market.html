@@ -32,6 +32,18 @@
 					</div>
 				</div>
 			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" name="status" value="1" {if empty($new_list['status']) || $new_list['status'] == 1} checked {/if}/>启用
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="status" value="2" {if $new_list['status'] == 2} checked {/if}/>禁用
+					</label>
+					<span class='help-block'>是否使用该活动</span>
+				</div>
+			</div>
 			<div class="form-group col-sm-12">
 				<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
 				<input type="hidden" name="token" value="{$_W['token']}" />
@@ -71,6 +83,18 @@
 					</div>
 				</div>
 			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" name="status" value="1" {if empty($new_list['status']) || $new_list['status'] == 1} checked {/if}/>启用
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="status" value="2" {if $new_list['status'] == 2} checked {/if}/>禁用
+					</label>
+					<span class='help-block'>是否使用该活动</span>
+				</div>
+			</div>
 			<div class="form-group col-sm-12">
 				<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
 				<input type="hidden" name="token" value="{$_W['token']}" />
@@ -96,6 +120,18 @@
 						<input type="text" name="back" value="{$pickup_list['items']['back']}" class="form-control">
 						<span class="input-group-addon">折</span>
 					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" name="status" value="1" {if empty($new_list['status']) || $new_list['status'] == 1} checked {/if}/>启用
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="status" value="2" {if $new_list['status'] == 2} checked {/if}/>禁用
+					</label>
+					<span class='help-block'>是否使用该活动</span>
 				</div>
 			</div>
 			<div class="form-group col-sm-12">

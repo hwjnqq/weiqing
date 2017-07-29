@@ -31,7 +31,8 @@ if (checksubmit()) {
 			'starttime' => strtotime($time_limit['start']),
 			'endtime' => strtotime($time_limit['end']),
 			'type' => 'new',
-			'items' => $_GPC['back']
+			'items' => $_GPC['back'],
+			'status' => intval($_GPC['status']),
 		);
 		if (empty($market_list['new'])) {
 			$new_info['uniacid'] = $_W['uniacid'];
@@ -50,7 +51,8 @@ if (checksubmit()) {
 			'type' => $_GPC['type'],
 			'items' => iserializer($discounts),
 			'uniacid' => $_W['uniacid'],
-			'storeid' => $storeid
+			'storeid' => $storeid,
+			'status' => intval($_GPC['status']),
 		);
 		pdo_delete('storex_market', array('uniacid' => $_W['uniacid'], 'type' => $types, 'storeid' => $storeid));
 		pdo_insert('storex_market', $cut_info);
@@ -61,7 +63,8 @@ if (checksubmit()) {
 			'starttime' => strtotime($time_limit['start']),
 			'endtime' => strtotime($time_limit['end']),
 			'type' => 'pickup',
-			'items' => iserializer($discounts)
+			'items' => iserializer($discounts),
+			'status' => intval($_GPC['status']),
 		);
 		if (empty($market_list['pickup'])) {
 			$pickup_info['uniacid'] = $_W['uniacid'];
