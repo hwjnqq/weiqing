@@ -737,8 +737,8 @@ if (!pdo_fieldexists('storex_bases', 'openids')) {
 if (!pdo_fieldexists('storex_bases', 'market_status')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `market_status` INT UNSIGNED NOT NULL DEFAULT '0' COMMENT '营销开关';");
 }
-if (!pdo_fieldexists('storex_bases', 'roomitemid')) {
-	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `roomitemid` INT(11) UNSIGNED NOT NULL DEFAULT '0' COMMENT '房间号ID';");
+if (!pdo_fieldexists('storex_order', 'roomitemid')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `roomitemid` INT(11) UNSIGNED NOT NULL DEFAULT '0' COMMENT '房间号ID';");
 }
 if (!pdo_fieldexists('storex_order', 'newuser')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `newuser` INT(4) NOT NULL COMMENT '0未使用新用户活动，1已使用';");

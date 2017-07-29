@@ -746,6 +746,7 @@ function get_store_market($storeid) {
 		'storeid' => $storeid,
 		'starttime <=' => TIMESTAMP,
 		'endtime >' => TIMESTAMP,
+		'status' => 1,
 	);
 	if (empty(check_new_user())) {
 		$condition['type !='] = 'new';
@@ -756,25 +757,10 @@ function get_store_market($storeid) {
 	foreach ($types as $type) {
 		if (!empty($storex_market[$type])) {
 			if ($type == 'new') {
-				$markets[] = $storex_market[$type];
+				$markets[$type] = $storex_market[$type];
 			} else {
 				$storex_market[$type]['items'] = iunserializer($storex_market[$type]['items']);
-				$markets[] = $storex_market[$type];
-			}
-		} else {
-			if ($type == 'new') {
-				$markets[] = array(
-					'type' => 'new',
-					'items' => 0,
-				);
-			} else {
-				$markets[] = array(
-					'type' => $type,
-					'items' => array(
-						'condition' => 0,
-						'back' => 0,
-					),
-				);
+				$markets[$type] = $storex_market[$type];
 			}
 		}
 	}

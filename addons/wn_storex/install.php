@@ -124,6 +124,8 @@ $sql = "
 	`coupon` int(11) NOT NULL COMMENT '使用卡券信息',
 	`static_price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '初始订单的价格，不可更改',
 	`roomitemid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '房间号ID',
+	`newuser` int(4) NOT NULL COMMENT '0未使用新用户活动，1已使用',
+	`market_types` varchar(48) NOT NULL COMMENT '订单使用店铺内活动的类型',
 	PRIMARY KEY (`id`),
 	KEY `indx_hotelid` (`hotelid`),
 	KEY `indx_weid` (`weid`),
