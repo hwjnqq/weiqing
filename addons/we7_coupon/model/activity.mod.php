@@ -187,7 +187,7 @@ function we7_coupon_activity_coupon_give() {
 	}
 	$coupon_activitys = pdo_getall('coupon_activity', array('uniacid' => $_W['uniacid'], 'type' => 1, 'status' => 1));
 	foreach ($coupon_activitys as $activity) {
-		$is_give = pdo_get('coupon_record', array('grantmodule' => $activity['id'], 'remark' => '系统赠送'));
+		$is_give = pdo_get('coupon_record', array('grantmodule' => $activity['id'], 'openid' => $_W['openid'], 'remark' => '系统赠送'));
 		if (!empty($is_give)) {
 			continue;
 		}

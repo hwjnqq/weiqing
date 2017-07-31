@@ -1168,7 +1168,7 @@ class We7_couponModuleSite extends WeModuleSite {
 						'description' => trim($_GPC['description']),
 					);
 					if (in_array('group_member', $post['members'])) {
-						$post['members']['groupid'] = $_GPC['group'];
+						$post['members']['groupid'] = $_GPC['groupid'];
 					}
 					if (in_array('openids', $post['members'])) {
 						$post['members']['openids'] = json_decode($_COOKIE['fans_openids'.$_W['uniacid']]);
@@ -1201,8 +1201,8 @@ class We7_couponModuleSite extends WeModuleSite {
 						'coupons' => $_GPC['coupons'],
 						'members' => $_GPC['members'],
 					);
-					if (!empty($_GPC['group'])) {
-						$post['members']['groupid'] = $_GPC['group'];
+					if (!empty($_GPC['groupid'])) {
+						$post['members']['groupid'] = $_GPC['groupid'];
 					}
 					if (empty($id)) {
 						$openids = array();
