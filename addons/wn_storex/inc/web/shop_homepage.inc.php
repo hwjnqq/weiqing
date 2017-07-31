@@ -81,6 +81,16 @@ if ($op == 'post') {
 						}
 					}
 				}
+				if ($value['type'] == 'notice') {
+					if (!empty($value['items'])) {
+						foreach ($value['items'] as &$v) {
+							if (!empty($v['value'])) {
+								$v['value'] = htmlspecialchars_decode($v['value']);
+							}
+						}
+						unset($v);
+					}
+				}
 				$insert = array(
 					'type' => $value['type'],
 					'items' => !empty($value['items']) ? iserializer($value['items']) : '',
