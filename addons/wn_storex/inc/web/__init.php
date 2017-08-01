@@ -3,7 +3,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_GPC, $_W;
 define('SCRIPT_URL', $_W['siteroot'] . '/addons/wn_storex/template/style/js');
-$dos = array('shop_settings', 'shop_category', 'shop_goodsmanage', 'shop_room_status', 'shop_room_price', 'shop_tagmanage', 'shop_comment', 'shop_index', 'shop_order', 'shop_stat', 'shop_plugin', 'shop_plugin_printer', 'shop_homepage', 'shop_member', 'shop_clerk', 'shop_room_item', 'shop_market', 'shop_memberlevel');
+$dos = array('shop_settings', 'shop_category', 'shop_goodsmanage', 'shop_room_status', 'shop_room_price', 'shop_tagmanage', 'shop_comment', 'shop_index', 'shop_order', 'shop_stat', 'shop_plugin', 'shop_plugin_printer', 'shop_plugin_hotelservice', 'shop_homepage', 'shop_member', 'shop_clerk', 'shop_room_item', 'shop_market', 'shop_memberlevel');
 if (in_array($_GPC['do'], $dos)) {
 	if (empty($_GPC['storeid']) && !($_GPC['do'] == 'shop_settings' && $_GPC['action'] == 'add')) {
 		message('请重新选择店铺', $this->createWebUrl('storemanage', array('op' => 'list')), 'error');
@@ -137,7 +137,8 @@ $aside_nav = array(
 		'icon' => 'storex-menu-app',
 		'active' => array(
 			'shop_plugin',
-			'shop_plugin_printer'
+			'shop_plugin_printer',
+			'shop_plugin_hotelservice'
 		)
 	),
 	'shop_settings' => array(
