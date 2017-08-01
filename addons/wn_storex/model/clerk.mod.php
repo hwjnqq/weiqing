@@ -264,6 +264,7 @@ function clerk_order_operation($order, $store_type) {
 		'is_over' => false,
 		'is_send' => false,
 		'is_access' => false,
+		'is_assign' => false,
 	);
 	if ($order['status'] == ORDER_STATUS_CANCEL || $order['status'] == ORDER_STATUS_REFUSE) {
 		$status = array();
@@ -273,6 +274,7 @@ function clerk_order_operation($order, $store_type) {
 				$room = pdo_get('storex_room', array('id' => $order['roomid']), array('id', 'is_house'));
 				if (($order['goods_status'] == GOODS_STATUS_NOT_CHECKED || empty($order['goods_status'])) && $room['is_house'] == 1) {
 					$status['is_access'] = true;
+					$status['is_assign'] = true;
 				}
 			} else {
 				if ($order['mode_distribute'] == 2) {//配送
@@ -320,7 +322,7 @@ function clerk_permission_storex($type, $storeid = '') {
 	if (!empty($clerks) && is_array($clerks)) {
 		foreach ($clerks as $k => $v) {
 			$permission = clerk_permission($k, $v['userid']);
-			if (in_array('wn_storex_permission_' . $type, $permission)) {
+			if (is_array($permission) && in_array('wn_storex_permission_' . $type, $permission)) {
 				$stores[] = $k;
 			}
 		}

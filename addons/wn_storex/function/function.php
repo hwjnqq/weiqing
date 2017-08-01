@@ -766,3 +766,39 @@ function get_store_market($storeid) {
 	}
 	return $markets;
 }
+
+function check_room_assign($order, $roomitemid, $insert = false) {
+	global $_W;
+	$date= array();
+	$roomassign_record = pdo_get('storex_room_assign', array('storeid' => $order['hotelid'], 'roomid' => $order['roomid'], 'roomitemid' => $roomitemid, 'time >=' => $order['btime'], 'time <' => $order['etime']));
+	$status = true;
+	if (!empty($roomassign_record)) {
+		$status = false;
+	}
+	if (!empty($insert) && !empty($status)) {
+		if ($order['day'] > 0 ) {
+			for ($i = 0; $i < $order['day']; $i ++) {
+				$insert_data = array(
+					'uniacid' => $_W['uniacid'],
+					'storeid' => $order['hotelid'],
+					'roomid' => $order['roomid'],
+					'roomitemid' => $roomitemid,
+					'time' => $order['btime'] + $i * 86400,
+				);
+				pdo_insert('storex_room_assign', $insert_data);
+			}
+			
+		}
+	}
+	return $status;
+}
+
+function delete_room_assign($order, $assign_roomitemid = '') {
+	if (!empty($order['roomitemid'])) {
+		$roomitemid = $order['roomitemid'];
+	}
+	if (!empty($assign_roomitemid)) {
+		$roomitemid = $assign_roomitemid;
+	}
+	pdo_delete('storex_room_assign', array('storeid' => $order['hotelid'], 'roomid' => $order['roomid'], 'roomitemid' => $roomitemid, 'time >=' => $order['btime'], 'time <' => $order['etime']));
+}

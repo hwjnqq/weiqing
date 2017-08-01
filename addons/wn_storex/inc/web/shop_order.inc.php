@@ -174,6 +174,14 @@ if ($op == 'edit') {
 		if ($is_house == 1) {
 			$room_list = pdo_getall('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'roomid' => $item['roomid']));
 			$room_item = pdo_get('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'id' => $item['roomitemid']), array('id', 'roomnumber'));
+			if (!empty($room_list) && is_array($room_list)) {
+				foreach ($room_list as $r => $val) {
+					$show = check_room_assign($item, $val['id']);
+					if (empty($show)) {
+						unset($room_list[$r]);
+					}
+				}
+			}
 		}
 	}
 	$express = express_name();
@@ -526,7 +534,20 @@ if ($op == 'assign_room') {
 		if (empty($order_info)) {
 			message(error(-1, '订单信息错误'), '', 'ajax');
 		}
-		pdo_update('storex_order', array('roomitemid' => $room_item_id), array('id' => $orderid));
-		message(error(0, ''), referer(), 'ajax');
+		if (!empty($order_info['roomitemid'])) {
+			$assign_roomitemid = $order_info['roomitemid'];
+		}
+		if (!check_room_assign($order_info, $room_item_id, true)) {
+			message(error(-1, '该房间已经分配了'), '', 'ajax');
+		}
+		$result = pdo_update('storex_order', array('roomitemid' => $room_item_id), array('id' => $orderid));
+		if (!empty($result)) {
+			if (!empty($assign_roomitemid)) {
+				delete_room_assign($order_info, $assign_roomitemid);
+			}
+			message(error(0, ''), referer(), 'ajax');
+		} else {
+			message(error(-1, '分配失败'), referer(), 'ajax');
+		}
 	}
 }
