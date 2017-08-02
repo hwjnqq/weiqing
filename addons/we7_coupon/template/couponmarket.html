@@ -142,7 +142,7 @@
 									</tr>
 									{loop $coupons $coupon}
 									<tr>
-										<td><input type="checkbox" name="coupons[]" id="coupon" class="coupon check" value="{$coupon['id']}" {if is_array($item['coupons']) && in_array($coupon['id'], array_keys($item['coupons']))}checked{/if} data-title="{$coupon['title']}" data-type="{$coupon['type']}"></td>
+										<td><input type="radio" name="coupons" id="coupon" class="coupon check" value="{$coupon['id']}" {if is_array($item['coupons']) && in_array($coupon['id'], array_keys($item['coupons']))}checked{/if} data-title="{$coupon['title']}" data-type="{$coupon['type']}"></td>
 										<td>{$coupon['title']}</td>
 										<td>{if $coupon['type'] == 1}折扣券
 											{elseif $coupon['type'] == 2}代金券
@@ -394,22 +394,24 @@
 	$('.check').click(function() {
 		var check = $(this).prop('checked');
 		if (check) {
-			coupons[$(this).val()] = new Array();
-			coupons[$(this).val()] = [{'couponid' : $(this).val(), 'title' : $(this).data('title'), 'type' : $(this).data('type')}]
+			coupons = new Array();
+			coupons = [{'couponid' : $(this).val(), 'title' : $(this).data('title'), 'type' : $(this).data('type')}];
 		} else {
 			delete coupons[$(this).val()];
 		}
 	});
 	$('#save').click(function() {
 		$('#coupon_list').html('');
-		for (var key in coupons) {
-			var type = coupons[key][0].type == 1? '折扣券' : '代金券';
-			$('#coupon_list').append(
-					'<tr>' +
-					'<td style="width: 50px">'+coupons[key][0].title+'</td>' +
-					'<td style="width: 50px">'+type+'</td>' +
-					'</tr>');
-		}
+		var types = {php echo json_encode($type_names)};
+		var type_num = coupons[0].type;
+		var type = types[type_num].title;
+		var title = coupons[0].title;
+		$('#coupon_list').append(
+			'<tr>' +
+			'<td style="width: 50px">' + title + '</td>' +
+			'<td style="width: 50px">' + type + '</td>' +
+			'</tr>'
+		);
 	});
 	$('form').submit(function() {
 		if ($('[name="title"]').val() == '') {

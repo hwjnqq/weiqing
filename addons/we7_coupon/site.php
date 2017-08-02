@@ -25,6 +25,25 @@ class We7_couponModuleSite extends WeModuleSite {
 		$this->settings = $setting;
 	}
 
+	public function BuildCardExt($id, $openid = '', $type = 'coupon') {
+		load()->classs('coupon');
+		$coupon_api = new Coupon();
+		$acid = $coupon_api->account['acid'];
+		$card_id = pdo_getcolumn('coupon', array('acid' => $acid, 'id' => $id), 'card_id');
+		if (empty($card_id)) {
+			return error(-1, '卡券id不合法');
+		}
+		$time = TIMESTAMP;
+		$sign = array($card_id, $time);
+		$signature = $coupon_api->SignatureCard($sign);
+		if (is_error($signature)) {
+			return $signature;
+		}
+		$cardExt = array('timestamp' => $time, 'signature' => $signature);
+		$cardExt = json_encode($cardExt);
+		return array('card_id' => $card_id, 'card_ext' => $cardExt);
+	}
+
 	public function getHomeTiles() {
 		global $_W;
 		$urls = array();
@@ -1112,6 +1131,7 @@ class We7_couponModuleSite extends WeModuleSite {
 		$op = !empty($_GPC['op']) ? $_GPC['op'] : 'display';
 		$propertys = activity_member_propertys();
 		$coupon_api = new coupon();
+		$type_names = activity_get_coupon_label();
 		if ($op == 'checkcoupon') {
 			$coupon_id = intval($_GPC['coupon']);
 			$coupon = activity_coupon_info($coupon_id);
@@ -1156,83 +1176,59 @@ class We7_couponModuleSite extends WeModuleSite {
 			$pager = pagination($total, $pindex, $psize);
 		} elseif ($op == 'post') {
 			if (checksubmit('submit')) {
-				if (COUPON_TYPE == SYSTEM_COUPON) {
-					$post = array(
-						'uniacid' => $_W['uniacid'],
-						'title' => trim($_GPC['title']),
-						'type' => 1,
-						'status' => intval($_GPC['status']),
-						'thumb' => empty($_GPC['thumb'])? '' : $_GPC['thumb'],
-						'coupons' => serialize($_GPC['coupons']),
-						'members' => $_GPC['members'],
-						'description' => trim($_GPC['description']),
-					);
+				$post = array(
+					'uniacid' => $_W['uniacid'],
+					'title' => trim($_GPC['title']),
+					'type' => COUPON_TYPE,
+					'status' => intval($_GPC['status']),
+					'coupons' => intval($_GPC['coupons']),
+					'members' => $_GPC['members'],
+					'thumb' => empty($_GPC['thumb'])? '' : $_GPC['thumb'],
+				);
+				if (empty($id)) {
+					if (COUPON_TYPE == SYSTEM_COUPON) {
+						$post['description'] = trim($_GPC['description']);
+					}
+					$openids = array();
+					$param = array();
 					if (in_array('group_member', $post['members'])) {
 						$post['members']['groupid'] = $_GPC['groupid'];
+						$param['groupid'] = intval($_GPC['groupid']);
+					}
+					if (in_array('cash_time', $post['members'])) {
+						$post['members']['cash_time'] = $_GPC['daterange'];
+						$param['start'] = strtotime($_GPC['daterange']['start']);
+						$param['end'] = strtotime($_GPC['daterange']['end']);
 					}
 					if (in_array('openids', $post['members'])) {
 						$post['members']['openids'] = json_decode($_COOKIE['fans_openids'.$_W['uniacid']]);
-						$array = array();
+						$compare_array = array();
 						for ($i = 0; $i < count($post['members']['openids']); $i++) {
-							$array[$i] = '';
+							$compare_array[$i] = '';
 						}
-						$post['members']['openids'] = array_diff($post['members']['openids'], $array);
+						$post['members']['openids'] = array_diff($post['members']['openids'], $compare_array);
 						if (empty($post['members']['openids'])) {
 							message('请选择粉丝', referer(), 'info');
 						}
 					}
-					if (in_array('cash_time', $post['members'])) {
-						$post['members']['cash_time'] = $_GPC['daterange'];
-					}
+					$openids = we7_coupon_activity_get_member($post['members'][0], $param);
 					$post['members'] = serialize($post['members']);
-					if (!empty($id)) {
-						pdo_update('coupon_activity', $post, array('id' => $id, 'uniacid' => $_W['uniacid']));
-						message('更新活动成功', $this->createWeburl('couponmarket'), 'success');
-					} else {
-						pdo_insert('coupon_activity', $post);
-						message('添加活动成功', $this->createWeburl('couponmarket'), 'success');
+					$openids = $openids['members'];
+					$account_api = WeAccount::create();
+					foreach ($openids as $openid) {
+						$result = we7_coupon_activity_coupon_grant($post['coupons'], $openid, 3);
+						$coupon_info = activity_coupon_info($post['coupons']);
+						$info = $_W['account']['name'] . '赠送了您一张' . $coupon_info['title'] . '，请到会员中心查收';
+						$send['touser'] = $openid;
+						$send['msgtype'] = 'text';
+						$send['text'] = array('content' => urlencode($_W['account']['name'].'赠送了您一张'.$coupon_info['title'].'，请到会员中心查收'));
+						$data = $account_api->sendCustomNotice($send);
 					}
-				} else {
-					$post = array(
-						'uniacid' => $_W['uniacid'],
-						'title' => trim($_GPC['title']),
-						'type' => 2,
-						'status' => 0,
-						'coupons' => $_GPC['coupons'],
-						'members' => $_GPC['members'],
-					);
-					if (!empty($_GPC['groupid'])) {
-						$post['members']['groupid'] = $_GPC['groupid'];
+					if (is_array($result)) {
+						$post['msg_id'] = $result['errno'];
 					}
-					if (empty($id)) {
-						$openids = array();
-						$param = array();
-						if ($post['members'][0] == 'cash_time') {
-							$param['start'] = strtotime($_GPC['daterange']['start']);
-							$param['end'] = strtotime($_GPC['daterange']['end']);
-						}
-						if ($post['members'][0] == 'group_member') {
-							$param['groupid'] = intval($_GPC['groupid']);
-						}
-						$openids = we7_coupon_activity_get_member($post['members'][0], $param);
-						$openids = $openids['members'];
-						$account_api = WeAccount::create();
-						foreach ($post['coupons'] as $coupon) {
-							$post['members'] = serialize($post['members']);
-							$post['coupons'] = serialize($post['coupons']);
-							foreach ($openids as $openid) {
-								$result = we7_coupon_activity_coupon_grant($coupon, $openid);
-								$coupon_info = activity_coupon_info($coupon);
-								$send['touser'] = $openid;
-								$send['msgtype'] = 'text';
-								$send['text'] = array('content' => urlencode($_W['account']['name'].'赠送了您一张'.$coupon_info['title'].'，请到会员中心查收'));
-								$data = $account_api->sendCustomNotice($send);
-							}
-							$post['msg_id'] = $result['msg_id'];
-							pdo_insert('coupon_activity', $post);
-						}
-						message('卡券发放成功', $this->createWeburl('couponmarket'), 'success');
-					}
+					pdo_insert('coupon_activity', $post);
+					message('添加卡券派发活动成功', referer(), 'success');
 				}
 			}
 			$id = intval($_GPC['id']);
@@ -4089,7 +4085,6 @@ class We7_couponModuleSite extends WeModuleSite {
 			//我的代金券
 			if ($op == 'mine') {
 				$title = '我的卡券';
-				we7_coupon_activity_coupon_give();
 				$coupon_records = we7_coupon_activity_coupon_owned();
 			}
 			//使用代金券
@@ -4137,7 +4132,7 @@ class We7_couponModuleSite extends WeModuleSite {
 				$id = intval($_GPC['id']);
 				$code = trim($_GPC['code']);
 				if ($_W['isajax'] && $_W['ispost']) {
-					$card = $coupon_api->BuildCardExt($id);
+					$card = $this->BuildCardExt($id);
 					if (is_error($card)) {
 						message(error(1, $card['message']), '', 'ajax');
 					} else {
@@ -4150,7 +4145,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			if ($op == 'addcard') {
 				$id = intval($_GPC['id']);
 				if ($_W['isajax'] && $_W['ispost']) {
-					$card = $coupon_api->BuildCardExt($id);
+					$card = $this->BuildCardExt($id);
 					if (is_error($card)) {
 						message(error(1, $card['message']), '', 'ajax');
 					} else {

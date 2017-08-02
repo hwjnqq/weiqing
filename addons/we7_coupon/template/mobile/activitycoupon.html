@@ -128,7 +128,7 @@ $(document).on('click', '.js-coupon-info', function() {
 		$.post(href, {'id' : id, 'code' : code}, function(data) {
 		var data = $.parseJSON(data);
 		if (data.message.errno < 0) {
-			u.message(data.message.error, '', 'error');
+			util.message(data.message.error, '', 'error');
 		} else {
 			wx.ready(function(){
 				wx.openCard({

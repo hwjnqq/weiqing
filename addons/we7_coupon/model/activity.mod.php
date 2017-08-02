@@ -77,54 +77,64 @@ function we7_coupon_activity_coupon_grant($id, $openid) {
 function we7_coupon_activity_get_member($type, $param = array()) {
 	activity_coupon_type_init();
 	global $_W;
-	$types =  array('new_member', 'old_member', 'quiet_member', 'activity_member', 'group_member', 'cash_time', 'openids');
+	$types = array('new_member', 'old_member', 'quiet_member', 'activity_member', 'group_member', 'cash_time', 'openids');
 	if (!in_array($type, $types)) {
 		return error('1', '没有匹配的用户类型');
 	}
+	$members = array();
+	//获取会员属性
 	$propertys = activity_member_propertys();
-	$openids = pdo_getall('mc_mapping_fans', array('openid <>' => '', 'uniacid' => $_W['uniacid'], 'uid <>' => ''), array('uid', 'openid'), 'uid');
-	$uids = array_keys($openids);
+	//新会员，一个月内消费不超过一次
 	if ($type == 'new_member') {
 		$property_time = strtotime('-' . $propertys['newmember'] . ' month', time());
-		$members_sql = "SELECT c.openid FROM ( SELECT a.uid FROM ". tablename('mc_members')." as a LEFT JOIN ".tablename('mc_cash_record')." as b ON a.uid = b.uid WHERE a.uniacid = :uniacid AND a.createtime > :time AND (b.createtime > :time or b.id is null) GROUP BY a.uid HAVING COUNT(*) < 2) as d  LEFT JOIN ". tablename('mc_mapping_fans')." as c ON d.uid = c.uid WHERE c.openid <> ''";
-		$members = pdo_fetchall($members_sql, array(':uniacid' => $_W['uniacid'], ':time' => $property_time), 'openid');
+		$mc_members = pdo_getall('mc_members', array('uniacid' => $_W['uniacid'], 'createtime >' => $property_time), array('uid'), 'uid');
+		$mc_uids = array_keys($mc_members);
+		$uids = implode(',',$mc_uids);
+		$mc_cash_record_sql = "SELECT uid FROM " . tablename('mc_cash_record') . " WHERE uid IN ( :uids ) AND createtime > :time GROUP BY uid HAVING COUNT(*) < 2 " ;
+		$mc_cash_record = pdo_fetchall($mc_cash_record_sql, array(':uids' => $uids, ':time' => $property_time));
+		if (!empty($mc_cash_record)) {
+			foreach ($mc_cash_record as $v) {
+				if (!in_array($v['uid'], $mc_uids)) {
+					unset($mc_uids[$v['uid']]);
+				}
+			}
+		}
 	}
+	//老会员，注册超过两个月的会员
 	if ($type == 'old_member') {
 		$property_time = strtotime('-' . $propertys['oldmember'] . ' month', time());
-		$members = pdo_fetchall("SELECT b.openid FROM ".tablename('mc_members')." as a LEFT JOIN ". tablename('mc_mapping_fans')." as b ON a.uid = b.uid WHERE a.createtime < :time AND a.uniacid = :uniacid AND b.openid <> ''", array(':time' => $property_time, ':uniacid' => $_W['uniacid']), 'openid');
+		$mc_members = pdo_getall('mc_members', array('uniacid' => $_W['uniacid'], 'createtime <' => $property_time), array('uid'), 'uid');
+		$mc_uids = array_keys($mc_members);
 	}
 	if ($type == 'activity_member') {
 		$property_time = strtotime('-' . $propertys['activitymember'] . ' month', time());
-		$cash_records = pdo_fetchall("SELECT COUNT(*) AS total, uid, createtime FROM " . tablename('mc_cash_record') . " WHERE uid IN (" . implode(',', $uids) . ") GROUP BY uid", array(), 'uid');
-		foreach ($cash_records as $uid => $record) {
-			if ($record['total'] >= 2 && $record['createtime'] > $property_time) {
-				$activity_member[$uid] = $record;
-			}
-		}
-		foreach ($activity_member as $uid => $member) {
-			$members[$openids[$uid]['openid']] = $openids[$uid]['openid'];
-		}
-		unset($member);
+		$mc_cash_record_sql = "SELECT * FROM " . tablename('mc_cash_record') . " WHERE uniacid = :uniacid AND createtime > :time GROUP BY uid HAVING COUNT(*) > 2";
+		$mc_cash_record = pdo_fetchall($mc_cash_record_sql, array(':uniacid' => $_W['uniacid'], ':time' => $property_time), 'uid');
+		$mc_uids = array_keys($mc_cash_record);
+	}
+	if (!empty($mc_uids)) {
+		$members = pdo_getall('mc_mapping_fans', array('uid' => $mc_uids, 'openid !=' => ''), array('openid'), 'openid');
 	}
 	if ($type == 'quiet_member') {
 		$property_time = strtotime('-' . $propertys['quietmember'] . ' month', time());
-		$cash_records = pdo_fetchall("SELECT COUNT(*) AS total, uid, createtime FROM " . tablename('mc_cash_record') . " WHERE uid IN (" . implode(',', $uids) . ") GROUP BY uid", array(), 'uid');
-		foreach ($uids as $uid) {
-			if (empty($cash_records[$uid])) {
-				$quiet_member[$uid]['uid'] = $uid;
+		$members = pdo_fetchall("SELECT a.openid FROM " . tablename('mc_mapping_fans') . " as a LEFT JOIN " 
+				. tablename('mc_cash_record')." as b ON a.uid = b.uid WHERE a.uniacid = :uniacid AND b.id is null 
+				GROUP BY a.uid ", array(':uniacid' => $_W['uniacid']), 'openid');
+		$member = pdo_fetchall("SELECT a.openid FROM " . tablename('mc_mapping_fans') . " as a LEFT JOIN "
+				 . tablename('mc_cash_record')." as b ON a.uid = b.uid WHERE a.uniacid = :uniacid AND b.createtime > :time 
+				GROUP BY a.uid ", array(':uniacid' => $_W['uniacid'], ':time' => $property_time), 'openid');
+		if (!empty($member)) {
+			foreach ($member as $key => $mem) {
+				unset($members[$key]);
 			}
 		}
-		foreach ($quiet_member as $uid => $member) {
-			$members[$openids[$uid]['openid']] = $openids[$uid]['openid'];
-		}
 	}
-
 	if ($type == 'group_member') {
 		if (empty($param)) {
 			return error(1, '请选择会员组');
 		}
 		if (COUPON_TYPE == WECHAT_COUPON) {
-			$members =  pdo_getall('mc_mapping_fans', array('uniacid' => $_W['uniacid']), array(), 'openid');
+			$members = pdo_getall('mc_mapping_fans', array('uniacid' => $_W['uniacid']), array(), 'openid');
 			foreach ($members as $key => &$fan) {
 				$fan['groupid'] = explode(',', $fan['groupid']);
 				if (!is_array($fan['groupid']) || !in_array($param['groupid'], $fan['groupid'])) {
@@ -132,11 +142,22 @@ function we7_coupon_activity_get_member($type, $param = array()) {
 				}
 			}
 		} else {
-			$members = pdo_fetchall('SELECT b.openid FROM '.tablename('mc_members')." as a LEFT JOIN ". tablename('mc_mapping_fans')." as b ON a.uid  = b.uid WHERE a.groupid  = :groupid AND a.uniacid = :uniacid AND b.openid <> ''", array(':groupid' => $param['groupid'], ':uniacid' => $_W['uniacid']), 'openid');
+			$mc_members = pdo_getall('mc_members', array('groupid' => $param['groupid'], 'uniacid' => $_W['uniacid']), array('uid'), 'uid');
+			$mc_uids = array_keys($mc_members);
+			$members = array();
+			if (!empty($mc_uids)) {
+				$members = pdo_getall('mc_mapping_fans', array('openid !=' => '', 'uid' => $mc_uids), array('openid'), 'openid');
+			}
 		}
 	}
 	if ($type == 'cash_time') {
-		$members = pdo_fetchall("SELECT a.openid FROM ". tablename('mc_mapping_fans')." as a LEFT JOIN ".tablename('mc_cash_record')." as b ON a.uid = b.uid WHERE a.uniacid = :uniacid AND b.createtime >= :start AND b.createtime <= :end GROUP BY a.openid", array(':uniacid' => $_W['uniacid'], ':start' => $param['start'], ':end' => $param['end']), 'openid');
+		$mc_cash_record = pdo_fetchall("SELECT uid FROM " . tablename('mc_cash_record') . " WHERE createtime >= :start AND createtime <= :end", 
+				array(':start' => $param['start'], ':end' => $param['end']), 'uid');
+		$mc_uids = array_keys($mc_cash_record);
+		$members = array();
+		if (!empty($mc_uids)) {
+			$members = pdo_getall('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'uid' => $mc_uids), array('openid'), 'openid');
+		}
 	}
 	if ($type == 'openids') {
 		$members = json_decode($_COOKIE['fans_openids'.$_W['uniacid']]);
@@ -404,4 +425,14 @@ function we7_coupon_paycenter_check_login() {
 	} else {
 		message('非法访问', '', 'error');
 	}
+}
+function activity_get_coupon_label($type = '') {
+	$types = array(
+		COUPON_TYPE_DISCOUNT => array('title' => '折扣券', 'value' => 'discount'),
+		COUPON_TYPE_CASH => array('title' => '代金券', 'value' => 'cash'),
+		COUPON_TYPE_GIFT => array('title' => '礼品券', 'value' => 'gift'),
+		COUPON_TYPE_GROUPON => array('title' => '团购券', 'value' => 'groupon'),
+		COUPON_TYPE_GENERAL => array('title' => '优惠券', 'value' => 'general_coupon'),
+	);
+	return $types[$type] ? $types[$type] : $types;
 }
