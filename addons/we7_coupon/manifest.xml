@@ -3,7 +3,7 @@
 	<application setting="true">
 		<name><![CDATA[系统卡券]]></name>
 		<identifie><![CDATA[we7_coupon]]></identifie>
-		<version><![CDATA[2.5]]></version>
+		<version><![CDATA[4.3]]></version>
 		<type><![CDATA[business]]></type>
 		<ability><![CDATA[微擎卡券]]></ability>
 		<description><![CDATA[微擎卡券]]></description>
@@ -12,6 +12,9 @@
 	</application>
 	<platform>
 		<subscribes>
+			<message type="user_get_card" />
+			<message type="user_del_card" />
+			<message type="user_consume_card" />
 		</subscribes>
 		<handles>
 		</handles>
@@ -39,7 +42,6 @@
 			<entry title="门店管理" do="storelist" state="" direct="false" />
 			<entry title="店员管理" do="clerklist" state="" direct="false" />
 			<entry title="门店收银台" do="paycenter" state="" direct="false" />
-			<entry title="工作台菜单设置" do="clerkdeskmenu" state="" direct="false" />
 			<entry title="签到管理" do="signmanage" state="" direct="false" />
 			<entry title="通知管理" do="noticemanage" state="" direct="false" />
 			<entry title="会员积分统计" do="statcredit1" state="" direct="false" />

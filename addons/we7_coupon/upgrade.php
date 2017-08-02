@@ -205,3 +205,6 @@ if (empty($menu_info)) {
 		";
 	pdo_run($sql);
 }
+
+//删除店员工作台菜单设置
+pdo_delete('modules_bindings', array('module' => 'we7_coupon', 'entry' => 'menu', 'do' => 'clerkdeskmenu'));
