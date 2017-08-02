@@ -3,7 +3,7 @@
 	<application setting="false">
 		<name><![CDATA[万能小店]]></name>
 		<identifie><![CDATA[wn_storex]]></identifie>
-		<version><![CDATA[1.4.4]]></version>
+		<version><![CDATA[1.4.5]]></version>
 		<type><![CDATA[business]]></type>
 		<ability><![CDATA[万能小店]]></ability>
 		<description><![CDATA[万能小店]]></description>
@@ -49,15 +49,16 @@
 	</bindings>
 	<permissions>
 		<entry title="订单管理" do="order" />
-		<entry title="商品管理" do="room" />
+		<entry title="房态管理" do="room" />
 		<entry title="积分充值" do="mc_credit1" />
 		<entry title="余额充值" do="mc_credit2" />
 		<entry title="消费" do="mc_conusme" />
 		<entry title="发放会员卡" do="mc_card" />
 		<entry title="卡券核销" do="coupon_consume" />
+		<entry title="商品管理" do="goods" />
 	</permissions>
 	<install><![CDATA[install.php]]></install>
-	<uninstall><![CDATA[]]></uninstall>
+	<uninstall><![CDATA[uninstall.php]]></uninstall>
 	<upgrade><![CDATA[upgrade.php]]></upgrade>
 
 </manifest>

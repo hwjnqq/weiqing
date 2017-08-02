@@ -8,7 +8,7 @@ mload()->model('card');
 mload()->model('order');
 mload()->model('clerk');
 
-$ops = array('permission_storex', 'order', 'order_info', 'edit_order', 'room', 'room_info', 'edit_room', 'assign_room');
+$ops = array('permission_storex', 'order', 'order_info', 'edit_order', 'room', 'room_info', 'edit_room', 'assign_room', 'goods', 'status');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 $uid = mc_openid2uid($_W['openid']);
@@ -350,7 +350,8 @@ if ($op == 'room_info') {
 		wmessage(error(-1, '不存在此房型！'), '', 'ajax');
 	}
 	$room_info['thumb'] = tomedia($room_info['thumb']);
-	if (empty(clerk_permission_storex('room', $room_info['hotelid']))) {
+	$manage_storex_lists = clerk_permission_storex('room', $room_info['hotelid']);
+	if (empty($manage_storex_lists)) {
 		wmessage(error(-1, '你没有维护房型的权限'), '', 'ajax');
 	}
 
@@ -429,7 +430,8 @@ if ($op == 'edit_room') {
 		wmessage(error(-1, '不存在此房型！'), '', 'ajax');
 	}
 	$room_info['thumb'] = tomedia($room_info['thumb']);
-	if (empty(clerk_permission_storex('room', $room_info['hotelid']))) {
+	$manage_storex_lists = clerk_permission_storex('room', $room_info['hotelid']);
+	if (empty($manage_storex_lists)) {
 		wmessage(error(-1, '你没有维护房型的权限'), '', 'ajax');
 	}
 	
@@ -472,8 +474,8 @@ if ($op == 'edit_room') {
 }
 
 if ($op == 'assign_room') {
-	$orderid = $_GPC['orderid'];
-	$roomitemid= $_GPC['roomid'];
+	$orderid = intval($_GPC['orderid']);
+	$roomitemid= intval($_GPC['roomid']);
 	$order = pdo_get('storex_order', array('id' => $orderid));
 	if (empty($order)) {
 		wmessage(error(-1, '订单信息错误'), '', 'ajax');
@@ -489,8 +491,57 @@ if ($op == 'assign_room') {
 		if (!empty($assign_roomitemid)) {
 			delete_room_assign($order, $assign_roomitemid);
 		}
-		message(error(0, '分配成功'), '', 'ajax');
+		wmessage(error(0, '分配成功'), '', 'ajax');
 	} else {
-		message(error(-1, '分配失败'), '', 'ajax');
+		wmessage(error(-1, '分配失败'), '', 'ajax');
+	}
+}
+
+if ($op == 'goods') {
+	$manage_storex_lists = clerk_permission_storex($op);
+	$goods_lists = array();
+	if (!empty($manage_storex_lists) && is_array($manage_storex_lists)) {
+		foreach ($manage_storex_lists as $store) {
+			$table = gettablebytype($store['store_type']);
+			$fields = array('id', 'status', 'title', 'oprice', 'cprice', 'thumb');
+			if ($table == 'storex_room') {
+				$condition = array('hotelid' => $store['id']);
+				$fields[] = 'hotelid';
+			} else {
+				$condition = array('store_base_id' => $store['id']);
+				$fields[] = 'store_base_id';
+			}
+			$list = pdo_getall($table, $condition, $fields);
+			if (!empty($list) && is_array($list)) {
+				foreach ($list as &$val) {
+					if (!empty($val['thumb'])) {
+						$val['thumb'] = tomedia($val['thumb']);
+					}
+				}
+			}
+			$goods_lists[$store['id']] = $list;
+		}
+	}
+	wmessage(error(0, $goods_lists), '', 'ajax');
+}
+
+if ($op == 'status') {
+	$goodsid = intval($_GPC['goodsid']);
+	$storeid = intval($_GPC['storeid']);
+	$status = intval($_GPC['status']);
+	if (!empty($goodsid) && !empty($storeid)) {
+		$manage_storex_lists = clerk_permission_storex('goods');
+		if (!empty($manage_storex_lists[$storeid])) {
+			$table = gettablebytype($manage_storex_lists[$storeid]['store_type']);
+			if ($status != 1) {
+				$status = 0;
+			}
+			pdo_update($table, array('status' => $status), array('id' => $goodsid));
+			wmessage(error(0, '设置成功'), '', 'ajax');
+		} else {
+			wmessage(error(-1, '没有权限'), '', 'ajax');
+		}
+	} else {
+		wmessage(error(-1, '参数错误'), '', 'ajax');
 	}
 }

@@ -112,7 +112,6 @@ function check_params() {
 				'uniacid' => intval($_W['uniacid']),
 				'openid' => $_W['openid'],
 			),
-			'clerkindex' => array(),
 			'order' => array(),
 			'order_info' => array(
 				'orderid' => $_GPC['orderid'],
@@ -129,6 +128,15 @@ function check_params() {
 			),
 			'permission_storex' => array(
 				'type' => $_GPC['type'],
+			),
+			'assign_room' => array(
+				'orderid' => $_GPC['orderid'],
+				'roomid' => $_GPC['roomid'],
+			),
+			'goods' => array(),
+			'status' => array(
+				'goodsid' => $_GPC['goodsid'],
+				'storeid' => $_GPC['storeid'],
 			),
 		),
 		'sign' => array(
@@ -748,7 +756,8 @@ function get_store_market($storeid) {
 		'endtime >' => TIMESTAMP,
 		'status' => 1,
 	);
-	if (empty(check_new_user($storeid))) {
+	$status = check_new_user($storeid);
+	if (empty($status)) {
 		$condition['type !='] = 'new';
 	}
 	$storex_market = pdo_getall('storex_market', $condition, array('storeid', 'type', 'items'), 'type');
@@ -773,7 +782,7 @@ function check_room_assign($order, $roomitemid, $insert = false) {
 	$roomassign_record = pdo_get('storex_room_assign', array('storeid' => $order['hotelid'], 'roomid' => $order['roomid'], 'roomitemid' => $roomitemid, 'time >=' => $order['btime'], 'time <' => $order['etime']));
 	$status = true;
 	if (!empty($roomassign_record)) {
-		$status = false;
+		return false;
 	}
 	if (!empty($insert) && !empty($status)) {
 		if ($order['day'] > 0 ) {
