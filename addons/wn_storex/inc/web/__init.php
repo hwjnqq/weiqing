@@ -3,7 +3,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_GPC, $_W;
 define('SCRIPT_URL', $_W['siteroot'] . '/addons/wn_storex/template/style/js');
-$dos = array('shop_settings', 'shop_category', 'shop_goodsmanage', 'shop_room_status', 'shop_room_price', 'shop_tagmanage', 'shop_comment', 'shop_index', 'shop_order', 'shop_stat', 'shop_plugin', 'shop_plugin_printer', 'shop_plugin_hotelservice', 'shop_homepage', 'shop_member', 'shop_clerk', 'shop_room_item', 'shop_market', 'shop_memberlevel');
+$dos = array('shop_settings', 'shop_category', 'shop_goodsmanage', 'shop_room_status', 'shop_room_price', 'shop_tagmanage', 'shop_comment', 'shop_index', 'shop_order', 'shop_stat', 'shop_plugin', 'shop_plugin_printer', 'shop_plugin_hotelservice', 'shop_homepage', 'shop_member', 'shop_clerk', 'shop_room_item', 'shop_market', 'shop_memberlevel', 'shop_article');
 if (in_array($_GPC['do'], $dos)) {
 	if (empty($_GPC['storeid']) && !($_GPC['do'] == 'shop_settings' && $_GPC['action'] == 'add')) {
 		message('请重新选择店铺', $this->createWebUrl('storemanage', array('op' => 'list')), 'error');
@@ -123,6 +123,15 @@ $aside_nav = array(
 			'shop_clerk',
 		)
 	),
+	'shop_article' => array(
+		'title' => '文章管理',
+		'url' => $this->createWebUrl('shop_article', array('storeid' => $_GPC['storeid'])),
+		'icon' => 'storex-menu-clerk',
+		'active' => array(
+			'shop_article',
+			'shop_article_category'
+		)
+	),
 	'shop_market' => array(
 		'title' => '营销',
 		'url' => $this->createWebUrl('shop_market', array('storeid' => $_GPC['storeid'])),
@@ -152,7 +161,7 @@ $aside_nav = array(
 );
 if (!check_ims_version()) {
 	unset($aside_nav['shop_plugin']);
-	if ($_GPC['do'] == 'shop_plugin' || $_GPC['do'] == 'shop_plugin_printer') {
+	if ($_GPC['do'] == 'shop_plugin' || $_GPC['do'] == 'shop_plugin_printer' || $_GPC['shop_plugin_hotelservice']) {
 		message('请升级微擎系统至1.0以上，并保持最新版本', '', 'error');
 	}
 }

@@ -500,6 +500,18 @@ $sql = "
 	`goods_table` varchar(24) NOT NULL COMMENT '商品表名',
 	PRIMARY KEY (`id`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_plugin_room_goods` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`uniacid` int(11) DEFAULT '0',
+	`storeid` int(11) DEFAULT NULL COMMENT '酒店id',
+	`title` varchar(255) DEFAULT '',
+	`price` decimal(10,2) DEFAULT '0.00',
+	`status` tinyint(3) unsigned NOT NULL DEFAULT '1' COMMENT '状态1是待确认，2是已确认',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `storeid` (`storeid`)
+	) DEFAULT CHARSET=utf8;
 ";
 pdo_run($sql);
 
