@@ -431,8 +431,9 @@
 				},
 				saveItem: function () {
 					console.log(typeof this.ueditor);
-					if(typeof this.ueditor == 'object') {
+					if(this.ueditor && typeof this.ueditor == 'object') {
 						this.editValue.value = this.ueditor.getContent()
+						this.ueditor = null;
 					}
 					var index = this.editModuleIndex;
 					var value = this.editValue;
