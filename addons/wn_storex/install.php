@@ -827,6 +827,40 @@ $sql = "
 	KEY `uniacid` (`uniacid`),
 	KEY `storeid` (`storeid`)
 	) DEFAULT CHARSET=utf8;
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_article_category` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(11) DEFAULT '0',
+	`storeid` int(11) DEFAULT NULL COMMENT '酒店id',
+	`title` varchar(30) NOT NULL,
+	`displayorder` tinyint(3) unsigned NOT NULL DEFAULT '0',
+	`status` tinyint(3) unsigned NOT NULL DEFAULT '1',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `storeid` (`storeid`)
+	) DEFAULT CHARSET=utf8;
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_article` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`uniacid` int(10) unsigned NOT NULL,
+	`storeid` int(10) unsigned NOT NULL,
+	`pcate` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '一级分类',
+	`title` varchar(100) NOT NULL DEFAULT '',
+	`description` varchar(100) NOT NULL DEFAULT '',
+	`content` mediumtext NOT NULL,
+	`thumb` varchar(255) NOT NULL DEFAULT '' COMMENT '缩略图',
+	`source` varchar(255) NOT NULL DEFAULT '' COMMENT '来源',
+	`author` varchar(50) NOT NULL COMMENT '作者',
+	`displayorder` int(10) unsigned NOT NULL DEFAULT '0',
+	`createtime` int(10) unsigned NOT NULL DEFAULT '0',
+	`click` int(10) unsigned NOT NULL DEFAULT '0',
+	`type` varchar(10) NOT NULL DEFAULT '',
+	`credit` varchar(255) NOT NULL DEFAULT '',
+	`status` tinyint(3) unsigned NOT NULL DEFAULT '1',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `storeid` (`storeid`)
+	) DEFAULT CHARSET=utf8;
 ";
 
 pdo_run($sql);
