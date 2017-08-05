@@ -797,8 +797,7 @@ if (!pdo_fieldexists('storex_order', 'salesman')) {
 
 load()->model('module');
 $module = module_fetch('wn_storex');
-$version = explode('.', $module['version']);
-if ($version[0] == 1 && $version[1] == 4 && $version[2] <= 6) {
+if (ver_compare('1.4.7', $module['version']) == 1) {
 	$members = pdo_getall('storex_member', array('from_user !=' => ''), array('id', 'realname', 'from_user'));
 	if (!empty($members) && is_array($members)) {
 		load()->model('mc');
