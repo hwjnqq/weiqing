@@ -29,7 +29,7 @@ if ($op == 'register') {
 		'applytime' => TIMESTAMP,
 		'alipay' => trim($_GPC['alipay']),
 	);
-	foreach ($register_info as $register) {
+	foreach ($register_data as $register) {
 		if (empty($register)) {
 			wmessage(error(-1, '资料不全'), '', 'ajax');
 		}
