@@ -143,9 +143,13 @@ if (!function_exists('hotel_member_single')) {
 
 if (!function_exists('insert_member')) {
 	function insert_member($member) {
+		global $_W;
 		if (!isset($member['userid']) || empty($member['userid'])) {
 			load()->model('mc');
 			$member['userid'] = mc_openid2uid($_W['openid']);
+			$mc_members = pdo_get('mc_members', array('uid' => $member['userid']), array('mobile', 'realname', 'uid'));
+			$member['realname'] = $mc_members['realname'];
+			$member['mobile'] = $mc_members['mobile'];
 		}
 		$member['createtime'] = TIMESTAMP;
 		$member['isauto'] = 1;

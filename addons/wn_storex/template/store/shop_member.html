@@ -52,7 +52,6 @@
 				</th>
 				<th style='width:70px'>序号</th>
 				<th style='width:210px'>微信号</th>
-				<th style='width:150px'>用户名</th>
 				<th style='width:150px'>真实姓名</th>
 				<th style='width:150px'>电话</th>
 				<th style='width:150px'>加入时间</th>
@@ -61,20 +60,13 @@
 			</tr>
 			</thead>
 			<tbody>
-			{loop $list $item}
+			{loop $member_list $item}
 			<tr>
 				<td class="with-checkbox">
 					<input type="checkbox" name="check" value="{$item['id']}">
 				</td>
 				<td>{$item['id']}</td>
 				<td>{$item['from_user']}</td>
-				<td>
-					{if empty($item['username'])}
-					<span class="label label-danger">未完善</span>
-					{else}
-					{$item['username']}
-					{/if}
-				</td>
 				<td>
 					{if empty($item['realname'])}
 					<span class="label label-danger">未完善</span>

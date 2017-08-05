@@ -795,6 +795,34 @@ if (!pdo_fieldexists('storex_order', 'salesman')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `salesman` INT(11) NOT NULL COMMENT '销售员id';");
 }
 
+load()->model('module');
+$module = module_fetch('wn_storex');
+$version = explode('.', $module['version']);
+if ($version[0] == 1 && $version[1] == 4 && $version[2] <= 6) {
+	$members = pdo_getall('storex_member', array('from_user !=' => ''), array('id', 'realname', 'from_user'));
+	if (!empty($members) && is_array($members)) {
+		load()->model('mc');
+		$uids = array();
+		$members_list = array();
+		foreach ($members as $val) {
+			$uid = mc_openid2uid($val['from_user']);
+			if (empty($uid)) {
+				continue;
+			}
+			$members_list[$uid] = $val;
+			$uids[] = $uid;
+		}
+		$mc_members = pdo_getall('mc_members', array('uid' => $uids), array('uid', 'realname', 'mobile'), 'uid');
+		if (!empty($mc_members) && is_array($mc_members)) {
+			foreach ($mc_members as $mc_uid => $info) {
+				if (!empty($members_list[$mc_uid])) {
+					pdo_update('storex_member', array('realname' => $info['realname'], 'mobile' => $info['mobile']), array('id' => $members_list[$mc_uid]['id'], 'from_user' => $members_list[$mc_uid]['from_user']));
+				}
+			}
+		}
+	}
+}
+
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');
 $js_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/js');
