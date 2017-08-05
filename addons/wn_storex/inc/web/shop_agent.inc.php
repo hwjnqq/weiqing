@@ -28,7 +28,14 @@ if ($op == 'agent_status') {
 		$id = intval($_GPC['id']);
 		$agent_info = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'id' => $id), array('id'));
 		if (!empty($agent_info)) {
-			pdo_update('storex_agent_apply', array('status' => $_GPC['status'], 'reason' => $_GPC['reason']), array('id' => $id));
+			$agent_data = array(
+				'status' => intval($_GPC['status']),
+				'reason' => trim($_GPC['reason'])
+			);
+			if ($_GPC['status'] == 3) {
+				$agent_data['refusetime'] = TIMESTAMP;
+			}
+			pdo_update('storex_agent_apply', $agent_data, array('id' => $id));
 		}
 		message(error(0, ''), referer(), 'ajax');
 	}

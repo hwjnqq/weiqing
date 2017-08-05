@@ -5,18 +5,6 @@
 	<div class="wn-main__head">应用</div>
 	<div class="wn-main__content">
 		<div class="wn-tabs">
-			<div class="wn-tabs__item {if $op == 'new'}wn-tabs__item--active{/if}">
-				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_market', array('op' => 'new', 'storeid' => $_GPC['storeid']))}">新用户活动</a>
-			</div>
-			<div class="wn-tabs__item {if $op == 'cut'}wn-tabs__item--active{/if}">
-				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_market', array('op' => 'cut', 'storeid' => $_GPC['storeid']))}">满减/赠活动</a>
-			</div>
-			<div class="wn-tabs__item {if $op == 'pickup'}wn-tabs__item--active{/if}">
-				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_market', array('op' => 'pickup', 'storeid' => $_GPC['storeid']))}">自提活动</a>
-			</div>
-			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_sales_package'}wn-tabs__item--active{/if}">
-				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_sales_package', array('storeid' => $_GPC['storeid']))}">套餐管理</a>
-			</div>
 			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent', array('storeid' => $_GPC['storeid']))}">销售员管理</a>
 			</div>
@@ -28,6 +16,7 @@
 						<th>真实姓名</th>
 						<th>电话号码</th>
 						<th>支付宝账号</th>
+						<th>可用余额(元)</th>
 						<th>申请时间</th>
 						<th>状态</th>
 						<th>操作</th>
@@ -39,6 +28,7 @@
 						<td>{$agent['realname']}</td>
 						<td>{$agent['tel']}</td>
 						<td>{$agent['alipay']}</td>
+						<td>{$agent['realmoney']}</td>
 						<td>{php echo date('Y-m-d H:i:s', $agent['applytime'])}</td>
 						<td>
 							<a class="wn-table__link__item js-verify" data-id="{$agent['id']}">

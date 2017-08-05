@@ -30,6 +30,10 @@ define('REFUND_STATUS_PROCESS', '1');
 define('REFUND_STATUS_SUCCESS', '2');
 define('REFUND_STATUS_FAILED', '3');
 
+define('AGENT_STATUS_NOT_VERIFY', '1');
+define('AGENT_STATUS_VERIFY', '2');
+define('AGENT_STATUS_REFUSE', '3');
+
 function mload() {
 	static $mloader;
 	if (empty($mloader)) {

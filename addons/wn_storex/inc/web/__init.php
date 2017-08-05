@@ -132,14 +132,21 @@ $aside_nav = array(
 			'shop_article_category'
 		)
 	),
+	'shop_agent' => array(
+		'title' => '销售员管理',
+		'url' => $this->createWebUrl('shop_agent', array('storeid' => $_GPC['storeid'])),
+		'icon' => 'storex-menu-clerk',
+		'active' => array(
+			'shop_agent',
+		)
+	),
 	'shop_market' => array(
 		'title' => '营销',
 		'url' => $this->createWebUrl('shop_market', array('storeid' => $_GPC['storeid'])),
 		'icon' => 'storex-menu-app',
 		'active' => array(
 			'shop_market',
-			'shop_sales_package',
-			'shop_agent'
+			'shop_sales_package'
 		)
 	),
 	'shop_plugin' => array(
