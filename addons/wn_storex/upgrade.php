@@ -791,8 +791,8 @@ if (!pdo_fieldexists('storex_order', 'newuser')) {
 if (!pdo_fieldexists('storex_order', 'market_types')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `market_types` VARCHAR(48) NOT NULL COMMENT '订单使用店铺内活动的类型';");
 }
-if (!pdo_fieldexists('storex_order', 'salesman')) {
-	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `salesman` INT(11) NOT NULL COMMENT '销售员id';");
+if (!pdo_fieldexists('storex_order', 'agentid')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `agentid` INT(11) NOT NULL COMMENT '销售员id';");
 }
 
 load()->model('module');

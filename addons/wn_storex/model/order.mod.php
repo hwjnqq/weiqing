@@ -406,3 +406,29 @@ function order_market_gift($orderid) {
 		}
 	}
 }
+//给销售员的提成
+function order_salesman_income($orderid) {
+	$order = pdo_get('storex_order', array('id' => $orderid, 'salesman !=' => 0), array('id', 'hotelid', 'roomid', 'salesman', 'sum_price', 'status'));
+	$recored = pdo_get('销售员获得提成的记录表', array('orderid' => $orderid, 'goodsid' => $order['roomid']));
+	if (!empty($order) && $order['status'] == ORDER_STATUS_OVER && empty($recored)) {
+		$store = pdo_get('storex_bases', array('id' => $order['hotelid']), array('id', 'store_type'));
+		if (!empty($store)) {
+			$table = gettablebytype($store['store_type']);
+			$goods = pdo_get($table, array('id' => $order['roomid']), array('id', 'royalty_rate'));//返给销售员的比例
+			$salesman = pdo_get('销售员表', array('id' => $order['salesman'], 'status' => 1));
+			if (!empty($goods) && !empty($goods['royalty_rate']) && !empty($salesman)) {
+				$money = sprintf('%.2f', $order['sum_price'] * $goods['royalty_rate']);
+				$insert = array(
+					'orderid' => $order['id'],
+					'goodsid' => $order['roomid'],
+					'salesman' => $order['salesman'],
+					'money' => $money,
+					'royalty_rate' => $goods['royalty_rate'], //提成比例
+					'time' => TIMESTAMP,
+					'status' => 0, //提现的状态  0未提， 1已提
+				);
+				pdo_insert('销售员获得提成的记录表', $insert);
+			}
+		}
+	}
+}
