@@ -187,8 +187,14 @@ function check_params() {
 		),
 		'recharge' => array(
 			'common' => array(
-				// 'uniacid' => intval($_W['uniacid']),
-				// 'openid' => $_W['openid']
+				'uniacid' => intval($_W['uniacid']),
+				'openid' => $_W['openid']
+			),
+		)
+		'agent' => array(
+			'common' => array(
+				'uniacid' => intval($_W['uniacid']),
+				'openid' => $_W['openid']
 			),
 		)
 	);
