@@ -16,6 +16,9 @@
 			<div class="wn-tabs__item">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_sales_package', array('storeid' => $_GPC['storeid']))}">套餐管理</a>
 			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent', array('storeid' => $_GPC['storeid']))}">销售员管理</a>
+			</div>
 		</div>
 		{if $op == 'new'}
 		<form class="form-horizontal form" method="post" enctype="multipart/form-data">
