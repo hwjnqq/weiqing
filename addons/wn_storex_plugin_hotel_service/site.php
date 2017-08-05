@@ -168,7 +168,7 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 	public function doMobileHotelservice() {
 		global $_W, $_GPC;
 
-		$ops = array('wifi_info', 'hotel_info', 'room_service', 'display');
+		$ops = array('wifi_info', 'hotel_info', 'room_service', 'display', 'continue_order', 'foods_list', 'order_food', 'order_food_detail');
 		$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 		if ($op == 'display') {
@@ -254,6 +254,140 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 				}
 			}
 		}
+
+		if ($op == 'continue_order') {
+			$storeid = intval($_GPC['storeid']);
+			$orders = pdo_getall('storex_order', array('hotelid' => $storeid, 'paystatus' => 1, 'goods_status' => 5, 'btime <=' => TIMESTAMP, 'etime >' => TIMESTAMP));
+			message(error(0, $orders), '', 'ajax');
+		}
+		
+		if ($op == 'foods_list') {
+			$storeid = intval($_GPC['storeid']);
+			$pindex = max(1, intval($_GPC['page']));
+			$psize = 10;
+			$condition = array('storeid' => $storeid, 'status' => 1);
+			$foods = pdo_getall('storex_plugin_foods', $condition, array(), '', '', array($pindex, $psize));
+			if (!empty($foods) && is_array($foods)) {
+				foreach ($foods as &$val) {
+					if (!empty($val['thumbs'])) {
+						$val['thumbs'] = iunserializer($val['thumbs']);
+						if (!empty($val['thumbs']) && is_array($val['thumbs'])) {
+							foreach ($val['thumbs'] as &$thumb) {
+								$thumb = tomedia($thumb);
+							}
+							unset($thumb);
+						}
+					}
+				}
+				unset($val);
+			}
+			$total = count(pdo_getall('storex_plugin_foods', $condition));
+			$page_array = $this->get_page_array($total, $pindex, $psize);
+			$list = array(
+				'list' => $foods,
+				'psize' => $psize,
+				'result' => 1,
+				'total' => $total,
+				'isshow' => $page_array['isshow'],
+				'nindex' => $page_array['nindex'],
+			);
+			message(error(0, $list), '', 'ajax');
+		}
+		//http://prox.we7.cc/app/index.php?i=281&c=entry&m=wn_storex_plugin_hotel_service&do=Hotelservice&op=order_food&storeid=1&eattime=1501948800&place=房间&remark=测试&totalprice=169.8&mobile=13754885770&contact_name=wrs
+		if ($op == 'order_food') {
+			$_W['openid'] = 'oTKzFjq-vdizyZXDhpGI8XQqgnoE';
+			if (empty($_W['openid'])) {
+				message(error(-1, '请先关注公众号' . $_W['account']['name']), '', 'ajax');
+			}
+			$mobile = $_GPC['mobile'];
+			if (empty($mobile)) {
+				message(error(-1, '手机号码不能为空'), '', 'ajax');
+			}
+			if (!preg_match(REGULAR_MOBILE, $mobile)) {
+				message(error(-1, '手机号码格式不正确'), '', 'ajax');
+			}
+			$contact_name = $_GPC['contact_name'];
+			if (empty($contact_name)) {
+				message(error(-1, '联系人不能为空!'), '', 'ajax');
+			}
+			$storeid = intval($_GPC['storeid']);
+			$eattime = intval($_GPC['eattime']);
+			$place = trim($_GPC['place']);
+			$remark = trim($_GPC['remark']);
+			$foods = $_GPC['foods'];
+			$totalprice = $_GPC['totalprice'];
+			$foods = array(
+				4 => array('id' => 4, 'title' => '红烧狮子头', 'num' => 6),
+			);
+			if (empty($foods)) {
+				message(error(-1, '请选择菜单'), '', 'ajax');
+			}
+			if ($eattime < TIMESTAMP) {
+				message(error(-1, '用餐时间错误'), '', 'ajax');
+			}
+			//计算总价判断传的菜单是否存在
+			$sumprice = 0;
+			$foodsid = array_keys($foods);
+			$foods_info = pdo_getall('storex_plugin_foods', array('id' => $foodsid), array(), 'id');
+			if (!empty($foods_info) && is_array($foods_info)) {
+				foreach ($foods as $fid => &$info) {
+					if (empty($foods_info[$fid])) {
+						message(error(-1, '没有' . $info['title']), '', 'ajax');
+					}
+					$info['price'] = $foods_info[$fid]['price'];
+					$sumprice += $foods_info[$fid]['price'] * $info['num'];
+				}
+				unset($info);
+			}
+			if ($totalprice != $sumprice) {
+				message(error(-1, '总价错误'), '', 'ajax');
+			}
+			$order_insert = array(
+				'weid' => $_W['uniacid'],
+				'openid' => $_W['openid'],
+				'storeid' => $storeid,
+				'eattime' => $eattime,
+				'place' => $place,
+				'remark' => $remark,
+				'ordersn' => date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1),
+				'foods' => iserializer($foods),
+				'sumprice' => $sumprice,
+				'time' => TIMESTAMP,
+				'mobile' => $mobile,
+				'contact_name' => $contact_name,
+			);
+			pdo_insert('storex_plugin_foods_order', $order_insert);
+			$orderid = pdo_insertid();
+			if (!empty($orderid)) {
+				message(error(0, $orderid), '', 'ajax');
+			} else {
+				message(error(-1, '点餐失败'), '', 'ajax');
+			}
+		}
+		
+		if ($op == 'order_food_detail') {
+			$orderid = intval($_GPC['orderid']);
+			$order = pdo_get('storex_plugin_foods_order', array('id' => $orderid));
+			if (!empty($order)) {
+				$order['foods'] = iunserializer($order['foods']);
+				$foodsids = array_keys($order['foods']);
+				$foods = pdo_getall('storex_plugin_foods', array('id' => $foodsids), array(), 'id');
+				foreach ($order['foods'] as $fid => &$info) {
+					if (!empty($foods[$fid]) && !empty($foods[$fid]['thumbs'])) {
+						$foods[$fid]['thumbs'] = iunserializer($foods[$fid]['thumbs']);
+						foreach ($foods[$fid]['thumbs'] as &$thumb) {
+							$thumb = tomedia($thumb);
+						}
+						unset($thumb);
+						$info['thumbs'] = $foods[$fid]['thumbs'];
+					}
+				}
+				unset($info);
+				message(error(0, $order), '', 'ajax');
+			} else {
+				message(error(-1, '订单错误'), '', 'ajax');
+			}
+		}
 		
 	}
 
@@ -270,5 +404,41 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 			}
 		}
 		return $tel_lists;
+	}
+	
+	public function get_page_array($tcount, $pindex, $psize = 15) {
+		global $_W;
+		$pdata = array(
+				'tcount' => 0,
+				'tpage' => 0,
+				'cindex' => 0,
+				'findex' => 0,
+				'pindex' => 0,
+				'nindex' => 0,
+				'lindex' => 0,
+				'options' => ''
+		);
+		$pdata['tcount'] = $tcount;
+		$pdata['tpage'] = ceil($tcount / $psize);
+		if ($pdata['tpage'] <= 1) {
+			$pdata['isshow'] = 0;
+			return $pdata;
+		}
+		$cindex = $pindex;
+		$cindex = min($cindex, $pdata['tpage']);
+		$cindex = max($cindex, 1);
+		$pdata['cindex'] = $cindex;
+		$pdata['findex'] = 1;
+		$pdata['pindex'] = $cindex > 1 ? $cindex - 1 : 1;
+		$pdata['nindex'] = $cindex < $pdata['tpage'] ? $cindex + 1 : $pdata['tpage'];
+		$pdata['lindex'] = $pdata['tpage'];
+		if ($pdata['cindex'] == $pdata['lindex']) {
+			$pdata['isshow'] = 0;
+			$pdata['islast'] = 1;
+		} else {
+			$pdata['isshow'] = 1;
+			$pdata['islast'] = 0;
+		}
+		return $pdata;
 	}
 }
