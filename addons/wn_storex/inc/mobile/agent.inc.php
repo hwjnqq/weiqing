@@ -18,7 +18,7 @@ if ($op == 'display') {
 }
 
 if ($op == 'register') {
-	$register_info = array(
+	$register_data = array(
 		'realname' => trim($_GPC['realname']),
 		'tel' => trim($_GPC['tel']),
 		'uniacid' => $_W['uniacid'],
@@ -34,9 +34,19 @@ if ($op == 'register') {
 			wmessage(error(-1, '资料不全'), '', 'ajax');
 		}
 	}
-	pdo_insert('storex_agent_apply', $register_info);
-	$id = pdo_insertid();
-	if (!empty($id)) {
+	$register_info = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $_GPC['storeid'], 'uid' => $uid));
+	if (empty($register_info)) {
+		pdo_insert('storex_agent_apply', $register_data);
+		$result = pdo_insertid();
+	} else {
+		$result = fasle;
+		if ($register_info['status'] == 3) {
+			pdo_update('storex_agent_apply', array('realname' => $_GPC['realname'], 'tel' => $_GPC['tel'], 'applytime' => TIMESTAMP, 'alipay' => $_GPC['alipay'], 'refusetime' => '', 'status' => 1), array('id' => $register_info['id']));
+			$result = true;
+		}
+		
+	}
+	if (!empty($result)) {
 		wmessage(error(0, '申请成功'), '', 'ajax');
 	} else {
 		wmessage(error(-1, '申请失败'), '', 'ajax');
