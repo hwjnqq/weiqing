@@ -51,21 +51,23 @@ if ($op == 'exchange') {
 	if (empty($goods)) {
 		message(error(-1, '没有指定的礼品兑换'), '', 'ajax');
 	}
+	$exchange_num = intval($_GPC['num']);
+	$exchange_num = empty($exchange_num) ? 1 : $exchange_num;
 	$credit = mc_credit_fetch($uid, array($goods['credittype']));
-	if ($credit[$goods['credittype']] < $goods['credit']) {
+	if ($credit[$goods['credittype']] < $goods['credit'] * $exchange_num) {
 		message(error(-1, "{$creditnames[$goods['credittype']]}不足"), '', 'ajax');
 	}
-	$ret = activity_user_get_goods($uid, $id);
+	$ret = activity_user_get_goods($uid, $id, $exchange_num);
 	if (is_error($ret)) {
 		message($ret, '', 'ajax');
 	}
 	pdo_update('storex_activity_exchange_trades_shipping', $shipping_data, array('tid' => $ret));
-	mc_credit_update($uid, $goods['credittype'], -1 * $goods['credit'], array($uid, '礼品兑换:' . $goods['title'] . ' 消耗 ' . $creditnames[$goods['credittype']] . ':' . $goods['credit']));
+	mc_credit_update($uid, $goods['credittype'], -$exchange_num * $goods['credit'], array($uid, '礼品兑换:' . $goods['title'] . ' 消耗 ' . $creditnames[$goods['credittype']] . ':' . $exchange_num * $goods['credit']));
 	//微信通知
 	if ($goods['credittype'] == 'credit1') {
-		mc_notice_credit1($_W['openid'], $uid, -1 * $goods['credit'], '兑换礼品消耗积分');
+		mc_notice_credit1($_W['openid'], $uid, -$exchange_num * $goods['credit'], '兑换礼品消耗积分');
 	} else {
-		mc_notice_credit2($_W['openid'], $uid, -1 * $goods['credit'], 0, '线上消费，兑换礼品');
+		mc_notice_credit2($_W['openid'], $uid, -$exchange_num * $goods['credit'], 0, '线上消费，兑换礼品');
 	}
 	message(error(0, '兑换成功'), '', 'ajax');
 }

@@ -523,12 +523,14 @@ function activity_get_exchange_info($exchangeid, $uniacid = 0) {
  * 指定会员兑换指定真实物品
  * @param int $uid  会员UID
  * @param int $exid  真实物品ID
+ * @param int $num  真实物品数量
  * @return mixed
  */
-function activity_user_get_goods($uid, $exid) {
+function activity_user_get_goods($uid, $exid, $num) {
 	global $_W;
 	$exid = intval($exid);
 	$uid = intval($uid);
+	$num = intval($num);
 	$exchange = activity_get_exchange_info($exid, $_W['uniacid']);
 	if (empty($exchange)) {
 		return error(-1, '没有指定的实物兑换');
@@ -539,11 +541,14 @@ function activity_user_get_goods($uid, $exid) {
 	if ($exchange['endtime'] < TIMESTAMP) {
 		return error(-1, '该实物兑换已经结束');
 	}
-	$pnum = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_activity_exchange_trades') . ' WHERE uniacid = :uniacid AND uid = :uid AND exid = :exid', array(':uniacid' => $_W['uniacid'], ':uid' => $uid, ':exid' => $exid));
+	$pnum = pdo_fetchcolumn('SELECT sum(num) FROM ' . tablename('storex_activity_exchange_trades') . ' WHERE uniacid = :uniacid AND uid = :uid AND exid = :exid', array(':uniacid' => $_W['uniacid'], ':uid' => $uid, ':exid' => $exid));
 	if ($pnum >= $exchange['pretotal']) {
 		return error(-1, '该实物兑换每人只能使用' . $exchange['pretotal'] . '次');
 	}
-	if ($exchange['num'] >= $exchange['total']) {
+	if (($pnum + $num) > $exchange['pretotal']) {
+		return error(-1, '已兑换' . $pnum . '次, 剩余' . ($exchange['pretotal'] - $pnum) . '次');
+	}
+	if ($exchange['num'] >= $exchange['total'] || $num > ($exchange['total'] - $exchange['num'])) {
 		return error(-1, '该实物兑换已兑换完');
 	}
 	$data = array(
@@ -552,6 +557,7 @@ function activity_user_get_goods($uid, $exid) {
 		'type' => 3,
 		'exid' => $exid,
 		'createtime' => TIMESTAMP,
+		'num' => $num,
 	);
 	pdo_insert('storex_activity_exchange_trades', $data);
 	$insert_id = pdo_insertid();
@@ -564,9 +570,10 @@ function activity_user_get_goods($uid, $exid) {
 		'uid' => $uid,
 		'status' => 0,
 		'exid' => $exid,
-		'createtime' => TIMESTAMP
+		'createtime' => TIMESTAMP,
+		'num' => $num,
 	);
 	pdo_insert('storex_activity_exchange_trades_shipping', $insert);
-	pdo_update('storex_activity_exchange', array('num' => $exchange['num'] + 1), array('id' => $exid, 'uniacid' => $_W['uniacid']));
+	pdo_update('storex_activity_exchange', array('num' => $exchange['num'] + $num), array('id' => $exid, 'uniacid' => $_W['uniacid']));
 	return $insert_id;
 }

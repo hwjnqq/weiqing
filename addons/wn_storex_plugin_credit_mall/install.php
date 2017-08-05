@@ -27,6 +27,7 @@ $sql = "
 	  `exid` int(10) unsigned NOT NULL COMMENT '兑换产品 exchangeid',
 	  `type` int(10) unsigned NOT NULL,
 	  `createtime` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '交换记录创建时间',
+	  `num` int(11) NOT NULL COMMENT '数量',
 	  PRIMARY KEY (`tid`),
 	  KEY `uniacid` (`uniacid`,`uid`,`exid`)
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COMMENT='真实物品兑换记录表';
