@@ -13,6 +13,7 @@ $uid = mc_openid2uid($_W['openid']);
 
 if ($op == 'display') {
 	$register_info = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $_GPC['storeid'], 'uid' => $uid));
+	$register_info['status'] = !empty($register_info['status']) ? $register_info['status'] : 4;
 	wmessage(error(0, $register_info), '', 'ajax');
 }
 
