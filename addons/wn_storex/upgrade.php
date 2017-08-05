@@ -791,6 +791,9 @@ if (!pdo_fieldexists('storex_order', 'newuser')) {
 if (!pdo_fieldexists('storex_order', 'market_types')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `market_types` VARCHAR(48) NOT NULL COMMENT '订单使用店铺内活动的类型';");
 }
+if (!pdo_fieldexists('storex_order', 'salesman')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `salesman` INT(11) NOT NULL COMMENT '销售员id';");
+}
 
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');
@@ -798,19 +801,19 @@ $js_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/js
 $css_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/css');
 $svg_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/img');
 $current_js_files = array(
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/black.20170731144.js',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/display.20170731144.js',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/manifest.20170731144.js',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/vendor.20170731144.js',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/service.20170731144.js'
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/black.20170805146.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/display.20170805146.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/manifest.20170805146.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/vendor.20170805146.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/service.20170805146.js'
 );
 $current_css_files = array(
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/black.20170731144.css',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/display.20170731144.css',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/service.20170731144.css',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/black.20170805146.css',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/display.20170805146.css',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/service.20170805146.css',
 );
 $current_svg_files = array(
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/img/storex.20170731144.svg',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/img/storex.20170805146.svg',
 );
 $css_diff_files = array_diff($css_file_trees, $current_css_files);
 $js_diff_files = array_diff($js_file_trees, $current_js_files);
