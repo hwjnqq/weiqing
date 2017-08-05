@@ -1,35 +1,35 @@
 {template 'common/header-storex'}
 <div class="wn-main wn-main--without">
-	<div class="wn-main__head">会员组管理</div>
+	<div class="wn-main__head">分销员等级管理</div>
 	<div class="wn-main__content">
 		<div class="wn-tabs">
-			<div class="wn-tabs__item">
-				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_member', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">用户管理</a>
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent', array('storeid' => $_GPC['storeid']))}">销售员管理</a>
 			</div>
-			<div class="wn-tabs__item  wn-tabs__item--active">
-				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_memberlevel', array('storeid' => $_GPC['storeid']))}">会员组管理</a>
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agentlevel'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agentlevel', array('storeid' => $_GPC['storeid']))}">分销员等级管理</a>
 			</div>
 		</div>
-		{if $op == 'display'}
+		{if $op == 'agentlevel'}
 		<div class="wn-main__search__action">
-			<a href="{php echo $this->createWebUrl('shop_memberlevel', array('op' => 'edit', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">+添加会员组</a>
+			<a href="{php echo $this->createWebUrl('shop_agentlevel', array('op' => 'edit', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">+添加分销等级</a>
 		</div>
-		{if !empty($levels)}
+		{if !empty($agentlevels)}
 		<table class="table table-hover wn-table table-bordered" >
 			<thead class="navbar-inner">
 				<tr>
 					<th class='with-checkbox' style='width:30px;'>
 						<input type="checkbox" class="check_all" />
 					</th>
-					<th style="width:100px;">会员组名称</th>
-					<th style="width:100px;">会员组等级</th>
-					<th style="width:100px;">会员组要求</th>
-					<th style="width:150px;">会员组状态</th>
+					<th style="width:100px;">分销等级名称</th>
+					<th style="width:100px;">分销等级</th>
+					<th style="width:100px;">分销升级要求</th>
+					<th style="width:150px;">状态</th>
 					<th style="width:420px;">操作</th>
 				</tr>
 			</thead>
 			<tbody>
-			{loop $levels $level}
+			{loop $agentlevels $level}
 				<tr>
 					<td class="with-checkbox">
 						<input type="checkbox" name="check" value="{$level['id']}">
@@ -38,15 +38,15 @@
 					<td>{$level['level']}</td>
 					<td>消费满{$level['ask']}元</td>
 					<td>{if $level['status'] == 2}
-						<a title="禁用" href="javascript:;" onclick="drop_confirm('您确定要启用此会员组吗?', '{php echo $this->createWebUrl('shop_memberlevel',array('op' => 'status', 'status' => 1, 'id' => $level['id'], 'storeid' => $storeid))}');"><span class='label label-default'>禁用</span></a>
+						<a title="禁用" href="javascript:;" onclick="drop_confirm('您确定要启用此会员组吗?', '{php echo $this->createWebUrl('shop_agentlevel',array('op' => 'status', 'status' => 1, 'id' => $level['id'], 'storeid' => $storeid))}');"><span class='label label-default'>禁用</span></a>
 						{elseif $level['status'] == 1}
-						<a title="启用" href="javascript:;" onclick="drop_confirm('您确定要禁用此会员组吗?', '{php echo $this->createWebUrl('shop_memberlevel',array('op' => 'status', 'status' => 2, 'id' => $level['id'], 'storeid' => $storeid))}');"><span class='label label-success'>启用</span></a>
+						<a title="启用" href="javascript:;" onclick="drop_confirm('您确定要禁用此会员组吗?', '{php echo $this->createWebUrl('shop_agentlevel',array('op' => 'status', 'status' => 2, 'id' => $level['id'], 'storeid' => $storeid))}');"><span class='label label-success'>启用</span></a>
 						{/if}
 					</td>
 					<td>
 						<div class="wn-table__link">
-							<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_memberlevel',array('op' => 'edit', 'id' => $level['id'], 'storeid' => $storeid))}" title="编辑">编辑</a>
-							<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('shop_memberlevel',array('op' => 'delete', 'id' => $level['id'], 'storeid' => $storeid))}');" title="删除" >删除</a>
+							<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_agentlevel',array('op' => 'edit', 'id' => $level['id'], 'storeid' => $storeid))}" title="编辑">编辑</a>
+							<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('shop_agentlevel',array('op' => 'delete', 'id' => $level['id'], 'storeid' => $storeid))}');" title="删除" >删除</a>
 						</div>
 					</td>
 				</tr>
@@ -65,20 +65,20 @@
 			<input name="token" type="hidden" value="{$_W['token']}" />
 		</table>
 		{else}
-		未设置会员组
+		未设置分销等级
 		{/if}
 		{/if}
 		{if $op == 'edit'}
 		<div class="wn-main__search__action">
-			<a href="{php echo $this->createWebUrl('shop_memberlevel', array('op' => 'display', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">+返回会员组列表</a>
+			<a href="{php echo $this->createWebUrl('shop_agentlevel', array('op' => 'saleslevel', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">+返回分销员列表</a>
 		</div>
 		<div class="wn-main__content">
 			<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
-				<input type="hidden" name="id" value="{$level['id']}">
+				<input type="hidden" name="id" value="{$agentlevel['id']}">
 				<div class="form-group">
-					<label class="col-xs-12 col-sm-3 col-md-2 control-label">会员组名称</label>
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分销等级名称</label>
 					<div class="col-sm-6 col-xs-12">
-						<input type="text" name="title" id="title" value="{$level['title']}" class="form-control">
+						<input type="text" name="title" id="title" value="{$agentlevel['title']}" class="form-control">
 						<span class='help-block'>最多只能填写8个字符</span>
 					</div>
 				</div>
@@ -89,7 +89,7 @@
 							<?php
 								for($i=0; $i<=100; $i++) {
 									echo '<option value= $i ';
-									if (!empty($level) && $level["level"] == $i) {
+									if (!empty($agentlevel) && $agentlevel["level"] == $i) {
 										echo 'selected';
 									};
 									echo ">" . $i . "</option>";
@@ -102,19 +102,20 @@
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">升级条件</label>
 					<div class="col-sm-6 col-xs-12">
 						<div class="input-group">
-							<span class="input-group-addon">完成订单金额满</span>
-							<input type="text" name="ask" id="ask" value="{$level['ask']}" class="form-control">
+							<span class="input-group-addon">分销获得金额满</span>
+							<input type="text" name="ask" id="ask" value="{$agentlevel['ask']}" class="form-control">
 						</div>
+						<span class='help-block'>分销员所获的收益大于该值得时候升级为该等级</span>
 					</div>
 				</div>
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">开启状态</label>
 					<div class="col-sm-9 col-xs-12">
 						<label class="radio-inline">
-							<input type="radio" name="status" value="1" {if $level['status'] == 1 || empty($level['status'])} checked {/if}/>启用
+							<input type="radio" name="status" value="1" {if $agentlevel['status'] == 1 || empty($agentlevel['status'])} checked {/if}/>启用
 						</label>
 						<label class="radio-inline">
-							<input type="radio" name="status" value="2" {if $level['status'] == 2} checked {/if}/>禁用
+							<input type="radio" name="status" value="2" {if $agentlevel['status'] == 2} checked {/if}/>禁用
 						</label>
 						<span class='help-block'>手机前台是否启用</span>
 					</div>
@@ -145,7 +146,7 @@
 				check.each(function(i) {
 					id[i] = $(this).val();
 				});
-				$.post("{php echo $this->createWebUrl('shop_memberlevel',array('op' => 'deleteall', 'storeid' => $storeid))}", {idArr:id},function(data) {
+				$.post("{php echo $this->createWebUrl('shop_agentlevel',array('op' => 'deleteall', 'storeid' => $storeid))}", {idArr:id},function(data) {
 					if (data.message.errno ==0) {
 						util.message(data.message.message, 'refresh', 'success');
 						return;
@@ -167,7 +168,7 @@
 			check.each(function(i) {
 				id[i] = $(this).val();
 			});
-			$.post("{php echo $this->createWebUrl('shop_memberlevel',array('op' => 'showall', 'storeid' => $storeid))}", {idArr:id, show_name:name},function(data) {
+			$.post("{php echo $this->createWebUrl('shop_agentlevel',array('op' => 'showall', 'storeid' => $storeid))}", {idArr:id, show_name:name},function(data) {
 				if (data.message.errno ==0) {
 					util.message(data.message.message, 'refresh', 'success');
 				} else {
@@ -182,7 +183,7 @@
 		if (title.length > 8) {
 			slice_title = title.slice(0, 8);
 			$("#title").val(slice_title);
-			util.message("会员组名称超出范围");
+			util.message("分销等级名称超出范围");
 		}
 	});
 	
