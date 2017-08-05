@@ -23,8 +23,8 @@
 	</platform>
 	<bindings>
 		<menu>
-		    <entry title="卡券兑换" do="couponexchange" state="" direct="false" />
-		    <entry title="真实物品兑换" do="goodsexchange" state="" direct="false" />
+			<entry title="卡券兑换" do="couponexchange" state="" direct="false" />
+			<entry title="真实物品兑换" do="goodsexchange" state="" direct="false" />
 		</menu>
 	</bindings>
 	<permissions>

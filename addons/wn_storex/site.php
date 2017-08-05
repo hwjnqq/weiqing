@@ -103,6 +103,16 @@ class Wn_storexModuleSite extends WeModuleSite {
 			$redirect = $url;
 			header("Location: $redirect");
 		}
+		$setting = get_storex_set();
+		if ($setting['version'] == 0 && empty($id)) {
+			$storex_base = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'status' => 1), array('id'), '', 'displayorder DESC');
+			if (empty($storex_base)) {
+				message('暂时没有店铺！', '', 'error');
+			}
+			$url = $_W['siteroot'] . 'app/index.php?i=' . $_W['uniacid'] . '&c=entry&m=wn_storex&do=display&id='
+					. $storex_base['id'] . '#/StoreIndex/' . $storex_base['id'];
+			header("Location: $url");
+		}
 		$skin_style = $this->get_skin_style($id);
 		include $this->template($skin_style);
 	}

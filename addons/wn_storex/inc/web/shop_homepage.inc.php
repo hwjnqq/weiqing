@@ -126,6 +126,9 @@ if ($op == 'search_goods') {
 				$search_list[$key]['thumb'] = tomedia($search_list[$key]['thumb']);
 			}
 		}
+		if (empty($search_list)) {
+			message(error(-1, '没有符合的商品'), '', 'ajax');
+		}
 		message(error(0, $search_list), '', 'ajax');
 	}
 }
