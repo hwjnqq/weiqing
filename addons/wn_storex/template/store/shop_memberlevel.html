@@ -79,7 +79,7 @@
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">会员组名称</label>
 					<div class="col-sm-6 col-xs-12">
 						<input type="text" name="title" id="title" value="{$level['title']}" class="form-control">
-						<span class='help-block'>最多只能填写4个字符</span>
+						<span class='help-block'>最多只能填写8个字符</span>
 					</div>
 				</div>
 				<div class="form-group">
@@ -179,8 +179,8 @@
 	
 	$("#title").blur(function(){
 		var title = $("#title").val();
-		if (title.length > 4) {
-			slice_title = title.slice(0, 4);
+		if (title.length > 8) {
+			slice_title = title.slice(0, 8);
 			$("#title").val(slice_title);
 			util.message("会员组名称超出范围");
 		}

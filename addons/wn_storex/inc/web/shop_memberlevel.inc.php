@@ -24,8 +24,8 @@ if ($op == 'edit') {
 		if (empty($_GPC['title'])) {
 			message('请输入会员组名称', referer(), 'error');
 		}
-		if (mb_strlen($_GPC['title'], "utf-8") > 3) {
-			message('会员组名称不要超过4个字符', referer(), 'error');
+		if (mb_strlen($_GPC['title'], "utf-8") > 7) {
+			message('会员组名称不要超过8个字符', referer(), 'error');
 		}
 		if (intval($_GPC['ask']) <= 0) {
 			message('升级条件', referer(), 'error');
