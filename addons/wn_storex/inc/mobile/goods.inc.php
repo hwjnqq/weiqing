@@ -168,18 +168,42 @@ if ($op == 'info') {
 
 //预定提交预定信息
 if ($op == 'order') {
-	$store_info = get_store_info($store_id);
+	$orderid = $_GPC['orderid'];
 	$order_info = array(
 		'weid' => intval($_W['uniacid']),
-		'hotelid' => $store_id,
 		'openid' => $_W['openid'],
-		'contact_name' => trim($_GPC['order']['contact_name']),
-		'roomid' => $goodsid,
-		'mobile' => trim($_GPC['order']['mobile']),
-		'remark' => trim($_GPC['order']['remark']),
-		'nums' => intval($_GPC['order']['nums']),
 		'time' => TIMESTAMP,
 	);
+	if (!empty($orderid)) {
+		$order = pdo_get('storex_order', array('id' => $orderid, 'paystatus' => 1, 'goods_status' => 5, 'btime <=' => TIMESTAMP, 'etime >' => TIMESTAMP));
+		if (empty($order)) {
+			wmessage(error(-1, '该订单不能续订'), '', 'ajax');
+		}
+		if (empty($order['roomitemid'])) {
+			wmessage(error(-1, '管理员未分配房间，请联系管理员'), '', 'ajax');
+		}
+		$store_id = $order['hotelid'];
+		$goodsid = $order['roomid'];
+		$order_info['hotelid'] = $store_id;
+		$order_info['contact_name'] = trim($order['contact_name']);
+		$order_info['roomid'] = $goodsid;
+		$order_info['mobile'] = $order['mobile'];
+		$order_info['remark'] = $order['remark'];
+		$order_info['nums'] = 1;
+		$order_info['roomitemid'] = $order['roomitemid'];
+	} else {
+		//销售员
+		$salesman = $_GPC['salesman'];
+		
+		$order_info['hotelid'] = $store_id;
+		$order_info['contact_name'] = trim($_GPC['order']['contact_name']);
+		$order_info['roomid'] = $goodsid;
+		$order_info['mobile'] = trim($_GPC['order']['mobile']);
+		$order_info['remark'] = trim($_GPC['order']['remark']);
+		$order_info['nums'] = intval($_GPC['order']['nums']);
+		$order_info['salesman'] = $salesman;
+	}
+	$store_info = get_store_info($store_id);
 	if ($store_info['market_status'] != 1) {
 		$selected_coupon = $_GPC['order']['coupon'];
 		if ($selected_coupon['type'] == 3) {
@@ -257,10 +281,16 @@ if ($op == 'order') {
 				wmessage(error(-1, '天数不能是零'), '', 'ajax');
 			}
 			if ($order_info['btime'] < strtotime('today')) {
-				wmessage(error(-1, '预定的开始日期不能小于当日的日期!'), '', 'ajax');
+				wmessage(error(-1, '预定的开始日期不能小于当日的日期'), '', 'ajax');
 			}
 			if ($max_room < $order_info['nums']) {
-				wmessage(error(-1, '订单购买数量超过最大限制!'), '', 'ajax');
+				wmessage(error(-1, '订单购买数量超过最大限制'), '', 'ajax');
+			}
+			if (!empty($orderid)) {
+				$status = check_room_assign($order_info, $order_info['roomitemid']);
+				if (empty($status)) {
+					wmessage(error(-1, '续订该房间已被分配了，请联系管理员'), '', 'ajax');
+				}
 			}
 			$btime = $order_info['btime'];
 			$bdate = date('Y-m-d', $order_info['btime']);
@@ -394,7 +424,7 @@ if ($op == 'order') {
 		wmessage(error(-1, '价格错误'), '', 'ajax');
 	}
 	if ($insert['sum_price'] <= 0) {
-		wmessage(error(-1, '总价为零，请联系管理员！'), '', 'ajax');
+		wmessage(error(-1, '总价为零，请联系管理员'), '', 'ajax');
 	}
 	pdo_insert('storex_order', $insert);
 	$order_id = pdo_insertid();
@@ -423,7 +453,7 @@ if ($op == 'order') {
 		}
 	}
 	
-	if (!check_plugin_isopen('wn_storex_plugin_sms')) {
+	if (check_plugin_isopen('wn_storex_plugin_sms')) {
 		$clerks = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'status' => 1, 'storeid' => $insert['hotelid']), array('id', 'userid', 'mobile'));
 		if (!empty($clerks)) {
 			mload()->model('sms');
@@ -484,10 +514,13 @@ if ($op == 'order') {
 		}
 	}
 	
-	$clerk = array();
 	if (!empty($store_info['openids']) && is_array($store_info['openids'])) {
 		foreach ($store_info['openids'] as $openid) {
-			$info = '店铺有新的订单,为保证用户体验度，请及时处理!';
+			if (!empty($orderid)) {
+				$info = '店铺有续订的订单,为保证用户体验度，请及时处理!';
+			} else {
+				$info = '店铺有新的订单,为保证用户体验度，请及时处理!';
+			}
 			$status = send_custom_notice('text', array('content' => urlencode($info)), $openid);
 		}
 	}
