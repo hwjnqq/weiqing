@@ -31,7 +31,7 @@ if ($op == 'register') {
 	);
 	foreach ($register_info as $register) {
 		if (empty($register)) {
-			wmessage(error(0, '资料不全'), '', 'ajax');
+			wmessage(error(-1, '资料不全'), '', 'ajax');
 		}
 	}
 	pdo_insert('storex_agent_apply', $register_info);
