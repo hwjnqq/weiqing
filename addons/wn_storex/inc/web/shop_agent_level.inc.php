@@ -9,7 +9,10 @@ $storeid = intval($_GPC['storeid']);
 $store = $_W['wn_storex']['store_info'];
 
 if ($op == 'agentlevel') {
-	$agentlevels = pdo_getall('storex_agent_level', array('uniacid' => intval($_W['uniacid']), 'storeid' => $storeid));
+	$agentlevels = pdo_getall('storex_agent_level', array('uniacid' => intval($_W['uniacid']), 'storeid' => $storeid), array(), '', 'isdefault DESC');
+	if (empty($agentlevels)) {
+		pdo_insert('storex_agent_level', array('uniacid' => intval($_W['uniacid']), 'storeid' => $storeid, 'title' => '自定义等级', 'condition' => 0, 'status' => 1, 'isdefault' => 1));
+	}
 }
 
 if ($op == 'edit') {
@@ -27,16 +30,26 @@ if ($op == 'edit') {
 		if (mb_strlen($_GPC['title'], "utf-8") > 7) {
 			itoast('分销等级名称不要超过8个字符', referer(), 'error');
 		}
-		if (intval($_GPC['condition']) <= 0) {
-			itoast('升级条件错误', referer(), 'error');
+		
+		if (!empty($id) && $agentlevel['isdefault'] == 1) {
+			$insert = array(
+				'uniacid' => intval($_W['uniacid']),
+				'storeid' => $storeid,
+				'title' => trim($_GPC['title']),
+			);
+		} else {
+			if (intval($_GPC['condition']) <= 0) {
+				itoast('升级条件错误', referer(), 'error');
+			}
+			$insert = array(
+				'uniacid' => intval($_W['uniacid']),
+				'storeid' => $storeid,
+				'title' => trim($_GPC['title']),
+				'condition' => intval($_GPC['condition']),
+				'status' => intval($_GPC['status']),
+			);
 		}
-		$insert = array(
-			'uniacid' => intval($_W['uniacid']),
-			'storeid' => $storeid,
-			'title' => trim($_GPC['title']),
-			'condition' => intval($_GPC['condition']),
-			'status' => intval($_GPC['status']),
-		);
+		
 		if (empty($id)) {
 			pdo_insert('storex_agent_level', $insert);
 			$msg = '添加成功！';

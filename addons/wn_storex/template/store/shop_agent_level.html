@@ -31,20 +31,29 @@
 			{loop $agentlevels $level}
 				<tr>
 					<td class="with-checkbox">
+						{if $level['isdefault'] != 1}
 						<input type="checkbox" name="check" value="{$level['id']}">
+						{/if}
 					</td>
 					<td>{$level['title']}</td>
 					<td>消费满{$level['condition']}元</td>
-					<td>{if $level['status'] == 2}
-						<a title="禁用" href="javascript:;" onclick="drop_confirm('您确定要启用此会员组吗?', '{php echo $this->createWebUrl('shop_agent_level',array('op' => 'status', 'status' => 1, 'id' => $level['id'], 'storeid' => $storeid))}');"><span class='label label-default'>禁用</span></a>
-						{elseif $level['status'] == 1}
-						<a title="启用" href="javascript:;" onclick="drop_confirm('您确定要禁用此会员组吗?', '{php echo $this->createWebUrl('shop_agent_level',array('op' => 'status', 'status' => 2, 'id' => $level['id'], 'storeid' => $storeid))}');"><span class='label label-success'>启用</span></a>
+					<td>
+						{if $level['isdefault'] != 1}
+							{if $level['status'] == 2}
+							<a title="禁用" href="javascript:;" onclick="drop_confirm('您确定要启用此会员组吗?', '{php echo $this->createWebUrl('shop_agent_level',array('op' => 'status', 'status' => 1, 'id' => $level['id'], 'storeid' => $storeid))}');"><span class='label label-default'>禁用</span></a>
+							{elseif $level['status'] == 1}
+							<a title="启用" href="javascript:;" onclick="drop_confirm('您确定要禁用此会员组吗?', '{php echo $this->createWebUrl('shop_agent_level',array('op' => 'status', 'status' => 2, 'id' => $level['id'], 'storeid' => $storeid))}');"><span class='label label-success'>启用</span></a>
+							{/if}
+						{else}
+							启用
 						{/if}
 					</td>
 					<td>
 						<div class="wn-table__link">
 							<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_agent_level',array('op' => 'edit', 'id' => $level['id'], 'storeid' => $storeid))}" title="编辑">编辑</a>
+							{if $level['isdefault'] != 1}
 							<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('shop_agent_level',array('op' => 'delete', 'id' => $level['id'], 'storeid' => $storeid))}');" title="删除" >删除</a>
+							{/if}
 						</div>
 					</td>
 				</tr>
@@ -80,6 +89,7 @@
 						<span class='help-block'>最多只能填写8个字符</span>
 					</div>
 				</div>
+				{if $agentlevel['isdefault'] != 1}
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">升级条件</label>
 					<div class="col-sm-6 col-xs-12">
@@ -102,6 +112,7 @@
 						<span class='help-block'>手机前台是否启用</span>
 					</div>
 				</div>
+				{/if}
 				<div class="form-group col-sm-12">
 					<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
 					<input type="hidden" name="token" value="{$_W['token']}" />
