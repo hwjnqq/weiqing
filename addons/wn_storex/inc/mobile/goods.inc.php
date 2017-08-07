@@ -48,7 +48,7 @@ if ($op == 'goods_info') {
 	if ($store_info['store_type'] == 1) {
 		if ($goods_info['is_house'] == 1) {
 			$goods_info = get_room_params($goods_info);
-			$days = ceil((strtotime($_GPC['etime']) - strtotime($_GPC['btime']))/86400);
+			$days = ceil((strtotime($_GPC['etime']) - strtotime($_GPC['btime'])) / 86400);
 			$dates = get_dates($_GPC['btime'], $days);
 			$search_data = array(
 				'btime' => $_GPC['btime'],
@@ -64,10 +64,15 @@ if ($op == 'goods_info') {
 	if (!empty($goods_info['express_set'])) {
 		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
 	}
+	$agent_info = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $store_id, 'uid' => $uid, 'status' => 2), array('id'));
+	$agent_str = '';
+	if (!empty($agent_info)) {
+		$agent_str = '&from=' . authcode(json_encode($agent_info), 'ENCODE');
+	}
 	$share_data = array(
 		'title' => $goods_info['title'],
 		'desc' => $goods_info['title'] . '--' . $store_info['title'],
-		'link' => murl('entry', array('do' => 'display', 'id' => $store_id, 'm' => 'wn_storex', 'type' => 'goods_info', 'goodsid' => $goodsid), true, true),
+		'link' => murl('entry', array('do' => 'display', 'id' => $store_id, 'm' => 'wn_storex', 'type' => 'goods_info', 'goodsid' => $goodsid), true, true) . $agent_str,
 		'imgUrl' => tomedia($goods_info['thumb'])
 	);
 	$goods_info['defined'] = get_goods_defined($store_id, $goodsid);
