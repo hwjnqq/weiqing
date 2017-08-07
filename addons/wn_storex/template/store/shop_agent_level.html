@@ -1,18 +1,18 @@
 {template 'common/header-storex'}
 <div class="wn-main wn-main--without">
-	<div class="wn-main__head">分销员等级管理</div>
+	<div class="wn-main__head">销售员等级管理</div>
 	<div class="wn-main__content">
 		<div class="wn-tabs">
 			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent', array('storeid' => $_GPC['storeid']))}">销售员管理</a>
 			</div>
-			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agentlevel'}wn-tabs__item--active{/if}">
-				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agentlevel', array('storeid' => $_GPC['storeid']))}">分销员等级管理</a>
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent_level'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent_level', array('storeid' => $_GPC['storeid']))}">销售员等级管理</a>
 			</div>
 		</div>
 		{if $op == 'agentlevel'}
 		<div class="wn-main__search__action">
-			<a href="{php echo $this->createWebUrl('shop_agentlevel', array('op' => 'edit', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">+添加分销等级</a>
+			<a href="{php echo $this->createWebUrl('shop_agent_level', array('op' => 'edit', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">+添加分销等级</a>
 		</div>
 		{if !empty($agentlevels)}
 		<table class="table table-hover wn-table table-bordered" >
@@ -38,15 +38,15 @@
 					<td>{$level['level']}</td>
 					<td>消费满{$level['ask']}元</td>
 					<td>{if $level['status'] == 2}
-						<a title="禁用" href="javascript:;" onclick="drop_confirm('您确定要启用此会员组吗?', '{php echo $this->createWebUrl('shop_agentlevel',array('op' => 'status', 'status' => 1, 'id' => $level['id'], 'storeid' => $storeid))}');"><span class='label label-default'>禁用</span></a>
+						<a title="禁用" href="javascript:;" onclick="drop_confirm('您确定要启用此会员组吗?', '{php echo $this->createWebUrl('shop_agent_level',array('op' => 'status', 'status' => 1, 'id' => $level['id'], 'storeid' => $storeid))}');"><span class='label label-default'>禁用</span></a>
 						{elseif $level['status'] == 1}
-						<a title="启用" href="javascript:;" onclick="drop_confirm('您确定要禁用此会员组吗?', '{php echo $this->createWebUrl('shop_agentlevel',array('op' => 'status', 'status' => 2, 'id' => $level['id'], 'storeid' => $storeid))}');"><span class='label label-success'>启用</span></a>
+						<a title="启用" href="javascript:;" onclick="drop_confirm('您确定要禁用此会员组吗?', '{php echo $this->createWebUrl('shop_agent_level',array('op' => 'status', 'status' => 2, 'id' => $level['id'], 'storeid' => $storeid))}');"><span class='label label-success'>启用</span></a>
 						{/if}
 					</td>
 					<td>
 						<div class="wn-table__link">
-							<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_agentlevel',array('op' => 'edit', 'id' => $level['id'], 'storeid' => $storeid))}" title="编辑">编辑</a>
-							<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('shop_agentlevel',array('op' => 'delete', 'id' => $level['id'], 'storeid' => $storeid))}');" title="删除" >删除</a>
+							<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_agent_level',array('op' => 'edit', 'id' => $level['id'], 'storeid' => $storeid))}" title="编辑">编辑</a>
+							<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('shop_agent_level',array('op' => 'delete', 'id' => $level['id'], 'storeid' => $storeid))}');" title="删除" >删除</a>
 						</div>
 					</td>
 				</tr>
@@ -70,7 +70,7 @@
 		{/if}
 		{if $op == 'edit'}
 		<div class="wn-main__search__action">
-			<a href="{php echo $this->createWebUrl('shop_agentlevel', array('op' => 'saleslevel', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">+返回分销员列表</a>
+			<a href="{php echo $this->createWebUrl('shop_agent_level', array('op' => 'saleslevel', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">+返回分销员列表</a>
 		</div>
 		<div class="wn-main__content">
 			<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
@@ -146,7 +146,7 @@
 				check.each(function(i) {
 					id[i] = $(this).val();
 				});
-				$.post("{php echo $this->createWebUrl('shop_agentlevel',array('op' => 'deleteall', 'storeid' => $storeid))}", {idArr:id},function(data) {
+				$.post("{php echo $this->createWebUrl('shop_agent_level',array('op' => 'deleteall', 'storeid' => $storeid))}", {idArr:id},function(data) {
 					if (data.message.errno ==0) {
 						util.message(data.message.message, 'refresh', 'success');
 						return;
@@ -168,7 +168,7 @@
 			check.each(function(i) {
 				id[i] = $(this).val();
 			});
-			$.post("{php echo $this->createWebUrl('shop_agentlevel',array('op' => 'showall', 'storeid' => $storeid))}", {idArr:id, show_name:name},function(data) {
+			$.post("{php echo $this->createWebUrl('shop_agent_level',array('op' => 'showall', 'storeid' => $storeid))}", {idArr:id, show_name:name},function(data) {
 				if (data.message.errno ==0) {
 					util.message(data.message.message, 'refresh', 'success');
 				} else {

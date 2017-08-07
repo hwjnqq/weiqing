@@ -45,7 +45,7 @@ if ($op == 'edit') {
 			pdo_update('storex_agent_level', $insert, array('id' => $id));
 			$msg = '标签信息更新成功！';
 		}
-		message($msg, $this->createWebUrl('shop_agentlevel', array('storeid' => $storeid)), 'success');
+		message($msg, $this->createWebUrl('shop_agent_level', array('storeid' => $storeid)), 'success');
 	}
 }
 
@@ -102,4 +102,4 @@ if ($op == 'status') {
 		itoast('操作失败！', referer(), 'error');
 	}
 }
-include $this->template('store/shop_agentlevel');
+include $this->template('store/shop_agent_level');
