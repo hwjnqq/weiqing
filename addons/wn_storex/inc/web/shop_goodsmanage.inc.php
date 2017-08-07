@@ -113,7 +113,7 @@ if ($op == 'edit') {
 		$user_defined = get_goods_defined($storeid, $id);
 		if ($store_type != STORE_TYPE_HOTEL) {
 			$agent_ratio = iunserializer($item['agent_ratio']);
-			$agentlevel = pdo_getall('storex_agent_level', array('storeid' => $storeid, 'status' => 1), array('title', 'level'), 'level', 'level ASC');
+			$agentlevel = pdo_getall('storex_agent_level', array('storeid' => $storeid, 'status' => 1), array('id', 'title'), 'id');
 		}
 	}
 	

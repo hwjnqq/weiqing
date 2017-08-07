@@ -9,7 +9,7 @@ $storeid = intval($_GPC['storeid']);
 $store = $_W['wn_storex']['store_info'];
 
 if ($op == 'agentlevel') {
-	$agentlevels = pdo_getall('storex_agent_level', array('uniacid' => intval($_W['uniacid']), 'storeid' => $storeid), array(), '', 'level ASC');
+	$agentlevels = pdo_getall('storex_agent_level', array('uniacid' => intval($_W['uniacid']), 'storeid' => $storeid));
 }
 
 if ($op == 'edit') {
@@ -27,15 +27,14 @@ if ($op == 'edit') {
 		if (mb_strlen($_GPC['title'], "utf-8") > 7) {
 			itoast('分销等级名称不要超过8个字符', referer(), 'error');
 		}
-		if (intval($_GPC['ask']) <= 0) {
+		if (intval($_GPC['condition']) <= 0) {
 			itoast('升级条件错误', referer(), 'error');
 		}
 		$insert = array(
 			'uniacid' => intval($_W['uniacid']),
 			'storeid' => $storeid,
 			'title' => trim($_GPC['title']),
-			'ask' => intval($_GPC['ask']),
-			'level' => intval($_GPC['level']),
+			'condition' => intval($_GPC['condition']),
 			'status' => intval($_GPC['status']),
 		);
 		if (empty($id)) {

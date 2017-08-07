@@ -551,8 +551,7 @@ $sql = "
 	`uniacid` int(11) NOT NULL,
 	`storeid` int(11) NOT NULL COMMENT '店铺id',
 	`title` varchar(24) NOT NULL COMMENT '名称',
-	`ask` int(11) NOT NULL COMMENT '条件',
-	`level` int(8) NOT NULL COMMENT '等级',
+	`condition` int(11) NOT NULL COMMENT '条件',
 	`status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态 1开启，2关闭',
 	PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
