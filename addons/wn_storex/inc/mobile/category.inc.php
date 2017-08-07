@@ -87,7 +87,7 @@ if ($op == 'more_goods') {
 		wmessage(error(-1, '参数错误'), '', 'ajax');
 	}
 	if ($category['parentid'] == 0) {
-		$sub_category = pdo_getall('storex_categorys', array('parentid' => $sub_classid, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id), array('id', 'parentid'));
+		$sub_category = pdo_getall('storex_categorys', array('parentid' => $sub_classid, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id, 'enabled' => 1), array('id', 'parentid'));
 		if (!empty($sub_category)) {
 			wmessage(error(-1, '参数错误'), '', 'ajax');
 		}
@@ -174,7 +174,7 @@ if ($op == 'more_goods') {
 //获取该店铺下的一级分类
 if ($op == 'class') {
 	$id = intval($_GPC['id']);
-	$sql = "SELECT count(*) num, parentid FROM " . tablename('storex_categorys') . " WHERE weid = {$_W['uniacid']} AND parentid != 0 AND store_base_id = {$id} group by parentid";
+	$sql = "SELECT count(*) num, parentid FROM " . tablename('storex_categorys') . " WHERE weid = {$_W['uniacid']} AND parentid != 0 AND store_base_id = {$id} AND enabled = 1 group by parentid";
 	$class = pdo_fetchall($sql);
 	if (!empty($class)) {
 		$sub_class = array();
@@ -201,7 +201,7 @@ if ($op == 'class') {
 if ($op == 'sub_class') {
 	$id = intval($_GPC['id']);
 	$class = pdo_get('storex_categorys', array('weid' => intval($_W['uniacid']), 'id' => $id), array('id', 'store_base_id', 'name'));
-	$sub_class = pdo_getall('storex_categorys', array('weid' => intval($_W['uniacid']), 'parentid' => $id), array('id', 'store_base_id', 'name', 'thumb', 'category_type'), '', 'displayorder DESC');
+	$sub_class = pdo_getall('storex_categorys', array('weid' => intval($_W['uniacid']), 'parentid' => $id, 'enabled' => 1), array('id', 'store_base_id', 'name', 'thumb', 'category_type'), '', 'displayorder DESC');
 	if (empty($sub_class)) {
 		wmessage(error(-1, '无子分类'), '', 'ajax');
 	} else {
