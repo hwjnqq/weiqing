@@ -688,6 +688,7 @@ function usercenter_entry_fetch($storeid, $params = array()) {
 }
 
 function goods_entry_fetch($storeid, $params = array()) {
+	global $_GPC;
 	$cachekey = "wn_storex:goods_entry:{$storeid}";
 	$goods_entry_routes = cache_load($cachekey);
 	if (empty($goods_entry_routes)) {
@@ -702,8 +703,8 @@ function goods_entry_fetch($storeid, $params = array()) {
 		if (!empty($goodsinfo) && is_array($goodsinfo)) {
 			foreach ($goodsinfo as $id => $val) {
 				$goods_entry_routes[$id] = array(
-						'name' => $val['title'],
-						'link' => $url . '#/GoodInfo/buy/' . $storeid . '/' . $id,
+					'name' => $val['title'],
+					'link' => $url . '#/GoodInfo/buy/' . $storeid . '/' . $id,
 				);
 			}
 		}
@@ -712,6 +713,9 @@ function goods_entry_fetch($storeid, $params = array()) {
 	$entry_url = '';
 	if (!empty($params['goodsid'])) {
 		$entry_url = $goods_entry_routes[$params['goodsid']]['link'];
+		if (!empty($_GPC['from'])) {
+			$entry_url .= '&from=' . $_GPC['from'];
+		}
 	}
 	return !empty($entry_url) ? $entry_url : $goods_entry_routes;
 }
