@@ -269,9 +269,9 @@ if ($op == 'order') {
 		':today_end' => $today_end,
 	);
 	$order_exist = pdo_fetch("SELECT id FROM " . tablename('storex_order') . "WHERE hotelid = :hotelid AND roomid = :roomid AND openid = :openid AND paystatus = 0 AND time >= :today_start AND time < :today_end AND status != -1 AND status != 2", $param);
-	if (!empty($order_exist)) {
-		wmessage(error(-1, "您有未支付该类订单,不要重复下单"), '', 'ajax');
-	}
+// 	if (!empty($order_exist)) {
+// 		wmessage(error(-1, "您有未支付该类订单,不要重复下单"), '', 'ajax');
+// 	}
 	$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('template', 'confirm_templateid', 'smscode'));
 	if ($store_info['store_type'] == STORE_TYPE_HOTEL) {
 		if ($goods_info['is_house'] == 1) {
