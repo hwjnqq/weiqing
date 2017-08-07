@@ -13,8 +13,8 @@
 			<div class="wn-tabs__item {if $op == 'room_goods'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_hotelservice', array('op' => 'room_goods', 'storeid' => $_GPC['storeid']))}">房间商品</a>
 			</div>
-			<div class="wn-tabs__item {if in_array($op, array('foods_lists', 'foods_edit', 'foods_delete', 'foods_deleteall', 'foods_showall', 'foods_status', 'foods_order', 'foods_deleteorder', 'foods_deleteorderall', 'foods_editorder'))}wn-tabs__item--active{/if}">
-				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_hotelservice', array('op' => 'foods_lists', 'storeid' => $_GPC['storeid']))}">餐品列表</a>
+			<div class="wn-tabs__item {if in_array($op, array('foods_set', 'foods_lists', 'foods_edit', 'foods_delete', 'foods_deleteall', 'foods_showall', 'foods_status', 'foods_order', 'foods_deleteorder', 'foods_deleteorderall', 'foods_editorder'))}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_hotelservice', array('op' => 'foods_set', 'storeid' => $_GPC['storeid']))}">订餐服务</a>
 			</div>
 		</div>
 		{if $op == 'roommanage'}
@@ -167,12 +167,77 @@
 		});
 		</script>
 		{/if}
+		{if $op == 'foods_set'}
+		<div class="wn-main__search__action">
+			<a href="{php echo $this->createWebUrl('shop_plugin_hotelservice', array('op' => 'foods_order', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">餐品订单</a>
+		</div>
+		<div class="wn-main__search__action">
+			<a href="{php echo $this->createWebUrl('shop_plugin_hotelservice', array('op' => 'foods_edit', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">+添加餐品</a>
+		</div>
+		<div class="wn-main__search__action">
+			<a href="{php echo $this->createWebUrl('shop_plugin_hotelservice', array('op' => 'foods_lists', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">餐品列表</a>
+		</div>
+		<div class="wn-main__content">
+			<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+				<input type="hidden" name="storeid" value="{$storeid}">
+				<input type="hidden" name="do" value="shop_plugin_hotelservice">
+				<input type="hidden" name="op" value="foods_set">
+				<input type="hidden" name="m" value="wn_storex">
+				<input type="hidden" name="id" value="{$foods_set['id']}">
+				<div class="form-group">
+					<label class="col-xs-12 col-md-2 control-label">就餐地点设置</label>
+					<div class="col-md-10" id="food_place" style="padding-left: 0px;">
+						{loop $food_place $key $place}
+						<div class="col-sm-11" style="margin: 5px 0px;">
+							<div class="input-group">
+								<input type="text" class="form-control place-input" maxlength="6" name="place[{$key}]" value="{$place}">
+								<span class="input-group-btn">
+									<button class="btn btn-default place-delete" type="button">删除</button>
+								</span>
+							</div>
+						</div>
+						{/loop}
+						<div class="col-sm-5">
+							<button type="button" id="add_food_place" class="btn btn-default"><i class="fa fa-plus"></i> 添加就餐地点</button>
+							<span class='help-block'>例如：房间，餐厅等，根据店铺配置填写。</span>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-md-2 control-label">餐点设置</label>
+					<div class="col-md-10" id="food_time" style="padding-left: 0px;">
+						{loop $food_times $key $time}
+						<div class="col-sm-11" style="margin: 5px 0px;">
+							<div class="input-group">
+								<input type="text" class="form-control time-input" maxlength="6" name="time[{$key}]" value="{$time}">
+								<span class="input-group-btn">
+									<button class="btn btn-default time-delete" type="button">删除</button>
+								</span>
+							</div>
+						</div>
+						{/loop}
+						<div class="col-sm-5">
+							<button type="button" id="add_food_time" class="btn btn-default"><i class="fa fa-plus"></i> 添加餐点设置</button>
+							<span class='help-block'>例如：早餐，午餐，晚餐，根据店铺配置填写。</span>
+						</div>
+					</div>
+				</div>
+				<div class="form-group col-sm-12">
+					<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</div>
+			</form>
+		</div>
+		{/if}
 		{if $op == 'foods_lists'}
 		<div class="wn-main__search__action">
 			<a href="{php echo $this->createWebUrl('shop_plugin_hotelservice', array('op' => 'foods_order', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">餐品订单</a>
 		</div>
 		<div class="wn-main__search__action">
 			<a href="{php echo $this->createWebUrl('shop_plugin_hotelservice', array('op' => 'foods_edit', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">+添加餐品</a>
+		</div>
+		<div class="wn-main__search__action">
+			<a href="{php echo $this->createWebUrl('shop_plugin_hotelservice', array('op' => 'foods_set', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">酒店订餐设置</a>
 		</div>
 		<table class="table table-hover wn-table table-bordered" >
 			<thead class="navbar-inner">
@@ -229,61 +294,71 @@
 			<a href="{php echo $this->createWebUrl('shop_plugin_hotelservice', array('op' => 'foods_lists', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">+返回餐品列表</a>
 		</div>
 		<div class="wn-main__content">
-		<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
-			<input type="hidden" name="storeid" value="{$storeid}">
-			<input type="hidden" name="do" value="shop_plugin_hotelservice">
-			<input type="hidden" name="op" value="foods_edit">
-			<input type="hidden" name="m" value="wn_storex">
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">餐品名称</label>
-				<div class="col-sm-10">
-					<input class="form-control" name="title" type="text" placeholder="" value="{$food['title']}">
-					<span class="help-block">餐品的名称（15个字符）</span>
+			<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+				<input type="hidden" name="storeid" value="{$storeid}">
+				<input type="hidden" name="do" value="shop_plugin_hotelservice">
+				<input type="hidden" name="op" value="foods_edit">
+				<input type="hidden" name="m" value="wn_storex">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">餐品名称</label>
+					<div class="col-sm-10">
+						<input class="form-control" name="title" type="text" placeholder="" value="{$food['title']}">
+						<span class="help-block">餐品的名称（15个字符）</span>
+					</div>
 				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">餐品价格</label>
-				<div class="col-sm-10">
-					<input class="form-control" name="price" type="text" placeholder="" value="{$food['price']}">
-					<span class="help-block">餐品的价格</span>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">所属餐点</label>
+					<div class="col-sm-10">
+						{loop $food_times $title}
+						<label class='checkbox-inline' style='margin-top:-5px;'>
+						<input type='checkbox' name="foods_set[]" value="{$title}" {if !empty($food['foods_set']) && in_array($title, $food['foods_set'])} checked {/if}/>{$title}
+						</label>
+						{/loop}
+					</div>
 				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">已售数量</label>
-				<div class="col-sm-10">
-					<input class="form-control" name="sold_num" type="number" value="{$food['sold_num']}">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">餐品价格</label>
+					<div class="col-sm-10">
+						<input class="form-control" name="price" type="text" placeholder="" value="{$food['price']}">
+						<span class="help-block">餐品的价格</span>
+					</div>
 				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">餐品图片</label>
-				<div class="col-sm-10">
-					{php echo tpl_form_field_multi_image('thumbs',$food['thumbs'])}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">已售数量</label>
+					<div class="col-sm-10">
+						<input class="form-control" name="sold_num" type="number" value="{$food['sold_num']}">
+					</div>
 				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">餐品描述</label>
-				<div class="col-sm-10">
-					{php echo tpl_ueditor('content', $food['content']);}
-					<span class="help-block">餐品内容</span>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">餐品图片</label>
+					<div class="col-sm-10">
+						{php echo tpl_form_field_multi_image('thumbs',$food['thumbs'])}
+					</div>
 				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">餐品状态</label>
-				<div class="col-sm-9 col-xs-12">
-					<label class="radio-inline">
-						<input type="radio" name="status" value="1" {if empty($item['status']) || $item['status'] == 1} checked {/if}/>显示
-					</label>
-					<label class="radio-inline">
-						<input type="radio" name="status" value="2" {if $item['status'] == 2} checked {/if}/>隐藏
-					</label>
-					<span class='help-block'>手机前台是否显示</span>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">餐品描述</label>
+					<div class="col-sm-10">
+						{php echo tpl_ueditor('content', $food['content']);}
+						<span class="help-block">餐品内容</span>
+					</div>
 				</div>
-			</div>
-			<div class="form-group col-sm-12">
-				<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
-				<input type="hidden" name="token" value="{$_W['token']}" />
-			</div>
-		</form>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">餐品状态</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="status" value="1" {if empty($item['status']) || $item['status'] == 1} checked {/if}/>显示
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="status" value="2" {if $item['status'] == 2} checked {/if}/>隐藏
+						</label>
+						<span class='help-block'>手机前台是否显示</span>
+					</div>
+				</div>
+				<div class="form-group col-sm-12">
+					<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</div>
+			</form>
 		</div>
 		{/if}
 		{if $op == 'foods_order'}
@@ -454,8 +529,45 @@
 		{/if}
 	</div>
 </div>
+
 <script type="text/javascript">
 	$(function () {
+		$("#add_food_place").click(function() {
+			var index = $('.place-input').length;
+			var html =
+				'<div class="col-sm-11" style="margin: 5px 0px;">' +
+					'<div class="input-group">' +
+						'<input type="text" class="form-control place-input" maxlength="6" name="place[' + index + ']" value="">' +
+						'<span class="input-group-btn">' +
+							'<button class="btn btn-default place-delete" type="button">删除</button>' +
+						'</span>' +
+					'</div>' +
+				'</div>';
+
+			$(this).parent().before(html);
+		});
+		$(document).on('click', '.place-delete', function() {
+			$(this).parent().parent().parent().remove();
+		});
+		$("#add_food_time").click(function() {
+			var index = $('.time-input').length;
+			var html =
+				'<div class="col-sm-11" style="margin: 5px 0px;">' +
+					'<div class="input-group">' +
+						'<input type="text" class="form-control time-input" maxlength="6" name="time[' + index + ']" value="">' +
+						'<span class="input-group-btn">' +
+							'<button class="btn btn-default time-delete" type="button">删除</button>' +
+						'</span>' +
+					'</div>' +
+				'</div>';
+
+			$(this).parent().before(html);
+		});
+		$(document).on('click', '.time-delete', function() {
+			$(this).parent().parent().parent().remove();
+		});
+		
+		
 		$('.check_all_foods').click(function() {
 			var checked = $(this).get(0).checked;
 			$('input[type=checkbox]').prop("checked",checked);

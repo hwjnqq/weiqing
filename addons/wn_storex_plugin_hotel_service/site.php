@@ -291,6 +291,8 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 				'isshow' => $page_array['isshow'],
 				'nindex' => $page_array['nindex'],
 			);
+			$foods_set = pdo_get('storex_plugin_foods_set', array('storeid' => $storeid));
+			$list['place'] = iunserializer($foods_set['place']);
 			message(error(0, $list), '', 'ajax');
 		}
 		//http://prox.we7.cc/app/index.php?i=281&c=entry&m=wn_storex_plugin_hotel_service&do=Hotelservice&op=order_food&storeid=1&eattime=1501948800&place=房间&remark=测试&totalprice=169.8&mobile=13754885770&contact_name=wrs

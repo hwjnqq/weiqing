@@ -37,6 +37,7 @@ $sql = "
 	  `thumbs` text NOT NULL COMMENT '图片',
 	  `content` text NOT NULL COMMENT '描述',
 	  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态',
+	  `foods_set` varchar(200) NOT NULL COMMENT '所属餐点',
 	  `weid` int(11) NOT NULL,
 	  PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
@@ -58,6 +59,15 @@ $sql = "
 	  `mobile` varchar(255) NOT NULL COMMENT '预定人电话',
 	  `contact_name` varchar(255) NOT NULL COMMENT '联系人',
 	  `paystatus` tinyint(2) NOT NULL COMMENT '0未支付1已支付',
+	  PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
+		
+	CREATE TABLE IF NOT EXISTS `ims_storex_plugin_foods_set` (
+	  `id` int(11) NOT NULL AUTO_INCREMENT,
+	  `uniacid` int(11) NOT NULL,
+	  `storeid` int(11) NOT NULL,
+	  `place` varchar(500) NOT NULL COMMENT '地点',
+	  `foods_set` varchar(500) NOT NULL COMMENT '餐点设置',
 	  PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
 	
