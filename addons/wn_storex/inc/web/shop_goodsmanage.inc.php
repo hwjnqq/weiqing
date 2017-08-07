@@ -113,7 +113,7 @@ if ($op == 'edit') {
 		$user_defined = get_goods_defined($storeid, $id);
 		if ($store_type != STORE_TYPE_HOTEL) {
 			$agent_ratio = iunserializer($item['agent_ratio']);
-			$agentlevel = pdo_getall('storex_agent_level', array('storeid' => $storeid, 'status' => 1), array('id', 'title'), 'id');
+			$agentlevel = pdo_getall('storex_agent_level', array('storeid' => $storeid, 'status' => 1), array('id', 'title'), 'id', 'isdefault DESC');
 		}
 	}
 	
@@ -205,7 +205,7 @@ if ($op == 'edit') {
 			if (!empty($_GPC['agent_ratio']) && is_array($_GPC['agent_ratio'])) {
 				$agent_ratio = $_GPC['agent_ratio'];
 				foreach ($agent_ratio as &$val) {
-					if ($val < 0 || $val > 100) {
+					if ($val <= 0 || $val > 100) {
 						message('分销员分销比例填写错误', referer(), 'error');
 					}
 					$val = sprintf('%.2f', $val);
