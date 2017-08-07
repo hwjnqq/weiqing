@@ -198,7 +198,7 @@ if ($op == 'order') {
 		$order_info['roomitemid'] = $order['roomitemid'];
 	} else {
 		//销售员
-		$salesman = $_GPC['salesman'];
+// 		$salesman = $_GPC['salesman'];
 		
 		$order_info['hotelid'] = $store_id;
 		$order_info['contact_name'] = trim($_GPC['order']['contact_name']);
@@ -206,7 +206,7 @@ if ($op == 'order') {
 		$order_info['mobile'] = trim($_GPC['order']['mobile']);
 		$order_info['remark'] = trim($_GPC['order']['remark']);
 		$order_info['nums'] = intval($_GPC['order']['nums']);
-		$order_info['salesman'] = $salesman;
+// 		$order_info['salesman'] = $salesman;
 	}
 	$store_info = get_store_info($store_id);
 	if ($store_info['market_status'] != 1) {
