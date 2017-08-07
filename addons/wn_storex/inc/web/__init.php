@@ -3,7 +3,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_GPC, $_W;
 define('SCRIPT_URL', $_W['siteroot'] . '/addons/wn_storex/template/style/js');
-$dos = array('shop_settings', 'shop_category', 'shop_goodsmanage', 'shop_room_status', 'shop_room_price', 'shop_tagmanage', 'shop_comment', 'shop_index', 'shop_order', 'shop_stat', 'shop_plugin', 'shop_plugin_printer', 'shop_plugin_hotelservice', 'shop_homepage', 'shop_member', 'shop_clerk', 'shop_room_item', 'shop_market', 'shop_memberlevel', 'shop_article', 'shop_sales_package', 'shop_agent', 'shop_agent_level', 'shop_agent_goods');
+$dos = array('shop_settings', 'shop_category', 'shop_goodsmanage', 'shop_room_status', 'shop_room_price', 'shop_tagmanage', 'shop_comment', 'shop_index', 'shop_order', 'shop_stat', 'shop_plugin', 'shop_plugin_printer', 'shop_plugin_hotelservice', 'shop_homepage', 'shop_member', 'shop_clerk', 'shop_room_item', 'shop_market', 'shop_memberlevel', 'shop_article', 'shop_sales_package', 'shop_agent', 'shop_agent_level');
 if (in_array($_GPC['do'], $dos)) {
 	if (empty($_GPC['storeid']) && !($_GPC['do'] == 'shop_settings' && $_GPC['action'] == 'add')) {
 		message('请重新选择店铺', $this->createWebUrl('storemanage', array('op' => 'list')), 'error');
@@ -138,8 +138,7 @@ $aside_nav = array(
 		'icon' => 'storex-menu-clerk',
 		'active' => array(
 			'shop_agent',
-			'shop_agent_level',
-			'shop_agent_goods'
+			'shop_agent_level'
 		)
 	),
 	'shop_market' => array(
@@ -172,7 +171,7 @@ $aside_nav = array(
 );
 if ($_W['wn_storex']['store_info']['store_type'] == 1) {
 	unset($aside_nav['shop_agent']);
-	if ($_GPC['do'] == 'shop_agent' || $_GPC['do'] == 'shop_agent_level' || $_GPC['do'] == 'shop_agent_goods') {
+	if ($_GPC['do'] == 'shop_agent' || $_GPC['do'] == 'shop_agent_level') {
 		message('酒店暂时没有销售员功能', referer(), 'error');
 	}
 }
