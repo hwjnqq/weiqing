@@ -163,13 +163,12 @@ if ($op == 'edit') {
 		} else {
 			$common['thumbs'] = iserializer(array());
 		}
-		$defined = array();
+		$defined = array(
+			'uniacid' => intval($_W['uniacid']),
+			'storeid' => $storeid,
+			'goods_table' => $table,
+		);
 		if (!empty($_GPC['defined'])) {
-			$defined = array(
-				'uniacid' => intval($_W['uniacid']),
-				'storeid' => $storeid,
-				'goods_table' => $table,
-			);
 			$content = array();
 			foreach ($_GPC['defined'] as $val) {
 				if (!empty($val['title']) && !empty($val['content'])) {
@@ -179,6 +178,8 @@ if ($op == 'edit') {
 			if (!empty($content)) {
 				$defined['defined'] = iserializer($content);
 			}
+		} else {
+			$defined['defined'] = '';
 		}
 		if (empty($store_type)) {
 			$goods = array(
@@ -242,7 +243,7 @@ if ($op == 'edit') {
 			pdo_update($table, $data, array('id' => $id));
 		}
 		
-		if (isset($defined['defined']) && !empty($defined['defined'])) {
+		if (isset($defined['defined'])) {
 			if (!empty($id)) {
 				$extend_defined = get_goods_defined($storeid, $id);
 				if (!empty($extend_defined)) {
