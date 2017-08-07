@@ -9,10 +9,6 @@ $store_info = $_W['wn_storex']['store_info'];
 $storeid = intval($store_info['id']);
 if ($op == 'display') {
 	$agent_list = pdo_getall('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid));
-	// echo "<pre>";
-	// print_r($agent_list);
-	// echo "</pre>";
-	// exit;
 }
 
 if ($op == 'agent_info') {

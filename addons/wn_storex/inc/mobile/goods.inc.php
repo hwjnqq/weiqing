@@ -70,7 +70,6 @@ if ($op == 'goods_info') {
 		$agent_str = '&from=' . authcode(json_encode($agent_info), 'ENCODE');
 	}
 	$agent_ratio = iunserializer($goods_info['agent_ratio']);
-	$agent_ratio[0] = '1.00';
 	$ratio = $agent_ratio[$agent_info['level']];
 	if (!empty($ratio)) {
 		$goods_info['agent']['is_agent'] = 1;
