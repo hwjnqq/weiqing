@@ -714,7 +714,8 @@ function goods_entry_fetch($storeid, $params = array()) {
 	if (!empty($params['goodsid'])) {
 		$entry_url = $goods_entry_routes[$params['goodsid']]['link'];
 		if (!empty($_GPC['from'])) {
-			$entry_url .= '&from=' . $_GPC['from'];
+			$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
+			$entry_url = $url .'&from=' . $_GPC['from'] . '#/GoodInfo/buy/' . $storeid . '/' . $params['goodsid'];
 		}
 	}
 	return !empty($entry_url) ? $entry_url : $goods_entry_routes;
