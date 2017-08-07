@@ -245,8 +245,8 @@ if ($op == 'edit') {
 		
 		if (isset($defined['defined'])) {
 			if (!empty($id)) {
-				$extend_defined = get_goods_defined($storeid, $id);
-				if (!empty($extend_defined)) {
+				$goods_extend = pdo_get('storex_goods_extend', array('storeid' => $storeid, 'goodsid' => $id));
+				if (!empty($goods_extend)) {
 					pdo_update('storex_goods_extend', $defined, array('goodsid' => $id, 'storeid' => $storeid));
 				} else {
 					$defined['goodsid'] = $id;
