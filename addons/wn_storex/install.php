@@ -332,6 +332,7 @@ $sql = "
 	`stock_control` tinyint(4) NOT NULL DEFAULT '1' COMMENT '1永不减库存，2拍下减库存，3付款减库存',
 	`min_buy` int(11) NOT NULL DEFAULT '1' COMMENT '单次最小购买',
 	`max_buy` int(11) NOT NULL DEFAULT '-1' COMMENT '单次最多购买 -1不限',
+	`agent_ratio` varchar(300) NOT NULL COMMENT '分销比例',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
@@ -861,6 +862,17 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`),
 	KEY `storeid` (`storeid`)
+	) DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_agent_level` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`uniacid` int(11) NOT NULL,
+	`storeid` int(11) NOT NULL COMMENT '店铺id',
+	`title` varchar(24) NOT NULL COMMENT '名称',
+	`ask` int(11) NOT NULL COMMENT '条件',
+	`level` int(8) NOT NULL COMMENT '等级',
+	`status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态 1开启，2关闭',
+	PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
 ";
 

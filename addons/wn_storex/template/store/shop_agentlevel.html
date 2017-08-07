@@ -88,7 +88,7 @@
 						<select name="level" class="form-control">
 							<?php
 								for($i=0; $i<=100; $i++) {
-									echo '<option value= $i ';
+									echo '<option value= "' . $i .'"';
 									if (!empty($agentlevel) && $agentlevel["level"] == $i) {
 										echo 'selected';
 									};

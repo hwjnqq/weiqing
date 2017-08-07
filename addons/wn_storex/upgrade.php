@@ -545,6 +545,17 @@ $sql = "
 	KEY `uniacid` (`uniacid`),
 	KEY `storeid` (`storeid`)
 	) DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_agent_level` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`uniacid` int(11) NOT NULL,
+	`storeid` int(11) NOT NULL COMMENT '店铺id',
+	`title` varchar(24) NOT NULL COMMENT '名称',
+	`ask` int(11) NOT NULL COMMENT '条件',
+	`level` int(8) NOT NULL COMMENT '等级',
+	`status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态 1开启，2关闭',
+	PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
 ";
 pdo_run($sql);
 
@@ -793,6 +804,9 @@ if (!pdo_fieldexists('storex_order', 'market_types')) {
 }
 if (!pdo_fieldexists('storex_order', 'agentid')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `agentid` INT(11) NOT NULL COMMENT '销售员id';");
+}
+if (!pdo_fieldexists('storex_goods', 'agent_ratio')) {
+	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `agent_ratio` VARCHAR(300) NOT NULL COMMENT '分销比例';");
 }
 
 load()->model('module');

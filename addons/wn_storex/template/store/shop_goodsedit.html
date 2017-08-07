@@ -224,6 +224,24 @@
 					<span class="help-block">商品特别说明（必填）</span>
 				</div>
 			</div>
+			{if $store_type != STORE_TYPE_HOTEL}
+			<div class="form-group">
+				<label class="col-xs-12 col-md-2 control-label">分销员分成百分比</label>
+				<div class="col-md-10" id="" style="padding-left: 0px;">
+					{loop $agentlevel $level $info}
+					<div class="col-sm-11" style="margin: 5px 0px;">
+						<div class="input-group">
+							<span class="input-group-addon">{$info['title']}</span>
+							<input type="text" class="form-control" name="agent_ratio[{$level}]" value="{$agent_ratio[$level]}" />
+						</div>
+					</div>
+					{/loop}
+					<div class="col-sm-5">
+						<span class="help-block">对应分销员等级所获得该商品的分销提成（值0-100,保留两位小数,按百分比计算）</span>
+					</div>
+				</div>
+			</div>
+			{/if}
 			<div class="form-group">
 				<label class="col-xs-12 col-md-2 control-label">自定义字段</label>
 				<div class="col-md-10" id="defined-container" style="padding-left: 0px;">

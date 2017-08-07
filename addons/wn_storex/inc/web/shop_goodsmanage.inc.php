@@ -111,7 +111,12 @@ if ($op == 'edit') {
 		}
 		$piclist = iunserializer($item['thumbs']);
 		$user_defined = get_goods_defined($storeid, $id);
+		if ($store_type != STORE_TYPE_HOTEL) {
+			$agent_ratio = iunserializer($item['agent_ratio']);
+			$agentlevel = pdo_getall('storex_agent_level', array('storeid' => $storeid, 'status' => 1), array('title', 'level'), 'level', 'level ASC');
+		}
 	}
+	
 	if (checksubmit('submit')) {
 		if (empty($_GPC['title'])) {
 			message('请输入房型！', referer(), 'error');
@@ -196,6 +201,16 @@ if ($op == 'edit') {
 				'full_free' => is_numeric($_GPC['full_free']) ? $_GPC['full_free'] : 0,
 			);
 			$goods['express_set'] = iserializer($express_set);
+			if (!empty($_GPC['agent_ratio']) && is_array($_GPC['agent_ratio'])) {
+				$agent_ratio = $_GPC['agent_ratio'];
+				foreach ($agent_ratio as &$val) {
+					if ($val < 0 || $val > 100) {
+						message('分销员分销比例填写错误', referer(), 'error');
+					}
+					$val = sprintf('%.2f', $val);
+				}
+				$goods['agent_ratio'] = iserializer($agent_ratio);
+			}
 			$data = array_merge($goods, $common);
 		} else {
 			$room = array(
