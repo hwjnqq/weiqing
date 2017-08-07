@@ -170,6 +170,12 @@ $aside_nav = array(
 		)
 	),
 );
+if ($_W['wn_storex']['store_info']['store_type'] == 1) {
+	unset($aside_nav['shop_agent']);
+	if ($_GPC['do'] == 'shop_agent' || $_GPC['do'] == 'shop_agent_level' || $_GPC['do'] == 'shop_agent_goods') {
+		message('酒店暂时没有销售员功能', referer(), 'error');
+	}
+}
 if (!check_ims_version()) {
 	unset($aside_nav['shop_plugin']);
 	if ($_GPC['do'] == 'shop_plugin' || $_GPC['do'] == 'shop_plugin_printer' || $_GPC['shop_plugin_hotelservice']) {
