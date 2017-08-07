@@ -44,7 +44,6 @@ if ($op == 'register') {
 			pdo_update('storex_agent_apply', array('realname' => $_GPC['realname'], 'tel' => $_GPC['tel'], 'applytime' => TIMESTAMP, 'alipay' => $_GPC['alipay'], 'refusetime' => '', 'status' => 1), array('id' => $register_info['id']));
 			$result = true;
 		}
-		
 	}
 	if (!empty($result)) {
 		wmessage(error(0, '申请成功'), '', 'ajax');
