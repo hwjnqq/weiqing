@@ -46,6 +46,7 @@ $sql = "
 	  `zipcode` varchar(6) NOT NULL,
 	  `mobile` varchar(30) NOT NULL,
 	  `name` varchar(30) NOT NULL COMMENT '收件人',
+	  `num` INT(11) NOT NULL COMMENT '数量'
 	  PRIMARY KEY (`tid`),
 	  KEY `uniacid` (`uniacid`),
 	  KEY `uid` (`uid`)

@@ -11,7 +11,7 @@ $store = $_W['wn_storex']['store_info'];
 if ($op == 'agentlevel') {
 	$agentlevels = pdo_getall('storex_agent_level', array('uniacid' => intval($_W['uniacid']), 'storeid' => $storeid), array(), '', 'isdefault DESC');
 	if (empty($agentlevels)) {
-		pdo_insert('storex_agent_level', array('uniacid' => intval($_W['uniacid']), 'storeid' => $storeid, 'title' => '自定义等级', 'condition' => 0, 'status' => 1, 'isdefault' => 1));
+		pdo_insert('storex_agent_level', array('uniacid' => intval($_W['uniacid']), 'storeid' => $storeid, 'title' => '自定义等级', 'need' => 0, 'status' => 1, 'isdefault' => 1));
 	}
 }
 
@@ -38,14 +38,14 @@ if ($op == 'edit') {
 				'title' => trim($_GPC['title']),
 			);
 		} else {
-			if (intval($_GPC['condition']) <= 0) {
+			if (intval($_GPC['need']) <= 0) {
 				itoast('升级条件错误', referer(), 'error');
 			}
 			$insert = array(
 				'uniacid' => intval($_W['uniacid']),
 				'storeid' => $storeid,
 				'title' => trim($_GPC['title']),
-				'condition' => intval($_GPC['condition']),
+				'need' => intval($_GPC['need']),
 				'status' => intval($_GPC['status']),
 			);
 		}

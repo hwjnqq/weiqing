@@ -36,7 +36,7 @@
 						{/if}
 					</td>
 					<td>{$level['title']}</td>
-					<td>消费满{$level['condition']}元</td>
+					<td>消费满{$level['need']}元</td>
 					<td>
 						{if $level['isdefault'] != 1}
 							{if $level['status'] == 2}
@@ -95,7 +95,7 @@
 					<div class="col-sm-6 col-xs-12">
 						<div class="input-group">
 							<span class="input-group-addon">分销获得金额满</span>
-							<input type="text" name="condition" id="condition" value="{$agentlevel['condition']}" class="form-control">
+							<input type="text" name="need" id="need" value="{$agentlevel['need']}" class="form-control">
 						</div>
 						<span class='help-block'>分销员所获的收益大于该值得时候升级为该等级</span>
 					</div>

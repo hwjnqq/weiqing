@@ -551,10 +551,12 @@ $sql = "
 	`uniacid` int(11) NOT NULL,
 	`storeid` int(11) NOT NULL COMMENT '店铺id',
 	`title` varchar(24) NOT NULL COMMENT '名称',
-	`condition` int(11) NOT NULL COMMENT '条件',
+	`need` int(11) NOT NULL COMMENT '条件',
 	`status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态 1开启，2关闭',
+	`isdefault` tinyint(2) NOT NULL COMMENT '是否是默认1是,0不是',
 	PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
+	
 ";
 pdo_run($sql);
 
@@ -831,6 +833,30 @@ if (ver_compare('1.4.7', $wn_storex_module['version']) == 1) {
 					pdo_update('storex_member', array('realname' => $info['realname'], 'mobile' => $info['mobile']), array('id' => $members_list[$mc_uid]['id'], 'from_user' => $members_list[$mc_uid]['from_user']));
 				}
 			}
+		}
+	}
+}
+
+if (!pdo_fieldexists('storex_activity_exchange_trades', 'num')) {
+	pdo_query("ALTER TABLE " . tablename('storex_activity_exchange_trades') . " ADD `num` INT(11) NOT NULL COMMENT '数量';");
+}
+if (!pdo_fieldexists('storex_activity_exchange_trades_shipping', 'num')) {
+	pdo_query("ALTER TABLE " . tablename('storex_activity_exchange_trades_shipping') . " ADD `num` INT(11) NOT NULL COMMENT '数量';");
+}
+
+$exchange_trades = pdo_getall('storex_activity_exchange_trades', array('num' => 0), array('tid', 'num'));
+if (!empty($exchange_trades) && is_array($exchange_trades)) {
+	foreach ($exchange_trades as $val) {
+		if (empty($val['num'])) {
+			pdo_update('storex_activity_exchange_trades', array('num' => 1), array('tid' => $val['tid']));
+		}
+	}
+}
+$trades_shipping = pdo_getall('storex_activity_exchange_trades_shipping', array('num' => 0), array('tid', 'num'));
+if (!empty($trades_shipping) && is_array($trades_shipping)) {
+	foreach ($trades_shipping as $val) {
+		if (empty($val['num'])) {
+			pdo_update('storex_activity_exchange_trades_shipping', array('num' => 1), array('tid' => $val['tid']));
 		}
 	}
 }
