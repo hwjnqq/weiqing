@@ -228,11 +228,12 @@
 			<div class="form-group">
 				<label class="col-xs-12 col-md-2 control-label">分销员分成百分比</label>
 				<div class="col-md-10" id="" style="padding-left: 0px;">
-					{loop $agentlevel $level $info}
+					{loop $agentlevel $id $info}
 					<div class="col-sm-11" style="margin: 5px 0px;">
 						<div class="input-group">
 							<span class="input-group-addon">{$info['title']}</span>
-							<input type="text" class="form-control" name="agent_ratio[{$level}]" value="{$agent_ratio[$level]}" />
+							<input type="text" class="form-control" name="agent_ratio[{$id}]" value="{$agent_ratio[$id]}" />
+							<span class="input-group-addon">%</span>
 						</div>
 					</div>
 					{/loop}

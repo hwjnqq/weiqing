@@ -22,7 +22,6 @@
 						<input type="checkbox" class="check_all" />
 					</th>
 					<th style="width:100px;">分销等级名称</th>
-					<th style="width:100px;">分销等级</th>
 					<th style="width:100px;">分销升级要求</th>
 					<th style="width:150px;">状态</th>
 					<th style="width:420px;">操作</th>
@@ -35,8 +34,7 @@
 						<input type="checkbox" name="check" value="{$level['id']}">
 					</td>
 					<td>{$level['title']}</td>
-					<td>{$level['level']}</td>
-					<td>消费满{$level['ask']}元</td>
+					<td>消费满{$level['condition']}元</td>
 					<td>{if $level['status'] == 2}
 						<a title="禁用" href="javascript:;" onclick="drop_confirm('您确定要启用此会员组吗?', '{php echo $this->createWebUrl('shop_agent_level',array('op' => 'status', 'status' => 1, 'id' => $level['id'], 'storeid' => $storeid))}');"><span class='label label-default'>禁用</span></a>
 						{elseif $level['status'] == 1}
@@ -83,27 +81,11 @@
 					</div>
 				</div>
 				<div class="form-group">
-					<label class="col-xs-12 col-sm-3 col-md-2 control-label">会员组等级</label>
-					<div class="col-sm-6 col-xs-12">
-						<select name="level" class="form-control">
-							<?php
-								for($i=0; $i<=100; $i++) {
-									echo '<option value= "' . $i .'"';
-									if (!empty($agentlevel) && $agentlevel["level"] == $i) {
-										echo 'selected';
-									};
-									echo ">" . $i . "</option>";
-								}
-							?>
-						</select>
-					</div>
-				</div>
-				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">升级条件</label>
 					<div class="col-sm-6 col-xs-12">
 						<div class="input-group">
 							<span class="input-group-addon">分销获得金额满</span>
-							<input type="text" name="ask" id="ask" value="{$agentlevel['ask']}" class="form-control">
+							<input type="text" name="condition" id="condition" value="{$agentlevel['condition']}" class="form-control">
 						</div>
 						<span class='help-block'>分销员所获的收益大于该值得时候升级为该等级</span>
 					</div>
