@@ -64,10 +64,19 @@ if ($op == 'goods_info') {
 	if (!empty($goods_info['express_set'])) {
 		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
 	}
-	$agent_info = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $store_id, 'uid' => $uid, 'status' => 2), array('id'));
+	$agent_info = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $store_id, 'uid' => $uid, 'status' => 2), array('id', 'level'));
 	$agent_str = '';
 	if (!empty($agent_info)) {
 		$agent_str = '&from=' . authcode(json_encode($agent_info), 'ENCODE');
+	}
+	$agent_ratio = iunserializer($goods_info['agent_ratio']);
+	$agent_ratio[0] = '1.00';
+	$ratio = $agent_ratio[$agent_info['level']];
+	if (!empty($ratio)) {
+		$goods_info['agent']['is_agent'] = 1;
+		$goods_info['agent']['ratio'] = $ratio;
+	} else {
+		$goods_info['agent']['is_agent'] = 2;
 	}
 	$share_data = array(
 		'title' => $goods_info['title'],
