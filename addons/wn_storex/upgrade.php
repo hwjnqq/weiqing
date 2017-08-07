@@ -810,8 +810,8 @@ if (!pdo_fieldexists('storex_goods', 'agent_ratio')) {
 }
 
 load()->model('module');
-$module = module_fetch('wn_storex');
-if (ver_compare('1.4.7', $module['version']) == 1) {
+$wn_storex_module = module_fetch('wn_storex');
+if (ver_compare('1.4.7', $wn_storex_module['version']) == 1) {
 	$members = pdo_getall('storex_member', array('from_user !=' => ''), array('id', 'realname', 'from_user'));
 	if (!empty($members) && is_array($members)) {
 		load()->model('mc');
