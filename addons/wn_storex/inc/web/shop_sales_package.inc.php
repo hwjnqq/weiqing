@@ -28,7 +28,18 @@ if ($op == 'post') {
 		unset($goods);
 	}
 	$package_info = pdo_get('storex_sales_package', array('id' => $_GPC['id']));
-	$package_info['goodsids'] = !empty($package_info['goodsids']) ? iunserializer($package_info['goodsids']) : array();
+	if (empty($package_info)) {
+		$package_info = array(
+			'title' => '',
+			'sub_title' => '',
+			'price' => '',
+			'express' => '',
+			'thumb' => '',
+			'goodsids' => array()
+		);
+	} else {
+		$package_info['goodsids'] = !empty($package_info['goodsids']) ? iunserializer($package_info['goodsids']) : array();
+	}
 	$selected_list = array();
 	if (!empty($package_info['goodsids']) && is_array($package_info['goodsids'])) {
 		foreach ($package_info['goodsids'] as $value) {
@@ -55,6 +66,7 @@ if ($op == 'post') {
 			'goodsids' => iserializer($_GPC['params']['goodsids']),
 			'status' => 1
 		);
+		$package_info = pdo_get('storex_sales_package', array('id' => $_GPC['id']), array('id'));
 		if (empty($package_info)) {
 			$package['uniacid'] = $_W['uniacid'];
 			$package['storeid'] = $storeid;

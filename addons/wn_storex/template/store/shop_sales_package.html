@@ -116,7 +116,7 @@
 							<ul class="app-allow-list">
 								<li v-for="(goods, index) in goods_list" @click="selectGoods(index)">
 									<div class="app-info">
-										<img src="{{goods.thumb}}"/>
+										<img :src="goods.thumb"/>
 										<p>{{goods.title}}</p>
 									</div>
 									<a href="javascript:;" class="cover-dark">
@@ -138,7 +138,7 @@
 					<ul class="app-allow-list">
 						<li class="select" v-for="(goods, index) in selected_list">
 							<div class="app-info">
-								<img src="{{goods.thumb}}"/>
+								<img :src="goods.thumb"/>
 								<p class="ng-binding">{{goods.title}}</p>
 							</div>
 							<div class="cover-dark">
