@@ -363,7 +363,7 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 				'time' => TIMESTAMP,
 				'mobile' => $mobile,
 				'contact_name' => $contact_name,
-				`foods_set` => trim($_GPC['foods_set']),
+				'foods_set' => trim($_GPC['foods_set']),
 			);
 			pdo_insert('storex_plugin_foods_order', $order_insert);
 			$orderid = pdo_insertid();
