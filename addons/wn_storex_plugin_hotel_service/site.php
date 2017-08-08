@@ -168,7 +168,7 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 	public function doMobileHotelservice() {
 		global $_W, $_GPC;
 
-		$ops = array('wifi_info', 'hotel_info', 'room_service', 'display', 'continue_order', 'foods_list', 'order_food', 'order_food_detail');
+		$ops = array('wifi_info', 'hotel_info', 'room_service', 'display', 'continue_order', 'foods_list', 'order_food', 'order_list', 'order_food_detail');
 		$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 		if ($op == 'display') {
@@ -307,6 +307,7 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 				message(error(-1, '联系人不能为空!'), '', 'ajax');
 			}
 			$storeid = intval($_GPC['storeid']);
+			$eattime = intval($_GPC['eattime']);
 			$place = trim($_GPC['place']);
 			$remark = trim($_GPC['remark']);
 			$foods = $_GPC['foods'];
@@ -314,6 +315,9 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 			
 			if (empty($foods)) {
 				message(error(-1, '请选择菜单'), '', 'ajax');
+			}
+			if ($eattime < TIMESTAMP) {
+				message(error(-1, '用餐时间错误'), '', 'ajax');
 			}
 			//计算总价判断传的菜单是否存在
 			$sumprice = 0;
@@ -336,6 +340,7 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 				'weid' => $_W['uniacid'],
 				'openid' => $_W['openid'],
 				'storeid' => $storeid,
+				'eattime' => $eattime,
 				'place' => $place,
 				'remark' => $remark,
 				'ordersn' => date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1),
@@ -353,6 +358,11 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 			} else {
 				message(error(-1, '点餐失败'), '', 'ajax');
 			}
+		}
+		
+		if ($op == 'order_list') {
+			$orders = pdo_getall('storex_plugin_foods_order', array('openid' => $_W['openid']), array('id', 'time', 'storeid', 'eattime', 'place', 'foods_set', 'status', 'paystatus', 'sumprice'));
+			message(error(0, $orders), '', 'ajax');
 		}
 		
 		if ($op == 'order_food_detail') {

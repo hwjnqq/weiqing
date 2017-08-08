@@ -836,6 +836,9 @@ if (ver_compare('1.4.7', $wn_storex_module['version']) == 1) {
 		}
 	}
 }
+if (pdo_fieldexists('storex_order', 'roomitemid')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " CHANGE `roomitemid` `roomitemid` VARCHAR(200) NOT NULL COMMENT '房间号ID';");
+}
 
 if (!pdo_fieldexists('storex_activity_exchange_trades', 'num')) {
 	pdo_query("ALTER TABLE " . tablename('storex_activity_exchange_trades') . " ADD `num` INT(11) NOT NULL COMMENT '数量';");
