@@ -372,6 +372,7 @@ if ($op == 'edit') {
 			}
 			if ($data['status'] == ORDER_STATUS_OVER) {
 				order_market_gift($id);
+				order_salesman_income($id, ORDER_STATUS_OVER);
 			}
 			message(error('0', '订单信息处理完成！'), '', 'ajax');
 		} else {
