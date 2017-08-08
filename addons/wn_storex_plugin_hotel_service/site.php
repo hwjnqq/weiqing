@@ -168,7 +168,7 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 	public function doMobileHotelservice() {
 		global $_W, $_GPC;
 
-		$ops = array('wifi_info', 'hotel_info', 'room_service', 'display', 'continue_order', 'foods_list', 'order_food', 'order_list', 'order_food_detail');
+		$ops = array('wifi_info', 'hotel_info', 'room_service', 'display', 'continue_order', 'foods_list', 'order_food', 'order_list', 'order_food_detail', 'orderpay');
 		$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 		if ($op == 'display') {
@@ -390,8 +390,162 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 			}
 		}
 		
+		if ($op == 'orderpay') {
+			$order_id = intval($_GPC['orderid']);
+			$order_info = pdo_get('storex_plugin_foods_order', array('id' => $order_id, 'weid' => intval($_W['uniacid']), 'openid' => $_W['openid']));
+			if (!empty($order_info)) {
+				$params = array(
+					'ordersn' => $order_info['ordersn'],
+					'tid' => $order_info['id'],//支付订单编号, 应保证在同一模块内部唯一
+					'title' => date('Y-m-d H:i', $order_info['eattime']),
+					'fee' => $order_info['sumprice'],//总费用, 只能大于 0
+					'user' => $_W['openid']//付款用户, 付款的用户名(选填项)
+				);
+				$pay_info = $this->pay($params);
+				message(error(0, $pay_info), '', 'ajax');
+			} else {
+				message(error(-1, '获取订单信息失败'), '', 'ajax');
+			}
+		}
+		
 	}
+	
+	public function payResult($params) {
+		global $_GPC, $_W;
+		load()->model('mc');
+		$uid = mc_openid2uid($params['user']);
+		$weid = intval($_W['uniacid']);
+		$order = pdo_get('storex_plugin_foods_order', array('id' => $params['tid'], 'weid' => $weid));
+		$storex_bases = pdo_get('storex_bases', array('id' => $order['storeid'], 'weid' => $weid), array('id', 'store_type', 'title', 'phones', 'openids'));
+		pdo_update('storex_plugin_foods_order', array('paystatus' => 1, 'paytype' => $params['type']), array('id' => $params['tid']));
+		
+		if ($params['from'] == 'return') {
+			if ($storex_bases['store_type'] == 1) {
+				$goodsinfo = pdo_get('storex_room', array('id' => $order['roomid'], 'weid' => $weid));
+			} else {
+				$goodsinfo = pdo_get('storex_goods', array('id' => $order['roomid'], 'weid' => $weid));
+			}
+			$score = intval($goodsinfo['score']);
+			$account_api = WeAccount::create($_W['acid']);
 
+			if ($params['result'] == 'success') {
+				if ($_W['account']['type'] != 4 || $_W['account']['uniacid'] == $_W['uniacid']) {
+					$clerks_openids = array();
+					$clerks = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'status'=>1, 'storeid' => $order['hotelid']));
+					if (!empty($clerks)) {
+						foreach ($clerks as $k => $info) {
+							if (empty($info['from_user']) || empty($info['userid'])) {
+								unset($clerks[$k]);
+								continue;
+							}
+							$permission = clerk_permission($order['hotelid'], $info['userid']);
+							if (!in_array('wn_storex_permission_order', $permission)) {
+								unset($clerks[$k]);
+								continue;
+							}
+							$clerks_openids[] = $info['from_user'];
+						}
+					}
+					if (!empty($storex_bases['openids'])) {
+						$clerks_openids = array_merge($clerks_openids, iunserializer($storex_bases['openids']));
+						foreach ($clerks_openids as $clerk) {
+							$info = $storex_bases['title'] . '店铺有新的订单,为保证用户体验度，请及时处理!';
+							$custom = array(
+								'msgtype' => 'text',
+								'text' => array('content' => urlencode($info)),
+								'touser' => $clerk,
+							);
+							$status = $account_api->sendCustomNotice($custom);
+						}
+					}
+				}
+			}
+			message('支付成功！', $this->createMobileurl('hotelservice', array('op' => 'order_food_detail', 'orderid' => $params['tid'], 'id' => $order['storeid'])), 'success');
+		}
+	}
+	
+	protected function pay($params = array(), $mine = array()) {
+		global $_W;
+		if (!$this->inMobile) {
+			message(error(-1, '支付功能只能在手机上使用'), '', 'ajax');
+		}
+		$params['module'] = $this->module['name'];
+		$pars = array();
+		$pars[':uniacid'] = $_W['uniacid'];
+		$pars[':module'] = $params['module'];
+		$pars[':tid'] = $params['tid'];
+		//如果价格为0 直接执行模块支付回调方法
+		if ($params['fee'] <= 0) {
+			$pars['from'] = 'return';
+			$pars['result'] = 'success';
+			$pars['type'] = '';
+			$pars['tid'] = $params['tid'];
+			$site = WeUtility::createModuleSite($pars[':module']);
+			$method = 'payResult';
+			if (method_exists($site, $method)) {
+				exit($site->$method($pars));
+			}
+		}
+		if (!empty($_W['openid'])) {
+			load()->model('mc');
+			$uid = mc_openid2uid($_W['openid']);
+		} else {
+			$uid = $_W['member']['uid'];
+		}
+		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniacid`=:uniacid AND `module`=:module AND `tid`=:tid';
+		$log = pdo_fetch($sql, $pars);
+		if (empty($log)) {
+			$log = array(
+				'uniacid' => $_W['uniacid'],
+				'acid' => $_W['acid'],
+				'openid' => $uid,
+				'module' => $this->module['name'],
+				'tid' => $params['tid'],
+				'fee' => $params['fee'],
+				'card_fee' => $params['fee'],
+				'status' => '0',
+				'is_usecard' => '0',
+			);
+			pdo_insert('core_paylog', $log);
+		}
+		if ($log['status'] == '1') {
+			message(error(-1, '这个订单已经支付成功, 不需要重复支付.'), '', 'ajax');
+		}
+		$payment = uni_setting(intval($_W['uniacid']), array('payment', 'creditbehaviors'));
+		if (!is_array($payment['payment'])) {
+			message(error(-1, '没有有效的支付方式, 请联系网站管理员.'), '', 'ajax');
+		}
+		$pay = $payment['payment'];
+		if (empty($uid)) {
+			$pay['credit'] = false;
+		}
+		$pay['delivery']['switch'] = 0;
+		foreach ($pay as $paytype => $val) {
+			if (empty($val['switch'])) {
+				unset($pay[$paytype]);
+			} else {
+				$pay[$paytype] = array();
+				$pay[$paytype]['switch'] = $val['switch'];
+			}
+		}
+		if (!empty($pay['credit'])) {
+			$credtis = mc_credit_fetch($uid);
+		}
+		$pay_data['pay'] = $pay;
+		$pay_data['credits'] = $credtis;
+		$pay_data['params'] = json_encode($params);
+		return $pay_data;
+	}
+	
+	public function clerk_permission($storeid, $uid) {
+		global $_W;
+		$clerk_info = pdo_get('storex_clerk', array('weid' => $_W['uniacid'], 'userid' => $uid, 'storeid' => $storeid), array('permission'));
+		$current_user_permission_info = pdo_get('users_permission', array('uniacid' => $_W['uniacid'], 'uid' => $uid, 'type' => 'wn_storex'));
+		pdo_update('storex_clerk', array('permission' => $current_user_permission_info['permission']), array('weid' => $_W['uniacid'], 'storeid' => $storeid, 'userid' => $uid));
+		$permission = !empty($current_user_permission_info['permission']) ? explode('|', $current_user_permission_info['permission']) : '';
+		return $permission;
+	}
+	
 	public function hotel_tel_info() {
 		global $_W;
 		$hotel_lists = pdo_getall('storex_bases', array('store_type' => 1, 'weid' => $_W['uniacid']), array('id', 'title', 'thumb'), 'id');
