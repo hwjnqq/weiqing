@@ -399,13 +399,16 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 				$foodsids = array_keys($order['foods']);
 				$foods = pdo_getall('storex_plugin_foods', array('id' => $foodsids), array(), 'id');
 				foreach ($order['foods'] as $fid => &$info) {
+					$info['thumbs'] = array();
 					if (!empty($foods[$fid]) && !empty($foods[$fid]['thumbs'])) {
 						$foods[$fid]['thumbs'] = iunserializer($foods[$fid]['thumbs']);
-						foreach ($foods[$fid]['thumbs'] as &$thumb) {
-							$thumb = tomedia($thumb);
+						if (is_array($foods[$fid]['thumbs'])) {
+							foreach ($foods[$fid]['thumbs'] as &$thumb) {
+								$thumb = tomedia($thumb);
+							}
+							unset($thumb);
+							$info['thumbs'] = $foods[$fid]['thumbs'];
 						}
-						unset($thumb);
-						$info['thumbs'] = $foods[$fid]['thumbs'];
 					}
 				}
 				unset($info);
