@@ -864,6 +864,30 @@ $sql = "
 	KEY `storeid` (`storeid`)
 	) DEFAULT CHARSET=utf8;
 	
+	CREATE TABLE IF NOT EXISTS `ims_storex_agent_apply` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`uniacid` int(11) DEFAULT '0',
+	`storeid` int(11) DEFAULT '0',
+	`openid` varchar(50) NOT NULL,
+	`uid` int(10) unsigned NOT NULL,
+	`orderids` longtext,
+	`status` tinyint(3) DEFAULT '0' COMMENT '1,待审核，2审核通过，3拒绝',
+	`applytime` int(11) DEFAULT '0',
+	`paytime` int(11) DEFAULT '0',
+	`refusetime` int(11) DEFAULT '0',
+	`realmoney` decimal(10,2) DEFAULT '0.00',
+	`alipay` varchar(50) NOT NULL DEFAULT '',
+	`realname` varchar(50) NOT NULL DEFAULT '',
+	`tel` varchar(20) NOT NULL DEFAULT '',
+	`reason` varchar(50) NOT NULL DEFAULT '' COMMENT '拒绝原因',
+	`level` int(10) unsigned DEFAULT '0' COMMENT '等级',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `storeid` (`storeid`),
+	KEY `status` (`status`)
+	) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+	
 	CREATE TABLE IF NOT EXISTS `ims_storex_agent_level` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`uniacid` int(11) NOT NULL,
@@ -874,6 +898,22 @@ $sql = "
 	`isdefault` tinyint(2) NOT NULL COMMENT '是否是默认1是,0不是',
 	PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_sales_package` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`storeid` int(11) DEFAULT '0',
+	`uniacid` int(11) DEFAULT '0',
+	`title` varchar(255) DEFAULT '',
+	`sub_title` varchar(12) NOT NULL COMMENT '副标题',
+	`thumb` varchar(255) DEFAULT '',
+	`price` decimal(10,2) DEFAULT '0.00',
+	`express` decimal(10,2) DEFAULT '0.00',
+	`goodsids` varchar(1000) DEFAULT '',
+	`status` int(11) DEFAULT '0',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `storeid` (`storeid`)
+	) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 		
 ";
 

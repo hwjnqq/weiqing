@@ -206,7 +206,7 @@ function we7_coupon_activity_coupon_owned() {
 		}
 		if (is_array($coupon['date_info']) && $coupon['date_info']['time_type'] == '2') {
 			$starttime = $record['addtime'] + $coupon['date_info']['deadline'] * 86400;
-			$endtime = $starttime + ($coupon['date_info']['limit'] - 1) * 86400;
+			$endtime = $starttime + ($coupon['date_info']['limit']) * 86400;
 			if ($endtime < time()) {
 				unset($data[$key]);
 				pdo_delete('coupon_record', array('id' => $record['id']));
