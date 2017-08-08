@@ -407,27 +407,60 @@ function order_market_gift($orderid) {
 	}
 }
 //给销售员的提成
-function order_salesman_income($orderid) {
-	$order = pdo_get('storex_order', array('id' => $orderid, 'salesman !=' => 0), array('id', 'hotelid', 'roomid', 'salesman', 'sum_price', 'status'));
-	$recored = pdo_get('销售员获得提成的记录表', array('orderid' => $orderid, 'goodsid' => $order['roomid']));
-	if (!empty($order) && $order['status'] == ORDER_STATUS_OVER && empty($recored)) {
+//storex_order
+//storex_agent_apply
+//storex_agent_level
+//storex_agent_log
+function order_salesman_income($orderid, $status) {
+	global $_W;
+	$order = pdo_get('storex_order', array('id' => $orderid, 'agentid !=' => 0), array('id', 'hotelid', 'roomid', 'agentid', 'sum_price', 'status'));
+	$recored = pdo_get('storex_agent_log', array('orderid' => $orderid, 'goodid' => $order['roomid']));
+	if (!empty($order) && $status == ORDER_STATUS_OVER && empty($recored)) {
 		$store = pdo_get('storex_bases', array('id' => $order['hotelid']), array('id', 'store_type'));
-		if (!empty($store)) {
-			$table = gettablebytype($store['store_type']);
-			$goods = pdo_get($table, array('id' => $order['roomid']), array('id', 'royalty_rate'));//返给销售员的比例
-			$salesman = pdo_get('销售员表', array('id' => $order['salesman'], 'status' => 1));
-			if (!empty($goods) && !empty($goods['royalty_rate']) && !empty($salesman)) {
-				$money = sprintf('%.2f', $order['sum_price'] * $goods['royalty_rate']);
-				$insert = array(
-					'orderid' => $order['id'],
-					'goodsid' => $order['roomid'],
-					'salesman' => $order['salesman'],
-					'money' => $money,
-					'royalty_rate' => $goods['royalty_rate'], //提成比例
-					'time' => TIMESTAMP,
-					'status' => 0, //提现的状态  0未提， 1已提
-				);
-				pdo_insert('销售员获得提成的记录表', $insert);
+		if (!empty($store) && $store['store_type'] != 1) {
+			$goods = pdo_get('storex_goods', array('id' => $order['roomid']), array('id', 'agent_ratio'));//返给销售员的比例
+			$agent = pdo_get('storex_agent_apply', array('id' => $order['agentid'], 'status' => 2));
+			if (!empty($goods) && !empty($goods['agent_ratio']) && !empty($agent)) {
+				if (empty($agent['level'])) {
+					$default_level = pdo_get('storex_agent_level', array('storeid' => $order['hotelid'], 'isdefault' => 1));
+					if (empty($default_level)) {
+						return ;
+					} else {
+						$agent['level'] = $default_level['id'];
+						pdo_update('storex_agent_apply', array('level' => $default_level['id']), array('id' => $order['agentid']));
+					}
+				}
+				$goods['agent_ratio'] = iunserializer($goods['agent_ratio']);
+				if (isset($goods['agent_ratio'][$agent['level']]) && !empty($goods['agent_ratio'][$agent['level']])) {
+					$rate = $goods['agent_ratio'][$agent['level']];
+					$money = sprintf('%.2f', $order['sum_price'] * $rate * 0.01);
+					$insert = array(
+						'uniacid' => $_W['uniacid'],
+						'agentid' => $order['agentid'],
+						'orderid' => $order['id'],
+						'goodid' => $order['roomid'],
+						'storeid' => $order['hotelid'],
+						'sumprice' => $order['sum_price'],
+						'money' => $money,
+						'rate' => $rate, //提成比例
+						'time' => TIMESTAMP,
+					);
+					pdo_insert('storex_agent_log', $insert);
+					pdo_update('storex_agent_apply', array('income +=' => $money, 'outcome +=' => $money), array('id' => $order['agentid']));
+					$income = $agent['income'] + $money;
+					$agent_level = pdo_getall('storex_agent_level', array('storeid' => $order['hotelid'], 'status' => 1), array(), 'need ASC');
+					if (!empty($agent_level) && is_array($agent_level)) {
+						$level = 0;
+						foreach ($agent_level as $levelinfo) {
+							if ($income >= $levelinfo['need']) {
+								$level = $levelinfo['id'];
+							}
+						}
+						if (!empty($level)) {
+							pdo_update('storex_agent_apply', array('level' => $level), array('id' => $order['agentid']));
+						}
+					}
+				}
 			}
 		}
 	}
