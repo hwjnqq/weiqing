@@ -361,7 +361,8 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 		}
 		
 		if ($op == 'order_list') {
-			$orders = pdo_getall('storex_plugin_foods_order', array('openid' => $_W['openid']), array('id', 'time', 'storeid', 'eattime', 'place', 'foods_set', 'status', 'paystatus', 'sumprice'));
+			$storeid = intval($_GPC['storeid']);
+			$orders = pdo_getall('storex_plugin_foods_order', array('openid' => $_W['openid'], 'storeid' => $storeid), array('id', 'time', 'storeid', 'eattime', 'place', 'foods_set', 'status', 'paystatus', 'sumprice'));
 			message(error(0, $orders), '', 'ajax');
 		}
 		
