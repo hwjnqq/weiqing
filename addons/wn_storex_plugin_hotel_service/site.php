@@ -410,6 +410,7 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 							$info['thumbs'] = $foods[$fid]['thumbs'];
 						}
 					}
+					$info['title'] = $foods[$fid]['title'];
 				}
 				unset($info);
 				message(error(0, $order), '', 'ajax');
