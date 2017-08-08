@@ -195,6 +195,16 @@ if ($op == 'order') {
 		if (empty($order['roomitemid'])) {
 			wmessage(error(-1, '管理员未分配房间，请联系管理员'), '', 'ajax');
 		}
+		$order['roomitemid'] = explode(',', $order['roomitemid']);
+		if (empty($_GPC['roomid'])) {
+			wmessage(error(-1, '请选择要续订房间'), '', 'ajax');
+		}
+		if (!in_array(intval($_GPC['roomid']), $order['roomitemid'])) {
+			wmessage(error(-1, '该订单未分配该房间'), '', 'ajax');
+		}
+		if (!pdo_get('storex_room_items', array('id' => intval($_GPC['roomid'])))) {
+			wmessage(error(-1, '该房间不存在'), '', 'ajax');
+		}
 		$store_id = $order['hotelid'];
 		$goodsid = $order['roomid'];
 		$order_info['hotelid'] = $store_id;
@@ -203,7 +213,7 @@ if ($op == 'order') {
 		$order_info['mobile'] = $order['mobile'];
 		$order_info['remark'] = $order['remark'];
 		$order_info['nums'] = 1;
-		$order_info['roomitemid'] = $order['roomitemid'];
+		$order_info['roomitemid'] = intval($_GPC['roomid']);
 	} else {
 		if (!empty($_GPC['from'])) {
 			$from = json_decode(authcode($_GPC['from'], 'DECODE'), true);
