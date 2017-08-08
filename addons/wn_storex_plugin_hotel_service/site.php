@@ -168,7 +168,7 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 	public function doMobileHotelservice() {
 		global $_W, $_GPC;
 
-		$ops = array('wifi_info', 'hotel_info', 'room_service', 'display', 'continue_order', 'foods_list', 'order_food', 'order_list', 'order_food_detail', 'orderpay');
+		$ops = array('wifi_info', 'hotel_info', 'room_service', 'display', 'continue_order', 'foods_list', 'order_food', 'order_list', 'order_cancel', 'order_food_detail', 'orderpay');
 		$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 		if ($op == 'display') {
@@ -378,6 +378,17 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 			$storeid = intval($_GPC['storeid']);
 			$orders = pdo_getall('storex_plugin_foods_order', array('openid' => $_W['openid'], 'storeid' => $storeid, 'paystatus' => 1), array('id', 'time', 'storeid', 'eattime', 'place', 'foods_set', 'status', 'paystatus', 'sumprice'));
 			message(error(0, $orders), '', 'ajax');
+		}
+		
+		if ($op == 'order_cancel') {
+			$orderid = intval($_GPC['orderid']);
+			$order = pdo_get('storex_plugin_foods_order', array('openid' => $_W['openid'], 'id' => $orderid, 'status' => array(0, 1)), array('id', 'time', 'storeid', 'eattime', 'place', 'foods_set', 'status', 'paystatus', 'sumprice'));
+			if (empty($order)) {
+				message(error(-1, '取消订单失败'), '', 'ajax');
+			} else {
+				pdo_update('storex_plugin_foods_order', array('status' => -1), array('id' => $orderid));
+				message(error(0, '订单已取消'), '', 'ajax');
+			}
 		}
 		
 		if ($op == 'order_food_detail') {
