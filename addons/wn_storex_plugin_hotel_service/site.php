@@ -263,10 +263,8 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 		
 		if ($op == 'foods_list') {
 			$storeid = intval($_GPC['storeid']);
-			$pindex = max(1, intval($_GPC['page']));
-			$psize = 10;
 			$condition = array('storeid' => $storeid, 'status' => 1);
-			$foods = pdo_getall('storex_plugin_foods', $condition, array(), '', '', array($pindex, $psize));
+			$foods = pdo_getall('storex_plugin_foods', $condition);
 			if (!empty($foods) && is_array($foods)) {
 				foreach ($foods as &$val) {
 					if (!empty($val['thumbs'])) {
@@ -278,26 +276,22 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 							unset($thumb);
 						}
 					}
+					if (!empty($val['foods_set'])) {
+						$val['foods_set'] = explode(',', $val['foods_set']);
+					}
 				}
 				unset($val);
 			}
-			$total = count(pdo_getall('storex_plugin_foods', $condition));
-			$page_array = $this->get_page_array($total, $pindex, $psize);
 			$list = array(
 				'list' => $foods,
-				'psize' => $psize,
-				'result' => 1,
-				'total' => $total,
-				'isshow' => $page_array['isshow'],
-				'nindex' => $page_array['nindex'],
 			);
 			$foods_set = pdo_get('storex_plugin_foods_set', array('storeid' => $storeid));
 			$list['place'] = iunserializer($foods_set['place']);
+			$list['foods_set'] = iunserializer($foods_set['foods_set']);
 			message(error(0, $list), '', 'ajax');
 		}
-		//http://prox.we7.cc/app/index.php?i=281&c=entry&m=wn_storex_plugin_hotel_service&do=Hotelservice&op=order_food&storeid=1&eattime=1501948800&place=房间&remark=测试&totalprice=169.8&mobile=13754885770&contact_name=wrs
+		
 		if ($op == 'order_food') {
-			$_W['openid'] = 'oTKzFjq-vdizyZXDhpGI8XQqgnoE';
 			if (empty($_W['openid'])) {
 				message(error(-1, '请先关注公众号' . $_W['account']['name']), '', 'ajax');
 			}
@@ -313,19 +307,13 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 				message(error(-1, '联系人不能为空!'), '', 'ajax');
 			}
 			$storeid = intval($_GPC['storeid']);
-			$eattime = intval($_GPC['eattime']);
 			$place = trim($_GPC['place']);
 			$remark = trim($_GPC['remark']);
 			$foods = $_GPC['foods'];
 			$totalprice = $_GPC['totalprice'];
-			$foods = array(
-				4 => array('id' => 4, 'title' => '红烧狮子头', 'num' => 6),
-			);
+			
 			if (empty($foods)) {
 				message(error(-1, '请选择菜单'), '', 'ajax');
-			}
-			if ($eattime < TIMESTAMP) {
-				message(error(-1, '用餐时间错误'), '', 'ajax');
 			}
 			//计算总价判断传的菜单是否存在
 			$sumprice = 0;
@@ -348,7 +336,6 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 				'weid' => $_W['uniacid'],
 				'openid' => $_W['openid'],
 				'storeid' => $storeid,
-				'eattime' => $eattime,
 				'place' => $place,
 				'remark' => $remark,
 				'ordersn' => date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1),
@@ -357,6 +344,7 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 				'time' => TIMESTAMP,
 				'mobile' => $mobile,
 				'contact_name' => $contact_name,
+				`foods_set` => trim($_GPC['foods_set']),
 			);
 			pdo_insert('storex_plugin_foods_order', $order_insert);
 			$orderid = pdo_insertid();

@@ -59,6 +59,7 @@ $sql = "
 	  `mobile` varchar(255) NOT NULL COMMENT '预定人电话',
 	  `contact_name` varchar(255) NOT NULL COMMENT '联系人',
 	  `paystatus` tinyint(2) NOT NULL COMMENT '0未支付1已支付',
+	  `foods_set` varchar(50) NOT NULL COMMENT '属于什么餐点',
 	  PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
 		
