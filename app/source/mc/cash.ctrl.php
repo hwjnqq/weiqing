@@ -144,6 +144,9 @@ if(!empty($type)) {
 		$auth = sha1($sl . $_W['uniacid'] . $_W['config']['setting']['authkey']);
 		
 		$callback = $_W['siteroot'] . "payment/wechat/pay.php?i={$_W['uniacid']}&auth={$auth}&ps={$sl}";
+		if (!empty($unisetting['oauth']['host'])) {
+			$callback = str_replace($_W['siteroot'], $unisetting['oauth']['host'].'/', $callback);
+		}
 		//如果有借用支付，则需要通过网页授权附带用户Openid跳转至支付，否则直接跳转
 		$proxy_pay_account = payment_proxy_pay_account();
 		if (!is_error($proxy_pay_account)) {

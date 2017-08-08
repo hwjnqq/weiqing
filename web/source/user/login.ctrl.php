@@ -16,6 +16,7 @@ function _login($forward = '') {
 	load()->model('user');
 	$member = array();
 	$username = trim($_GPC['username']);
+
 	pdo_query('DELETE FROM'.tablename('users_failed_login'). ' WHERE lastupdate < :timestamp', array(':timestamp' => TIMESTAMP-300));
 	$failed = pdo_get('users_failed_login', array('username' => $username, 'ip' => CLIENT_IP));
 	if ($failed['count'] >= 5) {
@@ -41,12 +42,13 @@ function _login($forward = '') {
 	}
 	$record = user_single($member);
 	if (!empty($record)) {
-		if ($record['status'] == 1) {
+		if ($record['status'] == 1 || $record['status'] == 3) {
 			itoast('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决！', '', '');
 		}
 		$_W['uid'] = $record['uid'];
-		$founders = explode(',', $_W['config']['setting']['founder']);
-		$_W['isfounder'] = in_array($record['uid'], $founders);
+		$_W['isfounder'] = user_is_founder($record['uid']);
+		$_W['user'] = $record;
+
 		if (empty($_W['isfounder'])) {
 			if (!empty($record['endtime']) && $record['endtime'] < TIMESTAMP) {
 				itoast('您的账号有效期限已过，请联系网站管理员解决！', '', '');
@@ -67,15 +69,7 @@ function _login($forward = '') {
 		$status['lastvisit'] = TIMESTAMP;
 		$status['lastip'] = CLIENT_IP;
 		user_update($status);
-		if ($record['type'] == ACCOUNT_OPERATE_CLERK) {
-// 			$role = uni_permission($record['uid'], $record['uniacid']);
-			isetcookie('__uniacid', $record['uniacid'], 7 * 86400);
-			isetcookie('__uid', $record['uid'], 7 * 86400);
-			itoast('登录成功！' ,url('site/entry/clerkdesk', array('uniacid' => $record['uniacid'], 'op' => 'index', 'm' => 'we7_coupon')), 'success');
-// 			if ($_W['role'] == 'clerk' || $role == 'clerk') {
-// 				itoast('登录成功', url('activity/desk', array('uniacid' => $record['uniacid'])), 'success');
-// 			}
-		}
+
 		if (empty($forward)) {
 			$forward = user_login_forward($_GPC['forward']);
 		}

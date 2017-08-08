@@ -18,18 +18,18 @@ $result = array(
 	'data' => '' 
 );
 
-$type = $_COOKIE['__fileupload_type'];
+$type  =  $_GPC['upload_type'];//$_COOKIE['__fileupload_type'];
 $type = in_array($type, array('image','audio','video')) ? $type : 'image';
 $option = array();
 $option = array_elements(array('uploadtype', 'global', 'dest_dir'), $_POST);
 $option['width'] = intval($option['width']);
-$option['global'] = !empty($_COOKIE['__fileupload_global']);
+$option['global'] = $_GPC['global'];//!empty($_COOKIE['__fileupload_global']);
 if (!empty($option['global']) && empty($_W['isfounder'])) {
 	$result['message'] = '没有向 global 文件夹上传文件的权限.';
 	die(json_encode($result));
 }
 
-$dest_dir = $_COOKIE['__fileupload_dest_dir'];
+$dest_dir = $_GPC['dest_dir'];//$_COOKIE['__fileupload_dest_dir'];
 if (preg_match('/^[a-zA-Z0-9_\/]{0,50}$/', $dest_dir, $out)) {
 	$dest_dir = trim($dest_dir, '/');
 	$pieces = explode('/', $dest_dir);
@@ -47,7 +47,7 @@ $uniacid = intval($_W['uniacid']);
 if (!empty($option['global'])) {
 	$setting['folder'] = "{$type}s/global/";
 	if (! empty($dest_dir)) {
-		$setting['folder'] .= '/' . $dest_dir . '/';
+		$setting['folder'] .= '' . $dest_dir . '/';
 	}
 } else {
 	$setting['folder'] = "{$type}s/{$uniacid}";

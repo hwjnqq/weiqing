@@ -110,6 +110,25 @@ function pdo_getcolumn($tablename, $condition = array(), $field) {
 }
 
 /**
+ * 返回满足条件的记录是否存在
+ * @param string $tablename
+ * @param array $condition
+ */
+function pdo_exists($tablename, $condition = array()) {
+	return pdo()->exists($tablename, $condition);
+}
+
+/**
+ * 返回满足条件的记录数
+ * @param string $tablename
+ * @param array $condition
+ * @param number $cachetime 缓存时间，由于count操作过于消耗资源，故增加缓存优化
+ */
+function pdo_count($tablename, $condition = array(), $cachetime = 15) {
+	return pdo()->count($tablename, $condition, $cachetime);
+}
+
+/**
  * 更新记录
  * @param string $table 数据表名
  * @param array $data 更新记录

@@ -60,7 +60,7 @@ class Prpcrypt
 {
 	public $key;
 
-	function Prpcrypt( $k )
+	function __construct( $k )
 	{
 		$this->key = $k;
 	}
@@ -71,14 +71,18 @@ class Prpcrypt
      * @param string $aesIV 解密的初始向量
 	 * @return string 解密得到的明文
 	 */
-	public function decrypt( $aesCipher, $aesIV )
+	public function decrypt( $aesCipher, $aesIV = '' )
 	{
 
 		try {
+			if (empty($aesIV)) {
+				$mcrypt_mode = MCRYPT_MODE_ECB;
+			} else {
+				$mcrypt_mode = MCRYPT_MODE_CBC;
+			}
+			$module = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', $mcrypt_mode, '');
 			
-			$module = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_CBC, '');
-			
-			mcrypt_generic_init($module, $this->key, $aesIV);
+			@mcrypt_generic_init($module, $this->key, $aesIV);
 
 			//解密
 			$decrypted = mdecrypt_generic($module, $aesCipher);

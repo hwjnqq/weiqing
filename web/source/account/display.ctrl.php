@@ -4,7 +4,7 @@
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
-
+load()->model('user');
 $dos = array('rank', 'display', 'switch');
 $do = in_array($_GPC['do'], $dos)? $do : 'display' ;
 $_W['page']['title'] = '公众号列表 - 公众号';
@@ -44,54 +44,23 @@ if ($do == 'rank' && $_W['isajax'] && $_W['ispost']) {
 if ($do == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 15;
-	$start = ($pindex - 1) * $psize;
-	$condition = '';
-	$param = array();
+	$condition = array();
+	$condition['type'] = array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH);
+
 	$keyword = trim($_GPC['keyword']);
-	if (!empty($_W['isfounder'])) {
-		$condition .= " WHERE a.default_acid <> 0 AND b.isdeleted <> 1 AND (b.type = ".ACCOUNT_TYPE_OFFCIAL_NORMAL." OR b.type = ".ACCOUNT_TYPE_OFFCIAL_AUTH.")";
-		$order_by = " ORDER BY a.`rank` DESC";
-	} else {
-		$condition .= "LEFT JOIN ". tablename('uni_account_users')." as c ON a.uniacid = c.uniacid WHERE a.default_acid <> 0 AND c.uid = :uid AND b.isdeleted <> 1 AND (b.type = ".ACCOUNT_TYPE_OFFCIAL_NORMAL." OR b.type = ".ACCOUNT_TYPE_OFFCIAL_AUTH.")";
-		$param[':uid'] = $_W['uid'];
-		$order_by = " ORDER BY c.`rank` DESC";
+	if (!empty($keyword)) {
+		$condition['keyword'] = $keyword;
 	}
-	if(!empty($keyword)) {
-		$condition .=" AND a.`name` LIKE :name";
-		$param[':name'] = "%{$keyword}%";
-	}
+
 	if(isset($_GPC['letter']) && strlen($_GPC['letter']) == 1) {
-		$letter = trim($_GPC['letter']);
-		if(!empty($letter)){
-			$condition .= " AND a.`title_initial` = :title_initial";
-			$param[':title_initial'] = $letter;
-		}else {
-			$condition .= " AND a.`title_initial` = ''";
-		}
+		$condition['letter'] = trim($_GPC['letter']);
 	}
 
-	$tsql = "SELECT COUNT(*) FROM " . tablename('uni_account'). " as a LEFT JOIN". tablename('account'). " as b ON a.uniacid = b.uniacid AND a.default_acid = b.acid {$condition} {$order_by}, a.`uniacid` DESC";
-	$total = pdo_fetchcolumn($tsql, $param);
-	$sql = "SELECT * FROM ". tablename('uni_account'). " as a LEFT JOIN". tablename('account'). " as b ON a.uniacid = b.uniacid AND a.default_acid = b.acid  {$condition} {$order_by}, a.`uniacid` DESC LIMIT {$start}, {$psize}";
-	$list = pdo_fetchall($sql, $param);
-	if(!empty($list)) {
-		foreach($list as &$account) {
-			$account['url'] = url('account/display/switch', array('uniacid' => $account['uniacid']));
-			$account['details'] = uni_accounts($account['uniacid']);
-			if(!empty($account['details'])) {
-				foreach ($account['details'] as  &$account_val) {
-					$account_val['thumb'] = tomedia('headimg_'.$account_val['acid']. '.jpg').'?time='.time();
-				}
-			}
-			$account['role'] = uni_permission($_W['uid'], $account['uniacid']);
-			$account['setmeal'] = uni_setmeal($account['uniacid']);
+	$account_lists = uni_account_list($condition, array($pindex, $psize));
+	$account_list = $account_lists['list'];
 
-		}
-		unset($account_val);
-		unset($account);
-	}
 	if ($_W['isajax'] && $_W['ispost']) {
-		iajax(0, $list);
+		iajax(0, $account_list);
 	}
 }
 

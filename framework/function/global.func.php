@@ -1202,6 +1202,27 @@ function aes_encode($message, $encodingaeskey = '', $appid = '') {
 	return $encrypt_msg;
 }
 
+/**
+ *  aes_pkcs7解密函数
+ * @param $encrypt_data 待解密文件（ 经过 base64_encode 编码 ）
+ * @param $key 解密key
+ * @param bool $iv 偏移量 （经过 base64_encode 编码 ）
+ * @return array
+ */
+function aes_pkcs7_decode($encrypt_data, $key, $iv = false) {
+	require_once IA_ROOT . '/framework/library/pkcs7/pkcs7Encoder.php';
+	$encrypt_data = base64_decode($encrypt_data);
+	if (!empty($iv)) {
+		$iv = base64_decode($iv);
+	}
+	$pc = new Prpcrypt($key);
+	$result = $pc->decrypt($encrypt_data, $iv);
+	if ($result[0] != 0) {
+		return error($result[0], '解密失败');
+	}
+	return $result[1];
+}
+
 /*
  * 重新封装 isimplexml_load_string 函数。解决安全问题
  * */

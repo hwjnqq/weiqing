@@ -1527,6 +1527,22 @@ abstract class WeModuleSite extends WeBase {
 	}
 
 	/**
+	 * 调用系统的退款功能
+	 * @param array $params
+	 * $tid 支付订单编号, 应保证在同一模块内部唯一
+	 * $fee 退款金额（选填，默认全额退款）
+	 * $reason 退款原因(选填项)
+	 */
+	protected function refund($tid, $fee = 0, $reason = '') {
+		load()->model('refund');
+		$refund_id = refund_create_order($tid, $this->module['name'], $fee, $reason);
+		if (is_error($refund_id)) {
+			return $refund_id;
+		}
+		return refund($refund_id);
+	}
+
+	/**
 	 * 这是一个回调方法, 当系统在支付完成时调用这个方法通知模块支付结果
 	 * @param array $ret
 	 * $ret['uniacid'] 当前公众号编号

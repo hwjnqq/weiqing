@@ -16,6 +16,6 @@ if (checksubmit('submit')) {
 	itoast('更新设置成功！', url('user/registerset'), 'success');
 }
 $settings = $_W['setting']['register'];
-$groups = pdo_fetchall("SELECT id, name FROM ".tablename('users_group')." ORDER BY id ASC");
+$groups = user_group();
 
 template('user/registerset');

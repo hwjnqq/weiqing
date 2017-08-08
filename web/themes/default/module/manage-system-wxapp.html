@@ -10,6 +10,9 @@
 		<li><a href="{php echo url('module/manage-system/not_installed', array('account_type' => 4, 'status' => 'recycle'))}" ng-if="isFounder == 1">已停用小程序</a></li>
 	</ul>
 	<div class="we7-page-search clearfix">
+		<!--<div class="pull-right">-->
+		<!--<a href="添加.html" class="btn btn-danger">购买应用模块</a>-->
+		<!--</div>-->
 		<form action="" method="get" class="row">
 			<div class="form-group we7-margin-bottom  col-sm-4">
 				<input type="hidden" name="letter" ng-model="activeLetter">
@@ -31,12 +34,14 @@
 	</ul>
 
 	<form action="" method="get">
-		<table class="table we7-table table-hover vertical-middle table-manage">
+		<table class="table we7-table table-hover vertical-middle table-manage table-manage-td">
 			<col width="120px" />
 			<col width="350px"/>
 			<col width="230px" />
 			<tr>
 				<th colspan="2" class="text-left">小程序应用</th>
+				<!--<th>公众号</th>-->
+				<!--<th>数量</th>-->
 				<th class="text-right">操作</th>
 			</tr>
 			<tr ng-repeat="module in module_list">
@@ -47,12 +52,22 @@
 					<p>{{ module.title }}</p>
 					<span>版本：{{ module.version }} </span><span class="color-red" ng-if="module.upgrade && isFounder == 1">发现新版本</span>
 				</td>
-				<td class="text-left">
+				<!--<td >{{ module.use_account }}</td>-->
+				<!--<td >{{ module.enabled_use_account }}</td>-->
+				<td class="text-left vertical-middle table-manage-td">
 					<div class="link-group">
 						<a ng-href="{{ './index.php?c=module&a=manage-system&do=upgrade&module_name='+module.name}}&account_type={ACCOUNT_TYPE}" class="color-red" ng-if="module.upgrade && module.from != 'cloud' && isFounder == 1">升级</a>
 						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&show=upgrade&account_type={ACCOUNT_TYPE}" class="color-red del" ng-if="module.upgrade && module.from == 'cloud' && isFounder == 1">升级</a>
 						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&account_type={ACCOUNT_TYPE}" ng-if="isFounder == 1">管理设置</a>
+						<!--<a href="javascript:;" ng-if="isFounder == 1" ng-click="editModule(module.mid)">编辑</a>-->
+					</div>
+					<div class="manage-option text-right">
+						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&account_type={ACCOUNT_TYPE}" ng-if="isFounder == 1">基本信息</a>
+						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&account_type={ACCOUNT_TYPE}&show=group" ng-if="isFounder == 1">应用权限组</a>
+						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&account_type={ACCOUNT_TYPE}&show=subscribe" ng-if="isFounder == 1 && module.subscribes.length">订阅消息</a>
+						{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
 						<a href="{php echo url('module/manage-system/uninstall', array('account_type' => 4))}&name={{ module.name }}&account_type={ACCOUNT_TYPE}" ng-if="isFounder == 1" class="del">停用</a>
+						{/if}
 					</div>
 				</td>
 			</tr>
@@ -297,11 +312,7 @@
 
 	<div class="btn-group we7-btn-group we7-margin-bottom">
 		<a href="javascript:;" ng-click="changeShow('base')" class="btn " ng-class="{'active' : show == 'base' || show == ''}">基本信息</a>
-		<a href="javascript:;" ng-click="changeShow('plugin')" class="btn " ng-class="{'active' : show == 'plugin'}" ng-show="moduleinfo.main_module == '' && moduleinfo.plugin_list != undefined && moduleinfo.plugin_list != ''">模块子应用</a>
 		<a href="javascript:;" ng-click="changeShow('group')" class="btn " ng-class="{'active' : show == 'group'}">应用权限组</a>
-		{if !empty($module_subscribes)}
-		<a href="javascript:;" ng-click="changeShow('subscribe')" class="btn " ng-class="{'active' : show == 'subscribe'}">订阅消息</a>
-		{/if}
 		<a href="javascript:;" ng-click="changeShow('upgrade')" class="btn " ng-class="{'active' : show == 'upgrade'}" ng-show="checkupgrade == 1">升级</a>
 	</div>
 	<table class="table we7-table table-hover table-form" ng-show="show == 'base' || show == ''">
@@ -318,6 +329,7 @@
 				<div class="link-group"><a href="javascript:;" ng-click="editModule('title', moduleinfo.title)">修改</a></div>
 			</td>
 		</tr>
+		{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
 		<tr>
 			<td class="table-label">模块作者</td>
 			<td colspan="2">{{ moduleinfo.author }}</td>
@@ -326,6 +338,7 @@
 			<td class="table-label">模块版本</td>
 			<td colspan="2">{{ moduleinfo.version }}</td>
 		</tr>
+		{/if}
 		<tr>
 			<td class="table-label">模块简述</td>
 			<td>{{ moduleinfo.ability }}</td>
@@ -378,24 +391,6 @@
 		</tr>
 	</table>
 	{/if}
-	<div class="panel we7-panel" ng-show="show == 'plugin' && moduleinfo.main_module == ''">
-		<div class="panel-heading">
-			模块子应用
-		</div>
-		<div class="panel-body">
-			<div class="plugin-list clearfix">
-				<div class="item" ng-repeat="plugin in moduleinfo.plugin_list">
-					<a href="{php echo url('module/manage-system/module_detail')}name={{plugin.name}}" target="_blank">
-						<div class="img">
-							<img ng-src="{{ plugin.logo }}" alt="子应用icon" class="plugin-img"/>
-							<img ng-src="{{ moduleinfo.logo }}" alt="主应用icon" class="module-img"/>
-						</div>
-						<div class="name">{{ plugin.title }}</div>
-					</a>
-				</div>
-			</div>
-		</div>
-	</div>
 	<table class="table we7-table table-hover vertical-middle" ng-show="show == 'upgrade'" ng-if="isFounder == 1 && upgradeInfo.from == 'local'">
 		<col width="300px"/>
 		<col />
@@ -487,7 +482,9 @@
 					应用权限组
 				</th>
 				<th class="text-right">
+					{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
 					<a href="{php echo url('module/group')}" class="color-default">添加</a>
+					{/if}
 				</th>
 			</tr>
 			<tr>
@@ -503,33 +500,14 @@
 					<span>{$group['name']}</span>
 				</td>
 				<td class="text-right">
+					{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
 					<div class="link-group"><a href="{php echo url('module/group/post', array('id' => $group['id']))}">设置</a></div>
+					{/if}
 				</td>
 			</tr>
 			{/loop}
 		</table>
 	</div>
-	{if !empty($module_subscribes)}
-	<div class="panel we7-panel module-subscription" ng-if="isFounder == 1" ng-show="show == 'subscribe'">
-		<div class="panel-heading ">
-			订阅详情
-			<div class="pull-right subscription-switch">
-				<span >启用订阅</span>
-				<label>
-					<input name="" id="" class="form-control" type="checkbox"  style="display: none;">
-					<div class="switch" ng-class="{ 'switchOn' : receive_ban == 1}" ng-click="changeSwitch()"></div>
-				</label>
-			</div>
-		</div>
-		<div class="panel-body">
-			<ul>
-				{loop $module_subscribes $subscribe}
-				<li>{$mtypes[$subscribe]} <label ng-if="subscribe == 2" class="label label-danger">通讯失败</label>  </li>
-				{/loop}
-			</ul>
-		</div>
-	</div>
-	{/if}
 	<table class="table we7-table table-hover" ng-if="isFounder == 1">
 		<col width="255px"/>
 		<col width="130px"/>

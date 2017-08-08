@@ -1,7 +1,7 @@
-<?php 
+<?php
 /**
  * 验证规则
- * 
+ *
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 
@@ -49,6 +49,9 @@ define('ACCOUNT_OPERATE_ONLINE', 1);
 define('ACCOUNT_OPERATE_MANAGER', 2);
 //店员操作
 define('ACCOUNT_OPERATE_CLERK', 3);
+
+//店员
+define('ACCOUNT_MANAGE_NAME_CLERK', 'clerk');
 //操作员
 define('ACCOUNT_MANAGE_TYPE_OPERATOR', 1);
 define('ACCOUNT_MANAGE_NAME_OPERATOR', 'operator');
@@ -60,6 +63,11 @@ define('ACCOUNT_MANAGE_TYPE_OWNER', 3);
 define('ACCOUNT_MANAGE_NAME_OWNER', 'owner');
 //创始人
 define('ACCOUNT_MANAGE_NAME_FOUNDER', 'founder');
+//副创始人
+define('ACCOUNT_MANAGE_TYPE_VICE_FOUNDER', 4);
+define('ACCOUNT_MANAGE_NAME_VICE_FOUNDER', 'vice_founder');
+define('ACCOUNT_MANAGE_GROUP_VICE_FOUNDER', 2);
+
 //系统卡券
 define('SYSTEM_COUPON', 1);
 //微信卡券

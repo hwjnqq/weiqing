@@ -17,8 +17,7 @@ load()->model('utility');
 $dos = array('subscribe', 'filter', 'check_subscribe', 'check_upgrade', 'get_upgrade_info', 'upgrade', 'install', 'installed', 'not_installed', 'uninstall', 'save_module_info', 'module_detail', 'change_receive_ban');
 $do = in_array($do, $dos) ? $do : 'installed';
 
-//只有创始人、主管理员、管理员才有权限
-if ($_W['role'] != ACCOUNT_MANAGE_NAME_OWNER && $_W['role'] != ACCOUNT_MANAGE_NAME_MANAGER && $_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER) {
+if (!in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))){
 	itoast('无权限操作！', referer(), 'error');
 }
 
@@ -30,6 +29,7 @@ if ($do == 'subscribe') {
 	$subscribe_module = array();
 	$receive_ban = $_W['setting']['module_receive_ban'];
 	$subscribe_type = ext_module_msg_types();
+
 	if (is_array($module_list) && !empty($module_list)) {
 		foreach ($module_list as $module) {
 			if (!empty($module['subscribes']) && is_array($module['subscribes'])) {
@@ -37,7 +37,7 @@ if ($do == 'subscribe') {
 				$subscribe_module[$module['name']]['title'] = $module['title'];
 				$subscribe_module[$module['name']]['name'] = $module['name'];
 				$subscribe_module[$module['name']]['subscribe_success'] = 2;
-				$subscribe_module[$module['name']]['receive_ban'] = in_array($module['name'], $receive_ban) ? 1 : 2;
+				$subscribe_module[$module['name']]['receive_ban'] = in_array($module['name'], $receive_ban) ? 1 : 0;
 			}
 		}
 	}
@@ -415,7 +415,6 @@ if ($do =='install') {
 		cache_build_module_subscribe_type();
 		cache_build_account_modules();
 		cache_build_uninstalled_module();
-		module_build_privileges();
 		cache_build_module_info($module_name);
 
 		if (empty($module_subscribe_success)) {
@@ -504,7 +503,7 @@ if ($do == 'module_detail') {
 			case ACCOUNT_TYPE_OFFCIAL_NORMAL:
 			case ACCOUNT_TYPE_OFFCIAL_AUTH:
 				$module_info['relation_name'] = '小程序版';
-				$module_info['account_type'] = 0;
+				$module_info['account_type'] = ACCOUNT_TYPE_APP_NORMAL;
 				$module_info['type'] = ACCOUNT_TYPE_APP_NORMAL;
 				break;
 			default:
@@ -558,7 +557,7 @@ if ($do == 'module_detail') {
 	if (!is_array($module_ban)) {
 		$module_ban = array();
 	}
-	$receive_ban = in_array($module_info['name'], $module_ban) ? 1 : 2;
+	$receive_ban = in_array($module_info['name'], $module_ban) ? 1 : 0;
 	$modulename = $_GPC['modulename'];
 
 
@@ -668,7 +667,7 @@ if ($do == 'not_installed') {
 	$pageindex = max($_GPC['page'], 1);
 	$pagesize = 20;
 
-	$uninstallModules = module_get_all_unistalled($status);
+	$uninstallModules = module_get_all_unistalled($status, false);
 	$total_uninstalled = $uninstallModules['module_count'];
 	$uninstallModules = (array)$uninstallModules['modules'];
 	if (!empty($uninstallModules)) {

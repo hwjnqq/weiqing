@@ -1,6 +1,6 @@
 {template 'common/header'}
 {if $do == 'display'}
-	<div class="mui-content mc-we7-home">
+	<div class="mui-content mc-we7-home panes">
 		<div class="mui-banner" style="background-image:url({if !empty($ucpage['params'][0]['params']['bgImage'])}'{$ucpage['params'][0]['params']['bgImage']}'{else}'resource/images/head-bg.png'{/if}); background-repeat:no-repeat;background-size:cover;">
 			<div class="setting"><a href="{php echo url('mc/bond/settings') . 'wxref=mp.weixin.qq.com#wechat_redirect'}">设 置</a></div>
 			<img src="{php echo tomedia($profile['avatar']);}" alt="" class="mui-logo mui-img-circle" />

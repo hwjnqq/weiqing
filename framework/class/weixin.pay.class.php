@@ -31,10 +31,11 @@ class WeiXinPay extends pay{
 		}
 	}
 
-	public function array2url($params, $force = false) {
+	public function array2url($params) {
 		$str = '';
+		$ignore = array('coupon_refund_fee', 'coupon_refund_count');
 		foreach($params as $key => $val) {
-			if($force && empty($val)) {
+			if((empty($val) || is_array($val)) && !in_array($key, $ignore)) {
 				continue;
 			}
 			$str .= "{$key}={$val}&";
@@ -46,7 +47,7 @@ class WeiXinPay extends pay{
 	public function bulidSign($params) {
 		unset($params['sign']);
 		ksort($params);
-		$string = $this->array2url($params, true);
+		$string = $this->array2url($params);
 		$string = $string . "&key={$this->wxpay['key']}";
 		$string = md5($string);
 		$result = strtoupper($string);
@@ -64,7 +65,7 @@ class WeiXinPay extends pay{
 		if(!is_array($result)) {
 			return error(-1, 'xml结构错误');
 		}
-		if(isset($result['return_code']) && $result['return_code'] != 'SUCCESS') {
+		if((isset($result['return_code']) && $result['return_code'] != 'SUCCESS') || ($result['err_code'] == 'ERROR' && !empty($result['err_code_des']))) {
 			$msg = empty($result['return_msg']) ? $result['err_code_des'] : $result['return_msg'];
 			return error(-1, $msg);
 		}
@@ -77,10 +78,10 @@ class WeiXinPay extends pay{
 	/*
 	 * 请求微信接口并解析返回结果
 	 */
-	public function httpWxurl($url, $params) {
+	public function requestApi($url, $params, $extra = array()) {
 		load()->func('communication');
 		$xml = array2xml($params);
-		$response = ihttp_post($url, $xml);
+		$response = ihttp_request($url, $xml, $extra);
 		if(is_error($response)) {
 			return $response;
 		}
@@ -99,7 +100,7 @@ class WeiXinPay extends pay{
 			'nonce_str' => random(32),
 		);
 		$params['sign'] = $this->bulidSign($params);
-		$result = $this->httpWxurl('https://api.mch.weixin.qq.com/tools/shorturl', $params);
+		$result = $this->requestApi('https://api.mch.weixin.qq.com/tools/shorturl', $params);
 		if(is_error($result)) {
 			return $result;
 		}
@@ -175,7 +176,7 @@ class WeiXinPay extends pay{
 		$params['nonce_str'] = random(32);
 		$params['sign'] = $this->bulidSign($params);
 
-		$result = $this->httpWxurl('https://api.mch.weixin.qq.com/pay/unifiedorder', $params);
+		$result = $this->requestApi('https://api.mch.weixin.qq.com/pay/unifiedorder', $params);
 		if(is_error($result)) {
 			return $result;
 		}
@@ -210,7 +211,7 @@ class WeiXinPay extends pay{
 			$params['sub_mch_id'] = $this->wxpay['sub_mch_id'];
 		}
 		$params['sign'] = $this->bulidSign($params);
-		$result = $this->httpWxurl('https://api.mch.weixin.qq.com/pay/micropay', $params);
+		$result = $this->requestApi('https://api.mch.weixin.qq.com/pay/micropay', $params);
 		if(is_error($result)) {
 			return $result;
 		}
@@ -390,7 +391,7 @@ EOF;
 			'out_trade_no' => trim($trade_no),
 		);
 		$params['sign'] = $this->bulidSign($params);
-		$result = $this->httpWxurl('https://api.mch.weixin.qq.com/pay/closeorder', $params);
+		$result = $this->requestApi('https://api.mch.weixin.qq.com/pay/closeorder', $params);
 		if(is_error($result)) {
 			return $result;
 		}
@@ -417,7 +418,7 @@ EOF;
 			$params['out_trade_no'] = $id;
 		}
 		$params['sign'] = $this->bulidSign($params);
-		$result = $this->httpWxurl('https://api.mch.weixin.qq.com/pay/orderquery', $params);
+		$result = $this->requestApi('https://api.mch.weixin.qq.com/pay/orderquery', $params);
 		if(is_error($result)) {
 			return $result;
 		}
@@ -441,8 +442,9 @@ EOF;
 			'bill_date' => $date,
 			'bill_type' => $type
 		);
+
 		$params['sign'] = $this->bulidSign($params);
-		$result = $this->httpWxurl('https://api.mch.weixin.qq.com/pay/downloadbill', $params);
+		$result = $this->requestApi('https://api.mch.weixin.qq.com/pay/downloadbill', $params);
 		return $result;
 	}
 
@@ -460,9 +462,18 @@ EOF;
 			'bill_type' => $type
 		);
 		$params['sign'] = $this->bulidSign($params);
-		$result = $this->httpWxurl('https://api.mch.weixin.qq.com/pay/downloadbill', $params);
+		$result = $this->requestApi('https://api.mch.weixin.qq.com/pay/downloadbill', $params);
 		return $result;
 	}
 
-
+	/*
+	 * 申请退款
+	 * $params 退款参数
+	 * */
+	public function refund($params) {
+		global $_W;
+		$params['sign'] = $this->bulidSign($params);
+		$result = $this->requestApi('https://api.mch.weixin.qq.com/secapi/pay/refund', $params, array(CURLOPT_SSLCERT => ATTACHMENT_ROOT . $_W['uniacid'] . '_wechat_refund_all.pem'));
+		return $result;
+	}
 }

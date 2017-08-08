@@ -134,9 +134,9 @@ function menu_construct_createmenu_data($data_array, $is_conditional = false) {
 	}
 	if(!empty($data_array['matchrule']['province'])) {
 		$menu['matchrule']['country'] = urlencode('中国');
-		$menu['matchrule']['province'] = urlencode(rtrim($data_array['matchrule']['province'], '省'));
+		$menu['matchrule']['province'] = urlencode($data_array['matchrule']['province']);
 		if(!empty($data_array['matchrule']['city'])) {
-			$menu['matchrule']['city'] = urlencode(rtrim($data_array['matchrule']['city'], '市'));
+			$menu['matchrule']['city'] = urlencode($data_array['matchrule']['city']);
 		}
 	}
 	if(!empty($data_array['matchrule']['language'])) {

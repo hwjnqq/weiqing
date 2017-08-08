@@ -34,53 +34,152 @@ class WeSession implements SessionHandlerInterface {
 	 * @param int $expire 过期时间,单位秒.
 	 */
 	public static function start($uniacid, $openid, $expire = 3600) {
-		//php7使用memcache session有bug，只能使用memcacehd,待修复
-		if (version_compare(PHP_VERSION, '7.0.0') < 0) {
-			if (extension_loaded('memcache') && !empty($cache_setting['memcache']['server']) && !empty($cache_setting['memcache']['session'])) {
-				ini_set("session.save_handler", "memcache");
-				ini_set("session.save_path", "tcp://{$cache_setting['memcache']['server']}:{$cache_setting['memcache']['port']}");
-			} elseif (extension_loaded('redis') && !empty($cache_setting['redis']['server']) && !empty($cache_setting['redis']['session'])) {
-				ini_set("session.save_handler", "redis");
-				ini_set("session.save_path", "tcp://{$cache_setting['redis']['server']}:{$cache_setting['redis']['port']}");
-			}
-		} elseif (extension_loaded('memcached') && !empty($cache_setting['memcache']['server']) && !empty($cache_setting['memcache']['session'])) {
-			ini_set("session.save_handler", "memcached");
-			ini_set("session.save_path", "{$cache_setting['memcache']['server']}:{$cache_setting['memcache']['port']}");
+		WeSession::$uniacid = $uniacid;
+		WeSession::$openid = $openid;
+		WeSession::$expire = $expire;
+		
+		$cache_setting = $GLOBALS['_W']['config']['setting'];
+		if (extension_loaded('memcache') && !empty($cache_setting['memcache']['server']) && !empty($cache_setting['memcache']['session'])) {
+			self::setHandler('memcache');
+		} elseif (extension_loaded('redis') && !empty($cache_setting['redis']['server']) && !empty($cache_setting['redis']['session'])) {
+			self::setHandler('redis');
 		} else {
-			WeSession::$uniacid = $uniacid;
-			WeSession::$openid = $openid;
-			WeSession::$expire = $expire;
-			$sess = new WeSession();
-			if (version_compare(PHP_VERSION, '5.4') >= 0) {
-				session_set_save_handler($sess, true);
-			} else {
-				session_set_save_handler(
-					array(&$sess, 'open'),
-					array(&$sess, 'close'),
-					array(&$sess, 'read'),
-					array(&$sess, 'write'),
-					array(&$sess, 'destroy'),
-					array(&$sess, 'gc')
-				);
-			}
+			self::setHandler('mysql');
 		}
 		register_shutdown_function('session_write_close');
 		session_start();
 	}
-
+	
+	public static function setHandler($type = 'mysql') {
+		$classname = "WeSession{$type}";
+		if (class_exists($classname)) {
+			$sess = new $classname;
+		}
+		if (version_compare(PHP_VERSION, '5.5') >= 0) {
+			session_set_save_handler($sess, true);
+		} else {
+			session_set_save_handler(
+				array(&$sess, 'open'),
+				array(&$sess, 'close'),
+				array(&$sess, 'read'),
+				array(&$sess, 'write'),
+				array(&$sess, 'destroy'),
+				array(&$sess, 'gc')
+			);
+		}
+		return true;
+	}
+	
 	public function open($save_path, $session_name) {
 		return true;
 	}
-
+	
 	public function close() {
 		return true;
 	}
-
+	
 	/**
 	 * 读取指定微擎会话中保存的信息
 	 * @param string $sessionid 微擎会话标识
 	 * @return array|boolean 会话存在、未失效且在 data 字段存在附加数据则返回该附加数据，否则返回false
 	 */
+	public function read($sessionid) {
+		return '';
+	}
+	
+	/**
+	 * 将信息写入到指定的微擎会话中.
+	 * @param string $sessionid 微擎会话标识
+	 * @param string|number $data 附加数据
+	 * @return boolean 返回写入操作是否成功.
+	 */
+	public function write($sessionid, $data) {
+		return true;
+	}
+	
+	/**
+	 * 销毁指定微擎会话
+	 * @param string $sessionid 微擎会话标识
+	 * @return boolean 返回销毁会话是否成功
+	 */
+	public function destroy($sessionid) {
+		return true;
+	}
+	
+	/**
+	 * 清理微擎系统中所有过期会话
+	 * @param int $expire 指定要清理的过期日期时间戳
+	 * @return boolean 清理会话是否成功
+	 */
+	public function gc($expire) {
+		return true;
+	}
+}
+
+class WeSessionMemcache extends WeSession {
+	protected $session_name;
+	
+	protected function key($sessionid) {
+		return $this->session_name . ':' . $sessionid;
+	}
+	
+	public function open($save_path, $session_name) {
+		$this->session_name = $session_name;
+		
+		if (cache_type() != 'memcache') {
+			trigger_error('Memcache 扩展不可用或是服务未开启，请将 \$config[\'setting\'][\'memcache\'][\'session\'] 设置为0 ');
+			return false;
+		}
+		return true;
+	}
+	
+	public function read($sessionid) {
+		$row = cache_read($this->key($sessionid));
+		if ($row['expiretime'] < TIMESTAMP) {
+			return '';
+		}
+		if(is_array($row) && !empty($row['data'])) {
+			return $row['data'];
+		}
+		return '';
+	}
+	
+	public function write($sessionid, $data) {
+		$row = array();
+		$row['data'] = $data;
+		$row['expiretime'] = TIMESTAMP + WeSession::$expire;
+		
+		return cache_write($this->key($sessionid), $row);
+	}
+	
+	public function destroy($sessionid) {
+		return cache_clean($this->session_name);
+	}
+}
+
+class WeSessionRedis extends WeSessionMemcache {
+	public function open($save_path, $session_name) {
+		$this->session_name = $session_name;
+	
+		if (cache_type() != 'redis') {
+			trigger_error('Redis 扩展不可用或是服务未开启，请将 \$config[\'setting\'][\'redis\'][\'session\'] 设置为0 ');
+			return false;
+		}
+		return true;
+	}
+}
+
+class WeSessionMysql extends WeSession {
+	
+	public function open($save_path, $session_name) {
+		$tablename = str_replace('`', "'", tablename('core_sessions'));
+		$status = pdo_fetch("SHOW TABLE STATUS LIKE {$tablename}");
+		if (strexists($status['Comment'], 'crashed')) {
+			pdo_run("REPAIR TABLE " . tablename('core_sessions'));
+		}
+		return true;
+	}
+	
 	public function read($sessionid) {
 		$sql = 'SELECT * FROM ' . tablename('core_sessions') . ' WHERE `sid`=:sessid AND `expiretime`>:time';
 		$params = array();
@@ -92,13 +191,7 @@ class WeSession implements SessionHandlerInterface {
 		}
 		return '';
 	}
-
-	/**
-	 * 将信息写入到指定的微擎会话中.
-	 * @param string $sessionid 微擎会话标识
-	 * @param string|number $data 附加数据
-	 * @return boolean 返回写入操作是否成功.
-	 */
+	
 	public function write($sessionid, $data) {
 		$row = array();
 		$row['sid'] = $sessionid;
@@ -108,27 +201,17 @@ class WeSession implements SessionHandlerInterface {
 		$row['expiretime'] = TIMESTAMP + WeSession::$expire;
 		return pdo_insert('core_sessions', $row, true) >= 1;
 	}
-
-	/**
-	 * 销毁指定微擎会话
-	 * @param string $sessionid 微擎会话标识
-	 * @return boolean 返回销毁会话是否成功
-	 */
+	
 	public function destroy($sessionid) {
 		$row = array();
 		$row['sid'] = $sessionid;
-
+	
 		return pdo_delete('core_sessions', $row) == 1;
 	}
-
-	/**
-	 * 清理微擎系统中所有过期会话
-	 * @param int $expire 指定要清理的过期日期时间戳
-	 * @return boolean 清理会话是否成功
-	 */
+	
 	public function gc($expire) {
 		$sql = 'DELETE FROM ' . tablename('core_sessions') . ' WHERE `expiretime`<:expire';
-
+	
 		return pdo_query($sql, array(':expire' => TIMESTAMP)) == 1;
 	}
 }

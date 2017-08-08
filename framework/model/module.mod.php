@@ -73,7 +73,7 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 	} else {
 		$types = array_intersect($types, $ts);
 	}
-	$bindings = pdo_getall('modules_bindings', array('module' => $name, 'entry' => $types), array(), '', 'eid ASC');
+	$bindings = pdo_getall('modules_bindings', array('module' => $name, 'entry' => $types), array(), '', 'displayorder DESC, eid ASC');
 	$entries = array();
 	foreach($bindings as $bind) {
 		if(!empty($bind['call'])) {
@@ -87,7 +87,7 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 				continue;
 			}
 			$response = json_decode($response['content'], true);
-			$ret = $response['message'];
+			$ret = $response['message']['message'];
 			if(is_array($ret)) {
 				foreach($ret as $et) {
 					if (empty($et['url'])) {
@@ -227,6 +227,55 @@ function module_build_form($name, $rid, $option = array()) {
 }
 
 /**
+ * 添加应用权限组
+ * @param $package
+ * @return bool
+ */
+function module_save_group_package($package) {
+	global $_W;
+	load()->model('user');
+	load()->model('cache');
+
+	if (empty($package['name'])) {
+		return error(-1, '请输入套餐名');
+	}
+
+	if (user_is_vice_founder()) {
+		$package['owner_uid'] = $_W['uid'];
+	}
+	if (!empty($package['modules'])) {
+		$package['modules'] = iserializer($package['modules']);
+	}
+
+	if (!empty($package['templates'])) {
+		$templates = array();
+		foreach ($package['templates'] as $template) {
+			$templates[] = $template['id'];
+		}
+		$package['templates'] = iserializer($templates);
+	}
+
+	if (!empty($package['id'])) {
+		$name_exist = pdo_get('uni_group', array('uniacid' => 0, 'id <>' => $package['id'], 'name' => $package['name']));
+	} else {
+		$name_exist = pdo_get('uni_group', array('uniacid' => 0, 'name' => $package['name']));
+	}
+
+	if (!empty($name_exist)) {
+		return error(-1, '套餐名已存在');
+	}
+
+	if (!empty($package['id'])) {
+		pdo_update('uni_group', $package, array('id' => $package['id']));
+		cache_build_account_modules();
+	} else {
+		pdo_insert('uni_group', $package);
+	}
+
+	cache_build_uni_group();
+	return error(0, '添加成功');
+}
+/**
  * 获取指定模块及模块信息
  *
  * @param string $name 模块名称
@@ -298,44 +347,17 @@ function module_fetch($name) {
 }
 
 /**
- * 检验并完善公众号的模块设置信息
- * 安装模块或添加公众号时调用.
- */
-function module_build_privileges() {
-	load()->model('account');
-	$uniacid_arr = pdo_fetchall("SELECT uniacid FROM " . tablename('uni_account'));
-	foreach($uniacid_arr as $row){
-		$modules = uni_modules_by_uniacid($row['uniacid'], false);
-		//得到模块标识
-		$mymodules = pdo_getall('uni_account_modules', array('uniacid' => $row['uniacid']), array('module'), 'module');
-		$mymodules = array_keys($mymodules);
-		foreach($modules as $module){
-			if(!in_array($module['name'], $mymodules) && empty($module['issystem'])) {
-				$data = array();
-				$data['uniacid'] = $row['uniacid'];
-				$data['module'] = $module['name'];
-				$data['enabled'] = 1;
-				$data['settings'] = '';
-				pdo_insert('uni_account_modules', $data);
-			}
-		}
-	}
-	return true;
-}
-
-
-/**
  * 获取所有未安装的模块
  * @param string $status 模块状态，unistalled : 未安装模块, recycle : 回收站模块;
+ * @param string $cache 是否直接读取缓存数据;
  */
-function module_get_all_unistalled($status)  {
-	global $_GPC;
+function module_get_all_unistalled($status, $cache = true)  {
 	load()->func('communication');
 	load()->model('cloud');
 	load()->classs('cloudapi');
 	$status = $status == 'recycle' ? 'recycle' : 'uninstalled';
 	$uninstallModules =  cache_load(cache_system_key('module:all_uninstall'));
-	if ($_GPC['c'] == 'system' && $_GPC['a'] == 'module' && $_GPC['do'] == 'not_installed' && $status == 'uninstalled') {
+	if (!$cache && $status == 'uninstalled') {
 		$cloud_api = new CloudApi();
 		$get_cloud_m_count = $cloud_api->get('site', 'stat', array('module_quantity' => 1), 'json');
 		$cloud_m_count = $get_cloud_m_count['module_quantity'];
@@ -344,20 +366,20 @@ function module_get_all_unistalled($status)  {
 			$cloud_m_count = $uninstallModules['cloud_m_count'];
 		}
 	}
-	if (empty($uninstallModules['modules']) || intval($uninstallModules['cloud_m_count']) !== intval($cloud_m_count) || is_error($get_cloud_m_count)) {
+	if (ACCOUNT_TYPE == ACCOUNT_TYPE_APP_NORMAL) {
+		$account_type = 'wxapp';
+	} elseif (ACCOUNT_TYPE == ACCOUNT_TYPE_OFFCIAL_NORMAL) {
+		$account_type = 'app';
+	}
+	if (empty($uninstallModules['modules'][$status][$account_type]) || intval($uninstallModules['cloud_m_count']) !== intval($cloud_m_count) || is_error($get_cloud_m_count)) {
 		$uninstallModules = cache_build_uninstalled_module();
 	}
-	if (ACCOUNT_TYPE == ACCOUNT_TYPE_APP_NORMAL) {
-		$uninstallModules['modules'] = (array)$uninstallModules['modules'][$status]['wxapp'];
-		$uninstallModules['module_count'] = $uninstallModules['wxapp_count'];
-		return $uninstallModules;
-	} elseif (ACCOUNT_TYPE == ACCOUNT_TYPE_OFFCIAL_NORMAL) {
-		$uninstallModules['modules'] = (array)$uninstallModules['modules'][$status]['app'];
-		$uninstallModules['module_count'] = $uninstallModules['app_count'];
-		return $uninstallModules;
-	} else {
-		return $uninstallModules;
+
+	if (!empty($account_type)) {
+		$uninstallModules['modules'] = (array)$uninstallModules['modules'][$status][$account_type];
+		$uninstallModules['module_count'] = $uninstallModules[$account_type . '_count'];
 	}
+	return $uninstallModules;
 }
 
 /**
@@ -688,6 +710,9 @@ function module_link_uniacid_fetch($uid, $module_name) {
 				continue;
 			}
 			foreach ($account_value['versions'] as $version_key => $version_value) {
+				if (empty($version_value['modules'])) {
+					continue;
+				}
 				if ($version_value['modules'][0]['name'] != $module_name) {
 					continue;
 				}
@@ -784,8 +809,6 @@ function module_save_switch($module_name, $uniacid = 0, $version_id = 0) {
 	return true;
 }
 
-
-
 /**
  * 获取用户上一次进入模块的公众号OR小程序信息
  */
@@ -798,4 +821,27 @@ function module_last_switch($module_name) {
 	$cache_key = cache_system_key(CACHE_KEY_ACCOUNT_SWITCH, $_GPC['__switch']);
 	$cache_lastaccount = (array)cache_load($cache_key);
 	return $cache_lastaccount[$module_name];
+}
+
+/**
+ * 获取模块店员信息
+ */
+function module_clerk_info($module_name) {
+	$user_permissions = array();
+	$module_name = trim($module_name);
+	if (empty($module_name)) {
+		return $user_permissions;
+	}
+	$params = array(
+			':role' => ACCOUNT_MANAGE_NAME_CLERK,
+			':type' => $module_name,
+	);
+	$sql = "SELECT u.uid, p.permission FROM " . tablename('uni_account_users') . " u," . tablename('users_permission') . " p WHERE u.uid = p.uid AND u.uniacid = p.uniacid AND u.role = :role AND p.type = :type";
+	$user_permissions = pdo_fetchall($sql, $params, 'uid');
+	if (!empty($user_permissions)) {
+		foreach ($user_permissions as $key => $value) {
+			$user_permissions[$key]['user_info'] = user_single($value['uid']);
+		}
+	}
+	return $user_permissions;
 }

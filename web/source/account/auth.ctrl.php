@@ -92,9 +92,6 @@ if ($do == 'forward') {
 	pdo_insert('uni_settings', $unisetting_insert);
 	pdo_insert('mc_groups', array('uniacid' => $uniacid, 'title' => '默认会员组', 'isdefault' => 1));
 
-	load()->model('module');
-	module_build_privileges();
-
 	$account_index_insert = array(
 		'uniacid' => $uniacid,
 		'type' => ACCOUNT_OAUTH_LOGIN,

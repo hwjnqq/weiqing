@@ -158,7 +158,7 @@ function tpl_app_form_field_calendar($name, $values = array()) {
 					var $this = $(this);
 					util.datepicker({
 						type: "date", 
-						beginYear: 1960, 
+						beginYear: 1910, 
 						endYear: 2060, 
 						selected : {
 							year : "' . $values['year'] . '", month : "' . $values['month'] . '", day : "' . $values['day'] . '"}

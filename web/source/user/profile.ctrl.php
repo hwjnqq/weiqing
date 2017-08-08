@@ -42,14 +42,24 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 	}
 	switch ($type) {
 		case 'avatar':
+		case 'realname':
+		case 'address':
+		case 'qq':
+		case 'mobile':
+			if ($type == 'mobile') {
+				$match = preg_match(REGULAR_MOBILE, trim($_GPC[$type]));
+				if (empty($match)) {
+					iajax(-1, '手机号不正确', '');
+				}
+			}
 			if ($users_profile_exist) {
-				$result = pdo_update('users_profile', array('avatar' => $_GPC['avatar']), array('uid' => $uid));
+				$result = pdo_update('users_profile', array($type => trim($_GPC[$type])), array('uid' => $uid));
 			} else {
 				$data = array(
-						'uid' => $uid,
-						'createtime' => TIMESTAMP,
-						'avatar' => $_GPC['avatar']
-					);
+					'uid' => $uid,
+					'createtime' => TIMESTAMP,
+					$type => trim($_GPC[$type])
+				);
 				$result = pdo_insert('users_profile', $data);
 			}
 			break;
@@ -60,10 +70,17 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 			}
 			$username = trim($_GPC['username']);
 			$name_exist = pdo_get('users', array('username' => $username));
-			if(!empty($name_exist)) {
+			if (!empty($name_exist)) {
 				iajax(2, '用户名已存在，请更换其他用户名！', '');
 			}
 			$result = pdo_update('users', array('username' => $username), array('uid' => $uid));
+			break;
+		case 'vice_founder_name':
+			$owner_uid = user_get_uid_byname($_GPC['vice_founder_name']);
+			if (empty($owner_uid)) {
+				iajax(1, '创始人不存在', '');
+			}
+			$result = pdo_update('users', array('owner_uid' => $owner_uid), array('uid' => $uid));
 			break;
 		case 'password':
 			if ($_GPC['newpwd'] !== $_GPC['renewpwd']) iajax(2, '两次密码不一致！', '');
@@ -84,19 +101,11 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 				$endtime = strtotime($_GPC['endtime']);
 			}
 			$result = pdo_update('users', array('endtime' => $endtime), array('uid' => $uid));
-			$uni_account_user = pdo_get('uni_account_users', array('uid' => $uid, 'role' => 'owner'));
-			cache_delete("uniaccount:{$uni_account_user['uniacid']}");
-			break;
-		case 'realname':
-			if ($users_profile_exist) {
-				$result = pdo_update('users_profile', array('realname' => trim($_GPC['realname'])), array('uid' => $uid));
-			} else {
-				$data = array(
-						'uid' => $uid,
-						'createtime' => TIMESTAMP,
-						'realname' => trim($_GPC['realname'])
-					);
-				$result = pdo_insert('users_profile', $data);
+			$uni_account_user = pdo_getall('uni_account_users', array('uid' => $uid, 'role' => 'owner'));
+			if (!empty($uni_account_user)) {
+				foreach ($uni_account_user as $account) {
+					cache_delete("uniaccount:{$account['uniacid']}");
+				}
 			}
 			break;
 		case 'birth':
@@ -104,24 +113,12 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 				$result = pdo_update('users_profile', array('birthyear' => intval($_GPC['year']), 'birthmonth' => intval($_GPC['month']), 'birthday' => intval($_GPC['day'])), array('uid' => $uid));
 			} else {
 				$data = array(
-						'uid' => $uid,
-						'createtime' => TIMESTAMP,
-						'birthyear' => intval($_GPC['year']),
-						'birthmonth' => intval($_GPC['month']),
-						'birthday' => intval($_GPC['day'])
-					);
-				$result = pdo_insert('users_profile', $data);
-			}
-			break;
-		case 'address':
-			if ($users_profile_exist) {
-				$result = pdo_update('users_profile', array('address' => trim($_GPC['address'])), array('uid' => $uid));
-			} else {
-				$data = array(
-						'uid' => $uid,
-						'createtime' => TIMESTAMP,
-						'address' => trim($_GPC['address'])
-					);
+					'uid' => $uid,
+					'createtime' => TIMESTAMP,
+					'birthyear' => intval($_GPC['year']),
+					'birthmonth' => intval($_GPC['month']),
+					'birthday' => intval($_GPC['day'])
+				);
 				$result = pdo_insert('users_profile', $data);
 			}
 			break;
@@ -130,12 +127,12 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 				$result = pdo_update('users_profile', array('resideprovince' => $_GPC['province'], 'residecity' => $_GPC['city'], 'residedist' => $_GPC['district']), array('uid' => $uid));
 			} else {
 				$data = array(
-						'uid' => $uid,
-						'createtime' => TIMESTAMP,
-						'resideprovince' => $_GPC['province'],
-						'residecity' => $_GPC['city'],
-						'residedist' => $_GPC['district']
-					);
+					'uid' => $uid,
+					'createtime' => TIMESTAMP,
+					'resideprovince' => $_GPC['province'],
+					'residecity' => $_GPC['city'],
+					'residedist' => $_GPC['district']
+				);
 				$result = pdo_insert('users_profile', $data);
 			}
 			break;
@@ -156,6 +153,8 @@ if ($do == 'base') {
 		itoast('抱歉，用户不存在或是已经被删除！', url('user/profile'), 'error');
 	}
 	$user['last_visit'] = date('Y-m-d H:i:s', $user['lastvisit']);
+	$user['url'] = user_invite_register_url($_W['uid']);
+
 	$profile = pdo_get('users_profile', array('uid' => $_W['uid']));
 	if (!empty($profile)) {
 		$profile['reside'] = array(
@@ -175,7 +174,7 @@ if ($do == 'base') {
 	}
 
 	//应用模版权限
-	$groups = pdo_getall('users_group', array(), array('id', 'name'), 'id');
+	$groups = user_group();
 	$group_info = user_group_detail_info($user['groupid']);
 
 	//使用帐号列表

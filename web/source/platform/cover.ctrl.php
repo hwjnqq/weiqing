@@ -153,6 +153,7 @@ if ($do == 'module') {
 			'url_show' => $entry['url_show'],
 			'rule' => array(
 				'displayorder' => '0',
+				'status' => '1'
 			)
 		);
 	}

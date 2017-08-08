@@ -1,7 +1,7 @@
 <?php
 /**
  * 公众平台oAuth选项
- * [WeEngine System] Copyright (c) 2013 WE7.CC 
+ * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 
 defined('IN_IA') or exit('Access Denied');
@@ -36,29 +36,17 @@ if ($do == 'save_oauth') {
 }
 
 if ($do == 'oauth') {
-	$where = '';
-	$params = array();
-	if(empty($_W['isfounder'])) {
-		$where = " WHERE `uniacid` IN (SELECT `uniacid` FROM " . tablename('uni_account_users') . " WHERE `uid`=:uid)";
-		$params[':uid'] = $_W['uid'];
-	}
-	$sql = "SELECT * FROM " . tablename('uni_account') . $where;
-	$user_have_accounts = pdo_fetchall($sql, $params);
+	$user_have_accounts = uni_user_accounts($_W['uid']);
 	$oauth_accounts = array();
 	$jsoauth_accounts = array();
 	if(!empty($user_have_accounts)) {
-		foreach($user_have_accounts as $uniaccount) {
-			$accountlist = uni_accounts($uniaccount['uniacid']);
-			if(!empty($accountlist)) {
-				foreach($accountlist as $account) {
-					if(!empty($account['key']) && !empty($account['secret'])) {
-						if (in_array($account['level'], array(4))) {
-							$oauth_accounts[$account['acid']] = $account['name'];
-						}
-						if (in_array($account['level'], array(3, 4))) {
-							$jsoauth_accounts[$account['acid']] = $account['name'];
-						}
-					}
+		foreach($user_have_accounts as $account) {
+			if(!empty($account['key']) && !empty($account['secret'])) {
+				if (in_array($account['level'], array(4))) {
+					$oauth_accounts[$account['acid']] = $account['name'];
+				}
+				if (in_array($account['level'], array(3, 4))) {
+					$jsoauth_accounts[$account['acid']] = $account['name'];
 				}
 			}
 		}

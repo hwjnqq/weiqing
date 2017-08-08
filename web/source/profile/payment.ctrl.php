@@ -9,15 +9,10 @@ load()->model('payment');
 load()->model('account');
 load()->func('communication');
 
-$dos = array('save_setting', 'display', 'test_alipay', 'get_setting', 'refund');
+$dos = array('save_setting', 'display', 'test_alipay', 'get_setting');
 $do = in_array($do, $dos) ? $do : 'display';
 uni_user_permission_check('profile_setting');
 $_W['page']['title'] = '支付参数 - 公众号选项';
-
-if ($do == 'refund') {
-	$setting = uni_setting_load('payment', $_W['uniacid']);
-	$refund = $setting['payment']['refund'];
-}
 
 if ($do == 'get_setting') {
 	$setting = uni_setting_load('payment', $_W['uniacid']);
@@ -124,6 +119,10 @@ MFF/yA==
 	$pay_setting[$type] = $param;
 	$payment = iserializer($pay_setting);
 	uni_setting_save('payment', $payment);
+	if ($type == 'unionpay') {
+		header('LOCATION: '.url('profile/payment'));
+		exit();
+	}
 	iajax(0, '');
 }
 

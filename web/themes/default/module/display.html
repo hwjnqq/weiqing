@@ -17,7 +17,7 @@
 				<a href="javascript:;" ng-bind="letter"></a>
 			</li>
 		</ul>
-		<div class="cut-list">
+		<div class="cut-list" infinite-scroll='loadMore()'>
 			<!--应用-->
 			<div class="item module-list-item" ng-repeat="list in userModule" ng-if="userModule">
 				<div class="content">
@@ -47,7 +47,7 @@
 					<div class="arrow-left"></div>
 					<div class="cut-item">
 						<a href="javascript:;">
-							<div class="detail" ng-repeat="account in list.accounts">
+							<div class="detail" ng-repeat="account in list.accounts" ng-if="list.accounts">
 								<div class="text-over text-left" ng-if="account.app_name"><span class="wi wi-wechat"></span>{{account.app_name}}</div>
 								<div class="text-over text-left" ng-if="account.wxapp_name"><span class="wi wi-small-routine"></span>{{account.wxapp_name}}</div>
 								<a class="cut-select-mask" href="./index.php?c=module&a=display&do=switch&module_name={{list.name}}&uniacid={{account.uniacid}}&version_id={{account.version_id}}" ng-if="account.version_id">
@@ -56,6 +56,9 @@
 								<a class="cut-select-mask" href="./index.php?c=module&a=display&do=switch&module_name={{list.name}}&uniacid={{account.uniacid}}" ng-if="!account.version_id">
 									<div class="entry">选择进入 <i class="wi wi-angle-right"></i></div>
 								</a>
+							</div>
+							<div class="detail" ng-if="!list.accounts">
+								<div class="text-over text-center">暂无数据</div>
 							</div>
 						</a>
 					</div>

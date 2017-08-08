@@ -418,6 +418,7 @@ function cloud_m_upgradeinfo($name) {
 				continue;
 			}
 			$branch['id'] = intval($branch['id']);
+			$branch['version']['description'] = preg_replace('/\n/', '<br/>', $branch['version']['description']);
 			$branch['displayorder'] = intval($branch['displayorder']);
 			$branch['day'] = intval(date('d', $branch['version']['createtime']));
 			$branch['month'] = date('Y.m', $branch['version']['createtime']);

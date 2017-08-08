@@ -1,24 +1,18 @@
 {template 'common/header'}
-<div class="we7-page-title">用户管理 </div>
-<ul class="we7-page-tab">
-	<li {if $_GPC['do'] == 'display' || $_GPC['do'] == ''}class="active"{/if}><a href="{url 'user/display'}">用户管理</a></li>
-	<li {if $_GPC['do'] == 'check_display'}class="active"{/if}><a href="{url 'user/display/check_display'}">审核用户</a></li>
-	<li {if $_GPC['do'] == 'recycle_display'}class="active"{/if}><a href="{url 'user/display/recycle_display'}">用户回收站</a></li>
-	<li><a href="{url 'user/fields/display'}">用户属性设置</a></li>
-	<li><a href="{url 'user/registerset'}">用户注册设置</a></li>
-</ul>
+{template 'user/user-header'}
 <div class="keyword-list-head clearfix we7-margin-bottom">
 	<form action="" method="get">
 		<input type="hidden" name="c" value="user">
 		<input type="hidden" name="a" value="display">
 		<input type="hidden" name="do" value="{$_GPC['do']}">
+		<input type="hidden" name="type" value="{$_GPC['type']}">
 		<div class="input-group pull-left col-sm-4">
-			<input type="text" name="username" id="" value="{$_GPC['username']}" class="form-control" placeholder="搜索用户名"/>
+			<input type="text" name="username" id="" value="{$_GPC['username']}" class="form-control"  placeholder="搜索用户名" />
 			<span class="input-group-btn"><button class="btn btn-default"><i class="fa fa-search"></i></button></span>
 		</div>
 	</form>
 	<div class="pull-right">
-		{if $_GPC['do'] == 'display' || $_GPC['do'] == ''}<a href="{url 'user/create'}" class="btn btn-primary">+添加用户</a>{/if}
+		{if $_GPC['type'] == 'display' || $_GPC['type'] == ''}<a href="{url 'user/create'}" class="btn btn-primary">+添加用户</a>{/if}
 	</div>
 </div>
 <table class="table we7-table table-hover table-manage vertical-middle" id="js-users-display" ng-controller="UsersDisplay" ng-cloak>
@@ -57,14 +51,19 @@
 		<td>
 			<span ng-bind="user.endtime"></span>
 		</td>
-		<td>
+		<td class="vertical-middle table-manage-td">
 			<div class="link-group" ng-if="!user.founder">
-				<a ng-href="{{links.edit}}uid={{user.uid}}" ng-if="do == 'display'">编辑</a>
-				<a ng-href="{{links.deny}}uid={{user.uid}}" ng-if="do == 'display'" data-toggle="tooltip" data-placement="left" title="禁用后可在用户回收站查找到并重新启用。">禁用</a>
-				<a ng-href="{{links.checkPass}}uid={{user.uid}}" ng-if="do == 'check_display'">通过</a>
-				<a ng-href="{{links.deny}}uid={{user.uid}}" ng-if="do == 'check_display'" data-toggle="tooltip" data-placement="left" title="拒绝后可在用户回收站查找到并启用。">拒绝</a>
-				<a ng-href="{{links.recycleRestore}}uid={{user.uid}}" ng-if="do == 'recycle_display'">启用</a>
-				<a ng-href="{{links.recycleDel}}uid={{user.uid}}" class="del" ng-if="do == 'recycle_display'">删除</a>
+				<a ng-href="{{links.edit}}uid={{user.uid}}" ng-if="type == 'display'">编辑</a>
+				<a ng-href="{{links.deny}}&uid={{user.uid}}" ng-if="type == 'display'" data-toggle="tooltip" data-placement="left" title="禁用后可在用户回收站查找到并重新启用。">禁用</a>
+				<a ng-href="{{links.checkPass}}&uid={{user.uid}}" ng-if="type == 'check'">通过</a>
+				<a ng-href="{{links.deny}}&uid={{user.uid}}" ng-if="type == 'check'" data-toggle="tooltip" data-placement="left" title="拒绝后可在用户回收站查找到并启用。">拒绝</a>
+				<a ng-href="{{links.recycleRestore}}&uid={{user.uid}}" ng-if="type == 'recycle'">启用</a>
+				<a ng-href="{{links.recycleDel}}&uid={{user.uid}}" class="del" ng-if="type == 'recycle'">删除</a>
+			</div>
+			<div class="manage-option text-right" ng-if="!user.founder">
+				<a href="{{links.edit}}uid={{user.uid}}">基础信息</a>
+				<a href="{{links.edit}}&do=edit_modules_tpl&uid={{user.uid}}">应用模板权限</a>
+				<a href="{{links.edit}}&do=edit_account&uid={{user.uid}}">使用账号列表</a>
 			</div>
 		</td>
 	</tr>
@@ -80,14 +79,14 @@
 		$('[data-toggle="tooltip"]').tooltip();
 	});
 	angular.module('userManageApp').value('config', {
-		do: "{php echo !empty($_GPC['do']) ? $_GPC['do'] : 'display'}",
+		type: "{php echo !empty($_GPC['type']) ? $_GPC['type'] : 'display'}",
 		users: {php echo !empty($users) ? json_encode($users) : 'null'},
 		usergroups: {php echo !empty($usergroups) ? json_encode($usergroups) : 'null'},
 		links: {
-			recycleDel: "{php echo url('user/display/recycle_delete')}",
-			recycleRestore: "{php echo url('user/display/recycle_restore')}",
-			checkPass: "{php echo url('user/display/check_pass')}",
-			deny: "{php echo url('user/display/recycle')}",
+			recycleDel: "{php echo url('user/display/operate', array('type' => 'recycle_delete'))}",
+			recycleRestore: "{php echo url('user/display/operate', array('type' => 'recycle_restore'))}",
+			checkPass: "{php echo url('user/display/operate', array('type' => 'check_pass'))}",
+			deny: "{php echo url('user/display/operate', array('type' => 'recycle'))}",
 			edit: "{php echo url('user/edit')}",
 		},
 	});

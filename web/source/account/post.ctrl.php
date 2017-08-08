@@ -8,6 +8,7 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('module');
 load()->model('cloud');
 load()->model('cache');
+load()->model('user');
 load()->classs('weixin.platform');
 load()->model('wxapp');
 load()->model('utility');
@@ -19,7 +20,8 @@ if (empty($uniacid) || empty($acid)) {
 }
 $state = uni_permission($_W['uid'], $uniacid);
 $dos = array('base', 'sms', 'modules_tpl');
-if ($state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER) {
+$role_permission = in_array($state, array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER));
+if ($role_permission) {
 	$do = in_array($do, $dos) ? $do : 'base';
 } elseif ($state == ACCOUNT_MANAGE_NAME_MANAGER) {
 	if (ACCOUNT_TYPE == ACCOUNT_TYPE_APP_NORMAL) {
@@ -38,7 +40,7 @@ $qrcodeimgsrc = tomedia('qrcode_'.$acid.'.jpg');
 $account = account_fetch($acid);
 
 if($do == 'base') {
-	if ($state != ACCOUNT_MANAGE_NAME_FOUNDER && $state != ACCOUNT_MANAGE_NAME_OWNER) {
+	if (!$role_permission) {
 		itoast('无权限操作！', url('account/post/modules_tpl', array('uniacid' => $uniacid, 'acid' => $acid)), 'error');
 	}
 
@@ -107,7 +109,7 @@ if($do == 'base') {
 			cache_delete("accesstoken:{$acid}");
 			cache_delete("jsticket:{$acid}");
 			cache_delete("cardticket:{$acid}");
-			module_build_privileges();
+
 			iajax(0, '修改成功！', '');
 		}else {
 			iajax(1, '修改失败！', '');
@@ -139,7 +141,7 @@ if($do == 'base') {
 }
 
 if($do == 'sms') {
-	if ($state != ACCOUNT_MANAGE_NAME_FOUNDER && $state != ACCOUNT_MANAGE_NAME_OWNER) {
+	if (!$role_permission) {
 		itoast('无权限操作！', url('account/post/modules_tpl', array('uniacid' => $uniacid, 'acid' => $acid)), 'error');
 	}
 	$settings = uni_setting($uniacid, array('notify'));
@@ -190,10 +192,11 @@ if($do == 'sms') {
 }
 
 if($do == 'modules_tpl') {
-	$unigroups = uni_groups();
+	$unigroups = uni_groups(array(), true);
+	$uni_groups = uni_groups();
 	$owner = account_owner($uniacid);
 
-	if($_W['isajax'] && $_W['ispost'] && ($state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER)) {
+	if($_W['isajax'] && $_W['ispost'] && ($role_permission)) {
 		if($_GPC['type'] == 'group') {
 			$groups = $_GPC['groupdata'];
 			if(!empty($groups)) {
@@ -258,7 +261,11 @@ if($do == 'modules_tpl') {
 			'templates' => array(array('name' => 'all', 'title' => '所有模板')),
 		);
 	} else {
-		$owner['group'] = pdo_get('users_group', array('id' => $owner['groupid']), array('id', 'name', 'package'));
+		if ($owner['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
+			$owner['group'] = pdo_get('users_founder_group', array('id' => $owner['groupid']), array('id', 'name', 'package'));
+		} else {
+			$owner['group'] = pdo_get('users_group', array('id' => $owner['groupid']), array('id', 'name', 'package'));
+		}
 		$owner['group']['package'] = iunserializer($owner['group']['package']);
 		if(!empty($owner['group']['package'])){
 			foreach ($owner['group']['package'] as $package_value) {
@@ -296,21 +303,14 @@ if($do == 'modules_tpl') {
 		}
 	}
 
-	$modules = pdo_getall('modules', array('issystem !=' => 1), array('mid', 'name', 'title'), 'name');
+	$modules = user_modules($_W['uid']);
 	$templates = pdo_getall('site_templates', array(), array('id', 'name', 'title'));
 	$extend = pdo_get('uni_group', array('uniacid' => $uniacid));
-	$extend['modules'] = iunserializer($extend['modules']);
+	$extend['modules'] = $current_module_names = iunserializer($extend['modules']);
 	$extend['templates'] = iunserializer($extend['templates']);
 	if (!empty($extend['modules'])) {
-		$extend['modules'] = pdo_getall('modules', array('name' => $extend['modules']), array('mid', 'title', 'name'));
-		if (!empty($extend['modules'])) {
-			foreach ($extend['modules'] as &$module_info) {
-				if (file_exists(IA_ROOT.'/addons/'.$module_info['name'].'/icon-custom.jpg')) {
-					$module_info['logo'] = tomedia(IA_ROOT.'/addons/'.$module_info['name'].'/icon-custom.jpg');
-				} else {
-					$module_info['logo'] = tomedia(IA_ROOT.'/addons/'.$module_info['name'].'/icon.jpg');
-				}
-			}
+		foreach ($extend['modules'] as $module_key => $module_val) {
+			$extend['modules'][$module_key] = module_fetch($module_val);
 		}
 	}
 	if (!empty($extend['templates'])) {

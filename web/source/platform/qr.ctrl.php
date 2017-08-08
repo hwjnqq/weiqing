@@ -56,6 +56,7 @@ if ($do == 'list') {
 	}
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('qrcode') . $wheresql, $param);
 	$pager = pagination($total, $pindex, $psize);
+
 	//删除过期二维码
 	pdo_query("UPDATE ".tablename('qrcode')." SET status = '0' WHERE uniacid = '{$_W['uniacid']}' AND model = '1' AND createtime < '{$_W['timestamp']}' - expire");
 	template('platform/qr-list');
@@ -79,7 +80,7 @@ if ($do == 'del') {
 
 if ($do == 'post') {
 	$_W['page']['title'] = '生成二维码 - 二维码管理 - 高级功能';
-	
+
 	if (checksubmit('submit')){
 		//二维码结构定义
 		$barcode = array(
@@ -94,7 +95,7 @@ if ($do == 'post') {
 		$uniacccount = WeAccount::create($acid);
 		$id = intval($_GPC['id']);
 		$keyword_id = intval(trim(htmlspecialchars_decode($_GPC['reply']['reply_keyword']), "\""));;
-		$keyword = pdo_get('rule_keyword', array('rid' => $keyword_id), array('content'));
+		$keyword = pdo_get('rule_keyword', array('id' => $keyword_id), array('content'));
 		if (!empty($id)) {
 			$update = array(
 				'keyword' => $keyword['content'],
@@ -103,7 +104,7 @@ if ($do == 'post') {
 			pdo_update('qrcode', $update, array('uniacid' => $_W['uniacid'], 'id' => $id));
 			itoast('恭喜，更新带参数二维码成功！', url('platform/qr/list'), 'success');
 		}
-	
+
 		if ($qrctype == 1) {
 			$qrcid = pdo_fetchcolumn("SELECT qrcid FROM ".tablename('qrcode')." WHERE acid = :acid AND model = '1' AND type = 'scene' ORDER BY qrcid DESC LIMIT 1", array(':acid' => $acid));
 			$barcode['action_info']['scene']['scene_id'] = !empty($qrcid) ? ($qrcid + 1) : 100001;
@@ -122,7 +123,7 @@ if ($do == 'post') {
 		} else {
 			itoast('抱歉，此公众号暂不支持您请求的二维码类型！', '', '');
 		}
-		
+
 		if (!is_error($result)) {
 			$insert = array(
 				'uniacid' => $_W['uniacid'],

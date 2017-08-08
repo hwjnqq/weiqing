@@ -55,34 +55,24 @@ class DB {
 		}
 		$this->pdo = new $dbclass($dsn, $cfg['username'], $cfg['password'], $options);
 		$this->pdo->setAttribute(pdo::ATTR_EMULATE_PREPARES, false);
-
 		$sql = "SET NAMES '{$cfg['charset']}';";
 		$this->pdo->exec($sql);
 		$this->pdo->exec("SET sql_mode='';");
 		if(is_string($name)) {
 			$this->link[$name] = $this->pdo;
 		}
-		if(PDO_DEBUG) {
-			$info = array();
-			$info['sql'] = $sql;
-			$info['error'] = $this->pdo->errorInfo();
-			$this->debug(false, $info);
-		}
+		
+		$this->logging($sql);
 	}
 
 	public function prepare($sql) {
-		$sqlsafe = SqlChecker::checkquery($sql);
+		$sqlsafe = SqlPaser::checkquery($sql);
 		if (is_error($sqlsafe)) {
 			trigger_error($sqlsafe['message'], E_USER_ERROR);
 			return false;
 		}
 		$statement = $this->pdo->prepare($sql);
-		if(PDO_DEBUG) {
-			$info = array();
-			$info['sql'] = $sql;
-			$info['error'] = $this->pdo->errorInfo();
-			$this->debug(false, $info);
-		}
+		$this->logging($sql);
 		return $statement;
 	}
 
@@ -96,7 +86,7 @@ class DB {
 	 *		  失败返回FALSE
 	 */
 	public function query($sql, $params = array()) {
-		$sqlsafe = SqlChecker::checkquery($sql);
+		$sqlsafe = SqlPaser::checkquery($sql);
 		if (is_error($sqlsafe)) {
 			trigger_error($sqlsafe['message'], E_USER_ERROR);
 			return false;
@@ -108,23 +98,14 @@ class DB {
 		$starttime = microtime();
 		if (empty($params)) {
 			$result = $this->pdo->exec($sql);
-			if(PDO_DEBUG) {
-				$info = array();
-				$info['sql'] = $sql;
-				$info['error'] = $this->pdo->errorInfo();
-				$this->debug(false, $info);
-			}
+			$this->logging($sql);
 			return $result;
 		}
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
-		if(PDO_DEBUG) {
-			$info = array();
-			$info['sql'] = $sql;
-			$info['params'] = $params;
-			$info['error'] = $statement->errorInfo();
-			$this->debug(false, $info);
-		}
+		
+		$this->logging($sql, $params);
+		
 		$endtime = microtime();
 		$this->performance($sql, $endtime - $starttime);
 		if (!$result) {
@@ -150,13 +131,8 @@ class DB {
 		$starttime = microtime();
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
-		if(PDO_DEBUG) {
-			$info = array();
-			$info['sql'] = $sql;
-			$info['params'] = $params;
-			$info['error'] = $statement->errorInfo();
-			$this->debug(false, $info);
-		}
+		
+		$this->logging($sql, $params);
 		$endtime = microtime();
 		$this->performance($sql, $endtime - $starttime);
 		if (!$result) {
@@ -183,13 +159,9 @@ class DB {
 		$starttime = microtime();
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
-		if(PDO_DEBUG) {
-			$info = array();
-			$info['sql'] = $sql;
-			$info['params'] = $params;
-			$info['error'] = $statement->errorInfo();
-			$this->debug(false, $info);
-		}
+		
+		$this->logging($sql, $params);
+		
 		$endtime = microtime();
 		$this->performance($sql, $endtime - $starttime);
 		if (!$result) {
@@ -216,13 +188,9 @@ class DB {
 		$starttime = microtime();
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
-		if(PDO_DEBUG) {
-			$info = array();
-			$info['sql'] = $sql;
-			$info['params'] = $params;
-			$info['error'] = $statement->errorInfo();
-			$this->debug(false, $info);
-		}
+		
+		$this->logging($sql, $params);
+		
 		$endtime = microtime();
 		$this->performance($sql, $endtime - $starttime);
 		if (!$result) {
@@ -249,29 +217,29 @@ class DB {
 	}
 
 	public function get($tablename, $params = array(), $fields = array(), $orderby = array()) {
-		$select = $this->parseSelect($fields);
-		$condition = $this->implode($params, 'AND');
-		$orderbysql = $this->parseOrderby($orderby);
+		$select = SqlPaser::parseSelect($fields);
+		$condition = SqlPaser::parseParameter($params, 'AND');
+		$orderbysql = SqlPaser::parseOrderby($orderby);
 
-		$sql = "SELECT {$select} FROM " . $this->tablename($tablename) . (!empty($condition['fields']) ? " WHERE {$condition['fields']}" : '') . " $orderbysql LIMIT 1";
+		$sql = "{$select} FROM " . $this->tablename($tablename) . (!empty($condition['fields']) ? " WHERE {$condition['fields']}" : '') . " $orderbysql LIMIT 1";
 		return $this->fetch($sql, $condition['params']);
 	}
 
 	public function getall($tablename, $params = array(), $fields = array(), $keyfield = '', $orderby = array(), $limit = array()) {
-		$select = $this->parseSelect($fields);
-		$condition = $this->implode($params, 'AND');
+		$select = SqlPaser::parseSelect($fields);
+		$condition = SqlPaser::parseParameter($params, 'AND');
 
-		$limitsql = $this->parseLimit($limit);
-		$orderbysql = $this->parseOrderby($orderby);
+		$limitsql = SqlPaser::parseLimit($limit);
+		$orderbysql = SqlPaser::parseOrderby($orderby);
 
-		$sql = "SELECT {$select} FROM " .$this->tablename($tablename) . (!empty($condition['fields']) ? " WHERE {$condition['fields']}" : '') . $orderbysql . $limitsql;
+		$sql = "{$select} FROM " .$this->tablename($tablename) . (!empty($condition['fields']) ? " WHERE {$condition['fields']}" : '') . $orderbysql . $limitsql;
 		return $this->fetchall($sql, $condition['params'], $keyfield);
 	}
 
 	public function getslice($tablename, $params = array(), $limit = array(), &$total = null, $fields = array(), $keyfield = '', $orderby = array()) {
-		$select = $this->parseSelect($fields);
-		$condition = $this->implode($params, 'AND');
-		$limitsql = $this->parseLimit($limit);
+		$select = SqlPaser::parseSelect($fields);
+		$condition = SqlPaser::parseParameter($params, 'AND');
+		$limitsql = SqlPaser::parseLimit($limit);
 
 		if (!empty($orderby)) {
 			if (is_array($orderby)) {
@@ -280,7 +248,7 @@ class DB {
 				$orderbysql = $orderby;
 			}
 		}
-		$sql = "SELECT {$select} FROM " . $this->tablename($tablename) . (!empty($condition['fields']) ? " WHERE {$condition['fields']}" : '') . (!empty($orderbysql) ? " ORDER BY $orderbysql " : '') . $limitsql;
+		$sql = "{$select} FROM " . $this->tablename($tablename) . (!empty($condition['fields']) ? " WHERE {$condition['fields']}" : '') . (!empty($orderbysql) ? " ORDER BY $orderbysql " : '') . $limitsql;
 		$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename($tablename) . (!empty($condition['fields']) ? " WHERE {$condition['fields']}" : ''), $condition['params']);
 		return $this->fetchall($sql, $condition['params'], $keyfield);
 	}
@@ -317,8 +285,8 @@ class DB {
 	 * @return mixed
 	 */
 	public function update($table, $data = array(), $params = array(), $glue = 'AND') {
-		$fields = $this->implode($data, ',');
-		$condition = $this->implode($params, $glue);
+		$fields = SqlPaser::parseParameter($data, ',');
+		$condition = SqlPaser::parseParameter($params, $glue);
 		$params = array_merge($fields['params'], $condition['params']);
 		$sql = "UPDATE " . $this->tablename($table) . " SET {$fields['fields']}";
 		$sql .= $condition['fields'] ? ' WHERE '.$condition['fields'] : '';
@@ -341,7 +309,7 @@ class DB {
 	 */
 	public function insert($table, $data = array(), $replace = FALSE) {
 		$cmd = $replace ? 'REPLACE INTO' : 'INSERT INTO';
-		$condition = $this->implode($data, ',');
+		$condition = SqlPaser::parseParameter($data, ',');
 		return $this->query("$cmd " . $this->tablename($table) . " SET {$condition['fields']}", $condition['params']);
 	}
 
@@ -367,10 +335,34 @@ class DB {
 	 * @return mixed
 	 */
 	public function delete($table, $params = array(), $glue = 'AND') {
-		$condition = $this->implode($params, $glue);
+		$condition = SqlPaser::parseParameter($params, $glue);
 		$sql = "DELETE FROM " . $this->tablename($table);
 		$sql .= $condition['fields'] ? ' WHERE '.$condition['fields'] : '';
 		return $this->query($sql, $condition['params']);
+	}
+	
+	/**
+	 * 检测一条记录是否存在
+	 * @param unknown $tablename
+	 * @param array $params
+	 */
+	public function exists($tablename, $params = array()) {
+		$row = $this->get($tablename, $params);
+		if (empty($row) || !is_array($row) || count($row) == 0) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+	
+	/**
+	 * 
+	 * @param unknown $tablename
+	 * @param array $params
+	 */
+	public function count($tablename, $params = array(), $cachetime = 30) {
+		$total = pdo_getcolumn($tablename, $params, 'count(*)');
+		return intval($total);
 	}
 
 	/**
@@ -395,154 +387,6 @@ class DB {
 	 */
 	public function rollback() {
 		$this->pdo->rollBack();
-	}
-
-	/**
-	 * 将数组格式化为具体的字符串
-	 * 增加支持 大于 小于, 不等于, not in, +=, -=等操作符
-	 *
-	 * @param array $params
-	 * 		要格式化的数组
-	 * @param string $glue
-	 * 		字符串分隔符
-	 * @return array
-	 * 		array['fields']是格式化后的字符串
-	 */
-	private function implode($params, $glue = ',') {
-		$result = array('fields' => ' 1 ', 'params' => array());
-		$split = '';
-		$suffix = '';
-		$allow_operator = array('>', '<', '<>', '!=', '>=', '<=', '+=', '-=', 'LIKE', 'like');
-		if (in_array(strtolower($glue), array('and', 'or'))) {
-			$suffix = '__';
-		}
-		if (!is_array($params)) {
-			$result['fields'] = $params;
-			return $result;
-		}
-		if (is_array($params)) {
-			$result['fields'] = '';
-			foreach ($params as $fields => $value) {
-				$operator = '';
-				if (strpos($fields, ' ') !== FALSE) {
-					list($fields, $operator) = explode(' ', $fields, 2);
-					if (!in_array($operator, $allow_operator)) {
-						$operator = '';
-					}
-				}
-				if (empty($operator)) {
-					$fields = trim($fields);
-					if (is_array($value) && !empty($value)) {
-						$operator = 'IN';
-					} else {
-						$operator = '=';
-					}
-				} elseif ($operator == '+=') {
-					$operator = " = `$fields` + ";
-				} elseif ($operator == '-=') {
-					$operator = " = `$fields` - ";
-				} elseif ($operator == '!=' || $operator == '<>') {
-					//如果是数组不等于情况，则转换为NOT IN
-					if (is_array($value) && !empty($value)) {
-						$operator = 'NOT IN';
-					}
-				}
-				if (is_array($value) && !empty($value)) {
-					$insql = array();
-					//忽略数组的键值，防止SQL注入
-					$value = array_values($value);
-					foreach ($value as $k => $v) {
-						$insql[] = ":{$suffix}{$fields}_{$k}";
-						$result['params'][":{$suffix}{$fields}_{$k}"] = is_null($v) ? '' : $v;
-					}
-					$result['fields'] .= $split . "`$fields` {$operator} (".implode(",", $insql).")";
-					$split = ' ' . $glue . ' ';
-				} else {
-					$result['fields'] .= $split . "`$fields` {$operator}  :{$suffix}$fields";
-					$split = ' ' . $glue . ' ';
-					$result['params'][":{$suffix}$fields"] = is_null($value) || is_array($value) ? '' : $value;
-				}
-			}
-		}
-		return $result;
-	}
-
-	private function parseSelect($field = array()) {
-		if (empty($field)) {
-			return '*';
-		}
-		if (!is_array($field)) {
-			$field = array($field);
-		}
-		$select = array();
-		$index = 0;
-		foreach ($field as $field_row) {
-			if (strexists($field_row, '*')) {
-				if (!strexists(strtolower($field_row), 'as')) {
-					$field_row .= " AS '{$index}'";
-				}
-			} elseif (strexists(strtolower($field_row), 'select')) {
-				//当前可能包含子查询，但不推荐此写法
-				if ($field_row[0] != '(') {
-					$field_row = "($field_row) AS '{$index}'";
-				}
-			} elseif (strexists($field_row, '(')) {
-				$field_row = str_replace(array('(', ')'), array('(`',  '`)'), $field_row);
-				//如果聚合函数没有指定AS字段，则添加当前索引为AS
-				if (!strexists(strtolower($field_row), 'as')) {
-					$field_row .= " AS '{$index}'";
-				}
-			} else {
-				$field_row = '`'. $field_row. '`';
-			}
-			$select[] = $field_row;
-			$index++;
-		}
-		return implode(',', $select);
-	}
-
-	private function parseLimit($limit) {
-		$limitsql = '';
-		if (empty($limit)) {
-			return $limitsql;
-		}
-		if (is_array($limit)) {
-			$limit[0] = intval($limit[0]);
-			$limit[1] = intval($limit[1]);
-
-			if (empty($limit[0]) && empty($limit[1])) {
-				$limitsql = '';
-			} elseif (!empty($limit[0]) && empty($limit[1])) {
-				$limitsql = " LIMIT " . $limit[0];
-			} else {
-				$limitsql = " LIMIT " . ($limit[0] - 1) * $limit[1] . ', ' . $limit[1];
-			}
-		} else {
-			$limit = trim($limit);
-			if (preg_match('/^(?:limit)?[\s,0-9]+$/i', $limit)) {
-				$limitsql = strexists(strtoupper($limit), 'LIMIT') ? " $limit " : " LIMIT $limit";
-			}
-		}
-		return $limitsql;
-	}
-
-	private function parseOrderby($orderby) {
-		$orderbysql = '';
-		if (empty($orderby)) {
-			return $orderbysql;
-		}
-
-		if (!is_array($orderby)) {
-			$orderby = explode(',', $orderby);
-		}
-		foreach ($orderby as $i => $row) {
-			$row = strtolower($row);
-			if (substr($row, -3) != 'asc' && substr($row, -4) != 'desc') {
-				unset($orderby[$i]);
-			}
-		}
-		$orderbysql = implode(',', $orderby);
-		return !empty($orderbysql) ? " ORDER BY $orderbysql " : '';
 	}
 
 	/**
@@ -686,6 +530,17 @@ class DB {
 		}
 		return $this->errors;
 	}
+	
+	private function logging($sql, $params = array(), $message = '') {
+		if(PDO_DEBUG) {
+			$info = array();
+			$info['sql'] = $sql;
+			$info['params'] = $params;
+			$info['error'] = empty($message) ? $this->pdo->errorInfo() : '';
+			$this->debug(false, $info);
+		}
+		return true;
+	}
 
 	/**
 	 * 判断某个数据表是否存在
@@ -810,10 +665,10 @@ class DB {
 }
 
 /**
- * SQL安全检测
+ * 格式化SQL语句
  *
  */
-class SqlChecker {
+class SqlPaser {
 	private static $checkcmd = array('SELECT', 'UPDATE', 'INSERT', 'REPLAC', 'DELETE');
 	private static $disable = array(
 		'function' => array('load_file', 'floor', 'hex', 'substring', 'if', 'ord', 'char', 'pi', 'benchmark', 'reverse', 'strcmp', 'datadir', 'updatexml', 'extractvalue', 'name_const', 'multipoint', 'database', 'user'),
@@ -908,5 +763,186 @@ class SqlChecker {
 			$clean .= $mark ? '' : $str;
 		}
 		return $clean;
+	}
+	
+	/**
+	 * 将数组格式化为具体的字符串
+	 * 增加支持 大于 小于, 不等于, not in, +=, -=等操作符
+	 *
+	 * @param array $params
+	 * 		要格式化的数组
+	 * @param string $glue
+	 * 		字符串分隔符
+	 * @return array
+	 * 		array['fields']是格式化后的字符串
+	 */
+	public static function parseParameter($params, $glue = ',', $alias = '') {
+		$result = array('fields' => ' 1 ', 'params' => array());
+		$split = '';
+		$suffix = '';
+		$allow_operator = array('>', '<', '<>', '!=', '>=', '<=', '+=', '-=', 'LIKE', 'like');
+		if (in_array(strtolower($glue), array('and', 'or'))) {
+			$suffix = '__';
+		}
+		if (!is_array($params)) {
+			$result['fields'] = $params;
+			return $result;
+		}
+		if (is_array($params)) {
+			$result['fields'] = '';
+			$index = 0; //字段 操作数组
+			foreach ($params as $fields => $value) {
+				$index++;
+				$operator = '';
+				if (strpos($fields, ' ') !== FALSE) {
+					list($fields, $operator) = explode(' ', $fields, 2);
+					if (!in_array($operator, $allow_operator)) {
+						$operator = '';
+					}
+				}
+				if (empty($operator)) {
+					$fields = trim($fields);
+					if (is_array($value) && !empty($value)) {
+						$operator = 'IN';
+					} else {
+						$operator = '=';
+					}
+				} elseif ($operator == '+=') {
+					$operator = " = `$fields` + ";
+				} elseif ($operator == '-=') {
+					$operator = " = `$fields` - ";
+				} elseif ($operator == '!=' || $operator == '<>') {
+					//如果是数组不等于情况，则转换为NOT IN
+					if (is_array($value) && !empty($value)) {
+						$operator = 'NOT IN';
+					}
+				}
+				//当条件为having时，可以使用聚合函数
+				if (strexists($fields, '(')) {
+					$select_fields = str_replace(array('(', ')'), array('(' . (!empty($alias) ? "`{$alias}`." : '') .'`',  '`)'), $fields);
+					$fields = str_replace(array('(', ')'), '_', $fields);
+				} else {
+					$select_fields = (!empty($alias) ? "`{$alias}`." : '') . "`$fields`";
+				}
+				if (is_array($value) && !empty($value)) {
+					$insql = array();
+					//忽略数组的键值，防止SQL注入
+					$value = array_values($value);
+					foreach ($value as $v) {
+						$insql[] = ":{$suffix}{$fields}_{$index}";
+						$result['params'][":{$suffix}{$fields}_{$index}"] = is_null($v) ? '' : $v;
+						$index++;
+					}
+					$result['fields'] .= $split . "$select_fields {$operator} (".implode(",", $insql).")";
+					$split = ' ' . $glue . ' ';
+				} else {
+					$result['fields'] .= $split . "$select_fields {$operator}  :{$suffix}{$fields}_{$index}";
+					$split = ' ' . $glue . ' ';
+					$result['params'][":{$suffix}{$fields}_{$index}"] = is_null($value) || is_array($value) ? '' : $value;
+				}
+			}
+		}
+		return $result;
+	}
+	
+	/**
+	 * 格式化select字段
+	 * @param array $field 字段
+	 * @param string $alias 表别名
+	 */
+	public static function parseSelect($field = array(), $alias = '') {
+		if (empty($field)) {
+			return ' SELECT *';
+		}
+		if (!is_array($field)) {
+			$field = array($field);
+		}
+		$select = array();
+		$index = 0;
+		foreach ($field as $field_row) {
+			if (strexists($field_row, '*')) {
+				if (!strexists(strtolower($field_row), 'as')) {
+					$field_row .= " AS '{$index}'";
+				}
+			} elseif (strexists(strtolower($field_row), 'select')) {
+				//当前可能包含子查询，但不推荐此写法
+				if ($field_row[0] != '(') {
+					$field_row = "($field_row) AS '{$index}'";
+				}
+			} elseif (strexists($field_row, '(')) {
+				$field_row = str_replace(array('(', ')'), array('(' . (!empty($alias) ? "`{$alias}`." : '') . '`',  '`)'), $field_row);
+				//如果聚合函数没有指定AS字段，则添加当前索引为AS
+				if (!strexists(strtolower($field_row), 'as')) {
+					$field_row .= " AS '{$index}'";
+				}
+			} else {
+				$field_row = (!empty($alias) ? "`{$alias}`." : '') . '`'. $field_row. '`';
+			}
+			$select[] = $field_row;
+			$index++;
+		}
+		return " SELECT " . implode(',', $select);
+	}
+	
+	public static function parseLimit($limit) {
+		$limitsql = '';
+		if (empty($limit)) {
+			return $limitsql;
+		}
+		if (is_array($limit)) {
+			$limit[0] = max(intval($limit[0]), 1);
+			$limit[1] = max(intval($limit[1]), 1);
+	
+			if (empty($limit[0]) && empty($limit[1])) {
+				$limitsql = '';
+			} elseif (!empty($limit[0]) && empty($limit[1])) {
+				$limitsql = " LIMIT " . $limit[0];
+			} else {
+				$limitsql = " LIMIT " . ($limit[0] - 1) * $limit[1] . ', ' . $limit[1];
+			}
+		} else {
+			$limit = trim($limit);
+			if (preg_match('/^(?:limit)?[\s,0-9]+$/i', $limit)) {
+				$limitsql = strexists(strtoupper($limit), 'LIMIT') ? " $limit " : " LIMIT $limit";
+			}
+		}
+		return $limitsql;
+	}
+	
+	public static function parseOrderby($orderby, $alias = '') {
+		$orderbysql = '';
+		if (empty($orderby)) {
+			return $orderbysql;
+		}
+	
+		if (!is_array($orderby)) {
+			$orderby = explode(',', $orderby);
+		}
+		foreach ($orderby as $i => &$row) {
+			$row = strtolower($row);
+			if (substr($row, -3) != 'asc' && substr($row, -4) != 'desc') {
+				unset($orderby[$i]);
+			}
+			$row = (!empty($alias) ? "`{$alias}`." : '') . $row;
+		}
+		$orderbysql = implode(',', $orderby);
+		return !empty($orderbysql) ? " ORDER BY $orderbysql " : '';
+	}
+	
+	public static function parseGroupby($statement, $alias = '') {
+		if (empty($statement)) {
+			return $statement;
+		}
+		if (!is_array($statement)) {
+			$statement = explode(',', $statement);
+		}
+		foreach ($statement as $i => &$row) {
+			$row = (!empty($alias) ? "`{$alias}`." : '') . '`' . strtolower($row) . '`';
+			if (strexists($row, ' ')) {
+				unset($statement[$i]);
+			}
+		}
+		$statementsql = implode(', ', $statement);
+		return !empty($statementsql) ? " GROUP BY $statementsql " : '';
 	}
 }

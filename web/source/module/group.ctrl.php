@@ -6,62 +6,34 @@
 defined('IN_IA') or exit('Access Denied');
 load()->model('module');
 load()->model('user');
+load()->model('module');
 
 $dos = array('display', 'delete', 'post', 'save');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
-//只有创始人、主管理员、管理员才有权限
-if ($_W['role'] != ACCOUNT_MANAGE_NAME_OWNER && $_W['role'] != ACCOUNT_MANAGE_NAME_MANAGER && $_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER) {
+if (!in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))){
 	itoast('无权限操作！', referer(), 'error');
 }
-if ($do != 'display' && $_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER) {
+if ($do != 'display' && !in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
 	itoast('您只有查看权限！', url('module/group'), 'error');
 }
 
 if ($do == 'save') {
 	$modules = empty($_GPC['modules']) ? array() : (array)$_GPC['modules'];
 	$wxapp = empty($_GPC['wxapp']) ? array() : (array)array_keys($_GPC['wxapp']);
+
 	$package_info = array(
 		'id' => intval($_GPC['id']),
 		'name' => $_GPC['name'],
 		'modules' => array_merge($modules, $wxapp),
 		'templates' => $_GPC['templates'],
 	);
-	if (empty($package_info['name'])) {
-		iajax(1, '请输入套餐名');
-	}
 
-	if (!empty($package_info['modules'])) {
-		$package_info['modules'] = iserializer($package_info['modules']);
+	$package_info = module_save_group_package($package_info);
+
+	if (is_error($package_info)) {
+		iajax(1, $package_info['message'], '');
 	}
-	if (!empty($package_info['templates'])) {
-		$templates = array();
-		foreach ($package_info['templates'] as $template) {
-			$templates[] = $template['id'];
-		}
-		$package_info['templates'] = iserializer($templates);
-	}
-	if (!empty($package_info['id'])) {
-		$name_exist = pdo_get('uni_group', array('uniacid' => 0, 'id <>' => $package_info['id'], 'name' => $package_info['name']));
-		if (!empty($name_exist)) {
-			iajax(1, '套餐名已存在');
-		}
-		$packageid = $package_info['id'];
-		unset($package_info['id']);
-		pdo_update('uni_group', $package_info, array('id' => $packageid));
-		cache_build_uni_group();
-		cache_build_account_modules();
-		module_build_privileges();
-		iajax(0, '', url('module/group'));
-	} else {
-		$name_exist = pdo_get('uni_group', array('uniacid' => 0, 'name' => $package_info['name']));
-		if (!empty($name_exist)) {
-			iajax(1, '套餐名已存在', '');
-		}
-		pdo_insert('uni_group', $package_info);
-		cache_build_uni_group();
-		module_build_privileges();
-		iajax(0, '', url('module/group'));
-	}
+	iajax(0, '', url('module/group'));
 }
 
 if ($do == 'display') {
@@ -71,9 +43,10 @@ if ($do == 'display') {
 		$param['name like'] = "%". trim($_GPC['name']) ."%";
 	}
 	$modules = user_modules($_W['uid']);
+	
 	$modules_group_list = uni_groups();
 	if (!empty($modules_group_list)) {
-		foreach ($modules_group_list as &$group) {
+		foreach ($modules_group_list as $group_key => &$group) {
 			if (empty($group['modules'])) {
 				$group['modules'] = array();
 			}
@@ -125,8 +98,7 @@ if ($do == 'post') {
 		$group_have_module_wxapp = empty($module_group['wxapp']) ? array() : $module_group['wxapp'];
 		$group_have_template = empty($module_group['templates']) ? array() : $module_group['templates'];
 	}
-
-	$module_list = pdo_getall('modules', array('issystem' => 0), array(), 'name', 'mid DESC');
+	$module_list = user_uniacid_modules($_W['uid']);
 	$group_not_have_module_app = array();
 	$group_not_have_module_wxapp = array();
 	if (!empty($module_list)) {

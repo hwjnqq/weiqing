@@ -9,9 +9,9 @@ load()->model('module');
 load()->model('wxapp');
 load()->model('welcome');
 
-$dos = array('display', 'home', 'module_link_uniacid', 'search_link_account', 'module_unlink_uniacid', 'get_daily_visittrend', 'front_download');
+$dos = array('display', 'home', 'module_link_uniacid', 'search_link_account', 'module_unlink_uniacid', 'get_daily_visittrend', 'front_download', 'module_entrance_link');
 $do = in_array($do, $dos) ? $do : 'display';
-if ($do == 'module_link_uniacid' || $do == 'front_download') {
+if (in_array($do, array('module_link_uniacid', 'front_download', 'module_entrance_link'))) {
 	uni_user_permission_check('wxapp_' . $do, true, 'wxapp');
 }
 $_W['page']['title'] = '小程序 - 管理';
@@ -103,4 +103,14 @@ if ($do == 'get_daily_visittrend') {
 if ($do == 'front_download') {
 	$wxapp_versions_info = wxapp_version($version_id);
 	template('wxapp/version-front-download');
+}
+
+if ($do == 'module_entrance_link') {
+	$wxapp_modules = pdo_getcolumn('wxapp_versions', array('id' => $version_id), 'modules');
+	$module_info = array();
+	if (!empty($wxapp_modules)) {
+		$module_info = iunserializer($wxapp_modules);
+		$module_info = pdo_getall('modules_bindings', array('module' => array_keys($module_info), 'entry' => 'page'));
+	}
+	template('wxapp/version-entrance');
 }

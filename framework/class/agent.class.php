@@ -127,7 +127,6 @@ class Agent
 			return self::IOS6_NOT;
 		}
 	}
-	
 	// 检查是否在微信中打开
 	public static function isMicroMessage($agent = '')
 	{

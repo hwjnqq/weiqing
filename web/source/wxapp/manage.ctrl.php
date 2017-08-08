@@ -19,8 +19,8 @@ if (empty($uniacid)) {
 }
 
 $state = uni_permission($_W['uid'], $uniacid);
-//只有创始人、主管理员、管理员才有权限
-if ($state != ACCOUNT_MANAGE_NAME_OWNER && $state != ACCOUNT_MANAGE_NAME_FOUNDER && $state != ACCOUNT_MANAGE_NAME_MANAGER) {
+$role_permission = in_array($state, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_MANAGER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER));
+if (!$role_permission) {
 	itoast('无权限操作！', referer(), 'error');
 }
 
@@ -33,7 +33,7 @@ if ($do == 'display') {
 		$version_exist = wxapp_fetch($account['uniacid']);
 		if (!empty($version_exist)) {
 			$wxapp_version_lists = wxapp_version_all($account['uniacid']);
-			$wxapp_modules = wxapp_support_wxapp_modules();
+			$wxapp_modules = wxapp_support_uniacid_modules();
 		}
 	}
 	template('wxapp/manage');

@@ -4,6 +4,7 @@
  * $sn: pro/index.php : v 815cdc81ea88 : 2015/08/29 09:40:39 : RenChao $
  */
 require './framework/bootstrap.inc.php';
+
 $host = $_SERVER['HTTP_HOST'];
 if (!empty($host)) {
 	$bindhost = pdo_fetch("SELECT * FROM ".tablename('site_multi')." WHERE bindhost = :bindhost", array(':bindhost' => $host));

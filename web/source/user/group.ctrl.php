@@ -5,6 +5,8 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
+load()->model('user');
+
 $dos = array('display', 'post', 'del');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
 
@@ -17,42 +19,12 @@ if ($do == 'display') {
 		$condition .= "WHERE name LIKE :name";
 		$params[':name'] = "%{$_GPC['name']}%";
 	}
-	if (checksubmit('submit')) {
-		if (!empty($_GPC['delete'])) {
-			pdo_query("DELETE FROM ".tablename('users_group')." WHERE id IN ('".implode("','", $_GPC['delete'])."')");
-		}
-		itoast('用户组更新成功！', referer(), 'success');
+	if (user_is_vice_founder()) {
+		$condition .= "WHERE owner_uid = :owner_uid";
+		$params[':owner_uid'] = $_W['uid'];
 	}
-	$module_num = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('modules') . "WHERE type = :type AND issystem = :issystem", array(':type' => 'system','issystem' => 1));
 	$lists = pdo_fetchall("SELECT * FROM " . tablename('users_group').$condition, $params);
-	if (!empty($lists)) {
-		foreach ($lists as $key => $group) {
-			$package = iunserializer($group['package']);
-			$group['package'] = uni_groups($package);
-			if (empty($package)) {
-				$lists[$key]['module_nums'] = '系统默认';
-				$lists[$key]['wxapp_nums'] = '系统默认';
-				continue;
-			}
-			if (is_array($package) && in_array(-1, $package)) {
-				$lists[$key]['module_nums'] = -1;
-				$lists[$key]['wxapp_nums'] = -1;
-				continue;
-			}
-			$names = array();
-			if (!empty($group['package'])) {
-				foreach ($group['package'] as $modules) {
-					$names[] = $modules['name'];
-					$lists[$key]['module_nums'] = count($modules['modules']);
-					$lists[$key]['wxapp_nums'] = count($modules['wxapp']);
-				}
-			}else {
-				pdo_update('users_group', array('package' => 'N;'), array('id' => $group['id']));
-			}
-
-			$lists[$key]['packages'] = implode(',', $names);
-		}
-	}
+	$lists = user_group_format($lists);
 	template('user/group-display');
 }
 
@@ -66,34 +38,30 @@ if ($do == 'post') {
 		if (!empty($group_info['package']) && in_array(-1, $group_info['package'])) $group_info['check_all'] = true;
 	}
 	$packages = uni_groups();
-	foreach ($packages as $key => &$package_val) {
-		if (!empty($group_info['package']) && in_array($key, $group_info['package'])) {
-			$package_val['checked'] = true;
-		} else {
-			$package_val['checked'] = false;
+	if (!empty($packages)) {
+		foreach ($packages as $key => &$package_val) {
+			if (!empty($group_info['package']) && in_array($key, $group_info['package'])) {
+				$package_val['checked'] = true;
+			} else {
+				$package_val['checked'] = false;
+			}
 		}
 	}
 	unset($package_val);
 	if (checksubmit('submit')) {
-		if (empty($_GPC['name'])) {
-			itoast('请输入用户组名称！', '', '');
-		}
-		if (!empty($_GPC['package'])) {
-			foreach ($_GPC['package'] as $value) {
-				$package[] = intval($value);
-			}
-		}
-		$data = array(
+
+		$user_group = array(
+			'id' => intval($_GPC['id']),
 			'name' => $_GPC['name'],
-			'package' => iserializer($package),
+			'package' => $_GPC['package'],
 			'maxaccount' => intval($_GPC['maxaccount']),
 			'maxwxapp' => intval($_GPC['maxwxapp']),
 			'timelimit' => intval($_GPC['timelimit'])
 		);
-		if (empty($id)) {
-			pdo_insert('users_group', $data);
-		} else {
-			pdo_update('users_group', $data, array('id' => $id));
+
+		$user_group_info = user_save_group($user_group);
+		if (is_error($user_group_info)) {
+			itoast($user_group_info['message'], '', '');
 		}
 		itoast('用户组更新成功！', url('user/group/display'), 'success');
 	}

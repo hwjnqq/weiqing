@@ -168,24 +168,17 @@
 	window.select_mediaid = function(type, otherVal){
 		var option = {
 			type: type,
-			ignore: {
-				basic: type === 'basic' ? false : true,
-				wxcard: type === 'wxcard' ? false : true,
-				image: type === 'image' ? false : true,
-				music: type === 'music' ? false : true,
-				news: type === 'news' ? false : true,
-				video: type === 'video' ? false : true,
-				voice: type === 'voice' ? false : true,
-				keyword: type === 'keyword' ? false : true,
-				module: type === 'module' ? false : true
-			},
+			isWechat : true, // 默认显示微信
+			needType : 3, //  除了图文 其他只能微信
 			others: {
-				basic: {
-					typeVal: angular.isDefined(otherVal) ? otherVal : null,
+				image: {
+					needType : 1
 				},
-				news: {
-					showwx: angular.isDefined(otherVal) ? otherVal === 'wx' ? true : false : true,
-					showlocal: angular.isDefined(otherVal) ? otherVal === 'local' ? true : false : true
+				video : {
+					needType : 1
+				},
+				voice : {
+					needType : 1
 				}
 			}
 		};
@@ -256,8 +249,8 @@
 				replyVal.push(angular.toJson(material.id));
 				$(':hidden[name="reply[reply_'+type+']"]').val(replyVal);
 				var keywords = [];
-				for(var i = 0; i < material.child_items.length; i++) {
-					keywords += '&nbsp;&nbsp;' + material.child_items[i].content;
+				for(var i = 0; i < material.length; i++) {
+					keywords += '&nbsp;&nbsp;' + material.content;
 				}
 				$('.keywords-list').append(
 					'<li>'+
@@ -265,13 +258,14 @@
 					'	<div class="desc">'+
 					'		<div class="media-content">'+
 					'				<a class="title-wrp" href="javascript:;">'+
-					'					<span class="title">[关键字]'+material.name+'</span>'+
+					'					<span class="title">[关键字]'+material.content+'</span>'+
 					'				</a>'+
 					'				<p class="desc"><a href="javascript:;" class="appmsg-desc">'+keywords+'</a></p>'+
 					'		</div>'+
 					'	</div>'+
 					'	<div class="opr">'+
-					'		<a href="javascript:;" data-media="'+material.name+'" class="del-gray" onclick="delmedia(\''+type+'\', this)">删除</a>'+
+					'<a href="./index.php?c=platform&a=reply&do=post&m=keyword&rid=' + material.rid + '" target="_blank" class="del-gray">编辑</a> '  +
+					'		<a href="javascript:;" data-media="'+material.content+'" class="del-gray" onclick="delmedia(\''+type+'\', this)">删除</a>'+
 					'	</div>'+
 					'</div>'+
 					'</li>'
@@ -317,7 +311,7 @@
 							'		<div class="media-content">'+
 							'			<div class="appmsgSendedItem">'+
 							'				<a class="title-wrp" href="javascript:;">'+
-							'					 <span class="icon cover" style="background-image:'+material.url+';"></span>'+
+							'					 <span class="icon cover" style="background-image:url('+material.url+');"></span>'+
 							'					<span class="title">[图片]</span>'+
 							'				</a>'+
 							'			</div>'+
@@ -681,10 +675,9 @@
 					break;
 				case 'keyword':
 					angular.forEach(val, function(keywordVal, keywordKey) {
-						replyVal.push(angular.toJson(keywordVal.rid));
+						replyVal.push(angular.toJson(keywordVal.id));
 						var keywords = '&nbsp;&nbsp;' + keywordVal.content;
 						$('.keywords-list').append(
-
 								'<li>'+
 								'<div class="del-'+type+'-media">'+
 								'	<div class="desc">'+
@@ -696,7 +689,8 @@
 								'		</div>'+
 								'	</div>'+
 								'	<div class="opr">'+
-								'		<a href="javascript:;" data-media="'+keywordVal.name+'" class="del-gray" onclick="delmedia(\''+type+'\', this)">删除</a>'+
+								'<a href="./index.php?c=platform&a=reply&do=post&m=keyword&rid=' + keywordVal.rid + '" target="_blank" class="del-gray">编辑</a> '  +
+								'<a href="javascript:;" data-media="'+keywordVal.name+'" class="del-gray" onclick="delmedia(\''+type+'\', this)">删除</a>'+
 								'	</div>'+
 								'</div>'+
 								'</li>'

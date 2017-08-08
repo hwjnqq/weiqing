@@ -676,6 +676,7 @@ class WeiXinAccount extends WeAccount {
 			'45057' => '该标签下粉丝数超过10w，不允许直接删除',
 			'45058' => '不能修改0/1/2这三个系统默认保留的标签',
 			'45059' => '有粉丝身上的标签数已经超过限制',
+			'45065' => '24小时内不可给该组人群发该素材',
 			'45157' => '标签名非法，请注意不能和其他标签重名',
 			'45158' => '标签名长度超过30个字节',
 			'45159' => '非法的标签',
@@ -1421,7 +1422,7 @@ class WeiXinAccount extends WeAccount {
 		if(empty($path)) {
 			return error(-1, '参数错误');
 		}
-	if (in_array(substr(ltrim($path, '/'), 0, 6), array('images', 'videos', 'audios'))) {
+		if (in_array(substr(ltrim($path, '/'), 0, 6), array('images', 'videos', 'audios'))) {
 			$path = ATTACHMENT_ROOT . ltrim($path, '/');
 		}
 		$token = $this->getAccessToken();
@@ -1453,7 +1454,7 @@ class WeiXinAccount extends WeAccount {
 		}
 		$url = "https://api.weixin.qq.com/cgi-bin/material/add_material?access_token={$token}&type={$type}";
 		$data = array(
-			'media' => '@' . $path,
+			'media' => '@' . $path
 		);
 		return $this->requestApi($url, $data);
 	}
@@ -1898,6 +1899,7 @@ class WeiXinAccount extends WeAccount {
 	
 	protected function requestApi($url, $post = '') {
 		$response = ihttp_request($url, $post);
+
 		$result = @json_decode($response['content'], true);
 		if(is_error($response)) {
 			return error($result['errcode'], "访问公众平台接口失败, 错误详情: {$this->error_code($result['errcode'])}");

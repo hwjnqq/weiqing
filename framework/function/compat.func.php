@@ -108,5 +108,7 @@ if (!interface_exists('SessionHandlerInterface')) {
  * php-fpm环境下，此函数可以快速响应数据，后续代码将在后台运行
  */
 if (!function_exists("fastcgi_finish_request")) {
-	function fastcgi_finish_request() {}
+	function fastcgi_finish_request() {
+		return error(-1, 'Not npm or fast cgi');
+	}
 }

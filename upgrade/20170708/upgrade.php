@@ -6,6 +6,6 @@
 
 define('IN_SYS', true);
 require '../../framework/bootstrap.inc.php';
-if(pdo_fieldexists('mc_members', 'avatar')) {
+if (pdo_fieldexists('mc_members', 'avatar')) {
 	pdo_query("ALTER TABLE ". tablename('mc_members') ." MODIFY  `avatar` VARCHAR(140) NOT NULL COMMENT '头像链接';");
 }
