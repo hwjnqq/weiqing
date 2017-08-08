@@ -489,7 +489,8 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 					}
 				}
 			}
-			message('支付成功！', $this->createMobileurl('hotelservice', array('op' => 'order_food_detail', 'orderid' => $params['tid'], 'id' => $order['storeid'])), 'success');
+			$url = murl('entry', array('do' => 'service', 'm' => 'wn_storex'), true, true) . '#/FoodOrderInfo/' . $params['tid'];
+			message('支付成功！', $url, 'success');
 		}
 	}
 	
