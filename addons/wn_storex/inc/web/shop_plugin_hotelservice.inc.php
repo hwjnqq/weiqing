@@ -158,6 +158,9 @@ if ($op == 'foods_edit') {
 		if (!empty($food['foods_set'])) {
 			$food['foods_set'] = explode(',', $food['foods_set']);
 		}
+		if (!empty($food['thumbs'])) {
+			$food['thumbs'] = iunserializer($food['thumbs']);
+		}
 	}
 	if (checksubmit('submit')) {
 		$data = array(
