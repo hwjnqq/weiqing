@@ -166,7 +166,7 @@ if ($op == 'fans') {
 	$psize = 20;
 	$condition = '';
 	if (!empty($_GPC['nickname'])) {
-		$condition .= " AND nickname LIKE '%" . trim($_GPC['nickname']) . "%'" ;
+		$condition .= " AND (nickname LIKE '%" . trim($_GPC['nickname']) . "%' OR openid LIKE '%" . trim($_GPC['nickname']) . "%')";
 	}
 	$check_fans = json_decode($_COOKIE['fans_openids' . $_W['uniacid']]);
 	$check_fans = empty($check_fans) ? array() : $check_fans;
