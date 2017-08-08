@@ -29,7 +29,7 @@ if ($op == 'order') {
 	$order_lists = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'hotelid' => $manage_storex_ids, 'status' => $operation_status, 'goods_status' => $goods_status), array('id', 'weid', 'hotelid', 'paystatus','roomid', 'style', 'btime', 'etime', 'roomitemid', 'status', 'goods_status', 'mode_distribute', 'nums', 'sum_price', 'day'), '', 'id DESC');
 	if (!empty($order_lists) && is_array($order_lists)) {
 		$rooms = array();
-		$room_list = pdo_getall('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $manage_storex_ids));
+		$room_list = pdo_getall('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $manage_storex_ids, 'status' => 1), array('id', 'storeid', 'roomid', 'roomnumber'));
 		if (!empty($room_list) && is_array($room_list)) {
 			foreach ($room_list as $room) {
 				$rooms[$room['storeid']][$room['roomid']][] = $room;
@@ -47,15 +47,19 @@ if ($op == 'order') {
 				if (!empty($rooms[$info['hotelid']]) && !empty($rooms[$info['hotelid']][$info['roomid']])) {
 					$room_items = $rooms[$info['hotelid']][$info['roomid']];
 					foreach ($room_items as $r => $val) {
-						$show = check_room_assign($info, $val['id']);
+						$show = check_room_assign($info, array($val['id']));
 						if (empty($show)) {
 							unset($room_items[$r]);
 						}
 					}
 					$info['room_list'] = $room_items;
-					$room_item = pdo_get('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $info['hotelid'], 'id' => $info['roomitemid']), array('id', 'roomnumber'));
-					if (!empty($room_item)) {
-						$info['roomitemid'] = $room_item['roomnumber'];
+					if (!empty($info['roomitemid'])) {
+						$room_item = pdo_getall('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $info['hotelid'], 'id' => explode(',', $info['roomitemid'])), array('id', 'roomnumber'));
+						if (!empty($room_item) && is_array($room_item)) {
+							foreach ($room_item as $roomitem) {
+								$info['rooms'][] = $roomitem['roomnumber'];
+							}
+						}
 					}
 				}
 			} else {
@@ -475,21 +479,26 @@ if ($op == 'edit_room') {
 
 if ($op == 'assign_room') {
 	$orderid = intval($_GPC['orderid']);
-	$roomitemid= intval($_GPC['roomid']);
+	$roomids= $_GPC['roomids'];
 	$order = pdo_get('storex_order', array('id' => $orderid));
 	if (empty($order)) {
 		wmessage(error(-1, '订单信息错误'), '', 'ajax');
 	}
+	if (count($roomids) != $order['nums']) {
+		wmessage(error(-1, '所选房间数量跟订单房间数量不一致'), '', 'ajax');
+	}
 	if (!empty($order['roomitemid'])) {
-		$assign_roomitemid = $order['roomitemid'];
+		$assign_roomitemid = explode(',', $order['roomitemid']);
 	}
-	if (!check_room_assign($order, $roomitemid, true)) {
-		wmessage(error(-1, '该房间已经分配了'), '', 'ajax');
+	if (!check_room_assign($order, $roomids, true)) {
+		wmessage(error(-1, '所选房间存在不空闲'), '', 'ajax');
 	}
-	$result = pdo_update('storex_order', array('roomitemid' => $roomitemid), array('id' => $orderid));
+	$result = pdo_update('storex_order', array('roomitemid' => implode(',', $roomids)), array('id' => $orderid));
 	if (!empty($result)) {
-		if (!empty($assign_roomitemid)) {
-			delete_room_assign($order, $assign_roomitemid);
+		if (!empty($assign_roomitemid) && is_array($assign_roomitemid)) {
+			foreach ($assign_roomitemid as $roomid) {
+				delete_room_assign($order, $roomid);
+			}
 		}
 		wmessage(error(0, '分配成功'), '', 'ajax');
 	} else {

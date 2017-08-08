@@ -173,14 +173,21 @@ if ($op == 'edit') {
 		getOrderpaytext($item);
 		if ($is_house == 1) {
 			$room_list = pdo_getall('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'roomid' => $item['roomid']));
-			$room_item = pdo_get('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'id' => $item['roomitemid']), array('id', 'roomnumber'));
+			$room_item = pdo_getall('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'id' => explode(',', $item['roomitemid'])), array('id', 'roomnumber'));
 			if (!empty($room_list) && is_array($room_list)) {
 				foreach ($room_list as $r => $val) {
-					$show = check_room_assign($item, $val['id']);
+					$show = check_room_assign($item, array($val['id']));
 					if (empty($show)) {
 						unset($room_list[$r]);
 					}
 				}
+			}
+			if (!empty($room_item) && is_array($room_item)) {
+				$roomnum = array();
+				foreach ($room_item as $roominfo) {
+					$roomnum[] = $roominfo['roomnumber'];
+				}
+				$roomnumber = implode(',', $roomnum);
 			}
 		}
 	}
@@ -527,23 +534,28 @@ if ($op == 'check_print_plugin') {
 
 if ($op == 'assign_room') {
 	if ($_W['ispost'] && $_W['isajax']) {
-		$room_item_id = intval($_GPC['room_item_id']);
+		$rooms = $_GPC['rooms'];
 		$orderid = intval($_GPC['id']);
 		$roomid = intval($_GPC['roomid']);
 		$order_info = pdo_get('storex_order', array('id' => $orderid, 'roomid' => $roomid, 'weid' => $_W['uniacid']));
 		if (empty($order_info)) {
 			message(error(-1, '订单信息错误'), '', 'ajax');
 		}
+		if (count($rooms) != $order_info['nums']) {
+			message(error(-1, '所选房间数量跟订单房间数量不一致'), '', 'ajax');
+		}
 		if (!empty($order_info['roomitemid'])) {
-			$assign_roomitemid = $order_info['roomitemid'];
+			$assign_roomitemid = explode(',', $order_info['roomitemid']);
 		}
-		if (!check_room_assign($order_info, $room_item_id, true)) {
-			message(error(-1, '该房间已经分配了'), '', 'ajax');
+		if (!check_room_assign($order_info, $rooms, true)) {
+			message(error(-1, '所选房间存在不空闲'), '', 'ajax');
 		}
-		$result = pdo_update('storex_order', array('roomitemid' => $room_item_id), array('id' => $orderid));
+		$result = pdo_update('storex_order', array('roomitemid' => implode(',', $rooms)), array('id' => $orderid));
 		if (!empty($result)) {
-			if (!empty($assign_roomitemid)) {
-				delete_room_assign($order_info, $assign_roomitemid);
+			if (!empty($assign_roomitemid) && is_array($assign_roomitemid)) {
+				foreach ($assign_roomitemid as $roomid) {
+					delete_room_assign($order_info, $roomid);
+				}
 			}
 			message(error(0, ''), referer(), 'ajax');
 		} else {

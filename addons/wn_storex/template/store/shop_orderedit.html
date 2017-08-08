@@ -229,7 +229,9 @@
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label">分配房间号</label>
 						<div class="col-sm-2 col-xs-12 form-control-static">
-							<div>{$room_item['roomnumber']}</div>
+							<div>
+								{$roomnumber}
+							</div>
 						</div>
 						<div class="col-sm-6 col-xs-12">
 							<button type="button" data-toggle="modal" data-target="#room-modal" class="btn but btn-default">分配房间</button>
@@ -272,26 +274,19 @@
 			</div>
 			<div class="modal-body modules-content">
 				<div class="tab-content">
-					<ul class="app-allow-list">
-						{if !empty($room_list)}
-						{loop $room_list $room}
-						<li class="js-select-room" data-id="{$room['id']}">
-							<div class="app-info">
-								<img src="{php echo tomedia($good_info['thumb'])}"/>
-								<p>{$room['roomnumber']}</p>
-							</div>
-							<a href="javascript:;" class="cover-dark">
-								<i class="fa fa-check cover-selected"></i>
-							</a>
-						</li>
-						{/loop}
-						{else}
-						<div class="text-center">未设置房间</div>
-						{/if}
-					</ul>
+					{if !empty($room_list)}
+					{loop $room_list $room}
+						<input class='room-input' type='checkbox' name="room[]" value="{$room['id']}" {if !empty($food['foods_set']) && in_array($title, $food['foods_set'])} checked {/if}/>
+						房间 {$room['roomnumber']}
+					{/loop}
+					{else}
+					<div class="text-center">未设置房间</div>
+					{/if}
 				</div>
 			</div>
 			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				<a class="btn btn-primary order_set_room">提交</a>
 			</div>
 		</div>
 	</div>
@@ -323,6 +318,7 @@
 	var storeid = {$storeid};
 	var id = {$item['id']};
 	var roomid = {$item['roomid']};
+	var num = {$item['nums']};
 	require(['bootstrap'],function($) {
 		$('#orderConfirm').on('show.bs.modal', function(e) {
 			$('#action').val(e.relatedTarget.value);
@@ -360,6 +356,32 @@
 				util.message('分配成功', location.href, 'success');
 			}
 			$('#room-modal').modal('hide');
+		});
+	});
+	$(function() {
+		$('.order_set_room').click(function() {
+			var index = $('.room-input');
+			var rooms = [];
+			var option = null;
+			for (var i = 0; i < index.length; i++) {
+				option = index[i];
+				if (option.checked) {
+					rooms.push(option.value);
+				}
+			}
+			if (rooms.length != num) {
+				util.message('所选房间数量跟订单房间数量不一致');
+			}
+			$.post("{php echo $this->createWebUrl('shop_order', array('op' => 'assign_room', 'storeid' => $_GPC['storeid']))}", {rooms : rooms, id : id, roomid : roomid}, function(data) {
+				data = $.parseJSON(data);
+				console.dir(data);
+				if (data.message.errno != 0) {
+					util.message(data.message.message, '', 'error');
+				} else {
+					util.message('分配成功', location.href, 'success');
+				}
+				$('#room-modal').modal('hide');
+			});
 		});
 	});
 </script>

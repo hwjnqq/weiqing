@@ -2,6 +2,7 @@
 //检查每个文件的传值是否为空
 function check_params() {
 	global $_W, $_GPC;
+	$_W['openid'] = 'oTKzFjq-vdizyZXDhpGI8XQqgnoE';
 	if (!empty($_GPC['from']) && $_GPC['from'] == 'wxapp') {
 		$acid = $_GPC['acid'];
 		$_W['account'] = account_fetch($acid);
@@ -782,27 +783,31 @@ function get_store_market($storeid) {
 	return $markets;
 }
 
-function check_room_assign($order, $roomitemid, $insert = false) {
+function check_room_assign($order, $roomids, $insert = false) {
 	global $_W;
 	$date= array();
-	$roomassign_record = pdo_get('storex_room_assign', array('storeid' => $order['hotelid'], 'roomid' => $order['roomid'], 'roomitemid' => $roomitemid, 'time >=' => $order['btime'], 'time <' => $order['etime']));
+	if (empty($roomids)) {
+		return false;
+	}
+	$roomassign_record = pdo_getall('storex_room_assign', array('storeid' => $order['hotelid'], 'roomid' => $order['roomid'], 'roomitemid' => $roomids, 'time >=' => $order['btime'], 'time <' => $order['etime']));
 	$status = true;
 	if (!empty($roomassign_record)) {
 		return false;
 	}
 	if (!empty($insert) && !empty($status)) {
-		if ($order['day'] > 0 ) {
-			for ($i = 0; $i < $order['day']; $i ++) {
-				$insert_data = array(
-					'uniacid' => $_W['uniacid'],
-					'storeid' => $order['hotelid'],
-					'roomid' => $order['roomid'],
-					'roomitemid' => $roomitemid,
-					'time' => $order['btime'] + $i * 86400,
-				);
-				pdo_insert('storex_room_assign', $insert_data);
+		if ($order['day'] > 0 && !empty($roomids)) {
+			foreach ($roomids as $roomid) {
+				for ($i = 0; $i < $order['day']; $i ++) {
+					$insert_data = array(
+						'uniacid' => $_W['uniacid'],
+						'storeid' => $order['hotelid'],
+						'roomid' => $order['roomid'],
+						'roomitemid' => $roomid,
+						'time' => $order['btime'] + $i * 86400,
+					);
+					pdo_insert('storex_room_assign', $insert_data);
+				}
 			}
-			
 		}
 	}
 	return $status;
@@ -810,7 +815,7 @@ function check_room_assign($order, $roomitemid, $insert = false) {
 
 function delete_room_assign($order, $assign_roomitemid = '') {
 	if (!empty($order['roomitemid'])) {
-		$roomitemid = $order['roomitemid'];
+		$roomitemid = explode(',', $order['roomitemid']);
 	}
 	if (!empty($assign_roomitemid)) {
 		$roomitemid = $assign_roomitemid;
