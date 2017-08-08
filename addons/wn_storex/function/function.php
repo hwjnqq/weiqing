@@ -197,6 +197,12 @@ function check_params() {
 				'uniacid' => intval($_W['uniacid']),
 				'openid' => $_W['openid']
 			),
+		),
+		'package' => array(
+			'common' => array(
+				'uniacid' => intval($_W['uniacid']),
+				'openid' => $_W['openid']
+			),
 		)
 	);
 	$do = trim($_GPC['do']);
