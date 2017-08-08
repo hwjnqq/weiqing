@@ -257,7 +257,21 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 
 		if ($op == 'continue_order') {
 			$storeid = intval($_GPC['storeid']);
-			$orders = pdo_getall('storex_order', array('hotelid' => $storeid, 'paystatus' => 1, 'goods_status' => 5, 'btime <=' => TIMESTAMP, 'etime >' => TIMESTAMP));
+			$orders = pdo_getall('storex_order', array('hotelid' => $storeid, 'paystatus' => 1, 'goods_status' => 5, 'btime <=' => TIMESTAMP, 'etime >' => TIMESTAMP, 'roomitemid !=' => ''), array('id', 'style', 'hotelid', 'roomid', 'nums', 'btime', 'etime', 'roomitemid'));
+			if (!empty($orders) && is_array($orders)) {
+				$room_list = pdo_getall('storex_room_items', array('storeid' => $storeid, 'status' => 1), array('id', 'storeid', 'roomid', 'roomnumber'), 'id');
+				foreach ($orders as &$orderinfo) {
+					$room = pdo_get('storex_room', array('id' => $orderinfo['roomid']), array('thumb'));
+					$orderinfo['thumb'] = tomedia($room['thumb']);
+					$orderinfo['room'] = array();
+					$orderinfo['roomitemid'] = explode(',', $orderinfo['roomitemid']);
+					foreach ($orderinfo['roomitemid'] as $roomid) {
+						if (!empty($room_list[$roomid])) {
+							$orderinfo['room'][] = $room_list[$roomid];
+						}
+					}
+				}
+			}
 			message(error(0, $orders), '', 'ajax');
 		}
 		
