@@ -42,6 +42,7 @@ $wn_storex_table = array(
 	'storex_goods_extend',
 	'storex_market',
 	'storex_agent_level',
+	'storex_agent_log',
 );
 foreach ($wn_storex_table as $table){
 	if(pdo_tableexists($table)){
