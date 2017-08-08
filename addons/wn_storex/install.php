@@ -915,6 +915,20 @@ $sql = "
 	KEY `storeid` (`storeid`)
 	) DEFAULT CHARSET=utf8;
 		
+	CREATE TABLE IF NOT EXISTS `ims_storex_agent_log` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`uniacid` int(11) NOT NULL,
+	`agentid` int(11) NOT NULL COMMENT '分销员id',
+	`orderid` int(11) NOT NULL COMMENT '订单id',
+	`storeid` int(11) NOT NULL,
+	`goodid` int(11) NOT NULL,
+	`sumprice` decimal(10,2) NOT NULL COMMENT '订单总价',
+	`money` decimal(10,2) NOT NULL COMMENT '抽成',
+	`rate` varchar(20) CHARACTER SET utf8mb4 NOT NULL COMMENT '抽成比例百分比',
+	`time` int(11) NOT NULL,
+	PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
+		
 ";
 
 pdo_run($sql);
