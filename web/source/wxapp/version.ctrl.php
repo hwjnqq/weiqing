@@ -36,6 +36,7 @@ if ($do == 'home') {
 		$version_site_info = wxapp_site_info($version_info['multiid']);
 	}
 	$role = uni_permission($_W['uid'], $wxapp_info['uniacid']);
+
 	$notices = welcome_notices_get();
 	template('wxapp/version-home');
 }
