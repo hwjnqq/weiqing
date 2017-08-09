@@ -42,7 +42,7 @@ function _login($forward = '') {
 	}
 	$record = user_single($member);
 	if (!empty($record)) {
-		if ($record['status'] == 1 || $record['status'] == 3) {
+		if ($record['status'] == USER_STATUS_CHECK || $record['status'] == USER_STATUS_BAN) {
 			itoast('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决！', '', '');
 		}
 		$_W['uid'] = $record['uid'];

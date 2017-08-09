@@ -147,3 +147,8 @@ define('MATERIAL_WEXIN', 'perm');//微信素材类型
 //自定义菜单类型
 define('MENU_CURRENTSELF', 1);
 define('MENU_CONDITIONAL', 3);
+
+//会员状态
+define('USER_STATUS_CHECK', 1);
+define('USER_STATUS_NORMAL', 2);
+define('USER_STATUS_BAN', 3);

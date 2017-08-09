@@ -62,10 +62,12 @@
 		</tr>
 	</table>
 	{/if}
-	{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders)}
+	{if user_is_founder($_W['uid'])}
 	<p>
 		<a href="javascript:;" class="btn btn-primary" data-toggle="modal" data-target="#change-group">修改套餐</a>
+		{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
 		<a href="javascript:;" class="btn btn-primary" data-toggle="modal" data-target="#jurisdiction-add">修改附加权限</a>
+		{/if}
 	</p>
 
 	<div class="modal" id="jurisdiction-add">
@@ -90,11 +92,13 @@
 									<th></th>
 								</tr>
 								{loop $modules $module_name $module}
+								{if empty($module['issystem']) && $module['wxapp_support'] == 2}
 								<tr>
 									<td>{$module['title']}{if $module['issystem']}<span class="label label-success">系统模块</span>{/if}</td>
 									<td>{$module['name']}</td>
 									<td><a class="btn btn-default js-btn-select {if is_array($current_module_names) && in_array($module_name, $current_module_names)}btn-primary{/if}" data-title="{$module['title']}" data-name="{$module['name']}" onclick="$(this).toggleClass('btn-primary')">选取</a></td>
 								</tr>
+								{/if}
 								{/loop}
 							</table>
 						</div>
@@ -121,6 +125,7 @@
 								<th class="text-left bg-light-gray">应用权限组（各权限组均包含系统模块和微站默认模板）</th>
 								<th class="text-right bg-light-gray">操作</th>
 							</tr>
+							{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
 							<tr>
 								<td class="text-left">
 									<input id="check-0" type="checkbox" name="package[]" autocomplete="off" value="-1" {if is_array($owner['group']['package']) && in_array('-1', $owner['group']['package'])}checked disabled{/if}{if is_array($extendpackage) && !empty($extendpackage[-1])}checked {/if} />
@@ -148,7 +153,8 @@
 									</div>
 								</td>
 							</tr>
-							{loop $unigroups $package}
+							{/if}
+							{loop $uni_groups $package}
 							<tr>
 								<td class="text-left">
 									<input id="check-{$package['id']}" type="checkbox" name="package[]" autocomplete="off" {if is_array($owner['group']['package']) && in_array($package['id'], $owner['group']['package'])}checked disabled{/if} {if is_array($extendpackage) && !empty($extendpackage[$package['id']])}checked {/if} value="{$package['id']}" />

@@ -7,7 +7,7 @@
 	{/if}
 </ul>
 <div class="clearfix we7-margin-bottom">
-	{if !$_W['isfounder'] && !empty($account_info['uniacid_limit'])}
+	{if !$_W['isfounder'] && !empty($account_info['uniacid_limit']) || user_is_vice_founder()}
 		<div class="alert alert-warning">
 			温馨提示：
 			<i class="fa fa-info-circle"></i>
@@ -25,7 +25,7 @@
 			<span class="input-group-btn"><button class="btn btn-default"><i class="fa fa-search"></i></button></span>
 		</div>
 	</form>
-	{if !empty($account_info['uniacid_limit']) || $_W['isfounder']}
+	{if !empty($account_info['uniacid_limit']) || $_W['isfounder']  && !user_is_vice_founder()}
 	<div class="pull-right">
 		<a href="{php echo url('wxapp/post/design_method')}" class="btn btn-primary we7-padding-horizontal">添加小程序</a>
 	</div>
@@ -54,11 +54,11 @@
 		<td class="vertical-middle vertical-middle table-manage-td">
 			<div class="link-group">
 				<a ng-href="{{links.switch}}uniacid={{list.uniacid}}">进入小程序</a>
-				{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER || $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER || $_W['role'] == ACCOUNT_MANAGE_NAME_MANAGER}
-					<a ng-href="{{links.post}}&acid={{list.acid}}&uniacid={{list.uniacid}}" ng-show="list.role == 'manager' || list.role == 'owner' || list.role == 'founder'">管理设置</a>
+				{if in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER))}
+					<a ng-href="{{links.post}}&acid={{list.acid}}&uniacid={{list.uniacid}}" ng-show="list.role == 'manager' || list.role == 'owner' || list.role == 'founder' || list.role == 'vice_founder'">管理设置</a>
 				{/if}
 			</div>
-			{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER || $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER || $_W['role'] == ACCOUNT_MANAGE_NAME_MANAGER}
+			{if in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER))}
 			<div class="manage-option text-right">
 				<a href="{{links.post}}&acid={{list.acid}}&uniacid={{list.uniacid}}">基础信息</a>
 				<a href="{{links.postUser}}&do=edit&uniacid={{list.uniacid}}&acid={{list.acid}}">使用者管理</a>

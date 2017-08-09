@@ -50,7 +50,7 @@
 				<td>
 					<div class="link-group">
 						<a href="javascript:;" class="color-default js-unfold" data-toggle="table-collapse" data-target="toggle-{$module_group['id']}" ng-click="changeText($event)">展开</a>
-						{if $_W['role'] == 'founder'}
+						{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
 						<a href="{php echo url('module/group/post', array('id' => $module_group['id']))}">编辑套餐</a>
 						<a href="{php echo url('module/group/delete', array('id' => $module_group['id']))}" class="del" onclick="return confirm('确定要删除套餐吗？')">删除</a>
 						{/if}

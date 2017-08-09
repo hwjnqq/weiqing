@@ -256,23 +256,6 @@ function uni_modules($enabled = true) {
 	return uni_modules_by_uniacid($_W['uniacid'], $enabled);
 }
 
-/**
- * 获取当前公号下除系统模块外的所有安装模块及模块信息
- * @return array()
- */
-function uni_modules_except_system() {
-	$modules = uni_modules();
-	if (!empty($modules)) {
-		foreach ($modules as $key => $module) {
-			if (!empty($module['issystem'])) {
-				unset($modules[$key]);
-			}
-		}
-	}
-	return $modules;
-}
-
-
 function uni_modules_app_binding() {
 	global $_W;
 	$cachekey = cache_system_key(CACHE_KEY_ACCOUNT_MODULES_BINDING, $_W['uniacid']);
@@ -319,7 +302,7 @@ function uni_modules_app_binding() {
  * @param array $groupids 公众号套餐ID
  * @return array uni_group 套餐信息列表
  */
-function uni_groups($groupids = array()) {
+function uni_groups($groupids = array(), $show_all = false) {
 	load()->model('module');
 	global $_W;
 	$cachekey = cache_system_key(CACHE_KEY_UNI_GROUP);
@@ -566,24 +549,11 @@ function uni_account_tablename($type) {
 }
 
 function uni_user_account_role($uniacid, $uid, $role) {
-	global $_W;
-	$uniacid = intval($uniacid);
 	$vice_account = array(
-		'uniacid' => $uniacid,
+		'uniacid' => intval($uniacid),
 		'uid' => intval($uid),
 		'role' => trim($role)
 	);
-	if (user_is_vice_founder()) {
-		$founder_account = array(
-			'uniacid' => $uniacid,
-			'uid' => $_W['uid'],
-			'role' => ACCOUNT_MANAGE_NAME_VICE_FOUNDER
-		);
-		$account_founder_user = pdo_get('uni_account_users', $founder_account, array('id'));
-		if (empty($account_founder_user)) {
-			pdo_insert('uni_account_users', $founder_account);
-		}
-	}
 	$account_user = pdo_get('uni_account_users', $vice_account, array('id'));
 	if (!empty($account_user)) {
 		return false;
@@ -605,6 +575,10 @@ function uni_permission($uid = 0, $uniacid = 0) {
 
 	if (user_is_founder($uid) && !user_is_vice_founder($uid)) {
 		return ACCOUNT_MANAGE_NAME_FOUNDER;
+	}
+
+	if (user_is_vice_founder($uid)) {
+		return ACCOUNT_MANAGE_NAME_VICE_FOUNDER;
 	}
 
 	if (!empty($uniacid)) {
@@ -959,7 +933,12 @@ function uni_user_account_permission($uid = 0) {
 	return $data;
 }
 
-
+/**
+ * 获取公众号和小程序真实数量
+ * @param $uid
+ * @param $role
+ * @return array
+ */
 function uni_owner_account_nums($uid, $role) {
 	$account_num = $wxapp_num = 0;
 	$condition = array('uid' => $uid, 'role' => $role);
@@ -981,7 +960,6 @@ function uni_owner_account_nums($uid, $role) {
 	);
 	return $num;
 }
-
 function uni_update_week_stat() {
 	global $_W;
 	$cachekey = "stat:todaylock:{$_W['uniacid']}";

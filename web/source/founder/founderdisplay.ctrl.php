@@ -29,14 +29,14 @@ if ($do == 'display') {
 
 	$groups = user_group();
 	$users = user_list_format($users);
-	template('user/founder-display');
+	template('founder/founder-display');
 }
 
 if ($do == 'del') {
 	$uid = intval($_GPC['uid']);
 	$uid_user = user_single($uid);
 	if (in_array($uid, $founders)) {
-		itoast('访问错误, 无法操作站长.', url('user/founderdisplay'), 'error');
+		itoast('访问错误, 无法操作站长.', url('founder/founderdisplay'), 'error');
 	}
 	if (empty($uid_user)) {
 		exit('未指定用户,无法删除.');

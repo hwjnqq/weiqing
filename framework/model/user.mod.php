@@ -318,7 +318,16 @@ function user_group() {
 }
 
 /**
- * 获取某一用户组下详细信息
+ * 获取当前可用的管理组
+ * @return Ambigous
+ */
+function user_founder_group() {
+	$groups = pdo_getall('users_founder_group', array(), array('id', 'name', 'package'), 'id', 'id ASC');
+	return $groups;
+}
+
+/**
+ * 获取用户组下详细信息
  * @param  number $groupid 用户组ID
  * @return array
  */
@@ -341,7 +350,11 @@ function user_group_detail_info($groupid = 0) {
 	return $group_info;
 }
 
-
+/**
+ * 获取管理组下详细信息
+ * @param int $groupid
+ * @return Ambigous|array|string
+ */
 function user_founder_group_detail_info($groupid = 0) {
 	$group_info = array();
 
@@ -359,20 +372,6 @@ function user_founder_group_detail_info($groupid = 0) {
 		$group_info['package_detail'] = uni_groups($group_info['package']);
 	}
 	return $group_info;
-}
-
-function user_group_and_group_detail($groupid, $foundergroupid) {
-	if ($foundergroupid == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
-		$groups = user_founder_group();
-		$group_info = user_founder_group_detail_info($groupid);
-	} else {
-		$groups = user_group();
-		$group_info = user_group_detail_info($groupid);
-	}
-	return array(
-		'groups' => $groups,
-		'group_info' => $group_info
-	);
 }
 
 /**
@@ -446,7 +445,7 @@ function user_modules($uid) {
 		$user_info = user_single(array ('uid' => $uid));
 
 		$system_modules = pdo_getall('modules', array('issystem' => 1), array('name'), 'name');
-		if (empty($uid) || user_is_founder($uid)) {
+		if (empty($uid)  || user_is_founder($uid) && !user_is_vice_founder($uid)) {
 			$module_list = pdo_getall('modules', array(), array('name'), 'name', array('mid DESC'));
 		} elseif (!empty($user_info) && $user_info['type'] == ACCOUNT_OPERATE_CLERK) {
 			$clerk_module = pdo_fetch("SELECT p.type FROM " . tablename('users_permission') . " p LEFT JOIN " . tablename('uni_account_users') . " u ON p.uid = u.uid AND p.uniacid = u.uniacid WHERE u.role = :role AND p.uid = :uid", array(':role' => ACCOUNT_MANAGE_NAME_CLERK, ':uid' => $uid));
@@ -457,7 +456,11 @@ function user_modules($uid) {
 		} elseif (!empty($user_info) && empty($user_info['groupid'])) {
 			$module_list = $system_modules;
 		} else {
-			$user_group_info = user_group_detail_info($user_info['groupid']);
+			if ($user_info['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
+				$user_group_info = user_founder_group_detail_info($user_info['groupid']);
+			} else {
+				$user_group_info = user_group_detail_info($user_info['groupid']);	
+			}
 			$packageids = $user_group_info['package'];
 
 			//如果套餐组中包含-1，则直接取全部权限，否则根据情况获取模块权限
@@ -730,8 +733,12 @@ function user_group_format($lists) {
 	}
 	return $lists;
 }
-
-
+/**
+ * 用户和副创始人列表
+ * @param $users
+ * @param int $type
+ * @return array
+ */
 function user_list_format($users) {
 	if (empty($users)) {
 		return array();

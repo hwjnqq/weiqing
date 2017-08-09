@@ -10,7 +10,7 @@ load()->func('file');
 
 $dos = array('edit_base', 'edit_modules_tpl', 'edit_account');
 $do = in_array($do, $dos) ? $do: 'edit_base';
-uni_user_permission_check('system_user_post');
+uni_user_permission_check('system_founder_group_post');
 
 $_W['page']['title'] = '编辑用户 - 用户管理';
 
@@ -32,17 +32,17 @@ if ($do == 'edit_base') {
 	$user['end'] = $user['endtime'] == 0 ? '永久' : date('Y-m-d', $user['endtime']);
 	$user['endtype'] = $user['endtime'] == 0 ? 1 : 2;
 	$user['url'] = user_invite_register_url($uid);
-	
+
 	if (!empty($profile)) {
 		$profile['reside'] = array(
-			'province' => $profile['resideprovince'],
-			'city' => $profile['residecity'],
-			'district' => $profile['residedist']
+				'province' => $profile['resideprovince'],
+				'city' => $profile['residecity'],
+				'district' => $profile['residedist']
 		);
 		$profile['birth'] = array(
-			'year' => $profile['birthyear'],
-			'month' => $profile['birthmonth'],
-			'day' => $profile['birthday'],
+				'year' => $profile['birthyear'],
+				'month' => $profile['birthmonth'],
+				'day' => $profile['birthday'],
 		);
 		$profile['resides'] = $profile['resideprovince'] . $profile['residecity'] . $profile['residedist'] ;
 		$profile['births'] =($profile['birthyear'] ? $profile['birthyear'] : '--') . '年' . ($profile['birthmonth'] ? $profile['birthmonth'] : '--') . '月' . ($profile['birthday'] ? $profile['birthday'] : '--') .'日';
@@ -58,7 +58,7 @@ if ($do == 'edit_modules_tpl') {
 			$data['uid'] = $uid;
 			$data[$_GPC['type']] = intval($_GPC['groupid']);
 			if (user_update($data)) {
-				$group_info = user_group_detail_info($_GPC['groupid']);
+				$group_info = user_founder_group_detail_info($_GPC['groupid']);
 				iajax(0, $group_info, '');
 			} else {
 				iajax(1, '更改失败！', '');
@@ -67,9 +67,9 @@ if ($do == 'edit_modules_tpl') {
 			iajax(-1, '参数错误！', '');
 		}
 	}
-	$groups = user_group();
-	$group_info = user_group_detail_info($user['groupid']);
-	template('user/edit-modules-tpl');
+	$groups = user_founder_group();
+	$group_info = user_founder_group_detail_info($user['groupid']);
+	template('founder/edit-modules-tpl');
 }
 
 if ($do == 'edit_account') {
