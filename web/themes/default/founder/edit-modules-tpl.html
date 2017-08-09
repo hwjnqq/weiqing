@@ -1,7 +1,7 @@
 {template 'common/header'}
 <ol class="breadcrumb we7-breadcrumb">
-	<a href="{url 'founder/founderdisplay'}"><i class="wi wi-back-circle"></i> </a>
-	<li><a href="{url 'founder/founderdisplay'}">创始人管理</a></li>
+	<a href="{url 'founder/display'}"><i class="wi wi-back-circle"></i> </a>
+	<li><a href="{url 'founder/display'}">副创始人管理</a></li>
 	<li>编辑用户详情</li>
 </ol>
 <div id="js-user-edit-modulestpl" ng-controller="UserEditModulesTpl" ng-cloak>
@@ -14,7 +14,7 @@
 		{if empty($user['founder_groupid'])}
 		<a href="{php echo url('user/edit/edit_modules_tpl', array('uid' => $_GPC['uid']))}" class="btn btn-default active">应用模板权限</a>
 		{else}
-		<a href="{php echo url('founder/founderedit/edit_modules_tpl', array('uid' => $_GPC['uid']))}" class="btn btn-default active">应用模板权限</a>
+		<a href="{php echo url('founder/edit/edit_modules_tpl', array('uid' => $_GPC['uid']))}" class="btn btn-default active">应用模板权限</a>
 		{/if}
 		<a href="{php echo url('user/edit/edit_account', array('uid' => $_GPC['uid']))}" class="btn btn-default">使用账号列表</a>
 	</div>

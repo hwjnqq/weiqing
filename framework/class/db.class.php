@@ -804,6 +804,8 @@ class SqlPaser {
 					$fields = trim($fields);
 					if (is_array($value) && !empty($value)) {
 						$operator = 'IN';
+					} elseif ($value === null) {
+						$operator = 'IS';
 					} else {
 						$operator = '=';
 					}
@@ -815,34 +817,62 @@ class SqlPaser {
 					//如果是数组不等于情况，则转换为NOT IN
 					if (is_array($value) && !empty($value)) {
 						$operator = 'NOT IN';
+					} elseif ($value === null) {
+						$operator = 'IS NOT';
 					}
 				}
+				
 				//当条件为having时，可以使用聚合函数
-				if (strexists($fields, '(')) {
-					$select_fields = str_replace(array('(', ')'), array('(' . (!empty($alias) ? "`{$alias}`." : '') .'`',  '`)'), $fields);
-					$fields = str_replace(array('(', ')'), '_', $fields);
-				} else {
-					$select_fields = (!empty($alias) ? "`{$alias}`." : '') . "`$fields`";
-				}
+				$select_fields = self::parseFieldAlias($fields, $alias);
 				if (is_array($value) && !empty($value)) {
 					$insql = array();
 					//忽略数组的键值，防止SQL注入
 					$value = array_values($value);
 					foreach ($value as $v) {
-						$insql[] = ":{$suffix}{$fields}_{$index}";
-						$result['params'][":{$suffix}{$fields}_{$index}"] = is_null($v) ? '' : $v;
+						$placeholder = self::parsePlaceholder($fields, $suffix);
+						$insql[] = $placeholder;
+						$result['params'][$placeholder] = is_null($v) ? '' : $v;
 						$index++;
 					}
 					$result['fields'] .= $split . "$select_fields {$operator} (".implode(",", $insql).")";
 					$split = ' ' . $glue . ' ';
 				} else {
-					$result['fields'] .= $split . "$select_fields {$operator}  :{$suffix}{$fields}_{$index}";
+					$placeholder = self::parsePlaceholder($fields, $suffix);
+					$result['fields'] .= $split . "$select_fields {$operator} " . (is_null($value) ? 'NULL' : $placeholder);
 					$split = ' ' . $glue . ' ';
-					$result['params'][":{$suffix}{$fields}_{$index}"] = is_null($value) || is_array($value) ? '' : $value;
+					if (!is_null($value)) {
+						$result['params'][$placeholder] = is_array($value) ? '' : $value;
+					}
 				}
 			}
 		}
 		return $result;
+	}
+	
+	/**
+	 * 处理字段占位符
+	 * @param string $field
+	 * @param string $suffix
+	 */
+	private static function parsePlaceholder($field, $suffix = '') {
+		static $params_index = 0;
+		$params_index++;
+	
+		$illegal_str = array('(', ')', '.', '*');
+		$placeholder = ":{$suffix}" . str_replace($illegal_str, '_', $field) . "_{$params_index}";
+		return $placeholder;
+	}
+	
+	private static function parseFieldAlias($field, $alias = '') {
+		if (strexists($field, '.') || strexists($field, '*')) {
+			return $field;
+		}
+		if (strexists($field, '(')) {
+			$select_fields = str_replace(array('(', ')'), array('(' . (!empty($alias) ? "`{$alias}`." : '') .'`',  '`)'), $field);
+		} else {
+			$select_fields = (!empty($alias) ? "`{$alias}`." : '') . "`$field`";
+		}
+		return $select_fields;
 	}
 	
 	/**
@@ -851,7 +881,7 @@ class SqlPaser {
 	 * @param string $alias 表别名
 	 */
 	public static function parseSelect($field = array(), $alias = '') {
-		if (empty($field)) {
+		if (empty($field) || $field == '*') {
 			return ' SELECT *';
 		}
 		if (!is_array($field)) {
@@ -884,21 +914,20 @@ class SqlPaser {
 		return " SELECT " . implode(',', $select);
 	}
 	
-	public static function parseLimit($limit) {
+	public static function parseLimit($limit, $inpage = true) {
 		$limitsql = '';
 		if (empty($limit)) {
 			return $limitsql;
 		}
 		if (is_array($limit)) {
 			$limit[0] = max(intval($limit[0]), 1);
-			$limit[1] = max(intval($limit[1]), 1);
-	
+			!empty($limit[1]) && $limit[1] = max(intval($limit[1]), 1);
 			if (empty($limit[0]) && empty($limit[1])) {
 				$limitsql = '';
 			} elseif (!empty($limit[0]) && empty($limit[1])) {
 				$limitsql = " LIMIT " . $limit[0];
 			} else {
-				$limitsql = " LIMIT " . ($limit[0] - 1) * $limit[1] . ', ' . $limit[1];
+				$limitsql = " LIMIT " . ($inpage ? ($limit[0] - 1) * $limit[1] : $limit[0]) . ', ' . $limit[1];
 			}
 		} else {
 			$limit = trim($limit);

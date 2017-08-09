@@ -30,9 +30,9 @@ if (checksubmit()) {
 	if (is_error($user_add)) {
 		itoast($user_add['message'], '', '');
 	}
-	itoast($user_add['message'], url('founder/founderedit', array('uid' => $user_add['uid'])), 'success');
+	itoast($user_add['message'], url('founder/edit', array('uid' => $user_add['uid'])), 'success');
 }
 
 $groups = user_founder_group();
 
-template('founder/founder-create');
+template('founder/create');

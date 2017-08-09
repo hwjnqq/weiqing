@@ -168,10 +168,10 @@ function cloud_build() {
 			$ret['schemas'] = $schemas;
 		}
 
-		if($ret['family'] == 'x' && IMS_FAMILY == 'v') {
+		if (IMS_FAMILY != $ret['family']) {
 			load()->model('setting');
-			setting_upgrade_version('x', IMS_VERSION, IMS_RELEASE_DATE);
-			itoast('您已经购买了商业授权版本, 系统将转换为商业版, 并重新运行自动更新程序.', 'refresh');
+			setting_upgrade_version($ret['family'], IMS_VERSION, IMS_RELEASE_DATE);
+			itoast('更新系统正在为您自动切换版本', 'refresh');
 		}
 		$ret['upgrade'] = false;
 		if(!empty($ret['files']) || !empty($ret['schemas']) || !empty($ret['scripts'])) {
@@ -846,6 +846,7 @@ function cloud_auth_url($forward, $data = array()){
 	$auth['referrer'] = intval($_W['config']['setting']['referrer']);
 	$auth['version'] = IMS_VERSION;
 	$auth['forward'] = $forward;
+	$auth['family'] = IMS_FAMILY;
 
 	if(!empty($_W['setting']['site']['key']) && !empty($_W['setting']['site']['token'])) {
 		$auth['key'] = $_W['setting']['site']['key'];

@@ -152,8 +152,8 @@ class CoreModule extends WeModule {
 					}else {
 						$replies['keyword'][0]['name'] = $isexists['name'];
 						$keyword = pdo_get('rule_keyword', array('uniacid' => $_W['uniacid'], 'rid' => $rid));
-						$replies['keyword'][0]['id'] = $rid;
-						$replies['keyword'][0]['rid'] = $keyword['rid'];
+						$replies['keyword'][0]['id'] = $keyword['id'];
+						$replies['keyword'][0]['rid'] = $rid;
 						$replies['keyword'][0]['content'] = $keyword['content'];
 					}
 				}

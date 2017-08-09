@@ -1051,9 +1051,6 @@ function mc_notice_init() {
 	$setting = uni_setting();
 	$noticetpl = $setting['tplnotice'];
 	$acc->noticetpl = $noticetpl;
-	if(!is_array($acc->noticetpl)) {
-		return error(-1, '微信通知参数错误');
-	}
 	return $acc;
 }
 

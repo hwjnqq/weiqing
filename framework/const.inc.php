@@ -63,11 +63,17 @@ define('ACCOUNT_MANAGE_TYPE_OWNER', 3);
 define('ACCOUNT_MANAGE_NAME_OWNER', 'owner');
 //创始人
 define('ACCOUNT_MANAGE_NAME_FOUNDER', 'founder');
+define('ACCOUNT_MANAGE_GROUP_FOUNDER', 1);
 //副创始人
 define('ACCOUNT_MANAGE_TYPE_VICE_FOUNDER', 4);
 define('ACCOUNT_MANAGE_NAME_VICE_FOUNDER', 'vice_founder');
 define('ACCOUNT_MANAGE_GROUP_VICE_FOUNDER', 2);
-
+//普通用户
+define('ACCOUNT_MANAGE_GROUP_GENERAL', 0);
+//用户状态
+define('USER_STATUS_REGISTER', 1);
+define('USER_STATUS_NORMAL', 2);
+define('USER_STATUS_LOGIC_DEL', 3);
 //系统卡券
 define('SYSTEM_COUPON', 1);
 //微信卡券
