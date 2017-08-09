@@ -28,13 +28,6 @@ if ($op == 'order') {
 	$goods_status = array(0, GOODS_STATUS_NOT_SHIPPED, GOODS_STATUS_SHIPPED, GOODS_STATUS_NOT_CHECKED);
 	$order_lists = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'hotelid' => $manage_storex_ids, 'status' => $operation_status, 'goods_status' => $goods_status), array('id', 'weid', 'hotelid', 'paystatus','roomid', 'style', 'btime', 'etime', 'roomitemid', 'status', 'goods_status', 'mode_distribute', 'nums', 'sum_price', 'day'), '', 'id DESC');
 	if (!empty($order_lists) && is_array($order_lists)) {
-		$rooms = array();
-		$room_list = pdo_getall('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $manage_storex_ids, 'status' => 1), array('id', 'storeid', 'roomid', 'roomnumber'));
-		if (!empty($room_list) && is_array($room_list)) {
-			foreach ($room_list as $room) {
-				$rooms[$room['storeid']][$room['roomid']][] = $room;
-			}
-		}
 		$lists = array();
 		foreach ($order_lists as $k => &$info) {
 			if (!empty($manage_storex_lists[$info['hotelid']])) {
@@ -43,10 +36,6 @@ if ($op == 'order') {
 				$table = gettablebytype($store_type);
 				if (empty($info['operate'])) {
 					continue;
-				}
-				$info['operate']['is_assign'] = false;
-				if (!empty($rooms[$info['hotelid']]) && !empty($rooms[$info['hotelid']][$info['roomid']]) && $info['paystatus'] == 1 && $info['status'] == 1) {
-					$info['operate']['is_assign'] = true;
 				}
 			} else {
 				continue;
@@ -89,7 +78,6 @@ if ($op == 'order_info') {
 								unset($room_list[$r]);
 							}
 						}
-						$order['operate']['is_assign'] = true;
 						$order['room_list'] = $room_list;
 						$order['rooms'] = array();
 						if (!empty($order['roomitemid'])) {

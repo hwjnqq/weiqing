@@ -436,6 +436,7 @@ function order_salesman_income($orderid, $status) {
 					$money = sprintf('%.2f', $order['sum_price'] * $rate * 0.01);
 					$insert = array(
 						'uniacid' => $_W['uniacid'],
+						'uid' => $agent['uid'],
 						'agentid' => $order['agentid'],
 						'orderid' => $order['id'],
 						'goodid' => $order['roomid'],
