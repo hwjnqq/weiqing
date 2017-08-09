@@ -91,6 +91,45 @@ if ($op == 'goods_info') {
 		$single_comment['createtime'] = date('Y-m-d', $single_comment['createtime']);
 	}
 	$goods_info['comment'] = $single_comment;
+	//套餐信息
+	if ($store_info['store_type'] != 1) {
+		$goods_package = pdo_getall('storex_goods_package', array('uniacid' => $_W['uniacid'], 'storeid' => $store_id, 'goodsid' => $goodsid), array('packageid'));
+		if (!empty($goods_package) && is_array($goods_package)) {
+			foreach ($goods_package as $value) {
+				$packageids[] = $value['packageid'];
+			}
+		}
+		if (!empty($packageids) && is_array($packageids)) {
+			$sales_packages = pdo_getall('storex_sales_package', array('id' => $packageids, 'status' => 1), array('id', 'title', 'sub_title', 'price', 'thumb', 'express', 'goodsids'));
+			$package_list = pdo_getall('storex_goods_package', array('packageid' => $packageids), array('goodsid', 'packageid'));
+		}
+		if (!empty($package_list) && is_array($package_list)) {
+			foreach ($package_list as $value) {
+				$goodsids[] = $value['goodsid'];
+			}
+			$goodsids = array_unique($goodsids);
+		}
+		$goods_list = pdo_getall('storex_goods', array('id' => $goodsids), array('id', 'title', 'oprice', 'thumb'), 'id');
+		if (!empty($goods_list) && is_array($goods_list)) {
+			foreach ($goods_list as &$goods) {
+				$goods['thumb'] = tomedia($goods['thumb']);
+			}
+		}
+		if (!empty($sales_packages) && is_array($sales_packages)) {
+			foreach ($sales_packages as $key => &$package) {
+				$package['goodsids'] = iunserializer($package['goodsids']);	
+				if (!empty($package['goodsids'])) {
+					foreach ($package['goodsids'] as $key => $goodsid) {
+						if (!empty($goods_list[$goodsid])) {
+							$package['goodsids'][$key] = $goods_list[$goodsid];
+						}
+						
+					}
+				}
+			}
+		}
+		$goods_info['packages'] = $sales_packages;
+	}
 	wmessage(error(0, $goods_info), $share_data, 'ajax');
 }
 

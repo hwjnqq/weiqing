@@ -66,13 +66,20 @@ if ($op == 'post') {
 			'goodsids' => iserializer($_GPC['params']['goodsids']),
 			'status' => 1
 		);
-		$package_info = pdo_get('storex_sales_package', array('id' => $_GPC['id']), array('id'));
+		$package_info = pdo_get('storex_sales_package', array('id' => $id), array('id'));
 		if (empty($package_info)) {
 			$package['uniacid'] = $_W['uniacid'];
 			$package['storeid'] = $storeid;
 			pdo_insert('storex_sales_package', $package);
+			$id = pdo_insertid();
 		} else {
 			pdo_update('storex_sales_package', $package, array('id' => $id));
+		}
+		if (!empty($_GPC['params']['goodsids']) && is_array($_GPC['params']['goodsids'])) {
+			pdo_delete('storex_goods_package', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'packageid' => $id));
+			foreach ($_GPC['params']['goodsids'] as $goodsid) {
+				pdo_insert('storex_goods_package', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'packageid' => $id, 'goodsid' => $goodsid));
+			}
 		}
 		message(error(0, ''), '', 'ajax');
 	}
