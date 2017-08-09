@@ -11,6 +11,12 @@
 			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent_level'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent_level', array('storeid' => $_GPC['storeid']))}">销售员等级管理</a>
 			</div>
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent_log' && $op == 'agent_log'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent_log', array('op' => 'agent_log', 'storeid' => $_GPC['storeid']))}">销售员售出记录</a>
+			</div>
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent_log' && $op == 'apply_log'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent_log', array('op' => 'apply_log', 'storeid' => $_GPC['storeid']))}">销售员提现记录</a>
+			</div>
 		</div>
 		<div class="clearfix">
 			<table class="table table-hover wn-table table-bordered">
@@ -19,6 +25,7 @@
 						<th>真实姓名</th>
 						<th>电话号码</th>
 						<th>支付宝账号</th>
+						<th>总收入(累计)</th>
 						<th>可用余额(元)</th>
 						<th>申请时间</th>
 						<th>状态</th>
@@ -31,7 +38,8 @@
 						<td>{$agent['realname']}</td>
 						<td>{$agent['tel']}</td>
 						<td>{$agent['alipay']}</td>
-						<td>{$agent['realmoney']}</td>
+						<td>{$agent['income']}</td>
+						<td>{$agent['outcome']}</td>
 						<td>{php echo date('Y-m-d H:i:s', $agent['applytime'])}</td>
 						<td>
 							<a class="wn-table__link__item js-verify" data-id="{$agent['id']}">
@@ -45,8 +53,8 @@
 							</a>
 						</td>
 						<td>
-							<a href="{php echo $this->createWebUrl('shop_article', array('op' => 'post', 'id' => $agent['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">查看订单</a>
-							<a href="{php echo $this->createWebUrl('shop_article', array('op' => 'post', 'id' => $agent['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">查看提现申请</a>
+							<a href="{php echo $this->createWebUrl('shop_agent_log', array('op' => 'agent_log', 'id' => $agent['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">查看订单</a>
+							<a href="{php echo $this->createWebUrl('shop_agent_log', array('op' => 'apply_log', 'id' => $agent['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">查看提现申请</a>
 							<a onclick="return confirm('确定删除吗?')" href="{php echo $this->createWebUrl('shop_article', array('op' => 'delete', 'id' => $agent['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">删除</a>
 						</td>
 					</tr>
