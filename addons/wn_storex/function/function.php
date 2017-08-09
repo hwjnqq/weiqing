@@ -132,7 +132,7 @@ function check_params() {
 			),
 			'assign_room' => array(
 				'orderid' => $_GPC['orderid'],
-				'roomid' => $_GPC['roomid'],
+				'roomids' => $_GPC['roomids'],
 			),
 			'goods' => array(),
 			'status' => array(
