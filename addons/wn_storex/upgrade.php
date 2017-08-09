@@ -546,6 +546,29 @@ $sql = "
 	KEY `storeid` (`storeid`)
 	) DEFAULT CHARSET=utf8;
 	
+	CREATE TABLE IF NOT EXISTS `ims_storex_agent_apply` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`uniacid` int(11) DEFAULT '0',
+	`storeid` int(11) DEFAULT '0',
+	`openid` varchar(50) NOT NULL,
+	`uid` int(10) unsigned NOT NULL,
+	`orderids` longtext,
+	`status` tinyint(3) DEFAULT '0' COMMENT '1,待审核，2审核通过，3拒绝',
+	`applytime` int(11) DEFAULT '0',
+	`paytime` int(11) DEFAULT '0',
+	`refusetime` int(11) DEFAULT '0',
+	`realmoney` decimal(10,2) DEFAULT '0.00',
+	`alipay` varchar(50) NOT NULL DEFAULT '',
+	`realname` varchar(50) NOT NULL DEFAULT '',
+	`tel` varchar(20) NOT NULL DEFAULT '',
+	`reason` varchar(50) NOT NULL DEFAULT '' COMMENT '拒绝原因',
+	`level` int(10) unsigned DEFAULT '0' COMMENT '等级',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `storeid` (`storeid`),
+	KEY `status` (`status`)
+	) DEFAULT CHARSET=utf8;
+	
 	CREATE TABLE IF NOT EXISTS `ims_storex_agent_level` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`uniacid` int(11) NOT NULL,
@@ -560,6 +583,7 @@ $sql = "
 	CREATE TABLE IF NOT EXISTS `ims_storex_agent_log` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`uniacid` int(11) NOT NULL,
+	`uid` int(10) NOT NULL,
 	`agentid` int(11) NOT NULL COMMENT '分销员id',
 	`orderid` int(11) NOT NULL COMMENT '订单id',
 	`storeid` int(11) NOT NULL,
@@ -568,6 +592,20 @@ $sql = "
 	`money` decimal(10,2) NOT NULL COMMENT '抽成',
 	`rate` varchar(20) CHARACTER SET utf8mb4 NOT NULL COMMENT '抽成比例百分比',
 	`time` int(11) NOT NULL,
+	PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
+		
+	CREATE TABLE IF NOT EXISTS `ims_storex_agent_apply_log` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`uniacid` int(11) NOT NULL,
+	`uid` int(10) NOT NULL,
+	`ordersn` varchar(30) NOT NULL COMMENT '订单号',
+	`agentid` int(11) NOT NULL,
+	`storeid` int(11) NOT NULL,
+	`money` decimal(10,2) NOT NULL COMMENT '提现金额',
+	`time` int(11) NOT NULL COMMENT '申请时间',
+	`status` tinyint(4) NOT NULL COMMENT '提现状态0未成功1成功',
+	`mngtime` int(11) NOT NULL COMMENT '管理员操作时间',
 	PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
 	
@@ -789,6 +827,31 @@ if (!pdo_fieldexists('storex_member', 'credit_salt')) {
 }
 if (!pdo_fieldexists('storex_member', 'password_lock')) {
 	pdo_query("ALTER TABLE " . tablename('storex_member') . " ADD `password_lock` VARCHAR(24) NOT NULL COMMENT '改密码的依据';");
+}
+
+//评论表增加字段
+if (!pdo_fieldexists('storex_comment', 'type')) {
+	pdo_query("ALTER TABLE " . tablename('storex_comment') . " ADD `type` int(10) unsigned DEFAULT '1' COMMENT '回复类型，1为用户，2为虚拟，3为管理员回复';");
+}
+if (!pdo_fieldexists('storex_comment', 'cid')) {
+	pdo_query("ALTER TABLE " . tablename('storex_comment') . " ADD `cid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '当type为3，管理员回复时评价id';");
+}
+if (!pdo_fieldexists('storex_comment', 'nickname')) {
+	pdo_query("ALTER TABLE " . tablename('storex_comment') . " ADD `nickname` varchar(255) NOT NULL;");
+}
+if (!pdo_fieldexists('storex_comment', 'thumb')) {
+	pdo_query("ALTER TABLE " . tablename('storex_comment') . " ADD `thumb` varchar(64) NOT NULL DEFAULT '';");
+}
+
+$wn_storex_comments = pdo_getall('storex_comment', array('nickname' => '', 'thumb' => ''), array('id', 'uid', 'nickname', 'thumb'));
+if (!empty($wn_storex_comments) && is_array($wn_storex_comments)) {
+	load()->model('mc');
+	foreach ($wn_storex_comments as $comment) {
+		if (!empty($comment['uid'])) {
+			$fans_info = mc_fansinfo($comment['uid']);
+			pdo_update('storex_comment', array('nickname' => $fans_info['nickname'], 'thumb' => $fans_info['avatar']), array('id' => $comment['id']));
+		}
+	}
 }
 
 //店铺表增加字段refund，emails，phones，openids
