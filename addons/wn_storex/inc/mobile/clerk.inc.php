@@ -44,7 +44,8 @@ if ($op == 'order') {
 				if (empty($info['operate'])) {
 					continue;
 				}
-				if (!empty($rooms[$info['hotelid']]) && !empty($rooms[$info['hotelid']][$info['roomid']])) {
+				$info['operate']['is_assign'] = false;
+				if (!empty($rooms[$info['hotelid']]) && !empty($rooms[$info['hotelid']][$info['roomid']]) && $info['paystatus'] == 1 && $info['status'] == 1) {
 					$room_items = $rooms[$info['hotelid']][$info['roomid']];
 					foreach ($room_items as $r => $val) {
 						$show = check_room_assign($info, array($val['id']));
@@ -52,7 +53,9 @@ if ($op == 'order') {
 							unset($room_items[$r]);
 						}
 					}
+					$info['operate']['is_assign'] = true;
 					$info['room_list'] = $room_items;
+					$info['rooms'] = array();
 					if (!empty($info['roomitemid'])) {
 						$room_item = pdo_getall('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $info['hotelid'], 'id' => explode(',', $info['roomitemid'])), array('id', 'roomnumber'));
 						if (!empty($room_item) && is_array($room_item)) {
