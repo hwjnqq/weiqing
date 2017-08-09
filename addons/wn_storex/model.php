@@ -565,6 +565,9 @@ function entry_fetch($storeid, $type, $params) {
 		}
 	} elseif ($type == 'goods_info') {
 		$entry_url = goods_entry_fetch($storeid, $params);
+	} elseif ($type == 'package') {
+		$entry_url = package_entry_fetch($storeid, $params);
+		return $entry_url;
 	} elseif ($type == 'usercenter') {
 		$entry_url = usercenter_entry_fetch($storeid, $params);
 	} elseif ($type == 'storeindex') {
@@ -600,7 +603,11 @@ function entry_fetchall($storeid) {
 		'name' => '商品详情',
 		'group' => goods_entry_fetch($storeid),
 	);
-	
+	$entrys[] = array(
+		'type' => 'package',
+		'name' => '套餐',
+		'group' => package_entry_fetch($storeid)
+	);
 	$usercenter_vue_routes[] = array(
 		'type' => 'usercenter',
 		'name' => '个人中心',
@@ -688,49 +695,62 @@ function usercenter_entry_fetch($storeid, $params = array()) {
 }
 
 function goods_entry_fetch($storeid, $params = array()) {
-	global $_W;
 	$cachekey = "wn_storex:goods_entry:{$storeid}";
 	$goods_entry_routes = cache_load($cachekey);
 	if (empty($goods_entry_routes)) {
 		$storeinfo = pdo_get('storex_bases', array('id' => $storeid), array('store_type'));
 		if ($storeinfo['store_type'] == 1) {
-			$goods_list = pdo_getall('storex_room', array('hotelid' => $storeid, 'is_house !=' => 1, 'status' => 1), array('id', 'title', 'is_house'), 'id');
+			$goodsinfo = pdo_getall('storex_room', array('hotelid' => $storeid, 'is_house !=' => 1, 'status' => 1), array('id', 'title', 'is_house'), 'id');
 		} else {
-			$goods_list = pdo_getall('storex_goods', array('store_base_id' => $storeid, 'status' => 1), array('id', 'title'), 'id');
-			$package_list = pdo_getall('storex_sales_package', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid), array('title', 'sub_title', 'id'), 'id');
+			$goodsinfo = pdo_getall('storex_goods', array('store_base_id' => $storeid, 'status' => 1), array('id', 'title'), 'id');
 		}
 		$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
 		$goods_entry_routes = array();
-		if (!empty($goods_list) && is_array($goods_list)) {
-			foreach ($goods_list as $id => $val) {
-				$goods_entry_routes['goods'][$id] = array(
+		if (!empty($goodsinfo) && is_array($goodsinfo)) {
+			foreach ($goodsinfo as $id => $val) {
+				$goods_entry_routes[$id] = array(
 					'name' => $val['title'],
 					'link' => $url . '#/GoodInfo/buy/' . $storeid . '/' . $id,
 				);
 			}
 		}
-		if (!empty($package_list) && is_array($package_list)) {
-			foreach ($package_list as $id => $value) {
-				$package_entries[$id] = array(
-					'name' => $value['title'] . '-' . $value['sub_title'],
-					'link' => $url . '#/GoodInfo/buy/' . $storeid . '/p' . $id
-				);
-			}
-		}
-		$goods_entry_routes['package'] = $package_entries;
 		cache_write($cachekey, $goods_entry_routes);
 	}
 	$entry_url = '';
 	if (!empty($params['goodsid'])) {
-		$entry_url = $goods_entry_routes['goods'][$params['goodsid']]['link'];
+		$entry_url = $goods_entry_routes[$params['goodsid']]['link'];
 		if (!empty($params['from'])) {
 			$entry_url = $url . '&from=' . $params['from'] . '#/GoodInfo/buy/' . $storeid . '/' . $params['goodsid'];
 		}
 	}
-	if (!empty($params['packageid'])) {
-		$entry_url = $goods_entry_routes['package'][$params['packageid']]['link'];
-	}
 	return !empty($entry_url) ? $entry_url : $goods_entry_routes;
+}
+
+function package_entry_fetch($storeid, $params = array()) {
+	$cachekey = "wn_storex:package_entry:{$storeid}";
+	$package_entry_routes = cache_load($cachekey);
+	if (empty($package_entry_routes)) {
+		$storeinfo = pdo_get('storex_bases', array('id' => $storeid), array('store_type'));
+		if ($storeinfo['store_type'] != 1) {
+			$package_list = pdo_getall('storex_sales_package', array('storeid' => $storeid),array('title', 'sub_title', 'id'), 'id');
+		}
+		$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
+		$package_entry_routes = array();
+		if (!empty($package_list) && is_array($package_list)) {
+			foreach ($package_list as $id => $val) {
+				$package_entry_routes[$id] = array(
+					'name' => $val['title'],
+					'link' => $url . '#/GoodInfo/buy/' . $storeid . '/p' . $id,
+				);
+			}
+		}
+		cache_write($cachekey, $package_entry_routes);
+	}
+	$entry_url = '';
+	if (!empty($params['packageid'])) {
+		$entry_url = $package_entry_routes[$params['packageid']]['link'];
+	}
+	return !empty($entry_url) ? $entry_url : $package_entry_routes;
 }
 
 function category_entry_fetch($storeid, $params = array()) {

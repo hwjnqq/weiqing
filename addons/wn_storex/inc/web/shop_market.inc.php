@@ -6,6 +6,7 @@ $ops = array('new', 'cut', 'gift', 'pickup');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'new';
 
 $storeid = intval($_W['wn_storex']['store_info']['id']);
+$store_info = $_W['wn_storex']['store_info'];
 $market_list = pdo_getall('storex_market', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid), '', 'type');
 if (!empty($market_list) && is_array($market_list)) {
 	foreach ($market_list as $key => &$value) {

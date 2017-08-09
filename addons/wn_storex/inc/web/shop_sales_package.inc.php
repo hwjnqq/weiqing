@@ -8,6 +8,9 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 load()->model('mc');
 $storeid = intval($_GPC['storeid']);
 $store_info = $_W['wn_storex']['store_info'];
+if ($store_info['store_type'] == 1) {
+	message('参数错误', referer(), 'error');
+}
 if ($op == 'display') {
 	$package_list = pdo_getall('storex_sales_package', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid));
 }

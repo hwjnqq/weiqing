@@ -14,9 +14,11 @@
 			<div class="wn-tabs__item {if $op == 'pickup'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_market', array('op' => 'pickup', 'storeid' => $_GPC['storeid']))}">自提活动</a>
 			</div>
+			{if $store_info['store_type'] != 1}
 			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_sales_package'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_sales_package', array('storeid' => $_GPC['storeid']))}">套餐管理</a>
 			</div>
+			{/if}
 		</div>
 		<div class="pull-right">
 			<a href="{php echo $this->createWebUrl('shop_sales_package', array('op' => 'post', 'storeid' => $_GPC['storeid']))}" class="btn btn-primary">+添加套餐</a>				
