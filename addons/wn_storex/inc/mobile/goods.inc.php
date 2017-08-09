@@ -353,7 +353,7 @@ if ($op == 'order') {
 				wmessage(error(-1, '订单购买数量超过最大限制'), '', 'ajax');
 			}
 			if (!empty($orderid)) {
-				$status = check_room_assign($order_info, $order_info['roomitemid']);
+				$status = check_room_assign($order_info, array($order_info['roomitemid']), true);
 				if (empty($status)) {
 					wmessage(error(-1, '续订该房间已被分配了，请联系管理员'), '', 'ajax');
 				}
