@@ -253,21 +253,8 @@ if ($op == 'order') {
 		$order_info['roomid'] = $goodsid;
 		$order_info['mobile'] = $order['mobile'];
 		$order_info['remark'] = $order['remark'];
-		$order_info['nums'] = 1;
+		$order_info['nums'] = intval($_GPC['order']['nums']);
 		$order_info['roomitemid'] = intval($_GPC['roomid']);
-		if (!empty($_GPC['order']['day']) && intval($_GPC['order']['day']) > 0) {
-			$order_info['btime'] = $order['etime'];
-			$order_info['etime'] = $order['etime'] + intval($_GPC['order']['day']) * 86400;
-			$order_info['day'] = intval($_GPC['order']['day']);
-		} else {
-			wmessage(error(-1, '续订天数不能为0'), '', 'ajax');
-		}
-		if (!empty($orderid)) {
-			$status = check_room_assign($order_info, $order_info['roomitemid']);
-			if (empty($status)) {
-				wmessage(error(-1, '续订该房间已被分配了，请联系管理员'), '', 'ajax');
-			}
-		}
 	} else {
 		if (!empty($_GPC['from'])) {
 			$from = json_decode(authcode($_GPC['from'], 'DECODE'), true);
@@ -349,14 +336,12 @@ if ($op == 'order') {
 	$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('template', 'confirm_templateid', 'smscode'));
 	if ($store_info['store_type'] == STORE_TYPE_HOTEL) {
 		if ($goods_info['is_house'] == 1) {
-			if (empty($orderid)) {
-				$order_info['btime'] = strtotime($_GPC['order']['btime']);
-				$order_info['etime'] = strtotime($_GPC['order']['etime']);
-				if (!empty($_GPC['order']['day'])) {
-					$order_info['day'] = intval($_GPC['order']['day']);
-				} else {
-					$order_info['day'] = ceil(($order_info['etime'] - $order_info['btime'])/86400);
-				}
+			$order_info['btime'] = strtotime($_GPC['order']['btime']);
+			$order_info['etime'] = strtotime($_GPC['order']['etime']);
+			if (!empty($_GPC['order']['day'])) {
+				$order_info['day'] = intval($_GPC['order']['day']);
+			} else {
+				$order_info['day'] = ceil(($order_info['etime'] - $order_info['btime'])/86400);
 			}
 			if ($order_info['day'] <= 0) {
 				wmessage(error(-1, '天数不能是零'), '', 'ajax');
@@ -366,6 +351,12 @@ if ($op == 'order') {
 			}
 			if ($max_room < $order_info['nums']) {
 				wmessage(error(-1, '订单购买数量超过最大限制'), '', 'ajax');
+			}
+			if (!empty($orderid)) {
+				$status = check_room_assign($order_info, $order_info['roomitemid']);
+				if (empty($status)) {
+					wmessage(error(-1, '续订该房间已被分配了，请联系管理员'), '', 'ajax');
+				}
 			}
 			$btime = $order_info['btime'];
 			$bdate = date('Y-m-d', $order_info['btime']);
