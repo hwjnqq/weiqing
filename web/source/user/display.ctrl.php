@@ -1,6 +1,6 @@
 <?php
 /**
- * 用户列表
+ * 用户管理
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
@@ -21,11 +21,11 @@ if ($do == 'display') {
 		switch ($type) {
 			case 'check':
 				uni_user_permission_check('system_user_check');
-				$condition['status'] = USER_STATUS_REGISTER;
+				$condition['status'] = USER_STATUS_CHECK;
 				break;
 			case 'recycle':
 				uni_user_permission_check('system_user_recycle');
-				$condition['status'] = USER_STATUS_LOGIC_DEL;
+				$condition['status'] = USER_STATUS_BAN;
 				break;
 			default:
 				uni_user_permission_check('system_user');

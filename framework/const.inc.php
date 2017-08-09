@@ -70,10 +70,6 @@ define('ACCOUNT_MANAGE_NAME_VICE_FOUNDER', 'vice_founder');
 define('ACCOUNT_MANAGE_GROUP_VICE_FOUNDER', 2);
 //普通用户
 define('ACCOUNT_MANAGE_GROUP_GENERAL', 0);
-//用户状态
-define('USER_STATUS_REGISTER', 1);
-define('USER_STATUS_NORMAL', 2);
-define('USER_STATUS_LOGIC_DEL', 3);
 //系统卡券
 define('SYSTEM_COUPON', 1);
 //微信卡券
@@ -154,7 +150,7 @@ define('MATERIAL_WEXIN', 'perm');//微信素材类型
 define('MENU_CURRENTSELF', 1);
 define('MENU_CONDITIONAL', 3);
 
-//会员状态
+//用户状态
 define('USER_STATUS_CHECK', 1);
 define('USER_STATUS_NORMAL', 2);
 define('USER_STATUS_BAN', 3);
