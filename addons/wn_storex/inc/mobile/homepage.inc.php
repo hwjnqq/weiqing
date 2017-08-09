@@ -85,7 +85,11 @@ if ($op == 'notice') {
 	if (!empty($notice_info) && !empty($notice_info['items'])) {
 		$notice_info['items'] = iunserializer($notice_info['items']);
 		if (!empty($notice_info['items'][$noticekey])) {
-			wmessage(error(0, $notice_info['items'][$noticekey]), '', 'ajax');
+			$article = pdo_get('storex_article', array('id' => $notice_info['items'][$noticekey]['id']));
+			if (!empty($article)) {
+				$article['thumb'] = tomedia($article['thumb']);
+			}
+			wmessage(error(0, $article), '', 'ajax');
 		}
 	}
 	wmessage(error(0, array()), '', 'ajax');

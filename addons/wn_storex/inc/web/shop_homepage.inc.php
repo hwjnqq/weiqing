@@ -2,7 +2,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('display', 'post', 'search_goods', 'link');
+$ops = array('display', 'post', 'search_goods', 'link', 'article');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $storeid = intval($_W['wn_storex']['store_info']['id']);
@@ -57,6 +57,7 @@ if ($op == 'display') {
 					unset($recommend_info['items'][$key]);
 				}
 			}
+			unset($value);
 		}
 		if (!empty($recommend_key)) {
 			$homepage_list[$recommend_key] = $recommend_info;
@@ -79,16 +80,6 @@ if ($op == 'post') {
 							unset($value['items'][$k]['cprice'], $value['items'][$k]['thumb'], $value['items'][$k]['title'], $value['items'][$k]['id']);
 							$value['items'][$k] = $id;
 						}
-					}
-				}
-				if ($value['type'] == 'notice') {
-					if (!empty($value['items'])) {
-						foreach ($value['items'] as &$v) {
-							if (!empty($v['value'])) {
-								$v['value'] = htmlspecialchars_decode($v['value']);
-							}
-						}
-						unset($v);
 					}
 				}
 				$insert = array(
@@ -137,6 +128,32 @@ if ($op == 'link') {
 	if ($_W['ispost'] && $_W['isajax']) {
 		$entries = entry_fetchall($storeid);
 		message(error(0, $entries), '', 'ajax');
+	}
+}
+
+if ($op == 'article') {
+	if ($_W['ispost'] && $_W['isajax']) {
+		$article_list = pdo_getall('storex_article', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid), array('id', 'title', 'pcate'));
+		$category_list = pdo_getall('storex_article_category', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid), array('id', 'title'), 'id');
+		if (!empty($article_list) && is_array($article_list)) {
+			foreach ($article_list as $article) {
+				if (!empty($category_list[$article['pcate']])) {
+					$article['category_title'] = $category_list[$article['pcate']]['title'];
+				}
+			}
+			unset($article);
+		}
+		if (!empty($article_list) && is_array($article_list)) {
+			foreach ($article_list as $article) {
+				if (!empty($category_list[$article['pcate']])) {
+					$category_list[$article['pcate']]['article_list'][] = $article;
+				} else {
+
+				}
+			}
+		}
+		$article_list = array_values($category_list);
+		message(error(0, $article_list), '', 'ajax');
 	}
 }
 

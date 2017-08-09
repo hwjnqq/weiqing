@@ -43,9 +43,13 @@ $sql = "
 	`comment` varchar(255) DEFAULT '',
 	`goodsid` int(11) NOT NULL COMMENT '评论商品的id',
 	`comment_level` tinyint(11) NOT NULL COMMENT '评论商品的级别',
+	`type` int(10) unsigned DEFAULT '1' COMMENT '回复类型，1为用户，2为虚拟，3为管理员回复',
+	`cid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '当type为3，管理员回复时评价id',
+	`nickname` varchar(255) NOT NULL,
+	`thumb` varchar(64) NOT NULL DEFAULT '',
 	PRIMARY KEY (`id`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
+		
 	CREATE TABLE IF NOT EXISTS `ims_storex_comment_clerk` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`uniacid` int(11) DEFAULT '0',
@@ -918,6 +922,7 @@ $sql = "
 	CREATE TABLE IF NOT EXISTS `ims_storex_agent_log` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`uniacid` int(11) NOT NULL,
+	`uid` int(10) NOT NULL,
 	`agentid` int(11) NOT NULL COMMENT '分销员id',
 	`orderid` int(11) NOT NULL COMMENT '订单id',
 	`storeid` int(11) NOT NULL,
@@ -929,6 +934,19 @@ $sql = "
 	PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
 		
+	CREATE TABLE IF NOT EXISTS `ims_storex_agent_apply_log` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`uniacid` int(11) NOT NULL,
+	`uid` int(10) NOT NULL,
+	`ordersn` varchar(30) NOT NULL COMMENT '订单号',
+	`agentid` int(11) NOT NULL,
+	`storeid` int(11) NOT NULL,
+	`money` decimal(10,2) NOT NULL COMMENT '提现金额',
+	`time` int(11) NOT NULL COMMENT '申请时间',
+	`status` tinyint(4) NOT NULL COMMENT '提现状态0未成功1成功',
+	`mngtime` int(11) NOT NULL COMMENT '管理员操作时间',
+	PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
 ";
 
 pdo_run($sql);

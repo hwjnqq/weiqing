@@ -165,7 +165,13 @@
 										<div class="help-block">设置{{typeValue[openModules[editModuleIndex]['type']]}}标题</div>
 									</div>
 									<div class="form-group">
-										<textarea v-model="editValue.value" ref="ueditor" id="ueditor"></textarea>
+										<div class="input-group">
+											<input type="text" class="form-control" v-model.trim="editValue.article_title" placeholder="" readonly>
+											<span class="input-group-btn">
+												<button class="btn btn-default" type="button" ref="modal" data-toggle="modal" data-target="#article"><i class="fa fa-plus-circle green"></i>&nbsp;选择文章</button>
+											</span>
+										</div>
+										<div class="help-block">设置点击公告后显示的文章</div>
 									</div>
 									<div class="form-group">
 										<a @click="hideEdit" class="btn btn-default">取消</a>
@@ -282,6 +288,31 @@
 					</div>
 				</div>
 			</div>
+			<div class="modal fade" tabindex="-1" role="dialog" id="article">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<h4 class="modal-title">文章列表</h4>
+						</div>
+						<div class="modal-body">
+							<div class="link-browser wn-home__link">
+								<template v-for="article in articleList">
+									<div class="page-header">
+										<h4><i class="fa fa-folder-open-o"></i> {{article.title}}</h4>
+									</div>
+									<div v-if="article.article_list" v-for="item in article.article_list" class="link">
+										<div class="btn btn-default" @click="addArticle(editValue, item.id, item.title)">{{item.title}}</div>
+									</div>
+									<div v-if="!article.article_list" class="link">
+										<div>此分类暂无文章</div>
+									</div>
+								</template>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 			<nav class="navbar navbar-default navbar-fixed-bottom wn-home__navbar">
 				<div class="btn btn-primary" @click="submitModules">提交</div>
 			</nav>
@@ -330,6 +361,7 @@
 				goodsParams: '',
 				goodsList: [],
 				linkGroup: [],
+				articleList: [],
 				ueditor: null
 			},
 			methods: {
@@ -394,34 +426,18 @@
 					this.showEdit = true;
 					this.editValue = {
 						title: '',
-						value: ''
+						article_title: '',
+						id: ''
 					};
-					this.showUeditor()
-				},
-				showUeditor: function () {
-					const self = this;
-					this.$nextTick(function () {
-						this.$refs.ueditor.id = Math.random().toString(36).substr(2) + 'ueditorId';
-						util.editor(this.$refs.ueditor.id, {
-							height : 200,
-							dest_dir : '',
-							image_limit : 4096000,
-							allow_upload_video : true,
-							audio_limit : 5120000,
-							callback : function (elm, ue) {
-								self.$set(self, 'ueditor', ue)
-							}
-						});
-					})
 				},
 				editNotice: function (index) {
 					this.showEdit = true;
 					this.editValue = {
 						title: this.openModules[this.editModuleIndex]['items'][index]['title'],
-						value: this.openModules[this.editModuleIndex]['items'][index]['value']
+						id: this.openModules[this.editModuleIndex]['items'][index]['id'],
+						article_title: this.openModules[this.editModuleIndex]['items'][index]['article_title'],
 					};
 					this.editIndex = index;
-					this.showUeditor()
 				},
 				hideEdit: function () {
 					this.showEdit = false;
@@ -461,11 +477,18 @@
 						});
 					});
 				},
-				addLink: function (target, url) {
+				addLink: function(target, url) {
 					this.$set(target, 'url', url);
-					this.$nextTick(function () {
-						$('#link').modal('hide')
+					this.$nextTick(function() {
+						$('#link').modal('hide');
 					})
+				},
+				addArticle: function(target, id, article_title) {
+					this.$set(target, 'id', id);
+					this.$set(target, 'article_title', article_title);
+					this.$nextTick(function() {
+						$('#article').modal('hide');
+					});
 				},
 				searchGoods: function () {
 					const self = this;
@@ -495,6 +518,8 @@
 				submitModules: function () {
 					$.post("{php echo $this->createWebUrl('shop_homepage', array('op' => 'post', 'storeid' => $_GPC['storeid']))}", {params: this.openModules}, function (data) {
 						data = $.parseJSON(data);
+						console.dir(data);
+						return;
 						if (data.message.errno != 0) {
 							util.message(data.message.message, '', 'error');
 						} else {
@@ -522,13 +547,23 @@
 				this.$nextTick(function () {
 					$(this.$refs.tooltip).tooltip();
 					$(this.$refs.modal).modal();
-					$('#link').on('show.bs.modal', function (event) {
+					$('#link').on('show.bs.modal', function(event) {
 						$.post("{php echo $this->createWebUrl('shop_homepage', array('op' => 'link', 'storeid' => $_GPC['storeid']))}", {params: this.openModules}, function (data) {
 							data = $.parseJSON(data);
 							if (data.message.errno != 0) {
 								util.message(data.message.message, '', 'error');
 							} else {
 								self.linkGroup = data.message.message;
+							}
+						});
+					});
+					$('#article').on('show.bs.modal', function(event) {
+						$.post("{php echo $this->createWebUrl('shop_homepage', array('op' => 'article', 'storeid' => $_GPC['storeid']))}", {params: this.openModules}, function (data) {
+							data = $.parseJSON(data);
+							if (data.message.errno != 0) {
+								util.message(data.message.message, '', 'error');
+							} else {
+								self.articleList = data.message.message;
 							}
 						});
 					})
