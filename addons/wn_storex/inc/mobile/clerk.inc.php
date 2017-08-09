@@ -483,7 +483,7 @@ if ($op == 'edit_room') {
 
 if ($op == 'assign_room') {
 	$orderid = intval($_GPC['orderid']);
-	$roomids= $_GPC['roomids'];
+	$roomids= explode(',', $_GPC['roomids']);
 	$order = pdo_get('storex_order', array('id' => $orderid));
 	if (empty($order)) {
 		wmessage(error(-1, '订单信息错误'), '', 'ajax');
