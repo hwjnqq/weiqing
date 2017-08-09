@@ -124,12 +124,12 @@ if ($op == 'goods_info') {
 						if (!empty($goods_list[$goodsid])) {
 							$package['goodsids'][$key] = $goods_list[$goodsid];
 						}
-						
 					}
 				}
 			}
 			unset($package);
 		}
+		$goods_info['is_package'] = !empty($sales_packages) ? 1 : 2;
 		$goods_info['packages'] = $sales_packages;
 	}
 	wmessage(error(0, $goods_info), $share_data, 'ajax');

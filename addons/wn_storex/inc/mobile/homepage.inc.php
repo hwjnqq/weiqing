@@ -88,6 +88,8 @@ if ($op == 'notice') {
 			$article = pdo_get('storex_article', array('id' => $notice_info['items'][$noticekey]['id']));
 			if (!empty($article)) {
 				$article['thumb'] = tomedia($article['thumb']);
+			} else {
+				$article = array();
 			}
 			wmessage(error(0, $article), '', 'ajax');
 		}
