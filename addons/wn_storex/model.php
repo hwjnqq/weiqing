@@ -688,35 +688,47 @@ function usercenter_entry_fetch($storeid, $params = array()) {
 }
 
 function goods_entry_fetch($storeid, $params = array()) {
-	global $_GPC;
+	global $_W;
 	$cachekey = "wn_storex:goods_entry:{$storeid}";
 	$goods_entry_routes = cache_load($cachekey);
 	if (empty($goods_entry_routes)) {
 		$storeinfo = pdo_get('storex_bases', array('id' => $storeid), array('store_type'));
 		if ($storeinfo['store_type'] == 1) {
-			$goodsinfo = pdo_getall('storex_room', array('hotelid' => $storeid, 'is_house !=' => 1, 'status' => 1), array('id', 'title', 'is_house'), 'id');
+			$goods_list = pdo_getall('storex_room', array('hotelid' => $storeid, 'is_house !=' => 1, 'status' => 1), array('id', 'title', 'is_house'), 'id');
 		} else {
-			$goodsinfo = pdo_getall('storex_goods', array('store_base_id' => $storeid, 'status' => 1), array('id', 'title'), 'id');
+			$goods_list = pdo_getall('storex_goods', array('store_base_id' => $storeid, 'status' => 1), array('id', 'title'), 'id');
+			$package_list = pdo_getall('storex_sales_package', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid), array('title', 'sub_title', 'id'), 'id');
 		}
 		$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
 		$goods_entry_routes = array();
-		if (!empty($goodsinfo) && is_array($goodsinfo)) {
-			foreach ($goodsinfo as $id => $val) {
-				$goods_entry_routes[$id] = array(
+		if (!empty($goods_list) && is_array($goods_list)) {
+			foreach ($goods_list as $id => $val) {
+				$goods_entry_routes['goods'][$id] = array(
 					'name' => $val['title'],
 					'link' => $url . '#/GoodInfo/buy/' . $storeid . '/' . $id,
 				);
 			}
 		}
+		if (!empty($package_list) && is_array($package_list)) {
+			foreach ($package_list as $id => $value) {
+				$package_entries[$id] = array(
+					'name' => $value['title'] . '-' . $value['sub_title'],
+					'link' => $url . '#/GoodInfo/buy/' . $storeid . '/p' . $id
+				);
+			}
+		}
+		$goods_entry_routes['package'] = $package_entries;
 		cache_write($cachekey, $goods_entry_routes);
 	}
 	$entry_url = '';
 	if (!empty($params['goodsid'])) {
-		$entry_url = $goods_entry_routes[$params['goodsid']]['link'];
-		if (!empty($_GPC['from'])) {
-			$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
-			$entry_url = $url .'&from=' . $_GPC['from'] . '#/GoodInfo/buy/' . $storeid . '/' . $params['goodsid'];
+		$entry_url = $goods_entry_routes['goods'][$params['goodsid']]['link'];
+		if (!empty($params['from'])) {
+			$entry_url = $url . '&from=' . $params['from'] . '#/GoodInfo/buy/' . $storeid . '/' . $params['goodsid'];
 		}
+	}
+	if (!empty($params['packageid'])) {
+		$entry_url = $goods_entry_routes['package'][$params['packageid']]['link'];
 	}
 	return !empty($entry_url) ? $entry_url : $goods_entry_routes;
 }

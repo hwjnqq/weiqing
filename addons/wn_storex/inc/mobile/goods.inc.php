@@ -114,6 +114,7 @@ if ($op == 'goods_info') {
 			foreach ($goods_list as &$goods) {
 				$goods['thumb'] = tomedia($goods['thumb']);
 			}
+			unset($goods);
 		}
 		if (!empty($sales_packages) && is_array($sales_packages)) {
 			foreach ($sales_packages as $key => &$package) {
@@ -127,6 +128,7 @@ if ($op == 'goods_info') {
 					}
 				}
 			}
+			unset($package);
 		}
 		$goods_info['packages'] = $sales_packages;
 	}
