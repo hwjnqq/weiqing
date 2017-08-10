@@ -416,7 +416,7 @@ function buildframes($framename = ''){
 				foreach($row as $li) {
 					$frames['account']['section']['platform_module_menu']['menu']['platform_module_menu'.$row['eid']] = array(
 						'title' => "<i class='wi wi-appsetting'></i> {$row['title']}",
-						'url' => url('site/entry/', array('eid' => $row['eid'], 'version_id' => $version_id)),
+						'url' => $row['url'] . '&version_id=' . $version_id,
 						'is_display' => 1,
 					);
 				}

@@ -82,6 +82,9 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 			}
 			$result = pdo_update('users', array('owner_uid' => $owner_uid), array('uid' => $uid));
 			break;
+		case 'remark':
+			$result = pdo_update('users', array('remark' => trim($_GPC['remark'])), array('uid' => $uid));
+			break;
 		case 'password':
 			if ($_GPC['newpwd'] !== $_GPC['renewpwd']) iajax(2, '两次密码不一致！', '');
 			if (!$_W['isfounder']) {
@@ -153,25 +156,12 @@ if ($do == 'base') {
 		itoast('抱歉，用户不存在或是已经被删除！', url('user/profile'), 'error');
 	}
 	$user['last_visit'] = date('Y-m-d H:i:s', $user['lastvisit']);
+	$user['joindate'] = date('Y-m-d H:i:s', $user['joindate']);
 	$user['url'] = user_invite_register_url($_W['uid']);
 
 	$profile = pdo_get('users_profile', array('uid' => $_W['uid']));
-	if (!empty($profile)) {
-		$profile['reside'] = array(
-			'province' => $profile['resideprovince'],
-			'city' => $profile['residecity'],
-			'district' => $profile['residedist']
-		);
-		$profile['birth'] = array(
-			'year' => $profile['birthyear'],
-			'month' => $profile['birthmonth'],
-			'day' => $profile['birthday'],
-		);
-		$profile['avatar'] = tomedia($profile['avatar']);
-		$profile['resides'] = $profile['resideprovince'] .' '. $profile['residecity'] .' '. $profile['residedist'] ;
 
-		$profile['births'] = ($profile['birthyear'] ? $profile['birthyear'] : '--') . '年' . ($profile['birthmonth'] ? $profile['birthmonth'] : '--') . '月' . ($profile['birthday'] ? $profile['birthday'] : '--') .'日';
-	}
+	$profile = user_detail_formate($profile);
 
 	//应用模版权限
 	$groups = user_group();

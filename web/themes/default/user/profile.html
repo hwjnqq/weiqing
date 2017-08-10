@@ -151,6 +151,16 @@
 					<td ng-bind="user.lastip"></td>
 					<td></td>
 				</tr>
+				<tr>
+					<td class="table-label">注册时间</td>
+					<td ng-bind="user.joindate"></td>
+					<td></td>
+				</tr>
+				<tr>
+					<td class="table-label">备注</td>
+					<td ng-bind="user.remark"></td>
+					<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#remark" ng-click="editInfo('remark', user.remark)">修改</a></div></td>
+				</tr>
 			</table>
 			<div class="modal fade" id="realname" role="dialog">
 				<div class="we7-modal-dialog modal-dialog">
@@ -245,6 +255,26 @@
 						</div>
 						<div class="modal-footer">
 							<button type="button" class="btn btn-primary" ng-click="httpChange('qq')">确定</button>
+							<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal fade" id="remark" role="dialog">
+				<div class="we7-modal-dialog modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+							<div class="modal-title">修改备注</div>
+						</div>
+						<div class="modal-body">
+							<div class="form-group">
+								<input type="text" ng-model="userOriginal.remark" class="form-control" placeholder="备注" />
+								<span class="help-block"></span>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-primary" ng-click="httpChange('remark')" ng-click="editInfo('remark', user.remark)">确定</button>
 							<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
 						</div>
 					</div>

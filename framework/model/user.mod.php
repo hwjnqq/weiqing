@@ -881,3 +881,27 @@ function user_list($condition = array(), $paper = array()) {
 		'total' => $total,
 	);
 }
+
+/**
+ * 用户详情信息格式化
+ * @param $profile
+ * @return mixed
+ */
+function user_detail_formate($profile) {
+	if (!empty($profile)) {
+		$profile['reside'] = array(
+			'province' => $profile['resideprovince'],
+			'city' => $profile['residecity'],
+			'district' => $profile['residedist']
+		);
+		$profile['birth'] = array(
+			'year' => $profile['birthyear'],
+			'month' => $profile['birthmonth'],
+			'day' => $profile['birthday'],
+		);
+		$profile['avatar'] = tomedia($profile['avatar']);
+		$profile['resides'] = $profile['resideprovince'] . $profile['residecity'] . $profile['residedist'] ;
+		$profile['births'] =($profile['birthyear'] ? $profile['birthyear'] : '--') . '年' . ($profile['birthmonth'] ? $profile['birthmonth'] : '--') . '月' . ($profile['birthday'] ? $profile['birthday'] : '--') .'日';
+	}
+	return $profile;
+}

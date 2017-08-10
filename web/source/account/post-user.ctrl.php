@@ -135,7 +135,7 @@ if ($do == 'edit') {
 			}
 		} else {
 			//{$username} 已经是该公众号的操作员或管理员，请勿重复添加
-			iajax(2, $username.'已经是该公众号的操作员或管理员，请勿重复添加！', '');
+			iajax(2, $username.'已经是该公众号的店员或操作员或管理员，请勿重复添加！', '');
 		}
 	} else  {
 		iajax(-1, '参数错误，请刷新重试！', '');
@@ -151,7 +151,7 @@ if ($do == 'edit') {
 	if (empty($role)) {
 		itoast('此用户没有操作该统一公众号的权限，请选指派“管理员”或是“操作员”权限！', '', '');
 	}
-	
+
 	if ($account['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $account['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
 		//获取系统权限
 		$user_menu_permission_account = uni_user_menu_permission($uid, $uniacid, PERMISSION_ACCOUNT);

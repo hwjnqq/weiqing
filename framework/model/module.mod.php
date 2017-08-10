@@ -66,6 +66,8 @@ function module_types() {
  * @return array
  */
 function module_entries($name, $types = array(), $rid = 0, $args = null) {
+	load()->func('communication');
+	
 	global $_W;
 	$ts = array('rule', 'cover', 'menu', 'home', 'profile', 'shortcut', 'function', 'mine');
 	if(empty($types)) {
@@ -77,24 +79,19 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 	$entries = array();
 	foreach($bindings as $bind) {
 		if(!empty($bind['call'])) {
-			$extra = array();
-			$extra['Host'] = $_SERVER['HTTP_HOST'];
-			load()->func('communication');
-			$urlset = parse_url($_W['siteurl']);
-			$urlset = pathinfo($urlset['path']);
-			$response = ihttp_request($_W['sitescheme'] . '127.0.0.1/'. $urlset['dirname'] . '/' . url('utility/bindcall', array('modulename' => $bind['module'], 'callname' => $bind['call'], 'args' => $args, 'uniacid' => $_W['uniacid'])), array(), $extra);
+			$response = ihttp_request(url('utility/bindcall', array('modulename' => $bind['module'], 'callname' => $bind['call'], 'args' => $args, 'uniacid' => $_W['uniacid'])), array(), $extra);
 			if (is_error($response)) {
 				continue;
 			}
 			$response = json_decode($response['content'], true);
 			$ret = $response['message']['message'];
 			if(is_array($ret)) {
-				foreach($ret as $et) {
+				foreach($ret as $i => $et) {
 					if (empty($et['url'])) {
 						continue;
 					}
 					$et['url'] = $et['url'] . '&__title=' . urlencode($et['title']);
-					$entries[$bind['entry']][] = array('title' => $et['title'], 'do' => $et['do'], 'url' => $et['url'], 'from' => 'call', 'icon' => $et['icon'], 'displayorder' => $et['displayorder']);
+					$entries[$bind['entry']][] = array('eid' => 'user_' . $i, 'title' => $et['title'], 'do' => $et['do'], 'url' => $et['url'], 'from' => 'call', 'icon' => $et['icon'], 'displayorder' => $et['displayorder']);
 				}
 			}
 		} else {
