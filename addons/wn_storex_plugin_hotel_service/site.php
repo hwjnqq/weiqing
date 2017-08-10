@@ -168,7 +168,7 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 	public function doMobileHotelservice() {
 		global $_W, $_GPC;
 
-		$ops = array('wifi_info', 'hotel_info', 'room_service', 'display', 'continue_order', 'foods_list', 'order_food', 'order_list', 'order_cancel', 'order_food_detail', 'orderpay');
+		$ops = array('wifi_info', 'hotel_info', 'room_service', 'display', 'continue_order', 'foods_list', 'order_food', 'order_list', 'order_cancel', 'order_food_detail', 'orderpay', 'room_goods');
 		$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 		if ($op == 'display') {
@@ -437,6 +437,11 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 			}
 		}
 		
+		if ($op == 'room_goods') {
+			$storeid = intval($_GPC['storeid']);
+			$room_goods = pdo_getall('storex_plugin_room_goods', array('storeid' => $storeid, 'status' => 1));
+			message(error(0, $room_goods), '', 'ajax');
+		}
 	}
 	
 	public function payResult($params) {
