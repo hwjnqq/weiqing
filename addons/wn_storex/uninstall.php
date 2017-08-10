@@ -47,6 +47,7 @@ $wn_storex_table = array(
 	'storex_agent_apply_log',
 	'storex_room_assign',
 	'storex_sales_package',
+	'storex_tags',
 );
 foreach ($wn_storex_table as $table){
 	if(pdo_tableexists($table)){
