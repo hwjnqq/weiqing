@@ -608,6 +608,33 @@ $sql = "
 	`mngtime` int(11) NOT NULL COMMENT '管理员操作时间',
 	PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_sales_package` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`storeid` int(11) DEFAULT '0',
+	`uniacid` int(11) DEFAULT '0',
+	`title` varchar(255) DEFAULT '',
+	`sub_title` varchar(12) NOT NULL COMMENT '副标题',
+	`thumb` varchar(255) DEFAULT '',
+	`price` decimal(10,2) DEFAULT '0.00',
+	`express` decimal(10,2) DEFAULT '0.00',
+	`goodsids` varchar(1000) DEFAULT '',
+	`status` int(11) DEFAULT '0',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `storeid` (`storeid`)
+	) DEFAULT CHARSET=utf8;
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_goods_package` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`packageid` int(11) DEFAULT '0',
+	`storeid` int(11) DEFAULT '0',
+	`uniacid` int(11) DEFAULT '0',
+	`goodsid` int(11) DEFAULT '0',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `storeid` (`storeid`)
+	) DEFAULT CHARSET=utf8;
 	
 ";
 pdo_run($sql);
@@ -886,7 +913,9 @@ if (!pdo_fieldexists('storex_order', 'agentid')) {
 if (!pdo_fieldexists('storex_goods', 'agent_ratio')) {
 	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `agent_ratio` VARCHAR(300) NOT NULL COMMENT '分销比例';");
 }
-
+if (!pdo_fieldexists('storex_order', 'is_package')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `is_package` TINYINT(3) UNSIGNED NOT NULL DEFAULT '1' COMMENT '是否为套餐，1是普通商品，2是套餐';");
+}
 load()->model('module');
 $wn_storex_module = module_fetch('wn_storex');
 if (ver_compare('1.4.7', $wn_storex_module['version']) == 1) {
@@ -937,6 +966,25 @@ if (!empty($trades_shipping) && is_array($trades_shipping)) {
 	foreach ($trades_shipping as $val) {
 		if (empty($val['num'])) {
 			pdo_update('storex_activity_exchange_trades_shipping', array('num' => 1), array('tid' => $val['tid']));
+		}
+	}
+}
+
+//首页设置选择文章修改
+
+$storex_homepage = pdo_getall('storex_homepage', array('type' => 'notice'), array('id', 'items'));
+if (!empty($storex_homepage) && is_array($storex_homepage)) {
+	foreach ($storex_homepage as $homepage) {
+		if (!empty($homepage['items'])) {
+			$homepage['items'] = iunserializer($homepage['items']);
+			if (!empty($homepage['items']) && is_array($homepage['items'])) {
+				foreach ($homepage['items'] as $info) {
+					if (!empty($info['value'])) {
+						pdo_update('storex_homepage', array('items' => ''), array('id' => $homepage['id']));
+						continue;
+					}
+				}
+			}
 		}
 	}
 }

@@ -131,6 +131,7 @@ $sql = "
 	`newuser` int(4) NOT NULL COMMENT '0未使用新用户活动，1已使用',
 	`market_types` varchar(48) NOT NULL COMMENT '订单使用店铺内活动的类型',
 	`agentid` int(11) NOT NULL COMMENT '销售员id',
+	`is_package` tinyint(3) unsigned NOT NULL DEFAULT '1' COMMENT '是否为套餐，1是普通商品，2是套餐',
 	PRIMARY KEY (`id`),
 	KEY `indx_hotelid` (`hotelid`),
 	KEY `indx_weid` (`weid`),
@@ -946,6 +947,17 @@ $sql = "
 	`status` tinyint(4) NOT NULL COMMENT '提现状态0未成功1成功',
 	`mngtime` int(11) NOT NULL COMMENT '管理员操作时间',
 	PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_goods_package` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`packageid` int(11) DEFAULT '0',
+	`storeid` int(11) DEFAULT '0',
+	`uniacid` int(11) DEFAULT '0',
+	`goodsid` int(11) DEFAULT '0',
+	PRIMARY KEY (`id`),
+	KEY `uniacid` (`uniacid`),
+	KEY `storeid` (`storeid`)
 	) DEFAULT CHARSET=utf8;
 ";
 
