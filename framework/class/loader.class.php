@@ -22,6 +22,7 @@ function load() {
 class Loader {
 	
 	private $cache = array();
+	private $singletonObject = array();
 	
 	function func($name) {
 		global $_W;
@@ -122,6 +123,31 @@ EOF;
 			
 			
 			exit;
+		}
+	}
+	
+	/**
+	 * 获取一个模型对象或是工具类单例对象
+	 * @param unknown $name
+	 */
+	function singleton($name) {
+		if (isset($this->singletonObject[$name])) {
+			return $this->singletonObject[$name];
+		}
+		$this->singletonObject[$name] = $this->object($name);
+		return $this->singletonObject[$name];
+	}
+	
+	/**
+	 * 获取一个类对象
+	 * @param unknown $name
+	 */
+	function object($name) {
+		$this->classs(strtolower($name));
+		if (class_exists($name)) {
+			return new $name();
+		} else {
+			return false;
 		}
 	}
 }

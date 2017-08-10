@@ -10,9 +10,12 @@ defined('IN_IA') or exit('Access Denied');
  * @method Query groupby($field)
  * @method Query having($condition, $parameters = array())
  * @method Query where($condition, $parameters = array())
+ * @method Query whereor($condition, $parameters = array())
  * @method Query leftjoin($tablename, $alias = '')
  * @method Query innerjoin($tablename, $alias = '')
  * @method Query orderby($field, $direction = 'ASC')
+ * @method Query limit(start, size) 附加一个limit选项
+ * @method Query page(pageindex, pagesize) 根据分页获取数据
  *
  */
 class Query {
@@ -26,12 +29,10 @@ class Query {
 	private $mainTable = '';
 	//主表别名
 	private $currentTableAlias = '';
-	private $limitQueryTotal = 0;
 	private $error = array();
 	private $lastsql = '';
 	
-	public function __construct($db) {
-		$this->db = $db;
+	public function __construct() {
 		$this->initClauses();
 	}
 	
@@ -48,14 +49,17 @@ class Query {
 			'ON' => array(),
 			'SET' => '',
 			'WHERE' => array(),
+			'WHEREOR' => array(),
 			'GROUPBY' => array(),
 			'HAVING' => array(),
 			'ORDERBY' => array(),
 			'LIMIT' => '',
+			'PAGE' => '',
 		);
 		foreach ($this->clauses as $clause => $value) {
 			$this->statements[$clause] = $value;
 		}
+		$this->parameters = array();
 	}
 	
 	private function resetClause($clause = '') {
@@ -71,7 +75,12 @@ class Query {
 		return $this;
 	}
 	
-
+	/**
+	 * 添加表达式的值
+	 * @param string $clause 要添加的SQL关键字表达式 WHERE, SELECT等
+	 * @param <string|array> $statement 表达式的内容 ，例如： *
+	 * @param array $parameters 如果是WHERE 条件需要传入相应的值
+	 */
 	private function addStatement($clause, $statement, $parameters = array()) {
 		if ($statement === null) {
 			return $this->resetClause($clause);
@@ -97,8 +106,8 @@ class Query {
 	public function __call($clause, $statement = array()) {
 		$origin_clause = $clause;
 		$clause = strtoupper($clause);
-		
-		if ($clause == 'WHERE' || $clause == 'HAVING') {
+
+		if ($clause == 'WHERE' || $clause == 'HAVING' || $clause == 'WHEREOR') {
 			array_unshift($statement, $clause);
 			return call_user_func_array(array($this, 'condition'), $statement);
 		}
@@ -125,7 +134,7 @@ class Query {
 		$this->currentTableAlias = $alias;
 		
 		$this->statements['FROM'] = $this->mainTable;
-		$this->statements['SELECT'][] = '*';
+		$this->statements['SELECT'] = '*';
 		
 		return $this;
 	}
@@ -166,6 +175,7 @@ class Query {
 		if (empty($field)) {
 			return $this;
 		}
+		
 		//去掉默认的select * 
 		if (count($this->statements['SELECT']) == 1) {
 			$this->resetClause('SELECT');
@@ -179,16 +189,17 @@ class Query {
 	 * 			条件与Pdo_get中相同
 	 * @param array $parameters
 	 */
-	private function condition($operator, $condition, $parameters = array(), $glue = 'AND') {
+	private function condition($operator, $condition, $parameters = array()) {
 		if ($condition === null) {
 			return $this->resetClause('WHERE');
 		}
 		if (empty($condition)) {
 			return $this;
 		}
+		
 		if (is_array($condition)) {
 			foreach ($condition as $key => $val) {
-				$this->condition($key, $val);
+				$this->condition($operator, $key, $val);
 			}
 			return $this;
 		}
@@ -231,7 +242,14 @@ class Query {
 	 * 一般用于获取分页后总记录条数
 	 */
 	public function lastcount() {
+		$lastquery = $this->getlastsql();
 		
+		//替换SELECT XX 为 SELECT COUNT(*)
+		$countsql = str_replace(substr($lastquery[0], 0, strpos($lastquery[0], 'FROM')), 'SELECT COUNT(*) ', $lastquery[0]);
+		//删除掉Limit
+		$countsql = substr($countsql, 0, strpos($countsql, 'LIMIT'));
+		$result = pdo_fetchcolumn($this->lastsql, $this->parameters, $keyfield);
+		return $result;
 	}
 	
 	public function count() {
@@ -255,8 +273,6 @@ class Query {
 				}
 			}
 		}
-		print_r($query);
-		print_r($this->statements);exit;
 		return trim($query);
 	}
 	
@@ -264,6 +280,19 @@ class Query {
 		$where = \SqlPaser::parseParameter($this->statements['WHERE'], 'AND', $this->currentTableAlias);
 		$this->parameters = array_merge($this->parameters, $where['params']);
 		return empty($where['fields']) ? '' : " WHERE {$where['fields']} ";
+	}
+	
+	private function buildQueryWhereor() {
+		$where = \SqlPaser::parseParameter($this->statements['WHEREOR'], 'OR', $this->currentTableAlias);
+		$this->parameters = array_merge($this->parameters, $where['params']);
+		if (empty($where['fields'])) {
+			return '';
+		}
+		if (empty($this->statements['WHERE'])) {
+			return " WHERE {$where['fields']} ";
+		} else {
+			return " OR {$where['fields']} ";
+		}
 	}
 	
 	private function buildQueryHaving() {
@@ -300,9 +329,11 @@ class Query {
 				$sql .= " ON ";
 				$split = "";
 				foreach ($this->statements['ON'][$tablename] as $field => $condition) {
-					list($field, $operator) = explode(' ', $field);
+					$operator = '';
+					if (strexists($field, ' ')) {
+						list($field, $operator) = explode(' ', $field);
+					}
 					$operator = $operator ? $operator : '=';
-						
 					$field = '`' . str_replace('.', '`.`', $field) . '`';
 					if (strexists($condition, '.')) {
 						$condition = '`' . str_replace('.', '`.`', $condition) . '`';
@@ -320,7 +351,11 @@ class Query {
 	}
 	
 	private function buildQueryLimit() {
-		return \SqlPaser::parseLimit($this->statements['LIMIT']);
+		return \SqlPaser::parseLimit($this->statements['LIMIT'], false);
+	}
+	
+	private function buildQueryPage() {
+		return \SqlPaser::parseLimit($this->statements['PAGE'], true);
 	}
 	
 	private function buildQueryOrderby() {

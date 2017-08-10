@@ -1097,6 +1097,7 @@ abstract class WeModuleProcessor extends WeBase {
 		unset($_SESSION['__contextexpire']);
 		unset($_SESSION['__contextpriority']);
 		unset($_SESSION);
+		$this->inContext = false;
 		session_destroy();
 	}
 	/**
