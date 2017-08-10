@@ -3,7 +3,12 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
+if (!check_ims_version()) {
+	message('系统版本太低，请升级系统到1.0以上版本', '', 'error');
+}
+
 load()->model('mc');
+load()->model('module');
 
 $ops = array('display', 'edit', 'delete', 'deleteall', 'showall', 'status', 'clerkcommentlist');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
