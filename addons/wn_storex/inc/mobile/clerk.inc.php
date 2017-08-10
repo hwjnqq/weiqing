@@ -26,10 +26,13 @@ if ($op == 'order') {
 	pdo_query("UPDATE " . tablename('storex_order') . " SET status = -1, newuser = 0 WHERE time < :time AND weid = :uniacid AND paystatus = 0 AND status <> 1 AND status <> 3", array(':time' => TIMESTAMP - 86400, ':uniacid' => intval($_W['uniacid'])));
 	$operation_status = array(ORDER_STATUS_CANCEL, ORDER_STATUS_NOT_SURE, ORDER_STATUS_SURE, ORDER_STATUS_REFUSE);
 	$goods_status = array(0, GOODS_STATUS_NOT_SHIPPED, GOODS_STATUS_SHIPPED, GOODS_STATUS_NOT_CHECKED);
-	$order_lists = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'hotelid' => $manage_storex_ids, 'status' => $operation_status, 'goods_status' => $goods_status), array('id', 'weid', 'hotelid', 'paystatus','roomid', 'style', 'btime', 'etime', 'roomitemid', 'status', 'goods_status', 'mode_distribute', 'nums', 'sum_price', 'day'), '', 'id DESC');
+	$order_lists = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'hotelid' => $manage_storex_ids, 'status' => $operation_status, 'goods_status' => $goods_status), array('id', 'weid', 'hotelid', 'paystatus','roomid', 'style', 'btime', 'etime', 'roomitemid', 'status', 'goods_status', 'mode_distribute', 'nums', 'sum_price', 'day', 'is_package'), '', 'id DESC');
 	if (!empty($order_lists) && is_array($order_lists)) {
 		$lists = array();
 		foreach ($order_lists as $k => &$info) {
+			if ($info['is_package'] == 2) {
+				$packageids[] = $info['roomid'];
+			}
 			if (!empty($manage_storex_lists[$info['hotelid']])) {
 				$store_type = $manage_storex_lists[$info['hotelid']]['store_type'];
 				$info = clerk_order_operation($info, $store_type);
@@ -45,6 +48,14 @@ if ($op == 'order') {
 			$lists[] = $info;
 		}
 		unset($info);
+		$packageids = is_array($packageids) ? array_unique($packageids) : array();
+		$sales_package = pdo_getall('storex_sales_package', array('uniacid' => $_W['uniacid'], 'id' => $packageids), array('title', 'sub_title', 'thumb', 'price', 'id'), 'id');
+		foreach ($lists as $k => &$val) {
+			if ($val['is_package'] == 2) {
+				$val['thumb'] = $sales_package[$val['roomid']]['thumb'];
+			}
+		}
+		unset($val);
 		$order_data = array();
 		$order_data['order_lists'] = $lists;
 		wmessage(error(0, $order_data), '', 'ajax');

@@ -79,6 +79,22 @@ if ($op == 'display') {
 	}
 	$show_order_lists = pdo_fetchall("SELECT o.*, h.title AS hoteltitle, r.title AS roomtitle, r.thumb " . $field . " FROM " . tablename('storex_order') . " AS o LEFT JOIN " . tablename('storex_bases') . " h ON o.hotelid = h.id LEFT JOIN " . tablename($table) . " AS r ON r.id = o.roomid WHERE o.weid = '{$_W['uniacid']}' $condition ORDER BY o.id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
 	getOrderUniontid($show_order_lists);
+	if (!empty($show_order_lists) && is_array($show_order_lists)) {
+		foreach ($show_order_lists as $key => $value) {
+			if ($value['is_package'] == 2) {
+				$packageids[] = $value['roomid'];
+			}
+		}
+		$packageids = is_array($packageids) ? array_unique($packageids) : array();
+		$sales_package = pdo_getall('storex_sales_package', array('uniacid' => $_W['uniacid'], 'id' => $packageids), array('title', 'sub_title', 'thumb', 'price', 'id'), 'id');
+		foreach ($show_order_lists as $k => &$val) {
+			if ($val['is_package'] == 2) {
+				$val['roomtitle'] = $sales_package[$val['roomid']]['title'];
+				$val['thumb'] = $sales_package[$val['roomid']]['thumb'];
+			}
+		}
+		unset($val);
+	}
 	$printer_plugin_status = false;
 	if (check_plugin_isopen('wn_storex_plugin_printer')) {
 		$printer_plugin_status = true;

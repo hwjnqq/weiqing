@@ -178,6 +178,7 @@ if ($op == 'goods_comments') {
 
 //进入预定页面的信息
 if ($op == 'info') {
+	$goods_type = !empty($_GPC['gtype']) ? intval($_GPC['gtype']) : 1;
 	$store_info = get_store_info($store_id);
 	$member = array();
 	$member['from_user'] = $_W['openid'];
@@ -208,9 +209,31 @@ if ($op == 'info') {
 			$goods_info = calcul_roon_sumprice($dates, $search_data, $goods_info);
 		}
 	} else {
-		$condition['store_base_id'] = $store_id;
-		$table = 'storex_goods';
-		$goods_info = pdo_get($table, $condition);
+		if ($goods_type == 2) {
+			$package_info = pdo_get('storex_sales_package', array('id' => $goodsid, 'storeid' => $store_id));
+			$goods_info = array();
+			if (!empty($package_info)) {
+				$package_info['cprice'] = $package_info['oprice'] = $package_info['price'];
+				$package_info['can_buy'] = 1;
+				$package_info['score'] = 0;
+				$package_info['sold_num'] = 0;
+				$package_info['store_type'] = 0;
+				$package_info['stock'] = -1;
+				$package_info['stock_control'] = 1;
+				$package_info['min_buy'] = 1;
+				$package_info['max_buy'] = -1;
+				$package_info['express_set'] = iserializer(array(
+					'express' => $package_info['express'],
+					'full_free' => 0
+				));
+				$goods_info = $package_info;
+			}
+		} else {
+			$condition['store_base_id'] = $store_id;
+			$table = 'storex_goods';
+			$goods_info = pdo_get($table, $condition);
+		}
+		
 	}
 	if (!empty($goods_info['express_set'])) {
 		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
@@ -247,6 +270,7 @@ if ($op == 'info') {
 //预定提交预定信息
 if ($op == 'order') {
 	$orderid = $_GPC['orderid'];
+	$goods_type = !empty($_GPC['gtype']) ? intval($_GPC['gtype']) : 1;
 	$order_info = array(
 		'weid' => intval($_W['uniacid']),
 		'openid' => $_W['openid'],
@@ -317,7 +341,28 @@ if ($op == 'order') {
 		$table = 'storex_goods';
 		$condition['store_base_id'] = $store_id;
 	}
-	$goods_info = pdo_get($table, $condition);
+	if ($goods_type == 2) {
+		$package_info = pdo_get('storex_sales_package', array('id' => $goodsid, 'storeid' => $store_id));
+		$goods_info = array();
+		if (!empty($package_info)) {
+			$package_info['cprice'] = $package_info['oprice'] = $package_info['price'];
+			$package_info['can_buy'] = 1;
+			$package_info['score'] = 0;
+			$package_info['sold_num'] = 0;
+			$package_info['store_type'] = 0;
+			$package_info['stock'] = -1;
+			$package_info['stock_control'] = 1;
+			$package_info['min_buy'] = 1;
+			$package_info['max_buy'] = -1;
+			$package_info['express_set'] = iserializer(array(
+				'express' => $package_info['express'],
+				'full_free' => 0
+			));
+			$goods_info = $package_info;
+		}
+	} else {
+		$goods_info = pdo_get($table, $condition);
+	}
 	if ($store_info['store_type'] != 1 || ($store_info['store_type'] == 1 && $goods_info['is_house'] == 1)) {
 		if (empty($order_info['mobile'])) {
 			wmessage(error(-1, '手机号码不能为空'), '', 'ajax');
@@ -448,9 +493,11 @@ if ($op == 'order') {
 			$insert = general_goods_order($order_info, $goods_info, $insert);
 		}
 	} else {
-		$stock = check_goods_stock($goodsid, $order_info['nums']);
-		if (is_error($stock)) {
-			wmessage($stock, '', 'ajax');
+		if ($goods_type != 2) {
+			$stock = check_goods_stock($goodsid, $order_info['nums']);
+			if (is_error($stock)) {
+				wmessage($stock, '', 'ajax');
+			}
 		}
 		$insert = general_goods_order($order_info, $goods_info, $insert);
 	}
@@ -515,6 +562,9 @@ if ($op == 'order') {
 	}
 	if ($insert['sum_price'] <= 0) {
 		wmessage(error(-1, '总价为零，请联系管理员'), '', 'ajax');
+	}
+	if ($goods_type == 2) {
+		$insert['is_package'] = 2;
 	}
 	pdo_insert('storex_order', $insert);
 	$order_id = pdo_insertid();
