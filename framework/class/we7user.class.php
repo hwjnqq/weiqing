@@ -83,6 +83,10 @@ class We7User extends We7Model {
 		return $uniAccounts;
 	}
 
+	public function accounts() {
+
+	}
+
 
 
 }

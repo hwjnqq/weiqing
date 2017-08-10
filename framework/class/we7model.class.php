@@ -11,6 +11,12 @@ class We7Model {
 	protected $table;
 	protected $primaryKey = 'id';
 
+	protected $query = null;
+
+	public function __construct() {
+		$this->query = new Query(pdo());
+	}
+
 	public function fill($attributes) {
 		$this->attributes = $attributes;
 		return $this;
@@ -49,6 +55,10 @@ class We7Model {
 		return $this->attributes[$key];
 	}
 
+
+	public function __call() {
+		
+	}
 	public static function __callStatic($method, $parameters)
 	{
 		echo 'call static';

@@ -5,6 +5,8 @@ require IA_ROOT . '/framework/library/testify/Testify.php';
 
 load()->func('communication');
 
+
+
 if (!empty($_W['ispost'])) {
 	print_r(json_encode($_FILES));exit;
 	print_r($_POST);exit;

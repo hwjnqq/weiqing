@@ -1091,6 +1091,10 @@ function uni_account_save_switch($uniacid) {
 	return true;
 }
 
+function uni_account_list2() {
+
+}
+
 function uni_account_list($condition, $pager) {
 	global $_W;
 	load()->model('wxapp');
