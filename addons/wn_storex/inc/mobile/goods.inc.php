@@ -553,12 +553,16 @@ if ($op == 'order') {
 	
 	if ($store_info['store_type'] != STORE_TYPE_HOTEL) {
 		$insert = calculate_express($goods_info, $insert);
+		if ($goods_type == 2) {
+			$goods_info['express_set'] = iunserializer($goods_info['express_set']);
+			$insert['sum_price'] += $goods_info['express_set']['express'];
+		}
 	}
 	
 	$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
 	$post_total = trim($_GPC['order']['total']);
 	if ($post_total != $insert['sum_price']) {
-		wmessage(error(-1, '价格错误'), '', 'ajax');
+		wmessage(error(-1, '价格错误' . $insert['sum_price']), '', 'ajax');
 	}
 	if ($insert['sum_price'] <= 0) {
 		wmessage(error(-1, '总价为零，请联系管理员'), '', 'ajax');
