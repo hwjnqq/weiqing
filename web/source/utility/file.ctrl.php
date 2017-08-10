@@ -561,6 +561,14 @@ if ($do == 'news') {
 	$page_size = 24;
 	$search = addslashes($_GPC['keyword']);
 	$material_news_list = material_news_list($server, $search, array('page_index' => $page_index, 'page_size' => $page_size));
+	// 转换微信图片地址
+	foreach ($material_news_list['material_list'] as $key => &$news) {
+		if (isset($news['items']) && is_array($news['items'])) {
+			foreach ($news['items'] as &$item) {
+				$item['thumb_url'] = tomedia($item['thumb_url']);
+			}
+		}
+	}
 	$material_list = array_values($material_news_list['material_list']);
 	$pager = $material_news_list['page'];
 	$result = array('items' => $material_list, 'pager' => $pager);

@@ -87,12 +87,10 @@
 		</tr>
 	</table>
 	{/if}
-	{if user_is_founder($_W['uid'])}
+	{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders) || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER && $owner['uid'] != $_W['uid']}
 	<p>
 		<a href="javascript:;" class="btn btn-primary" data-toggle="modal" data-target="#change-group">修改套餐</a>
-		{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
 		<a href="javascript:;" class="btn btn-primary" data-toggle="modal" data-target="#jurisdiction-add">修改附加权限</a>
-		{/if}
 	</p>
 	
 	<div class="modal" id="jurisdiction-add">

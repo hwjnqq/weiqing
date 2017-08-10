@@ -1,16 +1,16 @@
 {template 'common/header'}
-{template 'user/founder-header'}
+{template 'founder/header'}
 <div class="keyword-list-head clearfix we7-margin-bottom">
 	<form action="" method="get">
-		<input type="hidden" name="c" value="user">
-		<input type="hidden" name="a" value="founderdisplay">
+		<input type="hidden" name="c" value="founder">
+		<input type="hidden" name="a" value="display">
 		<div class="input-group pull-left col-sm-4">
-			<input type="text" name="username" id="" value="{$_GPC['username']}" class="form-control"  placeholder="搜索创始人" />
+			<input type="text" name="username" id="" value="{$_GPC['username']}" class="form-control"  placeholder="搜索副创始人" />
 			<span class="input-group-btn"><button class="btn btn-default"><i class="fa fa-search"></i></button></span>
 		</div>
 	</form>
 	<div class="pull-right">
-		<a href="{php echo url('user/foundercreate')}" class="btn btn-primary">+添加创始人</a>
+		<a href="{php echo url('founder/create')}" class="btn btn-primary">+添加副创始人</a>
 	</div>
 </div>
 <table class="table we7-table table-hover table-manage vertical-middle" id="js-users-display" ng-controller="UsersDisplay" ng-cloak>
@@ -77,8 +77,8 @@
 		users: {php echo !empty($users) ? json_encode($users) : 'null'},
 		usergroups: {php echo !empty($usergroups) ? json_encode($usergroups) : 'null'},
 		links: {
-			recycleDel: "{php echo url('user/founderdisplay/del')}",
-			edit: "{php echo url('user/edit')}",
+			recycleDel: "{php echo url('founder/display/del')}",
+			edit: "{php echo url('founder/edit')}",
 		},
 	});
 	angular.bootstrap($('#js-users-display'), ['userManageApp']);

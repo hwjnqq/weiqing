@@ -7,7 +7,7 @@ defined('IN_IA') or exit('Access Denied');
 
 load()->model('user');
 
-uni_user_permission_check('system_founder_user_add');
+uni_user_permission_check('system_founder_group_post');
 $_W['page']['title'] = '添加创始人 - 创始人管理';
 $state = uni_permission($_W['uid']);
 if ($state != ACCOUNT_MANAGE_NAME_FOUNDER && $state != ACCOUNT_MANAGE_NAME_VICE_FOUNDER) {
@@ -30,9 +30,9 @@ if (checksubmit()) {
 	if (is_error($user_add)) {
 		itoast($user_add['message'], '', '');
 	}
-	itoast($user_add['message'], url('user/edit', array('uid' => $user_add['uid'])), 'success');
+	itoast($user_add['message'], url('founder/edit', array('uid' => $user_add['uid'])), 'success');
 }
 
 $groups = user_founder_group();
 
-template('user/founder-create');
+template('founder/create');

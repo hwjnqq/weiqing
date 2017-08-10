@@ -1,6 +1,6 @@
 <?php
 /**
- * 用户列表
+ * 用户管理
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
@@ -14,35 +14,32 @@ $_W['page']['title'] = '用户列表 - 用户管理';
 $founders = explode(',', $_W['config']['setting']['founder']);
 
 if ($do == 'display') {
+	$pindex = max(1, intval($_GPC['page']));
+	$psize = 20;
 	$type = empty($_GPC['type']) ? 'display' : $_GPC['type'];
 	if (in_array($type, array('display', 'check', 'recycle'))) {
 		switch ($type) {
 			case 'check':
 				uni_user_permission_check('system_user_check');
-				$condition = " WHERE u.status = 1 ";
+				$condition['status'] = USER_STATUS_CHECK;
 				break;
 			case 'recycle':
 				uni_user_permission_check('system_user_recycle');
-				$condition = " WHERE u.status = 3 ";
+				$condition['status'] = USER_STATUS_BAN;
 				break;
 			default:
 				uni_user_permission_check('system_user');
-				$condition = " WHERE u.status = 2 AND u.founder_groupid != " . ACCOUNT_MANAGE_GROUP_VICE_FOUNDER;
+				$condition['status'] = USER_STATUS_NORMAL;
+				$condition['founder_groupid'] = array(ACCOUNT_MANAGE_GROUP_GENERAL, ACCOUNT_MANAGE_GROUP_FOUNDER);
 				break;
 		}
-		if (user_is_vice_founder()) {
-			$condition .= ' AND u.owner_uid = ' . $_W['uid'];
-		}
-		$pindex = max(1, intval($_GPC['page']));
-		$psize = 20;
-		$params = array();
 		if (!empty($_GPC['username'])) {
-			$condition .= " AND u.username LIKE :username";
-			$params[':username'] = "%{$_GPC['username']}%";
+			$condition['username'] = trim($_GPC['username']);
 		}
-		$sql = 'SELECT u.*, p.avatar FROM ' . tablename('users') .' AS u LEFT JOIN ' . tablename('users_profile') . ' AS p ON u.uid = p.uid '. $condition . " LIMIT " . ($pindex - 1) * $psize .',' .$psize;
-		$users = pdo_fetchall($sql, $params);
-		$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('users') .' AS u '. $condition, $params);
+
+		$user_lists = user_list($condition, array($pindex, $psize));
+		$users = $user_lists['list'];
+		$total = $user_lists['total'];
 		$pager = pagination($total, $pindex, $psize);
 
 		$groups = user_group();

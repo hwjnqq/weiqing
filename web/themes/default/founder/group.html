@@ -1,20 +1,20 @@
 {template 'common/header'}
 <div class="we7-page-title">用户权限组管理</div>
 <ul class="we7-page-tab">
-	<li {if $action == 'founderdisplay'} class="active"{/if}><a href="{url 'user/founderdisplay'}">创始人管理</a></li>
-	<li {if $action == 'foundergroup'} class="active"{/if}><a href="{url 'user/foundergroup'}">创始人权限组</a></li>
+	<li {if $action == 'display'} class="active"{/if}><a href="{url 'founder/display'}">副创始人管理</a></li>
+	<li {if $action == 'group'} class="active"{/if}><a href="{url 'founder/foundergroup'}">副创始人权限组</a></li>
 </ul>
 <div class="clearfix we7-margin-bottom">
 	<form action="" method="get">
 		<div class="input-group pull-left col-sm-4">
-			<input type="hidden" name="c" value="user">
+			<input type="hidden" name="c" value="founder">
 			<input type="hidden" name="a" value="group">
 			<input type="text" name="name" id="" value="{$_GPC['name']}" class="form-control" placeholder="搜索副创始人权限组"/>
 			<span class="input-group-btn"><button class="btn btn-default"><i class="fa fa-search"></i></button></span>
 		</div>
 	</form>
 	<div class="pull-right">
-		<a href="{php echo url('user/foundergroup/post')}" class="btn btn-primary">+添加创始人组</a>
+		<a href="{php echo url('founder/group/post')}" class="btn btn-primary">+添加副创始人组</a>
 	</div>
 </div>
 <table class="table we7-table table-hover" id="js-vice-group-display" ng-controller="ViceGroupDisplay" ng-cloak>
@@ -64,8 +64,8 @@
 	angular.module('userGroup').value('config', {
 		lists: {php echo !empty($lists) ? json_encode($lists) : 'null'},
 		links: {
-			groupPost: "{php echo url('user/foundergroup/post')}",
-			groupDel: "{php echo url('user/foundergroup/del')}",
+			groupPost: "{php echo url('founder/group/post')}",
+			groupDel: "{php echo url('founder/group/del')}",
 		}
 	});
 	angular.bootstrap($('#js-vice-group-display'), ['userGroup']);

@@ -14,7 +14,7 @@ if ($_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER) {
 }
 
 if ($do == 'display') {
-	uni_user_permission_check('system_user_vice_group');
+	uni_user_permission_check('system_founder_manage');
 	$_W['page']['title'] = '副创始人组列表 - 副创始人组 - 副创始人管理';
 	$name = trim($_GPC['name']);
 	if (!empty($name)) {
@@ -22,7 +22,7 @@ if ($do == 'display') {
 	}
 	$lists = pdo_getall('users_founder_group', $condition);
 	$lists = user_group_format($lists);
-	template('founder/founder-group');
+	template('founder/group');
 }
 
 if ($do == 'post') {
@@ -60,9 +60,9 @@ if ($do == 'post') {
 		if (is_error($user_group)) {
 			itoast($user_group['message'], '', '');
 		}
-		itoast('用户组更新成功！', url('founder/foundergroup'), 'success');
+		itoast('用户组更新成功！', url('founder/group'), 'success');
 	}
-	template('founder/founder-group-post');
+	template('founder/group-post');
 }
 
 if ($do == 'del') {
@@ -70,9 +70,9 @@ if ($do == 'del') {
 	$id = intval($_GPC['id']);
 	$result = pdo_delete('users_founder_group', array('id' => $id));
 	if(!empty($result)){
-		itoast('删除成功！', url('founder/foundergroup/'), 'success');
+		itoast('删除成功！', url('founder/group/'), 'success');
 	}else {
-		itoast('删除失败！请稍候重试！', url('founder/foundergroup'), 'error');
+		itoast('删除失败！请稍候重试！', url('founder/group'), 'error');
 	}
 	exit;
 }
