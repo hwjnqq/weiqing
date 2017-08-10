@@ -478,6 +478,7 @@ if ($op == 'assign_room') {
 	$result = pdo_update('storex_order', array('roomitemid' => implode(',', $roomids)), array('id' => $orderid));
 	if (!empty($result)) {
 		if (!empty($assign_roomitemid) && is_array($assign_roomitemid)) {
+			$order['roomitemid'] = '';
 			foreach ($assign_roomitemid as $roomid) {
 				delete_room_assign($order, $roomid);
 			}

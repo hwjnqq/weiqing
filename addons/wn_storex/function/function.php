@@ -819,12 +819,11 @@ function check_room_assign($order, $roomids, $insert = false) {
 	return $status;
 }
 
-function delete_room_assign($order, $assign_roomitemid = '') {
+function delete_room_assign($order, $roomitemid = '') {
 	if (!empty($order['roomitemid'])) {
 		$roomitemid = explode(',', $order['roomitemid']);
 	}
-	if (!empty($assign_roomitemid)) {
-		$roomitemid = $assign_roomitemid;
+	if (!empty($roomitemid)) {
+		pdo_delete('storex_room_assign', array('storeid' => $order['hotelid'], 'roomid' => $order['roomid'], 'roomitemid' => $roomitemid, 'time >=' => $order['btime'], 'time <' => $order['etime']));
 	}
-	pdo_delete('storex_room_assign', array('storeid' => $order['hotelid'], 'roomid' => $order['roomid'], 'roomitemid' => $roomitemid, 'time >=' => $order['btime'], 'time <' => $order['etime']));
 }
