@@ -29,7 +29,7 @@ if ($op == 'display') {
 				$register_info['level_title'] = $agent_level_default['title'];
 			}
 		}
-		$agent_log = pdo_getall('storex_agent_log', array('uniacid' => intval($_W['uniacid']), 'storeid' => $storeid, 'agentid' => $register_info['id']), array('goodid', 'money', 'rate', 'sumprice'), '', 'time DESC');
+		$agent_log = pdo_getall('storex_agent_log', array('uniacid' => intval($_W['uniacid']), 'storeid' => $storeid, 'agentid' => $register_info['id']), array('goodid', 'money', 'rate', 'sumprice', 'time'), '', 'time DESC');
 		if (!empty($agent_log) && is_array($agent_log)) {
 			$store = get_store_info($storeid);
 			$table = gettablebytype($store['store_type']);
