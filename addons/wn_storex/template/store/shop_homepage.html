@@ -518,8 +518,6 @@
 				submitModules: function () {
 					$.post("{php echo $this->createWebUrl('shop_homepage', array('op' => 'post', 'storeid' => $_GPC['storeid']))}", {params: this.openModules}, function (data) {
 						data = $.parseJSON(data);
-						console.dir(data);
-						return;
 						if (data.message.errno != 0) {
 							util.message(data.message.message, '', 'error');
 						} else {

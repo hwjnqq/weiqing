@@ -243,8 +243,6 @@
 				submit() {
 					$.post("{php echo $this->createWeburl('shop_sales_package', array('op' => 'post', 'storeid' => $_GPC['storeid']));}", {params : this.params}, function(data){
 						data = $.parseJSON(data);
-						console.dir(data);
-						return;
 						if (data.message.errno != '0') {
 							util.message(data.message.message, '', 'error');
 						} else {

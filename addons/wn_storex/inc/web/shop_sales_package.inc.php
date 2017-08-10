@@ -84,7 +84,7 @@ if ($op == 'post') {
 				pdo_insert('storex_goods_package', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'packageid' => $id, 'goodsid' => $goodsid));
 			}
 		}
-		message(error(0, ''), '', 'ajax');
+		message(error(0, ''), $this->createWebUrl('shop_sales_package', array('storeid' => $storeid, 'op' => 'display')), 'ajax');
 	}
 }
 

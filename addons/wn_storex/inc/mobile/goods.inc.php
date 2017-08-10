@@ -13,11 +13,11 @@ mload()->model('order');
 $uid = mc_openid2uid($_W['openid']);
 $store_id = intval($_GPC['id']);
 $goodsid = intval($_GPC['goodsid']);
+$store_info = get_store_info($store_id);
 $max_room = 8;
 
 //获取某个商品的详细信息
 if ($op == 'goods_info') {
-	$store_info = get_store_info($store_id);
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
 	if ($store_info['store_type'] == 1) {
 		$condition['hotelid'] = $store_id;
@@ -136,6 +136,9 @@ if ($op == 'goods_info') {
 }
 
 if ($op == 'package_info') {
+	if ($store_info['store_type'] == 1) {
+		wmessage(error(-1, '参数错误'), '', 'ajax');
+	}
 	$package_info = pdo_get('storex_sales_package', array('id' => $_GPC['pid'], 'storeid' => $store_id));
 	$goods_id = pdo_getall('storex_goods_package', array('packageid' => $_GPC['pid'], 'storeid' => $store_id), array('goodsid'), 'goodsid');
 	if (!empty($goods_id) && is_array($goods_id)) {
