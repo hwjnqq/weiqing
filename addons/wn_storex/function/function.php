@@ -2,7 +2,6 @@
 //检查每个文件的传值是否为空
 function check_params() {
 	global $_W, $_GPC;
-	$_W['openid'] = 'oTKzFjq-vdizyZXDhpGI8XQqgnoE';
 	if (!empty($_GPC['from']) && $_GPC['from'] == 'wxapp') {
 		$acid = $_GPC['acid'];
 		$_W['account'] = account_fetch($acid);
@@ -566,7 +565,7 @@ function calculate_express($goods_info, $insert) {
 	if ($insert['mode_distribute'] == 2) {
 		if (!empty($goods_info['express_set'])) {
 			$express_set = iunserializer($goods_info['express_set']);
-			if ($insert['sum_price'] < $express_set['full_free']) {
+			if ($insert['sum_price'] < $express_set['full_free'] && $express_set['full_free'] != 0) {
 				$insert['sum_price'] += $express_set['express'];
 			}
 		}

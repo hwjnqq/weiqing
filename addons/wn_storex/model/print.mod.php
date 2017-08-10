@@ -102,7 +102,7 @@ function print_get_content($printer_info, $orderid) {
 		if (!empty($goodsinfo['express_set'])) {
 			$express_set = iunserializer($goodsinfo['express_set']);
 			if (!empty($express_set['express'])) {
-				if ($order_info['static_price'] < $express_set['full_free']) {
+				if ($order_info['static_price'] < $express_set['full_free'] && $express_set['full_free'] != 0) {
 					$content[] = '邮费　　　' . $express_set['express'] . '<BR>';
 				} else {
 					$content[] = '邮费　　　免邮 <BR>';
