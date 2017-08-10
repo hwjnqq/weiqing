@@ -635,7 +635,16 @@ $sql = "
 	KEY `uniacid` (`uniacid`),
 	KEY `storeid` (`storeid`)
 	) DEFAULT CHARSET=utf8;
-	
+		
+	CREATE TABLE IF NOT EXISTS `ims_storex_room_assign` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`uniacid` int(11) NOT NULL,
+	`storeid` int(11) NOT NULL,
+	`roomid` int(11) NOT NULL,
+	`roomitemid` int(11) NOT NULL,
+	`time` int(11) NOT NULL COMMENT '房间在此时间内不空闲',
+	PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
 ";
 pdo_run($sql);
 
