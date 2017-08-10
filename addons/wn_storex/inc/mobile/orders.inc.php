@@ -117,6 +117,7 @@ if ($op == 'cancel') {
 	$update_data = array('status' => -1);
 	$result = pdo_update('storex_order', $update_data, array('id' => $id, 'weid' => $_W['uniacid']));
 	if (!empty($order_info['coupon'])) {
+		delete_room_assign($order_info);
 		pdo_update('storex_coupon_record', array('status' => 1), array('id' => $order_info['coupon']));
 	}
 	if (!empty($result)) {

@@ -300,6 +300,7 @@ if ($op == 'edit_order') {
 		write_log($logs);
 		if (in_array($data['status'], array(-1, 2))) {
 			order_update_newuser($orderid);
+			delete_room_assign($item);
 		}
 		if ($data['status'] == ORDER_STATUS_OVER) {
 			order_market_gift($id);

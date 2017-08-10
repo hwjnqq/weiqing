@@ -369,6 +369,7 @@ if ($op == 'edit') {
 			write_log($logs);
 			if (in_array($data['status'], array(ORDER_STATUS_CANCEL, ORDER_STATUS_REFUSE))) {
 				order_update_newuser($id);
+				delete_room_assign($item);
 			}
 			if ($data['status'] == ORDER_STATUS_OVER) {
 				order_market_gift($id);
