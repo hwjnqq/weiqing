@@ -2,7 +2,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('goods_info', 'info', 'order', 'goods_comments');
+$ops = array('goods_info', 'info', 'order', 'goods_comments', 'package_info');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -133,6 +133,27 @@ if ($op == 'goods_info') {
 		$goods_info['packages'] = $sales_packages;
 	}
 	wmessage(error(0, $goods_info), $share_data, 'ajax');
+}
+
+if ($op == 'package_info') {
+	$package_info = pdo_get('storex_sales_package', array('id' => $_GPC['pid'], 'storeid' => $store_id));
+	$goods_id = pdo_getall('storex_goods_package', array('packageid' => $_GPC['pid'], 'storeid' => $store_id), array('goodsid'), 'goodsid');
+	if (!empty($goods_id) && is_array($goods_id)) {
+		$goodsids = array_keys($goods_id);
+		$goods_list = pdo_getall('storex_goods', array('id' => $goodsids, 'store_type' => 0), array('title', 'sub_title', 'thumb', 'oprice', 'cprice', 'id'));
+	}
+	if (!empty($goods_list) && is_array($goods_list)) {
+		foreach ($goods_list as &$value) {
+			$value['thumb'] = tomedia($value['thumb']);
+		}
+		unset($value);
+	}
+	$package = array();
+	if (!empty($package_info)) {
+		$package_info['goodsids'] = $goods_list;
+		$package = $package_info;
+	}
+	wmessage(error(0, $package), '', 'ajax');
 }
 
 if ($op == 'goods_comments') {
