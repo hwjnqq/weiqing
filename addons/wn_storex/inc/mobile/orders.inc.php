@@ -19,7 +19,7 @@ $logs = array(
 	'orderid' => intval($_GPC['id']),
 );
 if ($op == 'order_list') {
-	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status', 'openid', 'action', 'track_number', 'express_name');
+	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status', 'openid', 'action', 'track_number', 'express_name', 'is_package');
 	$orders = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'openid' => $_W['openid']), $field, '', 'time DESC');
 	$order_list = array(
 		'over' => array(),
@@ -44,6 +44,9 @@ if ($op == 'order_list') {
 					$goods_info = pdo_get('storex_room', array('weid' => intval($_W['uniacid']), 'id' => $info['roomid']), array('id', 'thumb'));
 				} else {
 					$goods_info = pdo_get('storex_goods', array('weid' => intval($_W['uniacid']), 'id' => $info['roomid']), array('id', 'thumb'));
+					if ($info['is_package'] == 2) {
+						$goods_info = pdo_get('storex_sales_package', array('uniacid' => $_W['uniacid'], 'id' => $info['roomid']), array('title', 'sub_title', 'thumb', 'price', 'id'), 'id');
+					}
 				}
 				if (!empty($goods_info)) {
 					$info['thumb'] = tomedia($goods_info['thumb']);
