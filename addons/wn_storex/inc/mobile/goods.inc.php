@@ -64,10 +64,10 @@ if ($op == 'goods_info') {
 	if (!empty($goods_info['express_set'])) {
 		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
 	}
-	$agent_info = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $store_id, 'uid' => $uid, 'status' => 2), array('id', 'level'));
+	$agent_info = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $store_id, 'uid' => $uid, 'status' => 2), array('id'));
 	$agent_str = '';
 	if (!empty($agent_info)) {
-		$agent_str = '&from=' . authcode(json_encode($agent_info), 'ENCODE');
+		$agent_str = '&from=' . md5('wn_storex_52111').$agent_info['id'];
 	}
 	$agent_ratio = iunserializer($goods_info['agent_ratio']);
 	$ratio = $agent_ratio[$agent_info['level']];
@@ -305,9 +305,9 @@ if ($op == 'order') {
 		$order_info['roomitemid'] = intval($_GPC['roomid']);
 	} else {
 		if (!empty($_GPC['from'])) {
-			$from = json_decode(authcode($_GPC['from'], 'DECODE'), true);
-			if (!empty($from['id'])) {
-				$order_info['agentid'] = $from['id'];
+			$id = intval(substr($_GPC['from'], strlen(md5('wn_storex_52111'))));
+			if (!empty($id)) {
+				$order_info['agentid'] = $id;
 			}
 		}
 		$order_info['hotelid'] = $store_id;
