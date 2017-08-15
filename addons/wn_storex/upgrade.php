@@ -23,6 +23,10 @@ if (pdo_fieldexists('storex_bases', 'lng')) {
 if (pdo_fieldexists('storex_bases', 'lat')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " CHANGE `lat` `lat` DECIMAL(10,6) NULL DEFAULT '0.00';");
 }
+
+if (pdo_tableexists('storex_agent_apply') && !pdo_fieldexists('storex_agent_apply', 'income')) {
+	pdo_query("DROP TABLE " . tablename('storex_agent_apply'));
+}
 $sql = "
 	CREATE TABLE IF NOT EXISTS `ims_storex_clerk` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -557,7 +561,8 @@ $sql = "
 	`applytime` int(11) DEFAULT '0',
 	`paytime` int(11) DEFAULT '0',
 	`refusetime` int(11) DEFAULT '0',
-	`realmoney` decimal(10,2) DEFAULT '0.00',
+	`income` decimal(10,2) DEFAULT '0.00',
+	`outcome` decimal(10,2) NOT NULL DEFAULT '0.00',
 	`alipay` varchar(50) NOT NULL DEFAULT '',
 	`realname` varchar(50) NOT NULL DEFAULT '',
 	`tel` varchar(20) NOT NULL DEFAULT '',

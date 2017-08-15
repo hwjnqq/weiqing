@@ -13,7 +13,7 @@ $storeid = intval($_GPC['storeid']);
 $uid = mc_openid2uid($_W['openid']);
 
 if ($op == 'display') {
-	$register_info = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'uid' => $uid), array('id', 'storeid', 'income', 'outcome', 'alipay', 'level', 'status'));
+	$register_info = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'uid' => $uid), array('id', 'storeid', 'income', 'outcome', 'alipay', 'level', 'status', 'realname', 'tel'));
 	$register_info['status'] = !empty($register_info['status']) ? $register_info['status'] : 4;
 	if ($register_info['status'] == 2) {
 		$agent_level_default = pdo_get('storex_agent_level', array('isdefault' => 1, 'storeid' => $storeid), array('id', 'title'));
@@ -75,7 +75,7 @@ if ($op == 'register') {
 		pdo_insert('storex_agent_apply', $register_data);
 		$result = pdo_insertid();
 	} else {
-		$result = fasle;
+		$result = false;
 		if ($register_info['status'] == 3) {
 			pdo_update('storex_agent_apply', array('realname' => $_GPC['realname'], 'tel' => $_GPC['tel'], 'applytime' => TIMESTAMP, 'alipay' => $_GPC['alipay'], 'refusetime' => '', 'status' => 1), array('id' => $register_info['id']));
 			$result = true;
