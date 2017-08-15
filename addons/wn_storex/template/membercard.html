@@ -106,13 +106,13 @@
 <script type="text/javascript">
 	require({
 		paths: {
-			'vue': 'https://unpkg.com/vue@2.2.6/dist/vue',
-			'data': '/addons/wn_storex/template/style/js/membercard/data'
+			'vue': '/addons/wn_storex/template/style/js/vue',
+			'membercarddata': '/addons/wn_storex/template/style/js/membercard/data'
 		}
 	})
-	require(['vue', 'data'], function(Vue, data) {
+	require(['vue', 'membercarddata'], function(Vue, membercarddata) {
 		setting_params = {php echo !empty($setting['params']) ? $setting['params'] : 'null'};
-		var params = setting_params ? setting_params : data.activeModules;
+		var params = setting_params ? setting_params : membercarddata.activeModules;
 		var discounts = {php echo json_encode($discounts);};
 		params.cardActivity.params.discounts = discounts;
 		var fansFields = {php echo json_encode($fields);};
@@ -120,8 +120,8 @@
 		var app = new Vue({
 			el: '#membercard',
 			data: {
-				'newcard': data.newcard,
-				'creditnames': data.creditnames,
+				'newcard': membercarddata.newcard,
+				'creditnames': membercarddata.creditnames,
 				'activeModules': params,
 				'fansFields': fansFields,
 				'discounts': discounts,
