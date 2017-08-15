@@ -3473,7 +3473,7 @@ class We7_couponModuleSite extends WeModuleSite {
 						$data[$row['bind']] = $_GPC[$row['bind']];
 					}
 				}
-				$check = mc_check($data);
+				$check = we7_coupon_mc_check($data);
 				if (is_error($check)) {
 					message($check['message'], referer(), 'error');
 				}

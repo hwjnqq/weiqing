@@ -358,3 +358,33 @@ function activity_get_coupon_label($type = '') {
 	);
 	return $types[$type] ? $types[$type] : $types;
 }
+
+/**
+ * 检测会员信息是否存在(邮箱和手机号)
+ * @param array $data 会员信息
+ * @return mixed
+ */
+function we7_coupon_mc_check($data) {
+	global $_W;
+	if (!empty($data['email'])) {
+		$email = trim($data['email']);
+		if (!preg_match(REGULAR_EMAIL, $email)) {
+			return error(-1, '邮箱格式不正确');
+		}
+		$isexist = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_members') . ' WHERE uniacid = :uniacid AND email = :email AND uid != :uid', array(':uniacid' => $_W['uniacid'], ':email' => $email, ':uid' => $_W['member']['uid']));
+		if ($isexist >= 1) {
+			return error(-1, '邮箱已被注册');
+		}
+	}
+	if (!empty($data['mobile'])) {
+		$mobile = trim($data['mobile']);
+		if (!preg_match(REGULAR_MOBILE, $mobile)) {
+			return error(-1, '手机号格式不正确');
+		}
+		$isexist = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_members') . ' WHERE uniacid = :uniacid AND mobile = :mobile AND uid != :uid', array(':uniacid' => $_W['uniacid'], ':mobile' => $mobile, ':uid' => $_W['member']['uid']));
+		if ($isexist >= 1) {
+			return error(-1, '手机号已被注册');
+		}
+	}
+	return true;
+}
