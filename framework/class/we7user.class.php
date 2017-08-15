@@ -75,12 +75,17 @@ class We7User {
 	}
 
 	/**
-	 *  公众号信息
+	 *   所有小程序
 	 */
-	public function wechatAccounts() {
-		if($this->isFounder()) {
+	public function wxApps() {
+		return $this->accounts()->where('type',4);
+	}
 
-		}
+	/**
+	 *   所有小程序
+	 */
+	public function wechats() {
+		return $this->accounts()->where('type',array(1,3));
 	}
 
 	/**
@@ -123,15 +128,8 @@ class We7User {
 
 	public function __get($key) {
 		if($key == 'accounts') {
-			return $this->accounts();
+			return $this->accounts()->getall();
 		}
-		return isset($this->attributes[$key]) ? $this->attributes[$key] : null;
+		return isset($this->attributes[$key]) ? $this->g[$key] : null;
 	}
-
-
-
-
-
-
-
 }
