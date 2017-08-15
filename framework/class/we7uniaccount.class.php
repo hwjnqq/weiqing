@@ -13,7 +13,7 @@
  * @property-read $user;
  * @property-read $account_modules
  */
-class We7UniAccount {
+class We7UniAccount  {
 	private $uniacid;
 
 	protected $attributes;
@@ -26,12 +26,6 @@ class We7UniAccount {
 			return self::fill($data);
 		}
 		return false;
-	}
-
-	public static function fill(array $attributes = array()) {
-		$we7Account = new We7UniAccount();
-		$we7Account->attributes = $attributes;
-		return $we7Account;
 	}
 	/**
 	 *  是否支持自定义菜单
@@ -129,6 +123,23 @@ class We7UniAccount {
 		}
 		return $modules;
 	}
+
+	public function query() {
+		return new Query(pdo());
+	}
+
+	public function __call($method, $params) {
+		return call_user_func_array(array($this,$method),$params);
+	}
+
+	public static function __callStatic($method, $params) {
+		$uniaccount = new We7UniAccount();
+		return call_user_func_array(array($uniaccount,$method),$params);
+	}
+
+
+
+
 
 
 

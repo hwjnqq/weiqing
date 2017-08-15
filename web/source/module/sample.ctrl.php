@@ -9,7 +9,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 
-
+load()->classs('query');
 load()->classs('we7model');
 load()->classs('we7user');
 load()->classs('we7module');
@@ -19,7 +19,11 @@ $user = We7User::current();
 
 dump($user);
 
-dump($user->accounts());
+dump($user->accounts()->where('name LIKE', '%微擎%')->getall());
+
+dump($user->accounts()->getall());
+
+exit;
 
 
 $account = We7UniAccount::current();

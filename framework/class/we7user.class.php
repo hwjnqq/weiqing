@@ -6,10 +6,11 @@
  * Date: 2017/8/9
  * Time: 9:04
  */
-class We7User extends We7Model {
+class We7User {
 
 
-	protected $primaryKey = 'uid';
+	protected $uid;
+	private $attributes;
 
 	public static function current() {
 		global $_W;
@@ -18,6 +19,12 @@ class We7User extends We7Model {
 		$user = new We7User();
 		$user->fill($userdata);
 		return $user;
+	}
+
+
+	public function fill($attributes) {
+		$this->attributes = $attributes;
+		return $this;
 	}
 	/**
 	 *  是否是创始人
@@ -52,12 +59,8 @@ class We7User extends We7Model {
 		return uni_user_permission_check($permission_name,false);
 	}
 
-	public function __get($key) {
-		if($key == 'accounts') {
-			return $this->accounts();
-		}
-		return isset($this->attributes[$key]) ? $this->attributes[$key] : null;
-	}
+
+
 
 	/**
 	 *  获取 当前用户在某个公众账号下的角色
@@ -66,26 +69,68 @@ class We7User extends We7Model {
 	public function forUniAccount($uniacid) {
 
 	}
+
+	public function query() {
+		return new Query(pdo());
+	}
+
+	/**
+	 *  公众号信息
+	 */
+	public function wechatAccounts() {
+		if($this->isFounder()) {
+
+		}
+	}
+
 	/**
 	 *  所有公众号和小程序
 	 *  暂不支持分页
 	 */
 	public function accounts() {
+		$query = We7UniAccount::query();
+		$query->from('uni_account','a')
+			->leftjoin('account','b')
+			->on('a.uniacid','b.uniacid')
+			->on('a.default_acid','b.acid')
+			->where('b.isdeleted <>', 1);
 
-		$accounts_user = pdo_getall('uni_account_users',array('uid'=>$this->uid),array(),'uniacid');
-		$uniacids = array_keys($accounts_user);
-
-		$uniAccountsArray = pdo_getall('uni_account', array('uniacid',$uniacids));
-		$uniAccounts = array();
-		foreach ($uniAccountsArray as $uniacid => $item) {
-			$uniAccounts[] = \We7UniAccount::fill($item);
+		if(! $this->isFounder()) {
+			$query->leftjoin('uni_account_users','c')
+				->on('a.uniacid','c.uniacid')
+				->where('a.defaultacid <>', 0)
+				->where('c.uid', $this->uid)
+				->orderby('c.rank','DESC');
+		}else {
+			$query->where('a.default_acid <>',0);
 		}
-		return $uniAccounts;
-	}
-
-	public function accounts() {
+		$query->orderby('rank','DESC');
+		return $query;
 
 	}
+
+
+	public static function __callStatic($method, $params) {
+		$user = new We7User();
+		return call_user_func_array(array($user, $method), $params);
+	}
+
+
+
+	public function __set($key, $value) {
+		$this->attributes[$key] = $value;
+	}
+
+	public function __get($key) {
+		if($key == 'accounts') {
+			return $this->accounts();
+		}
+		return isset($this->attributes[$key]) ? $this->attributes[$key] : null;
+	}
+
+
+
+
 
 
 

@@ -13,8 +13,15 @@ class We7Model {
 
 	protected $query = null;
 
+
 	public function __construct() {
 		$this->query = new Query(pdo());
+	}
+
+	public function query() {
+		$query = new We7ModelQuery();
+		$query->setModel($this);
+		return $query;
 	}
 
 	public function fill($attributes) {
@@ -39,7 +46,7 @@ class We7Model {
 	}
 
 	public function update() {
-
+		
 	}
 
 
@@ -56,15 +63,7 @@ class We7Model {
 	}
 
 
-	public function __call() {
-		
-	}
-	public static function __callStatic($method, $parameters)
-	{
-		echo 'call static';
-		$class = get_called_class();
-		$instance = new $class;
-		echo 'instance';
-		return forward_static_call_array(array($instance,$method), $parameters);
-	}
+
+
+
 }
