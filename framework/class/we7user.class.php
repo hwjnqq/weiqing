@@ -17,6 +17,7 @@ class We7User {
 		$userdata = pdo_get('users',array('uid' => $_W['uid']));
 		unset($userdata['password'], $userdata['salt']);
 		$user = new We7User();
+		$user->uid = $_W['uid'];
 		$user->fill($userdata);
 		return $user;
 	}

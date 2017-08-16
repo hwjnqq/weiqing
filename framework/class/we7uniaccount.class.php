@@ -18,12 +18,17 @@ class We7UniAccount  {
 
 	protected $attributes;
 
+	private $setting;//公众号设置
+
 	public static function current() {
 		global $_W;
 		$uniacid = $_W['uniacid'];
-		$data = pdo_get('uni_account',array('uniacid'=>$uniacid));
+		$data = self::query()->where('uni_account')->where('uniacid',$uniacid)->get();
+		$account = new We7UniAccount();
 		if ($data) {
-			return self::fill($data);
+			$account->attributes = $data;
+			$account->uniacid = $uniacid;
+			return $account;
 		}
 		return false;
 	}
@@ -83,6 +88,10 @@ class We7UniAccount  {
 		if($key == 'account_modules') {
 			return $this->account_modules();
 		}
+		if($key == 'setting') {
+			return $this->setting();
+		}
+
 		return isset($this->attributes[$key]) ? $this->attributes[$key] : null;
 	}
 
@@ -122,6 +131,14 @@ class We7UniAccount  {
 			$modules = pdo_fetchall("SELECT * from $tablename where uniacid = :uniacid", array('uniacid'=>$this->uniacid));
 		}
 		return $modules;
+	}
+
+	public function setting() {
+
+		if(!$this->setting) {
+			$this->setting = $this->query()->from('uni_setting')->where('uniacid',$this->uniacid)->get();
+		}
+		return $this->setting;
 	}
 
 	public function query() {
