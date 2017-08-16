@@ -198,6 +198,9 @@
 					}
 				},
 				addRecharges() {
+					if (!this.activeModules.cardRecharge.params.hasOwnProperty('recharges') || typeof this.activeModules.cardRecharge.params.recharges !== 'object') {
+						this.$set(this.activeModules.cardRecharge.params, 'recharges', []);
+					}
 					this.activeModules.cardRecharge.params.recharges.push({
 						condition: '',
 						back: '',
@@ -209,6 +212,9 @@
 					this.activeModules.cardRecharge.params.recharges.splice(index, '1')
 				},
 				addNums() {
+					if (!this.activeModules.cardNums.params.hasOwnProperty('nums') || typeof this.activeModules.cardNums.params.nums !== 'object') {
+						this.$set(this.activeModules.cardNums.params, 'nums', []);
+					}
 					this.activeModules.cardNums.params.nums.push({
 						recharge: '',
 						num: ''
@@ -218,6 +224,9 @@
 					this.activeModules.cardNums.params.nums.splice(index, '1')
 				},
 				addTimes() {
+					if (!this.activeModules.cardTimes.params.hasOwnProperty('times') || typeof this.activeModules.cardTimes.params.times !== 'object') {
+						this.$set(this.activeModules.cardTimes.params, 'times', []);
+					}
 					this.activeModules.cardTimes.params.times.push({
 						recharge: '',
 						time: ''

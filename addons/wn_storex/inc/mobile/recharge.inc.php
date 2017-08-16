@@ -37,11 +37,8 @@ if ($op == 'card_recharge') {
 	} else {
 		wmessage(error(-1, '请先领取会员卡'), '', 'ajax');
 	}
-	if (!empty($recharge_lists)) {
-		wmessage(error(0, $recharge_lists), '', 'ajax');
-	} else {
-		wmessage(error(-1, '充值选项为空'), '', 'ajax');
-	}
+	$recharge_lists = !empty($recharge_lists) ? $recharge_lists : array();
+	wmessage(error(0, $recharge_lists), '', 'ajax');
 }
 
 if ($op == 'recharge_add') {

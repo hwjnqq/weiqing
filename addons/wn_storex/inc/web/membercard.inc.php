@@ -42,6 +42,15 @@ if ($op == 'display') {
 			'discount_2' => $discounts_temp[$group['groupid']]['discount_2'],
 		);
 	}
+	if (!empty($params['cardNums']) && empty($params['cardNums']['params']['nums'])) {
+		$params['cardNums']['params']['nums'] = array();
+	}
+	if (!empty($params['cardTimes']) && empty($params['cardTimes']['params']['times'])) {
+		$params['cardTimes']['params']['times'] = array();
+	}
+	if (!empty($params['cardRecharge']) && empty($params['cardRecharge']['params']['recharges'])) {
+		$params['cardRecharge']['params']['recharges'] = array();
+	}
 	$setting['params'] = json_encode($params);
 	$setting['params'] = preg_replace('/\n/', '', $setting['params']);
 }
@@ -55,8 +64,17 @@ if ($op == 'post') {
 		$basic = $params['cardBasic']['params'];
 		$activity = $params['cardActivity']['params'];
 		$nums = $params['cardNums']['params'];
+		if (empty($nums['nums'])) {
+			$params['cardNums']['params']['nums'] = array();
+		}
 		$times = $params['cardTimes']['params'];
+		if (empty($times['times'])) {
+			$params['cardTimes']['params']['times'] = array();
+		}
 		$recharges = $params['cardRecharge']['params'];
+		if (empty($recharges['recharges'])) {
+			$params['cardRecharge']['params']['recharges'] = array();
+		}
 		$title = trim($basic['title']);
 		$format_type = 1;
 		$format = trim($basic['format']);
