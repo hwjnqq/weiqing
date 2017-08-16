@@ -35,7 +35,7 @@
 		</div>
 	</div>
 </div>
-<input type="hidden" id="hotelid" value="{$hotelid}" />
+<input type="hidden" id="storeid" value="{$storeid}" />
 <script type="text/javascript">
 	$(function () {
 		var next_page = 0;
@@ -91,7 +91,7 @@
 			});
 		}
 		window.submitPrice = function(obj){
-			var hotelid = obj.attr("hotelid");
+			var storeid = obj.attr("storeid");
 			var roomid = obj.attr("roomid");
 			var date = obj.attr("date");
 			var pricetype  = obj.attr("pricetype");
@@ -106,14 +106,14 @@
 				obj.parent().addClass('hide');
 				if(price=='') { price='-1';}
 					$.post("{php echo $this->createWebUrl('shop_room_status')}", 
-					{op: 'submitPrice', hotelid:hotelid,roomid:roomid,date:date,price: price,pricetype:pricetype}, function (data) {
+					{op: 'submitPrice', storeid:storeid,roomid:roomid,date:date,price: price,pricetype:pricetype}, function (data) {
 					data = eval("(" + data + ")");
 					if (data.result == 1) {
 					}
 				});
 			} else {
 				$.post("{php echo $this->createWebUrl('shop_room_status')}", 
-					{op: 'submitPrice', hotelid:hotelid,roomid:roomid,date:date,status: (obj.get(0).checked?"1":"0"),pricetype:pricetype}, function (data) {
+					{op: 'submitPrice', storeid:storeid,roomid:roomid,date:date,status: (obj.get(0).checked?"1":"0"),pricetype:pricetype}, function (data) {
 					data = eval("(" + data + ")");
 					if (data.result == 1) {
 					}

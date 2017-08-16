@@ -18,7 +18,7 @@
 		<td style="text-align: center">
 			<span class="price_span">{$data1['price_list'][$row['time']]['oprice']}</span>
 			<span class="price_editspan hide">
-				<input type="text" date="{$row['date']}" pricetype="oprice" hotelid="{$data1['price_list'][$row['time']]['hotelid']}" roomid="{$data1['price_list'][$row['time']]['roomid']}" class="price_input form-control" value="{$data1['price_list'][$row['time']]['oprice']}" />
+				<input type="text" date="{$row['date']}" pricetype="oprice" storeid="{$data1['price_list'][$row['time']]['hotelid']}" roomid="{$data1['price_list'][$row['time']]['roomid']}" class="price_input form-control" value="{$data1['price_list'][$row['time']]['oprice']}" />
 			</span>
 		</td>
 		{/loop}
@@ -30,7 +30,7 @@
 		<td style="text-align: center">
 			<span class="price_span">{$data1['price_list'][$row['time']]['cprice']}</span>
 			<span class="price_editspan hide">
-				<input type="text" date="{$row['date']}" pricetype="cprice" hotelid="{$data1['price_list'][$row['time']]['hotelid']}" roomid="{$data1['price_list'][$row['time']]['roomid']}" class="price_input form-control" value="{$data1['price_list'][$row['time']]['cprice']}" />
+				<input type="text" date="{$row['date']}" pricetype="cprice" storeid="{$data1['price_list'][$row['time']]['hotelid']}" roomid="{$data1['price_list'][$row['time']]['roomid']}" class="price_input form-control" value="{$data1['price_list'][$row['time']]['cprice']}" />
 			</span>
 		</td>
 		{/loop}
