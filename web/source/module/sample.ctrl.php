@@ -7,7 +7,7 @@
  */
 
 defined('IN_IA') or exit('Access Denied');
-
+error_reporting(0);
 
 load()->classs('query');
 load()->classs('we7model');
