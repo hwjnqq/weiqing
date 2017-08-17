@@ -583,12 +583,12 @@
 							$scope.micro.config.fact_fee = $scope.micro.config.fee;
 							var fee = parseInt($scope.micro.config.fee);
 							var condition = parseInt($scope.micro.config.member.discount.condition);
-							if($scope.micro.config.member.discount_type > 0 && $scope.micro.config.member.discount && (fee >= condition)) {
-								if($scope.micro.config.member.discount_type == 1) {
-									$scope.micro.config.fact_fee = $scope.micro.config.fee - $scope.micro.config.member.discount.discount;
+							if($scope.micro.config.member.discount_type > 0) {
+								if($scope.micro.config.member.discount_type == 1 && fee >= parseInt($scope.micro.config.member.discount.condition_1)) {
+									$scope.micro.config.fact_fee = $scope.micro.config.fee - $scope.micro.config.member.discount.discount_1;
 									$scope.micro.config.fact_fee = $scope.micro.config.fact_fee.toFixed(2);
-								} else {
-									$scope.micro.config.fact_fee = $scope.micro.config.fee * $scope.micro.config.member.discount.discount;
+								} else if ($scope.micro.config.member.discount_type == 2 && fee >= parseInt($scope.micro.config.member.discount.condition_2)) {
+									$scope.micro.config.fact_fee = $scope.micro.config.fee * $scope.micro.config.member.discount.discount_2 * 0.1;
 								}
 								if($scope.micro.config.fact_fee < 0) {
 									$scope.micro.config.fact_fee = 0;

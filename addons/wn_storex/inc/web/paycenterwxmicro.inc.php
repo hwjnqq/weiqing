@@ -36,22 +36,19 @@ if ($op == 'display') {
 			$member = pdo_get('storex_mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $user['uid']));
 			if (!empty($card) && $card['status'] == 1 && !empty($member)) {
 				$user['discount'] = $card['discount'][$user['groupid']];
-				if (!empty($user['discount']) && !empty($user['discount']['discount'])) {
-					if ($total >= $user['discount']['condition']) {
-						$log .= ",所在会员组【{$user['groupname']}】,可享受满【{$user['discount']['condition']}】元";
-						if ($card['discount_type'] == 1) {
-							$log .= "减【{$user['discount']['discount']}】元";
-							$money = $total - $user['discount']['discount'];
-						} else {
-							$discount = $user['discount']['discount'] * 10;
-							$log .= "打【{$discount}】折";
-							$money = $total * $user['discount']['discount'];
-						}
-						if ($money < 0) {
-							$money = 0;
-						}
-						$log .= ",实收金额【{$money}】元";
+				if (!empty($user['discount'])) {
+					$log .= ",所在会员组【{$user['groupname']}】,可享受满【";
+					if ($card['discount_type'] == 1) {
+						$log .= "{$user['discount']['condition_1']}】元,减【{$user['discount']['discount_1']}】元";
+						$money = $total - $user['discount']['discount_1'];
+					} elseif ($card['discount_type'] == 2) {
+						$log .= "{$user['discount']['condition_2']}】元,打【{$user['discount']['discount_2']}】折";
+						$money = $total * $user['discount']['discount_2'] * 0.1;
 					}
+					if ($money < 0) {
+						$money = 0;
+					}
+					$log .= ",实收金额【{$money}】元";
 				}
 				$post_money = strval($post['fact_fee']);
 				if ($post_money != $money) {
@@ -131,7 +128,7 @@ if ($op == 'display') {
 				$status = mc_credit_update($member['uid'], 'credit2', -$credit2, array(0, "会员刷卡消费,使用余额支付,扣除{$credit2}余额", 'system', $_W['user']['clerk_id'], $_W['user']['store_id'], $_W['user']['clerk_type']));
 				mc_notice_credit2($member['openid'], $member['uid'], $credit2, '', '收银台消费');
 			}
-			message(error(0, '支付成功'), $this->createWeburl('paycenterwxmicro'), 'ajax');
+			message(error(0, '支付成功'), $this->createWeburl('paycenterwxmicro', array('op' => 'display')), 'ajax');
 		} else {
 			$log .= ",使用刷卡支付【{$cash}】元";
 			if (!empty($_GPC['remark'])) {
@@ -200,7 +197,7 @@ if ($op == 'display') {
 					if (is_error($status)) {
 						message($status, '', 'ajax');
 					}
-					message(error(0, '支付成功'), $this->createWeburl('paycenterwxmicro'), 'ajax');
+					message(error(0, '支付成功'), $this->createWeburl('paycenterwxmicro', array('op' => 'display')), 'ajax');
 				}
 			} else {
 				message($result, '', 'ajax');
@@ -306,11 +303,10 @@ if ($op == 'check') {
 		if (!empty($discount)) {
 			$member['discount'] = $discount;
 			$member['discount_type'] = $set['discount_type'];
-			if ($set['discount_type'] == 1 ) {
-				$member['discount_cn'] = "满 {$discount['condition']}元减 {$discount['discount']}元";
-			} else {
-				$zhe = $discount['discount'] * 10;
-				$member['discount_cn'] = "满 {$discount['condition']}元打 {$zhe}折";
+			if ($set['discount_type'] == 1) {
+				$member['discount_cn'] = "满 {$discount['condition_1']}元减 {$discount['discount_1']}元";
+			} elseif ($set['discount_type'] == 2) {
+				$member['discount_cn'] = "满 {$discount['condition_2']}元打 {$discount['discount_2']}折";
 			}
 		}
 	}
