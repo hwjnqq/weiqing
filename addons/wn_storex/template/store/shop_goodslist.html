@@ -75,7 +75,6 @@
 					{/if}
 					<th style='width:120px;'>前台价（原价)</th>
 					<th style='width:120px;'>优惠价（现价)</th>
-					<th style='width:100px;'>积分</th>
 					<th style='width:100px;'>状态</th>
 					<th style="width:420px;">操作</th>
 				</tr>
@@ -109,7 +108,6 @@
 				<td>{$item['sortid']}</td>
 				<td>{$item['oprice']}</td>
 				<td>{$item['cprice']}</td>
-				<td>{$item['score']}</td>
 				<td>{if $item['status'] == 0}
 					<a title="隐藏" href="javascript:;" onclick="drop_confirm('您确定要显示此商品吗?', '{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'status', 'status' => 1, 'id' => $item['id'], 'storeid' => $storeid))}');"> <span class='label label-default'>隐藏</span></a>
 					{elseif $item['status'] == 1}
