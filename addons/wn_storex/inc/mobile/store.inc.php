@@ -58,7 +58,7 @@ if ($op == 'store_list') {
 		}
 	}
 	if ($setting['version'] == 0) {//单店
-		if (!empty($storex_bases) && count($storex_bases) > 1) {
+		if (!empty($storex_bases)) {
 			foreach ($storex_bases as $val) {
 				$storex_bases = array();
 				$storex_bases[] = $val;
