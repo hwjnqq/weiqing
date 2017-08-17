@@ -1923,6 +1923,10 @@ class We7_couponModuleSite extends WeModuleSite {
 		if (!empty($uids)) {
 			$users_lists = pdo_getall('users', array('uid' => $uids), '', 'uid');
 		}
+		$compare = ver_compare(IMS_VERSION, '1.0');
+		if ($compare == -1) {
+			message('请将微擎系统升级至1.0以上的最新版本', '', 'error');
+		}
 		$current_module_permission = module_permission_fetch($this->module['name']);
 		if (!empty($current_module_permission)) {
 			foreach ($current_module_permission as $key => $permission) {
