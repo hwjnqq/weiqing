@@ -105,7 +105,7 @@ if ($op == 'receive_card') {
 			}
 		}
 		$time = date('Y-m-d H:i');
-		$url = murl('entry', array('do' => 'membercard', 'op' => 'my_card', 'm' => 'wn_storex'), true, true);
+		$url = murl('entry', array('id' => intval($_GPC['storeid']), 'do' => 'display', 'm' => 'wn_storex'), true, true) . '#/Home/Index';
 		$title = "【{$_W['account']['name']}】- 领取会员卡通知\n";
 		$info = "您在{$time}成功领取会员卡，{$notice}。\n\n";
 		$info .= "<a href='{$url}'>点击查看详情</a>";
