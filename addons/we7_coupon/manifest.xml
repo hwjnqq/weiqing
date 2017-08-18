@@ -50,6 +50,7 @@
 			<entry title="会员卡统计" do="statcard" state="" direct="false" />
 			<entry title="收银台收款统计" do="statpaycenter" state="" direct="false" />
 			<entry title="微信卡券回复" do="wxcardreply" state="" direct="false" />
+			<entry title="店员工作台" do="clerkdeskwelcome" state="" direct="false" />
 		</menu>
 	</bindings>
 	<permissions>
