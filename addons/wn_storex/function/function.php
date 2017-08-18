@@ -329,7 +329,7 @@ function category_room_status($goods_list, $search_data) {
 	if (!empty($modify_recored)) {
 		foreach ($modify_recored as $value) {
 			foreach ($goods_list as &$info) {
-				if ($value['roomid'] == $info['id'] && $value['hotelid'] == $info['hotelid']) {
+				if ($value['roomid'] == $info['id'] && $value['hotelid'] == $info['store_base_id']) {
 					if (isset($info['max_room']) && $info['max_room'] == 0) {
 						$info['room_counts'] = 0;
 						continue;

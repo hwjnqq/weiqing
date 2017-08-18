@@ -431,11 +431,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 						pdo_update('storex_coupon_record', array('status' => 3), array('id' => $order['coupon']));
 					}
 				}
-				if ($params['type'] == 'delivery') {
-					message('提交成功！', '../../app/' . $this->createMobileUrl('detail', array('hid' => $room['hotelid'])), 'success');
-				} else {
-					message('支付成功！', $this->createMobileurl('display', array('orderid' => $params['tid'], 'id' => $order['hotelid'])), 'success');
-				}
+				message('支付成功！', $this->createMobileurl('display', array('orderid' => $params['tid'], 'id' => $order['hotelid'])), 'success');
 			}
 		}
 	}

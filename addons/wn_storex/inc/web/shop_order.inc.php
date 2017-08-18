@@ -177,7 +177,7 @@ if ($op == 'edit') {
 		}
 		$is_house = 2;
 		if ($store_type == STORE_TYPE_HOTEL) {
-			$good_info = pdo_get('storex_room', array('hotelid' => $storeid, 'id' => $item['roomid']), array('id', 'is_house', 'thumb'));
+			$good_info = pdo_get('storex_room', array('store_base_id' => $storeid, 'id' => $item['roomid']), array('id', 'is_house', 'thumb'));
 			$is_house = $good_info['is_house'];
 		}
 		$paylog = pdo_get('core_paylog', array('uniacid' => $item['weid'], 'tid' => $item['id'], 'module' => 'wn_storex'), array('uniacid', 'uniontid', 'tid'));

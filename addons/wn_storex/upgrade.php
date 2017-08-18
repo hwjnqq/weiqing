@@ -1,4 +1,7 @@
 <?php 
+if (!pdo_fieldexists('storex_room', 'hotelid')) {
+	pdo_query("ALTER TABLE " . tablename('storex_room') . " CHANGE `hotelid` `store_base_id` INT(11) NULL DEFAULT '0';");
+}
 if (!pdo_fieldexists('storex_room', 'is_house')) {
 	pdo_query("ALTER TABLE " . tablename('storex_room') . " ADD `is_house` INT(11) NOT NULL DEFAULT '1' COMMENT '是否是房型 1 是，2不是 ';");
 }

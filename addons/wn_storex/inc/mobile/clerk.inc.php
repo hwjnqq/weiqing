@@ -326,14 +326,14 @@ if ($op == 'edit_order') {
 if ($op == 'room') {
 	$manage_storex_lists = clerk_permission_storex($op);
 	$manage_storex_ids = array_keys($manage_storex_lists);
-	$room_list = pdo_getall('storex_room', array('hotelid' => $manage_storex_ids, 'weid' => intval($_W['uniacid']), 'is_house' => 1), array('id', 'hotelid', 'weid', 'title', 'thumb', 'oprice', 'cprice', 'service', 'store_type', 'is_house'));
+	$room_list = pdo_getall('storex_room', array('store_base_id' => $manage_storex_ids, 'weid' => intval($_W['uniacid']), 'is_house' => 1), array('id', 'hotelid', 'weid', 'title', 'thumb', 'oprice', 'cprice', 'service', 'store_type', 'is_house'));
 	if (!empty($room_list) && is_array($room_list)) {
 		foreach ($room_list as $k => $info) {
 			if ($info['store_type'] != STORE_TYPE_HOTEL || $info['is_house'] != 1) {
 				unset($room_list[$k]);
 			}
-			if (!empty($manage_storex_lists[$info['hotelid']])) {
-				$room_list[$k]['store_title'] = $manage_storex_lists[$info['hotelid']]['title'];
+			if (!empty($manage_storex_lists[$info['store_base_id']])) {
+				$room_list[$k]['store_title'] = $manage_storex_lists[$info['store_base_id']]['title'];
 			}
 		}
 	}
@@ -342,12 +342,12 @@ if ($op == 'room') {
 
 if ($op == 'room_info') {
 	$room_id = intval($_GPC['room_id']);
-	$room_info = pdo_get('storex_room', array('id' => $room_id), array('id', 'hotelid', 'weid', 'title', 'oprice', 'cprice', 'thumb'));
+	$room_info = pdo_get('storex_room', array('id' => $room_id), array('id', 'store_base_id', 'weid', 'title', 'oprice', 'cprice', 'thumb'));
 	if (empty($room_info)) {
 		wmessage(error(-1, '不存在此房型！'), '', 'ajax');
 	}
 	$room_info['thumb'] = tomedia($room_info['thumb']);
-	$manage_storex_lists = clerk_permission_storex('room', $room_info['hotelid']);
+	$manage_storex_lists = clerk_permission_storex('room', $room_info['store_base_id']);
 	if (empty($manage_storex_lists)) {
 		wmessage(error(-1, '你没有维护房型的权限'), '', 'ajax');
 	}
@@ -382,7 +382,7 @@ if ($op == 'room_info') {
 					$room_info['price_list'][$k]['oprice'] = $p_value['oprice'];
 					$room_info['price_list'][$k]['cprice'] = $p_value['cprice'];
 					$room_info['price_list'][$k]['roomid'] = $room_info['id'];
-					$room_info['price_list'][$k]['hotelid'] = $room_info['hotelid'];
+					$room_info['price_list'][$k]['hotelid'] = $room_info['store_base_id'];
 					$room_info['price_list'][$k]['status'] = $p_value['status'];
 					if (empty($p_value['num'])) {
 						$room_info['price_list'][$k]['num'] = "0";
@@ -400,7 +400,7 @@ if ($op == 'room_info') {
 				$room_info['price_list'][$k]['num'] = "-1";
 				$room_info['price_list'][$k]['status'] = 1;
 				$room_info['price_list'][$k]['roomid'] = $room_info['id'];
-				$room_info['price_list'][$k]['hotelid'] = $room_info['hotelid'];
+				$room_info['price_list'][$k]['hotelid'] = $room_info['store_base_id'];
 				$room_info['price_list'][$k]['oprice'] = $room_info['oprice'];
 				$room_info['price_list'][$k]['cprice'] = $room_info['cprice'];
 			}
@@ -412,7 +412,7 @@ if ($op == 'room_info') {
 			$room_info['price_list'][$k]['num'] = "-1";
 			$room_info['price_list'][$k]['status'] = 1;
 			$room_info['price_list'][$k]['roomid'] = $room_info['id'];
-			$room_info['price_list'][$k]['hotelid'] = $room_info['hotelid'];
+			$room_info['price_list'][$k]['hotelid'] = $room_info['store_base_id'];
 			$room_info['price_list'][$k]['oprice'] = $room_info['oprice'];
 			$room_info['price_list'][$k]['cprice'] = $room_info['cprice'];
 		}
@@ -422,12 +422,12 @@ if ($op == 'room_info') {
 
 if ($op == 'edit_room') {
 	$room_id = intval($_GPC['room_id']);
-	$room_info = pdo_get('storex_room', array('id' => $room_id), array('id', 'hotelid', 'weid', 'title', 'oprice', 'cprice', 'thumb'));
+	$room_info = pdo_get('storex_room', array('id' => $room_id), array('id', 'store_base_id', 'weid', 'title', 'oprice', 'cprice', 'thumb'));
 	if (empty($room_info)) {
 		wmessage(error(-1, '不存在此房型！'), '', 'ajax');
 	}
 	$room_info['thumb'] = tomedia($room_info['thumb']);
-	$manage_storex_lists = clerk_permission_storex('room', $room_info['hotelid']);
+	$manage_storex_lists = clerk_permission_storex('room', $room_info['store_base_id']);
 	if (empty($manage_storex_lists)) {
 		wmessage(error(-1, '你没有维护房型的权限'), '', 'ajax');
 	}
@@ -455,7 +455,7 @@ if ($op == 'edit_room') {
 	}
 	if (!empty($dates) && is_array($dates)) {
 		foreach ($dates as $date) {
-			$roomprice = getRoomPrice($room_info['hotelid'], $room_id, $date);
+			$roomprice = getRoomPrice($room_info['store_base_id'], $room_id, $date);
 			$roomprice['num'] = $num;
 			$roomprice['status'] = $status;
 			$roomprice['oprice'] = $oprice;
@@ -506,14 +506,8 @@ if ($op == 'goods') {
 	if (!empty($manage_storex_lists) && is_array($manage_storex_lists)) {
 		foreach ($manage_storex_lists as $store) {
 			$table = gettablebytype($store['store_type']);
-			$fields = array('id', 'status', 'title', 'oprice', 'cprice', 'thumb');
-			if ($table == 'storex_room') {
-				$condition = array('hotelid' => $store['id']);
-				$fields[] = 'hotelid';
-			} else {
-				$condition = array('store_base_id' => $store['id']);
-				$fields[] = 'store_base_id';
-			}
+			$fields = array('id', 'store_base_id', 'status', 'title', 'oprice', 'cprice', 'thumb');
+			$condition = array('store_base_id' => $store['id']);
 			$list = pdo_getall($table, $condition, $fields);
 			if (!empty($list) && is_array($list)) {
 				foreach ($list as &$val) {

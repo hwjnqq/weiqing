@@ -17,12 +17,7 @@ if ($op == 'display') {
 
 if ($op == 'post') {
 	$table = gettablebytype($store_info['store_type']);
-	if ($store_info['store_type'] == 1) {
-		$store_base_id = 'hotelid';
-	} else {
-		$store_base_id = 'store_base_id';
-	}
-	$goods_list = pdo_getall($table, array('weid' => $_W['uniacid'], $store_base_id => $storeid));
+	$goods_list = pdo_getall($table, array('weid' => $_W['uniacid'], 'store_base_id' => $storeid));
 	if (!empty($goods_list) && is_array($goods_list)) {
 		foreach ($goods_list as &$goods) {
 			$goods['thumb'] = tomedia($goods['thumb']);

@@ -254,7 +254,7 @@ if (!function_exists('getRoomPrice')) {
 		$btime = strtotime($date);
 		$roomprice = pdo_get('storex_room_price', array('weid' => intval($_W['uniacid']), 'hotelid' => $hotelid, 'roomid' => $roomid, 'roomdate' => $btime));
 		if (empty($roomprice)) {
-			$room = pdo_get('storex_room', array('hotelid' => $hotelid, 'id' => $roomid, 'weid' => intval($_W['uniacid'])));
+			$room = pdo_get('storex_room', array('store_base_id' => $hotelid, 'id' => $roomid, 'weid' => intval($_W['uniacid'])));
 			$roomprice = array(
 				"weid" => $_W['uniacid'],
 				"hotelid" => $hotelid,
@@ -700,7 +700,7 @@ function goods_entry_fetch($storeid, $params = array()) {
 	if (empty($goods_entry_routes)) {
 		$storeinfo = pdo_get('storex_bases', array('id' => $storeid), array('store_type'));
 		if ($storeinfo['store_type'] == 1) {
-			$goodsinfo = pdo_getall('storex_room', array('hotelid' => $storeid, 'is_house !=' => 1, 'status' => 1), array('id', 'title', 'is_house'), 'id');
+			$goodsinfo = pdo_getall('storex_room', array('store_base_id' => $storeid, 'is_house !=' => 1, 'status' => 1), array('id', 'title', 'is_house'), 'id');
 		} else {
 			$goodsinfo = pdo_getall('storex_goods', array('store_base_id' => $storeid, 'status' => 1), array('id', 'title'), 'id');
 		}

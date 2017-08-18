@@ -18,14 +18,8 @@ $max_room = 8;
 
 //获取某个商品的详细信息
 if ($op == 'goods_info') {
-	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
-	if ($store_info['store_type'] == 1) {
-		$condition['hotelid'] = $store_id;
-		$table = 'storex_room';
-	} else {
-		$condition['store_base_id'] = $store_id;
-		$table = 'storex_goods';
-	}
+	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1, 'store_base_id' => $store_id);
+	$table = gettablebytype($store_info['store_type']);
 	$goods_info = pdo_get($table, $condition);
 	if (empty($goods_info)) {
 		wmessage(error(-1, '商品不存在'), '', 'ajax');
@@ -190,10 +184,9 @@ if ($op == 'info') {
 		$info['mobile'] = $record['mobile'];
 		$info['contact_name'] = $record['realname'];
 	}
-	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
+	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1, 'store_base_id' => $store_id);
+	$table = gettablebytype($store_info['store_type']);
 	if ($store_info['store_type'] == 1) {
-		$condition['hotelid'] = $store_id;
-		$table = 'storex_room';
 		$goods_info = pdo_get($table, $condition);
 		if (isset($goods_info['express_set'])) {
 			unset($goods_info['express_set']);
@@ -229,8 +222,6 @@ if ($op == 'info') {
 				$goods_info = $package_info;
 			}
 		} else {
-			$condition['store_base_id'] = $store_id;
-			$table = 'storex_goods';
 			$goods_info = pdo_get($table, $condition);
 		}
 		
@@ -333,14 +324,8 @@ if ($op == 'order') {
 	$order_info['action'] = 2;
 	$paysetting = uni_setting(intval($_W['uniacid']), array('payment', 'creditbehaviors'));
 	$_W['account'] = array_merge($_W['account'], $paysetting);
-	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1);
-	if ($store_info['store_type'] == 1) {
-		$table = 'storex_room';
-		$condition['hotelid'] = $store_id;
-	} else {
-		$table = 'storex_goods';
-		$condition['store_base_id'] = $store_id;
-	}
+	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1, 'store_base_id' => $store_id);
+	$table = gettablebytype($store_info['store_type']);
 	if ($goods_type == 2) {
 		$package_info = pdo_get('storex_sales_package', array('id' => $goodsid, 'storeid' => $store_id));
 		$goods_info = array();

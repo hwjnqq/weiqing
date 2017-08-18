@@ -20,56 +20,32 @@ if ($op == 'goods_list') {
 	//获取某一级分类下的所有二级分类
 	$sub_class = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'parentid' => $first_id, 'enabled' => 1), array(), '', 'displayorder DESC');
 	//存在二级分类就找其下的商品
-	$fields = array('id', 'title', 'thumb', 'oprice', 'cprice', 'sold_num', 'sales');
+	$fields = array('id', 'title', 'thumb', 'oprice', 'cprice', 'sold_num', 'sales', 'store_base_id');
 	$list = array();
 	$goods = array();
-	if (!empty($sub_class)) {
+	$table = gettablebytype($store_info['store_type']);
+	$condition = array('weid' => $_W['uniacid'], 'pcate' => $first_id, 'status' => 1, 'store_base_id' => $store_id);
+	if (!empty($sub_class) && is_array($sub_class)) {
 		$goods = $sub_class;
 		$list['have_subclass'] = 1;
-		$condition = array('weid' => $_W['uniacid'], 'pcate' => $first_id, 'status' => 1);
-		if ($store_info['store_type'] == 1) {//酒店
-			$condition['hotelid'] = $store_id;
-			$fields[] = 'hotelid';
-			foreach ($sub_class as $key => $sub_classinfo) {
-				$condition['ccate'] = $sub_classinfo['id'];
-				$goods_list = category_store_goods('storex_room', $condition, $fields);
-				if (!empty($goods_list)) {
-					$goods[$key]['store_goods'] = array_slice($goods_list, 0, 2);
-					$goods[$key]['total'] = count($goods_list);
-				}
-			}
-		} else {
-			$goods_fields = array('store_base_id', 'unit', 'weight', 'stock', 'min_buy', 'max_buy');
+		if ($store_info['store_type'] != STORE_TYPE_HOTEL) {//酒店
+			$goods_fields = array('unit', 'weight', 'stock', 'min_buy', 'max_buy');
 			$fields = array_merge($fields, $goods_fields);
-			$condition['store_base_id'] = $store_id;
-			foreach ($sub_class as $key => $sub_classinfo) {
-				$condition['ccate'] = $sub_classinfo['id'];
-				$goods_list = category_store_goods('storex_goods', $condition, $fields);
-				if (!empty($goods_list)) {
-					$goods[$key]['store_goods'] = array_slice($goods_list, 0, 2);
-					$goods[$key]['total'] = count($goods_list);
-				}
+		}
+		foreach ($sub_class as $key => $sub_classinfo) {
+			$condition['ccate'] = $sub_classinfo['id'];
+			$goods_list = category_store_goods($table, $condition, $fields);
+			if (!empty($goods_list)) {
+				$goods[$key]['store_goods'] = array_slice($goods_list, 0, 2);
+				$goods[$key]['total'] = count($goods_list);
 			}
 		}
 	} else {
 		$list['have_subclass'] = 0;
-		$condition = array('weid' => $_W['uniacid'], 'pcate' => $first_id, 'status' => 1);
-		if ($store_info['store_type'] == 1) {
-			$fields[] = 'hotelid';
-			$condition['hotelid'] = $store_id;
-			$goods_list = category_store_goods('storex_room', $condition, $fields);
-			if (!empty($goods_list)) {
-				$goods['store_goods'] = array_slice($goods_list, 0, 2);
-				$goods['total'] = count($goods_list);
-			}
-		} else {
-			$fields[] = 'store_base_id';
-			$condition['store_base_id'] = $store_id;
-			$goods_list = category_store_goods('storex_goods', $condition, $fields);
-			if (!empty($goods_list)) {
-				$goods['store_goods'] = array_slice($goods_list, 0, 2);
-				$goods['total'] = count($goods_list);
-			}
+		$goods_list = category_store_goods($table, $condition, $fields);
+		if (!empty($goods_list)) {
+			$goods['store_goods'] = array_slice($goods_list, 0, 2);
+			$goods['total'] = count($goods_list);
 		}
 	}
 	$list['list'] = $goods;
@@ -100,8 +76,8 @@ if ($op == 'more_goods') {
 		$condition['title LIKE'] = "%{$keyword}%";
 	}
 	$condition['status'] = 1;
+	$condition['store_base_id'] = $storex_bases['id'];
 	if ($storex_bases['store_type'] == 1) {
-		$condition['hotelid'] = $storex_bases['id'];
 		$goods_list = pdo_getall('storex_room', $condition);
 		if (!empty($goods_list)) {
 			$search_data = array(
@@ -113,7 +89,6 @@ if ($op == 'more_goods') {
 			$goods_list = room_special_price($goods_list, $search_data, true);
 		}
 	} else {
-		$condition['store_base_id'] = $storex_bases['id'];
 		$goods_list = pdo_getall('storex_goods', $condition);
 	}
 	if (!empty($goods_list)) {
@@ -222,16 +197,14 @@ if ($op == 'goods_search') {
 	$keywords = trim($_GPC['keywords']);
 	$store = get_store_info($id);
 	$table = gettablebytype($store['store_type']);
-	$condition = array('title LIKE' => '%' . $keywords . '%', 'status' => 1);
+	$condition = array('title LIKE' => '%' . $keywords . '%', 'status' => 1, 'store_base_id' => $id);
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 10;
 	if ($table == 'storex_room') {
 		$condition['is_house !='] = 1;
-		$condition['hotelid'] = $id;
-		$goods = pdo_getall($table, $condition, array('id', 'hotelid', 'weid', 'pcate', 'ccate', 'title', 'sub_title', 'thumb', 'oprice', 'cprice', 'thumbs', 'device', 'status', 'can_buy', 'isshow', 'sales', 'displayorder', 'score', 'sortid', 'sold_num', 'store_type', 'is_house'), '', 'sortid DESC', array($pindex, $psize));
+		$goods = pdo_getall($table, $condition, array('id', 'store_base_id', 'weid', 'pcate', 'ccate', 'title', 'sub_title', 'thumb', 'oprice', 'cprice', 'thumbs', 'device', 'status', 'can_buy', 'isshow', 'sales', 'displayorder', 'score', 'sortid', 'sold_num', 'store_type', 'is_house'), '', 'sortid DESC', array($pindex, $psize));
 	} else {
 		$goods_fields = array('store_base_id', 'unit', 'weight', 'stock', 'min_buy', 'max_buy', 'tag');
-		$condition['store_base_id'] = $id;
 		$goods = pdo_getall($table, $condition, array(), '', 'sortid DESC', array($pindex, $psize));
 	}
 	$total = count(pdo_getall($table, $condition));

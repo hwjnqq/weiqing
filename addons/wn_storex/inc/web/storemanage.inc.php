@@ -155,11 +155,8 @@ if ($op == 'edit') {
 if ($op == 'delete') {
 	$id = intval($_GPC['id']);
 	$store = pdo_get('storex_bases', array('id' => $id), array('store_type'));
-	if ($store['store_type'] == 1) {
-		pdo_delete('storex_room', array('hotelid' => $id, 'weid' => $_W['uniacid']));
-	} else {
-		pdo_delete('storex_goods', array('store_base_id' => $id, 'weid' => $_W['uniacid']));
-	}
+	$table = gettablebytype($store['store_type']);
+	pdo_delete($table, array('store_base_id' => $id, 'weid' => $_W['uniacid']));
 	pdo_delete('storex_bases', array('id' => $id, 'weid' => $_W['uniacid']));
 	pdo_delete('storex_categorys', array('store_base_id' => $id, 'weid' => $_W['uniacid']));
 	message('店铺信息删除成功!', referer(), 'success');
@@ -170,11 +167,8 @@ if ($op == 'deleteall') {
 		$id = intval($id);
 		$id = intval($_GPC['id']);
 		$store = pdo_get('storex_bases', array('id' => $id), array('store_type'));
-		if ($store['store_type'] == 1) {
-			pdo_delete('storex_room', array('hotelid' => $id, 'weid' => $_W['uniacid']));
-		} else {
-			pdo_delete('storex_goods', array('store_base_id' => $id, 'weid' => $_W['uniacid']));
-		}
+		$table = gettablebytype($store['store_type']);
+		pdo_delete($table, array('store_base_id' => $id, 'weid' => $_W['uniacid']));
 		pdo_delete('storex_bases', array('id' => $id, 'weid' => $_W['uniacid']));
 		pdo_delete('storex_categorys', array("store_base_id" => $id, 'weid' => $_W['uniacid']));
 	}

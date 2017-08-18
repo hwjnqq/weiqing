@@ -52,7 +52,6 @@ function print_get_content($printer_info, $orderid) {
 	if (empty($order_info)) {
 		return array();
 	}
-	$storeid = $order_info['hotelid'];
 	$storeinfo = get_store_info($order_info['hotelid']);
 	$goods_table = gettablebytype($storeinfo['store_type']);
 	$fields = array('title', 'express_set');

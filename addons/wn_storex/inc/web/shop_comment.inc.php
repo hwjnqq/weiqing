@@ -44,12 +44,7 @@ if ($op == 'display') {
 if ($op == 'post') {
 	$id = intval($_GPC['id']);
 	$table = gettablebytype($store['store_type']);
-	if ($store['store_type'] == 1) {
-		$store_base_id = 'hotelid';
-	} else {
-		$store_base_id = 'store_base_id';
-	}
-	$goods_list = pdo_getall($table, array('weid' => $_W['uniacid'], $store_base_id => $storeid), array(), 'id');
+	$goods_list = pdo_getall($table, array('weid' => $_W['uniacid'], 'store_base_id' => $storeid), array(), 'id');
 	$comment_info = pdo_get('storex_comment', array('id' => $id));
 	if (checksubmit()) {
 		$id = intval($_GPC['id']);

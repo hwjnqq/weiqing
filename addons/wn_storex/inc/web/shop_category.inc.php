@@ -75,7 +75,7 @@ if ($op == 'post') {
 			pdo_update('storex_categorys', $data, array('id' => $id, 'weid' => $_W['uniacid']));
 			if ($data['category_type'] != $category['category_type'] && $store['store_type'] == STORE_TYPE_HOTEL) {
 				pdo_update('storex_categorys', array('category_type' => $data['category_type']), array('parentid' => $id, 'weid' => $_W['uniacid']));
-				pdo_update('storex_room', array('is_house' => $data['category_type']), array('pcate' => $id, 'weid' => $_W['uniacid'], 'hotelid' => $storeid));
+				pdo_update('storex_room', array('is_house' => $data['category_type']), array('pcate' => $id, 'weid' => $_W['uniacid'], 'store_base_id' => $storeid));
 			}
 		} else {
 			pdo_insert('storex_categorys', $data);

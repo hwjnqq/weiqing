@@ -151,7 +151,7 @@ $sql = "
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_room` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
-	`hotelid` int(11) DEFAULT '0',
+	`store_base_id` int(11) DEFAULT '0',
 	`weid` int(11) DEFAULT '0',
 	`pcate` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '一级分类id',
 	`ccate` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '二级分类id',
@@ -189,7 +189,7 @@ $sql = "
 	`is_house` int(11) NOT NULL DEFAULT '1' COMMENT '是否是房型 1 是，2不是',
 	`express_set` text NOT NULL COMMENT '运费设置',
 	PRIMARY KEY (`id`),
-	KEY `indx_hotelid` (`hotelid`),
+	KEY `indx_hotelid` (`store_base_id`),
 	KEY `indx_weid` (`weid`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
@@ -1064,6 +1064,10 @@ if (!empty($module)){
 							} else {
 								$insert[$field] = $val[$field];
 							}
+							if ($hotel2_table == 'hotel2_room' && $field == 'hotelid') {
+								unset($insert[$field]);
+								$insert['store_base_id'] = $val[$field];
+							}
 						}
 					}
 					pdo_insert($storex_table, $insert);
@@ -1145,14 +1149,14 @@ if (!empty($module)){
 			);
 			if (!empty($store_bases)) {
 				foreach ($store_bases as $store_info) {
-					if ($room_info['weid'] == $store_info['weid'] && $room_info['hotelid'] == $store_info['id']) {
+					if ($room_info['weid'] == $store_info['weid'] && $room_info['store_base_id'] == $store_info['id']) {
 						$update_room['store_type'] = $store_info['store_type'];
 					}
 				}
 			}
 			if (!empty($store_categorys)) {
 				foreach ($store_categorys as $category_info) {
-					if ($category_info['store_base_id'] == $room_info['hotelid'] && $category_info['weid'] == $room_info['weid']) {
+					if ($category_info['store_base_id'] == $room_info['store_base_id'] && $category_info['weid'] == $room_info['weid']) {
 						$update_room['pcate'] = $category_info['id'];
 					}
 				}
