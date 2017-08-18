@@ -3,7 +3,7 @@
 	<application setting="true">
 		<name><![CDATA[系统卡券]]></name>
 		<identifie><![CDATA[we7_coupon]]></identifie>
-		<version><![CDATA[4.5]]></version>
+		<version><![CDATA[4.6]]></version>
 		<type><![CDATA[business]]></type>
 		<ability><![CDATA[微擎卡券]]></ability>
 		<description><![CDATA[微擎卡券]]></description>
@@ -50,6 +50,7 @@
 			<entry title="会员卡统计" do="statcard" state="" direct="false" />
 			<entry title="收银台收款统计" do="statpaycenter" state="" direct="false" />
 			<entry title="微信卡券回复" do="wxcardreply" state="" direct="false" />
+			<entry title="店员工作台" do="clerkdeskwelcome" state="" direct="false" />
 		</menu>
 	</bindings>
 	<permissions>
