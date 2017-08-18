@@ -14,7 +14,6 @@ $uid = mc_openid2uid($_W['openid']);
 $store_id = intval($_GPC['id']);
 $goodsid = intval($_GPC['goodsid']);
 $store_info = get_store_info($store_id);
-$max_room = 8;
 
 //获取某个商品的详细信息
 if ($op == 'goods_info') {
@@ -384,9 +383,9 @@ if ($op == 'order') {
 		':today_end' => $today_end,
 	);
 	$order_exist = pdo_fetch("SELECT id FROM " . tablename('storex_order') . "WHERE hotelid = :hotelid AND roomid = :roomid AND openid = :openid AND paystatus = 0 AND time >= :today_start AND time < :today_end AND status != -1 AND status != 2", $param);
-// 	if (!empty($order_exist)) {
-// 		wmessage(error(-1, "您有未支付该类订单,不要重复下单"), '', 'ajax');
-// 	}
+	if (!empty($order_exist)) {
+		wmessage(error(-1, "您有未支付该类订单,不要重复下单"), '', 'ajax');
+	}
 	$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('template', 'confirm_templateid', 'smscode'));
 	if ($store_info['store_type'] == STORE_TYPE_HOTEL) {
 		if ($goods_info['is_house'] == 1) {
@@ -403,7 +402,7 @@ if ($op == 'order') {
 			if ($order_info['btime'] < strtotime('today')) {
 				wmessage(error(-1, '预定的开始日期不能小于当日的日期'), '', 'ajax');
 			}
-			if ($max_room < $order_info['nums']) {
+			if (8 < $order_info['nums']) {
 				wmessage(error(-1, '订单购买数量超过最大限制'), '', 'ajax');
 			}
 			if (!empty($orderid)) {
@@ -412,58 +411,17 @@ if ($op == 'order') {
 					wmessage(error(-1, '续订该房间已被分配了，请联系管理员'), '', 'ajax');
 				}
 			}
-			$btime = $order_info['btime'];
 			$bdate = date('Y-m-d', $order_info['btime']);
 			$days = $order_info['day'];
-			$etime = $order_info['etime'];
 			$edate = date('Y-m-d', $order_info['etime']);
 			$dates = get_dates($bdate, $days);
-			//酒店信息
-			$sql = 'SELECT `id`, `roomdate`, `num`, `status` FROM ' . tablename('storex_room_price') . ' WHERE `roomid` = :roomid
-				AND `roomdate` >= :btime AND `roomdate` < :etime AND `status` = :status';
-			$params = array(':roomid' => $goodsid, ':btime' => $btime, ':etime' => $etime, ':status' => '1');
-			$room_date_list = pdo_fetchall($sql, $params);
-			$flag = intval($room_date_list);
-			$list = array();
-			if ($flag == 1) {
-				for($i = 0; $i < $days; $i++) {
-					$k = $dates[$i]['time'];
-					foreach ($room_date_list as $p_key => $p_value) {
-						// 判断价格表中是否有当天的数据
-						if ($p_value['roomdate'] == $k) {
-							if ($p_value['num'] == -1) {
-								$max_room = 8;
-							} else {
-								$room_num = $p_value['num'];
-								if (empty($room_num)) {
-									$max_room = 0;
-									$list['num'] = 0;
-									$list['date'] =  $dates[$i]['date'];
-								} elseif ($room_num > 0 && $room_num <= $max_room) {
-									$max_room = $room_num;
-									$list['num'] =  $room_num;
-									$list['date'] =  $dates[$i]['date'];
-								} elseif ($room_num > 0 && $room_num > $max_room) {
-									$list['num'] =  $max_room;
-									$list['date'] =  $dates[$i]['date'];
-								} else {
-									$max_room = 0;
-								}
-							}
-							break;
-						}
-					}
-					if ($max_room == 0 || $max_room < $order_info['nums']) {
-						wmessage(error(-1, '房间数量不足,请选择其他房型或日期!'), '', 'ajax');
-					}
-				}
-			}
 			
 			$search_data = array(
 				'btime' => $bdate,
 				'etime' => $edate,
-				'nums' => $_GPC['order']['nums']
+				'nums' => $order_info['nums'],
 			);
+			check_room_nums($dates, $search_data, $goods_info);
 			$goods_info = calcul_roon_sumprice($dates, $search_data, $goods_info);
 			$insert['sum_price'] = $goods_info['sum_price'];
 			if ($setInfo['smscode'] == 1) {

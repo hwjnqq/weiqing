@@ -499,6 +499,43 @@ function room_special_price($goods, $search_data = array(), $plural = true) {
 	return $goods;
 }
 
+function check_room_nums($dates, $search_data, $goods_info) {
+	$sql = 'SELECT `id`, `roomdate`, `num`, `status` FROM ' . tablename('storex_room_price') . ' WHERE `roomid` = :roomid AND `roomdate` >= :btime AND `roomdate` < :etime AND `status` = :status';
+	$params = array(':roomid' => $goods_info['roomid'], ':btime' => strtotime($search_data['btime']), ':etime' => strtotime($search_data['etime']), ':status' => '1');
+	$room_date_list = pdo_fetchall($sql, $params);
+	$max_room = 8;
+	$list = array();
+	if (!empty($room_date_list) && is_array($room_date_list)) {
+		for($i = 0; $i < $days; $i++) {
+			$k = $dates[$i]['time'];
+			foreach ($room_date_list as $p_key => $p_value) {
+				// 判断价格表中是否有当天的数据
+				if ($p_value['roomdate'] == $k) {
+					if ($p_value['num'] == -1) {
+						$max_room = 8;
+					} else {
+						$room_num = $p_value['num'];
+						$list['date'] =  $dates[$i]['date'];
+						if (empty($room_num) || $room_num < 0) {
+							$max_room = 0;
+							$list['num'] = 0;
+						} elseif ($room_num > 0 && $room_num <= $max_room) {
+							$max_room = $room_num;
+							$list['num'] =  $room_num;
+						} elseif ($room_num > 0 && $room_num > $max_room) {
+							$list['num'] =  $max_room;
+						}
+					}
+					break;
+				}
+			}
+			if ($max_room == 0 || $max_room < $order_info['nums']) {
+				wmessage(error(-1, '房间数量不足,请选择其他房型或日期!'), '', 'ajax');
+			}
+		}
+	}
+}
+
 function send_custom_notice($msgtype, $text, $touser) {
 	if (!check_wxapp()) {
 		$account_api = WeAccount::create();
