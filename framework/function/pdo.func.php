@@ -33,7 +33,11 @@ function pdo() {
  * 返回一个查询构造器
  * @return Query
  */
-function pdos() {
+function pdos($table = '') {
+	if (empty($table)) {
+		load()->classs('Query');
+		return load()->table($table);
+	}
 	return load()->singleton('Query');
 }
 
