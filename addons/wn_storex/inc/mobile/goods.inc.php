@@ -202,28 +202,10 @@ if ($op == 'info') {
 		}
 	} else {
 		if ($goods_type == 2) {
-			$package_info = pdo_get('storex_sales_package', array('id' => $goodsid, 'storeid' => $store_id));
-			$goods_info = array();
-			if (!empty($package_info)) {
-				$package_info['cprice'] = $package_info['oprice'] = $package_info['price'];
-				$package_info['can_buy'] = 1;
-				$package_info['score'] = 0;
-				$package_info['sold_num'] = 0;
-				$package_info['store_type'] = 0;
-				$package_info['stock'] = -1;
-				$package_info['stock_control'] = 1;
-				$package_info['min_buy'] = 1;
-				$package_info['max_buy'] = -1;
-				$package_info['express_set'] = iserializer(array(
-					'express' => $package_info['express'],
-					'full_free' => 0
-				));
-				$goods_info = $package_info;
-			}
+			$goods_info = format_package_goods($store_id, $goodsid);
 		} else {
 			$goods_info = pdo_get($table, $condition);
 		}
-		
 	}
 	if (!empty($goods_info['express_set'])) {
 		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
@@ -326,24 +308,7 @@ if ($op == 'order') {
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1, 'store_base_id' => $store_id);
 	$table = gettablebytype($store_info['store_type']);
 	if ($goods_type == 2) {
-		$package_info = pdo_get('storex_sales_package', array('id' => $goodsid, 'storeid' => $store_id));
-		$goods_info = array();
-		if (!empty($package_info)) {
-			$package_info['cprice'] = $package_info['oprice'] = $package_info['price'];
-			$package_info['can_buy'] = 1;
-			$package_info['score'] = 0;
-			$package_info['sold_num'] = 0;
-			$package_info['store_type'] = 0;
-			$package_info['stock'] = -1;
-			$package_info['stock_control'] = 1;
-			$package_info['min_buy'] = 1;
-			$package_info['max_buy'] = -1;
-			$package_info['express_set'] = iserializer(array(
-				'express' => $package_info['express'],
-				'full_free' => 0
-			));
-			$goods_info = $package_info;
-		}
+		$goods_info = format_package_goods($store_id, $goodsid);
 	} else {
 		$goods_info = pdo_get($table, $condition);
 	}

@@ -863,3 +863,25 @@ function delete_room_assign($order, $roomitemid = '') {
 		pdo_delete('storex_room_assign', array('storeid' => $order['hotelid'], 'roomid' => $order['roomid'], 'roomitemid' => $roomitemid, 'time >=' => $order['btime'], 'time <' => $order['etime']));
 	}
 }
+
+function format_package_goods($store_id, $goodsid) {
+	$package_info = pdo_get('storex_sales_package', array('id' => $goodsid, 'storeid' => $store_id));
+	$goods_info = array();
+	if (!empty($package_info)) {
+		$package_info['cprice'] = $package_info['oprice'] = $package_info['price'];
+		$package_info['can_buy'] = 1;
+		$package_info['score'] = 0;
+		$package_info['sold_num'] = 0;
+		$package_info['store_type'] = 0;
+		$package_info['stock'] = -1;
+		$package_info['stock_control'] = 1;
+		$package_info['min_buy'] = 1;
+		$package_info['max_buy'] = -1;
+		$package_info['express_set'] = iserializer(array(
+			'express' => $package_info['express'],
+			'full_free' => 0
+		));
+		$goods_info = $package_info;
+	}
+	return $goods_info;
+}

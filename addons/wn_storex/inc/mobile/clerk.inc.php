@@ -29,6 +29,7 @@ if ($op == 'order') {
 	$order_lists = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'hotelid' => $manage_storex_ids, 'status' => $operation_status, 'goods_status' => $goods_status), array('id', 'weid', 'hotelid', 'paystatus','roomid', 'style', 'btime', 'etime', 'roomitemid', 'status', 'goods_status', 'mode_distribute', 'nums', 'sum_price', 'day', 'is_package'), '', 'id DESC');
 	if (!empty($order_lists) && is_array($order_lists)) {
 		$lists = array();
+		$goods_ids = array('storex_room' => array(), 'storex_goods' => array());
 		foreach ($order_lists as $k => &$info) {
 			if ($info['is_package'] == 2) {
 				$packageids[] = $info['roomid'];
@@ -36,23 +37,36 @@ if ($op == 'order') {
 			if (!empty($manage_storex_lists[$info['hotelid']])) {
 				$store_type = $manage_storex_lists[$info['hotelid']]['store_type'];
 				$info = clerk_order_operation($info, $store_type);
-				$table = gettablebytype($store_type);
 				if (empty($info['operate'])) {
 					continue;
 				}
 			} else {
 				continue;
 			}
-			$goods = pdo_get($table, array('id' => $info['roomid']), array('id', 'thumb'));
-			$info['thumb'] = tomedia($goods['thumb']);
 			$lists[] = $info;
+			if ($store_type == STORE_TYPE_HOTEL) {
+				$goods_ids['storex_room'][] = $info['roomid'];
+			} else {
+				$goods_ids['storex_goods'][] = $info['roomid'];
+			}
 		}
 		unset($info);
+		$goods_thumbs = array();
+		foreach ($goods_ids as $t => $ids) {
+			$goods_thumbs[$t] = pdo_getall($t, array('id' => $ids), array('id', 'thumb'), 'id');
+		}
 		$packageids = is_array($packageids) ? array_unique($packageids) : array();
 		$sales_package = pdo_getall('storex_sales_package', array('uniacid' => $_W['uniacid'], 'id' => $packageids), array('title', 'sub_title', 'thumb', 'price', 'id'), 'id');
 		foreach ($lists as $k => &$val) {
+			$val['thumb'] = '';
 			if ($val['is_package'] == 2) {
 				$val['thumb'] = $sales_package[$val['roomid']]['thumb'];
+			} else {
+				$store_type = $manage_storex_lists[$val['hotelid']]['store_type'];
+				$table = gettablebytype($store_type);
+				if (!empty($goods_thumbs[$table][$val['roomid']])) {
+					$val['thumb'] = tomedia($goods_thumbs[$table][$val['roomid']]['thumb']);
+				}
 			}
 		}
 		unset($val);
