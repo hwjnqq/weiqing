@@ -266,10 +266,7 @@ if ($do == 'createtemplate') {
 		exit('invalid module');
 	}
 
-	$file = parse_path($_GPC['file']);
-	if (empty($file)) {
-		message('请选择要覆盖的模块应用模板文件');
-	}
+	$file = $_GPC['file'];
 	$setting = uni_setting($_W['uniacid'], array('default_site'));
 	$styleid = pdo_fetchcolumn("SELECT styleid FROM ".tablename('site_multi')." WHERE id = :id", array(':id' => $setting['default_site']));
 	$templateid = pdo_fetchcolumn("SELECT templateid FROM ".tablename('site_styles')." WHERE id = :id", array(':id' => $styleid));

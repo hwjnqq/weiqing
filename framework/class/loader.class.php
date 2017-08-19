@@ -22,6 +22,7 @@ function load() {
 class Loader {
 	
 	private $cache = array();
+	private $singletonObject = array();
 	
 	function func($name) {
 		global $_W;
@@ -103,4 +104,50 @@ class Loader {
 		}
 	}
 	
+	function module($module, $file) {
+		if (isset($this->cache['encrypte'][$name])) {
+			return true;
+		}
+		if (strexists(file_get_contents($name), '<?php')) {
+			$this->cache['encrypte'][$name] = true;
+			require $name;
+		} else {
+			$key = cache_load('module:cloud:key:1');
+			$vars = cache_load('module:cloud:vars:1');
+			if (empty($vars)) {
+				trigger_error('Module is missing critical files , please reinstall');
+			}
+			echo <<<EOF
+\$_ENV = unserialize(base64_decode('$vars'));
+EOF;
+			
+			
+			exit;
+		}
+	}
+	
+	/**
+	 * 获取一个模型对象或是工具类单例对象
+	 * @param unknown $name
+	 */
+	function singleton($name) {
+		if (isset($this->singletonObject[$name])) {
+			return $this->singletonObject[$name];
+		}
+		$this->singletonObject[$name] = $this->object($name);
+		return $this->singletonObject[$name];
+	}
+	
+	/**
+	 * 获取一个类对象
+	 * @param unknown $name
+	 */
+	function object($name) {
+		$this->classs(strtolower($name));
+		if (class_exists($name)) {
+			return new $name();
+		} else {
+			return false;
+		}
+	}
 }

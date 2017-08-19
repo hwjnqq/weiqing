@@ -36,7 +36,7 @@ if ($do == 'save_oauth') {
 }
 
 if ($do == 'oauth') {
-	$user_have_accounts = uni_user_have_accounts($_W['uid']);
+	$user_have_accounts = uni_user_accounts($_W['uid']);
 	$oauth_accounts = array();
 	$jsoauth_accounts = array();
 	if(!empty($user_have_accounts)) {

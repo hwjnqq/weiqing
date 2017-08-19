@@ -686,6 +686,7 @@ class WeiXinAccount extends WeAccount {
 			'46004' => '不存在的用户',
 			'47001' => '解析JSON/XML内容错误',
 			'48001' => 'api功能未授权',
+			'48003' => '请在微信平台开启群发功能',
 			'50001' => '用户未授权该api',
 			'40070' => '基本信息baseinfo中填写的库存信息SKU不合法。',
 			'41011' => '必填字段不完整或不合法，参考相应接口。',
@@ -1422,7 +1423,7 @@ class WeiXinAccount extends WeAccount {
 		if(empty($path)) {
 			return error(-1, '参数错误');
 		}
-	if (in_array(substr(ltrim($path, '/'), 0, 6), array('images', 'videos', 'audios'))) {
+		if (in_array(substr(ltrim($path, '/'), 0, 6), array('images', 'videos', 'audios'))) {
 			$path = ATTACHMENT_ROOT . ltrim($path, '/');
 		}
 		$token = $this->getAccessToken();
@@ -1454,8 +1455,14 @@ class WeiXinAccount extends WeAccount {
 		}
 		$url = "https://api.weixin.qq.com/cgi-bin/material/add_material?access_token={$token}&type={$type}";
 		$data = array(
-			'media' => '@' . $path,
+			'media' => '@' . $path
 		);
+		$filename = pathinfo($path, PATHINFO_FILENAME);
+		$description = array(
+			'title' => $filename,
+			'introduction' =>  $filename,
+		);
+		$data['description'] = urldecode(json_encode($description));
 		return $this->requestApi($url, $data);
 	}
 
@@ -1782,6 +1789,7 @@ class WeiXinAccount extends WeAccount {
 			$code = $_GPC['code'];
 		}
 		if (empty($code)) {
+			$sitepath = substr($_SERVER['PHP_SELF'], 0, strrpos($_SERVER['PHP_SELF'], '/'));
 			$unisetting = uni_setting_load();
 			$url = (!empty($unisetting['oauth']['host']) ? ($unisetting['oauth']['host'] . $sitepath . '/') : $_W['siteroot'] . 'app/') . "index.php?{$_SERVER['QUERY_STRING']}";
 			$forward = $this->getOauthCodeUrl(urlencode($url));
@@ -1899,6 +1907,7 @@ class WeiXinAccount extends WeAccount {
 	
 	protected function requestApi($url, $post = '') {
 		$response = ihttp_request($url, $post);
+
 		$result = @json_decode($response['content'], true);
 		if(is_error($response)) {
 			return error($result['errcode'], "访问公众平台接口失败, 错误详情: {$this->error_code($result['errcode'])}");

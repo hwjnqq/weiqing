@@ -27,7 +27,9 @@
 							</li>
 							{if $_W['isfounder']}
 							<li class="divider"></li>
+							{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
 							<li><a href="{url 'cloud/upgrade'}" target="_blank"><i class="wi wi-update color-gray"></i> 自动更新</a></li>
+							{/if}
 							<li><a href="{url 'system/updatecache'}" target="_blank"><i class="wi wi-cache color-gray"></i> 更新缓存</a></li>
 							<li class="divider"></li>
 							{/if}
@@ -54,7 +56,7 @@
 	<div class="container text-right">
 		<div class="alert-info">
 			<a href="{if $_W['isfounder']}{php echo url('user/edit', array('uid' => $_W['account']['uid']));}{else}javascript:void(0);{/if}">
-				您的服务有效期限：{php echo date('Y-m-d', $_W['account']['starttime']);} ~ {php echo date('Y-m-d', $_W['account']['endtime']);}.
+				该公众号管理员服务有效期：{php echo date('Y-m-d', $_W['account']['starttime']);} ~ {php echo date('Y-m-d', $_W['account']['endtime']);}.
 				{if $_W['account']['endtime'] < TIMESTAMP}
 				目前已到期，请联系管理员续费
 				{else}
@@ -105,8 +107,8 @@
 									<li class="list-group-item list-group-more">
 										<a href="{url 'module/manage-account'}"><span class="label label-more">更多应用</span></a>
 									</li>
-									{else}
-									{if in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER)) && $menu_id == 'front_download' || $menu_id != 'front_download'}
+								{else}
+									{if (in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER)) && $menu_id == 'front_download' || $menu_id != 'front_download') && !($menu_id == 'platform_menu' && $_W['account']['level'] == ACCOUNT_SUBSCRIPTION)}
 									<li class="list-group-item {if $menu['active']}active{/if}">
 										<a href="{$menu['url']}" class="text-over" {if $frame_section_id == 'platform_module'}target="_blank"{/if}>
 										{if $menu['icon']}

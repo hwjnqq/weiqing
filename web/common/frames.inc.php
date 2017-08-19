@@ -114,14 +114,14 @@ $we7_system_menu['account'] = array(
 				'profile' => array(
 					'title' => '参数配置',
 					'url' => url('profile/passport'),
-					'icon' => 'wi wi-parameter-stting',
+					'icon' => 'wi wi-parameter-setting',
 					'permission_name' => 'profile_setting',
 				),
 				'payment' => array(
 					'title' => '支付参数',
 					'url' => url('profile/payment'),
-					'icon' => 'wi wi-parameter-stting',
-					'permission_name' => 'profile_setting',
+					'icon' => 'wi wi-pay-setting',
+					'permission_name' => 'profile_pay_setting',
 				),
 			),
 		),
@@ -305,30 +305,34 @@ $we7_system_menu['system'] = array(
 					'icon' => 'wi wi-user-group',
 					'permission_name' => 'system_user',
 					'sub_permission' => array(
-							array(
-								'title' => '编辑用户',
-								'permission_name' => 'system_user_post',
-							),
-							array(
-								'title' => '审核用户',
-								'permission_name' => 'system_user_check',
-							),
-							array(
-								'title' => '用户回收站',
-								'permission_name' => 'system_user_recycle',
-							),
-							array(
-								'title' => '用户属性设置',
-								'permission_name' => 'system_user_fields',
-							),
-							array(
-								'title' => '用户属性设置-编辑字段',
-								'permission_name' => 'system_user_fields_post',
-							),
-							array(
-								'title' => '用户注册设置',
-								'permission_name' => 'system_user_registerset',
-							),
+						array(
+							'title' => '编辑用户',
+							'permission_name' => 'system_user_post',
+						),
+						array(
+							'title' => '审核用户',
+							'permission_name' => 'system_user_check',
+						),
+						array(
+							'title' => '店员管理',
+							'permission_name' => 'system_user_clerk',
+						),
+						array(
+							'title' => '用户回收站',
+							'permission_name' => 'system_user_recycle',
+						),
+						array(
+							'title' => '用户属性设置',
+							'permission_name' => 'system_user_fields',
+						),
+						array(
+							'title' => '用户属性设置-编辑字段',
+							'permission_name' => 'system_user_fields_post',
+						),
+						array(
+							'title' => '用户注册设置',
+							'permission_name' => 'system_user_registerset',
+						),
 					),
 				),
 			)
@@ -476,6 +480,12 @@ $we7_system_menu['site'] = array(
 					'icon' => 'wi wi-log',
 					'permission_name' => 'system_setting_logs',
 				),
+				'system_setting_ipwhitelist' => array(
+					'title' => 'IP白名单',
+					'url' => url('system/ipwhitelist'),
+					'icon' => 'wi wi-ip',
+					'permission_name' => 'system_setting_ipwhitelist',
+				),
 			)
 		),
 		'utility' => array(
@@ -550,6 +560,14 @@ $we7_system_menu['appmarket'] = array(
 	'section' => array(),
 	'blank' => true,
 	'founder' => true,
+);
+
+$we7_system_menu['help'] = array(
+	'title' => '帮助系统',
+	'icon' => 'wi wi-market',
+	'url' => url('help/display'),
+	'section' => array(),
+	'blank' => true
 );
 
 

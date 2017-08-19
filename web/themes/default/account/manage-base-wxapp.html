@@ -225,10 +225,10 @@
 		<tr>
 			<td class="table-label">socket合法域名</td>
 			<td>
-				<a href="javascript:;" class="we7-padding-right" ng-bind="other.socket_url"></a>
+				<a href="javascript:;" class="we7-padding-right" ng-bind="other.siteurl"></a>
 			</td>
 			<td>
-				<div class="link-group"><a href="javascript:;" id="copy-1" clipboard supported="supported" text="other.socket_url" on-copied="success('1')">点击复制</a></div>
+				<div class="link-group"><a href="javascript:;" id="copy-1" clipboard supported="supported" text="other.siteurl" on-copied="success('1')">点击复制</a></div>
 			</td>
 		</tr>
 		<tr>
@@ -340,8 +340,7 @@
 		qrcodeimgsrc: "{php echo $qrcodeimgsrc}",
 		links: {
 			basePost: "{php echo url('account/post/base', array('acid' => $acid, 'uniacid' => $uniacid, 'account_type' => ACCOUNT_TYPE_APP_NORMAL))}",
-			siteroot: "{php echo $_W['siteroot']}",
-			socket_url: "{php echo $socket_url}"
+			siteroot: "{php echo str_replace($_W['sitescheme'], '', $_W['siteroot'])}",
 		},
 	});
 	angular.bootstrap($('#js-account-manage-base'), ['accountApp']);

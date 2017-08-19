@@ -77,7 +77,7 @@ class CoreModule extends WeModule {
 				if (!empty($rid)) {
 					$rule_rid = $rid;
 					if (in_array($_GPC['m'], array('welcome', 'default'))) {
-						$rule_rid = pdo_getcolumn('rule_keyword', array('id' => $rid), 'rid');
+						$rule_rid = pdo_getcolumn('rule_keyword', array('rid' => $rid), 'rid');
 					}
 					$isexists = reply_single($rule_rid);
 				}
@@ -151,9 +151,10 @@ class CoreModule extends WeModule {
 					//只选择关键字
 					}else {
 						$replies['keyword'][0]['name'] = $isexists['name'];
-						$keyword = pdo_getcolumn('rule_keyword', array('uniacid' => $_W['uniacid'], 'id' => $rid), 'content');
-						$replies['keyword'][0]['id'] = $rid;
-						$replies['keyword'][0]['content'] = $keyword;
+						$keyword = pdo_get('rule_keyword', array('uniacid' => $_W['uniacid'], 'rid' => $rid));
+						$replies['keyword'][0]['id'] = $keyword['id'];
+						$replies['keyword'][0]['rid'] = $rid;
+						$replies['keyword'][0]['content'] = $keyword['content'];
 					}
 				}
 				break;

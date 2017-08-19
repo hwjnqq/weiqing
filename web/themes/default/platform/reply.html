@@ -94,7 +94,7 @@
 							{if !in_array($row['module'], $sysmods)}
 								
 							<td class="vertical-middle">
-								<img src="{$row['logo']}" alt="" class="keyword-img"/>
+								<img src="{$row['module_info']['logo']}" alt="" class="keyword-img"/>
 							</td>
 							<td class="text-left">
 							{else}
@@ -118,7 +118,7 @@
 											{elseif in_array($row['module'], $sysmods)}
 												共{$row['allreply']['sum']}条（{if $row['allreply']['basic'] > 0}{$row['allreply']['basic']}条文字 {/if}{if $row['allreply']['images'] > 0}{$row['allreply']['images']}条图片 {/if}{if $row['allreply']['news'] > 0}{$row['allreply']['news']}条图文 {/if}{if $row['allreply']['music'] > 0}{$row['allreply']['music']}条音乐 {/if}{if $row['allreply']['voice'] > 0}{$row['allreply']['voice']}条语音 {/if}{if $row['allreply']['video'] > 0}{$row['allreply']['video']}条视频 {/if}{if $row['allreply']['wxcard'] > 0}{$row['allreply']['wxcard']}条卡券{/if}）
 											{else}
-												{php echo cutstr($row[name], 10);}应用
+												{php echo cutstr($row['module_info']['title'], 10);}应用
 											{/if}
 											</span>
 										</div>
@@ -245,7 +245,7 @@
 	</div>
 	<div class="new-keyword" id="welcome" ng-cloak>
 		<div class="we7-form" ng-controller="WelcomeDisplay">
-			<form id="reply-form" class="form-horizontal form" action="{php echo url('platform/reply/post', array('m' => $m, 'rid' => $rid))}" method="post" enctype="multipart/form-data">
+			<form id="reply-form" class="form-horizontal form" action="{php echo url('platform/reply/post', array('m' => $m, 'rid' => $rule_keyword_id))}" method="post" enctype="multipart/form-data">
 				<div>
 					{php echo module_build_form('core', $rule_keyword_id, array('keyword' => false))}
 				</div>
@@ -267,7 +267,7 @@
 	</div>
 	<div class="new-keyword" id="default">
 		<div id="a" class="we7-form" ng-controller="DefaultDisplay">
-			<form id="reply-form" class="form-horizontal form" action="{php echo url('platform/reply/post', array('m' => $m, 'rid' => $rid))}" method="post" enctype="multipart/form-data">
+			<form id="reply-form" class="form-horizontal form" action="{php echo url('platform/reply/post', array('m' => $m, 'rid' => $rule_keyword_id))}" method="post" enctype="multipart/form-data">
 				<div>
 					{php echo module_build_form('core', $rule_keyword_id, array('keyword' => false))}
 				</div>

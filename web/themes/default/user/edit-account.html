@@ -25,8 +25,10 @@
 	</div>
 	<div class="btn-group we7-btn-group we7-padding-bottom">
 		<a href="{php echo url('user/edit/edit_base', array('uid' => $_GPC['uid']))}" class="btn btn-default">基础信息</a>
-		{if $user['founder_groupid'] != ACCOUNT_MANAGE_GROUP_VICE_FOUNDER}
+		{if empty($user['founder_groupid'])}
 		<a href="{php echo url('user/edit/edit_modules_tpl', array('uid' => $_GPC['uid']))}" class="btn btn-default">应用模板权限</a>
+		{else}
+		<a href="{php echo url('founder/founderedit/edit_modules_tpl', array('uid' => $_GPC['uid']))}" class="btn btn-default">应用模板权限</a>
 		{/if}
 		<a href="{php echo url('user/edit/edit_account', array('uid' => $_GPC['uid']))}" class="btn btn-default active">使用账号列表</a>
 	</div>
@@ -53,6 +55,7 @@
 			</td>
 			<td>
 				<span ng-if="wechat.role == 'founder'">创始人</span>
+				<span ng-if="wechat.role == 'vice_founder'">副创始人</span>
 				<span ng-if="wechat.role == 'owner'">主管理员</span>
 				<span ng-if="wechat.role == 'manager'">管理员</span>
 				<span ng-if="wechat.role == 'operator'">操作员</span>

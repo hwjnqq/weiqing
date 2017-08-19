@@ -76,7 +76,7 @@ $tpl = array(
 	'times_times' => array(
 		'tpl' => $tpl_setting['times_times']['tpl'],
 		'name' => '会员卡计时即将到期',
-		'help' => '请在“微信公众平台”选择行业为：“IT科技 - 互联网|电子商务”，添加标题为：”到期提醒通知“，编号为：“TM00003”的模板',
+		'help' => '请在“微信公众平台”选择行业为：“IT科技 - 互联网|电子商务”，添加标题为：”会员到期提醒“，编号为：“TM00008”的模板',
 	),
 );
 template('profile/tplnotice');

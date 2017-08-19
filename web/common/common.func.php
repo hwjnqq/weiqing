@@ -372,7 +372,7 @@ function buildframes($framename = ''){
 				'is_display' => 1,
 			);
 		}
-		if ($module['permissions']) {
+		if ($module['permissions'] && ($_W['isfounder'] || $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER)) {
 			$frames['account']['section']['platform_module_common']['menu']['platform_module_permissions'] = array(
 				'title' => "<i class='fa fa-cog'></i> 权限设置",
 				'url' => url('module/permission', array('m' => $modulename, 'version_id' => $version_id)),
@@ -416,18 +416,11 @@ function buildframes($framename = ''){
 				foreach($row as $li) {
 					$frames['account']['section']['platform_module_menu']['menu']['platform_module_menu'.$row['eid']] = array(
 						'title' => "<i class='wi wi-appsetting'></i> {$row['title']}",
-						'url' => url('site/entry/', array('eid' => $row['eid'], 'version_id' => $version_id)),
+						'url' => $row['url'] . '&version_id=' . $version_id,
 						'is_display' => 1,
 					);
 				}
 			}
-		}
-		if ($_W['role'] == ACCOUNT_MANAGE_NAME_CLERK) {
-			$frames['account']['section']['platform_module_common']['menu']['platform_module_clerkdesk'] = array(
-				'title' => "<i class='fa fa-plane'></i> 店员工作台",
-				'url' => url('site/entry/clerkdeskwelcome', array('uniacid' => $_W['uniacid'], 'op' => 'index', 'm' => $modulename)),
-				'is_display' => 1,
-			);
 		}
 		if (!empty($module['plugin_list']) || !empty($module['main_module'])) {
 			if (!empty($module['main_module'])) {
@@ -488,7 +481,7 @@ function buildframes($framename = ''){
 		}
 	}
 	foreach ($frames as $menuid => $menu) {
-		if (!empty($menu['founder']) && empty($_W['isfounder']) || user_is_vice_founder() && in_array($menuid, array('site', 'advertisement', 'appmarket'))) {
+		if (!empty($menu['founder']) && empty($_W['isfounder']) || user_is_vice_founder() && in_array($menuid, array('site', 'advertisement', 'appmarket')) || $_W['role'] == ACCOUNT_MANAGE_NAME_CLERK && in_array($menuid, array('account', 'wxapp', 'system'))) {
 			continue;
 		}
 		$top_nav[] = array(

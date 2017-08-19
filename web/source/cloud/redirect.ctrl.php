@@ -25,8 +25,9 @@ if($do == 'sms') {
 }
 
 if($do == 'appstore') {
+	$iframe = cloud_auth_url('appstore');
 	$title = '应用商城';
-	header("Location: http://s.we7.cc/");
+	header("Location: $iframe");
 	exit;
 }
 

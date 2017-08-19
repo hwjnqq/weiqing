@@ -66,6 +66,8 @@ function module_types() {
  * @return array
  */
 function module_entries($name, $types = array(), $rid = 0, $args = null) {
+	load()->func('communication');
+
 	global $_W;
 	$ts = array('rule', 'cover', 'menu', 'home', 'profile', 'shortcut', 'function', 'mine');
 	if(empty($types)) {
@@ -73,28 +75,23 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 	} else {
 		$types = array_intersect($types, $ts);
 	}
-	$bindings = pdo_getall('modules_bindings', array('module' => $name, 'entry' => $types), array(), '', 'eid ASC');
+	$bindings = pdo_getall('modules_bindings', array('module' => $name, 'entry' => $types), array(), '', 'displayorder DESC, eid ASC');
 	$entries = array();
 	foreach($bindings as $bind) {
 		if(!empty($bind['call'])) {
-			$extra = array();
-			$extra['Host'] = $_SERVER['HTTP_HOST'];
-			load()->func('communication');
-			$urlset = parse_url($_W['siteurl']);
-			$urlset = pathinfo($urlset['path']);
-			$response = ihttp_request($_W['sitescheme'] . '127.0.0.1/'. $urlset['dirname'] . '/' . url('utility/bindcall', array('modulename' => $bind['module'], 'callname' => $bind['call'], 'args' => $args, 'uniacid' => $_W['uniacid'])), array(), $extra);
+			$response = ihttp_request(url('utility/bindcall', array('modulename' => $bind['module'], 'callname' => $bind['call'], 'args' => $args, 'uniacid' => $_W['uniacid'])), array(), $extra);
 			if (is_error($response)) {
 				continue;
 			}
 			$response = json_decode($response['content'], true);
-			$ret = $response['message'];
+			$ret = $response['message']['message'];
 			if(is_array($ret)) {
-				foreach($ret as $et) {
+				foreach($ret as $i => $et) {
 					if (empty($et['url'])) {
 						continue;
 					}
 					$et['url'] = $et['url'] . '&__title=' . urlencode($et['title']);
-					$entries[$bind['entry']][] = array('title' => $et['title'], 'do' => $et['do'], 'url' => $et['url'], 'from' => 'call', 'icon' => $et['icon'], 'displayorder' => $et['displayorder']);
+					$entries[$bind['entry']][] = array('eid' => 'user_' . $i, 'title' => $et['title'], 'do' => $et['do'], 'url' => $et['url'], 'from' => 'call', 'icon' => $et['icon'], 'displayorder' => $et['displayorder']);
 				}
 			}
 		} else {
@@ -352,7 +349,6 @@ function module_fetch($name) {
  * @param string $cache 是否直接读取缓存数据;
  */
 function module_get_all_unistalled($status, $cache = true)  {
-	global $_GPC;
 	load()->func('communication');
 	load()->model('cloud');
 	load()->classs('cloudapi');
@@ -367,20 +363,20 @@ function module_get_all_unistalled($status, $cache = true)  {
 			$cloud_m_count = $uninstallModules['cloud_m_count'];
 		}
 	}
-	if (empty($uninstallModules['modules']) || intval($uninstallModules['cloud_m_count']) !== intval($cloud_m_count) || is_error($get_cloud_m_count)) {
+	if (ACCOUNT_TYPE == ACCOUNT_TYPE_APP_NORMAL) {
+		$account_type = 'wxapp';
+	} elseif (ACCOUNT_TYPE == ACCOUNT_TYPE_OFFCIAL_NORMAL) {
+		$account_type = 'app';
+	}
+	if (!is_array($uninstallModules) || empty($uninstallModules['modules'][$status][$account_type]) || intval($uninstallModules['cloud_m_count']) !== intval($cloud_m_count) || is_error($get_cloud_m_count)) {
 		$uninstallModules = cache_build_uninstalled_module();
 	}
-	if (ACCOUNT_TYPE == ACCOUNT_TYPE_APP_NORMAL) {
-		$uninstallModules['modules'] = (array)$uninstallModules['modules'][$status]['wxapp'];
-		$uninstallModules['module_count'] = $uninstallModules['wxapp_count'];
-		return $uninstallModules;
-	} elseif (ACCOUNT_TYPE == ACCOUNT_TYPE_OFFCIAL_NORMAL) {
-		$uninstallModules['modules'] = (array)$uninstallModules['modules'][$status]['app'];
-		$uninstallModules['module_count'] = $uninstallModules['app_count'];
-		return $uninstallModules;
-	} else {
-		return $uninstallModules;
+
+	if (!empty($account_type)) {
+		$uninstallModules['modules'] = (array)$uninstallModules['modules'][$status][$account_type];
+		$uninstallModules['module_count'] = $uninstallModules[$account_type . '_count'];
 	}
+	return $uninstallModules;
 }
 
 /**
@@ -810,8 +806,6 @@ function module_save_switch($module_name, $uniacid = 0, $version_id = 0) {
 	return true;
 }
 
-
-
 /**
  * 获取用户上一次进入模块的公众号OR小程序信息
  */
@@ -824,4 +818,29 @@ function module_last_switch($module_name) {
 	$cache_key = cache_system_key(CACHE_KEY_ACCOUNT_SWITCH, $_GPC['__switch']);
 	$cache_lastaccount = (array)cache_load($cache_key);
 	return $cache_lastaccount[$module_name];
+}
+
+/**
+ * 获取模块店员信息
+ */
+function module_clerk_info($module_name) {
+	global $_W;
+	$user_permissions = array();
+	$module_name = trim($module_name);
+	if (empty($module_name)) {
+		return $user_permissions;
+	}
+	$params = array(
+			':role' => ACCOUNT_MANAGE_NAME_CLERK,
+			':type' => $module_name,
+			':uniacid' => $_W['uniacid']
+	);
+	$sql = "SELECT u.uid, p.permission FROM " . tablename('uni_account_users') . " u," . tablename('users_permission') . " p WHERE u.uid = p.uid AND u.uniacid = p.uniacid AND u.role = :role AND p.type = :type AND u.uniacid = :uniacid";
+	$user_permissions = pdo_fetchall($sql, $params, 'uid');
+	if (!empty($user_permissions)) {
+		foreach ($user_permissions as $key => $value) {
+			$user_permissions[$key]['user_info'] = user_single($value['uid']);
+		}
+	}
+	return $user_permissions;
 }

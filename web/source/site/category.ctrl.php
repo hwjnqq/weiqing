@@ -94,7 +94,7 @@ if ($do == 'display') {
 			));
 		} else {
 			$data['css'] = '';
-			$data['icon'] = parse_path($_GPC['iconfile']);
+			$data['icon'] = $_GPC['iconfile'];
 		}
 		
 		$isnav = intval($_GPC['isnav']);

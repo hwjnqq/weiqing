@@ -88,7 +88,7 @@ if(!in_array($controller, $controllers)) {
 }
 $init = IA_ROOT . "/app/source/{$controller}/__init.php";
 if(is_file($init)) {
-	require $init;;
+	require $init;
 }
 
 $actions = array();

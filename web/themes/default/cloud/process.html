@@ -2,7 +2,7 @@
 <script type="text/javascript">
 <!--
 	var packet = {php echo ($packet ? json_encode($packet) : 'null');};
-	angular.module('cloudApp', ['app']);
+	angular.module('cloudApp');
 	angular.module('cloudApp')
 	.controller('FileProcessorCtrl', function($scope, $http, config) {
 		$scope.files = config.files;

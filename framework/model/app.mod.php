@@ -47,3 +47,30 @@ function app_navs($type = 'home', $multiid = 0, $section = 0) {
 	}
 	return $navs;
 }
+
+/**
+ * 更新今日信息
+ */
+function app_update_today_visit($module_name) {
+	global $_W;
+	$module_name = trim($module_name);
+	if (empty($module_name)) {
+		return false;
+	}
+	$today = date('Ymd');
+	$today_exist = pdo_get('stat_visit', array('date' => $today, 'uniacid' => $_W['uniacid'], 'module' => $module_name));
+	if (empty($today_exist)) {
+		$insert_data = array(
+			'uniacid' => $_W['uniacid'],
+			'module' => $module_name,
+			'date' => $today,
+			'count' => 1
+		);
+		pdo_insert('stat_visit', $insert_data);
+	} else {
+		$data = array('count' => $today_exist['count'] + 1);
+		pdo_update('stat_visit' , $data, array('id' => $today_exist['id']));
+	}
+
+	return true;
+}

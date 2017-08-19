@@ -207,7 +207,7 @@ if ($do == 'post') {
 		$account_api = WeAccount::create();
 		$result = $account_api->menuCreate($menu);
 		if (is_error($result)) {
-			iajax(1, $result);
+			iajax($result['errno'], $result['message']);
 		} else {
 			// 将$menu中 tag_id 再转为 group_id
 			if ($post['matchrule']['group_id'] != -1) {

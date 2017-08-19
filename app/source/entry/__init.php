@@ -28,6 +28,7 @@ if (empty($moduels[$entry['module']])) {
 if(empty($entry) || empty($entry['do'])) {
 	message('非法访问.');
 }
+
 $_GPC['__entry'] = $entry['title'];
 $_GPC['__state'] = $entry['state'];
 $_GPC['state'] = $entry['state'];

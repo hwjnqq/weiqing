@@ -21,7 +21,6 @@ $_W['page']['title'] = '自动回复';
 if (empty($m)) {
 	itoast('错误访问.', '', '');
 }
-
 if ($m == 'special') {
 	$mtypes = array(
 		'image' => '图片消息',
@@ -45,7 +44,6 @@ if (in_array($m, array('custom'))) {
 	$site = WeUtility::createModuleSite('reply');
 	$site_urls = $site->getTabUrls();
 }
-
 if ($do == 'display') {
 	if ($m == 'keyword' || !in_array($m, $sysmods)) {
 		$pindex = max(1, intval($_GPC['page']));
@@ -100,13 +98,7 @@ if ($do == 'display') {
 					}
 					//若是模块，获取模块图片
 					if (!in_array($item['module'], array("basic", "news", "images", "voice", "video", "music", "wxcard", "reply"))) {
-						if (file_exists(IA_ROOT.'/addons/'.$item['module'].'/icon-custom.jpg')) {
-							$item['logo'] = tomedia(IA_ROOT.'/addons/'.$item['module'].'/icon-custom.jpg');
-						} elseif (file_exists(IA_ROOT.'/addons/'.$item['module'].'/icon.jpg')) {
-							$item['logo'] = tomedia(IA_ROOT.'/addons/'.$item['module'].'/icon.jpg');
-						} else {
-							$item['logo'] = './resource/images/11.png';
-						}
+						$item['module_info'] = module_fetch($item['module']);
 					}
 				}
 				unset($item);
@@ -122,7 +114,7 @@ if ($do == 'display') {
 	if ($m == 'default' || $m == 'welcome') {
 		$setting = uni_setting($_W['uniacid'], array($m));
 		if (!empty($setting[$m])) {
-			$rule_keyword_id = pdo_getcolumn('rule_keyword', array('uniacid' => $_W['uniacid'], 'content' => $setting[$m]), 'id');
+			$rule_keyword_id = pdo_getcolumn('rule_keyword', array('uniacid' => $_W['uniacid'], 'content' => $setting[$m]), 'rid');
 		}
 	}
 	if ($m == 'service') {
@@ -131,7 +123,7 @@ if ($do == 'display') {
 	if ($m == 'userapi') {
 		$pindex = max(1, intval($_GPC['page']));
 		$psize = 8;
-		
+
 		$condition = "uniacid = :uniacid AND `module`=:module";
 		$params = array();
 		$params[':uniacid'] = $_W['uniacid'];
@@ -146,7 +138,7 @@ if ($do == 'display') {
 				$condition .= " AND `name` LIKE :keyword" ;
 				$params[':keyword'] = "%{$_GPC['keyword']}%";
 			}
-		}	
+		}
 		if (!empty($_GPC['keyword']) && $_GPC['search_type'] == 'keyword' && empty($rule_keyword_rid_list)) {
 			$replies = array();
 			$pager = '';
@@ -204,6 +196,7 @@ if ($do == 'post') {
 			$rulename = trim($_GPC['rulename']);
 			$containtype = '';
 			$_GPC['reply'] = (array)$_GPC['reply'];
+
 			foreach ($_GPC['reply'] as $replykey => $replyval) {
 				if (!empty($replyval)) {
 					$type = substr($replykey, 6);
@@ -367,7 +360,7 @@ if ($do == 'post') {
 				}
 			}
 			$module['icon'] = $cion;
-			
+
 			if ($module['enabled'] == 1) {
 				$enable_modules[$name] = $module;
 			} else {

@@ -106,9 +106,12 @@ function user_is_founder($uid) {
 /**
  * 判断是否是副创始人
  */
-function user_is_vice_founder() {
+function user_is_vice_founder($uid = 0) {
 	global $_W;
-	if (!empty($_W['isfounder']) && $_W['user']['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
+	$uid = intval($uid) > 0 ? intval($uid) : $_W['uid'];
+	$user_info = user_single($uid);
+
+	if (user_is_founder($uid) && $user_info['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
 		return true;
 	}
 	return false;
@@ -315,7 +318,16 @@ function user_group() {
 }
 
 /**
- * 获取某一用户组下详细信息
+ * 获取当前可用的管理组
+ * @return Ambigous
+ */
+function user_founder_group() {
+	$groups = pdo_getall('users_founder_group', array(), array('id', 'name', 'package'), 'id', 'id ASC');
+	return $groups;
+}
+
+/**
+ * 获取用户组下详细信息
  * @param  number $groupid 用户组ID
  * @return array
  */
@@ -327,6 +339,30 @@ function user_group_detail_info($groupid = 0) {
 		return $group_info;
 	}
 	$group_info = pdo_get('users_group', array('id' => $groupid));
+	if (empty($group_info)) {
+		return $group_info;
+	}
+
+	$group_info['package'] = (array)iunserializer($group_info['package']);
+	if (!empty($group_info['package'])) {
+		$group_info['package_detail'] = uni_groups($group_info['package']);
+	}
+	return $group_info;
+}
+
+/**
+ * 获取管理组下详细信息
+ * @param int $groupid
+ * @return Ambigous|array|string
+ */
+function user_founder_group_detail_info($groupid = 0) {
+	$group_info = array();
+
+	$groupid = is_array($groupid) ? 0 : intval($groupid);
+	if(empty($groupid)) {
+		return $group_info;
+	}
+	$group_info = pdo_get('users_founder_group', array('id' => $groupid));
 	if (empty($group_info)) {
 		return $group_info;
 	}
@@ -409,7 +445,7 @@ function user_modules($uid) {
 		$user_info = user_single(array ('uid' => $uid));
 
 		$system_modules = pdo_getall('modules', array('issystem' => 1), array('name'), 'name');
-		if (empty($uid) || user_is_founder($uid)) {
+		if (empty($uid)  || user_is_founder($uid) && !user_is_vice_founder($uid)) {
 			$module_list = pdo_getall('modules', array(), array('name'), 'name', array('mid DESC'));
 		} elseif (!empty($user_info) && $user_info['type'] == ACCOUNT_OPERATE_CLERK) {
 			$clerk_module = pdo_fetch("SELECT p.type FROM " . tablename('users_permission') . " p LEFT JOIN " . tablename('uni_account_users') . " u ON p.uid = u.uid AND p.uniacid = u.uniacid WHERE u.role = :role AND p.uid = :uid", array(':role' => ACCOUNT_MANAGE_NAME_CLERK, ':uid' => $uid));
@@ -420,7 +456,11 @@ function user_modules($uid) {
 		} elseif (!empty($user_info) && empty($user_info['groupid'])) {
 			$module_list = $system_modules;
 		} else {
-			$user_group_info = user_group_detail_info($user_info['groupid']);
+			if ($user_info['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
+				$user_group_info = user_founder_group_detail_info($user_info['groupid']);
+			} else {
+				$user_group_info = user_group_detail_info($user_info['groupid']);	
+			}
 			$packageids = $user_group_info['package'];
 
 			//如果套餐组中包含-1，则直接取全部权限，否则根据情况获取模块权限
@@ -485,6 +525,28 @@ function user_modules($uid) {
 				$module_list[$module] = $module_info;
 			}
 		}
+	}
+	return $module_list;
+}
+
+/**
+ * 获取创始人、副创始人拥有的非系统模块
+ * @param $uid
+ * @return Ambigous|array
+ */
+function user_uniacid_modules($uid) {
+	if (user_is_vice_founder($uid)) {
+		$module_list = user_modules($uid);
+		if (empty($module_list)) {
+			return $module_list;
+		}
+		foreach ($module_list as $module => $module_info) {
+			if (!empty($module_info['issystem'])) {
+				unset($module_list[$module]);
+			}
+		}
+	} else {
+		$module_list = pdo_getall('modules', array('issystem' => 0), array(), 'name', 'mid DESC');
 	}
 	return $module_list;
 }
@@ -598,4 +660,254 @@ function user_save_group($group_info) {
 	}
 
 	return error(0, '添加成功');
+}
+
+/**
+ * 添加副创始人组
+ * @param $group_info
+ * @return array
+ */
+function user_save_founder_group($group_info) {
+	$name = trim($group_info['name']);
+	if (empty($name)) {
+		return error(-1, '用户权限组名不能为空');
+	}
+
+	if (!empty($group_info['id'])) {
+		$name_exist = pdo_get('users_founder_group', array('id <>' => $group_info['id'], 'name' => $name));
+	} else {
+		$name_exist = pdo_get('users_founder_group', array('name' => $name));
+	}
+
+	if (!empty($name_exist)) {
+		return error(-1, '用户权限组名已存在！');
+	}
+
+	if (!empty($group_info['package'])) {
+		foreach ($group_info['package'] as $value) {
+			$package[] = intval($value);
+		}
+	}
+	$group_info['package'] = iserializer($package);
+
+	if (empty($group_info['id'])) {
+		pdo_insert('users_founder_group', $group_info);
+	} else {
+		pdo_update('users_founder_group', $group_info, array('id' => $group_info['id']));
+	}
+
+	return error(0, '添加成功');
+}
+
+/**
+ * 用户权限组和副创始人权限组列表格式化
+ * @param $lists
+ * @return mixed
+ */
+function user_group_format($lists) {
+	if (empty($lists)) {
+		return $lists;
+	}
+	foreach ($lists as $key => $group) {
+		$package = iunserializer($group['package']);
+		$group['package'] = uni_groups($package);
+		if (empty($package)) {
+			$lists[$key]['module_nums'] = '系统默认';
+			$lists[$key]['wxapp_nums'] = '系统默认';
+			continue;
+		}
+		if (is_array($package) && in_array(-1, $package)) {
+			$lists[$key]['module_nums'] = -1;
+			$lists[$key]['wxapp_nums'] = -1;
+			continue;
+		}
+		$names = array();
+		if (!empty($group['package'])) {
+			foreach ($group['package'] as $modules) {
+				$names[] = $modules['name'];
+				$lists[$key]['module_nums'] = count($modules['modules']);
+				$lists[$key]['wxapp_nums'] = count($modules['wxapp']);
+			}
+		}
+		$lists[$key]['packages'] = implode(',', $names);
+	}
+	return $lists;
+}
+
+/**
+ * 用户和副创始人列表数据格式化
+ * @param $users
+ * @param int $type
+ * @return array
+ */
+function user_list_format($users) {
+	if (empty($users)) {
+		return array();
+	}
+	$system_module_num = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('modules') . "WHERE type = :type AND issystem = :issystem", array(':type' => 'system',':issystem' => 1));
+	foreach ($users as &$user) {
+		$user['avatar'] = !empty($user['avatar']) ? $user['avatar'] : './resource/images/nopic-user.png';
+		$user['joindate'] = date('Y-m-d', $user['joindate']);
+		if (empty($user['endtime'])) {
+			$user['endtime'] = '永久有效';
+		} else {
+			if ($user['endtime'] <= TIMESTAMP) {
+				$user['endtime'] = '服务已到期';
+			} else {
+				$user['endtime'] = date('Y-m-d', $user['endtime']);
+			}
+		}
+
+		$user_role = $user['founder'] = $user['founder_groupid'] == 1 ? true : false;
+		$user['uniacid_num'] = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('uni_account_users')." WHERE uid = :uid", array(':uid' => $user['uid']));
+
+		$user['module_num'] =array();
+		if ($user['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
+			$group = pdo_get('users_founder_group', array('id' => $user['groupid']));
+		} else {
+			$group = pdo_get('users_group', array('id' => $user['groupid']));
+		}
+		if ($user_role) {
+			$user['maxaccount'] = '不限';
+		}
+		if (!empty($group)) {
+			if (empty($user_role)) {
+				$user['maxaccount'] = $group['maxaccount'];
+			}
+			$user['groupname'] = $group['name'];
+			$package = iunserializer($group['package']);
+			$group['package'] = uni_groups($package);
+			foreach ($group['package'] as $modules) {
+				if (is_array($modules['modules'])) {
+					foreach ($modules['modules'] as  $module) {
+						$user['module_num'][] = $module['name'];
+					}
+				}
+			}
+		}
+
+		$user['module_num'] = array_unique($user['module_num']);
+		$user['module_nums'] = count($user['module_num']) + $system_module_num;
+	}
+	unset($user);
+	return $users;
+}
+
+/**
+ * 添加用户和副创始人
+ * @param $user
+ * @param bool|false $is_founder_group
+ * @return array
+ */
+function user_info_save($user, $is_founder_group = false) {
+	global $_W;
+	if (!preg_match(REGULAR_USERNAME, $user['username'])) {
+		return error(-1, '必须输入用户名，格式为 3-15 位字符，可以包括汉字、字母（不区分大小写）、数字、下划线和句点。');
+	}
+	if (user_check(array('username' => $user['username']))) {
+		return error(-1, '非常抱歉，此用户名已经被注册，你需要更换注册名称！');
+	}
+	if (istrlen($user['password']) < 8) {
+		return error(-1, '必须输入密码，且密码长度不得低于8位。');
+	}
+	if (trim($user['password']) !== trim($user['repassword'])) {
+		return error(-1, '两次密码不一致！');
+	}
+	if (!intval($user['groupid'])) {
+		return error(-1, '请选择所属用户组');
+	}
+
+	if ($is_founder_group) {
+		$group = user_founder_group_detail_info($user['groupid']);
+	} else {
+		$group = user_group_detail_info($user['groupid']);
+	}
+	if (empty($group)) {
+		return error(-1, '会员组不存在');
+	}
+
+	$timelimit = intval($group['timelimit']);
+	$timeadd = 0;
+	if ($timelimit > 0) {
+		$timeadd = strtotime($timelimit . ' days');
+	}
+	$user['endtime'] = $timeadd;
+	$user['owner_uid'] = user_get_uid_byname($user['vice_founder_name']);
+	if (user_is_vice_founder()) {
+		$user['owner_uid'] = $_W['uid'];
+	}
+	unset($user['vice_founder_name']);
+	unset($user['repassword']);
+	$user_add_id = user_register($user);
+	if (empty($user_add_id)) {
+		return error(-1, '增加失败，请稍候重试或联系网站管理员解决！');
+	}
+	return array('uid' => $user_add_id);
+}
+
+/**
+ * 获取用户和副创始人列表数据
+ * @param array $condition
+ * @param array $paper
+ * @return array
+ */
+function user_list($condition = array(), $paper = array()) {
+	global $_W;
+	$sql = "SELECT %s FROM " . tablename('users') . "AS u LEFT JOIN " .tablename('users_profile') . "AS p ON u.uid = p.uid WHERE 1=1 ";
+	if (!empty($condition['status'])) {
+		$sql .= " AND u.status = :status";
+		$param[':status'] = $condition['status'];
+	}
+
+	if (!empty($condition['type'])) {
+		$sql .= " AND u.type = :type";
+		$param[':type'] = $condition['type'];
+	}
+
+	if (!empty($condition['founder_groupid'])) {
+		$founder_groupid = implode(',' , $condition['founder_groupid']);
+		$sql .= " AND u.founder_groupid IN ($founder_groupid)";
+	}
+
+	if (!empty($condition['username'])) {
+		$sql .= " AND u.username LIKE :username";
+		$param[':username'] = "%{$condition['username']}%";
+	}
+
+	if (user_is_vice_founder()) {
+		$sql .= ' AND u.owner_uid = ' . $_W['uid'];
+	}
+	$limit = " ORDER BY uid DESC LIMIT " . ($paper[0] - 1) * $paper[1] . "," . $paper[1];
+
+	$list = pdo_fetchall(sprintf($sql, 'u.*, p.avatar') . $limit, $param);
+	$total = pdo_fetchcolumn(sprintf($sql, 'COUNT(*)'), $param);
+
+	return array(
+		'list' => $list,
+		'total' => $total,
+	);
+}
+
+/**
+ * 用户详情信息格式化
+ * @param $profile
+ * @return mixed
+ */
+function user_detail_formate($profile) {
+	if (!empty($profile)) {
+		$profile['reside'] = array(
+			'province' => $profile['resideprovince'],
+			'city' => $profile['residecity'],
+			'district' => $profile['residedist']
+		);
+		$profile['birth'] = array(
+			'year' => $profile['birthyear'],
+			'month' => $profile['birthmonth'],
+			'day' => $profile['birthday'],
+		);
+		$profile['avatar'] = tomedia($profile['avatar']);
+		$profile['resides'] = $profile['resideprovince'] . $profile['residecity'] . $profile['residedist'] ;
+		$profile['births'] =($profile['birthyear'] ? $profile['birthyear'] : '--') . '年' . ($profile['birthmonth'] ? $profile['birthmonth'] : '--') . '月' . ($profile['birthday'] ? $profile['birthday'] : '--') .'日';
+	}
+	return $profile;
 }

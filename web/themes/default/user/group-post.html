@@ -84,6 +84,7 @@
 						</table>
 					</div>
 				</div>
+				{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
 				<div>
 					<div class="permission-heading">
 						<input id="checkbox-0" type="checkbox" value="-1" name='package[]' ng-checked="groupInfo.check_all">
@@ -107,6 +108,7 @@
 						</table>
 					</div>
 				</div>
+				{/if}
 			</div>
 		</div>
 		<input type="submit" name="submit" value="保存" class="btn btn-primary" ng-style="{'padding': '6px 50px'}" />

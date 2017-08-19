@@ -19,13 +19,7 @@ if(!uni_user_module_permission_check($module_name.'_permissions', $module_name))
 }
 
 if ($do == 'display') {
-	$entries = module_entries($module_name);
-	$user_permissions = pdo_getall('users_permission', array('uniacid' => $_W['uniacid'], 'type' => $module_name, 'uid <>' => ''), '', 'uid');
-	$uids = !empty($user_permissions) && is_array($user_permissions) ? array_keys($user_permissions) : array();
-	$users_lists = array();
-	if (!empty($uids)) {
-		$users_lists = pdo_getall('users', array('uid' => $uids), '', 'uid');
-	}
+	$user_permissions = module_clerk_info($module_name);
 	$current_module_permission = module_permission_fetch($module_name);
 	$permission_name = array();
 	if (!empty($current_module_permission)) {
@@ -42,7 +36,6 @@ if ($do == 'display') {
 					unset($permission['permission'][$k]);
 				}
 			}
-			$permission['user_info'] = $users_lists[$key];
 		}
 		unset($permission);
 	}

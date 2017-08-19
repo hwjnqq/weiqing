@@ -23,42 +23,8 @@ if ($do == 'display') {
 		$condition .= "WHERE owner_uid = :owner_uid";
 		$params[':owner_uid'] = $_W['uid'];
 	}
-	if (checksubmit('submit')) {
-		if (!empty($_GPC['delete'])) {
-			pdo_query("DELETE FROM ".tablename('users_group')." WHERE id IN ('".implode("','", $_GPC['delete'])."')");
-		}
-		itoast('用户组更新成功！', referer(), 'success');
-	}
-	$module_num = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('modules') . "WHERE type = :type AND issystem = :issystem", array(':type' => 'system','issystem' => 1));
 	$lists = pdo_fetchall("SELECT * FROM " . tablename('users_group').$condition, $params);
-	if (!empty($lists)) {
-		foreach ($lists as $key => $group) {
-			$package = iunserializer($group['package']);
-			$group['package'] = uni_groups($package);
-			if (empty($package)) {
-				$lists[$key]['module_nums'] = '系统默认';
-				$lists[$key]['wxapp_nums'] = '系统默认';
-				continue;
-			}
-			if (is_array($package) && in_array(-1, $package)) {
-				$lists[$key]['module_nums'] = -1;
-				$lists[$key]['wxapp_nums'] = -1;
-				continue;
-			}
-			$names = array();
-			if (!empty($group['package'])) {
-				foreach ($group['package'] as $modules) {
-					$names[] = $modules['name'];
-					$lists[$key]['module_nums'] = count($modules['modules']);
-					$lists[$key]['wxapp_nums'] = count($modules['wxapp']);
-				}
-			}else {
-				pdo_update('users_group', array('package' => 'N;'), array('id' => $group['id']));
-			}
-
-			$lists[$key]['packages'] = implode(',', $names);
-		}
-	}
+	$lists = user_group_format($lists);
 	template('user/group-display');
 }
 

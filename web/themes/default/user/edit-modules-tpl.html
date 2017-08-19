@@ -48,14 +48,15 @@
 				</div>
 			</div>
 		</div>
-		<div class="panel-body" ng-repeat="pack in group_info.package_detail">
+		<div class="panel-body" ng-repeat="(packid, pack) in group_info.package_detail">
 			<div class="permission-heading">
 				<span ng-bind="pack.name"></span>
+				<span ng-if="packid == '-1'">所有服务</span>
 				<div class="pull-right permission-edit" ng-style="{'width': 'auto'}">
-					<a href="javascript:;" class="color-default js-unfold" data-toggle="collapse" data-target="#demo-{{pack.id}}" ng-click="changeText($event)">展开</a>
+					<a href="javascript:;" class="color-default js-unfold" data-toggle="collapse" data-target="#demo-{{packid}}" ng-click="changeText($event)">展开</a>
 				</div>
 			</div>
-			<table id="demo-{{pack.id}}" class="table we7-table table-hover collapse" ng-if="pack.id != '-1'">
+			<table id="demo-{{pack.id}}" class="table we7-table table-hover collapse" ng-if="packid != '-1'">
 				<col width="90px" />
 				<col width="835px" />
 				<tr class="permission-apply">
@@ -74,7 +75,7 @@
 					<td><ul><li ng-repeat="tpl in pack.templates"><span class="label label-info" ng-bind="tpl.title"></span></li></ul></td>
 				</tr>
 			</table>
-			<table id="demo-{{pack.id}}" class="table we7-table table-hover collapse" ng-if="pack.id == -1">
+			<table id="demo-{{packid}}" class="table we7-table table-hover collapse" ng-if="packid == -1">
 				<col width="90px" />
 				<col width="835px" />
 				<tr class="permission-apply">

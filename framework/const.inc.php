@@ -63,11 +63,13 @@ define('ACCOUNT_MANAGE_TYPE_OWNER', 3);
 define('ACCOUNT_MANAGE_NAME_OWNER', 'owner');
 //创始人
 define('ACCOUNT_MANAGE_NAME_FOUNDER', 'founder');
+define('ACCOUNT_MANAGE_GROUP_FOUNDER', 1);
 //副创始人
 define('ACCOUNT_MANAGE_TYPE_VICE_FOUNDER', 4);
 define('ACCOUNT_MANAGE_NAME_VICE_FOUNDER', 'vice_founder');
 define('ACCOUNT_MANAGE_GROUP_VICE_FOUNDER', 2);
-
+//普通用户
+define('ACCOUNT_MANAGE_GROUP_GENERAL', 0);
 //系统卡券
 define('SYSTEM_COUPON', 1);
 //微信卡券
@@ -147,3 +149,17 @@ define('MATERIAL_WEXIN', 'perm');//微信素材类型
 //自定义菜单类型
 define('MENU_CURRENTSELF', 1);
 define('MENU_CONDITIONAL', 3);
+
+//用户状态
+define('USER_STATUS_CHECK', 1);
+define('USER_STATUS_NORMAL', 2);
+define('USER_STATUS_BAN', 3);
+
+//用户类型
+define('USER_TYPE_COMMON', 1);
+define('USER_TYPE_CLERK', 3);
+
+//我的账户链接类型
+define('PERSONAL_BASE_TYPE', 1);
+define('PERSONAL_AUTH_TYPE', 2);
+define('PERSONAL_LIST_TYPE', 3);

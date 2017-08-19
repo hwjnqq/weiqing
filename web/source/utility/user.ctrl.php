@@ -33,7 +33,10 @@ if ($do == 'browser') {
 		$where .= ' AND `username` LIKE :username';
 		$params[':username'] = "%{$_GPC['keyword']}%";
 	}
-	
+	if (user_is_vice_founder()) {
+		$where .= ' AND `owner_uid` = :owner_uid';
+		$params[':owner_uid'] = $_W['uid'];
+	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 10;
 	$total = 0;

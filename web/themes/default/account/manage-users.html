@@ -29,7 +29,7 @@
 				<div class="link-group">
 					<a href="javascript:;" ng-if="permission.isfounder == 1">创始人拥有系统最高权限 </a>
 					{if $_W['isfounder']}<a href="javascript:;" ng-if="permission.role == 'owner' && permission.isfounder == 0" ng-click="changeOwner(permission.username)">修改</a>{/if}
-					{if $_W['isfounder'] && uni_user_permission_check('system_edit_vice_founder')}<a href="javascript:;" ng-if="permission.role == 'vice_founder' && permission.isfounder == 0" ng-click="changeVice(permission.username)">修改</a>{/if}
+					{if $_W['isfounder'] && uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}<a href="javascript:;" ng-if="permission.role == 'vice_founder' && permission.isfounder == 0" ng-click="changeVice(permission.username)">修改</a>{/if}
 					<a href="javascript:;" ng-if="permission.isfounder == 0 && (((state == 'founder' || state == 'owner') && (permission.role == 'manager' || permission.role == 'operator')) || (state == 'manager' && permission.role == 'operator'))" ng-click="setPermission(permission.uid)">权限设置  </a>
 					<a href="javascript:;" ng-if="permission.isfounder == 0 && (((state == 'founder' || state == 'owner') && (permission.role == 'manager' || permission.role == 'operator')) || (state == 'manager' && permission.role == 'operator'))" ng-click="delPermission(permission.uid)">删除 </a>
 				</div>

@@ -1,18 +1,10 @@
 {template 'common/header'}
 <div class="new-keyword">
-	{if $_GPC['do'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
-		<ol class="breadcrumb we7-breadcrumb">
-			<a href="{url 'user/display'}"><i class="wi wi-back-circle"></i> </a>
-			<li><a href="{url 'user/display/vice_founder'}">副创始人管理</a></li>
-			<li>添加副创始人</li>
-		</ol>
-	{else}
-		<ol class="breadcrumb we7-breadcrumb">
-			<a href="{url 'user/display'}"><i class="wi wi-back-circle"></i> </a>
-			<li><a href="{url 'user/display'}">用户管理</a></li>
-			<li>添加用户</li>
-		</ol>
-	{/if}
+	<ol class="breadcrumb we7-breadcrumb">
+		<a href="{url 'user/display'}"><i class="wi wi-back-circle"></i> </a>
+		<li><a href="{url 'user/display'}">用户管理</a></li>
+		<li>添加用户</li>
+	</ol>
 	<form action="" class="we7-form" method="post" id="js-user-create" ng-controller="UserCreate" ng-cloak>
 		
 		<div class="form-group">
@@ -37,7 +29,6 @@
 				<div class="help-block">重复输入密码，确认正确输入</div>
 			</div>
 		</div>
-		{if $_GPC['do'] != ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
 		<div class="form-group">
 			<label for="" class="control-label col-sm-2">所属用户组</label>
 			<div class="form-controls col-sm-8">
@@ -49,7 +40,6 @@
 				<span class="help-block"><strong class="text-danger">设置用户组后，系统会根据对应用户组的服务期限对用户的服务开始时间和结束时间进行初始化</strong></span>
 			</div>
 		</div>
-		{/if}
 		<div class="form-group">
 			<label for="" class="control-label col-sm-2">备注</label>
 			<div class="form-controls col-sm-8">

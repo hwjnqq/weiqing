@@ -273,7 +273,7 @@ function ihttp_parse_url($url, $set_default_port = false) {
 		$current_url = parse_url($GLOBALS['_W']['siteroot']);
 		$urlset['host'] = $current_url['host'];
 		$urlset['scheme'] = $current_url['scheme'];
-		$urlset['path'] = '/web/' . str_replace('./', '', $urlset['path']);
+		$urlset['path'] = $current_url['path'] . 'web/' . str_replace('./', '', $urlset['path']);
 		$urlset['ip'] = '127.0.0.1';
 	}
 	

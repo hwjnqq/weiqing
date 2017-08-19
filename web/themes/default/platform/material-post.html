@@ -8,7 +8,7 @@
 					<a href="{php echo url('platform/material')}">素材库</a>
 				</li>
 				<li>
-					新建图文素材
+					{if !empty($news_list)}编辑{else}新建{/if}图文素材
 				</li>
 			</ol>
 		</div>
@@ -124,8 +124,8 @@
 							<a type="button" class="btn btn-default">预览</a>
 							<a type="button" class="btn btn-default">保存并群发</a>
 						</div>
-						<a type="button" class="btn btn-primary" ng-if="model == 'local'" ng-click="saveNews('local')">保存到本地</a>
-						<a id="savewechat" type="button" class="btn btn-primary" ng-click="saveNews('wechat')" ng-show="!hidenbutton && materialList.length < 8">保存并上传到微信</a>
+						<a type="button" class="btn btn-primary" ng-if="model == 'local' || operate == 'add'" ng-click="saveNews('local')">保存到本地</a>
+						<a id="savewechat" type="button" class="btn btn-primary" ng-click="saveNews('wechat')" ng-show="(!hidenbutton && materialList.length <= 8) || operate == 'add'">保存并上传到微信</a>
 					</div>
 				</div>
 			</nav>

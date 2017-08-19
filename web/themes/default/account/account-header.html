@@ -32,7 +32,7 @@
 </div>
 <div class="clearfix"></div>
 <div class="btn-group we7-btn-group wechat-edit-group">
-	{if $state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER}
+	{if $state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER || $state == ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
 	<a href="{php echo url('account/post/base', array('uniacid' => $_GPC['uniacid'], 'acid' => $_GPC['acid'], 'account_type' => ACCOUNT_TYPE))}" class="btn btn-default {if $do == 'base'} active{/if}">基础信息</a>
 	{if ACCOUNT_TYPE == ACCOUNT_TYPE_OFFCIAL_NORMAL}
 	<a href="{php echo url('account/post/sms', array('uniacid' => $_GPC['uniacid'], 'acid' => $_GPC['acid'], 'account_type' => ACCOUNT_TYPE))}" class="btn btn-default {if $do == 'sms'} active{/if}">短信信息</a>
@@ -44,5 +44,8 @@
 	{/if}
 	{if ACCOUNT_TYPE == ACCOUNT_TYPE_APP_NORMAL}
 	<a href="{php echo url('wxapp/manage/display', array('uniacid' => $_GPC['uniacid'], 'acid' => $_GPC['acid'], 'account_type' => ACCOUNT_TYPE_APP_NORMAL))}" class="btn btn-default {if $action == 'manage' && $do == 'display'} active{/if}">版本管理</a>
+	{/if}
+	{if ACCOUNT_TYPE == ACCOUNT_TYPE_APP_NORMAL}
+	<a href="{php echo url('account/post/modules_tpl', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => ACCOUNT_TYPE_APP_NORMAL))}" class="btn btn-default {if $action == 'post' && $do == 'modules_tpl'} active{/if}">可用应用模板/模块</a>
 	{/if}
 </div>
