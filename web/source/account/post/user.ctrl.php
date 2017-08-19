@@ -59,6 +59,7 @@ if ($do == 'edit') {
 		if ($state == ACCOUNT_MANAGE_NAME_MANAGER && ($exists['role'] == ACCOUNT_MANAGE_NAME_OWNER || $exists['role'] == ACCOUNT_MANAGE_NAME_MANAGER)) {
 			itoast('管理员不可操作其他管理员', referer(), 'error');
 		}
+		pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $uid));
 		$result = pdo_delete('uni_account_users', $data);
 		if ($result) {
 			itoast('删除成功！', referer(), 'success');

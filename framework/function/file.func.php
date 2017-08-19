@@ -762,6 +762,7 @@ function file_remote_attach_fetch($url, $limit = 0, $path = '') {
 	}
 	load()->func('communication');
 	$resp = ihttp_get($url);
+
 	if (is_error($resp)) {
 		return error(-1, '提取文件失败, 错误信息: '.$resp['message']);
 	}

@@ -18,10 +18,8 @@ $uid = intval($_GPC['uid']);
 $user = user_single($uid);
 if (empty($user)) {
 	itoast('访问错误, 未找到该操作员.', url('user/display'), 'error');
-} else {
-	if ($user['status'] == 1) itoast('访问错误，该用户未审核通过，请先审核通过再修改！', url('user/display/check_display'), 'error');
-	if ($user['status'] == 3) itoast('访问错误，该用户已被禁用，请先启用再修改！', url('user/display/recycle_display'), 'error');
 }
+
 $founders = explode(',', $_W['config']['setting']['founder']);
 $profile = pdo_get('users_profile', array('uid' => $uid));
 if (!empty($profile)) $profile['avatar'] = tomedia($profile['avatar']);
@@ -39,6 +37,10 @@ if ($do == 'edit_base') {
 }
 if ($do == 'edit_modules_tpl') {
 	if ($_W['isajax'] && $_W['ispost']) {
+		if ($user['status'] == USER_STATUS_CHECK || $user['status'] == USER_STATUS_BAN) {
+			iajax(-1, '访问错误，该用户未审核或者已被禁用，请先修改用户状态！', '');
+		}
+
 		if (intval($_GPC['groupid']) == $user['groupid']){
 			iajax(2, '未做更改！');
 		}

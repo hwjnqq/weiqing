@@ -2,6 +2,7 @@
 <link href="./resource/css/app.css" rel="stylesheet">
 {template 'mc/common'}
 {if $do == 'uc'}
+<div id="ng_userCenterApp">
 {php echo tpl_ueditor('')}
 <form action="" method="post" class="form-horizontal">
 	<input type="hidden" name="multiid" value="{$multiid}" />
@@ -150,10 +151,12 @@
 				'murl':"{php echo murl('mc', array(), true, true)}"
 			}
 		});
-		angular.bootstrap(document, ['userCenterApp']);
+		angular.bootstrap($('#ng_userCenterApp'), ['userCenterApp']);
 	});
 </script>
+</div>
 {elseif $do == 'quickmenu'}
+<div id="ng_quickmenu">
 <form action="" method="post">
 	<div class="shopNav" id="quickmenu" ng-controller="MainCtrl">
 		<div class="well clearfix">
@@ -670,12 +673,13 @@
 			angular.module('quickMenuApp').value('config', {
 				'activeItem' : activeItem,
 			});
-			angular.bootstrap(document, ['quickMenuApp']);
+			angular.bootstrap($('#ng_quickmenu'), ['quickMenuApp']);
 			$('.app-content').click(function(){
 				return false;
 			});
 		});
 	});
 </script>
+</div>
 {/if}
 {template 'common/footer'}

@@ -552,6 +552,14 @@ function material_news_list($server = '', $search ='', $page = array('page_index
 			}
 		}
 	}
+	// 转换微信图片地址
+	foreach ($material_list as $key => &$news) {
+		if (isset($news['items']) && is_array($news['items'])) {
+			foreach ($news['items'] as &$item) {
+				$item['thumb_url'] = tomedia($item['thumb_url']);
+			}
+		}
+	}
 	unset($news_list);
 	$pager = pagination($total, $page['page_index'], $page['page_size'],'',$context = array('before' => 5, 'after' => 4, 'isajax' => $_W['isajax']));
 	$material_news = array('material_list' => $material_list, 'page' => $pager);
@@ -636,6 +644,19 @@ function material_to_local($resourceid, $uniacid, $uid, $type = 'image') {
  * @return array|string
  */
 function material_network_image_to_local($url, $uniacid, $uid) {
+	return material_network_to_local($url, $uniacid, $uid, 'image');
+}
+
+
+/**
+ *  网络资源转本地 支持视频 图片
+ * @param $url
+ * @param $uniacid
+ * @param $uid
+ * @param int $type
+ * @return array|string
+ */
+function material_network_to_local($url, $uniacid, $uid, $type = 'image') {
 	$path = file_remote_attach_fetch($url); //网络转本地图片路径
 	if(is_error($path)) {
 		return $path;
@@ -644,7 +665,7 @@ function material_network_image_to_local($url, $uniacid, $uid) {
 	$data = array('uniacid' => $uniacid, 'uid' => $uid,
 		'filename' => $filename,
 		'attachment' => $path,
-		'type' => 1,//$type == 'image' ? 1 : ($type == 'video'? 2 : 3),
+		'type' => $type == 'image' ? ATTACH_TYPE_IMAGE : ($type == 'audio'||$type == 'voice' ? ATTACH_TYPE_VOICE : ATTACH_TYPE_VEDIO),
 		'createtime'=>TIMESTAMP
 	);
 	pdo_insert('core_attachment', $data);
@@ -653,7 +674,6 @@ function material_network_image_to_local($url, $uniacid, $uid) {
 	$data['url'] = tomedia($path);
 	return $data;
 }
-
 
 
 /**
@@ -668,10 +688,15 @@ function material_to_wechat($attach_id, $uniacid, $uid, $acid, $type = 'image') 
 	if (is_error($result)) {
 		return $result;
 	}
+	$tag = $result['url'];
+	if($type == 'video') {
+		$tag = serialize(array('title'=>'网络视频','description'=>'网络视频'));
+	}
 	$data = array('uniacid' => $uniacid, 'uid' => $uid, 'acid' => $acid,
 		'media_id' => $result['media_id'],
 		'attachment' => $result['url'],
 		'type' => $type,
+		'tag' => $tag,
 		'model' => 'perm',
 		'createtime'=>TIMESTAMP
 	);
@@ -687,9 +712,16 @@ function material_to_wechat($attach_id, $uniacid, $uid, $acid, $type = 'image') 
  *  网络图片上传到微信
  */
 function material_network_image_to_wechat($url, $uniacid, $uid, $acid) {
-	$local = material_network_image_to_local($url,$uniacid,$uid); //网络图片先转为本地资源
+	return material_network_to_wechat($url, $uniacid, $uid, $acid, 'image');
+}
+
+/**
+ *  网络视频  图片上传到微信
+ */
+function material_network_to_wechat($url, $uniacid, $uid, $acid, $type = 'image') {
+	$local = material_network_to_local($url, $uniacid, $uid, $type); //网络图片先转为本地资源
 	if (is_error($local)) {
 		return $local;
 	}
-	return material_to_wechat($local['id'], $uniacid, $uid, $acid);
+	return material_to_wechat($local['id'], $uniacid, $uid, $acid, $type);
 }

@@ -170,10 +170,8 @@
 						</td>
 						<td>
 							<p><a href="{php echo url('mc/chats', array('openid' => $fan['openid']))}" target="_blank" class="nick-name" data-fanid="{$fan['fanid']}" data-group="{$fan['groupid']}">{$fan['nickname']}</a></p>
-							{if empty($fan['uid'])}
-							<a href="{php echo url('mc/member/post', array('uid' => $fan['uid'],'openid' => $fan['openid'], 'fanid' => $fan['fanid']));}" class="text-danger" title="该用户尚未注册会员，请为其手动注册！">[ 注册为会员 ]</a>
-							{else}
-							<p class="remark-name"><a href="{php echo url('mc/member/post', array('uid' => $fan['uid']));}">
+							{if !empty($fan['uid'])}
+							<p class="remark-name"><a href="{php echo url('mc/member/base_information', array('uid' => $fan['uid']));}">
 								{if !empty($fan['member']['realname'])}
 								{$fan['member']['realname']}
 								{else}
@@ -199,6 +197,9 @@
 						</td>
 						<td class="text-right">
 							<div class="send-message">
+								{if empty($fan['uid'])}
+								<a href="javascript:;" class="color-default" data-toggle="modal" data-target="#register_member" ng-click="registerMember('{$fan['openid']}')">注册为会员</a>
+								{/if}
 								<a  href="{php echo url('mc/chats', array('openid' => $fan['openid']))}" target="_blank" class="color-default">
 									发送消息<span class="wi wi-angle-right"></span>
 								</a>
@@ -228,6 +229,36 @@
 			{/loop}
 		</dl>
 	</div>
+
+	<div class="modal fade" id="register_member" tabindex="1" role="dialog" aria-labelledby="myModalLabel">
+		<div class="we7-modal-dialog modal-dialog we7-form" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="address-add">注册为会员</h4>
+				</div>
+				<div class="modal-body">
+						<div class="form-group">
+							<label class="col-sm-2 control-label">新密码</label>
+							<div class="col-sm-9 col-xs-12">
+								<input class="form-control" type="password" ng-model="register.password">
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label">确认密码</label>
+							<div class="col-sm-9 col-xs-12">
+								<input class="form-control" type="password" ng-model="register.repassword">
+							</div>
+						</div>
+						<input class="form-control" type="hidden" ng-model="register.openid">
+						<div class="modal-footer">
+							<button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="register()">注册</button>
+							<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+						</div>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
 	<div class="popover-edit-group" style="display: none;">
 		<div class="input-group" style="width: 250px;">
@@ -256,6 +287,7 @@
 		{$pager}
 	</div>
 </div>
+
 <script>
 	$("[data-toggle='popover']").on('show.bs.popover', function () {
 		$("[aria-describedby]").popover('hide');
@@ -447,7 +479,8 @@
 		'syncAllUrl' : "{php echo url('mc/fans/download_fans')}",
 		'syncUrl' : "{php echo url('mc/fans/sync')}",
 		'msgUrl' : "{php echo url('mc/fans')}",
-		'searchMod' : "{$search_mod}"
+		'searchMod' : "{$search_mod}",
+		'registerUrl' : "{php echo url('mc/fans/register')}"
 	});
 	angular.bootstrap($('#main'), ['fansApp']);
 </script>

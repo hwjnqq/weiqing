@@ -67,7 +67,7 @@ function module_types() {
  */
 function module_entries($name, $types = array(), $rid = 0, $args = null) {
 	load()->func('communication');
-	
+
 	global $_W;
 	$ts = array('rule', 'cover', 'menu', 'home', 'profile', 'shortcut', 'function', 'mine');
 	if(empty($types)) {
@@ -824,6 +824,7 @@ function module_last_switch($module_name) {
  * 获取模块店员信息
  */
 function module_clerk_info($module_name) {
+	global $_W;
 	$user_permissions = array();
 	$module_name = trim($module_name);
 	if (empty($module_name)) {
@@ -832,8 +833,9 @@ function module_clerk_info($module_name) {
 	$params = array(
 			':role' => ACCOUNT_MANAGE_NAME_CLERK,
 			':type' => $module_name,
+			':uniacid' => $_W['uniacid']
 	);
-	$sql = "SELECT u.uid, p.permission FROM " . tablename('uni_account_users') . " u," . tablename('users_permission') . " p WHERE u.uid = p.uid AND u.uniacid = p.uniacid AND u.role = :role AND p.type = :type";
+	$sql = "SELECT u.uid, p.permission FROM " . tablename('uni_account_users') . " u," . tablename('users_permission') . " p WHERE u.uid = p.uid AND u.uniacid = p.uniacid AND u.role = :role AND p.type = :type AND u.uniacid = :uniacid";
 	$user_permissions = pdo_fetchall($sql, $params, 'uid');
 	if (!empty($user_permissions)) {
 		foreach ($user_permissions as $key => $value) {

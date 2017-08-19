@@ -1,0 +1,160 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * User: fanyk
+ * Date: 2017/8/10
+ * Time: 16:24.
+ *  暂只支持一个命令 php console upgrade
+ */
+error_reporting(0);
+include __DIR__.'/framework/bootstrap.inc.php';
+$sapiname = php_sapi_name();
+if ($sapiname != 'cli') {
+	echo '只能在命令行下运行当前任务';
+	return;
+}
+
+if (count($argv) > 1 && $argv[1] == 'upgrade') {
+	$update = new Upgrade();
+	$update->update();
+}
+
+class Upgrade {
+	// 不处理的目录
+	private $ignoreDir = array('20170215', '20170217', '20170302', '20170307', '20170328', '20170411', '20170426', '20170502', '20170511', '20170516', '20170525', '20170602', '20170606', '20170610', '20170616', '20170621', '20170622', '20170628', '20170708', '20170711', '20170802', '20170805', '20170806', '20170818');
+
+	private $diff_dirs; // 和数据库有差异的更新目录
+
+	public function update() {
+		$this->check_table();
+		$diff_dirs = $this->get_diff_dirs(); //获取本地和数据库的差异目录文件
+		if (count($diff_dirs) == 0) {
+			$this->write('没有要更新的文件');
+
+			return;
+		}
+		$this->diff_dirs = $diff_dirs;
+		$confirm = $this->confirm();
+		if ($confirm) {
+			$this->doupdate();
+		}
+	}
+
+	private function doupdate() {
+		try {
+			pdo()->begin();
+			foreach ($this->diff_dirs as $dir) {
+				include __DIR__.'/upgrade/'.$dir.'/upgrade.php';
+				pdo_insert('upgrade', array('dir' => $dir, 'createtime' => time()));
+			}
+			pdo()->commit();
+			$this->write('更新成功');
+		} catch (Exception $e) {
+			pdo()->rollback();
+			$this->write('更新失败');
+			$this->write('失败明细:'.PHP_EOL);
+			$this->write($e->getMessage());
+		}
+	}
+
+	/**
+	 *  询问是否更新.
+	 *
+	 * @param $diff_dirs
+	 */
+	private function confirm() {
+		$this->write('需要执行更新的文件目录是:'.PHP_EOL);
+		$dirs = array_map(function ($dir) {
+			return 'upgrade/'.$dir;
+		}, $this->diff_dirs);
+		$this->write_list($dirs);
+		$this->write('更新后不可恢复,确定更新吗?(Y/N)');
+		$readData = $this->read();
+		$yesOrNo = 'N';
+		if ($readData && count($readData) > 0) {
+			$yesOrNo = $readData[0];
+		}
+		if (strtoupper($yesOrNo) == 'Y') {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 *  获取差异目录.
+	 */
+	private function get_diff_dirs() {
+		$db_dirs = pdos()->from('upgrade')->getall('dir'); //获取数据库目录
+		$db_dirs = array_keys($db_dirs);
+		$dirs = $this->get_exits_upgrade_dir(); //获取本地已存在的目录
+		$diff_dirs = array_diff($dirs, $db_dirs); // 比对差异目录
+		asort($diff_dirs); // 排序保证时间早的先执行
+		return $diff_dirs;
+	}
+
+	/**
+	 *  检查表是否存在.
+	 */
+	private function check_table() {
+		$exits = pdo_tableexists('upgrade');
+		if (!$exits) {
+			include __DIR__.'/upgrade/20170818/upgrade.php';
+		}
+	}
+
+	/**
+	 *  获取已存在的upgrade目录
+	 *  过滤掉20170818 以前的不处理.
+	 */
+	public function get_exits_upgrade_dir() {
+		$dirs = self::get_upgrade_dirs();
+		$self = $this;
+		return array_filter($dirs, function ($dir) use ($self) {
+			return !in_array($dir, $self->ignoreDir);
+		});
+	}
+
+	/**
+	 *  获取upgrade 下的所有目录.
+	 *
+	 * @return array
+	 */
+	private static function get_upgrade_dirs() {
+		$directory = new \RecursiveDirectoryIterator(__DIR__.'\\upgrade');
+		$iterator = new \RecursiveIteratorIterator($directory);
+		$dirs = array();
+		foreach ($iterator as $splfileinfo) {
+			if ($splfileinfo->getFilename() == 'upgrade.php') {
+				$path = $splfileinfo->getPath();
+				$dirname = pathinfo($path, PATHINFO_BASENAME);
+				$dirs[] = $dirname;
+			}
+		}
+
+		return $dirs;
+	}
+
+	//读取数据
+	private function read() {
+		return fscanf(STDIN, '%s'.PHP_EOL);
+	}
+
+	//写入控制台
+	private function write($message) {
+		if (strtoupper(PHP_OS) !== 'LINUX') { //linux默认编码UTF-8 windows默认cmd窗口编码 GBK
+			if (function_exists('mb_convert_encoding')) {
+				$message = mb_convert_encoding($message, 'GBK');
+			}
+		}
+		fwrite(STDOUT, $message);
+	}
+
+	// 控制台写入数组
+	private function write_list(array $data) {
+		$outdata = implode(PHP_EOL, $data);
+		$this->write($outdata.PHP_EOL);
+	}
+}

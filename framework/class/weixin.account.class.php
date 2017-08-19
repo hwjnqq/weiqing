@@ -686,6 +686,7 @@ class WeiXinAccount extends WeAccount {
 			'46004' => '不存在的用户',
 			'47001' => '解析JSON/XML内容错误',
 			'48001' => 'api功能未授权',
+			'48003' => '请在微信平台开启群发功能',
 			'50001' => '用户未授权该api',
 			'40070' => '基本信息baseinfo中填写的库存信息SKU不合法。',
 			'41011' => '必填字段不完整或不合法，参考相应接口。',
@@ -1456,6 +1457,12 @@ class WeiXinAccount extends WeAccount {
 		$data = array(
 			'media' => '@' . $path
 		);
+		$filename = pathinfo($path, PATHINFO_FILENAME);
+		$description = array(
+			'title' => $filename,
+			'introduction' =>  $filename,
+		);
+		$data['description'] = urldecode(json_encode($description));
 		return $this->requestApi($url, $data);
 	}
 
@@ -1776,12 +1783,13 @@ class WeiXinAccount extends WeAccount {
 		return @json_decode($response['content'], true);
 	}
 
-	public function getOauthInfo($code = '', $sitepath = '') {
+	public function getOauthInfo($code = '') {
 		global $_W, $_GPC;
 		if (!empty($_GPC['code'])) {
 			$code = $_GPC['code'];
 		}
 		if (empty($code)) {
+			$sitepath = substr($_SERVER['PHP_SELF'], 0, strrpos($_SERVER['PHP_SELF'], '/'));
 			$unisetting = uni_setting_load();
 			$url = (!empty($unisetting['oauth']['host']) ? ($unisetting['oauth']['host'] . $sitepath . '/') : $_W['siteroot'] . 'app/') . "index.php?{$_SERVER['QUERY_STRING']}";
 			$forward = $this->getOauthCodeUrl(urlencode($url));

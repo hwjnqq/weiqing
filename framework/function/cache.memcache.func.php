@@ -117,46 +117,12 @@ function cache_delete($key, $forcecache = true) {
 }
 
 /**
- * 删除指定命名空间前缀下的缓存  
- * @debug 需优化
- * @param $prefix
- * @return boolean
- */
-function cache_delete_memcached_namespace($namespace){
-	if (empty($namespace)) {
-		return false;
-	}
-	global $_W;
-	$config = $_W['config']['setting']['memcache'];
-	$memcache = cache_memcache();
-	if (is_error($memcache)) {
-		return $memcache;
-	}
-	//遍历mecached中所有的key 删除指定前缀的key对应的数据
-	$items=$memcache->getExtendedStats('items');
-	$items = $items[$config['server'] . ":" . $config['port']]['items'];
-	foreach ($items as $key => $item) {
-		$str = $memcache->getExtendedStats("cachedump",$key,0);
-		$lines = $str[$config['server'] . ":" . $config['port']];
-		if (is_array($lines) && count($lines) > 0) {
-			foreach ($lines as $memcached_key => $line) {
-				if (strexists($memcached_key, $namespace)) {
-					$memcache->delete($memcached_key);
-				}
-			}
-		}
-	}
-	return true;
-}
-
-/**
  * 清空缓存指定前缀或所有数据
  * @param string $prefix
  */
 function cache_clean($prefix = '') {
 	if (!empty($prefix)) {
 		$cache_namespace = cache_namespace($prefix, true);
-		cache_delete_memcached_namespace($cache_namespace);
 		unset($GLOBALS['_W']['cache']);
 		pdo_delete('core_cache', array('key LIKE' => $cache_namespace . '%'));
 		return true;

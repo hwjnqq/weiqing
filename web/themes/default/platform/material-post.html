@@ -125,7 +125,7 @@
 							<a type="button" class="btn btn-default">保存并群发</a>
 						</div>
 						<a type="button" class="btn btn-primary" ng-if="model == 'local' || operate == 'add'" ng-click="saveNews('local')">保存到本地</a>
-						<a id="savewechat" type="button" class="btn btn-primary" ng-click="saveNews('wechat')" ng-show="(!hidenbutton && materialList.length < 8) || operate == 'add'">保存并上传到微信</a>
+						<a id="savewechat" type="button" class="btn btn-primary" ng-click="saveNews('wechat')" ng-show="(!hidenbutton && materialList.length <= 8) || operate == 'add'">保存并上传到微信</a>
 					</div>
 				</div>
 			</nav>

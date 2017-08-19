@@ -109,15 +109,13 @@ if ($do == 'post') {
 					if (in_array($module_info['main_module'], array_keys($group_have_module_app))) {
 						$group_not_have_module_app[$name] = $module_info;
 					}
-				} elseif (!empty($module_info['plugin'])) {
+				} elseif (is_array($module_info['plugin_list']) && !empty($module_info['plugin_list'])) {
 					$group_not_have_module_app[$name] = $module_info;
-					if (!empty($module_info['plugin'])) {
-						foreach ($module_info['plugin'] as $plugin) {
-							if (!in_array($plugin, array_keys($group_have_module_app))) {
-								$plugin = module_fetch($plugin);
-								if (!empty($plugin)) {
-									$group_not_have_module_app[$plugin['name']] = $plugin;
-								}
+					foreach ($module_info['plugin_list'] as $plugin) {
+						if (!in_array($plugin, array_keys($group_have_module_app))) {
+							$plugin = module_fetch($plugin);
+							if (!empty($plugin)) {
+								$group_not_have_module_app[$plugin['name']] = $plugin;
 							}
 						}
 					}

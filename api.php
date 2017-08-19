@@ -47,7 +47,6 @@ $_W['uniaccount'] = uni_fetch($_W['uniacid']);
 $_W['account']['groupid'] = $_W['uniaccount']['groupid'];
 $_W['account']['qrcode'] = $_W['attachurl'].'qrcode_'.$_W['acid'].'.jpg?time='.$_W['timestamp'];
 $_W['account']['avatar'] = $_W['attachurl'].'headimg_'.$_W['acid'].'.jpg?time='.$_W['timestamp'];
-$_W['modules'] = uni_modules();
 
 $engine = new WeEngine();
 if (!empty($_W['setting']['copyright']['status'])) {
@@ -100,11 +99,14 @@ class WeEngine {
 	public function __construct() {
 		global $_W;
 		$this->account = WeAccount::create($_W['account']);
-		$this->modules = array_keys($_W['modules']);
-		$this->modules[] = 'cover';
-		$this->modules[] = 'default';
-		$this->modules[] = 'reply';
-		$this->modules = array_unique($this->modules);
+		if(strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
+			$_W['modules'] = uni_modules();
+			$this->modules = array_keys($_W['modules']);
+			$this->modules[] = 'cover';
+			$this->modules[] = 'default';
+			$this->modules[] = 'reply';
+			$this->modules = array_unique ($this->modules);
+		}
 	}
 
 	/**

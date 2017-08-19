@@ -7,6 +7,7 @@ require '../framework/bootstrap.inc.php';
 require IA_ROOT . '/web/common/bootstrap.sys.inc.php';
 load()->web('common');
 load()->web('template');
+load()->func('file');
 
 if (empty($_W['isfounder']) && !empty($_W['user']) && ($_W['user']['status'] == USER_STATUS_CHECK || $_W['user']['status'] == USER_STATUS_BAN)) {
 	message('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决！');
@@ -157,14 +158,14 @@ if (($_W['setting']['copyright']['status'] == 1) && empty($_W['isfounder']) && $
 
 $controllers = array();
 $handle = opendir(IA_ROOT . '/web/source/');
-if (! empty($handle)) {
+if (!empty($handle)) {
 	while ($dir = readdir($handle)) {
 		if ($dir != '.' && $dir != '..') {
 			$controllers[] = $dir;
 		}
 	}
 }
-if (! in_array($controller, $controllers)) {
+if (!in_array($controller, $controllers)) {
 	$controller = 'home';
 }
 
@@ -174,23 +175,27 @@ if (is_file($init)) {
 }
 
 $actions = array();
-$handle = opendir(IA_ROOT . '/web/source/' . $controller);
-if (! empty($handle)) {
-	while ($dir = readdir($handle)) {
-		if ($dir != '.' && $dir != '..' && strexists($dir, '.ctrl.php')) {
-			$dir = str_replace('.ctrl.php', '', $dir);
-			$actions[] = $dir;
-		}
+$actions_path = file_tree(IA_ROOT . '/web/source/' . $controller);
+foreach ($actions_path as $action_path) {
+	$action_name = str_replace('.ctrl.php', '', basename($action_path));
+	
+	$section = basename(dirname($action_path));
+	if ($section !== $controller) {
+		$action_name = $section . '-' .$action_name;
 	}
+	$actions[] = $action_name;
 }
+
 if (empty($actions)) {
 	header('location: ?refresh');
 }
-if (! in_array($action, $actions)) {
-	$action = $acl[$controller]['default'];
+
+//section可以省略，如果不在列表中，加上同名section后看是否可以使用
+if (!in_array($action, $actions)) {
+	$action = $action . '-' . $action;
 }
-if (! in_array($action, $actions)) {
-	$action = $actions[0];
+if (!in_array($action, $actions)) {
+	$action = $acl[$controller]['default'] ? $acl[$controller]['default'] : $actions[0];
 }
 
 // navs
@@ -233,6 +238,10 @@ if ((ENDTIME - STARTTIME) > $_W['config']['setting']['maxtimeurl']) {
 }
 function _forward($c, $a) {
 	$file = IA_ROOT . '/web/source/' . $c . '/' . $a . '.ctrl.php';
+	if (!file_exists($file)) {
+		list($section, $a) = explode('-', $a);
+		$file = IA_ROOT . '/web/source/' . $c . '/' . $section . '/' . $a . '.ctrl.php';
+	}
 	return $file;
 }
 function _calc_current_frames(&$frames) {

@@ -89,12 +89,6 @@
 				$.post(url, function(dat){});
 			}
 		{/if}
-		{if !empty($_GPC['eid']) || !empty($_GPC['m'])}
-			var visit_url = "{php echo url('utility/visit/update', array('m' => $_W['current_module']['name']));}";
-		{else}
-			var visit_url = "{php echo url('utility/visit/update', array('m' => 'wesite'));}";
-		{/if}
-		$.post(visit_url, function(data){});
 		if ($('.js-quickmenu').size() > 0) {
 			var h = $('.js-quickmenu .nav-home').height()+20+'px';
 			$('body').css("padding-bottom",h);

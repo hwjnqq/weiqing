@@ -135,7 +135,25 @@ function ext_module_manifest_parse($xml) {
 		//是否嵌入规则
 		$rule = $platform->getElementsByTagName('rule')->item(0);
 		if (!empty($rule) && $rule->getAttribute('embed') == 'true') {
-			$manifest['platform']['isrulefields'] = true;
+			$process = file_get_contents(IA_ROOT . '/addons/' . $manifest['application']['identifie'] . '/processor.php');
+			$process = token_get_all($process);
+			$respond_function_exist = false;
+			$return_data = false;
+			if (!empty($process) && is_array($process)) {
+				foreach ($process as $key) {
+					if ($key[0] == 308 && $key[1] == 'respond') {
+						$respond_function_exist = true;
+						continue;
+					}
+					if ($respond_function_exist && $key[0] == T_RETURN && $key[1] = 'return') {
+						$return_data = true;
+						break;
+					}
+				}
+			}
+			if ($return_data) {
+				$manifest['platform']['isrulefields'] = true;
+			}
 		}
 		//是否嵌入卡券
 		$card = $platform->getElementsByTagName('card')->item(0);

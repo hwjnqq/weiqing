@@ -54,7 +54,7 @@ class DB {
 			$dbclass = 'PDO';
 		}
 		$this->pdo = new $dbclass($dsn, $cfg['username'], $cfg['password'], $options);
-		$this->pdo->setAttribute(pdo::ATTR_EMULATE_PREPARES, false);
+		//$this->pdo->setAttribute(pdo::ATTR_EMULATE_PREPARES, false);
 		$sql = "SET NAMES '{$cfg['charset']}';";
 		$this->pdo->exec($sql);
 		$this->pdo->exec("SET sql_mode='';");
@@ -790,9 +790,11 @@ class SqlPaser {
 		}
 		if (is_array($params)) {
 			$result['fields'] = '';
-			$index = 0; //字段 操作数组
 			foreach ($params as $fields => $value) {
-				$index++;
+				//update或是insert语句，值为null时按空处理
+				if ($glue == ',') {
+					$value = $value === null ? '' : $value;
+				}
 				$operator = '';
 				if (strpos($fields, ' ') !== FALSE) {
 					list($fields, $operator) = explode(' ', $fields, 2);
@@ -832,7 +834,6 @@ class SqlPaser {
 						$placeholder = self::parsePlaceholder($fields, $suffix);
 						$insql[] = $placeholder;
 						$result['params'][$placeholder] = is_null($v) ? '' : $v;
-						$index++;
 					}
 					$result['fields'] .= $split . "$select_fields {$operator} (".implode(",", $insql).")";
 					$split = ' ' . $glue . ' ';

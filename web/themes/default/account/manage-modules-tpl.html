@@ -92,58 +92,51 @@
 		<a href="javascript:;" class="btn btn-primary" data-toggle="modal" data-target="#change-group">修改套餐</a>
 		<a href="javascript:;" class="btn btn-primary" data-toggle="modal" data-target="#jurisdiction-add">修改附加权限</a>
 	</p>
-	
-	<div class="modal" id="jurisdiction-add">
-		<div class="modal-dialog we7-modal-dialog">
-			<div class="modal-content">
+	<div  class="uploader-modal modal fade module" id="jurisdiction-add">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content ">
 				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-					<ul role="tablist" class="nav nav-pills">
-						<li class="active"><a class="we7-padding-horizontal" data-toggle="tab" role="tab" aria-controls="content-modules" href="#content-modules">模块</a></li>
-						<li><a class="we7-padding-horizontal" data-toggle="tab" role="tab" aria-controls="content-templates" href="#content-templates">模板</a></li>
-					</ul>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="myModalLabel2">选择</h4>
 				</div>
-				<div class="modal-body">
-					<div class="tab-content">
-						<div id="content-modules" class="tab-pane active" role="tabpanel">
-							<table class="table we7-table table-hover vertical-middle">
-								<col width="280px">
-								<col width="220px">
-								<col />
-								<tr>
-									<th>模块名称</th>
-									<th>模块标识</th>
-									<th></th>
-								</tr>
-								{loop $modules $module_name $module}
-								{if empty($module['issystem']) && $module['app_support'] == 2}
-								<tr>
-									<td>{$module['title']}{if $module['issystem']}<span class="label label-success">系统模块</span>{/if}</td>
-									<td>{$module['name']}</td>
-									<td><a class="btn btn-default js-btn-select {if is_array($current_module_names) && in_array($module_name, $current_module_names)}btn-primary{/if}" data-title="{$module['title']}" data-name="{$module['name']}" onclick="$(this).toggleClass('btn-primary')">选取</a></td>
-								</tr>
-								{/if}
-								{/loop}
-							</table>
+				<div class="modal-body material-content clearfix">
+					<div class="material-nav" ng-init="jurindex=0">
+						<a href="javascript:;" ng-click="jurindex=0"  ng-class="{true:'active',false:''}[jurindex==0]" >模块</a>
+						<a href="javascript:;" ng-click="jurindex=1" ng-class="{true:'active',false:''}[jurindex==1]">模板</a>
+					</div>
+					<div class="material-body" ng-show="jurindex==0" id="content-modules">
+						<div class="row">
+							{loop $modules $module_name $module}
+							{if empty($module['issystem']) && $module['app_support'] == 2}
+							<div class="col-sm-2">
+								<div class="item {if is_array($current_module_names) && in_array($module_name, $current_module_names)}active{/if}"
+								     data-title="{$module['title']}"
+								     data-name="{$module['name']}"
+								     onclick="$(this).toggleClass('active')">
+									<img ng-src="{$module['logo']}" alt="" class="icon"/>
+									<div class="name">{$module['title']}</div>
+									<div class="mask">
+										<span class="wi wi-right"></span>
+									</div>
+								</div>
+							</div>
+							{/if}
+							{/loop}
 						</div>
-						<div id="content-templates" class="tab-pane" role="tabpanel">
-							<table class="table we7-table table-hover vertical-middle">
-								<col width="280px">
-								<col width="220px">
-								<col />
-								<tr>
-									<th>模板名称</th>
-									<th>模板标识</th>
-									<th></th>
-								</tr>
-								{loop $templates $temp}
-								<tr>
-									<td>{$temp['title']}</td>
-									<td>{$temp['name']}</td>
-									<td><a class="btn btn-default js-btn-select {if is_array($extend['templates']) && in_array($temp, $extend['templates'])}btn-primary{/if}" data-title="{$temp['title']}" data-name="{$temp['name']}" data-id="{$temp['id']}" onclick="$(this).toggleClass('btn-primary')">选取</a></td>
-								</tr>
-								{/loop}
-							</table>
+					</div>
+					<div class="material-body" ng-show="jurindex==1" id="content-templates">
+						<div class="row">
+							{loop $templates $temp}
+							<div class="col-sm-2">
+								<div class="item {if is_array($extend['templates']) && in_array($temp, $extend['templates'])}active{/if}" data-title="{$temp['title']}" data-name="{$temp['name']}" data-id="{$temp['id']}" onclick="$(this).toggleClass('active')">
+									<i class="wi wi-home" style="color: #ddd;font-size: 48px;position:relative; top:-15px; margin: 0;"></i>
+									<div class="name">{$temp['title']}</div>
+									<div class="mask">
+										<span class="wi wi-right"></span>
+									</div>
+								</div>
+							</div>
+							{/loop}
 						</div>
 					</div>
 				</div>
@@ -154,6 +147,7 @@
 			</div>
 		</div>
 	</div>
+
 
 	<div class="modal" id="change-group">
 		<div class="modal-dialog we7-modal-dialog">

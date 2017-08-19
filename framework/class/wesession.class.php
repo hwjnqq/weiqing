@@ -153,7 +153,7 @@ class WeSessionMemcache extends WeSession {
 	}
 	
 	public function destroy($sessionid) {
-		return cache_clean($this->key($sessionid));
+		return cache_write($this->key($sessionid), '');
 	}
 }
 

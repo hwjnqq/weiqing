@@ -747,6 +747,7 @@ function user_list_format($users) {
 	$system_module_num = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('modules') . "WHERE type = :type AND issystem = :issystem", array(':type' => 'system',':issystem' => 1));
 	foreach ($users as &$user) {
 		$user['avatar'] = !empty($user['avatar']) ? $user['avatar'] : './resource/images/nopic-user.png';
+		$user['joindate'] = date('Y-m-d', $user['joindate']);
 		if (empty($user['endtime'])) {
 			$user['endtime'] = '永久有效';
 		} else {
@@ -858,6 +859,11 @@ function user_list($condition = array(), $paper = array()) {
 		$param[':status'] = $condition['status'];
 	}
 
+	if (!empty($condition['type'])) {
+		$sql .= " AND u.type = :type";
+		$param[':type'] = $condition['type'];
+	}
+
 	if (!empty($condition['founder_groupid'])) {
 		$founder_groupid = implode(',' , $condition['founder_groupid']);
 		$sql .= " AND u.founder_groupid IN ($founder_groupid)";
@@ -871,7 +877,7 @@ function user_list($condition = array(), $paper = array()) {
 	if (user_is_vice_founder()) {
 		$sql .= ' AND u.owner_uid = ' . $_W['uid'];
 	}
-	$limit = " LIMIT " . ($paper[0] - 1) * $paper[1] . "," . $paper[1];
+	$limit = " ORDER BY uid DESC LIMIT " . ($paper[0] - 1) * $paper[1] . "," . $paper[1];
 
 	$list = pdo_fetchall(sprintf($sql, 'u.*, p.avatar') . $limit, $param);
 	$total = pdo_fetchcolumn(sprintf($sql, 'COUNT(*)'), $param);

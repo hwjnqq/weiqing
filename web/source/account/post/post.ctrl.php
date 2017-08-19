@@ -131,7 +131,6 @@ if($do == 'base') {
 			);
 		}
 	}
-	$socket_url = str_replace(array('https', 'http'), 'wss', $_W['siteroot']);
 	$account['end'] = $account['endtime'] == 0 ? '永久' : date('Y-m-d', $account['endtime']);
 	$account['endtype'] = $account['endtime'] == 0 ? 1 : 2;
 	$uniaccount = array();

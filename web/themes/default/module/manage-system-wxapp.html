@@ -56,8 +56,10 @@
 				<!--<td >{{ module.enabled_use_account }}</td>-->
 				<td class="text-left vertical-middle table-manage-td">
 					<div class="link-group">
+						{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
 						<a ng-href="{{ './index.php?c=module&a=manage-system&do=upgrade&module_name='+module.name}}&account_type={ACCOUNT_TYPE}" class="color-red" ng-if="module.upgrade && module.from != 'cloud' && isFounder == 1">升级</a>
 						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&show=upgrade&account_type={ACCOUNT_TYPE}" class="color-red del" ng-if="module.upgrade && module.from == 'cloud' && isFounder == 1">升级</a>
+						{/if}
 						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&account_type={ACCOUNT_TYPE}" ng-if="isFounder == 1">管理设置</a>
 						<!--<a href="javascript:;" ng-if="isFounder == 1" ng-click="editModule(module.mid)">编辑</a>-->
 					</div>
@@ -271,8 +273,10 @@
 				<span>版本：{{ module.version }} </span>
 			</td>
 			<td class="text-left">
+				{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
 				<a href="{php echo url('module/manage-system/upgrade', array('account_type' => 4))}&module_name={{ module.name }}" ng-if="module.upgrade_support == true" class="btn btn-primary">安装应用模块</a>
 				<a href="{php echo url('module/manage-system/install', array('account_type' => 4))}&module_name={{ module.name }}" ng-if="module.upgrade_support != true" class="btn btn-primary">安装应用模块</a>
+				{/if}
 			</td>
 		</tr>
 	</table>
@@ -406,7 +410,9 @@
 			<td>{{ moduleinfo.version }}</td>
 			<td>{{ upgradeInfo.best_version }}</td>
 			<td class="text-right">
+				{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
 				<a href="{php echo url('module/manage-system/upgrade')}module_name={{ moduleinfo.name }}&account_type={ACCOUNT_TYPE}" class="btn btn-danger">升级</a>
+				{/if}
 			</td>
 		</tr>
 	</table>
@@ -431,7 +437,9 @@
 			<td>{{ branch.version.version }}</td>
 			<td class="text-right">
 				<span class="text text-success" ng-if="branch.id == upgradeInfo.site_branch.id && branch.version.version ==  moduleinfo.version">无需升级</span>
+				{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
 				<a ng-href="{{ module.service_expire ? 'http://s.we7.cc/module-' +upgradeInfo.id + '.html' : './index.php?c=cloud&a=process&m='+upgradeInfo.name+'&is_upgrade=1' }}&account_type={ACCOUNT_TYPE}" ng-click="notice(service_expire)" ng-if="branch.id == upgradeInfo.site_branch.id && branch.version.version !=  moduleinfo.version" class="btn btn-primary">升级</a>
+				{/if}
 				<a href="javascript:;" ng-click="upgrade(branch.upgrade_price, upgradeInfo.name, upgradeInfo.id)" ng-if="branch.displayorder > upgradeInfo.site_branch.displayorder || (branch.displayorder == upgradeInfo.site_branch.displayorder && branch.id > upgradeInfo.site_branch.id)" class="btn btn-danger">购买</a>
 			</td>
 		</tr>

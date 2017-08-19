@@ -17,7 +17,7 @@ if ($do == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	$type = empty($_GPC['type']) ? 'display' : $_GPC['type'];
-	if (in_array($type, array('display', 'check', 'recycle'))) {
+	if (in_array($type, array('display', 'check', 'recycle', 'clerk'))) {
 		switch ($type) {
 			case 'check':
 				uni_user_permission_check('system_user_check');
@@ -27,9 +27,15 @@ if ($do == 'display') {
 				uni_user_permission_check('system_user_recycle');
 				$condition['status'] = USER_STATUS_BAN;
 				break;
+			case 'clerk':
+				uni_user_permission_check('system_user_clerk');
+				$condition['status'] = USER_STATUS_NORMAL;
+				$condition['type'] = USER_TYPE_CLERK;
+				break;
 			default:
 				uni_user_permission_check('system_user');
 				$condition['status'] = USER_STATUS_NORMAL;
+				$condition['type'] = USER_TYPE_COMMON;
 				$condition['founder_groupid'] = array(ACCOUNT_MANAGE_GROUP_GENERAL, ACCOUNT_MANAGE_GROUP_FOUNDER);
 				break;
 		}
