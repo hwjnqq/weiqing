@@ -6,7 +6,7 @@
 define('IN_MOBILE', true);
 require '../../framework/bootstrap.inc.php';
 
-load()->classs('pay');
+load()->classs('pay/pay');
 $pay = Pay::create();
 $input= file_get_contents('php://input');
 $input = $pay->parseResult($input);

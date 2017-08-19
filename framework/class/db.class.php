@@ -45,12 +45,12 @@ class DB {
 				$options = array(PDO::ATTR_PERSISTENT => $cfg['pconnect']);
 			} else {
 				if(!class_exists('_PDO')) {
-					include IA_ROOT . '/framework/library/pdo/PDO.class.php';
+					load()->library('pdo');
 				}
 				$dbclass = '_PDO';
 			}
 		} else {
-			include IA_ROOT . '/framework/library/pdo/PDO.class.php';
+			load()->library('pdo');
 			$dbclass = 'PDO';
 		}
 		$this->pdo = new $dbclass($dsn, $cfg['username'], $cfg['password'], $options);

@@ -1144,7 +1144,7 @@ function aes_encode($message, $encodingaeskey = '', $appid = '') {
  * @return array
  */
 function aes_pkcs7_decode($encrypt_data, $key, $iv = false) {
-	require_once IA_ROOT . '/framework/library/pkcs7/pkcs7Encoder.php';
+	load()->library('pkcs7');
 	$encrypt_data = base64_decode($encrypt_data);
 	if (!empty($iv)) {
 		$iv = base64_decode($iv);
@@ -1268,7 +1268,7 @@ function get_first_pinyin($str) {
 		return $first_char;
 	}
 	if (empty($pinyin)) {
-		include_once IA_ROOT . '/framework/library/pinyin/pinyin.php';
+		load()->library('pinyin');
 		$pinyin = new Pinyin_Pinyin();
 	}
 	$first_char = $pinyin->get_first_char($str);

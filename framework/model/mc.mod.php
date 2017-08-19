@@ -329,6 +329,7 @@ function mc_oauth_userinfo($acid = 0) {
 				$record['openid'] = $_SESSION['openid'];
 				$record['acid'] = $_W['acid'];
 				$record['uniacid'] = $_W['uniacid'];
+				$record['unionid'] = $userinfo['unionid'];
 				pdo_insert('mc_mapping_fans', $record);
 			}
 			

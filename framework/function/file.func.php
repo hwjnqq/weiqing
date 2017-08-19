@@ -268,7 +268,7 @@ function file_remote_upload($filename, $auto_delete_local = true) {
 		return false;
 	}
 	if ($_W['setting']['remote']['type'] == '1') {
-		require_once (IA_ROOT . '/framework/library/ftp/ftp.php');
+		load()->library('ftp');
 		$ftp_config = array(
 			'hostname' => $_W['setting']['remote']['ftp']['host'],
 			'username' => $_W['setting']['remote']['ftp']['username'],
@@ -399,7 +399,7 @@ function file_remote_delete($file) {
 		return true;
 	}
 	if ($_W['setting']['remote']['type'] == '1') {
-		require_once (IA_ROOT . '/framework/library/ftp/ftp.php');
+		load()->library('ftp');
 		$ftp_config = array(
 			'hostname' => $_W['setting']['remote']['ftp']['host'],
 			'username' => $_W['setting']['remote']['ftp']['username'],

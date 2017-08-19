@@ -10,7 +10,7 @@ if (!function_exists('json_encode')) {
 	function json_encode($value) {
 		static $jsonobj;
 		if (!isset($jsonobj)) {
-			include_once (IA_ROOT . '/framework/library/json/JSON.php');
+			load()->library('json');
 			$jsonobj = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
 		}
 		return $jsonobj->encode($value);
@@ -21,7 +21,7 @@ if (!function_exists('json_decode')) {
 	function json_decode($jsonString) {
 		static $jsonobj;
 		if (!isset($jsonobj)) {
-			include_once (IA_ROOT . '/framework/library/json/JSON.php');
+			load()->library('json');
 			$jsonobj = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
 		}
 		return $jsonobj->decode($jsonString);

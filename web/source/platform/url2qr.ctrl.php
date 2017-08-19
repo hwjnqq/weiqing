@@ -7,6 +7,7 @@
 defined('IN_IA') or exit('Access Denied');
 load()->model('account');
 load()->func('communication');
+load()->library('qrcode');
 
 $dos = array('display', 'change', 'qr', 'chat', 'down_qr');
 $do = !empty($_GPC['do']) && in_array($do, $dos) ? $do : 'display';
@@ -46,7 +47,6 @@ if ($do == 'change') {
 
 if ($do == 'qr') {
 	$url = $_GPC['url'];
-	require(IA_ROOT . '/framework/library/qrcode/phpqrcode.php');
 	$errorCorrectionLevel = "L";
 	$matrixPointSize = "5";
 	QRcode::png($url, false, $errorCorrectionLevel, $matrixPointSize);
@@ -55,7 +55,6 @@ if ($do == 'qr') {
 
 if ($do == 'down_qr') {
 	$qrlink = $_GPC['qrlink'];
-	require(IA_ROOT . '/framework/library/qrcode/phpqrcode.php');
 	$errorCorrectionLevel = "L";
 	$matrixPointSize = "5";
 	$qr_pic = QRcode::png($qrlink, false, $errorCorrectionLevel, $matrixPointSize);

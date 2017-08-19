@@ -454,7 +454,7 @@ function ihttp_email($to, $subject, $body, $global = false) {
 
 	if (empty($mailer)) {
 		if (!class_exists('PHPMailer')) {
-			require IA_ROOT . '/framework/library/phpmailer/PHPMailerAutoload.php';
+			load()->library('phpmailer');
 		}
 		$mailer = new PHPMailer();
 		global $_W;

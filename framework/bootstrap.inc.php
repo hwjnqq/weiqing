@@ -34,10 +34,10 @@ load()->func('global');
 load()->func('compat');
 load()->func('pdo');
 load()->classs('account');
-load()->classs('agent');
 load()->model('cache');
 load()->model('account');
 load()->model('setting');
+load()->library('agent');
 
 define('CLIENT_IP', getip());
 

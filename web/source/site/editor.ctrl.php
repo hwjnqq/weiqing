@@ -6,6 +6,7 @@
 defined('IN_IA') or exit('Access Denied');
 load()->model('site');
 load()->model('module');
+load()->library('qrcode');
 
 $do = !empty($do) ? $do : 'uc';
 $do = in_array($do, array('quickmenu', 'uc', 'qrcode')) ? $do : 'uc';
@@ -164,7 +165,6 @@ if ($do == 'uc') {
 	site_cover_delete($id);
 	itoast('删除微页面成功', referer(), 'success');
 } elseif ($do == 'qrcode') {
-	require_once(IA_ROOT.'/framework/library/qrcode/phpqrcode.php');
 	$error_correction_level = "L";
 	$matrix_point_size = "8";
 	$text = trim($_GPC['text']);
