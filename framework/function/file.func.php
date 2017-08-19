@@ -850,3 +850,6 @@ function file_is_image($url) {
 	$extension = strtolower($pathinfo['extension']);
 	return !empty($extension) && in_array($extension, array('jpg', 'jpeg', 'gif', 'png'));
 }
+
+
+

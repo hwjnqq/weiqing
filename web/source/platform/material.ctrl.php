@@ -123,6 +123,9 @@ if ($do == 'sync') {
 		if (empty($original_newsid)) {
 			$original_newsid = array();
 		}
+		$original_newsid = array_filter($original_newsid, function($item){
+			return is_int($item);
+		});
 	}
 	$delete_id = array_diff($original_newsid, $wechat_existid);
 	if (!empty($delete_id) && is_array($delete_id)) {

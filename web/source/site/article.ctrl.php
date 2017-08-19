@@ -210,15 +210,13 @@ if ($do == 'display') {
 			if (empty($row)) {
 				itoast('抱歉，文章不存在或是已经被删除！', '', '');
 			}
-			if (!empty($row['thumb']) && file_is_image($row['thumb'])) {
-				file_delete($row['thumb']);
-			}
+
 			if (!empty($row['rid'])) {
 				pdo_delete('rule', array('id' => $row['rid'], 'uniacid' => $_W['uniacid']));
 				pdo_delete('rule_keyword', array('rid' => $row['rid'], 'uniacid' => $_W['uniacid']));
 				pdo_delete('news_reply', array('rid' => $row['rid']));
 			}
-			pdo_delete('site_article', array('id' => $id));
+			pdo_delete('site_article', array('id' => $id, 'uniacid'=>$_W['uniacid']));
 		}
 		itoast('批量删除成功！', referer(), 'success');
 	} else {
@@ -228,15 +226,13 @@ if ($do == 'display') {
 		if (empty($row)) {
 			itoast('抱歉，文章不存在或是已经被删除！', '', '');
 		}
-		if (!empty($row['thumb'])) {
-			file_delete($row['thumb']);
-		}
+
 		if (!empty($row['rid'])) {
 			pdo_delete('rule', array('id' => $row['rid'], 'uniacid' => $_W['uniacid']));
 			pdo_delete('rule_keyword', array('rid' => $row['rid'], 'uniacid' => $_W['uniacid']));
 			pdo_delete('news_reply', array('rid' => $row['rid']));
 		}
-		if (pdo_delete('site_article', array('id' => $id))){
+		if (pdo_delete('site_article', array('id' => $id,'uniacid'=>$_W['uniacid']))){
 			itoast('删除成功！', referer(), 'success');
 		} else {
 			itoast('删除失败！', referer(), 'error');

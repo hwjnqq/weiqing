@@ -1346,3 +1346,31 @@ function getglobal($key) {
 	}
 	return $v;
 }
+
+/**
+ *  内网 端口 scheme验证
+ *  验证是否是安全 url
+ * @param $url
+ * @param array $scheme
+ */
+function url_is_safe($url, array $allowscheme = array('http','https'), $allowport = array('80','443')) {
+	$parseData = parse_url($url);
+	if (!isset($parseData['scheme'])) {
+		return false;
+	}
+
+	if(!in_array($parseData['scheme'], $allowscheme)) {
+		return false;
+	}
+
+	if(isset($parseData['port'])&&!in_array($parseData['port'], $allowport)) {
+		return false;
+	}
+	// 10 172 192 开头都不允许
+	$pattern = "(10|172|192)\\.([0-1][0-9]{0,2}|[2][0-5]{0,2}|[3-9][0-9]{0,1})\\.([0-1][0-9]{0,2}|[2][0-5]{0,2}|[3-9][0-9]{0,1})\\.([0-1][0-9]{0,2}|[2][0-5]{0,2}|[3-9][0-9]{0,1})";
+	if (preg_match($pattern, $url)) {
+		return false;
+	}
+
+	return true;
+}
