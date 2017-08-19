@@ -523,4 +523,43 @@ class Wn_storexModuleSite extends WeModuleSite {
 		$pay_data['params'] = json_encode($params);
 		return $pay_data;
 	}
+	public function doWebShop_qrcode() {
+		mload()->model('webwx');
+		// $arr = webwx_getuuid();
+		// echo $arr;
+		// echo IA_ROOT . '/attachment/images/2/2017/07/FukQUyWi5UW7IQtYjahQRFZ5ujqqwT.jpeg';
+		include $this->template('store/shop_qrcode');
+	}
+
+	public function doWebQrcode() {
+		global $_GPC;
+		load()->func('communication');
+		mload()->model('webwx');
+		mload()->classs('explode');
+		$explode = Explode::getInstance();
+		if ($_GPC['op'] == 'qrcode') {
+			$uuid = webwx_getuuid();
+			$link['link'] = 'http://login.weixin.qq.com/qrcode/' . $uuid;
+			$link['uuid'] = $uuid;
+			message(error(0, $link), '', 'ajax');
+		} elseif ($_GPC['op'] == 'check_login') {
+			$result = webwx_waitforlogin('', $_GPC['id']);
+			message(error(-1, $result), '', 'ajax');
+		} elseif ($_GPC['op'] == 'login') {
+			$uuid = $_GPC['id'];
+			$redirect = $_GPC['redirect'];
+			$baseinfo = webwx_login($redirect);
+			$cookie_api = webwx_cookie($baseinfo);
+			if (is_error($cookie_api)) {
+				message(error(-1, $cookie_api['message']), '', 'ajax');
+			}
+			$user_info_init = webwx_init($cookie_api);
+			//发送文字
+			$message = '@啊啊啊 啊啊啊啊啊啊';
+			// $arr = webwx_sendmsg($user_info_init, $cookie_api, $message);
+			//发送图片
+			$arr = webwx_sendimg($user_info_init, $cookie_api, IA_ROOT . '/attachment/images/2/2017/07/FukQUyWi5UW7IQtYjahQRFZ5ujqqwT.jpeg', 'filehelper');
+			message(error(0, $arr), '', 'ajax');
+		}
+	}
 }
