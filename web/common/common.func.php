@@ -176,6 +176,7 @@ function buildframes($framename = ''){
 		cache_build_frame_menu();
 		$frames = cache_load('system_frame');
 	}
+
 	//模块权限，创始人有所有模块权限
 	$modules = uni_modules(false);
 	$sysmodules = system_modules();
@@ -480,8 +481,9 @@ function buildframes($framename = ''){
 			}
 		}
 	}
+	$system_top_menu = pdo_getall('core_menu', array('group_name' => 'frame', 'is_system' => 1), array('title', 'url', 'permission_name'), 'permission_name');
 	foreach ($frames as $menuid => $menu) {
-		if (!empty($menu['founder']) && empty($_W['isfounder']) || user_is_vice_founder() && in_array($menuid, array('site', 'advertisement', 'appmarket')) || $_W['role'] == ACCOUNT_MANAGE_NAME_CLERK && in_array($menuid, array('account', 'wxapp', 'system'))) {
+		if (!empty($menu['founder']) && empty($_W['isfounder']) || user_is_vice_founder() && in_array($menuid, array('site', 'advertisement', 'appmarket')) || $_W['role'] == ACCOUNT_MANAGE_NAME_CLERK && in_array($menuid, array('account', 'wxapp', 'system')) || !$menu['is_display'] && in_array($menuid, array_keys($system_top_menu))) {
 			continue;
 		}
 		$top_nav[] = array(
@@ -492,6 +494,7 @@ function buildframes($framename = ''){
 			'icon' => $menu['icon'],
 		);
 	}
+
 	return !empty($framename) ? $frames[$framename] : $frames;
 }
 

@@ -26,8 +26,16 @@
 				<td class="text-left"> 
 					<span>{$menu['title']}</span>
 				</td>
-				<td></td>
-				<td>{if empty($menu['is_system'])}<a href="javascript:;" ng-click="removeSubItem('{$menu['permission_name']}')" class="btn btn-danger">删除</a>{/if}</td>
+				<td>
+					{if in_array($permission_name, array_keys($system_top_menu)) && !empty($menu['is_system'])}
+					<div class="switch" ng-init="displayStatus['{$permission_name}'] = {php echo $menu['is_display'] ? 'true' : 'false'}" ng-click="changeDisplay('{$permission_name}')" ng-class="{'switchOn' : displayStatus['{$permission_name}'], 'switchOff' : !displayStatus['{$permission_name}']}"></div>
+					{/if}
+				</td>
+				<td>
+					{if empty($menu['is_system'])}
+					<a href="javascript:;" ng-click="removeSubItem('{$menu['permission_name']}')" class="btn btn-danger">删除</a>
+					{/if}
+				</td>
 			</tr>
 			{loop $menu['section'] $section_name $section}
 				<tr>

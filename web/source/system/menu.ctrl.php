@@ -15,6 +15,7 @@ if(empty($system_menu)) {
 	cache_build_frame_menu();
 	$system_menu = cache_load('system_frame');
 }
+
 //获取全部permission_name，方便判断是否是系统菜单
 $system_menu_permission = array();
 if (!empty($system_menu)) {
@@ -34,7 +35,8 @@ if (!empty($system_menu)) {
 }
 
 if ($do == 'display') {
-	$add_top_nav = pdo_getall('core_menu', array('group_name' => 'frame'), array('title', 'url', 'permission_name'));
+	$add_top_nav = pdo_getall('core_menu', array('group_name' => 'frame', 'is_system <>' => 1), array('title', 'url', 'permission_name'));
+	$system_top_menu = pdo_getall('core_menu', array('group_name' => 'frame', 'is_system' => 1), array('title', 'url', 'permission_name'), 'permission_name');
 	if (!empty($add_top_nav)) {
 		foreach ($add_top_nav as $menu) {
 			$system_menu[$menu['permission_name']] = array(

@@ -169,12 +169,16 @@ function cache_build_users_struct() {
 
 function cache_build_frame_menu() {
 	$system_menu_db = pdo_getall('core_menu', array('permission_name !=' => ''), array(), 'permission_name');
-	
 	$system_menu = require_once IA_ROOT . '/web/common/frames.inc.php';
+	$system_top_menu = pdo_getall('core_menu', array('group_name' => 'frame', 'is_system' => 1), array(), 'name');
 	if (!empty($system_menu) && is_array($system_menu)) {
 		foreach ($system_menu as $menu_name => $menu) {
 			$system_menu[$menu_name]['is_system'] = true;
 			$system_menu[$menu_name]['is_display'] = true;
+			if (!$system_top_menu[$menu_name]['is_display']) {
+				$system_menu[$menu_name]['is_display'] = false;
+			}
+
 			foreach ($menu['section'] as $section_name => $section) {
 				$displayorder = max(count($section['menu']), 1);
 				
@@ -210,7 +214,7 @@ function cache_build_frame_menu() {
 				$system_menu[$menu_name]['section'][$section_name]['menu'] = iarray_sort($system_menu[$menu_name]['section'][$section_name]['menu'], 'displayorder', 'desc');
 			}
 		}
-		$add_top_nav = pdo_getall('core_menu', array('group_name' => 'frame'), array('title', 'url', 'permission_name'));
+		$add_top_nav = pdo_getall('core_menu', array('group_name' => 'frame', 'is_system <>' => 1), array('title', 'url', 'permission_name'));
 		if (!empty($add_top_nav)) {
 			foreach ($add_top_nav as $menu) {
 				$menu['blank'] = true;
