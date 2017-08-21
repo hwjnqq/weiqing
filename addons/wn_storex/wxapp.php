@@ -58,6 +58,9 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 			'editAddress' => array('do' => 'usercenter', 'op' => 'address_post'),
 			'userCredits' => array('do' => 'usercenter', 'op' => 'credits_record'),
 			'extend' => array('do' => 'usercenter', 'op' => 'extend_switch'),
+			'creditPassword' => array('do' => 'usercenter', 'op' => 'credit_password'),
+			'checkPasswordLock' => array('do' => 'usercenter', 'op' => 'check_password_lock'),
+			'setCreditPassword' => array('do' => 'usercenter', 'op' => 'set_credit_password'),
 				
 			'orderPay' => array('do' => 'orders', 'op' => 'orderpay'),
 			'orderList' => array('do' => 'orders', 'op' => 'order_list'),
