@@ -77,6 +77,9 @@ if ($op == 'goods_info') {
 	} else {
 		$goods_info['agent']['is_agent'] = 2;
 	}
+	load()->model('mc');
+	$card_credit = card_return_credit_info($uid);
+	$goods_info['give_score'] = intval($goods_info['cprice'] * $card_credit['grant_rate']);
 	$share_data = array(
 		'title' => $goods_info['title'],
 		'desc' => $goods_info['title'] . '--' . $store_info['title'],
