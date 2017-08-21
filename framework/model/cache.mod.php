@@ -174,14 +174,14 @@ function cache_build_frame_menu() {
 	if (!empty($system_menu) && is_array($system_menu)) {
 		foreach ($system_menu as $menu_name => $menu) {
 			$system_menu[$menu_name]['is_system'] = true;
-			$system_menu[$menu_name]['is_display'] = true;
-			if (!$system_top_menu[$menu_name]['is_display']) {
+			$system_menu[$menu_name]['is_display'] = empty($system_menu_db[$menu_name]) || !empty($system_menu_db[$menu_name]['is_display']) ? true : false;
+
 				$system_menu[$menu_name]['is_display'] = false;
 			}
 
 			foreach ($menu['section'] as $section_name => $section) {
 				$displayorder = max(count($section['menu']), 1);
-				
+
 				//查询此节点下新增的菜单
 				if (empty($section['menu'])) {
 					$section['menu'] = array();

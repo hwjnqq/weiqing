@@ -27,7 +27,7 @@
 					<span>{$menu['title']}</span>
 				</td>
 				<td>
-					{if in_array($permission_name, array_keys($system_top_menu)) && !empty($menu['is_system'])}
+					{if in_array($permission_name, $system_top_menu)}
 					<div class="switch" ng-init="displayStatus['{$permission_name}'] = {php echo $menu['is_display'] ? 'true' : 'false'}" ng-click="changeDisplay('{$permission_name}')" ng-class="{'switchOn' : displayStatus['{$permission_name}'], 'switchOff' : !displayStatus['{$permission_name}']}"></div>
 					{/if}
 				</td>
