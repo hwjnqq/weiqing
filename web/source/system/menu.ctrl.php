@@ -40,7 +40,6 @@ if (!empty($system_menu)) {
 
 if ($do == 'display') {
 	$add_top_nav = pdo_getall('core_menu', array('group_name' => 'frame', 'is_system <>' => 1), array('title', 'url', 'permission_name'));
-	$system_top_menu = pdo_getall('core_menu', array('group_name' => 'frame', 'is_system' => 1), array('title', 'url', 'permission_name'), 'permission_name');
 	if (!empty($add_top_nav)) {
 		foreach ($add_top_nav as $menu) {
 			$system_menu[$menu['permission_name']] = array(

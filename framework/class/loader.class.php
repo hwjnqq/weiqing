@@ -188,6 +188,11 @@ EOF;
 		}
 	}
 	
+	/**
+	 * 
+	 * @param string $name 表名
+	 * @return Query 
+	 */
 	function table($name) {
 		global $_W;
 		if (isset($this->cache['table'][$name])) {

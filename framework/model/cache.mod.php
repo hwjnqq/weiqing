@@ -170,14 +170,10 @@ function cache_build_users_struct() {
 function cache_build_frame_menu() {
 	$system_menu_db = pdo_getall('core_menu', array('permission_name !=' => ''), array(), 'permission_name');
 	$system_menu = require_once IA_ROOT . '/web/common/frames.inc.php';
-	$system_top_menu = pdo_getall('core_menu', array('group_name' => 'frame', 'is_system' => 1), array(), 'name');
 	if (!empty($system_menu) && is_array($system_menu)) {
 		foreach ($system_menu as $menu_name => $menu) {
 			$system_menu[$menu_name]['is_system'] = true;
 			$system_menu[$menu_name]['is_display'] = empty($system_menu_db[$menu_name]) || !empty($system_menu_db[$menu_name]['is_display']) ? true : false;
-
-				$system_menu[$menu_name]['is_display'] = false;
-			}
 
 			foreach ($menu['section'] as $section_name => $section) {
 				$displayorder = max(count($section['menu']), 1);

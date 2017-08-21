@@ -481,7 +481,6 @@ function buildframes($framename = ''){
 			}
 		}
 	}
-	$system_top_menu = pdo_getall('core_menu', array('group_name' => 'frame', 'is_system' => 1), array('title', 'url', 'permission_name'), 'permission_name');
 	foreach ($frames as $menuid => $menu) {
 		if (!empty($menu['founder']) && empty($_W['isfounder']) || user_is_vice_founder() && in_array($menuid, array('site', 'advertisement', 'appmarket')) || $_W['role'] == ACCOUNT_MANAGE_NAME_CLERK && in_array($menuid, array('account', 'wxapp', 'system')) || !$menu['is_display']) {
 			continue;

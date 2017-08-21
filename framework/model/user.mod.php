@@ -470,11 +470,11 @@ function user_modules($uid) {
 				//此处缺少公众号专属套餐
 				$package_group = pdo_getall('uni_group', array('id' => $packageids));
 				if (!empty($package_group)) {
+					$package_group_module = array();
 					foreach ($package_group as $row) {
 						if (!empty($row['modules'])) {
 							$row['modules'] = (array)unserialize($row['modules']);
 						}
-						$package_group_module = array();
 						if (!empty($row['modules'])) {
 							foreach ($row['modules'] as $modulename => $module) {
 								if (!is_array($module)) {
