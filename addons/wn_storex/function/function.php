@@ -791,10 +791,18 @@ function get_goods_defined($storeid, $goodsid, $is_mobile = false) {
 		$goods = pdo_get('storex_goods', array('store_base_id' => $storeid, 'id' => $goodsid), array('unit', 'weight'));
 		if (!empty($defined)) {
 			foreach ($goods as $title => $content) {
-				$defined[] = array(
-					'title' => $title,
-					'content' => $content,
-				);
+				if ($title == 'unit') {
+					$defined[] = array(
+						'title' => '单位',
+						'content' => $content,
+					);
+				}
+				if ($title == 'weight') {
+					$defined[] = array(
+						'title' => '重量',
+						'content' => $content . 'kg',
+					);
+				}
 			}
 		}
 	}

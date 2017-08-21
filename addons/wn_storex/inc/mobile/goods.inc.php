@@ -63,6 +63,13 @@ if ($op == 'goods_info') {
 		$agent_str = '&from=' . md5('wn_storex_52111').$agent_info['id'];
 	}
 	$agent_ratio = iunserializer($goods_info['agent_ratio']);
+	if (empty($agent_ratio['level'])) {
+		$default_level = pdo_get('storex_agent_level', array('storeid' => $store_id, 'isdefault' => 1));
+		if (!empty($default_level)) {
+			$agent_info['level'] = $default_level['id'];
+			pdo_update('storex_agent_apply', array('level' => $default_level['id']), array('id' => $agent_info['id']));
+		}
+	}
 	$ratio = $agent_ratio[$agent_info['level']];
 	if (!empty($ratio)) {
 		$goods_info['agent']['is_agent'] = 1;
