@@ -57,7 +57,7 @@ if ($op == 'goods_info') {
 	if (!empty($goods_info['express_set'])) {
 		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
 	}
-	$agent_info = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $store_id, 'uid' => $uid, 'status' => 2), array('id'));
+	$agent_info = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $store_id, 'uid' => $uid, 'status' => 2), array('id', 'level'));
 	$agent_str = '';
 	if (!empty($agent_info)) {
 		$agent_str = '&from=' . md5('wn_storex_52111').$agent_info['id'];
@@ -76,7 +76,7 @@ if ($op == 'goods_info') {
 		'link' => murl('entry', array('do' => 'display', 'id' => $store_id, 'm' => 'wn_storex', 'type' => 'goods_info', 'goodsid' => $goodsid), true, true) . $agent_str,
 		'imgUrl' => tomedia($goods_info['thumb'])
 	);
-	$goods_info['defined'] = get_goods_defined($store_id, $goodsid);
+	$goods_info['defined'] = get_goods_defined($store_id, $goodsid, $this->inMobile);
 	$single_comment = array();
 	$single_comment = pdo_get('storex_comment', array('uniacid' => $_W['uniacid'], 'hotelid' => $store_id, 'goodsid' => $goodsid, 'comment <>' => ''), array('createtime', 'comment', 'nickname', 'thumb'));
 	if (!empty($single_comment)) {

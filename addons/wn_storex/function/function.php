@@ -781,12 +781,24 @@ function get_goods_tag($tags, $tagid) {
 	return $tag;
 }
 //获取商品自定义字段值
-function get_goods_defined($storeid, $goodsid) {
+function get_goods_defined($storeid, $goodsid, $is_mobile = false) {
+	$defined = array();
 	$goods_extend = pdo_get('storex_goods_extend', array('storeid' => $storeid, 'goodsid' => $goodsid));
 	if (!empty($goods_extend) && !empty($goods_extend['defined'])) {
-		return iunserializer($goods_extend['defined']);
+		$defined = iunserializer($goods_extend['defined']);
 	}
-	return array();
+	if (!empty($is_mobile)) {
+		$goods = pdo_get('storex_goods', array('store_base_id' => $storeid, 'id' => $goodsid), array('unit', 'weight'));
+		if (!empty($defined)) {
+			foreach ($goods as $title => $content) {
+				$defined[] = array(
+					'title' => $title,
+					'content' => $content,
+				);
+			}
+		}
+	}
+	return $defined;
 }
 
 function check_new_user($storeid) {
