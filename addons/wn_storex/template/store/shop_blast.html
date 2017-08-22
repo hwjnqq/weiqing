@@ -1,0 +1,133 @@
+{template 'common/header-storex'}
+<div class="wn-main wn-main--without">
+	<div class="wn-main__head">爆客设置</div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item wn-tabs__item--active">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_blast', array('storeid' => $_GPC['storeid'], 'op' => 'display'))}">店员设置</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_blast', array('storeid' => $_GPC['storeid'], 'op' => 'stat'))}">数据统计</a>
+			</div>
+		</div>
+		{if $op == 'display'}
+		<table class="table table-hover wn-table table-bordered">
+			<thead class="navbar-inner">
+				<tr>
+					<th style='width:100px'>序号</th>
+					<th style='width:210px'>微信号</th>
+					<th style='width:150px'>用户名</th>
+					<th style='width:150px'>真实姓名</th>
+					<th style='width:150px'>电话</th>
+					<th style='width:150px'>加入时间</th>
+					<th style="width:80px;">状态</th>
+					<th style="width:200px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+			{loop $clerk_list $item}
+			<tr>
+				<td>{$item['id']}</td>
+				<td>{$item['from_user']}</td>
+				<td>
+					{if empty($item['username'])}
+					<span class="label label-danger">未完善</span>
+					{else}
+					{$item['username']}
+					{/if}
+				</td>
+				<td>
+					{if empty($item['realname'])}
+					<span class="label label-danger">未完善</span>
+					{else}
+					{$item['realname']}
+					{/if}
+				</td>
+				<td>
+					{if empty($item['mobile'])}
+					<span class="label label-danger">未完善</span>
+					{else}
+					{$item['mobile']}
+					{/if}
+				</td>
+				<td>{php echo date('Y-m-d H:i',$item['createtime'])}</td>
+				<td>
+					{if $item['status'] == 1}
+					<span class='label label-success'>启用</span>
+					{else}
+					<span class='label label-default'>禁用</span>
+					{/if}
+				</td>
+				<td>
+					<a href="{php echo $this->createWebUrl('shop_blast', array('op' => 'edit', 'storeid' => $_GPC['storeid'], 'clerkid' => $item['id']))}" class="js-clerk-edit">设置推广信息</a>
+				</td>
+			</tr>
+			{/loop}
+			</tbody>
+			<input name="token" type="hidden" value="{$_W['token']}" />
+		</table>
+		{$pager}
+		{/if}
+		{if $op == 'edit'}
+		<form class="form-horizontal form" method="post" enctype="multipart/form-data">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">消息类型</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" value="1" name="type" {if (empty($blast_message_info['type']) || $blast_message_info['type'] == 1)} checked {/if}/> 文本
+					</label>
+					<label class="radio-inline">
+						<input type="radio" value="2" name="type" {if $blast_message_info['type'] == 2} checked {/if}/> 图片
+					</label>
+					<span class="help-block">选择发送消息的类型</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">标题</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="title" class="form-control" value="{$blast_message_info['title']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">内容</label>
+				<div class="col-sm-9 col-xs-12">
+					<div class="js-text" style="{if $blast_message_info['type'] != 1}display:none{/if}">
+						<input type="text" name="content" class="form-control" value="{$blast_message_info['content']}">
+					</div>
+					<div class="js-img" style="{if $blast_message_info['type'] != 2}display:none{/if}">
+						{php echo tpl_form_field_image('image', $blast_message_info['image'])}
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">开关</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" name="status" value="1" {if $blast_message_info['status'] == 1}checked{/if}/>开启
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="status" value="0" {if $blast_message_info['status'] == 0}checked{/if}/>关闭
+					</label>
+				</div>
+			</div>
+			<div class="form-group col-sm-12">
+				<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</form>
+		{/if}
+	</div>
+</div>
+<script>
+$('input[name="type"]').change(function() {
+	type = $(this).val();
+	if (type == 1) {
+		$('.js-text').show();
+		$('.js-img').hide();
+	} else if (type == 2) {
+		$('.js-img').show();
+		$('.js-text').hide();
+	}
+});
+</script>
+{template 'common/footer'}
