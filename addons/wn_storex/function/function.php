@@ -432,6 +432,9 @@ function calcul_roon_sumprice($dates, $search_data, $goods_info) {
 		$noexist_date += count($dates) - ($exist_date + $noexist_date);
 	}
 	$sumprice += $noexist_date * $prices['cprice'];
+	if (empty($search_data['nums'])) {
+		$search_data['nums'] = 1;
+	}
 	$goods_info['sum_price'] = ($sumprice + $goods_info['service'] * count($dates)) * $search_data['nums'];
 	$goods_info['price_list'] = $price_detail;
 	return $goods_info;
@@ -441,12 +444,13 @@ function calcul_roon_sumprice($dates, $search_data, $goods_info) {
 function room_special_price($goods, $search_data = array(), $plural = true) {
 	global $_W;
 	if (!empty($goods)) {
-		if (!empty($search_data) && !empty($search_data['btime']) && !empty($search_data['etime'])) {
+		if (!empty($search_data) && !empty($search_data['btime']) && !empty($search_data['etime']) && !empty($search_data['nums'])) {
 			$btime = strtotime($search_data['btime']);
 			$etime = strtotime($search_data['etime']);
 		} else {
 			$search_data['btime'] = date('Y-m-d');
 			$search_data['etime'] = date('Y-m-d', TIMESTAMP + 86400);
+			$search_data['nums'] = 1;
 			$btime = strtotime(date('Y-m-d'));
 			$etime = $btime + 86400;
 		}
