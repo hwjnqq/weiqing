@@ -32,6 +32,9 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 	}
 	function actions($ac) {
 		$actions = array(
+			'homePageList' => array('do' => 'homepage', 'op' => 'display'),
+			'homePageNotice' => array('do' => 'homepage', 'op' => 'notice'),
+				
 			'storeList' => array('do' => 'store', 'op' => 'store_list'),
 			'storeDetail' => array('do' => 'store', 'op' => 'store_detail'),
 			'storeComment' => array('do' => 'store', 'op' => 'store_comment'),
