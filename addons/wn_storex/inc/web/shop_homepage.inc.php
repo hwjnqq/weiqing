@@ -6,6 +6,10 @@ $ops = array('display', 'post', 'search_goods', 'link', 'article');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $storeid = intval($_W['wn_storex']['store_info']['id']);
+$is_wxapp = false;
+if (check_wxapp()) {
+	$is_wxapp = true;
+}
 if ($op == 'display') {
 	$default_module = array(
 		array(
