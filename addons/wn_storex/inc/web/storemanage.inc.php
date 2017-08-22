@@ -4,19 +4,37 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 load()->model('mc');
+load()->model('module');
 
-$ops = array('edit', 'delete', 'deleteall', 'showall', 'status', 'display');
+$ops = array('display', 'edit', 'delete', 'deleteall', 'showall', 'status', 'assign_store', 'assign');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
+$user = user_single($_W['uid']);
+$assign = false;
+if ($_W['isfounder'] == 1 || $user['founder_groupid'] == 1 || $user['founder_groupid'] == 2) {
+	$assign = true;
+}
+
 if ($op == 'display') {
+	$storeids = array();
+	if (empty($assign)) {
+		$clerk = pdo_getall('storex_clerk', array('weid' => intval($_W['uniacid']), 'userid' => intval($_W['uid'])), array('id', 'storeid'), 'storeid');
+		$storeids = array_keys($clerk);
+	}
+	$founders = explode(',', $_W['config']['setting']['founder']);
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	$where = ' WHERE `weid` = :weid';
 	$params = array(':weid' => $_W['uniacid']);
-	
+	$condition = array('weid' => $_W['uniacid']);
+	if (!empty($storeids)) {
+		$where .= ' AND `id` in (' . implode(',', $storeids) . ')';
+		$condition['id'] = $storeids;
+	}
 	if (!empty($_GPC['keywords'])) {
 		$where .= ' AND `title` LIKE :title';
 		$params[':title'] = "%{$_GPC['keywords']}%";
+		$condition['title LIKE'] = "%{$_GPC['keywords']}%";
 	}
 	$sql = 'SELECT COUNT(*) FROM ' . tablename('storex_bases') . $where;
 	$total = pdo_fetchcolumn($sql, $params);
@@ -24,7 +42,7 @@ if ($op == 'display') {
 	if ($total > 0) {
 		$pindex = max(1, intval($_GPC['page']));
 		$psize = 10;
-		$list = pdo_getall('storex_bases', array('weid' => $_W['uniacid'], 'title LIKE' => "%{$_GPC['keywords']}%"), array(), '', 'displayorder DESC', ($pindex - 1) * $psize . ',' . $psize);
+		$list = pdo_getall('storex_bases', $condition, array(), '', 'displayorder DESC', ($pindex - 1) * $psize . ',' . $psize);
 		$pager = pagination($total, $pindex, $psize);
 		if (!empty($list)) {
 			foreach ($list as $key => &$value) {
@@ -201,4 +219,79 @@ if ($op == 'status') {
 	} else {
 		message('状态设置成功！', referer(), 'success');
 	}
+}
+
+if ($op == 'assign_store') {
+	$user_permissions = module_clerk_info('wn_storex');
+	$current_module_permission = module_permission_fetch('wn_storex');
+	$uids = array_keys($user_permissions);
+	$clerks = pdo_getall('storex_clerk', array('userid' => $uids, 'weid' => $_W['uniacid']), array('id', 'userid', 'storeid'));
+	$user_store = array();
+	if (!empty($clerks) && is_array($clerks)) {
+		foreach ($clerks as $clerk) {
+			$user_store[$clerk['userid']][] = $clerk['storeid'];
+		}
+	}
+	$permission_name = array();
+	if (!empty($current_module_permission)) {
+		foreach ($current_module_permission as $key => $permission) {
+			$permission_name[$permission['permission']] = $permission['title'];
+		}
+	}
+	if (!empty($user_permissions)) {
+		foreach ($user_permissions as $key => &$permission) {
+			if (!empty($permission['permission'])) {
+				$permission['permission'] = explode('|', $permission['permission']);
+				foreach ($permission['permission'] as $k => $val) {
+					$permission['permission'][$val] = $permission_name[$val];
+					unset($permission['permission'][$k]);
+				}
+			}
+		}
+		unset($permission);
+	}
+	$stores = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid'])), array('id', 'title'));
+	include $this->template('assign_store');
+}
+
+if ($op == 'assign') {
+	$storeids = $_GPC['stores'];
+	$uid = intval($_GPC['id']);
+	if (!empty($uid)) {
+		$user_permissions = module_clerk_info('wn_storex');
+		$user = user_single($uid);
+		$permission = $user_permissions[$uid]['permission'];
+	} else {
+		message(error(-1, '参数错误！'), '', 'ajax');
+	}
+	if (!empty($storeids)) {
+		$clerks = pdo_getall('storex_clerk', array('userid' => $uid, 'weid' => intval($_W['uniacid']), 'storeid' => $storeids));
+		if (!empty($clerks) && is_array($clerks)) {
+			$exist_storeid = array();
+			foreach ($clerks as $clerk) {
+				if (!in_array($clerk['storeid'], $storeids)) {
+					pdo_delete('storex_clerk', array('id' => $clerk['id']));
+				}
+				$exist_storeid[] = $clerk['storeid'];
+			}
+			$storeids = array_diff($storeids, $exist_storeid);
+		}
+		if (!empty($storeids) && is_array($storeids)) {
+			foreach ($storeids as $storeid) {
+				$insert = array(
+					'weid' => intval($_W['uniacid']),
+					'userid' => $uid,
+					'createtime' => TIMESTAMP,
+					'status' => 1,
+					'username' => $user['username'],
+					'permission' => $permission,
+					'storeid' => $storeid,
+				);
+				pdo_insert('storex_clerk', $insert);
+			}
+		}
+	} else {
+		pdo_delete('storex_clerk', array('userid' => $uid, 'weid' => intval($_W['uniacid'])));
+	}
+	message(error(0, '分配成功'), '', 'ajax');
 }

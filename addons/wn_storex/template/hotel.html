@@ -1,8 +1,11 @@
 {template 'common/header'}
 <div class="main">
 	<ul class="nav nav-tabs">
-		<li class="active"><a href="{php echo $this->createWebUrl('storemanage',array('op'=>'list'));}">店铺管理</a></li>
+		<li {if $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('storemanage',array('op'=>'list'));}">店铺管理</a></li>
+		{if $assign}
 		<li><a href="javascript:;" class="js-add-store">添加店铺</a></li>
+		<li {if $op == 'assign_store'}class="active"{/if}><a href="{php echo $this->createWebUrl('storemanage',array('op'=>'assign_store'));}">操作员分配店铺</a></li>
+		{/if}
 	</ul>
 	<div class="modal fade" id="storetype-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
 		<div class="modal-dialog">
