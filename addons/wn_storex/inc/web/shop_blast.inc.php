@@ -31,6 +31,7 @@ if ($op == 'edit') {
 			'status' => intval($_GPC['status']),
 			'time' => time(),
 			'clerkid' => intval($_GPC['clerkid']),
+			'uid' => intval($_GPC['uid'])
 		);
 		if ($type == 1) {
 			$data['content'] = trim($_GPC['content']);

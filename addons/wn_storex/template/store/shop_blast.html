@@ -11,6 +11,24 @@
 			</div>
 		</div>
 		{if $op == 'display'}
+		<div class="modal fade" id="clerk-modal" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" id="myModalLabel">二维码入口</h4>
+					</div>
+					<div class="modal-body clearfix form-horizontal">
+						<div role="tabpanel" class="tab-pane active text-center" id="put-qrcode">
+							<div class="mui-content-padded mui-text-center">
+								<div class="js-qrcode-block" style="margin:50px 0 50px 0"></div>
+							</div>
+							<input type="hidden" class="js-url">
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 		<table class="table table-hover wn-table table-bordered">
 			<thead class="navbar-inner">
 				<tr>
@@ -59,7 +77,8 @@
 					{/if}
 				</td>
 				<td>
-					<a href="{php echo $this->createWebUrl('shop_blast', array('op' => 'edit', 'storeid' => $_GPC['storeid'], 'clerkid' => $item['id']))}" class="js-clerk-edit">设置推广信息</a>
+					<a href="{php echo $this->createWebUrl('shop_blast', array('op' => 'edit', 'storeid' => $_GPC['storeid'], 'clerkid' => $item['id'], 'uid' => $item['userid']))}" class="js-clerk-edit">设置推广信息</a>
+					<a href="javascript:;" class="js-clerk-entry" data-url="{php echo $this->createMobileUrl('blast', array('op' => 'display', 'clerkid' => $item['id']))}">入口二维码</a>
 				</td>
 			</tr>
 			{/loop}
@@ -67,6 +86,21 @@
 			<input name="token" type="hidden" value="{$_W['token']}" />
 		</table>
 		{$pager}
+		<script type="text/javascript">
+		require(['jquery.qrcode'], function(){
+			$('.js-clerk-entry').click(function() {
+				url = $(this).data('url');
+				$('.js-url').val(url);
+				$('#clerk-modal').modal('show');
+				$('.js-qrcode-block').html('').qrcode({
+					render: 'canvas',
+					width: 300,
+					height: 300,
+					text: url,
+				});
+			});
+		});
+		</script>
 		{/if}
 		{if $op == 'edit'}
 		<form class="form-horizontal form" method="post" enctype="multipart/form-data">
