@@ -1,8 +1,72 @@
 <html>
 <head>
-	<title></title>
+	<meta charset=utf-8>
+	<meta name=viewport content="width=device-width,initial-scale=1,user-scalable=0">
+	<title>{$_W['page']['title']}</title>
+	<style>
+		body {
+			background-color: #ddd;
+			font-size: 12px;
+			color: #494949;
+		}
+		.blast {
+			background-color: #fff;
+			margin: 50px 30px;
+			text-align: center;
+			border-radius: 5px;
+		}
+		.blast__head {
+			padding: 15px;
+			background-color: #428BCA;
+			color: #fff;
+			border-radius: 5px 5px 0 0;
+		}
+		.blast__body {
+			padding: 10px;
+		}
+		.blast__qrcode {
+			max-width: 100%;
+			max-height: 100%;
+		}
+		.blaset__countdown {
+			margin-top: 5px;
+			color: #ababab;
+		}
+		.blaset__time {
+			margin-right: 5px;
+		}
+		.blaset__status {
+			color: #494949;
+		}
+		.blast__footer {
+			padding: 0 15px 15px;
+		}
+		.blaset__btn {
+			background-color: #428BCA;
+			color: #fff;
+			border: 1px solid #ddd;
+			outline: 0;
+			width: 100%;
+			padding: 10px 0;
+			border-radius: 6px;
+		}
+		.blaset__btn--disabled {
+			background-color: #CACACA;
+		}
+	</style>
 </head>
 <body>
-fsdfsdffd
+	<div class="blast">
+		<div class="blast__head">欢迎使用本营销工具</div>
+		<div class="blast__body">
+			<img class="blast__qrcode" src="http://qr.api.cli.im/qr?data=http%3A%2F%2F172.16.1.222%2Fapp%2Findex.php%3Fi%3D281%26amp%3Bc%3Dentry%26amp%3Bop%3Ddisplay%26amp%3Bclerkid%3D12%26amp%3Bdo%3Dblast%26amp%3Bm%3Dwn_storex&level=H&transparent=0&blockpixel=12&marginblock=1&logourl=&size=260&kid=cliim&key=72904a68e6615c82ac8ee45f5cb17f17" />
+			<div class="blaset__countdown"><span class="blaset__time">30s</span>后自动刷新二维码</div>
+			<div class="blaset__status">正在群发...</div>
+		</div>
+		<div class="blast__footer">
+			<button class="blaset__btn">刷新二维码</button>
+			<button class="blaset__btn blaset__btn--disabled">不可点击</button>
+		</div>
+	</div>
 </body>
 </html>
