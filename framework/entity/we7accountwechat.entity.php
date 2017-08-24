@@ -10,6 +10,11 @@ class We7AccountWechat extends We7Entity {
 	protected $table = 'account_wechats';
 	protected $primaryKey = 'acid';
 
-
+	/**
+	 *  是否支持自定义菜单
+	 */
+	public function isSupportMenu() {
+		return $this->level > 0;
+	}
 
 }

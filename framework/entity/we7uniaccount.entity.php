@@ -15,7 +15,6 @@
  */
 class We7UniAccount extends We7Entity {
 
-
 	public static function current() {
 		global $_W;
 		$uniacid = $_W['uniacid'];
@@ -32,46 +31,33 @@ class We7UniAccount extends We7Entity {
 	 *  是否支持自定义菜单
 	 */
 	public function isSupportMenu() {
-		if($this->isWechat()) {
-			if($this->account_wechat) {
-				return $this->account_wechat['level'] > 0;
-			}
-		}
-		return false;
+		return $this->isWechat() && $this->account_wechat && $this->account_wechat->isSupportMenu();
 	}
 	/**
 	 *  是否是微信
 	 * @return bool
 	 */
 	public function isWechat() {
-		if($this->account) {
-			return $this->account['type'] == 1 || $this->account['type'] == 3;
-		}
+		return $this->account && $this->isWechat();
 	}
 	/**
 	 *  是否是 小程序
 	 * @return bool
 	 */
 	public function isWxApp() {
-		if($this->account) {
-			return $this->account['type'] == 4;
-		}
+		return $this->account && $this->isWxApp();
 	}
 	/**
 	 *  是否已接入
 	 */
 	public function isConnect() {
-		if($this->account) {
-			return $this->account['type'] == 1;
-		}
+		return $this->account && $this->isConnect();
 	}
 	/**
 	 *  是否已逻辑删除
 	 */
 	public function isDeleted() {
-		if($this->account) {
-			return $this->account['isDeleted'] == 1;
-		}
+		return $this->account && $this->isDeleted();
 	}
 
 	public function __get($key) {
