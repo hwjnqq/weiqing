@@ -55,7 +55,7 @@ if ($op == 'edit') {
 			$msg = '添加成功！';
 		} else {
 			pdo_update('storex_agent_level', $insert, array('id' => $id));
-			$msg = '标签信息更新成功！';
+			$msg = '等级信息更新成功！';
 		}
 		message($msg, $this->createWebUrl('shop_agent_level', array('storeid' => $storeid)), 'success');
 	}

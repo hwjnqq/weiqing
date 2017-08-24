@@ -16,7 +16,7 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		$this->check_login();
 		$ac = $_GPC['ac'];
 		$url_param = $this->actions($ac);
-		$url_param['m'] = $_GPC['m'] ? $_GPC['m'] : 'wn_storex';
+		$url_param['m'] = $_GPC['am'] ? $_GPC['am'] : 'wn_storex';
 		$params = json_decode(htmlspecialchars_decode($_GPC['params']), true);
 		$params['u_openid'] = trim($_SESSION['openid']);
 		$params['from'] = 'wxapp';
@@ -42,6 +42,7 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 			'categoryClass' => array('do' => 'category', 'op' => 'class'),
 			'categorySub' => array('do' => 'category', 'op' => 'sub_class'),
 			'moreGoods' => array('do' => 'category', 'op' => 'more_goods'),
+			'goodsSearch' => array('do' => 'category', 'op' => 'goods_search'),
 				
 			'goodsInfo' => array('do' => 'goods', 'op' => 'goods_info'),
 			'goodsBuyInfo' => array('do' => 'goods', 'op' => 'info'),

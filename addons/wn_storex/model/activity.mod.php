@@ -93,7 +93,14 @@ function activity_user_get_coupon($id, $openid, $granttype = 1) {
 			return error(-1, '没有找到指定会员');
 		}
 	}
-	$fan = mc_fansinfo($openid, '', $_W['uniacid']);
+	if (!empty($_GPC['from']) && $_GPC['from'] == 'wxapp') {
+		load()->model('cache');
+		$cachekey = cache_system_key("uid:{$_W['openid']}");
+		$faninfo = cache_load($cachekey);
+		$fan = mc_fansinfo($openid, '', $faninfo['uniacid']);
+	} else {
+		$fan = mc_fansinfo($openid, '', $_W['uniacid']);
+	}
 	$openid = $fan['openid'];
 	if (empty($openid)) {
 		return error(-1, '兑换失败');

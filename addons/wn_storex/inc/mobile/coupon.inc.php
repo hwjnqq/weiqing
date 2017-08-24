@@ -15,6 +15,9 @@ $uid = mc_openid2uid($_W['openid']);
 activity_get_coupon_type();
 
 if ($op == 'display') {
+	if (!empty($_GPC['from']) && $_GPC['from'] == 'wxapp' && COUPON_TYPE == 2) {
+		wmessage(error(-1, '小程序不支持绑定公众号卡券'), '', 'ajax');
+	}
 	$ids = array();
 	$storex_exchange = pdo_getall('storex_activity_exchange', array('uniacid' => intval($_W['uniacid']), 'status' => 1, 'type <>' => 3), array(), 'extra');
 	if (!empty($storex_exchange)) {
@@ -136,13 +139,18 @@ if ($op == 'opencard') {
 if ($op == 'addcard') {
 	$id = intval($_GPC['id']);
 	$coupon_api = new WnCoupon();
-	if ($_W['isajax'] && $_W['ispost']) {
+	//区分小程序
+	if (!empty($_GPC['from']) && $_GPC['from'] == 'wxapp' && $_W['ispost']) {
 		$card = $coupon_api->BuildCardExt($id);
-		if (is_error($card)) {
-			wmessage(error(1, $card['message']), '', 'ajax');
-		} else {
-			wmessage(error(0, $card), '', 'ajax');
+	} else {
+		if ($_W['isajax'] && $_W['ispost']) {
+			$card = $coupon_api->BuildCardExt($id);
 		}
+	}
+	if (is_error($card)) {
+		wmessage(error(1, $card['message']), '', 'ajax');
+	} else {
+		wmessage(error(0, $card), '', 'ajax');
 	}
 }
 
