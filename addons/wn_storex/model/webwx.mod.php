@@ -41,10 +41,13 @@ function webwx_waitforlogin($tip = 1, $uuid) {
  */
 function webwx_login($redirect_uri) {
 	if (!empty($redirect_uri)) {
+		preg_match("~^https:?(//([^/?#]*))?~", $redirect_uri, $match);
+		$https_header = $match[0];
+		$post_url_header = $https_header . "/cgi-bin/mmwebwx-bin";
 		$result = webwx_get($redirect_uri);
 		$baseinfo = (array)simplexml_load_string($result, 'SimpleXMLElement', LIBXML_NOCDATA);
 	}
-	return $baseinfo;
+	return array('baseinfo' => $baseinfo, 'post_url_header' => $post_url_header);
 }
 
 function webwx_cookie($baseinfo) {
@@ -74,8 +77,8 @@ function webwx_cookie($baseinfo) {
  * @param array $post cookie信息
  * @return json
  */
-function webwx_init($post) {
-	$url = 'https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxinit?pass_ticket=' . $post->pass_ticket . '&r=' . time();
+function webwx_init($post, $post_url_header) {
+	$url = sprintf($post_url_header . '/webwxinit?pass_ticket=%s&skey=%s&r=%s', $post->pass_ticket, $post->skey, time());
 	$params = array('BaseRequest' => $post->BaseRequest);
 	$result = webwx_post($url, $params);
 	return $result;
@@ -86,8 +89,8 @@ function webwx_init($post) {
  * @param array $post cookie信息
  * @return json
  */
-function webwx_getcontact($post) {
-	$url = 'https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetcontact?lang=zh_CN&pass_ticket=' . $post->pass_ticket . '&seq=0&skey=' . $post->skey . '&r=' . time();
+function webwx_getcontact($post, $post_url_header) {
+	$url = $post_url_header . '/webwxgetcontact?pass_ticket=' . $post->pass_ticket . '&seq=0&skey=' . $post->skey . '&r=' . time();
 	$params = array('BaseRequest' => $post->BaseRequest);
 	$data = webwx_post($url, $params);
 	return $data;
@@ -100,8 +103,8 @@ function webwx_getcontact($post) {
  * @param str $tousername 好友username
  * @return json
  */
-function webwx_sendmsg($user_info_init, $cookie_api, $word, $tousername='filehelper') {
-	$url = sprintf('https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg?pass_ticket=%s', $cookie_api->pass_ticket);
+function webwx_sendmsg($user_info_init, $cookie_api, $word, $post_url_header, $tousername='filehelper') {
+	$url = sprintf($post_url_header . '/webwxsendmsg?pass_ticket=%s', $cookie_api->pass_ticket);
 	$clientMsgId = (time() * 1000) . substr(uniqid(), 0,5);
 	$data = array(
 		'BaseRequest'=> $cookie_api->BaseRequest,
@@ -115,7 +118,6 @@ function webwx_sendmsg($user_info_init, $cookie_api, $word, $tousername='filehel
 		)
 	);
 	$result = curlPost($url, $data);
-	return $result;
 	return $result['BaseResponse']['Ret'] == 0;
 }
 /**
@@ -126,8 +128,8 @@ function webwx_sendmsg($user_info_init, $cookie_api, $word, $tousername='filehel
  * @param str $tousername 好友username
  * @return json
  */
-function webwx_sendimg($user_info_init, $cookie_api, $image, $tousername = 'filehelper'){
-	$url = sprintf('https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsgimg?fun=async&f=json&pass_ticket=%s', $cookie_api->pass_ticket);
+function webwx_sendimg($user_info_init, $cookie_api, $image, $post_url_header, $tousername = 'filehelper'){
+	$url = sprintf($post_url_header . '/webwxsendmsgimg?fun=async&f=json&pass_ticket=%s', $cookie_api->pass_ticket);
 	$uploadimg = uploadimg($cookie_api, $user_info_init['User']['UserName'], $tousername, $image);
 	$data = array(
 		'BaseRequest'=> $cookie_api->BaseRequest,
@@ -142,7 +144,7 @@ function webwx_sendimg($user_info_init, $cookie_api, $image, $tousername = 'file
 		'Scene' => 0
 	);
 	$result = curlPost($url, $data);
-	return $result;
+	return $result['BaseResponse']['Ret'] == 0;
 }
 /**
  * web端微信上传附件接口（post）

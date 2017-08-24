@@ -77,13 +77,12 @@
 					{/if}
 				</td>
 				<td>
-					<a href="{php echo $this->createWebUrl('shop_blast', array('op' => 'edit', 'storeid' => $_GPC['storeid'], 'clerkid' => $item['id'], 'uid' => $item['userid']))}" class="js-clerk-edit">设置推广信息</a>
+					<a href="{php echo $this->createWebUrl('shop_blast_message', array('op' => 'display', 'storeid' => $_GPC['storeid'], 'clerkid' => $item['id'], 'uid' => $item['userid']))}">设置推广信息</a>
 					<a href="javascript:;" class="js-clerk-entry" data-url="{php echo $this->createMobileUrl('blast', array('op' => 'display', 'clerkid' => $item['id']))}">入口二维码</a>
 				</td>
 			</tr>
 			{/loop}
 			</tbody>
-			<input name="token" type="hidden" value="{$_W['token']}" />
 		</table>
 		{$pager}
 		<script type="text/javascript">
@@ -102,66 +101,6 @@
 		});
 		</script>
 		{/if}
-		{if $op == 'edit'}
-		<form class="form-horizontal form" method="post" enctype="multipart/form-data">
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label">消息类型</label>
-				<div class="col-sm-9 col-xs-12">
-					<label class="radio-inline">
-						<input type="radio" value="1" name="type" {if (empty($blast_message_info['type']) || $blast_message_info['type'] == 1)} checked {/if}/> 文本
-					</label>
-					<label class="radio-inline">
-						<input type="radio" value="2" name="type" {if $blast_message_info['type'] == 2} checked {/if}/> 图片
-					</label>
-					<span class="help-block">选择发送消息的类型</span>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label">标题</label>
-				<div class="col-sm-9 col-xs-12">
-					<input type="text" name="title" class="form-control" value="{$blast_message_info['title']}">
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label">内容</label>
-				<div class="col-sm-9 col-xs-12">
-					<div class="js-text" style="{if $blast_message_info['type'] != 1}display:none{/if}">
-						<input type="text" name="content" class="form-control" value="{$blast_message_info['content']}">
-					</div>
-					<div class="js-img" style="{if $blast_message_info['type'] != 2}display:none{/if}">
-						{php echo tpl_form_field_image('image', $blast_message_info['image'])}
-					</div>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label">开关</label>
-				<div class="col-sm-9 col-xs-12">
-					<label class="radio-inline">
-						<input type="radio" name="status" value="1" {if $blast_message_info['status'] == 1}checked{/if}/>开启
-					</label>
-					<label class="radio-inline">
-						<input type="radio" name="status" value="0" {if $blast_message_info['status'] == 0}checked{/if}/>关闭
-					</label>
-				</div>
-			</div>
-			<div class="form-group col-sm-12">
-				<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
-				<input type="hidden" name="token" value="{$_W['token']}" />
-			</div>
-		</form>
-		{/if}
 	</div>
 </div>
-<script>
-$('input[name="type"]').change(function() {
-	type = $(this).val();
-	if (type == 1) {
-		$('.js-text').show();
-		$('.js-img').hide();
-	} else if (type == 2) {
-		$('.js-img').show();
-		$('.js-text').hide();
-	}
-});
-</script>
 {template 'common/footer'}
