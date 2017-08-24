@@ -653,6 +653,20 @@ $sql = "
 	`time` int(11) NOT NULL COMMENT '房间在此时间内不空闲',
 	PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_admin_logs` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`uniacid` int(11) NOT NULL,
+	`uid` int(11) NOT NULL COMMENT '操作者id',
+	`username` varchar(50) NOT NULL,
+	`time` int(11) NOT NULL COMMENT '操作时间',
+	`storeid` int(11) NOT NULL COMMENT '店铺id',
+	`content` varchar(500) NOT NULL COMMENT '操作内容',
+	`op` varchar(24) NOT NULL,
+	`do` varchar(24) NOT NULL,
+	`url` varchar(500) NOT NULL COMMENT '访问的url地址',
+	PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
 ";
 pdo_run($sql);
 
@@ -970,6 +984,10 @@ if (!pdo_fieldexists('storex_activity_exchange_trades_shipping', 'num')) {
 	pdo_query("ALTER TABLE " . tablename('storex_activity_exchange_trades_shipping') . " ADD `num` INT(11) NOT NULL COMMENT '数量';");
 }
 
+if (!pdo_fieldexists('storex_homepage', 'is_wxapp')) {
+	pdo_query("ALTER TABLE " . tablename('storex_homepage') . " ADD `is_wxapp` TINYINT(2) NOT NULL DEFAULT '2' COMMENT '是不是小程序1是2不是';");
+}
+
 $exchange_trades = pdo_getall('storex_activity_exchange_trades', array('num' => 0), array('tid', 'num'));
 if (!empty($exchange_trades) && is_array($exchange_trades)) {
 	foreach ($exchange_trades as $val) {
@@ -1067,6 +1085,12 @@ $unused_files = array(
 	IA_ROOT . '/addons/wn_storex/template/room_status_list.html',
 	IA_ROOT . '/addons/wn_storex/template/room_status_lot.html',
 	IA_ROOT . '/addons/wn_storex/template/room_status_lot_list.html',
+	IA_ROOT . '/addons/wn_storex/template/clerk_comment.html',
+	IA_ROOT . '/addons/wn_storex/template/clerk_form.html',
+	IA_ROOT . '/addons/wn_storex/template/clerk.html',
+	IA_ROOT . '/addons/wn_storex/template/clerklist.html',
+	IA_ROOT . '/addons/wn_storex/template/member.html',
+	IA_ROOT . '/addons/wn_storex/template/member_form.html',
 	IA_ROOT . '/addons/wn_storex/inc/web/business.inc.php',
 	IA_ROOT . '/addons/wn_storex/inc/web/brand.inc.php',
 	IA_ROOT . '/addons/wn_storex/inc/web/goodscategory.inc.php',
@@ -1075,6 +1099,9 @@ $unused_files = array(
 	IA_ROOT . '/addons/wn_storex/inc/web/order.inc.php',
 	IA_ROOT . '/addons/wn_storex/inc/web/room_price.inc.php',
 	IA_ROOT . '/addons/wn_storex/inc/web/room_status.inc.php',
+	IA_ROOT . '/addons/wn_storex/inc/web/clerk.inc.php',
+	IA_ROOT . '/addons/wn_storex/inc/web/clerklist.inc.php',
+	IA_ROOT . '/addons/wn_storex/inc/web/member.inc.php',
 );
 if (!empty($unused_files)) {
 	foreach ($unused_files as $file) {

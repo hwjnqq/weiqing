@@ -745,6 +745,7 @@ $sql = "
 	`type` varchar(15) NOT NULL COMMENT '首页块类型',
 	`items` longtext NOT NULL,
 	`displayorder` int(10) unsigned NOT NULL DEFAULT '0',
+	`is_wxapp` tinyint(2) NOT NULL DEFAULT '2' COMMENT '是不是小程序1是2不是',
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`),
 	KEY `storeid` (`storeid`)
@@ -967,6 +968,20 @@ $sql = "
 	`roomid` int(11) NOT NULL,
 	`roomitemid` int(11) NOT NULL,
 	`time` int(11) NOT NULL COMMENT '房间在此时间内不空闲',
+	PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
+		
+	CREATE TABLE IF NOT EXISTS `ims_storex_admin_logs` (
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`uniacid` int(11) NOT NULL,
+	`uid` int(11) NOT NULL COMMENT '操作者id',
+	`username` varchar(50) NOT NULL,
+	`time` int(11) NOT NULL COMMENT '操作时间',
+	`storeid` int(11) NOT NULL COMMENT '店铺id',
+	`content` varchar(500) NOT NULL COMMENT '操作内容',
+	`op` varchar(24) NOT NULL,
+	`do` varchar(24) NOT NULL,
+	`url` varchar(500) NOT NULL COMMENT '访问的url地址',
 	PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
 ";
