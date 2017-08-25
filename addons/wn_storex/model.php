@@ -1177,7 +1177,11 @@ function category_entry_fetch($storeid, $params = array(), $wxapp = false) {
 						}
 					} elseif ($info['category_type'] == 2) {
 						if (!empty($wxapp)) {
-							$vue_route = '/wn_storex/pages/good/goodList?id=' . $info['id'] . '&type=' . $info['category_type'];
+							if (empty($_W['wn_storex']['store_info']['store_type'])) {
+								$vue_route = '/wn_storex/pages/category/childCategory?id=' . $info['id'];
+							} elseif ($_W['wn_storex']['store_info']['store_type'] == 1) {
+								$vue_route = '/wn_storex/pages/good/goodList?id=' . $info['id'] . '&type=' . $info['category_type'];
+							}
 						} else {
 							if (empty($_W['wn_storex']['store_info']['store_type'])) {
 								$vue_route = '#/Category/Child/' . $storeid . '/';
@@ -1197,7 +1201,7 @@ function category_entry_fetch($storeid, $params = array(), $wxapp = false) {
 						$category_list[$info['parentid']]['group'][$key] = $info;
 					}
 					if (!empty($wxapp)) {
-						$category_list[$info['parentid']]['group'][$key]['link'] = '/wn_storex/pages/category/childCategory?id=' . $info['id'];
+						$category_list[$info['parentid']]['group'][$key]['link'] = '/wn_storex/pages/good/goodList?id=' . $info['id'] . '&type=' . $info['category_type'];
 					} else {
 						$vue_route = '#/Category/GoodList/' . $storeid . '/';
 						$category_list[$info['parentid']]['group'][$key]['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $vue_route . $info['id'];
