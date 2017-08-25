@@ -132,6 +132,9 @@ setting_load();
 if (empty($_W['setting']['upload'])) {
 	$_W['setting']['upload'] = array_merge($_W['config']['upload']);
 }
+var_dump($_W['setting']);
+exit;
+
 $_W['attachurl'] = $_W['attachurl_local'] = $_W['siteroot'] . $_W['config']['upload']['attachdir'] . '/';
 if (!empty($_W['setting']['remote']['type'])) {
 	if ($_W['setting']['remote']['type'] == ATTACH_FTP) {
