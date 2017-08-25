@@ -33,6 +33,7 @@
 			<tr><th class='with-checkbox' style='width:30px;'>
 				<input type="checkbox" class="check_all" /></th>
 				<th style="width:100px;">管理员</th>
+				<th style="width:200px;">操作店铺</th>
 				<th style="width:200px;">操作时间</th>
 				<th style="width:200px;">操作内容</th>
 				<th style='width:220px;'>操作URL</th>
@@ -41,9 +42,11 @@
 			</thead>
 			<tbody>
 			{loop $list $item}
-			<tr>  <td class="with-checkbox">
+			<tr>
+				<td class="with-checkbox">
 				<input type="checkbox" name="check" value="{$item['id']}"></td>
 				<td>{$item['username']}</td>
+				<td>{$item['storeid']}</td>
 				<td>{php echo date('Y-m-d H:i:s', $item['time'])}</td>
 				<td>{$item['content']}</td>
 				<td>{$item['url']}</td>

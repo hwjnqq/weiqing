@@ -16,19 +16,26 @@ if ($_W['isfounder'] == 1 || $user['founder_groupid'] == 1 || $user['founder_gro
 }
 
 if ($op == 'display') {
+	$stores = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid'])), array('id', 'title'), 'id');
 	$where = ' WHERE `uniacid` = :uniacid';
 	$params = array(':uniacid' => $_W['uniacid']);
 	$condition = array('uniacid' => $_W['uniacid']);
 	$sql = 'SELECT COUNT(*) FROM ' . tablename('storex_admin_logs') . $where;
 	$total = pdo_fetchcolumn($sql, $params);
-	
+	$list = array();
 	if ($total > 0) {
 		$pindex = max(1, intval($_GPC['page']));
-		$psize = 10;
+		$psize = 20;
 		$list = pdo_getall('storex_admin_logs', $condition, array(), '', '', ($pindex - 1) * $psize . ',' . $psize);
 		$pager = pagination($total, $pindex, $psize);
 	}
-	
+	if (!empty($list) && is_array($list)) {
+		foreach ($list as &$info) {
+			if (!empty($info['storeid']) && !empty($stores[$info['storeid']])) {
+				$info['storeid'] = $stores[$info['storeid']]['title'];
+			}
+		}
+	}
 	if (!empty($_GPC['export'])) {
 		/* 输入到CSV文件 */
 		$html = "\xEF\xBB\xBF";
@@ -36,6 +43,7 @@ if ($op == 'display') {
 		$filter = array(
 			'username' => '操作员',
 			'time' => '操作时间',
+			'storeid' => '操作店铺',
 			'content' => '操作内容',
 			'url' => '操作URL',
 		);

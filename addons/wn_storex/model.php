@@ -561,6 +561,11 @@ function write_log($logs) {
 function admin_operation_log() {
 	global $_GPC, $_W;
 	$dos = array(
+		'admin_logs' => array(
+			'delete' => array('id' => $_GPC['id'], 'content' => '删除单条操作日志'),
+			'deleteall' => array('idArr' => intval($_GPC['idArr']), 'content' => '批量删除操作日志'),
+			'default_op' => 'display',
+		),
 		'cardmanage' => array(
 			'delete' => array('cardid' => $_GPC['cardid'], 'content' => '删除会员卡'),
 			'submit' => array('uid' => $_GPC['uid'], 'content' => '更改会员卡信息'),
@@ -675,6 +680,10 @@ function admin_operation_log() {
 		),
 		'shop_homepage' => array(
 			'post' => array('isajax' => $_W['isajax'], 'ispost' => $_W['ispost'], 'content' => '首页设置修改'),
+			'default_op' => 'display',
+		),
+		'shop_wxapphomepage' => array(
+			'post' => array('isajax' => $_W['isajax'], 'ispost' => $_W['ispost'], 'content' => '小程序首页设置修改'),
 			'default_op' => 'display',
 		),
 		'shop_member' => array(
