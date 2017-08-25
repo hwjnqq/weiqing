@@ -231,9 +231,9 @@ if ($op == 'info') {
 		$paycenter_couponlist = activity_paycenter_get_coupon();
 		$infos['coupon_list'] = $paycenter_couponlist;
 		$card_activity_info = card_return_credit_info();
-		$infos['card_disounts_info'] = array();
-		if (!empty($card_activity_info)) {
-			$user_group = card_group_id($uid);
+		$user_group = card_group_id($uid);
+		if (!empty($card_activity_info) && !empty($user_group) && !empty($card_activity_info['discounts'][$user_group['groupid']])) {
+			$infos['card_disounts_info'] = array();
 			if ($card_activity_info['discount_type'] == 1) {
 				$discount_info['discount_type'] = 1;
 				$discount_info['condition'] = $card_activity_info['discounts'][$user_group['groupid']]['condition_1'];
