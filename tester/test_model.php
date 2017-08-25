@@ -23,11 +23,20 @@ spl_autoload_register(function($classname){
 		include $path;
 	}
 });
-load()->model('user');
-load()->classs('query');
+//load()->model('user');
+//load()->classs('query');
+//
+//$user = We7User::with('group')->where('uid',173)->first();
+//dump($user);
 
-$user = We7User::with('group')->where('uid',173)->first();
-dump($user);
+load()->classs('app');
+
+$app = new We7App();
+$app['a'] = 1;
+$c =array();
+$c['a']['b'] = 1;
+var_dump($app, $c);
+exit;
 
 
 //$query = new Query();

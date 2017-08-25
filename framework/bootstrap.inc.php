@@ -9,6 +9,7 @@ define('IA_ROOT', str_replace("\\", '/', dirname(dirname(__FILE__))));
 define('MAGIC_QUOTES_GPC', (function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc()) || @ini_get('magic_quotes_sybase'));
 define('TIMESTAMP', time());
 
+
 $_W = $_GPC = array();
 $configfile = IA_ROOT . "/data/config.php";
 
@@ -30,6 +31,7 @@ require $configfile;
 require IA_ROOT . '/framework/version.inc.php';
 require IA_ROOT . '/framework/const.inc.php';
 require IA_ROOT . '/framework/class/loader.class.php';
+
 load()->func('global');
 load()->func('compat');
 load()->func('pdo');

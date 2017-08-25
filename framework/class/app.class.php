@@ -6,11 +6,11 @@
  * Time: 14:39
  */
 
-class App implements ArrayAccess {
+class We7App implements ArrayAccess {
 
 	private $attributes = array();
 	public function __construct() {
-
+		$this->attributes = new SplFixedArray();
 	}
 
 	public function offsetExists($offset) {
@@ -24,7 +24,11 @@ class App implements ArrayAccess {
 
 
 	public function offsetSet($offset, $value) {
-		$this->attributes[$offset] = $value;
+		if (is_null($offset)) {
+			$this->attributes[] = $value;
+		} else {
+			$this->attributes[$offset] = $value;
+		}
 	}
 
 
