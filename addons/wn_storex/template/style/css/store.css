@@ -650,6 +650,7 @@ li {
   bottom: 0;
   width: 180px;
   background: #4f5f6f;
+  overflow: auto;
   z-index: 4;
 }
 .wn-aside__logo {
