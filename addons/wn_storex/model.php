@@ -819,16 +819,16 @@ function wxapp_entry_fetchall($storeid, $wxapp = false) {
 	global $_W, $_GPC;
 	$category_entry_routes = category_entry_fetch($storeid, array(), $wxapp);
 	$entrys= array(
-		array(
-			'type' => 'storeindex',
-			'name' => '店铺首页',
-			'group' => array(
-				array(
-					'name' => '店铺首页',
-					'link' => '/wn_storex/pages/store/index?id=' . $storeid,
-				),
-			),
-		),
+// 		array(
+// 			'type' => 'storeindex',
+// 			'name' => '店铺首页',
+// 			'group' => array(
+// 				array(
+// 					'name' => '店铺首页',
+// 					'link' => '/wn_storex/pages/store/index?id=' . $storeid,
+// 				),
+// 			),
+// 		),
 		array(
 			'type' => 'sub_class',
 			'name' => '店铺分类列表',

@@ -41,7 +41,7 @@ if ($op == 'display') {
 			'items' => array()
 		),
 	);
-	$homepage_list = pdo_getall('storex_homepage', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'is_wxapp' => 2), array(), 'displayorder', 'displayorder ASC');
+	$homepage_list = pdo_getall('storex_homepage', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'is_wxapp' => 1), array(), 'displayorder', 'displayorder ASC');
 	if (!empty($homepage_list) && is_array($homepage_list)) {
 		foreach ($homepage_list as $key => &$value) {
 			unset($value['displayorder'], $value['uniacid'], $value['storeid']);
@@ -69,19 +69,13 @@ if ($op == 'display') {
 	} else {
 		$homepage_list = $default_module;
 	}
-	$share_data = array(
-		'title' => $store_info['title'],
-		'desc' => $store_info['title'] . '--万能小店',
-		'link' => murl('entry', array('do' => 'display', 'id' => $storeid, 'm' => 'wn_storex', 'type' => 'storeindex'), true, true),
-		'imgUrl' => tomedia($store_info['thumb'])
-	);
-	wmessage(error(0, $homepage_list), $share_data, 'ajax');
+	wmessage(error(0, $homepage_list), '', 'ajax');
 }
 
 if ($op == 'notice') {
 	$noticeid = $_GPC['noticeid'];
 	$noticekey = $_GPC['noticekey'];
-	$notice_info = pdo_get('storex_homepage', array('id' => $noticeid, 'uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'type' => 'notice', 'is_wxapp' => 2));
+	$notice_info = pdo_get('storex_homepage', array('id' => $noticeid, 'uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'type' => 'notice', 'is_wxapp' => 1));
 	if (!empty($notice_info) && !empty($notice_info['items'])) {
 		$notice_info['items'] = iunserializer($notice_info['items']);
 		if (!empty($notice_info['items'][$noticekey])) {
