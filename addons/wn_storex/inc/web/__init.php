@@ -66,7 +66,7 @@ $aside_nav = array(
 		)
 	),
 	'shop_wxapphomepage' => array(
-		'title' => '首页设置',
+		'title' => '小程序首页设置',
 		'url' => $this->createWebUrl('shop_wxapphomepage', array('storeid' => $_GPC['storeid'])),
 		'icon' => 'storex-menu-home',
 		'active' => array(

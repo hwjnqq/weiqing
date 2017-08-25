@@ -815,6 +815,47 @@ function admin_operation_log() {
 	return $log;
 }
 
+function wxapp_entry_fetchall($storeid, $wxapp = false) {
+	global $_W, $_GPC;
+	$category_entry_routes = category_entry_fetch($storeid, array(), $wxapp);
+	$entrys= array(
+		array(
+			'type' => 'storeindex',
+			'name' => '店铺首页',
+			'group' => array(
+				array(
+					'name' => '店铺首页',
+					'link' => '/wn_storex/pages/store/index?id=' . $storeid,
+				),
+			),
+		),
+		array(
+			'type' => 'sub_class',
+			'name' => '店铺分类列表',
+			'link' => 'wn_storex/pages/category/category?id=' . $storeid,
+			'group' => $category_entry_routes,
+		),
+	);
+	$entrys[] = array(
+			'type' => 'goods_info',
+			'name' => '商品详情',
+			'group' => goods_entry_fetch($storeid, array(), $wxapp),
+	);
+	$entrys[] = array(
+			'type' => 'package',
+			'name' => '套餐',
+			'group' => package_entry_fetch($storeid, array(), $wxapp),
+	);
+	$usercenter_vue_routes[] = array(
+			'type' => 'usercenter',
+			'name' => '个人中心',
+			'group' => wxapp_usercenter_entry($storeid),
+	);
+	
+	$entrys = array_merge($entrys, $usercenter_vue_routes);
+	return $entrys;
+}
+
 function entry_fetch($storeid, $type, $params) {
 	$entry_url = '';
 	if ($type == 'sub_class') {
@@ -954,9 +995,86 @@ function usercenter_entry_fetch($storeid, $params = array()) {
 	return !empty($entry_url) ? $entry_url : $usercenter_entry_routes;
 }
 
-function goods_entry_fetch($storeid, $params = array()) {
-	$cachekey = "wn_storex:goods_entry:{$storeid}";
-	$goods_entry_routes = cache_load($cachekey);
+function wxapp_usercenter_entry($storeid) {
+	$usercenter_entry_routes = array(
+		array(
+			'type' => 'usercenter',
+			'name' => '个人中心',
+			'link' => '/wn_storex/pages/home/index?id=' . $storeid,
+		),
+		array(
+			'type' => 'orderlist',
+			'name' => '订单中心',
+			'link' => '/wn_storex/pages/home/order/orderList',
+		),
+		array(
+			'type' => 'mycouponlist',
+			'name' => '我的卡券',
+			'link' => '/wn_storex/pages/home/coupon/coupon',
+		),
+		array(
+			'type' => 'userinfo',
+			'name' => '用户信息',
+			'link' => '/wn_storex/pages/home/info/info',
+		),
+		array(
+			'type' => 'address',
+			'name' => '地址管理',
+			'link' => '/wn_storex/pages/home/address/address',
+		),
+		array(
+			'type' => 'sign',
+			'name' => '签到',
+			'link' => '/wn_storex/pages/home/sign/sign',
+		),
+		array(
+			'type' => 'message',
+			'name' => '通知',
+			'link' => '/wn_storex/pages/home/message/message',
+		),
+		array(
+			'type' => 'credit',
+			'name' => '我的余额',
+			'link' => '/wn_storex/pages/home/credit/credit',
+		),
+		array(
+			'type' => 'recharge_credit',
+			'name' => '余额充值',
+			'link' => '/wn_storex/pages/home/credit/recharge',
+		),
+// 		array(
+// 			'type' => 'recharge_nums',
+// 			'name' => '会员卡次数充值',
+// 			'link' => $url . '#/Home/Recharge/nums',
+// 		),
+// 		array(
+// 			'type' => 'recharge_times',
+// 			'name' => '会员卡时间充值',
+// 			'link' => $url . '#/Home/Recharge/times',
+// 		),
+		array(
+			'type' => 'creditsrecord',
+			'name' => '余额记录',
+			'link' => '/wn_storex/pages/home/credit/creditList',
+		),
+	);
+	$entry_url = '';
+	if (!empty($type)) {
+		foreach ($usercenter_entry_routes as $val) {
+			if ($params['sign'] == $val['type']) {
+				$entry_url = $val['link'];
+				break;
+			}
+		}
+	}
+	return !empty($entry_url) ? $entry_url : $usercenter_entry_routes;
+}
+
+function goods_entry_fetch($storeid, $params = array(), $wxapp = false) {
+	if (empty($wxapp)) {
+		$cachekey = "wn_storex:goods_entry:{$storeid}";
+		$goods_entry_routes = cache_load($cachekey);
+	}
 	if (empty($goods_entry_routes)) {
 		$storeinfo = pdo_get('storex_bases', array('id' => $storeid), array('store_type'));
 		if ($storeinfo['store_type'] == 1) {
@@ -968,13 +1086,22 @@ function goods_entry_fetch($storeid, $params = array()) {
 		$goods_entry_routes = array();
 		if (!empty($goodsinfo) && is_array($goodsinfo)) {
 			foreach ($goodsinfo as $id => $val) {
-				$goods_entry_routes[$id] = array(
-					'name' => $val['title'],
-					'link' => $url . '#/GoodInfo/buy/' . $storeid . '/' . $id,
-				);
+				if (!empty($wxapp)) {
+					$goods_entry_routes[$id] = array(
+						'name' => $val['title'],
+						'link' => '/wn_storex/pages/good/goodInfo?type=buy&id=' . $id,
+					);
+				} else {
+					$goods_entry_routes[$id] = array(
+						'name' => $val['title'],
+						'link' => $url . '#/GoodInfo/buy/' . $storeid . '/' . $id,
+					);
+				}
 			}
 		}
-		cache_write($cachekey, $goods_entry_routes);
+		if (empty($wxapp)) {
+			cache_write($cachekey, $goods_entry_routes);
+		}
 	}
 	$entry_url = '';
 	if (!empty($params['goodsid'])) {
@@ -987,9 +1114,11 @@ function goods_entry_fetch($storeid, $params = array()) {
 	return !empty($entry_url) ? $entry_url : $goods_entry_routes;
 }
 
-function package_entry_fetch($storeid, $params = array()) {
-	$cachekey = "wn_storex:package_entry:{$storeid}";
-	$package_entry_routes = cache_load($cachekey);
+function package_entry_fetch($storeid, $params = array(), $wxapp = false) {
+	if (empty($wxapp)) {
+		$cachekey = "wn_storex:package_entry:{$storeid}";
+		$package_entry_routes = cache_load($cachekey);
+	}
 	if (empty($package_entry_routes)) {
 		$storeinfo = pdo_get('storex_bases', array('id' => $storeid), array('store_type'));
 		if ($storeinfo['store_type'] != 1) {
@@ -999,13 +1128,17 @@ function package_entry_fetch($storeid, $params = array()) {
 		$package_entry_routes = array();
 		if (!empty($package_list) && is_array($package_list)) {
 			foreach ($package_list as $id => $val) {
-				$package_entry_routes[$id] = array(
-					'name' => $val['title'],
-					'link' => $url . '#/GoodInfo/buy/' . $storeid . '/p' . $id,
-				);
+				$package_entry_routes[$id]['name'] = $val['title'];
+				if (!empty($wxapp)) {
+					$package_entry_routes[$id]['link'] = '/wn_storex/pages/good/goodInfo?type=buy&id=' . $id;
+				} else {
+					$package_entry_routes[$id]['link'] = $url . '#/GoodInfo/buy/' . $storeid . '/p' . $id;
+				}
 			}
 		}
-		cache_write($cachekey, $package_entry_routes);
+		if (empty($wxapp)) {
+			cache_write($cachekey, $package_entry_routes);
+		}
 	}
 	$entry_url = '';
 	if (!empty($params['packageid'])) {
@@ -1014,11 +1147,13 @@ function package_entry_fetch($storeid, $params = array()) {
 	return !empty($entry_url) ? $entry_url : $package_entry_routes;
 }
 
-function category_entry_fetch($storeid, $params = array()) {
+function category_entry_fetch($storeid, $params = array(), $wxapp = false) {
 	global $_W;
 	$category_list = array();
-	$cachekey = "wn_storex:category_entry:{$storeid}";
-	$category_list = cache_load($cachekey);
+	if (empty($wxapp)) {
+		$cachekey = "wn_storex:category_entry:{$storeid}";
+		$category_list = cache_load($cachekey);
+	}
 	if (empty($category_list)) {
 		$category = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'enabled' => 1), array('id', 'name', 'parentid', 'category_type'), 'id');
 		if (!empty($category) && is_array($category)) {
@@ -1026,34 +1161,55 @@ function category_entry_fetch($storeid, $params = array()) {
 				if (empty($info['parentid'])) {
 					$category_list[$info['id']] = $info;
 					if ($info['category_type'] == 1) {
-						$vue_route = '#/Category/HotelList/' . $storeid . '/';
+						if (!empty($wxapp)) {
+							$vue_route = '/wn_storex/pages/good/goodList?id=' . $info['id'] . '&type=' . $info['category_type'];
+						} else {
+							$vue_route = '#/Category/HotelList/' . $storeid . '/';
+						}
 					} elseif ($info['category_type'] == 2) {
-						if (empty($_W['wn_storex']['store_info']['store_type'])) {
-							$vue_route = '#/Category/Child/' . $storeid . '/';
-						} elseif ($_W['wn_storex']['store_info']['store_type'] == 1) {
-							$vue_route = '#/Category/GoodList/' . $storeid . '/';
+						if (!empty($wxapp)) {
+							$vue_route = '/wn_storex/pages/good/goodList?id=' . $info['id'] . '&type=' . $info['category_type'];
+						} else {
+							if (empty($_W['wn_storex']['store_info']['store_type'])) {
+								$vue_route = '#/Category/Child/' . $storeid . '/';
+							} elseif ($_W['wn_storex']['store_info']['store_type'] == 1) {
+								$vue_route = '#/Category/GoodList/' . $storeid . '/';
+							}
 						}
 					}
-					$category_list[$info['id']]['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $vue_route . $info['id'];
+					if (!empty($wxapp)) {
+						$category_list[$info['id']]['link'] = $vue_route;
+					} else {
+						$category_list[$info['id']]['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $vue_route . $info['id'];
+					}
 					$category_list[$info['id']]['group'] = array();
 				} else {
-			
 					if (!empty($category_list[$info['parentid']])) {
 						$category_list[$info['parentid']]['group'][$key] = $info;
 					}
-					$vue_route = '#/Category/GoodList/' . $storeid . '/';
-					$category_list[$info['parentid']]['group'][$key]['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $vue_route . $info['id'];
+					if (!empty($wxapp)) {
+						$category_list[$info['parentid']]['group'][$key]['link'] = '/wn_storex/pages/category/childCategory?id=' . $info['id'];
+					} else {
+						$vue_route = '#/Category/GoodList/' . $storeid . '/';
+						$category_list[$info['parentid']]['group'][$key]['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $vue_route . $info['id'];
+					}
 				}
 			}
 			unset($info);
 			foreach ($category_list as $k => &$v) {
 				if (empty($v['group']) && $v['category_type'] != 1) {
-					$v['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . '#/Category/GoodList/' . $storeid . '/' .$k;
+					if (!empty($wxapp)) {
+						$v['link'] = '/wn_storex/pages/good/goodList?id=' . $k . '&type=' . $v['category_type'];
+					} else {
+						$v['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . '#/Category/GoodList/' . $storeid . '/' .$k;
+					}
 				}
 			}
 			unset($v);
 		}
-		cache_write($cachekey, $category_list);
+		if (empty($wxapp)) {
+			cache_write($cachekey, $category_list);
+		}
 	}
 	$entry_url = '';
 	if (!empty($params['classid'])) {

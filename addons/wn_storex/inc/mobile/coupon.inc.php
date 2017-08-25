@@ -15,7 +15,7 @@ $uid = mc_openid2uid($_W['openid']);
 activity_get_coupon_type();
 
 if ($op == 'display') {
-	if (!empty($_GPC['from']) && $_GPC['from'] == 'wxapp' && COUPON_TYPE == 2) {
+	if (!empty($_GPC['from']) && $_GPC['from'] == 'wxapp') {
 		wmessage(error(-1, '小程序不支持绑定公众号卡券'), '', 'ajax');
 	}
 	$ids = array();

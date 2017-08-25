@@ -93,7 +93,7 @@ if ($op == 'personal_info') {
 		if (!empty($card_info['params']['cardTimes']) && $card_info['params']['cardTimes']['params']['times_status'] == 1) {
 			$times_status = $card_info['params']['cardTimes']['params'];
 			if (!empty($times_status['times'])) {
-				$user_info['mycard']['cardNums']['status'] = $cardNums['nums_status'];
+				$user_info['mycard']['cardTimes']['status'] = $times_status['times_status'];
 			}
 			$user_info['mycard']['cardTimes']['text'] = $times_status['times_text'];
 			$user_info['mycard']['cardTimes']['endtime'] = $user_info['mycard']['endtime'];

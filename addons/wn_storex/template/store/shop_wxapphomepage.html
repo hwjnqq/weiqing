@@ -1,0 +1,577 @@
+<script src="../../../../../grunt/web/_src/application/util.js"></script>{template 'common/header-storex'}
+<link rel="stylesheet" href="{php echo $_W['siteroot'] . 'addons/wn_storex/template/style/css/membercard.css'}">
+{if $op == 'display'}
+<div class="wn-main wn-main--without">
+	<div class="wn-main__head">店铺设置</div>
+	<div class="wn-main__content">
+		<div class="alert alert-info alert-dismissible wn-home__help" role="alert">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+			</button>
+			<h4>设置说明</h4>
+			<p>左侧展示区，可拖动排序</p>
+			<p>右侧头部组件区，显示所有可添加的组件，每个组件可多次添加，可直接拖动到左侧排序添加，也可以直接点击添加到左侧最下方</p>
+			<p>右侧下方组件编辑区，设置每个组件的具体内容，也可拖动排序，有单独的保存按钮</p>
+			<p>编辑完成后，点击最下方悬浮 <b>提交</b> 按钮保存</p>
+		</div>
+		<div class="wn-home__module" id="app">
+			<div class="app">
+				<div class="app-preview">
+					<div class="app-header"></div>
+					<div class="app-content">
+						<div class="title"><h1><span>首页</span></h1></div>
+						<div>
+							<div class="weui-tab">
+								<div class="wn-home__preview">
+									<draggable :list="openModules" element="div" :options="{group:'modules'}" :no-transition-on-drag="true" @start="drag=true;" @end="drag=false;" @change="moveEnd">
+										<transition-group :name="!drag? 'list-complete' : null" :css="true">
+											<div v-for="(open, index) in openModules" :key="open.type" class="wn-home__preview__item" :class="{'active': index === editModuleIndex}" >
+												<div @click="edit(index)" class="content">
+													<div class="image">
+														<img :src="'../addons/wn_storex/template/style/img/home/' + open.type + '.png'">
+													</div>
+												</div>
+												<div class="remove" v-on:click="removeModule(index)">
+													移除
+												</div>
+											</div>
+										</transition-group>
+									</draggable>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="app-side">
+					<div class="editor">
+						<div class="wn-home__modules" data-toggle="tooltip" data-placement="bottom" title="拖动到左侧排序添加或直接点击添加到最下方" ref="tooltip">
+							<draggable :list="modules" element="div" :options="{group:{name:'modules', pull:'clone', put:false }}" :no-transition-on-drag="true" @start="drag=true;" @end="drag=false">
+								<div v-for="(module, index) in modules" :key="index" class="wn-home__modules__item">
+									<div @click="addModules(index)" class="content" :style="'background-image: url(../addons/wn_storex/template/style/img/home/module-' + module.type + '.png)'">
+									</div>
+								</div>
+							</draggable>
+						</div>
+						<div class="clearfix"></div>
+						<div class="wn-home__edit" v-if="typeof editModuleIndex == 'number'">
+							<div class="wn-home__edit__head">
+								{{typeValue[openModules[editModuleIndex]['type']]}}
+								<span v-if="openModules[editModuleIndex]['type'] == 'slide'">
+									拖动排序，每组最多上传 <span class="c-active">4</span> 张，<span class="c-active">图片尺寸比例750px * 341px</span>
+								</span>
+								<span v-if="openModules[editModuleIndex]['type'] == 'notice'">
+									拖动排序
+								</span>
+								<span v-if="openModules[editModuleIndex]['type'] == 'nav'">
+									拖动排序，推荐每组上传5个或10个
+								</span>
+								<span v-if="openModules[editModuleIndex]['type'] == 'cube'">
+									拖动排序, 每组最多上传4张
+								</span>
+								<span v-if="openModules[editModuleIndex]['type'] == 'recommend'">
+									拖动排序
+								</span>
+							</div>
+							<div class="wn-home__edit__help" v-if="openModules[editModuleIndex]['type'] == 'cube'">
+								<img src="../addons/wn_storex/template/style/img/home/cubeview.jpg" alt="" >
+							</div>
+							<div class="wn-home__editSearch wn-home__edit__item" v-if="openModules[editModuleIndex]['type'] == 'search'">
+								<div class="form-group">
+									<input type="text" class="form-control" v-model.trim="openModules[editModuleIndex]['items']" placeholder="搜索框提示语">
+								</div>
+							</div>
+							<div class="wn-home__editGoods row" v-if="openModules[editModuleIndex]['type'] == 'recommend'">
+								<div class="col-sm-6">
+									已选商品
+									<draggable :list="openModules[editModuleIndex]['items']" element="div" :options="{group:{name:'goods'}}" :no-transition-on-drag="true" @start="drag=true" @end="drag=false" v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
+										<div class="media" v-for="(goods, index) in openModules[editModuleIndex]['items']">
+											<div class="media-left">
+												<a href="#">
+													<img class="media-object" :src="goods.thumb" style="width: 60px; height: 60px; background-color: #666">
+												</a>
+											</div>
+											<div class="media-body" style="width: 100%;">
+												<h4 class="media-heading">{{goods.title}}</h4>
+												<div>
+													{{goods.cprice}}
+													<button class="btn btn-primary btn-sm pull-right" @click="removeGood(index)">移除</button>
+												</div>
+											</div>
+										</div>
+									</draggable>
+								</div>
+								<div class="col-sm-6">
+									<div class="form-group">
+										<div class="input-group">
+											<input type="text" class="form-control" v-model.trim="goodsParams" placeholder="商品搜索">
+											<div class="input-group-btn">
+												<button class="btn btn-default" @click="searchGoods"><i class="fa fa-search"></i></button>
+											</div>
+										</div>
+									</div>
+									<div class="media" v-for="goods in goodsList">
+										<div class="media-left">
+											<a href="#">
+												<img class="media-object" :src="goods.thumb" style="width: 60px; height: 60px; background-color: #666">
+											</a>
+										</div>
+										<div class="media-body" style="width: 100%;">
+											<h4 class="media-heading">{{goods.title}}</h4>
+											<div>
+												{{goods.cprice}}
+												<button class="btn btn-primary btn-sm pull-right" @click="addGood(goods)">添加</button>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="clearfix"></div>
+							</div>
+							<div class="wn-home__editImage" v-if="openModules[editModuleIndex]['type'] == 'notice'">
+								<div class="wn-home__editImage__item wn-home__editImage__item--slide" v-if="!showEdit">
+									<div class="content row">
+										<div class="col-sm-2">
+											排序
+										</div>
+										<div class="col-sm-7">
+											标题
+										</div>
+										<div class="col-sm-3">
+											操作
+										</div>
+									</div>
+								</div>
+								<draggable :list="openModules[editModuleIndex]['items']" element="div" :options="{group:{name:'notice'}}" :no-transition-on-drag="true" @start="drag=true" @end="drag=false" v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
+									<div v-for="(item, index) in openModules[editModuleIndex]['items']" :key="index" class="wn-home__editImage__item wn-home__editImage__item--slide">
+										<div class="content row">
+											<div class="col-sm-2">
+												{{index}}
+											</div>
+											<div class="col-sm-7">
+												<div class="text-over">{{item.title}}</div>
+											</div>
+											<div class="col-sm-3">
+												<a @click="editNotice(index)">编辑</a>
+												<a @click="removeItem(index)">删除</a>
+											</div>
+										</div>
+									</div>
+								</draggable>
+								<div @click="addNotice()" v-show="!showEdit" class="btn btn-primary">点击添加</div>
+								<div class="clearfix"></div>
+								<div class="" v-if="showEdit">
+									<h5>编辑</h5>
+									<div class="form-group">
+										<input type="text" class="form-control" v-model.trim="editValue.title" placeholder="标题">
+										<div class="help-block">设置{{typeValue[openModules[editModuleIndex]['type']]}}标题</div>
+									</div>
+									<div class="form-group">
+										<div class="input-group">
+											<input type="text" class="form-control" v-model.trim="editValue.article_title" placeholder="" readonly>
+											<span class="input-group-btn">
+												<button class="btn btn-default" type="button" ref="modal" data-toggle="modal" data-target="#article"><i class="fa fa-plus-circle green"></i>&nbsp;选择文章</button>
+											</span>
+										</div>
+										<div class="help-block">设置点击公告后显示的文章</div>
+									</div>
+									<div class="form-group">
+										<a @click="hideEdit" class="btn btn-default">取消</a>
+										<a class="btn btn-primary" @click="saveItem">保存</a>
+									</div>
+								</div>
+							</div>
+							<div class="wn-home__editImage" v-if="imageModules.indexOf(openModules[editModuleIndex]['type']) != -1">
+								<div class="wn-home__editImage__item wn-home__editImage__item--slide" v-if="!showEdit">
+									<div class="content row">
+										<div class="col-sm-1">
+
+										</div>
+										<div class="col-sm-4">
+											图片
+										</div>
+										<div class="col-sm-2">
+											标题
+										</div>
+										<div class="col-sm-2">
+											链接
+										</div>
+										<div class="col-sm-3">
+											操作
+										</div>
+									</div>
+								</div>
+								<draggable :list="openModules[editModuleIndex]['items']" element="div" :options="{group:{name:'slide'}}" :no-transition-on-drag="true" @start="drag=true" @end="drag=false" v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
+									<div v-for="(item, index) in openModules[editModuleIndex]['items']" :key="index" class="wn-home__editImage__item" :class="'wn-home__editImage__' + openModules[editModuleIndex]['type']">
+										<div class="content row">
+											<div class="col-sm-1">
+												{{index}}
+											</div>
+											<div class="col-sm-4">
+												<img :src="item.img" alt="">
+											</div>
+											<div class="col-sm-2">
+												<div class="text-over">{{item.title}}</div>
+											</div>
+											<div class="col-sm-2">
+												<div class="text-over">{{item.url}}</div>
+											</div>
+											<div class="col-sm-3">
+												<a @click="editImage(index)">编辑</a>
+												<a @click="removeItem(index)">删除</a>
+											</div>
+										</div>
+									</div>
+								</draggable>
+								<div @click="addImage()" v-show="!showEdit && openModules[editModuleIndex]['items'].length < max[openModules[editModuleIndex]['type']]" class="btn btn-primary">点击添加</div>
+								<div class="clearfix"></div>
+								<div class="" v-if="showEdit">
+									<h5>编辑</h5>
+									<div class="form-group">
+										<input type="text" class="form-control" v-model.trim="editValue.title" placeholder="标题">
+										<div class="help-block">设置{{typeValue[openModules[editModuleIndex]['type']]}}标题</div>
+									</div>
+									<div class="form-group">
+										<div class="input-group">
+											<input type="text" readonly class="form-control" v-model.trim="editValue.name" placeholder="链接标题">
+											<input type="hidden" readonly class="form-control" v-model.trim="editValue.url">
+											<span class="input-group-btn">
+												<button class="btn btn-default" type="button" ref="modal" data-toggle="modal" data-target="#link"><i class="fa fa-plus-circle green"></i>&nbsp;选择链接</button>
+											</span>
+										</div>
+										<div class="help-block">设置{{typeValue[openModules[editModuleIndex]['type']]}}链接,请填写http://或https://完整地址</div>
+									</div>
+									<div class="form-group">
+										<div class="input-group">
+											<input type="text" disabled class="form-control" v-model.trim="editValue.img" placeholder="图片地址">
+											<span class="input-group-btn" @click="uploadImage(editValue, 'img')">
+												<button class="btn btn-default" type="button"><i class="fa fa-plus-circle green"></i>&nbsp;选择图片</button>
+											</span>
+										</div>
+										<div class="help-block">
+											<img :src="editValue.img" alt="" style="width: 320px; height: auto">
+										</div>
+									</div>
+									<div class="form-group">
+										<a @click="showEdit = false" class="btn btn-default">取消</a>
+										<a class="btn btn-primary" @click="saveItem">保存</a>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="clearfix"></div>
+			<div class="modal fade" tabindex="-1" role="dialog" id="link">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<h4 class="modal-title">链接列表</h4>
+						</div>
+						<div class="modal-body">
+							<div class="link-browser wn-home__link">
+								<template v-for="link in linkGroup">
+									<div class="page-header">
+										<h4><i class="fa fa-folder-open-o"></i> {{link.name}}</h4>
+									</div>
+									<div v-if="link.link" class="link">
+										<div class="btn btn-default" @click="addLink(editValue, link.link, link.name)" >{{link.name}}</div>
+									</div>
+									<template v-for="sub in link.group">
+										<div class="btn btn-default" @click="addLink(editValue, sub.link, sub.name)" class="category">{{sub.name}}</div>
+										<div v-if="sub.group" class="subcategory">
+											<div class="btn btn-default" v-for="cat in sub.group" @click="addLink(editValue, cat.link, cat.name)">{{cat.name}}</div>
+										</div>
+									</template>
+								</template>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal fade" tabindex="-1" role="dialog" id="article">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<h4 class="modal-title">文章列表</h4>
+						</div>
+						<div class="modal-body">
+							<div class="link-browser wn-home__link">
+								<template v-for="article in articleList">
+									<div class="page-header">
+										<h4><i class="fa fa-folder-open-o"></i> {{article.title}}</h4>
+									</div>
+									<div v-if="article.article_list" v-for="item in article.article_list" class="link">
+										<div class="btn btn-default" @click="addArticle(editValue, item.id, item.title)">{{item.title}}</div>
+									</div>
+									<div v-if="!article.article_list" class="link">
+										<div>此分类暂无文章</div>
+									</div>
+								</template>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<nav class="navbar navbar-default navbar-fixed-bottom wn-home__navbar">
+				<div class="btn btn-primary" @click="submitModules">提交</div>
+			</nav>
+		</div>
+	</div>
+</div>
+<script>
+	require({
+		paths: {
+			'Vue': "{php echo $_W['siteroot'] . 'addons/wn_storex/template/style/js/vue'}",
+			'sortablejs': "{php echo $_W['siteroot'] . 'addons/wn_storex/template/style/js/Sortable.min'}",
+			'vuedraggable': "{php echo $_W['siteroot'] . 'addons/wn_storex/template/style/js/vuedraggable.min'}",
+		}
+	});
+	require(['bootstrap']);
+	var default_module = {php echo json_encode($default_module)};
+	var homepage = {php echo json_encode($homepage_list)};
+	require(['Vue', 'vuedraggable', 'util'], function (Vue, vuedraggable, util) {
+		Vue.component('draggable', vuedraggable);
+		var vm = new Vue({
+			el: '#app',
+			data: {
+				drag: false,
+				showEdit: false,
+				typeValue: {
+					search: '搜索框',
+					slide: '幻灯片',
+					notice: '公告',
+					nav: '导航',
+					cube: '魔方',
+					adv: '广告条',
+					recommend: '商品推荐'
+				},
+				max: {
+					'slide': 4,
+					nav: 10,
+					cube: 4,
+					adv: 1
+				},
+				imageModules: ['slide', 'nav', 'cube', 'adv'],
+				modules: default_module,
+				openModules: homepage,
+				editModuleIndex: '',
+				editValue: {},
+				editIndex: '',
+				goodsParams: '',
+				goodsList: [],
+				linkGroup: [],
+				articleList: [],
+				ueditor: null
+			},
+			methods: {
+				removeModule: function (index) {
+					var self = this;
+					self.openModules.splice(index, 1);
+					if (index == this.editModuleIndex) {
+						self.editModuleIndex = ''
+					} else if (index < this.editModuleIndex) {
+						self.editModuleIndex--
+					}
+				},
+				addModules: function (index) {
+					var self = this;
+					// Remove job from GUI
+					self.openModules.push(self.modules[index])
+				},
+				moveEnd: function (evt) {
+					// 新增
+					if (evt.hasOwnProperty('added')) {
+						if(evt.added.newIndex <= this.editModuleIndex) {
+							this.editModuleIndex++
+						}
+					} else if (evt.hasOwnProperty('moved')) {
+						if (evt.moved.oldIndex == this.editModuleIndex) {
+							this.editModuleIndex = evt.moved.newIndex
+						} else if (evt.moved.oldIndex > this.editModuleIndex && evt.moved.newIndex <= this.editModuleIndex) {
+							this.editModuleIndex++
+						} else if (evt.moved.oldIndex < this.editModuleIndex && evt.moved.newIndex >= this.editModuleIndex) {
+							this.editModuleIndex--
+						} else {
+							console.log(evt)
+						}
+					} else {
+						console.log(evt)
+					}
+
+				},
+				edit: function (index) {
+					var self = this;
+					self.editModuleIndex = index;
+					self.showEdit = false;
+				},
+				addImage: function () {
+					this.showEdit = true;
+					this.editValue = {
+						url: '',
+						img: '',
+						title: ''
+					}
+				},
+				editImage: function (index) {
+					this.showEdit = true;
+					this.editValue = {
+						img: this.openModules[this.editModuleIndex]['items'][index]['img'],
+						title: this.openModules[this.editModuleIndex]['items'][index]['title'],
+						url: this.openModules[this.editModuleIndex]['items'][index]['url'],
+					};
+					this.editIndex = index;
+				},
+				addNotice: function () {
+					this.showEdit = true;
+					this.editValue = {
+						title: '',
+						article_title: '',
+						id: ''
+					};
+				},
+				editNotice: function (index) {
+					this.showEdit = true;
+					this.editValue = {
+						title: this.openModules[this.editModuleIndex]['items'][index]['title'],
+						id: this.openModules[this.editModuleIndex]['items'][index]['id'],
+						article_title: this.openModules[this.editModuleIndex]['items'][index]['article_title'],
+					};
+					this.editIndex = index;
+				},
+				hideEdit: function () {
+					this.showEdit = false;
+				},
+				removeItem: function (index) {
+					this.openModules[this.editModuleIndex]['items'].splice(index, 1);
+				},
+				saveItem: function () {
+					console.log(typeof this.ueditor);
+					if(this.ueditor && typeof this.ueditor == 'object') {
+						this.editValue.value = this.ueditor.getContent()
+						this.ueditor = null;
+					}
+					var index = this.editModuleIndex;
+					var value = this.editValue;
+					for (var key in value) {
+						if (value[key] === '') {
+							util.message('表单错误', '', 'error');
+							return;
+						}
+					}
+					if (!this.editIndex && typeof this.editIndex != 'number') {
+						this.openModules[index]['items'].push(value)
+					} else {
+						this.openModules[index]['items'][this.editIndex] = value
+					}
+					this.showEdit = false;
+				},
+				uploadImage: function (target, key) {
+					const self = this;
+					require(['fileUploader'], function (uploader) {
+						uploader.show(function (img) {
+							self.$set(target, key, img.url)
+						}, {
+							'direct': true,
+							'multiple': false
+						});
+					});
+				},
+				addLink: function(target, url, name) {
+					this.$set(target, 'url', url);
+					this.$set(target, 'name', name);
+					this.$nextTick(function() {
+						$('#link').modal('hide');
+					})
+				},
+				addArticle: function(target, id, article_title) {
+					this.$set(target, 'id', id);
+					this.$set(target, 'article_title', article_title);
+					this.$nextTick(function() {
+						$('#article').modal('hide');
+					});
+				},
+				searchGoods: function () {
+					const self = this;
+					$.post("{php echo $this->createWebUrl('shop_wxapphomepage', array('op' => 'search_goods', 'storeid' => $_GPC['storeid']))}", {title: this.goodsParams}, function (data) {
+						data = $.parseJSON(data);
+						if (data.message.errno != 0) {
+							util.message(data.message.message, '', 'error');
+						} else {
+							console.log(data.message.message)
+							self.goodsList = data.message.message
+						}
+					});
+				},
+				addGood: function (goods) {
+					var index = this.editModuleIndex;
+					var goodsList = this.openModules[index]['items'];
+					for (var key in goodsList) {
+						if(goodsList[key]['id'] == goods.id) {
+							return ;
+						}
+					}
+					this.openModules[index]['items'].push(goods)
+				},
+				removeGood: function (index) {
+					this.openModules[this.editModuleIndex]['items'].splice(index, 1);
+				},
+				submitModules: function () {
+					$.post("{php echo $this->createWebUrl('shop_wxapphomepage', array('op' => 'post', 'storeid' => $_GPC['storeid']))}", {params: this.openModules}, function (data) {
+						data = $.parseJSON(data);
+						if (data.message.errno != 0) {
+							util.message(data.message.message, '', 'error');
+						} else {
+							util.message('编辑成功', '', 'success');
+						}
+					});
+				}
+			},
+			watch: {
+				'showEdit': function (value) {
+					if (!value) {
+						this.editValue = {};
+						this.editIndex = '';
+					}
+				},
+				'editModuleIndex': function (index) {
+					if (this.openModules[index] && typeof this.openModules[index]['items'] != 'object' && this.openModules[index]['type'] != 'search') {
+						this.openModules[index]['items'] = []
+					}
+				}
+			},
+			created: function () {
+				const self = this;
+				this.editModuleIndex = 0;
+				this.$nextTick(function () {
+					$(this.$refs.tooltip).tooltip();
+					$(this.$refs.modal).modal();
+					$('#link').on('show.bs.modal', function(event) {
+						$.post("{php echo $this->createWebUrl('shop_wxapphomepage', array('op' => 'link', 'storeid' => $_GPC['storeid']))}", {params: this.openModules}, function (data) {
+							data = $.parseJSON(data);
+							if (data.message.errno != 0) {
+								util.message(data.message.message, '', 'error');
+							} else {
+								self.linkGroup = data.message.message;
+							}
+						});
+					});
+					$('#article').on('show.bs.modal', function(event) {
+						$.post("{php echo $this->createWebUrl('shop_wxapphomepage', array('op' => 'article', 'storeid' => $_GPC['storeid']))}", {params: this.openModules}, function (data) {
+							data = $.parseJSON(data);
+							if (data.message.errno != 0) {
+								util.message(data.message.message, '', 'error');
+							} else {
+								self.articleList = data.message.message;
+							}
+						});
+					})
+				})
+			}
+		})
+	})
+</script>
+{/if}
+
+{template 'common/footer-storex'}

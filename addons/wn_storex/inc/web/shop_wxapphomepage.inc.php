@@ -38,7 +38,7 @@ if ($op == 'display') {
 			'items' => array()
 		),
 	);
-	$homepage_list = pdo_getall('storex_homepage', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'is_wxapp' => 2), array(), 'displayorder', 'displayorder ASC');
+	$homepage_list = pdo_getall('storex_homepage', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'is_wxapp' => 1), array(), 'displayorder', 'displayorder ASC');
 	if (!empty($homepage_list) && is_array($homepage_list)) {
 		foreach ($homepage_list as $key => &$value) {
 			unset($value['id'], $value['displayorder'], $value['uniacid'], $value['storeid']);
@@ -72,7 +72,7 @@ if ($op == 'post') {
 	if ($_W['ispost'] && $_W['isajax']) {
 		$params = $_GPC['params'];
 		if (!empty($params) && is_array($params)) {
-			pdo_delete('storex_homepage', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'is_wxapp' => 2));
+			pdo_delete('storex_homepage', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'is_wxapp' => 1));
 			foreach ($params as $key => $value) {
 				if ($value['type'] == 'recommend') {
 					if (!empty($value['items']) && is_array($value['items'])) {
@@ -89,7 +89,7 @@ if ($op == 'post') {
 					'displayorder' => $key,
 					'uniacid' => $_W['uniacid'],
 					'storeid' => $storeid,
-					'is_wxapp' => 2,
+					'is_wxapp' => 1,
 				);
 				pdo_insert('storex_homepage', $insert);
 			}
@@ -128,7 +128,7 @@ if ($op == 'search_goods') {
 
 if ($op == 'link') {
 	if ($_W['ispost'] && $_W['isajax']) {
-		$entries = entry_fetchall($storeid);
+		$entries = wxapp_entry_fetchall($storeid, true);
 		message(error(0, $entries), '', 'ajax');
 	}
 }
@@ -159,4 +159,4 @@ if ($op == 'article') {
 	}
 }
 
-include $this->template('store/shop_homepage');
+include $this->template('store/shop_wxapphomepage');
