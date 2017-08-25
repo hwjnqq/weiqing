@@ -9,8 +9,16 @@ class We7EntityQuery {
 
 	private $query;
 	private $entity;
+	private $eagerLoad = array();
 	public function __construct() {
 		$this->query = new Query();
+	}
+
+	public function with($relations)
+	{
+		$eagerLoad = is_string($relations) ? func_get_args() : $relations;
+		$this->eagerLoad = array_merge($this->eagerLoad, $eagerLoad);
+		return $this;
 	}
 
 
@@ -29,18 +37,42 @@ class We7EntityQuery {
 	 */
 	public function first() {
 		$data = $this->query->get();
-		$this->entity->fill($data);
-		return $this->entity;
+		if($data) {
+			$this->entity = $this->entity->newInstance($data,true);
+			$this->loadRelations(array($this->entity));
+			return $this->entity;
+		}
+		return null;
 	}
+
+	/**
+	 *  加载依赖关系
+	 */
+	private function loadRelations($entitys) {
+		foreach ($this->eagerLoad as $name) {
+			$entitys = $this->eagerLoadRelation($entitys, $name);
+		}
+		return $entitys;
+	}
+
+
+	protected function eagerLoadRelation(array $entitys, $name)
+	{
+		foreach ($entitys as $entity) {
+			$entity->setRelation($name, $entity->{$name});
+		}
+		return $entitys;
+	}
+
 
 	public function getall() {
 		$data = $this->query->getall();
 		$result = array();
 		foreach ($data as $item) {
-			$entity = $this->entity->create_new_entity();
-			$entity->fill($item);
+			$entity = $this->entity->newInstance($item, true);
 			$result[] = $entity;
 		}
+		$this->loadRelations($result);
 		return $result;
 	}
 
