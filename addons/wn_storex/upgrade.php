@@ -667,6 +667,54 @@ $sql = "
 	`url` varchar(500) NOT NULL COMMENT '访问的url地址',
 	PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_blast_message` (
+	  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+	  `uniacid` int(11) NOT NULL,
+	  `storeid` int(10) unsigned NOT NULL,
+	  `type` int(11) DEFAULT NULL,
+	  `time` int(11) DEFAULT NULL,
+	  `title` varchar(255) NOT NULL,
+	  `content` varchar(600) NOT NULL,
+	  `status` int(11) NOT NULL,
+	  `clerkid` int(11) NOT NULL,
+	  `uid` int(10) unsigned NOT NULL DEFAULT '0',
+	  `isdefault` tinyint(4) NOT NULL DEFAULT '2' COMMENT '1为默认，2为不是默认',
+	  PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_blast_user` (
+	  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+	  `uniacid` int(11) NOT NULL,
+	  `storeid` int(10) unsigned NOT NULL,
+	  `clerkid` int(10) unsigned NOT NULL,
+	  `time` int(11) DEFAULT NULL,
+	  `uuid` varchar(255) NOT NULL,
+	  `openid` varchar(255) NOT NULL,
+	  `redirect_uri` varchar(500) NOT NULL,
+	  `wxuin` varchar(500) NOT NULL,
+	  `wxsid` varchar(500) NOT NULL,
+	  `pass_ticket` varchar(1000) NOT NULL,
+	  `post_url_header` varchar(800) NOT NULL,
+	  `synckey` varchar(1000) NOT NULL,
+	  `username` varchar(400) NOT NULL DEFAULT '',
+	  `skey` varchar(500) NOT NULL,
+	  `contact` longtext NOT NULL,
+	  PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_blast_stat` (
+	  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+	  `uniacid` int(11) NOT NULL,
+	  `storeid` int(10) unsigned NOT NULL,
+	  `clerkid` int(11) NOT NULL,
+	  `msgid` int(11) NOT NULL,
+	  `type` int(11) DEFAULT NULL,
+	  `time` int(11) DEFAULT NULL,
+	  `date` varchar(8) NOT NULL,
+	  `num` int(10) unsigned NOT NULL DEFAULT '0',
+	  PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
 ";
 pdo_run($sql);
 
