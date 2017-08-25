@@ -7,7 +7,7 @@
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_blast', array('storeid' => $_GPC['storeid'], 'op' => 'display'))}">店员设置</a>
 			</div>
 			<div class="wn-tabs__item">
-				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_blast', array('storeid' => $_GPC['storeid'], 'op' => 'stat'))}">数据统计</a>
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_blast_stat', array('storeid' => $_GPC['storeid'], 'op' => 'stat'))}">数据统计</a>
 			</div>
 		</div>
 		{if $op == 'display'}
@@ -78,7 +78,7 @@
 				</td>
 				<td>
 					<a href="{php echo $this->createWebUrl('shop_blast_message', array('op' => 'display', 'storeid' => $_GPC['storeid'], 'clerkid' => $item['id'], 'uid' => $item['userid']))}">设置推广信息</a>
-					<a href="javascript:;" class="js-clerk-entry" data-url="{php echo $this->createMobileUrl('blast', array('op' => 'display', 'clerkid' => $item['id']))}">入口二维码</a>
+					<a href="javascript:;" class="js-clerk-entry" data-url="{php echo murl('entry', array('do' => 'blast', 'op' => 'display', 'm' => 'wn_storex', 'clerkid' => $item['id']), true, true)}">入口二维码</a>
 				</td>
 			</tr>
 			{/loop}

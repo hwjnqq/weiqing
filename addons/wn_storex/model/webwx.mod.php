@@ -63,6 +63,7 @@ function webwx_cookie($baseinfo) {
 			'Skey' => $baseinfo['skey'],
 			'DeviceID' => 'e' . rand(10000000, 99999999) . rand(1000000, 9999999)
 		);
+		$post->deviceid = 'e' . rand(10000000, 99999999) . rand(1000000, 9999999);
 		$post->skey = $baseinfo['skey'];
 		$post->pass_ticket = $baseinfo['pass_ticket'];
 		$post->sid = $baseinfo['wxsid'];
@@ -84,15 +85,68 @@ function webwx_init($post, $post_url_header) {
 	return $result;
 }
 
+function webwx_sync($request, $synckey){
+	$url = sprintf($request['post_url_header'] . '/webwxsync?sid=%s&skey=%s&pass_ticket=%s', $request['sid'], $request['skey'], $request['pass_ticket']);
+	$params = array(
+		'BaseRequest'=> $request['request'],
+		'SyncKey'=> $synckey,
+		'rr'=> time()
+	);
+	$result = curlPost($url, $params);
+	$result = json_decode($result, true);
+	$SyncKey = array();
+	if ($result['BaseResponse']['Ret'] == 0){
+		$SyncKey = $result['SyncKey'];
+	}
+	return $SyncKey;
+}
+
+function synccheck($request, $synckey_info){
+	foreach($synckey_info['List'] as $val) {
+		$synckey[] = "{$val['Key']}_{$val['Val']}";
+	}
+	$synckey = implode('|', $synckey);
+	$params = array(
+		'r'=> time(),
+		'sid'=> $request['request']['Sid'],
+		'uin'=> $request['request']['Uin'],
+		'skey'=> $request['request']['Skey'],
+		'deviceid'=> $request['request']['DeviceID'],
+		'synckey'=> $synckey,
+		'_'=> time(),
+	);
+	preg_match("~^https:?(//([^/?#]*))?~", $request['post_url_header'], $match);
+	$url = 'https://webpush.' . $match[2] . '/cgi-bin/mmwebwx-bin/synccheck?' . http_build_query($params);
+	$data = webwx_get($url);
+	if (preg_match('/window.synccheck={retcode:"(\d+)",selector:"(\d+)"}/', $data,$pm)){
+		$retcode = $pm[1];
+		$selector = $pm[2];
+	} else {
+		$retcode = -1;
+		$selector = -1;
+	}
+	return array($retcode, $seslector);
+}
+
 /**
  * web端微信初始化请求,获取联系人信息、公众号信息、自己的账号信息
  * @param array $post cookie信息
  * @return json
  */
 function webwx_getcontact($post, $post_url_header) {
-	$url = $post_url_header . '/webwxgetcontact?pass_ticket=' . $post->pass_ticket . '&seq=0&skey=' . $post->skey . '&r=' . time();
-	$params = array('BaseRequest' => $post->BaseRequest);
+	$url = $post_url_header . '/webwxgetcontact?pass_ticket=' . $post['pass_ticket'] . '&seq=0&skey=' . $post['skey'] . '&r=' . time();
+	$params = array(
+		'BaseRequest' => array(
+			'Uin' => $post['uin'],
+			'Sid' => $post['sid'],
+			'Skey' => $post['skey'],
+			'DeviceID' => $post['deviceid']
+		),
+	);
 	$data = webwx_post($url, $params);
+	if ($data['BaseResponse']['Ret'] != 0) {
+		return error(-1, '获取联系人失败');
+	}
 	return $data;
 }
 /**
@@ -103,21 +157,22 @@ function webwx_getcontact($post, $post_url_header) {
  * @param str $tousername 好友username
  * @return json
  */
-function webwx_sendmsg($user_info_init, $cookie_api, $word, $post_url_header, $tousername='filehelper') {
-	$url = sprintf($post_url_header . '/webwxsendmsg?pass_ticket=%s', $cookie_api->pass_ticket);
+function webwx_sendmsg($params, $word, $fromusername, $tousername = 'filehelper') {
+	$url = sprintf($params['post_url_header'] . '/webwxsendmsg?pass_ticket=%s', $params['pass_ticket']);
 	$clientMsgId = (time() * 1000) . substr(uniqid(), 0,5);
 	$data = array(
-		'BaseRequest'=> $cookie_api->BaseRequest,
+		'BaseRequest'=> $params['request'],
 		'Msg'=> array(
 			'Type' => 1,
 			'Content' => urlencode($word),
-			'FromUserName' => $user_info_init['User']['UserName'],
+			'FromUserName' => $fromusername,
 			'ToUserName' => $tousername,
 			'LocalID' => $clientMsgId,
 			'ClientMsgId' => $clientMsgId
 		)
 	);
 	$result = curlPost($url, $data);
+	$result = @json_decode($result, true);
 	return $result['BaseResponse']['Ret'] == 0;
 }
 /**
@@ -128,15 +183,16 @@ function webwx_sendmsg($user_info_init, $cookie_api, $word, $post_url_header, $t
  * @param str $tousername 好友username
  * @return json
  */
-function webwx_sendimg($user_info_init, $cookie_api, $image, $post_url_header, $tousername = 'filehelper'){
-	$url = sprintf($post_url_header . '/webwxsendmsgimg?fun=async&f=json&pass_ticket=%s', $cookie_api->pass_ticket);
-	$uploadimg = uploadimg($cookie_api, $user_info_init['User']['UserName'], $tousername, $image);
+
+function webwx_sendimg($params, $image, $fromusername, $tousername = 'filehelper'){
+	$url = sprintf($params['post_url_header'] . '/webwxsendmsgimg?fun=async&f=json&pass_ticket=%s', $params['pass_ticket']);
+	$uploadimg = uploadimg($params, $fromusername, $tousername, $image);
 	$data = array(
-		'BaseRequest'=> $cookie_api->BaseRequest,
+		'BaseRequest'=> $params['request'],
 		'Msg'=> array(
 			'Type' => 3,
 			'MediaId' => $uploadimg['MediaId'],
-			'FromUserName' => $user_info_init['User']['UserName'],
+			'FromUserName' => $fromusername,
 			'ToUserName' => $tousername,
 			'LocalID' => (time() * 1000) . substr(uniqid(), 0, 5),
 			'ClientMsgId' => (time() * 1000) . substr(uniqid(), 0, 5)
@@ -144,6 +200,7 @@ function webwx_sendimg($user_info_init, $cookie_api, $image, $post_url_header, $
 		'Scene' => 0
 	);
 	$result = curlPost($url, $data);
+	$result = @json_decode($result, true);
 	return $result['BaseResponse']['Ret'] == 0;
 }
 /**
@@ -154,47 +211,50 @@ function webwx_sendimg($user_info_init, $cookie_api, $image, $post_url_header, $
  * @param str $image 上传图片绝对路径
  * @return json
  */
-function uploadimg($cookie_api, $fromusername, $tousername, $image){
-	$url = 'https://file.wx.qq.com/cgi-bin/mmwebwx-bin/webwxuploadmedia?f=json';
+function uploadimg($params, $fromusername, $tousername, $image){
+	preg_match("~^https:?(//([^/?#]*))?~", $params['post_url_header'], $match);
+	$url_list = explode('.', $match[2]);
+	$header = $url_list[0];
+	$url = sprintf('https://file.%s.qq.com/cgi-bin/mmwebwx-bin/webwxuploadmedia?f=json', $header);
 	$file_time = filemtime($image);
 	$file_size = filesize($image);
-	$pass_ticket = $cookie_api->pass_ticket;
+	$pass_ticket = $params['pass_ticket'];
 	$webwx_data_ticket = '';
 	$fp = fopen(MODULE_URL . 'cookie.cookie', 'r');
 	while ($line = fgets($fp)) {
-        if (strpos($line, 'webwx_data_ticket') !== false){
-            $arr = explode('\t', trim($line));
-            $webwx_data_ticket = $arr[6];
-            break;
-        }
-    }
+		if (strpos($line, 'webwx_data_ticket') !== false){
+			$arr = explode('\t', trim($line));
+			$webwx_data_ticket = $arr[6];
+			break;
+		}
+	}
 	$uploadmediarequest = json_encode(array(
-        'BaseRequest' => $cookie_api->BaseRequest,
-        'ClientMediaId' => (time() * 1000) . mt_rand(10000,99999),
-        'TotalLen' => $file_size,
-        'StartPos' => 0,
-        'DataLen' => $file_size,
-        'MediaType' => 4,
-        'UploadType' =>2,
-        'FromUserName' => $fromusername,
-        'ToUserName' => $tousername,
-        'FileMd5' => md5_file($image)
-    ));
-    $multipart_encoder = array(
-        'id'=> 'WU_FILE_0',
-        'name'=> $image,
-        'type'=> 'images/jpeg',
-        'lastModifieDate'=> gmdate('D M d Y H:i:s TO', $file_time) . ' (CST)',
-        'size'=> $file_size,
-        'mediatype'=> 'pic',
-        'uploadmediarequest'=> $uploadmediarequest,
-        'webwx_data_ticket'=> $webwx_data_ticket,
-        'pass_ticket'=> $cookie_api->pass_ticket,
-        'filename'=> '@' . $image
-    );
-    $result = webwx_post($url, $multipart_encoder, false, true);
-    $result = @json_decode($result, true);
-    return $result;
+		'BaseRequest' => $params['request'],
+		'ClientMediaId' => (time() * 1000) . mt_rand(10000,99999),
+		'TotalLen' => $file_size,
+		'StartPos' => 0,
+		'DataLen' => $file_size,
+		'MediaType' => 4,
+		'UploadType' =>2,
+		'FromUserName' => $fromusername,
+		'ToUserName' => $tousername,
+		'FileMd5' => md5_file($image)
+	));
+	$multipart_encoder = array(
+		'id'=> 'WU_FILE_5',
+		'name'=> $image,
+		'type'=> 'images/jpeg',
+		'lastModifieDate'=> gmdate('D M d Y H:i:s TO', $file_time) . ' (CST)',
+		'size'=> $file_size,
+		'mediatype'=> 'pic',
+		'uploadmediarequest'=> $uploadmediarequest,
+		'webwx_data_ticket'=> $webwx_data_ticket,
+		'pass_ticket'=> $params['pass_ticket'],
+		'filename'=> '@' . $image
+	);
+	$result = webwx_post($url, $multipart_encoder, false, true);
+	$result = @json_decode($result, true);
+	return $result;
 }
 
 function webwx_post($url, $param, $jsonfmt = true, $post_file = false){

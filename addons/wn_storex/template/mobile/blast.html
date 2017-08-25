@@ -3,70 +3,170 @@
 	<meta charset=utf-8>
 	<meta name=viewport content="width=device-width,initial-scale=1,user-scalable=0">
 	<title>{$_W['page']['title']}</title>
-	<style>
-		body {
-			background-color: #ddd;
-			font-size: 12px;
-			color: #494949;
-		}
-		.blast {
-			background-color: #fff;
-			margin: 50px 30px;
-			text-align: center;
-			border-radius: 5px;
-		}
-		.blast__head {
-			padding: 15px;
-			background-color: #428BCA;
-			color: #fff;
-			border-radius: 5px 5px 0 0;
-		}
-		.blast__body {
-			padding: 10px;
-		}
-		.blast__qrcode {
-			max-width: 100%;
-			max-height: 100%;
-		}
-		.blaset__countdown {
-			margin-top: 5px;
-			color: #ababab;
-		}
-		.blaset__time {
-			margin-right: 5px;
-		}
-		.blaset__status {
-			color: #494949;
-		}
-		.blast__footer {
-			padding: 0 15px 15px;
-		}
-		.blaset__btn {
-			background-color: #428BCA;
-			color: #fff;
-			border: 1px solid #ddd;
-			outline: 0;
-			width: 100%;
-			padding: 10px 0;
-			border-radius: 6px;
-		}
-		.blaset__btn--disabled {
-			background-color: #CACACA;
-		}
-	</style>
+	<script type="text/javascript" src="{$_W['siteroot']}addons/wn_storex/template/style/js/vue.js"></script>
 </head>
+<style>
+	body {
+		background-color: #ddd;
+		font-size: 12px;
+		color: #494949;
+	}
+	.blast {
+		background-color: #fff;
+		margin: 50px 30px;
+		text-align: center;
+		border-radius: 5px;
+	}
+	.blast__head {
+		padding: 15px;
+		background-color: #428BCA;
+		color: #fff;
+		border-radius: 5px 5px 0 0;
+	}
+	.blast__body {
+		padding: 10px;
+	}
+	.blast__qrcode {
+		max-width: 100%;
+		max-height: 100%;
+	}
+	.blaset__countdown {
+		margin-top: 5px;
+		color: #ababab;
+	}
+	.blaset__time {
+		margin-right: 5px;
+	}
+	.blaset__status {
+		color: #494949;
+	}
+	.blast__footer {
+		padding: 0 15px 15px;
+	}
+	.blaset__btn {
+		background-color: #428BCA;
+		color: #fff;
+		border: 1px solid #ddd;
+		outline: 0;
+		width: 100%;
+		padding: 10px 0;
+		border-radius: 6px;
+	}
+	.blaset__btn--disabled {
+		background-color: #CACACA;
+	}
+</style>
 <body>
-	<div class="blast">
+{template 'common/header'}
+	<div class="blast" id="blast">
 		<div class="blast__head">欢迎使用本营销工具</div>
 		<div class="blast__body">
-			<img class="blast__qrcode" src="http://qr.api.cli.im/qr?data=http%3A%2F%2F172.16.1.222%2Fapp%2Findex.php%3Fi%3D281%26amp%3Bc%3Dentry%26amp%3Bop%3Ddisplay%26amp%3Bclerkid%3D12%26amp%3Bdo%3Dblast%26amp%3Bm%3Dwn_storex&level=H&transparent=0&blockpixel=12&marginblock=1&logourl=&size=260&kid=cliim&key=72904a68e6615c82ac8ee45f5cb17f17" />
-			<div class="blaset__countdown"><span class="blaset__time">30s</span>后自动刷新二维码</div>
-			<div class="blaset__status">正在群发...</div>
+			<img class="blast__qrcode js-qrcode" src="" />
+			<div class="blaset__countdown"><span class="blaset__time js-send-text">{{send_text}}</span></div>
+			<div class="blaset__status js-qrcode-text">正在获取二维码...</div>
 		</div>
 		<div class="blast__footer">
-			<button class="blaset__btn">刷新二维码</button>
-			<button class="blaset__btn blaset__btn--disabled">不可点击</button>
+			<button class="blaset__btn" @click="qrcodeShow()" v-if="disabled == 1">刷新二维码</button>
+			<button class="blaset__btn blaset__btn--disabled" v-if="disabled == 2">不可点击</button>
 		</div>
 	</div>
 </body>
 </html>
+<script type="text/javascript">
+	var app = new Vue({
+		el: '#blast',
+		data: {
+			disabled : 1,
+			send_text : '',
+			error_text : '刷新二维码重新扫码'
+		},
+		methods: {
+			qrcodeShow() {
+				$('.js-qrcode-text').text('正在获取二维码...');
+				const self = this;
+				self.disabled = 2;
+				$.post("{php echo $this->createMobileUrl('blast', array('op' => 'get_qrcode', 'clerkid' => $_GPC['clerkid']))}", {}, function(data) {
+					data = $.parseJSON(data);
+					$('.js-qrcode').attr('src', data.message.message.link);
+					$('.js-qrcode-text').text('请打开微信扫描二维码');
+					self.disabled = 1;
+					self.checkLogin(data.message.message.uuid);
+				})
+			},
+			checkLogin(uuid) {
+				const self = this
+				$.post("{php echo $this->createMobileUrl('blast', array('op' => 'check_login', 'clerkid' => $_GPC['clerkid']))}", {uuid : uuid}, function(data) {
+					data = $.parseJSON(data);
+					console.dir(data.message.message)
+					if (data.message.errno == 0) {
+						if (data.message.message.code == 400) {
+							self.checkLogin(uuid);
+						} else if (data.message.message.code == 408) {
+							self.checkLogin(uuid);
+						} else if (data.message.message.code == 200) {
+							self.send_text = '登陆成功';
+							self.getUserinfo(uuid, data.message.message.redirect_uri);
+						} else if (data.message.message.code == 201) {
+							self.checkLogin(uuid);
+						}
+					} else {
+						self.send_text = self.error_text;
+					}
+				});
+			},
+			getUserinfo(uuid, redirect) {
+				const self = this;
+				self.send_text = '正在获取信息';
+				$.post("{php echo $this->createMobileUrl('blast', array('op' => 'user_info', 'clerkid' => $_GPC['clerkid']))}", {uuid : uuid, tip : 1, redirect : redirect}, function(data) {
+					data = $.parseJSON(data);
+					console.dir(data.message)
+					if (data.message.errno != 0) {
+						self.send_text = self.error_text
+					} else {
+						self.getContact(data.message.message)
+					}
+				})
+			},
+			getContact(id) {
+				const self = this;
+				$.post("{php echo $this->createMobileUrl('blast', array('op' => 'get_contact', 'clerkid' => $_GPC['clerkid']))}", {id : id}, function(data) {
+					data = $.parseJSON(data);
+					console.dir(data);
+					if (data.message.errno != 0) {
+						self.send_text = self.error_text;
+					} else {
+						contact = data.message.message.contact.list;
+						num = 0;
+						for (var i in contact) {
+							params = {
+								message : data.message.message.message,
+								request : data.message.message.request,
+								pass_ticket : data.message.message.pass_ticket,
+								post_url_header : data.message.message.post_url_header,
+								synckey : data.message.message.synckey,
+								fromusername : data.message.message.fromusername,
+								tousername : contact[i]
+							}
+							$.post("{php echo $this->createMobileUrl('blast', array('op' => 'send_message', 'clerkid' => $_GPC['clerkid']))}", {params : params}, function(data) {
+								data = $.parseJSON(data);
+								if (data.message.errno == 0) {
+									num++;
+									self.send_text = '已成功发送' + num + '人';
+								} else {
+									self.send_text = self.error_text;
+								}
+							});
+						};
+						if (num == data.message.message.contact.count) {
+							self.send_text = '发送完成！';
+						}
+					}
+				})
+			},
+		},
+		created: function () {
+			const self = this;
+			self.qrcodeShow();
+		}
+	})
+</script>
