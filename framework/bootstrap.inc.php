@@ -19,8 +19,9 @@ spl_autoload_register(function($class) {
 		require_once($location);
 	}
 });
-$_W = new \We7\Core\We7App();
-$_GPC = $_W->request;
+$we7app = new \We7\Core\We7App();
+$_W = $we7app->w;
+$_GPC = $we7app->request;
 
 //$_W['siteurl'] = $urls['scheme'].'://'.$urls['host'].((!empty($urls['port']) && $urls['port']!='80') ? ':'.$urls['port'] : '') . $_W['script_name'] . (empty($_SERVER['QUERY_STRING'])?'':'?') . $_SERVER['QUERY_STRING'];
 
@@ -72,3 +73,5 @@ $do = $_GPC['do'];
 
 
 header('Content-Type: text/html; charset=' . $_W['charset']);
+
+return $we7app;

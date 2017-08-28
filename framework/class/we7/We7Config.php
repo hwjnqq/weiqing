@@ -86,7 +86,7 @@ class We7Config implements \ArrayAccess {
 	 *  是否开发者模式
 	 */
 	public function isDev() {
-		return $this->config['setting']['develepment'] === 1;
+		return $this->config['setting']['development'] === 1;
 	}
 
 	/**

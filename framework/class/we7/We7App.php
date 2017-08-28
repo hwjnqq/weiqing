@@ -65,9 +65,9 @@ class We7App extends We7Container {
 		define('DEVELOPMENT', $this->config->isDev());
 		if(DEVELOPMENT) {
 			ini_set('display_errors', '1');
-//			error_reporting(E_ALL ^ E_NOTICE);
+			error_reporting(E_ALL ^ E_NOTICE);
 		} else {
-//			error_reporting(0);
+			error_reporting(0);
 		}
 	}
 
