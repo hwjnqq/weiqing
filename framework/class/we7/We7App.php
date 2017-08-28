@@ -25,11 +25,11 @@ class We7App extends We7Container {
 
 	public function bootstrap() {
 		static::$instance = $this;
-		$this->old_load();
+		$this->initloader();
 		$this->registerBaseService();
 		$this->registerExceptionHandler();
 		$this->checkinstall();
-		$this->oldinit();
+		$this->initglobal();//初始化全局变量
 	}
 
 
@@ -71,7 +71,7 @@ class We7App extends We7Container {
 		}
 	}
 
-	private function old_load() {
+	private function initloader() {
 		require IA_ROOT . '/framework/version.inc.php';
 		require IA_ROOT . '/framework/const.inc.php';
 		require IA_ROOT . '/framework/class/loader.class.php';
@@ -89,7 +89,7 @@ class We7App extends We7Container {
 	/**
 	 *  旧方式兼容
 	 */
-	private function oldinit() {
+	private function initglobal() {
 		define('CLIENT_IP', $this->request->ip());
 		$this->w['config'] = $this->config;
 		// config类去处理
@@ -114,22 +114,32 @@ class We7App extends We7Container {
 		$this->w['script_name'] = htmlspecialchars(scriptname());
 		$this->w['siteroot'] = $this->request->siteroot();
 		$this->w['siteurl'] = $this->request->siteurl();
+		$this->w['os'] = $this->request->os();
+		$this->w['container'] = $this->request->container();
+		$this->initsetting();
+
 
 	}
 
-	protected function initattach() {
-//		$_W['attachurl'] = $_W['attachurl_local'] = $_W['siteroot'] . $_W['config']['upload']['attachdir'] . '/';
-//		if (!empty($_W['setting']['remote']['type'])) {
-//			if ($_W['setting']['remote']['type'] == ATTACH_FTP) {
-//				$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['ftp']['url'] . '/';
-//			} elseif ($_W['setting']['remote']['type'] == ATTACH_OSS) {
-//				$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['alioss']['url'].'/';
-//			} elseif ($_W['setting']['remote']['type'] == ATTACH_QINIU) {
-//				$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['qiniu']['url'].'/';
-//			} elseif ($_W['setting']['remote']['type'] == ATTACH_COS) {
-//				$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['cos']['url'].'/';
-//			}
-//		}
+	protected function initsetting() {
+//		setting_load();
+		$_W = $this->w;
+		if (empty($_W['setting']['upload'])) {
+			$_W['setting']['upload'] = array_merge($_W['config']['upload']);
+		}
+
+		$_W['attachurl'] = $_W['attachurl_local'] = $_W['siteroot'] . $_W['config']['upload']['attachdir'] . '/';
+		if (!empty($_W['setting']['remote']['type'])) {
+			if ($_W['setting']['remote']['type'] == ATTACH_FTP) {
+				$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['ftp']['url'] . '/';
+			} elseif ($_W['setting']['remote']['type'] == ATTACH_OSS) {
+				$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['alioss']['url'].'/';
+			} elseif ($_W['setting']['remote']['type'] == ATTACH_QINIU) {
+				$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['qiniu']['url'].'/';
+			} elseif ($_W['setting']['remote']['type'] == ATTACH_COS) {
+				$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['cos']['url'].'/';
+			}
+		}
 	}
 
 

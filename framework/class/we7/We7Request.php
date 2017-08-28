@@ -7,6 +7,8 @@
  */
 namespace We7\Core;
 
+use Agent;
+
 class We7Request implements \ArrayAccess {
 
 	private $_GPC = array();
@@ -90,6 +92,43 @@ class We7Request implements \ArrayAccess {
 	 */
 	public function scriptname() {
 		return htmlspecialchars(scriptname());
+	}
+
+	/**
+	 *  os
+	 */
+	public function os() {
+		$os = Agent::deviceType();
+		if($os == Agent::DEVICE_MOBILE) {
+			$os = 'mobile';
+		} elseif($os == Agent::DEVICE_DESKTOP) {
+			$os = 'windows';
+		} else {
+			$os = 'unknown';
+		}
+		return $os;
+
+	}
+
+	/**
+	 *  浏览器环境
+	 */
+	public function container() {
+		$container = Agent::browserType();
+		if(Agent::isMicroMessage() == Agent::MICRO_MESSAGE_YES) {
+			$container = 'wechat';
+		} elseif ($container == Agent::BROWSER_TYPE_ANDROID) {
+			$container = 'android';
+		} elseif ($container == Agent::BROWSER_TYPE_IPAD) {
+			$container = 'ipad';
+		} elseif ($container == Agent::BROWSER_TYPE_IPHONE) {
+			$container = 'iphone';
+		} elseif ($container == Agent::BROWSER_TYPE_IPOD) {
+			$container = 'ipod';
+		} else {
+			$container = 'unknown';
+		}
+		return $container;
 	}
 
 

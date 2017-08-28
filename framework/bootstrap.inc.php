@@ -23,55 +23,9 @@ $we7app = new \We7\Core\We7App();
 $_W = $we7app->w;
 $_GPC = $we7app->request;
 
-//$_W['siteurl'] = $urls['scheme'].'://'.$urls['host'].((!empty($urls['port']) && $urls['port']!='80') ? ':'.$urls['port'] : '') . $_W['script_name'] . (empty($_SERVER['QUERY_STRING'])?'':'?') . $_SERVER['QUERY_STRING'];
-
-setting_load();
-
-if (empty($_W['setting']['upload'])) {
-	$_W['setting']['upload'] = array_merge($_W['config']['upload']);
-}
-
-$_W['attachurl'] = $_W['attachurl_local'] = $_W['siteroot'] . $_W['config']['upload']['attachdir'] . '/';
-if (!empty($_W['setting']['remote']['type'])) {
-	if ($_W['setting']['remote']['type'] == ATTACH_FTP) {
-		$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['ftp']['url'] . '/';
-	} elseif ($_W['setting']['remote']['type'] == ATTACH_OSS) {
-		$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['alioss']['url'].'/';
-	} elseif ($_W['setting']['remote']['type'] == ATTACH_QINIU) {
-		$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['qiniu']['url'].'/';
-	} elseif ($_W['setting']['remote']['type'] == ATTACH_COS) {
-		$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['cos']['url'].'/';
-	}
-}
-$_W['os'] = Agent::deviceType();
-if($_W['os'] == Agent::DEVICE_MOBILE) {
-	$_W['os'] = 'mobile';
-} elseif($_W['os'] == Agent::DEVICE_DESKTOP) {
-	$_W['os'] = 'windows';
-} else {
-	$_W['os'] = 'unknown';
-}
-
-$_W['container'] = Agent::browserType();
-if(Agent::isMicroMessage() == Agent::MICRO_MESSAGE_YES) {
-	$_W['container'] = 'wechat';
-} elseif ($_W['container'] == Agent::BROWSER_TYPE_ANDROID) {
-	$_W['container'] = 'android';
-} elseif ($_W['container'] == Agent::BROWSER_TYPE_IPAD) {
-	$_W['container'] = 'ipad';
-} elseif ($_W['container'] == Agent::BROWSER_TYPE_IPHONE) {
-	$_W['container'] = 'iphone';
-} elseif ($_W['container'] == Agent::BROWSER_TYPE_IPOD) {
-	$_W['container'] = 'ipod';
-} else {
-	$_W['container'] = 'unknown';
-}
-
 $controller = $_GPC['c'];
 $action = $_GPC['a'];
 $do = $_GPC['do'];
-
-
 header('Content-Type: text/html; charset=' . $_W['charset']);
 
 return $we7app;
