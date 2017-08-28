@@ -1223,8 +1223,7 @@ function strip_gpc($values, $type = 'g') {
  * @return boolean | string 正常返回路径，否则返回空
  */
 function parse_path($path) {
-	$path = str_replace(array("\0","%00","\r"),'',$path);
-	$danger_char = array('../', '{php', '<?php', '<%', '<?', '..\\', '\\\\' ,'\\', '..\\\\');
+	$danger_char = array('../', '{php', '<?php', '<%', '<?', '..\\', '\\\\' ,'\\', '..\\\\', '%00', '\0', '\r');
 	foreach ($danger_char as $char) {
 		if (strexists($path, $char)) {
 			return false;
@@ -1348,61 +1347,20 @@ function getglobal($key) {
 	return $v;
 }
 
-/**
- *  内网 端口 scheme验证
- *  验证是否是安全 url
- * @param $url
- * @param array $scheme
- */
-function url_is_safe($url, array $allowscheme = array('http','https'),
-                     $allowport = array('80','443')) {
-	$url = str_replace(array("\0","%00","\r"),'',$url);
-	$parseData = parse_url($url);
-	if (!isset($parseData['scheme'])) {
-		return false;
-	}
-
-	if(!in_array($parseData['scheme'], $allowscheme)) {
-		return false;
-	}
-
-	if(isset($parseData['port'])&&!in_array($parseData['port'], $allowport)) {
-		return false;
-	}
-
-	if(!isset($parseData['host'])) {
-		return false;
-	}
-
-	if(!DEVELOPMENT) { //  开发模式才可以 访问127.0.0.*
-		if(strexists($parseData['host'],'127.0.0') || strexists($parseData['host'], 'localhost')) {
-			return false;
-		}
-	}
-
-	// 10 172 192 开头都不允许
-	$pattern = "(10|172|192|127)\\.([0-1][0-9]{0,2}|[2][0-5]{0,2}|[3-9][0-9]{0,1})\\.([0-1][0-9]{0,2}|[2][0-5]{0,2}|[3-9][0-9]{0,1})\\.([0-1][0-9]{0,2}|[2][0-5]{0,2}|[3-9][0-9]{0,1})";
-	if (preg_match($pattern, $parseData['host'])) {
-		return false;
-	}
-
-	return true;
-}
 
 /**
  *  指定开头的字符串
- * @param $haystack
- * @param $needles
+ * @param $haystack 原始字符串
+ * @param $needles 开头字符串
  * @return bool
  */
-function startsWith($haystack, $needles)
+function starts_with($haystack, $needles)
 {
 	foreach ((array) $needles as $needle) {
 		if ($needle != '' && substr($haystack, 0, strlen($needle)) === (string) $needle) {
 			return true;
 		}
 	}
-
 	return false;
 }
 

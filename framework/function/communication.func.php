@@ -266,7 +266,7 @@ function ihttp_parse_url($url, $set_default_port = false) {
 	}
 	if (strexists($url, 'https://') && !extension_loaded('openssl')) {
 		if (!extension_loaded("openssl")) {
-			return error('请开启您PHP环境的openssl', '', '');
+			return error(1,'请开启您PHP环境的openssl', '');
 		}
 	}
 	if (empty($urlset['host'])) {
@@ -275,6 +275,8 @@ function ihttp_parse_url($url, $set_default_port = false) {
 		$urlset['scheme'] = $current_url['scheme'];
 		$urlset['path'] = $current_url['path'] . 'web/' . str_replace('./', '', $urlset['path']);
 		$urlset['ip'] = '127.0.0.1';
+	} else if (! ihttp_allow_host($urlset['host'])){
+		return error(1, 'host 非法');
 	}
 	
 	if ($set_default_port && empty($urlset['port'])) {
@@ -282,6 +284,26 @@ function ihttp_parse_url($url, $set_default_port = false) {
 	}
 	
 	return $urlset;
+}
+
+/**
+ *  是否允许指定host访问
+ * @param $host
+ * @return bool
+ */
+function ihttp_allow_host($host) {
+	global $_W;
+	if (strexists($host, '@')) {
+		return false;
+	}
+	$pattern = "/^(10|172|192|127)/";
+	if (preg_match($pattern, $host) && isset($_W['setting']['ip_white_list'])) {
+		$ip_white_list = $_W['setting']['ip_white_list'];
+		if ($ip_white_list && isset($ip_white_list[$host]) && !$ip_white_list[$host]['status']) {
+			return false;
+		}
+	}
+	return true;
 }
 
 /**

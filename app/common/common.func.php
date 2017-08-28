@@ -42,7 +42,7 @@ function message($msg, $redirect = '', $type = '') {
 		$urls = parse_url($redirect);
 		$redirect = $_W['siteroot'] . 'app/index.php?' . $urls['query'];
 	} else {
-		if(startsWith($redirect,'http') && !startsWith($redirect, $_W['siteroot'])) {
+		if(starts_with($redirect,'http') && !starts_with($redirect, $_W['siteroot'])) {
 			$redirect = $_W['siteroot'];
 		}
 	}
