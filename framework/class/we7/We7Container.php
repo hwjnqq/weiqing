@@ -6,16 +6,32 @@
  * Time: 11:51
  */
 
+namespace We7\Core;
 
 
+use Closure;
 
-class We7Container {
+class We7Container implements \ArrayAccess {
 
 	private $bindings = array();
 
 	private $instances = array();
 
+	protected static $instance;
 
+	/**
+	 * Set the globally available instance of the container.
+	 *
+	 * @return static
+	 */
+	public static function getInstance()
+	{
+		if (is_null(static::$instance)) {
+			static::$instance = new static;
+		}
+
+		return static::$instance;
+	}
 	/**
 	 * @param $abstract
 	 */

@@ -1364,3 +1364,29 @@ function starts_with($haystack, $needles)
 	return false;
 }
 
+/**
+ *  获取容器数据
+ * @param $key
+ * @return mixed|object|static
+ */
+function we7app($key = null) {
+	if(is_null($key)) {
+		return \We7\Core\We7Container::getInstance();
+	}
+	return \We7\Core\We7Container::getInstance()->make($key);
+}
+/**
+ * @param $key
+ * @param null $default
+ */
+function we7request($key, $default = null) {
+	/**
+	 * @var $request \We7\Core\We7Request
+	 */
+	$request = we7app('request');
+	if (!is_null($key)) {
+		return $request->get($key, $default);
+	}
+	return $request;
+}
+
