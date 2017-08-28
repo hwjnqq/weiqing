@@ -15,7 +15,7 @@ namespace We7\Core;
 class We7App extends We7Container {
 
 
-
+	public $w = array();
 	public function __construct() {
 
 		$this->bootstrap();
@@ -86,31 +86,34 @@ class We7App extends We7Container {
 		load()->library('agent');
 	}
 
+	/**
+	 *  旧方式兼容
+	 */
 	private function oldinit() {
 		define('CLIENT_IP', $this->request->ip());
+		$this->w['config'] = $this->config;
 		// config类去处理
 //		$this['config']['db']['tablepre'] = !empty($this['config']['db']['master']['tablepre']) ? $this['config']['db']['master']['tablepre'] : $this['config']['db']['tablepre'];
-		$this['timestamp'] = TIMESTAMP;
-		$this['charset'] = $this->config->charset();
-		$this['clientip'] = CLIENT_IP;
+		$this->w['timestamp'] = TIMESTAMP;
+		$this->w['charset'] = $this->config->charset();
+		$this->w['clientip'] = CLIENT_IP;
 
 		define('ATTACHMENT_ROOT', IA_ROOT .'/attachment/');
 
 		load()->func('cache');
 
 		if($this->config->isSetHttps()) {
-			$this['ishttps'] = $this->config->isHttps();
+			$this->w['ishttps'] = $this->config->isHttps();
 		} else {
-			$this['ishttps'] = $this->request->isHttps();
+			$this->w['ishttps'] = $this->request->isHttps();
 		}
 
-		$this['isajax'] = $this->request->isAjax();
-		$this['ispost'] = $this->request->isPost();
-		$this['sitescheme'] = $this['ishttps'] ? 'https://' : 'http://';
-		$this['script_name'] = htmlspecialchars(scriptname());
-		$this['cache'] =  new We7Cache();
-		$this['siteroot'] = $this->request->siteroot();
-		$this['siteurl'] = $this->request->siteurl();
+		$this->w['isajax'] = $this->request->isAjax();
+		$this->w['ispost'] = $this->request->isPost();
+		$this->w['sitescheme'] = $this->w['ishttps'] ? 'https://' : 'http://';
+		$this->w['script_name'] = htmlspecialchars(scriptname());
+		$this->w['siteroot'] = $this->request->siteroot();
+		$this->w['siteurl'] = $this->request->siteurl();
 
 	}
 

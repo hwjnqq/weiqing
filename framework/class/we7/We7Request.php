@@ -40,7 +40,7 @@ class We7Request implements \ArrayAccess {
 				if (!empty($__input)) {
 					$_GPC['__input'] = $__input;
 					$app = we7app();
-					$app['isajax'] = true;
+					$app->w['isajax']= true;
 				}
 			}
 			unset($input, $__input);
@@ -96,7 +96,7 @@ class We7Request implements \ArrayAccess {
 
 	public function siteroot() {
 		$sitepath = substr($_SERVER['PHP_SELF'], 0, strrpos($_SERVER['PHP_SELF'], '/'));
-		$siteroot = htmlspecialchars(we7app('sitescheme') . $_SERVER['HTTP_HOST'] . $sitepath);
+		$siteroot = htmlspecialchars(we7app()->w['sitescheme'] . $_SERVER['HTTP_HOST'] . $sitepath);
 
 		if(substr($siteroot, -1) != '/') {
 			$siteroot .= '/';
@@ -110,7 +110,7 @@ class We7Request implements \ArrayAccess {
 
 	public function siteurl() {
 		$sitepath = substr($_SERVER['PHP_SELF'], 0, strrpos($_SERVER['PHP_SELF'], '/'));
-		$siteroot = htmlspecialchars(we7app('sitescheme') . $_SERVER['HTTP_HOST'] . $sitepath);
+		$siteroot = htmlspecialchars(we7app()->w['sitescheme'] . $_SERVER['HTTP_HOST'] . $sitepath);
 
 		if(substr($siteroot, -1) != '/') {
 			$siteroot .= '/';
