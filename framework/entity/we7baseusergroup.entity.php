@@ -19,7 +19,15 @@ class We7BaseUserGroup extends We7Entity {
 	 *  获取所有的公众账号
 	 */
 	public function uniaccounts() {
-		
+		$query = We7UniAccount::query()->leftjoin('account','b')
+			->on('a.uniacid','b.uniacid')
+			->on('a.default_acid','b.acid')
+			->where('b.isdeleted <>', 1);
+			$query->leftjoin('uni_account_users','c')
+				->on('a.uniacid','c.uniacid')
+				->where('a.defaultacid <>', 0)
+				->where('c.uid', $this->uid)
+				->orderby('c.rank','DESC');
 	}
 
 	

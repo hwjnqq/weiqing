@@ -109,10 +109,20 @@ class We7User extends We7Entity {
 	}
 
 	/**
+	 *  uni_account_group  附加权限
 	 *  所有公众号和小程序
 	 *  暂不支持分页
 	 */
 	public function accounts() {
+		$query = We7UniAccount::query()->leftjoin('account','b')
+			->on('a.uniacid','b.uniacid')
+			->on('a.default_acid','b.acid')
+			->where('b.isdeleted <>', 1);
+		if( $this->isSuper()) {
+			return $query;
+		} else {
+			return $this->group->uniaccounts();
+		}
 		$query = We7UniAccount::query();
 		$query->from('uni_account','a')
 			->leftjoin('account','b')
