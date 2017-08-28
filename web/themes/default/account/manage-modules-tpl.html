@@ -16,8 +16,10 @@
 				<span class="we7-padding-right">会员权限组： {{owner.group.name}}</span>
 				<span></span>
 			</th>
-			{if canmodify}
+			{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders) || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER && $owner['uid'] != $_W['uid']}
 			<th class="text-right"><a href="{php echo url('user/edit/edit_modules_tpl',array('uid'=>$owner['uid']))}" class="color-default">修改</a></th>
+			{else}
+			<th class="text-right"><a href="" class="color-default"></a></th>
 			{/if}
 		</tr>
 		<tbody ng-repeat="module_tpl in modules_tpl | filter:{'type':'default'}">
@@ -80,7 +82,7 @@
 				<span class="we7-padding-right">应用权限组</span>
 				<span></span>
 			</th>
-			{if canmodify}
+			{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders) || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER && $owner['uid'] != $_W['uid']}
 				<th class="text-right"><a class="color-default" data-toggle="modal" data-target="#change-group">修改</a></th>
 			{/if}
 		</tr>
@@ -139,18 +141,18 @@
 		</tr>
 		</tbody>
 	</table>
-	{if !in_array($owner['uid'], $founders)}
+
 	<table class="table we7-table table-hover account-package-extra">
 		<tr>
 			<th colspan="5" class="text-left">
 				<span class="we7-padding-right">附加权限</span>
 				<span></span>
 			</th>
-			{if canmodify}
+			{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders) || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER && $owner['uid'] != $_W['uid']}
 			<th class="text-right"><a class="color-default" data-toggle="modal" data-target="#jurisdiction-add">修改</a></th>
 			{/if}
 		</tr>
-
+		{if !in_array($owner['uid'], $founders)}
 		<tr>
 			<td colspan="6">
 				<div class="col-sm-1 color-gray text-left we7-padding-none">公众号应用</div>
@@ -181,8 +183,9 @@
 				</div>
 			</td>
 		</tr>
+		{/if}
 	</table>
-	{/if}
+
 	{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders) || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER && $owner['uid'] != $_W['uid']}
 	<p>
 
@@ -197,7 +200,7 @@
 				</div>
 				<div class="modal-body material-content clearfix">
 					<div class="material-nav" ng-init="jurindex=0">
-						<a href="javascript:;" ng-click="jurindex=0"  ng-class="{true:'active',false:''}[jurindex==0]" >模块</a>
+						<a href="javascript:;" ng-click="jurindex=0"  ng-class="{true:'active',false:''}[jurindex==0]" >应用</a>
 						<a href="javascript:;" ng-click="jurindex=1" ng-class="{true:'active',false:''}[jurindex==1]">模板</a>
 					</div>
 					<div class="material-body" ng-show="jurindex==0" id="content-modules">
