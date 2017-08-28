@@ -48,56 +48,58 @@ if ($op == 'getDate') {
 	$sql .= " WHERE roomdate >= " . $btime;
 	$sql .= " AND roomdate < " . ($etime + 86400);
 	$room_price = pdo_fetchall($sql);
-	foreach ($list as $key => $value) {
-		$item = array();
-		if (!empty($room_price)) {
-			foreach ($room_price as $val) {
-				if ($val['roomid'] == $value['id']) {
-					$item[] = $val;
-				}
-			}
-		}
-		$flag = 0;
-		if (!empty($item)) {
-			$flag = 1;
-		}
-		$list[$key]['price_list'] = array();
-		if ($flag == 1) {
-			for ($i = 0; $i <= $pagesize; $i++) {
-				$k = $date_array[$i]['time'];
-				foreach ($item as $p_key => $p_value) {
-					//判断价格表中是否有当天的数据
-					if ($p_value['roomdate'] == $k) {
-						$list[$key]['price_list'][$k]['status'] = $p_value['status'];
-						if (empty($p_value['num'])) {
-							$list[$key]['price_list'][$k]['num'] = '无房';
-						} elseif ($p_value['num'] == -1) {
-							$list[$key]['price_list'][$k]['num'] = '不限';
-						} else {
-							$list[$key]['price_list'][$k]['num'] = $p_value['num'];
-						}
-						$list[$key]['price_list'][$k]['roomid'] = $value['id'];
-						$list[$key]['price_list'][$k]['hotelid'] = $storeid;
-						$list[$key]['price_list'][$k]['has'] = 1;
-						break;
+	if (!empty($list) && is_array($list)) {
+		foreach ($list as $key => $value) {
+			$item = array();
+			if (!empty($room_price)) {
+				foreach ($room_price as $val) {
+					if ($val['roomid'] == $value['id']) {
+						$item[] = $val;
 					}
 				}
-				//价格表中没有当天数据
-				if (empty($list[$key]['price_list'][$k])) {
+			}
+			$flag = 0;
+			if (!empty($item)) {
+				$flag = 1;
+			}
+			$list[$key]['price_list'] = array();
+			if ($flag == 1) {
+				for ($i = 0; $i <= $pagesize; $i++) {
+					$k = $date_array[$i]['time'];
+					foreach ($item as $p_key => $p_value) {
+						//判断价格表中是否有当天的数据
+						if ($p_value['roomdate'] == $k) {
+							$list[$key]['price_list'][$k]['status'] = $p_value['status'];
+							if (empty($p_value['num'])) {
+								$list[$key]['price_list'][$k]['num'] = '无房';
+							} elseif ($p_value['num'] == -1) {
+								$list[$key]['price_list'][$k]['num'] = '不限';
+							} else {
+								$list[$key]['price_list'][$k]['num'] = $p_value['num'];
+							}
+							$list[$key]['price_list'][$k]['roomid'] = $value['id'];
+							$list[$key]['price_list'][$k]['hotelid'] = $storeid;
+							$list[$key]['price_list'][$k]['has'] = 1;
+							break;
+						}
+					}
+					//价格表中没有当天数据
+					if (empty($list[$key]['price_list'][$k])) {
+						$list[$key]['price_list'][$k]['num'] = '不限';
+						$list[$key]['price_list'][$k]['status'] = 1;
+						$list[$key]['price_list'][$k]['roomid'] = $value['id'];
+						$list[$key]['price_list'][$k]['hotelid'] = $storeid;
+					}
+				}
+			} else {
+				//价格表中没有数据
+				for ($i = 0; $i <= $pagesize; $i++) {
+					$k = $date_array[$i]['time'];
 					$list[$key]['price_list'][$k]['num'] = '不限';
 					$list[$key]['price_list'][$k]['status'] = 1;
 					$list[$key]['price_list'][$k]['roomid'] = $value['id'];
 					$list[$key]['price_list'][$k]['hotelid'] = $storeid;
 				}
-			}
-		} else {
-			//价格表中没有数据
-			for ($i = 0; $i <= $pagesize; $i++) {
-				$k = $date_array[$i]['time'];
-				$list[$key]['price_list'][$k]['num'] = '不限';
-				$list[$key]['price_list'][$k]['status'] = 1;
-				$list[$key]['price_list'][$k]['roomid'] = $value['id'];
-				$list[$key]['price_list'][$k]['hotelid'] = $storeid;
 			}
 		}
 	}

@@ -1,5 +1,5 @@
 <?php 
-if (!pdo_fieldexists('storex_room', 'hotelid')) {
+if (pdo_fieldexists('storex_room', 'hotelid')) {
 	pdo_query("ALTER TABLE " . tablename('storex_room') . " CHANGE `hotelid` `store_base_id` INT(11) NULL DEFAULT '0';");
 }
 if (!pdo_fieldexists('storex_room', 'is_house')) {
