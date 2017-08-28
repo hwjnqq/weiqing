@@ -108,6 +108,9 @@ class We7App extends We7Container {
 		$this['ispost'] = $this->request->isPost();
 		$this['sitescheme'] = $this['ishttps'] ? 'https://' : 'http://';
 		$this['script_name'] = htmlspecialchars(scriptname());
+		$this['cache'] =  new We7Cache();
+		$this['siteroot'] = $this->request->siteroot();
+		$this['siteurl'] = $this->request->siteurl();
 
 	}
 

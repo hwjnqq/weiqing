@@ -15,10 +15,10 @@ class We7Config implements \ArrayAccess {
 	private $configfile = '';
 	private $config;
 	private function __construct() {
+
 		$this->configfile = IA_ROOT . "/data/config.php";
 		$this->isloaded = require $this->configfile;
 		if ($this->isloaded) {
-			global $config;
 			$this->config = $config;
 			$this->init();
 		}

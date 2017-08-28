@@ -108,6 +108,19 @@ class We7Request implements \ArrayAccess {
 
 	}
 
+	public function siteurl() {
+		$sitepath = substr($_SERVER['PHP_SELF'], 0, strrpos($_SERVER['PHP_SELF'], '/'));
+		$siteroot = htmlspecialchars(we7app('sitescheme') . $_SERVER['HTTP_HOST'] . $sitepath);
+
+		if(substr($siteroot, -1) != '/') {
+			$siteroot .= '/';
+		}
+		$urls = parse_url($siteroot);
+		$urls['path'] = str_replace(array('/web', '/app', '/payment/wechat', '/payment/alipay', '/api'), '', $urls['path']);
+		return $urls['scheme'].'://'.$urls['host'].((!empty($urls['port']) && $urls['port']!='80') ? ':'.$urls['port'] : '') . $this->scriptname() . (empty($_SERVER['QUERY_STRING'])?'':'?') . $_SERVER['QUERY_STRING'];
+
+	}
+
 
 	/**
 	 *  是否https

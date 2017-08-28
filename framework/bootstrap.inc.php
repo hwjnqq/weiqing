@@ -69,7 +69,6 @@ if(Agent::isMicroMessage() == Agent::MICRO_MESSAGE_YES) {
 $controller = $_GPC['c'];
 $action = $_GPC['a'];
 $do = $_GPC['do'];
-echo 'do';
-exit;
+
 
 header('Content-Type: text/html; charset=' . $_W['charset']);
