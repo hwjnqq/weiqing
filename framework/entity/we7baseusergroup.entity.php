@@ -9,12 +9,20 @@ class We7BaseUserGroup extends We7Entity {
 
 
 	/**
-	 *  uni_group 表
+	 *  
 	 */
 	public function unigroups() {
 		return We7UniGroup::query()->where('id', $this->package());
 	}
 
+	/**
+	 *  获取所有的公众账号
+	 */
+	public function uniaccounts() {
+		
+	}
+
+	
 
 	public function package() {
 		static $package;

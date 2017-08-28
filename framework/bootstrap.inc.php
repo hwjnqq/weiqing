@@ -23,6 +23,7 @@ $we7app = new \We7\Core\We7App();
 $_W = $we7app->w;
 $_GPC = $we7app->request;
 
+
 $controller = $_GPC['c'];
 $action = $_GPC['a'];
 $do = $_GPC['do'];

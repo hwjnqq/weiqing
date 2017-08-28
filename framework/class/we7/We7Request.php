@@ -12,6 +12,7 @@ use Agent;
 class We7Request implements \ArrayAccess {
 
 	private $_GPC = array();
+	private $user = null;
 	private function __construct() {
 		$this->init();
 	}
@@ -54,6 +55,15 @@ class We7Request implements \ArrayAccess {
 		return new We7Request();
 	}
 
+	/**
+	 *  获取当前登录用户
+	 */
+	public function user() {
+		if(is_null($this->user)) {
+			$this->user = \We7User::current();
+		}
+		return $this->user;
+	}
 	/**
 	 *  获取参数
 	 * @param $key

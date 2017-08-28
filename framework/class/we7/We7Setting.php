@@ -13,6 +13,7 @@ class We7Setting implements \ArrayAccess {
 
 	private static $instance;
 	private $loaded = false;
+	private $settingdata = array();
 	private function __construct() {
 
 	}
@@ -21,6 +22,13 @@ class We7Setting implements \ArrayAccess {
 			self::$instance = new We7Setting();
 		}
 		return self::$instance;
+	}
+
+	/**
+	 *  是否上传到云
+	 */
+	public function isUploadCloud() {
+		
 	}
 
 

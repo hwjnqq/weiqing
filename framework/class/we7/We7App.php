@@ -123,21 +123,19 @@ class We7App extends We7Container {
 
 	protected function initsetting() {
 //		setting_load();
-		$_W = $this->w;
-		if (empty($_W['setting']['upload'])) {
-			$_W['setting']['upload'] = array_merge($_W['config']['upload']);
+		if (empty($this->w['setting']['upload'])) {
+			$this->w['setting']['upload'] = array_merge($this->w['config']['upload']);
 		}
-
-		$_W['attachurl'] = $_W['attachurl_local'] = $_W['siteroot'] . $_W['config']['upload']['attachdir'] . '/';
-		if (!empty($_W['setting']['remote']['type'])) {
-			if ($_W['setting']['remote']['type'] == ATTACH_FTP) {
-				$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['ftp']['url'] . '/';
-			} elseif ($_W['setting']['remote']['type'] == ATTACH_OSS) {
-				$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['alioss']['url'].'/';
-			} elseif ($_W['setting']['remote']['type'] == ATTACH_QINIU) {
-				$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['qiniu']['url'].'/';
-			} elseif ($_W['setting']['remote']['type'] == ATTACH_COS) {
-				$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['cos']['url'].'/';
+		$this->w['attachurl'] = $this->w['attachurl_local'] = $this->w['siteroot'] . $this->w['config']['upload']['attachdir'] . '/';
+		if (!empty($this->w['setting']['remote']['type'])) {
+			if ($this->w['setting']['remote']['type'] == ATTACH_FTP) {
+				$this->w['attachurl'] = $this->w['attachurl_remote'] = $this->w['setting']['remote']['ftp']['url'] . '/';
+			} elseif ($this->w['setting']['remote']['type'] == ATTACH_OSS) {
+				$this->w['attachurl'] = $this->w['attachurl_remote'] = $this->w['setting']['remote']['alioss']['url'].'/';
+			} elseif ($this->w['setting']['remote']['type'] == ATTACH_QINIU) {
+				$this->w['attachurl'] = $this->w['attachurl_remote'] = $this->w['setting']['remote']['qiniu']['url'].'/';
+			} elseif ($this->w['setting']['remote']['type'] == ATTACH_COS) {
+				$this->w['attachurl'] = $this->w['attachurl_remote'] = $this->w['setting']['remote']['cos']['url'].'/';
 			}
 		}
 	}

@@ -120,7 +120,7 @@ class We7User extends We7Entity {
 			->on('a.default_acid','b.acid')
 			->where('b.isdeleted <>', 1);
 
-		if(! $this->isFounder()) {
+		if(! $this->isSuper()) {
 			$query->leftjoin('uni_account_users','c')
 				->on('a.uniacid','c.uniacid')
 				->where('a.defaultacid <>', 0)
