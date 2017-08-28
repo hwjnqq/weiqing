@@ -48,7 +48,10 @@ $wn_storex_table = array(
 	'storex_room_assign',
 	'storex_sales_package',
 	'storex_tags',
-	'storex_admin_logs'
+	'storex_admin_logs',
+	'storex_blast_message',
+	'storex_blast_user',
+	'storex_blast_stat',
 );
 foreach ($wn_storex_table as $table){
 	if(pdo_tableexists($table)){
