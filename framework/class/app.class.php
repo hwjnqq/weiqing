@@ -6,33 +6,22 @@
  * Time: 14:39
  */
 
-class We7App implements ArrayAccess {
+class We7App extends We7Container {
 
-	private $attributes = array();
+
+
 	public function __construct() {
-		$this->attributes = new SplFixedArray();
+		$this->bootstrap();
 	}
 
-	public function offsetExists($offset) {
-		return isset($this->attributes[$offset]);
+	public function bootstrap() {
+		$this->registerBaseService();
 	}
 
-
-	public function offsetGet($offset) {
-		return $this->offsetExists($offset) ? $this->attributes[$offset] : null;
+	protected function registerBaseService() {
+		$config = We7Config::instance();
+		$this['config'] = $config;
+		$this['setting'] = We7Setting::query()->getall();
 	}
 
-
-	public function offsetSet($offset, $value) {
-		if (is_null($offset)) {
-			$this->attributes[] = $value;
-		} else {
-			$this->attributes[$offset] = $value;
-		}
-	}
-
-
-	public function offsetUnset($offset) {
-		unset($this->attributes[$offset]);
-	}
 }
