@@ -1011,11 +1011,13 @@ if (ver_compare('1.4.7', $wn_storex_module['version']) == 1) {
 			$members_list[$uid] = $val;
 			$uids[] = $uid;
 		}
-		$mc_members = pdo_getall('mc_members', array('uid' => $uids), array('uid', 'realname', 'mobile'), 'uid');
-		if (!empty($mc_members) && is_array($mc_members)) {
-			foreach ($mc_members as $mc_uid => $info) {
-				if (!empty($members_list[$mc_uid])) {
-					pdo_update('storex_member', array('realname' => $info['realname'], 'mobile' => $info['mobile']), array('id' => $members_list[$mc_uid]['id'], 'from_user' => $members_list[$mc_uid]['from_user']));
+		if (!empty($uids) && is_array($uids)) {
+			$mc_members = pdo_getall('mc_members', array('uid' => $uids), array('uid', 'realname', 'mobile'), 'uid');
+			if (!empty($mc_members) && is_array($mc_members)) {
+				foreach ($mc_members as $mc_uid => $info) {
+					if (!empty($members_list[$mc_uid])) {
+						pdo_update('storex_member', array('realname' => $info['realname'], 'mobile' => $info['mobile']), array('id' => $members_list[$mc_uid]['id'], 'from_user' => $members_list[$mc_uid]['from_user']));
+					}
 				}
 			}
 		}

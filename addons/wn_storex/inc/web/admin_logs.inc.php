@@ -26,7 +26,7 @@ if ($op == 'display') {
 	if ($total > 0) {
 		$pindex = max(1, intval($_GPC['page']));
 		$psize = 20;
-		$list = pdo_getall('storex_admin_logs', $condition, array(), '', '', ($pindex - 1) * $psize . ',' . $psize);
+		$list = pdo_getall('storex_admin_logs', $condition, array(), '', 'id DESC', ($pindex - 1) * $psize . ',' . $psize);
 		$pager = pagination($total, $pindex, $psize);
 	}
 	if (!empty($list) && is_array($list)) {
