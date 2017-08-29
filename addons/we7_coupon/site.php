@@ -699,6 +699,9 @@ class We7_couponModuleSite extends WeModuleSite {
 					message($check['message'], '', 'error');
 				}
 				if (COUPON_TYPE == WECHAT_COUPON) {
+					load()->model('material');
+					$logo_info = material_get($coupon->logo_url);
+					$coupon->logo_url = $logo_info['url'];
 					$status = $coupon_api->CreateCard($coupon->getCardData());
 					if(is_error($status)) {
 						message($status['message'], '', 'error');
