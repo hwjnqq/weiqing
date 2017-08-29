@@ -79,7 +79,10 @@ if ($op == 'goods_info') {
 	}
 	load()->model('mc');
 	$card_credit = card_return_credit_info($uid);
-	$goods_info['give_score'] = intval($goods_info['cprice'] * $card_credit['grant_rate']);
+	$goods_info['give_score'] = 0;
+	if (!empty($card_credit['grant_rate'])) {
+		$goods_info['give_score'] = intval($goods_info['cprice'] * $card_credit['grant_rate']);
+	}
 	$share_data = array(
 		'title' => $goods_info['title'],
 		'desc' => $goods_info['title'] . '--' . $store_info['title'],
