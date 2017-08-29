@@ -8,7 +8,7 @@ function check_params() {
 		$user_info = pdo_get('mc_mapping_fans', array('openid' => $_GPC['u_openid']), array('openid', 'uid'));
 		load()->model('cache');
 		$cachekey = cache_system_key("uid:{$user_info['openid']}");
-		cache_write($cachekey, $user_info['uid']);
+		cache_write($cachekey, $user_info);
 		$_W['openid'] = $user_info['openid'];
 	}
 	$permission_lists = array(

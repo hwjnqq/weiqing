@@ -151,15 +151,39 @@ function card_info_exist($data) {
 	if (!empty($data['email'])) {
 		$email = trim($data['email']);
 		$isexist = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_mc_card_members') . ' WHERE uniacid = :uniacid AND email = :email AND uid != :uid', array(':uniacid' => $_W['uniacid'], ':email' => $email, ':uid' => $uid));
-		if ($isexist >= 1) {
+		if ($isexist >= 1 && card_check_uid($uid, 'email', $email)) {
 			message(error(-1, '邮箱已被注册'), '', 'ajax');
 		}
 	}
 	if (!empty($data['mobile'])) {
 		$mobile = trim($data['mobile']);
 		$isexist = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('storex_mc_card_members') . ' WHERE uniacid = :uniacid AND mobile = :mobile AND uid != :uid', array(':uniacid' => $_W['uniacid'], ':mobile' => $mobile, ':uid' => $uid));
-		if ($isexist >= 1) {
+		if ($isexist >= 1 && card_check_uid($uid, 'mobile', $mobile)) {
 			message(error(-1, '手机号已被注册'), '', 'ajax');
+		}
+	}
+}
+
+function card_check_uid($uid, $type, $value) {
+	global $_W;
+	if (in_array($type, array('email', 'mobile'))) {
+		$records = pdo_getall('storex_mc_card_members', array('uniacid' => $_W['uniacid'], $type => $value, 'uid !=' => $uid), array('uniacid', 'uid', 'openid'));
+		if (!empty($records) && is_array($records)) {
+			load()->model('cache');
+			$cachekey = cache_system_key("uid:{$_W['openid']}");
+			$fans_info = cache_load($cachekey);
+			$uids = array();
+			foreach ($records as $val) {
+				$uids[] = $val['uid'];
+			}
+			$uids_info = pdo_getall('mc_mapping_fans', array('uid' => $uids), array('uniacid', 'uid', 'openid'), 'uid');
+			if (!empty($uids_info) && is_array($uids_info)) {
+				foreach ($uids_info as $info) {
+					if ($info['uniacid'] == $fans_info['uniacid']) {
+						return true;
+					}
+				}
+			}
 		}
 	}
 }
