@@ -316,7 +316,13 @@ function category_room_status($goods_list, $search_data) {
 	$num = $search_data['num'];
 	if (!empty($btime) && !empty($etime) && !empty($num)) {
 		if ($num <= 0 || strtotime($etime) < strtotime($btime) || strtotime($btime) < strtotime('today')) {
-			wmessage(error(-1, '搜索参数错误！'), '', 'ajax');
+			wmessage(error(-1, '数量不能是零'), '', 'ajax');
+		}
+		if (strtotime($etime) < strtotime($btime)) {
+			wmessage(error(-1, '结束时间不能小于开始时间'), '', 'ajax');
+		}
+		if (strtotime($btime) < strtotime('today')) {
+			wmessage(error(-1, '开始时间不能小于当天'), '', 'ajax');
 		}
 	} else {
 		$num = 1;

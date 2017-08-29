@@ -42,13 +42,6 @@ if ($op == 'display') {
 		if ($data['template'] && $data['templateid'] == '') {
 			message('请输入模板ID', referer(), 'info');
 		}
-		//检查填写的昵称是否是关注了该公众号的用户
-		if (!empty($data['nickname'])) {
-			$from_user = pdo_get('mc_mapping_fans', array('nickname' => $data['nickname'], 'uniacid' => $_W['uniacid']));
-			if (empty($from_user)){
-				message('输入的昵称错误或没有关注该公众号，请重新输入！');
-			}
-		}
 		if (!empty($id)) {
 			pdo_update('storex_set', $data, array('id' => $id));
 		} else {
