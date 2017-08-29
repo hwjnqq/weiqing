@@ -12,6 +12,7 @@ load()->model('user');
 load()->classs('weixin.platform');
 load()->model('wxapp');
 load()->model('utility');
+load()->func('file');
 
 $uniacid = intval($_GPC['uniacid']);
 $acid = intval($_GPC['acid']);
