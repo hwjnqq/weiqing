@@ -56,6 +56,7 @@ class We7App extends We7Container {
 		$config = We7Config::instance();
 		$this['config'] = $config;
 		$this['request'] = We7Request::createRequest();
+		$this['setting'] = We7Setting::getInstance();
 	}
 
 	/**
@@ -92,8 +93,7 @@ class We7App extends We7Container {
 	private function initglobal() {
 		define('CLIENT_IP', $this->request->ip());
 		$this->w['config'] = $this->config;
-		// config类去处理
-//		$this['config']['db']['tablepre'] = !empty($this['config']['db']['master']['tablepre']) ? $this['config']['db']['master']['tablepre'] : $this['config']['db']['tablepre'];
+		// config类去处理表前缀
 		$this->w['timestamp'] = TIMESTAMP;
 		$this->w['charset'] = $this->config->charset();
 		$this->w['clientip'] = CLIENT_IP;
@@ -121,22 +121,17 @@ class We7App extends We7Container {
 
 	}
 
+	/**
+	 * 初始化setting
+	 */
 	protected function initsetting() {
 //		setting_load();
 		if (empty($this->w['setting']['upload'])) {
 			$this->w['setting']['upload'] = array_merge($this->w['config']['upload']);
 		}
 		$this->w['attachurl'] = $this->w['attachurl_local'] = $this->w['siteroot'] . $this->w['config']['upload']['attachdir'] . '/';
-		if (!empty($this->w['setting']['remote']['type'])) {
-			if ($this->w['setting']['remote']['type'] == ATTACH_FTP) {
-				$this->w['attachurl'] = $this->w['attachurl_remote'] = $this->w['setting']['remote']['ftp']['url'] . '/';
-			} elseif ($this->w['setting']['remote']['type'] == ATTACH_OSS) {
-				$this->w['attachurl'] = $this->w['attachurl_remote'] = $this->w['setting']['remote']['alioss']['url'].'/';
-			} elseif ($this->w['setting']['remote']['type'] == ATTACH_QINIU) {
-				$this->w['attachurl'] = $this->w['attachurl_remote'] = $this->w['setting']['remote']['qiniu']['url'].'/';
-			} elseif ($this->w['setting']['remote']['type'] == ATTACH_COS) {
-				$this->w['attachurl'] = $this->w['attachurl_remote'] = $this->w['setting']['remote']['cos']['url'].'/';
-			}
+		if($this->setting->isUploadCloud()) {
+			$this->w['attachurl'] = $this->w['attachurl_remote'] = $this->setting->getUploadUrl();
 		}
 	}
 
