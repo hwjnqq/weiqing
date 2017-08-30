@@ -225,7 +225,7 @@
 						</div>
 					</div>
 					{/if}
-					{if $is_house == 1}
+					{if $is_house == 1 && $item['status'] != -1 && $item['status'] != 2}
 					<div class="form-group">
 						<label class="col-xs-12 col-sm-3 col-md-2 control-label">分配房间号</label>
 						<div class="col-sm-2 col-xs-12 form-control-static">
