@@ -228,6 +228,9 @@ if ($op == 'set_credit_password') {
 			wmessage(error(-1, '改密依据不能为空'), '', 'ajax');
 		}
 	} else {
+		if ($password_lock !== $member['password_lock']) {
+			wmessage(error(-1, '改密依据错误'), '', 'ajax');
+		}
 		if (!empty($password_lock)) {
 			$check_password_lock = true;
 		}
