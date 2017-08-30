@@ -128,6 +128,9 @@ if ($op == 'display') {
 				$status = mc_credit_update($member['uid'], 'credit2', -$credit2, array(0, "会员刷卡消费,使用余额支付,扣除{$credit2}余额", 'system', $_W['user']['clerk_id'], $_W['user']['store_id'], $_W['user']['clerk_type']));
 				mc_notice_credit2($member['openid'], $member['uid'], $credit2, '', '收银台消费');
 			}
+			if (!empty($post_money)) {
+				card_give_credit($uid, $post_money);
+			}
 			message(error(0, '支付成功'), $this->createWeburl('paycenterwxmicro', array('op' => 'display')), 'ajax');
 		} else {
 			$log .= ",使用刷卡支付【{$cash}】元";
