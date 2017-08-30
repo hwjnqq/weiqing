@@ -200,6 +200,9 @@ if ($op == 'display') {
 					if (is_error($status)) {
 						message($status, '', 'ajax');
 					}
+					if (!empty($data['final_fee'])) {
+						card_give_credit($uid, $data['final_fee']);
+					}
 					message(error(0, '支付成功'), $this->createWeburl('paycenterwxmicro', array('op' => 'display')), 'ajax');
 				}
 			} else {
