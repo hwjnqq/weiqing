@@ -103,10 +103,6 @@ if ($op == 'search_goods') {
 		$condition = " WHERE weid = :uniacid AND {$_W['wn_storex']['table_storeid']} = :storeid";
 		$params[':uniacid'] = $_W['uniacid'];
 		$params[':storeid'] = $storeid;
-		if ($_W['wn_storex']['store_info']['store_type'] == 1) {
-			$condition .= " AND is_house = :is_house";
-			$params[':is_house'] = 2;
-		} 
 		if (!empty($_GPC['title'])) {
 			$condition .= " AND title LIKE :title";
 			$params[':title'] = "%{$_GPC['title']}%";
