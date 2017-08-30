@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('display', 'edit', 'delete', 'deleteall', 'showall', 'status', 'clerk');
+$ops = array('display', 'edit', 'delete', 'deleteall', 'showall', 'status', 'clerk', 'cost_record');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 if ($op == 'display') {
@@ -140,3 +140,14 @@ if ($op == 'status') {
 		message('设置成功', referer(), 'success');
 	}
 }
+
+// if ($op == 'cost_record') {
+// 	$starttime = empty($_GPC['time']['start']) ? mktime(0, 0, 0, date('m') , 1, date('Y')) : strtotime($_GPC['time']['start']);
+// 	$endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
+// 	$id = intval($_GPC['id']);
+// 	$member = pdo_get('storex_member', array('id' => $id));
+// 	if (!empty($member['from_user'])) {
+// 		$ordes = pdo_getall('storex_order', array('openid' => $member['from_user']));
+// 	}
+// 	include $this->template('store/shop_cost_record');
+// }
