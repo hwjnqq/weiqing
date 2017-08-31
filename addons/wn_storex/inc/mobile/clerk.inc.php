@@ -8,7 +8,7 @@ mload()->model('card');
 mload()->model('order');
 mload()->model('clerk');
 
-$ops = array('permission_storex', 'order', 'order_info', 'edit_order', 'room', 'room_info', 'edit_room', 'assign_room', 'goods', 'status');
+$ops = array('permission_storex', 'order', 'order_info', 'edit_order', 'room', 'room_info', 'edit_room', 'assign_room', 'goods', 'status', 'clerk_pay');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 $uid = mc_openid2uid($_W['openid']);
@@ -555,4 +555,34 @@ if ($op == 'status') {
 	} else {
 		wmessage(error(-1, '参数错误'), '', 'ajax');
 	}
+}
+
+if ($op == 'clerk_pay') {
+	$type = $_GPC['type'];
+	$money = $_GPC['money'];
+	$types = array('credit1', 'credit2');
+	$storeid = intval($_GPC['storeid']);
+	if (empty($storeid)) {
+		wmessage(error(-1, '店铺错误'), '', 'ajax');
+	}
+	$clerk = pdo_get('storex_clerk', array('from_user' => $_W['openid'], 'storeid' => $storeid, 'weid' => $_W['uniacid']), array('id'));
+	if (empty($clerk)) {
+		wmessage(error(-1, '店员不存在'), '', 'ajax');
+	}
+	if (!in_array($type, $types)) {
+		wmessage(error(-1, '收款类型错误'), '', 'ajax');
+	}
+	if ($money <= 0) {
+		wmessage(error(-1, '收款金额错误'), '', 'ajax');
+	}
+	$data = array(
+		'do' => 'usercenter',
+		'op' => 'credit_pay',
+		'type' => $type,
+		'money' => sprintf('%.2f', $money),
+		'clerkid' => $clerk['id'],
+		'm' => 'wn_storex',
+	);
+	$url = murl('entry', $data, true, true);
+	wmessage(error(0, $url), '', 'ajax');
 }

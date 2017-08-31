@@ -213,13 +213,13 @@ if ($op == 'check_password_lock') {
 }
 
 if ($op == 'set_credit_password') {
-	$str = $_GPC['string'];
 	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']));
 	if (!empty($member['password_lock'])) {
+		$str = $_GPC['string'];
 		$cachekey = "wn_storex_password_lock:{$_W['openid']}";
 		$cache = cache_load($cachekey);
 		cache_delete($cachekey);
-		if ($str !== md5($cache . $_W['openid'])) {
+		if (empty($str) || $str !== md5($cache . $_W['openid'])) {
 			wmessage(error(-1, '验证不同过,请重新验证'), '', 'ajax');
 		}
 	}
@@ -240,9 +240,6 @@ if ($op == 'set_credit_password') {
 			wmessage(error(-1, '改密依据不能为空'), '', 'ajax');
 		}
 	} else {
-		if ($password_lock !== $member['password_lock']) {
-			wmessage(error(-1, '改密依据错误'), '', 'ajax');
-		}
 		if (!empty($password_lock)) {
 			$check_password_lock = true;
 		}
@@ -266,4 +263,42 @@ if ($op == 'set_credit_password') {
 	} else {
 		wmessage(error(-1, '设置密码失败'), '', 'ajax');
 	}
+}
+
+if ($op == 'credit_pay') {
+	if (empty($_W['openid'])) {
+		wmessage(error(-1, '请先关注公众号'), '', 'ajax');
+	}
+	$type = $_GPC['type'];
+	$money = $_GPC['money'];
+	$pay_types = array('credit1' => '积分', 'credit2' => '余额');
+	$clerk = pdo_get('storex_clerk', array('id' => intval($_GPC['clerkid'])), array('id'));
+	if (empty($clerk)) {
+		wmessage(error(-1, '二维码错误'), '', 'ajax');
+	}
+	$types = array_keys($pay_types);
+	if (!in_array($type, $types)) {
+		wmessage(error(-1, '收款类型错误'), '', 'ajax');
+	}
+	if ($money <= 0) {
+		wmessage(error(-1, '收款金额错误'), '', 'ajax');
+	}
+	$money = sprintf('%.2f', $money);
+	$uid = mc_openid2uid($_W['openid']);
+	$credit = mc_credit_fetch($uid);
+	if (empty($credit[$type]) || $credit[$type] < $money) {
+		wmessage(error(-1, $pay_types[$type] . '不足'), '', 'ajax');
+	}
+	$log = '通过扫店员码扣除' . $pay_types[$type] . ':' . $money;
+	mc_credit_update($uid, $type, -$money, $log);
+	$data = array(
+		'uniacid' => $_W['uniacid'],
+		'clerkid' => $_GPC['clerkid'],
+		'type' => $type,
+		'money' => sprintf('%.2f', $money),
+		'openid' => $_W['uniacid'],
+		'time' => TIMESTAMP,
+	);
+	pdo_insert('storex_clerk_pay', $data);
+	wmessage(error(0, '支付成功'), '', 'ajax');
 }
