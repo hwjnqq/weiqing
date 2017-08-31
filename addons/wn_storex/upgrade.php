@@ -715,6 +715,17 @@ $sql = "
 	  `num` int(10) unsigned NOT NULL DEFAULT '0',
 	  PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
+		
+	CREATE TABLE IF NOT EXISTS `ims_storex_clerk_pay` (
+	  `id` int(11) NOT NULL AUTO_INCREMENT,
+	  `uniacid` int(11) NOT NULL,
+	  `clerkid` int(11) NOT NULL COMMENT '店员id',
+	  `type` varchar(24) NOT NULL,
+	  `money` decimal(10,2) NOT NULL,
+	  `openid` varchar(100) NOT NULL COMMENT '扫码用户',
+	  `time` int(11) NOT NULL COMMENT '扫码时间',
+	  PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
 ";
 pdo_run($sql);
 
@@ -1029,6 +1040,10 @@ if (pdo_fieldexists('storex_order', 'roomitemid')) {
 
 if (!pdo_fieldexists('storex_homepage', 'is_wxapp')) {
 	pdo_query("ALTER TABLE " . tablename('storex_homepage') . " ADD `is_wxapp` TINYINT(2) NOT NULL DEFAULT '2' COMMENT '是不是小程序1是2不是';");
+}
+//是否开启定位功能
+if (!pdo_fieldexists('storex_set', 'location')) {
+	pdo_query("ALTER TABLE " . tablename('storex_set') . " ADD `location` TINYINT(2) NOT NULL DEFAULT '1' COMMENT '是否开启定位1开2关';");
 }
 
 if (pdo_tableexists('storex_activity_exchange_trades')) {

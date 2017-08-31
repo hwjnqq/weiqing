@@ -38,9 +38,10 @@ if ($op == 'display') {
 			'check_in_templateid' => trim($_GPC['check_in_templateid']),
 			'finish_templateid' => trim($_GPC['finish_templateid']),
 			'nickname' => trim($_GPC['nickname']),
+			'location' => $_GPC['location'],
 		);
 		if ($data['template'] && $data['templateid'] == '') {
-			message('请输入模板ID', referer(), 'info');
+			message('请输入模板ID', referer(), 'error');
 		}
 		if (!empty($id)) {
 			pdo_update('storex_set', $data, array('id' => $id));
@@ -50,7 +51,7 @@ if ($op == 'display') {
 		$cachekey = "wn_storex_set:{$_W['uniacid']}";
 		cache_delete($cachekey);
 		$set = get_storex_set();
-		message('保存设置成功!', referer(), 'success');
+		itoast('保存设置成功!', referer(), 'success');
 	}
 	$set = get_storex_set();
 	include $this->template('hotelset');

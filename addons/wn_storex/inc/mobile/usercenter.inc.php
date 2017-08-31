@@ -35,6 +35,11 @@ if ($op == 'extend_switch') {
 		$extend_switch['plugin_list'] = $plugin_list;
 	}
 	$extend_switch['notice_unread_num'] = $notice_unread_num;
+	$store_set = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('location', 'id'));
+	$extend_switch['location'] = 2;
+	if (!empty($store_set)) {
+		$extend_switch['location'] = $store_set['location'];
+	}
 	wmessage(error(0, $extend_switch), '', 'ajax');
 }
 

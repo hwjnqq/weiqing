@@ -241,6 +241,7 @@ $sql = "
 	`nickname` varchar(20) NOT NULL COMMENT '提醒接收微信',
 	`extend_switch` varchar(400) NOT NULL COMMENT '扩展开关',
 	`source` tinyint(4) NOT NULL DEFAULT '2' COMMENT '卡券类型，1为系统卡券，2为微信卡券',
+	`location` tinyint(2) NOT NULL DEFAULT '1' COMMENT '是否开启定位1开2关',
 	PRIMARY KEY (`id`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
@@ -1030,6 +1031,17 @@ $sql = "
 	  `time` int(11) DEFAULT NULL,
 	  `date` varchar(8) NOT NULL,
 	  `num` int(10) unsigned NOT NULL DEFAULT '0',
+	  PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_clerk_pay` (
+	  `id` int(11) NOT NULL AUTO_INCREMENT,
+	  `uniacid` int(11) NOT NULL,
+	  `clerkid` int(11) NOT NULL COMMENT '店员id',
+	  `type` varchar(24) NOT NULL,
+	  `money` decimal(10,2) NOT NULL,
+	  `openid` varchar(100) NOT NULL COMMENT '扫码用户',
+	  `time` int(11) NOT NULL COMMENT '扫码时间',
 	  PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
 ";

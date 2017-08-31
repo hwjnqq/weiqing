@@ -52,6 +52,7 @@ $wn_storex_table = array(
 	'storex_blast_message',
 	'storex_blast_user',
 	'storex_blast_stat',
+	'storex_clerk_pay',
 );
 foreach ($wn_storex_table as $table){
 	if(pdo_tableexists($table)){
