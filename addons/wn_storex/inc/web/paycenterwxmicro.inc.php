@@ -196,7 +196,7 @@ if ($op == 'display') {
 				if (is_error($result)) {
 					message($result, '', 'ajax');
 				} else {
-					$status = $pay->NoticeMicroSuccessOrder($result);
+					$status = NoticeMicroSuccessOrder($result);
 					if (is_error($status)) {
 						message($status, '', 'ajax');
 					}

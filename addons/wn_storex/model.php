@@ -1320,3 +1320,54 @@ function stock_control($goodsid, $buynums, $type) {
 		}
 	}
 }
+
+/*
+ * 刷卡支付成功后的操作.
+* $result 数组是微信刷卡支付成功返回的数据
+* */
+function NoticeMicroSuccessOrder($result) {
+	if(empty($result['out_trade_no'])) {
+		return array('errno' => -1, 'message' => '交易单号错误');
+	}
+	$pay_log = pdo_get('core_paylog', array('uniontid' => $result['out_trade_no']));
+	if(empty($pay_log)) {
+		return array('errno' => -1, 'message' => '交易日志不存在');
+	}
+	$order = pdo_get('storex_paycenter_order', array('uniontid' => $result['out_trade_no']));
+	if(empty($order)) {
+		return array('errno' => -1, 'message' => '交易订单不存在');
+	}
+	$data = array(
+			//'transaction_id' => $result['transaction_id'],
+			'status' => 1,
+			'openid' => $result['openid'],
+	);
+	pdo_update('core_paylog', $data, array('uniontid' => $result['out_trade_no']));
+	$data['trade_type'] = strtolower($result['trade_type']);
+	$data['paytime'] = strtotime($result['time_end']);
+	$data['uniontid'] = $result['out_trade_no'];
+	$data['follow'] = $result['is_subscribe'] == 'Y' ? 1 : 0;
+	pdo_update('storex_paycenter_order', $data, array('uniontid' => $result['out_trade_no']));
+	if(!$order['credit_status'] && $order['uid'] > 0) {
+		load()->model('mc');
+		$member_credit = mc_credit_fetch($order['uid']);
+		$message = '';
+		if($member_credit['credit1'] < $order['credit1']) {
+			$message = '会员账户积分少于需扣除积分';
+		}
+		if($member_credit['credit2'] < $order['credit2']) {
+			$message = '会员账户余额少于需扣除余额';
+		}
+		if(!empty($message)) {
+			return array('errno' => -10, 'message' => "该订单需要扣除会员积分:{$order['credit1']}, 扣除余额{$order['credit2']}.出错:{$message}.你需要和会员沟通解决该问题.");
+		}
+		if($order['credit1'] > 0) {
+			$status = mc_credit_update($order['uid'], 'credit1', -$order['credit1'], array(0, "会员刷卡消费,使用积分抵现,扣除{$order['credit1']}积分", 'system', $order['clerk_id'], $order['store_id'], $order['clerk_type']));
+		}
+		if($order['credit2'] > 0) {
+			$status = mc_credit_update($order['uid'], 'credit2', -$order['credit2'], array(0, "会员刷卡消费,使用余额支付,扣除{$order['credit2']}余额", 'system', $order['clerk_id'], $order['store_id'], $order['clerk_type']));
+		}
+	}
+	pdo_update('storex_paycenter_order', array('credit_status' => 1), array('id' => $order['id']));
+	return true;
+}
