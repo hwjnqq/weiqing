@@ -4,7 +4,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 
-$ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete', 'extend_switch', 'credit_password', 'check_password_lock', 'set_credit_password');
+$ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete', 'extend_switch', 'credit_password', 'check_password_lock', 'set_credit_password', 'credit_pay');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -205,12 +205,24 @@ if ($op == 'check_password_lock') {
 	if ($member['password_lock'] != trim($_GPC['password_lock'])) {
 		wmessage(error(-1, '更改密码依据输入错误'), '', 'ajax');
 	} else {
-		wmessage(error(0, trim($_GPC['password_lock'])), '', 'ajax');
+		$cachekey = "wn_storex_password_lock:{$_W['openid']}";
+		$str = random(8, 1);
+		cache_write($cachekey, $str);
+		wmessage(error(0, md5($str . $_W['openid'])), '', 'ajax');
 	}
 }
 
 if ($op == 'set_credit_password') {
+	$str = $_GPC['string'];
 	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']));
+	if (!empty($member['password_lock'])) {
+		$cachekey = "wn_storex_password_lock:{$_W['openid']}";
+		$cache = cache_load($cachekey);
+		cache_delete($cachekey);
+		if ($str !== md5($cache . $_W['openid'])) {
+			wmessage(error(-1, '验证不同过,请重新验证'), '', 'ajax');
+		}
+	}
 	$password = trim($_GPC['password']);
 	$password_lock = trim($_GPC['password_lock']);
 	if (istrlen($password) < 6) {
