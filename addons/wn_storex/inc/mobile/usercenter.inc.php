@@ -296,7 +296,7 @@ if ($op == 'credit_pay') {
 		'clerkid' => $_GPC['clerkid'],
 		'type' => $type,
 		'money' => sprintf('%.2f', $money),
-		'openid' => $_W['uniacid'],
+		'openid' => $_W['openid'],
 		'time' => TIMESTAMP,
 	);
 	pdo_insert('storex_clerk_pay', $data);
