@@ -33,19 +33,25 @@ if ($op == 'display') {
 			'type' => 'adv',
 			'items' => array()
 		),
-		array(
+	);
+	if ($_W['wn_storex']['store_info']['store_type'] != 1) {
+		$default_module[] = array(
 			'type' => 'recommend',
 			'items' => array()
-		),
-	);
+		);
+	}
 	$homepage_list = pdo_getall('storex_homepage', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'is_wxapp' => 1), array(), 'displayorder', 'displayorder ASC');
 	if (!empty($homepage_list) && is_array($homepage_list)) {
 		foreach ($homepage_list as $key => &$value) {
 			unset($value['id'], $value['displayorder'], $value['uniacid'], $value['storeid']);
 			$value['items'] = !empty($value['items']) ? iunserializer($value['items']) : '';
 			if ($value['type'] == 'recommend') {
-				$recommend_key = $key;
-				$recommend_info = $value;
+				if ($_W['wn_storex']['store_info']['store_type'] != STORE_TYPE_HOTEL) {
+					$recommend_key = $key;
+					$recommend_info = $value;
+				}else {
+					unset($homepage_list[$key]);
+				}
 			}
 		}
 		if (!empty($recommend_info['items']) && is_array($recommend_info['items'])) {

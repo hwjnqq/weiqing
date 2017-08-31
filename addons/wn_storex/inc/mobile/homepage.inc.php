@@ -47,8 +47,12 @@ if ($op == 'display') {
 			unset($value['displayorder'], $value['uniacid'], $value['storeid']);
 			$value['items'] = !empty($value['items']) ? iunserializer($value['items']) : '';
 			if ($value['type'] == 'recommend') {
-				$recommend_key = $key;
-				$recommend_info = $value;
+				if ($store_info['store_type'] != STORE_TYPE_HOTEL) {
+					$recommend_key = $key;
+					$recommend_info = $value;
+				}else {
+					unset($homepage_list[$key]);
+				}
 			}
 		}
 		$tablaname = gettablebytype($store_info['store_type']);
