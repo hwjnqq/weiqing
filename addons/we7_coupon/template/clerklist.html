@@ -54,6 +54,7 @@
 	<p>2、添加店员可以设置店员操作的权限</p>
 	<p>3、店员可以登录系统后台（工作台）来进行相应的操作</p>
 	<p>4、门店已删除的店员将无法登陆系统后台（工作台）,可通过编辑重新设置门店以后登陆</p>
+	<p>5、绑定操作员操作将会把积分、余额统计，现金消费统计，收银台收款统计中的店员信息全部替换为要绑定的操作员</p>
 </div>
 
 <div class="main">
@@ -96,6 +97,9 @@
 						<td>{$item['mobile']}</td>
 						<td>{$item['nickname']}</td>
 						<td>
+							{if $item['new'] == 2}
+							<a href="javascript:;" class="js-bind-clerk" data-clerkid="{$item['id']}" data-olduid="{$item['uid']}">绑定操作员</a>
+							{/if}
 							{if !empty($stores[$item['storeid']])}
 							<a onclick="if (confirm('使用该店员帐号后，会更改您当前登录的用户，是否继续？')) {alert('使用完毕后，您退出店员帐号重新登录管理帐号即可。')} else { return false;}" href="{php echo $this->createWeburl('clerklist',array('op' => 'switch', 'id' => $item['id']));}" title="编辑">使用该店员帐号</a>&nbsp;-&nbsp;
 							{/if}
@@ -113,7 +117,66 @@
 	</form>
 </div>
 </div>
+<div class="modal fade" id="bindclerk-modal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel">选择你要创建店员</h4>
+			</div>
+			<div class="modal-body clearfix form-horizontal">
+				{if !empty($available_user)}
+				{loop $available_user $user}
+				<div class="form-group marbot0">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="uid" value="{$user['uid']}"/>{$user['user_info']['username']}
+						</label>
+						<div class="help-block">
+							{loop $user['permission'] $permission}
+							<span class="label label-success">{$permission}</span>
+							{/loop}
+						</div>
+					</div>
+				</div>
+				{/loop}
+				{else}
+				<div class="form-group marbot0 text-center">
+					暂无可用操作员(<a style="color:blue" href="{php echo url('module/permission', array('m' => 'we7_coupon'))}">点击进入权限设置，添加操作员</a>)
+				</div>
+				{/if}
+			</div>
+			{if !empty($available_user)}
+			<div class="modal-footer">
+				<input type="hidden" name="clerkid">
+				<input type="hidden" name="olduid">
+				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				<button type="button" class="btn btn-primary js-bind-submit" data-dismiss="modal" >确定</button>
+			</div>
+			{/if}
+		</div>
+	</div>
+</div>
 <script>
+	$('.js-bind-clerk').click(function(data) {
+		$('#bindclerk-modal').modal('show');
+		clerkid = $(this).data('clerkid');
+		olduid = $(this).data('olduid');
+		$('input[name="clerkid"]').val(clerkid);
+		$('input[name="olduid"]').val(olduid);
+	});
+	$('.js-bind-submit').click(function(data) {
+		if (confirm('此操作将会把积分、余额统计，现金消费统计，收银台收款统计中的店员信息全部替换为绑定的操作员，确定吗')) {
+			uid = $('#bindclerk-modal input[type=radio]:checked').val();
+			clerkid =  $('input[name=clerkid]').val();
+			olduid = $('input[name=olduid]').val();
+			url = "{php echo $this->createWeburl('clerklist', array('op' => 'bind'))}";
+			url += '&uid=' + uid + '&clerkid=' + clerkid + '&olduid=' + olduid;
+			location.href = url;
+		};
+		return false;
+	});
 	require(['bootstrap'],function($){
 		$('[data-toggle="popover"]').popover()
 	});

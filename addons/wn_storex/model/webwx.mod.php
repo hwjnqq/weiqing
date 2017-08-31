@@ -44,10 +44,19 @@ function webwx_login($redirect_uri) {
 		preg_match("~^https:?(//([^/?#]*))?~", $redirect_uri, $match);
 		$https_header = $match[0];
 		$post_url_header = $https_header . "/cgi-bin/mmwebwx-bin";
-		$result = webwx_get($redirect_uri);
-		$baseinfo = (array)simplexml_load_string($result, 'SimpleXMLElement', LIBXML_NOCDATA);
+		$result = ihttp_get($redirect_uri);
+		foreach ($result['headers']['Set-Cookie'] as $key => $value) {
+			preg_match('/^(.+?)\s?\=\s?(.+?);/', $value, $match);
+			$cookie[$match[1]] = $match[2];
+		}
+		if (!empty($cookie) && is_array($cookie)) {
+			foreach ($cookie as $key => $value) {
+				$cookie_str .= $key . '=' . $value . '; ';
+			}
+		}
+		$baseinfo = (array)simplexml_load_string($result['content'], 'SimpleXMLElement', LIBXML_NOCDATA);
 	}
-	return array('baseinfo' => $baseinfo, 'post_url_header' => $post_url_header);
+	return array('baseinfo' => $baseinfo, 'post_url_header' => $post_url_header, 'cookie' => $cookie_str);
 }
 
 function webwx_cookie($baseinfo) {
@@ -85,6 +94,19 @@ function webwx_init($post, $post_url_header) {
 	return $result;
 }
 
+function webwxstatusnotify($request){
+	$url = sprintf($request['post_url_header'] . '/webwxstatusnotify?lang=zh_CN&pass_ticket=%s', $request['pass_ticket']);
+	$params = array(
+		'BaseRequest'=> $request['request'],
+		'Code' => 3,
+		'FromUserName' => $request['fromusername'],
+		'ToUserName' => $request['fromusername'],
+		'ClientMsgId' => time()
+	);
+	$result = webwx_post($url, $params);
+	return $result['BaseResponse']['Ret'] == 0;
+}
+
 function webwx_sync($request, $synckey){
 	$url = sprintf($request['post_url_header'] . '/webwxsync?sid=%s&skey=%s&pass_ticket=%s', $request['sid'], $request['skey'], $request['pass_ticket']);
 	$params = array(
@@ -101,23 +123,25 @@ function webwx_sync($request, $synckey){
 	return $SyncKey;
 }
 
-function synccheck($request, $synckey_info){
-	foreach($synckey_info['List'] as $val) {
-		$synckey[] = "{$val['Key']}_{$val['Val']}";
+function synccheck($request, $synckey_info, $cookie){
+	if (!empty($synckey_info)) {
+		foreach($synckey_info['List'] as $val) {
+			$synckey[] = "{$val['Key']}_{$val['Val']}";
+		}
+		$synckey = implode('|', $synckey);
 	}
-	$synckey = implode('|', $synckey);
 	$params = array(
-		'r'=> time(),
+		'r'=> time() * 1000,
+		'skey'=> $request['request']['Skey'],
 		'sid'=> $request['request']['Sid'],
 		'uin'=> $request['request']['Uin'],
-		'skey'=> $request['request']['Skey'],
 		'deviceid'=> $request['request']['DeviceID'],
 		'synckey'=> $synckey,
-		'_'=> time(),
+		'_'=> time() * 1000,
 	);
 	preg_match("~^https:?(//([^/?#]*))?~", $request['post_url_header'], $match);
 	$url = 'https://webpush.' . $match[2] . '/cgi-bin/mmwebwx-bin/synccheck?' . http_build_query($params);
-	$data = webwx_get($url);
+	$data = webwx_get($url, '', $cookie);
 	if (preg_match('/window.synccheck={retcode:"(\d+)",selector:"(\d+)"}/', $data,$pm)){
 		$retcode = $pm[1];
 		$selector = $pm[2];
@@ -317,7 +341,7 @@ function webwx_post($url, $param, $jsonfmt = true, $post_file = false){
 	}
 }
 
-function webwx_get($url,$api = false){
+function webwx_get($url,$api = false, $cookie = ''){
 	$oCurl = curl_init();
 	if (stripos($url, 'https://') !== FALSE){
 		curl_setopt($oCurl, CURLOPT_SSL_VERIFYPEER, FALSE);
@@ -326,7 +350,8 @@ function webwx_get($url,$api = false){
 	}
 	$header = array(
 		'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36',
-		'Referer: https://wx.qq.com/'
+		'Referer: https://wx.qq.com/',
+		'Cookie: ' . $cookie
 	);
 	if ($api == 'webwxgetvoice') {
 		$header[] = 'Range: bytes=0-';
@@ -336,9 +361,11 @@ function webwx_get($url,$api = false){
 	curl_setopt($oCurl, CURLOPT_HTTPHEADER, $header);
 	curl_setopt($oCurl, CURLOPT_URL, $url);
 	curl_setopt($oCurl, CURLOPT_RETURNTRANSFER, 1);
-	curl_setopt($oCurl, CURLOPT_TIMEOUT, 36);
-	curl_setopt($oCurl, CURLOPT_COOKIEFILE, MODULE_URL . 'cookie.cookie');
-	curl_setopt($oCurl, CURLOPT_COOKIEJAR, MODULE_URL . 'cookie.cookie');
+	curl_setopt($oCurl, CURLOPT_TIMEOUT, 60);
+	curl_setopt($oCurl, CURLOPT_COOKIEFILE, $cookie);
+	curl_setopt($oCurl, CURLOPT_COOKIEJAR, $cookie);
+	// curl_setopt($oCurl, CURLOPT_COOKIEFILE, IA_ROOT . '/addons/wn_storex/cookie.cookie');
+	// curl_setopt($oCurl, CURLOPT_COOKIEJAR, IA_ROOT . '/addons/wn_storex/cookie.cookie');
 	$sContent = curl_exec($oCurl);
 	$aStatus = curl_getinfo($oCurl);
 	curl_close($oCurl);
