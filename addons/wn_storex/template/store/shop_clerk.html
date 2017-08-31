@@ -74,6 +74,7 @@
 				</div>
 			</div>
 		</div>
+		{if $op == 'display'}
 		<table class="table table-hover wn-table table-bordered">
 			<thead class="navbar-inner">
 				<tr>
@@ -128,6 +129,7 @@
 					{/if}
 				</td>
 				<td>
+					<a class="btn btn-default " data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('shop_clerk', array('op' => 'pay_record','id' => $item['id'], 'storeid' => $_GPC['storeid'], 'uid' => $item['userid']))}" title="收款记录">收款记录</a>
 					<a class="btn btn-default " data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('shop_clerk', array('op' => 'edit','id' => $item['id'], 'storeid' => $_GPC['storeid'], 'uid' => $item['userid']))}" title="编辑"><i class="fa fa-edit"></i></a>
 					{if $item['status'] == 0}
 					<a class="btn btn-default" title="显示" href="#" onclick="drop_confirm('您确定要启用此用户吗?', '{php echo $this->createWebUrl('shop_clerk', array('op' => 'status', 'status' => 1, 'id' => $item['id'], 'storeid' => $_GPC['storeid']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
@@ -148,6 +150,38 @@
 			</tbody>
 			<input name="token" type="hidden" value="{$_W['token']}" />
 		</table>
+		{/if}
+		{if $op == 'pay_record'}
+		<div class="wn-main__search__action">
+			<a href="{php echo $this->createWebUrl('shop_clerk', array('op' => 'display', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">-返回店员列表</a>
+		</div>
+		<table class="table table-hover wn-table table-bordered">
+			<thead class="navbar-inner">
+				<tr>
+					<th style='width:100px'>序号</th>
+					<th style='width:210px'>店员</th>
+					<th style='width:150px'>支付类型</th>
+					<th style='width:150px'>支付金额</th>
+					<th style='width:150px'>支付用户</th>
+					<th style='width:150px'>支付时间</th>
+				</tr>
+			</thead>
+			<tbody>
+			{loop $pay_record $record}
+			<tr>
+				<td>{$record['id']}</td>
+				<td>{$clerk['username']}</td>
+				<td>
+					{if $record['type'] == 'credit1'}积分{else}余额{/if}
+				</td>
+				<td>{$record['money']}</td>
+				<td>{$record['openid']}</td>
+				<td>{php echo date('Y-m-d H:i', $record['time'])}</td>
+			</tr>
+			{/loop}
+			</tbody>
+		</table>
+		{/if}
 		{$pager}
 	</div>
 </div>

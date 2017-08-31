@@ -10,7 +10,7 @@ if (!check_ims_version()) {
 load()->model('mc');
 load()->model('module');
 
-$ops = array('display', 'edit', 'delete', 'deleteall', 'showall', 'status', 'clerkcommentlist');
+$ops = array('display', 'edit', 'delete', 'deleteall', 'showall', 'status', 'clerkcommentlist', 'pay_record');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $storeid = intval($_W['wn_storex']['store_info']['id']);
@@ -159,4 +159,15 @@ if ($op == 'status') {
 	} else {
 		message('设置成功', referer(), 'success');
 	}
+}
+
+if ($op == 'pay_record') {
+	$id = intval($_GPC['id']);
+	$pindex = max(1, intval($_GPC['page']));
+	$psize = 20;
+	$clerk = pdo_get('storex_clerk', array('id' => $id), array('username'));
+	$pay_record = pdo_getall('storex_clerk_pay', array('clerkid' => $id, 'uniacid' => $_W['uniacid']), array(), '', 'time DESC', ($pindex - 1) * $psize . ',' . $psize);
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_clerk_pay') . " WHERE clerkid={$id} AND uniacid={$_W['uniacid']}");
+	$pager = pagination($total, $pindex, $psize);
+	include $this->template('store/shop_clerk');
 }
