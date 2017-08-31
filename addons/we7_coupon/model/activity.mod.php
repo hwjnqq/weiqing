@@ -388,3 +388,37 @@ function we7_coupon_mc_check($data) {
 	}
 	return true;
 }
+
+/*
+ * 会员积分|优惠券信息变更操作员
+ * */
+function we7_coupon_get_operator($clerk_type, $store_id, $clerk_id) {
+	global $_W;
+	if (empty($stores) || empty($clerks)) {
+		$clerks = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name', 'uid'), 'uid');
+		$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid']), array('id', 'business_name', 'branch_name'), 'id');
+	}
+	$data = array(
+		'clerk_cn' => '',
+		'store_cn' => '',
+	);
+	if($clerk_type == 1) {
+		$data['clerk_cn'] = '系统';
+	} elseif($clerk_type == 2) {
+		$data['clerk_cn'] = pdo_fetchcolumn('SELECT username FROM ' . tablename('users') . ' WHERE uid = :uid', array(':uid' => $clerk_id));
+	} elseif($clerk_type == 3) {
+		if (empty($clerk_id)) {
+			$data['clerk_cn'] = '本人操作';
+		} else {
+			$data['clerk_cn'] = $clerks[$clerk_id]['name'];
+		}	
+		$data['store_cn'] = $stores[$store_id]['business_name'] . ' ' . $stores[$store_id]['branch_name'];
+	}
+	if (empty($data['store_cn'])) {
+		$data['store_cn'] = '暂无门店信息';
+	}
+	if (empty($data['clerk_cn'])) {
+		$data['clerk_cn'] = '暂无操作员信息';
+	}
+	return $data;
+}

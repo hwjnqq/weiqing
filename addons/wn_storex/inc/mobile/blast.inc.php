@@ -10,6 +10,7 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 load()->model('mc');
 mload()->model('card');
 mload()->model('webwx');
+
 $uid = mc_openid2uid($_W['openid']);
 $clerk_id = intval($_GPC['clerkid']);
 $clerk_info = pdo_get('storex_clerk', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid'], 'id' => $clerk_id), array('id', 'storeid'));
@@ -18,6 +19,7 @@ if (empty($clerk_info)) {
 }
 if ($op == 'display') {
 	$blast_message = pdo_get('storex_blast_message', array('uniacid' => $_W['uniacid'], 'status' => 1, 'clerkid' => $clerk_id));
+	$uuid = webwx_getuuid();
 }
 
 if ($op == 'get_qrcode') {
@@ -45,7 +47,18 @@ if ($op == 'user_info') {
 	if ($user_info_init['BaseResponse']['Ret'] != 0) {
 		message(error(-1, '信息有误，请重新扫码'), '', 'ajax');
 	}
-
+	$request = array(
+		'request' => array(
+			'Uin' => $baseinfo['baseinfo']['wxuin'],
+			'Sid' => $baseinfo['baseinfo']['wxsid'],
+			'Skey' => $baseinfo['baseinfo']['skey'],
+			'DeviceID' => 'e' . rand(10000000, 99999999) . rand(1000000, 9999999)
+		),
+		'post_url_header' => $post_url_header,
+		'pass_ticket' => $baseinfo['baseinfo']['pass_ticket'],
+		'fromusername' => $user_info_init['User']['UserName'],
+		'cookie' => $baseinfo['cookie']
+	);
 	$baserequest = array(
 		'uin' => $baseinfo['baseinfo']['wxuin'],
 		'skey' => $baseinfo['baseinfo']['skey'],
@@ -79,11 +92,24 @@ if ($op == 'user_info') {
 		'post_url_header' => $post_url_header,
 		'synckey' => iserializer($user_info_init['SyncKey']),
 		'username' => $user_info_init['User']['UserName'],
-		'contact' => iserializer($username_list)
+		'contact' => iserializer($username_list),
+		'cookie' => $baseinfo['cookie']
 	);
 	pdo_insert('storex_blast_user', $user_info);
 	$id = pdo_insertid();
-	message(error(0, $id), '', 'ajax');
+	$request = array(
+		'request' => array(
+			'Uin' => $baseinfo['baseinfo']['wxuin'],
+			'Sid' => $baseinfo['baseinfo']['wxsid'],
+			'Skey' => $baseinfo['baseinfo']['skey'],
+			'DeviceID' => 'e' . rand(10000000, 99999999) . rand(1000000, 9999999)
+		),
+		'post_url_header' => $post_url_header,
+		'pass_ticket' => $baseinfo['baseinfo']['pass_ticket'],
+		'fromusername' => $user_info_init['User']['UserName'],
+		'cookie' => $baseinfo['cookie']
+	);
+	message(error(0, array('id' => $id, 'request' => $request, 'synckey' => $user_info_init['SyncKey'], 'cookie' => $baseinfo['cookie'], 'list' => $contact['MemberList'])), '', 'ajax');
 }
 
 if ($op == 'get_contact') {
@@ -131,6 +157,7 @@ if ($op == 'get_contact') {
 }
 
 if ($op == 'send_message') {
+	sleep(2);
 	$request = $_GPC['params']['request'];
 	$pass_ticket = $_GPC['params']['pass_ticket'];
 	$tousername = $_GPC['params']['tousername'];
@@ -169,8 +196,20 @@ if ($op == 'send_message') {
 		}
 		message(error(0, ''), '', 'ajax');
 	} else {
-		message(error(-1, '刷新二维码重新扫码'), '', 'ajax');
+		message(error(-1, $result), '', 'ajax');
 	}
+}
+
+if ($op == 'heart') {
+	$request = $_GPC['request'];
+	$synckey = $_GPC['synckey'];
+	$cookie = $_GPC['cookie'];
+	$new_key = webwx_sync($request, $synckey);
+	$result = synccheck($request, $nkey, $cookie);
+	if ($result[0] != 0) {
+		message(error(-1, ''), '', 'ajax');
+	}
+	message(error(0, $result), '', 'ajax');
 }
 
 include $this->template('blast');

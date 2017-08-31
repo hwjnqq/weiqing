@@ -1966,6 +1966,16 @@ class We7_couponModuleSite extends WeModuleSite {
 					$uids[] = $row['uid'];
 				}
 			}
+			$new_clerk_permission = pdo_getall('users_permission', array('uid' => $uids, 'uniacid' => $_W['uniacid'], 'type' => 'we7_coupon'), 'uid', 'uid');
+			if (!empty($list) && is_array($list)) {
+				foreach ($list as $key => &$value) {
+					$value['new'] = 2;
+					if (!empty($new_clerk_permission[$value['uid']])) {
+						$value['new'] = 1;
+					}
+				}
+				unset($value);
+			}
 			$uids = implode(',', $uids);
 			$users = pdo_fetchall('SELECT username,uid FROM ' . tablename('users') . " WHERE uid IN ({$uids})", array(), 'uid');
 			$pager = pagination($total, $pindex, $psize);
@@ -1985,6 +1995,25 @@ class We7_couponModuleSite extends WeModuleSite {
 				message(error(0), '', 'ajax');
 			}
 		}
+
+		if ($op == 'bind') {
+			$clerkid = intval($_GPC['clerkid']);
+			$uid = intval($_GPC['uid']);
+			$user_permissions = pdo_get('users_permission', array('uid' => $uid, 'uniacid' => $_W['uniacid'], 'type' => 'we7_coupon'), array('id'));
+			if (empty($user_permissions)) {
+				message('操作员信息错误', '', 'error');
+			}
+			$status = pdo_update('activity_clerks', array('uid' => $uid), array('id' => $clerkid));
+			pdo_update('mc_credits_record', array('clerk_id' => $uid), array('uniacid' => $_W['uniacid'], 'clerk_id' => $_GPC['olduid']));
+			pdo_update('mc_cash_record', array('clerk_id' => $uid), array('uniacid' => $_W['uniacid'], 'clerk_id' => $_GPC['olduid']));
+			if (!empty($status)) {
+				message('绑定成功', referer(), 'success');
+			} else {
+				message('绑定失败', referer(), 'error');
+			}
+		
+		}
+
 		if ($op == 'post') {
 			$uid = intval($_GPC['uid']);
 			$user_info = user_single($uid);
@@ -2630,7 +2659,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					if (!in_array($da['uid'], $uids)) {
 						$uids[] = $da['uid'];
 					}
-					$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
+					$operator = we7_coupon_get_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
 					$da['clerk_cn'] = $operator['clerk_cn'];
 					$da['store_cn'] = $operator['store_cn'];
 				}
@@ -2825,7 +2854,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					if (!in_array($da['uid'], $uids)) {
 						$uids[] = $da['uid'];
 					}
-					$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
+					$operator = we7_coupon_get_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
 					$da['clerk_cn'] = $operator['clerk_cn'];
 					$da['store_cn'] = $operator['store_cn'];
 				}
@@ -3039,7 +3068,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					if (!in_array($da['uid'], $uids)) {
 						$uids[] = $da['uid'];
 					}
-					$operator = mc_account_change_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
+					$operator = we7_coupon_get_operator($da['clerk_type'], $da['store_id'], $da['clerk_id']);
 					$da['clerk_cn'] = $operator['clerk_cn'];
 					$da['store_cn'] = $operator['store_cn'];
 					if (empty($da['clerk_type'])) {
