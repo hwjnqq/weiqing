@@ -39,32 +39,32 @@ if ($do == 'home') {
 } elseif ($do == 'display') {
 	//模版调用，显示该用户所在用户组可添加的主公号数量，已添加的数量，还可以添加的数量
 	$account_info = uni_user_account_permission();
-
+	
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	$condition = array();
+	
+	$account_table = table('account');
+	$account_table->searchWithType(array(ACCOUNT_TYPE_APP_NORMAL));
+	
 	$keyword = trim($_GPC['keyword']);
-
-	$condition['type'] = array(ACCOUNT_TYPE_APP_NORMAL);
-
 	if (!empty($keyword)) {
-		$condition['keyword'] = trim($_GPC['keyword']);
+		$account_table->searchWithKeyword($keyword);
 	}
-	if(isset($_GPC['letter']) && strlen($_GPC['letter']) == 1) {
-		$condition['letter'] = trim($_GPC['letter']);
-	}
+	
+	$account_table->searchWithPage($pindex, $psize);
+	$wxapp_lists = $account_table->searchAccountList();
+	$total = $account_table->getLastQueryTotal();
 
-	$wxapp_account_lists = uni_account_list($condition, array($pindex, $psize));
-	
-	$wxapp_lists = $wxapp_account_lists['list'];
-	$total = $wxapp_account_lists['total'];
-	
 	if (!empty($wxapp_lists)) {
-		$wxapp_cookie_uniacids = array();
-		if (!empty($_GPC['__wxappversionids'])) {
-			$wxappversionids = json_decode(htmlspecialchars_decode($_GPC['__wxappversionids']), true);
-			foreach ($wxappversionids as $version_val) {
-				$wxapp_cookie_uniacids[] = $version_val['uniacid'];
+		foreach ($wxapp_lists as &$account) {
+			$account = uni_fetch($account['uniacid']);
+			$account['versions'] = wxapp_get_some_lastversions($account['uniacid']);
+			if (!empty($account['versions'])) {
+				foreach ($account['versions'] as $version) {
+					if (!empty($version['current'])) {
+						$account['current_version'] = $version;
+					}
+				}
 			}
 		}
 	}

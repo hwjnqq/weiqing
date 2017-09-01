@@ -45,6 +45,11 @@ function message($msg, $redirect = '', $type = '', $tips = false) {
 	if($redirect == 'referer') {
 		$redirect = referer();
 	}
+	// 只能跳转到本域名下
+	if(starts_with($redirect,'http') && !starts_with($redirect, $_W['siteroot'])) {
+		$redirect = $_W['siteroot'];
+	}
+
 	if($redirect == '') {
 		$type = in_array($type, array('success', 'error', 'info', 'warning', 'ajax', 'sql')) ? $type : 'info';
 	} else {
@@ -176,6 +181,7 @@ function buildframes($framename = ''){
 		cache_build_frame_menu();
 		$frames = cache_load('system_frame');
 	}
+
 	//模块权限，创始人有所有模块权限
 	$modules = uni_modules(false);
 	$sysmodules = system_modules();
@@ -221,7 +227,7 @@ function buildframes($framename = ''){
 			$new_modules = array_reverse($modules);
 			$i = 0;
 			foreach ($new_modules as $module) {
-				if (!empty($module['issystem'])) {
+				if (!empty($module['issystem']) || $module['wxapp_support'] == 2) {
 					continue;
 				}
 				if ($i == 5) {
@@ -450,6 +456,7 @@ function buildframes($framename = ''){
 
 	//进入小程序后的菜单
 	if (FRAME == 'wxapp') {
+		load()->model('wxapp');
 		$version_id = intval($_GPC['version_id']);
 		$wxapp_version = wxapp_version($version_id);
 		if (!empty($wxapp_version['modules'])) {
@@ -481,7 +488,7 @@ function buildframes($framename = ''){
 		}
 	}
 	foreach ($frames as $menuid => $menu) {
-		if (!empty($menu['founder']) && empty($_W['isfounder']) || user_is_vice_founder() && in_array($menuid, array('site', 'advertisement', 'appmarket')) || $_W['role'] == ACCOUNT_MANAGE_NAME_CLERK && in_array($menuid, array('account', 'wxapp', 'system'))) {
+		if (!empty($menu['founder']) && empty($_W['isfounder']) || user_is_vice_founder() && in_array($menuid, array('site', 'advertisement', 'appmarket')) || $_W['role'] == ACCOUNT_MANAGE_NAME_CLERK && in_array($menuid, array('account', 'wxapp', 'system')) || !$menu['is_display']) {
 			continue;
 		}
 		$top_nav[] = array(
@@ -492,6 +499,7 @@ function buildframes($framename = ''){
 			'icon' => $menu['icon'],
 		);
 	}
+
 	return !empty($framename) ? $frames[$framename] : $frames;
 }
 
@@ -527,6 +535,22 @@ function filter_url($params) {
 	$query_arr['page'] = 1;
 	$query = http_build_query($query_arr);
 	return './index.php?' . $query;
+}
+
+function url_params($url) {
+	$result = array();
+	if (empty($url)) {
+		return $result;
+	}
+	$components = parse_url($url);
+	$params = explode('&',$components['query']);
+	foreach ($params as $param) {
+		if (!empty($param)) {
+			$param_array = explode('=',$param);
+			$result[$param_array[0]] = $param_array[1];
+		}
+	}
+	return $result;
 }
 /**
  * 系统菜单中预设的附加权限

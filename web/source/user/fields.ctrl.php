@@ -37,7 +37,6 @@ if ($do == 'display') {
 }
 
 if ($do == 'post') {
-	uni_user_permission_check('system_user_fields_post');
 	$_W['page']['title'] = '编辑字段 - 用户管理';
 	$id = intval($_GPC['id']);
 

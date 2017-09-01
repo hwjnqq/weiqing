@@ -29,7 +29,8 @@ function code_verify($uniacid, $receiver, $code) {
 function utility_image_rename($image_source_url, $image_destination_url) {
 	global $_W;
 	load()->func('file');
-	if (empty($image_source_url) || !parse_path($image_source_url)) {
+	$image_source_url = str_replace(array("\0","%00","\r"),'',$image_source_url);
+	if (empty($image_source_url) || !parse_path($image_source_url) || !file_is_image($image_source_url)) {
 		return false;
 	}
 	if (!strexists($image_source_url, $_W['siteroot'])) {

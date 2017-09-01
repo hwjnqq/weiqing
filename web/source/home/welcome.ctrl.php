@@ -21,9 +21,6 @@ if ($do == 'platform' || $do == 'ext') {
 }
 
 if ($do == 'platform') {
-	if ($_W['role'] == ACCOUNT_MANAGE_NAME_CLERK) {
-		itoast('', url('module/display'), 'info');
-	}
 	$last_uniacid = uni_account_last_switch();
 	if (empty($last_uniacid)) {
 		itoast('', url('account/display'), 'info');

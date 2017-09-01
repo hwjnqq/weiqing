@@ -10,7 +10,6 @@ load()->model('extension');
 
 $dos = array('display', 'post', 'del', 'default', 'copy', 'switch', 'quickmenu_display', 'quickmenu_post');
 $do = in_array($do, $dos) ? $do : 'display';
-uni_user_permission_check('platform_site');
 $_W['page']['title'] = '微官网';
 //获取默认微站
 $setting = uni_setting($_W['uniacid'], 'default_site');
@@ -77,7 +76,7 @@ if ($do == 'post') {
 		}
 		itoast('更新站点信息成功！', url('site/multi/display'), 'success');
 	}
-	
+
 	if (!empty($id)) {
 		$multi = pdo_fetch('SELECT * FROM ' . tablename('site_multi') . ' WHERE uniacid = :uniacid AND id = :id', array(':uniacid' => $_W['uniacid'], ':id' => $id));
 		if (empty($multi)) {
@@ -86,7 +85,7 @@ if ($do == 'post') {
 		$multi['site_info'] = iunserializer($multi['site_info']) ? iunserializer($multi['site_info']) : array();
 	}
 
-	
+
 	$temtypes = ext_template_type();
 	$temtypes[] = array('name' => 'all', 'title' => '全部');
 
@@ -135,7 +134,6 @@ if ($do == 'display') {
 }
 
 if ($do == 'del') {
-	// uni_user_permission_check('site_multi_del');
 	$id = intval($_GPC['id']);
 	if ($default_site == $id) {
 		itoast('您删除的微站是默认微站,删除前先指定其他微站为默认微站', referer(), 'error');

@@ -18,28 +18,31 @@ $account_info = uni_user_account_permission();
 if ($do == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-
-	$condition = array();
 	
-
-	$type_condition = array(
-		ACCOUNT_TYPE_APP_NORMAL => array(ACCOUNT_TYPE_APP_NORMAL),
-		ACCOUNT_TYPE_OFFCIAL_NORMAL => array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH),
-	);
-	$condition['type'] = $type_condition[ACCOUNT_TYPE];
+	
+	$pindex = max(1, intval($_GPC['page']));
+	$psize = 15;
+	
+	$account_table = table('account');
+	$account_table->searchWithType(array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH));
 	
 	$keyword = trim($_GPC['keyword']);
 	if (!empty($keyword)) {
-		$condition['keyword'] = $keyword;
+		$account_table->searchWithKeyword($keyword);
 	}
 	
 	if(isset($_GPC['letter']) && strlen($_GPC['letter']) == 1) {
-		$condition['letter'] = trim($_GPC['letter']);
+		$account_table->searchWithLetter($_GPC['letter']);
+	}
+	$account_table->searchWithPage($pindex, $psize);
+	$list = $account_table->searchAccountList();
+	
+	foreach($list as &$account) {
+		$account = uni_fetch($account['uniacid']);
+		$account['role'] = uni_permission($_W['uid'], $account['uniacid']);
 	}
 	
-	$account_lists = uni_account_list($condition, array($pindex, $psize));
-	$list = $account_lists['list'];
-	$total = $account_lists['total'];
+	$total = $account_table->getLastQueryTotal();
 	$pager = pagination($total, $pindex, $psize);
 	template('account/manage-display' . ACCOUNT_TYPE_TEMPLATE);
 }

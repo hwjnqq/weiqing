@@ -5,140 +5,16 @@
 define('IN_SYS', true);
 require '../framework/bootstrap.inc.php';
 require IA_ROOT . '/web/common/bootstrap.sys.inc.php';
+
 load()->web('common');
 load()->web('template');
 load()->func('file');
+load()->model('permission');
 
 if (empty($_W['isfounder']) && !empty($_W['user']) && ($_W['user']['status'] == USER_STATUS_CHECK || $_W['user']['status'] == USER_STATUS_BAN)) {
 	message('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决！');
 }
-$_W['acl'] = $acl = array(
-	'account' => array(
-		'default' => '',
-		'direct' => array(
-			'auth',
-			'welcome'
-		),
-		'operator' => array(
-			'display',
-			'manage'
-		)
-	),
-	'article' => array(
-		'direct' => array(
-			'notice-show',
-			'news-show'
-		),
-		'founder' => array(
-			'news',
-			'notice'
-		),
-		'vice-founder' => array(
-			'notice-show',
-			'news-show'
-		),
-	),
-	'cloud' => array(
-		'default' => 'touch',
-		'direct' => array(
-			'touch',
-			'dock',
-			'download'
-		),
-		'founder' => array(
-			'diagnose',
-			'redirect',
-			'upgrade',
-			'process',
-			'device'
-		),
-		'vice-founder' => array(),
-	),
-	'home' => array(
-		'default' => 'welcome',
-		'founder' => array(),
-		'direct' => array()
-	),
-	'platform' => array(
-		'default' => 'reply',
-		'founder' => array(),
-		'direct' => array(
-			'link'
-		)
-	),
-	'site' => array(
-		'default' => '',
-		'founder' => array(),
-		'direct' => array(
-			'entry'
-		)
-	),
-	'user' => array(
-		'default' => 'display',
-		'founder' => array(
-			'edit',
-			'group'
-		),
-		'direct' => array(
-			'login',
-			'register',
-			'logout'
-		)
-	),
-	'utility' => array(
-		'direct' => array(
-			'verifycode',
-			'code',
-			'file',
-			'bindcall',
-			'subscribe',
-			'wxcode',
-			'modules'
-		)
-	),
-	'module' => array(
-		'direct' => array(),
-		'founder' => array(),
-		'manager' => array(
-			'group'
-		),
-		'operator' => array()
-	),
-	'system' => array(
-		'direct' => array(),
-		'founder' => array(
-			'attachment',
-			'bom',
-			'database',
-			'filecheck',
-			'logs',
-			'menu',
-			'optimize',
-			'scan',
-			'site'
-		),
-		'operator' => array(
-			'account',
-			'updatecache'
-		),
-		'manager' => array(
-			'account',
-			'platform',
-			'updatecache',
-			'module'
-		),
-		'vice-founder' => array(
-			'platform',
-			'template',
-			'updatecache'
-		),
-	),
-	'cron' => array(
-		'direct' => array(
-			'entry'
-		)
-	)
-);
+$acl = require IA_ROOT . '/web/common/permission.inc.php';
 if (($_W['setting']['copyright']['status'] == 1) && empty($_W['isfounder']) && $controller != 'cloud' && $controller != 'utility' && $controller != 'account') {
 	$_W['siteclose'] = true;
 	if ($controller == 'account' && $action == 'welcome') {
@@ -178,7 +54,7 @@ $actions = array();
 $actions_path = file_tree(IA_ROOT . '/web/source/' . $controller);
 foreach ($actions_path as $action_path) {
 	$action_name = str_replace('.ctrl.php', '', basename($action_path));
-	
+
 	$section = basename(dirname($action_path));
 	if ($section !== $controller) {
 		$action_name = $section . '-' .$action_name;
@@ -208,17 +84,26 @@ if (is_array($acl[$controller]['direct']) && in_array($action, $acl[$controller]
 	require _forward($controller, $action);
 	exit();
 }
-if (is_array($acl[$controller]['founder']) && in_array($action, $acl[$controller]['founder'])) {
-	// 如果这个目标被配置为需要创始人权限, 则判断创始人权限
-	if (! $_W['isfounder']) {
-		message('不能访问, 需要创始人权限才能访问.');
+checklogin();
+// 判断非创始人是否拥有目标权限
+if ($_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER) {
+	if (empty($_W['uniacid'])) {
+		if ($_W['role'] == ACCOUNT_MANAGE_NAME_CLERK) {
+			itoast('', url('module/display'), 'info');
+		}
+		if (defined('FRAME') && FRAME == 'account') {
+			itoast('', url('account/display'), 'info');
+		}
+		if (defined('FRAME') && FRAME == 'wxapp') {
+			itoast('', url('wxapp/display'), 'info');
+		}
+	}
+	$acl = permission_build();
+	if (empty($acl[$controller][$_W['role']]) || (!in_array($controller.'*', $acl[$controller][$_W['role']]) && !in_array($action, $acl[$controller][$_W['role']]))) {
+		message('不能访问, 需要相应的权限才能访问！');
 	}
 }
-//存在角色权限，只能访问存在的权限
-if (user_is_vice_founder($_W['uid']) && is_array($acl[$controller]['vice-founder']) && !in_array($action, $acl[$controller]['vice-founder'])) {
-	message('不能访问, 需要相应的权限才能访问.');
-}
-checklogin();
+
 // 用户权限判断
 require _forward($controller, $action);
 

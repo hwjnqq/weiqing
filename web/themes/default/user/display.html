@@ -21,8 +21,7 @@
 	<col width="180px"/>
 	<col width="140px"/>
 	<col width="140px"/>
-	<col width="80px"/>
-	<col width="150px"/>
+	<col width="160px"/>
 	<col width="150px"/>
 	<col width="150px"/>
 	<tr>
@@ -31,7 +30,6 @@
 		<th>用户权限组</th>
 		<th>创建公众号</th>
 		<th>使用公众号</th>
-		<th>应用</th>
 		<th>注册时间</th>
 		<th>到期时间</th>
 		<th class="text-right">操作</th>
@@ -46,10 +44,6 @@
 		</td>
 		<td class="color-default" ng-bind="user.maxaccount"></td>
 		<td class="color-default" ng-bind="user.uniacid_num"></td>
-		<td class="color-default">
-			<span ng-if="!user.founder" ng-bind="user.module_nums"></span>
-			<span ng-if="user.founder">全部</span>
-		</td>
 		<td>
 			<span ng-bind="user.joindate"></span>
 		</td>

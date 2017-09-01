@@ -16,40 +16,45 @@ $founders = explode(',', $_W['config']['setting']['founder']);
 if ($do == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
+	$users_table = table('users');
 	$type = empty($_GPC['type']) ? 'display' : $_GPC['type'];
 	if (in_array($type, array('display', 'check', 'recycle', 'clerk'))) {
 		switch ($type) {
 			case 'check':
 				uni_user_permission_check('system_user_check');
-				$condition['status'] = USER_STATUS_CHECK;
+				$users_table->searchWithStatus(USER_STATUS_CHECK);
 				break;
 			case 'recycle':
 				uni_user_permission_check('system_user_recycle');
-				$condition['status'] = USER_STATUS_BAN;
+				$users_table->searchWithStatus(USER_STATUS_BAN);
 				break;
 			case 'clerk':
 				uni_user_permission_check('system_user_clerk');
-				$condition['status'] = USER_STATUS_NORMAL;
-				$condition['type'] = USER_TYPE_CLERK;
+				$users_table->searchWithStatus(USER_STATUS_NORMAL);
+				$users_table->searchWithType(USER_TYPE_CLERK);
 				break;
 			default:
 				uni_user_permission_check('system_user');
-				$condition['status'] = USER_STATUS_NORMAL;
-				$condition['type'] = USER_TYPE_COMMON;
-				$condition['founder_groupid'] = array(ACCOUNT_MANAGE_GROUP_GENERAL, ACCOUNT_MANAGE_GROUP_FOUNDER);
+				$users_table->searchWithStatus(USER_STATUS_NORMAL);
+				$users_table->searchWithType(USER_TYPE_COMMON);
+				$users_table->searchWithFounder(array(ACCOUNT_MANAGE_GROUP_GENERAL, ACCOUNT_MANAGE_GROUP_FOUNDER));
 				break;
 		}
-		if (!empty($_GPC['username'])) {
-			$condition['username'] = trim($_GPC['username']);
+
+		$username = trim($_GPC['username']);
+		if (!empty($username)) {
+			$users_table->searchWithName($username);
 		}
 
-		$user_lists = user_list($condition, array($pindex, $psize));
-		$users = $user_lists['list'];
-		$total = $user_lists['total'];
-		$pager = pagination($total, $pindex, $psize);
+		if (user_is_vice_founder()) {
+			$users_table->searchWithOwnerUid($_W['uid']);
+		}
 
-		$groups = user_group();
+		$users_table->searchWithPage($pindex, $psize);
+		$users = $users_table->searchUsersList();
+		$total = $users_table->getLastQueryTotal();
 		$users = user_list_format($users);
+		$pager = pagination($total, $pindex, $psize);
 	}
 	template('user/display');
 }

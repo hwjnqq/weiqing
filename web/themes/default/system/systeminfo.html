@@ -31,7 +31,16 @@
 		</tr>
 		<tr>
 			<td class="text-left">产品系列</td>
-			<td class="text-left">{if IMS_FAMILY == 'v'} 您的产品是开源版, 没有购买商业授权, 不能用于商业用途 {else} 您的产品是商业版 {/if}
+			<td class="text-left">
+				{if IMS_FAMILY == 'v'}
+				您的产品是开源版, 没有购买商业授权, 不能用于商业用途
+				{elseif IMS_FAMILY == 's'}
+				您的产品是授权版
+				{elseif IMS_FAMILY == 'x'}
+				您的产品是商业版
+				{else}
+				您的产品是单版
+				{/if}
 			</td>
 		</tr>
 		<tr>

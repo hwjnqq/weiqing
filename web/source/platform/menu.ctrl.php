@@ -10,7 +10,6 @@ load()->model('menu');
 
 $dos = array('display', 'delete', 'refresh', 'post', 'push', 'copy', 'current_menu');
 $do = in_array($do, $dos) ? $do : 'display';
-uni_user_permission_check('platform_menu');
 $_W['page']['title'] = '公众号 - 自定义菜单';
 
 if($_W['isajax']) {

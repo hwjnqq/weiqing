@@ -108,6 +108,7 @@
 							<div class="appmsg-thumb" style="background-image:url('{php echo tomedia($material['items']['0']['thumb_url'])}')">
 							</div>
 							<p class="appmsg-desc">{$material['items']['0']['digest']}</p>
+							{if !empty($material['items'][0]['author']) && !empty($material['items'][0]['content'])}
 							{if $material['model'] == 'local'}
 							<a href="javascript:;" target="_blank" class="cover-dark">
 							{else}
@@ -123,6 +124,7 @@
 								</div>
 								<span class="vm-box"></span>
 							</a>
+							{/if}
 						</div>
 						{loop $material['items'] $key $material_row}
 						{if !empty($key)}
@@ -149,6 +151,7 @@
 					</div>
 					<div class="appmsg-opr">
 						<ul>
+							{if !empty($material['items'][0]['author']) && !empty($material['items'][0]['content'])}
 							{if $material['model'] == 'local'}
 							<li class="appmsg-opr-item">
 								<a href="javascript:;" ng-click="newsToWechat({$material['id']})" class="" data-toggle="tooltip" data-placement="bottom" title="转换为微信文章"><i class="wi wi-transform"></i></a>
@@ -157,6 +160,7 @@
 							<li class="appmsg-opr-item">
 								<a href="javascript:;" class="" ng-click="checkGroup('news', {$material['id']})" data-toggle="tooltip" data-placement="bottom" title="群发"><i class="wi wi-send"></i></a>
 							</li>
+							{/if}
 							{/if}
 							<li class="appmsg-opr-item">
 								<a href="{php echo url('platform/material-post/news', array('newsid' => $material['id']))}" class="" data-toggle="tooltip" data-placement="bottom" title="编辑">&nbsp;<i class="wi wi-text"></i></a>

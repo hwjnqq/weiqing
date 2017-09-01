@@ -8,7 +8,6 @@ defined('IN_IA') or exit('Access Denied');
 
 $dos = array('oauth', 'save_oauth', 'uc_setting', 'upload_file');
 $do = in_array($do, $dos) ? $do : 'oauth';
-uni_user_permission_check('profile_setting');
 $_W['page']['title'] = '公众平台oAuth选项 - 会员中心';
 
 //获取所有的认证服务号

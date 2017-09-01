@@ -45,16 +45,20 @@ class DB {
 				$options = array(PDO::ATTR_PERSISTENT => $cfg['pconnect']);
 			} else {
 				if(!class_exists('_PDO')) {
-					include IA_ROOT . '/framework/library/pdo/PDO.class.php';
+					load()->library('pdo');
 				}
 				$dbclass = '_PDO';
 			}
 		} else {
-			include IA_ROOT . '/framework/library/pdo/PDO.class.php';
+			load()->library('pdo');
 			$dbclass = 'PDO';
 		}
-		$this->pdo = new $dbclass($dsn, $cfg['username'], $cfg['password'], $options);
-		$this->pdo->setAttribute(pdo::ATTR_EMULATE_PREPARES, false);
+		$pdo = new $dbclass($dsn, $cfg['username'], $cfg['password'], $options);
+		if(DEVELOPMENT && class_exists('\DebugBar\DataCollector\PDO\TraceablePDO')) {
+			$pdo = new \DebugBar\DataCollector\PDO\TraceablePDO($pdo);
+		}
+		$this->pdo = $pdo;
+		//$this->pdo->setAttribute(pdo::ATTR_EMULATE_PREPARES, false);
 		$sql = "SET NAMES '{$cfg['charset']}';";
 		$this->pdo->exec($sql);
 		$this->pdo->exec("SET sql_mode='';");
@@ -907,7 +911,7 @@ class SqlPaser {
 					$field_row .= " AS '{$index}'";
 				}
 			} else {
-				$field_row = (!empty($alias) ? "`{$alias}`." : '') . '`'. $field_row. '`';
+				$field_row = self::parseFieldAlias($field_row, $alias);
 			}
 			$select[] = $field_row;
 			$index++;
@@ -950,10 +954,13 @@ class SqlPaser {
 		}
 		foreach ($orderby as $i => &$row) {
 			$row = strtolower($row);
-			if (substr($row, -3) != 'asc' && substr($row, -4) != 'desc') {
+			list($field, $orderbyrule) = explode(' ', $row);
+			
+			if ($orderbyrule != 'asc' && $orderbyrule != 'desc') {
 				unset($orderby[$i]);
 			}
-			$row = (!empty($alias) ? "`{$alias}`." : '') . $row;
+			$field = self::parseFieldAlias($field, $alias);
+			$row = "{$field} {$orderbyrule}";
 		}
 		$orderbysql = implode(',', $orderby);
 		return !empty($orderbysql) ? " ORDER BY $orderbysql " : '';
@@ -967,7 +974,7 @@ class SqlPaser {
 			$statement = explode(',', $statement);
 		}
 		foreach ($statement as $i => &$row) {
-			$row = (!empty($alias) ? "`{$alias}`." : '') . '`' . strtolower($row) . '`';
+			$row = self::parseFieldAlias($row, $alias);
 			if (strexists($row, ' ')) {
 				unset($statement[$i]);
 			}

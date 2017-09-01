@@ -200,7 +200,7 @@ function wxapp_version_all($uniacid) {
 }
 
 /**
- * 获取某一小程序最新一些版本信息
+ * 获取某一小程序最新四个版本信息，并标记出来最后使用的版本
  * @param int $uniacid
  * @param int $page
  * @param int $pagesize
@@ -209,12 +209,19 @@ function wxapp_version_all($uniacid) {
 function wxapp_get_some_lastversions($uniacid) {
 	$version_lasts = array();
 	$uniacid = intval($uniacid);
+	
 	if (empty($uniacid)) {
 		return $version_lasts;
 	}
-	$param = array(':uniacid' => $uniacid);
-	$sql = "SELECT * FROM ". tablename('wxapp_versions'). " WHERE uniacid = :uniacid ORDER BY id DESC LIMIT 0, 4";
-	$version_lasts = pdo_fetchall($sql, $param);
+	$version_lasts = table('wxapp')->latestVersion($uniacid);
+	$last_switch_version = wxapp_last_switch_version();
+	if (!empty($last_switch_version[$uniacid]) && !empty($version_lasts[$last_switch_version[$uniacid]['version_id']])) {
+		$version_lasts[$last_switch_version[$uniacid]['version_id']]['current'] = true;
+	} else {
+		reset($version_lasts);
+		$firstkey = key($version_lasts);
+		$version_lasts[$firstkey]['current'] = true;
+	}
 	return $version_lasts;
 }
 
@@ -401,4 +408,16 @@ function wxapp_search_link_account($module_name = '') {
 		}
 	}
 	return $owned_account;
+}
+
+/**
+ * 获取当前用户使用每个小程序的最后版本
+ */
+function wxapp_last_switch_version() {
+	global $_GPC;
+	static $wxapp_cookie_uniacids;
+	if (empty($wxapp_cookie_uniacids) && !empty($_GPC['__wxappversionids'])) {
+		$wxapp_cookie_uniacids = json_decode(htmlspecialchars_decode($_GPC['__wxappversionids']), true);
+	}
+	return $wxapp_cookie_uniacids;
 }

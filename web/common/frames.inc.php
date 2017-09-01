@@ -135,12 +135,12 @@ $we7_system_menu['wxapp'] = array(
 		'wxapp_entrance' => array(
 			'title' => '小程序入口',
 			'menu' => array(
-				'module_link' => array(
+				'module_entrance_link' => array(
 					'title' => "入口页面",
-					'url' => url('wxapp/version/module_entrance_link'),
+					'url' => url('wxapp/entrance-link'),
 					'is_display' => 1,
 					'icon' => 'wi wi-data-synchro',
-					'permission_name' => 'wxapp_module_entrance_link',
+					'permission_name' => 'wxapp_entrance_link',
 				),
 			),
 			'is_display' => true,
@@ -155,7 +155,7 @@ $we7_system_menu['wxapp'] = array(
 			'menu' => array(
 				'module_link' => array(
 					'title' => "数据同步",
-					'url' => url('wxapp/version/module_link_uniacid'),
+					'url' => url('wxapp/module-link-uniacid'),
 					'is_display' => 1,
 					'icon' => 'wi wi-data-synchro',
 					'permission_name' => 'wxapp_module_link_uniacid',
@@ -169,7 +169,7 @@ $we7_system_menu['wxapp'] = array(
 				),
 				'front_download' => array(
 					'title' => '小程序下载',
-					'url' => url('wxapp/version/front_download'),
+					'url' => url('wxapp/front-download'),
 					'is_display' => 1,
 					'icon' => 'wi wi-wxapp-download',
 					'permission_name' => 'wxapp_front_download',

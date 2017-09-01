@@ -7,12 +7,7 @@ defined('IN_IA') or exit('Access Denied');
 
 load()->model('user');
 
-uni_user_permission_check('system_founder_group_post');
 $_W['page']['title'] = '添加创始人 - 创始人管理';
-$state = uni_permission($_W['uid']);
-if ($state != ACCOUNT_MANAGE_NAME_FOUNDER && $state != ACCOUNT_MANAGE_NAME_VICE_FOUNDER) {
-	itoast('没有操作权限！', referer(), 'error');
-}
 
 if (checksubmit()) {
 	$user_founder = array(

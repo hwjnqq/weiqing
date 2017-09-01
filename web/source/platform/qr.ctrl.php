@@ -12,8 +12,6 @@ load()->func('communication');
 $dos = array('display', 'post', 'list', 'del', 'extend', 'SubDisplay', 'check_scene_str', 'down_qr');
 $do = !empty($_GPC['do']) && in_array($do, $dos) ? $do : 'list';
 
-uni_user_permission_check('platform_qr');
-
 //检测场景字符串是否重复
 if ($do == 'check_scene_str') {
 	$scene_str = trim($_GPC['scene_str']);
@@ -188,7 +186,7 @@ if ($do == 'display') {
 	$param = array(':uniacid' => $_W['uniacid'], ':acid' => $_W['acid'], ':starttime' => $starttime, ':endtime' => $endtime);
 	!empty($_GPC['keyword']) && $where .= " AND name LIKE '%{$_GPC['keyword']}%'";
 	$pindex = max(1, intval($_GPC['page']));
-	$psize = 10;
+	$psize = 30;
 	$count = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('qrcode_stat'). $where, $param);
 	$list = pdo_fetchall("SELECT * FROM ".tablename('qrcode_stat')." $where ORDER BY id DESC LIMIT ".($pindex - 1) * $psize.','. $psize, $param);
 	if (!empty($list)) {

@@ -17,18 +17,18 @@ if ($do == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 
-	$condition['founder_groupid'] = array(ACCOUNT_MANAGE_GROUP_VICE_FOUNDER);
-	if (!empty($_GPC['username'])) {
-		$condition['username'] = trim($_GPC['username']);
+	$users_table = table('users');
+	$users_table->searchWithFounder(ACCOUNT_MANAGE_GROUP_VICE_FOUNDER);
+
+	$username = trim($_GPC['username']);
+	if (!empty($username)) {
+		$users_table->searchWithName($username);
 	}
 
-	$user_lists = user_list($condition, array($pindex, $psize));
-	$users = $user_lists['list'];
-	$total = $user_lists['total'];
-	$pager = pagination($total, $pindex, $psize);
-
-	$groups = user_group();
+	$users = $users_table->searchUsersList();
+	$total = $users_table->getLastQueryTotal();
 	$users = user_list_format($users);
+	$pager = pagination($total, $pindex, $psize);
 	template('founder/display');
 }
 

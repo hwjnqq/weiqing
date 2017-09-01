@@ -6,7 +6,6 @@
 defined('IN_IA') or exit('Access Denied');
 load()->model('setting');
 
-uni_user_permission_check('system_user_registerset');
 $_W['page']['title'] = '注册选项 - 用户管理';
 
 

@@ -1,10 +1,13 @@
 <?php
 /**
  * 切换公众号
+ * @var AccountTable $account_table
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
+
 load()->model('user');
+
 $dos = array('rank', 'display', 'switch');
 $do = in_array($_GPC['do'], $dos)? $do : 'display' ;
 $_W['page']['title'] = '公众号列表 - 公众号';
@@ -42,24 +45,30 @@ if ($do == 'rank' && $_W['isajax'] && $_W['ispost']) {
 }
 
 if ($do == 'display') {
+	
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 15;
-	$condition = array();
-	$condition['type'] = array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH);
-
+	
+	$account_table = table('account');
+	$account_table->searchWithType(array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH));
+	
 	$keyword = trim($_GPC['keyword']);
 	if (!empty($keyword)) {
-		$condition['keyword'] = $keyword;
+		$account_table->searchWithKeyword($keyword);
 	}
-
+	
 	if(isset($_GPC['letter']) && strlen($_GPC['letter']) == 1) {
-		$condition['letter'] = trim($_GPC['letter']);
+		$account_table->searchWithLetter($_GPC['letter']);
 	}
-
-	$account_lists = uni_account_list($condition, array($pindex, $psize));
-	$account_list = $account_lists['list'];
-
-	if ($_W['isajax'] && $_W['ispost']) {
+	$account_table->searchWithPage($pindex, $psize);
+	$account_list = $account_table->searchAccountList();
+	
+	foreach($account_list as &$account) {
+		$account = uni_fetch($account['uniacid']);
+		$account['role'] = uni_permission($_W['uid'], $account['uniacid']);
+	}
+	
+	if ($_W['ispost']) {
 		iajax(0, $account_list);
 	}
 }

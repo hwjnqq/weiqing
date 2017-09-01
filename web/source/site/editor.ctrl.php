@@ -6,14 +6,15 @@
 defined('IN_IA') or exit('Access Denied');
 load()->model('site');
 load()->model('module');
+load()->library('qrcode');
 
 $do = !empty($do) ? $do : 'uc';
 $do = in_array($do, array('quickmenu', 'uc', 'qrcode')) ? $do : 'uc';
-uni_user_permission_check('platform_site');
+uni_user_permission_check('mc_member');
 
 if ($do == 'uc') {
 	$_W['page']['title'] = '会员中心 - 微站功能';
-	
+
 	if (!empty($_GPC['wapeditor'])) {
 		$params = $_GPC['wapeditor']['params'];
 		if (empty($params)) {
@@ -158,13 +159,7 @@ if ($do == 'uc') {
 	}
 	$modules = uni_modules();
 	template('site/editor');
-} elseif ($do == 'del') {
-	$id = intval($_GPC['id']);
-	pdo_delete('site_page', array('id' => $id, 'uniacid' => $_W['uniacid']));
-	site_cover_delete($id);
-	itoast('删除微页面成功', referer(), 'success');
 } elseif ($do == 'qrcode') {
-	require_once(IA_ROOT.'/framework/library/qrcode/phpqrcode.php');
 	$error_correction_level = "L";
 	$matrix_point_size = "8";
 	$text = trim($_GPC['text']);

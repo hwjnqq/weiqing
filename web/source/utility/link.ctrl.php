@@ -216,18 +216,6 @@ if ($do == 'entry') {
 		array('title'=>'个人中心','url'=> murl('mc')),
 	);
 
-	//会员卡链接
-	if(empty($has_permission) || (!empty($has_permission) && in_array('mc_card', $has_permission['system']))) {
-		$cardmenus = array(
-			array('title'=>'我的会员卡','url'=> murl('entry', array('m' => 'we7_coupon', 'do' => 'card'))),
-			array('title'=>'兑换商城','url'=> murl('entry', array('m' => 'we7_coupon', 'do' => 'activity'))),
-			array('title'=>'我的卡券','url'=> murl('entry', array('m' => 'we7_coupon', 'do' => 'activity', 'op' => 'mine'))),
-			array('title'=>'我的兑换','url'=> murl('entry', array('m' => 'we7_coupon', 'do' => 'activity', 'activity_type' => 'goods', 'op' => 'mine'))),
-			array('title'=>'消息','url'=> murl('entry', array('m' => 'we7_coupon', 'do' => 'card', 'op' => 'notice'))),
-			array('title'=>'签到','url'=> murl('entry', array('m' => 'we7_coupon', 'do' => 'card', 'op' => 'sign_display'))),
-			array('title'=>'完善会员资料','url'=> murl('mc/profile')),
-		);
-	}
 	//多微站链接处理
 	if(empty($has_permission) || (!empty($has_permission) && in_array('site_multi_display', $has_permission['system']))) {
 		$multi_list = pdo_getall('site_multi', array('uniacid' => $_W['uniacid'], 'status !=' => 0), array('id', 'title'));

@@ -12,7 +12,6 @@ uni_user_permission_check('profile_setting');
 $_W['page']['title'] = '系统 - 参数设置';
 
 if ($do == 'uc_setting') {
-	// uni_user_permission_check('mc_uc');
 	$_W['page']['title'] = 'uc站点整合';
 	$setting = uni_setting_load('uc');
 	$uc = $setting['uc'];
@@ -79,8 +78,3 @@ if ($do == 'upload_file') {
 }
 
 template('profile/uc');
-
-
-
-
-

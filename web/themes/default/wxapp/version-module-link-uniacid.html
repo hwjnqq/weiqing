@@ -29,7 +29,7 @@
 			<td>
 				<div class="link-group" ng-if="module.account">
 					<a href="javascript:;" ng-click="searchLinkAccount(module.name)" ng-if="module.wxapp_support == 2 && module.app_support == 2">修改</a>
-					<a ng-href="./index.php?c=wxapp&a=version&do=module_unlink_uniacid&version_id={{versionInfo.id}}">删除</a>
+					<a ng-href="./index.php?c=wxapp&a=module-unlink-uniacid&version_id={{versionInfo.id}}">删除</a>
 				</div>
 				<div class="link-group" ng-if="!module.account">
 					<a href="javascript:;" ng-click="searchLinkAccount(module.name)" ng-if="module.wxapp_support == 2 && module.app_support == 2">添加</a>
@@ -79,8 +79,8 @@
 		'version_info': {php echo !empty($version_info) ? json_encode($version_info) : 'null'},
 		'token': "{php echo $_W['token']}",
 		'links' : {
-			'search_link_account': "{php echo url('wxapp/version/search_link_account')}",
-			'module_link_uniacid': "{php echo url('wxapp/version/module_link_uniacid')}",
+			'search_link_account': "{php echo url('wxapp/module-link-uniacid/search_link_account')}",
+			'module_link_uniacid': "{php echo url('wxapp/module-link-uniacid')}",
 		},
 	});
 	angular.bootstrap($('#js-module-link-uniacid'), ['wxApp']);

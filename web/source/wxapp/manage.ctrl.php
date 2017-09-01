@@ -137,6 +137,7 @@ if($do == 'getpackage') {
 		'name' => $account_wxapp_info['name'],
 		'modules' => $account_wxapp_info['version']['modules'],
 		'siteInfo' => array(
+			'name' => $account_wxapp_info['name'],
 			'uniacid' => $account_wxapp_info['uniacid'],
 			'acid' => $account_wxapp_info['acid'],
 			'multiid' => $account_wxapp_info['version']['multiid'],

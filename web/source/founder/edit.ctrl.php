@@ -10,7 +10,6 @@ load()->func('file');
 
 $dos = array('edit_base', 'edit_modules_tpl', 'edit_account');
 $do = in_array($do, $dos) ? $do: 'edit_base';
-uni_user_permission_check('system_founder_group_post');
 
 $_W['page']['title'] = '编辑用户 - 用户管理';
 

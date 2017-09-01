@@ -7,8 +7,8 @@
 </ol>
 {else}
 <ol class="breadcrumb we7-breadcrumb">
-	<a href="{url 'user/display/vice_founder'}"><i class="wi wi-back-circle"></i> </a>
-	<li><a href="{url 'user/display/vice_founder'}">副创始人管理</a></li>
+	<a href="{url 'founder/display'}"><i class="wi wi-back-circle"></i> </a>
+	<li><a href="{url 'founder/display'}">副创始人管理</a></li>
 	<li>编辑创始人详情</li>
 </ol>
 {/if}
@@ -28,7 +28,7 @@
 		{if empty($user['founder_groupid'])}
 		<a href="{php echo url('user/edit/edit_modules_tpl', array('uid' => $_GPC['uid']))}" class="btn btn-default">应用模板权限</a>
 		{else}
-		<a href="{php echo url('founder/founderedit/edit_modules_tpl', array('uid' => $_GPC['uid']))}" class="btn btn-default">应用模板权限</a>
+		<a href="{php echo url('founder/edit/edit_modules_tpl', array('uid' => $_GPC['uid']))}" class="btn btn-default">应用模板权限</a>
 		{/if}
 		<a href="{php echo url('user/edit/edit_account', array('uid' => $_GPC['uid']))}" class="btn btn-default">使用账号列表</a>
 	</div>
@@ -193,11 +193,13 @@
 			<td ng-bind="user.joindate"></td>
 			<td></td>
 		</tr>
+		{if $_W['isfounder'] && !user_is_vice_founder()}
 		<tr>
 			<td class="table-label">备注</td>
 			<td ng-bind="user.remark"></td>
 			<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#remark" ng-click="editInfo('remark', user.remark)">修改</a></div></td>
 		</tr>
+		{/if}
 	</table>
 	<div class="modal fade" id="realname" role="dialog">
 		<div class="we7-modal-dialog modal-dialog">

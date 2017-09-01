@@ -17,6 +17,7 @@ if (empty($uniacid) || empty($acid)) {
 	itoast('请选择要编辑的公众号', referer(), 'error');
 }
 $state = uni_permission($_W['uid'], $uniacid);
+//只有创始人、主管理员、管理员才有权限
 $role_permission = in_array($state, array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER));
 if (!$role_permission) {
 	itoast('无权限操作！', referer(), 'error');
@@ -59,7 +60,6 @@ if ($do == 'edit') {
 		if ($state == ACCOUNT_MANAGE_NAME_MANAGER && ($exists['role'] == ACCOUNT_MANAGE_NAME_OWNER || $exists['role'] == ACCOUNT_MANAGE_NAME_MANAGER)) {
 			itoast('管理员不可操作其他管理员', referer(), 'error');
 		}
-		pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $uid));
 		$result = pdo_delete('uni_account_users', $data);
 		if ($result) {
 			itoast('删除成功！', referer(), 'success');
@@ -239,6 +239,8 @@ if ($do == 'edit') {
 				pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $uid, 'type' => PERMISSION_WXAPP));
 			}
 		}
+		$cachekey = cache_system_key("permission:{$uniacid}:{$uid}");
+		cache_delete($cachekey);
 		itoast('操作菜单权限成功！', referer(), 'success');
 	}
 	template('account/set-permission');

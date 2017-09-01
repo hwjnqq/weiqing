@@ -157,11 +157,13 @@
 					<td ng-bind="user.joindate"></td>
 					<td></td>
 				</tr>
+			{if $_W['isfounder'] && !user_is_vice_founder()}
 				<tr>
 					<td class="table-label">备注</td>
 					<td ng-bind="user.remark"></td>
 					<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#remark" ng-click="editInfo('remark', user.remark)">修改</a></div></td>
 				</tr>
+			{/if}
 		</table>
 		<div class="modal fade" id="realname" role="dialog">
 			<div class="we7-modal-dialog modal-dialog">

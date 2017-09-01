@@ -487,7 +487,6 @@ if ($do == 'save_module_info') {
 		$image_destination_url = IA_ROOT . "/addons/" . $module_name . '/' . $module_icon_map[$type]['filename'];
 		$result = utility_image_rename($module_icon_map[$type]['url'], $image_destination_url);
 	}
-
 	cache_delete(cache_system_key("module_info:" . $module_name));
 	if (!empty($result)) {
 		iajax(0, '');

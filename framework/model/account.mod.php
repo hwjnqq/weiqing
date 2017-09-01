@@ -180,7 +180,18 @@ function uni_fetch($uniacid = 0) {
 
 	$account['logo'] = tomedia('headimg_'.$account['acid']. '.jpg').'?time='.time();
 	$account['qrcode'] = tomedia('qrcode_'.$account['acid']. '.jpg').'?time='.time();
-
+	
+	//切换公号链接
+	$account['switchurl'] = wurl('account/display/switch', array('uniacid' => $account['uniacid']));
+	//公众号剩余短信
+	if (!empty($account['settings']['notify'])) {
+		$account['sms'] = $account['setting']['notify']['sms']['balance'];
+	} else {
+		$account['sms'] = 0;
+	}
+	//公众号到期
+	$account['setmeal'] = uni_setmeal($account['uniacid']);
+	
 	cache_write($cachekey, $account);
 	return $account;
 }
@@ -609,6 +620,7 @@ function uni_permission($uid = 0, $uniacid = 0) {
 			$role = ACCOUNT_MANAGE_NAME_CLERK;
 		}
 	}
+	$role = empty($role) ? ACCOUNT_MANAGE_NAME_OPERATOR : $role;
 	return $role;
 }
 
@@ -1059,7 +1071,7 @@ function uni_account_last_switch() {
 
 function uni_account_switch($uniacid, $redirect = '') {
 	global $_W;
-	isetcookie('__uniacid', $uniacid, 7 * 86400);
+	uni_account_save_switch($uniacid);
 	isetcookie('__uid', $_W['uid'], 7 * 86400);
 	if (!empty($redirect)) {
 		header('Location: ' . $redirect);
@@ -1089,93 +1101,6 @@ function uni_account_save_switch($uniacid) {
 	cache_write($cache_key, $cache_lastaccount);
 	isetcookie('__switch', $_GPC['__switch'], 7 * 86400);
 	return true;
-}
-
-function uni_account_list($condition, $pager) {
-	global $_W;
-	load()->model('wxapp');
-
-	$sql = "SELECT %s FROM ". tablename('uni_account'). " as a LEFT JOIN " .
-			tablename('account'). " as b ON a.uniacid = b.uniacid AND a.default_acid = b.acid ";
-
-	if (!empty($pager)) {
-		$limit = " LIMIT " . ($pager[0] - 1) * $pager[1] . ',' . $pager[1];
-	}
-
-	//副始人和普通用户一样儿取数据
-	if (empty($_W['isfounder']) || user_is_vice_founder()) {
-		$sql .= " LEFT JOIN ". tablename('uni_account_users')." as c ON a.uniacid = c.uniacid
-		WHERE a.default_acid <> 0 AND c.uid = :uid";
-		$params[':uid'] = $_W['uid'];
-
-		$order_by = " ORDER BY c.`rank` DESC";
-	} else {
-		$sql .= " WHERE a.default_acid <> 0";
-
-		$order_by = " ORDER BY a.`rank` DESC";
-	}
-
-	$sql .= " AND b.isdeleted <> 1 ";
-
-	if (!empty($condition['keyword'])) {
-		$sql .=" AND a.`name` LIKE :name";
-		$params[':name'] = "%{$condition['keyword']}%";
-	}
-
-	if(isset($condition['letter'])) {
-		if (!empty($condition['letter'])) {
-			$sql .= " AND a.`title_initial` = :title_initial";
-			$params[':title_initial'] = $condition['letter'];
-		} else {
-			$sql .= " AND a.`title_initial` = ''";
-		}
-	}
-
-	if (!empty($condition['type'])) {
-		$sql .= " AND b.type IN (" . implode(',', $condition['type']) . ")";
-	}
-
-	$sql .= $order_by;
-	$sql .= ", a.`uniacid` DESC ";
-
-	$list = pdo_fetchall(sprintf($sql, 'a.uniacid') . $limit, $params);
-	$total = pdo_fetchcolumn(sprintf($sql, 'COUNT(*)'), $params);
-
-	if (!empty($list)) {
-		foreach($list as &$account) {
-			$account = uni_fetch($account['uniacid']);
-			$account['url'] = url('account/display/switch', array('uniacid' => $account['uniacid']));
-			$account['role'] = uni_permission($_W['uid'], $account['uniacid']);
-			$account['setmeal'] = uni_setmeal($account['uniacid']);
-
-			if (!empty($settings['notify'])) {
-				$account['sms'] = $account['setting']['notify']['sms']['balance'];
-			} else {
-				$account['sms'] = 0;
-			}
-
-			if (in_array(ACCOUNT_TYPE_APP_NORMAL, $condition['type'])) {
-				$account['versions'] = wxapp_get_some_lastversions($account['uniacid']);
-				$account['current_version'] = array();
-				if (!empty($account['versions'])) {
-					foreach ($account['versions'] as $version) {
-						if (!empty($wxapp_cookie_uniacids) && !empty($wxappversionids[$version['uniacid']]) && in_array($version['id'], $wxappversionids[$version['uniacid']])) {
-							$account['current_version'] = $version;
-							break;
-						}
-					}
-					if (empty($account['current_version'])) {
-						$account['current_version'] = $account['versions'][0];
-					}
-				}
-			}
-		}
-	}
-	$result = array(
-		'list' => $list,
-		'total' => $total
-	);
-	return $result;
 }
 
 /**

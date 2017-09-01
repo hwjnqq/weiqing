@@ -122,7 +122,7 @@
 										<input type="hidden" name="modules" value="">
 										<label class="control-label col-sm-2">添加应用</label>
 										<div class="form-controls col-sm-10">
-											<div we7-select-more we7-modules="wxappinfo.select.modules" we7-selecte-single="{php echo $design_method == WXAPP_MODULE}"></div>
+											<div we7-choose-more we7-modules="wxappinfo.choose.modules" we7-choose-single="{php echo $design_method == WXAPP_MODULE}"></div>
 										</div>
 									</div>
 								</div>
@@ -175,9 +175,9 @@
 											</div>
 										</div>
 										<div class="select-tem-list">
-											<input type="hidden" name="template" ng-model="wxappinfo.select.template" />
+											<input type="hidden" name="template" ng-model="wxappinfo.choose.template" />
 											<ul>
-												<li class="select-tem-item" ng-class="{'active' : wxappinfo.select.template == '1'}" ng-click="selectTpl(1)">
+												<li class="select-tem-item" ng-class="{'active' : wxappinfo.choose.template == '1'}" ng-click="selectTpl(1)">
 													<img src="./resource/images/wxapp-default-tpl0.jpg"/>
 													<a href="javascript:;" class="cover-dark">
 														<i class="fa fa-check cover-selected"></i>
@@ -324,7 +324,7 @@
 										<label class="control-label col-sm-2">打包应用</label>
 										<div class="form-controls col-sm-10">
 											<ul class="app-list">
-												<li class="select" ng-repeat="module in wxappinfo.select.modules">
+												<li class="select" ng-repeat="module in wxappinfo.choose.modules">
 													<div class="app-info">
 														<img ng-src="{{module.icon}}" />
 														<p>{{module.title}}</p>
@@ -336,7 +336,7 @@
 									<div class="form-group" ng-if="designMethod == 2">
 										<label class="control-label col-sm-2">首页模板</label>
 										<div class="form-controls col-sm-10">
-											<p class="form-control-static" ng-bind="wxappinfo.select.template"></p>
+											<p class="form-control-static" ng-bind="wxappinfo.choose.template"></p>
 										</div>
 									</div>
 									<div class="form-group" ng-if="designMethod == 2">
@@ -371,7 +371,7 @@
 						<div class="pager">
 							<a type="button" class="btn btn-primary" ng-show="createStep != 1" ng-click="prevStep()">上一步</a>
 							<a type="button" class="btn btn-primary" ng-show="createStep != 4" ng-click="nextStep()">下一步</a>
-							<button type="submit" name="submit" value="yes" class="btn btn-danger" ng-show="createStep == 4">生成版本打包下载</button>
+							<button type="submit" name="submit" value="yes" class="btn btn-danger" ng-show="createStep == 4">生成版本</button>
 							<!-- <a type="button" class="btn btn-default" ng-show="createStep == 4">首页预览</a> -->
 						</div>
 					</div>

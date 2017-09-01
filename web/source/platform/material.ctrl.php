@@ -11,8 +11,6 @@ load()->func('file');
 $dos = array('display', 'sync', 'delete', 'send');
 $do = in_array($do, $dos) ? $do : 'display';
 
-uni_user_permission_check('platform_material');
-
 $_W['page']['title'] = '永久素材-微信素材';
 
 if ($do == 'send') {
@@ -123,6 +121,9 @@ if ($do == 'sync') {
 		if (empty($original_newsid)) {
 			$original_newsid = array();
 		}
+		$original_newsid = array_filter($original_newsid, function($item){
+			return is_int($item);
+		});
 	}
 	$delete_id = array_diff($original_newsid, $wechat_existid);
 	if (!empty($delete_id) && is_array($delete_id)) {

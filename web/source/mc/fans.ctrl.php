@@ -11,7 +11,6 @@ load()->model('mc');
 
 $dos = array('display', 'add_tag', 'del_tag', 'edit_tagname', 'edit_fans_tag', 'batch_edit_fans_tag', 'download_fans', 'sync', 'fans_sync_set', 'register');
 $do = in_array($do, $dos) ? $do : 'display';
-uni_user_permission_check('mc_fans');
 
 if ($do == 'display') {
 	$_W['page']['title'] = '粉丝列表';
@@ -238,7 +237,7 @@ if ($do == 'download_fans') {
 	//重复接入公众号处理机制
 	$same_account_exist = pdo_getall('account_wechats', array('key' => $_W['account']['key'], 'uniacid <>' => $_W['uniacid']), array(), 'uniacid');
 	if (!empty($same_account_exist)) {
-		pdo_update('mc_mapping_fans', array('uniacid' => $_W['uniacid']), array('uniacid' => array_keys($same_account_exist)));
+		pdo_update('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'acid' => $_W['acid']), array('uniacid' => array_keys($same_account_exist)));
 	}
 
 	if (!is_error($wechat_fans_list)) {

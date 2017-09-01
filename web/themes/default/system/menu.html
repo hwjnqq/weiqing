@@ -26,8 +26,16 @@
 				<td class="text-left"> 
 					<span>{$menu['title']}</span>
 				</td>
-				<td></td>
-				<td>{if empty($menu['is_system'])}<a href="javascript:;" ng-click="removeSubItem('{$menu['permission_name']}')" class="btn btn-danger">删除</a>{/if}</td>
+				<td>
+					{if in_array($permission_name, $system_top_menu)}
+					<div class="switch" ng-init="displayStatus['{$permission_name}'] = {php echo $menu['is_display'] ? 'true' : 'false'}" ng-click="changeDisplay('{$permission_name}')" ng-class="{'switchOn' : displayStatus['{$permission_name}'], 'switchOff' : !displayStatus['{$permission_name}']}"></div>
+					{/if}
+				</td>
+				<td>
+					{if empty($menu['is_system'])}
+					<a href="javascript:;" ng-click="removeSubItem('{$menu['permission_name']}')" class="btn btn-danger">删除</a>
+					{/if}
+				</td>
 			</tr>
 			{loop $menu['section'] $section_name $section}
 				<tr>
@@ -38,7 +46,7 @@
 					<td></td>
 					<td class="text-right we7-padding-right">
 						{if $section_name != 'platform_module'}
-						<a href="javascript:;" class="color-default we7-margin-right-sm" ng-click="addSubItem('{$section_name}', {title : '新增菜单', displayorder : 0, isDisplay : 1})">+添加下级分类</a>
+						<a href="javascript:;" class="color-default we7-margin-right-sm" ng-click="addSubItem('{$section_name}', {title : '', displayorder : 0, isDisplay : 1})">+添加下级分类</a>
 						{/if}
 					</td>
 				</tr>
@@ -55,7 +63,7 @@
 						</td>
 						<td class="we7-padding-right">
 							<div class="link-group">
-								<a href="javascript:;" class="we7-margin-right-sm" ng-click="editItemPanel({displayorder: '{$sub_menu['displayorder']}', title : '{$sub_menu['title']}', url : '{$sub_menu['url']}', permissionName : '{$sub_menu['permission_name']}', isSystem : '{$sub_menu['is_system']}', id : '{$sub_menu['id']}', 'group' : '{$sub_menu['group']}'})">编辑</a>
+								<a href="javascript:;" class="we7-margin-right-sm" ng-click="editItemPanel({displayorder: '{$sub_menu['displayorder']}', title : '{$sub_menu['title']}', url : '{$sub_menu['url']}', permissionName : '{$sub_menu['permission_name']}', isSystem : '{$sub_menu['is_system']}', id : '{$sub_menu['id']}', 'group' : '{$sub_menu['group']}', 'icon' : '{$sub_menu['icon']}'})">编辑</a>
 								{if empty($sub_menu['is_system'])}<a href="javascript:;" ng-click="removeSubItem('{$sub_permission_name}')" class="del">删除</a>{/if}
 							</div>
 						</td>
@@ -85,7 +93,7 @@
 		{/loop}
 	</table>
 
-	<div class="modal fade bs-example-modal-sm js-edit-panel" id="edit" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal fade bs-example-modal-sm js-edit-panel" id="edit" tabindex="-1" style="z-index:1039" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 		<div class="modal-dialog we7-modal-dialog ">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -94,7 +102,7 @@
 				</div>
 				<form action="" method="post" enctype="multipart/form-data" class="we7-form form" >
 					<div class="modal-body">
-						<div class="form-group" ng-hide="activeItem.group == 'frame'">
+						<div class="form-group">
 							<label class="col-sm-2 control-label">菜单排序</label>
 							<div class="col-sm-10">
 								<input type="text" name="displayorder" ng-model="activeItem.displayorder" class="form-control">
@@ -118,7 +126,7 @@
 								<input type="text" name="url" ng-readonly="activeItem.isSystem == '1'" ng-model="activeItem.url" class="form-control">
 							</div>
 						</div>
-						<div class="form-group" ng-hide="activeItem.isSystem == '1' || activeItem.group == 'frame'">
+						<div class="form-group" ng-hide="activeItem.isSystem == '1'">
 							<label class="col-sm-2 control-label"> 菜单图标</label>
 							<div class="col-sm-10">
 								<div class="input-group">

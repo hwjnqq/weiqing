@@ -34,10 +34,12 @@ load()->func('global');
 load()->func('compat');
 load()->func('pdo');
 load()->classs('account');
-load()->classs('agent');
 load()->model('cache');
 load()->model('account');
 load()->model('setting');
+load()->library('agent');
+
+
 
 define('CLIENT_IP', getip());
 
@@ -59,6 +61,7 @@ if(DEVELOPMENT) {
 } else {
 	error_reporting(0);
 }
+
 
 if(!in_array($_W['config']['setting']['cache'], array('mysql', 'memcache', 'redis'))) {
 	$_W['config']['setting']['cache'] = 'mysql';
@@ -169,5 +172,5 @@ if(Agent::isMicroMessage() == Agent::MICRO_MESSAGE_YES) {
 $controller = $_GPC['c'];
 $action = $_GPC['a'];
 $do = $_GPC['do'];
-
 header('Content-Type: text/html; charset=' . $_W['charset']);
+

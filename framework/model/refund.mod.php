@@ -37,7 +37,6 @@ function refund_order_can_refund($module, $tid) {
  * @return int  成功返回退款单id，失败返回error结构错误
  */
 function refund_create_order($tid, $module, $fee = 0, $reason = '') {
-	load()->classs('pay');
 	load()->model('module');
 	global $_W;
 	$order_can_refund = refund_order_can_refund($module, $tid);
@@ -66,6 +65,7 @@ function refund_create_order($tid, $module, $fee = 0, $reason = '') {
  * @return array  成功返回退款详情，失败返回error结构错误
  */
 function refund($refund_id) {
+	load()->classs('pay/pay');
 	global $_W;
 	$refundlog = pdo_get('core_refundlog', array('id' => $refund_id));
 	$paylog = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'uniontid' => $refundlog['uniontid']));

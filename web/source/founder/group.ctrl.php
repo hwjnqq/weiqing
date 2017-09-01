@@ -9,12 +9,7 @@ load()->model('user');
 $dos = array('display', 'post', 'del');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
 
-if ($_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER) {
-	itoast('无权限操作！', referer(), 'error');
-}
-
 if ($do == 'display') {
-	uni_user_permission_check('system_founder_manage');
 	$_W['page']['title'] = '副创始人组列表 - 副创始人组 - 副创始人管理';
 	$name = trim($_GPC['name']);
 	if (!empty($name)) {
@@ -26,7 +21,6 @@ if ($do == 'display') {
 }
 
 if ($do == 'post') {
-	uni_user_permission_check('system_founder_group_post');
 	$id = intval($_GPC['id']);
 	if (!empty($id)) {
 		$group_info = pdo_get('users_founder_group', array('id' => $id));
@@ -66,7 +60,6 @@ if ($do == 'post') {
 }
 
 if ($do == 'del') {
-	uni_user_permission_check('system_founder_group_del');
 	$id = intval($_GPC['id']);
 	$result = pdo_delete('users_founder_group', array('id' => $id));
 	if(!empty($result)){

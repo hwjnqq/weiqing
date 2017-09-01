@@ -30,7 +30,7 @@ class CloudApi {
 			$this->sys_call = false;
 			$this->module = pathinfo(MODULE_ROOT, PATHINFO_BASENAME);
 		}
-		$this->development = $development;
+		$this->development = !is_error($this->developerCerContent());
 	}
 	
 	private function getCerContent($file) {
@@ -167,6 +167,7 @@ class CloudApi {
 			'token' => $token,
 			'module' => $this->module,
 		);
+		
 		return base64_encode(json_encode($access_token));
 	}
 	

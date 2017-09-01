@@ -168,17 +168,18 @@ if ($do == 'base') {
 
 	$profile = user_detail_formate($profile);
 
-	//应用模版权限
-	if ($_W['user']['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
-		$groups = user_founder_group();
-		$group_info = user_founder_group_detail_info($user['groupid']);
-	} else {
-		$groups = user_group();
-		$group_info = user_group_detail_info($user['groupid']);
+	if (!$_W['isfounder'] || user_is_vice_founder()) {
+		//应用模版权限
+		if ($_W['user']['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
+			$groups = user_founder_group();
+			$group_info = user_founder_group_detail_info($user['groupid']);
+		} else {
+			$groups = user_group();
+			$group_info = user_group_detail_info($user['groupid']);
+		}
+
+		//使用帐号列表
+		$account_detail = user_account_detail_info($_W['uid']);
 	}
-
-	//使用帐号列表
-	$account_detail = user_account_detail_info($_W['uid']);
-
 	template('user/profile');
 }

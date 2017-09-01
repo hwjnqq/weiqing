@@ -4,7 +4,7 @@
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('mc');
-uni_user_permission_check('mc_member');
+
 $dos = array('address', 'base_information', 'member_credits', 'credit_statistics', 'display','del', 'add', 'group', 'register_setting', 'credit_setting', 'save_credit_setting', 'save_tactics_setting');
 $do = in_array($do, $dos) ? $do : 'display';
 
@@ -66,7 +66,7 @@ if($do == 'display') {
 	$search_mod = intval($_GPC['search_mod']) == 1 ? '1' : '2';
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 25;
-	
+
 	$condition = '';
 	$params = array(':uniacid' => $_W['uniacid']);
 	if (!empty($_GPC['username'])) {
@@ -299,7 +299,7 @@ if ($do == 'base_information') {
 			iajax(-1, '参数错误！', '');
 		}
 		switch ($type) {
-			case 'avatar':			
+			case 'avatar':
 				$data = array('avatar' => $_GPC['imgsrc']);
 				break;
 			case 'groupid':
@@ -423,7 +423,7 @@ if ($do == 'address') {
 				iajax(0, '删除成功', '');
 			}else{
 				iajax(1, '删除失败', '');
-			}	
+			}
 		}
 		if ($_GPC['op'] == 'isdefault') {
 			$id = intval($_GPC['id']);

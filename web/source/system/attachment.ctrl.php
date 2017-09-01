@@ -231,7 +231,7 @@ if ($do == 'buckets') {
 }
 
 if($do == 'ftp') {
-	require(IA_ROOT . '/framework/library/ftp/ftp.php');
+	load()->library('ftp');
 	$ftp_config = array(
 		'hostname' => trim($_GPC['host']),
 		'username' => trim($_GPC['username']),

@@ -31,6 +31,7 @@ class Query {
 	private $currentTableAlias = '';
 	private $error = array();
 	private $lastsql = '';
+	private $lastparams = '';
 	
 	public function __construct() {
 		$this->initClauses();
@@ -125,8 +126,6 @@ class Query {
 	}
 	
 	public function from($tablename, $alias = '') {
-		$this->resetClause();
-		
 		if (empty($tablename)) {
 			return $this;
 		}
@@ -222,33 +221,44 @@ class Query {
 	
 	public function get() {
 		$this->lastsql = $this->buildQuery();
+		$this->lastparams = $this->parameters;
 		$result = pdo_fetch($this->lastsql, $this->parameters);
+		
+		//查询完后，重置Query对象
+		$this->resetClause();
 		return $result;
 	}
 	
 	public function getcolumn($field = '') {
 		$this->lastsql = $this->buildQuery();
+		$this->lastparams = $this->parameters;
 		$result = pdo_fetchcolumn($this->lastsql, $this->parameters, $field);
+		
+		//查询完后，重置Query对象
+		$this->resetClause();
 		return $result;
 	}
 	
 	public function getall($keyfield = '') {
 		$this->lastsql = $this->buildQuery();
+		$this->lastparams = $this->parameters;
 		$result = pdo_fetchall($this->lastsql, $this->parameters, $keyfield);
+		
+		//查询完后，重置Query对象
+		$this->resetClause();
 		return $result;
 	}
 	
 	/**
 	 * 一般用于获取分页后总记录条数
 	 */
-	public function lastcount() {
-		$lastquery = $this->getlastsql();
-		
+	public function getLastQueryTotal() {
+		$lastquery = $this->getLastQuery();
 		//替换SELECT XX 为 SELECT COUNT(*)
 		$countsql = str_replace(substr($lastquery[0], 0, strpos($lastquery[0], 'FROM')), 'SELECT COUNT(*) ', $lastquery[0]);
 		//删除掉Limit
 		$countsql = substr($countsql, 0, strpos($countsql, 'LIMIT'));
-		$result = pdo_fetchcolumn($this->lastsql, $this->parameters, $keyfield);
+		$result = pdo_fetchcolumn($countsql, $this->lastparams, $keyfield);
 		return $result;
 	}
 	
@@ -366,7 +376,7 @@ class Query {
 		return \SqlPaser::parseGroupby($this->statements['GROUPBY'], $this->currentTableAlias);
 	}
 	
-	public function getlastsql() {
-		return array($this->lastsql, $this->parameters);
+	public function getLastQuery() {
+		return array($this->lastsql, $this->lastparams);
 	}
 }

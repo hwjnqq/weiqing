@@ -85,6 +85,7 @@ if (intval($_W['account']['level']) == 4) {
 				'follow' => $userinfo['subscribe'],
 				'followtime' => $userinfo['subscribe_time'],
 				'unfollowtime' => 0,
+				'unionid' => $userinfo['unionid'],
 				'tag' => base64_encode(iserializer($userinfo))
 			);
 			if (!isset($unisetting['passport']) || empty($unisetting['passport']['focusreg'])) {

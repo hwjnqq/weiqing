@@ -41,6 +41,10 @@ function message($msg, $redirect = '', $type = '') {
 	} elseif (!empty($redirect) && !strexists($redirect, 'http://')) {
 		$urls = parse_url($redirect);
 		$redirect = $_W['siteroot'] . 'app/index.php?' . $urls['query'];
+	} else {
+		if(starts_with($redirect,'http') && !starts_with($redirect, $_W['siteroot'])) {
+			$redirect = $_W['siteroot'];
+		}
 	}
 	if($redirect == '') {
 		$type = in_array($type, array('success', 'error', 'info', 'warning', 'ajax', 'sql')) ? $type : 'info';
