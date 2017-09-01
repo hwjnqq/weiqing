@@ -630,6 +630,9 @@
 					};
 					this.editIndex = index;
 				},
+				removeFooter: function (index) {
+					this.footer.splice(index, 1);
+				},
 				editFooter: function (index) {
 					this.showEdit = true;
 					this.editValue = {
