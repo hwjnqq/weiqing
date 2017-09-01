@@ -53,6 +53,10 @@ if ($op == 'display') {
 					unset($homepage_list[$key]);
 				}
 			}
+			if ($value['type'] == 'footer' && !empty($value['items']['footer'])) {
+				$footer = $value['items']['footer'];
+				unset($homepage_list[$key]);
+			}
 		}
 		if (!empty($recommend_info['items']) && is_array($recommend_info['items'])) {
 			$goodslist = pdo_getall($_W['wn_storex']['goods_table'], array('id' => array_values($recommend_info['items'])), array('id', 'thumb', 'title', 'cprice'), 'id');
@@ -79,6 +83,13 @@ if ($op == 'post') {
 		$params = $_GPC['params'];
 		if (!empty($params) && is_array($params)) {
 			pdo_delete('storex_homepage', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'is_wxapp' => 1));
+			if (!empty($_GPC['footer'])) {
+				$footer = array(
+					'type' => 'footer',
+					'items' => array('footer' => $_GPC['footer']),
+				);
+				$params[] = $footer;
+			}
 			foreach ($params as $key => $value) {
 				if ($value['type'] == 'recommend') {
 					if (!empty($value['items']) && is_array($value['items'])) {

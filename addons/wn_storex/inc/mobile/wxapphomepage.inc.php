@@ -50,6 +50,9 @@ if ($op == 'display') {
 				$recommend_key = $key;
 				$recommend_info = $value;
 			}
+			if ($value['type'] == 'footer' && !empty($value['items']['footer'])) {
+				$value['items'] = $value['items']['footer'];
+			}
 		}
 		$tablaname = gettablebytype($store_info['store_type']);
 		if (!empty($recommend_info['items']) && is_array($recommend_info['items'])) {
