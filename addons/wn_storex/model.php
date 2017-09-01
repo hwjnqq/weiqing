@@ -841,7 +841,7 @@ function wxapp_entry_fetchall($storeid, $wxapp = false) {
 		array(
 			'type' => 'sub_class',
 			'name' => '店铺分类列表',
-			'link' => 'wn_storex/pages/category/category?id=' . $storeid,
+			'link' => '/wn_storex/pages/category/category?id=' . $storeid,
 			'group' => $category_entry_routes,
 		),
 	);

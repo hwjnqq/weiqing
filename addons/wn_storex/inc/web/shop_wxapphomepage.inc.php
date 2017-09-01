@@ -41,6 +41,26 @@ if ($op == 'display') {
 		);
 	}
 	$homepage_list = pdo_getall('storex_homepage', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'is_wxapp' => 1), array(), 'displayorder', 'displayorder ASC');
+	$footer = array(
+		array(
+			'icon' => '',
+			'select' => '',
+			'text' => '首页',
+			'url'=> '/wn_storex/pages/store/index?id=' . $storeid
+		),
+		array(
+			'icon' => '',
+			'select' => '',
+			'text' => '分类',
+			'url'=> '/wn_storex/pages/category/category?id=' . $storeid
+		),
+		array(
+			'icon' => '',
+			'select' => '',
+			'text' => '我的',
+			'url'=> '/wn_storex/pages/home/index?id=' . $storeid
+		),
+	);
 	if (!empty($homepage_list) && is_array($homepage_list)) {
 		foreach ($homepage_list as $key => &$value) {
 			unset($value['id'], $value['displayorder'], $value['uniacid'], $value['storeid']);

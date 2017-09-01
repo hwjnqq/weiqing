@@ -496,26 +496,7 @@
 				linkGroup: [],
 				articleList: [],
 				ueditor: null,
-				footer: [
-					{
-						icon: '',
-						select: '',
-						text: '首页',
-						url: 'http://www.baidu.com'
-					},
-					{
-						icon: '',
-						select: '',
-						text: '分类',
-						url: 'http://www.baidu.com'
-					},
-					{
-						icon: '',
-						select: '',
-						text: '我的',
-						url: 'http://www.baidu.com'
-					}
-				],
+				footer: footer,
 				editFooterStatus: false
 			},
 			methods: {
@@ -753,9 +734,6 @@
 				})
 			}
 		})
-		if (footer) {
-			vm.footer = footer;
-		}
 	})
 </script>
 {/if}
