@@ -23,22 +23,20 @@
 						<div class="title"><h1><span>首页</span></h1></div>
 						<div>
 							<div class="weui-tab">
-								<div class="wn-home__preview">
-									<draggable :list="openModules" element="div" :options="{group:'modules'}" :no-transition-on-drag="true" @start="drag=true;" @end="drag=false;" @change="moveEnd">
-										<transition-group :name="!drag? 'list-complete' : null" :css="true">
-											<div v-for="(open, index) in openModules" :key="open.type" class="wn-home__preview__item" :class="{'active': index === editModuleIndex}">
-												<div @click="edit(index)" class="content">
-													<div class="image">
-														<img :src="'../addons/wn_storex/template/style/img/home/' + open.type + '.png'">
-													</div>
-												</div>
-												<div class="remove" v-on:click="removeModule(index)">
-													移除
+								<draggable :list="openModules" element="div" :options="{group:'modules'}" :no-transition-on-drag="true" @start="drag=true;" @end="drag=false;" @change="moveEnd" class="wn-home__preview">
+									<transition-group :name="!drag? 'list-complete' : null" :css="true" tag="div">
+										<div v-for="(open, index) in openModules" :key="open.type" class="wn-home__preview__item" :class="{'active': index === editModuleIndex}">
+											<div @click="edit(index)" class="content">
+												<div class="image">
+													<img :src="'../addons/wn_storex/template/style/img/home/' + open.type + '.png'">
 												</div>
 											</div>
-										</transition-group>
-									</draggable>
-								</div>
+											<div class="remove" v-on:click="removeModule(index)">
+												移除
+											</div>
+										</div>
+									</transition-group>
+								</draggable>
 								<div class="wn-home__footer">
 									<div class="weui-tabbar wn-tabbar" @click="edit('footer')">
 										<a href="javascript:;" class="weui-tabbar__item" v-for="tabbar in footer">
@@ -58,7 +56,8 @@
 						<div class="wn-home__modules" data-toggle="tooltip" data-placement="bottom" title="拖动到左侧排序添加或直接点击添加到最下方" ref="tooltip">
 							<draggable :list="modules" element="div" :options="{group:{name:'modules', pull:'clone', put:false }}" :no-transition-on-drag="true" @start="drag=true;" @end="drag=false">
 								<div v-for="(module, index) in modules" :key="index" class="wn-home__modules__item">
-									<div @click="addModules(index)" class="content" :style="'background-image: url(../addons/wn_storex/template/style/img/home/module-' + module.type + '.png)'"></div>
+									<div @click="addModules(index)" class="content" :style="'background-image: url(../addons/wn_storex/template/style/img/home/module-' + module.type + '.png)'">
+									</div>
 								</div>
 							</draggable>
 						</div>
@@ -104,7 +103,8 @@
 												<h4 class="media-heading">{{goods.title}}</h4>
 												<div>
 													{{goods.cprice}}
-													<button class="btn btn-primary btn-sm pull-right" @click="removeGood(index)">移除 </button>
+													<button class="btn btn-primary btn-sm pull-right" @click="removeGood(index)">移除
+													</button>
 												</div>
 											</div>
 										</div>
@@ -115,7 +115,8 @@
 										<div class="input-group">
 											<input type="text" class="form-control" v-model.trim="goodsParams" placeholder="商品搜索">
 											<div class="input-group-btn">
-												<button class="btn btn-default" @click="searchGoods"><i class="fa fa-search"></i></button>
+												<button class="btn btn-default" @click="searchGoods"><i
+														class="fa fa-search"></i></button>
 											</div>
 										</div>
 									</div>
@@ -129,7 +130,8 @@
 											<h4 class="media-heading">{{goods.title}}</h4>
 											<div>
 												{{goods.cprice}}
-												<button class="btn btn-primary btn-sm pull-right" @click="addGood(goods)">添加 </button>
+												<button class="btn btn-primary btn-sm pull-right" @click="addGood(goods)">添加
+												</button>
 											</div>
 										</div>
 									</div>
@@ -180,7 +182,8 @@
 										<div class="input-group">
 											<input type="text" class="form-control" v-model.trim="editValue.article_title" placeholder="" readonly>
 											<span class="input-group-btn">
-												<button class="btn btn-default" type="button" ref="modal" data-toggle="modal" data-target="#article"><i class="fa fa-plus-circle green"></i>&nbsp;选择文章</button>
+												<button class="btn btn-default" type="button" ref="modal" data-toggle="modal" data-target="#article"><i
+														class="fa fa-plus-circle green"></i>&nbsp;选择文章</button>
 											</span>
 										</div>
 										<div class="help-block">设置点击公告后显示的文章</div>
@@ -248,7 +251,8 @@
 										<div class="input-group">
 											<input type="text" class="form-control" v-model.trim="editValue.url" placeholder="http://链接">
 											<span class="input-group-btn">
-												<button class="btn btn-default" type="button" ref="modal" data-toggle="modal" data-target="#link"><i class="fa fa-plus-circle green"></i>&nbsp;选择链接</button>
+												<button class="btn btn-default" type="button" ref="modal" data-toggle="modal" data-target="#link"><i
+														class="fa fa-plus-circle green"></i>&nbsp;选择链接</button>
 											</span>
 										</div>
 										<div class="help-block">
