@@ -50,8 +50,8 @@ if ($op == 'display') {
 				$recommend_key = $key;
 				$recommend_info = $value;
 			}
-			if ($value['type'] == 'footer' && !empty($value['items']['footer'])) {
-				$value['items'] = $value['items']['footer'];
+			if ($value['type'] == 'footer') {
+				unset($homepage_list[$key]);
 			}
 		}
 		$tablaname = gettablebytype($store_info['store_type']);

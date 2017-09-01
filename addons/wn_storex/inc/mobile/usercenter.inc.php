@@ -4,7 +4,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 
-$ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete', 'extend_switch', 'credit_password', 'check_password_lock', 'set_credit_password', 'credit_pay');
+$ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete', 'extend_switch', 'credit_password', 'check_password_lock', 'set_credit_password', 'credit_pay', 'footer');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -306,4 +306,21 @@ if ($op == 'credit_pay') {
 	);
 	pdo_insert('storex_clerk_pay', $data);
 	wmessage(error(0, '支付成功'), '', 'ajax');
+}
+
+if ($op == 'footer') {
+	$storeid = intval($_GPC['storeid']);
+	if (!check_wxapp()) {
+		$is_wxapp = 2;
+	} else {
+		$is_wxapp = 1;
+	}
+	$footer = pdo_get('storex_homepage', array('storeid' => $storeid, 'type' => 'footer', 'is_wxapp' => $is_wxapp));
+	if (!empty($footer['items'])) {
+		$footer['items'] = !empty($footer['items']) ? iunserializer($footer['items']) : '';
+		if (!empty($footer['items']['footer'])) {
+			$footer['items'] = $footer['items']['footer'];
+		}
+	}
+	wmessage(error(0, $footer), '', 'ajax');
 }
