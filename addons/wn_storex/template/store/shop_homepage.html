@@ -23,26 +23,24 @@
 						<div class="title"><h1><span>首页</span></h1></div>
 						<div>
 							<div class="weui-tab">
-								<div class="wn-home__preview">
-									<draggable :list="openModules" element="div" :options="{group:'modules'}"
-									           :no-transition-on-drag="true" @start="drag=true;" @end="drag=false;"
-									           @change="moveEnd">
-										<transition-group :name="!drag? 'list-complete' : null" :css="true">
-											<div v-for="(open, index) in openModules" :key="open.type"
-											     class="wn-home__preview__item"
-											     :class="{'active': index === editModuleIndex}">
-												<div @click="edit(index)" class="content">
-													<div class="image">
-														<img :src="'../addons/wn_storex/template/style/img/home/' + open.type + '.png'">
-													</div>
-												</div>
-												<div class="remove" v-on:click="removeModule(index)">
-													移除
+								<draggable :list="openModules" element="div" :options="{group:'modules'}"
+								           :no-transition-on-drag="true" @start="drag=true;" @end="drag=false;"
+								           @change="moveEnd" class="wn-home__preview">
+									<transition-group :name="!drag? 'list-complete' : null" :css="true" tag="div">
+										<div v-for="(open, index) in openModules" :key="open.type"
+										     class="wn-home__preview__item"
+										     :class="{'active': index === editModuleIndex}">
+											<div @click="edit(index)" class="content">
+												<div class="image">
+													<img :src="'../addons/wn_storex/template/style/img/home/' + open.type + '.png'">
 												</div>
 											</div>
-										</transition-group>
-									</draggable>
-								</div>
+											<div class="remove" v-on:click="removeModule(index)">
+												移除
+											</div>
+										</div>
+									</transition-group>
+								</draggable>
 								<div class="wn-home__footer">
 									<div class="weui-tabbar wn-tabbar" @click="edit('footer')">
 										<a href="javascript:;" class="weui-tabbar__item" v-for="tabbar in footer">
