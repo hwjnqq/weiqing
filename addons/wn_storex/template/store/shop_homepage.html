@@ -1,4 +1,5 @@
-<script src="../../../../../grunt/web/_src/application/util.js"></script>{template 'common/header-storex'}
+<script src="../../../../../grunt/web/_src/application/util.js"></script>
+{template 'common/header-storex'}
 <link rel="stylesheet" href="{php echo $_W['siteroot'] . 'addons/wn_storex/template/style/css/membercard.css'}">
 {if $op == 'display'}
 <div class="wn-main wn-main--without">
@@ -23,9 +24,13 @@
 						<div>
 							<div class="weui-tab">
 								<div class="wn-home__preview">
-									<draggable :list="openModules" element="div" :options="{group:'modules'}" :no-transition-on-drag="true" @start="drag=true;" @end="drag=false;" @change="moveEnd">
+									<draggable :list="openModules" element="div" :options="{group:'modules'}"
+									           :no-transition-on-drag="true" @start="drag=true;" @end="drag=false;"
+									           @change="moveEnd">
 										<transition-group :name="!drag? 'list-complete' : null" :css="true">
-											<div v-for="(open, index) in openModules" :key="open.type" class="wn-home__preview__item" :class="{'active': index === editModuleIndex}" >
+											<div v-for="(open, index) in openModules" :key="open.type"
+											     class="wn-home__preview__item"
+											     :class="{'active': index === editModuleIndex}">
 												<div @click="edit(index)" class="content">
 													<div class="image">
 														<img :src="'../addons/wn_storex/template/style/img/home/' + open.type + '.png'">
@@ -38,16 +43,30 @@
 										</transition-group>
 									</draggable>
 								</div>
+								<div class="wn-home__footer">
+									<div class="weui-tabbar wn-tabbar" @click="edit('footer')">
+										<a href="javascript:;" class="weui-tabbar__item" v-for="tabbar in footer">
+											<div class="weui-tabbar__icon vux-center">
+												<img :src="tabbar.icon" alt="">
+											</div>
+											<p class="weui-tabbar__label"><span>{{tabbar.text}}</span></p>
+										</a>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 				<div class="app-side">
 					<div class="editor">
-						<div class="wn-home__modules" data-toggle="tooltip" data-placement="bottom" title="拖动到左侧排序添加或直接点击添加到最下方" ref="tooltip">
-							<draggable :list="modules" element="div" :options="{group:{name:'modules', pull:'clone', put:false }}" :no-transition-on-drag="true" @start="drag=true;" @end="drag=false">
+						<div class="wn-home__modules" data-toggle="tooltip" data-placement="bottom"
+						     title="拖动到左侧排序添加或直接点击添加到最下方" ref="tooltip">
+							<draggable :list="modules" element="div"
+							           :options="{group:{name:'modules', pull:'clone', put:false }}"
+							           :no-transition-on-drag="true" @start="drag=true;" @end="drag=false">
 								<div v-for="(module, index) in modules" :key="index" class="wn-home__modules__item">
-									<div @click="addModules(index)" class="content" :style="'background-image: url(../addons/wn_storex/template/style/img/home/module-' + module.type + '.png)'">
+									<div @click="addModules(index)" class="content"
+									     :style="'background-image: url(../addons/wn_storex/template/style/img/home/module-' + module.type + '.png)'">
 									</div>
 								</div>
 							</draggable>
@@ -73,28 +92,38 @@
 								</span>
 							</div>
 							<div class="wn-home__edit__help" v-if="openModules[editModuleIndex]['type'] == 'cube'">
-								<img src="../addons/wn_storex/template/style/img/home/cubeview.jpg" alt="" >
+								<img src="../addons/wn_storex/template/style/img/home/cubeview.jpg" alt="">
 							</div>
-							<div class="wn-home__editSearch wn-home__edit__item" v-if="openModules[editModuleIndex]['type'] == 'search'">
+							<div class="wn-home__editSearch wn-home__edit__item"
+							     v-if="openModules[editModuleIndex]['type'] == 'search'">
 								<div class="form-group">
-									<input type="text" class="form-control" v-model.trim="openModules[editModuleIndex]['items']" placeholder="搜索框提示语">
+									<input type="text" class="form-control"
+									       v-model.trim="openModules[editModuleIndex]['items']" placeholder="搜索框提示语">
 								</div>
 							</div>
-							<div class="wn-home__editGoods row" v-if="openModules[editModuleIndex]['type'] == 'recommend'">
+							<div class="wn-home__editGoods row"
+							     v-if="openModules[editModuleIndex]['type'] == 'recommend'">
 								<div class="col-sm-6">
 									已选商品
-									<draggable :list="openModules[editModuleIndex]['items']" element="div" :options="{group:{name:'goods'}}" :no-transition-on-drag="true" @start="drag=true" @end="drag=false" v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
-										<div class="media" v-for="(goods, index) in openModules[editModuleIndex]['items']">
+									<draggable :list="openModules[editModuleIndex]['items']" element="div"
+									           :options="{group:{name:'goods'}}" :no-transition-on-drag="true"
+									           @start="drag=true" @end="drag=false"
+									           v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
+										<div class="media"
+										     v-for="(goods, index) in openModules[editModuleIndex]['items']">
 											<div class="media-left">
 												<a href="#">
-													<img class="media-object" :src="goods.thumb" style="width: 60px; height: 60px; background-color: #666">
+													<img class="media-object" :src="goods.thumb"
+													     style="width: 60px; height: 60px; background-color: #666">
 												</a>
 											</div>
 											<div class="media-body" style="width: 100%;">
 												<h4 class="media-heading">{{goods.title}}</h4>
 												<div>
 													{{goods.cprice}}
-													<button class="btn btn-primary btn-sm pull-right" @click="removeGood(index)">移除</button>
+													<button class="btn btn-primary btn-sm pull-right"
+													        @click="removeGood(index)">移除
+													</button>
 												</div>
 											</div>
 										</div>
@@ -103,23 +132,28 @@
 								<div class="col-sm-6">
 									<div class="form-group">
 										<div class="input-group">
-											<input type="text" class="form-control" v-model.trim="goodsParams" placeholder="商品搜索">
+											<input type="text" class="form-control" v-model.trim="goodsParams"
+											       placeholder="商品搜索">
 											<div class="input-group-btn">
-												<button class="btn btn-default" @click="searchGoods"><i class="fa fa-search"></i></button>
+												<button class="btn btn-default" @click="searchGoods"><i
+														class="fa fa-search"></i></button>
 											</div>
 										</div>
 									</div>
 									<div class="media" v-for="goods in goodsList">
 										<div class="media-left">
 											<a href="#">
-												<img class="media-object" :src="goods.thumb" style="width: 60px; height: 60px; background-color: #666">
+												<img class="media-object" :src="goods.thumb"
+												     style="width: 60px; height: 60px; background-color: #666">
 											</a>
 										</div>
 										<div class="media-body" style="width: 100%;">
 											<h4 class="media-heading">{{goods.title}}</h4>
 											<div>
 												{{goods.cprice}}
-												<button class="btn btn-primary btn-sm pull-right" @click="addGood(goods)">添加</button>
+												<button class="btn btn-primary btn-sm pull-right"
+												        @click="addGood(goods)">添加
+												</button>
 											</div>
 										</div>
 									</div>
@@ -140,8 +174,12 @@
 										</div>
 									</div>
 								</div>
-								<draggable :list="openModules[editModuleIndex]['items']" element="div" :options="{group:{name:'notice'}}" :no-transition-on-drag="true" @start="drag=true" @end="drag=false" v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
-									<div v-for="(item, index) in openModules[editModuleIndex]['items']" :key="index" class="wn-home__editImage__item wn-home__editImage__item--slide">
+								<draggable :list="openModules[editModuleIndex]['items']" element="div"
+								           :options="{group:{name:'notice'}}" :no-transition-on-drag="true"
+								           @start="drag=true" @end="drag=false"
+								           v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
+									<div v-for="(item, index) in openModules[editModuleIndex]['items']" :key="index"
+									     class="wn-home__editImage__item wn-home__editImage__item--slide">
 										<div class="content row">
 											<div class="col-sm-2">
 												{{index}}
@@ -161,14 +199,20 @@
 								<div class="" v-if="showEdit">
 									<h5>编辑</h5>
 									<div class="form-group">
-										<input type="text" class="form-control" v-model.trim="editValue.title" placeholder="标题">
-										<div class="help-block">设置{{typeValue[openModules[editModuleIndex]['type']]}}标题</div>
+										<input type="text" class="form-control" v-model.trim="editValue.title"
+										       placeholder="标题">
+										<div class="help-block">
+											设置{{typeValue[openModules[editModuleIndex]['type']]}}标题
+										</div>
 									</div>
 									<div class="form-group">
 										<div class="input-group">
-											<input type="text" class="form-control" v-model.trim="editValue.article_title" placeholder="" readonly>
+											<input type="text" class="form-control"
+											       v-model.trim="editValue.article_title" placeholder="" readonly>
 											<span class="input-group-btn">
-												<button class="btn btn-default" type="button" ref="modal" data-toggle="modal" data-target="#article"><i class="fa fa-plus-circle green"></i>&nbsp;选择文章</button>
+												<button class="btn btn-default" type="button" ref="modal"
+												        data-toggle="modal" data-target="#article"><i
+														class="fa fa-plus-circle green"></i>&nbsp;选择文章</button>
 											</span>
 										</div>
 										<div class="help-block">设置点击公告后显示的文章</div>
@@ -179,7 +223,8 @@
 									</div>
 								</div>
 							</div>
-							<div class="wn-home__editImage" v-if="imageModules.indexOf(openModules[editModuleIndex]['type']) != -1">
+							<div class="wn-home__editImage"
+							     v-if="imageModules.indexOf(openModules[editModuleIndex]['type']) != -1">
 								<div class="wn-home__editImage__item wn-home__editImage__item--slide" v-if="!showEdit">
 									<div class="content row">
 										<div class="col-sm-1">
@@ -199,8 +244,13 @@
 										</div>
 									</div>
 								</div>
-								<draggable :list="openModules[editModuleIndex]['items']" element="div" :options="{group:{name:'slide'}}" :no-transition-on-drag="true" @start="drag=true" @end="drag=false" v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
-									<div v-for="(item, index) in openModules[editModuleIndex]['items']" :key="index" class="wn-home__editImage__item" :class="'wn-home__editImage__' + openModules[editModuleIndex]['type']">
+								<draggable :list="openModules[editModuleIndex]['items']" element="div"
+								           :options="{group:{name:'slide'}}" :no-transition-on-drag="true"
+								           @start="drag=true" @end="drag=false"
+								           v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
+									<div v-for="(item, index) in openModules[editModuleIndex]['items']" :key="index"
+									     class="wn-home__editImage__item"
+									     :class="'wn-home__editImage__' + openModules[editModuleIndex]['type']">
 										<div class="content row">
 											<div class="col-sm-1">
 												{{index}}
@@ -221,32 +271,159 @@
 										</div>
 									</div>
 								</draggable>
-								<div @click="addImage()" v-show="!showEdit && openModules[editModuleIndex]['items'].length < max[openModules[editModuleIndex]['type']]" class="btn btn-primary">点击添加</div>
+								<div @click="addImage()"
+								     v-show="!showEdit && openModules[editModuleIndex]['items'].length < max[openModules[editModuleIndex]['type']]"
+								     class="btn btn-primary">点击添加
+								</div>
 								<div class="clearfix"></div>
 								<div class="" v-if="showEdit">
 									<h5>编辑</h5>
 									<div class="form-group">
-										<input type="text" class="form-control" v-model.trim="editValue.title" placeholder="标题">
-										<div class="help-block">设置{{typeValue[openModules[editModuleIndex]['type']]}}标题</div>
+										<input type="text" class="form-control" v-model.trim="editValue.title"
+										       placeholder="标题">
+										<div class="help-block">
+											设置{{typeValue[openModules[editModuleIndex]['type']]}}标题
+										</div>
 									</div>
 									<div class="form-group">
 										<div class="input-group">
-											<input type="text" class="form-control" v-model.trim="editValue.url" placeholder="http://链接">
+											<input type="text" class="form-control" v-model.trim="editValue.url"
+											       placeholder="http://链接">
 											<span class="input-group-btn">
-												<button class="btn btn-default" type="button" ref="modal" data-toggle="modal" data-target="#link"><i class="fa fa-plus-circle green"></i>&nbsp;选择链接</button>
+												<button class="btn btn-default" type="button" ref="modal"
+												        data-toggle="modal" data-target="#link"><i
+														class="fa fa-plus-circle green"></i>&nbsp;选择链接</button>
 											</span>
 										</div>
-										<div class="help-block">设置{{typeValue[openModules[editModuleIndex]['type']]}}链接,请填写http://或https://完整地址</div>
+										<div class="help-block">
+											设置{{typeValue[openModules[editModuleIndex]['type']]}}链接,请填写http://或https://完整地址
+										</div>
 									</div>
 									<div class="form-group">
 										<div class="input-group">
-											<input type="text" disabled class="form-control" v-model.trim="editValue.img" placeholder="图片地址">
+											<input type="text" disabled class="form-control"
+											       v-model.trim="editValue.img" placeholder="图片地址">
 											<span class="input-group-btn" @click="uploadImage(editValue, 'img')">
-												<button class="btn btn-default" type="button"><i class="fa fa-plus-circle green"></i>&nbsp;选择图片</button>
+												<button class="btn btn-default" type="button"><i
+														class="fa fa-plus-circle green"></i>&nbsp;选择图片</button>
 											</span>
 										</div>
 										<div class="help-block">
 											<img :src="editValue.img" alt="" style="width: 320px; height: auto">
+										</div>
+									</div>
+									<div class="form-group">
+										<a @click="showEdit = false" class="btn btn-default">取消</a>
+										<a class="btn btn-primary" @click="saveItem">保存</a>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="wn-home__edit" v-if="editModuleIndex == 'footer'">
+							<div class="wn-home__edit__head">
+								底部菜单
+								<span >
+									拖动排序，最多上传5个
+								</span>
+							</div>
+							<div class="wn-home__editImage" >
+								<div class="wn-home__editImage__item wn-home__editImage__item--slide" v-if="!showEdit">
+									<div class="content row">
+										<div class="col-sm-1">
+
+										</div>
+										<div class="col-sm-2">
+											图片
+										</div>
+										<div class="col-sm-2">
+											标题
+										</div>
+										<div class="col-sm-4">
+											链接
+										</div>
+										<div class="col-sm-3">
+											操作
+										</div>
+									</div>
+								</div>
+								<draggable :list="footer" element="div"
+								           :options="{group:{name:'footer'}}" :no-transition-on-drag="true"
+								           @start="drag=true" @end="drag=false"
+								           v-if="!showEdit && footer.length > 0">
+									<div v-for="(item, index) in footer" :key="index"
+									     class="wn-home__editImage__item wn-home__editImage__icon" >
+										<div class="content row">
+											<div class="col-sm-1">
+												{{index}}
+											</div>
+											<div class="col-sm-2">
+												<img :src="item.icon" alt="" style="width: 40px; height: 40px;">
+											</div>
+											<div class="col-sm-2">
+												<div class="text-over">{{item.text}}</div>
+											</div>
+											<div class="col-sm-4">
+												<div class="text-over">{{item.url}}</div>
+											</div>
+											<div class="col-sm-3">
+												<a @click="editFooter(index)">编辑</a>
+												<a @click="removeFooter(index)">删除</a>
+											</div>
+										</div>
+									</div>
+								</draggable>
+								<div @click="addFooter()"
+								     v-show="!showEdit && footer.length < 5"
+								     class="btn btn-primary">点击添加
+								</div>
+								<div class="clearfix"></div>
+								<div class="" v-if="showEdit">
+									<h5>编辑</h5>
+									<div class="form-group">
+										<input type="text" class="form-control" v-model.trim="editValue.text"
+										       placeholder="标题">
+										<div class="help-block">
+											设置底部菜单标题
+										</div>
+									</div>
+									<div class="form-group">
+										<div class="input-group">
+											<input type="text" class="form-control" v-model.trim="editValue.url"
+											       placeholder="http://链接">
+											<span class="input-group-btn">
+												<button class="btn btn-default" type="button" ref="modal"
+												        data-toggle="modal" data-target="#link"><i
+														class="fa fa-plus-circle green"></i>&nbsp;选择链接</button>
+											</span>
+										</div>
+										<div class="help-block">
+											设置底部菜单链接,请填写http://或https://完整地址
+										</div>
+									</div>
+									<div class="form-group">
+										<div class="input-group">
+											<input type="text" disabled class="form-control"
+											       v-model.trim="editValue.icon" placeholder="图标">
+											<span class="input-group-btn" @click="uploadImage(editValue, 'icon')">
+												<button class="btn btn-default" type="button"><i
+														class="fa fa-plus-circle green"></i>&nbsp;选择图片</button>
+											</span>
+										</div>
+										<div class="help-block">
+											<img :src="editValue.icon" alt="" style="width: 50px; height: 50px">
+										</div>
+									</div>
+									<div class="form-group">
+										<div class="input-group">
+											<input type="text" disabled class="form-control"
+											       v-model.trim="editValue.select" placeholder="选中图标">
+											<span class="input-group-btn" @click="uploadImage(editValue, 'select')">
+												<button class="btn btn-default" type="button"><i
+														class="fa fa-plus-circle green"></i>&nbsp;选择图片</button>
+											</span>
+										</div>
+										<div class="help-block">
+											<img :src="editValue.select" alt="" style="width: 50px; height: 50px">
 										</div>
 									</div>
 									<div class="form-group">
@@ -264,7 +441,8 @@
 				<div class="modal-dialog" role="document">
 					<div class="modal-content">
 						<div class="modal-header">
-							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+									aria-hidden="true">&times;</span></button>
 							<h4 class="modal-title">链接列表</h4>
 						</div>
 						<div class="modal-body">
@@ -274,12 +452,18 @@
 										<h4><i class="fa fa-folder-open-o"></i> {{link.name}}</h4>
 									</div>
 									<div v-if="link.link" class="link">
-										<div class="btn btn-default" @click="addLink(editValue, link.link)" >{{link.name}}</div>
+										<div class="btn btn-default" @click="addLink(editValue, link.link)">
+											{{link.name}}
+										</div>
 									</div>
 									<template v-for="sub in link.group">
-										<div class="btn btn-default" @click="addLink(editValue, sub.link)" class="category">{{sub.name}}</div>
+										<div class="btn btn-default" @click="addLink(editValue, sub.link)"
+										     class="category">{{sub.name}}
+										</div>
 										<div v-if="sub.group" class="subcategory">
-											<div class="btn btn-default" v-for="cat in sub.group" @click="addLink(editValue, cat.link)">{{cat.name}}</div>
+											<div class="btn btn-default" v-for="cat in sub.group"
+											     @click="addLink(editValue, cat.link)">{{cat.name}}
+											</div>
 										</div>
 									</template>
 								</template>
@@ -292,7 +476,8 @@
 				<div class="modal-dialog" role="document">
 					<div class="modal-content">
 						<div class="modal-header">
-							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+									aria-hidden="true">&times;</span></button>
 							<h4 class="modal-title">文章列表</h4>
 						</div>
 						<div class="modal-body">
@@ -302,7 +487,9 @@
 										<h4><i class="fa fa-folder-open-o"></i> {{article.title}}</h4>
 									</div>
 									<div v-if="article.article_list" v-for="item in article.article_list" class="link">
-										<div class="btn btn-default" @click="addArticle(editValue, item.id, item.title)">{{item.title}}</div>
+										<div class="btn btn-default"
+										     @click="addArticle(editValue, item.id, item.title)">{{item.title}}
+										</div>
 									</div>
 									<div v-if="!article.article_list" class="link">
 										<div>此分类暂无文章</div>
@@ -362,7 +549,28 @@
 				goodsList: [],
 				linkGroup: [],
 				articleList: [],
-				ueditor: null
+				ueditor: null,
+				footer: [
+					{
+						icon: '',
+						selected: '',
+						text: '首页',
+						url: 'http://www.baidu.com'
+					},
+					{
+						icon: '',
+						selected: '',
+						text: '分类',
+						url: 'http://www.baidu.com'
+					},
+					{
+						icon: '',
+						selected: '',
+						text: '我的',
+						url: 'http://www.baidu.com'
+					}
+				],
+				editFooterStatus: false
 			},
 			methods: {
 				removeModule: function (index) {
@@ -382,7 +590,7 @@
 				moveEnd: function (evt) {
 					// 新增
 					if (evt.hasOwnProperty('added')) {
-						if(evt.added.newIndex <= this.editModuleIndex) {
+						if (evt.added.newIndex <= this.editModuleIndex) {
 							this.editModuleIndex++
 						}
 					} else if (evt.hasOwnProperty('moved')) {
@@ -422,6 +630,25 @@
 					};
 					this.editIndex = index;
 				},
+				editFooter: function (index) {
+					this.showEdit = true;
+					this.editValue = {
+						icon: this.footer[index]['icon'],
+						select: this.footer[index]['select'],
+						text: this.footer[index]['text'],
+						url: this.footer[index]['url']
+					};
+					this.editIndex = index;
+				},
+				addFooter: function () {
+					this.showEdit = true;
+					this.editValue = {
+						icon: '',
+						select: '',
+						text: '',
+						url: ''
+					};
+				},
 				addNotice: function () {
 					this.showEdit = true;
 					this.editValue = {
@@ -447,7 +674,7 @@
 				},
 				saveItem: function () {
 					console.log(typeof this.ueditor);
-					if(this.ueditor && typeof this.ueditor == 'object') {
+					if (this.ueditor && typeof this.ueditor == 'object') {
 						this.editValue.value = this.ueditor.getContent()
 						this.ueditor = null;
 					}
@@ -459,10 +686,19 @@
 							return;
 						}
 					}
-					if (!this.editIndex && typeof this.editIndex != 'number') {
-						this.openModules[index]['items'].push(value)
-					} else {
-						this.openModules[index]['items'][this.editIndex] = value
+					if (typeof index == 'number') {
+						if (!this.editIndex && typeof this.editIndex != 'number') {
+							this.openModules[index]['items'].push(value)
+						} else {
+							this.openModules[index]['items'][this.editIndex] = value
+						}
+					} else if (index == 'footer') {
+						if (!this.editIndex && typeof this.editIndex != 'number') {
+							this.footer.push(value)
+						} else {
+							this.footer[this.editIndex] = value
+						}
+						this.editFooterStatus = true;
 					}
 					this.showEdit = false;
 				},
@@ -477,16 +713,16 @@
 						});
 					});
 				},
-				addLink: function(target, url) {
+				addLink: function (target, url) {
 					this.$set(target, 'url', url);
-					this.$nextTick(function() {
+					this.$nextTick(function () {
 						$('#link').modal('hide');
 					})
 				},
-				addArticle: function(target, id, article_title) {
+				addArticle: function (target, id, article_title) {
 					this.$set(target, 'id', id);
 					this.$set(target, 'article_title', article_title);
-					this.$nextTick(function() {
+					this.$nextTick(function () {
 						$('#article').modal('hide');
 					});
 				},
@@ -506,8 +742,8 @@
 					var index = this.editModuleIndex;
 					var goodsList = this.openModules[index]['items'];
 					for (var key in goodsList) {
-						if(goodsList[key]['id'] == goods.id) {
-							return ;
+						if (goodsList[key]['id'] == goods.id) {
+							return;
 						}
 					}
 					this.openModules[index]['items'].push(goods)
@@ -545,7 +781,7 @@
 				this.$nextTick(function () {
 					$(this.$refs.tooltip).tooltip();
 					$(this.$refs.modal).modal();
-					$('#link').on('show.bs.modal', function(event) {
+					$('#link').on('show.bs.modal', function (event) {
 						$.post("{php echo $this->createWebUrl('shop_homepage', array('op' => 'link', 'storeid' => $_GPC['storeid']))}", {params: this.openModules}, function (data) {
 							data = $.parseJSON(data);
 							if (data.message.errno != 0) {
@@ -555,7 +791,7 @@
 							}
 						});
 					});
-					$('#article').on('show.bs.modal', function(event) {
+					$('#article').on('show.bs.modal', function (event) {
 						$.post("{php echo $this->createWebUrl('shop_homepage', array('op' => 'article', 'storeid' => $_GPC['storeid']))}", {params: this.openModules}, function (data) {
 							data = $.parseJSON(data);
 							if (data.message.errno != 0) {
