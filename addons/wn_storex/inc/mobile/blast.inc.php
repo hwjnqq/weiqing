@@ -19,7 +19,6 @@ if (empty($clerk_info)) {
 }
 if ($op == 'display') {
 	$blast_message = pdo_get('storex_blast_message', array('uniacid' => $_W['uniacid'], 'status' => 1, 'clerkid' => $clerk_id));
-	$uuid = webwx_getuuid();
 }
 
 if ($op == 'get_qrcode') {
@@ -205,7 +204,7 @@ if ($op == 'heart') {
 	$synckey = $_GPC['synckey'];
 	$cookie = $_GPC['cookie'];
 	$new_key = webwx_sync($request, $synckey);
-	$result = synccheck($request, $nkey, $cookie);
+	$result = synccheck($request, $new_key, $cookie);
 	if ($result[0] != 0) {
 		message(error(-1, ''), '', 'ajax');
 	}
