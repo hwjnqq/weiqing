@@ -995,6 +995,16 @@ li {
 .wn-home__link .subcategory {
   margin-left: 15px;
 }
+.wn-home__footer {
+  position: absolute;
+  bottom: 0;
+  background-color: #fff;
+  width: 100%;
+}
+.wn-home__footer .weui-tabbar {
+  position: absolute !important;
+  height: 50px;
+}
 
 .wn-home__navbar {
   left: 180px;
