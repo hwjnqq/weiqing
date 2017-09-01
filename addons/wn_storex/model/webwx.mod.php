@@ -37,7 +37,7 @@ function webwx_waitforlogin($tip = 1, $uuid) {
 /**
  * web端微信登陆后获取cookie信息
  * @param str $redirect_uri 登陆成功200返回的链接
- * @return array skey、wxsid、wxuin、pass_ticket重要参数，接下来的请求中需要携带
+ * @return array skey、wxsid、wxuin、pass_ticket、cookie为重要参数，接下来的请求中需要携带
  */
 function webwx_login($redirect_uri) {
 	if (!empty($redirect_uri)) {
@@ -94,7 +94,7 @@ function webwx_init($post, $post_url_header) {
 	return $result;
 }
 
-function webwxstatusnotify($request){
+function webwxstatusnotify($request) {
 	$url = sprintf($request['post_url_header'] . '/webwxstatusnotify?lang=zh_CN&pass_ticket=%s', $request['pass_ticket']);
 	$params = array(
 		'BaseRequest'=> $request['request'],
@@ -107,6 +107,12 @@ function webwxstatusnotify($request){
 	return $result['BaseResponse']['Ret'] == 0;
 }
 
+/**
+ * web端微信获取消息，与微信服务器交换synckey
+ * @param array $request cookie信息
+ * @param array $synckey init时返回的synckey
+ * @return json
+ */
 function webwx_sync($request, $synckey){
 	$url = sprintf($request['post_url_header'] . '/webwxsync?sid=%s&skey=%s&pass_ticket=%s', $request['sid'], $request['skey'], $request['pass_ticket']);
 	$params = array(
@@ -123,6 +129,13 @@ function webwx_sync($request, $synckey){
 	return $SyncKey;
 }
 
+/**
+ * web端微信与微信服务器同步
+ * @param array $request 请求需要重要信息
+ * @param array $synckey synckey信息
+ * @param array $cookie 登录返回的header中cookie信息
+ * @return array 
+ */
 function synccheck($request, $synckey_info, $cookie){
 	if (!empty($synckey_info)) {
 		foreach($synckey_info['List'] as $val) {
@@ -149,7 +162,7 @@ function synccheck($request, $synckey_info, $cookie){
 		$retcode = -1;
 		$selector = -1;
 	}
-	return array($retcode, $seslector);
+	return array($retcode, $selector);
 }
 
 /**
@@ -173,13 +186,14 @@ function webwx_getcontact($post, $post_url_header) {
 	}
 	return $data;
 }
+
 /**
  * web端微信发送文字信息
- * @param array $user_info_init 用户基本信息
- * @param array $cookie_api cookie信息
+ * @param array $params 用户基本信息
  * @param str $word 发送内容
+ * @param str $fromusername 发送人username
  * @param str $tousername 好友username
- * @return json
+ * @return boolean
  */
 function webwx_sendmsg($params, $word, $fromusername, $tousername = 'filehelper') {
 	$url = sprintf($params['post_url_header'] . '/webwxsendmsg?pass_ticket=%s', $params['pass_ticket']);
@@ -199,15 +213,15 @@ function webwx_sendmsg($params, $word, $fromusername, $tousername = 'filehelper'
 	$result = @json_decode($result, true);
 	return $result['BaseResponse']['Ret'] == 0;
 }
+
 /**
  * web端微信发送图片消息
- * @param array $user_info_init 用户基本信息
- * @param array $cookie_api cookie信息
- * @param str $image 发送图片绝对路径
+ * @param array $params 用户基本信息
+ * @param str $image 发送图片
+ * @param str $fromusername 发送人username
  * @param str $tousername 好友username
- * @return json
+ * @return boolean
  */
-
 function webwx_sendimg($params, $image, $fromusername, $tousername = 'filehelper'){
 	$url = sprintf($params['post_url_header'] . '/webwxsendmsgimg?fun=async&f=json&pass_ticket=%s', $params['pass_ticket']);
 	$uploadimg = uploadimg($params, $fromusername, $tousername, $image);
@@ -229,13 +243,13 @@ function webwx_sendimg($params, $image, $fromusername, $tousername = 'filehelper
 }
 /**
  * web端微信上传附件接口（post）
- * @param array $cookie_api cookie信息
+ * @param array $params 用户信息
  * @param array $fromusername 用户username
  * @param str $tousername 好友username
  * @param str $image 上传图片绝对路径
- * @return json
+ * @return array
  */
-function uploadimg($params, $fromusername, $tousername, $image){
+function uploadimg($params, $fromusername, $tousername, $image) {
 	preg_match("~^https:?(//([^/?#]*))?~", $params['post_url_header'], $match);
 	$url_list = explode('.', $match[2]);
 	$header = $url_list[0];
@@ -265,16 +279,16 @@ function uploadimg($params, $fromusername, $tousername, $image){
 		'FileMd5' => md5_file($image)
 	));
 	$multipart_encoder = array(
-		'id'=> 'WU_FILE_5',
-		'name'=> $image,
-		'type'=> 'images/jpeg',
-		'lastModifieDate'=> gmdate('D M d Y H:i:s TO', $file_time) . ' (CST)',
-		'size'=> $file_size,
-		'mediatype'=> 'pic',
-		'uploadmediarequest'=> $uploadmediarequest,
-		'webwx_data_ticket'=> $webwx_data_ticket,
-		'pass_ticket'=> $params['pass_ticket'],
-		'filename'=> '@' . $image
+		'id' => 'WU_FILE_1',
+		'name' => $image,
+		'type' => 'images/jpeg',
+		'lastModifieDate' => gmdate('D M d Y H:i:s TO', $file_time) . ' (CST)',
+		'size' => $file_size,
+		'mediatype' => 'pic',
+		'uploadmediarequest' => $uploadmediarequest,
+		'webwx_data_ticket' => $webwx_data_ticket,
+		'pass_ticket' => $params['pass_ticket'],
+		'filename' => '@' . $image
 	);
 	$result = webwx_post($url, $multipart_encoder, false, true);
 	$result = @json_decode($result, true);
@@ -316,7 +330,7 @@ function webwx_post($url, $param, $jsonfmt = true, $post_file = false){
 		$strPOST = $param;
 	} else {
 		$aPOST = array();
-		foreach ($param as $key => $val){
+		foreach ($param as $key => $val) {
 			$aPOST[] = $key . '=' . urlencode($val);
 		}
 		$strPOST = implode('&', $aPOST);
@@ -331,7 +345,7 @@ function webwx_post($url, $param, $jsonfmt = true, $post_file = false){
 	$sContent = curl_exec($oCurl);
 	$aStatus = curl_getinfo($oCurl);
 	curl_close($oCurl);
-	if (intval($aStatus['http_code']) == 200){
+	if (intval($aStatus['http_code']) == 200) {
 		if ($jsonfmt) {
 			return json_decode($sContent,true);
 		}
@@ -341,7 +355,7 @@ function webwx_post($url, $param, $jsonfmt = true, $post_file = false){
 	}
 }
 
-function webwx_get($url,$api = false, $cookie = ''){
+function webwx_get($url, $api = false, $cookie = '') {
 	$oCurl = curl_init();
 	if (stripos($url, 'https://') !== FALSE){
 		curl_setopt($oCurl, CURLOPT_SSL_VERIFYPEER, FALSE);
@@ -364,8 +378,6 @@ function webwx_get($url,$api = false, $cookie = ''){
 	curl_setopt($oCurl, CURLOPT_TIMEOUT, 60);
 	curl_setopt($oCurl, CURLOPT_COOKIEFILE, $cookie);
 	curl_setopt($oCurl, CURLOPT_COOKIEJAR, $cookie);
-	// curl_setopt($oCurl, CURLOPT_COOKIEFILE, IA_ROOT . '/addons/wn_storex/cookie.cookie');
-	// curl_setopt($oCurl, CURLOPT_COOKIEJAR, IA_ROOT . '/addons/wn_storex/cookie.cookie');
 	$sContent = curl_exec($oCurl);
 	$aStatus = curl_getinfo($oCurl);
 	curl_close($oCurl);
