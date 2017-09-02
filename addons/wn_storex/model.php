@@ -1190,7 +1190,8 @@ function category_entry_fetch($storeid, $params = array(), $wxapp = false) {
 							}
 						} else {
 							if (empty($_W['wn_storex']['store_info']['store_type'])) {
-								$vue_route = '#/Category/Child/' . $storeid . '/';
+								$vue_route = '#/Category/' . $storeid;
+								$category_status = true;
 							} elseif ($_W['wn_storex']['store_info']['store_type'] == 1) {
 								$vue_route = '#/Category/GoodList/' . $storeid . '/';
 							}
@@ -1199,7 +1200,10 @@ function category_entry_fetch($storeid, $params = array(), $wxapp = false) {
 					if (!empty($wxapp)) {
 						$category_list[$info['id']]['link'] = $vue_route;
 					} else {
-						$category_list[$info['id']]['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $vue_route . $info['id'];
+						$category_list[$info['id']]['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . $vue_route;
+						if (empty($category_status)) {
+							$category_list[$info['id']]['link'] .= $info['id'];
+						}
 					}
 					$category_list[$info['id']]['group'] = array();
 				} else {
