@@ -269,27 +269,27 @@ if ($op == 'set_credit_password') {
 
 if ($op == 'credit_pay') {
 	if (empty($_W['openid'])) {
-		wmessage(error(-1, '请先关注公众号'), '', 'ajax');
+		message('请先关注公众号！', '', 'error');
 	}
 	$type = $_GPC['type'];
 	$money = $_GPC['money'];
 	$pay_types = array('credit1' => '积分', 'credit2' => '余额');
 	$clerk = pdo_get('storex_clerk', array('id' => intval($_GPC['clerkid'])), array('id'));
 	if (empty($clerk)) {
-		wmessage(error(-1, '二维码错误'), '', 'ajax');
+		message('二维码错误', '', 'error');
 	}
 	$types = array_keys($pay_types);
 	if (!in_array($type, $types)) {
-		wmessage(error(-1, '收款类型错误'), '', 'ajax');
+		message('收款类型错误', '', 'error');
 	}
 	if ($money <= 0) {
-		wmessage(error(-1, '收款金额错误'), '', 'ajax');
+		message('收款金额错误', '', 'error');
 	}
 	$money = sprintf('%.2f', $money);
 	$uid = mc_openid2uid($_W['openid']);
 	$credit = mc_credit_fetch($uid);
 	if (empty($credit[$type]) || $credit[$type] < $money) {
-		wmessage(error(-1, $pay_types[$type] . '不足'), '', 'ajax');
+		message($pay_types[$type] . '不足', '', 'error');
 	}
 	$log = '通过扫店员码扣除' . $pay_types[$type] . ':' . $money;
 	mc_credit_update($uid, $type, -$money, $log);
@@ -302,7 +302,7 @@ if ($op == 'credit_pay') {
 		'time' => TIMESTAMP,
 	);
 	pdo_insert('storex_clerk_pay', $data);
-	wmessage(error(0, '支付成功'), '', 'ajax');
+	message('支付成功！', '', 'success');
 }
 
 if ($op == 'footer') {
