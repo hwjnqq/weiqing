@@ -274,7 +274,7 @@ if ($op == 'credit_pay') {
 	$type = $_GPC['type'];
 	$money = $_GPC['money'];
 	$pay_types = array('credit1' => '积分', 'credit2' => '余额');
-	$clerk = pdo_get('storex_clerk', array('id' => intval($_GPC['clerkid'])), array('id'));
+	$clerk = pdo_get('storex_clerk', array('id' => intval($_GPC['clerkid'])), array('id', 'storeid'));
 	if (empty($clerk)) {
 		message('二维码错误', '', 'error');
 	}
@@ -302,7 +302,9 @@ if ($op == 'credit_pay') {
 		'time' => TIMESTAMP,
 	);
 	pdo_insert('storex_clerk_pay', $data);
-	message('支付成功！', '', 'success');
+	$url = murl('entry', array('id' => $clerk['storeid'], 'do' => 'display', 'm' => 'wn_storex'), true, true);
+	$url .= '#/StoreIndex/' . $clerk['storeid'];
+	message('支付成功！', $url, 'success');
 }
 
 if ($op == 'footer') {
