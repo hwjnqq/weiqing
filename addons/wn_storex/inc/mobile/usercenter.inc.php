@@ -10,6 +10,7 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 check_params();
 load()->model('mc');
 mload()->model('card');
+load()->model('cache');
 $uid = mc_openid2uid($_W['openid']);
 
 if (in_array($op, array('address_post', 'address_default', 'address_delete')) && !empty($_GPC['id'])) {
@@ -210,21 +211,17 @@ if ($op == 'check_password_lock') {
 	if ($member['password_lock'] != trim($_GPC['password_lock'])) {
 		wmessage(error(-1, '更改密码依据输入错误'), '', 'ajax');
 	} else {
-		$cachekey = "wn_storex_password_lock:{$_W['openid']}";
-		$str = random(8, 1);
-		cache_write($cachekey, $str);
-		wmessage(error(0, md5($str . $_W['openid'])), '', 'ajax');
+		$str = "wn_storex_password_lock:{$_W['openid']}:{$member['password_lock']}";
+		wmessage(error(0, md5($str)), '', 'ajax');
 	}
 }
 
 if ($op == 'set_credit_password') {
 	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']));
 	if (!empty($member['password_lock'])) {
-		$str = $_GPC['string'];
-		$cachekey = "wn_storex_password_lock:{$_W['openid']}";
-		$cache = cache_load($cachekey);
-		cache_delete($cachekey);
-		if (empty($str) || $str !== md5($cache . $_W['openid'])) {
+		$string = $_GPC['string'];
+		$str = md5("wn_storex_password_lock:{$_W['openid']}:{$member['password_lock']}");
+		if (empty($string) || $string != $str) {
 			wmessage(error(-1, '验证不同过,请重新验证'), '', 'ajax');
 		}
 	}
