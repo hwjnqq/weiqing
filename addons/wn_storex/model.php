@@ -845,20 +845,23 @@ function wxapp_entry_fetchall($storeid, $wxapp = false) {
 			'group' => $category_entry_routes,
 		),
 	);
-	$entrys[] = array(
+	$store = pdo_get('storex_bases', array('id' => $storeid), array('store_type', 'id'));
+	if ($store['store_type'] != STORE_TYPE_HOTEL) {
+		$entrys[] = array(
 			'type' => 'goods_info',
 			'name' => '商品详情',
 			'group' => goods_entry_fetch($storeid, array(), $wxapp),
-	);
-	$entrys[] = array(
+		);
+		$entrys[] = array(
 			'type' => 'package',
 			'name' => '套餐',
 			'group' => package_entry_fetch($storeid, array(), $wxapp),
-	);
+		);
+	}
 	$usercenter_vue_routes[] = array(
-			'type' => 'usercenter',
-			'name' => '个人中心',
-			'group' => wxapp_usercenter_entry($storeid),
+		'type' => 'usercenter',
+		'name' => '个人中心',
+		'group' => wxapp_usercenter_entry($storeid),
 	);
 	
 	$entrys = array_merge($entrys, $usercenter_vue_routes);
@@ -908,16 +911,19 @@ function entry_fetchall($storeid) {
 			'group' => $category_entry_routes,
 		),
 	);
-	$entrys[] = array(
-		'type' => 'goods_info',
-		'name' => '商品详情',
-		'group' => goods_entry_fetch($storeid),
-	);
-	$entrys[] = array(
-		'type' => 'package',
-		'name' => '套餐',
-		'group' => package_entry_fetch($storeid)
-	);
+	$store = pdo_get('storex_bases', array('id' => $storeid), array('store_type', 'id'));
+	if ($store['store_type'] != STORE_TYPE_HOTEL) {
+		$entrys[] = array(
+			'type' => 'goods_info',
+			'name' => '商品详情',
+			'group' => goods_entry_fetch($storeid),
+		);
+		$entrys[] = array(
+			'type' => 'package',
+			'name' => '套餐',
+			'group' => package_entry_fetch($storeid)
+		);
+	}
 	$usercenter_vue_routes[] = array(
 		'type' => 'usercenter',
 		'name' => '个人中心',
