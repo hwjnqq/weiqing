@@ -60,7 +60,7 @@ if ($op == 'display') {
 		}
 		$tablaname = gettablebytype($store_info['store_type']);
 		if (!empty($recommend_info['items']) && is_array($recommend_info['items'])) {
-			$fields = array('id', 'title', 'thumb', 'cprice', 'store_type');
+			$fields = array('id', 'title', 'thumb', 'cprice', 'store_type', 'sub_title', 'oprice', 'sold_num');
 			if ($store_info['store_type'] == 1) {
 				$fields[] = 'is_house';
 			}

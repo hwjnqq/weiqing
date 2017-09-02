@@ -56,11 +56,19 @@ if ($op == 'display') {
 		}
 		$tablaname = gettablebytype($store_info['store_type']);
 		if (!empty($recommend_info['items']) && is_array($recommend_info['items'])) {
-			$goodslist = pdo_getall($tablaname, array('id' => array_values($recommend_info['items'])), array('id', 'thumb', 'title', 'cprice'), 'id');
+			$fields = array('id', 'title', 'thumb', 'cprice', 'store_type', 'sub_title', 'oprice', 'sold_num');
+			if ($store_info['store_type'] == 1) {
+				$fields[] = 'is_house';
+			}
+			$goodslist = pdo_getall($tablaname, array('id' => array_values($recommend_info['items'])), $fields, 'id');
 			foreach ($recommend_info['items'] as $key => &$value) {
 				if (!empty($value)) {
 					$value = $goodslist[$value];
 					$value['thumb'] = tomedia($value['thumb']);
+					$value['type'] = 2;
+					if ($value['store_type'] == 1 && isset($value['is_house']) && $value['is_house'] == 1) {
+						$value['type'] = 1;
+					}
 				} else {
 					unset($recommend_info['items'][$key]);
 				}

@@ -8,7 +8,7 @@ $sql = "
 	`device` text,
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_brand` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -19,7 +19,7 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`),
 	KEY `indx_displayorder` (`displayorder`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_business` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -32,7 +32,7 @@ $sql = "
 	`status` int(11) DEFAULT '0',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_comment` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -48,7 +48,7 @@ $sql = "
 	`nickname` varchar(255) NOT NULL,
 	`thumb` varchar(64) NOT NULL DEFAULT '',
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 		
 	CREATE TABLE IF NOT EXISTS `ims_storex_comment_clerk` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -61,7 +61,7 @@ $sql = "
 	`realname` varchar(20) DEFAULT NULL,
 	`grade` int(11) DEFAULT NULL,
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 		
 	CREATE TABLE IF NOT EXISTS `ims_storex_member` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -86,7 +86,7 @@ $sql = "
 	`password_lock` varchar(24) NOT NULL COMMENT '改密码的依据',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_order` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -137,7 +137,7 @@ $sql = "
 	KEY `indx_weid` (`weid`),
 	KEY `indx_roomid` (`roomid`),
 	KEY `indx_memberid` (`memberid`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_reply` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -147,7 +147,7 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`),
 	KEY `indx_rid` (`rid`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_room` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -191,7 +191,7 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `indx_hotelid` (`store_base_id`),
 	KEY `indx_weid` (`weid`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_room_price` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -209,7 +209,7 @@ $sql = "
 	KEY `indx_hotelid` (`hotelid`),
 	KEY `indx_roomid` (`roomid`),
 	KEY `indx_roomdate` (`roomdate`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_set` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -243,7 +243,7 @@ $sql = "
 	`source` tinyint(4) NOT NULL DEFAULT '2' COMMENT '卡券类型，1为系统卡券，2为微信卡券',
 	`location` tinyint(2) NOT NULL DEFAULT '1' COMMENT '是否开启定位1开2关',
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+	) DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_code` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -256,7 +256,7 @@ $sql = "
 	`createtime` int(10) unsigned NOT NULL,
 	PRIMARY KEY (`id`),
 	KEY `openid` (`openid`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_bases` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -292,7 +292,7 @@ $sql = "
 	`market_status` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '营销开关',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_categorys` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -307,7 +307,7 @@ $sql = "
 	`displayorder` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '排序',
 	`enabled` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否开启',
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_goods` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -341,13 +341,12 @@ $sql = "
 	`agent_ratio` varchar(300) NOT NULL COMMENT '分销比例',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 	
 	CREATE TABLE IF NOT EXISTS `ims_storex_clerk` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`weid` int(11) DEFAULT '0',
-	`userid` int(11) NOT NULL DEFAULT '0',
-	`storeid` int(11) NOT NULL DEFAULT '',
+	`userid` int(11) DEFAULT '0',
 	`from_user` varchar(50) DEFAULT '',
 	`realname` varchar(255) DEFAULT '',
 	`mobile` varchar(255) DEFAULT '',
@@ -360,10 +359,11 @@ $sql = "
 	`salt` varchar(8) NOT NULL DEFAULT '' COMMENT '加密盐',
 	`nickname` varchar(255) NOT NULL DEFAULT '',
 	`permission` text NOT NULL COMMENT '店员权限',
+	`storeid` int(11) NOT NULL DEFAULT '0',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`),
 	KEY `storeid` (`storeid`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 		
 	CREATE TABLE IF NOT EXISTS `ims_storex_notices` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -378,7 +378,7 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`),
 	KEY `uid` (`uid`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_notices_unread` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -391,7 +391,7 @@ $sql = "
 	KEY `uniacid` (`uniacid`),
 	KEY `uid` (`uid`),
 	KEY `notice_id` (`notice_id`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 	
 	CREATE TABLE IF NOT EXISTS `ims_storex_sign_record` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -407,7 +407,7 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`),
 	KEY `uid` (`uid`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_sign_set` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -418,7 +418,7 @@ $sql = "
 	`status` tinyint(2) NOT NULL COMMENT '开启状态 1开启，2关闭',
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 	
 	CREATE TABLE IF NOT EXISTS `ims_storex_mc_card` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -459,7 +459,7 @@ $sql = "
 	`card_id` varchar(250) NOT NULL DEFAULT '',
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_mc_card_members` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -477,7 +477,7 @@ $sql = "
 	`endtime` int(10) unsigned NOT NULL DEFAULT '0',
 	`fields` varchar(2500) NOT NULL COMMENT '扩展的信息',
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_mc_card_record` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -494,7 +494,7 @@ $sql = "
 	KEY `uniacid` (`uniacid`),
 	KEY `uid` (`uid`),
 	KEY `addtime` (`addtime`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_activity_exchange` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -514,7 +514,7 @@ $sql = "
 	`endtime` int(10) NOT NULL,
 	PRIMARY KEY (`id`),
 	KEY `extra` (`extra`(333))
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='兑换表';
+	) DEFAULT CHARSET=utf8 COMMENT='兑换表';
 		
 	CREATE TABLE IF NOT EXISTS `ims_storex_coupon` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -550,7 +550,7 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`,`acid`),
 	KEY `card_id` (`card_id`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 		
 	CREATE TABLE IF NOT EXISTS `ims_storex_coupon_record` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -578,7 +578,7 @@ $sql = "
 	KEY `uniacid` (`uniacid`,`acid`),
 	KEY `card_id` (`card_id`),
 	KEY `hash` (`hash`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 		
 	CREATE TABLE IF NOT EXISTS `ims_storex_coupon_store` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -587,14 +587,14 @@ $sql = "
 	`storeid` int(10) unsigned NOT NULL DEFAULT '0',
 	PRIMARY KEY (`id`),
 	KEY `couponid` (`couponid`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 	
 	CREATE TABLE IF NOT EXISTS `ims_storex_mc_member_property` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 	`uniacid` int(11) NOT NULL,
 	`property` varchar(200) NOT NULL DEFAULT '' COMMENT '当前公众号用户属性',
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='用户属性设置表';
+	) DEFAULT CHARSET=utf8 COMMENT='用户属性设置表';
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_coupon_activity` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -608,7 +608,7 @@ $sql = "
 	`description` varchar(255) NOT NULL DEFAULT '‘’',
 	`members` varchar(255) NOT NULL DEFAULT '',
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 	
 	CREATE TABLE IF NOT EXISTS `ims_storex_activity_stores` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -637,7 +637,7 @@ $sql = "
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`),
 	KEY `location_id` (`location_id`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+	) DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 	
 	CREATE TABLE IF NOT EXISTS `ims_storex_activity_clerks` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -653,7 +653,7 @@ $sql = "
 	KEY `uniacid` (`uniacid`),
 	KEY `password` (`password`),
 	KEY `openid` (`openid`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='积分兑换店员表';
+	) DEFAULT CHARSET=utf8 COMMENT='积分兑换店员表';
 	
 	CREATE TABLE IF NOT EXISTS `ims_storex_paycenter_order` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -685,7 +685,7 @@ $sql = "
 	`createtime` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 		
 	CREATE TABLE IF NOT EXISTS `ims_storex_users_permission` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -695,7 +695,7 @@ $sql = "
 	`permission` varchar(10000) NOT NULL,
 	`url` varchar(255) NOT NULL,
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_activity_clerk_menu` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -765,7 +765,7 @@ $sql = "
 	`orderid` int(11) NOT NULL,
 	PRIMARY KEY (`id`),
 	KEY `orderid` (`orderid`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 	
 	CREATE TABLE IF NOT EXISTS `ims_storex_tags` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -775,7 +775,7 @@ $sql = "
 	`status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态 1开启，2关闭',
 	`displayorder` int(10) NOT NULL COMMENT '排序',
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	)  DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_room_items` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -813,7 +813,7 @@ $sql = "
 	`level` int(8) NOT NULL COMMENT '等级',
 	`status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态 1开启，2关闭',
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 		
 	CREATE TABLE IF NOT EXISTS `ims_storex_goods_extend` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -823,7 +823,7 @@ $sql = "
 	`storeid` int(11) NOT NULL COMMENT '酒店id',
 	`goods_table` varchar(24) NOT NULL COMMENT '商品表名',
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_plugin_room_goods` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,

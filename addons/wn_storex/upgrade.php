@@ -34,7 +34,7 @@ $sql = "
 	CREATE TABLE IF NOT EXISTS `ims_storex_clerk` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`weid` int(11) DEFAULT '0',
-	`userid` varchar(50) DEFAULT '',
+	`userid` int(11) DEFAULT '0',
 	`from_user` varchar(50) DEFAULT '',
 	`realname` varchar(255) DEFAULT '',
 	`mobile` varchar(255) DEFAULT '',
@@ -47,8 +47,10 @@ $sql = "
 	`salt` varchar(8) NOT NULL DEFAULT '' COMMENT '加密盐',
 	`nickname` varchar(255) NOT NULL DEFAULT '',
 	`permission` text NOT NULL COMMENT '店员权限',
+	`storeid` int(11) NOT NULL DEFAULT '0',
 	PRIMARY KEY (`id`),
-	KEY `indx_weid` (`weid`)
+	KEY `indx_weid` (`weid`),
+	KEY `storeid` (`storeid`)
 	) DEFAULT CHARSET=utf8;
 	
 	CREATE TABLE IF NOT EXISTS `ims_storex_notices` (
