@@ -155,13 +155,13 @@ if ($op == 'cost_record') {
 		$stat[$key] = 0;
 	}
 	if (!empty($member['from_user'])) {
-		$condition = array(':openid' => $member['from_user'], ':uniacid' => intval($_W['uniacid']));
-		$total_cost = pdo_fetchcolumn("SELECT SUM(sum_price) FROM" . tablename('storex_order') . " WHERE openid = :openid AND status = 3 AND 'weid' => :uniacid", $condition);
-		$over_order = pdo_fetchcolumn("SELECT COUNT(*) FROM" . tablename('storex_order') . " WHERE openid = :openid AND status = 3 AND 'weid' => :uniacid", $condition);
-		$pay_order = pdo_fetchcolumn("SELECT COUNT(*) FROM" . tablename('storex_order') . " WHERE openid = :openid AND paystatus = 1 AND 'weid' => :uniacid", $condition);
-		$not_pay_order = pdo_fetchcolumn("SELECT COUNT(*) FROM" . tablename('storex_order') . " WHERE openid = :openid AND paystatus = 0 AND 'weid' => :uniacid", $condition);
+		$condition = array(':openid' => $member['from_user'], ':uniacid' => intval($_W['uniacid']), ':hotelid' => $storeid);
+		$total_cost = pdo_fetchcolumn("SELECT SUM(sum_price) FROM" . tablename('storex_order') . " WHERE openid = :openid AND status = 3 AND weid = :uniacid AND hotelid = :hotelid", $condition);
+		$over_order = pdo_fetchcolumn("SELECT COUNT(*) FROM" . tablename('storex_order') . " WHERE openid = :openid AND status = 3 AND weid = :uniacid AND hotelid = :hotelid", $condition);
+		$pay_order = pdo_fetchcolumn("SELECT COUNT(*) FROM" . tablename('storex_order') . " WHERE openid = :openid AND paystatus = 1 AND weid = :uniacid AND hotelid = :hotelid", $condition);
+		$not_pay_order = pdo_fetchcolumn("SELECT COUNT(*) FROM" . tablename('storex_order') . " WHERE openid = :openid AND paystatus = 0 AND weid = :uniacid AND hotelid = :hotelid", $condition);
 
-		$ordes = pdo_getall('storex_order', array('weid' => $_W['uniacid'], 'openid' => $member['from_user'], 'status' => 3));
+		$ordes = pdo_getall('storex_order', array('weid' => $_W['uniacid'], 'openid' => $member['from_user'], 'status' => 3, 'hotelid' => $storeid), array('id', 'style', 'time', 'sum_price', 'status', 'roomid'), '', 'id DESC');
 		if (!empty($ordes) && is_array($ordes)) {
 			foreach ($ordes as $key => $value) {
 				if (!empty($value['time']) && $value['time'] >= $starttime && $value['time'] <= $endtime) {

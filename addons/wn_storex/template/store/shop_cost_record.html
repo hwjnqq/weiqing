@@ -44,6 +44,32 @@
 				<div id="myChart" style="height: 500px"></div>
 			</div>
 		</div>
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+			<tr>
+				<th style="width:150px;">订单id</th>
+				<th style="width:200px;">商品名称</th>
+				<th style="width:200px;">下单时间</th>
+				<th style="width:200px;">消费金额</th>
+				<th style="width:200px;">订单状态</th>
+				<th style="width:200px;">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $ordes $item}
+			<tr>
+				<td>{$item['id']}</td>
+				<td>{$item['style']}</td>
+				<td>{php echo date('Y-m-d H:i', $item['time'])}</td>
+				<td>{$item['sum_price']}</td>
+				<td>已完成</td>
+				<td>
+					<a href="{php echo $this->createWeburl('shop_order', array('id' => $item['id'], 'roomid' => $item['roomid'], 'op' => 'edit', 'storeid' => $storeid))}">查看详情</a>
+				</td>
+			</tr>
+			{/loop}
+			</tbody>
+		</table>
 	</div>
 </div>
 <script type="text/javascript">
