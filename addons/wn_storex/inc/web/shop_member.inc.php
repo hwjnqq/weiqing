@@ -7,6 +7,7 @@ load()->model('mc');
 
 $ops = array('display', 'edit', 'delete', 'deleteall', 'showall', 'status', 'clerk', 'cost_record');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
+$storeid = intval($_W['wn_storex']['store_info']['id']);
 
 if ($op == 'display') {
 	$sql = '';
@@ -141,13 +142,36 @@ if ($op == 'status') {
 	}
 }
 
-// if ($op == 'cost_record') {
-// 	$starttime = empty($_GPC['time']['start']) ? mktime(0, 0, 0, date('m') , 1, date('Y')) : strtotime($_GPC['time']['start']);
-// 	$endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
-// 	$id = intval($_GPC['id']);
-// 	$member = pdo_get('storex_member', array('id' => $id));
-// 	if (!empty($member['from_user'])) {
-// 		$ordes = pdo_getall('storex_order', array('openid' => $member['from_user']));
-// 	}
-// 	include $this->template('store/shop_cost_record');
-// }
+if ($op == 'cost_record') {
+	$id = intval($_GPC['id']);
+	$member = pdo_get('storex_member', array('id' => $id));
+	$starttime = empty($_GPC['time']['start']) ? mktime(0, 0, 0, date('m') , 1, date('Y')) : strtotime($_GPC['time']['start']);
+	$endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
+	$num = ($endtime + 1 - $starttime) / 86400;
+	$stat = array();
+	for ($i = 0; $i < $num; $i++) {
+		$time = $i * 86400 + $starttime;
+		$key = date('Ymd', $time);
+		$stat[$key] = 0;
+	}
+	if (!empty($member['from_user'])) {
+		$condition = array(':openid' => $member['from_user'], ':uniacid' => intval($_W['uniacid']));
+		$total_cost = pdo_fetchcolumn("SELECT SUM(sum_price) FROM" . tablename('storex_order') . " WHERE openid = :openid AND status = 3 AND 'weid' => :uniacid", $condition);
+		$over_order = pdo_fetchcolumn("SELECT COUNT(*) FROM" . tablename('storex_order') . " WHERE openid = :openid AND status = 3 AND 'weid' => :uniacid", $condition);
+		$pay_order = pdo_fetchcolumn("SELECT COUNT(*) FROM" . tablename('storex_order') . " WHERE openid = :openid AND paystatus = 1 AND 'weid' => :uniacid", $condition);
+		$not_pay_order = pdo_fetchcolumn("SELECT COUNT(*) FROM" . tablename('storex_order') . " WHERE openid = :openid AND paystatus = 0 AND 'weid' => :uniacid", $condition);
+
+		$ordes = pdo_getall('storex_order', array('weid' => $_W['uniacid'], 'openid' => $member['from_user'], 'status' => 3));
+		if (!empty($ordes) && is_array($ordes)) {
+			foreach ($ordes as $key => $value) {
+				if (!empty($value['time']) && $value['time'] >= $starttime && $value['time'] <= $endtime) {
+					$date = date('Ymd', $value['time']);
+					$stat[$date] += $value['sum_price'];
+				}
+			}
+		}
+	}
+	$chart_data['label'] = array_keys($stat);
+	$chart_data['series_data'] = array_values($stat);
+	include $this->template('store/shop_cost_record');
+}

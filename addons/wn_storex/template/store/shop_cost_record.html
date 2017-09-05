@@ -5,20 +5,20 @@
 		<div class="wn-dashboard">
 			<div class="wn-dashboard__order wn-flex">
 				<div class="wn-flex__item">
-					<p>待确认订单</p>
-					<span>{$not_confirmed_order_count}</span>
+					<p>总消费金额</p>
+					<span>{$total_cost}</span>
 				</div>
 				<div class="wn-flex__item">
-					<p>昨日营业总额</p>
-					<span>￥{php echo floatval($yesterday_revenue)}元</span>
+					<p>已完成订单</p>
+					<span>{$over_order}</span>
 				</div>
 				<div class="wn-flex__item">
-					<p>昨日订单量</p>
-					<span>{$yesterday_order_count}</span>
+					<p>已支付订单数</p>
+					<span>{$pay_order}</span>
 				</div>
 				<div class="wn-flex__item">
-					<p>今日订单量</p>
-					<span>{$today_order_count}</span>
+					<p>未支付订单数</p>
+					<span>{$not_pay_order}</span>
 				</div>
 			</div>
 		</div>
@@ -33,7 +33,11 @@
 					<input type="hidden" name="op" value="cost_record">
 					<input type="hidden" name="storeid" value="{$storeid}">
 					<input type="hidden" name="m" value="wn_storex">
+					<input type="hidden" name="id" value="{$id}">
 					{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
+					<div class="wn-main__search__action">
+						<a href="{php echo $this->createWebUrl('shop_member', array('op' => 'display', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">返回用户列表</a>
+					</div>
 				</form>
 			</div>
 			<div class="panel-body">
@@ -57,13 +61,13 @@
 		// 指定图表的配置项和数据
 		option = {
 			title: {
-				text: '营业额趋势图'
+				text: '用户消费趋势图'
 			},
 			tooltip: {
 				trigger: 'axis'
 			},
 			legend: {
-				data:['营业额']
+				data:['消费金额']
 			},
 			grid: {
 				left: '3%',
@@ -86,7 +90,7 @@
 			},
 			series: [
 				{
-					name:'营业额',
+					name:'消费金额',
 					type:'line',
 					stack: '总量',
 					data: chart_data.series_data

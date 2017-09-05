@@ -90,6 +90,7 @@
 					{/if}
 				</td>
 				<td>
+					<a class="btn btn-default " data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('shop_member', array('op' => 'cost_record', 'id' => $item['id'], 'storeid' => $_GPC['storeid']))}" title="消费记录">消费记录</a>
 					<a class="btn btn-default " data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('shop_member', array('op' => 'edit', 'id' => $item['id'], 'storeid' => $_GPC['storeid']))}" title="编辑"><i class="fa fa-edit"></i></a>
 					{if $item['status']==0}
 					<a class="btn btn-default" title="显示" href="#" onclick="drop_confirm('您确定要启用此用户吗?', '{php echo $this->createWebUrl('shop_member', array('op' => 'status', 'status' => 1, 'id' => $item['id'], 'storeid' => $_GPC['storeid']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
