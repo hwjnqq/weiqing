@@ -1,0 +1,178 @@
+{template 'common/header-storex'}
+<div class="wn-main wn-main--without">
+	<div class="wn-main__head">规格管理</div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item wn-tabs__item--active">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_spec', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">规格列表</a>
+			</div>
+		</div>
+		{if $op == 'display'}
+		<div class="wn-main__search clearfix">
+			<div class="wn-main__search__action">
+				<a href="{php echo $this->createWebUrl('shop_spec', array('op' => 'post', 'storeid' => $storeid));}" id="add_coupon" class="btn btn-primary we7-padding-horizontal">+添加规格</a>
+			</div>
+		</div>
+		<table class="table table-hover wn-table table-bordered">
+			<thead class="navbar-inner">
+				<tr>
+					<th>规格名称</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+			{loop $spec_list $item}
+			<tr>
+				<td>{$item['name']}</td>
+				<td>
+					<div class="wn-table__link">
+						<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_spec', array('op' => 'post', 'id' => $item['id'], 'storeid' => $storeid))}" title="编辑">编辑</a>
+						<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('shop_spec',array('op' => 'delete', 'id' => $item['id'], 'storeid' => $storeid))}');" title="删除" >删除</a>
+					</div>
+				</td>
+			</tr>
+			{/loop}
+		</table>
+		{/if}
+
+		{if $op == 'post'}
+		<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+			<input type="hidden" name="id" value="{$spec_info['id']}">
+			<input type="hidden" name="store_type" value="{$store['store_type']}">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">规格名称</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="name" id="name" value="{$spec_info['name']}" class="form-control">
+				</div>
+			</div>
+			<div class="form-group col-sm-12">
+				<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</form>
+		{/if}
+	</div>
+</div>
+
+<div class="modal fade" id="tag-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel">标签选择</h4>
+			</div>
+			<div class="modal-body clearfix form-horizontal">
+				<input name="goodsid" value="" type="hidden">
+				{if !empty($tags)}
+				{loop $tags $tid $info}
+				<button type="button" class="btn btn-default tag_check" data-tid="{$tid}">{$info['title']}</button>
+				{/loop}
+				{else}
+				暂无标签
+				{/if}
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	$(function() {
+		require(['jquery.qrcode'], function(){
+			$('.js-qrcode-entry').click(function() {
+				id = $(this).data('id');
+				if (id) {
+					$.post("{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'qrcode_entry', 'storeid' => $_GPC['storeid']))}", {id : id}, function(data) {
+						data = $.parseJSON(data);
+						if (data.message.errno == 0) {
+							$('.js-qrcode-block').html('').qrcode({
+								render: 'canvas',
+								width: 300,
+								height: 300,
+								text: data.message.message,
+							});
+							$('.js-url-show').val(data.message.message);
+							$('#entry-modal').modal('show');
+						} else {
+							util.message(data.message.message);
+							$('#entry-modal').modal('hide');
+						}
+					});
+				}
+			});
+		});
+		
+		$('.tag_select_mode').click(function() {
+			var id = $(this).data('id');
+			$('input[name=goodsid]').val(id);
+			$('#tag-modal').modal('show');
+		});
+		
+		$('.tag_check').click(function() {
+			var tid = $(this).data('tid');
+			var goodsid = $('input[name=goodsid]').val();
+			$.post("{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'set_tag', 'storeid' => $storeid))}", {tid : tid, goodsid : goodsid},function(data) {
+				if (data.message.errno ==0) {
+					util.message(data.message.message, 'refresh', 'success');
+					return;
+				} else {
+					util.message(data.message.message);
+					return;
+				}
+			}, 'json');
+			$('#tag-modal').modal('hide');
+		});
+		
+		$('.check_all').click(function() {
+			var checked = $(this).get(0).checked;
+			$('input[type=checkbox]').prop("checked",checked);
+		});
+		$('input[name=deleteall]').click(function() {
+			var check = $("input[name='check']:checked");
+			if (check.length < 1) {
+				util.message('请选择要删除的记录!');
+				return;
+			}
+			if (confirm("确认要删除选择的记录?")) {
+				var id = new Array();
+				check.each(function(i) {
+					id[i] = $(this).val();
+				});
+				$.post("{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'deleteall', 'storeid' => $storeid))}", {idArr : id}, function(data) {
+					if (data.message.errno ==0) {
+						util.message(data.message.message, 'refresh', 'success');
+						return;
+					} else {
+						util.message(data.message.message);
+						return;
+					}
+				},'json');
+			}
+		});
+		
+		$('.edit_all').click(function() {
+			var name = $(this).attr('name');
+			var check = $('input:checked');
+			if (check.length<1) {
+				util.message('请选择要操作的记录!');
+			}
+			var id = new Array();
+			check.each(function(i) {
+				id[i] = $(this).val();
+			});
+			$.post("{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'showall', 'storeid' => $storeid))}", {idArr:id, show_name:name},function(data) {
+				if (data.message.errno ==0) {
+					util.message(data.message.message, 'refresh', 'success');
+				} else {
+					util.message(data.message.message);
+				}
+			},'json');
+		});
+	});
+	
+	function drop_confirm(msg, url) {
+		if (confirm(msg)) {
+			window.location = url;
+		}
+	}
+</script>
+{template 'common/footer-storex'}
