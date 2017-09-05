@@ -438,10 +438,10 @@ function calcul_roon_sumprice($dates, $search_data, $goods_info) {
 		$noexist_date += count($dates) - ($exist_date + $noexist_date);
 	}
 	$sumprice += $noexist_date * $prices['cprice'];
-	if (empty($search_data['num'])) {
-		$search_data['num'] = 1;
+	if (empty($search_data['nums'])) {
+		$search_data['nums'] = 1;
 	}
-	$goods_info['sum_price'] = ($sumprice + $goods_info['service'] * count($dates)) * $search_data['num'];
+	$goods_info['sum_price'] = ($sumprice + $goods_info['service'] * count($dates)) * $search_data['nums'];
 	$goods_info['price_list'] = $price_detail;
 	return $goods_info;
 }
