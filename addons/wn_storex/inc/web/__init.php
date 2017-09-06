@@ -3,7 +3,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_GPC, $_W;
 define('SCRIPT_URL', $_W['siteroot'] . '/addons/wn_storex/template/style/js');
-$dos = array('shop_settings', 'shop_category', 'shop_goodsmanage', 'shop_room_status', 'shop_room_price', 'shop_tagmanage', 'shop_comment', 'shop_index', 'shop_order', 'shop_stat', 'shop_plugin', 'shop_plugin_printer', 'shop_plugin_hotelservice', 'shop_homepage', 'shop_wxapphomepage', 'shop_member', 'shop_clerk', 'shop_room_item', 'shop_market', 'shop_memberlevel', 'shop_article', 'shop_sales_package', 'shop_agent', 'shop_agent_level', 'shop_agent_log', 'shop_blast', 'shop_blast_message', 'shop_blast_stat', 'shop_spec', 'shop_spec_value');
+$dos = array('shop_settings', 'shop_category', 'shop_goodsmanage', 'shop_room_status', 'shop_room_price', 'shop_tagmanage', 'shop_comment', 'shop_index', 'shop_order', 'shop_stat', 'shop_plugin', 'shop_plugin_printer', 'shop_plugin_hotelservice', 'shop_homepage', 'shop_wxapphomepage', 'shop_member', 'shop_clerk', 'shop_room_item', 'shop_market', 'shop_memberlevel', 'shop_article', 'shop_sales_package', 'shop_agent', 'shop_agent_level', 'shop_agent_log', 'shop_blast', 'shop_blast_message', 'shop_blast_stat', 'shop_spec', 'shop_spec_value', 'shop_goods_spec');
 $log = admin_operation_log();
 if (!empty($log)) {
 	write_log($log);
@@ -100,6 +100,7 @@ $aside_nav = array(
 			'shop_room_price',
 			'shop_room_item',
 			'shop_tagmanage',
+			'shop_goods_spec'
 		)
 	),
 	'shop_comment' => array(

@@ -1,0 +1,362 @@
+{template 'common/header-storex'}
+<div class="wn-main wn-main--without">
+	<div class="wn-main__head">
+		<a href="{php echo $this->createWebUrl('shop_goodsmanage', array('storeid' => $storeid));}" id="add_coupon" >
+			管理商品
+		</a>
+		{if $_GPC['op'] == 'edit' && $_GPC['id'] != ''}
+			/编辑商品
+		{else}
+			/添加商品
+		{/if}
+	</div>
+	<div class="wn-main__content">
+		<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+			<input type="hidden" name="id" value="{$item['id']}">
+			<input type="hidden" name="store_type" value="{$store['store_type']}">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺</label>
+				<div class="col-sm-8 col-lg-9 col-xs-12">
+					<input type="text" disabled value="{$store['title']}" class="form-control">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">购买设置</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" name="can_buy" value="1" {if !isset($item['can_buy']) || $item['can_buy'] == 1} checked {/if}"/>可购买
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="can_buy" value="0" {if isset($item['can_buy']) && $item['can_buy'] == 0} checked {/if}"/>不可购买
+					</label>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span>分类</label>
+				<div class="col-sm-8 col-xs-12">
+					{php echo wn_tpl_category_2level('category', $parent, $children, $item['pcate'], $item['ccate'], $store_type)}
+					{if $store['store_type'] != STORE_TYPE_HOTEL}
+					<span class="help-block">二级分类存在则必选，否则不显示商品</span>
+					{/if}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品名称</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="title" id="title" value="{$item['title']}" class="form-control">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品副标题</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="sub_title" id="sub_title" value="{$item['sub_title']}" class="form-control">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品已售</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="sold_num" id="sold_num" value="{$item['sold_num']}" class="form-control">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">前台支付价</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="oprice" id="oprice" value="{$item['oprice']}" class="form-control">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">在线支付价</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="cprice" id="cprice" value="{$item['cprice']}" class="form-control">
+				</div>
+			</div>
+			{if $store['store_type'] != STORE_TYPE_HOTEL}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">单位</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="unit" id="unit" value="{$item['unit']}" class="form-control">
+					<span class="help-block">单位只能是2个字符</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">重量</label>
+				<div class="col-sm-9 col-xs-12">
+					<div class="input-group">
+						<input type="text" name="weight" id="weight" value="{$item['weight']}" class="form-control">
+						<span class="input-group-addon">千克</span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">库存</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="stock" id="stock" value="{$item['stock']}" class="form-control">
+					<span class="help-block">-1则库存不限</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">减库存方式</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" name="stock_control" value="1" {if $item['stock_control'] == 1} checked {/if}/>永不减库存
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="stock_control" value="2" {if $item['stock_control'] == 2} checked {/if}/>拍下减库存
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="stock_control" value="3" {if $item['stock_control'] == 3} checked {/if}/>付款减库存
+					</label>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">单次最少购买</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="min_buy" id="min_buy" value="{$item['min_buy']}" class="form-control">
+					<span class="help-block">最小值是1</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">单次最多购买</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="max_buy" id="max_buy" value="{$item['max_buy']}" class="form-control">
+					<span class="help-block">-1单次最多购买不限制</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">运费设置</label>
+				<div class="col-sm-9 col-xs-12">
+					<div class="input-group">
+						<span class="input-group-addon">默认运费</span>
+						<input type="text" class="form-control" name="express" value="{$item['express_set']['express']}"/>
+						<span class="input-group-addon">满</span>
+						<input type="text" class="form-control" name="full_free" value="{$item['express_set']['full_free']}"/>
+						<span class="input-group-addon">免运费</span>
+					</div>
+				</div>
+			</div>
+			{/if}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">缩略图</label>
+				<div class="col-sm-9 col-xs-12">
+					{php echo tpl_form_field_image('thumb',$item['thumb'])}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品图片</label>
+				<div class="col-sm-9 col-xs-12">
+					{php echo tpl_form_field_multi_image('thumbs',$piclist)}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品排序编号</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="sortid" id="sortid" value="{$item['sortid']}" class="form-control">
+					<span class="help-block">数字越大排序越靠前</span>
+				</div>
+			</div>
+			{if $card_status == 1}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">购买积分</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="score" id="score" class="form-control" value="{$item['score']}" placeholder='此积分为会员购买该商品时赠送的积分' />
+				</div>
+			</div>
+			{/if}
+			{if $store_type == STORE_TYPE_HOTEL}
+			<div {if isset($item['is_house']) && $item['is_house'] != 1}style="display:none"{/if} id="hotel_add_info">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">早餐设置</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" value="0" class="change_breakfast" name="breakfast" {if $item['breakfast'] == 0 || empty($item['breakfast'])} checked {/if}/> 无早
+						</label>
+						<label class="radio-inline">
+							<input type="radio" value="1" class="change_breakfast" name="breakfast" {if $item['breakfast'] == 1} checked {/if}/> 单早
+						</label>
+						<label class="radio-inline">
+							<input type="radio" value="2" class="change_breakfast" name="breakfast" {if $item['breakfast'] == 2} checked {/if}/> 双早
+						</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">服务费</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="service" id="" value="{$item['service']}" class="form-control">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">房间参数</label>
+					<div class="col-sm-4">
+						<div class="input-group">
+							<span class="input-group-addon">
+								<label class='checkbox-inline' style='margin-top:-5px;'>
+									<input type='checkbox' id='bed_show' name="bed_show" value="1" {if $item['bed_show'] == 1} checked {/if}/>床位
+								</label>
+							</span>
+							<input type="text" name="bed" id="bed" class="form-control" value="{$item['bed']}" />
+							<span class="input-group-addon">例如: 2米大床</span>
+						</div>
+					</div>
+					<div class="col-sm-4">
+						<div class="input-group">
+							<span class="input-group-addon">
+								<label class='checkbox-inline' style='margin-top:-5px;' > <input type='checkbox' id='floor_show' name="floor_show" value="1" {if  $item['floor_show'] == 1} checked {/if}/>楼层</label>
+							</span>
+							<input type="text" name="floor" id="floor" class="form-control" value="{$item['floor']}" />
+							<span class="input-group-addon">楼</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			{/if}
+			<!-- 普通店铺的属性  -->
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">促销信息</label>
+				<div class="col-sm-9 col-xs-12">
+					<textarea style="height:100px;" id="sales" class="form-control" name="sales" cols="70" id="reply-add-text">{$item['sales']}</textarea>
+					<span class="help-block">商品的促销信息（选填）</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品说明</label>
+				<div class="col-sm-9 col-xs-12">
+					{php echo tpl_ueditor('device', $item['device']);}
+					<span class="help-block">商品特别说明（必填）</span>
+				</div>
+			</div>
+			{if $store_type != STORE_TYPE_HOTEL}
+			<div class="form-group">
+				<label class="col-xs-12 col-md-2 control-label">分销员分成百分比</label>
+				<div class="col-md-10" id="" style="padding-left: 0px;">
+					{loop $agentlevel $id $info}
+					<div class="col-sm-11" style="margin: 5px 0px;">
+						<div class="input-group">
+							<span class="input-group-addon">{$info['title']}</span>
+							<input type="text" class="form-control" name="agent_ratio[{$id}]" value="{$agent_ratio[$id]}" />
+							<span class="input-group-addon">%</span>
+						</div>
+					</div>
+					{/loop}
+					<div class="col-sm-5">
+						<span class="help-block">对应分销员等级所获得该商品的分销提成（值0-100,保留两位小数,按百分比计算）</span>
+					</div>
+				</div>
+			</div>
+			{/if}
+			<div class="form-group">
+				<label class="col-xs-12 col-md-2 control-label">自定义字段</label>
+				<div class="col-md-10" id="defined-container" style="padding-left: 0px;">
+					{loop $user_defined $key $content}
+					<div class="col-sm-11" style="margin: 5px 0px;">
+						<div class="input-group">
+							<span class="input-group-addon">字段名称</span>
+							<input type="text" class="form-control defined-input" maxlength="6" name="defined[{$key}][title]" value="{$content['title']}">
+							<span class="input-group-addon">内容</span>
+							<input type="text" class="form-control" name="defined[{$key}][content]" value="{$content['content']}" />
+							<span class="input-group-btn">
+								<button class="btn btn-default defined-delete" type="button">删除</button>
+							</span>
+						</div>
+					</div>
+					{/loop}
+					<div class="col-sm-5">
+						<button type="button" id="add_defined" class="btn btn-default"><i class="fa fa-plus"></i> 添加</button>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" name="status" value="1" {if $item['status'] == 1} checked {/if}/>显示
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="status" value="0" {if $item['status'] == 0} checked {/if}/>隐藏
+					</label>
+					<span class='help-block'>手机前台是否显示</span>
+				</div>
+			</div>
+			<div class="form-group col-sm-12">
+				<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</form>
+	</div>
+</div>
+<script type="text/javascript">
+	var parent = '{php echo json_encode($parent);}';
+	parent = $.parseJSON(parent);
+	$(function() {
+		$('#category_parent').change(function() {
+			var selectid =$(this).find('option:selected').val();
+			if (parent[selectid].category_type == 1) {
+				$('#hotel_add_info').show();
+			} else {
+				$('#hotel_add_info').hide();
+			}
+		});
+		$('.change_breakfast').click(function() {
+			var value = $(this).val();
+			var name = $('#title').val();
+			var new_name = name.replace(/\[含早\]/g,'');
+
+			if (value == 0) {
+				$('#title').val(new_name);
+			} else  {
+				$('#title').val(new_name + "[含早]");
+			}
+		});
+	});
+	$("#sub_title").blur(function() {
+		var sub_title = $("#sub_title").val();
+		if (sub_title.length > 12) {
+			slice_sub_title = sub_title.slice(0, 12);
+			$("#sub_title").val(slice_sub_title);
+			util.message("副标题超出范围");
+		}
+	});
+	$("#weight").blur(function() {
+		var weight = $("#weight").val();
+		if (weight <= 0) {
+			$("#weight").val(0.1);
+			util.message("重量不能小于0");
+		}
+	});
+	$("#min_buy").blur(function() {
+		var min_buy = $("#min_buy").val();
+		if (min_buy <= 0) {
+			$("#min_buy").val(1);
+			util.message("最小购买量是1");
+		}
+	});
+	$("#unit").blur(function() {
+		var unit = $("#unit").val();
+		if (unit.length > 2) {
+			slice_unit = unit.slice(0, 2);
+			$("#unit").val(slice_unit);
+			util.message("单位超出范围");
+		}
+	});
+	
+	$("#add_defined").click(function() {
+		var index = $('.defined-input').length;
+		var html =
+			'<div class="col-sm-11" style="margin: 5px 0px;">' +
+				'<div class="input-group">' +
+					'<span class="input-group-addon">字段名称</span>' +
+					'<input type="text" class="form-control defined-input" maxlength="6" name="defined[' + index + '][title]" value="">' +
+					'<span class="input-group-addon">内容</span>' +
+					'<input type="text" class="form-control" name="defined[' + index + '][content]" value="">' +
+					'<span class="input-group-btn">' +
+						'<button class="btn btn-default defined-delete" type="button">删除</button>' +
+					'</span>' +
+				'</div>' +
+			'</div>';
+
+		$(this).parent().before(html);
+	});
+	$(document).on('click', '.defined-delete', function() {
+		$(this).parent().parent().parent().remove();
+	});
+</script>
+{template 'common/footer-storex'}

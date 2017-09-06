@@ -423,10 +423,10 @@ if (!function_exists('format_list')) {
 			}
 			foreach ($list as $k => $info) {
 				if (!empty($cate[$info['pcate']])) {
-					$list[$k]['pcate'] = $cate[$info['pcate']]['name'];
+					$list[$k]['pcate_name'] = $cate[$info['pcate']]['name'];
 				}
 				if (!empty($cate[$info['ccate']])) {
-					$list[$k]['ccate'] = $cate[$info['ccate']]['name'];
+					$list[$k]['ccate_name'] = $cate[$info['ccate']]['name'];
 				}
 			}
 		}
