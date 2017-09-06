@@ -16,9 +16,9 @@ if ($store_type == STORE_TYPE_HOTEL) {
 
 if ($op == 'display') {
 	$goodsid = intval($_GPC['id']);
-	$goods_info = pdo_get('storex_goods', array('store_base_id' => $storeid, 'weid' => $_W['uniacid'], 'id' => $goodsid));
 	$categoryid = intval($_GPC['categoryid']);
-	$category_info = pdo_get('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'id' => $categoryid), array('spec', 'id'));
+	$goods_info = pdo_get('storex_goods', array('store_base_id' => $storeid, 'weid' => $_W['uniacid'], 'id' => $goodsid));
+	$category_info = pdo_get('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'id' => $categoryid), array('spec', 'id', 'name'));
 	$category_spec = iunserializer($category_info['spec']);
 	if (is_array($category_spec)) {
 		$spec_name = pdo_getall('storex_spec', array('id' => $category_spec), array('id', 'name'), 'id');
