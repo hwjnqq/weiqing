@@ -10,8 +10,13 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 $storeid = intval($_GPC['storeid']);
 $store = $_W['wn_storex']['store_info'];
 $store_type = $store['store_type'];
+if ($store_type == STORE_TYPE_HOTEL) {
+	message('参数错误', referer(), 'error');
+}
 
 if ($op == 'display') {
+	$goodsid = intval($_GPC['id']);
+	$goods_info = pdo_get('storex_goods', array('store_base_id' => $storeid, 'weid' => $_W['uniacid'], 'id' => $goodsid));
 	$categoryid = intval($_GPC['categoryid']);
 	$category_info = pdo_get('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'id' => $categoryid), array('spec', 'id'));
 	$category_spec = iunserializer($category_info['spec']);
