@@ -50,6 +50,19 @@ if ($op == 'post') {
 			message('抱歉，上级分类不存在或是已经被删除！', 'refresh', 'error');
 		}
 	}
+	$spec_list = pdo_getall('storex_spec', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid), array('id', 'name'), 'id');
+	if (!empty($spec_list) && is_array($spec_list)) {
+		$spec_keys = array_keys($spec_list);
+	}
+	$category['spec'] = iunserializer($category['spec']);
+	if (!empty($category['spec']) && is_array($category['spec'])) {
+		foreach ($category['spec'] as $key => $value) {
+			$spec_list[$value]['checked'] = false;
+			if (in_array($value, $spec_keys)) {
+				$spec_list[$value]['checked'] = true;
+			}
+		}
+	}
 	if (checksubmit('submit')) {
 		if (empty($_GPC['name'])) {
 			message('抱歉，请输入分类名称！', 'refresh', 'error');
@@ -69,6 +82,9 @@ if ($op == 'post') {
 			'thumb' => $_GPC['thumb'],
 			'category_type' => $category_type,
 		);
+		if ($data['category_type'] != STORE_TYPE_HOTEL) {
+			$data['spec'] = iserializer($_GPC['spec']);
+		}
 		$data['store_base_id'] = $storeid;
 		if (!empty($id)) {
 			unset($data['parentid']);

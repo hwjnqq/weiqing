@@ -141,13 +141,23 @@
 				</div>
 			</div>
 			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">选择规格</label>
+				<div class="col-sm-9 col-xs-12">
+					{loop $spec_list $spec}
+					<label class="radio-inline">
+						<input type="checkbox" name="spec[]" value="{$spec['id']}" {if !empty($spec['checked'])} checked {/if} /> {$spec['name']}
+					</label>
+					{/loop}
+				</div>
+			</div>
+			<div class="form-group">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否显示</label>
 				<div class="col-sm-9 col-xs-12">
-					<label class='radio-inline'>
-						<input type='radio' name='enabled' value='1' {if $category['enabled'] == 1} checked {/if} /> 是
+					<label class="radio-inline">
+						<input type="radio" name="enabled" value="1" {if $category['enabled'] == 1} checked {/if} /> 是
 					</label>
-					<label class='radio-inline'>
-						<input type='radio' name='enabled' value='0' {if $category['enabled'] == 0} checked {/if} /> 否
+					<label class="radio-inline">
+						<input type="radio" name="enabled" value='0' {if $category['enabled'] == 0} checked {/if} /> 否
 					</label>
 				</div>
 			</div>
