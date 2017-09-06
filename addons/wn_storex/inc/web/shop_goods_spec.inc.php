@@ -4,7 +4,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 
-$ops = array('display');
+$ops = array('display', 'post');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $storeid = intval($_GPC['storeid']);
@@ -34,6 +34,18 @@ if ($op == 'display') {
 				'specid' => $value['specid']
 			);
 		}
+	}
+}
+
+if ($op == 'post') {
+	if ($_W['ispost'] && $_W['isajax']) {
+		message(error(-1, $_GPC), '', 'ajax');
+	}
+	if (checksubmit()) {
+		echo "<pre>";
+		print_r($_GPC);
+		echo "</pre>";
+		exit;
 	}
 }
 
