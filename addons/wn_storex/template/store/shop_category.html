@@ -140,6 +140,7 @@
 					{php echo tpl_form_field_image('thumb', $category['thumb'])}
 				</div>
 			</div>
+			{if $store['store_type'] != STORE_TYPE_HOTEL && empty($category['parentid'])}
 			<div class="form-group">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">选择规格</label>
 				<div class="col-sm-9 col-xs-12">
@@ -150,6 +151,7 @@
 					{/loop}
 				</div>
 			</div>
+			{/if}
 			<div class="form-group">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否显示</label>
 				<div class="col-sm-9 col-xs-12">
