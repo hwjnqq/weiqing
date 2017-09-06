@@ -168,7 +168,7 @@ if (!function_exists('get_storex_set')) {
 		global $_GPC, $_W;
 		$cachekey = "wn_storex_set:{$_W['uniacid']}";
 		$set = cache_load($cachekey);
-		if (!empty($set)) {
+		if (!empty($set) && !empty($set['id'])) {
 			return $set;
 		}
 		$set = pdo_get('storex_set', array('weid' => intval($_W['uniacid'])));
@@ -189,7 +189,8 @@ if (!function_exists('get_storex_set')) {
 				"source" => 2,
 				"location" => 1,
 			);
-			$id = pdo_insert('storex_set', $set);
+			pdo_insert('storex_set', $set);
+			$set['id'] = pdo_insertid();
 		}
 		cache_write($cachekey, $set);
 		return $set;

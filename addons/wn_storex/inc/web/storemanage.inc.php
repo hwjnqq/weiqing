@@ -9,16 +9,10 @@ load()->model('module');
 $ops = array('display', 'edit', 'delete', 'deleteall', 'showall', 'status', 'assign_store', 'assign');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
-$user = user_single($_W['uid']);
-$assign = false;
-if ($_W['isfounder'] == 1 || $user['founder_groupid'] == 1 || $user['founder_groupid'] == 2) {
-	$assign = true;
-}
-
 if ($op == 'display') {
 	$storeids = array();
-	if (empty($assign)) {
-		$clerk = pdo_getall('storex_clerk', array('weid' => intval($_W['uniacid']), 'userid' => intval($_W['uid'])), array('id', 'storeid'), 'storeid');
+	$clerk = pdo_getall('storex_clerk', array('weid' => intval($_W['uniacid']), 'userid' => intval($_W['uid'])), array('id', 'storeid'), 'storeid');
+	if (!empty($clerk)) {
 		$storeids = array_keys($clerk);
 	}
 	$founders = explode(',', $_W['config']['setting']['founder']);
