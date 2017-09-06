@@ -174,6 +174,7 @@ if (!function_exists('get_storex_set')) {
 		$set = pdo_get('storex_set', array('weid' => intval($_W['uniacid'])));
 		if (empty($set)) {
 			$set = array(
+				"weid" => intval($_W['uniacid']),
 				"user" => 1,
 				"bind" => 1,
 				"reg" => 1,
@@ -185,7 +186,10 @@ if (!function_exists('get_storex_set')) {
 				"is_unify" => 0,
 				"version" => 0,
 				"tel" => "",
+				"source" => 2,
+				"location" => 1,
 			);
+			$id = pdo_insert('storex_set', $set);
 		}
 		cache_write($cachekey, $set);
 		return $set;

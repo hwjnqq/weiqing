@@ -305,8 +305,16 @@ if ($op == 'publish') {
 }
 
 if ($op == 'status') {
-	$status = pdo_update('storex_set', array('source' => intval($_GPC['status'])), array('weid' => $_W['uniacid']));
+	$setting = get_storex_set();
+	if ($setting['source'] == intval($_GPC['status'])) {
+		$status = true;
+	} else {
+		$status = pdo_update('storex_set', array('source' => intval($_GPC['status'])), array('weid' => $_W['uniacid']));
+	}
 	if (!empty($status)) {
+		$cachekey = "wn_storex_set:{$_W['uniacid']}";
+		$setting['source'] = intval($_GPC['status']);
+		cache_write($cachekey, $setting);
 		message(error(0, '修改成功'), referer(), 'ajax');
 	} else {
 		message(error(-1, '修改失败'), referer(), 'ajax');
