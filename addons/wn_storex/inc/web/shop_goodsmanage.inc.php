@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('display', 'edit', 'delete', 'deleteall', 'showall', 'status', 'copyroom', 'qrcode_entry', 'set_tag');
+$ops = array('display', 'edit', 'delete', 'deleteall', 'showall', 'status', 'copyroom', 'qrcode_entry', 'set_tag', 'spec_info');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $storeid = intval($_GPC['storeid']);
@@ -339,5 +339,30 @@ if ($op == 'set_tag') {
 		}
 	} else {
 		message(error(-1, '参数错误'), '', 'ajax');
+	}
+}
+
+if ($op == 'spec_info') {
+	if ($_W['isajax'] && $_W['ispost']) {
+		$spec_list = array();
+		$id = intval($_GPC['id']);
+		$category_info = pdo_get('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'id' => $id), array('spec', 'id'));
+		$category_spec = iunserializer($category_info['spec']);
+		if (is_array($category_spec)) {
+			$spec_name = pdo_getall('storex_spec', array('id' => $category_spec), array('id', 'name'), 'id');
+			$spec_value = pdo_getall('storex_spec_value', array('specid' => $category_spec), array('id', 'name', 'displayorder', 'specid'), '', 'displayorder DESC');
+		}
+		if (!empty($spec_value) && is_array($spec_value)) {
+			foreach ($spec_value as $key => $value) {
+				$spec_list[$value['specid']]['name'] = $spec_name[$value['specid']]['name'];
+				$spec_list[$value['specid']]['values'][$key] = array(
+					'id' => $value['id'],
+					'name' => $value['name'],
+					'displayorder' => $value['displayorder'],
+					'specid' => $value['specid']
+				);
+			}
+		}
+		message(error(0, $spec_list), '', 'ajax');
 	}
 }
