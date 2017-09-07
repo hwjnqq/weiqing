@@ -262,6 +262,15 @@ if ($op == 'info') {
 	if (!empty($goods_info['express_set'])) {
 		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
 	}
+	$spec_id = intval($_GPC['spec_id']);
+	if (!empty($spec_id)) {
+		$spec_goods = pdo_get('storex_spec_goods', array('id' => $spec_id, 'goodsid' => $goodsid));
+		if (!empty($spec_goods)) {
+			$goods_info['cprice'] = $spec_goods['cprice'];
+			$goods_info['oprice'] = $spec_goods['oprice'];
+			$goods_info['stock'] = $spec_goods['stock'];
+		}
+	}
 	$goods_info['defined'] = get_goods_defined($store_id, $goodsid);
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;
