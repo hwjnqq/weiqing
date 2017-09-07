@@ -77,7 +77,12 @@ if ($op == 'post') {
 		);
 		$goods_list = $_GPC['spec'];
 		if (!empty($goods_list) && is_array($goods_list)) {
+			$all_spec_list = pdo_getall('storex_spec_goods', array('storeid' => $storeid, 'uniacid' => $_W['uniacid'], 'goodsid' => $commonid), array('id'), 'id');
+			$key_list = is_array($all_spec_list) ? array_keys($all_spec_list) : array();
 			foreach ($goods_list as $key => $value) {
+				if (in_array($value['goodsid'], $key_list)) {
+					$goodsids[] = $value['goodsid'];
+				}
 				if (empty($value['goodsid'])) {
 					$spec_goods['goods_val'] = iserializer($value['sp_value']);
 					$spec_goods['cprice'] = $value['cprice'];
@@ -88,6 +93,8 @@ if ($op == 'post') {
 					pdo_update('storex_spec_goods', array('goods_val' => iserializer($value['sp_value']), 'cprice' => $value['cprice'], 'oprice' => $value['oprice'], 'stock' => $value['stock']), array('id' => $value['goodsid']));
 				}
 			}
+			$diff_ids = array_diff($key_list, $goodsids);
+			pdo_delete('storex_spec_goods', array('id' => $diff_ids));
 		}
 		message('编辑成功', referer(), 'success');
 	}
