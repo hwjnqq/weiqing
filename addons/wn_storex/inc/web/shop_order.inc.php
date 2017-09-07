@@ -208,8 +208,8 @@ if ($op == 'edit') {
 		}
 		if ($store_type != STORE_TYPE_HOTEL) {
 			$item['spec'] = '';
-			if (!empty($item['spec_info'])) {
-				$item['spec_info'] = iunserializer($item['spec_info']);
+			$item['spec_info'] = iunserializer($item['spec_info']);
+			if (!empty($item['spec_info']['goods_val'])) {
 				$item['spec'] = implode(' ', $item['spec_info']['goods_val']);
 			}
 		}
