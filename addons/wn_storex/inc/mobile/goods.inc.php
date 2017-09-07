@@ -2,7 +2,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('goods_info', 'info', 'order', 'goods_comments', 'package_info');
+$ops = array('goods_info', 'info', 'order', 'goods_comments', 'package_info', 'spec_info');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -140,24 +140,40 @@ if ($op == 'goods_info') {
 		$goods_info['packages'] = $sales_packages;
 	}
 	//规格列表
-	$spec_list = pdo_getall('storex_spec_goods', array('goodsid' => $goodsid, 'storeid' => $store_id, 'uniacid' => $_W['uniacid']));
-	$spec_goods_list = array();
-	if (!empty($spec_list) && is_array($spec_list)) {
-		foreach ($spec_list as $k => $val) {
-			$goods_info['sp_name'] = iunserializer($val['sp_name']);
-			$goods_info['sp_val'] = iunserializer($val['sp_val']);
-			$goods_val = iunserializer($val['goods_val']);
-			if (!empty($goods_val) && is_array($goods_val)) {
-				foreach ($goods_val as $key => $value) {
-					$goods_val_keys = array_keys($goods_val);
-					$goods_val_keys = implode('|', $goods_val_keys);
-					$spec_goods_list[$goods_val_keys] = $val['id'];
+	if ($store_info['store_type'] != 1) {
+		$spec_list = pdo_getall('storex_spec_goods', array('goodsid' => $goodsid, 'storeid' => $store_id, 'uniacid' => $_W['uniacid']));
+		$spec_goods_list = array();
+		if (!empty($spec_list) && is_array($spec_list)) {
+			foreach ($spec_list as $k => $val) {
+				$goods_info['sp_name'] = iunserializer($val['sp_name']);
+				$goods_info['sp_val'] = iunserializer($val['sp_val']);
+				$goods_val = iunserializer($val['goods_val']);
+				if (!empty($goods_val) && is_array($goods_val)) {
+					foreach ($goods_val as $key => $value) {
+						$goods_val_keys = array_keys($goods_val);
+						$goods_val_keys = implode('|', $goods_val_keys);
+						$spec_goods_list[$goods_val_keys] = $val['id'];
+					}
 				}
 			}
 		}
+		$goods_info['spec_list'] = $spec_goods_list;
 	}
-	$goods_info['spec_list'] = $spec_goods_list;
 	wmessage(error(0, $goods_info), $share_data, 'ajax');
+}
+
+if ($op == 'spec_info') {
+	$specid = intval($_GPC['specid']);
+	$spec_info = pdo_get('storex_goods', array('weid' => $_W['uniacid'], 'store_base_id' => $store_id, 'id' => $goodsid), array('oprice', 'cprice', 'stock'));
+	$spec_goods = pdo_get('storex_spec_goods', array('uniacid' => $_W['uniacid'], 'id' => $specid));
+	if (!empty($spec_goods)) {
+		$spec_info = array(
+			'oprice' => $spec_goods['oprice'],
+			'cprice' => $spec_goods['cprice'],
+			'stock' => $spec_goods['stock'],
+		);
+	}
+	wmessage(error(0, $spec_info), '', 'ajax');
 }
 
 if ($op == 'package_info') {
