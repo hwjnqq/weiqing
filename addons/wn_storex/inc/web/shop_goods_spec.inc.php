@@ -90,6 +90,7 @@ if ($op == 'post') {
 					$spec_goods['stock'] = $value['stock'];
 					pdo_insert('storex_spec_goods', $spec_goods);
 				} else {
+					pdo_update('storex_spec_goods', array('sp_val' => $spec_goods['sp_val']), array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'goodsid' => $commonid));
 					pdo_update('storex_spec_goods', array('goods_val' => iserializer($value['sp_value']), 'cprice' => $value['cprice'], 'oprice' => $value['oprice'], 'stock' => $value['stock']), array('id' => $value['goodsid']));
 				}
 			}
