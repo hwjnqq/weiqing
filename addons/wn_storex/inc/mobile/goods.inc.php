@@ -10,7 +10,6 @@ mload()->model('activity');
 mload()->model('card');
 mload()->model('clerk');
 mload()->model('order');
-$_W['openid'] = 'oTKzFjpkpEKpqXibIshcJLsmeLVo';
 $uid = mc_openid2uid($_W['openid']);
 $store_id = intval($_GPC['id']);
 $goodsid = intval($_GPC['goodsid']);
@@ -390,11 +389,9 @@ if ($op == 'order') {
 				'sp_val' => iunserializer($spec_goods['sp_val']),
 				'goods_val' => iunserializer($spec_goods['goods_val']),
 			);
-			$goods_info = array(
-				'oprice' => $spec_goods['oprice'],
-				'cprice' => $spec_goods['cprice'],
-				'stock' => $spec_goods['stock'],
-			);
+			$goods_info['oprice'] = $spec_goods['oprice'];
+			$goods_info['cprice'] = $spec_goods['cprice'];
+			$goods_info['stock'] = $spec_goods['stock'];
 		}
 	}
 	if ($store_info['store_type'] != 1 || ($store_info['store_type'] == 1 && $goods_info['is_house'] == 1)) {
