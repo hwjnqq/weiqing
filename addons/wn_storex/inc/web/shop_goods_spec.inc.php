@@ -10,14 +10,14 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 $storeid = intval($_GPC['storeid']);
 $store = $_W['wn_storex']['store_info'];
 $store_type = $store['store_type'];
+$goodsid = intval($_GPC['id']);
+$goods_info = pdo_get('storex_goods', array('store_base_id' => $storeid, 'weid' => $_W['uniacid'], 'id' => $goodsid));
 if ($store_type == STORE_TYPE_HOTEL) {
 	message('参数错误', referer(), 'error');
 }
 
 if ($op == 'display') {
-	$goodsid = intval($_GPC['id']);
 	$categoryid = intval($_GPC['categoryid']);
-	$goods_info = pdo_get('storex_goods', array('store_base_id' => $storeid, 'weid' => $_W['uniacid'], 'id' => $goodsid));
 	$category_info = pdo_get('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'id' => $categoryid), array('spec', 'id', 'name'));
 	$category_spec = iunserializer($category_info['spec']);
 	if (is_array($category_spec)) {
@@ -35,17 +35,60 @@ if ($op == 'display') {
 			);
 		}
 	}
+	$spec_goods_list = pdo_getall('storex_spec_goods', array('storeid' => $storeid, 'uniacid' => $_W['uniacid'], 'goodsid' => $goodsid));
+	if (!empty($spec_goods_list) && is_array($spec_goods_list)) {
+		foreach ($spec_goods_list as $k => $val) {
+			$goods_list['sp_name'] = iunserializer($val['sp_name']);
+			$goods_list['sp_val'] = iunserializer($val['sp_val']);
+			$goods_val = iunserializer($val['goods_val']);
+			if (!empty($goods_val) && is_array($goods_val)) {
+				foreach ($goods_val as $key => $value) {
+					$goods_val_keys = array_keys($goods_val);
+					$goods_val_keys = 'i_' . implode('_', $goods_val_keys);
+					$goods_list['spec'][$goods_val_keys] = array(
+						'goodsid' => $val['goodsid'],
+						'sp_value' => $goods_val,
+						'cprice' => $val['cprice'],
+						'oprice' => $val['oprice'],
+						'stock' => $val['stock'],
+					);
+				}
+			}
+		}
+	}
 }
 
 if ($op == 'post') {
-	if ($_W['ispost'] && $_W['isajax']) {
-		message(error(-1, $_GPC), '', 'ajax');
-	}
 	if (checksubmit()) {
-		echo "<pre>";
-		print_r($_GPC);
-		echo "</pre>";
-		exit;
+		$commonid = intval($_GPC['commonid']);
+		$common_info = pdo_get('storex_goods', array('store_base_id' => $_GPC['storeid'], 'weid' => $_W['uniacid'], 'id' => $commonid));
+		$spec_goods = array(
+			'storeid' => $storeid,
+			'uniacid' => $_W['uniacid'],
+			'goodsid' => $commonid,
+			'title' => $common_info['title'],
+			'sub_title' => $common_info['sub_title'],
+			'thumb' => $common_info['thumb'],
+			'pcate' => $common_info['pcate'],
+			'ccate' => $common_info['ccate'],
+			'sp_name' => iserializer($_GPC['sp_name']),
+			'sp_val' => iserializer($_GPC['sp_val']),
+		);
+		$goods_list = $_GPC['spec'];
+		if (!empty($goods_list) && is_array($goods_list)) {
+			foreach ($goods_list as $key => $value) {
+				if (empty($value['goodsid'])) {
+					$spec_goods['goods_val'] = iserializer($value['sp_value']);
+					$spec_goods['cprice'] = $value['cprice'];
+					$spec_goods['oprice'] = $value['oprice'];
+					$spec_goods['stock'] = $value['stock'];
+					pdo_insert('storex_spec_goods', $spec_goods);
+				} else {
+					pdo_update('storex_spec_goods', array('goods_val' => iserializer($value['sp_value']), 'cprice' => $value['cprice'], 'oprice' => $value['oprice'], 'stock' => $value['stock']), array('id' => $value['goodsid']));
+				}
+			}
+		}
+		message('编辑成功', referer(), 'success');
 	}
 }
 

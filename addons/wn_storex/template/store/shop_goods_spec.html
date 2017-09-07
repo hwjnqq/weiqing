@@ -64,6 +64,7 @@
 					</table>
 				</div>
 			</div>
+			<input type="hidden" name="commonid" value="{$_GPC['id']}">
 			<input type="submit" name="submit" value="提交" class="btn btn-primary" />
 			<input type="hidden" name="token" value="{$_W['token']}">
 		</form>
@@ -79,7 +80,7 @@
 				sp_name: {},
 				sp_value: [],
 				skus: {},
-				spec_num: 0
+				spec_num: 0,
 			},
 			watch: {
 				sp_value: {
