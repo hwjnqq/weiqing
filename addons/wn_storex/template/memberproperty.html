@@ -1,6 +1,6 @@
 {template 'common/header'}
 {template 'coupon_nav'}
-
+{template 'common/common'}
 <style>
 	.label{line-height: 2}
 	.danger{position: relative}
@@ -48,11 +48,6 @@
 		</div>
 </div>
 <script>
-	require({
-		paths: {
-			'vue': 'https://unpkg.com/vue@2.2.6/dist/vue',
-		}
-	})
 	require(['vue'], function(Vue){
 		var nums = {php echo $nums};
 		var property = {php echo $property};

@@ -194,11 +194,6 @@
 	</div>
 </div>
 <script type="text/javascript">
-	require({
-		paths: {
-			'vue': "{php echo SCRIPT_URL . '/vue'}",
-		}
-	});
 	var goods_list = {php echo json_encode($goods_list);};
 	var package_info = {php echo json_encode($package_info)};
 	var selected_list = {php echo json_encode($selected_list)};
