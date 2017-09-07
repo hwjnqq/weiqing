@@ -10,6 +10,7 @@ mload()->model('activity');
 mload()->model('card');
 mload()->model('clerk');
 mload()->model('order');
+$_W['openid'] = 'oTKzFjpkpEKpqXibIshcJLsmeLVo';
 $uid = mc_openid2uid($_W['openid']);
 $store_id = intval($_GPC['id']);
 $goodsid = intval($_GPC['goodsid']);
@@ -138,6 +139,24 @@ if ($op == 'goods_info') {
 		$goods_info['is_package'] = !empty($sales_packages) ? 1 : 2;
 		$goods_info['packages'] = $sales_packages;
 	}
+	//规格列表
+	$spec_list = pdo_getall('storex_spec_goods', array('goodsid' => $goodsid, 'storeid' => $store_id, 'uniacid' => $_W['uniacid']));
+	$spec_goods_list = array();
+	if (!empty($spec_list) && is_array($spec_list)) {
+		foreach ($spec_list as $k => $val) {
+			$goods_info['sp_name'] = iunserializer($val['sp_name']);
+			$goods_info['sp_val'] = iunserializer($val['sp_val']);
+			$goods_val = iunserializer($val['goods_val']);
+			if (!empty($goods_val) && is_array($goods_val)) {
+				foreach ($goods_val as $key => $value) {
+					$goods_val_keys = array_keys($goods_val);
+					$goods_val_keys = implode('|', $goods_val_keys);
+					$spec_goods_list[$goods_val_keys] = $val['id'];
+				}
+			}
+		}
+	}
+	$goods_info['spec_list'] = $spec_goods_list;
 	wmessage(error(0, $goods_info), $share_data, 'ajax');
 }
 
