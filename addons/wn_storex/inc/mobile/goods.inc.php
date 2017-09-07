@@ -142,22 +142,26 @@ if ($op == 'goods_info') {
 	//规格列表
 	if ($store_info['store_type'] != 1) {
 		$spec_list = pdo_getall('storex_spec_goods', array('goodsid' => $goodsid, 'storeid' => $store_id, 'uniacid' => $_W['uniacid']));
-		$spec_goods_list = array();
-		if (!empty($spec_list) && is_array($spec_list)) {
-			foreach ($spec_list as $k => $val) {
-				$goods_info['sp_name'] = iunserializer($val['sp_name']);
-				$goods_info['sp_val'] = iunserializer($val['sp_val']);
-				$goods_val = iunserializer($val['goods_val']);
-				if (!empty($goods_val) && is_array($goods_val)) {
-					foreach ($goods_val as $key => $value) {
-						$goods_val_keys = array_keys($goods_val);
-						$goods_val_keys = implode('|', $goods_val_keys);
-						$spec_goods_list[$goods_val_keys] = $val['id'];
+		$goods_info['has_spec'] = 2;
+		if (!empty($spec_list)) {
+			$goods_info['has_spec'] = 1;
+			$spec_goods_list = array();
+			if (!empty($spec_list) && is_array($spec_list)) {
+				foreach ($spec_list as $k => $val) {
+					$goods_info['sp_name'] = iunserializer($val['sp_name']);
+					$goods_info['sp_val'] = iunserializer($val['sp_val']);
+					$goods_val = iunserializer($val['goods_val']);
+					if (!empty($goods_val) && is_array($goods_val)) {
+						foreach ($goods_val as $key => $value) {
+							$goods_val_keys = array_keys($goods_val);
+							$goods_val_keys = implode('|', $goods_val_keys);
+							$spec_goods_list[$goods_val_keys] = $val['id'];
+						}
 					}
 				}
 			}
+			$goods_info['spec_list'] = $spec_goods_list;
 		}
-		$goods_info['spec_list'] = $spec_goods_list;
 	}
 	wmessage(error(0, $goods_info), $share_data, 'ajax');
 }
