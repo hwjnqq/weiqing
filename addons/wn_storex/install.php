@@ -93,6 +93,8 @@ $sql = "
 	`weid` int(11) DEFAULT '0',
 	`hotelid` int(11) DEFAULT '0',
 	`roomid` int(11) DEFAULT '0',
+	`spec_id` int(11) NOT NULL COMMENT '规格对应的商品id',
+	`spec_info` text NOT NULL COMMENT '商品规格信息',
 	`memberid` int(11) DEFAULT '0',
 	`openid` varchar(255) DEFAULT '',
 	`name` varchar(255) DEFAULT '',

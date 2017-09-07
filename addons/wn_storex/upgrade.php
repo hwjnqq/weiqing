@@ -1094,9 +1094,12 @@ if (!empty($storex_homepage) && is_array($storex_homepage)) {
 	}
 }
 
-//订单表增加规格对应的id
+//订单表增加规格对应的id,规格信息
 if (!pdo_fieldexists('storex_order', 'spec_id')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `spec_id` INT(11) NOT NULL COMMENT '规格对应的商品id';");
+}
+if (!pdo_fieldexists('storex_order', 'spec_info')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `spec_info` TEXT NOT NULL COMMENT '商品规格信息';");
 }
 
 //处理mobile更新遗留的js，css和svg文件

@@ -374,6 +374,7 @@ if ($op == 'order') {
 	$table = gettablebytype($store_info['store_type']);
 	$spec_goods = array();
 	$spec_id = 0;
+	$spec_info = '';
 	if ($goods_type == 2) {
 		$goods_info = format_package_goods($store_id, $goodsid);
 	} else {
@@ -384,6 +385,11 @@ if ($op == 'order') {
 			if (empty($spec_goods)) {
 				wmessage(error(-1, '所选规格不存在'), '', 'ajax');
 			}
+			$spec_info = array(
+				'sp_name' => iunserializer($spec_goods['sp_name']),
+				'sp_val' => iunserializer($spec_goods['sp_val']),
+				'goods_val' => iunserializer($spec_goods['goods_val']),
+			);
 			$goods_info = array(
 				'oprice' => $spec_goods['oprice'],
 				'cprice' => $spec_goods['cprice'],
@@ -414,6 +420,7 @@ if ($op == 'order') {
 		'oprice' => $goods_info['oprice'],
 		'cprice' => $goods_info['cprice'],
 		'spec_id' => $spec_id,
+		'spec_info' => iserializer($spec_info),
 	);
 	if ($goods_info['cprice'] == 0) {
 		wmessage(error(-1, '商品价格不能是0，请联系管理员!'), '', 'ajax');
