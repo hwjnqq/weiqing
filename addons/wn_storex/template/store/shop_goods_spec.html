@@ -51,7 +51,7 @@
 						<tbody>
 							<tr v-for="(sku, key) in skus" v-if="skus">
 
-								<input type="hidden" :name="'spec[' + key + '][goods_id]'" value="12312" v-model="sku.goods_id" >
+								<input type="hidden" :name="'spec[' + key + '][goodsid]'" :value="sku.goodsid" >
 								<td v-for="item in sku.sp_value">
 									{{item.name}}
 									<input type="hidden" :name="'spec[' + key + '][sp_value][' + item.id + ']' " :value="item.name"  >
@@ -76,6 +76,7 @@
 		var vm = new Vue({
 			el: '#goods_spec',
 			data: {
+				goods_list: {php echo json_encode($goods_list)} || null,
 				spec_list: {php echo json_encode($spec_list)},
 				sp_name: {},
 				sp_value: [],
@@ -87,6 +88,7 @@
 					handler: function (val) {
 						var args = []
 						this.skus = {}
+						var goods_spec = this.goods_list && this.goods_list['spec'];
 						for (var i in val) {
 							if (val[i] && val[i].length > 0) {
 								args.push(val[i])
@@ -102,11 +104,14 @@
 									stock: '',
 									sp_value: []
 								}
-								sku.sp_value = skus[i].slice(0);
 								var key = 'i';
 								for (var j in skus[i]) {
 									key = key + '_' + skus[i][j]['id']
 								}
+								if (goods_spec[key]) {
+									sku = goods_spec[key]
+								}
+								sku.sp_value = skus[i].slice(0);
 								this.skus[key] = sku
 								this.skus = Object.assign({}, this.skus)
 							}
@@ -116,13 +121,19 @@
 				}
 			},
 			created: function () {
+				var goods_sp_val = this.goods_list && this.goods_list['sp_val']
 				var spec_list = {php echo json_encode($spec_list)};
 				var sp_name = {}
 				var sp_value = {}
 				var lenght = 0
 				for (var id in spec_list) {
-					sp_name[id] = spec_list[id]['name']
+					sp_name[id] = spec_list[id]['name'];
 					sp_value[id] = []
+					if (goods_sp_val) {
+						for (var i in goods_sp_val[id]) {
+							sp_value[id].push(spec_list[id]['values'][i])
+						}
+					}
 					lenght ++
 				}
 				this.spec_num = lenght
