@@ -1308,7 +1308,7 @@ function wmessage($msg, $share = '', $type = '') {
 }
 
 //检查商品库存，最大购买，最小购买
-function check_goods_stock($goodsid, $buynums) {
+function check_goods_stock($goodsid, $buynums, $spec_goods) {
 	$goods = pdo_get('storex_goods', array('id' => $goodsid), array('id', 'min_buy', 'max_buy', 'stock'));
 	if ($buynums < $goods['min_buy']) {
 		return error(-1, '单次最小购买量是' . $goods['min_buy']);
@@ -1318,20 +1318,32 @@ function check_goods_stock($goodsid, $buynums) {
 			return error(-1, '单次最大购买量是' . $goods['max_buy']);
 		}
 	}
-	if ($goods['stock'] >= 0 && $goods['stock'] < $buynums) {
+	if (!empty($spec_goods)) {
+		$stock = $spec_goods['stock'];
+	} else {
+		$stock = $goods['stock'];
+	}
+	if ($stock >= 0 && $stock < $buynums) {
 		return error(-1, '商品库存不足');
 	}
 }
 
-function stock_control($goodsid, $buynums, $type) {
-	$goods = pdo_get('storex_goods', array('id' => $goodsid), array('id', 'stock', 'stock_control'));
+function stock_control($order, $type) {
+	$goods = pdo_get('storex_goods', array('id' => $order['roomid']), array('id', 'stock', 'stock_control'));
 	if ($goods['stock'] == -1 || $goods['stock_control'] == 1) {
 		return;
 	}
 	//下单扣库存或者支付成功扣库存
 	if (($type == 'order' && $goods['stock_control'] == 2) || ($type == 'pay' && $goods['stock_control'] == 3)) {
-		if ($buynums <= $goods['stock']) {
-			pdo_update('storex_goods', array('stock' => ($goods['stock'] - $buynums)), array('id' => $goodsid));
+		if (!empty($order['spec_id'])) {
+			$spec_goods = pdo_get('storex_spec_goods', array('id' => $order['spec_id']), array('stock'));
+			if (!empty($spec_goods) && $order['nums'] <= $spec_goods['stock']) {
+				pdo_update('storex_spec_goods', array('stock' => ($spec_goods['stock'] - $order['nums'])), array('id' => $order['spec_id']));
+			}
+		} else {
+			if ($order['nums'] <= $goods['stock']) {
+				pdo_update('storex_goods', array('stock' => ($goods['stock'] - $order['nums'])), array('id' => $order['roomid']));
+			}
 		}
 	}
 }

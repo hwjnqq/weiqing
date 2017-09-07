@@ -49,28 +49,28 @@
 						<tr>
 							<th v-for="name in sp_name">{{name}}</th>
 							<th style="position: relative;">
-								<span @click="cpriceStatus = !cpriceStatus">前台支付价 <i class="fa fa-edit"></i></span>
+								<span @click="cpriceStatus = !cpriceStatus">在线支付价 <i class="fa fa-edit"></i></span>
 								<div class="popover fade bottom" :class="{'in': cpriceStatus}" v-show="cpriceStatus"
 								     style="display: inline-block; bottom: -45px; left: -30px; top: auto">
 									<div class="arrow" style="left: 50%;"></div>
 									<h3 class="popover-title" style="display: none;"></h3>
 									<div class="popover-content">
 										<div class="input-group">
-											<input type="number" class="form-control" placeholder="前台支付价" v-model="cprice">
+											<input type="text" class="form-control" placeholder="在线支付价" v-model="cprice">
 											<span class="input-group-addon" @click="editValue('cprice')">确定</span>
 										</div>
 									</div>
 								</div>
 							</th>
 							<th style="position: relative">
-								<span @click="opriceStatus = !opriceStatus">在线支付价 <i class="fa fa-edit"></i></span>
+								<span @click="opriceStatus = !opriceStatus">前台支付价（原价） <i class="fa fa-edit"></i></span>
 								<div class="popover fade bottom " :class="{'in': opriceStatus}"  v-show="opriceStatus"
 								     style="display: inline-block; bottom: -45px; left: -30px; top: auto">
 									<div class="arrow" style="left: 50%;"></div>
 									<h3 class="popover-title" style="display: none;"></h3>
 									<div class="popover-content">
 										<div class="input-group">
-											<input type="number" class="form-control" placeholder="前台支付价" v-model="oprice">
+											<input type="text" class="form-control" placeholder="前台支付价" v-model="oprice">
 											<span class="input-group-addon" @click="editValue('oprice')">确定</span>
 										</div>
 									</div>
@@ -102,14 +102,14 @@
 							</td>
 							<td width="200px">
 								<div class="input-group">
-									<input type="number" class="form-control" placeholder="前台支付价"
+									<input type="text" class="form-control" placeholder="在线支付价"
 									       :name="'spec[' + key + '][cprice]'" v-model="sku.cprice">
 									<span class="input-group-addon">元</span>
 								</div>
 							</td>
 							<td width="200px">
 								<div class="input-group">
-									<input type="number" class="form-control" placeholder="在线支付价" value=""
+									<input type="text" class="form-control" placeholder="前台支付价" value=""
 									       :name="'spec[' + key + '][oprice]'" v-model="sku.oprice">
 									<span class="input-group-addon">元</span>
 								</div>

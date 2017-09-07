@@ -10,7 +10,6 @@ mload()->model('activity');
 mload()->model('card');
 mload()->model('clerk');
 mload()->model('order');
-$_W['openid'] = 'oTKzFjpkpEKpqXibIshcJLsmeLVo';
 $uid = mc_openid2uid($_W['openid']);
 $store_id = intval($_GPC['id']);
 $goodsid = intval($_GPC['goodsid']);
@@ -262,6 +261,19 @@ if ($op == 'info') {
 	if (!empty($goods_info['express_set'])) {
 		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
 	}
+	$spec_id = intval($_GPC['spec_id']);
+	if (!empty($spec_id)) {
+		$spec_goods = pdo_get('storex_spec_goods', array('id' => $spec_id, 'goodsid' => $goodsid));
+		if (!empty($spec_goods['goods_val'])) {
+			$spec_goods['goods_val'] = iunserializer($spec_goods['goods_val']);
+			$goods_info['title'] .= ' ' . implode(' ', $spec_goods['goods_val']);
+		}
+		if (!empty($spec_goods)) {
+			$goods_info['cprice'] = $spec_goods['cprice'];
+			$goods_info['oprice'] = $spec_goods['oprice'];
+			$goods_info['stock'] = $spec_goods['stock'];
+		}
+	}
 	$goods_info['defined'] = get_goods_defined($store_id, $goodsid);
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;
@@ -359,10 +371,28 @@ if ($op == 'order') {
 	$_W['account'] = array_merge($_W['account'], $paysetting);
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1, 'store_base_id' => $store_id);
 	$table = gettablebytype($store_info['store_type']);
+	$spec_goods = array();
+	$spec_id = 0;
+	$spec_info = '';
 	if ($goods_type == 2) {
 		$goods_info = format_package_goods($store_id, $goodsid);
 	} else {
 		$goods_info = pdo_get($table, $condition);
+		$spec_id = intval($_GPC['spec_id']);
+		if (!empty($spec_id)) {
+			$spec_goods = pdo_get('storex_spec_goods', array('uniacid' => $_W['uniacid'], 'id' => $spec_id, 'goodsid' => $goodsid));
+			if (empty($spec_goods)) {
+				wmessage(error(-1, '所选规格不存在'), '', 'ajax');
+			}
+			$spec_info = array(
+				'sp_name' => iunserializer($spec_goods['sp_name']),
+				'sp_val' => iunserializer($spec_goods['sp_val']),
+				'goods_val' => iunserializer($spec_goods['goods_val']),
+			);
+			$goods_info['oprice'] = $spec_goods['oprice'];
+			$goods_info['cprice'] = $spec_goods['cprice'];
+			$goods_info['stock'] = $spec_goods['stock'];
+		}
 	}
 	if ($store_info['store_type'] != 1 || ($store_info['store_type'] == 1 && $goods_info['is_house'] == 1)) {
 		if (empty($order_info['mobile'])) {
@@ -386,6 +416,8 @@ if ($op == 'order') {
 		'style' => $goods_info['title'],
 		'oprice' => $goods_info['oprice'],
 		'cprice' => $goods_info['cprice'],
+		'spec_id' => $spec_id,
+		'spec_info' => iserializer($spec_info),
 	);
 	if ($goods_info['cprice'] == 0) {
 		wmessage(error(-1, '商品价格不能是0，请联系管理员!'), '', 'ajax');
@@ -454,7 +486,7 @@ if ($op == 'order') {
 		}
 	} else {
 		if ($goods_type != 2) {
-			$stock = check_goods_stock($goodsid, $order_info['nums']);
+			$stock = check_goods_stock($goodsid, $order_info['nums'], $spec_goods);
 			if (is_error($stock)) {
 				wmessage($stock, '', 'ajax');
 			}
@@ -545,7 +577,7 @@ if ($op == 'order') {
 		);
 		write_log($logs);
 		if ($store_info['store_type'] != STORE_TYPE_HOTEL) {
-			stock_control($goodsid, $insert['nums'], 'order');
+			stock_control($insert, 'order');
 		}
 		if ($store_info['market_status'] != 1) {
 			if ($selected_coupon['type'] == 3) {
