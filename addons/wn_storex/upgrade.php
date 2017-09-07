@@ -1094,6 +1094,11 @@ if (!empty($storex_homepage) && is_array($storex_homepage)) {
 	}
 }
 
+//订单表增加规格对应的id
+if (!pdo_fieldexists('storex_order', 'spec_id')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `spec_id` INT(11) NOT NULL COMMENT '规格对应的商品id';");
+}
+
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');
 $js_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/js');

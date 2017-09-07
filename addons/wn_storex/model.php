@@ -1335,10 +1335,10 @@ function stock_control($order, $type) {
 	}
 	//下单扣库存或者支付成功扣库存
 	if (($type == 'order' && $goods['stock_control'] == 2) || ($type == 'pay' && $goods['stock_control'] == 3)) {
-		if (!empty($order['spec_goodsid'])) {
-			$spec_goods = pdo_get('storex_spec_goods', array('id' => $order['spec_goodsid']), array('stock'));
+		if (!empty($order['spec_id'])) {
+			$spec_goods = pdo_get('storex_spec_goods', array('id' => $order['spec_id']), array('stock'));
 			if (!empty($spec_goods) && $order['nums'] <= $spec_goods['stock']) {
-				pdo_update('storex_spec_goods', array('stock' => ($spec_goods['stock'] - $order['nums'])), array('id' => $order['spec_goodsid']));
+				pdo_update('storex_spec_goods', array('stock' => ($spec_goods['stock'] - $order['nums'])), array('id' => $order['spec_id']));
 			}
 		} else {
 			if ($order['nums'] <= $goods['stock']) {

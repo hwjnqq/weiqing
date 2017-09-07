@@ -360,14 +360,14 @@ if ($op == 'order') {
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1, 'store_base_id' => $store_id);
 	$table = gettablebytype($store_info['store_type']);
 	$spec_goods = array();
-	$spec_goodsid = 0;
+	$spec_id = 0;
 	if ($goods_type == 2) {
 		$goods_info = format_package_goods($store_id, $goodsid);
 	} else {
 		$goods_info = pdo_get($table, $condition);
-		$spec_goodsid = intval($_GPC['spec_goodsid']);
-		if (!empty($spec_goodsid)) {
-			$spec_goods = pdo_get('storex_spec_goods', array('uniacid' => $_W['uniacid'], 'id' => $spec_goodsid, 'goodsid' => $goodsid));
+		$spec_id = intval($_GPC['spec_id']);
+		if (!empty($spec_id)) {
+			$spec_goods = pdo_get('storex_spec_goods', array('uniacid' => $_W['uniacid'], 'id' => $spec_id, 'goodsid' => $goodsid));
 			if (empty($spec_goods)) {
 				wmessage(error(-1, '所选规格不存在'), '', 'ajax');
 			}
@@ -400,7 +400,7 @@ if ($op == 'order') {
 		'style' => $goods_info['title'],
 		'oprice' => $goods_info['oprice'],
 		'cprice' => $goods_info['cprice'],
-		'spec_goodsid' => $spec_goodsid,
+		'spec_id' => $spec_id,
 	);
 	if ($goods_info['cprice'] == 0) {
 		wmessage(error(-1, '商品价格不能是0，请联系管理员!'), '', 'ajax');
