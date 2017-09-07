@@ -273,7 +273,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				write_log($logs);
 			}
 			if ($storex_bases['store_type'] != STORE_TYPE_HOTEL) {
-				stock_control($order['roomid'], $order['nums'], 'pay');
+				stock_control($order, 'pay');
 			}
 			$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('template', 'confirm_templateid', 'templateid'));
 			$starttime = $order['btime'];
