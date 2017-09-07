@@ -22,7 +22,7 @@ if ($op == 'display') {
 	$category_spec = iunserializer($category_info['spec']);
 	if (is_array($category_spec)) {
 		$spec_name = pdo_getall('storex_spec', array('id' => $category_spec), array('id', 'name'), 'id');
-		$spec_value = pdo_getall('storex_spec_value', array('specid' => $category_spec), array('id', 'name', 'displayorder', 'specid'), '', 'displayorder DESC');
+		$spec_value = pdo_getall('storex_spec_value', array('specid' => $category_spec), array('id', 'name', 'displayorder', 'specid'), 'id', 'displayorder DESC');
 	}
 	if (!empty($spec_value) && is_array($spec_value)) {
 		foreach ($spec_value as $key => $value) {
@@ -35,6 +35,7 @@ if ($op == 'display') {
 			);
 		}
 	}
+
 	$spec_goods_list = pdo_getall('storex_spec_goods', array('storeid' => $storeid, 'uniacid' => $_W['uniacid'], 'goodsid' => $goodsid));
 	if (!empty($spec_goods_list) && is_array($spec_goods_list)) {
 		foreach ($spec_goods_list as $k => $val) {
@@ -46,7 +47,7 @@ if ($op == 'display') {
 					$goods_val_keys = array_keys($goods_val);
 					$goods_val_keys = 'i_' . implode('_', $goods_val_keys);
 					$goods_list['spec'][$goods_val_keys] = array(
-						'goodsid' => $val['goodsid'],
+						'goodsid' => $val['id'],
 						'sp_value' => $goods_val,
 						'cprice' => $val['cprice'],
 						'oprice' => $val['oprice'],
