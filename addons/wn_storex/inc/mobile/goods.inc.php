@@ -265,6 +265,10 @@ if ($op == 'info') {
 	$spec_id = intval($_GPC['spec_id']);
 	if (!empty($spec_id)) {
 		$spec_goods = pdo_get('storex_spec_goods', array('id' => $spec_id, 'goodsid' => $goodsid));
+		if (!empty($spec_goods['goods_val'])) {
+			$spec_goods['goods_val'] = iunserializer($spec_goods['goods_val']);
+			$goods_info['title'] .= ' ' . implode(' ', $spec_goods['goods_val']);
+		}
 		if (!empty($spec_goods)) {
 			$goods_info['cprice'] = $spec_goods['cprice'];
 			$goods_info['oprice'] = $spec_goods['oprice'];
