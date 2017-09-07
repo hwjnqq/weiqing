@@ -108,7 +108,7 @@
 								for (var j in skus[i]) {
 									key = key + '_' + skus[i][j]['id']
 								}
-								if (goods_spec[key]) {
+								if (goods_spec && goods_spec[key]) {
 									sku = goods_spec[key]
 								}
 								sku.sp_value = skus[i].slice(0);
