@@ -424,6 +424,7 @@ if ($op == 'order') {
 	}
 	$today_start = strtotime(date('Y-m-d'), TIMESTAMP);
 	$today_end = $today_start + 86399;
+	$where = 'hotelid = :hotelid AND roomid = :roomid AND openid = :openid AND paystatus = 0 AND time >= :today_start AND time < :today_end AND status != -1 AND status != 2 ';
 	$param = array(
 		':hotelid' => $order_info['hotelid'],
 		':roomid' => $order_info['roomid'],
@@ -431,7 +432,11 @@ if ($op == 'order') {
 		':today_start' => $today_start,
 		':today_end' => $today_end,
 	);
-	$order_exist = pdo_fetch("SELECT id FROM " . tablename('storex_order') . "WHERE hotelid = :hotelid AND roomid = :roomid AND openid = :openid AND paystatus = 0 AND time >= :today_start AND time < :today_end AND status != -1 AND status != 2", $param);
+	if (!empty($spec_id)) {
+		$where .= ' AND spec_id = :spec_id';
+		$param[':spec_id'] = $spec_id;
+	}
+	$order_exist = pdo_fetch("SELECT id FROM " . tablename('storex_order') . "WHERE " . $where, $param);
 	if (!empty($order_exist)) {
 		wmessage(error(-1, "您有未支付该类订单,不要重复下单"), '', 'ajax');
 	}
