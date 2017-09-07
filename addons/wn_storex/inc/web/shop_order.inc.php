@@ -206,6 +206,13 @@ if ($op == 'edit') {
 				$roomnumber = implode(',', $roomnum);
 			}
 		}
+		if ($store_type != STORE_TYPE_HOTEL) {
+			$item['spec'] = '';
+			if (!empty($item['spec_info'])) {
+				$item['spec_info'] = iunserializer($item['spec_info']);
+				$item['spec'] = implode(' ', $item['spec_info']['goods_val']);
+			}
+		}
 	}
 	$express = express_name();
 	if ($_W['isajax'] && $_W['ispost']) {

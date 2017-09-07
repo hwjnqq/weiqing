@@ -99,6 +99,14 @@
 						{php echo date('Y-m-d H:i:s', $item['time']);}
 					</div>
 				</div>
+				{if $store_type != STORE_TYPE_HOTEL}
+				<div class="form-group">
+					<label class="col-sm-4 control-label">商品规格</label>
+					<div class="col-sm-8 form-control-static">
+						{if empty($item['spec'])}无{else}{$item['spec']}{/if}
+					</div>
+				</div>
+				{/if}
 				<hr />
 				<h4>用户信息</h4>
 				<div class="form-group">
