@@ -44,6 +44,7 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 			'moreGoods' => array('do' => 'category', 'op' => 'more_goods'),
 			'goodsSearch' => array('do' => 'category', 'op' => 'goods_search'),
 				
+			'specInfo' => array('do' => 'goods', 'op' => 'spec_info'),
 			'goodsInfo' => array('do' => 'goods', 'op' => 'goods_info'),
 			'goodsBuyInfo' => array('do' => 'goods', 'op' => 'info'),
 			'goodsOrder' => array('do' => 'goods', 'op' => 'order'),
