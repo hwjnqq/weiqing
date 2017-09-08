@@ -19,7 +19,7 @@ $logs = array(
 	'orderid' => intval($_GPC['id']),
 );
 if ($op == 'order_list') {
-	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status', 'openid', 'action', 'track_number', 'express_name', 'is_package');
+	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status', 'action', 'track_number', 'express_name', 'is_package');
 	$orders = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'openid' => $_W['openid']), $field, '', 'time DESC');
 	$order_list = array(
 		'over' => array(),
@@ -73,6 +73,7 @@ if ($op == 'order_detail') {
 	if (empty($order_info)) {
 		wmessage(error(-1, '找不到该订单了'), '', 'ajax');
 	}
+	unset($order_info['openid']);
 	//时间戳转换
 	$order_info['btime'] = date('Y-m-d', $order_info['btime']);
 	$order_info['etime'] = date('Y-m-d', $order_info['etime']);
@@ -95,6 +96,13 @@ if ($op == 'order_detail') {
 		if (!empty($order_address)) {
 			$order_info['address'] = $order_address['province'] . $order_address['city'] . $order_address['district'] . $order_address['address'];
 		}
+	}
+	if (!empty($order_info['spec_info'])) {
+		$order_info['spec_info'] = iunserializer($order_info['spec_info']);
+		if (!empty($order_info['spec_info']['goods_val'])) {
+			$order_info['style'] .= ' ' . implode(' ', $order_info['spec_info']['goods_val']);
+		}
+		unset($order_info['spec_info']);
 	}
 	//订单状态
 	$order_info = orders_check_status($order_info);
