@@ -79,6 +79,7 @@ if ($op == 'post') {
 		if (!empty($goods_list) && is_array($goods_list)) {
 			$all_spec_list = pdo_getall('storex_spec_goods', array('storeid' => $storeid, 'uniacid' => $_W['uniacid'], 'goodsid' => $commonid), array('id'), 'id');
 			$key_list = is_array($all_spec_list) ? array_keys($all_spec_list) : array();
+			$goodsids = array();
 			foreach ($goods_list as $key => $value) {
 				if (in_array($value['goodsid'], $key_list)) {
 					$goodsids[] = $value['goodsid'];

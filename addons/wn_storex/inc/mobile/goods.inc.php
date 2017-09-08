@@ -274,6 +274,13 @@ if ($op == 'info') {
 			$goods_info['stock'] = $spec_goods['stock'];
 		}
 	}
+	if (!empty($goods_info['thumb'])) {
+		$goods_info['thumb'] = tomedia($goods_info['thumb']);
+	}
+	if (!empty($goods_info['thumbs'])) {
+		$goods_info['thumbs'] = iunserializer($goods_info['thumbs']);
+		$goods_info['thumbs'] = format_url($goods_info['thumbs']);
+	}
 	$goods_info['defined'] = get_goods_defined($store_id, $goodsid);
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;

@@ -22,7 +22,7 @@ if ($op == 'display') {
 	$condition = ' uniacid = :uniacid AND `module`=:module ';
 	$params = array();
 	$params[':uniacid'] = $_W['uniacid'];
-	$params[':module'] = 'wxcard';
+	$params[':module'] = 'wn_storex';
 	$status = isset($_GPC['status']) ? intval($_GPC['status']) : -1;
 	if ($status != -1) {
 		$condition .= " AND status = '{$status}'";
@@ -39,7 +39,7 @@ if ($op == 'display') {
 			$params = array();
 			$params[':rid'] = $item['id'];
 			$item['keywords'] = reply_keywords_search($condition, $params);
-			$entries = module_entries('wxcard', array('rule'),$item['id']);
+			$entries = module_entries('wn_storex', array('rule'),$item['id']);
 			if (!empty($entries)) {
 				$item['options'] = $entries['rule'];
 			}
@@ -51,7 +51,7 @@ if ($op == 'display') {
 if ($op == 'post') {
 	$rid = intval($_GPC['rid']);
 	if (!empty($rid)) {
-		$replies = pdo_getall('wxcard_reply', array('rid' => $rid));
+		$replies = pdo_getall('storex_wxcard_reply', array('rid' => $rid));
 	}
 	if ($_W['isajax'] && $_W['ispost']) {
 		/*检测规则是否已经存在*/
@@ -110,6 +110,7 @@ if ($op == 'post') {
 		}
 		unset($value);
 	}
+	
 	if (checksubmit('submit')) {
 		if (empty($_GPC['name'])) {
 			message('必须填写回复规则名称.');
@@ -121,7 +122,7 @@ if ($op == 'post') {
 		$rule = array(
 			'uniacid' => $_W['uniacid'],
 			'name' => $_GPC['name'],
-			'module' => 'wxcard',
+			'module' => 'wn_storex',
 			'status' => intval($_GPC['status']),
 			'displayorder' => intval($_GPC['displayorder_rule']),
 		);
@@ -130,8 +131,7 @@ if ($op == 'post') {
 		} else {
 			$rule['displayorder'] = range_limit($rule['displayorder'], 0, 254);
 		}
-		$module = WeUtility::createModule('wxcard');
-	
+		$module = WeUtility::createModule('wn_storex');
 		if (empty($module)) {
 			message('抱歉，模块不存在！');
 		}
