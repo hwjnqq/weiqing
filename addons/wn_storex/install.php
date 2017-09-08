@@ -306,6 +306,7 @@ $sql = "
 	`parentid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '上级分类ID,0为第一级',
 	`isrecommand` int(10) DEFAULT '0',
 	`description` varchar(500) NOT NULL COMMENT '分类介绍',
+	`spec` varchar(1500) NOT NULL DEFAULT '' COMMENT '规格详情',
 	`displayorder` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '排序',
 	`enabled` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否开启',
 	PRIMARY KEY (`id`)
@@ -1046,6 +1047,46 @@ $sql = "
 	  `time` int(11) NOT NULL COMMENT '扫码时间',
 	  PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
+	
+	CREATE TABLE IF NOT EXISTS `ims_storex_spec` (
+	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	  `name` varchar(100) CHARACTER SET utf8 NOT NULL,
+	  `displayorder` tinyint(4) NOT NULL,
+	  `uniacid` int(10) unsigned NOT NULL,
+	  `storeid` int(10) unsigned NOT NULL,
+	  PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8 COMMENT='规格名称表';
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_spec_value` (
+	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	  `uniacid` int(10) unsigned NOT NULL,
+	  `storeid` int(10) unsigned NOT NULL,
+	  `specid` int(10) unsigned NOT NULL,
+	  `name` varchar(100) CHARACTER SET utf8 NOT NULL,
+	  `displayorder` tinyint(4) NOT NULL,
+	  PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8 COMMENT='规格值表';
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_spec_goods` (
+	  `id` int(11) NOT NULL AUTO_INCREMENT,
+	  `storeid` int(11) DEFAULT '0',
+	  `uniacid` int(11) DEFAULT '0',
+	  `goodsid` int(11) DEFAULT '0',
+	  `pcate` int(10) unsigned NOT NULL DEFAULT '0',
+	  `ccate` int(10) unsigned NOT NULL DEFAULT '0',
+	  `title` varchar(255) DEFAULT '',
+	  `sub_title` varchar(12) NOT NULL COMMENT '副标题',
+	  `sp_name` varchar(255) DEFAULT NULL,
+	  `sp_val` varchar(1000) NOT NULL DEFAULT '' COMMENT '已选中商品规格',
+	  `goods_val` text COMMENT '商品规格属性',
+	  `thumb` varchar(255) DEFAULT '',
+	  `oprice` decimal(10,2) DEFAULT '0.00',
+	  `cprice` decimal(10,2) DEFAULT '0.00',
+	  `status` int(11) DEFAULT '0',
+	  `stock` int(11) NOT NULL DEFAULT '-1' COMMENT '库存',
+	  PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
+
 ";
 
 pdo_run($sql);
