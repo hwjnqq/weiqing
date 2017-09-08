@@ -767,6 +767,20 @@ $sql = "
 	  `stock` int(11) NOT NULL DEFAULT '-1' COMMENT '库存',
 	  PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
+		
+	CREATE TABLE IF NOT EXISTS `ims_storex_wxcard_reply` (
+	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	  `rid` int(10) unsigned NOT NULL DEFAULT '0',
+	  `title` varchar(30) NOT NULL,
+	  `card_id` varchar(50) NOT NULL,
+	  `cid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '对应卡券表里的id',
+	  `brand_name` varchar(30) NOT NULL,
+	  `logo_url` varchar(255) NOT NULL,
+	  `success` varchar(255) NOT NULL,
+	  `error` varchar(255) NOT NULL,
+	  PRIMARY KEY (`id`),
+	  KEY `rid` (`rid`)
+	) DEFAULT CHARSET=utf8 ;
 ";
 pdo_run($sql);
 
