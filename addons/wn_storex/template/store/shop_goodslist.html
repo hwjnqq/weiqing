@@ -117,7 +117,7 @@
 				<td>
 					<div class="wn-table__link">
 						{if $item['is_house'] != 1}
-						<a href="{php echo $this->createWebUrl('shop_goods_spec', array('storeid' => $storeid, 'id' => $item['id'], 'categoryid' => $item['pcate']))}" class="wn-table__link__item js-qrcode-entry" data-id="{$item['id']}">规格设置</a>
+						<a href="{php echo $this->createWebUrl('shop_goods_spec', array('storeid' => $storeid, 'id' => $item['id'], 'categoryid' => $item['pcate']))}" class="wn-table__link__item">规格设置</a>
 						<a href="javascript:;" class="wn-table__link__item js-qrcode-entry" data-id="{$item['id']}">查看二维码入口</a>
 						{else}
 						<a href="{php echo $this->createWebUrl('shop_room_item', array('storeid' => $storeid, 'roomid' => $item['id']))}" class="wn-table__link__item" data-id="{$item['id']}">房间列表</a>
