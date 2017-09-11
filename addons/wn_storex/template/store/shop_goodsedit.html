@@ -285,7 +285,6 @@
 </div>
 <script type="text/javascript">
 	var parent = '{php echo json_encode($parent);}';
-	parent = $.parseJSON(parent);
 	$(function() {
 		$('#category_parent').change(function() {
 			var selectid =$(this).find('option:selected').val();
