@@ -15,9 +15,6 @@ $uid = mc_openid2uid($_W['openid']);
 activity_get_coupon_type();
 
 if ($op == 'display') {
-	if (!empty($_GPC['from']) && $_GPC['from'] == 'wxapp') {
-		wmessage(error(-1, '小程序不支持绑定公众号卡券'), '', 'ajax');
-	}
 	$ids = array();
 	$storex_exchange = pdo_getall('storex_activity_exchange', array('uniacid' => intval($_W['uniacid']), 'status' => 1, 'type <>' => 3), array(), 'extra');
 	if (!empty($storex_exchange)) {
@@ -115,6 +112,9 @@ if ($op == 'exchange') {
 }
 
 if ($op == 'mine') {
+	if (!empty($_GPC['from']) && $_GPC['from'] == 'wxapp' && COUPON_TYPE == WECHAT_COUPON) {
+		wmessage(error(-1, '小程序支持系统卡券，不支持微信卡券'), '', 'ajax');
+	}
 	$couponlist = activity_get_user_couponlist();
 	$coupon_owned['lists'] = $couponlist;
 	$coupon_owned['source'] = COUPON_TYPE;
