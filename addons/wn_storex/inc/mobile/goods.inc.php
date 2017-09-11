@@ -167,7 +167,7 @@ if ($op == 'goods_info') {
 
 if ($op == 'spec_info') {
 	$specid = intval($_GPC['specid']);
-	$spec_info = pdo_get('storex_goods', array('weid' => $_W['uniacid'], 'store_base_id' => $store_id, 'id' => $goodsid), array('oprice', 'cprice', 'stock'));
+	$spec_info = pdo_get('storex_goods', array('recycle' => 2, 'weid' => $_W['uniacid'], 'store_base_id' => $store_id, 'id' => $goodsid), array('oprice', 'cprice', 'stock'));
 	$spec_goods = pdo_get('storex_spec_goods', array('uniacid' => $_W['uniacid'], 'id' => $specid));
 	if (!empty($spec_goods)) {
 		$spec_info = array(

@@ -1098,9 +1098,9 @@ function goods_entry_fetch($storeid, $params = array(), $wxapp = false) {
 	if (empty($goods_entry_routes)) {
 		$storeinfo = pdo_get('storex_bases', array('id' => $storeid), array('store_type'));
 		if ($storeinfo['store_type'] == 1) {
-			$goodsinfo = pdo_getall('storex_room', array('store_base_id' => $storeid, 'is_house !=' => 1, 'status' => 1), array('id', 'title', 'is_house'), 'id');
+			$goodsinfo = pdo_getall('storex_room', array('recycle' => 2, 'store_base_id' => $storeid, 'is_house !=' => 1, 'status' => 1), array('id', 'title', 'is_house'), 'id');
 		} else {
-			$goodsinfo = pdo_getall('storex_goods', array('store_base_id' => $storeid, 'status' => 1), array('id', 'title'), 'id');
+			$goodsinfo = pdo_getall('storex_goods', array('recycle' => 2, 'store_base_id' => $storeid, 'status' => 1), array('id', 'title'), 'id');
 		}
 		$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
 		$goods_entry_routes = array();

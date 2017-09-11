@@ -46,7 +46,7 @@ if ($op == 'getDate') {
 		$date_array[$i]['day'] = date('j', $date_array[$i]['time']);
 		$date_array[$i]['month'] = date('m', $date_array[$i]['time']);
 	}
-	$list = pdo_getall('storex_room', array('store_base_id' => $storeid, 'weid' => $_W['uniacid'], 'is_house' => 1));
+	$list = pdo_getall('storex_room', array('recycle' => 2, 'store_base_id' => $storeid, 'weid' => $_W['uniacid'], 'is_house' => 1));
 	$sql = "SELECT * FROM " . tablename('storex_room_price');
 	$sql .= " WHERE roomdate >= " . $btime;
 	$sql .= " AND roomdate < " . ($etime + 86400);
@@ -128,7 +128,7 @@ if ($op == 'updatelot') {
 	$firstday = date('Y-m-01', time());
 	//当月最后一天
 	$endtime = strtotime(date('Y-m-d', strtotime("$firstday +1 month -1 day")));
-	$rooms = pdo_getall('storex_room', array('store_base_id' => $storeid, 'is_house' => 1));
+	$rooms = pdo_getall('storex_room', array('recycle' => 2, 'store_base_id' => $storeid, 'is_house' => 1));
 	include $this->template('store/shop_room_pricelot');
 	exit();
 }
@@ -140,7 +140,7 @@ if ($op == 'updatelot_create') {
 	$rooms_arr = implode(',', $rooms);
 	$start = $_GPC['start'];
 	$end = $_GPC['end'];
-	$list = pdo_getall('storex_room', array('id' => $rooms));
+	$list = pdo_getall('storex_room', array('recycle' => 2, 'id' => $rooms));
 	ob_start();
 	include $this->template('store/shop_room_pricelotlist');
 	$data['result'] = 1;

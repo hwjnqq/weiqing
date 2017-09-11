@@ -12,6 +12,9 @@
 			<div class="wn-tabs__item">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_room_price', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">维护房价</a>
 			</div>
+			<div class="wn-tabs__item {if $op == 'recycle'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'recycle', 'storeid' => $_GPC['storeid']))}">商品回收站</a>
+			</div>
 		</div>
 
 		<div class="wn-main__search clearfix">

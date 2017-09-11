@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 
-$ops = array('display', 'edit', 'delete', 'deleteall', 'showall', 'status', 'copyroom', 'qrcode_entry', 'set_tag', 'spec_info');
+$ops = array('display', 'edit', 'recycle_goods', 'recycleall', 'recycle', 'showall', 'status', 'copyroom', 'qrcode_entry', 'set_tag', 'spec_info', 'delete', 'deleteall', 'renew', 'renewall');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $storeid = intval($_GPC['storeid']);
@@ -39,7 +39,7 @@ if (!empty($_GPC['category']['parentid'])) {
 }
 $table = gettablebytype($store_type);
 
-if ($op == 'display') {
+if ($op == 'display' || $op == 'recycle') {
 	$category = pdo_getall('storex_categorys', array('store_base_id' => $storeid, 'enabled' => 1), array('id', 'name', 'store_base_id', 'parentid'), '', 'parentid ASC');
 	$category_set = array();
 	if (!empty($category) && is_array($category)) {
@@ -57,6 +57,11 @@ if ($op == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	$sql .= ' AND store_base_id = ' . $storeid;
+	if ($op == 'display') {
+		$sql .= ' AND r.recycle = 2';
+	} else {
+		$sql .= ' AND r.recycle = 1';
+	}
 	$params = array();
 	
 	if (!empty($_GPC['title'])) {
@@ -69,7 +74,7 @@ if ($op == 'display') {
 		$params[':category_id'] = $category_id;
 	}
 	
-	$join_condition = ' r.store_base_id = h.id ';
+	$join_condition = ' r.store_base_id = h.id';
 	
 	$list = pdo_fetchall("SELECT r.*, h.title AS hoteltitle FROM " . tablename($table) . " r LEFT JOIN " . tablename('storex_bases') . " h ON " . $join_condition . " WHERE r.weid = '{$_W['uniacid']}' $sql ORDER BY h.id, r.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename($table) . " r LEFT JOIN " . tablename('storex_bases') . " h ON " . $join_condition . " WHERE r.weid = '{$_W['uniacid']}' $sql", $params);
@@ -254,25 +259,20 @@ if ($op == 'edit') {
 	include $this->template('store/shop_goodsedit');
 }
 
-if ($op == 'delete') {
+if ($op == 'recycle_goods') {
 	$id = intval($_GPC['id']);
-	pdo_delete($table, array('id' => $id, 'weid' => $_W['uniacid']));
-	if ($store_type == STORE_TYPE_HOTEL) {
-		pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT COUNT(*) FROM " . tablename('storex_room') . " WHERE store_base_id = :store_base_id) WHERE store_base_id = :store_base_id", array(':store_base_id' => $store_base_id));
-	}
-	message('删除成功！', referer(), 'success');
+	pdo_update($table, array('recycle' => 1), array('weid' => $_W['uniacid'], 'id' => $id));
+	itoast('成功加入回收站', referer(), 'success');
 }
 
-if ($op == 'deleteall') {
+if ($op == 'recycleall') {
 	foreach ($_GPC['idArr'] as $k => $id) {
 		$id = intval($id);
-		pdo_delete($table, array('id' => $id, 'weid' => $_W['uniacid']));
-		if ($store_type == STORE_TYPE_HOTEL) {
-			pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT COUNT(*) FROM " . tablename('storex_room') . " WHERE store_base_id = :store_base_id) WHERE id = :store_base_id", array(':store_base_id' => $id));
-		}
+		pdo_update($table, array('recycle' => 1), array('id' => $id, 'weid' => $_W['uniacid']));
 	}
-	message(error(0, '删除成功！'), '', 'ajax');
+	message(error(0, '批量操作成功'), '', 'ajax');
 }
+
 if ($op == 'showall') {
 	if ($_GPC['show_name'] == 'showall') {
 		$show_status = 1;
@@ -365,4 +365,38 @@ if ($op == 'spec_info') {
 		}
 		message(error(0, $spec_list), '', 'ajax');
 	}
+}
+
+if ($op == 'delete') {
+	$id = intval($_GPC['id']);
+	pdo_delete($table, array('weid' => $_W['uniacid'], 'id' => $id));
+	if ($store_type == STORE_TYPE_HOTEL) {
+		pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT COUNT(*) FROM " . tablename('storex_room') . " WHERE store_base_id = :store_base_id) WHERE store_base_id = :store_base_id", array(':store_base_id' => $store_base_id));
+	}
+	itoast('删除成功', referer(), 'success');
+}
+
+if ($op == 'deleteall') {
+	foreach ($_GPC['idArr'] as $k => $id) {
+		$id = intval($id);
+		pdo_delete($table, array('id' => $id, 'weid' => $_W['uniacid']));
+		if ($store_type == STORE_TYPE_HOTEL) {
+			pdo_query("UPDATE " . tablename('storex_hotel') . " SET roomcount = (SELECT COUNT(*) FROM " . tablename('storex_room') . " WHERE store_base_id = :store_base_id) WHERE id = :store_base_id", array(':store_base_id' => $id));
+		}
+	}
+	message(error(0, '批量删除成功'), '', 'ajax');
+}
+
+if ($op == 'renew') {
+	$id = intval($_GPC['id']);
+	pdo_update($table, array('recycle' => 2), array('weid' => $_W['uniacid'], 'id' => $id));
+	itoast('恢复成功', referer(), 'success');
+}
+
+if ($op == 'renewall') {
+	foreach ($_GPC['idArr'] as $k => $id) {
+		$id = intval($id);
+		pdo_update($table, array('recycle' => 2), array('id' => $id, 'weid' => $_W['uniacid']));
+	}
+	message(error(0, '批量恢复成功'), '', 'ajax');
 }

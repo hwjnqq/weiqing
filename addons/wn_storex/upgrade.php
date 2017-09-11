@@ -1157,6 +1157,14 @@ if (!pdo_fieldexists('storex_order', 'spec_info')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `spec_info` TEXT NOT NULL COMMENT '商品规格信息';");
 }
 
+//回收站功能
+if (!pdo_fieldexists('storex_goods', 'recycle')) {
+	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `recycle` TINYINT(2) NOT NULL DEFAULT '2' COMMENT '1在回收站，2不在';");
+}
+if (!pdo_fieldexists('storex_room', 'recycle')) {
+	pdo_query("ALTER TABLE " . tablename('storex_room') . " ADD `recycle` TINYINT(2) NOT NULL DEFAULT '2' COMMENT '1在回收站，2不在';");
+}
+
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');
 $js_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/js');

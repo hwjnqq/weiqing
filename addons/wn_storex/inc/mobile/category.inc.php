@@ -76,6 +76,7 @@ if ($op == 'more_goods') {
 		$condition['title LIKE'] = "%{$keyword}%";
 	}
 	$condition['status'] = 1;
+	$condition['recycle'] = 2;
 	$condition['store_base_id'] = $storex_bases['id'];
 	if ($storex_bases['store_type'] == 1) {
 		$goods_list = pdo_getall('storex_room', $condition);
@@ -197,7 +198,7 @@ if ($op == 'goods_search') {
 	$keywords = trim($_GPC['keywords']);
 	$store = get_store_info($id);
 	$table = gettablebytype($store['store_type']);
-	$condition = array('title LIKE' => '%' . $keywords . '%', 'status' => 1, 'store_base_id' => $id);
+	$condition = array('title LIKE' => '%' . $keywords . '%', 'status' => 1, 'recycle' => 2, 'store_base_id' => $id);
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 10;
 	if ($table == 'storex_room') {

@@ -10,6 +10,9 @@
 			<div class="wn-tabs__item wn-tabs__item--active">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_tagmanage', array('storeid' => $_GPC['storeid']))}">标签管理</a>
 			</div>
+			<div class="wn-tabs__item {if $op == 'recycle'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'recycle', 'storeid' => $_GPC['storeid']))}">商品回收站</a>
+			</div>
 		</div>
 		<div class="wn-main__search__action">
 			<a href="{php echo $this->createWebUrl('shop_tagmanage', array('op' => 'edit', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">+添加标签</a>

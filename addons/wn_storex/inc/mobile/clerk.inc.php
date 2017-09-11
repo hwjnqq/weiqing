@@ -340,7 +340,7 @@ if ($op == 'edit_order') {
 if ($op == 'room') {
 	$manage_storex_lists = clerk_permission_storex($op);
 	$manage_storex_ids = array_keys($manage_storex_lists);
-	$room_list = pdo_getall('storex_room', array('store_base_id' => $manage_storex_ids, 'weid' => intval($_W['uniacid']), 'is_house' => 1), array('id', 'hotelid', 'weid', 'title', 'thumb', 'oprice', 'cprice', 'service', 'store_type', 'is_house'));
+	$room_list = pdo_getall('storex_room', array('recycle' => 2, 'store_base_id' => $manage_storex_ids, 'weid' => intval($_W['uniacid']), 'is_house' => 1), array('id', 'hotelid', 'weid', 'title', 'thumb', 'oprice', 'cprice', 'service', 'store_type', 'is_house'));
 	if (!empty($room_list) && is_array($room_list)) {
 		foreach ($room_list as $k => $info) {
 			if ($info['store_type'] != STORE_TYPE_HOTEL || $info['is_house'] != 1) {
@@ -356,7 +356,7 @@ if ($op == 'room') {
 
 if ($op == 'room_info') {
 	$room_id = intval($_GPC['room_id']);
-	$room_info = pdo_get('storex_room', array('id' => $room_id), array('id', 'store_base_id', 'weid', 'title', 'oprice', 'cprice', 'thumb'));
+	$room_info = pdo_get('storex_room', array('recycle' => 2, 'id' => $room_id), array('id', 'store_base_id', 'weid', 'title', 'oprice', 'cprice', 'thumb'));
 	if (empty($room_info)) {
 		wmessage(error(-1, '不存在此房型！'), '', 'ajax');
 	}
@@ -436,7 +436,7 @@ if ($op == 'room_info') {
 
 if ($op == 'edit_room') {
 	$room_id = intval($_GPC['room_id']);
-	$room_info = pdo_get('storex_room', array('id' => $room_id), array('id', 'store_base_id', 'weid', 'title', 'oprice', 'cprice', 'thumb'));
+	$room_info = pdo_get('storex_room', array('recycle' => 2, 'id' => $room_id), array('id', 'store_base_id', 'weid', 'title', 'oprice', 'cprice', 'thumb'));
 	if (empty($room_info)) {
 		wmessage(error(-1, '不存在此房型！'), '', 'ajax');
 	}

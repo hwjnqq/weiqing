@@ -3,7 +3,7 @@
 	<div class="wn-main__head">商品管理</div>
 	<div class="wn-main__content">
 		<div class="wn-tabs">
-			<div class="wn-tabs__item wn-tabs__item--active">
+			<div class="wn-tabs__item {if $op == 'display'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">商品列表</a>
 			</div>
 			{if $store['store_type'] == STORE_TYPE_HOTEL}
@@ -19,6 +19,9 @@
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_tagmanage', array('storeid' => $_GPC['storeid']))}">标签管理</a>
 			</div>
 			{/if}
+			<div class="wn-tabs__item {if $op == 'recycle'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'recycle', 'storeid' => $_GPC['storeid']))}">商品回收站</a>
+			</div>
 		</div>
 		<div class="wn-main__search clearfix">
 			<div class="wn-main__search__form" style="width: 600px">
@@ -116,26 +119,36 @@
 				</td>
 				<td>
 					<div class="wn-table__link">
-						{if $item['is_house'] != 1}
-						<a href="{php echo $this->createWebUrl('shop_goods_spec', array('storeid' => $storeid, 'id' => $item['id'], 'categoryid' => $item['pcate']))}" class="wn-table__link__item">规格设置</a>
-						<a href="javascript:;" class="wn-table__link__item js-qrcode-entry" data-id="{$item['id']}">查看二维码入口</a>
+						{if $op == 'recycle'}
+						<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要恢复该商品吗?', '{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'renew', 'id' => $item['id'], 'storeid' => $storeid))}');" title="恢复" >恢复使用</a>
+						<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要从回收站删除该商品吗?', '{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'delete', 'id' => $item['id'], 'storeid' => $storeid))}');" title="删除" >彻底删除</a>
 						{else}
-						<a href="{php echo $this->createWebUrl('shop_room_item', array('storeid' => $storeid, 'roomid' => $item['id']))}" class="wn-table__link__item" data-id="{$item['id']}">房间列表</a>
+							{if $item['is_house'] != 1}
+							<a href="{php echo $this->createWebUrl('shop_goods_spec', array('storeid' => $storeid, 'id' => $item['id'], 'categoryid' => $item['pcate']))}" class="wn-table__link__item">规格设置</a>
+							<a href="javascript:;" class="wn-table__link__item js-qrcode-entry" data-id="{$item['id']}">查看二维码入口</a>
+							{else}
+							<a href="{php echo $this->createWebUrl('shop_room_item', array('storeid' => $storeid, 'roomid' => $item['id']))}" class="wn-table__link__item" data-id="{$item['id']}">房间列表</a>
+							{/if}
+							<a href="{php echo $this->createWebUrl('shop_comment', array('storeid' => $storeid,'id' => $item['id'],'title' => $item['title']))}" class="wn-table__link__item" title="查看评价">查看评价</a>
+							<a href="{php echo $this->createWebUrl('shop_order', array('storeid' => $storeid,'roomid' => $item['id']))}" class="wn-table__link__item" title="订单查看">订单查看</a>
+							<a href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'copyroom','storeid' => $storeid,'id' => $item['id']))}" class="wn-table__link__item">复制</a>
+							<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'edit', 'id' => $item['id'], 'storeid' => $storeid))}" title="编辑">编辑</a>
+							<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要将该商品放入回收站吗?', '{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'recycle_goods', 'id' => $item['id'], 'storeid' => $storeid))}');" title="回收站" >放入回收站</a>
 						{/if}
-						<a href="{php echo $this->createWebUrl('shop_comment', array('storeid' => $storeid,'id' => $item['id'],'title' => $item['title']))}" class="wn-table__link__item" title="查看评价">查看评价</a>
-						<a href="{php echo $this->createWebUrl('shop_order', array('storeid' => $storeid,'roomid' => $item['id']))}" class="wn-table__link__item" title="订单查看">订单查看</a>
-						<a href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'copyroom','storeid' => $storeid,'id' => $item['id']))}" class="wn-table__link__item">复制</a>
-						<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'edit', 'id' => $item['id'], 'storeid' => $storeid))}" title="编辑">编辑</a>
-						<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'delete', 'id' => $item['id'], 'storeid' => $storeid))}');" title="删除" >删除</a>
 					</div>
 				</td>
 			</tr>
 			{/loop}
 			<tr>
 				<td colspan="11">
-					<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
+					{if $op == 'recycle'}
+					<input type="button" class="btn btn-primary" name="renewall" value="批量恢复" />
+					<input type="button" class="btn btn-primary" name="deleteall" value="批量删除" />
+					{else}
+					<input type="button" class="btn btn-primary" name="recycleall" value="批量加入回收站" />
 					<input type="button" class="btn btn-primary edit_all" name="showall" value="批量显示" />
 					<input type="button" class="btn btn-primary edit_all" name="hideall" value="批量隐藏" />
+					{/if}
 					<div class="pull-right">
 						{$pager}
 					</div>
@@ -246,13 +259,57 @@
 			var checked = $(this).get(0).checked;
 			$('input[type=checkbox]').prop("checked",checked);
 		});
+		$('input[name=recycleall]').click(function() {
+			var check = $("input[name='check']:checked");
+			if (check.length < 1) {
+				util.message('请选择要放入回收站的商品!');
+				return;
+			}
+			if (confirm("确认要回收选择的商品?")) {
+				var id = new Array();
+				check.each(function(i) {
+					id[i] = $(this).val();
+				});
+				$.post("{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'recycleall', 'storeid' => $storeid))}", {idArr : id}, function(data) {
+					if (data.message.errno ==0) {
+						util.message(data.message.message, 'refresh', 'success');
+						return;
+					} else {
+						util.message(data.message.message);
+						return;
+					}
+				},'json');
+			}
+		});
+		$('input[name=renewall]').click(function() {
+			var check = $("input[name='check']:checked");
+			if (check.length < 1) {
+				util.message('请选择要恢复的商品!');
+				return;
+			}
+			if (confirm("确认要回收选择的记录?")) {
+				var id = new Array();
+				check.each(function(i) {
+					id[i] = $(this).val();
+				});
+				$.post("{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'renewall', 'storeid' => $storeid))}", {idArr : id}, function(data) {
+					if (data.message.errno ==0) {
+						util.message(data.message.message, 'refresh', 'success');
+						return;
+					} else {
+						util.message(data.message.message);
+						return;
+					}
+				},'json');
+			}
+		});
 		$('input[name=deleteall]').click(function() {
 			var check = $("input[name='check']:checked");
 			if (check.length < 1) {
-				util.message('请选择要删除的记录!');
+				util.message('请选择要放入回收站的商品!');
 				return;
 			}
-			if (confirm("确认要删除选择的记录?")) {
+			if (confirm("确认要回收选择的商品?")) {
 				var id = new Array();
 				check.each(function(i) {
 					id[i] = $(this).val();
@@ -268,12 +325,11 @@
 				},'json');
 			}
 		});
-		
 		$('.edit_all').click(function() {
 			var name = $(this).attr('name');
 			var check = $('input:checked');
 			if (check.length<1) {
-				util.message('请选择要操作的记录!');
+				util.message('请选择要操作的商品!');
 			}
 			var id = new Array();
 			check.each(function(i) {
