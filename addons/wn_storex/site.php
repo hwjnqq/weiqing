@@ -271,9 +271,9 @@ class Wn_storexModuleSite extends WeModuleSite {
 					'remark' => '支付成功',
 				);
 				write_log($logs);
-			}
-			if ($storex_bases['store_type'] != STORE_TYPE_HOTEL) {
-				stock_control($order, 'pay');
+				if ($storex_bases['store_type'] != STORE_TYPE_HOTEL) {
+					stock_control($order, 'pay');
+				}
 			}
 			$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('template', 'confirm_templateid', 'templateid'));
 			$starttime = $order['btime'];

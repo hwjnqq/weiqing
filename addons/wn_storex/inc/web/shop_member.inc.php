@@ -16,13 +16,22 @@ if ($op == 'display') {
 		$sql .= ' AND `realname` LIKE :realname';
 		$params[':realname'] = "%{$_GPC['realname']}%";
 	}
+	if (!empty($_GPC['nickname'])) {
+		$sql .= ' AND `nickname` LIKE :nickname';
+		$params[':nickname'] = "%{$_GPC['nickname']}%";
+	}
+	if (!empty($_GPC['openid'])) {
+		$openid = trim($_GPC['openid']);
+		$sql .= ' AND `from_user` = :openid';
+		$params[':openid'] = "%{$openid}%";
+	}
 	if (!empty($_GPC['mobile'])) {
 		$sql .= ' AND `mobile` LIKE :mobile';
 		$params[':mobile'] = "%{$_GPC['mobile']}%";
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	$member_list = pdo_getall('storex_member', array('weid' => $_W['uniacid'], 'realname LIKE' => "%{$_GPC['realname']}%", 'mobile LIKE' => "%{$_GPC['mobile']}%"), array(), '', 'id DESC', ($pindex - 1) * $psize . ',' . $psize);
+	$member_list = pdo_getall('storex_member', array('weid' => $_W['uniacid'], 'from_user LIKE' => "%{$openid}%", 'nickname LIKE' => "%{$_GPC['nickname']}%", 'realname LIKE' => "%{$_GPC['realname']}%", 'mobile LIKE' => "%{$_GPC['mobile']}%"), array(), '', 'id DESC', ($pindex - 1) * $psize . ',' . $psize);
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_member') . " WHERE weid = '{$_W['uniacid']}' $sql", $params);
 	$pager = pagination($total, $pindex, $psize);
 	include $this->template('store/shop_member');

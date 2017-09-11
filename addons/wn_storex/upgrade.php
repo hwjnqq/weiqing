@@ -1065,7 +1065,7 @@ if (!pdo_fieldexists('storex_order', 'is_package')) {
 }
 load()->model('module');
 $wn_storex_module = module_fetch('wn_storex');
-if (ver_compare('1.4.7', $wn_storex_module['version']) == 1) {
+if (ver_compare('1.6.0', $wn_storex_module['version']) == 1) {
 	$members = pdo_getall('storex_member', array('from_user !=' => ''), array('id', 'realname', 'from_user'));
 	if (!empty($members) && is_array($members)) {
 		load()->model('mc');
@@ -1080,11 +1080,11 @@ if (ver_compare('1.4.7', $wn_storex_module['version']) == 1) {
 			$uids[] = $uid;
 		}
 		if (!empty($uids) && is_array($uids)) {
-			$mc_members = pdo_getall('mc_members', array('uid' => $uids), array('uid', 'realname', 'mobile'), 'uid');
+			$mc_members = pdo_getall('mc_members', array('uid' => $uids), array('uid', 'realname', 'mobile', 'nickname'), 'uid');
 			if (!empty($mc_members) && is_array($mc_members)) {
 				foreach ($mc_members as $mc_uid => $info) {
 					if (!empty($members_list[$mc_uid])) {
-						pdo_update('storex_member', array('realname' => $info['realname'], 'mobile' => $info['mobile']), array('id' => $members_list[$mc_uid]['id'], 'from_user' => $members_list[$mc_uid]['from_user']));
+						pdo_update('storex_member', array('realname' => $info['realname'], 'nickname' => $info['nickname'], 'mobile' => $info['mobile']), array('id' => $members_list[$mc_uid]['id'], 'from_user' => $members_list[$mc_uid]['from_user']));
 					}
 				}
 			}

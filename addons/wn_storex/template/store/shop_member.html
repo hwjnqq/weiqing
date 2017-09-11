@@ -20,9 +20,25 @@
 					<input type="hidden" name="storeid" value="{$_GPC['storeid']}" />
 					<div class="form-group">
 						<div class="col-sm-10">
-							<label class="col-xs-12 col-sm-2 col-md-2 col-lg-3 control-label">用户名</label>
+							<label class="col-xs-12 col-sm-2 col-md-2 col-lg-3 control-label">真实姓名</label>
 							<div class="col-xs-12 col-sm-8 col-lg-8">
 								<input class="form-control" name="realname" type="text" value="{$_GPC['realname']}">
+							</div>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-sm-10">
+							<label class="col-xs-12 col-sm-2 col-md-2 col-lg-3 control-label">昵称</label>
+							<div class="col-xs-12 col-sm-8 col-lg-8">
+								<input class="form-control" name="nickname" type="text" value="{$_GPC['nickname']}">
+							</div>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-sm-10">
+							<label class="col-xs-12 col-sm-2 col-md-2 col-lg-3 control-label">OPENID</label>
+							<div class="col-xs-12 col-sm-8 col-lg-8">
+								<input class="form-control" name="openid" type="text" value="{$_GPC['openid']}">
 							</div>
 						</div>
 					</div>
@@ -53,6 +69,7 @@
 				<th style='width:70px'>序号</th>
 				<th style='width:210px'>微信号</th>
 				<th style='width:150px'>真实姓名</th>
+				<th style='width:150px'>昵称</th>
 				<th style='width:150px'>电话</th>
 				<th style='width:150px'>加入时间</th>
 				<th style="width:70px;">状态</th>
@@ -72,6 +89,13 @@
 					<span class="label label-danger">未完善</span>
 					{else}
 					{$item['realname']}
+					{/if}
+				</td>
+				<td>
+					{if empty($item['nickname'])}
+					<span class="label label-danger">未完善</span>
+					{else}
+					{$item['nickname']}
 					{/if}
 				</td>
 				<td>
