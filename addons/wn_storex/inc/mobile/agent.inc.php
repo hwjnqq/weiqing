@@ -13,7 +13,7 @@ $storeid = intval($_GPC['storeid']);
 $uid = mc_openid2uid($_W['openid']);
 
 if ($op == 'display') {
-	$register_info = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'uid' => $uid), array('id', 'storeid', 'income', 'outcome', 'alipay', 'level', 'status', 'realname', 'tel'));
+	$register_info = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'uid' => $uid), array('id', 'storeid', 'income', 'outcome', 'alipay', 'level', 'status', 'realname', 'tel', 'reason'));
 	$register_info['status'] = !empty($register_info['status']) ? $register_info['status'] : 4;
 	if ($register_info['status'] == 2) {
 		$agent_level_default = pdo_get('storex_agent_level', array('isdefault' => 1, 'storeid' => $storeid), array('id', 'title'));
