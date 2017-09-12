@@ -19,7 +19,7 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		$url_param['m'] = $_GPC['am'] ? $_GPC['am'] : 'wn_storex';
 		$params = json_decode(htmlspecialchars_decode($_GPC['params']), true);
 		$params['u_openid'] = trim($_SESSION['openid']);
-		$params['from'] = 'wxapp';
+		$params['wxapp'] = 'wxapp';
 		$params['wxapp_uniacid'] = $_GPC['i'];
 		$params['acid'] = $_W['account']['acid'];
 		if (empty($params['u_openid'])) {
@@ -110,6 +110,11 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 			'clerkRoom' => array('do' => 'clerk', 'op' => 'room'),
 			'clerkRoomInfo' => array('do' => 'clerk', 'op' => 'room_info'),
 			'clerkRoomEdit' => array('do' => 'clerk', 'op' => 'edit_room'),
+				
+			'agentInfo' => array('do' => 'agent', 'op' => 'display'),
+			'agentRegister' => array('do' => 'agent', 'op' => 'register'),
+			'agentApply' => array('do' => 'agent', 'op' => 'apply'),
+			'agentApplyList' => array('do' => 'agent', 'op' => 'apply_list'),
 		);
 		if (!empty($actions[$ac])) {
 			return $actions[$ac];

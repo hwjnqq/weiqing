@@ -112,7 +112,7 @@ if ($op == 'exchange') {
 }
 
 if ($op == 'mine') {
-	if (!empty($_GPC['from']) && $_GPC['from'] == 'wxapp' && COUPON_TYPE == WECHAT_COUPON) {
+	if (!empty($_GPC['wxapp']) && $_GPC['wxapp'] == 'wxapp' && COUPON_TYPE == WECHAT_COUPON) {
 		wmessage(error(-1, '小程序支持系统卡券，不支持微信卡券'), '', 'ajax');
 	}
 	$couponlist = activity_get_user_couponlist();
@@ -140,7 +140,7 @@ if ($op == 'addcard') {
 	$id = intval($_GPC['id']);
 	$coupon_api = new WnCoupon();
 	//区分小程序
-	if (!empty($_GPC['from']) && $_GPC['from'] == 'wxapp' && $_W['ispost']) {
+	if (!empty($_GPC['wxapp']) && $_GPC['wxapp'] == 'wxapp' && $_W['ispost']) {
 		$card = $coupon_api->BuildCardExt($id);
 	} else {
 		if ($_W['isajax'] && $_W['ispost']) {

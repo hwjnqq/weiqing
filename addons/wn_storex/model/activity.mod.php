@@ -93,7 +93,7 @@ function activity_user_get_coupon($id, $openid, $granttype = 1) {
 			return error(-1, '没有找到指定会员');
 		}
 	}
-	if (!empty($_GPC['from']) && $_GPC['from'] == 'wxapp') {
+	if (!empty($_GPC['wxapp']) && $_GPC['wxapp'] == 'wxapp') {
 		load()->model('cache');
 		$cachekey = cache_system_key("uid:{$_W['openid']}");
 		$faninfo = cache_load($cachekey);

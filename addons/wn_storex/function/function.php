@@ -2,7 +2,7 @@
 //检查每个文件的传值是否为空
 function check_params() {
 	global $_W, $_GPC;
-	if (!empty($_GPC['from']) && $_GPC['from'] == 'wxapp') {
+	if (!empty($_GPC['wxapp']) && $_GPC['wxapp'] == 'wxapp') {
 		$acid = $_GPC['acid'];
 		$_W['account'] = account_fetch($acid);
 		$user_info = pdo_get('mc_mapping_fans', array('openid' => $_GPC['u_openid']), array('openid', 'uid'));
@@ -211,7 +211,7 @@ function check_params() {
 			foreach ($permission_lists[$do]['common'] as $key => $val) {
 				if (empty($val)) {
 					if ($key == 'openid') {
-						if ($_GPC['from'] == 'wxapp') {
+						if ($_GPC['wxapp'] == 'wxapp') {
 							wmessage(error(41009, '未登录！'), '', 'ajax');
 						} else {
 							wmessage(error(41009, '请先关注公众号' . $_W['account']['name']), '', 'ajax');

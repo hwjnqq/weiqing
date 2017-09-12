@@ -87,7 +87,8 @@ if ($op == 'goods_info') {
 		'title' => $goods_info['title'],
 		'desc' => $goods_info['title'] . '--' . $store_info['title'],
 		'link' => murl('entry', array('do' => 'display', 'id' => $store_id, 'm' => 'wn_storex', 'type' => 'goods_info', 'goodsid' => $goodsid), true, true) . $agent_str,
-		'imgUrl' => tomedia($goods_info['thumb'])
+		'imgUrl' => tomedia($goods_info['thumb']),
+		'agent_str' => md5('wn_storex_52111').$agent_info['id'],
 	);
 	$goods_info['defined'] = get_goods_defined($store_id, $goodsid, $this->inMobile);
 	$single_comment = array();
