@@ -28,9 +28,9 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		$url = murl('entry', $url_param, true, true);
 		$result = ihttp_request($url, $params);
 		$result = json_decode($result['content'], true);
-		$result['message']['message']['share'] = array();
+		$result['message']['data']['share'] = array();
 		if (!empty($result['share'])) {
-			$result['message']['message']['share'] = $result['share'];
+			$result['message']['data']['share'] = $result['share'];
 		}
 		return $this->result($result['message']['errno'], $result['message']['message'], empty($result['message']['data']) ? '' : $result['message']['data']);
 	}

@@ -307,7 +307,7 @@ if ($op == 'info') {
 			$infos['card_disounts_info'] = $discount_info;
 		}
 	}
-	$infos['credit_replace'] = get_credit_replace($uid, $store_id);
+	$infos['credit_replace'] = get_credit_replace($store_id, $uid);
 	wmessage(error(0, $infos), '', 'ajax');
 }
 
@@ -507,7 +507,7 @@ if ($op == 'order') {
 		$insert = general_goods_order($order_info, $goods_info, $insert);
 	}
 	//根据优惠方式计算总价
-	$credit_replace = get_credit_replace($uid, $store_id);
+	$credit_replace = get_credit_replace($store_id, $uid);
 	if (!empty($_GPC['order']['use_credit']) && $credit_replace['credit_pay'] == 1) {
 		if ($credit_replace['cost_credit'] > $credit_replace['credit1']) {
 			wmessage(error(-1, '积分不足'), '', 'ajax');
