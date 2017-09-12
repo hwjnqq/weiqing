@@ -38,12 +38,14 @@ if ($op == 'display') {
 				$goodids[] = $info['goodid'];
 			}
 			$goods = pdo_getall($table, array('id' => $goodids), array('id', 'title', 'thumb'), 'id');
-			foreach ($agent_log as &$agent_info) {
+			foreach ($agent_log as $k => &$agent_info) {
 				if (!empty($goods[$agent_info['goodid']])) {
 					if (!empty($goods[$agent_info['goodid']]['thumb'])) {
 						$goods[$agent_info['goodid']]['thumb'] = tomedia($goods[$agent_info['goodid']]['thumb']);
 					}
 					$agent_info['goodsinfo'] = $goods[$agent_info['goodid']];
+				} else {
+					unset($agent_log[$k]);
 				}
 			}
 			unset($agent_info);

@@ -79,7 +79,7 @@ if ($op == 'more_goods') {
 	$condition['recycle'] = 2;
 	$condition['store_base_id'] = $storex_bases['id'];
 	if ($storex_bases['store_type'] == 1) {
-		$goods_list = pdo_getall('storex_room', $condition);
+		$goods_list = pdo_getall('storex_room', $condition, array(), 'sortid DESC');
 		if (!empty($goods_list)) {
 			$search_data = array(
 				'btime' => $_GPC['btime'],
@@ -90,7 +90,7 @@ if ($op == 'more_goods') {
 			$goods_list = room_special_price($goods_list, $search_data, true);
 		}
 	} else {
-		$goods_list = pdo_getall('storex_goods', $condition);
+		$goods_list = pdo_getall('storex_goods', $condition, array(), 'sortid DESC');
 	}
 	if (!empty($goods_list)) {
 		foreach ($goods_list as &$goods_info) {
