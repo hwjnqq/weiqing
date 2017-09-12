@@ -134,6 +134,8 @@ $sql = "
 	`market_types` varchar(48) NOT NULL COMMENT '订单使用店铺内活动的类型',
 	`agentid` int(11) NOT NULL COMMENT '销售员id',
 	`is_package` tinyint(3) unsigned NOT NULL DEFAULT '1' COMMENT '是否为套餐，1是普通商品，2是套餐',
+	`cost_credit` decimal(10,2) NOT NULL COMMENT '抵扣的积分',
+	`replace_money` decimal(10,2) NOT NULL COMMENT '抵扣的钱',
 	PRIMARY KEY (`id`),
 	KEY `indx_hotelid` (`hotelid`),
 	KEY `indx_weid` (`weid`),
@@ -245,6 +247,8 @@ $sql = "
 	`extend_switch` varchar(400) NOT NULL COMMENT '扩展开关',
 	`source` tinyint(4) NOT NULL DEFAULT '2' COMMENT '卡券类型，1为系统卡券，2为微信卡券',
 	`location` tinyint(2) NOT NULL DEFAULT '1' COMMENT '是否开启定位1开2关',
+	`credit_pay` tinyint(2) NOT NULL DEFAULT '1' COMMENT '积分抵扣设置1开启，2关闭',
+	`credit_ratio` int(11) NOT NULL COMMENT '抵扣比例',
 	PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
@@ -293,6 +297,7 @@ $sql = "
 	`phones` varchar(200) NOT NULL COMMENT '接收所有电话',
 	`openids` varchar(200) NOT NULL COMMENT '接收所有微信',
 	`market_status` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '营销开关',
+	`max_replace` decimal(10,2) NOT NULL COMMENT '最大抵扣金额',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) DEFAULT CHARSET=utf8;

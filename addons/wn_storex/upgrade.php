@@ -1164,6 +1164,24 @@ if (!pdo_fieldexists('storex_goods', 'recycle')) {
 if (!pdo_fieldexists('storex_room', 'recycle')) {
 	pdo_query("ALTER TABLE " . tablename('storex_room') . " ADD `recycle` TINYINT(2) NOT NULL DEFAULT '2' COMMENT '1在回收站，2不在';");
 }
+//积分抵扣设置
+if (!pdo_fieldexists('storex_set', 'credit_pay')) {
+	pdo_query("ALTER TABLE " . tablename('storex_set') . " ADD `credit_pay` TINYINT(2) NOT NULL DEFAULT '1' COMMENT '积分抵扣设置1开启，2关闭';");
+}
+if (!pdo_fieldexists('storex_set', 'credit_ratio')) {
+	pdo_query("ALTER TABLE " . tablename('storex_set') . " ADD `credit_ratio` INT(11) NOT NULL COMMENT '抵扣比例';");
+}
+//给店铺设置最大抵扣金额值
+if (!pdo_fieldexists('storex_bases', 'max_replace')) {
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `max_replace` DECIMAL(10,2) NOT NULL COMMENT '最大抵扣金额';");
+}
+//订单表增加抵扣的设置
+if (!pdo_fieldexists('storex_order', 'cost_credit')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `cost_credit` DECIMAL(10,2) NOT NULL COMMENT '抵扣的积分';");
+}
+if (!pdo_fieldexists('storex_order', 'replace_money')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `replace_money` DECIMAL(10,2) NOT NULL COMMENT '抵扣的钱';");
+}
 
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');

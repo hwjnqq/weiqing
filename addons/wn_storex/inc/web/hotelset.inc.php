@@ -39,6 +39,8 @@ if ($op == 'display') {
 			'finish_templateid' => trim($_GPC['finish_templateid']),
 			'nickname' => trim($_GPC['nickname']),
 			'location' => $_GPC['location'],
+			'credit_pay' => intval($_GPC['credit_pay']),
+			'credit_ratio' => intval($_GPC['credit_ratio']),
 		);
 		if ($data['template'] && $data['templateid'] == '') {
 			message('请输入模板ID', referer(), 'error');

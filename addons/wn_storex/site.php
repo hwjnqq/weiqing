@@ -274,6 +274,13 @@ class Wn_storexModuleSite extends WeModuleSite {
 				if ($storex_bases['store_type'] != STORE_TYPE_HOTEL) {
 					stock_control($order, 'pay');
 				}
+				if (!empty($order['cost_credit'])) {
+					$remark = '用户通过支付订单:' . $order['ordersn'] . ',' . $order['cost_credit'] . '积分抵扣' . $order['replace_money'] . '元';
+					$record[] = $params['user'];
+					$record[] = $remark;
+					$record[] = $this->module['name'];
+					mc_credit_update($params['user'], 'credit1', -$order['cost_credit'], $record);
+				}
 			}
 			$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('template', 'confirm_templateid', 'templateid'));
 			$starttime = $order['btime'];

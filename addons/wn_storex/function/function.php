@@ -243,7 +243,7 @@ function format_url($urls) {
 //获取店铺信息
 function get_store_info($id) {
 	global $_W;
-	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone', 'thumb', 'emails', 'phones', 'openids', 'mail', 'refund', 'market_status'));
+	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone', 'thumb', 'emails', 'phones', 'openids', 'mail', 'refund', 'market_status', 'max_replace'));
 	if (empty($store_info)) {
 		wmessage(error(-1, '店铺不存在'), '', 'ajax');
 	} else {
@@ -914,4 +914,22 @@ function format_package_goods($store_id, $goodsid) {
 		$goods_info = $package_info;
 	}
 	return $goods_info;
+}
+
+function get_credit_replace($storeid, $uid = '') {
+	$store_info = get_store_info($storeid);
+	$store_set = get_storex_set();
+	$credit_replace = array(
+		'credit_pay' => $store_set['credit_pay'],
+		'credit_ratio' => $store_set['credit_ratio'],
+		'max_replace' => $store_info['max_replace'],
+		'cost_credit' => sprintf('%.2f', $store_set['credit_ratio'] * $store_info['max_replace']),
+		'credit1' => 0,
+	);
+	if (!empty($uid)) {
+		load()->model('mc');
+		$credit = mc_credit_fetch($uid);
+		$credit_replace['credit1'] = $credit['credit1'];
+	}
+	return $credit_replace;
 }

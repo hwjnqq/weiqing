@@ -223,7 +223,6 @@ if ($op == 'goods_comments') {
 //进入预定页面的信息
 if ($op == 'info') {
 	$goods_type = !empty($_GPC['gtype']) ? intval($_GPC['gtype']) : 1;
-	$store_info = get_store_info($store_id);
 	$member = array();
 	$member['from_user'] = $_W['openid'];
 	$member['weid'] = intval($_W['uniacid']);
@@ -308,6 +307,7 @@ if ($op == 'info') {
 			$infos['card_disounts_info'] = $discount_info;
 		}
 	}
+	$infos['credit_replace'] = get_credit_replace($uid, $store_id);
 	wmessage(error(0, $infos), '', 'ajax');
 }
 
@@ -507,6 +507,15 @@ if ($op == 'order') {
 		$insert = general_goods_order($order_info, $goods_info, $insert);
 	}
 	//根据优惠方式计算总价
+	$credit_replace = get_credit_replace($uid, $store_id);
+	if (!empty($_GPC['order']['use_credit']) && $credit_replace['credit_pay'] == 1) {
+		if ($credit_replace['cost_credit'] > $credit_replace['credit1']) {
+			wmessage(error(-1, '积分不足'), '', 'ajax');
+		}
+		$insert['cost_credit'] = $credit_replace['cost_credit'];
+		$insert['replace_money'] = $credit_replace['max_replace'];
+		$insert['sum_price'] -= $credit_replace['max_replace'];
+	}
 	$market_types = array();
 	if ($store_info['market_status'] == 1) {
 		$markets = get_store_market($store_id);

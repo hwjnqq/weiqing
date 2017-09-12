@@ -41,6 +41,7 @@ if ($op == 'post') {
 			'status' => $_GPC['status'],
 			'refund' => intval($_GPC['refund']),
 			'market_status' => intval($_GPC['market_status']),
+			'max_replace' => sprintf('%.2f', $_GPC['max_replace']),
 		);
 		$receives = array('emails' => 'email', 'phones' => 'tel', 'openids' => 'openid');
 		foreach ($receives as $field => $type) {

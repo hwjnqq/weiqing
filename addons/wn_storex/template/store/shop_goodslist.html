@@ -123,7 +123,7 @@
 						<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要恢复该商品吗?', '{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'renew', 'id' => $item['id'], 'storeid' => $storeid))}');" title="恢复" >恢复使用</a>
 						<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要从回收站删除该商品吗?', '{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'delete', 'id' => $item['id'], 'storeid' => $storeid))}');" title="删除" >彻底删除</a>
 						{else}
-							{if $item['is_house'] != 1}
+							{if $store_type != STORE_TYPE_HOTEL && $item['is_house'] != 1}
 							<a href="{php echo $this->createWebUrl('shop_goods_spec', array('storeid' => $storeid, 'id' => $item['id'], 'categoryid' => $item['pcate']))}" class="wn-table__link__item">规格设置</a>
 							<a href="javascript:;" class="wn-table__link__item js-qrcode-entry" data-id="{$item['id']}">查看二维码入口</a>
 							{else}

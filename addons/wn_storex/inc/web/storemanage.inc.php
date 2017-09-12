@@ -113,6 +113,7 @@ if ($op == 'edit') {
 			'traffic' => $_GPC['traffic'],
 			'status' => $_GPC['status'],
 			'distance' => intval($_GPC['distance']),
+			'max_replace' => sprintf('%.2f', $_GPC['max_replace']),
 		);
 		$common_insert['thumbs'] = empty($_GPC['thumbs']) ? '' : iserializer($_GPC['thumbs']);
 		$common_insert['detail_thumbs'] = empty($_GPC['detail_thumbs']) ? '' : iserializer($_GPC['detail_thumbs']);

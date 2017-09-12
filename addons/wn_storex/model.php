@@ -188,6 +188,8 @@ if (!function_exists('get_storex_set')) {
 				"tel" => "",
 				"source" => 2,
 				"location" => 1,
+				"credit_pay" => 1,
+				"credit_ratio" => 0,
 			);
 			pdo_insert('storex_set', $set);
 			$set['id'] = pdo_insertid();
