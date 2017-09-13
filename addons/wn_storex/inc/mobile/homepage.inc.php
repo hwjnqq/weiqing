@@ -9,6 +9,7 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
 $storeid = intval($_GPC['id']);
+$storeid = 8;
 $store_info = get_store_info($storeid);
 if ($op == 'display') {
 	$default_module = array(
@@ -33,15 +34,77 @@ if ($op == 'display') {
 			'items' => array()
 		),
 		array(
-			'type' => 'nav',
+			'type' => 'adv',
 			'items' => array()
 		),
 		array(
-			'type' => 'recommend',
+			'type' => 'activity_seckill',
 			'items' => array()
 		),
+		array(
+			'type' => 'activity_limited',
+			'items' => array()
+		)
 	);
 	$homepage_list = pdo_getall('storex_homepage', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'is_wxapp' => 2), array(), 'displayorder', 'displayorder ASC');
+	$activity_list = pdo_getall('storex_goods_activity', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid), array(), 'id');
+	if (!empty($activity_list) && is_array($activity_list)) {
+		foreach ($activity_list as $key => $value) {
+			if ($value['is_spec'] == 1) {
+				$spec_ids[$key] = $value['goodsid'];
+			} else {
+				$not_spec_ids[$key] = $value['goodsid'];
+			}
+			if ($value['type'] == 1) {
+				$activity_seckill[] = $value;
+			} elseif ($value['type'] == 2) {
+				$activity_limited[] = $value;
+			}
+		}
+	}
+	$spec_goods = pdo_getall('storex_spec_goods', array('id' => $spec_ids), array('id', 'goodsid', 'title', 'goods_val', 'oprice', 'cprice', 'stock', 'thumb'), 'id');
+	$not_spec_goods = pdo_getall('storex_goods', array('id' => $not_spec_ids), array('id', 'title', 'oprice', 'cprice', 'stock', 'thumb'), 'id');
+	if (!empty($spec_goods) && is_array($spec_goods)) {
+		foreach ($spec_goods as &$goods) {
+			$goods['thumb'] = tomedia($goods['thumb']);
+			$goods['goods_val'] = iunserializer($goods['goods_val']);
+			$goods['is_spec'] = 1;
+		}
+		unset($goods);
+	}
+	if (!empty($not_spec_goods) && is_array($not_spec_goods)) {
+		foreach ($not_spec_goods as &$val) {
+			$val['thumb'] = tomedia($val['thumb']);
+			$val['is_spec'] = 2;
+		}
+		unset($val);
+	}
+	if (!empty($activity_seckill) && is_array($activity_seckill)) {
+		foreach ($activity_seckill as $list) {
+			if ($list['is_spec'] == 1) {
+				$goods_val = implode(' ', $spec_goods[$list['goodsid']]['goods_val']);
+				$spec_goods[$list['goodsid']]['cprice'] = $list['price'];
+				$spec_goods[$list['goodsid']]['nums'] = $list['nums'];
+				$spec_goods[$list['goodsid']]['title'] .= ' ' . $goods_val;
+				$seckill_list[] = $spec_goods[$list['goodsid']];
+			} else {
+				$seckill_list[] = $not_spec_goods[$list['goodsid']];
+			}
+		}
+	}
+	if (!empty($activity_limited) && is_array($activity_limited)) {
+		foreach ($activity_limited as $list) {
+			if ($list['is_spec'] == 1) {
+				$goods_val = implode(' ', $spec_goods[$list['goodsid']]['goods_val']);
+				$spec_goods[$list['goodsid']]['cprice'] = $list['price'];
+				$spec_goods[$list['goodsid']]['nums'] = $list['nums'];
+				$spec_goods[$list['goodsid']]['title'] .= ' ' . $goods_val;
+				$limited_list[] = $spec_goods[$list['goodsid']];
+			} else {
+				$limited_list[] = $not_spec_goods[$list['goodsid']];
+			}
+		}
+	}
 	if (!empty($homepage_list) && is_array($homepage_list)) {
 		foreach ($homepage_list as $key => &$value) {
 			unset($value['displayorder'], $value['uniacid'], $value['storeid']);
@@ -50,12 +113,18 @@ if ($op == 'display') {
 				if ($store_info['store_type'] != STORE_TYPE_HOTEL) {
 					$recommend_key = $key;
 					$recommend_info = $value;
-				}else {
+				} else {
 					unset($homepage_list[$key]);
 				}
 			}
 			if ($value['type'] == 'footer') {
 				unset($homepage_list[$key]);
+			}
+			if ($value['type'] == 'activity_seckill') {
+				$value['items'] = $seckill_list;
+			}
+			if ($value['type'] == 'activity_limited') {
+				$value['items'] = $limited_list;
 			}
 		}
 		$tablaname = gettablebytype($store_info['store_type']);

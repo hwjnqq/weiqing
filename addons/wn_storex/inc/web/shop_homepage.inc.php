@@ -129,14 +129,6 @@ if ($op == 'post') {
 						}
 					}
 				}
-				if ($value['type'] == 'activity_limited' || $value['type'] == 'activity_seckill') {
-					if (!empty($value['items']) && is_array($value['items'])) {
-						foreach ($value['items'] as $k => $val) {
-							$id = $value['items'][$k]['id'];
-							$value['items'][$k] = $id;
-						}
-					}
-				}
 				$insert = array(
 					'type' => $value['type'],
 					'items' => !empty($value['items']) ? iserializer($value['items']) : '',
