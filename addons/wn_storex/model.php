@@ -34,6 +34,9 @@ define('AGENT_STATUS_NOT_VERIFY', '1');
 define('AGENT_STATUS_VERIFY', '2');
 define('AGENT_STATUS_REFUSE', '3');
 
+define('ACTIVITY_SECKILL', '1');
+define('ACTIVITY_LIMITED', '2');
+
 function mload() {
 	static $mloader;
 	if (empty($mloader)) {

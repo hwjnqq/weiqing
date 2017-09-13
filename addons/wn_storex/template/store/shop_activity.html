@@ -1,0 +1,228 @@
+{template 'common/header-storex'}
+
+{if $op == 'display'}
+<div class="wn-main wn-main--without">
+	<div class="wn-main__head"></div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item wn-tabs__item--active">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_activity', array('storeid' => $_GPC['storeid'], 'op' => 'display'))}">活动管理</a>
+			</div>
+		</div>
+		<div class="pull-right">
+			<a href="javascript:;" class="btn btn-primary js-add-activity">+添加活动</a>				
+		</div>
+		<div class="modal fade" id="activity-modal" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" id="myModalLabel">选择你要创建的活动类型</h4>
+					</div>
+					<div class="modal-body clearfix form-horizontal">
+						<div class="form-group marbot0">
+							<label class="col-xs-12 col-sm-3 col-md-2 control-label">活动类型</label>
+							<div class="col-sm-9 col-xs-12">
+								<label class="radio-inline">
+									<input type="radio" name="type" value="{ACTIVITY_SECKILL}"/>秒杀活动
+								</label>
+								<label class="radio-inline">
+									<input type="radio" name="type" value="{ACTIVITY_LIMITED}"/>限时活动
+								</label>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+						<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="location.href='{php echo $this->createWeburl('shop_activity', array('op' => 'post', 'storeid' => $_GPC['storeid']))}&type=' + $('#activity-modal input[type=radio]:checked').val()">确定</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="clearfix">
+			<table class="table table-hover wn-table table-bordered">
+				<thead class="navbar-inner">
+					<tr>
+						<th>活动标题</th>
+						<th>活动类型</th>
+						<th>时间</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $activity_list $activity}
+					<tr>
+						<td>
+							{$activity['title']}
+						</td>
+						<td>
+							{if $activity['type'] == ACTIVITY_SECKILL}
+							秒杀活动
+							{elseif $activity['type'] == ACTIVITY_LIMITED}
+							限时活动
+							{/if}
+						</td>
+						<td>{php echo date('Y-m-d', $activity['starttime'])}--{php echo date('Y-m-d', $activity['endtime'])}</td>
+						<td>
+							<a href="{php echo $this->createWebUrl('shop_activity', array('op' => 'post', 'id' => $activity['id'], 'storeid' => $_GPC['storeid'], 'type' => $activity['type']))}" class="wn-table__link__item">编辑</a>
+							<a onclick="return confirm('确定删除吗?')" href="{php echo $this->createWebUrl('shop_activity', array('op' => 'delete', 'id' => $activity['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">删除</a>
+						</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	$('.js-add-activity').click(function() {
+		$('#activity-modal').modal('show');
+	});
+</script>
+
+{/if}
+
+{if $op == 'post'}
+<style type="text/css">
+	.wxapp-content .app-list .select{
+		float: left;
+		display: table;
+		vertical-align: middle;
+		text-align: center;
+		width: 129px;
+		height: 138px;
+		border: 1px solid #e7e7eb;
+		margin-right: 25px;
+		margin-bottom: 30px;
+		position: relative;
+	}
+	.wxapp-content .select-more{
+		border-style: dashed!important;
+		cursor: pointer;
+		content: '+';
+		font-size: 35px;
+		color: #98999a;
+		display: table-cell;
+		vertical-align: middle;
+	}
+	.cover-dark{
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(64,64,64,.75);
+		padding: 30px;
+		display: none;
+	}
+</style>
+<div class="wn-main wn-main--without">
+	<div class="wn-main__head">店铺设置</div>
+	<div class="wn-main__content" id="sales-package">
+		<div id="goods-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-default modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+						<h3>
+							<ul role="tablist" class="nav nav-pills" style="font-size:14px; margin-top:-20px;">
+								<li role="presentation" class="basic">
+									<a data-toggle="tab" data-type="basic" role="tab" aria-controls="baisc" href="#basic">选择商品</a>
+								</li>
+							</ul>
+						</h3>
+					</div>
+					<div class="modal-body modules-content">
+						<div class="tab-content">
+							<ul class="app-allow-list">
+								{loop $goods_list $goods}
+								<li class="js-select-goods" data-id="{$goods['id']}" data-img="{$goods['thumb']}" data-title="{$goods['title']}">
+									<div class="app-info">
+										<img src="{php echo $goods['thumb']}"/>
+										<p>{$goods['title']}</p>
+									</div>
+									<a href="javascript:;" class="cover-dark">
+										<i class="fa fa-check cover-selected"></i>
+									</a>
+								</li>
+								{/loop}
+							</ul>
+						</div>
+					</div>
+					<div class="modal-footer">
+					</div>
+				</div>
+			</div>
+		</div>
+		<form class="form-horizontal form" method="post" enctype="multipart/form-data">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">选择商品</label>
+				<div class="col-sm-3 col-xs-12 wxapp-content">
+					<ul class="app-allow-list">
+						<li class="select">
+							<div class="app-info">
+								<img class="js-goods-img" src="{php echo $goods_list[$current_activity['goodsid']]['thumb']}"/>
+								<p class="ng-binding js-goods-title">{$goods_list[$current_activity['goodsid']]['title']}</p>
+							</div>
+							<div class="cover-dark" style="display:none;">
+								<a href="javascript:;" class="cover-delect">
+									<i class="fa fa-minus-circle"></i>删除
+								</a>
+							</div>
+						</li>
+						<li class="select select-more js-add-goods">+</li>
+					</ul>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">标题</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="title" class="form-control" value="{$current_activity['title']}">
+				</div>
+			</div>
+			{if $_GPC['type'] == 1}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">参与人数上限</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="nums" class="form-control" value="{$current_activity['nums']}">
+				</div>
+			</div>
+			{/if}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">活动时间</label>
+				<div class="col-sm-9 col-xs-12">
+					{php echo tpl_form_field_daterange('time_limit', array('start' => date('Y-m-d', $current_activity['starttime']), 'end' => date('Y-m-d', $current_activity['endtime'])));}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">价格</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="price" class="form-control" value="{$current_activity['price']}">
+				</div>
+			</div>
+			<div class="form-group col-sm-12">
+				<input type="submit" value="提交" name="submit" class="btn btn-primary col-lg-1">
+				<input type="hidden" name="goodsid" value="{$current_activity['goodsid']}"/>
+				<input type="hidden" name="type" value="{$_GPC['type']}"/>
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</form>
+	</div>
+</div>
+<script type="text/javascript">
+	$('.js-add-goods').click(function() {
+		$('#goods-modal').modal('show');
+	});
+	$('.js-select-goods').click(function() {
+		img = $(this).data('img');
+		title = $(this).data('title');
+		id = $(this).data('id');
+		$('.js-goods-title').text(title);
+		$('.js-goods-img').attr('src', img);
+		$('input[name="goodsid"]').val(id);
+		$('#goods-modal').modal('hide');
+	});
+</script>
+{/if}
+
+{template 'common/footer-storex'}
