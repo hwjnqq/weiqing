@@ -80,7 +80,14 @@ if ($op == 'display') {
 	} else {
 		$homepage_list = $default_module;
 	}
-	wmessage(error(0, $homepage_list), '', 'ajax');
+	$share_data = array(
+		'title' => $store_info['title'],
+		'desc' => $store_info['title'] . '--万能小店',
+		'link' => murl('entry', array('do' => 'display', 'id' => $storeid, 'm' => 'wn_storex', 'type' => 'storeindex'), true, true),
+		'imgUrl' => tomedia($store_info['thumb'])
+	);
+	$share_data = get_share_data('homepage', array('storeid' => $storeid), $share_data);
+	wmessage(error(0, $homepage_list), $share_data, 'ajax');
 }
 
 if ($op == 'notice') {

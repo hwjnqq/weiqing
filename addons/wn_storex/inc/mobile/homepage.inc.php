@@ -90,6 +90,7 @@ if ($op == 'display') {
 		'link' => murl('entry', array('do' => 'display', 'id' => $storeid, 'm' => 'wn_storex', 'type' => 'storeindex'), true, true),
 		'imgUrl' => tomedia($store_info['thumb'])
 	);
+	$share_data = get_share_data('homepage', array('storeid' => $storeid), $share_data);
 	wmessage(error(0, $homepage_list), $share_data, 'ajax');
 }
 

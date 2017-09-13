@@ -185,6 +185,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 							$remark = '用户通过' . $paydata[$params['type']] . '充值' . $fee . $add_str;
 							$record[] = $params['user'];
 							$record[] = $remark;
+							$record[] = $this->module['name'];
 							mc_credit_update($params['user'], 'credit1', $add_credit, $record);
 							mc_credit_update($params['user'], 'credit2', $total_fee, $record);
 							mc_notice_recharge($recharge_info['openid'], $recharge_info['uid'], $total_fee, '', $remark);

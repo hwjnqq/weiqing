@@ -1403,3 +1403,79 @@ function NoticeMicroSuccessOrder($result) {
 	pdo_update('storex_paycenter_order', array('credit_status' => 1), array('id' => $order['id']));
 	return true;
 }
+
+function get_share_data($type, $param = array(), $share = array()) {
+	global $_W;
+	if (!empty($type)) {
+		$share_set = pdo_get('storex_share_set', array('type' => $type, 'storeid' => $param['storeid'], 'uniacid' => $_W['uniacid'], 'status' => 1));
+		if (!empty($share_set)) {
+			$share_data = array(
+				'title' => $share_set['title'],
+				'desc' => $share_set['content'] . '--万能小店',
+				'link' => $share_set['link'],
+				'imgUrl' => tomedia($share_set['thumb'])
+			);
+			$store_info = pdo_get('storex_bases', array('id' => $param['storeid']), array('title', 'location_p', 'location_c', 'location_a', 'phone', 'mail', 'store_type'));
+			$data = array();
+			if ($type == 'homepage') {
+				$fields = array('title', 'province', 'city', 'town', 'phone', 'mail');
+				if (!empty($store_info) && is_array($store_info)) {
+					foreach ($fields as $v) {
+						$data['$' . $v] = '';
+						if (!empty($store_info[$v])) {
+							$data['$' . $v] = $store_info[$v];
+						}
+					}
+					$data['$province'] = $store_info['location_p'];
+					$data['$city'] = $store_info['location_c'];
+					$data['$town'] = $store_info['location_a'];
+				}
+			} elseif ($type == 'category') {
+				$fields = array('title', 'name');
+				$data['$title'] = $store_info['title'];
+				if (!empty($param['categoryid'])) {
+					$category = pdo_get('storex_categorys', array('id' => $param['categoryid']), array('name'));
+					$data['$name'] = '';
+					if (!empty($category)) {
+						$data['$name'] = $category['name'];
+					}
+				}
+			} elseif ($type == 'goods') {
+				$fields = array('title', 'name', 'sub_title', 'oprice', 'cprice', 'tag');
+				$data['$title'] = $store_info['title'];
+				$data['$name'] = '';
+				if (!empty($param['goodsid'])) {
+					$table = gettablebytype($store_info['store_type']);
+					$goods = pdo_get($table, array('id' => $param['goodsid']), array('title', 'sub_title', 'oprice', 'cprice', 'tag'));
+					if (!empty($goods) && is_array($goods)) {
+						foreach ($fields as $v) {
+							$data['$' . $v] = '';
+							if (!empty($goods[$v])) {
+								$data['$' . $v] = $goods[$v];
+							}
+						}
+						$data['$title'] = $store_info['title'];
+						$data['$name'] = $goods['title'];
+					}
+				}
+			}
+			if (!empty($data) && is_array($data)) {
+				foreach ($data as $key => $value) {
+					$share_data['title'] = str_replace($key, $value, $share_data['title']);
+					$share_data['desc'] = str_replace($key, $value, $share_data['desc']);
+				}
+				if (empty($share)) {
+					return $share_data;
+				}
+				if (!empty($share_data) && is_array($share_data)) {
+					foreach ($share_data as $field => $info) {
+						if (!empty($info) && isset($share[$field])) {
+							$share[$field] = $info;
+						}
+					}
+				}
+			}
+		}
+	}
+	return $share;
+}

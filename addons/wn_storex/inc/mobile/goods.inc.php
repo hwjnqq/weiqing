@@ -90,6 +90,7 @@ if ($op == 'goods_info') {
 		'imgUrl' => tomedia($goods_info['thumb']),
 		'agent_str' => md5('wn_storex_52111').$agent_info['id'],
 	);
+	$share_data = get_share_data('goods', array('storeid' => $store_id, 'goodsid' => $goodsid), $share_data);
 	$goods_info['defined'] = get_goods_defined($store_id, $goodsid, $this->inMobile);
 	$single_comment = array();
 	$single_comment = pdo_get('storex_comment', array('uniacid' => $_W['uniacid'], 'hotelid' => $store_id, 'goodsid' => $goodsid, 'comment <>' => ''), array('createtime', 'comment', 'nickname', 'thumb'));

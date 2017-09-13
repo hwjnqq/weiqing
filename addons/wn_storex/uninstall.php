@@ -57,6 +57,7 @@ $wn_storex_table = array(
 	'storex_spec_value',
 	'storex_spec_goods',
 	'storex_wxcard_reply',
+	'storex_share_set',
 );
 foreach ($wn_storex_table as $table){
 	if(pdo_tableexists($table)){

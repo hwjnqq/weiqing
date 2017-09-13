@@ -1106,8 +1106,20 @@ $sql = "
 	  `error` varchar(255) NOT NULL,
 	  PRIMARY KEY (`id`),
 	  KEY `rid` (`rid`)
-	) DEFAULT CHARSET=utf8 ;
-
+	) DEFAULT CHARSET=utf8;
+		
+	CREATE TABLE IF NOT EXISTS `ims_storex_share_set` (
+	  `id` int(11) NOT NULL AUTO_INCREMENT,
+	  `uniacid` int(11) NOT NULL,
+	  `storeid` int(11) NOT NULL,
+	  `type` varchar(50) NOT NULL COMMENT '分享类型',
+	  `title` varchar(200) NOT NULL COMMENT '标题',
+	  `thumb` varchar(200) NOT NULL COMMENT '图标',
+	  `content` varchar(500) NOT NULL COMMENT '描述',
+	  `status` tinyint(2) NOT NULL DEFAULT '1' COMMENT '状态',
+	  `link` varchar(200) NOT NULL COMMENT '链接',
+	  PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
 ";
 
 pdo_run($sql);
