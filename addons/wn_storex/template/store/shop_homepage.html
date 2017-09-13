@@ -80,6 +80,12 @@
 								<span v-if="openModules[editModuleIndex]['type'] == 'recommend'">
 									拖动排序
 								</span>
+								<span v-if="openModules[editModuleIndex]['type'] == 'activity_seckill'">
+									拖动排序
+								</span>
+								<span v-if="openModules[editModuleIndex]['type'] == 'activity_limited'">
+									拖动排序
+								</span>
 							</div>
 							<div class="wn-home__edit__help" v-if="openModules[editModuleIndex]['type'] == 'cube'">
 								<img src="../addons/wn_storex/template/style/img/home/cubeview.jpg" alt="">
@@ -131,6 +137,98 @@
 											<div>
 												{{goods.cprice}}
 												<button class="btn btn-primary btn-sm pull-right" @click="addGood(goods)">添加
+												</button>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="clearfix"></div>
+							</div>
+							<div class="wn-home__editGoods row" v-if="openModules[editModuleIndex]['type'] == 'activity_seckill'">
+								<div class="col-sm-6">
+									已选秒杀活动
+									<draggable :list="openModules[editModuleIndex]['items']" element="div" :options="{group:{name:'goods'}}" :no-transition-on-drag="true" @start="drag=true" @end="drag=false" v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
+										<div class="media" v-for="(activity, index) in openModules[editModuleIndex]['items']">
+											<div class="media-left">
+												
+											</div>
+											<div class="media-body" style="width: 100%;">
+												<h4 class="media-heading">{{activity.title}}</h4>
+												<div>活动时间：{{activity.starttime}}~{{activity.endtime}}</div>
+												<div>
+													{{activity.price}}
+													<button class="btn btn-primary btn-sm pull-right" @click="removeGood(index)">移除
+													</button>
+												</div>
+											</div>
+										</div>
+									</draggable>
+								</div>
+								<div class="col-sm-6">
+									<div class="form-group">
+										<div class="input-group">
+											<input type="text" class="form-control" v-model.trim="goodsParams" placeholder="活动搜索">
+											<div class="input-group-btn">
+												<button class="btn btn-default" @click="searchActivity(1)"><i class="fa fa-search"></i></button>
+											</div>
+										</div>
+									</div>
+									<div class="media" v-for="activity in seckillList">
+										<div class="media-left">
+											<span class="label label-primary">秒杀活动</span>
+										</div>
+										<div class="media-body" style="width: 100%;">
+											<h4 class="media-heading">{{activity.title}}</h4>
+											<div>活动时间：{{activity.starttime}}~{{activity.endtime}}</div>
+											<div>
+												{{activity.price}}
+												<button class="btn btn-primary btn-sm pull-right" @click="addGood(activity)">添加
+												</button>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="clearfix"></div>
+							</div>
+							<div class="wn-home__editGoods row" v-if="openModules[editModuleIndex]['type'] == 'activity_limited'">
+								<div class="col-sm-6">
+									已选限时活动
+									<draggable :list="openModules[editModuleIndex]['items']" element="div" :options="{group:{name:'goods'}}" :no-transition-on-drag="true" @start="drag=true" @end="drag=false" v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
+										<div class="media" v-for="(activity, index) in openModules[editModuleIndex]['items']">
+											<div class="media-left">
+												
+											</div>
+											<div class="media-body" style="width: 100%;">
+												<h4 class="media-heading">{{activity.title}}</h4>
+												<div>活动时间：{{activity.starttime}}~{{activity.endtime}}</div>
+												<div>
+													{{activity.price}}
+													<button class="btn btn-primary btn-sm pull-right" @click="removeGood(index)">移除
+													</button>
+												</div>
+											</div>
+										</div>
+									</draggable>
+								</div>
+								<div class="col-sm-6">
+									<div class="form-group">
+										<div class="input-group">
+											<input type="text" class="form-control" v-model.trim="goodsParams" placeholder="商品搜索">
+											<div class="input-group-btn">
+												<button class="btn btn-default" @click="searchActivity(2)"><i class="fa fa-search"></i></button>
+											</div>
+										</div>
+									</div>
+									<div class="media" v-for="activity in limitedList">
+										<div class="media-left">
+											<span class="label label-primary">限时活动</span>
+										</div>
+										<div class="media-body" style="width: 100%;">
+											<h4 class="media-heading">{{activity.title}}</h4>
+											<div>活动时间：{{activity.starttime}}~{{activity.endtime}}</div>
+											<div>
+												{{activity.price}}
+												<button class="btn btn-primary btn-sm pull-right" @click="addGood(activity)">添加
 												</button>
 											</div>
 										</div>
@@ -477,7 +575,9 @@
 					nav: '导航',
 					cube: '魔方',
 					adv: '广告条',
-					recommend: '商品推荐'
+					recommend: '商品推荐',
+					activity_seckill: '秒杀活动',
+					activity_limited: '限时活动',
 				},
 				max: {
 					'slide': 4,
@@ -493,6 +593,8 @@
 				editIndex: '',
 				goodsParams: '',
 				goodsList: [],
+				limitedList: [],
+				seckillList: [],
 				linkGroup: [],
 				articleList: [],
 				ueditor: null,
@@ -679,6 +781,35 @@
 					this.openModules[index]['items'].push(goods)
 				},
 				removeGood: function (index) {
+					this.openModules[this.editModuleIndex]['items'].splice(index, 1);
+				},
+				searchActivity: function (type) {
+					const self = this;
+					$.post("{php echo $this->createWebUrl('shop_homepage', array('op' => 'search_activity', 'storeid' => $_GPC['storeid']))}", {title: this.goodsParams, type: type}, function (data) {
+						data = $.parseJSON(data);
+						console.dir(data)
+						if (data.message.errno != 0) {
+							util.message(data.message.message, '', 'error');
+						} else {
+							if (type == 1) {
+								self.seckillList = data.message.message;
+							} else if (type == 2) {
+								self.limitedList = data.message.message
+							}
+						}
+					});
+				},
+				addActivity: function (goods) {
+					var index = this.editModuleIndex;
+					var activityList = this.openModules[index]['items'];
+					for (var key in activityList) {
+						if (activityList[key]['id'] == goods.id) {
+							return;
+						}
+					}
+					this.openModules[index]['items'].push(goods)
+				},
+				removeActivity: function (index) {
 					this.openModules[this.editModuleIndex]['items'].splice(index, 1);
 				},
 				submitModules: function () {

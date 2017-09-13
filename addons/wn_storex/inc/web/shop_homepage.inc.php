@@ -2,7 +2,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('display', 'post', 'search_goods', 'link', 'article');
+$ops = array('display', 'post', 'search_goods', 'link', 'article', 'search_activity');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $storeid = intval($_W['wn_storex']['store_info']['id']);
@@ -33,6 +33,14 @@ if ($op == 'display') {
 			'type' => 'adv',
 			'items' => array()
 		),
+		array(
+			'type' => 'activity_seckill',
+			'items' => array()
+		),
+		array(
+			'type' => 'activity_limited',
+			'items' => array()
+		)
 	);
 	if ($_W['wn_storex']['store_info']['store_type'] != STORE_TYPE_HOTEL) {
 		$default_module[] = array(
@@ -121,6 +129,14 @@ if ($op == 'post') {
 						}
 					}
 				}
+				if ($value['type'] == 'activity_limited' || $value['type'] == 'activity_seckill') {
+					if (!empty($value['items']) && is_array($value['items'])) {
+						foreach ($value['items'] as $k => $val) {
+							$id = $value['items'][$k]['id'];
+							$value['items'][$k] = $id;
+						}
+					}
+				}
 				$insert = array(
 					'type' => $value['type'],
 					'items' => !empty($value['items']) ? iserializer($value['items']) : '',
@@ -155,6 +171,33 @@ if ($op == 'search_goods') {
 		}
 		if (empty($search_list)) {
 			message(error(-1, '没有符合的商品'), '', 'ajax');
+		}
+		message(error(0, $search_list), '', 'ajax');
+	}
+}
+
+if ($op == 'search_activity') {
+	if ($_W['ispost'] && $_W['isajax']) {
+		$condition = " WHERE uniacid = :uniacid AND storeid = :storeid AND type = :type";
+		$params[':uniacid'] = $_W['uniacid'];
+		$params[':storeid'] = $storeid;
+		$params[':type'] = !empty($_GPC['type']) ? intval($_GPC['type']) : 1;
+		if (!empty($_GPC['title'])) {
+			$condition .= " AND title LIKE :title";
+			$params[':title'] = "%{$_GPC['title']}%";
+		}
+		$search_list = array();
+		$activity_list = pdo_fetchall("SELECT * FROM " . tablename('storex_goods_activity') . $condition, $params);
+		if (!empty($activity_list) && is_array($activity_list)) {
+			foreach ($activity_list as $key => $value) {
+				$search_list[$key] = $value;
+				$search_list[$key]['starttime'] = date('Y-m-d', $search_list[$key]['starttime']);
+				$search_list[$key]['endtime'] = date('Y-m-d', $search_list[$key]['endtime']);
+				$search_list[$key]['thumb'] = tomedia($search_list[$key]['thumb']);
+			}
+		}
+		if (empty($search_list)) {
+			message(error(-1, '没有符合的活动'), '', 'ajax');
 		}
 		message(error(0, $search_list), '', 'ajax');
 	}
