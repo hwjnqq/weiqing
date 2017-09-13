@@ -14,17 +14,46 @@ if ($op == 'display') {
 
 if ($op == 'post') {
 	$id = intval($_GPC['id']);
-	$goods_list = pdo_getall('storex_goods', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid), array(), 'id');
+	$base_goods = pdo_getall('storex_goods', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid), array(), 'id');
+	if (is_array($base_goods)) {
+		$goodsids = array_keys($base_goods);
+		$goods_list = pdo_getall('storex_spec_goods', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'goodsid' => $goodsids), array(), 'id');
+	}
+	if (!empty($base_goods) && is_array($base_goods)) {
+		foreach ($base_goods as &$val) {
+			$val['thumb'] = tomedia($val['thumb']);
+			$val['is_spec'] = 2;
+		}
+		unset($val);
+	}
 	if (!empty($goods_list) && is_array($goods_list)) {
 		foreach ($goods_list as &$goods) {
+			$fake_ids[] = $goods['goodsid'];
 			$goods['thumb'] = tomedia($goods['thumb']);
+			$goods['goods_val'] = iunserializer($goods['goods_val']);
+			$goods['goods_val_title'] = implode('/', $goods['goods_val']);
+			$goods['is_spec'] = 1;
 		}
 		unset($goods);
+	}
+	$not_have_spec_ids = array_diff($goodsids, $fake_ids);
+	if (!empty($not_have_spec_ids) && is_array($not_have_spec_ids)) {
+		foreach ($not_have_spec_ids as $key => $value) {
+			$goods_list[] = $base_goods[$value];
+		}
 	}
 	$current_activity = pdo_get('storex_goods_activity', array('id' => $id));
 	if (empty($current_activity)) {
 		$current_activity['starttime'] = time();
 		$current_activity['endtime'] = time();
+	}
+	if ($current_activity['is_spec'] == 1) {
+		$current_activity['edit_thumb'] = $goods_list[$current_activity['goodsid']]['thumb'];
+		$current_activity['edit_title'] = $goods_list[$current_activity['goodsid']]['title'];
+		$current_activity['edit_goods_val'] = $goods_list[$current_activity['goodsid']]['goods_val_title'];
+	} else {
+		$current_activity['edit_thumb'] = $base_goods[$current_activity['goodsid']]['thumb'];
+		$current_activity['edit_title'] = $base_goods[$current_activity['goodsid']]['title'];
 	}
 	if (checksubmit()) {
 		$type = !empty($_GPC['type']) ? intval($_GPC['type']) : 1;
@@ -37,7 +66,8 @@ if ($op == 'post') {
 			'price' => $_GPC['price'],
 			'starttime' => strtotime($_GPC['time_limit']['start']),
 			'endtime' => strtotime($_GPC['time_limit']['end']),
-			'status' => 1
+			'status' => 1,
+			'is_spec' => intval($_GPC['is_spec'])
 		);
 		if ($type == 1) {
 			$data['nums'] = intval($_GPC['nums']);

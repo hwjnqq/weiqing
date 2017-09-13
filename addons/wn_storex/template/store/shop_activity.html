@@ -136,10 +136,11 @@
 						<div class="tab-content">
 							<ul class="app-allow-list">
 								{loop $goods_list $goods}
-								<li class="js-select-goods" data-id="{$goods['id']}" data-img="{$goods['thumb']}" data-title="{$goods['title']}">
+								<li class="js-select-goods" data-id="{$goods['id']}" data-img="{$goods['thumb']}" data-title="{$goods['title']}" data-goods_val_title="{$goods['goods_val_title']}" data-is_spec="{$goods['is_spec']}">
 									<div class="app-info">
 										<img src="{php echo $goods['thumb']}"/>
 										<p>{$goods['title']}</p>
+										<p>{$goods['goods_val_title']}</p>
 									</div>
 									<a href="javascript:;" class="cover-dark">
 										<i class="fa fa-check cover-selected"></i>
@@ -161,8 +162,9 @@
 					<ul class="app-allow-list">
 						<li class="select">
 							<div class="app-info">
-								<img class="js-goods-img" src="{php echo $goods_list[$current_activity['goodsid']]['thumb']}"/>
-								<p class="ng-binding js-goods-title">{$goods_list[$current_activity['goodsid']]['title']}</p>
+								<img class="js-goods-img" src="{php echo $current_activity['edit_thumb']}"/>
+								<p class="ng-binding js-goods-title">{$current_activity['edit_title']}</p>
+								<p class="js-goods-val-title">{$current_activity['edit_goods_val']}</p>
 							</div>
 							<div class="cover-dark" style="display:none;">
 								<a href="javascript:;" class="cover-delect">
@@ -203,6 +205,7 @@
 			<div class="form-group col-sm-12">
 				<input type="submit" value="提交" name="submit" class="btn btn-primary col-lg-1">
 				<input type="hidden" name="goodsid" value="{$current_activity['goodsid']}"/>
+				<input type="hidden" name="is_spec" value="{$current_activity['is_spec']}"/>
 				<input type="hidden" name="type" value="{$_GPC['type']}"/>
 				<input type="hidden" name="token" value="{$_W['token']}" />
 			</div>
@@ -216,10 +219,14 @@
 	$('.js-select-goods').click(function() {
 		img = $(this).data('img');
 		title = $(this).data('title');
+		goods_val_title = $(this).data('goods_val_title');
+		is_spec = $(this).data('is_spec');
 		id = $(this).data('id');
 		$('.js-goods-title').text(title);
+		$('.js-goods-val-title').text(goods_val_title);
 		$('.js-goods-img').attr('src', img);
 		$('input[name="goodsid"]').val(id);
+		$('input[name="is_spec"]').val(is_spec);
 		$('#goods-modal').modal('hide');
 	});
 </script>
