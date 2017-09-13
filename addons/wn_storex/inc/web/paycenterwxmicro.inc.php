@@ -122,7 +122,7 @@ if ($op == 'display') {
 			);
 			pdo_insert('storex_paycenter_order', $data);
 			if ($post_credit1 > 0) {
-				$status = mc_credit_update($member['uid'], 'credit1', -$post_credit1, array(0, "会员刷卡消费,使用积分抵现,扣除{$post_credit1积分}", 'system', $_W['user']['clerk_id'], $_W['user']['store_id'], $_W['user']['clerk_type']));
+				$status = mc_credit_update($member['uid'], 'credit1', -$post_credit1, array(0, "会员刷卡消费,使用积分抵现,扣除{$post_credit1}积分", 'system', $_W['user']['clerk_id'], $_W['user']['store_id'], $_W['user']['clerk_type']));
 			}
 			if ($credit2 > 0) {
 				$status = mc_credit_update($member['uid'], 'credit2', -$credit2, array(0, "会员刷卡消费,使用余额支付,扣除{$credit2}余额", 'system', $_W['user']['clerk_id'], $_W['user']['store_id'], $_W['user']['clerk_type']));
@@ -199,9 +199,6 @@ if ($op == 'display') {
 					$status = NoticeMicroSuccessOrder($result);
 					if (is_error($status)) {
 						message($status, '', 'ajax');
-					}
-					if (!empty($data['final_fee'])) {
-						card_give_credit($uid, $data['final_fee']);
 					}
 					message(error(0, '支付成功'), $this->createWeburl('paycenterwxmicro', array('op' => 'display')), 'ajax');
 				}
