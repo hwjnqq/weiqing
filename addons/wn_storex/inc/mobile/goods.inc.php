@@ -164,6 +164,13 @@ if ($op == 'goods_info') {
 			$goods_info['spec_list'] = $spec_goods_list;
 		}
 	}
+	$goods_info['activity_exist'] = 2;
+	$goods_info['activity'] = array();
+	$activity = pdo_get('storex_goods_activity', array('status' => 1,'storeid' => $store_id, 'uniacid' => $_W['uniacid'], 'goodsid' => $goodsid, 'starttime <=' => TIMESTAMP, 'endtime >' => TIMESTAMP), array(), '', 'starttime ASC');
+	if (!empty($activity)) {
+		$goods_info['activity_exist'] = 1;
+		$goods_info['activity'] = $activity;
+	}
 	wmessage(error(0, $goods_info), $share_data, 'ajax');
 }
 
