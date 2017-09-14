@@ -1232,8 +1232,9 @@ if (!pdo_fieldexists('storex_code', 'email')) {
 if (pdo_fieldexists('storex_code', 'status')) {
 	pdo_query("ALTER TABLE " . tablename('storex_code') . " CHANGE `status` `status` TINYINT(2) UNSIGNED NOT NULL DEFAULT '1' COMMENT '1未使用，2已使用';");
 }
-
-
+if (!pdo_fieldexists('storex_code', 'send_status')) {
+	pdo_query("ALTER TABLE " . tablename('storex_code') . " ADD `send_status` TINYINT(2) NOT NULL DEFAULT '1' COMMENT '发送状态1成功，2失败'");
+}
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');
 $js_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/js');

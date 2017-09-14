@@ -338,6 +338,9 @@ if ($op == 'info') {
 		}
 	}
 	$infos['credit_replace'] = get_credit_replace($store_id, $uid);
+	if (!empty($infos['credit_replace']['max_replace']) && $infos['goods_info']['cprice'] < $infos['credit_replace']['max_replace']) {
+		$infos['credit_replace']['credit_pay'] = 2;
+	}
 	wmessage(error(0, $infos), '', 'ajax');
 }
 
@@ -529,10 +532,12 @@ if ($op == 'order') {
 		}
 	} else {
 		if ($goods_type != 2) {
-			if (!empty($activity) && $activity['type'] == ACTIVITY_SECKILL) {
+			if (!empty($activity)) {
 				$goods_info['cprice'] = $activity['price'];
-				if ($order_info['nums'] > ($activity['nums'] - $activity['sell_nums'])) {
-					wmessage(error(-1, '库存不足'), '', 'ajax');
+				if ($activity['type'] == ACTIVITY_SECKILL) {
+					if ($order_info['nums'] > ($activity['nums'] - $activity['sell_nums'])) {
+						wmessage(error(-1, '库存不足'), '', 'ajax');
+					}
 				}
 			} else {
 				$stock = check_goods_stock($goodsid, $order_info['nums'], $spec_goods);
@@ -610,9 +615,13 @@ if ($op == 'order') {
 			if ($credit_replace['cost_credit'] > $credit_replace['credit1']) {
 				wmessage(error(-1, '积分不足'), '', 'ajax');
 			}
-			$insert['cost_credit'] = $credit_replace['cost_credit'];
-			$insert['replace_money'] = $credit_replace['max_replace'];
-			$insert['sum_price'] -= $credit_replace['max_replace'];
+			if ($insert['sum_price'] > $credit_replace['max_replace']) {
+				$insert['cost_credit'] = $credit_replace['cost_credit'];
+				$insert['replace_money'] = $credit_replace['max_replace'];
+				$insert['sum_price'] -= $credit_replace['max_replace'];
+			} else {
+				wmessage(error(-1, '价格小于抵扣价格，不能使用抵扣'), '', 'ajax');
+			}
 		}
 	}
 	if ($post_total != $insert['sum_price']) {
@@ -625,7 +634,7 @@ if ($op == 'order') {
 		$insert['is_package'] = 2;
 	}
 	if (!empty($activity) && $activity['type'] == ACTIVITY_SECKILL) {
-		$check_activity = pdo_get('storex_goods_activity', array('id' => $activity['id']), array('num', 'sell_nums'));
+		$check_activity = pdo_get('storex_goods_activity', array('id' => $activity['id']), array('nums', 'sell_nums'));
 		if ($insert['nums'] > ($check_activity['nums'] - $check_activity['sell_nums'])) {
 			wmessage(error(-1, '库存不足'), '', 'ajax');
 		}
@@ -634,7 +643,7 @@ if ($op == 'order') {
 	$order_id = pdo_insertid();
 	if (!empty($order_id)) {
 		if (!empty($activity) && $activity['type'] == ACTIVITY_SECKILL) {
-			$check_activity = pdo_get('storex_goods_activity', array('id' => $activity['id']), array('num', 'sell_nums'));
+			$check_activity = pdo_get('storex_goods_activity', array('id' => $activity['id']), array('nums', 'sell_nums'));
 			if ($insert['nums'] > ($check_activity['nums'] - $check_activity['sell_nums'])) {
 				pdo_delete('storex_order', array('id' => $order_id));
 				wmessage(error(-1, '库存不足,下单失败'), '', 'ajax');
