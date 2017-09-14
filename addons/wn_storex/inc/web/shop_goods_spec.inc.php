@@ -13,9 +13,11 @@ $store_type = $store['store_type'];
 $goodsid = intval($_GPC['id']);
 $goods_info = pdo_get('storex_goods', array('store_base_id' => $storeid, 'weid' => $_W['uniacid'], 'id' => $goodsid));
 if ($store_type == STORE_TYPE_HOTEL) {
-	message('参数错误', referer(), 'error');
+	itoast('参数错误', referer(), 'error');
 }
-
+if (!empty($goods_info)) {
+	$thumb = tomedia($goods_info['thumb']);
+}
 if ($op == 'display') {
 	$categoryid = intval($_GPC['categoryid']);
 	$category_info = pdo_get('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'id' => $categoryid), array('spec', 'id', 'name'));
@@ -52,6 +54,7 @@ if ($op == 'display') {
 						'cprice' => $val['cprice'],
 						'oprice' => $val['oprice'],
 						'stock' => $val['stock'],
+						'thumb' => tomedia($val['thumb']),
 					);
 				}
 			}
@@ -69,7 +72,6 @@ if ($op == 'post') {
 			'goodsid' => $commonid,
 			'title' => $common_info['title'],
 			'sub_title' => $common_info['sub_title'],
-			'thumb' => $common_info['thumb'],
 			'pcate' => $common_info['pcate'],
 			'ccate' => $common_info['ccate'],
 			'sp_name' => iserializer($_GPC['sp_name']),
@@ -89,16 +91,17 @@ if ($op == 'post') {
 					$spec_goods['cprice'] = $value['cprice'];
 					$spec_goods['oprice'] = $value['oprice'];
 					$spec_goods['stock'] = $value['stock'];
+					$spec_goods['thumb'] = $value['thumb'];
 					pdo_insert('storex_spec_goods', $spec_goods);
 				} else {
 					pdo_update('storex_spec_goods', array('sp_val' => $spec_goods['sp_val']), array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'goodsid' => $commonid));
-					pdo_update('storex_spec_goods', array('goods_val' => iserializer($value['sp_value']), 'cprice' => $value['cprice'], 'oprice' => $value['oprice'], 'stock' => $value['stock']), array('id' => $value['goodsid']));
+					pdo_update('storex_spec_goods', array('goods_val' => iserializer($value['sp_value']), 'cprice' => $value['cprice'], 'oprice' => $value['oprice'], 'stock' => $value['stock'], 'thumb' => $value['thumb']), array('id' => $value['goodsid']));
 				}
 			}
 			$diff_ids = array_diff($key_list, $goodsids);
 			pdo_delete('storex_spec_goods', array('id' => $diff_ids));
 		}
-		message('编辑成功', referer(), 'success');
+		itoast('编辑成功', referer(), 'success');
 	}
 }
 

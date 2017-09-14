@@ -90,6 +90,12 @@
 									</div>
 								</div>
 							</th>
+							<th style="position: relative">
+								<span>上传图片</span>
+							</th>
+							<th style="position: relative">
+								<span>图片展示</span>
+							</th>
 						</tr>
 						</thead>
 						<tbody>
@@ -118,6 +124,15 @@
 								<input type="number" class="form-control" placeholder="库存"
 								       :name="'spec[' + key + '][stock]'" v-model="sku.stock">
 							</td>
+							<td width="200px">
+								<input type="text" readonly class="form-control" :name="'spec[' + key + '][thumb]'" v-model="sku.thumb" placeholder="图片地址">
+								<span class="input-group-btn" @click="uploadImage(sku, 'thumb')">
+									<button class="btn btn-default" type="button"><i class="fa fa-plus-circle green"></i>&nbsp;选择图片</button>
+								</span>
+							</td>
+							<td width="100px">
+								<img :src="sku.thumb" alt="" style="height: 50px;width: 50px;">
+							</td>
 						</tr>
 						</tbody>
 					</table>
@@ -131,6 +146,8 @@
 </div>
 {$spec_list}
 <script type="text/javascript">
+	var thumb = "{php echo $thumb}";
+	console.log(thumb);
 	require(['vue'], function (Vue) {
 		var vm = new Vue({
 			el: '#goods_spec',
@@ -156,7 +173,18 @@
 						}
 						this[key + 'Status'] = false
 					}
-				}	
+				},
+				uploadImage: function (target, key) {
+					const self = this;
+					require(['fileUploader'], function (uploader) {
+						uploader.show(function (img) {
+							self.$set(target, key, img.url)
+						}, {
+							'direct': true,
+							'multiple': false
+						});
+					});
+				},
 			},
 			watch: {
 				sp_value: {
@@ -164,6 +192,7 @@
 						var args = []
 						this.skus = {}
 						var goods_spec = this.goods_list && this.goods_list['spec'];
+						console.log(goods_spec);
 						for (var i in val) {
 							if (val[i] && val[i].length > 0) {
 								args.push(val[i])
@@ -177,6 +206,7 @@
 									oprice: '',
 									cprice: '',
 									stock: '',
+									thumb: thumb,
 									sp_value: []
 								}
 								var key = 'i';
@@ -196,7 +226,7 @@
 				}
 			},
 			created: function () {
-				var goods_sp_val = this.goods_list && this.goods_list['sp_val']
+				var goods_sp_val = this.goods_list && this.goods_list['sp_val'];
 				var spec_list = {php echo json_encode($spec_list)};
 				var sp_name = {}
 				var sp_value = {}
