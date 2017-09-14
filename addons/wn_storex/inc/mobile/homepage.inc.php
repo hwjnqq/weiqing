@@ -73,6 +73,7 @@ if ($op == 'display') {
 	}
 	if (!empty($not_spec_goods) && is_array($not_spec_goods)) {
 		foreach ($not_spec_goods as &$val) {
+			$val['goodsid'] = $val['id'];
 			$val['thumb'] = tomedia($val['thumb']);
 			$val['is_spec'] = 2;
 		}
@@ -87,6 +88,7 @@ if ($op == 'display') {
 				$spec_goods[$list['specid']]['title'] .= ' ' . $goods_val;
 				$seckill_list[] = $spec_goods[$list['specid']];
 			} else {
+				$not_spec_goods[$list['goodsid']]['nums'] = $list['nums'];
 				$seckill_list[] = $not_spec_goods[$list['goodsid']];
 			}
 		}
