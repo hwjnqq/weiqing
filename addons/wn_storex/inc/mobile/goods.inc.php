@@ -522,9 +522,9 @@ if ($op == 'order') {
 		}
 	} else {
 		if ($goods_type != 2) {
-			if (!empty($activity)) {
+			if (!empty($activity) && $activity['type'] == ACTIVITY_SECKILL) {
 				$goods_info['cprice'] = $activity['price'];
-				if ($order_info['nums'] > $activity['nums']) {
+				if ($order_info['nums'] > ($activity['nums'] - $activity['sell_nums'])) {
 					wmessage(error(-1, '库存不足'), '', 'ajax');
 				}
 			} else {
@@ -614,22 +614,22 @@ if ($op == 'order') {
 	if ($goods_type == 2) {
 		$insert['is_package'] = 2;
 	}
-	if (!empty($activity)) {
-		$check_activity = pdo_get('storex_goods_activity', array('id' => $activity['id']), array('num'));
-		if ($check_activity['nums'] < $insert['nums']) {
+	if (!empty($activity) && $activity['type'] == ACTIVITY_SECKILL) {
+		$check_activity = pdo_get('storex_goods_activity', array('id' => $activity['id']), array('num', 'sell_nums'));
+		if ($insert['nums'] > ($check_activity['nums'] - $check_activity['sell_nums'])) {
 			wmessage(error(-1, '库存不足'), '', 'ajax');
 		}
 	}
 	pdo_insert('storex_order', $insert);
 	$order_id = pdo_insertid();
 	if (!empty($order_id)) {
-		if (!empty($activity)) {
-			$check_activity = pdo_get('storex_goods_activity', array('id' => $activity['id']), array('num'));
-			if ($check_activity['nums'] < $insert['nums']) {
+		if (!empty($activity) && $activity['type'] == ACTIVITY_SECKILL) {
+			$check_activity = pdo_get('storex_goods_activity', array('id' => $activity['id']), array('num', 'sell_nums'));
+			if ($insert['nums'] > ($check_activity['nums'] - $check_activity['sell_nums'])) {
 				pdo_delete('storex_order', array('id' => $order_id));
 				wmessage(error(-1, '库存不足,下单失败'), '', 'ajax');
 			}
-			pdo_update('storex_goods_activity', array('nums -=' => $insert['nums']), array('id' => $activity['id']));
+			pdo_update('storex_goods_activity', array('sell_nums +=' => $insert['nums']), array('id' => $activity['id']));
 		}
 		$logs = array(
 			'table' => 'storex_order_logs',

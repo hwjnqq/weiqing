@@ -1217,7 +1217,20 @@ if (!pdo_fieldexists('storex_order', 'replace_money')) {
 }
 //修改首页设置表的type
 if (pdo_fieldexists('storex_homepage', 'type')) {
-	pdo_query("ALTER TABLE " . tablename('storex_homepage') . " CHANGE `type` `type` VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '首页块类型'")
+	pdo_query("ALTER TABLE " . tablename('storex_homepage') . " CHANGE `type` `type` VARCHAR(100) NOT NULL COMMENT '首页块类型'");
+}
+//member表增加用户接收验证码的手机号和邮箱
+if (!pdo_fieldexists('storex_member', 'phone')) {
+	pdo_query("ALTER TABLE " . tablename('storex_member') . " ADD `phone` VARCHAR(11) NOT NULL COMMENT '只接收验证码的手机号';");
+}
+if (!pdo_fieldexists('storex_member', 'email')) {
+	pdo_query("ALTER TABLE " . tablename('storex_member') . " ADD `email` VARCHAR(50) NOT NULL COMMENT '只接收验证码的邮箱';");
+}
+if (!pdo_fieldexists('storex_code', 'email')) {
+	pdo_query("ALTER TABLE " . tablename('storex_code') . " ADD `email` VARCHAR(50) NOT NULL COMMENT '邮箱';");
+}
+if (pdo_fieldexists('storex_code', 'status')) {
+	pdo_query("ALTER TABLE " . tablename('storex_code') . " CHANGE `status` `status` TINYINT(2) UNSIGNED NOT NULL DEFAULT '1' COMMENT '1未使用，2已使用';");
 }
 
 
