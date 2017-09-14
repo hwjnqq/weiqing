@@ -86,6 +86,7 @@ if ($op == 'display') {
 				$spec_goods[$list['specid']]['cprice'] = $list['price'];
 				$spec_goods[$list['specid']]['nums'] = $list['nums'];
 				$spec_goods[$list['specid']]['title'] .= ' ' . $goods_val;
+				$spec_goods[$list['specid']]['specid'] = $list['specid'];
 				$seckill_list[] = $spec_goods[$list['specid']];
 			} else {
 				$not_spec_goods[$list['goodsid']]['nums'] = $list['nums'];
@@ -100,6 +101,7 @@ if ($op == 'display') {
 				$spec_goods[$list['specid']]['cprice'] = $list['price'];
 				$spec_goods[$list['specid']]['nums'] = $list['nums'];
 				$spec_goods[$list['specid']]['title'] .= ' ' . $goods_val;
+				$spec_goods[$list['specid']]['specid'] = $list['specid'];
 				$limited_list[] = $spec_goods[$list['specid']];
 			} else {
 				$limited_list[] = $not_spec_goods[$list['goodsid']];
