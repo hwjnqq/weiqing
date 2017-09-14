@@ -186,7 +186,7 @@ if ($op == 'spec_info') {
 			'oprice' => $spec_goods['oprice'],
 			'cprice' => $spec_goods['cprice'],
 			'stock' => $spec_goods['stock'],
-			'thumb' => $spec_goods['thumb'],
+			'thumb' => tomedia($spec_goods['thumb']),
 		);
 	}
 	$spec_info['activity_exist'] = 2;
