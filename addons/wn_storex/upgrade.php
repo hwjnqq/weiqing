@@ -794,6 +794,26 @@ $sql = "
 	  `link` varchar(200) NOT NULL COMMENT '链接',
 	  PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_goods_activity` (
+	  `id` int(11) NOT NULL AUTO_INCREMENT,
+	  `storeid` int(11) DEFAULT '0',
+	  `uniacid` int(11) DEFAULT '0',
+	  `title` varchar(255) DEFAULT '',
+	  `price` decimal(10,2) DEFAULT '0.00',
+	  `nums` int(10) unsigned NOT NULL,
+	  `starttime` int(10) unsigned NOT NULL,
+	  `endtime` int(10) unsigned NOT NULL,
+	  `goodsid` int(10) unsigned NOT NULL,
+	  `type` tinyint(1) DEFAULT '1',
+	  `status` int(11) DEFAULT '1',
+	  `is_spec` tinyint(1) DEFAULT '1',
+	  `specid` int(10) unsigned NOT NULL,
+	  `sell_nums` int(10) unsigned NOT NULL,
+	  PRIMARY KEY (`id`),
+	  KEY `uniacid` (`uniacid`),
+	  KEY `storeid` (`storeid`)
+	) DEFAULT CHARSET=utf8;
 ";
 pdo_run($sql);
 
@@ -1195,6 +1215,11 @@ if (!pdo_fieldexists('storex_order', 'cost_credit')) {
 if (!pdo_fieldexists('storex_order', 'replace_money')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `replace_money` DECIMAL(10,2) NOT NULL COMMENT '抵扣的钱';");
 }
+//修改首页设置表的type
+if (pdo_fieldexists('storex_homepage', 'type')) {
+	pdo_query("ALTER TABLE " . tablename('storex_homepage') . " CHANGE `type` `type` VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '首页块类型'")
+}
+
 
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');
