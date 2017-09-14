@@ -48,9 +48,9 @@ if ($op == 'post') {
 		$current_activity['endtime'] = time();
 	}
 	if ($current_activity['is_spec'] == 1) {
-		$current_activity['edit_thumb'] = $goods_list[$current_activity['goodsid']]['thumb'];
-		$current_activity['edit_title'] = $goods_list[$current_activity['goodsid']]['title'];
-		$current_activity['edit_goods_val'] = $goods_list[$current_activity['goodsid']]['goods_val_title'];
+		$current_activity['edit_thumb'] = $goods_list[$current_activity['specid']]['thumb'];
+		$current_activity['edit_title'] = $goods_list[$current_activity['specid']]['title'];
+		$current_activity['edit_goods_val'] = $goods_list[$current_activity['specid']]['goods_val_title'];
 	} else {
 		$current_activity['edit_thumb'] = $base_goods[$current_activity['goodsid']]['thumb'];
 		$current_activity['edit_title'] = $base_goods[$current_activity['goodsid']]['title'];
@@ -60,6 +60,9 @@ if ($op == 'post') {
 		if (empty($_GPC['title']) || empty($_GPC['price']) || empty($_GPC['goodsid']) || empty($_GPC['starttime']) || empty($_GPC['endtime'])) {
 			message('参数错误', '', 'error');
 		}
+		if ($type == 1 && $_GPC['nums'] <= 0) {
+			message('请填写参与人数', '', 'error');
+		} 
 		$specid = 0;
 		$goodsid = intval($_GPC['goodsid']);
 		if ($_GPC['is_spec'] == 1) {

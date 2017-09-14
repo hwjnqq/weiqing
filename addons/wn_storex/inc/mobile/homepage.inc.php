@@ -50,7 +50,7 @@ if ($op == 'display') {
 	if (!empty($activity_list) && is_array($activity_list)) {
 		foreach ($activity_list as $key => $value) {
 			if ($value['is_spec'] == 1) {
-				$spec_ids[$key] = $value['goodsid'];
+				$spec_ids[$key] = $value['specid'];
 			} else {
 				$not_spec_ids[$key] = $value['goodsid'];
 			}
@@ -81,11 +81,11 @@ if ($op == 'display') {
 	if (!empty($activity_seckill) && is_array($activity_seckill)) {
 		foreach ($activity_seckill as $list) {
 			if ($list['is_spec'] == 1) {
-				$goods_val = implode(' ', $spec_goods[$list['goodsid']]['goods_val']);
-				$spec_goods[$list['goodsid']]['cprice'] = $list['price'];
-				$spec_goods[$list['goodsid']]['nums'] = $list['nums'];
-				$spec_goods[$list['goodsid']]['title'] .= ' ' . $goods_val;
-				$seckill_list[] = $spec_goods[$list['goodsid']];
+				$goods_val = implode(' ', $spec_goods[$list['specid']]['goods_val']);
+				$spec_goods[$list['specid']]['cprice'] = $list['price'];
+				$spec_goods[$list['specid']]['nums'] = $list['nums'];
+				$spec_goods[$list['specid']]['title'] .= ' ' . $goods_val;
+				$seckill_list[] = $spec_goods[$list['specid']];
 			} else {
 				$seckill_list[] = $not_spec_goods[$list['goodsid']];
 			}
@@ -94,11 +94,11 @@ if ($op == 'display') {
 	if (!empty($activity_limited) && is_array($activity_limited)) {
 		foreach ($activity_limited as $list) {
 			if ($list['is_spec'] == 1) {
-				$goods_val = implode(' ', $spec_goods[$list['goodsid']]['goods_val']);
-				$spec_goods[$list['goodsid']]['cprice'] = $list['price'];
-				$spec_goods[$list['goodsid']]['nums'] = $list['nums'];
-				$spec_goods[$list['goodsid']]['title'] .= ' ' . $goods_val;
-				$limited_list[] = $spec_goods[$list['goodsid']];
+				$goods_val = implode(' ', $spec_goods[$list['specid']]['goods_val']);
+				$spec_goods[$list['specid']]['cprice'] = $list['price'];
+				$spec_goods[$list['specid']]['nums'] = $list['nums'];
+				$spec_goods[$list['specid']]['title'] .= ' ' . $goods_val;
+				$limited_list[] = $spec_goods[$list['specid']];
 			} else {
 				$limited_list[] = $not_spec_goods[$list['goodsid']];
 			}
