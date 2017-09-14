@@ -56,11 +56,11 @@ if ($op == 'post') {
 	if (!empty($available_list) && is_array($available_list)) {
 		foreach ($available_list as $key => $goods) {
 			if ($goods['is_spec'] == 1) {
-				if (in_array($goods['id'], $spec_ids)) {
+				if (is_array($spec_ids) && in_array($goods['id'], $spec_ids)) {
 					unset($available_list[$key]);
 				}
 			} elseif ($goods['is_spec'] == 2) {
-				if (in_array($goods['id'], $not_spec_ids)) {
+				if (is_array($not_spec_ids) && in_array($goods['id'], $not_spec_ids)) {
 					unset($available_list[$key]);
 				}
 			}

@@ -306,6 +306,11 @@ if ($op == 'info') {
 		$goods_info['thumbs'] = format_url($goods_info['thumbs']);
 	}
 	$goods_info['defined'] = get_goods_defined($store_id, $goodsid);
+	if (!empty($activity)) {
+		if ($activity['specid'] == $spec_id) {
+			$goods_info['cprice'] = $activity['price'];
+		}
+	}
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;
 	$infos['goods_info'] = $goods_info;
