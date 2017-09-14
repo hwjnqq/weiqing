@@ -136,7 +136,7 @@
 						<div class="tab-content">
 							<ul class="app-allow-list">
 								{loop $goods_list $goods}
-								<li class="js-select-goods" data-id="{$goods['id']}" data-img="{$goods['thumb']}" data-title="{$goods['title']}" data-goods_val_title="{$goods['goods_val_title']}" data-is_spec="{$goods['is_spec']}">
+								<li class="js-select-goods" data-id="{$goods['id']}" data-img="{$goods['thumb']}" data-title="{$goods['title']}" data-goods_val_title="{$goods['goods_val_title']}" data-is_spec="{$goods['is_spec']}" data-goodsid="{$goods['goodsid']}">
 									<div class="app-info">
 										<img src="{php echo $goods['thumb']}"/>
 										<p>{$goods['title']}</p>
@@ -192,8 +192,12 @@
 			{/if}
 			<div class="form-group">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">活动时间</label>
-				<div class="col-sm-9 col-xs-12">
-					{php echo tpl_form_field_daterange('time_limit', array('start' => date('Y-m-d', $current_activity['starttime']), 'end' => date('Y-m-d', $current_activity['endtime'])));}
+				<div class="col-sm-4 col-xs-6">
+					{php echo _tpl_form_field_date('starttime', $current_activity['starttime'], true)}
+				</div>
+				<div class="col-sm-1 col-xs-6">至</div>
+				<div class="col-sm-4 col-xs-6">
+					{php echo _tpl_form_field_date('endtime', $current_activity['endtime'], true)}
 				</div>
 			</div>
 			<div class="form-group">
@@ -222,6 +226,7 @@
 		goods_val_title = $(this).data('goods_val_title');
 		is_spec = $(this).data('is_spec');
 		id = $(this).data('id');
+		goodsid = $(this).data('goodsid');
 		$('.js-goods-title').text(title);
 		$('.js-goods-val-title').text(goods_val_title);
 		$('.js-goods-img').attr('src', img);

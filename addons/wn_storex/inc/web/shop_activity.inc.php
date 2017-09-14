@@ -57,20 +57,28 @@ if ($op == 'post') {
 	}
 	if (checksubmit()) {
 		$type = !empty($_GPC['type']) ? intval($_GPC['type']) : 1;
-		if (empty($_GPC['title']) || empty($_GPC['price']) || empty($_GPC['goodsid'])) {
+		if (empty($_GPC['title']) || empty($_GPC['price']) || empty($_GPC['goodsid']) || empty($_GPC['starttime']) || empty($_GPC['endtime'])) {
 			message('参数错误', '', 'error');
+		}
+		$specid = 0;
+		$goodsid = intval($_GPC['goodsid']);
+		if ($_GPC['is_spec'] == 1) {
+			$specid = intval($_GPC['goodsid']);
+			$goodsid = $goods_list[$_GPC['goodsid']]['goodsid'];
 		}
 		$data = array(
 			'title' => trim($_GPC['title']),
-			'goodsid' => intval($_GPC['goodsid']),
+			'goodsid' => $goodsid,
 			'price' => $_GPC['price'],
-			'starttime' => strtotime($_GPC['time_limit']['start']),
-			'endtime' => strtotime($_GPC['time_limit']['end']),
+			'starttime' => strtotime($_GPC['starttime']),
+			'endtime' => strtotime($_GPC['endtime']),
 			'status' => 1,
-			'is_spec' => intval($_GPC['is_spec'])
+			'is_spec' => intval($_GPC['is_spec']),
+			'specid' => $specid
 		);
 		if ($type == 1) {
 			$data['nums'] = intval($_GPC['nums']);
+			$data['sell_nums'] = 0;
 		}
 		$activity_info = pdo_get('storex_goods_activity', array('id' => $id), array('id'));
 		if (empty($activity_info)) {

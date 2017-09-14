@@ -14,12 +14,13 @@ mload()->model('order');
 $uid = mc_openid2uid($_W['openid']);
 $storeid = intval($_GPC['id']);
 $type = !empty($_GPC['type']) ? intval($_GPC['type']) : 1;
+
 if ($op == 'display') {
 	$activity_list = pdo_getall('storex_goods_activity', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'type' => $type), array(), 'id');
 	if (!empty($activity_list) && is_array($activity_list)) {
 		foreach ($activity_list as $key => $value) {
 			if ($value['is_spec'] == 1) {
-				$spec_ids[$key] = $value['goodsid'];
+				$spec_ids[$key] = $value['specid'];
 			} else {
 				$not_spec_ids[$key] = $value['goodsid'];
 			}
@@ -49,10 +50,9 @@ if ($op == 'display') {
 			$value['starttime'] = date('Y-m-d H:i', $value['starttime']);
 			$value['endtime'] = date('Y-m-d H:i', $value['endtime']);
 			if ($value['is_spec'] == 1) {
-				$value['oprice'] = $spec_goods[$value['goodsid']]['oprice'];
-				$value['title'] = $spec_goods[$value['goodsid']]['title'];
-				$value['nums'] = $spec_goods[$value['goodsid']]['nums'];
-				$value['thumb'] = $spec_goods[$value['goodsid']]['thumb'];
+				$value['oprice'] = $spec_goods[$value['specid']]['oprice'];
+				$value['title'] = $spec_goods[$value['specid']]['title'];
+				$value['thumb'] = $spec_goods[$value['specid']]['thumb'];
 			} else {
 				$value['oprice'] = $not_spec_goods[$value['goodsid']]['oprice'];
 				$value['title'] = $not_spec_goods[$value['goodsid']]['title'];
