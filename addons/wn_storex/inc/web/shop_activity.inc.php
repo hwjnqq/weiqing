@@ -42,6 +42,30 @@ if ($op == 'post') {
 			$goods_list[] = $base_goods[$value];
 		}
 	}
+	$activitys = pdo_getall('storex_goods_activity', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid), array('id', 'goodsid', 'specid', 'is_spec'), 'id');
+	if (!empty($activitys) && is_array($activitys)) {
+		foreach ($activitys as $k => $activity) {
+			if ($activity['is_spec'] == 1) {
+				$spec_ids[$k] = $activity['specid'];
+			} elseif ($activity['is_spec'] == 2) {
+				$not_spec_ids[$k] = $activity['goodsid'];
+			}
+		}
+	}
+	$available_list = $goods_list;
+	if (!empty($available_list) && is_array($available_list)) {
+		foreach ($available_list as $key => $goods) {
+			if ($goods['is_spec'] == 1) {
+				if (in_array($goods['id'], $spec_ids)) {
+					unset($available_list[$key]);
+				}
+			} elseif ($goods['is_spec'] == 2) {
+				if (in_array($goods['id'], $not_spec_ids)) {
+					unset($available_list[$key]);
+				}
+			}
+		}
+	}
 	$current_activity = pdo_get('storex_goods_activity', array('id' => $id));
 	if (empty($current_activity)) {
 		$current_activity['starttime'] = time();

@@ -135,7 +135,7 @@
 					<div class="modal-body modules-content">
 						<div class="tab-content">
 							<ul class="app-allow-list">
-								{loop $goods_list $goods}
+								{loop $available_list $goods}
 								<li class="js-select-goods" data-id="{$goods['id']}" data-img="{$goods['thumb']}" data-title="{$goods['title']}" data-goods_val_title="{$goods['goods_val_title']}" data-is_spec="{$goods['is_spec']}" data-goodsid="{$goods['goodsid']}">
 									<div class="app-info">
 										<img src="{php echo $goods['thumb']}"/>
@@ -172,7 +172,9 @@
 								</a>
 							</div>
 						</li>
+						{if empty($_GPC['id'])}
 						<li class="select select-more js-add-goods">+</li>
+						{/if}
 					</ul>
 				</div>
 			</div>
