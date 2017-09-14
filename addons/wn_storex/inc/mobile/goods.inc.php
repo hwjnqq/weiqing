@@ -14,6 +14,7 @@ $uid = mc_openid2uid($_W['openid']);
 $store_id = intval($_GPC['id']);
 $goodsid = intval($_GPC['goodsid']);
 $store_info = get_store_info($store_id);
+$activity = pdo_get('storex_goods_activity', array('status' => 1,'storeid' => $store_id, 'uniacid' => $_W['uniacid'], 'goodsid' => $goodsid, 'starttime <=' => TIMESTAMP, 'endtime >' => TIMESTAMP), array(), '', 'starttime ASC');
 
 //获取某个商品的详细信息
 if ($op == 'goods_info') {
@@ -165,11 +166,13 @@ if ($op == 'goods_info') {
 		}
 	}
 	$goods_info['activity_exist'] = 2;
-	$goods_info['activity'] = array();
-	$activity = pdo_get('storex_goods_activity', array('status' => 1,'storeid' => $store_id, 'uniacid' => $_W['uniacid'], 'goodsid' => $goodsid, 'starttime <=' => TIMESTAMP, 'endtime >' => TIMESTAMP), array(), '', 'starttime ASC');
+	$goods_info['activity'] = $activity;
 	if (!empty($activity)) {
 		$goods_info['activity_exist'] = 1;
-		$goods_info['activity'] = $activity;
+		$goods_info['activity']['oprice'] = $goods_info['oprice'];
+		$goods_info['activity']['cprice'] = $activity['price'];
+		$goods_info['activity']['endtime'] = date('Y-m-d H:i:s', $goods_info['activity']['endtime']);
+		
 	}
 	wmessage(error(0, $goods_info), $share_data, 'ajax');
 }
@@ -185,6 +188,16 @@ if ($op == 'spec_info') {
 			'stock' => $spec_goods['stock'],
 			'thumb' => $spec_goods['thumb'],
 		);
+	}
+	$spec_info['activity_exist'] = 2;
+	$spec_info['activity'] = array();
+	if (!empty($activity) && $specid == $activity['specid']) {
+		$spec_info['activity_exist'] = 1;
+		$spec_info['activity'] = $activity;
+		$spec_info['activity']['oprice'] = $spec_info['oprice'];
+		$spec_info['activity']['cprice'] = $activity['price'];
+		$spec_info['activity']['endtime'] = date('Y-m-d H:i:s', $spec_info['activity']['endtime']);
+	
 	}
 	wmessage(error(0, $spec_info), '', 'ajax');
 }
@@ -509,9 +522,16 @@ if ($op == 'order') {
 		}
 	} else {
 		if ($goods_type != 2) {
-			$stock = check_goods_stock($goodsid, $order_info['nums'], $spec_goods);
-			if (is_error($stock)) {
-				wmessage($stock, '', 'ajax');
+			if (!empty($activity)) {
+				$goods_info['cprice'] = $activity['price'];
+				if ($order_info['nums'] > $activity['nums']) {
+					wmessage(error(-1, '库存不足'), '', 'ajax');
+				}
+			} else {
+				$stock = check_goods_stock($goodsid, $order_info['nums'], $spec_goods);
+				if (is_error($stock)) {
+					wmessage($stock, '', 'ajax');
+				}
 			}
 		}
 		$insert = general_goods_order($order_info, $goods_info, $insert);
@@ -594,9 +614,23 @@ if ($op == 'order') {
 	if ($goods_type == 2) {
 		$insert['is_package'] = 2;
 	}
+	if (!empty($activity)) {
+		$check_activity = pdo_get('storex_goods_activity', array('id' => $activity['id']), array('num'));
+		if ($check_activity['nums'] < $insert['nums']) {
+			wmessage(error(-1, '库存不足'), '', 'ajax');
+		}
+	}
 	pdo_insert('storex_order', $insert);
 	$order_id = pdo_insertid();
 	if (!empty($order_id)) {
+		if (!empty($activity)) {
+			$check_activity = pdo_get('storex_goods_activity', array('id' => $activity['id']), array('num'));
+			if ($check_activity['nums'] < $insert['nums']) {
+				pdo_delete('storex_order', array('id' => $order_id));
+				wmessage(error(-1, '库存不足,下单失败'), '', 'ajax');
+			}
+			pdo_update('storex_goods_activity', array('nums -=' => $insert['nums']), array('id' => $activity['id']));
+		}
 		$logs = array(
 			'table' => 'storex_order_logs',
 			'time' => TIMESTAMP,
