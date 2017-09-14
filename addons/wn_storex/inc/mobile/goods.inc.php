@@ -195,7 +195,9 @@ if ($op == 'spec_info') {
 		$spec_info['activity_exist'] = 1;
 		$spec_info['activity'] = $activity;
 		$spec_info['activity']['oprice'] = $spec_info['oprice'];
+		$spec_info['oprice'] = $spec_info['oprice'];
 		$spec_info['activity']['cprice'] = $activity['price'];
+		$spec_info['cprice'] = $activity['price'];
 		$spec_info['activity']['endtime'] = date('Y-m-d H:i:s', $spec_info['activity']['endtime']);
 	
 	}
