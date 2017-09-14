@@ -119,14 +119,6 @@ $aside_nav = array(
 			'shop_order',
 		)
 	),
-	'shop_share' => array(
-		'title' => '分享设置',
-		'url' => $this->createWebUrl('shop_share', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'storex-menu-order',
-		'active' => array(
-			'shop_share',
-		)
-	),
 	'shop_stat' => array(
 		'title' => '数据统计',
 		'url' => $this->createWebUrl('shop_stat', array('storeid' => $_GPC['storeid'])),
@@ -214,6 +206,7 @@ $aside_nav = array(
 		'icon' => 'storex-menu-setting',
 		'active' => array(
 			'shop_settings',
+			'shop_share',
 		)
 	),
 );

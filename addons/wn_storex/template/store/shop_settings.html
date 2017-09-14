@@ -3,6 +3,22 @@
 <div class="wn-main wn-main--without">
 	<div class="wn-main__head">店铺设置</div>
 	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_settings'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_settings', array('storeid' => $_GPC['storeid']))}">店铺设置</a>
+			</div>
+			<div class="wn-tabs__item {if $op == 'homepage'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_share', array('op' => 'homepage', 'storeid' => $_GPC['storeid']))}">首页分享设置</a>
+			</div>
+			<div class="wn-tabs__item {if $op == 'category'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_share', array('op' => 'category', 'storeid' => $_GPC['storeid']))}">分类分享设置</a>
+			</div>
+			{if $store['store_type'] != STORE_TYPE_HOTEL}
+			<div class="wn-tabs__item {if $op == 'goods'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_share', array('op' => 'goods', 'storeid' => $_GPC['storeid']))}">商品分享设置</a>
+			</div>
+			{/if}
+		</div>
 		<form class="form-horizontal form" method="post" enctype="multipart/form-data">
 			<div class="form-group">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
