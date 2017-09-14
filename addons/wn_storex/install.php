@@ -753,7 +753,7 @@ $sql = "
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 	`uniacid` int(10) unsigned NOT NULL DEFAULT '0',
 	`storeid` int(10) unsigned NOT NULL DEFAULT '0',
-	`type` varchar(15) NOT NULL COMMENT '首页块类型',
+	`type` varchar(100) NOT NULL COMMENT '首页块类型',
 	`items` longtext NOT NULL,
 	`displayorder` int(10) unsigned NOT NULL DEFAULT '0',
 	`is_wxapp` tinyint(2) NOT NULL DEFAULT '2' COMMENT '是不是小程序1是2不是',
@@ -1119,6 +1119,26 @@ $sql = "
 	  `status` tinyint(2) NOT NULL DEFAULT '1' COMMENT '状态',
 	  `link` varchar(200) NOT NULL COMMENT '链接',
 	  PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_goods_activity` (
+	  `id` int(11) NOT NULL AUTO_INCREMENT,
+	  `storeid` int(11) DEFAULT '0',
+	  `uniacid` int(11) DEFAULT '0',
+	  `title` varchar(255) DEFAULT '',
+	  `price` decimal(10,2) DEFAULT '0.00',
+	  `nums` int(10) unsigned NOT NULL,
+	  `starttime` int(10) unsigned NOT NULL,
+	  `endtime` int(10) unsigned NOT NULL,
+	  `goodsid` int(10) unsigned NOT NULL,
+	  `type` tinyint(1) DEFAULT '1',
+	  `status` int(11) DEFAULT '1',
+	  `is_spec` tinyint(1) DEFAULT '1',
+	  `specid` int(10) unsigned NOT NULL,
+	  `sell_nums` int(10) unsigned NOT NULL,
+	  PRIMARY KEY (`id`),
+	  KEY `uniacid` (`uniacid`),
+	  KEY `storeid` (`storeid`)
 	) DEFAULT CHARSET=utf8;
 ";
 
