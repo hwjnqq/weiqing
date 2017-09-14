@@ -887,6 +887,11 @@ li {
 .wn-home__module .app .app-side {
   float: left;
 }
+.wn-home__preview {
+  overflow-y: auto;
+  padding-bottom: 50px;
+  height: 100%;
+}
 .wn-home__preview__item {
   border-bottom: 1px solid #ddd;
   min-height: 10px;
