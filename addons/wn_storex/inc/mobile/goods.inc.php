@@ -544,15 +544,6 @@ if ($op == 'order') {
 		$insert = general_goods_order($order_info, $goods_info, $insert);
 	}
 	//根据优惠方式计算总价
-	$credit_replace = get_credit_replace($store_id, $uid);
-	if (!empty($_GPC['order']['use_credit']) && $credit_replace['credit_pay'] == 1) {
-		if ($credit_replace['cost_credit'] > $credit_replace['credit1']) {
-			wmessage(error(-1, '积分不足'), '', 'ajax');
-		}
-		$insert['cost_credit'] = $credit_replace['cost_credit'];
-		$insert['replace_money'] = $credit_replace['max_replace'];
-		$insert['sum_price'] -= $credit_replace['max_replace'];
-	}
 	$market_types = array();
 	if ($store_info['market_status'] == 1) {
 		$markets = get_store_market($store_id);
@@ -612,6 +603,18 @@ if ($op == 'order') {
 	
 	$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
 	$post_total = trim($_GPC['order']['total']);
+	//计算积分抵扣
+	if (!empty($_GPC['order']['use_credit'])) {
+		$credit_replace = get_credit_replace($store_id, $uid);
+		if ($credit_replace['credit_pay'] == 1) {
+			if ($credit_replace['cost_credit'] > $credit_replace['credit1']) {
+				wmessage(error(-1, '积分不足'), '', 'ajax');
+			}
+			$insert['cost_credit'] = $credit_replace['cost_credit'];
+			$insert['replace_money'] = $credit_replace['max_replace'];
+			$insert['sum_price'] -= $credit_replace['max_replace'];
+		}
+	}
 	if ($post_total != $insert['sum_price']) {
 		wmessage(error(-1, '价格错误' . $insert['sum_price']), '', 'ajax');
 	}
