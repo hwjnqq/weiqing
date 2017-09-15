@@ -332,10 +332,9 @@ if ($op == 'code_mode') {
 if ($op == 'send_code') {
 	$type = trim($_GPC['type']);
 	$send_codes = pdo_getall('storex_code', array('openid' => $_W['openid'], 'weid' => $_W['uniacid'], 'send_status' => 1), array(), '', 'createtime DESC', array(1,1));
-	if (!empty($send_codes) && (TIMESTAMP - $send_code['0']['createtime']) < 60 ) {
+	if (!empty($send_codes) && (TIMESTAMP - $send_codes['0']['createtime']) < 60 ) {
 		wmessage(error(-1, '请勿重复发送'), '', 'ajax');
 	}
-	
 	if (in_array($type, array('phone', 'email'))) {
 		$member = pdo_get('storex_member', array('from_user' => $_W['openid'], 'weid' => $_W['uniacid']), array('phone', 'email'));
 		if (empty($member[$type])) {
