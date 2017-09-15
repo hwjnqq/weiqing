@@ -4,7 +4,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 
-$ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete', 'extend_switch', 'credit_password', 'check_password_lock', 'set_credit_password', 'credit_pay', 'footer');
+$ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete', 'extend_switch', 'credit_password', 'check_password_lock', 'set_credit_password', 'credit_pay', 'footer', 'code_mode', 'send_code', 'set_password');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -322,4 +322,138 @@ if ($op == 'footer') {
 		}
 	}
 	wmessage(error(0, $footer), '', 'ajax');
+}
+
+if ($op == 'code_mode') {
+	$member = pdo_get('storex_member', array('from_user' => $_W['openid']), array('phone', 'email'));
+	wmessage(error(0, $member), '', 'ajax');
+}
+
+if ($op == 'send_code') {
+	$type = trim($_GPC['type']);
+	$send_codes = pdo_getall('storex_code', array('openid' => $_W['openid'], 'weid' => $_W['uniacid'], 'send_status' => 1), array(), '', 'createtime DESC', array(1,1));
+	if (!empty($send_codes) && (TIMESTAMP - $send_code['0']['createtime']) < 60 ) {
+		wmessage(error(-1, '请勿重复发送'), '', 'ajax');
+	}
+	
+	if (in_array($type, array('phone', 'email'))) {
+		$member = pdo_get('storex_member', array('from_user' => $_W['openid'], 'weid' => $_W['uniacid']), array('phone', 'email'));
+		if (empty($member[$type])) {
+			$update = 1;
+		}
+		if ($type == 'phone') {
+			if (!empty($member['phone']) && $member['phone'] != trim($_GPC['number'])) {
+				wmessage(error(-1, '手机号错误'), '', 'ajax');
+			}
+			if (!preg_match(REGULAR_MOBILE, $_GPC['number'])) {
+				wmessage(error(-1, '手机号码格式不正确'), '', 'ajax');
+			}
+			$code_info = get_code_info();
+			$code_info['mobile'] = trim($_GPC['number']);
+			$body = '您的万能小店修改密码的验证码是:' . $code_info['code'] . '请勿泄露给其他人，十分钟内有效';
+			load()->model('cloud');
+			$result = cloud_sms_send($_GPC['number'], $body);
+			$code_info['mobile'] = $_GPC['number'];
+			if (is_error($result)) {
+				$code_info['send_status'] = 1;
+				pdo_insert('storex_code', $code_info);
+				if (!empty($update)) {
+					pdo_update('storex_member', array('phone' => $_GPC['number']), array('from_user' => $_W['openid'], 'weid' => $_W['uniacid']));
+				}
+				wmessage(error(0, '发送成功'), '', 'ajax');
+			} else {
+				$code_info['send_status'] = 2;
+				pdo_insert('storex_code', $code_info);
+				wmessage(error(-1, $result['message']), '', 'ajax');
+			}
+		}
+		if ($type == 'email') {
+			if (!empty($member['email']) && $member['email'] != trim($_GPC['number'])) {
+				wmessage(error(-1, '邮箱错误'), '', 'ajax');
+			}
+			if (!preg_match(REGULAR_EMAIL, $_GPC['number'])) {
+				wmessage(error(-1, '邮箱格式不正确'), '', 'ajax');
+			}
+			$code_info = get_code_info();
+			$code_info['email'] = trim($_GPC['number']);
+			$subject = "微信公共帐号 [" . $_W['account']['name'] . "] 万能小店修改密码验证码";
+			$body = '您的万能小店修改密码的验证码是:' . $code_info['code'] . '请勿泄露给其他人，十分钟内有效'; 
+			load()->func('communication');
+			$result = ihttp_email($mail, $subject, $body);
+			if (!is_error($result)) {
+				$code_info['send_status'] = 1;
+				pdo_insert('storex_code', $code_info);
+				if (!empty($update)) {
+					pdo_update('storex_member', array('email' => $_GPC['number']), array('from_user' => $_W['openid'], 'weid' => $_W['uniacid']));
+				}
+				wmessage(error(0, '发送成功'), '', 'ajax');
+			} else {
+				$code_info['send_status'] = 2;
+				pdo_insert('storex_code', $code_info);
+				wmessage(error(-1, '发送失败'), '', 'ajax');
+			}
+		}
+	} else {
+		wmessage(error(-1, '验证类型错误'), '', 'ajax');
+	}
+}
+
+if ($op == 'set_password') {
+	$code = $_GPC['code'];
+	$type = trim($_GPC['type']);
+	$number = trim($_GPC['number']);
+	$password = trim($_GPC['password']);
+	$repeat_password = trim($_GPC['r_password']);
+	$member = pdo_get('storex_member', array('weid' => intval($_W['uniacid']), 'from_user' => trim($_W['openid'])), array('weid', 'from_user', 'phone', 'email'));
+	if (empty($member)) {
+		wmessage(error(41009, '未登录！'), '', 'ajax');
+	}
+	if (in_array($type, array('phone', 'email'))) {
+		if (!empty($member[$type]) && $member[$type] != $number) {
+			wmessage(error(-1, '验证号错误'), '', 'ajax');
+		}
+		$condition = array(
+			'openid' => trim($_W['openid']),
+			'weid' => intval($_W['uniacid']),
+			'send_status' => 1,
+		);
+		if ($type == 'phone') {
+			$condition['mobile'] = $number;
+		} else {
+			$condition['email'] = $number;
+		}
+		$codes = pdo_getall('storex_code', $condition, array('id', 'openid', 'code', 'mobile', 'email', 'status', 'createtime'), '', 'createtime DESC');
+		if (!empty($codes) && is_array($codes)) {
+			$codeinfo = $codes[0];
+			if ($codeinfo['status'] == 2) {
+				wmessage(error(-1, '验证码已使用'), '', 'ajax');
+			}
+			if ((TIMESTAMP - $codeinfo['createtime']) > 600) {
+				wmessage(error(-1, '验证码已过期'), '', 'ajax');
+			}
+			if ($codeinfo['code'] != $code) {
+				wmessage(error(-1, '验证码错误'), '', 'ajax');
+			}
+			if ($password != $repeat_password) {
+				wmessage(error(-1, '两次输入的密码不同'), '', 'ajax');
+			}
+			if (istrlen($password) < 6 || istrlen($password) > 16) {
+				wmessage(error(-1, '密码长度6至16位'), '', 'ajax');
+			}
+			pdo_update('storex_code', array('status' => 2), array('id' => $codeinfo['id']));
+			$salt = random(8);
+			$update['credit_password'] = hotel_member_hash($password, $salt);
+			$update['credit_salt'] = $salt;
+			$result = pdo_update('storex_member', $update, array('weid' => intval($_W['uniacid']), 'from_user' => trim($_W['openid'])));
+			if (!empty($result)) {
+				wmessage(error(0, '设置密码成功'), '', 'ajax');
+			} else {
+				wmessage(error(-1, '设置密码失败'), '', 'ajax');
+			}
+		} else {
+			wmessage(error(-1, '验证码错误'), '', 'ajax');
+		}
+	} else {
+		wmessage(error(-1, '验证类型错误'), '', 'ajax');
+	}
 }

@@ -608,6 +608,12 @@ if ($op == 'order') {
 	
 	$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
 	$post_total = trim($_GPC['order']['total']);
+	if ($post_total != $insert['sum_price']) {
+		wmessage(error(-1, '价格错误' . $insert['sum_price']), '', 'ajax');
+	}
+	if ($insert['sum_price'] <= 0) {
+		wmessage(error(-1, '总价为零，请联系管理员'), '', 'ajax');
+	}
 	//计算积分抵扣
 	if (!empty($_GPC['order']['use_credit'])) {
 		$credit_replace = get_credit_replace($store_id, $uid);
@@ -623,12 +629,6 @@ if ($op == 'order') {
 				wmessage(error(-1, '价格小于抵扣价格，不能使用抵扣'), '', 'ajax');
 			}
 		}
-	}
-	if ($post_total != $insert['sum_price']) {
-		wmessage(error(-1, '价格错误' . $insert['sum_price']), '', 'ajax');
-	}
-	if ($insert['sum_price'] <= 0) {
-		wmessage(error(-1, '总价为零，请联系管理员'), '', 'ajax');
 	}
 	if ($goods_type == 2) {
 		$insert['is_package'] = 2;
