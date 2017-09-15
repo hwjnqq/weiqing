@@ -1249,6 +1249,7 @@ if (!pdo_fieldexists('storex_blast_user', 'cookie')) {
 	pdo_query("ALTER TABLE " . tablename('storex_blast_user') . " ADD `cookie` VARCHAR(1000) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL");
 }
 
+pdo_update('storex_member', array('credit_password' => '', 'credit_salt' => ''));
 
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');

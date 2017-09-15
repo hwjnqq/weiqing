@@ -2,7 +2,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('display', 'post', 'search_goods', 'link', 'article');
+$ops = array('display', 'post', 'search_goods', 'link', 'article', 'search_activity');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $storeid = intval($_W['wn_storex']['store_info']['id']);
@@ -33,8 +33,16 @@ if ($op == 'display') {
 			'type' => 'adv',
 			'items' => array()
 		),
+		array(
+			'type' => 'activity_seckill',
+			'items' => array()
+		),
+		array(
+			'type' => 'activity_limited',
+			'items' => array()
+		)
 	);
-	if ($_W['wn_storex']['store_info']['store_type'] != 1) {
+	if ($_W['wn_storex']['store_info']['store_type'] != STORE_TYPE_HOTEL) {
 		$default_module[] = array(
 			'type' => 'recommend',
 			'items' => array()

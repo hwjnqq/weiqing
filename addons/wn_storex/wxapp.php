@@ -36,6 +36,8 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 	}
 	function actions($ac) {
 		$actions = array(
+			'activity' => array('do' => 'activity', 'op' => 'display'),
+				
 			'homePageList' => array('do' => 'wxapphomepage', 'op' => 'display'),
 			'homePageNotice' => array('do' => 'wxapphomepage', 'op' => 'notice'),
 				
@@ -71,6 +73,9 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 			'checkPasswordLock' => array('do' => 'usercenter', 'op' => 'check_password_lock'),
 			'setCreditPassword' => array('do' => 'usercenter', 'op' => 'set_credit_password'),
 			'footer' => array('do' => 'usercenter', 'op' => 'footer'),
+			'codeMode' => array('do' => 'usercenter', 'op' => 'code_mode'),
+			'sendCode' => array('do' => 'usercenter', 'op' => 'send_code'),
+			'setPassword' => array('do' => 'usercenter', 'op' => 'set_password'),
 				
 			'orderPay' => array('do' => 'orders', 'op' => 'orderpay'),
 			'orderList' => array('do' => 'orders', 'op' => 'order_list'),
