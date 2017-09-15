@@ -1143,6 +1143,15 @@ $sql = "
 	  KEY `uniacid` (`uniacid`),
 	  KEY `storeid` (`storeid`)
 	) DEFAULT CHARSET=utf8;
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_blast_set` (
+	  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+	  `uniacid` int(11) unsigned NOT NULL,
+	  `storeid` int(11) unsigned NOT NULL,
+	  `bg_image` varchar(500) NOT NULL,
+	  `tail` varchar(255) NOT NULL,
+	  PRIMARY KEY (`id`)
+	)DEFAULT CHARSET=utf8;
 ";
 
 pdo_run($sql);

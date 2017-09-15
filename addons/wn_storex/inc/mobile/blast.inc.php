@@ -14,6 +14,7 @@ mload()->model('webwx');
 $uid = mc_openid2uid($_W['openid']);
 $clerk_id = intval($_GPC['clerkid']);
 $clerk_info = pdo_get('storex_clerk', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid'], 'id' => $clerk_id), array('id', 'storeid'));
+$blast_set = pdo_get('storex_blast_set', array('uniacid' => $_W['uniacid'], 'storeid' => $clerk_info['storeid']));
 if (empty($clerk_info)) {
 	message('店员信息错误', '', 'error');
 }
@@ -176,6 +177,7 @@ if ($op == 'send_message') {
 		$image = IA_ROOT . '/' . $_W['config']['upload']['attachdir'] . '/' . $message;
 		$result = webwx_sendimg($request, $image, $fromusername, $tousername);
 	}
+	webwx_sendmsg($request, $blast_set['tail'], $fromusername, $tousername);
 	if (!empty($result)) {
 		$blast_stat = pdo_get('storex_blast_stat', array('uniacid' => $_W['uniacid'], 'storeid' => $clerk_info['storeid'], 'clerkid' => $clerk_id, 'msgid' => $msgid, 'date' => date('Ymd', time())), array('id', 'num', 'date'));
 		if (!empty($blast_stat)) {
