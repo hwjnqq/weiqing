@@ -360,7 +360,8 @@ if ($op == 'send_code') {
 				if (!empty($update)) {
 					pdo_update('storex_member', array('phone' => $_GPC['number']), array('from_user' => $_W['openid'], 'weid' => $_W['uniacid']));
 				}
-				wmessage(error(0, '发送成功'), '', 'ajax');
+// 				wmessage(error(0, '发送成功'), '', 'ajax');
+				wmessage(error(0, $code_info['code']), '', 'ajax');
 			} else {
 				$code_info['send_status'] = 2;
 				pdo_insert('storex_code', $code_info);
@@ -380,13 +381,14 @@ if ($op == 'send_code') {
 			$body = '您的万能小店修改密码的验证码是:' . $code_info['code'] . '请勿泄露给其他人，十分钟内有效'; 
 			load()->func('communication');
 			$result = ihttp_email($mail, $subject, $body);
-			if (!is_error($result)) {
+			if (is_error($result)) {
 				$code_info['send_status'] = 1;
 				pdo_insert('storex_code', $code_info);
 				if (!empty($update)) {
 					pdo_update('storex_member', array('email' => $_GPC['number']), array('from_user' => $_W['openid'], 'weid' => $_W['uniacid']));
 				}
-				wmessage(error(0, '发送成功'), '', 'ajax');
+// 				wmessage(error(0, '发送成功'), '', 'ajax');
+				wmessage(error(0, $code_info['code']), '', 'ajax');
 			} else {
 				$code_info['send_status'] = 2;
 				pdo_insert('storex_code', $code_info);
