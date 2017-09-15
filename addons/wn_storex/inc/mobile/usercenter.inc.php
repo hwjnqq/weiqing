@@ -351,9 +351,9 @@ if ($op == 'send_code') {
 			$code_info['mobile'] = trim($_GPC['number']);
 			$body = '您的万能小店修改密码的验证码是:' . $code_info['code'] . '请勿泄露给其他人，十分钟内有效';
 			load()->model('cloud');
-			$result = cloud_sms_send($_GPC['number'], $body);
+// 			$result = cloud_sms_send($_GPC['number'], $body);
 			$code_info['mobile'] = $_GPC['number'];
-			if (is_error($result)) {
+			if (!is_error($result)) {
 				$code_info['send_status'] = 1;
 				pdo_insert('storex_code', $code_info);
 // 				wmessage(error(0, '发送成功'), '', 'ajax');
@@ -376,8 +376,8 @@ if ($op == 'send_code') {
 			$subject = "微信公共帐号 [" . $_W['account']['name'] . "] 万能小店修改密码验证码";
 			$body = '您的万能小店修改密码的验证码是:' . $code_info['code'] . '请勿泄露给其他人，十分钟内有效'; 
 			load()->func('communication');
-			$result = ihttp_email($mail, $subject, $body);
-			if (is_error($result)) {
+// 			$result = ihttp_email($mail, $subject, $body);
+			if (!is_error($result)) {
 				$code_info['send_status'] = 1;
 				pdo_insert('storex_code', $code_info);
 // 				wmessage(error(0, '发送成功'), '', 'ajax');
