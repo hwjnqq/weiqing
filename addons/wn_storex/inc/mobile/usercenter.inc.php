@@ -325,12 +325,16 @@ if ($op == 'footer') {
 }
 
 if ($op == 'code_mode') {
-	$member = pdo_get('storex_member', array('from_user' => $_W['openid']), array('phone', 'email'));
-	wmessage(error(0, $member), '', 'ajax');
+	$memberinfo = get_member_mode();
+	wmessage(error(0, array('modes' => array('phone' => '手机号', 'email' => '邮箱'), 'member' => $memberinfo)), '', 'ajax');
 }
 
 if ($op == 'send_code') {
 	$type = trim($_GPC['type']);
+	$memberinfo = get_member_mode();
+	if (!empty($memberinfo) && !isset($memberinfo[$type])) {
+		wmessage(error(-1, '验证方式错误'), '', 'ajax');
+	}
 	$send_codes = pdo_getall('storex_code', array('openid' => $_W['openid'], 'weid' => $_W['uniacid'], 'send_status' => 1), array(), '', 'createtime DESC', array(1,1));
 	if (!empty($send_codes) && (TIMESTAMP - $send_codes['0']['createtime']) < 60 ) {
 		wmessage(error(-1, '请勿重复发送'), '', 'ajax');
@@ -402,6 +406,10 @@ if ($op == 'send_code') {
 if ($op == 'set_password') {
 	$code = $_GPC['code'];
 	$type = trim($_GPC['type']);
+	$memberinfo = get_member_mode();
+	if (!empty($memberinfo) && !isset($memberinfo[$type])) {
+		wmessage(error(-1, '验证方式错误'), '', 'ajax');
+	}
 	$number = trim($_GPC['number']);
 	$password = trim($_GPC['password']);
 	$repeat_password = trim($_GPC['r_password']);

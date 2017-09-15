@@ -949,3 +949,19 @@ function get_code_info() {
 	);
 	return $code_info;
 }
+
+function get_member_mode() {
+	global $_W;
+	$member = pdo_get('storex_member', array('from_user' => $_W['openid']), array('phone', 'email'));
+	$memberinfo = array();
+	if (!empty($member)) {
+		if (!empty($member['phone'])) {
+			$memberinfo['phone'] = $member['phone'];
+		} else {
+			if (!empty($member['email'])) {
+				$memberinfo['email'] = $member['email'];
+			}
+		}
+	}
+	return $memberinfo;
+}
