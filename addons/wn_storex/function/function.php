@@ -952,7 +952,7 @@ function get_code_info() {
 
 function get_member_mode() {
 	global $_W;
-	$member = pdo_get('storex_member', array('from_user' => $_W['openid']), array('phone', 'email'));
+	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']));
 	$memberinfo = array();
 	if (!empty($member)) {
 		if (!empty($member['phone'])) {
