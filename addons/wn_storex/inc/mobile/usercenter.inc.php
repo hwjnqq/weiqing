@@ -444,9 +444,9 @@ if ($op == 'set_password') {
 			$update['credit_password'] = hotel_member_hash($password, $salt);
 			$update['credit_salt'] = $salt;
 			if ($type == 'phone') {
-				$update[$type] = $codes['mobile'];
+				$update[$type] = $codeinfo['mobile'];
 			} else {
-				$update[$type] = $codes['email'];
+				$update[$type] = $codeinfo['email'];
 			}
 			$result = pdo_update('storex_member', $update, array('weid' => intval($_W['uniacid']), 'from_user' => trim($_W['openid'])));
 			if (!empty($result)) {
