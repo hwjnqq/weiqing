@@ -56,7 +56,7 @@
 		background-color: #CACACA;
 	}
 </style>
-<body>
+<body {if !empty($blast_set['bg_image'])}style="background:url('{php echo tomedia($blast_set['bg_image']);}')  no-repeat center"{/if}>
 {template 'common/header'}
 	<div class="blast" id="blast">
 		<div class="blast__head">欢迎使用本营销工具</div>

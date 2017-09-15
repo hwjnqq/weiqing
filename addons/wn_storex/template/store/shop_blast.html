@@ -3,11 +3,14 @@
 	<div class="wn-main__head">爆客设置</div>
 	<div class="wn-main__content">
 		<div class="wn-tabs">
-			<div class="wn-tabs__item wn-tabs__item--active">
+			<div class="wn-tabs__item {if $op == 'display'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_blast', array('storeid' => $_GPC['storeid'], 'op' => 'display'))}">店员设置</a>
 			</div>
 			<div class="wn-tabs__item">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_blast_stat', array('storeid' => $_GPC['storeid'], 'op' => 'stat'))}">数据统计</a>
+			</div>
+			<div class="wn-tabs__item {if $op == 'base'}wn-tabs__item--active{/if}"">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_blast', array('storeid' => $_GPC['storeid'], 'op' => 'base'))}">基础设置</a>
 			</div>
 		</div>
 		{if $op == 'display'}
@@ -100,6 +103,26 @@
 			});
 		});
 		</script>
+		{/if}
+		{if $op == 'base'}
+		<form class="form-horizontal form" method="post" enctype="multipart/form-data">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">小尾巴</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="tail" class="form-control" value="{$blast_set['tail']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">背景图片</label>
+				<div class="col-sm-9 col-xs-12">
+					{php echo tpl_form_field_image('bg_image', $blast_set['bg_image'])}
+				</div>
+			</div>
+			<div class="form-group col-sm-12">
+				<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</form>
 		{/if}
 	</div>
 </div>
