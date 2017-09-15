@@ -326,7 +326,7 @@ if ($op == 'footer') {
 
 if ($op == 'code_mode') {
 	$memberinfo = get_member_mode();
-	wmessage(error(0, array('modes' => array('phone' => '手机号', 'email' => '邮箱'), 'member' => $memberinfo)), '', 'ajax');
+	wmessage(error(0, array('modes' => array('phone' => '手机号', 'email' => '邮箱'),'member' => $memberinfo)), '', 'ajax');
 }
 
 if ($op == 'send_code') {
@@ -340,10 +340,6 @@ if ($op == 'send_code') {
 		wmessage(error(-1, '请勿重复发送'), '', 'ajax');
 	}
 	if (in_array($type, array('phone', 'email'))) {
-		$member = pdo_get('storex_member', array('from_user' => $_W['openid'], 'weid' => $_W['uniacid']), array('phone', 'email'));
-		if (empty($member[$type])) {
-			$update = 1;
-		}
 		if ($type == 'phone') {
 			if (!empty($member['phone']) && $member['phone'] != trim($_GPC['number'])) {
 				wmessage(error(-1, '手机号错误'), '', 'ajax');
@@ -360,9 +356,6 @@ if ($op == 'send_code') {
 			if (is_error($result)) {
 				$code_info['send_status'] = 1;
 				pdo_insert('storex_code', $code_info);
-				if (!empty($update)) {
-					pdo_update('storex_member', array('phone' => $_GPC['number']), array('from_user' => $_W['openid'], 'weid' => $_W['uniacid']));
-				}
 // 				wmessage(error(0, '发送成功'), '', 'ajax');
 				wmessage(error(0, $code_info['code']), '', 'ajax');
 			} else {
@@ -387,9 +380,6 @@ if ($op == 'send_code') {
 			if (is_error($result)) {
 				$code_info['send_status'] = 1;
 				pdo_insert('storex_code', $code_info);
-				if (!empty($update)) {
-					pdo_update('storex_member', array('email' => $_GPC['number']), array('from_user' => $_W['openid'], 'weid' => $_W['uniacid']));
-				}
 // 				wmessage(error(0, '发送成功'), '', 'ajax');
 				wmessage(error(0, $code_info['code']), '', 'ajax');
 			} else {
@@ -453,6 +443,11 @@ if ($op == 'set_password') {
 			$salt = random(8);
 			$update['credit_password'] = hotel_member_hash($password, $salt);
 			$update['credit_salt'] = $salt;
+			if ($type == 'phone') {
+				$update[$type] = $codes['mobile'];
+			} else {
+				$update[$type] = $codes['email'];
+			}
 			$result = pdo_update('storex_member', $update, array('weid' => intval($_W['uniacid']), 'from_user' => trim($_W['openid'])));
 			if (!empty($result)) {
 				wmessage(error(0, '设置密码成功'), '', 'ajax');

@@ -957,9 +957,11 @@ function get_member_mode() {
 	if (!empty($member)) {
 		if (!empty($member['phone'])) {
 			$memberinfo['phone'] = $member['phone'];
+			$memberinfo['type'] = 'phone';
 		} else {
 			if (!empty($member['email'])) {
 				$memberinfo['email'] = $member['email'];
+				$memberinfo['type'] = 'email';
 			}
 		}
 	}
