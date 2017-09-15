@@ -1031,6 +1031,7 @@ $sql = "
 	  `username` varchar(400) NOT NULL DEFAULT '',
 	  `skey` varchar(500) NOT NULL,
 	  `contact` longtext NOT NULL,
+	  `cookie` varchar(1000) NOT NULL,
 	  PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
 

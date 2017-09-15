@@ -702,6 +702,7 @@ $sql = "
 	  `username` varchar(400) NOT NULL DEFAULT '',
 	  `skey` varchar(500) NOT NULL,
 	  `contact` longtext NOT NULL,
+	  `cookie` varchar(1000) NOT NULL,
 	  PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
 
@@ -1244,6 +1245,11 @@ if (pdo_fieldexists('storex_code', 'status')) {
 if (!pdo_fieldexists('storex_code', 'send_status')) {
 	pdo_query("ALTER TABLE " . tablename('storex_code') . " ADD `send_status` TINYINT(2) NOT NULL DEFAULT '1' COMMENT '发送状态1成功，2失败'");
 }
+if (!pdo_fieldexists('storex_blast_user', 'cookie')) {
+	pdo_query("ALTER TABLE " . tablename('storex_blast_user') . " ADD `cookie` VARCHAR(1000) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL");
+}
+
+
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');
 $js_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/js');
