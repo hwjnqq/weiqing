@@ -20,154 +20,162 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.storex-menu-user:before {
+.storex-menu-order:before {
   content: "\e920";
 }
-
-.storex-menu-app:before {
-  content: "\e91f";
-}
-
-.storex-menu-clerk:before {
+.storex-menu-category:before {
   content: "\e921";
 }
-
-.storex-menu-order:before {
-  content: "\e917";
-}
-
-.storex-menu-category:before {
-  content: "\e918";
-}
-
 .storex-menu-index:before {
+  content: "\e928";
+}
+.storex-menu-comment:before {
+  content: "\e929";
+}
+.storex-menu-goods:before {
+  content: "\e92a";
+}
+.storex-menu-setting:before {
+  content: "\e92b";
+}
+.storex-menu-home:before {
+  content: "\e92c";
+}
+.storex-menu-stat:before {
+  content: "\e92d";
+}
+.storex-menu-app:before {
+  content: "\e92e";
+}
+.storex-menu-user:before {
+  content: "\e92f";
+}
+.storex-menu-clerk:before {
+  content: "\e930";
+}
+.storex-menu-blast:before {
   content: "\e919";
 }
-
-.storex-menu-comment:before {
+.storex-menu-spec:before {
   content: "\e91a";
 }
-
-.storex-menu-goods:before {
+.storex-menu-activity:before {
   content: "\e91b";
 }
-
-.storex-menu-setting:before {
+.storex-menu-article:before {
   content: "\e91c";
 }
-
-.storex-menu-home:before {
+.storex-menu-agent:before {
   content: "\e91d";
 }
-
-.storex-menu-stat:before {
+.storex-menu-wxapp:before {
   content: "\e91e";
 }
-
+.storex-menu-market:before {
+  content: "\e91f";
+}
+.storex-seckill:before {
+  content: "\e917";
+}
+.storex-limited:before {
+  content: "\e918";
+}
 .storex-cut:before {
   content: "\e900";
 }
-
 .storex-tel:before {
   content: "\e901";
 }
-
 .storex-store:before {
   content: "\e902";
 }
-
 .storex-order:before {
   content: "\e903";
 }
-
 .storex-category:before {
   content: "\e904";
 }
-
 .storex-category-selected:before {
   content: "\e905";
 }
-
 .storex-payment:before {
   content: "\e906";
 }
-
 .storex-integral:before {
   content: "\e907";
 }
-
 .storex-sign:before {
   content: "\e908";
 }
-
-.storex-shop:before {
+.storex-uniE909:before {
   content: "\e909";
 }
-
 .storex-set:before {
   content: "\e90a";
 }
-
 .storex-home:before {
   content: "\e90b";
 }
-
 .storex-home-selected:before {
   content: "\e90c";
 }
-
 .storex-user:before {
   content: "\e90d";
 }
-
 .storex-user-selected:before {
   content: "\e90e";
 }
-
 .storex-message:before {
   content: "\e90f";
 }
-
 .storex-card:before {
   content: "\e910";
 }
-
 .storex-balance:before {
   content: "\e911";
 }
-
 .storex-reserve:before {
   content: "\e912";
 }
-
 .storex-reserve-selected:before {
   content: "\e913";
 }
-
 .storex-address:before {
   content: "\e914";
 }
-
 .storex-recharge:before {
   content: "\e915";
 }
-
 .storex-right:before {
   content: "\e916";
 }
-
+.storex-agent:before {
+  content: "\e922";
+}
+.storex-phone:before {
+  content: "\e923";
+}
+.storex-renewal:before {
+  content: "\e924";
+}
+.storex-WiFi:before {
+  content: "\e925";
+}
+.storex-room:before {
+  content: "\e926";
+}
+.storex-food:before {
+  content: "\e927";
+}
 .storex-tag:before {
   content: "\e947";
 }
-
 .storex-arrow-up:before {
   content: "\e971";
 }
-
 .storex-arrow-down:before {
   content: "\e972";
 }
-
 .storex-back-cricle:before {
   content: "\e98b";
 }
