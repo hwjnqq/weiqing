@@ -63,6 +63,7 @@ var requireConfig = {
 		'jquery.jplayer' : '../../components/jplayer/jquery.jplayer.min',
 		'underscore': '../lib/underscore-min',
 		'biz': '../lib/biz',
+		'swiper' : '../../components/swiper/swiper.min',
 		//兼容
 		'util' : '../app/util',
 		'ueditor': '../../components/ueditor/ueditor.all.min',
@@ -154,6 +155,9 @@ var requireConfig = {
 		},
 		'angular-chart': {
 			deps: ['chart']
+		},
+		'swiper': {
+			deps: ['loadcss!../../components/swiper/swiper.min.css'],
 		}
 	}
 };
