@@ -14,7 +14,14 @@ $uid = mc_openid2uid($_W['openid']);
 $store_id = intval($_GPC['id']);
 $goodsid = intval($_GPC['goodsid']);
 $store_info = get_store_info($store_id);
-$activity = pdo_get('storex_goods_activity', array('status' => 1,'storeid' => $store_id, 'uniacid' => $_W['uniacid'], 'goodsid' => $goodsid, 'starttime <=' => TIMESTAMP, 'endtime >' => TIMESTAMP), array(), '', 'starttime ASC');
+$condition = array('status' => 1,'storeid' => $store_id, 'uniacid' => $_W['uniacid'], 'goodsid' => $goodsid, 'starttime <=' => TIMESTAMP, 'endtime >' => TIMESTAMP);
+if (!empty($_GPC['specid'])) {
+	$condition['specid'] = intval($_GPC['specid']);
+}
+if (!empty($_GPC['spec_id'])) {
+	$condition['specid'] = intval($_GPC['spec_id']);
+}
+$activity = pdo_get('storex_goods_activity', $condition, array(), '', 'starttime ASC');
 
 //获取某个商品的详细信息
 if ($op == 'goods_info') {

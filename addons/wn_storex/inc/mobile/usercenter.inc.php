@@ -3,7 +3,6 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-
 $ops = array('personal_info', 'personal_update', 'credits_record', 'address_lists', 'current_address', 'address_post', 'address_default', 'address_delete', 'extend_switch', 'credit_password', 'check_password_lock', 'set_credit_password', 'credit_pay', 'footer', 'code_mode', 'send_code', 'set_password');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
@@ -340,24 +339,24 @@ if ($op == 'send_code') {
 		wmessage(error(-1, '请勿重复发送'), '', 'ajax');
 	}
 	if (in_array($type, array('phone', 'email'))) {
+		$number = trim($_GPC['number']);
 		if ($type == 'phone') {
-			if (!empty($member['phone']) && $member['phone'] != trim($_GPC['number'])) {
+			if (!empty($member['phone']) && $member['phone'] != $number) {
 				wmessage(error(-1, '手机号错误'), '', 'ajax');
 			}
-			if (!preg_match(REGULAR_MOBILE, $_GPC['number'])) {
+			if (!preg_match(REGULAR_MOBILE, $number)) {
 				wmessage(error(-1, '手机号码格式不正确'), '', 'ajax');
 			}
 			$code_info = get_code_info();
 			$code_info['mobile'] = trim($_GPC['number']);
-			$body = '您的万能小店修改密码的验证码是:' . $code_info['code'] . '请勿泄露给其他人，十分钟内有效';
+			$body = "您的短信验证码为: {$code_info['code']} 您正在使用{$this->module['title']}相关功能, 需要你进行身份确认. ".random(3);
 			load()->model('cloud');
-// 			$result = cloud_sms_send($_GPC['number'], $body);
-			$code_info['mobile'] = $_GPC['number'];
+			$result = cloud_sms_send($number, $body);
+			$code_info['mobile'] = $number;
 			if (!is_error($result)) {
 				$code_info['send_status'] = 1;
 				pdo_insert('storex_code', $code_info);
-// 				wmessage(error(0, '发送成功'), '', 'ajax');
-				wmessage(error(0, $code_info['code']), '', 'ajax');
+				wmessage(error(0, '发送成功'), '', 'ajax');
 			} else {
 				$code_info['send_status'] = 2;
 				pdo_insert('storex_code', $code_info);
@@ -365,18 +364,17 @@ if ($op == 'send_code') {
 			}
 		}
 		if ($type == 'email') {
-			if (!empty($member['email']) && $member['email'] != trim($_GPC['number'])) {
+			if (!empty($member['email']) && $member['email'] != $number) {
 				wmessage(error(-1, '邮箱错误'), '', 'ajax');
 			}
-			if (!preg_match(REGULAR_EMAIL, $_GPC['number'])) {
+			if (!preg_match(REGULAR_EMAIL, $number)) {
 				wmessage(error(-1, '邮箱格式不正确'), '', 'ajax');
 			}
 			$code_info = get_code_info();
-			$code_info['email'] = trim($_GPC['number']);
-			$subject = "微信公共帐号 [" . $_W['account']['name'] . "] 万能小店修改密码验证码";
-			$body = '您的万能小店修改密码的验证码是:' . $code_info['code'] . '请勿泄露给其他人，十分钟内有效'; 
 			load()->func('communication');
-// 			$result = ihttp_email($mail, $subject, $body);
+			$content = "您的邮箱验证码为: {$code_info['code']} 您正在使用{$this->module['title']}相关功能, 需要你进行身份确认.";
+			$result = ihttp_email($number, "{$this->module['title']}身份确认验证码", $content);
+			$code_info['email'] = $number;
 			if (!is_error($result)) {
 				$code_info['send_status'] = 1;
 				pdo_insert('storex_code', $code_info);
