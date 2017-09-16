@@ -360,7 +360,7 @@ if ($op == 'send_code') {
 			} else {
 				$code_info['send_status'] = 2;
 				pdo_insert('storex_code', $code_info);
-				wmessage(error(-1, $result['message']), '', 'ajax');
+				wmessage(error(-1, '发送失败'), '', 'ajax');
 			}
 		}
 		if ($type == 'email') {
