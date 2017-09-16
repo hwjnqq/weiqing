@@ -16,7 +16,7 @@ $storeid = intval($_GPC['id']);
 $type = !empty($_GPC['type']) ? intval($_GPC['type']) : 1;
 
 if ($op == 'display') {
-	$activity_list = pdo_getall('storex_goods_activity', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'type' => $type), array(), 'id');
+	$activity_list = pdo_getall('storex_goods_activity', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'type' => $type), array(), '', 'endtime DESC');
 	if (!empty($activity_list) && is_array($activity_list)) {
 		foreach ($activity_list as $key => $value) {
 			if ($value['is_spec'] == 1) {

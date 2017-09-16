@@ -197,7 +197,7 @@ if ($op == 'credit_password') {
 	if (empty($member['credit_password'])) {
 		wmessage(error(1, '余额未设置支付密码'), '', 'ajax');
 	}
-	$password = hotel_member_hash($_GPC['password'], $member['credit_salt']);
+	$password = hotel_member_hash(trim($_GPC['password']), $member['credit_salt']);
 	if ($password != $member['credit_password']) {
 		wmessage(error(-1, '余额支付密码错误'), '', 'ajax');
 	} else {
@@ -353,15 +353,6 @@ if ($op == 'send_code') {
 			load()->model('cloud');
 			$result = cloud_sms_send($number, $body);
 			$code_info['mobile'] = $number;
-			if (!is_error($result)) {
-				$code_info['send_status'] = 1;
-				pdo_insert('storex_code', $code_info);
-				wmessage(error(0, '发送成功'), '', 'ajax');
-			} else {
-				$code_info['send_status'] = 2;
-				pdo_insert('storex_code', $code_info);
-				wmessage(error(-1, '发送失败'), '', 'ajax');
-			}
 		}
 		if ($type == 'email') {
 			if (!empty($member['email']) && $member['email'] != $number) {
@@ -375,16 +366,15 @@ if ($op == 'send_code') {
 			$content = "您的邮箱验证码为: {$code_info['code']} 您正在使用{$this->module['title']}相关功能, 需要你进行身份确认.";
 			$result = ihttp_email($number, "{$this->module['title']}身份确认验证码", $content);
 			$code_info['email'] = $number;
-			if (!is_error($result)) {
-				$code_info['send_status'] = 1;
-				pdo_insert('storex_code', $code_info);
-// 				wmessage(error(0, '发送成功'), '', 'ajax');
-				wmessage(error(0, $code_info['code']), '', 'ajax');
-			} else {
-				$code_info['send_status'] = 2;
-				pdo_insert('storex_code', $code_info);
-				wmessage(error(-1, '发送失败'), '', 'ajax');
-			}
+		}
+		if (!empty($result) && !is_error($result)) {
+			$code_info['send_status'] = 1;
+			pdo_insert('storex_code', $code_info);
+			wmessage(error(0, '发送成功'), '', 'ajax');
+		} else {
+			$code_info['send_status'] = 2;
+			pdo_insert('storex_code', $code_info);
+			wmessage(error(-1, '发送失败'), '', 'ajax');
 		}
 	} else {
 		wmessage(error(-1, '验证类型错误'), '', 'ajax');

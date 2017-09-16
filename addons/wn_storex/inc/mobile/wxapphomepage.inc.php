@@ -46,7 +46,7 @@ if ($op == 'display') {
 		)
 	);
 	$homepage_list = pdo_getall('storex_homepage', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'is_wxapp' => 1), array(), 'displayorder', 'displayorder ASC');
-	$activity_list = pdo_getall('storex_goods_activity', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid), array(), 'id');
+	$activity_list = pdo_getall('storex_goods_activity', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'endtime >' => TIMESTAMP), array(), 'id');
 	if (!empty($activity_list) && is_array($activity_list)) {
 		foreach ($activity_list as $key => $value) {
 			if ($value['is_spec'] == 1) {
