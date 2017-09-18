@@ -325,10 +325,7 @@ if ($op == 'code_mode') {
 	$set = get_storex_set();
 	if (!empty($set['credit_pw']) && $set['credit_pw'] == 1) {
 		$memberinfo = array();
-		if (!empty($set['credit_pw_mode'])) {
-			$mode = array_keys($set['credit_pw_mode']);
-			$memberinfo = get_member_mode($mode);
-		}
+		$memberinfo = get_member_mode();
 		$credit_set['credit_pw'] = $set['credit_pw'];
 		$credit_set['credit_pw_mode'] = $set['credit_pw_mode'];
 	} else {
@@ -340,11 +337,9 @@ if ($op == 'code_mode') {
 if ($op == 'send_code') {
 	$type = trim($_GPC['type']);
 	$set = get_storex_set();
-	if ($set['credit_pw'] == 1 && !empty($set['credit_pw_mode'])) {
-		$mode = array_keys($set['credit_pw_mode']);
-		$memberinfo = get_member_mode($mode);
-	} else {
-		wmessage(error(-1, '系统未开启验证方式'), '', 'ajax');
+	$memberinfo = get_member_mode();
+	if (empty($set['credit_pw_mode']) || empty($set['credit_pw_mode'][$type])) {
+		wmessage(error(-1, '与之前验证方式不符'), '', 'ajax');
 	}
 	if (!empty($memberinfo) && !isset($memberinfo[$type])) {
 		wmessage(error(-1, '验证方式错误'), '', 'ajax');
@@ -399,13 +394,7 @@ if ($op == 'send_code') {
 if ($op == 'set_password') {
 	$code = $_GPC['code'];
 	$type = trim($_GPC['type']);
-	$set = get_storex_set();
-	if ($set['credit_pw'] == 1 && !empty($set['credit_pw_mode'])) {
-		$mode = array_keys($set['credit_pw_mode']);
-		$memberinfo = get_member_mode($mode);
-	} else {
-		wmessage(error(-1, '系统未开启验证方式'), '', 'ajax');
-	}
+	$memberinfo = get_member_mode();
 	if (!empty($memberinfo) && !isset($memberinfo[$type])) {
 		wmessage(error(-1, '验证方式错误'), '', 'ajax');
 	}
