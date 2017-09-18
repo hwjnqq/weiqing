@@ -1134,6 +1134,11 @@ if (ver_compare('1.6.0', $wn_storex_module['version']) == 1) {
 		}
 	}
 }
+
+if (ver_compare('1.6.1', $wn_storex_module['version'])) {
+	pdo_update('storex_member', array('phone' => '', 'email' => '', 'credit_password' => '', 'credit_salt' => ''));
+}
+
 if (pdo_fieldexists('storex_order', 'roomitemid')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " CHANGE `roomitemid` `roomitemid` VARCHAR(200) NOT NULL COMMENT '房间号ID';");
 }
@@ -1249,7 +1254,6 @@ if (!pdo_fieldexists('storex_blast_user', 'cookie')) {
 	pdo_query("ALTER TABLE " . tablename('storex_blast_user') . " ADD `cookie` VARCHAR(1000) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL");
 }
 
-pdo_update('storex_member', array('credit_password' => '', 'credit_salt' => ''));
 //设置余额支付密码设置的开关和验证方式
 if (!pdo_fieldexists('storex_set', 'credit_pw')) {
 	pdo_query("ALTER TABLE " . tablename('storex_set') . " ADD `credit_pw` TINYINT(2) NOT NULL DEFAULT '2' COMMENT '1开2关'");
