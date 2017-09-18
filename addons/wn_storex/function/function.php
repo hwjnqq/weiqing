@@ -950,18 +950,15 @@ function get_code_info() {
 	return $code_info;
 }
 
-function get_member_mode($mode = array()) {
+function get_member_mode() {
 	global $_W;
-	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), $mode);
+	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('phone', 'email'));
 	$memberinfo = array();
-	if (!empty($member)) {
-		if (!empty($member['phone'])) {
-			$memberinfo['phone'] = $member['phone'];
-			$memberinfo['type'] = 'phone';
-		} else {
-			if (!empty($member['email'])) {
-				$memberinfo['email'] = $member['email'];
-				$memberinfo['type'] = 'email';
+	if (!empty($member) && !empty($member)) {
+		foreach ($member as $k => $v) {
+			if (!empty($v)) {
+				$memberinfo[$k] = $v;
+				$memberinfo['type'] = $k;
 			}
 		}
 	}
