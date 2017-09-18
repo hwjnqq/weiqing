@@ -324,7 +324,6 @@ if ($op == 'footer') {
 if ($op == 'code_mode') {
 	$set = get_storex_set();
 	if (!empty($set['credit_pw']) && $set['credit_pw'] == 1) {
-		$mode = array();
 		$memberinfo = array();
 		if (!empty($set['credit_pw_mode'])) {
 			$mode = array_keys($set['credit_pw_mode']);
@@ -340,7 +339,13 @@ if ($op == 'code_mode') {
 
 if ($op == 'send_code') {
 	$type = trim($_GPC['type']);
-	$memberinfo = get_member_mode();
+	$set = get_storex_set();
+	if ($set['credit_pw'] == 1 && !empty($set['credit_pw_mode'])) {
+		$mode = array_keys($set['credit_pw_mode']);
+		$memberinfo = get_member_mode($mode);
+	} else {
+		wmessage(error(-1, '系统未开启验证方式'), '', 'ajax');
+	}
 	if (!empty($memberinfo) && !isset($memberinfo[$type])) {
 		wmessage(error(-1, '验证方式错误'), '', 'ajax');
 	}
@@ -394,7 +399,13 @@ if ($op == 'send_code') {
 if ($op == 'set_password') {
 	$code = $_GPC['code'];
 	$type = trim($_GPC['type']);
-	$memberinfo = get_member_mode();
+	$set = get_storex_set();
+	if ($set['credit_pw'] == 1 && !empty($set['credit_pw_mode'])) {
+		$mode = array_keys($set['credit_pw_mode']);
+		$memberinfo = get_member_mode($mode);
+	} else {
+		wmessage(error(-1, '系统未开启验证方式'), '', 'ajax');
+	}
 	if (!empty($memberinfo) && !isset($memberinfo[$type])) {
 		wmessage(error(-1, '验证方式错误'), '', 'ajax');
 	}
