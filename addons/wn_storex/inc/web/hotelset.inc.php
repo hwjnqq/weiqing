@@ -41,6 +41,8 @@ if ($op == 'display') {
 			'location' => $_GPC['location'],
 			'credit_pay' => intval($_GPC['credit_pay']),
 			'credit_ratio' => intval($_GPC['credit_ratio']),
+			'credit_pw' => intval($_GPC['credit_pw']),
+			'credit_pw_mode' => iserializer($_GPC['credit_pw_mode']),
 		);
 		if ($data['template'] && $data['templateid'] == '') {
 			message('请输入模板ID', referer(), 'error');

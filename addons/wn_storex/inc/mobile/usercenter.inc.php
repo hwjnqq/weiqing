@@ -35,11 +35,9 @@ if ($op == 'extend_switch') {
 		$extend_switch['plugin_list'] = $plugin_list;
 	}
 	$extend_switch['notice_unread_num'] = $notice_unread_num;
-	$store_set = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('location', 'id'));
-	$extend_switch['location'] = 2;
-	if (!empty($store_set)) {
-		$extend_switch['location'] = $store_set['location'];
-	}
+	$store_set = get_storex_set();
+	$extend_switch['location'] = !empty($store_set['location']) ? $store_set['location'] : 2;
+	$extend_switch['credit_pw'] = !empty($store_set['credit_pw']) ? $store_set['credit_pw'] : 2;
 	wmessage(error(0, $extend_switch), '', 'ajax');
 }
 
@@ -324,8 +322,20 @@ if ($op == 'footer') {
 }
 
 if ($op == 'code_mode') {
-	$memberinfo = get_member_mode();
-	wmessage(error(0, array('modes' => array('phone' => '手机号', 'email' => '邮箱'),'member' => $memberinfo)), '', 'ajax');
+	$set = get_storex_set();
+	if (!empty($set['credit_pw']) && $set['credit_pw'] == 1) {
+		$mode = array();
+		$memberinfo = array();
+		if (!empty($set['credit_pw_mode'])) {
+			$mode = array_keys($set['credit_pw_mode']);
+			$memberinfo = get_member_mode($mode);
+		}
+		$credit_set['credit_pw'] = $set['credit_pw'];
+		$credit_set['credit_pw_mode'] = $set['credit_pw_mode'];
+	} else {
+		$credit_set['credit_pw'] = 2;
+	}
+	wmessage(error(0, array('credit_set' => $credit_set, 'modes' => array('phone' => '手机号', 'email' => '邮箱'), 'member' => $memberinfo)), '', 'ajax');
 }
 
 if ($op == 'send_code') {

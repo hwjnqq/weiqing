@@ -251,6 +251,8 @@ $sql = "
 	`location` tinyint(2) NOT NULL DEFAULT '1' COMMENT '是否开启定位1开2关',
 	`credit_pay` tinyint(2) NOT NULL DEFAULT '1' COMMENT '积分抵扣设置1开启，2关闭',
 	`credit_ratio` int(11) NOT NULL COMMENT '抵扣比例',
+	`credit_pw` tinyint(2) NOT NULL DEFAULT '2' COMMENT '1开2关',
+	`credit_pw_mode` varchar(100) NOT NULL COMMENT '余额支付密码验证方式',
 	PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 

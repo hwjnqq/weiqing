@@ -1250,6 +1250,13 @@ if (!pdo_fieldexists('storex_blast_user', 'cookie')) {
 }
 
 pdo_update('storex_member', array('credit_password' => '', 'credit_salt' => ''));
+//设置余额支付密码设置的开关和验证方式
+if (!pdo_fieldexists('storex_set', 'credit_pw')) {
+	pdo_query("ALTER TABLE " . tablename('storex_set') . " ADD `credit_pw` TINYINT(2) NOT NULL DEFAULT '2' COMMENT '1开2关'");
+}
+if (!pdo_fieldexists('storex_set', 'credit_pw_mode')) {
+	pdo_query("ALTER TABLE " . tablename('storex_set') . " ADD `credit_pw_mode` VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '余额支付密码验证方式'");
+}
 
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');

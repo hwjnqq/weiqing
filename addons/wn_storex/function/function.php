@@ -950,9 +950,9 @@ function get_code_info() {
 	return $code_info;
 }
 
-function get_member_mode() {
+function get_member_mode($mode = array()) {
 	global $_W;
-	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']));
+	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), $mode);
 	$memberinfo = array();
 	if (!empty($member)) {
 		if (!empty($member['phone'])) {
