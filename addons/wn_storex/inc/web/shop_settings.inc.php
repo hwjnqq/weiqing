@@ -43,6 +43,9 @@ if ($op == 'post') {
 			'market_status' => intval($_GPC['market_status']),
 			'max_replace' => sprintf('%.2f', $_GPC['max_replace']),
 		);
+		if (!empty($_GPC['pick_up_mode'])) {
+			$common_insert['pick_up_mode'] = iserializer($_GPC['pick_up_mode']);
+		}
 		$receives = array('emails' => 'email', 'phones' => 'tel', 'openids' => 'openid');
 		foreach ($receives as $field => $type) {
 			if (!empty($_GPC[$type]) && is_array($_GPC[$type])) {
@@ -119,7 +122,8 @@ if ($op == 'post') {
 		$devices = iunserializer($item['device']);
 	}
 	$storex_bases['thumbs'] = iunserializer($storex_bases['thumbs']);
-	$storex_bases['detail_thumbs'] =  iunserializer($storex_bases['detail_thumbs']);
+	$storex_bases['detail_thumbs'] = iunserializer($storex_bases['detail_thumbs']);
+	$storex_bases['pick_up_mode'] = iunserializer($storex_bases['pick_up_mode']);
 	$emails = iunserializer($storex_bases['emails']);
 	$tels = iunserializer($storex_bases['phones']);
 	$openids = iunserializer($storex_bases['openids']);

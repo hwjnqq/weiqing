@@ -1259,7 +1259,12 @@ if (!pdo_fieldexists('storex_set', 'credit_pw')) {
 	pdo_query("ALTER TABLE " . tablename('storex_set') . " ADD `credit_pw` TINYINT(2) NOT NULL DEFAULT '2' COMMENT '1开2关'");
 }
 if (!pdo_fieldexists('storex_set', 'credit_pw_mode')) {
-	pdo_query("ALTER TABLE " . tablename('storex_set') . " ADD `credit_pw_mode` VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '余额支付密码验证方式'");
+	pdo_query("ALTER TABLE " . tablename('storex_set') . " ADD `credit_pw_mode` VARCHAR(100) NOT NULL COMMENT '余额支付密码验证方式'");
+}
+
+//店铺增加提货方式设置
+if (!pdo_fieldexists('storex_bases', 'pick_up_mode')) {
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `pick_up_mode` VARCHAR(100) NOT NULL COMMENT '取货方式'");
 }
 
 //处理mobile更新遗留的js，css和svg文件

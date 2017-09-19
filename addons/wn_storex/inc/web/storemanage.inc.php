@@ -115,6 +115,9 @@ if ($op == 'edit') {
 			'distance' => intval($_GPC['distance']),
 			'max_replace' => sprintf('%.2f', $_GPC['max_replace']),
 		);
+		if (!empty($_GPC['pick_up_mode'])) {
+			$common_insert['pick_up_mode'] = iserializer($_GPC['pick_up_mode']);
+		}
 		$common_insert['thumbs'] = empty($_GPC['thumbs']) ? '' : iserializer($_GPC['thumbs']);
 		$common_insert['detail_thumbs'] = empty($_GPC['detail_thumbs']) ? '' : iserializer($_GPC['detail_thumbs']);
 		if (!empty($_GPC['store_type'])) {
@@ -162,6 +165,7 @@ if ($op == 'edit') {
 	}
 	$storex_bases['thumbs'] =  iunserializer($storex_bases['thumbs']);
 	$storex_bases['detail_thumbs'] =  iunserializer($storex_bases['detail_thumbs']);
+	$storex_bases['pick_up_mode'] = iunserializer($storex_bases['pick_up_mode']);
 	include $this->template('hotel_form');
 }
 

@@ -322,6 +322,7 @@ if ($op == 'info') {
 	$infos['info'] = $info;
 	$infos['goods_info'] = $goods_info;
 	$infos['address'] = $address;
+	$infos['pick_up_mode'] = $store_info['pick_up_mode'];
 	$infos['market'] = array();
 	if ($store_info['market_status'] == 1) {
 		$infos['market'] = get_store_market($store_id);

@@ -243,7 +243,7 @@ function format_url($urls) {
 //获取店铺信息
 function get_store_info($id) {
 	global $_W;
-	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone', 'thumb', 'emails', 'phones', 'openids', 'mail', 'refund', 'market_status', 'max_replace'));
+	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone', 'thumb', 'emails', 'phones', 'openids', 'mail', 'refund', 'market_status', 'max_replace', 'pick_up_mode'));
 	if (empty($store_info)) {
 		wmessage(error(-1, '店铺不存在'), '', 'ajax');
 	} else {
@@ -253,6 +253,7 @@ function get_store_info($id) {
 			$store_info['emails'] = iunserializer($store_info['emails']);
 			$store_info['phones'] = iunserializer($store_info['phones']);
 			$store_info['openids'] = iunserializer($store_info['openids']);
+			$store_info['pick_up_mode'] = iunserializer($store_info['pick_up_mode']);
 			return $store_info;
 		}
 	}
@@ -590,17 +591,28 @@ function extend_switch_fetch() {
 function general_goods_order($order_info, $goods_info, $insert) {
 	global $_GPC;
 	if ($goods_info['store_type'] != STORE_TYPE_HOTEL) {
-		$order_info['mode_distribute'] = intval($_GPC['order']['mode_distribute']);
-		if (empty($_GPC['order']['order_time'])) {
-			wmessage(error(-1, '请选择时间！'), '', 'ajax');
-		}
-		$order_info['order_time'] = strtotime(intval($_GPC['order']['order_time']));
-		if ($order_info['mode_distribute'] == 2) {//配送
-			if (empty($_GPC['order']['addressid'])) {
-				wmessage(error(-1, '地址不能为空！'), '', 'ajax');
+		$store_info = get_store_info($order_info['hotelid']);
+		if (!empty($store_info['pick_up_mode'])) {
+			$order_info['mode_distribute'] = '';
+			$mode_distribute = intval($_GPC['order']['mode_distribute']);
+			if (empty($_GPC['order']['order_time'])) {
+				wmessage(error(-1, '请选择时间！'), '', 'ajax');
 			}
-			$order_info['addressid'] = intval($_GPC['order']['addressid']);
-			$order_info['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
+			$order_info['order_time'] = strtotime(intval($_GPC['order']['order_time']));
+			if ($mode_distribute == 2) {//配送
+				if (!empty($store_info['pick_up_mode']['express'])) {
+					if (empty($_GPC['order']['addressid'])) {
+						wmessage(error(-1, '地址不能为空！'), '', 'ajax');
+					}
+					$order_info['mode_distribute'] = $mode_distribute;
+					$order_info['addressid'] = intval($_GPC['order']['addressid']);
+					$order_info['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
+				}
+			} elseif ($mode_distribute == 1) {
+				if (!empty($store_info['pick_up_mode']['self_lift'])) {
+					$order_info['mode_distribute'] = $mode_distribute;
+				}
+			}
 		}
 	}
 	$insert = array_merge($order_info, $insert);

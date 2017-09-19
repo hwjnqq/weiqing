@@ -303,6 +303,7 @@ $sql = "
 	`openids` varchar(200) NOT NULL COMMENT '接收所有微信',
 	`market_status` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '营销开关',
 	`max_replace` decimal(10,2) NOT NULL COMMENT '最大抵扣金额',
+	`pick_up_mode` varchar(100) NOT NULL COMMENT '取货方式',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) DEFAULT CHARSET=utf8;
