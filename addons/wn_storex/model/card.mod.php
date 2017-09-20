@@ -217,8 +217,11 @@ function card_group_id($uid) {
 	global $_W;
 	$members = pdo_get('mc_members', array('uid' => $uid), array('groupid'));
 	if (!empty($members['groupid'])) {
-		$group_info = pdo_get('mc_groups', array('groupid' => $members['groupid']));
-		return $group_info;
+		$storex_member = pdo_get('storex_mc_card_members', array('uid' => $uid));
+		if (!empty($storex_member)) {
+			$group_info = pdo_get('mc_groups', array('groupid' => $members['groupid']));
+			return $group_info;
+		}
 	}
 }
 

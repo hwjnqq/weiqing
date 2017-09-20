@@ -20,6 +20,17 @@ if (!empty($roomid)) {
 }
 
 if ($op == 'display') {
+	$order_status = array(
+		'0' => array('name' => '未确认', 'num' => 0, 'status' => 0),
+		'-1' => array('name' => '已取消', 'num' => 0, 'status' => -1),
+		'1' => array('name' => '已确认', 'num' => 0, 'status' => 1),
+		'2' => array('name' => '已拒绝', 'num' => 0, 'status' => 2),
+		'3' => array('name' => '已完成', 'num' => 0, 'status' => 3),
+	);
+	foreach ($order_status as $s => &$info) {
+		$info['num'] = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_order') . " WHERE status = {$info['status']} AND hotelid = {$storeid}");
+	}
+	unset($info);
 	$search_name = $_GPC['search_name'];
 	$keyword = trim($_GPC['keyword']);
 	$condition = '';
@@ -45,13 +56,7 @@ if ($op == 'display') {
 	if (!empty($roomid)) {
 		$condition .= " AND o.roomid = " . $roomid;
 	}
-	if (!empty($_GPC['status'])) {
-		if ($_GPC['status'] == 4) {
-			$condition .= " AND o.status = 0";
-		} else {
-			$condition .= " AND o.status =" . intval($_GPC['status']);
-		}
-	}
+	$condition .= " AND o.status =" . intval($_GPC['status']);
 	$paystatus = $_GPC['paystatus'];
 	if (!empty($_GPC['paystatus'])) {
 		if ($_GPC['paystatus'] == 2) {

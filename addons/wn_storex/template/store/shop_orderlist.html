@@ -2,6 +2,13 @@
 <div class="wn-main wn-main--without">
 	<div class="wn-main__head">订单管理</div>
 	<div class="wn-main__content">
+		<div class="wn-tabs">
+			{loop $order_status $status $info}
+			<div class="wn-tabs__item {if $_GPC['status'] == $status}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_order', array('op' => 'display', 'status' => $status, 'storeid' => $_GPC['storeid']))}">{$info['name']}({$info['num']})</a>
+			</div>
+			{/loop}
+		</div>
 		<div class="modal fade" id="quantity-modal" tabindex="-1" role="dialog" aria-hidden="true">
 			<div class="modal-dialog">
 				<div class="modal-content">
@@ -29,6 +36,7 @@
 				<input type="hidden" name="a" value="entry" />
 				<input type="hidden" name="m" value="wn_storex" />
 				<input type="hidden" name="do" value="shop_order" />
+				<input type="hidden" name="status" value="{$_GPC['status']}" />
 				<input type="hidden" name="storeid" value="{$storeid}" />
 				<div class="form-group">
 					<div class="col-sm-1">
@@ -45,16 +53,6 @@
 				</div>
 				<div class="form-group">
 						<label class="col-sm-1 control-label">订单状态</label>
-						<div class="col-sm-3 col-xs-12">
-							<select name="status" class="form-control">
-								<option value="">订单状态</option>
-								<option value="4" {if $_GPC['status']== 4} selected = "selected" {/if}>等待确认</option>
-								<option value="-1" {if $_GPC['status'] == -1} selected = "selected" {/if}>订单取消/退款</option>
-								<option value="1" {if $_GPC['status'] == 1} selected = "selected" {/if}>订单确认</option>
-								<option value="2" {if $_GPC['status'] == 2} selected = "selected" {/if}>订单拒绝/退款</option>
-								<option value="3" {if $_GPC['status'] == 3} selected = "selected" {/if}>订单完成</option>
-							</select>
-						</div>
 						<div class="col-sm-3 col-xs-12">
 							<select name="paystatus" class="form-control">
 								<option value="">支付状态</option>

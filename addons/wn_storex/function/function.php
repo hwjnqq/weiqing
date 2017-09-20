@@ -853,7 +853,7 @@ function get_store_market($storeid) {
 	}
 	$storex_market = pdo_getall('storex_market', $condition, array('storeid', 'type', 'items'), 'type');
 	$markets = array();
-	$types = array('new', 'cut', 'gift', 'pickup');
+	$types = array('pickup', 'new', 'cut', 'gift');
 	foreach ($types as $type) {
 		if (!empty($storex_market[$type])) {
 			if ($type == 'new') {
