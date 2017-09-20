@@ -226,8 +226,8 @@
 			<div class="form-group credit_pw_mode">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">提货方式</label>
 				<div class="col-sm-9 col-xs-12">
-					<label class='checkbox-inline'><input type="checkbox" name="pick_up_mode[express]" value="1" {if !empty($storex_bases['pick_up_mode']) && $storex_bases['pick_up_mode'][express] == 1 } checked {/if}> 快递发货 </label>
-					<label class='checkbox-inline'><input type="checkbox" name="pick_up_mode[self_lift]" value="1" {if !empty($storex_bases['pick_up_mode']) && $storex_bases['pick_up_mode']['self_lift'] == 1 } checked {/if}> 自提商品 </label>
+					<label class='checkbox-inline'><input type="checkbox" name="pick_up_mode[self_lift]" value="1" {if !empty($storex_bases['pick_up_mode']) && $storex_bases['pick_up_mode']['self_lift'] == 1 } checked {/if}> 自提 </label>
+					<label class='checkbox-inline'><input type="checkbox" name="pick_up_mode[express]" value="2" {if !empty($storex_bases['pick_up_mode']) && $storex_bases['pick_up_mode'][express] == 2 } checked {/if}> 配送 </label>
 					<span class="help-block">选择提货方式后会在结算订单的时候选择提货方式，请根据店铺实际情况设置。</span>
 				</div>
 			</div>

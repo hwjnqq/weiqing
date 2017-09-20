@@ -104,7 +104,7 @@ if ($op == 'post') {
 				}
 			}
 		}
-		message('店铺信息保存成功!', $this->createWebUrl('shop_index', array('storeid' => $id)), 'success');
+		itoast('店铺信息保存成功!', $this->createWebUrl('shop_index', array('storeid' => $id)), 'success');
 	}
 	$storex_bases = pdo_get('storex_bases', array('id' => $id));
 	$item = pdo_get('storex_hotel', array('store_base_id' => $id), array('id', 'store_base_id', 'device'));

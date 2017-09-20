@@ -322,7 +322,20 @@ if ($op == 'info') {
 	$infos['info'] = $info;
 	$infos['goods_info'] = $goods_info;
 	$infos['address'] = $address;
-	$infos['pick_up_mode'] = $store_info['pick_up_mode'];
+	$infos['pick_up_mode'] = array();
+	if (!empty($store_info['pick_up_mode']) && is_array($store_info['pick_up_mode'])) {
+		foreach ($store_info['pick_up_mode'] as $mode => $val) {
+			$infos['pick_up_mode'][$mode] = array(
+				'value' => $store_info['pick_up_mode'][$mode],
+				'type' => $mode,
+			);
+			if ($mode == 'express') {
+				$infos['pick_up_mode'][$mode]['name'] = '配送';
+			} elseif ($mode == 'self_lift') {
+				$infos['pick_up_mode'][$mode]['name'] = '自提';
+			}
+		}
+	}
 	$infos['market'] = array();
 	if ($store_info['market_status'] == 1) {
 		$infos['market'] = get_store_market($store_id);
