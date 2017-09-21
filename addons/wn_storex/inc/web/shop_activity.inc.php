@@ -35,8 +35,10 @@ if ($op == 'post') {
 			$goods['is_spec'] = 1;
 		}
 		unset($goods);
+	} else {
+		$goods_list	= $base_goods;
 	}
-	$not_have_spec_ids = array_diff($goodsids, $fake_ids);
+	$not_have_spec_ids = @array_diff($goodsids, $fake_ids);
 	if (!empty($not_have_spec_ids) && is_array($not_have_spec_ids)) {
 		foreach ($not_have_spec_ids as $key => $value) {
 			$goods_list[] = $base_goods[$value];
