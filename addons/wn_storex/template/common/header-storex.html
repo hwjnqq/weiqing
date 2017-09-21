@@ -18,7 +18,7 @@
 		<div class="wn-aside__title">设置</div>
 		<ul class="wn-aside__sub">
 			{loop $sub_menu $child}
-			<li class="wn-aside__sub__item {if in_array($_GPC['do'], $child['active'])}wn-aside__sub__item--active{/if}"><a href="{$child['url']}"><i class="{$child['icon']}"></i>{$child['title']}</a></li>
+			<li class="wn-aside__sub__item {if in_array($_GPC['do'], $child['active'])}wn-aside__sub__item--active{/if}"><a href="{$child['url']}">{$child['title']}</a></li>
 			{/loop}
 		</ul>
 	</nav>

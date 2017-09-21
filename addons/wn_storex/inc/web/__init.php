@@ -117,7 +117,7 @@ $aside_nav = array(
 	'shop_category' => array(
 		'title' => '商品管理',
 		'url' => $this->createWebUrl('shop_category', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'storex-menu-category',
+		'icon' => 'storex-menu-goods',
 		'active' => array(
 			'shop_category',
 			'shop_spec',
@@ -222,7 +222,7 @@ $aside_nav = array(
 	'shop_market' => array(
 		'title' => '营销活动',
 		'url' => $this->createWebUrl('shop_market', array('storeid' => $_GPC['storeid'])),
-		'icon' => 'storex-menu-app',
+		'icon' => 'storex-menu-activity',
 		'active' => array(
 			'shop_market',
 			'shop_activity',
