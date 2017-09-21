@@ -314,7 +314,7 @@ function category_room_status($goods_list, $search_data) {
 	global $_GPC,$_W;
 	$btime = $search_data['btime'];
 	$etime = $search_data['etime'];
-	$num = $search_data['num'];
+	$num = $search_data['nums'];
 	if (!empty($btime) && !empty($etime) && !empty($num)) {
 		if ($num <= 0 || strtotime($etime) < strtotime($btime) || strtotime($btime) < strtotime('today')) {
 			wmessage(error(-1, '数量不能是零'), '', 'ajax');
@@ -588,34 +588,33 @@ function extend_switch_fetch() {
 	return $switchs;
 }
 
-function general_goods_order($order_info, $goods_info, $insert) {
+function general_goods_order($insert, $goods_info) {
 	global $_GPC;
 	if ($goods_info['store_type'] != STORE_TYPE_HOTEL) {
-		$store_info = get_store_info($order_info['hotelid']);
+		$store_info = get_store_info($insert['hotelid']);
 		if (!empty($store_info['pick_up_mode'])) {
-			$order_info['mode_distribute'] = '';
+			$insert['mode_distribute'] = '';
 			$mode_distribute = intval($_GPC['order']['mode_distribute']);
 			if (empty($_GPC['order']['order_time'])) {
 				wmessage(error(-1, '请选择时间！'), '', 'ajax');
 			}
-			$order_info['order_time'] = strtotime(intval($_GPC['order']['order_time']));
+			$insert['order_time'] = strtotime(intval($_GPC['order']['order_time']));
 			if ($mode_distribute == 2) {//配送
 				if (!empty($store_info['pick_up_mode']['express'])) {
 					if (empty($_GPC['order']['addressid'])) {
 						wmessage(error(-1, '地址不能为空！'), '', 'ajax');
 					}
-					$order_info['mode_distribute'] = $mode_distribute;
-					$order_info['addressid'] = intval($_GPC['order']['addressid']);
-					$order_info['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
+					$insert['mode_distribute'] = $mode_distribute;
+					$insert['addressid'] = intval($_GPC['order']['addressid']);
+					$insert['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
 				}
 			} elseif ($mode_distribute == 1) {
 				if (!empty($store_info['pick_up_mode']['self_lift'])) {
-					$order_info['mode_distribute'] = $mode_distribute;
+					$insert['mode_distribute'] = $mode_distribute;
 				}
 			}
 		}
 	}
-	$insert = array_merge($order_info, $insert);
 	$insert['sum_price'] = $goods_info['cprice'] * $insert['nums'];
 	return $insert;
 }
