@@ -54,9 +54,11 @@
 					</div>
 				</form>
 			</div>
+			{if $op == 'display'}
 			<div class="wn-main__search__action">
 				<a href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'edit', 'storeid' => $storeid));}" id="add_coupon" class="btn btn-primary we7-padding-horizontal">+添加商品</a>
 			</div>
+			{/if}
 		</div>
 		<table class="table table-hover wn-table table-bordered" >
 			<thead class="navbar-inner">

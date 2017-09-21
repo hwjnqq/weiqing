@@ -21,7 +21,13 @@
 			<tr>
 				<td>{$room['title']}</td>
 				<td>{$item['nums']}</td>
-				<td>{$item['cprice']}</td>
+				<td>
+				{if !empty($good_info) && !empty($good_info['price_list'])}
+				<button type="button" data-toggle="modal" data-target="#price-modal" class="btn but btn-default">价格明细</button>
+				{else}
+				{$item['cprice']}
+				{/if}
+				</td>
 				<td>{$item['sum_price']}</td>
 			</tr>
 		</table>
@@ -264,6 +270,41 @@
 			</div>
 		</div>
 		{/if}
+	</div>
+</div>
+
+<div id="price-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-default modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				<h3>
+					<ul role="tablist" class="nav nav-pills" style="font-size:14px; margin-top:-20px;">
+						<li role="presentation" class="basic">
+							<a data-toggle="tab" data-type="basic" role="tab" aria-controls="baisc" href="#basic">价格明细</a>
+						</li>
+					</ul>
+				</h3>
+			</div>
+			<div class="modal-body modules-content">
+				<div class="tab-content">
+					<table class="table table-bordered wn-table text-center">
+					<tr>
+						<th class="text-center">日期</th>
+						<th class="text-center">原价</th>
+						<th class="text-center">现价</th>
+					</tr>
+					{loop $good_info['price_list'] $price_info}
+						<tr>
+							<td>{$price_info['date']}</td>
+							<td>{$price_info['oprice']}</td>
+							<td>{$price_info['cprice']}</td>
+						</tr>
+					{/loop}
+					</table>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>
 

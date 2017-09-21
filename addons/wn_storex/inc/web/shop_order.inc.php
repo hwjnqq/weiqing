@@ -210,6 +210,23 @@ if ($op == 'edit') {
 				}
 				$roomnumber = implode(',', $roomnum);
 			}
+			$bdate = date('Y-m-d', $item['btime']);
+			$days = $item['day'];
+			$edate = date('Y-m-d', $item['etime']);
+			$dates = get_dates($bdate, $days);
+			$search_data = array(
+				'btime' => $bdate,
+				'etime' => $edate,
+				'nums' => $item['nums'],
+			);
+			$good_info = calcul_roon_sumprice($dates, $search_data, $good_info);
+			if (!empty($good_info['price_list']) && is_array($good_info['price_list'])) {
+				foreach ($good_info['price_list'] as $k => $price_info) {
+					if (empty($price_info['cprice'])) {
+						unset($good_info['price_list'][$k]);
+					}
+				}
+			}
 		}
 		if ($store_type != STORE_TYPE_HOTEL) {
 			$item['spec'] = '';
