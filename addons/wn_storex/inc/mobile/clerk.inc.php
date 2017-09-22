@@ -8,7 +8,7 @@ mload()->model('card');
 mload()->model('order');
 mload()->model('clerk');
 
-$ops = array('permission_storex', 'order', 'order_info', 'edit_order', 'room', 'room_info', 'edit_room', 'assign_room', 'goods', 'status', 'clerk_pay');
+$ops = array('permission_storex', 'order', 'order_info', 'edit_order', 'room', 'room_info', 'edit_room', 'assign_room', 'goods', 'status', 'clerk_pay', 'order_consume');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 $uid = mc_openid2uid($_W['openid']);
@@ -585,4 +585,72 @@ if ($op == 'clerk_pay') {
 	);
 	$url = murl('entry', $data, true, true);
 	wmessage(error(0, $url), '', 'ajax');
+}
+
+if ($op == 'order_consume') {
+	if (empty($_W['openid'])) {
+		message('请先关注公众号！', '', 'error');
+	}
+	$manage_storex_lists = clerk_permission_storex('order');
+	if (empty($manage_storex_lists)) {
+		message('没有核销订单的权限', '', 'error');
+	}
+	$orderid = intval($_GPC['orderid']);
+	$order = pdo_get('storex_order', array('status' => array('0', '1'), 'id' => $orderid, 'mode_distribute !=' => 2), array('id', 'hotelid', 'status', 'roomid', 'spec_info', 'nums', 'sum_price'));
+	if (empty($order)) {
+		message('已核销或没有该订单', '', 'error');
+	}
+	if (empty($manage_storex_lists[$order['hotelid']])) {
+		message('没有该店铺的订单管理权限', '', 'error');
+	}
+	if (!empty($_GPC['consume'])) {
+		$result = pdo_update('storex_order', array('status' => 3), array('id' => $orderid));
+		if (!is_error($result)) {
+			$logs = array(
+				'table' => 'storex_order_logs',
+				'time' => TIMESTAMP,
+				'before_change' => $order['status'],
+				'after_change' => 3,
+				'type' => 'status',
+				'uid' => $uid,
+				'clerk_id' => $manage_storex_lists[$order['hotelid']]['id'],
+				'clerk_type' => 3,
+				'orderid' => $orderid,
+				'remark' => '店员核销',
+			);
+			write_log($logs);
+			message(error(0, '核销成功'), $url, 'ajax');
+		} else {
+			message(error(-1, '核销失败'), '', 'ajax');
+		}
+	} else {
+		$store = get_store_info($order['hotelid']);
+		$table = gettablebytype($store['store_type']);
+		$order['goods'] = array();
+		$order['link'] = murl('entry', array('do' => 'clerk', 'orderid' => $orderid, 'op' => 'order_consume', 'm' => 'wn_storex', 'consume' => 1), true, true);
+		//单个订单和购物车区分
+		if (true) {
+			$good = pdo_get($table, array('id' => $order['roomid']), array('id', 'title', 'sub_title', 'thumb'));
+			if (!empty($good)) {
+				$good['thumb'] = tomedia($good['thumb']);
+				if (!empty($order['spec_info'])) {
+					$order['spec_info'] = iunserializer($order['spec_info']);
+					$good['spec'] = implode(' ', $order['spec_info']['goods_val']);
+				}
+				$good['sum_price'] = $order['sum_price'];
+				$good['nums'] = $order['nums'];
+				$order['goods'][] = $good;
+			}
+		} else {
+			$goodsid = array($order['roomid']);
+			$goods = pdo_getall($table, array('id' => $goodsid), array('id', 'title', 'sub_title', 'thumb'));
+			if (!empty($goods) && is_array($goods)){
+				foreach ($goods as &$info) {
+					$info['thumb'] = tomedia($info['thumb']);
+				}
+				$order['goods'] = $goods;
+			}
+		}
+		include $this->template('orderconsume');
+	}
 }

@@ -1,0 +1,37 @@
+{template 'common/header'}
+<div class="mui-content mc-recharge">
+	<div>核销订单详情</div>
+	{if !empty($order['goods'])}
+	<ul class="mui-table-view">
+		{loop $order['goods'] $g}
+		<li class="mui-table-view-cell mui-media">
+			<div class="mui-media-body">
+				<p>商品名称 : {$g['title']}</p>
+				<p>商品规格 : {$g['spec']}</p>
+				<p>商品数量 : {$g['nums']}</p>
+				<p>商品金额 : {$g['sum_price']}元</p>
+			</div>
+		</li>
+		{/loop}
+	</ul>
+	<div class="mui-content-padded">
+		<button type="submit" name="submit" class="mui-btn mui-btn-success mui-btn-block consume_order" value="核销订单">核销订单</button>
+	</div>
+	{/if}
+</div>
+<script>
+$(function(){
+	$('.consume_order').click(function(){
+		if (confirm('是否核销该订单？')) {
+			$.post("{php echo $order['link'];}", '', function(data){
+				data = $.parseJSON(data);
+				if (data.message.errno != 0) {
+					util.message('核销失败', '', 'error');
+				} else {
+					util.message(data.message.message, '', 'success');
+				}
+			});
+		}
+	})
+})
+</script>

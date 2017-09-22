@@ -25,7 +25,7 @@ if ($op == 'order_list') {
 		'over' => array(),
 		'unfinish' => array(),
 	);
-	if (!empty($orders)) {
+	if (!empty($orders) && is_array($orders)) {
 		$store_base = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid'])), array('id', 'store_type'));
 		if (!empty($store_base)) {
 			$stores = array();
@@ -60,6 +60,9 @@ if ($op == 'order_list') {
 			if ($info['status'] == 3) {
 				$order_list['over'][] = $info;
 			} else {
+				if ($info['mode_distribute'] != 2 && $info['status'] != -1 && $info['status'] != 2) {
+					$info['consume_url'] = murl('entry', array('do' => 'clerk', 'orderid' => $info['id'], 'op' => 'order_consume', 'm' => 'wn_storex'), true, true);
+				}
 				$order_list['unfinish'][] = $info;
 			}
 		}
@@ -106,6 +109,9 @@ if ($op == 'order_detail') {
 	}
 	//订单状态
 	$order_info = orders_check_status($order_info);
+	if ($order_info['mode_distribute'] != 2 && $order_info['status'] != -1 && $order_info['status'] != 2) {
+		$order_info['consume_url'] = murl('entry', array('do' => 'clerk', 'orderid' => $order_info['id'], 'op' => 'order_consume', 'm' => 'wn_storex'), true, true);
+	}
 	wmessage(error(0, $order_info), '', 'ajax');
 }
 
