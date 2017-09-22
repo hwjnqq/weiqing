@@ -42,8 +42,9 @@ if ($op == 'extend_switch') {
 }
 
 if ($op == 'personal_info') {
+	$store_id = intval($_GPC['store_id']);
 	$user_info = mc_fetch($_W['openid']);
-	$storex_clerk = pdo_get('storex_clerk', array('weid' => intval($_W['uniacid']), 'from_user' => trim($_W['openid']), 'status !=' => -1, 'storeid !=' => 0), array('id', 'from_user'));
+	$storex_clerk = pdo_get('storex_clerk', array('weid' => intval($_W['uniacid']), 'from_user' => trim($_W['openid']), 'status !=' => -1, 'storeid' => $store_id), array('id', 'from_user'));
 	if (!empty($storex_clerk)) {
 		$user_info['clerk'] = 1;
 	} else {
