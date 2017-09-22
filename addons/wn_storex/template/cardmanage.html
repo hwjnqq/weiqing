@@ -85,6 +85,7 @@
 			<tr>
 				<th width="150">卡号/所属用户组</th>
 				<th width="150">姓名/手机号</th>
+				<th >会员信息</th>
 				<th width="150">积分/余额</th>
 				{if $setting['nums_status'] == 1}
 					<th width="80">{$setting['nums_text']}</th>
@@ -108,6 +109,19 @@
 					<br>
 					{$row['mobile']}
 				</td>
+				<th width="250">
+				{if !empty($row['fields'])}
+				{loop $row['fields'] $field_info}
+					{if !empty($field_info['value'])}
+						{if !empty($field_info['title'])}
+							{$field_info['title']} : {$field_info['value']} <br>
+						{elseif !empty($field_info['bind'])}
+							{$field_info['bind']} : {$field_info['value']} <br>
+						{/if}
+					{/if}
+				{/loop}
+				{/if}
+				</th>
 				<td>
 					<span class="label label-default">积分:{$row['credit1']}</span>
 					<br>

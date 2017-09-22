@@ -54,6 +54,12 @@ if ($op == 'display') {
 	$list = pdo_fetchall($sql, $param);
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_mc_card_members') . " AS a LEFT JOIN " . tablename('mc_members') . " AS b ON a.uid = b.uid WHERE a.uniacid = :uniacid $where", $param);
 	$pager = pagination($total, $pindex, $psize);
+	if (!empty($list) && is_array($list)) {
+		foreach ($list as &$info) {
+			$info['fields'] = iunserializer($info['fields']);
+		}
+		unset($info);
+	}
 }
 
 if ($op == 'record') {
