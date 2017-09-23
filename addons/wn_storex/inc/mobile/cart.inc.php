@@ -1,0 +1,120 @@
+<?php
+
+defined('IN_IA') or exit('Access Denied');
+
+global $_W, $_GPC;
+$ops = array('display', 'add_cart', 'update_cart');
+$op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
+
+check_params();
+load()->model('mc');
+$uid = mc_openid2uid($_W['openid']);
+$storeid = intval($_GPC['id']);
+$store_info = get_store_info($storeid);
+
+if ($op == 'display') {
+	$cart_info = pdo_get('storex_cart', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'uid' => $uid));
+	if (!empty($cart_info)) {
+		$goods_list = iunserializer($cart_info['goods']);
+		if (!empty($goods_list) && is_array($goods_list)) {
+			foreach ($goods_list as $key => $value) {
+				if ($value['is_spec'] == 1) {
+					$spec_goodsids[] = $value['id'];
+				} else {
+					$not_spec_goodsids[] = $value['id'];
+				}
+			}
+		}
+		$base_goods = pdo_getall('storex_goods', array('id' => $not_spec_goodsids), array('title', 'oprice', 'sub_title', 'thumb', 'id'), 'id');
+		$spec_goods = pdo_getall('storex_spec_goods', array('id' => $spec_goodsids), array('title', 'oprice', 'sub_title', 'thumb', 'goods_val', 'id'), 'id');
+		if (!empty($base_goods) && is_array($base_goods)) {
+			foreach ($base_goods as &$value) {
+				$value['thumb'] = tomedia($value['thumb']);
+			}
+			unset($value);
+		}
+		if (!empty($spec_goods) && is_array($spec_goods)) {
+			foreach ($spec_goods as &$val) {
+				$val['thumb'] = tomedia($val['thumb']);
+				$goods_val = iunserializer($val['goods_val']);
+				$val['spec_title'] .= ' ' . implode(' ', $goods_val);
+			}
+			unset($val);
+		}
+		if (!empty($goods_list) && is_array($goods_list)) {
+			foreach ($goods_list as $id => &$goods) {
+				if ($goods['is_spec'] == 1) {
+					$goods['goods_info'] = $spec_goods[$id];
+				} else {
+					$goods['goods_info'] = $base_goods[$id];
+				}
+			}
+			unset($goods);
+		}
+		$cart_info['goods'] = $goods_list;
+	} else {
+		$cart_info = array();
+	}
+	wmessage(error(0, $cart_info), '', 'ajax');
+}
+
+if ($op == 'add_cart') {
+	$is_spec = intval($_GPC['is_spec']);
+	$goodsid = intval($_GPC['goodsid']);
+	if ($is_spec == 1) {
+		$goods_info = pdo_get('storex_spec_goods', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'id' => $goodsid), array('title', 'id', 'goodsid', 'sub_title', 'goods_val', 'thumb', 'oprice', 'cprice', 'stock'));
+		$goods_info['is_spec'] = 1;
+	} elseif ($is_spec == 2) {
+		$goods_info = pdo_get('storex_goods', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'id' => $goodsid), array('title', 'sub_title', 'thumb', 'oprice', 'cprice', 'id'));
+		$goods_info['is_spec'] = 2;
+	}
+	if (!empty($goods_info)) {
+		$cart_info = pdo_get('storex_cart', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'uid' => $uid));
+		if (empty($cart_info)) {
+			$goods[$goods_info['id']] = array(
+				'is_spec' => $goods_info['is_spec'],
+				'id' => $goods_info['id'],
+				'nums' => 1
+			);
+			$cart_goods = array(
+				'uniacid' => $_W['uniacid'],
+				'storeid' => $storeid,
+				'uid' => $uid,
+				'total' => 1,
+				'total_price' => $goods_info['oprice'],
+				'goods' => iserializer($goods)
+			);
+			pdo_insert('storex_cart', $cart_goods);
+		} else {
+			$cart_goods = array(
+				'total' => $cart_info['total'],
+				'total_price' => $cart_info['total_price'],
+			);
+			$goods = iunserializer($cart_info['goods']);
+			if (!empty($goods) && is_array($goods)) {
+				foreach ($goods as $key => &$value) {
+					if ($goods_info['id'] == $key) {
+						$value['nums']++;
+
+					} else {
+						$goods[$goods_info['id']] = array(
+							'is_spec' => $goods_info['is_spec'],
+							'id' => $goods_info['id'],
+							'nums' => 1
+						);
+					}
+					$cart_goods['total']++;
+				}
+				unset($value);
+				$cart_goods['total_price'] += $goods_info['cprice'];
+				$cart_goods['goods'] = iserializer($goods);
+			}
+			pdo_update('storex_cart', $cart_goods, array('id' => $cart_info['id']));
+		}
+	}
+	wmessage(error(0, '加入购物车成功'), '', 'ajax');
+}
+
+if ($op == 'update_cart') {
+
+}
