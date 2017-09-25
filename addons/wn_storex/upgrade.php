@@ -1271,7 +1271,7 @@ if (!pdo_fieldexists('storex_bases', 'express')) {
 }
 //订单表增加购物车计算时的商品记录
 if (!pdo_fieldexists('storex_order', 'cart')) {
-	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `cart` VARCHAR(500) NOT NULL COMMENT '购物车结算订单的商品'");
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `cart` TEXT NOT NULL COMMENT '购物车结算订单的商品'");
 }
 
 //处理mobile更新遗留的js，css和svg文件

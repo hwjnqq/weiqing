@@ -249,24 +249,8 @@ if ($op == 'goods_comments') {
 	wmessage(error(0, $comment_list), '', 'ajax');
 }
 
-if ($store_info['store_type'] != STORE_TYPE_HOTEL) {
-	if (in_array($op, array('info', 'order'))) {
-		//goods  商品或规格id|数量|是不是规格,商品或规格id|数量|是不是规格1规格，2普通，3套餐
-		$goods = trim($_GPC['goods'], ',');
-		if (empty($goods)) {
-			wmessage(error(-1, '商品不能是空'), '', 'ajax');
-		}
-		$goods = explode(',', $goods);
-		foreach ($goods as &$g) {
-			$g = explode('|', $g);
-		}
-		unset($g);
-	}
-}
-
 //进入预定页面的信息
 if ($op == 'info') {
-	$goods_type = !empty($_GPC['gtype']) ? intval($_GPC['gtype']) : 1;
 	$member = array();
 	$member['from_user'] = $_W['openid'];
 	$member['weid'] = intval($_W['uniacid']);
@@ -298,12 +282,17 @@ if ($op == 'info') {
 		}
 		$order_goods = $goods_info;
 	} else {
+		$goods = order_goodsids();
 		if (!empty($goods) && is_array($goods)) {
 			$order_goods = get_order_goods($store_info, $goods);
 		} else {
 			wmessage(error(-1, '商品错误'), '', 'ajax');
 		}
-		$infos['express'] = $store_info['express'];
+		if (count($order_goods) > 1) {
+			$infos['express'] = $store_info['express'];
+		} else {
+			$infos['express'] = $order_goods[0]['express_set']['express'];
+		}
 	}
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;
@@ -383,8 +372,27 @@ if ($op == 'order') {
 	}
 }
 
+function order_goodsids() {
+	global $_GPC;
+	$goods = array();
+	if ($store_info['store_type'] != STORE_TYPE_HOTEL) {
+		//goods  商品或规格id|数量|是不是规格,商品或规格id|数量|是不是规格1规格，2普通，3套餐
+		$goods = trim($_GPC['goods'], ',');
+		if (empty($goods)) {
+			wmessage(error(-1, '商品不能是空'), '', 'ajax');
+		}
+		$goods = explode(',', $goods);
+		foreach ($goods as &$g) {
+			$g = explode('|', $g);
+		}
+		unset($g);
+	}
+	return $goods;
+}
+
 //购物车获取商品信息
 function get_order_goods($store_info, $goods) {
+	global $_W, $_GPC;
 	$condition = array('weid' => intval($_W['uniacid']), 'status' => 1, 'store_base_id' => $store_info['id']);
 	$table = gettablebytype($store_info['store_type']);
 	$order_goods = array();
@@ -515,16 +523,25 @@ function goods_hotel_order($insert, $store_info, $uid, $selected_coupon = array(
 //普通商品下单
 function goods_common_order($insert, $store_info, $uid, $selected_coupon = array(), $activity = array()) {
 	global $_GPC, $_W;
-	$goods_type = !empty($_GPC['gtype']) ? intval($_GPC['gtype']) : 1;
-	$store_id = $store_info['id'];
-	$goodsid = $insert['roomid'];
+	$goods = order_goodsids();
+	$order_goods = get_order_goods($store_info, $goods);
+	
+// 	$goods_type = !empty($_GPC['gtype']) ? intval($_GPC['gtype']) : 1;
+// 	$store_id = $store_info['id'];
+// 	$goodsid = $insert['roomid'];
+	
 	$insert = get_order_info($insert);
-	$spec = get_spec_goods($goodsid);
+	
+// 	$spec = get_spec_goods($goodsid);
+
 	$goods_info = get_goods_info($goodsid, $store_info, $spec);
+	
+	
 	$error = check_order_info($store_info, $insert, $goods_info);
 	if (!empty($error) && is_error($error)) {
 		wmessage($error, '', 'ajax');
 	}
+	
 	$insert['ordersn'] = date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1);
 	$insert['style'] = $goods_info['title'];
 	$insert['oprice'] = $goods_info['oprice'];
