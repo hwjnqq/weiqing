@@ -2092,7 +2092,7 @@ class We7_couponModuleSite extends WeModuleSite {
 				$session = authcode(json_encode($cookie), 'encode');
 			}
 			isetcookie('__session', $session, 7 * 86400);
-			header('Location:' . $this->createWeburl('clerkdesk', array('uniacid' => $clerk['uniacid'], 'op' => 'index')));
+			header('Location:' . $this->createWeburl('clerkdeskwelcome', array('uniacid' => $clerk['uniacid'], 'op' => 'index')));
 			exit;
 		}
 		include $this->template('clerklist');
