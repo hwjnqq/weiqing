@@ -288,7 +288,7 @@ if ($op == 'info') {
 		} else {
 			wmessage(error(-1, '商品错误'), '', 'ajax');
 		}
-		if (count($order_goods) > 1) {
+		if (!empty($_GPC['is_cart'])) {
 			$infos['express'] = $store_info['express'];
 		} else {
 			$infos['express'] = $order_goods[0]['express_set']['express'];
@@ -414,7 +414,7 @@ function get_order_goods($store_info, $goods) {
 				$goods_info['defined'] = get_goods_defined($store_info['id'], $spec_goods['goodsid']);
 				if (!empty($spec_goods['goods_val'])) {
 					$spec_goods['goods_val'] = iunserializer($spec_goods['goods_val']);
-					$goods_info['title'] .= ' ' . implode(' ', $spec_goods['goods_val']);
+					$goods_info['spec_title'] = implode(' ', $spec_goods['goods_val']);
 				}
 				if (!empty($spec_goods)) {
 					$goods_info['cprice'] = $spec_goods['cprice'];
@@ -533,7 +533,13 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 	$insert = get_order_info($insert);
 	
 // 	$spec = get_spec_goods($goodsid);
-
+	
+	if (!empty($goods) && is_array($goods)) {
+		$order_goods = get_order_goods($store_info, $goods);
+	} else {
+		wmessage(error(-1, '商品错误'), '', 'ajax');
+	}
+	
 	$goods_info = get_goods_info($goodsid, $store_info, $spec);
 	
 	
