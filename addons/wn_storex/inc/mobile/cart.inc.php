@@ -11,7 +11,6 @@ load()->model('mc');
 $uid = mc_openid2uid($_W['openid']);
 $storeid = intval($_GPC['id']);
 $store_info = get_store_info($storeid);
-
 if ($op == 'display') {
 	$cart_info = pdo_get('storex_cart', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'uid' => $uid));
 	if (!empty($cart_info)) {
@@ -26,7 +25,7 @@ if ($op == 'display') {
 			}
 		}
 		$base_goods = pdo_getall('storex_goods', array('id' => $not_spec_goodsids), array('title', 'oprice', 'sub_title', 'thumb', 'id'), 'id');
-		$spec_goods = pdo_getall('storex_spec_goods', array('id' => $spec_goodsids), array('title', 'oprice', 'sub_title', 'thumb', 'goods_val', 'id'), 'id');
+		$spec_goods = pdo_getall('storex_spec_goods', array('id' => $spec_goodsids), array('title', 'oprice', 'sub_title', 'thumb', 'goods_val', 'id', 'goodsid'), 'id');
 		if (!empty($base_goods) && is_array($base_goods)) {
 			foreach ($base_goods as &$value) {
 				$value['thumb'] = tomedia($value['thumb']);
@@ -38,6 +37,10 @@ if ($op == 'display') {
 				$val['thumb'] = tomedia($val['thumb']);
 				$goods_val = iunserializer($val['goods_val']);
 				$val['spec_title'] .= ' ' . implode(' ', $goods_val);
+				$spec_info = get_spec_list($val['goodsid'], $storeid);
+				$val['sp_name'] = $spec_info['sp_name'];
+				$val['sp_val'] = $spec_info['sp_val'];
+				$val['spec_list'] = $spec_info['spec_list'];
 			}
 			unset($val);
 		}
@@ -51,7 +54,7 @@ if ($op == 'display') {
 			}
 			unset($goods);
 		}
-		$cart_info['goods'] = $goods_list;
+		$cart_info['goods'] = array_values($goods_list);
 	} else {
 		$cart_info = array();
 	}
@@ -117,4 +120,28 @@ if ($op == 'add_cart') {
 
 if ($op == 'update_cart') {
 
+}
+
+function get_spec_list($goodsid, $storeid) {
+	global $_W;
+	$spec_list = pdo_getall('storex_spec_goods', array('goodsid' => $goodsid, 'storeid' => $storeid, 'uniacid' => $_W['uniacid']));
+	if (!empty($spec_list)) {
+		$spec_goods_list = array();
+		if (!empty($spec_list) && is_array($spec_list)) {
+			foreach ($spec_list as $k => $val) {
+				$goods_info['sp_name'] = iunserializer($val['sp_name']);
+				$goods_info['sp_val'] = iunserializer($val['sp_val']);
+				$goods_val = iunserializer($val['goods_val']);
+				if (!empty($goods_val) && is_array($goods_val)) {
+					foreach ($goods_val as $key => $value) {
+						$goods_val_keys = array_keys($goods_val);
+						$goods_val_keys = implode('|', $goods_val_keys);
+						$spec_goods_list[$goods_val_keys] = $val['id'];
+					}
+				}
+			}
+		}
+		$goods_info['spec_list'] = $spec_goods_list;
+		return $goods_info;
+	}
 }

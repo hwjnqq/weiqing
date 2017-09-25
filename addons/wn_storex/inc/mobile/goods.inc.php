@@ -136,9 +136,9 @@ if ($op == 'goods_info') {
 			foreach ($sales_packages as $key => &$package) {
 				$package['goodsids'] = iunserializer($package['goodsids']);	
 				if (!empty($package['goodsids'])) {
-					foreach ($package['goodsids'] as $key => $goodsid) {
-						if (!empty($goods_list[$goodsid])) {
-							$package['goodsids'][$key] = $goods_list[$goodsid];
+					foreach ($package['goodsids'] as $key => $val) {
+						if (!empty($goods_list[$val])) {
+							$package['goodsids'][$key] = $goods_list[$val];
 						}
 					}
 				}
