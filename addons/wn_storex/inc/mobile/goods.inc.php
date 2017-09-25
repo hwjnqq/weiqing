@@ -296,19 +296,19 @@ if ($op == 'info') {
 			);
 			$goods_info = calcul_roon_sumprice($dates, $search_data, $goods_info);
 		}
-		$order_goods[] = $goods_info;
+		$order_goods = $goods_info;
 	} else {
 		if (!empty($goods) && is_array($goods)) {
 			$order_goods = get_order_goods($store_info, $goods);
 		} else {
 			wmessage(error(-1, '商品错误'), '', 'ajax');
 		}
+		$infos['express'] = $store_info['express'];
 	}
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;
 	$infos['goods_info'] = $order_goods;
 	$infos['address'] = $address;
-	$infos['express'] = $store_info['express'];
 	$infos['pick_up_mode'] = array();
 	if (!empty($store_info['pick_up_mode']) && is_array($store_info['pick_up_mode'])) {
 		foreach ($store_info['pick_up_mode'] as $mode => $val) {
