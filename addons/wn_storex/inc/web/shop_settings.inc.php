@@ -42,6 +42,7 @@ if ($op == 'post') {
 			'refund' => intval($_GPC['refund']),
 			'market_status' => intval($_GPC['market_status']),
 			'max_replace' => sprintf('%.2f', $_GPC['max_replace']),
+			'express' => sprintf('%.2f', $_GPC['express']),
 		);
 		$common_insert['pick_up_mode'] = empty($_GPC['pick_up_mode']) ? '' : iserializer($_GPC['pick_up_mode']);
 		$receives = array('emails' => 'email', 'phones' => 'tel', 'openids' => 'openid');

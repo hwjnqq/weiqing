@@ -243,7 +243,7 @@ function format_url($urls) {
 //获取店铺信息
 function get_store_info($id) {
 	global $_W;
-	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone', 'thumb', 'emails', 'phones', 'openids', 'mail', 'refund', 'market_status', 'max_replace', 'pick_up_mode'));
+	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone', 'thumb', 'emails', 'phones', 'openids', 'mail', 'refund', 'market_status', 'max_replace', 'pick_up_mode', 'express'));
 	if (empty($store_info)) {
 		wmessage(error(-1, '店铺不存在'), '', 'ajax');
 	} else {

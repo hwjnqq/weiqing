@@ -304,6 +304,7 @@ $sql = "
 	`market_status` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '营销开关',
 	`max_replace` decimal(10,2) NOT NULL COMMENT '最大抵扣金额',
 	`pick_up_mode` varchar(100) NOT NULL COMMENT '取货方式',
+	`express` decimal(10,2) NOT NULL COMMENT '购物车统计结算运费',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) DEFAULT CHARSET=utf8;

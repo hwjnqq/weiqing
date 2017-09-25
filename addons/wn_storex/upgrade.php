@@ -1262,9 +1262,12 @@ if (!pdo_fieldexists('storex_set', 'credit_pw_mode')) {
 	pdo_query("ALTER TABLE " . tablename('storex_set') . " ADD `credit_pw_mode` VARCHAR(100) NOT NULL COMMENT '余额支付密码验证方式'");
 }
 
-//店铺增加提货方式设置
+//店铺增加提货方式设置，购物车统计结算运费
 if (!pdo_fieldexists('storex_bases', 'pick_up_mode')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `pick_up_mode` VARCHAR(100) NOT NULL COMMENT '取货方式'");
+}
+if (!pdo_fieldexists('storex_bases', 'express')) {
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `express` DECIMAL(10,2) NOT NULL COMMENT '购物车统计结算运费'");
 }
 
 //处理mobile更新遗留的js，css和svg文件
