@@ -3,8 +3,15 @@
 <div class="wn-main">
 	<div class="wn-main__head">规格管理</div>
 	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item {if $op == 'display'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_poster', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">海报列表</a>
+			</div>
+			<div class="wn-tabs__item {if $op == 'post'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="javascript:;">编辑</a>
+			</div>
+		</div>
 		<div class="app" id="app">
-
 			<div class="app-side" style="float: left;">
 				<div class="editor" style="width: 500px; margin-left: 30px;">
 					<div class="app-header-setting">
@@ -13,13 +20,14 @@
 							<div class="panel panel-default">
 								<div class="wn-card-menu">
 									<ul class="nav nav-tabs">
-										<li class="active" style=""><a href="#setting" aria-controls="setting"
-										                               role="tab" data-toggle="tab">基本设置</a></li>
-										<li class="" style=""><a href="#design" aria-controls="design"
-										                         role="tab" data-toggle="tab"> 设 &nbsp; 计 </a></li>
-										<li class="" style=""><a href="#focus" aria-controls="focus"
-										                         role="tab" data-toggle="tab" v-show="post.type == 3"> 关注 </a></li>
-
+										<li class="active" style="">
+											<a href="#setting" aria-controls="setting" role="tab" data-toggle="tab">基本设置</a></li>
+										<li class="" style="">
+											<a href="#design" aria-controls="design" role="tab" data-toggle="tab"> 设 &nbsp; 计 </a>
+										</li>
+										<li class="" style="">
+											<a href="#focus" aria-controls="focus" role="tab" data-toggle="tab" v-show="post.type == 3"> 关注 </a>
+										</li>
 									</ul>
 								</div>
 								<div class="tab-content">
@@ -84,22 +92,13 @@
 											</div>
 										</div>
 										<div class="form-group">
-											<label class="col-sm-3 control-label">背景图片<span
-													style="color:red">*</span></label>
+											<label class="col-sm-3 control-label">背景图片<span style="color:red">*</span></label>
 											<div class="input-group col-sm-8">
-												<input type="text" v-model="post.background" disabled
-												       class="form-control" placeholder="图片地址">
+												<input type="text" v-model="post.background" disabled class="form-control" placeholder="图片地址">
 												<span class="input-group-btn" @click="uploadImage(post, 'background')">
 												<button class="btn btn-default" type="button"><i
 														class="fa fa-plus-circle green"></i>&nbsp;选择图片</button>
 												</span>
-											</div>
-											<div class="col-sm-8 ">
-												<div class="help-block">
-													<img :src="post.background" alt=""
-													     style="width: 320px; height: auto">
-													<p>&nbsp背景图片尺寸: 375 * 667</p>
-												</div>
 											</div>
 										</div>
 										<div class="form-group">
@@ -134,26 +133,19 @@
 													      style="width: 35px; border-left: none;"
 													      :style="{'background-color' : post.list[editPostIndex]['color']}"></span>
 													<span class="input-group-btn">
-					<button class="btn btn-default colorpicker"
-					        v-colorpicker="{'object': post.list[editPostIndex], 'key': 'color'}"
-					        type="button">选择颜色 <i class="fa fa-caret-down"></i></button>
-					<button class="btn btn-default colorclean"
-					        @click="post.list[editPostIndex]['color'] = ''" type="button"><span><i
-							class="fa fa-remove"></i></span></button>
-				</span>
+														<button class="btn btn-default colorpicker" v-colorpicker="{'object': post.list[editPostIndex], 'key': 'color'}" type="button">选择颜色 <i class="fa fa-caret-down"></i></button>
+														<button class="btn btn-default colorclean" @click="post.list[editPostIndex]['color'] = ''" type="button"><span><i class="fa fa-remove"></i></span></button>
+													</span>
 												</div>
 											</div>
 											<div class="form-group">
-												<label class="col-sm-3 control-label">字体大小<span
-														style="color:red">*</span></label>
+												<label class="col-sm-3 control-label">字体大小<span style="color:red">*</span></label>
 												<div class="input-group col-sm-4">
-													<input type="number" v-model="post.list[editPostIndex]['fontSize']"
-													       class="form-control" placeholder="字体大小">
+													<input type="number" v-model="post.list[editPostIndex]['fontSize']" class="form-control" placeholder="字体大小">
 													<span class="input-group-addon">px</span>
 												</div>
 											</div>
 										</template>
-
 									</div>
 									<div class="panel-body form-horizontal tab-pane fade" id="focus">
 										<div class="wn-edit-head">
@@ -165,6 +157,9 @@
 						</div>
 					</div>
 				</div>
+			</div>
+			<div>
+				<button class="btn btn-primary" @click="submitPoster()">提交</button>
 			</div>
 			<div class="app-preview">
 				<div class="app-header"></div>
@@ -284,7 +279,7 @@
 				});
 			}
 		}
-
+		poster_info = {php echo json_encode($poster_info)};
 		var $el = new Vue({
 			el: '#app',
 			data: {
@@ -350,14 +345,7 @@
 						}
 					}
 				],
-				post: {
-					name: '1231',
-					type: 0,
-					keyword: '121',
-					wait: '1213',
-					backgroud: '',
-					list: []
-				},
+				post: poster_info,
 				editPostType: null,
 				editPostIndex: null
 			},
@@ -407,6 +395,17 @@
 				},
 				remove(index) {
 					this.post.list.splice(index, 1)
+				},
+				submitPoster() {
+					$.post("{php echo $this->createWebUrl('shop_poster', array('op' => 'post', 'storeid' => $_GPC['storeid']))}", {params : this.post}, function(data) {
+						data = $.parseJSON(data);
+						if (data.message.errno == 0) {
+							util.message('编辑成功', data.redirect, 'success');
+						} else {
+							util.message('编辑失败', data.redirect, 'error');
+						}
+						console.dir(data);
+					})
 				}
 			}
 		})
