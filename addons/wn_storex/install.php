@@ -95,6 +95,7 @@ $sql = "
 	`weid` int(11) DEFAULT '0',
 	`hotelid` int(11) DEFAULT '0',
 	`roomid` int(11) DEFAULT '0',
+	`cart` varchar(500) NOT NULL COMMENT '购物车结算订单的商品',
 	`spec_id` int(11) NOT NULL COMMENT '规格对应的商品id',
 	`spec_info` text NOT NULL COMMENT '商品规格信息',
 	`memberid` int(11) DEFAULT '0',

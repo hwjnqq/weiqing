@@ -18,9 +18,6 @@ $condition = array('status' => 1,'storeid' => $store_id, 'uniacid' => $_W['uniac
 if (!empty($_GPC['specid'])) {
 	$condition['specid'] = intval($_GPC['specid']);
 }
-if (!empty($_GPC['spec_id'])) {
-	$condition['specid'] = intval($_GPC['spec_id']);
-}
 $activity = pdo_get('storex_goods_activity', $condition, array(), '', 'starttime ASC');
 
 //获取某个商品的详细信息
@@ -252,6 +249,21 @@ if ($op == 'goods_comments') {
 	wmessage(error(0, $comment_list), '', 'ajax');
 }
 
+if ($store_info['store_type'] != STORE_TYPE_HOTEL) {
+	if (in_array($op, array('info', 'order'))) {
+		//goods  商品或规格id|数量|是不是规格,商品或规格id|数量|是不是规格1规格，2普通，3套餐
+		$goods = trim($_GPC['goods'], ',');
+		if (empty($goods)) {
+			wmessage(error(-1, '商品不能是空'), '', 'ajax');
+		}
+		$goods = explode(',', $goods);
+		foreach ($goods as &$g) {
+			$g = explode('|', $g);
+		}
+		unset($g);
+	}
+}
+
 //进入预定页面的信息
 if ($op == 'info') {
 	$goods_type = !empty($_GPC['gtype']) ? intval($_GPC['gtype']) : 1;
@@ -265,9 +277,11 @@ if ($op == 'info') {
 		$info['mobile'] = $record['mobile'];
 		$info['contact_name'] = $record['realname'];
 	}
-	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1, 'store_base_id' => $store_id);
-	$table = gettablebytype($store_info['store_type']);
-	if ($store_info['store_type'] == 1) {
+	$order_goods = array();
+	if ($store_info['store_type'] == STORE_TYPE_HOTEL) {
+		$condition = array('weid' => intval($_W['uniacid']), 'status' => 1, 'store_base_id' => $store_id);
+		$table = gettablebytype($store_info['store_type']);
+		$condition['id'] = $goodsid;
 		$goods_info = pdo_get($table, $condition);
 		if (isset($goods_info['express_set'])) {
 			unset($goods_info['express_set']);
@@ -282,46 +296,19 @@ if ($op == 'info') {
 			);
 			$goods_info = calcul_roon_sumprice($dates, $search_data, $goods_info);
 		}
+		$order_goods[] = $goods_info;
 	} else {
-		if ($goods_type == 2) {
-			$goods_info = format_package_goods($store_id, $goodsid);
+		if (!empty($goods) && is_array($goods)) {
+			$order_goods = get_order_goods($store_info, $goods);
 		} else {
-			$goods_info = pdo_get($table, $condition);
-		}
-	}
-	if (!empty($goods_info['express_set'])) {
-		$goods_info['express_set'] = iunserializer($goods_info['express_set']);
-	}
-	$spec_id = intval($_GPC['spec_id']);
-	if (!empty($spec_id)) {
-		$spec_goods = pdo_get('storex_spec_goods', array('id' => $spec_id, 'goodsid' => $goodsid));
-		if (!empty($spec_goods['goods_val'])) {
-			$spec_goods['goods_val'] = iunserializer($spec_goods['goods_val']);
-			$goods_info['title'] .= ' ' . implode(' ', $spec_goods['goods_val']);
-		}
-		if (!empty($spec_goods)) {
-			$goods_info['cprice'] = $spec_goods['cprice'];
-			$goods_info['oprice'] = $spec_goods['oprice'];
-			$goods_info['stock'] = $spec_goods['stock'];
-		}
-	}
-	if (!empty($goods_info['thumb'])) {
-		$goods_info['thumb'] = tomedia($goods_info['thumb']);
-	}
-	if (!empty($goods_info['thumbs'])) {
-		$goods_info['thumbs'] = iunserializer($goods_info['thumbs']);
-		$goods_info['thumbs'] = format_url($goods_info['thumbs']);
-	}
-	$goods_info['defined'] = get_goods_defined($store_id, $goodsid);
-	if (!empty($activity)) {
-		if ($activity['specid'] == $spec_id) {
-			$goods_info['cprice'] = $activity['price'];
+			wmessage(error(-1, '商品错误'), '', 'ajax');
 		}
 	}
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
 	$infos['info'] = $info;
-	$infos['goods_info'] = $goods_info;
+	$infos['goods_info'] = $order_goods;
 	$infos['address'] = $address;
+	$infos['express'] = $store_info['express'];
 	$infos['pick_up_mode'] = array();
 	if (!empty($store_info['pick_up_mode']) && is_array($store_info['pick_up_mode'])) {
 		foreach ($store_info['pick_up_mode'] as $mode => $val) {
@@ -392,8 +379,62 @@ if ($op == 'order') {
 	if ($store_info['store_type'] == STORE_TYPE_HOTEL) {
 		goods_hotel_order($insert, $store_info, $uid, $selected_coupon);
 	} else {
-		goods_common_order($insert, $store_info, $uid, $selected_coupon, $activity);
+		goods_common_order($insert, $store_info, $uid, $selected_coupon);
 	}
+}
+
+//购物车获取商品信息
+function get_order_goods($store_info, $goods) {
+	$condition = array('weid' => intval($_W['uniacid']), 'status' => 1, 'store_base_id' => $store_info['id']);
+	$table = gettablebytype($store_info['store_type']);
+	$order_goods = array();
+	foreach ($goods as $g) {
+		if (!empty($g[2])) {
+			$a_condition = array('status' => 1,'storeid' => $store_info['id'], 'uniacid' => $_W['uniacid'], 'starttime <=' => TIMESTAMP, 'endtime >' => TIMESTAMP);
+			if ($g[2] == 3) {//套餐
+				$goods_info = format_package_goods($store_info['id'], $g[0]);
+				$a_condition['goodsid'] = $g[0];
+			} elseif ($g[2] == 2) {//普通
+				$a_condition['goodsid'] = $condition['id'] = $g[0];
+				$goods_info = pdo_get($table, $condition);
+				$goods_info['defined'] = get_goods_defined($store_info['id'], $g[0]);
+			} elseif ($g[2] == 1) {//有规格
+				$spec_goods = pdo_get('storex_spec_goods', array('id' => $g[0]));
+				$a_condition['specid'] = $g[0];
+				$a_condition['goodsid'] = $condition['id'] = $spec_goods['goodsid'];
+				$goods_info = pdo_get($table, $condition);
+				$goods_info['defined'] = get_goods_defined($store_info['id'], $spec_goods['goodsid']);
+				if (!empty($spec_goods['goods_val'])) {
+					$spec_goods['goods_val'] = iunserializer($spec_goods['goods_val']);
+					$goods_info['title'] .= ' ' . implode(' ', $spec_goods['goods_val']);
+				}
+				if (!empty($spec_goods)) {
+					$goods_info['cprice'] = $spec_goods['cprice'];
+					$goods_info['oprice'] = $spec_goods['oprice'];
+					$goods_info['stock'] = $spec_goods['stock'];
+				}
+			}
+			$goods_info['buynums'] = $g[1];
+			//活动
+			$activity = pdo_get('storex_goods_activity', $a_condition, array(), '', 'starttime ASC');
+			if (!empty($activity)) {
+				$goods_info['cprice'] = $activity['price'];
+			}
+			//运费
+			if (!empty($goods_info['express_set'])) {
+				$goods_info['express_set'] = iunserializer($goods_info['express_set']);
+			}
+			if (!empty($goods_info['thumb'])) {
+				$goods_info['thumb'] = tomedia($goods_info['thumb']);
+			}
+			if (!empty($goods_info['thumbs'])) {
+				$goods_info['thumbs'] = iunserializer($goods_info['thumbs']);
+				$goods_info['thumbs'] = format_url($goods_info['thumbs']);
+			}
+			$order_goods[] = $goods_info;
+		}
+	}
+	return $order_goods;
 }
 
 //酒店订单

@@ -1269,6 +1269,10 @@ if (!pdo_fieldexists('storex_bases', 'pick_up_mode')) {
 if (!pdo_fieldexists('storex_bases', 'express')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `express` DECIMAL(10,2) NOT NULL COMMENT '购物车统计结算运费'");
 }
+//订单表增加购物车计算时的商品记录
+if (!pdo_fieldexists('storex_order', 'cart')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `cart` VARCHAR(500) NOT NULL COMMENT '购物车结算订单的商品'");
+}
 
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');
