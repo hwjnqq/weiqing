@@ -19,13 +19,16 @@ if ($op == 'display') {
 			foreach ($goods_list as $key => $value) {
 				if ($value['is_spec'] == 1) {
 					$spec_goodsids[] = $value['id'];
-				} else {
+				} elseif ($value['is_spec'] == 2) {
 					$not_spec_goodsids[] = $value['id'];
+				} elseif ($value['is_spec'] == 3) {
+					$packageids[] = $value['id'];
 				}
 			}
 		}
 		$base_goods = pdo_getall('storex_goods', array('id' => $not_spec_goodsids), array('title', 'oprice', 'sub_title', 'thumb', 'id', 'cprice'), 'id');
 		$spec_goods = pdo_getall('storex_spec_goods', array('id' => $spec_goodsids), array('title', 'oprice', 'sub_title', 'thumb', 'goods_val', 'id', 'goodsid', 'cprice'), 'id');
+		$package_goods = pdo_getall('storex_sales_package', array('id' => $packageids), array('title', 'price', 'title', 'sub_title', 'thumb', 'express', 'id'), 'id');
 		if (!empty($base_goods) && is_array($base_goods)) {
 			foreach ($base_goods as &$value) {
 				$value['thumb'] = tomedia($value['thumb']);
@@ -44,12 +47,21 @@ if ($op == 'display') {
 			}
 			unset($val);
 		}
+
+		if (!empty($package_goods) && is_array($package_goods)) {
+			foreach ($package_goods as &$package) {
+				$package['oprice'] = $package['cprice'] = $package['price'];
+			}
+			unset($package);
+		}
 		if (!empty($goods_list) && is_array($goods_list)) {
 			foreach ($goods_list as $id => &$goods) {
 				if ($goods['is_spec'] == 1) {
 					$goods['goods_info'] = $spec_goods[$id];
-				} else {
+				} elseif ($goods['is_spec'] == 2) {
 					$goods['goods_info'] = $base_goods[$id];
+				} elseif ($goods['is_spec'] == 3) {
+					$goods['goods_info'] = $package_goods[$id];
 				}
 			}
 			unset($goods);
@@ -70,6 +82,10 @@ if ($op == 'add_cart') {
 	} elseif ($is_spec == 2) {
 		$goods_info = pdo_get('storex_goods', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid, 'id' => $goodsid), array('title', 'sub_title', 'thumb', 'oprice', 'cprice', 'id'));
 		$goods_info['is_spec'] = 2;
+	} elseif ($is_spec == 3) {
+		$goods_info = pdo_get('storex_sales_package', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'id' => $goodsid), array('title', 'sub_title', 'thumb', 'price', 'express', 'id'));
+		$goods_info['oprice'] = $goods_info['cprice'] = $goods_info['price'];
+		$goods_info['is_spec'] = 3;
 	}
 	if (!empty($goods_info)) {
 		$cart_info = pdo_get('storex_cart', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'uid' => $uid));
@@ -134,10 +150,13 @@ if ($op == 'update_cart') {
 				$spec_goodsids[] = $cart_info[0];
 			} elseif ($cart_info[2] == 2) {
 				$base_goodsids[] = $cart_info[0];
+			} elseif ($cart_info[2] == 3) {
+				$packageids[] = $cart_info[0];
 			}
 		}
 		$base_goods = pdo_getall('storex_goods', array('id' => $base_goodsids), array('title', 'oprice', 'sub_title', 'thumb', 'id'), 'id');
 		$spec_goods = pdo_getall('storex_spec_goods', array('id' => $spec_goodsids), array('title', 'oprice', 'sub_title', 'thumb', 'goods_val', 'id', 'goodsid'), 'id');
+		$package_goods = pdo_getall('storex_sales_package', array('id' => $packageids), array('title', 'price', 'title', 'sub_title', 'thumb', 'express', 'id'), 'id');
 		$total_price = 0;
 		if (!empty($goods) && is_array($goods)) {
 			foreach ($goods as $k => &$val) {
@@ -145,6 +164,8 @@ if ($op == 'update_cart') {
 					$val['price'] = $spec_goods[$k]['oprice'] * $val['nums'];
 				} elseif ($val['is_spec'] == 2) {
 					$val['price'] = $base_goods[$k]['oprice'] * $val['nums'];
+				} elseif ($val['is_spec'] == 3) {
+					$val['price'] = $package_goods[$k]['price'] * $val['nums'];
 				}
 				$total_price += $val['price'];
 				unset($val['price']);
