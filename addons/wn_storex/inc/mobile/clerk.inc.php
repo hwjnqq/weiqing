@@ -596,7 +596,7 @@ if ($op == 'order_consume') {
 		message('没有核销订单的权限', '', 'error');
 	}
 	$orderid = intval($_GPC['orderid']);
-	$order = pdo_get('storex_order', array('status' => array('0', '1'), 'id' => $orderid, 'mode_distribute !=' => 2), array('id', 'hotelid', 'status', 'roomid', 'spec_info', 'nums', 'sum_price'));
+	$order = pdo_get('storex_order', array('status' => array('0', '1'), 'id' => $orderid, 'mode_distribute !=' => 2), array('id', 'hotelid', 'status', 'roomid', 'spec_info', 'nums', 'sum_price', 'cart'));
 	if (empty($order)) {
 		message('已核销或没有该订单', '', 'error');
 	}
@@ -629,7 +629,7 @@ if ($op == 'order_consume') {
 		$order['goods'] = array();
 		$order['link'] = murl('entry', array('do' => 'clerk', 'orderid' => $orderid, 'op' => 'order_consume', 'm' => 'wn_storex', 'consume' => 1), true, true);
 		//单个订单和购物车区分
-		if (true) {
+		if (!empty($order['roomid'])) {
 			$good = pdo_get($table, array('id' => $order['roomid']), array('id', 'title', 'sub_title', 'thumb'));
 			if (!empty($good)) {
 				$good['thumb'] = tomedia($good['thumb']);
@@ -637,18 +637,20 @@ if ($op == 'order_consume') {
 					$order['spec_info'] = iunserializer($order['spec_info']);
 					$good['spec'] = implode(' ', $order['spec_info']['goods_val']);
 				}
-				$good['sum_price'] = $order['sum_price'];
+				$good['cprice'] = $order['cprice'];
 				$good['nums'] = $order['nums'];
 				$order['goods'][] = $good;
 			}
 		} else {
-			$goodsid = array($order['roomid']);
-			$goods = pdo_getall($table, array('id' => $goodsid), array('id', 'title', 'sub_title', 'thumb'));
-			if (!empty($goods) && is_array($goods)){
-				foreach ($goods as &$info) {
-					$info['thumb'] = tomedia($info['thumb']);
+			if (!empty($order['cart'])) {
+				$order['cart'] = iunserializer($order['cart']);
+				foreach ($order['cart'] as $g) {
+					$good['title'] = $g['good']['title'];
+					$good['nums'] = $g['good']['buynums'];
+					$good['cprice'] = $g['good']['cprice'];
+					$good['spec'] = implode(' ', $g['good']['spec_info']['goods_val']);
+					$order['goods'][] = $good;
 				}
-				$order['goods'] = $goods;
 			}
 		}
 		include $this->template('orderconsume');

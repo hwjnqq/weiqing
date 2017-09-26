@@ -9,11 +9,12 @@
 				<p>商品名称 : {$g['title']}</p>
 				<p>商品规格 : {$g['spec']}</p>
 				<p>商品数量 : {$g['nums']}</p>
-				<p>商品金额 : {$g['sum_price']}元</p>
+				<p>商品单价 : {$g['cprice']}元</p>
 			</div>
 		</li>
 		{/loop}
 	</ul>
+	<div>总价：{$order['sum_price']}</div>
 	<div class="mui-content-padded">
 		<button type="submit" name="submit" class="mui-btn mui-btn-success mui-btn-block consume_order" value="核销订单">核销订单</button>
 	</div>
