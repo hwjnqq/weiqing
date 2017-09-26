@@ -104,6 +104,16 @@ if ($op == 'order_detail') {
 	if ($order_info['store_type'] == 1) {
 		$goods_info = pdo_get('storex_room', array('id' => $order_info['roomid'], 'weid' => $order_info['weid']), array('id', 'is_house', 'thumb'));
 		$order_info['is_house'] = $goods_info['is_house'];
+		if ($goods_info['is_house'] == 1) {
+			$goods_info['day'] = $order_info['day'];
+			$goods_info['btime'] = $order_info['btime'];
+			$goods_info['etime'] = $order_info['etime'];
+		}
+		$goods_info['thumb'] = tomedia($goods_info['thumb']);
+		$goods_info['nums'] = $order_info['nums'];
+		$goods_info['oprice'] = $order_info['oprice'];
+		$goods_info['cprice'] = $order_info['cprice'];
+		$order_goods[] = $goods_info;
 	} else {
 		if (!empty($order_info['roomid'])) {
 			if ($order_info['is_package'] == 2) {
