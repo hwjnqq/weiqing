@@ -180,6 +180,19 @@ if ($op == 'edit') {
 		if (empty($item)) {
 			message(error(-1, '抱歉，订单不存在或是已经删除！'), '', 'ajax');
 		}
+		$uid = mc_openid2uid(trim($item['openid']));
+		if (!empty($item['addressid'])) {
+			$address_info = pdo_get('mc_member_address', array('uid' => $uid, 'id' => $item['addressid']), '', '', 'isdefault DESC');
+			$address = '';
+			if (!empty($address_info) && is_array($address_info)) {
+				foreach ($address_info as $k => $v) {
+					if (in_array($k, array('province', 'city', 'district', 'address')) && !empty($v)) {
+						$address .= $v . '-';
+					}
+				}
+				$address = trim($address, '-');
+			}
+		}
 		$is_house = 2;
 		if ($store_type == STORE_TYPE_HOTEL) {
 			$good_info = pdo_get('storex_room', array('store_base_id' => $storeid, 'id' => $item['roomid']), array('id', 'is_house', 'thumb'));
@@ -365,7 +378,6 @@ if ($op == 'edit') {
 			
 				//订单完成提醒
 				if ($data['status'] == ORDER_STATUS_OVER) {
-					$uid = mc_openid2uid(trim($item['openid']));
 					//订单完成后增加积分
 					card_give_credit($uid, $item['sum_price']);
 					//增加出售货物的数量

@@ -134,12 +134,20 @@
 					</div>
 				</div>
 				{if $store_type != STORE_TYPE_HOTEL}
-				<div class="form-group">
-					<label class="col-sm-4 control-label">配送方式</label>
-					<div class="col-sm-8 form-control-static">
-						{if $item['mode_distribute'] == 2}配送{else}自提{/if}
+					<div class="form-group">
+						<label class="col-sm-4 control-label">配送方式</label>
+						<div class="col-sm-8 form-control-static">
+							{if $item['mode_distribute'] == 2}配送{else}自提{/if}
+						</div>
 					</div>
-				</div>
+					{if $item['mode_distribute'] == 2}
+					<div class="form-group">
+						<label class="col-sm-4 control-label">配送地址</label>
+						<div class="col-sm-8 form-control-static">
+							{if !empty($item['addressid'])}{$address}{/if}
+						</div>
+					</div>
+					{/if}
 				{/if}
 				<div class="form-group">
 					<label class="col-sm-4 control-label">买家留言</label>
