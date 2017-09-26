@@ -19,7 +19,7 @@ $logs = array(
 	'orderid' => intval($_GPC['id']),
 );
 if ($op == 'order_list') {
-	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status', 'action', 'track_number', 'express_name', 'is_package');
+	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status', 'action', 'track_number', 'express_name', 'is_package', 'cart');
 	$orders = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'openid' => $_W['openid']), $field, '', 'time DESC');
 	$order_list = array(
 		'over' => array(),
@@ -43,9 +43,22 @@ if ($op == 'order_list') {
 				if ($info['store_type'] == 1) {
 					$goods_info = pdo_get('storex_room', array('weid' => intval($_W['uniacid']), 'id' => $info['roomid']), array('id', 'thumb'));
 				} else {
-					$goods_info = pdo_get('storex_goods', array('weid' => intval($_W['uniacid']), 'id' => $info['roomid']), array('id', 'thumb'));
-					if ($info['is_package'] == 2) {
-						$goods_info = pdo_get('storex_sales_package', array('uniacid' => $_W['uniacid'], 'id' => $info['roomid']), array('title', 'sub_title', 'thumb', 'price', 'id'), 'id');
+					if (!empty($info['roomid'])) {
+						if ($info['is_package'] == 2) {
+							$goods_info = pdo_get('storex_sales_package', array('uniacid' => $_W['uniacid'], 'id' => $info['roomid']), array('title', 'sub_title', 'thumb', 'price', 'id'), 'id');
+						} else {
+							$goods_info = pdo_get('storex_goods', array('weid' => intval($_W['uniacid']), 'id' => $info['roomid']), array('id', 'thumb'));
+						}
+					} else {
+						if (!empty($info['cart'])) {
+							$info['cart'] = iunserializer($info['cart']);
+							if ($info['cart'][0]['buyinfo'][2] == 3) {
+								$goods_info = pdo_get('storex_sales_package', array('uniacid' => $_W['uniacid'], 'id' => $info['cart'][0]['buyinfo'][0]), array('title', 'sub_title', 'thumb', 'price', 'id'), 'id');
+							} else {
+								$goods_info = pdo_get('storex_goods', array('weid' => intval($_W['uniacid']), 'id' => $info['cart'][0]['good']['id']), array('id', 'thumb'));
+							}
+							$info['nums'] = $info['cart'][0]['good']['buynums'];
+						}
 					}
 				}
 				if (!empty($goods_info)) {
@@ -87,25 +100,59 @@ if ($op == 'order_detail') {
 	$store_info = pdo_get('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $order_info['hotelid']), array('id', 'title', 'store_type'));
 	$order_info['store_info'] = $store_info;
 	$order_info['store_type'] = $store_info['store_type'];
+	$order_goods = array();
 	if ($order_info['store_type'] == 1) {
-		$goods_info = pdo_get('storex_room', array('id' => $order_info['roomid'], 'weid' => $order_info['weid']));
+		$goods_info = pdo_get('storex_room', array('id' => $order_info['roomid'], 'weid' => $order_info['weid']), array('id', 'is_house', 'thumb'));
 		$order_info['is_house'] = $goods_info['is_house'];
 	} else {
-		$goods_info = pdo_get('storex_goods', array('id' => $order_info['roomid'], 'weid' => $order_info['weid']));
+		if (!empty($order_info['roomid'])) {
+			if ($order_info['is_package'] == 2) {
+				$goods_info = pdo_get('storex_sales_package', array('uniacid' => $_W['uniacid'], 'id' => $info['roomid']), array('title', 'sub_title', 'thumb', 'price', 'id'));
+				$goods_info['oprice'] = $goods_info['price'];
+			} else {
+				$goods_info = pdo_get('storex_goods', array('id' => $order_info['roomid'], 'weid' => $order_info['weid']), array('id', 'thumb', 'oprice', 'cprice', 'title', 'sub_title'));
+				$goods_info['oprice'] = $order_info['oprice'];
+			}
+			$goods_info['nums'] = $order_info['nums'];
+			$goods_info['cprice'] = $order_info['cprice'];
+			$goods_info['thumb'] = tomedia($goods_info['thumb']);
+			if (!empty($order_info['spec_info'])) {
+				$order_info['spec_info'] = iunserializer($order_info['spec_info']);
+				if (!empty($order_info['spec_info']['goods_val'])) {
+					$goods_info['style'] .= implode(' ', $order_info['spec_info']['goods_val']);
+				}
+				unset($order_info['spec_info']);
+			}
+			$order_goods[] = $goods_info;
+		} else {
+			$order_info['cart'] = iunserializer($order_info['cart']);
+			if (!empty($order_info['cart']) && is_array($order_info['cart'])) {
+				foreach ($order_info['cart'] as $good) {
+					if ($good['buyinfo'][2] == 3) {
+						$goods_info = pdo_get('storex_sales_package', array('uniacid' => $_W['uniacid'], 'id' => $info['cart'][0]['buyinfo'][0]), array('title', 'sub_title', 'thumb', 'price', 'id'));
+					} elseif ($good['buyinfo'][2] == 2) {
+						$goods_info = pdo_get('storex_goods', array('id' => $good['good']['id'], 'weid' => $order_info['weid']), array('id', 'thumb', 'oprice', 'cprice', 'title', 'sub_title'));
+					} elseif ($good['buyinfo'][2] == 1) {
+						$goods_info = pdo_get('storex_goods', array('id' => $good['good']['id'], 'weid' => $order_info['weid']), array('id', 'thumb', 'oprice', 'cprice', 'title', 'sub_title'));
+						$goods_info['style'] = implode(' ', $good['good']['spec_info']['goods_val']);
+					}
+					$goods_info['oprice'] = $good['good']['oprice'];
+					$goods_info['cprice'] = $good['good']['cprice'];
+					$goods_info['nums'] = $good['good']['buynums'];
+					$goods_info['title'] = $good['good']['title'];
+					$goods_info['thumb'] = tomedia($goods_info['thumb']);
+					$order_goods[] = $goods_info;
+				}
+			}
+			unset($order_info['cart']);
+		}
 	}
-	$order_info['thumb'] = tomedia($goods_info['thumb']);
+	$order_info['goods'] = $order_goods;
 	if (!empty($order_info['addressid'])) {
 		$order_address = pdo_get('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid']), 'id' => $order_info['addressid']));
 		if (!empty($order_address)) {
 			$order_info['address'] = $order_address['province'] . $order_address['city'] . $order_address['district'] . $order_address['address'];
 		}
-	}
-	if (!empty($order_info['spec_info'])) {
-		$order_info['spec_info'] = iunserializer($order_info['spec_info']);
-		if (!empty($order_info['spec_info']['goods_val'])) {
-			$order_info['style'] .= ' ' . implode(' ', $order_info['spec_info']['goods_val']);
-		}
-		unset($order_info['spec_info']);
 	}
 	//订单状态
 	$order_info = orders_check_status($order_info);
