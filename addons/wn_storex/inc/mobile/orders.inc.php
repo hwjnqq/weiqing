@@ -109,6 +109,7 @@ if ($op == 'order_detail') {
 			$goods_info['btime'] = $order_info['btime'];
 			$goods_info['etime'] = $order_info['etime'];
 		}
+		$goods_info['title'] = $order_info['style'];
 		$goods_info['thumb'] = tomedia($goods_info['thumb']);
 		$goods_info['nums'] = $order_info['nums'];
 		$goods_info['oprice'] = $order_info['oprice'];
