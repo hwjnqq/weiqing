@@ -1,24 +1,30 @@
 {template 'common/header'}
+<header class="mui-bar mui-bar-nav">
+	<h1 class="mui-title">订单核销</h1>
+</header>
 <div class="mui-content mc-recharge">
-	<div>核销订单详情</div>
-	{if !empty($order['goods'])}
-	<ul class="mui-table-view">
-		{loop $order['goods'] $g}
-		<li class="mui-table-view-cell mui-media">
-			<div class="mui-media-body">
-				<p>商品名称 : {$g['title']}</p>
-				<p>商品规格 : {$g['spec']}</p>
-				<p>商品数量 : {$g['nums']}</p>
-				<p>商品单价 : {$g['cprice']}元</p>
-			</div>
-		</li>
-		{/loop}
-	</ul>
-	<div>总价：{$order['sum_price']}</div>
 	<div class="mui-content-padded">
+		{if !empty($order['goods'])}
+		<div class="mui-card">
+			<ul class="mui-table-view">
+				<li class="mui-table-view-divider">商品列表</li>
+				{loop $order['goods'] $g}
+				<li class="mui-table-view-cell mui-media">
+					<div class="mui-media-body">
+						<p>{$g['title']}</p>
+						<p>商品规格 : {$g['spec']}</p>
+						<p>商品数量 : {$g['nums']}</p>
+						<p>商品单价 : {$g['cprice']}元</p>
+					</div>
+				</li>
+				{/loop}
+			</ul>
+			<div class="mui-card-footer mui-text-right">总价：<span class="mui-text-currency">￥{$order['sum_price']}</span></div>
+		</div>
+		<br />
 		<button type="submit" name="submit" class="mui-btn mui-btn-success mui-btn-block consume_order" value="核销订单">核销订单</button>
+		{/if}
 	</div>
-	{/if}
 </div>
 <script>
 $(function(){
