@@ -86,8 +86,18 @@ if ($op == 'display') {
 	getOrderUniontid($show_order_lists);
 	if (!empty($show_order_lists) && is_array($show_order_lists)) {
 		foreach ($show_order_lists as $key => $value) {
-			if ($value['is_package'] == 2) {
-				$packageids[] = $value['roomid'];
+			if (!empty($value['roomid'])) {
+				if ($value['is_package'] == 2) {
+					$packageids[] = $value['roomid'];
+				}
+			} else {
+				$value['cart'] = iunserializer($value['cart']);
+				if (!empty($value['cart']) && is_array($value['cart'])) {
+					foreach ($value['cart'] as $g) {
+						$roomtitle = $g['good']['title'] . ',';
+					}
+					$show_order_lists[$key]['roomtitle'] = trim($roomtitle, ',');
+				}
 			}
 		}
 		$packageids = is_array($packageids) ? array_unique($packageids) : array();

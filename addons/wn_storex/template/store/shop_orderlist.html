@@ -124,7 +124,11 @@
 			<tr class="wn-table--border  text-center">
 				<td class="wn-table--border text-left">
 					<img src="{$row['thumb']}" alt="商品图片" style="width: 90px; height: 90px">
+					{if !empty($row['roomtitle'])}
 					{$row['roomtitle']}
+					{else}
+					{$row['style']}
+					{/if}
 				</td>
 				<td class="wn-table--border">{$row['nums']}</td>
 				<td class="wn-table--border">

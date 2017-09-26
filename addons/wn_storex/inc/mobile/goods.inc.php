@@ -355,9 +355,6 @@ if ($op == 'order') {
 		'roomid' => $goodsid,
 		'hotelid' => $store_id,
 	);
-	if (intval($_GPC['order']['nums']) <= 0) {
-		wmessage(error(-1, '数量不能是零'), '', 'ajax');
-	}
 	//卡券使用
 	$selected_coupon = $_GPC['order']['coupon'];
 	if (!empty($selected_coupon) && $selected_coupon['type'] == 3) {
@@ -368,6 +365,9 @@ if ($op == 'order') {
 		$selected_coupon['coupon_info'] = $coupon_info;
 	}
 	if ($store_info['store_type'] == STORE_TYPE_HOTEL) {
+		if (intval($_GPC['order']['nums']) <= 0) {
+			wmessage(error(-1, '数量不能是零'), '', 'ajax');
+		}
 		goods_hotel_order($insert, $store_info, $uid, $selected_coupon);
 	} else {
 		goods_common_order($insert, $store_info, $uid, $selected_coupon);
@@ -572,24 +572,27 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 		//单个商品
 		$express = $order_goods[0]['express_set']['express'];
 		$goods_info = $order_goods[0];
-		$spec = get_spec_goods($goods_info['id'], $goods_info['param'][0]);
+		$cart_good = array();
+		$spec = array();
+		if ($goods_info['param'][2] == 1) {
+			$spec = get_spec_goods($goods_info['id'], $goods_info['param'][0]);
+			$insert['spec_id'] = $spec['spec_id'];
+			$insert['spec_info'] = !empty($spec['spec_info']) ? iserializer($spec['spec_info']) : '';
+			$cart_good['specid'] = $goods_info['param'][0];
+			$cart_good['spec_info'] = $spec['spec_info'];
+		}
 		$insert['roomid'] = $goods_info['id'];
-		$insert['nums'] = intval($_GPC['order']['nums']);
+		$insert['nums'] = intval($goods_info['param'][1]);
 		$insert['style'] = $goods_info['title'];
 		$insert['oprice'] = $goods_info['oprice'];
 		$insert['cprice'] = $goods_info['cprice'];
-		$insert['spec_id'] = $spec['spec_id'];
-		$insert['spec_info'] = !empty($spec['spec_info']) ? iserializer($spec['spec_info']) : '';
 		check_order_repeat($insert, $spec);
-		$cart_good = array();
 		$cart_good['id'] = $goods_info['id'];
 		$cart_good['cprice'] = $goods_info['cprice'];
 		$cart_good['oprice'] = $goods_info['oprice'];
 		$cart_good['buynums'] = $goods_info['buynums'];
 		$cart_good['title'] = $goods_info['title'];
 		if ($goods_info['param']['2'] == 1) {
-			$cart_good['specid'] = $goods_info['param'][0];
-			$cart_good['spec_info'] = $spec['spec_info'];
 		}
 		$cart[] = array('good' => $cart_good, 'buyinfo' => $goods_info['param']);
 	}
