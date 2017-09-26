@@ -26,7 +26,7 @@ if ($op == 'order') {
 	pdo_query("UPDATE " . tablename('storex_order') . " SET status = -1, newuser = 0 WHERE time < :time AND weid = :uniacid AND paystatus = 0 AND status <> 1 AND status <> 3", array(':time' => TIMESTAMP - 86400, ':uniacid' => intval($_W['uniacid'])));
 	$operation_status = array(ORDER_STATUS_CANCEL, ORDER_STATUS_NOT_SURE, ORDER_STATUS_SURE, ORDER_STATUS_REFUSE);
 	$goods_status = array(0, GOODS_STATUS_NOT_SHIPPED, GOODS_STATUS_SHIPPED, GOODS_STATUS_NOT_CHECKED);
-	$order_lists = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'hotelid' => $manage_storex_ids, 'status' => $operation_status, 'goods_status' => $goods_status), array('id', 'weid', 'hotelid', 'paystatus','roomid', 'style', 'btime', 'etime', 'roomitemid', 'status', 'goods_status', 'mode_distribute', 'nums', 'sum_price', 'day', 'is_package'), '', 'id DESC');
+	$order_lists = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'hotelid' => $manage_storex_ids, 'status' => $operation_status, 'goods_status' => $goods_status), array('id', 'weid', 'hotelid', 'paystatus','roomid', 'style', 'btime', 'etime', 'roomitemid', 'status', 'goods_status', 'mode_distribute', 'nums', 'sum_price', 'day', 'is_package', 'cart'), '', 'id DESC');
 	if (!empty($order_lists) && is_array($order_lists)) {
 		$lists = array();
 		$goods_ids = array('storex_room' => array(), 'storex_goods' => array());
@@ -43,12 +43,25 @@ if ($op == 'order') {
 			} else {
 				continue;
 			}
-			$lists[] = $info;
-			if ($store_type == STORE_TYPE_HOTEL) {
-				$goods_ids['storex_room'][] = $info['roomid'];
+			if (!empty($info['roomid'])) {
+				if ($store_type == STORE_TYPE_HOTEL) {
+					$goods_ids['storex_room'][] = $info['roomid'];
+				} else {
+					$goods_ids['storex_goods'][] = $info['roomid'];
+				}
 			} else {
-				$goods_ids['storex_goods'][] = $info['roomid'];
+				if (!empty($info['cart'])) {
+					$info['cart'] = iunserializer($info['cart']);
+					foreach ($info['cart'] as $g) {
+						$goodinfo = pdo_get('storex_goods', array('id' => $g['good']['id']), array('id', 'thumb'));
+						$info['thumb'] = tomedia($goodinfo['thumb']);
+						$info['nums'] = $g['good']['buynums'];
+						$info['style'] = $g['good']['title'];
+						break;
+					}
+				}
 			}
+			$lists[] = $info;
 		}
 		unset($info);
 		$goods_thumbs = array();
@@ -58,7 +71,9 @@ if ($op == 'order') {
 		$packageids = is_array($packageids) ? array_unique($packageids) : array();
 		$sales_package = pdo_getall('storex_sales_package', array('uniacid' => $_W['uniacid'], 'id' => $packageids), array('title', 'sub_title', 'thumb', 'price', 'id'), 'id');
 		foreach ($lists as $k => &$val) {
-			$val['thumb'] = '';
+			if (!isset($val['thumb'])) {
+				$val['thumb'] = '';
+			}
 			if ($val['is_package'] == 2) {
 				$val['thumb'] = $sales_package[$val['roomid']]['thumb'];
 			} else {
@@ -87,34 +102,71 @@ if ($op == 'order_info') {
 			if (!empty($store_info[$order['hotelid']])) {
 				$table = gettablebytype($store_info[$order['hotelid']]['store_type']);
 				$fields = array('id', 'thumb');
-				if ($table == 'storex_room') {
-					$fields[] = 'is_house';
-				}
-				$goods = pdo_get($table, array('id' => $order['roomid']), $fields);
-				$order['title'] = $store_info[$order['hotelid']]['title'];
-				$order['thumb'] = tomedia($goods['thumb']);
-				$order = clerk_order_operation($order, $store_info[$order['hotelid']]['store_type']);
-				if (isset($goods['is_house']) && $goods['is_house'] == 1) {
-					$room_list = pdo_getall('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $order['hotelid'], 'roomid' => $order['roomid']));
-					if (!empty($room_list) && is_array($room_list)) {
-						foreach ($room_list as $r => $val) {
-							$show = check_room_assign($order, $val['id']);
-							if (empty($show)) {
-								unset($room_list[$r]);
+				$order['goods'] = array();
+				if (!empty($order['roomid'])) {
+					if ($store_info[$order['hotelid']]['store_type'] == STORE_TYPE_HOTEL) {
+						$fields[] = 'is_house';
+					}
+					$goods = pdo_get($table, array('id' => $order['roomid']), $fields);
+					$goods['title'] = $order['style'];
+					$goods['oprice'] = $order['oprice'];
+					$goods['cprice'] = $order['cprice'];
+					$goods['nums'] = $order['nums'];
+					if ($goods['is_house'] == 1) {
+						$goods['day'] = $order['day'];
+						$goods['btime'] = $order['btime'];
+						$goods['etime'] = $order['etime'];
+					}
+					if (!empty($order['spec_info'])) {
+						$order['spec_info'] = iunserializer($order['spec_info']);
+						$goods['style'] = implode(' ', $order['spec_info']['goods_val']);
+					}
+					$goods['thumb'] = tomedia($goods['thumb']);
+					if (isset($goods['is_house']) && $goods['is_house'] == 1) {
+						$room_list = pdo_getall('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $order['hotelid'], 'roomid' => $order['roomid']));
+						if (!empty($room_list) && is_array($room_list)) {
+							foreach ($room_list as $r => $val) {
+								$show = check_room_assign($order, $val['id']);
+								if (empty($show)) {
+									unset($room_list[$r]);
+								}
 							}
-						}
-						$order['room_list'] = $room_list;
-						$order['rooms'] = array();
-						if (!empty($order['roomitemid'])) {
-							$room_item = pdo_getall('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $order['hotelid'], 'id' => explode(',', $order['roomitemid'])), array('id', 'roomnumber'));
-							if (!empty($room_item) && is_array($room_item)) {
-								foreach ($room_item as $roomitem) {
-									$order['rooms'][] = $roomitem['roomnumber'];
+							$goods['room_list'] = $room_list;
+							$goods['rooms'] = array();
+							if (!empty($order['roomitemid'])) {
+								$room_item = pdo_getall('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $order['hotelid'], 'id' => explode(',', $order['roomitemid'])), array('id', 'roomnumber'));
+								if (!empty($room_item) && is_array($room_item)) {
+									foreach ($room_item as $roomitem) {
+										$goods['rooms'][] = $roomitem['roomnumber'];
+									}
 								}
 							}
 						}
 					}
+					$order['goods'][] = $goods;
+				} else {
+					$order['cart'] = iunserializer($order['cart']);
+					if (!empty($order['cart']) && is_array($order['cart'])) {
+						foreach ($order['cart'] as $good) {
+							if ($good['buyinfo'][2] == 3) {
+								$goods = pdo_get('storex_sales_package', array('uniacid' => $_W['uniacid'], 'id' => $good[0]['buyinfo'][0]), array('title', 'sub_title', 'thumb', 'price', 'id'));
+							} elseif ($good['buyinfo'][2] == 2) {
+								$goods = pdo_get('storex_goods', array('id' => $good['good']['id'], 'weid' => $order_info['weid']), array('id', 'thumb', 'oprice', 'cprice', 'title', 'sub_title'));
+							} elseif ($good['buyinfo'][2] == 1) {
+								$goods = pdo_get('storex_goods', array('id' => $good['good']['id'], 'weid' => $order_info['weid']), array('id', 'thumb', 'oprice', 'cprice', 'title', 'sub_title'));
+								$goods['style'] = implode(' ', $good['good']['spec_info']['goods_val']);
+							}
+							$goods['oprice'] = $good['good']['oprice'];
+							$goods['cprice'] = $good['good']['cprice'];
+							$goods['nums'] = $good['good']['buynums'];
+							$goods['title'] = $good['good']['title'];
+							$goods['thumb'] = tomedia($goods['thumb']);
+							$order['goods'][] = $goods;
+						}
+					}
+					unset($order['cart']);
 				}
+				$order = clerk_order_operation($order, $store_info[$order['hotelid']]['store_type']);
 				wmessage(error(0, $order), '', 'ajax');
 			}
 		}
