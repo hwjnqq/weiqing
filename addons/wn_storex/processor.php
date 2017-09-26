@@ -13,6 +13,7 @@ class Wn_storexModuleProcessor extends WeModuleProcessor {
 	public function respond() {
 		global $_W;
 		$rid = $this->rule;
+		file_put_contents(IA_ROOT . '/addons/wn_storex/c.txt', $rid);
 		$sql = "SELECT * FROM " . tablename('storex_wxcard_reply') . " WHERE rid = :rid ORDER BY RAND() LIMIT 1";
 		$reply = pdo_fetch($sql, array(':rid' => $rid));
 		load()->classs('weixin.account');
@@ -53,18 +54,44 @@ class Wn_storexModuleProcessor extends WeModuleProcessor {
 				}
 			}
 		} else {
-			$content = trim($this->message['content']);
-			$code = substr($content, 2);
-			$coupon_record = pdo_get('storex_coupon_record', array('uniacid' => $_W['uniacid'], 'openid' => $_W['openid'], 'code' => $code), array('couponid', 'id'));
-			if (empty($coupon_record)) {
-				$message = '未找到该卡券记录';
+			$poster_info = pdo_get('storex_poster', array('uniacid' => $_W['uniacid'], 'rid' => $rid));
+			if (!empty($poster_info)) {
+				include IA_ROOT . '/addons/wn_storex/model/poster.mod.php';
+				$wait = $poster_info['wait'];
+				$account_api = WeAccount::create($_W['acid']);
+				$notice = array(
+					'touser' => $_W['openid'],
+					'msgtype' => 'text',
+					'text' => array(
+						'content' => urlencode($wait)
+					)
+				);
+				$account_api->sendCustomNotice($notice);
+				$poster = array(
+					'id' => $poster_info['id'],
+					'storeid' => $poster_info['storeid'],
+					'background' => $poster_info['background'],
+					'items' => iunserializer($poster_info['params']),
+					'type' => $poster_info['type']
+				);
+				$result = poster_create($poster);
+				if (!empty($result)) {
+					return $this->respText('2313');
+				}
 			} else {
-				include IA_ROOT . '/addons/wn_storex/model/activity.mod.php';
-				$result = activity_coupon_consume($coupon_record['couponid'], $coupon_record['id'], 0);
-				if (is_error($result)) {
-					$message = $result['message'];
+				$content = trim($this->message['content']);
+				$code = substr($content, 2);
+				$coupon_record = pdo_get('storex_coupon_record', array('uniacid' => $_W['uniacid'], 'openid' => $_W['openid'], 'code' => $code), array('couponid', 'id'));
+				if (empty($coupon_record)) {
+					$message = '未找到该卡券记录';
 				} else {
-					$message = '卡券核销成功';
+					include IA_ROOT . '/addons/wn_storex/model/activity.mod.php';
+					$result = activity_coupon_consume($coupon_record['couponid'], $coupon_record['id'], 0);
+					if (is_error($result)) {
+						$message = $result['message'];
+					} else {
+						$message = '卡券核销成功';
+					}
 				}
 			}
 		}

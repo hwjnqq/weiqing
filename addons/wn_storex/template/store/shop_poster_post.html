@@ -156,15 +156,17 @@
 							</div>
 						</div>
 					</div>
+
+					<div class="clearfix"></div>
+					<div class="clearfix">
+						<button class="btn btn-primary btn-lg" @click="submitPoster()">提交修改</button>
+					</div>
 				</div>
 			</div>
-			<div>
-				<button class="btn btn-primary" @click="submitPoster()">提交</button>
-			</div>
-			<div class="app-preview">
+			<div class="app-preview" style="width: 375px;">
 				<div class="app-header"></div>
-				<div class="app-content" style="z-index: 999; position: relative">
-					<div class="title" style="z-index: 999; position: relative"><h1><span>超级海报</span></h1></div>
+				<div class="app-content" style="z-index: 999; position: relative; width: 375px;">
+					<div class="title" style="z-index: 999; position: relative"><h1 style="background-size: 100%;"><span>超级海报</span></h1></div>
 					<div>
 						<div class="poster-box" :style="{ backgroundImage: 'url(' + post.background + ')' }">
 
@@ -173,6 +175,7 @@
 						</div>
 					</div>
 				</div>
+
 			</div>
 		</div>
 	</div>
