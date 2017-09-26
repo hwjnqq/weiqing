@@ -58,8 +58,6 @@ function check_params() {
 			'info' => array(),
 			'order' => array(
 				'id' => intval($_GPC['id']),
-				'goodsid' => intval($_GPC['goodsid']),
-				'action' => trim($_GPC['action'])
 			)
 		),
 		'orders' => array(
@@ -943,4 +941,46 @@ function get_member_mode() {
 		}
 	}
 	return $memberinfo;
+}
+
+function update_cart_goods($storeid, $cart_list, $uid) {
+	global $_W;
+	$cart_list = explode(',', $cart_list);
+	if (!empty($cart_list) && is_array($cart_list)) {
+		foreach ($cart_list as $key => $value) {
+			$cart_info = explode('|', $value);
+			$goods[$cart_info[0]] = array(
+				'is_spec' => $cart_info[2],
+				'id' => $cart_info[0],
+				'nums' => $cart_info[1]
+			);
+			$total += $cart_info[1];
+			if ($cart_info[2] == 1) {
+				$spec_goodsids[] = $cart_info[0];
+			} elseif ($cart_info[2] == 2) {
+				$base_goodsids[] = $cart_info[0];
+			} elseif ($cart_info[2] == 3) {
+				$packageids[] = $cart_info[0];
+			}
+		}
+		$base_goods = pdo_getall('storex_goods', array('id' => $base_goodsids), array('title', 'oprice', 'sub_title', 'thumb', 'id'), 'id');
+		$spec_goods = pdo_getall('storex_spec_goods', array('id' => $spec_goodsids), array('title', 'oprice', 'sub_title', 'thumb', 'goods_val', 'id', 'goodsid'), 'id');
+		$package_goods = pdo_getall('storex_sales_package', array('id' => $packageids), array('title', 'price', 'title', 'sub_title', 'thumb', 'express', 'id'), 'id');
+		$total_price = 0;
+		if (!empty($goods) && is_array($goods)) {
+			foreach ($goods as $k => &$val) {
+				if ($val['is_spec'] == 1) {
+					$val['price'] = $spec_goods[$k]['oprice'] * $val['nums'];
+				} elseif ($val['is_spec'] == 2) {
+					$val['price'] = $base_goods[$k]['oprice'] * $val['nums'];
+				} elseif ($val['is_spec'] == 3) {
+					$val['price'] = $package_goods[$k]['price'] * $val['nums'];
+				}
+				$total_price += $val['price'];
+				unset($val['price']);
+			}
+			unset($val);
+		}
+		pdo_update('storex_cart', array('goods' => iserializer($goods), 'total' => $total, 'total_price' => $total_price), array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'uid' => $uid));
+	}
 }

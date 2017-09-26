@@ -386,6 +386,9 @@ function order_goodsids() {
 		$goods = explode(',', $goods);
 		foreach ($goods as &$g) {
 			$g = explode('|', $g);
+			if (empty($g[1]) || $g[1] < 0) {
+				wmessage(error(-1, '数量错误'), '', 'ajax');
+			}
 		}
 		unset($g);
 	}
@@ -555,7 +558,7 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 			$cart_good['buynums'] = $val['buynums'];
 			$cart_good['title'] = $val['title'];
 			if ($val['param']['2'] == 1) {
-				$spec = get_spec_goods($val['id']);
+				$spec = get_spec_goods($val['id'], $val['param'][0]);
 				$cart_good['specid'] = $val['param'][0];
 				$cart_good['spec_info'] = $spec['spec_info'];
 			}
@@ -569,7 +572,7 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 		//单个商品
 		$express = $order_goods[0]['express_set']['express'];
 		$goods_info = $order_goods[0];
-		$spec = get_spec_goods($goods_info['id']);
+		$spec = get_spec_goods($goods_info['id'], $goods_info['param'][0]);
 		$insert['roomid'] = $goods_info['id'];
 		$insert['nums'] = intval($_GPC['order']['nums']);
 		$insert['style'] = $goods_info['title'];
@@ -593,9 +596,9 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 	$insert['ordersn'] = date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1);
 	$a_condition = array('status' => 1, 'storeid' => $store_info['id'], 'uniacid' => $_W['uniacid'], 'starttime <=' => TIMESTAMP, 'endtime >' => TIMESTAMP);
 	foreach ($order_goods as $val) {
-		if ($val['param']['2'] != 3) {
-			if ($val['param']['2'] == 1) {//有规格
-				$spec_goods = get_spec_goods($g[0]);
+		if ($val['param'][2] != 3) {
+			if ($val['param'][2] == 1) {//有规格
+				$spec_goods = get_spec_goods($val['id'], $val['param'][0]);
 				$a_condition['specid'] = $val['param'][0];
 				$a_condition['goodsid'] = $spec_goods['goodsid'];
 			}
@@ -625,8 +628,11 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 	if ($_GPC['is_cart'] == 1) {
 		$insert['cart'] = !empty($cart) ? iserializer($cart) : '';
 		$insert = cart_goods_order($insert, $cart);
+		$insert = calcul_discounts_price($insert, $store_info, $uid, $selected_coupon);
 		$insert['static_price'] = $insert['sum_price'];
-		$insert['sum_price'] += $store_info['express'];
+		if ($insert['mode_distribute'] == 2) {
+			$insert['sum_price'] += $store_info['express'];
+		}
 	} else {
 		$insert = general_goods_order($insert, $goods_info);
 		$insert = calcul_discounts_price($insert, $store_info, $uid, $selected_coupon);
@@ -673,6 +679,29 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 			storex_send_notice($store_info, $orderid);
 			if ($_GPC['is_cart'] != 1) {
 				storex_send_notice_touser($insert, $store_info, $goods_info);
+			}
+		}
+		if ($_GPC['is_cart'] == 1) {
+			$my_cart = pdo_get('storex_cart', array('uid' => $uid, 'uniacid' => $_W['uniacid'], 'storeid' => $store_info['id']));
+			if (!empty($my_cart) && !empty($my_cart['goods'])) {
+				$my_cart['goods'] = iunserializer($my_cart['goods']);
+				foreach ($goods as $p) {
+					foreach ($my_cart['goods'] as $id => $value) {
+						if ($p[0] == $value['id'] && $p[1] == $value['nums'] && $p[2] == $value['is_spec']) {
+							unset($my_cart['goods'][$id]);
+						}
+					}
+				}
+				$cart_list = '';
+				if (!empty($my_cart['goods'])) {
+					foreach ($my_cart['goods'] as $g) {
+						$cart_list .= $g['id'] . '|' . $g['nums'] . '|' . $g['is_spec'] . ',';
+					}
+					$cart_list = trim($cart_list, ',');
+					update_cart_goods($store_info['id'], $cart_list, $uid);
+				} else {
+					pdo_update('storex_cart', array('goods' => ''), array('uid' => $uid, 'uniacid' => $_W['uniacid'], 'storeid' => $store_info['id']));
+				}
 			}
 		}
 		wmessage(error(0, $order_id), '', 'ajax');
@@ -742,7 +771,7 @@ function cart_goods_order($insert, $cart) {
 	$insert['sum_price'] = 0;
 	if (!empty($cart) && is_array($cart)) {
 		foreach ($cart as $info) {
-			$insert['sum_price'] += $info['goods']['cprice'] * $info['goods']['buynums'];
+			$insert['sum_price'] += $info['good']['cprice'] * $info['good']['buynums'];
 		}
 	}
 	return $insert;
@@ -839,7 +868,9 @@ function get_order_info($insert) {
 	$insert['contact_name'] = trim($_GPC['order']['contact_name']);
 	$insert['mobile'] = trim($_GPC['order']['mobile']);
 	$insert['remark'] = trim($_GPC['order']['remark']);
-	$insert['nums'] = intval($_GPC['order']['nums']);
+	if ($_GPC['is_cart'] != 1) {
+		$insert['nums'] = intval($_GPC['order']['nums']);
+	}
 	return $insert;
 }
 
@@ -872,10 +903,10 @@ function get_goods_info($goodsid, $store_info, $spec = array()) {
 }
 
 //获取商品的规格
-function get_spec_goods($goodsid) {
+function get_spec_goods($goodsid, $spec_id) {
 	global $_GPC, $_W;
 	$spec = array();
-	$spec['spec_id'] = intval($_GPC['spec_id']);
+	$spec['spec_id'] = intval($spec_id);
 	$spec['spec_info'] = array();
 	if (!empty($spec['spec_id'])) {
 		$spec_goods = pdo_get('storex_spec_goods', array('uniacid' => $_W['uniacid'], 'id' => $spec['spec_id'], 'goodsid' => $goodsid));
