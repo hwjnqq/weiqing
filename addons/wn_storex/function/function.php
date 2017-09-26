@@ -588,37 +588,6 @@ function extend_switch_fetch() {
 	return $switchs;
 }
 
-function general_goods_order($insert, $goods_info) {
-	global $_GPC;
-	if ($goods_info['store_type'] != STORE_TYPE_HOTEL) {
-		$store_info = get_store_info($insert['hotelid']);
-		if (!empty($store_info['pick_up_mode'])) {
-			$insert['mode_distribute'] = '';
-			$mode_distribute = intval($_GPC['order']['mode_distribute']);
-			if (empty($_GPC['order']['order_time'])) {
-				wmessage(error(-1, '请选择时间！'), '', 'ajax');
-			}
-			$insert['order_time'] = strtotime(intval($_GPC['order']['order_time']));
-			if ($mode_distribute == 2) {//配送
-				if (!empty($store_info['pick_up_mode']['express'])) {
-					if (empty($_GPC['order']['addressid'])) {
-						wmessage(error(-1, '地址不能为空！'), '', 'ajax');
-					}
-					$insert['mode_distribute'] = $mode_distribute;
-					$insert['addressid'] = intval($_GPC['order']['addressid']);
-					$insert['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
-				}
-			} elseif ($mode_distribute == 1) {
-				if (!empty($store_info['pick_up_mode']['self_lift'])) {
-					$insert['mode_distribute'] = $mode_distribute;
-				}
-			}
-		}
-	}
-	$insert['sum_price'] = $goods_info['cprice'] * $insert['nums'];
-	return $insert;
-}
-
 function calculate_express($goods_info, $insert) {
 	if ($insert['mode_distribute'] == 2) {
 		if (!empty($goods_info['express_set'])) {

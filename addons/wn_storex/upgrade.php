@@ -824,6 +824,17 @@ $sql = "
 	  `tail` varchar(255) NOT NULL,
 	  PRIMARY KEY (`id`)
 	)DEFAULT CHARSET=utf8;
+		
+	CREATE TABLE IF NOT EXISTS `ims_storex_cart` (
+	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	  `uniacid` int(10) unsigned NOT NULL,
+	  `storeid` int(10) unsigned NOT NULL,
+	  `goods` varchar(1000) NOT NULL,
+	  `uid` varchar(50) NOT NULL,
+	  `total` int(10) unsigned NOT NULL,
+	  `total_price` decimal(10,2) DEFAULT '0.00',
+	  PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
 ";
 pdo_run($sql);
 

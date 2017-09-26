@@ -1316,7 +1316,7 @@ function wmessage($msg, $share = '', $type = '') {
 }
 
 //检查商品库存，最大购买，最小购买
-function check_goods_stock($goodsid, $buynums, $spec_goods) {
+function check_goods_stock($goodsid, $buynums, $spec_goods = array()) {
 	$goods = pdo_get('storex_goods', array('id' => $goodsid), array('id', 'min_buy', 'max_buy', 'stock'));
 	if ($buynums < $goods['min_buy']) {
 		return error(-1, '单次最小购买量是' . $goods['min_buy']);
@@ -1337,20 +1337,45 @@ function check_goods_stock($goodsid, $buynums, $spec_goods) {
 }
 
 function stock_control($order, $type) {
-	$goods = pdo_get('storex_goods', array('id' => $order['roomid']), array('id', 'stock', 'stock_control'));
-	if ($goods['stock'] == -1 || $goods['stock_control'] == 1) {
-		return;
-	}
-	//下单扣库存或者支付成功扣库存
-	if (($type == 'order' && $goods['stock_control'] == 2) || ($type == 'pay' && $goods['stock_control'] == 3)) {
-		if (!empty($order['spec_id'])) {
-			$spec_goods = pdo_get('storex_spec_goods', array('id' => $order['spec_id']), array('stock'));
-			if (!empty($spec_goods) && $order['nums'] <= $spec_goods['stock']) {
-				pdo_update('storex_spec_goods', array('stock' => ($spec_goods['stock'] - $order['nums'])), array('id' => $order['spec_id']));
+	if (!empty($order['cart'])) {
+		$cart = iunserializer($order['cart']);
+		foreach ($cart as $g) {
+			if (!empty($g['good']) && $g['buyinfo'][2] != 3) {
+				$goods = pdo_get('storex_goods', array('id' => $g['good']['id']), array('id', 'stock', 'stock_control'));
+				if ($goods['stock'] == -1 || $goods['stock_control'] == 1) {
+					continue;
+				}
+				//下单扣库存或者支付成功扣库存
+				if (($type == 'order' && $goods['stock_control'] == 2) || ($type == 'pay' && $goods['stock_control'] == 3)) {
+					if ($g['buyinfo'][2] == 1) {
+						$spec_goods = pdo_get('storex_spec_goods', array('id' => $g['buyinfo'][0]), array('stock'));
+						if (!empty($spec_goods) && $g['buyinfo'][1] <= $spec_goods['stock']) {
+							pdo_update('storex_spec_goods', array('stock' => ($spec_goods['stock'] - $g['buyinfo'][1])), array('id' => $order['spec_id']));
+						}
+					} else {
+						if ($g['buyinfo'][1] <= $goods['stock']) {
+							pdo_update('storex_goods', array('stock' => ($goods['stock'] - $g['buyinfo'][1])), array('id' => $g['good']['id']));
+						}
+					}
+				}
 			}
-		} else {
-			if ($order['nums'] <= $goods['stock']) {
-				pdo_update('storex_goods', array('stock' => ($goods['stock'] - $order['nums'])), array('id' => $order['roomid']));
+		}
+	} else {
+		$goods = pdo_get('storex_goods', array('id' => $order['roomid']), array('id', 'stock', 'stock_control'));
+		if ($goods['stock'] == -1 || $goods['stock_control'] == 1) {
+			return;
+		}
+		//下单扣库存或者支付成功扣库存
+		if (($type == 'order' && $goods['stock_control'] == 2) || ($type == 'pay' && $goods['stock_control'] == 3)) {
+			if (!empty($order['spec_id'])) {
+				$spec_goods = pdo_get('storex_spec_goods', array('id' => $order['spec_id']), array('stock'));
+				if (!empty($spec_goods) && $order['nums'] <= $spec_goods['stock']) {
+					pdo_update('storex_spec_goods', array('stock' => ($spec_goods['stock'] - $order['nums'])), array('id' => $order['spec_id']));
+				}
+			} else {
+				if ($order['nums'] <= $goods['stock']) {
+					pdo_update('storex_goods', array('stock' => ($goods['stock'] - $order['nums'])), array('id' => $order['roomid']));
+				}
 			}
 		}
 	}

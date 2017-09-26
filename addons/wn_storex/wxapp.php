@@ -38,6 +38,10 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		$actions = array(
 			'activity' => array('do' => 'activity', 'op' => 'display'),
 				
+			'cart' => array('do' => 'cart', 'op' => 'display'),
+			'addCart' => array('do' => 'cart', 'op' => 'add_cart'),
+			'updateCart' => array('do' => 'cart', 'op' => 'update_cart'),
+				
 			'homePageList' => array('do' => 'wxapphomepage', 'op' => 'display'),
 			'homePageNotice' => array('do' => 'wxapphomepage', 'op' => 'notice'),
 				
