@@ -38,7 +38,7 @@
 				<td>{$item['keyword']}</td>
 				<td>
 					<div class="wn-table__link">
-						<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_poster', array('op' => 'post', 'id' => $item['id'], 'storeid' => $storeid))}" title="编辑">编辑</a>
+						<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_poster', array('op' => 'post', 'id' => $item['id'], 'storeid' => $storeid, 'rid' => $item['rid']))}" title="编辑">编辑</a>
 						<a class="wn-table__link__item js-delete" href="{php echo $this->createWebUrl('shop_poster', array('op' => 'delete', 'id' => $item['id'], 'storeid' => $storeid))}">删除</a>
 					</div>
 				</td>

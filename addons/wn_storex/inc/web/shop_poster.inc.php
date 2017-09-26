@@ -10,6 +10,24 @@ $store_info = $_W['wn_storex']['store_info'];
 
 if ($op == 'display') {
 	$poster_list = pdo_getall('storex_poster', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid));
+
+	// $arr = pdo_getall('rule', array('module' => 'wn_storex'));
+	// $arr1 = pdo_get('rule_keyword', array('rid' => '18'));
+	// $abc = $poster_list[0];
+	// $abc['params'] = iunserializer($abc['params']);
+	// mload()->model('poster');
+	// $poster = array(
+	// 	'background' => $abc['background'],
+	// 	'items' => $abc['params']
+	// );
+	// $arr = poster_create($poster);
+	// echo "<pre>";
+	// print_r($poster);
+	// echo "</pre>";
+	// echo "<pre>";
+	// print_r($arr);
+	// echo "</pre>";
+	// exit;
 	include $this->template('store/shop_poster_index');
 }
 
@@ -26,14 +44,44 @@ if ($op == 'post') {
 	}
 	if ($_W['ispost'] && $_W['isajax']) {
 		$params = $_GPC['params'];
+		$rid = intval($params['rid']);
 		$data = array(
 			'name' => $params['name'],
 			'background' => $params['background'],
 			'keyword' => $params['keyword'],
 			'type' => $params['type'],
 			'wait' => $params['wait'],
-			'params' => iserializer($params['list'])
+			'params' => iserializer($params['list']),
 		);
+		$rule = array(
+			'uniacid' => $_W['uniacid'],
+			'name' => $params['name'],
+			'module' => 'wn_storex',
+			'containtype' => 'basic',
+			'status' => 1,
+			'displayorder' => 0,
+		);
+		if (empty($rid)) {
+			pdo_insert('rule', $rule);
+			$rid = pdo_insertid();
+		} else {
+			pdo_update('rule', $rule, array('id' => $rid));
+		}
+		if (!empty($rid)) {
+			pdo_delete('rule_keyword', array('rid' => $rid, 'uniacid' => $_W['uniacid']));
+			$rowtpl = array(
+				'rid' => $rid,
+				'uniacid' => $_W['uniacid'],
+				'module' => 'wn_storex',
+				'status' => 1,
+				'displayorder' => 0,
+				'type' => 1,
+				'content' => $params['keyword']
+			);
+			pdo_insert('rule_keyword', $rowtpl);
+			$kid = pdo_insertid();
+		}
+		$data['rid'] = $rid;
 		$poster_info = pdo_get('storex_poster', array('id' => $params['id']), array('id'));
 		if (empty($poster_info)) {
 			$data['storeid'] = $storeid;
