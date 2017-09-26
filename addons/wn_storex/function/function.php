@@ -273,12 +273,21 @@ function radian($d) {
 //支付
 function pay_info($order_id) {
 	global $_W;
-	$order_info = pdo_get('storex_order', array('id' => $order_id, 'weid' => intval($_W['uniacid']), 'openid' => $_W['openid']));
+	$order_info = pdo_get('storex_order', array('id' => $order_id, 'weid' => intval($_W['uniacid']), 'openid' => $_W['openid']), array('ordersn', 'id', 'style', 'sum_price', 'cart'));
 	if (!empty($order_info)) {
+		$style = $order_info['style'];
+		if (!empty($order_info['cart'])) {
+			$order_info['cart'] = iunserializer($order_info['cart']);
+			foreach ($order_info['cart'] as $val) {
+				$style .= $val['good']['title'] . ' 等';
+				break;
+			}
+			$style = trim($style, ',');
+		}
 		$params = array(
 			'ordersn' => $order_info['ordersn'],
 			'tid' => $order_info['id'],//支付订单编号, 应保证在同一模块内部唯一
-			'title' => $order_info['style'],
+			'title' => $style,
 			'fee' => $order_info['sum_price'],//总费用, 只能大于 0
 			'user' => $_W['openid']//付款用户, 付款的用户名(选填项)
 		);
