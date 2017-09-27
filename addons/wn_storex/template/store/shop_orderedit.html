@@ -11,6 +11,7 @@
 				{/loop}
 			</ul>
 		{/if}
+		{if !empty($item['roomid'])}
 		<table class="table table-bordered wn-table text-center">
 			<tr>
 				<th class="text-center">商品</th>
@@ -31,6 +32,45 @@
 				<td>{$item['sum_price']}</td>
 			</tr>
 		</table>
+		{else}
+		<table class="table table-hover wn-table table-bordered">
+			<thead class="navbar-inner">
+				<tr>
+					<th class="text-center">商品</th>
+					<th class="text-center">数量</th>
+					<th class="text-center">单价</th>
+					<th class="text-center">规格</th>
+					<th class="text-center">套餐</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $item['cart'] $good}
+				<tr>
+					<td>{$good['good']['title']}</td>
+					<td>{$good['good']['buynums']}</td>
+					<td>{$good['good']['cprice']}</td>
+					{if $good['buyinfo']['2'] == 1}
+					<td>{php echo implode(' ', $good['good']['spec_info']['goods_val'])}
+					</td>
+					<td>不是套餐</td>
+					{elseif $good['buyinfo']['2'] == 2}
+					<td>无规格</td>
+					<td>不是套餐</td>
+					{elseif $good['buyinfo']['2'] == 3}
+					<td>无规格</td>
+					<td>
+					{if !empty($good['package'])}
+					套餐商品:{$good['package']['good']} <br>
+					套餐价格:{$good['package']['price']} <br>
+					套餐运费:{$good['package']['express']} <br>
+					{/if}
+					</td>
+					{/if}
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{/if}
 		<div class="wn-order">
 			<div class="wn-order__detail form form-horizontal">
 				<h4>订单信息</h4>
@@ -105,7 +145,7 @@
 						{php echo date('Y-m-d H:i:s', $item['time']);}
 					</div>
 				</div>
-				{if $store_type != STORE_TYPE_HOTEL}
+				{if $store_type != STORE_TYPE_HOTEL && !empty($item['roomid'])}
 				<div class="form-group">
 					<label class="col-sm-4 control-label">商品规格</label>
 					<div class="col-sm-8 form-control-static">

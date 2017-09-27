@@ -95,8 +95,10 @@ if ($op == 'display') {
 				if (!empty($value['cart']) && is_array($value['cart'])) {
 					foreach ($value['cart'] as $g) {
 						$roomtitle = $g['good']['title'] . ',';
+						$nums = $g['good']['title'] . '*' . $g['good']['buynums'] . ',';
 					}
 					$show_order_lists[$key]['roomtitle'] = trim($roomtitle, ',');
+					$show_order_lists[$key]['nums'] = trim($nums, ',');
 				}
 			}
 		}
@@ -252,10 +254,33 @@ if ($op == 'edit') {
 			}
 		}
 		if ($store_type != STORE_TYPE_HOTEL) {
-			$item['spec'] = '';
-			$item['spec_info'] = iunserializer($item['spec_info']);
-			if (!empty($item['spec_info']['goods_val'])) {
-				$item['spec'] = implode(' ', $item['spec_info']['goods_val']);
+			if (empty($item['roomid'])) {
+				$item['cart'] = iunserializer($item['cart']);
+				if (!empty($item['cart']) && is_array($item['cart'])) {
+					foreach ($item['cart'] as &$g) {
+						if ($g['buyinfo'][2] == 3) {
+							$package = pdo_get('storex_sales_package', array('id' => $g['buyinfo'][0]));
+							$package['goodsids'] = iunserializer($package['goodsids']);
+							$goods = pdo_getall('storex_goods', array('id' => $package['goodsids']), array('id', 'title'));
+							$g['package']['good'] = '';
+							if (!empty($goods)) {
+								foreach ($goods as $v) {
+									$g['package']['good'] .= $v['title'] . ',';
+								}
+								$g['package']['good'] = trim($g['package']['good'], ',');
+							}
+							$g['package']['price'] = $package['price'];
+							$g['package']['express'] = $package['express'];
+						}
+					}
+					unset($g);
+				}
+			} else {
+				$item['spec'] = '';
+				$item['spec_info'] = iunserializer($item['spec_info']);
+				if (!empty($item['spec_info']['goods_val'])) {
+					$item['spec'] = implode(' ', $item['spec_info']['goods_val']);
+				}
 			}
 		}
 	}

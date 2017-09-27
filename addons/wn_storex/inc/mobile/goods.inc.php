@@ -341,9 +341,9 @@ if ($op == 'info') {
 	$credit_replace = get_credit_replace($store_id, $uid);
 	if (!empty($credit_replace)) {
 		$infos['credit_replace'] = $credit_replace;
-	}
-	if (!empty($infos['credit_replace']['max_replace']) && $infos['goods_info']['cprice'] < $infos['credit_replace']['max_replace']) {
-		$infos['credit_replace']['credit_pay'] = 2;
+		if (!empty($infos['credit_replace']['max_replace']) && $infos['goods_info']['cprice'] < $infos['credit_replace']['max_replace']) {
+			$infos['credit_replace']['credit_pay'] = 2;
+		}
 	}
 	wmessage(error(0, $infos), '', 'ajax');
 }
