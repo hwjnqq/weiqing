@@ -282,7 +282,7 @@ if ($op == 'info') {
 		}
 		$order_goods = $goods_info;
 	} else {
-		$goods = order_goodsids();
+		$goods = order_goodsids($uid);
 		if (!empty($goods) && is_array($goods)) {
 			$order_goods = get_order_goods($store_info, $goods);
 		} else {
@@ -377,7 +377,7 @@ if ($op == 'order') {
 	}
 }
 
-function order_goodsids() {
+function order_goodsids($uid = '') {
 	global $_GPC;
 	$goods = array();
 	if ($store_info['store_type'] != STORE_TYPE_HOTEL) {
@@ -387,10 +387,23 @@ function order_goodsids() {
 			wmessage(error(-1, '商品不能是空'), '', 'ajax');
 		}
 		$goods = explode(',', $goods);
-		foreach ($goods as &$g) {
-			$g = explode('|', $g);
-			if (empty($g[1]) || $g[1] < 0) {
-				wmessage(error(-1, '数量错误'), '', 'ajax');
+		if (!empty($uid) && $_GPC['is_cart'] == 1) {
+			$cart = pdo_get('storex_cart', array('storeid' => intval($_GPC['id']), 'uid' => $uid));
+			if (!empty($cart)) {
+				$cart['goods'] = iunserializer($cart['goods']);
+				$cart_goods = array();
+				foreach ($cart['goods'] as $cg) {
+					$cart_goods[] = $cg['id'] . '|' . $cg['nums'] . '|' . $cg['is_spec'];
+				}
+				$goods = array_intersect($goods, $cart_goods);
+			}
+		}
+		if (!empty($goods) && is_array($goods)) {
+			foreach ($goods as &$g) {
+				$g = explode('|', $g);
+				if (empty($g[1]) || $g[1] < 0) {
+					wmessage(error(-1, '数量错误'), '', 'ajax');
+				}
 			}
 		}
 		unset($g);
