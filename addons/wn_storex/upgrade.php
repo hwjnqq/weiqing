@@ -823,7 +823,7 @@ $sql = "
 	  `bg_image` varchar(500) NOT NULL,
 	  `tail` varchar(255) NOT NULL,
 	  PRIMARY KEY (`id`)
-	)DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 		
 	CREATE TABLE IF NOT EXISTS `ims_storex_cart` (
 	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -834,6 +834,22 @@ $sql = "
 	  `total` int(10) unsigned NOT NULL,
 	  `total_price` decimal(10,2) DEFAULT '0.00',
 	  PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
+
+	CREATE TABLE IF NOT EXISTS `ims_storex_poster` (
+	  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+	  `storeid` int(10) unsigned NOT NULL DEFAULT '0',
+	  `name` varchar(100) NOT NULL,
+	  `keyword` varchar(50) NOT NULL,
+	  `wait` varchar(255) NOT NULL,
+	  `background` varchar(255) NOT NULL,
+	  `type` varchar(100) NOT NULL COMMENT '海报类型',
+	  `params` longtext NOT NULL,
+	  `rid` int(10) unsigned NOT NULL,
+	  PRIMARY KEY (`id`),
+	  KEY `uniacid` (`uniacid`),
+	  KEY `storeid` (`storeid`)
 	) DEFAULT CHARSET=utf8;
 ";
 pdo_run($sql);
