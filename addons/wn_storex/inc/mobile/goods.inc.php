@@ -387,7 +387,7 @@ function order_goodsids($uid = '') {
 			wmessage(error(-1, '商品不能是空'), '', 'ajax');
 		}
 		$goods = explode(',', $goods);
-		if (!empty($uid)) {
+		if (!empty($uid) && $_GPC['is_cart'] == 1) {
 			$cart = pdo_get('storex_cart', array('storeid' => intval($_GPC['id']), 'uid' => $uid));
 			if (!empty($cart)) {
 				$cart['goods'] = iunserializer($cart['goods']);
