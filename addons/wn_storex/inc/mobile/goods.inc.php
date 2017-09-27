@@ -338,7 +338,10 @@ if ($op == 'info') {
 			}
 		}
 	}
-	$infos['credit_replace'] = get_credit_replace($store_id, $uid);
+	$credit_replace = get_credit_replace($store_id, $uid);
+	if (!empty($credit_replace)) {
+		$infos['credit_replace'] = $credit_replace;
+	}
 	if (!empty($infos['credit_replace']['max_replace']) && $infos['goods_info']['cprice'] < $infos['credit_replace']['max_replace']) {
 		$infos['credit_replace']['credit_pay'] = 2;
 	}

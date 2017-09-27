@@ -905,23 +905,25 @@ function format_package_goods($store_id, $goodsid) {
 
 function get_credit_replace($storeid, $uid = '') {
 	$store_info = get_store_info($storeid);
-	$store_set = get_storex_set();
-	$credit_replace = array(
-		'credit_pay' => $store_set['credit_pay'],//是否开启积分抵扣
-		'credit_ratio' => $store_set['credit_ratio'],
-		'max_replace' => $store_info['max_replace'],
-		'cost_credit' => sprintf('%.2f', $store_set['credit_ratio'] * $store_info['max_replace']),
-		'credit1' => 0,
-	);
-	if (!empty($uid)) {
-		load()->model('mc');
-		$credit = mc_credit_fetch($uid);
-		$credit_replace['credit1'] = $credit['credit1'];
-		if ($credit_replace['cost_credit'] > $credit_replace['credit1']) {
-			$credit_replace['credit_pay'] = 2;
+	if ($store_info['max_replace'] > 0 && $store_set['credit_pay'] == 1) {
+		$store_set = get_storex_set();
+		$credit_replace = array(
+			'credit_pay' => $store_set['credit_pay'],//是否开启积分抵扣
+			'credit_ratio' => $store_set['credit_ratio'],
+			'max_replace' => $store_info['max_replace'],
+			'cost_credit' => sprintf('%.2f', $store_set['credit_ratio'] * $store_info['max_replace']),
+			'credit1' => 0,
+		);
+		if (!empty($uid)) {
+			load()->model('mc');
+			$credit = mc_credit_fetch($uid);
+			$credit_replace['credit1'] = $credit['credit1'];
+			if ($credit_replace['cost_credit'] > $credit_replace['credit1']) {
+				$credit_replace['credit_pay'] = 2;
+			}
 		}
+		return $credit_replace;
 	}
-	return $credit_replace;
 }
 
 function get_code_info() {
