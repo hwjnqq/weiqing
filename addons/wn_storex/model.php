@@ -1350,7 +1350,7 @@ function stock_control($order, $type) {
 					if ($g['buyinfo'][2] == 1) {
 						$spec_goods = pdo_get('storex_spec_goods', array('id' => $g['buyinfo'][0]), array('stock'));
 						if (!empty($spec_goods) && $g['buyinfo'][1] <= $spec_goods['stock']) {
-							pdo_update('storex_spec_goods', array('stock' => ($spec_goods['stock'] - $g['buyinfo'][1])), array('id' => $order['spec_id']));
+							pdo_update('storex_spec_goods', array('stock' => ($spec_goods['stock'] - $g['buyinfo'][1])), array('id' => $g['buyinfo'][0]));
 						}
 					} else {
 						if ($g['buyinfo'][1] <= $goods['stock']) {

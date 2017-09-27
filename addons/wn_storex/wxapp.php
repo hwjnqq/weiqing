@@ -26,14 +26,27 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 			return $this->result(41009, '请重新登录!', array());
 		}
 		$url = murl('entry', $url_param, true, true);
+		$result = $this->storex_request($url, $params);
+		$i = 1;
+		do {
+			if (is_null($result['message']['errno'])) {
+				$result = $this->storex_request($url, $params);
+				$i ++;
+			}
+		} while ($i < 6 && is_null($result['message']['errno']));
+		return $this->result($result['message']['errno'], $result['message']['message'], empty($result['message']['data']) ? '' : $result['message']['data']);
+	}
+	
+	function storex_request($url, $params) {
 		$result = ihttp_request($url, $params);
 		$result = json_decode($result['content'], true);
 		$result['message']['data']['share'] = array();
 		if (!empty($result['share'])) {
 			$result['message']['data']['share'] = $result['share'];
 		}
-		return $this->result($result['message']['errno'], $result['message']['message'], empty($result['message']['data']) ? '' : $result['message']['data']);
+		return $result;
 	}
+	
 	function actions($ac) {
 		$actions = array(
 			'activity' => array('do' => 'activity', 'op' => 'display'),
