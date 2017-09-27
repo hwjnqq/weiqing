@@ -78,9 +78,7 @@ function poster_create($poster){
 	// mkdirs(dirname($qrcode));
 	set_time_limit(0);
 	@ini_set('memory_limit', '256M');
-	// $bg = tomedia($poster['background']);
 	$background = $poster['background'];
-	// return $background;
 	if(empty($background)) {
 		return error(-1, '背景图片不存在');
 	}
@@ -91,7 +89,7 @@ function poster_create($poster){
 	imagedestroy($background);
 	$items = $poster['items'];
 	$items[0]['url'] = 'http://caochunjiang.oss-cn-shanghai.aliyuncs.com/headimg_269.jpg?time=1506130151';
-	foreach($items as $item) {
+	foreach ($items as $item) {
 		$style = array(
 			'left' => $item['left'],
 			'top' => $item['top'],
@@ -102,7 +100,7 @@ function poster_create($poster){
 		);
 		$style = poster_trimPx($style);
 		if ($item['type'] == 'avatar') {
-			$target = poster_mergeImage($target, $item['url'], $style);
+			$target = poster_mergeImage($target, $fans_info['headimgurl'], $style);
 		} elseif ($item['type'] == 'qr') {
 			$target = poster_mergeImage($target, $item['url'], $style);
 		} elseif ($item['type'] == 'nickname') {
@@ -118,63 +116,12 @@ function poster_create($poster){
 	return true;
 }
 
-function poster_getQR($fans,$poster,$sid,$modulename){
-	global $_W;
-	$pid = $poster['id'];
-	//看看是否已有记录
-	$share = pdo_fetch('select * from '.tablename($modulename."_share")." where id='{$sid}'");
-	if (!empty($share['url'])){
-		$out = false;
-		if ($poster['rtype']){//若是临时二维码 需要查看时间
-			$qrcode = pdo_fetch('select * from '.tablename('qrcode')
-				." where uniacid='{$_W['uniacid']}' and qrcid='{$share['sceneid']}' "
-				." and ticket='{$share['ticketid']}' and url='{$share['url']}'");
-			if($qrcode['createtime'] + $qrcode['expire'] < time()){//过期
-				pdo_delete('qrcode',array('id'=>$qrcode['id']));
-				$out = true;
-			}
-		}
-		if (!$out){
-			return $share['url'];
-		}
-	}
-	$model = 2 - intval($poster['rtype']);
-	//找出已经有的最大的场景id
-	$sceneid = pdo_fetchcolumn('select qrcid from '.tablename("qrcode")." where uniacid='{$_W['uniacid']}' and model='{$model}' order by qrcid desc limit 1");
-	if (empty($sceneid)) $sceneid = 20000;
-	else $sceneid++;
-	$barcode['action_info']['scene']['scene_id'] = $sceneid;
-
-	load()->model('account');
-	$acid = pdo_fetchcolumn('select acid from '.tablename('account')." where uniacid={$_W['uniacid']}");
-	$uniacccount = WeAccount::create($acid);
-	$time = 0;
-	if ($poster['rtype']){//七天临时二维码
-		$barcode['action_name'] = 'QR_SCENE';
-		$barcode['expire_seconds'] = 30*24*3600;
-		$res = $uniacccount->barCodeCreateDisposable($barcode);
-		$time = $barcode['expire_seconds'];
-	}else{
-		$barcode['action_name'] = 'QR_LIMIT_SCENE';
-		$res = $uniacccount->barCodeCreateFixed($barcode);
-	}
-	//将二维码存于微擎官方二维码表
-	pdo_insert('qrcode',
-		array('uniacid'=>$_W['uniacid'],'acid'=>$acid,'qrcid'=>$sceneid,'name'=>$poster['title'],'keyword'=>$poster['kword']
-		,'model'=>$model,'ticket'=>$res['ticket'],'expire'=>$time,'createtime'=>time(),'status'=>1,'url'=>$res['url']
-		)
-	);
-
-	pdo_update($modulename."_share",array('sceneid'=>$sceneid,'ticketid'=>$res['ticket'],'url'=>$res['url']),array('id'=>$sid));
-	return $res['url'];
-}
-
 function post_build_qrcode($url) {
 	global $_W;
 	if (empty($url)) {
 		return error(-1, '链接不能为空');
 	}
-	$path = MODULE_ROOT . "/resource/poster/qrcode/{$_W['uniacid']}/";
+	$path = MODULE_ROOT . "/template/style/img/poster/qrcode/{$_W['uniacid']}/";
 	if(!is_dir($path)) {
 		load()->func('file');
 		mkdirs($path);
@@ -185,5 +132,6 @@ function post_build_qrcode($url) {
 		require IA_ROOT . '/framework/library/qrcode/phpqrcode.php';
 		QRcode::png($url, $qrcode_file, QR_ECLEVEL_L, 4);
 	}
+	return "{$_W['siteroot']}addons/wn_storex/template/style/img/poster/qrcode/{$_W['uniacid']}/{$file}";
 }
 

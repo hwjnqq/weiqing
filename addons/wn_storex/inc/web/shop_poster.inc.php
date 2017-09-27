@@ -69,13 +69,21 @@ if ($op == 'post') {
 		}
 		if (!empty($rid)) {
 			pdo_delete('rule_keyword', array('rid' => $rid, 'uniacid' => $_W['uniacid']));
+			if ($params['type'] == 1) {
+				$keyword_type = 1;
+			} elseif ($params['type'] == 2) {
+				$keyword_type = 2;
+			} else {
+				$keyword_type = 1;
+			}
+			
 			$rowtpl = array(
 				'rid' => $rid,
 				'uniacid' => $_W['uniacid'],
 				'module' => 'wn_storex',
 				'status' => 1,
 				'displayorder' => 0,
-				'type' => 1,
+				'type' => $keyword_type,
 				'content' => $params['keyword']
 			);
 			pdo_insert('rule_keyword', $rowtpl);

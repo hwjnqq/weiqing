@@ -67,16 +67,50 @@ class Wn_storexModuleProcessor extends WeModuleProcessor {
 					)
 				);
 				$account_api->sendCustomNotice($notice);
+				//生成二维码图片保存
+				$params = iunserializer($poster_info['params']);
+				$qr_show = false;
+				if (!empty($params) && is_array($params)) {
+					foreach ($params as $value) {
+						if ($value['type'] == 'qr') {
+							$qr_show = true;
+						}
+					}
+				}
+				file_put_contents(IA_ROOT . '/addons/wn_storex/6.txt', $poster_info['type']);
+				if (!empty($qr_show)) {
+					if ($poster_info['type'] == 1) {
+						$url = murl('entry', array('m' => 'wn_storex', 'do' => 'display'), true, true);
+					} elseif ($poster_info['type'] == 2) {
+						include IA_ROOT . '/addons/wn_storex/model.php';
+						$keyword = $poster_info['keyword'];
+						$content = trim($this->message['content']);
+						$goodsid = substr($content, strlen($keyword));
+						$url = goods_entry_fetch($poster_info['storeid'], array('goodsid' => $goodsid));
+						file_put_contents(IA_ROOT . '/addons/wn_storex/goods.txt', $url);
+					}
+					$qrcode_url = post_build_qrcode($url);
+					if (!empty($params) && is_array($params)) {
+						foreach ($params as &$val) {
+							if ($val['type'] == 'qr') {
+								$val['url'] = $qrcode_url;
+							}
+						}
+						unset($val);
+					}
+					file_put_contents(IA_ROOT . '/addons/wn_storex/urlss.txt', $params[2]['url']);
+				}
 				$poster = array(
 					'id' => $poster_info['id'],
 					'storeid' => $poster_info['storeid'],
 					'background' => $poster_info['background'],
-					'items' => iunserializer($poster_info['params']),
-					'type' => $poster_info['type']
+					'items' => $params,
+					'type' => $poster_info['type'],
 				);
 				$result = poster_create($poster);
 				if (!empty($result)) {
-					return $this->respText('2313');
+					$url = murl('entry', array('m' => 'wn_storex', 'do' => 'poster', 'op' => 'display', 'id' => $poster_info['id']), true, true);
+					return $this->respText($url);
 				}
 			} else {
 				$content = trim($this->message['content']);
