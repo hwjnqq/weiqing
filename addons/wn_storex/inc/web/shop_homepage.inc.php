@@ -69,6 +69,12 @@ if ($op == 'display') {
 			'text' => '我的',
 			'url'=> $url . '#/Home/Index'
 		),
+		array(
+			'icon' => '',
+			'select' => '',
+			'text' => '购物车',
+			'url'=> $url . '#/Cart/' . $storeid
+		),
 	);
 	if (!empty($homepage_list) && is_array($homepage_list)) {
 		foreach ($homepage_list as $key => &$value) {

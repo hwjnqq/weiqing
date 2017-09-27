@@ -68,6 +68,12 @@ if ($op == 'display') {
 			'text' => '我的',
 			'url'=> '/wn_storex/pages/home/index?id=' . $storeid
 		),
+		array(
+			'icon' => '',
+			'select' => '',
+			'text' => '购物车',
+			'url'=> '/wn_storex/pages/cart/cart'
+		),
 	);
 	if (!empty($homepage_list) && is_array($homepage_list)) {
 		foreach ($homepage_list as $key => &$value) {
