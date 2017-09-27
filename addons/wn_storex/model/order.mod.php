@@ -354,14 +354,17 @@ function order_status_logs($id) {
 						$val['msg'] = "成功支付订单";
 					}
 				} elseif ($val['type'] == 'refund') {
-					$val['type'] = "";
-					if ($val['after_change'] == 1) {
-						$val['msg'] = "退款申请成功";
+					$val['type'] = "退款状态";
+					if ($val['after_change'] == 2) {
+						$val['msg'] = "退款成功";
 					}
 				} elseif ($val['type'] == 'refund_status') {
 					if ($val['after_change'] == 2) {
 						$val['type'] = "退款状态为";
 						$val['msg'] = "订单退款成功";
+					} elseif ($val['after_change'] == 1) {
+						$val['type'] = "客户申请退款";
+						$val['msg'] = "申请退款成功";
 					}
 				}
 			}

@@ -99,8 +99,13 @@ if ($op == 'display') {
 					}
 					$show_order_lists[$key]['roomtitle'] = trim($roomtitle, ',');
 					$show_order_lists[$key]['nums'] = trim($nums, ',');
+					$good_thumb = pdo_get('storex_goods', array('id' => $value['cart'][0]['good']['id']), array('thumb'));
+					if (!empty($good_thumb)) {
+						$value['thumb'] = $good_thumb['thumb'];
+					}
 				}
 			}
+			$show_order_lists[$key]['thumb'] = tomedia($value['thumb']);
 		}
 		$packageids = is_array($packageids) ? array_unique($packageids) : array();
 		$sales_package = pdo_getall('storex_sales_package', array('uniacid' => $_W['uniacid'], 'id' => $packageids), array('title', 'sub_title', 'thumb', 'price', 'id'), 'id');
