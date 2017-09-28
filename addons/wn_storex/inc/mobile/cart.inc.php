@@ -66,7 +66,9 @@ if ($op == 'display') {
 			}
 			unset($goods);
 		}
-		$cart_info['goods'] = array_values($goods_list);
+		if (!empty($goods_list)) {
+			$cart_info['goods'] = array_values($goods_list);
+		}
 	} else {
 		$cart_info = array();
 	}

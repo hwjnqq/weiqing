@@ -255,7 +255,7 @@ $sql = "
 	`credit_pw` tinyint(2) NOT NULL DEFAULT '2' COMMENT '1开2关',
 	`credit_pw_mode` varchar(100) NOT NULL COMMENT '余额支付密码验证方式',
 	PRIMARY KEY (`id`)
-	) DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_code` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,

@@ -706,7 +706,7 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 				$my_cart['goods'] = iunserializer($my_cart['goods']);
 				foreach ($goods as $p) {
 					foreach ($my_cart['goods'] as $id => $value) {
-						if ($p[0] == $value['id'] && $p[1] == $value['nums'] && $p[2] == $value['is_spec']) {
+						if (($p[0] == $value['id'] && $p[1] == $value['nums'] && $p[2] == $value['is_spec']) || empty($value['id'])) {
 							unset($my_cart['goods'][$id]);
 						}
 					}
