@@ -51,7 +51,7 @@
 												<label class="radio-inline">
 													<input type="radio" value="2" name="type" v-model="post.type"/> 商品海报
 												</label>
-												<label class="radio-inline">
+												<label class="radio-inline" style="display:none">
 													<input type="radio" value="3" name="type" v-model="post.type"/> 关注海报
 												</label>
 											</div>
@@ -313,7 +313,7 @@
 							zIndex: 0,
 							color: '#ddd',
 							fontSize: 14,
-							url: 'http://172.16.1.222/addons/wn_storex/icon.jpg'
+							url: "{php echo MODULE_URL . '/template/style/img/logo.jpg'}"
 						}
 					},
 					{
@@ -343,7 +343,7 @@
 							zIndex: 0,
 							color: '#ddd',
 							fontSize: 14,
-							url: 'http://caochunjiang.oss-cn-shanghai.aliyuncs.com/headimg_269.jpg?time=1506130151'
+							url: "{php echo MODULE_URL . '/template/style/img/qr.png'}"
 						}
 					},
 					{
