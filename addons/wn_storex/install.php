@@ -1181,6 +1181,7 @@ $sql = "
 	  `type` varchar(100) NOT NULL COMMENT '海报类型',
 	  `params` longtext NOT NULL,
 	  `rid` int(10) unsigned NOT NULL,
+	  `reward` text NOT NULL COMMENT '奖励',
 	  PRIMARY KEY (`id`),
 	  KEY `uniacid` (`uniacid`),
 	  KEY `storeid` (`storeid`)

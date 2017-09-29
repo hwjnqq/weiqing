@@ -45,7 +45,7 @@ class Wn_storexModuleProcessor extends WeModuleProcessor {
 				$acc = WeAccount::create($_W['acid']);
 				$status = $acc->sendCustomNotice($data);
 				if(is_error($status)) {
-					$this->error($reply, $status['message']);
+					return $this->error($reply, $status['message']);
 					die;
 				}
 				if(!empty($reply['success'])) {
@@ -77,7 +77,6 @@ class Wn_storexModuleProcessor extends WeModuleProcessor {
 						}
 					}
 				}
-				file_put_contents(IA_ROOT . '/addons/wn_storex/6.txt', $poster_info['type']);
 				if (!empty($qr_show)) {
 					if ($poster_info['type'] == 1) {
 						$url = murl('entry', array('m' => 'wn_storex', 'do' => 'display'), true, true);

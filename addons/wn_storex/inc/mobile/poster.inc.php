@@ -5,7 +5,6 @@ global $_W, $_GPC;
 
 $ops = array('display');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
-$_W['openid'] = 'o1Q0Rw3TasTIASkeBNI94Q--xck4';
 $uid = mc_openid2uid($_W['openid']);
 $storeid = intval($_GPC['id']);
 $type = !empty($_GPC['type']) ? intval($_GPC['type']) : 1;

@@ -36,6 +36,14 @@ if ($op == 'post') {
 	$poster_info = pdo_get('storex_poster', array('id' => $id));
 	if (!empty($poster_info)) {
 		$poster_info['list'] = iunserializer($poster_info['params']);
+		if ($poster_info['type'] == 3 && !empty($poster_info['reward'])) {
+			$poster_info['reward'] = iunserializer($poster_info['reward']);
+			if (!empty($poster_info['reward']['follow'])) {
+				foreach ($poster_info['reward']['follow'] as $k => $v) {
+					$poster_info[$k] = $v;
+				}
+			}
+		}
 	} else {
 		$poster_info = array(
 			'type' => 1,
@@ -53,6 +61,20 @@ if ($op == 'post') {
 			'wait' => $params['wait'],
 			'params' => iserializer($params['list']),
 		);
+		if ($params['type'] == 3) {
+			$reward_type = array('credit1', 'credit2');
+			$data['reward']['follow'] = array();
+			foreach ($reward_type as $r_type) {
+				if (!empty($params[$r_type])) {
+					if ($params[$r_type] > 0) {
+						$data['reward']['follow'][$r_type] = intval($params[$r_type]);
+					} else {
+						message(error(-1, '奖励不能为负数'), '', 'ajax');
+					}
+				}
+			}
+			$data['reward'] = iserializer($data['reward']);
+		}
 		$rule = array(
 			'uniacid' => $_W['uniacid'],
 			'name' => $params['name'],

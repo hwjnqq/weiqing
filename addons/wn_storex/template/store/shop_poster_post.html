@@ -151,6 +151,20 @@
 										<div class="wn-edit-head">
 											关注
 										</div>
+										<div class="form-group">
+											<label class="col-sm-3 control-label">积分奖励<span
+													style="color:red">*</span></label>
+											<div class="col-sm-8 col-xs-12">
+												<input type="text" class="form-control" style="" v-model="post.credit1">
+											</div>
+										</div>
+										<div class="form-group">
+											<label class="col-sm-3 control-label">余额奖励<span
+													style="color:red">*</span></label>
+											<div class="col-sm-8 col-xs-12">
+												<input type="text" class="form-control" style="" v-model="post.credit2">
+											</div>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -405,6 +419,9 @@
 						if (data.message.errno == 0) {
 							util.message('编辑成功', data.redirect, 'success');
 						} else {
+							if (data.message.message) {
+								util.message(data.message.message, data.redirect, 'error');
+							}
 							util.message('编辑失败', data.redirect, 'error');
 						}
 						console.dir(data);
