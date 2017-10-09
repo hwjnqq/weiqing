@@ -409,12 +409,34 @@ if (!function_exists('getOrderpaytext')) {
 				if ($order['paytype'] == 'delivery') {
 					$order['status_text'] = "已取消";
 				} else {
-					$order['status_text'] = "已支付,取消并退款";
+					$refund_log = pdo_get('storex_refund_logs', array('orderid' => $order['id']));
+					if (!empty($refund_log)) {
+						if (empty($refund_log['status'])) {
+							$order['status_text'] = "已支付,已取消,用户申请退款";
+						} else if ($refund_log['status'] == 2) {
+							$order['status_text'] = "已支付,已取消,退款成功";
+						} else if ($refund_log['status'] == 3) {
+							$order['status_text'] = "已支付,已取消,退款失败";
+						}
+					} else {
+						$order['status_text'] = "已支付,已取消,未退款";
+					}
 				}
 			} elseif ($order['status'] == 1) {
 				$order['status_text'] = "已确认,已接受";
 			} elseif ($order['status'] == 2) {
-				$order['status_text'] = "已支付,拒绝并退款";
+				$refund_log = pdo_get('storex_refund_logs', array('orderid' => $order['id']));
+				if (!empty($refund_log)) {
+					if (empty($refund_log['status'])) {
+						$order['status_text'] = "已支付,已拒绝,用户申请退款";
+					} else if ($refund_log['status'] == 2) {
+						$order['status_text'] = "已支付,已拒绝,退款成功";
+					} else if ($refund_log['status'] == 3) {
+						$order['status_text'] = "已支付,已拒绝,退款失败";
+					}
+				} else {
+					$order['status_text'] = "已支付,已拒绝,未退款";
+				}
 			} elseif ($order['status'] == 3) {
 				$order['status_text'] = "订单完成";
 			}
