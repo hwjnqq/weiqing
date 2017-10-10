@@ -1295,7 +1295,10 @@ if (!pdo_fieldexists('storex_bases', 'pick_up_mode')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `pick_up_mode` VARCHAR(100) NOT NULL COMMENT '取货方式'");
 }
 if (!pdo_fieldexists('storex_bases', 'express')) {
-	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `express` DECIMAL(10,2) NOT NULL COMMENT '购物车统计结算运费'");
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `express` varchar(200) NOT NULL COMMENT '购物车统一结算运费'");
+}
+if (pdo_fieldexists('storex_bases', 'express')) {
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " CHANGE `express` `express` VARCHAR(200) NOT NULL COMMENT '购物车统一结算运费'");
 }
 //订单表增加购物车计算时的商品记录
 if (!pdo_fieldexists('storex_order', 'cart')) {

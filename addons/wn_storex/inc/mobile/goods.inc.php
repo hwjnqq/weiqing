@@ -650,7 +650,9 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 		$insert = calcul_discounts_price($insert, $store_info, $uid, $selected_coupon);
 		$insert['static_price'] = $insert['sum_price'];
 		if ($insert['mode_distribute'] == 2) {
-			$insert['sum_price'] += $store_info['express'];
+			if ($insert['sum_price'] < $store_info['express']['full_free']) {
+				$insert['sum_price'] += $store_info['express']['express'];
+			}
 		}
 	} else {
 		$insert = general_goods_order($insert, $goods_info);

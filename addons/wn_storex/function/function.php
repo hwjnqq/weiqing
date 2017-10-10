@@ -248,6 +248,7 @@ function get_store_info($id) {
 		if ($store_info['status'] == 0) {
 			wmessage(error(-1, '店铺已隐藏'), '', 'ajax');
 		} else {
+			$store_info['express'] = iunserializer($store_info['express']);
 			$store_info['emails'] = iunserializer($store_info['emails']);
 			$store_info['phones'] = iunserializer($store_info['phones']);
 			$store_info['openids'] = iunserializer($store_info['openids']);

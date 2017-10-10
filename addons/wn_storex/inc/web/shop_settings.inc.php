@@ -17,6 +17,10 @@ if ($op == 'post') {
 		if (!is_numeric($_GPC['distance'])) {
 			message('距离必须是数字！', '', 'error');
 		}
+		$express_set = array(
+			'express' => is_numeric($_GPC['express']) ? $_GPC['express'] : 0,
+			'full_free' => is_numeric($_GPC['full_free']) ? $_GPC['full_free'] : 0,
+		);
 		$common_insert = array(
 			'weid' => $_W['uniacid'],
 			'displayorder' => $_GPC['displayorder'],
@@ -42,7 +46,7 @@ if ($op == 'post') {
 			'refund' => intval($_GPC['refund']),
 			'market_status' => intval($_GPC['market_status']),
 			'max_replace' => sprintf('%.2f', $_GPC['max_replace']),
-			'express' => sprintf('%.2f', $_GPC['express']),
+			'express' => iserializer($express_set),
 		);
 		$common_insert['pick_up_mode'] = empty($_GPC['pick_up_mode']) ? '' : iserializer($_GPC['pick_up_mode']);
 		$receives = array('emails' => 'email', 'phones' => 'tel', 'openids' => 'openid');
@@ -123,6 +127,11 @@ if ($op == 'post') {
 	$storex_bases['thumbs'] = iunserializer($storex_bases['thumbs']);
 	$storex_bases['detail_thumbs'] = iunserializer($storex_bases['detail_thumbs']);
 	$storex_bases['pick_up_mode'] = iunserializer($storex_bases['pick_up_mode']);
+	if (!empty($storex_bases['express']) && !is_numeric($storex_bases['express'])) {
+		$storex_bases['express'] = iunserializer($storex_bases['express']);
+	} else {
+		$storex_bases['express'] = array('express' => 0, 'full_free' => 0);
+	}
 	$emails = iunserializer($storex_bases['emails']);
 	$tels = iunserializer($storex_bases['phones']);
 	$openids = iunserializer($storex_bases['openids']);

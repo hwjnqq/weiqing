@@ -183,7 +183,13 @@
 			<div class="form-group">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">购物车统一运费</label>
 				<div class="col-sm-9 col-xs-12">
-					<input type="text" id="express" name="express"  class="form-control" value="{$storex_bases['express']}">
+					<div class="input-group">
+						<span class="input-group-addon">默认运费</span>
+						<input type="text" id="express" name="express"  class="form-control" value="{$storex_bases['express']['express']}">
+						<span class="input-group-addon">满</span>
+						<input type="text" class="form-control" name="full_free" value="{$storex_bases['express']['full_free']}"/>
+						<span class="input-group-addon">免运费</span>
+					</div>
 					<span class='help-block'>购物车结算的时候统一运费，单个商品直接结算还是按单个商品的运费计算。</span>
 				</div>
 			</div>
