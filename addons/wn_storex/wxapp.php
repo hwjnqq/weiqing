@@ -25,8 +25,9 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		if (empty($params['u_openid'])) {
 			return $this->result(41009, '请重新登录!', array());
 		}
+		$url_param = array_merge($url_param, $params);
 		$url = murl('entry', $url_param, true, true);
-		$result = $this->storex_request($url, $params);
+		$result = $this->storex_request($url);
 		$i = 1;
 		do {
 			if (is_null($result['message']['errno'])) {
@@ -37,8 +38,8 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		return $this->result($result['message']['errno'], $result['message']['message'], empty($result['message']['data']) ? '' : $result['message']['data']);
 	}
 	
-	function storex_request($url, $params) {
-		$result = ihttp_request($url, $params);
+	function storex_request($url) {
+		$result = ihttp_request($url);
 		$result = json_decode($result['content'], true);
 		$result['message']['data']['share'] = array();
 		if (!empty($result['share'])) {
