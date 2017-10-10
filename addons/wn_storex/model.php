@@ -887,11 +887,11 @@ function wxapp_entry_fetchall($storeid, $wxapp = false) {
 			'name' => '商品详情',
 			'group' => goods_entry_fetch($storeid, array(), $wxapp),
 		);
-		$entrys[] = array(
-			'type' => 'package',
-			'name' => '套餐',
-			'group' => package_entry_fetch($storeid, array(), $wxapp),
-		);
+// 		$entrys[] = array(
+// 			'type' => 'package',
+// 			'name' => '套餐',
+// 			'group' => package_entry_fetch($storeid, array(), $wxapp),
+// 		);
 	}
 	$usercenter_vue_routes[] = array(
 		'type' => 'usercenter',
@@ -953,11 +953,11 @@ function entry_fetchall($storeid) {
 			'name' => '商品详情',
 			'group' => goods_entry_fetch($storeid),
 		);
-		$entrys[] = array(
-			'type' => 'package',
-			'name' => '套餐',
-			'group' => package_entry_fetch($storeid)
-		);
+// 		$entrys[] = array(
+// 			'type' => 'package',
+// 			'name' => '套餐',
+// 			'group' => package_entry_fetch($storeid)
+// 		);
 	}
 	$usercenter_vue_routes[] = array(
 		'type' => 'usercenter',
@@ -1182,7 +1182,7 @@ function package_entry_fetch($storeid, $params = array(), $wxapp = false) {
 				if (!empty($wxapp)) {
 					$package_entry_routes[$id]['link'] = '/wn_storex/pages/good/goodInfo?type=buy&id=' . $id;
 				} else {
-					$package_entry_routes[$id]['link'] = $url . '#/GoodInfo/buy/' . $storeid . '/p' . $id;
+					$package_entry_routes[$id]['link'] = $url . '#/GoodInfo/buy/' . $storeid . '/' . $id;
 				}
 			}
 		}
