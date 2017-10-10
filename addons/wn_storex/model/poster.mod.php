@@ -88,7 +88,7 @@ function poster_create($poster){
 	imagecopy($target, $background, 0, 0, 0, 0,$size[0], $size[1]);
 	imagedestroy($background);
 	$items = $poster['items'];
-	$items[0]['url'] = 'http://caochunjiang.oss-cn-shanghai.aliyuncs.com/headimg_269.jpg?time=1506130151';
+// 	$items[0]['url'] = 'http://caochunjiang.oss-cn-shanghai.aliyuncs.com/headimg_269.jpg?time=1506130151';
 	foreach ($items as $item) {
 		$style = array(
 			'left' => $item['left'],

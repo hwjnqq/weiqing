@@ -96,7 +96,11 @@ class Wn_storexModuleSite extends WeModuleSite {
 		if (!hotel_member_single($member)) {
 			insert_member($member);
 		}
-		$url = $this->createMobileurl('display', array('id' => $id));
+		if (!empty($id)) {
+			$url = $this->createMobileurl('display', array('id' => $id));
+		} else {
+			$url = $this->createMobileurl('display');
+		}
 		if (!empty($_GPC['orderid'])) {
 			$redirect = $url . '#/Home/OrderInfo/' . $_GPC['orderid'];
 			header("Location: $redirect");
@@ -111,7 +115,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			if (empty($storex_base)) {
 				message('暂时没有店铺！', '', 'error');
 			}
-			$url = $_W['siteroot'] . 'app/index.php?i=' . $_W['uniacid'] . '&c=entry&m=wn_storex&do=display&id='
+			$url = $_W['siteroot'] . 'app/index.php?i=' . $_W['uniacid'] . '&c=entry&m=wn_storex&do=display&type=storeindex&id='
 					. $storex_base['id'] . '#/StoreIndex/' . $storex_base['id'];
 			header("Location: $url");
 		}
