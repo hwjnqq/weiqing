@@ -855,6 +855,52 @@ $sql = "
 ";
 pdo_run($sql);
 
+if (pdo_tableexists('storex_set')) {
+	$storex_set_info = pdo_getall('storex_set');
+	if (empty($storex_set_info)) {
+		pdo_run("DROP TABLE " . tablename('storex_set'));
+		pdo_run("
+			CREATE TABLE IF NOT EXISTS `ims_storex_set` (
+			`id` int(11) NOT NULL AUTO_INCREMENT,
+			`weid` int(11) DEFAULT '0',
+			`user` tinyint(1) DEFAULT '0' COMMENT '用户类型0微信用户1独立用户',
+			`reg` tinyint(1) DEFAULT '0' COMMENT '是否允许注册0禁止注册1允许注册',
+			`bind` tinyint(1) DEFAULT '0' COMMENT '是否绑定',
+			`regcontent` text COMMENT '注册提示',
+			`ordertype` tinyint(1) DEFAULT '0' COMMENT '预定类型0电话预定1电话和网络预订',
+			`is_unify` tinyint(1) DEFAULT '0' COMMENT '0使用各分店电话,1使用统一电话',
+			`tel` varchar(20) DEFAULT '' COMMENT '统一电话',
+			`email` varchar(255) NOT NULL DEFAULT '' COMMENT '提醒接受邮箱',
+			`mobile` varchar(32) NOT NULL DEFAULT '' COMMENT '提醒接受手机',
+			`template` varchar(32) DEFAULT NULL COMMENT '发送模板消息',
+			`templateid` varchar(255) NOT NULL,
+			`paytype1` tinyint(1) DEFAULT '0',
+			`paytype2` tinyint(1) DEFAULT '0',
+			`paytype3` tinyint(1) DEFAULT '0',
+			`version` tinyint(1) NOT NULL DEFAULT '0' COMMENT '0单酒店版1多酒店版',
+			`location_p` varchar(50) DEFAULT '',
+			`location_c` varchar(50) DEFAULT '',
+			`location_a` varchar(50) DEFAULT '',
+			`smscode` int(3) NOT NULL DEFAULT '0',
+			`refund` int(3) NOT NULL DEFAULT '0',
+			`refuse_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '提醒接受邮箱',
+			`confirm_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '提醒接受邮箱',
+			`check_in_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '酒店已入住通知模板id',
+			`finish_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '酒店订单完成通知模板id',
+			`nickname` varchar(20) NOT NULL COMMENT '提醒接收微信',
+			`extend_switch` varchar(400) NOT NULL COMMENT '扩展开关',
+			`source` tinyint(4) NOT NULL DEFAULT '2' COMMENT '卡券类型，1为系统卡券，2为微信卡券',
+			`location` tinyint(2) NOT NULL DEFAULT '1' COMMENT '是否开启定位1开2关',
+			`credit_pay` tinyint(2) NOT NULL DEFAULT '1' COMMENT '积分抵扣设置1开启，2关闭',
+			`credit_ratio` int(11) NOT NULL COMMENT '抵扣比例',
+			`credit_pw` tinyint(2) NOT NULL DEFAULT '2' COMMENT '1开2关',
+			`credit_pw_mode` varchar(100) NOT NULL COMMENT '余额支付密码验证方式',
+			PRIMARY KEY (`id`)
+			) DEFAULT CHARSET=utf8;
+		");
+	}
+}
+
 if (!pdo_fieldexists('storex_bases', 'skin_style')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `skin_style` VARCHAR(48) NOT NULL DEFAULT 'display' COMMENT '皮肤选择';");
 }
@@ -1311,19 +1357,19 @@ $js_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/js
 $css_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/css');
 $svg_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/img');
 $current_js_files = array(
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/black.20171010164.js',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/display.20171010164.js',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/manifest.20171010164.js',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/vendor.20171010164.js',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/service.20171010164.js'
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/black.20171010165.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/display.20171010165.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/manifest.20171010165.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/vendor.20171010165.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/service.20171010165.js'
 );
 $current_css_files = array(
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/black.20171010164.css',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/display.20171010164.css',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/service.20171010164.css',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/black.20171010165.css',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/display.20171010165.css',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/service.20171010165.css',
 );
 $current_svg_files = array(
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/img/storex.20171010164.svg',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/img/storex.20171010165.svg',
 );
 $css_diff_files = array_diff($css_file_trees, $current_css_files);
 $js_diff_files = array_diff($js_file_trees, $current_js_files);
