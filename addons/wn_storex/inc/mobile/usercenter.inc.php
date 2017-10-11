@@ -36,7 +36,7 @@ if ($op == 'extend_switch') {
 	}
 	$extend_switch['notice_unread_num'] = $notice_unread_num;
 	$store_set = get_storex_set();
-	$extend_switch['location'] = !empty($store_set['location']) ? $store_set['location'] : 2;
+	$extend_switch['location'] = $store_set['location'] == 1 && !empty($store_set['version']) ? 1 : 2;
 	$extend_switch['credit_pw'] = !empty($store_set['credit_pw']) ? $store_set['credit_pw'] : 2;
 	wmessage(error(0, $extend_switch), '', 'ajax');
 }
