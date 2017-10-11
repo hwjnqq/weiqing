@@ -115,15 +115,17 @@
 		$('.user_uid').click(function() {
 			var id = $(this).data('id');
 			var user_store = {php echo json_encode($user_store)};
-			var select_store = user_store[id];
-			var inputs = $('.store-input');
-			for (var i = 0; i < inputs.length; i++) {
-				inputs[i].checked = '';
-			}
-			for (var i = 0; i < inputs.length; i++) {
-				for (var j = 0; j < select_store.length; j++) {
-					if (inputs[i].getAttribute('value') == select_store[j]) {
-						inputs[i].checked = 'checked';
+			if (user_store[id]) {
+				var select_store = user_store[id];
+				var inputs = $('.store-input');
+				for (var i = 0; i < inputs.length; i++) {
+					inputs[i].checked = '';
+				}
+				for (var i = 0; i < inputs.length; i++) {
+					for (var j = 0; j < select_store.length; j++) {
+						if (inputs[i].getAttribute('value') == select_store[j]) {
+							inputs[i].checked = 'checked';
+						}
 					}
 				}
 			}

@@ -31,7 +31,7 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		$i = 1;
 		do {
 			if (is_null($result['message']['errno'])) {
-				$result = $this->storex_request($url, $params);
+				$result = $this->storex_request($url);
 				$i ++;
 			}
 		} while ($i < 6 && is_null($result['message']['errno']));
