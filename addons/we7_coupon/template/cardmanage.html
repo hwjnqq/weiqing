@@ -183,13 +183,18 @@
 </div>
 
 <script type="text/javascript">
+	require({
+		paths: {
+			'trade': '/addons/we7_coupon/template/style/js/trade'
+		}
+	})
 	require(['trade', 'bootstrap.switch'], function(trade){
 		trade.init();
 
 		{if $setting['times_status'] == 1 || $setting['nums_status'] == 1}
 			$('.manage').click(function(){
 				var uid = $(this).data('uid');
-				$.post("{php echo $this->createWeburl('cardmanage', array('op' => 'modal'));}", {'uid':uid}, function(data){
+				$.post("{php echo $this->createWeburl('cardmanage', array('op' => 'modal'));}", {uid:uid}, function(data){
 					if(data != 'error') {
 						$('#manage-modal .modal-body').html(data);
 						$('#manage-modal').modal('show');
