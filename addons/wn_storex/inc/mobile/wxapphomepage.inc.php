@@ -8,7 +8,7 @@ $ops = array('display', 'notice');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
-$storeid = intval($_GPC['id']);
+$storeid = $_GPC['id'];
 $store_info = get_store_info($storeid);
 if ($op == 'display') {
 	$default_module = array(

@@ -27,6 +27,8 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		}
 		$url_param = array_merge($url_param, $params);
 		$url = murl('entry', $url_param, true, true);
+		load()->classs('account');
+		WeUtility::logging('wxapp_url' . $params['u_openid'], $url);
 		$result = $this->storex_request($url);
 		$i = 1;
 		do {
