@@ -731,6 +731,18 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 	}
 }
 
+//根据地址id获取联系信息
+function get_info_by_addressid($insert) {
+	if (!empty($insert['addressid'])) {
+		$address = pdo_get('mc_member_address', array('id' => $insert['addressid']), array('id', 'username', 'mobile'));
+		if (!empty($address)) {
+			$insert['contact_name'] = $address['username'];
+			$insert['mobile'] = $address['mobile'];
+		}
+	}
+	return $insert;
+}
+
 //直接购买普通商品
 function general_goods_order($insert, $goods_info) {
 	global $_GPC;
@@ -751,6 +763,7 @@ function general_goods_order($insert, $goods_info) {
 					$insert['mode_distribute'] = $mode_distribute;
 					$insert['addressid'] = intval($_GPC['order']['addressid']);
 					$insert['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
+					$insert = get_info_by_addressid($insert);
 				}
 			} elseif ($mode_distribute == 1) {
 				if (!empty($store_info['pick_up_mode']['self_lift'])) {
@@ -782,6 +795,7 @@ function cart_goods_order($insert, $cart) {
 				$insert['mode_distribute'] = $mode_distribute;
 				$insert['addressid'] = intval($_GPC['order']['addressid']);
 				$insert['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
+				$insert = get_info_by_addressid($insert);
 			}
 		} elseif ($mode_distribute == 1) {
 			if (!empty($store_info['pick_up_mode']['self_lift'])) {
