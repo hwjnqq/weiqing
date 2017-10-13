@@ -82,6 +82,11 @@
 	</div>
 </div>
 <script>
+	require({
+		paths: {
+			'trade': '/addons/we7_coupon/template/style/js/trade'
+		}
+	});
 	require(['trade', 'bootstrap'], function(trade){
 		trade.init();
 
