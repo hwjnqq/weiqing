@@ -109,7 +109,7 @@ function poster_create($poster){
 			$target = poster_mergeImage($target, $item['url'], $style);
 		}
 	}
-	$file = $_W['uniacid'] . '_' . $poster['storeid'] . '_' . $poster['type'] . '_' . md5($_W['openid']) . '.jpg';
+	$file = $_W['uniacid'] . '_' . $poster['id'] . '_' . $poster['storeid'] . '_' . $poster['type'] . '_' . md5($_W['openid']) . '.jpg';
 	$file_name = MODULE_ROOT . "/template/style/img/poster/{$file}";
 	imagejpeg($target, $file_name);
 	imagedestroy($target);

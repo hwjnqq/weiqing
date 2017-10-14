@@ -12,7 +12,7 @@ $type = !empty($_GPC['type']) ? intval($_GPC['type']) : 1;
 if ($op == 'display') {
 	$id = intval($_GPC['id']);
 	$poster_info = pdo_get('storex_poster', array('id' => $id));
-	$file = $_W['uniacid'] . '_' . $poster_info['storeid'] . '_' . $poster_info['type'] . '_' . md5($_W['openid']) . '.jpg';
+	$file = $_W['uniacid'] . '_' . $poster_info['id'] . '_' . $poster_info['storeid'] . '_' . $poster_info['type'] . '_' . md5($_W['openid']) . '.jpg';
 	$file_name = $_W['siteroot'] . "addons/wn_storex/template/style/img/poster/{$file}";
 }
 include $this->template('poster');
