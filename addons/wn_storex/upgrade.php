@@ -1209,10 +1209,6 @@ if (ver_compare('1.6.0', $wn_storex_module['version']) == 1) {
 	}
 }
 
-if (ver_compare('1.6.1', $wn_storex_module['version'])) {
-	pdo_update('storex_member', array('phone' => '', 'email' => '', 'credit_password' => '', 'credit_salt' => ''));
-}
-
 if (pdo_fieldexists('storex_order', 'roomitemid')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " CHANGE `roomitemid` `roomitemid` VARCHAR(200) NOT NULL COMMENT '房间号ID';");
 }
@@ -1314,6 +1310,9 @@ if (!pdo_fieldexists('storex_member', 'phone')) {
 }
 if (!pdo_fieldexists('storex_member', 'email')) {
 	pdo_query("ALTER TABLE " . tablename('storex_member') . " ADD `email` VARCHAR(50) NOT NULL COMMENT '只接收验证码的邮箱';");
+}
+if (ver_compare('1.6.1', $wn_storex_module['version'])) {
+	pdo_update('storex_member', array('phone' => '', 'email' => '', 'credit_password' => '', 'credit_salt' => ''));
 }
 if (!pdo_fieldexists('storex_code', 'email')) {
 	pdo_query("ALTER TABLE " . tablename('storex_code') . " ADD `email` VARCHAR(50) NOT NULL COMMENT '邮箱';");
