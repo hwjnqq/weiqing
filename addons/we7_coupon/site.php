@@ -715,7 +715,13 @@ class We7_couponModuleSite extends WeModuleSite {
 			
 			$tips = "用户消费{$money}元,使用{$data['credit1']}积分,抵现{$data['credit1_fee']}元,使用余额支付{$data['credit2']}元,现金支付{$data['final_cash']}元";
 			$card_params = json_decode($card['params'], true);
-			$recharges_set = $card_params['cardRecharge'];
+			if (!empty($card_params) && is_array($card_params)) {
+				foreach ($card_params as $key => $value) {
+					if ($value['id'] == 'cardRecharge') {
+						$recharges_set = $value;
+					}
+				}
+			}
 			$grant_rate_switch = intval($recharges_set['params']['grant_rate_switch']);
 			//赠送积分（按照会员卡的积分比率进行赠送）,会员卡开启充值优惠设置则不赠送积分,现金消费除外
 			$grant_credit1_enable = false;
