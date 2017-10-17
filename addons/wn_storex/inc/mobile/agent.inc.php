@@ -72,6 +72,9 @@ if ($op == 'register') {
 			wmessage(error(-1, '资料不全'), '', 'ajax');
 		}
 	}
+	$member_agent = pdo_get('storex_member', array('from_user' => $_W['openid']), array('id', 'from_user', 'agentid'));
+	$agent_pid = !empty($member_agent['agentid']) ? $member_agent['agentid'] : 0;
+	$register_data['pid'] = $agent_pid;
 	$register_info = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'uid' => $uid));
 	if (empty($register_info)) {
 		pdo_insert('storex_agent_apply', $register_data);
