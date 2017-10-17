@@ -12,7 +12,7 @@ if (in_array($_GPC['do'], $dos)) {
 	if (empty($_GPC['storeid']) && !($_GPC['do'] == 'shop_settings' && $_GPC['action'] == 'add')) {
 		message('请重新选择店铺', $this->createWebUrl('storemanage', array('op' => 'list')), 'error');
 	}
-	$storex_bases = pdo_get('storex_bases', array('id' => 	$_GPC['storeid']));
+	$storex_bases = pdo_get('storex_bases', array('id' => $_GPC['storeid']));
 	$_W['wn_storex']['store_info'] = $storex_bases;
 	$_W['wn_storex']['table_storeid'] = 'store_base_id';
 	if (empty($_W['wn_storex']['store_info']['store_type'])) {
