@@ -126,12 +126,28 @@
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">运费设置</label>
 				<div class="col-sm-9 col-xs-12">
 					<div class="input-group">
+						<input type="hidden" class="form-control" name="goods_express" value="{$goods_express}"/>
 						<span class="input-group-addon">默认运费</span>
-						<input type="text" class="form-control" name="express" value="{$item['express_set']['express']}"/>
-						<span class="input-group-addon">满</span>
-						<input type="text" class="form-control" name="full_free" value="{$item['express_set']['full_free']}"/>
-						<span class="input-group-addon">免运费</span>
+						<input type="text" class="form-control" name="default_express" value="{$item['express_set']['default_express']}"/>
+						<span class="input-group-addon">元</span>
 					</div>
+				{if $goods_express == 1}
+					<div class="input-group">
+						<span class="input-group-addon">满</span>
+						<input type="text" class="form-control" name="condition" value="{$item['express_set']['condition']}"/>
+						<span class="input-group-addon">元</span>
+						<input type="text" class="form-control" name="express" value="{$item['express_set']['express']}"/>
+						<span class="input-group-addon">元运费</span>
+					</div>
+				{else}
+					<div class="input-group">
+						<span class="input-group-addon">满</span>
+						<input type="text" class="form-control" name="condition" value="{$item['express_set']['condition']}"/>
+						<span class="input-group-addon">件</span>
+						<input type="text" class="form-control" name="express" value="{$item['express_set']['express']}"/>
+						<span class="input-group-addon">元运费</span>
+					</div>
+				{/if}
 				</div>
 			</div>
 			{/if}

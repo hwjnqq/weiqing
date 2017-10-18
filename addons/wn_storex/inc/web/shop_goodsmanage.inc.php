@@ -110,6 +110,7 @@ if ($op == 'edit') {
 			$agent_ratio = iunserializer($item['agent_ratio']);
 			$agentlevel = pdo_getall('storex_agent_level', array('storeid' => $storeid, 'status' => 1), array('id', 'title'), 'id', 'isdefault DESC');
 		}
+		$goods_express = $_W['wn_storex']['store_info']['goods_express'];
 	}
 	
 	if (checksubmit('submit')) {
@@ -193,8 +194,10 @@ if ($op == 'edit') {
 				message('单次最小购买量大于单次最大购买量', referer(), 'error');
 			}
 			$express_set = array(
+				'goods_express' => is_numeric($_GPC['goods_express']) ? $_GPC['goods_express'] : 0,
+				'default_express' => is_numeric($_GPC['default_express']) ? $_GPC['default_express'] : 0,
+				'condition' => is_numeric($_GPC['condition']) ? $_GPC['condition'] : 0,
 				'express' => is_numeric($_GPC['express']) ? $_GPC['express'] : 0,
-				'full_free' => is_numeric($_GPC['full_free']) ? $_GPC['full_free'] : 0,
 			);
 			$goods['express_set'] = iserializer($express_set);
 			if (!empty($_GPC['agent_ratio']) && is_array($_GPC['agent_ratio'])) {

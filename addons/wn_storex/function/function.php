@@ -599,9 +599,21 @@ function extend_switch_fetch() {
 function calculate_express($goods_info, $insert) {
 	if ($insert['mode_distribute'] == 2) {
 		if (!empty($goods_info['express_set'])) {
-			$express_set = iunserializer($goods_info['express_set']);
-			if ($insert['sum_price'] < $express_set['full_free'] && $express_set['full_free'] != 0) {
-				$insert['sum_price'] += $express_set['express'];
+			if (!is_array($goods_info['express_set'])) {
+				$goods_info['express_set'] = iunserializer($goods_info['express_set']);
+			}
+			if ($goods_info['express_set']['goods_express'] == 1) {
+				if ($insert['sum_price'] >= $goods_info['express_set']['condition'] && !empty($goods_info['express_set']['condition'])) {
+					$insert['sum_price'] += $goods_info['express_set']['express'];
+				} else {
+					$insert['sum_price'] += $goods_info['express_set']['default_express'];
+				}
+			} else {
+				if ($insert['nums'] >= $goods_info['express_set']['condition'] && !empty($goods_info['express_set']['condition'])) {
+					$insert['sum_price'] += $goods_info['express_set']['express'];
+				} else {
+					$insert['sum_price'] += $goods_info['express_set']['default_express'];
+				}
 			}
 		}
 	}
@@ -896,8 +908,10 @@ function format_package_goods($store_id, $goodsid) {
 		$package_info['min_buy'] = 1;
 		$package_info['max_buy'] = -1;
 		$package_info['express_set'] = iserializer(array(
-			'express' => $package_info['express'],
-			'full_free' => 0
+			'condition' => 0,
+			'default_express' => $package_info['express'],
+			'express' => 0,
+			'goods_express' => 1,
 		));
 		$goods_info = $package_info;
 	}

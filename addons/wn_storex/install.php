@@ -306,6 +306,7 @@ $sql = "
 	`max_replace` decimal(10,2) NOT NULL COMMENT '最大抵扣金额',
 	`pick_up_mode` varchar(100) NOT NULL COMMENT '取货方式',
 	`express` varchar(200) NOT NULL COMMENT '购物车统一结算运费',
+	`goods_express` int(2) NOT NULL DEFAULT '1' COMMENT '单件商品运费模板',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) DEFAULT CHARSET=utf8;

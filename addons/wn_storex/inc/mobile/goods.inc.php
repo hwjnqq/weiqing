@@ -288,9 +288,17 @@ if ($op == 'info') {
 			wmessage(error(-1, '商品错误'), '', 'ajax');
 		}
 		if ($_GPC['is_cart'] == 1) {
-			$infos['express'] = $store_info['express'];
+			$infos['express'] = array();
+			if (!empty($store_info['express'])) {
+				$infos['express'] = array(
+					'condition' => $store_info['express']['full_free'],
+					'default_express' => $store_info['express']['express'],
+					'express' => 0,
+					'goods_express' => 1,
+				);
+			}
 		} else {
-			$infos['express'] = $order_goods[0]['express_set']['express'];
+			$infos['express'] = $order_goods[0]['express_set'];
 		}
 	}
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
@@ -585,7 +593,6 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 		}
 	} else {
 		//单个商品
-		$express = $order_goods[0]['express_set']['express'];
 		$goods_info = $order_goods[0];
 		$cart_good = array();
 		$spec = array();
@@ -660,8 +667,6 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 		//计算运费
 		$insert = calculate_express($goods_info, $insert);
 		if ($goods_info['param'][2] == 3) {
-			$goods_info['express_set'] = iunserializer($goods_info['express_set']);
-			$insert['sum_price'] += $goods_info['express_set']['express'];
 			$insert['is_package'] = 2;
 		}
 	}
