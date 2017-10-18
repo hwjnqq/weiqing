@@ -96,6 +96,14 @@ class Wn_storexModuleSite extends WeModuleSite {
 		if (!hotel_member_single($member)) {
 			insert_member($member);
 		}
+		//从分销员分享的链接进入
+		if (!empty($_GPC['agentid'])) {
+			$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('id', 'from_user', 'agentid'));
+			if (empty($member['agentid'])) {
+				pdo_update('storex_member', array('agentid' => intval($_GPC['agentid'])), array('id' => $member['id']));
+			}
+		}
+		
 		if (!empty($id)) {
 			$url = $this->createMobileurl('display', array('id' => $id));
 		} else {
