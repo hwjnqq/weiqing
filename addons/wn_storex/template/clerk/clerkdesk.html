@@ -91,7 +91,7 @@
 <script type="text/javascript">
 	require({
 		paths: {
-			'trade': '/addons/wn_storex/template/style/js/trade'
+			'trade': "<?php echo SCRIPT_URL . '/trade';?>",
 		}
 	})
 	require(['trade', 'bootstrap'], function(trade){

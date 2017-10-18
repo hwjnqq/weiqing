@@ -782,7 +782,7 @@ require(['angular.sanitize', 'bootstrap', 'underscore', 'util'], function(angula
 <script>
 	require({
 		paths: {
-			'chart': '../../../../addons/wn_storex/template/style/js/chart.min'
+			'chart': "<?php echo SCRIPT_URL . '/chart.min';?>",
 		}
 	});
 	require(['chart', 'daterangepicker'], function(c){

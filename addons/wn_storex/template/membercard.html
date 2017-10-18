@@ -106,8 +106,8 @@
 <script type="text/javascript">
 	require({
 		paths: {
-			'vue': '/addons/wn_storex/template/style/js/vue',
-			'membercarddata': '/addons/wn_storex/template/style/js/membercard/data'
+			'vue': "<?php echo SCRIPT_URL . '/vue';?>",
+			'membercarddata': "<?php echo SCRIPT_URL . '/membercard/data';?>"
 		}
 	})
 	require(['vue', 'membercarddata'], function(Vue, membercarddata) {
