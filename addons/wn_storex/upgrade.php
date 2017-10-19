@@ -1359,6 +1359,9 @@ if (!pdo_fieldexists('storex_bases', 'goods_express')) {
 if (!pdo_fieldexists('storex_order', 'cart')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `cart` TEXT NOT NULL COMMENT '购物车结算订单的商品'");
 }
+if (!pdo_fieldexists('storex_sales_package', 'agent_ratio')) {
+	pdo_query("ALTER TABLE " . tablename('storex_sales_package') . " ADD `agent_ratio`  VARCHAR(200) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '分销员提成'");
+}
 
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');

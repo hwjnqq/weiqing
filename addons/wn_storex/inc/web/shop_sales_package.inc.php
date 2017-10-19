@@ -38,6 +38,11 @@ if ($op == 'post') {
 	} else {
 		$package_info['goodsids'] = !empty($package_info['goodsids']) ? iunserializer($package_info['goodsids']) : array();
 	}
+	if (!empty($package_info['agent_ratio'])) {
+		$package_info['agent_ratio'] = iunserializer($package_info['agent_ratio']);
+	} else {
+		$package_info['agent_ratio'] = array('1' => 0, '2' => 0, '3' => 0);
+	}
 	$selected_list = array();
 	if (!empty($package_info['goodsids']) && is_array($package_info['goodsids'])) {
 		foreach ($package_info['goodsids'] as $value) {
@@ -64,6 +69,15 @@ if ($op == 'post') {
 			'goodsids' => iserializer($_GPC['params']['goodsids']),
 			'status' => 1
 		);
+		$package['agent_ratio'] = array('1' => 0, '2' => 0, '3' => 0);
+		if (!empty($_GPC['params']['agent_ratio'])) {
+			foreach ($package['agent_ratio'] as $l => $r) {
+				if (!empty($_GPC['params']['agent_ratio'][$l])) {
+					$package['agent_ratio'][$l] = $_GPC['params']['agent_ratio'][$l];
+				}
+			}
+		}
+		$package['agent_ratio'] = iserializer($package['agent_ratio']);
 		$package_info = pdo_get('storex_sales_package', array('id' => $id), array('id'));
 		if (empty($package_info)) {
 			$package['uniacid'] = $_W['uniacid'];

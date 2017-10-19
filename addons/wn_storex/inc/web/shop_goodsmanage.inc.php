@@ -108,7 +108,9 @@ if ($op == 'edit') {
 		$user_defined = get_goods_defined($storeid, $id);
 		if ($store_type != STORE_TYPE_HOTEL) {
 			$agent_ratio = iunserializer($item['agent_ratio']);
-			$agentlevel = pdo_getall('storex_agent_level', array('storeid' => $storeid, 'status' => 1), array('id', 'title'), 'id', 'isdefault DESC');
+			if (empty($agent_ratio['1']) || empty($agent_ratio['2']) || empty($agent_ratio['3'])) {
+				$agent_ratio = array('1' => 0, '2' => 0, '3' => 0);
+			}
 		}
 		$goods_express = $_W['wn_storex']['store_info']['goods_express'];
 	}

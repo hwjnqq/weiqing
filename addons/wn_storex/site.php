@@ -98,9 +98,12 @@ class Wn_storexModuleSite extends WeModuleSite {
 		}
 		//从分销员分享的链接进入
 		if (!empty($_GPC['agentid'])) {
-			$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('id', 'from_user', 'agentid'));
-			if (empty($member['agentid'])) {
-				pdo_update('storex_member', array('agentid' => intval($_GPC['agentid'])), array('id' => $member['id']));
+			$agent = pdo_get('storex_agent_apply', array('id' => $_GPC['agentid']), array('id', 'openid'));
+			if ($agent['openid'] != $_W['openid']) {
+				$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('id', 'from_user', 'agentid'));
+				if (empty($member['agentid'])) {
+					pdo_update('storex_member', array('agentid' => intval($_GPC['agentid'])), array('id' => $member['id']));
+				}
 			}
 		}
 		

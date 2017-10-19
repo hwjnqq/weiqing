@@ -938,6 +938,7 @@ $sql = "
 	`express` decimal(10,2) DEFAULT '0.00',
 	`goodsids` varchar(1000) DEFAULT '',
 	`status` int(11) DEFAULT '0',
+	`agent_ratio` varchar(200) NOT NULL COMMENT '分销员提成',
 	PRIMARY KEY (`id`),
 	KEY `uniacid` (`uniacid`),
 	KEY `storeid` (`storeid`)
