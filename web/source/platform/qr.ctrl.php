@@ -190,16 +190,16 @@ if ($do == 'display') {
 	$psize = 30;
 	$qrcode_table = table('qrcode');
 	$starttime = empty($_GPC['time']['start']) ? TIMESTAMP -  86399 * 30 : strtotime($_GPC['time']['start']);
-	$endtime = empty($_GPC['time']['end']) ? TIMESTAMP + 6*86400: strtotime($_GPC['time']['end']) + 86399;
+	$endtime = empty($_GPC['time']['end']) ? TIMESTAMP + 6*86400 : strtotime($_GPC['time']['end']) + 86399;
+
 	$qrcode_table->searchTime($starttime, $endtime);
 	$keyword = trim($_GPC['keyword']);
 	if (!empty($keyword)) {
 		$qrcode_table->searchKeyword($keyword);
 	}
-
 	$qrcode_table->searchWithPage($pindex, $psize);
 	$list = $qrcode_table->qrcodeStaticList($status);
-	$total = $count = $qrcode_table->qrcodeCount($status);
+	$total = $count = $qrcode_table->getLastQueryTotal();
 
 	if (!empty($list)) {
 		$openid = array();

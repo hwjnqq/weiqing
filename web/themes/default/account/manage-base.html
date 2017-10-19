@@ -335,7 +335,7 @@
 		authurl: {php echo !empty($authurl) ? json_encode($authurl) : 'null'},
 		links: {
 			basePost: "{php echo url('account/post/base', array('acid' => $acid, 'uniacid' => $uniacid))}",
-			siteroot: "{php echo $_W['siteroot']}",
+			siteroot: "{php echo str_replace('http://', 'https://', $_W['siteroot'])}",
 		},
 	});
 	angular.bootstrap($('#js-account-manage-base'), ['accountApp']);

@@ -193,6 +193,7 @@ function cache_build_frame_menu() {
 						$section['menu'][$permission_name] = $menu;
 					}
 				}
+				$section_hidden_menu_count = 0;
 				foreach ($section['menu']  as $permission_name => $sub_menu) {
 					$sub_menu_db = $system_menu_db[$sub_menu['permission_name']];
 					$system_menu[$menu_name]['section'][$section_name]['menu'][$permission_name] = array(
@@ -208,6 +209,12 @@ function cache_build_frame_menu() {
 					);
 					$displayorder--;
 					$displayorder = max($displayorder, 0);
+					if (empty($system_menu[$menu_name]['section'][$section_name]['menu'][$permission_name]['is_display'])) {
+						$section_hidden_menu_count++;
+					}
+				}
+				if (empty($section['is_display']) && $section_hidden_menu_count == count($section['menu']) && $section_name != 'platform_module') {
+					$system_menu[$menu_name]['section'][$section_name]['is_display'] = 0;
 				}
 				$system_menu[$menu_name]['section'][$section_name]['menu'] = iarray_sort($system_menu[$menu_name]['section'][$section_name]['menu'], 'displayorder', 'desc');
 			}
@@ -223,6 +230,7 @@ function cache_build_frame_menu() {
 		$system_menu = iarray_sort($system_menu, 'displayorder', 'asc');
 		cache_delete('system_frame');
 		cache_write('system_frame', $system_menu);
+		return $system_menu;
 	}
 }
 
@@ -414,7 +422,9 @@ function cache_build_proxy_wechatpay_account() {
 			$account = account_fetch($uniaccount['default_acid']);
 			$account_setting = pdo_get('uni_settings', array ('uniacid' => $account['uniacid']));
 			$payment = iunserializer($account_setting['payment']);
-			if (!empty($account['key']) && !empty($account['secret']) && in_array ($account['level'], array (4)) && !empty($payment) && intval ($payment['wechat']['switch']) == 1) {
+			if (is_array($account) && !empty($account['key']) && !empty($account['secret']) && in_array($account['level'], array (4)) && 
+				is_array($payment) && !empty($payment) && intval($payment['wechat']['switch']) == 1) {
+					
 				if ((!is_bool ($payment['wechat']['switch']) && $payment['wechat']['switch'] != 4) || (is_bool ($payment['wechat']['switch']) && !empty($payment['wechat']['switch']))) {
 					$borrow[$account['uniacid']] = $account['name'];
 				}

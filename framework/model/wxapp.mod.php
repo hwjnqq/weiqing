@@ -8,7 +8,7 @@ defined('IN_IA') or exit('Access Denied');
 
 function wxapp_getpackage($data, $if_single = false) {
 	load()->classs('cloudapi');
-	
+
 	$api = new CloudApi();
 	$result = $api->post('wxapp', 'download', $data, 'html');
 	if (is_error($result)) {
@@ -36,28 +36,27 @@ function wxapp_account_create($account) {
 	}
 	$uniacid = pdo_insertid();
 	$account_data = array(
-		'uniacid' => $uniacid, 
-		'type' => $account['type'], 
+		'uniacid' => $uniacid,
+		'type' => $account['type'],
 		'hash' => random(8)
 	);
 	pdo_insert('account', $account_data);
-	
+
 	$acid = pdo_insertid();
-	
+
 	$wxapp_data = array(
 		'acid' => $acid,
 		'token' => random(32),
 		'encodingaeskey' => random(43),
 		'uniacid' => $uniacid,
 		'name' => $account['name'],
-		'account' => $account['account'],
 		'original' => $account['original'],
 		'level' => $account['level'],
 		'key' => $account['key'],
 		'secret' => $account['secret'],
 	);
 	pdo_insert('account_wxapp', $wxapp_data);
-	
+
 	if (empty($_W['isfounder'])) {
 		uni_user_account_role($uniacid, $_W['uid'], ACCOUNT_MANAGE_NAME_OWNER);
 	}
@@ -68,7 +67,7 @@ function wxapp_account_create($account) {
 		uni_user_account_role($uniacid, $_W['user']['owner_uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
 	}
 	pdo_update('uni_account', array('default_acid' => $acid), array('uniacid' => $uniacid));
-	
+
 	return $uniacid;
 }
 
@@ -78,7 +77,6 @@ function wxapp_account_create($account) {
 function wxapp_support_wxapp_modules() {
 	global $_W;
 	load()->model('user');
-	
 	$modules = user_modules($_W['uid']);
 	if (!empty($modules)) {
 		foreach ($modules as $module) {
@@ -133,12 +131,12 @@ function wxapp_fetch($uniacid, $version_id = '') {
 	if (!empty($version_id)) {
 		$version_id = intval($version_id);
 	}
-	
+
 	$wxapp_info = pdo_get('account_wxapp', array('uniacid' => $uniacid));
 	if (empty($wxapp_info)) {
 		return $wxapp_info;
 	}
-	
+
 	if (empty($version_id)) {
 		$wxapp_cookie_uniacids = array();
 		if (!empty($_GPC['__wxappversionids'])) {
@@ -150,7 +148,7 @@ function wxapp_fetch($uniacid, $version_id = '') {
 		if (in_array($uniacid, $wxapp_cookie_uniacids)) {
 			$wxapp_version_info = wxapp_version($wxappversionids[$uniacid]['version_id']);
 		}
-		
+
 		if (empty($wxapp_version_info)) {
 			$sql ="SELECT * FROM " . tablename('wxapp_versions') . " WHERE `uniacid`=:uniacid ORDER BY `id` DESC";
 			$wxapp_version_info = pdo_fetch($sql, array(':uniacid' => $uniacid));
@@ -176,7 +174,7 @@ function wxapp_fetch($uniacid, $version_id = '') {
 	$wxapp_info['version_num'] = explode('.', $wxapp_version_info['version']);
 	return  $wxapp_info;
 }
-/*  
+/*
  * 获取小程序所有版本
  * @params int $uniacid
  * @return array
@@ -185,11 +183,11 @@ function wxapp_version_all($uniacid) {
 	load()->model('module');
 	$wxapp_versions = array();
 	$uniacid = intval($uniacid);
-	
+
 	if (empty($uniacid)) {
 		return $wxapp_versions;
 	}
-	
+
 	$wxapp_versions = pdo_getall('wxapp_versions', array('uniacid' => $uniacid), array('id'), '', array("id DESC"));
 	if (!empty($wxapp_versions)) {
 		foreach ($wxapp_versions as &$version) {
@@ -209,7 +207,7 @@ function wxapp_version_all($uniacid) {
 function wxapp_get_some_lastversions($uniacid) {
 	$version_lasts = array();
 	$uniacid = intval($uniacid);
-	
+
 	if (empty($uniacid)) {
 		return $version_lasts;
 	}
@@ -260,6 +258,7 @@ function wxapp_update_last_use_version($uniacid, $version_id) {
 				$uniacid => array('uniacid' => $uniacid,'version_id' => $version_id)
 			);
 	}
+	isetcookie('__uniacid', $uniacid);
 	isetcookie('__wxappversionids', json_encode($cookie_val));
 	return true;
 }
@@ -271,11 +270,11 @@ function wxapp_update_last_use_version($uniacid, $version_id) {
 function wxapp_version($version_id) {
 	$version_info = array();
 	$version_id = intval($version_id);
-	
+
 	if (empty($version_id)) {
 		return $version_info;
 	}
-	
+
 	$version_info = pdo_get('wxapp_versions', array('id' => $version_id));
 	if (empty($version_info)) {
 		return $version_info;
@@ -308,7 +307,7 @@ function wxapp_save_switch($uniacid) {
 	if (empty($_GPC['__switch'])) {
 		$_GPC['__switch'] = random(5);
 	}
-	
+
 	$cache_key = cache_system_key(CACHE_KEY_ACCOUNT_SWITCH, $_GPC['__switch']);
 	$cache_lastaccount = (array)cache_load($cache_key);
 	if (empty($cache_lastaccount)) {
@@ -319,18 +318,30 @@ function wxapp_save_switch($uniacid) {
 		$cache_lastaccount['wxapp'] = $uniacid;
 	}
 	cache_write($cache_key, $cache_lastaccount);
+	isetcookie('__uniacid', $uniacid);
 	isetcookie('__switch', $_GPC['__switch'], 7 * 86400);
+	return true;
+}
+
+function wxapp_switch($uniacid, $redirect = '') {
+	global $_W;
+	wxapp_save_switch($uniacid);
+	isetcookie('__uid', $_W['uid'], 7 * 86400);
+	if (!empty($redirect)) {
+		header('Location: ' . $redirect);
+		exit;
+	}
 	return true;
 }
 
 function wxapp_site_info($multiid) {
 	$site_info = array();
 	$multiid = intval($multiid);
-	
+
 	if (empty($multiid)) {
 		return array();
 	}
-	
+
 	$site_info['slide'] = pdo_getall('site_slide', array('multiid' => $multiid));
 	$site_info['nav'] = pdo_getall('site_nav', array('multiid' => $multiid));
 	if (!empty($site_info['nav'])) {
@@ -420,4 +431,138 @@ function wxapp_last_switch_version() {
 		$wxapp_cookie_uniacids = json_decode(htmlspecialchars_decode($_GPC['__wxappversionids']), true);
 	}
 	return $wxapp_cookie_uniacids;
+}
+
+
+
+/**
+ *   通知服务器生成小程序代码
+ */
+function wxapp_code_generate($version_id) {
+	global $_W;
+	load()->classs('cloudapi');
+	$api = new CloudApi();
+	$version_info = wxapp_version($version_id);
+	$account_wxapp_info = wxapp_fetch($version_info['uniacid'], $version_id);
+	if (empty($account_wxapp_info)) {
+		return error(1, '版本不存在');
+	}
+	$siteurl = $_W['siteroot'].'app/index.php';
+	if(!empty($account_wxapp_info['appdomain'])) {
+		$siteurl = $account_wxapp_info['appdomain'];
+	}
+	$appid = $account_wxapp_info['key'];
+	$siteinfo = array(
+		'name' => $account_wxapp_info['name'],
+		'uniacid' => $account_wxapp_info['uniacid'],
+		'acid' => $account_wxapp_info['acid'],
+		'multiid' => $account_wxapp_info['version']['multiid'],
+		'version' => $account_wxapp_info['version']['version'],
+		'siteroot' => $siteurl,
+		'design_method' => $account_wxapp_info['version']['design_method'],
+	);
+//
+	$commit_data = array('do' => 'generate',
+		'appid' => $appid,
+		'modules' => $account_wxapp_info['version']['modules'],
+		'siteinfo' => $siteinfo,
+		'tabBar' => json_decode($account_wxapp_info['version']['quickmenu'], true),
+	);
+	$data = $api->post('wxapp', 'upload', $commit_data,
+		'json', false);
+
+	return $data;
+}
+
+/**
+ *  获取服务器小程序是否已经生成好了
+ * @param $code_uuid
+ * @return array(errno,$message,data[is_gen]= 1|0);
+ */
+function wxapp_check_code_isgen($code_uuid) {
+	load()->classs('cloudapi');
+	$api = new CloudApi();
+	$data = $api->get('wxapp', 'upload', array('do'=>'check_gen',
+		'code_uuid'=>$code_uuid),
+		'json', false);
+	return $data;
+}
+
+/**
+ *  开发者工具二维码 的UUID
+ * @return array|mixed|string array(errno=>0|1, $messge, data=>array('code_token'=>))
+ */
+function wxapp_code_token() {
+	global $_W;
+	load()->classs('cloudapi');
+	$cloud_api = new CloudApi();
+	$data = $cloud_api->get('wxapp', 'upload', array('do' => 'code_token'), 'json', false);
+	return $data;
+}
+
+/**
+ *  开发者工具二维码
+ * @param $uuid  图片二进制数据
+ */
+function wxapp_code_qrcode($code_token) {
+
+	$cloud_api = new CloudApi();
+	$data = $cloud_api->get('wxapp', 'upload', array('do' => 'qrcode',
+		'code_token' => $code_token),
+		'html', false);
+	return $data;
+}
+
+/**
+ *
+ * @param $uuid 微信UUID
+ * @param $last //微信返回的扫码状态
+ * @return array|mixed|string  array('errno'=>,'message', 'data'=>array('errcode'=>,'code_token'=>'上传代码凭证'))
+ *  errcode 408 超时 404 已扫码 403 已取消 405 已确认扫码
+ */
+function wxapp_code_check_scan($code_token, $last) {
+	$cloud_api = new CloudApi();
+	$data = $cloud_api->get('wxapp', 'upload',
+		array('do' => 'checkscan',
+			'code_token' => $code_token,
+			'last' => $last
+		),
+		'json', false);
+	return $data;
+}
+
+function wxapp_code_preview_qrcode($code_uuid, $code_token) {
+	$cloud_api = new CloudApi();
+
+	$commit_data =  array(
+		'do' => 'preview_qrcode',
+		'code_uuid'=> $code_uuid,
+		'code_token' => $code_token,
+	);
+	$data = $cloud_api->post('wxapp', 'upload', $commit_data,
+		'json', false);
+
+	return $data;
+}
+/**
+ * @param $code_uuid  服务器生成代码 返回的UUID
+ * @param $code_token  //开发工具调用凭据
+ * @param int $user_version //用户版本
+ * @param string $user_desc // 用户描述
+ * @return array('errno'=>0|1, $message=>'');
+ */
+function wxapp_code_commit($code_uuid, $code_token, $user_version = 3, $user_desc = '代码提交') {
+	$cloud_api = new CloudApi();
+
+	$commit_data =  array(
+		'do' => 'commitcode',
+		'code_uuid'=> $code_uuid,
+		'code_token' => $code_token,
+		'user_version' => $user_version,
+		'user_desc' => $user_desc,
+	);
+	$data = $cloud_api->post('wxapp', 'upload', $commit_data,
+		'json', false);
+
+	return $data;
 }

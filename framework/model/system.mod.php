@@ -6,7 +6,7 @@ defined('IN_IA') or exit('Access Denied');
 
 /**
  * 获取包括系统及模块所有的菜单权限
- * 
+ *
  */
 function system_menu_permission_list($role = '') {
 	$system_menu = cache_load('system_frame');
@@ -30,7 +30,7 @@ function system_menu_permission_list($role = '') {
  * @return array;
  */
 function system_database_backup() {
-	$path = IA_ROOT . '/data/backup/'; 
+	$path = IA_ROOT . '/data/backup/';
 	load()->func('file');
 	$reduction = array();
 	if (!is_dir($path)) {
@@ -60,7 +60,7 @@ function system_database_backup() {
 				$volume_list = array();
 				for ($i = 1;;) {
 					$last = $path . $bakdir . "/volume-{$volume_prefix}-{$i}.sql";
-					array_push($volume_list, $last); 
+					array_push($volume_list, $last);
 					$i++;
 					$next = $path . $bakdir . "/volume-{$volume_prefix}-{$i}.sql";
 					if (!is_file($next)) {
@@ -130,4 +130,16 @@ function system_database_backup_delete($delete_dirname) {
 		return false;
 	}
 	return rmdirs($dir);
+}
+
+/**
+ * 系统后台风格中文名字
+ */
+function system_template_ch_name() {
+	$result = array(
+		'default' => '白色',
+		'black' => '黑色',
+		'classical' => '经典',
+	);
+	return $result;
 }

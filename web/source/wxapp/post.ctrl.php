@@ -44,7 +44,6 @@ if($do == 'post') {
 			$account_wxapp_data = array(
 				'name' => trim($_GPC['name']),
 				'description' => trim($_GPC['description']),
-				'account' => trim($_GPC['account']),
 				'original' => trim($_GPC['original']),
 				'level' => 1,
 				'key' => trim($_GPC['appid']),

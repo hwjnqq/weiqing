@@ -110,6 +110,7 @@ if ($do == 'edit') {
 					if ($result) {
 						//设置主管理员后，删除该用户在该公众号下设置的权限（即主管理员拥有该公众号所有权限）
 						pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $user['uid']));
+						cache_clean(cache_system_key("user_accounts"));
 						iajax(0, '修改成功！', '');
 					} else  {
 						iajax(1, '修改失败！', '');
@@ -130,6 +131,7 @@ if ($do == 'edit') {
 				if ($addtype == ACCOUNT_MANAGE_TYPE_OWNER) {
 					pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $user['uid']));
 				}
+				cache_clean(cache_system_key("user_accounts"));
 				iajax(0, '添加成功！', '');
 			} else  {
 				iajax(1, '添加失败！', '');
@@ -153,16 +155,28 @@ if ($do == 'edit') {
 		itoast('此用户没有操作该统一公众号的权限，请选指派“管理员”或是“操作员”权限！', '', '');
 	}
 
+	$module_permission = permission_account_user_menu($uid, $uniacid, 'modules');
+	if (is_error($module_permission)) {
+		itoast('参数错误！');
+	}
+	$module_permission_keys = array_keys($module_permission);
+	$module = uni_modules_by_uniacid($uniacid);
+	if (!empty($module)) {
+		foreach ($module as $key => $value) {
+			if (in_array($account['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)) && $value['app_support'] != MODULE_SUPPORT_ACCOUNT) {
+				unset($module[$key]);
+			}
+			if ($account['type'] == ACCOUNT_TYPE_APP_NORMAL && $value['wxapp_support'] != MODULE_SUPPORT_WXAPP) {
+				unset($module[$key]);
+			}
+		}
+	}
 	if ($account['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $account['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
 		//获取系统权限
 		$user_menu_permission_account = permission_account_user_menu($uid, $uniacid, PERMISSION_ACCOUNT);
-		//获取模块权限
-		$module_permission = permission_account_user_menu($uid, $uniacid, 'modules');
-		if (is_error($user_menu_permission_account) || is_error($module_permission)) {
+		if (is_error($user_menu_permission_account)) {
 			itoast('参数错误！');
 		}
-		$module_permission_keys = array_keys($module_permission);
-		$module = uni_modules_by_uniacid($uniacid);
 	} elseif ($account['type'] == ACCOUNT_TYPE_APP_NORMAL) {
 		//获取小程序权限
 		$user_menu_permission_wxapp = permission_account_user_menu($uid, $uniacid, PERMISSION_WXAPP);
@@ -194,31 +208,6 @@ if ($do == 'edit') {
 			} else {
 				pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $uid, 'type' => PERMISSION_ACCOUNT));
 			}
-			//模块权限
-			pdo_query("DELETE FROM " . tablename('users_permission') . " WHERE uniacid = :uniacid AND uid = :uid AND type != '" . PERMISSION_ACCOUNT . "' AND type != '" . PERMISSION_WXAPP . "'", array(':uniacid' => $uniacid, ':uid' => $uid));
-			if(!empty($_GPC['module'])) {
-				foreach($_GPC['module'] as $module_val) {
-					$insert = array(
-						'uniacid' => $uniacid,
-						'uid' => $uid,
-						'type' => $module_val,
-					);
-					if(empty($_GPC['module_'. $module_val]) || $_GPC[$module_val . '_select'] == 1) {
-						$insert['permission'] = 'all';
-						pdo_insert('users_permission', $insert);
-						continue;
-					} else {
-						$data = array();
-						foreach($_GPC['module_'. $module_val] as $v) {
-							$data[] = $v;
-						}
-						if(!empty($data)) {
-							$insert['permission'] = implode('|', $data);
-							pdo_insert('users_permission', $insert);
-						}
-					}
-				}
-			}
 		} elseif ($account['type'] == ACCOUNT_TYPE_APP_NORMAL) {
 			//小程序权限
 			if (!empty($_GPC['wxapp'])) {
@@ -237,6 +226,31 @@ if ($do == 'edit') {
 				}
 			} else {
 				pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $uid, 'type' => PERMISSION_WXAPP));
+			}
+		}
+		//模块权限
+		pdo_query("DELETE FROM " . tablename('users_permission') . " WHERE uniacid = :uniacid AND uid = :uid AND type != '" . PERMISSION_ACCOUNT . "' AND type != '" . PERMISSION_WXAPP . "'", array(':uniacid' => $uniacid, ':uid' => $uid));
+		if(!empty($_GPC['module'])) {
+			foreach($_GPC['module'] as $module_val) {
+				$insert = array(
+					'uniacid' => $uniacid,
+					'uid' => $uid,
+					'type' => $module_val,
+				);
+				if(empty($_GPC['module_'. $module_val]) || $_GPC[$module_val . '_select'] == 1) {
+					$insert['permission'] = 'all';
+					pdo_insert('users_permission', $insert);
+					continue;
+				} else {
+					$data = array();
+					foreach($_GPC['module_'. $module_val] as $v) {
+						$data[] = $v;
+					}
+					if(!empty($data)) {
+						$insert['permission'] = implode('|', $data);
+						pdo_insert('users_permission', $insert);
+					}
+				}
 			}
 		}
 		$cachekey = cache_system_key("permission:{$uniacid}:{$uid}");

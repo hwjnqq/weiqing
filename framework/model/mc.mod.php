@@ -32,6 +32,7 @@ function mc_update($uid, $fields) {
 	$struct[] = 'residecity';
 	$struct[] = 'residedist';
 	$struct[] = 'groupid';
+	$struct[] = 'salt';
 
 	if (isset($fields['birth']) && !is_array($fields['birth'])) {
 		$birth = explode('-', $fields['birth']);
@@ -2018,4 +2019,43 @@ function mc_fans_has_member_info($tag) {
 		}
 	}
 	return $profile;
+}
+
+/**
+ * 粉丝、平台聊天记录格式化
+ * @param $chat_record
+ * @return array
+ */
+function mc_fans_chats_record_formate($chat_record) {
+	load()->model('material');
+	if (empty($chat_record)) {
+		return array();
+	}
+	foreach ($chat_record as &$record) {
+		$record['content'] = iunserializer($record['content']);
+		if (isset($record['content']['media_id']) && !empty($record['content']['media_id'])) {
+			$material = material_get($record['content']['media_id']);
+			switch($record['msgtype']) {
+				case 'image':
+					$record['content'] = tomedia($material['attachment']);
+					break;
+				case 'mpnews':
+					$record['content'] = $material['news'][0]['thumb_url'];
+					break;
+				case 'music':
+					$record['content'] = $material['filename'];
+					break;
+				case 'voice':
+					$record['content'] = $material['filename'];
+					break;
+				case 'voice':
+					$record['content'] = $material['filename'];
+					break;
+			}
+		} else {
+			$record['content'] = urldecode($record['content']['content']);
+		}
+		$record['createtime'] = date('Y-m-d H:i', $record['createtime']);
+	}
+	return $chat_record;
 }

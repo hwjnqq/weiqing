@@ -168,10 +168,10 @@ $we7_system_menu['wxapp'] = array(
 					'permission_name' => 'wxapp_payment',
 				),
 				'front_download' => array(
-					'title' => '小程序下载',
+					'title' => '上传微信审核',
 					'url' => url('wxapp/front-download'),
 					'is_display' => 1,
-					'icon' => 'wi wi-wxapp-download',
+					'icon' => 'wi wi-examine',
 					'permission_name' => 'wxapp_front_download',
 				)
 			)
@@ -416,14 +416,14 @@ $we7_system_menu['system'] = array(
 $we7_system_menu['site'] = array(
 	'title' => '站点管理',
 	'icon' => 'wi wi-system-site',
-	'url' => '../cloud.php',
+	'url' => 'cloud.php',
 	'section' => array(
 		'cloud' => array(
 			'title' => '云服务',
 			'menu' => array(
 				'system_profile' => array(
 					'title' => '系统升级',
-					'url' => '../cloud.php',
+					'url' => 'cloud.php',
 					'icon' => 'wi wi-cache',
 					'permission_name' => 'system_cloud_upgrade',
 				),
@@ -523,6 +523,17 @@ $we7_system_menu['site'] = array(
 				),
 			)
 		),
+		'workorder'=> array(
+			'title' => '工单系统',
+			'menu'=> array(
+				'system_workorder'=> array(
+					'title' => '工单系统',
+					'url' => url('system/workorder/display'),
+					'icon' => 'wi wi-system-work',
+					'permission_name' => 'system_workorder',
+				)
+			)
+		)
 	),
 	'founder' => true,
 );

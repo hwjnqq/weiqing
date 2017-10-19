@@ -82,6 +82,7 @@ function material_sync($material, $exist_material, $type) {
 				);
 				pdo_insert('wechat_news', $new_data);
 			}
+			pdo_update('wechat_attachment', array('createtime' => $news['update_time']), array('media_id' => $news['media_id']));
 		}
 	}
 	return $exist_material;
@@ -96,9 +97,9 @@ function material_news_set($data, $attach_id) {
 	global $_W;
 	$attach_id = intval($attach_id);
 	foreach ($data as $key => $news) {
-		if (empty($news['title']) || 
-			(!empty($news['thumb']) && !parse_path($news['thumb'])) || 
-			(!empty($news['url']) && !parse_path($news['url'])) || 
+		if (empty($news['title']) ||
+			(!empty($news['thumb']) && !parse_path($news['thumb'])) ||
+			(!empty($news['url']) && !parse_path($news['url'])) ||
 			(!empty($news['content_source_url']) && !parse_path($news['content_source_url']))
 		) {
 			return error('-1', '参数有误');
@@ -172,11 +173,12 @@ function material_get($attach_id) {
 		$material = pdo_get('wechat_attachment', array('id' => $attach_id));
 	} else {
 		$media_id = trim($attach_id);
-		$material = pdo_get('wechat_attachment', array('media_id' => $media_id)); 
+		$material = pdo_get('wechat_attachment', array('media_id' => $media_id));
 	}
 	if (!empty($material)) {
 		if ($material['type'] == 'news') {
-			$news = pdo_getall('wechat_news', array('attach_id' => $material['id']), array(), '', ' displayorder ASC');
+			$material_table = table('material');
+			$news = $material_table->materialNewsList($material['id']);
 			if (!empty($news)) {
 				foreach ($news as &$news_row) {
 					$news_row['content_source_url'] = $news_row['content_source_url'];
@@ -357,6 +359,12 @@ function material_local_news_upload($attach_id) {
 		if (is_error($media_id)) {
 			return error('-5', $media_id, '');
 		}
+		$material_info = $account_api->getMaterial($media_id, false);
+		if (!empty($material_info['news_item'])) {
+			foreach ($material_info['news_item'] as $key => $info) {
+				pdo_update('wechat_news', array('url' => $info['url']), array('uniacid' => $_W['uniacid'], 'attach_id' => $material['id'], 'displayorder' => $key));
+			}
+		}
 		pdo_update('wechat_attachment', array(
 			'media_id' => $media_id,
 			'model' => 'perm'
@@ -373,7 +381,7 @@ function material_local_news_upload($attach_id) {
  * 目前图片、音频、视频素材上传都用这个方法
  * 上传素材文件到微信，获取mediaId
  * @param string $url
- * 
+ *
  */
 function material_local_upload_by_url($url, $type='images') {
 	global $_W;
@@ -437,7 +445,7 @@ function material_upload_limit() {
  * 删除图文素材
  * @param int $material_id 素材id
  * @type string $type 素材类型
- * 
+ *
  */
 function material_news_delete($material_id){
 	global $_W;

@@ -22,15 +22,7 @@ if ($do == 'chats') {
 		$fans_info['member_info'] = mc_fetch($fans_info['uid']);
 	}
 	$chat_record = pdo_getslice('mc_chats_record', array('uniacid' => $_W['uniacid'], 'openid' => $openid), array('1', 20), $total, array(), '', 'createtime desc');
-	if (!empty($chat_record)) {
-		foreach ($chat_record as &$record) {
-			if ($record['flag'] == FANS_CHATS_FROM_SYSTEM) {
-				$record['content'] = iunserializer($record['content']);
-				$record['content'] = urldecode($record['content']['content']);
-			}
-			$record['createtime'] = date('Y-m-d H:i', $record['createtime']);
-		}
-	}
+	$chat_record = mc_fans_chats_record_formate($chat_record);
 }
 
 if ($do == 'send') {
@@ -42,6 +34,8 @@ if ($do == 'send') {
 		$send['text'] = array('content' => urlencode($content));
 	} elseif ($type == 'image') {
 		$send['image'] = array('media_id' => $content);
+		$material = material_get($content);
+		$content = $material['attachment'];
 	} elseif ($type == 'voice') {
 		$send['voice'] = array('media_id' => $content);
 	} elseif($type == 'video') {
@@ -86,7 +80,7 @@ if ($do == 'send') {
 
 		if($send['msgtype'] == 'mpnews') {
 			$material = pdo_getcolumn('wechat_attachment', array('uniacid' => $_W['uniacid'], 'media_id' => $content['mediaid']), 'id');
-			$content = urlencode('图文素材');
+			$content = $content['thumb'];
 		}
 		//保存消息记录
 		pdo_insert('mc_chats_record',array(
@@ -98,7 +92,7 @@ if ($do == 'send') {
 			'content' => iserializer($send[$send['msgtype']]),
 			'createtime' => TIMESTAMP,
 		));
-		iajax(0, array('createtime' => date('Y-m-d', time()), 'content' => $content), '');
+		iajax(0, array('createtime' => date('Y-m-d H:i:s', time()), 'content' => $content, 'msgtype' => $send['msgtype']), '');
 	}
 }
 

@@ -9,19 +9,17 @@ require IA_ROOT . '/web/common/bootstrap.sys.inc.php';
 load()->web('common');
 load()->web('template');
 load()->func('file');
-if (!pdo_fieldexists('site_store_goods', 'module_group')) {
-	pdo_query('ALTER TABLE ' . tablename('site_store_goods') . " ADD `module_group` int(10) NOT NULL DEFAULT 0;");
-}
-if (!pdo_fieldexists('uni_settings', 'statistics')) {
-	pdo_query('ALTER TABLE ' . tablename('uni_settings') . " ADD `statistics` varchar(100) NOT NULL DEFAULT '';");
-}
-if (!pdo_fieldexists('site_store_goods', 'api_num')) {
-	pdo_query('ALTER TABLE ' . tablename('site_store_goods') . " ADD `api_num` int(10) NOT NULL DEFAULT 0;");
-}
+
 if (empty($_W['isfounder']) && !empty($_W['user']) && ($_W['user']['status'] == USER_STATUS_CHECK || $_W['user']['status'] == USER_STATUS_BAN)) {
 	message('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决！');
 }
 $acl = require IA_ROOT . '/web/common/permission.inc.php';
+
+// navs
+$_W['page'] = array();
+$_W['page']['copyright'] = $_W['setting']['copyright'];
+// navs end;
+
 if (($_W['setting']['copyright']['status'] == 1) && empty($_W['isfounder']) && $controller != 'cloud' && $controller != 'utility' && $controller != 'account') {
 	$_W['siteclose'] = true;
 	if ($controller == 'account' && $action == 'welcome') {
@@ -81,11 +79,6 @@ if (!in_array($action, $actions)) {
 	$action = $acl[$controller]['default'] ? $acl[$controller]['default'] : $actions[0];
 }
 
-// navs
-$_W['page'] = array();
-$_W['page']['copyright'] = $_W['setting']['copyright'];
-// navs end;
-
 if (is_array($acl[$controller]['direct']) && in_array($action, $acl[$controller]['direct'])) {
 	// 如果这个目标被配置为不需要登录直接访问, 则直接访问
 	require _forward($controller, $action);
@@ -95,9 +88,6 @@ checklogin();
 // 判断非创始人是否拥有目标权限
 if ($_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER) {
 	if (empty($_W['uniacid'])) {
-		if ($_W['role'] == ACCOUNT_MANAGE_NAME_CLERK) {
-			itoast('', url('module/display'), 'info');
-		}
 		if (defined('FRAME') && FRAME == 'account') {
 			itoast('', url('account/display'), 'info');
 		}

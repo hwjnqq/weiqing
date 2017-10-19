@@ -60,10 +60,13 @@ if ($do == 'display') {
 }
 
 if ($do == 'operate') {
+	if (!$_W['isajax'] || !$_W['ispost']) {
+		iajax(-1, '非法操作！', referer());
+	}
 	$type = $_GPC['type'];
 	$types = array('recycle', 'recycle_delete', 'recycle_restore', 'check_pass');
 	if (!in_array($type, $types)) {
-		itoast('类型错误！', referer(), 'fail');
+		iajax(-1, '类型错误!', referer());
 	}
 	switch ($type) {
 		case 'check_pass':
@@ -78,29 +81,32 @@ if ($do == 'operate') {
 	$uid = intval($_GPC['uid']);
 	$uid_user = user_single($uid);
 	if (in_array($uid, $founders)) {
-		itoast('访问错误, 无法操作站长.', url('user/display'), 'error');
+		iajax(-1, '访问错误, 无法操作站长.', url('user/display'));
 	}
 	if (empty($uid_user)) {
 		exit('未指定用户,无法删除.');
+	}
+	if ($uid_user['founder_groupid'] != ACCOUNT_MANAGE_GROUP_GENERAL) {
+		iajax(-1, '非法操作', referer());
 	}
 	switch ($type) {
 		case 'check_pass':
 			$data = array('status' => 2);
 			pdo_update('users', $data , array('uid' => $uid));
-			itoast('更新成功！', referer(), 'success');
+			iajax(0, '更新成功', referer());
 			break;
 		case 'recycle'://删除用户到回收站
 			user_delete($uid, true);
-			itoast('更新成功！', referer(), 'success');
+			iajax(0, '更新成功', referer());
 			break;
 		case 'recycle_delete'://永久删除用户
 			user_delete($uid);
-			itoast('删除成功！', referer(), 'success');
+			iajax(0, '删除成功', referer());
 			break;
 		case 'recycle_restore':
 			$data = array('status' => 2);
 			pdo_update('users', $data , array('uid' => $uid));
-			itoast('启用成功！', referer(), 'success');
+			iajax(0, '启用成功', referer());
 			break;
 	}
 }

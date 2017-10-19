@@ -17,11 +17,11 @@ load()->func('file');
 $uniacid = intval($_GPC['uniacid']);
 $acid = intval($_GPC['acid']);
 if (empty($uniacid) || empty($acid)) {
-	itoast('请选择要编辑的公众号', url('account/manager'), 'error');
+	itoast('请选择要编辑的公众号', url('account/manage'), 'error');
 }
 $defaultaccount = uni_account_default($uniacid);
 if (!$defaultaccount) {
-	itoast('无效的acid', url('account/manager'), 'error');
+	itoast('无效的acid', url('account/manage'), 'error');
 }
 $acid = $defaultaccount['acid']; //强制使用默认的acid
 
@@ -39,7 +39,7 @@ if ($role_permission) {
 		$do = in_array($do, $dos) ? $do : 'modules_tpl';
 	}
 } else {
-	itoast('您是该公众号的操作员，无权限操作！', url('account/manager'), 'error');
+	itoast('您是该公众号的操作员，无权限操作！', url('account/manage'), 'error');
 }
 
 $_W['page']['title'] = '管理设置 - 微信' . ACCOUNT_TYPE_NAME . '管理';
@@ -133,7 +133,8 @@ if($do == 'base') {
 			cache_delete("accesstoken:{$acid}");
 			cache_delete("jsticket:{$acid}");
 			cache_delete("cardticket:{$acid}");
-
+			$cachekey = cache_system_key("statistics:{$uniacid}");
+			cache_delete($cachekey);
 			iajax(0, '修改成功！', '');
 		}else {
 			iajax(1, '修改失败！', '');
@@ -151,7 +152,7 @@ if($do == 'base') {
 		} else {
 			$authurl = array(
 				'errno' => 0,
-				'url' => sprintf(ACCOUNT_PLATFORM_API_LOGIN, $account_platform->appid, $preauthcode, urlencode(urlencode($GLOBALS['_W']['siteroot'] . 'index.php?c=account&a=auth&do=forward')))
+				'url' => sprintf(ACCOUNT_PLATFORM_API_LOGIN, $account_platform->appid, $preauthcode, urlencode($GLOBALS['_W']['siteroot'] . 'index.php?c=account&a=auth&do=forward'))
 			);
 		}
 	}

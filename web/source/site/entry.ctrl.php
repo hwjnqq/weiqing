@@ -29,7 +29,15 @@ if (empty($entry) || empty($entry['do'])) {
 
 if (!$entry['direct']) {
 	checklogin();
-	checkaccount();
+	$referer = (url_params(referer()));
+	if (empty($_W['isajax']) && empty($_W['ispost']) && empty($_GPC['version_id']) && intval($referer['version_id']) > 0 && ($referer['c'] == 'wxapp' || $referer['c'] == 'site' && $referer['a'] == 'entry')) {
+		itoast('', $_W['siteurl'] . '&version_id=' . $referer['version_id']);
+	}
+	if (!empty($_GPC['version_id'])) {
+		checkwxapp();
+	} else {
+		checkaccount();
+	}
 
 	$module = module_fetch($entry['module']);
 	if (empty($module)) {

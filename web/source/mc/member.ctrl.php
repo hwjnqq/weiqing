@@ -143,10 +143,11 @@ if($do == 'del') {
 			$delete_uids = $_GPC['uid'];
 		}
 		if (!empty($delete_uids)) {
-			$tables = array('mc_members', 'mc_card_members', 'mc_card_notices', 'mc_card_notices_unread', 'mc_card_record', 'mc_card_sign_record', 'mc_cash_record', 'mc_credits_recharge', 'mc_credits_record', 'mc_mapping_fans', 'mc_member_address', 'mc_mapping_ucenter');
+			$tables = array('mc_members', 'mc_card_members', 'mc_card_notices', 'mc_card_notices_unread', 'mc_card_record', 'mc_card_sign_record', 'mc_cash_record', 'mc_credits_recharge', 'mc_credits_record', 'mc_member_address', 'mc_mapping_ucenter');
 			foreach ($tables as $key => $value) {
 				pdo_delete($value, array('uniacid' => $_W['uniacid'], 'uid' => $delete_uids));
 			}
+			pdo_update('mc_mapping_fans', array('uid' => 0), array('uid' => $delete_uids, 'uniacid' => $_W['uniacid']));
 			itoast('删除成功！', referer(), 'success');
 		}
 		itoast('请选择要删除的项目！', referer(), 'error');

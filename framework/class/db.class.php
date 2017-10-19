@@ -94,10 +94,6 @@ class DB {
 			trigger_error($sqlsafe['message'], E_USER_ERROR);
 			return false;
 		}
-		//为了不影响 last insertid 把缓存提前执行，可能插入失败后也会清空缓存
-		if (in_array(strtolower(substr($sql, 0, 6)), array('update', 'delete', 'insert', 'replac'))) {
-			$this->cacheNameSpace($sql, true);
-		}
 		$starttime = microtime();
 		if (empty($params)) {
 			$result = $this->pdo->exec($sql);
@@ -127,10 +123,6 @@ class DB {
 	 * @return mixed
 	 */
 	public function fetchcolumn($sql, $params = array(), $column = 0) {
-		$cachekey = $this->cacheKey($sql, $params);
-		if (($cache = $this->cacheRead($cachekey)) !== false) {
-			return $cache['data'];
-		}
 		$starttime = microtime();
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
@@ -143,7 +135,6 @@ class DB {
 			return false;
 		} else {
 			$data = $statement->fetchColumn($column);
-			$this->cacheWrite($cachekey, $data);
 			return $data;
 		}
 	}
@@ -156,10 +147,6 @@ class DB {
 	 * @return mixed
 	 */
 	public function fetch($sql, $params = array()) {
-		$cachekey = $this->cacheKey($sql, $params);
-		if (($cache = $this->cacheRead($cachekey)) !== false) {
-			return $cache['data'];
-		}
 		$starttime = microtime();
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
@@ -172,7 +159,6 @@ class DB {
 			return false;
 		} else {
 			$data = $statement->fetch(pdo::FETCH_ASSOC);
-			$this->cacheWrite($cachekey, $data);
 			return $data;
 		}
 	}
@@ -185,10 +171,6 @@ class DB {
 	 * @return mixed
 	 */
 	public function fetchall($sql, $params = array(), $keyfield = '') {
-		$cachekey = $this->cacheKey($sql, $params);
-		if (($cache = $this->cacheRead($cachekey)) !== false) {
-			return $cache['data'];
-		}
 		$starttime = microtime();
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
@@ -215,7 +197,6 @@ class DB {
 					}
 				}
 			}
-			$this->cacheWrite($cachekey, $result);
 			return $result;
 		}
 	}
@@ -529,7 +510,6 @@ class DB {
 					load()->web('common');
 					load()->web('template');
 				}
-				WeUtility::logging('SQL Error', "SQL: <br/>{$append['sql']}<hr/>Params: <br/>{$params}<hr/>SQL Error: <br/>{$append['error'][2]}<hr/>Traces: <br/>{$ts}");
 				trigger_error("SQL: <br/>{$append['sql']}<hr/>Params: <br/>{$params}<hr/>SQL Error: <br/>{$append['error'][2]}<hr/>Traces: <br/>{$ts}", E_USER_WARNING);
 			}
 		}
@@ -594,78 +574,6 @@ class DB {
 			$this->insert('core_performance', $sqldata);
 		}
 		return true;
-	}
-
-	private function cacheRead($cachekey) {
-		global $_W;
-		if (empty($cachekey) || $_W['config']['setting']['cache'] != 'memcache' || empty($_W['config']['setting']['memcache']['sql'])) {
-			return false;
-		}
-		$data = cache_read($cachekey, true);
-		if (empty($data) || empty($data['data'])) {
-			return false;
-		}
-		return $data;
-	}
-
-	private function cacheWrite($cachekey, $data) {
-		global $_W;
-		if (empty($data) || empty($cachekey) || $_W['config']['setting']['cache'] != 'memcache' || empty($_W['config']['setting']['memcache']['sql'])) {
-			return false;
-		}
-		$cachedata = array(
-			'data' => $data,
-			'expire' => TIMESTAMP + 2592000,
-		);
-		cache_write($cachekey, $cachedata, 0, true);
-		return true;
-	}
-
-	private function cacheKey($sql, $params) {
-		global $_W;
-		if ($_W['config']['setting']['cache'] != 'memcache' || empty($_W['config']['setting']['memcache']['sql'])) {
-			return false;
-		}
-		$namespace = $this->cacheNameSpace($sql);
-		if (empty($namespace)) {
-			return false;
-		}
-		return $namespace . ':' . md5($sql . serialize($params));
-	}
-
-	/**
-	 * SQL缓存以表为为单位增加缓存命名空间，当更新、删除或是插入语句时批量删除此表的缓存
-	 * @param string $sql
-	 * @param boolean $forcenew 是否强制更新命名空间
-	 */
-	private function cacheNameSpace($sql, $forcenew = false) {
-		global $_W;
-		if ($_W['config']['setting']['cache'] != 'memcache' || empty($_W['config']['setting']['memcache']['sql'])) {
-			return false;
-		}
-		$skip_tablename = array(
-			$this->tablename('core_cache'),
-			$this->tablename('core_queue'),
-			$this->tablename('mc_member'),
-			$this->tablename('mc_mapping_fans'),
-		);
-		//获取SQL中的表名
-		$table_prefix = str_replace('`', '', tablename(''));
-		preg_match_all('/(?!from|insert into|replace into|update) `?('.$table_prefix.'[a-zA-Z0-9_-]+)/i', $sql, $match);
-		$tablename = implode(':', $match[1]);
-		if (empty($tablename) || in_array("`{$tablename}`", $skip_tablename)) {
-			return false;
-		}
-		$tablename = str_replace($this->tablepre, '', $tablename);
-		//获取命名空间
-		$db_cache_key = 'we7:dbkey:'.$tablename;
-		$namespace = $this->getColumn('core_cache', array('key' => $db_cache_key), 'value');
-		if (empty($namespace) || $forcenew) {
-			$namespace = random(8);
-			$this->delete('core_cache', array('key LIKE' => "%{$tablename}%", 'key !=' => $db_cache_key));
-			$this->insert('core_cache', array('key' => $db_cache_key, 'value' => $namespace), true);
-		}
-		return $tablename . ':' . $namespace;
 	}
 }
 

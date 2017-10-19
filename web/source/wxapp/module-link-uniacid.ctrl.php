@@ -58,9 +58,9 @@ if ($do == 'module_unlink_uniacid') {
 	$version_modules = serialize($version_modules);
 	$result = pdo_update('wxapp_versions', array('modules' => $version_modules), array('id' => $version_info['id']));
 	if ($result) {
-		itoast('删除成功！', referer(), 'success');
+		iajax(0, '删除成功！', referer());
 	} else {
-		itoast('删除失败！', referer(), 'error');
+		iajax(0, '删除失败！', referer());
 	}
 }
 

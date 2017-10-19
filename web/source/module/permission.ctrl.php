@@ -11,6 +11,7 @@ $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
 $module_name = trim($_GPC['m']);
 $modulelist = uni_modules(false);
 $module = $_W['current_module'] = $modulelist[$module_name];
+define('IN_MODULE', $module_name);
 if(empty($module)) {
 	itoast('抱歉，你操作的模块不能被访问！');
 }

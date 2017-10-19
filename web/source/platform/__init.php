@@ -1,11 +1,13 @@
 <?php
 /**
- * 
+ *
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
-checkaccount();
+if (!($action == 'material' && $do == 'delete')) {
+	checkaccount();
+}
 
 if ($action != 'material-post') {
 	define('FRAME', 'account');

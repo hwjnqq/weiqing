@@ -25,6 +25,7 @@ class QrcodeTable extends We7Table {
 			$this->query->groupby('openid');
 			$this->query->groupby('type');
 		}
+		$this->query->orderby('createtime', 'DESC');
 		return $this->query->getall();
 	}
 

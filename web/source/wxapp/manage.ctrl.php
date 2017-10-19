@@ -9,7 +9,7 @@ define('FRAME', 'system');
 load()->model('system');
 load()->model('wxapp');
 
-$dos = array('delete', 'display', 'edit_version', 'del_version', 'get_available_apps', 'getpackage');
+$dos = array('delete', 'display', 'edit_version', 'del_version', 'get_available_apps');
 $do = in_array($do, $dos) ? $do : 'display';
 
 $uniacid = intval($_GPC['uniacid']);
@@ -121,40 +121,4 @@ if ($do == 'delete') {
 		itoast('版本不存在', referer(), 'error');
 	}
 	itoast('删除成功', referer(), 'success');
-}
-
-if($do == 'getpackage') {
-	$versionid = intval($_GPC['versionid']);
-	if(empty($versionid)) {
-		itoast('参数错误！', '', '');
-	}
-
-	$account_wxapp_info = wxapp_fetch($uniacid, $versionid);
-	if (empty($account_wxapp_info)) {
-		itoast('版本不存在！', referer(), 'error');
-	}
-	$request_cloud_data = array(
-		'name' => $account_wxapp_info['name'],
-		'modules' => $account_wxapp_info['version']['modules'],
-		'siteInfo' => array(
-			'name' => $account_wxapp_info['name'],
-			'uniacid' => $account_wxapp_info['uniacid'],
-			'acid' => $account_wxapp_info['acid'],
-			'multiid' => $account_wxapp_info['version']['multiid'],
-			'version' => $account_wxapp_info['version']['version'],
-			'siteroot' => $_W['siteroot'].'app/index.php',
-			'design_method' => $account_wxapp_info['version']['design_method']
-		),
-		'tabBar' => json_decode($account_wxapp_info['version']['quickmenu'], true),
-	);
-	$result = wxapp_getpackage($request_cloud_data);
-
-	if(is_error($result)) {
-		itoast($result['message'], '', '');
-	}else {
-		header('content-type: application/zip');
-		header('content-disposition: attachment; filename="' . $request_cloud_data['name'] . '.zip"');
-		echo $result;
-	}
-	exit;
 }

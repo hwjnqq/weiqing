@@ -14,7 +14,7 @@ load()->model('user');
 load()->model('account');
 load()->classs('account');
 load()->model('utility');
-$dos = array('subscribe', 'filter', 'check_subscribe', 'check_upgrade', 'get_upgrade_info', 'upgrade', 'install', 'installed', 'not_installed', 'uninstall', 'save_module_info', 'module_detail', 'change_receive_ban');
+$dos = array('subscribe', 'filter', 'check_subscribe', 'check_upgrade', 'get_upgrade_info', 'upgrade', 'install', 'installed', 'not_installed', 'uninstall', 'save_module_info', 'module_detail', 'change_receive_ban', 'install_success');
 $do = in_array($do, $dos) ? $do : 'installed';
 
 if (!in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))){
@@ -422,11 +422,8 @@ if ($do =='install') {
 		cache_build_uninstalled_module();
 		cache_build_module_info($module_name);
 
-		if (empty($module_subscribe_success)) {
-			itoast('模块安装成功！模块订阅消息有错误，系统已禁用该模块的订阅消息，详细信息请查看', url('module/manage-system/module_detail', array('name' => $module['name'])), 'tips');
-		} else {
-			itoast('模块安装成功!', url('module/manage-system', array('account_type' => ACCOUNT_TYPE)), 'success');
-		}
+		header('Location: ' . url('module/manage-system/install_success', array('account_type' => ACCOUNT_TYPE)));
+		exit;
 	} else {
 		itoast('模块安装失败, 请联系模块开发者！');
 	}

@@ -103,7 +103,7 @@ if($do == 'display') {
 } elseif ($do == 'setting') {
 	$modulename = $_GPC['m'];
 	$module = $_W['current_module'] = $modulelist[$modulename];
-
+	define('IN_MODULE', $modulename);
 	if(empty($module)) {
 		itoast('抱歉，你操作的模块不能被访问！', '', '');
 	}

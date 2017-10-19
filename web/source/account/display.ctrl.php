@@ -56,9 +56,10 @@ if ($do == 'display') {
 	if (!empty($keyword)) {
 		$account_table->searchWithKeyword($keyword);
 	}
-	
-	if(isset($_GPC['letter']) && strlen($_GPC['letter']) == 1) {
-		$account_table->searchWithLetter($_GPC['letter']);
+
+	$letter = $_GPC['letter'];
+	if(isset($letter) && strlen($letter) == 1) {
+		$account_table->searchWithLetter($letter);
 	}
 	$account_table->searchWithPage($pindex, $psize);
 	$account_list = $account_table->searchAccountList();

@@ -47,3 +47,4 @@ if ($do == 'get_daily_visittrend') {
 	}
 	iajax(0, array('yesterday' => $yesterday_stat), '');
 }
+

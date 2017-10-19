@@ -141,7 +141,7 @@
 		}
 		$scope.scripts = {php echo json_encode($scripts);};
 		$scope.fails = [];
-		
+
 		var is_upgrade = "{php echo $is_upgrade}";
 		var total = $scope.scripts.length;
 		var i = 1;
@@ -162,7 +162,7 @@
 						{/if}
 						return;
 					}
-					
+
 					var is_confirm = "{php echo $_GPC['is_confirm']}";
 					if(is_confirm == 1) {
 						if(confirm('已经成功执行升级操作! '+"\n"+' 由于数据库更新, 可能会产生多余的字段. 你可以按照需要删除')) {
@@ -208,6 +208,22 @@
 	</li>
 </ol>
 {if $step == 'files'}
+{if !empty($_GPC['m'])}
+<div class="steps">
+	<div class="steps-item steps-status-finish">
+		<div class="steps-line"><span class="steps-num">1</span></div>
+		<div class="steps-state">安装应用</div>
+	</div>
+	<div class="steps-item steps-status-wait">
+		<div class="steps-line"><span class="steps-num">2</span></div>
+		<div class="steps-state">分配应用权限</div>
+	</div>
+	<div class="steps-item steps-status-wait">
+		<div class="steps-line"><span class="steps-num">3</span></div>
+		<div class="steps-state">安装成功</div>
+	</div>
+</div>
+{/if}
 <div class="clearfix js-processor">
 	<div class="alert alert-warning">
 		正在更新系统文件, 请不要关闭窗口.
@@ -326,7 +342,7 @@
 				location.href = '{url "module/manage-system/upgrade" array("module_name" => $m, "flag" => 1, "account_type" => $_GPC["account_type"])}';
 			</script>
 			{/if}
-			
+
 		{/if}
 		<script>
 			var is_confirm = "{php echo $_GPC['is_confirm']}";

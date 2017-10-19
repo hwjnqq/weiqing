@@ -159,7 +159,7 @@ function template_parse($str) {
 	$str = str_replace('{##', '{', $str);
 	$str = str_replace('##}', '}', $str);
 
-	$business_stat_script = $GLOBALS['_W']['current_module']['name'] ? "</script><script type=\"text/javascript\" src=\"{$GLOBALS['_W']['siteroot']}app/index.php?i={$GLOBALS['_W']['uniacid']}&c=utility&a=visit&do=showjs&m={$GLOBALS['_W']['current_module']['name']}\">" : '';
+	$business_stat_script = "</script><script type=\"text/javascript\" src=\"{$GLOBALS['_W']['siteroot']}app/index.php?i={$GLOBALS['_W']['uniacid']}&c=utility&a=visit&do=showjs&m={$GLOBALS['_W']['current_module']['name']}\">";
 	if (!empty($GLOBALS['_W']['setting']['remote']['type'])) {
 		$str = str_replace('</body>', "<script>var imgs = document.getElementsByTagName('img');for(var i=0, len=imgs.length; i < len; i++){imgs[i].onerror = function() {if (!this.getAttribute('check-src') && (this.src.indexOf('http://') > -1 || this.src.indexOf('https://') > -1)) {this.src = this.src.indexOf('{$GLOBALS['_W']['attachurl_local']}') == -1 ? this.src.replace('{$GLOBALS['_W']['attachurl_remote']}', '{$GLOBALS['_W']['attachurl_local']}') : this.src.replace('{$GLOBALS['_W']['attachurl_local']}', '{$GLOBALS['_W']['attachurl_remote']}');this.setAttribute('check-src', true);}}};{$business_stat_script}</script></body>", $str);
 	} else {
@@ -338,8 +338,9 @@ function site_article($params = array()) {
 			$condition .= " AND ccate = :ccate ";
 			$pars[':ccate'] = $cid;
 		} else {
-			$condition .= " AND pcate = :pcate";
+			$condition .= " AND pcate = :pcate AND (ccate = :ccate OR iscommend = '1')";
 			$pars[':pcate'] = $cid;
+			$pars[':ccate'] = ARTICLE_CCATE;
 		}
 	}
 	if ($iscommend == 'true') {

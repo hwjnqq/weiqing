@@ -19,7 +19,7 @@ function attachment_alioss_datacenters() {
 }
 
 function attachment_newalioss_auth($key, $secret, $bucket){
-	require_once(IA_ROOT.'/framework/library/alioss/autoload.php');
+	load()->library('oss');
 	$buckets = attachment_alioss_buctkets($key, $secret);
 	$url = 'http://'.$buckets[$bucket]['location'].'.aliyuncs.com';
 	$filename = 'MicroEngine.ico';
@@ -33,7 +33,7 @@ function attachment_newalioss_auth($key, $secret, $bucket){
 }
 
 function attachment_alioss_buctkets($key, $secret) {
-	require_once(IA_ROOT.'/framework/library/alioss/autoload.php');
+	load()->library('oss');
 	$url = 'http://oss-cn-beijing.aliyuncs.com';
 	try {
 		$ossClient = new \OSS\OssClient($key, $secret, $url);
@@ -54,7 +54,7 @@ function attachment_alioss_buctkets($key, $secret) {
 }
 
 function attachment_qiniu_auth($key, $secret,$bucket) {
-	require_once(IA_ROOT . '/framework/library/qiniu/autoload.php');
+	load()->library('qiniu');
 	$auth = new Qiniu\Auth($key, $secret);
 	$token = $auth->uploadToken($bucket);
 	$config = new Qiniu\Config();
@@ -90,12 +90,12 @@ function attachment_cos_auth($bucket,$appid, $key, $secret, $bucket_local = '') 
 		$con = preg_replace('/const[\s]SECRET_ID[\s]=[\s]\'.*\';/', 'const SECRET_ID = \''.$key.'\';', $con);
 		$con = preg_replace('/const[\s]SECRET_KEY[\s]=[\s]\'.*\';/', 'const SECRET_KEY = \''.$secret.'\';', $con);
 		file_put_contents(IA_ROOT.'/framework/library/cosv4.2/qcloudcos/conf.php', $con);
-		require_once(IA_ROOT.'/framework/library/cosv4.2/include.php');
+		load()->library('cos');
 		qcloudcos\Cosapi :: setRegion($bucket_local);
 		qcloudcos\Cosapi :: setTimeout(180);
 		$uploadRet = qcloudcos\Cosapi::upload($bucket, ATTACHMENT_ROOT.'images/global/MicroEngine.ico', '/MicroEngine.ico','',3 * 1024 * 1024, 0);
 	} else {
-		require_once(IA_ROOT.'/framework/library/cos/include.php');
+		load()->library('cosv3');
 		$con = $original = @file_get_contents(IA_ROOT.'/framework/library/cos/Qcloud_cos/Conf.php');
 		if (empty($con)) {
 			$conf_content = base64_decode("PD9waHANCm5hbWVzcGFjZSBRY2xvdWRfY29zOw0KDQpjbGFzcyBDb25mDQp7DQogICAgY29uc3QgUEtHX1ZFUlNJT04gPSAndjMuMyc7DQoNCiAgICBjb25zdCBBUElfSU1BR0VfRU5EX1BPSU5UID0gJ2h0dHA6Ly93ZWIuaW1hZ2UubXlxY2xvdWQuY29tL3Bob3Rvcy92MS8nOw0KICAgIGNvbnN0IEFQSV9WSURFT19FTkRfUE9JTlQgPSAnaHR0cDovL3dlYi52aWRlby5teXFjbG91ZC5jb20vdmlkZW9zL3YxLyc7DQogICAgY29uc3QgQVBJX0NPU0FQSV9FTkRfUE9JTlQgPSAnaHR0cDovL3dlYi5maWxlLm15cWNsb3VkLmNvbS9maWxlcy92MS8nOw0KICAgIC8v6K+35YiwaHR0cDovL2NvbnNvbGUucWNsb3VkLmNvbS9jb3Pljrvojrflj5bkvaDnmoRhcHBpZOOAgXNpZOOAgXNrZXkNCiAgICBjb25zdCBBUFBJRCA9ICcnOw0KICAgIGNvbnN0IFNFQ1JFVF9JRCA9ICcnOw0KICAgIGNvbnN0IFNFQ1JFVF9LRVkgPSAnJzsNCg0KDQogICAgcHVibGljIHN0YXRpYyBmdW5jdGlvbiBnZXRVQSgpIHsNCiAgICAgICAgcmV0dXJuICdjb3MtcGhwLXNkay0nLnNlbGY6OlBLR19WRVJTSU9OOw0KICAgIH0NCn0NCg0KLy9lbmQgb2Ygc2NyaXB0DQo=");

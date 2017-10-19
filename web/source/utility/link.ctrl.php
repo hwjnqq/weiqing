@@ -75,14 +75,19 @@ if ($do == 'newslist') {
 	$condition = '';
 	if (!empty($_GPC['keyword'])) {
 		$condition .= " AND n.title LIKE :title";
-		$param = array(':news' => 'reply', ':uniacid' => $_W['uniacid'], ':title' => '%'. trim($_GPC['keyword']) .'%');
+		$param = array(':uniacid' => $_W['uniacid'], ':title' => '%'. trim($_GPC['keyword']) .'%');
 	} else {
-		$param = array(':news' => 'reply', ':uniacid' => $_W['uniacid']);
+		$param = array(':uniacid' => $_W['uniacid']);
 	}
-	$sql = "SELECT n.id, n.title FROM ". tablename('rule')."AS r,". tablename('news_reply'). " AS n WHERE r.id = n.rid AND r.module = :news AND r.uniacid = :uniacid". $condition ." ORDER BY n.displayorder DESC LIMIT ". ($pindex - 1) * $psize . ',' . $psize;
+	$sql = "SELECT n.id, n.title, n.url FROM ". tablename('rule')."AS r,". tablename('news_reply'). " AS n WHERE r.id = n.rid AND r.module IN ('reply', 'news') AND r.uniacid = :uniacid". $condition ." ORDER BY n.displayorder DESC LIMIT ". ($pindex - 1) * $psize . ',' . $psize;
 	$result['list'] = pdo_fetchall($sql, $param, 'id');
 	if (!empty($result['list'])) {
-		$sql = "SELECT COUNT(*) FROM ". tablename('rule')."AS r,". tablename('news_reply'). " AS n WHERE r.id = n.rid AND r.module = :news AND r.uniacid = :uniacid ". $condition;
+		foreach ($result['list'] as $key => &$list) {
+			if (empty($list['url'])) {
+				$list['url'] = './index.php?i=' . $_W['uniacid'] . '&c=entry&id=' . $list['id'] . '&do=detail&m=core';
+			}
+		}
+		$sql = "SELECT COUNT(*) FROM ". tablename('rule')."AS r,". tablename('news_reply'). " AS n WHERE r.id = n.rid AND r.module IN ('reply', 'news') AND r.uniacid = :uniacid ". $condition;
 		$total = pdo_fetchcolumn($sql, $param);
 		$result['pager'] = pagination($total, $pindex, $psize, '', array('before' => '2', 'after' => '3', 'ajaxcallback'=>'null'));
 	}

@@ -4,18 +4,23 @@
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('mc');
+load()->model('app');
 $_W['uniacid'] = intval($_GPC['i']);
 if(empty($_W['uniacid'])) {
 	$_W['uniacid'] = intval($_GPC['weid']);
 }
 $_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);
 if(empty($_W['uniaccount'])) {
-	exit('指定主公众号不存在。');
+	header('HTTP/1.1 404 Not Found');
+	header("status: 404 Not Found");
+	exit;
 }
 if (!empty($_W['uniaccount']['endtime']) && TIMESTAMP > $_W['uniaccount']['endtime']) {
 	exit('抱歉，您的公众号服务已过期，请及时联系管理员');
 }
-
+if (app_pass_visit_limit()) {
+	exit('访问受限，请及时联系管理员！');
+}
 $_W['acid'] = $_W['uniaccount']['acid'];
 $isdel_account = pdo_get('account', array('isdeleted' => 1, 'acid' => $_W['acid']));
 if (!empty($isdel_account)) {

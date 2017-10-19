@@ -385,27 +385,23 @@ function user_founder_group_detail_info($groupid = 0) {
  */
 function user_account_detail_info($uid) {
 	global $_W;
-	$account_lists = array();
+	$account_lists = $app_user_info = $wxapp_user_info = array();
 	$uid = intval($uid);
 	if (empty($uid)) {
 		return $account_lists;
 	}
 
-	$sql = "SELECT b.uniacid, b.role, a.type FROM " . tablename('account'). " AS a LEFT JOIN ". tablename('uni_account_users') . " AS b ON a.uniacid = b.uniacid WHERE a.acid <> 0 AND a.isdeleted <> 1";
-	$param = array();
-	$founders = explode(',', $_W['config']['setting']['founder']);
-	if (!in_array($uid, $founders)) {
-		$sql .= " AND b.uid = :uid";
-		$param[':uid'] = $uid;
-	}
-	$account_users_info = pdo_fetchall($sql, $param, 'uniacid');
-	foreach ($account_users_info as $uniacid => $account) {
-		if ($account['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $account['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
-			$app_user_info[$uniacid] = $account;
-		} elseif ($account['type'] == ACCOUNT_TYPE_APP_NORMAL) {
-			$wxapp_user_info[$uniacid] = $account;
+	$account_users_info = table('account')->userOwnedAccount($uid);
+	if (!empty($account_users_info)) {
+		foreach ($account_users_info as $uniacid => $account) {
+			if ($account['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $account['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
+				$app_user_info[$uniacid] = $account;
+			} elseif ($account['type'] == ACCOUNT_TYPE_APP_NORMAL) {
+				$wxapp_user_info[$uniacid] = $account;
+			}
 		}
 	}
+
 	$wxapps = $wechats = array();
 	if (!empty($wxapp_user_info)) {
 		$wxapps = pdo_fetchall("SELECT w.name, w.level, w.acid, a.* FROM " . tablename('uni_account') . " a INNER JOIN " . tablename(uni_account_tablename(ACCOUNT_TYPE_APP_NORMAL)) . " w USING(uniacid) WHERE a.uniacid IN (".implode(',', array_keys($wxapp_user_info)).") ORDER BY a.uniacid ASC", array(), 'acid');
@@ -462,7 +458,7 @@ function user_modules($uid) {
 			if ($user_info['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
 				$user_group_info = user_founder_group_detail_info($user_info['groupid']);
 			} else {
-				$user_group_info = user_group_detail_info($user_info['groupid']);	
+				$user_group_info = user_group_detail_info($user_info['groupid']);
 			}
 			$packageids = $user_group_info['package'];
 
@@ -621,7 +617,7 @@ function user_invite_register_url($uid = 0) {
 	if (empty($uid)) {
 		$uid = $_W['uid'];
 	}
-	return $_W['siteroot'] . '/index.php?c=user&a=register&owner_uid=' . $uid;
+	return $_W['siteroot'] . 'index.php?c=user&a=register&owner_uid=' . $uid;
 }
 
 /**

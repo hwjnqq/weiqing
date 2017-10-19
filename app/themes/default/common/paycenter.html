@@ -338,6 +338,7 @@
 		$('#wetitle').html('微信支付');
 	});
 	$(document).on('click', '.js-pay', function() {
+		$(this).prop('disabled', true);
 		$(this).find('form').submit();
 	})
 </script>

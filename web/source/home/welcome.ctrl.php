@@ -14,10 +14,14 @@ load()->model('module');
 load()->model('system');
 load()->model('user');
 
-$dos = array('platform', 'system', 'ext', 'get_fans_kpi', 'get_last_modules', 'get_system_upgrade', 'get_upgrade_modules', 'get_module_statistics');
+$dos = array('platform', 'system', 'ext', 'get_fans_kpi', 'get_last_modules', 'get_system_upgrade', 'get_upgrade_modules', 'get_module_statistics', 'get_ads');
 $do = in_array($do, $dos) ? $do : 'platform';
-if ($do == 'platform' || $do == 'ext') {
-	checkaccount();
+if ($do == 'platform' || ($do == 'ext' && $_GPC['m'] != 'store')) {
+	if (!empty($_GPC['version_id'])) {
+		checkwxapp();
+	} else {
+		checkaccount();
+	}
 }
 
 if ($do == 'platform') {
@@ -148,4 +152,11 @@ if ($do == 'platform') {
 		)
 	);
 	iajax(0, $upgrade_module, '');
+} elseif ($do == 'get_ads') {
+	$ads = welcome_get_ads();
+	if (is_error($ads)) {
+		iajax(1, $ads['message']);
+	} else {
+		iajax(0, $ads);
+	}
 }

@@ -141,13 +141,13 @@ if ($do == 'homemenu_switch') {
 if ($do == 'home' || $do == 'profile') {
 	$modules = uni_modules();
 	$bindings = array();
-	
+	define('IN_MODULE', $modulename);
 	if (!empty($modulename)) {
 		$modulenames = array($modulename);
 	} else {
 		$modulenames = array_keys($modules);
 	}
-	
+
 	$_W['current_module'] = module_fetch($modulename);
 	foreach ($modulenames as $modulename) {
 		$entries = module_entries($modulename, array($do));

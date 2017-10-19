@@ -49,7 +49,7 @@ function _login($forward = '') {
 		$_W['isfounder'] = user_is_founder($record['uid']);
 		$_W['user'] = $record;
 
-		if (empty($_W['isfounder'])) {
+		if (empty($_W['isfounder']) || user_is_vice_founder()) {
 			if (!empty($record['endtime']) && $record['endtime'] < TIMESTAMP) {
 				itoast('您的账号有效期限已过，请联系网站管理员解决！', '', '');
 			}

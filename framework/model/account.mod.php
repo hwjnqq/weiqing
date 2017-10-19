@@ -10,7 +10,7 @@ defined('IN_IA') or exit('Access Denied');
  * @param int $uid 指定操作用户
  * @return array
  */
-function uni_owned($uid = 0) {
+function uni_owned($uid = 0, $is_uni_fetch = true) {
 	global $_W;
 	$uid = intval($uid) > 0 ? intval($uid) : $_W['uid'];
 	$uniaccounts = array();
@@ -20,34 +20,12 @@ function uni_owned($uid = 0) {
 		return $uniaccounts;
 	}
 
-	if (user_is_vice_founder($uid)) {
-		$user_type = ACCOUNT_MANAGE_NAME_VICE_FOUNDER;
-	} elseif (user_is_founder($uid)) {
-		$user_type = ACCOUNT_MANAGE_NAME_FOUNDER;
-	} else {
-		$user_type = ACCOUNT_MANAGE_NAME_OWNER;
-	}
-
-	foreach ($user_accounts as $key => $user_account) {
-		if ($user_type == ACCOUNT_MANAGE_NAME_FOUNDER) {
-			continue;
-		} elseif ($user_type == ACCOUNT_MANAGE_NAME_VICE_FOUNDER) {
-			if ($user_account['role'] != ACCOUNT_MANAGE_NAME_OWNER && $user_account['role'] != ACCOUNT_MANAGE_NAME_VICE_FOUNDER) {
-				unset($user_accounts[$key]);
-			}
-		} else {
-			if ($user_account['role'] != ACCOUNT_MANAGE_NAME_OWNER) {
-				unset($user_accounts[$key]);
-			}
+	if (!empty($user_accounts) && !empty($is_uni_fetch)) {
+		foreach ($user_accounts as &$row) {
+			$row = uni_fetch($row['uniacid']);
 		}
 	}
-
-	if (!empty($user_accounts)) {
-		foreach ($user_accounts as $row) {
-			$uniaccounts[$row['uniacid']] = uni_fetch($row['uniacid']);
-		}
-	}
-	return $uniaccounts;
+	return $user_accounts;
 }
 
 /**
@@ -57,7 +35,6 @@ function uni_owned($uid = 0) {
  */
 function uni_user_accounts($uid) {
 	global $_W;
-	$result = array();
 	$uid = intval($uid) > 0 ? intval($uid) : $_W['uid'];
 	$cachekey = cache_system_key("user_accounts:{$uid}");
 	$cache = cache_load($cachekey);
@@ -70,13 +47,15 @@ function uni_user_accounts($uid) {
 	$user_is_founder = user_is_founder($uid);
 	if (empty($user_is_founder) || user_is_vice_founder($uid)) {
 		$field .= ', u.role';
-		$where .= " LEFT JOIN " . tablename('uni_account_users') . " u ON u.uniacid = w.uniacid WHERE u.uid = :uid";
+		$where .= " LEFT JOIN " . tablename('uni_account_users') . " u ON u.uniacid = w.uniacid WHERE u.uid = :uid AND u.role IN(:role1, :role2) ";
 		$params[':uid'] = $uid;
+		$params[':role1'] = ACCOUNT_MANAGE_NAME_OWNER;
+		$params[':role2'] = ACCOUNT_MANAGE_NAME_VICE_FOUNDER;
 	}
 	$where .= !empty($where) ? " AND a.isdeleted <> 1 AND u.role IS NOT NULL" : " WHERE a.isdeleted <> 1";
 
-	$sql = "SELECT w.acid, w.uniacid, w.key, w.secret, w.level, w.name" . $field . " FROM " . tablename('account_wechats') . " w LEFT JOIN " . tablename('account') . " a ON a.acid = w.acid AND a.uniacid = w.uniacid" . $where;
-	$result = pdo_fetchall($sql, $params);
+	$sql = "SELECT w.acid, w.uniacid, w.key, w.secret, w.level, w.name, w.token" . $field . " FROM " . tablename('account_wechats') . " w LEFT JOIN " . tablename('account') . " a ON a.acid = w.acid AND a.uniacid = w.uniacid" . $where;
+	$result = pdo_fetchall($sql, $params, 'uniacid');
 	cache_write($cachekey, $result);
 	return $result;
 }
@@ -182,10 +161,10 @@ function uni_site_store_buy_module($uniacid) {
 		return $site_store_buy_modules;
 	}
 	$site_store_buy_modules = array();
-	$site_store_order = pdo_fetchall('SELECT * FROM ' . tablename('site_store_order') . " WHERE uniacid = :uniacid AND createtime + duration * 2592000 >= :times AND type = 3", array(':times' => time(), ':uniacid' => $uniacid), 'goodsid');
+	$site_store_order = pdo_getall('site_store_order', array('endtime >=' => time(), 'uniacid' => $uniacid, 'type' => STORE_ORDER_FINISH), array(), 'goodsid');
 	if (!empty($site_store_order) && is_array($site_store_order)) {
-		$site_store_buy_modules = pdo_getall('site_store_goods', array('id' => array_keys($site_store_order)), array(), 'module');
-		$site_store_buy_modules = array_keys($site_store_buy_modules);
+		$site_store_buy_modules = pdo_getall('site_store_goods', array('id' => array_keys($site_store_order), 'type' => STORE_TYPE_MODULE), array(), 'module');
+		$site_store_buy_modules = array_unique(array_keys($site_store_buy_modules));
 	}
 	cache_write($cachekey, $site_store_buy_modules);
 	return $site_store_buy_modules;
@@ -205,17 +184,20 @@ function uni_modules_by_uniacid($uniacid, $enabled = true) {
 	load()->model('module');
 	$cachekey = cache_system_key(CACHE_KEY_ACCOUNT_MODULES, $uniacid, $enabled);
 	$modules = cache_load($cachekey);
-
 	if (empty($modules)) {
 		$founders = explode(',', $_W['config']['setting']['founder']);
 		$owner_uid = pdo_getcolumn('uni_account_users',  array('uniacid' => $uniacid, 'role' => 'owner'), 'uid');
 		$condition = "WHERE 1";
+		$site_store_buy_modules = uni_site_store_buy_module($uniacid);
 
 		if (!empty($owner_uid) && !in_array($owner_uid, $founders)) {
 			$uni_modules = array();
 			$packageids = pdo_getall('uni_account_group', array('uniacid' => $uniacid), array('groupid'), 'groupid');
 			$packageids = array_keys($packageids);
 
+			$store = table('store');
+			$site_store_buy_package = $store->searchUserBuyPackage($uniacid);
+			$packageids = array_merge($packageids, array_keys($site_store_buy_package));
 
 			if (!in_array('-1', $packageids)) {
 				$uni_groups = pdo_fetchall("SELECT `modules` FROM " . tablename('uni_group') . " WHERE " .  "id IN ('".implode("','", $packageids)."') OR " . " uniacid = '{$uniacid}'");
@@ -226,7 +208,7 @@ function uni_modules_by_uniacid($uniacid, $enabled = true) {
 					}
 				}
 				$user_modules = user_modules($owner_uid);
-				$modules = array_merge(array_keys($user_modules), $uni_modules);
+				$modules = array_merge(array_keys($user_modules), $uni_modules, $site_store_buy_modules);
 				if (!empty($modules)) {
 					$condition .= " AND a.name IN ('" . implode("','", $modules) . "')";
 				} else {
@@ -694,7 +676,7 @@ function uni_account_last_switch() {
 	global $_W, $_GPC;
 	$cache_key = cache_system_key(CACHE_KEY_ACCOUNT_SWITCH, $_GPC['__switch']);
 	$cache_lastaccount = (array)cache_load($cache_key);
-	if (strexists($_W['siteurl'], 'c=wxapp')) {
+	if (strexists($_W['siteurl'], 'c=wxapp') || !empty($_GPC['version_id'])) {
 		$uniacid = $cache_lastaccount['wxapp'];
 	} else {
 		$uniacid = $cache_lastaccount['account'];
@@ -739,6 +721,7 @@ function uni_account_save_switch($uniacid) {
 		$cache_lastaccount['account'] = $uniacid;
 	}
 	cache_write($cache_key, $cache_lastaccount);
+	isetcookie('__uniacid', $uniacid);
 	isetcookie('__switch', $_GPC['__switch'], 7 * 86400);
 	return true;
 }

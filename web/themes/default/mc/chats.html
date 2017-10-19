@@ -61,8 +61,26 @@
 						{$fans_info['nickname']}
 						<span class="notice-item-time">{{ log.createtime }}</span>
 					</div>
-					<div class="notice-item-content">
+					<div class="notice-item-content" ng-if="log.msgtype == 'text'">
 						{{ log.content }}
+					</div>
+					<div class="notice-item-content" ng-if="log.msgtype == 'image' || log.msgtype == 'mpnews'">
+						<img src="{{log.content}}" width="48">
+					</div>
+					<div class="appmsgSendedItem" ng-if="log.msgtype == 'video' || log.msgtype == 'music'">
+						<a class="title-wrp" href="javascript:;">
+							<span class="icon cover" style="width: 80px;height: 80px;vertical-align: middle;display: inline-block;background-color: #d7d8da!important;"></span>
+							<span class="title" ng-if="log.msgtype == 'video'">[视频]</span>
+							<span class="title" ng-if="log.msgtype == 'music'">[音乐]</span>
+						</a>
+					</div>
+					<div class="audio-msg" ng-if="log.msgtype == 'voice'">
+						<div class="icon-audio-wrp">
+							<span class="icon-audio-msg"></span>
+						</div>
+						<div class="audio-content">
+							<div class="audio-title">[语音]</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -92,11 +110,13 @@
 	</div>
 </div>
 <script>
+require(['underscore'], function() {
 	angular.module('fansApp').value('config', {
 		'chatLogs' : {php echo json_encode($chat_record)},
 		'endurl' : "{php echo url('mc/chats/endchats', array('openid' => $openid))}",
 		'sendurl' : "{php echo url('mc/chats/send', array('openid' => $openid))}"
 	});
 	angular.bootstrap($('.notice-fans-list'), ['fansApp']);
+});
 </script>
 {template 'common/footer'}

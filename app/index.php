@@ -8,7 +8,6 @@ define('IN_MOBILE', true);
 require '../framework/bootstrap.inc.php';
 load()->app('common');
 load()->app('template');
-load()->model('app');
 require IA_ROOT . '/app/common/bootstrap.app.inc.php';
 
 $acl = array(

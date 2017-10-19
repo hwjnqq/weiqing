@@ -20,14 +20,14 @@ if ($do == 'list') {
 	}
 	$_share['desc'] = $category['description'];
 	$_share['title'] = $category['name'];
-	
+
 	$title = $category['name'];
 	$category['template'] = pdo_fetchcolumn('SELECT b.name FROM ' . tablename('site_styles') . ' AS a LEFT JOIN ' . tablename('site_templates') . ' AS b ON a.templateid = b.id WHERE a.id = :id', array(
-		':id' => $category['styleid'] 
+		':id' => $category['styleid']
 	));
 	if (! empty($category['template'])) {
 		$styles_vars = pdo_fetchall('SELECT * FROM ' . tablename('site_styles_vars') . ' WHERE styleid = :styleid', array(
-			':styleid' => $category['styleid'] 
+			':styleid' => $category['styleid']
 		));
 		if (! empty($styles_vars)) {
 			foreach ($styles_vars as $row) {
@@ -38,7 +38,7 @@ if ($do == 'list') {
 			}
 		}
 	}
-	
+
 	if (empty($category['ishomepage'])) {
 		$ishomepage = 0;
 		// 独立选择分类模板
@@ -58,7 +58,7 @@ if ($do == 'list') {
 			foreach ($navs as &$row) {
 				if (empty($row['linkurl']) || (! strexists($row['linkurl'], 'http://') && ! strexists($row['linkurl'], 'https://'))) {
 					$row['url'] = url('site/site/list', array(
-						'cid' => $row['id'] 
+						'cid' => $row['id']
 					));
 				} else {
 					$row['url'] = $row['linkurl'];
@@ -82,8 +82,11 @@ if ($do == 'list') {
 	$sql = "SELECT * FROM " . tablename('site_article') . " WHERE `id`=:id AND uniacid = :uniacid";
 	$detail = pdo_fetch($sql, array(
 		':id' => $id,
-		':uniacid' => $_W['uniacid'] 
+		':uniacid' => $_W['uniacid']
 	));
+	if (empty($detail)) {
+		message('文章已不存在或已被删除！', referer(), 'info');
+	}
 	if (! empty($detail['linkurl'])) {
 		if (strtolower(substr($detail['linkurl'], 0, 4)) != 'tel:' && ! strexists($detail['linkurl'], 'http://') && ! strexists($detail['linkurl'], 'https://')) {
 			$detail['linkurl'] = $_W['siteroot'] . 'app/' . $detail['linkurl'];
@@ -92,9 +95,9 @@ if ($do == 'list') {
 		exit();
 	}
 	$detail = istripslashes($detail);
-	
+
 	$detail['content'] = preg_replace("/<img(.*?)(http[s]?\:\/\/mmbiz.qpic.cn[^\?]*?)(\?[^\"]*?)?\"/i", '<img $1$2"', $detail['content']);
-	
+
 	if (! empty($detail['incontent'])) {
 		$detail['content'] = '<p><img src="' . tomedia($detail['thumb']) . '" title="' . $detail['title'] . '" /></p>' . $detail['content'];
 	}
@@ -115,22 +118,22 @@ if ($do == 'list') {
 	} else {
 		$sql = 'SELECT `subscribeurl` FROM ' . tablename('account_wechats') . " WHERE `acid` = :acid";
 		$subscribeurl = pdo_fetchcolumn($sql, array(
-			':acid' => intval($_W['acid']) 
+			':acid' => intval($_W['acid'])
 		));
 	}
 	// 阅读次数
 	$detail['click'] = intval($detail['click']) + 1;
 	pdo_update('site_article', array(
-		'click' => $detail['click'] 
+		'click' => $detail['click']
 	), array(
 		'uniacid' => $_W['uniacid'],
-		'id' => $id 
+		'id' => $id
 	));
 	// 设置分享信息
 	$_share = array(
 		'desc' => $detail['description'],
 		'title' => $detail['title'],
-		'imgUrl' => $detail['thumb'] 
+		'imgUrl' => $detail['thumb']
 	);
 	template('site/detail');
 } elseif ($do == 'handsel') {
@@ -139,7 +142,7 @@ if ($do == 'list') {
 		$id = intval($_GPC['id']);
 		$article = pdo_fetch('SELECT id, credit FROM ' . tablename('site_article') . ' WHERE uniacid = :uniacid AND id = :id', array(
 			':uniacid' => $_W['uniacid'],
-			':id' => $id 
+			':id' => $id
 		));
 		$credit = iunserializer($article['credit']) ? iunserializer($article['credit']) : array();
 		if (! empty($article) && $credit['status'] == 1) {
@@ -149,11 +152,11 @@ if ($do == 'list') {
 				$handsel = array(
 					'module' => 'article',
 					'sign' => md5(iserializer(array(
-						'id' => $id 
+						'id' => $id
 					))),
 					'action' => 'share',
 					'credit_value' => $credit['share'],
-					'credit_log' => '分享文章,赠送积分' 
+					'credit_log' => '分享文章,赠送积分'
 				);
 			} elseif ($_GPC['action'] == 'click') {
 				$touid = intval($_GPC['u']);
@@ -161,22 +164,22 @@ if ($do == 'list') {
 				$handsel = array(
 					'module' => 'article',
 					'sign' => md5(iserializer(array(
-						'id' => $id 
+						'id' => $id
 					))),
 					'action' => 'click',
 					'credit_value' => $credit['click'],
-					'credit_log' => '分享的文章在朋友圈被阅读,赠送积分' 
+					'credit_log' => '分享的文章在朋友圈被阅读,赠送积分'
 				);
 			}
 			$total = pdo_fetchcolumn('SELECT SUM(credit_value) FROM ' . tablename('mc_handsel') . ' WHERE uniacid = :uniacid AND module = :module AND sign = :sign', array(
 				':uniacid' => $_W['uniacid'],
 				':module' => 'article',
-				':sign' => $handsel['sign'] 
+				':sign' => $handsel['sign']
 			));
 			if (($total >= $credit['limit']) || (($total + $handsel['credit_value']) > $credit['limit'])) {
 				exit(json_encode(error(- 1, '赠送积分已达到上限')));
 			}
-			
+
 			$status = mc_handsel($touid, $formuid, $handsel, $_W['uniacid']);
 			if (is_error($status)) {
 				exit(json_encode($status));
@@ -186,13 +189,13 @@ if ($do == 'list') {
 		} else {
 			exit(json_encode(array(
 				- 1,
-				'文章没有设置赠送积分' 
+				'文章没有设置赠送积分'
 			)));
 		}
 	} else {
 		exit(json_encode(array(
 			- 1,
-			'非法操作' 
+			'非法操作'
 		)));
 	}
 }

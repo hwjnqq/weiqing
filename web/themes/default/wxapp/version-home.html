@@ -38,7 +38,40 @@
 				<span class="title-md">使用流程和开发简述</span>
 			</div>
 			<div class="procedure-diagram">
-				<img src="./resource/images/wxapp-procedure-diagram.png" alt="" />
+				<div class="procedure">
+					<div>
+						<div class="icon"><span class="wi wi-shopping-cart"></span></div>
+						<div>购买小程序应用</div>
+						<div class="arrow"><span class="wi wi-step-arrows"></span></div>
+					</div>
+					<div>
+						<div class="icon"><span class="wi wi-small-routine"></span></div>
+						<div>新建小程序</div>
+						<div><a href="{php echo url('wxapp/post/design_method')}" class="color-default">去新建></a></div>
+						<div class="arrow"><span class="wi wi-step-arrows"></span></div>
+					</div>
+					<div>
+						<div class="icon"><span class="wi wi-setting-wxapp"></span></div>
+						<div>小程序设置</div>
+						<div><a href="#" class="color-default">如何设置？</a></div>
+						<div class="arrow"><span class="wi wi-step-arrows"></span></div>
+					</div>
+					<div>
+						<div class="icon"><span class="wi wi-scan"></span></div>
+						<div>扫码上传</div>
+						<div><a href="{php echo url('wxapp/front-download', array('version_id'=>$version_id))}" class="color-default">去上传></a></div>
+						<div class="arrow"><span class="wi wi-step-arrows"></span></div>
+					</div>
+					<div>
+						<div class="icon"><span class="wi wi-publish"></span></div>
+						<div>填写版本信息</div>
+						<div class="arrow"><span class="wi wi-step-arrows"></span></div>
+					</div>
+					<div>
+						<div class="icon"><span class="wi wi-wechat"></span></div>
+						<div>到微信提交审核</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>

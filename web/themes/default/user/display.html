@@ -53,11 +53,11 @@
 		<td class="vertical-middle table-manage-td">
 			<div class="link-group" ng-if="!user.founder">
 				<a ng-href="{{links.edit}}uid={{user.uid}}" ng-if="type == 'display' || type == 'clerk'">编辑</a>
-				<a ng-href="{{links.deny}}&uid={{user.uid}}" ng-if="type == 'display' || type == 'clerk'" data-toggle="tooltip" data-placement="left" title="禁用后可在用户回收站查找到并重新启用。">禁用</a>
-				<a ng-href="{{links.checkPass}}&uid={{user.uid}}" ng-if="type == 'check'">通过</a>
-				<a ng-href="{{links.deny}}&uid={{user.uid}}" ng-if="type == 'check'" data-toggle="tooltip" data-placement="left" title="拒绝后可在用户回收站查找到并启用。">拒绝</a>
-				<a ng-href="{{links.recycleRestore}}&uid={{user.uid}}" ng-if="type == 'recycle'">启用</a>
-				<a ng-href="{{links.recycleDel}}&uid={{user.uid}}" class="del" ng-if="type == 'recycle'">删除</a>
+				<a href="javascript:;" ng-click="operate(user.uid, 'recycle')" ng-if="type == 'display' || type == 'clerk'" data-toggle="tooltip" data-placement="left" title="禁用后可在用户回收站查找到并重新启用。">禁用</a>
+				<a href="javascript:;" ng-click="operate(user.uid, 'check_pass')" ng-if="type == 'check'">通过</a>
+				<a href="javascript:;" ng-click="operate(user.uid, 'recycle')" ng-if="type == 'check'" data-toggle="tooltip" data-placement="left" title="拒绝后可在用户回收站查找到并启用。">拒绝</a>
+				<a href="javascript:;" ng-click="operate(user.uid, 'recycle_restore')" ng-if="type == 'recycle'">启用</a>
+				<a href="javascript:;" ng-click="operate(user.uid, 'recycle_delete')" class="del" ng-if="type == 'recycle'">删除</a>
 			</div>
 			<div class="manage-option text-right" ng-if="!user.founder">
 				<a href="{{links.edit}}uid={{user.uid}}">基础信息</a>
@@ -82,10 +82,7 @@
 		users: {php echo !empty($users) ? json_encode($users) : 'null'},
 		usergroups: {php echo !empty($usergroups) ? json_encode($usergroups) : 'null'},
 		links: {
-			recycleDel: "{php echo url('user/display/operate', array('type' => 'recycle_delete'))}",
-			recycleRestore: "{php echo url('user/display/operate', array('type' => 'recycle_restore'))}",
-			checkPass: "{php echo url('user/display/operate', array('type' => 'check_pass'))}",
-			deny: "{php echo url('user/display/operate', array('type' => 'recycle'))}",
+			link: "{php echo url('user/display/operate')}",
 			edit: "{php echo url('user/edit')}",
 		},
 	});

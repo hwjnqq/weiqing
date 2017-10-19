@@ -23,21 +23,24 @@ $we7_file_permission = array(
 	'account' => array(
 		'default' => '',
 		'direct' => array(
-			'display',
 			'auth',
-			'welcome', 'openwechat'
+			'welcome',
 		),
 		'vice_founder' => array('account*'),
 		'owner' => array('account*'),
 		'manager' => array(
+			'display',
 			'manage',
 			'post-step',
 		),
 		'operator' => array(
+			'display',
 			'manage',
 			'post-step',
 		),
-		'clerk' => array()
+		'clerk' => array(
+			'display',
+		),
 	),
 	'advertisement' => array(
 		'default' => '',
@@ -115,28 +118,41 @@ $we7_file_permission = array(
 		'direct' => array(),
 		'vice_founder' => array('mc*'),
 		'owner' => array('mc*'),
-		'manager' => array(),
-		'operator' => array(),
+		'manager' => array(
+			'chats',
+			'fields',
+			'group',
+			'trade',
+		),
+		'operator' => array(
+			'chats',
+			'fields',
+			'group',
+			'trade',
+		),
 		'clerk' => array()
 	),
 	'module' => array(
 		'default' => '',
-		'direct' => array(
-			'display',
-		),
+		'direct' => array(),
 		'vice_founder' => array('module*'),
 		'owner' => array(
 			'manage-account',
 			'manage-system',
 			'permission',
+			'display',
 		),
 		'manager' => array(
 			'manage-account',
+			'display',
 		),
 		'operator' => array(
 			'manage-account',
+			'display',
 		),
-		'clerk' => array()
+		'clerk' => array(
+			'display',
+		)
 	),
 	'platform' => array(
 		'default' => '',
@@ -145,11 +161,13 @@ $we7_file_permission = array(
 		'owner' => array('platform*'),
 		'manager' => array(
 			'cover',
-			'reply'
+			'reply',
+			'material-post',
 		),
 		'operator' => array(
 			'cover',
-			'reply'
+			'reply',
+			'material-post',
 		),
 		'clerk' => array(
 			'reply',
@@ -188,9 +206,7 @@ $we7_file_permission = array(
 			'nav',
 			'slide',
 		),
-		'clerk' => array(
-			'entry',
-		)
+		'clerk' => array()
 	),
 	'statistics' => array(
 		'default' => '',
@@ -228,18 +244,24 @@ $we7_file_permission = array(
 		'vice_founder' => array(
 			'template',
 			'updatecache',
+			'workorder',
 		),
 		'owner' => array(
 			'updatecache',
+			'workorder',
 		),
 		'manager' => array(
 			'updatecache',
+			'workorder',
 		),
 		'operator' => array(
 			'account',
 			'updatecache',
+			'workorder',
 		),
-		'clerk' => array()
+		'clerk' => array(
+			'workorder',
+		)
 	),
 	'user' => array(
 		'default' => 'display',
@@ -258,7 +280,9 @@ $we7_file_permission = array(
 		'operator' => array(
 			'profile',
 		),
-		'clerk' => array()
+		'clerk' => array(
+			'profile',
+		)
 	),
 	'wxapp' => array(
 		'default' => '',
@@ -268,14 +292,16 @@ $we7_file_permission = array(
 		'manager' => array(
 			'display',
 			'version',
-			'post'
+			'post',
 		),
 		'operator' => array(
 			'display',
 			'version',
-			'post'
+			'post',
 		),
-		'clerk' => array()
+		'clerk' => array(
+			'display',
+		)
 	),
 	'utility' => array(
 		'default' => '',
@@ -290,7 +316,17 @@ $we7_file_permission = array(
 			'link',
 		),
 		'vice_founder' => array(
-			'user'
+			'user',
+			'emulator',
+		),
+		'owner' => array(
+			'emulator',
+		),
+		'manager' => array(
+			'emulator',
+		),
+		'operator' => array(
+			'emulator',
 		),
 		'owner' => array(),
 		'manager' => array(),

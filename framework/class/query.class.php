@@ -260,7 +260,12 @@ class Query {
 		if (strpos($countsql, 'LIMIT') !== false) {
 			$countsql = substr($countsql, 0, strpos($countsql, 'LIMIT'));
 		}
-		$result = pdo_fetchcolumn($countsql, $this->lastparams, $keyfield);
+		if (strexists(strtoupper($countsql), 'GROUP BY')) {
+			$result = pdo_fetchall($countsql, $this->lastparams, $keyfield);
+			$result = count($result);
+		} else {
+			$result = pdo_fetchcolumn($countsql, $this->lastparams, $keyfield);
+		}
 		return $result;
 	}
 	

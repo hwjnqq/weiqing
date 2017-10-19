@@ -59,7 +59,11 @@
 							<span style="margin-left: 60px;">{$sub_menu['title']}</span>
 						</td>
 						<td>
+							{if $sub_permission_name == 'system_setting_menu'}
+								<span class="color-gray">不可关闭</span>
+							{else}
 							<div class="switch" ng-init="displayStatus['{$sub_menu['permission_name']}'] = {php echo $sub_menu['is_display'] ? 'true' : 'false'}" ng-click="changeDisplay('{$sub_menu['permission_name']}')" ng-class="{'switchOn' : displayStatus['{$sub_menu['permission_name']}'], 'switchOff' : !displayStatus['{$sub_menu['permission_name']}']}"></div>
+							{/if}
 						</td>
 						<td class="we7-padding-right">
 							<div class="link-group">

@@ -14,7 +14,7 @@ class UsersTable extends We7Table {
 				->select('u.*, p.avatar as avatar')
 				->leftjoin('users_profile', 'p')
 				->on(array('u.uid' => 'p.uid'))
-				->orderby('uid', 'DESC');
+				->orderby('u.uid', 'DESC');
 		if (user_is_vice_founder()) {
 			$this->query->where('u.owner_uid', $_W['uid']);
 		}

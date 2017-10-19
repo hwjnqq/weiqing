@@ -89,6 +89,13 @@ function app_pass_visit_limit($uniacid = 0) {
 	if (empty($limit)) {
 		return false;
 	}
+	$cachekey = cache_system_key("statistics:{$uniacid}");
+	$cache = cache_load($cachekey);
+	if (!empty($cache) && ($cache['time'] + $limit['interval'] > TIMESTAMP)) {
+		return $cache['limit'];
+	}
+	$data = array('time'=> TIMESTAMP, 'limit' => false);
+
 	$today_num = app_today_visit($uniacid);
 	if (!empty($limit['founder'])) {
 		$order_num = 0;
@@ -102,14 +109,20 @@ function app_pass_visit_limit($uniacid = 0) {
 		$before_num = app_month_visit_till_today($uniacid);
 		$remain_num = intval($limit['founder']) + $order_num - intval($limit['use']);
 		if ($before_num > $remain_num) {
+			$data['limit'] = true;
+			cache_write($cachekey, $data);
 			return true;
 		}
 		if (($before_num + $today_num) > $remain_num) {
+			$data['limit'] = true;
+			cache_write($cachekey, $data);
 			return true;
 		}
 	}
 	//今天访问大于设定值->返回true
 	if (!empty($limit['owner']) && $today_num > $limit['owner']) {
+		$data['limit'] = true;
+		cache_write($cachekey, $data);
 		return true;
 	}
 
@@ -117,6 +130,7 @@ function app_pass_visit_limit($uniacid = 0) {
 		$limit['use'] = !empty($limit['use']) ? (intval($limit['use']) + 1) : 1;
 		uni_setting_save('statistics', $limit);
 	}
+	cache_write($cachekey, $data);
 	return false;
 }
 
@@ -137,7 +151,7 @@ function app_month_visit_till_today($uniacid = 0) {
 	}
 	$start = date('Ym01', strtotime(date("Ymd")));
 	$end = date('Ymd', strtotime('-1 day'));
-	$visit = pdo_getall('stat_visit', array('date >=' => $start, 'date <=' => $end));
+	$visit = pdo_getall('stat_visit', array('date >=' => $start, 'date <=' => $end, 'uniacid' => $uniacid));
 	if (!empty($visit)) {
 		foreach ($visit as $val) {
 			$result += $val['count'];

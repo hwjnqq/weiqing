@@ -114,11 +114,15 @@ function cloud_request($url, $post = '', $extra = array(), $timeout = 60) {
 
 function cloud_prepare() {
 	global $_W;
-	setting_load();
+	$setting = pdo_get('core_settings', array('key' => 'site'));
+	if (empty($setting)) {
+		$_W['setting']['site'] = array();
+	} else {
+		$_W['setting']['site'] = unserialize($setting['value']);
+	}
 	if(empty($_W['setting']['site']['key']) || empty($_W['setting']['site']['token'])) {
 		return error('-1', "您的站点只有在微擎云服务平台成功注册后，才能使用云服务的相应功能。");
 	}
-	
 	return true;
 }
 
@@ -169,9 +173,12 @@ function cloud_build() {
 		}
 
 		if (IMS_FAMILY != $ret['family']) {
-			load()->model('setting');
-			setting_upgrade_version($ret['family'], IMS_VERSION, IMS_RELEASE_DATE);
-			itoast('更新系统正在为您自动切换版本', 'refresh');
+			$update_version_success = setting_upgrade_version($ret['family'], IMS_VERSION, IMS_RELEASE_DATE);
+			if (empty($update_version_success)) {
+				message('切换版本失败，请修改 /framework/version.inc.php 文件权限为 User 可写或是 777', 'refresh', 'error');
+			} else {
+				message('更新系统正在为您自动切换版本', 'refresh');
+			}
 		}
 		$ret['upgrade'] = false;
 		if(!empty($ret['files']) || !empty($ret['schemas']) || !empty($ret['scripts'])) {
@@ -184,6 +191,7 @@ function cloud_build() {
 		cache_write('upgrade', $upgrade);
 		cache_write('cloud:transtoken', authcode($ret['token'], 'ENCODE'));
 	}
+	
 	return $ret;
 }
 
@@ -856,8 +864,7 @@ function cloud_auth_url($forward, $data = array()){
 		$auth = array_merge($auth, $data);
 	}
 	$query = base64_encode(json_encode($auth));
-	$auth_url = 'https://s.we7.cc/index.php?c=auth&a=passwort&__auth=' . $query;
-
+	$auth_url = $_W['sitescheme'] . 's.we7.cc/index.php?c=auth&a=passport&__auth=' . $query;
 	return $auth_url;
 }
 
@@ -897,6 +904,9 @@ function cloud_resource_to_local($uniacid, $type, $url){
 
 	if (!file_is_image($url)) {
 		return error(1, '远程图片后缀非法,请重新上传');;
+	}
+	if (substr($url, 0, 2) == '//') {
+		$url = 'http:' . $url;
 	}
 	$pathinfo = pathinfo($url);
 	$extension = $pathinfo['extension'];

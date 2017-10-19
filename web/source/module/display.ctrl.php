@@ -14,12 +14,13 @@ $do = in_array($do, $dos) ? $do : 'display';
 if ($do == 'display') {
 	$user_module = array();
 	if (!$_W['isfounder']) {
-		$account_table = table('users');
+		$account_table = table('account');
+		$user_table = table('users');
 		$user_owned_account = $account_table->userOwnedAccount($_W['uid']);
 		if (!empty($user_owned_account) && is_array($user_owned_account)) {
-			foreach ($user_owned_account as $uniacid) {
+			foreach ($user_owned_account as $uniacid => $account) {
 				$account_module = uni_modules_by_uniacid($uniacid);
-				$account_user_module = $account_table->userPermission($_W['uid'], $uniacid);
+				$account_user_module = $user_table->userPermission($_W['uid'], $uniacid);
 				if (!empty($account_user_module) && is_array($account_user_module)) {
 					$account_module = array_intersect_key($account_module, $account_user_module);
 				}
@@ -159,12 +160,12 @@ if ($do == 'accounts_dropdown_menu') {
 			break;
 		}
 	}
-
-	foreach ($accounts_list as $account) {
+	foreach ($accounts_list as $key => $account) {
 		$url = url('module/display/switch', array('uniacid' => $account['uniacid'], 'module_name' => $module_name));
 		if (!empty($account['version_id'])) {
 			$url .= '&version_id=' . $account['version_id'];
 		}
+		$accounts_list[$key]['url'] = $url;
 	}
 	echo template('module/dropdown-menu');
 	exit;

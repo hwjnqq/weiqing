@@ -204,6 +204,7 @@ if(!empty($type)) {
 				if (is_error($result)) {
 					message($result['message'], '', 'error');
 				}
+				pdo_update('core_paylog', array('status' => '1'), array('plid' => $log['plid']));
 				if (!empty($_W['openid'])) {
 					if (is_error($is_grant_credit)) {
 						$grant_credit_nums = 0; 
@@ -212,7 +213,6 @@ if(!empty($type)) {
 					}
 					mc_notice_credit2($_W['openid'], $_W['member']['uid'], $fee, $grant_credit_nums, '线上消费');
 				}
-				pdo_update('core_paylog', array('status' => '1'), array('plid' => $log['plid']));
 				$site = WeUtility::createModuleSite($log['module']);
 				if(!is_error($site)) {
 					$site->weid = $_W['weid'];

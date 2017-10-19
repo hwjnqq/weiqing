@@ -81,6 +81,7 @@
 					<tbody class="system_{$section_id}">
 					{php $i=1;}
 					{loop $section['menu'] $menu_id $menu}
+						{if $menu_id == 'front_download'}{php continue;}{/if}
 						{if $i%4 == 1 || $i == 1}<tr>{/if}
 						<td class="text-left vertical-middle" style="overflow:inherit;">
 							<div class="dropdown system-select-dropdown">
@@ -121,7 +122,7 @@
 	{/loop}
 	</table>
 
-	{if !empty($module) && in_array($account['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))}
+	{if !empty($module)}
 	<table class="table we7-table table-hover vertical-middle we7-form">
 		<div class="we7-page-title">应用</div>
 		<thead>

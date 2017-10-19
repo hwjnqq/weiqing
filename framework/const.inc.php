@@ -179,3 +179,7 @@ define('STORE_ORDER_FINISH', 3);
 define('STORE_GOODS_STATUS_OFFlINE', 0);
 define('STORE_GOODS_STATUS_ONLINE', 1);
 define('STORE_GOODS_STATUS_DELETE', 2);
+
+//文章分类 一级分类和二级分类为0
+define('ARTICLE_PCATE', 0);
+define('ARTICLE_CCATE', 0);
