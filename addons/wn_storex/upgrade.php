@@ -30,6 +30,10 @@ if (pdo_fieldexists('storex_bases', 'lat')) {
 if (pdo_tableexists('storex_agent_apply') && !pdo_fieldexists('storex_agent_apply', 'income')) {
 	pdo_query("DROP TABLE " . tablename('storex_agent_apply'));
 }
+
+if (!pdo_fieldexists('storex_agent_apply', 'pid')) {
+	pdo_query("ALTER TABLE " . tablename('storex_agent_apply') . " ADD `pid` INT(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT '销售员父级';");
+}
 $sql = "
 	CREATE TABLE IF NOT EXISTS `ims_storex_clerk` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -1118,6 +1122,9 @@ if (!pdo_fieldexists('storex_member', 'credit_salt')) {
 }
 if (!pdo_fieldexists('storex_member', 'password_lock')) {
 	pdo_query("ALTER TABLE " . tablename('storex_member') . " ADD `password_lock` VARCHAR(24) NOT NULL COMMENT '改密码的依据';");
+}
+if (!pdo_fieldexists('storex_member', 'agentid')) {
+	pdo_query("ALTER TABLE " . tablename('storex_member') . " ADD `agentid` INT(10) UNSIGNED NOT NULL COMMENT '从属销售员id';");
 }
 
 //评论表增加字段
