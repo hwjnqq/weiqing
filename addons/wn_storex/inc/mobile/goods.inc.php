@@ -85,7 +85,7 @@ if ($op == 'goods_info') {
 		'desc' => $goods_info['title'] . '--' . $store_info['title'],
 		'link' => murl('entry', array('do' => 'display', 'id' => $store_id, 'm' => 'wn_storex', 'type' => 'goods_info', 'goodsid' => $goodsid), true, true) . $agent_str,
 		'imgUrl' => tomedia($goods_info['thumb']),
-		'agent_str' => md5('wn_storex_52111').$agent_info['id'],
+		'agent_str' => md5('wn_storex_52111') . $agent_info['id'],
 	);
 	$share_data = get_share_data('goods', array('storeid' => $store_id, 'goodsid' => $goodsid), $share_data);
 	$goods_info['defined'] = get_goods_defined($store_id, $goodsid, $this->inMobile);

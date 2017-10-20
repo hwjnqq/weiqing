@@ -921,6 +921,11 @@ function entry_fetch($storeid, $type, $params) {
 	} elseif ($type == 'storeindex') {
 		$entry_url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . '#/StoreIndex/' . $storeid;
 	}
+	if (!empty($entry_url) && !empty($params['agentid'])) {
+		$url_array = explode('#', $entry_url);
+		$url_array[0] .= '&agentid=' . $params['agentid'];
+		$entry_url = implode('#', $url_array);
+	}
 	return is_string($entry_url) ? $entry_url : '';
 }
 
@@ -1456,6 +1461,11 @@ function NoticeMicroSuccessOrder($result) {
 
 function get_share_data($type, $param = array(), $share = array()) {
 	global $_W;
+	$agent = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'openid' => $_W['openid'], 'storeid' => $param['storeid'], 'status' => 2), array('id'));
+	$link = '';
+	if (!empty($agent)) {
+		$link = '&agentid=' . $agent['id'];
+	}
 	if (!empty($type)) {
 		$share_set = pdo_get('storex_share_set', array('type' => $type, 'storeid' => $param['storeid'], 'uniacid' => $_W['uniacid'], 'status' => 1));
 		if (!empty($share_set)) {
@@ -1515,6 +1525,7 @@ function get_share_data($type, $param = array(), $share = array()) {
 					$share_data['desc'] = str_replace($key, $value, $share_data['desc']);
 				}
 				if (empty($share)) {
+					$share_data['link'] .= $link;
 					return $share_data;
 				}
 				if (!empty($share_data) && is_array($share_data)) {
@@ -1527,5 +1538,6 @@ function get_share_data($type, $param = array(), $share = array()) {
 			}
 		}
 	}
+	$share['link'] .= $link;
 	return $share;
 }
