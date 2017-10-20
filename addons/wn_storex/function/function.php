@@ -10,6 +10,23 @@ function check_params() {
 		$cachekey = cache_system_key("uid:{$user_info['openid']}");
 		cache_write($cachekey, $user_info);
 		$_W['openid'] = $user_info['openid'];
+		$member = array(
+			'weid' => $_W['uniacid'],
+			'from_user' => $_W['openid'],
+		);
+		if (!hotel_member_single($member)) {
+			insert_member($member);
+		}
+		//从分销员分享的链接进入
+		if (!empty($_GPC['agentid'])) {
+			$agent = pdo_get('storex_agent_apply', array('id' => $_GPC['agentid']), array('id', 'openid'));
+			if ($agent['openid'] != $_W['openid']) {
+				$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('id', 'from_user', 'agentid'));
+				if (empty($member['agentid'])) {
+					pdo_update('storex_member', array('agentid' => intval($_GPC['agentid'])), array('id' => $member['id']));
+				}
+			}
+		}
 	}
 	$permission_lists = array(
 		'common' => array(

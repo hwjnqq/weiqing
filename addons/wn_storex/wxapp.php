@@ -138,6 +138,7 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 				
 			'agentInfo' => array('do' => 'agent', 'op' => 'display'),
 			'agentRegister' => array('do' => 'agent', 'op' => 'register'),
+			'agentTeam' => array('do' => 'agent', 'op' => 'agent_team'),
 			'agentApply' => array('do' => 'agent', 'op' => 'apply'),
 			'agentApplyList' => array('do' => 'agent', 'op' => 'apply_list'),
 		);
