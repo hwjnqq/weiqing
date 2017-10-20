@@ -2,7 +2,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('display', 'agent_info', 'agent_status');
+$ops = array('display', 'agent_info', 'agent_status', 'delete');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $store_info = $_W['wn_storex']['store_info'];
@@ -37,4 +37,10 @@ if ($op == 'agent_status') {
 	}
 }
 
+if ($op == 'delete') {
+	if (!empty($_GPC['id'])) {
+		pdo_delete('storex_agent_apply', array('id' => $_GPC['id'], 'storeid' => $storeid));
+		itoast('删除成功销售员成功', '', 'success');
+	}
+}
 include $this->template('store/shop_agent');

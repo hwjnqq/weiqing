@@ -56,7 +56,7 @@
 						<td>
 							<a href="{php echo $this->createWebUrl('shop_agent_log', array('op' => 'agent_log', 'id' => $agent['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">查看订单</a>
 							<a href="{php echo $this->createWebUrl('shop_agent_log', array('op' => 'apply_log', 'id' => $agent['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">查看提现申请</a>
-							<a onclick="return confirm('确定删除吗?')" href="{php echo $this->createWebUrl('shop_article', array('op' => 'delete', 'id' => $agent['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">删除</a>
+							<a onclick="return confirm('确定删除吗?')" href="{php echo $this->createWebUrl('shop_agent', array('op' => 'delete', 'id' => $agent['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">删除</a>
 						</td>
 					</tr>
 					{/loop}
