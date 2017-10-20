@@ -100,12 +100,51 @@ if ($op == 'agent_team') {
 		'sub_agents' => array(),
 		'third_agents' => array(),
 	);
-	$sub_agents = pdo_getall('storex_agent_apply', array('status' => 2, 'uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'pid' => $register_info['id']), array('id', 'alipay', 'status', 'realname', 'tel'), 'id', 'applytime DESC');
+	$sub_agents = pdo_getall('storex_agent_apply', array('status' => 2, 'uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'pid' => $register_info['id']), array('id', 'alipay', 'status', 'realname', 'tel', 'applytime', 'uid'), 'id', 'applytime DESC');
 	if (!empty($sub_agents)) {
 		$third_pid = array_keys($sub_agents);
 		sort($sub_agents);
+		$uids = array();
+		foreach ($sub_agents as &$sub_info) {
+			$sub_info['applytime'] = date('Y-m-d H:i', $sub_info['applytime']);
+			$uids[] = $sub_info['uid'];
+		}
+		unset($sub_info);
+		$third_agents = pdo_getall('storex_agent_apply', array('status' => 2, 'uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'pid' => $third_pid), array('id', 'alipay', 'status', 'realname', 'tel', 'applytime', 'uid'), '', 'applytime DESC');
+		if (!empty($third_agents)) {
+			foreach ($third_agents as &$third_info) {
+				$third_info['applytime'] = date('Y-m-d H:i', $third_info['applytime']);
+				$uids[] = $third_info['uid'];
+			}
+		}
+		unset($third_info);
+		if (!empty($uids) && is_array($uids)) {
+			$agent_thumbs = array();
+			foreach ($uids as $a_uid) {
+				$a_userinfo = mc_fansinfo($a_uid);
+				$agent_thumbs[$a_uid] = $a_userinfo['avatar'];
+			}
+		}
+		if (!empty($sub_agents)) {
+			foreach ($sub_agents as &$val) {
+				$val['avatar'] = '';
+				if (!empty($agent_thumbs[$val['uid']])) {
+					$val['avatar'] = $agent_thumbs[$val['uid']];
+				}
+			}
+			unset($val);
+		}
+		if (!empty($third_agents)) {
+			foreach ($third_agents as &$val) {
+				$val['avatar'] = '';
+				if (!empty($agent_thumbs[$val['uid']])) {
+					$val['avatar'] = $agent_thumbs[$val['uid']];
+				}
+			}
+			unset($val);
+		}
 		$agents['sub_agents'] = $sub_agents;
-		$agents['third_agents'] = pdo_getall('storex_agent_apply', array('status' => 2, 'uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'pid' => $third_pid), array('id', 'alipay', 'status', 'realname', 'tel'), '', 'applytime DESC');
+		$agents['third_agents'] = $third_agents;
 	}
 	wmessage(error(0, $agents), '', 'ajax');
 }
