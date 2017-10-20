@@ -29,6 +29,7 @@
 						<th>总收入(累计)</th>
 						<th>可用余额(元)</th>
 						<th>申请时间</th>
+						<th>上级分销员</th>
 						<th>状态</th>
 						<th>操作</th>
 					</tr>
@@ -42,6 +43,13 @@
 						<td>{$agent['income']}</td>
 						<td>{$agent['outcome']}</td>
 						<td>{php echo date('Y-m-d H:i:s', $agent['applytime'])}</td>
+						<td>
+						{if !empty($agent_list[$agent['pid']])}
+						<span style="color:red">{$agent_list[$agent['pid']]['realname']}</span>
+						{else}
+						无上级
+						{/if}
+						</td>
 						<td>
 							<a class="wn-table__link__item js-verify" data-id="{$agent['id']}">
 								{if $agent['status'] == AGENT_STATUS_NOT_VERIFY}
