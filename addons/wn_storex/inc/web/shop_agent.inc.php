@@ -8,7 +8,7 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 $store_info = $_W['wn_storex']['store_info'];
 $storeid = intval($store_info['id']);
 if ($op == 'display') {
-	$agent_list = pdo_getall('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid));
+	$agent_list = pdo_getall('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid), array(), 'id');
 }
 
 if ($op == 'agent_info') {
