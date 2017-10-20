@@ -416,11 +416,10 @@ function order_market_gift($orderid) {
 //storex_agent_log
 function order_salesman_income($orderid, $status) {
 	global $_W;
-	$_W['openid'] = 'oTKzFjq-vdizyZXDhpGI8XQqgnoE';
-	$order = pdo_get('storex_order', array('id' => $orderid, 'agentid !=' => 0), array('id', 'hotelid', 'roomid', 'cart', 'agentid', 'nums', 'cprice', 'sum_price', 'status', 'is_package'));
+	$order = pdo_get('storex_order', array('id' => $orderid, 'agentid !=' => 0), array('id', 'hotelid', 'roomid', 'cart', 'agentid', 'nums', 'cprice', 'sum_price', 'status', 'is_package', 'openid'));
 	$recored = pdo_get('storex_agent_log', array('orderid' => $orderid));
 	if (!empty($order) && $status == ORDER_STATUS_OVER && empty($recored)) {
-		$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('id', 'agentid'));
+		$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $order['openid']), array('id', 'agentid'));
 		if (empty($member['agentid'])) {
 			return;
 		}
@@ -481,9 +480,6 @@ function order_salesman_income($orderid, $status) {
 						}
 					}
 				}
-				echo "<pre>";
-				print_r($agents_money);
-				echo "</pre>";
 				if (!empty($agents_money) && is_array($agents_money)) {
 					foreach ($agents_money as $aid => $agent_info) {
 						give_agent_money($order, $agent_info);

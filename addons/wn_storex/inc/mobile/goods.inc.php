@@ -549,6 +549,12 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 	$goods = order_goodsids();
 	
 	$insert = get_order_info($insert);
+	if ($store_info['store_type'] != STORE_TYPE_HOTEL) {
+		$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('id', 'agentid'));
+		if (!empty($member)) {
+			$insert['agentid'] = $member['agentid'];
+		}
+	}
 	if (!empty($_GPC['order']['mode_distribute']) && $_GPC['order']['mode_distribute'] != 2) {
 		$error = check_order_info($store_info, $insert);
 		if (!empty($error) && is_error($error)) {
