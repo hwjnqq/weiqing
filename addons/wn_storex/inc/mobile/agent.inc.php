@@ -4,7 +4,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 
-$ops = array('display', 'register', 'apply', 'apply_list');
+$ops = array('display', 'register', 'agent_team', 'apply', 'apply_list');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -91,6 +91,23 @@ if ($op == 'register') {
 	} else {
 		wmessage(error(-1, '申请失败'), '', 'ajax');
 	}
+}
+
+//获取该分销员下的二级三级分销员
+if ($op == 'agent_team') {
+	$register_info = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'uid' => $uid), array('id', 'storeid', 'income', 'outcome', 'alipay', 'level', 'status', 'realname', 'tel', 'reason'));
+	$agents = array(
+		'sub_agents' => array(),
+		'third_agents' => array(),
+	);
+	$sub_agents = pdo_getall('storex_agent_apply', array('status' => 2, 'uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'pid' => $register_info['id']), array('id', 'alipay', 'status', 'realname', 'tel'), 'id', 'applytime DESC');
+	if (!empty($sub_agents)) {
+		$third_pid = array_keys($sub_agents);
+		sort($sub_agents);
+		$agents['sub_agents'] = $sub_agents;
+		$agents['third_agents'] = pdo_getall('storex_agent_apply', array('status' => 2, 'uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'pid' => $third_pid), array('id', 'alipay', 'status', 'realname', 'tel'), '', 'applytime DESC');
+	}
+	wmessage(error(0, $agents), '', 'ajax');
 }
 
 if ($op == 'apply') {
