@@ -131,14 +131,19 @@ if ($op == 'post') {
 		} else {
 			$rule['displayorder'] = range_limit($rule['displayorder'], 0, 254);
 		}
-		$module = WeUtility::createModule('wn_storex');
-		if (empty($module)) {
-			message('抱歉，模块不存在！');
+
+		$replies = @json_decode(htmlspecialchars_decode($_GPC['replies']), true);
+		if (empty($replies)) {
+			message('必须填写有效的回复内容.');
 		}
-		$msg = $module->fieldsFormValidate();
-	
-		if (is_string($msg) && trim($msg) != '') {
-			message($msg);
+		foreach ($replies as $k => &$row) {
+			if(empty($row['cid']) || empty($row['card_id'])) {
+				unset($k);
+			}
+		}
+		unset($row);
+		if (empty($replies)) {
+			message('必须填写有效的回复内容.');
 		}
 		if (!empty($rid)) {
 			$result = pdo_update('rule', $rule, array('id' => $rid));
@@ -149,7 +154,6 @@ if ($op == 'post') {
 		if (!empty($rid)) {
 			//更新，添加，删除关键字
 			pdo_delete('rule_keyword', array('rid' => $rid, 'uniacid' => intval($_W['uniacid'])));
-				
 			$rowtpl = array(
 				'rid' => $rid,
 				'uniacid' => $_W['uniacid'],
@@ -164,7 +168,20 @@ if ($op == 'post') {
 				pdo_insert('rule_keyword', $krow);
 			}
 			$rowtpl['incontent'] = $_GPC['incontent'];
-			$module->fieldsFormSubmit($rid);
+			pdo_delete('wxcard_reply', array('rid' => $rid));
+			foreach ($replies as $reply) {
+				$data = array(
+					'rid' => $rid,
+					'title' => $reply['title'],
+					'card_id' => $reply['card_id'],
+					'cid' => $reply['cid'], //对应卡券表的id
+					'brand_name' => $reply['brand_name'],
+					'logo_url' => $reply['logo_url'],
+					'success' => trim($_GPC['success']),
+					'error' => trim($_GPC['error'])
+				);
+				pdo_insert('wxcard_reply', $data);
+			}
 			message('回复规则保存成功！', $this->createWebUrl('wxcardreply', array('op' => 'display', 'rid' => $rid)));
 		} else {
 			message('回复规则保存失败, 请联系网站管理员！');
