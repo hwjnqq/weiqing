@@ -723,6 +723,9 @@ class We7_couponModuleSite extends WeModuleSite {
 				}
 			}
 			$grant_rate_switch = intval($recharges_set['params']['grant_rate_switch']);
+			// $card_params = json_decode($card['params'], true);
+			// $recharges_set = $card_params['cardRecharge'];
+			// $grant_rate_switch = intval($recharges_set['params']['grant_rate_switch']);
 			//赠送积分（按照会员卡的积分比率进行赠送）,会员卡开启充值优惠设置则不赠送积分,现金消费除外
 			$grant_credit1_enable = false;
 			$grant_money = $money;
@@ -5034,6 +5037,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					$kw = array_elements(array('type', 'content'), $kw);
 				}
 				unset($kw);
+				$replies = pdo_getall('wxcard_reply', array('rid' => $rid));
 			}
 			if (checksubmit('submit')) {
 				if (empty($_GPC['name'])) {
@@ -5055,15 +5059,19 @@ class We7_couponModuleSite extends WeModuleSite {
 				} else {
 					$rule['displayorder'] = range_limit($rule['displayorder'], 0, 254);
 				}
-				$module = WeUtility::createModule('wxcard');
-				
-				if (empty($module)) {
-					message('抱歉，模块不存在！');
+	
+				$replies = @json_decode(htmlspecialchars_decode($_GPC['replies']), true);
+				if (empty($replies)) {
+					message('必须填写有效的回复内容.');
 				}
-				$msg = $module->fieldsFormValidate();
-				
-				if (is_string($msg) && trim($msg) != '') {
-					message($msg);
+				foreach ($replies as $k => &$row) {
+					if(empty($row['cid']) || empty($row['card_id'])) {
+						unset($k);
+					}
+				}
+				unset($row);
+				if (empty($replies)) {
+					message('必须填写有效的回复内容.');
 				}
 				if (!empty($rid)) {
 					$result = pdo_update('rule', $rule, array('id' => $rid));
@@ -5093,7 +5101,21 @@ class We7_couponModuleSite extends WeModuleSite {
 						pdo_insert('rule_keyword', $krow);
 					}
 					$rowtpl['incontent'] = $_GPC['incontent'];
-					$module->fieldsFormSubmit($rid);
+					pdo_delete('wxcard_reply', array('rid' => $rid));
+					foreach ($replies as $reply) {
+						$data = array(
+							'rid' => $rid,
+							'title' => $reply['title'],
+							'card_id' => $reply['card_id'],
+							'cid' => $reply['cid'], //对应卡券表的id
+							'brand_name' => $reply['brand_name'],
+							'logo_url' => $reply['logo_url'],
+							'success' => trim($_GPC['success']),
+							'error' => trim($_GPC['error'])
+						);
+						pdo_insert('wxcard_reply', $data);
+					}
+
 					message('回复规则保存成功！', $this->createWebUrl('wxcardreply', array('op' => 'display', 'rid' => $rid)));
 				} else {
 					message('回复规则保存失败, 请联系网站管理员！');
@@ -5165,6 +5187,45 @@ class We7_couponModuleSite extends WeModuleSite {
 				unset($value);
 				$keywordnames = pdo_fetchall("SELECT content, id FROM " . tablename('rule_keyword') . " WHERE id IN (" . implode(',', array_keys($keywords)) . ")", array(), 'id');
 			}
+		}
+
+		if ($op == 'wechat') {
+			error_reporting(0);
+			global $_W;
+			load()->func('file');
+			load()->model('activity');
+			activity_coupon_type_init();
+			$condition = ' WHERE uniacid = :uniacid AND is_display = 1 AND status = 3 AND source = :source AND quantity > 0';
+			$param = array(
+				':uniacid' => $_W['uniacid'],
+				':source' => COUPON_TYPE,
+			);
+			$pindex = max(1, intval($_GPC['page']));
+			$psize = 15;
+			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM '. tablename('coupon') . $condition, $param);
+			$data = pdo_fetchall('SELECT * FROM ' . tablename('coupon') . $condition . ' ORDER BY id DESC LIMIT ' . ($pindex - 1) * $psize . ', ' . $psize, $param, 'id');
+			if(!empty($data)) {
+				foreach($data as $key => &$da) {
+					$da['date_info'] = iunserializer($da['date_info']);
+					$da['media_id'] = $da['card_id'];
+					$da['logo_url'] = url('utility/wxcode/image', array('attach' => $da['logo_url']));
+					$da['ctype'] = $da['type'];
+					$da['extra'] = iunserializer($da['extra']);
+					if ($da['type'] == '1') {
+						$da['extra']['discount'] = $da['extra']['discount'] * 0.1;
+					} elseif ($da['type'] == '2') {
+						$da['extra']['reduce_cost'] = $da['extra']['reduce_cost'] * 0.01;
+					}
+					if ($da['date_info']['time_type'] == '1') {
+						$starttime = strtotime(str_replace('.', '-', $da['date_info']['time_limit_start']));		
+						$endtime = strtotime(str_replace('.', '-', $da['date_info']['time_limit_end']));
+						if ($starttime > strtotime(date('Y-m-d')) || $endtime < strtotime(date('Y-m-d'))) {
+							unset($data[$key]);
+						}
+					}
+				}
+			}
+			message(array('page'=> pagination($total, $pindex, $psize, '', array('before' => '2', 'after' => '2', 'ajaxcallback'=>'null')), 'items' => $data), '', 'ajax');
 		}
 		include $this->template('wxcardreply');
 	}
