@@ -4985,7 +4985,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			$condition = 'uniacid = :uniacid AND `module`=:module';
 			$params = array();
 			$params[':uniacid'] = $_W['uniacid'];
-			$params[':module'] = 'wxcard';
+			$params[':module'] = 'we7_coupon';
 			$status = isset($_GPC['status']) ? intval($_GPC['status']) : -1;
 			if ($status != -1){
 				$condition .= " AND status = '{$status}'";
@@ -5002,7 +5002,7 @@ class We7_couponModuleSite extends WeModuleSite {
 					$params = array();
 					$params[':rid'] = $item['id'];
 					$item['keywords'] = reply_keywords_search($condition, $params);
-					$entries = module_entries('wxcard', array('rule'),$item['id']);
+					$entries = module_entries('we7_coupon', array('rule'),$item['id']);
 					if (!empty($entries)) {
 						$item['options'] = $entries['rule'];
 					}
@@ -5050,7 +5050,7 @@ class We7_couponModuleSite extends WeModuleSite {
 				$rule = array(
 					'uniacid' => $_W['uniacid'],
 					'name' => $_GPC['name'],
-					'module' => 'wxcard',
+					'module' => 'we7_coupon',
 					'status' => intval($_GPC['status']),
 					'displayorder' => intval($_GPC['displayorder_rule']),
 				);
