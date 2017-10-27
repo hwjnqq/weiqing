@@ -24,6 +24,16 @@
 				</div>
 			</div>
 			{/if}
+			{if !empty($group_show)}
+			<div class="wn-plugin--list__list">
+				<div class="wn-plugin--list__item">
+					<a href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">
+						<img src="../addons/wn_storex/template/style/img/logo.jpg" alt="">
+						拼团活动
+					</a>
+				</div>
+			</div>
+			{/if}
 		</div>
 	</div>
 </div>

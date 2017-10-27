@@ -3,7 +3,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_GPC, $_W;
 define('SCRIPT_URL', $_W['siteroot'] . '/addons/wn_storex/template/style/js');
-$dos = array('shop_settings', 'shop_category', 'shop_goodsmanage', 'shop_room_status', 'shop_room_price', 'shop_tagmanage', 'shop_comment', 'shop_index', 'shop_order', 'shop_stat', 'shop_plugin', 'shop_plugin_printer', 'shop_plugin_hotelservice', 'shop_homepage', 'shop_wxapphomepage', 'shop_member', 'shop_clerk', 'shop_room_item', 'shop_market', 'shop_memberlevel', 'shop_article', 'shop_sales_package', 'shop_agent', 'shop_agent_level', 'shop_agent_log', 'shop_blast', 'shop_blast_message', 'shop_blast_stat', 'shop_spec', 'shop_spec_value', 'shop_goods_spec', 'shop_activity', 'shop_share', 'shop_poster');
+$dos = array('shop_settings', 'shop_category', 'shop_goodsmanage', 'shop_room_status', 'shop_room_price', 'shop_tagmanage', 'shop_comment', 'shop_index', 'shop_order', 'shop_stat', 'shop_plugin', 'shop_plugin_printer', 'shop_plugin_hotelservice', 'shop_plugin_group', 'shop_homepage', 'shop_wxapphomepage', 'shop_member', 'shop_clerk', 'shop_room_item', 'shop_market', 'shop_memberlevel', 'shop_article', 'shop_sales_package', 'shop_agent', 'shop_agent_level', 'shop_agent_log', 'shop_blast', 'shop_blast_message', 'shop_blast_stat', 'shop_spec', 'shop_spec_value', 'shop_goods_spec', 'shop_activity', 'shop_share', 'shop_poster');
 $log = admin_operation_log();
 if (!empty($log)) {
 	write_log($log);
@@ -28,7 +28,7 @@ if (in_array($_GPC['do'], $dos)) {
 		if ($_GPC['do'] == 'shop_order' && (empty($clerk_permission) || !in_array('wn_storex_permission_order', $clerk_permission))) {
 			$permission_check = false;
 		}
-		if ($_GPC['do'] == 'shop_goodsmanage' && (empty($clerk_permission) || !in_array('wn_storex_permission_room', $clerk_permission))) {
+		if ($_GPC['do'] == 'shop_goodsmanage' && (empty($clerk_permission) || !in_array('wn_storex_permission_goods', $clerk_permission))) {
 			$permission_check = false;
 		}
 		if ($_GPC['do'] == 'shop_room_status' && (empty($clerk_permission) || !in_array('wn_storex_permission_room', $clerk_permission))) {
@@ -277,11 +277,13 @@ $aside_nav = array(
 		'active' => array(
 			'shop_plugin',
 			'shop_plugin_printer',
-			'shop_plugin_hotelservice'
-		)
+			'shop_plugin_hotelservice',
+			'shop_plugin_group',
+		),
 	),
 );
 $sub_menu = array();
+
 foreach ($aside_nav as $key => $value) {
 	if (in_array($_GPC['do'], $value['active'])) {
 		$sub_menu = $value['children'];
@@ -301,6 +303,7 @@ if ($_W['wn_storex']['store_info']['store_type'] == 1) {
 		message('酒店暂时没有活动功能', referer(), 'error');
 	}
 }
+
 if (!check_ims_version()) {
 	unset($aside_nav['shop_plugin']);
 	if ($_GPC['do'] == 'shop_plugin' || $_GPC['do'] == 'shop_plugin_printer' || $_GPC['shop_plugin_hotelservice']) {

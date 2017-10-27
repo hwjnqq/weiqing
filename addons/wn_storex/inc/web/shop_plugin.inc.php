@@ -10,8 +10,13 @@ if ($op == 'display') {
 	load()->model('module');
 	$hotel_service = module_fetch('wn_storex_plugin_hotel_service');
 	$hotel_service_show = false;
-	if (!empty($hotel_service) && $hotel_service['enabled'] == 1) {
+	if (!empty($hotel_service) && $hotel_service['enabled'] == 1 && $store_info['store_type'] == STORE_TYPE_HOTEL) {
 		$hotel_service_show = true;
+	}
+	$group = module_fetch('wn_storex_plugin_group');
+	$group_show = false;
+	if (!empty($group) && $hotel_service['enabled'] == 1 && $store_info['store_type'] != STORE_TYPE_HOTEL) {
+		$group_show = true;
 	}
 }
 include $this->template('store/shop_plugin');

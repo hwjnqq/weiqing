@@ -19,7 +19,10 @@ if (!empty($_GPC['specid'])) {
 	$condition['specid'] = intval($_GPC['specid']);
 }
 $activity = pdo_get('storex_goods_activity', $condition, array(), '', 'starttime ASC');
-
+$group = array();
+if (!empty($_GPC['group_goods'])) {
+	$group = get_group_goods_info($_GPC['group_goods'], $goodsid);
+}
 //获取某个商品的详细信息
 if ($op == 'goods_info') {
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1, 'store_base_id' => $store_id);
@@ -170,6 +173,7 @@ if ($op == 'goods_info') {
 		$goods_info['activity']['endtime'] = date('Y-m-d H:i:s', $goods_info['activity']['endtime']);
 		
 	}
+	$goods_info['group'] = $group;
 	wmessage(error(0, $goods_info), $share_data, 'ajax');
 }
 
@@ -1214,4 +1218,12 @@ function storex_send_notice($store_info, $orderid = '') {
 			$status = send_custom_notice('text', array('content' => urlencode($info)), $openid);
 		}
 	}
+}
+
+function get_group_goods_info($group_goods_id, $goodsid) {
+	$info = pdo_fetch("SELECT a.*, g.*  FROM " . tablename('storex_plugin_activity_goods') . " AS a LEFT JOIN " . tablename('storex_plugin_group_activity') . " AS g ON a.group_activity = g.id WHERE a.id = :group_goods_id AND a.goods_id = :goods_id", array(':group_goods_id' => $group_goods_id, ':goods_id' => $goodsid));
+	if (!empty($info)) {
+		$goods = pdo_get('storex_goods', array('id' => $info['goods_id']));
+	}
+	return $info;
 }

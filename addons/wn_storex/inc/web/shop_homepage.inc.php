@@ -40,6 +40,10 @@ if ($op == 'display') {
 		array(
 			'type' => 'activity_limited',
 			'items' => array()
+		),
+		array(
+			'type' => 'activity_group',
+			'items' => array()
 		)
 	);
 	if ($_W['wn_storex']['store_info']['store_type'] != STORE_TYPE_HOTEL) {

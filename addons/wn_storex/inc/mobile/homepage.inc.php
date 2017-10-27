@@ -43,7 +43,11 @@ if ($op == 'display') {
 		array(
 			'type' => 'activity_limited',
 			'items' => array()
-		)
+		),
+		array(
+			'type' => 'activity_group',
+			'items' => array()
+		),
 	);
 	$homepage_list = pdo_getall('storex_homepage', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'is_wxapp' => 2), array(), 'displayorder', 'displayorder ASC');
 	$activity_list = pdo_getall('storex_goods_activity', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'endtime >' => TIMESTAMP), array(), 'id');
@@ -82,7 +86,10 @@ if ($op == 'display') {
 	if (!empty($activity_seckill) && is_array($activity_seckill)) {
 		foreach ($activity_seckill as $list) {
 			if ($list['is_spec'] == 1) {
-				$goods_val = implode(' ', $spec_goods[$list['specid']]['goods_val']);
+				$goods_val = '';
+				if (!empty($spec_goods[$list['specid']]['goods_val'])) {
+					$goods_val = implode(' ', $spec_goods[$list['specid']]['goods_val']);
+				}
 				$spec_goods[$list['specid']]['cprice'] = $list['price'];
 				$spec_goods[$list['specid']]['nums'] = $list['nums'];
 				$spec_goods[$list['specid']]['title'] .= ' ' . $goods_val;
@@ -108,6 +115,25 @@ if ($op == 'display') {
 			}
 		}
 	}
+	
+	//拼团活动
+	$plugin_list = get_plugin_list();
+	$activity_group = array();
+	if (check_ims_version() && !empty($plugin_list['wn_storex_plugin_group'])) {
+		$activity_group = pdo_getall('storex_plugin_group_activity', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid));
+		if (!empty($activity_group) && is_array($activity_group)) {
+			foreach ($activity_group as $k => &$v) {
+				if ($v['starttime'] > TIMESTAMP || $v['endtime'] < TIMESTAMP) {
+					unset($activity_group[$k]);
+					continue;
+				}
+				$v['starttime'] = date('Y-m-d H:i:s', $v['starttime']);
+				$v['endtime'] = date('Y-m-d H:i:s', $v['endtime']);
+			}
+			unset($v);
+			sort($activity_group);
+		}
+	}
 	if (!empty($homepage_list) && is_array($homepage_list)) {
 		foreach ($homepage_list as $key => &$value) {
 			unset($value['displayorder'], $value['uniacid'], $value['storeid']);
@@ -128,6 +154,9 @@ if ($op == 'display') {
 			}
 			if ($value['type'] == 'activity_limited') {
 				$value['items'] = $limited_list;
+			}
+			if ($value['type'] == 'activity_group') {
+				$value['items'] = $activity_group;
 			}
 		}
 		$tablaname = gettablebytype($store_info['store_type']);
