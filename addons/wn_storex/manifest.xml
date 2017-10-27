@@ -20,6 +20,7 @@
 			<item name="wn_storex_plugin_hotel_service" />
 			<item name="wn_storex_plugin_sms" />
 			<item name="wn_storex_plugin_printer" />
+			<item name="wn_storex_plugin_group" />
 		</plugins>
 		<subscribes>
 			<message type="user_get_card" />
