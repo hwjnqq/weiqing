@@ -1441,6 +1441,7 @@ $unused_files = array(
 	IA_ROOT . '/addons/wn_storex/inc/web/clerk.inc.php',
 	IA_ROOT . '/addons/wn_storex/inc/web/clerklist.inc.php',
 	IA_ROOT . '/addons/wn_storex/inc/web/member.inc.php',
+	IA_ROOT . '/addons/wn_storex/inc/mobile/wxapphomepage.inc.php',
 );
 if (!empty($unused_files)) {
 	foreach ($unused_files as $file) {

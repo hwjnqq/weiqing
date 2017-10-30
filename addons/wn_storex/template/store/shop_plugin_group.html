@@ -53,6 +53,53 @@
 </div>
 {/if}
 
+{if $op == 'grouplist'}
+<div class="wn-main">
+	<div class="wn-main__head">应用</div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item wn-tabs__item--active">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">拼团活动列表</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'grouplist', 'storeid' => $_GPC['storeid']))}">拼团列表</a>
+			</div>
+		</div>
+		<div class="clearfix">
+			<table class="table table-hover wn-table table-bordered">
+				<thead class="navbar-inner">
+					<tr>
+						<th style="width: 60px;">活动缩略图</th>
+						<th>拼团ID</th>
+						<th>拼团商品ID</th>
+						<th>拼团发起者</th>
+						<th>拼团成员</th>
+						<th>拼团发起时间</th>
+						<th>拼团结果</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $grouplist $list}
+					<tr>
+						<td><img src="{$list['thumb']}" alt="活动图片" style="width: 50px; height: 50px"></td>
+						<td>{$list['id']}</td>
+						<td>{$list['activity_goodsid']}</td>
+						<td>{$list['head']}</td>
+						<td>{$list['member']}</td>
+						<td>{php echo date('Y-m-d H:i:s', $activity['start_time'])}</td>
+						<td>{$list['over']}</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+			<div class="pull-right">
+				{$pager}
+			</div>
+		</div>
+	</div>
+</div>
+{/if}
+
 {if $op == 'post'}
 <div class="wn-main">
 	<div class="wn-main__head">应用</div>

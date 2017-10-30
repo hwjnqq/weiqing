@@ -2,7 +2,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
-$ops = array('post', 'display', 'delete', 'groupgoods', 'add_goods', 'delete_goods');
+$ops = array('post', 'display', 'delete', 'groupgoods', 'add_goods', 'delete_goods', 'grouplist');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $store_info = $_W['wn_storex']['store_info'];
@@ -146,5 +146,18 @@ if ($op == 'delete_goods') {
 		pdo_delete('storex_plugin_activity_goods', array('id' => $id));
 	}
 	itoast('删除成功', '', 'success');
+}
+
+if ($op == 'grouplist') {
+	$grouplist = pdo_getall('storex_plugin_group', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid));
+	if (!empty($grouplist)) {
+		$goodsids = array();
+		foreach ($grouplist as $group) {
+			$goodsids[] = $group['goods_id'];
+		}
+		$activity_goods = pdo_getall('storex_plugin_activity_goods', array('id' => $goodsids), array(), 'id');
+		$group_activity_ids = array_keys($activity_goods);
+		$group_activity = pdo_getall('storex_plugin_group_activity', array('id' => $group_activity_ids), array(), 'id');
+	}
 }
 include $this->template('store/shop_plugin_group');

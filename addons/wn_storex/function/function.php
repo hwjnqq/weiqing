@@ -291,8 +291,9 @@ function radian($d) {
 //支付
 function pay_info($order_id) {
 	global $_W;
-	$order_info = pdo_get('storex_order', array('id' => $order_id, 'weid' => intval($_W['uniacid']), 'openid' => $_W['openid']), array('ordersn', 'id', 'style', 'sum_price', 'cart'));
+	$order_info = pdo_get('storex_order', array('id' => $order_id, 'weid' => intval($_W['uniacid']), 'openid' => $_W['openid']), array('ordersn', 'id', 'style', 'sum_price', 'cart', 'group_id'));
 	if (!empty($order_info)) {
+		check_group_status($order_info['group_id']);
 		$style = $order_info['style'];
 		if (!empty($order_info['cart'])) {
 			$order_info['cart'] = iunserializer($order_info['cart']);
@@ -1025,5 +1026,38 @@ function update_cart_goods($storeid, $cart_list, $uid) {
 			unset($val);
 		}
 		pdo_update('storex_cart', array('goods' => iserializer($goods), 'total' => $total, 'total_price' => $total_price), array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'uid' => $uid));
+	}
+}
+
+function check_group_status($group_id = '') {
+	global $_GPC;
+	if (empty($_GPC['group_id'])) {
+		if (empty($group_id)) {
+			return;
+		}
+	} else {
+		$group_id = intval($_GPC['group_id']);
+	}
+	$group_info = pdo_get('storex_plugin_group', array('id' => $group_id));
+	$activity_goods = pdo_get('storex_plugin_activity_goods', array('id' => $group_info['activity_goodsid']));
+	if (empty($group_info)) {
+		wmessage(error(-1, '该拼团不存在'), '', 'ajax');
+	}
+	if (empty($activity_goods)) {
+		wmessage(error(-1, '该活动商品不存在'), '', 'ajax');
+	}
+	$group_activity = pdo_get('storex_plugin_group_activity', array('id' => $activity_goods['group_activity']));
+	if (empty($group_activity)) {
+		wmessage(error(-1, '该活动不存在'), '', 'ajax');
+	}
+	if ($group_activity['starttime'] > TIMESTAMP) {
+		wmessage(error(-1, '该活动未开始'), '', 'ajax');
+	}
+	if ($group_activity['endtime'] < TIMESTAMP) {
+		wmessage(error(-1, '该活动已经结束了'), '', 'ajax');
+	}
+	$group_info['member'] = iunserializer($group_info['member']);
+	if (count($group_info['member']) == ($activity_goods['number'] - 1)) {
+		wmessage(error(-1, '该拼团名额已满'), '', 'ajax');
 	}
 }

@@ -342,6 +342,41 @@ class Wn_storexModuleSite extends WeModuleSite {
 				}
 			}
 			if ($params['from'] == 'return') {
+				//拼团成功发起后添加记录
+				if (!empty($order['group_goodsid'])) {
+					$activity_goods = pdo_get('storex_plugin_activity_goods', array('id' => $order['group_goodsid']));
+					if (!empty($activity_goods)) {
+						$group_activity = pdo_get('storex_plugin_group_activity', array('id' => $activity_goods['group_activity']));
+						if (!empty($group_activity) && $group_activity['starttime'] <= TIMESTAMP && TIMESTAMP < $group_activity['endtime']) {
+							if (!empty($order['group_id'])) {
+								$group = pdo_get('storex_plugin_group', array('id' => $order['group_id']));
+								if (!empty($group)) {
+									$group['member'] = iunserializer($group['member']);
+									if (count($group['member']) < ($activity_goods['number'] - 1)) {
+										$group['member'][] = $order['openid'];
+										if (count($group['member']) == ($activity_goods['number'] - 1)) {
+											$group['over'] = 1;
+										}
+										$group['member'] = iserializer($group['member']);
+										pdo_updata('storex_plugin_group', $group);
+									}
+								}
+							} else {
+								$group = array(
+									'uniacid' => $_W['uniacid'],
+									'storeid' => $order['hotelid'],
+									'activity_goodsid' => $order['group_goodsid'],
+									'head' => $order['openid'],
+									'member' => '',
+									'start_time' => TIMESTAMP,
+								);
+								pdo_insert('storex_plugin_group', $group);
+								$group_id = pdo_insertid();
+								pdo_update('storex_order', array('group_goodsid' => $group_id), array('id' => $order['id']));
+							}
+						}
+					}	
+				}
 				if ($storex_bases['store_type'] == 1) {
 					$goodsinfo = pdo_get('storex_room', array('id' => $order['roomid'], 'weid' => $weid));
 				} else {

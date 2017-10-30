@@ -21,8 +21,23 @@ if (!empty($_GPC['specid'])) {
 $activity = pdo_get('storex_goods_activity', $condition, array(), '', 'starttime ASC');
 $group = array();
 if (!empty($_GPC['group_goods'])) {
-	$group = get_group_goods_info($_GPC['group_goods'], $goodsid);
+	if (empty($goodsid)) {
+		$goods = order_goodsids($uid);
+		$goodsid = $goods[0][0];
+		$group = get_group_goods_info($_GPC['group_goods'], $goodsid);
+	}
 }
+if (!empty($_GPC['group_id'])) {
+	$group_id = intval($_GPC['group_id']);
+	check_group_status($group_id);
+	$group_info = pdo_get('storex_plugin_group', array('id' => $group_id));
+	$activity_goods = pdo_get('storex_plugin_activity_goods', array('id' => $group_info['activity_goodsid']));
+	if (empty($group)) {
+		$goodsid = $activity_goods['goods_id'];
+		$group = get_group_goods_info($group_info['activity_goodsid'], $goodsid);
+	}
+}
+
 //获取某个商品的详细信息
 if ($op == 'goods_info') {
 	$condition = array('weid' => intval($_W['uniacid']), 'id' => $goodsid, 'status' => 1, 'store_base_id' => $store_id);
@@ -284,18 +299,20 @@ if ($op == 'info') {
 		} else {
 			wmessage(error(-1, '商品错误'), '', 'ajax');
 		}
-		if ($_GPC['is_cart'] == 1) {
-			$infos['express'] = array();
-			if (!empty($store_info['express'])) {
-				$infos['express'] = array(
-					'condition' => $store_info['express']['full_free'],
-					'default_express' => $store_info['express']['express'],
-					'express' => 0,
-					'goods_express' => 1,
-				);
+		if (empty($group)) {
+			if ($_GPC['is_cart'] == 1) {
+				$infos['express'] = array();
+				if (!empty($store_info['express'])) {
+					$infos['express'] = array(
+						'condition' => $store_info['express']['full_free'],
+						'default_express' => $store_info['express']['express'],
+						'express' => 0,
+						'goods_express' => 1,
+					);
+				}
+			} else {
+				$infos['express'] = $order_goods[0]['express_set'];
 			}
-		} else {
-			$infos['express'] = $order_goods[0]['express_set'];
 		}
 	}
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
@@ -316,39 +333,42 @@ if ($op == 'info') {
 			}
 		}
 	}
-	if ($store_info['market_status'] == 1) {
-		$market = get_store_market($store_id);
-		if (!empty($market)) {
-			$infos['market'] = $market;
-		}
-	} else {
-		$paycenter_couponlist = activity_paycenter_get_coupon();
-		$infos['coupon_list'] = $paycenter_couponlist;
-		$user_group = card_group_id($uid);
-		if (!empty($user_group)) {
-			$card_activity_info = card_return_credit_info();
-			if (!empty($card_activity_info) && !empty($card_activity_info['discounts'][$user_group['groupid']])) {
-				$infos['card_disounts_info'] = array();
-				if ($card_activity_info['discount_type'] == 1) {
-					$discount_info['discount_type'] = 1;
-					$discount_info['condition'] = $card_activity_info['discounts'][$user_group['groupid']]['condition_1'];
-					$discount_info['discount'] = $card_activity_info['discounts'][$user_group['groupid']]['discount_1'];
-				} elseif ($card_activity_info['discount_type'] == 2) {
-					$discount_info['discount_type'] = 2;
-					$discount_info['condition'] = $card_activity_info['discounts'][$user_group['groupid']]['condition_2'];
-					$discount_info['discount'] = $card_activity_info['discounts'][$user_group['groupid']]['discount_2'];
+	if (empty($group)) {
+		if ($store_info['market_status'] == 1) {
+			$market = get_store_market($store_id);
+			if (!empty($market)) {
+				$infos['market'] = $market;
+			}
+		} else {
+			$paycenter_couponlist = activity_paycenter_get_coupon();
+			$infos['coupon_list'] = $paycenter_couponlist;
+			$user_group = card_group_id($uid);
+			if (!empty($user_group)) {
+				$card_activity_info = card_return_credit_info();
+				if (!empty($card_activity_info) && !empty($card_activity_info['discounts'][$user_group['groupid']])) {
+					$infos['card_disounts_info'] = array();
+					if ($card_activity_info['discount_type'] == 1) {
+						$discount_info['discount_type'] = 1;
+						$discount_info['condition'] = $card_activity_info['discounts'][$user_group['groupid']]['condition_1'];
+						$discount_info['discount'] = $card_activity_info['discounts'][$user_group['groupid']]['discount_1'];
+					} elseif ($card_activity_info['discount_type'] == 2) {
+						$discount_info['discount_type'] = 2;
+						$discount_info['condition'] = $card_activity_info['discounts'][$user_group['groupid']]['condition_2'];
+						$discount_info['discount'] = $card_activity_info['discounts'][$user_group['groupid']]['discount_2'];
+					}
+					$infos['card_disounts_info'] = $discount_info;
 				}
-				$infos['card_disounts_info'] = $discount_info;
+			}
+		}
+		$credit_replace = get_credit_replace($store_id, $uid);
+		if (!empty($credit_replace)) {
+			$infos['credit_replace'] = $credit_replace;
+			if (!empty($infos['credit_replace']['max_replace']) && $infos['goods_info']['cprice'] < $infos['credit_replace']['max_replace']) {
+				$infos['credit_replace']['credit_pay'] = 2;
 			}
 		}
 	}
-	$credit_replace = get_credit_replace($store_id, $uid);
-	if (!empty($credit_replace)) {
-		$infos['credit_replace'] = $credit_replace;
-		if (!empty($infos['credit_replace']['max_replace']) && $infos['goods_info']['cprice'] < $infos['credit_replace']['max_replace']) {
-			$infos['credit_replace']['credit_pay'] = 2;
-		}
-	}
+	$infos['group'] = $group;
 	wmessage(error(0, $infos), '', 'ajax');
 }
 
@@ -377,7 +397,7 @@ if ($op == 'order') {
 		}
 		goods_hotel_order($insert, $store_info, $uid, $selected_coupon);
 	} else {
-		goods_common_order($insert, $store_info, $uid, $selected_coupon);
+		goods_common_order($insert, $store_info, $uid, $selected_coupon, $group);
 	}
 }
 
@@ -501,12 +521,12 @@ function goods_hotel_order($insert, $store_info, $uid, $selected_coupon = array(
 	$insert = calcul_discounts_price($insert, $store_info, $uid, $selected_coupon);
 	$insert['static_price'] = $insert['sum_price'];
 	$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
+	if ($insert['sum_price'] <= 0) {
+		wmessage(error(-1, '总价为零，请联系管理员'), '', 'ajax');
+	}
 	$post_total = trim($_GPC['order']['total']);
 	if ($post_total != $insert['sum_price']) {
 		wmessage(error(-1, '价格错误' . $insert['sum_price']), '', 'ajax');
-	}
-	if ($insert['sum_price'] <= 0) {
-		wmessage(error(-1, '总价为零，请联系管理员'), '', 'ajax');
 	}
 	if (!empty($_GPC['order']['use_credit'])) {
 		$insert = calcul_credit_replace($insert, $uid);
@@ -548,7 +568,7 @@ function goods_hotel_order($insert, $store_info, $uid, $selected_coupon = array(
 }
 
 //普通商品下单
-function goods_common_order($insert, $store_info, $uid, $selected_coupon = array()) {
+function goods_common_order($insert, $store_info, $uid, $selected_coupon = array(), $group = array()) {
 	global $_GPC, $_W;
 	$goods = order_goodsids();
 	
@@ -599,6 +619,7 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 		$goods_info = $order_goods[0];
 		$cart_good = array();
 		$spec = array();
+		$cart = array();
 		if ($goods_info['param'][2] == 1) {
 			$spec = get_spec_goods($goods_info['id'], $goods_info['param'][0]);
 			$insert['spec_id'] = $spec['spec_id'];
@@ -610,45 +631,49 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 		$insert['nums'] = intval($goods_info['param'][1]);
 		$insert['style'] = $goods_info['title'];
 		$insert['oprice'] = $goods_info['oprice'];
-		$insert['cprice'] = $goods_info['cprice'];
-		check_order_repeat($insert, $spec);
-		$cart_good['id'] = $goods_info['id'];
-		$cart_good['cprice'] = $goods_info['cprice'];
-		$cart_good['oprice'] = $goods_info['oprice'];
-		$cart_good['buynums'] = $goods_info['buynums'];
-		$cart_good['title'] = $goods_info['title'];
-		if ($goods_info['param']['2'] == 1) {
+		if (empty($group)) {
+			$insert['cprice'] = $goods_info['cprice'];
+			check_order_repeat($insert, $spec);
+			$cart_good['id'] = $goods_info['id'];
+			$cart_good['cprice'] = $goods_info['cprice'];
+			$cart_good['oprice'] = $goods_info['oprice'];
+			$cart_good['buynums'] = $goods_info['buynums'];
+			$cart_good['title'] = $goods_info['title'];
+			$cart[] = array('good' => $cart_good, 'buyinfo' => $goods_info['param']);
+		} else {
+			$insert['cprice'] = $goods_info['cprice'] = $group['cprice'];
 		}
-		$cart[] = array('good' => $cart_good, 'buyinfo' => $goods_info['param']);
 	}
 	$insert['ordersn'] = date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1);
-	$a_condition = array('status' => 1, 'storeid' => $store_info['id'], 'uniacid' => $_W['uniacid'], 'starttime <=' => TIMESTAMP, 'endtime >' => TIMESTAMP);
-	foreach ($order_goods as $val) {
-		if ($val['param'][2] != 3) {
-			if ($val['param'][2] == 1) {//有规格
-				$spec_goods = get_spec_goods($val['id'], $val['param'][0]);
-				$a_condition['specid'] = $val['param'][0];
-				$a_condition['goodsid'] = $spec_goods['goodsid'];
-			}
-			if ($val['param']['2'] == 2) {//普通
-				$a_condition['specid'] = 0;
-				$a_condition['goodsid'] = $val['param'][0];
-			}
-			$activity = pdo_get('storex_goods_activity', $a_condition, array(), '', 'starttime ASC');
-			if (!empty($activity)) {
-				if ($activity['type'] == ACTIVITY_SECKILL) {
-					if ($val['param'][1] > ($activity['nums'] - $activity['sell_nums'])) {
-						wmessage(error(-1, $val['title'] . '库存不足'), '', 'ajax');
+	if (empty($group)) {
+		$a_condition = array('status' => 1, 'storeid' => $store_info['id'], 'uniacid' => $_W['uniacid'], 'starttime <=' => TIMESTAMP, 'endtime >' => TIMESTAMP);
+		foreach ($order_goods as $val) {
+			if ($val['param'][2] != 3) {
+				if ($val['param'][2] == 1) {//有规格
+					$spec_goods = get_spec_goods($val['id'], $val['param'][0]);
+					$a_condition['specid'] = $val['param'][0];
+					$a_condition['goodsid'] = $spec_goods['goodsid'];
+				}
+				if ($val['param']['2'] == 2) {//普通
+					$a_condition['specid'] = 0;
+					$a_condition['goodsid'] = $val['param'][0];
+				}
+				$activity = pdo_get('storex_goods_activity', $a_condition, array(), '', 'starttime ASC');
+				if (!empty($activity)) {
+					if ($activity['type'] == ACTIVITY_SECKILL) {
+						if ($val['param'][1] > ($activity['nums'] - $activity['sell_nums'])) {
+							wmessage(error(-1, $val['title'] . '库存不足'), '', 'ajax');
+						}
 					}
-				}
-			} else {
-				if (!empty($spec_goods)) {
-					$stock = check_goods_stock($val['id'], $val['param'][1], $spec_goods['spec_goods']);
 				} else {
-					$stock = check_goods_stock($val['id'], $val['param'][1]);
-				}
-				if (is_error($stock)) {
-					wmessage($stock, '', 'ajax');
+					if (!empty($spec_goods)) {
+						$stock = check_goods_stock($val['id'], $val['param'][1], $spec_goods['spec_goods']);
+					} else {
+						$stock = check_goods_stock($val['id'], $val['param'][1]);
+					}
+					if (is_error($stock)) {
+						wmessage($stock, '', 'ajax');
+					}
 				}
 			}
 		}
@@ -665,33 +690,41 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 		}
 	} else {
 		$insert = general_goods_order($insert, $goods_info);
-		$insert = calcul_discounts_price($insert, $store_info, $uid, $selected_coupon);
-		$insert['static_price'] = $insert['sum_price'];
-		//计算运费
-		$insert = calculate_express($goods_info, $insert);
-		if ($goods_info['param'][2] == 3) {
-			$insert['is_package'] = 2;
+		if (empty($group)) {
+			$insert = calcul_discounts_price($insert, $store_info, $uid, $selected_coupon);
+			$insert['static_price'] = $insert['sum_price'];
+			//计算运费
+			$insert = calculate_express($goods_info, $insert);
+			if ($goods_info['param'][2] == 3) {
+				$insert['is_package'] = 2;
+			}
 		}
 	}
 	$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
+	if ($insert['sum_price'] <= 0) {
+		wmessage(error(-1, '总价为零，请联系管理员'), '', 'ajax');
+	}
 	$post_total = trim($_GPC['order']['total']);
 	if ($post_total != $insert['sum_price']) {
 		wmessage(error(-1, '价格错误' . $insert['sum_price']), '', 'ajax');
 	}
-	if ($insert['sum_price'] <= 0) {
-		wmessage(error(-1, '总价为零，请联系管理员'), '', 'ajax');
-	}
-	if (!empty($_GPC['order']['use_credit'])) {
+	if (!empty($_GPC['order']['use_credit']) && empty($group)) {
 		$insert = calcul_credit_replace($insert, $uid);
 	}
+	if (!empty($group)) {
+		$insert['group_goodsid'] = $group['id'];
+	}
+	check_group_status();
 	pdo_insert('storex_order', $insert);
 	$order_id = pdo_insertid();
 	if (!empty($order_id)) {
-		check_goods_activity($insert, $cart, $order_id);
+		if (empty($group)) {
+			check_goods_activity($insert, $cart, $order_id);
+			stock_control($insert, 'order');
+		}
 		check_member_exist($insert, $uid);
 		insert_order_success($order_id, $uid);
-		stock_control($insert, 'order');
-		if ($store_info['market_status'] != 1) {
+		if ($store_info['market_status'] != 1 && empty($group)) {
 			if ($selected_coupon['type'] == 3) {
 				$result = activity_coupon_consume($selected_coupon['couponid'], $selected_coupon['recid'], $store_info['id']);
 				if (is_error($result)) {
@@ -1221,7 +1254,7 @@ function storex_send_notice($store_info, $orderid = '') {
 }
 
 function get_group_goods_info($group_goods_id, $goodsid) {
-	$info = pdo_fetch("SELECT a.*, g.*  FROM " . tablename('storex_plugin_activity_goods') . " AS a LEFT JOIN " . tablename('storex_plugin_group_activity') . " AS g ON a.group_activity = g.id WHERE a.id = :group_goods_id AND a.goods_id = :goods_id", array(':group_goods_id' => $group_goods_id, ':goods_id' => $goodsid));
+	$info = pdo_fetch("SELECT g.*, a.*  FROM " . tablename('storex_plugin_activity_goods') . " AS a LEFT JOIN " . tablename('storex_plugin_group_activity') . " AS g ON a.group_activity = g.id WHERE a.id = :group_goods_id AND a.goods_id = :goods_id", array(':group_goods_id' => $group_goods_id, ':goods_id' => $goodsid));
 	if (!empty($info)) {
 		$goods = pdo_get('storex_goods', array('id' => $info['goods_id']));
 	}
