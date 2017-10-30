@@ -260,17 +260,43 @@
 				</div>
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">拼团人数</label>
-					<div class="col-sm-9 col-xs-12">
-						<input type="text" name="number" value="{$activity_goods['number']}" class="form-control">
+					<div class="col-sm-6 col-xs-12">
+						<input type="text" class="form-control" name="number" value="{$activity_goods['number']}">
 					</div>
 				</div>
 				<div class="form-group">
-					<label class="col-xs-12 col-sm-3 col-md-2 control-label">拼团价格</label>
+					<label class="col-sm-3 control-label">库存配置</label>
 					<div class="col-sm-9 col-xs-12">
-						<input type="text" name="cprice" value="{$activity_goods['cprice']}" class="form-control">
+						<table class="table we7-table">
+							<thead>
+							<tr>
+								<th>商品名称</th>
+								<th style="position: relative;">
+									<span>拼团价格</span>
+								</th>
+							</tr>
+							</thead>
+							<tbody class="js-edit">
+								{loop $edit_goods $k $goods}
+								<tr>
+									<td>
+										{$goods['title']}
+									</td>
+									<td width="200px">
+										<div class="input-group">
+											<input type="text" class="form-control" value="{$goods['cprice']}" name="cprice[{$k}]">
+											<span class="input-group-addon">元</span>
+										</div>
+									</td>
+								</tr>
+								{/loop}
+							</tbody>
+						</table>
 					</div>
 				</div>
+
 				<div class="form-group col-sm-12">
+					<input type="hidden" name="is_spec" value="{$activity_goods['is_spec']}" />
 					<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
 					<input type="hidden" name="token" value="{$_W['token']}" />
 				</div>
@@ -297,7 +323,7 @@
 				<div class="tab-content">
 					{if !empty($goods)}
 					{loop $goods $good}
-						<img src="{$good['thumb']}" data-id="{$good['id']}" alt="{$good['title']}" title="{$good['title']}" class="good_info" style="width:100px;height:100px;">
+						<img src="{$good['thumb']}" data-id="{$good['id']}" alt="{$good['title']}" title="{$good['title']}" class="good_info" data-is_spec="{$good['is_spec']}" style="width:100px;height:100px;">
 					{/loop}
 					{else}
 					<div class="text-center">没有适用商品</div>
@@ -309,14 +335,43 @@
 </div>
 <script type="text/javascript">
 	$(function(){
+		var goods_list = {php echo json_encode($all_goods_list)};
+		var spec_price = {php echo json_encode($spec_cprice)};
 		$('.good_info').click(function(){
 			var goodid = $(this).data('id');
 			var title = this.title;
 			var src = this.src;
 			var goods_info = $('.activity_group_goods')[0];
+			console.dir(goods_info);
 			goods_info.alt = title;
 			goods_info.title = title;
 			goods_info.src = src;
+			current_list = goods_list[goodid];
+			html = '';
+			for (var i in current_list) {
+				if (current_list[i].is_spec == 1) {
+					$('input[name="is_spec"]').val(1);
+					title = current_list[i].title + '-' + current_list[i].goods_val_title;
+				} else {
+					$('input[name="is_spec"]').val(2);
+					title = current_list[i].title;
+				}
+				html += '<tr>' + 
+						'<input type="hidden">' + 
+						'<td>' + 
+							title +
+							'<input type="hidden" name="" value="">' +
+						'</td>' +
+						'<td width="200px">' +
+							'<div class="input-group">' +
+								'<input type="text" class="form-control" name="cprice['+ i +']">' +
+								'<span class="input-group-addon">元</span>' +
+							'</div>' +
+						'</td>' +
+					'</tr>';
+			}
+			console.dir(html);
+			$('.js-edit').html(html);
 			$('.goods_id')[0].value = goodid;
 			$('#goods-modal').modal('hide');
 		});

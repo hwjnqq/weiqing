@@ -116,6 +116,69 @@ if ($op == 'add_goods') {
 			}
 		}
 	}
+	$spec_cprice = iunserializer($activity_goods['spec_cprice']);
+	if (is_array($spec_cprice)) {
+		$specids = array_keys($spec_cprice);
+	}
+	if ($activity_goods['is_spec'] == 1) {
+		$post_goods = pdo_getall('storex_spec_goods', array('id' => $specids), array(), 'id');
+		if (!empty($post_goods) && is_array($post_goods)) {
+			foreach ($post_goods as $key => &$value) {
+				$value['goods_val'] = iunserializer($value['goods_val']);
+				$value['goods_val_title'] = implode('/', $value['goods_val']);
+				$edit_goods[$key] = array(
+					'title' => $value['title'] . '-' . $value['goods_val_title'],
+					'cprice' => $spec_cprice[$key],
+					'is_spec' => 2
+				);
+			}
+			unset($value);
+		}
+	} elseif ($activity_goods['is_spec'] == 2) {
+		$post_goods = pdo_get('storex_goods', array('id' => $activity_goods['goods_id']));
+		$post_goods['thumb'] = tomedia($post_goods['thumb']);
+		$edit_goods[$post_goods['id']] = array(
+			'title' => $post_goods['title'],
+			'cprice' => $spec_cprice[$post_goods['id']],
+			'is_spec' => 2
+		);
+	}
+	$base_goods = pdo_getall('storex_goods', array('weid' => $_W['uniacid'], 'store_base_id' => $storeid), array(), 'id');
+	if (is_array($base_goods)) {
+		$goodsids = array_keys($base_goods);
+		$goods_list = pdo_getall('storex_spec_goods', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'goodsid' => $goodsids), array(), 'id');
+	}
+	if (!empty($base_goods) && is_array($base_goods)) {
+		foreach ($base_goods as &$val) {
+			$val['goodsid'] = $val['id'];
+			$val['thumb'] = tomedia($val['thumb']);
+			$val['is_spec'] = 2;
+		}
+		unset($val);
+	}
+	if (!empty($goods_list) && is_array($goods_list)) {
+		foreach ($goods_list as &$good) {
+			$fake_ids[] = $good['goodsid'];
+			$good['thumb'] = tomedia($good['thumb']);
+			$good['goods_val'] = iunserializer($good['goods_val']);
+			$good['goods_val_title'] = implode('/', $good['goods_val']);
+			$good['is_spec'] = 1;
+		}
+		unset($good);
+	} else {
+		$goods_list	= $base_goods;
+	}
+	$not_have_spec_ids = @array_diff($goodsids, $fake_ids);
+	if (!empty($not_have_spec_ids) && is_array($not_have_spec_ids)) {
+		foreach ($not_have_spec_ids as $key => $value) {
+			$goods_list[] = $base_goods[$value];
+		}
+	}
+	if (!empty($goods_list) && is_array($goods_list)) {
+		foreach ($goods_list as $key => $value) {
+			$all_goods_list[$value['goodsid']][$value['id']] = $value;
+		}
+	}
 	if (checksubmit('submit')) {
 		if (empty($_GPC['goods_id']) || empty($_GPC['number']) || empty($_GPC['cprice'])) {
 			itoast('信息不完整', '', 'error');
@@ -129,7 +192,8 @@ if ($op == 'add_goods') {
 			'group_activity' => intval($_GPC['id']),
 			'goods_id' => intval($_GPC['goods_id']),
 			'number' => intval($_GPC['number']),
-			'cprice' => sprintf('%.2f', $_GPC['cprice']),
+			'is_spec' => intval($_GPC['is_spec']),
+			'spec_cprice' => iserializer($_GPC['cprice']),
 		);
 		if (!empty($_GPC['activity_good_id'])) {
 			pdo_update('storex_plugin_activity_goods', $goodsinfo, array('id' => $_GPC['activity_good_id']));
