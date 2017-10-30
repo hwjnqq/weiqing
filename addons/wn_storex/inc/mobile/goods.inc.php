@@ -218,12 +218,7 @@ if ($op == 'spec_info') {
 	
 	}
 	if (!empty($group)) {
-		$group['spec_cprice'] = iunserializer($group['spec_cprice']);
-		if (!empty($group['spec_cprice'][$specid])) {
-			$spec_info['cprice'] = $group['spec_cprice'][$specid];
-		} else {
-			$spec_info['cprice'] = $group['cprice'];
-		}
+		$spec_info['cprice'] = get_group_good_cprice($group, $specid);
 	}
 	wmessage(error(0, $spec_info), '', 'ajax');
 }
@@ -650,7 +645,11 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 			$cart_good['title'] = $goods_info['title'];
 			$cart[] = array('good' => $cart_good, 'buyinfo' => $goods_info['param']);
 		} else {
-			$insert['cprice'] = $goods_info['cprice'] = $group['cprice'];
+			if ($goods_info['param'][2] == 1) {
+				$insert['cprice'] = $goods_info['cprice'] = get_group_good_cprice($group, $insert['spec_id']);
+			} else {
+				$insert['cprice'] = $goods_info['cprice'] = get_group_good_cprice($group);
+			}
 		}
 	}
 	$insert['ordersn'] = date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1);
@@ -1268,4 +1267,19 @@ function get_group_goods_info($group_goods_id, $goodsid) {
 		$goods = pdo_get('storex_goods', array('id' => $info['goods_id']));
 	}
 	return $info;
+}
+
+function get_group_good_cprice($group, $spec_id = '') {
+	$cprice = 0;
+	$group['spec_cprice'] = iunserializer($group['spec_cprice']);
+	if ($group['is_spec'] == 1 && !empty($spec_id)) {
+		if (!empty($group['spec_cprice'][$spec_id])) {
+			$cprice = $group['spec_cprice'][$spec_id];
+		} else {
+			wmessage(error(-1, '该规格的商品不参加拼团活动'), '', 'ajax');
+		}
+	} else {
+		$cprice = $group['spec_cprice'][$group['goods_id']];
+	}
+	return $cprice;
 }

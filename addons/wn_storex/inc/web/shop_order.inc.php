@@ -27,13 +27,21 @@ if ($op == 'display') {
 		'2' => array('name' => '已拒绝', 'num' => 0, 'status' => 2),
 		'3' => array('name' => '已完成', 'num' => 0, 'status' => 3),
 	);
+	//拼团的订单不显示
+	$condition_group = $condition_group_s = '';
+	if (pdo_fieldexists('storex_order', 'group_goodsid') && pdo_fieldexists('storex_order', 'group_id')) {
+		$condition_group .= ' AND group_goodsid = 0';
+		$condition_group .= ' AND group_id = 0';
+		$condition_group_s .= ' AND o.group_goodsid = 0';
+		$condition_group_s .= ' AND o.group_id = 0';
+	}
 	foreach ($order_status as $s => &$info) {
-		$info['num'] = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_order') . " WHERE status = {$info['status']} AND hotelid = {$storeid}");
+		$info['num'] = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_order') . " WHERE status = {$info['status']} AND hotelid = {$storeid} " . $condition_group);
 	}
 	unset($info);
 	$search_name = $_GPC['search_name'];
 	$keyword = trim($_GPC['keyword']);
-	$condition = '';
+	$condition = $condition_group_s;
 	$params = array();
 	if (!empty($search_name) && !empty($keyword)) {
 		if ($search_name == 'roomtitle') {

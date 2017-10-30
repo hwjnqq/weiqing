@@ -34,6 +34,16 @@ class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 							$g['thumb'] = tomedia($goods[$g['goods_id']]['thumb']);
 							$g['oprice'] = $goods[$g['goods_id']]['oprice'];
 						}
+						$g['spec_cprice'] = iunserializer($g['spec_cprice']);
+						if ($g['is_spec'] == 1 && is_array($g['spec_cprice'])) {
+							foreach ($g['spec_cprice'] as $specid => $price) {
+								$g['cprice'] = $price;
+								$g['specid'] = $specid;
+								break;
+							}
+						} else {
+							$g['cprice'] = $g['spec_cprice'][$g['goods_id']];
+						}
 					}
 					unset($g);
 					foreach ($activity_goods as $g) {
