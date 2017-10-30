@@ -30,10 +30,8 @@ if ($op == 'display') {
 	//拼团的订单不显示
 	$condition_group = $condition_group_s = '';
 	if (pdo_fieldexists('storex_order', 'group_goodsid') && pdo_fieldexists('storex_order', 'group_id')) {
-		$condition_group .= ' AND group_goodsid = 0';
-		$condition_group .= ' AND group_id = 0';
-		$condition_group_s .= ' AND o.group_goodsid = 0';
-		$condition_group_s .= ' AND o.group_id = 0';
+		$condition_group .= ' AND group_goodsid != 0';
+		$condition_group_s .= ' AND o.group_goodsid != 0';
 	}
 	foreach ($order_status as $s => &$info) {
 		$info['num'] = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_order') . " WHERE status = {$info['status']} AND hotelid = {$storeid} " . $condition_group);
@@ -195,7 +193,7 @@ if ($op == 'display') {
 		exit();
 	}
 	$pager = pagination($total, $pindex, $psize);
-	include $this->template('store/shop_orderlist');
+	include $this->template('store/shop_plugin_group_order');
 }
 
 if ($op == 'edit') {
@@ -546,7 +544,7 @@ if ($op == 'edit') {
 	}
 	$member_info = pdo_get('storex_member', array('id' => $item['memberid']), array('from_user', 'isauto'));
 	$logs = order_status_logs($id);
-	include $this->template('store/shop_orderedit');
+	include $this->template('store/shop_plugin_group_order_edit');
 }
 
 if ($op == 'delete') {
@@ -636,38 +634,5 @@ if ($op == 'check_print_plugin') {
 		exit;
 	} else {
 		message('微擎版本不支持插件或店铺未安装或未设置打印机插件', referer(), 'error');
-	}
-}
-
-if ($op == 'assign_room') {
-	if ($_W['ispost'] && $_W['isajax']) {
-		$rooms = $_GPC['rooms'];
-		$orderid = intval($_GPC['id']);
-		$roomid = intval($_GPC['roomid']);
-		$order_info = pdo_get('storex_order', array('id' => $orderid, 'roomid' => $roomid, 'weid' => $_W['uniacid']));
-		if (empty($order_info)) {
-			message(error(-1, '订单信息错误'), '', 'ajax');
-		}
-		if (count($rooms) != $order_info['nums']) {
-			message(error(-1, '所选房间数量跟订单房间数量不一致'), '', 'ajax');
-		}
-		if (!empty($order_info['roomitemid'])) {
-			$assign_roomitemid = explode(',', $order_info['roomitemid']);
-		}
-		if (!check_room_assign($order_info, $rooms, true)) {
-			message(error(-1, '所选房间存在不空闲'), '', 'ajax');
-		}
-		$result = pdo_update('storex_order', array('roomitemid' => implode(',', $rooms)), array('id' => $orderid));
-		if (!empty($result)) {
-			if (!empty($assign_roomitemid) && is_array($assign_roomitemid)) {
-				$order_info['roomitemid'] = '';
-				foreach ($assign_roomitemid as $roomid) {
-					delete_room_assign($order_info, $roomid);
-				}
-			}
-			message(error(0, ''), referer(), 'ajax');
-		} else {
-			message(error(-1, '分配失败'), referer(), 'ajax');
-		}
 	}
 }

@@ -11,6 +11,9 @@
 			<div class="wn-tabs__item">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'grouplist', 'storeid' => $_GPC['storeid']))}">拼团列表</a>
 			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group_order', array('op' => 'orderlist', 'storeid' => $_GPC['storeid']))}">拼团订单列表</a>
+			</div>
 		</div>
 		<div class="pull-right">
 			<a href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'post', 'storeid' => $_GPC['storeid']))}" class="btn btn-primary">+添加拼团活动列表</a>
@@ -201,7 +204,6 @@
 						<th>商品图</th>
 						<th>商品名称</th>
 						<th>拼团人数</th>
-						<th>拼团价格</th>
 						<th>操作</th>
 					</tr>
 				</thead>
@@ -211,7 +213,6 @@
 						<td><img src="{$g['thumb']}" alt="商品图片" style="width: 50px; height: 50px"></td>
 						<td>{$g['title']}</td>
 						<td>{$g['number']}</td>
-						<td>{$g['cprice']}</td>
 						<td>
 							<a href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'add_goods', 'id' => $g['group_activity'], 'activity_good_id' => $g['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">编辑</a>
 							<a href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'delete_goods', 'id' => $g['group_activity'], 'activity_good_id' => $g['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">删除</a>
