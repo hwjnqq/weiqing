@@ -45,6 +45,12 @@ class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 				foreach ($group_activitys as $a) {
 					if (!empty($a['list'])) {
 						$a['rule'] = iunserializer($a['rule']);
+						$a['status'] = 2;
+						if ($a['starttime'] <= TIMESTAMP && TIMESTAMP < $a['endtime']) {
+							$a['status'] = 1;
+						}
+						$a['starttime'] = date('Y/m/d H:i:s', $a['starttime']);
+						$a['endtime'] = date('Y/m/d H:i:s', $a['endtime']);
 						$activity[] = $a;
 					}
 				}
