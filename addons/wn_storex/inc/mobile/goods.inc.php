@@ -306,27 +306,26 @@ if ($op == 'info') {
 	} else {
 		$goods = order_goodsids($uid);
 		if (!empty($goods) && is_array($goods)) {
-			$order_goods = get_order_goods($store_info, $goods);
+			$order_goods = get_order_goods($store_info, $goods, $group);
 		} else {
 			wmessage(error(-1, '商品错误'), '', 'ajax');
 		}
-		if (empty($group)) {
-			if ($_GPC['is_cart'] == 1) {
-				$infos['express'] = array();
-				if (!empty($store_info['express'])) {
-					$infos['express'] = array(
-						'condition' => $store_info['express']['full_free'],
-						'default_express' => $store_info['express']['express'],
-						'express' => 0,
-						'goods_express' => 1,
-					);
-				}
-			} else {
-				$infos['express'] = $order_goods[0]['express_set'];
+		if ($_GPC['is_cart'] == 1) {
+			$infos['express'] = array();
+			if (!empty($store_info['express'])) {
+				$infos['express'] = array(
+					'condition' => $store_info['express']['full_free'],
+					'default_express' => $store_info['express']['express'],
+					'express' => 0,
+					'goods_express' => 1,
+				);
 			}
+		} else {
+			$infos['express'] = $order_goods[0]['express_set'];
 		}
 	}
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
+
 	$infos['info'] = $info;
 	$infos['goods_info'] = $order_goods;
 	$infos['address'] = $address;
@@ -379,7 +378,6 @@ if ($op == 'info') {
 			}
 		}
 	}
-	$infos['group'] = $group;
 	wmessage(error(0, $infos), '', 'ajax');
 }
 
@@ -447,11 +445,14 @@ function order_goodsids($uid = '') {
 }
 
 //购物车获取商品信息
-function get_order_goods($store_info, $goods) {
+function get_order_goods($store_info, $goods, $group = array()) {
 	global $_W, $_GPC;
 	$condition = array('weid' => intval($_W['uniacid']), 'status' => 1, 'store_base_id' => $store_info['id']);
 	$table = gettablebytype($store_info['store_type']);
 	$order_goods = array();
+	if (!empty($group)) {
+		$group = deal_group_info($group);
+	}
 	foreach ($goods as $g) {
 		if (!empty($g[2])) {
 			$a_condition = array('status' => 1,'storeid' => $store_info['id'], 'uniacid' => $_W['uniacid'], 'starttime <=' => TIMESTAMP, 'endtime >' => TIMESTAMP);
@@ -463,6 +464,9 @@ function get_order_goods($store_info, $goods) {
 				$a_condition['goodsid'] = $condition['id'] = $g[0];
 				$goods_info = pdo_get($table, $condition);
 				$goods_info['defined'] = get_goods_defined($store_info['id'], $g[0]);
+				if (!empty($group)) {
+					$goods_info['cprice'] = $group['cprice'];
+				}
 			} elseif ($g[2] == 1) {//有规格
 				$spec_goods = pdo_get('storex_spec_goods', array('id' => $g[0]));
 				$a_condition['specid'] = $g[0];
@@ -477,6 +481,9 @@ function get_order_goods($store_info, $goods) {
 					$goods_info['cprice'] = $spec_goods['cprice'];
 					$goods_info['oprice'] = $spec_goods['oprice'];
 					$goods_info['stock'] = $spec_goods['stock'];
+				}
+				if (!empty($group)) {
+					$goods_info['cprice'] = $group['spec_cprice'][$g[0]];
 				}
 			}
 			$goods_info['buynums'] = $g[1];
