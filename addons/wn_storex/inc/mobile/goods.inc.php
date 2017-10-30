@@ -1307,5 +1307,7 @@ function deal_group_info($group) {
 	}
 	$group['starttime'] = date('Y/m/d H:i:s', $group['starttime']);
 	$group['endtime'] = date('Y/m/d H:i:s', $group['endtime']);
+	$group_over = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_plugin_group') . " WHERE activity_goodsid = :activity_goodsid", array(':activity_goodsid' => $group['id']));
+	$group['sale_num'] = $group['number'] * $group_over;
 	return $group;
 }
