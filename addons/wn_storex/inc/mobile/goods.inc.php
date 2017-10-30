@@ -24,9 +24,10 @@ if (!empty($_GPC['group_goods'])) {
 	if (empty($goodsid)) {
 		$goods = order_goodsids($uid);
 		$goodsid = $goods[0][0];
-		$group = get_group_goods_info($_GPC['group_goods'], $goodsid);
 	}
+	$group = get_group_goods_info($_GPC['group_goods'], $goodsid);
 }
+
 if (!empty($_GPC['group_id'])) {
 	$group_id = intval($_GPC['group_id']);
 	check_group_status($group_id);
@@ -215,6 +216,14 @@ if ($op == 'spec_info') {
 		$spec_info['cprice'] = $activity['price'];
 		$spec_info['activity']['endtime'] = date('Y-m-d H:i:s', $spec_info['activity']['endtime']);
 	
+	}
+	if (!empty($group)) {
+		$group['spec_cprice'] = iunserializer($group['spec_cprice']);
+		if (!empty($group['spec_cprice'][$specid])) {
+			$spec_info['cprice'] = $group['spec_cprice'][$specid];
+		} else {
+			$spec_info['cprice'] = $group['cprice'];
+		}
 	}
 	wmessage(error(0, $spec_info), '', 'ajax');
 }

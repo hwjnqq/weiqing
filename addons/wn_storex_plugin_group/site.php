@@ -26,6 +26,8 @@ class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 					}
 					$goods = pdo_getall('storex_goods', array('id' => $goodsids), array('id', 'title', 'sub_title', 'thumb', 'oprice'), 'id');
 					foreach ($activity_goods as &$g) {
+						$group_over = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_plugin_group') . " WHERE activity_goodsid = :activity_goodsid", array(':activity_goodsid' => $g['id']));
+						$g['sale_num'] = $g['number'] * $group_over;
 						if (!empty($goods[$g['goods_id']])) {
 							$g['title'] = $goods[$g['goods_id']]['title'];
 							$g['sub_title'] = $goods[$g['goods_id']]['sub_title'];
