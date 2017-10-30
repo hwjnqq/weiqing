@@ -365,6 +365,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 								$group = array(
 									'uniacid' => $_W['uniacid'],
 									'storeid' => $order['hotelid'],
+									'group_activity_id' => $group_activity['id'],
 									'activity_goodsid' => $order['group_goodsid'],
 									'head' => $order['openid'],
 									'member' => '',

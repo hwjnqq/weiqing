@@ -71,6 +71,7 @@
 					<tr>
 						<th style="width: 60px;">活动缩略图</th>
 						<th>拼团ID</th>
+						<th>拼团活动ID</th>
 						<th>拼团商品ID</th>
 						<th>拼团发起者</th>
 						<th>拼团成员</th>
@@ -81,13 +82,22 @@
 				<tbody>
 					{loop $grouplist $list}
 					<tr>
-						<td><img src="{$list['thumb']}" alt="活动图片" style="width: 50px; height: 50px"></td>
+						<td><img src="{$storex_plugin_group[$list['group_activity_id']]['thumb']}" alt="活动图片" style="width: 50px; height: 50px"></td>
 						<td>{$list['id']}</td>
+						<td>{$list['group_activity_id']}</td>
 						<td>{$list['activity_goodsid']}</td>
 						<td>{$list['head']}</td>
 						<td>{$list['member']}</td>
 						<td>{php echo date('Y-m-d H:i:s', $activity['start_time'])}</td>
-						<td>{$list['over']}</td>
+						<td>
+							{if $list['over'] == 1}
+								成功
+							{else if $list['over'] == 2}
+								未完成
+							{else if $list['over'] == 3}
+								已退款
+							{/if}
+						</td>
 					</tr>
 					{/loop}
 				</tbody>

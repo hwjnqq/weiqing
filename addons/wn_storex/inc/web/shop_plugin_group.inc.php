@@ -149,15 +149,18 @@ if ($op == 'delete_goods') {
 }
 
 if ($op == 'grouplist') {
-	$grouplist = pdo_getall('storex_plugin_group', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid));
+	$grouplist = pdo_getall('storex_plugin_group', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid), array(), '', 'start_time DESC');
 	if (!empty($grouplist)) {
 		$goodsids = array();
+		$group_activity_ids = array();
 		foreach ($grouplist as $group) {
-			$goodsids[] = $group['goods_id'];
+			$group['member'] = iunserializer($group['member']);
+			$group['member'] = implode('|', $group['member']);
+			$goodsids[] = $group['activity_goodsid'];
+			$group_activity_ids[] = $group['group_activity_id'];
 		}
-		$activity_goods = pdo_getall('storex_plugin_activity_goods', array('id' => $goodsids), array(), 'id');
-		$group_activity_ids = array_keys($activity_goods);
-		$group_activity = pdo_getall('storex_plugin_group_activity', array('id' => $group_activity_ids), array(), 'id');
+		// $activity_goods = pdo_getall('storex_plugin_activity_goods', array('id' => $goodsids), array(), 'id');
+		$storex_plugin_group = pdo_getall('storex_plugin_group_activity', array('id' => $group_activity_ids), array(), 'id');
 	}
 }
 include $this->template('store/shop_plugin_group');

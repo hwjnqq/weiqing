@@ -15,32 +15,43 @@ class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 		$storeid = intval($_GPC['storeid']);
 		//拼图列表
 		if ($op == 'group_list') {
-			$activity_lists = array(
-				'start' => array(),
-				'notstart' => array(),
-			);
-			$params = array(
-				':uniacid' => $_W['uniacid'],
-				':storeid' => $storeid,
-				':endtime' => TIMESTAMP,
-			);
-			$list = pdo_fetchall("SELECT a.starttime, a.endtime, g.*, d.title, d.oprice, d.thumb AS gthumb FROM " . tablename('storex_plugin_activity_goods') . " AS g LEFT JOIN "
-				 . tablename('storex_plugin_group_activity') . " AS a ON g.group_activity = a.id LEFT JOIN "
-				 . tablename('storex_goods') ." AS d ON g.goods_id = d.id WHERE a.uniacid = :uniacid AND a.storeid = :storeid AND a.endtime > :endtime", $params);
-			
-			if (!empty($list) && is_array($list)) {
-				foreach ($list as $info) {
-					$info['gthumb'] = tomedia($info['gthumb']);
-					if ($info['starttime'] > TIMESTAMP) {
-						$info['gthumb'] = tomedia($info['gthumb']);
-						$activity_lists['notstart'][] = $info;
-					} else if ($info['starttime'] <= TIMESTAMP && $info['endtime'] > TIMESTAMP) {
-						$activity_lists['start'][] = $info;
+			$group_activitys = pdo_getall('storex_plugin_group_activity', array('storeid' => $storeid, 'uniacid' => $_W['uniacid'], 'endtime >' => TIMESTAMP ), array(), 'id', 'starttime ASC');
+			if (!empty($group_activitys)) {
+				$activity_ids = array_keys($group_activitys);
+				$activity_goods = pdo_getall('storex_plugin_activity_goods', array('group_activity' => $activity_ids));
+				$goodsids = array();
+				if (!empty($activity_goods)) {
+					foreach ($activity_goods as $good) {
+						$goodsids[] = $good['goods_id'];
+					}
+					$goods = pdo_getall('storex_goods', array('id' => $goodsids), array('id', 'title', 'thumb', 'oprice'), 'id');
+					foreach ($activity_goods as &$g) {
+						if (!empty($goods[$g['goods_id']])) {
+							$g['title'] = $goods[$g['goods_id']]['title'];
+							$g['thumb'] = tomedia($goods[$g['goods_id']]['thumb']);
+							$g['oprice'] = tomedia($goods[$g['goods_id']]['oprice']);
+						}
+					}
+					unset($g);
+					foreach ($activity_goods as $g) {
+						if (!empty($group_activitys[$g['group_activity']])) {
+							$group_activitys[$g['group_activity']]['list'][] = $g;
+						}
 					}
 				}
 			}
-			message(error(0, $activity_lists), '', 'ajax');
+			$activity = array();
+			if (!empty($group_activitys)) {
+				foreach ($group_activitys as $a) {
+					if (!empty($a['list'])) {
+						$a['rule'] = iunserializer($a['rule']);
+						$activity[] = $a;
+					}
+				}
+			}
+			message(error(0, $activity), '', 'ajax');
 		}
+		
 		if ($op == 'group_info') {
 			$group_id = intval($_GPC['group_id']);
 			if (!empty($group_id)) {
