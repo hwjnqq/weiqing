@@ -21,7 +21,8 @@ $sql = "
 		`group_activity` int(11) NOT NULL COMMENT '活动id',
 		`goods_id` int(11) NOT NULL,
 		`number` int(11) NOT NULL COMMENT '参团人数',
-		`cprice` decimal(10,2) NOT NULL COMMENT '参团商品价格',
+		`spec_cprice` text CHARACTER SET utf8 NOT NULL COMMENT '参团商品价格',
+		`is_spec` tinyint(3) unsigned NOT NULL DEFAULT '1' COMMENT '1为规格商品，2为普通商品',
 		PRIMARY KEY (`id`)
 	) DEFAULT CHARSET=utf8;
 

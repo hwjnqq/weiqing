@@ -189,6 +189,25 @@ if ($op == 'goods_info') {
 		$goods_info['activity']['endtime'] = date('Y-m-d H:i:s', $goods_info['activity']['endtime']);
 		
 	}
+
+	if (!empty($group)) {
+		$group['oprice'] = $goods_info['cprice'];
+		$group['spec_cprice'] = iunserializer($group['spec_cprice']);
+		if ($group['is_spec'] == 1) {
+			foreach ($group['spec_cprice'] as $specid => $price) {
+				$group['spec_id'] = $specid;
+				$group['cprice'] = $price;
+			}
+		} else {
+			$group['cprice'] = $group['spec_cprice'][$group['goods_id']];
+		}
+		$group['status'] = 2;
+		if ($group['starttime'] <= TIMESTAMP && TIMESTAMP < $group['endtime']) {
+			$group['status'] = 1;
+		}
+		$group['starttime'] = date('Y/m/d H:i:s', $group['starttime']);
+		$group['endtime'] = date('Y/m/d H:i:s', $group['endtime']);
+	}
 	$goods_info['group'] = $group;
 	wmessage(error(0, $goods_info), $share_data, 'ajax');
 }

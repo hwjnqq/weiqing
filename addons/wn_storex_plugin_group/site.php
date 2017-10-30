@@ -24,7 +24,7 @@ class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 					foreach ($activity_goods as $good) {
 						$goodsids[] = $good['goods_id'];
 					}
-					$goods = pdo_getall('storex_goods', array('id' => $goodsids), array('id', 'title', 'sub_title', 'thumb', 'oprice'), 'id');
+					$goods = pdo_getall('storex_goods', array('id' => $goodsids), array('id', 'title', 'sub_title', 'thumb', 'cprice'), 'id');
 					foreach ($activity_goods as &$g) {
 						$group_over = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('storex_plugin_group') . " WHERE activity_goodsid = :activity_goodsid", array(':activity_goodsid' => $g['id']));
 						$g['sale_num'] = $g['number'] * $group_over;
@@ -32,7 +32,7 @@ class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 							$g['title'] = $goods[$g['goods_id']]['title'];
 							$g['sub_title'] = $goods[$g['goods_id']]['sub_title'];
 							$g['thumb'] = tomedia($goods[$g['goods_id']]['thumb']);
-							$g['oprice'] = $goods[$g['goods_id']]['oprice'];
+							$g['oprice'] = $goods[$g['goods_id']]['cprice'];
 						}
 						$g['spec_cprice'] = iunserializer($g['spec_cprice']);
 						if ($g['is_spec'] == 1 && is_array($g['spec_cprice'])) {
