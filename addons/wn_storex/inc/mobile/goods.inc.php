@@ -192,21 +192,7 @@ if ($op == 'goods_info') {
 
 	if (!empty($group)) {
 		$group['oprice'] = $goods_info['cprice'];
-		$group['spec_cprice'] = iunserializer($group['spec_cprice']);
-		if ($group['is_spec'] == 1) {
-			foreach ($group['spec_cprice'] as $specid => $price) {
-				$group['spec_id'] = $specid;
-				$group['cprice'] = $price;
-			}
-		} else {
-			$group['cprice'] = $group['spec_cprice'][$group['goods_id']];
-		}
-		$group['status'] = 2;
-		if ($group['starttime'] <= TIMESTAMP && TIMESTAMP < $group['endtime']) {
-			$group['status'] = 1;
-		}
-		$group['starttime'] = date('Y/m/d H:i:s', $group['starttime']);
-		$group['endtime'] = date('Y/m/d H:i:s', $group['endtime']);
+		$group = deal_group_info($group);
 	}
 	$goods_info['group'] = $group;
 	wmessage(error(0, $goods_info), $share_data, 'ajax');
@@ -237,7 +223,9 @@ if ($op == 'spec_info') {
 	
 	}
 	if (!empty($group)) {
+		$group = deal_group_info($group);
 		$spec_info['cprice'] = get_group_good_cprice($group, $specid);
+		$spec_info['group'] = $group;
 	}
 	wmessage(error(0, $spec_info), '', 'ajax');
 }
@@ -1301,4 +1289,23 @@ function get_group_good_cprice($group, $spec_id = '') {
 		$cprice = $group['spec_cprice'][$group['goods_id']];
 	}
 	return $cprice;
+}
+
+function deal_group_info($group) {
+	$group['spec_cprice'] = iunserializer($group['spec_cprice']);
+	if ($group['is_spec'] == 1) {
+		foreach ($group['spec_cprice'] as $specid => $price) {
+			$group['spec_id'] = $specid;
+			$group['cprice'] = $price;
+		}
+	} else {
+		$group['cprice'] = $group['spec_cprice'][$group['goods_id']];
+	}
+	$group['status'] = 2;
+	if ($group['starttime'] <= TIMESTAMP && TIMESTAMP < $group['endtime']) {
+		$group['status'] = 1;
+	}
+	$group['starttime'] = date('Y/m/d H:i:s', $group['starttime']);
+	$group['endtime'] = date('Y/m/d H:i:s', $group['endtime']);
+	return $group;
 }
