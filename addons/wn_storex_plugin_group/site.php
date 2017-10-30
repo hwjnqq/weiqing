@@ -29,7 +29,7 @@ class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 						if (!empty($goods[$g['goods_id']])) {
 							$g['title'] = $goods[$g['goods_id']]['title'];
 							$g['thumb'] = tomedia($goods[$g['goods_id']]['thumb']);
-							$g['oprice'] = tomedia($goods[$g['goods_id']]['oprice']);
+							$g['oprice'] = $goods[$g['goods_id']]['oprice'];
 						}
 					}
 					unset($g);
@@ -51,7 +51,7 @@ class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 			}
 			message(error(0, $activity), '', 'ajax');
 		}
-		
+
 		if ($op == 'group_info') {
 			$group_id = intval($_GPC['group_id']);
 			if (!empty($group_id)) {
