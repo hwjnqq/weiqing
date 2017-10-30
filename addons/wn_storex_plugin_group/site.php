@@ -24,10 +24,11 @@ class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 					foreach ($activity_goods as $good) {
 						$goodsids[] = $good['goods_id'];
 					}
-					$goods = pdo_getall('storex_goods', array('id' => $goodsids), array('id', 'title', 'thumb', 'oprice'), 'id');
+					$goods = pdo_getall('storex_goods', array('id' => $goodsids), array('id', 'title', 'sub_title', 'thumb', 'oprice'), 'id');
 					foreach ($activity_goods as &$g) {
 						if (!empty($goods[$g['goods_id']])) {
 							$g['title'] = $goods[$g['goods_id']]['title'];
+							$g['sub_title'] = $goods[$g['goods_id']]['sub_title'];
 							$g['thumb'] = tomedia($goods[$g['goods_id']]['thumb']);
 							$g['oprice'] = $goods[$g['goods_id']]['oprice'];
 						}
