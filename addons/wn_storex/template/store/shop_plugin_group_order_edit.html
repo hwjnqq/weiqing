@@ -1,6 +1,6 @@
 {template 'common/header-storex'}
 <div class="wn-main wn-main--without">
-	<div class="wn-main__head"><a href="{php echo $this->createWebUrl('shop_order',array('op' => 'list', 'storeid' => $storeid));}">订单管理</a> / 订单编辑</div>
+	<div class="wn-main__head"><a href="{php echo $this->createWebUrl('shop_plugin_group_order', array('op' => 'list', 'storeid' => $storeid));}">订单管理</a> / 订单编辑</div>
 	<div class="wn-main__content">
 		{if !empty($logs)}
 			<ul class="nav nav-pills nav-justified step step-round">
@@ -422,7 +422,7 @@
 		});
 		$('.js-submit').click(function() {
 			var action = $('#action').val();
-			$.post("{php echo $this->createWebUrl('shop_order', array('op' => 'edit'))}", {storeid : storeid, id : id, action : action, roomid : roomid}, function(data) {
+			$.post("{php echo $this->createWebUrl('shop_plugin_group_order', array('op' => 'edit'))}", {storeid : storeid, id : id, action : action, roomid : roomid}, function(data) {
 				data = $.parseJSON(data);
 				console.dir(data);
 				if (data.message.errno == 0) {
@@ -444,7 +444,7 @@
 
 	$('.js-select-room').click(function() {
 		room_item_id = $(this).data('id');
-		$.post("{php echo $this->createWebUrl('shop_order', array('op' => 'assign_room', 'storeid' => $_GPC['storeid']))}", {room_item_id : room_item_id, id : id, roomid : roomid}, function(data) {
+		$.post("{php echo $this->createWebUrl('shop_plugin_group_order', array('op' => 'assign_room', 'storeid' => $_GPC['storeid']))}", {room_item_id : room_item_id, id : id, roomid : roomid}, function(data) {
 			data = $.parseJSON(data);
 			console.dir(data);
 			if (data.message.errno != 0) {
@@ -469,7 +469,7 @@
 			if (rooms.length != num) {
 				util.message('所选房间数量跟订单房间数量不一致');
 			}
-			$.post("{php echo $this->createWebUrl('shop_order', array('op' => 'assign_room', 'storeid' => $_GPC['storeid']))}", {rooms : rooms, id : id, roomid : roomid}, function(data) {
+			$.post("{php echo $this->createWebUrl('shop_plugin_group_order', array('op' => 'assign_room', 'storeid' => $_GPC['storeid']))}", {rooms : rooms, id : id, roomid : roomid}, function(data) {
 				data = $.parseJSON(data);
 				console.dir(data);
 				if (data.message.errno != 0) {

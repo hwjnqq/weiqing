@@ -8,6 +8,9 @@
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group_order', array('op' => 'display', 'status' => $status, 'storeid' => $_GPC['storeid']))}">{$info['name']}({$info['num']})</a>
 			</div>
 			{/loop}
+			<div class="wn-tabs__item pull-right">
+				<a class="btn btn-primary" href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">返回拼团</a>
+			</div>
 		</div>
 		<div class="modal fade" id="quantity-modal" tabindex="-1" role="dialog" aria-hidden="true">
 			<div class="modal-dialog">
