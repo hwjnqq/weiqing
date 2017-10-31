@@ -27,7 +27,7 @@ $sql = "
 	) DEFAULT CHARSET=utf8;
 
 	CREATE TABLE IF NOT EXISTS `ims_storex_plugin_group` (
-		`id` int(11) NOT NULL,
+		`id` int(11) NOT NULL AUTO_INCREMENT,
 		`uniacid` int(11) NOT NULL,
 		`storeid` int(11) NOT NULL,
 		`group_activity_id` int(11) NOT NULL COMMENT '活动id',
@@ -37,7 +37,7 @@ $sql = "
 		`start_time` int(11) NOT NULL COMMENT '开团时间',
 		`over` tinyint(2) NOT NULL DEFAULT '2' COMMENT '1完成2未完成3已退款',
 		PRIMARY KEY (`id`)
-	  ) DEFAULT CHARSET=utf8;
+	) DEFAULT CHARSET=utf8;
 ";
 
 pdo_run($sql);
