@@ -126,14 +126,18 @@ if ($op == 'display') {
 				$activity_goods = pdo_getall('storex_plugin_activity_goods', array('group_activity' => $activity['id']));
 				if (!empty($activity_goods)) {
 					foreach ($activity_goods as &$good) {
-						$storex_goods = pdo_get('storex_goods', array('id' => $good['goods_id']), array('id', 'title', 'cprice'));
+						$storex_goods = pdo_get('storex_goods', array('id' => $good['goods_id']), array('id', 'title', 'cprice', 'thumb'));
 						$good['spec_cprice'] = iunserializer($good['spec_cprice']);
 						$good['oprice'] = $storex_goods['cprice'];
 						if ($good['is_spec'] == 1) {
-							foreach ($good['spec_cprice'] as $price) {
+							foreach ($good['spec_cprice'] as $specid => $price) {
 								$good['cprice'] = $price;
+								$good['spec_id'] = $specid;
 							}
+						} else {
+							$good['cprice'] = $good['spec_cprice'][$good['goods_id']];
 						}
+						$good['thumb'] = tomedia($storex_goods['thumb']);
 					}
 				}
 				$activity['starttime'] = date('Y/m/d H:i:s', $activity_group['starttime']);
