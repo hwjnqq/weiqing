@@ -303,17 +303,47 @@ if ($op == 'group_order') {
 	$fields = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status', 'track_number', 'express_name', 'is_package', 'group_goodsid', 'group_id');
 	$orders = pdo_getall('storex_order', array('openid' => $_W['openid'], 'group_goodsid !=' => 0, 'group_id !=' => 0), $fields, '', 'time DESC');
 	if (!empty($orders)) {
+		$storex_bases = array();
+		$group_goodsids = array();
 		$goodsids = array();
+		$group_ids = array();
 		foreach ($orders as $order) {
+			$storex_bases_ids[] = $order['hotelid'];
+			$group_goodsids[] = $order['group_goodsid'];
+			$group_ids[] = $order['group_id'];
 			$goodsids[] = $order['roomid'];
 		}
+		$storex_bases = pdo_getall('storex_bases', array('id' => $storex_bases_ids), array('id', 'title'), 'id');
+
+		$group_goods = pdo_getall('storex_plugin_activity_goods', array('id' => $group_goodsids), array(), 'id');
+		
+		$activity_group_ids = array();
+		foreach ($group_goods as $info) {
+			$activity_group_ids[] = $info['group_activity'];
+		}
+		$activity_group = pdo_getall('storex_plugin_group_activity', array('id' => $activity_group_ids), array(), 'id');
+
+		$groups = pdo_getall('storex_plugin_group', array('id' => $group_ids), array(), 'id');
+
 		$goods = pdo_getall('storex_goods', array('id' => $goodsids), array('id', 'title', 'thumb'), 'id');
 		foreach ($orders as &$order) {
+			$group_id = $order['group_id'];
 			if (!empty($goods[$order['roomid']])) {
 				$order['title'] = $goods[$order['roomid']]['title'];
 				$order['thumb'] = tomedia($goods[$order['roomid']]['title']);
 			}
 			$order = orders_check_status($order);
+			//店铺标题
+			$order['store_title'] = $storex_bases[$order['hotelid']]['title'];
+			$number = $group_goods[$order['group_goodsid']]['number'];
+			$member = iunserializer($groups[$group_id]['member']);
+			if (!empty($member) && is_array($member)) {
+				$order['need_member'] = $number - (count($member) + 1);
+			}  else {
+				$order['need_member'] = $number - 1;
+			}
+			$order['over'] = $groups[$group_id]['over']; //1完成2未完成3已退款
+			$order['endtime'] = $activity_group[$groups[$group_id]['group_activity_id']]['endtime'];
 		}
 		unset($order);
 	}
