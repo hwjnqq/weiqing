@@ -124,26 +124,22 @@ if ($op == 'display') {
 		if (!empty($activity_group) && is_array($activity_group)) {
 			foreach ($activity_group as $activity) {
 				$activity_goods = pdo_getall('storex_plugin_activity_goods', array('group_activity' => $activity['id']));
-				$goods = array();
 				if (!empty($activity_goods)) {
-					foreach ($activity_goods as $good) {
+					foreach ($activity_goods as &$good) {
 						$storex_goods = pdo_get('storex_goods', array('id' => $good['goods_id']), array('id', 'title', 'cprice'));
 						$good['spec_cprice'] = iunserializer($good['spec_cprice']);
-						$goods = $good;
-						$goods['oprice'] = $storex_goods['cprice'];
-						if ($goods['is_spec'] == 1) {
+						$good['oprice'] = $storex_goods['cprice'];
+						if ($good['is_spec'] == 1) {
 							foreach ($good['spec_cprice'] as $price) {
-								$goods['cprice'] = $price;
-								break;
+								$good['cprice'] = $price;
 							}
 						}
-						break;
 					}
 				}
 				$activity['starttime'] = date('Y/m/d H:i:s', $activity_group['starttime']);
 				$activity['endtime'] = date('Y/m/d H:i:s', $activity_group['endtime']);
-				$activity['goods'] = $goods;
-				if (!empty($goods)) {
+				$activity['goods'] = $activity_goods;
+				if (!empty($activity_goods)) {
 					break;
 				}
 			}
