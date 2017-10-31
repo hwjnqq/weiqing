@@ -133,8 +133,6 @@ class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 							'link' => murl('entry', array('do' => 'group', 'op' => 'group_info', 'm' => 'wn_storex', 'orderid' => $order['id']), true, true) . '#/Group/Share/' . $order['id'],
 							'imgUrl' => tomedia($goods['thumb']),
 						);
-						print_r( $share_data);
-						exit;
 						wmessage(error(0, $activity_group_info), $share_data, 'ajax');
 					} else if ($group_activity['starttime'] > TIMESTAMP) {
 						wmessage(error(-1, '活动未开始'), '', 'ajax');
