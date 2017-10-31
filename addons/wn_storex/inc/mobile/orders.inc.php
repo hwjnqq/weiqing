@@ -343,7 +343,7 @@ if ($op == 'group_order') {
 				$order['need_member'] = $number - 1;
 			}
 			$order['over'] = $groups[$group_id]['over']; //1完成2未完成3已退款
-			$order['endtime'] = $activity_group[$groups[$group_id]['group_activity_id']]['endtime'];
+			$order['endtime'] = date('Y/m/d H:i:s', $activity_group[$groups[$group_id]['group_activity_id']]['endtime']);
 		}
 		unset($order);
 	}
@@ -385,8 +385,8 @@ if ($op == 'group_order_detail') {
 		}
 		//订单状态
 		$order_info = orders_check_status($order_info);
-		$item['is_cancel'] = 2;
-		$item['is_refund'] = 2;
+		$order_info['is_cancel'] = 2;
+		$order_info['is_refund'] = 2;
 		$share_data = array(
 			'title' => $goods_info['title'] . '--拼团活动',
 			'desc' => $goods_info['title'] . '--' . $store_info['title'] . '--' . $order_info['cprice'] . '元',
