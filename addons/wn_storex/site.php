@@ -114,7 +114,12 @@ class Wn_storexModuleSite extends WeModuleSite {
 			$url = $this->createMobileurl('display');
 		}
 		if (!empty($_GPC['orderid'])) {
-			$redirect = $url . '#/Home/OrderInfo/' . $_GPC['orderid'];
+			$order = pdo_get('storex_order', array('id' => intval($_GPC['orderid'])), array('id', 'group_id'));
+			if (!empty($order) && !empty($order['group_id'])) {
+				$redirect = $url . '#/Home/OrderInfo/' . $_GPC['orderid'];//跳转拼团详情页面的地址
+			} else {
+				$redirect = $url . '#/Home/OrderInfo/' . $_GPC['orderid'];
+			}
 			header("Location: $redirect");
 		}
 		if ($_GPC['pay_type'] == 'recharge') {
@@ -373,7 +378,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 								);
 								pdo_insert('storex_plugin_group', $group);
 								$group_id = pdo_insertid();
-								pdo_update('storex_order', array('group_goodsid' => $group_id), array('id' => $order['id']));
+								pdo_update('storex_order', array('group_id' => $group_id), array('id' => $order['id']));
 							}
 						}
 					}	

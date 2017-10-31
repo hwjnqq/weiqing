@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 mload()->model('order');
 
-$ops = array('order_list', 'order_detail', 'orderpay', 'cancel', 'confirm_goods', 'order_comment', 'refund');
+$ops = array('order_list', 'order_detail', 'orderpay', 'cancel', 'confirm_goods', 'order_comment', 'refund', 'group_order', 'group_order_detail');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -20,7 +20,12 @@ $logs = array(
 );
 if ($op == 'order_list') {
 	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status', 'action', 'track_number', 'express_name', 'is_package', 'cart');
-	$orders = pdo_getall('storex_order', array('weid' => intval($_W['uniacid']), 'openid' => $_W['openid']), $field, '', 'time DESC');
+	$condition = array('weid' => intval($_W['uniacid']), 'openid' => $_W['openid'], 'group_goodsid' => 0, 'group_id' => 0);
+	if (pdo_fieldexists('storex_order', 'group_goodsid') && pdo_fieldexists('storex_order', 'group_id')) {
+		$condition['group_goodsid'] = 0;
+		$condition['group_id'] = 0;
+	}
+	$orders = pdo_getall('storex_order', $condition, $field, '', 'time DESC');
 	$order_list = array(
 		'over' => array(),
 		'unfinish' => array(),
@@ -291,5 +296,76 @@ if ($op == 'order_comment') {
 		wmessage(error(0, '评论成功！'), '', 'ajax');
 	} else {
 		wmessage(error(-1, '订单已经评价过了！'), '', 'ajax');
+	}
+}
+
+if ($op == 'group_order') {
+	$fields = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status', 'track_number', 'express_name', 'is_package', 'group_goodsid', 'group_id');
+	$orders = pdo_getall('storex_order', array('openid' => $_W['openid'], 'group_goodsid !=' => 0, 'group_id !=' => 0), $fields, '', 'time DESC');
+	if (!empty($orders)) {
+		$goodsids = array();
+		foreach ($orders as $order) {
+			$goodsids[] = $order['roomid'];
+		}
+		$goods = pdo_getall('storex_goods', array('id' => $goodsids), array('id', 'title', 'thumb'), 'id');
+		foreach ($orders as &$order) {
+			if (!empty($goods[$order['roomid']])) {
+				$order['title'] = $goods[$order['roomid']]['title'];
+				$order['thumb'] = tomedia($goods[$order['roomid']]['title']);
+			}
+			$order = orders_check_status($order);
+		}
+		unset($order);
+	}
+	wmessage(error(0, $orders), '', 'ajax');
+}
+
+if ($op == 'group_order_detail') {
+	$orderid = intval($_GPC['orderid']);
+	$order_info = pdo_get('storex_order', array('id' => $orderid, 'openid' => $_W['openid'], 'group_goodsid !=' => 0, 'group_id !=' => 0));
+	if (!empty($order_info)) {
+		unset($order_info['openid']);
+		$order_info['time'] = date('Y-m-d', $order_info['time']);
+		if (!empty($order_info['mode_distribute'])) {
+			$order_info['order_time'] = date('Y-m-d', $order_info['order_time']);//自提或配送时间
+		}
+		$store_info = pdo_get('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $order_info['hotelid']), array('id', 'title', 'store_type'));
+		$order_info['store_info'] = $store_info;
+
+		$goods_info = pdo_get('storex_goods', array('id' => $order_info['roomid'], 'weid' => $order_info['weid']), array('id', 'thumb', 'oprice', 'cprice', 'title', 'sub_title'));
+		$goods_info['oprice'] = $order_info['oprice'];
+		$goods_info['nums'] = $order_info['nums'];
+		$goods_info['cprice'] = $order_info['cprice'];
+		$goods_info['thumb'] = tomedia($goods_info['thumb']);
+
+		if (!empty($order_info['spec_info'])) {
+			$order_info['spec_info'] = iunserializer($order_info['spec_info']);
+			if (!empty($order_info['spec_info']['goods_val'])) {
+				$goods_info['style'] .= implode(' ', $order_info['spec_info']['goods_val']);
+			}
+			unset($order_info['spec_info']);
+		}
+		$order_goods[] = $goods_info;
+		$order_info['goods'] = $order_goods;
+		if (!empty($order_info['addressid'])) {
+			$order_address = pdo_get('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid']), 'id' => $order_info['addressid']));
+			if (!empty($order_address)) {
+				$order_info['address'] = $order_address['province'] . $order_address['city'] . $order_address['district'] . $order_address['address'];
+			}
+		}
+		//订单状态
+		$order_info = orders_check_status($order_info);
+		$item['is_cancel'] = 2;
+		$item['is_refund'] = 2;
+		$share_data = array(
+			'title' => $goods_info['title'] . '--拼团活动',
+			'desc' => $goods_info['title'] . '--' . $store_info['title'] . '--' . $order_info['cprice'] . '元',
+			'link' => murl('entry', array('do' => 'group', 'op' => 'group_info', 'm' => 'wn_storex_plugin_group', 'group_id' => $order_info['group_id']), true, true),
+			'imgUrl' => tomedia($goods_info['thumb']),
+			'agent_str' => '',
+		);
+		wmessage(error(0, $order_info), $share_data, 'ajax');
+	} else {
+		wmessage(error(-1, '订单错误'), '', 'ajax');
 	}
 }

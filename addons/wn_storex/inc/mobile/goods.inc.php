@@ -721,7 +721,6 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 		if ($goods_info['param'][2] == 3) {
 			$insert['is_package'] = 2;
 		}
-		
 	}
 	$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
 	if ($insert['sum_price'] <= 0) {
