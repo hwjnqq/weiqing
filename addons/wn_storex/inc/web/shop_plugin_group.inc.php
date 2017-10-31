@@ -54,7 +54,33 @@ if ($op == 'post') {
 			pdo_update('storex_plugin_group_activity', $activity_data, array('id' => $id));
 		} else {
 			pdo_insert('storex_plugin_group_activity', $activity_data);
+			$id = pdo_insertid();
 		}
+		//计划任务
+		$cloud = cloud_prepare();
+		if (is_error($cloud)) {
+			itoast($cloud['message'], '', 'error');
+		}
+		set_time_limit(0);
+		$starttime = $activity_data['starttime'];
+		$endtime = $activity_data['endtime'];
+		$cron_title  = date('Y-m-d', $starttime) . '拼团定时任务';
+		$cron_data = array(
+			'uniacid' => $_W['uniacid'],
+			'name' => $cron_title,
+			'filename' => 'group',
+			'type' => 1,
+			'lastruntime' => $endtime,
+			'extra' => $id,
+			'module' => 'wn_storex',
+			'status' => 1,
+		);
+		$status = cron_add($cron_data);
+		if (is_error($status)) {
+			$message = "{$cron_title}同步到云服务失败";
+			itoast($message, referer(), 'info');
+		}
+
 		itoast('设置成功', $this->createWebUrl('shop_plugin_group', array('op' => 'display', 'storeid' => $storeid)), 'success');
 	}
 }
