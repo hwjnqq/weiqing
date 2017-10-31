@@ -224,7 +224,8 @@ if ($op == 'spec_info') {
 	}
 	if (!empty($group)) {
 		$group = deal_group_info($group);
-		$spec_info['cprice'] = get_group_good_cprice($group, $specid);
+		$group['oprice'] = $spec_info['cprice']; 
+		$group['cprice'] = get_group_good_cprice($group, $specid);
 		$spec_info['group'] = $group;
 	}
 	wmessage(error(0, $spec_info), '', 'ajax');
@@ -1304,6 +1305,7 @@ function deal_group_info($group) {
 		foreach ($group['spec_cprice'] as $specid => $price) {
 			$group['spec_id'] = $specid;
 			$group['cprice'] = $price;
+			break;
 		}
 	} else {
 		$group['cprice'] = $group['spec_cprice'][$group['goods_id']];
