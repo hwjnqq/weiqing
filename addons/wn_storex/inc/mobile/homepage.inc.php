@@ -118,20 +118,35 @@ if ($op == 'display') {
 	
 	//拼团活动
 	$plugin_list = get_plugin_list();
-	$activity_group = array();
+	$activity = array();
 	if (check_ims_version() && !empty($plugin_list['wn_storex_plugin_group'])) {
-		$activity_group = pdo_getall('storex_plugin_group_activity', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid));
+		$activity_group = pdo_getall('storex_plugin_group_activity', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'starttime <=' => TIMESTAMP, 'endtime >' => TIMESTAMP));
 		if (!empty($activity_group) && is_array($activity_group)) {
-			foreach ($activity_group as $k => &$v) {
-				if ($v['starttime'] > TIMESTAMP || $v['endtime'] < TIMESTAMP) {
-					unset($activity_group[$k]);
-					continue;
+			foreach ($activity_group as $activity) {
+				$activity_goods = pdo_getall('storex_plugin_activity_goods', array('group_activity' => $activity['id']));
+				$goods = array();
+				if (!empty($activity_goods)) {
+					foreach ($activity_goods as $good) {
+						$storex_goods = pdo_get('storex_goods', array('id' => $good['goods_id']), array('id', 'title', 'cprice'));
+						$good['spec_cprice'] = iunserializer($good['spec_cprice']);
+						$goods = $good;
+						$goods['oprice'] = $storex_goods['cprice'];
+						if ($goods['is_spec'] == 1) {
+							foreach ($good['spec_cprice'] as $price) {
+								$goods['cprice'] = $price;
+								break;
+							}
+						}
+						break;
+					}
 				}
-				$v['starttime'] = date('Y/m/d H:i:s', $v['starttime']);
-				$v['endtime'] = date('Y/m/d H:i:s', $v['endtime']);
+				$activity['starttime'] = date('Y/m/d H:i:s', $activity_group['starttime']);
+				$activity['endtime'] = date('Y/m/d H:i:s', $activity_group['endtime']);
+				$activity['goods'] = $goods;
+				if (!empty($goods)) {
+					break;
+				}
 			}
-			unset($v);
-			sort($activity_group);
 		}
 	}
 	if (!empty($homepage_list) && is_array($homepage_list)) {
@@ -156,7 +171,7 @@ if ($op == 'display') {
 				$value['items'] = $limited_list;
 			}
 			if ($value['type'] == 'activity_group') {
-				$value['items'] = $activity_group;
+				$value['items'] = $activity;
 			}
 		}
 		$tablaname = gettablebytype($store_info['store_type']);
