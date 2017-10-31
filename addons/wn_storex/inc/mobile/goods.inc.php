@@ -714,13 +714,14 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 		$insert = general_goods_order($insert, $goods_info);
 		if (empty($group)) {
 			$insert = calcul_discounts_price($insert, $store_info, $uid, $selected_coupon);
-			$insert['static_price'] = $insert['sum_price'];
-			//计算运费
-			$insert = calculate_express($goods_info, $insert);
-			if ($goods_info['param'][2] == 3) {
-				$insert['is_package'] = 2;
-			}
 		}
+		$insert['static_price'] = $insert['sum_price'];
+		//计算运费
+		$insert = calculate_express($goods_info, $insert);
+		if ($goods_info['param'][2] == 3) {
+			$insert['is_package'] = 2;
+		}
+		
 	}
 	$insert['sum_price'] = sprintf ('%1.2f', $insert['sum_price']);
 	if ($insert['sum_price'] <= 0) {
