@@ -351,3 +351,71 @@ if ($op == 'group_order') {
 	}
 	wmessage(error(0, $orders), '', 'ajax');
 }
+
+if ($op == 'group_order_detail') {
+	$orderid = intval($_GPC['orderid']);
+	$order_info = pdo_get('storex_order', array('id' => $orderid, 'openid' => $_W['openid'], 'group_goodsid !=' => 0, 'group_id !=' => 0));
+	if (!empty($order_info)) {
+		unset($order_info['openid']);
+		$order_info['time'] = date('Y-m-d', $order_info['time']);
+		if (!empty($order_info['mode_distribute'])) {
+			$order_info['order_time'] = date('Y-m-d', $order_info['order_time']);//自提或配送时间
+		}
+		$store_info = pdo_get('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $order_info['hotelid']), array('id', 'title', 'store_type'));
+		$order_info['store_title'] = $store_info['title'];
+
+		$group_goods = pdo_get('storex_plugin_activity_goods', array('id' => $order_info['group_goodsid']));
+
+		$group = pdo_get('storex_plugin_group', array('id' => $order_info['group_id']));
+		$group['member'] = iunserializer($group['member']);
+
+		load()->model('mc');
+		$members = array();
+		$head_info = mc_fansinfo($group['head']);
+		$members[] = $head_info['avatar'];
+
+		$activity_group = pdo_get('storex_plugin_group_activity', array('id' => $group['group_activity_id']));
+		
+		if (!empty($group['member']) && is_array($group['member'])) {
+			$order_info['need_member'] = $group_goods['number'] - count($group['member']) - 1;
+			foreach ($group['member'] as $openid) {
+				$member_info = mc_fansinfo($openid);
+				$members[] = $member_info['avatar'];
+			}
+		} else {
+			$order_info['need_member'] = $group_goods['number'] - 1;
+		}
+		$order_info['member'] = $members;
+		$order_info['over'] = $group['over'];
+		$order_info['endtime'] = date('Y/m/d H:i:s', $activity_group['endtime']);
+
+		$goods_info = pdo_get('storex_goods', array('id' => $order_info['roomid'], 'weid' => $order_info['weid']), array('id', 'thumb', 'oprice', 'cprice', 'title', 'sub_title'));
+		$goods_info['oprice'] = $order_info['oprice'];
+		$goods_info['nums'] = $order_info['nums'];
+		$goods_info['cprice'] = $order_info['cprice'];
+		$goods_info['thumb'] = tomedia($goods_info['thumb']);
+
+		if (!empty($order_info['spec_info'])) {
+			$order_info['spec_info'] = iunserializer($order_info['spec_info']);
+			if (!empty($order_info['spec_info']['goods_val'])) {
+				$goods_info['style'] .= implode(' ', $order_info['spec_info']['goods_val']);
+			}
+			unset($order_info['spec_info']);
+		}
+		$order_goods[] = $goods_info;
+		$order_info['goods'] = $order_goods;
+		if (!empty($order_info['addressid'])) {
+			$order_address = pdo_get('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid']), 'id' => $order_info['addressid']));
+			if (!empty($order_address)) {
+				$order_info['address'] = $order_address['province'] . $order_address['city'] . $order_address['district'] . $order_address['address'];
+			}
+		}
+		//订单状态
+		$order_info = orders_check_status($order_info);
+		$order_info['is_cancel'] = 2;
+		$order_info['is_refund'] = 2;
+		wmessage(error(0, $order_info), '', 'ajax');
+	} else {
+		wmessage(error(-1, '订单错误'), '', 'ajax');
+	}
+}

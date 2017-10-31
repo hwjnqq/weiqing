@@ -128,7 +128,7 @@ class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 						$members = $group['member'];
 						$members[] = $group['head'];
 						$activity_group_info['join'] = 2;
-						if (in_array($_W['openid'], $members)) {
+						if (!in_array($_W['openid'], $members)) {
 							$activity_group_info['join'] = 1;
 						}
 						$activity_group_info['group'] = $group;
