@@ -90,7 +90,7 @@ class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 						if (empty($goods)) {
 							message(error(-1, '商品不存在'), '', 'ajax');
 						}
-						$group_activity['rule'] = iunserializer($group_activity['rule']);
+						$group_activity['rule'] = htmlspecialchars_decode(iunserializer($group_activity['rule']));
 						$group_activity['starttime'] = date('Y/m/d H:i:s', $group_activity['starttime']);
 						$group_activity['endtime'] = date('Y/m/d H:i:s', $group_activity['endtime']);
 						$activity_group_info['activity'] = $group_activity;
