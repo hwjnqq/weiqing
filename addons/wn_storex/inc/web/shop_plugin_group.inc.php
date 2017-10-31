@@ -246,8 +246,10 @@ if ($op == 'grouplist') {
 		$goodsids = array();
 		$group_activity_ids = array();
 		foreach ($grouplist as $group) {
-			$group['member'] = iunserializer($group['member']);
-			$group['member'] = implode('|', $group['member']);
+			if (!empty($group['member'])) {
+				$group['member'] = iunserializer($group['member']);
+				$group['member'] = implode('|', $group['member']);
+			}
 			$goodsids[] = $group['activity_goodsid'];
 			$group_activity_ids[] = $group['group_activity_id'];
 		}
