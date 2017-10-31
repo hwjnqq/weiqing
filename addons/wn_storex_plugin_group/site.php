@@ -86,11 +86,13 @@ class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 					$activity_goods = pdo_get('storex_plugin_activity_goods', array('id' => $group['activity_goodsid']));
 					$group_activity = pdo_get('storex_plugin_group_activity', array('id' => $activity_goods['group_activity']));
 					if ($group_activity['starttime'] <= TIMESTAMP && TIMESTAMP < $group_activity['endtime']) {
-						$goods = pdo_get('storex_goods', array('id' => $activity_goods['goods_id']), array('id', 'title', 'thumb'));
+						$goods = pdo_get('storex_goods', array('id' => $activity_goods['goods_id']), array('id', 'title', 'thumb', 'sub_title', 'cprice'));
 						if (empty($goods)) {
 							message(error(-1, '商品不存在'), '', 'ajax');
 						}
 						$group_activity['rule'] = iunserializer($group_activity['rule']);
+						$group_activity['starttime'] = date('Y/m/d H:i:s', $group_activity['starttime']);
+						$group_activity['endtime'] = date('Y/m/d H:i:s', $group_activity['endtime']);
 						$activity_group_info['activity'] = $group_activity;
 						$activity_goods['spec_cprice'] = iunserializer($activity_goods['spec_cprice']);
 
@@ -104,6 +106,8 @@ class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 							$activity_goods['cprice'] = $activity_goods['spec_cprice'][$activity_goods['goods_id']];
 						}
 						$activity_goods['title'] = $goods['title'];
+						$activity_goods['sub_title'] = $goods['sub_title'];
+						$activity_goods['oprice'] = $goods['cprice'];
 						$activity_goods['thumb'] = tomedia($goods['thumb']);
 						$activity_group_info['group_goods'] = $activity_goods;
 						
