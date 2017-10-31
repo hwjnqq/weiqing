@@ -372,7 +372,7 @@ if ($op == 'group_order_detail') {
 		load()->model('mc');
 		$members = array();
 		$head_info = mc_fansinfo($group['head']);
-		$members[] = array('is_head' => 1, 'avatar' => $head_info['avatar']);
+		$members[] = $head_info['avatar'];
 
 		$activity_group = pdo_get('storex_plugin_group_activity', array('id' => $group['group_activity_id']));
 		
@@ -380,7 +380,7 @@ if ($op == 'group_order_detail') {
 			$order_info['need_member'] = $group_goods['number'] - count($group['member']) - 1;
 			foreach ($group['member'] as $openid) {
 				$member_info = mc_fansinfo($openid);
-				$members[] = array('is_head' => 2, 'avatar' => $member_info['avatar']);
+				$members[] = $member_info['avatar'];
 			}
 		} else {
 			$order_info['need_member'] = $group_goods['number'] - 1;
