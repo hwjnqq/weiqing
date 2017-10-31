@@ -57,6 +57,8 @@ if ($op == 'post') {
 			$id = pdo_insertid();
 		}
 		//计划任务
+		load()->model('cloud');
+		load()->func('cron');
 		$cloud = cloud_prepare();
 		if (is_error($cloud)) {
 			itoast($cloud['message'], '', 'error');
