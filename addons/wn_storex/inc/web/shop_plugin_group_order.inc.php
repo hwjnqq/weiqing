@@ -227,6 +227,12 @@ if ($op == 'edit') {
 		}
 		$refund_logs = pdo_get('storex_refund_logs', array('uniacid' => $_W['uniacid'], 'orderid' => $item['id']), array('id', 'status'));
 		$actions = getOrderAction($item, $store_type, $is_house);
+		if (!empty($actions['cancel'])) {
+			unset($actions['cancel']);
+		}
+		if (!empty($actions['refuse'])) {
+			unset($actions['refuse']);
+		}
 		getOrderpaytext($item);
 		if ($is_house == 1) {
 			$room_list = pdo_getall('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'roomid' => $item['roomid']));

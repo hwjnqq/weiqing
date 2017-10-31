@@ -356,39 +356,6 @@
 	</div>
 </div>
 
-<div id="room-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-default modal-lg">
-		<div class="modal-content">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-				<h3>
-					<ul role="tablist" class="nav nav-pills" style="font-size:14px; margin-top:-20px;">
-						<li role="presentation" class="basic">
-							<a data-toggle="tab" data-type="basic" role="tab" aria-controls="baisc" href="#basic">选择房间</a>
-						</li>
-					</ul>
-				</h3>
-			</div>
-			<div class="modal-body modules-content">
-				<div class="tab-content">
-					{if !empty($room_list)}
-					{loop $room_list $room}
-						<input class='room-input' type='checkbox' name="room[]" value="{$room['id']}" {if !empty($food['foods_set']) && in_array($title, $food['foods_set'])} checked {/if}/>
-						房间 {$room['roomnumber']}
-					{/loop}
-					{else}
-					<div class="text-center">未设置房间</div>
-					{/if}
-				</div>
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-				<a class="btn btn-primary order_set_room">提交</a>
-			</div>
-		</div>
-	</div>
-</div>
-
 <div class="modal fade" id="orderConfirm" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
 	<div class="modal-dialog" role="document">
 		<form action="" class="form-horizontal form wn-form" method="post" enctype="multipart/form-data" onsubmit="return formcheck();">
@@ -453,32 +420,6 @@
 				util.message('分配成功', location.href, 'success');
 			}
 			$('#room-modal').modal('hide');
-		});
-	});
-	$(function() {
-		$('.order_set_room').click(function() {
-			var index = $('.room-input');
-			var rooms = [];
-			var option = null;
-			for (var i = 0; i < index.length; i++) {
-				option = index[i];
-				if (option.checked) {
-					rooms.push(option.value);
-				}
-			}
-			if (rooms.length != num) {
-				util.message('所选房间数量跟订单房间数量不一致');
-			}
-			$.post("{php echo $this->createWebUrl('shop_plugin_group_order', array('op' => 'assign_room', 'storeid' => $_GPC['storeid']))}", {rooms : rooms, id : id, roomid : roomid}, function(data) {
-				data = $.parseJSON(data);
-				console.dir(data);
-				if (data.message.errno != 0) {
-					util.message(data.message.message, '', 'error');
-				} else {
-					util.message('分配成功', location.href, 'success');
-				}
-				$('#room-modal').modal('hide');
-			});
 		});
 	});
 </script>
