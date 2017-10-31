@@ -132,7 +132,7 @@ if ($op == 'display') {
 						if ($good['is_spec'] == 1) {
 							foreach ($good['spec_cprice'] as $specid => $price) {
 								$good['cprice'] = $price;
-								$good['spec_id'] = $specid;
+								$good['specid'] = $specid;
 							}
 						} else {
 							$good['cprice'] = $good['spec_cprice'][$good['goods_id']];

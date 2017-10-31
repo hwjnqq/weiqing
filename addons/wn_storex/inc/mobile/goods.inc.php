@@ -22,8 +22,8 @@ $activity = pdo_get('storex_goods_activity', $condition, array(), '', 'starttime
 $group = array();
 if (!empty($_GPC['group_goods'])) {
 	if (empty($goodsid)) {
-		$goods = order_goodsids($uid);
-		$goodsid = $goods[0][0];
+		$activity_goods = pdo_get('storex_plugin_activity_goods', array('id' => intval($_GPC['group_goods'])));
+		$goodsid = $activity_goods['goods_id'];
 	}
 	$group = get_group_goods_info($_GPC['group_goods'], $goodsid);
 }
@@ -307,6 +307,9 @@ if ($op == 'info') {
 	} else {
 		$goods = order_goodsids($uid);
 		if (!empty($goods) && is_array($goods)) {
+			if (!empty($group)) {
+				$group['cprice'] = get_group_good_cprice($group, $goods[0][0]);
+			}
 			$order_goods = get_order_goods($store_info, $goods, $group);
 		} else {
 			wmessage(error(-1, '商品错误'), '', 'ajax');
@@ -326,7 +329,7 @@ if ($op == 'info') {
 		}
 	}
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
-
+	
 	$infos['info'] = $info;
 	$infos['goods_info'] = $order_goods;
 	$infos['address'] = $address;
