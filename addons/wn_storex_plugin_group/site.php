@@ -10,7 +10,7 @@ defined('IN_IA') or exit('Access Denied');
 class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 	public function doMobileGroup() {
 		global $_W, $_GPC;
-		$ops = array('group_list');
+		$ops = array('group_list', 'group_info');
 		$op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'group_list';
 		$storeid = intval($_GPC['storeid']);
 		//拼图列表
@@ -69,6 +69,84 @@ class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 				}
 			}
 			message(error(0, $activity), '', 'ajax');
+		}
+
+		
+		if ($op == 'group_info') {
+			$orderid = intval($_GPC['orderid']);
+			$order = pdo_get('storex_order', array('id' => $orderid));
+			if (empty($order)) {
+				message(error(-1, '订单不存在'), '', 'ajax');
+			}
+			$group_id = $order['group_id'];
+			if (!empty($group_id)) {
+				$group = pdo_get('storex_plugin_group', array('id' => $group_id));
+				if (!empty($group)) {
+					$activity_goods = pdo_get('storex_plugin_activity_goods', array('id' => $group['activity_goodsid']));
+					$group_activity = pdo_get('storex_plugin_group_activity', array('id' => $activity_goods['group_activity']));
+					if ($group_activity['starttime'] <= TIMESTAMP && TIMESTAMP < $group_activity['endtime']) {
+						$goods = pdo_get('storex_goods', array('id' => $activity_goods['goods_id']), array('id', 'title', 'thumb'));
+						if (empty($goods)) {
+							message(error(-1, '商品不存在'), '', 'ajax');
+						}
+						$group_activity['rule'] = iunserializer($group_activity['rule']);
+						$activity_group_info['activity'] = $group_activity;
+						$activity_goods['spec_cprice'] = iunserializer($activity_goods['spec_cprice']);
+
+						if (!empty($order['spec_id'])) {
+							$activity_goods['cprice'] = $activity_goods['spec_cprice'][$order['spec_id']];
+							$good_spec = pdo_get('storex_spec_goods', array('id' => $order['spec_id']), array('id', 'thumb'));
+							if (!empty($good_spec)) {
+								$goods['thumb'] = tomedia($good_spec['thumb']);
+							}
+						} else {
+							$activity_goods['cprice'] = $activity_goods['spec_cprice'][$activity_goods['goods_id']];
+						}
+						$activity_goods['title'] = $goods['title'];
+						$activity_goods['thumb'] = tomedia($goods['thumb']);
+						$activity_group_info['group_goods'] = $activity_goods;
+						
+						load()->model('mc');
+						$head_info = mc_fansinfo($group['head']);
+						$group['member_info'][] = $head_info['avatar'];
+						
+						if (!empty($group['member']) && is_array($group['member'])) {
+							$group['member'] = iunserializer($group['member']);
+							foreach ($group['member'] as $openid) {
+								$info = mc_fansinfo($openid);
+								$group['member_info'][] = $info['avatar'];
+							}
+							$group['need_member'] = $activity_goods['number'] - count($group['member']) - 1;
+						} else {
+							$group['need_member'] = $activity_goods['number'] - 1;
+						}						
+						$members = $group['member'];
+						$members[] = $group['head'];
+						$activity_group_info['join'] = 2;
+						if (in_array($_W['openid'], $members)) {
+							$activity_group_info['join'] = 1;
+						}
+						$activity_group_info['group'] = $group;
+						$share_data = array(
+							'title' => $goods['title'] . '--拼团活动',
+							'desc' => $goods['title'] . '--' . $store_info['title'] . '--' . $activity_goods['cprice'] . '元',
+							'link' => murl('entry', array('do' => 'group', 'op' => 'group_info', 'm' => 'wn_storex', 'orderid' => $order['id']), true, true) . '#/Group/Share/' . $order['id'],
+							'imgUrl' => tomedia($goods['thumb']),
+						);
+						print_r( $share_data);
+						exit;
+						wmessage(error(0, $activity_group_info), $share_data, 'ajax');
+					} else if ($group_activity['starttime'] > TIMESTAMP) {
+						wmessage(error(-1, '活动未开始'), '', 'ajax');
+					} else if ($group_activity['endtime'] < TIMESTAMP) {
+						wmessage(error(-1, '活动已经结束'), '', 'ajax');
+					}
+				} else {
+					wmessage(error(-1, '活动不存在'), '', 'ajax');
+				}
+			} else {
+				wmessage(error(-1, '订单不是拼团订单'), '', 'ajax');
+			}
 		}
 	}
 }
