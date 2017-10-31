@@ -127,8 +127,8 @@ if ($op == 'display') {
 					unset($activity_group[$k]);
 					continue;
 				}
-				$v['starttime'] = date('Y-m-d H:i:s', $v['starttime']);
-				$v['endtime'] = date('Y-m-d H:i:s', $v['endtime']);
+				$v['starttime'] = date('Y/m/d H:i:s', $v['starttime']);
+				$v['endtime'] = date('Y/m/d H:i:s', $v['endtime']);
 			}
 			unset($v);
 			sort($activity_group);
