@@ -114,12 +114,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 			$url = $this->createMobileurl('display');
 		}
 		if (!empty($_GPC['orderid'])) {
-			$order = pdo_get('storex_order', array('id' => intval($_GPC['orderid'])), array('id', 'group_id'));
-			if (!empty($order) && !empty($order['group_id'])) {
-				$redirect = $url . '#/Home/OrderInfo/' . $_GPC['orderid'];//跳转拼团详情页面的地址
-			} else {
-				$redirect = $url . '#/Home/OrderInfo/' . $_GPC['orderid'];
-			}
+			$redirect = $url . '#/Home/OrderInfo/' . $_GPC['orderid'];
 			header("Location: $redirect");
 		}
 		if ($_GPC['pay_type'] == 'recharge') {
