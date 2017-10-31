@@ -437,7 +437,6 @@ if ($op == 'group_info') {
 				if (empty($goods)) {
 					message(error(-1, '商品不存在'), '', 'ajax');
 				}
-
 				$group_activity['rule'] = iunserializer($group_activity['rule']);
 				$activity_group_info['activity'] = $group_activity;
 				$activity_goods['spec_cprice'] = iunserializer($activity_goods['spec_cprice']);
@@ -446,7 +445,7 @@ if ($op == 'group_info') {
 					$activity_goods['cprice'] = $activity_goods['spec_cprice'][$order['spec_id']];
 					$good_spec = pdo_get('storex_spec_goods', array('id' => $order['spec_id']), array('id', 'thumb'));
 					if (!empty($good_spec)) {
-						$activity_group_info['goods']['thumb'] = tomedia($good_spec['thumb']);
+						$goods['thumb'] = tomedia($good_spec['thumb']);
 					}
 				} else {
 					$activity_goods['cprice'] = $activity_goods['spec_cprice'][$activity_goods['goods_id']];
@@ -480,7 +479,7 @@ if ($op == 'group_info') {
 					'title' => $goods['title'] . '--拼团活动',
 					'desc' => $goods['title'] . '--' . $store_info['title'] . '--' . $activity_goods['cprice'] . '元',
 					'link' => murl('entry', array('do' => 'group', 'op' => 'group_info', 'm' => 'wn_storex', 'orderid' => $order['id']), true, true) . '#/Group/Share/' . $order['id'],
-					'imgUrl' => tomedia($goods['thumb']),
+					'imgUrl' => $goods['thumb'],
 				);
 				wmessage(error(0, $activity_group_info), $share_data, 'ajax');
 			} else if ($group_activity['starttime'] > TIMESTAMP) {
