@@ -6,6 +6,7 @@
  * @url www.we7.cc
  */
 defined('IN_IA') or exit('Access Denied');
+include "model.php";
 
 class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 	public function doMobileGroup() {
