@@ -153,8 +153,12 @@ function orders_check_status($item) {
 	if ($item['paystatus'] == 1 && !empty($refund_log['status'])) {
 		$item['pay_status_cn'] = order_refund_status($refund_log['status']);
 	}
-	if (!empty($item['goods_status'])) {
-		$item['goods_status_cn'] = order_goods_status($item['goods_status']);
+	if ($item['mode_distribute'] == 1) {
+		$item['goods_status_cn'] = '自提';
+	} elseif ($item['mode_distribute'] == 2) {
+		if (!empty($item['goods_status'])) {
+			$item['goods_status_cn'] = order_goods_status($item['goods_status']);
+		}
 	}
 	return $item;
 }

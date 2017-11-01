@@ -115,7 +115,7 @@ class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 						$head_info = mc_fansinfo($group['head']);
 						$group['member_info'][] = $head_info['avatar'];
 						
-						if (!empty($group['member']) && is_array($group['member'])) {
+						if (!empty($group['member'])) {
 							$group['member'] = iunserializer($group['member']);
 							foreach ($group['member'] as $openid) {
 								$info = mc_fansinfo($openid);

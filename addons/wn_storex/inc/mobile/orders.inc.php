@@ -5,7 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 mload()->model('order');
 
-$ops = array('order_list', 'order_detail', 'orderpay', 'cancel', 'confirm_goods', 'order_comment', 'refund', 'group_order', 'group_order_detail');
+$ops = array('order_list', 'order_detail', 'orderpay', 'check_group_order','cancel', 'confirm_goods', 'order_comment', 'refund', 'group_order', 'group_order_detail');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
@@ -183,6 +183,11 @@ if ($op == 'orderpay') {
 	$params = pay_info($order_id);
 	$pay_info = $this->pay($params);
 	wmessage(error(0, $pay_info), '', 'ajax');
+}
+
+if ($op == 'check_group_order') {
+	$group_id = intval($_GPC['group_id']);
+	check_group_status($group_id);
 }
 
 if ($op == 'cancel') {
