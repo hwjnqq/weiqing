@@ -29,7 +29,7 @@ class Wn_storexModuleCron extends WeModuleCron {
 			if (!empty($order)) {
 				$order_ids = array_keys($order);
 				//删除退款成功的
-				$refund_log_s = pdo_get('storex_refund_logs', array('orderid' => $order_ids, 'status' => 2));
+				$refund_log_s = pdo_getall('storex_refund_logs', array('orderid' => $order_ids, 'status' => 2));
 				if (!empty($refund_log_s)) {
 					foreach ($refund_log_s as $log) {
 						if (!empty($order[$log['orderid']])) {
