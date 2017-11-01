@@ -293,7 +293,10 @@ function pay_info($order_id) {
 	global $_W;
 	$order_info = pdo_get('storex_order', array('id' => $order_id, 'weid' => intval($_W['uniacid']), 'openid' => $_W['openid']), array('ordersn', 'id', 'style', 'sum_price', 'cart', 'group_id'));
 	if (!empty($order_info)) {
-		check_group_status($order_info['group_id']);
+		$result = check_group_status($order_info['group_id']);
+		if (is_error($result)) {
+			wmessage($result, '', 'ajax');
+		}
 		$style = $order_info['style'];
 		if (!empty($order_info['cart'])) {
 			$order_info['cart'] = iunserializer($order_info['cart']);
@@ -308,7 +311,7 @@ function pay_info($order_id) {
 			'tid' => $order_info['id'],//支付订单编号, 应保证在同一模块内部唯一
 			'title' => $style,
 			'fee' => $order_info['sum_price'],//总费用, 只能大于 0
-			'user' => $_W['openid']//付款用户, 付款的用户名(选填项)
+			'user' => $_W['openid'],//付款用户, 付款的用户名(选填项)
 		);
 		return $params;
 	} else {
@@ -1041,23 +1044,23 @@ function check_group_status($group_id = '') {
 	$group_info = pdo_get('storex_plugin_group', array('id' => $group_id));
 	$activity_goods = pdo_get('storex_plugin_activity_goods', array('id' => $group_info['activity_goodsid']));
 	if (empty($group_info)) {
-		wmessage(error(-1, '该拼团不存在'), '', 'ajax');
+		return error(-1, '该拼团不存在');
 	}
 	if (empty($activity_goods)) {
-		wmessage(error(-1, '该活动商品不存在'), '', 'ajax');
+		return error(-1, '该活动商品不存在');
 	}
 	$group_activity = pdo_get('storex_plugin_group_activity', array('id' => $activity_goods['group_activity']));
 	if (empty($group_activity)) {
-		wmessage(error(-1, '该活动不存在'), '', 'ajax');
+		return error(-1, '该活动不存在');
 	}
 	if ($group_activity['starttime'] > TIMESTAMP) {
-		wmessage(error(-1, '该活动未开始'), '', 'ajax');
+		return error(-1, '该活动未开始');
 	}
 	if ($group_activity['endtime'] < TIMESTAMP) {
-		wmessage(error(-1, '该活动已经结束了'), '', 'ajax');
+		return error(-1, '该活动已经结束了');
 	}
 	$group_info['member'] = iunserializer($group_info['member']);
 	if (count($group_info['member']) == ($activity_goods['number'] - 1)) {
-		wmessage(error(-1, '该拼团名额已满'), '', 'ajax');
+		return error(-1, '该拼团名额已满');
 	}
 }

@@ -186,8 +186,16 @@ if ($op == 'orderpay') {
 }
 
 if ($op == 'check_group_order') {
-	$group_id = intval($_GPC['group_id']);
-	check_group_status($group_id);
+	$order_id = intval($_GPC['id']);
+	$order = pdo_get('storex_order', array('id' => $order_id), array('id', 'hotelid', 'group_id'));
+	if (!empty($order['group_id'])) {
+		$result = check_group_status($order['group_id']);
+		if (is_error($result)) {
+			pdo_update('storex_order', array('status' => 2), array('id' => $order_id));
+			wmessage($result, '', 'ajax');
+		}
+	}
+	wmessage(error(0, ''), '', 'ajax');
 }
 
 if ($op == 'cancel') {

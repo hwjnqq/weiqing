@@ -30,7 +30,10 @@ if (!empty($_GPC['group_goods'])) {
 
 if (!empty($_GPC['group_id'])) {
 	$group_id = intval($_GPC['group_id']);
-	check_group_status($group_id);
+	$result = check_group_status($group_id);
+	if (is_error($result)) {
+		wmessage($result, '', 'ajax');
+	}
 	$group_info = pdo_get('storex_plugin_group', array('id' => $group_id));
 	$activity_goods = pdo_get('storex_plugin_activity_goods', array('id' => $group_info['activity_goodsid']));
 	if (empty($group)) {
@@ -740,8 +743,11 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 	if (!empty($group)) {
 		$insert['group_goodsid'] = $group['id'];
 		$insert['group_id'] = $_GPC['group_id'];
+		$result = check_group_status($_GPC['group_id']);
+		if (is_error($result)) {
+			wmessage($result, '', 'ajax');
+		}
 	}
-	check_group_status();
 	pdo_insert('storex_order', $insert);
 	$order_id = pdo_insertid();
 	if (!empty($order_id)) {

@@ -920,6 +920,8 @@ function entry_fetch($storeid, $type, $params) {
 		$entry_url = usercenter_entry_fetch($storeid, $params);
 	} elseif ($type == 'storeindex') {
 		$entry_url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . '#/StoreIndex/' . $storeid;
+	} elseif ($type == 'group_activity') {
+		$entry_url = murl('entry', array('do' => 'display', 'm' => 'wn_storex', 'id' => $storeid), true, true) . '#/Group/Share/' . $params['orderid'];
 	}
 	if (!empty($entry_url) && !empty($params['agentid'])) {
 		$url_array = explode('#', $entry_url);
