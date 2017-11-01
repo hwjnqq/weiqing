@@ -195,6 +195,7 @@ if ($op == 'check_group_order') {
 			wmessage($result, '', 'ajax');
 		}
 	}
+	wmessage(error(0, ''), '', 'ajax');
 }
 
 if ($op == 'cancel') {
