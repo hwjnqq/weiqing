@@ -64,6 +64,8 @@ if ($op == 'post') {
 			itoast($cloud['message'], '', 'error');
 		}
 		set_time_limit(0);
+		$cron_info = pdo_get('core_cron', array('extra' => $id, 'module' => 'wn_storex', 'uniacid' => $_W['uniacid']), array('id'));
+		cron_delete($cron_info['id']);
 		$starttime = $activity_data['starttime'];
 		$endtime = $activity_data['endtime'];
 		$cron_title  = date('Y-m-d', $starttime) . '拼团定时任务';
