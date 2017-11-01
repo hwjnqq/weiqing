@@ -739,6 +739,7 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 	}
 	if (!empty($group)) {
 		$insert['group_goodsid'] = $group['id'];
+		$insert['group_id'] = $_GPC['group_id'];
 	}
 	check_group_status();
 	pdo_insert('storex_order', $insert);

@@ -135,7 +135,7 @@ class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 						$share_data = array(
 							'title' => $goods['title'] . '--拼团活动',
 							'desc' => $goods['title'] . '--' . $store_info['title'] . '--' . $activity_goods['cprice'] . '元',
-							'link' => murl('entry', array('do' => 'display', 'm' => 'wn_storex'), true, true) . '#/Group/Share/' . $order['id'],
+							'link' => murl('entry', array('do' => 'display', 'm' => 'wn_storex', 'id' => $order['hotelid']), true, true) . '#/Group/Share/' . $order['id'],
 							'imgUrl' => tomedia($goods['thumb']),
 						);
 						wmessage(error(0, $activity_group_info), $share_data, 'ajax');

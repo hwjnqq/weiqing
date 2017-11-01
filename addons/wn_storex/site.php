@@ -356,15 +356,19 @@ class Wn_storexModuleSite extends WeModuleSite {
 							if (!empty($order['group_id'])) {
 								$group = pdo_get('storex_plugin_group', array('id' => $order['group_id']));
 								if (!empty($group)) {
-									$group['member'] = iunserializer($group['member']);
-									if (count($group['member']) < ($activity_goods['number'] - 1)) {
-										$group['member'][] = $order['openid'];
-										if (count($group['member']) == ($activity_goods['number'] - 1)) {
-											$group['over'] = 1;
+									if (!empty($group['member'])) {
+										$group['member'] = iunserializer($group['member']);
+										if (count($group['member']) < ($activity_goods['number'] - 1)) {
+											$group['member'][] = $order['openid'];
 										}
-										$group['member'] = iserializer($group['member']);
-										pdo_updata('storex_plugin_group', $group);
+									} else {
+										$group['member'][] = $order['openid'];
 									}
+									if (count($group['member']) == ($activity_goods['number'] - 1)) {
+										$group['over'] = 1;
+									}
+									$group['member'] = iserializer($group['member']);
+									pdo_update('storex_plugin_group', $group, array('id' => $order['group_id']));	
 								}
 							} else {
 								$group = array(
@@ -374,7 +378,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 									'activity_goodsid' => $order['group_goodsid'],
 									'head' => $order['openid'],
 									'member' => '',
-									'start_time' => TIMESTAMP,
+									'start_time' => time(),
 								);
 								pdo_insert('storex_plugin_group', $group);
 								$group_id = pdo_insertid();

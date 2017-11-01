@@ -330,7 +330,7 @@ if ($op == 'group_order') {
 			$group_id = $order['group_id'];
 			if (!empty($goods[$order['roomid']])) {
 				$order['title'] = $goods[$order['roomid']]['title'];
-				$order['thumb'] = tomedia($goods[$order['roomid']]['title']);
+				$order['thumb'] = tomedia($goods[$order['roomid']]['thumb']);
 			}
 			$order = orders_check_status($order);
 			//店铺标题
