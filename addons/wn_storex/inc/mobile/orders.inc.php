@@ -191,6 +191,7 @@ if ($op == 'check_group_order') {
 	if (!empty($order['group_id'])) {
 		$result = check_group_status($order['group_id']);
 		if (is_error($result)) {
+			pdo_update('storex_order', array('status' => 2), array('id' => $order_id));
 			wmessage($result, '', 'ajax');
 		}
 	}
