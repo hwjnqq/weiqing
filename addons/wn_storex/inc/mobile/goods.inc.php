@@ -189,6 +189,7 @@ if ($op == 'goods_info') {
 		$goods_info['activity_exist'] = 1;
 		$goods_info['activity']['oprice'] = $goods_info['oprice'];
 		$goods_info['activity']['cprice'] = $activity['price'];
+		$goods_info['cprice'] = $activity['price'];
 		$goods_info['activity']['endtime'] = date('Y-m-d H:i:s', $goods_info['activity']['endtime']);
 		
 	}

@@ -82,7 +82,10 @@ if ($op == 'display') {
 	if (!empty($activity_seckill) && is_array($activity_seckill)) {
 		foreach ($activity_seckill as $list) {
 			if ($list['is_spec'] == 1) {
-				$goods_val = implode(' ', $spec_goods[$list['specid']]['goods_val']);
+				$goods_val = '';
+				if (!empty($spec_goods[$list['specid']]['goods_val'])) {
+					$goods_val = implode(' ', $spec_goods[$list['specid']]['goods_val']);
+				}
 				$spec_goods[$list['specid']]['cprice'] = $list['price'];
 				$spec_goods[$list['specid']]['nums'] = $list['nums'];
 				$spec_goods[$list['specid']]['title'] .= ' ' . $goods_val;
@@ -90,21 +93,28 @@ if ($op == 'display') {
 				$seckill_list[] = $spec_goods[$list['specid']];
 			} else {
 				$not_spec_goods[$list['goodsid']]['nums'] = $list['nums'];
-				$seckill_list[] = $not_spec_goods[$list['goodsid']];
+				$seckill_goods = $not_spec_goods[$list['goodsid']];
+				$seckill_goods['cprice'] = $list['price'];
+				$seckill_list[] = $seckill_goods;
 			}
 		}
 	}
 	if (!empty($activity_limited) && is_array($activity_limited)) {
 		foreach ($activity_limited as $list) {
 			if ($list['is_spec'] == 1) {
-				$goods_val = implode(' ', $spec_goods[$list['specid']]['goods_val']);
+				$goods_val = '';
+				if (!empty($spec_goods[$list['specid']]['goods_val'])) {
+					$goods_val = implode(' ', $spec_goods[$list['specid']]['goods_val']);
+				}
 				$spec_goods[$list['specid']]['cprice'] = $list['price'];
 				$spec_goods[$list['specid']]['nums'] = $list['nums'];
 				$spec_goods[$list['specid']]['title'] .= ' ' . $goods_val;
 				$spec_goods[$list['specid']]['specid'] = $list['specid'];
 				$limited_list[] = $spec_goods[$list['specid']];
 			} else {
-				$limited_list[] = $not_spec_goods[$list['goodsid']];
+				$limited_goods = $not_spec_goods[$list['goodsid']];
+				$limited_goods['cprice'] = $list['price'];
+				$limited_list[] = $limited_goods;
 			}
 		}
 	}
