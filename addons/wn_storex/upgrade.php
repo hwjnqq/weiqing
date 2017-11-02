@@ -1366,6 +1366,13 @@ if (!pdo_fieldexists('storex_order', 'cart')) {
 if (!pdo_fieldexists('storex_sales_package', 'agent_ratio')) {
 	pdo_query("ALTER TABLE " . tablename('storex_sales_package') . " ADD `agent_ratio`  VARCHAR(200) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '分销员提成'");
 }
+//拼团增加字段
+if (!pdo_fieldexists('storex_order', 'group_goodsid')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `group_goodsid` INT(11) NOT NULL COMMENT '拼团商品设置的id';");
+}
+if (!pdo_fieldexists('storex_order', 'group_id')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `group_id` INT(11) NOT NULL COMMENT '开团后的id';");
+}
 
 //处理mobile更新遗留的js，css和svg文件
 load()->func('file');

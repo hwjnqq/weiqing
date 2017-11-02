@@ -578,7 +578,8 @@ function check_room_nums($dates, $search_data, $goods_info) {
 
 function send_custom_notice($msgtype, $text, $touser) {
 	if (!check_wxapp()) {
-		$account_api = WeAccount::create();
+		global $_W;
+		$account_api = WeAccount::create($_W['acid']);
 		$custom = array(
 			'msgtype' => $msgtype,
 			'text' => $text,

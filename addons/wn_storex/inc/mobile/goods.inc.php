@@ -572,7 +572,7 @@ function goods_hotel_order($insert, $store_info, $uid, $selected_coupon = array(
 		}
 		storex_send_sms($insert, $store_info);
 		storex_send_email($store_info, $insert, $goods_info);
-		if (empty($_GPC['wxapp']) && false) {
+		if (empty($_GPC['wxapp'])) {
 			storex_send_notice($store_info, $orderid);
 			storex_send_notice_touser($insert, $store_info, $goods_info);
 		}
@@ -770,7 +770,7 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 		if ($_GPC['is_cart'] != 1) {
 			storex_send_email($store_info, $insert, $goods_info);
 		}
-		if (empty($_GPC['wxapp']) && false) {
+		if (empty($_GPC['wxapp'])) {
 			storex_send_notice($store_info, $orderid);
 			if ($_GPC['is_cart'] != 1) {
 				storex_send_notice_touser($insert, $store_info, $goods_info);

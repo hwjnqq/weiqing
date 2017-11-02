@@ -40,7 +40,7 @@ if ($op == 'confirm') {
 		itoast('该预约已确认', referer(), 'error');
 	}
 	pdo_update('storex_plugin_room_item', array('status' => 2), array('id' => $id));
-	$account_api = WeAccount::create();
+	$account_api = WeAccount::create($_W['acid']);
 	$message = array(
 		'msgtype' => 'text',
 		'text' => array('content' => urlencode('您的预约已确认，请耐心等待')),

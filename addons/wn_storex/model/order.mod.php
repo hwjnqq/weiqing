@@ -318,7 +318,7 @@ function order_notice_tpl($openid, $type, $params, $templateid) {
 	if ($type == 'refuse_templateid' && $params['store_type'] == STORE_TYPE_HOTEL) {
 		$tplnotice['keyword2'] = array('value' => date('Y.m.d', $params['btime']) . '-' . date('Y.m.d', $params['etime']));
 	}
-	$account_api = WeAccount::create();
+	$account_api = WeAccount::create($_W['acid']);
 	$account_api->sendTplNotice($openid, $templateid, $tplnotice);
 }
 

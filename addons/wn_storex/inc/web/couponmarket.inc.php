@@ -90,7 +90,7 @@ if ($op == 'post') {
 			$openids = activity_get_member_by_type($post['members'][0], $param);
 			$post['members'] = serialize($post['members']);
 			$openids = $openids['members'];
-			$account_api = WeAccount::create();
+			$account_api = WeAccount::create($_W['acid']);
 			foreach ($openids as $openid) {
 				$result = activity_user_get_coupon($post['coupons'], $openid, 3);
 				$coupon_info = activity_get_coupon_info($post['coupons']);
