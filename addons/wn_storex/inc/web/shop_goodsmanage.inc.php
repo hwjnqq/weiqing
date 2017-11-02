@@ -202,7 +202,7 @@ if ($op == 'edit') {
 				'express' => is_numeric($_GPC['express']) ? $_GPC['express'] : 0,
 			);
 			$goods['express_set'] = iserializer($express_set);
-			if (!empty($_GPC['agent_ratio']) && is_array($_GPC['agent_ratio'])) {
+			if ($store['agent_status'] == 1 && !empty($_GPC['agent_ratio']) && is_array($_GPC['agent_ratio'])) {
 				$agent_ratio = $_GPC['agent_ratio'];
 				foreach ($agent_ratio as &$val) {
 					if ($val <= 0 || $val > 100) {

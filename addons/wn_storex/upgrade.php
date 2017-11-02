@@ -1355,6 +1355,10 @@ if (pdo_fieldexists('storex_bases', 'express')) {
 if (!pdo_fieldexists('storex_bases', 'goods_express')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `goods_express` INT(2) NOT NULL DEFAULT '1' COMMENT '单件商品运费模板'");
 }
+if (!pdo_fieldexists('storex_bases', 'agent_status')) {
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `agent_status` TINYINT(2) NOT NULL DEFAULT '2' COMMENT '分销功能开关'");
+}
+
 //订单表增加购物车计算时的商品记录
 if (!pdo_fieldexists('storex_order', 'cart')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `cart` TEXT NOT NULL COMMENT '购物车结算订单的商品'");

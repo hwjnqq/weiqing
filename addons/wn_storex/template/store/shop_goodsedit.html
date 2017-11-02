@@ -240,7 +240,7 @@
 					<span class="help-block">商品特别说明（必填）</span>
 				</div>
 			</div>
-			{if $store_type != STORE_TYPE_HOTEL}
+			{if $store_type != STORE_TYPE_HOTEL && $store['agent_status'] == 1}
 			<div class="form-group">
 				<label class="col-xs-12 col-md-2 control-label">分销员分成百分比</label>
 				<div class="col-md-10" id="" style="padding-left: 0px;">
@@ -253,7 +253,7 @@
 						</div>
 					</div>
 					{/loop}
-					<div class="col-sm-5">
+					<div class="col-sm-6">
 						<span class="help-block">对应分销员等级所获得该商品的分销提成（值0-100,保留两位小数,按百分比计算）</span>
 					</div>
 				</div>

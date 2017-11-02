@@ -87,7 +87,7 @@ if ($op == 'goods_info') {
 	$agent_info = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $store_id, 'uid' => $uid, 'status' => 2), array('id', 'level'));
 	$agent_str = '';
 	$goods_info['agent']['is_agent'] = 2;
-	if (!empty($agent_info)) {
+	if ($store_info['agent_status'] == 1 && !empty($agent_info)) {
 		$agent_str = '&from=' . md5('wn_storex_52111') . $agent_info['id'];
 		$agent_ratio = iunserializer($goods_info['agent_ratio']);
 		$ratio = $agent_ratio[1];

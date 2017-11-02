@@ -308,6 +308,7 @@ $sql = "
 	`pick_up_mode` varchar(100) NOT NULL COMMENT '取货方式',
 	`express` varchar(200) NOT NULL COMMENT '购物车统一结算运费',
 	`goods_express` int(2) NOT NULL DEFAULT '1' COMMENT '单件商品运费模板',
+	`agent_status` tinyint(2) NOT NULL DEFAULT '2' COMMENT '分销功能开关',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) DEFAULT CHARSET=utf8;
