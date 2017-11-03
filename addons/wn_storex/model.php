@@ -898,6 +898,12 @@ function wxapp_entry_fetchall($storeid, $wxapp = false) {
 		'name' => '个人中心',
 		'group' => wxapp_usercenter_entry($storeid),
 	);
+
+	$entrys[] = array(
+		'type' => 'article',
+		'name' => '文章列表',
+		'group' => article_entry_fetch($storeid, array(), $wxapp),
+	);
 	
 	$entrys = array_merge($entrys, $usercenter_vue_routes);
 	return $entrys;
@@ -983,22 +989,30 @@ function entry_fetchall($storeid) {
 	return $entrys;
 }
 
-function article_entry_fetch($storeid, $params = array()) {
+function article_entry_fetch($storeid, $params = array(), $wxapp) {
 	$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
 	$article = pdo_getall('storex_article', array('storeid' => $storeid), array('id', 'storeid', 'title'));
 	$entry_url = '';
 	$article_entry_routes = array();
 	if (!empty($article) && is_array($article)) {
 		foreach ($article as $val) {
-			if ($params['article_id'] == $val['id']) {
-				$entry_url = $url . '#/Notice/' . $storeid . '/' . $val['id'] . '/article';
-				break;
+			if (!empty($wxapp)) {
+				$article_entry_routes[] = array(
+					'type' => 'article',
+					'name' => $val['title'],
+					'link' => 'wn_storex/pages/notice/notice?type=notice&storeid=' . $storeid . '&id=' . $val['id'] . '&i=article',
+				);
+			} else {
+				if ($params['article_id'] == $val['id']) {
+					$entry_url = $url . '#/Notice/' . $storeid . '/' . $val['id'] . '/article';
+					break;
+				}
+				$article_entry_routes[] = array(
+					'type' => 'article',
+					'name' => $val['title'],
+					'link' => $url . '#/Notice/' . $storeid . '/' . $val['id'] . '/article',
+				);
 			}
-			$article_entry_routes[] = array(
-				'type' => 'article',
-				'name' => $val['title'],
-				'link' => $url . '#/Notice/' . $storeid . '/' . $val['id'] . '/article',
-			);
 		}
 	}
 	return !empty($entry_url) ? $entry_url : $article_entry_routes;
@@ -1254,7 +1268,7 @@ function category_entry_fetch($storeid, $params = array(), $wxapp = false) {
 					} elseif ($info['category_type'] == 2) {
 						if (!empty($wxapp)) {
 							if (empty($_W['wn_storex']['store_info']['store_type'])) {
-								$vue_route = '/wn_storex/pages/category/childCategory?id=' . $info['id'];
+								$vue_route = '/wn_storex/pages/category/category?id=' . $storeid . '&cid=' . $info['id'];
 							} elseif ($_W['wn_storex']['store_info']['store_type'] == 1) {
 								$vue_route = '/wn_storex/pages/good/goodList?id=' . $info['id'] . '&type=' . $info['category_type'];
 							}
@@ -1289,17 +1303,16 @@ function category_entry_fetch($storeid, $params = array(), $wxapp = false) {
 				}
 			}
 			unset($info);
-			foreach ($category_list as $k => &$v) {
-				if (empty($v['group']) && $v['category_type'] != 1) {
-					if (!empty($wxapp)) {
-						$v['link'] = '/wn_storex/pages/good/goodList?id=' . $k . '&type=' . $v['category_type'];
-					}
-					//  else {
-					// 	$v['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . '#/Category/GoodList/' . $storeid . '/' .$k;
-					// }
-				}
-			}
-			unset($v);
+			// foreach ($category_list as $k => &$v) {
+			// 	if (empty($v['group']) && $v['category_type'] != 1) {
+			// 		if (!empty($wxapp)) {
+			// 			$v['link'] = '/wn_storex/pages/good/goodList?id=' . $k . '&type=' . $v['category_type'];
+			// 		}else {
+			// 			$v['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . '#/Category/GoodList/' . $storeid . '/' .$k;
+			// 		}
+			// 	}
+			// }
+			// unset($v);
 		}
 		if (empty($wxapp)) {
 			cache_write($cachekey, $category_list);
