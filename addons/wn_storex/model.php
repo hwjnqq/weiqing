@@ -989,7 +989,7 @@ function entry_fetchall($storeid) {
 	return $entrys;
 }
 
-function article_entry_fetch($storeid, $params = array(), $wxapp) {
+function article_entry_fetch($storeid, $params = array(), $wxapp = false) {
 	$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
 	$article = pdo_getall('storex_article', array('storeid' => $storeid), array('id', 'storeid', 'title'));
 	$entry_url = '';
