@@ -220,17 +220,23 @@ if ($op == 'display') {
 if ($op == 'notice') {
 	$noticeid = $_GPC['noticeid'];
 	$noticekey = $_GPC['noticekey'];
-	$notice_info = pdo_get('storex_homepage', array('id' => $noticeid, 'uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'type' => 'notice', 'is_wxapp' => 2));
-	if (!empty($notice_info) && !empty($notice_info['items'])) {
-		$notice_info['items'] = iunserializer($notice_info['items']);
-		if (!empty($notice_info['items'][$noticekey])) {
-			$article = pdo_get('storex_article', array('id' => $notice_info['items'][$noticekey]['id']));
-			if (!empty($article)) {
-				$article['thumb'] = tomedia($article['thumb']);
-			} else {
-				$article = array();
-			}
+	if ($noticekey == 'article') {
+		$article = pdo_get('storex_article', array('id' => $noticeid));
+		if (!empty($article)) {
+			$article['thumb'] = tomedia($article['thumb']);
 			wmessage(error(0, $article), '', 'ajax');
+		}
+	} else {
+		$notice_info = pdo_get('storex_homepage', array('id' => $noticeid, 'uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'type' => 'notice', 'is_wxapp' => 2));
+		if (!empty($notice_info) && !empty($notice_info['items'])) {
+			$notice_info['items'] = iunserializer($notice_info['items']);
+			if (!empty($notice_info['items'][$noticekey])) {
+				$article = pdo_get('storex_article', array('id' => $notice_info['items'][$noticekey]['id']));
+				if (!empty($article)) {
+					$article['thumb'] = tomedia($article['thumb']);
+					wmessage(error(0, $article), '', 'ajax');
+				}
+			}
 		}
 	}
 	wmessage(error(0, array()), '', 'ajax');

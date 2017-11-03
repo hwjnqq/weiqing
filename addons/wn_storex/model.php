@@ -922,6 +922,8 @@ function entry_fetch($storeid, $type, $params) {
 		$entry_url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . '#/StoreIndex/' . $storeid;
 	} elseif ($type == 'group_activity') {
 		$entry_url = murl('entry', array('do' => 'display', 'm' => 'wn_storex', 'id' => $storeid), true, true) . '#/Group/Share/' . $params['orderid'];
+	} elseif ($type == 'article') {
+		$entry_url = article_entry_fetch($storeid, $params);
 	}
 	if (!empty($entry_url) && !empty($params['agentid'])) {
 		$url_array = explode('#', $entry_url);
@@ -971,9 +973,35 @@ function entry_fetchall($storeid) {
 		'name' => '个人中心',
 		'group' => usercenter_entry_fetch($storeid),
 	);
+	$entrys[] = array(
+		'type' => 'article',
+		'name' => '文章列表',
+		'group' => article_entry_fetch($storeid),
+	);
 
 	$entrys = array_merge($entrys, $usercenter_vue_routes);
 	return $entrys;
+}
+
+function article_entry_fetch($storeid, $params = array()) {
+	$url = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true);
+	$article = pdo_getall('storex_article', array('storeid' => $storeid), array('id', 'storeid', 'title'));
+	$entry_url = '';
+	$article_entry_routes = array();
+	if (!empty($article) && is_array($article)) {
+		foreach ($article as $val) {
+			if ($params['article_id'] == $val['id']) {
+				$entry_url = $url . '#/Notice/' . $storeid . '/' . $val['id'] . '/article';
+				break;
+			}
+			$article_entry_routes[] = array(
+				'type' => 'article',
+				'name' => $val['title'],
+				'link' => $url . '#/Notice/' . $storeid . '/' . $val['id'] . '/article',
+			);
+		}
+	}
+	return !empty($entry_url) ? $entry_url : $article_entry_routes;
 }
 
 function usercenter_entry_fetch($storeid, $params = array()) {
