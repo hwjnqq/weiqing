@@ -152,4 +152,15 @@ class Wn_storex_plugin_groupModuleSite extends WeModuleSite {
 			}
 		}
 	}
+	public function doWebStorexgroup() {
+		global $_W, $_GPC;
+		$storex_bases = pdo_getall('storex_bases', array('store_type' => 0), array('id', 'title', 'thumb'));
+		if (!empty($storex_bases)) {
+			foreach ($storex_bases as &$store) {
+				$store['thumb'] = tomedia($store['thumb']);
+				$store['link'] = url('site/entry', array('do' => 'shop_plugin_group', 'op' => 'display', 'storeid' => $store['id'], 'm' => 'wn_storex'));
+			}
+		}
+		include $this->template('storexgroup');
+	}
 }
