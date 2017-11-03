@@ -15,7 +15,7 @@ if ($op == 'display') {
 	}
 	$group = module_fetch('wn_storex_plugin_group');
 	$group_show = false;
-	if (!empty($group) && $hotel_service['enabled'] == 1 && $store_info['store_type'] != STORE_TYPE_HOTEL) {
+	if (!empty($group) && $store_info['store_type'] != STORE_TYPE_HOTEL) {
 		$group_show = true;
 	}
 }
