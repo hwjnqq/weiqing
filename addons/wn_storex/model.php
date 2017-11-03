@@ -1232,7 +1232,7 @@ function category_entry_fetch($storeid, $params = array(), $wxapp = false) {
 							}
 						} else {
 							if (empty($_W['wn_storex']['store_info']['store_type'])) {
-								$vue_route = '#/Category/' . $storeid;
+								$vue_route = '#/Category/' . $storeid . '?cid=' . $info['id'];
 								$category_status = true;
 							} elseif ($_W['wn_storex']['store_info']['store_type'] == 1) {
 								$vue_route = '#/Category/GoodList/' . $storeid . '/';
