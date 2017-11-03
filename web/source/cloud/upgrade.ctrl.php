@@ -11,7 +11,7 @@ load()->func('db');
 
 $cloud_ready = cloud_prepare();
 if (is_error($cloud_ready)) {
-	message($cloud_ready['message'], '', 'error');
+	message($cloud_ready['message'], url('cloud/profile'), 'error');
 }
 
 $dos = array('upgrade');
@@ -29,20 +29,18 @@ if ($do == 'upgrade') {
 	if (checksubmit('submit')) {
 		$upgrade = cloud_build();
 		if (is_error($upgrade)) {
-			itoast($upgrade['message'], '', 'error');
+			message($upgrade['message'], '', 'error');
 		}
 		if ($upgrade['upgrade']) {
-			itoast("检测到新版本: <strong>{$upgrade['version']} (Release {$upgrade['release']})</strong>, 请立即更新.", 'refresh');
+			message("检测到新版本: <strong>{$upgrade['version']} (Release {$upgrade['release']})</strong>, 请立即更新.", 'refresh');
 		} else {
 			cache_delete('checkupgrade:system');
 			cache_delete('cloud:transtoken');
-			itoast('检查结果: 恭喜, 你的程序已经是最新版本. ', 'refresh');
+			message('检查结果: 恭喜, 你的程序已经是最新版本. ', 'refresh');
 		}
 	}
-	cache_load('upgrade');
-	if (!empty($_W['cache']['upgrade'])) {
-		$upgrade_cache = $_W['cache']['upgrade'];
-	}
+	
+	$upgrade_cache = cache_load('upgrade');
 	if (empty($upgrade_cache) || TIMESTAMP - $upgrade_cache['lastupdate'] >= 3600 * 24 || empty($upgrade_cache['data'])) {
 		$upgrade = cloud_build();
 	} else {

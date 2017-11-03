@@ -173,9 +173,9 @@ if ($do == 'post') {
 				$rids = implode($keywords, ',');
 				$sql = "SELECT `id`, `name` FROM " . tablename('rule') . " WHERE `id` IN ($rids)";
 				$rules = pdo_fetchall($sql);
-				iajax(0, @json_encode($rules), '');
+				iajax(-1, $rules, '');
 			}
-			iajax(-1, '');
+			iajax(0, '');
 		}
 		$rid = intval($_GPC['rid']);
 		if (!empty($rid)) {
@@ -297,10 +297,11 @@ if ($do == 'post') {
 			if (is_error($result)) {
 				itoast($result['message'], '', 'info');
 			}
+
 			if ($reply_type == 'module') {
 				$setting[$type] = array('type' => 'module', 'module' => $module);
 			} else {
-				$rule = pdo_get('rule_keyword', array('id' => $rule_id, 'uniacid' => $_W['uniacid']));
+				$rule = pdo_get('rule_keyword', array('rid' => $rule_id, 'uniacid' => $_W['uniacid']));
 				$setting[$type] = array('type' => 'keyword', 'keyword' => $rule['content']);
 			}
 			uni_setting_save('default_message', $setting);

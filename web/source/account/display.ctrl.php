@@ -61,6 +61,8 @@ if ($do == 'display') {
 	if(isset($letter) && strlen($letter) == 1) {
 		$account_table->searchWithLetter($letter);
 	}
+
+	$account_table->accountRankOrder();
 	$account_table->searchWithPage($pindex, $psize);
 	$account_list = $account_table->searchAccountList();
 	

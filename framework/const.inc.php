@@ -148,6 +148,7 @@ define('MATERIAL_WEXIN', 'perm');//微信素材类型
 
 //自定义菜单类型
 define('MENU_CURRENTSELF', 1);
+define('MENU_HISTORY', 2);
 define('MENU_CONDITIONAL', 3);
 
 //用户状态

@@ -13,9 +13,6 @@ function permission_build() {
 	global $_W;
 	$we7_file_permission = require IA_ROOT . '/web/common/permission.inc.php';
 	$permission_frames = require IA_ROOT . '/web/common/frames.inc.php';
-	if (defined('FRAME') && in_array(FRAME, array('account', 'wxapp'))) {
-		$_W['role'] = permission_account_user_role($_W['uid'], $_W['uniacid']);
-	}
 	if (!in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OPERATOR, ACCOUNT_MANAGE_NAME_MANAGER)) || empty($_W['uniacid'])) {
 		return $we7_file_permission;
 	}
@@ -374,7 +371,7 @@ function permission_check_account_user($permission_name, $show_message = true, $
 		} else {
 			return true;
 		}
-	} elseif ($action == 'wxapp') {
+	} elseif ($action == 'wxapp' || !empty($_W['account']) && $_W['account']['type'] == ACCOUNT_TYPE_APP_NORMAL) {
 		$users_permission = permission_account_user('wxapp');
 	} else {
 		$users_permission = permission_account_user('system');

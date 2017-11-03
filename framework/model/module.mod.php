@@ -624,6 +624,52 @@ function module_upgrade_new($type = 'account') {
 }
 
 /**
+ * 判断某一模块是否在公众号模块权限内
+ * @param string $module_name
+ * @param int $uniacid
+ * @return boolean
+ */
+function module_exist_in_account($module_name, $uniacid) {
+	global $_W;
+	$result = false;
+	$module_name = trim($module_name);
+	$uniacid = intval($uniacid);
+	if (empty($module_name) || empty($uniacid)) {
+		return $result;
+	}
+	$founders = explode(',', $_W['config']['setting']['founder']);
+	$owner_uid = pdo_getcolumn('uni_account_users',  array('uniacid' => $uniacid, 'role' => 'owner'), 'uid');
+	if (!empty($owner_uid) && !in_array($owner_uid, $founders)) {
+		$packageids = pdo_getall('uni_account_group', array('uniacid' => $uniacid), array('groupid'), 'groupid');
+		$packageids = array_keys($packageids);
+		if ($_W['setting']['site']['family'] == 'x') {
+			$site_store_buy_goods = uni_site_store_buy_goods($uniacid);
+			$site_store_buy_package = table('store')->searchUserBuyPackage($uniacid);
+			$packageids = array_merge($packageids, array_keys($site_store_buy_package));
+		}
+		if (!in_array('-1', $packageids)) {
+			$uni_modules = array();
+			$uni_groups = pdo_fetchall("SELECT `modules` FROM " . tablename('uni_group') . " WHERE " .  "id IN ('".implode("','", $packageids)."') OR " . " uniacid = '{$uniacid}'");
+			if (!empty($uni_groups)) {
+				foreach ($uni_groups as $group) {
+					$group_module = (array)iunserializer($group['modules']);
+					$uni_modules = array_merge($group_module, $uni_modules);
+				}
+			}
+			$user_modules = user_modules($owner_uid);
+			$modules = array_merge(array_keys($user_modules), $uni_modules, $site_store_buy_goods);
+			$result = in_array($module_name, $modules) ? true : false;
+		} else {
+			$result = true;
+		}
+	} else {
+		$result = true;
+	}
+	return $result;
+}
+
+
+/**
  * 获取操作员有某一模块权限的所有公众号和小程序
  * @param int $uid 用户UID
  * @param string $module_name 模块name
@@ -640,44 +686,26 @@ function module_get_user_account_list($uid, $module_name) {
 	if (empty($module_info)) {
 		return $accounts_list;
 	}
-	$accounts = user_account_detail_info($uid);
-	if (empty($accounts)) {
+
+	$account_users_info = table('account')->userOwnedAccount($uid);
+	if (empty($account_users_info)) {
 		return $accounts_list;
 	}
-	if (!empty($accounts['wxapp'])) {
-		foreach ($accounts['wxapp'] as $wxapp_value) {
-			if (empty($wxapp_value['uniacid'])) {
-				continue;
-			}
-			$wxapp_modules = uni_modules_by_uniacid($wxapp_value['uniacid']);
-			$wxapp_modules = array_keys($wxapp_modules);
-			$module_permission_exist = permission_account_user_menu($uid, $wxapp_value['uniacid'], $module_name);
-			if (in_array($module_name, $wxapp_modules) && (in_array('all',$module_permission_exist) || !empty($module_permission_exist))) {
-				$accounts_list[$wxapp_value['uniacid']] = $wxapp_value;
-			}
-		}
-	}
-	if (!empty($accounts['wechat'])) {
-		foreach ($accounts['wechat'] as $wechat_value) {
-			if (empty($wechat_value['uniacid'])) {
-				continue;
-			}
-			$wechat_modules = uni_modules_by_uniacid($wechat_value['uniacid']);
-			$wechat_modules = array_keys($wechat_modules);
-			$module_permission_exist = permission_account_user_menu($uid, $wxapp_value['uniacid'], $module_name);
-			if (in_array($module_name, $wechat_modules) && (in_array('all',$module_permission_exist) || !empty($module_permission_exist))) {
-				$accounts_list[$wechat_value['uniacid']] = $wechat_value;
-			}
-		}
-	}
-
-	foreach ($accounts_list as $key => $account_value) {
-		if ($module_info['wxapp_support'] == MODULE_SUPPORT_WXAPP && $module_info['app_support'] == MODULE_SUPPORT_ACCOUNT) {
+	$accounts = array();
+	foreach ($account_users_info as $account) {
+		if (empty($account['uniacid'])) {
 			continue;
-		} elseif ($module_info['wxapp_support'] == MODULE_SUPPORT_WXAPP && $account_value['type'] != ACCOUNT_TYPE_APP_NORMAL) {
-			unset($accounts_list[$key]);
-		} elseif ($module_info['app_support'] == MODULE_SUPPORT_ACCOUNT && !in_array($account_value['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
-			unset($accounts_list[$key]);
+		}
+		$uniacid = 0;
+		if (($account['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $account['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) && $module_info['app_support'] == MODULE_SUPPORT_ACCOUNT) {
+			$uniacid = $account['uniacid'];
+		} elseif ($account['type'] == ACCOUNT_TYPE_APP_NORMAL && $module_info['wxapp_support'] == MODULE_SUPPORT_WXAPP) {
+			$uniacid = $account['uniacid'];
+		}
+		if (!empty($uniacid)) {
+			if (module_exist_in_account($module_name, $uniacid)) {
+				$accounts_list[$uniacid] = $account;
+			}
 		}
 	}
 

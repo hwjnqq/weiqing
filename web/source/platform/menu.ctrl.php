@@ -93,6 +93,17 @@ if ($do == 'post') {
 	$type = intval($_GPC['type']);
 	$id = intval($_GPC['id']);
 	$copy = intval($_GPC['copy']);
+	if (empty($type)) {
+		if (!$_W['isajax']) {
+			$update_self_menu = menu_update_currentself();
+			if (is_error($update_self_menu)) {
+				itoast($update_self_menu['message'], '', 'info');
+			}
+		}
+		$type = MENU_CURRENTSELF;
+		$default_menu = menu_default();
+		$id = $default_menu['id'];
+	}
 	$params = array();
 	if ($id > 0) {
 		$menu = menu_get($id);
@@ -203,8 +214,12 @@ if ($do == 'post') {
 		$is_conditional = $post['type'] == MENU_CONDITIONAL ? true : false;
 		$menu = menu_construct_createmenu_data($post, $is_conditional);
 
-		$account_api = WeAccount::create();
-		$result = $account_api->menuCreate($menu);
+		if ($_GPC['submit_type'] == 'publish' || $is_conditional) {
+			$account_api = WeAccount::create();
+			$result = $account_api->menuCreate($menu);
+		} else {
+			$result = true;
+		}
 		if (is_error($result)) {
 			iajax($result['errno'], $result['message']);
 		} else {
@@ -229,13 +244,13 @@ if ($do == 'post') {
 				'createtime' => TIMESTAMP,
 			);
 
-			if ($post['type'] == 1) {
+			if ($post['type'] == MENU_CURRENTSELF) {
 				if (!empty($_GPC['id'])) {
 					pdo_update('uni_account_menus', $insert, array('uniacid' => $_W['uniacid'], 'type' => MENU_CURRENTSELF, 'id' => intval($_GPC['id'])));
 				} else {
 					$default_menu_ids = pdo_getall('uni_account_menus', array('uniacid' => $_W['uniacid'], 'type' => MENU_CURRENTSELF, 'status' => STATUS_ON), array('id'));
 					foreach ($default_menu_ids as $id) {
-						pdo_update('uni_account_menus', array('status' => '0'), array('id' => $id));
+						pdo_update('uni_account_menus', array('status' => STATUS_OFF), array('id' => $id));
 					}
 					pdo_insert('uni_account_menus', $insert);
 				}

@@ -36,7 +36,7 @@ $we7_system_menu['account'] = array(
 				),
 				'platform_menu' => array(
 					'title' => '自定义菜单',
-					'url' => url('platform/menu'),
+					'url' => url('platform/menu/post'),
 					'icon' => 'wi wi-custommenu',
 					'permission_name' => 'platform_menu',
 				),
@@ -67,6 +67,16 @@ $we7_system_menu['account'] = array(
 					'url' => url('platform/material'),
 					'icon' => 'wi wi-redact',
 					'permission_name' => 'platform_material',
+					'sub_permission' => array(
+						array(
+							'title' => '添加/编辑',
+							'permission_name' => 'material_post',
+						),
+						array(
+							'title' => '删除',
+							'permission_name' => 'platform_material_delete',
+						),
+					),
 				),
 				'platform_site' => array(
 					'title' => '微官网-文章',
@@ -173,7 +183,18 @@ $we7_system_menu['wxapp'] = array(
 					'is_display' => 1,
 					'icon' => 'wi wi-examine',
 					'permission_name' => 'wxapp_front_download',
-				)
+				),
+				'platform_material' => array(
+					'title' => '素材管理',
+					'is_display' => 0,
+					'permission_name' => 'platform_material',
+					'sub_permission' => array(
+						array(
+							'title' => '删除',
+							'permission_name' => 'platform_material_delete',
+						),
+					),
+				),
 			)
 		)
 	),
@@ -416,7 +437,7 @@ $we7_system_menu['system'] = array(
 $we7_system_menu['site'] = array(
 	'title' => '站点管理',
 	'icon' => 'wi wi-system-site',
-	'url' => 'cloud.php',
+	'url' => url('cloud/profile'),
 	'section' => array(
 		'cloud' => array(
 			'title' => '云服务',
@@ -485,7 +506,7 @@ $we7_system_menu['site'] = array(
 					'url' => url('system/ipwhitelist'),
 					'icon' => 'wi wi-ip',
 					'permission_name' => 'system_setting_ipwhitelist',
-				),
+				)
 			)
 		),
 		'utility' => array(

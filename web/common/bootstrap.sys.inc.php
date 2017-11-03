@@ -38,7 +38,8 @@ if (!empty($_W['uniacid'])) {
 	$_W['weid'] = $_W['uniacid'];
 }
 if (!empty($_W['uid'])) {
-	$_W['role'] = permission_account_user_role($_W['uid']);
+	$_W['highest_role'] = permission_account_user_role($_W['uid']);
+	$_W['role'] = permission_account_user_role($_W['uid'], $_W['uniacid']);
 }
 $_W['template'] = !empty($_W['setting']['basic']['template']) ? $_W['setting']['basic']['template'] : 'default';
 load()->func('compat.biz');

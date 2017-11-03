@@ -245,7 +245,7 @@ if ($do == 'download_fans') {
 		$total_page = ceil($wechat_fans_count / 500);
 		for ($i = 0; $i < $total_page; $i++) {
 			$wechat_fans = array_slice($wechat_fans_list['fans'], $i * 500, 500);
-			$system_fans = pdo_getall('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'openid' => $wechat_fans), array(), 'openid');
+			$system_fans = pdo_getall('mc_mapping_fans', array('openid' => $wechat_fans), array(), 'openid');
 			$add_fans_sql = '';
 			foreach($wechat_fans as $openid) {
 				if (empty($system_fans) || empty($system_fans[$openid])) {

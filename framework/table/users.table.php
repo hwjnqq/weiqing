@@ -11,7 +11,7 @@ class UsersTable extends We7Table {
 	public function searchUsersList() {
 		global $_W;
 		$this->query->from('users', 'u')
-				->select('u.*, p.avatar as avatar')
+				->select('u.*, p.avatar as avatar, p.mobile as mobile, p.uid as puid')
 				->leftjoin('users_profile', 'p')
 				->on(array('u.uid' => 'p.uid'))
 				->orderby('u.uid', 'DESC');
@@ -55,6 +55,16 @@ class UsersTable extends We7Table {
 
 	public function searchWithFounder($founder_groupids) {
 		$this->query->where('u.founder_groupid', $founder_groupids);
+		return $this;
+	}
+
+	public function searchWithEndtime() {
+		$this->query->where('u.endtime !=', 0)->where('u.endtime <', TIMESTAMP + 86400);;
+		return $this;
+	}
+
+	public function searchWithMobile() {
+		$this->query->where('p.mobile !=', '');;
 		return $this;
 	}
 
@@ -107,5 +117,13 @@ class UsersTable extends We7Table {
 
 	public function userFounderGroupInfo($uid) {
 		return $this->query->from('users_founder_group')->where('id', $uid)->get();
+	}
+
+	public function userProfileMobile($mobile) {
+		return $this->query->from('users_profile')->where('mobile', $mobile)->get();
+	}
+
+	public function userVerifyCode($receiver, $verifycode) {
+		return $this->query->from('uni_verifycode')->where('receiver', $receiver)->where('verifycode', $verifycode)->where('uniacid', 0)->get();
 	}
 }

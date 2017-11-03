@@ -32,6 +32,7 @@ $we7_file_permission = array(
 			'display',
 			'manage',
 			'post-step',
+			'post-user',
 		),
 		'operator' => array(
 			'display',
@@ -162,12 +163,10 @@ $we7_file_permission = array(
 		'manager' => array(
 			'cover',
 			'reply',
-			'material-post',
 		),
 		'operator' => array(
 			'cover',
 			'reply',
-			'material-post',
 		),
 		'clerk' => array(
 			'reply',
@@ -269,6 +268,7 @@ $we7_file_permission = array(
 			'login',
 			'register',
 			'logout',
+			'find-password'
 		),
 		'vice_founder' => array('user*'),
 		'owner' => array(

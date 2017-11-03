@@ -15,6 +15,8 @@ $_W['page']['title'] = $account_typename . '列表 - ' . $account_typename;
 //模版调用，显示该用户所在用户组可添加的主公号数量，已添加的数量，还可以添加的数量
 $account_info = permission_user_account_num();
 
+$role_type = in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER));
+
 if ($do == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
@@ -35,14 +37,27 @@ if ($do == 'display') {
 	if(isset($_GPC['letter']) && strlen($_GPC['letter']) == 1) {
 		$account_table->searchWithLetter($_GPC['letter']);
 	}
+
+	$order = trim($_GPC['order']);
+	$account_table->accountUniacidOrder($order);
+
+	$type = trim($_GPC['type']);
+	if ($type == 'noconnect') {
+		$account_table->searchWithNoconnect();
+	}
+
+	if ($type == 'expire') {
+		$account_table->searchWithExprie();
+	}
+
 	$account_table->searchWithPage($pindex, $psize);
 	$list = $account_table->searchAccountList();
-	
+
 	foreach($list as &$account) {
 		$account = uni_fetch($account['uniacid']);
 		$account['role'] = permission_account_user_role($_W['uid'], $account['uniacid']);
 	}
-	
+
 	$total = $account_table->getLastQueryTotal();
 	$pager = pagination($total, $pindex, $psize);
 	template('account/manage-display' . ACCOUNT_TYPE_TEMPLATE);

@@ -123,6 +123,17 @@ if($do == 'base') {
 				}
 				$result = pdo_update('uni_settings', array('statistics' => iserializer($highest_visit)), array('uniacid' => $uniacid));
 				break;
+			case 'endtime':
+				if ($_GPC['endtype'] == 1) {
+					$result = pdo_update('account', array('endtime' => -1), array('uniacid' => $uniacid));
+				} else {
+					$endtime = strtotime($_GPC['endtime']);
+					$user_endtime = pdo_getcolumn('users', array('uid' => $_W['uid']), 'endtime');
+					if ($user_endtime < $endtime && !empty($user_endtime) && $state == 'owner') {
+						iajax(1, '设置到期日期不能超过主管理员的到期日期');
+					}
+					$result = pdo_update('account', array('endtime' => $endtime), array('uniacid' => $uniacid));
+				}
 		}
 		if(!in_array($type, array('qrcodeimgsrc', 'headimgsrc', 'name', 'endtime', 'jointype', 'highest_visit'))) {
 			$result = pdo_update(uni_account_tablename(ACCOUNT_TYPE), $data, array('acid' => $acid, 'uniacid' => $uniacid));

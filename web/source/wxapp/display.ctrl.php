@@ -53,6 +53,7 @@ if ($do == 'home') {
 		$account_table->searchWithKeyword($keyword);
 	}
 
+	$account_table->accountRankOrder();
 	$account_table->searchWithPage($pindex, $psize);
 	$wxapp_lists = $account_table->searchAccountList();
 	$total = $account_table->getLastQueryTotal();

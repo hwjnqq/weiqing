@@ -15,8 +15,10 @@ function cron_check($cronid = 0) {
 	if(!$cron['status']) {
 		return error(-1001, '任务已关闭');
 	}
-	if(!$cron['uniacid']) {
-		return error(-1002, '任务uniacid错误');
+	if ($cron['filename'] != 'sms') {
+		if(!$cron['uniacid']) {
+			return error(-1002, '任务uniacid错误1');
+		}
 	}
 	if(empty($cron['module'])) {
 		return error(-1003, '任务所属模块为空');

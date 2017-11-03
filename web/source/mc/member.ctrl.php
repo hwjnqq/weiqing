@@ -271,9 +271,17 @@ if($do == 'member_credits') {
 	$type = trim($_GPC['type']) ? trim($_GPC['type']) : 'credit1';
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 50;
-	$params = array('uid' => $uid, 'uniacid' => $_W['uniacid'], 'credittype' => $type);
-	$total = pdo_getcolumn('mc_credits_record', $params, 'COUNT(*)');
-	$records = pdo_fetchall("SELECT r.*, u.username FROM " . tablename('mc_credits_record') . ' AS r LEFT JOIN ' .tablename('users') . ' AS u ON r.operator = u.uid ' . ' WHERE r.uid = :uid AND r.uniacid = :uniacid AND r.credittype = :credittype ORDER BY id DESC LIMIT ' . ($pindex - 1) * $psize .',' . $psize, $params);
+
+	$member_table = table('member');
+
+	$member_table->searchCreditsRecordUid($uid);
+	$member_table->searchCreditsRecordType($type);
+
+	$member_table->searchWithPage($pindex, $psize);
+	
+	$records = $member_table->creditsRecordList();
+	$total = $member_table->getLastQueryTotal();
+
 	$pager = pagination($total, $pindex, $psize);
 	template('mc/member-information');
 }

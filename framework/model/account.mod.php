@@ -123,14 +123,16 @@ function uni_fetch($uniacid = 0) {
 	$owneruid = pdo_fetchcolumn("SELECT uid FROM ".tablename('uni_account_users')." WHERE uniacid = :uniacid AND role = 'owner'", array(':uniacid' => $uniacid));
 	$owner = user_single(array('uid' => $owneruid));
 	$account['uid'] = $owner['uid'];
-
 	$account['starttime'] = $owner['starttime'];
-	$account['endtime'] = $owner['endtime'];
-	$account['groups'] = mc_groups($uniacid);
+	if (!empty($account['endtime'])) {
+		$account['endtime'] = $account['endtime'] == '-1' ? 0 : $account['endtime'];
+	} else {
+		$account['endtime'] = $owner['endtime'];
+	}
 
+	$account['groups'] = mc_groups($uniacid);
 	$account['setting'] = uni_setting($uniacid);
 	$account['grouplevel'] = $account['setting']['grouplevel'];
-
 	$account['logo'] = tomedia('headimg_'.$account['acid']. '.jpg').'?time='.time();
 	$account['qrcode'] = tomedia('qrcode_'.$account['acid']. '.jpg').'?time='.time();
 
@@ -150,25 +152,32 @@ function uni_fetch($uniacid = 0) {
 }
 
 /**
- * 获取指定公号在站内商城购买的模块
+ * 获取指定公号在站内商城购买的指定类型商品
  * @param int $uniacid 公众号id
+ * @param string $type 物品类型
  * @return array 模块列表
  */
-function uni_site_store_buy_module($uniacid) {
-	$cachekey = cache_system_key($uniacid . ':site_store_buy_modules');
-	$site_store_buy_modules = cache_load($cachekey);
-	if (!empty($site_store_buy_modules)) {
-		return $site_store_buy_modules;
+function uni_site_store_buy_goods($uniacid, $type = STORE_TYPE_MODULE) {
+	$cachekey = cache_system_key($uniacid . ':site_store_buy_' . $type);
+	$site_store_buy_goods = cache_load($cachekey);
+	if (!empty($site_store_buy_goods)) {
+		return $site_store_buy_goods;
 	}
-	$site_store_buy_modules = array();
-	$site_store_order = pdo_getall('site_store_order', array('endtime >=' => time(), 'uniacid' => $uniacid, 'type' => STORE_ORDER_FINISH), array(), 'goodsid');
-	if (!empty($site_store_order) && is_array($site_store_order)) {
-		$site_store_buy_modules = pdo_getall('site_store_goods', array('id' => array_keys($site_store_order), 'type' => STORE_TYPE_MODULE), array(), 'module');
-		$site_store_buy_modules = array_unique(array_keys($site_store_buy_modules));
+	$store_table = table('store');
+	if ($type != STORE_TYPE_API) {
+		$store_table->searchWithEndtime();
+		$site_store_buy_goods = $store_table->searchAccountBuyGoods($uniacid, $type);
+		$site_store_buy_goods = array_keys($site_store_buy_goods);
+	} else {
+		$site_store_buy_goods = $store_table->searchAccountBuyGoods($uniacid, $type);
+		$setting = uni_setting_load('statistics', $uniacid);
+		$use_number = intval($setting['statistics']['use']);
+		$site_store_buy_goods = $site_store_buy_goods - $use_number;
 	}
-	cache_write($cachekey, $site_store_buy_modules);
-	return $site_store_buy_modules;
+	cache_write($cachekey, $site_store_buy_goods);
+	return $site_store_buy_goods;
 }
+
 
 /**
  * 获取指定公号下所有安装模块及模块信息
@@ -188,17 +197,22 @@ function uni_modules_by_uniacid($uniacid, $enabled = true) {
 		$founders = explode(',', $_W['config']['setting']['founder']);
 		$owner_uid = pdo_getcolumn('uni_account_users',  array('uniacid' => $uniacid, 'role' => 'owner'), 'uid');
 		$condition = "WHERE 1";
-		$site_store_buy_modules = uni_site_store_buy_module($uniacid);
-
+		if ($_W['setting']['site']['family'] == 'x') {
+			$site_store_buy_goods = uni_site_store_buy_goods($uniacid);
+		} else {
+			$site_store_buy_goods = array();
+		}
+		
 		if (!empty($owner_uid) && !in_array($owner_uid, $founders)) {
 			$uni_modules = array();
 			$packageids = pdo_getall('uni_account_group', array('uniacid' => $uniacid), array('groupid'), 'groupid');
 			$packageids = array_keys($packageids);
-
-			$store = table('store');
-			$site_store_buy_package = $store->searchUserBuyPackage($uniacid);
-			$packageids = array_merge($packageids, array_keys($site_store_buy_package));
-
+			
+			if ($_W['setting']['site']['family'] == 'x') {
+				$store = table('store');
+				$site_store_buy_package = $store->searchUserBuyPackage($uniacid);
+				$packageids = array_merge($packageids, array_keys($site_store_buy_package));
+			}
 			if (!in_array('-1', $packageids)) {
 				$uni_groups = pdo_fetchall("SELECT `modules` FROM " . tablename('uni_group') . " WHERE " .  "id IN ('".implode("','", $packageids)."') OR " . " uniacid = '{$uniacid}'");
 				if (!empty($uni_groups)) {
@@ -208,7 +222,7 @@ function uni_modules_by_uniacid($uniacid, $enabled = true) {
 					}
 				}
 				$user_modules = user_modules($owner_uid);
-				$modules = array_merge(array_keys($user_modules), $uni_modules, $site_store_buy_modules);
+				$modules = array_merge(array_keys($user_modules), $uni_modules, $site_store_buy_goods);
 				if (!empty($modules)) {
 					$condition .= " AND a.name IN ('" . implode("','", $modules) . "')";
 				} else {
@@ -517,9 +531,14 @@ function uni_account_default($uniacid = 0) {
 	}
 	if (!empty($uni_account)) {
 		$account = pdo_get(uni_account_tablename($uni_account['type']), array('acid' => $uni_account['acid']));
+		if (empty($account)) {
+			$account['uniacid'] = $uni_account['uniacid'];
+			$account['acid'] = $uni_account['default_acid'];
+		}
 		$account['type'] = $uni_account['type'];
 		$account['isconnect'] = $uni_account['isconnect'];
 		$account['isdeleted'] = $uni_account['isdeleted'];
+		$account['endtime'] = $uni_account['endtime'];
 		return $account;
 	}
 }
@@ -1023,3 +1042,4 @@ function uni_account_member_fields($uniacid) {
 	}
 	return $account_member_fields;
 }
+

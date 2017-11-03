@@ -23,9 +23,14 @@
 				</div>
 				{/if}
 			</div>
-			<div class="checkbox">
-				<input type="checkbox" value="true" id="rember" name="rember">
-				<label for="rember">记住用户名</label>
+			<div class="form-inline" style="margin-bottom: 15px;">
+				<div class="pull-right">
+					<a href="{url 'user/find-password'}" target="_blank" class="color-default">忘记密码？</a>
+				</div>
+				<div class="checkbox">
+					<input type="checkbox" value="true" id="rember" name="rember">
+					<label for="rember">记住用户名</label>
+				</div>
 			</div>
 			<div class="login-submit text-center">
 				<input type="submit" id="submit" name="submit" value="登录" class="btn btn-primary btn-block" />

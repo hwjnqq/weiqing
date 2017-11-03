@@ -1,5 +1,6 @@
 <?php
 namespace We7\V159;
+
 defined('IN_IA') or exit('Access Denied');
 
 class UpgradeModulesBindings {

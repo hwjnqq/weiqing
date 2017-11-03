@@ -41,23 +41,6 @@
 {/if}
 
 {if $do == 'front_download'}
-<div class="we7-flex wxapp-examine-tab">
-	<div class="{if $uptype == 'auto'} active {/if}">
-		<a
-		   href='./index.php?c=wxapp&a=front-download&do=front_download&uptype=auto&version_id={$version_id}'>
-			<div class="arrow-up"></div>
-			<span class="wi wi-wxapp-webpack"></span>直接提交微信
-		</a>
-	</div>
-	<div class="{if $uptype == 'normal'} active {/if}" >
-		<a
-		   href='./index.php?c=wxapp&a=front-download&do=front_download&uptype=normal&version_id={$version_id}'>
-			<div class="arrow-up"></div>
-			<span class="wi wi-wxapp-upload"></span>下载后提交微信
-		</a>
-	</div>
-</div>
-
 <!--在微信小程序后台提交审核-->
 {if $uptype == 'normal'}
 <div class="media media-wechat-setting">

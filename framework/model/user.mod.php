@@ -384,7 +384,6 @@ function user_founder_group_detail_info($groupid = 0) {
  *@return array
  */
 function user_account_detail_info($uid) {
-	global $_W;
 	$account_lists = $app_user_info = $wxapp_user_info = array();
 	$uid = intval($uid);
 	if (empty($uid)) {
@@ -404,18 +403,17 @@ function user_account_detail_info($uid) {
 
 	$wxapps = $wechats = array();
 	if (!empty($wxapp_user_info)) {
-		$wxapps = pdo_fetchall("SELECT w.name, w.level, w.acid, a.* FROM " . tablename('uni_account') . " a INNER JOIN " . tablename(uni_account_tablename(ACCOUNT_TYPE_APP_NORMAL)) . " w USING(uniacid) WHERE a.uniacid IN (".implode(',', array_keys($wxapp_user_info)).") ORDER BY a.uniacid ASC", array(), 'acid');
+		$wxapps = table('account')->accountWxappInfo(array_keys($wxapp_user_info), $uid);
 	}
 	if (!empty($app_user_info)) {
-		$wechats = pdo_fetchall("SELECT w.name, w.level, w.acid, a.* FROM " . tablename('uni_account') . " a INNER JOIN " . tablename(uni_account_tablename(ACCOUNT_TYPE_OFFCIAL_NORMAL)) . " w USING(uniacid) WHERE a.uniacid IN (".implode(',', array_keys($app_user_info)).") ORDER BY a.uniacid ASC", array(), 'acid');
+		$wechats = table('account')->accountWechatsInfo(array_keys($app_user_info), $uid);
 	}
 	$accounts = array_merge($wxapps, $wechats);
 	if (!empty($accounts)) {
 		foreach ($accounts as &$account_val) {
-			$account_val['thumb'] = tomedia('headimg_'.$account_val['acid']. '.jpg');
+			$account_val['thumb'] = tomedia('headimg_'.$account_val['default_acid']. '.jpg');
 			foreach ($account_users_info as $uniacid => $user_info) {
 				if ($account_val['uniacid'] == $uniacid) {
-					$account_val['role'] = $user_info['role'];
 					$account_val['type'] = $user_info['type'];
 					if ($user_info['type'] == ACCOUNT_TYPE_APP_NORMAL) {
 						$account_lists['wxapp'][$uniacid] = $account_val;

@@ -177,13 +177,14 @@ class We7CreateUpgradeCommand extends We7Command {
 		$template = <<<EOT
 <?php
 
+namespace $namespace;
+
 defined('IN_IA') or exit('Access Denied');
 /**
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  * Time: $time
  * @version $version
  */
-namespace $namespace;
 
 class $name {
 

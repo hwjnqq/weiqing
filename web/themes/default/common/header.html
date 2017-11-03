@@ -105,7 +105,7 @@
 					{/if}
 					<ul class="list-group">
 						{loop $frame_section['menu'] $menu_id $menu}
-						{if !empty($menu['is_display'])}
+							{if !empty($menu['is_display'])}
 								{if $menu_id == 'platform_module_more'}
 									<li class="list-group-item list-group-more">
 										<a href="{url 'module/manage-account'}"><span class="label label-more">更多应用</span></a>
@@ -113,7 +113,7 @@
 								{else}
 									{if (in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER)) && $menu_id == 'front_download' || $menu_id != 'front_download') && !($menu_id == 'platform_menu' && $_W['account']['level'] == ACCOUNT_SUBSCRIPTION)}
 									<li class="list-group-item {if $menu['active']}active{/if}">
-										<a href="{$menu['url']}" class="text-over" {if $frame_section_id == 'platform_module'}target="_blank"{/if}>
+										<a href="{$menu['url']}" class="text-over" {if $frame_section_id == 'platform_module' || $menu_id == 'system_profile'}target="_blank"{/if}>
 										{if $menu['icon']}
 											{if $frame_section_id == 'platform_module'}
 												<img src="{$menu['icon']}"/>

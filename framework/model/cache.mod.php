@@ -168,14 +168,15 @@ function cache_build_users_struct() {
 }
 
 function cache_build_frame_menu() {
+	global $_W;
 	$system_menu_db = pdo_getall('core_menu', array('permission_name !=' => ''), array(), 'permission_name');
 	$system_menu = require IA_ROOT . '/web/common/frames.inc.php';
 	if (!empty($system_menu) && is_array($system_menu)) {
-		$system_displayoser = 0;
+		$system_displayoder = 1;
 		foreach ($system_menu as $menu_name => $menu) {
 			$system_menu[$menu_name]['is_system'] = true;
 			$system_menu[$menu_name]['is_display'] = empty($system_menu_db[$menu_name]) || !empty($system_menu_db[$menu_name]['is_display']) ? true : false;
-			$system_menu[$menu_name]['displayorder'] = ++$system_displayoser;
+			$system_menu[$menu_name]['displayorder'] = !empty($system_menu_db[$menu_name]) ? intval($system_menu_db[$menu_name]['displayorder']) : ++$system_displayoder;
 
 			foreach ($menu['section'] as $section_name => $section) {
 				$displayorder = max(count($section['menu']), 1);
@@ -198,7 +199,7 @@ function cache_build_frame_menu() {
 					$sub_menu_db = $system_menu_db[$sub_menu['permission_name']];
 					$system_menu[$menu_name]['section'][$section_name]['menu'][$permission_name] = array(
 						'is_system' => isset($sub_menu['is_system']) ? $sub_menu['is_system'] : 1,
-						'is_display' => isset($sub_menu_db['is_display']) ? $sub_menu_db['is_display'] : 1,
+						'is_display' => isset($sub_menu['is_display']) && empty($sub_menu['is_display']) ? 0 : (isset($sub_menu_db['is_display']) ? $sub_menu_db['is_display'] : 1),
 						'title' => !empty($sub_menu_db['title']) ? $sub_menu_db['title'] : $sub_menu['title'],
 						'url' => $sub_menu['url'],
 						'permission_name' => $sub_menu['permission_name'],
@@ -222,6 +223,7 @@ function cache_build_frame_menu() {
 		$add_top_nav = pdo_getall('core_menu', array('group_name' => 'frame', 'is_system <>' => 1), array('title', 'url', 'permission_name', 'displayorder'));
 		if (!empty($add_top_nav)) {
 			foreach ($add_top_nav as $menu) {
+				$menu['url'] = strexists($menu['url'], 'http') ?  $menu['url'] : $_W['siteroot'] . $menu['url'];
 				$menu['blank'] = true;
 				$menu['is_display'] = true;
 				$system_menu[$menu['permission_name']] = $menu;

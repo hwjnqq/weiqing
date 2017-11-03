@@ -4,10 +4,10 @@
 </div>
 <ul class="we7-page-tab">
 	<li {if $action == 'payment'} class="active"{/if}>
-		<a href="{php echo url('profile/payment/display')}">支付配置</a>
+	<a href="{php echo url('profile/payment/display')}">支付配置</a>
 	</li>
 	<li {if $action == 'refund'} class="active"{/if}>
-		<a href="{php echo url('profile/refund/display')}">退款配置</a>
+	<a href="{php echo url('profile/refund/display')}">退款配置</a>
 	</li>
 </ul>
 <div class="js-profile-payment" ng-controller="paymentCtrl" ng-cloak>
@@ -74,6 +74,21 @@
 			</td>
 			<td class="text-center">
 				<div class="link-group"><a href="javascript:;" ng-click="check_wechat()">修改</a></div>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				一码支付
+			</td>
+			<td>
+				<div class="related-info">
+				</div>
+			</td>
+			<td >
+				{{  paysetting.jueqiymf.switch === true ? '开启' : '关闭'  }}
+			</td>
+			<td class="text-center">
+				<div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#jueqiymf">修改</a></div>
 			</td>
 		</tr>
 		<tr>
@@ -351,7 +366,7 @@
 						{if !empty($proxy_wechatpay_account['borrow'])}
 						<div ng-show="paysetting.wechat.switch == 2">
 							<div class="form-group">
-							<label for="" class="control-label col-sm-2">借用公众号</label>
+								<label for="" class="control-label col-sm-2">借用公众号</label>
 								<div class="form-controls col-sm-10">
 									<select name="borrow" class="we7-select" ng-model="paysetting.wechat.borrow">
 										<option value="" ng-selected="paysetting.wechat.borrow == 0 || paysetting.wechat.borrow == '' || paysetting.wechat.borrow == undefined">请选择要借用的公众号</option>
@@ -378,52 +393,92 @@
 		<div class="we7-modal-dialog modal-dialog">
 			<form action="{php echo url('profile/payment/save_setting', array('type' => 'unionpay'))}" enctype="multipart/form-data" method="post" id="form1" >
 				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+						<div class="modal-title">银联支付</div>
+					</div>
+					<div class="modal-body">
+						<div class="we7-form">
+							<div class="form-group">
+								<label for="" class="control-label col-sm-2">银联支付</label>
+								<div class="form-controls col-sm-10">
+									<input id='radio-133' type="radio" name='unionpay[switch]' {if $pay_setting['unionpay']['switch'] === true}checked{/if} value="true"/>
+									<label for="radio-133">开启 </label>
+									<input id='radio-266' type="radio" name='unionpay[switch]' {if $pay_setting['unionpay']['switch'] !== true}checked{/if} value="false"/>
+									<label for="radio-266">关闭 </label>
+									<span class="help-block">是否使用银联支付</span>
+								</div>
+							</div>
+							<div class="form-group">
+								<label for="" class="control-label col-sm-2">商户私钥证书（签名）</label>
+								<div class="form-controls col-sm-10">
+									<input type="file" name="unionpay[signcertpath]" id="amend" {if $pay_setting['unionpay']['signcertexists'] !== false}style="display:none;"{/if} class="form-control" placeholder="">
+									<span {if $pay_setting['unionpay']['signcertexists'] === false}style="display:none;"{/if}>证书已上传<input type="button" class="btn btn-success" onclick="amend.click()" value="修改"></span>
+								</div>
+							</div>
+							<div class="form-group">
+								<label for="" class="control-label col-sm-2">商户号</label>
+								<div class="form-controls col-sm-10">
+									<input type="text" name="unionpay[merid]" value="{$pay_setting['unionpay']['merid']}" class="form-control" placeholder="">
+								</div>
+							</div>
+							<div class="form-group">
+								<label for="" class="control-label col-sm-2">商户私钥证书密码</label>
+								<div class="form-controls col-sm-10">
+									<input type="text" name="unionpay[signcertpwd]" value="{$pay_setting['unionpay']['signcertpwd']}" class="form-control" placeholder="">
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="submit" class="btn btn-primary">确定</button>
+						<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+
+
+	<div class="modal fade" id="jueqiymf" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="we7-modal-dialog modal-dialog">
+			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-					<div class="modal-title">银联支付</div>
+					<div class="modal-title">一码付</div>
 				</div>
 				<div class="modal-body">
 					<div class="we7-form">
 						<div class="form-group">
-							<label for="" class="control-label col-sm-2">银联支付</label>
+							<label for="" class="control-label col-sm-2">一码付</label>
 							<div class="form-controls col-sm-10">
-								<input id='radio-133' type="radio" name='unionpay[switch]' {if $pay_setting['unionpay']['switch'] === true}checked{/if} value="true"/>
-								<label for="radio-133">开启 </label>
-								<input id='radio-266' type="radio" name='unionpay[switch]' {if $pay_setting['unionpay']['switch'] !== true}checked{/if} value="false"/>
-								<label for="radio-266">关闭 </label>
-								<span class="help-block">是否使用银联支付</span>
+								<input id='radio-1225' type="radio" name='paysetting[jueqiymf][switch]' ng-checked='paysetting.jueqiymf.switch === true' ng-click="changeSwitch('jueqiymf', true)"/>
+								<label for="radio-1225">开启 </label>
+								<input id='radio-21216' type="radio" name='paysetting[jueqiymf][switch]'  ng-checked='paysetting.jueqiymf.switch === false' ng-click="changeSwitch('jueqiymf', false)" />
+								<label for="radio-21216">关闭 </label>
 							</div>
 						</div>
 						<div class="form-group">
-							<label for="" class="control-label col-sm-2">商户私钥证书（签名）</label>
+							<label for="" class="control-label col-sm-2">一码付后台地址</label>
 							<div class="form-controls col-sm-10">
-								<input type="file" name="unionpay[signcertpath]" id="amend" {if $pay_setting['unionpay']['signcertexists'] !== false}style="display:none;"{/if} class="form-control" placeholder="">
-								<span {if $pay_setting['unionpay']['signcertexists'] === false}style="display:none;"{/if}>证书已上传<input type="button" class="btn btn-success" onclick="amend.click()" value="修改"></span>
+								<input type="text"ng-model="paysetting.jueqiymf.url" name="" class="form-control" placeholder="">
 							</div>
 						</div>
 						<div class="form-group">
 							<label for="" class="control-label col-sm-2">商户号</label>
 							<div class="form-controls col-sm-10">
-								<input type="text" name="unionpay[merid]" value="{$pay_setting['unionpay']['merid']}" class="form-control" placeholder="">
-							</div>
-						</div>
-						<div class="form-group">
-							<label for="" class="control-label col-sm-2">商户私钥证书密码</label>
-							<div class="form-controls col-sm-10">
-								<input type="text" name="unionpay[signcertpwd]" value="{$pay_setting['unionpay']['signcertpwd']}" class="form-control" placeholder="">
+								<input type="text"ng-model="paysetting.jueqiymf.mchid" name="" class="form-control" placeholder="">
 							</div>
 						</div>
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button type="submit" class="btn btn-primary">确定</button>
+					<button type="button" class="btn btn-primary" ng-click="saveEdit('jueqiymf')">确定</button>
 					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
 				</div>
 			</div>
-			</form>
 		</div>
 	</div>
-
 	<!--百度钱包-->
 	<div class="modal fade" id="baidu" tabindex="-1" role="dialog" aria-hidden="true">
 		<div class="we7-modal-dialog modal-dialog">

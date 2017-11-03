@@ -55,6 +55,10 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 				if (empty($match)) {
 					iajax(-1, '手机号不正确', '');
 				}
+				$users_mobile = pdo_get('users_profile', array('mobile' => trim($_GPC[$type]), 'uid <>' => $uid));
+				if (!empty($users_mobile)) {
+					iajax(-1, '手机号已存在，请联系管理员', '');
+				}
 			}
 			if ($users_profile_exist) {
 				$result = pdo_update('users_profile', array($type => trim($_GPC[$type])), array('uid' => $uid));

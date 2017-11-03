@@ -178,13 +178,13 @@
 				</div>
 				<div class="modal-body material-content clearfix">
 					<div class="material-nav" ng-init="jurindex=0">
-						<a href="javascript:;" ng-click="jurindex=0"  ng-class="{true:'active',false:''}[jurindex==0]" >应用</a>
-						<a href="javascript:;" ng-click="jurindex=1" ng-class="{true:'active',false:''}[jurindex==1]">模板</a>
+						<a href="javascript:;" ng-click="tabChange(0)"  ng-class="{true:'active',false:''}[jurindex==0]" >应用</a>
+						<!--<a href="javascript:;" ng-click="tabChange(1)" ng-class="{true:'active',false:''}[jurindex==1]">模板</a>-->
 					</div>
 					<div class="material-body" ng-show="jurindex==0" id="content-modules">
 						<div class="row">
 							{loop $modules $module_name $module}
-							{if empty($module['issystem']) && $module['app_support'] == 2}
+							{if empty($module['issystem']) && $module['wxapp_support'] == 2}
 							<div class="col-sm-2">
 								<div class="item {if is_array($current_module_names) && in_array($module_name, $current_module_names)}active{/if}"
 								     data-title="{$module['title']}"
@@ -205,7 +205,7 @@
 						<div class="row">
 							{loop $templates $temp}
 							<div class="col-sm-2">
-								<div class="item {if is_array($extend['templates']) && in_array($temp, $extend['templates'])}active{/if}" data-title="{$temp['title']}" data-name="{$temp['name']}" data-id="{$temp['id']}" onclick="$(this).toggleClass('active')">
+								<div ng-click="itemClick()" class="item {if is_array($extend['templates']) && in_array($temp, $extend['templates'])}active{/if}" data-title="{$temp['title']}" data-name="{$temp['name']}" data-id="{$temp['id']}" onclick="$(this).toggleClass('active')">
 									<i class="wi wi-home" style="color: #ddd;font-size: 48px;position:relative; top:-15px; margin: 0;"></i>
 									<div class="name">{$temp['title']}</div>
 									<div class="mask">
@@ -216,6 +216,15 @@
 							{/loop}
 						</div>
 					</div>
+				</div>
+				<div class="material-pager text-right clearfix">
+					<div class="pull-left we7-form">
+						<input type="checkbox" id="selected-all" ng-model="allmodule" ng-change="allmodulechange(allmodule)">
+						<label for="selected-all">全选</label>
+					</div>
+					<ul class="pagination">
+
+					</ul>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-primary" ng-click="addExtend()">确定</button>

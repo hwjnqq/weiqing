@@ -304,6 +304,9 @@ function mc_oauth_userinfo($acid = 0) {
 	if (!empty($_SESSION['openid']) && intval($_W['account']['level']) >= 3) {
 		$oauth_account = WeAccount::create($_W['account']['oauth']);
 		$userinfo = $oauth_account->fansQueryInfo($_SESSION['openid']);
+		$oauthaccesstoken = $oauth_account->getOauthAccessToken();
+		$oauth_userinfo = $oauth_account->getOauthUserInfo($oauthaccesstoken, $_SESSION['openid']);
+		$userinfo = array_merge($userinfo, $oauth_userinfo);
 		if (!is_error($userinfo) && !empty($userinfo) && is_array($userinfo) && !empty($userinfo['nickname'])) {
 			$userinfo['nickname'] = stripcslashes($userinfo['nickname']);
 			if (!empty($userinfo['headimgurl'])) {
@@ -918,9 +921,9 @@ function mc_openid2uid($openid) {
 		$uids = array();
 		foreach ($openid as $k => $v) {
 			if (is_numeric($v)) {
-				$uids[] = $v;
+				$uids[] = intval($v);
 			} elseif (is_string($v)) {
-				$fans[] = $v;
+				$fans[] = istripslashes(str_replace(' ', '', $v));
 			}
 		}
 		if (!empty($fans)) {
@@ -981,7 +984,10 @@ function mc_uid2openid($uid) {
 function mc_group_update($uid = 0) {
 	global $_W;
 	if(!$_W['uniaccount']['grouplevel']) {
-		return true;
+		$_W['uniaccount']['grouplevel'] = pdo_getcolumn('uni_settings', array('uniacid' => $_W['uniacid']), 'grouplevel');
+		if (empty($_W['uniaccount']['grouplevel'])) {
+			return true;
+		}
 	}
 	$uid = intval($uid);
 	if($uid <= 0) {

@@ -5,7 +5,9 @@
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 define('IN_IA', true);
+define('IN_SYS', true);
 define('IA_ROOT', str_replace("\\", '/', dirname(dirname(__FILE__))));
+ini_set('display_errors', '1');
 error_reporting(E_ALL ^ E_NOTICE);
 
 require IA_ROOT . "/data/config.php";
@@ -18,7 +20,9 @@ $_W = $_GPC = array();
 $_W['config'] = $config;
 $_W['charset'] = $_W['config']['setting']['charset'];
 
-$_W['config']['setting']['cache'] = 'mysql';
+if(!in_array($_W['config']['setting']['cache'], array('mysql', 'memcache', 'redis'))) {
+	$_W['config']['setting']['cache'] = 'mysql';
+}
 load()->func('cache');
 
 $cplen = strlen($_W['config']['cookie']['pre']);
@@ -415,11 +419,6 @@ function uni_user_see_more_info() {
 	return true;
 }
 
-/**
- * 将模板文件编译为 PHP 文件
- * @param string $from 模板文件(HTML)路径
- * @param string $to 编译后的 PHP 文件路径
- */
 function template_compile($from, $to, $inmodule = false) {
 	$path = dirname($to);
 	if (!is_dir($path)) {
@@ -435,7 +434,7 @@ function template_compile($from, $to, $inmodule = false) {
 
 function template_parse($str, $inmodule = false) {
 	$str = preg_replace('/<!--{(.+?)}-->/s', '{$1}', $str);
-	$str = preg_replace('/{template\s+(.+?)}/', '<?php (!empty($this) && $this instanceof WeModuleSite || '.intval($inmodule).') ? (include $this->template($1, TEMPLATE_INCLUDEPATH)) : (include template($1, TEMPLATE_INCLUDEPATH));?>', $str);
+	$str = preg_replace('/{template\s+(.+?)}/', '<?php include template($1, TEMPLATE_INCLUDEPATH);?>', $str);
 	$str = preg_replace('/{php\s+(.+?)}/', '<?php $1?>', $str);
 	$str = preg_replace('/{if\s+(.+?)}/', '<?php if($1) { ?>', $str);
 	$str = preg_replace('/{else}/', '<?php } else { ?>', $str);
@@ -454,9 +453,6 @@ function template_parse($str, $inmodule = false) {
 	$str = preg_replace('/{([A-Z_\x7f-\xff][A-Z0-9_\x7f-\xff]*)}/s', '<?php echo $1;?>', $str);
 	$str = str_replace('{##', '{', $str);
 	$str = str_replace('##}', '}', $str);
-	if (!empty($GLOBALS['_W']['setting']['remote']['type'])) {
-		$str = str_replace('</body>', "<script>$(function(){\$('img').attr('onerror', '').on('error', function(){if (!\$(this).data('check-src') && (this.src.indexOf('http://') > -1 || this.src.indexOf('https://') > -1)) {this.src = this.src.indexOf('{$GLOBALS['_W']['attachurl_local']}') == -1 ? this.src.replace('{$GLOBALS['_W']['attachurl_remote']}', '{$GLOBALS['_W']['attachurl_local']}') : this.src.replace('{$GLOBALS['_W']['attachurl_local']}', '{$GLOBALS['_W']['attachurl_remote']}');\$(this).data('check-src', true);}});});</script></body>", $str);
-	}
 	$str = "<?php defined('IN_IA') or exit('Access Denied');?>" . $str;
 	return $str;
 }

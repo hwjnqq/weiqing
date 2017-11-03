@@ -135,3 +135,25 @@ function attachment_cos_auth($bucket,$appid, $key, $secret, $bucket_local = '') 
 	}
 	return true;
 }
+
+/**
+ *  强制重置uniacid
+ * @param $uniacid
+ * @return int
+ */
+function attachment_reset_uniacid($uniacid) {
+	global $_W;
+	if (empty($uniacid)) {
+		if($_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER ) {
+			$_W['uniacid'] = 0;
+			return 0;
+		}
+	}else {
+		/* @var $account AccountTable*/
+		$account = table('account');
+		$accounts = $account->userOwnedAccount($_W['uid']);
+		if (is_array($accounts) && isset($accounts[$uniacid])) {
+			$_W['uniacid'] = $uniacid;
+		}
+	}
+}
