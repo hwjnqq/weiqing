@@ -1265,9 +1265,10 @@ function category_entry_fetch($storeid, $params = array(), $wxapp = false) {
 				if (empty($v['group']) && $v['category_type'] != 1) {
 					if (!empty($wxapp)) {
 						$v['link'] = '/wn_storex/pages/good/goodList?id=' . $k . '&type=' . $v['category_type'];
-					} else {
-						$v['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . '#/Category/GoodList/' . $storeid . '/' .$k;
 					}
+					//  else {
+					// 	$v['link'] = murl('entry', array('id' => $storeid, 'do' => 'display', 'm' => 'wn_storex'), true, true) . '#/Category/GoodList/' . $storeid . '/' .$k;
+					// }
 				}
 			}
 			unset($v);
