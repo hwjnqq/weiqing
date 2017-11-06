@@ -76,7 +76,7 @@ if ($op == 'display') {
 }
 
 if ($op == 'add_cart') {
-	$nums = intval($_GPC['nums']);
+	$nums = !empty($_GPC['nums']) ? intval($_GPC['nums']) : 1;
 	$is_spec = intval($_GPC['is_spec']);
 	$goodsid = intval($_GPC['goodsid']);
 	if ($is_spec == 1) {
@@ -117,6 +117,7 @@ if ($op == 'add_cart') {
 				foreach ($goods as $key => &$value) {
 					if ($goods_info['id'] == $key && $goods_info['is_spec'] == $value['is_spec']) {
 						$value['nums'] += $nums;
+						break;
 					} else {
 						$goods[$goods_info['id']] = array(
 							'is_spec' => $goods_info['is_spec'],
