@@ -3,7 +3,7 @@
 	<application setting="false">
 		<name><![CDATA[万能小店拼团]]></name>
 		<identifie><![CDATA[wn_storex_plugin_group]]></identifie>
-		<version><![CDATA[1.1]]></version>
+		<version><![CDATA[1.2]]></version>
 		<type><![CDATA[business]]></type>
 		<ability><![CDATA[万能小店拼团]]></ability>
 		<description><![CDATA[万能小店拼团]]></description>
