@@ -8,48 +8,60 @@ $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
 
-//获取一级分类下的二级分类以及商品
-if ($op == 'goods_list') {
-	$store_id = intval($_GPC['id']);
-	$store_info = get_store_info($store_id);
-	$first_id = intval($_GPC['first_id']);
-	$first_class = pdo_get('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $store_id, 'id' => $first_id));
-	if (empty($first_class)) {
-		wmessage(error(-1, '分类不存在'), '', 'ajax');
-	}
-	//获取某一级分类下的所有二级分类
-	$sub_class = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'parentid' => $first_id, 'enabled' => 1), array(), '', 'displayorder DESC');
-	//存在二级分类就找其下的商品
-	$fields = array('id', 'title', 'thumb', 'oprice', 'cprice', 'sold_num', 'sales', 'store_base_id');
-	$list = array();
-	$goods = array();
-	$table = gettablebytype($store_info['store_type']);
-	$condition = array('weid' => $_W['uniacid'], 'pcate' => $first_id, 'status' => 1, 'store_base_id' => $store_id);
-	if (!empty($sub_class) && is_array($sub_class)) {
-		$goods = $sub_class;
-		$list['have_subclass'] = 1;
-		if ($store_info['store_type'] != STORE_TYPE_HOTEL) {//酒店
-			$goods_fields = array('unit', 'weight', 'stock', 'min_buy', 'max_buy');
-			$fields = array_merge($fields, $goods_fields);
-		}
-		foreach ($sub_class as $key => $sub_classinfo) {
-			$condition['ccate'] = $sub_classinfo['id'];
-			$goods_list = category_store_goods($table, $condition, $fields);
-			if (!empty($goods_list)) {
-				$goods[$key]['store_goods'] = array_slice($goods_list, 0, 2);
-				$goods[$key]['total'] = count($goods_list);
-			}
-		}
-	} else {
-		$list['have_subclass'] = 0;
-		$goods_list = category_store_goods($table, $condition, $fields);
-		if (!empty($goods_list)) {
-			$goods['store_goods'] = array_slice($goods_list, 0, 2);
-			$goods['total'] = count($goods_list);
-		}
-	}
-	$list['list'] = $goods;
-	wmessage(error(0, $list), '', 'ajax');
+//获取一级分类下的二级分类以及商品 该接口不需要了
+// if ($op == 'goods_list') {
+// 	$store_id = intval($_GPC['id']);
+// 	$store_info = get_store_info($store_id);
+// 	$first_id = intval($_GPC['first_id']);
+// 	$first_class = pdo_get('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $store_id, 'id' => $first_id));
+// 	if (empty($first_class)) {
+// 		wmessage(error(-1, '分类不存在'), '', 'ajax');
+// 	}
+// 	//获取某一级分类下的所有二级分类
+// 	$sub_class = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'parentid' => $first_id, 'enabled' => 1), array(), '', 'displayorder DESC');
+// 	//存在二级分类就找其下的商品
+// 	$fields = array('id', 'title', 'thumb', 'oprice', 'cprice', 'sold_num', 'sales', 'store_base_id');
+// 	$list = array();
+// 	$goods = array();
+// 	$table = gettablebytype($store_info['store_type']);
+// 	$condition = array('weid' => $_W['uniacid'], 'pcate' => $first_id, 'status' => 1, 'store_base_id' => $store_id);
+// 	if (!empty($sub_class) && is_array($sub_class)) {
+// 		$goods = $sub_class;
+// 		$list['have_subclass'] = 1;
+// 		if ($store_info['store_type'] != STORE_TYPE_HOTEL) {//酒店
+// 			$goods_fields = array('unit', 'weight', 'stock', 'min_buy', 'max_buy');
+// 			$fields = array_merge($fields, $goods_fields);
+// 		}
+// 		foreach ($sub_class as $key => $sub_classinfo) {
+// 			$condition['ccate'] = $sub_classinfo['id'];
+// 			$goods_list = category_store_goods($table, $condition, $fields);
+// 			if (!empty($goods_list)) {
+// 				$goods[$key]['store_goods'] = array_slice($goods_list, 0, 2);
+// 				$goods[$key]['total'] = count($goods_list);
+// 			}
+// 		}
+// 	} else {
+// 		$list['have_subclass'] = 0;
+// 		$goods_list = category_store_goods($table, $condition, $fields);
+// 		if (!empty($goods_list)) {
+// 			$goods['store_goods'] = array_slice($goods_list, 0, 2);
+// 			$goods['total'] = count($goods_list);
+// 		}
+// 	}
+// 	$list['list'] = $goods;
+// 	wmessage(error(0, $list), '', 'ajax');
+// }
+
+$sort_types = array(
+	'sortid_asc' => 'sortid ASC',
+	'sortid_desc' => 'sortid DESC',
+	'cprice_asc' => 'cprice ASC',
+	'cprice_desc' => 'cprice DESC',
+);
+$sort_by = trim($_GPC['sort_by']);
+$sort_condition = 'sortid DESC';
+if (in_array($sort_by, $sort_types)) {
+	$sort_condition = $sort_types[$sort_by];
 }
 
 //获取更多的商品信息
@@ -79,7 +91,7 @@ if ($op == 'more_goods') {
 	$condition['recycle'] = 2;
 	$condition['store_base_id'] = $storex_bases['id'];
 	if ($storex_bases['store_type'] == 1) {
-		$goods_list = pdo_getall('storex_room', $condition, array(), 'sortid DESC');
+		$goods_list = pdo_getall('storex_room', $condition, array(), $sort_condition);
 		if (!empty($goods_list)) {
 			$search_data = array(
 				'btime' => $_GPC['btime'],
@@ -90,7 +102,7 @@ if ($op == 'more_goods') {
 			$goods_list = room_special_price($goods_list, $search_data, true);
 		}
 	} else {
-		$goods_list = pdo_getall('storex_goods', $condition, array(), 'sortid DESC');
+		$goods_list = pdo_getall('storex_goods', $condition, array(), $sort_condition);
 	}
 	if (!empty($goods_list)) {
 		foreach ($goods_list as &$goods_info) {
@@ -101,7 +113,6 @@ if ($op == 'more_goods') {
 			}
 		}
 	}
-	sort($goods_list);
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 10;
 	$list = array();
@@ -203,10 +214,10 @@ if ($op == 'goods_search') {
 	$psize = 10;
 	if ($table == 'storex_room') {
 		$condition['is_house !='] = 1;
-		$goods = pdo_getall($table, $condition, array('id', 'store_base_id', 'weid', 'pcate', 'ccate', 'title', 'sub_title', 'thumb', 'oprice', 'cprice', 'thumbs', 'device', 'status', 'can_buy', 'isshow', 'sales', 'displayorder', 'score', 'sortid', 'sold_num', 'store_type', 'is_house'), '', 'sortid DESC', array($pindex, $psize));
+		$goods = pdo_getall($table, $condition, array('id', 'store_base_id', 'weid', 'pcate', 'ccate', 'title', 'sub_title', 'thumb', 'oprice', 'cprice', 'thumbs', 'device', 'status', 'can_buy', 'isshow', 'sales', 'displayorder', 'score', 'sortid', 'sold_num', 'store_type', 'is_house'), '', $sort_condition, array($pindex, $psize));
 	} else {
 		$goods_fields = array('store_base_id', 'unit', 'weight', 'stock', 'min_buy', 'max_buy', 'tag');
-		$goods = pdo_getall($table, $condition, array(), '', 'sortid DESC', array($pindex, $psize));
+		$goods = pdo_getall($table, $condition, array(), '', $sort_condition, array($pindex, $psize));
 	}
 	$total = count(pdo_getall($table, $condition));
 	if (!empty($goods) && is_array($goods)) {
