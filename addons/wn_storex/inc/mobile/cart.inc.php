@@ -76,6 +76,7 @@ if ($op == 'display') {
 }
 
 if ($op == 'add_cart') {
+	$nums = intval($_GPC['nums']);
 	$is_spec = intval($_GPC['is_spec']);
 	$goodsid = intval($_GPC['goodsid']);
 	if ($is_spec == 1) {
@@ -95,14 +96,14 @@ if ($op == 'add_cart') {
 			$goods[$goods_info['id']] = array(
 				'is_spec' => $goods_info['is_spec'],
 				'id' => $goods_info['id'],
-				'nums' => 1
+				'nums' => $nums,
 			);
 			$cart_goods = array(
 				'uniacid' => $_W['uniacid'],
 				'storeid' => $storeid,
 				'uid' => $uid,
-				'total' => 1,
-				'total_price' => $goods_info['oprice'],
+				'total' => $nums,
+				'total_price' => $goods_info['oprice'] * $nums,
 				'goods' => iserializer($goods)
 			);
 			pdo_insert('storex_cart', $cart_goods);
@@ -114,20 +115,20 @@ if ($op == 'add_cart') {
 			$goods = iunserializer($cart_info['goods']);
 			if (!empty($goods) && is_array($goods)) {
 				foreach ($goods as $key => &$value) {
-					if ($goods_info['id'] == $key) {
-						$value['nums']++;
-
+					if ($goods_info['id'] == $key && $goods_info['is_spec'] == $value['is_spec']) {
+						$value['nums'] += $nums;
 					} else {
 						$goods[$goods_info['id']] = array(
 							'is_spec' => $goods_info['is_spec'],
 							'id' => $goods_info['id'],
-							'nums' => 1
+							'nums' => $nums,
 						);
+						break;
 					}
-					$cart_goods['total']++;
 				}
 				unset($value);
-				$cart_goods['total_price'] += $goods_info['cprice'];
+				$cart_goods['total'] += $nums;
+				$cart_goods['total_price'] += $goods_info['cprice'] * $nums;
 				$cart_goods['goods'] = iserializer($goods);
 			}
 			pdo_update('storex_cart', $cart_goods, array('id' => $cart_info['id']));
