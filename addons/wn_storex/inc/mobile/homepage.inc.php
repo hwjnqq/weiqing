@@ -209,7 +209,7 @@ if ($op == 'display') {
 	}
 	$share_data = array(
 		'title' => $store_info['title'],
-		'desc' => $store_info['title'] . '--万能小店',
+		'desc' => $store_info['title'],
 		'link' => murl('entry', array('do' => 'display', 'id' => $storeid, 'm' => 'wn_storex', 'type' => 'storeindex'), true, true),
 		'imgUrl' => tomedia($store_info['thumb'])
 	);
