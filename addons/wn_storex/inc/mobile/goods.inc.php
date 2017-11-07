@@ -111,13 +111,7 @@ if ($op == 'goods_info') {
 	);
 	$share_data = get_share_data('goods', array('storeid' => $store_id, 'goodsid' => $goodsid), $share_data);
 	$goods_info['defined'] = get_goods_defined($store_id, $goodsid, $this->inMobile);
-	$single_comment = array();
-	$single_comment = pdo_get('storex_comment', array('uniacid' => $_W['uniacid'], 'hotelid' => $store_id, 'goodsid' => $goodsid, 'comment <>' => ''), array('createtime', 'comment', 'nickname', 'thumb'));
-	if (!empty($single_comment)) {
-		$single_comment['thumb'] = tomedia($single_comment['thumb']);
-		$single_comment['createtime'] = date('Y-m-d', $single_comment['createtime']);
-	}
-	$goods_info['comment'] = $single_comment;
+	$goods_info['comment'] = get_goods_comments($store_id, $goodsid, array(1, 11));
 	//套餐信息
 	if ($store_info['store_type'] != 1) {
 		$goods_package = pdo_getall('storex_goods_package', array('uniacid' => $_W['uniacid'], 'storeid' => $store_id, 'goodsid' => $goodsid), array('packageid'));
@@ -260,19 +254,7 @@ if ($op == 'package_info') {
 }
 
 if ($op == 'goods_comments') {
-	$comment_list = array();
-	$comment_list = pdo_getall('storex_comment', array('uniacid' => $_W['uniacid'], 'hotelid' => $store_id, 'goodsid' => $goodsid), array(), 'id');
-	if (!empty($comment_list) && is_array($comment_list)) {
-		foreach ($comment_list as $key => &$value) {
-			$value['thumb'] = tomedia($value['thumb']);
-			$value['createtime'] = date('Y-m-d', $value['createtime']);
-			if ($value['type'] == 3) {
-				$comment_list[$value['cid']]['reply'][] = $value;
-				unset($comment_list[$key]);
-			}
-		}
-	}
-	$comment_list = array_values($comment_list);
+	$comment_list = get_goods_comments($store_id, $goodsid);
 	wmessage(error(0, $comment_list), '', 'ajax');
 }
 
@@ -416,6 +398,24 @@ if ($op == 'order') {
 	} else {
 		goods_common_order($insert, $store_info, $uid, $selected_coupon, $group);
 	}
+}
+//获取评论
+function get_goods_comments($store_id, $goodsid, $limit = array()) {
+	global $_W;
+	$comment_list = array();
+	$comment_list = pdo_getall('storex_comment', array('uniacid' => $_W['uniacid'], 'hotelid' => $store_id, 'goodsid' => $goodsid), array(), 'id', array(), $limit);
+	if (!empty($comment_list) && is_array($comment_list)) {
+		foreach ($comment_list as $key => &$value) {
+			$value['thumb'] = tomedia($value['thumb']);
+			$value['createtime'] = date('Y-m-d', $value['createtime']);
+			if ($value['type'] == 3) {
+				$comment_list[$value['cid']]['reply'][] = $value;
+				unset($comment_list[$key]);
+			}
+		}
+	}
+	$comment_list = array_values($comment_list);
+	return $comment_list;
 }
 
 function order_goodsids($uid = '') {
