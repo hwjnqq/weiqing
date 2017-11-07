@@ -283,6 +283,9 @@ $aside_nav = array(
 		),
 	),
 );
+if (empty($_GPC['storeid'])) {
+	unset($aside_nav['shop_index']['children']);
+}
 $sub_menu = array();
 
 foreach ($aside_nav as $key => $value) {

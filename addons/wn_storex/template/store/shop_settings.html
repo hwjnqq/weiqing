@@ -7,6 +7,7 @@
 			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_settings'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_settings', array('storeid' => $_GPC['storeid']))}">店铺设置</a>
 			</div>
+			{if !empty($_GPC['storeid'])}
 			<div class="wn-tabs__item {if $op == 'homepage'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_share', array('op' => 'homepage', 'storeid' => $_GPC['storeid']))}">首页分享设置</a>
 			</div>
@@ -17,6 +18,7 @@
 			<div class="wn-tabs__item {if $op == 'goods'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_share', array('op' => 'goods', 'storeid' => $_GPC['storeid']))}">商品分享设置</a>
 			</div>
+			{/if}
 			{/if}
 		</div>
 		<form class="form-horizontal form" method="post" enctype="multipart/form-data">
