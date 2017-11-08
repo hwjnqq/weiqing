@@ -39,8 +39,6 @@ if ($op == 'display') {
 			'finish_templateid' => trim($_GPC['finish_templateid']),
 			'nickname' => trim($_GPC['nickname']),
 			'location' => $_GPC['location'],
-			'credit_pay' => intval($_GPC['credit_pay']),
-			'credit_ratio' => intval($_GPC['credit_ratio']),
 			'credit_pw' => !empty($_GPC['credit_pw_mode']) ? intval($_GPC['credit_pw']) : 2,
 			'credit_pw_mode' => iserializer($_GPC['credit_pw_mode']),
 		);

@@ -42,20 +42,6 @@
 					</div>
 				</div>
 				<div class="form-group">
-					<label class="col-xs-12 col-sm-3 col-md-2 control-label">积分抵扣设置</label>
-					<div class="col-sm-9 col-xs-12">
-						<label class='radio-inline'><input type="radio" name="credit_pay" value="1"  {if empty($set['credit_pay']) || $set['credit_pay'] == 1} checked="true" {/if} onclick="$('.credit_ratio').show();">开启</label>
-						<label class='radio-inline'><input type="radio" name="credit_pay" value="2" {if $set['credit_pay'] == 2} checked="true" {/if} onclick="$('.credit_ratio').hide();">关闭</label>
-					</div>
-				</div>
-				<div class="form-group credit_ratio" {if $set['credit_pay'] == 2}style="display: none;"{/if}>
-					<label class="col-xs-12 col-sm-3 col-md-2 control-label">积分抵扣比例</label>
-					<div class="col-sm-9 col-xs-12">
-						<input type="number" name="credit_ratio" class="form-control" value="{$set['credit_ratio']}" />
-						<span class="help-block">设置多少积分（整数）可以抵扣1元，例如30，即30积分 = 1元。请根据获取积分规则，谨慎设置。</span>
-					</div>
-				</div>
-				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">余额密码设置</label>
 					<div class="col-sm-9 col-xs-12">
 						<label class='radio-inline'><input type="radio" name="credit_pw" value="1"  {if $set['credit_pw'] == 1} checked="true" {/if} onclick="$('.credit_pw_mode').show();">开启</label>

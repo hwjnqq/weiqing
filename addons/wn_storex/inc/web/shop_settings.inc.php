@@ -49,6 +49,8 @@ if ($op == 'post') {
 			'express' => iserializer($express_set),
 			'goods_express' => intval($_GPC['goods_express']),
 			'agent_status' => intval($_GPC['agent_status']),
+			'credit_pay' => intval($_GPC['credit_pay']),
+			'credit_ratio' => intval($_GPC['credit_ratio']),
 		);
 		$common_insert['pick_up_mode'] = empty($_GPC['pick_up_mode']) ? '' : iserializer($_GPC['pick_up_mode']);
 		$receives = array('emails' => 'email', 'phones' => 'tel', 'openids' => 'openid');

@@ -258,7 +258,7 @@ function format_url($urls) {
 //获取店铺信息
 function get_store_info($id) {
 	global $_W;
-	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone', 'thumb', 'emails', 'phones', 'openids', 'mail', 'refund', 'market_status', 'max_replace', 'pick_up_mode', 'express', 'agent_status'));
+	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone', 'thumb', 'emails', 'phones', 'openids', 'mail', 'refund', 'market_status', 'max_replace', 'pick_up_mode', 'express', 'agent_status', 'credit_pay', 'credit_ratio'));
 	if (empty($store_info)) {
 		wmessage(error(-1, '店铺不存在'), '', 'ajax');
 	} else {
@@ -942,13 +942,12 @@ function format_package_goods($store_id, $goodsid) {
 
 function get_credit_replace($storeid, $uid = '') {
 	$store_info = get_store_info($storeid);
-	if ($store_info['max_replace'] > 0 && $store_set['credit_pay'] == 1) {
-		$store_set = get_storex_set();
+	if ($store_info['max_replace'] > 0 && $store_info['credit_pay'] == 1) {
 		$credit_replace = array(
-			'credit_pay' => $store_set['credit_pay'],//是否开启积分抵扣
-			'credit_ratio' => $store_set['credit_ratio'],
+			'credit_pay' => $store_info['credit_pay'],//是否开启积分抵扣
+			'credit_ratio' => $store_info['credit_ratio'],
 			'max_replace' => $store_info['max_replace'],
-			'cost_credit' => sprintf('%.2f', $store_set['credit_ratio'] * $store_info['max_replace']),
+			'cost_credit' => sprintf('%.2f', $store_info['credit_ratio'] * $store_info['max_replace']),
 			'credit1' => 0,
 		);
 		if (!empty($uid)) {

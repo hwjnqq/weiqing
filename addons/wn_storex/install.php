@@ -251,8 +251,6 @@ $sql = "
 	`extend_switch` varchar(400) NOT NULL COMMENT '扩展开关',
 	`source` tinyint(4) NOT NULL DEFAULT '2' COMMENT '卡券类型，1为系统卡券，2为微信卡券',
 	`location` tinyint(2) NOT NULL DEFAULT '1' COMMENT '是否开启定位1开2关',
-	`credit_pay` tinyint(2) NOT NULL DEFAULT '1' COMMENT '积分抵扣设置1开启，2关闭',
-	`credit_ratio` int(11) NOT NULL COMMENT '抵扣比例',
 	`credit_pw` tinyint(2) NOT NULL DEFAULT '2' COMMENT '1开2关',
 	`credit_pw_mode` varchar(100) NOT NULL COMMENT '余额支付密码验证方式',
 	PRIMARY KEY (`id`)
@@ -309,6 +307,8 @@ $sql = "
 	`express` varchar(200) NOT NULL COMMENT '购物车统一结算运费',
 	`goods_express` int(2) NOT NULL DEFAULT '1' COMMENT '单件商品运费模板',
 	`agent_status` tinyint(2) NOT NULL DEFAULT '2' COMMENT '分销功能开关',
+	`credit_pay` tinyint(2) NOT NULL DEFAULT '2' COMMENT '积分抵扣设置1开启，2关闭',
+	`credit_ratio` int(11) NOT NULL COMMENT '抵扣比例',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) DEFAULT CHARSET=utf8;

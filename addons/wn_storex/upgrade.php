@@ -895,8 +895,6 @@ if (pdo_tableexists('storex_set')) {
 			`extend_switch` varchar(400) NOT NULL COMMENT '扩展开关',
 			`source` tinyint(4) NOT NULL DEFAULT '2' COMMENT '卡券类型，1为系统卡券，2为微信卡券',
 			`location` tinyint(2) NOT NULL DEFAULT '1' COMMENT '是否开启定位1开2关',
-			`credit_pay` tinyint(2) NOT NULL DEFAULT '1' COMMENT '积分抵扣设置1开启，2关闭',
-			`credit_ratio` int(11) NOT NULL COMMENT '抵扣比例',
 			`credit_pw` tinyint(2) NOT NULL DEFAULT '2' COMMENT '1开2关',
 			`credit_pw_mode` varchar(100) NOT NULL COMMENT '余额支付密码验证方式',
 			PRIMARY KEY (`id`)
@@ -1289,13 +1287,6 @@ if (!pdo_fieldexists('storex_goods', 'recycle')) {
 if (!pdo_fieldexists('storex_room', 'recycle')) {
 	pdo_query("ALTER TABLE " . tablename('storex_room') . " ADD `recycle` TINYINT(2) NOT NULL DEFAULT '2' COMMENT '1在回收站，2不在';");
 }
-//积分抵扣设置
-if (!pdo_fieldexists('storex_set', 'credit_pay')) {
-	pdo_query("ALTER TABLE " . tablename('storex_set') . " ADD `credit_pay` TINYINT(2) NOT NULL DEFAULT '1' COMMENT '积分抵扣设置1开启，2关闭';");
-}
-if (!pdo_fieldexists('storex_set', 'credit_ratio')) {
-	pdo_query("ALTER TABLE " . tablename('storex_set') . " ADD `credit_ratio` INT(11) NOT NULL COMMENT '抵扣比例';");
-}
 //给店铺设置最大抵扣金额值
 if (!pdo_fieldexists('storex_bases', 'max_replace')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `max_replace` DECIMAL(10,2) NOT NULL COMMENT '最大抵扣金额';");
@@ -1372,6 +1363,29 @@ if (!pdo_fieldexists('storex_order', 'group_goodsid')) {
 }
 if (!pdo_fieldexists('storex_order', 'group_id')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `group_id` INT(11) NOT NULL COMMENT '开团后的id';");
+}
+
+//积分设置改为店铺内设置
+if (!pdo_fieldexists('storex_bases', 'credit_pay')) {
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `credit_pay` TINYINT(2) NOT NULL DEFAULT '2' COMMENT '积分抵扣设置1开启，2关闭';");
+}
+if (!pdo_fieldexists('storex_bases', 'credit_ratio')) {
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `credit_ratio` INT(11) NOT NULL COMMENT '抵扣比例';");
+}
+if (pdo_fieldexists('storex_set', 'credit_pay') && pdo_fieldexists('storex_set', 'credit_ratio')) {
+	$storex_set = pdo_getall('storex_set', array(), array('id', 'weid', 'credit_pay', 'credit_ratio'), 'weid');
+	$storex_bases = pdo_getall('storex_bases', array(), array('id', 'weid', 'credit_pay', 'credit_ratio'));
+	if (!empty($storex_bases)) {
+		foreach ($storex_bases as $store) {
+			if (!empty($storex_set[$store['weid']])) {
+				$store['credit_pay'] = $storex_set[$store['weid']]['credit_pay'];
+				$store['credit_ratio'] = $storex_set[$store['weid']]['credit_ratio'];
+				pdo_update('storex_bases', $store, array('id' => $store['id']));
+			}
+		}
+	}
+	pdo_query("ALTER TABLE " . tablename('storex_set') . " DROP `credit_pay`;");
+	pdo_query("ALTER TABLE " . tablename('storex_set') . " DROP `credit_ratio`;");
 }
 
 //处理mobile更新遗留的js，css和svg文件
