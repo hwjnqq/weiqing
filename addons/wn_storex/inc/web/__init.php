@@ -293,6 +293,11 @@ foreach ($aside_nav as $key => $value) {
 		$sub_menu = $value['children'];
 	}
 }
+//添加店铺不显示多余菜单
+if ($_GPC['do'] == 'shop_settings' && $_GPC['op'] == 'post' && $_GPC['action'] == 'add') {
+	unset($sub_menu['shop_index'], $sub_menu['shop_homepage'], $sub_menu['shop_wxapphomepage'], $sub_menu['shop_stat'], $sub_menu['shop_article']);
+}
+
 if ($_W['wn_storex']['store_info']['store_type'] == 1) {
 	unset($aside_nav['shop_agent']);
 	if ($_GPC['do'] == 'shop_agent' || $_GPC['do'] == 'shop_agent_level') {

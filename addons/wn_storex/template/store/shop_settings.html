@@ -7,7 +7,7 @@
 			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_settings'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_settings', array('storeid' => $_GPC['storeid']))}">店铺设置</a>
 			</div>
-			{if !empty($_GPC['storeid'])}
+			{if $_GPC['action'] != 'add'}
 			<div class="wn-tabs__item {if $op == 'homepage'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_share', array('op' => 'homepage', 'storeid' => $_GPC['storeid']))}">首页分享设置</a>
 			</div>
@@ -281,20 +281,6 @@
 						<input type="radio" name="market_status" value="0" {if $storex_bases['market_status'] == 0}checked{/if}/>关闭
 					</label>
 					<span class='help-block'>开启后，享受店铺内活动，会员卡优惠不再享受</span>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label">积分抵扣设置</label>
-				<div class="col-sm-9 col-xs-12">
-					<label class='radio-inline'><input type="radio" name="credit_pay" value="1"  {if empty($storex_bases['credit_pay']) || $storex_bases['credit_pay'] == 1} checked="true" {/if} onclick="$('.credit_ratio').show();">开启</label>
-					<label class='radio-inline'><input type="radio" name="credit_pay" value="2" {if $storex_bases['credit_pay'] == 2} checked="true" {/if} onclick="$('.credit_ratio').hide();">关闭</label>
-				</div>
-			</div>
-			<div class="form-group credit_ratio" {if $storex_bases['credit_pay'] == 2}style="display: none;"{/if}>
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label">积分抵扣比例</label>
-				<div class="col-sm-9 col-xs-12">
-					<input type="number" name="credit_ratio" class="form-control" value="{$storex_bases['credit_ratio']}" />
-					<span class="help-block">设置多少积分（整数）可以抵扣1元，例如30，即30积分 = 1元。请根据获取积分规则，谨慎设置。</span>
 				</div>
 			</div>
 			<div class="form-group">
