@@ -1364,7 +1364,14 @@ if (!pdo_fieldexists('storex_order', 'group_goodsid')) {
 if (!pdo_fieldexists('storex_order', 'group_id')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `group_id` INT(11) NOT NULL COMMENT '开团后的id';");
 }
-
+//删除订单表不需要字段
+if (pdo_fieldexists('storex_order', 'action')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " DROP `action`;");
+}
+//订单增加微信地址
+if (pdo_fieldexists('storex_order', 'wechat_address')) {
+	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `wechat_address` TEXT NOT NULL COMMENT '使用微信地址';");
+}
 //积分设置改为店铺内设置
 if (!pdo_fieldexists('storex_bases', 'credit_pay')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `credit_pay` TINYINT(2) NOT NULL DEFAULT '2' COMMENT '积分抵扣设置1开启，2关闭';");

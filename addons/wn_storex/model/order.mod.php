@@ -56,7 +56,6 @@ function order_goods_status($status) {
 
 
 /**
- * action 1预定  2购买
  * 获取订单的状态
  * status -1取消，0未确认，1已确认，2退款，3完成，4已入住
  * goods_status 1待发货，2已发货，3已收货，4待入住，5已入住

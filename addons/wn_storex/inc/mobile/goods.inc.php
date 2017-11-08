@@ -377,7 +377,6 @@ if ($op == 'order') {
 		'weid' => intval($_W['uniacid']),
 		'openid' => $_W['openid'],
 		'time' => TIMESTAMP,
-		'action' => 2,
 		'roomid' => $goodsid,
 		'hotelid' => $store_id,
 	);
@@ -831,13 +830,20 @@ function general_goods_order($insert, $goods_info) {
 			$insert['order_time'] = strtotime(intval($_GPC['order']['order_time']));
 			if ($mode_distribute == 2) {//配送
 				if (!empty($store_info['pick_up_mode']['express'])) {
-					if (empty($_GPC['order']['addressid'])) {
-						wmessage(error(-1, '地址不能为空！'), '', 'ajax');
-					}
 					$insert['mode_distribute'] = $mode_distribute;
-					$insert['addressid'] = intval($_GPC['order']['addressid']);
 					$insert['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
-					$insert = get_info_by_addressid($insert);
+					if (empty($_GPC['order']['addressid'])) {
+						if (!empty($_GPC['wechat_address'])) {
+							$insert['contact_name'] = $_GPC['wechat_address']['userName'];
+							$insert['mobile'] = $_GPC['wechat_address']['telNumber'];
+							$insert['wechat_address'] = iserializer($_GPC['wechat_address']);
+						} else {
+							wmessage(error(-1, '地址不能为空！'), '', 'ajax');
+						}
+					} else {
+						$insert['addressid'] = intval($_GPC['order']['addressid']);
+						$insert = get_info_by_addressid($insert);
+					}
 				}
 			} elseif ($mode_distribute == 1) {
 				if (!empty($store_info['pick_up_mode']['self_lift'])) {
@@ -863,13 +869,20 @@ function cart_goods_order($insert, $cart) {
 		$insert['order_time'] = strtotime(intval($_GPC['order']['order_time']));
 		if ($mode_distribute == 2) {//配送
 			if (!empty($store_info['pick_up_mode']['express'])) {
-				if (empty($_GPC['order']['addressid'])) {
-					wmessage(error(-1, '地址不能为空！'), '', 'ajax');
-				}
 				$insert['mode_distribute'] = $mode_distribute;
-				$insert['addressid'] = intval($_GPC['order']['addressid']);
 				$insert['goods_status'] = 1; //到货确认  1未发送， 2已发送 ，3已收货
-				$insert = get_info_by_addressid($insert);
+				if (empty($_GPC['order']['addressid'])) {
+					if (!empty($_GPC['wechat_address'])) {
+						$insert['contact_name'] = $_GPC['wechat_address']['userName'];
+						$insert['mobile'] = $_GPC['wechat_address']['telNumber'];
+						$insert['wechat_address'] = iserializer($_GPC['wechat_address']);
+					} else {
+						wmessage(error(-1, '地址不能为空！'), '', 'ajax');
+					}
+				} else {
+					$insert['addressid'] = intval($_GPC['order']['addressid']);
+					$insert = get_info_by_addressid($insert);
+				}
 			}
 		} elseif ($mode_distribute == 1) {
 			if (!empty($store_info['pick_up_mode']['self_lift'])) {
