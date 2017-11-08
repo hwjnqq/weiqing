@@ -5,7 +5,11 @@
 	<div class="wn-main__content">
 		<div class="wn-tabs">
 			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_settings'}wn-tabs__item--active{/if}">
+				{if $_GPC['action'] != 'add'}
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_settings', array('storeid' => $_GPC['storeid']))}">店铺设置</a>
+				{else}
+				<a class="wn-tabs__link" href="javascript:;">店铺设置</a>
+				{/if}
 			</div>
 			{if $_GPC['action'] != 'add'}
 			<div class="wn-tabs__item {if $op == 'homepage'}wn-tabs__item--active{/if}">
