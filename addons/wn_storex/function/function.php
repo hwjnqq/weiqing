@@ -258,7 +258,7 @@ function format_url($urls) {
 //获取店铺信息
 function get_store_info($id) {
 	global $_W;
-	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone', 'thumb', 'emails', 'phones', 'openids', 'mail', 'refund', 'market_status', 'max_replace', 'pick_up_mode', 'express', 'agent_status', 'credit_pay', 'credit_ratio'));
+	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone', 'thumb', 'emails', 'phones', 'openids', 'mail', 'refund', 'market_status', 'max_replace', 'pick_up_mode', 'express', 'agent_status', 'credit_pay', 'credit_ratio', 'template'));
 	if (empty($store_info)) {
 		wmessage(error(-1, '店铺不存在'), '', 'ajax');
 	} else {
@@ -270,6 +270,7 @@ function get_store_info($id) {
 			$store_info['phones'] = iunserializer($store_info['phones']);
 			$store_info['openids'] = iunserializer($store_info['openids']);
 			$store_info['pick_up_mode'] = iunserializer($store_info['pick_up_mode']);
+			$store_info['template'] = iunserializer($store_info['template']);
 			return $store_info;
 		}
 	}

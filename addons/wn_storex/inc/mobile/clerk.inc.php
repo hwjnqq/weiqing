@@ -283,9 +283,12 @@ if ($op == 'edit_order') {
 	$params['openid'] = $item['openid'];
 	$params['btime'] = $item['btime'];
 	$params['tpl_status'] = false;
-	$setting = pdo_get('storex_set', array('weid' => $_W['uniacid']));
-	if (!empty($setting['template'])) {
-		$params['tpl_status'] = true;
+	$setting = array();
+	if (!empty($store_info[$item['hotelid']]['template'])) {
+		$setting = iunserializer($store_info[$item['hotelid']]['template']);
+		if (!empty($setting['template'])) {
+			$params['tpl_status'] = true;
+		}
 	}
 	if (!empty($data['status']) && $data['status'] != $item['status']) {
 		$logs['type'] = 'status';
@@ -297,7 +300,7 @@ if ($op == 'edit_order') {
 			$params['nums'] = $item['nums'];
 			$params['sum_price'] = $item['sum_price'];
 			$params['etime'] = $item['etime'];
-			$params['refuse_templateid'] = $setting['refuse_templateid'];
+			$params['refuse_templateid'] = isset($setting['refuse_templateid']) ? $setting['refuse_templateid'] : '';
 			order_refuse_notice($params);
 		}
 		//订单确认提醒
@@ -315,7 +318,7 @@ if ($op == 'edit_order') {
 			$params['etime'] = $item['etime'];
 			$params['nums'] = $item['nums'];
 			$params['style'] = $item['style'];
-			$params['templateid'] = $setting['templateid'];
+			$params['templateid'] = isset($setting['templateid']) ? $setting['templateid'] : '';
 			order_sure_notice($params);
 			
 			if (check_plugin_isopen('wn_storex_plugin_sms')) {
@@ -342,7 +345,7 @@ if ($op == 'edit_order') {
 			
 			$params['sum_price'] = $item['sum_price'];
 			$params['etime'] = $item['etime'];
-			$params['finish_templateid'] = $setting['finish_templateid'];
+			$params['finish_templateid'] = isset($setting['finish_templateid']) ? $setting['finish_templateid'] : '';
 			order_over_notice($params);
 			
 			mload()->model('sales');
@@ -363,7 +366,7 @@ if ($op == 'edit_order') {
 		}
 		//已入住提醒
 		if ($data['goods_status'] == GOODS_STATUS_CHECKED) {
-			$params['check_in_templateid'] = $setting['check_in_templateid'];
+			$params['check_in_templateid'] = isset($setting['check_in_templateid']) ? $setting['check_in_templateid'] : '';
 			order_checked_notice($params);
 		}
 		//发货设置

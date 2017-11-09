@@ -942,10 +942,9 @@ function storex_send_notice_touser($insert, $store_info, $goods_info) {
 		'room' => $goods_info['title'],
 	);
 	$tpl_params['tpl_status'] = false;
-	$setInfo = pdo_get('storex_set', array('weid' => $_W['uniacid']), array('template', 'confirm_templateid'));
-	if (!empty($setInfo['template'])) {
+	if (!empty($store_info['template']['template'])) {
 		$tpl_params['tpl_status'] = true;
-		$tpl_params['confirm_templateid'] = $setInfo['confirm_templateid'];
+		$tpl_params['confirm_templateid'] = $store_info['template']['confirm_templateid'];
 	}
 	order_confirm_notice($tpl_params);
 }

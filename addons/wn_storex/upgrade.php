@@ -1385,14 +1385,47 @@ if (pdo_fieldexists('storex_set', 'credit_pay') && pdo_fieldexists('storex_set',
 	if (!empty($storex_bases)) {
 		foreach ($storex_bases as $store) {
 			if (!empty($storex_set[$store['weid']])) {
-				$store['credit_pay'] = $storex_set[$store['weid']]['credit_pay'];
-				$store['credit_ratio'] = $storex_set[$store['weid']]['credit_ratio'];
-				pdo_update('storex_bases', $store, array('id' => $store['id']));
+				$store_update = array(
+					'credit_pay' => $storex_set[$store['weid']]['credit_pay'],
+					'credit_ratio' => $storex_set[$store['weid']]['credit_ratio'],
+				);
+				pdo_update('storex_bases', $store_update, array('id' => $store['id']));
 			}
 		}
 	}
 	pdo_query("ALTER TABLE " . tablename('storex_set') . " DROP `credit_pay`;");
 	pdo_query("ALTER TABLE " . tablename('storex_set') . " DROP `credit_ratio`;");
+}
+//模板信息修改,改为在店铺内设置
+if (pdo_fieldexists('storex_bases', 'template')) {
+	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `template` TEXT NOT NULL COMMENT '模板信息';");
+}
+if (pdo_fieldexists('storex_set', 'templateid')) {
+	$storex_set = pdo_getall('storex_set', array(), array('id', 'weid', 'template', 'templateid', 'refuse_templateid', 'confirm_templateid', 'check_in_templateid', 'finish_templateid'), 'weid');
+	$storex_bases = pdo_getall('storex_bases', array(), array('id', 'weid', 'template'));
+	if (!empty($storex_set)) {
+		foreach ($storex_bases as $store) {
+			if (!empty($storex_set[$store['weid']])) {
+				$store_update = array();
+				$template = array(
+					'template' => $storex_set[$store['weid']]['template'],
+					'templateid' => $storex_set[$store['weid']]['templateid'],
+					'refuse_templateid' => $storex_set[$store['weid']]['refuse_templateid'],
+					'confirm_templateid' => $storex_set[$store['weid']]['confirm_templateid'],
+					'check_in_templateid' => $storex_set[$store['weid']]['check_in_templateid'],
+					'finish_templateid' => $storex_set[$store['weid']]['finish_templateid'],
+				);
+				$store_update['template'] = iserializer($template);
+				pdo_update('storex_bases', $store_update, array('id' => $store['id']));
+			}
+		}
+	}
+	pdo_query("ALTER TABLE " . tablename('storex_set') . " DROP `template`;");
+	pdo_query("ALTER TABLE " . tablename('storex_set') . " DROP `templateid`;");
+	pdo_query("ALTER TABLE " . tablename('storex_set') . " DROP `refuse_templateid`;");
+	pdo_query("ALTER TABLE " . tablename('storex_set') . " DROP `confirm_templateid`;");
+	pdo_query("ALTER TABLE " . tablename('storex_set') . " DROP `check_in_templateid`;");
+	pdo_query("ALTER TABLE " . tablename('storex_set') . " DROP `finish_templateid`;");
 }
 
 //处理mobile更新遗留的js，css和svg文件
