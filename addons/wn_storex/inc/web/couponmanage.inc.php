@@ -39,11 +39,6 @@ if ($op == 'display') {
 		$condition[':type'] = intval($_GPC['type']);
 	}
 	$store_id = intval($_GPC['storeid']);
-	// if (!empty($_GPC['storeid'])) {
-	// 	$join_sql .= " LEFT JOIN ".tablename('storex_coupon_store')." AS s ON c.id = s.couponid ";
-	// 	$condition_sql .= " AND s.storeid = :storeid";
-	// 	$condition[':storeid'] = intval($_GPC['storeid']);
-	// }
 	$coupon_stores = pdo_getall('storex_coupon_store', array('uniacid' => $_W['uniacid']), array('storeid', 'id', 'couponid'), 'id');
 	if (!empty($coupon_stores)) {
 		foreach ($coupon_stores as $key => $stores) {
@@ -111,7 +106,7 @@ if ($op == 'post') {
 			$coupon->setPromotionMenu($params['promotion_url_name'], $params['promotion_url_sub_title'], $params['promotion_url']);
 		}
 		
-		// $coupon->setCustomMenu('立即使用', '', murl('entry', array('m' => 'paycenter', 'do' => 'consume'), true, true));
+		$coupon->setCustomMenu('立即使用', '', murl('entry', array('m' => 'wn_storex', 'do' => 'clerk', 'op' => 'coupon_consume'), true, true));
 		$coupon->setQuantity($params['quantity']);
 		$coupon->setCodetype($params['code_type']);
 		//折扣券

@@ -29,6 +29,33 @@
 							</div>
 						</div>
 					</div>
+					<div class="form-group">
+						<div class="col-sm-10">
+							<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">店员入口</label>
+							<div class="col-xs-12 col-sm-8 col-lg-9">
+								<a href="javascript:;" class="js-clerk-entry" data-url="{php echo murl('entry', array('do' => 'clerk', 'op' => 'display', 'm' => 'wn_storex', 'clerkid' => $item['id']), true, true)}">点击查看店员入口</a>
+								<input type="hidden" class="js-url">
+							</div>
+						</div>
+					</div>
+					<div class="modal fade" id="clerk-modal" tabindex="-1" role="dialog" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">
+								<div class="modal-header">
+									<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+									<h4 class="modal-title" id="myModalLabel">二维码入口</h4>
+								</div>
+								<div class="modal-body clearfix form-horizontal">
+									<div role="tabpanel" class="tab-pane active text-center" id="put-qrcode">
+										<div class="mui-content-padded mui-text-center">
+											<div class="js-qrcode-block" style="margin:50px 0 50px 0"></div>
+										</div>
+										<input type="hidden" class="js-url">
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
 				</form>
 			</div>
 			<div class="wn-main__search__action">
@@ -188,6 +215,19 @@
 <script>
 	require(['bootstrap'],function() {
 		$('.btn').tooltip();
+	});
+	require(['jquery.qrcode'], function(){
+		$('.js-clerk-entry').click(function() {
+			url = $(this).data('url');
+			$('.js-url').val(url);
+			$('#clerk-modal').modal('show');
+			$('.js-qrcode-block').html('').qrcode({
+				render: 'canvas',
+				width: 300,
+				height: 300,
+				text: url,
+			});
+		});
 	});
 	$(function() {
 		$('.js-add-clerk').click(function() {

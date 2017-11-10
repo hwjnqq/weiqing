@@ -99,10 +99,15 @@ if ($op == 'edit') {
 			'mobile' => $_GPC['mobile'],
 			'status' => intval($_GPC['status']),
 			'from_user' => $_GPC['from_user'],
+			'password' => $_GPC['password'],
 			'permission' => is_array($permissions) ? implode('|', $permissions) : '',
 		);
 		if (empty($insert['from_user'])) {
 			message('店员的微信openid不能为空', '', 'info');
+		}
+		$password_exist = pdo_get('storex_clerk', array('weid' => $_W['uniacid'], 'storeid' => $storeid, 'password' => $_GPC['password']), array('id'));
+		if (!empty($password_exist)) {
+			message('店员卡券核销密码重复', '', 'error');
 		}
 		$fans_info = pdo_get('mc_mapping_fans', array('openid' => $insert['from_user'], 'uniacid' => $_W['uniacid']));
 		if (empty($fans_info)) {
