@@ -716,8 +716,8 @@ if ($op == 'couponcode') {
 	include $this->template('couponcode');
 }
 if ($op == 'coupon_consume') {
-	load()->model('activity');
-	$colors = activity_coupon_colors();
+	mload()->model('activity');
+	$colors = activity_get_coupon_colors();
 	$source = trim($_GPC['source']);
 	$card_id = trim($_GPC['card_id']);
 	$encrypt_code = trim($_GPC['encrypt_code']);
@@ -764,7 +764,6 @@ if ($op == 'coupon_consume') {
 		if (!$code) {
 			message('code码错误', referer(), 'error');
 		}
-		mload()->model('activity');
 		$record = pdo_get('storex_coupon_record', array('code' => $code));
 		$status = activity_coupon_consume($record['couponid'], $record['id'], $clerk['storeid']);
 		if (is_error($status)) {

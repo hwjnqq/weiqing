@@ -1515,7 +1515,7 @@ function get_share_data($type, $param = array(), $share = array()) {
 		if (!empty($share_set)) {
 			$share_data = array(
 				'title' => $share_set['title'],
-				'desc' => $share_set['content'] . '--万能小店',
+				'desc' => $share_set['content'],
 				'link' => $share_set['link'],
 				'imgUrl' => tomedia($share_set['thumb'])
 			);
