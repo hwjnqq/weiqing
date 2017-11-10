@@ -56,7 +56,9 @@ if ($op == 'order_list') {
 							} else {
 								$goods_info = pdo_get('storex_goods', array('weid' => intval($_W['uniacid']), 'id' => $info['cart'][0]['good']['id']), array('id', 'thumb'));
 							}
-							$info['nums'] = $info['cart'][0]['good']['buynums'];
+							foreach ($info['cart'] as $g) {
+								$info['nums'] += $g['good']['buynums'];
+							}
 						}
 					}
 				}
