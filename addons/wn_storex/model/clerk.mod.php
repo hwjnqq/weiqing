@@ -327,6 +327,6 @@ function clerk_permission_storex($type, $storeid = '') {
 			}
 		}
 	}
-	$manage_storex_lists = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $stores), array('id', 'title', 'store_type'), 'id');
+	$manage_storex_lists = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid']), 'id' => $stores), array('id', 'title', 'store_type', 'template'), 'id');
 	return $manage_storex_lists;
 }

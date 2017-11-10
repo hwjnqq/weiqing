@@ -108,6 +108,8 @@ if ($op == 'personal_info') {
 	if (!empty($member['credit_password']) && !empty($member['password_lock'])) {
 		$user_info['password'] = 1;
 	}
+	mload()->model('activity');
+	$user_info['coupon_nums'] = count(activity_get_user_couponlist());
 	wmessage(error(0, $user_info), '', 'ajax');
 }
 if ($op == 'personal_update') {

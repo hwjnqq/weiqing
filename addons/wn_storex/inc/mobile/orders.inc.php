@@ -26,24 +26,18 @@ if ($op == 'order_list') {
 		$condition['group_id'] = 0;
 	}
 	$orders = pdo_getall('storex_order', $condition, $field, '', 'time DESC');
-	$order_list = array(
-		'over' => array(),
-		'unfinish' => array(),
-	);
 	if (!empty($orders) && is_array($orders)) {
-		$store_base = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid'])), array('id', 'store_type'));
+		$store_base = pdo_getall('storex_bases', array('weid' => intval($_W['uniacid'])), array('id', 'store_type', 'title'), 'id');
 		if (!empty($store_base)) {
-			$stores = array();
-			foreach ($store_base as $val) {
-				$stores[$val['id']] = $val['store_type'];
-			}
-			foreach ($orders as $k => $info) {
-				if (isset($stores[$info['hotelid']])) {
-					$orders[$k]['store_type'] = $stores[$info['hotelid']];
+			foreach ($orders as &$info) {
+				if (isset($store_base[$info['hotelid']])) {
+					$info['store_type'] = $store_base[$info['hotelid']]['store_type'];
+					$info['store_title'] = $store_base[$info['hotelid']]['title'];
 				}
 			}
+			unset($info);
 		}
-		foreach ($orders as $k => $info) {
+		foreach ($orders as $k => &$info) {
 			if (isset($info['store_type'])) {
 				if ($info['store_type'] == 1) {
 					$goods_info = pdo_get('storex_room', array('weid' => intval($_W['uniacid']), 'id' => $info['roomid']), array('id', 'thumb'));
@@ -75,17 +69,12 @@ if ($op == 'order_list') {
 				continue;
 			}
 			$info = orders_check_status($info);
-			if ($info['status'] == 3) {
-				$order_list['over'][] = $info;
-			} else {
-				if ($info['mode_distribute'] != 2 && $info['status'] != -1 && $info['status'] != 2) {
-					$info['consume_url'] = murl('entry', array('do' => 'clerk', 'orderid' => $info['id'], 'op' => 'order_consume', 'm' => 'wn_storex'), true, true);
-				}
-				$order_list['unfinish'][] = $info;
+			if ($info['mode_distribute'] != 2 && $info['status'] != -1 && $info['status'] != 2) {
+				$info['consume_url'] = murl('entry', array('do' => 'clerk', 'orderid' => $info['id'], 'op' => 'order_consume', 'm' => 'wn_storex'), true, true);
 			}
 		}
 	}
-	wmessage(error(0, $order_list), '', 'ajax');
+	wmessage(error(0, $orders), '', 'ajax');
 }
 
 if ($op == 'order_detail') {

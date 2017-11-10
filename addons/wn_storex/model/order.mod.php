@@ -70,10 +70,13 @@ function orders_check_status($item) {
 	}
 	//1是显示,2不显示
 	$item['is_pay'] = 2;//立即付款 is_pay
-	$item['is_cancel'] = 2;//取消订单is_cancel
+	$item['is_send'] = 2;//代发货状态is_send
 	$item['is_confirm'] = 2;//确认收货is_confirm
-	$item['is_over'] = 2;//再来一单is_over
 	$item['is_comment'] = 2;//显示评价is_comment
+	
+
+	$item['is_cancel'] = 2;//取消订单is_cancel
+	$item['is_over'] = 2;//再来一单is_over	
 	$item['is_refund'] = 2;//显示退款is_refund
 	
 	if ($item['status'] == ORDER_STATUS_NOT_SURE) {//未确认
@@ -108,25 +111,14 @@ function orders_check_status($item) {
 				} elseif ($item['mode_distribute'] == 2) {
 					if ($item['goods_status'] == GOODS_STATUS_NOT_SHIPPED) {
 						$item['is_cancel'] = 1;
+						$item['is_send'] = 1;
 					} elseif ($item['goods_status'] == GOODS_STATUS_SHIPPED) {
 						$item['is_confirm'] = 1;
 					}
 				}
 			} elseif ($item['paystatus'] == PAY_STATUS_UNPAID) {
-				if ($item['mode_distribute'] == 1) {//自提
-					$item['is_cancel'] = 1;
-					$item['is_pay'] = 1;
-				} elseif ($item['mode_distribute'] == 2) {
-					if ($item['goods_status'] == GOODS_STATUS_NOT_SHIPPED) {
-						$item['is_cancel'] = 1;
-						$item['is_pay'] = 1;
-					} elseif ($item['goods_status'] == GOODS_STATUS_SHIPPED) {
-						$item['is_confirm'] = 1;
-						$item['is_pay'] = 1;
-					} elseif ($item['goods_status'] == GOODS_STATUS_RECEIVED) {
-						$item['is_pay'] = 1;
-					}
-				}
+				$item['is_cancel'] = 1;
+				$item['is_pay'] = 1;
 			}
 		}
 	} elseif ($item['status'] == ORDER_STATUS_REFUSE) {//拒绝

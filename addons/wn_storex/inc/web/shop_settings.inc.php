@@ -52,6 +52,15 @@ if ($op == 'post') {
 			'credit_pay' => intval($_GPC['credit_pay']),
 			'credit_ratio' => intval($_GPC['credit_ratio']),
 		);
+		$template = array(
+			'template' => intval($_GPC['template']),
+			'templateid' => trim($_GPC['templateid']),
+			'refuse_templateid' => trim($_GPC['refuse_templateid']),
+			'confirm_templateid' => trim($_GPC['confirm_templateid']),
+			'check_in_templateid' => trim($_GPC['check_in_templateid']),
+			'finish_templateid' => trim($_GPC['finish_templateid']),
+		);
+		$common_insert['template'] = iserializer($template);
 		$common_insert['pick_up_mode'] = empty($_GPC['pick_up_mode']) ? '' : iserializer($_GPC['pick_up_mode']);
 		$receives = array('emails' => 'email', 'phones' => 'tel', 'openids' => 'openid');
 		foreach ($receives as $field => $type) {
@@ -131,6 +140,15 @@ if ($op == 'post') {
 	$storex_bases['thumbs'] = iunserializer($storex_bases['thumbs']);
 	$storex_bases['detail_thumbs'] = iunserializer($storex_bases['detail_thumbs']);
 	$storex_bases['pick_up_mode'] = iunserializer($storex_bases['pick_up_mode']);
+	if (!empty($storex_bases['template'])) {
+		$template = iunserializer($storex_bases['template']);
+		if (!isset($template['template'])) {
+			$template['template'] = '';
+		}
+	} else {
+		$template = array('template' => '');
+	}
+	
 	if (!empty($storex_bases['express']) && !is_numeric($storex_bases['express'])) {
 		$storex_bases['express'] = iunserializer($storex_bases['express']);
 	} else {
