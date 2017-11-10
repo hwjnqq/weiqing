@@ -8,7 +8,7 @@ mload()->model('card');
 mload()->model('order');
 mload()->model('clerk');
 
-$ops = array('permission_storex', 'order', 'order_info', 'edit_order', 'room', 'room_info', 'edit_room', 'assign_room', 'goods', 'status', 'clerk_pay', 'order_consume');
+$ops = array('permission_storex', 'order', 'order_info', 'edit_order', 'room', 'room_info', 'edit_room', 'assign_room', 'goods', 'status', 'clerk_pay', 'order_consume', 'coupon_consume', 'couponcode');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 $uid = mc_openid2uid($_W['openid']);
@@ -710,4 +710,67 @@ if ($op == 'order_consume') {
 		}
 		include $this->template('orderconsume');
 	}
+}
+if ($op == 'couponcode') {
+	$code = $_GPC['code'];
+	include $this->template('couponcode');
+}
+if ($op == 'coupon_consume') {
+	load()->model('activity');
+	$colors = activity_coupon_colors();
+	$source = trim($_GPC['source']);
+	$card_id = trim($_GPC['card_id']);
+	$encrypt_code = trim($_GPC['encrypt_code']);
+	$openid = trim($_GPC['openid']);
+	if (empty($card_id) || empty($encrypt_code)) {
+		message('卡券签名参数错误');
+	}
+	if ($source == '1') {
+		$card = pdo_get('storex_coupon', array('uniacid' => $_W['uniacid'], 'id' => $card_id));
+	} else {
+		$card = pdo_get('storex_coupon', array('uniacid' => $_W['uniacid'], 'card_id' => $card_id));
+	}
+	if (empty($card)) {
+		message('卡券不存在或已删除');
+	}
+	$card['date_info'] = iunserializer($card['date_info']);
+	$card['logo_url'] = tomedia($card['logo_url']);
+	$error_code = 0;
+	if ($source == '1') {
+		$code = $encrypt_code;
+	} else {
+		load()->classs('coupon');
+		$coupon = new coupon($_W['acid']);
+		if (is_null($coupon)) {
+			message('系统错误');
+		}
+		$code = $coupon->DecryptCode(array('encrypt_code' => $encrypt_code));
+		$code = $code['code'];
+	}
+	
+	if (is_error($code)) {
+		$error_code = 1;
+	}
+	if (checksubmit()) {
+		$password = trim($_GPC['password']);
+		$clerk = pdo_get('storex_clerk', array('weid' => $_W['uniacid'], 'password' => $password));
+		$_W['user']['name'] = $clerk['name'];
+		$_W['user']['clerk_id'] = $clerk['id'];
+		$_W['user']['clerk_type'] = 3;
+		$_W['user']['store_id'] = $clerk['storeid'];
+		if (empty($clerk)) {
+			message('店员密码错误', referer(), 'error');
+		}
+		if (!$code) {
+			message('code码错误', referer(), 'error');
+		}
+		mload()->model('activity');
+		$record = pdo_get('storex_coupon_record', array('code' => $code));
+		$status = activity_coupon_consume($record['couponid'], $record['id'], $clerk['storeid']);
+		if (is_error($status)) {
+			message($status['message'], referer(), 'error');
+		}
+		message('核销卡券成功', referer(), 'success');
+	}
+	include $this->template('couponconsume');
 }
