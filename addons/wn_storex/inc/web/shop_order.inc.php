@@ -218,6 +218,9 @@ if ($op == 'edit') {
 				$address = trim($address, '-');
 			}
 		}
+		if (!empty($item['order_time'])) {
+			$item['order_time'] = date('Y-m-d H:i', $item['order_time']);
+		}
 		$is_house = 2;
 		if ($store_type == STORE_TYPE_HOTEL) {
 			$good_info = pdo_get('storex_room', array('store_base_id' => $storeid, 'id' => $item['roomid']), array('id', 'is_house', 'thumb'));

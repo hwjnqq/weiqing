@@ -180,11 +180,25 @@
 							{if $item['mode_distribute'] == 2}配送{else}自提{/if}
 						</div>
 					</div>
+					{if $item['mode_distribute'] == 1}
+					<div class="form-group">
+						<label class="col-sm-4 control-label">自提时间</label>
+						<div class="col-sm-8 form-control-static">
+							{if !empty($item['order_time'])}{$item['order_time']}{/if}
+						</div>
+					</div>
+					{/if}
 					{if $item['mode_distribute'] == 2}
 					<div class="form-group">
 						<label class="col-sm-4 control-label">配送地址</label>
 						<div class="col-sm-8 form-control-static">
 							{if !empty($item['addressid'])}{$address}{/if}
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-4 control-label">配送时间</label>
+						<div class="col-sm-8 form-control-static">
+							{if !empty($item['order_time'])}{$item['order_time']}{/if}
 						</div>
 					</div>
 					{/if}
