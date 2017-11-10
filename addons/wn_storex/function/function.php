@@ -292,9 +292,15 @@ function radian($d) {
 //支付
 function pay_info($order_id) {
 	global $_W;
-	$order_info = pdo_get('storex_order', array('id' => $order_id, 'weid' => intval($_W['uniacid']), 'openid' => $_W['openid']), array('ordersn', 'id', 'style', 'sum_price', 'cart', 'group_id'));
+	$fields = array('ordersn', 'id', 'style', 'sum_price', 'cart');
+	if (pdo_fieldexists('storex_order', 'group_id')) {
+		$fields[] = 'group_id';
+	}
+	$order_info = pdo_get('storex_order', array('id' => $order_id, 'weid' => intval($_W['uniacid']), 'openid' => $_W['openid']), $fields);
 	if (!empty($order_info)) {
-		$result = check_group_status($order_info['group_id']);
+		if (!empty($order_info['group_id'])) {
+			$result = check_group_status($order_info['group_id']);
+		}
 		if (is_error($result)) {
 			wmessage($result, '', 'ajax');
 		}
