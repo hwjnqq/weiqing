@@ -140,6 +140,8 @@ $sql = "
 	`is_package` tinyint(3) unsigned NOT NULL DEFAULT '1' COMMENT '是否为套餐，1是普通商品，2是套餐',
 	`cost_credit` decimal(10,2) NOT NULL COMMENT '抵扣的积分',
 	`replace_money` decimal(10,2) NOT NULL COMMENT '抵扣的钱',
+	`group_goodsid` int(11) NOT NULL COMMENT '拼团商品设置的id',
+  	`group_id` int(11) NOT NULL COMMENT '开团后的id',
 	PRIMARY KEY (`id`),
 	KEY `indx_hotelid` (`hotelid`),
 	KEY `indx_weid` (`weid`),
