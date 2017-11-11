@@ -55,9 +55,11 @@ if ($op == 'post') {
 		$template = array(
 			'template' => intval($_GPC['template']),
 			'templateid' => trim($_GPC['templateid']),
+			'affirm_templateid' => trim($_GPC['affirm_templateid']),
 			'refuse_templateid' => trim($_GPC['refuse_templateid']),
 			'confirm_templateid' => trim($_GPC['confirm_templateid']),
 			'check_in_templateid' => trim($_GPC['check_in_templateid']),
+			'send_templateid' => trim($_GPC['send_templateid']),
 			'finish_templateid' => trim($_GPC['finish_templateid']),
 		);
 		$common_insert['template'] = iserializer($template);

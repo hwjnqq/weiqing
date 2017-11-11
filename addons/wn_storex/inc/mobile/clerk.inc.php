@@ -276,6 +276,10 @@ if ($op == 'edit_order') {
 		'orderid' => $item['id'],
 		'table' => 'storex_order_logs',
 	);
+	if (!empty($item['cart'])) {
+		$item['cart'] = iunserializer($item['cart']);
+		$item['style'] = $item['cart'][0]['good']['title'];
+	}
 	$params = array();
 	$params['room'] = $goods_info['title'];
 	$params['store'] = $store_info[$item['hotelid']]['title'];
@@ -305,6 +309,9 @@ if ($op == 'edit_order') {
 		}
 		//订单确认提醒
 		if ($data['status'] == ORDER_STATUS_SURE) {
+			$params['ordersn'] = $item['ordersn'];
+			$params['style'] = $item['style'];
+			$params['sum_price'] = $item['sum_price'];
 			if ($store_info[$item['hotelid']]['store_type'] == STORE_TYPE_HOTEL) {
 				if (!empty($goods_info) && $goods_info['is_house'] == 1) {
 					$data['goods_status'] = GOODS_STATUS_NOT_CHECKED;
@@ -312,14 +319,16 @@ if ($op == 'edit_order') {
 			} else {
 				$data['goods_status'] = GOODS_STATUS_NOT_SHIPPED;
 			}
-			$params['ordersn'] = $item['ordersn'];
-			$params['contact_name'] = $item['contact_name'];
-			$params['sum_price'] = $item['sum_price'];
-			$params['etime'] = $item['etime'];
-			$params['nums'] = $item['nums'];
-			$params['style'] = $item['style'];
-			$params['templateid'] = isset($setting['templateid']) ? $setting['templateid'] : '';
-			order_sure_notice($params);
+			if ($store_info[$item['hotelid']]['store_type'] == STORE_TYPE_HOTEL && !empty($setting['templateid'])) {
+				$params['contact_name'] = $item['contact_name'];
+				$params['etime'] = $item['etime'];
+				$params['nums'] = $item['nums'];
+				$params['templateid'] = isset($setting['templateid']) ? $setting['templateid'] : '';
+				order_sure_notice($params);
+			} else {
+				$params['paytext'] = get_paytext($item['paytype']);
+				order_affirm_notice($params);
+			}
 			
 			if (check_plugin_isopen('wn_storex_plugin_sms')) {
 				mload()->model('sms');
@@ -371,8 +380,16 @@ if ($op == 'edit_order') {
 		}
 		//发货设置
 		if ($data['goods_status'] == GOODS_STATUS_SHIPPED) {
-			$info = '您在' . $store_info[$item['hotelid']]['title'] . '预订的' . $goods_info['title'] . "已发货,订单编号:" . $item['ordersn'];
-			$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
+			if (!empty($params['tpl_status']) && empty($setting['send_templateid'])) {
+				$params['send_templateid'] = $setting['send_templateid'];
+				$params['express_name'] = $item['express_name'];
+				$params['track_number'] = $item['track_number'];
+				$params['style'] = $item['style'];
+				order_send_notice($params);
+			} else {
+				$info = '您在' . $store_info[$item['hotelid']]['title'] . '预订的' . $goods_info['title'] . "已发货,订单编号:" . $item['ordersn'];
+				$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
+			}
 		}
 	}
 	$result = pdo_update('storex_order', $data, array('id' => $orderid));

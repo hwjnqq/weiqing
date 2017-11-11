@@ -273,6 +273,7 @@ if ($op == 'edit') {
 			if (empty($item['roomid'])) {
 				$item['cart'] = iunserializer($item['cart']);
 				if (!empty($item['cart']) && is_array($item['cart'])) {
+					$item['style'] = $item['cart'][0]['good']['title'];
 					foreach ($item['cart'] as &$g) {
 						if ($g['buyinfo'][2] == 3) {
 							$package = pdo_get('storex_sales_package', array('id' => $g['buyinfo'][0]));
@@ -406,6 +407,9 @@ if ($op == 'edit') {
 				}
 				//订单确认提醒
 				if ($data['status'] == ORDER_STATUS_SURE) {
+					$params['ordersn'] = $item['ordersn'];
+					$params['style'] = $item['style'];
+					$params['sum_price'] = $item['sum_price'];
 					if ($store_type == STORE_TYPE_HOTEL) {
 						if (!empty($good_info) && $is_house == 1) {
 							$data['goods_status'] = GOODS_STATUS_NOT_CHECKED;
@@ -413,15 +417,17 @@ if ($op == 'edit') {
 					} else {
 						$data['goods_status'] = GOODS_STATUS_NOT_SHIPPED;
 					}
-					$params['ordersn'] = $item['ordersn'];
-					$params['contact_name'] = $item['contact_name'];
-					$params['sum_price'] = $item['sum_price'];
-					$params['etime'] = $item['etime'];
-					$params['nums'] = $item['nums'];
-					$params['style'] = $item['style'];
-					$params['templateid'] = isset($setting['templateid']) ? $setting['templateid'] : '';
-					order_sure_notice($params);
-					
+					if ($store_type == STORE_TYPE_HOTEL && !empty($setting['templateid'])) {
+						$params['contact_name'] = $item['contact_name'];
+						$params['etime'] = $item['etime'];
+						$params['nums'] = $item['nums'];
+						$params['templateid'] = isset($setting['templateid']) ? $setting['templateid'] : '';
+						order_sure_notice($params);
+					} else {
+						$params['paytext'] = get_paytext($item['paytype']);
+						order_affirm_notice($params);
+					}
+									
 					if (check_plugin_isopen('wn_storex_plugin_sms')) {
 						mload()->model('sms');
 						$content = array(
@@ -465,9 +471,18 @@ if ($op == 'edit') {
 					$params['check_in_templateid'] = isset($setting['check_in_templateid']) ? $setting['check_in_templateid'] : '';
 					order_checked_notice($params);
 				}
+				//发货提醒
 				if ($data['goods_status'] == GOODS_STATUS_SHIPPED) {
-					$info = '您在' . $store['title'] . '预订的' . $room['title'] . '已发货';
-					$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
+					if (!empty($params['tpl_status']) && empty($setting['send_templateid'])) {
+						$params['send_templateid'] = $setting['send_templateid'];
+						$params['express_name'] = $item['express_name'];
+						$params['track_number'] = $item['track_number'];
+						$params['style'] = $item['style'];
+						order_send_notice($params);
+					} else {
+						$info = '您在' . $store['title'] . '预订的' . $room['title'] . '已发货';
+						$status = send_custom_notice('text', array('content' => urlencode($info)), $item['openid']);
+					}
 				}
 			}
 			//卡券状态修改

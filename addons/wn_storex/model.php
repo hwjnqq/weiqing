@@ -373,19 +373,24 @@ if (!function_exists('getOrderAction')) {
 	}
 }
 
+function get_paytext($paytype = '') {
+	if ($paytype == 'credit') {
+		$paytype_text = '余额支付';
+	} elseif ($paytype == 'wechat') {
+		$paytype_text = '微信支付';
+	} elseif ($paytype == 'alipay') {
+		$paytype_text = '支付宝';
+	} elseif ($paytype == 'delivery') {
+		$paytype_text = '到店付款';
+	} elseif (empty($paytype)) {
+		$paytype_text = '未支付(或其它)';
+	}
+	return $paytype_text;
+}
+
 if (!function_exists('getOrderpaytext')) {
 	function getOrderpaytext(&$order) {
-		if ($order['paytype'] == 'credit') {
-			$order['paytype_text'] = '余额支付';
-		} elseif ($order['paytype'] == 'wechat') {
-			$order['paytype_text'] = '微信支付';
-		} elseif ($order['paytype'] == 'alipay') {
-			$order['paytype_text'] = '支付宝';
-		} elseif ($order['paytype'] == 'delivery') {
-			$order['paytype_text'] = '到店付款';
-		} elseif (empty($order['paytype'])) {
-			$order['paytype_text'] = '未支付(或其它)';
-		}
+		$order['paytype_text'] = get_paytext($order['paytype']);
 		if ($order['paystatus'] == 0) {
 			if ($order['status'] == 0) {
 				$order['status_text'] = "已提交订单,待付款";

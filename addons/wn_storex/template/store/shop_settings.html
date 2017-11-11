@@ -297,38 +297,52 @@
 				</div>
 			</div>
 			<div class="form-group templateid" {if empty($template['template'])}style="display: none;"{/if}>
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label">订单拒绝模板ID</label>
-				<div class="col-sm-9 col-xs-12">
-					<input type="text" name="refuse_templateid" class="form-control" value="{$template['refuse_templateid']}" />
-					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”预订拒绝通知“，编号为：“4cP0sXlNBmiQ5Gvu4hl3O60r_V6GaBiObqtM4PBxzqs”的模板（普通店铺通用）</span>
-				</div>
-			</div>
-			<div class="form-group templateid" {if empty($template['template'])}style="display: none;"{/if}>
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">订单提交成功模板ID</label>
 				<div class="col-sm-9 col-xs-12">
 					<input type="text" name="confirm_templateid" class="form-control" value="{$template['confirm_templateid']}" />
-					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”订单提交成功通知“，编号为：“H62uNLyr6nFuz1iD6l8IQRD7ZX-yJT-v9_0VyJ3JavA”的模板（普通店铺通用）</span>
+					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”订单提交成功通知“，编号为：“OPENTM405413217”的模板（普通店铺通用）</span>
 				</div>
 			</div>
 			<div class="form-group templateid" {if empty($template['template'])}style="display: none;"{/if}>
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">酒店订单确认模板ID</label>
 				<div class="col-sm-9 col-xs-12">
 					<input type="text" name="templateid" class="form-control" value="{$template['templateid']}" />
-					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”酒店预订确认通知“，编号为：“sbLPIQQyCC2o0kGmGNGTdJRcr4YLX7QZLRa9a-8fI00”的模板</span>
+					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”酒店预订确认通知“，编号为：“TM00217”的模板(酒店)</span>
+				</div>
+			</div>
+			<div class="form-group templateid" {if empty($template['template'])}style="display: none;"{/if}>
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">订单确认模板ID</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="affirm_templateid" class="form-control" value="{$template['affirm_templateid']}" />
+					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”预订确认通知“，编号为：“OPENTM410228327”的模板(通用)</span>
+				</div>
+			</div>
+			<div class="form-group templateid" {if empty($template['template'])}style="display: none;"{/if}>
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">订单拒绝模板ID</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="refuse_templateid" class="form-control" value="{$template['refuse_templateid']}" />
+					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”预订拒绝通知“，编号为：“OPENTM401039125”的模板（普通店铺通用）</span>
 				</div>
 			</div>
 			<div class="form-group templateid" {if empty($template['template'])}style="display: none;"{/if}>
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">酒店已入住通知模板ID</label>
 				<div class="col-sm-9 col-xs-12">
 					<input type="text" name="check_in_templateid" class="form-control" value="{$template['check_in_templateid']}" />
-					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”入住提醒“，编号为“wrMuqS1GK89FklOAdtoTFymTDxf361QaHP-TlsKEc90”的模板</span>
+					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”入住提醒“，编号为“TM00058”的模板(酒店)</span>
+				</div>
+			</div>
+			<div class="form-group templateid" {if empty($template['template'])}style="display: none;"{/if}>
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">发货通知模板ID</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="send_templateid" class="form-control" value="{$template['send_templateid']}" />
+					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”发货通知“，编号为“OPENTM410830915”的模板(普通店铺)</span>
 				</div>
 			</div>
 			<div class="form-group templateid" {if empty($template['template'])}style="display: none;"{/if}>
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">酒店订单完成通知模板ID</label>
 				<div class="col-sm-9 col-xs-12">
 					<input type="text" name="finish_templateid" class="form-control" value="{$template['finish_templateid']}" />
-					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”离店通知“，编号为：“OPENTM203173461”的模板（普通店铺通用）</span>
+					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”离店通知“，编号为：“OPENTM203173461”的模板(酒店)</span>
 				</div>
 			</div>
 
