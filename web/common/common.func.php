@@ -152,7 +152,7 @@ function checklogin() {
  */
 function checkaccount() {
 	global $_W;
-	if (empty($_W['uniacid'])) {
+	if (empty($_W['uniacid']) || (!empty($_W['account']) && !in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)) && !defined('IN_MODULE'))) {
 		itoast('', url('account/display'), 'info');
 	}
 }
@@ -162,7 +162,7 @@ function checkaccount() {
  */
 function checkwxapp() {
 	global $_W;
-	if (empty($_W['uniacid'])) {
+	if (empty($_W['uniacid']) || (!empty($_W['account']) && $_W['account']['type'] != ACCOUNT_TYPE_APP_NORMAL)) {
 		itoast('', url('wxapp/display'), 'info');
 	}
 }

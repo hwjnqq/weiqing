@@ -16,6 +16,7 @@ if (checksubmit() || $_W['isajax']) {
 
 $qq_login_url = get_login_url('qq');
 $wechat_login_url = get_login_url('wechat');
+$setting = $_W['setting'];
 template('user/login');
 
 function _login($forward = '', $login_type = '', $state = '', $code = '') {

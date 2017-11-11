@@ -46,7 +46,7 @@
 				<span class="color-gray">使用第三方账号登录</span>
 				<div class="form-control-static">
 					{if !empty($setting['qq_platform']) && !empty($setting['qq_platform']['authstate'])}<a href="{$qq_login_url}"><img src="./resource/images/qqlogin.png" width="35px"></a>&nbsp;&nbsp;{/if}
-					{if !empty($setting['wechat_platform']) && !empty($setting['wechat_platform']['authstate'])}<a href="{$wechat_login_url}" target="_blank"><img src="./resource/images/wxlogin.png" width="35px"></a>{/if}
+					{if !empty($setting['wechat_platform']) && !empty($setting['wechat_platform']['authstate'])}<a href="{$wechat_login_url}"><img src="./resource/images/wxlogin.png" width="35px"></a>{/if}
 				</div>
 			</div>
 			{/if}
