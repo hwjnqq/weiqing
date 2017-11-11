@@ -16,6 +16,7 @@ function load() {
 	return $loader;
 }
 
+
 /**
  * @param string $name 服务名称
  * @return We7Table 表模型

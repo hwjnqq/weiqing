@@ -9,6 +9,7 @@ require IA_ROOT . '/web/common/bootstrap.sys.inc.php';
 load()->web('common');
 load()->web('template');
 load()->func('file');
+load()->web('listeners');
 
 if (empty($_W['isfounder']) && !empty($_W['user']) && ($_W['user']['status'] == USER_STATUS_CHECK || $_W['user']['status'] == USER_STATUS_BAN)) {
 	message('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决！');
