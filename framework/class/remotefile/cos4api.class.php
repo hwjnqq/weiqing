@@ -47,11 +47,6 @@ class Cos4Api {
 		return $this->request($path, $post);
 	}
 
-	public function get($path) {
-
-	}
-
-
 	private function cosUrlEncode($path) {
 		return str_replace('%2F', '/',  rawurlencode($path));
 	}
@@ -60,15 +55,15 @@ class Cos4Api {
 	private function sign($path) {
 		$fileId = '/' . $this->appid . '/' . $this->bucket . $path;
 		$fileId = $this->cosUrlEncode($fileId);
-		$signdata = [
+		$signdata = array(
 			'a'=>$this->appid,
 			'b'=>$this->bucket,
 			'k'=>$this->secretId,
 			'e'=>$this->expiredTime,
 			't'=> $this->currentTime,
 			'r'=> rand(),
-			'f'=>$fileId
-		];
+			'f'=> $fileId
+		);
 		$signstr = http_build_query($signdata);
 		$mac = hash_hmac('SHA1', $signstr, $this->secretKey, true);
 		$sign = base64_encode($mac.$signstr);
@@ -80,10 +75,10 @@ class Cos4Api {
 		$sign = $this->sign($path);
 		$items = [];
 		foreach ($data as $key => $item) {
-			$items[] = [
+			$items[] = array(
 				'name' => $key,
 				'contents' => $item,
-			];
+			);
 		}
 		$client = new Client();
 		$response = $client->post($url,[

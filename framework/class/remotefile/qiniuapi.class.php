@@ -20,6 +20,7 @@ class QiniuApi {
 		$this->bucket = $bucket;
 	}
 
+
 	public function putFile($path, $file) {
 		$hash = hash_file('crc32b', $file);
 		$array = unpack('N', pack('H*', $hash));

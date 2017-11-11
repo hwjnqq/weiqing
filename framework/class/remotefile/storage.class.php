@@ -78,8 +78,6 @@ class Storage {
 	/**
 	 *  是否有指定文件
 	 * @param $path
-	 *
-	 *
 	 * @since version
 	 */
 	public function has($path) {
@@ -95,21 +93,13 @@ class Storage {
 	}
 
 	public function putFile($put, $file) {
+		$path = $this->checkPath($path);
 		return $this->driver->putFile($put, $file);
 	}
 
-
-	public function update($path, $content) {
-		return $this->driver->update($path, $content);
-	}
-
-
 	public function delete($path) {
+		$path = $this->checkPath($path);
 		return $this->driver->delete($path);
-	}
-
-	public function get($path) {
-		return $this->driver->get($path);
 	}
 
 	private function checkPath($path) {
