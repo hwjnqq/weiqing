@@ -1369,7 +1369,7 @@ if (pdo_fieldexists('storex_order', 'action')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " DROP `action`;");
 }
 //订单增加微信地址
-if (pdo_fieldexists('storex_order', 'wechat_address')) {
+if (!pdo_fieldexists('storex_order', 'wechat_address')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `wechat_address` TEXT NOT NULL COMMENT '使用微信地址';");
 }
 //积分设置改为店铺内设置
@@ -1397,7 +1397,7 @@ if (pdo_fieldexists('storex_set', 'credit_pay') && pdo_fieldexists('storex_set',
 	pdo_query("ALTER TABLE " . tablename('storex_set') . " DROP `credit_ratio`;");
 }
 //模板信息修改,改为在店铺内设置
-if (pdo_fieldexists('storex_bases', 'template')) {
+if (!pdo_fieldexists('storex_bases', 'template')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `template` TEXT NOT NULL COMMENT '模板信息';");
 }
 if (pdo_fieldexists('storex_set', 'templateid')) {

@@ -8,50 +8,6 @@ $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
 
 check_params();
 
-//获取一级分类下的二级分类以及商品 该接口不需要了
-// if ($op == 'goods_list') {
-// 	$store_id = intval($_GPC['id']);
-// 	$store_info = get_store_info($store_id);
-// 	$first_id = intval($_GPC['first_id']);
-// 	$first_class = pdo_get('storex_categorys', array('weid' => $_W['uniacid'], 'store_base_id' => $store_id, 'id' => $first_id));
-// 	if (empty($first_class)) {
-// 		wmessage(error(-1, '分类不存在'), '', 'ajax');
-// 	}
-// 	//获取某一级分类下的所有二级分类
-// 	$sub_class = pdo_getall('storex_categorys', array('weid' => $_W['uniacid'], 'parentid' => $first_id, 'enabled' => 1), array(), '', 'displayorder DESC');
-// 	//存在二级分类就找其下的商品
-// 	$fields = array('id', 'title', 'thumb', 'oprice', 'cprice', 'sold_num', 'sales', 'store_base_id');
-// 	$list = array();
-// 	$goods = array();
-// 	$table = gettablebytype($store_info['store_type']);
-// 	$condition = array('weid' => $_W['uniacid'], 'pcate' => $first_id, 'status' => 1, 'store_base_id' => $store_id);
-// 	if (!empty($sub_class) && is_array($sub_class)) {
-// 		$goods = $sub_class;
-// 		$list['have_subclass'] = 1;
-// 		if ($store_info['store_type'] != STORE_TYPE_HOTEL) {//酒店
-// 			$goods_fields = array('unit', 'weight', 'stock', 'min_buy', 'max_buy');
-// 			$fields = array_merge($fields, $goods_fields);
-// 		}
-// 		foreach ($sub_class as $key => $sub_classinfo) {
-// 			$condition['ccate'] = $sub_classinfo['id'];
-// 			$goods_list = category_store_goods($table, $condition, $fields);
-// 			if (!empty($goods_list)) {
-// 				$goods[$key]['store_goods'] = array_slice($goods_list, 0, 2);
-// 				$goods[$key]['total'] = count($goods_list);
-// 			}
-// 		}
-// 	} else {
-// 		$list['have_subclass'] = 0;
-// 		$goods_list = category_store_goods($table, $condition, $fields);
-// 		if (!empty($goods_list)) {
-// 			$goods['store_goods'] = array_slice($goods_list, 0, 2);
-// 			$goods['total'] = count($goods_list);
-// 		}
-// 	}
-// 	$list['list'] = $goods;
-// 	wmessage(error(0, $list), '', 'ajax');
-// }
-
 $sort_types = array(
 	'sortid_asc' => 'sortid ASC',
 	'sortid_desc' => 'sortid DESC',
