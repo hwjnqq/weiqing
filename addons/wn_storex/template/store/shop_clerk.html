@@ -38,7 +38,7 @@
 							</div>
 						</div>
 					</div>
-					<div class="modal fade" id="clerk-modal" tabindex="-1" role="dialog" aria-hidden="true">
+					<div class="modal fade" id="entry-modal" tabindex="-1" role="dialog" aria-hidden="true">
 						<div class="modal-dialog">
 							<div class="modal-content">
 								<div class="modal-header">
@@ -220,7 +220,7 @@
 		$('.js-clerk-entry').click(function() {
 			url = $(this).data('url');
 			$('.js-url').val(url);
-			$('#clerk-modal').modal('show');
+			$('#entry-modal').modal('show');
 			$('.js-qrcode-block').html('').qrcode({
 				render: 'canvas',
 				width: 300,
