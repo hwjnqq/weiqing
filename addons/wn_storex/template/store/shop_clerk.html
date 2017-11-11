@@ -33,7 +33,7 @@
 						<div class="col-sm-10">
 							<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">店员入口</label>
 							<div class="col-xs-12 col-sm-8 col-lg-9">
-								<a href="javascript:;" class="js-clerk-entry" data-url="{php echo murl('entry', array('do' => 'clerk', 'op' => 'display', 'm' => 'wn_storex', 'clerkid' => $item['id']), true, true)}">点击查看店员入口</a>
+								<a href="javascript:;" class="js-clerk-entry" data-url="{php echo murl('entry', array('do' => 'display', 'id' => $storeid, 'm' => 'wn_storex'), true, true) . '#/Home/Clerk/Index'}">点击查看店员入口</a>
 								<input type="hidden" class="js-url">
 							</div>
 						</div>
