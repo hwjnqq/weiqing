@@ -129,38 +129,17 @@ class CosApi {
 				'Authorization:'.$sign,
 			),
 		);
-
 		return $this->send($req);
 	}
 
 	public function delete() {
-		file_remote_delete()
+
 	}
 
 	public function getUA() {
 		return 'cos-php-sdk-'.self::PKG_VERSION;
 	}
 
-	private function send1($req) {
-		$client = new Client();
-		$data = $req['data'];
-		$items = array();
-		foreach ($data as $key => $item) {
-			$items[] = [
-				'name' => $key,
-				'contents' => $item,
-			];
-		}
-		$response = $client->request('POST', $req['url'], [
-			'headers' => $req['header'],
-			'multipart' => $items,
-			'debug' => false,
-		]);
-		$contents = $response->getBody()->getContents();
-		logger($contents);
-
-		return json_decode($contents);
-	}
 
 	private function send($req) {
 		$ch = curl_init();

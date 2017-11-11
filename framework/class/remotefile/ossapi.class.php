@@ -21,6 +21,10 @@ class OssApi {
 		$this->bucket = $bucket;
 	}
 
+	public function setEndPoint($endPoint) {
+		$this->endPoint = $endPoint;
+	}
+
 	private function getClient() {
 		if(is_null($this->client)) {
 			$this->client = new \OSS\OssClient($this->accessKey, $this->secretkey, $this->endPoint);
@@ -37,20 +41,30 @@ class OssApi {
 		return false;
 	}
 
+	public function put($path, $content) {
+		$result = true;
+		try {
+			$response = $this->getClient()->putObject($this->bucket, $path, $content);
+			var_dump($response);
+		}catch (\OSS\Core\OssException $e) {
+			$result = false;
+		}
+		return $result;
+	}
+
 
 	public function putFile($path, $file) {
+		$result = true;
 		try {
-			$this->getClient()->uploadFile($this->bucket, $path, $file);
+			$response = $this->getClient()->uploadFile($this->bucket, $path, $file);
 		}catch (\OSS\Core\OssException $e) {
-
+			$result = false;
 		}
+		return $result;
 	}
 
 	public function updateFile($path, $file) {
 		try{
-			if(!$this->has($path)) {
-				return $this->putFile($path, $file);
-			}
 			return $this->getClient()->uploadFile($this->bucket, $path, $file);
 		}catch (Exception $e) {
 
@@ -58,13 +72,13 @@ class OssApi {
 	}
 
 	public function delete($path) {
-		$result = false;
+		$result = true;
 		try{
 			$this->getClient()->deleteObject($this->bucket, $path);
 		}catch (\OSS\Core\OssException $e) {
-
+			$result = false;
 		}
-		$result = true;
+		return $result;
 
 	}
 	/**

@@ -20,7 +20,7 @@ class QiniuApi {
 		$this->bucket = $bucket;
 	}
 
-	public function upload($file, $key = null) {
+	public function putFile($path, $file) {
 		$hash = hash_file('crc32b', $file);
 		$array = unpack('N', pack('H*', $hash));
 		$token = $this->getUploadToken();
@@ -29,8 +29,8 @@ class QiniuApi {
 			'file'  => '@'.$file,
 			'crc32' => sprintf('%u', $array[1]),
 		);
-		if($key) {
-			$postFields['key'] = $key;
+		if($path) {
+			$postFields['key'] = $path;
 		}
 		$response = ihttp_request(self::QINIU_UP_HOST, $postFields, array('content-type'=>'multipart/form-data'));
 		if($response['code'] == 200) {
@@ -67,12 +67,6 @@ class QiniuApi {
 		$body = $this->encode($body);
 		$sign = hash_hmac('sha1', $body, $this->secretkey, true);
 		return $this->accessKey . ':' . $this->encode($sign) . ':' .$body;
-	}
-
-
-	private function deleteToken($path) {
-		$sign = hash_hmac('sha1', $path, $this->secretKey, true);
-		return $this->secretkey . ':' . $this->encode($sign);
 	}
 
 	private function accessToken($url, $body = false)
