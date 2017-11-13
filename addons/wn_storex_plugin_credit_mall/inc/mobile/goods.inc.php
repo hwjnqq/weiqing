@@ -35,7 +35,6 @@ if ($op == 'exchange') {
 		'zipcode' => trim($_GPC['zipcode']),
 		'province' => trim($_GPC['province']),
 		'city' => trim($_GPC['city']),
-		'district' => trim($_GPC['district']),
 		'address' => trim($_GPC['address']),
 	);
 	foreach ($shipping_data as $val) {
@@ -43,6 +42,7 @@ if ($op == 'exchange') {
 			message(error(-1, '请填写收货人信息'), '', 'ajax');
 		}
 	}
+	$shipping_data['district'] = trim($_GPC['district']);
 	$creditnames = array(
 		'credit1' => '积分',
 		'credit2' => '余额'
