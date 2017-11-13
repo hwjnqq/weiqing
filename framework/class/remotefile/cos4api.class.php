@@ -26,7 +26,9 @@ class Cos4Api {
 		$this->currentTime = time();
 	}
 
-
+	public function putFile($path, $file) {
+		return $this->put($path, $file);
+	}
 
 	public function put($path, $content) {
 		$path = $this->cosUrlEncode($path);

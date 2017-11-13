@@ -90,17 +90,23 @@ class Storage {
 		return false;
 	}
 
-	public function put($path, $content, $override = true) {
+	public function put($path, $content) {
 		$path = $this->checkPath($path);
-		if($override && $this->has($path)) {
-			return $this->update($path, $content);
+		// qiniu 不支持put 字符串
+		if(method_exists($this->driver, 'put')) {
+			return $this->driver->put($path, $content);
 		}
-		return $this->driver->put($path, $content);
+		$tmpname = tempnam(sys_get_temp_dir(), 'we7');
+		if($tmpname) {
+			file_put_contents($tmpname, $content);
+			return $this->driver->putFile($path, $tmpname);
+		}
+		return false;
 	}
 
-	public function putFile($path, $file) {
+	public function putFile($path, $file, array $options = array()) {
 		$path = $this->checkPath($path);
-		return $this->driver->putFile($path, $file);
+		return $this->driver->putFile($path, $file, $options);
 	}
 
 	public function delete($path) {

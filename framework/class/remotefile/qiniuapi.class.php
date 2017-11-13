@@ -21,6 +21,7 @@ class QiniuApi {
 	}
 
 
+
 	public function putFile($path, $file) {
 		$hash = hash_file('crc32b', $file);
 		$array = unpack('N', pack('H*', $hash));
@@ -59,7 +60,7 @@ class QiniuApi {
 	 *
 	 * @since version
 	 */
-	private function getUploadToken($config = array())
+	private function getUploadToken()
 	{
 		$config['scope'] = $this->bucket;
 		//硬编码，需修改。
