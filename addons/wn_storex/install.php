@@ -234,8 +234,6 @@ $sql = "
 	`tel` varchar(20) DEFAULT '' COMMENT '统一电话',
 	`email` varchar(255) NOT NULL DEFAULT '' COMMENT '提醒接受邮箱',
 	`mobile` varchar(32) NOT NULL DEFAULT '' COMMENT '提醒接受手机',
-	`template` varchar(32) DEFAULT NULL COMMENT '发送模板消息',
-	`templateid` varchar(255) NOT NULL,
 	`paytype1` tinyint(1) DEFAULT '0',
 	`paytype2` tinyint(1) DEFAULT '0',
 	`paytype3` tinyint(1) DEFAULT '0',
@@ -245,10 +243,6 @@ $sql = "
 	`location_a` varchar(50) DEFAULT '',
 	`smscode` int(3) NOT NULL DEFAULT '0',
 	`refund` int(3) NOT NULL DEFAULT '0',
-	`refuse_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '提醒接受邮箱',
-	`confirm_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '提醒接受邮箱',
-	`check_in_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '酒店已入住通知模板id',
-	`finish_templateid` varchar(255) NOT NULL DEFAULT '' COMMENT '酒店订单完成通知模板id',
 	`nickname` varchar(20) NOT NULL COMMENT '提醒接收微信',
 	`extend_switch` varchar(400) NOT NULL COMMENT '扩展开关',
 	`source` tinyint(4) NOT NULL DEFAULT '2' COMMENT '卡券类型，1为系统卡券，2为微信卡券',
@@ -311,6 +305,7 @@ $sql = "
 	`agent_status` tinyint(2) NOT NULL DEFAULT '2' COMMENT '分销功能开关',
 	`credit_pay` tinyint(2) NOT NULL DEFAULT '2' COMMENT '积分抵扣设置1开启，2关闭',
 	`credit_ratio` int(11) NOT NULL COMMENT '抵扣比例',
+	`template` text NOT NULL COMMENT '模板信息',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) DEFAULT CHARSET=utf8;
@@ -1259,8 +1254,8 @@ if (!empty($module)){
 			'status',
 		),
 		'hotel2_set' => array('id', 'weid', 'user', 'reg', 'bind', 'regcontent', 'ordertype', 'is_unify', 'tel', 'email',
-			'mobile', 'template', 'templateid', 'paytype1', 'paytype2', 'paytype3', 'version', 'location_p', 'location_c', 'location_a',
-			'smscode', 'refund', 'refuse_templateid', 'confirm_templateid', 'check_in_templateid', 'finish_templateid', 'nickname',
+			'mobile', 'paytype1', 'paytype2', 'paytype3', 'version', 'location_p', 'location_c', 'location_a', 'smscode', 'refund',
+			'nickname',
 		),
 		'hotel12_code' => array('id', 'weid', 'openid', 'code', 'mobile', 'total', 'status', 'createtime',),
 	);

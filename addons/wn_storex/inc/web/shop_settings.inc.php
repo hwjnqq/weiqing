@@ -105,11 +105,14 @@ if ($op == 'post') {
 		if (empty($id)) {
 			$common_insert['store_type'] = intval($_GPC['store_type']);
 			pdo_insert('storex_bases', $common_insert);
-			if (!empty($store_type)) {
+			$id = pdo_insertid();
+			if (empty($id)) {
+				itoast('添加失败！', '', 'error');
+			}
+			if (!empty($common_insert['store_type'])) {
 				$insert['store_base_id'] = pdo_insertid();
 				pdo_insert('storex_hotel', $insert);
 			}
-			$id = pdo_insertid();
 		} else {
 			pdo_update('storex_bases', $common_insert, array('id' => $id));
 			if (!empty($store_type)) {
