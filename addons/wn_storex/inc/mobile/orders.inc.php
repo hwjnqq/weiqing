@@ -19,7 +19,7 @@ $logs = array(
 	'orderid' => intval($_GPC['id']),
 );
 if ($op == 'order_list') {
-	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'cprice', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status', 'track_number', 'express_name', 'is_package', 'cart');
+	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'cprice', 'oprice', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status', 'track_number', 'express_name', 'is_package', 'cart');
 	$condition = array('weid' => intval($_W['uniacid']), 'openid' => $_W['openid'], 'group_goodsid' => 0, 'group_id' => 0);
 	if (pdo_fieldexists('storex_order', 'group_goodsid') && pdo_fieldexists('storex_order', 'group_id')) {
 		$condition['group_goodsid'] = 0;
