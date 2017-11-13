@@ -45,7 +45,6 @@ class OssApi {
 		$result = true;
 		try {
 			$response = $this->getClient()->putObject($this->bucket, $path, $content);
-			var_dump($response);
 		}catch (\OSS\Core\OssException $e) {
 			$result = false;
 		}

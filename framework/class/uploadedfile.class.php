@@ -7,6 +7,8 @@
  * Time: 14:58.
  */
 class UploadedFile extends SplFileInfo {
+
+	const IMG_MIMETYPE = 'image/jpeg,image/jpg,image/png,image/gif,image/bmp';
 	/**
 	 * @var int[]
 	 */
@@ -267,8 +269,54 @@ class UploadedFile extends SplFileInfo {
 	 * @since version
 	 */
 	public function isImage() {
-		return $this->isOk() && in_array($this->clientMediaType, array());
+		return $this->isOk() && in_array($this->clientMediaType, self::IMG_MIMETYPE);
 	}
+
+	public function hashName() {
+		return random(40).'.'.$this->getExtension();
+	}
+	/**
+	 * Store the uploaded file on a filesystem disk.
+	 *
+	 * @param  string  $path
+	 * @param  array|string  $options
+	 * @return string|false
+	 */
+	public function store($path = null)
+	{
+		return $this->storeAs($path, $this->hashName());
+	}
+
+
+	public function storeAs($path, $filename) {
+		if(!$path) {
+			$path = $this->getStorePath();
+		}
+		$path = rtrim($path, '/');
+		$path = $path.'/'.$filename;
+		return Storage::putFile($path, $this);
+	}
+
+	/**
+	 * 保存到微信
+	 *
+	 * @since version
+	 */
+	public function storeToWechat($uniacid) {
+		$path = $this->getStorePath($uniacid);
+		Storage::disk('wechat')->putFile($path, $this);
+	}
+
+	//获取存储路径
+	private function getStorePath($uniacid = 0) {
+		global $_W;
+		if(!$uniacid) {
+			$uniacid = intval($_W['uniacid']);
+		}
+		$date =  date('Y/m');
+		return "images/$uniacid/$date/";
+	}
+
 
 	public static function createFromGlobal() {
 		$files = array();
@@ -329,4 +377,5 @@ class UploadedFile extends SplFileInfo {
 
 		return $upfile;
 	}
+
 }

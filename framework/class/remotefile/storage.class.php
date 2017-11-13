@@ -3,10 +3,16 @@
 load()->classs('remotefile/ossapi');
 load()->classs('remotefile/qiniuapi');
 load()->model('attachment');
+
+/**
+ * @package     ${NAMESPACE}
+ *
+ * @since version
+ * @method static putFile($path, $file)
+ */
 class Storage {
 
 	private $driver = null;
-	private $isGlobal = false;
 
 	public function setDriver($driver = null) {
 		$this->driver = $driver;
@@ -92,9 +98,9 @@ class Storage {
 		return $this->driver->put($path, $content);
 	}
 
-	public function putFile($put, $file) {
+	public function putFile($path, $file) {
 		$path = $this->checkPath($path);
-		return $this->driver->putFile($put, $file);
+		return $this->driver->putFile($path, $file);
 	}
 
 	public function delete($path) {
@@ -103,6 +109,6 @@ class Storage {
 	}
 
 	private function checkPath($path) {
-		return $path;
+		return ltrim($path, '/');
 	}
 }
