@@ -90,6 +90,15 @@ class Storage {
 		return false;
 	}
 
+	/**
+	 * 七牛不支持 put content 所以写写入临时文件再上传
+	 * @param $path
+	 * @param $content
+	 *
+	 * @return bool
+	 *
+	 * @since version
+	 */
 	public function put($path, $content) {
 		$path = $this->checkPath($path);
 		// qiniu 不支持put 字符串
