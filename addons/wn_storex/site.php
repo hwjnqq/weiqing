@@ -148,10 +148,12 @@ class Wn_storexModuleSite extends WeModuleSite {
 	
 	//店铺id
 	public function get_skin_style($id) {
-		$store = pdo_get('storex_bases', array('id' => $id), array('id', 'skin_style'));
-		$style = array('display', 'black');
-		$skin_style = in_array($store['skin_style'], $style) ? $store['skin_style'] : 'display';
-		return 'black';
+		$store = pdo_get('storex_bases', array('id' => $id), array('id', 'store_type'));
+		if ($store['store_type'] == STORE_TYPE_HOTEL) {
+			return 'black';
+		} else {
+			return 'wn-common';
+		}
 	}
 
 	public function payResult($params) {
