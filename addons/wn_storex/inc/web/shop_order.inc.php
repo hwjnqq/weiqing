@@ -218,6 +218,16 @@ if ($op == 'edit') {
 				$address = trim($address, '-');
 			}
 		}
+		if (!empty($item['wechat_address'])) {
+			$item['wechat_address'] = iunserializer($item['wechat_address']);
+			$field = array('provinceName', 'cityName', 'detailInfo');
+			$address = '';
+			foreach ($field as $f) {
+				if (!empty($item['wechat_address'][$f])) {
+					$address .= $item['wechat_address'][$f];
+				}
+			}
+		}
 		if (!empty($item['order_time'])) {
 			$item['order_time'] = date('Y-m-d H:i', $item['order_time']);
 		}
