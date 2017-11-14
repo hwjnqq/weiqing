@@ -33,18 +33,18 @@ if ($op == 'display') {
 			'type' => 'adv',
 			'items' => array()
 		),
-		array(
-			'type' => 'activity_seckill',
-			'items' => array()
-		),
-		array(
-			'type' => 'activity_limited',
-			'items' => array()
-		)
 	);
 	if ($_W['wn_storex']['store_info']['store_type'] != STORE_TYPE_HOTEL) {
 		$default_module[] = array(
 			'type' => 'recommend',
+			'items' => array()
+		);
+		$default_module[] = array(
+			'type' => 'activity_seckill',
+			'items' => array()
+		);
+		$default_module[] = array(
+			'type' => 'activity_limited',
 			'items' => array()
 		);
 	}
