@@ -64,14 +64,12 @@ if ($op == 'order_list') {
 				}
 				if (!empty($goods_info)) {
 					$info['thumb'] = tomedia($goods_info['thumb']);
-				} else {
-					continue;
 				}
 			} else {
 				continue;
 			}
 			$info = orders_check_status($info);
-			if ($info['mode_distribute'] != 2 && $info['status'] != -1 && $info['status'] != 2) {
+			if ($info['mode_distribute'] != 2 && $info['status'] != ORDER_STATUS_CANCEL && $info['status'] != ORDER_STATUS_REFUSE && $info['status'] != ORDER_STATUS_OVER) {
 				$info['consume_url'] = murl('entry', array('do' => 'clerk', 'orderid' => $info['id'], 'op' => 'order_consume', 'm' => 'wn_storex'), true, true);
 			}
 		}

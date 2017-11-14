@@ -849,6 +849,10 @@ function general_goods_order($insert, $goods_info) {
 				if (!empty($store_info['pick_up_mode']['self_lift'])) {
 					$insert['mode_distribute'] = $mode_distribute;
 				}
+				if (!empty($_GPC['wechat_address'])) {
+					$insert['contact_name'] = $_GPC['wechat_address']['userName'];
+					$insert['mobile'] = $_GPC['wechat_address']['telNumber'];
+				}
 			}
 		}
 	}
@@ -887,6 +891,10 @@ function cart_goods_order($insert, $cart) {
 		} elseif ($mode_distribute == 1) {
 			if (!empty($store_info['pick_up_mode']['self_lift'])) {
 				$insert['mode_distribute'] = $mode_distribute;
+			}
+			if (!empty($_GPC['wechat_address'])) {
+				$insert['contact_name'] = $_GPC['wechat_address']['userName'];
+				$insert['mobile'] = $_GPC['wechat_address']['telNumber'];
 			}
 		}
 	}
