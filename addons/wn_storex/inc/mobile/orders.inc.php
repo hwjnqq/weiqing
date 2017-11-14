@@ -161,6 +161,16 @@ if ($op == 'order_detail') {
 			$order_info['address'] = $order_address['province'] . $order_address['city'] . $order_address['district'] . $order_address['address'];
 		}
 	}
+	if (!empty($order_info['wechat_address'])) {
+		$order_info['wechat_address'] = iunserializer($order_info['wechat_address']);
+		$field = array('provinceName', 'cityName', 'detailInfo');
+		$order_info['address'] = '';
+		foreach ($field as $f) {
+			if (!empty($order_info['wechat_address'][$f])) {
+				$order_info['address'] .= $order_info['wechat_address'][$f];
+			}
+		}
+	}
 	//订单状态
 	$order_info = orders_check_status($order_info);
 	if ($order_info['mode_distribute'] != 2 && $order_info['status'] != -1 && $order_info['status'] != 2) {
