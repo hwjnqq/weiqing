@@ -7,8 +7,9 @@ load()->model('mc');
 mload()->model('card');
 mload()->model('order');
 mload()->model('clerk');
-
-$ops = array('permission_storex', 'order', 'order_info', 'edit_order', 'room', 'room_info', 'edit_room', 'assign_room', 'goods', 'status', 'clerk_pay', 'order_consume', 'coupon_consume', 'couponcode');
+mload()->model('activity');
+	
+$ops = array('permission_storex', 'order', 'order_info', 'edit_order', 'room', 'room_info', 'edit_room', 'assign_room', 'goods', 'status', 'clerk_pay', 'order_consume', 'coupon_consume', 'couponcode', 'code_consume');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';
 
 $uid = mc_openid2uid($_W['openid']);
@@ -733,7 +734,6 @@ if ($op == 'couponcode') {
 	include $this->template('couponcode');
 }
 if ($op == 'coupon_consume') {
-	mload()->model('activity');
 	$colors = activity_get_coupon_colors();
 	$source = trim($_GPC['source']);
 	$card_id = trim($_GPC['card_id']);
@@ -789,4 +789,19 @@ if ($op == 'coupon_consume') {
 		message('核销卡券成功', referer(), 'success');
 	}
 	include $this->template('couponconsume');
+}
+
+if ($op == 'code_consume') {
+	$code = trim($_GPC['code']);
+	$record = pdo_get('storex_coupon_record', array('code' => $code));
+	if (empty($record)) {
+		wmessage(error(-1, '卡券记录不存在'), '', 'ajax');
+	}
+	$clerk = pdo_get('storex_clerk', array('from_user' => $_W['openid'], 'weid' => $_W['uniacid']), array('id'));
+	$status = activity_coupon_consume($record['couponid'], $record['id'], $clerk['id']);
+	if (!is_error($status)) {
+		wmessage(error(0, ''), '', 'ajax');
+	} else {
+		wmessage(error(-1, $status['message']),'' , 'ajax');
+	}
 }
