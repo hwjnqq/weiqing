@@ -205,7 +205,7 @@ if ($op == 'edit') {
 			if ($store['agent_status'] == 1 && !empty($_GPC['agent_ratio']) && is_array($_GPC['agent_ratio'])) {
 				$agent_ratio = $_GPC['agent_ratio'];
 				foreach ($agent_ratio as &$val) {
-					if ($val <= 0 || $val > 100) {
+					if ($val < 0 || $val > 100) {
 						message('分销员分销比例填写错误', referer(), 'error');
 					}
 					$val = sprintf('%.2f', $val);

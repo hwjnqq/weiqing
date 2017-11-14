@@ -6,7 +6,7 @@
 function order_status($status) {
 	$order_status = array(
 		ORDER_STATUS_CANCEL => '订单取消',
-		ORDER_STATUS_NOT_SURE => '订单未确认',
+		ORDER_STATUS_NOT_SURE => '订单已提交',
 		ORDER_STATUS_SURE => '订单已确认',
 		ORDER_STATUS_REFUSE => '订单拒绝',
 		ORDER_STATUS_OVER => '订单完成'
@@ -138,7 +138,11 @@ function orders_check_status($item) {
 	if ($store_info['refund'] == 2) {
 		$item['is_refund'] = 2;
 	}
-	$item['order_status_cn'] = order_status($item['status']);
+	if ($item['is_comment'] == 2 && $item['status'] == 3) {
+		$item['order_status_cn'] = '已评价';
+	} else {
+		$item['order_status_cn'] = order_status($item['status']);
+	}
 	$item['pay_status_cn'] = order_pay_status($item['paystatus']);
 	$item['goods_status_cn'] = '';
 	if ($item['paystatus'] == 1 && !empty($refund_log['status'])) {

@@ -363,9 +363,6 @@ if ($op == 'info') {
 		$credit_replace = get_credit_replace($store_id, $uid);
 		if (!empty($credit_replace)) {
 			$infos['credit_replace'] = $credit_replace;
-			if (!empty($infos['credit_replace']['max_replace']) && $infos['goods_info']['cprice'] < $infos['credit_replace']['max_replace']) {
-				$infos['credit_replace']['credit_pay'] = 2;
-			}
 		}
 	}
 	wmessage(error(0, $infos), '', 'ajax');
@@ -549,12 +546,12 @@ function goods_hotel_order($insert, $store_info, $uid, $selected_coupon = array(
 	if ($insert['sum_price'] <= 0) {
 		wmessage(error(-1, '总价为零，请联系管理员'), '', 'ajax');
 	}
+	if (!empty($_GPC['order']['use_credit'])) {
+		$insert = calcul_credit_replace($insert, $uid);
+	}
 	$post_total = trim($_GPC['order']['total']);
 	if ($post_total != $insert['sum_price']) {
 		wmessage(error(-1, '价格错误' . $insert['sum_price']), '', 'ajax');
-	}
-	if (!empty($_GPC['order']['use_credit'])) {
-		$insert = calcul_credit_replace($insert, $uid);
 	}
 	pdo_insert('storex_order', $insert);
 	$order_id = pdo_insertid();
@@ -733,13 +730,14 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 	if ($insert['sum_price'] <= 0) {
 		wmessage(error(-1, '总价为零，请联系管理员'), '', 'ajax');
 	}
+	if (!empty($_GPC['order']['use_credit']) && empty($group)) {
+		$insert = calcul_credit_replace($insert, $uid);
+	}
 	$post_total = trim($_GPC['order']['total']);
 	if ($post_total != $insert['sum_price']) {
 		wmessage(error(-1, '价格错误' . $insert['sum_price']), '', 'ajax');
 	}
-	if (!empty($_GPC['order']['use_credit']) && empty($group)) {
-		$insert = calcul_credit_replace($insert, $uid);
-	}
+	
 	if (!empty($group)) {
 		$insert['group_goodsid'] = $group['id'];
 		$insert['group_id'] = $_GPC['group_id'];
