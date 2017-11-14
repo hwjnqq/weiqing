@@ -395,7 +395,7 @@ function we7_coupon_mc_check($data) {
 function we7_coupon_get_operator($clerk_type, $store_id, $clerk_id) {
 	global $_W;
 	if (empty($stores) || empty($clerks)) {
-		$clerks = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name', 'uid'), 'uid');
+		$clerks = pdo_getall('activity_clerks', array('uniacid' => $_W['uniacid']), array('id', 'name', 'uid'), 'id');
 		$stores = pdo_getall('activity_stores', array('uniacid' => $_W['uniacid']), array('id', 'business_name', 'branch_name'), 'id');
 	}
 	$data = array(
