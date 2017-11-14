@@ -105,6 +105,27 @@
 		$('.modules').click(function(){
 			return false;
 		});
+		util.coupon = function(callback, options) {
+			var opts = {
+				type :'all',
+				multiple :true 
+			};
+			opts = $.extend({}, opts, options);
+			require({
+				paths: {
+					'coupon': "{php echo $_W['siteroot'] . '/addons/we7_coupon/template/style/js/coupon'}"
+				}
+			})
+			require(['coupon'], function(coupon){
+				coupon.init(function(coupons){
+					if(coupons){
+						if($.isFunction(callback)){
+							callback(coupons);
+						}
+					}
+				}, opts);
+			});
+		};
 	});
 </script>
 
