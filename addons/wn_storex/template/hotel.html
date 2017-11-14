@@ -2,10 +2,15 @@
 <div class="main">
 	<ul class="nav nav-tabs">
 		<li {if $_GPC['do'] == 'storemanage' && $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('storemanage', array('op'=>'list'));}">店铺管理</a></li>
-		<li><a href="javascript:;" class="js-add-store">添加店铺</a></li>
 		<li {if $op == 'assign_store'}class="active"{/if}><a href="{php echo $this->createWebUrl('storemanage', array('op'=>'assign_store'));}">操作员分配店铺</a></li>
 		<li {if $_GPC['do'] == 'admin_logs'}class="active"{/if}><a href="{php echo $this->createWebUrl('admin_logs', array('op'=>'display'));}">操作日志</a></li>
 	</ul>
+	<div class="page-header clearfix">
+		<h4 class="pull-left">店铺管理</h4>
+		<div class="pull-right">
+			<a href="javascript:;" class="btn btn-primary we7-padding-horizontal js-add-store">+添加店铺</a>
+		</div>
+	</div>
 	<div class="modal fade" id="storetype-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
 		<div class="modal-dialog">
 			<div class="modal-content">
