@@ -84,7 +84,9 @@ if ($do == 'code_token') {
 
 if ($do == 'qrcode') {
 	$code_token = $_GPC['code_token'];
+	header('Content-Type:image/jpeg');
 	echo wxapp_code_qrcode($code_token);
+	exit;
 }
 
 if ($do == 'checkscan') {

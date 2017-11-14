@@ -13,6 +13,10 @@ load()->model('material');
 load()->model('attachment');
 load()->model('mc');
 
+load()->classs('uploadedfile');
+load()->classs('config');
+load()->classs('filesystem/storage');
+
 if (!in_array($do, array('upload', 'fetch', 'browser', 'delete', 'image' ,'module' ,'video', 'voice', 'news', 'keyword',
 	'networktowechat', 'networktolocal', 'towechat', 'tolocal','wechat_upload'))) {
 	exit('Access Denied');
@@ -127,33 +131,48 @@ if ($do == 'fetch') {
 
 /* 处理上传 */
 if ($do == 'upload') {
-	if (empty($_FILES['file']['name'])) {
-		$result['message'] = '上传失败, 请选择要上传的文件！';
+	$files = UploadedFile::createFromGlobal();
+	/* @var $file UploadedFile*/
+	$file = $files['file'];
+	$pathname = '';
+	try{
+		$file->valid($type);//校验图片
+	}catch (Exception $e) {
+		$result['message'] = $e->getMessage();
 		die(json_encode($result));
 	}
-	if ($_FILES['file']['error'] != 0) {
-		$result['message'] = '上传失败, 请重试.';
-		die(json_encode($result));
+	$pathname = $file->store($setting['folder']);
+	$info = array(
+		'name' => $file->getClientFilename(),
+		'ext' => $file->getExtension(),
+		'filename' => $pathname,
+		'attachment' => $pathname,
+		'url' => tomedia($pathname),
+		'is_image' => $type == 'image' ? 1 : 0,
+		'filesize' => $file->getSize(),
+		'size' => sizecount($file->getSize()),
+		'state'=>'SUCCESS',//ueditor 拖动上传
+	);
+	if ($type == 'image') {
+		$size = getimagesize($fullname);
+		$info['width'] = $size[0];
+		$info['height'] = $size[1];
 	}
-	$ext = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
-	$ext = strtolower($ext);
-	$size = intval($_FILES['file']['size']);
-	$originname = $_FILES['file']['name'];
+	pdo_insert('core_attachment', array(
+		'uniacid' => $uniacid,
+		'uid' => $_W['uid'],
+		'filename' => $file->getClientFilename(),
+		'attachment' => $pathname,
+		'type' => $type == 'image' ? 1 : ($type == 'audio'||$type == 'voice' ? 2 : 3),
+		'createtime' => TIMESTAMP,
+		'module_upload_dir' => $module_upload_dir
+	));
 
-	$filename = file_random_name(ATTACHMENT_ROOT . '/' . $setting['folder'], $ext);
-
-	$file = file_upload($_FILES['file'], $type, $setting['folder'] . $filename);
-
-	if (is_error($file)) {
-		$result['message'] = $file['message'];
-		die(json_encode($result));
-	}
-	$pathname = $file['path'];
-	$fullname = ATTACHMENT_ROOT . '/' . $pathname;
+	die(json_encode($info));
 }
 
 // 上传或提取,入库;
-if ($do == 'fetch' || $do == 'upload') {
+if ($do == 'fetch') {
 	// 如果是图片类型,判断是否缩略.
 	if ($type == 'image') {
 		$thumb = empty($setting['thumb']) ? 0 : 1; // 是否使用缩略
@@ -343,6 +362,21 @@ if ($do == 'wechat_upload') {
 	$setting['folder'] = "{$type}s/{$_W['uniacid']}" . '/'.date('Y/m/');
 
 	$acid = $_W['acid'];
+	$files = UploadedFile::createFromGlobal();
+	/** @var  $file UploadedFile */
+	$file = $files['file'];
+	try{
+		$file->valid($type, true,
+			array('uniacid'=>$uniacid, 'acid'=>$acid, 'type'=>$type));//校验图片
+	}catch (Exception $e) {
+		$result['message'] = $e->getMessage();
+		die(json_encode($result));
+	}
+	Storage::disk('wechat')
+		->putFile($setting['folder'], $file,
+		array('acid'=>$_W['acid'], 'type'=>$type));
+	exit;
+
 	if($mode == 'perm') {
 		$now_count = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('wechat_attachment') . ' WHERE uniacid = :aid AND acid = :acid AND model = :model AND type = :type', array(':aid' => $_W['uniacid'], ':acid' => $acid, ':model' => $mode, ':type' => $type));
 		if($now_count >= $limit['perm'][$type]['max']) {

@@ -8,7 +8,8 @@
  */
 class UploadedFile extends SplFileInfo {
 
-	const IMG_MIMETYPE = 'image/jpeg,image/jpg,image/png,image/gif,image/bmp';
+	private $img_mimetype = array('image/jpeg','image/jpg','image/png','image/gif','image/bmp');
+	private $harmtype = array('asp', 'php', 'jsp', 'js', 'css', 'php3', 'php4', 'php5', 'ashx', 'aspx', 'exe', 'cgi');
 	/**
 	 * @var int[]
 	 */
@@ -179,7 +180,7 @@ class UploadedFile extends SplFileInfo {
 	 * @return boolean
 	 */
 	public function isOk() {
-		return $this->error === UPLOAD_ERR_OK;
+		return $this->error === UPLOAD_ERR_OK && !in_array($this->getExtension(),$this->harmtype);
 	}
 
 	/**
@@ -269,11 +270,92 @@ class UploadedFile extends SplFileInfo {
 	 * @since version
 	 */
 	public function isImage() {
-		return $this->isOk() && in_array($this->clientMediaType, self::IMG_MIMETYPE);
+		return in_array($this->clientMediaType, $this->img_mimetype);
+	}
+
+	/**
+	 *  验证图片 大小
+	 * @param $type
+	 *
+	 *
+	 * @since version
+	 * @throws Exception
+	 */
+	public function valid($type, $is_wechat = false, $option = array()) {
+		if(!$this->isOk()) {
+			throw new Exception('请选择上传文件');
+		}
+		$rule = $this->getValidRule($type);
+		$ext = $this->clientExt();
+
+		if(!in_array($ext, $rule['ext'])) {
+			throw new Exception('不允许的文件后缀');
+		}
+		if($this->getSize()/1024 > $rule['size']) {
+			throw new Exception('图片大小超出'.$rule['size']);
+		}
+		if($rule['max']) {
+			if(! $this->validMaxResource($rule['max'], $type, $option)) {
+				throw new Exception('文件数量超过限制,请先删除部分文件再上传');
+			}
+
+		}
+	}
+
+	private function validMaxResource($max, $type, $option) {
+		$uniacid = $option['uniacid'];
+		$acid = $option['acid'];
+		$now_count = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('wechat_attachment') .
+			' WHERE uniacid = :aid AND acid = :acid AND model = :model AND type = :type',
+			array(':aid' => $uniacid, ':acid' => $acid, ':model' => 'perm', ':type' => $type));
+		if($now_count >= $max) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 *  获取图片上传验证规则
+	 * @param $type
+	 * @param bool $is_wechat
+	 *
+	 * @return array
+	 *
+	 * @since version
+	 */
+	private function getValidRule($type, $is_wechat = false) {
+		if($is_wechat) {
+			return config()->wechatLimit($type);
+		}
+		return config()->localLimit($type);
+	}
+
+	/**
+	 * 上传文件后缀
+	 * @return mixed
+	 *
+	 * @since version
+	 */
+	public function clientExt() {
+		$ext = pathinfo($this->getClientFilename(), PATHINFO_EXTENSION);
+		return $ext;
+	}
+
+	public function validImage() {
+		if(!$this->isImage()) {
+			throw new Exception('不是有效的图片');
+		}
+		$ext = $this->clientExt();
+		if(!config()->allowImageExt($ext)) {
+			throw new Exception('不允许的文件后缀');
+		}
+		if($this->getSize()/1024 > config()->maxImageSize()) {
+			throw new Exception('图片大小超出'.(config()->maxImageSize()));
+		}
 	}
 
 	public function hashName() {
-		return random(40).'.'.$this->getExtension();
+		return random(40).'.'.$this->clientExt();
 	}
 	/**
 	 * Store the uploaded file on a filesystem disk.
@@ -282,7 +364,7 @@ class UploadedFile extends SplFileInfo {
 	 * @param  array|string  $options
 	 * @return string|false
 	 */
-	public function store($path = null)
+	public function store($path = null, $option = array())
 	{
 		return $this->storeAs($path, $this->hashName());
 	}
@@ -294,8 +376,14 @@ class UploadedFile extends SplFileInfo {
 		}
 		$path = rtrim($path, '/');
 		$path = $path.'/'.$filename;
-		return Storage::putFile($path, $this);
+		if($this->isImage()) {
+			return Storage::disk()->putFile($path, $this);// 只有图片才存到cdn
+		}
+		return Storage::disk('files')->putFile($path, $this);
+
 	}
+
+
 
 	/**
 	 * 保存到微信
@@ -304,8 +392,13 @@ class UploadedFile extends SplFileInfo {
 	 */
 	public function storeToWechat($uniacid) {
 		$path = $this->getStorePath($uniacid);
-		Storage::disk('wechat')->putFile($path, $this);
+		Storage::disk('wechat')->putFile($path, $this, array('uniacid'=>$uniacid));
 	}
+
+	public function storeTo($global, $dest_dir) {
+
+	}
+
 
 	//获取存储路径
 	private function getStorePath($uniacid = 0) {

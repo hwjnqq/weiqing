@@ -16,31 +16,16 @@ load()->library('oss');
 //load()->classs('cdn/cosapi');
 //load()->classs('cdn/cos4api');
 //load()->classs('cdn/ossapi');
-load()->classs('remotefile/storage');
+load()->classs('filesystem/storage');
 load()->func('communication');
+load()->classs('config');
 
-$tester = new Testify('测试CDN');
-
-//$tester->test('测试七牛', function() {
-//	//{"hash":"FtQCglzhyqmKVr-JxHvjY1_KpkqT","key":"FtQCglzhyqmKVr-JxHvjY1_KpkqT"}"
-//	$ak = 'E9-jnplWBwecnwMkio1dPaoQQT51IjlRYxY_dzO7';
-//	$sk = '2Xx7eyO3cJtyIGkhNmVMJSjywmzx0dzxBCddoxGw';
-//	$bucket = 'code';
-//	$qiniu = new QiniuCdn($ak, $sk, $bucket);
-//	$response = $qiniu->upload(__DIR__.'/test_1x.php', '123456');
-////	var_dump($response);
-////	$qiniu->delete('123456');
-//});
-
-$tester->test('cos', function (){
+$tester = new Testify('测试config');
 
 
-});
 
-$tester->test('oss', function (){
+var_dump(config()->allowImageExt('gif'));
 
-
-});
 
 //$ak = 'LTAItPGnmSk3L5xD';
 //$sk = '2jPGdCxCdnReV8ChP1gdN01oarOVpN';

@@ -42,9 +42,9 @@ class OssApi {
 	}
 
 	public function put($path, $content) {
-		$result = true;
+		$result = $path;
 		try {
-			$response = $this->getClient()->putObject($this->bucket, $path, $content);
+			 $this->getClient()->putObject($this->bucket, $path, $content);
 		}catch (\OSS\Core\OssException $e) {
 			$result = false;
 		}
@@ -53,7 +53,7 @@ class OssApi {
 
 
 	public function putFile($path, $file) {
-		$result = true;
+		$result = $path;
 		try {
 			$response = $this->getClient()->uploadFile($this->bucket, $path, $file);
 		}catch (\OSS\Core\OssException $e) {

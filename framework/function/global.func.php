@@ -1442,5 +1442,13 @@ function remove_xss($val) {
 	return $val;
 }
 
+function config($key = null, $default = null) {
+	$config = Config::instance();
+	if(is_null($key)) {
+		return $config;
+	}
+	return $config->get($key, $default);
+}
+
 
 

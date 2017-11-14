@@ -18,7 +18,7 @@ class Cos4Api {
 	private $rand ;
 	private $f = '';
 
-	public function __construct($appid = '', $secretid = '', $secretkey = '', $bucket = 'cosapi') {
+	public function __construct($secretid = '', $secretkey = '', $bucket = '', $appid = '') {
 		$this->appid = $appid;
 		$this->secretId = $secretid;
 		$this->secretKey = $secretkey;

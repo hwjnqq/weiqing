@@ -1,7 +1,12 @@
 <?php
 
-load()->classs('remotefile/ossapi');
-load()->classs('remotefile/qiniuapi');
+load()->classs('filesystem/ossapi');
+load()->classs('filesystem/qiniuapi');
+load()->classs('filesystem/cosapi');
+load()->classs('filesystem/cos4api');
+load()->classs('filesystem/localapi');
+load()->classs('filesystem/wechatfileapi');
+
 load()->model('attachment');
 
 /**
@@ -13,15 +18,24 @@ load()->model('attachment');
 class Storage {
 
 	private $driver = null;
+	private function __construct() {
+
+	}
 
 	public function setDriver($driver = null) {
 		$this->driver = $driver;
 	}
-	public function __construct() {
-
-	}
 
 	public static function disk($driverName = null) {
+		return self::createStorage($driverName);
+	}
+
+
+
+	private function createStorage($driverName = '') {
+		if(empty($driverName)) {
+			$driverName = config()->fileDriver();
+		}
 		$storage = new Storage();
 		$driver = $storage->createDriver($driverName);
 		$storage->setDriver($driver);
@@ -35,21 +49,22 @@ class Storage {
 			case 'cos4' : $driver = $this->createCos4Driver(); break;
 			case 'oss' : $driver = $this->createOssDriver(); break;
 			case 'qiniu' : $driver = $this->createQiniuDriver(); break;
+			case 'wechat' : $driver = $this->createWechatDriver(); break;
 		}
 		return $driver;
 	}
 
-	protected function defaultDriver() {
-
-	}
 
 	private function createCosDriver() {
-
+		$config = $this->getRemoteConfig('cos');
+		return new CosApi($config['secretid'], $config['secretkey'], $config['bucket'], $config['appid']);
 	}
 
 	private function createCos4Driver() {
 		$config = $this->getRemoteConfig('cos');
-
+		$api = new Cos4Api($config['secretid'], $config['secretkey'], $config['bucket'], $config['appid']);
+		$api->setRegion($config['local']);
+		return $api;
 	}
 
 	private function createQiniuDriver() {
@@ -75,11 +90,17 @@ class Storage {
 		return $driver;
 	}
 
+	private function createWechatDriver() {
+		$api = new WechatFileApi();
+		return $api;
+	}
+
 	private function getRemoteConfig($key) {
 		global $_W;
 		$remote = $_W['setting']['remote'][$key];
 		return $remote;
 	}
+
 
 	/**
 	 *  是否有指定文件
