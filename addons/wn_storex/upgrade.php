@@ -27,13 +27,6 @@ if (pdo_fieldexists('storex_bases', 'lat')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " CHANGE `lat` `lat` DECIMAL(10,6) NULL DEFAULT '0.00';");
 }
 
-if (pdo_tableexists('storex_agent_apply') && !pdo_fieldexists('storex_agent_apply', 'income')) {
-	pdo_query("DROP TABLE " . tablename('storex_agent_apply'));
-}
-
-if (!pdo_fieldexists('storex_agent_apply', 'pid')) {
-	pdo_query("ALTER TABLE " . tablename('storex_agent_apply') . " ADD `pid` INT(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT '销售员父级';");
-}
 $sql = "
 	CREATE TABLE IF NOT EXISTS `ims_storex_clerk` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -561,6 +554,7 @@ $sql = "
 	
 	CREATE TABLE IF NOT EXISTS `ims_storex_agent_apply` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`pid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '销售员父级',
 	`uniacid` int(11) DEFAULT '0',
 	`storeid` int(11) DEFAULT '0',
 	`openid` varchar(50) NOT NULL,
@@ -903,6 +897,9 @@ if (pdo_tableexists('storex_set')) {
 	}
 }
 
+if (!pdo_fieldexists('storex_agent_apply', 'pid')) {
+	pdo_query("ALTER TABLE " . tablename('storex_agent_apply') . " ADD `pid` INT(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT '销售员父级';");
+}
 if (!pdo_fieldexists('storex_bases', 'skin_style')) {
 	pdo_query("ALTER TABLE " . tablename('storex_bases') . " ADD `skin_style` VARCHAR(48) NOT NULL DEFAULT 'display' COMMENT '皮肤选择';");
 }
