@@ -9,9 +9,11 @@
 			<div class="wn-tabs__item {if $op == 'homepage'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_share', array('op' => 'homepage', 'storeid' => $_GPC['storeid']))}">首页分享设置</a>
 			</div>
+			<!-- 
 			<div class="wn-tabs__item {if $op == 'category'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_share', array('op' => 'category', 'storeid' => $_GPC['storeid']))}">分类分享设置</a>
 			</div>
+			 -->
 			{if $store['store_type'] != STORE_TYPE_HOTEL}
 			<div class="wn-tabs__item {if $op == 'goods'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_share', array('op' => 'goods', 'storeid' => $_GPC['storeid']))}">商品分享设置</a>

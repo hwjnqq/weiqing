@@ -8,9 +8,11 @@
 			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent', array('storeid' => $_GPC['storeid']))}">销售员列表</a>
 			</div>
+			<!-- 
 			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent_level'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent_level', array('storeid' => $_GPC['storeid']))}">销售员等级管理</a>
 			</div>
+			 -->
 			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent_log' && $op == 'agent_log'}wn-tabs__item--active{/if}">
 				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent_log', array('op' => 'agent_log', 'storeid' => $_GPC['storeid']))}">销售员售出记录</a>
 			</div>

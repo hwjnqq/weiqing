@@ -258,11 +258,12 @@ function clerk_permission($storeid, $uid) {
 */
 function clerk_order_operation($order, $store_type) {
 	$status = array(
-		'is_cancel' => false,
 		'is_confirm' => false,
-		'is_refuse' => false,
-		'is_over' => false,
 		'is_send' => false,
+		'is_over' => false,
+			
+		'is_cancel' => false,
+		'is_refuse' => false,
 		'is_access' => false,
 		'is_assign' => false,
 	);
