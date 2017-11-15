@@ -119,7 +119,7 @@ if ($op == 'edit') {
 	
 	if (checksubmit('submit')) {
 		if (empty($_GPC['title'])) {
-			message('请输入房型！', referer(), 'error');
+			message('请填写商品名称！', referer(), 'error');
 		}
 		if (empty($_GPC['category']['parentid'])) {
 			message('一级分类不能为空！', referer(), 'error');
@@ -198,7 +198,6 @@ if ($op == 'edit') {
 				message('单次最小购买量大于单次最大购买量', referer(), 'error');
 			}
 			$express_set = array(
-				'goods_express' => is_numeric($_GPC['goods_express']) ? $_GPC['goods_express'] : 0,
 				'default_express' => is_numeric($_GPC['default_express']) ? $_GPC['default_express'] : 0,
 				'condition' => is_numeric($_GPC['condition']) ? $_GPC['condition'] : 0,
 				'express' => is_numeric($_GPC['express']) ? $_GPC['express'] : 0,

@@ -258,7 +258,7 @@ function format_url($urls) {
 //获取店铺信息
 function get_store_info($id) {
 	global $_W;
-	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone', 'thumb', 'emails', 'phones', 'openids', 'mail', 'refund', 'market_status', 'max_replace', 'pick_up_mode', 'express', 'agent_status', 'credit_pay', 'credit_ratio', 'template'));
+	$store_info = pdo_get('storex_bases', array('weid' => $_W['uniacid'], 'id' => $id), array('id', 'store_type', 'status', 'title', 'phone', 'thumb', 'emails', 'phones', 'openids', 'mail', 'refund', 'market_status', 'max_replace', 'pick_up_mode', 'express', 'agent_status', 'credit_pay', 'credit_ratio', 'template', 'goods_express'));
 	if (empty($store_info)) {
 		wmessage(error(-1, '店铺不存在'), '', 'ajax');
 	} else {
@@ -625,13 +625,13 @@ function extend_switch_fetch() {
 	return $switchs;
 }
 
-function calculate_express($goods_info, $insert) {
+function calculate_express($goods_info, $insert, $goods_express) {
 	if ($insert['mode_distribute'] == 2) {
 		if (!empty($goods_info['express_set'])) {
 			if (!is_array($goods_info['express_set'])) {
 				$goods_info['express_set'] = iunserializer($goods_info['express_set']);
 			}
-			if ($goods_info['express_set']['goods_express'] == 1) {
+			if ($goods_express == 1) {
 				if ($insert['sum_price'] >= $goods_info['express_set']['condition'] && !empty($goods_info['express_set']['condition'])) {
 					$insert['sum_price'] += $goods_info['express_set']['express'];
 				} else {

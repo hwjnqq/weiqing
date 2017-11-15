@@ -312,6 +312,7 @@ if ($op == 'info') {
 			}
 		} else {
 			$infos['express'] = $order_goods[0]['express_set'];
+			$infos['express']['goods_express'] = $store_info['goods_express'];
 		}
 	}
 	$address = pdo_getall('mc_member_address', array('uid' => $uid, 'uniacid' => intval($_W['uniacid'])));
@@ -601,12 +602,12 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 			$insert['agentid'] = $member['agentid'];
 		}
 	}
-	if (!empty($_GPC['order']['mode_distribute']) && $_GPC['order']['mode_distribute'] != 2) {
-		$error = check_order_info($store_info, $insert);
-		if (!empty($error) && is_error($error)) {
-			wmessage($error, '', 'ajax');
-		}
-	}
+// 	if (!empty($_GPC['order']['mode_distribute']) && $_GPC['order']['mode_distribute'] != 2) {
+// 		$error = check_order_info($store_info, $insert);
+// 		if (!empty($error) && is_error($error)) {
+// 			wmessage($error, '', 'ajax');
+// 		}
+// 	}
 	if (!empty($goods) && is_array($goods)) {
 		$order_goods = get_order_goods($store_info, $goods);
 		if (empty($order_goods)) {
@@ -721,7 +722,7 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 		}
 		$insert['static_price'] = $insert['sum_price'];
 		//计算运费
-		$insert = calculate_express($goods_info, $insert);
+		$insert = calculate_express($goods_info, $insert, $store_info['goods_express']);
 		if ($goods_info['param'][2] == 3) {
 			$insert['is_package'] = 2;
 		}
