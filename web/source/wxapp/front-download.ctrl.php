@@ -13,15 +13,10 @@ $do = in_array($do, $dos) ? $do : 'front_download';
 
 $_W['page']['title'] = '小程序下载 - 小程序 - 管理';
 
-$uniacid = intval($_GPC['uniacid']);
 $version_id = intval($_GPC['version_id']);
-if (!empty($uniacid)) {
-	$wxapp_info = wxapp_fetch($uniacid);
-}
+$wxapp_info = wxapp_fetch($_W['uniacid']);
 if (!empty($version_id)) {
 	$version_info = wxapp_version($version_id);
-	$wxapp_info = wxapp_fetch($version_info['uniacid']);
-
 }
 if ($do == 'domainset') {
 	$appurl = $_W['siteroot'].'app/index.php';
@@ -55,13 +50,6 @@ if ($do == 'front_download') {
 	if(!in_array($uptype, array('auto','normal'))) {
 		$uptype = 'auto';
 	}
-
-	if($wxapp_info) {
-		$code_uuid = $wxapp_info['code_uuid'];
-		if(! $code_uuid) {
-
-		}
-	}
 	template('wxapp/version-front-download');
 }
 
@@ -84,7 +72,7 @@ if ($do == 'code_token') {
 
 if ($do == 'qrcode') {
 	$code_token = $_GPC['code_token'];
-	header('Content-Type:image/jpeg');
+	header('Content-type: image/jpg');//有的站必须指定content-type才能显示
 	echo wxapp_code_qrcode($code_token);
 	exit;
 }
@@ -119,7 +107,7 @@ if($do == 'getpackage') {
 	if(empty($version_id)) {
 		itoast('参数错误！', '', '');
 	}
-	$account_wxapp_info = wxapp_fetch($uniacid, $version_id);
+	$account_wxapp_info = wxapp_fetch($version_info['uniacid'], $version_id);
 	if (empty($account_wxapp_info)) {
 		itoast('版本不存在！', referer(), 'error');
 	}

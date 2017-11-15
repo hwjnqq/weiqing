@@ -138,6 +138,9 @@ class Validator {
 		$this->messages = $messages;
 	}
 
+	public static function create($data, $rules, $messages) {
+		return new Validator($data, $rules, $messages);
+	}
 	/**
 	 * 添加规则
 	 * @param $key
@@ -162,7 +165,7 @@ class Validator {
 	 * @return bool
 	 */
 	public function isError() {
-		return !empty($this->errors);
+		return count($this->errors) !== 0;
 	}
 
 	/**
@@ -172,6 +175,10 @@ class Validator {
 	 * @since version
 	 */
 	public function errors() {
+		return $this->errors;
+	}
+
+	public function messages() {
 		return $this->errors;
 	}
 
@@ -235,8 +242,7 @@ class Validator {
 				}
 			}
 		}
-
-		return $this->isError();
+		return !$this->isError();
 	}
 
 	/**

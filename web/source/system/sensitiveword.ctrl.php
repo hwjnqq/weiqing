@@ -34,7 +34,7 @@ if ($do == 'add') {
 	}
 	$add_word_array = explode("\n", $add_word);
 	$words_list = array_merge($words_list, $add_word_array);
-	$word_add = setting_save($words_list, 'sensitive_words');
+	$word_add = setting_save(array_unique($words_list), 'sensitive_words');
 	if (is_error($words_add)) {
 		iajax(-1, '添加失败', url('system/sensitiveword'));
 	}

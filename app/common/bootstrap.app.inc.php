@@ -5,6 +5,7 @@
 defined('IN_IA') or exit('Access Denied');
 load()->model('mc');
 load()->model('app');
+load()->model('account');
 $_W['uniacid'] = intval($_GPC['i']);
 if(empty($_W['uniacid'])) {
 	$_W['uniacid'] = intval($_GPC['weid']);
@@ -25,6 +26,9 @@ $_W['acid'] = $_W['uniaccount']['acid'];
 $isdel_account = pdo_get('account', array('isdeleted' => 1, 'acid' => $_W['acid']));
 if (!empty($isdel_account)) {
 	exit('指定公众号已被删除');
+}
+if (!empty($_W['account']['setting']['bind_domain']) && !empty($_W['account']['setting']['bind_domain']['domain']) && strpos($_W['siteroot'], $_W['account']['setting']['bind_domain']['domain']) === false) {
+	itoast('', $_W['account']['setting']['bind_domain']['domain']. $_SERVER['REQUEST_URI']);
 }
 $_W['session_id'] = '';
 if (isset($_GPC['state']) && !empty($_GPC['state']) && strexists($_GPC['state'], 'we7sid-')) {
@@ -94,6 +98,9 @@ if (empty($_W['openid']) && !empty($_SESSION['oauth_openid'])) {
 	);
 }
 $unisetting = uni_setting_load();
+if (empty($unisetting['oauth']['account'])) {
+	$unisetting = uni_account_global_oauth();
+}
 if (!empty($unisetting['oauth']['account'])) {
 	$oauth = account_fetch($unisetting['oauth']['account']);
 	if (!empty($oauth) && $_W['account']['level'] <= $oauth['level']) {
@@ -151,7 +158,8 @@ if (!empty($_W['account']['oauth']) && $_W['account']['oauth']['level'] == '4' &
 		if(uni_is_multi_acid()) {
 			$str = "&j={$_W['acid']}";
 		}
-		$unisetting['oauth']['host'] = uni_account_global_oauth($unisetting['oauth']['host']);
+		$global_unisetting = uni_account_global_oauth();
+		$unisetting['oauth']['host'] = !empty($unisetting['oauth']['host']) ? $unisetting['oauth']['host'] : $global_unisetting['oauth']['host'];
 		if (!empty($unisetting['oauth']['host'])) {
 			$url = str_replace($_W['siteroot'], $unisetting['oauth']['host'].'/', $_W['siteurl']);
 		} else {

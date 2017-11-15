@@ -1789,7 +1789,8 @@ class WeiXinAccount extends WeAccount {
 		if (empty($code)) {
 			$sitepath = substr($_SERVER['PHP_SELF'], 0, strrpos($_SERVER['PHP_SELF'], '/'));
 			$unisetting = uni_setting_load();
-			$unisetting['oauth']['host'] = uni_account_global_oauth($unisetting['oauth']['host']);
+			$global_unisetting = uni_account_global_oauth();
+			$unisetting['oauth']['host'] = !empty($unisetting['oauth']['host']) ? $unisetting['oauth']['host'] : $global_unisetting['oauth']['host'];
 			$url = (!empty($unisetting['oauth']['host']) ? ($unisetting['oauth']['host'] . $sitepath . '/') : $_W['siteroot'] . 'app/') . "index.php?{$_SERVER['QUERY_STRING']}";
 			$forward = $this->getOauthCodeUrl(urlencode($url));
 			header('Location: ' . $forward);
@@ -1898,14 +1899,6 @@ class WeiXinAccount extends WeAccount {
 				$result[$key]['cumulate'] = $row['cumulate_user'];
 			}
 		}
-		return $result;
-	}
-
-	public function getWechatLoginUrl($redirect_uri, $state = '') {
-		global $_W;
-		$redirect_uri = urlencode($redirect_uri);
-		$state = !empty($state) ? $state : $_W['token'];
-		$result = "https://open.weixin.qq.com/connect/qrconnect?appid={$this->account['appid']}&redirect_uri=". $redirect_uri ."&response_type=code&scope=snsapi_login&state=". $state ."#wechat_redirect";
 		return $result;
 	}
 	

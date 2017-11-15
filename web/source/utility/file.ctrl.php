@@ -34,6 +34,8 @@ $option = array();
 $option = array_elements(array('uploadtype', 'global', 'dest_dir'), $_POST);
 $option['width'] = intval($option['width']);
 $option['global'] = $_GPC['global'];//!empty($_COOKIE['__fileupload_global']);
+
+
 if (!empty($option['global']) && empty($_W['isfounder'])) {
 	$result['message'] = '没有向 global 文件夹上传文件的权限.';
 	die(json_encode($result));
@@ -56,9 +58,7 @@ if($dest_dir != '') {
 
 $setting = $_W['setting']['upload'][$type];
 $uniacid = intval($_W['uniacid']);
-if(empty($uniacid) && $_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER) {
-	exit('Access Denied');
-}
+
 if(isset($_GPC['uniacid'])) { //是否有强制指定uniacid
 	$requniacid = intval($_GPC['uniacid']);
 	attachment_reset_uniacid($requniacid);// 会改变$_W['uniacid'];
@@ -660,6 +660,7 @@ if ($do == 'image') {
 	} else {
 		$page = $_GPC['page'];
 		$page_index = max(1, $page);
+		$conditions['uniacid'] = $uniacid;
 		$conditions['type'] = 'image';
 		$conditions['module_upload_dir'] = $module_upload_dir;
 		$material_list = pdo_getslice('wechat_attachment', $conditions, array($page_index, $page_size), $total, array(), '', 'createtime DESC');

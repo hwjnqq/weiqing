@@ -195,6 +195,11 @@ function file_upload($file, $type = 'image', $name = '') {
 	if (!empty($limit) && $limit * 1024 < filesize($file['tmp_name'])) {
 		return error(-4, "上传的文件超过大小限制，请上传小于 {$limit}k 的文件");
 	}
+
+	if($type == 'image') {
+		file_image_quality($file['tmp_name'], $file['tmp_name'], $ext);//设置清晰度
+	}
+
 	$result = array();
 	if (empty($name) || $name == 'auto') {
 		$uniacid = intval($_W['uniacid']);
@@ -232,7 +237,11 @@ function file_wechat_upload($file, $type = 'image', $name = '') {
 	if (in_array(strtolower($ext), $harmtype)) {
 		return error(-3, '不允许上传此类文件');
 	}
-	
+
+	if($type == 'image') {
+		file_image_quality($file['tmp_name'], $file['tmp_name'], $ext);//设置清晰度
+	}
+
 	$result = array();
 	if (empty($name) || $name == 'auto') {
 		$uniacid = intval($_W['uniacid']);
@@ -855,6 +864,45 @@ function file_is_image($url) {
 	$pathinfo = pathinfo($url);
 	$extension = strtolower($pathinfo['extension']);
 	return !empty($extension) && in_array($extension, array('jpg', 'jpeg', 'gif', 'png'));
+}
+
+/**
+ * 清晰度设置 如果是上传文件的话 就直接把临时目录覆盖为新的
+ * @param $src //原始目录
+ * @param $to_path //目标目录
+ * @param int $quality //清晰度
+ * @param $ext //图片类型
+ *
+ *
+ * @since version
+ */
+function file_image_quality($src, $to_path, $ext) {
+	global $_W;
+	if(!function_exists('gd_info')) { //gd库未开启
+		return;
+	}
+
+	$quality = intval($_W['setting']['upload']['image']['zip_percentage']);
+	if($quality <=0 || $quality >= 100) {
+		return ;//不压缩
+	}
+	if(filesize($src) > 5120) { //大于5M不压缩
+		return ;
+	}
+
+	/**
+	 *  imagejpeg 1-100 范围 默认值75 数字 值越大越清晰
+	 *  imagepng  1-9 范围 默认6 值越小越清晰
+	 */
+	$resource = null;
+	switch ($ext) {
+		case 'jpg' : $quality = intval(0.75*$quality); $resource = imagecreatefromjpeg($src);  imagejpeg($resource, $to_path, $quality);  break;
+		case 'jpeg': $quality = intval(0.75*$quality); $resource = imagecreatefromjpeg($src); imagejpeg($resource, $to_path, $quality);  break;
+		case 'png' : $quality = round(abs((100-$quality)/11.111111)); $resource = imagecreatefrompng($src); imagepng($resource, $to_path, $quality); break;
+	}
+	if($resource) {
+		imagedestroy($resource);
+	}
 }
 
 

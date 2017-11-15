@@ -13,23 +13,19 @@ $do = in_array($do, $dos) ? $do : 'module_link_uniacid';
 
 $_W['page']['title'] = '数据同步 - 小程序 - 管理';
 
-$uniacid = intval($_GPC['uniacid']);
 $version_id = intval($_GPC['version_id']);
-if (!empty($uniacid)) {
-	$wxapp_info = wxapp_fetch($uniacid);
-}
+$wxapp_info = wxapp_fetch($_W['uniacid']);
 if (!empty($version_id)) {
 	$version_info = wxapp_version($version_id);
-	$wxapp_info = wxapp_fetch($version_info['uniacid']);
 }
 
 
 if ($do == 'module_link_uniacid') {
-	$module_name = $_GPC['module_name'];
-
+	$module_name = trim($_GPC['module_name']);
 	$version_info = wxapp_version($version_id);
 
 	if (checksubmit('submit')) {
+		$uniacid = intval($_GPC['uniacid']);
 		if (empty($module_name) || empty($uniacid)) {
 			iajax('1', '参数错误！');
 		}

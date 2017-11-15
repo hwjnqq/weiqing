@@ -887,64 +887,36 @@ function user_expire_notice() {
 }
 
 /**
- * 第三方登录用户注册数据处理 qq  微信
- * @param $state
- * @param $code
- * @param $login_type 登录方式
- * @return array|bool|int|mixed
+ * 获取第三方登录链接
+ * @return array
  */
-function user_third_login($state, $code, $login_type) {
+function user_support_urls() {
 	global $_W;
-	if (empty($state) || empty($code) || empty($login_type)) {
-		return error(-1, '参数错误！');
+	load()->classs('oauth2/oauth2client');
+	$types = OAuth2Client::supportLoginType();
+	$login_urls = array();
+	foreach ($types as $type) {
+		if (!empty($_W['setting']['thirdlogin'][$type]['authstate'])) {
+			$login_urls[$type] = OAuth2Client::create($type, $_W['setting']['thirdlogin'][$type]['appid'], $_W['setting']['thirdlogin'][$type]['appsecret'])->showLoginUrl();
+		}
 	}
-	if ($login_type == 'qq') {
-		load()->classs('qq.platform');
-		$account = array(
-			'key' => $_W['setting']['qq_platform']['appid'],
-			'secret' => $_W['setting']['qq_platform']['appsecret'],
-		);
-		$platform_obj = new QqPlatform($account);
-		$register_type = USER_REGISTER_TYPE_QQ;
-		$oauth_info = $platform_obj->getOauthInfo();
-		if (is_error($oauth_info)) {
-			return error(-1, $oauth_info['message']);
-		}
-		$openid = $oauth_info['openid'];
-		$user_info = $platform_obj->getUserInfo($oauth_info['access_token'], $openid);
-		if (is_error($user_info)) {
-			return error(-1, $user_info['message']);
-		}
-		$user_info['avatar'] = $user_info['figureurl_qq_1'];
-	} elseif ($login_type == 'wechat') {
-		load()->classs('weixin.account');
-		$account = array(
-				'key' => $_W['setting']['wechat_platform']['appid'],
-				'secret' => $_W['setting']['wechat_platform']['appsecret'],
-		);
-		$account_obj = new WeiXinAccount($account);
-		$register_type = USER_REGISTER_TYPE_WECHAT;
-		$oauthinfo = $account_obj->getOauthInfo();
-		if (is_error($oauthinfo)) {
-			return error(-1, $oauthinfo['message']);
-		}
-		if (empty($oauthinfo['access_token']) || empty($oauthinfo['openid'])) {
-			return error(-1, '访问公众平台接口失败，请稍后重试！');
-		}
-		$openid = $oauthinfo['openid'];
-		$user_info = $account_obj->getOauthUserInfo($oauthinfo['access_token'], $openid);
-		if (is_error($user_info)) {
-			return error(-1, $user_info['message']);
-		}
-		$user_info['gender'] = $user_info['sex'];
-		$user_info['avatar'] = $user_info['headimgurl'];
-		$user_info['year'] = '';
+	if (empty($login_urls)) {
+		$login_urls['system'] = true;
 	}
+	return $login_urls;
+}
 
-	$user_id = pdo_getcolumn('users', array('openid' => $openid), 'uid');
+/**
+ * 第三方登录后用户信息处理
+ * @param $user_info
+ * @return bool|int|mixed
+ */
+function user_third_info_register($user_info) {
+	global $_W;
+	$user_id = pdo_getcolumn('users', array('openid' => $user_info['openid']), 'uid');
 	if (empty($user_id)) {
 		$status = !empty($_W['setting']['register']['verify']) ? 1 : 2;
-		pdo_insert('users', array('type' => USER_TYPE_COMMON, 'joindate' => TIMESTAMP, 'status' => $status, 'starttime' => TIMESTAMP, 'register_type' => $register_type, 'openid' => $openid));
+		pdo_insert('users', array('type' => USER_TYPE_COMMON, 'joindate' => TIMESTAMP, 'status' => $status, 'starttime' => TIMESTAMP, 'register_type' => $user_info['register_type'], 'openid' => $user_info['openid']));
 		$user_id = pdo_insertid();
 		pdo_update('users', array('username' => 'user_' . $user_id), array('uid' => $user_id));
 		pdo_insert('users_profile', array('uid' => $user_id, 'createtime' => TIMESTAMP, 'nickname' => $user_info['nickname'], 'avatar' => $user_info['avatar'], 'gender' => $user_info['gender'], 'resideprovince' => $user_info['province'], 'residecity' => $user_info['city'], 'birthyear' => $user_info['year']));
@@ -952,4 +924,31 @@ function user_third_login($state, $code, $login_type) {
 		pdo_update('users_profile', array('nickname' => $user_info['nickname'], 'avatar' => $user_info['avatar'], 'gender' => $user_info['gender'], 'resideprovince' => $user_info['province'], 'residecity' => $user_info['city'], 'birthyear' => $user_info['year']), array('uid' => $user_id));
 	}
 	return $user_id;
+}
+
+/**
+ * 当前用户拥有的可借用的公众号
+ * @return array
+ */
+function user_borrow_oauth_account_list() {
+	global $_W;
+	$user_have_accounts = uni_user_accounts($_W['uid']);
+	$oauth_accounts = array();
+	$jsoauth_accounts = array();
+	if(!empty($user_have_accounts)) {
+		foreach($user_have_accounts as $account) {
+			if(!empty($account['key']) && !empty($account['secret'])) {
+				if (in_array($account['level'], array(ACCOUNT_SERVICE_VERIFY))) {
+					$oauth_accounts[$account['acid']] = $account['name'];
+				}
+				if (in_array($account['level'], array(ACCOUNT_SUBSCRIPTION_VERIFY, ACCOUNT_SERVICE_VERIFY))) {
+					$jsoauth_accounts[$account['acid']] = $account['name'];
+				}
+			}
+		}
+	}
+	return array(
+		'oauth_accounts' => $oauth_accounts,
+		'jsoauth_accounts' => $jsoauth_accounts
+	);
 }

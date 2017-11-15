@@ -171,7 +171,7 @@ function uni_site_store_buy_goods($uniacid, $type = STORE_TYPE_MODULE) {
 	} else {
 		$site_store_buy_goods = $store_table->searchAccountBuyGoods($uniacid, $type);
 		$setting = uni_setting_load('statistics', $uniacid);
-		$use_number = intval($setting['statistics']['use']);
+		$use_number = isset($setting['statistics']['use']) ? intval($setting['statistics']['use']) : 0;
 		$site_store_buy_goods = $site_store_buy_goods - $use_number;
 	}
 	cache_write($cachekey, $site_store_buy_goods);
@@ -464,7 +464,9 @@ function uni_setting_save($name, $value) {
 		pdo_insert('uni_settings', array($name => $value, 'uniacid' => $_W['uniacid']));
 	}
 	$cachekey = "unisetting:{$_W['uniacid']}";
+	$account_cachekey = "uniaccount:{$_W['uniacid']}";
 	cache_delete($cachekey);
+	cache_delete($account_cachekey);
 	return true;
 }
 
@@ -484,7 +486,7 @@ function uni_setting_load($name = '', $uniacid = 0) {
 		if (!empty($unisetting)) {
 			$serialize = array('site_info', 'stat', 'oauth', 'passport', 'uc', 'notify',
 				'creditnames', 'default_message', 'creditbehaviors', 'payment',
-				'recharge', 'tplnotice', 'mcplugin', 'statistics');
+				'recharge', 'tplnotice', 'mcplugin', 'statistics', 'bind_domain');
 			foreach ($unisetting as $key => &$row) {
 				if (in_array($key, $serialize) && !empty($row)) {
 					$row = (array)iunserializer($row);
@@ -1049,12 +1051,9 @@ function uni_account_member_fields($uniacid) {
  * @param string $uni_host 当前公众号的oauth host
  * @return string
  */
-function uni_account_global_oauth($uni_host = '') {
-	if (!empty($uni_host)) {
-		return $uni_host;
-	}
+function uni_account_global_oauth() {
+	load()->model('setting');
 	$oauth = setting_load('global_oauth');
 	$oauth = !empty($oauth['global_oauth']) ? $oauth['global_oauth'] : '';
-	$host = !empty($oauth) ? (empty($oauth['host']) ? '' : $oauth['host']) : '';
-	return $host;
+	return $oauth;
 }

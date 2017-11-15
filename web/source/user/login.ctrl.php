@@ -7,57 +7,37 @@ defined('IN_IA') or exit('Access Denied');
 define('IN_GW', true);
 
 load()->model('user');
-load()->classs('weixin.account');
-load()->classs('qq.platform');
+load()->classs('oauth2/oauth2client');
+load()->model('setting');
 
 if (checksubmit() || $_W['isajax']) {
 	_login($_GPC['referer']);
 }
 
-$qq_login_url = get_login_url('qq');
-$wechat_login_url = get_login_url('wechat');
+$support_login_types = OAuth2Client::supportLoginType();
+if (in_array($_GPC['login_type'], $support_login_types)) {
+	_login($_GPC['referer']);
+}
+
 $setting = $_W['setting'];
+$login_urls = user_support_urls();
 template('user/login');
 
-function _login($forward = '', $login_type = '', $state = '', $code = '') {
+function _login($forward = '') {
 	global $_GPC, $_W;
-	load()->model('setting');
 	$setting_sms_sign = setting_load('site_sms_sign');
 	$status = !empty($setting_sms_sign['site_sms_sign']['status']) ? $setting_sms_sign['site_sms_sign']['status'] : '';
 	if (!empty($status)) {
 		user_expire_notice();
 	}
-	$member = array();
-	if (empty($login_type)) {
-		$username = trim($_GPC['username']);
-		pdo_query('DELETE FROM'.tablename('users_failed_login'). ' WHERE lastupdate < :timestamp', array(':timestamp' => TIMESTAMP-300));
-		$failed = pdo_get('users_failed_login', array('username' => $username, 'ip' => CLIENT_IP));
-		if ($failed['count'] >= 5) {
-			itoast('输入密码错误次数超过5次，请在5分钟后再登录',referer(), 'info');
-		}
-		if (!empty($_W['setting']['copyright']['verifycode'])) {
-			$verify = trim($_GPC['verify']);
-			if (empty($verify)) {
-				itoast('请输入验证码', '', '');
-			}
-			$result = checkcaptcha($verify);
-			if (empty($result)) {
-				itoast('输入验证码错误', '', '');
-			}
-		}
-		if (empty($username)) {
-			itoast('请输入要登录的用户名', '', '');
-		}
-		$member['username'] = $username;
-		$member['password'] = $_GPC['password'];
-		if (empty($member['password'])) {
-			itoast('请输入密码', '', '');
-		}
-	} else {
-		$member = user_third_login($state, $code, $login_type);
-		if (is_error($member)) {
-			itoast($member['message'], url('user/login'));
-		}
+	if (empty($_GPC['login_type'])) {
+		$_GPC['login_type'] = 'system';
+	}
+
+	$member = OAuth2Client::create($_GPC['login_type'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appid'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appsecret'])->we7user();
+
+	if (is_error($member)) {
+		itoast($member['message'], url('user/login'), '');
 	}
 
 	$record = user_single($member);
@@ -100,46 +80,15 @@ function _login($forward = '', $login_type = '', $state = '', $code = '') {
 			isetcookie('__uniacid', '', -7 * 86400);
 			isetcookie('__uid', '', -7 * 86400);
 		}
+		$failed = pdo_get('users_failed_login', array('username' => trim($_GPC['username']), 'ip' => CLIENT_IP));
 		pdo_delete('users_failed_login', array('id' => $failed['id']));
 		itoast("欢迎回来，{$record['username']}。", $forward, 'success');
 	} else {
 		if (empty($failed)) {
-			pdo_insert('users_failed_login', array('ip' => CLIENT_IP, 'username' => $username, 'count' => '1', 'lastupdate' => TIMESTAMP));
+			pdo_insert('users_failed_login', array('ip' => CLIENT_IP, 'username' => trim($_GPC['username']), 'count' => '1', 'lastupdate' => TIMESTAMP));
 		} else {
 			pdo_update('users_failed_login', array('count' => $failed['count'] + 1, 'lastupdate' => TIMESTAMP), array('id' => $failed['id']));
 		}
 		itoast('登录失败，请检查您输入的用户名和密码！', '', '');
 	}
-}
-
-function get_login_url($login_type){
-	global $_GPC, $_W;
-	$setting = $_W['setting'];
-	$third_login_set = array(
-		'qq' => array('login_type' => 'qq', 'setting_name' => 'qq_platform', 'class_name' => 'QqPlatform'),
-		'wechat' => array('login_type' => 'wechat', 'setting_name' => 'wechat_platform', 'class_name' => 'WeiXinAccount')
-	);
-	if (!empty($setting[$third_login_set[$login_type]['setting_name']]) && !empty($setting[$third_login_set[$login_type]['setting_name']]['authstate'])) {
-		if ($_GPC['login_type'] == $login_type && !empty($_GPC['code']) && $_GPC['state'] == $_W['token']) {
-			_login($_GPC['referer'], $login_type, $_GPC['state'], $_GPC['code']);
-		}
-		$account = array(
-			'key' => $setting[$third_login_set[$login_type]['setting_name']]['appid'],
-			'secret' => $setting[$third_login_set[$login_type]['setting_name']]['appsecret'],
-		);
-		if ($login_type == 'wechat') {
-			$account['acid'] = 'invent';
-		}
-		$obj = new $third_login_set[$login_type]['class_name']($account);
-		if ($login_type == 'qq') {
-			$login_url = $obj->getQqLoginUrl();
-		}
-
-		if ($login_type == 'wechat') {
-			$login_url = $obj->getWechatLoginUrl($_W['siteurl'] . 'login_type=wechat', $_W['token']);
-		}
-
-		return $login_url;
-	}
-	return '';
 }

@@ -52,6 +52,11 @@ if ($do == 'global') {
 		if (empty($upload['image']['limit'])) {
 			itoast('请设置音频视频上传支持的文件大小, 单位 KB.', '', '');
 		}
+		$zip_percentage = intval($upload['image']['zip_percentage']);
+		if($zip_percentage <=0 || $zip_percentage > 100) {
+			$upload['image']['zip_percentage'] = 100;//100不压缩
+		}
+
 		if (!empty($upload['audio']['extentions'])) {
 			$upload['audio']['extentions'] = explode("\n", $upload['audio']['extentions']);
 			foreach ($upload['audio']['extentions'] as $key => &$row) {
@@ -87,6 +92,9 @@ if ($do == 'global') {
 	}
 	if (!empty($upload['audio']['extentions']) && is_array($upload['audio']['extentions'])) {
 		$upload['audio']['extentions'] = implode("\n", $upload['audio']['extentions']);
+	}
+	if(empty($upload['image']['zip_percentage'])) {
+		$upload['image']['zip_percentage'] = 100;
 	}
 }
 

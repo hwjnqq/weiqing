@@ -513,11 +513,11 @@ $we7_system_menu['site'] = array(
 					'icon' => 'wi wi-sensitive',
 					'permission_name' => 'system_setting_sensitiveword',
 				),
-				'system_setting_thirdparty' => array(
+				'system_setting_thirdlogin' => array(
 					'title' => '第三方登录配置',
-					'url' => url('system/thirdparty'),
+					'url' => url('system/thirdlogin'),
 					'icon' => 'wi wi-sensitive',
-					'permission_name' => 'system_setting_thirdparty',
+					'permission_name' => 'system_setting_thirdlogin',
 				),
 				'system_setting_oauth' => array(
 					'title' => 'oauth全局设置',

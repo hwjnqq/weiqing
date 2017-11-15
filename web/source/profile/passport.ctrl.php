@@ -10,6 +10,8 @@ $dos = array('oauth', 'save_oauth', 'uc_setting', 'upload_file');
 $do = in_array($do, $dos) ? $do : 'oauth';
 $_W['page']['title'] = '公众平台oAuth选项 - 会员中心';
 
+load()->model('user');
+
 //获取所有的认证服务号
 if ($do == 'save_oauth') {
 	$type = $_GPC['type'];
@@ -35,21 +37,9 @@ if ($do == 'save_oauth') {
 }
 
 if ($do == 'oauth') {
-	$user_have_accounts = uni_user_accounts($_W['uid']);
-	$oauth_accounts = array();
-	$jsoauth_accounts = array();
-	if(!empty($user_have_accounts)) {
-		foreach($user_have_accounts as $account) {
-			if(!empty($account['key']) && !empty($account['secret'])) {
-				if (in_array($account['level'], array(4))) {
-					$oauth_accounts[$account['acid']] = $account['name'];
-				}
-				if (in_array($account['level'], array(3, 4))) {
-					$jsoauth_accounts[$account['acid']] = $account['name'];
-				}
-			}
-		}
-	}
+	$user_have_accounts = user_borrow_oauth_account_list();
+	$oauth_accounts = $user_have_accounts['oauth_accounts'];
+	$jsoauth_accounts = $user_have_accounts['jsoauth_accounts'];
 //获取已保存的oauth信息
 	$oauth = pdo_fetchcolumn('SELECT `oauth` FROM '.tablename('uni_settings').' WHERE `uniacid` = :uniacid LIMIT 1',array(':uniacid' => $_W['uniacid']));
 	$oauth = iunserializer($oauth) ? iunserializer($oauth) : array();

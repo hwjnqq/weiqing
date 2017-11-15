@@ -12,18 +12,14 @@ $dos = array('display', 'home', 'get_daily_visittrend');
 $do = in_array($do, $dos) ? $do : 'display';
 $_W['page']['title'] = '小程序 - 管理';
 
-$uniacid = intval($_GPC['uniacid']);
 $version_id = intval($_GPC['version_id']);
-if (!empty($uniacid)) {
-	$wxapp_info = wxapp_fetch($uniacid);
-}
+$wxapp_info = wxapp_fetch($_W['uniacid']);
 if (!empty($version_id)) {
 	$version_info = wxapp_version($version_id);
-	$wxapp_info = wxapp_fetch($version_info['uniacid']);
 }
 
 if ($do == 'display') {
-	$wxapp_version_list = wxapp_version_all($uniacid);
+	$wxapp_version_list = wxapp_version_all($_W['uniacid']);
 	template('wxapp/version-display');
 }
 

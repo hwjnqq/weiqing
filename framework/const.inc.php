@@ -26,7 +26,7 @@ define('ACCOUNT_SUBSCRIPTION', 1);
 define('ACCOUNT_SUBSCRIPTION_VERIFY', 3);
 //服务号
 define('ACCOUNT_SERVICE', 2);
-//服务号-认证
+//服务号-认证 认证媒体/政府订阅号
 define('ACCOUNT_SERVICE_VERIFY', 4);
 //正常接入公众号
 define('ACCOUNT_TYPE_OFFCIAL_NORMAL', 1);

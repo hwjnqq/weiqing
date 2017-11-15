@@ -19,7 +19,7 @@ class CreateSiteStoreCreateAccount {
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `uid` int(10) NOT NULL,
   `uniacid` int(10) NOT NULL,
-  `type` int(10) NOT NULL DEFAULT '1' COMMENT '1.公众号 4.小程序',
+  `type` tinyint(1) NOT NULL DEFAULT '1' COMMENT '1.公众号 4.小程序',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 AUTO_INCREMENT=13 ;";
 		pdo_run($sql);

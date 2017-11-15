@@ -9,7 +9,30 @@ require IA_ROOT . '/web/common/bootstrap.sys.inc.php';
 load()->web('common');
 load()->web('template');
 load()->func('file');
-load()->web('listeners');
+load()->model('account');
+load()->model('setting');
+load()->model('user');
+if (!pdo_fieldexists('users', 'register_type')) {
+	pdo_query('ALTER TABLE ' . tablename('users') . " ADD `register_type` TINYINT(3) NOT NULL DEFAULT 0 COMMENT '用户来源类型：0网站注册，1qq, 2微信';");
+}
+if (!pdo_fieldexists('users', 'openid')) {
+	pdo_query('ALTER TABLE ' . tablename('users') . " ADD `openid` varchar(50) NOT NULL DEFAULT 0 COMMENT '第三方的openid';");
+}
+if (!pdo_fieldexists('uni_settings', 'bind_domain')) {
+	pdo_query("ALTER TABLE " . tablename('uni_settings') . " ADD `bind_domain` varchar(200) NOT NULL DEFAULT '';");
+}
+if (!pdo_fieldexists('article_notice', 'style')) {
+	pdo_query('ALTER TABLE ' . tablename('article_notice') . " ADD `style` varchar(200) NOT NULL DEFAULT '';");
+}
+$state = urldecode($_GPC['state']);
+if (!empty($state)) {
+	$login_type = explode('=', $state);
+	if (in_array($login_type[1], array('qq', 'wechat'))) {
+		$controller = 'user';
+		$action = 'login';
+		$_GPC['login_type'] = $login_type[1];
+	}
+}
 
 if (empty($_W['isfounder']) && !empty($_W['user']) && ($_W['user']['status'] == USER_STATUS_CHECK || $_W['user']['status'] == USER_STATUS_BAN)) {
 	message('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决！');

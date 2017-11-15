@@ -19,6 +19,70 @@
 					{/loop}
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
+					<li class="dropdown msg">
+						<a href="javascript:;" class="dropdown-toogle" data-toggle="dropdown"><span class="wi wi-bell"><span class="badge">30</span></span>消息提醒</a>
+						<div class="dropdown-menu">
+							<div class="clearfix top">消息提醒<a href="#" class="pull-right">查看更多</a></div>
+							<div class="msg-list-container">
+								<div class="msg-list">
+									<div class="item">
+										<div class="info clearifx">
+											<div class="pull-right date">2017-11-11 11:11:11</div>
+											来自 <span>订单消息</span>
+										</div>
+										<div class="msg-content">
+											<a href="#">用户<span>****</span>,在2017-11-11 11:11:11购买了万能小店应用，付款金额5600元</a>
+										</div>
+									</div>
+									<div class="item">
+										<div class="info clearifx">
+											<div class="pull-right date">2017-11-11 11:11:11</div>
+											来自 <span>订单消息</span>
+										</div>
+										<div class="msg-content">
+											<a href="#">用户<span>****</span>,在2017-11-11 11:11:11购买了万能小店应用，付款金额5600元</a>
+										</div>
+									</div>
+									<div class="item">
+										<div class="info clearifx">
+											<div class="pull-right date">2017-11-11 11:11:11</div>
+											来自 <span>订单消息</span>
+										</div>
+										<div class="msg-content">
+											<a href="#">用户<span>****</span>,在2017-11-11 11:11:11购买了万能小店应用，付款金额5600元</a>
+										</div>
+									</div>
+									<div class="item">
+										<div class="info clearifx">
+											<div class="pull-right date">2017-11-11 11:11:11</div>
+											来自 <span>订单消息</span>
+										</div>
+										<div class="msg-content">
+											<a href="#">用户<span>****</span>,在2017-11-11 11:11:11购买了万能小店应用，付款金额5600元</a>
+										</div>
+									</div>
+									<div class="item">
+										<div class="info clearifx">
+											<div class="pull-right date">2017-11-11 11:11:11</div>
+											来自 <span>订单消息</span>
+										</div>
+										<div class="msg-content">
+											<a href="#">用户<span>****</span>,在2017-11-11 11:11:11购买了万能小店应用，付款金额5600元</a>
+										</div>
+									</div>
+									<div class="item">
+										<div class="info clearifx">
+											<div class="pull-right date">2017-11-11 11:11:11</div>
+											来自 <span>订单消息</span>
+										</div>
+										<div class="msg-content">
+											<a href="#">用户<span>****</span>,在2017-11-11 11:11:11购买了万能小店应用，付款金额5600元</a>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</li>
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown"><i class="wi wi-user color-gray"></i>{$_W['user']['username']} <span class="caret"></span></a>
 						<ul class="dropdown-menu color-gray" role="menu">
@@ -51,6 +115,16 @@
 		</div>
 	</nav>
 </div>
+	<script>
+		$(function(){
+			var $dropdownLi = $('.msg.dropdown');
+			$dropdownLi.mouseover(function() {
+				$(this).addClass('open');
+			}).mouseout(function() {
+				$(this).removeClass('open');
+			});
+		});
+	</script>
 {if empty($_COOKIE['check_setmeal']) && !empty($_W['account']['endtime']) && ($_W['account']['endtime'] - TIMESTAMP < (6*86400))}
 <div class="system-tips we7-body-alert" id="setmeal-tips">
 	<div class="container text-right">
