@@ -113,6 +113,8 @@ if ($op == 'edit') {
 			}
 		}
 		$goods_express = $_W['wn_storex']['store_info']['goods_express'];
+	} else {
+		$agent_ratio = array('1' => 0, '2' => 0, '3' => 0);
 	}
 	
 	if (checksubmit('submit')) {
