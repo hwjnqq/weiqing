@@ -34,14 +34,14 @@ class Cos4Api {
 		$path = $this->cosUrlEncode($path);
 		$op = 'upload';
 		$sha = is_file($content) ? sha1_file($content) : sha1($content);
-		$filecontent = is_file($content) ? file_get_contents($content) : $content;
+		$filecontent = is_file($content) ? '@'.$content : $content;
 		$biz_attr = '';
 		$insertOnly = 1;
 		$post = compact('op','sha', 'filecontent', 'biz_attr', 'insertOnly');
 		return $this->request($path, $post);
 	}
 
-	public function unlink($path) {
+	public function delete($path) {
 		$post = array(
 			'op'=>'delete'
 		);
@@ -75,20 +75,23 @@ class Cos4Api {
 	private function request($path, $data) {
 		$url = 'http://cd.file.myqcloud.com/files/v2/'.$this->appid.'/'.$this->bucket.$path;
 		$sign = $this->sign($path);
-		$items = [];
-		foreach ($data as $key => $item) {
-			$items[] = array(
-				'name' => $key,
-				'contents' => $item,
-			);
-		}
-		$client = new Client();
-		$response = $client->post($url,[
-			'debug'=>true,
-			'headers' => ['Authorization'=>$sign],
-			'multipart'=>$items,
-		]);
-		return $response->getStatusCode() == 200;
+		return $this->send($url, $data, array('Authorization'=>$sign, 'Content-Type'=>'multipart/form-data'));
+	}
 
+	private function send($url, $data, $header) {
+		return ihttp_request($url, $data, $header);
+//		$ch = curl_init();
+//		curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
+//		curl_setopt($ch, CURLOPT_URL, $url);
+//		curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+//		curl_setopt($ch, CURLOPT_POSTFIELDS, $req['data']);
+//		curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+//		curl_setopt($ch, CURLOPT_VERBOSE, 1);
+//		$data = curl_exec($ch);
+//		$result = json_decode($data);
+//		var_dump($result); //打印上传信息
+//		curl_close($ch);
+
+		return $result;
 	}
 }

@@ -32,10 +32,11 @@ class Storage {
 
 
 
-	private function createStorage($driverName = '') {
+	private static function createStorage($driverName = '') {
 		if(empty($driverName)) {
 			$driverName = config()->fileDriver();
 		}
+
 		$storage = new Storage();
 		$driver = $storage->createDriver($driverName);
 		$storage->setDriver($driver);
@@ -63,7 +64,7 @@ class Storage {
 	private function createCos4Driver() {
 		$config = $this->getRemoteConfig('cos');
 		$api = new Cos4Api($config['secretid'], $config['secretkey'], $config['bucket'], $config['appid']);
-		$api->setRegion($config['local']);
+//		$api->setRegion($config['local']);
 		return $api;
 	}
 
