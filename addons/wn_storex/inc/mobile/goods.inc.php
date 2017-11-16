@@ -1208,6 +1208,7 @@ function calcul_credit_replace($insert, $uid) {
 			wmessage(error(-1, '总价小于抵扣价格，不能使用抵扣'), '', 'ajax');
 		}
 	}
+	return $insert;
 }
 
 //检查商品是否有活动
