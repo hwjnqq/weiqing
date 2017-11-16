@@ -19,11 +19,15 @@ $logs = array(
 	'orderid' => intval($_GPC['id']),
 );
 if ($op == 'order_list') {
+	$storeid = intval($_GPC['storeid']);
 	$field = array('id', 'weid', 'hotelid', 'roomid', 'style', 'nums', 'cprice', 'oprice', 'sum_price', 'status', 'paystatus', 'paytype', 'mode_distribute', 'goods_status', 'track_number', 'express_name', 'is_package', 'cart');
 	$condition = array('weid' => intval($_W['uniacid']), 'openid' => $_W['openid'], 'group_goodsid' => 0, 'group_id' => 0);
 	if (pdo_fieldexists('storex_order', 'group_goodsid') && pdo_fieldexists('storex_order', 'group_id')) {
 		$condition['group_goodsid'] = 0;
 		$condition['group_id'] = 0;
+	}
+	if (!empty($storeid)) {
+		$condition['hotelid'] = $storeid;
 	}
 	$orders = pdo_getall('storex_order', $condition, $field, '', 'time DESC');
 	if (!empty($orders) && is_array($orders)) {
