@@ -12,7 +12,7 @@ $storeid = intval($_GPC['storeid']);
 $store = $_W['wn_storex']['store_info'];
 $store_type = $store['store_type'];
 
-$parent = pdo_getall('storex_categorys', array('store_base_id' => $storeid, 'parentid' => 0), array(), 'id', array('parentid', 'displayorder DESC'));
+$parent = pdo_getall('storex_categorys', array('store_base_id' => $storeid, 'parentid' => 0, 'weid' => $_W['uniacid']), array(), 'id', array('parentid', 'displayorder DESC'));
 if (empty($parent)) {
 	message('请先给该店铺添加一级分类！', $this->createWebUrl('shop_category', array('storeid' => $storeid)), 'error');
 }
@@ -24,7 +24,7 @@ if (in_array($op, $delete_cache_ops)) {
 }
 
 $children = array();
-$category = pdo_getall('storex_categorys', array('store_base_id' => $storeid), array(), 'id', array('parentid', 'displayorder DESC'));
+$category = pdo_getall('storex_categorys', array('store_base_id' => $storeid, 'weid' => $_W['uniacid']), array(), 'id', array('parentid', 'displayorder DESC'));
 if (!empty($category) && is_array($category)) {
 	foreach ($category as $cid => $cate) {
 		if (!empty($cate['parentid'])) {
@@ -40,7 +40,7 @@ if (!empty($_GPC['category']['parentid'])) {
 $table = gettablebytype($store_type);
 
 if ($op == 'display' || $op == 'recycle') {
-	$category = pdo_getall('storex_categorys', array('store_base_id' => $storeid, 'enabled' => 1), array('id', 'name', 'store_base_id', 'parentid'), '', 'parentid ASC');
+	$category = pdo_getall('storex_categorys', array('store_base_id' => $storeid, 'enabled' => 1, 'weid' => $_W['uniacid']), array('id', 'name', 'store_base_id', 'parentid'), '', 'parentid ASC');
 	$category_set = array();
 	if (!empty($category) && is_array($category)) {
 		foreach ($category as $info) {
