@@ -41,7 +41,7 @@ if($do == 'module') {
 		echo json_encode(array('errno'=>0, 'message'=>'无权限进入工单系统'));
 	}
 	$iframe_url = $data['data']['url'].'&'.$param;
-	echo json_encode(array('errno'=>0, 'message'=>'', 'data'=> ['url'=>$iframe_url]));
+	echo json_encode(array('errno'=>0, 'message'=>'', 'data'=> array('url'=>$iframe_url)));
 
 }
 
