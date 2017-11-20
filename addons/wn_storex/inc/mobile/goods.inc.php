@@ -1218,13 +1218,13 @@ function check_goods_activity($insert, $cart, $order_id) {
 		$a_condition = array('status' => 1, 'storeid' => $insert['hotelid'], 'uniacid' => $_W['uniacid'], 'starttime <=' => TIMESTAMP, 'endtime >' => TIMESTAMP);
 		foreach ($cart as $val) {
 			$a_condition['specid'] = 0;
-			if (!empty($val['goods']['specid'])) {
-				$a_condition['specid'] = $val['goods']['specid'];
+			if (!empty($val['good']['specid'])) {
+				$a_condition['specid'] = $val['good']['specid'];
 			}
-			$a_condition['goodsid'] = $val['goods']['id'];
+			$a_condition['goodsid'] = $val['good']['id'];
 			$activity = pdo_get('storex_goods_activity', $a_condition, array(), '', 'starttime ASC');
 			if (!empty($activity) && $activity['type'] == ACTIVITY_SECKILL) {
-				if ($val['goods']['buynums'] > ($activity['nums'] - $activity['sell_nums'])) {
+				if ($val['good']['buynums'] > ($activity['nums'] - $activity['sell_nums'])) {
 					if (!empty($order_id)) {
 						pdo_delete('storex_order', array('id' => $order_id));
 					}

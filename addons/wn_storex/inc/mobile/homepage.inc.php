@@ -91,12 +91,12 @@ if ($op == 'display') {
 					$goods_val = implode(' ', $spec_goods[$list['specid']]['goods_val']);
 				}
 				$spec_goods[$list['specid']]['cprice'] = $list['price'];
-				$spec_goods[$list['specid']]['nums'] = $list['nums'];
+				$spec_goods[$list['specid']]['nums'] = $list['nums'] - $list['sell_nums'];
 				$spec_goods[$list['specid']]['title'] .= ' ' . $goods_val;
 				$spec_goods[$list['specid']]['specid'] = $list['specid'];
 				$seckill_list[] = $spec_goods[$list['specid']];
 			} else {
-				$not_spec_goods[$list['goodsid']]['nums'] = $list['nums'];
+				$not_spec_goods[$list['goodsid']]['nums'] = $list['nums'] - $list['sell_nums'];
 				$seckill_goods = $not_spec_goods[$list['goodsid']];
 				$seckill_goods['cprice'] = $list['price'];
 				$seckill_list[] = $seckill_goods;
