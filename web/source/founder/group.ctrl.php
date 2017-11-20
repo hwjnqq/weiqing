@@ -54,6 +54,7 @@ if ($do == 'post') {
 		if (is_error($user_group)) {
 			itoast($user_group['message'], '', '');
 		}
+		cache_clean(cache_system_key('user_modules'));
 		itoast('用户组更新成功！', url('founder/group'), 'success');
 	}
 	template('founder/group-post');

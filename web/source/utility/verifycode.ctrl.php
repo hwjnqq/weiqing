@@ -4,9 +4,15 @@
  */
 defined('IN_IA') or exit('Access Denied');
 $_W['uniacid'] = intval($_GPC['uniacid']);
-$uniacid_arr = pdo_fetch('SELECT * FROM ' . tablename('uni_account') . ' WHERE uniacid = :uniacid', array(':uniacid' => $_W['uniacid']));
-if(empty($uniacid_arr)) {
-	exit('非法访问');
+if (empty($_W['uniacid'])) {
+	$uniacid_arr = array(
+		'name' => $_W['setting']['copyright']['sitename'],
+	);
+} else {
+	$uniacid_arr = pdo_fetch('SELECT * FROM ' . tablename('uni_account') . ' WHERE uniacid = :uniacid', array(':uniacid' => $_W['uniacid']));
+	if(empty($uniacid_arr)) {
+		exit('非法访问');
+	}
 }
 
 $receiver = trim($_GPC['receiver']);
@@ -36,7 +42,7 @@ if(!empty($row)) {
 	$code = $row['verifycode'];
 	$record['total'] = $row['total'] + 1;
 } else {
-	$code = random(6, true); 
+	$code = random(6, true);
 	$record['uniacid'] = $_W['uniacid'];
 	$record['receiver'] = $receiver;
 	$record['verifycode'] = $code;
@@ -48,7 +54,7 @@ if(!empty($row)) {
 } else {
 	pdo_insert('uni_verifycode', $record);
 }
-	
+
 if($receiver_type == 'email') {
 	load()->func('communication');
 	$content = "您的邮箱验证码为: {$code} 您正在使用{$uniacid_arr['name']}相关功能, 需要你进行身份确认.";

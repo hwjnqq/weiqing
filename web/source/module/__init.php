@@ -7,7 +7,15 @@ defined('IN_IA') or exit('Access Denied');
 
 if (in_array($action, array('permission', 'manage-account'))) {
 	define('FRAME', 'account');
-	checkaccount();
+	$referer = (url_params(referer()));
+	if (empty($_GPC['version_id']) && intval($referer['version_id']) > 0) {
+		itoast('', $_W['siteurl'] . '&version_id=' . $referer['version_id']);
+	}
+	if (!empty($_GPC['version_id'])) {
+		checkwxapp();
+	} else {
+		checkaccount();
+	}
 }
 if (in_array($action, array('group', 'manage-system'))) {
 	define('FRAME', 'system');

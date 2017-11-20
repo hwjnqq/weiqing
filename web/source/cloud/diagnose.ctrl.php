@@ -10,7 +10,7 @@ load()->model('setting');
 
 $dos = array('display', 'testapi');
 $do = in_array($do, $dos) ? $do : 'display';
-uni_user_permission_check('system_cloud_diagnose');
+permission_check_account_user('system_cloud_diagnose');
 
 $_W['page']['title'] = '云服务诊断 - 云服务';
 

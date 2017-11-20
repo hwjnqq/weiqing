@@ -9,10 +9,11 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('mc');
 load()->classs('wesession');
 load()->classs('account');
+load()->model('material');
 
 $dos = array('chats', 'send', 'endchats');
 $do = in_array($do , $dos) ? $do : 'chats';
-uni_user_permission_check('mc_fans');
+permission_check_account_user('mc_fans');
 
 if ($do == 'chats') {
 	$_W['page']['title'] = '粉丝聊天';
@@ -22,51 +23,14 @@ if ($do == 'chats') {
 		$fans_info['member_info'] = mc_fetch($fans_info['uid']);
 	}
 	$chat_record = pdo_getslice('mc_chats_record', array('uniacid' => $_W['uniacid'], 'openid' => $openid), array('1', 20), $total, array(), '', 'createtime desc');
-	if (!empty($chat_record)) {
-		foreach ($chat_record as &$record) {
-			if ($record['flag'] == FANS_CHATS_FROM_SYSTEM) {
-				$record['content'] = iunserializer($record['content']);
-				$record['content'] = urldecode($record['content']['content']);
-			}
-			$record['createtime'] = date('Y-m-d H:i', $record['createtime']);
-		}
-	}
+	$chat_record = mc_fans_chats_record_formate($chat_record);
 }
 
 if ($do == 'send') {
-	$type = addslashes($_GPC['type']);
-	$content = trim(htmlspecialchars_decode($_GPC['content']), '\"');
-	$send['touser'] = trim($_GPC['openid']);
-	$send['msgtype'] = $type;
-	if ($type == 'text') {
-		$send['text'] = array('content' => urlencode($content));
-	} elseif ($type == 'image') {
-		$send['image'] = array('media_id' => $content);
-	} elseif ($type == 'voice') {
-		$send['voice'] = array('media_id' => $content);
-	} elseif($type == 'video') {
-		$content = json_decode($content, true);
-		$send['video'] = array(
-			'media_id' => $content['mediaid'],
-			'thumb_media_id' => '',
-			'title' => urlencode($content['title']),
-			'description' => ''
-		);
-	}  elseif($type == 'music') {
-		$send['music'] = array(
-			'musicurl' => tomedia($_GPC['musicurl']),
-			'hqmusicurl' => tomedia($_GPC['hqmusicurl']),
-			'title' => urlencode($_GPC['title']),
-			'description' => urlencode($_GPC['description']),
-			'thumb_media_id' => $_GPC['thumb_media_id'],
-		);
-	} elseif($type == 'news') {
-		$content = json_decode($content, true);
-		$send['msgtype'] =  'mpnews';
-		$send['mpnews'] = array(
-			'media_id' => $content['mediaid']
-		);
-	}
+	$content_formate = mc_send_content_formate($_GPC);
+	$send = $content_formate['send'];
+	$content = $content_formate['content'];
+
 	$account_api = WeAccount::create($_W['acid']);
 	$result = $account_api->sendCustomNotice($send);
 	if (is_error($result)) {
@@ -86,7 +50,7 @@ if ($do == 'send') {
 
 		if($send['msgtype'] == 'mpnews') {
 			$material = pdo_getcolumn('wechat_attachment', array('uniacid' => $_W['uniacid'], 'media_id' => $content['mediaid']), 'id');
-			$content = urlencode('图文素材');
+			$content = $content['thumb'];
 		}
 		//保存消息记录
 		pdo_insert('mc_chats_record',array(
@@ -98,7 +62,7 @@ if ($do == 'send') {
 			'content' => iserializer($send[$send['msgtype']]),
 			'createtime' => TIMESTAMP,
 		));
-		iajax(0, array('createtime' => date('Y-m-d', time()), 'content' => $content), '');
+		iajax(0, array('createtime' => date('Y-m-d H:i:s', time()), 'content' => $content, 'msgtype' => $send['msgtype']), '');
 	}
 }
 

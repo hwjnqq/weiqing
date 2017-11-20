@@ -72,7 +72,7 @@
 							<div class="col-xs-6">
 								<ul class="list-unstyled">
 									{loop $notices $notice}
-										<li><span class="style-2">公告</span><a href="{php echo url('article/notice-show/detail', array('id' => $notice['id']));}">{$notice['title']}</a></li>
+										<li><span class="style-2">公告</span><a href="{php echo url('article/notice-show/detail', array('id' => $notice['id']));}" style="{if !empty($notice['style'])}{if !empty($notice['style']['color'])}color: {php echo $notice['style']['color']};{/if}{if !empty($notice['style']['bold'])}font-weight:bold;{/if}{/if}">{$notice['title']}</a></li>
 									{/loop}
 								</ul>
 							</div>

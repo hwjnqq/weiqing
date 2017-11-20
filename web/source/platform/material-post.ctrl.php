@@ -11,7 +11,7 @@ load()->model('account');
 $dos = array('news', 'tomedia', 'addnews', 'upload_material', 'upload_news');
 $do = in_array($do, $dos) ? $do : 'news';
 
-uni_user_permission_check('platform_material');
+permission_check_account_user('platform_material');
 
 $_W['page']['title'] = '新增素材-微信素材';
 

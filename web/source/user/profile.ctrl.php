@@ -55,6 +55,10 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 				if (empty($match)) {
 					iajax(-1, '手机号不正确', '');
 				}
+				$users_mobile = pdo_get('users_profile', array('mobile' => trim($_GPC[$type]), 'uid <>' => $uid));
+				if (!empty($users_mobile)) {
+					iajax(-1, '手机号已存在，请联系管理员', '');
+				}
 			}
 			if ($users_profile_exist) {
 				$result = pdo_update('users_profile', array($type => trim($_GPC[$type])), array('uid' => $uid));
@@ -69,7 +73,7 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 			break;
 		case 'username':
 			$founders = explode(',', $_W['config']['setting']['founder']);
-			if (in_array($uid, $founders)) {
+			if (in_array($uid, $founders) && !in_array($_W['uid'], $founders)) {
 				iajax(1, '用户名不可与网站创始人同名！', '');
 			}
 			$username = trim($_GPC['username']);
@@ -107,7 +111,11 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 			} else {
 				$endtime = strtotime($_GPC['endtime']);
 			}
+			if (user_is_vice_founder() && !empty($_W['user']['endtime']) && ($endtime > $_W['user']['endtime'] || empty($endtime))) {
+				iajax(-1, '副创始人给用户设置的时间不能超过自己的到期时间');
+			}
 			$result = pdo_update('users', array('endtime' => $endtime), array('uid' => $uid));
+			pdo_update('users_profile', array('send_expire_status' => 0), array('uid' => $uid));
 			$uni_account_user = pdo_getall('uni_account_users', array('uid' => $uid, 'role' => 'owner'));
 			if (!empty($uni_account_user)) {
 				foreach ($uni_account_user as $account) {

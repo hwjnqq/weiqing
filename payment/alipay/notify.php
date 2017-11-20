@@ -11,6 +11,10 @@ if(!empty($_POST)) {
 	$_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);
 	$_W['acid'] = $_W['uniaccount']['acid'];
 	$setting = uni_setting($_W['uniacid'], array('payment'));
+	if ($_POST['body'] == 'site_store') {
+		$setting['payment'] = setting_load('store_pay');
+		$setting['payment'] = $setting['payment']['store_pay'];
+	}
 	if(is_array($setting['payment'])) {
 		$alipay = $setting['payment']['alipay'];
 		if(!empty($alipay)) {
@@ -41,7 +45,7 @@ if(!empty($_POST)) {
 						$coupon_info = pdo_get('coupon', array('id' => $log['card_id']), array('id'));
 						$coupon_record = pdo_get('coupon_record', array('code' => $log['encrypt_code'], 'status' => '1'));
 						load()->model('activity');
-					 	$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $log['module']);
+						$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $log['module']);
 					}
 
 					$site = WeUtility::createModuleSite($log['module']);

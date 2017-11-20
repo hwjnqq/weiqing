@@ -36,7 +36,7 @@ $we7_system_menu['account'] = array(
 				),
 				'platform_menu' => array(
 					'title' => '自定义菜单',
-					'url' => url('platform/menu'),
+					'url' => url('platform/menu/post'),
 					'icon' => 'wi wi-custommenu',
 					'permission_name' => 'platform_menu',
 				),
@@ -67,6 +67,16 @@ $we7_system_menu['account'] = array(
 					'url' => url('platform/material'),
 					'icon' => 'wi wi-redact',
 					'permission_name' => 'platform_material',
+					'sub_permission' => array(
+						array(
+							'title' => '添加/编辑',
+							'permission_name' => 'material_post',
+						),
+						array(
+							'title' => '删除',
+							'permission_name' => 'platform_material_delete',
+						),
+					),
 				),
 				'platform_site' => array(
 					'title' => '微官网-文章',
@@ -168,12 +178,23 @@ $we7_system_menu['wxapp'] = array(
 					'permission_name' => 'wxapp_payment',
 				),
 				'front_download' => array(
-					'title' => '小程序下载',
+					'title' => '上传微信审核',
 					'url' => url('wxapp/front-download'),
 					'is_display' => 1,
-					'icon' => 'wi wi-wxapp-download',
+					'icon' => 'wi wi-examine',
 					'permission_name' => 'wxapp_front_download',
-				)
+				),
+				'platform_material' => array(
+					'title' => '素材管理',
+					'is_display' => 0,
+					'permission_name' => 'platform_material',
+					'sub_permission' => array(
+						array(
+							'title' => '删除',
+							'permission_name' => 'platform_material_delete',
+						),
+					),
+				),
 			)
 		)
 	),
@@ -399,6 +420,17 @@ $we7_system_menu['system'] = array(
 				)
 			)
 		),
+		'message' => array(
+			'title' => '消息提醒',
+			'menu' => array(
+				'system_message_notice' => array(
+					'title' => '消息提醒',
+					'url' => url('message/notice'),
+					'icon' => 'wi wi-article',
+					'permission_name' => 'system_message_notice',
+				)
+			)
+		),
 		'cache' => array(
 			'title' => '缓存',
 			'menu' => array(
@@ -416,14 +448,14 @@ $we7_system_menu['system'] = array(
 $we7_system_menu['site'] = array(
 	'title' => '站点管理',
 	'icon' => 'wi wi-system-site',
-	'url' => url('cloud/upgrade'),
+	'url' => url('cloud/profile'),
 	'section' => array(
 		'cloud' => array(
 			'title' => '云服务',
 			'menu' => array(
 				'system_profile' => array(
 					'title' => '系统升级',
-					'url' => url('cloud/upgrade'),
+					'url' => 'cloud.php',
 					'icon' => 'wi wi-cache',
 					'permission_name' => 'system_cloud_upgrade',
 				),
@@ -486,6 +518,24 @@ $we7_system_menu['site'] = array(
 					'icon' => 'wi wi-ip',
 					'permission_name' => 'system_setting_ipwhitelist',
 				),
+				'system_setting_sensitiveword' => array(
+					'title' => '过滤敏感词',
+					'url' => url('system/sensitiveword'),
+					'icon' => 'wi wi-sensitive',
+					'permission_name' => 'system_setting_sensitiveword',
+				),
+				'system_setting_thirdlogin' => array(
+					'title' => '第三方登录配置',
+					'url' => url('system/thirdlogin'),
+					'icon' => 'wi wi-sensitive',
+					'permission_name' => 'system_setting_thirdlogin',
+				),
+				'system_setting_oauth' => array(
+					'title' => 'oauth全局设置',
+					'url' => url('system/oauth'),
+					'icon' => 'wi wi-sensitive',
+					'permission_name' => 'system_setting_oauth',
+				),
 			)
 		),
 		'utility' => array(
@@ -523,6 +573,17 @@ $we7_system_menu['site'] = array(
 				),
 			)
 		),
+		'workorder'=> array(
+			'title' => '工单系统',
+			'menu'=> array(
+				'system_workorder'=> array(
+					'title' => '工单系统',
+					'url' => url('system/workorder/display'),
+					'icon' => 'wi wi-system-work',
+					'permission_name' => 'system_workorder',
+				)
+			)
+		)
 	),
 	'founder' => true,
 );
@@ -567,7 +628,7 @@ $we7_system_menu['help'] = array(
 	'icon' => 'wi wi-market',
 	'url' => url('help/display'),
 	'section' => array(),
-	'blank' => true
+	'blank' => false
 );
 
 

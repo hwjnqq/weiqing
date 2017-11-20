@@ -9,7 +9,7 @@ load()->model('account');
 
 $dos = array('save_setting', 'display');
 $do = in_array($do, $dos) ? $do : 'display';
-uni_user_permission_check('profile_setting');
+permission_check_account_user('profile_setting');
 $_W['page']['title'] = '退款参数 - 公众号选项';
 
 if ($do == 'display') {

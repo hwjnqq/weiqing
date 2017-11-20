@@ -1,4 +1,18 @@
 {template "common/header"}
+<div class="steps">
+	<div class="steps-item steps-status-wait">
+		<div class="steps-line"><span class="steps-num">1</span></div>
+		<div class="steps-state">安装应用</div>
+	</div>
+	<div class="steps-item steps-status-finish">
+		<div class="steps-line"><span class="steps-num">2</span></div>
+		<div class="steps-state">分配应用权限</div>
+	</div>
+	<div class="steps-item steps-status-wait">
+		<div class="steps-line"><span class="steps-num">3</span></div>
+		<div class="steps-state">安装成功</div>
+	</div>
+</div>
 <div class="clearfix">
 	<h5 class="page-header">安装 {if $action == 'module'}{$module['title']}{else}模板{/if}</h5>
 	<div class="alert alert-info">
@@ -30,6 +44,31 @@
 		<input type="hidden" name="flag" value="1">
 		<input type="hidden" name="tid" value="{$tid}">
 	</form>
+	<div class="distribution-steps">
+		<div class="we7-margin-bottom-sm font-lg">分配应用权限的流程说明</div>
+		<div class="steps-container">
+			<div>
+				<div class="num">1</div>
+				<div class="title">
+					<span class="wi wi-appjurisdiction"></span>添加应用权限组
+				</div>
+				<div class="content">
+					设置应用权限组名称，选择需要添加的公众号应用、小程序应用、微站模板，保存提交。
+					<div><a href="{php echo url('module/group/post')}" class="color-default">去添加应用组 ></a></div>
+				</div>
+			</div>
+			<div>
+				<div class="num">2</div>
+				<div class="title">
+					<span class="wi wi-distribution"></span>分配应用到应用权限组
+				</div>
+				<div class="content">
+					选择上方相应的应用权限组，把应用添加到组中。或者到应用权限中编辑应用权限组。
+					<div><a href="{php echo url('module/group')}" class="color-default">选择/去编辑应用组 ></a></div>
+				</div>
+			</div>
+		</div>
+	</div>
 	<script>
 		$('#form1').submit(function(){
 			var num = $("input[name='group[]']:checked").length;

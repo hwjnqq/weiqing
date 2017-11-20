@@ -29,7 +29,15 @@ if (empty($entry) || empty($entry['do'])) {
 
 if (!$entry['direct']) {
 	checklogin();
-	checkaccount();
+	$referer = (url_params(referer()));
+	if (empty($_W['isajax']) && empty($_W['ispost']) && empty($_GPC['version_id']) && intval($referer['version_id']) > 0 && ($referer['c'] == 'wxapp' || $referer['c'] == 'site' && $referer['a'] == 'entry')) {
+		itoast('', $_W['siteurl'] . '&version_id=' . $referer['version_id']);
+	}
+	if (!empty($_GPC['version_id'])) {
+		checkwxapp();
+	} else {
+		checkaccount();
+	}
 
 	$module = module_fetch($entry['module']);
 	if (empty($module)) {
@@ -37,9 +45,9 @@ if (!$entry['direct']) {
 	}
 
 	if ($entry['entry'] == 'menu') {
-		$permission = uni_user_module_permission_check($entry['module'] . '_menu_' . $entry['do'], $entry['module']);
+		$permission = permission_check_account_user_module($entry['module'] . '_menu_' . $entry['do'], $entry['module']);
 	} else {
-		$permission = uni_user_module_permission_check($entry['module'] . '_rule', $entry['module']);
+		$permission = permission_check_account_user_module($entry['module'] . '_rule', $entry['module']);
 	}
 	if (!$permission) {
 		itoast('您没有权限进行该操作', '', '');
@@ -49,7 +57,7 @@ if (!$entry['direct']) {
 	define('CRUMBS_NAV', 1);
 
 	$_W['page']['title'] = $entry['title'];
-	define('ACTIVE_FRAME_URL', url('site/entry/', array('eid' => $entry['eid'])));
+	define('ACTIVE_FRAME_URL', url('site/entry/', array('eid' => $entry['eid'], 'version_id' => $_GPC['version_id'])));
 }
 
 if (!empty($entry['module']) && !empty($_W['founder'])) {

@@ -10,7 +10,7 @@
 <div class="js-system-module_group" ng-controller="moduleGroupCtrl" ng-cloak>
 	<div class="combo-list">
 		<div class="we7-page-search clearfix">
-			{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, true)}
+			{if permission_check_account_user('see_module_manage_system_group_add')}
 			<div class="pull-right">
 				<a href="{php echo url('module/group/post')}" class="btn btn-primary">+添加应用权限套餐</a>
 			</div>
@@ -227,12 +227,20 @@
 						</div>
 					</div>
 					<!--注意全部有分页-->
-					<div class="material-pager text-right"></div>
+					<div class="material-pager text-right clearfix">
+						<div class="pull-left we7-form">
+							<input type="checkbox" id="selected-all2" ng-change= 'selecteAllTemplate(alltemplatesel)' ng-model='alltemplatesel'>
+							<label for="selected-all2">全选</label>
+						</div>
+						<ul class="pagination">
+
+						</ul>
+					</div>
 				</div>
 
 				<div class="modal-footer">
 					<button type="button" class="btn btn-primary" ng-click="addHaveTemplate()">确定</button>
-					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+					<button type="button" class="btn btn-default" ng-click="cancel('add_template')">取消</button>
 				</div>
 			</div>
 		</div>
@@ -250,15 +258,15 @@
 					<div class="material-head">
 						<form action="" method="get" class="form-horizontal clearfix form-inline" role="form">
 							<div class="input-group pull-left col-sm-4">
-								<input type="text" name="keyword" id="" ng-model='keyword' class="form-control" placeholder="搜索关键字"/>
+								<input type="text" name="keyword" id=""  ng-model='keyword' ng-change="filterKeyword(keyword)" class="form-control" placeholder="搜索关键字"/>
 								<span class="input-group-btn"><button type="button" class="btn btn-default"><i class="wi wi-search"></i></button></span>
 							</div>
 						</form>
 					</div>
 					<div class="material-body">
 						<div class="row">
-							<div class="col-sm-2 select-module" ng-repeat="module in groupNotHaveModuleAppArray | filter:keyword" ng-click="selectOrCancelModule(module, 'module')">
-								<div class="item" ng-class="{true:'active',false:''}[module.selected]">
+							<div class="col-sm-2 select-module" ng-show="!module.hide" ng-repeat="module in groupNotHaveModuleApp" ng-click="selectOrCancelModule(module, 'module')">
+								<div class="item"  ng-class="{true:'active',false:''}[module.selected]">
 									<img ng-src="{{ module.logo }}"  alt="" class="icon" ng-if="module.main_module == ''"/>
 									<div class="name">{{ module.title }}</div>
 									<div class="mask">
@@ -269,12 +277,20 @@
 						</div>
 					</div>
 					<!--注意全部有分页-->
-					<div class="material-pager text-right"></div>
+					<div class="material-pager text-right clearfix">
+						<div class="pull-left we7-form">
+							<input type="checkbox" id="selected-all" ng-change= 'selecteAllModule(allmodulesel)' ng-model='allmodulesel'>
+							<label for="selected-all">全选</label>
+						</div>
+						<ul class="pagination">
+
+						</ul>
+					</div>
 				</div>
 
 				<div class="modal-footer">
 					<button type="button" class="btn btn-primary" ng-click="addHaveModule()">确定</button>
-					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+					<button type="button" class="btn btn-default" ng-click="cancel('add_module')">取消</button>
 				</div>
 			</div>
 		</div>
@@ -303,11 +319,19 @@
 						</div>
 					</div>
 					<!--注意全部有分页-->
-					<div class="material-pager text-right"></div>
+					<div class="material-pager text-right clearfix">
+						<div class="pull-left we7-form">
+							<input type="checkbox" id="selected-all1" ng-change="selecteAllWxapp(allwxappsel)" ng-model="allwxappsel">
+							<label for="selected-all1">全选</label>
+						</div>
+						<ul class="pagination">
+
+						</ul>
+					</div>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-primary" ng-click="addHaveModuleWxapp()">确定</button>
-					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+					<button type="button" class="btn btn-default" ng-click="cancel('add_module_wxapp')">取消</button>
 				</div>
 			</div>
 		</div>

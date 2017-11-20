@@ -118,7 +118,6 @@ function cloud_prepare() {
 	if(empty($_W['setting']['site']['key']) || empty($_W['setting']['site']['token'])) {
 		return error('-1', "您的站点只有在微擎云服务平台成功注册后，才能使用云服务的相应功能。");
 	}
-	
 	return true;
 }
 
@@ -169,9 +168,12 @@ function cloud_build() {
 		}
 
 		if (IMS_FAMILY != $ret['family']) {
-			load()->model('setting');
-			setting_upgrade_version($ret['family'], IMS_VERSION, IMS_RELEASE_DATE);
-			itoast('更新系统正在为您自动切换版本', 'refresh');
+			$update_version_success = setting_upgrade_version($ret['family'], IMS_VERSION, IMS_RELEASE_DATE);
+			if (empty($update_version_success)) {
+				message('切换版本失败，请修改 /framework/version.inc.php 文件权限为 User 可写或是 777', 'refresh', 'error');
+			} else {
+				message('更新系统正在为您自动切换版本', 'refresh');
+			}
 		}
 		$ret['upgrade'] = false;
 		if(!empty($ret['files']) || !empty($ret['schemas']) || !empty($ret['scripts'])) {
@@ -184,6 +186,7 @@ function cloud_build() {
 		cache_write('upgrade', $upgrade);
 		cache_write('cloud:transtoken', authcode($ret['token'], 'ENCODE'));
 	}
+
 	return $ret;
 }
 
@@ -250,6 +253,10 @@ function cloud_download($path, $type = '') {
 		$_W['setting']['site']['token'] = authcode(cache_load('cloud:transtoken'), 'DECODE');
 		$string = (md5($file) . $ret['path'] . $_W['setting']['site']['token']);
 		if(!empty($_W['setting']['site']['token']) && md5($string) === $ret['sign']) {
+			$error_file_list = array();
+			if (!cloud_file_permission_pass($error_file_list)) {
+				return error(-1, '请修复下列文件读写权限 : ' . implode('; ', $error_file_list));
+			}
 			$path = IA_ROOT . $ret['path'];
 			load()->func('file');
 			@mkdirs(dirname($path));
@@ -469,7 +476,7 @@ function cloud_t_info($name) {
 function cloud_t_build($name) {
 	$sql = 'SELECT * FROM ' . tablename('site_templates') . ' WHERE `name`=:name';
 	$theme = pdo_fetch($sql, array(':name' => $name));
-	
+
 	$pars = _cloud_build_params();
 	$pars['method'] = 'theme.build';
 	$pars['theme'] = $name;
@@ -562,7 +569,7 @@ function cloud_w_info($name) {
 function cloud_w_build($name) {
 	$sql = 'SELECT * FROM ' . tablename('webtheme_homepages') . ' WHERE `name`=:name';
 	$webtheme = pdo_fetch($sql, array(':name' => $name));
-	
+
 	$pars = _cloud_build_params();
 	$pars['method'] = 'webtheme.build';
 	$pars['webtheme'] = $name;
@@ -617,18 +624,26 @@ function cloud_w_upgradeinfo($name) {
 
 function cloud_sms_send($mobile, $content, $postdata = array()) {
 	global $_W;
-	
+	load()->model('setting');
 	if(!preg_match('/^1\d{10}$/', $mobile) || empty($content)) {
 		return error(1, '发送短信失败, 原因: 手机号错误或内容为空.');
 	}
-	
-	$row = pdo_get('uni_settings' , array('uniacid' => $_W['uniacid']), array('notify'));
-	$row['notify'] = @iunserializer($row['notify']);
 
-	$config = $row['notify']['sms'];
-	$balance = intval($config['balance']);
-	
-	$sign = $config['signature'];
+	if (empty($_W['uniacid'])) {
+		$sms_info = cloud_sms_info();
+		$balance = empty($sms_info['sms_count']) ? 0 : $sms_info['sms_count'];
+
+		$setting_sms_sign = setting_load('site_sms_sign');
+		$sign = !empty($setting_sms_sign['site_sms_sign']['sign']) ? $setting_sms_sign['site_sms_sign']['sign'] : '';
+	} else {
+		$row = pdo_get('uni_settings' , array('uniacid' => $_W['uniacid']), array('notify'));
+		$row['notify'] = @iunserializer($row['notify']);
+
+		$config = $row['notify']['sms'];
+		$balance = intval($config['balance']);
+
+		$sign = $config['signature'];
+	}
 	if(empty($sign)) {
 		$sign = '涛盛微擎团队';
 	}
@@ -644,14 +659,14 @@ function cloud_sms_send($mobile, $content, $postdata = array()) {
 	} else {
 		$pars['content'] = "{$content} 【{$sign}】";
 	}
-	
+
 	$response = cloud_request('http://s.we7.cc/gateway.php', $pars);
 	if (is_error($response)) {
 		return error($response['errno'], '短信发送失败, 原因:'.$response['message']);
 	}
-	
+
 	$result = json_decode($response['content'], true);
-	
+
 	if (is_error($result)) {
 		return error($result['errno'], $result['message']);
 	}
@@ -671,7 +686,7 @@ function cloud_sms_send($mobile, $content, $postdata = array()) {
  */
 function cloud_sms_info() {
 	global $_W;
-	
+
 	$pars = _cloud_build_params();
 	$pars['method'] = 'sms.info';
 	$dat = cloud_request('http://s.we7.cc/gateway.php?', $pars);
@@ -680,7 +695,7 @@ function cloud_sms_info() {
 		$dat = setting_load($setting_key);
 		return $dat[$setting_key];
 	}
-	
+
 	return array();
 }
 
@@ -856,8 +871,7 @@ function cloud_auth_url($forward, $data = array()){
 		$auth = array_merge($auth, $data);
 	}
 	$query = base64_encode(json_encode($auth));
-	$auth_url = 'https://s.we7.cc/index.php?c=auth&a=passwort&__auth=' . $query;
-
+	$auth_url = 'https://s.we7.cc/index.php?c=auth&a=passport&__auth=' . $query;
 	return $auth_url;
 }
 
@@ -877,7 +891,7 @@ function cloud_module_setting_prepare($module, $binding) {
 		'module' => $module,
 	);
 	$iframe_auth_url = cloud_auth_url('module', $auth);
-	
+
 	return $iframe_auth_url;
 }
 
@@ -898,6 +912,9 @@ function cloud_resource_to_local($uniacid, $type, $url){
 	if (!file_is_image($url)) {
 		return error(1, '远程图片后缀非法,请重新上传');;
 	}
+	if (substr($url, 0, 2) == '//') {
+		$url = 'http:' . $url;
+	}
 	$pathinfo = pathinfo($url);
 	$extension = $pathinfo['extension'];
 	$originname = $pathinfo['basename'];
@@ -910,7 +927,7 @@ function cloud_resource_to_local($uniacid, $type, $url){
 	$fullname = ATTACHMENT_ROOT . $pathname;
 
 	mkdirs(dirname($fullname));
-	
+
 	load()->func('communication');
 	$response = ihttp_get($url);
 	if (is_error($response)) {
@@ -961,7 +978,7 @@ function cloud_bakup_files($files) {
 			}
 		}
 	}
-	
+
 	$path = IA_ROOT . '/data/patch/' . date('Ymd') . '/' . date('Hi') . '_' . $hash;
 	load()->func('file');
 	if (!is_dir($path) && mkdirs($path)) {
@@ -1001,7 +1018,7 @@ function cloud_flow_master_post($flow_master) {
 }
 
 /**
- * 
+ *
  * @param array $flow_master
  * @return array
  */
@@ -1036,7 +1053,7 @@ function cloud_flow_uniaccount_post($uniaccount) {
 	isset($uniaccount['original']) && $pars['uniaccount']['original'] = $uniaccount['original']; // 公众号账号
 	isset($uniaccount['gh_type']) && $pars['uniaccount']['gh_type'] = $uniaccount['gh_type']; // 公众号类型, 服务,认证等
 	isset($uniaccount['ad_tags']) && $pars['uniaccount']['ad_tags'] = $uniaccount['ad_tags']; // array(3 => '游戏', 4 => '地产')
-	isset($uniaccount['enable']) && $pars['uniaccount']['enable'] = $uniaccount['enable']; // 1. 停用, 2. 开启. 
+	isset($uniaccount['enable']) && $pars['uniaccount']['enable'] = $uniaccount['enable']; // 1. 停用, 2. 开启.
 	$dat = cloud_request('http://s.we7.cc/gateway.php', $pars, array(), 300);
 	if(is_error($dat)) {
 		return error(-1, '网络存在错误， 请稍后重试。' . $dat['message']);
@@ -1224,7 +1241,7 @@ function cloud_build_transtoken() {
  */
 function cloud_build_schemas($schems) {
 	$database = array();
-	if (empty($schems)) {
+	if (empty($schems) || !is_array($schemas)) {
 		return $database;
 	}
 	foreach ($schemas as $remote) {
@@ -1259,4 +1276,71 @@ function cloud_build_schemas($schems) {
 		$database[] = $row;
 	}
 	return $database;
+}
+
+/**
+ * 检测网站关键文件是否有写入权限，从而判断是否执行更新操作
+ * @param array $error_file_list 存放权限有问题的文件名
+ * @return boolean 为
+ */
+function cloud_file_permission_pass(&$error_file_list = array()) {
+	$check_path = array(
+		'/web/common',
+		'/web/source',
+		'/web/themes',
+		'/framework/class',
+		'/framework/model',
+		'/framework/function',
+		'/framework/table',
+		'/framework/library/agent',
+	);
+
+	$check_file = array(
+		'/web/index.php',
+		'/framework/bootstrap.inc.php',
+		'/framework/version.inc.php',
+		'/framework/const.inc.php',
+	);
+
+	foreach ($check_path as $path) {
+		$file_list = cloud_file_tree(IA_ROOT . $path);
+		if (!empty($file_list)) {
+			foreach ($file_list as $file) {
+				if (!is_writable($file)) {
+					$error_file_list[] = $file;
+				}
+			}
+		}
+	}
+
+	foreach ($check_file as $file) {
+		if (!is_writable(IA_ROOT . $file)) {
+			$error_file_list[] = $file;
+		}
+	}
+	return empty($error_file_list) ? true : false;
+}
+
+
+function cloud_file_tree($path, $include = array()) {
+	$files = array();
+	if (!empty($include)) {
+		$ds = glob($path . '/{' . implode(',', $include) . '}', GLOB_BRACE);
+	} else {
+		$ds = glob($path . '/*');
+	}
+	if (is_array($ds)) {
+		foreach ($ds as $entry) {
+			if (is_file($entry)) {
+				$files[] = $entry;
+			}
+			if (is_dir($entry)) {
+				$rs = file_tree($entry);
+				foreach ($rs as $f) {
+					$files[] = $f;
+				}
+			}
+		}
+	}
+	return $files;
 }

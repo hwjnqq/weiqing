@@ -76,7 +76,7 @@
 				<span>{$notice['click']}</span>
 			</td>
 			<td>
-				<span>{$notice['title']}</span>
+				<span style="{if !empty($notice['style'])}{if !empty($notice['style']['color'])}color: {php echo $notice['style']['color']};{/if}{if !empty($notice['style']['bold'])}font-weight:bold;{/if}{/if}">{$notice['title']}</span>
 			</td>
 			<td>{$categorys[$notice['cateid']]['title']}</td>
 			<td>

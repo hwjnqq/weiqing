@@ -61,7 +61,8 @@ if(DEVELOPMENT) {
 } else {
 	error_reporting(0);
 }
-
+//include __DIR__.'/../vendor/autoload.php';
+//we7debug();
 
 if(!in_array($_W['config']['setting']['cache'], array('mysql', 'memcache', 'redis'))) {
 	$_W['config']['setting']['cache'] = 'mysql';
@@ -76,14 +77,14 @@ if(!empty($_W['config']['setting']['memory_limit']) && function_exists('ini_get'
 		@ini_set('memory_limit', $_W['config']['setting']['memory_limit']);
 	}
 }
-if (isset($_W['config']['setting']['https'])) {
+if (isset($_W['config']['setting']['https']) && $_W['config']['setting']['https'] == '1') {
 	$_W['ishttps'] = $_W['config']['setting']['https'];
 } else {
-	$_W['ishttps'] = $_SERVER['SERVER_PORT'] == 443 || 
-					(isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != 'off') ||
-					strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https' ||
-					strtolower($_SERVER['HTTP_X_CLIENT_SCHEME']) == 'https' //阿里云判断方式
-					? true : false;
+	$_W['ishttps'] = $_SERVER['SERVER_PORT'] == 443 ||
+	(isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != 'off') ||
+	strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https' ||
+	strtolower($_SERVER['HTTP_X_CLIENT_SCHEME']) == 'https' //阿里云判断方式
+			? true : false;
 }
 
 $_W['isajax'] = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
@@ -98,10 +99,10 @@ if(substr($_W['siteroot'], -1) != '/') {
 	$_W['siteroot'] .= '/';
 }
 $urls = parse_url($_W['siteroot']);
-$urls['path'] = str_replace(array('/web', '/app', '/payment/wechat', '/payment/alipay', '/api'), '', $urls['path']);
+$urls['path'] = str_replace(array('/web', '/app', '/payment/wechat', '/payment/alipay', '/payment/jueqiymf', '/api'), '', $urls['path']);
 $_W['siteroot'] = $urls['scheme'].'://'.$urls['host'].((!empty($urls['port']) && $urls['port']!='80') ? ':'.$urls['port'] : '').$urls['path'];
 $_W['siteurl'] = $urls['scheme'].'://'.$urls['host'].((!empty($urls['port']) && $urls['port']!='80') ? ':'.$urls['port'] : '') . $_W['script_name'] . (empty($_SERVER['QUERY_STRING'])?'':'?') . $_SERVER['QUERY_STRING'];
-
+set_attach_url();
 if(MAGIC_QUOTES_GPC) {
 	$_GET = istripslashes($_GET);
 	$_POST = istripslashes($_POST);
@@ -133,18 +134,7 @@ setting_load();
 if (empty($_W['setting']['upload'])) {
 	$_W['setting']['upload'] = array_merge($_W['config']['upload']);
 }
-$_W['attachurl'] = $_W['attachurl_local'] = $_W['siteroot'] . $_W['config']['upload']['attachdir'] . '/';
-if (!empty($_W['setting']['remote']['type'])) {
-	if ($_W['setting']['remote']['type'] == ATTACH_FTP) {
-		$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['ftp']['url'] . '/';
-	} elseif ($_W['setting']['remote']['type'] == ATTACH_OSS) {
-		$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['alioss']['url'].'/';
-	} elseif ($_W['setting']['remote']['type'] == ATTACH_QINIU) {
-		$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['qiniu']['url'].'/';
-	} elseif ($_W['setting']['remote']['type'] == ATTACH_COS) {
-		$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['cos']['url'].'/';
-	}
-}
+
 $_W['os'] = Agent::deviceType();
 if($_W['os'] == Agent::DEVICE_MOBILE) {
 	$_W['os'] = 'mobile';

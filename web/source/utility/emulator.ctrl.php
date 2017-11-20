@@ -5,17 +5,8 @@
  */
 $_W['page']['title'] = '模拟测试';
 $development = 1;
-$accounts = uni_owned();
-foreach($accounts as &$account) {
-	if($account['default_acid'] > 0) {
-		$account['default_account'] = pdo_fetch('SELECT acid,token,name FROM ' . tablename('account_wechats') . ' WHERE acid = :acid', array(':acid' => $account['default_acid']));
-	} else {
-		$account['default_account'] = pdo_fetch('SELECT acid,token,name FROM ' . tablename('account_wechats') . ' WHERE uniacid = :uniacid ORDER BY level DESC LIMIT 1', array(':uniacid' => $account['uniacid']));
-		$account['default_acid'] = $account['default_account']['acid'];
-	}
-}
+$accounts = uni_owned(0, false);
 
-unset($account);
 template('common/header');
 
 ?>
@@ -88,19 +79,19 @@ template('common/header');
 								foreach($accounts as $account) {
 							?>
 								<?php
-									if(!empty($account['default_account'])) {
+									if(!empty($account)) {
 										$timestamp = TIMESTAMP;
 										$nonce = random(5);
-										$token = $account['default_account']['token'];
+										$token = $account['token'];
 										$signkey = array($token, TIMESTAMP, $nonce);
 										sort($signkey, SORT_STRING);
 										$signString = implode($signkey);
 										$signString = sha1($signString);
 								?>
 								<?php if($development == 1) { ?>
-									<option <?php if ($_W['acid'] == $account['default_acid']) { ?>selected<?php } ?> value="<?php echo '../api.php?id='.$account['default_acid'] ?>&timestamp=<?php echo $timestamp ?>&nonce=<?php echo $nonce ?>&signature=<?php echo $signString ?>"><?php echo $account['default_account']['name']?></option>
+									<option <?php if ($_W['acid'] == $account['acid']) { ?>selected<?php } ?> value="<?php echo '../api.php?id='.$account['acid'] ?>&timestamp=<?php echo $timestamp ?>&nonce=<?php echo $nonce ?>&signature=<?php echo $signString ?>"><?php echo $account['name']?></option>
 								<?php } else { ?>
-									<option <?php if ($_W['acid'] == $account['default_acid']) { ?>selected<?php } ?> value="<?php echo $account['default_acid'];?>"><?php echo $account['default_account']['name'] ?></option>
+									<option <?php if ($_W['acid'] == $account['acid']) { ?>selected<?php } ?> value="<?php echo $account['acid'];?>"><?php echo $account['name'] ?></option>
 								<?php } ?>
 								<?php
 									}

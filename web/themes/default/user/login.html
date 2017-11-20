@@ -23,9 +23,14 @@
 				</div>
 				{/if}
 			</div>
-			<div class="checkbox">
-				<input type="checkbox" value="true" id="rember" name="rember">
-				<label for="rember">记住用户名</label>
+			<div class="form-inline" style="margin-bottom: 15px;">
+				<div class="pull-right">
+					<a href="{url 'user/find-password'}" target="_blank" class="color-default">忘记密码？</a>
+				</div>
+				<div class="checkbox">
+					<input type="checkbox" value="true" id="rember" name="rember">
+					<label for="rember">记住用户名</label>
+				</div>
 			</div>
 			<div class="login-submit text-center">
 				<input type="submit" id="submit" name="submit" value="登录" class="btn btn-primary btn-block" />
@@ -36,6 +41,15 @@
 				</div>
 				<input name="token" value="{$_W['token']}" type="hidden" />
 			</div>
+			{if !empty($setting['thirdlogin']['qq']['authstate']) || !empty($setting['thirdlogin']['wechat']['authstate'])}
+			<div class="text-center">
+				<span class="color-gray">使用第三方账号登录</span>
+				<div class="form-control-static">
+					{if !empty($setting['thirdlogin']['qq']['authstate'])}<a href="{$login_urls['qq']}"><img src="./resource/images/qqlogin.png" width="35px"></a>&nbsp;&nbsp;{/if}
+					{if !empty($setting['thirdlogin']['wechat']['authstate'])}<a href="{$login_urls['wechat']}"><img src="./resource/images/wxlogin.png" width="35px"></a>{/if}
+				</div>
+			</div>
+			{/if}
 		</form>
 	</div>
 </div>

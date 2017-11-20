@@ -183,7 +183,7 @@ if ($do == 'install') {
 	unset($manifest['settings']);
 	$module_group = uni_groups();
 	if(!$_W['ispost'] || empty($_GPC['flag'])) {
-		template('system/select-module-group');
+		template('system/module-group');
 		exit;
 	}
 	$post_groups = $_GPC['group'];

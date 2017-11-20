@@ -8,7 +8,7 @@
 		<i class="fa fa-exclamation-circle"></i> 默认未勾选任何菜单时，用户拥有全部权限。
 	</div>
 
-	<table class="table we7-table table-hover we7-form">
+	<table class="table we7-table table-hover we7-form account-and-wxapp">
 	{loop $menus $name $sections}
 		{if $sections['section'] && $name == 'account' && in_array($account['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))}
 			<div class="we7-page-title">{$sections['title']}</div>
@@ -39,7 +39,7 @@
 									{loop $menu['sub_permission'] $sub_permission}
 									<li class="text-left">
 										<input id="check-child-{$sub_permission['permission_name']}"  we7-check-all="1" type="checkbox" value="{$sub_permission['permission_name']}" {if in_array($sub_permission['permission_name'], $user_menu_permission_account)}checked{/if} name="system[]">
-										<label class="we7-margin-horizontal-none">
+										<label class="we7-margin-horizontal-none" for="check-child-{$sub_permission['permission_name']}">
 											{$sub_permission['title']}
 										</label>
 									</li>
@@ -81,6 +81,7 @@
 					<tbody class="system_{$section_id}">
 					{php $i=1;}
 					{loop $section['menu'] $menu_id $menu}
+						{if $menu_id == 'front_download'}{php continue;}{/if}
 						{if $i%4 == 1 || $i == 1}<tr>{/if}
 						<td class="text-left vertical-middle" style="overflow:inherit;">
 							<div class="dropdown system-select-dropdown">
@@ -93,7 +94,7 @@
 									{loop $menu['sub_permission'] $sub_permission}
 									<li class="text-left">
 										<input id="check-child-{$sub_permission['permission_name']}"  we7-check-all="1" type="checkbox" value="{$sub_permission['permission_name']}" {if in_array($menu['permission_name'], $user_menu_permission_wxapp)}checked{/if} name="wxapp[]">
-										<label class="we7-margin-horizontal-none">
+										<label class="we7-margin-horizontal-none" for="check-child-{$sub_permission['permission_name']}">
 											{$sub_permission['title']}
 										</label>
 									</li>
@@ -121,7 +122,7 @@
 	{/loop}
 	</table>
 
-	{if !empty($module) && in_array($account['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))}
+	{if !empty($module)}
 	<table class="table we7-table table-hover vertical-middle we7-form">
 		<div class="we7-page-title">应用</div>
 		<thead>
@@ -173,8 +174,18 @@
 $(function(){
 	var uniacid = "{$_GPC['uniacid']}";
 	var acid = "{$_GPC['acid']}";
+	//公众号OR小程序下拉框
+	$('.account-and-wxapp .dropdown span').hover(function(){
+		$(this).parent().addClass('open').find('.dropdown-menu').show();
+		$(this).parent().find('.dropdown-menu').hover(
+			function(){$(this).show();$(this).parent().addClass('open')},
+			function(){$(this).hide();$(this).parent().removeClass('open');}
+		);
+	},function(){
+		$(this).parent().removeClass('open').find('.dropdown-menu').hide();
+	});
 	//模块下拉框
-	$('.dropdown span').hover(function(){
+	$('.module_select .dropdown span').hover(function(){
 		var _this = $(this);
 		var m = $(this).attr('data-id');
 		var uid = "{$uid}";

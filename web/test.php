@@ -26,4 +26,4 @@ print_r($result);exit;
 
 $result = pdo_getall('account', array('type !=' => ''), array('acid', 'uniacid'), 'uid', ' acid  xxxxx desc, uniacid desc', '   1    ,5');
 
-print_r($result);exit;
+print_r($result);exit;exit;

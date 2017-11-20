@@ -10,7 +10,6 @@ $do = in_array($do, $dos) ? $do : 'display';
 
 
 if ($do == 'display') {
-	uni_user_permission_check('system_user_fields');
 	$_W['page']['title'] = '字段管理 - 用户管理';
 	$condition = '' ;
 	$params = array();

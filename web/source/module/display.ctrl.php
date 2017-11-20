@@ -14,11 +14,13 @@ $do = in_array($do, $dos) ? $do : 'display';
 if ($do == 'display') {
 	$user_module = array();
 	if (!$_W['isfounder']) {
-		$user_owned_account = pdo_getall('uni_account_users', array('uid' => $_W['uid']), array(), 'uniacid');
+		$account_table = table('account');
+		$user_table = table('users');
+		$user_owned_account = $account_table->userOwnedAccount($_W['uid']);
 		if (!empty($user_owned_account) && is_array($user_owned_account)) {
-			foreach ($user_owned_account as $uniacid => $role) {
+			foreach ($user_owned_account as $uniacid => $account) {
 				$account_module = uni_modules_by_uniacid($uniacid);
-				$account_user_module = pdo_getall('users_permission', array('uniacid' => $uniacid, 'uid' => $_W['uid']), array(), 'type');
+				$account_user_module = $user_table->userPermission($_W['uid'], $uniacid);
 				if (!empty($account_user_module) && is_array($account_user_module)) {
 					$account_module = array_intersect_key($account_module, $account_user_module);
 				}
@@ -27,16 +29,6 @@ if ($do == 'display') {
 		}
 	} else {
 		$user_module = user_modules($_W['uid']);
-	}
-	if (!$_W['isfounder']) {
-		$account_table = table('users');
-		$user_owned_account = $account_table->userOwnedAccount($_W['uid']);
-		if (!empty($user_owned_account) && is_array($user_owned_account)) {
-			foreach ($user_owned_account as $uniacid) {
-				$account_module = uni_modules_by_uniacid($uniacid);
-				$user_module = array_merge($user_module, $account_module);
-			}
-		}
 	}
 	foreach ($user_module as $key => $module_value) {
 		if (!empty($module_value['issystem'])) {
@@ -142,57 +134,39 @@ if ($do == 'have_permission_uniacids') {
 if ($do == 'accounts_dropdown_menu') {
 	$module_name = trim($_GPC['module_name']);
 	if (empty($module_name)) {
-		exit('');
+		exit();
 	}
 	$last_module_info = module_last_switch($module_name);
 	$accounts_list = module_link_uniacid_fetch($_W['uid'], $module_name);
 	if (empty($accounts_list)) {
-		exit('');
+		exit();
 	}
-
-	$return_selected_html = '<span class="top-view">';
+	$selected_account = array();
 	foreach ($accounts_list as $account) {
 		if (empty($account['uniacid']) || $account['uniacid'] != $_W['uniacid']) {
 			continue;
 		}
 		if (in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
-			$return_selected_html .= '<a href="' . url('account/display/switch', array('uniacid' => $_W['uniacid'])) . '" title="' . $_W['account']['name'] . '" target="_blank"><i class="wi wi-wechat"></i>' .  $_W['account']['name'] . '</a>';
 			if (!empty($account['version_id'])) {
 				$version_info = wxapp_version($account['version_id']);
-				$return_selected_html .= '<a href="' . url('wxapp/display/switch', array('uniacid' => $version_info['uniacid'], 'version_id' => $account['version_id'])) . '" title="' . $account['wxapp_name'] . '" target="_blank"><i class="wi wi-wxapp"></i>' .  $account['wxapp_name'] . '</a>';
+				$account['version_info'] = $version_info;
 			}
+			$selected_account = $account;
 			break;
 		} elseif ($_W['account']['type'] == ACCOUNT_TYPE_APP_NORMAL) {
 			$version_info = wxapp_version($account['version_id']);
-			if ($version_info['uniacid'] != $account['uniacid']) {
-				$return_selected_html .= '<a href="' . url('account/display/switch', array('uniacid' => $account['uniacid'])) . '" title="' . $_W['account']['name'] . '" target="_blank"><i class="wi wi-wechat"></i>' .  $_W['account']['name'] . '</a>';
-			}
-			$return_selected_html .= '<a href="' . url('wxapp/display/switch', array('uniacid' => $version_info['uniacid'], 'version_id' => $account['version_id'])) . '" title="' . $account['wxapp_name'] . '" target="_blank"><i class="wi wi-wxapp"></i>' .  $account['wxapp_name'] . '</a>';
+			$account['version_info'] = $version_info;
+			$selected_account = $account;
 			break;
 		}
 	}
-	$return_selected_html .= '</span>';
-
-	$return_dropmenu_html = '<span class="dropdown"><a href="javascript:;" class="dropdown-icon" data-toggle="dropdown"><i class="wi wi-angle-down"></i></a><ul class="dropdown-menu dropdown-menu-right" role="menu">';
-	foreach ($accounts_list as $account) {
+	foreach ($accounts_list as $key => $account) {
 		$url = url('module/display/switch', array('uniacid' => $account['uniacid'], 'module_name' => $module_name));
 		if (!empty($account['version_id'])) {
 			$url .= '&version_id=' . $account['version_id'];
 		}
-		$return_dropmenu_html .= '<li><a href="' . $url . '">';
-		if (!empty($account['app_name'])) {
-			$return_dropmenu_html .= '<span><i class="wi wi-wechat"></i>' . $account['app_name'] . '</span>';
-		}
-		if (!empty($account['app_name']) && !empty($account['wxapp_name'])) {
-			$return_dropmenu_html .= '<span class="plus"><i class="wi wi-plus"></i></span>';
-		}
-		if (!empty($account['wxapp_name'])) {
-			$version_info = wxapp_version($account['version_id']);
-			$return_dropmenu_html .= '<span><i class="wi wi-wxapp"></i>' . $account['wxapp_name'] . '</span>';
-		}
-		$return_dropmenu_html .= '</a></li>';
+		$accounts_list[$key]['url'] = $url;
 	}
-	$return_dropmenu_html .= '</ul></span>';
-	echo $return_selected_html . $return_dropmenu_html;
+	echo template('module/dropdown-menu');
 	exit;
 }

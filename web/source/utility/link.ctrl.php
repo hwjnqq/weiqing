@@ -75,14 +75,19 @@ if ($do == 'newslist') {
 	$condition = '';
 	if (!empty($_GPC['keyword'])) {
 		$condition .= " AND n.title LIKE :title";
-		$param = array(':news' => 'reply', ':uniacid' => $_W['uniacid'], ':title' => '%'. trim($_GPC['keyword']) .'%');
+		$param = array(':uniacid' => $_W['uniacid'], ':title' => '%'. trim($_GPC['keyword']) .'%');
 	} else {
-		$param = array(':news' => 'reply', ':uniacid' => $_W['uniacid']);
+		$param = array(':uniacid' => $_W['uniacid']);
 	}
-	$sql = "SELECT n.id, n.title FROM ". tablename('rule')."AS r,". tablename('news_reply'). " AS n WHERE r.id = n.rid AND r.module = :news AND r.uniacid = :uniacid". $condition ." ORDER BY n.displayorder DESC LIMIT ". ($pindex - 1) * $psize . ',' . $psize;
+	$sql = "SELECT n.id, n.title, n.url FROM ". tablename('rule')."AS r,". tablename('news_reply'). " AS n WHERE r.id = n.rid AND r.module IN ('reply', 'news') AND r.uniacid = :uniacid". $condition ." ORDER BY n.displayorder DESC LIMIT ". ($pindex - 1) * $psize . ',' . $psize;
 	$result['list'] = pdo_fetchall($sql, $param, 'id');
 	if (!empty($result['list'])) {
-		$sql = "SELECT COUNT(*) FROM ". tablename('rule')."AS r,". tablename('news_reply'). " AS n WHERE r.id = n.rid AND r.module = :news AND r.uniacid = :uniacid ". $condition;
+		foreach ($result['list'] as $key => &$list) {
+			if (empty($list['url'])) {
+				$list['url'] = './index.php?i=' . $_W['uniacid'] . '&c=entry&id=' . $list['id'] . '&do=detail&m=core';
+			}
+		}
+		$sql = "SELECT COUNT(*) FROM ". tablename('rule')."AS r,". tablename('news_reply'). " AS n WHERE r.id = n.rid AND r.module IN ('reply', 'news') AND r.uniacid = :uniacid ". $condition;
 		$total = pdo_fetchcolumn($sql, $param);
 		$result['pager'] = pagination($total, $pindex, $psize, '', array('before' => '2', 'after' => '3', 'ajaxcallback'=>'null'));
 	}
@@ -156,14 +161,14 @@ if ($do == 'article') {
 }
 if ($do == 'entry') {
 	$has_permission = array();
-	if(uni_user_permission_exist()) {
+	if(permission_account_user_permission_exist()) {
 		$has_permission = array(
 			'system' => array(),
 			'modules' => array()
 		);
-		$has_permission['system'] = uni_user_permission('system');
+		$has_permission['system'] = permission_account_user('system');
 		//获取用户的模块权限
-		$module_permission = uni_user_menu_permission($_W['uid'], $_W['uniacid'], 'modules');
+		$module_permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], 'modules');
 		if(!is_error($module_permission) && !empty($module_permission)) {
 			$has_permission['modules'] = array_keys($module_permission);
 			foreach($module_permission as $row) {

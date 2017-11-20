@@ -28,7 +28,7 @@ function ihttp_request($url, $post = '', $extra = array(), $timeout = 60) {
 		$error = curl_error($ch);
 		curl_close($ch);
 		if ($errno || empty($data)) {
-			return error(1, $error);
+			return error($errno, $error);
 		} else {
 			return ihttp_response_parse($data);
 		}

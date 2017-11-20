@@ -31,7 +31,7 @@ if ($do == 'home') {
 	if ($version_info['design_method'] == WXAPP_TEMPLATE) {
 		$version_site_info = wxapp_site_info($version_info['multiid']);
 	}
-	$role = uni_permission($_W['uid'], $wxapp_info['uniacid']);
+	$role = permission_account_user_role($_W['uid'], $wxapp_info['uniacid']);
 
 	$notices = welcome_notices_get();
 	template('wxapp/version-home');
@@ -47,3 +47,4 @@ if ($do == 'get_daily_visittrend') {
 	}
 	iajax(0, array('yesterday' => $yesterday_stat), '');
 }
+

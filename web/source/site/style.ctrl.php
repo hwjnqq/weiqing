@@ -11,7 +11,7 @@ load()->func('file');
 
 $dos = array('default', 'designer', 'module', 'template', 'copy', 'build', 'del');
 $do = in_array($do, $dos) ? $do : 'template';
-uni_user_permission_check('platform_site');
+permission_check_account_user('platform_site');
 
 $templateid = intval($_GPC['templateid']);
 
@@ -228,7 +228,7 @@ if ($do == 'designer') {
 }
 
 if ($do == 'module') {
-	// uni_user_permission_check('site_style_module');
+	// permission_check_account_user('site_style_module');
 	$_W['page']['title'] = '模块扩展模板说明 - 网站风格设置 - 微站功能';
 	if (empty($_W['isfounder'])) {
 		itoast('您无权进行该操作！', '', '');

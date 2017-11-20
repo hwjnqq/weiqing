@@ -1,7 +1,7 @@
 <?php
 /**
  * 支付参数配置
- * [WeEngine System] Copyright (c) 2013 WE7.CC 
+ * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -11,7 +11,7 @@ load()->func('communication');
 
 $dos = array('save_setting', 'display', 'test_alipay', 'get_setting');
 $do = in_array($do, $dos) ? $do : 'display';
-uni_user_permission_check('profile_pay_setting');
+permission_check_account_user('profile_pay_setting');
 $_W['page']['title'] = '支付参数 - 公众号选项';
 
 if ($do == 'get_setting') {
@@ -26,6 +26,7 @@ if ($do == 'get_setting') {
 			'unionpay' => array('switch' => false),
 			'baifubao' => array('switch' => false),
 			'line' => array('switch' => false),
+			'jueqiymf' => array('switch' => false),
 		);
 	}
 	iajax(0, $pay_setting, '');
@@ -60,6 +61,9 @@ if ($do == 'save_setting') {
 	$pay_setting = $setting['payment'];
 	if ($type == 'credit' || $type == 'delivery') {
 		$param['switch'] = $param['switch'] == 'false' ? true : false;
+	}
+	if ($type == 'jueqiymf') {
+		$param['switch'] = $param['switch'] == 'true' ? true : false;
 	}
 	if ($type == 'alipay' || $type == 'baifubao' || $type == 'line') {
 		$param['switch'] = $param['switch'] == 'true' ? true : false;
@@ -129,7 +133,7 @@ MFF/yA==
 if ($do == 'display') {
 	$proxy_wechatpay_account = account_wechatpay_proxy();
 	$setting = uni_setting_load('payment', $_W['uniacid']);
-	$pay_setting = $setting['payment'];
+	$pay_setting = is_array($setting['payment']) ? $setting['payment'] : array();
 	if (empty($pay_setting['delivery'])) {
 		$pay_setting['delivery'] = array('switch' => false);
 	}
@@ -150,6 +154,9 @@ if ($do == 'display') {
 	}
 	if (empty($pay_setting['line'])) {
 		$pay_setting['line'] = array('switch' => false);
+	}
+	if (empty($pay_setting['jueqiymf'])) {
+		$pay_setting['jueqiymf'] = array('switch' => false);
 	}
 	//废弃微信借用支付
 	if (empty($_W['isfounder'])) {

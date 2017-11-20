@@ -35,8 +35,12 @@ function url($segment, $params = array()) {
  * sql
  * </pre>
  * @param boolean $tips 是否是以tips形式展示（兼容1.0之前版本该函数的页面展示形式）
+ *
+ * @param array $extend 扩展按钮,支持多按钮
+ * title string 扩展按钮名称
+ * url string 跳转链接
  */
-function message($msg, $redirect = '', $type = '', $tips = false) {
+function message($msg, $redirect = '', $type = '', $tips = false, $extend = array()) {
 	global $_W, $_GPC;
 
 	if($redirect == 'refresh') {
@@ -45,10 +49,8 @@ function message($msg, $redirect = '', $type = '', $tips = false) {
 	if($redirect == 'referer') {
 		$redirect = referer();
 	}
-	// 只能跳转到本域名下
-	if(starts_with($redirect,'http') && !starts_with($redirect, $_W['siteroot'])) {
-		$redirect = $_W['siteroot'];
-	}
+	// 跳转链接只能跳转本域名下 防止钓鱼 如: 用户可能正常从信任站点微擎登录 跳转到第三方网站 会误认为第三方网站也是安全的
+	$redirect = check_url_not_outside_link($redirect);
 
 	if($redirect == '') {
 		$type = in_array($type, array('success', 'error', 'info', 'warning', 'ajax', 'sql')) ? $type : 'info';
@@ -96,6 +98,17 @@ function message($msg, $redirect = '', $type = '', $tips = false) {
 		$message_cookie['type'] = $label;
 		$message_cookie['redirect'] = $redirect ? $redirect : referer();
 		$message_cookie['msg'] = rawurlencode($message_cookie['msg']);
+		$extend_button = array();
+		if (!empty($extend) && is_array($extend)) {
+			foreach ($extend as $button) {
+				if (!empty($button['title']) && !empty($button['url'])) {
+					$button['url'] = check_url_not_outside_link($button['url']);
+					$button['title'] = rawurlencode($button['title']);
+					$extend_button[] = $button;
+				}
+			}
+		}
+		$message_cookie['extend'] = !empty($extend_button) ? $extend_button : '';
 
 		isetcookie('message', stripslashes(json_encode($message_cookie, JSON_UNESCAPED_UNICODE)));
 		if (!empty($message_cookie['redirect'])) {
@@ -113,8 +126,8 @@ function iajax($code = 0, $message = '', $redirect = '') {
 	message(error($code, $message), $redirect, 'ajax', false);
 }
 
-function itoast($message, $redirect = '', $type = '') {
-	message($message, $redirect, $type, true);
+function itoast($message, $redirect = '', $type = '', $extend = array()) {
+	message($message, $redirect, $type, true, $extend);
 }
 
 /**
@@ -139,7 +152,7 @@ function checklogin() {
  */
 function checkaccount() {
 	global $_W;
-	if (empty($_W['uniacid'])) {
+	if (empty($_W['uniacid']) || (!empty($_W['account']) && !in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)) && !defined('IN_MODULE'))) {
 		itoast('', url('account/display'), 'info');
 	}
 }
@@ -149,7 +162,7 @@ function checkaccount() {
  */
 function checkwxapp() {
 	global $_W;
-	if (empty($_W['uniacid'])) {
+	if (empty($_W['uniacid']) || (!empty($_W['account']) && $_W['account']['type'] != ACCOUNT_TYPE_APP_NORMAL)) {
 		itoast('', url('wxapp/display'), 'info');
 	}
 }
@@ -178,17 +191,16 @@ function buildframes($framename = ''){
 	}
 	$frames = cache_load('system_frame');
 	if(empty($frames)) {
-		cache_build_frame_menu();
-		$frames = cache_load('system_frame');
+		$frames = cache_build_frame_menu();
 	}
 
 	//模块权限，创始人有所有模块权限
 	$modules = uni_modules(false);
 	$sysmodules = system_modules();
-	$status = uni_user_permission_exist($_W['uid'], $_W['uniacid']);
+	$status = permission_account_user_permission_exist($_W['uid'], $_W['uniacid']);
 	//非创始人应用模块菜单
 	if (!$_W['isfounder'] && $status && $_W['role'] != ACCOUNT_MANAGE_NAME_OWNER) {
-		$module_permission = uni_user_menu_permission($_W['uid'], $_W['uniacid'], 'modules');
+		$module_permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], 'modules');
 		if (!is_error($module_permission) && !empty($module_permission)) {
 			foreach ($module_permission as $module) {
 				if (!in_array($module['type'], $sysmodules) && empty($modules[$module['type']]['main_module']) && $modules[$module['type']]['app_support'] == 2) {
@@ -254,15 +266,11 @@ function buildframes($framename = ''){
 	}
 	//从数据库中获取用户权限，并附加上系统管理中的权限
 	//仅当系统管理时才使用预设权限
-	if (!empty($_W['role']) && ($_W['role'] == ACCOUNT_MANAGE_NAME_OPERATOR || $_W['role'] == ACCOUNT_MANAGE_NAME_MANAGER || $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER)) {
-		$user_permission = uni_user_permission('system');
+	if (!empty($_W['role']) && !user_is_founder($_W['uid'])) {
+		$user_permission = permission_account_user('system');
 	}
 	if (empty($_W['role']) && empty($_W['uniacid'])) {
-		$user_permission = uni_user_permission('system');
-	}
-	//@@todo 店员界面菜单
-	if (!empty($_W['role']) && $_W['role'] == 'clerk') {
-
+		$user_permission = permission_account_user('system');
 	}
 	//系统公众号菜单权限
 	if (!empty($user_permission)) {
@@ -272,7 +280,7 @@ function buildframes($framename = ''){
 			}
 			foreach ($section['section'] as $section_id => $secion) {
 				if ($nav_id == 'account') {
-					if ($status && !empty($module_permission) && in_array("account*", $user_permission) && $section_id != 'platform_module' && uni_permission($_W['uid'], $_W['uniacid']) != ACCOUNT_MANAGE_NAME_OWNER) {
+					if ($status && !empty($module_permission) && in_array("account*", $user_permission) && $section_id != 'platform_module' && permission_account_user_role($_W['uid'], $_W['uniacid']) != ACCOUNT_MANAGE_NAME_OWNER) {
 						$frames['account']['section'][$section_id]['is_display'] = false;
 						continue;
 					} else {
@@ -302,6 +310,7 @@ function buildframes($framename = ''){
 		if (user_is_vice_founder()) {
 			$frames['system']['section']['article']['is_display'] = false;
 			$frames['system']['section']['wxplatform']['menu']['system_platform']['is_display'] = false;
+			$frames['system']['section']['user']['menu']['system_user_founder_group']['is_display'] = false;
 		}
 	}
 	//进入模块界面后权限
@@ -461,6 +470,11 @@ function buildframes($framename = ''){
 		$wxapp_version = wxapp_version($version_id);
 		if (!empty($wxapp_version['modules'])) {
 			foreach ($wxapp_version['modules'] as $module) {
+				$wxapp_module_permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], $module['name']);
+				if (empty($wxapp_module_permission)) {
+					$frames['wxapp']['section']['wxapp_module']['is_display'] = false;
+					break;
+				}
 				$frames['wxapp']['section']['wxapp_module']['menu']['module_menu'.$module['mid']] = array(
 					'title' => "<img src='{$module['logo']}'> {$module['title']}",
 					'url' => url('wxapp/display/switch', array('module' => $module['name'], 'version_id' => $version_id)),
@@ -472,8 +486,12 @@ function buildframes($framename = ''){
 		}
 
 		if (!empty($frames['wxapp']['section'])) {
-			$wxapp_permission = uni_user_permission('wxapp');
+			$wxapp_permission = permission_account_user('wxapp');
 			foreach ($frames['wxapp']['section'] as $wxapp_section_id => $wxapp_section) {
+				if ($status && !empty($wxapp_permission) && in_array("wxapp*", $wxapp_permission) && $wxapp_section_id != 'wxapp_module' && $role != ACCOUNT_MANAGE_NAME_OWNER) {
+					$frames['wxapp']['section'][$wxapp_section_id]['is_display'] = false;
+					continue;
+				}
 				if (!empty($wxapp_section['menu']) && $wxapp_section_id != 'wxapp_module') {
 					foreach ($wxapp_section['menu'] as $wxapp_menu_id => $wxapp_menu) {
 						if ($wxapp_section_id == 'platform_manage_menu' || $wxapp_section_id == 'wxapp_entrance') {
@@ -565,6 +583,7 @@ function frames_menu_append() {
 			'system_module_wxapp',
 			'system_my',
 			'system_setting_updatecache',
+			'system_message_notice',
 		),
 		'manager' => array(
 			'system_account',
@@ -573,14 +592,18 @@ function frames_menu_append() {
 			'system_module_wxapp',
 			'system_my',
 			'system_setting_updatecache',
+			'system_message_notice',
 		),
 		'operator' => array(
 			'system_account',
 			'system_wxapp',
 			'system_my',
 			'system_setting_updatecache',
+			'system_message_notice',
 		),
-		'clerk' => array(),
+		'clerk' => array(
+			'system_my',
+		),
 	);
 	return $system_menu_default_permission;
 }
@@ -613,4 +636,30 @@ EOF;
 		}
 	}
 	return '';
+}
+
+/**
+ * 过期消息
+ * @return array
+ */
+function message_notice() {
+	global $_W;
+	$message_table = table('message');
+	$message_table->searchWithIsRead(MESSAGE_NOREAD);
+	if (user_is_founder($_W['uid']) && !user_is_vice_founder($_W['uid'])) {
+		$type = array(MESSAGE_ORDER_TYPE, MESSAGE_ACCOUNT_EXPIRE_TYPE, MESSAGE_REGISTER_TYPE);
+	} else {
+		$type = MESSAGE_ACCOUNT_EXPIRE_TYPE;
+	}
+	$message_table->searchWithType($type);
+	$message_table->searchWithPage(1, 10);
+	$lists = $message_table->messageList();
+
+	$message_table->searchWithIsRead(MESSAGE_NOREAD);
+	$message_table->searchWithType($type);
+	$total = $message_table->messageNoReadCount();
+	return array(
+		'lists' => $lists,
+		'total' => $total
+	);
 }

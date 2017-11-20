@@ -10,7 +10,7 @@ load()->library('qrcode');
 
 $do = !empty($do) ? $do : 'uc';
 $do = in_array($do, array('quickmenu', 'uc', 'qrcode')) ? $do : 'uc';
-uni_user_permission_check('mc_member');
+permission_check_account_user('mc_member');
 
 if ($do == 'uc') {
 	$_W['page']['title'] = '会员中心 - 微站功能';

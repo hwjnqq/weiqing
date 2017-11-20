@@ -11,7 +11,7 @@ load()->library('qrcode');
 
 $dos = array('display', 'change', 'qr', 'chat', 'down_qr');
 $do = !empty($_GPC['do']) && in_array($do, $dos) ? $do : 'display';
-uni_user_permission_check('platform_qr');
+permission_check_account_user('platform_qr');
 $_W['page']['title'] = '长链接转二维码';
 
 if ($do == 'display') {

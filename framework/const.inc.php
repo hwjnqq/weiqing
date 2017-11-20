@@ -26,7 +26,7 @@ define('ACCOUNT_SUBSCRIPTION', 1);
 define('ACCOUNT_SUBSCRIPTION_VERIFY', 3);
 //服务号
 define('ACCOUNT_SERVICE', 2);
-//服务号-认证
+//服务号-认证 认证媒体/政府订阅号
 define('ACCOUNT_SERVICE_VERIFY', 4);
 //正常接入公众号
 define('ACCOUNT_TYPE_OFFCIAL_NORMAL', 1);
@@ -148,6 +148,7 @@ define('MATERIAL_WEXIN', 'perm');//微信素材类型
 
 //自定义菜单类型
 define('MENU_CURRENTSELF', 1);
+define('MENU_HISTORY', 2);
 define('MENU_CONDITIONAL', 3);
 
 //用户状态
@@ -163,3 +164,39 @@ define('USER_TYPE_CLERK', 3);
 define('PERSONAL_BASE_TYPE', 1);
 define('PERSONAL_AUTH_TYPE', 2);
 define('PERSONAL_LIST_TYPE', 3);
+
+//商品类型
+define('STORE_TYPE_MODULE', 1);
+define('STORE_TYPE_ACCOUNT', 2);
+define('STORE_TYPE_WXAPP', 3);
+define('STORE_TYPE_WXAPP_MODULE', 4);
+define('STORE_TYPE_PACKAGE', 5);
+define('STORE_TYPE_API', 6);
+define('STORE_TYPE_ACCOUNT_RENEW', 7);
+define('STORE_TYPE_WXAPP_RENEW', 8);
+//订单状态
+define('STORE_ORDER_PLACE', 1);
+define('STORE_ORDER_DELETE', 2);
+define('STORE_ORDER_FINISH', 3);
+//商品状态
+define('STORE_GOODS_STATUS_OFFlINE', 0);
+define('STORE_GOODS_STATUS_ONLINE', 1);
+define('STORE_GOODS_STATUS_DELETE', 2);
+
+//文章分类 一级分类和二级分类为0
+define('ARTICLE_PCATE', 0);
+define('ARTICLE_CCATE', 0);
+
+//用户注册方式
+define('USER_REGISTER_TYPE_QQ', 1);
+define('USER_REGISTER_TYPE_WECHAT', 2);
+
+//消息提醒类型
+define('MESSAGE_ORDER_TYPE', 1);
+define('MESSAGE_ACCOUNT_EXPIRE_TYPE', 2);
+define('MESSAGE_WORKORDER_TYPE', 3);
+define('MESSAGE_REGISTER_TYPE', 4);
+
+//消息是否读取 1未读  2已读
+define('MESSAGE_NOREAD', 1);
+define('MESSAGE_READ', 2);

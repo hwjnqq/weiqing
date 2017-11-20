@@ -11,7 +11,7 @@ load()->model('wxapp');
 $dos = array('design_method', 'post', 'get_wxapp_modules');
 $do = in_array($do, $dos) ? $do : 'post';
 $_W['page']['title'] = '小程序 - 新建版本';
-$account_info = uni_user_account_permission();
+$account_info = permission_user_account_num();
 
 if ($do == 'design_method') {
 	$uniacid = intval($_GPC['uniacid']);
@@ -44,7 +44,6 @@ if($do == 'post') {
 			$account_wxapp_data = array(
 				'name' => trim($_GPC['name']),
 				'description' => trim($_GPC['description']),
-				'account' => trim($_GPC['account']),
 				'original' => trim($_GPC['original']),
 				'level' => 1,
 				'key' => trim($_GPC['appid']),

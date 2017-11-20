@@ -157,7 +157,7 @@ function rmdirs($path, $clean = false) {
  *        	保存的文件名,不含后缀.(未指定则自动生成文件名，指定则是从附件目录开始的完整相对路径)
  * @return array 错误信息 error 或 array('success' => bool，'path' => 保存路径（从附件目录开始的完整相对路径）)
  */
-function file_upload($file, $type = 'image', $name = '') {
+function file_upload($file, $type = 'image', $name = '', $quality = 0) {
 	$harmtype = array('asp', 'php', 'jsp', 'js', 'css', 'php3', 'php4', 'php5', 'ashx', 'aspx', 'exe', 'cgi');
 	if (empty($file)) {
 		return error(-1, '没有上传内容');
@@ -195,6 +195,11 @@ function file_upload($file, $type = 'image', $name = '') {
 	if (!empty($limit) && $limit * 1024 < filesize($file['tmp_name'])) {
 		return error(-4, "上传的文件超过大小限制，请上传小于 {$limit}k 的文件");
 	}
+
+	if($type == 'image') {
+		file_image_quality($file['tmp_name'], $file['tmp_name'], $quality, $ext);//设置清晰度
+	}
+
 	$result = array();
 	if (empty($name) || $name == 'auto') {
 		$uniacid = intval($_W['uniacid']);
@@ -210,14 +215,14 @@ function file_upload($file, $type = 'image', $name = '') {
 		}
 		$result['path'] = $name;
 	}
-	
+
 	if (!file_move($file['tmp_name'], ATTACHMENT_ROOT . '/' . $result['path'])) {
 		return error(-1, '保存上传文件失败');
 	}
 	$result['success'] = true;
 	return $result;
 }
-function file_wechat_upload($file, $type = 'image', $name = '') {
+function file_wechat_upload($file, $type = 'image', $name = '', $quality = 0) {
 	$harmtype = array('asp', 'php', 'jsp', 'js', 'css', 'php3', 'php4', 'php5', 'ashx', 'aspx', 'exe', 'cgi');
 	if (empty($file)) {
 		return error(-1, '没有上传内容');
@@ -232,7 +237,11 @@ function file_wechat_upload($file, $type = 'image', $name = '') {
 	if (in_array(strtolower($ext), $harmtype)) {
 		return error(-3, '不允许上传此类文件');
 	}
-	
+
+	if($type == 'image') {
+		file_image_quality($file['tmp_name'], $file['tmp_name'], $quality, $ext);//设置清晰度
+	}
+
 	$result = array();
 	if (empty($name) || $name == 'auto') {
 		$uniacid = intval($_W['uniacid']);
@@ -294,7 +303,7 @@ function file_remote_upload($filename, $auto_delete_local = true) {
 			return error(1, '远程附件上传失败，请检查配置并重新上传');
 		}
 	} elseif ($_W['setting']['remote']['type'] == '2') {
-		require_once (IA_ROOT . '/framework/library/alioss/autoload.php');
+		load()->library('oss');
 		load()->model('attachment');
 		$buckets = attachment_alioss_buctkets($_W['setting']['remote']['alioss']['key'], $_W['setting']['remote']['alioss']['secret']);
 		$endpoint = 'http://' . $buckets[$_W['setting']['remote']['alioss']['bucket']]['location'] . '.aliyuncs.com';
@@ -308,7 +317,7 @@ function file_remote_upload($filename, $auto_delete_local = true) {
 			file_delete($filename);
 		}
 	} elseif ($_W['setting']['remote']['type'] == '3') {
-		require_once (IA_ROOT . '/framework/library/qiniu/autoload.php');
+		load()->library('qiniu');
 		$auth = new Qiniu\Auth($_W['setting']['remote']['qiniu']['accesskey'], $_W['setting']['remote']['qiniu']['secretkey']);
 		$config = new Qiniu\Config();
 		$uploadmgr = new Qiniu\Storage\UploadManager($config);
@@ -328,11 +337,11 @@ function file_remote_upload($filename, $auto_delete_local = true) {
 		}
 	} elseif ($_W['setting']['remote']['type'] == '4') {
 		if (!empty($_W['setting']['remote']['cos']['local'])) {
-			require (IA_ROOT . '/framework/library/cosv4.2/include.php');
+			load()->library('cos');
 			qcloudcos\Cosapi::setRegion($_W['setting']['remote']['cos']['local']);
 			$uploadRet = qcloudcos\Cosapi::upload($_W['setting']['remote']['cos']['bucket'], ATTACHMENT_ROOT . $filename, '/' . $filename, '', 3 * 1024 * 1024, 0);
 		} else {
-			require (IA_ROOT . '/framework/library/cos/include.php');
+			load()->library('cosv3');
 			$uploadRet = \Qcloud_cos\Cosapi::upload($_W['setting']['remote']['cos']['bucket'], ATTACHMENT_ROOT . $filename, '/' . $filename, '', 3 * 1024 * 1024, 0);
 		}
 		if ($uploadRet['code'] != 0) {
@@ -422,7 +431,7 @@ function file_remote_delete($file) {
 		}
 	} elseif ($_W['setting']['remote']['type'] == '2') {
 		load()->model('attachment');
-		require_once (IA_ROOT . '/framework/library/alioss/autoload.php');
+		load()->library('oss');
 		$buckets = attachment_alioss_buctkets($_W['setting']['remote']['alioss']['key'], $_W['setting']['remote']['alioss']['secret']);
 		$endpoint = 'http://' . $buckets[$_W['setting']['remote']['alioss']['bucket']]['location'] . '.aliyuncs.com';
 		try {
@@ -432,7 +441,7 @@ function file_remote_delete($file) {
 			return error(1, '删除oss远程文件失败');
 		}
 	} elseif ($_W['setting']['remote']['type'] == '3') {
-		require_once IA_ROOT . '/framework/library/qiniu/autoload.php';
+		load()->library('qiniu');
 		$auth = new Qiniu\Auth($_W['setting']['remote']['qiniu']['accesskey'], $_W['setting']['remote']['qiniu']['secretkey']);
 		$bucketMgr = new Qiniu\Storage\BucketManager($auth);
 		$error = $bucketMgr->delete($_W['setting']['remote']['qiniu']['bucket'], $file);
@@ -448,11 +457,11 @@ function file_remote_delete($file) {
 		$bucketName = $_W['setting']['remote']['cos']['bucket'];
 		$path = "/" . $file;
 		if (!empty($_W['setting']['remote']['cos']['local'])) {
-			require (IA_ROOT . '/framework/library/cosv4.2/include.php');
+			load()->library('cos');
 			qcloudcos\Cosapi::setRegion($_W['setting']['remote']['cos']['local']);
 			$result = qcloudcos\Cosapi::delFile($bucketName, $path);
 		} else {
-			require (IA_ROOT . '/framework/library/cos/include.php');
+			load()->library('cosv3');
 			$result = Qcloud_cos\Cosapi::delFile($bucketName, $path);
 		}
 		if (!empty($result['code'])) {
@@ -849,6 +858,36 @@ function file_is_image($url) {
 	$pathinfo = pathinfo($url);
 	$extension = strtolower($pathinfo['extension']);
 	return !empty($extension) && in_array($extension, array('jpg', 'jpeg', 'gif', 'png'));
+}
+
+/**
+ * 清晰度设置 如果是上传文件的话 就直接把临时目录覆盖为新的
+ * @param $src //原始目录
+ * @param $to_path //目标目录
+ * @param int $quality //清晰度
+ * @param $ext //图片类型
+ *
+ *
+ * @since version
+ */
+function file_image_quality($src, $to_path, $quality = 0, $ext = 'jpg') {
+	if(!function_exists('gd_info') || $quality == 0 || $quality > 10) { //gd库未开启
+		return;
+	}
+	/**
+	 *  imagejpeg 1-100 范围 默认值75
+	 *  imagepng  1-9 范围 默认6
+	 */
+	$resource = null;
+	switch ($ext) {
+		case 'jpg' : $quality = $quality*10; $resource = imagecreatefromjpeg($src);  imagejpeg($resource, $to_path, $quality);  break;
+		case 'jpeg': $quality = $quality*10; $resource = imagecreatefromjpeg($src); imagejpeg($resource, $to_path, $quality);  break;
+		case 'png' : $resource = imagecreatefrompng($src); imagepng($resource, $to_path, $quality); break;
+	}
+
+	if($resource) {
+		imagedestroy($resource);
+	}
 }
 
 

@@ -148,7 +148,7 @@ if ($do == 'account_list') {
 			$account_details = uni_accounts($account['uniacid']);
 			//公众号列表只取默认acid
 			$account['details'][$account['default_acid']] = $account_details[$account['default_acid']];
-			$account['role'] = uni_permission($_W['uid'], $account['uniacid']);
+			$account['role'] = permission_account_user_role($_W['uid'], $account['uniacid']);
 			$account['setmeal'] = uni_setmeal($account['uniacid']);
 			if (!empty($flow_uniaccount_list[$unia])) {
 				$flow_uniaccount_list[$unia]['ad_tags_str'] = @implode($flow_uniaccount_list[$unia]['ad_tags'], ',');

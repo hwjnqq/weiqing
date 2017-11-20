@@ -19,7 +19,7 @@ set_time_limit(0);
 @ini_set('memory_limit', '1356M');
 $path = dirname(__FILE__);
 chdir($path);
-if(! function_exists('pdos')){
+if(!function_exists('pdos')) {
 	function pdos() {
 		load()->classs('query');
 		return new Query();
@@ -177,13 +177,14 @@ class We7CreateUpgradeCommand extends We7Command {
 		$template = <<<EOT
 <?php
 
+namespace $namespace;
+
 defined('IN_IA') or exit('Access Denied');
 /**
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  * Time: $time
  * @version $version
  */
-namespace $namespace;
 
 class $name {
 

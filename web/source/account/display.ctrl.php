@@ -12,15 +12,22 @@ $dos = array('rank', 'display', 'switch');
 $do = in_array($_GPC['do'], $dos)? $do : 'display' ;
 $_W['page']['title'] = '公众号列表 - 公众号';
 
-$state = uni_permission($_W['uid'], $_W['uniacid']);
+$state = permission_account_user_role($_W['uid'], $_W['uniacid']);
 //模版调用，显示该用户所在用户组可添加的主公号数量，已添加的数量，还可以添加的数量
-$account_info = uni_user_account_permission();
+$account_info = permission_user_account_num();
 
 if($do == 'switch') {
 	$uniacid = intval($_GPC['uniacid']);
-	$role = uni_permission($_W['uid'], $uniacid);
+	$role = permission_account_user_role($_W['uid'], $uniacid);
 	if(empty($role)) {
 		itoast('操作失败, 非法访问.', '', 'error');
+	}
+	if (empty($_W['isfounder'])) {
+		$account_endtime = uni_fetch($uniacid);
+		$account_endtime = $account_endtime['endtime'];
+		if ($account_endtime > 0 && TIMESTAMP > $account_endtime) {
+			itoast('公众号已到期。', '', 'error');
+		}
 	}
 	uni_account_save_switch($uniacid);
 	$module_name = trim($_GPC['module_name']);
@@ -56,16 +63,19 @@ if ($do == 'display') {
 	if (!empty($keyword)) {
 		$account_table->searchWithKeyword($keyword);
 	}
-	
-	if(isset($_GPC['letter']) && strlen($_GPC['letter']) == 1) {
-		$account_table->searchWithLetter($_GPC['letter']);
+
+	$letter = $_GPC['letter'];
+	if(isset($letter) && strlen($letter) == 1) {
+		$account_table->searchWithLetter($letter);
 	}
+
+	$account_table->accountRankOrder();
 	$account_table->searchWithPage($pindex, $psize);
 	$account_list = $account_table->searchAccountList();
 	
 	foreach($account_list as &$account) {
 		$account = uni_fetch($account['uniacid']);
-		$account['role'] = uni_permission($_W['uid'], $account['uniacid']);
+		$account['role'] = permission_account_user_role($_W['uid'], $account['uniacid']);
 	}
 	
 	if ($_W['ispost']) {

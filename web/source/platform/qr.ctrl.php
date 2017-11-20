@@ -8,8 +8,9 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('module');
 load()->model('account');
 load()->func('communication');
+load()->model('setting');
 
-$dos = array('display', 'post', 'list', 'del', 'extend', 'SubDisplay', 'check_scene_str', 'down_qr');
+$dos = array('display', 'post', 'list', 'del', 'extend', 'SubDisplay', 'check_scene_str', 'down_qr', 'change_status');
 $do = !empty($_GPC['do']) && in_array($do, $dos) ? $do : 'list';
 
 //检测场景字符串是否重复
@@ -178,36 +179,39 @@ if ($do == 'extend') {
 	}
 }
 
+if ($do == 'display' || $do == 'change_status') {
+	$status_setting = setting_load('qr_status');
+	$status = $status_setting['qr_status']['status'];
+}
+
 if ($do == 'display') {
 	$_W['page']['title'] = '扫描统计 - 二维码管理 - 高级功能';
-	$starttime = empty($_GPC['time']['start']) ? TIMESTAMP -  86399 * 30 : strtotime($_GPC['time']['start']);
-	$endtime = empty($_GPC['time']['end']) ? TIMESTAMP + 6*86400: strtotime($_GPC['time']['end']) + 86399;
-	$where .= " WHERE uniacid = :uniacid AND acid = :acid AND createtime >= :starttime AND createtime < :endtime";
-	$param = array(':uniacid' => $_W['uniacid'], ':acid' => $_W['acid'], ':starttime' => $starttime, ':endtime' => $endtime);
-	!empty($_GPC['keyword']) && $where .= " AND name LIKE '%{$_GPC['keyword']}%'";
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 30;
-	$count = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('qrcode_stat'). $where, $param);
-	$list = pdo_fetchall("SELECT * FROM ".tablename('qrcode_stat')." $where ORDER BY id DESC LIMIT ".($pindex - 1) * $psize.','. $psize, $param);
+	$qrcode_table = table('qrcode');
+	$starttime = empty($_GPC['time']['start']) ? TIMESTAMP -  86399 * 30 : strtotime($_GPC['time']['start']);
+	$endtime = empty($_GPC['time']['end']) ? TIMESTAMP + 6*86400 : strtotime($_GPC['time']['end']) + 86399;
+
+	$qrcode_table->searchTime($starttime, $endtime);
+	$keyword = trim($_GPC['keyword']);
+	if (!empty($keyword)) {
+		$qrcode_table->searchKeyword($keyword);
+	}
+	$qrcode_table->searchWithPage($pindex, $psize);
+	$list = $qrcode_table->qrcodeStaticList($status);
+	$total = $count = $qrcode_table->getLastQueryTotal();
+
 	if (!empty($list)) {
 		$openid = array();
-		foreach ($list as $index => &$qrcode) {
-			if ($qrcode['type'] == 1) {
-				$qrcode['type']="关注";
-			} else {
-				$qrcode['type']="扫描";
-			}
+		foreach ($list as $qrcode) {
 			if (!in_array($qrcode['openid'], $openid)) {
 				$openid[] = $qrcode['openid'];
 			}
 		}
 		unset($qrcode);
-		$openids = implode("','", $openid);
-		$param_temp[':uniacid'] = $_W['uniacid'];
-		$param_temp[':acid'] = $_W['acid'];
-		$nickname = pdo_fetchall('SELECT nickname, openid FROM ' . tablename('mc_mapping_fans') . " WHERE uniacid = :uniacid AND acid = :acid AND openid IN ('{$openids}')", $param_temp, 'openid');
+		$fans_table = table('fans');
+		$nickname = $fans_table->fansAll($openid);
 	}
-	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('qrcode_stat') . $where, $param);
 	$pager = pagination($total, $pindex, $psize);
 	template('platform/qr-display');
 }
@@ -221,4 +225,13 @@ if ($do == 'down_qr') {
 	header('content-disposition: attachment;filename="'.$down['name'].'.jpg"');
 	readfile($pic);
 	exit();
+}
+
+if ($do == 'change_status') {
+	$up_status['status'] = empty($status) ? 1 : 0;
+	$update = setting_save($up_status, 'qr_status');
+	if ($update) {
+		iajax(0, '');
+	}
+	iajax(-1, '更新失败', url('platform/qr/display'));
 }

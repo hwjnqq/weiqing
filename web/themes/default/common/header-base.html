@@ -22,6 +22,7 @@
 		{if !empty($_W['openid'])}'openid': '{$_W['openid']}',{/if}
 		{if !empty($_W['uid'])}'uid': '{$_W['uid']}',{/if}
 		'isfounder': {if !empty($_W['isfounder'])}1{else}0{/if},
+		'family': '{IMS_FAMILY}',
 		'siteroot': '{$_W['siteroot']}',
 		'siteurl': '{$_W['siteurl']}',
 		'attachurl': '{$_W['attachurl']}',
@@ -30,6 +31,7 @@
 		'module' : {'url' : '{if defined('MODULE_URL')}{MODULE_URL}{/if}', 'name' : '{if defined('IN_MODULE')}{IN_MODULE}{/if}'},
 		'cookie' : {'pre': '{$_W['config']['cookie']['pre']}'},
 		'account' : {php echo json_encode($_W['account'])},
+		'server' : {'php' : '{php echo phpversion()}'},
 	};
 	</script>
 	<script>var require = { urlArgs: 'v=20170719' };</script>

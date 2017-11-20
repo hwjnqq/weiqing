@@ -35,6 +35,7 @@
 					{if empty($menu['is_system'])}
 					<a href="javascript:;" ng-click="removeSubItem('{$menu['permission_name']}')" class="btn btn-danger">删除</a>
 					{/if}
+					<a href="javascript:;" ng-click="editMainMenu({php echo intval($menu['displayorder'])}, '{$permission_name}')" class="we7-margin-right-sm link-group we7-padding-right">编辑</a>
 				</td>
 			</tr>
 			{loop $menu['section'] $section_name $section}
@@ -59,7 +60,11 @@
 							<span style="margin-left: 60px;">{$sub_menu['title']}</span>
 						</td>
 						<td>
+							{if $sub_permission_name == 'system_setting_menu'}
+								<span class="color-gray">不可关闭</span>
+							{else}
 							<div class="switch" ng-init="displayStatus['{$sub_menu['permission_name']}'] = {php echo $sub_menu['is_display'] ? 'true' : 'false'}" ng-click="changeDisplay('{$sub_menu['permission_name']}')" ng-class="{'switchOn' : displayStatus['{$sub_menu['permission_name']}'], 'switchOff' : !displayStatus['{$sub_menu['permission_name']}']}"></div>
+							{/if}
 						</td>
 						<td class="we7-padding-right">
 							<div class="link-group">
@@ -93,6 +98,31 @@
 		{/loop}
 	</table>
 
+	<div class="modal fade bs-example-modal-sm" id="editorder" tabindex="-1" style="z-index:1039" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog we7-modal-dialog ">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+					<h4 class="modal-title">编辑菜单</h4>
+				</div>
+				<form action="" method="post" enctype="multipart/form-data" class="we7-form form" >
+					<div class="modal-body">
+						<div class="form-group">
+							<label class="col-sm-2 control-label">菜单排序</label>
+							<div class="col-sm-10">
+								<input type="text"  min="0" ng-model="mainMenu.displayorder" class="form-control">
+								<span class="help-block">注：生序排列。数字越小，排名越靠前</span>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+						<button type="button" class="btn btn-primary" name="submit" value="保存" ng-click="saveorder()">保存</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
 	<div class="modal fade bs-example-modal-sm js-edit-panel" id="edit" tabindex="-1" style="z-index:1039" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 		<div class="modal-dialog we7-modal-dialog ">
 			<div class="modal-content">
@@ -124,6 +154,7 @@
 							<label class="col-sm-2 control-label"> 菜单链接</label>
 							<div class="col-sm-10">
 								<input type="text" name="url" ng-readonly="activeItem.isSystem == '1'" ng-model="activeItem.url" class="form-control">
+								<span class="help-block">注：支持相对链接。非相对链接请填写以http或https开头的完整链接</span>
 							</div>
 						</div>
 						<div class="form-group" ng-hide="activeItem.isSystem == '1'">

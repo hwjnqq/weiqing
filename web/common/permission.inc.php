@@ -18,24 +18,30 @@ defined('IN_IA') or exit('Access Denied');
  *    'clerk'         代表  店员拥有的权限
  * 权限中带星号'*'指拥有该文件夹下所有权限
  */
+$we7_file_permission = array();
 $we7_file_permission = array(
 	'account' => array(
 		'default' => '',
 		'direct' => array(
 			'auth',
-			'welcome'
+			'welcome',
 		),
 		'vice_founder' => array('account*'),
 		'owner' => array('account*'),
 		'manager' => array(
 			'display',
 			'manage',
+			'post-step',
+			'post-user',
 		),
 		'operator' => array(
 			'display',
 			'manage',
+			'post-step',
 		),
-		'clerk' => array()
+		'clerk' => array(
+			'display',
+		),
 	),
 	'advertisement' => array(
 		'default' => '',
@@ -51,6 +57,17 @@ $we7_file_permission = array(
 		'direct' => array(
 			'notice-show',
 			'news-show',
+		),
+		'vice_founder' => array(),
+		'owner' => array(),
+		'manager' => array(),
+		'operator' => array(),
+		'clerk' => array()
+	),
+	'message' => array(
+		'default' => '',
+		'direct' => array(
+			'notice',
 		),
 		'vice_founder' => array(),
 		'owner' => array(),
@@ -106,7 +123,7 @@ $we7_file_permission = array(
 		'owner' => array('home*'),
 		'manager' => array('home*'),
 		'operator' => array('home*'),
-		'clerk' => array()
+		'clerk' => array('welcome'),
 	),
 	'mc' => array(
 		'default' => '',
@@ -117,11 +134,13 @@ $we7_file_permission = array(
 			'chats',
 			'fields',
 			'group',
+			'trade',
 		),
 		'operator' => array(
 			'chats',
 			'fields',
 			'group',
+			'trade',
 		),
 		'clerk' => array()
 	),
@@ -132,15 +151,20 @@ $we7_file_permission = array(
 		'owner' => array(
 			'manage-account',
 			'manage-system',
+			'permission',
 			'display',
 		),
 		'manager' => array(
+			'manage-account',
 			'display',
 		),
 		'operator' => array(
+			'manage-account',
 			'display',
 		),
-		'clerk' => array()
+		'clerk' => array(
+			'display',
+		)
 	),
 	'platform' => array(
 		'default' => '',
@@ -148,12 +172,17 @@ $we7_file_permission = array(
 		'vice_founder' => array('platform*'),
 		'owner' => array('platform*'),
 		'manager' => array(
-			'material-post',
+			'cover',
+			'reply',
 		),
 		'operator' => array(
-			'material-post',
+			'cover',
+			'reply',
 		),
-		'clerk' => array()
+		'clerk' => array(
+			'reply',
+			'cover',
+		)
 	),
 	'profile' => array(
 		'default' => '',
@@ -173,13 +202,51 @@ $we7_file_permission = array(
 		'owner' => array('site*'),
 		'manager' => array(
 			'editor',
+			'article',
+			'category',
+			'style',
+			'nav',
+			'slide',
 		),
 		'operator' => array(
 			'editor',
+			'article',
+			'category',
+			'style',
+			'nav',
+			'slide',
 		),
-		'clerk' => array(
-			'entry',
-		)
+		'clerk' => array()
+	),
+	'statistics' => array(
+		'default' => '',
+		'direct' => array(),
+		'vice_founder' => array('statistics*'),
+		'owner' => array('statistics*'),
+		'manager' => array(),
+		'operator' => array(),
+		'clerk' => array(),
+	),
+	'store' => array(
+		'default' => '',
+		'direct' => array(),
+		'vice_founder' => array(
+			'goods-buyer',
+			'orders',
+		),
+		'owner' => array(
+			'goods-buyer',
+			'orders',
+		),
+		'manager' => array(
+			'goods-buyer',
+			'orders',
+		),
+		'operator' => array(
+			'goods-buyer',
+			'orders',
+		),
+		'clerk' => array(),
 	),
 	'system' => array(
 		'default' => '',
@@ -187,18 +254,24 @@ $we7_file_permission = array(
 		'vice_founder' => array(
 			'template',
 			'updatecache',
+			'workorder',
 		),
 		'owner' => array(
 			'updatecache',
+			'workorder',
 		),
 		'manager' => array(
 			'updatecache',
+			'workorder',
 		),
 		'operator' => array(
 			'account',
 			'updatecache',
+			'workorder',
 		),
-		'clerk' => array()
+		'clerk' => array(
+			'workorder',
+		)
 	),
 	'user' => array(
 		'default' => 'display',
@@ -206,6 +279,7 @@ $we7_file_permission = array(
 			'login',
 			'register',
 			'logout',
+			'find-password'
 		),
 		'vice_founder' => array('user*'),
 		'owner' => array(
@@ -217,7 +291,9 @@ $we7_file_permission = array(
 		'operator' => array(
 			'profile',
 		),
-		'clerk' => array()
+		'clerk' => array(
+			'profile',
+		)
 	),
 	'wxapp' => array(
 		'default' => '',
@@ -227,12 +303,16 @@ $we7_file_permission = array(
 		'manager' => array(
 			'display',
 			'version',
+			'post',
 		),
 		'operator' => array(
 			'display',
 			'version',
+			'post',
 		),
-		'clerk' => array()
+		'clerk' => array(
+			'display',
+		)
 	),
 	'utility' => array(
 		'default' => '',
@@ -244,13 +324,58 @@ $we7_file_permission = array(
 			'subscribe',
 			'wxcode',
 			'modules',
+			'link',
 		),
-		'vice_founder' => array(),
+		'vice_founder' => array(
+			'user',
+			'emulator',
+		),
+		'owner' => array(
+			'emulator',
+		),
+		'manager' => array(
+			'emulator',
+		),
+		'operator' => array(
+			'emulator',
+		),
 		'owner' => array(),
 		'manager' => array(),
 		'operator' => array(),
 	),
 	'append' => array('append*'),
+	'see_more_info' => array(
+		'founder' => array(
+			'see_module_manage_system_except_installed',
+			'see_module_manage_system_ugrade',
+			'see_module_manage_system_stop',
+			'see_module_manage_system_install',
+			'see_module_manage_system_shopinfo',
+			'see_module_manage_system_info_edit',
+			'see_module_manage_system_detailinfo',
+			'see_module_manage_system_group_add',
+			'see_account_manage_module_tpl_all_permission',
+			'see_account_manage_sms_blance',
+			'see_account_manage_users_edit',
+			'see_system_upgrade',
+			'see_system_manage_clerk',
+			'see_system_manage_user_setting',
+			'see_system_manage_vice_founder',
+			'see_system_add_vice_founder',
+		),
+		'vice_founder' => array(
+
+		),
+		'owner' => array(
+
+		),
+		'manager' => array(
+
+		),
+		'operator' => array(
+
+		),
+	),
 );
 
 return $we7_file_permission;

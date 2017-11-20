@@ -12,7 +12,7 @@ $do = in_array($do, $dos) ? $do : 'module';
 
 $system_modules = system_modules();
 if (!in_array($_GPC['m'], $system_modules) && $do == 'post') {
-	uni_user_permission_check('', true, 'cover');
+	permission_check_account_user('', true, 'cover');
 }
 define('IN_MODULE', true);
 
@@ -42,7 +42,7 @@ if ($do == 'module') {
 	foreach ($replies as $replay){
 		$cover_keywords[$replay['do']][] = $replay;
 	}
-	$module_permission = uni_user_menu_permission($_W['uid'], $_W['uniacid'], $modulename);
+	$module_permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], $modulename);
 	foreach ($entries['cover'] as $key => &$cover){
 		$permission_name = $modulename . '_cover_' . trim($cover['do']);
 		if ($module_permission[0] != 'all' && !in_array($permission_name, $module_permission)) {

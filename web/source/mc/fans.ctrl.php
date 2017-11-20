@@ -245,7 +245,7 @@ if ($do == 'download_fans') {
 		$total_page = ceil($wechat_fans_count / 500);
 		for ($i = 0; $i < $total_page; $i++) {
 			$wechat_fans = array_slice($wechat_fans_list['fans'], $i * 500, 500);
-			$system_fans = pdo_getall('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'openid' => $wechat_fans), array(), 'openid');
+			$system_fans = pdo_getall('mc_mapping_fans', array('openid' => $wechat_fans), array(), 'openid');
 			$add_fans_sql = '';
 			foreach($wechat_fans as $openid) {
 				if (empty($system_fans) || empty($system_fans[$openid])) {
@@ -258,7 +258,7 @@ if ($do == 'download_fans') {
 				$add_fans_sql = "INSERT INTO " . tablename('mc_mapping_fans') . " (`acid`, `uniacid`, `uid`, `openid`, `salt`, `follow`, `followtime`, `tag`) VALUES " . $add_fans_sql;
 				$result = pdo_query($add_fans_sql);
 			}
-			pdo_update('mc_mapping_fans', array('follow' => 1), array('openid' => $wechat_fans));
+			pdo_update('mc_mapping_fans', array('follow' => 1, 'uniacid' => $_W['uniacid'], 'acid' => $_W['acid']), array('openid' => $wechat_fans));
 		}
 		$return['total'] = $wechat_fans_list['total'];
 		$return['count'] = !empty($wechat_fans_list['fans']) ? $wechat_fans_count : 0;
@@ -299,7 +299,6 @@ if ($do == 'sync') {
 }
 
 if ($do == 'fans_sync_set') {
-	// uni_user_permission_check('mc_passport_sync');
 	$_W['page']['title'] = '更新粉丝信息 - 公众号选项';
 	$operate = $_GPC['operate'];
 	if ($operate == 'save_setting') {

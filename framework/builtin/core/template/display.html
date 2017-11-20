@@ -179,11 +179,11 @@
 					needType : 1
 				},
 				voice : {
-					needType : 1
+					needType : 3
 				}
 			}
 		};
-		if (type == 'module') {
+		if (type == 'module'){
 			document.cookie = "special_reply_type={$_GPC['type']}";
 		}
 		util.material(function(material){
@@ -332,7 +332,7 @@
 								author: newsV.author,
 								description: newsV.digest,
 								thumb: newsV.thumb_url,
-								url: newsV.content_source_url,
+								url: newsV.content_source_url ? newsV.content_source_url : newsV.url,
 								createtime: material.createtime,
 								displayorder: newsV.displayorder ? newsV.displayorder : 0,
 								mediaid: material.media_id,

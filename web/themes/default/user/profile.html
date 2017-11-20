@@ -11,8 +11,10 @@
 	</div>
 	<div class="btn-group we7-btn-group we7-padding-bottom">
 		<a href="{php echo url('user/profile/base', array('uid' => $user['uid'], 'user_type' => PERSONAL_BASE_TYPE))}" class="btn btn-default {if $user_type == '' || $user_type == PERSONAL_BASE_TYPE}active{/if}">基础信息</a>
+		{if $_W['role'] != ACCOUNT_MANAGE_NAME_CLERK}
 		<a href="{php echo url('user/profile/base', array('uid' => $user['uid'], 'user_type' => PERSONAL_AUTH_TYPE))}" class="btn btn-default {if $user_type == PERSONAL_AUTH_TYPE}active{/if}">应用模板权限</a>
 		<a href="{php echo url('user/profile/base', array('uid' => $user['uid'], 'user_type' => PERSONAL_LIST_TYPE))}" class="btn btn-default {if $user_type == PERSONAL_LIST_TYPE}active{/if}">使用账号列表</a>
+		{/if}
 	</div>
 	{/if}
 	{if $user_type=='' || $user_type == PERSONAL_BASE_TYPE}

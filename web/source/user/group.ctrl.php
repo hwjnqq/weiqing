@@ -61,6 +61,7 @@ if ($do == 'post') {
 		if (is_error($user_group_info)) {
 			itoast($user_group_info['message'], '', '');
 		}
+		cache_clean(cache_system_key('user_modules'));
 		itoast('用户组更新成功！', url('user/group/display'), 'success');
 	}
 	template('user/group-post');

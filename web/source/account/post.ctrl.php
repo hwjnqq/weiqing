@@ -17,16 +17,16 @@ load()->func('file');
 $uniacid = intval($_GPC['uniacid']);
 $acid = intval($_GPC['acid']);
 if (empty($uniacid) || empty($acid)) {
-	itoast('请选择要编辑的公众号', url('account/manager'), 'error');
+	itoast('请选择要编辑的公众号', url('account/manage'), 'error');
 }
 $defaultaccount = uni_account_default($uniacid);
 if (!$defaultaccount) {
-	itoast('无效的acid', url('account/manager'), 'error');
+	itoast('无效的acid', url('account/manage'), 'error');
 }
 $acid = $defaultaccount['acid']; //强制使用默认的acid
 
 
-$state = uni_permission($_W['uid'], $uniacid);
+$state = permission_account_user_role($_W['uid'], $uniacid);
 $dos = array('base', 'sms', 'modules_tpl');
 $role_permission = in_array($state, array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER));
 if ($role_permission) {
@@ -39,7 +39,7 @@ if ($role_permission) {
 		$do = in_array($do, $dos) ? $do : 'modules_tpl';
 	}
 } else {
-	itoast('您是该公众号的操作员，无权限操作！', url('account/manager'), 'error');
+	itoast('您是该公众号的操作员，无权限操作！', url('account/manage'), 'error');
 }
 
 $_W['page']['title'] = '管理设置 - 微信' . ACCOUNT_TYPE_NAME . '管理';
@@ -86,7 +86,7 @@ if($do == 'base') {
 			case 'secret':
 				$data = array('secret' => trim($_GPC['request_data']));break;
 			case 'token':
-				$oauth = (array)uni_setting($uniacid, array('oauth'));
+				$oauth = (array)uni_setting_load(array('oauth'), $uniacid);
 				if($oauth['oauth'] == $acid && $account['level'] != 4) {
 					$acid = pdo_fetchcolumn("SELECT acid FROM " . tablename('account_wechats') . " WHERE uniacid = :uniacid AND level = 4 AND secret != '' AND `key` != ''", array(':uniacid' => $uniacid));
 					pdo_update('uni_settings', array('oauth' => iserializer(array('account' => $acid, 'host' => $oauth['oauth']['host']))), array('uniacid' => $uniacid));
@@ -94,7 +94,7 @@ if($do == 'base') {
 				$data = array('token' => trim($_GPC['request_data']));
 				break;
 			case 'encodingaeskey':
-				$oauth = (array)uni_setting($uniacid, array('oauth'));
+				$oauth = (array)uni_setting_load(array('oauth'), $uniacid);
 				if($oauth['oauth'] == $acid && $account['level'] != 4) {
 					$acid = pdo_fetchcolumn("SELECT acid FROM " . tablename('account_wechats') . " WHERE uniacid = :uniacid AND level = 4 AND secret != '' AND `key` != ''", array(':uniacid' => $uniacid));
 					pdo_update('uni_settings', array('oauth' => iserializer(array('account' => $acid, 'host' => $oauth['oauth']['host']))), array('uniacid' => $uniacid));
@@ -110,8 +110,32 @@ if($do == 'base') {
 					$result = $update_type ? true : false;
 				}
 				break;
+			case 'highest_visit':
+				if (user_is_vice_founder() || empty($_W['isfounder'])) {
+					iajax(1, '只有创始人可以修改！');
+				}
+				$statistics_setting = (array)uni_setting_load(array('statistics'), $uniacid);
+				if (!empty($statistics_setting['statistics'])) {
+					$highest_visit = $statistics_setting['statistics'];
+					$highest_visit['founder'] = intval($_GPC['request_data']);
+				} else {
+					$highest_visit = array('founder' => intval($_GPC['request_data']));
+				}
+				$result = pdo_update('uni_settings', array('statistics' => iserializer($highest_visit)), array('uniacid' => $uniacid));
+				break;
+			case 'endtime':
+				if ($_GPC['endtype'] == 1) {
+					$result = pdo_update('account', array('endtime' => -1), array('uniacid' => $uniacid));
+				} else {
+					$endtime = strtotime($_GPC['endtime']);
+					$user_endtime = pdo_getcolumn('users', array('uid' => $_W['uid']), 'endtime');
+					if ($user_endtime < $endtime && !empty($user_endtime) && $state == 'owner') {
+						iajax(1, '设置到期日期不能超过主管理员的到期日期');
+					}
+					$result = pdo_update('account', array('endtime' => $endtime), array('uniacid' => $uniacid));
+				}
 		}
-		if(!in_array($type, array('qrcodeimgsrc', 'headimgsrc', 'name', 'endtime', 'jointype'))) {
+		if(!in_array($type, array('qrcodeimgsrc', 'headimgsrc', 'name', 'endtime', 'jointype', 'highest_visit'))) {
 			$result = pdo_update(uni_account_tablename(ACCOUNT_TYPE), $data, array('acid' => $acid, 'uniacid' => $uniacid));
 		}
 		if($result) {
@@ -120,7 +144,8 @@ if($do == 'base') {
 			cache_delete("accesstoken:{$acid}");
 			cache_delete("jsticket:{$acid}");
 			cache_delete("cardticket:{$acid}");
-
+			$cachekey = cache_system_key("statistics:{$uniacid}");
+			cache_delete($cachekey);
 			iajax(0, '修改成功！', '');
 		}else {
 			iajax(1, '修改失败！', '');
@@ -138,12 +163,14 @@ if($do == 'base') {
 		} else {
 			$authurl = array(
 				'errno' => 0,
-				'url' => sprintf(ACCOUNT_PLATFORM_API_LOGIN, $account_platform->appid, $preauthcode, urlencode(urlencode($GLOBALS['_W']['siteroot'] . 'index.php?c=account&a=auth&do=forward')))
+				'url' => sprintf(ACCOUNT_PLATFORM_API_LOGIN, $account_platform->appid, $preauthcode, urlencode($GLOBALS['_W']['siteroot'] . 'index.php?c=account&a=auth&do=forward'))
 			);
 		}
 	}
 	$account['end'] = $account['endtime'] == 0 ? '永久' : date('Y-m-d', $account['endtime']);
 	$account['endtype'] = $account['endtime'] == 0 ? 1 : 2;
+	$statistics_setting = (array)uni_setting_load(array('statistics'), $uniacid);
+	$account['highest_visit'] = empty($statistics_setting['statistics']['founder']) ? 0 : $statistics_setting['statistics']['founder'];
 	$uniaccount = array();
 	$uniaccount = pdo_get('uni_account', array('uniacid' => $uniacid));
 

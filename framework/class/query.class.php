@@ -257,8 +257,15 @@ class Query {
 		//替换SELECT XX 为 SELECT COUNT(*)
 		$countsql = str_replace(substr($lastquery[0], 0, strpos($lastquery[0], 'FROM')), 'SELECT COUNT(*) ', $lastquery[0]);
 		//删除掉Limit
-		$countsql = substr($countsql, 0, strpos($countsql, 'LIMIT'));
-		$result = pdo_fetchcolumn($countsql, $this->lastparams, $keyfield);
+		if (strpos($countsql, 'LIMIT') !== false) {
+			$countsql = substr($countsql, 0, strpos($countsql, 'LIMIT'));
+		}
+		if (strexists(strtoupper($countsql), 'GROUP BY')) {
+			$result = pdo_fetchall($countsql, $this->lastparams, $keyfield);
+			$result = count($result);
+		} else {
+			$result = pdo_fetchcolumn($countsql, $this->lastparams, $keyfield);
+		}
 		return $result;
 	}
 	

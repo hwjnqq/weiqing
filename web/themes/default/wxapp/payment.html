@@ -102,7 +102,7 @@
 <script>
     angular.module('wxApp').value('config', {
         'paysetting' : {php echo json_encode($pay_setting)},
-        'saveurl' : "{php echo url('profile/payment/save_setting')}",
+        'saveurl' : "{php echo url('wxapp/payment/save_setting')}",
         'get_setting_url' : "{php echo url('wxapp/payment/get_setting')}"
     });
     angular.bootstrap($('.js-profile-payment'), ['wxApp']);

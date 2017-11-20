@@ -42,9 +42,8 @@ function message($msg, $redirect = '', $type = '') {
 		$urls = parse_url($redirect);
 		$redirect = $_W['siteroot'] . 'app/index.php?' . $urls['query'];
 	} else {
-		if(starts_with($redirect,'http') && !starts_with($redirect, $_W['siteroot'])) {
-			$redirect = $_W['siteroot'];
-		}
+		// 跳转链接只能跳转本域名下 防止钓鱼 如: 用户可能正常从信任站点微擎登录 跳转到第三方网站 会误认为第三方网站也是安全的
+		$redirect = check_url_not_outside_link($redirect);
 	}
 	if($redirect == '') {
 		$type = in_array($type, array('success', 'error', 'info', 'warning', 'ajax', 'sql')) ? $type : 'info';

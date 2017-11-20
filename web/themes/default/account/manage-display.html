@@ -2,7 +2,7 @@
 <div class="we7-page-title">公众号管理</div>
 <ul class="we7-page-tab">
 	<li class="active"><a href="{url 'account/manage'}">公众号列表</a></li>
-	{if $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER || $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER}
+	{if $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER || $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
 	<li><a href="{url 'account/recycle'}">公众号回收站</a></li>
 	{/if}
 </ul>
@@ -11,7 +11,7 @@
 		<div class="alert alert-warning">
 			温馨提示：
 			<i class="fa fa-info-circle"></i>
-			Hi，<span class="text-strong">{$_W['username']}</span>，您所在的会员组： <span class="text-strong">{$account_info['group_name']}</span>，
+			Hi，<span class="text-strong">{$_W['username']}</span>，您所在的会员组： <span class="text-strong">{$account_info['group_name']}</span>，{if !user_is_vice_founder() && !empty($account_info['vice_group_name'])} <span class="text-strong">{$account_info['vice_group_name']}，</span>{/if}
 			账号有效期限：<span class="text-strong">{php echo date('Y-m-d', $_W['user']['starttime'])} ~~ {if empty($_W['user']['endtime'])}无限制{else}{php echo date('Y-m-d', $_W['user']['endtime'])}{/if}</span>，
 			可创建 <span class="text-strong">{$account_info['maxaccount']} </span>个公众号，已创建<span class="text-strong"> {$account_info['uniacid_num']} </span>个，还可创建 <span class="text-strong">{$account_info['uniacid_limit']} </span>个公众号。
 		</div>
@@ -37,14 +37,45 @@
 	<col width="100px"/>
 	<col width="260px" />
 	<tr>
+		<th colspan="5" class="text-left filter">
+			<div class="dropdown dropdown-toggle we7-dropdown">
+				<a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					时间排序
+					<span class="caret"></span>
+				</a>
+				<ul class="dropdown-menu" aria-labelledby="dLabel">
+					<li><a href="{php echo filter_url('order:asc');}" class="active">创建时间正序</a></li>
+					<li><a href="{php echo filter_url('order:desc');}">创建时间倒序</a></li>
+				</ul>
+			</div>
+			<div class="dropdown dropdown-toggle we7-dropdown">
+				<a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					公众号筛选
+					<span class="caret"></span>
+				</a>
+				<ul class="dropdown-menu" aria-labelledby="dLabel">
+					<li><a href="{php echo filter_url('type:all');}" class="active">全部公众号</a></li>
+					<li><a href="{php echo filter_url('type:expire');}" class="active">公众号已到期</a></li>
+					<li><a href="{php echo filter_url('type:noconnect');}" class="active">未接入公众号</a></li>
+				</ul>
+			</div>
+		</th>
+	</tr>
+	<tr>
 		<th colspan="2" class="text-left">帐号</th>
 		<th>有效期</th>
 		<th>短信数(条)</th>
 		<th class="text-right">操作</th>
 	</tr>
 	<tr class="color-gray" ng-repeat="list in lists">
-		<td class="text-left">
-			<img ng-src="{{list.logo}}" class="img-responsive icon">
+		<td class="text-left td-link">
+			{if $role_type}
+			<a ng-href="{{links.post}}&acid={{list.acid}}&uniacid={{list.uniacid}}&account_type={{list.type}}">
+			{else}
+			<a href="javascript:;">
+			{/if}
+				<img ng-src="{{list.logo}}" class="img-responsive icon">
+			</a>
 		</td>
 		<td class="text-left">
 			<p class="color-dark" ng-bind="list.name"></p>
@@ -62,18 +93,18 @@
 		<td class="vertical-middle table-manage-td">
 			<div class="link-group">
 				<a ng-href="{{links.switch}}uniacid={{list.uniacid}}">进入公众号</a>
-				{if in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER))}
+				{if $role_type}
 				<a ng-href="{{links.post}}&acid={{list.acid}}&uniacid={{list.uniacid}}&account_type={{list.type}}" ng-show="list.role == 'manager' || list.role == 'owner' || list.role == 'founder'|| list.role == 'vice_founder'">管理设置</a>
 				{/if}
 			</div>
-			{if in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER))}
+			{if $role_type}
 			<div class="manage-option text-right">
 				<a href="{{links.post}}&acid={{list.acid}}&uniacid={{list.uniacid}}&account_type={{list.type}}">基础信息</a>
 				<a href="{{links.post}}&do=sms&uniacid={{list.uniacid}}&acid={{list.acid}}&account_type={{list.type}}">短信信息</a>
 				<a href="{{links.postUser}}&do=edit&uniacid={{list.uniacid}}&acid={{list.acid}}&account_type={{list.type}}">使用者管理</a>
 				<a href="{{links.post}}&do=modules_tpl&uniacid={{list.uniacid}}&acid={{list.acid}}&account_type={{list.type}}">可用应用模板/模块</a>
 				{if $_W['role'] != ACCOUNT_MANAGE_NAME_MANAGER}
-				<a ng-href="{{links.del}}&acid={{list.acid}}&uniacid={{list.uniacid}}" ng-show="list.role == 'owner' || list.role == 'founder'" onclick="if(!confirm('确认放入回收站吗？')) return false;" class="del">停用</a>
+				<a ng-href="{{links.del}}&acid={{list.acid}}&uniacid={{list.uniacid}}" ng-show="list.role == 'owner' || list.role == 'founder' || list.role == 'vice_founder'" onclick="if(!confirm('确认放入回收站吗？')) return false;" class="del">停用</a>
 				{/if}
 			</div>
 			{/if}

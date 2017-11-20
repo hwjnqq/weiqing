@@ -5,14 +5,14 @@
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
-error_reporting(0);
-checklogin();// 验证登录
-global $_W;
+
 load()->func('file');
 load()->func('communication');
 load()->model('account');
 load()->model('material');
+load()->model('attachment');
 load()->model('mc');
+
 if (!in_array($do, array('upload', 'fetch', 'browser', 'delete', 'image' ,'module' ,'video', 'voice', 'news', 'keyword',
 	'networktowechat', 'networktolocal', 'towechat', 'tolocal','wechat_upload'))) {
 	exit('Access Denied');
@@ -23,12 +23,14 @@ $result = array(
 	'data' => '' 
 );
 
+error_reporting(0);
 $type  =  $_GPC['upload_type'];//$_COOKIE['__fileupload_type'];
 $type = in_array($type, array('image','audio','video')) ? $type : 'image';
 $option = array();
 $option = array_elements(array('uploadtype', 'global', 'dest_dir'), $_POST);
 $option['width'] = intval($option['width']);
 $option['global'] = $_GPC['global'];//!empty($_COOKIE['__fileupload_global']);
+$quality = intval($_GPC['quality']);
 if (!empty($option['global']) && empty($_W['isfounder'])) {
 	$result['message'] = '没有向 global 文件夹上传文件的权限.';
 	die(json_encode($result));
@@ -44,9 +46,19 @@ if (preg_match('/^[a-zA-Z0-9_\/]{0,50}$/', $dest_dir, $out)) {
 } else {
 	$dest_dir = '';
 }
+$module_upload_dir = '';
+if($dest_dir != '') {
+	$module_upload_dir = sha1($dest_dir);
+}
 
 $setting = $_W['setting']['upload'][$type];
 $uniacid = intval($_W['uniacid']);
+
+if(isset($_GPC['uniacid'])) { //是否有强制指定uniacid
+	$requniacid = intval($_GPC['uniacid']);
+	attachment_reset_uniacid($requniacid);// 会改变$_W['uniacid'];
+	$uniacid = intval($_W['uniacid']);
+}
 
 // 设置多媒体上传目录
 if (!empty($option['global'])) {
@@ -126,8 +138,11 @@ if ($do == 'upload') {
 	$ext = strtolower($ext);
 	$size = intval($_FILES['file']['size']);
 	$originname = $_FILES['file']['name'];
+
 	$filename = file_random_name(ATTACHMENT_ROOT . '/' . $setting['folder'], $ext);
-	$file = file_upload($_FILES['file'], $type, $setting['folder'] . $filename);
+
+	$file = file_upload($_FILES['file'], $type, $setting['folder'] . $filename, $quality);
+
 	if (is_error($file)) {
 		$result['message'] = $file['message'];
 		die(json_encode($result));
@@ -180,6 +195,9 @@ if ($do == 'fetch' || $do == 'upload') {
 		$size = filesize($fullname);
 		$info['size'] = sizecount($size);
 	}
+	if (!empty($_W['setting']['remote'][$_W['uniacid']]['type'])) {
+		$_W['setting']['remote'] = $_W['setting']['remote'][$_W['uniacid']];
+	}
 	if (!empty($_W['setting']['remote']['type'])) {
 		$remotestatus = file_remote_upload($pathname);
 		if (is_error($remotestatus)) {
@@ -197,8 +215,10 @@ if ($do == 'fetch' || $do == 'upload') {
 		'filename' => $originname,
 		'attachment' => $pathname,
 		'type' => $type == 'image' ? 1 : ($type == 'audio'||$type == 'voice' ? 2 : 3),
-		'createtime' => TIMESTAMP 
+		'createtime' => TIMESTAMP,
+		'module_upload_dir' => $module_upload_dir
 	));
+	$info['state'] = 'SUCCESS';//兼容ueditor 拖动上传
 	die(json_encode($info));
 }
 
@@ -357,7 +377,7 @@ if ($do == 'wechat_upload') {
 	}
 
 	$filename = file_random_name(ATTACHMENT_ROOT .'/'. $setting['folder'], $ext);
-	$file = file_wechat_upload($_FILES['file'], $type, $setting['folder'] . $filename);
+	$file = file_wechat_upload($_FILES['file'], $type, $setting['folder'] . $filename, $quality);
 	if (is_error($file)) {
 		$result['message'] = $file['message'];
 		die(json_encode($result));
@@ -453,7 +473,8 @@ if ($do == 'wechat_upload') {
 		'media_id' => $result['media_id'],
 		'type' => $type,
 		'model' => $mode,
-		'createtime' => TIMESTAMP
+		'createtime' => TIMESTAMP,
+		'module_upload_dir' => $module_upload_dir
 	);
 	if($type == 'image' || $type == 'thumb') {
 		$size = getimagesize($fullname);
@@ -492,7 +513,6 @@ if ($do == 'wechat_upload') {
 /*******************素材资源管理**********************/
 $type = $_GPC['type']; //资源转换 $type
 $resourceid = intval($_GPC['resource_id']); //资源ID
-$uniacid = intval($_W['uniacid']);
 $uid = intval($_W['uid']);
 $acid = intval($_W['acid']);
 $url = $_GPC['url'];
@@ -579,8 +599,8 @@ if ($do == 'image') {
 	if ($islocal) { // 如果读取本地图
 		$page = $_GPC['page'];
 		$page = max(1, $page);
-		$condition = ' WHERE uniacid = :uniacid AND type = :type';
-		$params = array(':uniacid' => $uniacid, ':type' => 1);
+		$condition = ' WHERE uniacid = :uniacid AND type = :type AND module_upload_dir = :module_upload_dir';
+		$params = array(':uniacid' => $uniacid, ':type' => 1, ':module_upload_dir' => $module_upload_dir);
 
 		$year = $_GPC['year'];
 		$month = $_GPC['month'];
@@ -605,9 +625,13 @@ if ($do == 'image') {
 	} else {
 		$page = $_GPC['page'];
 		$page_index = max(1, $page);
-		$material_news_list = material_list('image', MATERIAL_WEXIN, array('page_index' => $page_index, 'page_size' => $page_size));
-		$material_list = $material_news_list['material_list'];
-		$pager = $material_news_list['page'];
+		$conditions['uniacid'] = $uniacid;
+		$conditions['type'] = 'image';
+		$conditions['module_upload_dir'] = $module_upload_dir;
+		$conditions['uniacid'] = $uniacid;
+		$material_list = pdo_getslice('wechat_attachment', $conditions, array($page_index, $page_size), $total, array(), '', 'createtime DESC');
+		$pager = pagination($total, $page_index, $page_size,'',$context = array('before' => 5, 'after' => 4, 'isajax' => $_W['isajax']));
+
 		foreach ($material_list as &$meterial) {
 			$meterial['attach'] = tomedia($meterial['attachment'], true);
 			$meterial['url'] = $meterial['attach'];

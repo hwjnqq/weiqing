@@ -307,7 +307,7 @@ function iserializer($value) {
  */
 function iunserializer($value) {
 	if (empty($value)) {
-		return '';
+		return array();
 	}
 	if (!is_serialized($value)) {
 		return $value;
@@ -318,8 +318,9 @@ function iunserializer($value) {
 			return 's:'.strlen($matchs[2]).':"'.$matchs[2].'";';
 		}, $value);
 		return unserialize($temp);
+	} else {
+		return $result;
 	}
-	return $result;
 }
 
 /**
@@ -419,43 +420,45 @@ function wurl($segment, $params = array()) {
 	return $url;
 }
 
-/**
- * 获取Mobile端URL地址
- * @param string $segment 路由参数
- * @param array $params 附加参数
- * @param boolean $noredirect 是否追加微信URl后缀
- */
-function murl($segment, $params = array(), $noredirect = true, $addhost = false) {
-	global $_W;
-	list($controller, $action, $do) = explode('/', $segment);
-	if (!empty($addhost)) {
-		$url = $_W['siteroot'] . 'app/';
-	} else {
-		$url = './';
-	}
-	$str = '';
-	if(uni_is_multi_acid()) {
-		$str = "&j={$_W['acid']}";
-	}
-	$url .= "index.php?i={$_W['uniacid']}{$str}&";
-	if (!empty($controller)) {
-		$url .= "c={$controller}&";
-	}
-	if (!empty($action)) {
-		$url .= "a={$action}&";
-	}
-	if (!empty($do)) {
-		$url .= "do={$do}&";
-	}
-	if (!empty($params)) {
-		$queryString = http_build_query($params, '', '&');
-		$url .= $queryString;
-		if ($noredirect === false) {
-			//加上后，表单提交无值
-			$url .= '&wxref=mp.weixin.qq.com#wechat_redirect';
+if (!function_exists('murl')) {
+	/**
+	 * 获取Mobile端URL地址
+	 * @param string $segment 路由参数
+	 * @param array $params 附加参数
+	 * @param boolean $noredirect 是否追加微信URl后缀
+	 */
+	function murl($segment, $params = array(), $noredirect = true, $addhost = false) {
+		global $_W;
+		list($controller, $action, $do) = explode('/', $segment);
+		if (!empty($addhost)) {
+			$url = $_W['siteroot'] . 'app/';
+		} else {
+			$url = './';
 		}
+		$str = '';
+		if(uni_is_multi_acid()) {
+			$str = "&j={$_W['acid']}";
+		}
+		$url .= "index.php?i={$_W['uniacid']}{$str}&";
+		if (!empty($controller)) {
+			$url .= "c={$controller}&";
+		}
+		if (!empty($action)) {
+			$url .= "a={$action}&";
+		}
+		if (!empty($do)) {
+			$url .= "do={$do}&";
+		}
+		if (!empty($params)) {
+			$queryString = http_build_query($params, '', '&');
+			$url .= $queryString;
+			if ($noredirect === false) {
+				//加上后，表单提交无值
+				$url .= '&wxref=mp.weixin.qq.com#wechat_redirect';
+			}
+		}
+		return $url;
 	}
-	return $url;
 }
 
 /**
@@ -636,6 +639,23 @@ function is_error($data) {
 	}
 }
 
+/**
+ * 检测敏感词
+ * @param $string
+ * @return bool
+ */
+function detect_sensitive_word($string) {
+	$setting = setting_load('sensitive_words');
+	if (empty($setting['sensitive_words'])) {
+		return false;
+	}
+	$sensitive_words = $setting['sensitive_words'];
+	$blacklist="/".implode("|",$sensitive_words)."/";
+	if(preg_match($blacklist, $string, $matches)){
+		return $matches[0];
+	}
+	return false;
+}
 /**
  * 获取引用页地址
  * @param string $default 默认地址
@@ -1354,9 +1374,8 @@ function getglobal($key) {
  * @param $needles 开头字符串
  * @return bool
  */
-if(!function_exists('starts_with')) {
-	function starts_with($haystack, $needles)
-	{
+if (!function_exists('starts_with')) {
+	function starts_with($haystack, $needles) {
 		foreach ((array) $needles as $needle) {
 			if ($needle != '' && substr($haystack, 0, strlen($needle)) === (string) $needle) {
 				return true;
@@ -1364,6 +1383,84 @@ if(!function_exists('starts_with')) {
 		}
 		return false;
 	}
+}
+
+/**
+ *  只能跳转到本域名下
+ *  跳转链接只能跳转本域名下 防止钓鱼 如: 用户可能正常从信任站点微擎登录 跳转到第三方网站 会误认为第三方网站也是安全的
+ * @param $redirect
+ * @return string
+ */
+function check_url_not_outside_link($redirect) {
+	global $_W;
+	if(starts_with($redirect, 'http') && !starts_with($redirect, $_W['siteroot'])) {
+		$redirect = $_W['siteroot'];
+	}
+	return $redirect;
+}
+
+/**
+ *  去掉可能造成xss攻击的字符
+ * @param $val $string 需处理的字符串
+ */
+function remove_xss($val) {
+	$val = preg_replace('/([\x0e-\x19])/', '', $val);
+	$search = 'abcdefghijklmnopqrstuvwxyz';
+	$search .= 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	$search .= '1234567890!@#$%^&*()';
+	$search .= '~`";:?+/={}[]-_|\'\\';
+	for ($i = 0; $i < strlen($search); $i++) {
+		$val = preg_replace('/(&#[xX]0{0,8}'.dechex(ord($search[$i])).';?)/i', $search[$i], $val);
+		$val = preg_replace('/(�{0,8}'.ord($search[$i]).';?)/', $search[$i], $val);
+	}
+	$ra1 = array('javascript', 'vbscript', 'expression', 'applet', 'meta', 'xml', 'blink', 'link', 'script', 'embed', 'object', 'frameset', 'ilayer', 'bgsound', 'title', 'base');
+	$ra2 = array('onabort', 'onactivate', 'onafterprint', 'onafterupdate', 'onbeforeactivate', 'onbeforecopy', 'onbeforecut', 'onbeforedeactivate', 'onbeforeeditfocus', 'onbeforepaste', 'onbeforeprint', 'onbeforeunload', 'onbeforeupdate', 'onblur', 'onbounce', 'oncellchange', 'onchange', 'onclick', 'oncontextmenu', 'oncontrolselect', 'oncopy', 'oncut', 'ondataavailable', 'ondatasetchanged', 'ondatasetcomplete', 'ondblclick', 'ondeactivate', 'ondrag', 'ondragend', 'ondragenter', 'ondragleave', 'ondragover', 'ondragstart', 'ondrop', 'onerror', 'onerrorupdate', 'onfilterchange', 'onfinish', 'onfocus', 'onfocusin', 'onfocusout', 'onhelp', 'onkeydown', 'onkeypress', 'onkeyup', 'onlayoutcomplete', 'onload', 'onlosecapture', 'onmousedown', 'onmouseenter', 'onmouseleave', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onmousewheel', 'onmove', 'onmoveend', 'onmovestart', 'onpaste', 'onpropertychange', 'onreadystatechange', 'onreset', 'onresize', 'onresizeend', 'onresizestart', 'onrowenter', 'onrowexit', 'onrowsdelete', 'onrowsinserted', 'onscroll', 'onselect', 'onselectionchange', 'onselectstart', 'onstart', 'onstop', 'onsubmit', 'onunload', 'import');
+	$ra = array_merge($ra1, $ra2);
+	$found = true;
+	while ($found == true) {
+		$val_before = $val;
+		for ($i = 0; $i < sizeof($ra); $i++) {
+			$pattern = '/';
+			for ($j = 0; $j < strlen($ra[$i]); $j++) {
+				if ($j > 0) {
+					$pattern .= '(';
+					$pattern .= '(&#[xX]0{0,8}([9ab]);)';
+					$pattern .= '|';
+					$pattern .= '|(�{0,8}([9|10|13]);)';
+					$pattern .= ')*';
+				}
+				$pattern .= $ra[$i][$j];
+			}
+			$pattern .= '/i';
+			$replacement = substr($ra[$i], 0, 2).'<x>'.substr($ra[$i], 2);
+			$val = preg_replace($pattern, $replacement, $val);
+			if ($val_before == $val) {
+				$found = false;
+			}
+		}
+	}
+	return $val;
+}
+
+function set_attach_url() {
+	global $_W;
+	$_W['attachurl'] = $_W['attachurl_local'] = $_W['siteroot'] . $_W['config']['upload']['attachdir'] . '/';
+	$_W['setting']['remote_complete_info'] = $_W['setting']['remote'];
+	if (!empty($_W['setting']['remote'][$_W['uniacid']]['type'])) {
+		$_W['setting']['remote'] = $_W['setting']['remote'][$_W['uniacid']];
+	}
+	if (!empty($_W['setting']['remote']['type'])) {
+		if ($_W['setting']['remote']['type'] == ATTACH_FTP) {
+			$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['ftp']['url'] . '/';
+		} elseif ($_W['setting']['remote']['type'] == ATTACH_OSS) {
+			$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['alioss']['url'] . '/';
+		} elseif ($_W['setting']['remote']['type'] == ATTACH_QINIU) {
+			$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['qiniu']['url'] . '/';
+		} elseif ($_W['setting']['remote']['type'] == ATTACH_COS) {
+			$_W['attachurl'] = $_W['attachurl_remote'] = $_W['setting']['remote']['cos']['url'] . '/';
+		}
+	}
+	return true;
 }
 
 
