@@ -11,11 +11,14 @@ check_params();
 $uid = mc_openid2uid($_W['openid']);
 
 if ($op == 'card_recharge') {
-	$card_member_info = pdo_get('storex_mc_card_members', array('uniacid' => $_W['uniacid'], 'openid' => $_W['openid']), array('id'));
+	$card_member_info = pdo_get('storex_mc_card_members', array('uniacid' => $_W['uniacid'], 'openid' => $_W['openid']), array('id', 'status'));
 	$card_setting = card_setting_info();
 	$recharge_lists = array();
 	$type = $_GPC['type'];
 	if (!empty($card_member_info)) {
+		if (empty($card_member_info['status'])) {
+			wmessage(error(-1, '会员卡已禁用，请联系管理员'), '', 'ajax');
+		}
 		if (!empty($type)) {
 			if ($type == 'nums') {
 				$nums_recharge = $card_setting['params']['cardNums'] ? $card_setting['params']['cardNums'] : array();
