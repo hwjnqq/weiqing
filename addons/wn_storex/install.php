@@ -115,6 +115,7 @@ $sql = "
 	`status` int(11) DEFAULT '0',
 	`mode_distribute` int(11) NOT NULL COMMENT '配送方式  1自提 ，2配送',
 	`track_number` varchar(64) NOT NULL COMMENT '物流单号',
+	`express_type` varchar(100) NOT NULL DEFAULT '' COMMENT '快递类型',
 	`express_name` varchar(50) NOT NULL COMMENT '物流类型',
 	`order_time` int(11) NOT NULL DEFAULT '0' COMMENT '自提是自提时间，配送是配送时间',
 	`addressid` int(11) NOT NULL COMMENT '配送选择的地址id',
