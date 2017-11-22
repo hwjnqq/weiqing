@@ -272,24 +272,29 @@ if ($op == 'info') {
 	}
 	$order_goods = array();
 	if ($store_info['store_type'] == STORE_TYPE_HOTEL) {
-		$condition = array('weid' => intval($_W['uniacid']), 'status' => 1, 'store_base_id' => $store_id);
-		$table = gettablebytype($store_info['store_type']);
-		$condition['id'] = $goodsid;
-		$goods_info = pdo_get($table, $condition);
-		if (isset($goods_info['express_set'])) {
-			unset($goods_info['express_set']);
+		if (!empty($_GPC['goods'])) {
+			$goods = order_goodsids();
+			$order_goods = get_order_goods($store_info, $goods);
+		} else {
+			$condition = array('weid' => intval($_W['uniacid']), 'status' => 1, 'store_base_id' => $store_id);
+			$table = gettablebytype($store_info['store_type']);
+			$condition['id'] = $goodsid;
+			$goods_info = pdo_get($table, $condition);
+			if (isset($goods_info['express_set'])) {
+				unset($goods_info['express_set']);
+			}
+			if ($goods_info['is_house'] == 1) {
+				$days = ceil((strtotime($_GPC['etime']) - strtotime($_GPC['btime']))/86400);
+				$dates = get_dates($_GPC['btime'], $days);
+				$search_data = array(
+						'btime' => $_GPC['btime'],
+						'etime' => $_GPC['etime'],
+						'nums' => $_GPC['nums'],
+				);
+				$goods_info = calcul_roon_sumprice($dates, $search_data, $goods_info);
+			}
+			$order_goods = $goods_info;
 		}
-		if ($goods_info['is_house'] == 1) {
-			$days = ceil((strtotime($_GPC['etime']) - strtotime($_GPC['btime']))/86400);
-			$dates = get_dates($_GPC['btime'], $days);
-			$search_data = array(
-				'btime' => $_GPC['btime'],
-				'etime' => $_GPC['etime'],
-				'nums' => $_GPC['nums'],
-			);
-			$goods_info = calcul_roon_sumprice($dates, $search_data, $goods_info);
-		}
-		$order_goods = $goods_info;
 	} else {
 		$goods = order_goodsids($uid);
 		if (!empty($goods) && is_array($goods)) {
@@ -387,7 +392,7 @@ if ($op == 'order') {
 		}
 		$selected_coupon['coupon_info'] = $coupon_info;
 	}
-	if ($store_info['store_type'] == STORE_TYPE_HOTEL) {
+	if ($store_info['store_type'] == STORE_TYPE_HOTEL && empty($_GPC['goods'])) {
 		if (intval($_GPC['order']['nums']) <= 0) {
 			wmessage(error(-1, '数量不能是零'), '', 'ajax');
 		}
@@ -417,35 +422,32 @@ function get_goods_comments($store_id, $goodsid, $limit = array()) {
 
 function order_goodsids($uid = '') {
 	global $_GPC;
-	$goods = array();
-	if ($store_info['store_type'] != STORE_TYPE_HOTEL) {
-		//goods  商品或规格id|数量|是不是规格,商品或规格id|数量|是不是规格1规格，2普通，3套餐
-		$goods = trim($_GPC['goods'], ',');
-		if (empty($goods)) {
-			wmessage(error(-1, '商品不能是空'), '', 'ajax');
-		}
-		$goods = explode(',', $goods);
-		if (!empty($uid) && $_GPC['is_cart'] == 1) {
-			$cart = pdo_get('storex_cart', array('storeid' => intval($_GPC['id']), 'uid' => $uid));
-			if (!empty($cart)) {
-				$cart['goods'] = iunserializer($cart['goods']);
-				$cart_goods = array();
-				foreach ($cart['goods'] as $cg) {
-					$cart_goods[] = $cg['id'] . '|' . $cg['nums'] . '|' . $cg['is_spec'];
-				}
-				$goods = array_intersect($goods, $cart_goods);
-			}
-		}
-		if (!empty($goods) && is_array($goods)) {
-			foreach ($goods as &$g) {
-				$g = explode('|', $g);
-				if (empty($g[1]) || $g[1] < 0) {
-					wmessage(error(-1, '数量错误'), '', 'ajax');
-				}
-			}
-		}
-		unset($g);
+	//goods  商品或规格id|数量|是不是规格,商品或规格id|数量|是不是规格1规格，2普通，3套餐
+	$goods = trim($_GPC['goods'], ',');
+	if (empty($goods)) {
+		wmessage(error(-1, '商品不能是空'), '', 'ajax');
 	}
+	$goods = explode(',', $goods);
+	if (!empty($uid) && $_GPC['is_cart'] == 1) {
+		$cart = pdo_get('storex_cart', array('storeid' => intval($_GPC['id']), 'uid' => $uid));
+		if (!empty($cart)) {
+			$cart['goods'] = iunserializer($cart['goods']);
+			$cart_goods = array();
+			foreach ($cart['goods'] as $cg) {
+				$cart_goods[] = $cg['id'] . '|' . $cg['nums'] . '|' . $cg['is_spec'];
+			}
+			$goods = array_intersect($goods, $cart_goods);
+		}
+	}
+	if (!empty($goods) && is_array($goods)) {
+		foreach ($goods as &$g) {
+			$g = explode('|', $g);
+			if (empty($g[1]) || $g[1] < 0) {
+				wmessage(error(-1, '数量错误'), '', 'ajax');
+			}
+		}
+	}
+	unset($g);
 	return $goods;
 }
 
@@ -596,11 +598,9 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 	$goods = order_goodsids();
 	
 	$insert = get_order_info($insert);
-	if ($store_info['store_type'] != STORE_TYPE_HOTEL) {
-		$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('id', 'agentid'));
-		if (!empty($member)) {
-			$insert['agentid'] = $member['agentid'];
-		}
+	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('id', 'agentid'));
+	if (!empty($member)) {
+		$insert['agentid'] = $member['agentid'];
 	}
 // 	if (!empty($_GPC['order']['mode_distribute']) && $_GPC['order']['mode_distribute'] != 2) {
 // 		$error = check_order_info($store_info, $insert);
