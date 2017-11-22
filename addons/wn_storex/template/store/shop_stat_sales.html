@@ -23,9 +23,16 @@
 					{php echo tpl_form_field_daterange('time', array('starttime' => date('Y-m-d', $starttime),'endtime' => date('Y-m-d', $endtime)));}
 				</form>
 			</div>
+			<div class="wn-dashboard">
+				<div class="wn-dashboard__order wn-flex">
+					<div class="wn-flex__item">
+						<p>{php echo date('Y-m-d', $starttime)}--{php echo date('Y-m-d', $endtime)}</p>
+						<span>总金额（元）：{$total_sales}</span>
+					</div>
+				</div>
+			</div>
 			<div class="panel-body">
 				<div id="myChart" style="height: 500px"></div>
-				<h4 style="">总金额：{$total_sales}</h4>
 				<table class="table table-hover table-bordered wn-table" >
 					<thead class="navbar-inner">
 					<tr>
