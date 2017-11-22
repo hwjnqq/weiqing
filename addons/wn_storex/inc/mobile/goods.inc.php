@@ -294,7 +294,11 @@ if ($op == 'info') {
 			);
 			$goods_info = calcul_roon_sumprice($dates, $search_data, $goods_info);
 		}
-		$order_goods = $goods_info;
+		if (!empty($_GPC['goods'])) {
+			$order_goods[] = $goods_info;
+		} else {
+			$order_goods = $goods_info;
+		}
 	} else {
 		$goods = order_goodsids($uid);
 		if (!empty($goods) && is_array($goods)) {
