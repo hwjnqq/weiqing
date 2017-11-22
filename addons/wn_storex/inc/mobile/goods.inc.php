@@ -672,7 +672,7 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 		}
 	}
 	$insert['ordersn'] = date('md') . sprintf("%04d", $_W['fans']['fanid']) . random(4, 1);
-	if (empty($group)) {
+	if (empty($group) && $store_info['store_type'] != STORE_TYPE_HOTEL) {
 		$a_condition = array('status' => 1, 'storeid' => $store_info['id'], 'uniacid' => $_W['uniacid'], 'starttime <=' => TIMESTAMP, 'endtime >' => TIMESTAMP);
 		foreach ($order_goods as $val) {
 			if ($val['param'][2] != 3) {
