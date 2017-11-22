@@ -76,11 +76,14 @@ if ($op == 'sales_stat') {
 		$sales_stat[$key] = 0;
 	}
 	$sales_list = pdo_getall('storex_sales', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid), array('date', 'cumulate'));
+	$total_sales = 0;
 	if (!empty($sales_list) && is_array($sales_list)) {
 		foreach ($sales_list as $key => $value) {
 			if (!empty($value['date']) && strtotime($value['date']) >= $starttime && strtotime($value['date']) <= $endtime) {
 				$sales_stat[$value['date']] = $value['cumulate'];
+				$total_sales += $value['cumulate'];
 			}
+			
 		}
 	}
 	$chart_data['label'] = array_keys($sales_stat);
