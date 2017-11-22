@@ -311,7 +311,8 @@ if ($op == 'edit') {
 			}
 		}
 	}
-	$express = express_name();
+	mload()->model('express');
+	$express = express_type();
 	if ($_W['isajax'] && $_W['ispost']) {
 		$all_actions = array('cancel', 'refund', 'refuse', 'confirm', 'send', 'live', 'over');
 		$data = array(
@@ -602,10 +603,16 @@ if ($op == 'deleteall') {
 }
 
 if ($op == 'edit_msg') {
+	mload()->model('express');
+	if (empty($_GPC['track_number']) || empty($_GPC['express_type'])) {
+		message('请填写快递及单号', referer(), 'error');
+	}
+	$express_name = express_type($_GPC['express_type']);
 	$data = array(
 		'msg' => trim($_GPC['msg']),
 		'track_number' => trim($_GPC['track_number']),
-		'express_name' => trim($_GPC['express_name']),
+		'express_name' => $express_name,
+		'express_type' => trim($_GPC['express_type']),
 	);
 	$order = pdo_get('storex_order', array('id' => intval($_GPC['id'])), array('id'));
 	if (empty($order)) {

@@ -301,15 +301,15 @@ if ($_GPC['do'] == 'shop_settings' && $_GPC['op'] == 'post' && $_GPC['action'] =
 if ($_W['wn_storex']['store_info']['store_type'] == 1) {
 	unset($aside_nav['shop_agent']);
 	if ($_GPC['do'] == 'shop_agent' || $_GPC['do'] == 'shop_agent_level') {
-		message('酒店暂时没有销售员功能', referer(), 'error');
+		message('酒店没有销售员功能', referer(), 'error');
 	}
-	unset($aside_nav['shop_spec']);
+	unset($sub_menu['shop_spec']);
 	if ($_GPC['do'] == 'shop_spec' || $_GPC['do'] == 'shop_spec_value' || $_GPC['do'] == 'shop_goods_spec') {
-		message('酒店暂时没有规格功能', referer(), 'error');
+		message('酒店没有规格功能', referer(), 'error');
 	}
 	unset($aside_nav['shop_activity']);
 	if ($_GPC['do'] == 'shop_activity') {
-		message('酒店暂时没有活动功能', referer(), 'error');
+		message('酒店没有活动功能', referer(), 'error');
 	}
 }
 
