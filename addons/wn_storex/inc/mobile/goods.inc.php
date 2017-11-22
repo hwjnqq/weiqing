@@ -274,7 +274,12 @@ if ($op == 'info') {
 	if ($store_info['store_type'] == STORE_TYPE_HOTEL) {
 		$condition = array('weid' => intval($_W['uniacid']), 'status' => 1, 'store_base_id' => $store_id);
 		$table = gettablebytype($store_info['store_type']);
-		$condition['id'] = $goodsid;
+		if (!empty($_GPC['goods'])) {
+			$goods_id_param = explode(',', $_GPC['goods']);
+			$condition['id'] = $goods_id_param[0];
+		} else {
+			$condition['id'] = $goodsid;
+		}
 		$goods_info = pdo_get($table, $condition);
 		if (isset($goods_info['express_set'])) {
 			unset($goods_info['express_set']);
