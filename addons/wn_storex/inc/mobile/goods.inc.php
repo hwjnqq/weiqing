@@ -387,7 +387,7 @@ if ($op == 'order') {
 		}
 		$selected_coupon['coupon_info'] = $coupon_info;
 	}
-	if ($store_info['store_type'] == STORE_TYPE_HOTEL) {
+	if ($store_info['store_type'] == STORE_TYPE_HOTEL && empty($_GPC['goods'])) {
 		if (intval($_GPC['order']['nums']) <= 0) {
 			wmessage(error(-1, '数量不能是零'), '', 'ajax');
 		}
@@ -417,35 +417,32 @@ function get_goods_comments($store_id, $goodsid, $limit = array()) {
 
 function order_goodsids($uid = '') {
 	global $_GPC;
-	$goods = array();
-	if ($store_info['store_type'] != STORE_TYPE_HOTEL) {
-		//goods  商品或规格id|数量|是不是规格,商品或规格id|数量|是不是规格1规格，2普通，3套餐
-		$goods = trim($_GPC['goods'], ',');
-		if (empty($goods)) {
-			wmessage(error(-1, '商品不能是空'), '', 'ajax');
-		}
-		$goods = explode(',', $goods);
-		if (!empty($uid) && $_GPC['is_cart'] == 1) {
-			$cart = pdo_get('storex_cart', array('storeid' => intval($_GPC['id']), 'uid' => $uid));
-			if (!empty($cart)) {
-				$cart['goods'] = iunserializer($cart['goods']);
-				$cart_goods = array();
-				foreach ($cart['goods'] as $cg) {
-					$cart_goods[] = $cg['id'] . '|' . $cg['nums'] . '|' . $cg['is_spec'];
-				}
-				$goods = array_intersect($goods, $cart_goods);
-			}
-		}
-		if (!empty($goods) && is_array($goods)) {
-			foreach ($goods as &$g) {
-				$g = explode('|', $g);
-				if (empty($g[1]) || $g[1] < 0) {
-					wmessage(error(-1, '数量错误'), '', 'ajax');
-				}
-			}
-		}
-		unset($g);
+	//goods  商品或规格id|数量|是不是规格,商品或规格id|数量|是不是规格1规格，2普通，3套餐
+	$goods = trim($_GPC['goods'], ',');
+	if (empty($goods)) {
+		wmessage(error(-1, '商品不能是空'), '', 'ajax');
 	}
+	$goods = explode(',', $goods);
+	if (!empty($uid) && $_GPC['is_cart'] == 1) {
+		$cart = pdo_get('storex_cart', array('storeid' => intval($_GPC['id']), 'uid' => $uid));
+		if (!empty($cart)) {
+			$cart['goods'] = iunserializer($cart['goods']);
+			$cart_goods = array();
+			foreach ($cart['goods'] as $cg) {
+				$cart_goods[] = $cg['id'] . '|' . $cg['nums'] . '|' . $cg['is_spec'];
+			}
+			$goods = array_intersect($goods, $cart_goods);
+		}
+	}
+	if (!empty($goods) && is_array($goods)) {
+		foreach ($goods as &$g) {
+			$g = explode('|', $g);
+			if (empty($g[1]) || $g[1] < 0) {
+				wmessage(error(-1, '数量错误'), '', 'ajax');
+			}
+		}
+	}
+	unset($g);
 	return $goods;
 }
 
@@ -596,11 +593,9 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 	$goods = order_goodsids();
 	
 	$insert = get_order_info($insert);
-	if ($store_info['store_type'] != STORE_TYPE_HOTEL) {
-		$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('id', 'agentid'));
-		if (!empty($member)) {
-			$insert['agentid'] = $member['agentid'];
-		}
+	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('id', 'agentid'));
+	if (!empty($member)) {
+		$insert['agentid'] = $member['agentid'];
 	}
 // 	if (!empty($_GPC['order']['mode_distribute']) && $_GPC['order']['mode_distribute'] != 2) {
 // 		$error = check_order_info($store_info, $insert);
