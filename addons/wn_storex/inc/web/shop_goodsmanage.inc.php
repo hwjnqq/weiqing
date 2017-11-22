@@ -106,11 +106,9 @@ if ($op == 'edit') {
 		}
 		$piclist = iunserializer($item['thumbs']);
 		$user_defined = get_goods_defined($storeid, $id);
-		if ($store_type != STORE_TYPE_HOTEL) {
-			$agent_ratio = iunserializer($item['agent_ratio']);
-			if (empty($agent_ratio['1']) || empty($agent_ratio['2']) || empty($agent_ratio['3'])) {
-				$agent_ratio = array('1' => 0, '2' => 0, '3' => 0);
-			}
+		$agent_ratio = iunserializer($item['agent_ratio']);
+		if (empty($agent_ratio['1']) || empty($agent_ratio['2']) || empty($agent_ratio['3'])) {
+			$agent_ratio = array('1' => 0, '2' => 0, '3' => 0);
 		}
 		$goods_express = $_W['wn_storex']['store_info']['goods_express'];
 	} else {
@@ -203,16 +201,6 @@ if ($op == 'edit') {
 				'express' => is_numeric($_GPC['express']) ? $_GPC['express'] : 0,
 			);
 			$goods['express_set'] = iserializer($express_set);
-			if ($store['agent_status'] == 1 && !empty($_GPC['agent_ratio']) && is_array($_GPC['agent_ratio'])) {
-				$agent_ratio = $_GPC['agent_ratio'];
-				foreach ($agent_ratio as &$val) {
-					if ($val < 0 || $val > 100) {
-						message('分销员分销比例填写错误', referer(), 'error');
-					}
-					$val = sprintf('%.2f', $val);
-				}
-				$goods['agent_ratio'] = iserializer($agent_ratio);
-			}
 			$data = array_merge($goods, $common);
 		} else {
 			$room = array(
@@ -233,6 +221,16 @@ if ($op == 'edit') {
 				'is_house' => $is_house,
 			);
 			$data = array_merge($room, $common);
+		}
+		if ($store['agent_status'] == 1 && !empty($_GPC['agent_ratio']) && is_array($_GPC['agent_ratio'])) {
+			$agent_ratio = $_GPC['agent_ratio'];
+			foreach ($agent_ratio as &$val) {
+				if ($val < 0 || $val > 100) {
+					message('分销员分销比例填写错误', referer(), 'error');
+				}
+				$val = sprintf('%.2f', $val);
+			}
+			$data['agent_ratio'] = iserializer($agent_ratio);
 		}
 		if (empty($id)) {
 			pdo_insert($table, $data);

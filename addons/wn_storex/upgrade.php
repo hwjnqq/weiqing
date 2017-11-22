@@ -1179,6 +1179,9 @@ if (!pdo_fieldexists('storex_order', 'agentid')) {
 if (!pdo_fieldexists('storex_goods', 'agent_ratio')) {
 	pdo_query("ALTER TABLE " . tablename('storex_goods') . " ADD `agent_ratio` VARCHAR(300) NOT NULL COMMENT '分销比例';");
 }
+if (!pdo_fieldexists('storex_room', 'agent_ratio')) {
+	pdo_query("ALTER TABLE " . tablename('storex_room') . " ADD `agent_ratio` VARCHAR(300) NOT NULL COMMENT '分销比例';");
+}
 if (!pdo_fieldexists('storex_order', 'is_package')) {
 	pdo_query("ALTER TABLE " . tablename('storex_order') . " ADD `is_package` TINYINT(3) UNSIGNED NOT NULL DEFAULT '1' COMMENT '是否为套餐，1是普通商品，2是套餐';");
 }

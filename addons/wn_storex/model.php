@@ -1466,6 +1466,7 @@ function get_share_data($type, $param = array(), $share = array()) {
 	if (!empty($agent)) {
 		$link = '&agentid=' . $agent['id'];
 	}
+	$store_info = pdo_get('storex_bases', array('id' => $param['storeid']), array('title', 'location_p', 'location_c', 'location_a', 'phone', 'mail', 'store_type'));
 	if (!empty($type)) {
 		$share_set = pdo_get('storex_share_set', array('type' => $type, 'storeid' => $param['storeid'], 'uniacid' => $_W['uniacid'], 'status' => 1));
 		if (!empty($share_set)) {
@@ -1475,7 +1476,6 @@ function get_share_data($type, $param = array(), $share = array()) {
 				'link' => $share_set['link'],
 				'imgUrl' => tomedia($share_set['thumb'])
 			);
-			$store_info = pdo_get('storex_bases', array('id' => $param['storeid']), array('title', 'location_p', 'location_c', 'location_a', 'phone', 'mail', 'store_type'));
 			$data = array();
 			if ($type == 'homepage') {
 				$fields = array('title', 'province', 'city', 'town', 'phone', 'mail');
@@ -1537,6 +1537,9 @@ function get_share_data($type, $param = array(), $share = array()) {
 				}
 			}
 		}
+	}
+	if ($store_info['store_type'] == STORE_TYPE_HOTEL) {
+		$share['link'] = murl('entry', array('do' => 'display', 'id' => $param['storeid'], 'm' => 'wn_storex', 'type' => 'storeindex'), true, true);
 	}
 	$share['link'] .= $link;
 	return $share;
