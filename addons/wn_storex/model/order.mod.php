@@ -72,9 +72,9 @@ function orders_check_status($item) {
 	$item['is_pay'] = 2;//立即付款 is_pay
 	$item['is_send'] = 2;//代发货状态is_send
 	$item['is_confirm'] = 2;//确认收货is_confirm
+	$item['is_checked'] = 2;//在待入住中
 	$item['is_comment'] = 2;//显示评价is_comment
 	
-
 	$item['is_cancel'] = 2;//取消订单is_cancel
 	$item['is_over'] = 2;//再来一单is_over	
 	$item['is_refund'] = 2;//显示退款is_refund
@@ -97,11 +97,13 @@ function orders_check_status($item) {
 	} elseif ($item['status'] == ORDER_STATUS_SURE) {//已确认
 		if ($item['store_type'] == STORE_TYPE_HOTEL) {//酒店
 			if (!empty($room)) {
+				$item['is_cancel'] = 1;
 				if ($item['paystatus'] == PAY_STATUS_UNPAID) {
 					$item['is_pay'] = 1;
-				}
-				if ($item['goods_status'] == GOODS_STATUS_NOT_CHECKED || empty($item['goods_status'])) {
-					$item['is_cancel'] = 1;
+				} else {
+					if ($item['goods_status'] == GOODS_STATUS_NOT_CHECKED || empty($item['goods_status'])) {
+						$item['is_checked'] = 1;
+					}
 				}
 			}
 		} else {//非酒店
