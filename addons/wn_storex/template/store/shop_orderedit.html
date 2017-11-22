@@ -219,7 +219,7 @@
 							<select name="express_type" id="common_corp" class="form-control input-medium">
 								<option value="">其他快递</option>
 								{loop $express $type $value}
-								<option value="{$type}" {if $type == $item['type']} selected="selected" {/if}>{$value}</option>
+								<option value="{$type}" {if $type == $item['express_type']} selected="selected" {/if}>{$value}</option>
 								{/loop}
 							</select>
 							<span class="help-block">如果您选择了常用快递，则客户可以订单中查询快递信息，如果缺少您想要的快递，您可以联系我们! </span>

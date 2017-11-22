@@ -173,6 +173,12 @@ if ($op == 'order_detail') {
 			}
 		}
 	}
+	if ($order_info['mode_distribute'] == 2 && !empty($order_info['express_type']) && !empty($order_info['track_number'])) {
+		mload()->model('express');
+		$express_info = express_get($order_info['express_type'], $order_info['track_number']);
+		$express_info = array_reverse($express_info);
+		$order_info['express_info'] = $express_info;
+	}
 	//订单状态
 	$order_info = orders_check_status($order_info);
 	if ($order_info['mode_distribute'] != 2 && $order_info['status'] != -1 && $order_info['status'] != 2) {
