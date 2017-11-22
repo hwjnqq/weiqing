@@ -272,31 +272,27 @@ if ($op == 'info') {
 	}
 	$order_goods = array();
 	if ($store_info['store_type'] == STORE_TYPE_HOTEL) {
-		$condition = array('weid' => intval($_W['uniacid']), 'status' => 1, 'store_base_id' => $store_id);
-		$table = gettablebytype($store_info['store_type']);
 		if (!empty($_GPC['goods'])) {
-			$goods_id_param = explode(',', $_GPC['goods']);
-			$condition['id'] = $goods_id_param[0];
+			$goods = order_goodsids();
+			$order_goods = get_order_goods($store_info, $goods);
 		} else {
+			$condition = array('weid' => intval($_W['uniacid']), 'status' => 1, 'store_base_id' => $store_id);
+			$table = gettablebytype($store_info['store_type']);
 			$condition['id'] = $goodsid;
-		}
-		$goods_info = pdo_get($table, $condition);
-		if (isset($goods_info['express_set'])) {
-			unset($goods_info['express_set']);
-		}
-		if ($goods_info['is_house'] == 1) {
-			$days = ceil((strtotime($_GPC['etime']) - strtotime($_GPC['btime']))/86400);
-			$dates = get_dates($_GPC['btime'], $days);
-			$search_data = array(
-				'btime' => $_GPC['btime'],
-				'etime' => $_GPC['etime'],
-				'nums' => $_GPC['nums'],
-			);
-			$goods_info = calcul_roon_sumprice($dates, $search_data, $goods_info);
-		}
-		if (!empty($_GPC['goods'])) {
-			$order_goods[] = $goods_info;
-		} else {
+			$goods_info = pdo_get($table, $condition);
+			if (isset($goods_info['express_set'])) {
+				unset($goods_info['express_set']);
+			}
+			if ($goods_info['is_house'] == 1) {
+				$days = ceil((strtotime($_GPC['etime']) - strtotime($_GPC['btime']))/86400);
+				$dates = get_dates($_GPC['btime'], $days);
+				$search_data = array(
+						'btime' => $_GPC['btime'],
+						'etime' => $_GPC['etime'],
+						'nums' => $_GPC['nums'],
+				);
+				$goods_info = calcul_roon_sumprice($dates, $search_data, $goods_info);
+			}
 			$order_goods = $goods_info;
 		}
 	} else {
