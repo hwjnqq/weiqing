@@ -1252,7 +1252,7 @@ function storex_send_email($store_info, $insert, $goods_info) {
 	$emails = array_unique($emails);
 	if (!empty($emails) && is_array($emails) && false) {
 		foreach ($emails as $mail) {
-			$subject = "微信公共帐号 [" . $_W['account']['name'] . "] 万能小店订单提醒.";
+			$subject = "微信公共帐号 [" . $_W['account']['name'] . "] 订单提醒.";
 			$body = "您后台有一个预定订单: <br/><br/>";
 			$body .= "预定店铺: " . $store_info['title'] . "<br/>";
 			$body .= "预定商品: " . $goods_info['title'] . "<br/>";

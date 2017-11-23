@@ -211,7 +211,7 @@ function order_begin_refund($orderid) {
 		if (!empty($uid)) {
 			$log = array(
 				$uid,
-				"万能小店订单退款, 订单号:{$order['ordersn']}, 退款金额:{$order['sum_price']}元",
+				"订单退款, 订单号:{$order['ordersn']}, 退款金额:{$order['sum_price']}元",
 				'wn_storex'
 			);
 			mc_credit_update($uid, 'credit2', $order['sum_price'], $log);

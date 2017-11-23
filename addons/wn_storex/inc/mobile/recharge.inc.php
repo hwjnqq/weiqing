@@ -129,11 +129,11 @@ if ($op == 'recharge_add') {
 if ($op == 'recharge_pay') {
 	$charge_record = pdo_get('mc_credits_recharge', array('id' => intval($_GPC['id'])));
 	if ($charge_record['type'] == 'credit') {
-		$title = '万能小店余额充值';
+		$title = '余额充值';
 	} elseif ($charge_record['type'] == 'card_nums') {
-		$title = '万能小店会员卡次数充值';
+		$title = '会员卡次数充值';
 	} elseif ($charge_record['type'] == 'card_times') {
-		$title = '万能小店会员卡时间充值';
+		$title = '会员卡时间充值';
 	}
 	$params = array(
 		'tid' => $charge_record['tid'],

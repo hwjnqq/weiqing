@@ -382,7 +382,7 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 						$body .= '退房日期：' . date('Y-m-d', $order['etime']) . '<br />';
 					}
 					$body .= '总价:' . $order['sum_price'];
-					ihttp_email($mail, '万能小店订单提醒', $body);
+					ihttp_email($mail, '订单提醒', $body);
 				}
 			}
 			if (!empty($storex_bases['phones'])) {
@@ -392,7 +392,7 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 				foreach ($storex_bases['phones'] as $phone) {
 					cloud_prepare();
 					$body = 'df';
-					$body = '用户' . $order['name'] . ',电话:' . $order['mobile'] . '于' . date('m月d日H:i') . '成功支付万能小店订单' . $order['ordersn']
+					$body = '用户' . $order['name'] . ',电话:' . $order['mobile'] . '于' . date('m月d日H:i') . '成功支付订单' . $order['ordersn']
 					. ',总金额' . $order['sum_price'] . '元' . '.' . random(3);
 					cloud_sms_send($phone, $body);
 				}
