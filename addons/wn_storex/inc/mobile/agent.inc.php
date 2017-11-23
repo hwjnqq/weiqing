@@ -15,16 +15,18 @@ $uid = mc_openid2uid($_W['openid']);
 if ($op == 'display') {
 	$register_info = pdo_get('storex_agent_apply', array('uniacid' => $_W['uniacid'], 'storeid' => $storeid, 'uid' => $uid), array('id', 'storeid', 'income', 'outcome', 'alipay', 'level', 'status', 'realname', 'tel', 'reason'));
 	$register_info['status'] = !empty($register_info['status']) ? $register_info['status'] : 4;
+	$store_info = get_store_info($storeid);
 	if ($register_info['status'] == 2) {
 		//自己分销的订单
+		$table = gettablebytype($store_info['store_type']);
 		$self_orders = pdo_getall('storex_order', array('agentid' => $register_info['id'], 'status' => array(0, 1, 3)), array('id', 'roomid', 'sum_price', 'time', 'nums', 'is_package', 'cart', 'agentid', 'cprice', 'status'), '', 'time DESC');
-		$agent_log = order_goods_infos($self_orders, 1);
+		$agent_log = order_goods_infos($self_orders, $table, 1);
 		$two_agent = pdo_getall('storex_agent_apply', array('pid' => $register_info['id']), array('id'));
 		if (!empty($two_agent)) {
 			//二级分销的订单
 			$two_order = pdo_getall('storex_order', array('agentid' => $two_agent, 'status' => array(0, 1, 3)), array('id', 'roomid', 'sum_price', 'time', 'nums', 'is_package', 'cart', 'agentid', 'cprice', 'status'), '', 'time DESC');
 			if (!empty($two_order)) {
-				$two_order_info = order_goods_infos($two_order, 2);
+				$two_order_info = order_goods_infos($two_order, $table, 2);
 				$agent_log = array_merge($agent_log, $two_order_info);
 			}
 			$three_agent = pdo_getall('storex_agent_apply', array('pid' => $two_agent), array('id'));
@@ -32,7 +34,7 @@ if ($op == 'display') {
 				//三级分销的订单
 				$three_order = pdo_getall('storex_order', array('agentid' => $three_agent, 'status' => array(0, 1, 3)), array('id', 'roomid', 'sum_price', 'time', 'nums', 'is_package', 'cart', 'agentid', 'cprice', 'status'), '', 'time DESC');
 				if (!empty($three_order)) {
-					$three_order_info = order_goods_infos($three_order, 3);
+					$three_order_info = order_goods_infos($three_order, $table, 3);
 					$agent_log = array_merge($agent_log, $three_order_info);
 				}
 			}
@@ -42,7 +44,7 @@ if ($op == 'display') {
 	wmessage(error(0, $register_info), '', 'ajax');
 }
 
-function order_goods_infos($orders, $level) {
+function order_goods_infos($orders, $table, $level) {
 	$agent_logs = array();
 	if (!empty($orders) && is_array($orders)) {
 		$goods = array();
@@ -66,7 +68,7 @@ function order_goods_infos($orders, $level) {
 		}
 		unset($order);
 		$good_package_infos = pdo_getall('storex_sales_package', array('id' => array_keys($good_package_ids)), array('id', 'agent_ratio', 'thumb', 'title'), 'id');//套餐返给销售员的比例
-		$goods_infos = pdo_getall('storex_goods', array('id' => array_keys($goods)), array('id', 'agent_ratio', 'thumb', 'title'), 'id');//返给销售员的比例
+		$goods_infos = pdo_getall($table, array('id' => array_keys($goods)), array('id', 'agent_ratio', 'thumb', 'title'), 'id');//返给销售员的比例
 		foreach ($orders as $order) {
 			if (!empty($order['cart'])) {
 				foreach ($order['cart'] as $g) {
@@ -96,9 +98,14 @@ function order_goods_infos($orders, $level) {
 					if (empty($agent_ratio[$level]) || $agent_ratio[$level] == 0.00) {
 						continue;
 					}
+					if ($table == 'storex_room') {
+						$money = sprintf('%.2f', $order['sum_price'] * $agent_ratio[$level] * 0.01);
+					} else {
+						$money = sprintf('%.2f', $order['cprice'] * $order['nums'] * $agent_ratio[$level] * 0.01);
+					}
 					$agent_logs[] = array(
 						'goodid' => $order['roomid'],
-						'money' => sprintf('%.2f', $order['cprice'] * $order['nums'] * $agent_ratio[$level] * 0.01),
+						'money' => $money,
 						'rate' => $agent_ratio[$level],
 						'sumprice' => $order['sum_price'],
 						'time' => $order['time'],
