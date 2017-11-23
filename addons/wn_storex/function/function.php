@@ -19,11 +19,22 @@ function check_params() {
 		}
 		//从分销员分享的链接进入
 		if (!empty($_GPC['agentid'])) {
-			$agent = pdo_get('storex_agent_apply', array('id' => $_GPC['agentid']), array('id', 'openid'));
+			$agent = pdo_get('storex_agent_apply', array('id' => $_GPC['agentid']), array('id', 'openid', 'storeid'));
 			if ($agent['openid'] != $_W['openid']) {
-				$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('id', 'from_user', 'agentid'));
-				if (empty($member['agentid'])) {
-					pdo_update('storex_member', array('agentid' => intval($_GPC['agentid'])), array('id' => $member['id']));
+				$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('id', 'from_user'));
+				$member_agent = pdo_get('storex_member_agent', array('storeid' => $agent['storeid'], 'uniacid' => $_W['uniacid'], 'openid' => $_W['openid']), array('id', 'openid', 'agentid'));
+				if (empty($member_agent)) {
+					$insert = array(
+						'uniacid' => $_W['uniacid'],
+						'storeid' => $agent['storeid'],
+						'openid' => $_W['openid'],
+						'agentid' => $agent['id'],
+						'time' => TIMESTAMP,
+					);
+					if (!empty($member)) {
+						$insert['memberid'] = $member['id'];
+					}
+					pdo_insert('storex_member_agent', $insert);
 				}
 			}
 		}
@@ -986,7 +997,7 @@ function get_member_mode() {
 	global $_W;
 	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('phone', 'email'));
 	$memberinfo = array();
-	if (!empty($member) && !empty($member)) {
+	if (!empty($member) && is_array($member)) {
 		foreach ($member as $k => $v) {
 			if (!empty($v)) {
 				$memberinfo[$k] = $v;

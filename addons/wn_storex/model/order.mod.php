@@ -453,8 +453,8 @@ function order_salesman_income($orderid, $status) {
 	$order = pdo_get('storex_order', array('id' => $orderid, 'agentid !=' => 0), array('id', 'hotelid', 'roomid', 'cart', 'agentid', 'nums', 'cprice', 'sum_price', 'status', 'is_package', 'openid'));
 	$recored = pdo_get('storex_agent_log', array('orderid' => $orderid));
 	if (!empty($order) && $status == ORDER_STATUS_OVER && empty($recored)) {
-		$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $order['openid']), array('id', 'agentid'));
-		if (empty($member['agentid'])) {
+		$member_agent = pdo_get('storex_member_agent', array('weid' => $_W['uniacid'], 'openid' => $order['openid'], 'storeid' => $order['hotelid']), array('id', 'agentid'));
+		if (empty($member_agent['agentid'])) {
 			return;
 		}
 		$store = pdo_get('storex_bases', array('id' => $order['hotelid']), array('id', 'store_type'));
@@ -477,7 +477,7 @@ function order_salesman_income($orderid, $status) {
 			}
 			if (!empty($goods)) {
 				$agents_money = array();
-				$agent = pdo_get('storex_agent_apply', array('id' => $member['agentid'], 'status' => 2), array('id', 'pid', 'uid'));
+				$agent = pdo_get('storex_agent_apply', array('id' => $member_agent['agentid'], 'status' => 2), array('id', 'pid', 'uid'));
 				$agent_two = $agent_three = array();
 				if (!empty($agent['pid'])) {
 					$agent_two = pdo_get('storex_agent_apply', array('id' => $agent['pid'], 'status' => 2), array('id', 'pid', 'uid'));

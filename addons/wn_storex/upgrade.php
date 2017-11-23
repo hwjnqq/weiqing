@@ -853,6 +853,17 @@ $sql = "
 	  KEY `uniacid` (`uniacid`),
 	  KEY `storeid` (`storeid`)
 	) DEFAULT CHARSET=utf8;
+		
+	CREATE TABLE IF NOT EXISTS `ims_storex_member_agent` (
+	  `id` int(11) NOT NULL AUTO_INCREMENT,
+	  `uniacid` int(11) NOT NULL,
+	  `storeid` int(11) NOT NULL,
+	  `openid` varchar(50) NOT NULL,
+	  `memberid` int(11) NOT NULL COMMENT '用户id',
+	  `agentid` int(11) NOT NULL COMMENT '分销员id',
+	  `time` int(11) NOT NULL,
+	  PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
 ";
 pdo_run($sql);
 
@@ -1120,9 +1131,6 @@ if (!pdo_fieldexists('storex_member', 'credit_salt')) {
 }
 if (!pdo_fieldexists('storex_member', 'password_lock')) {
 	pdo_query("ALTER TABLE " . tablename('storex_member') . " ADD `password_lock` VARCHAR(24) NOT NULL COMMENT '改密码的依据';");
-}
-if (!pdo_fieldexists('storex_member', 'agentid')) {
-	pdo_query("ALTER TABLE " . tablename('storex_member') . " ADD `agentid` INT(10) UNSIGNED NOT NULL COMMENT '从属销售员id';");
 }
 
 //评论表增加字段
@@ -1429,6 +1437,31 @@ if (pdo_fieldexists('storex_set', 'templateid')) {
 	pdo_query("ALTER TABLE " . tablename('storex_set') . " DROP `confirm_templateid`;");
 	pdo_query("ALTER TABLE " . tablename('storex_set') . " DROP `check_in_templateid`;");
 	pdo_query("ALTER TABLE " . tablename('storex_set') . " DROP `finish_templateid`;");
+}
+
+if (pdo_fieldexists('storex_member', 'agentid')) {
+	$member = pdo_getall('storex_member', array('agentid !=' => 0), array('id', 'agentid', 'weid', 'from_user'));
+	if (!empty($member)) {
+		$agentids = array();
+		foreach ($member as $m) {
+			$agentids[] = $m['agentid'];
+		}
+		$agents = pdo_getall('storex_agent_apply', array('id' => $agentids), array('id', 'storeid'), 'id');
+		foreach ($member as $v) {
+			if (!empty($agents[$v['agentid']])) {
+				$member_agentid_insert = array(
+					'uniacid' => $v['weid'],
+					'openid' => $v['from_user'],
+					'storeid' => $agents[$v['agentid']]['storeid'],
+					'memberid' => $v['id'],
+					'agentid' => $v['agentid'],
+					'time' => TIMESTAMP,
+				);
+				pdo_insert('storex_member_agent', $member_agentid_insert);
+			}
+		}
+		pdo_query("ALTER TABLE " . tablename('storex_member') . " DROP `agentid`;");
+	}
 }
 
 //处理mobile更新遗留的js，css和svg文件

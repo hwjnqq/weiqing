@@ -86,7 +86,6 @@ $sql = "
 	`credit_password` varchar(200) NOT NULL COMMENT '余额支付密码',
 	`credit_salt` varchar(8) NOT NULL COMMENT '加密盐',
 	`password_lock` varchar(24) NOT NULL COMMENT '改密码的依据',
-	`agentid` int(10) unsigned NOT NULL COMMENT '从属销售员id',
 	PRIMARY KEY (`id`),
 	KEY `indx_weid` (`weid`)
 	) DEFAULT CHARSET=utf8;
@@ -1190,6 +1189,18 @@ $sql = "
 	  KEY `uniacid` (`uniacid`),
 	  KEY `storeid` (`storeid`)
 	) DEFAULT CHARSET=utf8;
+		
+	CREATE TABLE IF NOT EXISTS `ims_storex_member_agent` (
+	  `id` int(11) NOT NULL AUTO_INCREMENT,
+	  `uniacid` int(11) NOT NULL,
+	  `storeid` int(11) NOT NULL,
+	  `openid` varchar(50) NOT NULL,
+	  `memberid` int(11) NOT NULL COMMENT '用户id',
+	  `agentid` int(11) NOT NULL COMMENT '分销员id',
+	  `time` int(11) NOT NULL,
+	  PRIMARY KEY (`id`)
+	) DEFAULT CHARSET=utf8;
+		
 ";
 
 pdo_run($sql);

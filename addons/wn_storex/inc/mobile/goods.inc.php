@@ -520,13 +520,16 @@ function get_order_goods($store_info, $goods, $group = array()) {
 //酒店订单
 function goods_hotel_order($insert, $store_info, $uid, $selected_coupon = array()) {
 	global $_GPC, $_W;
-	$store_id = $store_info['id'];
 	$goodsid = $insert['roomid'];
 	$orderid = $_GPC['orderid'];
 	if (!empty($orderid)) {
 		$insert = check_order_renew($insert, $orderid);
 	} else {
 		$insert = get_order_info($insert);
+	}
+	$member_agent = pdo_get('storex_member_agent', array('uniacid' => $_W['uniacid'], 'openid' => $_W['openid'], 'storeid' => $store_info['id']), array('id', 'agentid'));
+	if (!empty($member_agent)) {
+		$insert['agentid'] = $member_agent['agentid'];
 	}
 	$goods_info = get_goods_info($goodsid, $store_info);
 	$error = check_order_info($store_info, $insert, $goods_info);
@@ -598,9 +601,9 @@ function goods_common_order($insert, $store_info, $uid, $selected_coupon = array
 	$goods = order_goodsids();
 	
 	$insert = get_order_info($insert);
-	$member = pdo_get('storex_member', array('weid' => $_W['uniacid'], 'from_user' => $_W['openid']), array('id', 'agentid'));
-	if (!empty($member)) {
-		$insert['agentid'] = $member['agentid'];
+	$member_agent = pdo_get('storex_member_agent', array('uniacid' => $_W['uniacid'], 'openid' => $_W['openid'], 'storeid' => $store_info['id']), array('id', 'agentid'));
+	if (!empty($member_agent)) {
+		$insert['agentid'] = $member_agent['agentid'];
 	}
 // 	if (!empty($_GPC['order']['mode_distribute']) && $_GPC['order']['mode_distribute'] != 2) {
 // 		$error = check_order_info($store_info, $insert);
