@@ -107,16 +107,18 @@
 	require({
 		paths: {
 			'vue': "<?php echo SCRIPT_URL . '/vue';?>",
-			'membercarddata': "<?php echo SCRIPT_URL . '/membercard/data';?>"
+			'membercarddata': "<?php echo SCRIPT_URL . '/membercard/data';?>",
+			'coupon': "<?php echo SCRIPT_URL . '/coupon';?>"
 		}
 	})
-	require(['vue', 'membercarddata'], function(Vue, membercarddata) {
+	require(['vue', 'membercarddata', 'coupon'], function(Vue, membercarddata, coupon) {
 		setting_params = {php echo !empty($setting['params']) ? $setting['params'] : 'null'};
 		var params = setting_params ? setting_params : membercarddata.activeModules;
 		var discounts = {php echo json_encode($discounts);};
 		params.cardActivity.params.discounts = discounts;
 		var fansFields = {php echo json_encode($fields);};
 		var card_status = {php echo $setting['status'] ? $setting['status'] : 0};
+		var selected_coupon_title = "{php echo $selected_coupon_title}";
 		var app = new Vue({
 			el: '#membercard',
 			data: {
@@ -126,7 +128,8 @@
 				'fansFields': fansFields,
 				'discounts': discounts,
 				'flag': card_status,
-				'status': card_status
+				'status': card_status,
+				'coupon_list': selected_coupon_title
 			},
 			directives: {
 				'colorpicker': {
@@ -234,6 +237,23 @@
 				},
 				removeTimes(index) {
 					this.activeModules.cardTimes.params.times.splice(index, '1')
+				},
+				selectCoupon() {
+					const self = this
+					var opts = {
+						type :'all',
+						multiple :true 
+					};
+					opts = $.extend({}, opts, {});
+					coupon.init(function(coupons){
+						for (var i in coupons) {
+							self.coupon_list += '|' + coupons[i].title;
+							self.activeModules.cardBasic.params.grant.coupon.push({
+								coupon: coupons[i].id,
+								couponTitle: coupons[i].title
+							});
+						}
+					}, opts);
 				},
 				submit() {
 					if(this.activeModules.cardActivity.params.discount_type == 1) {

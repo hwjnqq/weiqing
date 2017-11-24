@@ -5,11 +5,11 @@ defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 load()->model('mc');
 mload()->model('card');
-$ops = array('display', 'post', 'cardstatus', 'remove_mc_data');
+mload()->model('activity');
+$ops = array('display', 'post', 'cardstatus', 'remove_mc_data', 'coupon_search');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
 $setting = pdo_get('storex_mc_card', array('uniacid' => $_W['uniacid']));
-
 if ($op == 'display') {
 	$fields_temp = mc_acccount_fields();
 	$fields = array();
@@ -22,6 +22,16 @@ if ($op == 'display') {
 	$params = json_decode($setting['params'], true);
 	if (!empty($params['cardBasic'])) {
 		$params['cardBasic']['params']['description'] = str_replace("<br/>", "\n", $params['cardBasic']['params']['description']);
+		if (empty($params['cardBasic']['params']['grant']['coupon'])) {
+			$params['cardBasic']['params']['grant']['coupon'] = array();
+		} else {
+			$selected_coupon_title = '';
+			foreach ($params['cardBasic']['params']['grant']['coupon'] as $key => $value) {
+				$selected_coupon_title .= '|' . $value['couponTitle'];
+			}
+		}
+
+		
 	}
 	$discounts_params = $params['cardActivity']['params']['discounts'];
 	$discounts_temp = array();
@@ -53,6 +63,7 @@ if ($op == 'display') {
 	}
 	$setting['params'] = json_encode($params);
 	$setting['params'] = preg_replace('/\n/', '', $setting['params']);
+
 }
 
 if ($op == 'post') {
@@ -328,5 +339,41 @@ if ($op == 'remove_mc_data') {
 		}
 	}
 	message('同步成功！', $this->createWebUrl('membercard'), 'success');
+}
+
+if ($op == 'coupon_search') {
+	activity_get_coupon_type();
+	$condition = ' WHERE uniacid = :uniacid AND is_display = 1 AND status = 3 AND source = :source AND quantity > 0';
+	$param = array(
+		':uniacid' => $_W['uniacid'],
+		':source' => COUPON_TYPE,
+	);
+	$pindex = max(1, intval($_GPC['page']));
+	$psize = 15;
+	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM '. tablename('storex_coupon') . $condition, $param);
+	$storex_coupon = pdo_fetchall('SELECT * FROM ' . tablename('storex_coupon') . $condition . ' ORDER BY id DESC LIMIT ' . ($pindex - 1) * $psize . ', ' . $psize, $param, 'id');
+	if (!empty($storex_coupon)) {
+		foreach ($storex_coupon as $key => &$value) {
+			$value['date_info'] = iunserializer($value['date_info']);
+			$value['media_id'] = $value['card_id'];
+			$value['logo_url'] = url('utility/wxcode/image', array('attach' => $value['logo_url']));
+			$value['ctype'] = $value['type'];
+			$value['extra'] = iunserializer($value['extra']);
+			if ($value['type'] == '1') {
+				$value['extra']['discount'] = $value['extra']['discount'] * 0.1;
+			} elseif ($value['type'] == '2') {
+				$value['extra']['reduce_cost'] = $value['extra']['reduce_cost'] * 0.01;
+			}
+			if ($value['date_info']['time_type'] == '1') {
+				$starttime = strtotime(str_replace('.', '-', $value['date_info']['time_limit_start']));
+				$endtime = strtotime(str_replace('.', '-', $value['date_info']['time_limit_end']));
+				if ($starttime > strtotime(date('Y-m-d')) || $endtime < strtotime(date('Y-m-d'))) {
+					unset($storex_coupon[$key]);
+				}
+			}
+		}
+		unset($value);
+	}
+	message(array('page'=> pagination($total, $pindex, $psize, '', array('before' => '2', 'after' => '2', 'ajaxcallback'=>'null')), 'items' => $storex_coupon), '', 'ajax');
 }
 include $this->template('membercard');

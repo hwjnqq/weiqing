@@ -172,17 +172,25 @@
 			</div>
 		</div>
 	</div>
-	<div class="form-group hidden">
+	<div class="form-group">
 		<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
 		<div class="col-sm-9 col-xs-12">
 			<div class="input-group">
-				<input type="hidden" v-model="activeModules.cardBasic.params.grant.coupon" class="ng-pristine ng-untouched ng-valid ng-not-empty" style=""> <span class="input-group-addon">已选:</span>									<span class="input-group-btn"><button class="btn btn-primary" type="button" @click="selectCoupon();">搜索优惠券</button> <button class="btn btn-default" type="button" ng-click="clearCoupon();"><span><i class="fa fa-remove"></i></span></button>
+				<input type="hidden" v-model="activeModules.cardBasic.params.grant.coupon" class="ng-pristine ng-untouched ng-valid ng-not-empty" style="">
+				<span class="input-group-addon">已选:
+					<span>{{coupon_list}}</span>
+				</span>
+				<span class="input-group-btn">
+					<button class="btn btn-primary" type="button" @click="selectCoupon();">搜索优惠券</button>
+					<button class="btn btn-default" type="button" ng-click="clearCoupon();">
+						<span><i class="fa fa-remove"></i></span>
+					</button>
 				</span>
 			</div>
 			<div class="help-block"><a href="./index.php?i=281&amp;j=269&amp;c=activity&amp;a=coupon" target="_blank">添加优惠券</a>.注意:赠送的优惠券应该各个会员组都可以领取.否则会造成赠送失败的问题</div>
 		</div>
 	</div>
-	<!-- 抵现比率 -->
+	<!-- 抵现比率 -->	
 	<div class="form-group">
 		<label class="col-xs-12 col-sm-3 col-md-2 control-label">抵现比率<span style="color:red">*</span></label>
 		<div class="col-sm-9 col-xs-12">
