@@ -2,7 +2,7 @@
 <div class="main">
 	<ul class="nav nav-tabs">
 		<li {if $_GPC['do'] == 'storemanage' && $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('storemanage', array('op'=>'list'));}">店铺管理</a></li>
-		{if $assign}
+		{if !empty($assign)}
 		<li {if $op == 'assign_store'}class="active"{/if}><a href="{php echo $this->createWebUrl('storemanage', array('op'=>'assign_store'));}">操作员分配店铺</a></li>
 		<li {if $_GPC['do'] == 'admin_logs'}class="active"{/if}><a href="{php echo $this->createWebUrl('admin_logs', array('op'=>'display'));}">操作日志</a></li>
 		{/if}
