@@ -115,6 +115,13 @@ if ($op == 'display') {
 	} else {
 		$homepage_list = $default_module;
 	}
+	if (!empty($homepage_list) && is_array($homepage_list)) {
+		$homepage_sort_list = array();
+		foreach ($homepage_list as $value) {
+		 	$homepage_sort_list[] = $value;
+		} 
+		$homepage_list = $homepage_sort_list;
+	}
 }
 
 if ($op == 'post') {
