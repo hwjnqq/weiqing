@@ -9,6 +9,12 @@ load()->model('module');
 $ops = array('display', 'edit', 'delete', 'deleteall', 'showall', 'status', 'assign_store', 'assign');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 
+$user = user_single($_W['uid']);
+$assign = false;
+if ($_W['isfounder'] == 1 || $user['founder_groupid'] == 1 || $user['founder_groupid'] == 2) {
+	$assign = true;
+}
+
 if ($op == 'display') {
 	$storeids = array();
 	$clerk = pdo_getall('storex_clerk', array('weid' => intval($_W['uniacid']), 'userid' => intval($_W['uid'])), array('id', 'storeid'), 'storeid');
@@ -262,7 +268,7 @@ if ($op == 'assign') {
 		message(error(-1, '参数错误！'), '', 'ajax');
 	}
 	if (!empty($storeids)) {
-		$clerks = pdo_getall('storex_clerk', array('userid' => $uid, 'weid' => intval($_W['uniacid']), 'storeid' => $storeids));
+		$clerks = pdo_getall('storex_clerk', array('userid' => $uid, 'weid' => intval($_W['uniacid'])), array('id', 'storeid'));
 		if (!empty($clerks) && is_array($clerks)) {
 			$exist_storeid = array();
 			foreach ($clerks as $clerk) {
