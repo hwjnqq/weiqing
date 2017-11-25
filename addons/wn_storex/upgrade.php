@@ -1470,23 +1470,19 @@ $js_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/js
 $css_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/css');
 $svg_file_trees = file_tree(IA_ROOT . '/addons/wn_storex/template/style/mobile/img');
 $current_js_files = array(
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/black.20171120239.js',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/home.20171120239.js',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/service.20171120239.js',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/display.20171120239.js',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/manifest.20171120239.js',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/vendor.20171120239.js',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/wn-common.20171120239.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/wn-hotel.20171125241.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/service.20171125241.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/manifest.20171125241.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/vendor.20171125241.js',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/js/wn-common.20171125241.js',
 );
 $current_css_files = array(
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/black.20171120239.css',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/display.20171120239.css',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/service.20171120239.css',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/home.20171120239.css',
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/wn-common.20171120239.css'
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/service.20171125241.css',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/wn-hotel.20171125241.css',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/css/wn-common.20171125241.css'
 );
 $current_svg_files = array(
-	IA_ROOT . '/addons/wn_storex/template/style/mobile/img/storex.20171120239.svg',
+	IA_ROOT . '/addons/wn_storex/template/style/mobile/img/storex.20171125241.svg',
 );
 $css_diff_files = array_diff($css_file_trees, $current_css_files);
 $js_diff_files = array_diff($js_file_trees, $current_js_files);
