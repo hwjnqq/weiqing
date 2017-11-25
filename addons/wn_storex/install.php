@@ -1241,10 +1241,10 @@ foreach ($we7_storex_table as $key => $value) {
 }
 
 load()->model('module');
-$module = module_fetch('ewei_hotel');
+$ewei_hotel_module = module_fetch('ewei_hotel');
 
 //已经安装了微酒店
-if (!empty($module)){
+if (!empty($ewei_hotel_module)){
 	//微酒店所有表的字段
 	$hotel2_all_table = array(
 		'hotel2_brand' => array('id', 'weid', 'title', 'displayorder', 'status',),
