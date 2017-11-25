@@ -161,7 +161,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 	public function get_skin_style($id) {
 		$store = pdo_get('storex_bases', array('id' => $id), array('id', 'store_type'));
 		if ($store['store_type'] == STORE_TYPE_HOTEL) {
-			return 'black';
+			return 'wn-hotel';
 		} else {
 			return 'wn-common';
 		}
