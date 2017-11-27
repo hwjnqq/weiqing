@@ -956,7 +956,7 @@ function article_entry_fetch($storeid, $params = array(), $wxapp = false) {
 				$article_entry_routes[] = array(
 					'type' => 'article',
 					'name' => $val['title'],
-					'link' => 'wn_storex/pages/notice/notice?type=notice&storeid=' . $storeid . '&id=' . $val['id'] . '&i=article',
+					'link' => '/wn_storex/pages/notice/notice?type=notice&storeid=' . $storeid . '&id=' . $val['id'] . '&i=article',
 				);
 			} else {
 				if ($params['article_id'] == $val['id']) {
