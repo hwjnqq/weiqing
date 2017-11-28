@@ -133,8 +133,10 @@ $we7_system_menu['account'] = array(
 					'icon' => 'wi wi-pay-setting',
 					'permission_name' => 'profile_pay_setting',
 				),
+				
 			),
 		),
+		
 	),
 );
 $we7_system_menu['wxapp'] = array(
@@ -311,18 +313,7 @@ $we7_system_menu['system'] = array(
 				),
 			)
 		),
-		'welcome' => array(
-			'title' => '系统首页',
-			'menu' => array(
-				'system_welcome' => array(
-					'title' => '系统首页应用',
-					'url' => url('module/manage-system', array('system_welcome' => 1)),
-					'icon' => 'wi wi-wxapp',
-					'permission_name' => 'system_welcome',
-				)
-			),
-			'founder' => true
-		),
+		
 		'user' => array(
 			'title' => '帐户/用户',
 			'menu' => array(
@@ -368,6 +359,7 @@ $we7_system_menu['system'] = array(
 						),
 					),
 				),
+				
 			)
 		),
 		'permission' => array(
@@ -642,6 +634,5 @@ $we7_system_menu['help'] = array(
 	'section' => array(),
 	'blank' => false
 );
-
 
 return $we7_system_menu;

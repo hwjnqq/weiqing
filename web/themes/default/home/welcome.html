@@ -44,7 +44,9 @@
 				<a href="./index.php?c=article&a=notice-show" class="color-default pull-right">更多</a>
 				<div class="menu">
 					<span class="topic active notice">公告</span>
-					<span class="topic we7notice">微擎公告</span>
+					
+						<span class="topic we7notice">微擎公告</span>
+					
 				</div>
 			</div>
 			<ul class="list-group active">
@@ -56,24 +58,28 @@
 					<span>暂无数据</span>
 				</li>
 			</ul>
-			<ul class="list-group">
-				<script type="text/javascript" src="//bbs.we7.cc/api.php?mod=js&bid=20"></script>
-			</ul>
+			
+				<ul class="list-group">
+					<script type="text/javascript" src="//bbs.we7.cc/api.php?mod=js&bid=20"></script>
+				</ul>
+			
 		</div>	
-		<div class="panel we7-panel apply-list">
-			<div class="panel-heading">
-				<a href="http://s.we7.cc" target="_blank" class="color-default pull-right">查看更多应用</a>
-				微擎推荐
+		
+			<div class="panel we7-panel apply-list">
+				<div class="panel-heading">
+					<a href="http://s.we7.cc" target="_blank" class="color-default pull-right">查看更多应用</a>
+					微擎推荐
+				</div>
+				<div class="panel-body text-center">
+					<span href="javascript:;" ng-if="!last_modules && loaderror == 0">数据加载中...</span>
+					<span href="javascript:;" ng-if="!last_modules && loaderror == 1">数据加载失败，<a href="javascript:;" class="btn-link" ng-click="get_last_modules()">点击重试</a></span>
+					<a ng-href="{{module.url}}" target="_blank" class="apply-item" ng-if="last_modules && !module.wxapp && module.logo && $index+1 < 8" class="apply-item" ng-repeat="module in last_modules">
+						<img ng-src="{{module.logo}}" class="apply-img"/>
+						<span>{{module.title|limitTo:6}}</span>
+					</a>
+				</div>
 			</div>
-			<div class="panel-body text-center">
-				<span href="javascript:;" ng-if="!last_modules && loaderror == 0">数据加载中...</span>
-				<span href="javascript:;" ng-if="!last_modules && loaderror == 1">数据加载失败，<a href="javascript:;" class="btn-link" ng-click="get_last_modules()">点击重试</a></span>
-				<a ng-href="{{module.url}}" target="_blank" class="apply-item" ng-if="last_modules && !module.wxapp && module.logo && $index+1 < 8" class="apply-item" ng-repeat="module in last_modules">
-					<img ng-src="{{module.logo}}" class="apply-img"/>
-					<span>{{module.title|limitTo:6}}</span>
-				</a>
-			</div>
-		</div>
+		
 	</div>
 </div>
 <script>
