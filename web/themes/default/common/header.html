@@ -20,7 +20,7 @@
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
 					<li class="dropdown msg">
-						{php $message_notice = message_notice();}
+						{php load()->model('message');$message_notice = message_notice();}
 						<a href="javascript:;" class="dropdown-toogle" data-toggle="dropdown"><span class="wi wi-bell">{if !empty($message_notice['total'])}<span class="badge">{$message_notice['total']}</span>{/if}</span>消息</a>
 						<div class="dropdown-menu">
 							<div class="clearfix top">消息<a href="{php echo url('message/notice')}" class="pull-right">查看更多</a></div>
@@ -36,8 +36,8 @@
 										</div>
 										<div class="msg-content">
 											{if $message_notice_list['type']==MESSAGE_ORDER_TYPE}<a href="{php echo url('site/entry/orders', array('m' => 'store', 'direct'=>1, 'message_id' => $message_notice_list['id']))}">{$message_notice_list['message']}</a>{/if}
-											{if $message_notice_list['type']==MESSAGE_ACCOUNT_EXPIRE_TYPE && $message_notice_list['account_type']==ACCOUNT_TYPE_OFFCIAL_NORMAL}<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL, 'message_id' => $message_notice_list['id']))}">{$message_notice_list['message']}</a>{/if}
-											{if $message_notice_list['type']==MESSAGE_ACCOUNT_EXPIRE_TYPE && $message_notice_list['account_type']==ACCOUNT_TYPE_APP_NORMAL}<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL, 'message_id' => $message_notice_list['id']))}">{$message_notice_list['message']}</a>{/if}
+											{if $message_notice_list['type']==MESSAGE_ACCOUNT_EXPIRE_TYPE}<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL, 'message_id' => $message_notice_list['id']))}">{$message_notice_list['message']}</a>{/if}
+											{if $message_notice_list['type']==MESSAGE_WECHAT_EXPIRE_TYPE}<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL, 'message_id' => $message_notice_list['id']))}">{$message_notice_list['message']}</a>{/if}
 											{if $message_notice_list['type']==MESSAGE_REGISTER_TYPE}<a href="{php echo url('user/display', array('type' => 'check', 'message_id' => $message_notice_list['id']))}">{$message_notice_list['message']}</a>{/if}
 										</div>
 									</div>
@@ -126,9 +126,13 @@
 			{if empty($frames['section']['platform_module_menu']['plugin_menu'])}
 			<div class="left-menu-content">
 				{loop $frames['section'] $frame_section_id $frame_section}
-				{if FRAME == 'store' && !($_W['isfounder'] && !user_is_vice_founder()) && !empty($frame_section['founder'])}
-					{php continue;}
+				
+				
+				{if FRAME == 'store' && !($_W['isfounder'] && !empty($frame_section['founder'])}
+				{php continue;}
 				{/if}
+				
+
 				{if !isset($frame_section['is_display']) || !empty($frame_section['is_display'])}
 				<div class="panel panel-menu">
 					{if $frame_section['title']}

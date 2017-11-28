@@ -10,12 +10,19 @@ load()->model('module');
 
 $dos = array('display', 'delete', 'post', 'save');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
-if (!in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))){
-	itoast('无权限操作！', referer(), 'error');
-}
-if ($do != 'display' && !in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
-	itoast('您只有查看权限！', url('module/group'), 'error');
-}
+
+
+	if (!in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER, ACCOUNT_MANAGE_NAME_FOUNDER))){
+		itoast('无权限操作！', referer(), 'error');
+	}
+
+
+
+
+
+	if ($do != 'display' && !in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_FOUNDER))) {
+		itoast('您只有查看权限！', url('module/group'), 'error');
+	}
 
 if ($do == 'save') {
 	$modules = empty($_GPC['modules']) ? array() : (array)$_GPC['modules'];

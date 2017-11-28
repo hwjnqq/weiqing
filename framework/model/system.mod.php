@@ -143,29 +143,3 @@ function system_template_ch_name() {
 	);
 	return $result;
 }
-
-/**
- * 更改消息提醒状态
- * @param $id
- * @return bool
- */
-function system_message_notice_read($id) {
-	$id = intval($id);
-	if (empty($id)) {
-		return true;
-	}
-	pdo_update('message_notice_log', array('is_read' => MESSAGE_READ), array('id' => $id));
-	return true;
-}
-
-
-/**
- * 消息提醒记录
- * @param array $message_notice_log
- * @return bool
- */
-function system_message_record($message_notice_log = array()) {
-	$message_notice_log['create_time'] = TIMESTAMP;
-	pdo_insert('message_notice_log', $message_notice_log);
-	return true;
-}

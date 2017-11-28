@@ -112,9 +112,12 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 			} else {
 				$endtime = strtotime($_GPC['endtime']);
 			}
-			if (user_is_vice_founder() && !empty($_W['user']['endtime']) && ($endtime > $_W['user']['endtime'] || empty($endtime))) {
-				iajax(-1, '副创始人给用户设置的时间不能超过自己的到期时间');
-			}
+			
+			
+				if (!empty($_W['user']['endtime']) && ($endtime > $_W['user']['endtime'] || empty($endtime))) {
+					iajax(-1, '副创始人给用户设置的时间不能超过自己的到期时间');
+				}
+			
 			$result = pdo_update('users', array('endtime' => $endtime), array('uid' => $uid));
 			pdo_update('users_profile', array('send_expire_status' => 0), array('uid' => $uid));
 			$uni_account_user = pdo_getall('uni_account_users', array('uid' => $uid, 'role' => 'owner'));
@@ -177,19 +180,17 @@ if ($do == 'base') {
 
 	$profile = user_detail_formate($profile);
 
-	if (!$_W['isfounder'] || user_is_vice_founder()) {
-		//应用模版权限
-		if ($_W['user']['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
-			$groups = user_founder_group();
-			$group_info = user_founder_group_detail_info($user['groupid']);
-		} else {
+	
+	
+		if (!$_W['isfounder']) {
+			//应用模版权限
 			$groups = user_group();
 			$group_info = user_group_detail_info($user['groupid']);
-		}
 
-		//使用帐号列表
-		$account_detail = user_account_detail_info($_W['uid']);
-	}
+			//使用帐号列表
+			$account_detail = user_account_detail_info($_W['uid']);
+		}
+	
 	template('user/profile');
 }
 

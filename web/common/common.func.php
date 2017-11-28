@@ -659,29 +659,3 @@ EOF;
 	}
 	return '';
 }
-
-/**
- * 过期消息
- * @return array
- */
-function message_notice() {
-	global $_W;
-	$message_table = table('message');
-	$message_table->searchWithIsRead(MESSAGE_NOREAD);
-	if (user_is_founder($_W['uid']) && !user_is_vice_founder($_W['uid'])) {
-		$type = array(MESSAGE_ORDER_TYPE, MESSAGE_ACCOUNT_EXPIRE_TYPE, MESSAGE_REGISTER_TYPE);
-	} else {
-		$type = MESSAGE_ACCOUNT_EXPIRE_TYPE;
-	}
-	$message_table->searchWithType($type);
-	$message_table->searchWithPage(1, 10);
-	$lists = $message_table->messageList();
-
-	$message_table->searchWithIsRead(MESSAGE_NOREAD);
-	$message_table->searchWithType($type);
-	$total = $message_table->messageNoReadCount();
-	return array(
-		'lists' => $lists,
-		'total' => $total
-	);
-}

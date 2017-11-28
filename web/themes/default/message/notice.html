@@ -1,12 +1,13 @@
 {template 'common/header'}
 <ul class="we7-page-tab">
-	{if IMS_FAMILY == 'x' && $_W['isfounder'] && uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
-	<li {if $type == MESSAGE_ORDER_TYPE}class="active" {/if}><a href="{php echo url('message/notice', array('type' => MESSAGE_ORDER_TYPE))}">订单消息</a></li>
-	{/if}
+	
 	<li {if $type == MESSAGE_ACCOUNT_EXPIRE_TYPE}class="active" {/if}><a href="{php echo url('message/notice', array('type' => MESSAGE_ACCOUNT_EXPIRE_TYPE))}">到期消息</a></li>
-	{if $_W['isfounder'] && uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
+	
+	
+	{if $_W['isfounder']}
 	<li {if $type == MESSAGE_REGISTER_TYPE}class="active" {/if}><a href="{php echo url('message/notice', array('type' => MESSAGE_REGISTER_TYPE))}">注册提醒</a></li>
 	{/if}
+	
 	<!--<li><a href="#">工单提醒</a></li>-->
 </ul>
 
@@ -40,9 +41,9 @@
 		<td class="text-muted" ng-bind = "list.create_time"></td>
 		<td>
 			<div class="link-group">
-				<a href="javascript:;" ng-click="operate(list.id, links.order_link)" ng-if="list.type==1">查看我的订单</a>
-				<a href="javascript:;" ng-click="operate(list.id, links.account_expire_link)" ng-if="list.type==2 && list.account_type == 1">查看公众号</a>
-				<a href="javascript:;" ng-click="operate(list.id, links.wechat_expire_link)" ng-if="list.type==2 && list.account_type == 4">查看小程序</a>
+				
+				<a href="javascript:;" ng-click="operate(list.id, links.account_expire_link)" ng-if="list.type==2">查看公众号</a>
+				<a href="javascript:;" ng-click="operate(list.id, links.wechat_expire_link)" ng-if="list.type==5">查看小程序</a>
 				<a href="javascript:;" ng-click="operate(list.id, links.register_link)" ng-if="list.type==4 && list.status==1">查看我的待审核用户</a>
 			</div>
 		</td>

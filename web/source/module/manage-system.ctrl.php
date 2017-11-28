@@ -19,9 +19,10 @@ load()->func('db');
 $dos = array('subscribe', 'filter', 'check_subscribe', 'check_upgrade', 'get_upgrade_info', 'upgrade', 'install', 'installed', 'not_installed', 'uninstall', 'save_module_info', 'module_detail', 'change_receive_ban', 'install_success', 'recycle_uninstall', 'set_site_welcome_module');
 $do = in_array($do, $dos) ? $do : 'installed';
 
-if (!in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))){
-	itoast('无权限操作！', referer(), 'error');
-}
+
+	if (!in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER, ACCOUNT_MANAGE_NAME_FOUNDER))){
+		itoast('无权限操作！', referer(), 'error');
+	}
 
 if ($do == 'set_site_welcome_module') {
 	if (!$_W['isfounder']) {
