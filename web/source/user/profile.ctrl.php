@@ -194,12 +194,11 @@ if ($do == 'base') {
 	template('user/profile');
 }
 
-
-$user_table = table('users');
-$user = $user_table->usersInfo($_W['uid']);
-$user_profile = $user_table->userProfile($_W['uid']);
-
 if ($do == 'bind') {
+	$user_table = table('users');
+	$user = $user_table->usersInfo($_W['uid']);
+	$user_profile = $user_table->userProfile($_W['uid']);
+
 	$user_table->bindSearchWithUser($_W['uid']);
 	$bind_info = $user_table->userBind();
 
@@ -242,6 +241,9 @@ if ($do == 'bind') {
 }
 
 if (in_array($do, array('validate_mobile', 'bind_mobile', 'unbind'))) {
+	$user_table = table('users');
+	$user_profile = $user_table->userProfile($_W['uid']);
+
 	$mobile = trim($_GPC['mobile']);
 	$type = trim($_GPC['type']);
 	$user_table = table('users');
