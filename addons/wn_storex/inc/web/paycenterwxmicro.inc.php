@@ -258,7 +258,7 @@ if ($op == 'checkpay') {
 			message($result, '', 'ajax');
 		}
 		if ($result['trade_state'] == 'SUCCESS') {
-			$status = $pay->NoticeMicroSuccessOrder($result);
+			$status = NoticeMicroSuccessOrder($result);
 			if (is_error($status)) {
 				message($status, '', 'ajax');
 			}

@@ -1456,7 +1456,7 @@ function NoticeMicroSuccessOrder($result) {
 		}
 	}
 	pdo_update('storex_paycenter_order', array('credit_status' => 1), array('id' => $order['id']));
-	return true;
+	return array('errno' => 0, 'message' => '支付成功');
 }
 
 function get_share_data($type, $param = array(), $share = array()) {
