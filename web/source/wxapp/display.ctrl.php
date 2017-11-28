@@ -11,7 +11,6 @@ $_W['page']['title'] = '小程序列表';
 
 $dos = array('display', 'switch', 'rank', 'home');
 $do = in_array($do, $dos) ? $do : 'display';
-isetcookie('__lastvisit_' . $_W['uid'], 'wxapp', 7 * 86400);
 
 if ($do == 'rank' || $do == 'switch') {
 	$uniacid = intval($_GPC['uniacid']);

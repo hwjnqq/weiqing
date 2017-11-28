@@ -572,9 +572,31 @@ function user_login_forward($forward = '') {
 	if (user_is_founder($_W['uid']) && !user_is_vice_founder($_W['uid'])) {
 		return url('home/welcome/system');
 	}
+	$login_forward = url('account/display');
 	$visit_key = '__lastvisit_' . $_W['uid'];
-	if (!empty($_GPC[$visit_key]) && !empty($login_location[$_GPC[$visit_key]])) {
-		return $login_location[$_GPC[$visit_key]];
+	if (!empty($_GPC[$visit_key])) {
+		$last_visit = explode(',', $_GPC[$visit_key]);
+		$last_visit_uniacid = intval($last_visit[0]);
+		$last_visit_url = url_params($last_visit[1]);
+		if ($last_visit_url['c'] == 'site' && in_array($last_visit_url['a'], array('entry', 'nav')) ||
+			$last_visit_url['c'] == 'platform' && in_array($last_visit_url['a'], array('cover', 'reply')) && !in_array($last_visit_url['m'], system_modules()) ||
+			$last_visit_url['c'] == 'module' && in_array($last_visit_url['a'], array('manage-account', 'permission', 'display'))) {
+			return $login_location['module'];
+		} else {
+			if ($last_visit_url['c'] == 'wxapp') {
+				return $login_location['wxapp'];
+			}
+			$account_info = uni_fetch($last_visit_uniacid);
+			if (empty($account_info)) {
+				return $login_forward;
+			}
+			if (in_array($account_info['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
+				return $login_location['account'];
+			}
+			if ($account_info['type'] == ACCOUNT_TYPE_APP_NORMAL) {
+				return $login_location['wxapp'];
+			}
+		}
 	}
 	if (user_is_vice_founder()) {
 		return url('account/manage', array('account_type' => 1));
@@ -583,7 +605,6 @@ function user_login_forward($forward = '') {
 		return url('module/display');
 	}
 
-	$login_forward = url('account/display');
 	if (!empty($_W['uniacid']) && !empty($_W['account'])) {
 		$permission = permission_account_user_role($_W['uid'], $_W['uniacid']);
 		if (empty($permission)) {

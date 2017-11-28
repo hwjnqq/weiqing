@@ -18,7 +18,6 @@ if (in_array($m, array('keyword', 'special', 'welcome', 'default', 'apply', 'ser
 	$modules = uni_modules();
 	$_W['current_module'] = $modules[$m];
 	define('IN_MODULE', $m);
-	isetcookie('__lastvisit_' . $_W['uid'], 'module', 7 * 86400);
 }
 $_W['page']['title'] = '自动回复';
 if (empty($m)) {

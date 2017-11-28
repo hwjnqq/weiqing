@@ -10,7 +10,6 @@ load()->model('wxapp');
 
 $dos = array('display', 'switch', 'getall_last_switch', 'have_permission_uniacids', 'accounts_dropdown_menu');
 $do = in_array($do, $dos) ? $do : 'display';
-isetcookie('__lastvisit_' . $_W['uid'], 'module', 7 * 86400);
 
 if ($do == 'display') {
 	$user_module = array();
