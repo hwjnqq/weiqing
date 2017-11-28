@@ -270,12 +270,12 @@ if ($do == 'validate_mobile') {
 
 if ($do == 'bind_mobile') {
 	if ($_W['isajax'] && $_W['ispost']) {
-		$bind_info = OAuth2Client::create('mobile', $_W['setting']['thirdlogin'][$bind_type]['appid'], $_W['setting']['thirdlogin'][$bind_type]['appsecret'])->bind();
+		$bind_info = OAuth2Client::create('mobile')->bind();
 
 		if (is_error($bind_info)) {
 			iajax(-1, $bind_info['message']);
 		}
-		iajax(0, '解绑成功', url('user/profile/bind'));
+		iajax(0, '绑定成功', url('user/profile/bind'));
 	} else {
 		iajax(-1, '非法请求');
 	}
