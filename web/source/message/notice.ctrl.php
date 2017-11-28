@@ -19,8 +19,7 @@ if ($do == 'display') {
 	
 
 	
-		$types = $type = !empty($_GPC['type']) ? intval($_GPC['type']) :
-		(user_is_founder($_W['uid']) && !user_is_vice_founder() ? MESSAGE_ORDER_TYPE : MESSAGE_ACCOUNT_EXPIRE_TYPE);
+		$types = $type = !empty($_GPC['type']) ? intval($_GPC['type']) : MESSAGE_ACCOUNT_EXPIRE_TYPE;
 	
 
 	if ($type == MESSAGE_ACCOUNT_EXPIRE_TYPE) {
