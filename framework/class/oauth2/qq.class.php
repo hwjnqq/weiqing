@@ -167,7 +167,7 @@ class Qq extends OAuth2Client {
 
 	public function unbind() {
 		global $_GPC, $_W;
-		$user_table = users('users');
+		$user_table = table('users');
 		$third_type = $_GPC['third_type'];
 		$user_table->bindSearchWithUser($_W['uid']);
 		$user_table->bindSearchWithType($third_type);
