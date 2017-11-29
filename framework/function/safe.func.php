@@ -19,7 +19,19 @@ function safe_gpc_string($value, $default = '') {
 }
 
 function safe_gpc_path($value, $default = '') {
+	$path = '';
 	
+	if (safe_parse_path($value)) {
+		$path = $value;
+	} else {
+		$path = '';
+	}
+	
+	if (empty($path)) {
+		return $default;
+	} else {
+		return $path;
+	}
 }
 
 /**
