@@ -104,7 +104,11 @@ class Wechat extends OAuth2Client {
 		$user_id = pdo_getcolumn('users', array('openid' => $user['member']['openid']), 'uid');
 		$user_bind_info = $user_table->userBindInfo($user['member']['openid'], $user['member']['register_type']);
 
-		if (empty($user_id) && !empty($user_bind_info)) {
+		if (!empty($user_id)) {
+			return $user_id;
+		}
+
+		if (!empty($user_bind_info)) {
 			return $user_bind_info['uid'];
 		}
 
@@ -133,7 +137,7 @@ class Wechat extends OAuth2Client {
 	public function unbind() {
 		global $_GPC, $_W;
 		$user_table = table('users');
-		$third_type = $_GPC['third_type'];
+		$third_type = $_GPC['bind_type'];
 		$user_table->bindSearchWithUser($_W['uid']);
 		$user_table->bindSearchWithType($third_type);
 		$bind_info = $user_table->bindInfo();
