@@ -43,7 +43,7 @@ function ext_module_convert($manifest) {
 		'menu' => $manifest['bindings']['menu'],
 		'home' => $manifest['bindings']['home'],
 		'profile' => $manifest['bindings']['profile'],
-		'welcome' => $manifest['bindings']['welcome'],
+		'welcome' => $manifest['bindings']['system_welcome'],
 		'app_support' => $app_support,
 		'wxapp_support' => $wxapp_support,
 		'welcome_support' => $welcome_support,

@@ -465,17 +465,7 @@ function buildframes($framename = ''){
 				}
 			}
 		}
-		if (!empty($entries['welcome']) && $_W['isfounder']) {
-			$frames['account']['section']['platform_module_welcome']['title'] = '';
-			foreach ($entries['welcome'] as $key => $row) {
-				if (empty($row)) continue;
-				$frames['account']['section']['platform_module_welcome']['menu']['platform_module_welcome' . $row['eid']] = array (
-					'title' => "<i class='wi wi-appsetting'></i> {$row['title']}",
-					'url' => $row['url'],
-					'is_display' => 1,
-				);
-			}
-		}
+		
 	}
 
 	//进入小程序后的菜单
@@ -532,15 +522,10 @@ function buildframes($framename = ''){
 			'icon' => $menu['icon'],
 		);
 	}
-	if (!empty($framename)) {
-		if (($framename == 'system_welcome' || $entry['entry'] == 'welcome') && $_W['isfounder']) {
-			$frames = $frames['account'];
-			$frames['section'] = array('platform_module_welcome' => $frames['section']['platform_module_welcome']);
-		} else {
-			$frames = $frames[$framename];
-		}
-	}
-	return $frames;
+	
+		return !empty($framename) ? $frames[$framename] : $frames;
+	
+	
 }
 
 function system_modules() {
