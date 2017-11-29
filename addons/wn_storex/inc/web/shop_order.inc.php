@@ -642,12 +642,11 @@ if ($op == 'edit_price') {
 		message(error(-1, '抱歉，订单不是未支付状态或者订单已取消！'), '', 'ajax');
 	}
 	$core_paylog = pdo_get('core_paylog', array('tid' => $order_info['id'], 'module' => $_GPC['m'], 'uniacid' => $_W['uniacid']));
-	$core_result = true;
 	if (!empty($core_paylog)) {
-		$core_result = pdo_update('core_paylog', array('fee' => $sum_price, 'card_fee' => $sum_price), array('plid' => $core_paylog['plid']));
+		pdo_delete('core_paylog', array('plid' => $core_paylog['plid']));
 	}
 	$result = pdo_update('storex_order', array('sum_price' => $sum_price), array('id' => $order_info['id']));
-	if (!empty($core_result) && !empty($result)) {
+	if (!empty($result)) {
 		message(error(0, '修改成功！'), '', 'ajax');
 	} else {
 		message(error(-1, '修改失败！'), '', 'ajax');
