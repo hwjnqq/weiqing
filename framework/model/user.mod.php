@@ -11,6 +11,7 @@ defined('IN_IA') or exit('Access Denied');
  * @return int 成功返回新增的用户编号，失败返回 0
  */
 function user_register($user) {
+	load()->model('message');
 	if (empty($user) || !is_array($user)) {
 		return 0;
 	}
@@ -33,6 +34,12 @@ function user_register($user) {
 	if (!empty($result)) {
 		$user['uid'] = pdo_insertid();
 	}
+	$content = $user['username'] . date("Y-m-d H:i:s") . '注册成功';
+	$message = array(
+		'status' => $user['status']
+	);
+	message_record($content, $user['uid'], $user['uid'], MESSAGE_REGISTER_TYPE, $message);
+
 	return intval($user['uid']);
 }
 
@@ -435,9 +442,9 @@ function user_account_detail_info($uid) {
  */
 function user_modules($uid) {
 	global $_W;
+
 	load()->model('module');
-	$cachekey = cache_system_key("user_modules:" . $uid);
-	$modules = cache_load($cachekey);
+	$modules =cache_load(cache_system_key('user_modules:' . $uid));
 	if (empty($modules)) {
 		$user_info = user_single(array ('uid' => $uid));
 
@@ -460,11 +467,9 @@ function user_modules($uid) {
 			}
 			$packageids = $user_group_info['package'];
 
-			//如果套餐组中包含-1，则直接取全部权限，否则根据情况获取模块权限
 			if (!empty($packageids) && in_array('-1', $packageids)) {
 				$module_list = pdo_getall('modules', array(), array('name'), 'name', array('mid DESC'));
 			} else {
-				//此处缺少公众号专属套餐
 				$package_group = pdo_getall('uni_group', array('id' => $packageids));
 				if (!empty($package_group)) {
 					$package_group_module = array();
@@ -482,8 +487,8 @@ function user_modules($uid) {
 						}
 					}
 				}
-				$module_list = pdo_fetchall("SELECT name FROM ".tablename('modules')." WHERE
-										name IN ('" . implode("','", $package_group_module) . "') OR issystem = '1' ORDER BY mid DESC", array(), 'name');
+				$module_table = table('module');
+				$module_list = $module_table->moduleLists($package_group_module);
 			}
 		}
 		$module_list = array_keys($module_list);
@@ -511,9 +516,8 @@ function user_modules($uid) {
 				}
 			}
 		}
-		cache_write($cachekey, $modules);
+		cache_write(cache_system_key('user_modules:' . $uid), $modules);
 	}
-
 	$module_list = array();
 	if (!empty($modules)) {
 		foreach ($modules as $module) {
@@ -554,23 +558,53 @@ function user_uniacid_modules($uid) {
  * return string
  */
 function user_login_forward($forward = '') {
-	global $_W;
+	global $_W, $_GPC;
 	$login_forward = trim($forward);
 
+	$login_location = array(
+		'account' => url('home/welcome'),
+		'wxapp' => url('wxapp/display/home'),
+		'module' => url('module/display'),
+	);
 	if (!empty($forward)) {
 		return $login_forward;
 	}
+	if (user_is_founder($_W['uid']) && !user_is_vice_founder($_W['uid'])) {
+		return url('home/welcome/system');
+	}
+	$login_forward = url('account/display');
+	$visit_key = '__lastvisit_' . $_W['uid'];
+	if (!empty($_GPC[$visit_key])) {
+		$last_visit = explode(',', $_GPC[$visit_key]);
+		$last_visit_uniacid = intval($last_visit[0]);
+		$last_visit_url = url_params($last_visit[1]);
+		if ($last_visit_url['c'] == 'site' && in_array($last_visit_url['a'], array('entry', 'nav')) ||
+			$last_visit_url['c'] == 'platform' && in_array($last_visit_url['a'], array('cover', 'reply')) && !in_array($last_visit_url['m'], system_modules()) ||
+			$last_visit_url['c'] == 'module' && in_array($last_visit_url['a'], array('manage-account', 'permission', 'display'))) {
+			return $login_location['module'];
+		} else {
+			if ($last_visit_url['c'] == 'wxapp') {
+				return $login_location['wxapp'];
+			}
+			$account_info = uni_fetch($last_visit_uniacid);
+			if (empty($account_info)) {
+				return $login_forward;
+			}
+			if (in_array($account_info['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
+				return $login_location['account'];
+			}
+			if ($account_info['type'] == ACCOUNT_TYPE_APP_NORMAL) {
+				return $login_location['wxapp'];
+			}
+		}
+	}
 	if (user_is_vice_founder()) {
 		return url('account/manage', array('account_type' => 1));
-	}
-	if (!empty($_W['isfounder'])) {
-		return url('home/welcome/system');
 	}
 	if ($_W['user']['type'] == ACCOUNT_OPERATE_CLERK) {
 		return url('module/display');
 	}
 
-	$login_forward = url('account/display');
 	if (!empty($_W['uniacid']) && !empty($_W['account'])) {
 		$permission = permission_account_user_role($_W['uid'], $_W['uniacid']);
 		if (empty($permission)) {
@@ -585,6 +619,7 @@ function user_login_forward($forward = '') {
 
 	return $login_forward;
 }
+
 /**
  * 获取公众号所有应用或者小程序所有应用
  * @param string $type 模块类型(account/wxapp)
@@ -805,6 +840,9 @@ function user_info_save($user, $is_founder_group = false) {
 	if ($timelimit > 0) {
 		$timeadd = strtotime($timelimit . ' days');
 	}
+	if (user_is_vice_founder() && !empty($_W['user']['endtime'])) {
+		$timeadd = !empty($timeadd) ? min($timeadd, $_W['user']['endtime']) : $_W['user']['endtime'];
+	}
 	$user['endtime'] = $timeadd;
 	$user['owner_uid'] = user_get_uid_byname($user['vice_founder_name']);
 	if (user_is_vice_founder()) {
@@ -842,3 +880,120 @@ function user_detail_formate($profile) {
 	}
 	return $profile;
 }
+
+/**
+ * 用户到期提醒
+ * @return bool
+ */
+function user_expire_notice() {
+	load()->model('cloud');
+	load()->model('setting');
+	$setting_sms_sign = setting_load('site_sms_sign');
+	$day = !empty($setting_sms_sign['site_sms_sign']['day']) ? $setting_sms_sign['site_sms_sign']['day'] : 1;
+
+	$user_table = table('users');
+	$user_table->searchWithMobile();
+	$user_table->searchWithEndtime($day);
+	$user_table->searchWithSendStatus();
+	$users_expire = $user_table->searchUsersList();
+
+	if (empty($users_expire)) {
+		return true;
+	}
+	foreach ($users_expire as $v) {
+		if (empty($v['puid'])) {
+			continue;
+		}
+		if (!empty($v['mobile']) && preg_match(REGULAR_MOBILE, $v['mobile'])) {
+			$content = $v['username'] . "即将到期";
+			$result = cloud_sms_send($v['mobile'], $content);
+		}
+		if (is_error($result)) {
+			pdo_insert('core_sendsms_log', array('mobile' => $v['mobile'], 'content' => $content, 'result' => $result['errno'] . $result['message'], 'createtime' => TIMESTAMP));
+		}
+		if ($result) {
+			pdo_update('users_profile', array('send_expire_status' => 1), array('uid' => $v['uid']));
+		}
+	}
+	return true;
+}
+
+/**
+ * 获取第三方登录链接
+ * @return array
+ */
+function user_support_urls() {
+	global $_W;
+	load()->classs('oauth2/oauth2client');
+	$types = OAuth2Client::supportLoginType();
+	$login_urls = array();
+	foreach ($types as $type) {
+		if (!empty($_W['setting']['thirdlogin'][$type]['authstate'])) {
+			$login_urls[$type] = OAuth2Client::create($type, $_W['setting']['thirdlogin'][$type]['appid'], $_W['setting']['thirdlogin'][$type]['appsecret'])->showLoginUrl();
+		}
+	}
+	if (empty($login_urls)) {
+		$login_urls['system'] = true;
+	}
+	return $login_urls;
+}
+
+/**
+ * 当前用户拥有的可借用的公众号
+ * @return array
+ */
+function user_borrow_oauth_account_list() {
+	global $_W;
+	$user_have_accounts = uni_user_accounts($_W['uid']);
+	$oauth_accounts = array();
+	$jsoauth_accounts = array();
+	if(!empty($user_have_accounts)) {
+		foreach($user_have_accounts as $account) {
+			if(!empty($account['key']) && !empty($account['secret'])) {
+				if (in_array($account['level'], array(ACCOUNT_SERVICE_VERIFY))) {
+					$oauth_accounts[$account['acid']] = $account['name'];
+				}
+				if (in_array($account['level'], array(ACCOUNT_SUBSCRIPTION_VERIFY, ACCOUNT_SERVICE_VERIFY))) {
+					$jsoauth_accounts[$account['acid']] = $account['name'];
+				}
+			}
+		}
+	}
+	return array(
+		'oauth_accounts' => $oauth_accounts,
+		'jsoauth_accounts' => $jsoauth_accounts
+	);
+}
+
+/**
+ * 公众号过期记录
+ * @return bool
+ */
+function user_account_expire_message_record() {
+	load()->model('account');
+	load()->model('message');
+	$account_table = table('account');
+	$expire_account_list = $account_table->searchAccountList();
+	if (empty($expire_account_list)) {
+		return true;
+	}
+	foreach ($expire_account_list as $account) {
+		$account_detail = uni_fetch($account['uniacid']);
+		if (empty($account_detail['uid'])) {
+			continue;
+		}
+		if ($account_detail['endtime'] > 0 && $account_detail['endtime'] < TIMESTAMP) {
+			$type = $account_detail['type'] == ACCOUNT_TYPE_APP_NORMAL ? MESSAGE_WECHAT_EXPIRE_TYPE : MESSAGE_ACCOUNT_EXPIRE_TYPE;
+			$exist_record = pdo_get('message_notice_log', array('sign' => $account_detail['uniacid'], 'uid' => $account_detail['uid'], 'type' => $type, 'end_time' => $account_detail['endtime']));
+			if (empty($exist_record)) {
+				$account_name = $account_detail['type'] == ACCOUNT_TYPE_APP_NORMAL ? '-小程序过期' : '-公众号过期';
+				$message = array(
+					'end_time' => $account_detail['endtime']
+				);
+				message_record($account_detail['name'] . $account_name, $account_detail['uid'], $account_detail['uniacid'], $type, $message);
+			}
+		}
+	}
+	return true;
+}
+

@@ -9,9 +9,11 @@
 </ul>
 {if $do == 'domainset'}
 <div class="panel we7-panel">
-	<div class="panel-heading">设置小程序域名</div>
+	<div class="panel-heading">小程序配置</div>
 	<div class="panel-body we7-padding">
-		<form action="./index.php?c=wxapp&a=front-download&do=domainset&version_id={$version_id}" class="we7-form"
+		<form
+		      action="./index.php?c=wxapp&a=front-download&do=domainset&version_id={$version_id}"
+		      class="we7-form" enctype="multipart/form-data"
 		      method="post">
 			<div class="form-group">
 				<label class="control-label col-sm-2">设置小程序URL</label>
@@ -20,9 +22,17 @@
 				</div>
 			</div>
 			<div class="form-group">
+				<label class="control-label col-sm-2">小程序业务域名校验文件</label>
+				<div class="col-sm-10">
+					<input type="file" class="form-control"
+					       name="file" value="" placeholder="没有可不传"/>
+				</div>
+			</div>
+			<div class="form-group">
 				<label class="control-label col-sm-2"></label>
 				<div class="col-sm-10">
 					<button class="btn btn-primary" type="submit">更新</button>
+					<a href="{$appurl}?i={$uniacid}&c=utility&a=visit&do=health" class="btn btn-primary" target="_blank">https访问检测</a>
 				</div>
 			</div>
 		</form>
@@ -30,7 +40,7 @@
 </div>
 <div class="wxapp-download-procedure">
 	<div class="title color-gray">设置小程序域名说明：</div>
-	<div class="step">1.设置链接域名，可以在微擎后台设置操作小程序。设置完成后到小程序审核发布里点击下载后，域名更新。</div>
+	<div class="step">1.设置链接域名，可以在系统后台设置操作小程序。设置完成后到小程序审核发布里点击下载后，域名更新。</div>
 	<div class="step">2.设置后的生效页面（<a href="#" class="color-default">站点管理</a><span class="color-default"><i
 			class="wi wi-angle-right"></i></span> <a href="#" class="color-default">站点设置</a>）
 	</div>
@@ -56,7 +66,6 @@
 		   class="btn btn-primary">立即下载</a>
 	</div>
 </div>
-
 <div class="wxapp-download-procedure">
 	<div class="title color-gray">小程序前端下载后操作流程说明：</div>
 	<div class="step">1.进入微信小程序后台（mp.weixin.qq.com），添加小程序开发者（如已经是管理员或开发者则不需要添加）</div>
@@ -163,7 +172,7 @@
 		<div class="success text-center step3" ng-show="show_step3">
 			<div><span class="wi wi-right-sign"></span></div>
 			<div class="status-state">上传代码成功，请到微信开发平台小程序后台预览，提交审核应用。</div>
-			<div>微信开发平台小程序后台<a href="#" class="color-default">https://mp.weixin.qq.com/</a></div>
+			<div>微信开发平台小程序后台<a href="https://mp.weixin.qq.com/" class="color-default">https://mp.weixin.qq.com/</a></div>
 			<div class="btns">
 				<a href="https://mp.weixin.qq.com/" class="btn btn-primary">去提交审核</a>
 				<a href="/web/index.php?c=wxapp&a=display" class="btn btn-default">小程序首页</a>

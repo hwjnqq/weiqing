@@ -13,16 +13,24 @@ load()->model('extension');
 load()->model('module');
 load()->model('system');
 load()->model('user');
+load()->model('wxapp');
 
 $dos = array('platform', 'system', 'ext', 'get_fans_kpi', 'get_last_modules', 'get_system_upgrade', 'get_upgrade_modules', 'get_module_statistics', 'get_ads');
 $do = in_array($do, $dos) ? $do : 'platform';
-if ($do == 'platform' || ($do == 'ext' && $_GPC['m'] != 'store')) {
-	if (!empty($_GPC['version_id'])) {
-		checkwxapp();
-	} else {
-		checkaccount();
+
+	if ($do == 'ext') {
+		if (!empty($_GPC['version_id'])) {
+			$version_info = wxapp_version($_GPC['version_id']);
+		}
+		if (!empty($_GPC['version_id']) && !(!empty($version_info['modules']) && !empty($version_info['modules'][0]['account']) && !empty($version_info['modules'][0]['account']['uniacid']) && in_array($version_info['modules'][0]['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)))) {
+			checkwxapp();
+		} else {
+			checkaccount();
+		}
 	}
-}
+
+
+
 
 if ($do == 'platform') {
 	$last_uniacid = uni_account_last_switch();
@@ -33,7 +41,6 @@ if ($do == 'platform') {
 		uni_account_switch($last_uniacid,  url('home/welcome'));
 	}
 	define('FRAME', 'account');
-
 	if (empty($_W['account']['endtime']) && !empty($_W['account']['endtime']) && $_W['account']['endtime'] < time()) {
 		itoast('公众号已到服务期限，请联系管理员并续费', url('account/manage'), 'info');
 	}
@@ -90,9 +97,14 @@ if ($do == 'platform') {
 			exit;
 		}
 	}
+
 	define('FRAME', 'account');
 	define('IN_MODULE', $modulename);
-	$frames = buildframes('account');
+	if ($_GPC['system_welcome'] && $_W['isfounder']) {
+		$frames = buildframes('system_welcome');
+	} else {
+		$frames = buildframes('account');
+	}
 	foreach ($frames['section'] as $secion) {
 		foreach ($secion['menu'] as $menu) {
 			if (!empty($menu['url'])) {

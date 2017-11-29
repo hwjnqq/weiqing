@@ -164,6 +164,11 @@ if ($do == 'post') {
 	if ($m == 'keyword' || $m == 'userapi' || !in_array($m, $sysmods)) {
 		$module['title'] = '关键字自动回复';
 		if ($_W['isajax'] && $_W['ispost']) {
+
+			$sensitive_word = detect_sensitive_word($_GPC['keyword']);
+			if (!empty($sensitive_word)) {
+				iajax(-2, '含有敏感词:' . $sensitive_word);
+			}
 			$result = pdo_getall('rule_keyword', array('uniacid' => $_W['uniacid'], 'content' => trim($_GPC['keyword'])), array('rid'));
 			if (!empty($result)) {
 				$keywords = array();
@@ -193,9 +198,11 @@ if ($do == 'post') {
 		if (checksubmit('submit')) {
 
 			$keywords = @json_decode(htmlspecialchars_decode($_GPC['keywords']), true);
+
 			if (empty($keywords)) {
 				itoast('必须填写有效的触发关键字.');
 			}
+
 			$rulename = trim($_GPC['rulename']);
 			$containtype = '';
 			$_GPC['reply'] = (array)$_GPC['reply'];
@@ -301,7 +308,7 @@ if ($do == 'post') {
 			if ($reply_type == 'module') {
 				$setting[$type] = array('type' => 'module', 'module' => $module);
 			} else {
-				$rule = pdo_get('rule_keyword', array('rid' => $rule_id, 'uniacid' => $_W['uniacid']));
+				$rule = pdo_get('rule_keyword', array('id' => $rule_id, 'uniacid' => $_W['uniacid']));
 				$setting[$type] = array('type' => 'keyword', 'keyword' => $rule['content']);
 			}
 			uni_setting_save('default_message', $setting);

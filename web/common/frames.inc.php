@@ -133,8 +133,10 @@ $we7_system_menu['account'] = array(
 					'icon' => 'wi wi-pay-setting',
 					'permission_name' => 'profile_pay_setting',
 				),
+				
 			),
 		),
+		
 	),
 );
 $we7_system_menu['wxapp'] = array(
@@ -311,6 +313,7 @@ $we7_system_menu['system'] = array(
 				),
 			)
 		),
+		
 		'user' => array(
 			'title' => '帐户/用户',
 			'menu' => array(
@@ -356,6 +359,7 @@ $we7_system_menu['system'] = array(
 						),
 					),
 				),
+				
 			)
 		),
 		'permission' => array(
@@ -420,6 +424,17 @@ $we7_system_menu['system'] = array(
 				)
 			)
 		),
+		'message' => array(
+			'title' => '消息提醒',
+			'menu' => array(
+				'system_message_notice' => array(
+					'title' => '消息提醒',
+					'url' => url('message/notice'),
+					'icon' => 'wi wi-article',
+					'permission_name' => 'system_message_notice',
+				)
+			)
+		),
 		'cache' => array(
 			'title' => '缓存',
 			'menu' => array(
@@ -444,7 +459,7 @@ $we7_system_menu['site'] = array(
 			'menu' => array(
 				'system_profile' => array(
 					'title' => '系统升级',
-					'url' => 'cloud.php',
+					'url' => url('cloud/upgrade'),
 					'icon' => 'wi wi-cache',
 					'permission_name' => 'system_cloud_upgrade',
 				),
@@ -506,7 +521,25 @@ $we7_system_menu['site'] = array(
 					'url' => url('system/ipwhitelist'),
 					'icon' => 'wi wi-ip',
 					'permission_name' => 'system_setting_ipwhitelist',
-				)
+				),
+				'system_setting_sensitiveword' => array(
+					'title' => '过滤敏感词',
+					'url' => url('system/sensitiveword'),
+					'icon' => 'wi wi-sensitive',
+					'permission_name' => 'system_setting_sensitiveword',
+				),
+				'system_setting_thirdlogin' => array(
+					'title' => '第三方登录配置',
+					'url' => url('system/thirdlogin'),
+					'icon' => 'wi wi-sensitive',
+					'permission_name' => 'system_setting_thirdlogin',
+				),
+				'system_setting_oauth' => array(
+					'title' => 'oauth全局设置',
+					'url' => url('system/oauth'),
+					'icon' => 'wi wi-sensitive',
+					'permission_name' => 'system_setting_oauth',
+				),
 			)
 		),
 		'utility' => array(
@@ -601,6 +634,5 @@ $we7_system_menu['help'] = array(
 	'section' => array(),
 	'blank' => false
 );
-
 
 return $we7_system_menu;

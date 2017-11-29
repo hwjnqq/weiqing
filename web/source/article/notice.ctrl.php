@@ -73,11 +73,14 @@ if ($do == 'post') {
 			'is_display' => 1,
 			'is_show_home' => 1,
 		);
+	} else {
+		$notice['style'] = iunserializer($notice['style']);
 	}
 	if (checksubmit()) {
 		$title = trim($_GPC['title']) ? trim($_GPC['title']) : itoast('公告标题不能为空', '', 'error');
 		$cateid = intval($_GPC['cateid']) ? intval($_GPC['cateid']) : itoast('公告分类不能为空', '', 'error');
 		$content = trim($_GPC['content']) ? trim($_GPC['content']) : itoast('公告内容不能为空', '', 'error');
+		$style = array('color' => trim($_GPC['style']['color']), 'bold' => intval($_GPC['style']['bold']));
 		$data = array(
 			'title' => $title,
 			'cateid' => $cateid,
@@ -87,6 +90,7 @@ if ($do == 'post') {
 			'is_display' => intval($_GPC['is_display']),
 			'is_show_home' => intval($_GPC['is_show_home']),
 			'createtime' => TIMESTAMP,
+			'style' => iserializer($style),
 		);
 
 		if (!empty($notice['id'])) {
@@ -125,6 +129,12 @@ if ($do == 'list') {
 	$psize = 20;
 	$sql = 'SELECT * FROM ' . tablename('article_notice') . $condition . " ORDER BY displayorder DESC LIMIT " . ($pindex - 1) * $psize .',' .$psize;
 	$notices = pdo_fetchall($sql, $params);
+	foreach ($notices as &$notice_value) {
+		if (!empty($notice_value)) {
+			$notice_value['style'] = iunserializer($notice_value['style']);
+		}
+	}
+	unset($notice_value);
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('article_notice') . $condition, $params);
 	$pager = pagination($total, $pindex, $psize);
 

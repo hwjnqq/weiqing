@@ -640,6 +640,23 @@ function is_error($data) {
 }
 
 /**
+ * 检测敏感词
+ * @param $string
+ * @return bool
+ */
+function detect_sensitive_word($string) {
+	$setting = setting_load('sensitive_words');
+	if (empty($setting['sensitive_words'])) {
+		return false;
+	}
+	$sensitive_words = $setting['sensitive_words'];
+	$blacklist="/".implode("|",$sensitive_words)."/";
+	if(preg_match($blacklist, $string, $matches)){
+		return $matches[0];
+	}
+	return false;
+}
+/**
  * 获取引用页地址
  * @param string $default 默认地址
  * @return string
@@ -1199,27 +1216,6 @@ function iarray_change_key_case($array, $case = CASE_LOWER){
 	return $array;
 }
 
-function strip_gpc($values, $type = 'g') {
-	$filter = array(
-		'g' => "'|(and|or)\\b.+?(>|<|=|in|like)|\\/\\*.+?\\*\\/|<\\s*script\\b|\\bEXEC\\b|UNION.+?SELECT|UPDATE.+?SET|INSERT\\s+INTO.+?VALUES|(SELECT|DELETE).+?FROM|(CREATE|ALTER|DROP|TRUNCATE)\\s+(TABLE|DATABASE)",
-		'p' => "\\b(and|or)\\b.{1,6}?(=|>|<|\\bin\\b|\\blike\\b)|\\/\\*.+?\\*\\/|<\\s*script\\b|\\bEXEC\\b|UNION.+?SELECT|UPDATE.+?SET|INSERT\\s+INTO.+?VALUES|(SELECT|DELETE).+?FROM|(CREATE|ALTER|DROP|TRUNCATE)\\s+(TABLE|DATABASE)",
-		'c' => "\\b(and|or)\\b.{1,6}?(=|>|<|\\bin\\b|\\blike\\b)|\\/\\*.+?\\*\\/|<\\s*script\\b|\\bEXEC\\b|UNION.+?SELECT|UPDATE.+?SET|INSERT\\s+INTO.+?VALUES|(SELECT|DELETE).+?FROM|(CREATE|ALTER|DROP|TRUNCATE)\\s+(TABLE|DATABASE)",
-	);
-	if (!isset($values)) {
-		return '';
-	}
-	if(is_array($values)) {
-		foreach($values as $key => $val) {
-			$values[addslashes($key)] = strip_gpc($val, $type);
-		}
-	} else {
-		if (preg_match("/".$filter[$type]."/is", $values, $match) == 1) {
-			$values = '';
-		}
-	}
-	return $values;
-}
-
 /**
  * 过滤GET,POST传入的路径中的危险字符
  * @param string $path
@@ -1333,25 +1329,6 @@ function emoji_unicode_encode($string) {
 }
 
 /**
- * 获取全局变量 $_W 中的值
- * @param string $key
- */
-function getglobal($key) {
-	global $_W;
-	$key = explode('/', $key);
-
-	$v = &$_W;
-	foreach ($key as $k) {
-		if (!isset($v[$k])) {
-			return null;
-		}
-		$v = &$v[$k];
-	}
-	return $v;
-}
-
-
-/**
  *  指定开头的字符串
  * @param $haystack 原始字符串
  * @param $needles 开头字符串
@@ -1367,63 +1344,5 @@ if (!function_exists('starts_with')) {
 		return false;
 	}
 }
-
-/**
- *  只能跳转到本域名下
- *  跳转链接只能跳转本域名下 防止钓鱼 如: 用户可能正常从信任站点微擎登录 跳转到第三方网站 会误认为第三方网站也是安全的
- * @param $redirect
- * @return string
- */
-function check_url_not_outside_link($redirect) {
-	global $_W;
-	if(starts_with($redirect, 'http') && !starts_with($redirect, $_W['siteroot'])) {
-		$redirect = $_W['siteroot'];
-	}
-	return $redirect;
-}
-
-/**
- *  去掉可能造成xss攻击的字符
- * @param $val $string 需处理的字符串
- */
-function remove_xss($val) {
-	$val = preg_replace('/([\x00-\x08,\x0b-\x0c,\x0e-\x19])/', '', $val);
-	$search = 'abcdefghijklmnopqrstuvwxyz';
-	$search .= 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-	$search .= '1234567890!@#$%^&*()';
-	$search .= '~`";:?+/={}[]-_|\'\\';
-	for ($i = 0; $i < strlen($search); $i++) {
-		$val = preg_replace('/(&#[xX]0{0,8}'.dechex(ord($search[$i])).';?)/i', $search[$i], $val);
-		$val = preg_replace('/(�{0,8}'.ord($search[$i]).';?)/', $search[$i], $val);
-	}
-	$ra1 = array('javascript', 'vbscript', 'expression', 'applet', 'meta', 'xml', 'blink', 'link', 'style', 'script', 'embed', 'object', 'iframe', 'frame', 'frameset', 'ilayer', 'layer', 'bgsound', 'title', 'base');
-	$ra2 = array('onabort', 'onactivate', 'onafterprint', 'onafterupdate', 'onbeforeactivate', 'onbeforecopy', 'onbeforecut', 'onbeforedeactivate', 'onbeforeeditfocus', 'onbeforepaste', 'onbeforeprint', 'onbeforeunload', 'onbeforeupdate', 'onblur', 'onbounce', 'oncellchange', 'onchange', 'onclick', 'oncontextmenu', 'oncontrolselect', 'oncopy', 'oncut', 'ondataavailable', 'ondatasetchanged', 'ondatasetcomplete', 'ondblclick', 'ondeactivate', 'ondrag', 'ondragend', 'ondragenter', 'ondragleave', 'ondragover', 'ondragstart', 'ondrop', 'onerror', 'onerrorupdate', 'onfilterchange', 'onfinish', 'onfocus', 'onfocusin', 'onfocusout', 'onhelp', 'onkeydown', 'onkeypress', 'onkeyup', 'onlayoutcomplete', 'onload', 'onlosecapture', 'onmousedown', 'onmouseenter', 'onmouseleave', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onmousewheel', 'onmove', 'onmoveend', 'onmovestart', 'onpaste', 'onpropertychange', 'onreadystatechange', 'onreset', 'onresize', 'onresizeend', 'onresizestart', 'onrowenter', 'onrowexit', 'onrowsdelete', 'onrowsinserted', 'onscroll', 'onselect', 'onselectionchange', 'onselectstart', 'onstart', 'onstop', 'onsubmit', 'onunload');
-	$ra = array_merge($ra1, $ra2);
-	$found = true;
-	while ($found == true) {
-		$val_before = $val;
-		for ($i = 0; $i < sizeof($ra); $i++) {
-			$pattern = '/';
-			for ($j = 0; $j < strlen($ra[$i]); $j++) {
-				if ($j > 0) {
-					$pattern .= '(';
-					$pattern .= '(&#[xX]0{0,8}([9ab]);)';
-					$pattern .= '|';
-					$pattern .= '|(�{0,8}([9|10|13]);)';
-					$pattern .= ')*';
-				}
-				$pattern .= $ra[$i][$j];
-			}
-			$pattern .= '/i';
-			$replacement = substr($ra[$i], 0, 2).'<x>'.substr($ra[$i], 2);
-			$val = preg_replace($pattern, $replacement, $val);
-			if ($val_before == $val) {
-				$found = false;
-			}
-		}
-	}
-	return $val;
-}
-
-
-
+load()->func('safe');
+load()->func('system');

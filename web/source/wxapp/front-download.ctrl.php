@@ -7,42 +7,50 @@ defined('IN_IA') or exit('Access Denied');
 
 load()->model('wxapp');
 load()->classs('cloudapi');
+load()->classs('uploadedfile');
 
 $dos = array('front_download', 'domainset', 'code_uuid', 'code_gen', 'code_token', 'qrcode', 'checkscan', 'commitcode', 'preview', 'getpackage');
 $do = in_array($do, $dos) ? $do : 'front_download';
 
 $_W['page']['title'] = '小程序下载 - 小程序 - 管理';
 
-$uniacid = intval($_GPC['uniacid']);
 $version_id = intval($_GPC['version_id']);
-if (!empty($uniacid)) {
-	$wxapp_info = wxapp_fetch($uniacid);
-}
+$wxapp_info = wxapp_fetch($_W['uniacid']);
 if (!empty($version_id)) {
 	$version_info = wxapp_version($version_id);
-	$wxapp_info = wxapp_fetch($version_info['uniacid']);
-
 }
 if ($do == 'domainset') {
+
 	$appurl = $_W['siteroot'].'app/index.php';
+	$uniacid = 0;
 	if($version_info) {
 		$wxapp  = pdo_get('account_wxapp', array('uniacid'=>$version_info['uniacid']));
 		if($wxapp && !empty($wxapp['appdomain'])) {
 			$appurl = $wxapp['appdomain'];
 		}
+		if(!starts_with($appurl, 'https')) { //不是https 开头强制改为https开头
+			$appurl = str_replace('http', 'https', $appurl);
+		}
+		$uniacid = $version_info['uniacid'];
 	}
 	if($_W['ispost']) {
+		$files = UploadedFile::createFromGlobal();
 		$appurl = $_GPC['appurl'];
 		if(! starts_with($appurl, 'https')) {
 			itoast('域名必须以https开头');
 			return;
 		}
+
+		/** @var  $file UploadedFile */
+		$file = isset($files['file']) ? $files['file'] : null;
+		if($file && $file->isOk() && $file->allowExt('txt')) {
+			$file->moveTo(IA_ROOT.'/'.$file->getClientFilename());//上传业务域名
+		}
+
 		if($version_info) {
-			$update = pdo_update('account_wxapp', array('appdomain'=>$appurl), array('uniacid'=>$version_info['uniacid']));
-			if($update) {
-				itoast('更新小程序域名成功');
-			}
-			itoast('更新小程序域名失败');
+			$update = pdo_update('account_wxapp', array('appdomain'=>$appurl),
+				array('uniacid'=>$uniacid));
+			itoast('更新小程序域名成功');//新 旧域名一样 返回$update 为0
 		}
 	}
 	template('wxapp/version-front-download');
@@ -54,13 +62,6 @@ if ($do == 'front_download') {
 	$wxapp_versions_info = wxapp_version($version_id);
 	if(!in_array($uptype, array('auto','normal'))) {
 		$uptype = 'auto';
-	}
-
-	if($wxapp_info) {
-		$code_uuid = $wxapp_info['code_uuid'];
-		if(! $code_uuid) {
-
-		}
 	}
 	template('wxapp/version-front-download');
 }
@@ -84,7 +85,9 @@ if ($do == 'code_token') {
 
 if ($do == 'qrcode') {
 	$code_token = $_GPC['code_token'];
+	header('Content-type: image/jpg');//有的站必须指定content-type才能显示
 	echo wxapp_code_qrcode($code_token);
+	exit;
 }
 
 if ($do == 'checkscan') {
@@ -117,7 +120,7 @@ if($do == 'getpackage') {
 	if(empty($version_id)) {
 		itoast('参数错误！', '', '');
 	}
-	$account_wxapp_info = wxapp_fetch($uniacid, $version_id);
+	$account_wxapp_info = wxapp_fetch($version_info['uniacid'], $version_id);
 	if (empty($account_wxapp_info)) {
 		itoast('版本不存在！', referer(), 'error');
 	}

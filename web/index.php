@@ -9,6 +9,19 @@ require IA_ROOT . '/web/common/bootstrap.sys.inc.php';
 load()->web('common');
 load()->web('template');
 load()->func('file');
+load()->model('account');
+load()->model('setting');
+load()->model('user');
+
+$state = urldecode($_GPC['state']);
+if (!empty($state)) {
+	$login_type = explode('=', $state);
+	if (in_array($login_type[1], array('qq', 'wechat'))) {
+		$controller = 'user';
+		$action = 'login';
+		$_GPC['login_type'] = $login_type[1];
+	}
+}
 
 if (empty($_W['isfounder']) && !empty($_W['user']) && ($_W['user']['status'] == USER_STATUS_CHECK || $_W['user']['status'] == USER_STATUS_BAN)) {
 	message('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决！');
@@ -100,7 +113,6 @@ if ($_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER && version_compare($_W['setting']
 		message('不能访问, 需要相应的权限才能访问！');
 	}
 }
-
 // 用户权限判断
 require _forward($controller, $action);
 
@@ -128,7 +140,7 @@ function _forward($c, $a) {
 }
 function _calc_current_frames(&$frames) {
 	global $controller, $action;
-	if (! empty($frames['section']) && is_array($frames['section'])) {
+	if (!empty($frames['section']) && is_array($frames['section'])) {
 		foreach ($frames['section'] as &$frame) {
 			if (empty($frame['menu'])) {
 				continue;
@@ -147,7 +159,7 @@ function _calc_current_frames(&$frames) {
 					$get['c'] = $controller;
 					$get['a'] = $action;
 				}
-				if (! empty($do)) {
+				if (!empty($do)) {
 					$get['do'] = $do;
 				}
 				$diff = array_diff_assoc($urls, $get);

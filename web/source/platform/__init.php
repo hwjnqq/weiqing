@@ -5,7 +5,7 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-if (!($action == 'material' && $do == 'delete')) {
+if (!($action == 'material' && $do == 'delete') && empty($_GPC['version_id'])) {
 	checkaccount();
 }
 

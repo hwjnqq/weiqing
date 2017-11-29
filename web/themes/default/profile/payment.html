@@ -76,6 +76,7 @@
 				<div class="link-group"><a href="javascript:;" ng-click="check_wechat()">修改</a></div>
 			</td>
 		</tr>
+		
 		<tr>
 			<td>
 				一码支付
@@ -260,6 +261,7 @@
 								<input id='radio-12' type="radio" name='wechat[switch]' ng-checked='paysetting.wechat.switch == 2' ng-click="changeSwitch('wechat', 2)" value="2"/>
 								<label for="radio-12">借用支付  </label>
 								{/if}
+								
 								{/if}
 								<input id='radio-24' type="radio" name='wechat[switch]' ng-checked='paysetting.wechat.switch == 4 || paysetting.wechat.switch === false' ng-click="changeSwitch('wechat', 4)" value="4" checked=""/>
 								<label for="radio-24">关闭 </label>
@@ -377,6 +379,7 @@
 							</div>
 						</div>
 						{/if}
+						
 						{/if}
 					</div>
 				</div>
@@ -563,6 +566,7 @@
 		'saveurl' : "{php echo url('profile/payment/save_setting')}",
 		'text_alipay_url' : "{php echo url('profile/payment/test_alipay')}",
 		'borrows' : {php echo json_encode($proxy_wechatpay_account['borrow'])},
+		
 		'get_setting_url' : "{php echo url('profile/payment/get_setting')}",
 		'account_level' : "{$accounts[$_W['acid']]['level']}"
 	});

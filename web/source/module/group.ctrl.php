@@ -10,17 +10,23 @@ load()->model('module');
 
 $dos = array('display', 'delete', 'post', 'save');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
-if (!in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))){
-	itoast('无权限操作！', referer(), 'error');
-}
-if ($do != 'display' && !in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
-	itoast('您只有查看权限！', url('module/group'), 'error');
-}
+
+
+	if (!in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER, ACCOUNT_MANAGE_NAME_FOUNDER))){
+		itoast('无权限操作！', referer(), 'error');
+	}
+
+
+
+
+
+	if ($do != 'display' && !in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_FOUNDER))) {
+		itoast('您只有查看权限！', url('module/group'), 'error');
+	}
 
 if ($do == 'save') {
 	$modules = empty($_GPC['modules']) ? array() : (array)$_GPC['modules'];
-	$wxapp = empty($_GPC['wxapp']) ? array() : (array)array_keys($_GPC['wxapp']);
-
+	$wxapp = empty($_GPC['wxapp']) ? array() : (array)$_GPC['wxapp'];
 	$package_info = array(
 		'id' => intval($_GPC['id']),
 		'name' => $_GPC['name'],
@@ -39,14 +45,15 @@ if ($do == 'save') {
 if ($do == 'display') {
 	$_W['page']['title'] = '应用套餐列表';
 	$param = array('uniacid' => 0);
-	if (!empty($_GPC['name'])) {
-		$param['name like'] = "%". trim($_GPC['name']) ."%";
-	}
 	$modules = user_modules($_W['uid']);
 	
 	$modules_group_list = uni_groups();
 	if (!empty($modules_group_list)) {
 		foreach ($modules_group_list as $group_key => &$group) {
+			if (!empty($_GPC['name']) && !strexists($group['name'], $_GPC['name'])) {
+				unset($modules_group_list[$group_key]);
+				continue;
+			}
 			if (empty($group['modules'])) {
 				$group['modules'] = array();
 			}

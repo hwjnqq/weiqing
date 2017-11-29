@@ -36,6 +36,9 @@ if (!empty($input)) {
 }
 
 $account = pdo_get('account_wechats', array('key' => $wechat_data['appid']));
+if (empty($account)) {
+	$account = pdo_get('account_wxapp', array('key' => $wechat_data['appid']));
+}
 $_W['uniacid'] = $account['uniacid'];
 
 $setting = uni_setting_load('payment', $_W['uniacid']);

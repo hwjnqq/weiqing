@@ -327,7 +327,7 @@ function material_local_news_upload($attach_id) {
 		}
 		$news['content'] = material_parse_content($news['content']);
 		if (is_error($news['content'])) {
-			return error('-2', $news['content']);
+			return error('-2', $news['content']['message']);
 		}
 		if (empty($news['thumb_media_id'])) {
 			if (empty($news['thumb_url'])){
@@ -398,6 +398,10 @@ function material_local_upload_by_url($url, $type='images') {
 			$url = substr(parse_url($url, PHP_URL_PATH), strpos(parse_url($url, PHP_URL_PATH), '/attachment/') + strlen('/attachment/'));
 		}
 		$filepath = ATTACHMENT_ROOT . $url;
+	}
+	$filesize = filesize($filepath);
+	if ($filesize > 1024 * 1024 && $type == 'videos') {
+		return error(-1, '要转换的微信素材视频不能超过10M');
 	}
 	return $account_api->uploadMediaFixed($filepath, $type);
 }

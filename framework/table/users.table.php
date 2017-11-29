@@ -58,13 +58,18 @@ class UsersTable extends We7Table {
 		return $this;
 	}
 
-	public function searchWithEndtime() {
-		$this->query->where('u.endtime !=', 0)->where('u.endtime <', TIMESTAMP + 86400);;
+	public function searchWithEndtime($day) {
+		$this->query->where('u.endtime !=', 0)->where('u.endtime <', TIMESTAMP + 86400 * $day);
 		return $this;
 	}
 
 	public function searchWithMobile() {
 		$this->query->where('p.mobile !=', '');;
+		return $this;
+	}
+
+	public function searchWithSendStatus() {
+		$this->query->where('p.send_expire_status', 0);;
 		return $this;
 	}
 
@@ -125,5 +130,34 @@ class UsersTable extends We7Table {
 
 	public function userVerifyCode($receiver, $verifycode) {
 		return $this->query->from('uni_verifycode')->where('receiver', $receiver)->where('verifycode', $verifycode)->where('uniacid', 0)->get();
+	}
+
+	public function userBindInfo($bind_sign, $third_type) {
+		return $this->query->from('users_bind')->where('bind_sign', $bind_sign)->where('third_type', $third_type)->get();
+	}
+
+	public function userProfileFields() {
+		return $this->query->from('profile_fields')->where('available', 1)->where('showinregister', 1)->orderby('displayorder', 'desc')->getall('field');
+	}
+
+	public function userBind() {
+		return $this->query->from('users_bind')->getall('bind_sign');
+	}
+
+	public function bindSearchWithUser($uid) {
+		$this->query->where('uid', $uid);
+		return $this;
+	}
+
+	public function bindSearchWithType($type) {
+		$this->query->where('third_type', $type);
+		return $this;
+	}
+
+	public function bindInfo() {
+		return $this->query->from('users_bind')->get();
+	}
+	public function userProfile($uid) {
+		return $this->query->from('users_profile')->where('uid', $uid)->get();
 	}
 }

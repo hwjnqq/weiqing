@@ -5,6 +5,28 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
+function attachment_set_attach_url() {
+	global $_W;
+	$_W['setting']['remote_complete_info'] = $_W['setting']['remote'];
+	if (!empty($_W['setting']['remote'][$_W['uniacid']]['type'])) {
+		$_W['setting']['remote'] = $_W['setting']['remote'][$_W['uniacid']];
+	}
+	$attach_url = $_W['attachurl_local'] = $_W['siteroot'] . $_W['config']['upload']['attachdir'] . '/';
+	if (!empty($_W['setting']['remote']['type'])) {
+		if ($_W['setting']['remote']['type'] == ATTACH_FTP) {
+			$attach_url = $_W['attachurl_remote'] = $_W['setting']['remote']['ftp']['url'] . '/';
+		} elseif ($_W['setting']['remote']['type'] == ATTACH_OSS) {
+			$attach_url = $_W['attachurl_remote'] = $_W['setting']['remote']['alioss']['url'] . '/';
+		} elseif ($_W['setting']['remote']['type'] == ATTACH_QINIU) {
+			$attach_url = $_W['attachurl_remote'] = $_W['setting']['remote']['qiniu']['url'] . '/';
+		} elseif ($_W['setting']['remote']['type'] == ATTACH_COS) {
+			$attach_url = $_W['attachurl_remote'] = $_W['setting']['remote']['cos']['url'] . '/';
+		}
+	}
+	return $attach_url;
+}
+
+
 function attachment_alioss_datacenters() {
 	$bucket_datacenter = array(
 		'oss-cn-hangzhou' => '杭州数据中心',

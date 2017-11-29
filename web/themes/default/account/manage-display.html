@@ -2,20 +2,26 @@
 <div class="we7-page-title">公众号管理</div>
 <ul class="we7-page-tab">
 	<li class="active"><a href="{url 'account/manage'}">公众号列表</a></li>
-	{if $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER || $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER}
-	<li><a href="{url 'account/recycle'}">公众号回收站</a></li>
-	{/if}
+	
+	
+		{if $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER || $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER}
+		<li><a href="{url 'account/recycle'}">公众号回收站</a></li>
+		{/if}
+	
 </ul>
 <div class="clearfix we7-margin-bottom">
-	{if !$_W['isfounder'] && !empty($account_info['uniacid_limit']) || user_is_vice_founder()}
+	
+	
+		{if !$_W['isfounder'] && !empty($account_info['uniacid_limit'])}
 		<div class="alert alert-warning">
 			温馨提示：
 			<i class="fa fa-info-circle"></i>
-			Hi，<span class="text-strong">{$_W['username']}</span>，您所在的会员组： <span class="text-strong">{$account_info['group_name']}</span>，{if !user_is_vice_founder() && !empty($account_info['vice_group_name'])} <span class="text-strong">{$account_info['vice_group_name']}，</span>{/if}
+			Hi，<span class="text-strong">{$_W['username']}</span>，您所在的会员组： <span class="text-strong">{$account_info['group_name']}</span>
 			账号有效期限：<span class="text-strong">{php echo date('Y-m-d', $_W['user']['starttime'])} ~~ {if empty($_W['user']['endtime'])}无限制{else}{php echo date('Y-m-d', $_W['user']['endtime'])}{/if}</span>，
 			可创建 <span class="text-strong">{$account_info['maxaccount']} </span>个公众号，已创建<span class="text-strong"> {$account_info['uniacid_num']} </span>个，还可创建 <span class="text-strong">{$account_info['uniacid_limit']} </span>个公众号。
 		</div>
-	{/if}
+		{/if}
+	
 	<form action="" class="form-inline  pull-left" method="get">
 		<input type="hidden" name="c" value="account">
 		<input type="hidden" name="a" value="manage">
@@ -24,11 +30,14 @@
 			<span class="input-group-btn"><button class="btn btn-default"><i class="fa fa-search"></i></button></span>
 		</div>
 	</form>
-	{if !empty($account_info['uniacid_limit']) || $_W['isfounder'] && !user_is_vice_founder()}
+	
+	
+	{if !empty($account_info['uniacid_limit']) || $_W['isfounder']}
 	<div class="pull-right">
 		<a href="{url 'account/post-step'}" class="btn btn-primary we7-padding-horizontal">添加公众号</a>
 	</div>
 	{/if}
+	
 </div>
 <table class="table we7-table table-hover vertical-middle table-manage" id="js-system-account-display" ng-controller="SystemAccountDisplay" ng-cloak>
 	<col width="120px" />
@@ -93,9 +102,12 @@
 		<td class="vertical-middle table-manage-td">
 			<div class="link-group">
 				<a ng-href="{{links.switch}}uniacid={{list.uniacid}}">进入公众号</a>
+				
+				
 				{if $role_type}
-				<a ng-href="{{links.post}}&acid={{list.acid}}&uniacid={{list.uniacid}}&account_type={{list.type}}" ng-show="list.role == 'manager' || list.role == 'owner' || list.role == 'founder'|| list.role == 'vice_founder'">管理设置</a>
+				<a ng-href="{{links.post}}&acid={{list.acid}}&uniacid={{list.uniacid}}&account_type={{list.type}}" ng-show="list.role == 'manager' || list.role == 'owner' || list.role == 'founder'">管理设置</a>
 				{/if}
+				
 			</div>
 			{if $role_type}
 			<div class="manage-option text-right">
@@ -103,9 +115,13 @@
 				<a href="{{links.post}}&do=sms&uniacid={{list.uniacid}}&acid={{list.acid}}&account_type={{list.type}}">短信信息</a>
 				<a href="{{links.postUser}}&do=edit&uniacid={{list.uniacid}}&acid={{list.acid}}&account_type={{list.type}}">使用者管理</a>
 				<a href="{{links.post}}&do=modules_tpl&uniacid={{list.uniacid}}&acid={{list.acid}}&account_type={{list.type}}">可用应用模板/模块</a>
-				{if $_W['role'] != ACCOUNT_MANAGE_NAME_MANAGER}
-				<a ng-href="{{links.del}}&acid={{list.acid}}&uniacid={{list.uniacid}}" ng-show="list.role == 'owner' || list.role == 'founder'" onclick="if(!confirm('确认放入回收站吗？')) return false;" class="del">停用</a>
-				{/if}
+				
+				
+					{if $_W['role'] != ACCOUNT_MANAGE_NAME_MANAGER}
+					<a ng-href="{{links.del}}&acid={{list.acid}}&uniacid={{list.uniacid}}" ng-show="list.role == 'owner' || list.role == 'founder'" onclick="if(!confirm('确认放入回收站吗？')) return false;" class="del">停用</a>
+					{/if}
+				
+
 			</div>
 			{/if}
 		</td>

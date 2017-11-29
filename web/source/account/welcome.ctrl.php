@@ -4,6 +4,7 @@
  * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
+load()->model('module');
 if (!empty($_W['uid'])) {
 	header('Location: '.url('account/display'));
 	exit;
@@ -11,6 +12,7 @@ if (!empty($_W['uid'])) {
 
 /*获取站点配置信息*/
 $settings = $_W['setting'];
+
 $copyright = $settings['copyright'];
 $copyright['slides'] = iunserializer($copyright['slides']);
 if (isset($copyright['showhomepage']) && empty($copyright['showhomepage'])) {

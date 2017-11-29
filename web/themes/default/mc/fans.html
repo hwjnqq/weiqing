@@ -11,6 +11,10 @@
 		<a href="{php echo url('mc/fans/fans_sync_set')}">粉丝同步设置</a>
 	</li>
 </ul>
+<div class="alert alert-info">
+	<p><i class="fa fa-exclamation-circle"></i> 此同步设置是指系统后台自动同步系统数据中已关注粉丝的基本信息，并非该公众号全部粉丝数据；</p>
+	<p><i class="fa fa-exclamation-circle"></i> 如若想同步全部粉丝信息，请到菜单“粉丝”->“全部粉丝”，点击“同步全部粉丝信息”按钮！</p>
+</div>
 <div id="js-profile-sync" ng-controller="syncCtrl" ng-cloak>
 	<table class="table we7-table table-hover table-form">
 		<col width="140px " />
@@ -43,7 +47,6 @@
 	angular.bootstrap($('#js-profile-sync'), ['profileApp']);
 </script>
 {else}
-<div id="main" ng-controller="DisplayCtrl" ng-cloak>
 <div class="we7-page-title">
 	粉丝管理
 </div>
@@ -55,6 +58,7 @@
 		<a href="{php echo url('mc/fans/fans_sync_set')}">粉丝同步设置</a>
 	</li>
 </ul>
+<div id="main" ng-controller="DisplayCtrl" ng-cloak>
 <div class="we7-page-search we7-padding-bottom clearfix">
 	<div class="pull-right">
 		<button class="btn btn-primary we7-padding-horizontal add-group" data-toggle="popover">+添加分组</button>

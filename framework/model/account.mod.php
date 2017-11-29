@@ -171,7 +171,7 @@ function uni_site_store_buy_goods($uniacid, $type = STORE_TYPE_MODULE) {
 	} else {
 		$site_store_buy_goods = $store_table->searchAccountBuyGoods($uniacid, $type);
 		$setting = uni_setting_load('statistics', $uniacid);
-		$use_number = intval($setting['statistics']['use']);
+		$use_number = isset($setting['statistics']['use']) ? intval($setting['statistics']['use']) : 0;
 		$site_store_buy_goods = $site_store_buy_goods - $use_number;
 	}
 	cache_write($cachekey, $site_store_buy_goods);
@@ -197,18 +197,20 @@ function uni_modules_by_uniacid($uniacid, $enabled = true) {
 		$founders = explode(',', $_W['config']['setting']['founder']);
 		$owner_uid = pdo_getcolumn('uni_account_users',  array('uniacid' => $uniacid, 'role' => 'owner'), 'uid');
 		$condition = "WHERE 1";
-		if ($_W['setting']['site']['family'] == 'x') {
-			$site_store_buy_goods = uni_site_store_buy_goods($uniacid);
+		if (IMS_FAMILY == 'x') {
+			$account_info = uni_fetch($_W['uniacid']);
+			$goods_type = $account_info['type'] == ACCOUNT_TYPE_APP_NORMAL ? STORE_TYPE_WXAPP_MODULE : STORE_TYPE_MODULE;
+			$site_store_buy_goods = uni_site_store_buy_goods($uniacid, $goods_type);
 		} else {
 			$site_store_buy_goods = array();
 		}
-		
+
 		if (!empty($owner_uid) && !in_array($owner_uid, $founders)) {
 			$uni_modules = array();
 			$packageids = pdo_getall('uni_account_group', array('uniacid' => $uniacid), array('groupid'), 'groupid');
 			$packageids = array_keys($packageids);
-			
-			if ($_W['setting']['site']['family'] == 'x') {
+
+			if (IMS_FAMILY == 'x') {
 				$store = table('store');
 				$site_store_buy_package = $store->searchUserBuyPackage($uniacid);
 				$packageids = array_merge($packageids, array_keys($site_store_buy_package));
@@ -464,7 +466,9 @@ function uni_setting_save($name, $value) {
 		pdo_insert('uni_settings', array($name => $value, 'uniacid' => $_W['uniacid']));
 	}
 	$cachekey = "unisetting:{$_W['uniacid']}";
+	$account_cachekey = "uniaccount:{$_W['uniacid']}";
 	cache_delete($cachekey);
+	cache_delete($account_cachekey);
 	return true;
 }
 
@@ -484,12 +488,14 @@ function uni_setting_load($name = '', $uniacid = 0) {
 		if (!empty($unisetting)) {
 			$serialize = array('site_info', 'stat', 'oauth', 'passport', 'uc', 'notify',
 				'creditnames', 'default_message', 'creditbehaviors', 'payment',
-				'recharge', 'tplnotice', 'mcplugin', 'statistics');
+				'recharge', 'tplnotice', 'mcplugin', 'statistics', 'bind_domain');
 			foreach ($unisetting as $key => &$row) {
 				if (in_array($key, $serialize) && !empty($row)) {
 					$row = (array)iunserializer($row);
 				}
 			}
+		} else {
+			$unisetting = array();
 		}
 		cache_write($cachekey, $unisetting);
 	}
@@ -740,7 +746,7 @@ function uni_account_save_switch($uniacid) {
 		$cache_lastaccount['account'] = $uniacid;
 	}
 	cache_write($cache_key, $cache_lastaccount);
-	isetcookie('__uniacid', $uniacid);
+	isetcookie('__uniacid', $uniacid, 7 * 86400);
 	isetcookie('__switch', $_GPC['__switch'], 7 * 86400);
 	return true;
 }
@@ -879,7 +885,7 @@ function account_delete($acid) {
 	if ($account) {
 		$uniacid = $account['uniacid'];
 		$state = permission_account_user_role($_W['uid'], $uniacid);
-		if($state != ACCOUNT_MANAGE_NAME_FOUNDER && $state != ACCOUNT_MANAGE_NAME_OWNER) {
+		if (!in_array($state, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
 			itoast('没有该公众号操作权限！', url('account/recycle'), 'error');
 		}
 		if($uniacid == $_W['uniacid']) {
@@ -1043,3 +1049,15 @@ function uni_account_member_fields($uniacid) {
 	return $account_member_fields;
 }
 
+
+/**
+ * 获取公众号的oauth
+ * @param string $uni_host 当前公众号的oauth host
+ * @return string
+ */
+function uni_account_global_oauth() {
+	load()->model('setting');
+	$oauth = setting_load('global_oauth');
+	$oauth = !empty($oauth['global_oauth']) ? $oauth['global_oauth'] : '';
+	return $oauth;
+}

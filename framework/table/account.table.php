@@ -8,7 +8,7 @@ defined('IN_IA') or exit('Access Denied');
 
 class AccountTable extends We7Table {
 
-	public function searchAccountList() {
+	public function searchAccountList($expire = false) {
 		global $_W;
 		$this->query->from('uni_account', 'a')->select('a.uniacid')->leftjoin('account', 'b')
 				->on(array('a.uniacid' => 'b.uniacid', 'a.default_acid' => 'b.acid'))
@@ -21,6 +21,10 @@ class AccountTable extends We7Table {
 		} else {
 			$this->query->where('a.default_acid !=', '0');
 		}
+		if (!empty($expire)) {
+			$this->searchWithExprie();
+		}
+		$this->accountUniacidOrder();
 		$list = $this->query->getall('a.uniacid');
 		return $list;
 	}
@@ -81,6 +85,11 @@ class AccountTable extends We7Table {
 
 	public function searchWithKeyword($title) {
 		$this->query->where('a.name LIKE', "%{$title}%");
+		return $this;
+	}
+
+	public function searchWithTitle($title) {
+		$this->query->where('a.name', $title);
 		return $this;
 	}
 

@@ -15,24 +15,47 @@
 				<ul class="nav navbar-nav navbar-left">
 					{php global $top_nav}
 					{loop $top_nav $nav}
-					<li{if FRAME == $nav['name'] && !defined('IN_MODULE')} class="active"{/if}><a href="{if empty($nav['url'])}{php echo url('home/welcome/' . $nav['name']);}{else}{$nav['url']}{/if}" {if !empty($nav['blank'])}target="_blank"{/if}>{$nav['title']}</a></li>
+					<li {if FRAME == $nav['name'] && !defined('IN_MODULE')} class="active"{/if}><a href="{if empty($nav['url'])}{php echo url('home/welcome/' . $nav['name']);}{else}{$nav['url']}{/if}" {if !empty($nav['blank'])}target="_blank"{/if}>{$nav['title']}</a></li>
 					{/loop}
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
+					<li class="dropdown msg">
+						{php load()->model('message');$message_notice = message_notice();}
+						<a href="javascript:;" class="dropdown-toogle" data-toggle="dropdown"><span class="wi wi-bell">{if !empty($message_notice['total'])}<span class="badge">{$message_notice['total']}</span>{/if}</span>消息</a>
+						<div class="dropdown-menu">
+							<div class="clearfix top">消息<a href="{php echo url('message/notice')}" class="pull-right">查看更多</a></div>
+							<div class="msg-list-container">
+								<div class="msg-list">
+									{loop $message_notice['lists'] $message_notice_list}
+									<div class="item">
+										<div class="info clearifx">
+											<div class="pull-right date">{php echo date('Y-m-d H:i:s', $message_notice_list['create_time'])}</div>
+											{if $message_notice_list['type']==MESSAGE_ORDER_TYPE}来自 <span>订单消息</span>{/if}
+											{if $message_notice_list['type']==MESSAGE_ACCOUNT_EXPIRE_TYPE}来自 <span>过期消息</span>{/if}
+											{if $message_notice_list['type']==MESSAGE_REGISTER_TYPE}来自 <span>注册消息</span>{/if}
+										</div>
+										<div class="msg-content">
+											{if $message_notice_list['type']==MESSAGE_ORDER_TYPE}<a href="{php echo url('site/entry/orders', array('m' => 'store', 'direct'=>1, 'message_id' => $message_notice_list['id']))}">{$message_notice_list['message']}</a>{/if}
+											{if $message_notice_list['type']==MESSAGE_ACCOUNT_EXPIRE_TYPE}<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL, 'message_id' => $message_notice_list['id']))}">{$message_notice_list['message']}</a>{/if}
+											{if $message_notice_list['type']==MESSAGE_WECHAT_EXPIRE_TYPE}<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL, 'message_id' => $message_notice_list['id']))}">{$message_notice_list['message']}</a>{/if}
+											{if $message_notice_list['type']==MESSAGE_REGISTER_TYPE}<a href="{php echo url('user/display', array('type' => 'check', 'message_id' => $message_notice_list['id']))}">{$message_notice_list['message']}</a>{/if}
+										</div>
+									</div>
+									{/loop}
+								</div>
+							</div>
+						</div>
+					</li>
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown"><i class="wi wi-user color-gray"></i>{$_W['user']['username']} <span class="caret"></span></a>
 						<ul class="dropdown-menu color-gray" role="menu">
 							<li>
 								<a href="{url 'user/profile'}" target="_blank"><i class="wi wi-account color-gray"></i> 我的账号</a>
 							</li>
-							{if $_W['isfounder']}
 							<li class="divider"></li>
-							{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
-							<li><a href="{url 'cloud/upgrade'}" target="_blank"><i class="wi wi-update color-gray"></i> 自动更新</a></li>
-							{/if}
+							{if permission_check_account_user('see_system_upgrade')}<li><a href="{url 'cloud/upgrade'}" target="_blank"><i class="wi wi-update color-gray"></i> 自动更新</a></li>{/if}
 							<li><a href="{url 'system/updatecache'}" target="_blank"><i class="wi wi-cache color-gray"></i> 更新缓存</a></li>
 							<li class="divider"></li>
-							{/if}
 							<li>
 								<a href="{url 'user/logout'}"><i class="fa fa-sign-out color-gray"></i> 退出系统</a>
 							</li>
@@ -51,6 +74,16 @@
 		</div>
 	</nav>
 </div>
+	<script>
+		$(function(){
+			var $dropdownLi = $('.msg.dropdown');
+			$dropdownLi.mouseover(function() {
+				$(this).addClass('open');
+			}).mouseout(function() {
+				$(this).removeClass('open');
+			});
+		});
+	</script>
 {if empty($_COOKIE['check_setmeal']) && !empty($_W['account']['endtime']) && ($_W['account']['endtime'] - TIMESTAMP < (6*86400))}
 <div class="system-tips we7-body-alert" id="setmeal-tips">
 	<div class="container text-right">
@@ -93,9 +126,13 @@
 			{if empty($frames['section']['platform_module_menu']['plugin_menu'])}
 			<div class="left-menu-content">
 				{loop $frames['section'] $frame_section_id $frame_section}
-				{if FRAME == 'store' && !($_W['isfounder'] && !user_is_vice_founder()) && !empty($frame_section['founder'])}
-					{php continue;}
+				
+				
+				{if FRAME == 'store' && !($_W['isfounder']) && !empty($frame_section['founder'])}
+				{php continue;}
 				{/if}
+				
+
 				{if !isset($frame_section['is_display']) || !empty($frame_section['is_display'])}
 				<div class="panel panel-menu">
 					{if $frame_section['title']}
@@ -138,7 +175,7 @@
 					<div class="plugin-menu-main pull-left">
 						<ul class="list-group">
 							<li class="list-group-item{if $_W['current_module']['name'] == $frames['section']['platform_module_menu']['plugin_menu']['main_module']} active{/if}">
-								<a href="{php echo url('home/welcome/ext', array('m' => $frames['section']['platform_module_menu']['plugin_menu']['main_module']))}">
+								<a href="{php echo url('home/welcome/ext', array('m' => $frames['section']['platform_module_menu']['plugin_menu']['main_module'], 'version_id' => intval($_GPC['version_id'])))}">
 									<i class="wi wi-main-apply"></i>
 									<div>主应用</div>
 								</a>
@@ -148,7 +185,7 @@
 							</li>
 							{loop $frames['section']['platform_module_menu']['plugin_menu']['menu'] $plugin_name $plugin}
 							<li class="list-group-item{if $_W['current_module']['name'] == $plugin_name} active{/if}">
-								<a href="{php echo url('home/welcome/ext', array('m' => $plugin_name))}">
+								<a href="{php echo url('home/welcome/ext', array('m' => $plugin_name, 'version_id' => intval($_GPC['version_id'])))}">
 									<img src="{$plugin['icon']}" alt="" class="img-icon" />
 									<div>{$plugin['title']}</div>
 								</a>

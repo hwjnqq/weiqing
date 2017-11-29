@@ -185,7 +185,7 @@ class CoreModule extends WeModule {
 				}
 				$this->replies[$value] = $reply;
 			}else {
-				$this->replies[$value] = htmlspecialchars_decode($_GPC['reply']['reply_'.$value]);
+				$this->replies[$value] = htmlspecialchars_decode($_GPC['reply']['reply_'.$value], ENT_QUOTES);
 			}
 		}
 		if($ifEmpty) {

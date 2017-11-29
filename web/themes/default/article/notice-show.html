@@ -19,8 +19,8 @@
 					<ul class="list-group">
 						{loop $data $da}
 						<li class="list-group-item">
-							<a href="{php echo url('article/notice-show/detail', array('id' => $da['id']));}" target="_blank" class="text-over">{$da['title']}</a>
-							<span class="time">{php echo date('Y-m-d', $da['createtime']);}</span>
+							<a href="{php echo url('article/notice-show/detail', array('id' => $da['id']));}" target="_blank" class="text-over" style="{if !empty($da['style'])}{if !empty($da['style']['color'])}color: {php echo $da['style']['color']};{/if}{if !empty($da['style']['bold'])}font-weight:bold;{/if}{/if}">{$da['title']}</a>
+							<span class="time pull-right">{php echo date('Y-m-d', $da['createtime']);}</span>
 						</li>
 						{/loop}
 					</ul>

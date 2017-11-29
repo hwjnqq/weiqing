@@ -258,7 +258,7 @@ if ($do == 'download_fans') {
 				$add_fans_sql = "INSERT INTO " . tablename('mc_mapping_fans') . " (`acid`, `uniacid`, `uid`, `openid`, `salt`, `follow`, `followtime`, `tag`) VALUES " . $add_fans_sql;
 				$result = pdo_query($add_fans_sql);
 			}
-			pdo_update('mc_mapping_fans', array('follow' => 1), array('openid' => $wechat_fans));
+			pdo_update('mc_mapping_fans', array('follow' => 1, 'uniacid' => $_W['uniacid'], 'acid' => $_W['acid']), array('openid' => $wechat_fans));
 		}
 		$return['total'] = $wechat_fans_list['total'];
 		$return['count'] = !empty($wechat_fans_list['fans']) ? $wechat_fans_count : 0;

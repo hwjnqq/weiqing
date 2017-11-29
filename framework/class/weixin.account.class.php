@@ -1777,11 +1777,8 @@ class WeiXinAccount extends WeAccount {
 
 	public function getOauthUserInfo($accesstoken, $openid) {
 		$apiurl = "https://api.weixin.qq.com/sns/userinfo?access_token={$accesstoken}&openid={$openid}&lang=zh_CN";
-		$response = ihttp_get($apiurl);
-		if (is_error($response)) {
-			return $response;
-		}
-		return @json_decode($response['content'], true);
+		$response = $this->requestApi($apiurl);
+		return $response;
 	}
 
 	public function getOauthInfo($code = '') {
@@ -1792,17 +1789,16 @@ class WeiXinAccount extends WeAccount {
 		if (empty($code)) {
 			$sitepath = substr($_SERVER['PHP_SELF'], 0, strrpos($_SERVER['PHP_SELF'], '/'));
 			$unisetting = uni_setting_load();
+			$global_unisetting = uni_account_global_oauth();
+			$unisetting['oauth']['host'] = !empty($unisetting['oauth']['host']) ? $unisetting['oauth']['host'] : $global_unisetting['oauth']['host'];
 			$url = (!empty($unisetting['oauth']['host']) ? ($unisetting['oauth']['host'] . $sitepath . '/') : $_W['siteroot'] . 'app/') . "index.php?{$_SERVER['QUERY_STRING']}";
 			$forward = $this->getOauthCodeUrl(urlencode($url));
 			header('Location: ' . $forward);
 			exit;
 		}
 		$url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid={$this->account['key']}&secret={$this->account['secret']}&code={$code}&grant_type=authorization_code";
-		$response = ihttp_get($url);
-		if (is_error($response)) {
-			return $response;
-		}
-		return @json_decode($response['content'], true);
+		$response = $this->requestApi($url);
+		return $response;
 	}
 	
 	public function getOauthAccessToken() {

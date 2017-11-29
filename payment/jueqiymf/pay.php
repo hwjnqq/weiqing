@@ -12,7 +12,6 @@ load()->model('payment');
 $sl = $_GPC['ps'];
 $params = @json_decode(base64_decode($sl), true);
 
-//$payment = $setting['payment']['jueqiymf'];
 
 if($_GPC['done'] == '1') {
 	$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `plid`=:plid';
@@ -65,28 +64,22 @@ $auth = sha1($sl . $paylog['uniacid'] . $_W['config']['setting']['authkey']);
 if($auth != $_GPC['auth']) {
 	exit('参数传输错误.');
 }
-//需要获取的参数
-$host = $jueqiymf['site'];//本机服务器一码付的域名前缀（可能为独立域名，可能为微擎域名路径，具体看接口文档）
-$uid = $paylog['module'];//模块标识
-	
-//需要获取的参数
+$host = $jueqiymf['url'];
+$uid = $paylog['module'];	
 $selfOrdernum = $params['tid'];
 $openId = $_W['fans']['from_user'];
-//$openId = 'ocT0_vynThg5CShF40T-KpXKzHO4';
 
-$customerId = $jueqiymf['customerid'];//一码付内的商户号
+$customerId = $jueqiymf['mchid'];
 $money = $params['fee'];
 ksort($params, SORT_STRING);
 $string1 = '';
 foreach ($params as $k => $v) {
 	$string1 .= "&{$k}={$v}";
 }
-$notifyUrl =base64_encode(urlencode(($_W['siteroot'] . '/payment/jueqiymf/notify.php?1=1'.$string1)));//异步URL，必须带参数
-$successUrl =base64_encode(urlencode(($_W['siteroot'] . '/payment/jueqiymf/pay.php?i='.$_W['uniacid'].'&done=1'.$string1)));//成功跳转URL，必须带参数
-$goodsName=$params['title'];//商品名称
-//跳转到在线支付
-$url=$host.'/index.php?s=/Home/linewq/m_pay';//集成接口url
+$notifyUrl =base64_encode(urlencode(($_W['siteroot'] . '/payment/jueqiymf/notify.php?1=1'.$string1)));
+$successUrl =base64_encode(urlencode(($_W['siteroot'] . '/payment/jueqiymf/pay.php?i='.$_W['uniacid'].'&done=1'.$string1)));
+$goodsName=$params['title'];
+$url=$host.'/index.php?s=/Home/linewq/m_pay';
 $url=$url.'/selfOrdernum/'.$selfOrdernum.'/openId/'.$openId.'/customerId/'.$customerId.'/money/'.$money.'/notifyUrl/'.$notifyUrl.'/successUrl/'.$successUrl.'/uid/'.$uid.'/goodsName/'.$goodsName.'/remark/'.$remark;
-//$jueqi_ymf_url = $url;
 header('location:'.$url);
 exit;

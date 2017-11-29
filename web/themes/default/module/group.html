@@ -10,7 +10,7 @@
 <div class="js-system-module_group" ng-controller="moduleGroupCtrl" ng-cloak>
 	<div class="combo-list">
 		<div class="we7-page-search clearfix">
-			{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, true)}
+			{if permission_check_account_user('see_module_manage_system_group_add')}
 			<div class="pull-right">
 				<a href="{php echo url('module/group/post')}" class="btn btn-primary">+添加应用权限套餐</a>
 			</div>
@@ -50,10 +50,14 @@
 				<td>
 					<div class="link-group">
 						<a href="javascript:;" class="color-default js-unfold" data-toggle="table-collapse" data-target="toggle-{$module_group['id']}" ng-click="changeText($event)">展开</a>
-						{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
-						<a href="{php echo url('module/group/post', array('id' => $module_group['id']))}">编辑套餐</a>
-						<a href="{php echo url('module/group/delete', array('id' => $module_group['id']))}" class="del" onclick="return confirm('确定要删除套餐吗？')">删除</a>
-						{/if}
+						
+						
+							{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER}
+							<a href="{php echo url('module/group/post', array('id' => $module_group['id']))}">编辑套餐</a>
+							<a href="{php echo url('module/group/delete', array('id' => $module_group['id']))}" class="del" onclick="return confirm('确定要删除套餐吗？')">删除</a>
+							{/if}
+						
+
 					</div>
 				</td>
 			</tr>
@@ -289,7 +293,6 @@
 				</div>
 
 				<div class="modal-footer">
-
 					<button type="button" class="btn btn-primary" ng-click="addHaveModule()">确定</button>
 					<button type="button" class="btn btn-default" ng-click="cancel('add_module')">取消</button>
 				</div>
@@ -329,10 +332,8 @@
 
 						</ul>
 					</div>
-
 				</div>
 				<div class="modal-footer">
-
 					<button type="button" class="btn btn-primary" ng-click="addHaveModuleWxapp()">确定</button>
 					<button type="button" class="btn btn-default" ng-click="cancel('add_module_wxapp')">取消</button>
 				</div>

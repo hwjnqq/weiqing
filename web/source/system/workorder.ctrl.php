@@ -1,14 +1,13 @@
 <?php
-defined('IN_IA') or exit('Access Denied');
+
 /**
- *  进入工单系统
+ * 工单系统
  * [WeEngine System] Copyright (c) 2013 WE7.CC
- * User: fanyk
- * Date: 2017/9/25
- * Time: 15:51
  */
+
+defined('IN_IA') or exit('Access Denied');
 load()->classs('cloudapi');
-if($do == 'display') {
+if($do == 'display') { //系统工单
 	$siteurl = $_W['siteroot'];
 	$cloud = new CloudApi();
 	$data = $cloud->get('system','workorder', array('do'=>'siteworkorder'), 'json');
@@ -19,7 +18,7 @@ if($do == 'display') {
 	template('system/workorder');
 }
 
-if($do == 'module') {
+if($do == 'module') { //模块工单
 
 	$name = trim($_GPC['name']);
 	if(empty($name)){
@@ -40,8 +39,8 @@ if($do == 'module') {
 	if(is_error($data)) {
 		echo json_encode(array('errno'=>0, 'message'=>'无权限进入工单系统'));
 	}
-	$iframe_url = $data['data']['url'].'&'.$param;
-	echo json_encode(array('errno'=>0, 'message'=>'', 'data'=> ['url'=>$iframe_url]));
+	$iframe_url = $data['data']['url'] . '&' . $param;
+	echo json_encode(array('errno'=>0, 'message'=>'', 'data'=>array('url'=>$iframe_url)));
 
 }
 

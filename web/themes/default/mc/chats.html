@@ -65,7 +65,7 @@
 						{{ log.content }}
 					</div>
 					<div class="notice-item-content" ng-if="log.msgtype == 'image' || log.msgtype == 'mpnews'">
-						<img src="{{log.content}}" width="48">
+						<img ng-src="{{log.content}}" width="48">
 					</div>
 					<div class="appmsgSendedItem" ng-if="log.msgtype == 'video' || log.msgtype == 'music'">
 						<a class="title-wrp" href="javascript:;">

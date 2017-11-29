@@ -14,14 +14,14 @@ function ext_module_convert($manifest) {
 	if (!empty($manifest['platform']['supports'])) {
 		$app_support = in_array('app', $manifest['platform']['supports']) ? 2 : 1;
 		$wxapp_support = in_array('wxapp', $manifest['platform']['supports']) ? 2 : 1;
-		if ($app_support == 1 && $wxapp_support == 1) {
+		$welcome_support = in_array('system_welcome', $manifest['platform']['supports']) ? 2 : 1;
+		if ($app_support == 1 && $wxapp_support == 1 && $welcome_support == 1) {
 			$app_support = 2;
 		}
 	} else {
 		$app_support = 2;
 		$wxapp_support = 1;
 	}
-
 	return array(
 		'name' => $manifest['application']['identifie'],
 		'title' => $manifest['application']['name'],
@@ -36,14 +36,17 @@ function ext_module_convert($manifest) {
 		'handles' => iserializer(is_array($manifest['platform']['handles']) ? $manifest['platform']['handles'] : array()),
 		'isrulefields' => intval($manifest['platform']['isrulefields']),
 		'iscard' => intval($manifest['platform']['iscard']),
+		'oauth_type' => $manifest['platform']['oauth_type'],
 		'page' => $manifest['bindings']['page'],
 		'cover' => $manifest['bindings']['cover'],
 		'rule' => $manifest['bindings']['rule'],
 		'menu' => $manifest['bindings']['menu'],
 		'home' => $manifest['bindings']['home'],
 		'profile' => $manifest['bindings']['profile'],
+		'welcome' => $manifest['bindings']['system_welcome'],
 		'app_support' => $app_support,
 		'wxapp_support' => $wxapp_support,
+		'welcome_support' => $welcome_support,
 		'shortcut' => $manifest['bindings']['shortcut'],
 		'function' => $manifest['bindings']['function'],
 		'permissions' => $manifest['permissions'],
@@ -109,6 +112,7 @@ function ext_module_manifest_parse($xml) {
 			'isrulefields' => false,
 			'iscard' => false,
 			'supports' => array(),
+			'oauth_type' => 'base',
 		);
 		//订阅信息
 		$subscribes = $platform->getElementsByTagName('subscribes')->item(0);
@@ -141,6 +145,10 @@ function ext_module_manifest_parse($xml) {
 		$card = $platform->getElementsByTagName('card')->item(0);
 		if (!empty($card) && $card->getAttribute('embed') == 'true') {
 			$manifest['platform']['iscard'] = true;
+		}
+		$oauth_type = $platform->getElementsByTagName('oauth')->item(0);
+		if (!empty($oauth_type) && $oauth_type->getAttribute('type') == 'userinfo') {
+			$manifest['platform']['oauth_type'] = 'userinfo';
 		}
 		$supports = $platform->getElementsByTagName('supports')->item(0);
 		if (!empty($supports)) {
@@ -313,6 +321,11 @@ function ext_module_bindings() {
 			'name' => 'page',
 			'title' => '小程序入口',
 			'desc' => '用于小程序入口的链接'
+		),
+		'welcome' => array(
+			'name' => 'welcome',
+			'title' => '系统首页导航菜单',
+			'desc' => '系统首页导航菜单将会在管理中心生成一个导航入口, 用于对系统首页定义的内容进行管理.',
 		)
 	);
 	return $bindings;

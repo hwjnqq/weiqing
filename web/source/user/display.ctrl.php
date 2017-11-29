@@ -6,6 +6,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('user');
+load()->model('message');
 
 $dos = array('display', 'operate');
 $do = in_array($do, $dos) ? $do: 'display';
@@ -14,6 +15,9 @@ $_W['page']['title'] = '用户列表 - 用户管理';
 $founders = explode(',', $_W['config']['setting']['founder']);
 
 if ($do == 'display') {
+	$message_id = $_GPC['message_id'];
+	message_notice_read($message_id);
+
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	$users_table = table('users');
@@ -46,9 +50,7 @@ if ($do == 'display') {
 			$users_table->searchWithName($username);
 		}
 
-		if (user_is_vice_founder()) {
-			$users_table->searchWithOwnerUid($_W['uid']);
-		}
+		
 
 		$users_table->searchWithPage($pindex, $psize);
 		$users = $users_table->searchUsersList();
@@ -86,9 +88,7 @@ if ($do == 'operate') {
 	if (empty($uid_user)) {
 		exit('未指定用户,无法删除.');
 	}
-	if ($uid_user['founder_groupid'] != ACCOUNT_MANAGE_GROUP_GENERAL) {
-		iajax(-1, '非法操作', referer());
-	}
+	
 	switch ($type) {
 		case 'check_pass':
 			$data = array('status' => 2);

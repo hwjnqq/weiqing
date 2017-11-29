@@ -20,4 +20,8 @@ class ModuleTable extends We7Table {
 		}
 		return $this->query->from('modules_bindings')->where($condition)->get();
 	}
+
+	public function moduleLists($package_group_module) {
+		return $this->query->from('modules')->where('issystem', 1)->whereor('name', $package_group_module)->orderby('mid', 'desc')->getall('name');
+	}
 }

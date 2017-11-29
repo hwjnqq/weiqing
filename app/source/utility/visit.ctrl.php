@@ -7,9 +7,18 @@ defined('IN_IA') or exit('Access Denied');
 
 load()->model('app');
 
-$dos = array('showjs');
+$dos = array('showjs', 'health');
 $do = in_array($do, $dos) ? $do : 'showjs';
-if ($do == 'showjs') {
-	echo '';
+
+	if ($do == 'showjs') {
+		echo '';
+		exit;
+	}
+
+
+
+// https 站点校验是否能正常访问
+if($do == 'health') {
+	echo json_encode(error(0, 'success'));
 	exit;
 }

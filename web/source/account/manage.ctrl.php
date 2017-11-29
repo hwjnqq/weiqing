@@ -7,6 +7,7 @@ defined('IN_IA') or exit('Access Denied');
 
 load()->func('file');
 load()->model('user');
+load()->model('message');
 $dos = array('display', 'delete');
 $do = in_array($_GPC['do'], $dos)? $do : 'display';
 
@@ -15,9 +16,14 @@ $_W['page']['title'] = $account_typename . '列表 - ' . $account_typename;
 //模版调用，显示该用户所在用户组可添加的主公号数量，已添加的数量，还可以添加的数量
 $account_info = permission_user_account_num();
 
-$role_type = in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER));
+
+	$role_type = in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER));
+
 
 if ($do == 'display') {
+	$message_id = $_GPC['message_id'];
+	message_notice_read($message_id);
+
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 
@@ -46,12 +52,13 @@ if ($do == 'display') {
 		$account_table->searchWithNoconnect();
 	}
 
+	$account_table->searchWithPage($pindex, $psize);
 	if ($type == 'expire') {
-		$account_table->searchWithExprie();
+		$list = $account_table->searchAccountList(true);
+	} else {
+		$list = $account_table->searchAccountList();
 	}
 
-	$account_table->searchWithPage($pindex, $psize);
-	$list = $account_table->searchAccountList();
 
 	foreach($list as &$account) {
 		$account = uni_fetch($account['uniacid']);
@@ -69,9 +76,14 @@ if ($do == 'delete') {
 	$type = intval($_GPC['type']);
 	//只有创始人、主管理员才有权限停用公众号
 	$state = permission_account_user_role($uid, $uniacid);
-	if ($state != ACCOUNT_MANAGE_NAME_OWNER && $state != ACCOUNT_MANAGE_NAME_FOUNDER) {
-		itoast('无权限操作！', url('account/manage'), 'error');
-	}
+	
+
+	
+		if (!in_array($state, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER))) {
+			itoast('无权限操作！', url('account/manage'), 'error');
+		}
+	
+
 	if (!empty($acid) && empty($uniacid)) {
 		$account = account_fetch($acid);
 		if (empty($account)) {
@@ -91,9 +103,15 @@ if ($do == 'delete') {
 			itoast('抱歉，帐号不存在或是已经被删除', url('account/manage', array('account_type' => ACCOUNT_TYPE)), 'error');
 		}
 		$state = permission_account_user_role($uid, $uniacid);
-		if($state != ACCOUNT_MANAGE_NAME_FOUNDER && $state != ACCOUNT_MANAGE_NAME_OWNER) {
-			itoast('没有该'. ACCOUNT_TYPE_NAME . '操作权限！', url('account/manage', array('account_type' => ACCOUNT_TYPE)), 'error');
-		}
+
+		
+
+		
+			if (!in_array($state, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER))) {
+				itoast('没有该'. ACCOUNT_TYPE_NAME . '操作权限！', url('account/manage', array('account_type' => ACCOUNT_TYPE)), 'error');
+			}
+		
+
 		pdo_update('account', array('isdeleted' => 1), array('uniacid' => $uniacid));
 		if($_GPC['uniacid'] == $_W['uniacid']) {
 			isetcookie('__uniacid', '');

@@ -69,7 +69,7 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 	load()->func('communication');
 
 	global $_W;
-	$ts = array('rule', 'cover', 'menu', 'home', 'profile', 'shortcut', 'function', 'mine');
+	$ts = array('rule', 'cover', 'menu', 'home', 'profile', 'shortcut', 'function', 'mine', 'welcome');
 	if(empty($types)) {
 		$types = $ts;
 	} else {
@@ -120,6 +120,10 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 			if($bind['entry'] == 'shortcut') {
 				$url = murl("entry", array('eid' => $bind['eid']));
 			}
+			if($bind['entry'] == 'welcome') {
+				$url = wurl("site/entry", array('eid' => $bind['eid']));
+			}
+
 			if(empty($bind['icon'])) {
 				$bind['icon'] = 'fa fa-puzzle-piece';
 			}
@@ -279,11 +283,13 @@ function module_save_group_package($package) {
  * @return array 模块信息
  */
 function module_fetch($name) {
+	load()->object('cloudapi');
 	global $_W;
 	$cachekey = cache_system_key(CACHE_KEY_MODULE_INFO, $name);
 	$module = cache_load($cachekey);
 	if (empty($module)) {
-		$module_info = pdo_get('modules', array('name' => $name));
+		$sql = 'SELECT * FROM '. tablename('modules') . " as a LEFT JOIN" . tablename('modules_recycle') . " as b ON a.name = b.modulename WHERE a.name = :name AND b.modulename is NULL";
+		$module_info = pdo_fetch($sql, array(':name' => $name));
 		if (empty($module_info)) {
 			return array();
 		}
@@ -353,9 +359,9 @@ function module_get_all_unistalled($status, $cache = true)  {
 	load()->model('cloud');
 	load()->classs('cloudapi');
 	$status = $status == 'recycle' ? 'recycle' : 'uninstalled';
-	$uninstallModules =  cache_load(cache_system_key('module:all_uninstall'));
+	$cloud_api = new CloudApi();
+	$uninstallModules = cache_load(cache_system_key('module:all_uninstall'));
 	if (!$cache && $status == 'uninstalled') {
-		$cloud_api = new CloudApi();
 		$get_cloud_m_count = $cloud_api->get('site', 'stat', array('module_quantity' => 1), 'json');
 		$cloud_m_count = $get_cloud_m_count['module_quantity'];
 	} else {
@@ -432,12 +438,12 @@ function module_permission_fetch($name) {
  */
 function module_uninstall($module_name, $is_clean_rule = false) {
 	global $_W;
-	load()->model('cloud');
+	load()->object('cloudapi');
 	if (empty($_W['isfounder'])) {
 		return error(1, '您没有卸载模块的权限！');
 	}
 	$module_name = trim($module_name);
-	$module = module_fetch($module_name);
+	$module = pdo_get('modules', array('name' => $module_name));
 	if (empty($module)) {
 		return error(1, '模块已经被卸载或是不存在！');
 	}
@@ -447,12 +453,34 @@ function module_uninstall($module_name, $is_clean_rule = false) {
 	if (!empty($module['plugin_list'])) {
 		pdo_delete('modules_plugin', array('main_module' => $module_name));
 	}
+
+	pdo_delete('uni_account_modules', array('module' => $module_name));
+	cache_delete(cache_system_key('module:all_uninstall'));
+	ext_module_clean($module_name, $is_clean_rule);
+	cache_build_module_subscribe_type();
+	cache_build_uninstalled_module();
+	cache_build_module_info($module_name);
+
+	return true;
+}
+
+/**
+ *  执行模块的卸载脚本
+ * @param string $module_name 模块标识
+ */
+function module_execute_uninstall_script($module_name) {
+	global $_W;
+	load()->object('cloudapi');
+	load()->model('cloud');
+	if (empty($_W['isfounder'])) {
+		return error(1, '您没有卸载模块的权限！');
+	}
 	$modulepath = IA_ROOT . '/addons/' . $module_name . '/';
 	$manifest = ext_module_manifest($module_name);
 	if (empty($manifest)) {
-		$r = cloud_prepare();
-		if (is_error($r)) {
-			itoast($r['message'], url('cloud/profile'), 'error');
+		$result = cloud_prepare();
+		if (is_error($result)) {
+			return error(1, $result['message']);
 		}
 		$packet = cloud_m_build($module_name, 'uninstall');
 		if ($packet['sql']) {
@@ -463,22 +491,24 @@ function module_uninstall($module_name, $is_clean_rule = false) {
 			require($uninstall_file);
 			unlink($uninstall_file);
 		}
-	} elseif (!empty($manifest['uninstall'])) {
-		if (strexists($manifest['uninstall'], '.php')) {
-			if (file_exists($modulepath . $manifest['uninstall'])) {
-				require($modulepath . $manifest['uninstall']);
+	} else {
+		if (!empty($manifest['uninstall'])) {
+			if (strexists($manifest['uninstall'], '.php')) {
+				if (file_exists($modulepath . $manifest['uninstall'])) {
+					require($modulepath . $manifest['uninstall']);
+				}
+			} else {
+				pdo_run($manifest['uninstall']);
 			}
-		} else {
-			pdo_run($manifest['uninstall']);
 		}
 	}
-	pdo_insert('modules_recycle', array('modulename' => $module_name));
-	pdo_delete('uni_account_modules', array('module' => $module_name));
-	ext_module_clean($module_name, $is_clean_rule);
-	cache_build_module_subscribe_type();
-	cache_build_uninstalled_module();
-	cache_build_module_info($module_name);
-
+	pdo_delete('modules_recycle', array('modulename' => $module_name));
+	$cloudapi = new CloudApi();
+	$recycle_module = $cloudapi->post('cache', 'get', array('key' => cache_system_key('recycle_module:')));
+	$recycle_module = !empty($recycle_module['data']) ? $recycle_module['data'] : array();
+	unset($recycle_module[$module_name]);
+	$cloudapi->post('cache', 'set', array('key' => cache_system_key('recycle_module:'), 'value' => $recycle_module));
+	cache_delete(cache_system_key('module:all_uninstall'));
 	return true;
 }
 
@@ -642,10 +672,12 @@ function module_exist_in_account($module_name, $uniacid) {
 	if (!empty($owner_uid) && !in_array($owner_uid, $founders)) {
 		$packageids = pdo_getall('uni_account_group', array('uniacid' => $uniacid), array('groupid'), 'groupid');
 		$packageids = array_keys($packageids);
-		if ($_W['setting']['site']['family'] == 'x') {
+		if (IMS_FAMILY == 'x') {
 			$site_store_buy_goods = uni_site_store_buy_goods($uniacid);
 			$site_store_buy_package = table('store')->searchUserBuyPackage($uniacid);
 			$packageids = array_merge($packageids, array_keys($site_store_buy_package));
+		} else {
+			$site_store_buy_goods = array();
 		}
 		if (!in_array('-1', $packageids)) {
 			$uni_modules = array();

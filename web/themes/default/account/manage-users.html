@@ -24,12 +24,12 @@
 			<td ng-if="permission.role == 'owner' && permission.isfounder == 0">主管理员</td>
 			<td ng-if="permission.role == 'manager' && permission.isfounder == 0">管理员</td>
 			<td ng-if="permission.role == 'operator' && permission.isfounder == 0">操作员</td>
-			<td ng-if="permission.role == 'vice_founder' && permission.isfounder == 0">副创始人</td>
+			
 			<td  class="we7-padding-right text-right">
 				<div class="link-group">
 					<a href="javascript:;" ng-if="permission.isfounder == 1">创始人拥有系统最高权限 </a>
 					{if $_W['isfounder']}<a href="javascript:;" ng-if="permission.role == 'owner' && permission.isfounder == 0" ng-click="changeOwner(permission.username)">修改</a>{/if}
-					{if $_W['isfounder'] && uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}<a href="javascript:;" ng-if="permission.role == 'vice_founder' && permission.isfounder == 0" ng-click="changeVice(permission.username)">修改</a>{/if}
+					
 					<a href="javascript:;" ng-if="permission.isfounder == 0 && (((state == 'founder' || state == 'owner') && (permission.role == 'manager' || permission.role == 'operator')) || (state == 'manager' && permission.role == 'operator'))" ng-click="setPermission(permission.uid)">权限设置  </a>
 					<a href="javascript:;" ng-if="permission.isfounder == 0 && (((state == 'founder' || state == 'owner') && (permission.role == 'manager' || permission.role == 'operator')) || (state == 'manager' && permission.role == 'operator'))" ng-click="delPermission(permission.uid)">删除 </a>
 				</div>
@@ -70,7 +70,9 @@
 					<h3 class="modal-title">添加账号操作员/管理员</h3>
 				</div>
 				<div class="modal-body we7-form">
-					<div class="form-group" ng-show="state == 'founder' || state == 'owner' || state == 'vice_founder'">
+					
+					
+					<div class="form-group" ng-show="state == 'founder' || state == 'owner'">
 						<label class="control-label col-sm-2"></label>
 						<div class="col-sm-10">
 							<input type="radio" id="addtype-1" name="addtype" value="{ACCOUNT_MANAGE_TYPE_OPERATOR}" checked>
@@ -80,6 +82,8 @@
 							<a style="float: right" class="color-default" target = '_blank' href="{url 'user/create'}">+添加用户</a>
 						</div>
 					</div>
+					
+
 					<div class="form-group">
 						<label class="col-sm-2 control-label">用户名</label>
 						<div class="col-sm-10">

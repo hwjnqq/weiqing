@@ -9,6 +9,7 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('mc');
 load()->classs('wesession');
 load()->classs('account');
+load()->model('material');
 
 $dos = array('chats', 'send', 'endchats');
 $do = in_array($do , $dos) ? $do : 'chats';
@@ -26,41 +27,10 @@ if ($do == 'chats') {
 }
 
 if ($do == 'send') {
-	$type = addslashes($_GPC['type']);
-	$content = trim(htmlspecialchars_decode($_GPC['content']), '\"');
-	$send['touser'] = trim($_GPC['openid']);
-	$send['msgtype'] = $type;
-	if ($type == 'text') {
-		$send['text'] = array('content' => urlencode($content));
-	} elseif ($type == 'image') {
-		$send['image'] = array('media_id' => $content);
-		$material = material_get($content);
-		$content = $material['attachment'];
-	} elseif ($type == 'voice') {
-		$send['voice'] = array('media_id' => $content);
-	} elseif($type == 'video') {
-		$content = json_decode($content, true);
-		$send['video'] = array(
-			'media_id' => $content['mediaid'],
-			'thumb_media_id' => '',
-			'title' => urlencode($content['title']),
-			'description' => ''
-		);
-	}  elseif($type == 'music') {
-		$send['music'] = array(
-			'musicurl' => tomedia($_GPC['musicurl']),
-			'hqmusicurl' => tomedia($_GPC['hqmusicurl']),
-			'title' => urlencode($_GPC['title']),
-			'description' => urlencode($_GPC['description']),
-			'thumb_media_id' => $_GPC['thumb_media_id'],
-		);
-	} elseif($type == 'news') {
-		$content = json_decode($content, true);
-		$send['msgtype'] =  'mpnews';
-		$send['mpnews'] = array(
-			'media_id' => $content['mediaid']
-		);
-	}
+	$content_formate = mc_send_content_formate($_GPC);
+	$send = $content_formate['send'];
+	$content = $content_formate['content'];
+
 	$account_api = WeAccount::create($_W['acid']);
 	$result = $account_api->sendCustomNotice($send);
 	if (is_error($result)) {

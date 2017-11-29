@@ -64,6 +64,17 @@ $we7_file_permission = array(
 		'operator' => array(),
 		'clerk' => array()
 	),
+	'message' => array(
+		'default' => '',
+		'direct' => array(
+			'notice',
+		),
+		'vice_founder' => array(),
+		'owner' => array(),
+		'manager' => array(),
+		'operator' => array(),
+		'clerk' => array()
+	),
 	'cloud' => array(
 		'default' => 'touch',
 		'direct' => array(
@@ -333,6 +344,39 @@ $we7_file_permission = array(
 		'operator' => array(),
 	),
 	'append' => array('append*'),
+	'see_more_info' => array(
+		'founder' => array(
+			'see_module_manage_system_except_installed',
+			'see_module_manage_system_ugrade',
+			'see_module_manage_system_stop',
+			'see_module_manage_system_install',
+			'see_module_manage_system_shopinfo',
+			'see_module_manage_system_info_edit',
+			'see_module_manage_system_detailinfo',
+			'see_module_manage_system_group_add',
+			'see_account_manage_module_tpl_all_permission',
+			'see_account_manage_sms_blance',
+			'see_account_manage_users_edit',
+			'see_system_upgrade',
+			'see_system_manage_clerk',
+			'see_system_manage_user_setting',
+			'see_system_manage_vice_founder',
+			'see_system_add_vice_founder',
+			'see_notice_post',
+		),
+		'vice_founder' => array(
+
+		),
+		'owner' => array(
+
+		),
+		'manager' => array(
+
+		),
+		'operator' => array(
+
+		),
+	),
 );
 
 return $we7_file_permission;

@@ -84,7 +84,7 @@ class StoreTable extends We7Table {
 	}
 
 	public function searchOrderList($pageindex = 0, $pagesize = 0) {
-		$this->query->from('site_store_order')->orderby('type', 'DESC');
+		$this->query->from('site_store_order')->where('type <>', STORE_GOODS_STATUS_DELETE)->orderby('type', 'DESC');
 
 		if (!empty($pageindex) && !empty($pagesize)) {
 			$this->searchWithPage($pageindex, $pagesize);
@@ -135,17 +135,31 @@ class StoreTable extends We7Table {
 	public function searchUserBuyAccount($uid) {
 		$sql = "SELECT SUM(b.account_num) FROM " . tablename('site_store_order') . " as a left join " . tablename('site_store_goods') . " as b on a.goodsid = b.id WHERE a.buyerid = :buyerid AND a.type = 3 AND b.type = 2" ;
 		$count = pdo_fetchcolumn($sql, array(':buyerid' => $uid));
-		return $count;
+		$isdeleted_account_sql = "SELECT COUNT(*) FROM " . tablename('site_store_create_account') . " as a LEFT JOIN " . tablename('account') . " as b ON a.uniacid = b.uniacid WHERE a.uid = :uid AND a.type = 1 AND (b.isdeleted = 1 OR b.uniacid is NULL)";
+		$deleted_account = pdo_fetchcolumn($isdeleted_account_sql, array(':uid' => $uid));
+		return $count - $deleted_account;
 	}
 
 	public function searchUserBuyWxapp($uid) {
-		$sql = "SELECT SUM(b.account_num) FROM " . tablename('site_store_order') . " as a left join " . tablename('site_store_goods') . " as b on a.goodsid = b.id WHERE a.buyerid = :buyerid AND a.type = 3 AND b.type = 3" ;
+		$sql = "SELECT SUM(b.wxapp_num) FROM " . tablename('site_store_order') . " as a left join " . tablename('site_store_goods') . " as b on a.goodsid = b.id WHERE a.buyerid = :buyerid AND a.type = 3 AND b.type = 3" ;
 		$count = pdo_fetchcolumn($sql, array(':buyerid' => $uid));
-		return $count;
+		$isdeleted_account_sql = "SELECT COUNT(*) FROM " . tablename('site_store_create_account') . " as a LEFT JOIN " . tablename('account') . " as b ON a.uniacid = b.uniacid WHERE a.uid = :uid AND a.type = 4 AND (b.isdeleted = 1 OR b.uniacid is NULL)";
+		$deleted_account = pdo_fetchcolumn($isdeleted_account_sql, array(':uid' => $uid));
+		return $count - $deleted_account;
 	}
 
 	public function searchUserBuyPackage($uniacid) {
 		$sql = "SELECT * FROM " . tablename('site_store_order') . " as a left join " . tablename('site_store_goods') . " as b on a.goodsid = b.id WHERE a.uniacid = :uniacid AND a.type = 3 AND b.type = 5" ;
 		return pdo_fetchall($sql, array(':uniacid' => $uniacid), 'module_group');
+	}
+
+	public function searchUserCreateAccountNum($uid) {
+		$count = $this->query->from('site_store_create_account', 'a')->leftjoin('account', 'b')->on('a.uniacid', 'b.uniacid')->where('a.uid', $uid)->where('b.type', 1)->where('b.isdeleted', 0)->select('count(*) as count')->get('count');
+		return $count['count'];
+	}
+
+	public function searchUserCreateWxappNum($uid) {
+		$count = $this->query->from('site_store_create_account', 'a')->leftjoin('account', 'b')->on('a.uniacid', 'b.uniacid')->where('a.uid', $uid)->where('b.type', 4)->where('b.isdeleted', 0)->select('count(*) as count')->get('count');
+		return $count['count'];
 	}
 }

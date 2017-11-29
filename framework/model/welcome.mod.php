@@ -35,11 +35,12 @@ function welcome_get_ads() {
  * @return array
 */
 function welcome_notices_get() {
-	$notices = pdo_getall('article_notice', array('is_display' => 1), array('id', 'title', 'createtime'), '', 'createtime DESC', array(1,15));
+	$notices = pdo_getall('article_notice', array('is_display' => 1), array('id', 'title', 'createtime', 'style'), '', 'createtime DESC', array(1,15));
 	if(!empty($notices)) {
 		foreach ($notices as $key => $notice_val) {
 			$notices[$key]['url'] = url('article/notice-show/detail', array('id' => $notice_val['id']));
 			$notices[$key]['createtime'] = date('Y-m-d', $notice_val['createtime']);
+			$notices[$key]['style'] = iunserializer($notice_val['style']);
 		}
 	}
 	return $notices;

@@ -4,6 +4,7 @@
 	<div class="alert alert-info">
 			<p><i class="fa fa-exclamation-circle"></i> 无主管理员时，创始人为默认主管理员，公众号拥有所有权限</p>
 	</div>
+	{if !in_array($owner['uid'], $founders)}
 	<table class="table we7-table table-hover" >
 		<col />
 		<col />
@@ -16,64 +17,68 @@
 				<span class="we7-padding-right">会员权限组： {{owner.group.name}}</span>
 				<span></span>
 			</th>
-			{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders) || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER && $owner['uid'] != $_W['uid']}
-			<th class="text-right"><a href="{php echo url('user/edit/edit_modules_tpl',array('uid'=>$owner['uid']))}" class="color-default">修改</a></th>
-			{else}
-			<th class="text-right"><a href="" class="color-default"></a></th>
-			{/if}
+			
+			
+				{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders)}
+				<th class="text-right"><a href="{php echo url('user/edit/edit_modules_tpl',array('uid'=>$owner['uid']))}" class="color-default">修改</a></th>
+				{else}
+				<th class="text-right"><a href="" class="color-default"></a></th>
+				{/if}
+			
+
 		</tr>
 		<tbody ng-repeat="module_tpl in modules_tpl | filter:{'type':'default'}">
-		<tr>
-			<td colspan="5" class="text-left we7-padding-right" ng-init="module_tpl.show = true">
-				<span>{{module_tpl.name}}</span>
-			</td>
-			<td>
-				<div class="link-group">
-					<a href="javascript:;" class="color-default" ng-show="module_tpl.show" ng-click="module_tpl.show = false">收起</a>
-					<a href="javascript:;" class="color-default" ng-show="!module_tpl.show" ng-click="module_tpl.show = true">展开</a>
-					<!--<a href="javascript:;" class="color-default">删除</a>-->
-				</div>
-			</td><!--默认展开-->
-		</tr>
-		<tr ng-show="module_tpl.show">
-			<td colspan="5">
-				<div class="col-sm-1 color-gray text-left we7-padding-none">公众号应用</div>
-				<div class="col-sm-11">
-					<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="module in module_tpl.modules">
-						<div ng-if="module.name != 'all'" class="text-over text-left">
-							<img ng-src="{{ module.logo }}" alt="" style="width:50px;height:50px;">
-							{{ module.title }}
+			<tr>
+				<td colspan="5" class="text-left we7-padding-right" ng-init="module_tpl.show = true">
+					<span>{{module_tpl.name}}</span>
+				</td>
+				<td>
+					<div class="link-group">
+						<a href="javascript:;" class="color-default" ng-show="module_tpl.show" ng-click="module_tpl.show = false">收起</a>
+						<a href="javascript:;" class="color-default" ng-show="!module_tpl.show" ng-click="module_tpl.show = true">展开</a>
+						<!--<a href="javascript:;" class="color-default">删除</a>-->
+					</div>
+				</td><!--默认展开-->
+			</tr>
+			<tr ng-show="module_tpl.show">
+				<td colspan="5">
+					<div class="col-sm-1 color-gray text-left we7-padding-none">公众号应用</div>
+					<div class="col-sm-11">
+						<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="module in module_tpl.modules">
+							<div ng-if="module.name != 'all'" class="text-over text-left">
+								<img ng-src="{{ module.logo }}" alt="" style="width:50px;height:50px;">
+								{{ module.title }}
+							</div>
+							<label class="label label-info" ng-if="module.name == 'all'">所有模块</label>
 						</div>
-						<label class="label label-info" ng-if="module.name == 'all'">所有模块</label>
 					</div>
-				</div>
-			</td>
-			<td class="we7-padding-right color-default"></td>
-		</tr>
-		<tr style="display:none;">
-			<td colspan="5">
-				<div class="col-sm-1 color-gray text-left we7-padding-none">小程序应用</div>
-				<div class="col-sm-11">
-					<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="module in module_tpl.wxapp">
-						<a href="javascript:;" class="label label-info" ng-bind="module.title"></a>
+				</td>
+				<td class="we7-padding-right color-default"></td>
+			</tr>
+			<tr style="display:none;">
+				<td colspan="5">
+					<div class="col-sm-1 color-gray text-left we7-padding-none">小程序应用</div>
+					<div class="col-sm-11">
+						<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="module in module_tpl.wxapp">
+							<a href="javascript:;" class="label label-info" ng-bind="module.title"></a>
+						</div>
+						
 					</div>
-					
-				</div>
-			</td>
-			<td class="we7-padding-right color-default"></td>
-		</tr>
-		<tr ng-show="module_tpl.show">
-			<td colspan="5">
-				<div class="col-sm-1 color-gray text-left we7-padding-none">模板</div>
-				<div class="col-sm-11">
-					<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="tpl in module_tpl.templates">
-						<a href="javascript:;" class="label label-info" ng-bind="tpl.title"></a>
+				</td>
+				<td class="we7-padding-right color-default"></td>
+			</tr>
+			<tr ng-show="module_tpl.show">
+				<td colspan="5">
+					<div class="col-sm-1 color-gray text-left we7-padding-none">模板</div>
+					<div class="col-sm-11">
+						<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="tpl in module_tpl.templates">
+							<a href="javascript:;" class="label label-info" ng-bind="tpl.title"></a>
+						</div>
+						
 					</div>
-					
-				</div>
-			</td>
-			<td class="we7-padding-right color-default"></td>
-		</tr>
+				</td>
+				<td class="we7-padding-right color-default"></td>
+			</tr>
 		</tbody>
 	</table>
 	<table class="table we7-table table-hover">
@@ -82,75 +87,81 @@
 				<span class="we7-padding-right">应用权限组</span>
 				<span></span>
 			</th>
-			{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders) || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER && $owner['uid'] != $_W['uid']}
+			
+			
+				{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders)}
 				<th class="text-right"><a class="color-default" data-toggle="modal" data-target="#change-group">修改</a></th>
-			{/if}
+				{/if}
+			
 		</tr>
 
 		<tbody ng-repeat="module_tpl in modules_tpl | filter:{'type':'extend'}">
-		<tr>
-			<td colspan="5" class="text-left we7-padding-right" ng-init="module_tpl.show = true">
-				<span>{{module_tpl.name}}</span>
-			</td>
-			<td>
-				<div class="link-group">
-					<a href="javascript:;" class="color-default" ng-show="module_tpl.show" ng-click="module_tpl.show = false">收起</a>
-					<a href="javascript:;" class="color-default" ng-show="!module_tpl.show" ng-click="module_tpl.show = true">展开</a>
+			<tr>
+				<td colspan="5" class="text-left we7-padding-right" ng-init="module_tpl.show = true">
+					<span>{{module_tpl.name}}</span>
+				</td>
+				<td>
+					<div class="link-group">
+						<a href="javascript:;" class="color-default" ng-show="module_tpl.show" ng-click="module_tpl.show = false">收起</a>
+						<a href="javascript:;" class="color-default" ng-show="!module_tpl.show" ng-click="module_tpl.show = true">展开</a>
 
-				</div>
-			</td><!--默认展开-->
-		</tr>
-		<tr ng-show="module_tpl.show">
-			<td colspan="5">
-				<div class="col-sm-1 color-gray text-left we7-padding-none">公众号应用</div>
-				<div class="col-sm-11">
-					<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="module in module_tpl.modules">
-						<div ng-if="module.name != 'all'" class="text-over text-left">
-							<img ng-src="{{ module.logo }}" alt="" style="width:50px;height:50px;">
-							{{ module.title }}
+					</div>
+				</td><!--默认展开-->
+			</tr>
+			<tr ng-show="module_tpl.show">
+				<td colspan="5">
+					<div class="col-sm-1 color-gray text-left we7-padding-none">公众号应用</div>
+					<div class="col-sm-11">
+						<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="module in module_tpl.modules">
+							<div ng-if="module.name != 'all'" class="text-over text-left">
+								<img ng-src="{{ module.logo }}" alt="" style="width:50px;height:50px;">
+								{{ module.title }}
+							</div>
+							<label class="label label-info" ng-if="module.name == 'all'">所有模块</label>
 						</div>
-						<label class="label label-info" ng-if="module.name == 'all'">所有模块</label>
 					</div>
-				</div>
-			</td>
-			<td class="we7-padding-right color-default"></td>
-		</tr>
-		<tr style="display:none;">
-			<td colspan="5">
-				<div class="col-sm-1 color-gray text-left we7-padding-none">小程序应用</div>
-				<div class="col-sm-11">
-					<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="module in module_tpl.wxapp">
-						<a href="javascript:;" class="label label-info" ng-bind="module.title"></a>
-					</div>
+				</td>
+				<td class="we7-padding-right color-default"></td>
+			</tr>
+			<tr style="display:none;">
+				<td colspan="5">
+					<div class="col-sm-1 color-gray text-left we7-padding-none">小程序应用</div>
+					<div class="col-sm-11">
+						<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="module in module_tpl.wxapp">
+							<a href="javascript:;" class="label label-info" ng-bind="module.title"></a>
+						</div>
 
-				</div>
-			</td>
-			<td class="we7-padding-right color-default"></td>
-		</tr>
-		<tr ng-show="module_tpl.show">
-			<td colspan="5">
-				<div class="col-sm-1 color-gray text-left we7-padding-none">模板</div>
-				<div class="col-sm-11">
-					<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="tpl in module_tpl.templates">
-						<a href="javascript:;" class="label label-info" ng-bind="tpl.title"></a>
 					</div>
+				</td>
+				<td class="we7-padding-right color-default"></td>
+			</tr>
+			<tr ng-show="module_tpl.show">
+				<td colspan="5">
+					<div class="col-sm-1 color-gray text-left we7-padding-none">模板</div>
+					<div class="col-sm-11">
+						<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="tpl in module_tpl.templates">
+							<a href="javascript:;" class="label label-info" ng-bind="tpl.title"></a>
+						</div>
 
-				</div>
-			</td>
-			<td class="we7-padding-right color-default"></td>
-		</tr>
+					</div>
+				</td>
+				<td class="we7-padding-right color-default"></td>
+			</tr>
 		</tbody>
 	</table>
 
-	<table class="table we7-table table-hover account-package-extra" ng-show="extend.modules != ''">
+	<table class="table we7-table table-hover account-package-extra">
 		<tr>
 			<th colspan="5" class="text-left">
 				<span class="we7-padding-right">附加权限</span>
 				<span></span>
 			</th>
-			{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders) || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER && $owner['uid'] != $_W['uid']}
-			<th class="text-right"><a class="color-default" data-toggle="modal" data-target="#jurisdiction-add">修改</a></th>
-			{/if}
+			
+			
+				{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders)}
+				<th class="text-right"><a class="color-default" data-toggle="modal" data-target="#jurisdiction-add">修改</a></th>
+				{/if}
+			
 		</tr>
 		{if !in_array($owner['uid'], $founders)}
 		<tr>
@@ -185,8 +196,12 @@
 		</tr>
 		{/if}
 	</table>
+	{/if}
+	
+	
+	{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders)}
+	
 
-	{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders) || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER && $owner['uid'] != $_W['uid']}
 	<p>
 
 	</p>
@@ -270,7 +285,7 @@
 								<th class="text-left bg-light-gray">应用权限组（各权限组均包含系统模块和微站默认模板）</th>
 								<th class="text-right bg-light-gray">操作</th>
 							</tr>
-							{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
+							{if permission_check_account_user('see_account_manage_module_tpl_all_permission')}
 							<tr>
 								<td class="text-left">
 									<input id="check-0" type="checkbox" name="package[]" autocomplete="off" value="-1" {if is_array($owner['group']['package']) && in_array('-1', $owner['group']['package'])}checked disabled{/if}{if is_array($extendpackage) && !empty($extendpackage[-1])}checked {/if} />

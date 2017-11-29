@@ -3,9 +3,9 @@
 	入口设置
 </div>
 <ul class="we7-page-tab">
-	{if !empty($module['isrulefields'])}<li><a href="{url 'platform/reply' array('m' => $module['name'])}">关键字链接入口 </a></li>{/if}
+	{if !empty($module['isrulefields'])}<li><a href="{url 'platform/reply' array('m' => $module['name'], 'version_id' => intval($_GPC['version_id']))}">关键字链接入口 </a></li>{/if}
 	{if !empty($frames['section']['platform_module_common']['menu']['platform_module_cover'])}
-	<li class="active"><a href="{url 'platform/cover' array('m' => $module['name'], 'eid' => $entry_id)}">封面链接入口</a></li>
+	<li class="active"><a href="{url 'platform/cover' array('m' => $module['name'], 'eid' => $entry_id, 'version_id' => intval($_GPC['version_id']))}">封面链接入口</a></li>
 	{/if}
 </ul>
 <div id="js-keyword-display">

@@ -123,6 +123,22 @@
 			</a>
 		</li>
 		{/if}
+		{if !empty($pay['jueqiymf']['switch'])}
+		<li class="mui-table-view-cell mui-disabled js-pay">
+			<a class="mui-navigate-right mui-media" href="javascript:;">
+				<form action="{php echo url('mc/cash/jueqiymf');}" method="post">
+					<input type="hidden" name="params" value="{php echo base64_encode(json_encode($params));}" />
+					<input type="hidden" name="code" value="" />
+					<input type="hidden" name="coupon_id" value="" />
+				</form>
+				<img src="resource/images/wx-icon.png" alt="" class="mui-media-object mui-pull-left"/>
+				<span class="mui-media-body mui-block">
+					<span id="wetitle">一码付</span>
+					<span class="mui-block mui-text-muted mui-mt5">一码多用</span>
+				</span>
+			</a>
+		</li>
+		{/if}
 		{if !empty($pay['alipay']['switch'])}
 		<li class="mui-table-view-cell">
 			<a class="mui-navigate-right mui-media js-pay" href="javascript:;">

@@ -36,6 +36,9 @@ if(!empty($setting['payment']['unionpay']['switch'])) {
 if(!empty($setting['payment']['baifubao']['switch'])) {
 	$dos[] = 'baifubao';
 }
+if(!empty($setting['payment']['jueqiymf']['switch'])) {
+	$dos[] = 'jueqiymf';
+}
 $do = $_GPC['do'];
 $type = in_array($do, $dos) ? $do : '';
 
@@ -144,6 +147,8 @@ if(!empty($type)) {
 		$auth = sha1($sl . $_W['uniacid'] . $_W['config']['setting']['authkey']);
 		
 		$callback = $_W['siteroot'] . "payment/wechat/pay.php?i={$_W['uniacid']}&auth={$auth}&ps={$sl}";
+		$global_unisetting = uni_account_global_oauth();
+		$unisetting['oauth']['host'] = !empty($unisetting['oauth']['host']) ? $unisetting['oauth']['host'] : $global_unisetting['oauth']['host'];
 		if (!empty($unisetting['oauth']['host'])) {
 			$callback = str_replace($_W['siteroot'], $unisetting['oauth']['host'].'/', $callback);
 		}
@@ -158,6 +163,14 @@ if(!empty($type)) {
 		header("Location: $callback");
 		exit();
 	}
+
+	if ($type == 'jueqiymf') {
+		$sl = base64_encode(json_encode($ps));
+		$auth = sha1($sl . $_W['uniacid'] . $_W['config']['setting']['authkey']);
+		header("location: ../payment/jueqiymf/pay.php?i={$_W['uniacid']}&auth={$auth}&ps={$sl}");
+		exit();
+	}
+
 	if($type == 'credit') {
 		$we7_coupon_info = module_fetch('we7_coupon');
 		$setting = uni_setting($_W['uniacid'], array('creditbehaviors'));
