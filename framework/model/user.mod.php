@@ -563,7 +563,7 @@ function user_login_forward($forward = '') {
 
 	$login_location = array(
 		'account' => url('home/welcome'),
-		'wxapp' => url('wxapp/display/home'),
+		'wxapp' => url('wxapp/version/home'),
 		'module' => url('module/display'),
 	);
 	if (!empty($forward)) {
@@ -584,10 +584,10 @@ function user_login_forward($forward = '') {
 			return $login_location['module'];
 		} else {
 			if ($last_visit_url['c'] == 'wxapp') {
-				return $login_location['wxapp'];
+				return $last_visit_url['a'] == 'display' ? url('wxapp/display') : $login_location['wxapp'];
 			}
 			$account_info = uni_fetch($last_visit_uniacid);
-			if (empty($account_info)) {
+			if (empty($account_info) || $last_visit_url['c'] == 'account' && $last_visit_url['a'] == 'display') {
 				return $login_forward;
 			}
 			if (in_array($account_info['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
