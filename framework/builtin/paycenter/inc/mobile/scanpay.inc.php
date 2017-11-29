@@ -3,7 +3,7 @@
 defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 paycenter_check_login();
-$user_permission = uni_user_permission('system');
+$user_permission = permission_account_user('system');
 $op = trim($_GPC['op']) ? trim($_GPC['op']) : 'index';
 if ($_W['account']['level'] != ACCOUNT_SERVICE_VERIFY) {
 	message('公众号权限不足', '', 'error');
@@ -59,7 +59,7 @@ if($op == 'detail') {
 	$id = intval($_GPC['id']);
 	$order = pdo_get('paycenter_order', array('uniacid' => $_W['uniacid'], 'id' => $id));
 	if(empty($order)) {
-		message('订单不存在');
+		message('订单不存在', '', '');
 	} else {
 		$store_id = $order['store_id'];
 		$types = paycenter_order_types();

@@ -1,99 +1,110 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * 用户登录
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 define('IN_GW', true);
-if(checksubmit() || $_W['isajax']) {
+
+load()->model('user');
+load()->classs('oauth2/oauth2client');
+load()->model('setting');
+
+if (checksubmit() || $_W['isajax']) {
 	_login($_GPC['referer']);
 }
+
+if (in_array($_GPC['login_type'], array('qq', 'wechat'))) {
+	_login($_GPC['referer']);
+}
+
 $setting = $_W['setting'];
+$_GPC['login_type'] = !empty($_GPC['login_type']) ? $_GPC['login_type'] : (!empty($_W['setting']['copyright']['login_type']) ? 'mobile': 'system');
+$login_urls = user_support_urls();
 template('user/login');
 
 function _login($forward = '') {
 	global $_GPC, $_W;
-	load()->model('user');
-	$member = array();
-	$username = trim($_GPC['username']);
-	pdo_query('DELETE FROM'.tablename('users_failed_login'). ' WHERE lastupdate < :timestamp', array(':timestamp' => TIMESTAMP-300));
-	$failed = pdo_get('users_failed_login', array('username' => $username, 'ip' => CLIENT_IP));
-	if ($failed['count'] >= 5) {
-		message('输入密码错误次数超过5次，请在5分钟后再登录',referer(), 'info');
+	$setting_sms_sign = setting_load('site_sms_sign');
+	$status = !empty($setting_sms_sign['site_sms_sign']['status']) ? $setting_sms_sign['site_sms_sign']['status'] : '';
+	if (!empty($status)) {
+		user_expire_notice();
 	}
-	if (!empty($_W['setting']['copyright']['verifycode'])) {
-		$verify = trim($_GPC['verify']);
-		if(empty($verify)) {
-			message('请输入验证码');
+	if (empty($_GPC['login_type'])) {
+		$_GPC['login_type'] = 'system';
+	}
+
+	if (!empty($_W['user']) && in_array($_GPC['login_type'], array('qq', 'wechat'))) {
+		$member = OAuth2Client::create($_GPC['login_type'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appid'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appsecret'])->bind();
+	} else {
+		$member = OAuth2Client::create($_GPC['login_type'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appid'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appsecret'])->login();
+	}
+
+	if (!empty($_W['user'])) {
+		if (is_error($member)) {
+			itoast($member['message'], url('user/profile/bind'), '');
+		} else {
+			itoast('绑定成功', url('user/profile/bind'), '');
 		}
-		$result = checkcaptcha($verify);
-		if (empty($result)) {
-			message('输入验证码错误');
-		}
 	}
-	if(empty($username)) {
-		message('请输入要登录的用户名');
-	}
-	$member['username'] = $username;
-	$member['password'] = $_GPC['password'];
-	if(empty($member['password'])) {
-		message('请输入密码');
+	
+	if (is_error($member)) {
+		itoast($member['message'], url('user/login'), '');
 	}
 	$record = user_single($member);
-	if(!empty($record)) {
-		if($record['status'] == 1) {
-			message('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决！');
+	if (!empty($record)) {
+		if ($record['status'] == USER_STATUS_CHECK || $record['status'] == USER_STATUS_BAN) {
+			itoast('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决！', url('user/login'), '');
 		}
-		$founders = explode(',', $_W['config']['setting']['founder']);
-		$_W['isfounder'] = in_array($record['uid'], $founders);
-		if (empty($_W['isfounder'])) {
-			if (!empty($record['endtime']) && $record['endtime'] < TIMESTAMP) {
-				message('您的账号有效期限已过，请联系网站管理员解决！');
+		$_W['uid'] = $record['uid'];
+		$_W['isfounder'] = user_is_founder($record['uid']);
+		$_W['user'] = $record;
+
+		
+
+		
+			if (empty($_W['isfounder'])) {
+				if (!empty($record['endtime']) && $record['endtime'] < TIMESTAMP) {
+					itoast('您的账号有效期限已过，请联系网站管理员解决！', '', '');
+				}
 			}
-		}
+		
 		if (!empty($_W['siteclose']) && empty($_W['isfounder'])) {
-			message('站点已关闭，关闭原因：' . $_W['setting']['copyright']['reason']);
+			itoast('站点已关闭，关闭原因：' . $_W['setting']['copyright']['reason'], '', '');
 		}
 		$cookie = array();
 		$cookie['uid'] = $record['uid'];
 		$cookie['lastvisit'] = $record['lastvisit'];
 		$cookie['lastip'] = $record['lastip'];
 		$cookie['hash'] = md5($record['password'] . $record['salt']);
-		$session = base64_encode(json_encode($cookie));
+		$session = authcode(json_encode($cookie), 'encode');
 		isetcookie('__session', $session, !empty($_GPC['rember']) ? 7 * 86400 : 0, true);
 		$status = array();
 		$status['uid'] = $record['uid'];
 		$status['lastvisit'] = TIMESTAMP;
 		$status['lastip'] = CLIENT_IP;
 		user_update($status);
-		//把店员信息合并到user里面
-		if($record['type'] == ACCOUNT_OPERATE_CLERK) {
-			$role = uni_permission($record['uid'], $record['uniacid']);
-			isetcookie('__uniacid', $record['uniacid'], 7 * 86400);
-			isetcookie('__uid', $record['uid'], 7 * 86400);
-			
-			if($_W['role'] == 'clerk' || $role == 'clerk') {
-				message('登陆成功', url('activity/desk', array('uniacid' => $record['uniacid'])), 'success');
-			}
+
+		if (empty($forward)) {
+			$forward = user_login_forward($_GPC['forward']);
 		}
-		if(empty($forward)) {
-			$forward = $_GPC['forward'];
-		}
-		if(empty($forward)) {
-			$forward = './index.php?c=account&a=display';
-		}
+		// 只能跳到本域名下
+		$forward = safe_url_not_outside($forward);
+
 		if ($record['uid'] != $_GPC['__uid']) {
 			isetcookie('__uniacid', '', -7 * 86400);
 			isetcookie('__uid', '', -7 * 86400);
 		}
+		$failed = pdo_get('users_failed_login', array('username' => trim($_GPC['username']), 'ip' => CLIENT_IP));
 		pdo_delete('users_failed_login', array('id' => $failed['id']));
-		message("欢迎回来，{$record['username']}。", $forward);
+		user_account_expire_message_record();
+		itoast("欢迎回来，{$record['username']}。", $forward, 'success');
 	} else {
 		if (empty($failed)) {
-			pdo_insert('users_failed_login', array('ip' => CLIENT_IP, 'username' => $username, 'count' => '1', 'lastupdate' => TIMESTAMP));
+			pdo_insert('users_failed_login', array('ip' => CLIENT_IP, 'username' => trim($_GPC['username']), 'count' => '1', 'lastupdate' => TIMESTAMP));
 		} else {
 			pdo_update('users_failed_login', array('count' => $failed['count'] + 1, 'lastupdate' => TIMESTAMP), array('id' => $failed['id']));
 		}
-		message('登录失败，请检查您输入的用户名和密码！');
+		itoast('登录失败，请检查您输入的账号和密码！', '', '');
 	}
 }
-

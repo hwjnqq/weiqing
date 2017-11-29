@@ -8,6 +8,7 @@
 define('IN_API', true);
 require_once './framework/bootstrap.inc.php';
 load()->model('reply');
+load()->model('attachment');
 load()->app('common');
 load()->classs('wesession');
 $hash = $_GPC['hash'];
@@ -31,7 +32,8 @@ if(empty($id)) {
 	$id = intval($_GPC['id']);
 }
 if (!empty($id)) {
-	$_W['account'] = account_fetch($id);
+	$uniacid = pdo_getcolumn('account', array('acid' => $id), 'uniacid');
+	$_W['account'] = uni_fetch($uniacid);
 }
 if(empty($_W['account'])) {
 	exit('initial error hash or id');
@@ -46,7 +48,7 @@ $_W['uniaccount'] = uni_fetch($_W['uniacid']);
 $_W['account']['groupid'] = $_W['uniaccount']['groupid'];
 $_W['account']['qrcode'] = $_W['attachurl'].'qrcode_'.$_W['acid'].'.jpg?time='.$_W['timestamp'];
 $_W['account']['avatar'] = $_W['attachurl'].'headimg_'.$_W['acid'].'.jpg?time='.$_W['timestamp'];
-$_W['modules'] = uni_modules();
+$_W['attachurl'] = attachment_set_attach_url();
 
 $engine = new WeEngine();
 if (!empty($_W['setting']['copyright']['status'])) {
@@ -99,10 +101,14 @@ class WeEngine {
 	public function __construct() {
 		global $_W;
 		$this->account = WeAccount::create($_W['account']);
-		$this->modules = array_keys($_W['modules']);
-		$this->modules[] = 'cover';
-		$this->modules[] = 'default';
-		$this->modules = array_unique($this->modules);
+		if(strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
+			$_W['modules'] = uni_modules();
+			$this->modules = array_keys($_W['modules']);
+			$this->modules[] = 'cover';
+			$this->modules[] = 'default';
+			$this->modules[] = 'reply';
+			$this->modules = array_unique ($this->modules);
+		}
 	}
 
 	/**
@@ -167,6 +173,7 @@ class WeEngine {
 			$row = array();
 			$row['isconnect'] = 1;
 			pdo_update('account', $row, array('acid' => $_W['acid']));
+			cache_delete("uniaccount:{$_W['uniacid']}");
 			exit(htmlspecialchars($_GET['echostr']));
 		}
 		if(strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
@@ -353,6 +360,7 @@ class WeEngine {
 		}
 		if(!empty($fans)) {
 			if ($message['event'] == 'unsubscribe') {
+				cache_build_memberinfo($fans['uid']);
 				pdo_update('mc_mapping_fans', array('follow' => 0, 'unfollowtime' => TIMESTAMP), array('fanid' => $fans['fanid']));
 				pdo_delete('mc_fans_tag_mapping', array('fanid' => $fans['fanid']));
 			} elseif ($message['event'] != 'ShakearoundUserShake' && $message['type'] != 'trace') {
@@ -360,7 +368,6 @@ class WeEngine {
 				if (empty($fans['follow'])) {
 					$rec['follow'] = 1;
 					$rec['followtime'] = $message['time'];
-					$rec['unfollowtime'] = 0;
 				}
 				$member = array();
 				if(!empty($fans['uid'])){
@@ -381,9 +388,7 @@ class WeEngine {
 					}
 				}
 				if(!empty($rec)){
-					pdo_update('mc_mapping_fans', $rec, array(
-						'openid' => $message['from'],
-					));
+					pdo_update('mc_mapping_fans', $rec, array('openid' => $message['from']));
 				}
 			}
 		} else {
@@ -418,6 +423,8 @@ class WeEngine {
 
 	private function receive($par, $keyword, $response) {
 		global $_W;
+		fastcgi_finish_request();
+		
 		$subscribe = cache_load('module_receive_enable');
 		$modules = uni_modules();
 		$obj = WeUtility::createModuleReceiver('core');
@@ -431,82 +438,26 @@ class WeEngine {
 		if(method_exists($obj, 'receive')) {
 			@$obj->receive();
 		}
-		if (!empty($subscribe['subscribe']) && ($this->message['event'] == 'subscribe' || $this->message['type'] == 'subscribe')) {
-			foreach($subscribe['subscribe'] as $modulename) {
-				$obj = WeUtility::createModuleReceiver($modulename);
-				$obj->message = $this->message;
-				$obj->params = $par;
-				$obj->response = $response;
-				$obj->keyword = $keyword;
-				$obj->module = $modules[$modulename];
-				$obj->uniacid = $_W['uniacid'];
-				$obj->acid = $_W['acid'];
-				if(method_exists($obj, 'receive')) {
-					@$obj->receive();
+		load()->func('communication');
+		if (empty($subscribe[$this->message['type']])) {
+			$subscribe[$this->message['type']] = $subscribe[$this->message['event']];
+		}
+		if (!empty($subscribe[$this->message['type']])) {
+			foreach ($subscribe[$this->message['type']] as $modulename) {
+				//fsockipen可用时，设置timeout为0可以无需等待高效请求
+				//部分nginx+apache的服务器由于Nginx设置不支持为0的写法，故兼容为10秒
+				//发现部分用户请求127.0.0.1无法请求，报错误7，故再增加完整URL兼容写法
+				$params = array(
+					'i' => $GLOBALS['uniacid'],
+					'modulename' => $modulename,
+					'request' => json_encode($par),
+					'response' => json_encode($response),
+					'message' => json_encode($this->message),
+				);
+				$response = ihttp_request(wurl('utility/subscribe/receive'), $params, array(), 10);
+				if (is_error($response) && $response['errno'] == '7') {
+					$response = ihttp_request($_W['siteroot'] . 'web/' . wurl('utility/subscribe/receive'), $params, array(), 10);
 				}
-			}
-		} elseif (!empty($subscribe['unsubscribe']) && ($this->message['event'] == 'unsubscribe' || $this->message['type'] == 'unsubscribe')) {
-			foreach($subscribe['unsubscribe'] as $modulename) {
-				$obj = WeUtility::createModuleReceiver($modulename);
-				$obj->message = $this->message;
-				$obj->params = $par;
-				$obj->response = $response;
-				$obj->keyword = $keyword;
-				$obj->module = $modules[$modulename];
-				$obj->uniacid = $_W['uniacid'];
-				$obj->acid = $_W['acid'];
-				if(method_exists($obj, 'receive')) {
-					@$obj->receive();
-				}
-			}
-		} elseif (!empty($subscribe['user_get_card']) && $this->message['event'] == 'user_get_card') {
-			foreach($subscribe['user_get_card'] as $modulename) {
-				$obj = WeUtility::createModuleReceiver($modulename);
-				$obj->message = $this->message;
-				$obj->params = $par;
-				$obj->response = $response;
-				$obj->keyword = $keyword;
-				$obj->module = $modules[$modulename];
-				$obj->uniacid = $_W['uniacid'];
-				$obj->acid = $_W['acid'];
-				if(method_exists($obj, 'receive')) {
-					@$obj->receive();
-				}
-			}
-		} elseif (!empty($subscribe['user_consume_card']) && $this->message['event'] == 'user_consume_card') {
-			foreach($subscribe['user_consume_card'] as $modulename) {
-				$obj = WeUtility::createModuleReceiver($modulename);
-				$obj->message = $this->message;
-				$obj->params = $par;
-				$obj->response = $response;
-				$obj->keyword = $keyword;
-				$obj->module = $modules[$modulename];
-				$obj->uniacid = $_W['uniacid'];
-				$obj->acid = $_W['acid'];
-				if(method_exists($obj, 'receive')) {
-					@$obj->receive();
-				}
-			}
-		} else {
-			$modules = $subscribe[$this->message['type']];
-			if (!empty($modules)) {
-				foreach ($modules as $modulename) {
-					$row = array();
-					$row['uniacid'] = $_W['uniacid'];
-					$row['acid'] = $_W['acid'];
-					$row['dateline'] = $_W['timestamp'];
-					$row['message'] = iserializer($this->message);
-					$row['keyword'] = iserializer($keyword);
-					$row['params'] = iserializer($par);
-					$row['response'] = iserializer($response);
-					$row['module'] = $modulename;
-					$row['type'] = 1;
-					pdo_insert('core_queue', $row);
-				}
-			}
-			//清除一个月之前前的数据
-			if (date('N') == '1') {
-				pdo_query("DELETE FROM ".tablename('core_queue')." WHERE dateline < '".($_W['timestamp'] - 2592000)."'");
 			}
 		}
 	}
@@ -561,7 +512,6 @@ class WeEngine {
 		} else {
 			$params += $this->handler($message['type']);
 		}
-
 		return $params;
 	}
 	
@@ -649,7 +599,12 @@ class WeEngine {
 		if(!isset($message['content'])) {
 			return $pars;
 		}
-		
+		//关键字先查缓存有没有匹配规则，缓存超时为5分钟
+		$cachekey = 'we7:' . $_W['uniacid'] . ':keyword:' . md5($message['content']);
+		$keyword_cache = cache_load($cachekey);
+		if (!empty($keyword_cache) && $keyword_cache['expire'] > TIMESTAMP) {
+			return $keyword_cache['data'];
+		}
 		$condition = <<<EOF
 `uniacid` IN ( 0, {$_W['uniacid']} )
 AND 
@@ -685,10 +640,16 @@ EOF;
 				'module' => $keyword['module'],
 				'rule' => $keyword['rid'],
 				'priority' => $keyword['displayorder'],
-				'keyword' => $keyword
+				'keyword' => $keyword,
+				'reply_type' => $keyword['reply_type']
 			);
 			$pars[] = $params;
 		}
+		$cache = array(
+			'data' => $pars,
+			'expire' => TIMESTAMP + 5 * 60,
+		);
+		cache_write($cachekey, $cache);
 		return $pars;
 	}
 	
@@ -699,9 +660,6 @@ EOF;
 		if (strtolower($message['event']) == 'click') {
 			$message['content'] = strval($message['eventkey']);
 			return $this->analyzeClick($message);
-		}
-		if (strtolower($message['event']) == 'user_gifting_card') {
-			return $this->analyzeCoupon($message);
 		}
 		if (in_array($message['event'], array('pic_photo_or_album', 'pic_weixin', 'pic_sysphoto'))) {
 			pdo_query("DELETE FROM ".tablename('menu_event')." WHERE createtime < '".($GLOBALS['_W']['timestamp'] - 100)."' OR openid = '{$message['from']}'");
@@ -789,74 +747,6 @@ EOF;
 			return $params;
 		}
 	}
-	
-	public function analyzeCoupon(&$message) {
-		global $_W;
-		$data = array();
-		//门店审核
-		if ($message['event'] == 'poi_check_notify') {
-			$data['status'] = ($message['result'] == 'succ') ? 1 : 3;
-			$data['location_id'] = trim($message['poiid']);
-			$data['message'] = trim($message['msg']);
-			$id = intval($message['uniqid']);
-			pdo_update('activity_stores', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
-		} elseif (in_array($message['event'], array('card_pass_check', 'card_not_pass_check'))) {
-			//卡券审核状态事件
-			$data['status'] = ($message['event'] == 'card_pass_check') ? 3 : 2;
-			$card_id = trim($message['cardid']);
-			$is_exist = pdo_getcolumn('coupon', array('card_id' => $card_id));
-			if(!empty($is_exist)) {
-				pdo_update('coupon', $data, array('card_id' => $card_id));
-			}
-		} elseif ($message['event'] == 'user_get_card') {
-			//用户领取卡券事件
-			load()->model('activity');
-			if (empty($message['isgivebyfriend'])) {
-				$coupon_record = pdo_get('coupon_record', array('card_id' => trim($message['cardid']), 'openid' => trim($message['fromusername']), 'status' => '1', 'code' => ''), array('id'));
-				if (!empty($coupon_record)) {
-					pdo_update('coupon_record', array('code' => trim($message['usercardcode'])),array('id' => $coupon_record['id']));
-				} else {
-					$fans_info = mc_fansinfo($message['fromusername']);
-					$coupon_info = pdo_get('coupon', array('card_id' => $message['cardid']));
-					$pcount = pdo_fetchcolumn("SELECT count(*) FROM " . tablename('coupon_record') . " WHERE `openid` = :openid AND `couponid` = :couponid", array(':couponid' => $coupon_info['id'], ':openid' => trim($message['fromusername'])));
-					if ($pcount < $coupon_info['get_limit'] && $coupon_info['quantity'] > 0) {
-						$insert_data = array(
-							'uniacid' => $fans_info['uniacid'],
-							'card_id' => $message['cardid'],
-							'openid' => $message['fromusername'],
-							'code' => $message['usercardcode'],
-							'addtime' => TIMESTAMP,
-							'status' => '1',
-							'uid' => $fans_info['uid'],
-							'remark' => '用户通过投放扫码',
-							'couponid' => $coupon_info['id']
-						);
-						pdo_insert('coupon_record', $insert_data);
-						pdo_update('coupon', array('quantity' => $coupon_info['quantity'] - 1, 'dosage' => $coupon_info['dosage'] + 1), array('uniacid' => $fans_info['uniacid'],'id' => $coupon_info['id']));
-					}
-				}
-			} else {
-				$old_record = pdo_get('coupon_record', array('openid' => trim($message['friendusername']), 'card_id' => trim($message['cardid']), 'code' => trim($message['oldusercardcode'])));
-				pdo_update('coupon_record', array('addtime' => TIMESTAMP, 'givebyfriend' => intval($message['isgivebyfriend']), 'openid' => trim($message['fromusername']), 'code' => trim($message['usercardcode']), 'status' => '1'), array('id' => $old_record['id']));
-			}
-			$this->receive();
-		} elseif ($message['event'] == 'user_del_card') {
-			//用户删除卡券事件
-			$card_id = trim($message['cardid']);
-			$openid = trim($message['fromusername']);
-			$code = trim($message['usercardcode']);
-			pdo_update('coupon_record', array('status' => 4), array('acid' => $_W['acid'], 'card_id' => $card_id, 'openid' => $openid, 'code' => $code));
-		} elseif ($message['event'] == 'user_consume_card') {
-			//核销卡券事件
-			$card_id = trim($message['cardid']);
-			$openid = trim($message['fromusername']);
-			$code = trim($message['usercardcode']);
-			pdo_update('coupon_record', array('status' => 3), array('acid' => $_W['acid'], 'card_id' => $card_id, 'openid' => $openid, 'code' => $code));
-			$this->receive();
-		}
-		//卡券的推送事件处理完成后，无需再走系统消息流程
-		exit('success');
-	}
 
 	/**
 	 * 处理特殊消息类型包括, video, location, link, unsubscribe, trace, view, enter
@@ -871,19 +761,19 @@ EOF;
 		global $_W;
 		$params = array();
 		$setting = uni_setting($_W['uniacid'], array('default_message'));
-		$df = $setting['default_message'];
-		if(is_array($df) && isset($df[$type])) {
-			if (!empty($df[$type]['type']) && $df[$type]['type'] == 'keyword') {
+		$default_message = $setting['default_message'];
+		if(is_array($default_message) && !empty($default_message[$type]['type'])) {
+			if ($default_message[$type]['type'] == 'keyword') {
 				$message = $this->message;
 				$message['type'] = 'text';
 				$message['redirection'] = true;
 				$message['source'] = $type;
-				$message['content'] = $df[$type]['keyword'];
+				$message['content'] = $default_message[$type]['keyword'];
 				return $this->analyzeText($message);
 			} else {
 				$params[] = array(
 					'message' => $this->message,
-					'module' => is_array($df[$type]) ? $df[$type]['module'] : $df[$type],
+					'module' => is_array($default_message[$type]) ? $default_message[$type]['module'] : $default_message[$type],
 					'rule' => '-1',
 				);
 				return $params;
@@ -903,10 +793,14 @@ EOF;
 		if(empty($param['module']) || !in_array($param['module'], $this->modules)) {
 			return false;
 		}
-		
-		$processor = WeUtility::createModuleProcessor($param['module']);
+		if ($param['module'] == 'reply') {
+			$processor = WeUtility::createModuleProcessor('core');
+		} else {
+			$processor = WeUtility::createModuleProcessor($param['module']);
+		}
 		$processor->message = $param['message'];
 		$processor->rule = $param['rule'];
+		$processor->reply_type = $param['reply_type'];
 		$processor->priority = intval($param['priority']);
 		$processor->inContext = $param['context'] === true;
 		$response = $processor->respond();

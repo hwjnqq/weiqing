@@ -17,6 +17,7 @@ $share_tmp = pdo_fetch('SELECT title,description,thumb FROM ' . tablename('cover
 $_share['imgUrl'] = tomedia($share_tmp['thumb']);
 $_share['desc'] = $share_tmp['description'];
 $_share['title'] = $share_tmp['title'];
+$category_list = pdo_getall('site_category', array('uniacid' => $_W['uniacid'], 'multiid' => $multiid), array(), 'id');
 if (!empty($multiid)) {
 	isetcookie('__multiid', $multiid);
 }

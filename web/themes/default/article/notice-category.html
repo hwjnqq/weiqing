@@ -1,52 +1,42 @@
-{template 'common/header-gw'}
-<ol class="breadcrumb">
-	<li><a href="./?refresh"><i class="fa fa-home"></i></a></li>
-	<li><a href="{url 'system/welcome'}">系统</a></li>
-	<li class="active">公告分类</li>
-</ol>
-<ul class="nav nav-tabs">
-	<li {if $do == 'category' || $do == 'category_post'}class="active"{/if}><a href="{php echo url('article/notice/category');}">公告分类</a></li>
+{template 'common/header'}
+<div class="we7-page-title">公告管理</div>
+<ul class="we7-page-tab">
 	<li {if $do == 'list'}class="active"{/if}><a href="{php echo url('article/notice/list');}">公告列表</a></li>
-	<li {if $do == 'post' && !$id}class="active"{/if}><a href="{php echo url('article/notice/post');}">添加公告</a></li>
-	{if $do == 'post' && $id}<li class="active"><a href="{php echo url('article/notice/post');}">编辑公告</a></li>{/if}
+	<li {if $do == 'category' || $do == 'category_post'}class="active"{/if}><a href="{php echo url('article/notice/category');}">公告分类</a></li>
+	<!--<li {if $do == 'post' && !$id}class="active"{/if}><a href="{php echo url('article/notice/post');}">添加公告</a></li>
+	{if $do == 'post' && $id}<li class="active"><a href="{php echo url('article/notice/post');}">编辑公告</a></li>{/if}-->
 </ul>
 {if $do == 'category'}
 <div class="clearfix">
-	<form action="{php echo url('article/notice/category');}" method="post" class="form-horizontal" role="form">
+	<form action="{php echo url('article/notice/category');}" method="post" class="we7-form" role="form">
 		<div class="form-group">
-			<div class="col-sm-8 col-lg-9 col-xs-12">
-				<a href="{php echo url('article/notice/category_post');}" target="_blank" class="btn btn-success col-lg-1">添加分类</a>
+			<div class="pull-right">
+				<a href="{php echo url('article/notice/category_post');}" class="btn btn-primary">添加分类</a>
 			</div>
 		</div>
-		<div class="panel panel-default">
-			<div class="panel-heading">公告分类</div>
-			<div class="panel-body table-responsive">
-				<table class="table table-hover">
-					<thead>
+				<table class="table we7-table table-hover">
+					<col width="100px"/>
+					<col />
+					<col width="150px" />
 						<tr>
-							<th width="100">排序</th>
-							<th width="300">分类名称</th>
+							<th>排序</th>
+							<th class="text-left">分类名称</th>
 							<th class="text-right">操作</th>
 						</tr>
-					</thead>
-					<tbody>
 					{loop $data $da}
 						<input type="hidden" name="ids[]" value="{$da['id']}"/>
 						<tr>
 							<td><input type="text" name="displayorder[]" value="{$da['displayorder']}" class="form-control"/></td>
 							<td><input type="text" name="title[]" value="{$da['title']}" class="form-control"/></td>
-							<td class="text-right">
-								<a href="{php echo url('article/notice/category_del', array('id' => $da['id']));}" class="btn btn-default" onclick="if(!confirm('删除分类后，该分类下公告也会被删除，确定删除吗？')) return false;">删除</a>
+							<td>
+								<div class="link-group"><a href="{php echo url('article/notice/category_del', array('id' => $da['id']));}" class="del" onclick="if(!confirm('删除分类后，该分类下公告也会被删除，确定删除吗？')) return false;">删除</a></div>
 							</td>
 						</tr>
 					{/loop}
-					</tbody>
 				</table>
-			</div>
-		</div>
 		<div class="form-group">
-			<div class="col-sm-8 col-lg-9 col-xs-12">
-				<input type="submit" class="btn btn-primary" name="submit" value="提交" />
+			<div class="">
+				<input type="submit" class="btn btn-primary we7-padding-horizontal" name="submit" value="提交" />
 				<input type="hidden" name="token" value="{$_W['token']}" />
 			</div>
 		</div>
@@ -54,20 +44,18 @@
 </div>
 {elseif $do == 'category_post'}
 <div class="clearfix">
-	<form action="{php echo url('article/notice/category_post');}" method="post" class="form-horizontal" role="form">
-		<div class="panel panel-default">
-			<div class="panel-heading">公告分类</div>
-			<div class="panel-body">
+	<form action="{php echo url('article/notice/category_post');}" method="post" class="we7-form" role="form">
+		
 				<div id="tpl">
 					<div class="form-group">
-						<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">分类名称</label>
+						<label class="col-xs-12 col-sm-2 col-md-2 control-label">分类名称</label>
 						<div class="col-sm-8 col-lg-9 col-xs-12">
 							<input type="text" class="form-control" name="title[]" vlaue="" placeholder="分类名称"/>
 							<div class="help-block">请填写分类名称</div>
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">排序</label>
+						<label class="col-xs-12 col-sm-2 col-md-2 control-label">排序</label>
 						<div class="col-sm-8 col-lg-9 col-xs-12">
 							<input type="text" class="form-control" name="displayorder[]" vlaue="" placeholder="排序"/>
 							<div class="help-block">数字越大，越靠前</div>
@@ -77,13 +65,12 @@
 				</div>
 				<div id="container"></div>
 				<div class="form-group">
-					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label"></label>
+					<label class="col-xs-12 col-sm-2 col-md-2 control-label"></label>
 					<div class="col-sm-8 col-lg-9 col-xs-12">
 						<a href="javascript:;" id="category-add"><i class="fa fa-plus-circle"></i> 继续添加分类</a>
 					</div>
 				</div>
-			</div>
-		</div>
+			
 		<div class="form-group">
 			<div class="col-sm-8 col-lg-9 col-xs-12">
 				<input type="submit" class="btn btn-primary" name="submit" value="提交" />
@@ -102,4 +89,4 @@
 		});
 	});
 </script>
-{template 'common/footer-gw'}
+{template 'common/footer'}

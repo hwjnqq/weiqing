@@ -1,13 +1,19 @@
 <?php
 /**
- * 系统链接
- *
+ * 链接选择器
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
-$callback = $_GPC['callback'];
+
 load()->model('module');
 load()->model('site');
+
+$dos = array('entry', 'modulelink', 'articlelist', 'pagelist', 'newslist', 'catelist', 'page', 'news', 'article');
+$do = in_array($do, $dos) ? $do : 'entry';
+
+$_W['page']['title'] = '';
+$callback = $_GPC['callback'];
+
 if ($do == 'modulelink') {
 	$modules = uni_modules_app_binding();
 	$entries = array();
@@ -16,47 +22,78 @@ if ($do == 'modulelink') {
 		$entries[$module]['title'] = $item['title'];
 	}
 }
-elseif ($do == 'articlelist') {
+if ($do == 'articlelist') {
 	$result = array();
 	$psize = 10;
 	$pindex = max(1, intval($_GPC['page']));
-	$result['list'] = pdo_fetchall("SELECT id, title, thumb, description, content, author, incontent, linkurl,  createtime, uniacid FROM ".tablename('site_article')." WHERE uniacid = :uniacid ORDER BY displayorder DESC, id  LIMIT " . ($pindex - 1) * $psize . ',' . $psize, array(':uniacid' => $_W['uniacid']), 'id');
+	$condition = '';
+	if (!empty($_GPC['keyword'])) {
+		$condition .= " AND title LIKE :title";
+		$param = array(':uniacid' => $_W['uniacid'], ':title' => '%'. trim($_GPC['keyword']) .'%');
+	} else {
+		$param = array(':uniacid' => $_W['uniacid']);
+	}
+	$result['list'] = pdo_fetchall("SELECT id, title, thumb, description, content, author, incontent, linkurl,  createtime, uniacid FROM ".tablename('site_article')." WHERE uniacid = :uniacid". $condition ." ORDER BY displayorder DESC, id  LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $param, 'id');
 	if (!empty($result['list'])) {
 		foreach ($result['list'] as $k => &$v) {
 			$v['thumb_url'] = tomedia($v['thumb']);
 			$v['createtime'] = date('Y-m-d H:i', $v['createtime']);
 			$v['name'] = cutstr($v['name'], 10);
 		}
-		$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('site_article').' WHERE uniacid = :uniacid', array(':uniacid' => $_W['uniacid']));
+		unset($v);
+		$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('site_article')." WHERE uniacid = :uniacid". $condition, $param);
 		$result['pager'] = pagination($total, $pindex, $psize, '', array('before' => '2', 'after' => '3', 'ajaxcallback'=>'null'));
 	}
-	message($result, '', 'ajax');
-}elseif ($do == 'pagelist') {
+	iajax(0, $result);
+}
+if ($do == 'pagelist') {
 	$result = array();
 	$psize = 10;
 	$pindex = max(1, intval($_GPC['page']));
-	$result['list'] = pdo_fetchall("SELECT * FROM ".tablename('site_page')." WHERE uniacid = :uniacid AND type = '1' ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, array(':uniacid' => $_W['uniacid']), 'id');
+	$condition = '';
+	if (!empty($_GPC['keyword'])) {
+		$condition .= " AND title LIKE :title";
+		$param = array(':uniacid' => $_W['uniacid'], ':title' => '%'. trim($_GPC['keyword']) .'%');
+	} else {
+		$param = array(':uniacid' => $_W['uniacid']);
+	}
+	$result['list'] = pdo_fetchall("SELECT * FROM ".tablename('site_page')." WHERE uniacid = :uniacid AND type = '1'".$condition." ORDER BY id DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $param, 'id');
 	if (!empty($result['list'])) {
 		foreach ($result['list'] as $k => &$v) {
 			$v['createtime'] = date('Y-m-d H:i', $v['createtime']);
 		}
-		$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('site_page'). ' WHERE uniacid = :uniacid AND type = 1', array(':uniacid' => $_W['uniacid']));
+		unset($v);
+		$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " .tablename('site_page'). " WHERE uniacid = :uniacid AND type = 1" . $condition, $param);
 		$result['pager'] = pagination($total, $pindex, $psize, '', array('before' => '2', 'after' => '3', 'ajaxcallback'=>'true'));
 	}
-	message($result, '', 'ajax');
-} elseif ($do == 'newslist') {
+	iajax(0, $result);
+}
+if ($do == 'newslist') {
 	$result = array();
 	$psize = 10;
 	$pindex = max(1, intval($_GPC['page']));
-	$sql = "SELECT n.id, n.title FROM ". tablename('rule')."AS r,". tablename('news_reply'). " AS n WHERE r.id = n.rid AND r.module = :news AND r.uniacid = :uniacid ORDER BY n.displayorder DESC LIMIT ". ($pindex - 1) * $psize . ',' . $psize;
-	$result['list'] = pdo_fetchall($sql, array(':news' => 'news', ':uniacid' => $_W['uniacid']), 'id');
+	$condition = '';
+	if (!empty($_GPC['keyword'])) {
+		$condition .= " AND n.title LIKE :title";
+		$param = array(':uniacid' => $_W['uniacid'], ':title' => '%'. trim($_GPC['keyword']) .'%');
+	} else {
+		$param = array(':uniacid' => $_W['uniacid']);
+	}
+	$sql = "SELECT n.id, n.title, n.url FROM ". tablename('rule')."AS r,". tablename('news_reply'). " AS n WHERE r.id = n.rid AND r.module IN ('reply', 'news') AND r.uniacid = :uniacid". $condition ." ORDER BY n.displayorder DESC LIMIT ". ($pindex - 1) * $psize . ',' . $psize;
+	$result['list'] = pdo_fetchall($sql, $param, 'id');
 	if (!empty($result['list'])) {
-		$sql = "SELECT COUNT(*) FROM ". tablename('rule')."AS r,". tablename('news_reply'). " AS n WHERE r.id = n.rid AND r.module = :news AND r.uniacid = :uniacid ";
-		$total = pdo_fetchcolumn($sql, array(':news' => 'news', ':uniacid' => $_W['uniacid']));
+		foreach ($result['list'] as $key => &$list) {
+			if (empty($list['url'])) {
+				$list['url'] = './index.php?i=' . $_W['uniacid'] . '&c=entry&id=' . $list['id'] . '&do=detail&m=core';
+			}
+		}
+		$sql = "SELECT COUNT(*) FROM ". tablename('rule')."AS r,". tablename('news_reply'). " AS n WHERE r.id = n.rid AND r.module IN ('reply', 'news') AND r.uniacid = :uniacid ". $condition;
+		$total = pdo_fetchcolumn($sql, $param);
 		$result['pager'] = pagination($total, $pindex, $psize, '', array('before' => '2', 'after' => '3', 'ajaxcallback'=>'null'));
 	}
-	message($result, '', 'ajax');
-} elseif ($do == 'catelist') {
+	iajax(0, $result);
+}
+if ($do == 'catelist') {
 	$condition = '';
 	if (!empty($_GPC['keyword'])) {
 		$condition .= " AND name LIKE :name";
@@ -71,8 +108,9 @@ elseif ($do == 'articlelist') {
 			unset($category[$index]);
 		}
 	}
-	message($category, '', 'ajax');
-} elseif ($do == 'page') {
+	iajax(0, $category);
+}
+if ($do == 'page') {
 	$result = array();
 	$psize = 10;
 	$pindex = max(1, intval($_GPC['page']));
@@ -81,10 +119,12 @@ elseif ($do == 'articlelist') {
 		foreach ($result['list'] as $k => &$v) {
 			$v['createtime'] = date('Y-m-d H:i', $v['createtime']);
 		}
+		unset($v);
 		$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('site_page'). ' WHERE uniacid = :uniacid AND type = 1', array(':uniacid' => $_W['uniacid']));
 		$result['pager'] = pagination($total, $pindex, $psize, '', array('before' => '2', 'after' => '3', 'ajaxcallback'=>'true'));
 	}
-} elseif ($do == 'news') {
+}
+if ($do == 'news') {
 	$result = array();
 	$psize = 10;
 	$pindex = max(1, intval($_GPC['page']));
@@ -95,7 +135,8 @@ elseif ($do == 'articlelist') {
 		$total = pdo_fetchcolumn($sql, array(':news' => 'news', ':uniacid' => $_W['uniacid']));
 		$result['pager'] = pagination($total, $pindex, $psize, '', array('before' => '2', 'after' => '3', 'ajaxcallback'=>'null'));
 	}
-} elseif ($do == 'article') {
+}
+if ($do == 'article') {
 	$result = array();
 	$psize = 10;
 	$pindex = max(1, intval($_GPC['page']));
@@ -106,6 +147,7 @@ elseif ($do == 'articlelist') {
 			$v['createtime'] = date('Y-m-d H:i', $v['createtime']);
 			$v['name'] = cutstr($v['name'], 10);
 		}
+		unset($v);
 		$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('site_article').' WHERE uniacid = :uniacid', array(':uniacid' => $_W['uniacid']));
 		$result['pager'] = pagination($total, $pindex, $psize, '', array('before' => '2', 'after' => '3', 'ajaxcallback'=>'null'));
 	}
@@ -116,39 +158,20 @@ elseif ($do == 'articlelist') {
 			unset($category[$index]);
 		}
 	}
-} elseif ($do == 'newschunk') {
-	$result = array();
-	$psize = 10;
-	$pindex = max(1, intval($_GPC['page']));
-	$rids = pdo_getall('rule', array('uniacid' => $_W['uniacid'], 'module' => 'news'), array(), 'id');
-	$keys = array_keys($rids);
-	$keys[] = 0;
-	$keys = implode(',', $keys);
-	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('news_reply') . " WHERE parent_id = 0 AND rid IN ({$keys})");
-	$sql = "SELECT id,title,createtime FROM ". tablename('news_reply') . " WHERE parent_id = 0 AND rid IN ({$keys}) ORDER BY id DESC LIMIT ". ($pindex - 1) * $psize . ',' . $psize;
-	$result['list'] = pdo_fetchall($sql, array(), 'id');
-	if (!empty($result['list'])) {
-		foreach($result['list'] as &$row) {
-			$row['items'] = pdo_fetchall('SELECT * FROM ' . tablename('news_reply') . ' WHERE parent_id = :parent_id OR id = :id', array(':parent_id' => $row['id'], ':id' => $row['id']));
-		}
-		$result['pager'] = pagination($total, $pindex, $psize, '', array('before' => '2', 'after' => '3', 'ajaxcallback'=>'null'));
-	}
-	message($result, '', 'ajax');
-} else {
-	//用户权限
-	$permission = uni_user_permission_exist();
+}
+if ($do == 'entry') {
 	$has_permission = array();
-	if(is_error($permission)) {
+	if(permission_account_user_permission_exist()) {
 		$has_permission = array(
 			'system' => array(),
 			'modules' => array()
 		);
-		$has_permission['system'] = uni_user_permission('system');
+		$has_permission['system'] = permission_account_user('system');
 		//获取用户的模块权限
-		$temp_module = pdo_fetchall('SELECT * FROM ' . tablename('users_permission') . ' WHERE uniacid = :uniacid AND uid = :uid AND type != :type', array(':uniacid' => $_W['uniacid'], ':uid' => $_W['uid'], ':type' => 'system'), 'type');
-		if(!empty($temp_module)) {
-			$has_permission['modules'] = array_keys($temp_module);
-			foreach($temp_module as $row) {
+		$module_permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], 'modules');
+		if(!is_error($module_permission) && !empty($module_permission)) {
+			$has_permission['modules'] = array_keys($module_permission);
+			foreach($module_permission as $row) {
 				if($row['permission'] == 'all') {
 					$has_permission[$row['type']] = array('all');
 				} else {
@@ -198,28 +221,21 @@ elseif ($do == 'articlelist') {
 		array('title'=>'个人中心','url'=> murl('mc')),
 	);
 
-//会员卡链接
-	if(empty($has_permission) || (!empty($has_permission) && in_array('mc_card', $has_permission['system']))) {
-		$cardmenus = array(
-			array('title'=>'完善会员资料','url'=> murl('mc/profile')),
-		);
-	}
-//多微站链接处理
+	//多微站链接处理
 	if(empty($has_permission) || (!empty($has_permission) && in_array('site_multi_display', $has_permission['system']))) {
-		$multis = pdo_fetchall('SELECT id,title FROM ' . tablename('site_multi') . ' WHERE uniacid = :uniacid AND status != 0', array(':uniacid' => $_W['uniacid']));
-		if(!empty($multis)) {
-			foreach($multis as $multi) {
+		$multi_list = pdo_getall('site_multi', array('uniacid' => $_W['uniacid'], 'status !=' => 0), array('id', 'title'));
+		if(!empty($multi_list)) {
+			foreach($multi_list as $multi) {
 				$multimenus[] = array('title' => $multi['title'], 'url' => murl('home', array('t' => $multi['id'])));
 			}
 		}
 	}
-
 	$linktypes = array(
 		'cover' => '封面链接',
 		'home' => '微站首页导航',
 		'profile'=>'微站个人中心导航',
 		'shortcut' => '微站快捷功能导航',
-		'function' => '微站独立功能'
+		'function' => '微站独立功能',
 	);
 }
 template('utility/link');

@@ -40,16 +40,11 @@ if ($do == 'nav') {
 	//获取一级分类
 	$category = pdo_getall('site_category', array(
 		'uniacid' => $_W['uniacid'], 
-		'multiid' => $multiid,
-		'enabled' => 1,
-		'ishomepage' => 1,
+		'multiid' => $multiid
 	), array('id', 'name', 'parentid'), '', 'displayorder DESC');
 	//一级分类不能添加文章，推荐时获取到其子类
 	if (!empty($category)) {
 		foreach ($category as $id => &$category_row) {
-			$condition = array(
-				'iscommend' => 1,
-			);
 			if (empty($category_row['parentid'])) {
 				$condition['pcate'] = $category_row['id'];
 			} else {

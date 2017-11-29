@@ -224,6 +224,31 @@ function array_elements($keys, $src, $default = FALSE) {
 }
 
 /**
+ * 根据键值对数组排序
+ *
+ * @param array $array 需要排序的数组
+ * @param string $keys 用来排序的键名
+ * @param string $type 排序规则
+ * @return array
+ */
+function iarray_sort($array, $keys, $type='asc'){
+	$keysvalue = $new_array = array();
+	foreach ($array as $k => $v){
+		$keysvalue[$k] = $v[$keys];
+	}
+	if($type == 'asc'){
+		asort($keysvalue);
+	}else{
+		arsort($keysvalue);
+	}
+	reset($keysvalue);
+	foreach ($keysvalue as $k => $v){
+		$new_array[$k] = $array[$k];
+	}
+	return $new_array;
+}
+
+/**
  * 判断给定参数是否位于区间内或将参数转换为区间内的数
  *
  * @param string $num 输入参数
@@ -248,7 +273,7 @@ function range_limit($num, $downline, $upline, $returnNear = true) {
 /**
  * JSON编码,加上转义操作,适合于JSON入库
  * @param string $value
- * @param int 	 $options 
+ * @param int 	 $options
  * @return mixed
  */
 function ijson_encode($value, $options = 0) {
@@ -259,7 +284,7 @@ function ijson_encode($value, $options = 0) {
 		$str = json_encode($value);
 		$json_str = preg_replace_callback("#\\\u([0-9a-f]{4})#i", function($matchs){
 			return iconv('UCS-2BE', 'UTF-8', pack('H4', $matchs[1]));
-			}, $str);
+		}, $str);
 	} else {
 		$json_str = json_encode($value, $options);
 	}
@@ -282,7 +307,7 @@ function iserializer($value) {
  */
 function iunserializer($value) {
 	if (empty($value)) {
-		return '';
+		return array();
 	}
 	if (!is_serialized($value)) {
 		return $value;
@@ -293,12 +318,13 @@ function iunserializer($value) {
 			return 's:'.strlen($matchs[2]).':"'.$matchs[2].'";';
 		}, $value);
 		return unserialize($temp);
+	} else {
+		return $result;
 	}
-	return $result;
 }
 
 /**
- * 判断是否为加密字符串
+ * 判断是否为base64加密字符串
  * @param string $str
  * @return boolean
  */
@@ -394,43 +420,45 @@ function wurl($segment, $params = array()) {
 	return $url;
 }
 
-/**
- * 获取Mobile端URL地址
- * @param string $segment 路由参数
- * @param array $params 附加参数
- * @param boolean $noredirect 是否追加微信URl后缀
- */
-function murl($segment, $params = array(), $noredirect = true, $addhost = false) {
-	global $_W;
-	list($controller, $action, $do) = explode('/', $segment);
-	if (!empty($addhost)) {
-		$url = $_W['siteroot'] . 'app/';
-	} else {
-		$url = './';
-	}
-	$str = '';
-	if(uni_is_multi_acid()) {
-		$str = "&j={$_W['acid']}";
-	}
-	$url .= "index.php?i={$_W['uniacid']}{$str}&";
-	if (!empty($controller)) {
-		$url .= "c={$controller}&";
-	}
-	if (!empty($action)) {
-		$url .= "a={$action}&";
-	}
-	if (!empty($do)) {
-		$url .= "do={$do}&";
-	}
-	if (!empty($params)) {
-		$queryString = http_build_query($params, '', '&');
-		$url .= $queryString;
-		if ($noredirect === false) {
-			//加上后，表单提交无值
-			$url .= '&wxref=mp.weixin.qq.com#wechat_redirect';
+if (!function_exists('murl')) {
+	/**
+	 * 获取Mobile端URL地址
+	 * @param string $segment 路由参数
+	 * @param array $params 附加参数
+	 * @param boolean $noredirect 是否追加微信URl后缀
+	 */
+	function murl($segment, $params = array(), $noredirect = true, $addhost = false) {
+		global $_W;
+		list($controller, $action, $do) = explode('/', $segment);
+		if (!empty($addhost)) {
+			$url = $_W['siteroot'] . 'app/';
+		} else {
+			$url = './';
 		}
+		$str = '';
+		if(uni_is_multi_acid()) {
+			$str = "&j={$_W['acid']}";
+		}
+		$url .= "index.php?i={$_W['uniacid']}{$str}&";
+		if (!empty($controller)) {
+			$url .= "c={$controller}&";
+		}
+		if (!empty($action)) {
+			$url .= "a={$action}&";
+		}
+		if (!empty($do)) {
+			$url .= "do={$do}&";
+		}
+		if (!empty($params)) {
+			$queryString = http_build_query($params, '', '&');
+			$url .= $queryString;
+			if ($noredirect === false) {
+				//加上后，表单提交无值
+				$url .= '&wxref=mp.weixin.qq.com#wechat_redirect';
+			}
+		}
+		return $url;
 	}
-	return $url;
 }
 
 /**
@@ -457,11 +485,11 @@ function pagination($total, $pageIndex, $pageSize = 15, $url = '', $context = ar
 	if ($context['ajaxcallback']) {
 		$context['isajax'] = true;
 	}
-	
+
 	if ($context['callbackfuncname']) {
 		$callbackfunc = $context['callbackfuncname'];
 	}
-	
+
 	$pdata['tcount'] = $total;
 	$pdata['tpage'] = (empty($pageSize) || $pageSize < 0) ? 1 : ceil($total / $pageSize);
 	if ($pdata['tpage'] <= 1) {
@@ -557,6 +585,9 @@ function tomedia($src, $local_path = false){
 	if (empty($src)) {
 		return '';
 	}
+	if (strexists($src, "c=utility&a=wxcode&do=image&attach=")) {
+		return $src;
+	}
 	if (strexists($src, 'addons/')) {
 		return $_W['siteroot'] . substr($src, strpos($src, 'addons/'));
 	}
@@ -567,9 +598,10 @@ function tomedia($src, $local_path = false){
 	}
 	$t = strtolower($src);
 	if (strexists($t, 'https://mmbiz.qlogo.cn') || strexists($t, 'http://mmbiz.qpic.cn')) {
-		return url('utility/wxcode/image', array('attach' => $src));
+		$url = url('utility/wxcode/image', array('attach' => $src));
+		return $_W['siteroot'] . 'web' . ltrim($url, '.');
 	}
-	if (strexists($t, 'http://') || strexists($t, 'https://') || substr($t, 0, 2) == '//') {
+	if ((substr($t, 0, 7) == 'http://') || (substr($t, 0, 8) == 'https://') || (substr($t, 0, 2) == '//')) {
 		return $src;
 	}
 	if ($local_path || empty($_W['setting']['remote']['type']) || file_exists(IA_ROOT . '/' . $_W['config']['upload']['attachdir'] . '/' . $src)) {
@@ -587,11 +619,10 @@ function tomedia($src, $local_path = false){
  * @param mixed $data 返回数据结果
  * @return array
  */
-function error($errno, $message = '', $data = null) {
+function error($errno, $message = '') {
 	return array(
 		'errno' => $errno,
 		'message' => $message,
-		'data' => $data,
 	);
 }
 
@@ -608,6 +639,23 @@ function is_error($data) {
 	}
 }
 
+/**
+ * 检测敏感词
+ * @param $string
+ * @return bool
+ */
+function detect_sensitive_word($string) {
+	$setting = setting_load('sensitive_words');
+	if (empty($setting['sensitive_words'])) {
+		return false;
+	}
+	$sensitive_words = $setting['sensitive_words'];
+	$blacklist="/".implode("|",$sensitive_words)."/";
+	if(preg_match($blacklist, $string, $matches)){
+		return $matches[0];
+	}
+	return false;
+}
 /**
  * 获取引用页地址
  * @param string $default 默认地址
@@ -914,6 +962,26 @@ function sizecount($size) {
 }
 
 /**
+ *字节数转成 bit
+ * @param string $str 字节数
+ * @return float
+ */
+function bytecount($str) {
+	if (strtolower($str[strlen($str) -1]) == 'b') {
+		$str = substr($str, 0, -1);
+	}
+	if(strtolower($str[strlen($str) -1]) == 'k') {
+		return floatval($str) * 1024;
+	}
+	if(strtolower($str[strlen($str) -1]) == 'm') {
+		return floatval($str) * 1048576;
+	}
+	if(strtolower($str[strlen($str) -1]) == 'g') {
+		return floatval($str) * 1073741824;
+	}
+}
+
+/**
  * 获取数组的XML结构
  * @param array $arr 要转换的数组
  * @param int $level 节点层级, 1 为 Root
@@ -991,18 +1059,18 @@ function utf8_bytes($cp) {
 	if ($cp > 0x10000){
 		# 4 bytes
 		return	chr(0xF0 | (($cp & 0x1C0000) >> 18)).
-		chr(0x80 | (($cp & 0x3F000) >> 12)).
-		chr(0x80 | (($cp & 0xFC0) >> 6)).
-		chr(0x80 | ($cp & 0x3F));
+			chr(0x80 | (($cp & 0x3F000) >> 12)).
+			chr(0x80 | (($cp & 0xFC0) >> 6)).
+			chr(0x80 | ($cp & 0x3F));
 	}else if ($cp > 0x800){
 		# 3 bytes
 		return	chr(0xE0 | (($cp & 0xF000) >> 12)).
-		chr(0x80 | (($cp & 0xFC0) >> 6)).
-		chr(0x80 | ($cp & 0x3F));
+			chr(0x80 | (($cp & 0xFC0) >> 6)).
+			chr(0x80 | ($cp & 0x3F));
 	}else if ($cp > 0x80){
 		# 2 bytes
 		return	chr(0xC0 | (($cp & 0x7C0) >> 6)).
-		chr(0x80 | ($cp & 0x3F));
+			chr(0x80 | ($cp & 0x3F));
 	}else{
 		# 1 byte
 		return chr($cp);
@@ -1011,18 +1079,17 @@ function utf8_bytes($cp) {
 
 function media2local($media_id, $all = false){
 	global $_W;
-	if (empty($media_id)) {
-		return '';
-	}
-	$data = pdo_fetch('SELECT * FROM ' . tablename('wechat_attachment') . ' WHERE uniacid = :uniacid AND media_id = :id', array(':uniacid' => $_W['uniacid'], ':id' => $media_id));
-	if (!empty($data)) {
+	load()->model('material');
+	$data = material_get($media_id);
+	if (!is_error($data)) {
 		$data['attachment'] = tomedia($data['attachment'], true);
 		if (!$all) {
 			return $data['attachment'];
 		}
 		return $data;
+	} else {
+		return '';
 	}
-	return '';
 }
 
 function aes_decode($message, $encodingaeskey = '', $appid = '') {
@@ -1089,6 +1156,27 @@ function aes_encode($message, $encodingaeskey = '', $appid = '') {
 	return $encrypt_msg;
 }
 
+/**
+ *  aes_pkcs7解密函数
+ * @param $encrypt_data 待解密文件（ 经过 base64_encode 编码 ）
+ * @param $key 解密key
+ * @param bool $iv 偏移量 （经过 base64_encode 编码 ）
+ * @return array
+ */
+function aes_pkcs7_decode($encrypt_data, $key, $iv = false) {
+	load()->library('pkcs7');
+	$encrypt_data = base64_decode($encrypt_data);
+	if (!empty($iv)) {
+		$iv = base64_decode($iv);
+	}
+	$pc = new Prpcrypt($key);
+	$result = $pc->decrypt($encrypt_data, $iv);
+	if ($result[0] != 0) {
+		return error($result[0], '解密失败');
+	}
+	return $result[1];
+}
+
 /*
  * 重新封装 isimplexml_load_string 函数。解决安全问题
  * */
@@ -1128,34 +1216,13 @@ function iarray_change_key_case($array, $case = CASE_LOWER){
 	return $array;
 }
 
-function strip_gpc($values, $type = 'g') {
-	$filter = array(
-		'g' => "'|(and|or)\\b.+?(>|<|=|in|like)|\\/\\*.+?\\*\\/|<\\s*script\\b|\\bEXEC\\b|UNION.+?SELECT|UPDATE.+?SET|INSERT\\s+INTO.+?VALUES|(SELECT|DELETE).+?FROM|(CREATE|ALTER|DROP|TRUNCATE)\\s+(TABLE|DATABASE)",
-		'p' => "\\b(and|or)\\b.{1,6}?(=|>|<|\\bin\\b|\\blike\\b)|\\/\\*.+?\\*\\/|<\\s*script\\b|\\bEXEC\\b|UNION.+?SELECT|UPDATE.+?SET|INSERT\\s+INTO.+?VALUES|(SELECT|DELETE).+?FROM|(CREATE|ALTER|DROP|TRUNCATE)\\s+(TABLE|DATABASE)",
-		'c' => "\\b(and|or)\\b.{1,6}?(=|>|<|\\bin\\b|\\blike\\b)|\\/\\*.+?\\*\\/|<\\s*script\\b|\\bEXEC\\b|UNION.+?SELECT|UPDATE.+?SET|INSERT\\s+INTO.+?VALUES|(SELECT|DELETE).+?FROM|(CREATE|ALTER|DROP|TRUNCATE)\\s+(TABLE|DATABASE)",
-	);
-	if (!isset($values)) {
-		return '';
-	}
-	if(is_array($values)) {
-		foreach($values as $key => $val) {
-			$values[addslashes($key)] = strip_gpc($val, $type);
-		}
-	} else {
-		if (preg_match("/".$filter[$type]."/is", $values, $match) == 1) {
-			$values = '';
-		}
-	}
-	return $values;
-}
-
 /**
  * 过滤GET,POST传入的路径中的危险字符
  * @param string $path
  * @return boolean | string 正常返回路径，否则返回空
  */
 function parse_path($path) {
-	$danger_char = array('../', '{php', '<?php', '<%', '<?');
+	$danger_char = array('../', '{php', '<?php', '<%', '<?', '..\\', '\\\\' ,'\\', '..\\\\', '%00', '\0', '\r');
 	foreach ($danger_char as $char) {
 		if (strexists($path, $char)) {
 			return false;
@@ -1163,3 +1230,119 @@ function parse_path($path) {
 	}
 	return $path;
 }
+
+/**
+ * 文件大小
+ * @param string $dir 文件的路径
+ * @return int $size 文件大小
+ */
+function dir_size($dir) {
+	$size = 0;
+	if(is_dir($dir)) {
+		$handle = opendir($dir);
+		while (false !== ($entry = readdir($handle))) {
+			if($entry != '.' && $entry != '..') {
+				if(is_dir("{$dir}/{$entry}")) {
+					$size += dir_size("{$dir}/{$entry}");
+				} else {
+					$size += filesize("{$dir}/{$entry}");
+				}
+			}
+		}
+		closedir($handle);
+	}
+	return $size;
+}
+
+/**
+ * 获取字符串的大写英文首字母
+ * @param unknown $str
+ * @return string
+ */
+function get_first_pinyin($str) {
+	static $pinyin;
+	$first_char = '';
+	$str = trim($str);
+	if(empty($str)) {
+		return $first_char;
+	}
+	if (empty($pinyin)) {
+		load()->library('pinyin');
+		$pinyin = new Pinyin_Pinyin();
+	}
+	$first_char = $pinyin->get_first_char($str);
+	return $first_char;
+}
+
+/**
+ * 过滤字符串中的emoji表情（微信昵称过滤）
+ */
+function strip_emoji($nickname) {
+	$clean_text = "";
+	// Match Emoticons
+	$regexEmoticons = '/[\x{1F600}-\x{1F64F}]/u';
+	$clean_text = preg_replace($regexEmoticons, '', $nickname);
+	// Match Miscellaneous Symbols and Pictographs
+	$regexSymbols = '/[\x{1F300}-\x{1F5FF}]/u';
+	$clean_text = preg_replace($regexSymbols, '', $clean_text);
+	// Match Transport And Map Symbols
+	$regexTransport = '/[\x{1F680}-\x{1F6FF}]/u';
+	$clean_text = preg_replace($regexTransport, '', $clean_text);
+	// Match Miscellaneous Symbols
+	$regexMisc = '/[\x{2600}-\x{26FF}]/u';
+	$clean_text = preg_replace($regexMisc, '', $clean_text);
+	// Match Dingbats
+	$regexDingbats = '/[\x{2700}-\x{27BF}]/u';
+	$clean_text = preg_replace($regexDingbats, '', $clean_text);
+
+	$clean_text = str_replace("'",'',$clean_text);
+	$clean_text = str_replace('"','',$clean_text);
+	$clean_text = str_replace('“','',$clean_text);
+	$clean_text = str_replace('゛','',$clean_text);
+	$search = array(" ","　","\n","\r","\t");
+	$replace = array("","","","","");
+	return str_replace($search, $replace, $clean_text);
+}
+
+/**
+ * 把一个可能包含emoji的字符串中的unicode码转换为实际的emoji
+ * @param string $string
+ */
+function emoji_unicode_decode($string) {
+	preg_match_all('/\[U\+(\\w{4,})\]/i', $string, $match);
+	if(!empty($match[1])) {
+		foreach ($match[1] as $emojiUSB) {
+			$string = str_ireplace("[U+{$emojiUSB}]", utf8_bytes(hexdec($emojiUSB)), $string);
+		}
+	}
+	return $string;
+}
+
+function emoji_unicode_encode($string) {
+	$ranges = array(
+		'\\\\ud83c[\\\\udf00-\\\\udfff]', // U+1F300 to U+1F3FF
+		'\\\\ud83d[\\\\udc00-\\\\ude4f]', // U+1F400 to U+1F64F
+		'\\\\ud83d[\\\\ude80-\\\\udeff]'  // U+1F680 to U+1F6FF
+	);
+	preg_match_all('/' . implode('|', $ranges) . '/i', $string, $match);
+	print_r($match);exit;
+}
+
+/**
+ *  指定开头的字符串
+ * @param $haystack 原始字符串
+ * @param $needles 开头字符串
+ * @return bool
+ */
+if (!function_exists('starts_with')) {
+	function starts_with($haystack, $needles) {
+		foreach ((array) $needles as $needle) {
+			if ($needle != '' && substr($haystack, 0, strlen($needle)) === (string) $needle) {
+				return true;
+			}
+		}
+		return false;
+	}
+}
+load()->func('safe');
+load()->func('system');

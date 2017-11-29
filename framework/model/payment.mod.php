@@ -26,6 +26,13 @@ function alipay_build($params, $alipay = array()) {
 	$set['seller_id'] = $alipay['account'];
 	$set['payment_type'] = 1;
 	$set['body'] = $_W['uniacid'];
+	if ($params['service'] == 'create_direct_pay_by_user') {
+		$set['service'] = 'create_direct_pay_by_user';
+		$set['seller_id'] = $alipay['partner'];
+		$set['body'] = 'site_store';
+	} else {
+		$set['app_pay'] = 'Y';
+	}
 	$prepares = array();
 	foreach($set as $key => $value) {
 		if($key != 'sign' && $key != 'sign_type') {
@@ -38,6 +45,10 @@ function alipay_build($params, $alipay = array()) {
 	$set['sign'] = md5($string);
 
 	$response = ihttp_request(ALIPAY_GATEWAY . '?' . http_build_query($set, '', '&'), array(), array('CURLOPT_FOLLOWLOCATION' => 0));
+	if (empty($response['headers']['Location'])) {
+		exit(iconv('gbk', 'utf-8', $response['content']));
+		return;
+	}
 	return array('url' => $response['headers']['Location']);
 }
 
@@ -122,6 +133,10 @@ function wechat_build($params, $wechat) {
 		$wOpt['paySign'] = sha1($string);
 		return $wOpt;
 	} else {
+		//当用户传过来UID时，需要转换一下Openid
+		if (!empty($params['user']) && is_numeric($params['user'])) {
+			$params['user'] = mc_uid2openid($params['user']);
+		}
 		$package = array();
 		$package['appid'] = $wechat['appid'];
 		$package['mch_id'] = $wechat['mchid'];
@@ -135,9 +150,18 @@ function wechat_build($params, $wechat) {
 		$package['time_expire'] = date('YmdHis', TIMESTAMP + 600);
 		$package['notify_url'] = $_W['siteroot'] . 'payment/wechat/notify.php';
 		$package['trade_type'] = 'JSAPI';
-		$package['openid'] = empty($wechat['openid']) ? $_W['fans']['from_user'] : $wechat['openid'];
-		if (!empty($wechat['sub_mch_id'])) {
-			$package['sub_mch_id'] = $wechat['sub_mch_id'];
+		if ($params['pay_way'] == 'web') {
+			$package['trade_type'] = 'NATIVE';
+			$package['product_id'] = $params['goodsid'];
+		} else {
+			$package['openid'] = empty($params['user']) ? $_W['fans']['from_user'] : $params['user'];
+			if (!empty($wechat['sub_mch_id'])) {
+				$package['sub_mch_id'] = $wechat['sub_mch_id'];
+			}
+			if (!empty($params['sub_user'])) {
+				$package['sub_openid'] = $params['sub_user'];
+				unset($package['openid']);
+			}
 		}
 		ksort($package, SORT_STRING);
 		$string1 = '';
@@ -167,6 +191,10 @@ function wechat_build($params, $wechat) {
 		$wOpt['nonceStr'] = random(8);
 		$wOpt['package'] = 'prepay_id='.$prepayid;
 		$wOpt['signType'] = 'MD5';
+		if ($xml->trade_type == 'NATIVE') {
+			$code_url = $xml->code_url;
+			$wOpt['code_url'] = strval($code_url);
+		}
 		ksort($wOpt, SORT_STRING);
 		foreach($wOpt as $key => $v) {
 			$string .= "{$key}={$v}&";
@@ -175,4 +203,23 @@ function wechat_build($params, $wechat) {
 		$wOpt['paySign'] = strtoupper(md5($string));
 		return $wOpt;
 	}
+}
+
+function payment_proxy_pay_account() {
+	global $_W;
+	$setting = uni_setting($_W['uniacid'], array('payment'));
+	$setting['payment']['wechat']['switch'] = intval($setting['payment']['wechat']['switch']);
+	
+	if ($setting['payment']['wechat']['switch'] == PAYMENT_WECHAT_TYPE_SERVICE) {
+		$uniacid = intval($setting['payment']['wechat']['service']);
+	} elseif ($setting['payment']['wechat']['switch'] == PAYMENT_WECHAT_TYPE_BORROW) {
+		$uniacid = intval($setting['payment']['wechat']['borrow']);
+	} else {
+		$uniacid = 0;
+	}
+	$pay_account = uni_fetch($uniacid);
+	if (empty($uniacid) || empty($pay_account)) {
+		return error(1);
+	}
+	return WeAccount::create($pay_account);
 }

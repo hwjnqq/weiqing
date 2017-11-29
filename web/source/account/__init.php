@@ -1,9 +1,28 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/web/source/account/__init.php : v 231f45574007 : 2014/09/22 10:37:05 : yanghf $
  * 
- * account 所有操作在GW界面进行
+ * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
-
-define('IN_GW', true);
+if ($action != 'display') {
+	define('FRAME', 'system');
+}
+if ($controller == 'account' && $action == 'manage') {
+	if ($_GPC['account_type'] == ACCOUNT_TYPE_APP_NORMAL) {
+		define('ACTIVE_FRAME_URL', url('account/manage/display', array('account_type' => ACCOUNT_TYPE_APP_NORMAL)));
+	}
+}
+$_GPC['account_type'] = !empty($_GPC['account_type']) ? $_GPC['account_type'] : ACCOUNT_TYPE_OFFCIAL_NORMAL;
+if ($_GPC['account_type'] == ACCOUNT_TYPE_APP_NORMAL) {
+	define('ACCOUNT_TYPE', ACCOUNT_TYPE_APP_NORMAL);
+	define('ACCOUNT_TYPE_OFFCIAL', 0);
+	define('ACCOUNT_TYPE_NAME', '小程序');
+	define('ACCOUNT_TYPE_TEMPLATE', '-wxapp');
+	define('ACCOUNT_TYPE_SUPPORT', 'wxapp_support');
+} elseif (empty($_GPC['account_type']) || $_GPC['account_type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $_GPC['account_type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
+	define('ACCOUNT_TYPE', ACCOUNT_TYPE_OFFCIAL_NORMAL);
+	$account_type_offcial = $_GPC['account_type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL ? ACCOUNT_TYPE_OFFCIAL_NORMAL : ACCOUNT_TYPE_OFFCIAL_AUTH;
+	define('ACCOUNT_TYPE_OFFCIAL', $account_type_offcial);
+	define('ACCOUNT_TYPE_NAME', '公众号');
+	define('ACCOUNT_TYPE_TEMPLATE', '');
+	define('ACCOUNT_TYPE_SUPPORT', 'app_support');
+}

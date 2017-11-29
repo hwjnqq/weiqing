@@ -54,7 +54,11 @@ function setting_load($key = '') {
 		$_W['setting'] = array();
 	}
 	$_W['setting'] = array_merge($_W['setting'], $settings);
-	return $settings;
+	if (!empty($key)) {
+		return array($key => $settings[$key]);
+	} else {
+		return $settings;
+	}
 }
 
 function setting_upgrade_version($family, $version, $release) {
@@ -71,5 +75,5 @@ define('IMS_FAMILY', '{$family}');
 define('IMS_VERSION', '{$version}');
 define('IMS_RELEASE_DATE', '{$release}');
 VER;
-	file_put_contents($verfile, trim($verdat));
+	return file_put_contents($verfile, trim($verdat));
 }

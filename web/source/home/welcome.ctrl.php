@@ -1,295 +1,174 @@
 <?php
 /**
+ * 欢迎页，统计等信息
  * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/web/source/home/welcome.ctrl.php : v 1c30921a7da3 : 2015/07/29 07:39:37 : yanghf $
  */
 defined('IN_IA') or exit('Access Denied');
-$dos = array('platform', 'site', 'mc', 'setting', 'ext', 'solution', 'replystatistics');
-$do = in_array($do, $dos) ? $do : $do;
-$title = array('platform'=>'公众平台','site'=>'微站功能','mc'=>'会员及会员营销','setting'=>'功能选项','ext'=>'扩展功能','solution'=>'行业功能');
-$_W['page']['title'] = $title[$do];
-define('FRAME', $do);
-$frames = buildframes(array(FRAME), $_GPC['m']);
-$frames = $frames[FRAME];
-if (!empty($_W['setting']['permurls']['sections']) && !in_array($do, $_W['setting']['permurls']['sections'])) {
-	header('Location: '.url('home/welcome/'.$_W['setting']['permurls']['sections'][0]));
-	exit;
-}
 
-// 快捷方式.(公用)
-if($do != 'solution') {
-	$modules = uni_modules();
-	$settings = uni_setting($_W['uniacid'], array('shortcuts'));
-	$shorts = $settings['shortcuts'];
-	if(!is_array($shorts)) {
-		$shorts = array();
-	}
-	$shortcuts = array();
-	foreach($shorts as $i => $shortcut) {
-		if (!empty($_W['setting']['permurls']['modules']) && !in_array($shortcut['name'], $_W['setting']['permurls']['modules'])) {
-			continue;
+load()->model('welcome');
+load()->model('cloud');
+load()->func('communication');
+load()->func('db');
+load()->model('extension');
+load()->model('module');
+load()->model('system');
+load()->model('user');
+load()->model('wxapp');
+
+$dos = array('platform', 'system', 'ext', 'get_fans_kpi', 'get_last_modules', 'get_system_upgrade', 'get_upgrade_modules', 'get_module_statistics', 'get_ads');
+$do = in_array($do, $dos) ? $do : 'platform';
+
+	if ($do == 'ext') {
+		if (!empty($_GPC['version_id'])) {
+			$version_info = wxapp_version($_GPC['version_id']);
 		}
-		$module = $modules[$shortcut['name']];
-		if(!empty($module)) {
-			$shortcut['title'] = $module['title'];
-			if(file_exists('../addons/' . $module['name'] . '/icon-custom.jpg')) {
-				$shortcut['image'] = '../addons/' . $module['name'] . '/icon-custom.jpg';
-			} elseif(file_exists('../addons/' . $module['name'] . '/icon.jpg')) {
-				$shortcut['image'] = '../addons/' . $module['name'] . '/icon.jpg';
-			} else {
-				$shortcut['image'] = '../web/resource/images/nopic-small.jpg';
-			}
-			$shortcut['link'] = wurl('home/welcome/ext', array('m'=>$shortcut['name']));
-			$shortcuts[] = $shortcut;
+		if (!empty($_GPC['version_id']) && !(!empty($version_info['modules']) && !empty($version_info['modules'][0]['account']) && !empty($version_info['modules'][0]['account']['uniacid']) && in_array($version_info['modules'][0]['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)))) {
+			checkwxapp();
+		} else {
+			checkaccount();
 		}
 	}
-	unset($shortcut);
-}
 
-if($do == 'platform') {
+
+
+
+if ($do == 'platform') {
+	$last_uniacid = uni_account_last_switch();
+	if (empty($last_uniacid)) {
+		itoast('', url('account/display'), 'info');
+	}
+	if (!empty($last_uniacid) && $last_uniacid != $_W['uniacid']) {
+		uni_account_switch($last_uniacid,  url('home/welcome'));
+	}
+	define('FRAME', 'account');
 	if (empty($_W['account']['endtime']) && !empty($_W['account']['endtime']) && $_W['account']['endtime'] < time()) {
-		message('公众号已到服务期限，请续费', referer(), 'info');
+		itoast('公众号已到服务期限，请联系管理员并续费', url('account/manage'), 'info');
 	}
+	//公告
+	$notices = welcome_notices_get();
+
+	template('home/welcome');
+} elseif ($do == 'system') {
+	define('FRAME', 'system');
+	$_W['page']['title'] = '欢迎页 - 系统管理';
+	if(!$_W['isfounder'] || user_is_vice_founder()){
+		header('Location: ' . url('account/manage', array('account_type' => 1)), true);
+		exit;
+	}
+	$reductions = system_database_backup();
+	if (!empty($reductions)) {
+		$last_backup = array_shift($reductions);
+		$last_backup_time = $last_backup['time'];
+		$backup_days = welcome_database_backup_days($last_backup_time);
+	} else {
+		$backup_days = 0;
+	}
+	template('home/welcome-system');
+} elseif ($do =='get_module_statistics') {
+	$uninstall_modules = module_get_all_unistalled('uninstalled');
+	$account_uninstall_modules_nums = $uninstall_modules['app_count'];
+	$wxapp_uninstall_modules_nums = $uninstall_modules['wxapp_count'];
+
+	$account_modules = user_module_by_account_type('account');
+	$wxapp_modules = user_module_by_account_type('wxapp');
+
+	$account_modules_total = count($account_modules) + $account_uninstall_modules_nums;
+	$wxapp_modules_total = count($wxapp_modules) + $wxapp_uninstall_modules_nums;
+
+	$module_statistics = array(
+		'account_uninstall_modules_nums' => $account_uninstall_modules_nums,
+		'wxapp_uninstall_modules_nums' => $wxapp_uninstall_modules_nums,
+		'account_modules_total' => $account_modules_total,
+		'wxapp_modules_total' => $wxapp_modules_total
+	);
+	iajax(0, $module_statistics, '');
+} elseif ($do == 'ext') {
+	$modulename = $_GPC['m'];
+	if (!empty($modulename)) {
+		$_W['current_module'] = module_fetch($modulename);
+	}
+	$site = WeUtility::createModule($modulename);
+	if (!is_error($site)) {
+		$method = 'welcomeDisplay';
+		if(method_exists($site, $method)){
+			define('FRAME', 'module_welcome');
+			$entries = module_entries($modulename, array('menu', 'home', 'profile', 'shortcut', 'cover', 'mine'));
+			$site->$method($entries);
+			exit;
+		}
+	}
+
+	define('FRAME', 'account');
+	define('IN_MODULE', $modulename);
+	if ($_GPC['system_welcome'] && $_W['isfounder']) {
+		$frames = buildframes('system_welcome');
+	} else {
+		$frames = buildframes('account');
+	}
+	foreach ($frames['section'] as $secion) {
+		foreach ($secion['menu'] as $menu) {
+			if (!empty($menu['url'])) {
+				header('Location: ' . $_W['siteroot'] . 'web/' . $menu['url']);
+				exit;
+			}
+		}
+	}
+	template('home/welcome-ext');
+} elseif ($do == 'get_fans_kpi') {
 	uni_update_week_stat();
-	$title = '平台相关数据';
+	//今日昨日指标
 	$yesterday = date('Ymd', strtotime('-1 days'));
 	$yesterday_stat = pdo_get('stat_fans', array('date' => $yesterday, 'uniacid' => $_W['uniacid']));
-	$today_stat = pdo_get('stat_fans', array('date' => date('Ymd'), 'uniacid' => $_W['uniacid']));
+	$yesterday_stat['new'] = intval($yesterday_stat['new']);
+	$yesterday_stat['cancel'] = intval($yesterday_stat['cancel']);
+	$yesterday_stat['jing_num'] = intval($yesterday_stat['new']) - intval($yesterday_stat['cancel']);
+	$yesterday_stat['cumulate'] = intval($yesterday_stat['cumulate']);
 	//今日粉丝详情
-	$today_add_num = intval($today_stat['new']);
-	$today_cancel_num = intval($today_stat['cancel']);
-	$today_jing_num = $today_add_num - $today_cancel_num;
-	$today_total_num = intval($today_jing_num) + intval($yesterday_stat['cumulate']);
-	if($today_total_num < 0) {
-		$today_total_num = 0;
-	}	
-	//启用的用户接口
-	load()->model('reply');
-	$cfg = $modules['userapi']['config'];
-	$ds = reply_search("`uniacid` = 0 AND module = 'userapi' AND `status`=1");
-	$apis = array();
-	foreach($ds as $row) {
-		$apis[$row['id']] = $row; 
+	$today_stat = pdo_get('stat_fans', array('date' => date('Ymd'), 'uniacid' => $_W['uniacid']));
+	$today_stat['new'] = intval($today_stat['new']);
+	$today_stat['cancel'] = intval($today_stat['cancel']);
+	$today_stat['jing_num'] = $today_stat['new'] - $today_stat['cancel'];
+	$today_stat['cumulate'] = intval($today_stat['jing_num']) + $yesterday_stat['cumulate'];
+	if($today_stat['cumulate'] < 0) {
+		$today_stat['cumulate'] = 0;
 	}
-	
-	$ds = array();
-	foreach($apis as $row) {
-		$reply = pdo_fetch('SELECT * FROM ' . tablename('userapi_reply') . ' WHERE `rid`=:rid', array(':rid' => $row['id']));
-		$r = array();
-		$r['title'] = $row['name'];
-		$r['rid'] = $row['id'];
-		$r['description'] = $reply['description'];
-		$r['switch'] = $cfg[$r['rid']] ? true : false;
-		$ds[] = $r;
-	}
-	$apis = $ds;
-	
-	// 菜单权限
-	$accounts = uni_accounts();
-	$accounttypes = account_types();
-	// 特殊回复
-	$mtypes = array();
-	$mtypes['image'] = '图片消息';
-	$mtypes['voice'] = '语音消息';
-	$mtypes['video'] = '视频消息';
-	$mtypes['location'] = '位置消息';
-	$mtypes['link'] = '链接消息';
-	$mtypes['subscribe'] = '粉丝开始关注';
-
-	$setting = uni_setting($_W['uniacid'], array('default_message'));
-	$ds = array();
-	foreach($mtypes as $k => $v) {
-		$row = array();
-		$row['type'] = $k;
-		$row['title'] = $v;
-		$row['handles'] = array();
-		foreach($modules as $m) {
-			if(is_array($m['handles']) && in_array($k, $m['handles'])) {
-				$row['handles'][] = array('name' => $m['name'], 'title' => $m['title']);
-			}
-		}
-		$row['empty'] = empty($row['handles']);
-		$row['current'] = is_array($setting['default_message']) ? $setting['default_message'][$k] : '';
-		$ds[] = $row;
-	}
-	// 二维码
-	$qrs = pdo_fetchall("SELECT acid, COUNT(*) as num, model FROM ".tablename('qrcode')." WHERE uniacid=:uniacid GROUP BY acid, model", array(':uniacid'=>$_W['uniacid']));
-	
-	$tyqr = array('qr1num'=>0,'qr2num'=>0);
-	foreach ($qrs as $qr) {
-		$acid = intval($qr['acid']);
-		if(intval($accounts[$acid]['level']) < 4){
-			continue;
-		}
-		if(intval($qr['model']) == 1){
-			$accounts[$acid]['qr1num'] = $qr['num'];
-			$tyqr['qr1num'] += $qr['num'];
-		} else {
-			$accounts[$acid]['qr2num'] = $qr['num'];
-			$tyqr['qr2num'] += $qr['num'];
-		}
-	}
-}
-
-if($do == 'site') {
-	$title = '微站功能概况';
-	//获取当前使用模板的id
-	$setting = uni_setting($_W['uniacid'], array('default_site'));
-	$default_site = intval($setting['default_site']);
-	$setting = pdo_fetch('SELECT styleid,id FROM ' . tablename('site_multi') . ' WHERE uniacid =:uniacid AND id = :id ', array(':uniacid' => $_W['uniacid'], ':id' => $setting['default_site']));
-	$templates_id = pdo_fetchcolumn('SELECT templateid FROM ' . tablename('site_styles') . ' WHERE id = :id', array(':id' => $setting['styleid']));
-	$template = pdo_fetch('SELECT * FROM ' . tablename('site_templates') . ' WHERE id = :id ', array(':id' => $templates_id));
-	
-	//触发规则、关键字
-	$sql = "SELECT rid FROM " . tablename('cover_reply') . ' WHERE `module` = :module AND uniacid = :uniacid AND multiid = :multiid';
-	$pars = array();
-	$pars[':module'] = 'site';
-	$pars[':uniacid'] = $_W['uniacid'];
-	$pars[':multiid'] = $setting['id'];
-	$cover = pdo_fetch($sql, $pars);
-	if(!empty($cover['rid'])) {
-		$keywords = pdo_fetchall("SELECT content FROM ".tablename('rule_keyword')." WHERE rid = :rid", array(':rid' => $cover['rid']));
-	}
-	
-	//微站首页导航
-	load()->model('app');
-	$home_navs = app_navs('home', $setting['id']);
-	$profile_navs = app_navs('profile');
-	//幻灯片
-	$slides = pdo_fetchall("SELECT * FROM ".tablename('site_slide')." WHERE uniacid = '{$_W['uniacid']}' AND multiid = {$default_site}  ORDER BY displayorder DESC, id DESC ");
-	foreach ($slides as $key=>$value) {
-		$slides[$key]['thumb'] = tomedia($value['thumb']);
-	}
-}
-
-if($do == 'mc') {
-	$title = '会员功能概况';
-}
-
-if($do == 'setting') {
-	$title = '功能参数概况';
-	
-	
-}
-
-if($do == 'ext') {
-	$title = '扩展功能概况';
-	$installedmodulelist = uni_modules(false);
-	foreach ($installedmodulelist as $k => &$value) {
-		$value['official'] = empty($value['issystem']) && (strexists($value['author'], 'WeEngine Team') || strexists($value['author'], '微擎团队'));
-	}
-	$m = $_GPC['m'];
-	if(empty($m)) {
-		foreach($installedmodulelist as $name => $module) {
-			if ((empty($_W['setting']['permurls']['modules']) && !in_array($name, $_W['setting']['permurls']['modules'])) || empty($module['isdisplay'])) {
-				continue;
-			}
-			if($module['issystem']) {
-				$path = '../framework/builtin/' . $module['name'];
-			} else {
-				$path = '../addons/' . $module['name'];
-			}
-			$cion = $path . '/icon-custom.jpg';
-			if(!file_exists($cion)) {
-				$cion = $path . '/icon.jpg';
-				if(!file_exists($cion)) {
-					$cion = './resource/images/nopic-small.jpg';
-				}
-			}
-			$module['icon'] = $cion;
-
-			if($module['enabled'] == 1) {
-				$enable_modules[$name] = $module;
-			} else {
-				$unenable_modules[$name] = $module;
-			}
-		}
-		$current_user_permissions = pdo_getall('users_permission', array('uid' => $_W['user']['uid'], 'uniacid' => $_W['uniacid']), array(), 'type');
-		if (!empty($current_user_permissions)) {
-			$current_user_permission_types = array_keys($current_user_permissions);
-		}
-		$moudles = true;
+	iajax(0, array('yesterday' => $yesterday_stat, 'today' => $today_stat), '');
+} elseif ($do == 'get_last_modules') {
+	//最新模块
+	$last_modules = welcome_get_last_modules();
+	if (is_error($last_modules)) {
+		iajax(1, $last_modules['message'], '');
 	} else {
-		$module = $installedmodulelist[$m];
-		$title .= ' - ' . $module['title'];
-		$entries = module_entries($m, array('menu', 'home', 'profile', 'shortcut', 'cover', 'mine'));
-		$status = uni_user_permission_exist();
-		if(is_error($status)) {
-			$permission = uni_user_permission($m);
-			if($permission[0] != 'all') {
-				if(!in_array($m.'_rule', $permission)) {
-					unset($module['isrulefields']);
-				}
-				if(!in_array($m.'_settings', $permission)) {
-					unset($module['settings']);
-				}
-				if(!in_array($m.'_home', $permission)) {
-					unset($entries['home']);
-				}
-				if(!in_array($m.'_profile', $permission)) {
-					unset($entries['profile']);
-				}
-				if(!in_array($m.'_shortcut', $permission)) {
-					unset($entries['shortcut']);
-				}
-				if(!empty($entries['cover'])) {
-					foreach($entries['cover'] as $k => $row) {
-						if(!in_array($m.'_cover_'.$row['do'], $permission)) {
-							unset($entries['cover'][$k]);
-						}
-					}
-				}
-				if(!empty($entries['menu'])) {
-					foreach($entries['menu'] as $k => $row) {
-						if(!in_array($m.'_menu_'.$row['do'], $permission)) {
-							unset($entries['menu'][$k]);
-						}
-					}
-				}
-			}
-		} else {
-			$site = WeUtility::createModule($m);
-			if (!is_error($site)) {
-				$method = 'welcomeDisplay';
-				if(method_exists($site, $method)){
-					$frames = array();
-					$site->$method($entries);
-					exit;
-				}
-			}
-		}
+		iajax(0, $last_modules, '');
 	}
-}
+} elseif ($do == 'get_system_upgrade') {
+	//系统更新信息
+	$upgrade = welcome_get_cloud_upgrade();
+	iajax(0, $upgrade, '');
+} elseif ($do == 'get_upgrade_modules') {
+	//可升级应用
+	$account_upgrade_modules = module_upgrade_new('account');
+	$account_upgrade_module_nums = count($account_upgrade_modules);
+	$wxapp_upgrade_modules = module_upgrade_new('wxapp');
+	$wxapp_upgrade_module_nums = count($wxapp_upgrade_modules);
 
-if(!in_array($do, $dos)) {
-	$title = '';
-}
-if($do == 'replystatistics') {
-	if($_W['ispost'] && $_W['isajax']) {
-		$settings = uni_setting($_W['uniacid'], array('stat'));
-		$day_num = @$settings['stat']['msg_maxday'] ? $settings['stat']['msg_maxday'] : 30;
-		$m_name = trim($_GPC['m_name']);
-		$starttime = strtotime("-{$day_num} day");
-		$endtime = time();
-		$data_hit = pdo_fetchall("SELECT * FROM ".tablename('stat_msg_history')." WHERE uniacid = :uniacid AND module = :module AND createtime >= :starttime AND createtime <= :endtime", array(':uniacid' => $_W['uniacid'], ':module' => $m_name, ':starttime' => $starttime, ':endtime' => $endtime));
-		for($i = $day_num; $i >= 0; $i--){
-			$key = date('m-d', strtotime('-' . $i . 'day'));
-			$days[] = $key;
-			$datasets[$key] = 0;
-		}
-		foreach($data_hit as $da) {
-			$key1 = date('m-d', $da['createtime']);
-			if(in_array($key1, $days)) {
-					$datasets[$key1]++;
-			}
-		}
-		$todaytimestamp = strtotime(date('Y-m-d'));
-		$monthtimestamp = strtotime(date('Y-m'));
-		$stat['month'] = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('stat_msg_history')." WHERE uniacid = :uniacid AND module = :module AND createtime >= '$monthtimestamp'", array(':uniacid' => $_W['uniacid'], ':module' => $m_name));
-		$stat['today'] = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('stat_msg_history')." WHERE uniacid = :uniacid AND module = :module AND createtime >= '$todaytimestamp'", array(':uniacid' => $_W['uniacid'], ':module' => $m_name));
-		$stat['rule'] = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('rule')." WHERE uniacid = :uniacid AND module = :module", array(':uniacid' => $_W['uniacid'], ':module' => $m_name));
-		$stat['m_name'] = $m_name;
-		exit(json_encode(array('key' => $days, 'value' => array_values($datasets), 'stat' => $stat)));
+	$account_upgrade_module_list = array_slice($account_upgrade_modules, 0, 4);
+	$wxapp_upgrade_module_list = array_slice($wxapp_upgrade_modules, 0, 4);
+	$upgrade_module_list = array_merge($account_upgrade_module_list, $wxapp_upgrade_module_list);
+
+	$upgrade_module = array(
+		'upgrade_module_list' => $upgrade_module_list,
+		'upgrade_module_nums' => array(
+			'account_upgrade_module_nums' => $account_upgrade_module_nums,
+			'wxapp_upgrade_module_nums' => $wxapp_upgrade_module_nums
+		)
+	);
+	iajax(0, $upgrade_module, '');
+} elseif ($do == 'get_ads') {
+	$ads = welcome_get_ads();
+	if (is_error($ads)) {
+		iajax(1, $ads['message']);
+	} else {
+		iajax(0, $ads);
 	}
 }
-template('home/welcome');

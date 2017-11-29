@@ -6,7 +6,10 @@
 defined('IN_IA') or exit('Access Denied');
 $dos = array('copyright');
 $do = in_array($do, $dos) ? $do : 'copyright';
+$_W['page']['title'] = '站点设置 - 工具  - 系统管理';
+
 $settings = $_W['setting']['copyright'];
+
 if(empty($settings) || !is_array($settings)) {
 	$settings = array();
 } else {
@@ -14,15 +17,23 @@ if(empty($settings) || !is_array($settings)) {
 }
 
 if ($do == 'copyright') {
-	$_W['page']['title'] = '站点信息设置 - 系统管理';
 	if (checksubmit('submit')) {
-		$data = array(
-			'status' => $_GPC['status'],
-			'verifycode' => $_GPC['verifycode'],
-			'reason' => $_GPC['reason'],
-		);
-		setting_save($data, 'copyright');
-		message('更新设置成功！', url('system/site'));
+		
+		
+			$data = array(
+					'status' => $_GPC['status'],
+					'reason' => $_GPC['reason'],
+					'icp' => $_GPC['icp'],
+					'mobile_status' => $_GPC['mobile_status'],
+					'login_type' => $_GPC['login_type'],
+			);				
+		
+
+		$test = setting_save($data, 'copyright');
+
+		
+
+		itoast('更新设置成功！', url('system/site'), 'success');
 	}
 }
 

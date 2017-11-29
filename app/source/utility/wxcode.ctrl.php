@@ -3,12 +3,15 @@
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
+
+load()->library('qrcode');
+load()->func('communication');
+
 $dos = array('verifycode', 'image', 'qrcode');
 $do = in_array($do, $dos) ? $do : 'verifycode';
 
 $_W['uniacid'] = intval($_GPC['uniacid']);
 if($do == 'verifycode') {
-	load()->func('communication');
 	//微信验证码
 	$username = trim($_GPC['username']);
 	$response = ihttp_get("https://mp.weixin.qq.com/cgi-bin/verifycode?username={$username}&r=" . TIMESTAMP);
@@ -19,7 +22,6 @@ if($do == 'verifycode') {
 		exit();
 	}
 } elseif($do == 'image') {
-	load()->func('communication');
 	//微信图片
 	$image = trim($_GPC['attach']);
 	if(empty($image)) exit();
@@ -27,8 +29,7 @@ if($do == 'verifycode') {
 	header('Content-Type:image/jpg');
 	echo $content['content'];
 	exit();
-}  elseif($do == 'qrcode') {
-	require_once(IA_ROOT.'/framework/library/qrcode/phpqrcode.php');
+} elseif ($do == 'qrcode') {
 	$errorCorrectionLevel = "L";
 	$matrixPointSize = "8";
 	$text = trim($_GPC['text']);

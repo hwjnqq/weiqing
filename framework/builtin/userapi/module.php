@@ -42,10 +42,10 @@ class UserapiModule extends WeModule {
 	public function fieldsFormValidate($rid = 0) {
 		global $_GPC;
 		if (($_GPC['type'] && empty($_GPC['apiurl'])) || (empty($_GPC['type']) && empty($_GPC['apilocal']))) {
-			message('请填写接口地址！');
+			itoast('请填写接口地址！', '', '');
 		}
 		if ($_GPC['type'] && empty($_GPC['token'])) {
-			message('请填写Token值！');
+			itoast('请填写Token值！', '', '');
 		}
 		return '';
 	}

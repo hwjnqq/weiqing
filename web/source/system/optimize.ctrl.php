@@ -1,23 +1,35 @@
 <?php
-/**
+/*
+ * 性能优化相关操作
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  * $sn$
  */
-$_W['page']['title'] = '性能优化 - 系统管理';
+
+defined('IN_IA') or exit('Access Denied');
+
+load()->func('cache');
+load()->func('communication');
+
 $dos = array('opcache');
 $do = in_array($do, $dos) ? $do : 'index';
+$_W['page']['title'] = '性能优化 - 常用系统工具 - 系统管理';
+
 if ($do == 'opcache') {
 	opcache_reset();
-	message('清空缓存成功', url('system/optimize'), 'success');
+	itoast('清空缓存成功', url('system/optimize'), 'success');
 } else {
+	$cache_type = cache_type();
+	$clear = array('url' => url('system/updatecache'), 'title' => '更新缓存');
 	$extensions = array(
 		'memcache' => array(
 			'support' => extension_loaded('memcache'),
-			'status' => ($_W['config']['setting']['cache'] == 'memcache'),
-			'clear' => array(
-				'url' => url('system/updatecache'),
-				'title' => '更新缓存',
-			),
+			'status' => $cache_type == 'memcache',
+			'clear' => $clear
+		),
+		'redis' => array(
+			'support' => extension_loaded('redis'),
+			'status' => $cache_type == 'redis',
+			'clear' => $clear
 		),
 		'eAccelerator' => array(
 			'support' => function_exists('eaccelerator_optimizer'),
@@ -38,14 +50,31 @@ if ($do == 'opcache') {
 	if ($extensions['memcache']['status']) {
 		$memobj = cache_memcache();
 		if (!empty($memobj) && method_exists($memobj, 'getExtendedStats')) {
+			//缓存服务器池中所有服务器统计信息
 			$status = $memobj->getExtendedStats();
 			if (!empty($status)) {
 				foreach ($status as $server => $row) {
-					$data_status[] = '已用：' . round($row['bytes'] / 1048567, 2) . ' M / 共：' . round($row['limit_maxbytes'] / 1048567) . ' M';
+					$data_status[] = '已用：' . round($row['bytes'] / 1048576, 2) . ' M / 共：' . round($row['limit_maxbytes'] / 1048576) . ' M';
 				}
 				$extensions['memcache']['extra'] = ', ' . implode(', ', $data_status);
 			}
 		}
+	}
+	if ($extensions['redis']['status']) {
+		$redisobj = cache_redis();
+		if (!empty($redisobj) && method_exists($redisobj, 'info')) {
+			//缓存服务器池中所有服务器统计信息
+			$status = $redisobj->info();
+			if (!empty($status)) {
+				$extensions['redis']['extra'] = '消耗峰值：' . round($status['used_memory_peak'] / 1048576, 2) . ' M/ 内存总量：' . round($status['used_memory'] / 1048576, 2) . ' M';
+			}
+		}
+	}
+	//检测是否 ningx+apache 开启 fastcgi_ignore_client_abort on;  proxy_ignore_client_abort on; 参数
+	$url = url('user/login');
+	$response = ihttp_request($url);
+	if (strexists($response['headers']['Server'], 'nginx') && is_error(fastcgi_finish_request())) {
+		$ignore_client_abort = false;
 	}
 	template('system/optimize');
 }

@@ -259,8 +259,7 @@ class coupon extends WeiXinAccount {
 		$we7_coupon_module = module_fetch('we7_coupon');
 		$setting = array();
 		if (!empty($we7_coupon_module)) {
-			$cachekey = "modulesetting:{$_W['uniacid']}:we7_coupon";
-			$setting = (array)cache_load($cachekey, true);
+			$setting = $we7_coupon_module['config'];
 		} else {
 			$setting = uni_setting($_W['uniacid'], array('coupon_type'));
 		}
@@ -310,7 +309,34 @@ class coupon extends WeiXinAccount {
 		return $result;
 	}
 
-	
+	//设置会员卡一键激活开卡字段
+	public function setActivateUserForm($card_id) {
+		global $_W;
+		$token = $this->getAccessToken();
+		if (is_error($token)) {
+			return $token;
+		}
+		$data['required_form']['common_field_id_list'] = array('USER_FORM_INFO_FLAG_MOBILE');
+		$data['card_id'] = $card_id;
+//		$data['bind_old_card'] = array('name' => '绑定老会员卡', 'url' => $_W['siteroot'].'app'.trim(url('mc/card/checkoldmember'), '.'));
+		$data['bind_old_card'] = array('name' => '绑定老会员卡', 'url' => 'www.weixin.qq.com');
+		$url = "https://api.weixin.qq.com/card/membercard/activateuserform/set?access_token={$token}";
+		load()->func('communication');
+		$result = $this->requestApi($url, json_encode($data));
+		return $result;
+	}
+	//激活会员卡接口
+	public function activateMemberCard($data) {
+		global $_W;
+		$token = $this->getAccessToken();
+		if (is_error($token)) {
+			return $token;
+		}
+		$url = "https://api.weixin.qq.com/card/membercard/activate?access_token={$token}";
+		load()->func('communication');
+		$result = $this->requestApi($url, json_encode($data));
+		return $result;
+	}
 	/*
 	 * 修改卡券库存接口
 	 * $card_id 卡券id
@@ -497,6 +523,16 @@ class coupon extends WeiXinAccount {
 		return $result['card'];
 	}
 
+	public function updateMemberCard($post) {
+		$token = $this->getAccessToken();
+		if (is_error($token)) {
+			return $token;
+		}
+		$url = "https://api.weixin.qq.com/card/update?access_token={$token}";
+		$result = $this->requestApi($url, urldecode(json_encode($post)));
+		return $result;
+	}
+	
 	//批量查询卡券列表
 	public function batchgetCard($data) {
 		$token = $this->getAccessToken();
@@ -516,7 +552,7 @@ class coupon extends WeiXinAccount {
 			return error(-1, "访问微信接口错误, 错误代码: {$result['errcode']}, 错误信息: {$result['errmsg']},错误详情：{$this->error_code($result['errcode'])}");
 		}
 		return $result;
-	}	
+	}
 
 	public function updateCard($card_id) {
 		$token = $this->getAccessToken();
@@ -583,11 +619,19 @@ class coupon extends WeiXinAccount {
 	 * $openid 粉丝openid 如果不为空,则只有该粉丝可以领取发放的卡券
 	 * $type 发送卡券类型 membercard（会员卡） 或 coupon（卡券） 默认为coupon
 	 * */
-	public function BuildCardExt($id, $openid = '') {
-		$acid = $this->account['acid'];
-		$card_id = pdo_fetchcolumn('SELECT card_id FROM ' . tablename('coupon') . ' WHERE acid = :acid AND id = :id', array(':acid' => $acid, ':id' => $id));
-		if(empty($card_id)) {
-			return error(-1, '卡券id不合法');
+	public function BuildCardExt($id, $openid = '', $type = 'coupon') {
+		global $_W;
+		if ($type == 'membercard') {
+			$card_id = pdo_getcolumn('mc_card', array('uniacid' => $_W['uniacid']), 'card_id');
+		} else  {
+			$acid = $this->account['acid'];
+			$card_id = pdo_fetchcolumn('SELECT card_id FROM ' . tablename('coupon') . ' WHERE acid = :acid AND id = :id', array(':acid' => $acid, ':id' => $id));
+			if(empty($card_id)) {
+				return error(-1, '卡券id不合法');
+			}
+		}
+		if (empty($card_id)) {
+			$card_id = $id;
 		}
 		$time = TIMESTAMP;
 		$sign = array($card_id, $time);
@@ -909,6 +953,10 @@ class Card {
 			'custom_url_name','custom_url','custom_url_sub_title',
 			'promotion_url_name','promotion_url', 'promotion_url_sub_title', 'source',
 		);
+		if ($this->type == 6) {
+			$fields[] = 'need_push_on_view';
+			$fields[] = 'pay_info';
+		}
 		$baseinfo = array();
 		foreach ($this as $filed => $value) {
 			if (in_array($filed, $fields)) {
@@ -925,11 +973,9 @@ class Card {
 	function getCardData() {
 		$carddata = array(
 			'base_info' => $this->getBaseinfo(),
+			//'advanced_info' => $this->getAdvinfo(),
 		);
 		$carddata = array_merge($carddata, $this->getCardExtraData());
-		if (strtolower($this->types[$this->type]) == 'discount') {
-			$carddata['discount'] = 100 - $carddata['discount'];
-		}
 		$card = array(
 			'card' => array(
 				'card_type' => $this->types[$this->type],

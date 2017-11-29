@@ -4,13 +4,11 @@
  * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
-
 load()->model('app');
-load()->func('tpl');
-
 $dos = array('display', 'login_out');
 $do = in_array($do, $dos) ? $do : 'display';
-
+load()->func('tpl');
+$card_setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid']));
 $uni_setting = pdo_get('uni_settings', array('uniacid' => $_W['uniacid']), array('exchange_enable'));
 $setting = uni_setting_load(array('uc', 'passport'), $_W['uniacid']);
 //退出系统

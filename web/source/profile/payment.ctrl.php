@@ -1,104 +1,104 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
+ * 支付参数配置
+ * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
-uni_user_permission_check('profile_payment');
+
+load()->model('payment');
+load()->model('account');
+load()->func('communication');
+
+$dos = array('save_setting', 'display', 'test_alipay', 'get_setting');
+$do = in_array($do, $dos) ? $do : 'display';
+permission_check_account_user('profile_pay_setting');
 $_W['page']['title'] = '支付参数 - 公众号选项';
-$setting = uni_setting($_W['uniacid'], array('payment', 'recharge', 'oauth'));
-$pay = $setting['payment'];
-$recharge =  $setting['recharge'];
-if(!is_array($pay)) {
-	$pay = array();
+
+if ($do == 'get_setting') {
+	$setting = uni_setting_load('payment', $_W['uniacid']);
+	$pay_setting = $setting['payment'];
+	if(!is_array($pay_setting) || empty($pay_setting)) {
+		$pay_setting = array(
+			'delivery' => array('switch' => false),
+			'credit' => array('switch' => false),
+			'alipay' => array('switch' => false),
+			'wechat' => array('switch' => false),
+			
+			'unionpay' => array('switch' => false),
+			'baifubao' => array('switch' => false),
+			'line' => array('switch' => false),
+			'jueqiymf' => array('switch' => false),
+		);
+	}
+	iajax(0, $pay_setting, '');
 }
-$params = array();
-if(empty($_W['isfounder'])) {
-	$where = " WHERE `uniacid` IN (SELECT `uniacid` FROM " . tablename('uni_account_users') . " WHERE `uid`=:uid)";
-	$params[':uid'] = $_W['uid'];
+
+if ($do == 'test_alipay') {
+	$alipay = $_GPC['param'];
+	$pay_data = array(
+		'uniacid' => $_W['uniacid'],
+		'acid' => $_W['acid'],
+		'uniontid' => date('Ymd', time()).time(),
+		'module' => 'system',
+		'fee' => '0.01',
+		'status' => 0,
+		'card_fee' => 0.01
+	);
+	$params = array();
+	$params['tid'] = md5(uniqid());
+	$params['user'] = '测试用户';
+	$params['fee'] = '0.01';
+	$params['title'] = '测试支付接口';
+	$params['uniontid'] = $pay_data['uniontid'];
+
+	$result = alipay_build($params, $alipay);
+	iajax(0, $result['url'], '');
 }
-$sql = "SELECT * FROM " . tablename('uni_account') . $where;
-$uniaccounts = pdo_fetchall($sql, $params);
-$borrow = array();
-if(!empty($uniaccounts)) {
-	foreach($uniaccounts as $uniaccount) {
-		$account = account_fetch($uniaccount['default_acid']);
-		$account_setting = pdo_get('uni_settings', array('uniacid' => $account['uniacid']));
-		$payment = iunserializer($account_setting['payment']);
-		if (!empty($account['key']) && !empty($account['secret']) && in_array($account['level'], array(4)) && !empty($payment) && intval($payment['wechat']['switch']) == 1 ) {
-			if ((!is_bool($payment['wechat']['switch']) && $payment['wechat']['switch'] != 4) || (is_bool($payment['wechat']['switch']) && !empty($payment['wechat']['switch']))) {
-				$borrow[$account['uniacid']] = $account['name'];
-			}
+
+if ($do == 'save_setting') {
+	$type = $_GPC['type'];
+	$param = $_GPC['param'];
+	$setting = uni_setting_load('payment', $_W['uniacid']);
+	$pay_setting = $setting['payment'];
+	if ($type == 'credit' || $type == 'delivery') {
+		$param['switch'] = $param['switch'] == 'false' ? true : false;
+	}
+	if ($type == 'jueqiymf') {
+		$param['switch'] = $param['switch'] == 'true' ? true : false;
+	}
+	
+		if ($type == 'alipay' || $type == 'baifubao' || $type == 'line') {
+			$param['switch'] = $param['switch'] == 'true' ? true : false;
 		}
+	
+	
+
+	if ($type == 'wechat') {
+		$param['account'] = $_W['acid'];
+		$param['signkey'] = $param['version'] == 2 ? trim($param['apikey']) : trim($param['signkey']);
 	}
-}
-if($_W['ispost']) {
-	$credit = array_elements(array('switch'), $_GPC['credit']);
-	$credit['switch'] = $credit['switch'] == 'true';
-	$alipay = array_elements(array('switch', 'account', 'partner', 'secret'), $_GPC['alipay']);
-	$alipay['switch'] = $alipay['switch'] == 'true';
-	$alipay['account'] = trim($alipay['account']);
-	$alipay['partner'] = trim($alipay['partner']);
-	$alipay['secret'] = trim($alipay['secret']);
-	$delivery = array_elements(array('switch'), $_GPC['delivery']);
-	$delivery['switch'] = $delivery['switch'] == 'true';
-	$line = array_elements(array('switch'),$_GPC['line']);
-	$line['switch'] = $line['switch'] == 'true';
-	if($alipay['switch'] && (empty($alipay['account']) || empty($alipay['partner']) || empty($alipay['secret']))) {
-		message('请输入完整的支付宝接口信息.');
-	}
-	if($_GPC['alipay']['test'] == 'true') {
-		$params = array();
-		$params['tid'] = md5(uniqid());
-		$params['user'] = '测试用户';
-		$params['fee'] = '0.01';
-		$params['title'] = '测试支付接口';
-		load()->model('payment');
-		load()->func('communication');
-		$ret = alipay_build($params, $alipay);
-		if($ret['url']) {
-			header("location: {$ret['url']}");
+
+	if ($type == 'unionpay') {
+		$unionpay = $_GPC['unionpay'];
+		if ($unionpay['switch'] && empty($_FILES['unionpay']['tmp_name']['signcertpath']) && !file_exists(IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx')) {
+			itoast('请上联银商户私钥证书.', referer(), 'error');
 		}
-		exit();
-	}
-	$wechat = array_elements(array('switch', 'account', 'signkey', 'partner', 'key', 'version', 'mchid', 'apikey', 'version', 'borrow', 'sub_mch_id'), $_GPC['wechat']);
-	$wechat['signkey'] = $wechat['version'] == 2 ? trim($wechat['apikey']) : trim($wechat['signkey']);
-	$wechat['partner'] = trim($wechat['partner']);
-	$wechat['key'] = trim($wechat['key']);
-	$wechat['sub_mch_id'] = trim($wechat['sub_mch_id']);
-	if($wechat['switch'] && empty($wechat['account'])) {
-		message('请输入完整的微信支付接口信息.');
-	}
-	$unionpay = array_elements(array('switch', 'signcertpwd', 'merid'), $_GPC['unionpay']);
-	$unionpay['switch'] = $unionpay['switch'] == 'true';
-	if($unionpay['switch'] && (empty($unionpay['merid']) || empty($unionpay['signcertpwd']))) {
-		message('请输入完整的银联支付接口信息.');
-	}
-	if ($unionpay['switch'] && empty($_FILES['unionpay']['tmp_name']['signcertpath']) && !file_exists(IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx')) {
-		message('请上联银商户私钥证书.');
-	}
-	$baifubao = array_elements(array('switch', 'signkey', 'mchid'), $_GPC['baifubao']);
-	$baifubao['switch'] = $baifubao['switch'] == 'true';
-	if($baifubao['switch'] && (empty($baifubao['signkey']) || empty($baifubao['mchid']))) {
-		message('请输入完整的百付宝支付接口信息.');
-	}
-	$line = array_elements(array('switch','message'),$_GPC['line']);
-	$line['switch'] = $line['switch'] == 'true';
-	if(!is_array($pay)) {
-		$pay = array();
-	}
-	$pay['credit'] = $credit;
-	$pay['alipay'] = $alipay;
-	$pay['wechat'] = $wechat;
-	$pay['delivery'] = $delivery;
-	$pay['unionpay'] = $unionpay;
-	$pay['baifubao'] = $baifubao;
-	$pay['line'] = $line;
-	if ($unionpay['switch'] && !empty($_FILES['unionpay']['tmp_name']['signcertpath'])) {
-		load()->func('file');
-		mkdirs(IA_ROOT . '/attachment/unionpay/');
-		file_put_contents(IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx', file_get_contents($_FILES['unionpay']['tmp_name']['signcertpath']));
-		$public_rsa = '-----BEGIN CERTIFICATE-----
+		$param = array(
+			'switch' => $unionpay['switch'] == 'false'? false : true,
+			'merid' => $unionpay['merid'],
+			'signcertpwd' => $unionpay['signcertpwd']
+		);
+		if($param['switch'] && (empty($param['merid']) || empty($param['signcertpwd']))) {
+			itoast('请输入完整的银联支付接口信息.', referer(), 'error');
+		}
+		if ($param['switch'] && empty($_FILES['unionpay']['tmp_name']['signcertpath']) && !file_exists(IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx')) {
+			itoast('请上传银联商户私钥证书.', referer(), 'error');
+		}
+		if ($param['switch'] && !empty($_FILES['unionpay']['tmp_name']['signcertpath'])) {
+			load()->func('file');
+			mkdirs(IA_ROOT . '/attachment/unionpay/');
+			file_put_contents(IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx', file_get_contents($_FILES['unionpay']['tmp_name']['signcertpath']));
+			$public_rsa = '-----BEGIN CERTIFICATE-----
 MIIEIDCCAwigAwIBAgIFEDRVM3AwDQYJKoZIhvcNAQEFBQAwITELMAkGA1UEBhMC
 Q04xEjAQBgNVBAoTCUNGQ0EgT0NBMTAeFw0xNTEwMjcwOTA2MjlaFw0yMDEwMjIw
 OTU4MjJaMIGWMQswCQYDVQQGEwJjbjESMBAGA1UEChMJQ0ZDQSBPQ0ExMRYwFAYD
@@ -123,18 +123,56 @@ nadnxA5QexHHck9Y4ZyisbUubW7wTaaWFd+cZ3P/zmIUskE/dAG0/HEvmOR6CGlM
 55BFCVmJEufHtike3shu7lZGVm2adKNFFTqLoEFkfBO6Y/N6ViraBilcXjmWBJNE
 MFF/yA==
 -----END CERTIFICATE-----';
-		file_put_contents(IA_ROOT . '/attachment/unionpay/UpopRsaCert.cer', trim($public_rsa));
+			file_put_contents(IA_ROOT . '/attachment/unionpay/UpopRsaCert.cer', trim($public_rsa));
+		}
 	}
-	$dat = iserializer($pay);
-	if(pdo_update('uni_settings', array('payment' => $dat), array('uniacid' => $_W['uniacid'])) !== false) {
-		cache_delete("unisetting:{$_W['uniacid']}");
-		message('保存支付信息成功. ', 'refresh');
-	} else {
-		message('保存支付信息失败, 请稍后重试. ');
+	$pay_setting[$type] = $param;
+	$payment = iserializer($pay_setting);
+	uni_setting_save('payment', $payment);
+	
+	if ($type == 'unionpay') {
+		header('LOCATION: '.url('profile/payment'));
+		exit();
 	}
-	exit();
+	iajax(0, '');
 }
-$pay['unionpay']['signcertexists'] = file_exists(IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx');
-$accounts = array();
-$accounts[$_W['acid']] = array_elements(array('name', 'acid', 'key', 'secret', 'level'), $_W['account']);
+
+if ($do == 'display') {
+	$proxy_wechatpay_account = account_wechatpay_proxy();
+	$setting = uni_setting_load('payment', $_W['uniacid']);
+	$pay_setting = is_array($setting['payment']) ? $setting['payment'] : array();
+	if (empty($pay_setting['delivery'])) {
+		$pay_setting['delivery'] = array('switch' => false);
+	}
+	if (empty($pay_setting['credit'])) {
+		$pay_setting['delivery'] = array('switch' => false);
+	}
+	if (empty($pay_setting['alipay'])) {
+		$pay_setting['alipay'] = array('switch' => false);
+	}
+	if (empty($pay_setting['wechat'])) {
+		$pay_setting['wechat'] = array('switch' => false);
+	}
+	if (empty($pay_setting['unionpay'])) {
+		$pay_setting['unionpay'] = array('switch' => false);
+	}
+	if (empty($pay_setting['baifubao'])) {
+		$pay_setting['baifubao'] = array('switch' => false);
+	}
+	if (empty($pay_setting['line'])) {
+		$pay_setting['line'] = array('switch' => false);
+	}
+	if (empty($pay_setting['jueqiymf'])) {
+		$pay_setting['jueqiymf'] = array('switch' => false);
+	}
+	
+	//废弃微信借用支付
+	if (empty($_W['isfounder'])) {
+		$user_account_list = pdo_getall('uni_account_users', array('uid' => $_W['uid']), array(), 'uniacid');
+		$param['uniacid'] = array_keys($user_account_list);
+	}
+	$accounts = array();
+	$accounts[$_W['acid']] = array_elements(array('name', 'acid', 'key', 'secret', 'level'), $_W['account']);
+	$pay_setting['unionpay']['signcertexists'] = file_exists(IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx');
+}
 template('profile/payment');

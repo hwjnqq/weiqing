@@ -109,10 +109,10 @@ class MusicModule extends WeModule {
 		$sql = "SELECT id, rid, url, hqurl FROM " . tablename($this->tablename) . " WHERE `id`=:id";
 		$row = pdo_fetch($sql, array(':id'=>$id));
 		if (empty($row)) {
-			message('抱歉，回复不存在或是已经被删除！', '', 'error');
+			itoast('抱歉，回复不存在或是已经被删除！', '', 'error');
 		}
 		if (pdo_delete($this->tablename, array('id' => $id))) {
-			message('删除回复成功', '', 'success');
+			itoast('删除回复成功', '', 'success');
 		}
 	}
 
@@ -126,7 +126,7 @@ class MusicModule extends WeModule {
 		$result = array();
 		$upload = file_upload($file, 'music');
 		if (is_error($upload)) {
-			message($upload['message'], '', 'ajax');
+			iajax(1, $upload['message']);
 		}
 		$result['url'] = $upload['url'];
 		$result['error'] = 0;

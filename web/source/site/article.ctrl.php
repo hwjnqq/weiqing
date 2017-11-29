@@ -1,20 +1,21 @@
 <?php
 /**
+ * 文章管理 - 微官网
  * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/web/source/site/article.ctrl.php : v 14b9a4299104 : 2015/09/11 10:44:21 : yanghf $
  */
 defined('IN_IA') or exit('Access Denied');
-uni_user_permission_check('site_article');
 load()->func('file');
-load()->func('communication');
 
-$do = in_array($do, array('display', 'post', 'delete')) ? $do : 'display';
+$dos = array('display', 'post', 'del');
+$do = in_array($do, $dos) ? $do : 'display';
+
+permission_check_account_user('platform_site');
+$_W['page']['title'] = '文章管理 - 微官网';
 $category = pdo_fetchall("SELECT id,parentid,name FROM ".tablename('site_category')." WHERE uniacid = '{$_W['uniacid']}' ORDER BY parentid ASC, displayorder ASC, id ASC ", array(), 'id');
 $parent = array();
 $children = array();
 
 if (!empty($category)) {
-	$children = '';
 	foreach ($category as $cid => $cate) {
 		if (!empty($cate['parentid'])) {
 			$children[$cate['parentid']][] = $cate;
@@ -24,13 +25,13 @@ if (!empty($category)) {
 	}
 }
 
-if($do == 'display') {
+if ($do == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	$condition = '';
 	$params = array();
 	if (!empty($_GPC['keyword'])) {
-		$condition .= " AND title LIKE :keyword";
+		$condition .= " AND `title` LIKE :keyword";
 		$params[':keyword'] = "%{$_GPC['keyword']}%";
 	}
 	
@@ -41,48 +42,59 @@ if($do == 'display') {
 		$cid = intval($_GPC['category']['parentid']);
 		$condition .= " AND pcate = '{$cid}'";
 	}
-	
-	$list = pdo_fetchall("SELECT * FROM ".tablename('site_article')." WHERE uniacid = '{$_W['uniacid']}' $condition ORDER BY displayorder DESC, id DESC LIMIT ".($pindex - 1) * $psize.','.$psize, $params);
-	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('site_article') . " WHERE uniacid = '{$_W['uniacid']}'".$condition);
+	$list = pdo_fetchall("SELECT * FROM ".tablename('site_article')." WHERE uniacid = '{$_W['uniacid']}' $condition ORDER BY displayorder DESC, edittime DESC, id DESC LIMIT ".($pindex - 1) * $psize.','.$psize, $params);
+	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('site_article') . " WHERE uniacid = '{$_W['uniacid']}'".$condition, $params);
 	$pager = pagination($total, $pindex, $psize);
-	template('site/article');
-} elseif($do == 'post') {
-	load()->func('file');
+	template('site/article-display');
+} elseif ($do == 'post') {
 	$id = intval($_GPC['id']);
 	//微站风格模板
 	$template = uni_templates();
-	$pcate = $_GPC['pcate'];
-	$ccate = $_GPC['ccate'];
+	$pcate = intval($_GPC['pcate']);
+	$ccate = intval($_GPC['ccate']);
 	if (!empty($id)) {
 		$item = pdo_fetch("SELECT * FROM ".tablename('site_article')." WHERE id = :id" , array(':id' => $id));
 		$item['type'] = explode(',', $item['type']);
 		$pcate = $item['pcate'];
 		$ccate = $item['ccate'];
 		if (empty($item)) {
-			message('抱歉，文章不存在或是已经删除！', '', 'error');
+			itoast('抱歉，文章不存在或是已经删除！', '', 'error');
 		}
 		$key = pdo_fetchall('SELECT content FROM ' . tablename('rule_keyword') . ' WHERE rid = :rid AND uniacid = :uniacid', array(':rid' => $item['rid'], ':uniacid' => $_W['uniacid']));
-		if(!empty($key)) {
+		if (!empty($key)) {
 			$keywords = array();
-			foreach($key as $row) {
+			foreach ($key as $row) {
 				$keywords[] = $row['content'];
 			}
 			$keywords = implode(',', array_values($keywords));
 		}
 		$item['credit'] = iunserializer($item['credit']) ? iunserializer($item['credit']) : array();
-		if(!empty($item['credit']['limit'])) {
+		if (!empty($item['credit']['limit'])) {
 			//获取该文章已经赠送的积分数
 			$credit_num = pdo_fetchcolumn('SELECT SUM(credit_value) FROM ' . tablename('mc_handsel') . ' WHERE uniacid = :uniacid AND module = :module AND sign = :sign', array(':uniacid' => $_W['uniacid'], ':module' => 'article', ':sign' => md5(iserializer(array('id' => $id)))));
-			if(is_null($credit_num)) $credit_num = 0;
+			if (is_null($credit_num)) {
+				$credit_num = 0;
+			}
 			$credit_yu = (($item['credit']['limit'] - $credit_num) < 0) ? 0 : $item['credit']['limit'] - $credit_num;
 		}
 	} else {
 		$item['credit'] = array();
+		$keywords = '';
 	}
 	if (checksubmit('submit')) {
 		if (empty($_GPC['title'])) {
-			message('标题不能为空，请输入标题！');
+			itoast('标题不能为空，请输入标题！', '', '');
 		}
+		$sensitive_title = detect_sensitive_word($_GPC['title']);
+		if (!empty($sensitive_title)) {
+			itoast('不能使用敏感词:' . $sensitive_title, '', '');
+		}
+
+		$sensitive_content = detect_sensitive_word($_GPC['content']);
+		if (!empty($sensitive_content)) {
+			itoast('不能使用敏感词:' . $sensitive_content, '', '');
+		}
+
 		$data = array(
 			'uniacid' => $_W['uniacid'],
 			'iscommend' => intval($_GPC['option']['commend']),
@@ -92,43 +104,45 @@ if($do == 'display') {
 			'template' => addslashes($_GPC['template']),
 			'title' => addslashes($_GPC['title']),
 			'description' => addslashes($_GPC['description']),
-			'content' => htmlspecialchars_decode($_GPC['content'], ENT_QUOTES),
+			'content' => htmlspecialchars_decode(safe_remove_xss($_GPC['content']), ENT_QUOTES),
 			'incontent' => intval($_GPC['incontent']),
 			'source' => addslashes($_GPC['source']),
 			'author' => addslashes($_GPC['author']),
 			'displayorder' => intval($_GPC['displayorder']),
 			'linkurl' => addslashes($_GPC['linkurl']),
 			'createtime' => TIMESTAMP,
+			'edittime' => TIMESTAMP,
 			'click' => intval($_GPC['click'])
 		);
 		if (!empty($_GPC['thumb'])) {
-			$data['thumb'] = parse_path($_GPC['thumb']);
+			if (file_is_image($_GPC['thumb'])) {
+				$data['thumb'] = $_GPC['thumb'];
+			}
 		} elseif (!empty($_GPC['autolitpic'])) {
 			$match = array();
-			$file_name = file_random_name(ATTACHMENT_ROOT.'images/'.$_W['uniacid'].'/'.date('Y/m').'/', 'jpg');
-			$path = 'images/'.$_W['uniacid'].'/'.date('Y/m').'/'.$file_name;
-			preg_match('/&lt;img.*?src=&quot;(.*?)&quot;/', $_GPC['content'], $match);
+			preg_match('/&lt;img.*?src=&quot;?(.+\.(jpg|jpeg|gif|bmp|png))&quot;/', $_GPC['content'], $match);
 			if (!empty($match[1])) {
 				$url = $match[1];
-				$file = ihttp_request(tomedia($url));
-				file_write($path, $file['content']);
-				$data['thumb'] = $path;
-				file_remote_upload($path);
+				$file = file_remote_attach_fetch($url);
+				if (!is_error($file)) {
+					$data['thumb'] = $file;
+					file_remote_upload($file);
+				}
 			}
 		} else {
 			$data['thumb'] = '';
 		}
 		$keyword = str_replace('，', ',', trim($_GPC['keyword']));
 		$keyword = explode(',', $keyword);
-		if(!empty($keyword)) {
+		if (!empty($keyword)) {
 			$rule['uniacid'] = $_W['uniacid'];
 			$rule['name'] = '文章：' . $_GPC['title'] . ' 触发规则';
 			$rule['module'] = 'news';
 			$rule['status'] = 1;
 			$keywords = array();
-			foreach($keyword as $key) {
+			foreach ($keyword as $key) {
 				$key = trim($key);
-				if(empty($key)) continue;
+				if (empty($key)) continue;
 				$keywords[] = array(
 					'uniacid' => $_W['uniacid'],
 					'module' => 'news',
@@ -144,20 +158,21 @@ if($do == 'display') {
 			$reply['url'] = murl('site/site/detail', array('id' => $id));
 		}
 		//积分设置
-		if(!empty($_GPC['credit']['status'])) {
+		if (!empty($_GPC['credit']['status'])) {
 			$credit['status'] = intval($_GPC['credit']['status']);
-			$credit['limit'] = intval($_GPC['credit']['limit']) ? intval($_GPC['credit']['limit']) : message('请设置积分上限');
-			$credit['share'] = intval($_GPC['credit']['share']) ? intval($_GPC['credit']['share']) : message('请设置分享时赠送积分多少');
-			$credit['click'] = intval($_GPC['credit']['click']) ? intval($_GPC['credit']['click']) : message('请设置阅读时赠送积分多少');
+			$credit['limit'] = intval($_GPC['credit']['limit']) ? intval($_GPC['credit']['limit']) : itoast('请设置积分上限', '', '');
+			$credit['share'] = intval($_GPC['credit']['share']) ? intval($_GPC['credit']['share']) : itoast('请设置分享时赠送积分多少', '', '');
+			$credit['click'] = intval($_GPC['credit']['click']) ? intval($_GPC['credit']['click']) : itoast('请设置阅读时赠送积分多少', '', '');
 			$data['credit'] = iserializer($credit);
 		} else {
 			$data['credit'] = iserializer(array('status' => 0, 'limit' => 0, 'share' => 0, 'click' => 0));
 		}	
 		if (empty($id)) {
-			if(!empty($keywords)) {
+			unset($data['edittime']);
+			if (!empty($keywords)) {
 				pdo_insert('rule', $rule);
 				$rid = pdo_insertid();
-				foreach($keywords as $li) {
+				foreach ($keywords as $li) {
 					$li['rid'] = $rid;
 					pdo_insert('rule_keyword', $li);
 				}
@@ -173,11 +188,11 @@ if($do == 'display') {
 			pdo_delete('rule', array('id' => $item['rid'], 'uniacid' => $_W['uniacid']));
 			pdo_delete('rule_keyword', array('rid' => $item['rid'], 'uniacid' => $_W['uniacid']));
 			pdo_delete('news_reply', array('rid' => $item['rid']));
-			if(!empty($keywords)) {
+			if (!empty($keywords)) {
 				pdo_insert('rule', $rule);
 				$rid = pdo_insertid();
 
-				foreach($keywords as $li) {
+				foreach ($keywords as $li) {
 					$li['rid'] = $rid;
 					pdo_insert('rule_keyword', $li);
 				}
@@ -191,27 +206,45 @@ if($do == 'display') {
 			}
 			pdo_update('site_article', $data, array('id' => $id));
 		}
-		message('文章更新成功！', url('site/article/display'), 'success');
+		itoast('文章更新成功！', url('site/article/display'), 'success');
 	} else {
-		template('site/article');
+		template('site/article-post');
 	}
-} elseif($do == 'delete') {
-	load()->func('file');
-	$id = intval($_GPC['id']);
-	$row = pdo_fetch("SELECT id,rid,kid,thumb FROM ".tablename('site_article')." WHERE id = :id", array(':id' => $id));
-	if (empty($row)) {
-		message('抱歉，文章不存在或是已经被删除！');
+} elseif($do == 'del') {
+	if (checksubmit('submit')) {
+		foreach ($_GPC['rid'] as $key => $id) {
+			$id = intval($id);
+			$row = pdo_get('site_article', array('id' => $id, 'uniacid' => $_W['uniacid']));
+			
+			if (empty($row)) {
+				itoast('抱歉，文章不存在或是已经被删除！', '', '');
+			}
+
+			if (!empty($row['rid'])) {
+				pdo_delete('rule', array('id' => $row['rid'], 'uniacid' => $_W['uniacid']));
+				pdo_delete('rule_keyword', array('rid' => $row['rid'], 'uniacid' => $_W['uniacid']));
+				pdo_delete('news_reply', array('rid' => $row['rid']));
+			}
+			pdo_delete('site_article', array('id' => $id, 'uniacid'=>$_W['uniacid']));
+		}
+		itoast('批量删除成功！', referer(), 'success');
+	} else {
+		$id = intval($_GPC['id']);
+		$row = pdo_fetch("SELECT id,rid,kid,thumb FROM ".tablename('site_article')." WHERE id = :id", array(':id' => $id));
+		
+		if (empty($row)) {
+			itoast('抱歉，文章不存在或是已经被删除！', '', '');
+		}
+
+		if (!empty($row['rid'])) {
+			pdo_delete('rule', array('id' => $row['rid'], 'uniacid' => $_W['uniacid']));
+			pdo_delete('rule_keyword', array('rid' => $row['rid'], 'uniacid' => $_W['uniacid']));
+			pdo_delete('news_reply', array('rid' => $row['rid']));
+		}
+		if (pdo_delete('site_article', array('id' => $id,'uniacid'=>$_W['uniacid']))){
+			itoast('删除成功！', referer(), 'success');
+		} else {
+			itoast('删除失败！', referer(), 'error');
+		}
 	}
-	if (!empty($row['thumb'])) {
-		file_delete($row['thumb']);
-	}
-	if(!empty($row['rid'])) {
-		pdo_delete('rule', array('id' => $row['rid'], 'uniacid' => $_W['uniacid']));
-		pdo_delete('rule_keyword', array('rid' => $row['rid'], 'uniacid' => $_W['uniacid']));
-		pdo_delete('news_reply', array('rid' => $row['rid']));
-	}
-	pdo_delete('site_article', array('id' => $id));
-	message('删除成功！', referer(), 'success');
 }
-
-

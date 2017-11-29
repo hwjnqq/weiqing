@@ -11,6 +11,17 @@ defined('IN_IA') or exit('Access Denied');
  * @return array
  */
 function ext_module_convert($manifest) {
+	if (!empty($manifest['platform']['supports'])) {
+		$app_support = in_array('app', $manifest['platform']['supports']) ? 2 : 1;
+		$wxapp_support = in_array('wxapp', $manifest['platform']['supports']) ? 2 : 1;
+		$welcome_support = in_array('system_welcome', $manifest['platform']['supports']) ? 2 : 1;
+		if ($app_support == 1 && $wxapp_support == 1 && $welcome_support == 1) {
+			$app_support = 2;
+		}
+	} else {
+		$app_support = 2;
+		$wxapp_support = 1;
+	}
 	return array(
 		'name' => $manifest['application']['identifie'],
 		'title' => $manifest['application']['name'],
@@ -25,11 +36,17 @@ function ext_module_convert($manifest) {
 		'handles' => iserializer(is_array($manifest['platform']['handles']) ? $manifest['platform']['handles'] : array()),
 		'isrulefields' => intval($manifest['platform']['isrulefields']),
 		'iscard' => intval($manifest['platform']['iscard']),
+		'oauth_type' => $manifest['platform']['oauth_type'],
+		'page' => $manifest['bindings']['page'],
 		'cover' => $manifest['bindings']['cover'],
 		'rule' => $manifest['bindings']['rule'],
 		'menu' => $manifest['bindings']['menu'],
 		'home' => $manifest['bindings']['home'],
 		'profile' => $manifest['bindings']['profile'],
+		'welcome' => $manifest['bindings']['system_welcome'],
+		'app_support' => $app_support,
+		'wxapp_support' => $wxapp_support,
+		'welcome_support' => $welcome_support,
 		'shortcut' => $manifest['bindings']['shortcut'],
 		'function' => $manifest['bindings']['function'],
 		'permissions' => $manifest['permissions'],
@@ -94,7 +111,10 @@ function ext_module_manifest_parse($xml) {
 			'handles' => array(),
 			'isrulefields' => false,
 			'iscard' => false,
+			'supports' => array(),
+			'oauth_type' => 'base',
 		);
+		//订阅信息
 		$subscribes = $platform->getElementsByTagName('subscribes')->item(0);
 		if (!empty($subscribes)) {
 			$messages = $subscribes->getElementsByTagName('message');
@@ -105,6 +125,7 @@ function ext_module_manifest_parse($xml) {
 				}
 			}
 		}
+		//直接处理消息
 		$handles = $platform->getElementsByTagName('handles')->item(0);
 		if (!empty($handles)) {
 			$messages = $handles->getElementsByTagName('message');
@@ -115,15 +136,50 @@ function ext_module_manifest_parse($xml) {
 				}
 			}
 		}
+		//是否嵌入规则
 		$rule = $platform->getElementsByTagName('rule')->item(0);
 		if (!empty($rule) && $rule->getAttribute('embed') == 'true') {
 			$manifest['platform']['isrulefields'] = true;
 		}
+		//是否嵌入卡券
 		$card = $platform->getElementsByTagName('card')->item(0);
 		if (!empty($card) && $card->getAttribute('embed') == 'true') {
 			$manifest['platform']['iscard'] = true;
 		}
+		$oauth_type = $platform->getElementsByTagName('oauth')->item(0);
+		if (!empty($oauth_type) && $oauth_type->getAttribute('type') == 'userinfo') {
+			$manifest['platform']['oauth_type'] = 'userinfo';
+		}
+		$supports = $platform->getElementsByTagName('supports')->item(0);
+		if (!empty($supports)) {
+			$support_type = $supports->getElementsByTagName('item');
+			for ($i = 0; $i < $support_type->length; $i++) {
+				$t = $support_type->item($i)->getAttribute('type');
+				if (!empty($t)) {
+					$manifest['platform']['supports'][] = $t;
+				}
+			}
+		}
+		//模块扩展插件
+		$plugins = $platform->getElementsByTagName('plugins')->item(0);
+		if (!empty($plugins)) {
+			$plugin_list = $plugins->getElementsByTagName('item');
+			for ($i = 0; $i < $plugin_list->length; $i++) {
+				$plugin = $plugin_list->item($i)->getAttribute('name');
+				if (!empty($plugin)) {
+					$manifest['platform']['plugin_list'][] = $plugin;
+				}
+			}
+		}
+		$plugin_main = $platform->getElementsByTagName('plugin-main')->item(0);
+		if (!empty($plugin_main)) {
+			$plugin_main = $plugin_main->getAttribute('name');
+			if (!empty($plugin_main)) {
+				$manifest['platform']['main_module'] = $plugin_main;
+			}
+		}
 	}
+	//模块注册菜单
 	$bindings = $root->getElementsByTagName('bindings')->item(0);
 	if (!empty($bindings)) {
 		global $points;
@@ -184,10 +240,11 @@ function _ext_module_manifest_entries($elm) {
 		$entries = $elm->getElementsByTagName('entry');
 		for ($i = 0; $i < $entries->length; $i++) {
 			$entry = $entries->item($i);
+			$direct = $entry->getAttribute('direct');
 			$row = array(
 				'title' => $entry->getAttribute('title'),
 				'do' => $entry->getAttribute('do'),
-				'direct' => $entry->getAttribute('direct') == 'true',
+				'direct' => !empty($direct) && $direct != 'false' ? true : false,
 				'state' => $entry->getAttribute('state')
 			);
 			if (!empty($row['title']) && !empty($row['do'])) {
@@ -209,7 +266,7 @@ function ext_module_checkupdate($modulename) {
 		$version = $manifest['application']['version'];
 		load()->model('module');
 		$module = module_fetch($modulename);
-		if (ver_compare($version, $module['version']) == '1') {
+		if (version_compare($version, $module['version']) == '1') {
 			return true;
 		} else {
 			return false;
@@ -225,41 +282,51 @@ function ext_module_checkupdate($modulename) {
  */
 function ext_module_bindings() {
 	static $bindings = array(
-	'cover' => array(
-		'name' => 'cover',
-		'title' => '功能封面',
-		'desc' => '功能封面是定义微站里一个独立功能的入口(手机端操作), 将呈现为一个图文消息, 点击后进入微站系统中对应的功能.'
-	),
-	'rule' => array(
-		'name' => 'rule',
-		'title' => '规则列表',
-		'desc' => '规则列表是定义可重复使用或者可创建多次的活动的功能入口(管理后台Web操作), 每个活动对应一条规则. 一般呈现为图文消息, 点击后进入定义好的某次活动中.'
-	),
-	'menu' => array(
-		'name' => 'menu',
-		'title' => '管理中心导航菜单',
-		'desc' => '管理中心导航菜单将会在管理中心生成一个导航入口(管理后台Web操作), 用于对模块定义的内容进行管理.'
-	),
-	'home' => array(
-		'name' => 'home',
-		'title' => '微站首页导航图标',
-		'desc' => '在微站的首页上显示相关功能的链接入口(手机端操作), 一般用于通用功能的展示.'
-	),
-	'profile'=> array(
-		'name' => 'profile',
-		'title' => '微站个人中心导航',
-		'desc' => '在微站的个人中心上显示相关功能的链接入口(手机端操作), 一般用于个人信息, 或针对个人的数据的展示.'
-	),
-	'shortcut'=> array(
-		'name' => 'shortcut',
-		'title' => '微站快捷功能导航',
-		'desc' => '在微站的快捷菜单上展示相关功能的链接入口(手机端操作), 仅在支持快捷菜单的微站模块上有效.'
-	),
-	'function'=> array(
-		'name' => 'function',
-		'title' => '微站独立功能',
-		'desc' => '需要特殊定义的操作, 一般用于将指定的操作指定为(direct). 如果一个操作没有在具体位置绑定, 但是需要定义为(direct: 直接访问), 可以使用这个嵌入点'
-	)
+		'cover' => array(
+			'name' => 'cover',
+			'title' => '功能封面',
+			'desc' => '功能封面是定义微站里一个独立功能的入口(手机端操作), 将呈现为一个图文消息, 点击后进入微站系统中对应的功能.'
+		),
+		'rule' => array(
+			'name' => 'rule',
+			'title' => '规则列表',
+			'desc' => '规则列表是定义可重复使用或者可创建多次的活动的功能入口(管理后台Web操作), 每个活动对应一条规则. 一般呈现为图文消息, 点击后进入定义好的某次活动中.'
+		),
+		'menu' => array(
+			'name' => 'menu',
+			'title' => '管理中心导航菜单',
+			'desc' => '管理中心导航菜单将会在管理中心生成一个导航入口(管理后台Web操作), 用于对模块定义的内容进行管理.'
+		),
+		'home' => array(
+			'name' => 'home',
+			'title' => '微站首页导航图标',
+			'desc' => '在微站的首页上显示相关功能的链接入口(手机端操作), 一般用于通用功能的展示.'
+		),
+		'profile'=> array(
+			'name' => 'profile',
+			'title' => '微站个人中心导航',
+			'desc' => '在微站的个人中心上显示相关功能的链接入口(手机端操作), 一般用于个人信息, 或针对个人的数据的展示.'
+		),
+		'shortcut'=> array(
+			'name' => 'shortcut',
+			'title' => '微站快捷功能导航',
+			'desc' => '在微站的快捷菜单上展示相关功能的链接入口(手机端操作), 仅在支持快捷菜单的微站模块上有效.'
+		),
+		'function'=> array(
+			'name' => 'function',
+			'title' => '微站独立功能',
+			'desc' => '需要特殊定义的操作, 一般用于将指定的操作指定为(direct). 如果一个操作没有在具体位置绑定, 但是需要定义为(direct: 直接访问), 可以使用这个嵌入点'
+		),
+		'page'=> array(
+			'name' => 'page',
+			'title' => '小程序入口',
+			'desc' => '用于小程序入口的链接'
+		),
+		'welcome' => array(
+			'name' => 'welcome',
+			'title' => '系统首页导航菜单',
+			'desc' => '系统首页导航菜单将会在管理中心生成一个导航入口, 用于对系统首页定义的内容进行管理.',
+		)
 	);
 	return $bindings;
 }
@@ -283,19 +350,11 @@ function ext_module_clean($modulename, $isCleanRule = false) {
 	pdo_query($sql, $pars);
 
 	if ($isCleanRule) {
-		$sql = 'DELETE FROM ' . tablename('stat_rule') . ' WHERE `rid` IN (SELECT `id` FROM ' . tablename('rule') . ' WHERE `module`=:module)';
-		pdo_query($sql, $pars);
-
-		$sql = 'DELETE FROM ' . tablename('stat_keyword') . ' WHERE `rid` IN (SELECT `id` FROM ' . tablename('rule') . ' WHERE `module`=:module)';
-		pdo_query($sql, $pars);
 
 		$sql = 'DELETE FROM ' . tablename('rule') . ' WHERE `module`=:module';
 		pdo_query($sql, $pars);
 
 		$sql = 'DELETE FROM ' . tablename('rule_keyword') . ' WHERE `module`=:module';
-		pdo_query($sql, $pars);
-
-		$sql = 'DELETE FROM ' . tablename('stat_msg_history') . ' WHERE `module`=:module';
 		pdo_query($sql, $pars);
 
 		$sql = 'SELECT rid FROM ' . tablename('cover_reply') . ' WHERE `module`=:module';
@@ -317,174 +376,6 @@ function ext_module_clean($modulename, $isCleanRule = false) {
 	$sql = 'DELETE FROM ' . tablename('uni_account_modules') . ' WHERE `module`=:module';
 	pdo_query($sql, $pars);
 
-}
-
-/**
- * XML Schema
- */
-function ext_module_manifest_validate() {
-	$xsd = <<<TPL
-<?xml version="1.0" encoding="utf-8"?>
-<xs:schema xmlns="http://www.we7.cc" targetNamespace="http://www.we7.cc" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
-	<xs:element name="entry">
-		<xs:complexType>
-			<xs:attribute name="title" type="xs:string" />
-			<xs:attribute name="do" type="xs:string" />
-			<xs:attribute name="direct" type="xs:boolean" />
-			<xs:attribute name="state" type="xs:string" />
-		</xs:complexType>
-	</xs:element>
-	<xs:element name="dl">
-		<xs:complexType>
-			<xs:attribute name="name" type="xs:string" />
-			<xs:attribute name="value" type="xs:string" />
-		</xs:complexType>
-	</xs:element>
-	<xs:element name="message">
-		<xs:complexType>
-			<xs:attribute name="type" type="xs:string" />
-		</xs:complexType>
-	</xs:element>
-	<xs:element name="manifest">
-		<xs:complexType>
-			<xs:all>
-				<xs:element name="application" minOccurs="1" maxOccurs="1">
-					<xs:complexType>
-						<xs:all>
-							<xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1" />
-							<xs:element name="identifie" type="xs:string"  minOccurs="1" maxOccurs="1" />
-							<xs:element name="version" type="xs:string"  minOccurs="1" maxOccurs="1" />
-							<xs:element name="type" type="xs:string"  minOccurs="1" maxOccurs="1" />
-							<xs:element name="ability" type="xs:string"  minOccurs="1" maxOccurs="1" />
-							<xs:element name="description" type="xs:string"  minOccurs="1" maxOccurs="1" />
-							<xs:element name="author" type="xs:string"  minOccurs="1" maxOccurs="1" />
-							<xs:element name="url" type="xs:string"  minOccurs="1" maxOccurs="1" />
-						</xs:all>
-						<xs:attribute name="setting" type="xs:boolean" />
-					</xs:complexType>
-				</xs:element>
-				<xs:element name="platform" minOccurs="0" maxOccurs="1">
-					<xs:complexType>
-						<xs:all>
-							<xs:element name="subscribes" minOccurs="0" maxOccurs="1">
-								<xs:complexType>
-									<xs:sequence>
-										<xs:element ref="message" minOccurs="0" maxOccurs="unbounded" />
-									</xs:sequence>
-								</xs:complexType>
-							</xs:element>
-							<xs:element name="handles" minOccurs="0" maxOccurs="1">
-								<xs:complexType>
-									<xs:sequence>
-										<xs:element ref="message" minOccurs="0" maxOccurs="unbounded" />
-									</xs:sequence>
-								</xs:complexType>
-							</xs:element>
-							<xs:element name="rule" minOccurs="0" maxOccurs="1">
-								<xs:complexType>
-									<xs:attribute name="embed" type="xs:boolean" />
-								</xs:complexType>
-							</xs:element>
-							<xs:element name="card" minOccurs="0" maxOccurs="1">
-								<xs:complexType>
-									<xs:attribute name="embed" type="xs:boolean" />
-								</xs:complexType>
-							</xs:element>
-						</xs:all>
-					</xs:complexType>
-				</xs:element>
-				<xs:element name="bindings" minOccurs="0" maxOccurs="1">
-					<xs:complexType>
-						<xs:all>
-							<xs:element name="cover" minOccurs="0" maxOccurs="1">
-								<xs:complexType>
-									<xs:sequence>
-										<xs:element ref="entry" minOccurs="0" maxOccurs="unbounded" />
-									</xs:sequence>
-									<xs:attribute name="call" type="xs:string" />
-								</xs:complexType>
-							</xs:element>
-							<xs:element name="rule" minOccurs="0" maxOccurs="1">
-								<xs:complexType>
-									<xs:sequence>
-										<xs:element ref="entry" minOccurs="0" maxOccurs="unbounded" />
-									</xs:sequence>
-									<xs:attribute name="call" type="xs:string" />
-								</xs:complexType>
-							</xs:element>
-							<xs:element name="menu" minOccurs="0" maxOccurs="1">
-								<xs:complexType>
-									<xs:sequence>
-										<xs:element ref="entry" minOccurs="0" maxOccurs="unbounded" />
-									</xs:sequence>
-									<xs:attribute name="call" type="xs:string" />
-								</xs:complexType>
-							</xs:element>
-							<xs:element name="home" minOccurs="0" maxOccurs="1">
-								<xs:complexType>
-									<xs:sequence>
-										<xs:element ref="entry" minOccurs="0" maxOccurs="unbounded" />
-									</xs:sequence>
-									<xs:attribute name="call" type="xs:string" />
-								</xs:complexType>
-							</xs:element>
-							<xs:element name="profile" minOccurs="0" maxOccurs="1">
-								<xs:complexType>
-									<xs:sequence>
-										<xs:element ref="entry" minOccurs="0" maxOccurs="unbounded" />
-									</xs:sequence>
-									<xs:attribute name="call" type="xs:string" />
-								</xs:complexType>
-							</xs:element>
-							<xs:element name="shortcut" minOccurs="0" maxOccurs="1">
-								<xs:complexType>
-									<xs:sequence>
-										<xs:element ref="entry" minOccurs="0" maxOccurs="unbounded" />
-									</xs:sequence>
-									<xs:attribute name="call" type="xs:string" />
-								</xs:complexType>
-							</xs:element>
-							<xs:element name="function" minOccurs="0" maxOccurs="1">
-								<xs:complexType>
-									<xs:sequence>
-										<xs:element ref="entry" minOccurs="0" maxOccurs="unbounded" />
-									</xs:sequence>
-									<xs:attribute name="call" type="xs:string" />
-								</xs:complexType>
-							</xs:element>
-						</xs:all>
-					</xs:complexType>
-				</xs:element>
-				<xs:element name="permissions" minOccurs="0" maxOccurs="1">
-					<xs:complexType>
-						<xs:sequence>
-							<xs:element ref="entry" minOccurs="0" maxOccurs="unbounded" />
-						</xs:sequence>
-					</xs:complexType>
-				</xs:element>
-				<xs:element name="crons" minOccurs="0" maxOccurs="1">
-					<xs:complexType>
-						<xs:sequence>
-							<xs:element name="item" minOccurs="0" maxOccurs="unbounded">
-								<xs:complexType>
-									<xs:sequence>
-										<xs:element ref="dl" minOccurs="0" maxOccurs="unbounded" />
-									</xs:sequence>
-								</xs:complexType>
-							</xs:element>
-						</xs:sequence>
-					</xs:complexType>
-				</xs:element>
-				<xs:element name="install" type="xs:string" minOccurs="0" maxOccurs="1" />
-				<xs:element name="uninstall" type="xs:string" minOccurs="0" maxOccurs="1" />
-				<xs:element name="upgrade" type="xs:string" minOccurs="0" maxOccurs="1" />
-			</xs:all>
-			<xs:attribute name="versionCode" type="xs:string" />
-		</xs:complexType>
-	</xs:element>
-</xs:schema>
-TPL;
-	return trim($xsd);
 }
 
 /**
@@ -541,6 +432,50 @@ function ext_template_manifest_parse($xml) {
 	return $manifest;
 }
 
+/**
+ * 获取后台皮肤配置信息
+ * @param string $tpl 后台皮肤名称
+ * @param boolean $cloud 是否从云服务读取配置信息(缺少配置文件情况下)
+ * @return array
+ */
+function ext_webtheme_manifest($tpl, $cloud = true) {
+	$filename = IA_ROOT . '/web/themes/' . $tpl . '/manifest.xml';
+	if (!file_exists($filename)) {
+		if ($cloud) {
+			load()->model('cloud');
+			$manifest = cloud_w_info($tpl);
+		}
+		return is_error($manifest) ? array() : $manifest;
+	}
+	$manifest = ext_template_manifest_parse(file_get_contents($filename));
+	if (empty($manifest['name']) || $manifest['name'] != $tpl) {
+		return array();
+	}
+	return $manifest;
+}
+
+/**
+ * 将后台皮肤XML配置文件解析为数组
+ * @param $xml 后台皮肤XML文件内容
+ * @return array
+ */
+function ext_webtheme_manifest_parse($xml) {
+	$xml = str_replace(array('&'), array('&amp;'), $xml);
+	$xml = @isimplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA);
+	if (empty($xml)) {
+		return array();
+	}
+	$manifest['name'] = strval($xml->identifie);
+	$manifest['title'] = strval($xml->title);
+	if (empty($manifest['title'])) {
+		return array();
+	}
+	$manifest['type'] = !empty($xml->type) ? strval($xml->type) : 'other';
+	$manifest['description'] = strval($xml->description);
+	$manifest['author'] = strval($xml->author);
+	$manifest['url'] = strval($xml->url);
+	return $manifest;
+}
 
 /**
  * 获取微站模板行业分类
@@ -596,6 +531,59 @@ function ext_template_type() {
 	return $types;
 }
 
+/**
+ * 获取后台皮肤行业分类
+ * @return array
+ */
+function ext_webtheme_type() {
+	static $types = array(
+		'often' => array(
+			'name' => 'often',
+			'title' => '常用模板',
+		),
+		'rummery' => array(
+			'name' => 'rummery',
+			'title' => '酒店',
+		),
+		'car' => array(
+			'name' => 'car',
+			'title' => '汽车',
+		),
+		'tourism' => array(
+			'name' => 'tourism',
+			'title' => '旅游',
+		),
+		'drink' => array(
+			'name' => 'drink',
+			'title' => '餐饮',
+		),
+		'realty' => array(
+			'name' => 'realty',
+			'title' => '房地产',
+		),
+		'medical' => array(
+			'name' => 'medical',
+			'title' => '医疗保健'
+		),
+		'education' => array(
+			'name' => 'education',
+			'title' => '教育'
+		),
+		'cosmetology' => array(
+			'name' => 'cosmetology',
+			'title' => '健身美容'
+		),
+		'shoot' => array(
+			'name' => 'shoot',
+			'title' => '婚纱摄影'
+		),
+		'other' => array(
+			'name' => 'other',
+			'title' => '其它行业'
+		)
+	);
+	return $types;
+}
 
 /**
  * 清除模块目录脚本文件
@@ -648,11 +636,19 @@ function ext_module_msg_types() {
 	$mtypes['click'] = '点击菜单(模拟关键字)';
 	$mtypes['view'] = '点击菜单(链接)';
 	$mtypes['merchant_order'] = '微小店消息';
+	$mtypes['user_get_card'] = '用户领取卡券事件';
+	$mtypes['user_del_card'] = '用户删除卡券事件';
+	$mtypes['user_consume_card'] = '用户核销卡券事件';
 	return $mtypes;
 }
 
+/**
+ * 检查模块订阅消息是否成功
+ * @param $modulename string 模块标识;
+ * @return array();
+ */
 function ext_check_module_subscribe($modulename) {
-	global $_W;
+	global $_W, $_GPC;
 	if (empty($modulename)) {
 		return true;
 	}
@@ -660,8 +656,9 @@ function ext_check_module_subscribe($modulename) {
 		$_W['setting']['module_receive_ban'] = array();
 	}
 	load()->func('communication');
-	$response = ihttp_request($_W['siteroot'] . url('extension/subscribe/check', array('modulename' => $modulename)));
-	if (strexists($response['content'], 'success')) {
+	$response = ihttp_request($_W['siteroot'] . 'web/' .  url('utility/modules/check_receive', array('module_name' => $modulename)));
+	$response['content'] = json_decode($response['content'], true);
+	if (empty($response['content']['message']['errno'])) {
 		unset($_W['setting']['module_receive_ban'][$modulename]);
 		$module_subscribe_success = true;
 	} else {
@@ -670,4 +667,61 @@ function ext_check_module_subscribe($modulename) {
 	}
 	setting_save($_W['setting']['module_receive_ban'], 'module_receive_ban');
 	return $module_subscribe_success;
+}
+
+/**
+ * 检查模块配置项
+ * @param $module_name string 模块标识;
+ * @param $manifest array() 模块配置项;
+ * @return array();
+ */
+function manifest_check($module_name, $manifest) {
+	if(is_string($manifest)) {
+		return error(1, '模块配置项定义错误, 具体错误内容为: <br />' . $manifest);
+	}
+	if(empty($manifest['application']['name'])) {
+		return error(1, '模块名称未定义. ');
+	}
+	if(empty($manifest['application']['identifie']) || !preg_match('/^[a-z][a-z\d_]+$/i', $manifest['application']['identifie'])) {
+		return error(1, '模块标识符未定义或格式错误(仅支持字母和数字, 且只能以字母开头).');
+	}
+	if(strtolower($module_name) != strtolower($manifest['application']['identifie'])) {
+		return error(1, '模块名称定义与模块路径名称定义不匹配. ');
+	}
+	if(empty($manifest['application']['version']) || !preg_match('/^[\d\.]+$/i', $manifest['application']['version'])) {
+		return error(1, '模块版本号未定义(仅支持数字和句点). ');
+	}
+	if(empty($manifest['application']['ability'])) {
+		return error(1, '模块功能简述未定义. ');
+	}
+	if($manifest['platform']['isrulefields'] && !in_array('text', $manifest['platform']['handles'])) {
+		return error(1, '模块功能定义错误, 嵌入规则必须要能够处理文本类型消息.. ');
+	}
+	if((!empty($manifest['cover']) || !empty($manifest['rule'])) && !$manifest['platform']['isrulefields']) {
+		return error(1, '模块功能定义错误, 存在封面或规则功能入口绑定时, 必须要嵌入规则. ');
+	}
+	global $points;
+	if (!empty($points)) {
+		foreach($points as $name => $point) {
+			if(is_array($manifest[$name])) {
+				foreach($manifest[$name] as $menu) {
+					if(trim($menu['title']) == ''  || !preg_match('/^[a-z\d]+$/i', $menu['do']) && empty($menu['call'])) {
+						return error(1, $point['title'] . ' 扩展项功能入口定义错误, (操作标题[title], 入口方法[do])格式不正确.');
+					}
+				}
+			}
+		}
+	}
+	//模块权限检测
+	if(is_array($manifest['permissions']) && !empty($manifest['permissions'])) {
+		foreach($manifest['permissions'] as $permission) {
+			if(trim($permission['title']) == ''  || !preg_match('/^[a-z\d_]+$/i', $permission['permission'])) {
+				return error(1, "名称为： {$permission['title']} 的权限标识格式不正确,请检查标识名称或标识格式是否正确");
+			}
+		}
+	}
+	if(!is_array($manifest['versions'])) {
+		return error(1, '兼容版本格式错误');
+	}
+	return error(0);
 }

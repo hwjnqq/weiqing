@@ -1,17 +1,18 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ *
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
+
 load()->model('module');
+load()->model('extension');
 
 $eid = intval($_GPC['eid']);
-if(!empty($eid)) {
+if (!empty($eid)) {
 	$entry = module_entry($eid);
 } else {
-	$sql = 'SELECT * FROM ' . tablename('modules_bindings') . ' WHERE module = :module AND do = :do';
-	$entry = pdo_fetch($sql, array(':module' => trim($_GPC['m']), ':do' => trim($_GPC['do'])));
+	$entry = pdo_get('modules_bindings', array('module' => trim($_GPC['m']), 'do' => trim($_GPC['do'])));
 	if (empty($entry)) {
 		$entry = array(
 			'module' => $_GPC['m'],
@@ -21,41 +22,55 @@ if(!empty($eid)) {
 		);
 	}
 }
-if(empty($entry) || empty($entry['do'])) {
-	message('非法访问.');
-}
-if(!$entry['direct']) {
-	checklogin();
-	load()->model('module');
-	$module = module_fetch($entry['module']);
-	if(empty($module)) {
-		message("访问非法, 没有操作权限. (module: {$entry['module']})");
-	}
-	if($entry['entry'] == 'menu') {
-		$permission = uni_user_module_permission_check($entry['module'] . '_menu_' . $entry['do'], $entry['module']);
-	} else {
-		$permission = uni_user_module_permission_check($entry['module'] . '_rule', $entry['module']);
-	}
-	if(!$permission) {
-		message('您没有权限进行该操作');
-	}
-	define('FRAME', 'ext');
-	define('CRUMBS_NAV', 1);
-	$ptr_title = $entry['title'];
-	$module_types = module_types();
-	if($_COOKIE['ext_type'] == 1) {
-		define('ACTIVE_FRAME_URL', url('site/entry/', array('eid' => $entry['eid'])));
-	} else {
-		define('ACTIVE_FRAME_URL', url('home/welcome/ext', array('m' => $entry['module'])));
-	}
-	$frames = buildframes(array(FRAME));
-	$frames = $frames[FRAME];
+if (empty($entry) || empty($entry['do'])) {
+	itoast('非法访问.', '', '');
 }
 
-if(!empty($entry['module']) && !empty($_W['founder'])) {
-	load()->model('extension');
-	if(ext_module_checkupdate($entry['module'])) {
-		message('系统检测到该模块有更新，请点击“<a href="' . url('extension/module/upgrade', array('m' => $entry['module'])) . '">更新模块</a>”后继续使用！', '', 'error');
+if (!$entry['direct']) {
+	checklogin();
+	$referer = (url_params(referer()));
+	if (empty($_W['isajax']) && empty($_W['ispost']) && empty($_GPC['version_id']) && intval($referer['version_id']) > 0 &&
+		($referer['c'] == 'wxapp' ||
+		$referer['c'] == 'site' && in_array($referer['a'], array('entry', 'nav')) ||
+		$referer['c'] == 'home' && $referer['a'] == 'welcome' ||
+		$referer['c'] == 'module' && in_array($referer['a'], array('manage-account', 'permission')))) {
+			itoast('', $_W['siteurl'] . '&version_id=' . $referer['version_id']);
+	}
+	
+	
+		if (empty($_W['uniacid'])) {
+			if (!empty($_GPC['version_id'])) {
+				itoast('', url('wxapp/display'));
+			} else {
+				itoast('', url('account/display'));
+			}
+		}
+	
+
+	$module = module_fetch($entry['module']);
+	if (empty($module)) {
+		itoast("访问非法, 没有操作权限. (module: {$entry['module']})", '', '');
+	}
+
+	if ($entry['entry'] == 'menu') {
+		$permission = permission_check_account_user_module($entry['module'] . '_menu_' . $entry['do'], $entry['module']);
+	} else {
+		$permission = permission_check_account_user_module($entry['module'] . '_rule', $entry['module']);
+	}
+	if (!$permission) {
+		itoast('您没有权限进行该操作', '', '');
+	}
+
+	// 兼容历史性问题：模块内获取不到模块信息$module的问题
+	define('CRUMBS_NAV', 1);
+
+	$_W['page']['title'] = $entry['title'];
+	define('ACTIVE_FRAME_URL', url('site/entry/', array('eid' => $entry['eid'], 'version_id' => $_GPC['version_id'])));
+}
+
+if (!empty($entry['module']) && !empty($_W['founder'])) {
+	if (ext_module_checkupdate($entry['module'])) {
+		itoast('系统检测到该模块有更新，请点击“<a href="' . url('extension/module/upgrade', array('m' => $entry['module'])) . '">更新模块</a>”后继续使用！', '', 'error');
 	}
 }
 
@@ -65,20 +80,26 @@ $_GPC['state'] = $entry['state'];
 $_GPC['m'] = $entry['module'];
 $_GPC['do'] = $entry['do'];
 
-if(!empty($_W['modules'][$entry['module']]['handles']) && (count($_W['modules'][$entry['module']]['handles']) > 1 || !in_array('text', $_W['modules'][$entry['module']]['handles']))) {
-	$handlestips = true;
-}
 $modules = uni_modules();
 $_W['current_module'] = $modules[$entry['module']];
 $site = WeUtility::createModuleSite($entry['module']);
+
 define('IN_MODULE', $entry['module']);
-if(!is_error($site)) {
+
+
+
+if (!is_error($site)) {
+	if ($_W['role'] == ACCOUNT_MANAGE_NAME_OWNER) {
+		$_W['role'] = ACCOUNT_MANAGE_NAME_MANAGER;
+	}
 	$sysmodule = system_modules();
-	if(in_array($m, $sysmodule)) {
+	if (in_array($m, $sysmodule)) {
 		$site_urls = $site->getTabUrls();
 	}
-	$method = 'doWeb' . ucfirst($entry['do']);
+	
+		$method = 'doWeb' . ucfirst($entry['do']);
+	
+	
 	exit($site->$method());
 }
-  
-exit("访问的方法 {$method} 不存在.");
+itoast("访问的方法 {$method} 不存在.", referer(), 'error');

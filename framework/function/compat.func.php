@@ -10,7 +10,7 @@ if (!function_exists('json_encode')) {
 	function json_encode($value) {
 		static $jsonobj;
 		if (!isset($jsonobj)) {
-			include_once (IA_ROOT . '/framework/library/json/JSON.php');
+			load()->library('json');
 			$jsonobj = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
 		}
 		return $jsonobj->encode($value);
@@ -21,7 +21,7 @@ if (!function_exists('json_decode')) {
 	function json_decode($jsonString) {
 		static $jsonobj;
 		if (!isset($jsonobj)) {
-			include_once (IA_ROOT . '/framework/library/json/JSON.php');
+			load()->library('json');
 			$jsonobj = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
 		}
 		return $jsonobj->decode($jsonString);
@@ -88,5 +88,27 @@ if (!function_exists('hex2bin')) {
 			$sbin .= pack("H*", substr($str, $i, 2));
 		}
 		return $sbin;
+	}
+}
+
+if (!function_exists('mb_strlen')) {
+	function mb_strlen($string, $charset = '') {
+		return istrlen($string, $charset);
+	}
+}
+
+/**
+ * php5.4以上版本要求session hanlder继承此接口
+ */
+if (!interface_exists('SessionHandlerInterface')) {
+	interface SessionHandlerInterface  {}
+}
+
+/**
+ * php-fpm环境下，此函数可以快速响应数据，后续代码将在后台运行
+ */
+if (!function_exists("fastcgi_finish_request")) {
+	function fastcgi_finish_request() {
+		return error(-1, 'Not npm or fast cgi');
 	}
 }

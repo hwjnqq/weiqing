@@ -74,7 +74,6 @@
 	};
 
 	window.validateReplyForm = function(form, $, _, util, $scope) {
-		$scope.$digest();
 		var error = false;
 		if($scope.item.type == '1') {
 			if(!$.trim($scope.item.apiurl)) {

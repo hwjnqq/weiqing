@@ -8,7 +8,6 @@ define('IN_MOBILE', true);
 require '../framework/bootstrap.inc.php';
 load()->app('common');
 load()->app('template');
-load()->model('app');
 require IA_ROOT . '/app/common/bootstrap.app.inc.php';
 
 $acl = array(
@@ -88,7 +87,7 @@ if(!in_array($controller, $controllers)) {
 }
 $init = IA_ROOT . "/app/source/{$controller}/__init.php";
 if(is_file($init)) {
-	require $init;;
+	require $init;
 }
 
 $actions = array();

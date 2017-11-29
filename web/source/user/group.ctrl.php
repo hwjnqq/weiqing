@@ -1,52 +1,76 @@
 <?php
 /**
+ * 用户组管理
  * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/web/source/user/group.ctrl.php : v a210cf4d3592 : 2015/09/09 10:18:06 : RenChao $
  */
 defined('IN_IA') or exit('Access Denied');
+
+load()->model('user');
+
+$dos = array('display', 'post', 'del');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
 
 if ($do == 'display') {
 	$_W['page']['title'] = '用户组列表 - 用户组 - 用户管理';
-	if (checksubmit('submit')) {
-		if (!empty($_GPC['delete'])) {
-			pdo_query("DELETE FROM ".tablename('users_group')." WHERE id IN ('".implode("','", $_GPC['delete'])."')");
-		}
-		message('用户组更新成功！', referer(), 'success');
+	$condition = '' ;
+	$params = array();
+	if (!empty($_GPC['name'])) {
+		$condition .= "WHERE name LIKE :name";
+		$params[':name'] = "%{$_GPC['name']}%";
 	}
-	$list = pdo_fetchall("SELECT * FROM ".tablename('users_group'));
+	
+	$lists = pdo_fetchall("SELECT * FROM " . tablename('users_group').$condition, $params);
+	$lists = user_group_format($lists);
+	template('user/group-display');
 }
 
 if ($do == 'post') {
-	$id = intval($_GPC['id']);
+	$id = is_array($_GPC['id']) ? 0 : intval($_GPC['id']);
 	$_W['page']['title'] = $id ? '编辑用户组 - 用户组 - 用户管理' : '添加用户组 - 用户组 - 用户管理';
 	if (!empty($id)) {
-		$group = pdo_fetch("SELECT * FROM ".tablename('users_group') . " WHERE id = :id", array(':id' => $id));
-		$group['package'] = iunserializer($group['package']);
+		$group_info = pdo_fetch("SELECT * FROM ".tablename('users_group') . " WHERE id = :id", array(':id' => $id));
+		$group_info['package'] = iunserializer($group_info['package']);
+		if (!empty($group_info['package']) && in_array(-1, $group_info['package'])) $group_info['check_all'] = true;
 	}
 	$packages = uni_groups();
-	if (checksubmit('submit')) {
-		if (empty($_GPC['name'])) {
-			message('请输入用户组名称！');
-		}
-		if (!empty($_GPC['package'])) {
-			foreach ($_GPC['package'] as $value) {
-				$package[] = intval($value);
+	if (!empty($packages)) {
+		foreach ($packages as $key => &$package_val) {
+			if (!empty($group_info['package']) && in_array($key, $group_info['package'])) {
+				$package_val['checked'] = true;
+			} else {
+				$package_val['checked'] = false;
 			}
 		}
-		$data = array(
+	}
+	unset($package_val);
+	if (checksubmit('submit')) {
+
+		$user_group = array(
+			'id' => intval($_GPC['id']),
 			'name' => $_GPC['name'],
-			'package' => iserializer($package),
+			'package' => $_GPC['package'],
 			'maxaccount' => intval($_GPC['maxaccount']),
+			'maxwxapp' => intval($_GPC['maxwxapp']),
 			'timelimit' => intval($_GPC['timelimit'])
 		);
-		if (empty($id)) {
-			pdo_insert('users_group', $data);
-		} else {
-			pdo_update('users_group', $data, array('id' => $id));
+
+		$user_group_info = user_save_group($user_group);
+		if (is_error($user_group_info)) {
+			itoast($user_group_info['message'], '', '');
 		}
-		message('用户组更新成功！', url('user/group/display'), 'success');
+		cache_clean(cache_system_key('user_modules'));
+		itoast('用户组更新成功！', url('user/group/display'), 'success');
 	}
+	template('user/group-post');
 }
 
-template('user/group');
+if ($do == 'del') {
+	$id = intval($_GPC['id']);
+	$result = pdo_delete('users_group', array('id' => $id));
+	if(!empty($result)){
+		itoast('删除成功！', url('user/group/display'), 'success');
+	}else {
+		itoast('删除失败！请稍候重试！', url('user/group'), 'error');
+	}
+	exit;
+}

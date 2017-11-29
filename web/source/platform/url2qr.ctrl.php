@@ -1,51 +1,67 @@
 <?php
 /**
+ * 长链接转二维码
  * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/web/source/platform/url2qr.ctrl.php : v 8cac9b227c80 : 2015/07/20 09:09:34 : yanghf $
  */
 
 defined('IN_IA') or exit('Access Denied');
-uni_user_permission_check('platform_url2qr');
-$dos = array('display', 'change', 'qr', 'chat');
-$do = !empty($_GPC['do']) && in_array($do, $dos) ? $do : 'display';
 load()->model('account');
-if($do == 'display') {
+load()->func('communication');
+load()->library('qrcode');
+
+$dos = array('display', 'change', 'qr', 'chat', 'down_qr');
+$do = !empty($_GPC['do']) && in_array($do, $dos) ? $do : 'display';
+permission_check_account_user('platform_qr');
+$_W['page']['title'] = '长链接转二维码';
+
+if ($do == 'display') {
 	template('platform/url2qr');
 }
 
-if($do == 'change') {
-	if($_W['ispost']) {
-		load()->func('communication');
+if ($do == 'change') {
+	if ($_W['ispost'] && $_W['isajax']) {
 		$longurl = trim($_GPC['longurl']);
-		$token = WeAccount::token(WeAccount::TYPE_WEIXIN);
+		$token = WeAccount::token();
 		$url = "https://api.weixin.qq.com/cgi-bin/shorturl?access_token={$token}";
 		$send = array();
 		$send['action'] = 'long2short';
 		$send['long_url'] = $longurl;
 		$response = ihttp_request($url, json_encode($send));
-		if(is_error($response)) {
+		if (is_error($response)) {
 			$result = error(-1, "访问公众平台接口失败, 错误: {$response['message']}");
 		}
 		$result = @json_decode($response['content'], true);
-		if(empty($result)) {
+		if (empty($result)) {
 			$result =  error(-1, "接口调用失败, 元数据: {$response['meta']}");
-		} elseif(!empty($result['errcode'])) {
+		} elseif (!empty($result['errcode'])) {
 			$result = error(-1, "访问微信接口错误, 错误代码: {$result['errcode']}, 错误信息: {$result['errmsg']}");
 		}
-		if(is_error($result)) {
-			exit(json_encode(array('errcode' => -1, 'errmsg' => $result['message'])));
+		if (is_error($result)) {
+			iajax(-1, $result['message'], '');
 		}
-		exit(json_encode($result));
+		iajax(0, $result, '');
 	} else {
-		exit('err');
+		iajax(1, 'error', '');
 	}
 }
 
-if($do == 'qr') {
+if ($do == 'qr') {
 	$url = $_GPC['url'];
-	require(IA_ROOT . '/framework/library/qrcode/phpqrcode.php');
 	$errorCorrectionLevel = "L";
 	$matrixPointSize = "5";
 	QRcode::png($url, false, $errorCorrectionLevel, $matrixPointSize);
 	exit();
+}
+
+if ($do == 'down_qr') {
+	$qrlink = $_GPC['qrlink'];
+	$errorCorrectionLevel = "L";
+	$matrixPointSize = "5";
+	$qr_pic = QRcode::png($qrlink, false, $errorCorrectionLevel, $matrixPointSize);
+	$name = random(8);
+	header('cache-control:private');
+	header('content-type:image/jpeg');
+	header('content-disposition: attachment;filename="'.$name.'.jpg"');
+	readfile($qr_pic);
+	exit;
 }

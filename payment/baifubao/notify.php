@@ -41,7 +41,7 @@ if (!empty($_GPC['pay_result']) && $_GPC['pay_result'] == '1') {
 				load()->model('activity');
 			 	$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $log['module']);
 			}
-			
+
 			$site = WeUtility::createModuleSite($log['module']);
 			if(!is_error($site)) {
 				$method = 'payResult';

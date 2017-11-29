@@ -8,7 +8,6 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('app');
 load()->func('tpl');
 load()->model('user');
-load()->model('module');
 
 $dos = array('display', 'credits', 'address', 'card', 'mycard', 'record', 
 			'mobile', 'email', 'card_qrcode', 
@@ -181,9 +180,9 @@ if($do == 'mobile') {
 			$salt = random(8);
 			$password = md5($password . $salt . $_W['config']['setting']['authkey']);
 			if (!empty($reregister)) {
-				pdo_update('mc_members', array('mobile' => $mobile, 'email' => '', 'salt' => $salt, 'password' => $password), array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
+				mc_update($_W['member']['uid'], array('mobile' => $mobile, 'email' => '', 'salt' => $salt, 'password' => $password));
 			} else {
-				pdo_update('mc_members', array('mobile' => $mobile), array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
+				mc_update($_W['member']['uid'], array('mobile' => $mobile));
 			}
 			message(error(0, '绑定成功'), url('mc/bond/mobile'), 'ajax');
 		}
@@ -215,7 +214,7 @@ if ($do == 'password') {
 		}
 		$salt = random(8);
 		$password = md5($password . $salt . $_W['config']['setting']['authkey']);
-		pdo_update('mc_members', array('salt' => $salt, 'password' => $password), array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
+		mc_update($_W['member']['uid'], array('salt' => $salt, 'password' => $password));
 		message('设置密码成功', url('mc/bond/settings'), 'success');
 	}
 }
@@ -236,9 +235,7 @@ if ($do == 'email') {
 		if (!empty($emailexists['uid'])) {
 			message('抱歉，该E-Mail地址已经被注册，请更换。', '', 'error');
 		}
-		pdo_update('mc_members', $data, array(
-			'uid' => $profile['uid']
-		));
+		mc_update($profile['uid'], $data);
 		message('邮箱绑定成功', url('mc/home'), 'success');
 	}
 }
@@ -304,9 +301,7 @@ if ($do == 'binding_account') {
 			$hash = md5($password . $profile['salt'] . $_W['config']['setting']['authkey']);
 			$data['salt'] = $salt;
 			$data['password'] = $hash;
-			pdo_update('mc_members', $data, array(
-				'uid' => $profile['uid']
-			));
+			mc_update($profile['uid'], $data);
 			message('账号绑定成功', url('mc/home'), 'success');
 		} else {
 			if (!preg_match(REGULAR_EMAIL, $data['email'])) {
@@ -345,18 +340,15 @@ if ($do == 'binding_account') {
 					$profile_update['credit4'] = $member_old['credit4'] + $member_new['credit4'];
 					$profile_update['credit5'] = $member_old['credit5'] + $member_new['credit5'];
 					pdo_update('mc_members', $profile_update, array('uid' => $member['uid'], 'uniacid' => $_W['uniacid']));
+					cache_build_memberinfo($member['uid']);
 					pdo_delete('mc_members', array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
 					//转换各种券的信息
-					$we7_coupon_info = module_fetch('we7_coupon');
-					if (!empty($we7_coupon_info)) {
-						pdo_update('coupon_record', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
-						pdo_update('mc_card_members', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
-						pdo_update('activity_exchange_trades', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
-						pdo_update('activity_exchange_trades_shipping', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
-					}
+					pdo_update('coupon_record', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
+					pdo_update('activity_exchange_trades', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
+					pdo_update('activity_exchange_trades_shipping', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
 					//积分变更日志信息
 					pdo_update('mc_credits_record', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
-					
+					pdo_update('mc_card_members', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
 				}
 				message('绑定已有账号成功', url('mc/home'), 'success');
 			}

@@ -39,6 +39,9 @@ function article_news_home($limit = 5) {
 function article_notice_home($limit = 5) {
 	$limit = intval($limit);
 	$notice = pdo_fetchall('SELECT * FROM ' . tablename('article_notice') . ' WHERE is_display = 1 AND is_show_home = 1 ORDER BY displayorder DESC,id DESC LIMIT ' . $limit, array(), 'id');
+	foreach ($notice as $key => $notice_val) {
+		$notice[$key]['style'] = iunserializer($notice_val['style']);
+	}
 	return $notice;
 }
 
@@ -73,11 +76,46 @@ function article_notice_all($filter = array(), $pindex = 1, $psize = 10) {
 	$limit = ' LIMIT ' . ($pindex - 1) * $psize . ',' . $psize;
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('article_notice') . $condition, $params);
 	$notice = pdo_fetchall('SELECT * FROM ' . tablename('article_notice') . $condition . ' ORDER BY displayorder DESC ' . $limit, $params, 'id');
+	foreach ($notice as $key => $notice_val) {
+		$notice[$key]['style'] = iunserializer($notice_val['style']);
+	}
 	return array('total' => $total, 'notice' => $notice);
 }
 
-
-
-
+/**
+ * 删除文章分类
+ * @param $id
+ * @return bool
+ */
+function article_category_delete($id) {
+	$id = intval($id);
+	if (empty($id)) {
+		return false;
+	}
+	load()->func('file');
+	$category = pdo_fetch("SELECT id, parentid, nid FROM " . tablename('site_category')." WHERE id = " . $id);
+	if (empty($category)) {
+		return false;
+	}
+	if ($category['parentid'] == 0) {
+		$children_cates = pdo_getall('site_category', array('parentid' => $id));
+		pdo_update('site_article', array('pcate' => 0), array('pcate' => $id));
+		if (!empty($children_cates)) {
+			$children_cates_id = array_column($children_cates, 'id');
+			pdo_update('site_article', array('ccate' => 0), array('ccate' => $children_cates_id), 'OR');
+		}
+	} else {
+		pdo_update('site_article', array('ccate' => 0), array('ccate' => $id));
+	}
+	$navs = pdo_fetchall("SELECT icon, id FROM ".tablename('site_nav')." WHERE id IN (SELECT nid FROM ".tablename('site_category')." WHERE id = {$id} OR parentid = '$id')", array(), 'id');
+	if (!empty($navs)) {
+		foreach ($navs as $row) {
+			file_delete($row['icon']);
+		}
+		pdo_query("DELETE FROM ".tablename('site_nav')." WHERE id IN (".implode(',', array_keys($navs)).")");
+	}
+	pdo_delete('site_category', array('id' => $id, 'parentid' => $id), 'OR');
+	return true;
+}
 
 

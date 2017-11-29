@@ -192,7 +192,7 @@ class WeiXinPlatform extends WeiXinAccount {
 	
 	public function getJsApiTicket(){
 		$cachekey = "jsticket:{$this->account['acid']}";
-		$js_ticket = cache_load($cachename);
+		$js_ticket = cache_load($cachekey);
 		if (empty($js_ticket) || empty($js_ticket['value']) || $js_ticket['expire'] < TIMESTAMP) {
 			$access_token = $this->getAccessToken();
 			if(is_error($access_token)){
@@ -218,9 +218,7 @@ class WeiXinPlatform extends WeiXinAccount {
 		}
 		$nonceStr = random(16);
 		$timestamp = TIMESTAMP;
-		if (empty($url)) {
-			$url = $_W['siteurl'];
-		}
+		$url = empty($url) ? $_W['siteurl'] : $url;
 		$string1 = "jsapi_ticket={$jsapiTicket}&noncestr={$nonceStr}&timestamp={$timestamp}&url={$url}";
 		$signature = sha1($string1);
 		$config = array(

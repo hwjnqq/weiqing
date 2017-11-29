@@ -14,6 +14,7 @@ class CloudApi {
 	private $development = false;
 	private $module = null;
 	private $sys_call = false;
+	private $default_token = '91ec1f9324753048c0096d036a694f86';
 	
 	const ACCESS_TOKEN_EXPIRE_IN = 7200;
 	
@@ -29,7 +30,7 @@ class CloudApi {
 			$this->sys_call = false;
 			$this->module = pathinfo(MODULE_ROOT, PATHINFO_BASENAME);
 		}
-		$this->development = $development;
+		$this->development = !is_error($this->developerCerContent());
 	}
 	
 	private function getCerContent($file) {
@@ -46,7 +47,7 @@ class CloudApi {
 	private function developerCerContent(){
 		$cer = $this->getCerContent('developer.cer');
 		if (is_error($cer)) {
-			return error(1, '访问云API获取授权失败,模块中没有开发者数字证书,请到 <a href="http://s.we7.cc/index.php?c=develop&a=auth" target="_blank">开发者中心</a> 下载数字证书!');;
+			return error(1, '访问云API获取授权失败,模块中没有开发者数字证书,请到 <a href="http://s.we7.cc/index.php?c=develop&a=auth" target="_blank">开发者中心</a> 下载数字证书!');
 		}
 		
 		return $cer;
@@ -71,7 +72,7 @@ class CloudApi {
 			$pars = _cloud_build_params();
 			$pars['method'] = 'api.oauth';
 			$pars['module'] = $this->module;
-			$data = cloud_request('http://s.we7.cc/gateway.php', $pars);
+			$data = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
 			if (is_error($data)) {
 				return $data;
 			}
@@ -83,13 +84,18 @@ class CloudApi {
 		
 		$cer = $this->getCerContent($cer_filename);
 		if (is_error($cer)) {
-			return error(1, '访问云API获取授权失败,模块中未发现数字证书(module.cer).');;
+			return error(1, '访问云API获取授权失败,模块中未发现数字证书(module.cer).');
 		}
 		
 		return $cer;
 	}
 	
 	private function systemCerContent(){
+		global $_W;
+		if (empty($_W['setting']['site'])) {
+			return $this->default_token;
+		}
+		
 		$cer_filename = 'module.cer';
 		$cer_filepath = IA_ROOT.'/framework/builtin/core/module.cer';
 		
@@ -110,7 +116,7 @@ class CloudApi {
 			$pars = _cloud_build_params();
 			$pars['method'] = 'api.oauth';
 			$pars['module'] = $this->module;
-			$data = cloud_request('http://s.we7.cc/gateway.php', $pars);
+			$data = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
 			if (is_error($data)) {
 				return $data;
 			}
@@ -119,12 +125,15 @@ class CloudApi {
 				return $data;
 			}
 		}
-		$cer = file_get_contents($cer_filepath);
-		if (is_error($cer)) {
-			return error(1, '访问云API获取授权失败,模块中未发现数字证书(module.cer).');;
+		if (is_file($cer_filepath)) {
+			$cer = file_get_contents($cer_filepath);
+			if (is_error($cer)) {
+				return error(1, '访问云API获取授权失败,模块中未发现数字证书(module.cer).');
+			}
+			return $cer;
+		} else {
+			return $this->default_token;
 		}
-		
-		return $cer;
 	}
 	
 	private function deleteModuleCer() {
@@ -146,7 +155,6 @@ class CloudApi {
 				$token = $this->moduleCerContent();
 			}
 		}
-		
 		if (empty($token)) {
 			return error(1, '错误的数字证书内容.');
 		}
@@ -158,6 +166,7 @@ class CloudApi {
 			'token' => $token,
 			'module' => $this->module,
 		);
+		
 		return base64_encode(json_encode($access_token));
 	}
 	
@@ -178,7 +187,7 @@ class CloudApi {
 			$querystring = base64_encode(json_encode($params));
 			$url .= "&api_qs={$querystring}";
 		}
-		
+
 		if (strlen($url) > 2800) {
 			return error(1, 'url query string too long');
 		}
@@ -190,7 +199,7 @@ class CloudApi {
 		if ($dataType == 'html') {
 			return $result;
 		}
-		
+
 		if ($dataType == 'json') {
 			$result = strval($result);
 			$json_result = json_decode($result, true);
@@ -201,6 +210,9 @@ class CloudApi {
 				if ($json_result['errno'] == 10000) {
 					$this->deleteModuleCer();
 				};
+				if($json_result['errno'] == 1) {
+					$this->deleteCer();
+				}
 				return $json_result;
 			}
 			return $json_result;
@@ -209,54 +221,84 @@ class CloudApi {
 		return $result;
 	}
 	
-	public function get($api, $method, $url_params = array(), $dataType = 'json') {
+	public function get($api, $method, $url_params = array(), $dataType = 'json', $with_cookie = true) {
 		$url = $this->url($api, $method, $url_params, $dataType);
 		if (is_error($url)) {
 			return $url;
 		}
-		
+
 		$response = ihttp_get($url);
+
 		if (is_error($response)) {
+			$this->deleteCer();
 			return $response;
 		}
-		
-		$ihttp_options = array();
-		$cookiejar = $response['headers']['Set-Cookie'];
-		if (!empty($cookiejar)) {
-			$ihttp_options['CURLOPT_COOKIE'] = implode('; ', $cookiejar);
-		}
-		
-		$response = ihttp_request($url, array(), $ihttp_options);
-		if (is_error($response)) {
-			return $response;
+
+		if($with_cookie) {
+			$ihttp_options = array();
+			if ($response['headers'] && $response['headers']['Set-Cookie']) {
+				$cookiejar = $response['headers']['Set-Cookie'];
+			}
+			if (!empty($cookiejar)) {
+				if (is_array($cookiejar)) {
+					$ihttp_options['CURLOPT_COOKIE'] = implode('; ', $cookiejar);
+				} else {
+					$ihttp_options['CURLOPT_COOKIE'] = $cookiejar;
+				}
+			}
+
+			$response = ihttp_request($url, array(), $ihttp_options);
+			if (is_error($response)) {
+				$this->deleteCer();
+				return $response;
+			}
 		}
 		$result = $this->actionResult($response['content'], $dataType);
-
 		return $result;
 	}
 	
-	public function post($api, $method, $post_params = array(), $dataType = 'json') {
+	public function post($api, $method, $post_params = array(), $dataType = 'json', $with_cookie = true) {
 		$url = $this->url($api, $method, array(), $dataType);
+
 		if (is_error($url)) {
 			return $url;
 		}
-		
-		$response = ihttp_get($url);
-		if (is_error($response)) {
-			return $response;
-		}
-		
 		$ihttp_options = array();
-		$cookiejar = $response['headers']['Set-Cookie'];
-		if (!empty($cookiejar)) {
-			$ihttp_options['CURLOPT_COOKIE'] = implode('; ', $cookiejar);
+
+		if($with_cookie) {
+			$response = ihttp_get($url);
+			if (is_error($response)) {
+				$this->deleteCer();
+				return $response;
+			}
+			$ihttp_options = array();
+			if ($response['headers'] && $response['headers']['Set-Cookie']) {
+				$cookiejar = $response['headers']['Set-Cookie'];
+			}
+			if (!empty($cookiejar)) {
+				if (is_array($cookiejar)) {
+					$ihttp_options['CURLOPT_COOKIE'] = implode('; ', $cookiejar);
+				} else {
+					$ihttp_options['CURLOPT_COOKIE'] = $cookiejar;
+				}
+			}
 		}
-		
 		$response = ihttp_request($url, $post_params, $ihttp_options);
 		if (is_error($response)) {
+			$this->deleteCer();
 			return $response;
 		}
-		
+
 		return $this->actionResult($response['content'], $dataType);
+	}
+
+	private function deleteCer() {
+		if($this->sys_call) {
+			$cer_filepath = IA_ROOT.'/framework/builtin/core/module.cer';
+			if (is_file($cer_filepath)) {
+				unlink($cer_filepath);
+			}
+		}
+
 	}
 }

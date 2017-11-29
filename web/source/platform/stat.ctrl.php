@@ -9,8 +9,8 @@ defined('IN_IA') or exit('Access Denied');
 $dos = array('keyword', 'rule', 'history', 'trend', 'del', 'setting', 'browser');
 $do = !empty($_GPC['do']) && in_array($do, $dos) ? $do : 'keyword';
 
-if($do == 'history') {
-	uni_user_permission_check('platform_stat_history');
+if ($do == 'history') {
+	// permission_check_account_user('platform_stat_history');
 	$_W['page']['title'] = '聊天记录 - 数据统计';
 	$where = '';
 	$starttime = empty($_GPC['time']['start']) ? TIMESTAMP - 86400 * 60 : strtotime($_GPC['time']['start']);
@@ -34,9 +34,9 @@ if($do == 'history') {
 	}
 	if (!empty($list)) {
 		foreach ($list as $index => &$history) {
-			if(!empty($history['from_user'])) {
+			if (!empty($history['from_user'])) {
 				$tag = pdo_fetchcolumn('SELECT tag FROM ' . tablename('mc_mapping_fans') . ' WHERE uniacid = :id AND openid = :oid', array(':id' => $_W['uniacid'], ':oid' => $history['from_user']));
-				if(is_base64($tag)){
+				if (is_base64($tag)){
 					$tag = base64_decode($tag);
 				}
 				if (is_serialized($tag)) {
@@ -49,7 +49,7 @@ if($do == 'history') {
 				$history['message'] = iunserializer($history['message']);
 				$history['module'] = empty($history['message']['source']) ? $history['module'] : $history['message']['source'];
 				$history['message'] = emotion($history['message']['original']) ? emotion($history['message']['original']) : emotion($history['message']['content']);
-			}elseif ($history['type'] == 'link') {
+			} elseif ($history['type'] == 'link') {
 				$history['message'] = iunserializer($history['message']);
 				$history['module'] = empty($history['message']['source']) ? $history['message']['content'] : $history['message']['source'];
 				$history['message'] = '<a href="'.$history['message']['url'].'" target="_blank" title="'.$history['message']['description'].'">'.$history['message']['title'].'</a>';
@@ -72,10 +72,10 @@ if($do == 'history') {
 	}
 	if (!empty($rids)) {
 		$rules = pdo_fetchall("SELECT name, id, module FROM ".tablename('rule')." WHERE id IN (".implode(',', $rids).")", array(), 'id');
-		foreach($rules as $key => &$li) {
-			if($li['module'] == 'cover') {
+		foreach ($rules as $key => &$li) {
+			if ($li['module'] == 'cover') {
 				$cover_reply = pdo_fetch('SELECT module,do FROM ' . tablename('cover_reply') . ' WHERE rid = :rid', array(':rid' => $key));
-				if(!in_array($cover_reply['module'], array('mc', 'site', 'card'))) {
+				if (!in_array($cover_reply['module'], array('mc', 'site', 'card'))) {
 					$eid = pdo_fetchcolumn('SELECT eid FROM ' . tablename('modules_bindings') . ' WHERE module = :m AND do = :do AND entry = :entry', array(':m' => $cover_reply['module'], ':do' => $cover_reply['do'], ':entry' => 'cover'));
 					$li['url'] = url('platform/cover/', array('eid' => $eid));
 				} else {
@@ -90,7 +90,7 @@ if($do == 'history') {
 
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('stat_msg_history') . " WHERE uniacid = '{$_W['uniacid']}' $where");
 	$pager = pagination($total, $pindex, $psize);
-	if(!empty($_GPC['export'])) {
+	if (!empty($_GPC['export'])) {
 		$header = array(
 			'name' => '用户',
 			'realname' => '内容',
@@ -100,17 +100,17 @@ if($do == 'history') {
 		);
 		$keys = array_keys($header);
 		$html = "\xEF\xBB\xBF";
-		foreach($header as $head) {
+		foreach ($header as $head) {
 			$html .= $head . "\t ,";
 		}
 		$html .= "\n";
-		if(!empty($list)) {
+		if (!empty($list)) {
 			foreach ($list as $row) {
 				$nickname = pdo_fetchcolumn("SELECT nickname FROM ". tablename('mc_mapping_fans')." WHERE openid = :openid", array(':openid' => $row['from_user']));
 				$html .= $nickname. "\t ,";
 				if ($row['type'] == 'text') {
 					$row['message'] = iunserializer($row['message']);
-				}elseif ($row['type'] == 'link') {
+				} elseif ($row['type'] == 'link') {
 					$row['message'] = '链接';
 				} elseif ($row['type'] == 'image') {
 					$row['message'] = '图片';
@@ -127,7 +127,7 @@ if($do == 'history') {
 				if (empty($row['rid']) && $row['module']) {
 					$module =  pdo_fetchcolumn("SELECT title from ".tablename('modules')." WHERE  name = :name", array(':name' => $row['module']));
 					$html .= $module. "\t , ";
-				} elseif(!empty($row['rid'])) {
+				} elseif (!empty($row['rid'])) {
 					$html .= $rules[$row['rid']]['name']. "\t , ";
 				}
 				if ($row['module'] == 'default') {
@@ -140,15 +140,14 @@ if($do == 'history') {
 								$html .= $module. "\t, ";
 							}
 					}
-				    if ($rules[$row['rid']]['module'] && empty($module)) {
-					    $row['module'] = str_replace('cover->', '', $rules[$row['rid']]['module']);
-					    $module =  pdo_fetchcolumn("SELECT title from ".tablename('modules')." WHERE  name = :name", array(':name' => $row['module']));
-					    $html .= $module ." \t, ";
-					}
-					 else {
-						 if (empty($module)){
+					if ($rules[$row['rid']]['module'] && empty($module)) {
+						$row['module'] = str_replace('cover->', '', $rules[$row['rid']]['module']);
+						$module =  pdo_fetchcolumn("SELECT title from ".tablename('modules')." WHERE  name = :name", array(':name' => $row['module']));
+						$html .= $module ." \t, ";
+					} else {
+						if (empty($module)){
 							 $html .= "未触发模块". "\t, ";
-						 }
+						}
 					}
 				}
 
@@ -167,16 +166,16 @@ if($do == 'history') {
 	template('platform/stat-history');
 }
 
-if($do == 'del') {
-	$op = $_GPC['op'] ? trim($_GPC['op']) : message('非法访问', '', 'error');
+if ($do == 'del') {
+	$op = $_GPC['op'] ? trim($_GPC['op']) : itoast('非法访问', '', 'error');
 	$id = intval($_GPC['id']);
 	if($op == 'history') {
 		pdo_delete('stat_msg_history', array('id' => $id, 'uniacid' => $_W['uniacid']));
-		message('删除聊天数据成功', url('platform/stat/history'), 'success');
+		itoast('删除聊天数据成功', url('platform/stat/history'), 'success');
 	}
 }
-if($do == 'rule') {
-	uni_user_permission_check('platform_stat_rule');
+if ($do == 'rule') {
+	// permission_check_account_user('platform_stat_rule');
 	$_W['page']['title'] = '回复规则使用情况 - 数据统计';
 	$foo = !empty($_GPC['foo']) ? $_GPC['foo'] : 'hit';
 	
@@ -191,10 +190,10 @@ if($do == 'rule') {
 		$rids = array_keys($list);
 		if (!empty($rids)) {
 			$rules = pdo_fetchall("SELECT name, id, module FROM ".tablename('rule')." WHERE id IN (".implode(',', $rids).")", array(), 'id');
-			foreach($rules as $key => &$li) {
-				if($li['module'] == 'cover') {
+			foreach ($rules as $key => &$li) {
+				if ($li['module'] == 'cover') {
 					$cover_reply = pdo_fetch('SELECT module,do FROM ' . tablename('cover_reply') . ' WHERE rid = :rid', array(':rid' => $key));
-					if(!in_array($cover_reply['module'], array('mc', 'site', 'card'))) {
+					if (!in_array($cover_reply['module'], array('mc', 'site', 'card'))) {
 						$eid = pdo_fetchcolumn('SELECT eid FROM ' . tablename('modules_bindings') . ' WHERE module = :m AND do = :do AND entry = :entry', array(':m' => $cover_reply['module'], ':do' => $cover_reply['do'], ':entry' => 'cover'));
 						$li['url'] = url('platform/cover/', array('eid' => $eid));
 					} else {
@@ -213,11 +212,11 @@ if($do == 'rule') {
 		$pindex = max(1, intval($_GPC['page']));
 		$psize = 50;
 		$list = pdo_fetchall("SELECT name, id, module FROM ".tablename('rule')." WHERE uniacid = '{$_W['uniacid']}' AND id NOT IN (SELECT rid FROM ".tablename('stat_rule')." WHERE  uniacid = '{$_W['uniacid']}' $where) LIMIT ".($pindex - 1) * $psize.','. $psize, array(), 'id');
-		if(!empty($list)) {
-			foreach($list as $key => &$li) {
-				if($li['module'] == 'cover') {
+		if (!empty($list)) {
+			foreach ($list as $key => &$li) {
+				if ($li['module'] == 'cover') {
 					$cover_reply = pdo_fetch('SELECT module,do FROM ' . tablename('cover_reply') . ' WHERE rid = :rid', array(':rid' => $key));
-					if(!in_array($cover_reply['module'], array('mc', 'site', 'card'))) {
+					if (!in_array($cover_reply['module'], array('mc', 'site', 'card'))) {
 						$eid = pdo_fetchcolumn('SELECT eid FROM ' . tablename('modules_bindings') . ' WHERE module = :m AND do = :do AND entry = :entry', array(':m' => $cover_reply['module'], ':do' => $cover_reply['do'], ':entry' => 'cover'));
 						$li['url'] = url('platform/cover/', array('eid' => $eid));
 					} else {
@@ -235,8 +234,8 @@ if($do == 'rule') {
 	}
 	
 }
-if($do == 'keyword') {
-	uni_user_permission_check('platform_stat_keyword');
+if ($do == 'keyword') {
+	// permission_check_account_user('platform_stat_keyword');
 	$_W['page']['title'] = '关键字命中情况 - 数据统计';
 	$foo = !empty($_GPC['foo']) ? $_GPC['foo'] : 'hit';
 	
@@ -259,10 +258,10 @@ if($do == 'keyword') {
 		}
 		if (!empty($rids)) {
 			$rules = pdo_fetchall("SELECT name, id, module FROM ".tablename('rule')." WHERE id IN (".implode(',', $rids).")", array(), 'id');
-			foreach($rules as $key => &$li) {
-				if($li['module'] == 'cover') {
+			foreach ($rules as $key => &$li) {
+				if ($li['module'] == 'cover') {
 					$cover_reply = pdo_fetch('SELECT module,do FROM ' . tablename('cover_reply') . ' WHERE rid = :rid', array(':rid' => $key));
-					if(!in_array($cover_reply['module'], array('mc', 'site', 'card'))) {
+					if (!in_array($cover_reply['module'], array('mc', 'site', 'card'))) {
 						$eid = pdo_fetchcolumn('SELECT eid FROM ' . tablename('modules_bindings') . ' WHERE module = :m AND do = :do AND entry = :entry', array(':m' => $cover_reply['module'], ':do' => $cover_reply['do'], ':entry' => 'cover'));
 						$li['url'] = url('platform/cover/', array('eid' => $eid));
 					} else {
@@ -294,9 +293,9 @@ if($do == 'keyword') {
 		if (!empty($rids)) {
 			$rules = pdo_fetchall("SELECT name, id, module FROM ".tablename('rule')." WHERE id IN (".implode(',', $rids).")", array(), 'id');
 			foreach($rules as $key => &$li) {
-				if($li['module'] == 'cover') {
+				if ($li['module'] == 'cover') {
 					$cover_reply = pdo_fetch('SELECT module,do FROM ' . tablename('cover_reply') . ' WHERE rid = :rid', array(':rid' => $key));
-					if(!in_array($cover_reply['module'], array('mc', 'site', 'card'))) {
+					if (!in_array($cover_reply['module'], array('mc', 'site', 'card'))) {
 						$eid = pdo_fetchcolumn('SELECT eid FROM ' . tablename('modules_bindings') . ' WHERE module = :m AND do = :do AND entry = :entry', array(':m' => $cover_reply['module'], ':do' => $cover_reply['do'], ':entry' => 'cover'));
 						$li['url'] = url('platform/cover/', array('eid' => $eid));
 					} else {
@@ -314,14 +313,14 @@ if($do == 'keyword') {
 	}
 }
 
-if($do == 'setting') {
-	uni_user_permission_check('platform_stat_setting');
+if ($do == 'setting') {
+	// permission_check_account_user('platform_stat_setting');
 	$_W['page']['title'] = '参数 - 数据统计';
 	$settings = uni_setting($_W['uniacid'], array('stat'));
 	$settings = $settings['stat'];
 	$default  = array('msg_history' => '1','msg_maxday' => '30','use_ratio' => '1');
 	$settings = empty($settings) ? $default : $settings;
-	if(checksubmit('submit')) {
+	if (checksubmit('submit')) {
 		$stat = array();
 		$stat['msg_history'] = intval($_GPC['msg_history']);
 		$stat['msg_maxday'] = intval($_GPC['msg_maxday']);
@@ -329,7 +328,7 @@ if($do == 'setting') {
 		$stat = iserializer($stat);
 		pdo_update('uni_settings', array('stat' => $stat), array('uniacid' => $_W['uniacid']));
 		cache_delete("unisetting:{$_W['uniacid']}");
-		message('设置参数成功', 'refresh', 'success');
+		itoast('设置参数成功', 'refresh', 'success');
 	}
 	template('platform/stat-setting');
 }

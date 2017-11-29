@@ -1,15 +1,20 @@
 <?php
 /**
+ * 用户注册设置
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
-$_W['page']['title'] = '注册选项 - 用户设置 - 用户管理';
 load()->model('setting');
+
+$_W['page']['title'] = '注册选项 - 用户管理';
+
+
 if (checksubmit('submit')) {
 	setting_save(array('open' => intval($_GPC['open']), 'verify' => intval($_GPC['verify']), 'code' => intval($_GPC['code']), 'groupid' => intval($_GPC['groupid'])), 'register');
 	cache_delete("defaultgroupid:{$_W['uniacid']}");
-	message('更新设置成功！', url('user/registerset'));
+	itoast('更新设置成功！', url('user/registerset'), 'success');
 }
 $settings = $_W['setting']['register'];
-$groups = pdo_fetchall("SELECT id, name FROM ".tablename('users_group')." ORDER BY id ASC");
-template('user/access');
+$groups = user_group();
+
+template('user/registerset');

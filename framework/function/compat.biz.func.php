@@ -107,3 +107,23 @@ if (!function_exists('activity_token_available')) {
 		return activity_coupon_available();
 	}
 }
+if (!function_exists('uni_user_permission')) {
+	function uni_user_permission($type = 'system') {
+		return permission_account_user($type);
+	}
+}
+if (!function_exists('uni_permission')) {
+	function uni_permission($uid = 0, $uniacid = 0) {
+		return permission_account_user_role($uid, $uniacid);
+	}
+}
+if (!function_exists('uni_user_permission_exist')) {
+	function uni_user_permission_exist($uid = 0, $uniacid = 0) {
+		return permission_account_user_permission_exist($uid, $uniacid);
+	}
+}
+if (!function_exists('uni_user_permission_check')) {
+	function uni_user_permission_check($permission_name = '', $show_message = true, $action = '') {
+		return permission_check_account_user($permission_name, $show_message, $action);
+	}
+}

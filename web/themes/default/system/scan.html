@@ -1,117 +1,110 @@
-{template 'common/header-gw'}
-<ol class="breadcrumb">
-	<li><a href="./?refresh"><i class="fa fa-home"></i></a></li>
-	<li><a href="{url 'system/welcome'}">系统</a></li>
-	<li class=""><a href="{url 'system/tools'}">工具</a></li>
-	<li class="active"><a href="{php echo url('system/tools/scan');}">木马查杀</a></li>
-</ol>
-<ul class="nav nav-tabs">
-	<li {if $op != 'display' && $op != 'view'}class="active"{/if}><a href="{php echo url('system/tools/scan');}">木马查杀</a></li>
-	<li {if $op == 'display'}class="active"{/if}><a href="{php echo url('system/tools/scan', array('op' => 'display'));}">查杀报告</a></li>
-	{if $op == 'view'}<li class="active"><a href="javascript:;">查看文件</a></li>{/if}
+{template 'common/header'}
+<div class="we7-page-title">木马查杀</div>
+<ul class="we7-page-tab">
+	<li {if $do != 'display' && $do != 'view'}class="active"{/if}><a href="{php echo url('system/scan');}">木马查杀</a></li>
+	<li {if $do == 'display'}class="active"{/if}><a href="{php echo url('system/scan', array('do' => 'display'));}">查杀报告</a></li>
+	{if $do == 'view'}<li class="active"><a href="javascript:;">查看文件</a></li>{/if}
 </ul>
-{if $op == 'post'}
+{if $do == 'post'}
 <div class="clearfix">
-	<form action="" method="post" class="form-horizontal form">
-		<h5 class="page-header">木马查杀</h5>
+	<form action="" method="post" class="form we7-form">
+
 		<div class="form-group">
-			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">操作说明</label>
+			<label class="col-sm-2 control-label">操作说明</label>
 			<div class="col-sm-10">
 				<div class="help-block">这里是说明</div>
 			</div>
 		</div>
 		<div class="form-group">
-			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">查杀目录</label>
+			<label class="col-sm-2 control-label">查杀目录</label>
 			<div class="col-sm-10" style="">
-				{loop $list $li}
-				<label class="checkbox" style="margin-left:15px">
+				{loop $list $index $li}
+				<div class="checkbox" style="margin-left:15px">
 					{if is_dir($li)}
-					<input type="checkbox" name="dir[]" value="{$li}"/><i class="fa fa-folder-open"> </i> {php echo basename($li);}
+					<input type="checkbox" name="dir[]" id="dir[{$index}]" value="{$li}"/><label for="dir[{$index}]"><i class="fa fa-folder-open"> </i> {php echo basename($li);}</label>
 					{else}
-					<input type="checkbox" name="dir[]" value="{$li}"/><i class="fa fa-file-code-o"> </i> {php echo basename($li);}
+					<input type="checkbox" name="dir[]" id="dir[{$index}]" value="{$li}"/><label for="dir[{$index}]"><i class="fa fa-file-code-o"> </i> {php echo basename($li);}</label>
 					{/if}
-				</label>
+				</div>
 				{/loop}
 			</div>
 		</div>
 <!--
 		<div class="form-group">
-			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">文件类型</label>
+			<label class="col-sm-2 col-lg-1 control-label">文件类型</label>
 			<div class="col-sm-10">
 				<input type="text" class="form-control" name="file_type" value="{$safe['file_type']}"/>
 			</div>
 		</div>
 -->
 		<div class="form-group">
-			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">特征函数</label>
+			<label class="col-sm-2 control-label">特征函数</label>
 			<div class="col-sm-10">
 				<input type="text" class="form-control" name="func" value="{$safe['func']}"/>
 			</div>
 		</div>
 		<div class="form-group">
-			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">特征代码</label>
+			<label class="col-sm-2 control-label">特征代码</label>
 			<div class="col-sm-10">
 				<input type="text" class="form-control" name="code" value="{$safe['code']}"/>
 			</div>
 		</div>
-		<div class="form-group">
-			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label"></label>
-			<div class="col-sm-10">
-				<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1"/>
-				<input type="hidden" name="token" value="{$_W['token']}"/>
-			</div>
-		</div>
+		
+		<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1"/>
+		<input type="hidden" name="token" value="{$_W['token']}"/>
+			
 	</form>
 </div>
-{elseif $op == 'display'}
+{elseif $do == 'display'}
 <div class="clearfix">
-	<div class="panel panel-default">
-		<div class="panel-heading">查杀报告</div>
-		<div class="panel-body table-responsive">
-			<table class="table">
-				<thead>
-				<th width="500">文件地址</th>
-				<th width="120">特征函数次数</th>
-				<th>特征函数</th>
-				<th width="120">特征代码次数</th>
-				<th>特征代码</th>
-				<th width="120">Zend encoded</th>
-				<th width="120">危险文件</th>
-				<th width="100">操作</th>
-				</thead>
-				<tbody>
+			<table class="table we7-table table-hover site-list">
+				<col width=""/>
+				<col width="115px"/>
+				<col width="115px"/>
+				<col width="115px"/>
+				<col width="105px"/>
+				<col width="115px"/>
+				<col width="115px"/>
+				<col width="115px"/>
+				<tr>
+					<th>文件地址</th>
+					<th>特征函数次数</th>
+					<th>特征函数</th>
+					<th>特征代码次数</th>
+					<th>特征代码</th>
+					<th>Zend encoded</th>
+					<th>危险文件</th>
+					<th class="text-right">操作</th>
+				</tr>
 				{loop $badfiles $k $v}
 					<tr>
-						<td>{$k}</td>
-						<td>{$v['func_count']}</td>
-						<td><span class="text-danger">{$v['func_str']}</span></td>
-						<td>{$v['code_count']}</td>
-						<td><span class="text-danger">{$v['code_str']}</span></td>
-						<td>
+						<td class="text-over" style="word-break: break-word;">{$k}</td>
+						<td style="word-break: break-word;">{$v['func_count']}</td>
+						<td style="word-break: break-word;"><span class="text-danger">{$v['func_str']}</span></td>
+						<td style="word-break: break-word;">{$v['code_count']}</td>
+						<td style="word-break: break-word;"><span class="text-danger">{$v['code_str']}</span></td>
+						<td style="word-break: break-word;">
 							{if isset($v['zend'])}
 							<span class="label label-danger">Yes</span>
 							{else}
 							No
 							{/if}
 						</td>
-						<td>
+						<td style="word-break: break-word;">
 							{if isset($v['danger'])}
 							<span class="label label-danger">Yes</span>
 							{else}
 							No
 							{/if}
 						</td>
-						<td>
-							<a href="{php echo url('system/tools/scan/', array('op' => 'view', 'file' => authcode($k, 'ENCODE')));}" title="查看">查看</a>
+						<td style="word-break: break-word;">
+							<div class="link-group"><a href="{php echo url('system/scan/', array('do' => 'view', 'file' => authcode($k, 'ENCODE')));}" title="查看">查看</a></div>
 						</td>
 					</tr>
 				{/loop}
-				</tbody>
 			</table>
-		</div>
-	</div>
 </div>
-{elseif $op == 'view'}
+{elseif $do == 'view'}
 <div class="clearfix">
 	<div class="panel panel-default">
 		<div class="panel-heading">查看文件 <span class="text-danger">[{$file_tmp}]</span></div>
@@ -138,10 +131,10 @@
 	<form action="" class="form-horizontal">
 		<div class="form-group">
 			<div class="col-sm-10">
-				<a href="{php echo url('system/tools/scan', array('op' => 'display'))}" class="btn btn-primary col-lg-1"/>返回</a>
+				<a href="{php echo url('system/scan', array('do' => 'display'))}" class="btn btn-primary col-lg-1"/>返回</a>
 			</div>
 		</div>
 	</form>
 </div>
 {/if}
-{template 'common/footer-gw'}
+{template 'common/footer'}

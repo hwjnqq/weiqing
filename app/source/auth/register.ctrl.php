@@ -123,7 +123,7 @@ if($do == 'register') {
 			$data['mobile'] = $username;
 		}
 		if(!empty($map_fans)) {
-			$data['nickname'] = $map_fans['nickname'];
+			$data['nickname'] = strip_emoji($map_fans['nickname']);
 			$data['gender'] = $map_fans['sex'];
 			$data['residecity'] = $map_fans['city'] ? $map_fans['city'] . '市' : '';
 			$data['resideprovince'] = $map_fans['province'] ? $map_fans['province'] . '省' : '';

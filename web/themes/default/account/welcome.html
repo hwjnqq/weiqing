@@ -1,8 +1,11 @@
 {template 'common/header-base'}
+<link rel="stylesheet" href="./resource/css/welcome.css">
 <div class="home">
 	<div class="content clearfix">
 		<div id="head">
-			<div class="logo" {if !empty($copyright['flogo'])}style="background:url('{php echo tomedia($copyright['flogo']);}') no-repeat;"{/if}></div>
+			<div class="logo">
+				<img src="{if !empty($_W['setting']['copyright']['flogo'])}{php echo tomedia($_W['setting']['copyright']['flogo'])}{else}./resource/images/logo/logo-219.png{/if}" width="220px" height="50px">
+			</div>
 			<div class="advertisement">
 				{if !empty($copyright['notice'])}
 					{$copyright['notice']}
@@ -23,7 +26,7 @@
 				{if !empty($copyright['slides'])}
 					{php $i = 1;}
 					{loop $copyright['slides'] $slide}
-						<div class="item {if $i == 1}active{/if}" style="background-image:url({php echo tomedia($slide);});"></div>
+						<div class="item {if $i == 1}active{/if}"><img src="{php echo tomedia($slide);}" alt="" style="width:100%;"></div>
 						{php $i++;}
 					{/loop}
 				{/if}
@@ -69,7 +72,7 @@
 							<div class="col-xs-6">
 								<ul class="list-unstyled">
 									{loop $notices $notice}
-										<li><span class="style-2">公告</span><a href="{php echo url('article/notice-show/detail', array('id' => $notice['id']));}">{$notice['title']}</a></li>
+										<li><span class="style-2">公告</span><a href="{php echo url('article/notice-show/detail', array('id' => $notice['id']));}" style="{if !empty($notice['style'])}{if !empty($notice['style']['color'])}color: {php echo $notice['style']['color']};{/if}{if !empty($notice['style']['bold'])}font-weight:bold;{/if}{/if}">{$notice['title']}</a></li>
 									{/loop}
 								</ul>
 							</div>
@@ -219,9 +222,8 @@
 		</div>
 	</div>
 </div>
-<script type="text/javascript" src="http://api.map.baidu.com/api?v=1.4"></script>
+<script type="text/javascript" src="//api.map.baidu.com/api?v=1.4"></script>
 <script>
-	require(['bootstrap']);
 	var bmap = {
 		'option' : {
 			'lock' : false,

@@ -27,6 +27,8 @@ function template_page($id, $flag = TEMPLATE_DISPLAY) {
 	if (empty($page['html'])) {
 		return '';
 	}
+	$page['html'] = str_replace(array('<?', '<%', '<?php', '{php'), '_', $page['html']);
+	$page['html'] = preg_replace('/<\s*?script.*(src|language)+/i', '_', $page['html']);
 	$page['params'] = json_decode($page['params'], true);
 	$GLOBALS['title'] = htmlentities($page['title'], ENT_QUOTES, 'UTF-8');
 	$GLOBALS['_share'] = array('desc' => $page['description'], 'title' => $page['title'], 'imgUrl' => tomedia($page['params']['0']['params']['thumb']));;
@@ -42,7 +44,6 @@ function template_page($id, $flag = TEMPLATE_DISPLAY) {
 		$content .= '<style>body{background-color:'.$page['params'][0]['params']['bgColor'].' !important;}</style>';
 	}
 	$GLOBALS['bottom_menu'] = $page['params'][0]['property'][0]['params']['bottom_menu'];
-	$content .= '<script type="text/javascript"> var scale = 1, marginLeft, marginTop; var width = window.screen.width; var height = window.screen.height; width / height > 320 / 568 ? (scale = height / 568,  marginLeft = (width / scale - 320) / 2, width = "320px") : (scale = width / 320, marginTop = (height / scale - 568) / 2, width = "100%"); window != window.top && $(".container").css({width: "100%", height: "100%", overflow: "hidden", "transform-origin": "top left", transform: "scale(" + scale + ")"}); $(".container div").eq(0).css({"width" : width, "marginTop" : marginTop, "marginLeft": marginLeft}); $("meta[name='."'".'viewport'."'".']").attr("content", "width=320, initial-scale=" + scale + ", maximum-scale=" + scale + ", user-scalable=no"); </script>';
 	file_put_contents($compile, $content);
 	switch ($flag) {
 		case TEMPLATE_DISPLAY:
@@ -150,13 +151,19 @@ function template_parse($str) {
 	$str = preg_replace('/{url\s+(\S+)\s+(array\(.+?\))}/', '<?php echo url($1, $2);?>', $str);
 	$str = preg_replace('/{media\s+(\S+)}/', '<?php echo tomedia($1);?>', $str);
 	$str = preg_replace_callback('/{data\s+(.+?)}/s', "moduledata", $str);
+	$str = preg_replace_callback('/{hook\s+(.+?)}/s', "template_modulehook_parser", $str);
 	$str = preg_replace('/{\/data}/', '<?php } } ?>', $str);
+	$str = preg_replace('/{\/hook}/', '<?php ; ?>', $str);
 	$str = preg_replace_callback('/<\?php([^\?]+)\?>/s', "template_addquote", $str);
 	$str = preg_replace('/{([A-Z_\x7f-\xff][A-Z0-9_\x7f-\xff]*)}/s', '<?php echo $1;?>', $str);
 	$str = str_replace('{##', '{', $str);
 	$str = str_replace('##}', '}', $str);
+
+	$business_stat_script = "</script><script type=\"text/javascript\" src=\"{$GLOBALS['_W']['siteroot']}app/index.php?i={$GLOBALS['_W']['uniacid']}&c=utility&a=visit&do=showjs&m={$GLOBALS['_W']['current_module']['name']}\">";
 	if (!empty($GLOBALS['_W']['setting']['remote']['type'])) {
-		$str = str_replace('</body>', "<script>var imgs = document.getElementsByTagName('img');for(var i=0, len=imgs.length; i < len; i++){imgs[i].onerror = function() {if (!this.getAttribute('check-src') && (this.src.indexOf('http://') > -1 || this.src.indexOf('https://') > -1)) {this.src = this.src.indexOf('{$GLOBALS['_W']['attachurl_local']}') == -1 ? this.src.replace('{$GLOBALS['_W']['attachurl_remote']}', '{$GLOBALS['_W']['attachurl_local']}') : this.src.replace('{$GLOBALS['_W']['attachurl_local']}', '{$GLOBALS['_W']['attachurl_remote']}');this.setAttribute('check-src', true);}}}</script></body>", $str);
+		$str = str_replace('</body>', "<script>var imgs = document.getElementsByTagName('img');for(var i=0, len=imgs.length; i < len; i++){imgs[i].onerror = function() {if (!this.getAttribute('check-src') && (this.src.indexOf('http://') > -1 || this.src.indexOf('https://') > -1)) {this.src = this.src.indexOf('{$GLOBALS['_W']['attachurl_local']}') == -1 ? this.src.replace('{$GLOBALS['_W']['attachurl_remote']}', '{$GLOBALS['_W']['attachurl_local']}') : this.src.replace('{$GLOBALS['_W']['attachurl_local']}', '{$GLOBALS['_W']['attachurl_remote']}');this.setAttribute('check-src', true);}}};{$business_stat_script}</script></body>", $str);
+	} else {
+		$str = str_replace('</body>', "<script>;{$business_stat_script}</script></body>", $str);
 	}
 	$str = "<?php defined('IN_IA') or exit('Access Denied');?>" . $str;
 	return $str;
@@ -258,10 +265,10 @@ function modulefunc($modulename, $funcname, $params) {
  */
 function site_navs($params = array()) {
 	global $_W, $multi, $cid, $ishomepage;
-	$condition = '';
+	$condition = array();
 	if(!$cid || !$ishomepage) {
 		if (!empty($params['section'])) {
-			$condition = " AND section = '".intval($params['section'])."'";
+			$condition['section'] = intval($params['section']);
 		}
 		if(empty($params['multiid'])) {
 			load()->model('account');
@@ -270,10 +277,19 @@ function site_navs($params = array()) {
 		} else{
 			$multiid = intval($params['multiid']);
 		}
-		$navs = pdo_fetchall("SELECT id, name, description, url, icon, css, position, module FROM ".tablename('site_nav')." WHERE position = '1' AND status = 1 AND uniacid = '{$_W['uniacid']}' AND multiid = '{$multiid}' $condition ORDER BY displayorder DESC, id DESC");
+		$condition['position'] = 1;
+		$condition['status'] = 1;
+		$condition['uniacid'] = $_W['uniacid'];
+		$condition['multiid'] = $multiid;
+		$fields = array('id', 'name', 'description', 'url', 'icon', 'css', 'position', 'module');
+		$navs = pdo_getall('site_nav', $condition, $fields, '', array('section ASC', 'displayorder DESC', 'id DESC'));
 	} else {
-		$condition = " AND parentid = '".$cid."'";
-		$navs = pdo_fetchall("SELECT * FROM ".tablename('site_category')." WHERE enabled = '1' AND uniacid = '{$_W['uniacid']}' $condition ORDER BY displayorder DESC, id DESC");
+		$condition = array(
+			'parentid' => $cid,
+			'enabled' => 1,
+			'uniacid' => $_W['uniacid']
+		);
+		$navs = pdo_getall('site_category', $condition, array(), '', array('displayorder DESC', 'id DESC'));
 	}
 	if(!empty($navs)) {
 		foreach ($navs as &$row) {
@@ -314,18 +330,22 @@ function site_article($params = array()) {
 		$psize = max(1, $limit);
 	}
 	$result = array();
-
 	$condition = " WHERE uniacid = :uniacid ";
 	$pars = array(':uniacid' => $_W['uniacid']);
 	if (!empty($cid)) {
-		$category = pdo_fetch("SELECT parentid FROM ".tablename('site_category')." WHERE id = :id", array(':id' => $cid));
-		if (!empty($category['parentid'])) {
+		$category = pdo_getcolumn('site_category', array('id' => $cid, 'enabled' => 1), 'parentid');
+		if (!empty($category)) {
 			$condition .= " AND ccate = :ccate ";
 			$pars[':ccate'] = $cid;
 		} else {
-			$condition .= " AND pcate = :pcate";
+			$condition .= " AND pcate = :pcate AND (ccate = :ccate OR iscommend = '1')";
 			$pars[':pcate'] = $cid;
+			$pars[':ccate'] = ARTICLE_CCATE;
 		}
+	} else {
+		$category_list = pdo_getall('site_category', array('uniacid' => $_W['uniacid'], 'multiid' => $multiid), array(), 'id');
+		$category_list = implode(',', array_keys($category_list));
+		$condition .= " AND pcate IN (". $category_list .") OR ccate IN (". $category_list .") OR pcate = 0 AND ccate = 0";
 	}
 	if ($iscommend == 'true') {
 		$condition .= " AND iscommend = '1'";
@@ -465,7 +485,7 @@ function site_quickmenu() {
 		$multiid = intval($_GPC['t']);
 		if (empty($multiid) && !empty($_GPC['__multiid'])) {
 			$id = intval($_GPC['__multiid']);
-			$site_multi_info = pdo_get('site_multi', array('id' => $id,'uniacid' => $_W['uniacid']));		
+			$site_multi_info = pdo_get('site_multi', array('id' => $id,'uniacid' => $_W['uniacid']));
 			$multiid = empty($site_multi_info) ? '' : $id;
 		} else {
 			if(!($_GPC['c'] == 'home' && $_GPC['a'] == 'page')){
@@ -510,4 +530,55 @@ function site_quickmenu() {
 		}
 	});
 </script>";
+}
+
+function template_modulehook_parser($params = array()) {
+	load()->model('module');
+	if (empty($params[1])) {
+		return '';
+	}
+	$params = explode(' ', $params[1]);
+	if (empty($params)) {
+		return '';
+	}
+	$plugin = array();
+	foreach ($params as $row) {
+		$row = explode('=', $row);
+		$plugin[$row[0]] = str_replace(array("'", '"'), '', $row[1]);
+		$row[1] = urldecode($row[1]);
+	}
+	$plugin_info = module_fetch($plugin['module']);
+	if (empty($plugin_info)) {
+		return false;
+	}
+
+	if (empty($plugin['return']) || $plugin['return'] == 'false') {
+		//$plugin['return'] = false;
+	} else {
+		//$plugin['return'] = true;
+	}
+	if (empty($plugin['func']) || empty($plugin['module'])) {
+		return false;
+	}
+
+	if (defined('IN_SYS')) {
+		$plugin['func'] = "hookWeb{$plugin['func']}";
+	} else {
+		$plugin['func'] = "hookMobile{$plugin['func']}";
+	}
+
+	$plugin_module = WeUtility::createModuleHook($plugin_info['name']);
+	if (method_exists($plugin_module, $plugin['func']) && $plugin_module instanceof WeModuleHook) {
+		$hookparams = var_export($plugin, true);
+		if (!empty($hookparams)) {
+			$hookparams = preg_replace("/'(\\$[a-zA-Z_\x7f-\xff\[\]\']*?)'/", '$1', $hookparams);
+		} else {
+			$hookparams = 'array()';
+		}
+		$php = "<?php \$plugin_module = WeUtility::createModuleHook('{$plugin_info['name']}');call_user_func_array(array(\$plugin_module, '{$plugin['func']}'), array('params' => {$hookparams})); ?>";
+		return $php;
+	} else {
+		$php = "<!--模块 {$plugin_info['name']} 不存在嵌入点 {$plugin['func']}-->";
+		return $php;
+	}
 }

@@ -1,21 +1,15 @@
 <?php
 /**
+ *
  * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
  */
+defined('IN_IA') or exit('Access Denied');
 
-if($controller == 'profile' && $action == 'notify') { 
-	define('FRAME', 'setting');
-} elseif(empty($_GPC['m']) && $action != 'module') {
-	define('FRAME', 'setting');
-} else {
-	define('FRAME', 'ext');
-	if($_COOKIE['ext_type'] == 1) {
-		define('ACTIVE_FRAME_URL', url('profile/module/setting', array('m' => $_GPC['m'])));
-	} else {
-		define('ACTIVE_FRAME_URL', url('home/welcome/ext', array('m' => $_GPC['m'])));
-	}
+if (strexists($_W['siteurl'], 'c=profile&a=module&do=setting')) {
+	$other_params = parse_url($_W['siteurl'], PHP_URL_QUERY);
+	$other_params = str_replace('c=profile&a=module&do=setting', '', $other_params);
+	itoast('', url('module/manage-account/setting'). $other_params, 'info');
 }
-$frames = buildframes(array(FRAME));
-$frames = $frames[FRAME];
 
+define('FRAME', 'account');
+checkaccount();

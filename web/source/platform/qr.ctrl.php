@@ -1,27 +1,30 @@
 <?php
 /**
+ * 二维码
  * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
  */
 
 defined('IN_IA') or exit('Access Denied');
-uni_user_permission_check('platform_qr');
-$dos = array('display', 'post', 'list', 'del', 'delsata', 'extend', 'SubDisplay', 'check_scene_str');
-$do = !empty($_GPC['do']) && in_array($do, $dos) ? $do : 'list';
+load()->model('module');
 load()->model('account');
+load()->func('communication');
+load()->model('setting');
+
+$dos = array('display', 'post', 'list', 'del', 'extend', 'SubDisplay', 'check_scene_str', 'down_qr', 'change_status');
+$do = !empty($_GPC['do']) && in_array($do, $dos) ? $do : 'list';
 
 //检测场景字符串是否重复
-if($do == 'check_scene_str') {
+if ($do == 'check_scene_str') {
 	$scene_str = trim($_GPC['scene_str']);
 	$is_exist = pdo_fetchcolumn('SELECT id FROM ' . tablename('qrcode') . ' WHERE uniacid = :uniacid AND acid = :acid AND scene_str = :scene_str AND model = 2', array(':uniacid' => $_W['uniacid'], ':acid' => $_W['acid'], ':scene_str' => $scene_str));
-	if(!empty($is_exist)) {
-		exit('repeat');
+	if (!empty($is_exist)) {
+		iajax(1, 'repeat', '');
 	}
-	exit('success');
+	iajax(0, 'success', '');
 }
 
-if($do == 'list') {
-	$_W['page']['title'] = '管理二维码 - 二维码管理 - 高级功能';
+if ($do == 'list') {
+	$_W['page']['title'] = '二维码管理 - 高级功能';
 	$wheresql = " WHERE uniacid = :uniacid AND acid = :acid AND type = 'scene'";
 	$param = array(':uniacid' => $_W['uniacid'], ':acid' => $_W['acid']);
 	$keyword = trim($_GPC['keyword']);
@@ -37,7 +40,7 @@ if($do == 'list') {
 			$qrcode['endtime'] = $qrcode['createtime'] + $qrcode['expire'];
 			if (TIMESTAMP > $qrcode['endtime']) {
 				$qrcode['endtime'] = '<font color="red">已过期</font>';
-			}else{
+			} else {
 				$qrcode['endtime'] = date('Y-m-d H:i:s',$qrcode['endtime']);
 			}
 			if ($qrcode['model'] == 2) {
@@ -48,34 +51,36 @@ if($do == 'list') {
 				$qrcode['modellabel']="临时";
 			}
 		}
+		unset($qrcode);
 	}
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('qrcode') . $wheresql, $param);
 	$pager = pagination($total, $pindex, $psize);
+
 	//删除过期二维码
 	pdo_query("UPDATE ".tablename('qrcode')." SET status = '0' WHERE uniacid = '{$_W['uniacid']}' AND model = '1' AND createtime < '{$_W['timestamp']}' - expire");
 	template('platform/qr-list');
 }
 
-if($do == 'del') {
+if ($do == 'del') {
 	if ($_GPC['scgq']) {
 		$list = pdo_fetchall("SELECT id FROM ".tablename('qrcode')." WHERE uniacid = :uniacid AND acid = :acid AND status = '0' AND type='scene'", array(':uniacid' => $_W['uniacid'], ':acid' => $_W['acid']), 'id');
 		if (!empty($list)) {
 			pdo_query("DELETE FROM ".tablename('qrcode')." WHERE id IN (".implode(',', array_keys($list)).")");
 			pdo_query("DELETE FROM ".tablename('qrcode_stat')." WHERE qid IN (".implode(',', array_keys($list)).")");
 		}
-		message('执行成功<br />删除二维码：'.count($list), url('platform/qr/list'),'success');
-	}else{
+		itoast('执行成功<br />删除二维码：'.count($list), url('platform/qr/list'),'success');
+	} else {
 		$id = intval($_GPC['id']);
 		pdo_delete('qrcode', array('id' =>$id, 'uniacid' => $_W['uniacid']));
 		pdo_delete('qrcode_stat',array('qid' => $id, 'uniacid' => $_W['uniacid']));
-		message('删除成功',url('platform/qr/list'),'success');
+		itoast('删除成功',url('platform/qr/list'),'success');
 	}
 }
 
-if($do == 'post') {
+if ($do == 'post') {
 	$_W['page']['title'] = '生成二维码 - 二维码管理 - 高级功能';
-	load()->func('communication');
-	if(checksubmit('submit')){
+
+	if (checksubmit('submit')){
 		//二维码结构定义
 		$barcode = array(
 			'expire_seconds' => '',
@@ -88,15 +93,17 @@ if($do == 'post') {
 		$acid = intval($_W['acid']);
 		$uniacccount = WeAccount::create($acid);
 		$id = intval($_GPC['id']);
+		$keyword_id = intval(trim(htmlspecialchars_decode($_GPC['reply']['reply_keyword']), "\""));;
+		$keyword = pdo_get('rule_keyword', array('id' => $keyword_id), array('content'));
 		if (!empty($id)) {
 			$update = array(
-				'keyword' => trim($_GPC['keyword']),
+				'keyword' => $keyword['content'],
 				'name' => trim($_GPC['scene-name'])
 			);
 			pdo_update('qrcode', $update, array('uniacid' => $_W['uniacid'], 'id' => $id));
-			message('恭喜，更新带参数二维码成功！', url('platform/qr/list'), 'success');
+			itoast('恭喜，更新带参数二维码成功！', url('platform/qr/list'), 'success');
 		}
-	
+
 		if ($qrctype == 1) {
 			$qrcid = pdo_fetchcolumn("SELECT qrcid FROM ".tablename('qrcode')." WHERE acid = :acid AND model = '1' AND type = 'scene' ORDER BY qrcid DESC LIMIT 1", array(':acid' => $acid));
 			$barcode['action_info']['scene']['scene_id'] = !empty($qrcid) ? ($qrcid + 1) : 100001;
@@ -104,25 +111,25 @@ if($do == 'post') {
 			$barcode['action_name'] = 'QR_SCENE';
 			$result = $uniacccount->barCodeCreateDisposable($barcode);
 		} else if ($qrctype == 2) {
-			$scene_str = trim($_GPC['scene_str']) ? trim($_GPC['scene_str'])  : message('场景值不能为空');
+			$scene_str = trim($_GPC['scene_str']) ? trim($_GPC['scene_str'])  : itoast('场景值不能为空', '', '');
 			$is_exist = pdo_fetchcolumn('SELECT id FROM ' . tablename('qrcode') . ' WHERE uniacid = :uniacid AND acid = :acid AND scene_str = :scene_str AND model = 2', array(':uniacid' => $_W['uniacid'], ':acid' => $_W['acid'], ':scene_str' => $scene_str));
-			if(!empty($is_exist)) {
-				message("场景值:{$scene_str}已经存在,请更换场景值");
+			if (!empty($is_exist)) {
+				itoast("场景值:{$scene_str}已经存在,请更换场景值", '', 'error');
 			}
 			$barcode['action_info']['scene']['scene_str'] = $scene_str;
 			$barcode['action_name'] = 'QR_LIMIT_STR_SCENE';
 			$result = $uniacccount->barCodeCreateFixed($barcode);
 		} else {
-			message('抱歉，此公众号暂不支持您请求的二维码类型！');
+			itoast('抱歉，此公众号暂不支持您请求的二维码类型！', '', '');
 		}
-		
-		if(!is_error($result)) {
+
+		if (!is_error($result)) {
 			$insert = array(
 				'uniacid' => $_W['uniacid'],
 				'acid' => $acid,
 				'qrcid' => $barcode['action_info']['scene']['scene_id'],
 				'scene_str' => $barcode['action_info']['scene']['scene_str'],
-				'keyword' => $_GPC['keyword'],
+				'keyword' => $keyword['content'],
 				'name' => $_GPC['scene-name'],
 				'model' => $_GPC['qrc-model'],
 				'ticket' => $result['ticket'],
@@ -133,19 +140,22 @@ if($do == 'post') {
 				'type' => 'scene',
 			);
 			pdo_insert('qrcode', $insert);
-			message('恭喜，生成带参数二维码成功！', url('platform/qr/list', array('name' => 'qrcode')), 'success');
+			itoast('恭喜，生成带参数二维码成功！', url('platform/qr/list', array('name' => 'qrcode')), 'success');
 		} else {
-			message("公众平台返回接口错误. <br />错误代码为: {$result['errorcode']} <br />错误信息为: {$result['message']}");
+			itoast("公众平台返回接口错误. <br />错误代码为: {$result['errorcode']} <br />错误信息为: {$result['message']}", '', '');
 		}
 	}
 
-	$id = intval($_GPC['id']);
-	$row = pdo_fetch("SELECT * FROM ".tablename('qrcode')." WHERE uniacid = {$_W['uniacid']} AND id = '{$id}'");
+	if (!empty($_GPC['id'])) {
+		$id = intval($_GPC['id']);
+		$row = pdo_fetch("SELECT * FROM ".tablename('qrcode')." WHERE uniacid = {$_W['uniacid']} AND id = '{$id}'");
+		$rid = pdo_get('rule_keyword', array('uniacid' => $_W['uniacid'], 'content' => $row['keyword']), array('rid'));
+		$rid = $rid['rid'];
+	}
 	template('platform/qr-post');
 }
 
-if($do == 'extend') {
-	load()->func('communication');
+if ($do == 'extend') {
 	$id = intval($_GPC['id']);
 	if (!empty($id)) {
 		$qrcrow = pdo_fetch("SELECT * FROM ".tablename('qrcode')." WHERE uniacid = :uniacid AND id = :id LIMIT 1", array(':uniacid' => $_W['uniacid'], ':id' => $id));
@@ -156,8 +166,8 @@ if($do == 'extend') {
 			$barcode['expire_seconds'] = 2592000;
 			$barcode['action_name'] = 'QR_SCENE';
 			$result = $uniacccount->barCodeCreateDisposable($barcode);
-			if(is_error($result)) {
-				message($result['message'], '', 'error');
+			if (is_error($result)) {
+				itoast($result['message'], '', 'error');
 			}
 			$update['ticket'] = $result['ticket'];
 			$update['url'] = $result['url'];
@@ -165,49 +175,63 @@ if($do == 'extend') {
 			$update['createtime'] = TIMESTAMP;
 			pdo_update('qrcode', $update, array('id' => $id, 'uniacid' => $_W['uniacid']));
 		}
-		message('恭喜，延长临时二维码时间成功！', referer(), 'success');
+		itoast('恭喜，延长临时二维码时间成功！', referer(), 'success');
 	}
 }
 
-if($do == 'display') {
+if ($do == 'display' || $do == 'change_status') {
+	$status_setting = setting_load('qr_status');
+	$status = $status_setting['qr_status']['status'];
+}
+
+if ($do == 'display') {
 	$_W['page']['title'] = '扫描统计 - 二维码管理 - 高级功能';
-	$starttime = empty($_GPC['time']['start']) ? TIMESTAMP -  86399 * 30 : strtotime($_GPC['time']['start']);
-	$endtime = empty($_GPC['time']['end']) ? TIMESTAMP + 6*86400: strtotime($_GPC['time']['end']) + 86399;
-	$where .= " WHERE uniacid = :uniacid AND acid = :acid AND createtime >= :starttime AND createtime < :endtime";
-	$param = array(':uniacid' => $_W['uniacid'], ':acid' => $_W['acid'], ':starttime' => $starttime, ':endtime' => $endtime);
-	!empty($_GPC['keyword']) && $where .= " AND name LIKE '%{$_GPC['keyword']}%'";
 	$pindex = max(1, intval($_GPC['page']));
-	$psize = 10;
-	$count = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('qrcode_stat'). $where, $param);
-	$list = pdo_fetchall("SELECT * FROM ".tablename('qrcode_stat')." $where ORDER BY id DESC LIMIT ".($pindex - 1) * $psize.','. $psize, $param);
+	$psize = 30;
+	$qrcode_table = table('qrcode');
+	$starttime = empty($_GPC['time']['start']) ? TIMESTAMP -  86399 * 30 : strtotime($_GPC['time']['start']);
+	$endtime = empty($_GPC['time']['end']) ? TIMESTAMP + 6*86400 : strtotime($_GPC['time']['end']) + 86399;
+
+	$qrcode_table->searchTime($starttime, $endtime);
+	$keyword = trim($_GPC['keyword']);
+	if (!empty($keyword)) {
+		$qrcode_table->searchKeyword($keyword);
+	}
+	$qrcode_table->searchWithPage($pindex, $psize);
+	$list = $qrcode_table->qrcodeStaticList($status);
+	$total = $count = $qrcode_table->getLastQueryTotal();
+
 	if (!empty($list)) {
 		$openid = array();
-		foreach ($list as $index => &$qrcode) {
-			if ($qrcode['type'] == 1) {
-				$qrcode['type']="关注";
-			} else {
-				$qrcode['type']="扫描";
-			}
-			if(!in_array($qrcode['openid'], $openid)) {
+		foreach ($list as $qrcode) {
+			if (!in_array($qrcode['openid'], $openid)) {
 				$openid[] = $qrcode['openid'];
 			}
 		}
-		$openids = implode("','", $openid);
-		$param_temp[':uniacid'] = $_W['uniacid'];
-		$param_temp[':acid'] = $_W['acid'];
-		$nickname = pdo_fetchall('SELECT nickname, openid FROM ' . tablename('mc_mapping_fans') . " WHERE uniacid = :uniacid AND acid = :acid AND openid IN ('{$openids}')", $param_temp, 'openid');
+		unset($qrcode);
+		$fans_table = table('fans');
+		$nickname = $fans_table->fansAll($openid);
 	}
-	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('qrcode_stat') . $where, $param);
 	$pager = pagination($total, $pindex, $psize);
 	template('platform/qr-display');
 }
 
-if($do == 'delsata') {
+if ($do == 'down_qr') {
 	$id = intval($_GPC['id']);
-	$b = pdo_delete('qrcode_stat',array('id' =>$id, 'uniacid' => $_W['uniacid']));
-	if ($b){
-		message('删除成功',url('platform/qr/display'),'success');
-	}else{
-		message('删除失败',url('platform/qr/display'),'error');
+	$down = pdo_get('qrcode', array('id' => $id));
+	$pic = 'https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=' . urlencode($down['ticket']);
+	header("Cache-control:private");
+	header('content-type:image/jpeg');
+	header('content-disposition: attachment;filename="'.$down['name'].'.jpg"');
+	readfile($pic);
+	exit();
+}
+
+if ($do == 'change_status') {
+	$up_status['status'] = empty($status) ? 1 : 0;
+	$update = setting_save($up_status, 'qr_status');
+	if ($update) {
+		iajax(0, '');
 	}
+	iajax(-1, '更新失败', url('platform/qr/display'));
 }

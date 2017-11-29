@@ -1,21 +1,24 @@
 <?php
 /**
+ * 授权添加公众号
  * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
+
 load()->func('communication');
+load()->classs('weixin.platform');
+load()->model('account');
 set_time_limit(0);
+
 $dos = array('ticket', 'forward', 'test', 'confirm');
 $do = in_array($do, $dos) ? $do : 'forward';
 
-load()->classs('weixin.platform');
 $account_platform = new WeiXinPlatform();
 
 $setting = setting_load('platform');
 if ($do == 'forward') {
 	if (empty($_GPC['auth_code'])) {
-		message('授权登录失败，请重试', url('account/display'), 'error');
+		itoast('授权登录失败，请重试', url('account/manage'), 'error');
 	}
 	$auth_info = $account_platform->getAuthInfo($_GPC['auth_code']);
 	$auth_refresh_token = $auth_info['authorization_info']['authorizer_refresh_token'];
@@ -23,19 +26,19 @@ if ($do == 'forward') {
 
 	$account_info = $account_platform->getAccountInfo($auth_appid);
 	if (is_error($account_info)) {
-		message('授权登录新建公众号失败，请重试', url('account/display'), 'error');
+		itoast('授权登录新建公众号失败，请重试', url('account/manage'), 'error');
 	}
 	if (!empty($_GPC['test'])) {
 		echo "此为测试平台接入返回结果：<br/> 公众号名称：{$account_info['authorizer_info']['nick_name']} <br/> 接入状态：成功";
 		exit;
 	}
-	if ($account_info['authorizer_info']['service_type_info'] = '0' || $account_info['authorizer_info']['service_type_info'] == '1') {
+	if ($account_info['authorizer_info']['service_type_info']['id'] == '0' || $account_info['authorizer_info']['service_type_info']['id'] == '1') {
 		if ($account_info['authorizer_info']['verify_type_info']['id'] > '-1') {
 			$level = '3';
 		} else {
 			$level = '1';
 		}
-	} elseif ($account_info['authorizer_info']['service_type_info'] = '2') {
+	} elseif ($account_info['authorizer_info']['service_type_info']['id'] == '2') {
 		if ($account_info['authorizer_info']['verify_type_info']['id'] > '-1') {
 			$level = '4';
 		} else {
@@ -54,7 +57,7 @@ if ($do == 'forward') {
 		'groupid' => 0,
 	);
 	if(!pdo_insert('uni_account', $account_insert)) {
-		message('授权登录新建公众号失败，请重试', url('account/display'), 'error');
+		itoast('授权登录新建公众号失败，请重试', url('account/manage'), 'error');
 	}
 	$uniacid = pdo_insertid();
 	$template = pdo_fetch('SELECT id,title FROM ' . tablename('site_templates') . " WHERE name = 'default'");
@@ -90,12 +93,9 @@ if ($do == 'forward') {
 	pdo_insert('uni_settings', $unisetting_insert);
 	pdo_insert('mc_groups', array('uniacid' => $uniacid, 'title' => '默认会员组', 'isdefault' => 1));
 
-	load()->model('module');
-	module_build_privileges();
-
 	$account_index_insert = array(
 		'uniacid' => $uniacid,
-		'type' => 3,
+		'type' => ACCOUNT_OAUTH_LOGIN,
 		'hash' => random(8),
 		'isconnect' => 1
 	);
@@ -116,17 +116,22 @@ if ($do == 'forward') {
 	);
 	pdo_insert('account_wechats', $subaccount_insert);
 	if(is_error($acid)) {
-		message('授权登录新建公众号失败，请重试', url('account/display'), 'error');
+		itoast('授权登录新建公众号失败，请重试', url('account/manage'), 'error');
 	}
 	if (empty($_W['isfounder'])) {
 		pdo_insert('uni_account_users', array('uniacid' => $uniacid, 'uid' => $_W['uid'], 'role' => 'owner'));
+		if (!empty($_W['user']['owner_uid'])) {
+			uni_user_account_role($uniacid, $_W['user']['owner_uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
+		}
 	}
 	pdo_update('uni_account', array('default_acid' => $acid), array('uniacid' => $uniacid));
 	$headimg = ihttp_request($account_info['authorizer_info']['head_img']);
 	$qrcode = ihttp_request($account_info['authorizer_info']['qrcode_url']);
 	file_put_contents(IA_ROOT . '/attachment/headimg_'.$acid.'.jpg', $headimg['content']);
 	file_put_contents(IA_ROOT . '/attachment/qrcode_'.$acid.'.jpg', $qrcode['content']);
-	message('授权登录成功', url('account/display', array('type' => '3')), 'success');
+	
+	cache_build_account($uniacid);
+	itoast('授权登录成功', url('account/manage', array('type' => '3')), 'success');
 } elseif ($do == 'confirm') {
 	$auth_refresh_token = $_GPC['auth_refresh_token'];
 	$auth_appid = $_GPC['auth_appid'];
@@ -141,14 +146,15 @@ if ($do == 'forward') {
 		'level' => $level,
 		'key' => $auth_appid,
 	), array('acid' => $acid));
-	pdo_update('account', array('isconnect' => '1', 'type' => '3', 'isdeleted' => 0), array('acid' => $acid));
+	pdo_update('account', array('isconnect' => '1', 'type' => ACCOUNT_OAUTH_LOGIN, 'isdeleted' => 0), array('acid' => $acid));
+
 	cache_delete("uniaccount:{$uniacid}");
 	cache_delete("unisetting:{$uniacid}");
 	cache_delete("accesstoken:{$acid}");
 	cache_delete("jsticket:{$acid}");
 	cache_delete("cardticket:{$acid}");
 	cache_delete("account:auth:refreshtoken:{$acid}");
-	message('更改公众号授权接入成功', url('account/display', array('type' => '3')), 'success');
+	itoast('更改公众号授权接入成功', url('account/post', array('acid' => $acid, 'uniacid' => $uniacid)), 'success');
 } elseif ($do == 'ticket') {
 	$post = file_get_contents('php://input');
 	WeUtility::logging('debug', 'account-ticket' . $post);

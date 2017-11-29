@@ -18,21 +18,6 @@ defined('IN_IA') or exit('Access Denied');
  */
 function _tpl_form_field_date($name, $value = '', $withtime = false) {
 	$s = '';
-	$s = '
-		<script type="text/javascript">
-			require(["datetimepicker"], function(){
-				$(function(){
-						var option = {
-							lang : "zh",
-							step : 5,
-							timepicker : ' . (!empty($withtime) ? "true" : "false") .',
-							closeOnDateSelect : true,
-							format : "Y-m-d' . (!empty($withtime) ? ' H:i"' : '"') .'
-						};
-					$(".datetimepicker[name = \'' . $name . '\']").datetimepicker(option);
-				});
-			});
-		</script>';
 	$withtime = empty($withtime) ? false : true;
 	if (!empty($value)) {
 		$value = strexists($value, '-') ? strtotime($value) : $value;
@@ -41,6 +26,19 @@ function _tpl_form_field_date($name, $value = '', $withtime = false) {
 	}
 	$value = ($withtime ? date('Y-m-d H:i:s', $value) : date('Y-m-d', $value));
 	$s .= '<input type="text" name="' . $name . '"  value="'.$value.'" placeholder="请选择日期时间" readonly="readonly" class="datetimepicker form-control" style="padding-left:12px;" />';
+	$s .= '
+		<script type="text/javascript">
+			require(["datetimepicker"], function(){
+					var option = {
+						lang : "zh",
+						step : 5,
+						timepicker : ' . (!empty($withtime) ? "true" : "false") .',
+						closeOnDateSelect : true,
+						format : "Y-m-d' . (!empty($withtime) ? ' H:i"' : '"') .'
+					};
+				$(".datetimepicker[name = \'' . $name . '\']").datetimepicker(option);
+			});
+		</script>';
 	return $s;
 }
 
@@ -53,93 +51,86 @@ function _tpl_form_field_date($name, $value = '', $withtime = false) {
  */
 function tpl_form_field_link($name, $value = '', $options = array()) {
 	global $_GPC;
+	if(!empty($options)) {
+		foreach ($options as $key => $val){
+			$options .= $key.':'.$val.',';
+		}
+	}
 	$s = '';
 	if (!defined('TPL_INIT_LINK')) {
 		$s = '
 		<script type="text/javascript">
 			function showLinkDialog(elm) {
-				require(["util","jquery"], function(u, $){
-					var ipt = $(elm).parent().parent().parent().prev();
-					u.linkBrowser(function(href){
-						var multiid = "'. $_GPC['multiid'] .'";
-						if (multiid) {
-							href = /(&)?t=/.test(href) ? href : href + "&t=" + multiid;
-						}
-						ipt.val(href);
-					});
+				var ipt = $(elm).parent().parent().parent().prev();
+				util.linkBrowser(function(href){
+					var multiid = "'. $_GPC['multiid'] .'";
+					if (multiid) {
+						href = /(&)?t=/.test(href) ? href : href + "&t=" + multiid;
+					}
+					ipt.val(href);
 				});
 			}
 			function newsLinkDialog(elm, page) {
-				require(["util","jquery"], function(u, $){
-					var ipt = $(elm).parent().parent().parent().prev();
-					u.newsBrowser(function(href, page){
-						if (page != "" && page != undefined) {
-							newsLinkDialog(elm, page);
-							return false;
-						}
-						var multiid = "'. $_GPC['multiid'] .'";
-						if (multiid) {
-							href = /(&)?t=/.test(href) ? href : href + "&t=" + multiid;
-						}
-						ipt.val(href);
-					}, page);
-				});
+				var ipt = $(elm).parent().parent().parent().prev();
+				util.newsBrowser(function(href, page){
+					if (page != "" && page != undefined) {
+						newsLinkDialog(elm, page);
+						return false;
+					}
+					var multiid = "'. $_GPC['multiid'] .'";
+					if (multiid) {
+						href = /(&)?t=/.test(href) ? href : href + "&t=" + multiid;
+					}
+					ipt.val(href);
+				}, page);
 			}
 			function pageLinkDialog(elm, page) {
-				require(["util","jquery"], function(u, $){
-					var ipt = $(elm).parent().parent().parent().prev();
-					u.pageBrowser(function(href, page){
-						if (page != "" && page != undefined) {
-							pageLinkDialog(elm, page);
-							return false;
-						}
-						var multiid = "'. $_GPC['multiid'] .'";
-						if (multiid) {
-							href = /(&)?t=/.test(href) ? href : href + "&t=" + multiid;
-						}
-						ipt.val(href);
-					}, page);
-				});
+				var ipt = $(elm).parent().parent().parent().prev();
+				util.pageBrowser(function(href, page){
+					if (page != "" && page != undefined) {
+						pageLinkDialog(elm, page);
+						return false;
+					}
+					var multiid = "'. $_GPC['multiid'] .'";
+					if (multiid) {
+						href = /(&)?t=/.test(href) ? href : href + "&t=" + multiid;
+					}
+					ipt.val(href);
+				}, page);
 			}
 			function articleLinkDialog(elm, page) {
-				require(["util","jquery"], function(u, $){
-					var ipt = $(elm).parent().parent().parent().prev();
-					u.articleBrowser(function(href, page){
-						if (page != "" && page != undefined) {
-							articleLinkDialog(elm, page);
-							return false;
-						}
-						var multiid = "'. $_GPC['multiid'] .'";
-						if (multiid) {
-							href = /(&)?t=/.test(href) ? href : href + "&t=" + multiid;
-						}
-						ipt.val(href);
-					}, page);
-				});
+				var ipt = $(elm).parent().parent().parent().prev();
+				util.articleBrowser(function(href, page){
+					if (page != "" && page != undefined) {
+						articleLinkDialog(elm, page);
+						return false;
+					}
+					var multiid = "'. $_GPC['multiid'] .'";
+					if (multiid) {
+						href = /(&)?t=/.test(href) ? href : href + "&t=" + multiid;
+					}
+					ipt.val(href);
+				}, page);
 			}
 			function phoneLinkDialog(elm, page) {
-				require(["util","jquery"], function(u, $){
-					var ipt = $(elm).parent().parent().parent().prev();
-					u.phoneBrowser(function(href, page){
-						if (page != "" && page != undefined) {
-							phoneLinkDialog(elm, page);
-							return false;
-						}
-						ipt.val(href);
-					}, page);
-				});
+				var ipt = $(elm).parent().parent().parent().prev();
+				util.phoneBrowser(function(href, page){
+					if (page != "" && page != undefined) {
+						phoneLinkDialog(elm, page);
+						return false;
+					}
+					ipt.val(href);
+				}, page);
 			}
 			function mapLinkDialog(elm) {
-				require(["util","jquery"], function(u, $){
-					var ipt = $(elm).parent().parent().parent().prev();
-					u.map(elm, function(val){
-						var href = \'http://api.map.baidu.com/marker?location=\'+val.lat+\',\'+val.lng+\'&output=html&src=we7\';
-						var multiid = "'. $_GPC['multiid'] .'";
-						if (multiid) {
-							href = /(&)?t=/.test(href) ? href : href + "&t=" + multiid;
-						}
-						ipt.val(href);
-					});
+				var ipt = $(elm).parent().parent().parent().prev();
+				util.map(elm, function(val){
+					var href = \'https://api.map.baidu.com/marker?location=\'+val.lat+\',\'+val.lng+\'&output=html&src=we7\';
+					var multiid = "'. $_GPC['multiid'] .'";
+					if (multiid) {
+						href = /(&)?t=/.test(href) ? href : href + "&t=" + multiid;
+					}
+					ipt.val(href);
 				});
 			}
 		</script>';
@@ -147,7 +138,7 @@ function tpl_form_field_link($name, $value = '', $options = array()) {
 	}
 	$s .= '
 	<div class="input-group">
-		<input type="text" value="'.$value.'" name="'.$name.'" class="form-control" autocomplete="off">
+		<input type="text" value="'.$value.'" name="'.$name.'" class="form-control" autocomplete="off" style="'.($options ? $options : 'width:525px').'">
 		<span class="input-group-btn">
 			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" type="button" aria-haspopup="true" aria-expanded="false">选择链接 <span class="caret"></span></button>
 			<ul class="dropdown-menu">
@@ -176,15 +167,13 @@ function tpl_form_module_link($name) {
 		$s = '
 		<script type="text/javascript">
 			function showModuleLink(elm) {
-				require(["util","jquery"], function(u, $){
-					u.showModuleLink(function(href, permission) {
-						var ipt = $(elm).parent().prev();
-						var ipts = $(elm).parent().prev().prev();
-						ipt.val(href);
-						ipts.val(permission);
-						});
-					});
-				}
+				util.showModuleLink(function(href, permission) {
+					var ipt = $(elm).parent().prev();
+					var ipts = $(elm).parent().prev().prev();
+					ipt.val(href);
+					ipts.val(permission);
+				});
+			}
 		</script>';
 		define('TPL_INIT_module', true);
 	}
@@ -212,18 +201,16 @@ function tpl_form_field_emoji($name, $value = '') {
 		$s = '
 		<script type="text/javascript">
 			function showEmojiDialog(elm) {
-				require(["util", "jquery"], function(u, $){
-					var btn = $(elm);
-					var spview = btn.parent().prev();
-					var ipt = spview.prev();
-					if(!ipt.val()){
-						spview.css("display","none");
-					}
-					u.emojiBrowser(function(emoji){
-						ipt.val("\\\" + emoji.find("span").text().replace("+", "").toLowerCase());
-						spview.show();
-						spview.find("span").removeClass().addClass(emoji.find("span").attr("class"));
-					});
+				var btn = $(elm);
+				var spview = btn.parent().prev();
+				var ipt = spview.prev();
+				if(!ipt.val()){
+					spview.css("display","none");
+				}
+				util.emojiBrowser(function(emoji){
+					ipt.val("\\\" + emoji.find("span").text().replace("+", "").toLowerCase());
+					spview.show();
+					spview.find("span").removeClass().addClass(emoji.find("span").attr("class"));
 				});
 			}
 		</script>';
@@ -252,19 +239,17 @@ function tpl_form_field_color($name, $value = '') {
 	if (!defined('TPL_INIT_COLOR')) {
 		$s = '
 		<script type="text/javascript">
-			require(["jquery", "util"], function($, util){
-				$(function(){
-					$(".colorpicker").each(function(){
-						var elm = this;
-						util.colorpicker(elm, function(color){
-							$(elm).parent().prev().prev().val(color.toHexString());
-							$(elm).parent().prev().css("background-color", color.toHexString());
-						});
+			$(function(){
+				$(".colorpicker").each(function(){
+					var elm = this;
+					util.colorpicker(elm, function(color){
+						$(elm).parent().prev().prev().val(color.toHexString());
+						$(elm).parent().prev().css("background-color", color.toHexString());
 					});
-					$(".colorclean").click(function(){
-						$(this).parent().prev().prev().val("");
-						$(this).parent().prev().css("background-color", "#FFF");
-					});
+				});
+				$(".colorclean").click(function(){
+					$(this).parent().prev().prev().val("");
+					$(this).parent().prev().css("background-color", "#FFF");
 				});
 			});
 		</script>';
@@ -302,19 +287,17 @@ function tpl_form_field_icon($name, $value='') {
 		$s = '
 		<script type="text/javascript">
 			function showIconDialog(elm) {
-				require(["util","jquery"], function(u, $){
-					var btn = $(elm);
-					var spview = btn.parent().prev();
-					var ipt = spview.prev();
-					if(!ipt.val()){
-						spview.css("display","none");
-					}
-					u.iconBrowser(function(ico){
-						ipt.val(ico);
-						spview.show();
-						spview.find("i").attr("class","");
-						spview.find("i").addClass("fa").addClass(ico);
-					});
+				var btn = $(elm);
+				var spview = btn.parent().prev();
+				var ipt = spview.prev();
+				if(!ipt.val()){
+					spview.css("display","none");
+				}
+				util.iconBrowser(function(ico){
+					ipt.val(ico);
+					spview.show();
+					spview.find("i").attr("class","");
+					spview.find("i").addClass("fa").addClass(ico);
 				});
 			}
 		</script>';
@@ -399,7 +382,7 @@ function tpl_form_field_image($name, $value = '', $default = '', $options = arra
 						}
 						if(url.media_id){
 							if(img.length > 0){
-								img.get(0).src = "";
+								img.get(0).src = url.url;
 							}
 							ipt.val(url.media_id);
 						}
@@ -407,10 +390,8 @@ function tpl_form_field_image($name, $value = '', $default = '', $options = arra
 				});
 			}
 			function deleteImage(elm){
-				require(["jquery"], function($){
-					$(elm).prev().attr("src", "./resource/images/nopic.jpg");
-					$(elm).parent().prev().find("input").val("");
-				});
+				$(elm).prev().attr("src", "./resource/images/nopic.jpg");
+				$(elm).parent().prev().find("input").val("");
 			}
 		</script>';
 		define('TPL_INIT_IMAGE', true);
@@ -460,9 +441,7 @@ function tpl_form_field_multi_image($name, $value = array(), $options = array())
 		}, ' . json_encode($options) . ');
 	}
 	function deleteMultiImage(elm){
-		require(["jquery"], function($){
-			$(elm).parent().remove();
-		});
+		$(elm).parent().remove();
 	}
 </script>';
 		define('TPL_INIT_MULTI_IMAGE', true);
@@ -532,7 +511,7 @@ function tpl_form_field_audio($name, $value = '', $options = array()) {
 	}
 
 	function setAudioPlayer(){
-		require(["jquery", "util", "jquery.jplayer"], function($, u){
+		require(["jquery.jplayer"], function(){
 			$(function(){
 				$(".audio-player").each(function(){
 					$(this).prev().find("button").eq(0).click(function(){
@@ -541,7 +520,7 @@ function tpl_form_field_audio($name, $value = '', $options = array()) {
 							$(this).parent().parent().next().jPlayer("stop");
 						} else {
 							if(src) {
-								$(this).parent().parent().next().jPlayer("setMedia", {mp3: u.tomedia(src)}).jPlayer("play");
+								$(this).parent().parent().next().jPlayer("setMedia", {mp3: util.tomedia(src)}).jPlayer("play");
 							}
 						}
 					});
@@ -612,19 +591,17 @@ function tpl_form_field_multi_audio($name, $value = array(), $options = array())
 		});
 	}
 	function deleteMultiAudio(elm){
-		require([\'jquery\'], function($){
-			$(elm).parent().parent().parent().remove();
-		});
+		$(elm).parent().parent().parent().remove();
 	}
 	function setMultiAudioPlayer(elm){
-		require(["jquery", "util", "jquery.jplayer"], function($, u){
+		require(["jquery.jplayer"], function(){
 			$(".multi-audio-player",$(elm)).next().find("button").eq(0).click(function(){
 				var src = $(this).parent().prev().val();
 				if($(this).find("i").hasClass("fa-stop")) {
 					$(this).parent().parent().prev().jPlayer("stop");
 				} else {
 					if(src) {
-						$(this).parent().parent().prev().jPlayer("setMedia", {mp3: u.tomedia(src)}).jPlayer("play");
+						$(this).parent().parent().prev().jPlayer("setMedia", {mp3: util.tomedia(src)}).jPlayer("play");
 					}
 				}
 			});
@@ -779,10 +756,8 @@ function tpl_form_field_wechat_image($name, $value = '', $default = '', $options
 				});
 			}
 			function deleteImage(elm){
-				require(["jquery"], function($){
-					$(elm).prev().attr("src", "./resource/images/nopic.jpg");
-					$(elm).parent().prev().find("input").val("");
-				});
+				$(elm).prev().attr("src", "./resource/images/nopic.jpg");
+				$(elm).parent().prev().find("input").val("");
 			}
 		</script>';
 		define('TPL_INIT_WECHAT_IMAGE', true);
@@ -828,19 +803,15 @@ function tpl_form_field_wechat_multi_image($name, $value = '', $default = '', $o
 		$s = '
 <script type="text/javascript">
 	function uploadWechatMultiImage(elm) {
-		require(["jquery","util"], function($, util){
-			var name = $(elm).next().val();
-			util.wechat_image("", function(urls){
-				$.each(urls, function(idx, url){
-					$(elm).parent().parent().next().append(\'<div class="multi-item"><img onerror="this.src=\\\'./resource/images/nopic.jpg\\\'; this.title=\\\'图片未找到.\\\'" src="\'+url.url+\'" class="img-responsive img-thumbnail"><input type="hidden" name="\'+name+\'[]" value="\'+url.media_id+\'"><em class="close" title="删除这张图片" onclick="deleteWechatMultiImage(this)">×</em></div>\');
-				});
-			}, '.json_encode($options).');
-		});
+		var name = $(elm).next().val();
+		util.wechat_image("", function(urls){
+			$.each(urls, function(idx, url){
+				$(elm).parent().parent().next().append(\'<div class="multi-item"><img onerror="this.src=\\\'./resource/images/nopic.jpg\\\'; this.title=\\\'图片未找到.\\\'" src="\'+url.url+\'" class="img-responsive img-thumbnail"><input type="hidden" name="\'+name+\'[]" value="\'+url.media_id+\'"><em class="close" title="删除这张图片" onclick="deleteWechatMultiImage(this)">×</em></div>\');
+			});
+		}, '.json_encode($options).');
 	}
 	function deleteWechatMultiImage(elm){
-		require(["jquery"], function($){
-			$(elm).parent().remove();
-		});
+		$(elm).parent().remove();
 	}
 </script>';
 		define('TPL_INIT_WECHAT_MULTI_IMAGE', true);
@@ -913,7 +884,7 @@ function tpl_form_field_wechat_voice($name, $value = '', $options = array()) {
 	}
 
 	function setWechatAudioPlayer(){
-		require(["jquery", "util", "jquery.jplayer"], function($, u){
+		require(["jquery.jplayer"], function(){
 			$(function(){
 				$(".audio-player").each(function(){
 					$(this).prev().find("button").eq(0).click(function(){
@@ -922,7 +893,7 @@ function tpl_form_field_wechat_voice($name, $value = '', $options = array()) {
 							$(this).parent().parent().next().jPlayer("stop");
 						} else {
 							if(src) {
-								$(this).parent().parent().next().jPlayer("setMedia", {mp3: u.tomedia(src)}).jPlayer("play");
+								$(this).parent().parent().next().jPlayer("setMedia", {mp3: util.tomedia(src)}).jPlayer("play");
 							}
 						}
 					});
@@ -1039,7 +1010,7 @@ function tpl_form_field_location_category($name, $values = array(), $del = false
 	if (!defined('TPL_INIT_LOCATION_CATEGORY')) {
 		$html .= '
 		<script type="text/javascript">
-			require(["jquery", "location"], function($, loc){
+			require(["location"], function(loc){
 				$(".tpl-location-container").each(function(){
 
 					var elms = {};
@@ -1104,142 +1075,21 @@ function tpl_form_field_location_category($name, $values = array(), $del = false
 
 function tpl_ueditor($id, $value = '', $options = array()) {
 	$s = '';
-	if (!defined('TPL_INIT_UEDITOR')) {
-		$s .= '<script type="text/javascript" src="./resource/components/ueditor/ueditor.config.js"></script><script type="text/javascript" src="./resource/components/ueditor/ueditor.all.min.js"></script><script type="text/javascript" src="./resource/components/ueditor/lang/zh-cn/zh-cn.js"></script>';
-	}
 	$options['height'] = empty($options['height']) ? 200 : $options['height'];
 	$options['allow_upload_video'] = isset($options['allow_upload_video']) ? $options['allow_upload_video'] : true;
 	$s .= !empty($id) ? "<textarea id=\"{$id}\" name=\"{$id}\" type=\"text/plain\" style=\"height:{$options['height']}px;\">{$value}</textarea>" : '';
 	$s .= "
 	<script type=\"text/javascript\">
-			var ueditoroption = {
-				'autoClearinitialContent' : false,
-				'toolbars' : [['fullscreen', 'source', 'preview', '|', 'bold', 'italic', 'underline', 'strikethrough', 'forecolor', 'backcolor', '|',
-					'justifyleft', 'justifycenter', 'justifyright', '|', 'insertorderedlist', 'insertunorderedlist', 'blockquote', 'emotion',
-					'link', 'removeformat', '|', 'rowspacingtop', 'rowspacingbottom', 'lineheight','indent', 'paragraph', 'fontsize', '|',
-					'inserttable', 'deletetable', 'insertparagraphbeforetable', 'insertrow', 'deleterow', 'insertcol', 'deletecol',
-					'mergecells', 'mergeright', 'mergedown', 'splittocells', 'splittorows', 'splittocols', '|', 'anchor', 'map', 'print', 'drafts']],
-				'elementPathEnabled' : false,
-				'initialFrameHeight': {$options['height']},
-				'focus' : false,
-				'maximumWords' : 9999999999999
-			};
-			var opts = {
-				type :'image',
-				direct : false,
-				multiple : true,
-				tabs : {
-					'upload' : 'active',
-					'browser' : '',
-					'crawler' : ''
-				},
-				path : '',
-				dest_dir : '{$options['dest_dir']}',
-				global : false,
-				thumb : false,
-				width : 0,
-				fileSizeLimit : ".(intval($GLOBALS['_W']['setting']['upload']['image']['limit']) * 1024)."
-			};
-			UE.registerUI('myinsertimage',function(editor,uiName){
-				editor.registerCommand(uiName, {
-					execCommand:function(){
-						require(['fileUploader'], function(uploader){
-							uploader.show(function(imgs){
-								if (imgs.length == 0) {
-									return;
-								} else if (imgs.length == 1) {
-									editor.execCommand('insertimage', {
-										'src' : imgs[0]['url'],
-										'_src' : imgs[0]['attachment'],
-										'width' : '100%',
-										'alt' : imgs[0].filename
-									});
-								} else {
-									var imglist = [];
-									for (i in imgs) {
-										imglist.push({
-											'src' : imgs[i]['url'],
-											'_src' : imgs[i]['attachment'],
-											'width' : '100%',
-											'alt' : imgs[i].filename
-										});
-									}
-									editor.execCommand('insertimage', imglist);
-								}
-							}, opts);
-						});
-					}
-				});
-				var btn = new UE.ui.Button({
-					name: '插入图片',
-					title: '插入图片',
-					cssRules :'background-position: -726px -77px',
-					onclick:function () {
-						editor.execCommand(uiName);
-					}
-				});
-				editor.addListener('selectionchange', function () {
-					var state = editor.queryCommandState(uiName);
-					if (state == -1) {
-						btn.setDisabled(true);
-						btn.setChecked(false);
-					} else {
-						btn.setDisabled(false);
-						btn.setChecked(state);
-					}
-				});
-				return btn;
-			}, 19);
-			
-			UE.registerUI('myinsertvideo',function(editor,uiName){
-				editor.registerCommand(uiName, {
-					execCommand:function(){
-						require(['fileUploader'], function(uploader){
-							uploader.show(function(video){
-								if (!video) {
-									return;
-								} else {
-									var videoType = video.isRemote ? 'iframe' : 'video';
-									editor.execCommand('insertvideo', {
-										'url' : video.url,
-										'width' : 300,
-										'height' : 200
-									}, videoType);
-								}
-							}, {fileSizeLimit : ".(intval($GLOBALS['_W']['setting']['upload']['audio']['limit']) * 1024).", type : 'video', allowUploadVideo : ".($options['allow_upload_video'] ? 'true' : 'false')."});
-						});
-					}
-				});
-				var btn = new UE.ui.Button({
-					name: '插入视频',
-					title: '插入视频',
-					cssRules :'background-position: -320px -20px',
-					onclick:function () {
-						editor.execCommand(uiName);
-					}
-				});
-				editor.addListener('selectionchange', function () {
-					var state = editor.queryCommandState(uiName);
-					if (state == -1) {
-						btn.setDisabled(true);
-						btn.setChecked(false);
-					} else {
-						btn.setDisabled(false);
-						btn.setChecked(state);
-					}
-				});
-				return btn;
-			}, 20);
-			".(!empty($id) ? "
-				$(function(){
-					var ue = UE.getEditor('{$id}', ueditoroption);
-					$('#{$id}').data('editor', ue);
-					$('#{$id}').parents('form').submit(function() {
-						if (ue.queryCommandState('source')) {
-							ue.execCommand('source');
-						}
-					});
-				});" : '')."
+		require(['util'], function(util){
+			util.editor('" . ($id ? $id : "") . "', {
+			height : {$options['height']}, 
+			dest_dir : '" .($options['dest_dir'] ? $options['dest_dir'] : "") . "',
+			image_limit : " . (intval($GLOBALS['_W']['setting']['upload']['image']['limit']) * 1024) . ",
+			allow_upload_video : " . ($options['allow_upload_video'] ? 'true' : 'false') . ",
+			audio_limit : " . (intval($GLOBALS['_W']['setting']['upload']['audio']['limit']) * 1024) . ",
+			callback : ''
+			});
+		});
 	</script>";
 	return $s;
 }

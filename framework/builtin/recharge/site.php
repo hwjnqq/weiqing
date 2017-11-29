@@ -14,12 +14,8 @@ class RechargeModuleSite extends WeModuleSite {
 		checkauth();
 		$type = trim($_GPC['type']) ? trim($_GPC['type']) : 'credit';
 		if($type == 'credit') {
-			load()->model('card');
-			load()->model('module');
-			$we7_coupon_info = module_fetch('we7_coupon');
-			if (!empty($we7_coupon_info)) {
-				$recharge_settings = card_params_setting('cardRecharge');
-			}
+			load() -> model('card');
+			$recharge_settings = card_params_setting('cardRecharge');
 			if(checksubmit()) {
 				$fee = floatval($_GPC['fee']);
 				$backtype = trim($_GPC['backtype']);
@@ -181,9 +177,8 @@ class RechargeModuleSite extends WeModuleSite {
 	 */
 	public function payResult($params) {
 		global $_W;
-		load()->model('mc');
-		load()->model('card');
-		load()->model('module');
+		load()-> model('mc');
+		load() -> model('card');
 		$order = pdo_fetch("SELECT * FROM ".tablename('mc_credits_recharge')." WHERE tid = :tid", array(':tid' => $params['tid']));
 		if ($params['result'] == 'success' && $params['from'] == 'notify') {
 			$fee = $params['fee'];
@@ -200,16 +195,13 @@ class RechargeModuleSite extends WeModuleSite {
 			if(empty($order['type']) || $order['type'] == 'credit') {
 				$setting = uni_setting($_W['uniacid'], array('creditbehaviors', 'recharge'));
 				$credit = $setting['creditbehaviors']['currency'];
+				$recharge_settings = card_params_setting('cardRecharge');
+				$recharge_params = $recharge_settings['params'];
 				if(empty($credit)) {
 					message('站点积分行为参数配置错误,请联系服务商', '', 'error');
 				} else {
-					$we7_coupon_info = module_fetch('we7_coupon');
-					if (!empty($we7_coupon_info)) {
-						$recharge_settings = card_params_setting('cardRecharge');
-						$recharge_params = $recharge_settings['params'];
-						if ($recharge_params['recharge_type'] == '1') {
-							$recharges = $recharge_params['recharges'];
-						}
+					if ($recharge_params['recharge_type'] == '1') {
+						$recharges = $recharge_params['recharges'];
 					}
 					if ($order['backtype'] == '2') {
 						$total_fee = $fee;
@@ -316,11 +308,11 @@ class RechargeModuleSite extends WeModuleSite {
 		$pars[':tid'] = $params['tid'];
 		$log = pdo_fetch($sql, $pars);
 		if(!empty($log) && $log['status'] == '1') {
-			message('这个订单已经支付成功, 不需要重复支付.');
+			itoast('这个订单已经支付成功, 不需要重复支付.', '', 'info');
 		}
 		$setting = uni_setting($_W['uniacid'], array('payment', 'creditbehaviors'));
 		if(!is_array($setting['payment'])) {
-			message('没有有效的支付方式, 请联系网站管理员.');
+			itoast('没有有效的支付方式, 请联系网站管理员.', '', 'error');
 		}
 		$log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $params['module'], 'tid' => $params['tid']));
 		if (empty($log)) {

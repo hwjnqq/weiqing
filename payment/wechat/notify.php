@@ -37,6 +37,10 @@ $_W['uniacid'] = $_W['weid'] = intval($get['attach']);
 $_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);
 $_W['acid'] = $_W['uniaccount']['acid'];
 $setting = uni_setting($_W['uniacid'], array('payment'));
+if ($get['trade_type'] == 'NATIVE') {
+	$setting = setting_load('store_pay');
+	$setting['payment']['wechat'] = $setting['store_pay']['wechat'];
+}
 if(is_array($setting['payment'])) {
 	$wechat = $setting['payment']['wechat'];
 	WeUtility::logging('pay', var_export($get, true));
@@ -77,7 +81,15 @@ if(is_array($setting['payment'])) {
 				 	$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $log['module']);
 				}
 
-				$site = WeUtility::createModuleSite($log['module']);
+				$module = module_fetch($log['module']);
+				if (empty($module)) {
+					exit('success');
+				}
+				if ($module['app_support'] == MODULE_SUPPORT_ACCOUNT) {
+					$site = WeUtility::createModuleSite($log['module']);
+				} elseif ($module['wxapp_support'] == MODULE_SUPPORT_WXAPP) {
+					$site = WeUtility::createModuleWxapp($log['module']);
+				}
 				if(!is_error($site)) {
 					$method = 'payResult';
 					if (method_exists($site, $method)) {

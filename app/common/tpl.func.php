@@ -156,11 +156,17 @@ function tpl_app_form_field_calendar($name, $values = array()) {
 			<script type="text/javascript">
 				$(document).on("tap", ".mui-calendar-picker", function(){
 					var $this = $(this);
-					util.datepicker({type: "date", beginYear: 1960, endYear: 2016}, function(rs){
-						$this.val(rs.value)
-						.next().val(rs.y.text)
-						.next().val(rs.m.text)
-						.next().val(rs.d.text)
+					util.datepicker({
+						type: "date", 
+						beginYear: 1910, 
+						endYear: 2060, 
+						selected : {
+							year : "' . $values['year'] . '", month : "' . $values['month'] . '", day : "' . $values['day'] . '"}
+						}, function(rs){
+							$this.val(rs.value)
+							.next().val(rs.y.text)
+							.next().val(rs.m.text)
+							.next().val(rs.d.text)
 					});
 				});
 			</script>';
@@ -185,7 +191,7 @@ function tpl_app_form_field_district($name, $values = array()) {
 					.next().val(item[0].text)
 					.next().val(item[1].text)
 					.next().val(item[2].text);
-				});
+				}, {province : "' . $values['province'] . '", city : "' . $values['city'] . '", district : "' . $values['district'] . '"});
 			});
 		</script>';
 	return $html;
