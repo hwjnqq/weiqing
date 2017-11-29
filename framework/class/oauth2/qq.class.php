@@ -165,7 +165,7 @@ class Qq extends OAuth2Client {
 		if (!empty($user_id) || !empty($user_bind_info)) {
 			return error(-1, '已被其他用户绑定，请更换账号');
 		}
-		pdo_insert('users_bind', array('uid' => $_W['uid'], 'bind_sign' => $user['member']['openid'], 'third_type' => $user['member']['register_type'], 'third_nickname' => strip_emoji($user['member']['nickname'])));
+		pdo_insert('users_bind', array('uid' => $_W['uid'], 'bind_sign' => $user['member']['openid'], 'third_type' => $user['member']['register_type'], 'third_nickname' => strip_emoji($user['profile']['nickname'])));
 		return true;
 	}
 
