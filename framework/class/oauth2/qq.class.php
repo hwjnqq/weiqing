@@ -139,7 +139,11 @@ class Qq extends OAuth2Client {
 		$user_id = pdo_getcolumn('users', array('openid' => $user['member']['openid']), 'uid');
 		$user_bind_info = $user_table->userBindInfo($user['member']['openid'], $user['member']['register_type']);
 
-		if (empty($user_id) && !empty($user_bind_info)) {
+		if (!empty($user_id)) {
+			return $user_id;
+		}
+
+		if (!empty($user_bind_info)) {
 			return $user_bind_info['uid'];
 		}
 
@@ -161,14 +165,14 @@ class Qq extends OAuth2Client {
 		if (!empty($user_id) || !empty($user_bind_info)) {
 			return error(-1, '已被其他用户绑定，请更换账号');
 		}
-		pdo_insert('users_bind', array('uid' => $_W['uid'], 'bind_sign' => $user['member']['openid'], 'third_type' => $user['member']['register_type'], 'third_nickname' => strip_emoji($user['member']['nickname'])));
+		pdo_insert('users_bind', array('uid' => $_W['uid'], 'bind_sign' => $user['member']['openid'], 'third_type' => $user['member']['register_type'], 'third_nickname' => strip_emoji($user['profile']['nickname'])));
 		return true;
 	}
 
 	public function unbind() {
 		global $_GPC, $_W;
-		$user_table = users('users');
-		$third_type = $_GPC['third_type'];
+		$user_table = table('users');
+		$third_type = $_GPC['bind_type'];
 		$user_table->bindSearchWithUser($_W['uid']);
 		$user_table->bindSearchWithType($third_type);
 		$bind_info = $user_table->bindInfo();

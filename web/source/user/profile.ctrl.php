@@ -240,7 +240,7 @@ if ($do == 'bind') {
 	template('user/bind');
 }
 
-if (in_array($do, array('validate_mobile', 'bind_mobile', 'unbind'))) {
+if (in_array($do, array('validate_mobile', 'bind_mobile')) || $_GPC['bind_type'] == USER_REGISTER_TYPE_MOBILE && $do == 'unbind') {
 	$user_table = table('users');
 	$user_profile = $user_table->userProfile($_W['uid']);
 
