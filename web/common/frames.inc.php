@@ -459,7 +459,7 @@ $we7_system_menu['site'] = array(
 			'menu' => array(
 				'system_profile' => array(
 					'title' => '系统升级',
-					'url' => 'cloud.php',
+					'url' => url('cloud/upgrade'),
 					'icon' => 'wi wi-cache',
 					'permission_name' => 'system_cloud_upgrade',
 				),
