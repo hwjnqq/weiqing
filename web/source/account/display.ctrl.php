@@ -70,6 +70,8 @@ if ($do == 'display') {
 	}
 
 	$account_table->accountRankOrder();
+	$total = $account_table->searchAccountList();
+	$total = count($total);
 	$account_table->searchWithPage($pindex, $psize);
 	$account_list = $account_table->searchAccountList();
 
