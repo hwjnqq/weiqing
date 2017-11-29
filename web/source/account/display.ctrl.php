@@ -70,10 +70,9 @@ if ($do == 'display') {
 	}
 
 	$account_table->accountRankOrder();
-	$total = $account_table->searchAccountList();
-	$total = count($total);
 	$account_table->searchWithPage($pindex, $psize);
 	$account_list = $account_table->searchAccountList();
+	$total = count($account_list);
 
 	foreach($account_list as &$account) {
 		$account = uni_fetch($account['uniacid']);
