@@ -12,7 +12,6 @@ $module_name = trim($_GPC['m']);
 $modulelist = uni_modules(false);
 $module = $_W['current_module'] = $modulelist[$module_name];
 define('IN_MODULE', $module_name);
-isetcookie('__lastvisit_' . $_W['uid'], 'module', 7 * 86400);
 if(empty($module)) {
 	itoast('抱歉，你操作的模块不能被访问！');
 }

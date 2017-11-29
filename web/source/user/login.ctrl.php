@@ -30,7 +30,6 @@ function _login($forward = '') {
 	if (!empty($status)) {
 		user_expire_notice();
 	}
-	user_account_expire_message_record();
 	if (empty($_GPC['login_type'])) {
 		$_GPC['login_type'] = 'system';
 	}
@@ -91,6 +90,7 @@ function _login($forward = '') {
 		}
 		$failed = pdo_get('users_failed_login', array('username' => trim($_GPC['username']), 'ip' => CLIENT_IP));
 		pdo_delete('users_failed_login', array('id' => $failed['id']));
+		user_account_expire_message_record();
 		itoast("欢迎回来，{$record['username']}。", $forward, 'success');
 	} else {
 		if (empty($failed)) {

@@ -88,6 +88,8 @@ define('IN_MODULE', $entry['module']);
 
 
 
+
+
 if (!is_error($site)) {
 	if ($_W['role'] == ACCOUNT_MANAGE_NAME_OWNER) {
 		$_W['role'] = ACCOUNT_MANAGE_NAME_MANAGER;
@@ -96,7 +98,7 @@ if (!is_error($site)) {
 	if (in_array($m, $sysmodule)) {
 		$site_urls = $site->getTabUrls();
 	}
-	isetcookie('__lastvisit_' . $_W['uid'], 'module', 7 * 86400);
+	
 	
 		$method = 'doWeb' . ucfirst($entry['do']);
 	

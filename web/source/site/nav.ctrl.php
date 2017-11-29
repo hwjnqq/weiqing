@@ -142,7 +142,6 @@ if ($do == 'home' || $do == 'profile') {
 	$modules = uni_modules();
 	$bindings = array();
 	define('IN_MODULE', $modulename);
-	isetcookie('__lastvisit_' . $_W['uid'], 'module', 7 * 86400);
 	if (!empty($modulename)) {
 		$modulenames = array($modulename);
 	} else {

@@ -194,12 +194,11 @@ if ($do == 'base') {
 	template('user/profile');
 }
 
-
-$user_table = table('users');
-$user = $user_table->usersInfo($_W['uid']);
-$user_profile = $user_table->userProfile($_W['uid']);
-
 if ($do == 'bind') {
+	$user_table = table('users');
+	$user = $user_table->usersInfo($_W['uid']);
+	$user_profile = $user_table->userProfile($_W['uid']);
+
 	$user_table->bindSearchWithUser($_W['uid']);
 	$bind_info = $user_table->userBind();
 
@@ -242,6 +241,9 @@ if ($do == 'bind') {
 }
 
 if (in_array($do, array('validate_mobile', 'bind_mobile', 'unbind'))) {
+	$user_table = table('users');
+	$user_profile = $user_table->userProfile($_W['uid']);
+
 	$mobile = trim($_GPC['mobile']);
 	$type = trim($_GPC['type']);
 	$user_table = table('users');
@@ -268,12 +270,12 @@ if ($do == 'validate_mobile') {
 
 if ($do == 'bind_mobile') {
 	if ($_W['isajax'] && $_W['ispost']) {
-		$bind_info = OAuth2Client::create('mobile', $_W['setting']['thirdlogin'][$bind_type]['appid'], $_W['setting']['thirdlogin'][$bind_type]['appsecret'])->bind();
+		$bind_info = OAuth2Client::create('mobile')->bind();
 
 		if (is_error($bind_info)) {
 			iajax(-1, $bind_info['message']);
 		}
-		iajax(0, '解绑成功', url('user/profile/bind'));
+		iajax(0, '绑定成功', url('user/profile/bind'));
 	} else {
 		iajax(-1, '非法请求');
 	}

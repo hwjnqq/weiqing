@@ -41,7 +41,6 @@ if ($do == 'platform') {
 		uni_account_switch($last_uniacid,  url('home/welcome'));
 	}
 	define('FRAME', 'account');
-	isetcookie('__lastvisit_' . $_W['uid'], 'account', 7 * 86400);
 	if (empty($_W['account']['endtime']) && !empty($_W['account']['endtime']) && $_W['account']['endtime'] < time()) {
 		itoast('公众号已到服务期限，请联系管理员并续费', url('account/manage'), 'info');
 	}
@@ -101,7 +100,6 @@ if ($do == 'platform') {
 
 	define('FRAME', 'account');
 	define('IN_MODULE', $modulename);
-	isetcookie('__lastvisit_' . $_W['uid'], 'module', 7 * 86400);
 	if ($_GPC['system_welcome'] && $_W['isfounder']) {
 		$frames = buildframes('system_welcome');
 	} else {

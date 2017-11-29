@@ -155,7 +155,6 @@ function checkaccount() {
 	if (empty($_W['uniacid']) || (!empty($_W['account']) && !in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)) && !defined('IN_MODULE'))) {
 		itoast('', url('account/display'), 'info');
 	}
-	isetcookie('__lastvisit_' . $_W['uid'], 'account', 7 * 86400);
 }
 
 /**
@@ -166,7 +165,6 @@ function checkwxapp() {
 	if (empty($_W['uniacid']) || (!empty($_W['account']) && $_W['account']['type'] != ACCOUNT_TYPE_APP_NORMAL)) {
 		itoast('', url('wxapp/display'), 'info');
 	}
-	isetcookie('__lastvisit_' . $_W['uid'], 'wxapp', 7 * 86400);
 }
 
 //新版buildframes
@@ -290,21 +288,23 @@ function buildframes($framename = ''){
 						}
 					}
 				}
-
-				if ($nav_id != 'wxapp') {
-					$section_show = false;
-					$secion['if_fold'] = !empty($_GPC['menu_fold_tag:'.$section_id]) ? 1 : 0;
-					foreach ($secion['menu'] as $menu_id => $menu) {
-						if (!in_array($menu['permission_name'], $user_permission) && $section_id != 'platform_module') {
-							$frames[$nav_id]['section'][$section_id]['menu'][$menu_id]['is_display'] = false;
-						} else {
-							$section_show = true;
+				
+					if ($nav_id != 'wxapp') {
+						$section_show = false;
+						$secion['if_fold'] = !empty($_GPC['menu_fold_tag:'.$section_id]) ? 1 : 0;
+						foreach ($secion['menu'] as $menu_id => $menu) {
+							if (!in_array($menu['permission_name'], $user_permission) && $section_id != 'platform_module') {
+								$frames[$nav_id]['section'][$section_id]['menu'][$menu_id]['is_display'] = false;
+							} else {
+								$section_show = true;
+							}
+						}
+						if (!isset($frames[$nav_id]['section'][$section_id]['is_display'])) {
+							$frames[$nav_id]['section'][$section_id]['is_display'] = $section_show;
 						}
 					}
-					if (!isset($frames[$nav_id]['section'][$section_id]['is_display'])) {
-						$frames[$nav_id]['section'][$section_id]['is_display'] = $section_show;
-					}
-				}
+				
+				
 			}
 		}
 	} else {
@@ -511,9 +511,12 @@ function buildframes($framename = ''){
 		}
 	}
 	foreach ($frames as $menuid => $menu) {
-		if (!empty($menu['founder']) && empty($_W['isfounder']) || user_is_vice_founder() && in_array($menuid, array('site', 'advertisement', 'appmarket')) || $_W['role'] == ACCOUNT_MANAGE_NAME_CLERK && in_array($menuid, array('account', 'wxapp', 'system')) || !$menu['is_display']) {
-			continue;
-		}
+		
+			if (!empty($menu['founder']) && empty($_W['isfounder']) || user_is_vice_founder() && in_array($menuid, array('site', 'advertisement', 'appmarket')) || $_W['role'] == ACCOUNT_MANAGE_NAME_CLERK && in_array($menuid, array('account', 'wxapp', 'system')) || !$menu['is_display']) {
+				continue;
+			}
+		
+		
 		$top_nav[] = array(
 			'title' => $menu['title'],
 			'name' => $menuid,

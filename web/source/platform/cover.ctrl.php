@@ -15,7 +15,6 @@ if (!in_array($_GPC['m'], $system_modules) && $do == 'post') {
 	permission_check_account_user('', true, 'cover');
 }
 define('IN_MODULE', true);
-isetcookie('__lastvisit_' . $_W['uid'], 'module', 7 * 86400);
 
 if ($do == 'module') {
 	$modulename = $_GPC['m'];
