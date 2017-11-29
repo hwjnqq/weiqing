@@ -38,6 +38,7 @@ load()->model('cache');
 load()->model('account');
 load()->model('setting');
 load()->library('agent');
+load()->classs('db');
 
 
 
