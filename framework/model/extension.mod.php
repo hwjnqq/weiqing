@@ -14,14 +14,15 @@ function ext_module_convert($manifest) {
 	if (!empty($manifest['platform']['supports'])) {
 		$app_support = in_array('app', $manifest['platform']['supports']) ? 2 : 1;
 		$wxapp_support = in_array('wxapp', $manifest['platform']['supports']) ? 2 : 1;
-		if ($app_support == 1 && $wxapp_support == 1) {
+		$welcome_support = in_array('system_welcome', $manifest['platform']['supports']) ? 2 : 1;
+		$webapp_support = in_array('webapp', $manifest['platform']['supports']) ? 2 : 1;
+		if ($app_support == 1 && $wxapp_support == 1 && $welcome_support == 1 && $webapp_support == 1) {
 			$app_support = 2;
 		}
 	} else {
 		$app_support = 2;
 		$wxapp_support = 1;
 	}
-
 	return array(
 		'name' => $manifest['application']['identifie'],
 		'title' => $manifest['application']['name'],
@@ -36,21 +37,24 @@ function ext_module_convert($manifest) {
 		'handles' => iserializer(is_array($manifest['platform']['handles']) ? $manifest['platform']['handles'] : array()),
 		'isrulefields' => intval($manifest['platform']['isrulefields']),
 		'iscard' => intval($manifest['platform']['iscard']),
+		'oauth_type' => $manifest['platform']['oauth_type'],
 		'page' => $manifest['bindings']['page'],
 		'cover' => $manifest['bindings']['cover'],
 		'rule' => $manifest['bindings']['rule'],
 		'menu' => $manifest['bindings']['menu'],
 		'home' => $manifest['bindings']['home'],
 		'profile' => $manifest['bindings']['profile'],
+		'welcome' => $manifest['bindings']['system_welcome'],
 		'app_support' => $app_support,
 		'wxapp_support' => $wxapp_support,
+		'webapp_support' => $webapp_support,
+		'welcome_support' => $welcome_support,
 		'shortcut' => $manifest['bindings']['shortcut'],
 		'function' => $manifest['bindings']['function'],
 		'permissions' => $manifest['permissions'],
 		'issystem' => 0,
 	);
 }
-
 /**
  * 将模块XML配置文件解析为数组
  * @param string $xml XML文件内容
