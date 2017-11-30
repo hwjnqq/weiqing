@@ -163,7 +163,7 @@ if (!empty($_W['account']['oauth']) && $_W['account']['oauth']['level'] == '4' &
 		$oauth_type = 'snsapi_base';
 		if ($controller == 'entry' && !empty($_GPC['m'])) {
 			$module_info = module_fetch($_GPC['m']);
-			if ($module_info['oauth_type'] == 'userinfo') {
+			if ($module_info['oauth_type'] == 2) {
 				$oauth_type = 'snsapi_userinfo';
 			}
 		}
