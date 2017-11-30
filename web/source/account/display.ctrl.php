@@ -58,6 +58,9 @@ if ($do == 'display') {
 
 	$account_table = table('account');
 	$account_table->searchWithType(array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH));
+	$account_count = $account_table->searchAccountList();
+	$total = count($account_count);
+	$account_table->searchWithType(array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH));
 
 	$keyword = trim($_GPC['keyword']);
 	if (!empty($keyword)) {
@@ -72,7 +75,6 @@ if ($do == 'display') {
 	$account_table->accountRankOrder();
 	$account_table->searchWithPage($pindex, $psize);
 	$account_list = $account_table->searchAccountList();
-	$total = count($account_list);
 
 	foreach($account_list as &$account) {
 		$account = uni_fetch($account['uniacid']);

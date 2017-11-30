@@ -76,7 +76,7 @@
 	angular.module('accountApp').value('config', {
 		accountList: {php echo !empty($account_list) ? json_encode($account_list) : 'null'},
 		accountTotal: "{$total}",
-		pagesize: "{$pagesize}",
+		pagesize: "{$psize}",
 		links: {
 			rank: "{php echo url('account/display/rank')}",
 			display: "{php echo url('account/display/display')}",
