@@ -332,18 +332,19 @@
 			var check = $('input:checked');
 			if (check.length<1) {
 				util.message('请选择要操作的商品!');
+			} else {
+				var id = new Array();
+				check.each(function(i) {
+					id[i] = $(this).val();
+				});
+				$.post("{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'showall', 'storeid' => $storeid))}", {idArr:id, show_name:name},function(data) {
+					if (data.message.errno ==0) {
+						util.message(data.message.message, 'refresh', 'success');
+					} else {
+						util.message(data.message.message);
+					}
+				},'json');
 			}
-			var id = new Array();
-			check.each(function(i) {
-				id[i] = $(this).val();
-			});
-			$.post("{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'showall', 'storeid' => $storeid))}", {idArr:id, show_name:name},function(data) {
-				if (data.message.errno ==0) {
-					util.message(data.message.message, 'refresh', 'success');
-				} else {
-					util.message(data.message.message);
-				}
-			},'json');
 		});
 	});
 	
