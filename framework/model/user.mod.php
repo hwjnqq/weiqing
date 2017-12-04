@@ -972,6 +972,9 @@ function user_borrow_oauth_account_list() {
 function user_account_expire_message_record() {
 	load()->model('account');
 	load()->model('message');
+	if (!pdo_tableexists('message_notice_log')) {
+		return true;
+	}
 	$account_table = table('account');
 	$expire_account_list = $account_table->searchAccountList();
 	if (empty($expire_account_list)) {
