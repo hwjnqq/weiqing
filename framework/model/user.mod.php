@@ -154,6 +154,7 @@ function user_delete($uid, $is_recycle = false) {
 	}
 	pdo_delete('uni_account_users', array('uid' => $uid));
 	pdo_delete('users_profile', array('uid' => $uid));
+	pdo_delete('users_bind', array('uid' => $uid));
 	return true;
 }
 
