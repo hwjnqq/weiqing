@@ -123,9 +123,13 @@
 				{/if}
 				</th>
 				<td>
+					{if !empty($row['uid'])}
 					<span class="label label-default">积分:{$row['credit1']}</span>
 					<br>
 					<span class="label label-info">余额:{$row['credit2']}</span>
+					{else}
+					<span class="label label-info">不是系统会员</span>
+					{/if}
 				</td>
 				{if $setting['nums_status'] == 1}
 					<td>
