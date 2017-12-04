@@ -1,0 +1,73 @@
+<table class="table table-hover wn-table table-bordered" >
+	<thead class="navbar-inner">
+		<tr>
+			<th class='with-checkbox' style='width:30px;'>
+				<input type="checkbox" class="check_all" />
+			</th>
+			<th style="width:100px;">一级分类</th>
+			<th style="width:150px;">商品名称</th>
+			<th style="width:100px;">商品类型</th>
+			<th style="width:100px;">房型排序号</th>
+			<th style='width:120px;'>前台价（原价)</th>
+			<th style='width:120px;'>优惠价（现价)</th>
+			<th style='width:100px;'>状态</th>
+			<th style="width:420px;">操作</th>
+		</tr>
+	</thead>
+	<tbody>
+	{loop $goods_list $item}
+	<tr>
+		<td class="with-checkbox">
+			<input type="checkbox" name="check" value="{$item['id']}">
+		</td>
+		<td>{$item['pcate_name']}</td>
+		<td>{$item['title']}</td>
+		{if $item['is_house'] == 1}
+		<td>房型</td>
+		{else}
+		<td>非房型</td>
+		{/if}
+		<td>{$item['sortid']}</td>
+		<td>{$item['oprice']}</td>
+		<td>{$item['cprice']}</td>
+		<td>{if $item['status'] == 0}
+			<a title="隐藏" href="javascript:;" onclick="drop_confirm('您确定要显示此商品吗?', '{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'status', 'status' => 1, 'id' => $item['id'], 'storeid' => $storeid))}');"> <span class='label label-default'>隐藏</span></a>
+			{elseif $item['status'] == 1}
+			<a title="显示" href="javascript:;" onclick="drop_confirm('您确定要隐藏此商品吗?', '{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'status', 'status' => 0, 'id' => $item['id'], 'storeid' => $storeid))}');"><span class='label label-success'>显示</span></a>
+			{/if}
+		</td>
+		<td>
+			<div class="wn-table__link">
+				{if $op == 'recycle'}
+				<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要恢复该商品吗?', '{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'renew', 'id' => $item['id'], 'storeid' => $storeid))}');" title="恢复" >恢复使用</a>
+				<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要从回收站删除该商品吗?', '{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'delete', 'id' => $item['id'], 'storeid' => $storeid))}');" title="删除" >彻底删除</a>
+				{else}
+				<a href="{php echo $this->createWebUrl('shop_room_item', array('storeid' => $storeid, 'roomid' => $item['id']))}" class="wn-table__link__item" data-id="{$item['id']}">房间列表</a>
+				<a href="{php echo $this->createWebUrl('shop_comment', array('storeid' => $storeid,'id' => $item['id'],'title' => $item['title']))}" class="wn-table__link__item" title="查看评价">查看评价</a>
+				<a href="{php echo $this->createWebUrl('shop_order', array('storeid' => $storeid,'roomid' => $item['id']))}" class="wn-table__link__item" title="订单查看">订单查看</a>
+				<a href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'copyroom','storeid' => $storeid,'id' => $item['id']))}" class="wn-table__link__item">复制</a>
+				<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'edit', 'id' => $item['id'], 'storeid' => $storeid))}" title="编辑">编辑</a>
+				<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要将该商品放入回收站吗?', '{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'recycle_goods', 'id' => $item['id'], 'storeid' => $storeid))}');" title="回收站" >放入回收站</a>
+				{/if}
+			</div>
+		</td>
+	</tr>
+	{/loop}
+	<tr>
+		<td colspan="11">
+			{if $op == 'recycle'}
+			<input type="button" class="btn btn-primary" name="renewall" value="批量恢复" />
+			<input type="button" class="btn btn-primary" name="deleteall" value="批量删除" />
+			{else}
+			<input type="button" class="btn btn-primary" name="recycleall" value="批量加入回收站" />
+			<input type="button" class="btn btn-primary edit_all" name="showall" value="批量显示" />
+			<input type="button" class="btn btn-primary edit_all" name="hideall" value="批量隐藏" />
+			{/if}
+			<div class="pull-right">
+				{$pager}
+			</div>
+		</td>
+	</tr>
+	</tbody>
+	<input name="token" type="hidden" value="{$_W['token']}" />
+</table>

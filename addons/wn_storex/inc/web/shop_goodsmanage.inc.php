@@ -11,7 +11,6 @@ $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';
 $storeid = intval($_GPC['storeid']);
 $store = $_W['wn_storex']['store_info'];
 $store_type = $store['store_type'];
-
 $parent = pdo_getall('storex_categorys', array('store_base_id' => $storeid, 'parentid' => 0, 'weid' => $_W['uniacid']), array(), 'id', array('parentid', 'displayorder DESC'));
 if (empty($parent)) {
 	message('请先给该店铺添加一级分类！', $this->createWebUrl('shop_category', array('storeid' => $storeid)), 'error');
@@ -23,16 +22,6 @@ if (in_array($op, $delete_cache_ops)) {
 	cache_delete($cachekey);
 }
 
-$children = array();
-$category = pdo_getall('storex_categorys', array('store_base_id' => $storeid, 'weid' => $_W['uniacid']), array(), 'id', array('parentid', 'displayorder DESC'));
-if (!empty($category) && is_array($category)) {
-	foreach ($category as $cid => $cate) {
-		if (!empty($cate['parentid'])) {
-			$children[$cate['parentid']][] = $cate;
-		}
-	}
-}
-
 //根据分类的一级id获取店铺的id
 if (!empty($_GPC['category']['parentid'])) {
 	$category_store = pdo_get('storex_categorys', array('id' => intval($_GPC['category']['parentid']), 'weid' => intval($_W['uniacid'])), array('id', 'store_base_id'));
@@ -40,7 +29,7 @@ if (!empty($_GPC['category']['parentid'])) {
 $table = gettablebytype($store_type);
 
 if ($op == 'display' || $op == 'recycle') {
-	$category = pdo_getall('storex_categorys', array('store_base_id' => $storeid, 'enabled' => 1, 'weid' => $_W['uniacid']), array('id', 'name', 'store_base_id', 'parentid'), '', 'parentid ASC');
+	$category = pdo_getall('storex_categorys', array('store_base_id' => $storeid, 'enabled' => 1, 'weid' => $_W['uniacid']), array('id', 'name', 'store_base_id', 'parentid'), 'id', 'parentid ASC');
 	$category_set = array();
 	if (!empty($category) && is_array($category)) {
 		foreach ($category as $info) {
@@ -56,36 +45,37 @@ if ($op == 'display' || $op == 'recycle') {
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	$sql .= ' AND store_base_id = ' . $storeid;
-	if ($op == 'display') {
-		$sql .= ' AND r.recycle = 2';
+	mload()->model('goods');
+	if ($store_type == 1) {
+		$goods_list_info = goods_get_list_hotel(array('title' => $_GPC['title'], 'category_id' => $_GPC['category_id']), array('pindex' => $pindex, 'psize' => $psize));
 	} else {
-		$sql .= ' AND r.recycle = 1';
+		$goods_list_info = goods_get_list_common(array('title' => $_GPC['title'], 'category_id' => $_GPC['category_id']), array('pindex' => $pindex, 'psize' => $psize));
 	}
-	$params = array();
-	
-	if (!empty($_GPC['title'])) {
-		$sql .= ' AND r.title LIKE :keywords';
-		$params[':keywords'] = "%{$_GPC['title']}%";
+	$goods_list = $goods_list_info['list'];
+	foreach ($goods_list as $k => $info) {
+		if (!empty($category[$info['pcate']])) {
+			$goods_list[$k]['pcate_name'] = $category[$info['pcate']]['name'];
+		}
+		if (!empty($category[$info['ccate']])) {
+			$goods_list[$k]['ccate_name'] = $category[$info['ccate']]['name'];
+		}
 	}
-	if (!empty($_GPC['category_id'])) {
-		$category_id = intval($_GPC['category_id']);
-		$sql .= ' AND ( r.pcate = :category_id OR r.ccate = :category_id)';
-		$params[':category_id'] = $category_id;
-	}
-	
-	$join_condition = ' r.store_base_id = h.id';
-	
-	$list = pdo_fetchall("SELECT r.*, h.title AS hoteltitle FROM " . tablename($table) . " r LEFT JOIN " . tablename('storex_bases') . " h ON " . $join_condition . " WHERE r.weid = '{$_W['uniacid']}' $sql ORDER BY h.id, r.sortid DESC LIMIT " . ($pindex - 1) * $psize . ',' . $psize, $params);
-	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename($table) . " r LEFT JOIN " . tablename('storex_bases') . " h ON " . $join_condition . " WHERE r.weid = '{$_W['uniacid']}' $sql", $params);
-	$list = format_list($category, $list);
-	$pager = pagination($total, $pindex, $psize);
+	$pager = pagination($goods_list_info['total'], $pindex, $psize);
 	$tags = store_goods_tags($storeid);
 	include $this->template('store/shop_goodslist');
 }
 
 if ($op == 'edit') {
 	load()->func('tpl');
+	$children = array();
+	$category = pdo_getall('storex_categorys', array('store_base_id' => $storeid, 'weid' => $_W['uniacid']), array(), 'id', array('parentid', 'displayorder DESC'));
+	if (!empty($category) && is_array($category)) {
+		foreach ($category as $cid => $cate) {
+			if (!empty($cate['parentid'])) {
+				$children[$cate['parentid']][] = $cate;
+			}
+		}
+	}
 	$id = intval($_GPC['id']);
 	if (!empty($category_store)){
 		$store_base_id = $category_store['store_base_id'];
