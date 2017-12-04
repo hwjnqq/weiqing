@@ -218,6 +218,9 @@
 			<div class="">
 				<button name="submit" class="btn btn-primary" value="submit">保存配置</button>
 				<button name="button" type="button" class="btn btn-info js-checkremoteftp" value="check">测试配置（无需保存）</button>
+				{if !empty($_W['setting']['remote_complete_info']['type']) && !empty($local_attachment)}
+				<a name="button" class="btn btn-info" href="{php echo url('system/attachment/upload_remote')}">一键上传</a>
+				{/if}
 				<input type="hidden" name="token" value="{$_W['token']}" />
 			</div>
 		</div>
@@ -279,6 +282,9 @@
 			<div class="">
 				<button name="submit" class="btn btn-primary" value="submit">保存配置</button>
 				<button name="button" type="button" class="btn btn-info js-checkremoteoss" value="check">测试配置（无需保存）</button>
+				{if !empty($_W['setting']['remote_complete_info']['type']) && !empty($local_attachment)}
+				<a name="button" class="btn btn-info" href="{php echo url('system/attachment/upload_remote')}">一键上传</a>
+				{/if}
 				<input type="hidden" name="token" value="{$_W['token']}" />
 			</div>
 		</div>
@@ -322,6 +328,9 @@
 		<div class="">
 			<button name="submit" class="btn btn-primary" value="submit">保存配置</button>
 			<button name="button" type="button" class="btn btn-info js-checkremoteqiniu" value="check">测试配置（无需保存）</button>
+			{if !empty($_W['setting']['remote_complete_info']['type']) && !empty($local_attachment)}
+			<a name="button" class="btn btn-info" href="{php echo url('system/attachment/upload_remote')}">一键上传</a>
+			{/if}
 			<input type="hidden" name="token" value="{$_W['token']}" />
 		</div>
 	</div>
@@ -384,6 +393,9 @@
 		<div class="">
 			<button name="submit" class="btn btn-primary" value="submit">保存配置</button>
 			<button name="button" type="button" class="btn btn-info js-checkremotecos" value="check">测试配置（无需保存）</button>
+			{if !empty($_W['setting']['remote_complete_info']['type']) && !empty($local_attachment)}
+			<a name="button" class="btn btn-info" href="{php echo url('system/attachment/upload_remote')}">一键上传</a>
+			{/if}
 			<input type="hidden" name="token" value="{$_W['token']}" />
 		</div>
 	</div>

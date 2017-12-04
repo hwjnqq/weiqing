@@ -15,7 +15,8 @@ function ext_module_convert($manifest) {
 		$app_support = in_array('app', $manifest['platform']['supports']) ? 2 : 1;
 		$wxapp_support = in_array('wxapp', $manifest['platform']['supports']) ? 2 : 1;
 		$welcome_support = in_array('system_welcome', $manifest['platform']['supports']) ? 2 : 1;
-		if ($app_support == 1 && $wxapp_support == 1 && $welcome_support == 1) {
+		$webapp_support = in_array('webapp', $manifest['platform']['supports']) ? 2 : 1;
+		if ($app_support == 1 && $wxapp_support == 1 && $welcome_support == 1 && $webapp_support == 1) {
 			$app_support = 2;
 		}
 	} else {
@@ -46,6 +47,7 @@ function ext_module_convert($manifest) {
 		'welcome' => $manifest['bindings']['system_welcome'],
 		'app_support' => $app_support,
 		'wxapp_support' => $wxapp_support,
+		'webapp_support' => $webapp_support,
 		'welcome_support' => $welcome_support,
 		'shortcut' => $manifest['bindings']['shortcut'],
 		'function' => $manifest['bindings']['function'],
@@ -112,7 +114,7 @@ function ext_module_manifest_parse($xml) {
 			'isrulefields' => false,
 			'iscard' => false,
 			'supports' => array(),
-			'oauth_type' => 'base',
+			'oauth_type' => 1,
 		);
 		//订阅信息
 		$subscribes = $platform->getElementsByTagName('subscribes')->item(0);
@@ -147,8 +149,8 @@ function ext_module_manifest_parse($xml) {
 			$manifest['platform']['iscard'] = true;
 		}
 		$oauth_type = $platform->getElementsByTagName('oauth')->item(0);
-		if (!empty($oauth_type) && $oauth_type->getAttribute('type') == 'userinfo') {
-			$manifest['platform']['oauth_type'] = 'userinfo';
+		if (!empty($oauth_type) && $oauth_type->getAttribute('type') == 2) {
+			$manifest['platform']['oauth_type'] = 2;
 		}
 		$supports = $platform->getElementsByTagName('supports')->item(0);
 		if (!empty($supports)) {

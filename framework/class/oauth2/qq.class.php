@@ -134,6 +134,9 @@ class Qq extends OAuth2Client {
 	public function login() {
 		load()->model('user');
 		$user = $this->user();
+		if (is_error($user)) {
+			return $user;
+		}
 
 		$user_table = table('users');
 		$user_id = pdo_getcolumn('users', array('openid' => $user['member']['openid']), 'uid');

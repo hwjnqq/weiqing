@@ -371,6 +371,39 @@ function file_remote_upload($filename, $auto_delete_local = true) {
 }
 
 /**
+ * 上传目录下的所有图片到远程服务器并删除本地图片
+ * @param string $dir_path 目录路径
+ * @return true|error
+ */
+function file_dir_remote_upload($dir_path) {
+	global $_W;
+	if (empty($_W['setting']['remote']['type'])) {
+		return error(1, '未开启远程附件');
+	}
+	$local_attachment = file_tree($dir_path);
+	if (is_array($local_attachment) && !empty($local_attachment)) {
+		foreach ($local_attachment as $attachment) {
+			$filename = str_replace(ATTACHMENT_ROOT, '', $attachment);
+			$file_account = explode('/', $filename);
+			$file_account = $file_account[1];
+			if ($file_account == 'global') {
+				continue;
+			}
+			if (is_numeric($file_account) && is_dir(ATTACHMENT_ROOT . 'images/' .  $file_account) && !empty($_W['setting']['remote_complete_info'][$file_account]['type'])) {
+				$_W['setting']['remote'] = $_W['setting']['remote_complete_info'][$file_account];
+			} else {
+				$_W['setting']['remote'] = $_W['setting']['remote_complete_info'];
+			}
+			$result = file_remote_upload($filename);
+			if (is_error($result)) {
+				return $result;
+			}
+		}
+	}
+	return true;
+}
+
+/**
  * 获取指定某目录下指定后缀的随机文件名
  *
  * @param string $dir
