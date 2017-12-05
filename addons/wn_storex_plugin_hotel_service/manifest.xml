@@ -30,6 +30,7 @@
 			<entry title="WIFI管理" do="wifimanage" state="" direct="false" />
 			<entry title="电话管理" do="telmanage" state="" direct="false" />
 			<entry title="客房管理" do="roommanage" state="" direct="false" />
+			<entry title="订餐管理" do="foodmanage" state="" direct="false" />
 		</menu>
 	</bindings>
 	<permissions>
