@@ -1,7 +1,7 @@
 {template 'common/header'}
 <div class="panel panel-cut">
 	<div class="panel-heading">
-		<i class="wi wi-small-routine" style="font-size: 24px; margin-right: 10px; vertical-align:middle;"></i>选择小程序
+		<span class="panel-heading-left"><i class="wi wi-small-routine" style="font-size: 24px; margin-right: 10px; vertical-align:middle;"></i>选择小程序</span>
 		<div class="pull-right font-default">
 			{if !empty($account_info['wxapp_limit']) || $_W['isfounder'] && !user_is_vice_founder()}
 			<a href="{php echo url('wxapp/post/design_method')}" class="color-default"><i class="wi wi-registersite"></i>新建小程序</a>

@@ -177,7 +177,7 @@ if($do == 'base') {
 	$account['highest_visit'] = empty($statistics_setting['statistics']['founder']) ? 0 : $statistics_setting['statistics']['founder'];
 	$uniaccount = array();
 	$uniaccount = pdo_get('uni_account', array('uniacid' => $uniacid));
-
+	
 	template('account/manage-base' . ACCOUNT_TYPE_TEMPLATE);
 }
 
@@ -372,7 +372,7 @@ if($do == 'modules_tpl') {
 	if (!empty($extend['templates'])) {
 		$extend['templates'] = pdo_getall('site_templates', array('id' => $extend['templates']), array('id', 'name', 'title'));
 	}
-
+	
 
 	template('account/manage-modules-tpl' . ACCOUNT_TYPE_TEMPLATE);
 }

@@ -56,12 +56,14 @@
 				</div>
 			</td>
 		</tr>
+		
 		<tr>
 			<td class="table-label">到期时间</td>
 			<td><span ng-bind="account.end"></span><span class="color-gray">（随该公众号主管理员的到期时间，未设置主管理员时默认为创始人）</span></td>
 			<td>
 				<div class="link-group" ng-if="founder || owner">
 					<a href="javascript:;" data-toggle="modal" data-target="#endtype" ng-click="editInfo('endtype', account.endtype)">修改</a>
+					
 				</div>
 			</td>
 		</tr>
@@ -174,6 +176,7 @@
 			</div>
 		</div>
 	</div>
+	
 	<div class="modal fade" id="jointype" role="dialog">
 		<div class="we7-modal-dialog modal-dialog we7-form">
 			<div class="modal-content">

@@ -109,10 +109,15 @@ define('CACHE_EXPIRE_MIDDLE', 300);
 define('CACHE_EXPIRE_LONG', 3600);
 define('CACHE_KEY_LENGTH', 100); //缓存键的最大长度
 
+//模块配置信息
 define('CACHE_KEY_MODULE_SETTING', 'module_setting:%s:%s');
+//模块详细信息，包含 CACHE_KEY_MODULE_SETTING
 define('CACHE_KEY_MODULE_INFO', 'module_info:%s');
+//当前公众号及所有者可用的模块
 define('CACHE_KEY_ACCOUNT_MODULES', 'unimodules:%s:%s');
+//模块所有注册菜单
 define('CACHE_KEY_ACCOUNT_MODULES_BINDING', 'unimodules:binding:%s');
+//用户信息
 define('CACHE_KEY_MEMBER_INFO', 'memberinfo:%s');
 define('CACHE_KEY_UNI_GROUP', 'uni_group');
 define('CACHE_KEY_ACCOUNT_SWITCH', 'lastaccount:%s');
@@ -148,9 +153,11 @@ define('WXAPP_MODULE', 3);
 define('MATERIAL_LOCAL', 'local');//服务器素材类型
 define('MATERIAL_WEXIN', 'perm');//微信素材类型
 
-//自定义菜单类型
+//自定义菜单之默认菜单
 define('MENU_CURRENTSELF', 1);
+//自定义菜单之默认菜单的历史记录
 define('MENU_HISTORY', 2);
+//自定义菜单之个性化菜单
 define('MENU_CONDITIONAL', 3);
 
 //用户状态
@@ -217,3 +224,6 @@ define('MESSAGE_REGISTER_TYPE', 4);
 //消息是否读取 1未读  2已读
 define('MESSAGE_NOREAD', 1);
 define('MESSAGE_READ', 2);
+
+//上传图片uniacid -1
+define('FILE_NO_UNIACID', -1);
