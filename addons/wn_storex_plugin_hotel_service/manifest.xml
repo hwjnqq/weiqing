@@ -3,7 +3,7 @@
 	<application setting="false">
 		<name><![CDATA[万能小店酒店服务]]></name>
 		<identifie><![CDATA[wn_storex_plugin_hotel_service]]></identifie>
-		<version><![CDATA[1.1]]></version>
+		<version><![CDATA[1.2]]></version>
 		<type><![CDATA[business]]></type>
 		<ability><![CDATA[万能小店酒店服务插件]]></ability>
 		<description><![CDATA[万能小店酒店服务插件]]></description>
