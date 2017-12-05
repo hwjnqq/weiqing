@@ -994,7 +994,7 @@ function user_account_expire_message_record() {
 				$message = array(
 					'end_time' => $account_detail['endtime']
 				);
-				message_record($account_detail['name'] . $account_name, $account_detail['uid'], $account_detail['uniacid'], $type, $message);
+				message_notice_record($account_detail['name'] . $account_name, $account_detail['uid'], $account_detail['uniacid'], $type, $message);
 			}
 		}
 	}

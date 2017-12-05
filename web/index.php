@@ -15,12 +15,12 @@ load()->model('user');
 
 $state = urldecode($_GPC['state']);
 if (!empty($state)) {
-	$login_type = explode('=', $state);
-	if (in_array($login_type[1], array('qq', 'wechat'))) {
-		$controller = 'user';
-		$action = 'login';
-		$_GPC['login_type'] = $login_type[1];
-	}
+	$controller = 'user';
+	$action = 'login';
+	$state = base64_decode($state);
+	parse_str($state, $third_param);
+	$_GPC['login_type'] = $third_param['from'];
+	$_GPC['handle_type'] = $third_param['mode'];
 }
 
 if (empty($_W['isfounder']) && !empty($_W['user']) && ($_W['user']['status'] == USER_STATUS_CHECK || $_W['user']['status'] == USER_STATUS_BAN)) {
@@ -99,7 +99,7 @@ if (is_array($acl[$controller]['direct']) && in_array($action, $acl[$controller]
 }
 checklogin();
 // 判断非创始人是否拥有目标权限
-if ($_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER && version_compare($_W['setting']['site']['version'], '1.5.5', '>=')) {
+if ($_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER && version_compare(IMS_VERSION, '1.5.5', '>=')) {
 	if (empty($_W['uniacid'])) {
 		if (defined('FRAME') && FRAME == 'account') {
 			itoast('', url('account/display'), 'info');

@@ -21,6 +21,10 @@ abstract class OAuth2Client {
 		return array('system', 'qq', 'wechat', 'mobile');
 	}
 
+	public static function supportThirdLoginType() {
+		return array('qq', 'wechat');
+	}
+
 	public static function create($type, $appid = '', $appsecret = '') {
 		$types = self::supportLoginType();
 		if (in_array($type, $types)) {
