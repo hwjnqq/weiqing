@@ -1281,6 +1281,14 @@ function storex_send_sms($insert, $store_info) {
 				'store' => $store_info['title'],
 				'price' => $insert['sum_price'],
 			);
+			if (!empty($store_info['phones']) && is_array($store_info['phones'])) {
+				foreach ($store_info['phones'] as $phone) {
+					if (!preg_match(REGULAR_MOBILE, $phone)) {
+						continue;
+					}
+					sms_send($phone, $content, 'clerk');
+				}
+			}
 			foreach ($clerks as $k => $val) {
 				if (!preg_match(REGULAR_MOBILE, $val['mobile'])) {
 					unset($clerks[$k]);
