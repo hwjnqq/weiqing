@@ -136,7 +136,11 @@ class Mobile extends OAuth2Client {
 		}
 
 		pdo_update('users', array('password' => user_hash($password, $user['salt'])), array('uid' => $_W['uid']));
-		pdo_update('users_profile', array('mobile' => $mobile), array('id' => $user_profile['id']));
+		if (empty($user_profile)) {
+			pdo_insert('users_profile', array('uid' => $_W['uid'], 'mobile' => $mobile));
+		} else {
+			pdo_update('users_profile', array('mobile' => $mobile), array('id' => $user_profile['id']));
+		}
 		pdo_insert('users_bind', array('uid' => $_W['uid'], 'bind_sign' => $mobile, 'third_type' => USER_REGISTER_TYPE_MOBILE, 'third_nickname' => $mobile));
 
 		return error(0, '绑定成功');

@@ -904,3 +904,19 @@ function module_clerk_info($module_name) {
 	}
 	return $user_permissions;
 }
+
+/**
+ * 将应用列表页的模块置顶
+ */
+function module_rank_top($module_name) {
+	global $_W;
+	$module_table = table('module');
+	$max_rank = $module_table->moduleMaxRank();
+	$exist = $module_table->moduleRank($module_name);
+	if (!empty($exist)) {
+		pdo_update('modules_rank', array('rank' => ($max_rank + 1)), array('module_name' => $module_name));
+	} else {
+		pdo_insert('modules_rank', array('uid' => $_W['uid'], 'module_name' => $module_name, 'rank' => ($max_rank + 1)));
+	}
+	return true;
+}

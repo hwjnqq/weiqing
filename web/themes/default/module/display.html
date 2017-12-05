@@ -1,7 +1,7 @@
 {template 'common/header'}
 <div class="panel panel-cut" id="js-module-display" ng-controller="userModuleDisplayCtrl" ng-cloak>
 	<div class="panel-heading">
-		<i class="wi wi-apply" style="font-size: 24px; margin-right: 10px; vertical-align:middle;"></i>请选择您要操作的应用
+		<span class="panel-heading-left"><i class="wi wi-apply" style="font-size: 24px; margin-right: 10px; vertical-align:middle;"></i>请选择您要操作的应用</span>
 	</div>
 	<div class="panel-body" >
 		<div class="we7-page-search cut-header">
@@ -36,12 +36,12 @@
 					<a ng-href="./index.php?c=module&a=display&do=switch&module_name={{list.name}}" class="entry">
 						<div>进入应用 <i class="wi wi-angle-right"></i></div>
 					</a>
-					<a href="javascript:;" class="cut-btn stick" ng-click="showAccounts($event, list.name)">
+					<a href="javascript:;" class="cut-btn" ng-click="showAccounts($event, list.name)">
 						<i class="wi wi-changing-over"></i>
 					</a>
-					<!-- <a href="{{links.rank}}&uniacid={{list.uniacid}}" class="stick" title="置顶">
+					<a href="./index.php?c=module&a=display&do=rank&module_name={{list.name}}" class="stick" title="置顶">
 						<i class="wi wi-stick-sign"></i>
-					</a> -->
+					</a>
 				</div>
 				<div class="cut-select" ng-mouseleave="hideSelect($event)" ng-show="list.accounts">
 					<div class="arrow-left"></div>

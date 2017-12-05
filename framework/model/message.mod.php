@@ -61,3 +61,37 @@ function message_notice() {
 		'total' => $total
 	);
 }
+
+/**
+ * 消息内容格式化
+ * @param $message_list
+ * @return array
+ */
+function message_record_formate ($message_list) {
+	if (empty($message_list)) {
+		return array();
+	}
+
+	foreach ($message_list as &$message) {
+		$message['create_time'] = date('Y-m-d H:i:s', $message['create_time']);
+
+		if ($message['type'] == MESSAGE_ORDER_TYPE) {
+			$message['url'] = url('site/entry/orders', array('m' => 'store', 'direct'=>1, 'message_id' => $message['id']));
+		}
+		if ($message['type'] == MESSAGE_ACCOUNT_EXPIRE_TYPE) {
+			$message['url'] = url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL, 'message_id' => $message['id']));
+		}
+		if ($message['type'] == MESSAGE_WECHAT_EXPIRE_TYPE) {
+			$message['url'] = url('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL, 'message_id' => $message['id']));
+		}
+
+		if ($message['type']==MESSAGE_REGISTER_TYPE && $message['status']==USER_STATUS_CHECK) {
+			$message['url'] = url('user/display', array('type' => 'check', 'message_id' => $message['id']));
+		}
+
+		if ($message['type']==MESSAGE_REGISTER_TYPE && $message['status']==USER_STATUS_CHECK) {
+			$message['url'] = url('user/display', array('message_id' => $message['id']));
+		}
+	}
+	return $message_list;
+}

@@ -85,6 +85,17 @@ function permission_get_nameandurl($permission) {
 				'action' => $url_query_array['a'],
 				'permission_name' => $permission_name['permission_name']
 			);
+			if (!empty($permission_name['sub_permission'])) {
+				foreach ($permission_name['sub_permission'] as $key => $sub_permission_name) {
+					$sub_url_query_array = url_params($sub_permission_name['url']);
+					$result[] = array(
+						'url' => $sub_permission_name['url'],
+						'controller' => $sub_url_query_array['c'],
+						'action' => $sub_url_query_array['a'],
+						'permission_name' => $sub_permission_name['permission_name'],
+					);
+				}
+			}
 		}
 	}
 	return $result;

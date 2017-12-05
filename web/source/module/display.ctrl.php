@@ -8,7 +8,7 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('module');
 load()->model('wxapp');
 
-$dos = array('display', 'switch', 'getall_last_switch', 'have_permission_uniacids', 'accounts_dropdown_menu');
+$dos = array('display', 'switch', 'getall_last_switch', 'have_permission_uniacids', 'accounts_dropdown_menu', 'rank');
 $do = in_array($do, $dos) ? $do : 'display';
 
 if ($do == 'display') {
@@ -30,12 +30,29 @@ if ($do == 'display') {
 	} else {
 		$user_module = user_modules($_W['uid']);
 	}
+	$module_table = table('module');
+	$module_rank = $module_table->moduleRank();
+	$rank = array();
 	foreach ($user_module as $key => $module_value) {
 		if (!empty($module_value['issystem'])) {
 			unset($user_module[$key]);
+		} else {
+			$rank[] = !empty($module_rank[$key]['rank']) ? $module_rank[$key]['rank'] : 0;
 		}
 	}
+	array_multisort($rank, SORT_DESC, $user_module);
 	template('module/display');
+}
+
+if ($do == 'rank') {
+	$module_name = trim($_GPC['module_name']);
+
+	$exist = module_fetch($module_name);
+	if (empty($exist)) {
+		iajax(1, '模块不存在', '');
+	}
+	module_rank_top($module_name);
+	itoast('更新成功！', referer(), 'success');
 }
 
 if ($do == 'switch') {

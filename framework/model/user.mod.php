@@ -154,6 +154,7 @@ function user_delete($uid, $is_recycle = false) {
 	}
 	pdo_delete('uni_account_users', array('uid' => $uid));
 	pdo_delete('users_profile', array('uid' => $uid));
+	pdo_delete('users_bind', array('uid' => $uid));
 	return true;
 }
 
@@ -972,6 +973,9 @@ function user_borrow_oauth_account_list() {
 function user_account_expire_message_record() {
 	load()->model('account');
 	load()->model('message');
+	if (!pdo_tableexists('message_notice_log')) {
+		return true;
+	}
 	$account_table = table('account');
 	$expire_account_list = $account_table->searchAccountList();
 	if (empty($expire_account_list)) {

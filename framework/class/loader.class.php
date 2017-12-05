@@ -41,7 +41,6 @@ function table($name) {
  * @method boolean web($name)
  * @method boolean app($name)
  * @method boolean library($name)
- * @method boolean service($name)
  */
 class Loader {
 	
