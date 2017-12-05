@@ -5,6 +5,7 @@ function check_params() {
 	if (!empty($_GPC['wxapp']) && $_GPC['wxapp'] == 'wxapp') {
 		$acid = $_GPC['acid'];
 		$_W['account'] = account_fetch($acid);
+		$_W['uniacid'] = $_GPC['wxapp_uniacid'];
 		$user_info = pdo_get('mc_mapping_fans', array('openid' => $_GPC['u_openid']), array('openid', 'uid'));
 		load()->model('cache');
 		$cachekey = cache_system_key("uid:{$user_info['openid']}");

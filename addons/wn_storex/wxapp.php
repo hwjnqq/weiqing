@@ -20,7 +20,11 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 		$params = json_decode(htmlspecialchars_decode($_GPC['params']), true);
 		$params['u_openid'] = trim($_SESSION['openid']);
 		$params['wxapp'] = 'wxapp';
-		$params['wxapp_uniacid'] = $_GPC['i'];
+		$params['i'] = $_GPC['i'];
+		$params['v'] = $_GPC['v'];
+		$params['state'] = $_GPC['state'];
+		$params['from'] = $_GPC['from'];
+		$params['wxapp_uniacid'] = !empty($_W['account']['link_uniacid']) ? $_W['account']['link_uniacid'] : $_GPC['i'];
 		$params['acid'] = $_W['account']['acid'];
 		if (empty($params['u_openid'])) {
 			return $this->result(41009, '请重新登录!', array());
@@ -52,6 +56,8 @@ class Wn_storexModuleWxapp extends WeModuleWxapp {
 	
 	function actions($ac) {
 		$actions = array(
+			'wxappset' => array('do' => 'wxappset'),
+			
 			'activity' => array('do' => 'activity', 'op' => 'display'),
 				
 			'cart' => array('do' => 'cart', 'op' => 'display'),
