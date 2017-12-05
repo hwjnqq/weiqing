@@ -46,10 +46,18 @@ if ($op == 'display' || $op == 'recycle') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	mload()->model('goods');
+	$condition = array(
+		'title' => $_GPC['title'],
+		'category_id' => $_GPC['category_id']
+	);
+	$condition['recycle'] = 2;
+	if ($op == 'recycle') {
+		$condition['recycle'] = 1;
+	}
 	if ($store_type == 1) {
-		$goods_list_info = goods_get_list_hotel(array('title' => $_GPC['title'], 'category_id' => $_GPC['category_id']), array('pindex' => $pindex, 'psize' => $psize));
+		$goods_list_info = goods_get_list_hotel($condition, array('pindex' => $pindex, 'psize' => $psize));
 	} else {
-		$goods_list_info = goods_get_list_common(array('title' => $_GPC['title'], 'category_id' => $_GPC['category_id']), array('pindex' => $pindex, 'psize' => $psize));
+		$goods_list_info = goods_get_list_common($condition, array('pindex' => $pindex, 'psize' => $psize));
 	}
 	$goods_list = $goods_list_info['list'];
 	foreach ($goods_list as $k => $info) {
