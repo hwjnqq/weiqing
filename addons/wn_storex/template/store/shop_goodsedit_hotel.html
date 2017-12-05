@@ -13,7 +13,7 @@
 	<div class="wn-main__content">
 		<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
 			<input type="hidden" name="id" value="{$item['id']}">
-			<input type="hidden" name="store_type" value="{$store['store_type']}">
+			<input type="hidden" name="store_type" value="{STORE_TYPE_HOTEL}">
 			<div class="form-group">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺</label>
 				<div class="col-sm-8 col-lg-9 col-xs-12">
@@ -35,9 +35,6 @@
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span>分类</label>
 				<div class="col-sm-8 col-xs-12">
 					{php echo wn_tpl_category_2level('category', $parent, $children, $item['pcate'], $item['ccate'], $store_type)}
-					{if $store['store_type'] != STORE_TYPE_HOTEL}
-					<span class="help-block">二级分类存在则必选，否则不显示商品</span>
-					{/if}
 				</div>
 			</div>
 			<div class="form-group">
@@ -70,86 +67,6 @@
 					<input type="text" name="cprice" id="cprice" value="{$item['cprice']}" class="form-control">
 				</div>
 			</div>
-			{if $store['store_type'] != STORE_TYPE_HOTEL}
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label">单位</label>
-				<div class="col-sm-9 col-xs-12">
-					<input type="text" name="unit" id="unit" value="{$item['unit']}" class="form-control">
-					<span class="help-block">单位只能是2个字符</span>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label">重量</label>
-				<div class="col-sm-9 col-xs-12">
-					<div class="input-group">
-						<input type="text" name="weight" id="weight" value="{$item['weight']}" class="form-control">
-						<span class="input-group-addon">千克</span>
-					</div>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label">库存</label>
-				<div class="col-sm-9 col-xs-12">
-					<input type="text" name="stock" id="stock" value="{$item['stock']}" class="form-control">
-					<span class="help-block">-1则库存不限</span>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label">减库存方式</label>
-				<div class="col-sm-9 col-xs-12">
-					<label class="radio-inline">
-						<input type="radio" name="stock_control" value="1" {if $item['stock_control'] == 1} checked {/if}/>永不减库存
-					</label>
-					<label class="radio-inline">
-						<input type="radio" name="stock_control" value="2" {if $item['stock_control'] == 2} checked {/if}/>拍下减库存
-					</label>
-					<label class="radio-inline">
-						<input type="radio" name="stock_control" value="3" {if $item['stock_control'] == 3} checked {/if}/>付款减库存
-					</label>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label">单次最少购买</label>
-				<div class="col-sm-9 col-xs-12">
-					<input type="text" name="min_buy" id="min_buy" value="{$item['min_buy']}" class="form-control">
-					<span class="help-block">最小值是1</span>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label">单次最多购买</label>
-				<div class="col-sm-9 col-xs-12">
-					<input type="text" name="max_buy" id="max_buy" value="{$item['max_buy']}" class="form-control">
-					<span class="help-block">-1单次最多购买不限制</span>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="col-xs-12 col-sm-3 col-md-2 control-label">运费设置</label>
-				<div class="col-sm-9 col-xs-12">
-					<div class="input-group">
-						<span class="input-group-addon">默认运费</span>
-						<input type="text" class="form-control" name="default_express" value="{$item['express_set']['default_express']}"/>
-						<span class="input-group-addon">元</span>
-					</div>
-				{if $goods_express == 1}
-					<div class="input-group">
-						<span class="input-group-addon">满</span>
-						<input type="text" class="form-control" name="condition" value="{$item['express_set']['condition']}"/>
-						<span class="input-group-addon">元</span>
-						<input type="text" class="form-control" name="express" value="{$item['express_set']['express']}"/>
-						<span class="input-group-addon">元运费</span>
-					</div>
-				{else}
-					<div class="input-group">
-						<span class="input-group-addon">满</span>
-						<input type="text" class="form-control" name="condition" value="{$item['express_set']['condition']}"/>
-						<span class="input-group-addon">件</span>
-						<input type="text" class="form-control" name="express" value="{$item['express_set']['express']}"/>
-						<span class="input-group-addon">元运费</span>
-					</div>
-				{/if}
-				</div>
-			</div>
-			{/if}
 			<div class="form-group">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">缩略图</label>
 				<div class="col-sm-9 col-xs-12">
@@ -177,7 +94,6 @@
 				</div>
 			</div>
 			{/if}
-			{if $store_type == STORE_TYPE_HOTEL}
 			<div {if isset($item['is_house']) && $item['is_house'] != 1}style="display:none"{/if} id="hotel_add_info">
 				<div class="form-group">
 					<label class="col-xs-12 col-sm-3 col-md-2 control-label">早餐设置</label>
@@ -223,7 +139,6 @@
 					</div>
 				</div>
 			</div>
-			{/if}
 			<!-- 普通店铺的属性  -->
 			<div class="form-group">
 				<label class="col-xs-12 col-sm-3 col-md-2 control-label">促销信息</label>
@@ -321,38 +236,16 @@
 			}
 		});
 	});
-	$("#sub_title").blur(function() {
-		var sub_title = $("#sub_title").val();
+	$('#sub_title').blur(function() {
+		var sub_title = $('#sub_title').val();
 		if (sub_title.length > 12) {
 			slice_sub_title = sub_title.slice(0, 12);
-			$("#sub_title").val(slice_sub_title);
-			util.message("副标题超出范围");
-		}
-	});
-	$("#weight").blur(function() {
-		var weight = $("#weight").val();
-		if (weight <= 0) {
-			$("#weight").val(0.1);
-			util.message("重量不能小于0");
-		}
-	});
-	$("#min_buy").blur(function() {
-		var min_buy = $("#min_buy").val();
-		if (min_buy <= 0) {
-			$("#min_buy").val(1);
-			util.message("最小购买量是1");
-		}
-	});
-	$("#unit").blur(function() {
-		var unit = $("#unit").val();
-		if (unit.length > 2) {
-			slice_unit = unit.slice(0, 2);
-			$("#unit").val(slice_unit);
-			util.message("单位超出范围");
+			$('#sub_title').val(slice_sub_title);
+			util.message('副标题超出范围');
 		}
 	});
 	
-	$("#add_defined").click(function() {
+	$('#add_defined').click(function() {
 		var index = $('.defined-input').length;
 		var html =
 			'<div class="col-sm-11" style="margin: 5px 0px;">' +

@@ -258,7 +258,11 @@ if ($op == 'edit') {
 		}
 		message('商品信息更新成功！', $this->createWebUrl('shop_goodsmanage', array('storeid' => $storeid)), 'success');
 	}
-	include $this->template('store/shop_goodsedit');
+	$template_suffix = '_common';
+	if ($store_type == STORE_TYPE_HOTEL) {
+		$template_suffix = '_hotel';
+	}
+	include $this->template('store/shop_goodsedit' . $template_suffix);
 }
 
 if ($op == 'recycle_goods') {
