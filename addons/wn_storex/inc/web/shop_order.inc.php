@@ -5,6 +5,7 @@ global $_W, $_GPC;
 load()->model('mc');
 mload()->model('card');
 mload()->model('order');
+mload()->model('log');
 
 $ops = array('display', 'edit', 'delete', 'deleteall', 'edit_msg','edit_price', 'print_order', 'check_print_plugin', 'assign_room');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'display';

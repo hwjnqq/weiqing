@@ -39,6 +39,7 @@ class Wn_storexModuleCron extends WeModuleCron {
 				}
 				load()->model('mc');
 				mload()->model('order');
+				mload()->model('log');
 				if (!empty($order)) {
 					foreach ($order as $orderid => $info) {
 						$result = order_build_refund($info['id']);

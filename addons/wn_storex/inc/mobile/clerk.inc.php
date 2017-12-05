@@ -8,6 +8,7 @@ mload()->model('card');
 mload()->model('order');
 mload()->model('clerk');
 mload()->model('activity');
+mload()->model('log');
 	
 $ops = array('permission_storex', 'order', 'order_info', 'edit_order', 'room', 'room_info', 'edit_room', 'assign_room', 'goods', 'status', 'clerk_pay', 'order_consume', 'coupon_consume', 'couponcode', 'code_consume');
 $op = in_array(trim($_GPC['op']), $ops) ? trim($_GPC['op']) : 'error';

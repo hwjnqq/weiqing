@@ -921,6 +921,7 @@ function insert_order_success($order_id, $uid) {
 		'orderid' => $order_id,
 		'remark' => '下单成功',
 	);
+	mload()->model('log');
 	write_log($logs);
 }
 

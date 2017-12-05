@@ -4,6 +4,7 @@ defined('IN_IA') or exit('Access Denied');
 
 global $_W, $_GPC;
 mload()->model('order');
+mload()->model('log');
 
 $ops = array('order_list', 'order_detail', 'orderpay', 'check_group_order','cancel', 'confirm_goods', 'order_comment', 'refund', 'group_order', 'group_order_detail');
 $op = in_array($_GPC['op'], $ops) ? trim($_GPC['op']) : 'error';
