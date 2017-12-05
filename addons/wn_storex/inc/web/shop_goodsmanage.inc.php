@@ -238,7 +238,6 @@ if ($op == 'edit') {
 		} else {
 			pdo_update($table, $data, array('id' => $id));
 		}
-		
 		if (isset($defined['defined'])) {
 			if (!empty($id)) {
 				$goods_extend = pdo_get('storex_goods_extend', array('storeid' => $storeid, 'goodsid' => $id));
