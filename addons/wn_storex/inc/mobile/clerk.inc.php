@@ -99,6 +99,7 @@ if ($op == 'order_info') {
 	$orderid = intval($_GPC['orderid']);
 	if (!empty($orderid)) {
 		$order = pdo_get('storex_order', array('id' => $orderid));
+		unset($order['openid']);
 		if (!empty($order)) {
 			$store_info = clerk_permission_storex('order', $order['hotelid']);
 			if (!empty($store_info[$order['hotelid']])) {
@@ -133,13 +134,13 @@ if ($op == 'order_info') {
 									unset($room_list[$r]);
 								}
 							}
-							$goods['room_list'] = $room_list;
-							$goods['rooms'] = array();
+							$order['room_list'] = $room_list;
+							$order['rooms'] = array();
 							if (!empty($order['roomitemid'])) {
 								$room_item = pdo_getall('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $order['hotelid'], 'id' => explode(',', $order['roomitemid'])), array('id', 'roomnumber'));
 								if (!empty($room_item) && is_array($room_item)) {
 									foreach ($room_item as $roomitem) {
-										$goods['rooms'][] = $roomitem['roomnumber'];
+										$order['rooms'][] = $roomitem['roomnumber'];
 									}
 								}
 							}
@@ -414,7 +415,7 @@ if ($op == 'edit_order') {
 if ($op == 'room') {
 	$manage_storex_lists = clerk_permission_storex($op);
 	$manage_storex_ids = array_keys($manage_storex_lists);
-	$room_list = pdo_getall('storex_room', array('recycle' => 2, 'store_base_id' => $manage_storex_ids, 'weid' => intval($_W['uniacid']), 'is_house' => 1), array('id', 'hotelid', 'weid', 'title', 'thumb', 'oprice', 'cprice', 'service', 'store_type', 'is_house'));
+	$room_list = pdo_getall('storex_room', array('recycle' => 2, 'store_base_id' => $manage_storex_ids, 'weid' => intval($_W['uniacid']), 'is_house' => 1), array('id', 'store_base_id', 'weid', 'title', 'thumb', 'oprice', 'cprice', 'service', 'store_type', 'is_house'));
 	if (!empty($room_list) && is_array($room_list)) {
 		foreach ($room_list as $k => $info) {
 			if ($info['store_type'] != STORE_TYPE_HOTEL || $info['is_house'] != 1) {

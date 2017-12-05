@@ -1274,15 +1274,23 @@ function storex_send_email($store_info, $insert, $goods_info) {
 //发送短信
 function storex_send_sms($insert, $store_info) {
 	if (check_plugin_isopen('wn_storex_plugin_sms')) {
+		mload()->model('sms');
+		$content = array(
+			'store' => $store_info['title'],
+			'price' => $insert['sum_price'],
+		);
+		if (!empty($store_info['phones']) && is_array($store_info['phones'])) {
+			foreach ($store_info['phones'] as $phone) {
+				if (!preg_match(REGULAR_MOBILE, $phone)) {
+					continue;
+				}
+				sms_send($phone, $content, 'clerk');
+			}
+		}
 		$clerks = pdo_getall('storex_clerk', array('weid' => $_W['uniacid'], 'status' => 1, 'storeid' => $insert['hotelid']), array('id', 'userid', 'mobile'));
 		if (!empty($clerks)) {
-			mload()->model('sms');
-			$content = array(
-				'store' => $store_info['title'],
-				'price' => $insert['sum_price'],
-			);
 			foreach ($clerks as $k => $val) {
-				if (!preg_match(REGULAR_MOBILE, $val['mobile'])) {
+				if (in_array($val['mobile'], $store_info['phones']) || !preg_match(REGULAR_MOBILE, $val['mobile'])) {
 					unset($clerks[$k]);
 					continue;
 				}

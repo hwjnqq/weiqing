@@ -164,7 +164,19 @@ class Wn_storex_plugin_hotel_serviceModuleSite extends WeModuleSite {
 
 		include $this->template('roommanage');
 	}
-
+	
+	public function doWebFoodmanage() {
+		global $_W, $_GPC;
+		$storex_bases = pdo_getall('storex_bases', array('weid' => $_W['uniacid'], 'store_type' => 1), array('id', 'title', 'thumb'));
+		if (!empty($storex_bases)) {
+			foreach ($storex_bases as &$store) {
+				$store['thumb'] = tomedia($store['thumb']);
+				$store['link'] = url('site/entry', array('do' => 'shop_plugin_hotelservice', 'op' => 'foods_lists', 'storeid' => $store['id'], 'm' => 'wn_storex'));
+			}
+		}
+		include $this->template('foodmanage');
+	}
+	
 	public function doMobileHotelservice() {
 		global $_W, $_GPC;
 

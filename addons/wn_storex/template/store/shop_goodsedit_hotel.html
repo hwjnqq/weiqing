@@ -228,7 +228,6 @@
 			var value = $(this).val();
 			var name = $('#title').val();
 			var new_name = name.replace(/\[含早\]/g,'');
-
 			if (value == 0) {
 				$('#title').val(new_name);
 			} else  {
@@ -244,7 +243,6 @@
 			util.message('副标题超出范围');
 		}
 	});
-	
 	$('#add_defined').click(function() {
 		var index = $('.defined-input').length;
 		var html =

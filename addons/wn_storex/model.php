@@ -527,7 +527,7 @@ function check_ims_version() {
 
 function check_plugin_isopen($plugin_sign) {
 	$plugin_list = get_plugin_list();
-	if (check_ims_version() && !empty($plugin_list) && !empty($plugin_list['wn_storex_plugin_printer'])) {
+	if (check_ims_version() && !empty($plugin_list) && !empty($plugin_list[$plugin_sign])) {
 		return true;
 	}
 	return false;
