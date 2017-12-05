@@ -25,7 +25,7 @@
 							<div class="weui-tab">
 								<draggable :list="openModules" element="div" :options="{group:'modules'}" :no-transition-on-drag="true" @start="drag=true;" @end="drag=false;" @change="moveEnd" class="wn-home__preview">
 									<transition-group :name="!drag? 'list-complete' : null" :css="true" tag="div">
-										<div v-for="(open, index) in openModules" :key="open.type" class="wn-home__preview__item" :class="{'active': index === editModuleIndex}">
+										<div v-for="(open, index) in openModules" :key="index" class="wn-home__preview__item" :class="{'active': index === editModuleIndex}">
 											<div @click="edit(index)" class="content">
 												<div class="image">
 													<img :src="'../addons/wn_storex/template/style/img/home/' + open.type + '.png'">
@@ -39,7 +39,7 @@
 								</draggable>
 								<div class="wn-home__footer">
 									<div class="weui-tabbar wn-tabbar" @click="edit('footer')">
-										<a href="javascript:;" class="weui-tabbar__item" v-for="tabbar in footer">
+										<a href="javascript:;" class="weui-tabbar__item" v-for="(tabbar,index) in footer" :key="index">
 											<div class="weui-tabbar__icon vux-center">
 												<img :src="tabbar.icon" alt="">
 											</div>
@@ -93,7 +93,7 @@
 								<div class="col-sm-6">
 									已选商品
 									<draggable :list="openModules[editModuleIndex]['items']" element="div" :options="{group:{name:'goods'}}" :no-transition-on-drag="true" @start="drag=true" @end="drag=false" v-if="!showEdit && openModules[editModuleIndex]['items'].length > 0">
-										<div class="media" v-for="(goods, index) in openModules[editModuleIndex]['items']">
+										<div class="media" v-for="(goods, index) in openModules[editModuleIndex]['items']" :key="index">
 											<div class="media-left">
 												<a href="#">
 													<img class="media-object" :src="goods.thumb" style="width: 60px; height: 60px; background-color: #666">
@@ -120,7 +120,7 @@
 											</div>
 										</div>
 									</div>
-									<div class="media" v-for="goods in goodsList">
+									<div class="media" v-for="(goods,index) in goodsList" :key="index">
 										<div class="media-left">
 											<a href="#">
 												<img class="media-object" :src="goods.thumb" style="width: 60px; height: 60px; background-color: #666">
@@ -395,7 +395,7 @@
 						</div>
 						<div class="modal-body">
 							<div class="link-browser wn-home__link">
-								<template v-for="link in linkGroup">
+								<template v-for="(link,index) in linkGroup" :key="index">
 									<div class="page-header">
 										<h4><i class="fa fa-folder-open-o"></i> {{link.name}}</h4>
 									</div>
@@ -404,11 +404,11 @@
 											{{link.name}}
 										</div>
 									</div>
-									<template v-for="sub in link.group">
+									<template v-for="(sub,index) in link.group" :key="index">
 										<div class="btn btn-default" @click="addLink(editValue, sub.link)" class="category">{{sub.name}}
 										</div>
 										<div v-if="sub.group" class="subcategory">
-											<div class="btn btn-default" v-for="cat in sub.group" @click="addLink(editValue, cat.link)">{{cat.name}}
+											<div class="btn btn-default" v-for="(cat,index) in sub.group" :key="index" @click="addLink(editValue, cat.link)">{{cat.name}}
 											</div>
 										</div>
 									</template>
@@ -428,11 +428,11 @@
 						</div>
 						<div class="modal-body">
 							<div class="link-browser wn-home__link">
-								<template v-for="article in articleList">
+								<template v-for="(article,index) in articleList" :key="index">
 									<div class="page-header">
 										<h4><i class="fa fa-folder-open-o"></i> {{article.title}}</h4>
 									</div>
-									<div v-if="article.article_list" v-for="item in article.article_list" class="link">
+									<div v-if="article.article_list" v-for="(item,id) in article.article_list" class="link" :key="id">
 										<div class="btn btn-default" @click="addArticle(editValue, item.id, item.title)">{{item.title}}
 										</div>
 									</div>
@@ -517,7 +517,7 @@
 				addModules: function (index) {
 					var self = this;
 					// Remove job from GUI
-					self.openModules.push(self.modules[index])
+					self.openModules.push(JSON.parse(JSON.stringify(self.modules[index])))
 				},
 				moveEnd: function (evt) {
 					// 新增
@@ -608,7 +608,6 @@
 					this.openModules[this.editModuleIndex]['items'].splice(index, 1);
 				},
 				saveItem: function () {
-					console.log(typeof this.ueditor);
 					if (this.ueditor && typeof this.ueditor == 'object') {
 						this.editValue.value = this.ueditor.getContent()
 						this.ueditor = null;
@@ -622,11 +621,13 @@
 						}
 					}
 					if (typeof index == 'number') {
+						console.log(index)
 						if (!this.editIndex && typeof this.editIndex != 'number') {
 							this.openModules[index]['items'].push(value)
 						} else {
 							this.openModules[index]['items'][this.editIndex] = value
 						}
+						console.log(this.openModules)
 					} else if (index == 'footer') {
 						if (!this.editIndex && typeof this.editIndex != 'number') {
 							this.footer.push(value)
