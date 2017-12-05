@@ -186,6 +186,7 @@ if ($op == 'search_goods') {
 
 if ($op == 'link') {
 	if ($_W['ispost'] && $_W['isajax']) {
+		mload()->model('entry');
 		$entries = wxapp_entry_fetchall($storeid, true);
 		message(error(0, $entries), '', 'ajax');
 	}

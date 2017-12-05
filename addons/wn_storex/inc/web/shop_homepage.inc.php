@@ -214,6 +214,7 @@ if ($op == 'search_activity') {
 
 if ($op == 'link') {
 	if ($_W['ispost'] && $_W['isajax']) {
+		mload()->model('entry');
 		$entries = entry_fetchall($storeid);
 		message(error(0, $entries), '', 'ajax');
 	}

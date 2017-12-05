@@ -84,6 +84,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 				'agentid' => $_GPC['agentid'],
 				'orderid' => $_GPC['orderid'],
 			);
+			mload()->model('entry');
 			$url = entry_fetch($id, $_GPC['type'], $params);
 			if (!empty($url)) {
 				header("Location: $url");

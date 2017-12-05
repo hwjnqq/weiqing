@@ -112,6 +112,7 @@ class Wn_storexModuleProcessor extends WeModuleProcessor {
 						$keyword = $poster_info['keyword'];
 						$content = trim($this->message['content']);
 						$goodsid = substr($content, strlen($keyword));
+						mload()->model('entry');
 						$url = goods_entry_fetch($poster_info['storeid'], array('goodsid' => $goodsid));
 						file_put_contents(IA_ROOT . '/addons/wn_storex/goods.txt', $url);
 						$qrcode_url = post_build_qrcode($url);
