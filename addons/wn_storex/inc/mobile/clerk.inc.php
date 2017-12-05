@@ -99,6 +99,7 @@ if ($op == 'order_info') {
 	$orderid = intval($_GPC['orderid']);
 	if (!empty($orderid)) {
 		$order = pdo_get('storex_order', array('id' => $orderid));
+		unset($order['openid']);
 		if (!empty($order)) {
 			$store_info = clerk_permission_storex('order', $order['hotelid']);
 			if (!empty($store_info[$order['hotelid']])) {
@@ -133,13 +134,13 @@ if ($op == 'order_info') {
 									unset($room_list[$r]);
 								}
 							}
-							$goods['room_list'] = $room_list;
-							$goods['rooms'] = array();
+							$order['room_list'] = $room_list;
+							$order['rooms'] = array();
 							if (!empty($order['roomitemid'])) {
 								$room_item = pdo_getall('storex_room_items', array('uniacid' => $_W['uniacid'], 'storeid' => $order['hotelid'], 'id' => explode(',', $order['roomitemid'])), array('id', 'roomnumber'));
 								if (!empty($room_item) && is_array($room_item)) {
 									foreach ($room_item as $roomitem) {
-										$goods['rooms'][] = $roomitem['roomnumber'];
+										$order['rooms'][] = $roomitem['roomnumber'];
 									}
 								}
 							}
