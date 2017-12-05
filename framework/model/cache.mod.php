@@ -355,6 +355,9 @@ function cache_build_uninstalled_module() {
 	$module_file = glob($path . '*');
 	if (is_array($module_file) && !empty($module_file)) {
 		foreach ($module_file as $modulepath) {
+			if (!is_dir($modulepath)) {
+				continue;
+			}
 			$upgrade_support_module = false;
 			$modulepath = str_replace($path, '', $modulepath);
 			$manifest = ext_module_manifest($modulepath);
