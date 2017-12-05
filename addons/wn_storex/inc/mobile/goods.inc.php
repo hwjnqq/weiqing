@@ -922,7 +922,7 @@ function insert_order_success($order_id, $uid) {
 		'remark' => '下单成功',
 	);
 	mload()->model('log');
-	write_log($logs);
+	log_write($logs);
 }
 
 //检查用户

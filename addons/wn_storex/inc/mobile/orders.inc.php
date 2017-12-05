@@ -229,7 +229,7 @@ if ($op == 'cancel') {
 		$logs['before_change'] = $order_info['status'];
 		$logs['after_change'] = -1;
 		$logs['type'] = 'status';
-		write_log($logs);
+		log_write($logs);
 		order_update_newuser($id);
 		wmessage(error(0, '订单成功取消！'), '', 'ajax');
 	} else {
@@ -249,7 +249,7 @@ if ($op == 'refund') {
 			$logs['before_change'] = $order['refund_status'];
 			$logs['after_change'] = 1;
 			$logs['type'] = 'refund_status';
-			write_log($logs);
+			log_write($logs);
 			wmessage(error(0, '退款申请成功'), '', 'ajax');
 		}
 	} else {
@@ -280,7 +280,7 @@ if ($op == 'confirm_goods') {
 		$logs['before_change'] = $order_info['goods_status'];
 		$logs['after_change'] = 3;
 		$logs['type'] = 'goods_status';
-		write_log($logs);
+		log_write($logs);
 		wmessage(error(0, '订单收货成功！'), '', 'ajax');
 	} else {
 		wmessage(error(-1, '订单收货失败！'), '', 'ajax');

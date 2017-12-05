@@ -1,5 +1,5 @@
 <?php
-function write_log($logs) {
+function log_write($logs) {
 	if (is_array($logs) && !empty($logs['table'])) {
 		$table = $logs['table'];
 		unset($logs['table']);
@@ -15,7 +15,7 @@ function write_log($logs) {
 	}
 }
 
-function admin_operation_log() {
+function log_admin_operation() {
 	global $_GPC, $_W;
 	$dos = array(
 		'admin_logs' => array(

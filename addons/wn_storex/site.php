@@ -308,7 +308,7 @@ class Wn_storexModuleSite extends WeModuleSite {
 					'remark' => '支付成功',
 				);
 				mload()->model('log');
-				write_log($logs);
+				log_write($logs);
 				if ($storex_bases['store_type'] != STORE_TYPE_HOTEL) {
 					stock_control($order, 'pay');
 				}

@@ -54,7 +54,7 @@ class Wn_storexModuleCron extends WeModuleCron {
 							$logs['before_change'] = $order['refund_status'];
 							$logs['after_change'] = 1;
 							$logs['type'] = 'refund_status';
-							write_log($logs);
+							log_write($logs);
 							$refund = pdo_get('storex_refund_logs', array('uniacid' => $_W['uniacid'], 'orderid' => $info['id']), array('status'));
 							if ($info['paytype'] == 'credit') {
 								$result = order_begin_refund($info['id']);
@@ -68,7 +68,7 @@ class Wn_storexModuleCron extends WeModuleCron {
 								$logs['before_change'] = $refund['status'];
 								$logs['after_change'] = REFUND_STATUS_SUCCESS;
 								$logs['clerk_type'] = 2;
-								write_log($logs);
+								log_write($logs);
 								pdo_update('storex_order', array('status' => 2), array('id' => $info['id']));
 							}
 						}

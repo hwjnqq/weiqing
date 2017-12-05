@@ -396,7 +396,7 @@ if ($op == 'edit_order') {
 	}
 	$result = pdo_update('storex_order', $data, array('id' => $orderid));
 	if (!empty($result)) {
-		write_log($logs);
+		log_write($logs);
 		if (in_array($data['status'], array(-1, 2))) {
 			order_update_newuser($orderid);
 			delete_room_assign($item);
@@ -692,7 +692,7 @@ if ($op == 'order_consume') {
 				'orderid' => $orderid,
 				'remark' => '店员核销',
 			);
-			write_log($logs);
+			log_write($logs);
 			message(error(0, '核销成功'), $url, 'ajax');
 		} else {
 			message(error(-1, '核销失败'), '', 'ajax');

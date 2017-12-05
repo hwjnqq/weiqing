@@ -341,7 +341,7 @@ if ($op == 'edit') {
 					$logs['before_change'] = $refund['status'];
 					$logs['after_change'] = REFUND_STATUS_SUCCESS;
 					$logs['clerk_type'] = 2;
-					write_log($logs);
+					log_write($logs);
 					if ($item['paytype'] == 'credit') {
 						message(error(0, '退款成功'), '', 'ajax');
 					} elseif ($item['paytype'] == 'wechat') {
@@ -494,7 +494,7 @@ if ($op == 'edit') {
 			}
 			$logs['clerk_type'] = 2;
 			pdo_update('storex_order', $data, array('id' => $id));
-			write_log($logs);
+			log_write($logs);
 			if (in_array($data['status'], array(ORDER_STATUS_CANCEL, ORDER_STATUS_REFUSE))) {
 				order_update_newuser($id);
 				delete_room_assign($item);
