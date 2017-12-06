@@ -19,6 +19,7 @@ class Qq extends OAuth2Client {
 		global $_W;
 		parent::__construct($ak, $sk);
 		$this->calback_url = $_W['siteroot'] . 'web/index.php';
+		$this->stateParam['from'] = 'qq';
 	}
 
 	/**
@@ -27,19 +28,7 @@ class Qq extends OAuth2Client {
 	 */
 	public function showLoginUrl($calback_url = '') {
 		$state = $this->stateParam();
-		return sprintf(QQ_PLATFORM_API_OAUTH_LOGIN_URL, $this->ak, $this->calback_url, base64_encode($state));
-	}
-
-	public function stateParam() {
-		global $_W;
-		$state = !empty($state) ? $state : $_W['token'];
-		$param['from'] = 'qq';
-		if (!empty($_W['user'])) {
-			$param['mode'] = 'bind';
-		} else {
-			$param['mode'] = 'login';
-		}
-		return $state . '&' . http_build_query($param, '', '&');
+		return sprintf(QQ_PLATFORM_API_OAUTH_LOGIN_URL, $this->ak, $this->calback_url, $state);
 	}
 
 	public function getAccessToken($state, $code) {
@@ -48,7 +37,7 @@ class Qq extends OAuth2Client {
 		}
 
 		$local_state = $this->stateParam();
-		if ($state != base64_encode($local_state)) {
+		if ($state != $local_state) {
 			return error(-1, '重新登陆');
 		}
 		$access_url = sprintf(QQ_PLATFORM_API_GET_ACCESS_TOKEN, $this->ak, $this->sk, $code, urlencode($this->calback_url));
