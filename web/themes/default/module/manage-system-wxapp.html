@@ -52,7 +52,9 @@
 				</td>
 				<td class="text-left">
 					<p>{{ module.title }}</p>
+					{if permission_check_account_user('see_module_manage_system_newversion')}
 					<span>版本：{{ module.version }} </span><span class="color-red" ng-if="module.upgrade && isFounder == 1">发现新版本</span>
+					{/if}
 				</td>
 				<!--<td >{{ module.use_account }}</td>-->
 				<!--<td >{{ module.enabled_use_account }}</td>-->

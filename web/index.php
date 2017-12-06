@@ -12,15 +12,16 @@ load()->func('file');
 load()->model('account');
 load()->model('setting');
 load()->model('user');
+load()->classs('oauth2/oauth2client');
 
-$state = urldecode($_GPC['state']);
-if (!empty($state)) {
-	$controller = 'user';
-	$action = 'login';
-	$state = base64_decode($state);
-	parse_str($state, $third_param);
-	$_GPC['login_type'] = $third_param['from'];
-	$_GPC['handle_type'] = $third_param['mode'];
+if (!empty($_GPC['state'])) {
+	$callbackParams = OAuth2Client::supportParams();
+	if (!empty($callbackParams)) {
+		$controller = 'user';
+		$action = 'login';
+		$_GPC['login_type'] = $callbackParams['from'];
+		$_GPC['handle_type'] = $callbackParams['mode'];
+	}
 }
 
 if (empty($_W['isfounder']) && !empty($_W['user']) && ($_W['user']['status'] == USER_STATUS_CHECK || $_W['user']['status'] == USER_STATUS_BAN)) {

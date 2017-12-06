@@ -25,6 +25,27 @@ abstract class OAuth2Client {
 		return array('qq', 'wechat');
 	}
 
+	public static function supportThirdMode() {
+		return array('bind', 'login');
+	}
+
+	public static function supportParams() {
+		global $_GPC;
+		$state = urldecode($_GPC['state']);
+		$param = array();
+		if (!empty($state)) {
+			$state = base64_decode($state);
+			parse_str($state, $third_param);
+			$modes = self::supportThirdMode();
+			$types = self::supportThirdLoginType();
+
+			if (in_array($third_param['mode'],$modes) && in_array($third_param['from'],$types)) {
+				return $third_param;
+			}
+		}
+		return $param;
+	}
+
 	public static function create($type, $appid = '', $appsecret = '') {
 		$types = self::supportLoginType();
 		if (in_array($type, $types)) {

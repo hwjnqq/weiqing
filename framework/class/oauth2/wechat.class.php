@@ -41,7 +41,7 @@ class Wechat extends OAuth2Client {
 		} else {
 			$param['mode'] = 'login';
 		}
-		return $state . '&' . http_build_query($param);
+		return $state . '&' . http_build_query($param, '', '&');
 	}
 
 	public function getOauthInfo() {
