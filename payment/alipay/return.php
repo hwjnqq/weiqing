@@ -9,6 +9,10 @@ load()->app('common');
 load()->app('template');
 $_W['uniacid'] = $_W['weid'] = intval($_GET['body']);
 $setting = uni_setting($_W['uniacid'], array('payment'));
+if ($_GET['exterface'] == 'create_direct_pay_by_user') {
+	$setting['payment'] = setting_load('store_pay');
+	$setting['payment'] = $setting['payment']['store_pay'];
+}
 if (!is_array($setting['payment'])) {
 	exit('request failed.');
 }
@@ -82,6 +86,16 @@ if($sign == $_GET['sign']){
 				$ret['from'] = 'return';
 				$site->$method($ret);
 				exit;
+			}
+		} else {
+			$order = pdo_get('site_store_order', array('orderid' => $_GET['out_trade_no']));
+			if (!empty($order)) {
+				if ($order['type'] == 1) {
+					pdo_update('site_store_order', array('type' => 3), array('orderid' => $_GET['out_trade_no']));
+				}
+				cache_delete(cache_system_key($order['uniacid'] . ':site_store_buy_modules'));
+				cache_build_account_modules($order['uniacid']);
+				header('Location: ./index.php?c=site&a=entry&direct=1&m=store&do=orders');
 			}
 		}
 	}

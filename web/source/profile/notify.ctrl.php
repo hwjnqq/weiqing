@@ -8,7 +8,7 @@ load()->func('communication');
 
 $dos = array('mail');
 $do = in_array($do, $dos) ? $do : 'mail';
-uni_user_permission_check('profile_setting');
+permission_check_account_user('profile_setting');
 $_W['page']['title'] = '邮件通知参数配置';
 
 if ($do == 'mail') {

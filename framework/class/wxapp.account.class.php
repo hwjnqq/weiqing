@@ -23,7 +23,21 @@ class WxappAccount extends WeAccount {
 		$url = "https://api.weixin.qq.com/sns/jscode2session?appid={$this->account['key']}&secret={$this->account['secret']}&js_code={$code}&grant_type=authorization_code";
 		return $response = $this->requestApi($url);
 	}
-	
+
+	/**
+	 * 微擎系统对来自微信公众平台请求的安全校验
+	 *
+	 * @see WeAccount::checkSign()
+	 */
+	public function checkSign() {
+		$token = $this->account['token'];
+		$signkey = array($token, $_GET['timestamp'], $_GET['nonce']);
+		sort($signkey, SORT_STRING);
+		$signString = implode($signkey);
+		$signString = sha1($signString);
+		return $signString == $_GET['signature'];
+	}
+
 	/**
 	 * 
 	 * @param string $encryptData 待解密的数据

@@ -7,8 +7,8 @@
 </ol>
 {else}
 <ol class="breadcrumb we7-breadcrumb">
-	<a href="{url 'user/display/vice_founder'}"><i class="wi wi-back-circlewi wi-back-circle"></i> </a>
-	<li><a href="{url 'user/display/vice_founder'}">副创始人管理</a></li>
+	<a href="{url 'founder/display'}"><i class="wi wi-back-circlewi wi-back-circle"></i> </a>
+	<li><a href="{url 'founder/display'}">副创始人管理</a></li>
 	<li>编辑副创始人详情</li>
 </ol>
 {/if}
@@ -18,19 +18,17 @@
 		<img ng-src="{{profile.avatar}}" class="img-circle user-avatar pull-left">
 		<h3 class="pull-left" ng-bind="user.username"></h3>
 		<div class="user-edit pull-right">
-			{if $user['founder_groupid'] != ACCOUNT_MANAGE_GROUP_VICE_FOUNDER}
-			<a href="{php echo url('user/display/recycle', array('uid' => $_GPC['uid']))}" class="btn btn-primary">禁用</a>
-			{/if}
+			
 		</div>
 	</div>
 	<div class="btn-group we7-btn-group we7-padding-bottom">
 		<a href="{php echo url('user/edit/edit_base', array('uid' => $_GPC['uid']))}" class="btn btn-default">基础信息</a>
 		{if empty($user['founder_groupid'])}
 		<a href="{php echo url('user/edit/edit_modules_tpl', array('uid' => $_GPC['uid']))}" class="btn btn-default">应用模板权限</a>
-		{else}
-		<a href="{php echo url('founder/founderedit/edit_modules_tpl', array('uid' => $_GPC['uid']))}" class="btn btn-default">应用模板权限</a>
-		{/if}
 		<a href="{php echo url('user/edit/edit_account', array('uid' => $_GPC['uid']))}" class="btn btn-default active">使用账号列表</a>
+		{else}
+		
+		{/if}
 	</div>
 	<table class="table we7-table table-hover vertical-middle">
 		<col width="87px"/>
@@ -55,6 +53,7 @@
 			</td>
 			<td>
 				<span ng-if="wechat.role == 'founder'">创始人</span>
+				
 				<span ng-if="wechat.role == 'owner'">主管理员</span>
 				<span ng-if="wechat.role == 'manager'">管理员</span>
 				<span ng-if="wechat.role == 'operator'">操作员</span>

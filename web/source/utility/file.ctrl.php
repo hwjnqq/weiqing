@@ -5,13 +5,14 @@
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
-error_reporting(0);
-global $_W;
+
 load()->func('file');
 load()->func('communication');
 load()->model('account');
 load()->model('material');
+load()->model('attachment');
 load()->model('mc');
+
 if (!in_array($do, array('upload', 'fetch', 'browser', 'delete', 'image' ,'module' ,'video', 'voice', 'news', 'keyword',
 	'networktowechat', 'networktolocal', 'towechat', 'tolocal','wechat_upload'))) {
 	exit('Access Denied');
@@ -22,12 +23,15 @@ $result = array(
 	'data' => '' 
 );
 
+error_reporting(0);
 $type  =  $_GPC['upload_type'];//$_COOKIE['__fileupload_type'];
 $type = in_array($type, array('image','audio','video')) ? $type : 'image';
 $option = array();
 $option = array_elements(array('uploadtype', 'global', 'dest_dir'), $_POST);
 $option['width'] = intval($option['width']);
 $option['global'] = $_GPC['global'];//!empty($_COOKIE['__fileupload_global']);
+
+
 if (!empty($option['global']) && empty($_W['isfounder'])) {
 	$result['message'] = '没有向 global 文件夹上传文件的权限.';
 	die(json_encode($result));
@@ -43,9 +47,19 @@ if (preg_match('/^[a-zA-Z0-9_\/]{0,50}$/', $dest_dir, $out)) {
 } else {
 	$dest_dir = '';
 }
+$module_upload_dir = '';
+if($dest_dir != '') {
+	$module_upload_dir = sha1($dest_dir);
+}
 
 $setting = $_W['setting']['upload'][$type];
 $uniacid = intval($_W['uniacid']);
+
+if(isset($_GPC['uniacid'])) { //是否有强制指定uniacid
+	$requniacid = intval($_GPC['uniacid']);
+	attachment_reset_uniacid($requniacid);// 会改变$_W['uniacid'];
+	$uniacid = intval($_W['uniacid']);
+}
 
 // 设置多媒体上传目录
 if (!empty($option['global'])) {
@@ -125,8 +139,11 @@ if ($do == 'upload') {
 	$ext = strtolower($ext);
 	$size = intval($_FILES['file']['size']);
 	$originname = $_FILES['file']['name'];
+
 	$filename = file_random_name(ATTACHMENT_ROOT . '/' . $setting['folder'], $ext);
-	$file = file_upload($_FILES['file'], $type, $setting['folder'] . $filename);
+
+	$file = file_upload($_FILES['file'], $type, $setting['folder'] . $filename, true);
+
 	if (is_error($file)) {
 		$result['message'] = $file['message'];
 		die(json_encode($result));
@@ -179,6 +196,9 @@ if ($do == 'fetch' || $do == 'upload') {
 		$size = filesize($fullname);
 		$info['size'] = sizecount($size);
 	}
+	if (!empty($_W['setting']['remote'][$_W['uniacid']]['type'])) {
+		$_W['setting']['remote'] = $_W['setting']['remote'][$_W['uniacid']];
+	}
 	if (!empty($_W['setting']['remote']['type'])) {
 		$remotestatus = file_remote_upload($pathname);
 		if (is_error($remotestatus)) {
@@ -196,14 +216,16 @@ if ($do == 'fetch' || $do == 'upload') {
 		'filename' => $originname,
 		'attachment' => $pathname,
 		'type' => $type == 'image' ? 1 : ($type == 'audio'||$type == 'voice' ? 2 : 3),
-		'createtime' => TIMESTAMP 
+		'createtime' => TIMESTAMP,
+		'module_upload_dir' => $module_upload_dir
 	));
+	$info['state'] = 'SUCCESS';//兼容ueditor 拖动上传
 	die(json_encode($info));
 }
 
 if ($do == 'delete') {
 	$id = intval($_GPC['id']);
-	$media = pdo_get('core_attachment', array('uniacid' => $_W['uniacid'], 'id' => $id));
+	$media = pdo_get('core_attachment', array('id' => $id));
 	if (empty($media)) {
 		exit('文件不存在或已经删除');
 	}
@@ -218,7 +240,7 @@ if ($do == 'delete') {
 	if (is_error($status)) {
 		exit($status['message']);
 	}
-	pdo_delete('core_attachment', array('uniacid' => $uniacid, 'id' => $id));
+	pdo_delete('core_attachment', array('id' => $id));
 	exit('success');
 }
 
@@ -314,9 +336,10 @@ if ($do == 'wechat_upload') {
 	if($type == 'image' || $type == 'thumb') {
 		$type = 'image';
 	}
-	if($type == 'voice' || $type == 'video') {
-		$type = 'audio';
+	if( $type == 'audio') {
+		$type = 'voice';
 	}
+
 	$setting['folder'] = "{$type}s/{$_W['uniacid']}" . '/'.date('Y/m/');
 
 	$acid = $_W['acid'];
@@ -355,7 +378,7 @@ if ($do == 'wechat_upload') {
 	}
 
 	$filename = file_random_name(ATTACHMENT_ROOT .'/'. $setting['folder'], $ext);
-	$file = file_wechat_upload($_FILES['file'], $type, $setting['folder'] . $filename);
+	$file = file_wechat_upload($_FILES['file'], $type, $setting['folder'] . $filename, true);
 	if (is_error($file)) {
 		$result['message'] = $file['message'];
 		die(json_encode($result));
@@ -451,7 +474,8 @@ if ($do == 'wechat_upload') {
 		'media_id' => $result['media_id'],
 		'type' => $type,
 		'model' => $mode,
-		'createtime' => TIMESTAMP
+		'createtime' => TIMESTAMP,
+		'module_upload_dir' => $module_upload_dir
 	);
 	if($type == 'image' || $type == 'thumb') {
 		$size = getimagesize($fullname);
@@ -490,7 +514,6 @@ if ($do == 'wechat_upload') {
 /*******************素材资源管理**********************/
 $type = $_GPC['type']; //资源转换 $type
 $resourceid = intval($_GPC['resource_id']); //资源ID
-$uniacid = intval($_W['uniacid']);
 $uid = intval($_W['uid']);
 $acid = intval($_W['acid']);
 $url = $_GPC['url'];
@@ -550,6 +573,10 @@ if ($do == 'video' || $do == 'voice') {
 	$material_news_list = material_list($do, $server, array('page_index' => $page_index, 'page_size' => $page_size));
 	$material_list = $material_news_list['material_list'];
 	$pager = $material_news_list['page'];
+	foreach ($material_list as &$item) {
+		$item['url'] = tomedia($item['attachment']);
+		unset($item['uid']);
+	}
 	$result = array('items' => $material_list, 'pager' => $pager);
 	iajax(0, $result);
 }
@@ -561,14 +588,7 @@ if ($do == 'news') {
 	$page_size = 24;
 	$search = addslashes($_GPC['keyword']);
 	$material_news_list = material_news_list($server, $search, array('page_index' => $page_index, 'page_size' => $page_size));
-	// 转换微信图片地址
-	foreach ($material_news_list['material_list'] as $key => &$news) {
-		if (isset($news['items']) && is_array($news['items'])) {
-			foreach ($news['items'] as &$item) {
-				$item['thumb_url'] = tomedia($item['thumb_url']);
-			}
-		}
-	}
+
 	$material_list = array_values($material_news_list['material_list']);
 	$pager = $material_news_list['page'];
 	$result = array('items' => $material_list, 'pager' => $pager);
@@ -580,25 +600,27 @@ if ($do == 'image') {
 	if ($islocal) { // 如果读取本地图
 		$page = $_GPC['page'];
 		$page = max(1, $page);
-		$condition = ' WHERE uniacid = :uniacid AND type = :type';
-		$params = array(':uniacid' => $uniacid, ':type' => 1);
+		$condition = array('uniacid' => $uniacid, 'type' => 1, 'module_upload_dir' => $module_upload_dir);
+
+		if (empty($uniacid)) {
+			$condition['uid'] = $_W['uid'];
+		}
 
 		$year = $_GPC['year'];
 		$month = $_GPC['month'];
 		if ($year > 0 || $month > 0) {
 			$starttime = strtotime("{$year}-{$month}-01");
 			$endtime = strtotime('+1 month', $starttime);
-			$condition .= ' AND createtime >= :starttime AND createtime <= :endtime';
-			$params[':starttime'] = $starttime;
-			$params[':endtime'] = $endtime;
+			$condition['createtime >='] = $starttime;
+			$condition['createtime <='] = $endtime;
 		}
-		$sql = 'SELECT * FROM '.tablename('core_attachment')." {$condition} ORDER BY id DESC LIMIT ".(($page - 1) * $page_size).','.$page_size;
-		$list = pdo_fetchall($sql, $params);
+		$list = pdo_getslice('core_attachment', $condition, array($page, $page_size), $total, array(), '', 'createtime DESC');
+
 		foreach ($list as &$item) {
 			$item['url'] = tomedia($item['attachment']);
 			unset($item['uid']);
 		}
-		$total = pdo_fetchcolumn('SELECT count(*) FROM '.tablename('core_attachment')." {$condition}", $params);
+
 		$result = array(
 			'items' => $list,
 			'pager' => pagination($total, $page, $page_size, '', array('before' => '2', 'after' => '3', 'ajaxcallback' => 'null')),
@@ -606,9 +628,16 @@ if ($do == 'image') {
 	} else {
 		$page = $_GPC['page'];
 		$page_index = max(1, $page);
-		$material_news_list = material_list('image', MATERIAL_WEXIN, array('page_index' => $page_index, 'page_size' => $page_size));
-		$material_list = $material_news_list['material_list'];
-		$pager = $material_news_list['page'];
+		$conditions['uniacid'] = $uniacid;
+		$conditions['type'] = 'image';
+		$conditions['module_upload_dir'] = $module_upload_dir;
+
+		if (empty($uniacid)) {
+			$conditions['uid'] = $_W['uid'];
+		}
+		$material_list = pdo_getslice('wechat_attachment', $conditions, array($page_index, $page_size), $total, array(), '', 'createtime DESC');
+		$pager = pagination($total, $page_index, $page_size,'',$context = array('before' => 5, 'after' => 4, 'isajax' => $_W['isajax']));
+
 		foreach ($material_list as &$meterial) {
 			$meterial['attach'] = tomedia($meterial['attachment'], true);
 			$meterial['url'] = $meterial['attach'];
@@ -624,7 +653,6 @@ if ($do == 'image') {
 if ($do == 'tolocal' || $do == 'towechat') {
 	if (!in_array($type, array('news', 'image', 'video', 'voice'))) {
 		iajax(1, '转换类型不正确');
-
 		return;
 	}
 }
@@ -633,7 +661,14 @@ if ($do == 'tolocal' || $do == 'towechat') {
  *  网络图转本地
  */
 if ($do == 'networktolocal') {
-	$material = material_network_image_to_local($url, $uniacid, $uid);
+	$type = $_GPC['type'];
+	if (!in_array($type,array('image','video'))) {
+		$type = 'image';
+	}
+
+
+
+	$material = material_network_to_local($url, $uniacid, $uid, $type);
 	if (is_error($material)) {
 		iajax(1, $material['message']);
 
@@ -652,7 +687,6 @@ if ($do == 'tolocal') {
 	}
 	if (is_error($material)) {
 		iajax(1, $material['message']);
-
 		return;
 	}
 	iajax(0, $material);
@@ -661,7 +695,13 @@ if ($do == 'tolocal') {
  *  网络图片转 wechat
  */
 if ($do == 'networktowechat') {
-	$material = material_network_image_to_wechat($url, $uniacid, $uid, $acid); //网络图片转为 微信 图片
+
+	$type = $_GPC['type'];
+	if (!in_array($type,array('image','video'))) {
+		$type = 'image';
+	}
+
+	$material = material_network_to_wechat($url, $uniacid, $uid, $acid, $type); //网络图片转为 微信 图片
 	if (is_error($material)) {
 		iajax(1, $material['message']);
 

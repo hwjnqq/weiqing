@@ -4,7 +4,7 @@
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('mc');
-uni_user_permission_check('mc_member');
+
 $dos = array('address', 'base_information', 'member_credits', 'credit_statistics', 'display','del', 'add', 'group', 'register_setting', 'credit_setting', 'save_credit_setting', 'save_tactics_setting');
 $do = in_array($do, $dos) ? $do : 'display';
 
@@ -66,7 +66,7 @@ if($do == 'display') {
 	$search_mod = intval($_GPC['search_mod']) == 1 ? '1' : '2';
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 25;
-	
+
 	$condition = '';
 	$params = array(':uniacid' => $_W['uniacid']);
 	if (!empty($_GPC['username'])) {
@@ -143,10 +143,11 @@ if($do == 'del') {
 			$delete_uids = $_GPC['uid'];
 		}
 		if (!empty($delete_uids)) {
-			$tables = array('mc_members', 'mc_card_members', 'mc_card_notices', 'mc_card_notices_unread', 'mc_card_record', 'mc_card_sign_record', 'mc_cash_record', 'mc_credits_recharge', 'mc_credits_record', 'mc_mapping_fans', 'mc_member_address', 'mc_mapping_ucenter');
+			$tables = array('mc_members', 'mc_card_members', 'mc_card_notices', 'mc_card_notices_unread', 'mc_card_record', 'mc_card_sign_record', 'mc_cash_record', 'mc_credits_recharge', 'mc_credits_record', 'mc_member_address', 'mc_mapping_ucenter');
 			foreach ($tables as $key => $value) {
 				pdo_delete($value, array('uniacid' => $_W['uniacid'], 'uid' => $delete_uids));
 			}
+			pdo_update('mc_mapping_fans', array('uid' => 0), array('uid' => $delete_uids, 'uniacid' => $_W['uniacid']));
 			itoast('删除成功！', referer(), 'success');
 		}
 		itoast('请选择要删除的项目！', referer(), 'error');
@@ -197,7 +198,7 @@ if($do == 'add') {
 		);
 		pdo_insert('mc_members', $data);
 		$uid = pdo_insertid();
-		itoast('添加会员成功,将进入编辑页面', url('mc/member/post', array('uid' => $uid)), 'success');
+		itoast('添加会员成功,将进入编辑页面', url('mc/member/post', array('uid' => $uid, 'account_type' => $_GPC['account_type'])), 'success');
 	}
 	template('mc/member-add');
 }
@@ -270,9 +271,17 @@ if($do == 'member_credits') {
 	$type = trim($_GPC['type']) ? trim($_GPC['type']) : 'credit1';
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 50;
-	$params = array('uid' => $uid, 'uniacid' => $_W['uniacid'], 'credittype' => $type);
-	$total = pdo_getcolumn('mc_credits_record', $params, 'COUNT(*)');
-	$records = pdo_fetchall("SELECT r.*, u.username FROM " . tablename('mc_credits_record') . ' AS r LEFT JOIN ' .tablename('users') . ' AS u ON r.operator = u.uid ' . ' WHERE r.uid = :uid AND r.uniacid = :uniacid AND r.credittype = :credittype ORDER BY id DESC LIMIT ' . ($pindex - 1) * $psize .',' . $psize, $params);
+
+	$member_table = table('member');
+
+	$member_table->searchCreditsRecordUid($uid);
+	$member_table->searchCreditsRecordType($type);
+
+	$member_table->searchWithPage($pindex, $psize);
+	
+	$records = $member_table->creditsRecordList();
+	$total = $member_table->getLastQueryTotal();
+
 	$pager = pagination($total, $pindex, $psize);
 	template('mc/member-information');
 }
@@ -299,7 +308,7 @@ if ($do == 'base_information') {
 			iajax(-1, '参数错误！', '');
 		}
 		switch ($type) {
-			case 'avatar':			
+			case 'avatar':
 				$data = array('avatar' => $_GPC['imgsrc']);
 				break;
 			case 'groupid':
@@ -423,7 +432,7 @@ if ($do == 'address') {
 				iajax(0, '删除成功', '');
 			}else{
 				iajax(1, '删除失败', '');
-			}	
+			}
 		}
 		if ($_GPC['op'] == 'isdefault') {
 			$id = intval($_GPC['id']);

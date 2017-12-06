@@ -13,7 +13,6 @@ load()->model('material');
 
 $dos = array('list', 'post', 'cron', 'send', 'del', 'preview');
 $do = in_array($do, $dos) ? $do : 'post';
-uni_user_permission_check('platform_mass_task');
 $_W['page']['title'] = '定时群发-微信素材';
 
 if ($do == 'list') {
@@ -59,7 +58,7 @@ if ($do == 'list') {
 		$day_info['info'] = $massdata;
 		$days[] = $day_info;
 	}
-	
+
 	template('platform/mass-display');
 }
 
@@ -79,7 +78,7 @@ if ($do == 'post') {
 	$id = intval($_GPC['id']);
 	$mass_info = pdo_get('mc_mass_record', array('id' => $id));
 	$groups = mc_fans_groups();
-	
+
 	if (checksubmit('submit')) {
 		$type = in_array(intval($_GPC['type']), array(0, 1)) ? intval($_GPC['type']) : 0;
 		$group = json_decode(htmlspecialchars_decode($_GPC['group']), true);
@@ -87,7 +86,7 @@ if ($do == 'post') {
 		if (empty($_GPC['reply'])) {
 			itoast('请选择要群发的素材', '', 'error');
 		}
-		
+
 		$mass_record = array(
 			'uniacid' => $_W['uniacid'],
 			'acid' => $_W['acid'],
@@ -126,13 +125,13 @@ if ($do == 'post') {
 				itoast($cloud['message'], '', 'error');
 			}
 			set_time_limit(0);
-			
+
 			$starttime = strtotime(date('Y-m-d', strtotime($_GPC['sendtime'])));
 			$endtime = strtotime(date('Y-m-d', strtotime($_GPC['sendtime']))) + 86400;
 			$cron_title  = date('Y-m-d', strtotime($_GPC['sendtime'])) . '微信群发任务';
-			
+
 			$mass_record['sendtime'] = strtotime($_GPC['sendtime']);
-			
+
 			$records = pdo_fetchall("SELECT id, cron_id FROM " . tablename('mc_mass_record') . ' WHERE uniacid = :uniacid AND sendtime BETWEEN :starttime AND :endtime AND status = 1 ORDER BY sendtime ASC LIMIT 8', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime), 'id');
 			if (!empty($records)) {
 				foreach ($records as $record) {
@@ -150,10 +149,10 @@ if ($do == 'post') {
 				$ids = implode(',', array_keys($records));
 				pdo_delete('mc_mass_record', array('uniacid' => $_W['uniacid'], 'id' => array($ids)));
 			}
-			
+
 			pdo_insert('mc_mass_record', $mass_record);
 			$mass_record_id = pdo_insertid();
-			
+
 			$cron_data = array(
 				'uniacid' => $_W['uniacid'],
 				'name' => $cron_title,
@@ -169,7 +168,7 @@ if ($do == 'post') {
 				$message = "{$cron_title}同步到云服务失败,请手动同步<br>";
 				itoast($message, url('platform/mass/send'), 'info');
 			}
-			
+
 			pdo_update('mc_mass_record', array('cron_id' => $status), array('id' => $mass_record_id));
 			itoast('定时群发设置成功', url('platform/mass/send'), 'success');
 		} else {

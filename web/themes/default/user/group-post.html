@@ -26,6 +26,14 @@
 				<span class="help-block">限制小程序的数量，为0则不允许添加。</span>
 			</div>
 		</div>
+
+		<div class="form-group">
+			<label for="" class="control-label col-sm-2">创建PC数量</label>
+			<div class="form-controls col-sm-8">
+				<input type="text" name="maxwebapp" class="form-control" ng-model="groupInfo.maxwebapp">
+				<span class="help-block">限制PC的数量，为0则不允许添加。</span>
+			</div>
+		</div>
 		<div class="form-group">
 			<label for="" class="control-label col-sm-2">有效期</label>
 			<div class="form-controls col-sm-8">
@@ -77,6 +85,16 @@
 									</ul>
 								</td>
 							</tr>
+							<tr class="permission-apply">
+								<td class="vertical-middle">PC应用</td>
+								<td>
+									<ul>
+										<li ng-repeat="pc in pack.pc">
+											<span class="label label-info" ng-bind="pc.title"></span>
+										</li>
+									</ul>
+								</td>
+							</tr>
 							<tr class="permission-template">
 								<td class="vertical-middle">模板</td>
 								<td><ul><li ng-repeat="tpl in pack.templates"><span class="label label-info" ng-bind="tpl.title"></span></li></ul></td>
@@ -84,7 +102,7 @@
 						</table>
 					</div>
 				</div>
-				{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
+				{if permission_check_account_user('see_account_manage_module_tpl_all_permission')}
 				<div>
 					<div class="permission-heading">
 						<input id="checkbox-0" type="checkbox" value="-1" name='package[]' ng-checked="groupInfo.check_all">

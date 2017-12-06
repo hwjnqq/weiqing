@@ -155,9 +155,10 @@ function rmdirs($path, $clean = false) {
  *        	文件保存类型
  * @param string $name
  *        	保存的文件名,不含后缀.(未指定则自动生成文件名，指定则是从附件目录开始的完整相对路径)
+ * @param string $compress 是否压缩
  * @return array 错误信息 error 或 array('success' => bool，'path' => 保存路径（从附件目录开始的完整相对路径）)
  */
-function file_upload($file, $type = 'image', $name = '') {
+function file_upload($file, $type = 'image', $name = '', $compress = false) {
 	$harmtype = array('asp', 'php', 'jsp', 'js', 'css', 'php3', 'php4', 'php5', 'ashx', 'aspx', 'exe', 'cgi');
 	if (empty($file)) {
 		return error(-1, '没有上传内容');
@@ -195,6 +196,12 @@ function file_upload($file, $type = 'image', $name = '') {
 	if (!empty($limit) && $limit * 1024 < filesize($file['tmp_name'])) {
 		return error(-4, "上传的文件超过大小限制，请上传小于 {$limit}k 的文件");
 	}
+
+	if ($type == 'image' && $compress) {
+		//设置清晰度
+		file_image_quality($file['tmp_name'], $file['tmp_name'], $ext);
+	}
+
 	$result = array();
 	if (empty($name) || $name == 'auto') {
 		$uniacid = intval($_W['uniacid']);
@@ -210,7 +217,7 @@ function file_upload($file, $type = 'image', $name = '') {
 		}
 		$result['path'] = $name;
 	}
-	
+
 	if (!file_move($file['tmp_name'], ATTACHMENT_ROOT . '/' . $result['path'])) {
 		return error(-1, '保存上传文件失败');
 	}
@@ -232,7 +239,12 @@ function file_wechat_upload($file, $type = 'image', $name = '') {
 	if (in_array(strtolower($ext), $harmtype)) {
 		return error(-3, '不允许上传此类文件');
 	}
-	
+
+	if($type == 'image') {
+		//设置清晰度
+		file_image_quality($file['tmp_name'], $file['tmp_name'], $ext);
+	}
+
 	$result = array();
 	if (empty($name) || $name == 'auto') {
 		$uniacid = intval($_W['uniacid']);
@@ -268,7 +280,7 @@ function file_remote_upload($filename, $auto_delete_local = true) {
 		return false;
 	}
 	if ($_W['setting']['remote']['type'] == '1') {
-		require_once (IA_ROOT . '/framework/library/ftp/ftp.php');
+		load()->library('ftp');
 		$ftp_config = array(
 			'hostname' => $_W['setting']['remote']['ftp']['host'],
 			'username' => $_W['setting']['remote']['ftp']['username'],
@@ -294,7 +306,7 @@ function file_remote_upload($filename, $auto_delete_local = true) {
 			return error(1, '远程附件上传失败，请检查配置并重新上传');
 		}
 	} elseif ($_W['setting']['remote']['type'] == '2') {
-		require_once (IA_ROOT . '/framework/library/alioss/autoload.php');
+		load()->library('oss');
 		load()->model('attachment');
 		$buckets = attachment_alioss_buctkets($_W['setting']['remote']['alioss']['key'], $_W['setting']['remote']['alioss']['secret']);
 		$endpoint = 'http://' . $buckets[$_W['setting']['remote']['alioss']['bucket']]['location'] . '.aliyuncs.com';
@@ -308,7 +320,7 @@ function file_remote_upload($filename, $auto_delete_local = true) {
 			file_delete($filename);
 		}
 	} elseif ($_W['setting']['remote']['type'] == '3') {
-		require_once (IA_ROOT . '/framework/library/qiniu/autoload.php');
+		load()->library('qiniu');
 		$auth = new Qiniu\Auth($_W['setting']['remote']['qiniu']['accesskey'], $_W['setting']['remote']['qiniu']['secretkey']);
 		$config = new Qiniu\Config();
 		$uploadmgr = new Qiniu\Storage\UploadManager($config);
@@ -328,11 +340,11 @@ function file_remote_upload($filename, $auto_delete_local = true) {
 		}
 	} elseif ($_W['setting']['remote']['type'] == '4') {
 		if (!empty($_W['setting']['remote']['cos']['local'])) {
-			require (IA_ROOT . '/framework/library/cosv4.2/include.php');
+			load()->library('cos');
 			qcloudcos\Cosapi::setRegion($_W['setting']['remote']['cos']['local']);
 			$uploadRet = qcloudcos\Cosapi::upload($_W['setting']['remote']['cos']['bucket'], ATTACHMENT_ROOT . $filename, '/' . $filename, '', 3 * 1024 * 1024, 0);
 		} else {
-			require (IA_ROOT . '/framework/library/cos/include.php');
+			load()->library('cosv3');
 			$uploadRet = \Qcloud_cos\Cosapi::upload($_W['setting']['remote']['cos']['bucket'], ATTACHMENT_ROOT . $filename, '/' . $filename, '', 3 * 1024 * 1024, 0);
 		}
 		if ($uploadRet['code'] != 0) {
@@ -356,6 +368,44 @@ function file_remote_upload($filename, $auto_delete_local = true) {
 			file_delete($filename);
 		}
 	}
+}
+
+/**
+ * 上传目录下的所有图片到远程服务器并删除本地图片
+ * @param string $dir_path 目录路径
+ * @return true|error
+ */
+function file_dir_remote_upload($dir_path) {
+	global $_W;
+	if (empty($_W['setting']['remote']['type'])) {
+		return error(1, '未开启远程附件');
+	}
+	$dir_path = safe_gpc_path($dir_path);
+	if (!empty($dir_path)) {
+		$local_attachment = file_tree($dir_path);
+	} else {
+		$local_attachment = array();
+	}
+	if (is_array($local_attachment) && !empty($local_attachment)) {
+		foreach ($local_attachment as $attachment) {
+			$filename = str_replace(ATTACHMENT_ROOT, '', $attachment);
+			$file_account = explode('/', $filename);
+			$file_account = $file_account[1];
+			if ($file_account == 'global') {
+				continue;
+			}
+			if (is_numeric($file_account) && is_dir(ATTACHMENT_ROOT . 'images/' .  $file_account) && !empty($_W['setting']['remote_complete_info'][$file_account]['type'])) {
+				$_W['setting']['remote'] = $_W['setting']['remote_complete_info'][$file_account];
+			} else {
+				$_W['setting']['remote'] = $_W['setting']['remote_complete_info'];
+			}
+			$result = file_remote_upload($filename);
+			if (is_error($result)) {
+				return $result;
+			}
+		}
+	}
+	return true;
 }
 
 /**
@@ -399,7 +449,7 @@ function file_remote_delete($file) {
 		return true;
 	}
 	if ($_W['setting']['remote']['type'] == '1') {
-		require_once (IA_ROOT . '/framework/library/ftp/ftp.php');
+		load()->library('ftp');
 		$ftp_config = array(
 			'hostname' => $_W['setting']['remote']['ftp']['host'],
 			'username' => $_W['setting']['remote']['ftp']['username'],
@@ -422,7 +472,7 @@ function file_remote_delete($file) {
 		}
 	} elseif ($_W['setting']['remote']['type'] == '2') {
 		load()->model('attachment');
-		require_once (IA_ROOT . '/framework/library/alioss/autoload.php');
+		load()->library('oss');
 		$buckets = attachment_alioss_buctkets($_W['setting']['remote']['alioss']['key'], $_W['setting']['remote']['alioss']['secret']);
 		$endpoint = 'http://' . $buckets[$_W['setting']['remote']['alioss']['bucket']]['location'] . '.aliyuncs.com';
 		try {
@@ -432,7 +482,7 @@ function file_remote_delete($file) {
 			return error(1, '删除oss远程文件失败');
 		}
 	} elseif ($_W['setting']['remote']['type'] == '3') {
-		require_once IA_ROOT . '/framework/library/qiniu/autoload.php';
+		load()->library('qiniu');
 		$auth = new Qiniu\Auth($_W['setting']['remote']['qiniu']['accesskey'], $_W['setting']['remote']['qiniu']['secretkey']);
 		$bucketMgr = new Qiniu\Storage\BucketManager($auth);
 		$error = $bucketMgr->delete($_W['setting']['remote']['qiniu']['bucket'], $file);
@@ -448,11 +498,11 @@ function file_remote_delete($file) {
 		$bucketName = $_W['setting']['remote']['cos']['bucket'];
 		$path = "/" . $file;
 		if (!empty($_W['setting']['remote']['cos']['local'])) {
-			require (IA_ROOT . '/framework/library/cosv4.2/include.php');
+			load()->library('cos');
 			qcloudcos\Cosapi::setRegion($_W['setting']['remote']['cos']['local']);
 			$result = qcloudcos\Cosapi::delFile($bucketName, $path);
 		} else {
-			require (IA_ROOT . '/framework/library/cos/include.php');
+			load()->library('cosv3');
 			$result = Qcloud_cos\Cosapi::delFile($bucketName, $path);
 		}
 		if (!empty($result['code'])) {
@@ -762,6 +812,7 @@ function file_remote_attach_fetch($url, $limit = 0, $path = '') {
 	}
 	load()->func('communication');
 	$resp = ihttp_get($url);
+
 	if (is_error($resp)) {
 		return error(-1, '提取文件失败, 错误信息: '.$resp['message']);
 	}
@@ -848,4 +899,46 @@ function file_is_image($url) {
 	$pathinfo = pathinfo($url);
 	$extension = strtolower($pathinfo['extension']);
 	return !empty($extension) && in_array($extension, array('jpg', 'jpeg', 'gif', 'png'));
+}
+
+/**
+ * 清晰度设置 如果是上传文件的话 就直接把临时目录覆盖为新的
+ * @param $src //原始目录
+ * @param $to_path //目标目录
+ * @param int $quality //清晰度
+ * @param $ext //图片类型
+ *
+ *
+ * @since version
+ */
+function file_image_quality($src, $to_path, $ext) {
+	global $_W;
+	//gd库未开启
+	if (!function_exists('gd_info')) {
+		return;
+	}
+	//不压缩
+	$quality = intval($_W['setting']['upload']['image']['zip_percentage']);
+	if ($quality <= 0 || $quality >= 100) {
+		return ;
+	}
+	
+	//大于5M不压缩
+	if (filesize($src) > 5120) {
+		return ;
+	}
+
+	/**
+	 *  imagejpeg 1-100 范围 默认值75 数字 值越大越清晰
+	 *  imagepng  1-9 范围 默认6 值越小越清晰
+	 */
+	$resource = null;
+	switch ($ext) {
+		case 'jpg' : $quality = intval(0.75*$quality); $resource = imagecreatefromjpeg($src);  imagejpeg($resource, $to_path, $quality);  break;
+		case 'jpeg': $quality = intval(0.75*$quality); $resource = imagecreatefromjpeg($src); imagejpeg($resource, $to_path, $quality);  break;
+		case 'png' : $quality = round(abs((100-$quality)/11.111111)); $resource = imagecreatefrompng($src); imagepng($resource, $to_path, $quality); break;
+	}
+	if ($resource) {
+		imagedestroy($resource);
+	}
 }

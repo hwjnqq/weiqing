@@ -6,8 +6,8 @@
 defined('IN_IA') or exit('Access Denied');
 
 /**
-	* 从商城获取最新应用
-	* @return 	array
+ * 从商城获取最新应用
+ * @return 	array
 */
 function welcome_get_last_modules() {
 	load()->classs('cloudapi');
@@ -18,15 +18,29 @@ function welcome_get_last_modules() {
 }
 
 /**
+ * 从云商城获取广告
+ * @return array()
+ */
+function welcome_get_ads() {
+	load()->classs('cloudapi');
+	$result = array();
+	$api = new CloudApi();
+	$result = $api->get('store', 'we7_index_a');
+	return $result;
+}
+
+
+/**
  * 获取公告
  * @return array
 */
 function welcome_notices_get() {
-	$notices = pdo_getall('article_notice', array('is_display' => 1), array('id', 'title', 'createtime'), '', 'createtime DESC', array(1,15));
+	$notices = pdo_getall('article_notice', array('is_display' => 1), array('id', 'title', 'createtime', 'style'), '', 'createtime DESC', array(1,15));
 	if(!empty($notices)) {
 		foreach ($notices as $key => $notice_val) {
 			$notices[$key]['url'] = url('article/notice-show/detail', array('id' => $notice_val['id']));
 			$notices[$key]['createtime'] = date('Y-m-d', $notice_val['createtime']);
+			$notices[$key]['style'] = iunserializer($notice_val['style']);
 		}
 	}
 	return $notices;
@@ -65,10 +79,7 @@ function welcome_database_backup_days($time) {
  * @return array() ;
  */
 function welcome_get_cloud_upgrade() {
-	cache_load('upgrade');
-	if (!empty($_W['cache']['upgrade'])) {
-		$upgrade_cache = $_W['cache']['upgrade'];
-	}
+	$upgrade_cache = cache_load('upgrade');
 	if (empty($upgrade_cache) || TIMESTAMP - $upgrade_cache['lastupdate'] >= 3600 * 24 || empty($upgrade_cache['data'])) {
 		$upgrade = cloud_build();
 	} else {

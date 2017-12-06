@@ -1,11 +1,14 @@
 {template 'common/header'}
 <div class="panel panel-cut">
 	<div class="panel-heading">
-		<i class="wi wi-small-routine" style="font-size: 24px; margin-right: 10px; vertical-align:middle;"></i>选择小程序
+		<span class="panel-heading-left">
+			<i class="wi wi-small-routine" style="font-size: 24px; margin-right: 10px; vertical-align:middle;"></i>选择小程序
+		</span>
 		<div class="pull-right font-default">
-			{if !empty($account_info['wxapp_limit']) || $_W['isfounder']}
+			{if !empty($account_info['wxapp_limit']) || $_W['isfounder'] && !user_is_vice_founder()}
 			<a href="{php echo url('wxapp/post/design_method')}" class="color-default"><i class="wi wi-registersite"></i>新建小程序</a>
 			{/if}
+			<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL))}" class="color-default"><i class="wi wi-wechatstatistics"></i>小程序管理</a>
 		</div>
 	</div>
 	<div class="panel-body" id="js-wxapp-account-display" ng-controller="AccountDisplayWxappCtrl" ng-cloak>
@@ -13,7 +16,7 @@
 			<div class="alert alert-warning">
 				温馨提示：
 				<i class="fa fa-info-circle"></i>
-				Hi，<span class="text-strong">{$_W['username']}</span>，您所在的会员组： <span class="text-strong">{$account_info['group_name']}</span>，
+				Hi，<span class="text-strong">{$_W['username']}</span>，您所在的会员组： <span class="text-strong">{$account_info['group_name']}</span>，{if !user_is_vice_founder() && !empty($account_info['vice_group_name'])}<span class="text-strong">{$account_info['vice_group_name']}，</span>{/if}
 				账号有效期限：<span class="text-strong">{php echo date('Y-m-d', $_W['user']['starttime'])} ~~ {if empty($_W['user']['endtime'])}无限制{else}{php echo date('Y-m-d', $_W['user']['endtime'])}{/if}</span>，
 				可创建 <span class="text-strong">{$account_info['maxwxapp']} </span>个小程序，已创建<span class="text-strong"> {$account_info['wxapp_num']} </span>个，还可创建 <span class="text-strong">{$account_info['wxapp_limit']} </span>个小程序。
 			</div>
@@ -81,9 +84,13 @@
 			<div class="text-center we7-padding-vertical message-page"  ng-if="!wxapp_lists && !activeLetter">
 				<div class="icon"><span class="wi wi-sad"></span></div>
 				<div class="message-state">您还没有创建小程序</div>
+				
+				
 				{if !empty($account_info['wxapp_limit']) || $_W['isfounder']}
 				<div><a class="btn btn-primary" href="{php echo url('wxapp/post/design_method')}">新建小程序</a></div>
 				{/if}
+				
+
 			</div>
 			<div class="text-center we7-padding-vertical" ng-if="!wxapp_lists && activeLetter">
 				暂无数据

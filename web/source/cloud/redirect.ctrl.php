@@ -19,7 +19,7 @@ if($do == 'profile') {
 
 if($do == 'sms') {
 	define('ACTIVE_FRAME_URL', url('cloud/sms'));
-	uni_user_permission_check('system_cloud_sms');
+	permission_check_account_user('system_cloud_sms');
 	$iframe = cloud_auth_url('sms');
 	$title = '云短信';
 }

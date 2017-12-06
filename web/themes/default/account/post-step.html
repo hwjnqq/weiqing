@@ -247,7 +247,7 @@
 					<th class="text-left bg-light-gray">应用权限组</th>
 					<th class="text-right bg-light-gray">操作</th>
 				</tr>
-				{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
+				{if permission_check_account_user('see_account_manage_module_tpl_all_permission')}
 				<tr>
 					<td class="text-left">
 						<input id="check-0" type="checkbox" name="package[]" autocomplete="off" value="-1" {if is_array($owner['group']['package']) && in_array('-1', $owner['group']['package'])}checked disabled{/if}{if is_array($extend['package']) && !empty($extend['package'][-1])}checked {/if} />

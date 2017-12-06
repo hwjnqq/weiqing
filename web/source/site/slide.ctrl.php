@@ -7,7 +7,7 @@ defined('IN_IA') or exit('Access Denied');
 
 $do = !empty($do) ? $do : 'display';
 $do = in_array($do, array('display', 'post', 'delete')) ? $do : 'display';
-uni_user_permission_check('platform_site');
+permission_check_account_user('platform_site');
 
 if ($do == 'display' && $_W['isajax'] && $_W['ispost']) {
 	$pindex = max(1, intval($_GPC['page']));

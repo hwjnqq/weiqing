@@ -9,12 +9,11 @@ load()->model('mc');
 load()->model('card');
 load()->model('module');
 
+permission_check_account_user('mc_member');
+
 $_W['page']['title'] = '会员交易-会员管理';
 $dos = array('consume', 'user', 'modal', 'credit', 'card', 'cardsn', 'tpl', 'cardconsume');
 $do = in_array($do, $dos) ? $do : 'tpl';
-// if($_W['role'] != 'clerk') {
-// 	uni_user_permission_check('mc_member');
-// }
 
 if($do == 'user') {
 	$type = trim($_GPC['type']);
@@ -57,7 +56,7 @@ if($do == 'user') {
 				$user['discount_cn'] = '商家未开启会员卡功能';
 			}
 		}
-		
+
 		$html = "姓名:{$user['realname']},会员组:{$user['groupname']}<br>";
 		if(!empty($we7_coupon_info)) {
 			$html .= "{$user['discount_cn']}<br>";
@@ -66,7 +65,7 @@ if($do == 'user') {
 		if(!empty($we7_coupon_info) && !empty($card) && $card['offset_rate'] > 0 && $card['offset_max'] > 0) {
 			$html .= "{$card['offset_rate']}积分可抵消1元。最多可抵消{$card['offset_max']}元";
 		}
-		
+
 		exit(json_encode(array('error' => 'none', 'user' => $user, 'html' => $html, 'card' => $card, 'group' => $_W['account']['groups'], 'grouplevel' => $_W['account']['grouplevel'])));
 	}
 }

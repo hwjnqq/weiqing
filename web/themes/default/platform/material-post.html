@@ -61,7 +61,7 @@
 						<!-- 阅读原文链接 -->
 						<div we7-linker we7-my-url="materialList[activeIndex].content_source_url" we7-my-title="materialList[activeIndex].content_source_url"></div>
 						<!--正文-->
-						<div class="editor-area" ng-my-editor ng-my-value="materialList[activeIndex].content" >
+						<div class="editor-area" ng-my-upurl="{php echo url('utility/file/upload')}" ng-my-editor ng-my-value="materialList[activeIndex].content" >
 							<textarea ></textarea>
 						</div>
 					</div>
@@ -125,7 +125,7 @@
 							<a type="button" class="btn btn-default">保存并群发</a>
 						</div>
 						<a type="button" class="btn btn-primary" ng-if="model == 'local' || operate == 'add'" ng-click="saveNews('local')">保存到本地</a>
-						<a id="savewechat" type="button" class="btn btn-primary" ng-click="saveNews('wechat')" ng-show="(!hidenbutton && materialList.length < 8) || operate == 'add'">保存并上传到微信</a>
+						<a id="savewechat" type="button" class="btn btn-primary" ng-click="saveNews('wechat')" ng-show="(!hidenbutton && materialList.length <= 8) || operate == 'add' && new_type == 'reply'">保存并上传到微信</a>
 					</div>
 				</div>
 			</nav>

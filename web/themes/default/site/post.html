@@ -259,13 +259,14 @@
 							<label for="" class="control-label col-sm-2">绑定域名</label>
 							<div class="form-controls col-sm-10">
 								<input type="text" name="bindhost" class="form-control" ng-model="multi.bindhost">
+								<span class="help-block">绑定时请先将域名解析指向到本服务器，请只填写host部分，不允许为当前系统域名。例如：www.baidu.com</span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label for="" class="control-label col-sm-2">底部自定义</label>
 							<div class="form-controls col-sm-10">
-								<textarea class="form-control" cols="30" name="footer" autocomplete="off" ng-model="multi.site_info.footer"></textarea>
-								<span class="help-block">自定义底部信息，支持HTML</span>
+								<textarea class="form-control" cols="30" name="footer" autocomplete="off">{$multi['site_info']['footer']}</textarea>
+								<span class="help-block">自定义底部信息</span>
 							</div>
 						</div>
 					</div>
@@ -502,6 +503,7 @@
 								<span class="help-block">将导航应用在以上页面</span>
 							</div>
 						</div>
+						{if $_W['role'] != 'operator'}
 						<div class="form-group">
 							<label for="" class="control-label col-sm-2">导航隐藏:</label>
 							<div class="form-controls col-sm-10">
@@ -513,6 +515,7 @@
 								<span class="help-block">将导航隐藏在以上模块</span>
 							</div>
 						</div>
+						{/if}
 						<div class="panel we7-panel app-shopNav-edit">
 							<div class="panel-heading">
 								当前模板: 微信公众号自定义菜单模板
@@ -547,7 +550,7 @@
 											</div>
 											<div class="second-nav">
 												<h4>二级导航</h4>
-												<div ng-repeat="submenu in menu.submenus">
+												<div ng-repeat="submenu in menu.submenus" class="alert">
 													<div class="del">
 														<a href="javascript:;" ng-click="removeSubMenu($parentIndex, submenu)"><i class="fa fa-times"></i></a>
 													</div>

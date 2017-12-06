@@ -5,7 +5,7 @@
 
 defined('IN_IA') or exit('Access Denied');
 
-uni_user_permission_check('mc_member');
+permission_check_account_user('mc_member');
 
 $dos = array('display', 'change_group_level', 'save_group', 'get_group', 'set_default', 'del_group');
 $do = in_array($do, $dos) ? $do : 'display';

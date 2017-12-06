@@ -2,8 +2,8 @@
 defined('IN_IA') or exit('Access Denied');
 
 class Captcha {
-	public $maxAngle = 15; /*角度*/
-	public $maxOffset = 5; /*偏移量*/
+	public $maxAngle = 15; 
+	public $maxOffset = 5; 
 	public $phrase = '';
 	
 	public function build($width, $height) {
@@ -14,8 +14,7 @@ class Captcha {
 		$bg = imagecolorallocate($image, $this->rand(200, 255), $this->rand(200, 255), $this->rand(200, 255));
 		imagefill($image, 0, 0, $bg);
 		
-		//干扰线
-		$square = $width * $height * 3;
+				$square = $width * $height * 3;
 		$effects = $this->rand($square/2000, $square/1000);
 		for ($e = 0; $e < $effects; $e++) {
 			$this->drawLine($image, $width, $height);
@@ -43,8 +42,7 @@ class Captcha {
 	}
 	
 	protected function phrase() {
-		//默认为字母数字，将来可扩展汉字
-		return random(4, true);
+				return random(4, true);
 	}
 	
 	protected function rand($min, $max) {
@@ -57,13 +55,11 @@ class Captcha {
 			$tcol = imagecolorallocate($image, $this->rand(100, 255), $this->rand(100, 255), $this->rand(100, 255));
 		}
 	
-		if ($this->rand(0, 1)) { // Horizontal
-			$Xa   = $this->rand(0, $width/2);
+		if ($this->rand(0, 1)) { 			$Xa   = $this->rand(0, $width/2);
 			$Ya   = $this->rand(0, $height);
 			$Xb   = $this->rand($width/2, $width);
 			$Yb   = $this->rand(0, $height);
-		} else { // Vertical
-			$Xa   = $this->rand(0, $width);
+		} else { 			$Xa   = $this->rand(0, $width);
 			$Ya   = $this->rand(0, $height/2);
 			$Xb   = $this->rand(0, $width);
 			$Yb   = $this->rand($height/2, $height);

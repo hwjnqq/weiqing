@@ -42,10 +42,11 @@ function cache_type() {
  */
 function cache_load($key, $unserialize = false) {
 	global $_W;
-	if (!empty($_W['cache'][$key])) {
-		return $_W['cache'][$key];
+	static $we7_cache;
+	if (!empty($we7_cache[$key])) {
+		return $we7_cache[$key];
 	}
-	$data = $_W['cache'][$key] = cache_read($key);
+	$data = $we7_cache[$key] = cache_read($key);
 	if ($key == 'setting') {
 		$_W['setting'] = $data;
 		return $_W['setting'];

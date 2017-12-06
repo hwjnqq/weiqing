@@ -67,9 +67,9 @@ function module_types() {
  */
 function module_entries($name, $types = array(), $rid = 0, $args = null) {
 	load()->func('communication');
-	
+
 	global $_W;
-	$ts = array('rule', 'cover', 'menu', 'home', 'profile', 'shortcut', 'function', 'mine');
+	$ts = array('rule', 'cover', 'menu', 'home', 'profile', 'shortcut', 'function', 'mine', 'welcome');
 	if(empty($types)) {
 		$types = $ts;
 	} else {
@@ -120,6 +120,10 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 			if($bind['entry'] == 'shortcut') {
 				$url = murl("entry", array('eid' => $bind['eid']));
 			}
+			if($bind['entry'] == 'welcome') {
+				$url = wurl("site/entry", array('eid' => $bind['eid']));
+			}
+
 			if(empty($bind['icon'])) {
 				$bind['icon'] = 'fa fa-puzzle-piece';
 			}
@@ -279,11 +283,13 @@ function module_save_group_package($package) {
  * @return array 模块信息
  */
 function module_fetch($name) {
+	load()->object('cloudapi');
 	global $_W;
 	$cachekey = cache_system_key(CACHE_KEY_MODULE_INFO, $name);
 	$module = cache_load($cachekey);
 	if (empty($module)) {
-		$module_info = pdo_get('modules', array('name' => $name));
+		$sql = 'SELECT * FROM '. tablename('modules') . " as a LEFT JOIN" . tablename('modules_recycle') . " as b ON a.name = b.modulename WHERE a.name = :name AND b.modulename is NULL";
+		$module_info = pdo_fetch($sql, array(':name' => $name));
 		if (empty($module_info)) {
 			return array();
 		}
@@ -353,9 +359,9 @@ function module_get_all_unistalled($status, $cache = true)  {
 	load()->model('cloud');
 	load()->classs('cloudapi');
 	$status = $status == 'recycle' ? 'recycle' : 'uninstalled';
-	$uninstallModules =  cache_load(cache_system_key('module:all_uninstall'));
+	$cloud_api = new CloudApi();
+	$uninstallModules = cache_load(cache_system_key('module:all_uninstall'));
 	if (!$cache && $status == 'uninstalled') {
-		$cloud_api = new CloudApi();
 		$get_cloud_m_count = $cloud_api->get('site', 'stat', array('module_quantity' => 1), 'json');
 		$cloud_m_count = $get_cloud_m_count['module_quantity'];
 	} else {
@@ -367,6 +373,8 @@ function module_get_all_unistalled($status, $cache = true)  {
 		$account_type = 'wxapp';
 	} elseif (ACCOUNT_TYPE == ACCOUNT_TYPE_OFFCIAL_NORMAL) {
 		$account_type = 'app';
+	} elseif (ACCOUNT_TYPE == ACCOUNT_TYPE_WEBAPP_NORMAL) {
+		$account_type = 'webapp';
 	}
 	if (!is_array($uninstallModules) || empty($uninstallModules['modules'][$status][$account_type]) || intval($uninstallModules['cloud_m_count']) !== intval($cloud_m_count) || is_error($get_cloud_m_count)) {
 		$uninstallModules = cache_build_uninstalled_module();
@@ -432,12 +440,12 @@ function module_permission_fetch($name) {
  */
 function module_uninstall($module_name, $is_clean_rule = false) {
 	global $_W;
-	load()->model('cloud');
+	load()->object('cloudapi');
 	if (empty($_W['isfounder'])) {
 		return error(1, '您没有卸载模块的权限！');
 	}
 	$module_name = trim($module_name);
-	$module = module_fetch($module_name);
+	$module = pdo_get('modules', array('name' => $module_name));
 	if (empty($module)) {
 		return error(1, '模块已经被卸载或是不存在！');
 	}
@@ -447,12 +455,34 @@ function module_uninstall($module_name, $is_clean_rule = false) {
 	if (!empty($module['plugin_list'])) {
 		pdo_delete('modules_plugin', array('main_module' => $module_name));
 	}
+
+	pdo_delete('uni_account_modules', array('module' => $module_name));
+	cache_delete(cache_system_key('module:all_uninstall'));
+	ext_module_clean($module_name, $is_clean_rule);
+	cache_build_module_subscribe_type();
+	cache_build_uninstalled_module();
+	cache_build_module_info($module_name);
+
+	return true;
+}
+
+/**
+ *  执行模块的卸载脚本
+ * @param string $module_name 模块标识
+ */
+function module_execute_uninstall_script($module_name) {
+	global $_W;
+	load()->object('cloudapi');
+	load()->model('cloud');
+	if (empty($_W['isfounder'])) {
+		return error(1, '您没有卸载模块的权限！');
+	}
 	$modulepath = IA_ROOT . '/addons/' . $module_name . '/';
 	$manifest = ext_module_manifest($module_name);
 	if (empty($manifest)) {
-		$r = cloud_prepare();
-		if (is_error($r)) {
-			itoast($r['message'], url('cloud/profile'), 'error');
+		$result = cloud_prepare();
+		if (is_error($result)) {
+			return error(1, $result['message']);
 		}
 		$packet = cloud_m_build($module_name, 'uninstall');
 		if ($packet['sql']) {
@@ -463,22 +493,24 @@ function module_uninstall($module_name, $is_clean_rule = false) {
 			require($uninstall_file);
 			unlink($uninstall_file);
 		}
-	} elseif (!empty($manifest['uninstall'])) {
-		if (strexists($manifest['uninstall'], '.php')) {
-			if (file_exists($modulepath . $manifest['uninstall'])) {
-				require($modulepath . $manifest['uninstall']);
+	} else {
+		if (!empty($manifest['uninstall'])) {
+			if (strexists($manifest['uninstall'], '.php')) {
+				if (file_exists($modulepath . $manifest['uninstall'])) {
+					require($modulepath . $manifest['uninstall']);
+				}
+			} else {
+				pdo_run($manifest['uninstall']);
 			}
-		} else {
-			pdo_run($manifest['uninstall']);
 		}
 	}
-	pdo_insert('modules_recycle', array('modulename' => $module_name));
-	pdo_delete('uni_account_modules', array('module' => $module_name));
-	ext_module_clean($module_name, $is_clean_rule);
-	cache_build_module_subscribe_type();
-	cache_build_uninstalled_module();
-	cache_build_module_info($module_name);
-
+	pdo_delete('modules_recycle', array('modulename' => $module_name));
+	$cloudapi = new CloudApi();
+	$recycle_module = $cloudapi->post('cache', 'get', array('key' => cache_system_key('recycle_module:')));
+	$recycle_module = !empty($recycle_module['data']) ? $recycle_module['data'] : array();
+	unset($recycle_module[$module_name]);
+	$cloudapi->post('cache', 'set', array('key' => cache_system_key('recycle_module:'), 'value' => $recycle_module));
+	cache_delete(cache_system_key('module:all_uninstall'));
 	return true;
 }
 
@@ -624,6 +656,54 @@ function module_upgrade_new($type = 'account') {
 }
 
 /**
+ * 判断某一模块是否在公众号模块权限内
+ * @param string $module_name
+ * @param int $uniacid
+ * @return boolean
+ */
+function module_exist_in_account($module_name, $uniacid) {
+	global $_W;
+	$result = false;
+	$module_name = trim($module_name);
+	$uniacid = intval($uniacid);
+	if (empty($module_name) || empty($uniacid)) {
+		return $result;
+	}
+	$founders = explode(',', $_W['config']['setting']['founder']);
+	$owner_uid = pdo_getcolumn('uni_account_users',  array('uniacid' => $uniacid, 'role' => 'owner'), 'uid');
+	if (!empty($owner_uid) && !in_array($owner_uid, $founders)) {
+		$packageids = pdo_getall('uni_account_group', array('uniacid' => $uniacid), array('groupid'), 'groupid');
+		$packageids = array_keys($packageids);
+		if (IMS_FAMILY == 'x') {
+			$site_store_buy_goods = uni_site_store_buy_goods($uniacid);
+			$site_store_buy_package = table('store')->searchUserBuyPackage($uniacid);
+			$packageids = array_merge($packageids, array_keys($site_store_buy_package));
+		} else {
+			$site_store_buy_goods = array();
+		}
+		if (!in_array('-1', $packageids)) {
+			$uni_modules = array();
+			$uni_groups = pdo_fetchall("SELECT `modules` FROM " . tablename('uni_group') . " WHERE " .  "id IN ('".implode("','", $packageids)."') OR " . " uniacid = '{$uniacid}'");
+			if (!empty($uni_groups)) {
+				foreach ($uni_groups as $group) {
+					$group_module = (array)iunserializer($group['modules']);
+					$uni_modules = array_merge($group_module, $uni_modules);
+				}
+			}
+			$user_modules = user_modules($owner_uid);
+			$modules = array_merge(array_keys($user_modules), $uni_modules, $site_store_buy_goods);
+			$result = in_array($module_name, $modules) ? true : false;
+		} else {
+			$result = true;
+		}
+	} else {
+		$result = true;
+	}
+	return $result;
+}
+
+
+/**
  * 获取操作员有某一模块权限的所有公众号和小程序
  * @param int $uid 用户UID
  * @param string $module_name 模块name
@@ -640,44 +720,26 @@ function module_get_user_account_list($uid, $module_name) {
 	if (empty($module_info)) {
 		return $accounts_list;
 	}
-	$accounts = user_account_detail_info($uid);
-	if (empty($accounts)) {
+
+	$account_users_info = table('account')->userOwnedAccount($uid);
+	if (empty($account_users_info)) {
 		return $accounts_list;
 	}
-	if (!empty($accounts['wxapp'])) {
-		foreach ($accounts['wxapp'] as $wxapp_value) {
-			if (empty($wxapp_value['uniacid'])) {
-				continue;
-			}
-			$wxapp_modules = uni_modules_by_uniacid($wxapp_value['uniacid']);
-			$wxapp_modules = array_keys($wxapp_modules);
-			$module_permission_exist = uni_user_menu_permission($uid, $wxapp_value['uniacid'], $module_name);
-			if (in_array($module_name, $wxapp_modules) && (in_array('all',$module_permission_exist) || !empty($module_permission_exist))) {
-				$accounts_list[$wxapp_value['uniacid']] = $wxapp_value;
-			}
-		}
-	}
-	if (!empty($accounts['wechat'])) {
-		foreach ($accounts['wechat'] as $wechat_value) {
-			if (empty($wechat_value['uniacid'])) {
-				continue;
-			}
-			$wechat_modules = uni_modules_by_uniacid($wechat_value['uniacid']);
-			$wechat_modules = array_keys($wechat_modules);
-			$module_permission_exist = uni_user_menu_permission($uid, $wxapp_value['uniacid'], $module_name);
-			if (in_array($module_name, $wechat_modules) && (in_array('all',$module_permission_exist) || !empty($module_permission_exist))) {
-				$accounts_list[$wechat_value['uniacid']] = $wechat_value;
-			}
-		}
-	}
-
-	foreach ($accounts_list as $key => $account_value) {
-		if ($module_info['wxapp_support'] == MODULE_SUPPORT_WXAPP && $module_info['app_support'] == MODULE_SUPPORT_ACCOUNT) {
+	$accounts = array();
+	foreach ($account_users_info as $account) {
+		if (empty($account['uniacid'])) {
 			continue;
-		} elseif ($module_info['wxapp_support'] == MODULE_SUPPORT_WXAPP && $account_value['type'] != ACCOUNT_TYPE_APP_NORMAL) {
-			unset($accounts_list[$key]);
-		} elseif ($module_info['app_support'] == MODULE_SUPPORT_ACCOUNT && !in_array($account_value['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
-			unset($accounts_list[$key]);
+		}
+		$uniacid = 0;
+		if (($account['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $account['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) && $module_info['app_support'] == MODULE_SUPPORT_ACCOUNT) {
+			$uniacid = $account['uniacid'];
+		} elseif ($account['type'] == ACCOUNT_TYPE_APP_NORMAL && $module_info['wxapp_support'] == MODULE_SUPPORT_WXAPP) {
+			$uniacid = $account['uniacid'];
+		}
+		if (!empty($uniacid)) {
+			if (module_exist_in_account($module_name, $uniacid)) {
+				$accounts_list[$uniacid] = $account;
+			}
 		}
 	}
 
@@ -843,4 +905,20 @@ function module_clerk_info($module_name) {
 		}
 	}
 	return $user_permissions;
+}
+
+/**
+ * 将应用列表页的模块置顶
+ */
+function module_rank_top($module_name) {
+	global $_W;
+	$module_table = table('module');
+	$max_rank = $module_table->moduleMaxRank();
+	$exist = $module_table->moduleRank($module_name);
+	if (!empty($exist)) {
+		pdo_update('modules_rank', array('rank' => ($max_rank + 1)), array('module_name' => $module_name));
+	} else {
+		pdo_insert('modules_rank', array('uid' => $_W['uid'], 'module_name' => $module_name, 'rank' => ($max_rank + 1)));
+	}
+	return true;
 }

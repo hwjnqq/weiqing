@@ -8,6 +8,7 @@
 define('IN_API', true);
 require_once './framework/bootstrap.inc.php';
 load()->model('reply');
+load()->model('attachment');
 load()->app('common');
 load()->classs('wesession');
 $hash = $_GPC['hash'];
@@ -47,7 +48,7 @@ $_W['uniaccount'] = uni_fetch($_W['uniacid']);
 $_W['account']['groupid'] = $_W['uniaccount']['groupid'];
 $_W['account']['qrcode'] = $_W['attachurl'].'qrcode_'.$_W['acid'].'.jpg?time='.$_W['timestamp'];
 $_W['account']['avatar'] = $_W['attachurl'].'headimg_'.$_W['acid'].'.jpg?time='.$_W['timestamp'];
-$_W['modules'] = uni_modules();
+$_W['attachurl'] = attachment_set_attach_url();
 
 $engine = new WeEngine();
 if (!empty($_W['setting']['copyright']['status'])) {
@@ -100,11 +101,14 @@ class WeEngine {
 	public function __construct() {
 		global $_W;
 		$this->account = WeAccount::create($_W['account']);
-		$this->modules = array_keys($_W['modules']);
-		$this->modules[] = 'cover';
-		$this->modules[] = 'default';
-		$this->modules[] = 'reply';
-		$this->modules = array_unique($this->modules);
+		if(strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
+			$_W['modules'] = uni_modules();
+			$this->modules = array_keys($_W['modules']);
+			$this->modules[] = 'cover';
+			$this->modules[] = 'default';
+			$this->modules[] = 'reply';
+			$this->modules = array_unique ($this->modules);
+		}
 	}
 
 	/**
@@ -441,13 +445,19 @@ class WeEngine {
 		if (!empty($subscribe[$this->message['type']])) {
 			foreach ($subscribe[$this->message['type']] as $modulename) {
 				//fsockipen可用时，设置timeout为0可以无需等待高效请求
-				$response = ihttp_request(wurl('utility/subscribe/receive'), array(
-					'i' => $GLOBALS['uniacid'], 
+				//部分nginx+apache的服务器由于Nginx设置不支持为0的写法，故兼容为10秒
+				//发现部分用户请求127.0.0.1无法请求，报错误7，故再增加完整URL兼容写法
+				$params = array(
+					'i' => $GLOBALS['uniacid'],
 					'modulename' => $modulename,
 					'request' => json_encode($par),
 					'response' => json_encode($response),
 					'message' => json_encode($this->message),
-				), array(), 0);
+				);
+				$response = ihttp_request(wurl('utility/subscribe/receive'), $params, array(), 10);
+				if (is_error($response) && $response['errno'] == '7') {
+					$response = ihttp_request($_W['siteroot'] . 'web/' . wurl('utility/subscribe/receive'), $params, array(), 10);
+				}
 			}
 		}
 	}

@@ -85,6 +85,7 @@ if (intval($_W['account']['level']) == 4) {
 				'follow' => $userinfo['subscribe'],
 				'followtime' => $userinfo['subscribe_time'],
 				'unfollowtime' => 0,
+				'unionid' => $userinfo['unionid'],
 				'tag' => base64_encode(iserializer($userinfo))
 			);
 			if (!isset($unisetting['passport']) || empty($unisetting['passport']['focusreg'])) {
@@ -149,7 +150,7 @@ if (intval($_W['account']['level']) != 4) {
 		}
 	}
 }
-if ($scope == 'userinfo') {
+if ($scope == 'userinfo' || $scope == 'snsapi_userinfo') {
 	$userinfo = $oauth_account->getOauthUserInfo($oauth['access_token'], $oauth['openid']);
 	if (!is_error($userinfo)) {
 		$userinfo['nickname'] = stripcslashes($userinfo['nickname']);

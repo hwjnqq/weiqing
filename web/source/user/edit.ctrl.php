@@ -10,7 +10,6 @@ load()->func('file');
 
 $dos = array('edit_base', 'edit_modules_tpl', 'edit_account');
 $do = in_array($do, $dos) ? $do: 'edit_base';
-uni_user_permission_check('system_user_post');
 
 $_W['page']['title'] = '编辑用户 - 用户管理';
 
@@ -18,10 +17,8 @@ $uid = intval($_GPC['uid']);
 $user = user_single($uid);
 if (empty($user)) {
 	itoast('访问错误, 未找到该操作员.', url('user/display'), 'error');
-} else {
-	if ($user['status'] == 1) itoast('访问错误，该用户未审核通过，请先审核通过再修改！', url('user/display/check_display'), 'error');
-	if ($user['status'] == 3) itoast('访问错误，该用户已被禁用，请先启用再修改！', url('user/display/recycle_display'), 'error');
 }
+
 $founders = explode(',', $_W['config']['setting']['founder']);
 $profile = pdo_get('users_profile', array('uid' => $uid));
 if (!empty($profile)) $profile['avatar'] = tomedia($profile['avatar']);
@@ -29,28 +26,20 @@ if (!empty($profile)) $profile['avatar'] = tomedia($profile['avatar']);
 //编辑用户基础信息
 if ($do == 'edit_base') {
 	$user['last_visit'] = date('Y-m-d H:i:s', $user['lastvisit']);
+	$user['joindate'] = date('Y-m-d H:i:s', $user['joindate']);
 	$user['end'] = $user['endtime'] == 0 ? '永久' : date('Y-m-d', $user['endtime']);
 	$user['endtype'] = $user['endtime'] == 0 ? 1 : 2;
 	$user['url'] = user_invite_register_url($uid);
-	
-	if (!empty($profile)) {
-		$profile['reside'] = array(
-			'province' => $profile['resideprovince'],
-			'city' => $profile['residecity'],
-			'district' => $profile['residedist']
-		);
-		$profile['birth'] = array(
-			'year' => $profile['birthyear'],
-			'month' => $profile['birthmonth'],
-			'day' => $profile['birthday'],
-		);
-		$profile['resides'] = $profile['resideprovince'] . $profile['residecity'] . $profile['residedist'] ;
-		$profile['births'] =($profile['birthyear'] ? $profile['birthyear'] : '--') . '年' . ($profile['birthmonth'] ? $profile['birthmonth'] : '--') . '月' . ($profile['birthday'] ? $profile['birthday'] : '--') .'日';
-	}
+
+	$profile = user_detail_formate($profile);
 	template('user/edit-base');
 }
 if ($do == 'edit_modules_tpl') {
 	if ($_W['isajax'] && $_W['ispost']) {
+		if ($user['status'] == USER_STATUS_CHECK || $user['status'] == USER_STATUS_BAN) {
+			iajax(-1, '访问错误，该用户未审核或者已被禁用，请先修改用户状态！', '');
+		}
+
 		if (intval($_GPC['groupid']) == $user['groupid']){
 			iajax(2, '未做更改！');
 		}

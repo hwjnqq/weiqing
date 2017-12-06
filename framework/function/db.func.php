@@ -12,7 +12,7 @@ $GLOBALS['_W']['config']['db']['tablepre'] = empty($GLOBALS['_W']['config']['db'
  * @param DB $db			数据库操作对象
  * @param string $tablename 表名
  * @return array eg: $ret = array();
- * 
+ *
  * <pre>
  * // SHOW FULL COLUMNS FROM 'tablename'
  * $ret['tablename'] = '表名'; //string
@@ -123,7 +123,7 @@ function db_table_create_sql($schema) {
 	}
 	$sql = rtrim($sql);
 	$sql = rtrim($sql, ',');
-	
+
 	$sql .= "\n) ENGINE=$engine DEFAULT CHARSET=$charset;\n\n";
 	return $sql;
 }
@@ -153,7 +153,7 @@ function db_table_create_sql($schema) {
  */
 function db_schema_compare($table1, $table2) {
 	$table1['charset'] == $table2['charset'] ? '' : $ret['diffs']['charset'] = true;
-	
+
 	$fields1 = array_keys($table1['fields']);
 	$fields2 = array_keys($table2['fields']);
 	$diffs = array_diff($fields1, $fields2);
@@ -253,7 +253,7 @@ function db_table_fix_sql($schema1, $schema2, $strict = false) {
 						if ($field['increment'] == 1) {
 							$primary = $field;
 							break;
-						} 
+						}
 					}
 					if (!empty($primary)) {
 						$piece = _db_build_field_sql($primary);
@@ -296,7 +296,7 @@ function db_table_fix_sql($schema1, $schema2, $strict = false) {
 			foreach($diff['indexes']['diff'] as $indexname) {
 				$index = $schema2['indexes'][$indexname];
 				$piece = _db_build_index_sql($index);
-				
+
 				$sqls[] = "ALTER TABLE `{$schema1['tablename']}` DROP ".($indexname == 'PRIMARY' ? " PRIMARY KEY " : "INDEX {$indexname}").", ADD {$piece}";
 			}
 		}
@@ -334,8 +334,11 @@ function _db_build_field_sql($field) {
 	} else {
 		$length = '';
 	}
-
-	$signed  = empty($field['signed']) ? ' unsigned' : '';
+	if (strpos(strtolower($field['type']), 'int') !== false) {
+		$signed = empty($field['signed']) ? ' unsigned' : '';
+	} else {
+		$signed = '';
+	}
 	if(empty($field['null'])) {
 		$null = ' NOT NULL';
 	} else {

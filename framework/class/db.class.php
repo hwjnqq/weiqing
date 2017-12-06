@@ -45,16 +45,20 @@ class DB {
 				$options = array(PDO::ATTR_PERSISTENT => $cfg['pconnect']);
 			} else {
 				if(!class_exists('_PDO')) {
-					include IA_ROOT . '/framework/library/pdo/PDO.class.php';
+					load()->library('pdo');
 				}
 				$dbclass = '_PDO';
 			}
 		} else {
-			include IA_ROOT . '/framework/library/pdo/PDO.class.php';
+			load()->library('pdo');
 			$dbclass = 'PDO';
 		}
-		$this->pdo = new $dbclass($dsn, $cfg['username'], $cfg['password'], $options);
-		$this->pdo->setAttribute(pdo::ATTR_EMULATE_PREPARES, false);
+		$pdo = new $dbclass($dsn, $cfg['username'], $cfg['password'], $options);
+		if(DEVELOPMENT && class_exists('\DebugBar\DataCollector\PDO\TraceablePDO')) {
+			$pdo = new \DebugBar\DataCollector\PDO\TraceablePDO($pdo);
+		}
+		$this->pdo = $pdo;
+		//$this->pdo->setAttribute(pdo::ATTR_EMULATE_PREPARES, false);
 		$sql = "SET NAMES '{$cfg['charset']}';";
 		$this->pdo->exec($sql);
 		$this->pdo->exec("SET sql_mode='';");
@@ -72,7 +76,6 @@ class DB {
 			return false;
 		}
 		$statement = $this->pdo->prepare($sql);
-		$this->logging($sql);
 		return $statement;
 	}
 
@@ -91,20 +94,16 @@ class DB {
 			trigger_error($sqlsafe['message'], E_USER_ERROR);
 			return false;
 		}
-		//为了不影响 last insertid 把缓存提前执行，可能插入失败后也会清空缓存
-		if (in_array(strtolower(substr($sql, 0, 6)), array('update', 'delete', 'insert', 'replac'))) {
-			$this->cacheNameSpace($sql, true);
-		}
 		$starttime = microtime();
 		if (empty($params)) {
 			$result = $this->pdo->exec($sql);
-			$this->logging($sql);
+			$this->logging($sql, array(), $this->pdo->errorInfo());
 			return $result;
 		}
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
 		
-		$this->logging($sql, $params);
+		$this->logging($sql, $params, $statement->errorInfo());
 		
 		$endtime = microtime();
 		$this->performance($sql, $endtime - $starttime);
@@ -124,22 +123,18 @@ class DB {
 	 * @return mixed
 	 */
 	public function fetchcolumn($sql, $params = array(), $column = 0) {
-		$cachekey = $this->cacheKey($sql, $params);
-		if (($cache = $this->cacheRead($cachekey)) !== false) {
-			return $cache['data'];
-		}
 		$starttime = microtime();
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
 		
-		$this->logging($sql, $params);
+		$this->logging($sql, $params, $statement->errorInfo());
+		
 		$endtime = microtime();
 		$this->performance($sql, $endtime - $starttime);
 		if (!$result) {
 			return false;
 		} else {
 			$data = $statement->fetchColumn($column);
-			$this->cacheWrite($cachekey, $data);
 			return $data;
 		}
 	}
@@ -152,15 +147,11 @@ class DB {
 	 * @return mixed
 	 */
 	public function fetch($sql, $params = array()) {
-		$cachekey = $this->cacheKey($sql, $params);
-		if (($cache = $this->cacheRead($cachekey)) !== false) {
-			return $cache['data'];
-		}
 		$starttime = microtime();
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
 		
-		$this->logging($sql, $params);
+		$this->logging($sql, $params, $statement->errorInfo());
 		
 		$endtime = microtime();
 		$this->performance($sql, $endtime - $starttime);
@@ -168,7 +159,6 @@ class DB {
 			return false;
 		} else {
 			$data = $statement->fetch(pdo::FETCH_ASSOC);
-			$this->cacheWrite($cachekey, $data);
 			return $data;
 		}
 	}
@@ -181,15 +171,11 @@ class DB {
 	 * @return mixed
 	 */
 	public function fetchall($sql, $params = array(), $keyfield = '') {
-		$cachekey = $this->cacheKey($sql, $params);
-		if (($cache = $this->cacheRead($cachekey)) !== false) {
-			return $cache['data'];
-		}
 		$starttime = microtime();
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
-		
-		$this->logging($sql, $params);
+
+		$this->logging($sql, $params, $statement->errorInfo());
 		
 		$endtime = microtime();
 		$this->performance($sql, $endtime - $starttime);
@@ -211,7 +197,6 @@ class DB {
 					}
 				}
 			}
-			$this->cacheWrite($cachekey, $result);
 			return $result;
 		}
 	}
@@ -290,6 +275,7 @@ class DB {
 		$params = array_merge($fields['params'], $condition['params']);
 		$sql = "UPDATE " . $this->tablename($table) . " SET {$fields['fields']}";
 		$sql .= $condition['fields'] ? ' WHERE '.$condition['fields'] : '';
+
 		return $this->query($sql, $params);
 	}
 
@@ -524,7 +510,6 @@ class DB {
 					load()->web('common');
 					load()->web('template');
 				}
-				WeUtility::logging('SQL Error', "SQL: <br/>{$append['sql']}<hr/>Params: <br/>{$params}<hr/>SQL Error: <br/>{$append['error'][2]}<hr/>Traces: <br/>{$ts}");
 				trigger_error("SQL: <br/>{$append['sql']}<hr/>Params: <br/>{$params}<hr/>SQL Error: <br/>{$append['error'][2]}<hr/>Traces: <br/>{$ts}", E_USER_WARNING);
 			}
 		}
@@ -536,7 +521,7 @@ class DB {
 			$info = array();
 			$info['sql'] = $sql;
 			$info['params'] = $params;
-			$info['error'] = empty($message) ? $this->pdo->errorInfo() : '';
+			$info['error'] = empty($message) ? $this->pdo->errorInfo() : $message;
 			$this->debug(false, $info);
 		}
 		return true;
@@ -589,78 +574,6 @@ class DB {
 			$this->insert('core_performance', $sqldata);
 		}
 		return true;
-	}
-
-	private function cacheRead($cachekey) {
-		global $_W;
-		if (empty($cachekey) || $_W['config']['setting']['cache'] != 'memcache' || empty($_W['config']['setting']['memcache']['sql'])) {
-			return false;
-		}
-		$data = cache_read($cachekey, true);
-		if (empty($data) || empty($data['data'])) {
-			return false;
-		}
-		return $data;
-	}
-
-	private function cacheWrite($cachekey, $data) {
-		global $_W;
-		if (empty($data) || empty($cachekey) || $_W['config']['setting']['cache'] != 'memcache' || empty($_W['config']['setting']['memcache']['sql'])) {
-			return false;
-		}
-		$cachedata = array(
-			'data' => $data,
-			'expire' => TIMESTAMP + 2592000,
-		);
-		cache_write($cachekey, $cachedata, 0, true);
-		return true;
-	}
-
-	private function cacheKey($sql, $params) {
-		global $_W;
-		if ($_W['config']['setting']['cache'] != 'memcache' || empty($_W['config']['setting']['memcache']['sql'])) {
-			return false;
-		}
-		$namespace = $this->cacheNameSpace($sql);
-		if (empty($namespace)) {
-			return false;
-		}
-		return $namespace . ':' . md5($sql . serialize($params));
-	}
-
-	/**
-	 * SQL缓存以表为为单位增加缓存命名空间，当更新、删除或是插入语句时批量删除此表的缓存
-	 * @param string $sql
-	 * @param boolean $forcenew 是否强制更新命名空间
-	 */
-	private function cacheNameSpace($sql, $forcenew = false) {
-		global $_W;
-		if ($_W['config']['setting']['cache'] != 'memcache' || empty($_W['config']['setting']['memcache']['sql'])) {
-			return false;
-		}
-		$skip_tablename = array(
-			$this->tablename('core_cache'),
-			$this->tablename('core_queue'),
-			$this->tablename('mc_member'),
-			$this->tablename('mc_mapping_fans'),
-		);
-		//获取SQL中的表名
-		$table_prefix = str_replace('`', '', tablename(''));
-		preg_match_all('/(?!from|insert into|replace into|update) `?('.$table_prefix.'[a-zA-Z0-9_-]+)/i', $sql, $match);
-		$tablename = implode(':', $match[1]);
-		if (empty($tablename) || in_array("`{$tablename}`", $skip_tablename)) {
-			return false;
-		}
-		$tablename = str_replace($this->tablepre, '', $tablename);
-		//获取命名空间
-		$db_cache_key = 'we7:dbkey:'.$tablename;
-		$namespace = $this->getColumn('core_cache', array('key' => $db_cache_key), 'value');
-		if (empty($namespace) || $forcenew) {
-			$namespace = random(8);
-			$this->delete('core_cache', array('key LIKE' => "%{$tablename}%", 'key !=' => $db_cache_key));
-			$this->insert('core_cache', array('key' => $db_cache_key, 'value' => $namespace), true);
-		}
-		return $tablename . ':' . $namespace;
 	}
 }
 
@@ -777,7 +690,6 @@ class SqlPaser {
 	 * 		array['fields']是格式化后的字符串
 	 */
 	public static function parseParameter($params, $glue = ',', $alias = '') {
-		static $params_index = 0;
 		$result = array('fields' => ' 1 ', 'params' => array());
 		$split = '';
 		$suffix = '';
@@ -792,7 +704,10 @@ class SqlPaser {
 		if (is_array($params)) {
 			$result['fields'] = '';
 			foreach ($params as $fields => $value) {
-				$params_index++;
+				//update或是insert语句，值为null时按空处理
+				if ($glue == ',') {
+					$value = $value === null ? '' : $value;
+				}
 				$operator = '';
 				if (strpos($fields, ' ') !== FALSE) {
 					list($fields, $operator) = explode(' ', $fields, 2);
@@ -804,6 +719,8 @@ class SqlPaser {
 					$fields = trim($fields);
 					if (is_array($value) && !empty($value)) {
 						$operator = 'IN';
+					} elseif ($value === null) {
+						$operator = 'IS';
 					} else {
 						$operator = '=';
 					}
@@ -815,34 +732,61 @@ class SqlPaser {
 					//如果是数组不等于情况，则转换为NOT IN
 					if (is_array($value) && !empty($value)) {
 						$operator = 'NOT IN';
+					} elseif ($value === null) {
+						$operator = 'IS NOT';
 					}
 				}
+				
 				//当条件为having时，可以使用聚合函数
-				if (strexists($fields, '(')) {
-					$select_fields = str_replace(array('(', ')'), array('(' . (!empty($alias) ? "`{$alias}`." : '') .'`',  '`)'), $fields);
-					$fields = str_replace(array('(', ')'), '_', $fields);
-				} else {
-					$select_fields = (!empty($alias) ? "`{$alias}`." : '') . "`$fields`";
-				}
+				$select_fields = self::parseFieldAlias($fields, $alias);
 				if (is_array($value) && !empty($value)) {
 					$insql = array();
 					//忽略数组的键值，防止SQL注入
 					$value = array_values($value);
 					foreach ($value as $v) {
-						$insql[] = ":{$suffix}{$fields}_{$params_index}";
-						$result['params'][":{$suffix}{$fields}_{$params_index}"] = is_null($v) ? '' : $v;
-						$params_index++;
+						$placeholder = self::parsePlaceholder($fields, $suffix);
+						$insql[] = $placeholder;
+						$result['params'][$placeholder] = is_null($v) ? '' : $v;
 					}
 					$result['fields'] .= $split . "$select_fields {$operator} (".implode(",", $insql).")";
 					$split = ' ' . $glue . ' ';
 				} else {
-					$result['fields'] .= $split . "$select_fields {$operator}  :{$suffix}{$fields}_{$params_index}";
+					$placeholder = self::parsePlaceholder($fields, $suffix);
+					$result['fields'] .= $split . "$select_fields {$operator} " . (is_null($value) ? 'NULL' : $placeholder);
 					$split = ' ' . $glue . ' ';
-					$result['params'][":{$suffix}{$fields}_{$params_index}"] = is_null($value) || is_array($value) ? '' : $value;
+					if (!is_null($value)) {
+						$result['params'][$placeholder] = is_array($value) ? '' : $value;
+					}
 				}
 			}
 		}
 		return $result;
+	}
+	
+	/**
+	 * 处理字段占位符
+	 * @param string $field
+	 * @param string $suffix
+	 */
+	private static function parsePlaceholder($field, $suffix = '') {
+		static $params_index = 0;
+		$params_index++;
+	
+		$illegal_str = array('(', ')', '.', '*');
+		$placeholder = ":{$suffix}" . str_replace($illegal_str, '_', $field) . "_{$params_index}";
+		return $placeholder;
+	}
+	
+	private static function parseFieldAlias($field, $alias = '') {
+		if (strexists($field, '.') || strexists($field, '*')) {
+			return $field;
+		}
+		if (strexists($field, '(')) {
+			$select_fields = str_replace(array('(', ')'), array('(' . (!empty($alias) ? "`{$alias}`." : '') .'`',  '`)'), $field);
+		} else {
+			$select_fields = (!empty($alias) ? "`{$alias}`." : '') . "`$field`";
+		}
+		return $select_fields;
 	}
 	
 	/**
@@ -876,7 +820,7 @@ class SqlPaser {
 					$field_row .= " AS '{$index}'";
 				}
 			} else {
-				$field_row = (!empty($alias) ? "`{$alias}`." : '') . '`'. $field_row. '`';
+				$field_row = self::parseFieldAlias($field_row, $alias);
 			}
 			$select[] = $field_row;
 			$index++;
@@ -884,7 +828,7 @@ class SqlPaser {
 		return " SELECT " . implode(',', $select);
 	}
 	
-	public static function parseLimit($limit) {
+	public static function parseLimit($limit, $inpage = true) {
 		$limitsql = '';
 		if (empty($limit)) {
 			return $limitsql;
@@ -897,7 +841,7 @@ class SqlPaser {
 			} elseif (!empty($limit[0]) && empty($limit[1])) {
 				$limitsql = " LIMIT " . $limit[0];
 			} else {
-				$limitsql = " LIMIT " . ($limit[0] - 1) * $limit[1] . ', ' . $limit[1];
+				$limitsql = " LIMIT " . ($inpage ? ($limit[0] - 1) * $limit[1] : $limit[0]) . ', ' . $limit[1];
 			}
 		} else {
 			$limit = trim($limit);
@@ -919,10 +863,13 @@ class SqlPaser {
 		}
 		foreach ($orderby as $i => &$row) {
 			$row = strtolower($row);
-			if (substr($row, -3) != 'asc' && substr($row, -4) != 'desc') {
+			list($field, $orderbyrule) = explode(' ', $row);
+			
+			if ($orderbyrule != 'asc' && $orderbyrule != 'desc') {
 				unset($orderby[$i]);
 			}
-			$row = (!empty($alias) ? "`{$alias}`." : '') . $row;
+			$field = self::parseFieldAlias($field, $alias);
+			$row = "{$field} {$orderbyrule}";
 		}
 		$orderbysql = implode(',', $orderby);
 		return !empty($orderbysql) ? " ORDER BY $orderbysql " : '';
@@ -936,7 +883,7 @@ class SqlPaser {
 			$statement = explode(',', $statement);
 		}
 		foreach ($statement as $i => &$row) {
-			$row = (!empty($alias) ? "`{$alias}`." : '') . '`' . strtolower($row) . '`';
+			$row = self::parseFieldAlias($row, $alias);
 			if (strexists($row, ' ')) {
 				unset($statement[$i]);
 			}

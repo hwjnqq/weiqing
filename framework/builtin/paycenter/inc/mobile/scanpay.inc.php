@@ -3,7 +3,7 @@
 defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
 paycenter_check_login();
-$user_permission = uni_user_permission('system');
+$user_permission = permission_account_user('system');
 $op = trim($_GPC['op']) ? trim($_GPC['op']) : 'index';
 if ($_W['account']['level'] != ACCOUNT_SERVICE_VERIFY) {
 	message('公众号权限不足', '', 'error');

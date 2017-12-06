@@ -9,7 +9,7 @@ load()->model('article');
 
 $do = !empty($do) ? $do : 'display';
 $do = in_array($do, array('display', 'post', 'delete', 'change_status')) ? $do : 'display';
-uni_user_permission_check('platform_site');
+permission_check_account_user('platform_site');
 
 if ($do == 'display') {
 	$children = array();

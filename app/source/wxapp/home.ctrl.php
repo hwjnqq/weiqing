@@ -5,8 +5,8 @@
  * $sn$
 */
 defined('IN_IA') or exit('Access Denied');
-
-$dos = array('nav', 'slide', 'commend');
+load()->model('wxapp');
+$dos = array('nav', 'slide', 'commend', 'wxapp_web', 'wxapp_web_error');
 $do = in_array($_GPC['do'], $dos) ? $_GPC['do'] : 'nav';
 
 $multiid = intval($_GPC['t']);
@@ -61,4 +61,43 @@ if ($do == 'nav') {
 		}
 	}
 	message(error(0, $category), '', 'ajax');
+}
+
+if ($do == 'wxapp_web') {
+	load()->classs('account/wxapp');
+	load()->classs('query');
+
+	$version = trim($_GPC['v']);
+	$version_info = wxapp_version_by_version($version);
+	$uniacid  = $_W['uniacid'];//保存小程序uniacid
+	if (!empty($version_info['modules'])) {
+		foreach ($version_info['modules'] as $module) {
+			if (!empty($module['account']) && intval($module['account']['uniacid']) > 0) {
+				$_W['uniacid'] = $module['account']['uniacid'];
+				$_W['account']['link_uniacid'] = $module['account']['uniacid'];
+			}
+		}
+	}
+	$url = $_GPC['url'];
+	if(empty($url)) {
+		$wxapp = wxapp_fetch($uniacid, $version_info['id']);
+		$appdomain = $wxapp['appdomain'];
+		if(empty($appdomain)) {
+			$appdomain = $_W['siteroot'].'app/index.php';
+		}
+		$url = $appdomain.'?'.http_build_query(array('a'=>'entry', 'eid'=>$version_info['entry_id'], 'i'=>$_W['uniacid']));
+	}
+
+	if($url) {
+		setcookie(session_name(), $_W['session_id']);
+		header('Location:'.$url);
+		exit;
+	}
+	//跳转到错误页面
+	$error_url = murl('wxapp/home/wxapp_web_error');
+	header('Location:'.$error_url);
+}
+
+if ($do == 'wxapp_web_error') {
+	echo '找不到模块入口';
 }

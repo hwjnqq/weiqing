@@ -35,8 +35,12 @@ function url($segment, $params = array()) {
  * sql
  * </pre>
  * @param boolean $tips 是否是以tips形式展示（兼容1.0之前版本该函数的页面展示形式）
+ *
+ * @param array $extend 扩展按钮,支持多按钮
+ * title string 扩展按钮名称
+ * url string 跳转链接
  */
-function message($msg, $redirect = '', $type = '', $tips = false) {
+function message($msg, $redirect = '', $type = '', $tips = false, $extend = array()) {
 	global $_W, $_GPC;
 
 	if($redirect == 'refresh') {
@@ -45,6 +49,9 @@ function message($msg, $redirect = '', $type = '', $tips = false) {
 	if($redirect == 'referer') {
 		$redirect = referer();
 	}
+	// 跳转链接只能跳转本域名下 防止钓鱼 如: 用户可能正常从信任站点微擎登录 跳转到第三方网站 会误认为第三方网站也是安全的
+	$redirect = safe_url_not_outside($redirect);
+
 	if($redirect == '') {
 		$type = in_array($type, array('success', 'error', 'info', 'warning', 'ajax', 'sql')) ? $type : 'info';
 	} else {
@@ -91,6 +98,17 @@ function message($msg, $redirect = '', $type = '', $tips = false) {
 		$message_cookie['type'] = $label;
 		$message_cookie['redirect'] = $redirect ? $redirect : referer();
 		$message_cookie['msg'] = rawurlencode($message_cookie['msg']);
+		$extend_button = array();
+		if (!empty($extend) && is_array($extend)) {
+			foreach ($extend as $button) {
+				if (!empty($button['title']) && !empty($button['url'])) {
+					$button['url'] = safe_url_not_outside($button['url']);
+					$button['title'] = rawurlencode($button['title']);
+					$extend_button[] = $button;
+				}
+			}
+		}
+		$message_cookie['extend'] = !empty($extend_button) ? $extend_button : '';
 
 		isetcookie('message', stripslashes(json_encode($message_cookie, JSON_UNESCAPED_UNICODE)));
 		if (!empty($message_cookie['redirect'])) {
@@ -108,8 +126,8 @@ function iajax($code = 0, $message = '', $redirect = '') {
 	message(error($code, $message), $redirect, 'ajax', false);
 }
 
-function itoast($message, $redirect = '', $type = '') {
-	message($message, $redirect, $type, true);
+function itoast($message, $redirect = '', $type = '', $extend = array()) {
+	message($message, $redirect, $type, true, $extend);
 }
 
 /**
@@ -134,7 +152,7 @@ function checklogin() {
  */
 function checkaccount() {
 	global $_W;
-	if (empty($_W['uniacid'])) {
+	if (empty($_W['uniacid']) || (!empty($_W['account']) && !in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)) && !defined('IN_MODULE'))) {
 		itoast('', url('account/display'), 'info');
 	}
 }
@@ -144,8 +162,18 @@ function checkaccount() {
  */
 function checkwxapp() {
 	global $_W;
-	if (empty($_W['uniacid'])) {
+	if (empty($_W['uniacid']) || (!empty($_W['account']) && $_W['account']['type'] != ACCOUNT_TYPE_APP_NORMAL)) {
 		itoast('', url('wxapp/display'), 'info');
+	}
+}
+
+/**
+ * 检查操作员是否已经选择一个pc作为工作区域
+ */
+function checkwebapp() {
+	global $_W;
+	if (empty($_W['uniacid']) || (!empty($_W['account']) && $_W['account']['type'] != ACCOUNT_TYPE_WEBAPP_NORMAL)) {
+		itoast('', url('webapp/home'), 'info');
 	}
 }
 
@@ -173,16 +201,15 @@ function buildframes($framename = ''){
 	}
 	$frames = cache_load('system_frame');
 	if(empty($frames)) {
-		cache_build_frame_menu();
-		$frames = cache_load('system_frame');
+		$frames = cache_build_frame_menu();
 	}
 	//模块权限，创始人有所有模块权限
 	$modules = uni_modules(false);
 	$sysmodules = system_modules();
-	$status = uni_user_permission_exist($_W['uid'], $_W['uniacid']);
+	$status = permission_account_user_permission_exist($_W['uid'], $_W['uniacid']);
 	//非创始人应用模块菜单
 	if (!$_W['isfounder'] && $status && $_W['role'] != ACCOUNT_MANAGE_NAME_OWNER) {
-		$module_permission = uni_user_menu_permission($_W['uid'], $_W['uniacid'], 'modules');
+		$module_permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], 'modules');
 		if (!is_error($module_permission) && !empty($module_permission)) {
 			foreach ($module_permission as $module) {
 				if (!in_array($module['type'], $sysmodules) && empty($modules[$module['type']]['main_module']) && $modules[$module['type']]['app_support'] == 2) {
@@ -221,7 +248,7 @@ function buildframes($framename = ''){
 			$new_modules = array_reverse($modules);
 			$i = 0;
 			foreach ($new_modules as $module) {
-				if (!empty($module['issystem'])) {
+				if (!empty($module['issystem']) || $module['wxapp_support'] == 2) {
 					continue;
 				}
 				if ($i == 5) {
@@ -248,15 +275,11 @@ function buildframes($framename = ''){
 	}
 	//从数据库中获取用户权限，并附加上系统管理中的权限
 	//仅当系统管理时才使用预设权限
-	if (!empty($_W['role']) && ($_W['role'] == ACCOUNT_MANAGE_NAME_OPERATOR || $_W['role'] == ACCOUNT_MANAGE_NAME_MANAGER || $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER)) {
-		$user_permission = uni_user_permission('system');
+	if (!empty($_W['role']) && !user_is_founder($_W['uid'])) {
+		$user_permission = permission_account_user('system');
 	}
 	if (empty($_W['role']) && empty($_W['uniacid'])) {
-		$user_permission = uni_user_permission('system');
-	}
-	//@@todo 店员界面菜单
-	if (!empty($_W['role']) && $_W['role'] == 'clerk') {
-
+		$user_permission = permission_account_user('system');
 	}
 	//系统公众号菜单权限
 	if (!empty($user_permission)) {
@@ -266,7 +289,7 @@ function buildframes($framename = ''){
 			}
 			foreach ($section['section'] as $section_id => $secion) {
 				if ($nav_id == 'account') {
-					if ($status && !empty($module_permission) && in_array("account*", $user_permission) && $section_id != 'platform_module' && uni_permission($_W['uid'], $_W['uniacid']) != ACCOUNT_MANAGE_NAME_OWNER) {
+					if ($status && !empty($module_permission) && in_array("account*", $user_permission) && $section_id != 'platform_module' && permission_account_user_role($_W['uid'], $_W['uniacid']) != ACCOUNT_MANAGE_NAME_OWNER) {
 						$frames['account']['section'][$section_id]['is_display'] = false;
 						continue;
 					} else {
@@ -275,36 +298,43 @@ function buildframes($framename = ''){
 						}
 					}
 				}
-
-				if ($nav_id != 'wxapp') {
-					$section_show = false;
-					$secion['if_fold'] = !empty($_GPC['menu_fold_tag:'.$section_id]) ? 1 : 0;
-					foreach ($secion['menu'] as $menu_id => $menu) {
-						if (!in_array($menu['permission_name'], $user_permission) && $section_id != 'platform_module') {
-							$frames[$nav_id]['section'][$section_id]['menu'][$menu_id]['is_display'] = false;
-						} else {
-							$section_show = true;
+				
+					if ($nav_id != 'wxapp') {
+						$section_show = false;
+						$secion['if_fold'] = !empty($_GPC['menu_fold_tag:'.$section_id]) ? 1 : 0;
+						foreach ($secion['menu'] as $menu_id => $menu) {
+							if (!in_array($menu['permission_name'], $user_permission) && $section_id != 'platform_module') {
+								$frames[$nav_id]['section'][$section_id]['menu'][$menu_id]['is_display'] = false;
+							} else {
+								$section_show = true;
+							}
+						}
+						if (!isset($frames[$nav_id]['section'][$section_id]['is_display'])) {
+							$frames[$nav_id]['section'][$section_id]['is_display'] = $section_show;
 						}
 					}
-					if (!isset($frames[$nav_id]['section'][$section_id]['is_display'])) {
-						$frames[$nav_id]['section'][$section_id]['is_display'] = $section_show;
-					}
-				}
+				
+				
 			}
 		}
 	} else {
 		if (user_is_vice_founder()) {
 			$frames['system']['section']['article']['is_display'] = false;
 			$frames['system']['section']['wxplatform']['menu']['system_platform']['is_display'] = false;
+			$frames['system']['section']['user']['menu']['system_user_founder_group']['is_display'] = false;
 		}
 	}
 	//进入模块界面后权限
 	$modulename = trim($_GPC['m']);
 	$eid = intval($_GPC['eid']);
 	$version_id = intval($_GPC['version_id']);
+	$account_type = intval($_GPC['account_type']);
 	if ((!empty($modulename) || !empty($eid)) && !in_array($modulename, system_modules())) {
-		if(empty($modulename) && !empty($eid)) {
-			$modulename = pdo_getcolumn('modules_bindings', array('eid' => $eid), 'module');
+		if (!empty($eid)) {
+			$entry = pdo_get('modules_bindings', array('eid' => $eid));
+		}
+		if(empty($modulename)) {
+			$modulename = $entry['module'];
 		}
 		$module = module_fetch($modulename);
 		$entries = module_entries($modulename);
@@ -354,10 +384,10 @@ function buildframes($framename = ''){
 		$frames['account']['section'] = array();
 		if($module['isrulefields'] || !empty($entries['cover']) || !empty($entries['mine'])) {
 			if (!empty($module['isrulefields'])) {
-				$url = url('platform/reply', array('m' => $modulename, 'version_id' => $version_id));
+				$url = url('platform/reply', array('m' => $modulename, 'version_id' => $version_id, 'account_type' => $account_type));
 			}
 			if (empty($url) && !empty($entries['cover'])) {
-				$url = url('platform/cover', array('eid' => $entries['cover'][0]['eid'], 'version_id' => $version_id));
+				$url = url('platform/cover', array('eid' => $entries['cover'][0]['eid'], 'version_id' => $version_id, 'account_type' => $account_type));
 			}
 			$frames['account']['section']['platform_module_common']['menu']['platform_module_entry'] = array(
 				'title' => "<i class='wi wi-reply'></i> 应用入口",
@@ -368,35 +398,35 @@ function buildframes($framename = ''){
 		if($module['settings']) {
 			$frames['account']['section']['platform_module_common']['menu']['platform_module_settings'] = array(
 				'title' => "<i class='fa fa-cog'></i> 参数设置",
-				'url' => url('module/manage-account/setting', array('m' => $modulename, 'version_id' => $version_id)),
+				'url' => url('module/manage-account/setting', array('m' => $modulename, 'version_id' => $version_id, 'account_type' => $account_type)),
 				'is_display' => 1,
 			);
 		}
 		if ($module['permissions'] && ($_W['isfounder'] || $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER)) {
 			$frames['account']['section']['platform_module_common']['menu']['platform_module_permissions'] = array(
 				'title' => "<i class='fa fa-cog'></i> 权限设置",
-				'url' => url('module/permission', array('m' => $modulename, 'version_id' => $version_id)),
+				'url' => url('module/permission', array('m' => $modulename, 'version_id' => $version_id, 'account_type' => $account_type)),
 				'is_display' => 1,
 			);
 		}
 		if($entries['home']) {
 			$frames['account']['section']['platform_module_common']['menu']['platform_module_home'] = array(
 				'title' => "<i class='fa fa-home'></i> 微站首页导航",
-				'url' => url('site/nav/home', array('m' => $modulename, 'version_id' => $version_id)),
+				'url' => url('site/nav/home', array('m' => $modulename, 'version_id' => $version_id, 'account_type' => $account_type)),
 				'is_display' => 1,
 			);
 		}
 		if($entries['profile']) {
 			$frames['account']['section']['platform_module_common']['menu']['platform_module_profile'] = array(
 				'title' => "<i class='fa fa-user'></i> 个人中心导航",
-				'url' => url('site/nav/profile', array('m' => $modulename, 'version_id' => $version_id)),
+				'url' => url('site/nav/profile', array('m' => $modulename, 'version_id' => $version_id, 'account_type' => $account_type)),
 				'is_display' => 1,
 			);
 		}
 		if($entries['shortcut']) {
 			$frames['account']['section']['platform_module_common']['menu']['platform_module_shortcut'] = array(
 				'title' => "<i class='fa fa-plane'></i> 快捷菜单",
-				'url' => url('site/nav/shortcut', array('m' => $modulename, 'version_id' => $version_id)),
+				'url' => url('site/nav/shortcut', array('m' => $modulename, 'version_id' => $version_id, 'account_type' => $account_type)),
 				'is_display' => 1,
 			);
 		}
@@ -404,7 +434,7 @@ function buildframes($framename = ''){
 			foreach ($entries['cover'] as $key => $menu) {
 				$frames['account']['section']['platform_module_common']['menu']['platform_module_cover'][] = array(
 					'title' => "{$menu['title']}",
-					'url' => url('platform/cover', array('eid' => $menu['eid'], 'version_id' => $version_id)),
+					'url' => url('platform/cover', array('eid' => $menu['eid'], 'version_id' => $version_id, 'account_type' => $account_type)),
 					'is_display' => 0,
 				);
 			}
@@ -416,7 +446,7 @@ function buildframes($framename = ''){
 				foreach($row as $li) {
 					$frames['account']['section']['platform_module_menu']['menu']['platform_module_menu'.$row['eid']] = array(
 						'title' => "<i class='wi wi-appsetting'></i> {$row['title']}",
-						'url' => $row['url'] . '&version_id=' . $version_id,
+						'url' => $row['url'] . '&version_id=' . $version_id . '&account_type' . $account_type,
 						'is_display' => 1,
 					);
 				}
@@ -441,19 +471,26 @@ function buildframes($framename = ''){
 					$frames['account']['section']['platform_module_menu']['plugin_menu']['menu'][$modules[$plugin]['name']] = array(
 						'title' => $modules[$plugin]['title'],
 						'icon' => $modules[$plugin]['logo'],
-						'url' => url('home/welcome/ext', array('m' => $plugin, 'version_id' => $version_id)),
+						'url' => url('home/welcome/ext', array('m' => $plugin, 'version_id' => $version_id, 'account_type' => $account_type)),
 					);
 				}
 			}
 		}
+		
 	}
 
 	//进入小程序后的菜单
 	if (FRAME == 'wxapp') {
+		load()->model('wxapp');
 		$version_id = intval($_GPC['version_id']);
 		$wxapp_version = wxapp_version($version_id);
 		if (!empty($wxapp_version['modules'])) {
 			foreach ($wxapp_version['modules'] as $module) {
+				$wxapp_module_permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], $module['name']);
+				if (empty($wxapp_module_permission)) {
+					$frames['wxapp']['section']['wxapp_module']['is_display'] = false;
+					break;
+				}
 				$frames['wxapp']['section']['wxapp_module']['menu']['module_menu'.$module['mid']] = array(
 					'title' => "<img src='{$module['logo']}'> {$module['title']}",
 					'url' => url('wxapp/display/switch', array('module' => $module['name'], 'version_id' => $version_id)),
@@ -465,8 +502,12 @@ function buildframes($framename = ''){
 		}
 
 		if (!empty($frames['wxapp']['section'])) {
-			$wxapp_permission = uni_user_permission('wxapp');
+			$wxapp_permission = permission_account_user('wxapp');
 			foreach ($frames['wxapp']['section'] as $wxapp_section_id => $wxapp_section) {
+				if ($status && !empty($wxapp_permission) && in_array("wxapp*", $wxapp_permission) && $wxapp_section_id != 'wxapp_module' && $role != ACCOUNT_MANAGE_NAME_OWNER) {
+					$frames['wxapp']['section'][$wxapp_section_id]['is_display'] = false;
+					continue;
+				}
 				if (!empty($wxapp_section['menu']) && $wxapp_section_id != 'wxapp_module') {
 					foreach ($wxapp_section['menu'] as $wxapp_menu_id => $wxapp_menu) {
 						if ($wxapp_section_id == 'platform_manage_menu' || $wxapp_section_id == 'wxapp_entrance') {
@@ -481,9 +522,12 @@ function buildframes($framename = ''){
 		}
 	}
 	foreach ($frames as $menuid => $menu) {
-		if (!empty($menu['founder']) && empty($_W['isfounder']) || user_is_vice_founder() && in_array($menuid, array('site', 'advertisement', 'appmarket')) || $_W['role'] == ACCOUNT_MANAGE_NAME_CLERK && in_array($menuid, array('account', 'wxapp', 'system'))) {
-			continue;
-		}
+		
+			if (!empty($menu['founder']) && empty($_W['isfounder']) || user_is_vice_founder() && in_array($menuid, array('site', 'advertisement', 'appmarket')) || $_W['role'] == ACCOUNT_MANAGE_NAME_CLERK && in_array($menuid, array('account', 'wxapp', 'system')) || !$menu['is_display']) {
+				continue;
+			}
+		
+		
 		$top_nav[] = array(
 			'title' => $menu['title'],
 			'name' => $menuid,
@@ -492,7 +536,10 @@ function buildframes($framename = ''){
 			'icon' => $menu['icon'],
 		);
 	}
-	return !empty($framename) ? $frames[$framename] : $frames;
+	
+		return !empty($framename) ? $frames[$framename] : $frames;
+	
+	
 }
 
 function system_modules() {
@@ -528,6 +575,22 @@ function filter_url($params) {
 	$query = http_build_query($query_arr);
 	return './index.php?' . $query;
 }
+
+function url_params($url) {
+	$result = array();
+	if (empty($url)) {
+		return $result;
+	}
+	$components = parse_url($url);
+	$params = explode('&',$components['query']);
+	foreach ($params as $param) {
+		if (!empty($param)) {
+			$param_array = explode('=',$param);
+			$result[$param_array[0]] = $param_array[1];
+		}
+	}
+	return $result;
+}
 /**
  * 系统菜单中预设的附加权限
  */
@@ -541,6 +604,7 @@ function frames_menu_append() {
 			'system_module_wxapp',
 			'system_my',
 			'system_setting_updatecache',
+			'system_message_notice',
 		),
 		'manager' => array(
 			'system_account',
@@ -549,14 +613,18 @@ function frames_menu_append() {
 			'system_module_wxapp',
 			'system_my',
 			'system_setting_updatecache',
+			'system_message_notice',
 		),
 		'operator' => array(
 			'system_account',
 			'system_wxapp',
 			'system_my',
 			'system_setting_updatecache',
+			'system_message_notice',
 		),
-		'clerk' => array(),
+		'clerk' => array(
+			'system_my',
+		),
 	);
 	return $system_menu_default_permission;
 }

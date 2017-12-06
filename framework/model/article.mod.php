@@ -39,6 +39,9 @@ function article_news_home($limit = 5) {
 function article_notice_home($limit = 5) {
 	$limit = intval($limit);
 	$notice = pdo_fetchall('SELECT * FROM ' . tablename('article_notice') . ' WHERE is_display = 1 AND is_show_home = 1 ORDER BY displayorder DESC,id DESC LIMIT ' . $limit, array(), 'id');
+	foreach ($notice as $key => $notice_val) {
+		$notice[$key]['style'] = iunserializer($notice_val['style']);
+	}
 	return $notice;
 }
 
@@ -73,6 +76,9 @@ function article_notice_all($filter = array(), $pindex = 1, $psize = 10) {
 	$limit = ' LIMIT ' . ($pindex - 1) * $psize . ',' . $psize;
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('article_notice') . $condition, $params);
 	$notice = pdo_fetchall('SELECT * FROM ' . tablename('article_notice') . $condition . ' ORDER BY displayorder DESC ' . $limit, $params, 'id');
+	foreach ($notice as $key => $notice_val) {
+		$notice[$key]['style'] = iunserializer($notice_val['style']);
+	}
 	return array('total' => $total, 'notice' => $notice);
 }
 

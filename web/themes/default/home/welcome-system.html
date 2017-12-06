@@ -1,6 +1,9 @@
 {template 'common/header'}
 <!--系统管理首页-->
 <div class="welcome-container js-system-welcome" ng-controller="WelcomeCtrl" ng-cloak>
+	<div class="ad-img we7-margin-bottom">
+		<a ng-href="{{ad.url}}" target="_blank" ng-repeat="ad in ads"><img ng-src="{{ad.src}}" alt="" class="img-responsive" style="margin: 0 auto;"></a>
+	</div>
 	<div class="row">
 		<div class="col-sm-6">
 			<div class="panel we7-panel account-stat">
@@ -110,6 +113,26 @@
 				<img src="{{module.logo}}" class="apply-img"/>
 				<span class="text-over">{{module.title|limitTo:4}}</span>
 				<span class="color-red">升级</span>
+			</a>
+			<div class="text-center" ng-if="upgrade_modules_show == 0">
+				没有可升级的应用
+			</div>
+		</div>
+	</div>
+	<div class="panel we7-panel apply-list" ng-show="not_installed_show == 1">
+		<div class="panel-heading">
+			<span class="pull-right">
+				<a href="{php echo url('module/manage-system/not_installed', array('account_type' => 1))}" class="color-default" ng-if="module.app_count > 4">查看更多公众号应用</a>
+				<span class="we7-padding-horizontal inline-block color-gray" ng-if="module.app_count > 4 && module.wxapp_count > 4">|</span>
+				<a href="{php echo url('module/manage-system/not_installed', array('account_type' => 4))}" class="color-default" ng-if="module.wxapp_count > 4">查看更多小程序应用</a>
+			</span>
+			未安装应用
+		</div>
+		<div class="panel-body">
+			<a href="{{module.link}}" target="_blank" class="apply-item" ng-repeat="module in not_installed_module.module">
+				<img src="{{module.thumb}}" class="apply-img"/>
+				<span class="text-over">{{module.title|limitTo:4}}</span>
+				<span class="color-red">未安装</span>
 			</a>
 			<div class="text-center" ng-if="upgrade_modules_show == 0">
 				没有可升级的应用

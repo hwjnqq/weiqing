@@ -66,7 +66,7 @@ class CoreModuleProcessor extends WeModuleProcessor {
 	private function image_respond() {
 		global $_W;
 		$rid = $this->rule;
-		$sql = "SELECT `mediaid` FROM " . tablename('images_reply') . " WHERE `rid`=:rid";
+		$sql = "SELECT `mediaid` FROM " . tablename('images_reply') . " WHERE `rid`=:rid ORDER BY RAND()";
 		$mediaid = pdo_fetchcolumn($sql, array(':rid' => $rid));
 		if (empty($mediaid)) {
 			return false;

@@ -12,10 +12,12 @@ $do = in_array($do, $dos) ? $do : 'display';
 
 $m = empty($_GPC['m']) ? 'keyword' : trim($_GPC['m']);
 if (in_array($m, array('keyword', 'special', 'welcome', 'default', 'apply', 'service', 'userapi'))) {
-	uni_user_permission_check('platform_reply');
+	permission_check_account_user('platform_reply');
 } else {
+	permission_check_account_user('', true, 'reply');
 	$modules = uni_modules();
 	$_W['current_module'] = $modules[$m];
+	define('IN_MODULE', $m);
 }
 $_W['page']['title'] = '自动回复';
 if (empty($m)) {
@@ -162,6 +164,11 @@ if ($do == 'post') {
 	if ($m == 'keyword' || $m == 'userapi' || !in_array($m, $sysmods)) {
 		$module['title'] = '关键字自动回复';
 		if ($_W['isajax'] && $_W['ispost']) {
+
+			$sensitive_word = detect_sensitive_word($_GPC['keyword']);
+			if (!empty($sensitive_word)) {
+				iajax(-2, '含有敏感词:' . $sensitive_word);
+			}
 			$result = pdo_getall('rule_keyword', array('uniacid' => $_W['uniacid'], 'content' => trim($_GPC['keyword'])), array('rid'));
 			if (!empty($result)) {
 				$keywords = array();
@@ -171,9 +178,9 @@ if ($do == 'post') {
 				$rids = implode($keywords, ',');
 				$sql = "SELECT `id`, `name` FROM " . tablename('rule') . " WHERE `id` IN ($rids)";
 				$rules = pdo_fetchall($sql);
-				iajax(0, @json_encode($rules), '');
+				iajax(-1, $rules, '');
 			}
-			iajax(-1, '');
+			iajax(0, '');
 		}
 		$rid = intval($_GPC['rid']);
 		if (!empty($rid)) {
@@ -189,10 +196,13 @@ if ($do == 'post') {
 			}
 		}
 		if (checksubmit('submit')) {
+
 			$keywords = @json_decode(htmlspecialchars_decode($_GPC['keywords']), true);
+
 			if (empty($keywords)) {
 				itoast('必须填写有效的触发关键字.');
 			}
+
 			$rulename = trim($_GPC['rulename']);
 			$containtype = '';
 			$_GPC['reply'] = (array)$_GPC['reply'];
@@ -261,7 +271,7 @@ if ($do == 'post') {
 				foreach ($keywords as $kw) {
 					$krow = $rowtpl;
 					$krow['type'] = range_limit($kw['type'], 1, 4);
-					$krow['content'] = $kw['content'];
+					$krow['content'] = htmlspecialchars($kw['content']);
 					pdo_insert('rule_keyword', $krow);
 				}
 				$kid = pdo_insertid();
@@ -294,10 +304,11 @@ if ($do == 'post') {
 			if (is_error($result)) {
 				itoast($result['message'], '', 'info');
 			}
+
 			if ($reply_type == 'module') {
 				$setting[$type] = array('type' => 'module', 'module' => $module);
 			} else {
-				$rule = pdo_get('rule_keyword', array('rid' => $rule_id, 'uniacid' => $_W['uniacid']));
+				$rule = pdo_get('rule_keyword', array('id' => $rule_id, 'uniacid' => $_W['uniacid']));
 				$setting[$type] = array('type' => 'keyword', 'keyword' => $rule['content']);
 			}
 			uni_setting_save('default_message', $setting);
@@ -329,6 +340,7 @@ if ($do == 'post') {
 				pdo_insert('uni_settings', $settings);
 			}
 			cache_delete("unisetting:{$_W['uniacid']}");
+			cache_delete('we7:' . $_W['uniacid'] . ':keyword:' . md5($rule['content']));
 			itoast('系统回复更新成功！', url('platform/reply', array('m' => $m)), 'success');
 		}
 	}

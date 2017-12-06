@@ -7,9 +7,22 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('setting');
 load()->model('attachment');
 
-$dos = array('attachment', 'remote', 'buckets', 'oss', 'cos', 'qiniu', 'ftp');
+$dos = array('attachment', 'remote', 'buckets', 'oss', 'cos', 'qiniu', 'ftp', 'upload_remote');
 $do = in_array($do, $dos) ? $do : 'global';
 $_W['page']['title'] = '附件设置 - 系统管理';
+
+if ($do == 'upload_remote') {
+	if (!empty($_W['setting']['remote_complete_info']['type'])) {
+		$result = file_dir_remote_upload(ATTACHMENT_ROOT . 'images');
+		if (is_error($result)) {
+			itoast($result['message'], url('system/attachment/remote'), 'info');
+		} else {
+			itoast('上传成功!', url('system/attachment/remote'), 'success');
+		}
+	} else {
+		itoast('请先填写并开启远程附件设置。', '', 'info');
+	}
+}
 
 //全局设置
 if ($do == 'global') {
@@ -52,6 +65,11 @@ if ($do == 'global') {
 		if (empty($upload['image']['limit'])) {
 			itoast('请设置音频视频上传支持的文件大小, 单位 KB.', '', '');
 		}
+		$zip_percentage = intval($upload['image']['zip_percentage']);
+		if($zip_percentage <=0 || $zip_percentage > 100) {
+			$upload['image']['zip_percentage'] = 100;//100不压缩
+		}
+
 		if (!empty($upload['audio']['extentions'])) {
 			$upload['audio']['extentions'] = explode("\n", $upload['audio']['extentions']);
 			foreach ($upload['audio']['extentions'] as $key => &$row) {
@@ -88,6 +106,9 @@ if ($do == 'global') {
 	if (!empty($upload['audio']['extentions']) && is_array($upload['audio']['extentions'])) {
 		$upload['audio']['extentions'] = implode("\n", $upload['audio']['extentions']);
 	}
+	if(empty($upload['image']['zip_percentage'])) {
+		$upload['image']['zip_percentage'] = 100;
+	}
 }
 
 //远程附件
@@ -100,7 +121,7 @@ if ($do == 'remote') {
 				'host' => $_GPC['ftp']['host'],
 				'port' => $_GPC['ftp']['port'],
 				'username' => $_GPC['ftp']['username'],
-				'password' => strexists($_GPC['ftp']['password'], '*') ? $_W['setting']['remote']['ftp']['password'] : $_GPC['ftp']['password'],
+				'password' => strexists($_GPC['ftp']['password'], '*') ? $_W['setting']['remote_complete_info']['ftp']['password'] : $_GPC['ftp']['password'],
 				'pasv' => intval($_GPC['ftp']['pasv']),
 				'dir' => $_GPC['ftp']['dir'],
 				'url' => $_GPC['ftp']['url'],
@@ -108,19 +129,19 @@ if ($do == 'remote') {
 			),
 			'alioss' => array(
 				'key' => $_GPC['alioss']['key'],
-				'secret' => strexists($_GPC['alioss']['secret'], '*') ? $_W['setting']['remote']['alioss']['secret'] : $_GPC['alioss']['secret'],
+				'secret' => strexists($_GPC['alioss']['secret'], '*') ? $_W['setting']['remote_complete_info']['alioss']['secret'] : $_GPC['alioss']['secret'],
 				'bucket' => $_GPC['alioss']['bucket'],
 			),
 			'qiniu' => array(
 				'accesskey' => trim($_GPC['qiniu']['accesskey']),
-				'secretkey' => strexists($_GPC['qiniu']['secretkey'], '*') ? $_W['setting']['remote']['qiniu']['secretkey'] : trim($_GPC['qiniu']['secretkey']),
+				'secretkey' => strexists($_GPC['qiniu']['secretkey'], '*') ? $_W['setting']['remote_complete_info']['qiniu']['secretkey'] : trim($_GPC['qiniu']['secretkey']),
 				'bucket' => trim($_GPC['qiniu']['bucket']),
 				'url' => trim($_GPC['qiniu']['url'])
 			),
 			'cos' => array(
 				'appid' => trim($_GPC['cos']['appid']),
 				'secretid' => trim($_GPC['cos']['secretid']),
-				'secretkey' => strexists(trim($_GPC['cos']['secretkey']), '*') ? $_W['setting']['remote']['cos']['secretkey'] : trim($_GPC['cos']['secretkey']),
+				'secretkey' => strexists(trim($_GPC['cos']['secretkey']), '*') ? $_W['setting']['remote_complete_info']['cos']['secretkey'] : trim($_GPC['cos']['secretkey']),
 				'bucket' => trim($_GPC['cos']['bucket']),
 				'local' => trim($_GPC['cos']['local']),
 				'url' => trim($_GPC['cos']['url'])
@@ -207,12 +228,20 @@ if ($do == 'remote') {
 				itoast($auth['message'], referer(), 'info');
 			}
 		}
-		setting_save($remote, 'remote');
+		$_W['setting']['remote_complete_info']['type'] = $remote['type'];
+		$_W['setting']['remote_complete_info']['alioss'] = $remote['alioss'];
+		$_W['setting']['remote_complete_info']['ftp'] = $remote['ftp'];
+		$_W['setting']['remote_complete_info']['qiniu'] = $remote['qiniu'];
+		$_W['setting']['remote_complete_info']['cos'] = $remote['cos'];
+		setting_save($_W['setting']['remote_complete_info'], 'remote');
 		itoast('远程附件配置信息更新成功！', url('system/attachment/remote'), 'success');
 	}
-	$remote = $_W['setting']['remote'];
+	$remote = $_W['setting']['remote_complete_info'];
 	$bucket_datacenter = attachment_alioss_datacenters();
-} 
+	$local_attachment = file_tree(IA_ROOT . '/attachment/images');
+	$global_attachment_key = array_search(ATTACHMENT_ROOT . 'images/global/Microengine.ico', $local_attachment);
+	unset($local_attachment[$global_attachment_key]);
+}
 
 if ($do == 'buckets') {
 	$key = $_GPC['key'];
@@ -231,11 +260,11 @@ if ($do == 'buckets') {
 }
 
 if($do == 'ftp') {
-	require(IA_ROOT . '/framework/library/ftp/ftp.php');
+	load()->library('ftp');
 	$ftp_config = array(
 		'hostname' => trim($_GPC['host']),
 		'username' => trim($_GPC['username']),
-		'password' => strexists($_GPC['password'], '*') ? $_W['setting']['remote']['ftp']['password'] : trim($_GPC['password']),
+		'password' => strexists($_GPC['password'], '*') ? $_W['setting']['remote_complete_info']['ftp']['password'] : trim($_GPC['password']),
 		'port' => intval($_GPC['port']),
 		'ssl' => trim($_GPC['ssl']),
 		'passive' => trim($_GPC['pasv']),
@@ -273,7 +302,7 @@ if($do == 'ftp') {
 if ($do == 'oss') {
 	load()->model('attachment');
 	$key = $_GPC['key'];
-	$secret = strexists($_GPC['secret'], '*') ? $_W['setting']['remote']['alioss']['secret'] : $_GPC['secret'];
+	$secret = strexists($_GPC['secret'], '*') ? $_W['setting']['remote_complete_info']['alioss']['secret'] : $_GPC['secret'];
 	$bucket = $_GPC['bucket'];
 	$buckets = attachment_alioss_buctkets($key, $secret);
 	list($bucket, $url) = explode('@@', $_GPC['bucket']);
@@ -311,7 +340,7 @@ if ($do == 'oss') {
 
 if ($do == 'qiniu') {
 	load()->model('attachment');
-	$_GPC['secretkey'] = strexists($_GPC['secretkey'], '*') ? $_W['setting']['remote']['qiniu']['secretkey'] : $_GPC['secretkey'];
+	$_GPC['secretkey'] = strexists($_GPC['secretkey'], '*') ? $_W['setting']['remote_complete_info']['qiniu']['secretkey'] : $_GPC['secretkey'];
 	$auth= attachment_qiniu_auth(trim($_GPC['accesskey']), trim($_GPC['secretkey']), trim($_GPC['bucket']));
 	if (is_error($auth)) {
 		iajax(-1, '配置失败，请检查配置。注：请检查存储区域是否选择的是和bucket对应<br/>的区域', '');
@@ -342,7 +371,7 @@ if ($do == 'cos') {
 		$url = 'http://'.$_GPC['bucket'].'-'. $_GPC['appid'].'.cos.myqcloud.com';
 	}
 	$bucket =  trim($_GPC['bucket']);
-	$_GPC['secretkey'] = strexists($_GPC['secretkey'], '*') ? $_W['setting']['remote']['cos']['secretkey'] : $_GPC['secretkey'];
+	$_GPC['secretkey'] = strexists($_GPC['secretkey'], '*') ? $_W['setting']['remote_complete_info']['cos']['secretkey'] : $_GPC['secretkey'];
 	if (!strexists($url, '//'.$bucket.'-') && strexists($url, '.cos.myqcloud.com')) {
 		$url = 'http://'.$bucket.'-'.trim($_GPC['appid']).'.cos.myqcloud.com';
 	}

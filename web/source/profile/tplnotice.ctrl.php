@@ -9,7 +9,7 @@ defined('IN_IA') or exit('Access Denied');
 $dos = array('set', 'display');
 $do = in_array($do, $dos) ? $do : 'display';
 
-uni_user_permission_check('profile_setting');
+permission_check_account_user('profile_setting');
 $_W['page']['title'] = '会员微信通知-会员中心';
 
 if ($do  == 'set') {

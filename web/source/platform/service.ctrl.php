@@ -5,7 +5,7 @@
  */
 defined('IN_IA') or exit('Access Denied');
 $_W['page']['title'] = '常用接入服务 - 常用接入服务 - 高级功能';
-uni_user_permission_check('platform_reply');
+permission_check_account_user('platform_reply');
 load()->model('module');
 load()->model('reply');
 $m = module_fetch('userapi');

@@ -4,7 +4,9 @@
  * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
-uni_user_permission_check('profile_setting');
+
+permission_check_account_user('mc_member');
+
 $dos = array('display', 'post');
 $do = in_array($do, $dos) ? $do : 'display';
 if($do == 'display') {
@@ -42,7 +44,7 @@ if ($do == 'post') {
 			'available' => intval($_GPC['available'])
 		);
 		pdo_update('mc_member_fields', $field, array('id' => $id));
-		message('会员字段更新成功！', url('mc/fields'), 'success');
+		message('会员字段更新成功！', url('mc/fields', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL)), 'success');
 	}
 	$field = pdo_get('mc_member_fields', array('id' => $id));
 }

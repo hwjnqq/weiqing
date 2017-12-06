@@ -9,9 +9,8 @@ set_time_limit(60);
 
 load()->model('mc');
 
-$dos = array('display', 'add_tag', 'del_tag', 'edit_tagname', 'edit_fans_tag', 'batch_edit_fans_tag', 'download_fans', 'sync', 'fans_sync_set');
+$dos = array('display', 'add_tag', 'del_tag', 'edit_tagname', 'edit_fans_tag', 'batch_edit_fans_tag', 'download_fans', 'sync', 'fans_sync_set', 'register');
 $do = in_array($do, $dos) ? $do : 'display';
-uni_user_permission_check('mc_fans');
 
 if ($do == 'display') {
 	$_W['page']['title'] = '粉丝列表';
@@ -238,7 +237,7 @@ if ($do == 'download_fans') {
 	//重复接入公众号处理机制
 	$same_account_exist = pdo_getall('account_wechats', array('key' => $_W['account']['key'], 'uniacid <>' => $_W['uniacid']), array(), 'uniacid');
 	if (!empty($same_account_exist)) {
-		pdo_update('mc_mapping_fans', array('uniacid' => $_W['uniacid']), array('uniacid' => array_keys($same_account_exist)));
+		pdo_update('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'acid' => $_W['acid']), array('uniacid' => array_keys($same_account_exist)));
 	}
 
 	if (!is_error($wechat_fans_list)) {
@@ -246,7 +245,7 @@ if ($do == 'download_fans') {
 		$total_page = ceil($wechat_fans_count / 500);
 		for ($i = 0; $i < $total_page; $i++) {
 			$wechat_fans = array_slice($wechat_fans_list['fans'], $i * 500, 500);
-			$system_fans = pdo_getall('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'openid' => $wechat_fans), array(), 'openid');
+			$system_fans = pdo_getall('mc_mapping_fans', array('openid' => $wechat_fans), array(), 'openid');
 			$add_fans_sql = '';
 			foreach($wechat_fans as $openid) {
 				if (empty($system_fans) || empty($system_fans[$openid])) {
@@ -259,7 +258,7 @@ if ($do == 'download_fans') {
 				$add_fans_sql = "INSERT INTO " . tablename('mc_mapping_fans') . " (`acid`, `uniacid`, `uid`, `openid`, `salt`, `follow`, `followtime`, `tag`) VALUES " . $add_fans_sql;
 				$result = pdo_query($add_fans_sql);
 			}
-			pdo_update('mc_mapping_fans', array('follow' => 1), array('openid' => $wechat_fans));
+			pdo_update('mc_mapping_fans', array('follow' => 1, 'uniacid' => $_W['uniacid'], 'acid' => $_W['acid']), array('openid' => $wechat_fans));
 		}
 		$return['total'] = $wechat_fans_list['total'];
 		$return['count'] = !empty($wechat_fans_list['fans']) ? $wechat_fans_count : 0;
@@ -300,7 +299,6 @@ if ($do == 'sync') {
 }
 
 if ($do == 'fans_sync_set') {
-	// uni_user_permission_check('mc_passport_sync');
 	$_W['page']['title'] = '更新粉丝信息 - 公众号选项';
 	$operate = $_GPC['operate'];
 	if ($operate == 'save_setting') {
@@ -309,6 +307,23 @@ if ($do == 'fans_sync_set') {
 	}
 	$setting = uni_setting($_W['uniacid'], array('sync'));
 	$sync_setting = $setting['sync'];
+}
+
+if ($do == 'register') {
+	$open_id = trim($_GPC['openid']);
+	$password = trim($_GPC['password']);
+	$repassword = trim($_GPC['repassword']);
+	if (empty($open_id) || empty($password) || empty($repassword)) {
+		iajax('-1', '参数错误', url('mc/fans/display'));
+	}
+	if ($password != $repassword) {
+		iajax('-1', '密码不一致', url('mc/fans/display'));
+	}
+	$member_info = mc_init_fans_info($open_id, true);
+	$member_salt = pdo_getcolumn('mc_members', array('uid' => $member_info['uid']), 'salt');
+	$password = md5($password . $member_salt . $_W['config']['setting']['authkey']);
+	pdo_update('mc_members', array('password' => $password), array('uid' => $uid));
+	iajax('0', '注册成功', url('mc/member/base_information', array('uid' => $member_info['uid'])));
 }
 template('mc/fans');
 

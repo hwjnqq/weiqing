@@ -637,6 +637,7 @@ class WeiXinAccount extends WeAccount {
 			'40039' => '不合法的URL长度',
 			'40050' => '不合法的分组id',
 			'40051' => '分组名字不合法',
+			'40155' => '请勿添加其他公众号的主页链接',
 			'41001' => '缺少access_token参数',
 			'41002' => '缺少appid参数',
 			'41003' => '缺少refresh_token参数',
@@ -686,6 +687,7 @@ class WeiXinAccount extends WeAccount {
 			'46004' => '不存在的用户',
 			'47001' => '解析JSON/XML内容错误',
 			'48001' => 'api功能未授权',
+			'48003' => '请在微信平台开启群发功能',
 			'50001' => '用户未授权该api',
 			'40070' => '基本信息baseinfo中填写的库存信息SKU不合法。',
 			'41011' => '必填字段不完整或不合法，参考相应接口。',
@@ -758,7 +760,7 @@ class WeiXinAccount extends WeAccount {
 		$url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$this->account['key']}&secret={$this->account['secret']}";
 		$content = ihttp_get($url);
 		if(is_error($content)) {
-			message('获取微信公众号授权失败, 请稍后重试！错误详情: ' . $content['message'], '', 'error');
+			return error('-1', '获取微信公众号授权失败, 请稍后重试！错误详情: ' . $content['message']);
 		}
 		if (empty($content['content'])) {
 			return error('-1', 'AccessToken获取失败，请检查appid和appsecret的值是否与微信公众平台一致！');
@@ -767,7 +769,7 @@ class WeiXinAccount extends WeAccount {
 		if(empty($token) || !is_array($token) || empty($token['access_token']) || empty($token['expires_in'])) {
 			$errorinfo = substr($content['meta'], strpos($content['meta'], '{'));
 			$errorinfo = @json_decode($errorinfo, true);
-			message('获取微信公众号授权失败, 请稍后重试！ 公众平台返回原始数据为: 错误代码-' . $errorinfo['errcode'] . '，错误信息-' . $errorinfo['errmsg'], '', 'error');
+			return error('-1', '获取微信公众号授权失败, 请稍后重试！ 公众平台返回原始数据为: 错误代码-' . $errorinfo['errcode'] . '，错误信息-' . $errorinfo['errmsg']);
 		}
 		$record = array();
 		$record['token'] = $token['access_token'];
@@ -1456,6 +1458,12 @@ class WeiXinAccount extends WeAccount {
 		$data = array(
 			'media' => '@' . $path
 		);
+		$filename = pathinfo($path, PATHINFO_FILENAME);
+		$description = array(
+			'title' => $filename,
+			'introduction' =>  $filename,
+		);
+		$data['description'] = urldecode(json_encode($description));
 		return $this->requestApi($url, $data);
 	}
 
@@ -1769,11 +1777,8 @@ class WeiXinAccount extends WeAccount {
 
 	public function getOauthUserInfo($accesstoken, $openid) {
 		$apiurl = "https://api.weixin.qq.com/sns/userinfo?access_token={$accesstoken}&openid={$openid}&lang=zh_CN";
-		$response = ihttp_get($apiurl);
-		if (is_error($response)) {
-			return $response;
-		}
-		return @json_decode($response['content'], true);
+		$response = $this->requestApi($apiurl);
+		return $response;
 	}
 
 	public function getOauthInfo($code = '') {
@@ -1782,18 +1787,18 @@ class WeiXinAccount extends WeAccount {
 			$code = $_GPC['code'];
 		}
 		if (empty($code)) {
+			$sitepath = substr($_SERVER['PHP_SELF'], 0, strrpos($_SERVER['PHP_SELF'], '/'));
 			$unisetting = uni_setting_load();
+			$global_unisetting = uni_account_global_oauth();
+			$unisetting['oauth']['host'] = !empty($unisetting['oauth']['host']) ? $unisetting['oauth']['host'] : $global_unisetting['oauth']['host'];
 			$url = (!empty($unisetting['oauth']['host']) ? ($unisetting['oauth']['host'] . $sitepath . '/') : $_W['siteroot'] . 'app/') . "index.php?{$_SERVER['QUERY_STRING']}";
 			$forward = $this->getOauthCodeUrl(urlencode($url));
 			header('Location: ' . $forward);
 			exit;
 		}
 		$url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid={$this->account['key']}&secret={$this->account['secret']}&code={$code}&grant_type=authorization_code";
-		$response = ihttp_get($url);
-		if (is_error($response)) {
-			return $response;
-		}
-		return @json_decode($response['content'], true);
+		$response = $this->requestApi($url);
+		return $response;
 	}
 	
 	public function getOauthAccessToken() {

@@ -5,9 +5,9 @@
 defined('IN_IA') or exit('Access Denied');
 
 /**
-	* 微信个性化菜单接口：语言
-	* @return 	array
-*/
+ * 微信个性化菜单接口：语言
+ * @return 	array
+ */
 function menu_languages() {
 	$languages = array(
 		array('ch'=>'简体中文', 'en'=>'zh_CN'),
@@ -46,13 +46,24 @@ function menu_get($id) {
 	if (empty($id)) {
 		return array();
 	}
-	$menu_info = pdo_get('uni_account_menus', array('uniacid' => $_W['uniacid'], 'id' => $id));
+	$menu_info = table('menu')->accountMenuInfo(array('id' => $id));
 	if (!empty($menu_info)) {
 		return $menu_info;
 	} else {
 		return array();
 	}
 }
+
+/*
+ * 获取公众号当前生效的默认菜单
+ * @return array()
+ */
+function menu_default() {
+	$result = array();
+	$result = table('menu')->accountDefaultMenuInfo();
+	return $result;
+}
+
 /**
  * 构造可直接请求自定义菜单创建接口的数据
  * @param array $data_array
@@ -166,9 +177,9 @@ function menu_update_currentself() {
 	if (is_error($default_menu_info)) {
 		return error(-1, $default_menu_info['message']);
 	}
-	if (empty($default_menu_info['is_menu_open']) || empty($default_menu_info['selfmenu_info'])) {
-		return error(-1, '暂无默认菜单或默认菜单未开启，请先创建！<div><a class="btn btn-primary" href="' . url('platform/menu/post', array('type' => MENU_CURRENTSELF)) . '">是</a> &nbsp;&nbsp;<a class="btn btn-default" href="' . referer() . '">否</a></div>');
-	}
+// 	if (empty($default_menu_info['is_menu_open']) || empty($default_menu_info['selfmenu_info']) || 1) {
+// 		return error(-1, '暂无默认菜单或默认菜单未开启，请先创建！<div><a class="btn btn-primary" href="' . url('platform/menu/post', array('type' => MENU_CURRENTSELF)) . '">是</a> &nbsp;&nbsp;<a class="btn btn-default" href="' . referer() . '">否</a></div>');
+// 	}
 	$default_menu = $default_menu_info['selfmenu_info'];
 	$default_sub_button = array();
 	if (!empty($default_menu['button'])) {
@@ -182,7 +193,7 @@ function menu_update_currentself() {
 	}
 	ksort($default_menu);
 	$wechat_menu_data = base64_encode(iserializer($default_menu));
-	$all_default_menus = pdo_getall('uni_account_menus', array('uniacid' => $_W['uniacid'], 'type' => MENU_CURRENTSELF), array('data', 'id'), 'id');
+	$all_default_menus = table('menu')->searchAccountMenuList(MENU_CURRENTSELF);
 	if (!empty($all_default_menus)) {
 		foreach ($all_default_menus as $menus_key => $menu_data) {
 			if (empty($menu_data['data'])) {
@@ -257,7 +268,8 @@ function menu_update_conditional() {
 				'status' => STATUS_ON,
 			);
 			if (!empty($menu['matchrule'])) {
-				$menu_id =  pdo_getcolumn('uni_account_menus', array('uniacid' => $_W['uniacid'], 'menuid' => $menu['menuid'], 'type' => MENU_CONDITIONAL), 'id');
+				$menu_id = table('menu')->accountMenuInfo(array('uniacid' => $_W['uniacid'], 'menuid' => $menu['menuid'], 'type' => MENU_CONDITIONAL));
+				$menu_id = $menu_id['id'];
 			}
 			if (!empty($menu_id)) {
 				$data['title'] = '个性化菜单_' . $menu_id;

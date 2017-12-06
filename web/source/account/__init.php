@@ -25,4 +25,11 @@ if ($_GPC['account_type'] == ACCOUNT_TYPE_APP_NORMAL) {
 	define('ACCOUNT_TYPE_NAME', '公众号');
 	define('ACCOUNT_TYPE_TEMPLATE', '');
 	define('ACCOUNT_TYPE_SUPPORT', 'app_support');
+}else if($_GPC['account_type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
+	define('ACCOUNT_TYPE', ACCOUNT_TYPE_WEBAPP_NORMAL);
+	define('ACCOUNT_TYPE_OFFCIAL', 0);
+	define('ACCOUNT_TYPE_NAME', 'WEBAPP');
+	define('ACCOUNT_TYPE_TEMPLATE', '-webapp');
+	define('ACCOUNT_TYPE_SUPPORT', 'webapp_support');
+
 }

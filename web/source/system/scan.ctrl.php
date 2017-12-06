@@ -175,7 +175,8 @@ if ($do == 'display') {
 if ($do == 'view') {
 	$file = authcode(trim($_GPC['file'], 'DECODE'));
 	$file_tmp = $file;
-	if (empty($file) || strexists($file, './') || strexists($file, '../') || $file == 'data/config.php') {
+	$file = str_replace('//','',$file);
+	if (empty($file) || ! parse_path($file) || $file == 'data/config.php') {
 		itoast('文件不存在', referer(), 'error');
 	}
 	//设置过滤文件

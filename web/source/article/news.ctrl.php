@@ -7,7 +7,7 @@ defined('IN_IA') or exit('Access Denied');
 
 $dos = array('category_post', 'category', 'category_del', 'list', 'post', 'batch_post', 'del');
 $do = in_array($do, $dos) ? $do : 'list';
-uni_user_permission_check('system_article_news');
+permission_check_account_user('system_article_news');
 
 //添加分类
 if ($do == 'category_post') {

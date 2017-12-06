@@ -7,7 +7,7 @@ defined('IN_IA') or exit('Access Denied');
 
 /**
  * 获取  DB 的单例
- * @return object->PDO
+ * @return DB
  */
 function pdo() {
 	global $_W;
@@ -27,6 +27,15 @@ function pdo() {
 		}
 	}
 	return $db;
+}
+
+/**
+ * 返回一个查询构造器
+ * @return Query
+ * @return AccountTable
+ */
+function pdos($table = '') {
+	return load()->singleton('Query');
 }
 
 /**

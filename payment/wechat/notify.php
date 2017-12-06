@@ -37,6 +37,10 @@ $_W['uniacid'] = $_W['weid'] = intval($get['attach']);
 $_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);
 $_W['acid'] = $_W['uniaccount']['acid'];
 $setting = uni_setting($_W['uniacid'], array('payment'));
+if ($get['trade_type'] == 'NATIVE') {
+	$setting = setting_load('store_pay');
+	$setting['payment']['wechat'] = $setting['store_pay']['wechat'];
+}
 if(is_array($setting['payment'])) {
 	$wechat = $setting['payment']['wechat'];
 	WeUtility::logging('pay', var_export($get, true));
