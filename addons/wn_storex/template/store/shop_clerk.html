@@ -1,0 +1,296 @@
+{template 'common/header-storex'}
+<div class="wn-main">
+	<div class="wn-main__head">店员管理</div>
+	<div class="wn-main__content">
+		<div class="wn-main__search clearfix">
+			<div class="wn-main__search__form" style="width: 600px">
+				<form action="./index.php" method="get" class="form-horizontal" role="form">
+					<input type="hidden" name="c" value="site" />
+					<input type="hidden" name="a" value="entry" />
+					<input type="hidden" name="m" value="wn_storex" />
+					<input type="hidden" name="do" value="shop_clerk" />
+					<input type="hidden" name="storeid" value="{$_GPC['storeid']}" />
+					<div class="form-group">
+						<div class="col-sm-10">
+							<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">姓名</label>
+							<div class="col-xs-12 col-sm-8 col-lg-9">
+								<input class="form-control" name="realname" type="text" value="{$_GPC['realname']}">
+							</div>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-sm-10">
+							<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">手机号</label>
+							<div class="col-xs-12 col-sm-8 col-lg-9">
+								<input class="form-control" name="mobile" type="text" value="{$_GPC['mobile']}">
+							</div>
+							<div class=" col-xs-12 col-sm-2 col-lg-1">
+								<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+							</div>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-sm-10">
+							<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">店员入口</label>
+							<div class="col-xs-12 col-sm-8 col-lg-9">
+								<a href="javascript:;" class="js-clerk-entry" data-url="{php echo murl('entry', array('do' => 'display', 'id' => $storeid, 'm' => 'wn_storex'), true, true) . '#/Home/Clerk/Index'}">点击查看店员入口</a>
+								<input type="hidden" class="js-url">
+							</div>
+						</div>
+					</div>
+					<div class="modal fade" id="entry-modal" tabindex="-1" role="dialog" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">
+								<div class="modal-header">
+									<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+									<h4 class="modal-title" id="myModalLabel">二维码入口</h4>
+								</div>
+								<div class="modal-body clearfix form-horizontal">
+									<div role="tabpanel" class="tab-pane active text-center" id="put-qrcode">
+										<div class="mui-content-padded mui-text-center">
+											<div class="js-qrcode-block" style="margin:50px 0 50px 0"></div>
+										</div>
+										<input type="hidden" class="js-url">
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="wn-main__search__action">
+				<a href="javascript:;" class="btn btn-primary we7-padding-horizontal js-add-clerk">+添加店员</a>
+			</div>
+		</div>
+		<div class="modal fade" id="clerk-modal" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" id="myModalLabel">选择你要创建店员</h4>
+					</div>
+					<div class="modal-body clearfix form-horizontal">
+						{if !empty($available_user)}
+						{loop $available_user $user}
+						<div class="form-group marbot0">
+							<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+							<div class="col-sm-9 col-xs-12">
+								<label class="radio-inline">
+									<input type="radio" name="uid" value="{$user['uid']}"/>{$user['user_info']['username']}
+								</label>
+								<div class="help-block">
+									{loop $user['permission'] $permission}
+									<span class="label label-success">{$permission}</span>
+									{/loop}
+								</div>
+							</div>
+						</div>
+						{/loop}
+						{else}
+						<div class="form-group marbot0 text-center">
+							暂无可用操作员(<a class="wn-table__link__item" href="{php echo url('module/permission', array('m' => 'wn_storex'))}">点击进入权限设置，添加操作员</a>)
+						</div>
+						{/if}
+					</div>
+					{if !empty($available_user)}
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+						<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="location.href='{php echo $this->createWeburl('shop_clerk', array('op' => 'edit', 'storeid' => $_GPC['storeid']))}&uid=' + $('#clerk-modal input[type=radio]:checked').val()">确定</button>
+					</div>
+					{/if}
+				</div>
+			</div>
+		</div>
+		{if $op == 'display'}
+		<table class="table table-hover wn-table table-bordered">
+			<thead class="navbar-inner">
+				<tr>
+					<th style='width:30px' class='with-checkbox'>
+						<input type="checkbox" class="check_all" />
+					</th>
+					<th style='width:100px'>序号</th>
+					<th style='width:210px'>微信号</th>
+					<th style='width:150px'>用户名</th>
+					<th style='width:150px'>真实姓名</th>
+					<th style='width:150px'>电话</th>
+					<th style='width:150px'>加入时间</th>
+					<th style="width:80px;">状态</th>
+					<th style="width:200px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+			{loop $list $item}
+			<tr>
+				<td class="with-checkbox">
+					<input type="checkbox" name="check" value="{$item['id']}">
+				</td>
+				<td>{$item['id']}</td>
+				<td>{$item['from_user']}</td>
+				<td>
+					{if empty($item['username'])}
+					<span class="label label-danger">未完善</span>
+					{else}
+					{$item['username']}
+					{/if}
+				</td>
+				<td>
+					{if empty($item['realname'])}
+					<span class="label label-danger">未完善</span>
+					{else}
+					{$item['realname']}
+					{/if}
+				</td>
+				<td>
+					{if empty($item['mobile'])}
+					<span class="label label-danger">未完善</span>
+					{else}
+					{$item['mobile']}
+					{/if}
+				</td>
+				<td>{php echo date('Y-m-d H:i',$item['createtime'])}</td>
+				<td>
+					{if $item['status'] == 1}
+					<span class='label label-success'>启用</span>
+					{else}
+					<span class='label label-default'>禁用</span>
+					{/if}
+				</td>
+				<td>
+					<a class="btn btn-default " data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('shop_clerk', array('op' => 'pay_record','id' => $item['id'], 'storeid' => $_GPC['storeid'], 'uid' => $item['userid']))}" title="收款记录">收款记录</a>
+					<a class="btn btn-default " data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('shop_clerk', array('op' => 'edit','id' => $item['id'], 'storeid' => $_GPC['storeid'], 'uid' => $item['userid']))}" title="编辑"><i class="fa fa-edit"></i></a>
+					{if $item['status'] == 0}
+					<a class="btn btn-default" title="显示" href="#" onclick="drop_confirm('您确定要启用此用户吗?', '{php echo $this->createWebUrl('shop_clerk', array('op' => 'status', 'status' => 1, 'id' => $item['id'], 'storeid' => $_GPC['storeid']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
+					{elseif $item['status'] == 1}
+					<a class="btn btn-default" title="隐藏" href="#" onclick="drop_confirm('您确定要禁用此用户吗?', '{php echo $this->createWebUrl('shop_clerk', array('op' => 'status', 'status' => 0, 'id' => $item['id'], 'storeid' => $_GPC['storeid']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
+					{/if}
+					<a class="btn btn-default" data-toggle="tooltip" data-placement="bottom" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('shop_clerk', array('op' => 'delete', 'id' => $item['id'], 'storeid' => $_GPC['storeid']))}');" title="删除" ><i class="fa fa-times"></i></a>
+				</td>
+			</tr>
+			{/loop}
+			<tr>
+				<td colspan="9">
+					<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
+					<input type="button" class="btn btn-primary edit_all" name="showall" value="批量启用" />
+					<input type="button" class="btn btn-primary edit_all" name="hideall" value="批量禁用" />
+				</td>
+			</tr>
+			</tbody>
+			<input name="token" type="hidden" value="{$_W['token']}" />
+		</table>
+		{/if}
+		{if $op == 'pay_record'}
+		<div class="wn-main__search__action">
+			<a href="{php echo $this->createWebUrl('shop_clerk', array('op' => 'display', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">-返回店员列表</a>
+		</div>
+		<table class="table table-hover wn-table table-bordered">
+			<thead class="navbar-inner">
+				<tr>
+					<th style='width:100px'>序号</th>
+					<th style='width:210px'>店员</th>
+					<th style='width:150px'>支付类型</th>
+					<th style='width:150px'>支付金额</th>
+					<th style='width:150px'>支付用户</th>
+					<th style='width:150px'>支付时间</th>
+				</tr>
+			</thead>
+			<tbody>
+			{loop $pay_record $record}
+			<tr>
+				<td>{$record['id']}</td>
+				<td>{$clerk['username']}</td>
+				<td>
+					{if $record['type'] == 'credit1'}积分{else}余额{/if}
+				</td>
+				<td>{$record['money']}</td>
+				<td>{$record['openid']}</td>
+				<td>{php echo date('Y-m-d H:i', $record['time'])}</td>
+			</tr>
+			{/loop}
+			</tbody>
+		</table>
+		{/if}
+		{$pager}
+	</div>
+</div>
+<script>
+	require(['bootstrap'],function() {
+		$('.btn').tooltip();
+	});
+	require(['jquery.qrcode'], function(){
+		$('.js-clerk-entry').click(function() {
+			url = $(this).data('url');
+			$('.js-url').val(url);
+			$('#entry-modal').modal('show');
+			$('.js-qrcode-block').html('').qrcode({
+				render: 'canvas',
+				width: 300,
+				height: 300,
+				text: url,
+			});
+		});
+	});
+	$(function() {
+		$('.js-add-clerk').click(function() {
+			check_version = "{php echo check_ims_version()}";
+			if (!check_version) {
+				util.message('请升级微擎系统至1.0,店员功能才可正常使用');
+				return;
+			}
+			$('#clerk-modal').modal('show');
+		});
+		$(".check_all").click(function() {
+			var checked = $(this).get(0).checked;
+			$(':checkbox').each(function(){
+				this.checked = checked;
+			});
+		});
+		$(".edit_all").click(function() {
+			var name = $(this).attr('name');
+			var check = $("input:checked");
+			if (check.length < 1) {
+				util.message('请选择要操作的记录!');
+				return;
+			}
+			var id = new Array();
+			check.each(function(i) {
+				id[i] = $(this).val();
+			});
+			$.post("{php echo create_url('site/entry', array('do' => 'shop_clerk', 'op' => 'showall', 'm' => $_GPC['m'], 'storeid' => $_GPC['storeid']))}", {idArr : id, show_name : name},function(data){
+				if (data.message.errno ==0) {
+					util.message(data.message.message, 'refresh', 'success');
+				} else {
+					util.message(data.message.message);
+				}
+			}, 'json');
+		});
+
+		$("input[name=deleteall]").click(function() {
+			var check = $("input:checked");
+			if (check.length < 1) {
+				util.message('请选择要删除的记录!');
+				return;
+			}
+			if (confirm("确认要删除选择的记录?")) {
+				var id = new Array();
+				check.each(function(i) {
+					id[i] = $(this).val();
+				});
+				$.post("{php echo create_url('site/entry', array('do' => 'shop_clerk', 'op' => 'deleteall', 'm' => $_GPC['m'], 'storeid' => $_GPC['storeid']))}", {idArr : id},function(data) {
+					if (data.message.errno ==0) {
+						util.message(data.message.message, 'refresh', 'success');
+					} else {
+						util.message(data.message.message);
+					}
+				}, 'json');
+			}
+
+		});
+	});
+	
+	function drop_confirm(msg, url) {
+		if (confirm(msg)) {
+			window.location = url;
+		}
+	}
+</script>
+{template 'common/footer'}

@@ -1,0 +1,59 @@
+{template 'common/header-storex'}
+<div class="wn-main">
+	<div class="wn-main__head">爆客设置</div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_blast', array('storeid' => $_GPC['storeid'], 'op' => 'display'))}">店员设置</a>
+			</div>
+			<div class="wn-tabs__item wn-tabs__item--active">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_blast_stat', array('storeid' => $_GPC['storeid'], 'op' => 'display'))}">数据统计</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_blast', array('storeid' => $_GPC['storeid'], 'op' => 'base'))}">基础设置</a>
+			</div>
+		</div>
+		{if $op == 'display'}
+		<table class="table table-hover wn-table table-bordered">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:300px;">标题</th>
+					<th>消息类型</th>
+					<th>发送量</th>
+					<th>状态</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+			{loop $stat_list $item}
+			<tr>
+				<td>{$item['title']}</td>
+				<td>
+					<a href="javascript:;" class="label label-success">
+						{if $item['type'] == 1}
+						文字
+						{elseif $item['type'] == 3}
+						图片
+						{/if}
+					</a>
+				</td>
+				<td>{$item['num']}</td>
+				<td>
+					{if $item['status'] == 1}
+					<span class='label label-success'>启用</span>
+					{else}
+					<span class='label label-default'>禁用</span>
+					{/if}
+				</td>
+				<td>
+					<a href="{php echo $this->createWebUrl('shop_blast_message', array('op' => 'post', 'storeid' => $_GPC['storeid'], 'clerkid' => $item['clerkid'], 'id' => $item['msgid']))}" class="wn-table__link__item">编辑信息</a>
+				</td>
+			</tr>
+			{/loop}
+			</tbody>
+		</table>
+		{$pager}
+		{/if}
+	</div>
+</div>
+{template 'common/footer'}

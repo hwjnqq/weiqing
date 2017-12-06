@@ -1,0 +1,138 @@
+{template 'common/header-storex'}
+<div class="wn-main">
+	<div class="wn-main__head">爆客设置</div>
+	{if $op == 'display'}
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item wn-tabs__item--active">
+				<a class="wn-tabs__link" href="javascript:;">消息列表</a>
+			</div>
+		</div>
+		<a href="javascript:;" class="btn btn-primary">店员 : {$clerk_info['username']}</a>
+		<div class="wn-main__search__action">
+			<a href="{php echo $this->createWebUrl('shop_blast_message', array('op' => 'post', 'storeid' => $storeid, 'clerkid' => $_GPC['clerkid'], 'uid' => $_GPC['uid']));}" class="btn btn-primary we7-padding-horizontal">+添加信息</a>
+		</div>
+		<table class="table table-hover wn-table table-bordered">
+			<thead class="navbar-inner">
+				<tr>
+					<th style='width:210px'>标题</th>
+					<th style='width:150px'>消息类型</th>
+					<th style='width:150px'>内容</th>
+					<th style="width:80px;">状态</th>
+					<th style="width:200px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+			{loop $message_list $item}
+			<tr>
+				<td>{$item['title']}</td>
+				<td>
+					{if $item['type'] == 1}
+					<span class="label label-primary">文本</span>
+					{elseif $item['type'] == 3}
+					<span class="label label-success">图片</span>
+					{/if}
+				</td>
+				<td>
+					{if $item['type'] == 1}
+					{$item['content']}
+					{elseif $item['type'] == 3}
+					<img src="{php echo tomedia($item['content'])}" width="80" height="80">
+					{/if}
+				</td>
+				<td>
+					{if $item['status'] == 1}
+					<span class='label label-success'>启用</span>
+					{else}
+					<span class='label label-default'>禁用</span>
+					{/if}
+					{if $item['isdefault'] == 1}
+					<span class='label label-primary'>默认</span>
+					{/if}
+				</td>
+				<td>
+					{if $item['isdefault'] != 1}
+					<a href="{php echo $this->createWebUrl('shop_blast_message', array('op' => 'default', 'storeid' => $_GPC['storeid'], 'id' => $item['id'], 'uid' => $item['uid'], 'clerkid' => $_GPC['clerkid']))}" class="wn-table__link__item">设为默认</a>
+					{/if}
+					<a href="{php echo $this->createWebUrl('shop_blast_message', array('op' => 'post', 'storeid' => $_GPC['storeid'], 'id' => $item['id'], 'uid' => $item['uid'], 'clerkid' => $_GPC['clerkid']))}" class="wn-table__link__item">编辑</a>
+					<a href="{php echo $this->createWebUrl('shop_blast_message', array('op' => 'delete', 'storeid' => $_GPC['storeid'], 'id' => $item['id'], 'uid' => $item['uid'], 'clerkid' => $_GPC['clerkid']))}" class="wn-table__link__item">删除</a>
+				</td>
+			</tr>
+			{/loop}
+			</tbody>
+		</table>
+	</div>
+	{/if}
+
+	{if $op == 'post'}
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_blast_message', array('storeid' => $_GPC['storeid'], 'op' => 'display', 'clerkid' => $_GPC['clerkid'], 'uid' => $_GPC['uid']))}">消息列表</a>
+			</div>
+			<div class="wn-tabs__item wn-tabs__item--active">
+				<a class="wn-tabs__link" href="javascript:;">编辑消息</a>
+			</div>
+		</div>
+		<form class="form-horizontal form" method="post" enctype="multipart/form-data">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">消息类型</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" value="1" name="type" {if (empty($blast_message_info['type']) || $blast_message_info['type'] == 1)} checked {/if}/> 文本
+					</label>
+					<label class="radio-inline">
+						<input type="radio" value="3" name="type" {if $blast_message_info['type'] == 3} checked {/if}/> 图片
+					</label>
+					<span class="help-block">选择发送消息的类型</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">标题</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="title" class="form-control" value="{$blast_message_info['title']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">内容</label>
+				<div class="col-sm-9 col-xs-12">
+					<div class="js-text" style="{if $blast_message_info['type'] != 1}display:none{/if}">
+						<input type="text" name="content" class="form-control" value="{$blast_message_info['content']}">
+					</div>
+					<div class="js-img" style="{if $blast_message_info['type'] != 3}display:none{/if}">
+						{php echo tpl_form_field_image('image', $blast_message_info['image'])}
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">开关</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" name="status" value="1" {if $blast_message_info['status'] == 1}checked{/if}/>开启
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="status" value="0" {if $blast_message_info['status'] == 0}checked{/if}/>关闭
+					</label>
+				</div>
+			</div>
+			<div class="form-group col-sm-12">
+				<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</form>
+	</div>
+	<script type="text/javascript">
+	$('input[name="type"]').change(function() {
+		type = $(this).val();
+		if (type == 1) {
+			$('.js-text').show();
+			$('.js-img').hide();
+		} else if (type == 3) {
+			$('.js-img').show();
+			$('.js-text').hide();
+		}
+	});
+	</script>
+	{/if}
+</div>
+{template 'common/footer'}

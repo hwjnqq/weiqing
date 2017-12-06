@@ -1,0 +1,374 @@
+{template 'common/header-storex'}
+
+{if $op == 'display'}
+<div class="wn-main wn-main--without">
+	<div class="wn-main__head">应用</div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent', array('storeid' => $_GPC['storeid']))}">销售员列表</a>
+			</div>
+			<!-- 
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent_level'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent_level', array('storeid' => $_GPC['storeid']))}">销售员等级管理</a>
+			</div>
+			 -->
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent_log' && $op == 'agent_log'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent_log', array('op' => 'agent_log', 'storeid' => $_GPC['storeid']))}">销售员售出记录</a>
+			</div>
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent_log' && $op == 'apply_log'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent_log', array('op' => 'apply_log', 'storeid' => $_GPC['storeid']))}">销售员提现记录</a>
+			</div>
+		</div>
+		<div style="color:red;font-size:20px;">使用此功能请先在微信后台设置安全域名以及权限。</div>
+		<div class="clearfix">
+			<table class="table table-hover wn-table table-bordered">
+				<thead class="navbar-inner">
+					<tr>
+						<th>真实姓名</th>
+						<th>电话号码</th>
+						<th>支付宝账号</th>
+						<th>总收入(累计)</th>
+						<th>可用余额(元)</th>
+						<th>申请时间</th>
+						<th>上级分销员</th>
+						<th>状态</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $agent_list $agent}
+					<tr>
+						<td>{$agent['realname']}</td>
+						<td>{$agent['tel']}</td>
+						<td>{$agent['alipay']}</td>
+						<td>{$agent['income']}</td>
+						<td>{$agent['outcome']}</td>
+						<td>{php echo date('Y-m-d H:i:s', $agent['applytime'])}</td>
+						<td>
+						{if !empty($agent_list[$agent['pid']])}
+						<span style="color:red">{$agent_list[$agent['pid']]['realname']}</span>
+						{else}
+						无上级
+						{/if}
+						</td>
+						<td>
+							<a class="wn-table__link__item js-verify" data-id="{$agent['id']}">
+								{if $agent['status'] == AGENT_STATUS_NOT_VERIFY}
+								待审核
+								{elseif $agent['status'] == AGENT_STATUS_VERIFY}
+								审核通过
+								{elseif $agent['status'] == AGENT_STATUS_REFUSE}
+								审核拒绝
+								{/if}
+							</a>
+						</td>
+						<td>
+							<a href="{php echo $this->createWebUrl('shop_agent_log', array('op' => 'agent_log', 'id' => $agent['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">查看订单</a>
+							<a href="{php echo $this->createWebUrl('shop_agent_log', array('op' => 'apply_log', 'id' => $agent['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">查看提现申请</a>
+							<a onclick="return confirm('确定删除吗?')" href="{php echo $this->createWebUrl('shop_agent', array('op' => 'delete', 'id' => $agent['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">删除</a>
+						</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+<div class="modal fade" id="agent-modal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel">审核</h4>
+			</div>
+			<div class="modal-body clearfix form-horizontal">
+				<div class="form-group">
+					<div class="col-sm-12 col-xs-12">
+						<label class="radio-inline js-pass">
+							<input type="radio" name="status" value="2" checked> 通过
+						</label>
+						<label class="radio-inline js-refuse">
+							<input type="radio" name="status" value="3"> 拒绝
+						</label>
+					</div>
+				</div>
+				<div class="form-group js-reason" style="display:none;">
+					<div class="col-sm-12 col-xs-12">
+						<input class="form-control" type="text" name="reason" value="">
+						<div class="help-block">拒绝原因</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<input type="hidden" name="agent_id">
+				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				<button type="button" class="btn btn-primary js-submit-agent">确定</button>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	$('.js-verify').click(function() {
+		id = $(this).data('id');
+		if (id) {
+			$('input[name="agent_id"]').val(id);
+			$.post("{php echo $this->createWebUrl('shop_agent', array('storeid' => $_GPC['storeid'], 'op' => 'agent_info'))}", {id : id}, function(data) {
+				data = $.parseJSON(data);
+				if (data.message.errno != 0) {
+					util.message(data.message.message, '', 'error');
+				} else {
+					if (data.message.message.status == 2) {
+						$('.js-pass input[type="radio"]').prop('checked', true);
+						$('input[name="reason"]').val('');
+						$('.js-pass').click();
+					} else if (data.message.message.status == 3) {
+						$('.js-refuse input[type="radio"]').prop('checked', true);
+						$('input[name="reason"]').val(data.message.message.reason);
+						$('.js-refuse').click();
+					}
+					$('#agent-modal').modal('show');
+				}
+			});
+		}
+	});
+	$('.js-refuse').click(function() {
+		$('.js-reason').show();
+	});
+	$('.js-pass').click(function() {
+		$('.js-reason').hide();
+	});
+	$('.js-submit-agent').click(function() {
+		id = $('input[name="agent_id"]').val();
+		reason = $('input[name="reason"]').val();
+		status = $('input[name="status"]:checked').val();
+		if (status == 3 && !reason) {
+			util.message('请填写拒绝原因', '', 'error');
+			return;
+		}
+		$.post("{php echo $this->createWebUrl('shop_agent', array('storeid' => $_GPC['storeid'], 'op' => 'agent_status'))}", {id : id, reason : reason, status : status}, function(data) {
+			data = $.parseJSON(data);
+			if (data.message.errno != 0) {
+				util.message(data.message.message, '', 'error');
+			} else {
+				util.message('编辑成功', location.href, 'success');
+				$('#agent-modal').modal('hide');
+			}
+		});
+	});
+</script>
+{/if}
+
+{if $op == 'post'}
+<div class="wn-main">
+	<div class="wn-main__head">店铺设置</div>
+	<div class="wn-main__content">
+		<form class="form-horizontal form" method="post" enctype="multipart/form-data">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" id="displayorder" name="displayorder" class="form-control" value="{$storex_bases['displayorder']}">
+					<span class='help-block'>数字越大排名越高</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">套餐标题</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="title" id="title" class="form-control" value="{$storex_bases['title']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">套餐缩略图</label>
+				<div class="col-sm-9 col-xs-12">
+					{php echo tpl_form_field_image('thumb', $storex_bases['thumb'])}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">运费设置</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="express" class="form-control" value="{$storex_bases['express']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">套餐价格</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="price" class="form-control" value="{$storex_bases['price']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">所在地区</label>
+				<div class="col-sm-9 col-xs-12">
+					{php echo tpl_form_field_district('district', array('province' => $storex_bases['location_p'],'city' => $storex_bases['location_c'], 'district' => $storex_bases['location_a']))}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺坐标</label>
+				<div class="col-sm-9 col-xs-12" style="padding-left:15px;">
+					{php echo tpl_form_field_coordinate('baidumap', $storex_bases)}
+				</div>
+			</div>
+			<div class="form-group">
+				{if $storex_bases['store_type'] != 1}
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">配送距离</label>
+				{else}
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">显示距离</label>
+				{/if}
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" id="distance" name="distance"  class="form-control" value="{$storex_bases['distance']}">
+					<span class='help-block'>配送距离或者是搜索店铺显示的距离范围（单位：公里），0则不限距离</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺介绍</label>
+				<div class="col-sm-9 col-xs-12">
+					<textarea style="height:100px;" id="description" name="description" class="form-control" cols="60">{$storex_bases['description']}</textarea>
+					<div class="help-block">用于正文内的详情</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">关于我们</label>
+				<div class="col-sm-9 col-xs-12">
+					{php echo tpl_ueditor('store_info', $storex_bases['store_info']);}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">位置交通</label>
+				<div class="col-sm-9 col-xs-12">
+					<textarea style="height:100px;" id="traffic" name="traffic" class="form-control" cols="60">{$storex_bases['traffic']}</textarea>
+					<div class="help-block">店铺位置交通说明(选填)</div>
+				</div>
+			</div>
+			{if $store_type == 1}
+			<div class="form-group">
+				<label class="col-xs-12 col-md-2 control-label">酒店设施</label>
+				<div class="col-md-10" id="device-container" style="padding-left: 0px;">
+					{loop $devices $key $device}
+					<div class="col-sm-5" style="margin: 5px 0px;">
+						<div class="input-group">
+							<span class="input-group-addon">
+								<input type="checkbox" name="show_device[{$key}]" value="1" {if $device['isshow'] > 0}checked{/if} aria-label="Checkbox for following text input">
+	  						</span>
+							<input type="text" name="device[{$key}]" class="form-control device-input" value="{$device['value']}" />
+							<span class="input-group-btn">
+								<button class="btn btn-default device-delete" type="button">删除</button>
+							</span>
+						</div>
+					</div>
+					{/loop}
+					<div class="col-sm-5">
+						<button type="button" id="add_device" class="btn btn-default"><i class="fa fa-plus"></i> 添加</button>
+					</div>
+				</div>
+			</div>
+			{/if}
+			
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">营销活动开关</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" name="market_status" value="1" {if $storex_bases['market_status'] == 1}checked{/if}/>开启
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="market_status" value="0" {if $storex_bases['market_status'] == 0}checked{/if}/>关闭
+					</label>
+					<span class='help-block'>开启后，享受店铺内活动，会员卡优惠不再享受</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" name="status" value="1" {if $storex_bases['status'] == 1}checked{/if}/>显示
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="status" value="0" {if $storex_bases['status'] == 0}checked{/if}/>隐藏
+					</label>
+					<span class='help-block'>手机前台是否显示</span>
+				</div>
+			</div>
+			<div class="form-group col-sm-12">
+				<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</form>
+	</div>
+</div>
+<script type="text/javascript">
+	$("#add_device").click(function() {
+		var index = $('.device-input').length;
+		var html =
+			'<div class="col-sm-5" style="margin: 5px 0px;">' +
+				'<div class="input-group">' +
+					'<span class="input-group-addon">' +
+						'<input type="checkbox" name="show_device[' + index + ']" value="1" aria-label="Checkbox for following text input">' +
+					'</span>' +
+					'<input type="text" name="device[' + index + ']" class="form-control device-input" value="">' +
+					'<span class="input-group-btn">' +
+						'<button class="btn btn-default device-delete" type="button">删除</button>' +
+					'</span>' +
+				'</div>' +
+			'</div>';
+
+		$(this).parent().before(html);
+	});
+	
+	$("#add_email").click(function() {
+		var index = $('.email-input').length;
+		var html =
+			'<div class="col-sm-5" style="margin: 5px 0px;">' +
+				'<div class="input-group">' +
+					'<input type="text" name="email[' + index + ']" class="form-control email-input" value="">' +
+					'<span class="input-group-btn">' +
+						'<button class="btn btn-default email-delete" type="button">删除</button>' +
+					'</span>' +
+				'</div>' +
+			'</div>';
+
+		$(this).parent().before(html);
+	});
+	
+	$("#add_tel").click(function() {
+		var index = $('.tel-input').length;
+		var html =
+			'<div class="col-sm-5" style="margin: 5px 0px;">' +
+				'<div class="input-group">' +
+					'<input type="text" name="tel[' + index + ']" class="form-control tel-input" value="">' +
+					'<span class="input-group-btn">' +
+						'<button class="btn btn-default tel-delete" type="button">删除</button>' +
+					'</span>' +
+				'</div>' +
+			'</div>';
+
+		$(this).parent().before(html);
+	});
+	
+	$("#add_openid").click(function() {
+		var index = $('.openid-input').length;
+		var html =
+			'<div class="col-sm-5" style="margin: 5px 0px;">' +
+				'<div class="input-group">' +
+					'<input type="text" name="openid[' + index + ']" class="form-control openid-input" value="">' +
+					'<span class="input-group-btn">' +
+						'<button class="btn btn-default openid-delete" type="button">删除</button>' +
+					'</span>' +
+				'</div>' +
+			'</div>';
+
+		$(this).parent().before(html);
+	});
+
+	$(document).on('click', '.device-delete', function() {
+		$(this).parent().parent().parent().remove();
+	});
+	$(document).on('click', '.email-delete', function() {
+		$(this).parent().parent().parent().remove();
+	});
+	$(document).on('click', '.tel-delete', function() {
+		$(this).parent().parent().parent().remove();
+	});
+	$(document).on('click', '.openid-delete', function() {
+		$(this).parent().parent().parent().remove();
+	});
+</script>
+{/if}
+{template 'common/footer-storex'}

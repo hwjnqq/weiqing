@@ -1,0 +1,48 @@
+{template 'common/header-storex'}
+<div class="wn-main">
+	<div>
+		<img class="js-img" src="http://we7cloud-10016060.file.myqcloud.com/images/2017/08/12/W5DL5SxsSRK5Fq58598f0c2b16978.jpg">
+	</div>
+</div>
+<script type="text/javascript">
+	window.qrcodeshow = function() {
+		$.post("{php echo $this->createWebUrl('qrcode', array('op' => 'qrcode'))}", {}, function(data) {
+			data = $.parseJSON(data);
+			console.dir(data.message.message);
+			$('.js-img').attr('src', data.message.message.link);
+			check_login(data.message.message.uuid);
+		})
+	};
+	function check_login(uuid) {
+		$.post("{php echo $this->createWebUrl('qrcode', array('op' => 'check_login'))}", {id : uuid}, function(data) {
+			data = $.parseJSON(data);
+			console.dir(data.message.message)
+			if (data.message.message.code == 400) {
+				check_login(uuid);
+			} else if (data.message.message.code == 408) {
+				check_login(uuid);
+			} else if (data.message.message.code == 200) {
+				login(uuid, data.message.message.redirect_uri);
+			} else if (data.message.message.code == 201) {
+				check_login(uuid);
+			}
+		})
+	}
+	function login(uuid, redirect) {
+		$.post("{php echo $this->createWebUrl('qrcode', array('op' => 'login'))}", {id : uuid, tip : 1, redirect : redirect}, function(data) {
+			data = $.parseJSON(data);
+			console.dir(data.message.message)
+			// if (data.message.message.code == 400) {
+			// 	check_login(uuid);
+			// } else if (data.message.message.code == 408) {
+			// 	check_login(uuid);
+			// } else if (data.message.message.code == 200) {
+
+			// } else if (data.message.message.code == 201) {
+			// 	check_login(uuid);
+			// }
+		})
+	}
+	qrcodeshow();
+</script>
+{template 'common/footer-storex'}

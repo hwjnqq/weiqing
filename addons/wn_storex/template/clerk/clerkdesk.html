@@ -1,0 +1,110 @@
+{template 'common/header-base'}
+<style type="text/css">
+	.menu .page-header{border:none; border-left:0.3em #333 solid; padding-left:1em;}
+	.menu .tile{display:block; float:left; margin:0.4em;padding:.2em 1em .5em 1em; width:8em; text-align:center; background:#EEE; color:#333; text-decoration:none;}
+	.menu .tile:hover{background:#7dacdd; color:#FFF;}
+	.menu .tile > i{display:block; font-size:2em; margin:0.3em auto 0 auto;}
+	.menu .tile > span{display:block;}
+</style>
+<div class="head">
+	<nav class="navbar navbar-default" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="{$_W['siteroot']}">
+					<img src="{if !empty($_W['setting']['copyright']['blogo'])}{php echo tomedia($_W['setting']['copyright']['blogo'])}{else}./resource/images/logo/logo.png{/if}" class="pull-left" width="110px" height="35px">
+					<span class="version">{IMS_VERSION}</span>
+				</a>
+			</div>
+			<div class="collapse navbar-collapse">
+				<ul class="nav navbar-nav navbar-left">
+					<li class="active"><a href="">工作台首页</a></li>
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li class="dropdown">
+						<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown"><i class="wi wi-user color-gray"></i>{$_W['user']['username']} <span class="caret"></span></a>
+						<ul class="dropdown-menu color-gray" role="menu">
+							<li>
+								<a href="{url 'user/logout'}"><i class="fa fa-sign-out color-gray"></i> 退出系统</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+</div>
+<div class="main">
+	<div class="container">
+		<div class="panel-body clearfix main-panel-body">
+			<div class="right-content">
+				<ul class="nav nav-tabs">
+					<li class="active"><a href="javascript:;">工作台</a></li>
+				</ul>
+				{if $op == 'display'}
+				<div class="panel panel-content main-panel-content ">
+					<div class="content-head panel-heading main-panel-heading">
+					<img src="{php echo tomedia($store_list[$storeid]['thumb'])}" class="head-logo">
+					<span class="font-lg">{php echo !empty($store_list[$storeid]['title']) ? $store_list[$storeid]['title'] : '请选择店铺'}</span>
+					<span class="pull-right">
+						<a class="color-default we7-margin-left" href="javascript:;" data-toggle="modal" data-target="#store-modal"><i class="wi wi-cut color-default"></i>选择店铺</a>
+					</span>
+					</div>
+				</div>
+				<div class="modal fade" id="store-modal" tabindex="-1" role="dialog" aria-hidden="true">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+								<h4 class="modal-title" id="myModalLabel">选择你要切换的店铺</h4>
+							</div>
+							<div class="modal-body clearfix form-horizontal">
+								{loop $store_list $store}
+									<span class="btn btn-default js-select-store" data-id="{$store['id']}">{$store['title']}</span>
+								{/loop}
+							</div>
+						</div>
+					</div>
+				</div>
+				{if !empty($storeid)}
+				<div class="clearfix menu">
+					{if empty($permissions)}
+					<div class="alert alert-danger">您没有操作权限.请联系公众号管理员</div>
+					{else}
+						{loop $permissions $row}
+							<h5 class="page-header">{$row['title']}</h5>
+							<div class="clearfix">
+								{loop $row['items'] $row1}
+									<a href="{if $row1['type'] == 'url'}{$row1['url']}{else}javascript:;{/if}" class="tile img-rounded{if $row1['type'] == 'modal'} modal-trade-{$row1['url']}{/if}" data-type="{$row1['url']}">
+										<i class="{$row1['icon']}"></i>
+										<span>{$row1['title']}</span>
+									</a>
+								{/loop}
+							</div>
+						{/loop}
+					{/if}
+				</div>
+				{/if}
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	require({
+		paths: {
+			'trade': "<?php echo SCRIPT_URL . '/trade';?>",
+		}
+	})
+	require(['trade', 'bootstrap'], function(trade){
+		trade.init();
+		storeid = {$storeid};
+		if (!storeid) {
+			$('#store-modal').modal('show');
+		}
+		$('.js-select-store').click(function() {
+			id = $(this).data('id');
+			location.href = "{php echo $this->createWebUrl('clerkdeskwelcome')}" + '&storeid=' + id;
+		});
+	});
+</script>
+{/if}
+{template 'common/footer'}

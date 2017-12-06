@@ -1,0 +1,143 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li class="{if $op == 'display'}active{/if}"><a href="{php echo $this->createWeburl('printermanage', array('op' => 'display'))}">打印机列表</a></li>
+	{if $op == 'post'}
+	<li class="active"><a href="javascript:;">编辑打印机</a></li>
+	{/if}
+</ul>
+{if $op == 'display'}
+<div class="main">
+	<div class="pull-right">
+		<a href="{php echo $this->createWebUrl('printermanage', array('op' => 'post'))}" class="btn btn-primary">+添加打印机</a>				
+	</div>
+	<div class="clearfix">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th>打印机品牌</th>
+					<th>打印机名称</th>
+					<th>状态</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $printer_list $print}
+				<tr>
+					<td>飞鹅打印机</td>
+					<td>{$print['name']}</td>
+					<td>
+						{if $print['status'] == 2}
+						<span class="label label-success">开启</span>
+						{else}
+						<span class="label label-danger">关闭</span>
+						{/if}
+					</td>
+					<td>
+						<a href="{php echo $this->createWebUrl('printermanage', array('op' => 'post', 'id' => $print['id']))}" class="btn btn-default btn-sm">编辑</a>
+						<a href="{php echo $this->createWebUrl('printermanage', array('op' => 'delete', 'id' => $print['id']))}" class="btn btn-default btn-sm">删除</a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+	</div>
+</div>
+
+{/if}
+{if $op == 'post'}
+<div class="main" id="printermanage">
+	<div class="alert alert-warning">打印小票功能使用飞鹅打印机，请注册飞鹅云账号，并添加打印机。<a href="http://www.feieyun.com/" target="_blank">立即申请</a></div>
+	<div class="we7-form">
+		<div class="form-group">
+			<label class="control-label col-sm-2">开启打印机</label>
+			<div class="form-controls col-sm-8 we7-padding-bottom">
+				<input id="sms_status-1" type="radio" v-model="printer.status" value="2"/>
+				<label for="sms_status-1" >开启</label>
+				<input id="sms_status-2" type="radio" v-model="printer.status" value="1"/>
+				<label for="sms_status-2">关闭</label>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="" class="control-label col-sm-2">打印机名称</label>
+			<div class="form-controls col-sm-8">
+				<input type="text" class="form-control" v-model="printer.name">
+				<span class="help-block">请填写打印机名称。作筛选或区分用</span>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="control-label col-sm-2">云账号</label>
+			<div class="form-controls col-sm-8">
+				<input type="text" class="form-control" v-model="printer.user">
+				<span class="help-block">请填写飞鹅云后台注册账号。</span>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="" class="control-label col-sm-2">UKEY</label>
+			<div class="form-controls col-sm-8">
+				<input type="text" class="form-control" v-model="printer.key">
+				<span class="help-block">请填写UKEY，位置在飞鹅云后台，	我的飞鹅中。</span>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="" class="control-label col-sm-2">打印机编号SN</label>
+			<div class="form-controls col-sm-8">
+				<input type="text" class="form-control" v-model="printer.sn">
+				<span class="help-block">请填写打印机编号SN，位置在飞鹅云后台，打印机详情中。</span>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="" class="control-label col-sm-2">头部自定义信息</label>
+			<div class="form-controls col-sm-8">
+				<input type="text" class="form-control" v-model="printer.header">
+				<span class="help-block">设置小票头部信息，建议字数少于20字。</span>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="" class="control-label col-sm-2">尾部自定义信息</label>
+			<div class="form-controls col-sm-8">
+				<input type="text" class="form-control" v-model="printer.footer">
+				<span class="help-block">设置小票尾部信息，建议字数少于20字。</span>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="" class="control-label col-sm-2">底部二维码链接</label>
+			<div class="form-controls col-sm-8">
+				<input type="text" class="form-control" v-model="printer.qrcode">
+				<span class="help-block">设置小票底部二维码链接，如http://www.baidu.com</span>
+			</div>
+		</div>
+		<button class="btn btn-primary col-lg-1" @click="printerSubmit">提交</button>
+	</div>
+</div>
+<script type="text/javascript">
+	require({
+		paths: {
+			'vue': '/addons/wn_storex/template/style/js/vue',
+		}
+	});
+	printer_info ={php echo json_encode($printer_info);};
+	id = {php echo !empty($id) ? $id : 0};
+	require(['vue'], function(Vue) {
+		var app = new Vue({
+			el: '#printermanage',
+			data: {
+				printer: printer_info,
+				id: id
+			},
+			methods: {
+				printerSubmit() {
+					$.post("{php echo $this->createWeburl('printermanage', array('op' => 'post'));}", {params: this.printer, id: this.id}, function(data) {
+						data = $.parseJSON(data);
+						if (data.message.errno != 0) {
+							util.message(data.message.message, '', 'error');
+						} else {
+							util.message('设置成功', data.redirect, 'success');
+						}
+					});
+				}
+			}
+		});
+	});
+</script>
+{/if}
+{template 'common/footer'}

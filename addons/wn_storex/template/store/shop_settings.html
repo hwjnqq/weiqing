@@ -1,0 +1,466 @@
+{template 'common/header-storex'}
+{if $op == 'post'}
+<div class="wn-main">
+	<div class="wn-main__head">店铺设置</div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_settings'}wn-tabs__item--active{/if}">
+				{if $_GPC['action'] != 'add'}
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_settings', array('storeid' => $_GPC['storeid']))}">店铺设置</a>
+				{else}
+				<a class="wn-tabs__link" href="javascript:;">店铺设置</a>
+				{/if}
+			</div>
+			{if $_GPC['action'] != 'add'}
+			<div class="wn-tabs__item {if $op == 'homepage'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_share', array('op' => 'homepage', 'storeid' => $_GPC['storeid']))}">首页分享设置</a>
+			</div>
+			<!-- 
+			<div class="wn-tabs__item {if $op == 'category'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_share', array('op' => 'category', 'storeid' => $_GPC['storeid']))}">分类分享设置</a>
+			</div>
+			 -->
+			{if $store['store_type'] != STORE_TYPE_HOTEL}
+			<div class="wn-tabs__item {if $op == 'goods'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_share', array('op' => 'goods', 'storeid' => $_GPC['storeid']))}">商品分享设置</a>
+			</div>
+			{/if}
+			{/if}
+		</div>
+		<form class="form-horizontal form" method="post" enctype="multipart/form-data">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" id="displayorder" name="displayorder" class="form-control" value="{$storex_bases['displayorder']}">
+					<span class='help-block'>数字越大排名越高</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺名称</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="title" id="title"  class="form-control" value="{$storex_bases['title']}">
+				</div>
+			</div>
+			
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">申请退款</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" value="1" name="refund" {if (empty($storex_bases['refund']) || $storex_bases['refund'] == 1)} checked {/if}/> 可以
+					</label>
+					<label class="radio-inline">
+						<input type="radio" value="2" name="refund" {if $storex_bases['refund'] == 2} checked {/if}/> 不可以
+					</label>
+					<span class="help-block">用户没有入住前或者没有发货时是否可以申请退款</span>
+				</div>
+			</div>
+			
+			<div class="form-group">
+				<label class="col-xs-12 col-md-2 control-label">提醒接收邮箱</label>
+				<div class="col-md-10" id="email-container" style="padding-left: 0px;">
+					{loop $emails $key $email}
+					<div class="col-sm-5" style="margin: 5px 0px;">
+						<div class="input-group">
+							<input type="text" name="email[{$key}]" class="form-control email-input" value="{$email}" />
+							<span class="input-group-btn">
+								<button class="btn btn-default email-delete" type="button">删除</button>
+							</span>
+						</div>
+					</div>
+					{/loop}
+					<div class="col-sm-5">
+						<button type="button" id="add_email" class="btn btn-default"><i class="fa fa-plus"></i> 添加</button>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-md-2 control-label">提醒接收手机</label>
+				<div class="col-md-10" id="tel-container" style="padding-left: 0px;">
+					{loop $tels $key $tel}
+					<div class="col-sm-5" style="margin: 5px 0px;">
+						<div class="input-group">
+							<input type="text" name="tel[{$key}]" class="form-control tel-input" value="{$tel}" />
+							<span class="input-group-btn">
+								<button class="btn btn-default tel-delete" type="button">删除</button>
+							</span>
+						</div>
+					</div>
+					{/loop}
+					<div class="col-sm-5">
+						<button type="button" id="add_tel" class="btn btn-default"><i class="fa fa-plus"></i> 添加</button>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-md-2 control-label">提醒接收微信</label>
+				<div class="col-md-10" id="openid-container" style="padding-left: 0px;">
+					{loop $openids $key $openid}
+					<div class="col-sm-5" style="margin: 5px 0px;">
+						<div class="input-group">
+							<input type="text" name="openid[{$key}]" class="form-control openid-input" value="{$openid}" />
+							<span class="input-group-btn">
+								<button class="btn btn-default openid-delete" type="button">删除</button>
+							</span>
+						</div>
+					</div>
+					{/loop}
+					<div class="col-sm-5">
+						<button type="button" id="add_openid" class="btn btn-default"><i class="fa fa-plus"></i> 添加</button>
+						(请先关注该公众号，然后填写微信openid)
+					</div>
+				</div>
+			</div>
+			
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">运营时间</label>
+				<div class="col-sm-4 col-xs-6">
+					{php echo tpl_form_field_clock('timestart', $storex_bases['timestart'])}
+				</div>
+				<div class="col-sm-4 col-xs-6">
+					{php echo tpl_form_field_clock('timeend', $storex_bases['timeend'])}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">LOGO/缩略图</label>
+				<div class="col-sm-9 col-xs-12">
+					{php echo tpl_form_field_image('thumb', $storex_bases['thumb'])}
+				</div>
+			</div>
+			<!-- 
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">首页图片</label>
+				<div class="col-sm-9 col-xs-12">
+					{php echo tpl_form_field_multi_image('thumbs',$item['thumbs'])}
+					<span class='help-block'>图片尺寸 （750*1232）</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">详情页图片</label>
+				<div class="col-sm-9 col-xs-12">
+					{php echo tpl_form_field_multi_image('detail_thumbs', $storex_bases['detail_thumbs'])}
+					<span class='help-block'>图片尺寸 （750*1232），首页图片会显示第一张图片</span>
+				</div>
+			</div>
+			 -->
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺电话</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" id="phone" name="phone"  class="form-control" value="{$storex_bases['phone']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺Email</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" id="mail" name="mail"  class="form-control" value="{$storex_bases['mail']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺地址</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" id="address" name="address"  class="form-control" value="{$storex_bases['address']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">所在地区</label>
+				<div class="col-sm-9 col-xs-12">
+					{php echo tpl_form_field_district('district', array('province' => $storex_bases['location_p'],'city' => $storex_bases['location_c'], 'district' => $storex_bases['location_a']))}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺坐标</label>
+				<div class="col-sm-9 col-xs-12" style="padding-left:15px;">
+					{php echo tpl_form_field_coordinate('baidumap', $storex_bases)}
+				</div>
+			</div>
+			<div class="form-group">
+				{if $storex_bases['store_type'] != 1}
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">配送距离</label>
+				{else}
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">显示距离</label>
+				{/if}
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" id="distance" name="distance"  class="form-control" value="{$storex_bases['distance']}">
+					<span class='help-block'>配送距离或者是搜索店铺显示的距离范围（单位：公里），0则不限距离</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">积分抵扣设置</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class='radio-inline'><input type="radio" name="credit_pay" value="1"  {if empty($storex_bases['credit_pay']) || $storex_bases['credit_pay'] == 1} checked="true" {/if} onclick="$('.credit_ratio').show();">开启</label>
+					<label class='radio-inline'><input type="radio" name="credit_pay" value="2" {if $storex_bases['credit_pay'] == 2} checked="true" {/if} onclick="$('.credit_ratio').hide();">关闭</label>
+				</div>
+			</div>
+			<div class="form-group credit_ratio" {if $storex_bases['credit_pay'] == 2}style="display: none;"{/if}>
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">积分抵扣比例</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="number" name="credit_ratio" class="form-control" value="{$storex_bases['credit_ratio']}" />
+					<span class="help-block">设置多少积分（整数）可以抵扣1元，例如30，即30积分 = 1元。请根据获取积分规则，谨慎设置。</span>
+				</div>
+			</div>
+			<div class="form-group credit_ratio" {if $storex_bases['credit_pay'] == 2}style="display: none;"{/if}>
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">订单抵扣金额</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" id="max_replace" name="max_replace"  class="form-control" value="{$storex_bases['max_replace']}">
+					<span class='help-block'>该店铺的订单可用积分抵扣的固定金额</span>
+				</div>
+			</div>
+			<!-- 
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">店铺介绍</label>
+				<div class="col-sm-9 col-xs-12">
+					<textarea style="height:100px;" id="description" name="description" class="form-control" cols="60">{$storex_bases['description']}</textarea>
+					<div class="help-block">用于正文内的详情</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">关于我们</label>
+				<div class="col-sm-9 col-xs-12">
+					{php echo tpl_ueditor('store_info', $storex_bases['store_info']);}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">位置交通</label>
+				<div class="col-sm-9 col-xs-12">
+					<textarea style="height:100px;" id="traffic" name="traffic" class="form-control" cols="60">{$storex_bases['traffic']}</textarea>
+					<div class="help-block">店铺位置交通说明(选填)</div>
+				</div>
+			</div>
+			 -->
+			{if $store_type == 1}
+			<div class="form-group">
+				<label class="col-xs-12 col-md-2 control-label">酒店设施</label>
+				<div class="col-md-10" id="device-container" style="padding-left: 0px;">
+					{loop $devices $key $device}
+					<div class="col-sm-5" style="margin: 5px 0px;">
+						<div class="input-group">
+							<span class="input-group-addon">
+								<input type="checkbox" name="show_device[{$key}]" value="1" {if $device['isshow'] > 0}checked{/if} aria-label="Checkbox for following text input">
+	  						</span>
+							<input type="text" name="device[{$key}]" class="form-control device-input" value="{$device['value']}" />
+							<span class="input-group-btn">
+								<button class="btn btn-default device-delete" type="button">删除</button>
+							</span>
+						</div>
+					</div>
+					{/loop}
+					<div class="col-sm-5">
+						<button type="button" id="add_device" class="btn btn-default"><i class="fa fa-plus"></i> 添加</button>
+					</div>
+				</div>
+			</div>
+			{else}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">购物车统一运费</label>
+				<div class="col-sm-9 col-xs-12">
+					<div class="input-group">
+						<span class="input-group-addon">默认运费</span>
+						<input type="text" id="express" name="express"  class="form-control" value="{$storex_bases['express']['express']}">
+						<span class="input-group-addon">满</span>
+						<input type="text" class="form-control" name="full_free" value="{$storex_bases['express']['full_free']}"/>
+						<span class="input-group-addon">免运费</span>
+					</div>
+					<span class='help-block'>购物车结算的时候统一运费，单个商品按单个商品选择的运费模板计算。</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">单件商品运费模板</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" name="goods_express" value="1" {if $storex_bases['goods_express'] == 1 || empty($storex_bases['goods_express'])}checked{/if}/>模板A: 满X元，Y元运费
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="goods_express" value="2" {if $storex_bases['goods_express'] == 2}checked{/if}/>模板B: 满X件，Y元运费
+					</label>
+				</div>
+			</div>
+			<div class="form-group credit_pw_mode">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">提货方式</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class='checkbox-inline'><input type="checkbox" name="pick_up_mode[self_lift]" value="1" {if !empty($storex_bases['pick_up_mode']) && $storex_bases['pick_up_mode']['self_lift'] == 1 } checked {/if}> 自提 </label>
+					<label class='checkbox-inline'><input type="checkbox" name="pick_up_mode[express]" value="2" {if !empty($storex_bases['pick_up_mode']) && $storex_bases['pick_up_mode'][express] == 2 } checked {/if}> 配送 </label>
+					<span class="help-block">选择提货方式后会在结算订单的时候选择提货方式，请根据店铺实际情况设置。</span>
+				</div>
+			</div>
+			{/if}
+			
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">分销开关</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" name="agent_status" value="1" {if $storex_bases['agent_status'] == 1}checked{/if}/>开启
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="agent_status" value="2" {if empty($storex_bases['agent_status']) || $storex_bases['agent_status'] == 2}checked{/if}/>关闭
+					</label>
+					<span class='help-block'>设置该店铺是否开启分销员功能</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">营销开关</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" name="market_status" value="1" {if $storex_bases['market_status'] == 1}checked{/if}/>开启
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="market_status" value="0" {if $storex_bases['market_status'] == 0}checked{/if}/>关闭
+					</label>
+					<span class='help-block'>开启后，享受店铺内活动，会员卡优惠不再享受</span>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">模板消息</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class='radio-inline'><input type="radio" name="template" value="1"  {if $template['template'] == 1} checked="true" {/if} onclick="$('.templateid').show();"> 开启</label>
+					<label class='radio-inline'><input type="radio" name="template" value="0" {if empty($template['template'])} checked="true" {/if} onclick="$('.templateid').hide();">关闭</label>
+				</div>
+			</div>
+			<div class="form-group templateid" {if empty($template['template'])}style="display: none;"{/if}>
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">订单提交成功模板ID</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="confirm_templateid" class="form-control" value="{$template['confirm_templateid']}" />
+					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”订单提交成功通知“，编号为：“OPENTM405413217”的模板（普通店铺通用）</span>
+				</div>
+			</div>
+			<div class="form-group templateid" {if empty($template['template'])}style="display: none;"{/if}>
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">酒店订单确认模板ID</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="templateid" class="form-control" value="{$template['templateid']}" />
+					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”酒店预订确认通知“，编号为：“TM00217”的模板(酒店)</span>
+				</div>
+			</div>
+			<div class="form-group templateid" {if empty($template['template'])}style="display: none;"{/if}>
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">订单确认模板ID</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="affirm_templateid" class="form-control" value="{$template['affirm_templateid']}" />
+					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”预订确认通知“，编号为：“OPENTM410228327”的模板(通用)</span>
+				</div>
+			</div>
+			<div class="form-group templateid" {if empty($template['template'])}style="display: none;"{/if}>
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">订单拒绝模板ID</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="refuse_templateid" class="form-control" value="{$template['refuse_templateid']}" />
+					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”预订拒绝通知“，编号为：“OPENTM401039125”的模板（普通店铺通用）</span>
+				</div>
+			</div>
+			<div class="form-group templateid" {if empty($template['template'])}style="display: none;"{/if}>
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">酒店已入住通知模板ID</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="check_in_templateid" class="form-control" value="{$template['check_in_templateid']}" />
+					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”入住提醒“，编号为“TM00058”的模板(酒店)</span>
+				</div>
+			</div>
+			<div class="form-group templateid" {if empty($template['template'])}style="display: none;"{/if}>
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">发货通知模板ID</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="send_templateid" class="form-control" value="{$template['send_templateid']}" />
+					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”发货通知“，编号为“OPENTM410830915”的模板(普通店铺)</span>
+				</div>
+			</div>
+			<div class="form-group templateid" {if empty($template['template'])}style="display: none;"{/if}>
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">酒店订单完成通知模板ID</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="finish_templateid" class="form-control" value="{$template['finish_templateid']}" />
+					<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”离店通知“，编号为：“OPENTM203173461”的模板(酒店)</span>
+				</div>
+			</div>
+
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" name="status" value="1" {if $storex_bases['status'] == 1}checked{/if}/>显示
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="status" value="0" {if $storex_bases['status'] == 0}checked{/if}/>隐藏
+					</label>
+					<span class='help-block'>手机前台是否显示</span>
+				</div>
+			</div>
+			<div class="form-group col-sm-12">
+				<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</form>
+	</div>
+</div>
+<script type="text/javascript">
+	$("#add_device").click(function() {
+		var index = $('.device-input').length;
+		var html =
+			'<div class="col-sm-5" style="margin: 5px 0px;">' +
+				'<div class="input-group">' +
+					'<span class="input-group-addon">' +
+						'<input type="checkbox" name="show_device[' + index + ']" value="1" aria-label="Checkbox for following text input">' +
+					'</span>' +
+					'<input type="text" name="device[' + index + ']" class="form-control device-input" value="">' +
+					'<span class="input-group-btn">' +
+						'<button class="btn btn-default device-delete" type="button">删除</button>' +
+					'</span>' +
+				'</div>' +
+			'</div>';
+
+		$(this).parent().before(html);
+	});
+	
+	$("#add_email").click(function() {
+		var index = $('.email-input').length;
+		var html =
+			'<div class="col-sm-5" style="margin: 5px 0px;">' +
+				'<div class="input-group">' +
+					'<input type="text" name="email[' + index + ']" class="form-control email-input" value="">' +
+					'<span class="input-group-btn">' +
+						'<button class="btn btn-default email-delete" type="button">删除</button>' +
+					'</span>' +
+				'</div>' +
+			'</div>';
+
+		$(this).parent().before(html);
+	});
+	
+	$("#add_tel").click(function() {
+		var index = $('.tel-input').length;
+		var html =
+			'<div class="col-sm-5" style="margin: 5px 0px;">' +
+				'<div class="input-group">' +
+					'<input type="text" name="tel[' + index + ']" class="form-control tel-input" value="">' +
+					'<span class="input-group-btn">' +
+						'<button class="btn btn-default tel-delete" type="button">删除</button>' +
+					'</span>' +
+				'</div>' +
+			'</div>';
+
+		$(this).parent().before(html);
+	});
+	
+	$("#add_openid").click(function() {
+		var index = $('.openid-input').length;
+		var html =
+			'<div class="col-sm-5" style="margin: 5px 0px;">' +
+				'<div class="input-group">' +
+					'<input type="text" name="openid[' + index + ']" class="form-control openid-input" value="">' +
+					'<span class="input-group-btn">' +
+						'<button class="btn btn-default openid-delete" type="button">删除</button>' +
+					'</span>' +
+				'</div>' +
+			'</div>';
+
+		$(this).parent().before(html);
+	});
+
+	$(document).on('click', '.device-delete', function() {
+		$(this).parent().parent().parent().remove();
+	});
+	$(document).on('click', '.email-delete', function() {
+		$(this).parent().parent().parent().remove();
+	});
+	$(document).on('click', '.tel-delete', function() {
+		$(this).parent().parent().parent().remove();
+	});
+	$(document).on('click', '.openid-delete', function() {
+		$(this).parent().parent().parent().remove();
+	});
+</script>
+{/if}
+{template 'common/footer-storex'}

@@ -1,0 +1,169 @@
+{template 'common/header'}
+<div class="main">
+	<ul class="nav nav-tabs">
+		<li {if $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('storemanage',array('op'=>'list'));}">店铺管理</a></li>
+		{if $assign}
+		<li {if $op == 'assign_store'}class="active"{/if}><a href="{php echo $this->createWebUrl('storemanage',array('op'=>'assign_store'));}">操作员分配店铺</a></li>
+		<li {if $_GPC['do'] == 'admin_logs'}class="active"{/if}><a href="{php echo $this->createWebUrl('admin_logs', array('op'=>'display'));}">操作日志</a></li>
+		{/if}
+	</ul>
+	<div class="modal fade" id="storetype-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="myModalLabel">选择你要创建的店铺类型</h4>
+				</div>
+				<div class="modal-body clearfix form-horizontal">
+					<div class="form-group marbot0">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+						<div class="col-sm-9 col-xs-12">
+							<label class="radio-inline">
+								<input type="radio" name="store_type" value="1"/> 酒店类型
+							</label>
+							<div class="help-block"></div>
+						</div>
+					</div>
+					<div class="form-group marbot0">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+						<div class="col-sm-9 col-xs-12">
+							<label class="radio-inline">
+								<input type="radio" name="store_type" value="0"/> 普通店铺类型
+							</label>
+							<div class="help-block"></div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+					<button type="button" class="btn btn-primary js-select-store" data-dismiss="modal">确定</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	{if $op == 'assign_store'}
+	<div class="clearfix">
+		<table class="table we7-table table-hover">
+			<thead class="navbar-inner">
+			<tr>
+				<th class="text-center" style="width:100px;">操作员名称</th>
+				<th class="text-center" style="width:150px">权限信息</th>
+				<th class="text-right" style="width:100px;">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{if !empty($user_permissions)}
+			{loop $user_permissions $item}
+				<tr>
+					<td class="text-center" style="width:50px;">{$item['user_info']['username']}</td>
+					<td class="text-center">
+						{loop $item['permission'] $permission}
+						<span class="label label-primary">{$permission}</span>
+						{/loop}
+					</td>
+					<td style="width:100px;">
+						<div class="link-group" >
+							<a data-toggle="modal" data-id="{$item['uid']}" data-target="#store-modal" class="btn but btn-default user_uid">分配管理店铺</a>
+						</div>
+					</td>
+				</tr>
+			{/loop}
+			{else}
+			<tr ng-if="!wechats">
+				<td colspan="3" class="text-center">暂无数据</td>
+			</tr>
+			{/if}
+			</tbody>
+		</table>
+	</div>
+	{/if}
+</div>
+<div id="store-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-default modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				<h3>
+					<ul role="tablist" class="nav nav-pills" style="font-size:14px; margin-top:-20px;">
+						<li role="presentation" class="basic">
+							<a data-toggle="tab" data-type="basic" role="tab" aria-controls="baisc" href="#basic">分配店铺</a>
+						</li>
+					</ul>
+				</h3>
+			</div>
+			<div class="modal-body modules-content">
+				<div class="tab-content">
+					{if !empty($stores)}
+					{loop $stores $store}
+						<input class='store-input' type='checkbox' name="store[]" value="{$store['id']}"/>
+						{$store['title']}
+					{/loop}
+					{else}
+					<div class="text-center">没有可以分配的店铺</div>
+					{/if}
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				<a class="btn btn-primary clerk_assign_store">提交</a>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	$(function() {
+		$('.user_uid').click(function() {
+			var id = $(this).data('id');
+			var user_store = {php echo json_encode($user_store)};
+			if (user_store[id]) {
+				var select_store = user_store[id];
+				var inputs = $('.store-input');
+				for (var i = 0; i < inputs.length; i++) {
+					inputs[i].checked = '';
+				}
+				for (var i = 0; i < inputs.length; i++) {
+					for (var j = 0; j < select_store.length; j++) {
+						if (inputs[i].getAttribute('value') == select_store[j]) {
+							inputs[i].checked = 'checked';
+						}
+					}
+				}
+			}
+			var uid = $('.assign_user_uid').val();
+			if (uid) {
+				$('.assign_user_uid').val(id);
+			} else {
+				var html = '<input type="hidden" value=' + id + ' class="assign_user_uid" >';
+				$('.modal-footer').append(html);
+			}
+		});
+		$('.clerk_assign_store').click(function() {
+			var id = $('.assign_user_uid').val();
+			var store = $('.store-input');
+			var stores = [];
+			var option = null;
+			for (var i = 0; i < store.length; i++) {
+				option = store[i];
+				if (option.checked) {
+					stores.push(option.value);
+				}
+			}
+			$.post("{php echo $this->createWebUrl('storemanage', array('op' => 'assign'))}", {stores : stores, id : id}, function(data) {
+				data = $.parseJSON(data);
+				if (data.message.errno != 0) {
+					util.message(data.message.message, '', 'error');
+				} else {
+					util.message('分配成功', location.href, 'success');
+				}
+				$('#room-modal').modal('hide');
+			});
+		});
+	});
+	function drop_confirm(msg, url){
+		if(confirm(msg)){
+			window.location = url;
+		}
+	}
+</script>
+
+{template 'common/footer'}

@@ -1,0 +1,108 @@
+{template 'common/header'}
+<div class="we7-page-title"></div>
+<ul class="we7-page-tab">
+	<li class="active"><a href="{php echo $this->createWeburl('roommanage', array('op' => 'display'))}">客房管理</a></li>
+</ul>
+
+<div class="main">
+	<div class="we7-page-search we7-padding-bottom clearfix">
+		<form action="./index.php" method="get" class="form-inline ng-pristine ng-valid" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+			<input type="hidden" name="m" value="wn_storex_plugin_hotel_service" />
+			<input type="hidden" name="do" value="roommanage" />
+			<div class="form-group">
+				<div class="form-controls">
+					<select name="storeid">
+						<option value="-1">全部</option>
+						{loop $hotel_lists $hotel}
+						<option value="{$hotel['id']}" {if $hotel['id'] == $_GPC['storeid']} selected {/if}>{$hotel['title']}</option>
+						{/loop}
+					</select>
+				</div>
+			</div>
+			<div class="form-group we7-margin-left-sm">
+				<div class="input-group col-sm-12">
+					<span class="input-group-btn"><button class="btn btn-default"><i class="fa fa-search"></i></button></span>
+				</div>
+			</div>
+			
+			<input name="tag" value="0" type="hidden">
+		</form>
+	</div>
+	<div class="clearfix" id="roommanage">
+		<table class="table table-hover we7-table">
+			<col width="230"/>
+			<col />
+			<col />
+			<col width="80px"/>
+			<thead class="navbar-inner">
+				<tr>
+					<th>酒店信息</th>
+					<th>预约信息</th>
+					<th>预约时间</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $room_items $id $item}
+				<tr>
+					<td >
+						<img src="{php echo tomedia($item['hotel_info']['thumb'])}" width="30px" height="30px">
+						{$item['hotel_info']['title']}
+					</td>
+					<td>
+						{$item['info']}
+					</td>
+					<td>{php echo date('Y-m-d H:i:s', $item['time'])}</td>
+					<td class="text-left">
+						{if $item['status'] == 1}
+						<a href="{php echo $this->createWebUrl('roommanage', array('op' => 'confirm', 'id' => $id))}" class="color-default">待确认</a>
+						{elseif $item['status'] == 2}
+						<a href="javascript:;">已确认</a>
+						{/if}
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+	</div>
+</div>
+<script type="text/javascript">
+	require({
+		paths: {
+			'vue': 'https://unpkg.com/vue@2.2.6/dist/vue',
+		}
+	})
+	var items = {php echo json_encode($item_list)} ? {php echo json_encode($item_list)} : [];
+	require(['vue'], function(Vue) {
+		var app = new Vue({
+			el: '#roommanage',
+			data: {
+				roomitem: items
+			},
+			methods: {
+				addItem() {
+					this.roomitem.push({
+						'name': '',
+						'max': 3,
+					});
+				},
+				deleteItem(index) {
+					this.roomitem.splice(index, 1);
+				},
+				telSubmit() {
+					$.post("{php echo $this->createWeburl('roommanage', array('op' => 'post'));}", {params : this.roomitem}, function(data) {
+						data = $.parseJSON(data);
+						if (data.message.errno != 0) {
+							util.message(data.message.message, '', 'error');
+						} else {
+							util.message('设置成功', data.redirect, 'success');
+						}
+					});
+				}
+			}
+		});
+	});
+</script>
+{template 'common/footer'}

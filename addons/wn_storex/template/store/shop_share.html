@@ -1,0 +1,329 @@
+{template 'common/header-storex'}
+<div class="wn-main">
+	<div class="wn-main__head">商品管理</div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_settings'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_settings', array('storeid' => $_GPC['storeid']))}">店铺设置</a>
+			</div>
+			<div class="wn-tabs__item {if $op == 'homepage'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_share', array('op' => 'homepage', 'storeid' => $_GPC['storeid']))}">首页分享设置</a>
+			</div>
+			<!-- 
+			<div class="wn-tabs__item {if $op == 'category'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_share', array('op' => 'category', 'storeid' => $_GPC['storeid']))}">分类分享设置</a>
+			</div>
+			 -->
+			{if $store['store_type'] != STORE_TYPE_HOTEL}
+			<div class="wn-tabs__item {if $op == 'goods'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_share', array('op' => 'goods', 'storeid' => $_GPC['storeid']))}">商品分享设置</a>
+			</div>
+			{/if}
+		</div>
+		<div class="wn-main__content">
+		<span class='help-block' style="color:red;font-size:20px;">表中的字段可以在自定义标题描述的时引用，分享时会替换为字段所代表的值。</span>
+			<table class="table table-hover wn-table table-bordered">
+				<thead class="navbar-inner">
+					<tr>
+						{loop $fields $field $value}
+						<th class='with-checkbox' style='width:80px;'>{$value}</th>
+						{/loop}
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						{loop $fields $field $value}
+						<td class='with-checkbox' style='width:80px;'>${$field}</td>
+						{/loop}
+					</tr>
+				</tbody>
+			</table>
+			{if $op == 'homepage'}
+			<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+				<input type="hidden" name="id" value="{$share['id']}">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享标题</label>
+					<div class="col-sm-6 col-xs-12">
+						<input type="text" name="title" id="title" value="{$share['title']}" class="form-control">
+						<span class='help-block'>例如：$province$city$town$title店铺的首页。</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享图标</label>
+					<div class="col-sm-6 col-xs-12">
+						{php echo tpl_form_field_image('thumb', $share['thumb'])}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享描述</label>
+					<div class="col-sm-6 col-xs-12">
+						<input type="text" name="content" id="content" value="{$share['content']}" class="form-control">
+						<span class='help-block'>例如：$title店铺非常好。</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">开启状态</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="status" value="1" {if $share['status'] == 1 || empty($share['status'])} checked {/if}/>启用
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="status" value="2" {if $share['status'] == 2} checked {/if}/>停用
+						</label>
+					</div>
+				</div>
+				<div class="form-group col-sm-12">
+					<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</div>
+			</form>
+			{/if}
+			{if $op == 'category'}
+			<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+				<input type="hidden" name="id" value="{$share['id']}">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享标题</label>
+					<div class="col-sm-6 col-xs-12">
+						<input type="text" name="title" id="title" value="{$share['title']}" class="form-control">
+						<span class='help-block'>例如：$title店铺$name系列。</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享图标</label>
+					<div class="col-sm-6 col-xs-12">
+						{php echo tpl_form_field_image('thumb', $share['thumb'])}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享描述</label>
+					<div class="col-sm-6 col-xs-12">
+						<input type="text" name="content" id="content" value="{$share['content']}" class="form-control">
+						<span class='help-block'>例如：该$name系列的商品货真价实。</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">开启状态</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="status" value="1" {if $share['status'] == 1 || empty($share['status'])} checked {/if}/>启用
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="status" value="2" {if $share['status'] == 2} checked {/if}/>停用
+						</label>
+					</div>
+				</div>
+				<div class="form-group col-sm-12">
+					<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</div>
+			</form>
+			{/if}
+			{if $op == 'goods'}
+			<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+				<input type="hidden" name="id" value="{$share['id']}">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享标题</label>
+					<div class="col-sm-6 col-xs-12">
+						<input type="text" name="title" id="title" value="{$share['title']}" class="form-control">
+						<span class='help-block'>例如：$title店铺的$name,原价$oprice,现价只要$cprice。</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享图标</label>
+					<div class="col-sm-6 col-xs-12">
+						{php echo tpl_form_field_image('thumb', $share['thumb'])}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享描述</label>
+					<div class="col-sm-6 col-xs-12">
+						<input type="text" name="content" id="content" value="{$share['content']}" class="form-control">
+						<span class='help-block'>例如：$name$sub_name是非常好的商品。</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">开启状态</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="status" value="1" {if $share['status'] == 1 || empty($share['status'])} checked {/if}/>启用
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="status" value="2" {if $share['status'] == 2} checked {/if}/>停用
+						</label>
+					</div>
+				</div>
+				<div class="form-group col-sm-12">
+					<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</div>
+			</form>
+			{/if}
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="tag-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel">标签选择</h4>
+			</div>
+			<div class="modal-body clearfix form-horizontal">
+				<input name="goodsid" value="" type="hidden">
+				{if !empty($tags)}
+				{loop $tags $tid $info}
+				<button type="button" class="btn btn-default tag_check" data-tid="{$tid}">{$info['title']}</button>
+				{/loop}
+				{else}
+				暂无标签
+				{/if}
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	$(function() {
+		require(['jquery.qrcode'], function(){
+			$('.js-qrcode-entry').click(function() {
+				id = $(this).data('id');
+				if (id) {
+					$.post("{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'qrcode_entry', 'storeid' => $_GPC['storeid']))}", {id : id}, function(data) {
+						data = $.parseJSON(data);
+						if (data.message.errno == 0) {
+							$('.js-qrcode-block').html('').qrcode({
+								render: 'canvas',
+								width: 300,
+								height: 300,
+								text: data.message.message,
+							});
+							$('.js-url-show').val(data.message.message);
+							$('#entry-modal').modal('show');
+						} else {
+							util.message(data.message.message);
+							$('#entry-modal').modal('hide');
+						}
+					});
+				}
+			});
+		});
+		
+		$('.tag_select_mode').click(function() {
+			var id = $(this).data('id');
+			$('input[name=goodsid]').val(id);
+			$('#tag-modal').modal('show');
+		});
+		
+		$('.tag_check').click(function() {
+			var tid = $(this).data('tid');
+			var goodsid = $('input[name=goodsid]').val();
+			$.post("{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'set_tag', 'storeid' => $storeid))}", {tid : tid, goodsid : goodsid},function(data) {
+				if (data.message.errno ==0) {
+					util.message(data.message.message, 'refresh', 'success');
+					return;
+				} else {
+					util.message(data.message.message);
+					return;
+				}
+			}, 'json');
+			$('#tag-modal').modal('hide');
+		});
+		
+		$('.check_all').click(function() {
+			var checked = $(this).get(0).checked;
+			$('input[type=checkbox]').prop("checked",checked);
+		});
+		$('input[name=recycleall]').click(function() {
+			var check = $("input[name='check']:checked");
+			if (check.length < 1) {
+				util.message('请选择要放入回收站的商品!');
+				return;
+			}
+			if (confirm("确认要回收选择的商品?")) {
+				var id = new Array();
+				check.each(function(i) {
+					id[i] = $(this).val();
+				});
+				$.post("{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'recycleall', 'storeid' => $storeid))}", {idArr : id}, function(data) {
+					if (data.message.errno ==0) {
+						util.message(data.message.message, 'refresh', 'success');
+						return;
+					} else {
+						util.message(data.message.message);
+						return;
+					}
+				},'json');
+			}
+		});
+		$('input[name=renewall]').click(function() {
+			var check = $("input[name='check']:checked");
+			if (check.length < 1) {
+				util.message('请选择要恢复的商品!');
+				return;
+			}
+			if (confirm("确认要回收选择的记录?")) {
+				var id = new Array();
+				check.each(function(i) {
+					id[i] = $(this).val();
+				});
+				$.post("{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'renewall', 'storeid' => $storeid))}", {idArr : id}, function(data) {
+					if (data.message.errno ==0) {
+						util.message(data.message.message, 'refresh', 'success');
+						return;
+					} else {
+						util.message(data.message.message);
+						return;
+					}
+				},'json');
+			}
+		});
+		$('input[name=deleteall]').click(function() {
+			var check = $("input[name='check']:checked");
+			if (check.length < 1) {
+				util.message('请选择要放入回收站的商品!');
+				return;
+			}
+			if (confirm("确认要回收选择的商品?")) {
+				var id = new Array();
+				check.each(function(i) {
+					id[i] = $(this).val();
+				});
+				$.post("{php echo $this->createWebUrl('shop_goodsmanage', array('op' => 'deleteall', 'storeid' => $storeid))}", {idArr : id}, function(data) {
+					if (data.message.errno ==0) {
+						util.message(data.message.message, 'refresh', 'success');
+						return;
+					} else {
+						util.message(data.message.message);
+						return;
+					}
+				},'json');
+			}
+		});
+		$('.edit_all').click(function() {
+			var name = $(this).attr('name');
+			var check = $('input:checked');
+			if (check.length<1) {
+				util.message('请选择要操作的商品!');
+			}
+			var id = new Array();
+			check.each(function(i) {
+				id[i] = $(this).val();
+			});
+			$.post("{php echo $this->createWebUrl('shop_goodsmanage',array('op' => 'showall', 'storeid' => $storeid))}", {idArr:id, show_name:name},function(data) {
+				if (data.message.errno ==0) {
+					util.message(data.message.message, 'refresh', 'success');
+				} else {
+					util.message(data.message.message);
+				}
+			},'json');
+		});
+	});
+	
+	function drop_confirm(msg, url) {
+		if (confirm(msg)) {
+			window.location = url;
+		}
+	}
+</script>
+{template 'common/footer-storex'}
