@@ -86,7 +86,7 @@ if ($op == 'display') {
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	pdo_query('UPDATE ' . tablename('storex_order') . " SET status = -1, newuser = 0 WHERE time < :time AND weid = '{$_W['uniacid']}' AND paystatus = 0 AND status <> 1 AND status <> 3", array(':time' => time() - 86400));
+	pdo_query("UPDATE " . tablename('storex_order') . " SET status = -1, newuser = 0 WHERE time < :time AND weid = '{$_W['uniacid']}' AND paystatus = 0 AND status <> 1 AND status <> 3", array(':time' => time() - 86400));
 	$field = '';
 	if ($table == 'storex_room') {
 		$field = ' , r.is_house ';
@@ -311,9 +311,71 @@ if ($op == 'edit') {
 				}
 			}
 		}
+		mload()->model('express');
+		$express = express_type();
+		if ($store_type == STORE_TYPE_HOTEL && !empty($good_info) && $good_info['is_house'] == 1) {
+			$btime = $item['btime'];
+			$etime = $item['etime'];
+			$start = date('m-d', $btime);
+			$end = date('m-d', $etime);
+			//日期列
+			$days = ceil(($etime - $btime) / 86400);
+			$date_array = array();
+			$date_array[0]['date'] = $start;
+			$date_array[0]['day'] = date('j', $btime);
+			$date_array[0]['time'] = $btime;
+			$date_array[0]['month'] = date('m', $btime);
+			if ($days > 1) {
+				for ($i = 1; $i < $days; $i++) {
+					$date_array[$i]['time'] = $date_array[$i - 1]['time'] + 86400;
+					$date_array[$i]['date'] = date('Y-m-d', $date_array[$i]['time']);
+					$date_array[$i]['day'] = date('j', $date_array[$i]['time']);
+					$date_array[$i]['month'] = date('m', $date_array[$i]['time']);
+				}
+			}
+			$room_date_list = pdo_getall('storex_room_price', array('roomid' => $item['roomid'], 'roomdate >=' => $item['btime'], 'roomdate <' => $item['etime'], 'status' => 1), array('id', 'roomdate', 'num', 'status'));
+			$flag = 0;
+			if (!empty($room_date_list)) {
+				$flag = 1;
+			}
+			$list = array();
+			if ($flag == 1) {
+				for ($i = 0; $i < $days; $i++) {
+					$k = $date_array[$i]['time'];
+					foreach ($room_date_list as $p_key => $p_value) {
+						//判断价格表中是否有当天的数据
+						if ($p_value['roomdate'] == $k) {
+							$list[$k]['status'] = $p_value['status'];
+							if (empty($p_value['num'])) {
+								$list[$k]['num'] = 0;
+							} elseif ($p_value['num'] == -1) {
+								$list[$k]['num'] = '不限';
+							} else {
+								$list[$k]['num'] = $p_value['num'];
+							}
+							$list[$k]['has'] = 1;
+							break;
+						}
+					}
+					//价格表中没有当天数据
+					if (empty($list[$k])) {
+						$list[$k]['num'] = '不限';
+						$list[$k]['status'] = 1;
+					}
+				}
+			} else {
+				//价格表中没有数据
+				for ($i = 0; $i < $days; $i++) {
+					$k = $date_array[$i]['time'];
+					$list[$k]['num'] = "不限";
+					$list[$k]['status'] = 1;
+				}
+			}
+		}
+		$member_info = pdo_get('storex_member', array('id' => $item['memberid']), array('from_user', 'isauto'));
+		$logs = order_status_logs($id);
 	}
-	mload()->model('express');
-	$express = express_type();
+
 	if ($_W['isajax'] && $_W['ispost']) {
 		$all_actions = array('cancel', 'refund', 'refuse', 'confirm', 'send', 'live', 'over');
 		$data = array(
@@ -521,68 +583,11 @@ if ($op == 'edit') {
 			message(error('-1', '订单操作错误！'), '', 'ajax');
 		}
 	}
-	if ($store_type == STORE_TYPE_HOTEL && !empty($good_info) && $good_info['is_house'] == 1) {
-		$btime = $item['btime'];
-		$etime = $item['etime'];
-		$start = date('m-d', $btime);
-		$end = date('m-d', $etime);
-		//日期列
-		$days = ceil(($etime - $btime) / 86400);
-		$date_array = array();
-		$date_array[0]['date'] = $start;
-		$date_array[0]['day'] = date('j', $btime);
-		$date_array[0]['time'] = $btime;
-		$date_array[0]['month'] = date('m', $btime);
-		if ($days > 1) {
-			for ($i = 1; $i < $days; $i++) {
-				$date_array[$i]['time'] = $date_array[$i - 1]['time'] + 86400;
-				$date_array[$i]['date'] = date('Y-m-d', $date_array[$i]['time']);
-				$date_array[$i]['day'] = date('j', $date_array[$i]['time']);
-				$date_array[$i]['month'] = date('m', $date_array[$i]['time']);
-			}
-		}
-		$room_date_list = pdo_getall('storex_room_price', array('roomid' => $item['roomid'], 'roomdate >=' => $item['btime'], 'roomdate <' => $item['etime'], 'status' => 1), array('id', 'roomdate', 'num', 'status'));
-		$flag = 0;
-		if (!empty($room_date_list)) {
-			$flag = 1;
-		}
-		$list = array();
-		if ($flag == 1) {
-			for ($i = 0; $i < $days; $i++) {
-				$k = $date_array[$i]['time'];
-				foreach ($room_date_list as $p_key => $p_value) {
-					//判断价格表中是否有当天的数据
-					if ($p_value['roomdate'] == $k) {
-						$list[$k]['status'] = $p_value['status'];
-						if (empty($p_value['num'])) {
-							$list[$k]['num'] = 0;
-						} elseif ($p_value['num'] == -1) {
-							$list[$k]['num'] = '不限';
-						} else {
-							$list[$k]['num'] = $p_value['num'];
-						}
-						$list[$k]['has'] = 1;
-						break;
-					}
-				}
-				//价格表中没有当天数据
-				if (empty($list[$k])) {
-					$list[$k]['num'] = '不限';
-					$list[$k]['status'] = 1;
-				}
-			}
-		} else {
-			//价格表中没有数据
-			for ($i = 0; $i < $days; $i++) {
-				$k = $date_array[$i]['time'];
-				$list[$k]['num'] = "不限";
-				$list[$k]['status'] = 1;
-			}
-		}
+	$template_suffix = '_common';
+	if ($store_type == STORE_TYPE_HOTEL) {
+		$template_suffix = '_hotel';
 	}
-	$member_info = pdo_get('storex_member', array('id' => $item['memberid']), array('from_user', 'isauto'));
-	$logs = order_status_logs($id);
-	include $this->template('store/shop_orderedit');
+	include $this->template('store/shop_orderedit' . $template_suffix);
 }
 
 if ($op == 'delete') {
@@ -605,19 +610,21 @@ if ($op == 'deleteall') {
 
 if ($op == 'edit_msg') {
 	mload()->model('express');
-	if (empty($_GPC['track_number']) || empty($_GPC['express_type'])) {
-		message('请填写快递及单号', referer(), 'error');
-	}
-	$express_name = express_type($_GPC['express_type']);
-	$data = array(
-		'msg' => trim($_GPC['msg']),
-		'track_number' => trim($_GPC['track_number']),
-		'express_name' => $express_name,
-		'express_type' => trim($_GPC['express_type']),
-	);
 	$order = pdo_get('storex_order', array('id' => intval($_GPC['id'])), array('id'));
 	if (empty($order)) {
 		message('抱歉，订单不存在或是已经删除！', referer(), 'error');
+	}
+	$data = array(
+		'msg' => trim($_GPC['msg'])
+	);
+	if ($store_type != STORE_TYPE_HOTEL) {
+		if (empty($_GPC['track_number']) || empty($_GPC['express_type'])) {
+			message('请填写快递及单号', referer(), 'error');
+		}
+		$express_name = express_type($_GPC['express_type']);
+		$data['track_number'] = trim($_GPC['track_number']);
+		$data['express_name'] = $express_name;
+		$data['express_type'] = trim($_GPC['express_type']);
 	}
 	$result = pdo_update('storex_order', $data, array('id' => intval($_GPC['id'])));
 	if (!empty($result)) {

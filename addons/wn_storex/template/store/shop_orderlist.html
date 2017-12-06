@@ -121,7 +121,7 @@
 					<a href="{php echo $this->createWebUrl('shop_order', array('op' => 'edit', 'id' => $row['id'], 'roomid' => $row['roomid'], 'storeid' => $storeid)); }" class="color-default">查看详情</a>
 				</td>
 			</tr>
-			<tr class="wn-table--border  text-center">
+			<tr class="wn-table--border text-center">
 				<td class="wn-table--border text-left">
 					<img src="{$row['thumb']}" alt="商品图片" style="width: 90px; height: 90px">
 					{if !empty($row['roomtitle'])}
@@ -192,7 +192,7 @@
 				util.message('请选择要删除的记录!');
 				return;
 			}
-			if( confirm("确认要删除选择的记录?")){
+			if(confirm("确认要删除选择的记录?")){
 				var id = new Array();
 				check.each(function(i) {
 					id[i] = $(this).val();
