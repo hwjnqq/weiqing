@@ -16,7 +16,7 @@ class We7_couponModuleReceiver extends WeModuleReceiver {
 					$pcount = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('coupon_record') . " WHERE `openid` = :openid AND `couponid` = :couponid", array(':couponid' => $coupon_info['id'], ':openid' => trim($this->message['fromusername'])));
 					if ($pcount < $coupon_info['get_limit'] && $coupon_info['quantity'] > 0) {
 						$insert_data = array(
-							'uniacid' => $fans_info['uniacid'],
+							'uniacid' => $coupon_info['uniacid'],
 							'card_id' => $this->message['cardid'],
 							'openid' => $this->message['fromusername'],
 							'code' => $this->message['usercardcode'],
