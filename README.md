@@ -1,4 +1,4 @@
-![微擎](http://bbs.we7.cc/static/image/common/logo.png)
+![微擎](http://cdn.w7.cc/web/resource/images/wechat/logo/logo.png)
 
 ### 微擎开源微信公众号管理系统
 

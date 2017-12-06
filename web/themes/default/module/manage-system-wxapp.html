@@ -52,7 +52,9 @@
 				</td>
 				<td class="text-left">
 					<p>{{ module.title }}</p>
+					{if permission_check_account_user('see_module_manage_system_newversion')}
 					<span>版本：{{ module.version }} </span><span class="color-red" ng-if="module.upgrade && isFounder == 1">发现新版本</span>
+					{/if}
 				</td>
 				<!--<td >{{ module.use_account }}</td>-->
 				<!--<td >{{ module.enabled_use_account }}</td>-->
@@ -276,8 +278,8 @@
 			</td>
 			<td class="text-left">
 				{if permission_check_account_user('see_module_manage_system_install')}
-				<a href="{php echo url('module/manage-system/upgrade', array('account_type' => 4))}&module_name={{ module.name }}" ng-if="module.upgrade_support == true" class="btn btn-primary">安装应用模块</a>
-				<a href="{php echo url('module/manage-system/install', array('account_type' => 4))}&module_name={{ module.name }}" ng-if="module.upgrade_support != true" class="btn btn-primary">安装应用模块</a>
+				<a href="{php echo url('module/manage-system/upgrade', array('account_type' => 4))}&module_name={{ module.name }}" ng-if="module.upgrade_support == true" class="btn btn-primary">{if $_GPC['status'] == 'recycle'}启用{else}安装应用模块{/if}</a>
+				<a href="{php echo url('module/manage-system/install', array('account_type' => 4))}&module_name={{ module.name }}" ng-if="module.upgrade_support != true" class="btn btn-primary">{if $_GPC['status'] == 'recycle'}启用{else}安装应用模块{/if}</a>
 				{if $_GPC['status'] == 'recycle'}
 				<a href="{php echo url('module/manage-system/recycle_uninstall', array('account_type' => 4))}&module_name={{ module.name }}" ng-if="module.upgrade_support != true" class="btn btn-primary">卸载模块</a>
 				{/if}

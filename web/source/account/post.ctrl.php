@@ -28,7 +28,11 @@ $acid = $defaultaccount['acid']; //强制使用默认的acid
 
 $state = permission_account_user_role($_W['uid'], $uniacid);
 $dos = array('base', 'sms', 'modules_tpl');
-$role_permission = in_array($state, array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER));
+
+
+
+	$role_permission = in_array($state, array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER));
+
 if ($role_permission) {
 	$do = in_array($do, $dos) ? $do : 'base';
 } elseif ($state == ACCOUNT_MANAGE_NAME_MANAGER) {
@@ -173,7 +177,7 @@ if($do == 'base') {
 	$account['highest_visit'] = empty($statistics_setting['statistics']['founder']) ? 0 : $statistics_setting['statistics']['founder'];
 	$uniaccount = array();
 	$uniaccount = pdo_get('uni_account', array('uniacid' => $uniacid));
-
+	
 	template('account/manage-base' . ACCOUNT_TYPE_TEMPLATE);
 }
 
@@ -354,9 +358,12 @@ if($do == 'modules_tpl') {
 	$extend['modules'] = $current_module_names = iunserializer($extend['modules']);
 	$extend['templates'] = iunserializer($extend['templates']);
 	$canmodify = false;
-	if ($_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders) || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER && $owner['uid'] != $_W['uid']) {
-		$canmodify = true;
-	}
+	
+	
+		if ($_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders)) {
+			$canmodify = true;
+		}
+	
 	if (!empty($extend['modules'])) {
 		foreach ($extend['modules'] as $module_key => $module_val) {
 			$extend['modules'][$module_key] = module_fetch($module_val);
@@ -365,7 +372,7 @@ if($do == 'modules_tpl') {
 	if (!empty($extend['templates'])) {
 		$extend['templates'] = pdo_getall('site_templates', array('id' => $extend['templates']), array('id', 'name', 'title'));
 	}
-
+	
 
 	template('account/manage-modules-tpl' . ACCOUNT_TYPE_TEMPLATE);
 }

@@ -7,6 +7,7 @@ defined('IN_IA') or exit('Access Denied');
 define('IN_GW', true);
 
 load()->model('user');
+load()->model('message');
 load()->classs('oauth2/oauth2client');
 load()->model('setting');
 
@@ -14,12 +15,13 @@ if (checksubmit() || $_W['isajax']) {
 	_login($_GPC['referer']);
 }
 
-$support_login_types = OAuth2Client::supportLoginType();
+$support_login_types = OAuth2Client::supportThirdLoginType();
 if (in_array($_GPC['login_type'], $support_login_types)) {
 	_login($_GPC['referer']);
 }
 
 $setting = $_W['setting'];
+$_GPC['login_type'] = !empty($_GPC['login_type']) ? $_GPC['login_type'] : (!empty($_W['setting']['copyright']['login_type']) ? 'mobile': 'system');
 $login_urls = user_support_urls();
 template('user/login');
 
@@ -30,33 +32,52 @@ function _login($forward = '') {
 	if (!empty($status)) {
 		user_expire_notice();
 	}
-	user_account_expire_message_record();
 	if (empty($_GPC['login_type'])) {
 		$_GPC['login_type'] = 'system';
 	}
 
-	$member = OAuth2Client::create($_GPC['login_type'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appid'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appsecret'])->we7user();
+	if (empty($_GPC['handle_type'])) {
+		$_GPC['handle_type'] = 'login';
+	}
 
+
+	if ($_GPC['handle_type'] == 'login') {
+		$member = OAuth2Client::create($_GPC['login_type'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appid'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appsecret'])->login();
+	} else {
+		$member = OAuth2Client::create($_GPC['login_type'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appid'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appsecret'])->bind();
+	}
+
+	if (!empty($_W['user']) && $_GPC['handle_type'] == 'bind') {
+		if (is_error($member)) {
+			itoast($member['message'], url('user/profile/bind'), '');
+		} else {
+			itoast('绑定成功', url('user/profile/bind'), '');
+		}
+	}
+	
 	if (is_error($member)) {
 		itoast($member['message'], url('user/login'), '');
 	}
-
 	$record = user_single($member);
 	if (!empty($record)) {
 		if ($record['status'] == USER_STATUS_CHECK || $record['status'] == USER_STATUS_BAN) {
-			itoast('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决！', url('user/login'), '');
+			itoast('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决?', url('user/login'), '');
 		}
 		$_W['uid'] = $record['uid'];
 		$_W['isfounder'] = user_is_founder($record['uid']);
 		$_W['user'] = $record;
 
-		if (empty($_W['isfounder']) || user_is_vice_founder()) {
-			if (!empty($record['endtime']) && $record['endtime'] < TIMESTAMP) {
-				itoast('您的账号有效期限已过，请联系网站管理员解决！', '', '');
+		
+
+		
+			if (empty($_W['isfounder'])) {
+				if (!empty($record['endtime']) && $record['endtime'] < TIMESTAMP) {
+					itoast('您的账号有效期限已过，请联系网站管理员解决！', '', '');
+				}
 			}
-		}
+		
 		if (!empty($_W['siteclose']) && empty($_W['isfounder'])) {
-			itoast('站点已关闭，关闭原因：' . $_W['setting']['copyright']['reason'], '', '');
+			itoast('站点已关闭，关闭原因:'. $_W['setting']['copyright']['reason'], '', '');
 		}
 		$cookie = array();
 		$cookie['uid'] = $record['uid'];
@@ -75,7 +96,7 @@ function _login($forward = '') {
 			$forward = user_login_forward($_GPC['forward']);
 		}
 		// 只能跳到本域名下
-		$forward = check_url_not_outside_link($forward);
+		$forward = safe_url_not_outside($forward);
 
 		if ($record['uid'] != $_GPC['__uid']) {
 			isetcookie('__uniacid', '', -7 * 86400);
@@ -83,13 +104,15 @@ function _login($forward = '') {
 		}
 		$failed = pdo_get('users_failed_login', array('username' => trim($_GPC['username']), 'ip' => CLIENT_IP));
 		pdo_delete('users_failed_login', array('id' => $failed['id']));
-		itoast("欢迎回来，{$record['username']}。", $forward, 'success');
+		message_account_expire();
+		message_notice_worker();
+		itoast("欢迎回来，{$record['username']}", $forward, 'success');
 	} else {
 		if (empty($failed)) {
 			pdo_insert('users_failed_login', array('ip' => CLIENT_IP, 'username' => trim($_GPC['username']), 'count' => '1', 'lastupdate' => TIMESTAMP));
 		} else {
 			pdo_update('users_failed_login', array('count' => $failed['count'] + 1, 'lastupdate' => TIMESTAMP), array('id' => $failed['id']));
 		}
-		itoast('登录失败，请检查您输入的用户名和密码！', '', '');
+		itoast('登录失败，请检查您输入的账号和密码', '', '');
 	}
 }

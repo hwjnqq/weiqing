@@ -11,6 +11,7 @@ defined('IN_IA') or exit('Access Denied');
  * @return int 成功返回新增的用户编号，失败返回 0
  */
 function user_register($user) {
+	load()->model('message');
 	if (empty($user) || !is_array($user)) {
 		return 0;
 	}
@@ -33,6 +34,12 @@ function user_register($user) {
 	if (!empty($result)) {
 		$user['uid'] = pdo_insertid();
 	}
+	$content = $user['username'] . date("Y-m-d H:i:s") . '注册成功';
+	$message = array(
+		'status' => $user['status']
+	);
+	message_record($content, $user['uid'], $user['uid'], MESSAGE_REGISTER_TYPE, $message);
+
 	return intval($user['uid']);
 }
 
@@ -147,6 +154,7 @@ function user_delete($uid, $is_recycle = false) {
 	}
 	pdo_delete('uni_account_users', array('uid' => $uid));
 	pdo_delete('users_profile', array('uid' => $uid));
+	pdo_delete('users_bind', array('uid' => $uid));
 	return true;
 }
 
@@ -435,15 +443,9 @@ function user_account_detail_info($uid) {
  */
 function user_modules($uid) {
 	global $_W;
+
 	load()->model('module');
-	load()->object('cloudapi');
-	$cloud_api = new CloudApi();
-	$modules = $cloud_api->post('cache', 'get', array('key' => cache_system_key('user_modules:' . $uid)));
-	if (!is_error($modules)) {
-		$modules = $modules['data'];
-	} else {
-		return $modules;
-	}
+	$modules =cache_load(cache_system_key('user_modules:' . $uid));
 	if (empty($modules)) {
 		$user_info = user_single(array ('uid' => $uid));
 
@@ -486,8 +488,8 @@ function user_modules($uid) {
 						}
 					}
 				}
-				$module_list = pdo_fetchall("SELECT name FROM ".tablename('modules')." WHERE
-										name IN ('" . implode("','", $package_group_module) . "') OR issystem = '1' ORDER BY mid DESC", array(), 'name');
+				$module_table = table('module');
+				$module_list = $module_table->moduleLists($package_group_module);
 			}
 		}
 		$module_list = array_keys($module_list);
@@ -515,7 +517,7 @@ function user_modules($uid) {
 				}
 			}
 		}
-		$cloud_api->post('cache', 'set', array('key' => cache_system_key('user_modules:' . $uid), 'value' => $modules));
+		cache_write(cache_system_key('user_modules:' . $uid), $modules);
 	}
 	$module_list = array();
 	if (!empty($modules)) {
@@ -557,23 +559,53 @@ function user_uniacid_modules($uid) {
  * return string
  */
 function user_login_forward($forward = '') {
-	global $_W;
+	global $_W, $_GPC;
 	$login_forward = trim($forward);
 
+	$login_location = array(
+		'account' => url('home/welcome'),
+		'wxapp' => url('wxapp/version/home'),
+		'module' => url('module/display'),
+	);
 	if (!empty($forward)) {
 		return $login_forward;
 	}
+	if (user_is_founder($_W['uid']) && !user_is_vice_founder($_W['uid'])) {
+		return url('home/welcome/system');
+	}
+	$login_forward = url('account/display');
+	$visit_key = '__lastvisit_' . $_W['uid'];
+	if (!empty($_GPC[$visit_key])) {
+		$last_visit = explode(',', $_GPC[$visit_key]);
+		$last_visit_uniacid = intval($last_visit[0]);
+		$last_visit_url = url_params($last_visit[1]);
+		if ($last_visit_url['c'] == 'site' && in_array($last_visit_url['a'], array('entry', 'nav')) ||
+			$last_visit_url['c'] == 'platform' && in_array($last_visit_url['a'], array('cover', 'reply')) && !in_array($last_visit_url['m'], system_modules()) ||
+			$last_visit_url['c'] == 'module' && in_array($last_visit_url['a'], array('manage-account', 'permission', 'display'))) {
+			return $login_location['module'];
+		} else {
+			if ($last_visit_url['c'] == 'wxapp') {
+				return $last_visit_url['a'] == 'display' ? url('wxapp/display') : $login_location['wxapp'];
+			}
+			$account_info = uni_fetch($last_visit_uniacid);
+			if (empty($account_info) || $last_visit_url['c'] == 'account' && $last_visit_url['a'] == 'display') {
+				return $login_forward;
+			}
+			if (in_array($account_info['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
+				return $login_location['account'];
+			}
+			if ($account_info['type'] == ACCOUNT_TYPE_APP_NORMAL) {
+				return $login_location['wxapp'];
+			}
+		}
+	}
 	if (user_is_vice_founder()) {
 		return url('account/manage', array('account_type' => 1));
-	}
-	if (!empty($_W['isfounder'])) {
-		return url('home/welcome/system');
 	}
 	if ($_W['user']['type'] == ACCOUNT_OPERATE_CLERK) {
 		return url('module/display');
 	}
 
-	$login_forward = url('account/display');
 	if (!empty($_W['uniacid']) && !empty($_W['account'])) {
 		$permission = permission_account_user_role($_W['uid'], $_W['uniacid']);
 		if (empty($permission)) {
@@ -588,6 +620,7 @@ function user_login_forward($forward = '') {
 
 	return $login_forward;
 }
+
 /**
  * 获取公众号所有应用或者小程序所有应用
  * @param string $type 模块类型(account/wxapp)
@@ -714,11 +747,13 @@ function user_group_format($lists) {
 		if (empty($package)) {
 			$lists[$key]['module_nums'] = '系统默认';
 			$lists[$key]['wxapp_nums'] = '系统默认';
+			$lists[$key]['webapp_nums'] = '系统默认';
 			continue;
 		}
 		if (is_array($package) && in_array(-1, $package)) {
 			$lists[$key]['module_nums'] = -1;
 			$lists[$key]['wxapp_nums'] = -1;
+			$lists[$key]['webapp_nums'] = -1;
 			continue;
 		}
 		$names = array();
@@ -727,6 +762,7 @@ function user_group_format($lists) {
 				$names[] = $modules['name'];
 				$lists[$key]['module_nums'] = count($modules['modules']);
 				$lists[$key]['wxapp_nums'] = count($modules['wxapp']);
+				$lists[$key]['webapp_nums'] = count($modules['webapp']);
 			}
 		}
 		$lists[$key]['packages'] = implode(',', $names);
@@ -764,6 +800,7 @@ function user_list_format($users) {
 		}
 		$user['maxaccount'] = $user['founder_groupid'] == 1 ? '不限' : (empty($group) ? 0 : $group['maxaccount']);
 		$user['maxwxapp'] = $user['founder_groupid'] == 1 ? '不限' : (empty($group) ? 0 : $group['maxwxapp']);
+		$user['maxwebapp'] = $user['founder_groupid'] == 1 ? '不限' : (empty($group) ? 0 : $group['maxwebapp']);
 		$user['groupname'] = $group['name'];
 		unset($user);
 	}
@@ -900,27 +937,10 @@ function user_support_urls() {
 			$login_urls[$type] = OAuth2Client::create($type, $_W['setting']['thirdlogin'][$type]['appid'], $_W['setting']['thirdlogin'][$type]['appsecret'])->showLoginUrl();
 		}
 	}
-	return $login_urls;
-}
-
-/**
- * 第三方登录后用户信息处理
- * @param $user_info
- * @return bool|int|mixed
- */
-function user_third_info_register($user_info) {
-	global $_W;
-	$user_id = pdo_getcolumn('users', array('openid' => $user_info['openid']), 'uid');
-	if (empty($user_id)) {
-		$status = !empty($_W['setting']['register']['verify']) ? 1 : 2;
-		pdo_insert('users', array('type' => USER_TYPE_COMMON, 'joindate' => TIMESTAMP, 'status' => $status, 'starttime' => TIMESTAMP, 'register_type' => $user_info['register_type'], 'openid' => $user_info['openid']));
-		$user_id = pdo_insertid();
-		pdo_update('users', array('username' => 'user_' . $user_id), array('uid' => $user_id));
-		pdo_insert('users_profile', array('uid' => $user_id, 'createtime' => TIMESTAMP, 'nickname' => $user_info['nickname'], 'avatar' => $user_info['avatar'], 'gender' => $user_info['gender'], 'resideprovince' => $user_info['province'], 'residecity' => $user_info['city'], 'birthyear' => $user_info['year']));
-	} else {
-		pdo_update('users_profile', array('nickname' => $user_info['nickname'], 'avatar' => $user_info['avatar'], 'gender' => $user_info['gender'], 'resideprovince' => $user_info['province'], 'residecity' => $user_info['city'], 'birthyear' => $user_info['year']), array('uid' => $user_id));
+	if (empty($login_urls)) {
+		$login_urls['system'] = true;
 	}
-	return $user_id;
+	return $login_urls;
 }
 
 /**
@@ -956,6 +976,10 @@ function user_borrow_oauth_account_list() {
  */
 function user_account_expire_message_record() {
 	load()->model('account');
+	load()->model('message');
+	if (!pdo_tableexists('message_notice_log')) {
+		return true;
+	}
 	$account_table = table('account');
 	$expire_account_list = $account_table->searchAccountList();
 	if (empty($expire_account_list)) {
@@ -967,12 +991,17 @@ function user_account_expire_message_record() {
 			continue;
 		}
 		if ($account_detail['endtime'] > 0 && $account_detail['endtime'] < TIMESTAMP) {
-			$exist_record = pdo_get('message_notice_log', array('sign' => $account_detail['uniacid'], 'uid' => $account_detail['uid'], 'type' => MESSAGE_ACCOUNT_EXPIRE_TYPE, 'end_time' => $account_detail['endtime']));
+			$type = $account_detail['type'] == ACCOUNT_TYPE_APP_NORMAL ? MESSAGE_WECHAT_EXPIRE_TYPE : MESSAGE_ACCOUNT_EXPIRE_TYPE;
+			$exist_record = pdo_get('message_notice_log', array('sign' => $account_detail['uniacid'], 'uid' => $account_detail['uid'], 'type' => $type, 'end_time' => $account_detail['endtime']));
 			if (empty($exist_record)) {
 				$account_name = $account_detail['type'] == ACCOUNT_TYPE_APP_NORMAL ? '-小程序过期' : '-公众号过期';
-				pdo_insert('message_notice_log', array('message' => $account_detail['name'] . $account_name, 'sign' => $account_detail['uniacid'], 'uid' => $account_detail['uid'], 'type' => MESSAGE_ACCOUNT_EXPIRE_TYPE, 'create_time' => TIMESTAMP, 'end_time' => $account_detail['endtime'], 'account_type' => $account_detail['type']));
+				$message = array(
+					'end_time' => $account_detail['endtime']
+				);
+				message_notice_record($account_detail['name'] . $account_name, $account_detail['uid'], $account_detail['uniacid'], $type, $message);
 			}
 		}
 	}
 	return true;
 }
+

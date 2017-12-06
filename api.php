@@ -8,6 +8,7 @@
 define('IN_API', true);
 require_once './framework/bootstrap.inc.php';
 load()->model('reply');
+load()->model('attachment');
 load()->app('common');
 load()->classs('wesession');
 $hash = $_GPC['hash'];
@@ -47,7 +48,7 @@ $_W['uniaccount'] = uni_fetch($_W['uniacid']);
 $_W['account']['groupid'] = $_W['uniaccount']['groupid'];
 $_W['account']['qrcode'] = $_W['attachurl'].'qrcode_'.$_W['acid'].'.jpg?time='.$_W['timestamp'];
 $_W['account']['avatar'] = $_W['attachurl'].'headimg_'.$_W['acid'].'.jpg?time='.$_W['timestamp'];
-set_attach_url();
+$_W['attachurl'] = attachment_set_attach_url();
 
 $engine = new WeEngine();
 if (!empty($_W['setting']['copyright']['status'])) {

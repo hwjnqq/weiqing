@@ -399,6 +399,10 @@ function material_local_upload_by_url($url, $type='images') {
 		}
 		$filepath = ATTACHMENT_ROOT . $url;
 	}
+	$filesize = filesize($filepath);
+	if ($filesize > 1024 * 1024 && $type == 'videos') {
+		return error(-1, '要转换的微信素材视频不能超过10M');
+	}
 	return $account_api->uploadMediaFixed($filepath, $type);
 }
 
@@ -485,7 +489,7 @@ function material_delete($material_id, $location){
 	}
 	$material_id = intval($material_id);
 	$table = $location == 'wechat' ? 'wechat_attachment' : 'core_attachment';
-	$material = pdo_get($table, array('uniacid' => $_W['uniacid'], 'id' => $material_id));
+	$material = pdo_get($table, array('id' => $material_id));
 	if (empty($material)){
 		return error('-2', '素材文件不存在或已删除');
 	}
@@ -502,7 +506,7 @@ function material_delete($material_id, $location){
 	if (is_error($result)) {
 		return error('-3', '删除文件操作发生错误');
 	}
-	pdo_delete($table, array('uniacid' => $_W['uniacid'], 'id' => $material_id));
+	pdo_delete($table, array('id' => $material_id));
 	return $result;
 }
 

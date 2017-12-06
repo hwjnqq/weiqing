@@ -13,13 +13,20 @@ load()->model('module');
 load()->model('user');
 load()->model('account');
 load()->classs('account');
+load()->object('cloudapi');
 load()->model('utility');
-$dos = array('subscribe', 'filter', 'check_subscribe', 'check_upgrade', 'get_upgrade_info', 'upgrade', 'install', 'installed', 'not_installed', 'uninstall', 'save_module_info', 'module_detail', 'change_receive_ban', 'install_success', 'recycle_uninstall');
+load()->func('db');
+$dos = array('subscribe', 'filter', 'check_subscribe', 'check_upgrade', 'get_upgrade_info', 'upgrade', 'install', 'installed', 'not_installed', 'uninstall', 'save_module_info', 'module_detail', 'change_receive_ban', 'install_success', 'recycle_uninstall', 'set_site_welcome_module');
 $do = in_array($do, $dos) ? $do : 'installed';
 
-if (!in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))){
-	itoast('无权限操作！', referer(), 'error');
-}
+
+	if (!in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER, ACCOUNT_MANAGE_NAME_FOUNDER))){
+		itoast('无权限操作！', referer(), 'error');
+	}
+
+
+
+
 
 if ($do == 'subscribe') {
 	$uninstallModules = module_get_all_unistalled($status);
@@ -253,6 +260,17 @@ if ($do == 'upgrade') {
 		} else {
 			pdo_run($manifest['upgrade']);
 		}
+	} else {
+		if ($packet['schemes']) {
+			foreach ($packet['schemes'] as $remote) {
+				$remote['tablename'] = trim(tablename($remote['tablename']), '`');
+				$local = db_table_schema(pdo(), $remote['tablename']);
+				$sqls = db_table_fix_sql($local, $remote);
+				foreach ($sqls as $sql) {
+					pdo_run($sql);
+				}
+			}
+		}
 	}
 	if (ONLINE_MODULE) {
 		if (strexists($manifest['uninstall'], '.php') && file_exists($module_path . $manifest['uninstall'])) {
@@ -283,10 +301,13 @@ if ($do == 'upgrade') {
 }
 
 if ($do =='install') {
-	$points = ext_module_bindings();
+	$cloudapi = new CloudApi();
+	$recycle_module = $cloudapi->post('cache', 'get', array('key' => cache_system_key('recycle_module:')));
+	$recycle_module = !empty($recycle_module['data']) ? $recycle_module['data'] : array();
 	$module_name = trim($_GPC['module_name']);
-	$is_recycle_module = pdo_get('modules_recycle', array('modulename' => $module_name));
-	if (!empty($is_recycle_module)) {
+	if (!empty($recycle_module[$module_name])) {
+		unset($recycle_module[$module_name]);
+		$cloudapi->post('cache', 'set', array('key' => cache_system_key('recycle_module:'), 'value' => $recycle_module));
 		pdo_delete('modules_recycle', array('modulename' => $module_name));
 		cache_build_module_subscribe_type();
 		cache_build_account_modules();
@@ -294,7 +315,7 @@ if ($do =='install') {
 		cache_build_module_info($module_name);
 		itoast('已恢复', url('module/manage-system/installed', array('account_type' => ACCOUNT_TYPE)), '', 'success');
 	}
-
+	$points = ext_module_bindings();
 	if (empty($_W['isfounder'])) {
 		itoast('您没有安装模块的权限', '', 'error');
 	}
@@ -394,7 +415,18 @@ if ($do =='install') {
 			}
 		}
 	} else {
-		pdo_run($manifest['install']);
+		if (!empty($manifest['install'])) {
+			pdo_run($manifest['install']);
+		} elseif ($packet['schemes']){
+			foreach ($packet['schemes'] as $remote) {
+				$remote['tablename'] = trim(tablename($remote['tablename']), '`');
+				$local = db_table_schema(pdo(), $remote['tablename']);
+				$sqls = db_table_fix_sql($local, $remote);
+				foreach ($sqls as $sql) {
+					pdo_run($sql);
+				}
+			}
+		}
 	}
 	if (pdo_insert('modules', $module)) {
 		if (ONLINE_MODULE) {
@@ -430,7 +462,6 @@ if ($do =='install') {
 		cache_build_account_modules();
 		cache_build_uninstalled_module();
 		cache_build_module_info($module_name);
-
 		header('Location: ' . url('module/manage-system/install_success', array('account_type' => ACCOUNT_TYPE)));
 		exit;
 	} else {
@@ -616,13 +647,19 @@ if ($do == 'uninstall') {
 		}
 	}
 
+	$cloudapi = new CloudApi();
+	$recycle_module = $cloudapi->post('cache', 'get', array('key' => cache_system_key('recycle_module:')));
+	$recycle_module = !empty($recycle_module['data']) ? $recycle_module['data'] : array();
 	if (!empty($module['plugin_list']) && is_array($module['plugin_list'])) {
 		foreach ($module['plugin_list'] as $plugin) {
 			pdo_insert('modules_recycle', array('modulename' => $plugin));
 			cache_build_module_info($plugin);
+			$recycle_module[$plugin] = $plugin;
 		}
 	}
 	pdo_insert('modules_recycle', array('modulename' => $name));
+	$recycle_module[$name] = array('modulename' => $name);
+	$cloudapi->post('cache', 'set', array('key' => cache_system_key('recycle_module:'), 'value' => $recycle_module));
 
 	cache_build_module_subscribe_type();
 	cache_build_uninstalled_module();
@@ -665,7 +702,7 @@ if ($do == 'installed') {
 	$module_list = $all_modules = user_modules($_W['uid']);
 	if (!empty($module_list)) {
 		foreach ($module_list as $key => &$module) {
-			if (!empty($module['issystem']) || (ACCOUNT_TYPE == ACCOUNT_TYPE_APP_NORMAL && $module['wxapp_support'] != 2) || (ACCOUNT_TYPE == ACCOUNT_TYPE_OFFCIAL_NORMAL && $module['app_support'] != 2)) {
+			if (!empty($module['issystem']) || (ACCOUNT_TYPE == ACCOUNT_TYPE_APP_NORMAL && $module['wxapp_support'] != 2) || (ACCOUNT_TYPE == ACCOUNT_TYPE_OFFCIAL_NORMAL && $module['app_support'] != 2) || (!empty($_GPC['system_welcome']) && $module['welcome_support'] != 2)) {
 				unset($module_list[$key]);
 			}
 			if (!empty($letter) && strlen($letter) == 1) {

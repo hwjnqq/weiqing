@@ -5,10 +5,10 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-if (!in_array($action, array('display', 'post'))) {
+if (!in_array($action, array('display', 'post', 'manage'))) {
 	checkwxapp();
 }
 
-if (($action == 'version' && $do == 'home') || in_array($action, array('payment', 'module-link-uniacid', 'entrance-link', 'front-download'))) {
+if (($action == 'version' && $do == 'home') || in_array($action, array('payment', 'refund', 'module-link-uniacid', 'entrance-link', 'front-download'))) {
 	define('FRAME', 'wxapp');
 }

@@ -52,13 +52,16 @@ if ($do == 'rank' && $_W['isajax'] && $_W['ispost']) {
 }
 
 if ($do == 'display') {
-	
+
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 15;
-	
+
 	$account_table = table('account');
 	$account_table->searchWithType(array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH));
-	
+	$account_count = $account_table->searchAccountList();
+	$total = count($account_count);
+	$account_table->searchWithType(array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH));
+
 	$keyword = trim($_GPC['keyword']);
 	if (!empty($keyword)) {
 		$account_table->searchWithKeyword($keyword);
@@ -72,12 +75,12 @@ if ($do == 'display') {
 	$account_table->accountRankOrder();
 	$account_table->searchWithPage($pindex, $psize);
 	$account_list = $account_table->searchAccountList();
-	
+
 	foreach($account_list as &$account) {
 		$account = uni_fetch($account['uniacid']);
 		$account['role'] = permission_account_user_role($_W['uid'], $account['uniacid']);
 	}
-	
+
 	if ($_W['ispost']) {
 		iajax(0, $account_list);
 	}

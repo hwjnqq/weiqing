@@ -104,7 +104,7 @@ if ($do == 'display') {
 			'template' => addslashes($_GPC['template']),
 			'title' => addslashes($_GPC['title']),
 			'description' => addslashes($_GPC['description']),
-			'content' => htmlspecialchars_decode(remove_xss($_GPC['content']), ENT_QUOTES),
+			'content' => htmlspecialchars_decode(safe_remove_xss($_GPC['content']), ENT_QUOTES),
 			'incontent' => intval($_GPC['incontent']),
 			'source' => addslashes($_GPC['source']),
 			'author' => addslashes($_GPC['author']),

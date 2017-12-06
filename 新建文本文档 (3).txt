@@ -1,0 +1,4 @@
+C:\ProgramData\Oracle\Java\javapath;%SystemRoot%\system32;%SystemRoot%;%SystemRoot%\System32\Wbem;%SYSTEMROOT%\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\Bitvise SSH Client;D:\Library\Git\bin;D:\phpStudy\php\php7.1;D:\Library\Jdk\bin;D:\Library\Jdk\lib;C:\ProgramData\ComposerSetup\bin;C:\Program Files\nodejs\;C:\Program Files (x86)\Git\cmd;C:\Program Files (x86)\GitExtensions\;C:\Program Files\TortoiseHg\
+
+
+C:\ProgramData\Oracle\Java\javapath;%SystemRoot%\system32;%SystemRoot%;%SystemRoot%\System32\Wbem;%SYSTEMROOT%\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\Bitvise SSH Client;D:\Library\Git\bin;D:\Library\Jdk\bin;D:\Library\Jdk\lib;C:\ProgramData\ComposerSetup\bin;C:\Program Files\nodejs\;C:\Program Files (x86)\Git\cmd;C:\Program Files (x86)\GitExtensions\;C:\Program Files\TortoiseHg\

@@ -202,7 +202,6 @@ class UploadedFile extends SplFileInfo {
 
 	public function moveTo($targetPath) {
 		$this->validateActive();
-
 		if (false === $this->isStringNotEmpty($targetPath)) {
 			throw new InvalidArgumentException(
 				'Invalid path provided for move operation; must be a non-empty string'
@@ -268,6 +267,36 @@ class UploadedFile extends SplFileInfo {
 	 */
 	public function isImage() {
 		return $this->isOk() && in_array($this->clientMediaType, array());
+	}
+
+	/**
+	 *
+	 * @since version
+	 */
+	public function clientExtension() {
+		return pathinfo($this->getClientFilename(), PATHINFO_EXTENSION);
+	}
+
+	/**
+	 *  是否允许指定的后缀
+	 * @param $ext
+	 *
+	 * @return bool
+	 *
+	 * @since version
+	 */
+	public function allowExt($ext) {
+		return $this->clientExtension() === $ext;
+	}
+
+	/**
+	 * 获取内容
+	 * @return bool|string
+	 *
+	 * @since version
+	 */
+	public function getContent() {
+		return file_get_contents($this->file);
 	}
 
 	public static function createFromGlobal() {

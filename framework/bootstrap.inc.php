@@ -38,6 +38,7 @@ load()->model('cache');
 load()->model('account');
 load()->model('setting');
 load()->library('agent');
+load()->classs('db');
 
 
 
@@ -102,7 +103,7 @@ $urls = parse_url($_W['siteroot']);
 $urls['path'] = str_replace(array('/web', '/app', '/payment/wechat', '/payment/alipay', '/payment/jueqiymf', '/api'), '', $urls['path']);
 $_W['siteroot'] = $urls['scheme'].'://'.$urls['host'].((!empty($urls['port']) && $urls['port']!='80') ? ':'.$urls['port'] : '').$urls['path'];
 $_W['siteurl'] = $urls['scheme'].'://'.$urls['host'].((!empty($urls['port']) && $urls['port']!='80') ? ':'.$urls['port'] : '') . $_W['script_name'] . (empty($_SERVER['QUERY_STRING'])?'':'?') . $_SERVER['QUERY_STRING'];
-set_attach_url();
+
 if(MAGIC_QUOTES_GPC) {
 	$_GET = istripslashes($_GET);
 	$_POST = istripslashes($_POST);

@@ -198,7 +198,7 @@ if($do == 'add') {
 		);
 		pdo_insert('mc_members', $data);
 		$uid = pdo_insertid();
-		itoast('添加会员成功,将进入编辑页面', url('mc/member/post', array('uid' => $uid)), 'success');
+		itoast('添加会员成功,将进入编辑页面', url('mc/member/post', array('uid' => $uid, 'account_type' => $_GPC['account_type'])), 'success');
 	}
 	template('mc/member-add');
 }

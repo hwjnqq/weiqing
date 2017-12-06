@@ -4,7 +4,7 @@
 <ol class="breadcrumb we7-breadcrumb">
 	<a href="{php echo url('mc/member/display')}"><i class="wi wi-back-circle"></i> </a>
 	<li>
-		<a href="{php echo url('mc/member/display')}">会员管理</a>
+		<a href="{php echo url('mc/member/display', array('account_type' => $_GPC['account_type']))}">会员管理</a>
 	</li>
 	<li>
 		添加会员
@@ -60,6 +60,7 @@
 
 	<div class="form-group">
 		<div class="">
+			<input type="hidden" name="account_type" value="{$_GPC['account_type']}"/>
 			<input type="hidden" name="token" value="{$_W['token']}"/>
 			<input type="hidden" name="form" value="{$_W['token']}"/>
 			<input type="submit" value="提交" class="btn btn-primary"/>

@@ -7,9 +7,22 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('setting');
 load()->model('attachment');
 
-$dos = array('attachment', 'remote', 'buckets', 'oss', 'cos', 'qiniu', 'ftp');
+$dos = array('attachment', 'remote', 'buckets', 'oss', 'cos', 'qiniu', 'ftp', 'upload_remote');
 $do = in_array($do, $dos) ? $do : 'global';
 $_W['page']['title'] = '附件设置 - 系统管理';
+
+if ($do == 'upload_remote') {
+	if (!empty($_W['setting']['remote_complete_info']['type'])) {
+		$result = file_dir_remote_upload(ATTACHMENT_ROOT . 'images');
+		if (is_error($result)) {
+			itoast($result['message'], url('system/attachment/remote'), 'info');
+		} else {
+			itoast('上传成功!', url('system/attachment/remote'), 'success');
+		}
+	} else {
+		itoast('请先填写并开启远程附件设置。', '', 'info');
+	}
+}
 
 //全局设置
 if ($do == 'global') {
@@ -52,6 +65,11 @@ if ($do == 'global') {
 		if (empty($upload['image']['limit'])) {
 			itoast('请设置音频视频上传支持的文件大小, 单位 KB.', '', '');
 		}
+		$zip_percentage = intval($upload['image']['zip_percentage']);
+		if($zip_percentage <=0 || $zip_percentage > 100) {
+			$upload['image']['zip_percentage'] = 100;//100不压缩
+		}
+
 		if (!empty($upload['audio']['extentions'])) {
 			$upload['audio']['extentions'] = explode("\n", $upload['audio']['extentions']);
 			foreach ($upload['audio']['extentions'] as $key => &$row) {
@@ -87,6 +105,9 @@ if ($do == 'global') {
 	}
 	if (!empty($upload['audio']['extentions']) && is_array($upload['audio']['extentions'])) {
 		$upload['audio']['extentions'] = implode("\n", $upload['audio']['extentions']);
+	}
+	if(empty($upload['image']['zip_percentage'])) {
+		$upload['image']['zip_percentage'] = 100;
 	}
 }
 
@@ -217,7 +238,10 @@ if ($do == 'remote') {
 	}
 	$remote = $_W['setting']['remote_complete_info'];
 	$bucket_datacenter = attachment_alioss_datacenters();
-} 
+	$local_attachment = file_tree(IA_ROOT . '/attachment/images');
+	$global_attachment_key = array_search(ATTACHMENT_ROOT . 'images/global/Microengine.ico', $local_attachment);
+	unset($local_attachment[$global_attachment_key]);
+}
 
 if ($do == 'buckets') {
 	$key = $_GPC['key'];

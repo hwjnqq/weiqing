@@ -1,7 +1,8 @@
 {template 'common/header'}
-<ol class="breadcrumb we7-breadcrumb">
-	<div class="we7-page-title">我的账户</div>
-</ol>
+<ul class="we7-page-tab">
+	<li {if $do == 'base'}class="active"{/if}><a href="{php echo url('user/profile')}">我的账户</a></li>
+	<li {if $do == 'bind'}class="active"{/if}><a href="{php echo url('user/profile/bind')}">账号绑定</a></li>
+</ul>
 <div id="js-user-profile" ng-controller="UserProfileDisplay" ng-cloak>
 	{if $_W['role'] != 'founder'}
 	<div class="user-head-info we7-padding-bottom" >
@@ -41,13 +42,7 @@
 				<td>******</td>
 				<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#pass">修改</a></div></td>
 			</tr>
-			{if !empty($user['founder_groupid'])}
-			<tr>
-				<td class="table-label">注册链接</td>
-				<td>{$user['url']}</td>
-				<td><div class="link-group"><a href="javascript:;" data-url="{$user['url']}" class="js-clip">复制链接</a></div></td>
-			</tr>
-			{/if}
+			
 		</table>
 		<div class="modal fade" id="name" role="dialog">
 			<div class="we7-modal-dialog modal-dialog">
@@ -78,6 +73,7 @@
 					</div>
 					<div class="modal-body text-center">
 						<div class="we7-form" style="width: 450px; margin: 0 auto;">
+							{if empty($user['register_type'])}
 							<div class="form-group">
 								<label for="" class="control-label col-sm-2">原密码</label>
 								<div class="form-controls col-sm-10">
@@ -85,6 +81,7 @@
 
 								</div>
 							</div>
+							{/if}
 							<div class="form-group">
 								<label for="" class="control-label col-sm-2">新密码</label>
 								<div class="form-controls col-sm-10">
@@ -123,16 +120,6 @@
 				<td class="table-label">出生年月日</td>
 				<td ng-bind="profile.births"></td>
 				<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#birth">修改</a></div></td>
-			</tr>
-			<tr>
-				<td class="table-label">QQ</td>
-				<td ng-bind="profile.qq"></td>
-				<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#qq" ng-click="editInfo('qq', profile.qq)">修改</a></div></td>
-			</tr>
-			<tr>
-				<td class="table-label">手机号</td>
-				<td ng-bind="profile.mobile"></td>
-				<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#mobile" ng-click="editInfo('mobile', profile.mobile)">修改</a></div></td>
 			</tr>
 			<tr>
 				<td class="table-label">邮寄地址</td>
@@ -410,7 +397,7 @@
 				</td>
 				<td>
 					<span ng-if="wxapp.role == 'founder'">创始人</span>
-					<span ng-if="wxapp.role == 'vice_founder'">副创始人</span>
+					
 					<span ng-if="wxapp.role == 'owner'">主管理员</span>
 					<span ng-if="wxapp.role == 'manager'">管理员</span>
 					<span ng-if="wxapp.role == 'operator'">操作员</span>

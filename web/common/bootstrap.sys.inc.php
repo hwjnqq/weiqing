@@ -6,6 +6,8 @@
 load()->model('user');
 load()->func('tpl');
 load()->model('permission');
+load()->model('attachment');
+
 $_W['token'] = token();
 $session = json_decode(authcode($_GPC['__session']), true);
 if (is_array($session)) {
@@ -42,5 +44,5 @@ if (!empty($_W['uid'])) {
 	$_W['role'] = permission_account_user_role($_W['uid'], $_W['uniacid']);
 }
 $_W['template'] = !empty($_W['setting']['basic']['template']) ? $_W['setting']['basic']['template'] : 'default';
-set_attach_url();
+$_W['attachurl'] = attachment_set_attach_url();
 load()->func('compat.biz');

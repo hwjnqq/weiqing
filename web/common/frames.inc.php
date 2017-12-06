@@ -6,6 +6,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 $we7_system_menu = array();
+
 $we7_system_menu['account'] = array(
 	'title' => '公众号',
 	'icon' => 'wi wi-white-collar',
@@ -70,6 +71,7 @@ $we7_system_menu['account'] = array(
 					'sub_permission' => array(
 						array(
 							'title' => '添加/编辑',
+							'url' => url('platform/material-post'),
 							'permission_name' => 'material_post',
 						),
 						array(
@@ -133,8 +135,10 @@ $we7_system_menu['account'] = array(
 					'icon' => 'wi wi-pay-setting',
 					'permission_name' => 'profile_pay_setting',
 				),
+				
 			),
 		),
+		
 	),
 );
 $we7_system_menu['wxapp'] = array(
@@ -311,6 +315,7 @@ $we7_system_menu['system'] = array(
 				),
 			)
 		),
+		
 		'user' => array(
 			'title' => '帐户/用户',
 			'menu' => array(
@@ -356,6 +361,7 @@ $we7_system_menu['system'] = array(
 						),
 					),
 				),
+				
 			)
 		),
 		'permission' => array(
@@ -431,6 +437,7 @@ $we7_system_menu['system'] = array(
 				)
 			)
 		),
+		
 		'cache' => array(
 			'title' => '缓存',
 			'menu' => array(
@@ -455,7 +462,7 @@ $we7_system_menu['site'] = array(
 			'menu' => array(
 				'system_profile' => array(
 					'title' => '系统升级',
-					'url' => 'cloud.php',
+					'url' => url('cloud/upgrade'),
 					'icon' => 'wi wi-cache',
 					'permission_name' => 'system_cloud_upgrade',
 				),
@@ -630,6 +637,5 @@ $we7_system_menu['help'] = array(
 	'section' => array(),
 	'blank' => false
 );
-
 
 return $we7_system_menu;

@@ -85,8 +85,7 @@ if ($do == 'copy') {
 	$menu['title'] = $menu['title'] . '- 复本';
 	pdo_insert('uni_account_menus', $menu);
 	$id = pdo_insertid();
-	header('Location:' . url('platform/menu/post', array('id' => $id, 'copy' => 1)));
-	die;
+	itoast('', url('platform/menu/post', array('id' => $id, 'copy' => 1, 'type' => MENU_CONDITIONAL)));
 }
 
 if ($do == 'post') {

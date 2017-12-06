@@ -16,6 +16,10 @@ class MessageTable extends We7Table {
 		return $this->query->from('message_notice_log')->orderby('id', 'DESC')->getall();
 	}
 
+	public function messageRecord() {
+		return $this->query->from('message_notice_log')->orderby('id', 'DESC')->get();
+	}
+
 	public function searchWithType($type) {
 		$this->query->where('type', $type);
 		return $this;

@@ -16,7 +16,7 @@ $_W['page']['title'] = '登录配置';
 $types = OAuth2Client::supportLoginType();
 
 $type = trim($_GPC['type']);
-$type = !empty($type) && in_array($type, $types) ? $type : 'system';
+$type = !empty($type) && in_array($type, $types) ? $type : 'qq';
 
 if ($do == 'save_setting') {
 	if ($_W['isajax'] && $_W['ispost']) {

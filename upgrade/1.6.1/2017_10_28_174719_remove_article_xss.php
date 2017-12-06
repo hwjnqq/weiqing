@@ -18,7 +18,7 @@ class RemoveArticleXss {
 		$article_list = pdo_getall('site_article');
 		if (is_array($article_list)) {
 			foreach ($article_list as $article) {
-				pdo_update('site_article', array('content' => remove_xss($article['content'])), array('id' => $article['id']));
+				pdo_update('site_article', array('content' => safe_remove_xss($article['content'])), array('id' => $article['id']));
 			}
 		}
 	}
