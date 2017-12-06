@@ -10,16 +10,52 @@ defined('IN_IA') or exit('Access Denied');
  * @param unknown $value
  * @param string $default
  */
-function safe_gpc_int($value, $default = '0') {
+function safe_gpc_int($value, $default = 0) {
+	$value = intval($value);
+	$default = intval($default);
 	
+	if (empty($value) && $default != $value) {
+		$value = $default;
+	}
+	return $value;
 }
 
+/**
+ * 转换一个安全字符串
+ * @param mixed $value
+ * @param string $default
+ * @return string
+ */
 function safe_gpc_string($value, $default = '') {
+	$value = htmlspecialchars($value, ENT_COMPAT | ENT_HTML401 | ENT_QUOTES);
 	
+	$badstr = array("\0", "%00", "\r", "%3C", "%3E", '{php');
+	$newstr = array('', '', '', '&lt;', '&gt;', '_');
+	$value  = str_replace($badstr, $newstr, $value);
+	
+	$value  = preg_replace('/&((#(\d{3,5}|x[a-fA-F0-9]{4}));)/', '&\\1', $value);
+	
+	if (empty($value) && $default != $value) {
+		$value = $default;
+	}
+	return $value;
 }
 
+/**
+ * 转换一个安全路径
+ * @param string $value
+ * @param string $default
+ * @return string
+ */
 function safe_gpc_path($value, $default = '') {
+	$path = safe_gpc_string($value);
+	$path = str_replace(array('..', '..\\', '\\\\' ,'\\', '..\\\\'), '', $path);
 	
+	if (empty($path) || $path != $value) {
+		$path = $default;
+	}
+	
+	return $path;
 }
 
 /**
@@ -28,7 +64,17 @@ function safe_gpc_path($value, $default = '') {
  * @param array $default
  */
 function safe_gpc_array($value, $default = array()) {
-
+	if (empty($value) || !is_array($value)) {
+		return $default;
+	}
+	foreach ($value as &$row) {
+		if (is_numeric($row)) {
+			$row = safe_gpc_int($row);
+		} else {
+			$row = safe_gpc_string($row);
+		}
+	}
+	return $value;
 }
 
 /**
@@ -38,14 +84,57 @@ function safe_gpc_array($value, $default = array()) {
  * @return boolean
  */
 function safe_gpc_boolean($value, $default = false) {
-	
+	$value = safe_gpc_int($value, $default);
+	return empty($value) ? false : true;
 }
 
 /**
  * 转换一个安全HTML数据 
  */
 function safe_gpc_html($value, $default = '') {
+	if (empty($value) || !is_string($value)) {
+		return $default;
+	}
+	$badstr = array("\0", "%00", "%3C", "%3E", '<?', '<%', '<?php', '{php');
+	$newstr = array('', '', '&lt;', '&gt;', '_', '_', '_', '_');
+	$value  = str_replace($badstr, $newstr, $value);
 	
+	$value = safe_remove_xss($value);
+	if (empty($value) && $value != $default) {
+		$value = $default;
+	}
+	return $value;
+}
+
+function safe_gpc_sql($value, $operator = 'ENCODE', $default = '') {
+	if (empty($value) || !is_string($value)) {
+		return $default;
+	}
+	$value = trim(strtolower($value));
+	
+	$badstr = array(
+		'_', '%', "'", chr(39),
+		'select', 'join', 'union',
+		'where', 'insert', 'delete',
+		'update', 'like', 'drop',
+		'create', 'modify', 'rename',
+		'alter', 'cast',
+	);
+	$newstr = array(
+		'\_', '\%', "''", '&#39;',
+		'sel&#101;ct"', 'jo&#105;n', 'un&#105;on',
+		'wh&#101;re', 'ins&#101;rt', 'del&#101;te',
+		'up&#100;ate', 'lik&#101;', 'dro&#112',
+		'cr&#101;ate', 'mod&#105;fy', 'ren&#097;me"',
+		'alt&#101;r', 'ca&#115;',
+	);
+	
+	if ($operator == 'ENCODE') {
+		$value  = str_replace($badstr, $newstr, $value);
+	} else {
+		$value  = str_replace($newstr, $badstr, $value);
+	}
+	return $value;
 }
 
 /**
@@ -55,7 +144,14 @@ function safe_gpc_html($value, $default = '') {
  * @param string $default
  */
 function safe_gpc_url($value, $strict_domain = true, $default = '') {
-	
+	if (empty($value) || !is_string($value)) {
+		return $default;
+	}
+	if (!starts_with($redirect, 'http')) {
+		if (defined('IN_SYS')) {
+			
+		}
+	}
 }
 
 /**
@@ -66,27 +162,11 @@ function safe_gpc_url($value, $strict_domain = true, $default = '') {
  */
 function safe_url_not_outside($redirect) {
 	global $_W;
-	if(starts_with($redirect, 'http') && !starts_with($redirect, $_W['siteroot'])) {
+	if (starts_with($redirect, 'http') && !starts_with($redirect, $_W['siteroot'])) {
 		$redirect = $_W['siteroot'];
 	}
 	return $redirect;
 }
-
-/**
- * 过滤GET,POST传入的路径中的危险字符
- * @param string $path
- * @return boolean | string 正常返回路径，否则返回空
- */
-function safe_parse_path($path) {
-	$danger_char = array('../', '{php', '<?php', '<%', '<?', '..\\', '\\\\' ,'\\', '..\\\\', '%00', '\0', '\r');
-	foreach ($danger_char as $char) {
-		if (strexists($path, $char)) {
-			return false;
-		}
-	}
-	return $path;
-}
-
 
 /**
  *  去掉可能造成xss攻击的字符

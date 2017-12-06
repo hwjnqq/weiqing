@@ -139,4 +139,25 @@ class UsersTable extends We7Table {
 	public function userProfileFields() {
 		return $this->query->from('profile_fields')->where('available', 1)->where('showinregister', 1)->orderby('displayorder', 'desc')->getall('field');
 	}
+
+	public function userBind() {
+		return $this->query->from('users_bind')->getall('bind_sign');
+	}
+
+	public function bindSearchWithUser($uid) {
+		$this->query->where('uid', $uid);
+		return $this;
+	}
+
+	public function bindSearchWithType($type) {
+		$this->query->where('third_type', $type);
+		return $this;
+	}
+
+	public function bindInfo() {
+		return $this->query->from('users_bind')->get();
+	}
+	public function userProfile($uid) {
+		return $this->query->from('users_profile')->where('uid', $uid)->get();
+	}
 }

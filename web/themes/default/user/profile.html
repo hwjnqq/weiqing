@@ -1,75 +1,8 @@
 {template 'common/header'}
 <ul class="we7-page-tab">
-	<li class="active"><a href="#">我的账户</a></li>
-	<li class="hidden"><a href="#">账号绑定</a></li>
+	<li {if $do == 'base'}class="active"{/if}><a href="{php echo url('user/profile')}">我的账户</a></li>
+	<li {if $do == 'bind'}class="active"{/if}><a href="{php echo url('user/profile/bind')}">账号绑定</a></li>
 </ul>
-
-<!--账号绑定-->
-<table class="table we7-table table-hover table-form hidden">
-	<col width="140px " />
-	<col />
-	<col width="160px" />
-	<tr>
-		<th class="text-left" colspan="3">账号绑定</th>
-	</tr>
-	<tr>
-		<td class="table-label"><span class="wi wi-iphone color-default" style="font-size: 32px;"></span></td>
-		<td>182****1234</td>
-		<td><div class="link-group"><a href="javascript:;"  data-toggle="modal" data-target="#myModal">解绑手机号</a></div></td>
-	</tr>
-	<tr>
-		<td class="table-label"><span class="wi wi-qq color-default" style="font-size: 32px;"></span></td>
-		<td>QQ昵称</td>
-		<td><div class="link-group"><a href="javascript:;">解除绑定</a></div></td>
-	</tr>
-	<tr>
-		<td class="table-label"><span class="wi wi-wechat" style="font-size: 32px; color: #00bb00;"></span></td>
-		<td></td>
-		<td><div class="link-group"><a href="javascript:;">绑定微信</a></div></td>
-	</tr>
-</table>
-
-<div class="modal fade basic" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-				<h4 class="modal-title" id="myModalLabel">绑定手机号</h4>
-			</div>
-			<div class="modal-body material-content clearfix">
-
-				<form action="" method="get">
-					<div class="form-group input-group">
-						<input type="text" class="form-control" placeholder="输入手机号">
-						<span class="input-group-btn">
-							<button class="btn btn-primary">60秒后，重新获取</button>
-						</span>
-					</div>
-					<div class="form-group input-group">
-						<input type="text" class="form-control" placeholder="输入图形验证码">
-						<a href="javascript:;" class="input-group-btn imgverify" style=""><img src="" style="width: 127px; height: 32px;"/></a>
-					</div>
-					<div class="form-group">
-						<input type="text" class="form-control" placeholder="输入手机验证码">
-					</div>
-					<div class="form-group">
-						<input type="password" class="form-control" placeholder="输入密码">
-					</div>
-					<div class="form-group">
-						<input type="password" class="form-control" placeholder="再次输入密码">
-					</div>
-				</form>
-
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-primary">确定</button>
-				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-			</div>
-		</div>
-	</div>
-</div>
-<!--end  账号绑定-->
-
 <div id="js-user-profile" ng-controller="UserProfileDisplay" ng-cloak>
 	{if $_W['role'] != 'founder'}
 	<div class="user-head-info we7-padding-bottom" >
@@ -109,13 +42,7 @@
 				<td>******</td>
 				<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#pass">修改</a></div></td>
 			</tr>
-			{if !empty($user['founder_groupid'])}
-			<tr>
-				<td class="table-label">注册链接</td>
-				<td>{$user['url']}</td>
-				<td><div class="link-group"><a href="javascript:;" data-url="{$user['url']}" class="js-clip">复制链接</a></div></td>
-			</tr>
-			{/if}
+			
 		</table>
 		<div class="modal fade" id="name" role="dialog">
 			<div class="we7-modal-dialog modal-dialog">
@@ -193,16 +120,6 @@
 				<td class="table-label">出生年月日</td>
 				<td ng-bind="profile.births"></td>
 				<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#birth">修改</a></div></td>
-			</tr>
-			<tr>
-				<td class="table-label">QQ</td>
-				<td ng-bind="profile.qq"></td>
-				<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#qq" ng-click="editInfo('qq', profile.qq)">修改</a></div></td>
-			</tr>
-			<tr>
-				<td class="table-label">手机号</td>
-				<td ng-bind="profile.mobile"></td>
-				<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#mobile" ng-click="editInfo('mobile', profile.mobile)">修改</a></div></td>
 			</tr>
 			<tr>
 				<td class="table-label">邮寄地址</td>
@@ -480,7 +397,7 @@
 				</td>
 				<td>
 					<span ng-if="wxapp.role == 'founder'">创始人</span>
-					<span ng-if="wxapp.role == 'vice_founder'">副创始人</span>
+					
 					<span ng-if="wxapp.role == 'owner'">主管理员</span>
 					<span ng-if="wxapp.role == 'manager'">管理员</span>
 					<span ng-if="wxapp.role == 'operator'">操作员</span>

@@ -5,20 +5,21 @@
  */
 
 defined('IN_IA') or exit('Access Denied');
+
+load()->model('wxapp');
+
 if (strexists($_SERVER['HTTP_REFERER'], 'https://servicewechat.com/')) {
 	$referer_url = parse_url($_SERVER['HTTP_REFERER']);
 	list($appid, $version) = explode('/', ltrim($referer_url['path'], '/'));
 }
 if (!empty($_W['uniacid'])) {
 	$version = trim($_GPC['v']);
-	$version_info = pdo_get('wxapp_versions', array('uniacid' => $_W['uniacid'], 'version' => $version), array('id', 'uniacid', 'template', 'modules'));
+	$version_info = wxapp_version_by_version($version);
 	if (!empty($version_info['modules'])) {
-		$connection = iunserializer($version_info['modules'], true);
-		if (!empty($connection[$entry['module']])) {
-			$uniacid = intval($connection[$entry['module']]['uniacid']);
-			if (!empty($uniacid)) {
-				$_W['uniacid'] = $uniacid;
-				$_W['account']['link_uniacid'] = $uniacid;
+		foreach ($version_info['modules'] as $module) {
+			if (!empty($module['account']) && intval($module['account']['uniacid']) > 0) {
+				$_W['uniacid'] = $module['account']['uniacid'];
+				$_W['account']['link_uniacid'] = $module['account']['uniacid'];
 			}
 		}
 	}

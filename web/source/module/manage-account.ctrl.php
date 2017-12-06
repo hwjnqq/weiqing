@@ -103,7 +103,6 @@ if($do == 'display') {
 } elseif ($do == 'setting') {
 	$modulename = $_GPC['m'];
 	$module = $_W['current_module'] = $modulelist[$modulename];
-	define('IN_MODULE', $modulename);
 	if(empty($module)) {
 		itoast('抱歉，你操作的模块不能被访问！', '', '');
 	}
@@ -112,6 +111,7 @@ if($do == 'display') {
 		itoast('您没有权限进行该操作', '', '');
 	}
 
+	define('IN_MODULE', $modulename);
 	// 兼容历史性问题：模块内获取不到模块信息$module的问题
 	define('CRUMBS_NAV', 1);
 

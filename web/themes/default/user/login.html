@@ -12,8 +12,10 @@
 	</div>
 	<div class="login-panel">
 		<div class="title">
-			<a href="{php echo url('user/login')}" {if empty($_GPC['login_type']) || $_GPC['login_type'] == 'system'}class="active" {/if}>账号密码</a>
+			<a href="{php echo url('user/login', array('login_type' => 'system'))}" {if empty($_GPC['login_type']) || $_GPC['login_type'] == 'system'}class="active" {/if}>账号密码</a>
+			{if !empty($_W['setting']['copyright']['mobile_status'])}
 			<a href="{php echo url('user/login', array('login_type' => 'mobile'))}" {if $_GPC['login_type'] == 'mobile'}class="active" {/if}>手机</a>
+			{/if}
 		</div>
 		<form action="" method="post" role="form" id="form1" onsubmit="return formcheck();" class="we7-form">
 			{if empty($_GPC['login_type']) || $_GPC['login_type'] == 'system'}

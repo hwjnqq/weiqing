@@ -9,23 +9,46 @@ load()->model('wxapp');
 load()->classs('cloudapi');
 load()->classs('uploadedfile');
 
-$dos = array('front_download', 'domainset', 'code_uuid', 'code_gen', 'code_token',
-	'qrcode', 'checkscan', 'commitcode', 'preview', 'getpackage', 'custom', 'custom_save', 'custom_default');
+$dos = array('front_download', 'domainset', 'code_uuid', 'code_gen', 'code_token', 'qrcode', 'checkscan',
+	'commitcode', 'preview', 'getpackage', 'entrychoose', 'set_wxapp_entry',
+	'custom', 'custom_save', 'custom_default', 'custom_convert_img');
 $do = in_array($do, $dos) ? $do : 'front_download';
 
 $_W['page']['title'] = '小程序下载 - 小程序 - 管理';
 
 $version_id = intval($_GPC['version_id']);
 $wxapp_info = wxapp_fetch($_W['uniacid']);
+// 是否是模块打包小程序
+$is_module_wxapp =  false;
 if (!empty($version_id)) {
 	$version_info = wxapp_version($version_id);
+	$is_module_wxapp = ($version_info['type'] == WXAPP_CREATE_MODULE) ? 1 : 0;
+
+
 }
+
+if($do == 'entrychoose') {
+//	if(!$is_module_wxapp) {
+//		itoast('非普通应用无需设置域名');
+//	}
+	$modules = $version_info['modules'];
+	$entrys = array();
+	if(count($modules) > 0) {
+		$module_name = $modules[0]['name'];
+		$entrys = module_entries($module_name, array('cover'));
+		$entrys = $entrys['cover'];
+	}
+	template('wxapp/version-front-download');
+}
+if($do == 'set_wxapp_entry') {
+	$entry_id = intval($_GPC['entry_id']);
+	$result = wxapp_update_entry($version_id, $entry_id);
+	echo json_encode(error(0, '设置入口成功'));
+}
+
 if ($do == 'custom') {
 	$type = $_GPC['type'];
-
 	$default_appjson = wxapp_code_current_appjson($version_id);
-//	var_dump($default_appjson);
-//	exit;
 	$default_appjson = json_encode($default_appjson);
 	template('wxapp/version-front-download');
 }
@@ -40,8 +63,15 @@ if($do == 'custom_save') {
 	echo json_encode($result);
 }
 
-if ($do == 'domainset') {
+if($do == 'custom_convert_img') {
+	$attchid = intval($_GPC['att_id']);
 
+	/* @var  $attachment  AttachmentTable */
+	$filename = wxapp_code_path_convert($attchid);
+	echo json_encode(error(0, $filename));
+}
+
+if ($do == 'domainset') {
 	$appurl = $_W['siteroot'].'app/index.php';
 	$uniacid = 0;
 	if($version_info) {
@@ -151,18 +181,18 @@ if($do == 'getpackage') {
 	}
 
 	$request_cloud_data = array(
-		'name' => $account_wxapp_info['name'],
-		'modules' => $account_wxapp_info['version']['modules'],
-		'siteInfo' => array(
 			'name' => $account_wxapp_info['name'],
-			'uniacid' => $account_wxapp_info['uniacid'],
-			'acid' => $account_wxapp_info['acid'],
-			'multiid' => $account_wxapp_info['version']['multiid'],
-			'version' => $account_wxapp_info['version']['version'],
-			'siteroot' => $siteurl,
-			'design_method' => $account_wxapp_info['version']['design_method']
-		),
-		'tabBar' => json_decode($account_wxapp_info['version']['quickmenu'], true),
+			'modules' => $account_wxapp_info['version']['modules'],
+			'siteInfo' => array(
+					'name' => $account_wxapp_info['name'],
+					'uniacid' => $account_wxapp_info['uniacid'],
+					'acid' => $account_wxapp_info['acid'],
+					'multiid' => $account_wxapp_info['version']['multiid'],
+					'version' => $account_wxapp_info['version']['version'],
+					'siteroot' => $siteurl,
+					'design_method' => $account_wxapp_info['version']['design_method']
+			),
+			'tabBar' => json_decode($account_wxapp_info['version']['quickmenu'], true),
 	);
 	$result = wxapp_getpackage($request_cloud_data);
 

@@ -5,11 +5,11 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-if (!($action == 'material' && $do == 'delete') && empty($_GPC['version_id'])) {
+if (!($action == 'material' && $do == 'delete') && empty($_GPC['version_id']) && empty($_GPC['account_type'])) {
 	checkaccount();
 }
 
-if ($action != 'material-post') {
+if ($action != 'material-post' && $_GPC['uniacid'] != FILE_NO_UNIACID) {
 	define('FRAME', 'account');
 }
 if ($action == 'qr') {

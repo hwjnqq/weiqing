@@ -2,9 +2,13 @@
 <div class="we7-page-title">公众号管理</div>
 <ul class="we7-page-tab">
 	<li><a href="{url 'account/manage'}">公众号列表</a></li>
-	{if $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER || $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
-	<li class="active"><a href="{url 'account/recycle'}">公众号回收站</a></li>
-	{/if}
+	
+
+	
+		{if $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER || $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
+		<li class="active"><a href="{url 'account/recycle'}">公众号回收站</a></li>
+		{/if}
+	
 </ul>
 <div class="clearfix we7-margin-bottom">
 	<form action="" class="form-inline  pull-left" method="get">

@@ -15,13 +15,12 @@ class Wechat extends OAuth2Client {
 		global $_W;
 		parent::__construct($ak, $sk);
 		$this->calback_url = $_W['siteroot'] . 'web/index.php';
+		$this->stateParam['from'] = 'wechat';
 	}
 
 	public function showLoginUrl($calback_url = '') {
-		global $_W;
 		$redirect_uri = urlencode($this->calback_url);
-		$state = !empty($state) ? $state : $_W['token'];
-		$state = $state . 'from=wechat';
+		$state = $this->stateParam();
 		return sprintf(Wechat_PLATFORM_API_OAUTH_LOGIN_URL, $this->ak, $redirect_uri, $state);
 	}
 
@@ -41,7 +40,8 @@ class Wechat extends OAuth2Client {
 		if (empty($state) || empty($code)) {
 			return error(-1, '参数错误');
 		}
-		if ($state != $_W['token'] . 'from=wechat') {
+		$local_state = $this->stateParam();
+		if ($state != $local_state) {
 			return error(-1, '重新登陆');
 		}
 		$access_url = sprintf(Wechat_PLATFORM_API_GET_ACCESS_TOKEN, $this->ak, $this->sk, $code, urlencode($this->calback_url));
@@ -57,16 +57,24 @@ class Wechat extends OAuth2Client {
 			return $user_info;
 		}
 		$user = array();
+		$profile = array();
+		$user['username'] = strip_emoji($user_info['nickname']);
+		$user['password'] = '';
 		$user['type'] = USER_TYPE_COMMON;
-		$user['avatar'] = $user_info['headimgurl'];
+		$user['starttime'] = TIMESTAMP;
 		$user['openid'] = $user_info['openid'];
 		$user['register_type'] = USER_REGISTER_TYPE_WECHAT;
-		$user['nickname'] = $user_info['nickname'];
-		$user['gender'] = $user_info['sex'];
-		$user['resideprovince'] = $user_info['province'];
-		$user['residecity'] = $user_info['city'];
-		$user['birthyear'] = '';
-		return $user;
+
+		$profile['avatar'] = $user_info['headimgurl'];
+		$profile['nickname'] = $user_info['nickname'];
+		$profile['gender'] = $user_info['sex'];
+		$profile['resideprovince'] = $user_info['province'];
+		$profile['residecity'] = $user_info['city'];
+		$profile['birthyear'] = '';
+		return array(
+			'member' => $user,
+			'profile' => $profile
+		);
 	}
 
 	protected function requestApi($url, $post = '') {
@@ -85,6 +93,68 @@ class Wechat extends OAuth2Client {
 	}
 
 	public function register() {
+		return true;
+	}
 
+	public function login() {
+		load()->model('user');
+		$user = $this->user();
+		if (is_error($user)) {
+			return $user;
+		}
+
+		if (is_error($user)) {
+			return $user;
+		}
+
+		$user_table = table('users');
+		$user_id = pdo_getcolumn('users', array('openid' => $user['member']['openid']), 'uid');
+		$user_bind_info = $user_table->userBindInfo($user['member']['openid'], $user['member']['register_type']);
+
+		if (!empty($user_id)) {
+			return $user_id;
+		}
+
+		if (!empty($user_bind_info)) {
+			return $user_bind_info['uid'];
+		}
+
+		if (!empty($user_id) && empty($user_bind_info)) {
+			pdo_insert('users_bind', array('uid' => $user_id, 'bind_sign' => $user['member']['openid'], 'third_type' => $user['member']['register_type'], 'third_nickname' => $user['member']['username']));
+			return $user_id;
+		}
+
+		return parent::user_register($user);
+	}
+
+	public function bind() {
+		global $_W;
+		$user = $this->user();
+		$user_table = table('users');
+		$user_id = pdo_getcolumn('users', array('openid' => $user['member']['openid']), 'uid');
+		$user_bind_info = $user_table->userBindInfo($user['member']['openid'], $user['member']['register_type']);
+
+		if (!empty($user_id) || !empty($user_bind_info)) {
+			return error(-1, '已被其他用户绑定，请更换账号');
+		}
+		pdo_insert('users_bind', array('uid' => $_W['uid'], 'bind_sign' => $user['member']['openid'], 'third_type' => $user['member']['register_type'], 'third_nickname' => strip_emoji($user['profile']['nickname'])));
+		return true;
+	}
+
+	public function unbind() {
+		global $_GPC, $_W;
+		$user_table = table('users');
+		$third_type = $_GPC['bind_type'];
+		$user_table->bindSearchWithUser($_W['uid']);
+		$user_table->bindSearchWithType($third_type);
+		$bind_info = $user_table->bindInfo();
+
+		if (empty($bind_info)) {
+			return error(-1, '已经解除绑定');
+		}
+		pdo_update('users', array('openid' => ''), array('uid' => $_W['uid']));
+		pdo_delete('users_bind', array('uid' => $_W['uid'], 'third_type' => $third_type));
+
+		return error(0, '成功');
 	}
 }

@@ -50,6 +50,8 @@ class System extends OAuth2Client {
 		$member = array();
 		$profile = array();
 		$member['username'] = trim($_GPC['username']);
+		$member['owner_uid'] = intval($_GPC['owner_uid']);
+		$member['password'] = $_GPC['password'];
 
 		if(!preg_match(REGULAR_USERNAME, $member['username'])) {
 			return error(-1, '必须输入用户名，格式为 3-15 位字符，可以包括汉字、字母（不区分大小写）、数字、下划线和句点。');
@@ -57,6 +59,15 @@ class System extends OAuth2Client {
 
 		if(user_check(array('username' => $member['username']))) {
 			return error(-1, '非常抱歉，此用户名已经被注册，你需要更换注册名称！');
+		}
+
+		if(!empty($_W['setting']['register']['code'])) {
+			if (!checkcaptcha($_GPC['code'])) {
+				return error(-1, '你输入的验证码不正确, 请重新输入.');
+			}
+		}
+		if(istrlen($member['password']) < 8) {
+			return error(-1, '必须输入密码，且密码长度不得低于8位。');
 		}
 
 		$extendfields = $this->systemFields();
@@ -84,14 +95,27 @@ class System extends OAuth2Client {
 			}
 		}
 
-		return array(
+		$register =  array(
 			'member' => $member,
 			'profile' => $profile
 		);
+		return parent::user_register($register);
 	}
 
 	public function systemFields() {
 		$user_table = table('users');
 		return $user_table->userProfileFields();
+	}
+
+	public function login() {
+		return $this->user();
+	}
+
+	public function bind() {
+		return true;
+	}
+
+	public function unbind() {
+		return true;
 	}
 }

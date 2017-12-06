@@ -142,7 +142,7 @@ if ($do == 'upload') {
 
 	$filename = file_random_name(ATTACHMENT_ROOT . '/' . $setting['folder'], $ext);
 
-	$file = file_upload($_FILES['file'], $type, $setting['folder'] . $filename);
+	$file = file_upload($_FILES['file'], $type, $setting['folder'] . $filename, true);
 
 	if (is_error($file)) {
 		$result['message'] = $file['message'];
@@ -225,7 +225,7 @@ if ($do == 'fetch' || $do == 'upload') {
 
 if ($do == 'delete') {
 	$id = intval($_GPC['id']);
-	$media = pdo_get('core_attachment', array('uniacid' => $_W['uniacid'], 'id' => $id));
+	$media = pdo_get('core_attachment', array('id' => $id));
 	if (empty($media)) {
 		exit('文件不存在或已经删除');
 	}
@@ -240,7 +240,7 @@ if ($do == 'delete') {
 	if (is_error($status)) {
 		exit($status['message']);
 	}
-	pdo_delete('core_attachment', array('uniacid' => $uniacid, 'id' => $id));
+	pdo_delete('core_attachment', array('id' => $id));
 	exit('success');
 }
 
@@ -378,7 +378,7 @@ if ($do == 'wechat_upload') {
 	}
 
 	$filename = file_random_name(ATTACHMENT_ROOT .'/'. $setting['folder'], $ext);
-	$file = file_wechat_upload($_FILES['file'], $type, $setting['folder'] . $filename);
+	$file = file_wechat_upload($_FILES['file'], $type, $setting['folder'] . $filename, true);
 	if (is_error($file)) {
 		$result['message'] = $file['message'];
 		die(json_encode($result));
@@ -600,25 +600,27 @@ if ($do == 'image') {
 	if ($islocal) { // 如果读取本地图
 		$page = $_GPC['page'];
 		$page = max(1, $page);
-		$condition = ' WHERE uniacid = :uniacid AND type = :type AND module_upload_dir = :module_upload_dir';
-		$params = array(':uniacid' => $uniacid, ':type' => 1, ':module_upload_dir' => $module_upload_dir);
+		$condition = array('uniacid' => $uniacid, 'type' => 1, 'module_upload_dir' => $module_upload_dir);
+
+		if (empty($uniacid)) {
+			$condition['uid'] = $_W['uid'];
+		}
 
 		$year = $_GPC['year'];
 		$month = $_GPC['month'];
 		if ($year > 0 || $month > 0) {
 			$starttime = strtotime("{$year}-{$month}-01");
 			$endtime = strtotime('+1 month', $starttime);
-			$condition .= ' AND createtime >= :starttime AND createtime <= :endtime';
-			$params[':starttime'] = $starttime;
-			$params[':endtime'] = $endtime;
+			$condition['createtime >='] = $starttime;
+			$condition['createtime <='] = $endtime;
 		}
-		$sql = 'SELECT * FROM '.tablename('core_attachment')." {$condition} ORDER BY id DESC LIMIT ".(($page - 1) * $page_size).','.$page_size;
-		$list = pdo_fetchall($sql, $params);
+		$list = pdo_getslice('core_attachment', $condition, array($page, $page_size), $total, array(), '', 'createtime DESC');
+
 		foreach ($list as &$item) {
 			$item['url'] = tomedia($item['attachment']);
 			unset($item['uid']);
 		}
-		$total = pdo_fetchcolumn('SELECT count(*) FROM '.tablename('core_attachment')." {$condition}", $params);
+
 		$result = array(
 			'items' => $list,
 			'pager' => pagination($total, $page, $page_size, '', array('before' => '2', 'after' => '3', 'ajaxcallback' => 'null')),
@@ -629,6 +631,10 @@ if ($do == 'image') {
 		$conditions['uniacid'] = $uniacid;
 		$conditions['type'] = 'image';
 		$conditions['module_upload_dir'] = $module_upload_dir;
+
+		if (empty($uniacid)) {
+			$conditions['uid'] = $_W['uid'];
+		}
 		$material_list = pdo_getslice('wechat_attachment', $conditions, array($page_index, $page_size), $total, array(), '', 'createtime DESC');
 		$pager = pagination($total, $page_index, $page_size,'',$context = array('before' => 5, 'after' => 4, 'isajax' => $_W['isajax']));
 

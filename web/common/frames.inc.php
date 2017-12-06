@@ -6,6 +6,29 @@
 defined('IN_IA') or exit('Access Denied');
 
 $we7_system_menu = array();
+$we7_system_menu['webapp'] = array(
+	'title' => 'PC',
+	'icon' => 'wi wi-white-collar',
+	'url' => url('webapp/home/display'),
+	'section' => array(
+		'platform_module' => array(
+			'title' => '应用模块',
+			'menu' => array(),
+			'is_display' => true,
+		),
+		'mc' => array(
+			'title' => '粉丝',
+			'menu' => array(
+				'mc_member' => array(
+					'title' => '会员管理',
+					'url' => url('mc/member', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL)),
+					'icon' => 'wi wi-fans',
+					'permission_name' => 'mc_member',
+				)
+			),
+		)
+	),
+);
 $we7_system_menu['account'] = array(
 	'title' => '公众号',
 	'icon' => 'wi wi-white-collar',
@@ -70,6 +93,7 @@ $we7_system_menu['account'] = array(
 					'sub_permission' => array(
 						array(
 							'title' => '添加/编辑',
+							'url' => url('platform/material-post'),
 							'permission_name' => 'material_post',
 						),
 						array(
@@ -133,8 +157,10 @@ $we7_system_menu['account'] = array(
 					'icon' => 'wi wi-pay-setting',
 					'permission_name' => 'profile_pay_setting',
 				),
+				
 			),
 		),
+		
 	),
 );
 $we7_system_menu['wxapp'] = array(
@@ -311,18 +337,51 @@ $we7_system_menu['system'] = array(
 				),
 			)
 		),
-		'welcome' => array(
-			'title' => '系统',
+		
+		'webapp' => array(
+			'title' => 'PC',
 			'menu' => array(
-				'system_welcome' => array(
-					'title' => '系统',
-					'url' => url('module/manage-system', array('system_welcome' => 1)),
+				'system_wxapp' => array(
+					'title' => 'PC',
+					'url' => url('account/manage', array('account_type' => '5')),
 					'icon' => 'wi wi-wxapp',
-					'permission_name' => 'system_welcome',
-				)
-			),
-			'founder' => true
+					'permission_name' => 'system_wxapp',
+					'sub_permission' => array(
+						array(
+							'title' => '小程序管理设置',
+							'permission_name' => 'system_wxapp_manage',
+						),
+						array(
+							'title' => '添加小程序',
+							'permission_name' => 'system_wxapp_post',
+						),
+						array(
+							'title' => '小程序停用',
+							'permission_name' => 'system_wxapp_stop',
+						),
+						array(
+							'title' => '小程序回收站',
+							'permission_name' => 'system_wxapp_recycle',
+						),
+						array(
+							'title' => '小程序删除',
+							'permission_name' => 'system_wxapp_delete',
+						),
+						array(
+							'title' => '小程序恢复',
+							'permission_name' => 'system_wxapp_recover',
+						),
+					),
+				),
+				'system_module_wxapp' => array(
+					'title' => 'PC应用',
+					'url' => url('module/manage-system', array('account_type' => '5')),
+					'icon' => 'wi wi-wxapp-apply',
+					'permission_name' => 'system_module_wxapp',
+				),
+			)
 		),
+
 		'user' => array(
 			'title' => '帐户/用户',
 			'menu' => array(
@@ -368,6 +427,7 @@ $we7_system_menu['system'] = array(
 						),
 					),
 				),
+				
 			)
 		),
 		'permission' => array(
@@ -443,6 +503,7 @@ $we7_system_menu['system'] = array(
 				)
 			)
 		),
+		
 		'cache' => array(
 			'title' => '缓存',
 			'menu' => array(
@@ -467,7 +528,7 @@ $we7_system_menu['site'] = array(
 			'menu' => array(
 				'system_profile' => array(
 					'title' => '系统升级',
-					'url' => 'cloud.php',
+					'url' => url('cloud/upgrade'),
 					'icon' => 'wi wi-cache',
 					'permission_name' => 'system_cloud_upgrade',
 				),
@@ -642,6 +703,5 @@ $we7_system_menu['help'] = array(
 	'section' => array(),
 	'blank' => false
 );
-
 
 return $we7_system_menu;

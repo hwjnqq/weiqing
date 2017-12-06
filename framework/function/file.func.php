@@ -155,9 +155,10 @@ function rmdirs($path, $clean = false) {
  *        	文件保存类型
  * @param string $name
  *        	保存的文件名,不含后缀.(未指定则自动生成文件名，指定则是从附件目录开始的完整相对路径)
+ * @param string $compress 是否压缩
  * @return array 错误信息 error 或 array('success' => bool，'path' => 保存路径（从附件目录开始的完整相对路径）)
  */
-function file_upload($file, $type = 'image', $name = '') {
+function file_upload($file, $type = 'image', $name = '', $compress = false) {
 	$harmtype = array('asp', 'php', 'jsp', 'js', 'css', 'php3', 'php4', 'php5', 'ashx', 'aspx', 'exe', 'cgi');
 	if (empty($file)) {
 		return error(-1, '没有上传内容');
@@ -196,8 +197,9 @@ function file_upload($file, $type = 'image', $name = '') {
 		return error(-4, "上传的文件超过大小限制，请上传小于 {$limit}k 的文件");
 	}
 
-	if($type == 'image') {
-		file_image_quality($file['tmp_name'], $file['tmp_name'], $ext);//设置清晰度
+	if ($type == 'image' && $compress) {
+		//设置清晰度
+		file_image_quality($file['tmp_name'], $file['tmp_name'], $ext);
 	}
 
 	$result = array();
@@ -239,7 +241,8 @@ function file_wechat_upload($file, $type = 'image', $name = '') {
 	}
 
 	if($type == 'image') {
-		file_image_quality($file['tmp_name'], $file['tmp_name'], $ext);//设置清晰度
+		//设置清晰度
+		file_image_quality($file['tmp_name'], $file['tmp_name'], $ext);
 	}
 
 	$result = array();
@@ -365,6 +368,44 @@ function file_remote_upload($filename, $auto_delete_local = true) {
 			file_delete($filename);
 		}
 	}
+}
+
+/**
+ * 上传目录下的所有图片到远程服务器并删除本地图片
+ * @param string $dir_path 目录路径
+ * @return true|error
+ */
+function file_dir_remote_upload($dir_path) {
+	global $_W;
+	if (empty($_W['setting']['remote']['type'])) {
+		return error(1, '未开启远程附件');
+	}
+	$dir_path = safe_gpc_path($dir_path);
+	if (!empty($dir_path)) {
+		$local_attachment = file_tree($dir_path);
+	} else {
+		$local_attachment = array();
+	}
+	if (is_array($local_attachment) && !empty($local_attachment)) {
+		foreach ($local_attachment as $attachment) {
+			$filename = str_replace(ATTACHMENT_ROOT, '', $attachment);
+			$file_account = explode('/', $filename);
+			$file_account = $file_account[1];
+			if ($file_account == 'global') {
+				continue;
+			}
+			if (is_numeric($file_account) && is_dir(ATTACHMENT_ROOT . 'images/' .  $file_account) && !empty($_W['setting']['remote_complete_info'][$file_account]['type'])) {
+				$_W['setting']['remote'] = $_W['setting']['remote_complete_info'][$file_account];
+			} else {
+				$_W['setting']['remote'] = $_W['setting']['remote_complete_info'];
+			}
+			$result = file_remote_upload($filename);
+			if (is_error($result)) {
+				return $result;
+			}
+		}
+	}
+	return true;
 }
 
 /**
@@ -872,15 +913,18 @@ function file_is_image($url) {
  */
 function file_image_quality($src, $to_path, $ext) {
 	global $_W;
-	if(!function_exists('gd_info')) { //gd库未开启
+	//gd库未开启
+	if (!function_exists('gd_info')) {
 		return;
 	}
-
+	//不压缩
 	$quality = intval($_W['setting']['upload']['image']['zip_percentage']);
-	if($quality <=0 || $quality >= 100) {
-		return ;//不压缩
+	if ($quality <= 0 || $quality >= 100) {
+		return ;
 	}
-	if(filesize($src) > 5120) { //大于5M不压缩
+	
+	//大于5M不压缩
+	if (filesize($src) > 5120) {
 		return ;
 	}
 
@@ -894,10 +938,7 @@ function file_image_quality($src, $to_path, $ext) {
 		case 'jpeg': $quality = intval(0.75*$quality); $resource = imagecreatefromjpeg($src); imagejpeg($resource, $to_path, $quality);  break;
 		case 'png' : $quality = round(abs((100-$quality)/11.111111)); $resource = imagecreatefrompng($src); imagepng($resource, $to_path, $quality); break;
 	}
-	if($resource) {
+	if ($resource) {
 		imagedestroy($resource);
 	}
 }
-
-
-

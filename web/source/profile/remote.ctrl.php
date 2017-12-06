@@ -6,11 +6,32 @@
 load()->func('communication');
 load()->model('attachment');
 
-$dos = array('display', 'save', 'test_setting');
+$dos = array('display', 'save', 'test_setting', 'upload_remote');
 $do = in_array($do, $dos) ? $do : 'display';
 $_W['page']['title'] = '远程附件 - 公众号选项';
 
 $remote = $_W['setting']['remote_complete_info'][$_W['uniacid']];
+if ($do == 'upload_remote') {
+	if (!empty($_W['setting']['remote_complete_info'][$_W['uniacid']]['type'])) {
+		$result = file_dir_remote_upload(ATTACHMENT_ROOT . 'images/' . $_W['uniacid']);
+		if (is_error($result)) {
+			itoast($result['message'], url('profile/remote'), 'info');
+		} else {
+			itoast('上传成功!', url('profile/remote'), 'success');
+		}
+	} else {
+		itoast('请先填写并开启远程附件设置。', '', 'info');
+	}
+}
+if ($do == 'display') {
+	$safe_path = safe_gpc_path(IA_ROOT . '/attachment/images/' . $_W['uniacid']);
+	if (!empty($safe_path)) {
+		$local_attachment = file_tree($safe_path);
+	} else {
+		$local_attachment = array();
+	}
+}
+
 if ($do == 'save'){
 	$remote_data = array(
 		'type' => $_GPC['type'],

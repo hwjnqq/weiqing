@@ -33,7 +33,7 @@ if ($do == 'valid_mobile') {
 
 if ($do == 'register') {
 	if(checksubmit() || $_W['ispost'] && $_W['isajax']) {
-		$register_user = OAuth2Client::create($register_type)->registerNoThird();
+		$register_user = OAuth2Client::create($register_type)->register();
 		if ($register_type == 'system') {
 			if (is_error($register_user)) {
 				itoast($register_user['message']);

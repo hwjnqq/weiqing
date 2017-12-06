@@ -21,6 +21,7 @@ if ($do == 'design_method') {
 if($do == 'post') {
 	$uniacid = intval($_GPC['uniacid']);
 	$design_method = intval($_GPC['design_method']);
+	$create_type = $_GPC['create_type'];
 
 	if (empty($design_method)) {
 		itoast('请先选择要添加小程序类型', referer(), 'error');
@@ -73,6 +74,8 @@ if($do == 'post') {
 			'quickmenu' => '',
 			'createtime' => TIMESTAMP,
 			'template' => $design_method == WXAPP_TEMPLATE ? intval($_GPC['choose']['template']) : 0,
+			//是否公众号应用 1 是 0默认小程序
+			'type'=>$create_type == WXAPP_CREATE_MODULE ? WXAPP_CREATE_MODULE : 0
 		);
 		//多模块打包，每个版本对应一个微官网
 		if ($design_method == WXAPP_TEMPLATE) {
@@ -84,18 +87,22 @@ if($do == 'post') {
 			pdo_insert('site_multi', $multi_data);
 			$wxapp_version['multiid'] = pdo_insertid();
 		}
+
+
 		//打包模块
 		if (!empty($_GPC['choose']['modules'])) {
 			$select_modules = array();
 			foreach ($_GPC['choose']['modules'] as $module) {
 				$module = module_fetch($module['module']);
-				if (empty($module) || $module['wxapp_support'] != MODULE_SUPPORT_WXAPP) {
+				if (empty($module)) {
 					continue;
 				}
+
 				$select_modules[$module['name']] = array('name' => $module['name'], 'version' => $module['version']);
 			}
 			$wxapp_version['modules'] = serialize($select_modules);
 		}
+
 		//快捷菜单
 		if (!empty($_GPC['quickmenu']) && $design_method == WXAPP_TEMPLATE) {
 			$quickmenu = array(

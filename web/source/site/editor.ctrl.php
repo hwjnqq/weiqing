@@ -85,7 +85,7 @@ if ($do == 'uc') {
 		}
 		$ids_str = implode(',', $ids);
 		pdo_query('DELETE FROM ' . tablename('site_nav') . " WHERE uniacid = :uniacid AND position = '2' AND id NOT IN ($ids_str)", array(':uniacid' => $_W['uniacid']));
-		itoast('个人中心保存成功.', url('site/editor/uc'), 'success');
+		itoast('个人中心保存成功.', url('site/editor/uc', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL)), 'success');
 	}
 	$navs = pdo_fetchall("SELECT id, icon, css, name, module, status, url FROM ".tablename('site_nav')." WHERE uniacid = :uniacid AND position = '2' ORDER BY displayorder DESC, id ASC", array(':uniacid' => $_W['uniacid']));
 	if (!empty($navs)) {
@@ -150,7 +150,7 @@ if ($do == 'uc') {
 			pdo_insert('site_page', $data);
 			$id = pdo_insertid();
 		}
-		itoast('快捷菜单保存成功.', url('site/editor/quickmenu', array('multiid' => $multiid, 'type' => $type)), 'success');
+		itoast('快捷菜单保存成功.', url('site/editor/quickmenu', array('multiid' => $multiid, 'type' => $type, 'account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL)), 'success');
 	}
 	if ($type == '4') {
 		$page = pdo_fetch("SELECT * FROM ".tablename('site_page')." WHERE type = :type AND uniacid = :uniacid", array(':type' => $type, ':uniacid' => $_W['uniacid']));

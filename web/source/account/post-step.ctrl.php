@@ -130,9 +130,8 @@ if($step == 1) {
 		$update['secret'] = trim($_GPC['secret']);
 		$update['type'] = ACCOUNT_TYPE_OFFCIAL_NORMAL;
 		$update['encodingaeskey'] = trim($_GPC['encodingaeskey']);
-		if (user_is_vice_founder()) {
-			uni_user_account_role($uniacid, $_W['uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
-		}
+		
+
 		if (empty($acid)) {
 			$acid = account_create($uniacid, $update);
 			if(is_error($acid)) {
@@ -142,9 +141,7 @@ if($step == 1) {
 			if (empty($_W['isfounder'])) {
 				uni_user_account_role($uniacid, $_W['uid'], ACCOUNT_MANAGE_NAME_OWNER);
 			}
-			if (!empty($_W['user']['owner_uid'])) {
-				uni_user_account_role($uniacid, $_W['user']['owner_uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
-			}
+			
 		} else {
 			pdo_update('account', array('type' => ACCOUNT_TYPE_OFFCIAL_NORMAL, 'hash' => ''), array('acid' => $acid, 'uniacid' => $uniacid));
 			unset($update['type']);
@@ -208,9 +205,7 @@ if($step == 1) {
 				uni_user_account_role($uniacid, $uid, ACCOUNT_MANAGE_NAME_OWNER);
 			}
 			$user_vice_id = pdo_getcolumn('users', array('uid' => $uid), 'owner_uid');
-			if ($_W['user']['founder_groupid'] != ACCOUNT_MANAGE_GROUP_VICE_FOUNDER && !empty($user_vice_id)) {
-				uni_user_account_role($uniacid, $user_vice_id, ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
-			}
+			
 		}
 		if (!empty($_GPC['signature'])) {
 			$signature = trim($_GPC['signature']);

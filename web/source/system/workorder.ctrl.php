@@ -10,11 +10,12 @@ load()->classs('cloudapi');
 if($do == 'display') { //系统工单
 	$siteurl = $_W['siteroot'];
 	$cloud = new CloudApi();
+	$uuid = $_GPC['uuid'];
 	$data = $cloud->get('system','workorder', array('do'=>'siteworkorder'), 'json');
 	if(is_error($data)) {
 		itoast('无权限进入工单系统');
 	}
-	$iframe_url = $data['data']['url'].'&from='.urlencode($siteurl);
+	$iframe_url = $data['data']['url'].'&from='.urlencode($siteurl).'&uuid='.$uuid;
 	template('system/workorder');
 }
 

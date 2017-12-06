@@ -9,7 +9,6 @@ load()->model('module');
 load()->model('extension');
 
 $eid = intval($_GPC['eid']);
-
 if (!empty($eid)) {
 	$entry = module_entry($eid);
 } else {
@@ -37,13 +36,16 @@ if (!$entry['direct']) {
 		$referer['c'] == 'module' && in_array($referer['a'], array('manage-account', 'permission')))) {
 			itoast('', $_W['siteurl'] . '&version_id=' . $referer['version_id']);
 	}
-	if (empty($_W['uniacid'])) {
-		if (!empty($_GPC['version_id'])) {
-			itoast('', url('wxapp/display'));
-		} else {
-			itoast('', url('account/display'));
+	
+	
+		if (empty($_W['uniacid'])) {
+			if (!empty($_GPC['version_id'])) {
+				itoast('', url('wxapp/display'));
+			} else {
+				itoast('', url('account/display'));
+			}
 		}
-	}
+	
 
 	$module = module_fetch($entry['module']);
 	if (empty($module)) {
@@ -84,6 +86,8 @@ $site = WeUtility::createModuleSite($entry['module']);
 
 define('IN_MODULE', $entry['module']);
 
+
+
 if (!is_error($site)) {
 	if ($_W['role'] == ACCOUNT_MANAGE_NAME_OWNER) {
 		$_W['role'] = ACCOUNT_MANAGE_NAME_MANAGER;
@@ -92,7 +96,10 @@ if (!is_error($site)) {
 	if (in_array($m, $sysmodule)) {
 		$site_urls = $site->getTabUrls();
 	}
-	$method = 'doWeb' . ucfirst($entry['do']);
+	
+		$method = 'doWeb' . ucfirst($entry['do']);
+	
+	
 	exit($site->$method());
 }
 itoast("访问的方法 {$method} 不存在.", referer(), 'error');

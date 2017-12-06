@@ -1,8 +1,8 @@
 {template 'common/header'}
 <div class="btn-group we7-btn-group">
-	<a href="{php echo url('mc/member/base_information', array('uid' => $uid))}" class="btn {if $do == 'base_information'}active{/if}">基本信息</a>
-	<a href="{php echo url('mc/member/member_credits', array('uid' => $uid))}" class="btn {if $do == 'member_credits'}active{/if}">积分/余额</a>
-	<a href="{php echo url('mc/member/credit_statistics', array('uid' => $uid, 'type' => 1))}" class="btn {if $do == 'credit_statistics'}active{/if}">数据统计</a>
+	<a href="{php echo url('mc/member/base_information', array('uid' => $uid, 'account_type' => $_GPC['account_type']))}" class="btn {if $do == 'base_information'}active{/if}">基本信息</a>
+	<a href="{php echo url('mc/member/member_credits', array('uid' => $uid, 'account_type' => $_GPC['account_type']))}" class="btn {if $do == 'member_credits'}active{/if}">积分/余额</a>
+	<a href="{php echo url('mc/member/credit_statistics', array('uid' => $uid, 'type' => 1, 'account_type' => $_GPC['account_type']))}" class="btn {if $do == 'credit_statistics'}active{/if}">数据统计</a>
 </div>
 {if $do == 'credit_statistics'}
 <style>

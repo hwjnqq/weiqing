@@ -21,6 +21,9 @@ if ($_GPC['account_type'] == ACCOUNT_TYPE_APP_NORMAL) {
 	$account_type_offcial = $_GPC['account_type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL ? ACCOUNT_TYPE_OFFCIAL_NORMAL : ACCOUNT_TYPE_OFFCIAL_AUTH;
 	define('ACCOUNT_TYPE_OFFCIAL', $account_type_offcial);
 	define('ACCOUNT_TYPE_TEMPLATE', '');
+} elseif ($_GPC['account_type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
+	define('ACCOUNT_TYPE', ACCOUNT_TYPE_WEBAPP_NORMAL);
+	define('ACCOUNT_TYPE_TEMPLATE', '');
 } else {
 	define('ACCOUNT_TYPE', $_GPC['account_type']);
 }
