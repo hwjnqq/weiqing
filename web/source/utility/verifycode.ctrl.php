@@ -35,14 +35,13 @@ $pars[':receiver'] = $receiver;
 $pars[':uniacid'] = $_W['uniacid'];
 $row = pdo_fetch($sql, $pars);
 $record = array();
+$code = random(6, true);
 if(!empty($row)) {
 	if($row['total'] >= 5) {
 		exit('您的操作过于频繁,请稍后再试');
 	}
-	$code = $row['verifycode'];
 	$record['total'] = $row['total'] + 1;
 } else {
-	$code = random(6, true);
 	$record['uniacid'] = $_W['uniacid'];
 	$record['receiver'] = $receiver;
 	$record['verifycode'] = $code;
