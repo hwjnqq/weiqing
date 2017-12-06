@@ -19,7 +19,7 @@
 	<col width="200px"/>
 	<col width="120px"/>
 	<col width="120px"/>
-	<col width="100px"/>
+	<col width="150px"/>
 	<col width="120px"/>
 	<col width="150px"/>
 	<tr>
@@ -27,13 +27,17 @@
 		<th class="text-left">用户名</th>
 		<th>用户权限组</th>
 		<th>创建公众号</th>
-		<th>使用公众号</th>
-		<th>应用</th>
+		<th>创建小程序</th>
+		<th>注册时间</th>
 		<th>到期时间</th>
 		<th class="text-right">操作</th>
 	</tr>
 	<tr ng-repeat="user in users" ng-if="users">
-		<td><img src="{{user.avatar}}" alt="" class="img-responsive icon"/></td>
+		<td class="td-link">
+			<a ng-href="{{links.edit}}uid={{user.uid}}">
+				<img src="{{user.avatar}}" alt="" class="img-responsive icon"/>
+			</a>
+		</td>
 		<td class="text-left" ng-bind="user.username">{$user['username']}</td>
 		<td>
 			<span class="color-default" ng-if="user.founder">管理员</span>
@@ -41,10 +45,9 @@
 			<span class="color-default" ng-if="!user.groupname && !user.founder">未分配</span>
 		</td>
 		<td class="color-default" ng-bind="user.maxaccount"></td>
-		<td class="color-default" ng-bind="user.uniacid_num"></td>
-		<td class="color-default">
-			<span ng-if="!user.founder" ng-bind="user.module_nums"></span>
-			<span ng-if="user.founder">全部</span>
+		<td class="color-default" ng-bind="user.maxwxapp"></td>
+		<td>
+			<span ng-bind="user.joindate"></span>
 		</td>
 		<td>
 			<span ng-bind="user.endtime"></span>
@@ -52,7 +55,7 @@
 		<td class="vertical-middle table-manage-td">
 			<div class="link-group" ng-if="!user.founder">
 				<a ng-href="{{links.edit}}uid={{user.uid}}" ng-if="type == 'display'">编辑</a>
-				<a ng-href="{{links.recycleDel}}&uid={{user.uid}}" class="del" ng-if="type == 'display'">删除</a>
+				<a href="javascript:;" ng-click="operate(user.uid, '')" class="del" ng-if="type == 'display'">删除</a>
 			</div>
 			<div class="manage-option text-right" ng-if="!user.founder">
 				<a href="{{links.edit}}uid={{user.uid}}">基础信息</a>
@@ -77,7 +80,7 @@
 		users: {php echo !empty($users) ? json_encode($users) : 'null'},
 		usergroups: {php echo !empty($usergroups) ? json_encode($usergroups) : 'null'},
 		links: {
-			recycleDel: "{php echo url('founder/display/del')}",
+			link: "{php echo url('founder/display/del')}",
 			edit: "{php echo url('founder/edit')}",
 		},
 	});
