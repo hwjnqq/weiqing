@@ -1510,7 +1510,7 @@ class We7_couponModuleSite extends WeModuleSite {
 				}
 			}
 			unset($data);
-			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM '. tablename('coupon_activity')." WHERE uniacid = {$_W['uniacid']} AND type = 1 ".$condition);
+			$total = pdo_fetchcolumn('SELECT COUNT(*) FROM '. tablename('coupon_activity')." WHERE uniacid = {$_W['uniacid']} AND type = " . COUPON_TYPE . $condition);
 			$pager = pagination($total, $pindex, $psize);
 		} elseif ($op == 'post') {
 			if (checksubmit('submit')) {

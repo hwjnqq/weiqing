@@ -122,8 +122,12 @@ function cloud_prepare() {
 }
 
 function cloud_build() {
+	$error_file_list = array();
+	if (!cloud_file_permission_pass($error_file_list)) {
+		message('下列文件或是目录无读写权限，导致无法进行系统更新，请及时修复，如有疑问请提交工单或联系客服: <br />' . implode('; <br />', $error_file_list), '', 'error');
+	}
 	$pars = _cloud_build_params();
-	$pars['method'] = 'application.build2';
+	$pars['method'] = 'application.build3';
 	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/application.build';
 	$ret = _cloud_shipping_parse($dat, $file);
@@ -1284,10 +1288,12 @@ function cloud_build_schemas($schems) {
  * @return boolean 为
  */
 function cloud_file_permission_pass(&$error_file_list = array()) {
+	
 	$check_path = array(
 		'/web/common',
 		'/web/source',
-		'/web/themes',
+		'/web/themes/default',
+		'/web/themes/black',
 		'/framework/class',
 		'/framework/model',
 		'/framework/function',
@@ -1301,13 +1307,22 @@ function cloud_file_permission_pass(&$error_file_list = array()) {
 		'/framework/version.inc.php',
 		'/framework/const.inc.php',
 	);
-
+	$sub_paths = array();
 	foreach ($check_path as $path) {
 		$file_list = cloud_file_tree(IA_ROOT . $path);
 		if (!empty($file_list)) {
 			foreach ($file_list as $file) {
+				if (is_file($file)) {
+					$sub_path = pathinfo($file, PATHINFO_DIRNAME);
+					if (empty($sub_paths[$sub_path])) {
+						if (!cloud_path_is_writable($sub_path)) {
+							$error_file_list[] = str_replace(IA_ROOT, '', $sub_path);
+						}
+						$sub_paths[$sub_path] = $sub_path;
+					}
+				}
 				if (!is_writable($file)) {
-					$error_file_list[] = $file;
+					$error_file_list[] = str_replace(IA_ROOT, '', $file);
 				}
 			}
 		}
@@ -1315,12 +1330,11 @@ function cloud_file_permission_pass(&$error_file_list = array()) {
 
 	foreach ($check_file as $file) {
 		if (!is_writable(IA_ROOT . $file)) {
-			$error_file_list[] = $file;
+			$error_file_list[] = str_replace(IA_ROOT, '', $file);;
 		}
 	}
 	return empty($error_file_list) ? true : false;
 }
-
 
 function cloud_file_tree($path, $include = array()) {
 	$files = array();
@@ -1335,7 +1349,7 @@ function cloud_file_tree($path, $include = array()) {
 				$files[] = $entry;
 			}
 			if (is_dir($entry)) {
-				$rs = file_tree($entry);
+				$rs = cloud_file_tree($entry);
 				foreach ($rs as $f) {
 					$files[] = $f;
 				}
@@ -1343,4 +1357,21 @@ function cloud_file_tree($path, $include = array()) {
 		}
 	}
 	return $files;
+}
+
+function cloud_path_is_writable($dir) {
+	$writeable = false;
+	if (!is_dir($dir)) {
+		@mkdir($dir, 0755);
+	}
+	if (is_dir($dir)) {
+		if($fp = fopen("$dir/test.txt", 'w')) {
+			fclose($fp);
+			unlink("$dir/test.txt");
+			$writeable = true;
+		} else {
+			$writeable = false;
+		}
+	}
+	return $writeable;
 }
