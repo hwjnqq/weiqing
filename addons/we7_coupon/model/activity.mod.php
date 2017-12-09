@@ -422,3 +422,81 @@ function we7_coupon_get_operator($clerk_type, $store_id, $clerk_id) {
 	}
 	return $data;
 }
+function we7_coupon_activity_coupon_download($card_list) {
+	global $_W;
+	$coupon_api = new coupon($_W['acid']);
+	$local_coupon_list = pdo_getall('coupon', array('acid' => $_W['acid'], 'source' => 2), array('id', 'status', 'card_id', 'type'), 'card_id');
+	if (!empty($card_list['card_id_list'])) {
+		foreach ($card_list['card_id_list'] as $card_id) {
+			$coupon_info = $coupon_api->fetchCard($card_id);
+			if (is_error($coupon_info)) {
+				return(error(-1, $coupon_info['message']));
+			}
+			if ($coupon_info['card_type'] == 'DISCOUNT') {
+				$type = 1;
+			} elseif ($coupon_info['card_type'] == 'CASH') {
+				$type = 2;
+			} elseif ($coupon_info['card_type'] == 'GROUPON') {
+				$type = 3;
+			} elseif ($coupon_info['card_type'] == 'GIFT') {
+				$type = 4;
+			} elseif ($coupon_info['card_type'] == 'GENERAL_COUPON') {
+				$type = 5;
+			}
+			$coupon_type_label = activity_coupon_type_label($type);
+			$coupon = Card::create($type);
+			$coupon->logo_url = $coupon_info[$coupon_type_label[1]]['base_info']['logo_url'];
+			$coupon->brand_name = $coupon_info[$coupon_type_label[1]]['base_info']['brand_name'];
+			$coupon->title = $coupon_info[$coupon_type_label[1]]['base_info']['title'];
+			$coupon->sub_title = $coupon_info[$coupon_type_label[1]]['base_info']['sub_title'];
+			$coupon_colors = array_flip(activity_coupon_colors());
+			$coupon->color = $coupon_colors[$coupon_info[$coupon_type_label[1]]['base_info']['color']];
+			$coupon->notice = $coupon_info[$coupon_type_label[1]]['base_info']['notice'];
+			$coupon->service_phone = $coupon_info[$coupon_type_label[1]]['base_info']['service_phone'];
+			$coupon->description = $coupon_info[$coupon_type_label[1]]['base_info']['description'];
+			$coupon->get_limit = $coupon_info[$coupon_type_label[1]]['base_info']['get_limit'];
+			$coupon->can_share = $coupon_info[$coupon_type_label[1]]['base_info']['can_share'];
+			$coupon->can_give_friend = $coupon_info[$coupon_type_label[1]]['base_info']['can_give_friend'];
+			if ($coupon_info[$coupon_type_label[1]]['base_info']['date_info']['type'] == 'DATE_TYPE_FIX_TIME_RANGE') {
+				$coupon->date_info = array(
+					'type' => 'DATE_TYPE_FIX_TIME_RANGE',//新版文档变更为字符串，数值1也可用
+					'begin_timestamp' => $coupon_info[$coupon_type_label[1]]['base_info']['date_info']['begin_timestamp'],
+					'end_timestamp' => $coupon_info[$coupon_type_label[1]]['base_info']['date_info']['end_timestamp'],
+				);
+			} elseif ($coupon_info[$coupon_type_label[1]]['base_info']['date_info']['type'] == 'DATE_TYPE_FIX_TERM') {
+				$coupon->setDateinfoFix($coupon_info[$coupon_type_label[1]]['base_info']['date_info']['fixed_begin_term'], $coupon_info[$coupon_type_label[1]]['base_info']['date_info']['fixed_term']);
+			}
+			if (!empty($coupon_info[$coupon_type_label[1]]['base_info']['promotion_url_name']) && !empty($coupon_info[$coupon_type_label[1]]['base_info']['promotion_url'])) {
+				$coupon->setPromotionMenu($coupon_info[$coupon_type_label[1]]['base_info']['promotion_url_name'], $coupon_info[$coupon_type_label[1]]['base_info']['promotion_url_sub_title'], $coupon_info[$coupon_type_label[1]]['base_info']['promotion_url']);
+			}
+			if (!empty($coupon_info[$coupon_type_label[1]]['base_info']['location_id_list'])) {
+				$coupon->location_id_list = $coupon_info[$coupon_type_label[1]]['base_info']['location_id_list'];
+			}
+			$coupon->setCustomMenu('立即使用', '', murl('entry', array('m' => 'paycenter', 'do' => 'consume'), true, true));
+			$coupon->setQuantity($coupon_info[$coupon_type_label[1]]['base_info']['sku']['quantity']);
+			$coupon->code_type = $coupon_info[$coupon_type_label[1]]['base_info']['code_type'];
+			//折扣券
+			$coupon->discount = $coupon_info[$coupon_type_label[1]]['discount'];
+			//代金券，单位为分
+			$coupon->least_cost = $coupon_info[$coupon_type_label[1]]['least_cost'];
+			$coupon->reduce_cost = $coupon_info[$coupon_type_label[1]]['reduce_cost'];
+			//礼品券
+			$coupon->gift = $coupon_info[$coupon_type_label[1]]['gift'];
+			//团购券
+			$coupon->deal_detail = $coupon_info[$coupon_type_label[1]]['deal_detail'];
+			//优惠券
+			$coupon->default_detail = $coupon_info[$coupon_type_label[1]]['default_detail'];
+			$coupon->card_id = $coupon_info[$coupon_type_label[1]]['base_info']['id'];
+			$coupon->source = 2;
+			$coupon_status = activity_coupon_status();
+			$coupon->status = $coupon_status[$coupon_info[$coupon_type_label[1]]['base_info']['status']];
+			$coupon_insert_data = $coupon->getCardArray();
+			$coupon_insert_data['uniacid'] = $_W['uniacid'];
+			$coupon_insert_data['acid'] = $_W['acid'];
+			if (empty($local_coupon_list[$coupon_insert_data['card_id']])) {
+				pdo_insert('coupon', $coupon_insert_data);
+			}
+		}
+	}
+	return true;
+}

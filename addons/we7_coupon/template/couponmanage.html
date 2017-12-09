@@ -69,7 +69,7 @@
 		</div>
 	</div>
 </div>
-<div class="main" id="coupon_display" ng-controller="CouponDisplayCtrl">
+<div class="main" id="coupon_display">
 	<div class="panel panel-info">
 	<div class="panel-heading">筛选</div>
 	<div class="panel-body">
@@ -228,7 +228,7 @@
 </div>
 {if COUPON_TYPE == WECHAT_COUPON}
 <a class="btn btn-success js-sync pull-left" onclick="util.ajaxshow('{php echo $this->createWeburl('couponmanage', array('op' => 'sync', 'type' => 1))}')">更新全部卡券最新状态</a>&nbsp;&nbsp;
-<a class="btn btn-success" ng-click="download(0);">同步卡券信息</a>
+<a class="btn btn-success js-download" click="download(0);">同步卡券信息</a>
 {/if}
 <div class="pull-right">{$pager}</div>
 {if COUPON_TYPE == WECHAT_COUPON}
@@ -299,26 +299,27 @@
 	download_url = "{php echo $this->createWeburl('couponmanage', array('op' => 'download'))}";
 	success_url = "{php echo $this->createWeburl('couponmanage')}";
 	total = 0;
-	angular.module('couponApp', ['app'])
-	.controller('CouponDisplayCtrl', ['$scope', '$http', function($scope, $http) {
-		$scope.download = function(offset) {
-			util.message('正在下载卡券数据...');
-			$http.post(download_url, {offset : offset}).success(function(data) {
-				if (data.message.errno != 0) {
-					util.message(data.message.message, '', 'error');
-					return false;
-				}
-				total += 50;
-				if ((data.message.message.pages <= (total/50)) || (!data.message.message.total && !data.message.message.offset)) {
-					util.message('同步完成', success_url, 'success');
-					return false;
-				} else {
-					$scope.download(data.message.message.offset);
-				}
-			});
-		};
-	}]);
-	angular.bootstrap(document, ['couponApp']);
+	$('.js-download').click(function() {
+		download(0);
+	});
+		
+	function download(offset) {
+		util.message('正在下载卡券数据...');
+		$.post(download_url, {offset : offset}, function(data) {
+			data = $.parseJSON(data);
+			if (data.message.errno != 0) {
+				util.message(data.message.message, '', 'error');
+				return false;
+			}
+			total += 50;
+			if ((data.message.message.pages <= (total/50)) || (!data.message.message.total && !data.message.message.offset)) {
+				util.message('同步完成', success_url, 'success');
+				return false;
+			} else {
+				download(data.message.message.offset);
+			}
+		});
+	}
 
 </script>
 {/if}

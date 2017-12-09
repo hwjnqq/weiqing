@@ -1288,7 +1288,7 @@ class We7_couponModuleSite extends WeModuleSite {
 			);
 			$card_list = $coupon_api->batchgetCard($data);
 			$card_list_total = $card_list['total_num'];
-			$download_info = activity_coupon_download($card_list);
+			$download_info = we7_coupon_activity_coupon_download($card_list);
 			if (is_error($download_info)) {
 				message(error(-1, $download_info['message']), '', 'ajax');
 			} else {
