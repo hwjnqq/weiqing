@@ -345,7 +345,9 @@ function site_article($params = array()) {
 	} else {
 		$category_list = pdo_getall('site_category', array('uniacid' => $_W['uniacid'], 'multiid' => $multiid), array(), 'id');
 		$category_list = implode(',', array_keys($category_list));
-		$condition .= " AND pcate IN (". $category_list .") OR ccate IN (". $category_list .") OR pcate = 0 AND ccate = 0";
+		if (!empty($category_list)) {
+			$condition .= " AND pcate IN (". $category_list .") OR ccate IN (". $category_list .") OR pcate = 0 AND ccate = 0";
+		}
 	}
 	if ($iscommend == 'true') {
 		$condition .= " AND iscommend = '1'";

@@ -1,0 +1,393 @@
+{template 'common/header-storex'}
+
+{if $op == 'display'}
+<div class="wn-main wn-main--without">
+	<div class="wn-main__head">应用</div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item wn-tabs__item--active">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">拼团活动列表</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'grouplist', 'storeid' => $_GPC['storeid']))}">拼团列表</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group_order', array('op' => 'orderlist', 'storeid' => $_GPC['storeid']))}">拼团订单列表</a>
+			</div>
+		</div>
+		<div class="pull-right">
+			<a href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'post', 'storeid' => $_GPC['storeid']))}" class="btn btn-primary">+添加拼团活动列表</a>
+		</div>
+		<div class="clearfix">
+			<table class="table table-hover wn-table table-bordered">
+				<thead class="navbar-inner">
+					<tr>
+						<th style="width: 60px;">缩略图</th>
+						<th>活动名称</th>
+						<th>活动排序</th>
+						<th>开始时间</th>
+						<th>结束时间</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $group_activity $activity}
+					<tr>
+						<td><img src="{$activity['thumb']}" alt="活动图片" style="width: 50px; height: 50px"></td>
+						<td>{$activity['title']}</td>
+						<td>{$activity['displayorder']}</td>
+						<td>{php echo date('Y-m-d H:i:s', $activity['starttime'])}</td>
+						<td>{php echo date('Y-m-d H:i:s', $activity['endtime'])}</td>
+						<td>
+							<a href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'post', 'id' => $activity['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">编辑</a>
+							<a href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'groupgoods', 'id' => $activity['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">拼团商品列表</a>
+							<a href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'add_goods', 'id' => $activity['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">添加拼团商品</a>
+							<a href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'delete', 'id' => $activity['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">删除</a>
+						</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+			<div class="pull-right">
+				{$pager}
+			</div>
+		</div>
+	</div>
+</div>
+{/if}
+
+{if $op == 'grouplist'}
+<div class="wn-main wn-main--without">
+	<div class="wn-main__head">应用</div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item wn-tabs__item--active">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">拼团活动列表</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'grouplist', 'storeid' => $_GPC['storeid']))}">拼团列表</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group_order', array('op' => 'orderlist', 'storeid' => $_GPC['storeid']))}">拼团订单列表</a>
+			</div>
+		</div>
+		<div class="clearfix">
+			<table class="table table-hover wn-table table-bordered">
+				<thead class="navbar-inner">
+					<tr>
+						<th style="width: 60px;">活动缩略图</th>
+						<th>拼团ID</th>
+						<th>拼团活动ID</th>
+						<th>拼团商品ID</th>
+						<th>拼团发起者</th>
+						<th>拼团成员</th>
+						<th>拼团发起时间</th>
+						<th>拼团结果</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $grouplist $list}
+					<tr>
+						<td><img src="{$storex_plugin_group[$list['group_activity_id']]['thumb']}" alt="活动图片" style="width: 50px; height: 50px"></td>
+						<td>{$list['id']}</td>
+						<td>{$list['group_activity_id']}</td>
+						<td>{$list['activity_goodsid']}</td>
+						<td>{$list['head']}</td>
+						<td>{$list['member']}</td>
+						<td>{php echo date('Y-m-d H:i:s', $activity['start_time'])}</td>
+						<td>
+							{if $list['over'] == 1}
+								成功
+							{else if $list['over'] == 2}
+								未完成
+							{else if $list['over'] == 3}
+								已退款
+							{/if}
+						</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+			<div class="pull-right">
+				{$pager}
+			</div>
+		</div>
+	</div>
+</div>
+{/if}
+
+{if $op == 'post'}
+<div class="wn-main  wn-main--without">
+	<div class="wn-main__head">应用</div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item wn-tabs__item--active">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">拼团活动列表</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'grouplist', 'storeid' => $_GPC['storeid']))}">拼团列表</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group_order', array('op' => 'orderlist', 'storeid' => $_GPC['storeid']))}">拼团订单列表</a>
+			</div>
+		</div>
+		<div class="pull-right">
+			<a href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'display', 'storeid' => $_GPC['storeid']))}" class="btn btn-primary">-返回拼团活动列表</a>
+		</div>
+		<div class="form-horizontal">
+			<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+				<input type="hidden" name="id" value="{$activity['id']}">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">活动名称</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="text" name="title" value="{$activity['title']}" class="form-control">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">活动排序</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="displayorder" value="{$activity['displayorder']}" class="form-control">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">活动时间</label>
+					<div class="col-sm-4 col-xs-6">
+						{php echo _tpl_form_field_date('starttime', $activity['starttime'], true)}
+					</div>
+					<div class="col-sm-1 col-xs-6">至</div>
+					<div class="col-sm-4 col-xs-6">
+						{php echo _tpl_form_field_date('endtime', $activity['endtime'], true)}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">活动缩略图</label>
+					<div class="col-sm-9 col-xs-12">
+						{php echo tpl_form_field_image('thumb',$activity['thumb'])}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品说明</label>
+					<div class="col-sm-9 col-xs-12">
+					{if !empty($activity['rule'])}
+						{php echo tpl_ueditor('rule', $activity['rule']);}
+					{else}
+						{php echo tpl_ueditor('rule', $rule);}
+					{/if}
+						<span class="help-block">拼团规则（必填）</span>
+					</div>
+				</div>
+				<div class="form-group col-sm-12">
+					<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+{/if}
+{if $op == 'groupgoods'}
+<div class="wn-main wn-main--without">
+	<div class="wn-main__head">应用</div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">拼团活动列表</a>
+			</div>
+			<div class="wn-tabs__item wn-tabs__item--active">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'groupgoods', 'id' => $activity['id'], 'storeid' => $_GPC['storeid']))}">{$activity['title']}--活动商品列表</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'grouplist', 'storeid' => $_GPC['storeid']))}">拼团列表</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group_order', array('op' => 'orderlist', 'storeid' => $_GPC['storeid']))}">拼团订单列表</a>
+			</div>
+		</div>
+		<div class="pull-right">
+			<a href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'add_goods', 'id' => $activity['id'], 'storeid' => $_GPC['storeid']))}" class="btn btn-primary">+添加活动商品</a>
+		</div>
+		<div class="clearfix">
+			<table class="table table-hover wn-table table-bordered">
+				<thead class="navbar-inner">
+					<tr>
+						<th>商品图</th>
+						<th>商品名称</th>
+						<th>拼团人数</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $goods $g}
+					<tr>
+						<td><img src="{$g['thumb']}" alt="商品图片" style="width: 50px; height: 50px"></td>
+						<td>{$g['title']}</td>
+						<td>{$g['number']}</td>
+						<td>
+							<a href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'add_goods', 'id' => $g['group_activity'], 'activity_good_id' => $g['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">编辑</a>
+							<a href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'delete_goods', 'id' => $g['group_activity'], 'activity_good_id' => $g['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">删除</a>
+						</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+			<div class="pull-right">
+				{$pager}
+			</div>
+		</div>
+	</div>
+</div>
+{/if}
+{if $op == 'add_goods'}
+<div class="wn-main wn-main--without">
+	<div class="wn-main__head">应用</div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">拼团活动列表</a>
+			</div>
+			<div class="wn-tabs__item wn-tabs__item--active">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'groupgoods', 'id' => $activity['id'], 'storeid' => $_GPC['storeid']))}">{$activity['title']}--活动商品列表</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'grouplist', 'storeid' => $_GPC['storeid']))}">拼团列表</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_plugin_group_order', array('op' => 'orderlist', 'storeid' => $_GPC['storeid']))}">拼团订单列表</a>
+			</div>
+		</div>
+		<div class="pull-right">
+			<a href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'groupgoods', 'id' => $activity['id'], 'storeid' => $_GPC['storeid']))}" class="btn btn-primary">-返回该活动商品列表</a>
+		</div>
+		<div class="form-horizontal">
+			<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+				<input type="hidden" name="id" value="{$activity['id']}">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">拼团商品</label>
+					<div class="col-sm-2 col-xs-12">
+						<img class="activity_group_goods" src="{$activity_good['thumb']}" title="{$activity_good['title']}" alt="暂无商品" style="width:100px;height:100px;">
+						<input class="goods_id" type="hidden" name="goods_id" value="{$activity_good['id']}" />
+					</div>
+					<div class="col-sm-6 col-xs-12">
+						<button type="button" data-toggle="modal" data-target="#goods-modal" class="btn but btn-default">选择拼团商品</button>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">拼团人数</label>
+					<div class="col-sm-6 col-xs-12">
+						<input type="text" class="form-control" name="number" value="{$activity_goods['number']}">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-sm-3 control-label">拼团价格设置</label>
+					<div class="col-sm-9 col-xs-12">
+						<table class="table we7-table">
+							<thead>
+							<tr>
+								<th>商品名称</th>
+								<th style="position: relative;">
+									<span>拼团价格</span>
+								</th>
+							</tr>
+							</thead>
+							<tbody class="js-edit">
+								{loop $edit_goods $k $goods}
+								<tr>
+									<td>
+										{$goods['title']}
+									</td>
+									<td width="200px">
+										<div class="input-group">
+											<input type="text" class="form-control" value="{$goods['cprice']}" name="cprice[{$k}]">
+											<span class="input-group-addon">元</span>
+										</div>
+									</td>
+								</tr>
+								{/loop}
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+				<div class="form-group col-sm-12">
+					<input type="hidden" name="is_spec" value="{$activity_goods['is_spec']}" />
+					<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+{/if}
+
+<div id="goods-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-default modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				<h3>
+					<ul role="tablist" class="nav nav-pills" style="font-size:14px; margin-top:-20px;">
+						<li role="presentation" class="basic">
+							<a data-toggle="tab" data-type="basic" role="tab" aria-controls="baisc" href="#basic">选择拼团商品</a>
+						</li>
+					</ul>
+				</h3>
+			</div>
+			<div class="modal-body modules-content">
+				<div class="tab-content">
+					{if !empty($goods)}
+					{loop $goods $good}
+						<img src="{$good['thumb']}" data-id="{$good['id']}" alt="{$good['title']}" title="{$good['title']}" class="good_info" data-is_spec="{$good['is_spec']}" style="width:100px;height:100px;">
+					{/loop}
+					{else}
+					<div class="text-center">没有适用商品</div>
+					{/if}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	$(function(){
+		var goods_list = {php echo json_encode($all_goods_list)};
+		var spec_price = {php echo json_encode($spec_cprice)};
+		$('.good_info').click(function(){
+			var goodid = $(this).data('id');
+			var title = this.title;
+			var src = this.src;
+			var goods_info = $('.activity_group_goods')[0];
+			console.dir(goods_info);
+			goods_info.alt = title;
+			goods_info.title = title;
+			goods_info.src = src;
+			current_list = goods_list[goodid];
+			html = '';
+			for (var i in current_list) {
+				if (current_list[i].is_spec == 1) {
+					$('input[name="is_spec"]').val(1);
+					title = current_list[i].title + '-' + current_list[i].goods_val_title;
+				} else {
+					$('input[name="is_spec"]').val(2);
+					title = current_list[i].title;
+				}
+				html += '<tr>' + 
+						'<input type="hidden">' + 
+						'<td>' + 
+							title +
+							'<input type="hidden" name="" value="">' +
+						'</td>' +
+						'<td width="200px">' +
+							'<div class="input-group">' +
+								'<input type="text" class="form-control" name="cprice['+ i +']">' +
+								'<span class="input-group-addon">元</span>' +
+							'</div>' +
+						'</td>' +
+					'</tr>';
+			}
+			console.dir(html);
+			$('.js-edit').html(html);
+			$('.goods_id')[0].value = goodid;
+			$('#goods-modal').modal('hide');
+		});
+	});
+</script>
+{template 'common/footer-storex'}

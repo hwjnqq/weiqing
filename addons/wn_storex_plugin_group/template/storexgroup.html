@@ -1,0 +1,39 @@
+{template 'common/header'}
+<div class="we7-page-title"></div>
+<ul class="we7-page-tab">
+	<li class="active"><a href="{php echo $this->createWeburl('storexgroup')}">拼团店铺</a></li>
+</ul>
+
+<div class="main">
+	<div class="clearfix" id="roommanage">
+		<table class="table table-hover we7-table">
+			<col width="230"/>
+			<col />
+			<col />
+			<col width="80px"/>
+			<thead class="navbar-inner">
+				<tr>
+					<th>店铺logo</th>
+					<th>店铺名称</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $storex_bases $info}
+				<tr>
+					<td >
+						<img src="{php echo tomedia($info['thumb'])}" width="30px" height="30px">
+					</td>
+					<td>
+						{$info['title']}
+					</td>
+					<td class="text-left">
+						<a href="{php echo $info['link']}" class="color-default">拼团设置</a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+	</div>
+</div>
+{template 'common/footer'}

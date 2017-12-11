@@ -1,0 +1,295 @@
+{template 'common/header-storex'}
+<div class="wn-main">
+	<div class="wn-main__head">
+		<a href="{php echo $this->createWebUrl('shop_goodsmanage', array('storeid' => $storeid));}" id="add_coupon">
+			管理商品
+		</a>
+		/编辑规格
+	</div>
+	<div class="wn-main__content" id="goods_spec">
+		<form action="{php echo $this->createWebUrl('shop_goods_spec', array('storeid' => $storeid,'op' => post));}"
+		      class="form-horizontal form" method="post" enctype="multipart/form-data">
+			<input type="hidden" name="id" value="{$store['id']}">
+			<input type="hidden" name="store_type" value="{$store['store_type']}">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品</label>
+				<div class="col-sm-8 col-lg-9 col-xs-12">
+					<input type="text" disabled
+					       value="{$store['title']}/{$category_info['name']}/{$goods_info['title']}"
+					       class="form-control">
+				</div>
+			</div>
+			<template v-for="(spec, id) in spec_list">
+				<div class="form-group">
+					<div class="control-label col-sm-2">
+						<input type="text" :value="spec.name" :name="'sp_name['+ id +']'" class="hidden"
+						       style="display: inline-block;width: 50%" v-model="sp_name[id]">
+						{{sp_name[id]}}
+					</div>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<label class="checkbox-inline" v-for="value in spec.values">
+							<input type="checkbox"
+							       :value="value"
+							       v-model="sp_value[id]"/> {{value.name}}
+						</label>
+						<template class="hidden" v-for="(item, id) in sp_value">
+							<input type="text" class="hidden" :id="'sp_val[' + id + '][' + value.id + ']'"
+							       :name="'sp_val[' + id + '][' + value.id + ']'" :value="value.name"
+							       v-for="value in item">
+						</template>
+
+					</div>
+				</div>
+			</template>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">库存配置</label>
+				<div class="col-sm-9 col-xs-12">
+					<table class="table we7-table">
+						<thead>
+						<tr>
+							<th v-for="name in sp_name">{{name}}</th>
+							<th style="position: relative;">
+								<span @click="cpriceStatus = !cpriceStatus">在线支付价 <i class="fa fa-edit"></i></span>
+								<div class="popover fade bottom" :class="{'in': cpriceStatus}" v-show="cpriceStatus"
+								     style="display: inline-block; bottom: -45px; left: -30px; top: auto">
+									<div class="arrow" style="left: 50%;"></div>
+									<h3 class="popover-title" style="display: none;"></h3>
+									<div class="popover-content">
+										<div class="input-group">
+											<input type="text" class="form-control" placeholder="在线支付价" v-model="cprice">
+											<span class="input-group-addon" @click="editValue('cprice')">确定</span>
+										</div>
+									</div>
+								</div>
+							</th>
+							<th style="position: relative">
+								<span @click="opriceStatus = !opriceStatus">前台支付价（原价） <i class="fa fa-edit"></i></span>
+								<div class="popover fade bottom " :class="{'in': opriceStatus}"  v-show="opriceStatus"
+								     style="display: inline-block; bottom: -45px; left: -30px; top: auto">
+									<div class="arrow" style="left: 50%;"></div>
+									<h3 class="popover-title" style="display: none;"></h3>
+									<div class="popover-content">
+										<div class="input-group">
+											<input type="text" class="form-control" placeholder="前台支付价" v-model="oprice">
+											<span class="input-group-addon" @click="editValue('oprice')">确定</span>
+										</div>
+									</div>
+								</div>
+							</th>
+							<th style="position: relative">
+								<span @click="stockStatus = !stockStatus">库存 <i class="fa fa-edit"></i></span>
+								<div class="popover fade bottom " :class="{'in': stockStatus}" v-show="stockStatus"
+								     style="display: inline-block; bottom: -45px; left: -30px; top: auto">
+									<div class="arrow" style="left: 50%;"></div>
+									<h3 class="popover-title" style="display: none;"></h3>
+									<div class="popover-content">
+										<div class="input-group">
+											<input type="number" class="form-control" placeholder="库存" v-model="stock">
+											<span class="input-group-addon" @click="editValue('stock')">确定</span>
+										</div>
+									</div>
+								</div>
+							</th>
+							<th style="position: relative">
+								<span>上传图片</span>
+							</th>
+							<th style="position: relative">
+								<span>图片展示</span>
+							</th>
+						</tr>
+						</thead>
+						<tbody>
+						<tr v-for="(sku, key) in skus" v-if="skus">
+							<input type="hidden" :name="'spec[' + key + '][goodsid]'" :value="sku.goodsid">
+							<td v-for="item in sku.sp_value">
+								{{item.name}}
+								<input type="hidden" :name="'spec[' + key + '][sp_value][' + item.id + ']' "
+								       :value="item.name">
+							</td>
+							<td width="200px">
+								<div class="input-group">
+									<input type="text" class="form-control" placeholder="在线支付价"
+									       :name="'spec[' + key + '][cprice]'" v-model="sku.cprice">
+									<span class="input-group-addon">元</span>
+								</div>
+							</td>
+							<td width="200px">
+								<div class="input-group">
+									<input type="text" class="form-control" placeholder="前台支付价" value=""
+									       :name="'spec[' + key + '][oprice]'" v-model="sku.oprice">
+									<span class="input-group-addon">元</span>
+								</div>
+							</td>
+							<td width="200px">
+								<input type="number" class="form-control" placeholder="库存"
+								       :name="'spec[' + key + '][stock]'" v-model="sku.stock">
+							</td>
+							<td width="200px">
+								<input type="text" readonly class="form-control" :name="'spec[' + key + '][thumb]'" v-model="sku.thumb" placeholder="图片地址">
+								<span class="input-group-btn" @click="uploadImage(sku, 'thumb')">
+									<button class="btn btn-default" type="button"><i class="fa fa-plus-circle green"></i>&nbsp;选择图片</button>
+								</span>
+							</td>
+							<td width="100px">
+								<img :src="sku.thumb" alt="" style="height: 50px;width: 50px;">
+							</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<input type="hidden" name="commonid" value="{$_GPC['id']}">
+			<input type="submit" name="submit" value="提交" class="btn btn-primary"/>
+			<input type="hidden" name="token" value="{$_W['token']}">
+		</form>
+	</div>
+</div>
+{$spec_list}
+<script type="text/javascript">
+	var thumb = "{php echo $thumb}";
+	console.log(thumb);
+	require(['vue'], function (Vue) {
+		var vm = new Vue({
+			el: '#goods_spec',
+			data: {
+				goods_list: {php echo json_encode($goods_list)} || null,
+				spec_list: {php echo json_encode($spec_list)},
+				sp_name: {},
+				sp_value: [],
+				skus: {},
+				spec_num: 0,
+				opriceStatus: false,
+				stockStatus: false,
+				cpriceStatus: false,
+				oprice: '',
+				cprice: '',
+				stock: ''
+			},
+			methods: {
+				editValue: function (key) {
+					if (key && this[key]) {
+						for(var i in this.skus) {
+							this.skus[i][key] = this[key]
+						}
+						this[key + 'Status'] = false
+					}
+				},
+				uploadImage: function (target, key) {
+					const self = this;
+					require(['fileUploader'], function (uploader) {
+						uploader.show(function (img) {
+							self.$set(target, key, img.url)
+						}, {
+							'direct': true,
+							'multiple': false
+						});
+					});
+				},
+			},
+			watch: {
+				sp_value: {
+					handler: function (val) {
+						var args = []
+						this.skus = {}
+						var goods_spec = this.goods_list && this.goods_list['spec'];
+						for (var i in val) {
+							if (val[i] && val[i].length > 0) {
+								args.push(val[i])
+							}
+						}
+						if (args.length === this.spec_num) {
+							var skus = descartes(args)
+							for (var i in skus) {
+								var sku = {
+									goods_id: '',
+									oprice: '',
+									cprice: '',
+									stock: '',
+									thumb: thumb,
+									sp_value: []
+								}
+								var key = 'i';
+								for (var j in skus[i]) {
+									key = key + '_' + skus[i][j]['id']
+								}
+								if (goods_spec && goods_spec[key]) {
+									sku = goods_spec[key]
+								}
+								sku.sp_value = skus[i].slice(0);
+								this.skus[key] = sku
+								this.skus = Object.assign({}, this.skus)
+							}
+						}
+					},
+					deep: true
+				}
+			},
+			created: function () {
+				var goods_sp_val = this.goods_list && this.goods_list['sp_val'];
+				var spec_list = {php echo json_encode($spec_list)};
+				var sp_name = {}
+				var sp_value = {}
+				var lenght = 0
+				for (var id in spec_list) {
+					sp_name[id] = spec_list[id]['name'];
+					sp_value[id] = []
+					if (goods_sp_val) {
+						for (var i in goods_sp_val[id]) {
+							sp_value[id].push(spec_list[id]['values'][i])
+						}
+					}
+					lenght++
+				}
+				this.spec_num = lenght
+				this.$set(this, 'sp_value', sp_value)
+				this.$set(this, 'sp_name', sp_name)
+			}
+		})
+		// 笛卡儿积组合
+		//循环方式组合
+		function descartes(args) {
+			//var args = arguments;
+			var rs = [];
+			// A. 校验并转换为JS数组
+			for (var i = 0; i < args.length; i++) {
+				if (!$.isArray(args[i])) {
+					return false;  // 参数必须为数组
+				}
+			}
+
+			// 两个笛卡尔积换算
+			var bothDescartes = function (m, n) {
+				var r = []
+				for (var i = 0; i < m.length; i++) {
+					for (var ii = 0; ii < n.length; ii++) {
+						var t = [];
+						if ($.isArray(m[i])) {
+							t = m[i].slice(0);  //此处使用slice目的为了防止t变化，导致m也跟着变化
+						} else {
+							t.push(m[i]);
+						}
+						t.push(n[ii]);
+						r.push(t);
+					}
+				}
+				return r;
+			}
+			if (args.length == 1) {
+				for (var i in args[0]) {
+					rs[i] = [args[0][i]]
+				}
+				return rs
+			}
+			// 多个笛卡尔基数换算
+			for (var i = 0; i < args.length; i++) {
+				if (i == 0) {
+					rs = args[i];
+				} else {
+					rs = bothDescartes(rs, args[i]);
+				}
+			}
+			return rs;
+		}
+	})
+</script>
+{template 'common/footer-storex'}

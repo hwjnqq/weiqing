@@ -38,7 +38,7 @@ function user_register($user) {
 	$message = array(
 		'status' => $user['status']
 	);
-	message_record($content, $user['uid'], $user['uid'], MESSAGE_REGISTER_TYPE, $message);
+	message_notice_record($content, $user['uid'], $user['uid'], MESSAGE_REGISTER_TYPE, $message);
 
 	return intval($user['uid']);
 }
@@ -747,11 +747,13 @@ function user_group_format($lists) {
 		if (empty($package)) {
 			$lists[$key]['module_nums'] = '系统默认';
 			$lists[$key]['wxapp_nums'] = '系统默认';
+			$lists[$key]['webapp_nums'] = '系统默认';
 			continue;
 		}
 		if (is_array($package) && in_array(-1, $package)) {
 			$lists[$key]['module_nums'] = -1;
 			$lists[$key]['wxapp_nums'] = -1;
+			$lists[$key]['webapp_nums'] = -1;
 			continue;
 		}
 		$names = array();
@@ -760,6 +762,7 @@ function user_group_format($lists) {
 				$names[] = $modules['name'];
 				$lists[$key]['module_nums'] = count($modules['modules']);
 				$lists[$key]['wxapp_nums'] = count($modules['wxapp']);
+				$lists[$key]['webapp_nums'] = count($modules['webapp']);
 			}
 		}
 		$lists[$key]['packages'] = implode(',', $names);
@@ -797,6 +800,7 @@ function user_list_format($users) {
 		}
 		$user['maxaccount'] = $user['founder_groupid'] == 1 ? '不限' : (empty($group) ? 0 : $group['maxaccount']);
 		$user['maxwxapp'] = $user['founder_groupid'] == 1 ? '不限' : (empty($group) ? 0 : $group['maxwxapp']);
+		$user['maxwebapp'] = $user['founder_groupid'] == 1 ? '不限' : (empty($group) ? 0 : $group['maxwebapp']);
 		$user['groupname'] = $group['name'];
 		unset($user);
 	}
@@ -965,39 +969,3 @@ function user_borrow_oauth_account_list() {
 		'jsoauth_accounts' => $jsoauth_accounts
 	);
 }
-
-/**
- * 公众号过期记录
- * @return bool
- */
-function user_account_expire_message_record() {
-	load()->model('account');
-	load()->model('message');
-	if (!pdo_tableexists('message_notice_log')) {
-		return true;
-	}
-	$account_table = table('account');
-	$expire_account_list = $account_table->searchAccountList();
-	if (empty($expire_account_list)) {
-		return true;
-	}
-	foreach ($expire_account_list as $account) {
-		$account_detail = uni_fetch($account['uniacid']);
-		if (empty($account_detail['uid'])) {
-			continue;
-		}
-		if ($account_detail['endtime'] > 0 && $account_detail['endtime'] < TIMESTAMP) {
-			$type = $account_detail['type'] == ACCOUNT_TYPE_APP_NORMAL ? MESSAGE_WECHAT_EXPIRE_TYPE : MESSAGE_ACCOUNT_EXPIRE_TYPE;
-			$exist_record = pdo_get('message_notice_log', array('sign' => $account_detail['uniacid'], 'uid' => $account_detail['uid'], 'type' => $type, 'end_time' => $account_detail['endtime']));
-			if (empty($exist_record)) {
-				$account_name = $account_detail['type'] == ACCOUNT_TYPE_APP_NORMAL ? '-小程序过期' : '-公众号过期';
-				$message = array(
-					'end_time' => $account_detail['endtime']
-				);
-				message_record($account_detail['name'] . $account_name, $account_detail['uid'], $account_detail['uniacid'], $type, $message);
-			}
-		}
-	}
-	return true;
-}
-

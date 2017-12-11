@@ -6,7 +6,7 @@
 
 defined('IN_IA') or exit('Access Denied');
 
-$dos = array('display', 'change_read_status', 'header_notice');
+$dos = array('display', 'change_read_status', 'event_notice');
 $do = in_array($do, $dos) ? $do : 'display';
 load()->model('message');
 
@@ -52,15 +52,12 @@ if ($do == 'change_read_status') {
 	iajax(0, '成功');
 }
 
-if ($do == 'header_notice') {
+if ($do == 'event_notice') {
 	if (!pdo_tableexists('message_notice_log')) {
 		iajax(-1);
 	}
-	$message_list = message_notice();
-	if (!empty($message_list['lists'])) {
-		$message_list['lists'] = message_record_formate($message_list['lists']);
-	}
-	iajax(0, $message_list);
+	$message = message_event_notice_list();
+	iajax(0, $message);
 
 }
 template('message/notice');

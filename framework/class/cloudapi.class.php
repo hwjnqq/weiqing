@@ -227,6 +227,7 @@ class CloudApi {
 			return $url;
 		}
 
+
 		$response = ihttp_get($url);
 
 		if (is_error($response)) {

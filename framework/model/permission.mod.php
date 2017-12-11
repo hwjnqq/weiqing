@@ -85,6 +85,17 @@ function permission_get_nameandurl($permission) {
 				'action' => $url_query_array['a'],
 				'permission_name' => $permission_name['permission_name']
 			);
+			if (!empty($permission_name['sub_permission'])) {
+				foreach ($permission_name['sub_permission'] as $key => $sub_permission_name) {
+					$sub_url_query_array = url_params($sub_permission_name['url']);
+					$result[] = array(
+						'url' => $sub_permission_name['url'],
+						'controller' => $sub_url_query_array['c'],
+						'action' => $sub_url_query_array['a'],
+						'permission_name' => $sub_permission_name['permission_name'],
+					);
+				}
+			}
 		}
 	}
 	return $result;
@@ -456,6 +467,7 @@ function permission_user_account_num($uid = 0) {
 		load()->model('user');
 		$user = user_single($uid);
 	}
+	/** @var  $user_table  UsersTable*/
 	$user_table = table('users');
 	if (user_is_vice_founder($user['uid']) && empty($uid)) {
 		$role = ACCOUNT_MANAGE_NAME_VICE_FOUNDER;
@@ -471,10 +483,11 @@ function permission_user_account_num($uid = 0) {
 				$group_vice = $user_table->userFounderGroupInfo($owner_info['groupid']);
 				$group['maxaccount'] = min(intval($group['maxaccount']), intval($group_vice['maxaccount']));
 				$group['maxwxapp'] = min(intval($group['maxwxapp']), intval($group_vice['maxwxapp']));
+				$group['maxwebapp'] = min(intval($group['maxwebapp']), intval($group_vice['maxwebapp']));
 			}
 		}
 	}
-
+	/* @var $store_table StoreTable*/
 	$store_table = table('store');
 	$create_buy_account_num = $store_table->searchUserCreateAccountNum($_W['uid']);
 	$create_buy_wxapp_num = $store_table->searchUserCreateWxappNum($_W['uid']);
@@ -482,17 +495,22 @@ function permission_user_account_num($uid = 0) {
 	$store_buy_wxapp = $store_table->searchUserBuyWxapp($_W['uid']);
 	$uniacid_limit = max((intval($group['maxaccount']) + intval($store_buy_account) - $group_num['account_num']), 0);
 	$wxapp_limit = max((intval($group['maxwxapp']) + intval($store_buy_wxapp) - $group_num['wxapp_num']), 0);
+	$webapp_limit = max(intval($group['maxwebapp']) - $group_num['webapp_num'], 0);
 	$data = array(
 		'group_name' => $group['name'],
 		'vice_group_name' => $group_vice['name'],
 		'maxaccount' => $group['maxaccount'] + $store_buy_account,
 		'usergroup_account_limit' => max($group['maxaccount'] - $group_num['account_num'] - $create_buy_account_num, 0),//用户组剩余创建公众号个数
 		'usergroup_wxapp_limit' => max($group['maxwxapp'] - $group_num['wxapp_num'] - $create_buy_wxapp_num, 0),//用户组剩余创建小程序个数
+		'usergroup_webapp_limit' => max($group['maxwebapp'] - $group_num['webapp_num'], 0),//用户组剩余创建小程序个数
 		'uniacid_num' => $group_num['account_num'],
 		'uniacid_limit' => max($uniacid_limit, 0),
 		'maxwxapp' => $group['maxwxapp'] + $store_buy_wxapp,
 		'wxapp_num' => $group_num['wxapp_num'],
-		'wxapp_limit' => max($wxapp_limit, 0)
+		'wxapp_limit' => max($wxapp_limit, 0),
+		'maxwebapp'=>$group['maxwebapp'],//pc 最大创建数量
+		'webapp_limit'=> $webapp_limit, //pc 剩余创建数量,
+		'webapp_num'=> $group_num['webapp_num'] //pc 已创建pc数量
 	);
 	return $data;
 }

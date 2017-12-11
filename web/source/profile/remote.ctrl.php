@@ -24,7 +24,12 @@ if ($do == 'upload_remote') {
 	}
 }
 if ($do == 'display') {
-	$local_attachment = file_tree(IA_ROOT . '/attachment/images/' . $_W['uniacid']);
+	$safe_path = safe_gpc_path(IA_ROOT . '/attachment/images/' . $_W['uniacid']);
+	if (!empty($safe_path)) {
+		$local_attachment = file_tree($safe_path);
+	} else {
+		$local_attachment = array();
+	}
 }
 
 if ($do == 'save'){

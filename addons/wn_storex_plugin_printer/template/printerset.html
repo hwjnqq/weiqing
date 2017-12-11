@@ -1,0 +1,107 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li class="{if $op == 'display'}active{/if}"><a href="{php echo $this->createWeburl('printerset', array('op' => 'display'))}">店铺列表</a></li>
+</ul>
+{if $op == 'display'}
+<div class="main" id="printerset">
+	<div class="clearfix">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th>酒店信息</th>
+					<th>打印机</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $store_list $item}
+				<tr>
+					<td>
+						<img src="{php echo tomedia($item['thumb'])}" width="50px" height="50px">
+						{$item['title']}
+					</td>
+					<td>
+						{loop $item['printer_list'] $printer}
+						<span class="label label-success">{$printer}</span>
+						{/loop}
+					</td>
+					<td style="text-align:left;">
+						<a href="javascript:;" class="btn btn-default btn-sm" @click="setPrinter({$item['id']})">设置打印机</a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+	</div>
+	<div class="modal fade" id="set_printer"  tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog we7-modal-dialog" style="width:800px">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+					<h4 class="modal-title">打印机列表</h4>
+				</div>
+				<div class="modal-body">
+					<template v-if="printer_list.length > 0">
+						<button class="btn btn-sm btn-default" :class="{'btn-primary': select[editId][printer['id']] == 1}" @click="selectPrinter(printer['id'])" v-for="printer in printer_list">{{printer['name']}}</button>
+					</template>
+					<template v-else>
+						未发现打印机，<a href="{php echo $this->createWebUrl('printermanage')}">请点击添加打印机</a>
+					</template>
+				</div>
+				<div class="modal-footer">
+					<button  class="btn btn-primary" type="button" @click="printerSubmit()">保存</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{/if}
+<script type="text/javascript">
+	require({
+		paths: {
+			'vue': '/addons/wn_storex/template/style/js/vue',
+		}
+	});
+	let printer_list = {php echo json_encode($printer_list);} ? {php echo json_encode($printer_list);} : [];
+    let store_list = {php echo json_encode($store_list);} ? {php echo json_encode($store_list);} : [];
+	let sets = {php echo json_encode($printer_sets);} ? {php echo json_encode($printer_sets);} : [];
+	require(['vue'], function(Vue) {
+		var app = new Vue({
+			el: '#printerset',
+			data: {
+				printer_list: printer_list,
+                select: {},
+				editId: 0,
+			},
+			methods: {
+				setPrinter(id) {
+					this.editId = id;
+					$('#set_printer').modal('show');
+				},
+				selectPrinter(id) {
+					if (this.select[this.editId][id] == 1) {
+						this.select[this.editId][id] = 2;
+					} else {
+						this.select[this.editId][id] = 1;
+					}
+				},
+				printerSubmit() {
+					$.post("{php echo $this->createWebUrl('printerset', array('op' => 'post'));}", {select : this.select, storeid : this.editId}, function(data) {
+						data = $.parseJSON(data);
+						if (data.message.errno != 0) {
+							util.message(data.message.message, '', 'error');
+						} else {
+							util.message('设置成功', data.redirect, 'success');
+						}
+					});
+				}
+			},
+			created() {
+				this.editId = [store_list[0]['id']];
+				this.select = sets;
+			}
+		});
+	});
+</script>
+{template 'common/footer'}

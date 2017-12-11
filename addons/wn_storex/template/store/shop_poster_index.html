@@ -1,0 +1,55 @@
+{template 'common/header-storex'}
+<link rel="stylesheet" href="{php echo $_W['siteroot'] . 'addons/wn_storex/template/style/css/membercard.css'}">
+<div class="wn-main">
+	<div class="wn-main__head">规格管理</div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item {if $op == 'display'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_poster', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">海报列表</a>
+			</div>
+		</div>
+		<div class="wn-main__search clearfix">
+			<div class="wn-main__search__action">
+				<a href="{php echo $this->createWebUrl('shop_poster', array('op' => 'post', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">+添加海报</a>
+			</div>
+		</div>
+		<table class="table table-hover wn-table table-bordered" >
+			<thead class="navbar-inner">
+				<tr>
+					<th>海报名称</th>
+					<th>海报类型</th>
+					<th>关键词</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+			{loop $poster_list $item}
+			<tr>
+				<td>{$item['name']}</td>
+				<td>
+					{if $item['type'] == 1}
+					商城海报
+					{elseif $item['type'] == 2}
+					商品海报
+					{elseif $item['type'] == 3}
+					关注海报
+					{/if}
+				</td>
+				<td>{$item['keyword']}</td>
+				<td>
+					<div class="wn-table__link">
+						<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_poster', array('op' => 'post', 'id' => $item['id'], 'storeid' => $storeid, 'rid' => $item['rid']))}" title="编辑">编辑</a>
+						<a class="wn-table__link__item js-delete" href="{php echo $this->createWebUrl('shop_poster', array('op' => 'delete', 'id' => $item['id'], 'storeid' => $storeid))}">删除</a>
+					</div>
+				</td>
+			</tr>
+			{/loop}
+			</tbody>
+			<input name="token" type="hidden" value="{$_W['token']}" />
+		</table>
+	</div>
+</div>
+<script>
+</script>
+
+{template 'common/footer-storex'}

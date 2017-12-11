@@ -6,6 +6,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 $we7_system_menu = array();
+
 $we7_system_menu['account'] = array(
 	'title' => '公众号',
 	'icon' => 'wi wi-white-collar',
@@ -70,6 +71,7 @@ $we7_system_menu['account'] = array(
 					'sub_permission' => array(
 						array(
 							'title' => '添加/编辑',
+							'url' => url('platform/material-post'),
 							'permission_name' => 'material_post',
 						),
 						array(
@@ -435,6 +437,7 @@ $we7_system_menu['system'] = array(
 				)
 			)
 		),
+		
 		'cache' => array(
 			'title' => '缓存',
 			'menu' => array(

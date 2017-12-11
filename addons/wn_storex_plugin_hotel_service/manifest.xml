@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns="http://www.we7.cc" versionCode="">
+	<application setting="false">
+		<name><![CDATA[万能小店酒店服务]]></name>
+		<identifie><![CDATA[wn_storex_plugin_hotel_service]]></identifie>
+		<version><![CDATA[1.2]]></version>
+		<type><![CDATA[business]]></type>
+		<ability><![CDATA[万能小店酒店服务插件]]></ability>
+		<description><![CDATA[万能小店酒店服务插件]]></description>
+		<author><![CDATA[万能君]]></author>
+		<url><![CDATA[]]></url>
+	</application>
+	<platform>
+		<subscribes>
+		</subscribes>
+		<handles>
+		</handles>
+		<rule embed="false" />
+		<card embed="false" />
+		<supports>
+			<item type="app" />
+		</supports>
+		<plugin-main name="wn_storex" />
+	</platform>
+	<bindings>
+		<cover>
+			<entry title="用户服务入口" do="hotelservice" state="" direct="false" />
+		</cover>
+		<menu>
+			<entry title="WIFI管理" do="wifimanage" state="" direct="false" />
+			<entry title="电话管理" do="telmanage" state="" direct="false" />
+			<entry title="客房管理" do="roommanage" state="" direct="false" />
+			<entry title="订餐管理" do="foodmanage" state="" direct="false" />
+		</menu>
+	</bindings>
+	<permissions>
+	</permissions>
+	<install><![CDATA[install.php]]></install>
+	<uninstall><![CDATA[]]></uninstall>
+	<upgrade><![CDATA[upgrade.php]]></upgrade>
+</manifest>

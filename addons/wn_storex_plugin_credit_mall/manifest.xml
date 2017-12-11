@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns="http://www.we7.cc" versionCode="">
+	<application setting="false">
+		<name><![CDATA[万能小店积分商城]]></name>
+		<identifie><![CDATA[wn_storex_plugin_credit_mall]]></identifie>
+		<version><![CDATA[1.4]]></version>
+		<type><![CDATA[business]]></type>
+		<ability><![CDATA[万能小店积分商城]]></ability>
+		<description><![CDATA[万能小店积分商城]]></description>
+		<author><![CDATA[万能君]]></author>
+		<url><![CDATA[http:/bbs.we7.cc]]></url>
+	</application>
+	<platform>
+		<subscribes>
+		</subscribes>
+		<handles>
+		</handles>
+		<rule embed="false" />
+		<card embed="false" />
+		<supports>
+		</supports>
+		<plugin-main name="wn_storex" />
+	</platform>
+	<bindings>
+		<menu>
+			<entry title="卡券兑换" do="couponexchange" state="" direct="false" />
+			<entry title="真实物品兑换" do="goodsexchange" state="" direct="false" />
+		</menu>
+	</bindings>
+	<permissions>
+	</permissions>
+	<install><![CDATA[install.php]]></install>
+	<uninstall><![CDATA[]]></uninstall>
+	<upgrade><![CDATA[upgrade.php]]></upgrade>
+</manifest>

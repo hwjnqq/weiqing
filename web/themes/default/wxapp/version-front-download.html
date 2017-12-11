@@ -6,7 +6,197 @@
 			href="./index.php?c=wxapp&a=front-download&do=front_download&version_id={$version_id}">小程序上传</a></li>
 	<li class="{if $do == 'domainset'}active{/if}"><a
 			href="./index.php?c=wxapp&a=front-download&do=domainset&version_id={$version_id}">小程序域名设置</a></li>
+	<li class="{if $do == 'custom'}active{/if}"><a
+			href="./index.php?c=wxapp&a=front-download&do=custom&version_id={$version_id}">定制主题<span style="color: red">(beta)</span></a></li>
+	{if $is_module_wxapp}
+	<li class="{if $do == 'entrychoose'}active{/if}"><a
+			href="./index.php?c=wxapp&a=front-download&do=entrychoose&version_id={$version_id}">小程序入口配置</a></li>
+	{/if}
 </ul>
+{if $do == 'entrychoose'}
+<div class="panel we7-panel">
+	<div class="panel-heading">小程序入口配置</div>
+	<div class="panel-body ">
+		<table class="table we7-table table-hover" >
+			<tr>
+				<th>标题</th>
+				<th>url</th>
+				<th>操作</th>
+			</tr>
+			{loop $entrys $entry}
+			<tr>
+				<td>{$entry['title']}</td>
+				<td>{$entry['url']}</td>
+				<td><button class="btn btn-primary js-entry-btn" data-eid="{$entry['eid']}" {if $entry['eid'] == $version_info['entry_id']} disabled {/if} >设为入口</button></td>
+			</tr>
+			{/loop}
+		</table>
+	</div>
+</div>
+<script type="text/javascript">
+	var entry_url = "{php echo url('wxapp/front-download/set_wxapp_entry', array('version_id'=>$version_id))}";
+	$('.js-entry-btn').click(function(){
+		var entry_id = $(this).data('eid');
+		$.post(entry_url, {'entry_id':entry_id}, function(data){
+			if(data.errno == '0') {
+				util.message('设置成功');
+			}
+			window.location.reload();
+		})
+	});
+</script>
+{/if}
+{if $do == 'custom'}
+<div ng-controller="code_appjson_ctrl" id="codeappjson" ng-controller="codeAppjsonCtrl">
+	<div class="panel we7-panel wxapp-upload-setting">
+		<div class="panel-heading">顶部导航栏设置</div>
+		<div class="panel-body">
+			<div class="we7-flex">
+				<div class="view-img"><img src="/web/resource/images/wxapp/setting-01.png" alt=""></div>
+				<div class="form-horizontal">
+					<div class="form-group">
+						<label class="col-xs-3 control-label">小程序标题</label>
+						<div class="col-xs-9">
+							<input type="text" required="required" ng-model="window.navigationBarTitleText"
+							       placeholder="小程序标题" class="form-control">
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-3 control-label">标题颜色</label>
+						<div class="col-xs-9">
+							<select ng-model="window.navigationBarTextStyle">
+								<option value="white">白</option>
+								<option value="black">黑</option>
+							</select>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-3 control-label">导航背景颜色</label>
+						<div class="col-xs-9">
+							<input type="text" placeholder="小程序导航背景颜色" ng-model="window.navigationBarBackgroundColor" class="form-control js-color">
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-3 control-label">小程序背景色</label>
+						<div class="col-xs-9">
+							<input type="text" placeholder="小程序背景色" ng-model="window.backgroundColor" class="form-control js-color">
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="panel we7-panel wxapp-upload-setting">
+		<div class="panel-heading">底部导航栏设置</div>
+		<div class="panel-body">
+			<div class="we7-flex">
+				<div class="view-img"><img src="/web/resource/images/wxapp/setting-02.png" alt=""></div>
+				<div class="form-horizontal">
+					<div class="form-group">
+						<label class="col-xs-3 control-label">文字默认颜色</label>
+						<div class="col-xs-9">
+							<input type="text" placeholder="文字默认颜色" ng-model="tabBar.color" class="form-control js-color">
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label class="col-xs-3 control-label">文字选中颜色</label>
+						<div class="col-xs-9">
+							<input type="text" placeholder="文字默认颜色" ng-model="tabBar.selectedColor" class="form-control js-color">
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label class="col-xs-3 control-label">底部导航颜色</label>
+						<div class="col-xs-9">
+							<input type="text" placeholder="底部导航颜色" ng-model="tabBar.backgroundColor" class="form-control js-color">
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-3 control-label">交界线颜色</label>
+						<div class="col-xs-9">
+							<select ng-model="tabBar.borderStyle">
+								<option value="white">白</option>
+								<option value="black">黑</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label class="col-xs-3 control-label">tab类型</label>
+						<div class="col-xs-9">
+							<select ng-model="tabBar.isSystemTabBar">
+								<option value="1">系统</option>
+								<option value="0">开发者自定义</option>
+							</select>
+						</div>
+					</div>
+					<table class="table we7-table">
+						<col width="75px">
+						<col width="75px">
+						<col width="90px">
+						<col width="60px">
+						<col width="60px">
+						<col width="100px">
+						<tr>
+							<th>默认</th>
+							<th>选中</th>
+							<th>菜单名称</th>
+							<th class="text-center">跳转</th>
+							<th>操作</th>
+						</tr>
+						<tbody ng-repeat="tabitem in tabBar.list" ng-init="current = $index">
+						<tr >
+							<td>
+								<div class="icon js-image"  data-index="{{current}}" data-selected="0">
+									<img ng-src="{{iconPath(tabitem)}}" onload="console.log(this);" />
+									<span class="replace ">更换</span>
+								</div>
+							</td>
+							<td>
+								<div class="icon js-image" data-index="{{current}}" data-selected="1">
+									<img ng-src="{{tabitem.selectedIconPath}}" />
+									<span class="replace " >更换</span>
+								</div>
+							</td>
+							<td>
+								<input type="text" class="form-control" value="首页" ng-model="tabitem.text">
+							</td>
+							<td>
+								<div>
+									<select ng-model="tabitem.pagePath" ng-options="tabitem.pagePath for page in pages" style="width:100px;"></select>
+								</div>
+							</td>
+							<td>
+								<button class="btn btn-primary" ng-click="del($index)">删除</button>
+							</td>
+						</tr>
+						</tbody>
+						<tfoot>
+							<button class="btn btn-primary" ng-click="add()">添加</button>
+						</tfoot>
+					</table>
+				</div>
+			</div>
+		</div>
+		<div class="panel-footer">
+			<button class="btn btn-primary" ng-click="default()">恢复默认</button>
+			<button class="btn btn-primary" ng-click="save()">保存</button>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	angular.module('we7codeAppjsonApp').value('config',{
+		'version_id' : {$version_id},
+		'default_appjson' : '{$default_appjson}',
+		'save_url' : "{php echo url('wxapp/front-download/custom_save')}",
+		'default_url' : "{php echo url('wxapp/front-download/custom_default')}",
+		'convert_img_url' : "{php echo url('wxapp/front-download/custom_convert_img')}"
+	});
+	angular.bootstrap($('#codeappjson'), ['we7codeAppjsonApp']);
+</script>
+{/if}
 {if $do == 'domainset'}
 <div class="panel we7-panel">
 	<div class="panel-heading">小程序配置</div>

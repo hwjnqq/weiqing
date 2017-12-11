@@ -8,7 +8,7 @@
 	<li {if $type == MESSAGE_REGISTER_TYPE}class="active" {/if}><a href="{php echo url('message/notice', array('type' => MESSAGE_REGISTER_TYPE))}">注册提醒</a></li>
 	{/if}
 	
-	<!--<li><a href="#">工单提醒</a></li>-->
+	<li {if $type == MESSAGE_WORKORDER_TYPE}class="active" {/if} ><a href="{php echo url('message/notice', array('type' => MESSAGE_WORKORDER_TYPE))}">工单提醒</a></li>
 </ul>
 
 <table class="table we7-table table-hover vertical-middle" id="message-notice"  ng-controller="messageNoticeCtrl" ng-cloak>
@@ -38,10 +38,11 @@
 	<tr ng-repeat="list in lists">
 		<td class="tip-before unread" ng-if ="list.is_read == 1" ng-bind="list.message"></td>
 		<td class="tip-before " ng-if ="list.is_read == 2" ng-bind="list.message"></td>
-		<td class="text-muted" ng-bind = "list.create_time"></td>
+		<td class="text-muted text-center" ng-bind = "list.create_time"></td>
 		<td>
 			<div class="link-group">
 				
+				<a href="javascript:;" ng-if="list.type==3" ng-click="operate(list.id, links.workorder_link+'uuid='+list.sign)">进入工单</a>
 				<a href="javascript:;" ng-click="operate(list.id, links.account_expire_link)" ng-if="list.type==2">查看公众号</a>
 				<a href="javascript:;" ng-click="operate(list.id, links.wechat_expire_link)" ng-if="list.type==5">查看小程序</a>
 				<a href="javascript:;" ng-click="operate(list.id, links.register_link)" ng-if="list.type==4 && list.status==1">查看我的待审核用户</a>
@@ -62,6 +63,7 @@
 			'wechat_expire_link': "{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL))}",
 			'order_link': "{php echo url('site/entry/orders', array('m' => 'store', 'direct'=>1))}",
 			'register_link': "{php echo url('user/display', array('type' => 'check'))}",
+			'workorder_link': "{php echo url('system/workorder/display')}",
 		},
 	});
 	angular.bootstrap($('#message-notice'), ['messageApp']);

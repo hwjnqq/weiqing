@@ -34,6 +34,8 @@ define('ACCOUNT_TYPE_OFFCIAL_NORMAL', 1);
 define('ACCOUNT_TYPE_OFFCIAL_AUTH', 3);
 //正常接入小程序
 define('ACCOUNT_TYPE_APP_NORMAL', 4);
+//正常接入PC
+define('ACCOUNT_TYPE_WEBAPP_NORMAL', 5);
 
 
 //授权登录接入
@@ -109,10 +111,15 @@ define('CACHE_EXPIRE_MIDDLE', 300);
 define('CACHE_EXPIRE_LONG', 3600);
 define('CACHE_KEY_LENGTH', 100); //缓存键的最大长度
 
+//模块配置信息
 define('CACHE_KEY_MODULE_SETTING', 'module_setting:%s:%s');
+//模块详细信息，包含 CACHE_KEY_MODULE_SETTING
 define('CACHE_KEY_MODULE_INFO', 'module_info:%s');
+//当前公众号及所有者可用的模块
 define('CACHE_KEY_ACCOUNT_MODULES', 'unimodules:%s:%s');
+//模块所有注册菜单
 define('CACHE_KEY_ACCOUNT_MODULES_BINDING', 'unimodules:binding:%s');
+//用户信息
 define('CACHE_KEY_MEMBER_INFO', 'memberinfo:%s');
 define('CACHE_KEY_UNI_GROUP', 'uni_group');
 define('CACHE_KEY_ACCOUNT_SWITCH', 'lastaccount:%s');
@@ -121,6 +128,9 @@ define('CACHE_KEY_ACCOUNT_SWITCH', 'lastaccount:%s');
 define('MODULE_SUPPORT_WXAPP', 2);
 //模块是否支持公众号应用
 define('MODULE_SUPPORT_ACCOUNT', 2);
+//是否支持pc 1不支持  2支持
+define('MODULE_NOSUPPORT_WEBAPP', 1);
+define('MODULE_SUPPORT_WEBAPP', 2);
 
 //权限类型
 define('PERMISSION_ACCOUNT', 'system');
@@ -144,13 +154,17 @@ define('WXAPP_DIY', 1);
 define('WXAPP_TEMPLATE', 2);
 //跳转模块小程序
 define('WXAPP_MODULE', 3);
+//打包普通应用
+define('WXAPP_CREATE_MODULE', 1);
 
 define('MATERIAL_LOCAL', 'local');//服务器素材类型
 define('MATERIAL_WEXIN', 'perm');//微信素材类型
 
-//自定义菜单类型
+//自定义菜单之默认菜单
 define('MENU_CURRENTSELF', 1);
+//自定义菜单之默认菜单的历史记录
 define('MENU_HISTORY', 2);
+//自定义菜单之个性化菜单
 define('MENU_CONDITIONAL', 3);
 
 //用户状态
@@ -217,3 +231,10 @@ define('MESSAGE_REGISTER_TYPE', 4);
 //消息是否读取 1未读  2已读
 define('MESSAGE_NOREAD', 1);
 define('MESSAGE_READ', 2);
+
+//上传图片uniacid -1
+define('FILE_NO_UNIACID', -1);
+
+//模块获取用户授权方式 1.静默授权 2.用户有感知授权
+define('OAUTH_TYPE_BASE', 1);
+define('OAUTH_TYPE_USERINFO', 2);

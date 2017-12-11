@@ -6,7 +6,17 @@
 defined('IN_IA') or exit('Access Denied');
 
 if ($action != 'entry') {
-	checkaccount();
+	if (!empty($_W['account']) && $_W['account']['type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
+		checkwebapp();
+	} else {
+		checkaccount();
+	}
+}
+
+if ($action == 'editor' && $_W['account']['type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
+	define('FRAME', 'webapp');
+} else {
+	define('FRAME', 'account');
 }
 
 if (!($action == 'multi' && $do == 'post')) {

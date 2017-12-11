@@ -1,0 +1,131 @@
+{template 'common/header'}
+<ul class="we7-page-tab">
+	<li class="{if $op == 'display'}active{/if}"><a href="{php echo $this->createWeburl('smsnotice', array('op' => 'display'))}">短信通知模板</a></li>
+	<li class="{if $op == 'lists'}active{/if}"><a href="{php echo $this->createWeburl('smsnotice', array('op' => 'lists'))}">短信通知记录</a></li>
+</ul>
+<div class="main" id="smsnotice">
+	{if $op == 'display'}
+	<div class="alert alert-warning">开启此功能需要先开启短信功能并正确配置AccessKeyId和AccessKeySecret,<a href="{php echo $this->createWebUrl('smsset')}" target="_blank">现在去配置>></a></div>
+	<div class="we7-form">
+		<div class="form-group">
+			<h4 style="color:red;">店员短信通知</h4>
+		</div>
+		<div class="form-group">
+			<label class="control-label col-sm-2">是否开启</label>
+			<div class="form-controls col-sm-8 we7-padding-bottom">
+				<input id="clerk_status-1" type="radio" v-model="sms.clerk.status" value="2"/>
+				<label for="clerk_status-1" >开启</label>
+				<input id="clerk_status-2" type="radio" v-model="sms.clerk.status" value="1"/>
+				<label for="clerk_status-2">关闭</label>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="" class="control-label col-sm-2">短信通知模板</label>
+			<div class="form-controls col-sm-8">
+				<input type="text" class="form-control" v-model="sms.clerk.sms_template_code">
+				<span class="help-block">短信通知模板,请到阿里云平台申请.</span>
+				<span class="help-block">
+					<strong class="text-danger">模板名称: 新订单通知</strong>
+					<br>
+					<strong class="text-danger">模板内容: 
+						您好,您的店铺${store},有新的订单,订单总金额${price}元,请及时处理</strong>
+				</span>
+			</div>
+		</div>
+		<div class="form-group">
+			<h4 style="color:red;">用户短信通知</h4>
+		</div>
+		<div class="form-group">
+			<label class="control-label col-sm-2">是否开启</label>
+			<div class="form-controls col-sm-8 we7-padding-bottom">
+				<input id="user_status-1" type="radio" v-model="sms.user.status" value="2"/>
+				<label for="user_status-1" >开启</label>
+				<input id="user_status-2" type="radio" v-model="sms.user.status" value="1"/>
+				<label for="user_status+-2">关闭</label>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="" class="control-label col-sm-2">短信通知模板</label>
+			<div class="form-controls col-sm-8">
+				<input type="text" class="form-control" v-model="sms.user.sms_template_code">
+				<span class="help-block">短信通知模板,请到阿里云平台申请.</span>
+				<span class="help-block">
+					<strong class="text-danger">模板名称: 订单确认通知</strong>
+					<br>
+					<strong class="text-danger">模板内容: 
+						您好,您在店铺${store}购买,编号为${ordersn}的订单已确认,订单总金额${price}元,请注意查看</strong>
+				</span>
+			</div>
+		</div>
+		<button class="btn btn-primary col-lg-1" @click="smssetSubmit">提交</button>
+	</div>
+	{/if}
+
+	{if $op == 'lists'}
+	<div class="clearfix">
+		<table class="table table-hover we7-table vertical-middle">
+			<thead class="navbar-inner">
+				<tr>
+					<th>手机号</th>
+					<th>信息</th>
+					<th>状态</th>
+					<th>请求时间</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $sms_logs $log}
+				<tr>
+					<td>{$log['mobile']}</td>
+					<td>{$log['message']}</td>
+					<td>
+						
+						{if $log['status'] == 1}
+						<span class="label label-danger">失败</span>
+						{elseif $log['status'] == 2}
+						<span class="label label-success">成功</span>
+						{/if}
+						
+					</td>
+					<td>{php echo date('Y-m-d H:i:s', $log['time'])}</td>
+					<td >
+						<a href="{php echo $this->createWebUrl('smsnotice', array('op' => 'log_delete'))}" class="color-default">删除</a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+	</div>
+	{$pager}
+	{/if}
+</div>
+<script type="text/javascript">
+	require({
+		paths: {
+			'vue': 'https://unpkg.com/vue@2.2.6/dist/vue',
+		}
+	})
+	var sms_notice = {php echo json_encode($sms_notice['notice'])};
+	console.dir(sms_notice)
+	require(['vue'], function(Vue) {
+		var app = new Vue({
+			el: '#smsnotice',
+			data: {
+				sms: sms_notice
+			},
+			methods: {
+				smssetSubmit() {
+					$.post("{php echo $this->createWeburl('smsnotice', array('op' => 'post'));}", {params : this.sms}, function(data) {
+						data = $.parseJSON(data);
+						if (data.message.errno != 0) {
+							util.message(data.message.message, '', 'error');
+						} else {
+							util.message('设置成功', data.redirect, 'success');
+						}
+					});
+				}
+			}
+		});
+	});
+</script>
+{template 'common/footer'}

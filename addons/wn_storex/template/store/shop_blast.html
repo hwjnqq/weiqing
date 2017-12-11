@@ -1,0 +1,129 @@
+{template 'common/header-storex'}
+<div class="wn-main">
+	<div class="wn-main__head">爆客设置</div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item {if $op == 'display'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_blast', array('storeid' => $_GPC['storeid'], 'op' => 'display'))}">店员设置</a>
+			</div>
+			<div class="wn-tabs__item">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_blast_stat', array('storeid' => $_GPC['storeid'], 'op' => 'stat'))}">数据统计</a>
+			</div>
+			<div class="wn-tabs__item {if $op == 'base'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_blast', array('storeid' => $_GPC['storeid'], 'op' => 'base'))}">基础设置</a>
+			</div>
+		</div>
+		{if $op == 'display'}
+		<div class="modal fade" id="clerk-modal" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" id="myModalLabel">二维码入口</h4>
+					</div>
+					<div class="modal-body clearfix form-horizontal">
+						<div role="tabpanel" class="tab-pane active text-center" id="put-qrcode">
+							<div class="mui-content-padded mui-text-center">
+								<div class="js-qrcode-block" style="margin:50px 0 50px 0"></div>
+							</div>
+							<input type="hidden" class="js-url">
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<table class="table table-hover wn-table table-bordered">
+			<thead class="navbar-inner">
+				<tr>
+					<th style='width:100px'>序号</th>
+					<th style='width:210px'>微信号</th>
+					<th style='width:150px'>用户名</th>
+					<th style='width:150px'>真实姓名</th>
+					<th style='width:150px'>电话</th>
+					<th style='width:150px'>加入时间</th>
+					<th style="width:80px;">状态</th>
+					<th style="width:200px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+			{loop $clerk_list $item}
+			<tr>
+				<td>{$item['id']}</td>
+				<td>{$item['from_user']}</td>
+				<td>
+					{if empty($item['username'])}
+					<span class="label label-danger">未完善</span>
+					{else}
+					{$item['username']}
+					{/if}
+				</td>
+				<td>
+					{if empty($item['realname'])}
+					<span class="label label-danger">未完善</span>
+					{else}
+					{$item['realname']}
+					{/if}
+				</td>
+				<td>
+					{if empty($item['mobile'])}
+					<span class="label label-danger">未完善</span>
+					{else}
+					{$item['mobile']}
+					{/if}
+				</td>
+				<td>{php echo date('Y-m-d H:i',$item['createtime'])}</td>
+				<td>
+					{if $item['status'] == 1}
+					<span class='label label-success'>启用</span>
+					{else}
+					<span class='label label-default'>禁用</span>
+					{/if}
+				</td>
+				<td>
+					<a href="{php echo $this->createWebUrl('shop_blast_message', array('op' => 'display', 'storeid' => $_GPC['storeid'], 'clerkid' => $item['id'], 'uid' => $item['userid']))}">设置推广信息</a>
+					<a href="javascript:;" class="js-clerk-entry" data-url="{php echo murl('entry', array('do' => 'blast', 'op' => 'display', 'm' => 'wn_storex', 'clerkid' => $item['id']), true, true)}">入口二维码</a>
+				</td>
+			</tr>
+			{/loop}
+			</tbody>
+		</table>
+		{$pager}
+		<script type="text/javascript">
+		require(['jquery.qrcode'], function(){
+			$('.js-clerk-entry').click(function() {
+				url = $(this).data('url');
+				$('.js-url').val(url);
+				$('#clerk-modal').modal('show');
+				$('.js-qrcode-block').html('').qrcode({
+					render: 'canvas',
+					width: 300,
+					height: 300,
+					text: url,
+				});
+			});
+		});
+		</script>
+		{/if}
+		{if $op == 'base'}
+		<form class="form-horizontal form" method="post" enctype="multipart/form-data">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">小尾巴</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="tail" class="form-control" value="{$blast_set['tail']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">背景图片</label>
+				<div class="col-sm-9 col-xs-12">
+					{php echo tpl_form_field_image('bg_image', $blast_set['bg_image'])}
+				</div>
+			</div>
+			<div class="form-group col-sm-12">
+				<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</form>
+		{/if}
+	</div>
+</div>
+{template 'common/footer'}

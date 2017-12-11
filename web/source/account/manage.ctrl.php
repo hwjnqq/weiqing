@@ -26,11 +26,12 @@ if ($do == 'display') {
 
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-
+	/* @var $account_table AccountTable*/
 	$account_table = table('account');
 	
 	$type_condition = array(
 		ACCOUNT_TYPE_APP_NORMAL => array(ACCOUNT_TYPE_APP_NORMAL),
+		ACCOUNT_TYPE_WEBAPP_NORMAL => array(ACCOUNT_TYPE_WEBAPP_NORMAL),
 		ACCOUNT_TYPE_OFFCIAL_NORMAL => array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH),
 	);
 	$account_table->searchWithType($type_condition[ACCOUNT_TYPE]);

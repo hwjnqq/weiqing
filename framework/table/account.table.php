@@ -127,9 +127,10 @@ class AccountTable extends We7Table {
 		global $_W;
 		if (user_is_founder($_W['uid']) && !user_is_vice_founder()) {
 			$this->query->leftjoin('uni_account_users', 'c')->on(array('a.uniacid' => 'c.uniacid'));
+			$this->query->leftjoin('users', 'u')->on(array('c.uid' => 'u.uid'))
+				->where('c.role', 'owner')->where('u.endtime !=', 0)->where('u.endtime <', TIMESTAMP);
 		}
-		$this->query->leftjoin('users', 'u')->on(array('c.uid' => 'u.uid'))
-					->where('c.role', 'owner')->where('u.endtime !=', 0)->where('u.endtime <', TIMESTAMP);
+
 		return $this;
 	}
 }

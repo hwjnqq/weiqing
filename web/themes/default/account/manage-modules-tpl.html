@@ -374,6 +374,7 @@
 <script>
 	angular.module('accountApp').value('config', {
 		owner: {php echo !empty($owner) ? json_encode($owner) : 'null'},
+		
 		modules_tpl: {php echo !empty($modules_tpl) ? json_encode($modules_tpl) : 'null'},
 		extend: {php echo !empty($extend) ? json_encode($extend) : 'null'},
 		links: {

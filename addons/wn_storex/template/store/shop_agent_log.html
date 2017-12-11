@@ -1,0 +1,132 @@
+{template 'common/header-storex'}
+<div class="wn-main wn-main--without">
+	<div class="wn-main__head">销售员记录</div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent', array('storeid' => $_GPC['storeid']))}">销售员列表</a>
+			</div>
+			<!-- 
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent_level'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent_level', array('storeid' => $_GPC['storeid']))}">销售员等级管理</a>
+			</div>
+			 -->
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent_log' && $op == 'agent_log'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent_log', array('op' => 'agent_log', 'storeid' => $_GPC['storeid']))}">销售员售出记录</a>
+			</div>
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent_log' && $op == 'apply_log'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent_log', array('op' => 'apply_log', 'storeid' => $_GPC['storeid']))}">销售员提现记录</a>
+			</div>
+		</div>
+		{if $op == 'agent_log'}
+		<div class="clearfix">
+			<table class="table table-hover wn-table table-bordered">
+				<thead class="navbar-inner">
+					<tr>
+						<th>销售员</th>
+						<th>销售员支付宝</th>
+						<th>订单id</th>
+						<th>商品</th>
+						<th>订单总价</th>
+						<th>销售员获得</th>
+						<th>计算比例</th>
+						<th>时间</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $agent_log $log}
+					<tr>
+						<td>
+							{if !empty($agent[$log['agentid']])} 
+							{$agent[$log['agentid']]['realname']}
+							{else}
+							{$log['agentid']}
+							{/if}
+						</td>
+						<td>
+							{if !empty($agent[$log['agentid']])}
+							{$agent[$log['agentid']]['alipay']}
+							{/if}
+						</td>
+						<td>{$log['orderid']}</td>
+						<td>
+							{if !empty($goods[$log['goodid']])}
+							{$goods[$log['goodid']]['title']}
+							{else}
+							{$log['goodid']}
+							{/if}
+						</td>
+						<td>{$log['sumprice']}</td>
+						<td>{$log['money']}</td>
+						<td>{$log['rate']}%</td>
+						<td>{php echo date('Y-m-d H:i:s', $log['time'])}</td>
+					</tr>
+					{/loop}
+					<tr>
+						<td colspan="8">
+							<div class="pull-right">
+								{$pager}
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		{/if}
+		{if $op == 'apply_log'}
+		<div class="clearfix">
+			<table class="table table-hover wn-table table-bordered">
+				<thead class="navbar-inner">
+					<tr>
+						<th>销售员</th>
+						<th>销售员支付宝</th>
+						<th>提现订单号</th>
+						<th>提现金额</th>
+						<th>提现状态</th>
+						<th>提现申请时间</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $agent_apply_log $apply_log}
+					<tr>
+						<td>
+							{if !empty($agent[$apply_log['agentid']])}
+							{$agent[$apply_log['agentid']]['realname']}
+							{else}
+							{$apply_log['agentid']}
+							{/if}
+						</td>
+						<td>
+							{if !empty($agent[$apply_log['agentid']])}
+							{$agent[$apply_log['agentid']]['alipay']}
+							{/if}
+						</td>
+						<td>{$apply_log['ordersn']}</td>
+						<td>{$apply_log['money']}</td>
+						<td>{if $apply_log['status'] == 1}提现成功{else}管理员未操作{/if}</td>
+						<td>{php echo date('Y-m-d H:i:s', $apply_log['time'])}</td>
+						<td>{if $apply_log['status'] != 1}<a class="wn-table__link__item confirm_money" onclick="drop_confirm('确认已打款后再做此操作！！！', '{php echo $this->createWebUrl('shop_agent_log', array('op' => 'apply_log_status', 'id' => $apply_log['id'], 'storeid' => $storeid, 'status' => 1))}')" title="确认已打款">确认已打款</a>{else}无操作{/if}</td>
+					</tr>
+					{/loop}
+					<tr>
+						<td colspan="7">
+							<div class="pull-right">
+								{$pager}
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		{/if}
+	</div>
+</div>
+<script type="text/javascript">
+	function drop_confirm(msg, url) {
+		if (confirm(msg)) {
+			window.location = url;
+		}
+	}
+</script>
+{template 'common/footer-storex'}

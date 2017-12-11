@@ -19,6 +19,7 @@ class Qq extends OAuth2Client {
 		global $_W;
 		parent::__construct($ak, $sk);
 		$this->calback_url = $_W['siteroot'] . 'web/index.php';
+		$this->stateParam['from'] = 'qq';
 	}
 
 	/**
@@ -26,18 +27,17 @@ class Qq extends OAuth2Client {
 	 * @return string
 	 */
 	public function showLoginUrl($calback_url = '') {
-		global $_W;
-		$state = !empty($state) ? $state : $_W['token'];
-		$state = $state . 'from=qq';
+		$state = $this->stateParam();
 		return sprintf(QQ_PLATFORM_API_OAUTH_LOGIN_URL, $this->ak, $this->calback_url, $state);
 	}
 
 	public function getAccessToken($state, $code) {
-		global $_W;
 		if (empty($state) || empty($code)) {
 			return error(-1, '参数错误');
 		}
-		if ($state != $_W['token'] . 'from=qq') {
+
+		$local_state = $this->stateParam();
+		if ($state != $local_state) {
 			return error(-1, '重新登陆');
 		}
 		$access_url = sprintf(QQ_PLATFORM_API_GET_ACCESS_TOKEN, $this->ak, $this->sk, $code, urlencode($this->calback_url));
@@ -137,7 +137,6 @@ class Qq extends OAuth2Client {
 		if (is_error($user)) {
 			return $user;
 		}
-
 		$user_table = table('users');
 		$user_id = pdo_getcolumn('users', array('openid' => $user['member']['openid']), 'uid');
 		$user_bind_info = $user_table->userBindInfo($user['member']['openid'], $user['member']['register_type']);

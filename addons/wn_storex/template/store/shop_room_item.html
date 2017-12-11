@@ -1,0 +1,129 @@
+{template 'common/header-storex'}
+{if $op == 'display'}
+<div class="wn-main">
+	<div class="wn-main__head"></div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item wn-tabs__item--active">
+			</div>
+			<div class="wn-main__search__action">
+				<a href="{php echo $this->createWebUrl('shop_room_item', array('op' => 'post', 'storeid' => $_GPC['storeid'], 'roomid' => $_GPC['roomid']));}" class="btn btn-primary we7-padding-horizontal">添加房间</a>
+			</div>
+		</div>
+		<div class="wn-main__search clearfix">
+			<div class="wn-main__search__form" style="width: 600px">
+				<form action="./index.php" method="get" class="form-horizontal from" role="form">
+					<input type="hidden" name="c" value="site" />
+					<input type="hidden" name="a" value="entry" />
+					<input type="hidden" name="m" value="wn_storex" />
+					<input type="hidden" name="do" value="shop_room_item" />
+					<input type="hidden" name="storeid" value="{$storeid}">
+					<div class="form-group">
+						<div class="col-xs-12 col-sm-8 col-lg-9">
+							<div class="input-group">
+								<input class="form-control" name="title" placeholder="请输入房间号" id="" type="text" value="{$_GPC['title']}">
+								<span class="input-group-btn">
+									<button class="btn btn-default"><i class="fa fa-search"></i></button>
+								</span>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+		<table class="table table-hover table-bordered wn-table" >
+			<thead class="navbar-inner">
+			<tr>
+				<th>房间号</th>
+				<th>所属房型</th>
+				<th>状态</th>
+				<th>操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{if !empty($room_list)}
+			{loop $room_list $item}
+			<tr>
+				<td>{$item['roomnumber']}</td>
+				<td>{$room_info['title']}</td>
+				<td>
+					{if $item['status'] == 1}
+					<span class="label label-success">显示</span>
+					{else}
+					<span class="label label-danger">隐藏</span>
+					{/if}
+				</td>
+				<td>
+					<div class="wn-table__link">
+						<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_room_item', array('op' => 'post', 'storeid' => $_GPC['storeid'], 'id' => $item['id'], 'roomid' => $item['roomid']))}">编辑</a>
+						<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要删除该评论吗?', '{php echo $this->createWebUrl('shop_room_item', array('op' => 'delete', 'storeid' => $_GPC['storeid'], 'id' => $item['id']))}');" title="删除" >删除</a>
+					</div>
+
+				</td>
+			</tr>
+			{/loop}
+			{else}
+			<tr>
+				<td colspan="4" class="text-center">暂无房间</td>
+			</tr>
+			{/if}
+			</tbody>
+		</table>
+	</div>
+</div>
+<script type="text/javascript">
+	function drop_confirm(msg, url) {
+		if (confirm(msg)) {
+			window.location = url;
+		}
+	}
+</script>
+{/if}
+{if $op == 'post'}
+<div class="wn-main">
+	<div class="wn-main__head"></div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item wn-tabs__item--active">
+			</div>
+			<div class="wn-main__search__action">
+				<a href="{php echo $this->createWebUrl('shop_room_item', array('op' => 'display', 'storeid' => $_GPC['storeid'], 'roomid' => $_GPC['roomid']));}" class="btn btn-primary we7-padding-horizontal">返回房间列表</a>
+			</div>
+		</div>
+		<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+			<input type="hidden" name="storeid" value="{$_GPC['storeid']}">
+			<input type="hidden" name="roomid" value="{$_GPC['roomid']}">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">所属房型</label>
+				<div class="col-sm-8 col-lg-9 col-xs-12">
+					<input type="text" disabled value="{$room_info['title']}" class="form-control">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">房间号</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="roomnumber" id="roomnumber" value="{$room_item['roomnumber']}" class="form-control">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" name="status" value="1" {if $room_item['status'] == 1} checked {/if}/>显示
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="status" value="0" {if $room_item['status'] == 0} checked {/if}/>隐藏
+					</label>
+					<span class='help-block'>手机前台是否显示</span>
+				</div>
+			</div>
+			<div class="form-group col-sm-12">
+				<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</form>
+	</div>
+</div>
+{/if}
+
+{template 'common/footer-storex'}

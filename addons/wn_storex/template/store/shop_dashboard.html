@@ -1,0 +1,100 @@
+{template 'common/header-storex'}
+<div class="wn-main">
+	<div class="wn-main__head">概况</div>
+	<div class="wn-main__content">
+		<div class="wn-dashboard">
+			<div class="wn-dashboard__order wn-flex">
+				<div class="wn-flex__item">
+					<p>待确认订单</p>
+					<span>{$not_confirmed_order_count}</span>
+				</div>
+				<div class="wn-flex__item">
+					<p>昨日营业总额</p>
+					<span>￥{php echo floatval($yesterday_revenue)}元</span>
+				</div>
+				<div class="wn-flex__item">
+					<p>昨日订单量</p>
+					<span>{$yesterday_order_count}</span>
+				</div>
+				<div class="wn-flex__item">
+					<p>今日订单量</p>
+					<span>{$today_order_count}</span>
+				</div>
+			</div>
+		</div>
+		<div class="clearfix"></div>
+		<br>
+		<div class="panel panel-default wn-panel">
+			<div class="panel-heading">
+				<form action="" id="dashborad-form">
+					<input type="hidden" name="c" value="site">
+					<input type="hidden" name="a" value="entry">
+					<input type="hidden" name="do" value="shop_index">
+					<input type="hidden" name="op" value="dashboard">
+					<input type="hidden" name="storeid" value="{$storeid}">
+					<input type="hidden" name="m" value="wn_storex">
+					{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
+				</form>
+			</div>
+			<div class="panel-body">
+				<div id="myChart" style="height: 500px"></div>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	require({
+		paths: {
+			'echart': "{php echo SCRIPT_URL . '/echarts'}"
+		}
+	});
+	var chart_data = {php echo json_encode($chart_data);};
+	require(['echart', 'daterangepicker'], function(echarts) {
+		$('.daterange').on('apply.daterangepicker', function(ev, picker) {
+			$('#dashborad-form')[0].submit();
+		});
+		var myChart = echarts.init(document.getElementById('myChart'));
+		// 指定图表的配置项和数据
+		option = {
+			title: {
+				text: '营业额趋势图'
+			},
+			tooltip: {
+				trigger: 'axis'
+			},
+			legend: {
+				data:['营业额']
+			},
+			grid: {
+				left: '3%',
+				right: '4%',
+				bottom: '3%',
+				containLabel: true
+			},
+			toolbox: {
+				feature: {
+					saveAsImage: {}
+				}
+			},
+			xAxis: {
+				type: 'category',
+				boundaryGap: false,
+				data: chart_data.label
+			},
+			yAxis: {
+				type: 'value'
+			},
+			series: [
+				{
+					name:'营业额',
+					type:'line',
+					stack: '总量',
+					data: chart_data.series_data
+				}
+			]
+		};
+		// 使用刚指定的配置项和数据显示图表。
+		myChart.setOption(option);
+	});
+</script>
+{template 'common/footer-storex'}

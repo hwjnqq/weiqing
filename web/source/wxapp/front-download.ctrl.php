@@ -9,18 +9,71 @@ load()->model('wxapp');
 load()->classs('cloudapi');
 load()->classs('uploadedfile');
 
-$dos = array('front_download', 'domainset', 'code_uuid', 'code_gen', 'code_token', 'qrcode', 'checkscan', 'commitcode', 'preview', 'getpackage');
+$dos = array('front_download', 'domainset', 'code_uuid', 'code_gen', 'code_token', 'qrcode', 'checkscan',
+	'commitcode', 'preview', 'getpackage', 'entrychoose', 'set_wxapp_entry',
+	'custom', 'custom_save', 'custom_default', 'custom_convert_img');
 $do = in_array($do, $dos) ? $do : 'front_download';
 
 $_W['page']['title'] = '小程序下载 - 小程序 - 管理';
 
 $version_id = intval($_GPC['version_id']);
 $wxapp_info = wxapp_fetch($_W['uniacid']);
+// 是否是模块打包小程序
+$is_module_wxapp =  false;
 if (!empty($version_id)) {
 	$version_info = wxapp_version($version_id);
-}
-if ($do == 'domainset') {
+	$is_module_wxapp = ($version_info['type'] == WXAPP_CREATE_MODULE) ? 1 : 0;
 
+
+}
+
+if($do == 'entrychoose') {
+//	if(!$is_module_wxapp) {
+//		itoast('非普通应用无需设置域名');
+//	}
+	$modules = $version_info['modules'];
+	$entrys = array();
+	if(count($modules) > 0) {
+		$module_name = $modules[0]['name'];
+		$entrys = module_entries($module_name, array('cover'));
+		$entrys = $entrys['cover'];
+	}
+	template('wxapp/version-front-download');
+}
+if($do == 'set_wxapp_entry') {
+	$entry_id = intval($_GPC['entry_id']);
+	$result = wxapp_update_entry($version_id, $entry_id);
+	echo json_encode(error(0, '设置入口成功'));
+}
+// 自定义appjson 入口
+if ($do == 'custom') {
+	$type = $_GPC['type'];
+	$default_appjson = wxapp_code_current_appjson($version_id);
+	$default_appjson = json_encode($default_appjson);
+	template('wxapp/version-front-download');
+}
+// 使用默认appjson
+if($do == 'custom_default') {
+	$result = wxapp_code_set_default_appjson($version_id);
+	echo json_encode($result);
+}
+
+// 保存自定义appjson
+if($do == 'custom_save') {
+	$json = $_GPC['json'];
+	$result = wxapp_code_save_appjson($version_id, $json);
+	echo json_encode($result);
+}
+
+if($do == 'custom_convert_img') {
+	$attchid = intval($_GPC['att_id']);
+
+	/* @var  $attachment  AttachmentTable */
+	$filename = wxapp_code_path_convert($attchid);
+	echo json_encode(error(0, $filename));
+}
+
+if ($do == 'domainset') {
 	$appurl = $_W['siteroot'].'app/index.php';
 	$uniacid = 0;
 	if($version_info) {

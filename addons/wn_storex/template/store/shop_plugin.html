@@ -1,0 +1,42 @@
+{template 'common/header-storex'}
+
+{if $op == 'display'}
+<div class="wn-main wn-main--without">
+	<div class="wn-main__head">应用</div>
+	<div class="wn-main__content">
+		<div class="wn-plugin--list">
+			<div class="wn-plugin--list__head">店铺应用</div>
+			<div class="wn-plugin--list__list">
+				<div class="wn-plugin--list__item">
+					<a href="{php echo $this->createWebUrl('shop_plugin_printer', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">
+						<img src="../addons/wn_storex/template/style/img/printer.jpg" alt="">
+						打印订单
+					</a>
+				</div>
+			</div>
+			{if !empty($hotel_service_show)}
+			<div class="wn-plugin--list__list">
+				<div class="wn-plugin--list__item">
+					<a href="{php echo $this->createWebUrl('shop_plugin_hotelservice', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">
+						<img src="../addons/wn_storex/template/style/img/hotel_service.jpg" alt="">
+						酒店服务
+					</a>
+				</div>
+			</div>
+			{/if}
+			{if !empty($group_show)}
+			<div class="wn-plugin--list__list">
+				<div class="wn-plugin--list__item">
+					<a href="{php echo $this->createWebUrl('shop_plugin_group', array('op' => 'display', 'storeid' => $_GPC['storeid']))}">
+						<img src="../addons/wn_storex/template/style/img/group.png" alt="">
+						拼团活动
+					</a>
+				</div>
+			</div>
+			{/if}
+		</div>
+	</div>
+</div>
+{/if}
+
+{template 'common/footer-storex'}

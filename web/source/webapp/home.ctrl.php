@@ -1,0 +1,47 @@
+<?php
+
+/**
+ * 切换pc
+ * @var AccountTable $account_table
+ * [WeEngine System] Copyright (c) 2013 WE7.CC
+ */
+defined('IN_IA') or exit('Access Denied');
+
+load()->model('webapp');
+$dos = array('switch', 'display');
+$do = in_array($do , $dos) ? $do : 'display';
+
+if($do == 'switch') {
+	$uniacid = intval($_GPC['uniacid']);
+	if (empty($uniacid)) {
+		itoast('', url('webapp/manage/list'), 'info');
+	}
+	webapp_save_switch($uniacid);
+	itoast('', url('webapp/home/display', array('uniacid'=>$uniacid)));
+}
+
+if($do == 'display') {
+	define('FRAME', 'webapp');
+	$last_uniacid = uni_account_last_switch();
+	if (empty($last_uniacid)) {
+		itoast('', url('webapp/manage/list'), 'info');
+	}
+	if (!empty($last_uniacid) && $last_uniacid != $_W['uniacid']) {
+		webapp_switch($last_uniacid);
+	}
+
+	$account = uni_fetch($last_uniacid);
+	$modulelist = uni_modules(false);
+	if (!empty($modulelist)) {
+		foreach ($modulelist as $name => &$row) {
+			if (!empty($row['issystem']) || $row['webapp_support'] != 2 || (!empty($_GPC['keyword']) && !strexists ($row['title'], $_GPC['keyword'])) || (!empty($_GPC['letter']) && $row['title_initial'] != $_GPC['letter'])) {
+				unset($modulelist[$name]);
+				continue;
+			}
+		}
+		$modules = $modulelist;
+	}
+	template('webapp/home');
+}
+
+

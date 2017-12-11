@@ -70,7 +70,7 @@ class Query {
 		}
 		$this->statements[$clause] = null;
 		$this->parameters = array();
-		if (isset($this->clauses[$clause]) && $this->clauses[$clause]) {
+		if (isset($this->clauses[$clause]) && is_array($this->clauses[$clause])) {
 			$this->statements[$clause] = array();
 		}
 		return $this;
@@ -108,7 +108,7 @@ class Query {
 		$origin_clause = $clause;
 		$clause = strtoupper($clause);
 
-		if ($clause == 'WHERE' || $clause == 'HAVING' || $clause == 'WHEREOR') {
+		if ($clause == 'HAVING') {
 			array_unshift($statement, $clause);
 			return call_user_func_array(array($this, 'condition'), $statement);
 		}
@@ -123,6 +123,18 @@ class Query {
 			//return $this->addJoinStatements($clause, $statement, $parameters);
 		//}
 		return $this->addStatement($clause, $statement);
+	}
+	
+	public function where($condition, $parameters = array(), $operator = 'AND') {
+		if (!is_array($condition) && !($condition instanceof Closure)) {
+			$condition = array($condition => $parameters);
+		}
+		$this->addStatement('WHERE', array(array($operator, $condition)));
+		return $this;
+	}
+	
+	public function whereor($condition, $parameters = array()) {
+		return $this->where($condition, $parameters, 'OR');
 	}
 	
 	public function from($tablename, $alias = '') {
@@ -174,7 +186,6 @@ class Query {
 		if (empty($field)) {
 			return $this;
 		}
-		
 		//去掉默认的select * 
 		if (count($this->statements['SELECT']) == 1) {
 			$this->resetClause('SELECT');
@@ -270,11 +281,23 @@ class Query {
 	}
 	
 	public function count() {
-		return pdo_count($this->statements['FROM'], $this->statements['WHERE']);
+		$where = array();
+		if (!empty($this->statements['WHERE'])) {
+			foreach ($this->statements['WHERE'] as $row) {
+				$where = array_merge($where, $row[1]);
+			}
+		}
+		return pdo_count($this->statements['FROM'], $where);
 	}
 	
 	public function exists() {
-		return pdo_exists($this->statements['FROM'], $this->statements['WHERE']);
+		$where = array();
+		if (!empty($this->statements['WHERE'])) {
+			foreach ($this->statements['WHERE'] as $row) {
+				$where = array_merge($where, $row[1]);
+			}
+		}
+		return pdo_exists($this->statements['FROM'], $where);
 	}
 	
 	private function buildQuery() {
@@ -294,9 +317,35 @@ class Query {
 	}
 	
 	private function buildQueryWhere() {
-		$where = \SqlPaser::parseParameter($this->statements['WHERE'], 'AND', $this->currentTableAlias);
-		$this->parameters = array_merge($this->parameters, $where['params']);
-		return empty($where['fields']) ? '' : " WHERE {$where['fields']} ";
+		$closure = array();
+		$sql = '';
+		foreach ($this->statements['WHERE'] as $i => $wheregroup) {
+			$where = array();
+			if (!empty($wheregroup[1]) && $wheregroup[1] instanceof Closure) {
+				$closure[] = $wheregroup;
+			} else {
+				$where = \SqlPaser::parseParameter($wheregroup[1], 'AND', $this->currentTableAlias);
+				$this->parameters = array_merge($this->parameters, $where['params']);
+				$sql .= ' ' . $wheregroup[0] . ' ' . $where['fields'];
+			}
+			unset($this->statements['WHERE'][$i]);
+		}
+		foreach ($closure as $callback) {
+			$callback[1]($this);
+			
+			$subsql = '';
+			$where = array();
+			foreach ($this->statements['WHERE'] as $i => $wheregroup) {
+				$where = \SqlPaser::parseParameter($wheregroup[1], 'AND', $this->currentTableAlias);
+				$this->parameters = array_merge($this->parameters, $where['params']);
+				$subsql .= ' ' . $wheregroup[0] . ' ' . $where['fields'];
+				unset($this->statements['WHERE'][$i]);
+			}
+			$subsql = ltrim(ltrim($subsql, ' AND '), ' OR ');
+			$sql .= " {$callback[0]} ( $subsql )";
+		}
+		
+		return empty($where['fields']) ? '' : " WHERE " . ltrim(ltrim($sql, ' AND '), ' OR ');
 	}
 	
 	private function buildQueryWhereor() {

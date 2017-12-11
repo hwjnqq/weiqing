@@ -1,0 +1,195 @@
+{template 'common/header-storex'}
+<div class="wn-main wn-main--without">
+	<div class="wn-main__head">销售员等级管理</div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent', array('storeid' => $_GPC['storeid']))}">销售员管理</a>
+			</div>
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent_level'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent_level', array('storeid' => $_GPC['storeid']))}">销售员等级管理</a>
+			</div>
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent_log' && $op == 'agent_log'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent_log', array('op' => 'agent_log', 'storeid' => $_GPC['storeid']))}">销售员售出记录</a>
+			</div>
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_agent_log' && $op == 'apply_log'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_agent_log', array('op' => 'apply_log', 'storeid' => $_GPC['storeid']))}">销售员提现记录</a>
+			</div>
+		</div>
+		{if $op == 'agentlevel'}
+		<div class="wn-main__search__action">
+			<a href="{php echo $this->createWebUrl('shop_agent_level', array('op' => 'edit', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">+添加分销等级</a>
+		</div>
+		{if !empty($agentlevels)}
+		<table class="table table-hover wn-table table-bordered" >
+			<thead class="navbar-inner">
+				<tr>
+					<th class='with-checkbox' style='width:30px;'>
+						<input type="checkbox" class="check_all" />
+					</th>
+					<th style="width:100px;">分销等级名称</th>
+					<th style="width:100px;">分销升级要求</th>
+					<th style="width:150px;">状态</th>
+					<th style="width:420px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+			{loop $agentlevels $level}
+				<tr>
+					<td class="with-checkbox">
+						{if $level['isdefault'] != 1}
+						<input type="checkbox" name="check" value="{$level['id']}">
+						{/if}
+					</td>
+					<td>{$level['title']}</td>
+					<td>消费满{$level['need']}元</td>
+					<td>
+						{if $level['isdefault'] != 1}
+							{if $level['status'] == 2}
+							<a title="禁用" href="javascript:;" onclick="drop_confirm('您确定要启用此会员组吗?', '{php echo $this->createWebUrl('shop_agent_level',array('op' => 'status', 'status' => 1, 'id' => $level['id'], 'storeid' => $storeid))}');"><span class='label label-default'>禁用</span></a>
+							{elseif $level['status'] == 1}
+							<a title="启用" href="javascript:;" onclick="drop_confirm('您确定要禁用此会员组吗?', '{php echo $this->createWebUrl('shop_agent_level',array('op' => 'status', 'status' => 2, 'id' => $level['id'], 'storeid' => $storeid))}');"><span class='label label-success'>启用</span></a>
+							{/if}
+						{else}
+							启用
+						{/if}
+					</td>
+					<td>
+						<div class="wn-table__link">
+							<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_agent_level',array('op' => 'edit', 'id' => $level['id'], 'storeid' => $storeid))}" title="编辑">编辑</a>
+							{if $level['isdefault'] != 1}
+							<a class="wn-table__link__item" href="javascript:;" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('shop_agent_level',array('op' => 'delete', 'id' => $level['id'], 'storeid' => $storeid))}');" title="删除" >删除</a>
+							{/if}
+						</div>
+					</td>
+				</tr>
+				{/loop}
+				<tr>
+					<td colspan="10">
+						<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
+						<input type="button" class="btn btn-primary edit_all" name="showall" value="批量显示" />
+						<input type="button" class="btn btn-primary edit_all" name="hideall" value="批量隐藏" />
+						<div class="pull-right">
+							{$pager}
+						</div>
+					</td>
+				</tr>
+			</tbody>
+			<input name="token" type="hidden" value="{$_W['token']}" />
+		</table>
+		{else}
+		未设置分销等级
+		{/if}
+		{/if}
+		{if $op == 'edit'}
+		<div class="wn-main__search__action">
+			<a href="{php echo $this->createWebUrl('shop_agent_level', array('op' => 'saleslevel', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">+返回分销员列表</a>
+		</div>
+		<div class="wn-main__content">
+			<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+				<input type="hidden" name="id" value="{$agentlevel['id']}">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分销等级名称</label>
+					<div class="col-sm-6 col-xs-12">
+						<input type="text" name="title" id="title" value="{$agentlevel['title']}" class="form-control">
+						<span class='help-block'>最多只能填写8个字符</span>
+					</div>
+				</div>
+				{if $agentlevel['isdefault'] != 1}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">升级条件</label>
+					<div class="col-sm-6 col-xs-12">
+						<div class="input-group">
+							<span class="input-group-addon">分销获得金额满</span>
+							<input type="text" name="need" id="need" value="{$agentlevel['need']}" class="form-control">
+						</div>
+						<span class='help-block'>分销员所获的收益大于该值得时候升级为该等级</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">开启状态</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="status" value="1" {if $agentlevel['status'] == 1 || empty($agentlevel['status'])} checked {/if}/>启用
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="status" value="2" {if $agentlevel['status'] == 2} checked {/if}/>禁用
+						</label>
+						<span class='help-block'>手机前台是否启用</span>
+					</div>
+				</div>
+				{/if}
+				<div class="form-group col-sm-12">
+					<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</div>
+			</form>
+		</div>
+		{/if}
+	</div>
+</div>
+<script type="text/javascript">
+	$(function() {
+		$('.check_all').click(function() {
+			var checked = $(this).get(0).checked;
+			$('input[type=checkbox]').prop("checked",checked);
+		});
+		$('input[name=deleteall]').click(function() {
+			var check = $("input[name='check']:checked");
+			if (check.length < 1) {
+				util.message('请选择要删除的记录!');
+				return;
+			}
+			if (confirm("确认要删除选择的记录?")) {
+				var id = new Array();
+				check.each(function(i) {
+					id[i] = $(this).val();
+				});
+				$.post("{php echo $this->createWebUrl('shop_agent_level',array('op' => 'deleteall', 'storeid' => $storeid))}", {idArr:id},function(data) {
+					if (data.message.errno ==0) {
+						util.message(data.message.message, 'refresh', 'success');
+						return;
+					} else {
+						util.message(data.message.message);
+						return;
+					}
+				},'json');
+			}
+		});
+		
+		$('.edit_all').click(function() {
+			var name = $(this).attr('name');
+			var check = $("input[name='check']:checked");
+			if (check.length < 1) {
+				util.message('请选择要操作的记录!');
+			}
+			var id = new Array();
+			check.each(function(i) {
+				id[i] = $(this).val();
+			});
+			$.post("{php echo $this->createWebUrl('shop_agent_level',array('op' => 'showall', 'storeid' => $storeid))}", {idArr:id, show_name:name},function(data) {
+				if (data.message.errno ==0) {
+					util.message(data.message.message, 'refresh', 'success');
+				} else {
+					util.message(data.message.message);
+				}
+			},'json');
+		});
+	});
+	
+	$("#title").blur(function(){
+		var title = $("#title").val();
+		if (title.length > 8) {
+			slice_title = title.slice(0, 8);
+			$("#title").val(slice_title);
+			util.message("分销等级名称超出范围");
+		}
+	});
+	
+	function drop_confirm(msg, url) {
+		if (confirm(msg)) {
+			window.location = url;
+		}
+	}
+</script>
+{template 'common/footer-storex'}

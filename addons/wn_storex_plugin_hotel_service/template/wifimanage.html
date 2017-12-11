@@ -1,0 +1,121 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li class="{if $op == 'lists'}active{/if}"><a href="{php echo $this->createWeburl('wifimanage', array('op' => 'lists'))}">WIFI列表</a></li>
+	{if $op != 'lists'}
+	<li class="{if $op == 'display'}active{/if}"><a href="{php echo $this->createWeburl('wifimanage', array('op' => 'display'))}">WIFI设置</a></li>
+	{/if}
+</ul>
+
+<div class="main" id="wifimanage">
+	{if $op == 'lists'}
+	<div class="clearfix">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th>酒店信息</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $hotel_lists $item}
+				<tr>
+					<td>
+						<img src="{php echo tomedia($item['thumb'])}" width="50px" height="50px">
+						{$item['title']}
+					</td>
+					<td style="text-align:left;">
+						<a href="{php echo $this->createWebUrl('wifimanage', array('op' => 'display', 'storeid' => $item['id']))}" class="btn btn-primary">设置WIFI</a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+	</div>
+	{/if}
+	{if $op == 'display'}
+	<div class="page-header clearfix">
+		<div class="pull-left">
+			<img src="{php echo tomedia($hotel_info['thumb'])}" width="50px" height="50px">
+			{$hotel_info['title']}
+		</div>
+	</div>
+	<div class="clearfix">
+		<form class="form-horizontal form" id="form1" action="" method="post" enctype="multipart/form-data">
+			<div v-for="(wifi_info, index) in wifi">
+				<h4>WIFI{{index+1}}</h4>
+				<a href="javascript:;" class="fa fa-times-circle" @click="deleteWifi(index);"></a>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">WIFI名称</label>
+					<div class="col-sm-10 col-xs-12">
+						<input class="form-control" name="" type="text" placeholder="" v-model="wifi_info.name">
+						<span class="help-block">请填写WIFI名称，请避免使用特殊字符 </span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">WIFI密码</label>
+					<div class="col-sm-10">
+						<input class="form-control" name="" type="text" placeholder="" v-model="wifi_info.password">
+						<span class="help-block">请填写WIFI密码 </span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">房间号</label>
+					<div class="col-sm-10">
+						<input class="form-control" name="" type="text" placeholder="" v-model="wifi_info.room">
+						<span class="help-block">请填写房间号，多个房间之间使用","间隔 </span>	
+					</div>
+				</div>
+			</div>
+		</form>
+		<div class="text-center">
+			<a class="btn btn-primary" href="javascript:;" @click="addWifi();">点击添加WIFI</a>
+			<button type="submit" class="btn btn-primary" @click="wifiSubmit()" v-show="wifi.length">提交</button>
+		</div>
+	</div>
+	{/if}
+</div>
+<script type="text/javascript">
+	require({
+		paths: {
+			'vue': 'https://unpkg.com/vue@2.2.6/dist/vue',
+		}
+	})
+	var wifi_list = {php echo json_encode($wifi_info);} ? {php echo json_encode($wifi_info);} : [];
+	var storeid = {php echo !empty($storeid) ? $storeid : 0};
+	require(['vue'], function(Vue) {
+		var app = new Vue({
+			el: '#wifimanage',
+			data: {
+				wifi: wifi_list,
+				storeid: storeid
+			},
+			methods: {
+				addWifi() {
+					this.wifi.push({
+						'name': 'wifi',
+						'room': '',
+						'password': ''
+					});
+				},
+				deleteWifi(index) {
+					this.wifi.splice(index, 1);
+				},
+				wifiSubmit() {
+					if (this.wifi) {
+						$.post("{php echo $this->createWeburl('wifimanage', array('op' => 'post'));}", {params : this.wifi, storeid : this.storeid}, function(data) {
+							data = $.parseJSON(data);
+							if (data.message.errno != 0) {
+								util.message(data.message.message, '', 'error');
+							} else {
+								util.message('设置成功', data.redirect, 'success');
+							}
+						});
+					} else {
+						util.message('请添加WIFI', '', 'error');
+					}
+				}
+			}
+		});
+	});
+</script>
+{template 'common/footer'}

@@ -1,0 +1,268 @@
+{template 'common/header-storex'}
+
+{if $op == 'display'}
+<div class="wn-main">
+	<div class="wn-main__head">应用</div>
+	<div class="wn-main__content">
+		<div class="wn-tabs">
+			<div class="wn-tabs__item {if $op == 'new'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_market', array('op' => 'new', 'storeid' => $_GPC['storeid']))}">新用户活动</a>
+			</div>
+			<div class="wn-tabs__item {if $op == 'cut'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_market', array('op' => 'cut', 'storeid' => $_GPC['storeid']))}">满减/赠活动</a>
+			</div>
+			<div class="wn-tabs__item {if $op == 'pickup'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_market', array('op' => 'pickup', 'storeid' => $_GPC['storeid']))}">自提活动</a>
+			</div>
+			{if $store_info['store_type'] != 1}
+			<div class="wn-tabs__item {if $_GPC['do'] == 'shop_sales_package'}wn-tabs__item--active{/if}">
+				<a class="wn-tabs__link" href="{php echo $this->createWebUrl('shop_sales_package', array('storeid' => $_GPC['storeid']))}">套餐管理</a>
+			</div>
+			{/if}
+		</div>
+		<div class="pull-right">
+			<a href="{php echo $this->createWebUrl('shop_sales_package', array('op' => 'post', 'storeid' => $_GPC['storeid']))}" class="btn btn-primary">+添加套餐</a>				
+		</div>
+		<div class="clearfix">
+			<table class="table table-hover wn-table table-bordered">
+				<thead class="navbar-inner">
+					<tr>
+						<th>套餐信息</th>
+						<th>价格(元)</th>
+						<th>运费(元)</th>
+						<th>状态</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $package_list $package}
+					<tr>
+						<td>
+							<img src="{$package['thumb']}" width="50">
+							{$package['title']}--{$package['sub_title']}
+						</td>
+						<td>{$package['price']}</td>
+						<td>{$package['express']}</td>
+						<td>
+							{if $package['status'] == 1}
+							<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_sales_package', array('op' => 'status', 'storeid' => $_GPC['storeid'], 'id' => $package['id'], 'status' => 2))}">开启中</a>
+							{elseif $package['status'] == 2}
+							<a class="wn-table__link__item" href="{php echo $this->createWebUrl('shop_sales_package', array('op' => 'status', 'storeid' => $_GPC['storeid'], 'id' => $package['id'], 'status' => 1))}">已关闭</a>
+							{/if}
+						</td>
+						<td>
+							<a href="{php echo $this->createWebUrl('shop_sales_package', array('op' => 'post', 'id' => $package['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">编辑</a>
+							<a onclick="return confirm('确定删除吗?')" href="{php echo $this->createWebUrl('shop_sales_package', array('op' => 'delete', 'id' => $package['id'], 'storeid' => $_GPC['storeid']))}" class="wn-table__link__item">删除</a>
+						</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+{/if}
+
+{if $op == 'post'}
+<style type="text/css">
+	.wxapp-content .app-list .select{
+		float: left;
+		display: table;
+		vertical-align: middle;
+		text-align: center;
+		width: 129px;
+		height: 138px;
+		border: 1px solid #e7e7eb;
+		margin-right: 25px;
+		margin-bottom: 30px;
+		position: relative;
+	}
+	.wxapp-content .select-more{
+		border-style: dashed!important;
+		cursor: pointer;
+		content: '+';
+		font-size: 35px;
+		color: #98999a;
+		display: table-cell;
+		vertical-align: middle;
+	}
+	.cover-dark{
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(64,64,64,.75);
+		padding: 30px;
+		display: none;
+	}
+</style>
+<div class="wn-main">
+	<div class="wn-main__head">店铺设置</div>
+	<div class="wn-main__content" id="sales-package">
+		<div id="goods-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-default modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+						<h3>
+							<ul role="tablist" class="nav nav-pills" style="font-size:14px; margin-top:-20px;">
+								<li role="presentation" class="basic">
+									<a data-toggle="tab" data-type="basic" role="tab" aria-controls="baisc" href="#basic">选择商品</a>
+								</li>
+							</ul>
+						</h3>
+					</div>
+					<div class="modal-body modules-content">
+						<div class="tab-content">
+							<ul class="app-allow-list">
+								<li v-for="(goods, index) in goods_list" @click="selectGoods(index)">
+									<div class="app-info">
+										<img :src="goods.thumb"/>
+										<p>{{goods.title}}</p>
+									</div>
+									<a href="javascript:;" class="cover-dark">
+										<i class="fa fa-check cover-selected"></i>
+									</a>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<div class="modal-footer">
+					</div>
+				</div>
+			</div>
+		</div>
+		<form class="form-horizontal form" method="post" enctype="multipart/form-data">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">选择商品</label>
+				<div class="col-sm-3 col-xs-12 wxapp-content">
+					<ul class="app-allow-list">
+						<li class="select" v-for="(goods, index) in selected_list">
+							<div class="app-info">
+								<img :src="goods.thumb"/>
+								<p class="ng-binding">{{goods.title}}</p>
+							</div>
+							<div class="cover-dark">
+								<a href="javascript:;" class="cover-delect">
+									<i class="fa fa-minus-circle" @click="deleteGoods(index)"></i>删除
+								</a>
+							</div>
+						</li>
+						<li class="select select-more js-add-goods" @click="addGoods();">+</li>
+					</ul>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">标题</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="title" class="form-control" v-model="params.title">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">副标题</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="sub_title" class="form-control" v-model="params.sub_title">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">图片</label>
+				<div class="col-sm-9 col-xs-12">
+					<span @click="addThumb()" class="form-control-static"><i class="fa fa-plus-circle green"></i>&nbsp;选择图片</span>
+					<div style="margin-top: 0.5em;" class="input-group" v-show="params.thumb"><img width="150" class="img-responsive img-thumbnail" :src="params.thumb"> <em @click="params.thumb = '';" title="删除这张图片" style="position:absolute; top: 0px; right: -14px"
+							class="close">×</em>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">运费设置</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="express" class="form-control" v-model="params.express">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">套餐价格</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="price" class="form-control" v-model="params.price">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-md-2 control-label">分销员分成百分比</label>
+				<div class="col-md-10" id="" style="padding-left: 0px;">
+					<div class="col-sm-11" style="margin: 5px 0px;" v-for="(r, l) in params.agent_ratio">
+						<div class="input-group">
+							<span class="input-group-addon">{{l}}级分销员</span>
+							<input type="text" class="form-control" v-model="params.agent_ratio[l]" />
+							<span class="input-group-addon">%</span>
+						</div>
+					</div>
+					<div class="col-sm-5">
+						<span class="help-block">对应分销员等级所获得该商品的分销提成（值0-100,保留两位小数,按百分比计算）</span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group col-sm-12">
+				<input type="button" value="提交" class="btn btn-primary col-lg-1" @click="submit();">
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</form>
+	</div>
+</div>
+<script type="text/javascript">
+	var goods_list = {php echo json_encode($goods_list);};
+	var package_info = {php echo json_encode($package_info)};
+	var selected_list = {php echo json_encode($selected_list)};
+	require(['vue'], function(Vue) {
+		var app = new Vue({
+			el: '#sales-package',
+			data: {
+				goods_list: goods_list,
+				selected_list: selected_list,
+				params : package_info,
+			},
+			methods: {
+				addGoods() {
+					$('#goods-modal').modal('show');
+				},
+				selectGoods(index) {
+					var self = this;
+					self.selected_list.push(self.goods_list[index]);
+					self.params.goodsids.push(self.goods_list[index].id);
+					self.goods_list.splice(index, '1');
+					if (self.goods_list.length == 0) {
+						$('#goods-modal').modal('hide');
+					}
+				},
+				deleteGoods(index) {
+					var self = this;
+					self.goods_list.push(self.selected_list[index]);
+					self.selected_list.splice(index, '1');
+					self.params.goodsids.splice(index, '1');
+				},
+				addThumb() {
+					const self = this;
+					require(['fileUploader'], function(uploader) {
+						uploader.show(function(img) {
+							self.params.thumb = img.url
+						}, {
+							'direct': true,
+							'multiple': false
+						});
+					});
+				},
+				submit() {
+					$.post("{php echo $this->createWeburl('shop_sales_package', array('op' => 'post', 'storeid' => $_GPC['storeid']));}", {params : this.params}, function(data){
+						data = $.parseJSON(data);
+						if (data.message.errno != '0') {
+							util.message(data.message.message, '', 'error');
+						} else {
+							util.message('设置成功', data.redirect, 'success');
+						}
+					});
+				}
+			}
+		});
+	});
+</script>
+{/if}
+{template 'common/footer-storex'}

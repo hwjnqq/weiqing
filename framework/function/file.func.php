@@ -380,7 +380,12 @@ function file_dir_remote_upload($dir_path) {
 	if (empty($_W['setting']['remote']['type'])) {
 		return error(1, '未开启远程附件');
 	}
-	$local_attachment = file_tree($dir_path);
+	$dir_path = safe_gpc_path($dir_path);
+	if (!empty($dir_path)) {
+		$local_attachment = file_tree($dir_path);
+	} else {
+		$local_attachment = array();
+	}
 	if (is_array($local_attachment) && !empty($local_attachment)) {
 		foreach ($local_attachment as $attachment) {
 			$filename = str_replace(ATTACHMENT_ROOT, '', $attachment);

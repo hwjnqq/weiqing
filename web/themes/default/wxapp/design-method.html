@@ -37,13 +37,13 @@
 						<div class="col-sm-6">
 							<div class="title">
 								<span class="wi wi-wxapp-pack"></span>
-								打包多个小程序
+								打包普通应用为小程序
 							</div>
 							<div class="con">
-								打包生成小程序，可以选择多个开发者小程序插件进行打包，可以设置首页及底部导航.
+								打包生成小程序，选择一个公众号应用打包为小程序
 							</div>
 							<div>
-								<a href="{php echo url('wxapp/post/post', array('design_method' => WXAPP_TEMPLATE, 'uniacid' => $uniacid))}" class="btn btn-primary" disabled>打包小程序</a>
+								<a href="{php echo url('wxapp/post/post', array('design_method' => WXAPP_MODULE, 'uniacid' => $uniacid, 'create_type'=>WXAPP_CREATE_MODULE))}" class="btn btn-primary">打包小程序</a>
 							</div>
 						</div>
 					</div>

@@ -1,0 +1,219 @@
+<html>
+<head>
+	<meta charset=utf-8>
+	<meta name=viewport content="width=device-width,initial-scale=1,user-scalable=0">
+	<title>{$_W['page']['title']}</title>
+	<script type="text/javascript" src="{$_W['siteroot']}addons/wn_storex/template/style/js/vue.js"></script>
+</head>
+<style>
+	body {
+		background-color: #ddd;
+		font-size: 12px;
+		color: #494949;
+	}
+	.blast {
+		background-color: #fff;
+		margin: 50px 30px;
+		text-align: center;
+		border-radius: 5px;
+	}
+	.blast__head {
+		padding: 15px;
+		background-color: #428BCA;
+		color: #fff;
+		border-radius: 5px 5px 0 0;
+	}
+	.blast__body {
+		padding: 10px;
+	}
+	.blast__qrcode {
+		max-width: 100%;
+		max-height: 100%;
+	}
+	.blaset__countdown {
+		margin-top: 5px;
+		color: #ababab;
+	}
+	.blaset__time {
+		margin-right: 5px;
+	}
+	.blaset__status {
+		color: #494949;
+	}
+	.blast__footer {
+		padding: 0 15px 15px;
+	}
+	.blaset__btn {
+		background-color: #428BCA;
+		color: #fff;
+		border: 1px solid #ddd;
+		outline: 0;
+		width: 100%;
+		padding: 10px 0;
+		border-radius: 6px;
+	}
+	.blaset__btn--disabled {
+		background-color: #CACACA;
+	}
+</style>
+<body {if !empty($blast_set['bg_image'])}style="background:url('{php echo tomedia($blast_set['bg_image']);}')  no-repeat center"{/if}>
+{template 'common/header'}
+	<div class="blast" id="blast">
+		<div class="blast__head">欢迎使用本营销工具</div>
+		<div class="blast__body">
+			<img class="blast__qrcode js-qrcode" src="" />
+			<div class="blaset__countdown"><span class="blaset__time js-send-text">{{send_text}}</span></div>
+			<div class="blaset__status js-qrcode-text">正在获取二维码...</div>
+		</div>
+		<div class="blast__footer">
+			<button class="blaset__btn" @click="qrcodeShow()" v-if="disabled == 1">刷新二维码</button>
+			<button class="blaset__btn blaset__btn--disabled" v-if="disabled == 2">不可点击</button>
+		</div>
+	</div>
+</body>
+</html>
+<script type="text/javascript">
+	var app = new Vue({
+		el: '#blast',
+		data: {
+			disabled : 1,
+			send_text : '',
+			error_text : '刷新二维码重新扫码',
+			cookie : '',
+			request : '',
+			synckey : '',
+			uuid : '',
+			redirect : '',
+			heart_start : 0,
+			heart_times : 0,
+			heart_interval : ''
+		},
+		methods: {
+			qrcodeShow() {
+				$('.js-qrcode-text').text('正在获取二维码...');
+				const self = this;
+				self.disabled = 2;
+				$.post("{php echo $this->createMobileUrl('blast', array('op' => 'get_qrcode', 'clerkid' => $_GPC['clerkid']))}", {}, function(data) {
+					data = $.parseJSON(data);
+					console.dir(data.message.message)
+					$('.js-qrcode').attr('src', data.message.message.link);
+					$('.js-qrcode-text').text('请打开微信扫描二维码');
+					self.disabled = 1;
+					self.uuid = data.message.message.uuid;
+					self.checkLogin();
+				})
+			},
+			checkLogin() {
+				const self = this
+				$.post("{php echo $this->createMobileUrl('blast', array('op' => 'check_login', 'clerkid' => $_GPC['clerkid']))}", {uuid : self.uuid}, function(data) {
+					data = $.parseJSON(data);
+					console.dir(data.message.message)
+					if (data.message.errno == 0) {
+						if (data.message.message.code == 400) {
+							self.checkLogin();
+						} else if (data.message.message.code == 408) {
+							self.checkLogin();
+						} else if (data.message.message.code == 200) {
+							self.send_text = '登陆成功';
+							self.redirect = data.message.message.redirect_uri;
+							self.getUserinfo();
+						} else if (data.message.message.code == 201) {
+							self.checkLogin();
+						}
+					} else {
+						self.send_text = self.error_text;
+					}
+				});
+			},
+			getUserinfo() {
+				const self = this;
+				self.send_text = '正在获取信息';
+				$.post("{php echo $this->createMobileUrl('blast', array('op' => 'user_info', 'clerkid' => $_GPC['clerkid']))}", {uuid : self.uuid, tip : 1, redirect : self.redirect}, function(data) {
+					data = $.parseJSON(data);
+					console.dir(data.message)
+					if (data.message.errno != 0) {
+						self.send_text = self.error_text
+					} else {
+						self.request = data.message.message.request;
+						self.synckey = data.message.message.synckey;
+						self.cookie = data.message.message.cookie;
+						self.heart_start = 1;
+						self.getContact(data.message.message.id)
+					}
+				})
+			},
+			getContact(id) {
+				const self = this;
+				$.post("{php echo $this->createMobileUrl('blast', array('op' => 'get_contact', 'clerkid' => $_GPC['clerkid']))}", {id : id}, function(data) {
+					data = $.parseJSON(data);
+					console.dir(data);
+					if (data.message.errno != 0) {
+						self.send_text = self.error_text;
+					} else {
+						contact = data.message.message.contact.list;
+						num = 0;
+						for (var i in contact) {
+							params = {
+								message : data.message.message.message,
+								request : data.message.message.request,
+								pass_ticket : data.message.message.pass_ticket,
+								post_url_header : data.message.message.post_url_header,
+								synckey : data.message.message.synckey,
+								fromusername : data.message.message.fromusername,
+								tousername : contact[i]
+							};
+							$.post("{php echo $this->createMobileUrl('blast', array('op' => 'send_message', 'clerkid' => $_GPC['clerkid']))}", {params : params}, function(data) {
+								data = $.parseJSON(data);
+								if (data.message.errno == 0) {
+									num++;
+									self.send_text = '已成功发送' + num + '人';
+								} else {
+									self.send_text = self.error_text;
+								}
+							});
+						};
+						if (num == data.message.message.contact.count) {
+							self.send_text = '发送完成！';
+						}
+					}
+				})
+			},
+			heart() {
+				const self = this;
+				$.post("{php echo $this->createMobileUrl('blast', array('op' => 'heart', 'clerkid' => $_GPC['clerkid']))}", {request : self.request, synckey : self.synckey, cookie : self.cookie}, function(data) {
+					data = $.parseJSON(data);
+					console.dir(data.message);
+					if (data.message.errno != 0) {
+						
+					} else {
+						console.dir('recode');
+					}
+					return;
+				})
+
+
+			},
+		},
+		watch: {
+			'heart_start': function(value) {
+				const self = this;
+				if (value == 1) {
+					self.heart_interval = setInterval(function(){
+						self.heart_times++;
+						self.heart();
+					}, 20 * 1000);
+				}
+			},
+			'heart_times' : function(value) {
+				const self = this;
+				if (value > 50) {
+					clearInterval(self.heart_interval);
+				}
+			}
+		},
+		created: function() {
+			const self = this;
+			self.qrcodeShow();
+		}
+	})
+</script>

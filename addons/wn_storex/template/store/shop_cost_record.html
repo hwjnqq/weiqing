@@ -1,0 +1,130 @@
+{template 'common/header-storex'}
+<div class="wn-main">
+	<div class="wn-main__head">概况</div>
+	<div class="wn-main__content">
+		<div class="wn-dashboard">
+			<div class="wn-dashboard__order wn-flex">
+				<div class="wn-flex__item">
+					<p>总消费金额</p>
+					<span>{$total_cost}</span>
+				</div>
+				<div class="wn-flex__item">
+					<p>已完成订单</p>
+					<span>{$over_order}</span>
+				</div>
+				<div class="wn-flex__item">
+					<p>已支付订单数</p>
+					<span>{$pay_order}</span>
+				</div>
+				<div class="wn-flex__item">
+					<p>未支付订单数</p>
+					<span>{$not_pay_order}</span>
+				</div>
+			</div>
+		</div>
+		<div class="clearfix"></div>
+		<br>
+		<div class="panel panel-default wn-panel">
+			<div class="panel-heading">
+				<form action="" id="dashborad-form">
+					<input type="hidden" name="c" value="site">
+					<input type="hidden" name="a" value="entry">
+					<input type="hidden" name="do" value="shop_member">
+					<input type="hidden" name="op" value="cost_record">
+					<input type="hidden" name="storeid" value="{$storeid}">
+					<input type="hidden" name="m" value="wn_storex">
+					<input type="hidden" name="id" value="{$id}">
+					{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
+					<div class="wn-main__search__action">
+						<a href="{php echo $this->createWebUrl('shop_member', array('op' => 'display', 'storeid' => $storeid));}" class="btn btn-primary we7-padding-horizontal">返回用户列表</a>
+					</div>
+				</form>
+			</div>
+			<div class="panel-body">
+				<div id="myChart" style="height: 500px"></div>
+			</div>
+		</div>
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+			<tr>
+				<th style="width:150px;">订单id</th>
+				<th style="width:200px;">商品名称</th>
+				<th style="width:200px;">下单时间</th>
+				<th style="width:200px;">消费金额</th>
+				<th style="width:200px;">订单状态</th>
+				<th style="width:200px;">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $ordes $item}
+			<tr>
+				<td>{$item['id']}</td>
+				<td>{$item['style']}</td>
+				<td>{php echo date('Y-m-d H:i', $item['time'])}</td>
+				<td>{$item['sum_price']}</td>
+				<td>已完成</td>
+				<td>
+					<a href="{php echo $this->createWeburl('shop_order', array('id' => $item['id'], 'roomid' => $item['roomid'], 'op' => 'edit', 'storeid' => $storeid))}">查看详情</a>
+				</td>
+			</tr>
+			{/loop}
+			</tbody>
+		</table>
+	</div>
+</div>
+<script type="text/javascript">
+	require({
+		paths: {
+			'echart': "{php echo SCRIPT_URL . '/echarts'}"
+		}
+	});
+	var chart_data = {php echo json_encode($chart_data);};
+	require(['echart', 'daterangepicker'], function(echarts) {
+		$('.daterange').on('apply.daterangepicker', function(ev, picker) {
+			$('#dashborad-form')[0].submit();
+		});
+		var myChart = echarts.init(document.getElementById('myChart'));
+		// 指定图表的配置项和数据
+		option = {
+			title: {
+				text: '用户消费趋势图'
+			},
+			tooltip: {
+				trigger: 'axis'
+			},
+			legend: {
+				data:['消费金额']
+			},
+			grid: {
+				left: '3%',
+				right: '4%',
+				bottom: '3%',
+				containLabel: true
+			},
+			toolbox: {
+				feature: {
+					saveAsImage: {}
+				}
+			},
+			xAxis: {
+				type: 'category',
+				boundaryGap: false,
+				data: chart_data.label
+			},
+			yAxis: {
+				type: 'value'
+			},
+			series: [
+				{
+					name:'消费金额',
+					type:'line',
+					stack: '总量',
+					data: chart_data.series_data
+				}
+			]
+		};
+		// 使用刚指定的配置项和数据显示图表。
+		myChart.setOption(option);
+	});
+</script>
+{template 'common/footer-storex'}

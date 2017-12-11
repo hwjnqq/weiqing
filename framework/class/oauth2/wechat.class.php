@@ -15,13 +15,12 @@ class Wechat extends OAuth2Client {
 		global $_W;
 		parent::__construct($ak, $sk);
 		$this->calback_url = $_W['siteroot'] . 'web/index.php';
+		$this->stateParam['from'] = 'wechat';
 	}
 
 	public function showLoginUrl($calback_url = '') {
-		global $_W;
 		$redirect_uri = urlencode($this->calback_url);
-		$state = !empty($state) ? $state : $_W['token'];
-		$state = $state . 'from=wechat';
+		$state = $this->stateParam();
 		return sprintf(Wechat_PLATFORM_API_OAUTH_LOGIN_URL, $this->ak, $redirect_uri, $state);
 	}
 
@@ -41,7 +40,8 @@ class Wechat extends OAuth2Client {
 		if (empty($state) || empty($code)) {
 			return error(-1, '参数错误');
 		}
-		if ($state != $_W['token'] . 'from=wechat') {
+		$local_state = $this->stateParam();
+		if ($state != $local_state) {
 			return error(-1, '重新登陆');
 		}
 		$access_url = sprintf(Wechat_PLATFORM_API_GET_ACCESS_TOKEN, $this->ak, $this->sk, $code, urlencode($this->calback_url));
@@ -99,6 +99,10 @@ class Wechat extends OAuth2Client {
 	public function login() {
 		load()->model('user');
 		$user = $this->user();
+		if (is_error($user)) {
+			return $user;
+		}
+
 		if (is_error($user)) {
 			return $user;
 		}
