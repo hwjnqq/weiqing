@@ -82,6 +82,9 @@ function app_update_today_visit($module_name) {
  */
 function app_pass_visit_limit($uniacid = 0) {
 	global $_W;
+	if ($_W['isajax'] || $_W['ispost'] || strpos($_W['siteurl'], 'c=utility&a=visit') !== false) {
+		return false;
+	}
 	$uniacid = intval($uniacid) > 0 ? intval($uniacid) : $_W['uniacid'];
 
 	$limit = uni_setting_load('statistics', $uniacid);
@@ -107,13 +110,8 @@ function app_pass_visit_limit($uniacid = 0) {
 		}
 		//本月累计大于（设定值+购买量-购买使用量）->返回true
 		$before_num = app_month_visit_till_today($uniacid);
-		$remain_num = intval($limit['founder']) + $order_num - intval($limit['use']);
-		if ($before_num > $remain_num) {
-			$data['limit'] = true;
-			cache_write($cachekey, $data);
-			return true;
-		}
-		if (($before_num + $today_num) > $remain_num) {
+		$sum_num = intval($limit['founder']) + $order_num - intval($limit['use']);
+		if ($sum_num <= 0) {
 			$data['limit'] = true;
 			cache_write($cachekey, $data);
 			return true;
@@ -126,7 +124,7 @@ function app_pass_visit_limit($uniacid = 0) {
 		return true;
 	}
 
-	if (!empty($limit['founder']) && $before_num > $limit['founder']) {
+	if (!empty($limit['founder']) && ($before_num + $today_num) > $limit['founder']) {
 		$limit['use'] = !empty($limit['use']) ? (intval($limit['use']) + 1) : 1;
 		uni_setting_save('statistics', $limit);
 	}
