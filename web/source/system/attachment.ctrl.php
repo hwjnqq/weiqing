@@ -239,8 +239,15 @@ if ($do == 'remote') {
 	$remote = $_W['setting']['remote_complete_info'];
 	$bucket_datacenter = attachment_alioss_datacenters();
 	$local_attachment = file_tree(IA_ROOT . '/attachment/images');
-	$global_attachment_key = array_search(ATTACHMENT_ROOT . 'images/global/Microengine.ico', $local_attachment);
-	unset($local_attachment[$global_attachment_key]);
+	if (is_array($local_attachment)) {
+		foreach ($local_attachment as $key => $attachment) {
+			$attachment = str_replace(ATTACHMENT_ROOT . 'images/', '', $attachment);
+			list($file_account) = explode('/', $attachment);
+			if ($file_account == 'global') {
+				unset($local_attachment[$key]);
+			}
+		}
+	}
 }
 
 if ($do == 'buckets') {
