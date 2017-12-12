@@ -39,4 +39,19 @@ class ModuleTable extends We7Table {
 		$rank_info = $this->query->from('modules_rank')->select('max(rank)')->where('uid', $_W['uid'])->get();
 		return $rank_info['0'];
 	}
+
+	public function moduleSetRankTop($module_name) {
+		global $_W;
+		if (empty($module_name)) {
+			return false;
+		}
+		$max_rank = $this->moduleMaxRank();
+		$exist = $this->moduleRank($module_name);
+		if (!empty($exist)) {
+			pdo_update('modules_rank', array('rank' => ($max_rank + 1)), array('module_name' => $module_name));
+		} else {
+			pdo_insert('modules_rank', array('uid' => $_W['uid'], 'module_name' => $module_name, 'rank' => ($max_rank + 1)));
+		}
+		return true;
+	}
 }

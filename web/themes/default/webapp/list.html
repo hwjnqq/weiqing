@@ -13,7 +13,7 @@
 	</div>
 	<div class="panel-body" >
 		{if !$_W['isfounder'] && !empty($account_info['webapp_limit'])}
-		<div class="alert alert-warning">
+		<div class="alert alert-warning hidden">
 			温馨提示：
 			<i class="fa fa-info-circle"></i>
 			Hi，<span class="text-strong">{$_W['username']}</span>，您所在的会员组： <span class="text-strong">{$account_info['group_name']}</span>，{if !user_is_vice_founder() && !empty($account_info['vice_group_name'])}<span class="text-strong">{$account_info['vice_group_name']}，</span>{/if}

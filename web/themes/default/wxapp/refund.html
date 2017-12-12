@@ -4,10 +4,10 @@
 </div>
 <ul class="we7-page-tab">
 	<li {if $action == 'payment'} class="active"{/if}>
-	<a href="{php echo url('wxapp/payment')}">支付参数</a>
+	<a href="{php echo url('wxapp/payment', array('version_id' => $version_id))}">支付参数</a>
 	</li>
 	<li {if $action == 'refund'} class="active"{/if}>
-	<a href="{php echo url('profile/refund')}">退款配置</a>
+	<a href="{php echo url('profile/refund', array('version_id' => $version_id))}">退款配置</a>
 	</li>
 </ul>
 <div class="main">

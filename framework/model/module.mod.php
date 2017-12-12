@@ -69,7 +69,10 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 	load()->func('communication');
 
 	global $_W;
-	$ts = array('rule', 'cover', 'menu', 'home', 'profile', 'shortcut', 'function', 'mine', 'welcome');
+	
+	
+		$ts = array('rule', 'cover', 'menu', 'home', 'profile', 'shortcut', 'function', 'mine');
+	
 	if(empty($types)) {
 		$types = $ts;
 	} else {
@@ -120,7 +123,7 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 			if($bind['entry'] == 'shortcut') {
 				$url = murl("entry", array('eid' => $bind['eid']));
 			}
-			if($bind['entry'] == 'welcome') {
+			if($bind['entry'] == 'system_welcome') {
 				$url = wurl("site/entry", array('eid' => $bind['eid']));
 			}
 
@@ -912,13 +915,6 @@ function module_clerk_info($module_name) {
  */
 function module_rank_top($module_name) {
 	global $_W;
-	$module_table = table('module');
-	$max_rank = $module_table->moduleMaxRank();
-	$exist = $module_table->moduleRank($module_name);
-	if (!empty($exist)) {
-		pdo_update('modules_rank', array('rank' => ($max_rank + 1)), array('module_name' => $module_name));
-	} else {
-		pdo_insert('modules_rank', array('uid' => $_W['uid'], 'module_name' => $module_name, 'rank' => ($max_rank + 1)));
-	}
-	return true;
+	$result = table('module')->moduleSetRankTop($module_name);
+	return empty($result) ? true : false;
 }
