@@ -97,7 +97,7 @@
 						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&account_type={ACCOUNT_TYPE}&type={ACCOUNT_TYPE_OFFCIAL_NORMAL}&show=group" ng-if="isFounder == 1">应用权限组</a>
 						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&account_type={ACCOUNT_TYPE}&type={ACCOUNT_TYPE_OFFCIAL_NORMAL}&show=subscribe" ng-if="isFounder == 1 && module.subscribes.length">订阅消息</a>
 						{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
-						<a href="{php echo url('module/manage-system/uninstall')}&name={{ module.name }}" ng-if="isFounder == 1" onclick="return confirm('确认要停用模块吗？')">停用</a>
+						<a href="{php echo url('module/manage-system/uninstall')}&name={{ module.name }}&account_type={ACCOUNT_TYPE}" ng-if="isFounder == 1" onclick="return confirm('确认要停用模块吗？')">停用</a>
 						{/if}
 					</div>
 				</td>
@@ -297,8 +297,8 @@
 			</td>
 			<td class="text-right">
 				{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
-				<a href="{php echo url('module/manage-system/upgrade')}&module_name={{ module.name }}" ng-if="module.upgrade_support == true" class="btn btn-primary">安装应用模块</a>
-				<a href="{php echo url('module/manage-system/install')}&module_name={{ module.name }}" ng-if="module.upgrade_support != true" class="btn btn-primary">安装应用模块</a>
+				<a href="{php echo url('module/manage-system/upgrade')}&module_name={{ module.name }}&account_type={ACCOUNT_TYPE}" ng-if="module.upgrade_support == true" class="btn btn-primary">安装应用模块</a>
+				<a href="{php echo url('module/manage-system/install')}&module_name={{ module.name }}&account_type={ACCOUNT_TYPE}" ng-if="module.upgrade_support != true" class="btn btn-primary">安装应用模块</a>
 				{/if}
 			</td>
 		</tr>

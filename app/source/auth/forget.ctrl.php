@@ -6,8 +6,9 @@ defined('IN_IA') or exit('Access Denied');
 
 $openid = $_W['openid'];
 $dos = array('reset', 'forget', 'verifycode');
-$setting = uni_setting($_W['uniacid'], array('uc'));
+$setting = uni_setting($_W['uniacid'], array('uc', 'passport'));
 $uc_setting = $setting['uc'] ? $setting['uc'] : array();
+$register_mode = $setting['passport']['item'] ? $setting['passport']['item'] : 'random';
 $forward = url('mc');
 if(!empty($_GPC['forward'])) {
 	$forward = './index.php?' . base64_decode($_GPC['forward']) . '#wechat_redirect';

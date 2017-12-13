@@ -41,7 +41,8 @@ function message_notice_record($content, $uid, $sign, $type, $extend_message = a
 	if (empty($message_notice_log['is_read'])) {
 		$message_notice_log['is_read'] = MESSAGE_NOREAD;
 	}
-	if (in_array($type, array(MESSAGE_ORDER_TYPE, MESSAGE_WORKORDER_TYPE, MESSAGE_REGISTER_TYPE))) {
+	$push_cloud_message_type = array(MESSAGE_ORDER_TYPE, MESSAGE_WORKORDER_TYPE, MESSAGE_REGISTER_TYPE);
+	if (in_array($type, $push_cloud_message_type)) {
 		message_notice_record_cloud($message_notice_log);
 	}
 	pdo_insert('message_notice_log', $message_notice_log);
@@ -95,6 +96,10 @@ function message_event_notice_list() {
 				$message['url'] = url('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL, 'message_id' => $message['id']));
 			}
 
+			if ($message['type'] == MESSAGE_WEBAPP_EXPIRE_TYPE) {
+				$message['url'] = url('account/manage', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL, 'message_id' => $message['id']));
+			}
+
 			if ($message['type']==MESSAGE_REGISTER_TYPE && $message['status']==USER_STATUS_CHECK) {
 				$message['url'] = url('user/display', array('type' => 'check', 'message_id' => $message['id']));
 			}
@@ -117,7 +122,6 @@ function message_event_notice_list() {
  */
 function message_account_expire() {
 	load()->model('account');
-	load()->model('message');
 	if (!pdo_tableexists('message_notice_log')) {
 		return true;
 	}
@@ -132,12 +136,24 @@ function message_account_expire() {
 			continue;
 		}
 		if ($account_detail['endtime'] > 0 && $account_detail['endtime'] < TIMESTAMP) {
-			$type = $account_detail['type'] == ACCOUNT_TYPE_APP_NORMAL ? MESSAGE_WECHAT_EXPIRE_TYPE : MESSAGE_ACCOUNT_EXPIRE_TYPE;
-			$account_name = $account_detail['type'] == ACCOUNT_TYPE_APP_NORMAL ? '-小程序过期' : '-公众号过期';
+			switch ($account_detail['type']) {
+				case ACCOUNT_TYPE_APP_NORMAL:
+					$type = MESSAGE_WECHAT_EXPIRE_TYPE;
+					$account_name = '-小程序过期';
+					break;
+				case ACCOUNT_TYPE_WEBAPP_NORMAL:
+					$type = MESSAGE_WEBAPP_EXPIRE_TYPE;
+					$account_name = '-pc过期';
+					break;
+				default:
+					$type = MESSAGE_ACCOUNT_EXPIRE_TYPE;
+					$account_name = '-公众号过期';
+					break;
+			}
 			$message = array(
 				'end_time' => $account_detail['endtime']
 			);
-			message_notice_record($account_detail['name'] . $account_name, $account_detail['uid'], $account_detail['uniacid'], $type, $message);
+			message_notice_record($account_detail['name'] . $account_name, $account_detail['uid'], $account['uniacid'], $type, $message);
 		}
 	}
 	return true;
@@ -164,7 +180,7 @@ function message_notice_worker() {
 		return true;
 	}
 
-	$request_url = $api['data']['url'];
+	$request_url = $api_url['data']['url'];
 	$response = ihttp_get($request_url);
 	$uid = $_W['config']['setting']['founder'];
 	if ($response['code'] == 200) {
@@ -187,6 +203,6 @@ function message_notice_worker() {
 function message_notice_record_cloud($message) {
 	load()->classs('cloudapi');
 	$api = new CloudApi();
-	$result = $api->post('system', 'notify', array('josn' => $message), 'html', false);
+	$result = $api->post('system', 'notify', array('json' => $message), 'html', false);
 	return $result;
 }

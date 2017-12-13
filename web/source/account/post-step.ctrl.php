@@ -269,6 +269,7 @@ if($step == 1) {
 		cache_delete("accesstoken:{$acid}");
 		cache_delete("jsticket:{$acid}");
 		cache_delete("cardticket:{$acid}");
+		cache_clean(cache_system_key('user_accounts'));
 
 		if (!empty($_GPC['from'])) {
 			itoast('公众号权限修改成功', url('account/post-step/', array('uniacid' => $uniacid, 'step' => 3, 'from' => 'list')), 'success');

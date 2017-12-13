@@ -11,5 +11,12 @@ if (strexists($_W['siteurl'], 'c=profile&a=module&do=setting')) {
 	itoast('', url('module/manage-account/setting'). $other_params, 'info');
 }
 
-define('FRAME', 'account');
-checkaccount();
+$account_api = WeAccount::create();
+$check_manange = $account_api->checkIntoManage();
+
+if (is_error($check_manange)) {
+	$account_display_url = $account_api->accountDisplayUrl();
+	itoast('', $account_display_url);
+}
+$account_type = $account_api->accountType();
+define('FRAME', $account_type);

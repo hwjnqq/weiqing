@@ -114,7 +114,7 @@ if ($do == 'post') {
 	if (!empty($module_list)) {
 		foreach ($module_list as $name => $module_info) {
 			$module_info = module_fetch($name);
-			if ($module_info['app_support'] == 2 && !in_array($name, array_keys($group_have_module_app))) {
+			if ($module_info['app_support'] == MODULE_SUPPORT_WXAPP && !in_array($name, array_keys($group_have_module_app))) {
 				if (!empty($module_info['main_module'])) {
 					if (in_array($module_info['main_module'], array_keys($group_have_module_app))) {
 						$group_not_have_module_app[$name] = $module_info;
@@ -133,11 +133,11 @@ if ($do == 'post') {
 					$group_not_have_module_app[$name] = $module_info;
 				}
 			}
-			if ($module_info['wxapp_support'] == 2 && !in_array($name, array_keys($group_have_module_wxapp))) {
+			if ($module_info['wxapp_support'] == MODULE_SUPPORT_WXAPP && !in_array($name, array_keys($group_have_module_wxapp))) {
 				$group_not_have_module_wxapp[$name] = $module_info;
 			}
 
-			if ($module_info['webapp_support'] == 2 && !in_array($name, array_keys($group_have_module_webapp))) {
+			if ($module_info['webapp_support'] == MODULE_SUPPORT_WEBAPP && !in_array($name, array_keys($group_have_module_webapp))) {
 				$group_not_have_module_webapp[$name] = $module_info;
 			}
 		}

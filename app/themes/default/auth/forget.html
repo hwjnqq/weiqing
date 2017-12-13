@@ -4,20 +4,26 @@
 	$(function(){
 		$(document).on('input propertychange', '.js-mobile-val', function(){
 				var mobile_value = $(this).val();
-				if (mobile_value.length == '11') {
-					$.post("{php echo url('auth/login/mobile_exist')}", {'mobile' : mobile_value}, function(data) {
-						data = $.parseJSON(data);
-						if (data.message.errno == '1') {
-							$('.js-check-mobile').addClass('send-code');
-						} else if (data.message.errno == '2'){
-							$('.js-check-mobile').removeClass('send-code');
-							util.toast('手机号不存在', '', 'error');
-							return;
-						}
-					});
-				} else {
+				var register_mode = $("#register_mode").val();
+				if (register_mode == 'mobile' && mobile_value.length != '11') {
 					$('.js-check-mobile').removeClass('send-code');
 				}
+				if (register_mode == 'email' && !/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(mobile_value)) {
+					$('.js-check-mobile').removeClass('send-code');
+				}
+				if (register_mode == 'random' && !(mobile_value.length == '11' || /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(mobile_value))) {
+					$('.js-check-mobile').removeClass('send-code');
+				}
+				$.post("{php echo url('auth/login/mobile_exist')}", {'mobile' : mobile_value, 'find_mode':register_mode}, function(data) {
+					data = $.parseJSON(data);
+					if (data.message.errno == '1') {
+						$('.js-check-mobile').addClass('send-code');
+					} else if (data.message.errno == '2'){
+						$('.js-check-mobile').removeClass('send-code');
+						util.toast('账号不存在', '', 'error');
+						return;
+					}
+				});
 			});
 		$(document).on('click', '.send-code', function(){
 			var username = $('#sendcode input[name="username"]').val();
@@ -96,11 +102,12 @@
 	});
 </script>
 <div class="mui-content">
+	<input type="hidden" value="{$register_mode}" id="register_mode">
 	<div id="sendcode">
-		<div class="mui-content-padded mui-text-muted">请输入手机号,以收取验证码</div>
+		<div class="mui-content-padded mui-text-muted">请输入{if $register_mode == 'mobile'}手机号{elseif $register_mode == 'email'}邮箱{else}手机号/邮箱{/if},以收取验证码</div>
 		<div class="mui-input-group mui-mt15">
 			<div class="mui-input-row mui-help">
-				<input name="username" type="text" class="js-mobile-val" placeholder="手机号"/>
+				<input name="username" type="text" class="js-mobile-val" placeholder="{if $register_mode == 'mobile'}手机号{elseif $register_mode == 'email'}邮箱{else}手机号/邮箱{/if}"/>
 			</div>
 		</div>
 		<div class="mui-content-padded">
@@ -108,7 +115,7 @@
 		</div>
 	</div>
 	<div id="codeverify" style="display:none;">
-		<div class="mui-content-padded mui-text-muted">您的手机号<span class="mui-text-success"></span>会收到一条含有6位数字验证码的短息</div>
+		<div class="mui-content-padded mui-text-muted">您的请输入{if $register_mode == 'mobile'}手机号{elseif $register_mode == 'email'}邮箱{else}手机号/邮箱{/if}<span class="mui-text-success"></span>会收到一条含有6位数字验证码的短息</div>
 		<div class="mui-input-group mui-mt15">
 			<div class="mui-input-row mui-help">
 				<input type="text" placeholder="请输入验证码" name="code"/>

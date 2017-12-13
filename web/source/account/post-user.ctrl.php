@@ -117,7 +117,7 @@ if ($do == 'edit') {
 					iajax(4, '管理员不可操作管理员', '');
 				}
 				$data['role'] = ACCOUNT_MANAGE_NAME_MANAGER;
-			} else  {
+			} else if ($addtype == ACCOUNT_MANAGE_TYPE_OPERATOR) {
 				$data['role'] = ACCOUNT_MANAGE_NAME_OPERATOR;
 			}
 			pdo_delete('uni_account_users',  array('uniacid' => $uniacid,'uid' => $user['uid']));

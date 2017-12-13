@@ -358,6 +358,7 @@ $we7_file_permission = array(
 			'see_account_manage_sms_blance',
 			'see_account_manage_users_edit',
 			'see_account_manage_users_adduser',
+			'see_account_manage_users_add_viceuser',
 			'see_system_upgrade',
 			'see_system_manage_clerk',
 			'see_system_manage_user_setting',

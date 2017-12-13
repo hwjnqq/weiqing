@@ -5,86 +5,85 @@
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
-load()->model('module');
+
 /**
+ * @method WeAccount fetchAccountInfo()
  * 公众号业务操作基类
  */
 abstract class WeAccount {
+	//当前公众号
+	public $account;
+	public $tablename = '';
+	public $uniacid = 0;
+	public $accountType;
+	public $accountDisplayUrl;
+
 	/**
 	 * 创建平台特定的公众号操作对象
 	 * @param int $acid 公众号编号
 	 * @return WeAccount|NULL
 	 */
-	public static function create($acidOrAccount = '') {
+	public static function create($account = array()) {
 		global $_W;
-		if(empty($acidOrAccount)) {
-			$acidOrAccount = $_W['account'];
-		}
-		if (is_array($acidOrAccount)) {
-			$account = $acidOrAccount;
-		} else {
-			$account = account_fetch($acidOrAccount);
+		if (!is_array($account) || empty($account)) {
+			if (empty($account)) {
+				$account = $_W['uniacid'];
+			}
+			$account = intval($account);
+			$account = table('account')->getUniAccountByUniacid($account);
 		}
 		if (is_error($account)) {
 			$account = $_W['account'];
 		}
 		if(!empty($account) && isset($account['type'])) {
-			if($account['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL) {
-				load()->classs('weixin.account');
-				return new WeiXinAccount($account);
-			}
-			if($account['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
-				load()->classs('weixin.platform');
-				return new WeiXinPlatform($account);
-			}
-			if($account['type'] == ACCOUNT_TYPE_APP_NORMAL) {
-				load()->classs('wxapp.account');
-				return new WxappAccount($account);
-			}
+			return self::includes($account);
+		} else {
+			return error('-1', '公众号不存在或是已经被删除');
 		}
-		return null;
+	}
+
+	public static function createByType($account_type = ACCOUNT_TYPE_OFFCIAL_NORMAL) {
+		$account_type = !empty($account_type) ? $account_type : ACCOUNT_TYPE_OFFCIAL_NORMAL;
+		return self::includes(array('type' => $account_type));
 	}
 	
 	static public function token($type = 1) {
-		$classname = self::includes($type);
-		$obj = new $classname();
+		$obj = self::includes(array('type' => $type));
 		return $obj->fetch_available_token();
 	}
 	
-	static public function includes($type = 1) {
-		if($type == '1') {
+	static public function includes($account) {
+		$type = $account['type'];
+
+		if($type == ACCOUNT_TYPE_OFFCIAL_NORMAL) {
 			load()->classs('weixin.account');
-			return 'WeiXinAccount';
+			$account_obj = new WeiXinAccount();
 		}
-		if($type == '2') {
-			load()->classs('yixin.account');
-			return 'YiXinAccount';
+		if($type == ACCOUNT_TYPE_OFFCIAL_AUTH) {
+			load()->classs('weixin.platform');
+			$account_obj = new WeiXinPlatform();
 		}
+		if($type == ACCOUNT_TYPE_APP_NORMAL) {
+			load()->classs('wxapp.account');
+			$account_obj = new WxappAccount();
+		}
+		if($type == ACCOUNT_TYPE_WEBAPP_NORMAL) {
+			load()->classs('webapp.account');
+			$account_obj = new WebappAccount();
+		}
+		$account_obj->uniacid = $account['uniacid'];
+		$account_obj->uniaccount = $account;
+		$account_obj->account = $account_obj->fetchAccountInfo();
+		
+		return $account_obj;
 	}
 	
 	/**
 	 * 平台特定的公众号操作对象构造方法
-	 * 
 	 * @param array $account 统一公号基础对象 
 	 */
-	abstract public function __construct($account);
-
-	/**
-	 * 微擎系统对来自公众平台的请求进行安全校验
-	 * 
-	 * @retun boolean
-	 */
-	public function checkSign() {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-
-	/**
-	 * 获取公众号信息
-	 */
-	public function fetchAccountInfo() {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-
+	abstract public function __construct();
+	
 	/**
 	 * 查询当前公号支持的统一消息类型, 当前支持的类型包括: 
 	 * &nbsp;&nbsp;&nbsp;通用类型: text, image, voice, video, location, link,
@@ -98,7 +97,21 @@ abstract class WeAccount {
 	public function queryAvailableMessages() {
 		return array();
 	}
-	
+
+	/**
+	 * 返回当前选中的frame
+	 */
+	public function accountType() {
+		return $this->accountType;
+	}
+
+	/**
+	 * 没选中某个公众号，小程序，pc时，返回的url
+	 */
+	public function accountDisplayUrl() {
+		return $this->accountDisplayUrl;
+	}
+
 	/**
 	 * 查询当前公号支持的统一响应结构
 	 * 
@@ -110,6 +123,11 @@ abstract class WeAccount {
 	public function queryAvailablePackets() {
 		return array();
 	}
+	
+	/**
+	 * 检测当前Uniacid是否匹配当前工作区
+	 */
+	abstract function checkIntoManage();
 
 	/**
 	 * 分析消息内容,并返回统一消息结构, 参数为公众平台消息结构
@@ -216,207 +234,129 @@ abstract class WeAccount {
 		}
 		return array2xml($packet);
 	}
-
-	/**
-	 * 获取当前公号是否支持消息推送
-	 * @return bool 是否支持
-	 */
-	public function isPushSupported() {
-		return false;
-	}
 	
-	/*
-	 * 向指定的用户推送消息
-	 * @param string $uniid 指定用户(统一用户) todo
-	 * @param array $packet 统一响应结构
-	 * @return bool 是否成功
-	 */
-	public function push($uniid, $packet) {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-	
-	/**
-	 * 获取当前公号是否支持群发消息
-	 * @return boolean 是否支持
-	 */
-	public function isBroadcastSupported() {
-		return false;
-	}
-	
-	/**
-	 * 向一组用户发送群发消息, 可选的可以指定是否要指定特定组
-	 * @param array $packet 统一消息结构
-	 * @param array $targets 单独向一组用户群发, 或指定fans列表发送
-	 */
-	public function broadcast($packet, $targets = array()) {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-
-	/**
-	 * 查询当前公号是否支持菜单操作
-	 * @return bool 是否支持
-	 */
-	public function isMenuSupported() {
-		return false;
-	}
-	
-	/**
-	 * 为当前公众号创建菜单
-	 * @param array $menu 统一菜单结构 todo
-	 * @return bool 是否创建成功
-	 */
-	public function menuCreate($menu) {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-	
-	/**
-	 * 删除当前公众号的菜单
-	 * @return bool 是否删除成功
-	 */
-	public function menuDelete() {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-	
-	/**
-	 * 修改当前公众号的菜单
-	 * @param array $menu 统一菜单结构
-	 * @return bool 是否修改成功
-	 */
-	public function menuModify($menu) {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-	
-	/**
-	 * 查询菜单
-	 * @return array 统一菜单结构
-	 */
-	public function menuQuery() {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-	
-	/**
-	 * 查询当前公号粉丝管理的支持程度
-	 * @return array 返回结果为支持的方法列表(fansGroupAll, fansGroupCreate, ...)
-	 */
-	public function queryFansActions() {
-		return array();
-	}
-	
-	/**
-	 * 查询当前公号记录的分组信息
-	 * @return array 统一分组结构集合
-	 */
-	public function fansGroupAll() {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-	
-	/**
-	 * 在当前公号记录中创建一条分组信息
-	 * @param array $group 统一分组结构 todo
-	 * @return bool 是否执行成功
-	 */
-	public function fansGroupCreate($group) {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-	
-	/**
-	 * 在当前公号记录中修改一条分组信息
-	 * @param array $group 统一分组结构
-	 * @return bool 是否执行成功
-	 */
-	public function fansGroupModify($group) {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-	
-	/**
-	 * 将指定用户移至另一分组中
-	 * @param string $uniid 指定用户(统一用户)
-	 * @param array $group 统一分组结构
-	 * @return bool 是否执行成功
-	 */
-	public function fansMoveGroup($uniid, $group) {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-	
-	/**
-	 * 查询指定的用户所在的分组
-	 * @param string $uniid 指定用户(统一用户)
-	 * @return array $group 统一分组结构
-	 */
-	public function fansQueryGroup($uniid) {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-	
-	/**
-	 * 查询指定的用户的基本信息
-	 * @param string $uniid 指定用户(统一用户)
-	 * @param boolean $isPlatform 指定的参数是否为平台编号
-	 * @return array 统一粉丝信息结构 todo
-	 */
-	public function fansQueryInfo($uniid, $isPlatform) {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-	
-	/**
-	 * 查询当前公号的所有粉丝
-	 * @return array 统一粉丝信息结构集合
-	 */
-	public function fansAll() {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-	
-	/**
-	 * 查询当前公号地理位置追踪的支持情况
-	 * @return array 返回结果为支持的方法列表(traceCurrent, traceHistory)
-	 */
-	public function queryTraceActions() {
-		return array();
-	}
-	
-	/**
-	 * 追踪指定的用户的当前位置
-	 * @param string $uniid 指定用户(统一用户)
-	 * @return array 地理位置信息
-	 */
-	public function traceCurrent($uniid) {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-	
-	/**
-	 * 追踪指定的用户的地理位置
-	 * @param string $uniid 指定用户(统一用户)
-	 * @param int $time 追踪的时间范围
-	 * @return array 地理位置信息追踪集合
-	 */
-	public function traceHistory($uniid, $time) {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-	
-	/**
-	 * 查询当前公号二维码支持情况
-	 * @return array 返回结果为支持的方法列表(barCodeCreateDisposable, barCodeCreateFixed)
-	 */
-	public function queryBarCodeActions() {
-		return array();
-	}
-	
-	/**
-	 * 生成临时的二维码
-	 * 
-	 */
-	public function barCodeCreateDisposable($barcode) {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-	
-	/**
-	 * 生成永久的二维码
-	 */
-	public function barCodeCreateFixed($barcode) {
-		trigger_error('not supported.', E_USER_WARNING);
-	}
-	
-	public function downloadMedia($media){
-		trigger_error('not supported.', E_USER_WARNING);
+	public function errorCode($code, $errmsg = '未知错误') {
+		$errors = array(
+			'-1' => '系统繁忙',
+			'0' => '请求成功',
+			'40001' => '获取access_token时AppSecret错误，或者access_token无效',
+			'40002' => '不合法的凭证类型',
+			'40003' => '不合法的OpenID',
+			'40004' => '不合法的媒体文件类型',
+			'40005' => '不合法的文件类型',
+			'40006' => '不合法的文件大小',
+			'40007' => '不合法的媒体文件id',
+			'40008' => '不合法的消息类型',
+			'40009' => '不合法的图片文件大小',
+			'40010' => '不合法的语音文件大小',
+			'40011' => '不合法的视频文件大小',
+			'40012' => '不合法的缩略图文件大小',
+			'40013' => '不合法的APPID',
+			'40014' => '不合法的access_token',
+			'40015' => '不合法的菜单类型',
+			'40016' => '不合法的按钮个数',
+			'40017' => '不合法的按钮个数',
+			'40018' => '不合法的按钮名字长度',
+			'40019' => '不合法的按钮KEY长度',
+			'40020' => '不合法的按钮URL长度',
+			'40021' => '不合法的菜单版本号',
+			'40022' => '不合法的子菜单级数',
+			'40023' => '不合法的子菜单按钮个数',
+			'40024' => '不合法的子菜单按钮类型',
+			'40025' => '不合法的子菜单按钮名字长度',
+			'40026' => '不合法的子菜单按钮KEY长度',
+			'40027' => '不合法的子菜单按钮URL长度',
+			'40028' => '不合法的自定义菜单使用用户',
+			'40029' => '不合法的oauth_code',
+			'40030' => '不合法的refresh_token',
+			'40031' => '不合法的openid列表',
+			'40032' => '不合法的openid列表长度',
+			'40033' => '不合法的请求字符，不能包含\uxxxx格式的字符',
+			'40035' => '不合法的参数',
+			'40038' => '不合法的请求格式',
+			'40039' => '不合法的URL长度',
+			'40050' => '不合法的分组id',
+			'40051' => '分组名字不合法',
+			'40155' => '请勿添加其他公众号的主页链接',
+			'41001' => '缺少access_token参数',
+			'41002' => '缺少appid参数',
+			'41003' => '缺少refresh_token参数',
+			'41004' => '缺少secret参数',
+			'41005' => '缺少多媒体文件数据',
+			'41006' => '缺少media_id参数',
+			'41007' => '缺少子菜单数据',
+			'41008' => '缺少oauth code',
+			'41009' => '缺少openid',
+			'42001' => 'access_token超时',
+			'42002' => 'refresh_token超时',
+			'42003' => 'oauth_code超时',
+			'43001' => '需要GET请求',
+			'43002' => '需要POST请求',
+			'43003' => '需要HTTPS请求',
+			'43004' => '需要接收者关注',
+			'43005' => '需要好友关系',
+			'44001' => '多媒体文件为空',
+			'44002' => 'POST的数据包为空',
+			'44003' => '图文消息内容为空',
+			'44004' => '文本消息内容为空',
+			'45001' => '多媒体文件大小超过限制',
+			'45002' => '消息内容超过限制',
+			'45003' => '标题字段超过限制',
+			'45004' => '描述字段超过限制',
+			'45005' => '链接字段超过限制',
+			'45006' => '图片链接字段超过限制',
+			'45007' => '语音播放时间超过限制',
+			'45008' => '图文消息超过限制',
+			'45009' => '接口调用超过限制',
+			'45010' => '创建菜单个数超过限制',
+			'45015' => '回复时间超过限制',
+			'45016' => '系统分组，不允许修改',
+			'45017' => '分组名字过长',
+			'45018' => '分组数量超过上限',
+			'45056' => '创建的标签数过多，请注意不能超过100个',
+			'45057' => '该标签下粉丝数超过10w，不允许直接删除',
+			'45058' => '不能修改0/1/2这三个系统默认保留的标签',
+			'45059' => '有粉丝身上的标签数已经超过限制',
+			'45065' => '24小时内不可给该组人群发该素材',
+			'45157' => '标签名非法，请注意不能和其他标签重名',
+			'45158' => '标签名长度超过30个字节',
+			'45159' => '非法的标签',
+			'46001' => '不存在媒体数据',
+			'46002' => '不存在的菜单版本',
+			'46003' => '不存在的菜单数据',
+			'46004' => '不存在的用户',
+			'47001' => '解析JSON/XML内容错误',
+			'48001' => 'api功能未授权',
+			'48003' => '请在微信平台开启群发功能',
+			'50001' => '用户未授权该api',
+			'40070' => '基本信息baseinfo中填写的库存信息SKU不合法。',
+			'41011' => '必填字段不完整或不合法，参考相应接口。',
+			'40056' => '无效code，请确认code长度在20个字符以内，且处于非异常状态（转赠、删除）。',
+			'43009' => '无自定义SN权限，请参考开发者必读中的流程开通权限。',
+			'43010' => '无储值权限,请参考开发者必读中的流程开通权限。',
+			'43011' => '无积分权限,请参考开发者必读中的流程开通权限。',
+			'40078' => '无效卡券，未通过审核，已被置为失效。',
+			'40079' => '基本信息base_info中填写的date_info不合法或核销卡券未到生效时间。',
+			'45021' => '文本字段超过长度限制，请参考相应字段说明。',
+			'40080' => '卡券扩展信息cardext不合法。',
+			'40097' => '基本信息base_info中填写的参数不合法。',
+			'49004' => '签名错误。',
+			'43012' => '无自定义cell跳转外链权限，请参考开发者必读中的申请流程开通权限。',
+			'40099' => '该code已被核销。',
+			'61005' => '缺少接入平台关键数据，等待微信开放平台推送数据，请十分钟后再试或是检查“授权事件接收URL”是否写错（index.php?c=account&amp;a=auth&amp;do=ticket地址中的&amp;符号容易被替换成&amp;amp;）',
+			'61023' => '请重新授权接入该公众号',
+		);
+		$code = strval($code);
+		if($code == '40001' || $code == '42001') {
+			$cachekey = "accesstoken:{$this->account['acid']}";
+			cache_delete($cachekey);
+			return '微信公众平台授权异常, 系统已修复这个错误, 请刷新页面重试.';
+		}
+		if($errors[$code]) {
+			return $errors[$code];
+		} else {
+			return $errmsg;
+		}
 	}
 }
 
@@ -774,6 +714,44 @@ class WeUtility {
 	}
 
 	/**
+	 * 创建系统首页类
+	 * @param string $name
+	 */
+	public static function createModuleSystemWelcome($name) {
+		global $_W;
+		static $file;
+		$classname = "{$name}ModuleSystemWelcome";
+		if(!class_exists($classname)) {
+			$file = IA_ROOT . "/addons/{$name}/systemWelcome.php";
+			if(!is_file($file)) {
+				$file = IA_ROOT . "/framework/builtin/{$name}/systemWelcome.php";
+			}
+			if(!is_file($file)) {
+				trigger_error('ModuleSystemWelcome Definition File Not Found '.$file, E_USER_WARNING);
+				return null;
+			}
+			require $file;
+		}
+		if(!class_exists($classname)) {
+			trigger_error('ModuleSystemWelcome Definition Class Not Found', E_USER_WARNING);
+			return null;
+		}
+		$o = new $classname();
+		$o->uniacid = $o->weid = $_W['uniacid'];
+		$o->modulename = $name;
+		$o->module = module_fetch($name);
+		$o->__define = $file;
+		self::defineConst($o);
+		$o->inMobile = defined('IN_MOBILE');
+		if($o instanceof WeModuleSystemWelcome) {
+			return $o;
+		} else {
+			trigger_error('ModuleSystemWelcome Class Definition Error', E_USER_WARNING);
+			return null;
+		}
+	}
+
+	/**
 	 * 记录日志
 	 * @param string $level
 	 * @param string $message
@@ -1012,7 +990,33 @@ abstract class WeBase {
 	
 	protected function fileUpload($file_string, $type = 'image') {
 		$types = array('image', 'video', 'audio');
-	
+	}
+
+
+	protected function getFunctionFile($name) {
+		$module_type = str_replace('wemodule', '', strtolower(get_parent_class($this)));
+		if ($module_type == 'site') {
+			$module_type = stripos($name, 'doWeb') === 0 ? 'web' : 'mobile';
+			$function_name = $module_type == 'web' ? strtolower(substr($name, 5)) : strtolower(substr($name, 8));
+		} else {
+			$function_name = strtolower(substr($name, 6));
+		}
+		$dir = IA_ROOT . '/framework/builtin/' . $this->modulename . '/inc/' . $module_type;
+		$file = "$dir/{$function_name}.inc.php";
+		if(!file_exists($file)) {
+			$file = str_replace("framework/builtin", "addons", $file);
+		}
+		return $file;
+	}
+
+	public function __call($name, $param) {
+		$file = $this->getFunctionFile($name);
+		if(file_exists($file)) {
+			require $file;
+			exit;
+		}
+		trigger_error('模块方法' . $name . '不存在.', E_USER_WARNING);
+		return false;
 	}
 }
 
@@ -1439,36 +1443,6 @@ abstract class WeModuleSite extends WeBase {
 	 * @var bool 预定义的数据, 是否在移动终端
 	 */
 	public $inMobile;
-
-	public function __call($name, $arguments) {
-		$isWeb = stripos($name, 'doWeb') === 0;
-		$isMobile = stripos($name, 'doMobile') === 0;
-		if($isWeb || $isMobile) {
-			$dir = IA_ROOT . '/addons/' . $this->modulename . '/inc/';
-			if($isWeb) {
-				$dir .= 'web/';
-				$fun = strtolower(substr($name, 5));
-			}
-			if($isMobile) {
-				$dir .= 'mobile/';
-				$fun = strtolower(substr($name, 8));
-			}
-			$file = $dir . $fun . '.inc.php';
-			if(file_exists($file)) {
-				require $file;
-				exit;
-			} else {
-				$dir = str_replace("addons", "framework/builtin", $dir);
-				$file = $dir . $fun . '.inc.php';
-				if(file_exists($file)) {
-					require $file;
-					exit;
-				}
-			}
-		}
-		trigger_error("访问的方法 {$name} 不存在.", E_USER_WARNING);
-		return null;
-	}
 	
 	public function __get($name) {
 		if ($name == 'module') {
@@ -1691,21 +1665,6 @@ EOF;
  * 模块计划任务
  */
 abstract class WeModuleCron extends WeBase {
-	public function __call($name, $arguments) {
-		if($this->modulename == 'task') {
-			$dir = IA_ROOT . '/framework/builtin/task/cron/';
-		} else {
-			$dir = IA_ROOT . '/addons/' . $this->modulename . '/cron/';
-		}
-		$fun = strtolower(substr($name, 6));
-		$file = $dir . $fun . '.inc.php';
-		if(file_exists($file)) {
-			require $file;
-			exit;
-		}
-		trigger_error("访问的方法 {$name} 不存在.", E_USER_WARNING);
-		return error(-1009, "访问的方法 {$name} 不存在.");
-	}
 
 	//记录触发记录
 	public function addCronLog($tid, $errno, $note) {
@@ -1732,7 +1691,27 @@ abstract class WeModuleCron extends WeBase {
 abstract class WeModuleWxapp extends WeBase {
 	public $appid;
 	public $version;
-	
+
+	public function __call($name, $param) {
+		$file = $this->getFunctionFile($name);
+		$dir = IA_ROOT . '/addons/' . $this->modulename . '/inc/wxapp';
+		$version_path_tree = glob("$dir/*");
+		usort($version_path_tree, function($version1, $version2) {
+			return -version_compare($version1, $version2);
+		});
+		$function_name = substr($name, 6);
+		if (!empty($version_path_tree)) {
+			foreach ($version_path_tree as $path) {
+				$file = "$path/{$function_name}.inc.php";
+				if (file_exists($file)) {
+					break;
+				}
+			}
+		}
+		trigger_error('模块方法' . $name . '不存在.', E_USER_WARNING);
+		return false;
+	}
+
 	public function result($errno, $message, $data = '') {
 		exit(json_encode(array(
 			'errno' => $errno,
@@ -1740,33 +1719,7 @@ abstract class WeModuleWxapp extends WeBase {
 			'data' => $data,
 		)));
 	}
-	
-	public function __call($name, $arguments) {
-		$dir = IA_ROOT . '/addons/' . $this->modulename . '/inc/wxapp';
-		$function_name = strtolower(substr($name, 6));
-		//版本号不存在相应的目录则直接使用最新版
-		$file = "$dir/{$this->version}/{$function_name}.inc.php";
-		if (!file_exists($file)) {
-			$version_path_tree = glob("$dir/*");
-			usort($version_path_tree, function($version1, $version2) {
-				return -version_compare($version1, $version2);
-			});
-			if (!empty($version_path_tree)) {
-				foreach ($version_path_tree as $path) {
-					$file = "$path/{$function_name}.inc.php";
-					if (file_exists($file)) {
-						break;
-					}
-				}
-			}
-		}
-		if(file_exists($file)) {
-			require $file;
-			exit;
-		}
-		return null;
-	}
-	
+
 	public function checkSign() {
 		global $_GPC;
 		if (!empty($_GET) && !empty($_GPC['sign'])) {
@@ -1853,14 +1806,10 @@ abstract class WeModuleHook extends WeBase {
 }
 
 abstract class WeModuleWebapp extends WeBase {
-	public function __call($name, $arguments) {
-		$dir = IA_ROOT . '/addons/' . $this->modulename . '/inc/webapp';
-		$function_name = strtolower(substr($name, 6));
-		$file = "$dir/{$function_name}.inc.php";
-		if(file_exists($file)) {
-			require $file;
-			exit;
-		}
-		return null;
-	}
+}
+
+/**
+ *  模块系统首页
+ */
+abstract class WeModuleSystemWelcome extends WeBase {
 }

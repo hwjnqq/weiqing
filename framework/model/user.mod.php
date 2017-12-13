@@ -133,28 +133,18 @@ function user_is_vice_founder($uid = 0) {
  * @return bool
  */
 function user_delete($uid, $is_recycle = false) {
-	if (!empty($is_recycle)) {
-		pdo_update('users', array('status' => 3) , array('uid' => $uid));
-		return true;
-	}
-
 	load()->model('cache');
-	$founder_groupid = pdo_getcolumn('users', array('uid' => $uid), 'founder_groupid');
-	if ($founder_groupid == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
-		pdo_update('users', array('owner_uid' => 0), array('owner_uid' => $uid));
-		pdo_update('users_group', array('owner_uid' => 0), array('owner_uid' => $uid));
-		pdo_update('uni_group', array('owner_uid' => 0), array('owner_uid' => $uid));
-	}
-	pdo_delete('users', array('uid' => $uid));
-	$user_set_account = pdo_getall('uni_account_users', array('uid' => $uid, 'role' => 'owner'));
-	if (!empty($user_set_account)) {
-		foreach ($user_set_account as $account) {
-			cache_build_account_modules($account['uniacid']);
+	$user_table = table('users');
+	if (empty($is_recycle)) {
+		$user_table->userAccountRole(ACCOUNT_MANAGE_NAME_OWNER);
+		$user_accounts = $user_table->userOwnedAccount($uid);
+		if (!empty($user_accounts)) {
+			foreach ($user_accounts as $uniacid) {
+				cache_build_account_modules($uniacid);
+			}
 		}
 	}
-	pdo_delete('uni_account_users', array('uid' => $uid));
-	pdo_delete('users_profile', array('uid' => $uid));
-	pdo_delete('users_bind', array('uid' => $uid));
+	$user_table->userAccountDelete($uid, $is_recycle);
 	return true;
 }
 
@@ -661,19 +651,33 @@ function user_invite_register_url($uid = 0) {
  */
 function user_save_group($group_info) {
 	global $_W;
+	$group_table = table('group');
 	$name = trim($group_info['name']);
 	if (empty($name)) {
 		return error(-1, '用户权限组名不能为空');
 	}
 
+	$group_table->searchWithName($name);
 	if (!empty($group_info['id'])) {
-		$name_exist = pdo_get('users_group', array('id <>' => $group_info['id'], 'name' => $name));
-	} else {
-		$name_exist = pdo_get('users_group', array('name' => $name));
+		$group_table->searchWithNoId($group_info['id']);
 	}
-
+	$name_exist = $group_table->searchGroup();
 	if (!empty($name_exist)) {
 		return error(-1, '用户权限组名已存在！');
+	}
+
+	if (user_is_vice_founder()) {
+		$group_table->searchWithId($_W['user']['groupid']);
+		$founder_info = $group_table->searchGroup(true);
+		if ($group_info['maxaccount'] > $founder_info['maxaccount']) {
+			return error(-1, '当前用户组的公众号个数不能超过' . $founder_info['maxaccount'] . '个！');
+		}
+		if ($group_info['maxwxapp'] > $founder_info['maxwxapp']) {
+			return error(-1, '当前用户组的公众号个数不能超过' . $founder_info['maxwxapp'] . '个！');
+		}
+		if ($group_info['maxwebapp'] > $founder_info['maxwebapp']) {
+			return error(-1, '当前用户组的公众号个数不能超过' . $founder_info['maxwebapp'] . '个！');
+		}
 	}
 
 	if (!empty($group_info['package'])) {

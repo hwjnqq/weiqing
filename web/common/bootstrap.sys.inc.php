@@ -1,12 +1,20 @@
 <?php
 /**
+ * 初始化web端数据
  * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
  */
-load()->model('user');
+defined('IN_IA') or exit('Access Denied');
+
+load()->web('common');
+load()->web('template');
+load()->func('file');
 load()->func('tpl');
+load()->model('account');
+load()->model('setting');
+load()->model('user');
 load()->model('permission');
 load()->model('attachment');
+load()->classs('oauth2/oauth2client');
 
 $_W['token'] = token();
 $session = json_decode(authcode($_GPC['__session']), true);
@@ -34,11 +42,16 @@ if (!empty($_GPC['__uniacid'])) {
 } else {
 	$_W['uniacid'] = uni_account_last_switch();
 }
+
 if (!empty($_W['uniacid'])) {
 	$_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);
+	if (empty($_W['account'])) {
+		unset($_W['uniacid']);
+	}
 	$_W['acid'] = $_W['account']['acid'];
 	$_W['weid'] = $_W['uniacid'];
 }
+
 if (!empty($_W['uid'])) {
 	$_W['highest_role'] = permission_account_user_role($_W['uid']);
 	$_W['role'] = permission_account_user_role($_W['uid'], $_W['uniacid']);

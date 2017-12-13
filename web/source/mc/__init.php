@@ -2,10 +2,14 @@
 /**
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
-if (!empty($_W['account']) && $_W['account']['type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
-	define('FRAME', 'webapp');
-	checkwebapp();
+
+$account_api = WeAccount::create();
+$check_manange = $account_api->checkIntoManage();
+
+if (is_error($check_manange)) {
+	$account_display_url = $account_api->accountDisplayUrl();
+	itoast('', $account_display_url);
 } else {
-	define('FRAME', 'account');
-	checkaccount();
+	$account_type = $account_api->accountType();
+	define('FRAME', $account_type);
 }

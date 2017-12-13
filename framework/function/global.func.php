@@ -808,7 +808,7 @@ function istrlen($string, $charset = '') {
 	} else {
 		$charset = 'utf8';
 	}
-	if (function_exists('mb_strlen')) {
+	if (function_exists('mb_strlen') && extension_loaded('mbstring')) {
 		return mb_strlen($string, $charset);
 	} else {
 		$n = $noc = 0;

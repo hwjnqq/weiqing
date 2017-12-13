@@ -1,26 +1,19 @@
 <?php
 /**
+ * 路由控制器
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 define('IN_SYS', true);
 require '../framework/bootstrap.inc.php';
 require IA_ROOT . '/web/common/bootstrap.sys.inc.php';
 
-load()->web('common');
-load()->web('template');
-load()->func('file');
-load()->model('account');
-load()->model('setting');
-load()->model('user');
-load()->classs('oauth2/oauth2client');
-
 if (!empty($_GPC['state'])) {
-	$callbackParams = OAuth2Client::supportParams($_GPC['state']);
-	if (!empty($callbackParams)) {
+	$login_callback_params = OAuth2Client::supportParams($_GPC['state']);
+	if (!empty($login_callback_params)) {
 		$controller = 'user';
 		$action = 'login';
-		$_GPC['login_type'] = $callbackParams['from'];
-		$_GPC['handle_type'] = $callbackParams['mode'];
+		$_GPC['login_type'] = $login_callback_params['from'];
+		$_GPC['handle_type'] = $login_callback_params['mode'];
 	}
 }
 
@@ -100,7 +93,7 @@ if (is_array($acl[$controller]['direct']) && in_array($action, $acl[$controller]
 }
 checklogin();
 // 判断非创始人是否拥有目标权限
-if ($_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER && version_compare(IMS_VERSION, '1.5.5', '>=')) {
+if ($_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER) {
 	if (empty($_W['uniacid'])) {
 		if (defined('FRAME') && FRAME == 'account') {
 			itoast('', url('account/display'), 'info');
