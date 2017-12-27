@@ -437,7 +437,10 @@ if (!function_exists('murl')) {
 		}
 		$str = '';
 		if(uni_is_multi_acid()) {
-			$str = "&j={$_W['acid']}";
+			$str .= "&j={$_W['acid']}";
+		}
+		if (!empty($_W['account']) && $_W['account']['type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
+			$str .= '&a=webapp';
 		}
 		$url .= "index.php?i={$_W['uniacid']}{$str}&";
 		if (!empty($controller)) {
