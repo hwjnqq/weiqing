@@ -46,7 +46,6 @@ if (!$entry['direct']) {
 			}
 		}
 	
-
 	$module = module_fetch($entry['module']);
 	if (empty($module)) {
 		itoast("访问非法, 没有操作权限. (module: {$entry['module']})", '', '');
@@ -82,11 +81,14 @@ $_GPC['do'] = $entry['do'];
 
 $modules = uni_modules();
 $_W['current_module'] = $modules[$entry['module']];
-$site = WeUtility::createModuleSite($entry['module']);
+
+
+
+
+	$site = WeUtility::createModuleSite($entry['module']);
+
 
 define('IN_MODULE', $entry['module']);
-
-
 
 if (!is_error($site)) {
 	if ($_W['role'] == ACCOUNT_MANAGE_NAME_OWNER) {

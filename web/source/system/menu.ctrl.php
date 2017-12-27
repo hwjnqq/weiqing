@@ -11,7 +11,10 @@ $do = in_array($do, $dos) ? $do : 'display';
 $_W['page']['title'] = '系统管理 - 菜单设置';
 
 $system_menu = cache_load('system_frame');
-$system_top_menu = array('account', 'wxapp', 'module', 'help', 'advertisement', 'site', 'system');
+
+	$system_top_menu = array('account', 'wxapp', 'module', 'help', 'advertisement', 'site', 'system', 'webapp', 'appmarket');
+
+
 
 if(empty($system_menu)) {
 	cache_build_frame_menu();
@@ -38,7 +41,6 @@ if (!empty($system_menu)) {
 		}
 	}
 }
-
 if ($do == 'display') {
 	$add_top_nav = pdo_getall('core_menu', array('group_name' => 'frame', 'is_system <>' => 1), array('title', 'url', 'permission_name', 'displayorder'));
 	if (!empty($add_top_nav)) {
