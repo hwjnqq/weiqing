@@ -148,7 +148,7 @@ function material_news_set($data, $attach_id) {
 			'media_id' => '',
 			'type' => 'news',
 			'model' => 'local',
-			'createtime' => time()
+			'createtime' => TIMESTAMP
 		);
 		pdo_insert('wechat_attachment', $wechat_attachment);
 		$attach_id = pdo_insertid();
@@ -326,6 +326,7 @@ function material_local_news_upload($attach_id) {
 			return error('-6', '素材内容不能为空');
 		}
 		$news['content'] = material_parse_content($news['content']);
+		$news['content_source_url'] = $_W['siteroot'] . 'app/' . $news['content_source_url'];
 		if (is_error($news['content'])) {
 			return error('-2', $news['content']['message']);
 		}
@@ -542,7 +543,7 @@ function material_news_list($server = '', $search ='', $page = array('page_index
 	}
 
 	$select_sql = "SELECT  %s FROM " . tablename('wechat_attachment') . " AS a RIGHT JOIN " . tablename('wechat_news') . " AS b ON a.id = b.attach_id WHERE  a.uniacid = :uniacid AND a.type = 'news' AND a.id <> '' " . $news_model_sql . $search_sql . "%s";
-	$list_sql = sprintf($select_sql, "*, a.id as id", " ORDER BY a.createtime DESC, b.displayorder ASC LIMIT " . ($page['page_index'] - 1) * $page['page_size'] . ", " . $page['page_size']);
+	$list_sql = sprintf($select_sql, "a.id as id, a.filename, a.attachment, a.media_id, a.type, a.model, a.tag, a.createtime, b.displayorder, b.title, b.digest, b.thumb_url, b.thumb_media_id, b.attach_id, b.url", " ORDER BY a.createtime DESC, b.displayorder ASC LIMIT " . ($page['page_index'] - 1) * $page['page_size'] . ", " . $page['page_size']);
 	$total_sql = sprintf($select_sql, "count(*)", '');
 	$total = pdo_fetchcolumn($total_sql, $conditions);
 	$news_list = pdo_fetchall($list_sql, $conditions);
