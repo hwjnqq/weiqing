@@ -15,21 +15,11 @@ $_W['page']['title'] = '添加/编辑公众号 - 公众号管理';
 $uniacid = intval($_GPC['uniacid']);
 $step = intval($_GPC['step']) ? intval($_GPC['step']) : 1;
 //模版调用，显示该用户所在用户组可添加的主公号数量，已添加的数量，还可以添加的数量
-$account_info = permission_user_account_num();
+$user_create_account_info = permission_user_account_num();
 
 if($step == 1) {
-	// 用户点击 '授权登录添加公众号'，判断公共号最大个数限制
-	if (!$_W['isfounder']) {
-		//当前用户可添加公众号数量判断
-		$max_tsql = "SELECT COUNT(*) FROM " . tablename('uni_account'). " as a LEFT JOIN". tablename('account'). " as b ON a.default_acid = b.acid LEFT JOIN ". tablename('uni_account_users')." as c ON a.uniacid = c.uniacid WHERE a.default_acid <> 0 AND c.uid = :uid AND b.isdeleted <> 1";
-		$max_pars[':uid'] = $_W['uid'];
-		$max_total = pdo_fetchcolumn($max_tsql, $max_pars);
-
-
-		$maxaccount = pdo_fetchcolumn('SELECT `maxaccount` FROM '. tablename('users_group') .' WHERE id = :groupid', array(':groupid' => $_W['user']['groupid']));
-		if($max_total >= $maxaccount) {
-			$authurl = "javascript:alert('您所在会员组最多只能添加 {$maxaccount} 个公众号);";
-		}
+	if ($user_create_account_info['uniacid_limit'] <= 0 && !$_W['isfounder']) {
+		$authurl = "javascript:alert('创建公众号已达上限！');";
 	}
 
 	if (empty($authurl) && !empty($_W['setting']['platform']['authstate'])) {
@@ -54,7 +44,7 @@ if($step == 1) {
 	}
 	//添加公众号
 	if (checksubmit('submit')) {
-		if ($account_info['uniacid_limit'] <= 0 && !$_W['isfounder']) {
+		if ($user_create_account_info['uniacid_limit'] <= 0 && !$_W['isfounder']) {
 			itoast('创建公众号已达上限！');
 		}
 		$update = array();
@@ -121,7 +111,7 @@ if($step == 1) {
 				);
 				pdo_insert('mc_member_fields', $data);
 			}
-			
+
 		}
 		$update['account'] = trim($_GPC['account']);
 		$update['original'] = trim($_GPC['original']);
@@ -193,9 +183,9 @@ if($step == 1) {
 		$groupid = intval($_GPC['groupid']);
 		if (!empty($uid)) {
 			//删除原所有者，删除现在所有者其他身份
-			$account_info = permission_user_account_num($uid);
-			if ($account_info['uniacid_limit'] <= 0) {
-				itoast("您所设置的主管理员所在的用户组可添加的主公号数量已达上限，请选择其他人做主管理员！", referer(), 'error');
+			$create_account_info = permission_user_account_num($uid);
+			if ($create_account_info['uniacid_limit'] <= 0) {
+				itoast("您所设置的主管理员所在的用户组可添加的公众号数量已达上限，请选择其他人做主管理员！", referer(), 'error');
 			}
 			pdo_delete('uni_account_users', array('uniacid' => $uniacid, 'uid' => $uid));
 			$owner = pdo_get('uni_account_users', array('uniacid' => $uniacid, 'role' => 'owner'));
@@ -269,6 +259,7 @@ if($step == 1) {
 		cache_delete("accesstoken:{$acid}");
 		cache_delete("jsticket:{$acid}");
 		cache_delete("cardticket:{$acid}");
+		cache_delete(cache_system_key('proxy_wechatpay_account:'));
 		cache_clean(cache_system_key('user_accounts'));
 
 		if (!empty($_GPC['from'])) {
