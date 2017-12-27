@@ -302,7 +302,7 @@ function mc_oauth_userinfo($acid = 0) {
 	}
 	// 认证号, 静默获取用户信息, 不需要跳转到网页授权获取用户信息.
 	if (!empty($_SESSION['openid']) && intval($_W['account']['level']) >= 3) {
-		$oauth_account = WeAccount::create($_W['account']['oauth']);
+		$oauth_account = WeAccount::create();
 		$userinfo = $oauth_account->fansQueryInfo($_SESSION['openid']);
 		if (!is_error($userinfo) && !empty($userinfo) && is_array($userinfo) && !empty($userinfo['nickname'])) {
 			$userinfo['nickname'] = stripcslashes($userinfo['nickname']);
@@ -708,7 +708,7 @@ function mc_fans_groups($force_update = false) {
 		$results = iunserializer($results);
 		return $results;
 	}
-	$account_api = WeAccount::create($_W['acid']);
+	$account_api = WeAccount::create();
 	if (!$account_api->isTagSupported()) {
 		return array();
 	}
@@ -1731,6 +1731,7 @@ function mc_init_fans_info($openid, $force_init_member = false){
 			} else {
 				$member_update_info['groupid'] = pdo_getcolumn('mc_groups', array('uniacid' => $_W['uniacid'], 'isdefault' => 1));
 				$member_update_info['salt'] = random(8);
+				$member_update_info['password'] = md5($openid . $member_update_info['salt'] . $_W['config']['setting']['authkey']);
 				$member_update_info['email'] = $email;
 				$member_update_info['createtime'] = TIMESTAMP;
 
@@ -1748,7 +1749,7 @@ function mc_init_fans_info($openid, $force_init_member = false){
 	} else {
 		$fans_update_info['salt'] = random(8);
 		$fans_update_info['unfollowtime'] = 0;
-		$fans_update_info['createtime'] = TIMESTAMP;
+		$fans_update_info['followtime'] = TIMESTAMP;
 
 		pdo_insert('mc_mapping_fans', $fans_update_info);
 		$fans_mapping['fanid'] = pdo_insertid();
@@ -2035,29 +2036,32 @@ function mc_fans_chats_record_formate($chat_record) {
 		return array();
 	}
 	foreach ($chat_record as &$record) {
-		$record['content'] = iunserializer($record['content']);
-		if (isset($record['content']['media_id']) && !empty($record['content']['media_id'])) {
-			$material = material_get($record['content']['media_id']);
-			switch($record['msgtype']) {
-				case 'image':
-					$record['content'] = tomedia($material['attachment']);
-					break;
-				case 'mpnews':
-					$record['content'] = $material['news'][0]['thumb_url'];
-					break;
-				case 'music':
-					$record['content'] = $material['filename'];
-					break;
-				case 'voice':
-					$record['content'] = $material['filename'];
-					break;
-				case 'voice':
-					$record['content'] = $material['filename'];
-					break;
+		if ($record['flag'] == FANS_CHATS_FROM_SYSTEM) {
+			$record['content'] = iunserializer($record['content']);
+			if (isset($record['content']['media_id']) && !empty($record['content']['media_id'])) {
+				$material = material_get($record['content']['media_id']);
+				switch($record['msgtype']) {
+					case 'image':
+						$record['content'] = tomedia($material['attachment']);
+						break;
+					case 'mpnews':
+						$record['content'] = $material['news'][0]['thumb_url'];
+						break;
+					case 'music':
+						$record['content'] = $material['filename'];
+						break;
+					case 'voice':
+						$record['content'] = $material['filename'];
+						break;
+					case 'voice':
+						$record['content'] = $material['filename'];
+						break;
+				}
+			} else {
+				$record['content'] = urldecode($record['content']['content']);
 			}
-		} else {
-			$record['content'] = urldecode($record['content']['content']);
 		}
+
 		$record['createtime'] = date('Y-m-d H:i', $record['createtime']);
 	}
 	return $chat_record;

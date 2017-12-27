@@ -10,7 +10,7 @@ $do = in_array($do, $dos) ? $do : 'register';
 
 $setting = uni_setting($_W['uniacid'], array('uc', 'passport'));
 $uc_setting = $setting['uc'] ? $setting['uc'] : array();
-$item = $setting['passport']['item'] ? $setting['passport']['item'] : 'mobile';
+$item = !empty($setting['passport']['item']) ? $setting['passport']['item'] : 'mobile';
 $audit = @intval($setting['passport']['audit']);
 $ltype = empty($setting['passport']['type']) ? 'hybird' : $setting['passport']['type'];
 $rtype = trim($_GPC['type']) ? trim($_GPC['type']) : 'email';

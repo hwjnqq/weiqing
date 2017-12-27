@@ -100,11 +100,11 @@ function message_event_notice_list() {
 				$message['url'] = url('account/manage', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL, 'message_id' => $message['id']));
 			}
 
-			if ($message['type']==MESSAGE_REGISTER_TYPE && $message['status']==USER_STATUS_CHECK) {
+			if ($message['type'] == MESSAGE_REGISTER_TYPE && $message['status'] == USER_STATUS_CHECK) {
 				$message['url'] = url('user/display', array('type' => 'check', 'message_id' => $message['id']));
 			}
 
-			if ($message['type']==MESSAGE_REGISTER_TYPE && $message['status']==USER_STATUS_CHECK) {
+			if ($message['type'] == MESSAGE_REGISTER_TYPE && $message['status'] == USER_STATUS_NORMAL) {
 				$message['url'] = url('user/display', array('message_id' => $message['id']));
 			}
 		}
@@ -189,6 +189,49 @@ function message_notice_worker() {
 		if (!empty($worker_notice_lists)) {
 			foreach ($worker_notice_lists as $list) {
 				message_notice_record($list['note'], $uid, $list['uuid'], MESSAGE_WORKORDER_TYPE, array('create_time' => strtotime($list['updated_at'])));
+			}
+		}
+	}
+	return true;
+}
+
+/**
+ * 用户到期短信提醒
+ * @return bool
+ */
+function message_sms_expire_notice() {
+	load()->model('cloud');
+	load()->model('setting');
+	$setting_user_expire = setting_load('user_expire');
+	if (empty($setting_user_expire['user_expire']['status'])) {
+		return true;
+	}
+
+	$setting_sms_sign = setting_load('site_sms_sign');
+	$custom_sign = !empty($setting_sms_sign['site_sms_sign']['user_expire']) ? $setting_sms_sign['site_sms_sign']['user_expire'] : '';
+
+	$day = !empty($setting_user_expire['user_expire']['day']) ? $setting_user_expire['user_expire']['day'] : 1;
+
+	$user_table = table('users');
+	$user_table->searchWithMobile();
+	$user_table->searchWithEndtime($day);
+	$user_table->searchWithSendStatus();
+	$users_expire = $user_table->searchUsersList();
+
+	if (empty($users_expire)) {
+		return true;
+	}
+	foreach ($users_expire as $v) {
+		if (empty($v['puid'])) {
+			continue;
+		}
+		if (!empty($v['mobile']) && preg_match(REGULAR_MOBILE, $v['mobile'])) {
+			$result = cloud_sms_send($v['mobile'], '800015', array('username' => $v['username']), $custom_sign);
+			if (is_error($result)) {
+				$content = "您的用户名{$v['username']}即将过期。";
+				pdo_insert('core_sendsms_log', array('mobile' => $v['mobile'], 'content' => $content, 'result' => $result['errno'] . $result['message'], 'createtime' => TIMESTAMP));
+			} else {
+				pdo_update('users_profile', array('send_expire_status' => 1), array('uid' => $v['uid']));
 			}
 		}
 	}

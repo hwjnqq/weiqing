@@ -48,7 +48,9 @@
 			<div class="panel-body">
 				<div class="title register-nav">
 					<a href="{php echo url('user/register', array('register_type' => 'system', 'owner_uid' => $_GPC['owner_uid']))}" {if $_GPC['register_type'] == 'system' || empty($_GPC['register_type'])}class="active"{/if}>用户名密码</a>
+					{if !empty($_W['setting']['copyright']['mobile_status'])}
 					<a href="{php echo url('user/register', array('register_type' => 'mobile', 'owner_uid' => $_GPC['owner_uid']))}" {if $_GPC['register_type'] == 'mobile'}class="active"{/if}>手机注册</a>
+					{/if}
 				</div>
 				{if $_GPC['register_type'] == 'system' || empty($_GPC['register_type'])}
 				<form action="" class="we7-form" method="post" role="form" id="form1">
@@ -163,6 +165,7 @@
 	angular.module('userManageApp').value('config', {
 		'owner_uid': "{php echo !empty($_GPC['owner_uid']) ? $_GPC['owner_uid'] : 0}",
 		'register_type': "{php echo !empty($_GPC['register_type']) ? $_GPC['register_type'] : 0}",
+		'register_sign': "{php echo !empty($register_sign) ? $register_sign : 'null'}",
 		'image' : "{php echo url('utility/code')}",
 		'links' : {
 			'valid_mobile_link': "{php echo url('user/register/valid_mobile')}",

@@ -12,6 +12,9 @@ if (in_array($action, array('permission', 'manage-account'))) {
 		itoast('', $_W['siteurl'] . '&version_id=' . $referer['version_id']);
 	}
 	$account_api = WeAccount::create();
+	if (is_error($account_api)) {
+		message($account_api['message'], url('module/display'));
+	}
 	$check_manange = $account_api->checkIntoManage();
 	if (is_error($check_manange)) {
 		$account_display_url = $account_api->accountDisplayUrl();
@@ -21,10 +24,12 @@ if (in_array($action, array('permission', 'manage-account'))) {
 if (in_array($action, array('group', 'manage-system'))) {
 	define('FRAME', 'system');
 }
-$account_param = WeAccount::createByType($_GPC['account_type']);
-define('ACCOUNT_TYPE', $account_param->accountManageType);
-define('ACCOUNT_TYPE_TEMPLATE', $account_param->accountTypeTemplate);
 
+$account_param = WeAccount::createByType($_GPC['account_type']);
+define('ACCOUNT_TYPE', $account_param->type);
+define('ACCOUNT_TYPE_TEMPLATE', $account_param->typeTempalte);
 
 
 	$_GPC['account_type'] = !empty($_GPC['account_type']) ? $_GPC['account_type'] : ACCOUNT_TYPE_OFFCIAL_NORMAL;
+
+

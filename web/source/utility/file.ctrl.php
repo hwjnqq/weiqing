@@ -538,7 +538,12 @@ if ($do == 'keyword') {
 //模块查询
 if ($do == 'module') {
 	$enable_modules = array();
-	$installedmodulelist = uni_modules(false);
+	$is_user_module = isset($_GPC['user_module']) ? intval($_GPC['user_module']) : 0;
+	if ($is_user_module) {
+		$installedmodulelist = user_modules($_W['uid']);
+	} else {
+		$installedmodulelist = uni_modules(false);
+	}
 	foreach ($installedmodulelist as $k => $value) {
 		$installedmodulelist[$k]['official'] = empty($value['issystem']) && (strexists($value['author'], 'WeEngine Team') || strexists($value['author'], '微擎团队'));
 	}
@@ -565,6 +570,8 @@ if ($do == 'module') {
 	$result = array('items' => $enable_modules, 'pager' => '');
 	iajax(0, $result);
 }
+
+
 // 视频语音查询
 if ($do == 'video' || $do == 'voice') {
 	$server = $islocal ? MATERIAL_LOCAL : MATERIAL_WEXIN;

@@ -13,7 +13,6 @@ if ($controller == 'account' && $action == 'manage') {
 }
 
 $account_param = WeAccount::createByType($_GPC['account_type']);
-define('ACCOUNT_TYPE', $account_param->accountManageType);
-define('ACCOUNT_TYPE_NAME', $account_param->accountTypeName);
-define('ACCOUNT_TYPE_TEMPLATE', $account_param->accountTypeTemplate);
-define('ACCOUNT_TYPE_SUPPORT', $account_param->accountTypeSupport);
+define('ACCOUNT_TYPE', $account_param->type);
+define('ACCOUNT_TYPE_NAME', $account_param->typeName);
+define('ACCOUNT_TYPE_TEMPLATE', $account_param->typeTempalte);

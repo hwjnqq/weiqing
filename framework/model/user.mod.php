@@ -378,11 +378,11 @@ function user_founder_group_detail_info($groupid = 0) {
 /**
  *获取某一用户可用公众号或小程序的详细信息
  *@param number $uid 用户ID
- *@param number $account_type账号类型，空是公众号，4是小程序
+ *@param number $account_type账号类型，空是公众号，4是小程序 5是pc
  *@return array
  */
 function user_account_detail_info($uid) {
-	$account_lists = $app_user_info = $wxapp_user_info = array();
+	$account_lists = $app_user_info = $wxapp_user_info = $webapp_user_info = array();
 	$uid = intval($uid);
 	if (empty($uid)) {
 		return $account_lists;
@@ -395,18 +395,23 @@ function user_account_detail_info($uid) {
 				$app_user_info[$uniacid] = $account;
 			} elseif ($account['type'] == ACCOUNT_TYPE_APP_NORMAL) {
 				$wxapp_user_info[$uniacid] = $account;
+			} elseif ($account['type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
+				$webapp_user_info[$uniacid] = $account;
 			}
 		}
 	}
 
-	$wxapps = $wechats = array();
+	$wxapps = $wechats = $webapps = array();
 	if (!empty($wxapp_user_info)) {
 		$wxapps = table('account')->accountWxappInfo(array_keys($wxapp_user_info), $uid);
 	}
 	if (!empty($app_user_info)) {
 		$wechats = table('account')->accountWechatsInfo(array_keys($app_user_info), $uid);
 	}
-	$accounts = array_merge($wxapps, $wechats);
+	if (!empty($webapp_user_info)) {
+		$webapps = table('account')->accountWebappInfo(array_keys($webapp_user_info), $uid);
+	}
+	$accounts = array_merge($wxapps, $wechats, $webapps);
 	if (!empty($accounts)) {
 		foreach ($accounts as &$account_val) {
 			$account_val['thumb'] = tomedia('headimg_'.$account_val['default_acid']. '.jpg');
@@ -417,6 +422,8 @@ function user_account_detail_info($uid) {
 						$account_lists['wxapp'][$uniacid] = $account_val;
 					} elseif ($user_info['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $user_info['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
 						$account_lists['wechat'][$uniacid] = $account_val;
+					} elseif ($user_info['type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
+						$account_lists['webapp'][$uniacid] = $account_val;
 					}
 				}
 			}
@@ -556,6 +563,7 @@ function user_login_forward($forward = '') {
 		'account' => url('home/welcome'),
 		'wxapp' => url('wxapp/version/home'),
 		'module' => url('module/display'),
+		'webapp' => url('webapp/home'),
 	);
 	if (!empty($forward)) {
 		return $login_forward;
@@ -587,6 +595,9 @@ function user_login_forward($forward = '') {
 			if ($account_info['type'] == ACCOUNT_TYPE_APP_NORMAL) {
 				return $login_location['wxapp'];
 			}
+			if ($account_info['type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
+				return $login_location['webapp'];
+			}
 		}
 	}
 	if (user_is_vice_founder()) {
@@ -605,6 +616,8 @@ function user_login_forward($forward = '') {
 			$login_forward = url('home/welcome');
 		} elseif ($_W['account']['type'] == ACCOUNT_TYPE_APP_NORMAL) {
 			$login_forward = url('wxapp/display/home');
+		} elseif ($_W['account']['type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
+			$login_forward = url('webapp/home/display');
 		}
 	}
 
@@ -628,6 +641,9 @@ function user_module_by_account_type($type) {
 				unset($module_list[$key]);
 			}
 			if ($module['app_support'] != 2 && $type == 'account') {
+				unset($module_list[$key]);
+			}
+			if ($module['webapp_support'] != MODULE_SUPPORT_WEBAPP && $type == 'webapp') {
 				unset($module_list[$key]);
 			}
 		}
@@ -888,43 +904,6 @@ function user_detail_formate($profile) {
 		$profile['births'] =($profile['birthyear'] ? $profile['birthyear'] : '--') . '年' . ($profile['birthmonth'] ? $profile['birthmonth'] : '--') . '月' . ($profile['birthday'] ? $profile['birthday'] : '--') .'日';
 	}
 	return $profile;
-}
-
-/**
- * 用户到期提醒
- * @return bool
- */
-function user_expire_notice() {
-	load()->model('cloud');
-	load()->model('setting');
-	$setting_sms_sign = setting_load('site_sms_sign');
-	$day = !empty($setting_sms_sign['site_sms_sign']['day']) ? $setting_sms_sign['site_sms_sign']['day'] : 1;
-
-	$user_table = table('users');
-	$user_table->searchWithMobile();
-	$user_table->searchWithEndtime($day);
-	$user_table->searchWithSendStatus();
-	$users_expire = $user_table->searchUsersList();
-
-	if (empty($users_expire)) {
-		return true;
-	}
-	foreach ($users_expire as $v) {
-		if (empty($v['puid'])) {
-			continue;
-		}
-		if (!empty($v['mobile']) && preg_match(REGULAR_MOBILE, $v['mobile'])) {
-			$content = $v['username'] . "即将到期";
-			$result = cloud_sms_send($v['mobile'], $content);
-		}
-		if (is_error($result)) {
-			pdo_insert('core_sendsms_log', array('mobile' => $v['mobile'], 'content' => $content, 'result' => $result['errno'] . $result['message'], 'createtime' => TIMESTAMP));
-		}
-		if ($result) {
-			pdo_update('users_profile', array('send_expire_status' => 1), array('uid' => $v['uid']));
-		}
-	}
-	return true;
 }
 
 /**

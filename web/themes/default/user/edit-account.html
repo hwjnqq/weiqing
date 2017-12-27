@@ -106,12 +106,49 @@
 			<td colspan="4" class="text-center">暂无数据</td>
 		</tr>
 	</table>
+	<table class="table we7-table table-hover">
+		<col width="87px"/>
+		<col/>
+		<col width="100px"/>
+		<col width="240px"/>
+		<tr>
+			<th colspan="2" class="text-left">可使用的PC</th>
+			<th>角色</th>
+			<th class="text-right">操作</th>
+		</tr>
+		<tr ng-repeat="webapp in webapps" ng-if="webapps">
+			<td class="text-left"><img ng-src="{{webapp.thumb}}" class="img-responsive"/></td>
+			<td class="text-left">
+				<p ng-bind="webapp.name"></p>
+				<span class="color-gray">类型：
+					<span>PC</span>
+				</span>
+			</td>
+			<td>
+				<span ng-if="webapp.role == 'founder'">创始人</span>
+				<span ng-if="webapp.role == 'owner'">主管理员</span>
+				<span ng-if="webapp.role == 'manager'">管理员</span>
+				<span ng-if="webapp.role == 'operator'">操作员</span>
+				<span ng-if="webapp.role == 'clerk'">店员</span>
+			</td>
+			<td>
+				<div class="link-group">
+					<a ng-href="./index.php?c=account&a=post&do=base&uniacid={{webapp.uniacid}}&acid={{webapp.acid}}&account_type={ACCOUNT_TYPE_WEBAPP_NORMAL}" class="color-default">PC设置</a>
+					<a ng-href="./index.php?c=account&a=post-user&do=edit&uniacid={{webapp.uniacid}}&acid={{webapp.acid}}&account_type={ACCOUNT_TYPE_WEBAPP_NORMAL}" class="color-default">操作员设置</a>
+				</div>
+			</td>
+		</tr>
+		<tr ng-if="!webapps">
+			<td colspan="4" class="text-center">暂无数据</td>
+		</tr>
+	</table>
 </div>
 <script>
 	angular.module('userManageApp').value('config', {
 		user: {php echo !empty($user) ? json_encode($user) : 'null'},
 		wechats: {php echo !empty($account_detail['wechat']) ? json_encode($account_detail['wechat']) : 'null'},
 		wxapps: {php echo !empty($account_detail['wxapp']) ? json_encode($account_detail['wxapp']) : 'null'},
+		webapps: {php echo !empty($account_detail['webapp']) ? json_encode($account_detail['webapp']) : 'null'},
 		profile: {php echo !empty($profile) ? json_encode($profile) : 'null'},
 	});
 

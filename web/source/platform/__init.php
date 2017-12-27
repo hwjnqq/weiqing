@@ -6,9 +6,11 @@
 defined('IN_IA') or exit('Access Denied');
 
 $account_api = WeAccount::create();
-$check_manange = $account_api->checkIntoManage();
-
 if (!($action == 'material' && $do == 'delete') && empty($_GPC['version_id'])) {
+	if (is_error($account_api)) {
+		message($account_api['message'], url('account/display'));
+	}
+	$check_manange = $account_api->checkIntoManage();
 	if (is_error($check_manange)) {
 		$account_display_url = $account_api->accountDisplayUrl();
 		itoast('', $account_display_url);
@@ -16,8 +18,7 @@ if (!($action == 'material' && $do == 'delete') && empty($_GPC['version_id'])) {
 }
 
 if ($action != 'material-post' && $_GPC['uniacid'] != FILE_NO_UNIACID) {
-	$account_type = $account_api->accountType();
-	define('FRAME', $account_type);
+	define('FRAME', 'account');
 }
 if ($action == 'qr') {
 	$platform_qr_permission = permission_check_account_user('platform_qr', false);
