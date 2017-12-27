@@ -102,7 +102,6 @@
 	</div>
 </div>
 <script>
-require(['underscore'], function() {
 	angular.module('wxApp').value('config', {
 		'wxapp_lists': {php echo !empty($wxapp_lists) ? json_encode($wxapp_lists) : 'null'},
 		'activeLetter' : {php echo !empty($_GPC['letter']) ? json_encode($_GPC['letter']) : 'null'},
@@ -113,6 +112,5 @@ require(['underscore'], function() {
 		},
 	});
 	angular.bootstrap($('#js-wxapp-account-display'), ['wxApp']);
-});
 </script>
 {template 'common/footer'}
