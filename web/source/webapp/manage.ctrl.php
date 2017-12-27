@@ -5,9 +5,11 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-load()->classs('validator');
+
 load()->model('webapp');
 $account_info = permission_user_account_num();
+
+$do = safe_gpc_belong($do, array('create', 'list', 'create_display'), 'list');
 
 if($do == 'create') {
 	if(!checksubmit()) {
@@ -18,37 +20,50 @@ if($do == 'create') {
 		itoast('创建PC个数已满', url('webapp/manage/list'));
 	}
 	$data = array(
-		'name'=>$_GPC['name'],
-		'description'=>$_GPC['description']
+		'name' => safe_gpc_string($_GPC['name']),
+		'description' => safe_gpc_string($_GPC['description'])
 	);
 
 	$webapp = table('webapp');
-	$uniacid = $webapp->create($data, $_W['uid']);
+	$uniacid = $webapp->createWebappInfo($data, $_W['uid']);
 	if($uniacid){
 		itoast('创建成功', url('webapp/manage/list'));
 	}
 }
 
-if($do == 'createview') {
-	if(!webapp_can_create($_W['uid'])) { //没有权限创建
+if($do == 'create_display') {
+	if(!webapp_can_create($_W['uid'])) {
 		itoast('', url('webapp/manage/list'));
 	}
 	template('webapp/create');
 }
 
-/* pc 列表*/
 if($do == 'list') {
 
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 15;
 
-	$webapp = table('webapp');
-	list($list, $total) = $webapp->webapplist($_W['uid'], $pindex, $psize);
+	$account_table = table('webapp');
+	$account_table->searchWithType(array(ACCOUNT_TYPE_WEBAPP_NORMAL));
+
+	$keyword = trim($_GPC['keyword']);
+	if (!empty($keyword)) {
+		$account_table->searchWithKeyword($keyword);
+	}
+
+	$account_table->accountRankOrder();
+	$account_table->searchWithPage($pindex, $psize);
+	$list = $account_table->searchAccountList();
+	$total = $account_table->getLastQueryTotal();
+
 	$pager = pagination($total, $pindex, $psize);
 
-	foreach ($list as &$item) {
-		$item['logo'] = tomedia('headimg_'.$account['acid']. '.jpg').'?time='.time();
-		$item['switchurl'] = wurl('webapp/home/switch', array('uniacid' => $item['uniacid']));
+	if (!empty($list)) {
+		foreach ($list as &$account) {
+			$account = uni_fetch($account['uniacid']);
+			$account['switchurl'] = url('webapp/home/switch', array('uniacid' => $account['uniacid']));
+		}
 	}
+
 	template('webapp/list');
 }

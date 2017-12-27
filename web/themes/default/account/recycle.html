@@ -52,7 +52,7 @@
 		<td class="vertical-middle">
 			<div class="link-group">
 				<a ng-href="{{links.postRecover}}&acid={{list.acid}}&uniacid={{list.uniacid}}">恢复</a>
-				<a class="del" ng-href="{{links.postDel}}&acid={{list.acid}}&uniacid={{list.uniacid}}" onclick="if(!confirm('此为永久删除，删除后不可找回！确认吗？')) return false;">删除</a>
+				<a href="javascript:;" class="del" ng-click="delete(list.acid, list.uniacid)">删除</a>
 			</div>
 		</td>
 	</tr>

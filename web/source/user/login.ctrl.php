@@ -27,11 +27,6 @@ template('user/login');
 
 function _login($forward = '') {
 	global $_GPC, $_W;
-	$setting_sms_sign = setting_load('site_sms_sign');
-	$status = !empty($setting_sms_sign['site_sms_sign']['status']) ? $setting_sms_sign['site_sms_sign']['status'] : '';
-	if (!empty($status)) {
-		user_expire_notice();
-	}
 	if (empty($_GPC['login_type'])) {
 		$_GPC['login_type'] = 'system';
 	}
@@ -104,8 +99,6 @@ function _login($forward = '') {
 		}
 		$failed = pdo_get('users_failed_login', array('username' => trim($_GPC['username']), 'ip' => CLIENT_IP));
 		pdo_delete('users_failed_login', array('id' => $failed['id']));
-		message_account_expire();
-		message_notice_worker();
 		itoast("欢迎回来，{$record['username']}", $forward, 'success');
 	} else {
 		if (empty($failed)) {

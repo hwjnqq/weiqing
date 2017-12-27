@@ -9,10 +9,25 @@ load()->func('communication');
 
 class WxappAccount extends WeAccount {
 	public function __construct($account = array()) {
-		if (empty($account)) {
-			return true;
-		}
 		$this->account = $account;
+		$this->menuFrame = 'wxapp';
+		$this->type = ACCOUNT_TYPE_APP_NORMAL;
+		$this->typeName = '小程序';
+		$this->typeTempalte = '-wxapp';
+	}
+
+	public function accountDisplayUrl() {
+		return url('wxapp/display');
+	}
+
+	public function fetchAccountInfo() {
+		$account_table = table('account');
+		$account = $account_table->getWxappAccount($this->uniaccount['acid']);
+		$account['type'] = $this->uniaccount['type'];
+		$account['isconnect'] = $this->uniaccount['isconnect'];
+		$account['isdeleted'] = $this->uniaccount['isdeleted'];
+		$account['endtime'] = $this->uniaccount['endtime'];
+		return $account;
 	}
 	
 	public function getOauthInfo($code = '') {
@@ -59,7 +74,15 @@ class WxappAccount extends WeAccount {
 		unset($result['watermark']);
 		return $result;
 	}
-	
+
+	public function checkIntoManage() {
+		global $_GPC;
+		if (empty($this->account) || (!empty($this->uniaccount['account']) && $this->uniaccount['account'] != ACCOUNT_TYPE_APP_NORMAL && !defined('IN_MODULE')) || empty($_GPC['version_id'])) {
+			return false;
+		}
+		return true;
+	}
+
 	public function getAccessToken() {
 		$cachekey = "accesstoken:{$this->account['key']}";
 		$cache = cache_load($cachekey);

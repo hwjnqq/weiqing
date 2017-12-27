@@ -83,6 +83,15 @@
 					</div>
 				</div>
 				{/loop}
+				<div class="col-sm-10 col-lg-10 col-xs-12 plugin-name">模块插件</div>
+				{loop $current_module_permission $key $permission}
+				<div class="col-sm-4">
+					<div class="checkbox">
+						<input id="check-child-{$key}" type="checkbox" value="{$permission['permission']}" name="module_permission[]" {if !empty($permission['checked'])}checked{/if}>
+						<label for="check-child-{$key}">{$permission['title']}</label>
+					</div>
+				</div>
+				{/loop}
 			</div>
 		</div>
 		<div class="form-group">

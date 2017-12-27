@@ -134,6 +134,8 @@ if ($do == 'forward') {
 	file_put_contents(IA_ROOT . '/attachment/qrcode_'.$acid.'.jpg', $qrcode['content']);
 	
 	cache_build_account($uniacid);
+	cache_delete(cache_system_key('proxy_wechatpay_account:'));
+	cache_clean(cache_system_key('user_accounts'));
 	itoast('授权登录成功', url('account/manage', array('type' => '3')), 'success');
 } elseif ($do == 'confirm') {
 	$auth_refresh_token = $_GPC['auth_refresh_token'];
