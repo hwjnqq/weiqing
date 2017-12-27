@@ -28,17 +28,32 @@ class WeiXinPlatform extends WeiXinAccount {
 
 	function __construct($account = array()) {
 		$setting = setting_load('platform');
+		$this->menuFrame = 'account';
+		$this->type = ACCOUNT_TYPE_OFFCIAL_AUTH;
+		$this->typeName = '公众号';
 		$this->appid = $setting['platform']['appid'];
 		$this->appsecret = $setting['platform']['appsecret'];
 		$this->token = $setting['platform']['token'];
 		$this->encodingaeskey = $setting['platform']['encodingaeskey'];
-		$this->account = $account;
-		if ($this->account['key'] == 'wx570bc396a51b8ff8') {
-			$this->account['key'] = $this->appid;
+	}
+
+	function fetchAccountInfo() {
+		$account_table = table('account');
+		$account = $account_table->getWechatappAccount($this->uniaccount['acid']);
+		if ($account['key'] == 'wx570bc396a51b8ff8') {
+			$account['key'] = $this->appid;
 			$this->openPlatformTestCase();
 		}
-		$this->account['account_appid'] = $this->account['key'];
-		$this->account['key'] = $this->appid;
+		//第三方平台appid与公众号appid都为key值.二者重新规划:公众号appid起名account_appid;第三方appid仍为key
+		//公众号的appid
+		$account['account_appid'] = $account['key'];
+		//第三方平台appid
+		$account['key'] = $this->appid;
+		return $account;
+	}
+
+	function accountDisplayUrl() {
+		return url('account/display');
 	}
 
 	function getComponentAccesstoken() {
@@ -55,7 +70,7 @@ class WeiXinPlatform extends WeiXinAccount {
 			);
 			$response = $this->request(ACCOUNT_PLATFORM_API_ACCESSTOKEN, $data);
 			if (is_error($response)) {
-				$errormsg = $this->error_code($response['errno'], $response['message']);
+				$errormsg = $this->errorCode($response['errno'], $response['message']);
 				return error($response['errno'], $errormsg);
 			}
 			$accesstoken = array(
@@ -189,7 +204,7 @@ class WeiXinPlatform extends WeiXinAccount {
 		cache_write('account:oauth:refreshtoken:'.$this->account['account_appid'], $response['refresh_token']);
 		return $response;
 	}
-	
+
 	public function getJsApiTicket(){
 		$cachekey = "jsticket:{$this->account['acid']}";
 		$js_ticket = cache_load($cachekey);
@@ -209,7 +224,7 @@ class WeiXinPlatform extends WeiXinAccount {
 		$this->account['jsapi_ticket'] = $js_ticket;
 		return $js_ticket['value'];
 	}
-	
+
 	public function getJssdkConfig($url = ''){
 		global $_W;
 		$jsapiTicket = $this->getJsApiTicket();
@@ -284,7 +299,7 @@ class WeiXinPlatform extends WeiXinAccount {
 		$response = ihttp_request($url, json_encode($post));
 		$response = json_decode($response['content'], true);
 		if (empty($response) || !empty($response['errcode'])) {
-			return error($response['errcode'], $this->error_code($response['errcode'], $response['errmsg']));
+			return error($response['errcode'], $this->errorCode($response['errcode'], $response['errmsg']));
 		}
 		return $response;
 	}

@@ -8,12 +8,10 @@ defined('IN_IA') or exit('Access Denied');
 
 class WebappAccount extends WeAccount {
 	public function __construct($account = array()) {
-		$this->accountDisplayUrl = url('webapp/display');
-		$this->accountType = 'webapp';
-		$this->accountManageType = ACCOUNT_TYPE_WEBAPP_NORMAL;
-		$this->accountTypeName = 'WEBAPP';
-		$this->accountTypeTemplate = '-webapp';
-		$this->accountTypeSupport = 'webapp_support';
+		$this->menuFrame = 'webapp';
+		$this->type = ACCOUNT_TYPE_WEBAPP_NORMAL;
+		$this->typeName = 'WEBAPP';
+		$this->typeTempalte = '-webapp';
 	}
 	
 	public function checkIntoManage() {
@@ -31,5 +29,9 @@ class WebappAccount extends WeAccount {
 		$account['isdeleted'] = $this->uniaccount['isdeleted'];
 		$account['endtime'] = $this->uniaccount['endtime'];
 		return $account;
+	}
+
+	public function accountDisplayUrl() {
+		return url('webapp/display');
 	}
 }
