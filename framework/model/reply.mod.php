@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
@@ -44,7 +44,7 @@ function reply_single($id) {
 }
 
 /**
- * 从 `rule_keyword` 查询满足条件的所有规则关键字 
+ * 从 `rule_keyword` 查询满足条件的所有规则关键字
  * @param string $condition 查询条件 WHERE 后内容, eg: $condition='id=:id, acid=:acid';
  * @param array $params 查询参数, eg: array(':id'=>$id,':acid'=>$acid);
  * @param int $pindex 当前页码, 0 全部记录.
@@ -94,7 +94,7 @@ function reply_contnet_search($rid = 0) {
 	if (empty($rid)) {
 		return $result;
 	}
-	$modules = array('basic', 'images', 'news', 'music', 'voice', 'video', 'wxcard');
+	$modules = array('basic', 'images', 'news', 'music', 'voice', 'video');
 	$params = array(':rid' => $rid);
 	foreach ($modules as $key => $module) {
 		$sql = 'SELECT COUNT(*) FROM ' . tablename($module.'_reply') . ' WHERE `rid` = :rid';

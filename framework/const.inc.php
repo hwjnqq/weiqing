@@ -72,6 +72,9 @@ define('ACCOUNT_MANAGE_NAME_VICE_FOUNDER', 'vice_founder');
 define('ACCOUNT_MANAGE_GROUP_VICE_FOUNDER', 2);
 //普通用户
 define('ACCOUNT_MANAGE_GROUP_GENERAL', 0);
+//admin创建用户，用户组 owner_uid=0
+define('ACCOUNT_NO_OWNER_UID', 0);
+
 //系统卡券
 define('SYSTEM_COUPON', 1);
 //微信卡券
@@ -98,6 +101,8 @@ define('ATTACH_TYPE_IMAGE', 1);
 define('ATTACH_TYPE_VOICE', 2);
 define('ATTACH_TYPE_VEDIO', 3);
 define('ATTACH_TYPE_NEWS', 4);
+
+define('ATTACHMENT_IMAGE', 'image');
 
 define('ATTACH_SAVE_TYPE_FIXED', 1);
 define('ATTACH_SAVE_TYPE_TEMP', 2);
@@ -126,11 +131,16 @@ define('CACHE_KEY_ACCOUNT_SWITCH', 'lastaccount:%s');
 
 //模块是否支持小程序
 define('MODULE_SUPPORT_WXAPP', 2);
+define('MODULE_NONSUPPORT_WXAPP', 1);
 //模块是否支持公众号应用
 define('MODULE_SUPPORT_ACCOUNT', 2);
+define('MODULE_NONSUPPORT_ACCOUNT', 1);
 //是否支持pc 1不支持  2支持
 define('MODULE_NOSUPPORT_WEBAPP', 1);
 define('MODULE_SUPPORT_WEBAPP', 2);
+//是否支持系统首页 1不支持  2支持
+define('MODULE_SUPPORT_SYSTEMWELCOME', 2);
+define('MODULE_NONSUPPORT_SYSTEMWELCOME', 1);
 
 //权限类型
 define('PERMISSION_ACCOUNT', 'system');
@@ -154,8 +164,10 @@ define('WXAPP_DIY', 1);
 define('WXAPP_TEMPLATE', 2);
 //跳转模块小程序
 define('WXAPP_MODULE', 3);
-//打包普通应用
+//网页小程序类型
 define('WXAPP_CREATE_MODULE', 1);
+//普通小程序类型
+define('WXAPP_CREATE_DEFAULT', 0);
 
 define('MATERIAL_LOCAL', 'local');//服务器素材类型
 define('MATERIAL_WEXIN', 'perm');//微信素材类型
@@ -223,6 +235,8 @@ define('MESSAGE_ORDER_TYPE', 1);
 define('MESSAGE_ACCOUNT_EXPIRE_TYPE', 2);
 //小程序过期消息类型
 define('MESSAGE_WECHAT_EXPIRE_TYPE', 5);
+//pc过期消息类型
+define('MESSAGE_WEBAPP_EXPIRE_TYPE', 6);
 //工单消息类型
 define('MESSAGE_WORKORDER_TYPE', 3);
 //注册消息类型

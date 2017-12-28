@@ -6,9 +6,13 @@
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('user');
+load()->model('setting');
 
 $dos = array('find_password', 'valid_mobile', 'valid_code', 'set_password', 'success');
 $do = in_array($do, $dos) ? $do : 'find_password';
+
+$setting_sms_sign = setting_load('site_sms_sign');
+$find_password_sign = !empty($setting_sms_sign['site_sms_sign']['find_password']) ? $setting_sms_sign['site_sms_sign']['find_password'] : '';
 
 $mobile = trim($_GPC['mobile']);
 if (in_array($do, array('valid_mobile', 'valid_code', 'set_password'))) {

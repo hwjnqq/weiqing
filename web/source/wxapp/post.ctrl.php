@@ -1,7 +1,7 @@
 <?php
 /**
  * 创建小程序
- * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -14,14 +14,15 @@ $_W['page']['title'] = '小程序 - 新建版本';
 $account_info = permission_user_account_num();
 
 if ($do == 'design_method') {
+
 	$uniacid = intval($_GPC['uniacid']);
 	template('wxapp/design-method');
 }
 
-if($do == 'post') {
+if ($do == 'post') {
 	$uniacid = intval($_GPC['uniacid']);
 	$design_method = intval($_GPC['design_method']);
-	$create_type = $_GPC['create_type'];
+	$create_type = intval($_GPC['create_type']);
 
 	if (empty($design_method)) {
 		itoast('请先选择要添加小程序类型', referer(), 'error');
@@ -36,6 +37,9 @@ if($do == 'post') {
 		}
 		if ($design_method == WXAPP_TEMPLATE && empty($_GPC['choose']['modules'])) {
 			iajax(2, '请选择要打包的模块应用', url('wxapp/post'));
+		}
+		if (!preg_match('/^[0-9]{1,2}\.[0-9]{1,2}$/', trim($_GPC['version']))) {
+			iajax('-1', '版本号错误，只能是数字、点，数字最多两位，例如 1.01');
 		}
 		//新建小程序公众号
 		if (empty($uniacid)) {
@@ -52,7 +56,7 @@ if($do == 'post') {
 				'type' => ACCOUNT_TYPE_APP_NORMAL,
 			);
 			$uniacid = wxapp_account_create($account_wxapp_data);
-			if(is_error($uniacid)) {
+			if (is_error($uniacid)) {
 				iajax(3, '添加小程序信息失败', url('wxapp/post'));
 			}
 		} else {
@@ -68,15 +72,16 @@ if($do == 'post') {
 			'uniacid' => $uniacid,
 			'multiid' => '0',
 			'description' => trim($_GPC['description']),
-			'version' => $_GPC['version'],
+			'version' => trim($_GPC['version']),
 			'modules' => '',
 			'design_method' => $design_method,
 			'quickmenu' => '',
 			'createtime' => TIMESTAMP,
 			'template' => $design_method == WXAPP_TEMPLATE ? intval($_GPC['choose']['template']) : 0,
 			//是否公众号应用 1 是 0默认小程序
-			'type'=>$create_type == WXAPP_CREATE_MODULE ? WXAPP_CREATE_MODULE : 0
+			'type' => 0
 		);
+		
 		//多模块打包，每个版本对应一个微官网
 		if ($design_method == WXAPP_TEMPLATE) {
 			$multi_data = array(
@@ -87,7 +92,6 @@ if($do == 'post') {
 			pdo_insert('site_multi', $multi_data);
 			$wxapp_version['multiid'] = pdo_insertid();
 		}
-
 
 		//打包模块
 		if (!empty($_GPC['choose']['modules'])) {
@@ -135,7 +139,7 @@ if($do == 'post') {
 }
 
 //获取所有支持小程序的模块
-if($do == 'get_wxapp_modules') {
+if ($do == 'get_wxapp_modules') {
 	$wxapp_modules = wxapp_support_wxapp_modules();
 	iajax(0, $wxapp_modules, '');
 }

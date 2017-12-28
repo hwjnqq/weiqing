@@ -2,9 +2,14 @@
 <div class="we7-page-title">PC管理</div>
 <ul class="we7-page-tab">
 	<li class="active"><a href="{url 'account/manage'}">PC列表</a></li>
-	{if $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER || $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER}
-	<!--<li><a href="{url 'account/recycle'}">PC回收站</a></li>-->
-	{/if}
+	
+
+	
+		{if $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER || $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER}
+		<li><a href="{php echo url ('account/recycle', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL))}">PC回收站</a></li>
+		{/if}
+	
+
 </ul>
 <div class="clearfix we7-margin-bottom">
 	{if !$_W['isfounder'] && !empty($account_info['pc_limit']) || user_is_vice_founder()}
@@ -26,7 +31,7 @@
 	</form>
 	{if !empty($account_info['pc_limit']) || $_W['isfounder'] && !user_is_vice_founder()}
 	<div class="pull-right">
-		<a href="{url 'webapp/manage/createview'}" class="btn btn-primary we7-padding-horizontal">添加PC</a>
+		<a href="{url 'webapp/manage/create_display'}" class="btn btn-primary we7-padding-horizontal">添加PC</a>
 	</div>
 	{/if}
 </div>
@@ -80,7 +85,7 @@
 			<p class="color-dark" ng-bind="list.name"></p>
 		</td>
 		<td>
-			<p ng-bind="list.setmeal.timelimit"></p>
+			<p ng-bind="list.end"></p>
 		</td>
 		<td><p ng-bind="list.sms"></p></td>
 		<td class="vertical-middle table-manage-td">
@@ -95,8 +100,13 @@
 				<a href="{{links.post}}&acid={{list.acid}}&uniacid={{list.uniacid}}&account_type={{list.type}}">基础信息</a>
 				<!--<a href="{{links.post}}&do=sms&uniacid={{list.uniacid}}&acid={{list.acid}}&account_type={{list.type}}">短信信息</a>-->
 				<a href="{{links.postUser}}&do=edit&uniacid={{list.uniacid}}&acid={{list.acid}}&account_type={{list.type}}">使用者管理</a>
-				<!--<a href="{{links.post}}&do=modules_tpl&uniacid={{list.uniacid}}&acid={{list.acid}}&account_type={{list.type}}">可用应用模板/模块</a>-->
-				<!--<a ng-href="{{links.del}}&acid={{list.acid}}&uniacid={{list.uniacid}}" ng-show="list.role == 'owner' || list.role == 'founder'" onclick="if(!confirm('确认放入回收站吗？')) return false;" class="del">停用</a>-->
+				<a href="{{links.post}}&do=modules_tpl&uniacid={{list.uniacid}}&acid={{list.acid}}&account_type={{list.type}}">可用应用模板/模块</a>
+				
+				
+				{if $_W['role'] != ACCOUNT_MANAGE_NAME_MANAGER}
+				<a ng-href="{{links.del}}&acid={{list.acid}}&uniacid={{list.uniacid}}&account_type={{list.type}}" ng-show="list.role == 'owner' || list.role == 'founder'" onclick="if(!confirm('确认放入回收站吗？')) return false;" class="del">停用</a>
+				{/if}
+				
 			</div>
 			{/if}
 		</td>

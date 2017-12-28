@@ -39,14 +39,12 @@ function webapp_save_switch($uniacid) {
 }
 
 /**
- *  是否可创建PC
+ * 是否可创建PC
  * @param $uid
- *
- *
- * @since version
+ * @return bool
  */
 function webapp_can_create($uid) {
-	if(user_is_founder($uid)) { //创始人可以创建
+	if(user_is_founder($uid)) {
 		return true;
 	}
 	$data = permission_user_account_num($uid);

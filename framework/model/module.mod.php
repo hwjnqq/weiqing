@@ -320,8 +320,8 @@ function module_fetch($name) {
 				$module_info['plugin_list'] = array_keys ($module_info['plugin_list']);
 			}
 		}
-		if ($module_info['app_support'] != 2 && $module_info['wxapp_support'] != 2) {
-			$module_info['app_support'] = 2;
+		if ($module_info['app_support'] != MODULE_SUPPORT_ACCOUNT && $module_info['wxapp_support'] != MODULE_SUPPORT_WXAPP && $module_info['webapp_support'] != MODULE_SUPPORT_WEBAPP && $module_info['welcome_support'] != MODULE_SUPPORT_SYSTEMWELCOME) {
+			$module_info['app_support'] = MODULE_SUPPORT_ACCOUNT;
 		}
 		$module_info['is_relation'] = $module_info['app_support'] ==2 && $module_info['wxapp_support'] == 2 ? true : false;
 		$module_ban = setting_load('module_ban');
