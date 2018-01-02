@@ -34,7 +34,7 @@ define([], function(){
 			'					<table class="table table-hover table-bordered">'+
 			'						<tr>'+
 			'							<th width="150">'+
-			'								<select name="type" id="type" class="form-control">'+
+			'								<select name="type" id="type">'+
 			'									<option value="mobile">手机号</option>'+
 			'									<option value="uid">会员UID</option>'+
 			'								</select>'+
@@ -585,7 +585,7 @@ define([], function(){
 			'					<table class="table table-hover table-bordered">'+
 			'						<tr>'+
 			'							<th width="150">'+
-			'								<select name="type" id="type" class="form-control">'+
+			'								<select name="type" id="type">'+
 			'									<option value="mobile">手机号</option>'+
 			'									<option value="uid">会员UID</option>'+
 			'								</select>'+
@@ -618,7 +618,7 @@ define([], function(){
 			'						<tr>'+
 			'							<th>备注</th>'+
 			'							<td>'+
-			'								<textarea name="remark" class="form-control" cols="81"></textarea>'+
+			'								<textarea name="remark" class="form-control" cols="96"></textarea>'+
 			'							</td>'+
 			'						</tr>'+
 			'					</table>'+

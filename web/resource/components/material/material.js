@@ -517,18 +517,16 @@ define(['underscore', 'jquery.wookmark', 'jquery.jplayer'], function(_){
 				'						</div>'+
 				'					</div>';
 			dialog['keywordDialog'] = '<div class="row">\n'+
-					'       <%_.each(items, function(item) {%>' +
-					'          <div class="col-sm-2">'+
-					'             <a href="javascript:;" class="checkMedia" data-media="<%=item.media_id%>" data-type="keyword" data-attachid="<%=item.id%>">'+
-					'					<span>'+
-					'						<%_.each(item.child_items, function(child_item) {%>'+
-					'							<%=child_item.content%>' +
-					'						<%})%>'+
-					'					</span>'+
-					'				</a>'+
-					'           </div>'+
-					'        <%});%>'+
-					'</div>';
+				'<%_.each(items, function(item) {%>' +
+				'	<div class="col-sm-2">'+
+				'		<a href="javascript:;" class="checkMedia" data-media="<%=item.media_id%>" data-type="keyword" data-attachid="<%=item.id%>">'+
+				'			<span>'+
+				'				<%=item.content%>' +
+				'			</span>'+
+				'		</a>'+
+				'	</div>'+
+				'<%});%>'+
+				'</div>';
 			dialog['moduleDialog'] = '<ul class="img-list clearfix">\n' +
 				'<%var items = _.sortBy(items, function(item) {return -item.id;});%>' +
 				'<%_.each(items, function(item) {%> \n' +
