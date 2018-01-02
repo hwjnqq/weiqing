@@ -34,8 +34,6 @@ addons/**/*
 .tags
 deployment.properties
 .tags_sorted_by_file
-web/resource/components/**/*
-web/resource/js/**/*
 framework/builtin/core/module.cer
 
 we7/**/*
