@@ -18,7 +18,7 @@ if (empty($uniacid) || empty($acid)) {
 }
 $state = permission_account_user_role($_W['uid'], $uniacid);
 //只有创始人、主管理员、管理员才有权限
-$role_permission = in_array($state, array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGE, ACCOUNT_MANAGE_NAME_VICE_FOUNDER));
+$role_permission = in_array($state, array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER));
 if (!$role_permission) {
 	itoast('无权限操作！', referer(), 'error');
 }
@@ -47,6 +47,9 @@ if ($do == 'edit') {
 	}
 	template('account/manage-users');
 } elseif ($do == 'delete') {
+	if (!$_W['isajax'] || !$_W['ispost']) {
+		itoast('非法操作！', referer(), 'error');
+	}
 	$uid = is_array($_GPC['uid']) ? 0 : intval($_GPC['uid']);
 	if (empty($uid)) {
 		itoast('请选择要删除的用户！', referer(), 'error');

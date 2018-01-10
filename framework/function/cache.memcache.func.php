@@ -116,7 +116,6 @@ function cache_delete($key, $forcecache = true) {
 	}
 }
 
-
 /**
  * 清空缓存指定前缀或所有数据
  * @param string $prefix

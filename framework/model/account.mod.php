@@ -54,7 +54,7 @@ function uni_user_accounts($uid) {
 	}
 	$where .= !empty($where) ? " AND a.isdeleted <> 1 AND u.role IS NOT NULL" : " WHERE a.isdeleted <> 1";
 
-	$sql = "SELECT w.acid, w.uniacid, w.key, w.secret, w.level, w.name, w.token" . $field . " FROM " . tablename('account_wechats') . " w LEFT JOIN " . tablename('account') . " a ON a.acid = w.acid AND a.uniacid = w.uniacid" . $where;
+	$sql = "SELECT w.acid, w.uniacid, w.key, w.secret, w.level, w.name, w.token, a.type" . $field . " FROM " . tablename('account_wechats') . " w LEFT JOIN " . tablename('account') . " a ON a.acid = w.acid AND a.uniacid = w.uniacid" . $where;
 	$result = pdo_fetchall($sql, $params, 'uniacid');
 	cache_write($cachekey, $result);
 	return $result;
@@ -117,11 +117,15 @@ function uni_fetch($uniacid = 0) {
 		return $cache;
 	}
 
-	$account_api = WeAccount::create($uniacid);
+	$acid = table('account')->getAccountByUniacid($uniacid);
+	if (empty($acid)) {
+		return false;
+	}
+	$account_api = WeAccount::create($acid['acid']);
 	if (is_error($account_api)) {
 		return $account_api;
 	}
-	$account = $account_api->fetchAccountInfo();
+	$account = $account_api->account;
 	if (empty($account) || $account['isdeleted'] == 1) {
 		return array();
 	}

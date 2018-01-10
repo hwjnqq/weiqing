@@ -16,7 +16,7 @@
 		入口设置
 	</div>
 	<ul class="we7-page-tab">
-		<li class="active"><a href="{url 'platform/reply' array('m' => $m, 'version_id' => intval($_GPC['version_id']))}">关键字链接入口 </a></li>
+		{if !empty($_W['current_module']['isrulefields']) &&!empty($_W['account']) && in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))}<li class="active"><a href="{url 'platform/reply' array('m' => $m, 'version_id' => intval($_GPC['version_id']))}">关键字链接入口 </a></li>{/if}
 		{if !empty($frames['section']['platform_module_common']['menu']['platform_module_cover'])}
 		<li><a href="{url 'platform/cover' array('m' => $m, 'version_id' => intval($_GPC['version_id']))}">封面链接入口</a></li>
 		{/if}

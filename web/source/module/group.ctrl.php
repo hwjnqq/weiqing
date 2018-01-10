@@ -143,7 +143,12 @@ if ($do == 'post') {
 		}
 	}
 
-	$template_list = pdo_getall('site_templates', array(), array(), 'name');
+	
+
+	
+		$template_list = pdo_getall('site_templates', array(), array(), 'name');
+	
+
 	$group_not_have_template = array();//套餐未拥有模板
 	if (!empty($template_list)) {
 		foreach ($template_list as $template) {

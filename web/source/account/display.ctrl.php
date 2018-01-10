@@ -75,7 +75,7 @@ if ($do == 'display') {
 	$account_table->accountRankOrder();
 	$account_table->searchWithPage($pindex, $psize);
 	$account_list = $account_table->searchAccountList();
-
+	$account_list = array_values($account_list);
 	foreach($account_list as &$account) {
 		$account = uni_fetch($account['uniacid']);
 		$account['role'] = permission_account_user_role($_W['uid'], $account['uniacid']);

@@ -38,7 +38,7 @@
 									</div>
 								</div>
 							</div>
-							<a title="添加一篇图文" ng-click="addMaterial()" ng-show="(materialList.length < 8 && operate == 'add') || (operate == 'edit' && model == 'local')" class="appmsg-add" href="javascript:void(0);" style="display: block;">
+							<a title="添加一篇图文" ng-click="addMaterial()" ng-show="(materialList.length < 8 && (operate == 'add' || operate == 'edit'))" class="appmsg-add" href="javascript:void(0);" style="display: block;">
 								<i class="add-gray">+</i>
 							</a>
 						</div>

@@ -1,9 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * User: fanyk
- * Date: 2017/11/28
- * Time: 9:34
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 class AttachmentTable extends We7Table {
 
@@ -52,5 +50,5 @@ class AttachmentTable extends We7Table {
 }
 
 class WechatAttachmentTable extends AttachmentTable {
-	protected $table_name = 'wechat_attachment';
+	protected $attachment_table_name = 'wechat_attachment';
 }

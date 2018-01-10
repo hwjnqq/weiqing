@@ -7,7 +7,11 @@
 
 defined('IN_IA') or exit('Access Denied');
 load()->classs('cloudapi');
+load()->model('message');
+
 if($do == 'display') { //系统工单
+	$message_id = safe_gpc_int($_GPC['message_id']);
+	message_notice_read($message_id);
 	$siteurl = $_W['siteroot'];
 	$cloud = new CloudApi();
 	$uuid = $_GPC['uuid'];

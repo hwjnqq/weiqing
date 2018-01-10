@@ -21,7 +21,7 @@ $account_info = permission_user_account_num();
 
 
 if ($do == 'display') {
-	$message_id = $_GPC['message_id'];
+	$message_id = safe_gpc_int($_GPC['message_id']);
 	message_notice_read($message_id);
 
 	$pindex = max(1, intval($_GPC['page']));

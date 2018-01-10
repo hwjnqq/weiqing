@@ -17,7 +17,7 @@ if ($do == 'save_oauth') {
 	$type = $_GPC['type'];
 	$account = trim($_GPC['account']);
 	if ($type == 'oauth') {
-		$host = $_GPC['host'];
+		$host = stripslashes($_GPC['host']);
 		$host = rtrim($host,'/');
 		if(!empty($host) && !preg_match('/^http(s)?:\/\//', $host)) {
 			$host = $_W['sitescheme'].$host;
