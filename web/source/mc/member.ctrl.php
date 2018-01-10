@@ -102,7 +102,7 @@ if($do == 'display') {
 		$params[':groupid'] = intval($_GPC['groupid']);
 	}
 	if(checksubmit('export_submit', true)) {
-		$sql = "SELECT `uid`, `uniacid`, `groupid`, `realname`, `nickname`, `email`, `mobile`, `credit1`, `credit2`, `credit6`, `createtime` FROM". tablename('mc_members') . " WHERE uniacid = :uniacid " . $condition;
+		$sql = "SELECT `uid`, `uniacid`, `groupid`, `realname`, `birthmonth`, `birthday`, `nickname`, `email`, `mobile`, `credit1`, `credit2`, `credit6`, `createtime` FROM". tablename('mc_members') . " WHERE uniacid = :uniacid " . $condition;
 		$members = pdo_fetchall($sql, $params);
 		$html = mc_member_export_parse($members);
 		header("Content-type:text/csv");
