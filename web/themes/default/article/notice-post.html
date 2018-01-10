@@ -11,7 +11,21 @@
 {if $do == 'post'}
 	<form action="{php echo url('article/notice/post');}" method="post" class="we7-form" role="form" id="form1">
 		<input type="hidden" name="id" value="{$notice['id']}"/>
-		
+				<div class="form-group">
+					<label class="col-sm-2 control-label">用户组</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						{loop $user_groups $key $group}
+							<div class="col-sm-4">
+								<div class="checkbox">
+									<input id="check-child-{$key}" type="checkbox" value="{$group['id']}" name="group[]" {if in_array($group['id'], $notice['group']['normal'])}checked{/if}>
+									<label for="check-child-{$key}">{$group['name']}</label>
+								</div>
+							</div>
+						{/loop}
+						
+						<span class="help-block">请选择哪些用户组可见，不设置代表全部可见</span>
+					</div>
+				</div>
 				<div class="form-group">
 					<label class="col-sm-2 control-label">公告标题</label>
 					<div class="col-sm-8 col-lg-9 col-xs-12">

@@ -7,7 +7,7 @@ defined('IN_IA') or exit('Access Denied');
 
 load()->model('article');
 
-$dos = array('category_post', 'category', 'category_del', 'list', 'post', 'batch_post', 'del');
+$dos = array('category_post', 'category', 'category_del', 'list', 'post', 'batch_post', 'del', 'displaysetting');
 $do = in_array($do, $dos) ? $do : 'list';
 permission_check_account_user('system_article_notice');
 
@@ -75,12 +75,37 @@ if ($do == 'post') {
 		);
 	} else {
 		$notice['style'] = iunserializer($notice['style']);
+		$notice['group'] = empty($notice['group']) ? array('vice_founder' => array(), 'normal' => array()) : iunserializer($notice['group']);
 	}
+	$user_groups = table('group')->groupList();
+	$user_vice_founder_groups = table('group')->groupList(true);
 	if (checksubmit()) {
-		$title = trim($_GPC['title']) ? trim($_GPC['title']) : itoast('公告标题不能为空', '', 'error');
+		$title = trim($_GPC['title']) ? safe_gpc_string($_GPC['title']) : itoast('公告标题不能为空', '', 'error');
 		$cateid = intval($_GPC['cateid']) ? intval($_GPC['cateid']) : itoast('公告分类不能为空', '', 'error');
-		$content = trim($_GPC['content']) ? trim($_GPC['content']) : itoast('公告内容不能为空', '', 'error');
-		$style = array('color' => trim($_GPC['style']['color']), 'bold' => intval($_GPC['style']['bold']));
+		$content = trim($_GPC['content']) ? safe_gpc_string($_GPC['content']) : itoast('公告内容不能为空', '', 'error');
+		$style = array('color' => safe_gpc_string($_GPC['style']['color']), 'bold' => intval($_GPC['style']['bold']));
+		$group = $vice_group = array();
+		if (!empty($_GPC['group']) && is_array($_GPC['group'])) {
+			foreach ($_GPC['group'] as $value) {
+				if (!is_numeric($value)) {
+					itoast('参数错误！');
+				}
+				$group[] = intval($value);
+			}
+		}
+		if (!empty($_GPC['vice_founder_group']) && is_array($_GPC['vice_founder_group'])) {
+			foreach ($_GPC['vice_founder_group'] as $vice_founder_value) {
+				if (!is_numeric($vice_founder_value)) {
+					itoast('参数错误！');
+				}
+				$vice_group[] = intval($vice_founder_value);
+			}
+		}
+		if (empty($group) && empty($vice_group)) {
+			$group = '';
+		} else {
+			$group = iserializer(array('normal' => $group, 'vice_founder' => $vice_group));
+		}
 		$data = array(
 			'title' => $title,
 			'cateid' => $cateid,
@@ -91,6 +116,7 @@ if ($do == 'post') {
 			'is_show_home' => intval($_GPC['is_show_home']),
 			'createtime' => TIMESTAMP,
 			'style' => iserializer($style),
+			'group' => $group,
 		);
 
 		if (!empty($notice['id'])) {
@@ -124,10 +150,11 @@ if ($do == 'list') {
 		$condition .= " AND title LIKE :title";
 		$params[':title'] = "%{$search_title}%";
 	}
+	$order = !empty($_W['setting']['notice_display']) ? $_W['setting']['notice_display'] : 'displayorder';
 
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	$sql = 'SELECT * FROM ' . tablename('article_notice') . $condition . " ORDER BY displayorder DESC LIMIT " . ($pindex - 1) * $psize .',' .$psize;
+	$sql = 'SELECT * FROM ' . tablename('article_notice') . $condition . " ORDER BY " . $order . " DESC LIMIT " . ($pindex - 1) * $psize .',' .$psize;
 	$notices = pdo_fetchall($sql, $params);
 	foreach ($notices as &$notice_value) {
 		if (!empty($notice_value)) {
@@ -165,4 +192,12 @@ if ($do == 'del') {
 	pdo_delete('article_notice', array('id' => $id));
 	pdo_delete('article_unread_notice', array('notice_id' => $id));
 	itoast('删除公告成功', referer(), 'success');
+}
+
+//显示排序设置
+if ($do == 'displaysetting') {
+	$setting = trim($_GPC['setting']);
+	$data = $setting == 'createtime' ? 'createtime' : 'displayorder';
+	setting_save($data, 'notice_display');
+	itoast('更改成功！', referer(), 'success');
 }
