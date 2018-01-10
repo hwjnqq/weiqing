@@ -152,10 +152,14 @@ class CoreModule extends WeModule {
 					//只选择关键字
 					}else {
 						$replies['keyword'][0]['name'] = $isexists['name'];
-						$keyword = pdo_get('rule_keyword', array('uniacid' => $_W['uniacid'], 'rid' => $rid));
+						$keyword = pdo_getall('rule_keyword', array('uniacid' => $_W['uniacid'], 'rid' => $rid));
 						$replies['keyword'][0]['id'] = $keyword['id'];
 						$replies['keyword'][0]['rid'] = $rid;
-						$replies['keyword'][0]['content'] = $keyword['content'];
+						if (!empty($keyword)) {
+							foreach ($keyword as $word) {
+								$replies['keyword'][0]['content'] .= $word['content']. '&nbsp;&nbsp;';
+							}
+						}
 					}
 				}
 				break;
