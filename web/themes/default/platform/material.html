@@ -109,20 +109,16 @@
 							</div>
 							<p class="appmsg-desc">{$material['items']['0']['digest']}</p>
 							{if $material['model'] == 'local'}
-								{if !empty($material['items'][0]['content'])}
 								<a href="javascript:;" target="_blank" class="cover-dark">
-								{/if}
 							{else}
-							<a href="javascript:;" data-toggle="modal" data-target="#modalWechatView" ng-click="choiceSendType('{$material['items']['0']['url']}', 'news', '{$material['media_id']}')" class="cover-dark">
+								<a href="javascript:;" data-toggle="modal" data-target="#modalWechatView" ng-click="choiceSendType('{$material['items']['0']['url']}', 'news', '{$material['media_id']}')" class="cover-dark">
 							{/if}
 								<div class="edit-mask-content">
 									{if $material['model'] == 'local'}
-									{if !empty($material['items'][0]['content'])}
-									本地预览<span data-toggle="tooltip" data-placement="bottom" title="本地文章，不可以群发，可以转换成为微信文章."><i class="wi wi-explain-sign"></i></span>
-									<span class="hidden">外部链接预览<span data-toggle="tooltip" data-placement="bottom" title="外部链接，内容不是文章，不可以群发或转换为微信文章."><i class="wi wi-explain-sign"></i></span></span>
-									{/if}
+										本地预览<span data-toggle="tooltip" data-placement="bottom" title="本地文章，不可以群发，可以转换成为微信文章."><i class="wi wi-explain-sign"></i></span>
+										<span class="hidden">外部链接预览<span data-toggle="tooltip" data-placement="bottom" title="外部链接，内容不是文章，不可以群发或转换为微信文章."><i class="wi wi-explain-sign"></i></span></span>
 									{else}
-									微信预览
+										微信预览
 									{/if}
 								</div>
 								<span class="vm-box"></span>
@@ -158,11 +154,9 @@
 									<a href="javascript:;" class="" ng-click="checkGroup('news', {$material['id']})" data-toggle="tooltip" data-placement="bottom" title="群发"><i class="wi wi-send"></i></a>
 								</li>
 							{else}
-								{if !empty($material['items'][0]['content'])}
-									<li class="appmsg-opr-item">
-										<a href="javascript:;" ng-click="newsToWechat({$material['id']})" class="" data-toggle="tooltip" data-placement="bottom" title="转换为微信文章"><i class="wi wi-transform"></i></a>
-									</li>
-								{/if}
+								<li class="appmsg-opr-item">
+									<a href="javascript:;" ng-click="newsToWechat({$material['id']})" class="" data-toggle="tooltip" data-placement="bottom" title="转换为微信文章"><i class="wi wi-transform"></i></a>
+								</li>
 							{/if}
 							<li class="appmsg-opr-item">
 								<a href="{php echo url('platform/material-post/news', array('newsid' => $material['id']))}" class="" data-toggle="tooltip" data-placement="bottom" title="编辑">&nbsp;<i class="wi wi-text"></i></a>
