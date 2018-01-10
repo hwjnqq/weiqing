@@ -53,6 +53,24 @@ abstract class WeAccount {
 		return self::includes(array('type' => $account_type));
 	}
 
+	static public function createByUniacid($uniacid = 0) {
+		global $_W;
+		$uniacid = intval($uniacid);
+		if (empty($uniacid)) {
+			$uniacid = $_W['uniacid'];
+		}
+		$uniaccount = table('account')->getUniAccountByUniacid($uniacid);
+		if (is_error($uniaccount) || empty($uniaccount)) {
+			$uniaccount = $_W['account'];
+		}
+
+		if(!empty($uniaccount) && isset($uniaccount['type'])) {
+			return self::includes($uniaccount);
+		} else {
+			return error('-1', '公众号不存在或是已经被删除');
+		}
+	}
+
 	static public function token($type = 1) {
 		$obj = self::includes(array('type' => $type));
 		return $obj->fetch_available_token();
