@@ -8,6 +8,32 @@ defined('IN_IA') or exit('Access Denied');
 
 class AccountTable extends We7Table {
 
+	protected $tableName = 'uni_account';
+	protected $primaryKey = 'acid';
+	/**
+	 *  当前公众号的基本信息
+	 * @return array
+	 */
+	public function baseaccount() {
+		return $this->hasOne('baseaccount', 'acid', 'default_acid');
+	}
+
+	/**
+	 *  当前公众号的所有菜单
+	 * @return array
+	 */
+	public function menus() {
+		return $this->hasMany('menu', 'uniacid', 'uniacid');
+	}
+
+	/**
+	 *  获取当前公众号属于那些应用权限组里边
+	 * @return array
+	 */
+	public function unigroup() {
+		return $this->belongsMany('unigroup', 'id', 'uniacid', 'uni_account_group', 'groupid' ,'uniacid');
+	}
+
 	public function searchAccountList($expire = false) {
 		global $_W;
 		$this->query->from('uni_account', 'a')->select('a.uniacid')->leftjoin('account', 'b')
@@ -25,7 +51,7 @@ class AccountTable extends We7Table {
 			$this->searchWithExprie();
 		}
 		$this->accountUniacidOrder();
-		$list = $this->query->getall('a.uniacid');
+		$list = $this->query->getall('uniacid');
 		return $list;
 	}
 
@@ -174,6 +200,19 @@ class AccountTable extends We7Table {
 			return array();
 		} else {
 			return array_merge($account, $uniaccount);
+		}
+	}
+
+	public function getUniAccountByUniacid($uniacid) {
+		$account = $this->getAccountByUniacid($uniacid);
+		$uniaccount = array();
+		if (!empty($account)) {
+			$uniaccount = $this->query->from('uni_account')->where('uniacid', $account['uniacid'])->get();
+		}
+		if (empty($account)) {
+			return array();
+		} else {
+			return !empty($uniaccount) && is_array($uniaccount) ? array_merge($account, $uniaccount) : $account;
 		}
 	}
 
