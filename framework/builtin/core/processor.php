@@ -1,13 +1,13 @@
 <?php
 /**
  * 基本文字回复处理类
- * 
+ *
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
 class CoreModuleProcessor extends WeModuleProcessor {
-	
+
 	public function respond() {
 
 		$reply_type = $this->reply_type;
@@ -128,7 +128,7 @@ class CoreModuleProcessor extends WeModuleProcessor {
 	private function voice_respond() {
 		global $_W;
 		$rid = $this->rule;
-		$sql = "SELECT `mediaid` FROM " . tablename('voice_reply') . " WHERE `rid`=:rid";
+		$sql = "SELECT `mediaid` FROM " . tablename('voice_reply') . " WHERE `rid`=:rid ORDER BY RAND()";
 		$mediaid = pdo_fetchcolumn($sql, array(':rid' => $rid));
 		if (empty($mediaid)) {
 			return false;
@@ -139,7 +139,7 @@ class CoreModuleProcessor extends WeModuleProcessor {
 	private function video_respond() {
 		global $_W;
 		$rid = $this->rule;
-		$sql = "SELECT * FROM " . tablename('video_reply') . " WHERE `rid`=:rid";
+		$sql = "SELECT * FROM " . tablename('video_reply') . " WHERE `rid`=:rid ORDER BY RAND()";
 		$item = pdo_fetch($sql, array(':rid' => $rid));
 		if (empty($item)) {
 			return false;
