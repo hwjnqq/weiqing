@@ -11,7 +11,7 @@
 			{if $type != MENU_CONDITIONAL}
 			<ul class="btn-group we7-btn-group" style="margin-bottom: 0;">
 				<a href="{url 'platform/menu/post'}" class="btn">当前默认菜单</a>
-				<a href="{url 'platform/menu/display'}" class="btn active">菜单列表</a>
+				<a href="{url 'platform/menu/display'}" class="btn active">历史菜单列表</a>
 			</ul>
 			{/if}
 			<div class="pull-right">
@@ -114,7 +114,7 @@
 	{if $type != MENU_CONDITIONAL && !empty($default_menu)}
 	<ul class="btn-group we7-btn-group we7-margin-bottom">
 		<a href="{url 'platform/menu/post'}" class="btn active">当前默认菜单</a>
-		<a href="{url 'platform/menu/display'}" class="btn">菜单列表</a>
+		<a href="{url 'platform/menu/display'}" class="btn">历史菜单列表</a>
 	</ul>
 	<a href="{php echo url('platform/menu/post', array('type' => MENU_CURRENTSELF));}" class="btn btn-primary pull-right"><span>+</span>添加新菜单</a>
 	{/if}
