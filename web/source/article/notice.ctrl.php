@@ -72,6 +72,7 @@ if ($do == 'post') {
 		$notice = array(
 			'is_display' => 1,
 			'is_show_home' => 1,
+			'group' => array('vice_founder' => array(), 'normal' => array())
 		);
 	} else {
 		$notice['style'] = iunserializer($notice['style']);

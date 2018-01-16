@@ -47,6 +47,7 @@ function article_notice_home($limit = 5) {
 }
 
 function article_news_all($filter = array(), $pindex = 1, $psize = 10) {
+	global $_W;
 	$condition = ' WHERE is_display = 1';
 	$params = array();
 	if(!empty($filter['title'])) {
@@ -57,9 +58,10 @@ function article_news_all($filter = array(), $pindex = 1, $psize = 10) {
 		$condition .= ' AND cateid = :cateid';
 		$params[':cateid'] = $filter['cateid'];
 	}
+	$order = !empty($_W['setting']['news_display']) ? $_W['setting']['news_display'] : 'displayorder';
 	$limit = ' LIMIT ' . ($pindex - 1) * $psize . ',' . $psize;
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('article_news') . $condition, $params);
-	$news = pdo_fetchall('SELECT * FROM ' . tablename('article_news') . $condition . ' ORDER BY displayorder DESC ' . $limit, $params, 'id');
+	$news = pdo_fetchall("SELECT * FROM " . tablename('article_news') . $condition . " ORDER BY " . $order . " DESC " . $limit, $params, 'id');
 	return array('total' => $total, 'news' => $news);
 }
 
