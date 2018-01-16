@@ -10,7 +10,7 @@ $custom_sign = safe_gpc_string($_GPC['custom_sign']);
 $_W['uniacid'] = intval($_GPC['uniacid']);
 if (empty($_W['uniacid'])) {
 	$uniacid_arr = array(
-		'name' => !empty($_W['setting']['copyright']['sitename']) ? $_W['setting']['copyright']['sitename'] : '短信验证码',
+		'name' => '短信验证码',
 	);
 } else {
 	$uniacid_arr = pdo_fetch('SELECT * FROM ' . tablename('uni_account') . ' WHERE uniacid = :uniacid', array(':uniacid' => $_W['uniacid']));
@@ -45,6 +45,7 @@ if(!empty($row)) {
 		exit('您的操作过于频繁,请稍后再试');
 	}
 	$record['total'] = $row['total'] + 1;
+	$record['verifycode'] = $code;
 } else {
 	$record['uniacid'] = $_W['uniacid'];
 	$record['receiver'] = $receiver;

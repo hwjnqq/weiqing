@@ -282,7 +282,7 @@
 											<div class="form-controls col-sm-12" ng-show="context.activeItem.type == 'miniprogram'">
 												<label for="ipt-url-appid" class="control-label col-sm-2">APPID</label>
 												<div class="form-controls col-sm-7">
-													<input type="text" class="form-control" id="ipt-url-appid" ng-model="context.activeItem.appid" ng-disabled="context.group.disabled" placeholder="请确保小程序与公众号已关联">
+													<input type="text" class="form-control" id="ipt-url-appid" ng-model="context.activeItem.appid" ng-disabled="context.group.disabled" placeholder="请确保小程序与公众号已关联，填写小程序的APPID">
 													<span class="help-block">
 														<a href="http://weixiao.qq.com/notice/view?mid=0&cid=2&id=274" target="_blank">如何获取</a>
 													</span>
@@ -298,7 +298,8 @@
 											<div class="form-controls col-sm-12" ng-show="context.activeItem.type == 'miniprogram'">
 												<label for="ipt-url-url" class="control-label col-sm-2">备用网页</label>
 												<div class="form-controls col-sm-10">
-													<input type="text" class="form-control" id="ipt-url-url" ng-model="context.activeItem.url" ng-disabled="context.group.disabled" placeholder="旧版微信客户端不支持小程序，用户点击菜单时会打开该网页">
+													<input type="text" class="form-control" id="ipt-url-url" ng-model="context.activeItem.url" ng-disabled="context.group.disabled" placeholder="写入要跳转的链接">
+													<span class="help-block">旧版微信客户端不支持小程序，用户点击菜单时会打开该网页</span>
 												</div>
 											</div>
 										</div>

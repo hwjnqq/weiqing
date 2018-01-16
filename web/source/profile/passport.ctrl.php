@@ -17,10 +17,10 @@ if ($do == 'save_oauth') {
 	$type = $_GPC['type'];
 	$account = trim($_GPC['account']);
 	if ($type == 'oauth') {
-		$host = stripslashes($_GPC['host']);
-		$host = rtrim($host,'/');
-		if(!empty($host) && !preg_match('/^http(s)?:\/\//', $host)) {
-			$host = $_W['sitescheme'].$host;
+		$host = safe_gpc_url(rtrim($_GPC['host'],'/'), false);
+
+		if (!empty($_GPC['host']) && empty($host)) {
+			iajax(-1, '域名不合法');
 		}
 		$data = array(
 			'host' => $host,

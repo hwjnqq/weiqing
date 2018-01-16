@@ -25,7 +25,7 @@ if ($do == 'copyright') {
 			$data = array(
 				'status' => $_GPC['status'],
 				'reason' => $_GPC['reason'],
-				'icp' => $_GPC['icp'],
+				'icp' => safe_gpc_string($_GPC['icp']),
 				'mobile_status' => $_GPC['mobile_status'],
 				'login_type' => $_GPC['login_type'],
 			);				
