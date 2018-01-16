@@ -1394,7 +1394,6 @@ abstract class WeModuleProcessor extends WeBase {
 		$vars['uniacid'] = $_W['uniacid'];
 		$vars['__auth'] = $auth;
 		$vars['forward'] = base64_encode($url);
-
 		return $_W['siteroot'] . 'app/' . str_replace('./', '', url('auth/forward', $vars));
 	}
 
