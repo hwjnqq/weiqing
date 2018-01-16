@@ -52,6 +52,9 @@
 					</td>
 				</tr>
 				{loop $section['menu'] $sub_permission_name $sub_menu}
+					{if $sub_permission_name == 'wxapp_platform_material'}
+						{php continue;}
+					{/if}
 					<tr class="bg-light-gray">
 						<td class="text-left">
 							<div class="pad-bottom ">{php echo intval($sub_menu['displayorder'])}</div>

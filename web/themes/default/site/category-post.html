@@ -155,7 +155,7 @@
 						<div class="form-controls col-sm-8" >
 							<div class="input-group">
 								<input type="text" name='icon[icon]' class="form-control" ng-model="category.css.icon.icon"/>
-								<span class="input-group-addon" style="width:35px; border-left:none" ng-style="{'background-color' : colorValue}"><i class="{{category.css.icon.icon}}" ng-init="category.css.icon.icon = 'fa fa-external-link'"></i></span>
+								<span class="input-group-addon" style="width:35px; border-left:none" ng-style="{'background-color' : colorValue}"><i class="{{category.css.icon.icon}}" ng-init="category.css.icon.icon = category.css.icon.icon ? category.css.icon.icon : 'fa fa-external-link'"></i></span>
 								<span class="input-group-btn" ng-click="selectIcon()"> <a href="" class="btn btn-default">&nbsp;选择图标</a></span>
 							</div>
 						</div>

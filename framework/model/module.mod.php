@@ -69,7 +69,10 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 	load()->func('communication');
 
 	global $_W;
-	$ts = array('rule', 'cover', 'menu', 'home', 'profile', 'shortcut', 'function', 'mine', 'welcome');
+	
+	
+		$ts = array('rule', 'cover', 'menu', 'home', 'profile', 'shortcut', 'function', 'mine');
+	
 	if(empty($types)) {
 		$types = $ts;
 	} else {
@@ -120,7 +123,7 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 			if($bind['entry'] == 'shortcut') {
 				$url = murl("entry", array('eid' => $bind['eid']));
 			}
-			if($bind['entry'] == 'welcome') {
+			if($bind['entry'] == 'system_welcome') {
 				$url = wurl("site/entry", array('eid' => $bind['eid']));
 			}
 
@@ -317,8 +320,8 @@ function module_fetch($name) {
 				$module_info['plugin_list'] = array_keys ($module_info['plugin_list']);
 			}
 		}
-		if ($module_info['app_support'] != 2 && $module_info['wxapp_support'] != 2) {
-			$module_info['app_support'] = 2;
+		if ($module_info['app_support'] != MODULE_SUPPORT_ACCOUNT && $module_info['wxapp_support'] != MODULE_SUPPORT_WXAPP && $module_info['webapp_support'] != MODULE_SUPPORT_WEBAPP && $module_info['welcome_support'] != MODULE_SUPPORT_SYSTEMWELCOME) {
+			$module_info['app_support'] = MODULE_SUPPORT_ACCOUNT;
 		}
 		$module_info['is_relation'] = $module_info['app_support'] ==2 && $module_info['wxapp_support'] == 2 ? true : false;
 		$module_ban = setting_load('module_ban');
@@ -353,8 +356,9 @@ function module_fetch($name) {
  * 获取所有未安装的模块
  * @param string $status 模块状态，unistalled : 未安装模块, recycle : 回收站模块;
  * @param string $cache 是否直接读取缓存数据;
+ * @param string $cache 模块类型;
  */
-function module_get_all_unistalled($status, $cache = true)  {
+function module_get_all_unistalled($status, $cache = true, $module_type = '')  {
 	load()->func('communication');
 	load()->model('cloud');
 	load()->classs('cloudapi');
@@ -375,11 +379,15 @@ function module_get_all_unistalled($status, $cache = true)  {
 		$account_type = 'app';
 	} elseif (ACCOUNT_TYPE == ACCOUNT_TYPE_WEBAPP_NORMAL) {
 		$account_type = 'webapp';
+	} else {
+		$account_type = 'system_welcome';
+	}
+	if (!empty($module_type)) {
+		$account_type = $module_type;
 	}
 	if (!is_array($uninstallModules) || empty($uninstallModules['modules'][$status][$account_type]) || intval($uninstallModules['cloud_m_count']) !== intval($cloud_m_count) || is_error($get_cloud_m_count)) {
 		$uninstallModules = cache_build_uninstalled_module();
 	}
-
 	if (!empty($account_type)) {
 		$uninstallModules['modules'] = (array)$uninstallModules['modules'][$status][$account_type];
 		$uninstallModules['module_count'] = $uninstallModules[$account_type . '_count'];
@@ -394,9 +402,6 @@ function module_get_all_unistalled($status, $cache = true)  {
 function module_permission_fetch($name) {
 	$module = module_fetch($name);
 	$data = array();
-	if ($module['permissions']) {
-		$data[] = array('title' => '权限设置', 'permission' => $name.'_permissions');
-	}
 	if($module['settings']) {
 		$data[] = array('title' => '参数设置', 'permission' => $name.'_settings');
 	}
@@ -912,13 +917,6 @@ function module_clerk_info($module_name) {
  */
 function module_rank_top($module_name) {
 	global $_W;
-	$module_table = table('module');
-	$max_rank = $module_table->moduleMaxRank();
-	$exist = $module_table->moduleRank($module_name);
-	if (!empty($exist)) {
-		pdo_update('modules_rank', array('rank' => ($max_rank + 1)), array('module_name' => $module_name));
-	} else {
-		pdo_insert('modules_rank', array('uid' => $_W['uid'], 'module_name' => $module_name, 'rank' => ($max_rank + 1)));
-	}
-	return true;
+	$result = table('module')->moduleSetRankTop($module_name);
+	return empty($result) ? true : false;
 }

@@ -29,4 +29,23 @@ class MemberTable extends We7Table {
 		$this->query->where('r.credittype', $type);
 		return $this;
 	}
+
+	public function searchWithMember() {
+		return $this->query->from('mc_members')->get();
+	}
+
+	public function searchWithMemberEmail($email) {
+		$this->query->where('email', $email);
+		return $this;
+	}
+
+	public function searchWithMobile($mobile) {
+		$this->query->where('mobile', $mobile);
+		return $this;
+	}
+
+	public function searchWithRandom($info) {
+		$this->query->where('mobile', $info)->whereor('email', $info);
+		return $this;
+	}
 }

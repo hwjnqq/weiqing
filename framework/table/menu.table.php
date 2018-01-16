@@ -8,8 +8,13 @@ defined('IN_IA') or exit('Access Denied');
 
 class MenuTable extends We7Table {
 
+	protected $tableName = 'uni_account_menus';
 	private $account_menu_table = 'uni_account_menus';
+	protected $primaryKey = 'id';
 
+	public function uniaccount() {
+		return $this->belongsTo('account', 'uniacid', 'uniacid');
+	}
 	/**
 	 * 获取公众号自定义菜单列表
 	 * @param int $uniacid

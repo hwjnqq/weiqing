@@ -8,11 +8,17 @@ defined('IN_IA') or exit('Access Denied');
 
 class MessageTable extends We7Table {
 
-	public function messageList() {
+	public function messageList($type = '') {
 		global $_W;
+
 		if (!user_is_founder($_W['uid']) || user_is_vice_founder($_W['uid'])) {
 			$this->query->where('uid', $_W['uid']);
 		}
+
+		if (user_is_founder($_W['uid']) && !user_is_vice_founder() && empty($type)) {
+			$this->query->where('type !=', array(MESSAGE_USER_EXPIRE_TYPE, MESSAGE_WXAPP_MODULE_UPGRADE))->whereor('type', MESSAGE_WXAPP_MODULE_UPGRADE)->where('uid', $_W['uid']);
+		}
+
 		return $this->query->from('message_notice_log')->orderby('id', 'DESC')->getall();
 	}
 
@@ -35,6 +41,10 @@ class MessageTable extends We7Table {
 		if (!user_is_founder($_W['uid']) || user_is_vice_founder($_W['uid'])) {
 			$this->query->where('uid', $_W['uid']);
 		}
-		return $this->query->from('message_notice_log')->where('is_read', MESSAGE_NOREAD)->count();
+		if (user_is_founder($_W['uid']) && !user_is_vice_founder()) {
+			$this->query->where('type !=', array(MESSAGE_USER_EXPIRE_TYPE, MESSAGE_WXAPP_MODULE_UPGRADE))->whereor('type', MESSAGE_WXAPP_MODULE_UPGRADE)->where('uid', $_W['uid']);
+		}
+		$list =  $this->query->from('message_notice_log')->orderby('id', 'DESC')->getall();
+		return count($list);
 	}
 }

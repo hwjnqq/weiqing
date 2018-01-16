@@ -42,6 +42,6 @@ if ($do == 'save_setting') {
 	$pay_setting[$type] = $param;
 	$payment = iserializer($pay_setting);
 	uni_setting_save('payment', $payment);
-	iajax(0, '');
+	iajax(0, '设置成功', url('wxapp/payment'));
 }
 template('wxapp/payment');

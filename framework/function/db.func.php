@@ -334,7 +334,7 @@ function _db_build_field_sql($field) {
 	} else {
 		$length = '';
 	}
-	if (strpos(strtolower($field['type']), 'int') !== false) {
+	if (strpos(strtolower($field['type']), 'int') !== false || in_array(strtolower($field['type']) , array('decimal', 'float', 'dobule'))) {
 		$signed = empty($field['signed']) ? ' unsigned' : '';
 	} else {
 		$signed = '';

@@ -11,13 +11,31 @@ defined('IN_IA') or exit('Access Denied');
  * @param string $default
  */
 function safe_gpc_int($value, $default = 0) {
-	$value = intval($value);
-	$default = intval($default);
-	
+	//如果包含小数点，优先按float对待
+	//否则一律按int对待
+	if (strpos($value, '.') !== false) {
+		$value = floatval($value);
+		$default = floatval($default);
+	} else {
+		$value = intval($value);
+		$default = intval($default);
+	}
+
 	if (empty($value) && $default != $value) {
 		$value = $default;
 	}
 	return $value;
+}
+
+function safe_gpc_belong($value, $allow = array(), $default = '') {
+	if (empty($allow)) {
+		return $default;
+	}
+	if (in_array($value, $allow, true)) {
+		return $value;
+	} else {
+		return $default;
+	}
 }
 
 /**
@@ -27,10 +45,8 @@ function safe_gpc_int($value, $default = 0) {
  * @return string
  */
 function safe_gpc_string($value, $default = '') {
-	$value = htmlspecialchars($value, ENT_COMPAT | ENT_HTML401 | ENT_QUOTES);
-	
-	$badstr = array("\0", "%00", "\r", "%3C", "%3E", '{php');
-	$newstr = array('', '', '', '&lt;', '&gt;', '_');
+	$badstr = array("\0", "%00", "%3C", "%3E", '{php');
+	$newstr = array('', '', '&lt;', '&gt;', '_');
 	$value  = str_replace($badstr, $newstr, $value);
 	
 	$value  = preg_replace('/&((#(\d{3,5}|x[a-fA-F0-9]{4}));)/', '&\\1', $value);
@@ -178,12 +194,22 @@ function safe_remove_xss($val) {
 	$search .= 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 	$search .= '1234567890!@#$%^&*()';
 	$search .= '~`";:?+/={}[]-_|\'\\';
+
 	for ($i = 0; $i < strlen($search); $i++) {
 		$val = preg_replace('/(&#[xX]0{0,8}'.dechex(ord($search[$i])).';?)/i', $search[$i], $val);
 		$val = preg_replace('/(&#0{0,8}'.ord($search[$i]).';?)/', $search[$i], $val);
 	}
-	$ra1 = array('javascript', 'vbscript', 'expression', 'applet', 'meta', 'xml', 'blink', 'link', 'script', 'embed', 'object', 'frameset', 'ilayer', 'bgsound', 'title', 'base');
-	$ra2 = array('onabort', 'onactivate', 'onafterprint', 'onafterupdate', 'onbeforeactivate', 'onbeforecopy', 'onbeforecut', 'onbeforedeactivate', 'onbeforeeditfocus', 'onbeforepaste', 'onbeforeprint', 'onbeforeunload', 'onbeforeupdate', 'onblur', 'onbounce', 'oncellchange', 'onchange', 'onclick', 'oncontextmenu', 'oncontrolselect', 'oncopy', 'oncut', 'ondataavailable', 'ondatasetchanged', 'ondatasetcomplete', 'ondblclick', 'ondeactivate', 'ondrag', 'ondragend', 'ondragenter', 'ondragleave', 'ondragover', 'ondragstart', 'ondrop', 'onerror', 'onerrorupdate', 'onfilterchange', 'onfinish', 'onfocus', 'onfocusin', 'onfocusout', 'onhelp', 'onkeydown', 'onkeypress', 'onkeyup', 'onlayoutcomplete', 'onload', 'onlosecapture', 'onmousedown', 'onmouseenter', 'onmouseleave', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onmousewheel', 'onmove', 'onmoveend', 'onmovestart', 'onpaste', 'onpropertychange', 'onreadystatechange', 'onreset', 'onresize', 'onresizeend', 'onresizestart', 'onrowenter', 'onrowexit', 'onrowsdelete', 'onrowsinserted', 'onscroll', 'onselect', 'onselectionchange', 'onselectstart', 'onstart', 'onstop', 'onsubmit', 'onunload', 'import');
+	preg_match_all('/href=[\'|\"](.*?)[\'|\"]|src=[\'|\"](.*?)[\'|\"]/i', $val, $matches);
+	$url_list = array_merge($matches[1], $matches[2]);
+	$encode_url_list = array();
+	if (!empty($url_list)) {
+		foreach ($url_list as $key => $url) {
+			$val = str_replace($url, 'we7_' . $key . '_we7placeholder', $val);
+			$encode_url_list[] = $url;
+		}
+	}
+	$ra1 = array('javascript', 'vbscript', 'expression', 'applet', 'meta', 'xml', 'blink', 'link', 'script', 'embed', 'object', 'frameset', 'ilayer', 'bgsound', 'base');
+	$ra2 = array('onabort', 'onactivate', 'onafterprint', 'onafterupdate', 'onbeforeactivate', 'onbeforecopy', 'onbeforecut', 'onbeforedeactivate', 'onbeforeeditfocus', 'onbeforepaste', 'onbeforeprint', 'onbeforeunload', 'onbeforeupdate', 'onblur', 'onbounce', 'oncellchange', 'onchange', 'onclick', 'oncontextmenu', 'oncontrolselect', 'oncopy', 'oncut', 'ondataavailable', 'ondatasetchanged', 'ondatasetcomplete', 'ondblclick', 'ondeactivate', 'ondrag', 'ondragend', 'ondragenter', 'ondragleave', 'ondragover', 'ondragstart', 'ondrop', 'onerror', 'onerrorupdate', 'onfilterchange', 'onfinish', 'onfocus', 'onfocusin', 'onfocusout', 'onhelp', 'onkeydown', 'onkeypress', 'onkeyup', 'onlayoutcomplete', 'onload', 'onlosecapture', 'onmousedown', 'onmouseenter', 'onmouseleave', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onmousewheel', 'onmove', 'onmoveend', 'onmovestart', 'onpaste', 'onpropertychange', 'onreadystatechange', 'onreset', 'onresize', 'onresizeend', 'onresizestart', 'onrowenter', 'onrowexit', 'onrowsdelete', 'onrowsinserted', 'onscroll', 'onselect', 'onselectionchange', 'onselectstart', 'onstart', 'onstop', 'onsubmit', 'onunload', '@import');
 	$ra = array_merge($ra1, $ra2);
 	$found = true;
 	while ($found == true) {
@@ -206,6 +232,11 @@ function safe_remove_xss($val) {
 			if ($val_before == $val) {
 				$found = false;
 			}
+		}
+	}
+	if (!empty($encode_url_list) && is_array($encode_url_list)) {
+		foreach ($encode_url_list as $key => $url) {
+			$val = str_replace('we7_' . $key . '_we7placeholder', $url, $val);
 		}
 	}
 	return $val;

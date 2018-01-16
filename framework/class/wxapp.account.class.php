@@ -1,20 +1,32 @@
 <?php
 /**
- * 
+ *
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
- 
+
 defined('IN_IA') or exit('Access Denied');
 load()->func('communication');
 
 class WxappAccount extends WeAccount {
 	public function __construct($account = array()) {
-		if (empty($account)) {
-			return true;
-		}
 		$this->account = $account;
+		$this->menuFrame = 'wxapp';
+		$this->type = ACCOUNT_TYPE_APP_NORMAL;
+		$this->typeName = '小程序';
+		$this->typeTempalte = '-wxapp';
 	}
-	
+
+	public function accountDisplayUrl() {
+		return url('wxapp/display');
+	}
+
+	public function fetchAccountInfo() {
+		$account_table = table('account');
+		$account = $account_table->getWxappAccount($this->uniaccount['acid']);
+		$account['encrypt_key'] = $account['key'];
+		return $account;
+	}
+
 	public function getOauthInfo($code = '') {
 		global $_W, $_GPC;
 		if (!empty($_GPC['code'])) {
@@ -39,9 +51,9 @@ class WxappAccount extends WeAccount {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param string $encryptData 待解密的数据
-	 * @param string $vi 
+	 * @param string $vi
 	 */
 	public function pkcs7Encode($encrypt_data, $iv) {
 		$key = base64_decode($_SESSION['session_key']);
@@ -59,7 +71,15 @@ class WxappAccount extends WeAccount {
 		unset($result['watermark']);
 		return $result;
 	}
-	
+
+	public function checkIntoManage() {
+		global $_GPC;
+		if (empty($this->account) || (!empty($this->uniaccount['account']) && $this->uniaccount['account'] != ACCOUNT_TYPE_APP_NORMAL && !defined('IN_MODULE')) || empty($_GPC['version_id'])) {
+			return false;
+		}
+		return true;
+	}
+
 	public function getAccessToken() {
 		$cachekey = "accesstoken:{$this->account['key']}";
 		$cache = cache_load($cachekey);
@@ -67,31 +87,31 @@ class WxappAccount extends WeAccount {
 			$this->account['access_token'] = $cache;
 			return $cache['token'];
 		}
-		
+
 		if (empty($this->account['key']) || empty($this->account['secret'])) {
 			return error('-1', '未填写小程序的 appid 或 appsecret！');
 		}
-		
+
 		$url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$this->account['key']}&secret={$this->account['secret']}";
 		$response = $this->requestApi($url);
-	
+
 		$record = array();
 		$record['token'] = $response['access_token'];
 		$record['expire'] = TIMESTAMP + $response['expires_in'] - 200;
-		
+
 		$this->account['access_token'] = $record;
 		cache_write($cachekey, $record);
 		return $record['token'];
 	}
-	
+
 	public function getJssdkConfig($url = ''){
 		return array();
 	}
-	
+
 	public function getCodeWithPath($path) {
-		
+
 	}
-	
+
 	public function getCodeUnlimit($scene, $width = '430', $option = array()) {
 		if (!preg_match('/[0-9a-zA-Z\!\#\$\&\'\(\)\*\+\,\/\:\;\=\?\@\-\.\_\~]{1,32}/', $scene)) {
 			return error(1, '场景值不合法');
@@ -122,11 +142,11 @@ class WxappAccount extends WeAccount {
 		}
 		return $response['content'];
 	}
-	
+
 	public function getQrcode() {
-		
+
 	}
-	
+
 	public function errorCode($code, $errmsg = '未知错误') {
 		$errors = array(
 			'-1' => '系统繁忙',
@@ -242,7 +262,7 @@ class WxappAccount extends WeAccount {
 			return $errmsg;
 		}
 	}
-	
+
 	protected function requestApi($url, $post = '') {
 		$response = ihttp_request($url, $post);
 		$result = @json_decode($response['content'], true);
@@ -256,7 +276,7 @@ class WxappAccount extends WeAccount {
 		}
 		return $result;
 	}
-	
+
 	public function result($errno, $message = '', $data = '') {
 		exit(json_encode(array(
 			'errno' => $errno,
@@ -264,7 +284,7 @@ class WxappAccount extends WeAccount {
 			'data' => $data,
 		)));
 	}
-	
+
 	public function getDailyVisitTrend() {
 		global $_W;
 		$token = $this->getAccessToken();

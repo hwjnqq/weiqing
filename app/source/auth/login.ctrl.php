@@ -21,7 +21,21 @@ if(!empty($_GPC['forward'])) {
 
 if($do == 'mobile_exist') {
 	if($_W['ispost'] && $_W['isajax']) {
-		$is_exist = pdo_get('mc_members', array('uniacid' => $_W['uniacid'], 'mobile' => trim($_GPC['mobile'])));
+		$type = safe_gpc_string($_GPC['find_mode']);
+		$info = safe_gpc_string($_GPC['mobile']);
+		$member_table = table('member');
+		switch ($type) {
+			case 'mobile':
+				$member_table->searchWithMobile($info);
+				break;
+			case 'email':
+				$member_table->searchWithMemberEmail($info);
+				break;
+			default:
+				$member_table->searchWithRandom($info);
+				break;
+		}
+		$is_exist = $member_table->searchWithMember();
 		if (!empty($is_exist)) {
 			message(error(1, ''), '', 'ajax');
 		} else {

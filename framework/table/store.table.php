@@ -84,7 +84,7 @@ class StoreTable extends We7Table {
 	}
 
 	public function searchOrderList($pageindex = 0, $pagesize = 0) {
-		$this->query->from('site_store_order')->where('type <>', STORE_GOODS_STATUS_DELETE)->orderby('type', 'DESC');
+		$this->query->from('site_store_order')->where('type <>', STORE_GOODS_STATUS_DELETE);
 
 		if (!empty($pageindex) && !empty($pagesize)) {
 			$this->searchWithPage($pageindex, $pagesize);
@@ -164,6 +164,6 @@ class StoreTable extends We7Table {
 	}
 
 	public function searchPaymentsOrder() {
-		return $this->query->from('site_store_order', 'a')->leftjoin('site_store_goods', 'b')->on('a.goodsid', 'b.id')->where('a.type', 3)->orderby('a.createtime', 'desc')->getall();
+		return  $this->query->from('site_store_order', 'a')->leftjoin('site_store_goods', 'b')->on('a.goodsid', 'b.id')->where('a.type', 3)->orderby('a.createtime', 'desc')->select(array('a.id', 'a.createtime', 'b.title', 'a.orderid', 'b.type', 'a.amount'))->getall();
 	}
 }

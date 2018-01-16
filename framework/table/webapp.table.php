@@ -7,13 +7,8 @@
  * @license     A "Slug" license name e.g. GPL2
  */
 defined('IN_IA') or exit('Access Denied');
-
-class WebappTable extends We7Table {
-
-	const ACCOUNT_TABLE = 'account';
-	const UNI_ACCOUNT_TABLE = 'uni_account_table';
-	private $WEBAPP_TYPE = 5;
-
+load()->table('account');
+class WebappTable extends AccountTable {
 
 	/**
 	 *  创建PC
@@ -21,7 +16,7 @@ class WebappTable extends We7Table {
 	 * @return bool
 	 * @since version
 	 */
-	public function create($attr, $uid) {
+	public function createWebappInfo($attr, $uid) {
 		$name = $attr['name'];
 		$description = $attr['description'];
 		$data = array(
@@ -37,7 +32,7 @@ class WebappTable extends We7Table {
 		if(!$uniacid) {
 			return false;
 		}
-		$accountdata = array('uniacid' => $uniacid, 'type' => $this->WEBAPP_TYPE, 'hash' => random(8));
+		$accountdata = array('uniacid' => $uniacid, 'type' => ACCOUNT_TYPE_WEBAPP_NORMAL, 'hash' => random(8));
 		pdo_insert('account', $accountdata);
 		$acid = pdo_insertid();
 		pdo_update('uni_account', array('default_acid'=>$acid), array('uniacid'=>$uniacid));
@@ -58,10 +53,7 @@ class WebappTable extends We7Table {
 	 *  创建记录
 	 * @param $uniacid
 	 * @param $uid
-	 *
-	 *
-	 * @since version
-	 */
+	 * */
 	private function createLog($uniacid, $uid) {
 		if (empty($_W['isfounder'])) {
 			$user_info = permission_user_account_num($uid);
@@ -75,65 +67,4 @@ class WebappTable extends We7Table {
 			uni_user_account_role($uniacid, $uid, ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
 		}
 	}
-	/**
-	 *  删除PC
-	 * @param $uniacid
-	 *
-	 *
-	 * @since version
-	 */
-	public function delete($uniacid) {
-//		if(is_array($uniacid)) {
-//			return false;
-//		}
-//		pdo_delete(self::ACCOUNT_TABLE, array('uniacid'=>$uniacid));
-//		pdo_delete(self::UNI_ACCOUNT_TABLE, array('uniacid'=>$uniacid));
-	}
-
-	/** 修改pc
-	 * @param $attr
-	 * @param $uniacid
-	 * @since version
-	 */
-	public function update($attr, $uniacid) {
-		pdo_update(self::UNI_ACCOUNT_TABLE, $attr, array('uniacid'=>$uniacid));
-	}
-
-	/**
-	 * 查询所有PC
-	 * @since version
-	 */
-	public function webapplist($uid, $pageindex = 1, $pagesize = 15) {
-		$query = $this->createQuery($uid);
-		$query->page($pageindex, $pagesize);
-		$query->where(array('b.type' => array(ACCOUNT_TYPE_WEBAPP_NORMAL)));
-		$list = $query->getall();
-		$total =  $query->getLastQueryTotal();
-		return [$list, $total];
-	}
-
-	/**
-	 * @param $uid
-	 *
-	 * @return Query
-	 *
-	 * @since version
-	 */
-	private function createQuery($uid) {
-		$query = load()->object('Query');
-		$query->from('uni_account', 'a')->select('a.uniacid')->select(array('a.name','a.default_acid','a.uniacid'))->leftjoin('account', 'b')
-			->on(array('a.uniacid' => 'b.uniacid', 'a.default_acid' => 'b.acid'))
-			->where('b.isdeleted !=', '1');
-
-		//普通用户和副站长查询时，要附加可操作公众条件
-		if (!user_is_founder($uid) || user_is_vice_founder()) {
-			$query->leftjoin('uni_account_users', 'c')->on(array('a.uniacid' => 'c.uniacid'))
-				->where('a.default_acid !=', '0')->where('c.uid', $uid);
-		} else {
-			$query->where('a.default_acid !=', '0');
-		}
-		return $query;
-	}
-
-
 }

@@ -45,6 +45,7 @@
 				<a href="javascript:;" ng-if="list.type==3" ng-click="operate(list.id, links.workorder_link+'uuid='+list.sign)">进入工单</a>
 				<a href="javascript:;" ng-click="operate(list.id, links.account_expire_link)" ng-if="list.type==2">查看公众号</a>
 				<a href="javascript:;" ng-click="operate(list.id, links.wechat_expire_link)" ng-if="list.type==5">查看小程序</a>
+				<a href="javascript:;" ng-click="operate(list.id, links.webapp_expire_link)" ng-if="list.type==6">查看pc</a>
 				<a href="javascript:;" ng-click="operate(list.id, links.register_link)" ng-if="list.type==4 && list.status==1">查看我的待审核用户</a>
 			</div>
 		</td>
@@ -61,6 +62,7 @@
 			'change_read_status': "{php echo url('message/notice/change_read_status')}",
 			'account_expire_link': "{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL))}",
 			'wechat_expire_link': "{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL))}",
+			'webapp_expire_link': "{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL))}",
 			'order_link': "{php echo url('site/entry/orders', array('m' => 'store', 'direct'=>1))}",
 			'register_link': "{php echo url('user/display', array('type' => 'check'))}",
 			'workorder_link': "{php echo url('system/workorder/display')}",

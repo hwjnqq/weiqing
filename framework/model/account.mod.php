@@ -54,7 +54,7 @@ function uni_user_accounts($uid) {
 	}
 	$where .= !empty($where) ? " AND a.isdeleted <> 1 AND u.role IS NOT NULL" : " WHERE a.isdeleted <> 1";
 
-	$sql = "SELECT w.acid, w.uniacid, w.key, w.secret, w.level, w.name, w.token" . $field . " FROM " . tablename('account_wechats') . " w LEFT JOIN " . tablename('account') . " a ON a.acid = w.acid AND a.uniacid = w.uniacid" . $where;
+	$sql = "SELECT w.acid, w.uniacid, w.key, w.secret, w.level, w.name, w.token, a.type" . $field . " FROM " . tablename('account_wechats') . " w LEFT JOIN " . tablename('account') . " a ON a.acid = w.acid AND a.uniacid = w.uniacid" . $where;
 	$result = pdo_fetchall($sql, $params, 'uniacid');
 	cache_write($cachekey, $result);
 	return $result;
@@ -67,6 +67,7 @@ function uni_user_accounts($uid) {
  */
 function account_owner($uniacid = 0) {
 	global $_W;
+	load()->model('user');
 	$uniacid = intval($uniacid);
 	if (empty($uniacid)) {
 		return array();
@@ -108,7 +109,6 @@ function uni_accounts($uniacid = 0) {
 function uni_fetch($uniacid = 0) {
 	global $_W;
 	load()->model('mc');
-	load()->model('user');
 
 	$uniacid = empty($uniacid) ? $_W['uniacid'] : intval($uniacid);
 	$cachekey = "uniaccount:{$uniacid}";
@@ -116,12 +116,22 @@ function uni_fetch($uniacid = 0) {
 	if (!empty($cache)) {
 		return $cache;
 	}
-	$account = uni_account_default($uniacid);
-	if (empty($account)) {
+
+	$acid = table('account')->getAccountByUniacid($uniacid);
+	if (empty($acid)) {
+		return false;
+	}
+	$account_api = WeAccount::create($acid['acid']);
+	if (is_error($account_api)) {
+		return $account_api;
+	}
+	$account = $account_api->account;
+	if (empty($account) || $account['isdeleted'] == 1) {
 		return array();
 	}
-	$owneruid = pdo_fetchcolumn("SELECT uid FROM ".tablename('uni_account_users')." WHERE uniacid = :uniacid AND role = 'owner'", array(':uniacid' => $uniacid));
-	$owner = user_single(array('uid' => $owneruid));
+
+	$owner = account_owner($uniacid);
+
 	$account['uid'] = $owner['uid'];
 	$account['starttime'] = $owner['starttime'];
 	if (!empty($account['endtime'])) {
@@ -703,24 +713,24 @@ function uni_account_rank_top($uniacid) {
 	return true;
 }
 
+/**
+ * 获取最后操作的uniacid，由于存在多个帐号类型
+ * 所以根据不同入口，获取相应的最后操作帐号
+ * @return intval $uniacid
+ */
 function uni_account_last_switch() {
 	global $_W, $_GPC;
 	$cache_key = cache_system_key(CACHE_KEY_ACCOUNT_SWITCH, $_GPC['__switch']);
 	$cache_lastaccount = (array)cache_load($cache_key);
-	if (strexists($_W['siteurl'], 'c=webapp') || !empty($_GPC['account_type']) && $_GPC['account_type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
+
+	if (strexists($_W['siteurl'], 'c=webapp')) {
 		$uniacid = $cache_lastaccount['webapp'];
-	} else if (strexists($_W['siteurl'], 'c=wxapp') || !empty($_GPC['version_id'])) {
+	} else if (strexists($_W['siteurl'], 'c=wxapp')) {
 		$uniacid = $cache_lastaccount['wxapp'];
 	} else {
 		$uniacid = $cache_lastaccount['account'];
 	}
-	if (!empty($uniacid)) {
-		$account_info = uni_fetch($uniacid);
-		$role = permission_account_user_role($_W['uid'], $uniacid);
-		if (!empty($account_info) && $account_info['isdeleted'] == 1 || empty($role)) {
-			$uniacid = '';
-		}
-	}
+
 	return $uniacid;
 }
 

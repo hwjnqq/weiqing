@@ -14,6 +14,7 @@
 			<th class="text-left">用户名</th>
 			<th>权限身份</th>
 			<th class="text-right">
+				
 				{if $_W['isfounder'] && empty($owner['uid'])}<span class="btn btn-link color-default" data-toggle="modal" data-target="#owner-modal">添加主管理员</span>{/if}
 				<span class="btn btn-link color-default" data-toggle="modal" data-target="#user-modal">添加使用者</span>
 			</th>
@@ -70,20 +71,16 @@
 					<h3 class="modal-title">添加账号操作员/管理员</h3>
 				</div>
 				<div class="modal-body we7-form">
-					
-					
-					<div class="form-group" ng-show="state == 'founder' || state == 'owner'">
+					<div class="form-group" ng-show="state == 'founder' || state == 'owner' || state == 'vice_founder'">
 						<label class="control-label col-sm-2"></label>
 						<div class="col-sm-10">
 							<input type="radio" id="addtype-1" name="addtype" value="{ACCOUNT_MANAGE_TYPE_OPERATOR}" checked>
 							<label for="addtype-1" class="radio-inline">操作员</label>
 							<input class="addtype2" type="radio" id="addtype-2" name="addtype" value="{ACCOUNT_MANAGE_TYPE_MANAGER}">
 							<label class="radio-inline" for="addtype-2">管理员</label>
-							<a style="float: right" class="color-default" target = '_blank' href="{url 'user/create'}">+添加用户</a>
+							{if permission_check_account_user('see_account_manage_users_adduser')}<a style="float: right" class="color-default" target = '_blank' href="{url 'user/create'}">+添加用户</a>{/if}
 						</div>
 					</div>
-					
-
 					<div class="form-group">
 						<label class="col-sm-2 control-label">用户名</label>
 						<div class="col-sm-10">

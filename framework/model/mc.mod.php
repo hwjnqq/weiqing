@@ -211,7 +211,7 @@ function mc_fansinfo($openidOruid, $acid = 0, $uniacid = 0){
 	} else {
 		$openid = $openidOruid;
 	}
-	
+
 	/**
 	暂时先把缓存注释，查看是否重复会员问题
 	**/
@@ -302,13 +302,10 @@ function mc_oauth_userinfo($acid = 0) {
 	}
 	// 认证号, 静默获取用户信息, 不需要跳转到网页授权获取用户信息.
 	if (!empty($_SESSION['openid']) && intval($_W['account']['level']) >= 3) {
-		$oauth_account = WeAccount::create($_W['account']['oauth']);
+		$oauth_account = WeAccount::create();
 		$userinfo = $oauth_account->fansQueryInfo($_SESSION['openid']);
 		if (!is_error($userinfo) && !empty($userinfo) && is_array($userinfo) && !empty($userinfo['nickname'])) {
 			$userinfo['nickname'] = stripcslashes($userinfo['nickname']);
-			if (!empty($userinfo['headimgurl'])) {
-				$userinfo['headimgurl'] = rtrim($userinfo['headimgurl'], '0') . 132;
-			}
 			$userinfo['avatar'] = $userinfo['headimgurl'];
 			$_SESSION['userinfo'] = base64_encode(iserializer($userinfo));
 
@@ -333,7 +330,7 @@ function mc_oauth_userinfo($acid = 0) {
 				$record['unionid'] = $userinfo['unionid'];
 				pdo_insert('mc_mapping_fans', $record);
 			}
-			
+
 			if (!empty($fan['uid']) || !empty($_SESSION['uid'])) {
 				$uid = intval($fan['uid']);
 				if (empty($uid)) {
@@ -380,7 +377,7 @@ function mc_oauth_userinfo($acid = 0) {
 
 	$state = 'we7sid-' . $_W['session_id'];
 	$_SESSION['dest_url'] = urlencode($_W['siteurl']);
-	
+
 	$unisetting = uni_setting($_W['uniacid']);
 	$str = '';
 	if(uni_is_multi_acid()) {
@@ -388,7 +385,7 @@ function mc_oauth_userinfo($acid = 0) {
 	}
 	$url = (!empty($unisetting['oauth']['host']) ? ($unisetting['oauth']['host'] . '/') : $_W['siteroot']) . "app/index.php?i={$_W['uniacid']}{$str}&c=auth&a=oauth&scope=userinfo";
 	$callback = urlencode($url);
-	
+
 	$oauth_account = WeAccount::create($_W['account']['oauth']);
 	$forward = $oauth_account->getOauthUserInfoUrl($callback, $state);
 	header('Location: ' . $forward);
@@ -537,7 +534,7 @@ function mc_require($uid, $fields, $pre = '') {
  * @param string $credittype 积分类型
  * @param mixed $creditval 积分数量，数量可以为正数或是负数
  * @param array $log 积分操作日志 索引数组,0=>操作管理员id, 1=>备注, 2=>模块标识 3=>店员id 4=>门店id 5=> 变更渠道(clerk_type 操作人类型,1: 线上操作 2: 系统后台(公众号管理员和操作员) 3: 店员)
- * @return boolean 
+ * @return boolean
  */
 function mc_credit_update($uid, $credittype, $creditval = 0, $log = array()) {
 	global $_W;
@@ -567,7 +564,7 @@ function mc_credit_update($uid, $credittype, $creditval = 0, $log = array()) {
 		load()->func('logging');
 		if (!empty($GLOBALS['site']) && $GLOBALS['site'] instanceof WeModuleSite) {
 			$log = array(
-				$uid, 
+				$uid,
 				$GLOBALS['site']->module['title'] . '模块内消费' . logging_implode($_GET),
 				$GLOBALS['site']->module['name'],
 				0,
@@ -595,7 +592,7 @@ function mc_credit_update($uid, $credittype, $creditval = 0, $log = array()) {
 		} else {
 			$log[1] = $clerk_types[$log[5]] . ': 减少' . -$creditval . $credittype_name;
 		}
-		
+
 	}
 	$clerk_type = intval($log[5]) ? intval($log[5]) : 1;
 	$data = array(
@@ -638,7 +635,7 @@ function mc_account_change_operator($clerk_type, $store_id, $clerk_id) {
 			$data['clerk_cn'] = '本人操作';
 		} else {
 			$data['clerk_cn'] = $clerks[$clerk_id]['name'];
-		}	
+		}
 		$data['store_cn'] = $stores[$store_id]['business_name'] . ' ' . $stores[$store_id]['branch_name'];
 	}
 	if (empty($data['store_cn'])) {
@@ -682,7 +679,7 @@ function mc_credit_types(){
 /**
  * 获取公众号会员组
  * @param int $uniacid 公众号ID
- * @return array 
+ * @return array
  */
 function mc_groups($uniacid = 0) {
 	global $_W;
@@ -708,7 +705,7 @@ function mc_fans_groups($force_update = false) {
 		$results = iunserializer($results);
 		return $results;
 	}
-	$account_api = WeAccount::create($_W['acid']);
+	$account_api = WeAccount::create();
 	if (!$account_api->isTagSupported()) {
 		return array();
 	}
@@ -743,7 +740,7 @@ function mc_fans_groups($force_update = false) {
  */
 function _mc_login($member) {
 	global $_W;
-	if (!empty($member) && !empty($member['uid'])) {	
+	if (!empty($member) && !empty($member['uid'])) {
 		$member = pdo_get('mc_members', array('uid' => $member['uid'], 'uniacid' => $_W['uniacid']), array('uid', 'realname', 'mobile', 'email', 'groupid', 'credit1', 'credit2', 'credit6'));
 		if (!empty($member) && (!empty($member['mobile']) || !empty($member['email']))) {
 			$_W['member'] = $member;
@@ -1708,9 +1705,6 @@ function mc_init_fans_info($openid, $force_init_member = false){
 		'unionid' => $fans['unionid'],
 		'groupid' => !empty($fans['tagid_list']) ? (','.join(',', $fans['tagid_list']).',') : '',
 	);
-	if (!empty($fans['headimgurl'])) {
-		$fans['headimgurl'] = rtrim($fans['headimgurl'], '0') . 132;
-	}
 	//强制初始化会员信息
 	if ($force_init_member) {
 		$member_update_info = array(
@@ -1729,8 +1723,9 @@ function mc_init_fans_info($openid, $force_init_member = false){
 			if (!empty($email_exists_member)) {
 				$uid = $email_exists_member;
 			} else {
-				$member_update_info['groupid'] = pdo_getcolumn('mc_groups', array('uniacid' => $_W['uniacid'], 'isdefault' => 1));
+				$member_update_info['groupid'] = pdo_getcolumn('mc_groups', array('uniacid' => $_W['uniacid'], 'isdefault' => 1), 'groupid');
 				$member_update_info['salt'] = random(8);
+				$member_update_info['password'] = md5($openid . $member_update_info['salt'] . $_W['config']['setting']['authkey']);
 				$member_update_info['email'] = $email;
 				$member_update_info['createtime'] = TIMESTAMP;
 
@@ -1748,7 +1743,7 @@ function mc_init_fans_info($openid, $force_init_member = false){
 	} else {
 		$fans_update_info['salt'] = random(8);
 		$fans_update_info['unfollowtime'] = 0;
-		$fans_update_info['createtime'] = TIMESTAMP;
+		$fans_update_info['followtime'] = TIMESTAMP;
 
 		pdo_insert('mc_mapping_fans', $fans_update_info);
 		$fans_mapping['fanid'] = pdo_insertid();
@@ -1952,7 +1947,7 @@ function mc_member_export_parse($members){
 	$groups = mc_groups();
 	$header = array(
 		'uid' => 'UID', 'nickname' => '昵称', 'realname' => '姓名', 'groupid' => '会员组',
-		'mobile' => '手机', 'email' => '邮箱', 'credit1' => '积分', 'credit2' => '余额', 'createtime' => '注册时间',
+		'mobile' => '手机', 'email' => '邮箱', 'birthday' => '生日', 'credit1' => '积分', 'credit2' => '余额', 'createtime' => '注册时间',
 	);
 	$keys = array_keys($header);
 	$html = "\xEF\xBB\xBF";
@@ -1975,6 +1970,11 @@ function mc_member_export_parse($members){
 					}
 					$row['createtime'] = date('Y-m-d H:i:s', $row['createtime']);
 					$row['groupid'] = $groups[$row['groupid']]['title'];
+					if (!empty($row['birthmonth']) && !empty($row['birthday'])) {
+						$row['birthday'] = $row['birthmonth'] . '月' . $row['birthday'] . '日';
+					} else {
+						$row['birthday'] = '';
+					}
 					foreach ($keys as $key) {
 						$data[] = $row[$key];
 					}
@@ -2035,29 +2035,32 @@ function mc_fans_chats_record_formate($chat_record) {
 		return array();
 	}
 	foreach ($chat_record as &$record) {
-		$record['content'] = iunserializer($record['content']);
-		if (isset($record['content']['media_id']) && !empty($record['content']['media_id'])) {
-			$material = material_get($record['content']['media_id']);
-			switch($record['msgtype']) {
-				case 'image':
-					$record['content'] = tomedia($material['attachment']);
-					break;
-				case 'mpnews':
-					$record['content'] = $material['news'][0]['thumb_url'];
-					break;
-				case 'music':
-					$record['content'] = $material['filename'];
-					break;
-				case 'voice':
-					$record['content'] = $material['filename'];
-					break;
-				case 'voice':
-					$record['content'] = $material['filename'];
-					break;
+		if ($record['flag'] == FANS_CHATS_FROM_SYSTEM) {
+			$record['content'] = iunserializer($record['content']);
+			if (isset($record['content']['media_id']) && !empty($record['content']['media_id'])) {
+				$material = material_get($record['content']['media_id']);
+				switch($record['msgtype']) {
+					case 'image':
+						$record['content'] = tomedia($material['attachment']);
+						break;
+					case 'mpnews':
+						$record['content'] = $material['news'][0]['thumb_url'];
+						break;
+					case 'music':
+						$record['content'] = $material['filename'];
+						break;
+					case 'voice':
+						$record['content'] = $material['filename'];
+						break;
+					case 'voice':
+						$record['content'] = $material['filename'];
+						break;
+				}
+			} else {
+				$record['content'] = urldecode($record['content']['content']);
 			}
-		} else {
-			$record['content'] = urldecode($record['content']['content']);
 		}
+
 		$record['createtime'] = date('Y-m-d H:i', $record['createtime']);
 	}
 	return $chat_record;

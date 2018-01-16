@@ -3,10 +3,14 @@
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
+
+load()->model('setting');
+$custom_sign = safe_gpc_string($_GPC['custom_sign']);
+
 $_W['uniacid'] = intval($_GPC['uniacid']);
 if (empty($_W['uniacid'])) {
 	$uniacid_arr = array(
-		'name' => $_W['setting']['copyright']['sitename'],
+		'name' => '短信验证码',
 	);
 } else {
 	$uniacid_arr = pdo_fetch('SELECT * FROM ' . tablename('uni_account') . ' WHERE uniacid = :uniacid', array(':uniacid' => $_W['uniacid']));
@@ -35,14 +39,14 @@ $pars[':receiver'] = $receiver;
 $pars[':uniacid'] = $_W['uniacid'];
 $row = pdo_fetch($sql, $pars);
 $record = array();
+$code = random(6, true);
 if(!empty($row)) {
 	if($row['total'] >= 5) {
 		exit('您的操作过于频繁,请稍后再试');
 	}
-	$code = $row['verifycode'];
 	$record['total'] = $row['total'] + 1;
+	$record['verifycode'] = $code;
 } else {
-	$code = random(6, true);
 	$record['uniacid'] = $_W['uniacid'];
 	$record['receiver'] = $receiver;
 	$record['verifycode'] = $code;
@@ -67,7 +71,7 @@ if($receiver_type == 'email') {
 	}
 	$setting = uni_setting($_W['uniacid'], 'notify');
 	$content = "您的短信验证码为: {$code} 您正在使用{$uniacid_arr['name']}相关功能, 需要你进行身份确认. ".random(3);
-	$result = cloud_sms_send($receiver, $content);
+	$result = cloud_sms_send($receiver, $content, array(), $custom_sign);
 }
 
 if(is_error($result)) {

@@ -143,3 +143,14 @@ function system_template_ch_name() {
 	);
 	return $result;
 }
+
+/**
+ * 获取系统注册站点信息
+ */
+function system_site_info() {
+	load()->classs('cloudapi');
+
+	$api = new CloudApi();
+	$site_info = $api->get('site', 'info');
+	return $site_info;
+}

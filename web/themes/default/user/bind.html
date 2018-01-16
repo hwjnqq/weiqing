@@ -90,6 +90,7 @@
 		'bindmobile': {php echo !empty($bind_mobile) ? json_encode($bind_mobile) : 'null'},
 		'login_urls': {php echo !empty($support_login_urls) ? json_encode($support_login_urls) : 'null'},
 		'thirdlogin' : {php echo !empty($_W['setting']['thirdlogin']) ? json_encode($_W['setting']['thirdlogin']) : 'null'},
+		'bind_sign': "{php echo !empty($bind_sign) ? $bind_sign : 'null'}",
 		'image' : "{php echo url('utility/code')}",
 		'links':{
 			'img_verify_link': "{php echo url('utility/code')}",

@@ -44,12 +44,14 @@ if ($do == 'get_not_installed_modules') {
 		if (!empty($_GPC['version_id'])) {
 			$version_info = wxapp_version($_GPC['version_id']);
 		}
-		if ($_GPC['account_type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
-			checkwebapp();
-		} elseif (!empty($_GPC['version_id']) && !(!empty($version_info['modules']) && !empty($version_info['modules'][0]['account']) && !empty($version_info['modules'][0]['account']['uniacid']) && in_array($version_info['modules'][0]['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)))) {
-			checkwxapp();
-		} else {
-			checkaccount();
+		$account_api = WeAccount::create();
+		if (is_error($account_api)) {
+			message($account_api['message'], url('account/display'));
+		}
+		$check_manange = $account_api->checkIntoManage();
+		if (is_error($check_manange)) {
+			$account_display_url = $account_api->accountDisplayUrl();
+			itoast('', $account_display_url);
 		}
 	}
 
@@ -111,23 +113,21 @@ if ($do == 'platform') {
 	if (!empty($modulename)) {
 		$_W['current_module'] = module_fetch($modulename);
 	}
-	$site = WeUtility::createModule($modulename);
-	if (!is_error($site)) {
-		$method = 'welcomeDisplay';
-		if(method_exists($site, $method)){
-			define('FRAME', 'module_welcome');
-			$entries = module_entries($modulename, array('menu', 'home', 'profile', 'shortcut', 'cover', 'mine'));
-			$site->$method($entries);
-			exit;
-		}
-	}
-
 	define('FRAME', 'account');
-
 	define('IN_MODULE', $modulename);
 	if ($_GPC['system_welcome'] && $_W['isfounder']) {
 		$frames = buildframes('system_welcome');
 	} else {
+		$site = WeUtility::createModule($modulename);
+		if (!is_error($site)) {
+			$method = 'welcomeDisplay';
+			if(method_exists($site, $method)){
+				define('FRAME', 'module_welcome');
+				$entries = module_entries($modulename, array('menu', 'home', 'profile', 'shortcut', 'cover', 'mine'));
+				$site->$method($entries);
+				exit;
+			}
+		}
 		$frames = buildframes('account');
 	}
 	foreach ($frames['section'] as $secion) {

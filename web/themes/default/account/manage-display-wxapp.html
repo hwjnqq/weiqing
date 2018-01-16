@@ -13,7 +13,7 @@
 	
 	
 		{if !$_W['isfounder'] && !empty($account_info['wxapp_limit'])}
-		<div class="alert alert-warning">
+		<div class="alert alert-warning hidden">
 			温馨提示：
 			<i class="fa fa-info-circle"></i>
 			Hi，<span class="text-strong">{$_W['username']}</span>，您所在的会员组： <span class="text-strong">{$account_info['group_name']}</span>
@@ -88,7 +88,7 @@
 			<p class="color-dark" ng-bind="list.name"></p>
 		</td>
 		<td>
-			<p ng-bind="list.setmeal.timelimit"></p>
+			<p ng-bind="list.end"></p>
 		</td>
 		<td class="vertical-middle vertical-middle table-manage-td">
 			<div class="link-group">

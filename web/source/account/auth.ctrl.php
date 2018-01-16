@@ -21,12 +21,15 @@ if ($do == 'forward') {
 		itoast('授权登录失败，请重试', url('account/manage'), 'error');
 	}
 	$auth_info = $account_platform->getAuthInfo($_GPC['auth_code']);
+	if (is_error($auth_info)) {
+		itoast('授权登录新建公众号失败：' . $auth_info['message'], url('account/manage'), 'error');
+	}
 	$auth_refresh_token = $auth_info['authorization_info']['authorizer_refresh_token'];
 	$auth_appid = $auth_info['authorization_info']['authorizer_appid'];
 
 	$account_info = $account_platform->getAccountInfo($auth_appid);
 	if (is_error($account_info)) {
-		itoast('授权登录新建公众号失败，请重试', url('account/manage'), 'error');
+		itoast('授权登录新建公众号失败：' . $account_info['message'], url('account/manage'), 'error');
 	}
 	if (!empty($_GPC['test'])) {
 		echo "此为测试平台接入返回结果：<br/> 公众号名称：{$account_info['authorizer_info']['nick_name']} <br/> 接入状态：成功";
@@ -118,8 +121,11 @@ if ($do == 'forward') {
 	if(is_error($acid)) {
 		itoast('授权登录新建公众号失败，请重试', url('account/manage'), 'error');
 	}
+	if (user_is_vice_founder()) {
+		uni_user_account_role($uniacid, $_W['uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
+	}
 	if (empty($_W['isfounder'])) {
-		pdo_insert('uni_account_users', array('uniacid' => $uniacid, 'uid' => $_W['uid'], 'role' => 'owner'));
+		uni_user_account_role($uniacid, $_W['uid'], ACCOUNT_MANAGE_NAME_OWNER);
 		if (!empty($_W['user']['owner_uid'])) {
 			uni_user_account_role($uniacid, $_W['user']['owner_uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
 		}
@@ -129,8 +135,10 @@ if ($do == 'forward') {
 	$qrcode = ihttp_request($account_info['authorizer_info']['qrcode_url']);
 	file_put_contents(IA_ROOT . '/attachment/headimg_'.$acid.'.jpg', $headimg['content']);
 	file_put_contents(IA_ROOT . '/attachment/qrcode_'.$acid.'.jpg', $qrcode['content']);
-	
+
 	cache_build_account($uniacid);
+	cache_delete(cache_system_key('proxy_wechatpay_account:'));
+	cache_clean(cache_system_key('user_accounts'));
 	itoast('授权登录成功', url('account/manage', array('type' => '3')), 'success');
 } elseif ($do == 'confirm') {
 	$auth_refresh_token = $_GPC['auth_refresh_token'];
@@ -138,7 +146,7 @@ if ($do == 'forward') {
 	$level = intval($_GPC['level']);
 	$acid = intval($_GPC['acid']);
 	$uniacid = intval($_GPC['uniacid']);
-	
+
 	pdo_update('account_wechats', array(
 		'auth_refresh_token' => $auth_refresh_token,
 		'encodingaeskey' => $account_platform->encodingaeskey,

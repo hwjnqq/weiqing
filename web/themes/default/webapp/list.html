@@ -1,10 +1,10 @@
 {template 'common/header'}
 <div class="panel panel-cut" id="js-account-display">
 	<div class="panel-heading">
-		<i class="wi wi-wechat" style="font-size: 24px; margin-right: 10px; vertical-align:middle;"></i>请选择您要操作的PC
+		<span class="panel-heading-left"><i class="wi wi-wechat" style="font-size: 24px; margin-right: 10px; vertical-align:middle;"></i>请选择您要操作的PC</span>
 		<div class="font-default pull-right">
 			{if !empty($account_info['webapp_limit']) || $_W['isfounder'] && !user_is_vice_founder()}
-			<a href="./index.php?c=webapp&a=manage&do=createview" class="color-default"><i class="fa fa-plus"></i>新增PC</a>
+			<a href="./index.php?c=webapp&a=manage&do=create_display" class="color-default"><i class="fa fa-plus"></i>新增PC</a>
 			{/if}
 			{if $state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_MANAGER}
 			<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL))}" class="color-default"><i class="wi wi-wechatstatistics"></i>PC管理</a>
@@ -13,7 +13,7 @@
 	</div>
 	<div class="panel-body" >
 		{if !$_W['isfounder'] && !empty($account_info['webapp_limit'])}
-		<div class="alert alert-warning">
+		<div class="alert alert-warning hidden">
 			温馨提示：
 			<i class="fa fa-info-circle"></i>
 			Hi，<span class="text-strong">{$_W['username']}</span>，您所在的会员组： <span class="text-strong">{$account_info['group_name']}</span>，{if !user_is_vice_founder() && !empty($account_info['vice_group_name'])}<span class="text-strong">{$account_info['vice_group_name']}，</span>{/if}

@@ -102,7 +102,7 @@ if($do == 'display') {
 		$params[':groupid'] = intval($_GPC['groupid']);
 	}
 	if(checksubmit('export_submit', true)) {
-		$sql = "SELECT `uid`, `uniacid`, `groupid`, `realname`, `nickname`, `email`, `mobile`, `credit1`, `credit2`, `credit6`, `createtime` FROM". tablename('mc_members') . " WHERE uniacid = :uniacid " . $condition;
+		$sql = "SELECT `uid`, `uniacid`, `groupid`, `realname`, `birthmonth`, `birthday`, `nickname`, `email`, `mobile`, `credit1`, `credit2`, `credit6`, `createtime` FROM". tablename('mc_members') . " WHERE uniacid = :uniacid " . $condition;
 		$members = pdo_fetchall($sql, $params);
 		$html = mc_member_export_parse($members);
 		header("Content-type:text/csv");
@@ -198,7 +198,7 @@ if($do == 'add') {
 		);
 		pdo_insert('mc_members', $data);
 		$uid = pdo_insertid();
-		itoast('添加会员成功,将进入编辑页面', url('mc/member/post', array('uid' => $uid, 'account_type' => $_GPC['account_type'])), 'success');
+		itoast('添加会员成功,将进入编辑页面', url('mc/member/post', array('uid' => $uid)), 'success');
 	}
 	template('mc/member-add');
 }

@@ -46,7 +46,7 @@ if ($do == 'home') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 
-	$account_table = table('account');
+	$account_table = table('wxapp');
 	$account_table->searchWithType(array(ACCOUNT_TYPE_APP_NORMAL));
 
 	$keyword = trim($_GPC['keyword']);

@@ -141,6 +141,7 @@ $we7_system_menu['account'] = array(
 		
 	),
 );
+
 $we7_system_menu['wxapp'] = array(
 	'title' => '小程序',
 	'icon' => 'wi wi-small-routine',
@@ -188,18 +189,42 @@ $we7_system_menu['wxapp'] = array(
 					'icon' => 'wi wi-examine',
 					'permission_name' => 'wxapp_front_download',
 				),
-				'platform_material' => array(
+				'wxapp_platform_material' => array(
 					'title' => '素材管理',
 					'is_display' => 0,
-					'permission_name' => 'platform_material',
+					'permission_name' => 'wxapp_platform_material',
 					'sub_permission' => array(
 						array(
 							'title' => '删除',
-							'permission_name' => 'platform_material_delete',
+							'permission_name' => 'wxapp_platform_material_delete',
 						),
 					),
 				),
 			)
+		)
+	),
+);
+
+$we7_system_menu['webapp'] = array(
+	'title' => 'PC',
+	'icon' => 'wi wi-white-collar',
+	'url' => url('webapp/home/display'),
+	'section' => array(
+		'platform_module' => array(
+			'title' => '应用模块',
+			'menu' => array(),
+			'is_display' => true,
+		),
+		'mc' => array(
+			'title' => '粉丝',
+			'menu' => array(
+				'mc_member' => array(
+					'title' => '会员管理',
+					'url' => url('mc/member'),
+					'icon' => 'wi wi-fans',
+					'permission_name' => 'mc_member',
+				)
+			),
 		)
 	),
 );
@@ -209,11 +234,10 @@ $we7_system_menu['module'] = array(
 	'icon' => 'wi wi-apply',
 	'url' => url('module/display'),
 	'section' => array(),
-	'is_display' => 0
 );
 
 $we7_system_menu['system'] = array(
-	'title' => '系统管理',
+	'title' => '系统',
 	'icon' => 'wi wi-setting',
 	'url' => url('home/welcome/system'),
 	'section' => array(
@@ -316,6 +340,25 @@ $we7_system_menu['system'] = array(
 			)
 		),
 		
+		'webapp' => array(
+			'title' => 'PC',
+			'menu' => array(
+				'system_wxapp' => array(
+					'title' => 'PC',
+					'url' => url('account/manage', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL)),
+					'icon' => 'wi wi-wxapp',
+					'permission_name' => 'system_webapp',
+					'sub_permission' => array(
+					),
+				),
+				'system_module_wxapp' => array(
+					'title' => 'PC应用',
+					'url' => url('module/manage-system', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL)),
+					'icon' => 'wi wi-wxapp-apply',
+					'permission_name' => 'system_module_wxapp',
+				),
+			)
+		),
 		'user' => array(
 			'title' => '帐户/用户',
 			'menu' => array(
@@ -453,9 +496,9 @@ $we7_system_menu['system'] = array(
 );
 
 $we7_system_menu['site'] = array(
-	'title' => '站点管理',
+	'title' => '站点',
 	'icon' => 'wi wi-system-site',
-	'url' => url('cloud/profile'),
+	'url' => url('cloud/upgrade'),
 	'section' => array(
 		'cloud' => array(
 			'title' => '云服务',
@@ -484,6 +527,12 @@ $we7_system_menu['site'] = array(
 					'icon' => 'wi wi-message',
 					'permission_name' => 'system_cloud_sms',
 				),
+				'system_cloud_sms_sign' => array(
+					'title' => '短信签名',
+					'url' => url('cloud/sms-sign'),
+					'icon' => 'wi wi-message',
+					'permission_name' => 'system_cloud_sms_sign',
+				)
 			)
 		),
 		'setting' => array(
@@ -622,7 +671,7 @@ $we7_system_menu['advertisement'] = array (
 );
 
 $we7_system_menu['appmarket'] = array(
-	'title' => '应用市场',
+	'title' => '市场',
 	'icon' => 'wi wi-market',
 	'url' => 'http://s.we7.cc',
 	'section' => array(),
@@ -631,11 +680,22 @@ $we7_system_menu['appmarket'] = array(
 );
 
 $we7_system_menu['help'] = array(
-	'title' => '帮助系统',
+	'title' => '系统帮助',
 	'icon' => 'wi wi-market',
 	'url' => url('help/display'),
 	'section' => array(),
 	'blank' => false
 );
+
+$we7_system_menu['custom_help'] = array(
+	'title' => '帮助',
+	'icon' => 'wi wi-market',
+	'url' => url('help/display/custom'),
+	'section' => array(),
+	'blank' => false,
+	'is_display' => 0
+);
+
+
 
 return $we7_system_menu;

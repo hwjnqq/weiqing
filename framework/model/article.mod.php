@@ -38,7 +38,8 @@ function article_news_home($limit = 5) {
 
 function article_notice_home($limit = 5) {
 	$limit = intval($limit);
-	$notice = pdo_fetchall('SELECT * FROM ' . tablename('article_notice') . ' WHERE is_display = 1 AND is_show_home = 1 ORDER BY displayorder DESC,id DESC LIMIT ' . $limit, array(), 'id');
+
+	$notice = pdo_fetchall("SELECT * FROM " . tablename('article_notice') . " WHERE is_display = 1 AND is_show_home = 1 ORDER BY displayorder DESC,id DESC LIMIT " . $limit, array(), 'id');
 	foreach ($notice as $key => $notice_val) {
 		$notice[$key]['style'] = iunserializer($notice_val['style']);
 	}
@@ -46,27 +47,30 @@ function article_notice_home($limit = 5) {
 }
 
 function article_news_all($filter = array(), $pindex = 1, $psize = 10) {
+	global $_W;
 	$condition = ' WHERE is_display = 1';
 	$params = array();
 	if(!empty($filter['title'])) {
-		$condition .= ' AND titie LIKE :title';
+		$condition .= ' AND title LIKE :title';
 		$params[':title'] = "%{$filter['title']}%";
 	}
 	if($filter['cateid'] > 0) {
 		$condition .= ' AND cateid = :cateid';
 		$params[':cateid'] = $filter['cateid'];
 	}
+	$order = !empty($_W['setting']['news_display']) ? $_W['setting']['news_display'] : 'displayorder';
 	$limit = ' LIMIT ' . ($pindex - 1) * $psize . ',' . $psize;
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('article_news') . $condition, $params);
-	$news = pdo_fetchall('SELECT * FROM ' . tablename('article_news') . $condition . ' ORDER BY displayorder DESC ' . $limit, $params, 'id');
+	$news = pdo_fetchall("SELECT * FROM " . tablename('article_news') . $condition . " ORDER BY " . $order . " DESC " . $limit, $params, 'id');
 	return array('total' => $total, 'news' => $news);
 }
 
 function article_notice_all($filter = array(), $pindex = 1, $psize = 10) {
+	global $_W;
 	$condition = ' WHERE is_display = 1';
 	$params = array();
 	if(!empty($filter['title'])) {
-		$condition .= ' AND titie LIKE :title';
+		$condition .= ' AND title LIKE :title';
 		$params[':title'] = "%{$filter['title']}%";
 	}
 	if($filter['cateid'] > 0) {
@@ -74,10 +78,15 @@ function article_notice_all($filter = array(), $pindex = 1, $psize = 10) {
 		$params[':cateid'] = $filter['cateid'];
 	}
 	$limit = ' LIMIT ' . ($pindex - 1) * $psize . ',' . $psize;
+	$order = !empty($_W['setting']['notice_display']) ? $_W['setting']['notice_display'] : 'displayorder';
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('article_notice') . $condition, $params);
-	$notice = pdo_fetchall('SELECT * FROM ' . tablename('article_notice') . $condition . ' ORDER BY displayorder DESC ' . $limit, $params, 'id');
+	$notice = pdo_fetchall("SELECT * FROM " . tablename('article_notice') . $condition . " ORDER BY " . $order . " DESC " . $limit, $params, 'id');
 	foreach ($notice as $key => $notice_val) {
 		$notice[$key]['style'] = iunserializer($notice_val['style']);
+		$notice[$key]['group'] = empty($notice_val['group']) ? array('vice_founder' => array(), 'normal' => array()) : iunserializer($notice_val['group']);
+		if (empty($_W['user']) && !empty($notice_val['group']) || !empty($_W['user']['groupid']) && !empty($notice_val['group']) && !in_array($_W['user']['groupid'], $notice[$key]['group']['vice_founder']) && !in_array($_W['user']['groupid'], $notice[$key]['group']['normal'])) {
+			unset($notice[$key]);
+		}
 	}
 	return array('total' => $total, 'notice' => $notice);
 }

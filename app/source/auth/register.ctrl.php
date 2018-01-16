@@ -10,7 +10,7 @@ $do = in_array($do, $dos) ? $do : 'register';
 
 $setting = uni_setting($_W['uniacid'], array('uc', 'passport'));
 $uc_setting = $setting['uc'] ? $setting['uc'] : array();
-$item = $setting['passport']['item'] ? $setting['passport']['item'] : 'mobile';
+$item = !empty($setting['passport']['item']) ? $setting['passport']['item'] : 'mobile';
 $audit = @intval($setting['passport']['audit']);
 $ltype = empty($setting['passport']['type']) ? 'hybird' : $setting['passport']['type'];
 $rtype = trim($_GPC['type']) ? trim($_GPC['type']) : 'email';
@@ -128,7 +128,7 @@ if($do == 'register') {
 			$data['residecity'] = $map_fans['city'] ? $map_fans['city'] . '市' : '';
 			$data['resideprovince'] = $map_fans['province'] ? $map_fans['province'] . '省' : '';
 			$data['nationality'] = $map_fans['country'];
-			$data['avatar'] = rtrim($map_fans['headimgurl'], '0') . 132;
+			$data['avatar'] = $map_fans['headimgurl'];
 		}
 		
 		pdo_insert('mc_members', $data);

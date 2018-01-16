@@ -2,9 +2,11 @@
 {if $do == 'display'}
 <div class="clearfix">
 	<div class="we7-padding-bottom clearfix">
+		{if empty($module['main_module'])}
 		<div class="pull-right">
 			<a href="{php echo url('module/permission/post', array('m' => $module_name))}" class="btn btn-primary we7-padding-horizontal">添加操作员</a>
 		</div>
+		{/if}
 	</div>
 	<table class="table we7-table table-hover">
 		<thead class="navbar-inner">
@@ -20,14 +22,22 @@
 			<tr>
 				<td class="text-center" style="width:50px;">{$item['user_info']['username']}</td>
 				<td class="text-center">
-					{loop $item['permission'] $permission}
-					<span class="label label-primary">{$permission}</span>
-					{/loop}
+					{if !empty($item['permission']) && !array_key_exists('all', $item['permission'])}
+						{loop $item['permission'] $permission}
+						<span class="label label-primary">{$permission}</span>
+						{/loop}
+					{else}
+						<span class="label label-primary">所有</span>
+					{/if}
 				</td>
 				<td style="width:100px;">
 					<div class="link-group" >
-						<a href="{php echo url('module/permission/post', array('uid' => $item['uid'], 'm' => $module_name));}">编辑</a>
-						<a href="{php echo url('module/permission/delete', array('uid' => $item['uid'], 'm' => $module_name));}" class="del">删除</a>
+						{if empty($module['main_module'])}
+							<a href="{php echo url('module/permission/post', array('uid' => $item['uid'], 'm' => $module_name));}">编辑</a>
+							<a href="{php echo url('module/permission/delete', array('uid' => $item['uid'], 'm' => $module_name));}" class="del">删除</a>
+						{else}
+							<span>---</span>
+						{/if}
 					</div>
 				</td>
 			</tr>
@@ -75,13 +85,16 @@
 		<div class="form-group">
 			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">权限设置</label>
 			<div class="col-sm-10 col-lg-10 col-xs-12">
-				{loop $current_module_permission $key $permission}
-				<div class="col-sm-4">
-					<div class="checkbox">
-						<input id="check-child-{$key}" type="checkbox" value="{$permission['permission']}" name="module_permission[]" {if !empty($permission['checked'])}checked{/if}>
-						<label for="check-child-{$key}">{$permission['title']}</label>
+				{loop $all_permission $key $module_val}
+					<div class="col-sm-10 col-lg-10 col-xs-12 plugin-name">{$module_val['info']['title']}<span class="color-gray">（不设置代表拥有所有权限）</span></div>
+					{loop $module_val['permission'] $sub_key $permission}
+					<div class="col-sm-4">
+						<div class="checkbox">
+							<input id="check-child-{$key}-{$sub_key}" type="checkbox" value="{$permission['permission']}" name="module_permission[{$module_val['info']['name']}][]" {if !empty($permission['checked'])}checked{/if}>
+							<label for="check-child-{$key}-{$sub_key}">{$permission['title']}</label>
+						</div>
 					</div>
-				</div>
+					{/loop}
 				{/loop}
 			</div>
 		</div>

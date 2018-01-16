@@ -23,7 +23,7 @@ if ($do == 'display') {
 	
 
 	if ($type == MESSAGE_ACCOUNT_EXPIRE_TYPE) {
-		$types = array(MESSAGE_ACCOUNT_EXPIRE_TYPE, MESSAGE_WECHAT_EXPIRE_TYPE);
+		$types = array(MESSAGE_ACCOUNT_EXPIRE_TYPE, MESSAGE_WECHAT_EXPIRE_TYPE, MESSAGE_WEBAPP_EXPIRE_TYPE);
 	}
 	$is_read = !empty($_GPC['is_read']) ? trim($_GPC['is_read']) : '';
 
@@ -57,6 +57,9 @@ if ($do == 'event_notice') {
 		iajax(-1);
 	}
 	$message = message_event_notice_list();
+	message_account_expire();
+	message_notice_worker();
+	message_sms_expire_notice();
 	iajax(0, $message);
 
 }

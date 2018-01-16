@@ -44,7 +44,7 @@ if ($do == 'post') {
 			'available' => intval($_GPC['available'])
 		);
 		pdo_update('mc_member_fields', $field, array('id' => $id));
-		message('会员字段更新成功！', url('mc/fields', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL)), 'success');
+		message('会员字段更新成功！', url('mc/fields'), 'success');
 	}
 	$field = pdo_get('mc_member_fields', array('id' => $id));
 }
