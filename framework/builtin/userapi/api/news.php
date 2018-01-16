@@ -1,17 +1,24 @@
-<?php 
-$url = 'http://toutiao.com/api/article/recent/?source=2&category=news_hot&max_behot_time=0&_='.TIMESTAMP;
+<?php
+$url = 'https://way.jd.com/jisuapi/get?channel=头条&num=10&start=0&appkey=f8a020a5d840f7a24997c9561b7d3da3';
 $resp = ihttp_get($url);
 if ($resp['code'] == 200 && $resp['content']) {
 	$obj= json_decode($resp['content'], true);
-	$news[] = array('title' => '今日头条', 'description' => '头条新闻', 'url' => 'http://toutiao.com/', 'picurl' => 'http://a.hiphotos.baidu.com/baike/w%3D268/sign=db923e4310ce36d3a204843602f23a24/7dd98d1001e93901a1184fa77eec54e736d19615.jpg');
-	$cnt = min(count($obj['data']), 8);
-	for($i = 0; $i < $cnt; $i++) {
+	if (empty($obj['result']) || empty($obj['result']['result']) || empty($obj['result']['result']['num'])) {
+		return $this->respText('没有找到结果, 要不过一会再试试?');
+	}
+	$num = $obj['result']['result']['num'];
+	$data = $obj['result']['result']['list'];
+	$sum = 0;
+	for($i = 0; $i < $num; $i++) {
+		if (empty($data[$i]['pic']) || $sum >= 8) {
+			continue;
+		}
 		$news[] = array(
-			'title' => strval($obj['data'][$i]['title']),
-			'description' => strval($obj['data'][$i]['abstract']),
-			'picurl' => '',
-			'url' => strval($obj['data'][$i]['article_url'])
+			'title' => strval($data[$i]['title']),
+			'picurl' => strval($data[$i]['pic']),
+			'url' => strval($data[$i]['url'])
 		);
+		$sum++;
 	}
 	return $this->respNews($news);
 
