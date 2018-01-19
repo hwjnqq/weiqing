@@ -1181,6 +1181,14 @@ abstract class WeModuleProcessor extends WeBase {
 	 * @return array|string 返回值为消息数据结构, 或者消息xml定义
 	 */
 	abstract function respond();
+
+	/**
+	 * 预定义的操作，直接回复success
+	 */
+	protected function respSuccess() {
+		return 'success';
+	}
+
 	/**
 	 * 预定义的操作, 构造返回文本消息结构
 	 * @param string $content 回复的消息内容
@@ -1394,6 +1402,7 @@ abstract class WeModuleProcessor extends WeBase {
 		$vars['uniacid'] = $_W['uniacid'];
 		$vars['__auth'] = $auth;
 		$vars['forward'] = base64_encode($url);
+
 		return $_W['siteroot'] . 'app/' . str_replace('./', '', url('auth/forward', $vars));
 	}
 
@@ -1596,6 +1605,8 @@ abstract class WeModuleSite extends WeBase {
 		}
 		if (!empty($pay['credit']['switch'])) {
 			$credtis = mc_credit_fetch($_W['member']['uid']);
+			$credit_pay_setting = mc_fetch($_W['member']['uid'], array('pay_password'));
+			$credit_pay_setting = $credit_pay_setting['pay_password'];
 		}
 		$you = 0;
 		include $this->template('common/paycenter');
@@ -1787,9 +1798,9 @@ abstract class WeModuleWxapp extends WeBase {
 				});
 
 				if (count($dirs) > 0) {
-					$file = $dirs[0].'/'.$func_file;
+					$file = current($dirs).'/'.$func_file;
 				} else if(count($files) > 0){
-					$file = $files[0];
+					$file = current($files);
 				}
 			}
 		}
@@ -1843,6 +1854,7 @@ abstract class WeModuleWxapp extends WeBase {
 			$paylog = array(
 				'uniacid' => $_W['uniacid'],
 				'acid' => $_W['acid'],
+				'type' => 'wxapp',
 				'openid' => $_W['openid'],
 				'module' => $this->module['name'],
 				'tid' => $order['tid'],
