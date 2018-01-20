@@ -62,6 +62,7 @@
 					<div class="link-group">
 						{if permission_check_account_user('see_module_manage_system_ugrade')}
 						<a ng-href="{{ './index.php?c=module&a=manage-system&do=upgrade&module_name='+module.name}}&account_type={ACCOUNT_TYPE}" class="color-red" ng-if="module.upgrade && module.from != 'cloud' && isFounder == 1">升级</a>
+						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&show=upgrade" class="color-red del" ng-if="module.new_branch && module.from == 'cloud' && isFounder == 1">新分支</a>
 						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&show=upgrade&account_type={ACCOUNT_TYPE}" class="color-red del" ng-if="module.upgrade && module.from == 'cloud' && isFounder == 1">升级</a>
 						{/if}
 						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&account_type={ACCOUNT_TYPE}" ng-if="isFounder == 1">管理设置</a>

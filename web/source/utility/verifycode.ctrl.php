@@ -46,6 +46,7 @@ if(!empty($row)) {
 	}
 	$record['total'] = $row['total'] + 1;
 	$record['verifycode'] = $code;
+	$record['createtime'] = TIMESTAMP;
 } else {
 	$record['uniacid'] = $_W['uniacid'];
 	$record['receiver'] = $receiver;

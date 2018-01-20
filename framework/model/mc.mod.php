@@ -1735,6 +1735,10 @@ function mc_init_fans_info($openid, $force_init_member = false){
 			$fans_update_info['uid'] = $uid;
 		} else {
 			$fans_update_info['uid'] = $fans_mapping['uid'];
+			pdo_update('mc_members', $member_update_info, array('uid' => $fans_mapping['uid']));
+			$cachekey = cache_system_key(CACHE_KEY_MEMBER_INFO, $fans_mapping['uid']);
+			cache_delete($cachekey);
+
 		}
 	}
 

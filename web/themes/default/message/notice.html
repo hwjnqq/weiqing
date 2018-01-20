@@ -1,14 +1,15 @@
 {template 'common/header'}
 <ul class="we7-page-tab">
+	<li {if empty($type)}class="active" {/if} ><a href="{php echo url('message/notice')}">全部</a></li>
 	
 	<li {if $type == MESSAGE_ACCOUNT_EXPIRE_TYPE}class="active" {/if}><a href="{php echo url('message/notice', array('type' => MESSAGE_ACCOUNT_EXPIRE_TYPE))}">到期消息</a></li>
 	
 	
 	{if $_W['isfounder']}
 	<li {if $type == MESSAGE_REGISTER_TYPE}class="active" {/if}><a href="{php echo url('message/notice', array('type' => MESSAGE_REGISTER_TYPE))}">注册提醒</a></li>
+	<li {if $type == MESSAGE_WORKORDER_TYPE}class="active" {/if} ><a href="{php echo url('message/notice', array('type' => MESSAGE_WORKORDER_TYPE))}">工单提醒</a></li>
 	{/if}
 	
-	<li {if $type == MESSAGE_WORKORDER_TYPE}class="active" {/if} ><a href="{php echo url('message/notice', array('type' => MESSAGE_WORKORDER_TYPE))}">工单提醒</a></li>
 </ul>
 
 <table class="table we7-table table-hover vertical-middle" id="message-notice"  ng-controller="messageNoticeCtrl" ng-cloak>
@@ -42,11 +43,12 @@
 		<td>
 			<div class="link-group">
 				
-				<a href="javascript:;" ng-if="list.type==3" ng-click="operate(list.id, links.workorder_link+'uuid='+list.sign)">进入工单</a>
-				<a href="javascript:;" ng-click="operate(list.id, links.account_expire_link)" ng-if="list.type==2">查看公众号</a>
-				<a href="javascript:;" ng-click="operate(list.id, links.wechat_expire_link)" ng-if="list.type==5">查看小程序</a>
-				<a href="javascript:;" ng-click="operate(list.id, links.webapp_expire_link)" ng-if="list.type==6">查看pc</a>
-				<a href="javascript:;" ng-click="operate(list.id, links.register_link)" ng-if="list.type==4 && list.status==1">查看我的待审核用户</a>
+				<a ng-href="{{list.url}}" ng-if="list.type==3">进入工单</a>
+				<a ng-href="{{list.url}}" ng-if="list.type==2">查看公众号</a>
+				<a ng-href="{{list.url}}" ng-if="list.type==5">查看小程序</a>
+				<a ng-href="{{list.url}}" ng-if="list.type==6">查看pc</a>
+				<a ng-href="{{list.url}}" ng-if="list.type==4 && list.status==1">查看我的待审核用户</a>
+				<a ng-href="{{list.url}}" ng-if="list.type==7">查看我的账号</a>
 			</div>
 		</td>
 	</tr>
@@ -58,15 +60,6 @@
 	angular.module('messageApp').value('config', {
 		'type' : '{php echo $type}',
 		'lists': {php echo !empty($lists) ? json_encode($lists) : 'null'},
-		'links' : {
-			'change_read_status': "{php echo url('message/notice/change_read_status')}",
-			'account_expire_link': "{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL))}",
-			'wechat_expire_link': "{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL))}",
-			'webapp_expire_link': "{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL))}",
-			'order_link': "{php echo url('site/entry/orders', array('m' => 'store', 'direct'=>1))}",
-			'register_link': "{php echo url('user/display', array('type' => 'check'))}",
-			'workorder_link': "{php echo url('system/workorder/display')}",
-		},
 	});
 	angular.bootstrap($('#message-notice'), ['messageApp']);
 </script>

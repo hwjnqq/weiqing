@@ -3,9 +3,14 @@
 	<div class="panel-heading">
 		<span class="panel-heading-left"><i class="wi wi-wechat" style="font-size: 24px; margin-right: 10px; vertical-align:middle;"></i>请选择您要操作的PC</span>
 		<div class="font-default pull-right">
-			{if !empty($account_info['webapp_limit']) || $_W['isfounder'] && !user_is_vice_founder()}
-			<a href="./index.php?c=webapp&a=manage&do=create_display" class="color-default"><i class="fa fa-plus"></i>新增PC</a>
-			{/if}
+			
+
+			
+				{if !empty($account_info['webapp_limit']) || $_W['isfounder']}
+				<a href="./index.php?c=webapp&a=manage&do=create_display" class="color-default"><i class="fa fa-plus"></i>新增PC</a>
+				{/if}
+			
+
 			{if $state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_MANAGER}
 			<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL))}" class="color-default"><i class="wi wi-wechatstatistics"></i>PC管理</a>
 			{/if}
