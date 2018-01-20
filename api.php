@@ -184,7 +184,7 @@ class WeEngine {
 			}
 			WeUtility::logging('trace', $postStr);
 			$message = $this->account->parse($postStr);
-			
+
 			$this->message = $message;
 			if(empty($message)) {
 				WeUtility::logging('waring', 'Request Failed');
@@ -200,7 +200,7 @@ class WeEngine {
 			$sessionid = md5($message['from'] . $message['to'] . $_W['uniacid']);
 			session_id($sessionid);
 			WeSession::start($_W['uniacid'], $_W['openid']);
-			
+
 			$_SESSION['openid'] = $_W['openid'];
 			$pars = $this->analyze($message);
 			$pars[] = array(
@@ -273,12 +273,14 @@ class WeEngine {
 				echo json_encode(array('resp' => $resp, 'process' => $process));
 				exit();
 			}
-			$mapping = array(
-				'[from]' => $this->message['from'],
-				'[to]' => $this->message['to'],
-				'[rule]' => $this->params['rule']
-			);
-			$resp = str_replace(array_keys($mapping), array_values($mapping), $resp);
+			if ($resp !== 'success') {
+				$mapping = array(
+					'[from]' => $this->message['from'],
+					'[to]' => $this->message['to'],
+					'[rule]' => $this->params['rule']
+				);
+				$resp = str_replace(array_keys($mapping), array_values($mapping), $resp);
+			}
 			ob_start();
 			echo $resp;
 			ob_start();
@@ -291,6 +293,9 @@ class WeEngine {
 	}
 
 	private function isValidResponse($response) {
+		if ($response === 'success') {
+			return true;
+		}
 		if(is_array($response)) {
 			if($response['type'] == 'text' && !empty($response['content'])) {
 				return true;
@@ -349,7 +354,7 @@ class WeEngine {
 				}
 			}
 		}
-		
+
 		load()->model('mc');
 		$setting = uni_setting($_W['uniacid'], array('passport'));
 		$fans = mc_fansinfo($message['from']);
@@ -393,30 +398,12 @@ class WeEngine {
 			}
 		} else {
 			if ($message['event'] == 'subscribe' || $message['type'] == 'text' || $message['type'] == 'image') {
-				$rec = array();
-				$rec['acid'] = $_W['acid'];
-				$rec['uniacid'] = $_W['uniacid'];
-				$rec['uid'] = 0;
-				$rec['openid'] = $message['from'];
-				$rec['salt'] = random(8);
-				$rec['follow'] = 1;
-				$rec['followtime'] = $message['time'];
-				$rec['unfollowtime'] = 0;
-				//开启非强制注册后，系统自动为该粉丝插入会员数据。
+				load()->model('mc');
+				$force_init_member = false;
 				if (!isset($setting['passport']) || empty($setting['passport']['focusreg'])) {
-					//如果此处未开启强制注册，则系统插入一条注册信息。
-					$data = array(
-						'uniacid' => $_W['uniacid'],
-						'email' => md5($message['from']).'@we7.cc',
-						'salt' => random(8),
-						'groupid' => $default_groupid,
-						'createtime' => TIMESTAMP,
-					);
-					$data['password'] = md5($message['from'] . $data['salt'] . $_W['config']['setting']['authkey']);
-					pdo_insert('mc_members', $data);
-					$rec['uid'] = pdo_insertid();
+					$force_init_member = true;
 				}
-				pdo_insert('mc_mapping_fans', $rec);
+				mc_init_fans_info($message['from'], $force_init_member);
 			}
 		}
 	}
@@ -424,7 +411,7 @@ class WeEngine {
 	private function receive($par, $keyword, $response) {
 		global $_W;
 		fastcgi_finish_request();
-		
+
 		$subscribe = cache_load('module_receive_enable');
 		$modules = uni_modules();
 		$obj = WeUtility::createModuleReceiver('core');
@@ -514,11 +501,11 @@ class WeEngine {
 		}
 		return $params;
 	}
-	
+
 	private function analyzeSubscribe(&$message) {
 		global $_W;
 		$params = array();
-		$message['type'] = 'text'; 
+		$message['type'] = 'text';
 		$message['redirection'] = true;
 		if(!empty($message['scene'])) {
 			$message['source'] = 'qr';
@@ -564,7 +551,7 @@ class WeEngine {
 				$scene_condition = " `scene_str` = '{$sceneid}'";
 			}
 			$qr = pdo_fetch("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE {$scene_condition} AND `uniacid` = '{$_W['uniacid']}'");
-	
+
 		}
 		if (empty($qr) && !empty($message['ticket'])) {
 			$message['source'] = 'qr';
@@ -592,9 +579,9 @@ class WeEngine {
 
 	public function analyzeText(&$message, $order = 0) {
 		global $_W;
-		
+
 		$pars = array();
-		
+
 		$order = intval($order);
 		if(!isset($message['content'])) {
 			return $pars;
@@ -607,7 +594,7 @@ class WeEngine {
 		}
 		$condition = <<<EOF
 `uniacid` IN ( 0, {$_W['uniacid']} )
-AND 
+AND
 (
 	( `type` = 1 AND `content` = :c1 )
 	or
@@ -619,17 +606,17 @@ AND
 )
 AND `status`=1
 EOF;
-		
+
 		$params = array();
 		$params[':c1'] = $message['content'];
 		$params[':c2'] = $message['content'];
 		$params[':c3'] = $message['content'];
-		
+
 		if (intval($order) > 0) {
 			$condition .= " AND `displayorder` > :order";
 			$params[':order'] = $order;
 		}
-		
+
 		$keywords = reply_keywords_search($condition, $params);
 		if(empty($keywords)) {
 			return $pars;
@@ -652,7 +639,7 @@ EOF;
 		cache_write($cachekey, $cache);
 		return $pars;
 	}
-	
+
 	private function analyzeEvent(&$message) {
 		if (strtolower($message['event']) == 'subscribe') {
 			return $this->analyzeSubscribe($message);
@@ -697,7 +684,7 @@ EOF;
 		}
 		return $this->handler($message['event']);
 	}
-	
+
 	private function analyzeClick(&$message) {
 		if(!empty($message['content']) || $message['content'] !== '') {
 			$message['type'] = 'text';
@@ -708,7 +695,7 @@ EOF;
 
 		return array();
 	}
-	
+
 	private function analyzeImage(&$message) {
 		load()->func('communication');
 		if (!empty($message['picurl'])) {
@@ -734,7 +721,7 @@ EOF;
 			return $this->handler('image');
 		}
 	}
-	
+
 	private function analyzeVoice(&$message) {
 		$params = $this->handler('voice');
 		if (empty($params) && !empty($message['recognition'])) {
@@ -784,7 +771,7 @@ EOF;
 
 	/**
 	 * 调用模块的消息处理器
-	 * 
+	 *
 	 * @param $param
 	 * @return bool | array false |$response
 	 */
@@ -810,7 +797,7 @@ EOF;
 
 		return $response;
 	}
-	
+
 	/**
 	 * checkauth处理
 	 */
