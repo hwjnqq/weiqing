@@ -33,21 +33,21 @@ class CoreModule extends WeModule {
 	private $replies = array();
 
 	public function fieldsFormDisplay($rid = 0, $option = array()) {
-		global $_GPC, $_W;
+		global $_GPC, $_W, $setting_keyword;
 		load()->model('material');
 		load()->model('reply');
 		$replies = array();
 		switch($_GPC['a']) {
 			case 'mass':
-				if(!empty($rid) && $rid > 0) {
+				if (!empty($rid) && $rid > 0) {
 					$isexists = pdo_get('mc_mass_record', array('id' => $rid), array('media_id', 'msgtype'));
 				}
-				if(!empty($isexists['media_id']) && !empty($isexists['msgtype'])) {
+				if (!empty($isexists['media_id']) && !empty($isexists['msgtype'])) {
 					$wechat_attachment = material_get($isexists['media_id']);
-					switch($isexists['msgtype']) {
+					switch ($isexists['msgtype']) {
 						case 'news':
 							if(!empty($wechat_attachment['news'])) {
-								foreach($wechat_attachment['news'] as &$item) {
+								foreach ($wechat_attachment['news'] as &$item) {
 									$item['thumb_url'] = tomedia($item['thumb_url']);
 									$item['media_id'] = $isexists['media_id'];
 									$item['attach_id'] = $item['attach_id'];
@@ -106,19 +106,18 @@ class CoreModule extends WeModule {
 							$replies['module'][0]['icon'] = "../addons/". $module_info['name']. "/icon.jpg";
 						}
 					} else {
-						$keyword = pdo_fetchall("SELECT content,rid FROM ". tablename('rule_keyword') ." WHERE uniacid = :uniacid AND rid = :rid", array(':uniacid' => $_W['uniacid'], ':rid' => $rid));
 						$replies['keyword'][0]['name'] = $isexists['name'];
-						$replies['keyword'][0]['content'] = $keyword[0]['content'];
-						$replies['keyword'][0]['rid'] = $keyword[0]['rid'];
+						$replies['keyword'][0]['content'] = $setting_keyword;
+						$replies['keyword'][0]['rid'] = $rid;
 					}
 					break;
 				}
-				if(!empty($isexists)) {
+				if (!empty($isexists)) {
 					$module = $isexists['module'];
 					$module = $module == 'images' ? 'image' : $module;
 
 					//选择多种素材
-					if($_GPC['a'] == 'reply' && (!empty($_GPC['m']) && $_GPC['m'] == 'keyword')) {
+					if ($_GPC['a'] == 'reply' && (!empty($_GPC['m']) && $_GPC['m'] == 'keyword')) {
 						foreach ($this->tablename as $key => $tablename) {
 							if ($key != 'keyword') {
 								$replies[$key] = pdo_fetchall("SELECT * FROM ".tablename($tablename)." WHERE rid = :rid ORDER BY `id`", array(':rid' => $rid));
@@ -150,16 +149,10 @@ class CoreModule extends WeModule {
 							}
 						}
 					//只选择关键字
-					}else {
+					} else {
 						$replies['keyword'][0]['name'] = $isexists['name'];
-						$keyword = pdo_getall('rule_keyword', array('uniacid' => $_W['uniacid'], 'rid' => $rid));
-						$replies['keyword'][0]['id'] = $keyword['id'];
 						$replies['keyword'][0]['rid'] = $rid;
-						if (!empty($keyword)) {
-							foreach ($keyword as $word) {
-								$replies['keyword'][0]['content'] .= $word['content']. '&nbsp;&nbsp;';
-							}
-						}
+						$replies['keyword'][0]['content'] = $setting_keyword;
 					}
 				}
 				break;
