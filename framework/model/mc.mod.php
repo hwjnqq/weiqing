@@ -306,9 +306,6 @@ function mc_oauth_userinfo($acid = 0) {
 		$userinfo = $oauth_account->fansQueryInfo($_SESSION['openid']);
 		if (!is_error($userinfo) && !empty($userinfo) && is_array($userinfo) && !empty($userinfo['nickname'])) {
 			$userinfo['nickname'] = stripcslashes($userinfo['nickname']);
-			if (!empty($userinfo['headimgurl'])) {
-				$userinfo['headimgurl'] = rtrim($userinfo['headimgurl'], '0') . 132;
-			}
 			$userinfo['avatar'] = $userinfo['headimgurl'];
 			$_SESSION['userinfo'] = base64_encode(iserializer($userinfo));
 
@@ -1708,9 +1705,6 @@ function mc_init_fans_info($openid, $force_init_member = false){
 		'unionid' => $fans['unionid'],
 		'groupid' => !empty($fans['tagid_list']) ? (','.join(',', $fans['tagid_list']).',') : '',
 	);
-	if (!empty($fans['headimgurl'])) {
-		$fans['headimgurl'] = rtrim($fans['headimgurl'], '0') . 132;
-	}
 	//强制初始化会员信息
 	if ($force_init_member) {
 		$member_update_info = array(
@@ -1741,6 +1735,10 @@ function mc_init_fans_info($openid, $force_init_member = false){
 			$fans_update_info['uid'] = $uid;
 		} else {
 			$fans_update_info['uid'] = $fans_mapping['uid'];
+			pdo_update('mc_members', $member_update_info, array('uid' => $fans_mapping['uid']));
+			$cachekey = cache_system_key(CACHE_KEY_MEMBER_INFO, $fans_mapping['uid']);
+			cache_delete($cachekey);
+
 		}
 	}
 

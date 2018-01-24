@@ -317,6 +317,23 @@ $we7_file_permission = array(
 			'display',
 		)
 	),
+	'webapp' => array(
+		'default' => '',
+		'direct' => array(),
+		'vice_founder' => array('webapp*'),
+		'owner' => array('webapp*'),
+		'manager' => array(
+			'home',
+			'manage',
+		),
+		'operator' => array(
+			'home',
+			'manage'
+		),
+		'clerk' => array(
+			'home'
+		)
+	),
 	'utility' => array(
 		'default' => '',
 		'direct' => array(
@@ -366,7 +383,8 @@ $we7_file_permission = array(
 			'see_system_add_vice_founder',
 			'see_notice_post',
 			'see_module_manage_system_newversion',
-			'see_user_edit_base_founder_name'
+			'see_user_edit_base_founder_name',
+			'see_user_create_own_vice_founder'
 		),
 		'vice_founder' => array(
 			'see_account_manage_users_adduser',

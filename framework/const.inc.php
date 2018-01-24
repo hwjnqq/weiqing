@@ -166,6 +166,8 @@ define('WXAPP_TEMPLATE', 2);
 define('WXAPP_MODULE', 3);
 //网页小程序类型
 define('WXAPP_CREATE_MODULE', 1);
+// 打包多个模块小程序
+define('WXAPP_CREATE_MUTI_MODULE', 2);
 //普通小程序类型
 define('WXAPP_CREATE_DEFAULT', 0);
 

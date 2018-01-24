@@ -30,6 +30,7 @@ function permission_build() {
 		$we7_file_permission['profile'][$_W['role']] = array('profile*');
 		$we7_file_permission['module'][$_W['role']] = array('manage-account', 'display');
 		$we7_file_permission['wxapp'][$_W['role']] = array('display', 'payment', 'post', 'version');
+		$we7_file_permission['webapp'][$_W['role']] = array('home', 'manage');
 		cache_write($cachekey, $we7_file_permission);
 		return $we7_file_permission;
 	}
@@ -422,7 +423,7 @@ function permission_check_account_user($permission_name, $show_message = true, $
  * 判断操作员是否具有模块某个业务功能菜单的权限
  */
 function permission_check_account_user_module($action = '', $module_name = '') {
-	global $_GPC;
+	global $_W, $_GPC;
 	$status = permission_account_user_permission_exist();
 	if(empty($status)) {
 		return true;
@@ -431,10 +432,15 @@ function permission_check_account_user_module($action = '', $module_name = '') {
 	$do = trim($_GPC['do']);
 	$m = trim($_GPC['m']);
 	//参数设置权限
-	if ($a == 'module' && $do == 'setting' && !empty($m)) {
+	if ($a == 'manage-account' && $do == 'setting' && !empty($m)) {
 		$permission_name = $m . '_setting';
 		$users_permission = permission_account_user($m);
 		if ($users_permission[0] != 'all' && !in_array($permission_name, $users_permission)) {
+			return false;
+		}
+		//默认入口设置权限
+	} elseif ($a == 'default-entry' && !empty($m)) {
+		if (!($_W['isfounder'] || $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER)) {
 			return false;
 		}
 		//模块其他业务菜单
@@ -477,10 +483,12 @@ function permission_user_account_num($uid = 0) {
 		$role = ACCOUNT_MANAGE_NAME_OWNER;
 		$group = $user_table->usersGroupInfo($user['groupid']);
 		$group_num = uni_owner_account_nums($user['uid'], $role);
+
 		if (empty($_W['isfounder'])) {
 			if (!empty($user['owner_uid'])) {
 				$owner_info = $user_table->usersInfo($user['owner_uid']);
 				$group_vice = $user_table->userFounderGroupInfo($owner_info['groupid']);
+				$founder_group_num = uni_owner_account_nums($owner_info['uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
 				$group['maxaccount'] = min(intval($group['maxaccount']), intval($group_vice['maxaccount']));
 				$group['maxwxapp'] = min(intval($group['maxwxapp']), intval($group_vice['maxwxapp']));
 				$group['maxwebapp'] = min(intval($group['maxwebapp']), intval($group_vice['maxwebapp']));
@@ -496,21 +504,28 @@ function permission_user_account_num($uid = 0) {
 	$uniacid_limit = max((intval($group['maxaccount']) + intval($store_buy_account) - $group_num['account_num']), 0);
 	$wxapp_limit = max((intval($group['maxwxapp']) + intval($store_buy_wxapp) - $group_num['wxapp_num']), 0);
 	$webapp_limit = max(intval($group['maxwebapp']) - $group_num['webapp_num'], 0);
+
+	$founder_uniacid_limit = max((intval($group_vice['maxaccount']) + intval($store_buy_account) - $founder_group_num['account_num']), 0);
+	$founder_wxapp_limit = max((intval($group_vice['maxwxapp']) + intval($store_buy_wxapp) - $founder_group_num['wxapp_num']), 0);
+	$founder_webapp_limit = max(intval($group_vice['maxwebapp']) - $founder_group_num['webapp_num'], 0);
 	$data = array(
 		'group_name' => $group['name'],
 		'vice_group_name' => $group_vice['name'],
 		'maxaccount' => $group['maxaccount'] + $store_buy_account,
 		'usergroup_account_limit' => max($group['maxaccount'] - $group_num['account_num'] - $create_buy_account_num, 0),//用户组剩余创建公众号个数
 		'usergroup_wxapp_limit' => max($group['maxwxapp'] - $group_num['wxapp_num'] - $create_buy_wxapp_num, 0),//用户组剩余创建小程序个数
-		'usergroup_webapp_limit' => max($group['maxwebapp'] - $group_num['webapp_num'], 0),//用户组剩余创建小程序个数
+		'usergroup_webapp_limit' => max($group['maxwebapp'] - $group_num['webapp_num'], 0),//用户组剩余创建PC个数
 		'uniacid_num' => $group_num['account_num'],
 		'uniacid_limit' => max($uniacid_limit, 0),
+		'founder_uniacid_limit' => max($founder_uniacid_limit, 0),
 		'maxwxapp' => $group['maxwxapp'] + $store_buy_wxapp,
 		'wxapp_num' => $group_num['wxapp_num'],
 		'wxapp_limit' => max($wxapp_limit, 0),
+		'founder_wxapp_limit' => max($founder_wxapp_limit, 0),
 		'maxwebapp'=>$group['maxwebapp'],//pc 最大创建数量
-		'webapp_limit'=> $webapp_limit, //pc 剩余创建数量,
-		'webapp_num'=> $group_num['webapp_num'] //pc 已创建pc数量
+		'webapp_limit' => $webapp_limit, //pc 剩余创建数量,
+		'founder_webapp_limit' => max($founder_webapp_limit, 0),
+		'webapp_num'=> $group_num['webapp_num'], //pc 已创建pc数量
 	);
 	return $data;
 }

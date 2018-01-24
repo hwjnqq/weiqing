@@ -25,12 +25,12 @@
 		</form>
 	</div>
 	<form action="./index.php?c=site&a=article&do=del" method="post" class="we7-form" role="form">
-		<table class="table we7-table table-hover article-list vertical-middle">
+		<table class="table we7-table table-hover article-list vertical-middle" style="table-layout: fixed;">
 			<col width="80px">
 			<col width="70px"/>
-			<col/>
+			<col />
 			<col width="120px"/>
-			<col width="200"/>
+			<col width="200px"/>
 			<tr>
 				<th></th>
 				<th>排序</th>
@@ -47,7 +47,7 @@
 					<label for="rid-{{article.id}}">&nbsp;</label>
 				</td>
 				<td ng-bind="article.displayorder"></td>
-				<td class="text-left" ng-bind="article.title"></td>
+				<td class="text-left" ng-bind="article.title" style="text-overflow:ellipsis; white-space: nowrap;"></td>
 				<td>
 					<span class="label label-primary" ng-if="article.ishot == 1">头条</span>
 					<span class="label label-primary" ng-if="article.iscommend == 1">推荐</span>

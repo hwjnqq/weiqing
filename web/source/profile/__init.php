@@ -13,7 +13,7 @@ if (strexists($_W['siteurl'], 'c=profile&a=module&do=setting')) {
 
 $account_api = WeAccount::create();
 if (is_error($account_api)) {
-	message($account_api['message'], url('account/display'));
+	itoast('', url('account/display'));
 }
 $check_manange = $account_api->checkIntoManage();
 

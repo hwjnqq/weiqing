@@ -326,8 +326,8 @@ function material_local_news_upload($attach_id) {
 			return error('-6', '素材内容不能为空');
 		}
 		$news['content'] = material_parse_content($news['content']);
-		if (!(substr($news['content_source_url'], 0, 7) == 'http://') && !(substr($news['content_source_url'], 0, 8) == 'https://') && !(substr($news['content_source_url'], 0, 2) == '//')) {
-			$news['content_source_url'] = $_W['siteroot'] . 'app/' . $news['content_source_url'];
+		if (!empty($news['content_source_url'])) {
+			$news['content_source_url'] = safe_gpc_url($news['content_source_url'], false, $_W['siteroot'] . 'app/' . $news['content_source_url']);
 		}
 		if (is_error($news['content'])) {
 			return error('-2', $news['content']['message']);

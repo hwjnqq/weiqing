@@ -151,6 +151,8 @@ if ($do == 'post') {
 		$row = pdo_fetch("SELECT * FROM ".tablename('qrcode')." WHERE uniacid = {$_W['uniacid']} AND id = '{$id}'");
 		$rid = pdo_get('rule_keyword', array('uniacid' => $_W['uniacid'], 'content' => $row['keyword']), array('rid'));
 		$rid = $rid['rid'];
+		//触发的关键字，module_build_form()函数使用，因为一个规则可能对应多个关键字
+		$setting_keyword = $row['keyword'];
 	}
 	template('platform/qr-post');
 }

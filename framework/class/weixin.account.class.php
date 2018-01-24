@@ -894,7 +894,10 @@ class WeiXinAccount extends WeAccount {
 		$url = "https://api.weixin.qq.com/cgi-bin/tags/update?access_token={$token}";
 		$data = stripslashes(ijson_encode(array('tag' => array('id' => $tagid, 'name' => $tagname)), JSON_UNESCAPED_UNICODE));
 		$result = $this->requestApi($url, $data);
-		return $result;
+		if (is_error($result)) {
+			return $result;
+		}
+		return true;
 	}
 
 	/**
@@ -916,7 +919,10 @@ class WeiXinAccount extends WeAccount {
 		$url = "https://api.weixin.qq.com/cgi-bin/tags/delete?access_token={$token}";
 		$data = json_encode(array('tag' => array('id' => $tagid)));
 		$result = $this->requestApi($url, $data);
-		return $result;
+		if (is_error($result)) {
+			return $result;
+		}
+		return true;
 	}
 
 	/**
@@ -1012,7 +1018,7 @@ class WeiXinAccount extends WeAccount {
 				return $result;
 			}
 		}
-		return error(0, "单个粉丝打标签成功");
+		return true;
 	}
 
 	/**
@@ -1050,7 +1056,10 @@ class WeiXinAccount extends WeAccount {
 		);
 		$data = json_encode($data);
 		$result = $this->requestApi($url, $data);
-		return $result;
+		if(is_error($result)) {
+			return $result;
+		}
+		return true;
 	}
 
 	/**
@@ -1088,7 +1097,10 @@ class WeiXinAccount extends WeAccount {
 		);
 		$data = json_encode($data);
 		$result = $this->requestApi($url, $data);
-		return $result;
+		if(is_error($result)) {
+			return $result;
+		}
+		return true;
 	}
 
 	/**

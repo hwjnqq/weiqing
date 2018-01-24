@@ -8,6 +8,7 @@ defined('IN_IA') or exit('Access Denied');
 set_time_limit(60);
 
 load()->model('mc');
+load()->model('account');
 
 $dos = array('display', 'add_tag', 'del_tag', 'edit_tagname', 'edit_fans_tag', 'batch_edit_fans_tag', 'download_fans', 'sync', 'fans_sync_set', 'register');
 $do = in_array($do, $dos) ? $do : 'display';
@@ -271,6 +272,13 @@ if ($do == 'download_fans') {
 
 if ($do == 'sync') {
 	$type = $_GPC['type'] == 'all' ? 'all' : 'check';
+
+	$setting = uni_setting($_W['uniacid'], array('passport'));
+	$force_init_member = false;
+	if (!isset($setting['passport']) || empty($setting['passport']['focusreg'])) {
+		$force_init_member = true;
+	}
+
 	if ($type == 'all') {
 		$pageindex = $_GPC['pageindex'];
 		$pageindex++;
@@ -278,8 +286,13 @@ if ($do == 'sync') {
 		$total = ceil($total/5);
 		if (!empty($sync_fans)) {
 			foreach ($sync_fans as $fans) {
-				mc_init_fans_info($fans['openid']);
+				mc_init_fans_info($fans['openid'], $force_init_member);
 			}
+		}
+		if ($total == $pageindex) {
+			setcookie(cache_system_key('sync_fans_pindex:' . $_W['uniacid']), '', -1);
+		} else {
+			setcookie(cache_system_key('sync_fans_pindex:' . $_W['uniacid']), $pageindex);
 		}
 		iajax(0, array('pageindex' => $pageindex, 'total' => $total), '');
 	}
@@ -291,7 +304,7 @@ if ($do == 'sync') {
 		$sync_fans = pdo_getall('mc_mapping_fans', array('openid' => $openids));
 		if (!empty($sync_fans)) {
 			foreach ($sync_fans as $fans) {
-				mc_init_fans_info($fans['openid']);
+				mc_init_fans_info($fans['openid'], $force_init_member);
 			}
 		}
 		iajax(0, 'success', '');

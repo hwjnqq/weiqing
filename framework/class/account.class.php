@@ -941,6 +941,9 @@ abstract class WeBase {
 				$source = $defineDir . "/template/mobile/{$filename}.html";
 			}
 			if(!is_file($source)) {
+				$source = $defineDir . "/template/webapp/{$filename}.html";
+			}
+			if(!is_file($source)) {
 				$source = IA_ROOT . "/app/themes/{$_W['template']}/{$filename}.html";
 			}
 			if(!is_file($source)) {
@@ -1178,6 +1181,14 @@ abstract class WeModuleProcessor extends WeBase {
 	 * @return array|string 返回值为消息数据结构, 或者消息xml定义
 	 */
 	abstract function respond();
+
+	/**
+	 * 预定义的操作，直接回复success
+	 */
+	protected function respSuccess() {
+		return 'success';
+	}
+
 	/**
 	 * 预定义的操作, 构造返回文本消息结构
 	 * @param string $content 回复的消息内容
@@ -1594,6 +1605,8 @@ abstract class WeModuleSite extends WeBase {
 		}
 		if (!empty($pay['credit']['switch'])) {
 			$credtis = mc_credit_fetch($_W['member']['uid']);
+			$credit_pay_setting = mc_fetch($_W['member']['uid'], array('pay_password'));
+			$credit_pay_setting = $credit_pay_setting['pay_password'];
 		}
 		$you = 0;
 		include $this->template('common/paycenter');
@@ -1761,10 +1774,12 @@ abstract class WeModuleWxapp extends WeBase {
 	public $appid;
 	public $version;
 
+
 	public function __call($name, $arguments) {
 		$dir = IA_ROOT . '/addons/' . $this->modulename . '/inc/wxapp';
 		$function_name = strtolower(substr($name, 6));
 		//版本号不存在相应的目录则直接使用最新版
+		$func_file = "{$function_name}.inc.php";
 		$file = "$dir/{$this->version}/{$function_name}.inc.php";
 		if (!file_exists($file)) {
 			$version_path_tree = glob("$dir/*");
@@ -1772,11 +1787,20 @@ abstract class WeModuleWxapp extends WeBase {
 				return -version_compare($version1, $version2);
 			});
 			if (!empty($version_path_tree)) {
-				foreach ($version_path_tree as $path) {
-					$file = "$path/{$function_name}.inc.php";
-					if (file_exists($file)) {
-						break;
-					}
+				// 先过滤目录
+				$dirs = array_filter($version_path_tree, function($path) use ($func_file){
+					$file_path = "$path/$func_file";
+					return is_dir($path) && file_exists($file_path);
+				});
+				// 再过滤文件
+				$files = array_filter($version_path_tree, function($path) use ($func_file){
+					return is_file($path) && pathinfo($path, PATHINFO_BASENAME) == $func_file;
+				});
+
+				if (count($dirs) > 0) {
+					$file = current($dirs).'/'.$func_file;
+				} else if(count($files) > 0){
+					$file = current($files);
 				}
 			}
 		}
@@ -1830,6 +1854,7 @@ abstract class WeModuleWxapp extends WeBase {
 			$paylog = array(
 				'uniacid' => $_W['uniacid'],
 				'acid' => $_W['acid'],
+				'type' => 'wxapp',
 				'openid' => $_W['openid'],
 				'module' => $this->module['name'],
 				'tid' => $order['tid'],

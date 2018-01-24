@@ -48,4 +48,10 @@ class MemberTable extends We7Table {
 		$this->query->where('mobile', $info)->whereor('email', $info);
 		return $this;
 	}
+
+	public function mcFieldsList($uniacid) {
+		return $this->query->from('mc_member_fields', 'm')->select('m.title, m.fieldid, p.field')->leftjoin('profile_fields', 'p')
+			->on(array('m.fieldid' => 'p.id'))->where('m.uniacid', $uniacid)->getall('field');
+
+	}
 }

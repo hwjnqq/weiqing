@@ -128,7 +128,7 @@ if($do == 'register') {
 			$data['residecity'] = $map_fans['city'] ? $map_fans['city'] . '市' : '';
 			$data['resideprovince'] = $map_fans['province'] ? $map_fans['province'] . '省' : '';
 			$data['nationality'] = $map_fans['country'];
-			$data['avatar'] = rtrim($map_fans['headimgurl'], '0') . 132;
+			$data['avatar'] = $map_fans['headimgurl'];
 		}
 		
 		pdo_insert('mc_members', $data);

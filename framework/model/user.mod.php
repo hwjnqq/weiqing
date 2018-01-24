@@ -765,9 +765,9 @@ function user_group_format($lists) {
 		$package = iunserializer($group['package']);
 		$group['package'] = uni_groups($package);
 		if (empty($package)) {
-			$lists[$key]['module_nums'] = '系统默认';
-			$lists[$key]['wxapp_nums'] = '系统默认';
-			$lists[$key]['webapp_nums'] = '系统默认';
+			$lists[$key]['module_nums'] = 0;
+			$lists[$key]['wxapp_nums'] = 0;
+			$lists[$key]['webapp_nums'] = 0;
 			continue;
 		}
 		if (is_array($package) && in_array(-1, $package)) {
@@ -777,13 +777,24 @@ function user_group_format($lists) {
 			continue;
 		}
 		$names = array();
+		$modules = array(
+			'modules' => array(),
+			'wxapp' => array(),
+			'webapp' => array()
+		);
 		if (!empty($group['package'])) {
-			foreach ($group['package'] as $modules) {
-				$names[] = $modules['name'];
-				$lists[$key]['module_nums'] = count($modules['modules']);
-				$lists[$key]['wxapp_nums'] = count($modules['wxapp']);
-				$lists[$key]['webapp_nums'] = count($modules['webapp']);
+			foreach ($group['package'] as $package) {
+				$names[] = $package['name'];
+				$package['modules'] = !empty($package['modules']) && is_array($package['modules']) ? array_keys($package['modules']) : array();
+				$package['wxapp'] = !empty($package['wxapp']) && is_array($package['wxapp']) ? array_keys($package['wxapp']) : array();
+				$package['webapp'] = !empty($package['webapp']) && is_array($package['webapp']) ? array_keys($package['webapp']) : array();
+				$modules['modules'] = array_unique(array_merge($modules['modules'], $package['modules']));
+				$modules['wxapp'] = array_unique(array_merge($modules['wxapp'], $package['wxapp']));
+				$modules['webapp'] = array_unique(array_merge($modules['webapp'], $package['webapp']));
 			}
+			$lists[$key]['module_nums'] = count($modules['modules']);
+			$lists[$key]['wxapp_nums'] = count($modules['wxapp']);
+			$lists[$key]['webapp_nums'] = count($modules['webapp']);
 		}
 		$lists[$key]['packages'] = implode(',', $names);
 	}
@@ -951,4 +962,25 @@ function user_borrow_oauth_account_list() {
 		'oauth_accounts' => $oauth_accounts,
 		'jsoauth_accounts' => $jsoauth_accounts
 	);
+}
+
+/**
+ * 根据管理组获取拥有的模板
+ * @param $founder_groupid
+ * @return array
+ */
+function user_founder_templates($founder_groupid) {
+	$group_detail_info = user_founder_group_detail_info($founder_groupid);
+
+	if (empty($group_detail_info) || empty($group_detail_info['package'])) {
+		return array();
+	}
+
+	$template_list = array();
+	foreach ($group_detail_info['package'] as $uni_group) {
+		if (!empty($group_detail_info['package_detail'][$uni_group]['templates'])) {
+			$template_list = array_merge($template_list, $group_detail_info['package_detail'][$uni_group]['templates']);
+		}
+	}
+	return $template_list;
 }

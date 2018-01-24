@@ -7,6 +7,8 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('user');
 load()->func('file');
 load()->classs('oauth2/oauth2client');
+load()->model('message');
+load()->model('setting');
 
 $dos = array('base', 'post', 'bind', 'validate_mobile', 'bind_mobile', 'unbind');
 $do = in_array($do, $dos) ? $do : 'base';
@@ -113,11 +115,6 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 				$endtime = strtotime($_GPC['endtime']);
 			}
 			
-			
-				if (!empty($_W['user']['endtime']) && ($endtime > $_W['user']['endtime'] || empty($endtime))) {
-					iajax(-1, '副创始人给用户设置的时间不能超过自己的到期时间');
-				}
-			
 			$result = pdo_update('users', array('endtime' => $endtime), array('uid' => $uid));
 			pdo_update('users_profile', array('send_expire_status' => 0), array('uid' => $uid));
 			$uni_account_user = pdo_getall('uni_account_users', array('uid' => $uid, 'role' => 'owner'));
@@ -166,6 +163,9 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 
 //账号信息
 if ($do == 'base') {
+	$message_id = safe_gpc_int($_GPC['message_id']);
+	message_notice_read($message_id);
+
 	$user_type = !empty($_GPC['user_type']) ? trim($_GPC['user_type']) : PERSONAL_BASE_TYPE;
 	//基础信息
 	$user = user_single($_W['uid']);
@@ -195,6 +195,9 @@ if ($do == 'base') {
 }
 
 if ($do == 'bind') {
+	$setting_sms_sign = setting_load('site_sms_sign');
+	$bind_sign = !empty($setting_sms_sign['site_sms_sign']['register']) ? $setting_sms_sign['site_sms_sign']['register'] : '';
+
 	$user_table = table('users');
 	$user = $user_table->usersInfo($_W['uid']);
 	$user_profile = $user_table->userProfile($_W['uid']);

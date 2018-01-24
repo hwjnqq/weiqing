@@ -3,8 +3,8 @@
  * [WeEngine System] Copyright (c) 2014 WE7.CC
  * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
-defined('IN_IA') or exit('Access Denied');
+class AttachmentgroupTable extends We7Table {
 
-define('IMS_FAMILY', 'x');
-define('IMS_VERSION', '1.6.8');
-define('IMS_RELEASE_DATE', '20140807141111');
+	protected $tableName = 'attachment_group';
+	protected $field = array('uid', 'uniacid', 'name', 'type');
+}

@@ -6,8 +6,8 @@
 class AttachmentTable extends We7Table {
 
 
+	protected $tableName = 'core_attachment';
 
-	protected $attachment_table_name = 'core_attachment';
 
 	public function local($local = true) {
 		if(! $local) {
@@ -16,11 +16,11 @@ class AttachmentTable extends We7Table {
 		return $this;
 	}
 	public function getById($att_id, $type = 1) {
-		return $this->query->from($this->attachment_table_name)->where('id', $att_id)->where('type', $type)->get();
+		return $this->query->from($this->tableName)->where('id', $att_id)->where('type', $type)->get();
 	}
 
 	public function searchAttachmentList() {
-		return $this->query->from($this->attachment_table_name)->orderby('createtime', 'desc')->getall();
+		return $this->query->from($this->tableName)->orderby('createtime', 'desc')->getall();
 	}
 
 	public function searchWithType($type) {
@@ -47,8 +47,22 @@ class AttachmentTable extends We7Table {
 		$this->query->where(array('createtime >=' => $start_time))->where(array('createtime <=' => $end_time));
 		return $this;
 	}
+
+	public function searchWithGroupId($groupid) {
+		$this->query->where(array('group_id =' => $groupid));
+		return $this;
+	}
+
+	public function searchWithUniacidOrUid($uniacid, $uid) {
+		if (empty($uniacid)) {
+			$this->query->where('uid', $uid);
+		} else {
+			$this->query->where('uniacid', $uniacid);
+		}
+		return $this;
+	}
 }
 
 class WechatAttachmentTable extends AttachmentTable {
-	protected $attachment_table_name = 'wechat_attachment';
+	protected $tableName = 'wechat_attachment';
 }

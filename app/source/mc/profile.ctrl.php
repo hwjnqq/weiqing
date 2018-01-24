@@ -29,7 +29,7 @@ if(!empty($_W['openid'])) {
 			empty($profile['residecity']) ? ($data['residecity'] = ($map_fans['city']) ? $map_fans['city'] . '市' : '') : '';
 			empty($profile['resideprovince']) ? ($data['resideprovince'] = ($map_fans['province']) ? $map_fans['province'] . '省' : '') : '';
 			empty($profile['nationality']) ? ($data['nationality'] = $map_fans['country']) : '';
-			empty($profile['avatar']) ? ($data['avatar'] = rtrim($map_fans['headimgurl'], '0') . 132) : '';
+			empty($profile['avatar']) ? ($data['avatar'] = $map_fans['headimgurl']) : '';
 			if(!empty($data)) {
 				mc_update($_W['member']['uid'], $data);
 			}

@@ -117,6 +117,8 @@ if ($do == 'display') {
 		$setting = uni_setting($_W['uniacid'], array($m));
 		if (!empty($setting[$m])) {
 			$rule_keyword_id = pdo_getcolumn('rule_keyword', array('uniacid' => $_W['uniacid'], 'content' => $setting[$m]), 'rid');
+			//触发的关键字，module_build_form()函数使用，因为一个规则可能对应多个关键字
+			$setting_keyword = $setting[$m];
 		}
 	}
 	if ($m == 'service') {
@@ -320,6 +322,8 @@ if ($do == 'post') {
 			$rule_id = $setting[$type]['module'];
 		} else {
 			$rule_id = pdo_getcolumn('rule_keyword', array('uniacid' => $_W['uniacid'], 'content' => $setting[$type]['keyword']), 'rid');
+			//触发的关键字，module_build_form()函数使用，因为一个规则可能对应多个关键字
+			$setting_keyword = $setting[$type]['keyword'];
 		}
 		template('platform/specialreply-post');
 	}
