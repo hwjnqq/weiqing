@@ -33,6 +33,7 @@ $we7_file_permission = array(
 			'manage',
 			'post-step',
 			'post-user',
+			'post',
 		),
 		'operator' => array(
 			'display',
@@ -42,6 +43,7 @@ $we7_file_permission = array(
 		'clerk' => array(
 			'display',
 		),
+		'unbind_user' => array(),
 	),
 	'advertisement' => array(
 		'default' => '',
@@ -50,7 +52,8 @@ $we7_file_permission = array(
 		'owner' => array(),
 		'manager' => array(),
 		'operator' => array(),
-		'clerk' => array()
+		'clerk' => array(),
+		'unbind_user' => array(),
 	),
 	'article' => array(
 		'default' => '',
@@ -62,7 +65,8 @@ $we7_file_permission = array(
 		'owner' => array(),
 		'manager' => array(),
 		'operator' => array(),
-		'clerk' => array()
+		'clerk' => array(),
+		'unbind_user' => array(),
 	),
 	'message' => array(
 		'default' => '',
@@ -73,7 +77,8 @@ $we7_file_permission = array(
 		'owner' => array(),
 		'manager' => array(),
 		'operator' => array(),
-		'clerk' => array()
+		'clerk' => array(),
+		'unbind_user' => array(),
 	),
 	'cloud' => array(
 		'default' => 'touch',
@@ -85,7 +90,8 @@ $we7_file_permission = array(
 		'owner' => array(),
 		'manager' => array(),
 		'operator' => array(),
-		'clerk' => array()
+		'clerk' => array(),
+		'unbind_user' => array(),
 	),
 	'cron' => array(
 		'default' => '',
@@ -96,7 +102,8 @@ $we7_file_permission = array(
 		'owner' => array(),
 		'manager' => array(),
 		'operator' => array(),
-		'clerk' => array()
+		'clerk' => array(),
+		'unbind_user' => array(),
 	),
 	'founder' => array(
 		'default' => '',
@@ -105,7 +112,8 @@ $we7_file_permission = array(
 		'owner' => array(),
 		'manager' => array(),
 		'operator' => array(),
-		'clerk' => array()
+		'clerk' => array(),
+		'unbind_user' => array(),
 	),
 	'help' => array(
 		'default' => '',
@@ -114,7 +122,8 @@ $we7_file_permission = array(
 		'owner' => array('help*'),
 		'manager' => array('help*'),
 		'operator' => array('help*'),
-		'clerk' => array()
+		'clerk' => array(),
+		'unbind_user' => array(),
 	),
 	'home' => array(
 		'default' => '',
@@ -124,6 +133,7 @@ $we7_file_permission = array(
 		'manager' => array('home*'),
 		'operator' => array('home*'),
 		'clerk' => array('welcome'),
+		'unbind_user' => array(),
 	),
 	'mc' => array(
 		'default' => '',
@@ -142,7 +152,8 @@ $we7_file_permission = array(
 			'group',
 			'trade',
 		),
-		'clerk' => array()
+		'clerk' => array(),
+		'unbind_user' => array(),
 	),
 	'module' => array(
 		'default' => '',
@@ -164,7 +175,8 @@ $we7_file_permission = array(
 		),
 		'clerk' => array(
 			'display',
-		)
+		),
+		'unbind_user' => array(),
 	),
 	'platform' => array(
 		'default' => '',
@@ -185,7 +197,8 @@ $we7_file_permission = array(
 			'reply',
 			'cover',
 			'material'
-		)
+		),
+		'unbind_user' => array(),
 	),
 	'profile' => array(
 		'default' => '',
@@ -194,7 +207,8 @@ $we7_file_permission = array(
 		'owner' => array('profile*'),
 		'manager' => array(),
 		'operator' => array(),
-		'clerk' => array()
+		'clerk' => array(),
+		'unbind_user' => array(),
 	),
 	'site' => array(
 		'default' => '',
@@ -219,7 +233,8 @@ $we7_file_permission = array(
 			'nav',
 			'slide',
 		),
-		'clerk' => array()
+		'clerk' => array(),
+		'unbind_user' => array(),
 	),
 	'statistics' => array(
 		'default' => '',
@@ -229,6 +244,7 @@ $we7_file_permission = array(
 		'manager' => array(),
 		'operator' => array(),
 		'clerk' => array(),
+		'unbind_user' => array(),
 	),
 	'store' => array(
 		'default' => '',
@@ -250,6 +266,7 @@ $we7_file_permission = array(
 			'orders',
 		),
 		'clerk' => array(),
+		'unbind_user' => array(),
 	),
 	'system' => array(
 		'default' => '',
@@ -274,7 +291,8 @@ $we7_file_permission = array(
 		),
 		'clerk' => array(
 			'workorder',
-		)
+		),
+		'unbind_user' => array(),
 	),
 	'user' => array(
 		'default' => 'display',
@@ -282,7 +300,8 @@ $we7_file_permission = array(
 			'login',
 			'register',
 			'logout',
-			'find-password'
+			'find-password',
+			'third-bind'
 		),
 		'vice_founder' => array('user*'),
 		'owner' => array(
@@ -296,7 +315,8 @@ $we7_file_permission = array(
 		),
 		'clerk' => array(
 			'profile',
-		)
+		),
+		'unbind_user' => array(),
 	),
 	'wxapp' => array(
 		'default' => '',
@@ -315,7 +335,8 @@ $we7_file_permission = array(
 		),
 		'clerk' => array(
 			'display',
-		)
+		),
+		'unbind_user' => array(),
 	),
 	'webapp' => array(
 		'default' => '',
@@ -332,7 +353,27 @@ $we7_file_permission = array(
 		),
 		'clerk' => array(
 			'home'
-		)
+		),
+		'unbind_user' => array(),
+	),
+	'phoneapp' => array(
+		'default' => '',
+		'direct' => array(),
+		'vice_founder' => array('phoneapp*'),
+		'owner' => array('phoneapp*'),
+		'manager' => array(
+			'display',
+			'manage',
+			'version'
+		),
+		'operator' => array(
+			'display',
+			'manage',
+			'version'
+		),
+		'clerk' => array(
+			'display'
+		),
 	),
 	'utility' => array(
 		'default' => '',
@@ -358,7 +399,8 @@ $we7_file_permission = array(
 		),
 		'operator' => array(
 			'emulator',
-		)
+		),
+		'unbind_user' => array(),
 	),
 	'append' => array('append*'),
 	'see_more_info' => array(
@@ -384,7 +426,8 @@ $we7_file_permission = array(
 			'see_notice_post',
 			'see_module_manage_system_newversion',
 			'see_user_edit_base_founder_name',
-			'see_user_create_own_vice_founder'
+			'see_user_create_own_vice_founder',
+			'see_user_profile_edit_username',
 		),
 		'vice_founder' => array(
 			'see_account_manage_users_adduser',
