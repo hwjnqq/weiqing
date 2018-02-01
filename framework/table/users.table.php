@@ -120,8 +120,8 @@ class UsersTable extends We7Table {
 		return $this->query->from('users_permission')->where($condition)->getall('type');
 	}
 
-	public function userFounderGroupInfo($uid) {
-		return $this->query->from('users_founder_group')->where('id', $uid)->get();
+	public function userFounderGroupInfo($groupid) {
+		return $this->query->from('users_founder_group')->where('id', $groupid)->get();
 	}
 
 	public function userProfileMobile($mobile) {

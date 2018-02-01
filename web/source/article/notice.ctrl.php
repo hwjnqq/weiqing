@@ -110,7 +110,7 @@ if ($do == 'post') {
 		$data = array(
 			'title' => $title,
 			'cateid' => $cateid,
-			'content' => htmlspecialchars_decode($content),
+			'content' => safe_gpc_html(htmlspecialchars_decode($content)),
 			'displayorder' => intval($_GPC['displayorder']),
 			'click' => intval($_GPC['click']),
 			'is_display' => intval($_GPC['is_display']),

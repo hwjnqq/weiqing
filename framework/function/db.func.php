@@ -177,8 +177,8 @@ function db_schema_compare($table1, $table2) {
 		$ret['fields']['diff'] = array_values($diffs);
 	}
 
-	$indexes1 = array_keys($table1['indexes']);
-	$indexes2 = array_keys($table2['indexes']);
+	$indexes1 = is_array($table1['indexes']) ? array_keys($table1['indexes']) : array();
+	$indexes2 = is_array($table2['indexes']) ? array_keys($table2['indexes']) : array();
 	$diffs = array_diff($indexes1, $indexes2);
 	if(!empty($diffs)) {
 		$ret['indexes']['greater'] = array_values($diffs);

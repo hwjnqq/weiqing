@@ -36,6 +36,8 @@ define('ACCOUNT_TYPE_OFFCIAL_AUTH', 3);
 define('ACCOUNT_TYPE_APP_NORMAL', 4);
 //正常接入PC
 define('ACCOUNT_TYPE_WEBAPP_NORMAL', 5);
+//正常接入APP
+define('ACCOUNT_TYPE_PHONEAPP_NORMAL', 6);
 
 
 //授权登录接入
@@ -72,6 +74,7 @@ define('ACCOUNT_MANAGE_NAME_VICE_FOUNDER', 'vice_founder');
 define('ACCOUNT_MANAGE_GROUP_VICE_FOUNDER', 2);
 //普通用户
 define('ACCOUNT_MANAGE_GROUP_GENERAL', 0);
+define('ACCOUNT_MANAGE_NAME_UNBIND_USER', 'unbind_user');
 //admin创建用户，用户组 owner_uid=0
 define('ACCOUNT_NO_OWNER_UID', 0);
 
@@ -138,6 +141,9 @@ define('MODULE_NONSUPPORT_ACCOUNT', 1);
 //是否支持pc 1不支持  2支持
 define('MODULE_NOSUPPORT_WEBAPP', 1);
 define('MODULE_SUPPORT_WEBAPP', 2);
+//是否支持app 1不支持  2支持
+define('MODULE_NOSUPPORT_PHONEAPP', 1);
+define('MODULE_SUPPORT_PHONEAPP', 2);
 //是否支持系统首页 1不支持  2支持
 define('MODULE_SUPPORT_SYSTEMWELCOME', 2);
 define('MODULE_NONSUPPORT_SYSTEMWELCOME', 1);

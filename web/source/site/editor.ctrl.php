@@ -25,9 +25,7 @@ if ($do == 'uc') {
 			itoast('请您先设计手机端页面.', '', 'error');
 		}
 		$page = $params[0];
-		$html = htmlspecialchars_decode($_GPC['wapeditor']['html'], ENT_QUOTES);
-		$html = str_replace(array('<?', '<%', '<?php', '{php'), '_', $html);
-		$html = preg_replace('/<\s*?script.*(src|language)+/i', '_', $html);
+		$html = safe_gpc_html(htmlspecialchars_decode($_GPC['wapeditor']['html'], ENT_QUOTES));
 		$data = array(
 			'uniacid' => $_W['uniacid'],
 			'multiid' => '0',
@@ -121,9 +119,7 @@ if ($do == 'uc') {
 		if (empty($params)) {
 			itoast('请您先设计手机端页面.', '', 'error');
 		}
-		$html = htmlspecialchars_decode($_GPC['wapeditor']['html'], ENT_QUOTES);
-		$html = str_replace(array('<?', '<%', '<?php', '{php'), '_', $html);
-		$html = preg_replace('/<\s*?script.*(src|language)+/i', '_', $html);
+		$html = safe_gpc_html(htmlspecialchars_decode($_GPC['wapeditor']['html'], ENT_QUOTES));
 		$html = preg_replace('/background\-image\:(\s)*url\(\"(.*)\"\)/U', 'background-image: url($2)', $html);
 		$data = array(
 			'uniacid' => $_W['uniacid'],

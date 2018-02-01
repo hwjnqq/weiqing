@@ -243,7 +243,7 @@ if ($do == 'remote') {
 		foreach ($local_attachment as $key => $attachment) {
 			$attachment = str_replace(ATTACHMENT_ROOT . 'images/', '', $attachment);
 			list($file_account) = explode('/', $attachment);
-			if ($file_account == 'global') {
+			if ($file_account == 'global' || !file_is_image($attachment)) {
 				unset($local_attachment[$key]);
 			}
 		}

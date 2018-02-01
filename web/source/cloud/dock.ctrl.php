@@ -14,6 +14,7 @@ $dos = array(
 	'schema',
 	'download',
 	'module.query',
+	'module.bought',
 	'module.info',
 	'module.build',
 	'module.setting.cloud',
@@ -97,7 +98,7 @@ if($do == 'download') {
 	exit('failed');
 }
 
-if(in_array($do, array('module.query', 'module.info', 'module.build', 'theme.query', 'theme.info', 'theme.build', 'application.build'))) {
+if(in_array($do, array('module.query', 'module.bought', 'module.info', 'module.build', 'theme.query', 'theme.info', 'theme.build', 'application.build'))) {
 	$dat = __secure_decode($post);
 	if(!empty($dat)) {
 		$secret = random(32);

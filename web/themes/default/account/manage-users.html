@@ -1,9 +1,10 @@
 {template 'common/header'}
 {template 'account/account-header'}
 <div class="alert alert-info">
-	<p><i class="fa fa-exclamation-circle"></i> 无主管理员时，创始人为默认主管理员</p>
-	<p><i class="fa fa-exclamation-circle"></i> 主管理员拥有公众号的所有权限，并且公众号的权限（模块、模板）根据主管理员来获取</p>
-	<p><i class="fa fa-exclamation-circle"></i> 操作员不允许删除公众号和编辑公众号资料，管理员无此限制</p>
+	<p><i class="fa fa-exclamation-circle"></i> 无主管理员时，创始人为默认主管理员；</p>
+	<p><i class="fa fa-exclamation-circle"></i> 主管理员拥有公众号的所有权限，并且公众号的权限（模块、模板）根据主管理员来获取；</p>
+	<p><i class="fa fa-exclamation-circle"></i> 操作员和管理员不允许删除公众号和编辑公众号资料；</p>
+	<p><i class="fa fa-exclamation-circle"></i> 管理员可以管理操作员；</p>
 </div>
 <div id="js-account-manage-users" ng-controller="AccountManageUsers" ng-cloak>
 	<table class="table we7-table table-hover">
