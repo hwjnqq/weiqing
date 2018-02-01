@@ -22,8 +22,13 @@ function app_navs($type = 'home', $multiid = 0, $section = 0) {
 		$setting = uni_setting($_W['uniacid'], array('default_site'));
 		$multiid = $setting['default_site'];
 	}
-	$sql = "SELECT id,name, description, url, icon, css, position, module FROM " . tablename('site_nav') . " WHERE position = '{$pos[$type]}' AND status = 1 AND uniacid = '{$_W['uniacid']}' AND multiid = '{$multiid}' ORDER BY displayorder DESC, id ASC";
-	$navs = pdo_fetchall($sql);
+	$params = array(
+		'position' => $pos[$type],
+		'status' => 1,
+		'uniacid' => $_W['uniacid'],
+		'multiid' => $multiid
+	);
+	$navs = table('site')->siteNavList($params);
 	if (!empty($navs)) {
 		foreach ($navs as &$row) {
 			if (!strexists($row['url'], 'tel:') && !strexists($row['url'], '://') && !strexists($row['url'], 'www') && !strexists($row['url'], 'i=')) {
@@ -54,15 +59,25 @@ function app_navs($type = 'home', $multiid = 0, $section = 0) {
 function app_update_today_visit($module_name) {
 	global $_W;
 	$module_name = trim($module_name);
-	if (empty($module_name)) {
+	if (empty($module_name) || !in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
 		return false;
 	}
 	$today = date('Ymd');
-	$today_exist = pdo_get('stat_visit', array('date' => $today, 'uniacid' => $_W['uniacid'], 'module' => $module_name));
+
+	$statistics_table = table('statistics');
+	$params = array(
+		'date' => $today,
+		'uniacid' => $_W['uniacid'],
+		'module' => $module_name,
+		'type' => 'app'
+	);
+	$today_exist = $statistics_table->visitList($params, 'one');
+
 	if (empty($today_exist)) {
 		$insert_data = array(
 			'uniacid' => $_W['uniacid'],
 			'module' => $module_name,
+			'type' => 'app',
 			'date' => $today,
 			'count' => 1
 		);
@@ -149,7 +164,8 @@ function app_month_visit_till_today($uniacid = 0) {
 	}
 	$start = date('Ym01', strtotime(date("Ymd")));
 	$end = date('Ymd', strtotime('-1 day'));
-	$visit = pdo_getall('stat_visit', array('date >=' => $start, 'date <=' => $end, 'uniacid' => $uniacid));
+	$params = array('date >=' => $start, 'date <=' => $end, 'uniacid' => $uniacid, 'type' => 'app');
+	$visit = table('statistics')->visitList($params);
 	if (!empty($visit)) {
 		foreach ($visit as $val) {
 			$result += $val['count'];
@@ -169,11 +185,35 @@ function app_today_visit($uniacid = 0) {
 	$result = 0;
 	$uniacid = intval($uniacid) > 0 ? intval($uniacid) : $_W['uniacid'];
 
-	$today = pdo_getall('stat_visit', array('date' => date('Ymd'), 'uniacid' => $uniacid));
+	$params = array('date' => date('Ymd'), 'uniacid' => $uniacid, 'type' => 'app');
+	$today = table('statistics')->visitList($params);
 	if (!empty($today)) {
 		foreach ($today as $val) {
 			$result += $val['count'];
 		}
+	}
+	return $result;
+}
+
+/**
+ * 获取模块数据同步信息
+ * @param string $module_name
+ * @return number
+ */
+function app_link_uniaicd_info($module_name) {
+	global $_W;
+	$result = 0;
+	if (empty($module_name)) {
+		return $result;
+	}
+	$module_info = module_fetch($module_name);
+	if (empty($module_info)) {
+		return $result;
+	}
+	$account_module = table('module')->uniAccountModuleInfo($module_name);
+	if (!empty($account_module)) {
+		$settings = (array)$account_module['settings'];
+		$result = !empty($settings['link_uniacid']) ? intval($settings['link_uniacid']) : 0;
 	}
 	return $result;
 }
