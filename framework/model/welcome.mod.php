@@ -37,7 +37,8 @@ function welcome_get_ads() {
 function welcome_notices_get() {
 	global $_W;
 	$order = !empty($_W['setting']['notice_display']) ? $_W['setting']['notice_display'] : 'displayorder';
-	$notices = pdo_getall('article_notice', array('is_display' => 1), array('id', 'title', 'createtime', 'style', 'group'), '', $order . ' DESC', array(1,15));
+	$params = array('fields' => array('id', 'title', 'createtime', 'style', 'group'), 'is_display' => 1, 'order' => array($order => 'DESC'), 'limit' => array(0, 15));
+	$notices = table('article')->articleList($params);
 	if(!empty($notices)) {
 		foreach ($notices as $key => $notice_val) {
 			$notices[$key]['url'] = url('article/notice-show/detail', array('id' => $notice_val['id']));

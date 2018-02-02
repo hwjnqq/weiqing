@@ -22,10 +22,7 @@ function setting_save($data = '', $key = '') {
 			$return = pdo_query("REPLACE INTO " . tablename('core_settings') . " (`key`, `value`) VALUES " . implode(',', $record));
 		}
 	} else {
-		$record = array();
-		$record['key'] = $key;
-		$record['value'] = iserializer($data);
-		$return = pdo_insert('core_settings', $record, TRUE);
+		$return = table('coresetting')->settingSave($key, $data);
 	}
 	$cachekey = "setting";
 	cache_write($cachekey, '');
@@ -39,10 +36,11 @@ function setting_save($data = '', $key = '') {
  */
 function setting_load($key = '') {
 	global $_W;
+
 	$cachekey = "setting";
 	$settings = cache_load($cachekey);
 	if (empty($settings)) {
-		$settings = pdo_fetchall('SELECT * FROM ' . tablename('core_settings'), array(), 'key');
+		$settings = table('coresetting')->getSettingList();
 		if (is_array($settings)) {
 			foreach ($settings as $k => &$v) {
 				$settings[$k] = iunserializer($v['value']);

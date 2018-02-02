@@ -10,6 +10,9 @@ class AccountTable extends We7Table {
 
 	protected $tableName = 'uni_account';
 	protected $primaryKey = 'acid';
+	protected $uni_verifycode = 'uni_verifycode';
+	protected $uniSettings = 'uni_settings';
+	protected $uniAccountUsers = 'uni_account_users';
 	/**
 	 *  当前公众号的基本信息
 	 * @return array
@@ -127,6 +130,18 @@ class AccountTable extends We7Table {
 				->getall('acid');
 	}
 
+	public function accountPhoneappInfo($uniacids, $uid) {
+		return $this->query->from('uni_account', 'a')
+				->leftjoin('account_phoneapp', 'w')
+				->on(array('w.uniacid' => 'a.uniacid'))
+				->leftjoin('uni_account_users', 'au')
+				->on(array('a.uniacid' => 'au.uniacid'))
+				->where(array('a.uniacid' => $uniacids))
+				->where(array('au.uid' => $uid))
+				->orderby('a.uniacid', 'asc')
+				->getall('acid');
+	}
+
 	public function searchWithKeyword($title) {
 		$this->query->where('a.name LIKE', "%{$title}%");
 		return $this;
@@ -190,6 +205,10 @@ class AccountTable extends We7Table {
 		return $this->query->from('account_webapp')->where('acid', $acid)->get();
 	}
 
+	public function getPhoneappAccount($acid) {
+		return $this->query->from('account_phoneapp')->where('acid', $acid)->get();
+	}
+
 	public function getUniAccountByAcid($acid) {
 		$account = $this->query->from('account')->where('acid', $acid)->get();
 		$uniaccount = array();
@@ -216,6 +235,27 @@ class AccountTable extends We7Table {
 		}
 	}
 
+	public function accountGroupModules($uniacid) {
+		$packageids = $this->query->from('uni_account_group')->where('uniacid', $uniacid)->select('groupid')->getall('groupid');
+		$uni_modules = array();
+		if (IMS_FAMILY == 'x') {
+			$site_store_buy_package = table('store')->searchUserBuyPackage($uniacid);
+			$packageids = array_merge($packageids, $site_store_buy_package);
+		}
+		if (in_array('-1', array_keys($packageids))) {
+			$modules = $this->query->from('modules')->select('name')->getall('name');
+			return array_keys($modules);
+		}
+		$uni_groups = $this->query->from('uni_group')->where('uniacid', $uniacid)->whereor('id', array_keys($packageids))->getall('modules');
+		if (!empty($uni_groups)) {
+			foreach ($uni_groups as $group) {
+				$group_module = (array)iunserializer($group['modules']);
+				$uni_modules = array_merge($group_module, $uni_modules);
+			}
+		}
+		return $uni_modules;
+	}
+
 	public function getAccountOwner($uniacid) {
 		if (empty($uniacid)) {
 			return array();
@@ -229,5 +269,50 @@ class AccountTable extends We7Table {
 
 	public function getAccountByUniacid($uniacid) {
 		return $this->query->from('account')->where('uniacid', $uniacid)->get();
+	}
+
+	public function getAccountExtraPermission($uniacid) {
+		if (empty($uniacid)) {
+			return array();
+		}
+		$result = $this->query->from('uni_group')->where('uniacid', $uniacid)->get();
+		if (!empty($result)) {
+			$result['modules'] = iunserializer($result['modules']);
+			$result['templates'] = iunserializer($result['templates']);
+		} else {
+			$result = array();
+		}
+		return $result;
+	}
+
+	public function getUniVerifycode($params) {
+		global $_W;
+		$this->query->from($this->uni_verifycode);
+		if (!empty($params['uniacid'])) {
+			$this->query->where('uniacid', $params['uniacid']);
+		}
+		if (!empty($params['receiver'])) {
+			$this->query->where('receiver', $params['receiver']);
+		}
+		if (!empty($params['createtime >'])) {
+			$this->query->where('createtime >', $params['createtime >']);
+		}
+		if (!empty($params['verifycode'])) {
+			$this->query->where('verifycode', $params['verifycode']);
+		}
+
+		return $this->query->get();
+	}
+
+	public function getUniSetting() {
+		return $this->query->from($this->uniSettings)->get();
+	}
+
+	public function getUniAccountList() {
+		return $this->query->select('uniacid')->from($this->tableName)->getall();
+	}
+
+	public function getOwnerUid() {
+		return $this->query->from($this->uniAccountUsers)->getcolumn('uid');
 	}
 }

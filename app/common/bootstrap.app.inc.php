@@ -29,10 +29,7 @@ $isdel_account = pdo_get('account', array('isdeleted' => 1, 'acid' => $_W['acid'
 if (!empty($isdel_account)) {
 	exit('指定公众号已被删除');
 }
-if (!empty($_W['account']['setting']['bind_domain']) && !empty($_W['account']['setting']['bind_domain']['domain']) && strpos($_W['siteroot'], $_W['account']['setting']['bind_domain']['domain']) === false) {
-	header('Location:' . $_W['account']['setting']['bind_domain']['domain']. $_SERVER['REQUEST_URI']);
-	exit;
-}
+
 $_W['session_id'] = '';
 if (isset($_GPC['state']) && !empty($_GPC['state']) && strexists($_GPC['state'], 'we7sid-')) {
 	$pieces = explode('-', $_GPC['state']);

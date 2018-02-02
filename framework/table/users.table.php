@@ -8,6 +8,11 @@ defined('IN_IA') or exit('Access Denied');
 
 class UsersTable extends We7Table {
 
+	public function moduleClerkPermission($module) {
+		global $_W;
+		return $this->query->from('users_permission', 'p')->leftjoin('uni_account_users', 'u')->on(array('u.uid' => 'p.uid', 'u.uniacid' => 'p.uniacid'))->where('u.role', 'clerk')->where('p.type', $module)->where('u.uniacid', $_W['uniacid'])->getall('uid');
+	}
+
 	public function searchUsersList() {
 		global $_W;
 		$this->query->from('users', 'u')
