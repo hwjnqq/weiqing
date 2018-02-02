@@ -153,7 +153,6 @@ if ($do == 'accounts_dropdown_menu') {
 	if (empty($module_name)) {
 		exit();
 	}
-	$last_module_info = module_last_switch($module_name);
 	$accounts_list = module_link_uniacid_fetch($_W['uid'], $module_name);
 	if (empty($accounts_list)) {
 		exit();

@@ -7,7 +7,7 @@
 <div class="media media-wechat-setting">
 	<a class="media-left">
 		<span class="icon"><i class="wi wi-wxapp"></i></span>
-		<img src="{media 'headimg_'.$acid.'.jpg'}" class="wechat-img">
+		<img src="{media 'headimg_' . $account['acid'] . '.jpg'}" class="wechat-img">
 	</a>
 	<div class="media-body media-middle ">
 		<h4 class="media-heading color-dark">{$account['name']}</h4>
@@ -55,7 +55,7 @@
 			</td>
 			<td class="clearfix">
 				<div class="item col-sm-6" ng-if="version.modules" ng-repeat="module in version.modules">
-					<img src="{{module.logo}}" class="icon"/>
+					<img ng-src="{{module.logo}}" class="icon"/>
 					<div class="name" ng-bind="module.title"></div>
 					<div ng-bind="module.version"></div>
 				</div>
@@ -97,7 +97,7 @@
 							<td class="wxapp-module-list">
 								<div class="col-sm-6" ng-if="activeVersion.modules" ng-repeat="module in activeVersion.modules">
 									<div class="item">
-										<img src="{{module.logo}}" class="icon"/>
+										<img ng-src="{{module.logo}}" class="icon"/>
 										<div class="name" ng-bind="module.title"></div>
 										<div ng-bind="module.version"></div>
 										<div class="cover-dark"><a href="javascript:;" class="cover-delect" ng-click="delModule(module);"><i class="fa fa-minus-circle"></i>删除</a></div>
@@ -129,7 +129,7 @@
 						<div class="row">
 							<div class="col-sm-2 text-center we7-margin-bottom select-module-wxapp" ng-repeat="module in wxapp_modules" ng-if="wxapp_modules">
 								<a href="javascript:;" ng-click="selectedWxModule(module, $event)">
-									<img src="{{module.logo}}" style="width:50px;height:50px;">
+									<img ng-src="{{module.logo}}" style="width:50px;height:50px;">
 									<p class="text-over">{{module.title}}</p>
 								</a>
 								<span id="module-{{module.name}}" class="selected hide" style="position:absolute;width:82%;height:100%;left:10px;top:0;opacity:0.8;cursor:pointer;background:#e7e8eb; vertical-align:middle;font-size:30px"><i class="wi wi-right-sign color-green" style="margin-top:25px"></i></span>
