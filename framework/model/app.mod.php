@@ -37,6 +37,16 @@ function app_navs($type = 'home', $multiid = 0, $section = 0) {
 			if (is_serialized($row['css'])) {
 				$row['css'] = unserialize($row['css']);
 			}
+			if (empty($row['css'])) {
+				$row['css'] = array(
+					'icon' => array(
+						'icon' => 'fa fa-external-link',
+						'font-size' => '35px',
+						'color' => '',
+					),
+					'name' => array('color' => ''),
+				);
+			}
 			if (empty($row['css']['icon']['icon'])) {
 				$row['css']['icon']['icon'] = 'fa fa-external-link';
 			}
