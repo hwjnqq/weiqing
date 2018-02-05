@@ -12,7 +12,7 @@ $do = in_array($do, $dos) ? $do : 'display';
 if (in_array($do, array('validate_mobile', 'bind_mobile'))) {
 	$user_table = table('users');
 	$user_profile = $user_table->userProfile($_W['uid']);
-	$mobile = trim($_GPC['mobile']);
+	$mobile = safe_gpc_string($_GPC['mobile']);
 	$mobile_exists = $user_table->userProfileMobile($mobile);
 
 	if (empty($mobile)) {

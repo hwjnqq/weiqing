@@ -5,39 +5,41 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-$dos = array('display','post');
+$dos = array('display', 'post');
 $do = in_array($do, $dos) ? $do : 'display';
 
 
 if ($do == 'display') {
 	$_W['page']['title'] = '字段管理 - 用户管理';
-	$condition = '' ;
-	$params = array();
-	if (!empty($_GPC['keyword'])) {
-		$condition .= " WHERE title LIKE :title";
-		$params[':title'] = "%{$_GPC['keyword']}%";
+
+	$table = table('profilefields');
+
+	$keyword = safe_gpc_string($_GPC['keyword']);
+	if (!empty($keyword)) {
+		$table->searchKeyword($keyword);
 	}
+
 	if (checksubmit('submit')) {
 		if (!empty($_GPC['displayorder'])) {
 			foreach ($_GPC['displayorder'] as $id => $displayorder) {
 				pdo_update('profile_fields', array(
-				'displayorder' => intval($displayorder),
-				'available' => intval($_GPC['available'][$id]),
-				'showinregister' => intval($_GPC['showinregister'][$id]),
-				'required' => intval($_GPC['required'][$id]),
+				'displayorder' => safe_gpc_int($displayorder),
+				'available' => safe_gpc_int($_GPC['available'][$id]),
+				'showinregister' => safe_gpc_int($_GPC['showinregister'][$id]),
+				'required' => safe_gpc_int($_GPC['required'][$id]),
 				), array('id' => $id));
 			}
 		}
 		itoast('资料设置更新成功！', referer(), 'success');
 	}
-	$sql = "SELECT * FROM " . tablename('profile_fields'). $condition ." ORDER BY displayorder DESC";
-	$fields = pdo_fetchall($sql, $params);
+
+	$fields = $table->getFieldsList();
 	template('user/fields-display');
 }
 
 if ($do == 'post') {
 	$_W['page']['title'] = '编辑字段 - 用户管理';
-	$id = intval($_GPC['id']);
+	$id = safe_gpc_int($_GPC['id']);
 
 	if (checksubmit('submit')) {
 		if (empty($_GPC['title'])) {
@@ -52,15 +54,15 @@ if ($do == 'post') {
 		$data = array(
 			'title' => $_GPC['title'],
 			'description' => $_GPC['description'],
-			'displayorder' => intval($_GPC['displayorder']),
-			'available' => intval($_GPC['available']),
-			'unchangeable' => intval($_GPC['unchangeable']),
-			'showinregister' => intval($_GPC['showinregister']),
-			'required' => intval($_GPC['required']),
-			'field' => trim($_GPC['field']),
-			'field_length' => intval($_GPC['length'])
+			'displayorder' => safe_gpc_int($_GPC['displayorder']),
+			'available' => safe_gpc_int($_GPC['available']),
+			'unchangeable' => safe_gpc_int($_GPC['unchangeable']),
+			'showinregister' => safe_gpc_int($_GPC['showinregister']),
+			'required' => safe_gpc_int($_GPC['required']),
+			'field' => safe_gpc_string($_GPC['field']),
+			'field_length' => safe_gpc_int($_GPC['length'])
 		);
-		$length = intval($_GPC['length']);
+		$length = safe_gpc_int($_GPC['length']);
 		if (empty($id)) {
 			pdo_insert('profile_fields', $data);
 			if (!pdo_fieldexists('users_profile', $data['field'])) {
@@ -86,7 +88,7 @@ if ($do == 'post') {
 	}
 
 	if (!empty($id)) {
-		$item = pdo_fetch("SELECT * FROM ".tablename('profile_fields')." WHERE id = :id", array(':id' => $id));
+		$item = pdo_get('profile_fields', array('id' => $id));
 	}
 	template('user/fields-post');
 }

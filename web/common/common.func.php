@@ -50,7 +50,7 @@ function message($msg, $redirect = '', $type = '', $tips = false, $extend = arra
 		$redirect = referer();
 	}
 	// 跳转链接只能跳转本域名下 防止钓鱼 如: 用户可能正常从信任站点微擎登录 跳转到第三方网站 会误认为第三方网站也是安全的
-	$redirect = safe_url_not_outside($redirect);
+	$redirect = safe_gpc_url($redirect);
 
 	if($redirect == '') {
 		$type = in_array($type, array('success', 'error', 'info', 'warning', 'ajax', 'sql')) ? $type : 'info';
@@ -102,7 +102,7 @@ function message($msg, $redirect = '', $type = '', $tips = false, $extend = arra
 		if (!empty($extend) && is_array($extend)) {
 			foreach ($extend as $button) {
 				if (!empty($button['title']) && !empty($button['url'])) {
-					$button['url'] = safe_url_not_outside($button['url']);
+					$button['url'] = safe_gpc_url($button['url']);
 					$button['title'] = rawurlencode($button['title']);
 					$extend_button[] = $button;
 				}

@@ -47,10 +47,7 @@ class MusicModule extends WeModule {
 
 	public function fieldsFormSubmit($rid = 0) {
 		global $_GPC, $_W;
-		$sql = 'DELETE FROM '. tablename($this->tablename) . ' WHERE `rid`=:rid';
-		$pars = array();
-		$pars[':rid'] = $rid;
-		pdo_query($sql, $pars);
+		pdo_delete($this->tablename, array('rid' => $rid));
 		
 		foreach($this->replies as $reply) {
 			$reply['rid'] = $rid;
@@ -61,14 +58,14 @@ class MusicModule extends WeModule {
 
 	public function ruleDeleted($rid = 0) {
 		global $_W;
-		$replies = pdo_fetchall("SELECT id, url FROM ".tablename($this->tablename)." WHERE rid = '$rid'");
+		$replies = pdo_getall($this->tablename, array('rid' => $rid));
 		$deleteid = array();
 		if (!empty($replies)) {
 			foreach ($replies as $index => $row) {
 				$deleteid[] = $row['id'];
 			}
 		}
-		pdo_delete($this->tablename, "id IN ('".implode("','", $deleteid)."')");
+		pdo_delete($this->tablename, array('id' => $deleteid));
 		return true;
 	}
 

@@ -52,6 +52,7 @@ if ($do == 'post') {
 			'maxaccount' => intval($_GPC['maxaccount']),
 			'maxwxapp' => intval($_GPC['maxwxapp']),
 			'maxwebapp' => intval($_GPC['maxwebapp']),
+			'maxphoneapp' => intval($_GPC['maxphoneapp']),
 			'timelimit' => intval($_GPC['timelimit'])
 		);
 
@@ -66,7 +67,7 @@ if ($do == 'post') {
 }
 
 if ($do == 'del') {
-	$id = intval($_GPC['id']);
+	$id = safe_gpc_int($_GPC['id']);
 	$result = pdo_delete('users_group', array('id' => $id));
 	if(!empty($result)){
 		itoast('删除成功！', url('user/group/display'), 'success');

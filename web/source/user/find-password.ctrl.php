@@ -14,7 +14,7 @@ $do = in_array($do, $dos) ? $do : 'find_password';
 $setting_sms_sign = setting_load('site_sms_sign');
 $find_password_sign = !empty($setting_sms_sign['site_sms_sign']['find_password']) ? $setting_sms_sign['site_sms_sign']['find_password'] : '';
 
-$mobile = trim($_GPC['mobile']);
+$mobile = safe_gpc_string($_GPC['mobile']);
 if (in_array($do, array('valid_mobile', 'valid_code', 'set_password'))) {
 	if (empty($mobile)) {
 		iajax(-1, '手机号不能为空');

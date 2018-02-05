@@ -279,7 +279,6 @@ class DB {
 		$params = array_merge($fields['params'], $condition['params']);
 		$sql = "UPDATE " . $this->tablename($table) . " SET {$fields['fields']}";
 		$sql .= $condition['fields'] ? ' WHERE '.$condition['fields'] : '';
-
 		return $this->query($sql, $params);
 	}
 
@@ -708,7 +707,7 @@ class SqlPaser {
 		if (is_array($params)) {
 			$result['fields'] = '';
 			foreach ($params as $fields => $value) {
-				//update或是insert语句，值为null时按空处理
+				//update或是insert语句，值为null时按空处理，仅当值为NULL时，才按 IS null 处理
 				if ($glue == ',') {
 					$value = $value === null ? '' : $value;
 				}
@@ -723,7 +722,7 @@ class SqlPaser {
 					$fields = trim($fields);
 					if (is_array($value) && !empty($value)) {
 						$operator = 'IN';
-					} elseif ($value === null) {
+					} elseif ($value === 'NULL') {
 						$operator = 'IS';
 					} else {
 						$operator = '=';
@@ -736,7 +735,7 @@ class SqlPaser {
 					//如果是数组不等于情况，则转换为NOT IN
 					if (is_array($value) && !empty($value)) {
 						$operator = 'NOT IN';
-					} elseif ($value === null) {
+					} elseif ($value === 'NULL') {
 						$operator = 'IS NOT';
 					}
 				}
@@ -756,9 +755,9 @@ class SqlPaser {
 					$split = ' ' . $glue . ' ';
 				} else {
 					$placeholder = self::parsePlaceholder($fields, $suffix);
-					$result['fields'] .= $split . "$select_fields {$operator} " . (is_null($value) ? 'NULL' : $placeholder);
+					$result['fields'] .= $split . "$select_fields {$operator} " . ($value === 'NULL' ? 'NULL' : $placeholder);
 					$split = ' ' . $glue . ' ';
-					if (!is_null($value)) {
+					if ($value !== 'NULL') {
 						$result['params'][$placeholder] = is_array($value) ? '' : $value;
 					}
 				}

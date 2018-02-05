@@ -18,8 +18,7 @@ class Mobile extends OAuth2Client {
 		global $_GPC, $_W;
 		$mobile = trim($_GPC['username']);
 		$member['password'] = $_GPC['password'];
-
-		pdo_query('DELETE FROM'.tablename('users_failed_login'). ' WHERE lastupdate < :timestamp', array(':timestamp' => TIMESTAMP-300));
+		pdo_delete('users_failed_login', array('lastupdate <' => TIMESTAMP-300));
 		$failed = pdo_get('users_failed_login', array('username' => $mobile, 'ip' => CLIENT_IP));
 		if ($failed['count'] >= 5) {
 			return error('-1', '输入密码错误次数超过5次，请在5分钟后再登录');

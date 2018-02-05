@@ -651,7 +651,7 @@ EOF;
 			return $this->analyzeClick($message);
 		}
 		if (in_array($message['event'], array('pic_photo_or_album', 'pic_weixin', 'pic_sysphoto'))) {
-			pdo_query("DELETE FROM ".tablename('menu_event')." WHERE createtime < '".($GLOBALS['_W']['timestamp'] - 100)."' OR openid = '{$message['from']}'");
+			pdo_delete('menu_event', array('createtime <' => $GLOBALS['_W']['timestamp'] - 100, 'openid' => $message['from']), 'OR');
 			if (!empty($message['sendpicsinfo']['count'])) {
 				foreach ($message['sendpicsinfo']['piclist'] as $item) {
 					pdo_insert('menu_event', array(

@@ -231,18 +231,20 @@ function cron_add($data) {
 function cron_delete($ids) {
 	global $_W;
 	load()->model('cloud');
-	if(empty($ids)) return true;
-	$ids = implode(', ', $ids);
-	$corns = pdo_fetchall('SELECT id, cloudid FROM ' . tablename('core_cron') . " WHERE uniacid = :uniacid AND id IN ({$ids})", array(':uniacid' => $_W['uniacid']), 'cloudid');
+	if (empty($ids) || !is_array($ids)) {
+		return true;
+	}
+	$ids = safe_gpc_array($ids);
+	
+	$corns = pdo_getall('core_cron', array('uniacid' => $_W['uniacid'], 'id' => $ids), array(), 'cloudid');
 	$cloudid = array_keys($corns);
+	
 	if(!empty($cloudid)) {
 		$status = cloud_cron_remove($cloudid);
 		if(is_error($status)) {
 			return $status;
 		}
-		pdo_query('DELETE FROM ' . tablename('core_cron') . " WHERE uniacid = :uniacid AND id IN ({$ids})", array(':uniacid' => $_W['uniacid']));
+		pdo_delete('core_cron', array('uniacid' => $_W['uniacid'], 'id' => $ids));
 	}
 	return true;
 }
-
-

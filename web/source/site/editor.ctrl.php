@@ -81,8 +81,7 @@ if ($do == 'uc') {
 				$ids[] = $row['id'];
 			}
 		}
-		$ids_str = implode(',', $ids);
-		pdo_query('DELETE FROM ' . tablename('site_nav') . " WHERE uniacid = :uniacid AND position = '2' AND id NOT IN ($ids_str)", array(':uniacid' => $_W['uniacid']));
+		pdo_delete('site_nav', array('uniacid' => $_W['uniacid'], 'position' => '2', 'id <>' => $ids));
 		itoast('个人中心保存成功.', url('site/editor/uc'), 'success');
 	}
 	$navs = pdo_fetchall("SELECT id, icon, css, name, module, status, url FROM ".tablename('site_nav')." WHERE uniacid = :uniacid AND position = '2' ORDER BY displayorder DESC, id ASC", array(':uniacid' => $_W['uniacid']));

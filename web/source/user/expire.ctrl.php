@@ -19,7 +19,7 @@ if ($do == 'display') {
 }
 
 if ($do == 'save_expire') {
-	$user_expire['day'] = !empty($_GPC['day']) ? intval($_GPC['day']) : 1;
+	$user_expire['day'] = !empty($_GPC['day']) ? safe_gpc_int($_GPC['day']) : 1;
 	$result = setting_save($user_expire, 'user_expire');
 	if (is_error($result)) {
 		iajax(-1, '设置失败', url('user/expire'));

@@ -18,7 +18,7 @@ if ($do == 'display') {
 	$message_id = safe_gpc_int($_GPC['message_id']);
 	message_notice_read($message_id);
 
-	$pindex = max(1, intval($_GPC['page']));
+	$pindex = max(1, safe_gpc_int($_GPC['page']));
 	$psize = 20;
 	$users_table = table('users');
 	$type = empty($_GPC['type']) ? 'display' : $_GPC['type'];
@@ -65,7 +65,7 @@ if ($do == 'operate') {
 	if (!$_W['isajax'] || !$_W['ispost']) {
 		iajax(-1, '非法操作！', referer());
 	}
-	$type = $_GPC['type'];
+	$type = safe_gpc_string($_GPC['type']);
 	$types = array('recycle', 'recycle_delete', 'recycle_restore', 'check_pass');
 	if (!in_array($type, $types)) {
 		iajax(-1, '类型错误!', referer());
@@ -80,7 +80,7 @@ if ($do == 'operate') {
 			permission_check_account_user('system_user_recycle');
 			break;
 	}
-	$uid = intval($_GPC['uid']);
+	$uid = safe_gpc_int($_GPC['uid']);
 	$uid_user = user_single($uid);
 	if (in_array($uid, $founders)) {
 		iajax(-1, '访问错误, 无法操作站长.', url('user/display'));
@@ -91,7 +91,7 @@ if ($do == 'operate') {
 	
 	switch ($type) {
 		case 'check_pass':
-			$data = array('status' => 2);
+			$data = array('status' => USER_STATUS_NORMAL);
 			pdo_update('users', $data , array('uid' => $uid));
 			iajax(0, '更新成功', referer());
 			break;
@@ -104,7 +104,7 @@ if ($do == 'operate') {
 			iajax(0, '删除成功', referer());
 			break;
 		case 'recycle_restore':
-			$data = array('status' => 2);
+			$data = array('status' => USER_STATUS_NORMAL);
 			pdo_update('users', $data , array('uid' => $uid));
 			iajax(0, '启用成功', referer());
 			break;

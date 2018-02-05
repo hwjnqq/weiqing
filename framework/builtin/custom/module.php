@@ -32,10 +32,8 @@ class CustomModule extends WeModule {
 	
 	public function fieldsFormSubmit($rid = 0) {
 		global $_GPC;
-		$sql = 'DELETE FROM '. tablename($this->tablename) . ' WHERE `rid`=:rid';
-		$pars = array();
-		$pars[':rid'] = $rid;
-		pdo_query($sql, $pars);
+		pdo_delete($this->tablename, array('rid' => $rid));
+		
 		pdo_insert($this->tablename, array('rid' => $rid, 'start1' => $_GPC['start1'], 'end1' => $_GPC['end1'], 'start2' => $_GPC['start2'], 'end2' => $_GPC['end2']));
 		return true;
 	}

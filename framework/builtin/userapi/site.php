@@ -148,12 +148,10 @@ class UserApiModuleSite extends WeModuleSite {
 		}
 		if($foo == 'delete') {
 			$rid = intval($_GPC['rid']);
-			$sql = 'DELETE FROM ' . tablename('rule') . " WHERE `weid`=0 AND `module`='userapi' AND `id`={$rid}";
-			pdo_query($sql);
-			$sql = 'DELETE FROM ' . tablename('rule_keyword') . " WHERE `weid`=0 AND `module`='userapi' AND `rid`={$rid}";
-			pdo_query($sql);
-			$sql = 'DELETE FROM ' . tablename($this->tablename) . " WHERE `rid`={$rid}";
-			pdo_query($sql);
+			pdo_delete('rule', array('module' => 'userapi', 'id' => $rid));
+			pdo_delete('rule_keyword', array('module' => 'userapi', 'rid' => $rid));
+			pdo_delete($this->tablename, array('rid' => $rid));
+			
 			itoast('成功删除.', referer(), 'success');
 		}
 		if($foo == 'post') {
@@ -186,10 +184,8 @@ class UserApiModuleSite extends WeModuleSite {
 				if(empty($rid)) {
 					itoast('增加服务失败, 请稍后重试. ', '', 'error');
 				}
-				$sql = 'DELETE FROM '. tablename('rule_keyword') . ' WHERE `rid`=:rid AND `weid`=0';
-				$pars = array();
-				$pars[':rid'] = $rid;
-				pdo_query($sql, $pars);
+				
+				pdo_delete('rule_keyword', array('rid' => $rid));
 
 				$rows = array();
 				$rowtpl = array(

@@ -35,10 +35,8 @@ class ImagesModule extends WeModule {
 
 	public function fieldsFormSubmit($rid = 0) {
 		global $_GPC, $_W;
-		$sql = 'DELETE FROM '. tablename($this->tablename) . ' WHERE `rid`=:rid';
-		$pars = array();
-		$pars[':rid'] = $rid;
-		pdo_query($sql, $pars);
+		pdo_delete($this->tablename, array('rid' => $rid));
+		
 		$this->replies['rid'] = $rid;
 		pdo_insert($this->tablename, $this->replies);
 		return true;

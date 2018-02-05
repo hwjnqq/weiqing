@@ -85,9 +85,9 @@ function getip() {
 	$ip = $_SERVER['REMOTE_ADDR'];
 	if(isset($_SERVER['HTTP_CDN_SRC_IP'])) {
 		$ip = $_SERVER['HTTP_CDN_SRC_IP'];
-	} elseif (isset($_SERVER['HTTP_CLIENT_IP']) && preg_match('/^([0-9]{1,3}\.){3}[0-9]{1,3}$/', $_SERVER['HTTP_CLIENT_IP'])) {
+	} elseif (isset($_SERVER['HTTP_CLIENT_IP'])) {
 		$ip = $_SERVER['HTTP_CLIENT_IP'];
-	} elseif(isset($_SERVER['HTTP_X_FORWARDED_FOR']) AND preg_match_all('#\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}#s', $_SERVER['HTTP_X_FORWARDED_FOR'], $matches)) {
+	} elseif(isset($_SERVER['HTTP_X_FORWARDED_FOR']) && preg_match_all('#\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}#s', $_SERVER['HTTP_X_FORWARDED_FOR'], $matches)) {
 		foreach ($matches[0] AS $xip) {
 			if (!preg_match('#^(10|172\.16|192\.168)\.#', $xip)) {
 				$ip = $xip;
@@ -95,7 +95,11 @@ function getip() {
 			}
 		}
 	}
-	return $ip;
+	if (preg_match('/^([0-9]{1,3}\.){3}[0-9]{1,3}$/', $ip)) {
+		return $ip;
+	} else {
+		return '127.0.0.1';
+	}
 }
 
 /**
@@ -441,6 +445,9 @@ if (!function_exists('murl')) {
 		}
 		if (!empty($_W['account']) && $_W['account']['type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
 			$str .= '&a=webapp';
+		}
+		if (!empty($_W['account']) && $_W['account']['type'] == ACCOUNT_TYPE_PHONEAPP_NORMAL) {
+			$str .= '&a=phoneapp';
 		}
 		$url .= "index.php?i={$_W['uniacid']}{$str}&";
 		if (!empty($controller)) {

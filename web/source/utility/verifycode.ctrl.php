@@ -30,8 +30,7 @@ if(empty($receiver)){
 	exit('您输入的邮箱或手机号格式错误');
 }
 
-$sql = 'DELETE FROM ' . tablename('uni_verifycode') . ' WHERE `createtime`<' . (TIMESTAMP - 1800);
-pdo_query($sql);
+pdo_delete('uni_verifycode', array('createtime <' => TIMESTAMP - 1800));
 
 $sql = 'SELECT * FROM ' . tablename('uni_verifycode') . ' WHERE `receiver`=:receiver AND `uniacid`=:uniacid';
 $pars = array();
