@@ -35,7 +35,7 @@
 			<tr>
 				<td class="table-label">用户</td>
 				<td ng-bind="user.username"></td>
-				<td><div class="link-group"><a href="#name" data-toggle="modal" data-target="" ng-click="editInfo('username', user.username)">修改</a></div></td>
+				<td>{if permission_check_account_user('see_user_profile_edit_username')}<div class="link-group"><a href="#name" data-toggle="modal" data-target="" ng-click="editInfo('username', user.username)">修改</a></div>{/if}</td>
 			</tr>
 			<tr>
 				<td class="table-label">密码</td>

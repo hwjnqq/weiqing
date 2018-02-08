@@ -23,6 +23,10 @@ class DB {
 	public function __construct($name = 'master') {
 		global $_W;
 		$this->cfg = $_W['config']['db'];
+		//unset掉敏感信息，一些非敏感信息保留
+		unset($_W['config']['db']);
+		$_W['config']['db']['tablepre'] = $this->cfg['tablepre'];
+		$_W['config']['db']['slave_status'] = $this->cfg['slave_status'];
 		$this->connect($name);
 	}
 
@@ -65,7 +69,7 @@ class DB {
 		if(is_string($name)) {
 			$this->link[$name] = $this->pdo;
 		}
-		
+
 		$this->logging($sql);
 	}
 
@@ -102,9 +106,9 @@ class DB {
 		}
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
-		
+
 		$this->logging($sql, $params, $statement->errorInfo());
-		
+
 		$endtime = microtime();
 		$this->performance($sql, $endtime - $starttime);
 		if (!$result) {
@@ -126,9 +130,9 @@ class DB {
 		$starttime = microtime();
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
-		
+
 		$this->logging($sql, $params, $statement->errorInfo());
-		
+
 		$endtime = microtime();
 		$this->performance($sql, $endtime - $starttime);
 		if (!$result) {
@@ -150,9 +154,9 @@ class DB {
 		$starttime = microtime();
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
-		
+
 		$this->logging($sql, $params, $statement->errorInfo());
-		
+
 		$endtime = microtime();
 		$this->performance($sql, $endtime - $starttime);
 		if (!$result) {
@@ -176,7 +180,7 @@ class DB {
 		$result = $statement->execute($params);
 
 		$this->logging($sql, $params, $statement->errorInfo());
-		
+
 		$endtime = microtime();
 		$this->performance($sql, $endtime - $starttime);
 		if (!$result) {
@@ -275,7 +279,6 @@ class DB {
 		$params = array_merge($fields['params'], $condition['params']);
 		$sql = "UPDATE " . $this->tablename($table) . " SET {$fields['fields']}";
 		$sql .= $condition['fields'] ? ' WHERE '.$condition['fields'] : '';
-
 		return $this->query($sql, $params);
 	}
 
@@ -326,7 +329,7 @@ class DB {
 		$sql .= $condition['fields'] ? ' WHERE '.$condition['fields'] : '';
 		return $this->query($sql, $condition['params']);
 	}
-	
+
 	/**
 	 * 检测一条记录是否存在
 	 * @param unknown $tablename
@@ -340,9 +343,9 @@ class DB {
 			return true;
 		}
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param unknown $tablename
 	 * @param array $params
 	 */
@@ -515,7 +518,7 @@ class DB {
 		}
 		return $this->errors;
 	}
-	
+
 	private function logging($sql, $params = array(), $message = '') {
 		if(PDO_DEBUG) {
 			$info = array();
@@ -677,7 +680,7 @@ class SqlPaser {
 		}
 		return $clean;
 	}
-	
+
 	/**
 	 * 将数组格式化为具体的字符串
 	 * 增加支持 大于 小于, 不等于, not in, +=, -=等操作符
@@ -704,7 +707,7 @@ class SqlPaser {
 		if (is_array($params)) {
 			$result['fields'] = '';
 			foreach ($params as $fields => $value) {
-				//update或是insert语句，值为null时按空处理
+				//update或是insert语句，值为null时按空处理，仅当值为NULL时，才按 IS null 处理
 				if ($glue == ',') {
 					$value = $value === null ? '' : $value;
 				}
@@ -719,7 +722,7 @@ class SqlPaser {
 					$fields = trim($fields);
 					if (is_array($value) && !empty($value)) {
 						$operator = 'IN';
-					} elseif ($value === null) {
+					} elseif ($value === 'NULL') {
 						$operator = 'IS';
 					} else {
 						$operator = '=';
@@ -732,11 +735,11 @@ class SqlPaser {
 					//如果是数组不等于情况，则转换为NOT IN
 					if (is_array($value) && !empty($value)) {
 						$operator = 'NOT IN';
-					} elseif ($value === null) {
+					} elseif ($value === 'NULL') {
 						$operator = 'IS NOT';
 					}
 				}
-				
+
 				//当条件为having时，可以使用聚合函数
 				$select_fields = self::parseFieldAlias($fields, $alias);
 				if (is_array($value) && !empty($value)) {
@@ -752,9 +755,9 @@ class SqlPaser {
 					$split = ' ' . $glue . ' ';
 				} else {
 					$placeholder = self::parsePlaceholder($fields, $suffix);
-					$result['fields'] .= $split . "$select_fields {$operator} " . (is_null($value) ? 'NULL' : $placeholder);
+					$result['fields'] .= $split . "$select_fields {$operator} " . ($value === 'NULL' ? 'NULL' : $placeholder);
 					$split = ' ' . $glue . ' ';
-					if (!is_null($value)) {
+					if ($value !== 'NULL') {
 						$result['params'][$placeholder] = is_array($value) ? '' : $value;
 					}
 				}
@@ -762,7 +765,7 @@ class SqlPaser {
 		}
 		return $result;
 	}
-	
+
 	/**
 	 * 处理字段占位符
 	 * @param string $field
@@ -771,12 +774,12 @@ class SqlPaser {
 	private static function parsePlaceholder($field, $suffix = '') {
 		static $params_index = 0;
 		$params_index++;
-	
+
 		$illegal_str = array('(', ')', '.', '*');
 		$placeholder = ":{$suffix}" . str_replace($illegal_str, '_', $field) . "_{$params_index}";
 		return $placeholder;
 	}
-	
+
 	private static function parseFieldAlias($field, $alias = '') {
 		if (strexists($field, '.') || strexists($field, '*')) {
 			return $field;
@@ -788,7 +791,7 @@ class SqlPaser {
 		}
 		return $select_fields;
 	}
-	
+
 	/**
 	 * 格式化select字段
 	 * @param array $field 字段
@@ -806,7 +809,8 @@ class SqlPaser {
 		foreach ($field as $field_row) {
 			if (strexists($field_row, '*')) {
 				if (!strexists(strtolower($field_row), 'as')) {
-					$field_row .= " AS '{$index}'";
+					//此代码暂时注释，否则会造成 * AS 0 的问题，忘了是为什么要加
+					//$field_row .= " AS '{$index}'";
 				}
 			} elseif (strexists(strtolower($field_row), 'select')) {
 				//当前可能包含子查询，但不推荐此写法
@@ -827,21 +831,26 @@ class SqlPaser {
 		}
 		return " SELECT " . implode(',', $select);
 	}
-	
+
 	public static function parseLimit($limit, $inpage = true) {
 		$limitsql = '';
 		if (empty($limit)) {
 			return $limitsql;
 		}
 		if (is_array($limit)) {
-			$limit[0] = max(intval($limit[0]), 1);
-			!empty($limit[1]) && $limit[1] = max(intval($limit[1]), 1);
-			if (empty($limit[0]) && empty($limit[1])) {
-				$limitsql = '';
-			} elseif (!empty($limit[0]) && empty($limit[1])) {
-				$limitsql = " LIMIT " . $limit[0];
+			//兼容第一个值为0的写法
+			if (empty($limit[0]) && !empty($limit[1])) {
+				$limitsql = " LIMIT 0, " . $limit[1];
 			} else {
-				$limitsql = " LIMIT " . ($inpage ? ($limit[0] - 1) * $limit[1] : $limit[0]) . ', ' . $limit[1];
+				$limit[0] = max(intval($limit[0]), 1);
+				!empty($limit[1]) && $limit[1] = max(intval($limit[1]), 1);
+				if (empty($limit[0]) && empty($limit[1])) {
+					$limitsql = '';
+				} elseif (!empty($limit[0]) && empty($limit[1])) {
+					$limitsql = " LIMIT " . $limit[0];
+				} else {
+					$limitsql = " LIMIT " . ($inpage ? ($limit[0] - 1) * $limit[1] : $limit[0]) . ', ' . $limit[1];
+				}
 			}
 		} else {
 			$limit = trim($limit);
@@ -851,20 +860,20 @@ class SqlPaser {
 		}
 		return $limitsql;
 	}
-	
+
 	public static function parseOrderby($orderby, $alias = '') {
 		$orderbysql = '';
 		if (empty($orderby)) {
 			return $orderbysql;
 		}
-	
+
 		if (!is_array($orderby)) {
 			$orderby = explode(',', $orderby);
 		}
 		foreach ($orderby as $i => &$row) {
 			$row = strtolower($row);
 			list($field, $orderbyrule) = explode(' ', $row);
-			
+
 			if ($orderbyrule != 'asc' && $orderbyrule != 'desc') {
 				unset($orderby[$i]);
 			}
@@ -874,7 +883,7 @@ class SqlPaser {
 		$orderbysql = implode(',', $orderby);
 		return !empty($orderbysql) ? " ORDER BY $orderbysql " : '';
 	}
-	
+
 	public static function parseGroupby($statement, $alias = '') {
 		if (empty($statement)) {
 			return $statement;

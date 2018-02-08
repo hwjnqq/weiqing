@@ -65,8 +65,8 @@ if ($do == 'del') {
 	if ($_GPC['scgq']) {
 		$list = pdo_fetchall("SELECT id FROM ".tablename('qrcode')." WHERE uniacid = :uniacid AND acid = :acid AND status = '0' AND type='scene'", array(':uniacid' => $_W['uniacid'], ':acid' => $_W['acid']), 'id');
 		if (!empty($list)) {
-			pdo_query("DELETE FROM ".tablename('qrcode')." WHERE id IN (".implode(',', array_keys($list)).")");
-			pdo_query("DELETE FROM ".tablename('qrcode_stat')." WHERE qid IN (".implode(',', array_keys($list)).")");
+			pdo_delete('qrcode', array('id' => array_keys($list)));
+			pdo_delete('qrcode_stat', array('id' => array_keys($list)));
 		}
 		itoast('执行成功<br />删除二维码：'.count($list), url('platform/qr/list'),'success');
 	} else {

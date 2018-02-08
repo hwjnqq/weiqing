@@ -25,9 +25,7 @@ if ($do == 'uc') {
 			itoast('请您先设计手机端页面.', '', 'error');
 		}
 		$page = $params[0];
-		$html = htmlspecialchars_decode($_GPC['wapeditor']['html'], ENT_QUOTES);
-		$html = str_replace(array('<?', '<%', '<?php', '{php'), '_', $html);
-		$html = preg_replace('/<\s*?script.*(src|language)+/i', '_', $html);
+		$html = safe_gpc_html(htmlspecialchars_decode($_GPC['wapeditor']['html'], ENT_QUOTES));
 		$data = array(
 			'uniacid' => $_W['uniacid'],
 			'multiid' => '0',
@@ -83,8 +81,7 @@ if ($do == 'uc') {
 				$ids[] = $row['id'];
 			}
 		}
-		$ids_str = implode(',', $ids);
-		pdo_query('DELETE FROM ' . tablename('site_nav') . " WHERE uniacid = :uniacid AND position = '2' AND id NOT IN ($ids_str)", array(':uniacid' => $_W['uniacid']));
+		pdo_delete('site_nav', array('uniacid' => $_W['uniacid'], 'position' => '2', 'id <>' => $ids));
 		itoast('个人中心保存成功.', url('site/editor/uc'), 'success');
 	}
 	$navs = pdo_fetchall("SELECT id, icon, css, name, module, status, url FROM ".tablename('site_nav')." WHERE uniacid = :uniacid AND position = '2' ORDER BY displayorder DESC, id ASC", array(':uniacid' => $_W['uniacid']));
@@ -121,9 +118,7 @@ if ($do == 'uc') {
 		if (empty($params)) {
 			itoast('请您先设计手机端页面.', '', 'error');
 		}
-		$html = htmlspecialchars_decode($_GPC['wapeditor']['html'], ENT_QUOTES);
-		$html = str_replace(array('<?', '<%', '<?php', '{php'), '_', $html);
-		$html = preg_replace('/<\s*?script.*(src|language)+/i', '_', $html);
+		$html = safe_gpc_html(htmlspecialchars_decode($_GPC['wapeditor']['html'], ENT_QUOTES));
 		$html = preg_replace('/background\-image\:(\s)*url\(\"(.*)\"\)/U', 'background-image: url($2)', $html);
 		$data = array(
 			'uniacid' => $_W['uniacid'],

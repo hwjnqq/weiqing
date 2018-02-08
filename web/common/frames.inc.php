@@ -135,6 +135,13 @@ $we7_system_menu['account'] = array(
 					'icon' => 'wi wi-pay-setting',
 					'permission_name' => 'profile_pay_setting',
 				),
+				'app_module_link' => array(
+					'title' => "数据同步",
+					'url' => url('profile/module-link-uniacid'),
+					'is_display' => 1,
+					'icon' => 'wi wi-data-synchro',
+					'permission_name' => 'profile_app_module_link_uniacid',
+				),
 				
 			),
 		),
@@ -165,17 +172,17 @@ $we7_system_menu['wxapp'] = array(
 			'menu' => array(),
 			'is_display' => true,
 		),
-		'platform_manage_menu' => array(
-			'title' => '管理',
+		'wxapp_profile' => array(
+			'title' => '配置',
 			'menu' => array(
-				'module_link' => array(
+				'wxapp_module_link' => array(
 					'title' => "数据同步",
 					'url' => url('wxapp/module-link-uniacid'),
 					'is_display' => 1,
 					'icon' => 'wi wi-data-synchro',
 					'permission_name' => 'wxapp_module_link_uniacid',
 				),
-				'wxapp_profile' => array(
+				'wxapp_payment' => array(
 					'title' => '支付参数',
 					'url' => url('wxapp/payment'),
 					'is_display' => 1,
@@ -225,7 +232,44 @@ $we7_system_menu['webapp'] = array(
 					'permission_name' => 'mc_member',
 				)
 			),
-		)
+		),
+		'webapp' => array(
+			'title' => '配置',
+			'menu' => array(
+				'webapp_module_link' => array(
+					'title' => "数据同步",
+					'url' => url('webapp/module-link-uniacid'),
+					'is_display' => 1,
+					'icon' => 'wi wi-data-synchro',
+					'permission_name' => 'webapp_module_link_uniacid',
+				),
+			),
+		),
+	),
+);
+
+$we7_system_menu['phoneapp'] = array(
+	'title' => 'APP',
+	'icon' => 'wi wi-white-collar',
+	'url' => url('phoneapp/display/home'),
+	'section' => array(
+		'phoneapp_module' => array(
+			'title' => '应用',
+			'menu' => array(),
+			'is_display' => true,
+		),
+		/*'phoneapp_profile' => array(
+			'title' => '配置',
+			'menu' => array(
+				'front_download' => array(
+					'title' => '上传微信审核1',
+					'url' => url('phoneapp/front-download'),
+					'is_display' => 1,
+					'icon' => 'wi wi-examine',
+					'permission_name' => 'phoneapp_front_download',
+				)
+			)
+		)*/
 	),
 );
 
@@ -343,7 +387,7 @@ $we7_system_menu['system'] = array(
 		'webapp' => array(
 			'title' => 'PC',
 			'menu' => array(
-				'system_wxapp' => array(
+				'system_webapp' => array(
 					'title' => 'PC',
 					'url' => url('account/manage', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL)),
 					'icon' => 'wi wi-pc',
@@ -351,11 +395,30 @@ $we7_system_menu['system'] = array(
 					'sub_permission' => array(
 					),
 				),
-				'system_module_wxapp' => array(
+				'system_module_webapp' => array(
 					'title' => 'PC应用',
 					'url' => url('module/manage-system', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL)),
 					'icon' => 'wi wi-pc-apply',
-					'permission_name' => 'system_module_wxapp',
+					'permission_name' => 'system_module_webapp',
+				),
+			)
+		),
+		'phoneapp' => array(
+			'title' => 'APP',
+			'menu' => array(
+				'system_phoneapp' => array(
+					'title' => 'APP',
+					'url' => url('account/manage', array('account_type' => ACCOUNT_TYPE_PHONEAPP_NORMAL)),
+					'icon' => 'wi wi-wxapp',
+					'permission_name' => 'system_phoneapp',
+					'sub_permission' => array(
+					),
+				),
+				'system_module_phoneapp' => array(
+					'title' => 'APP应用',
+					'url' => url('module/manage-system', array('account_type' => ACCOUNT_TYPE_PHONEAPP_NORMAL)),
+					'icon' => 'wi wi-wxapp-apply',
+					'permission_name' => 'system_module_phoneapp',
 				),
 			)
 		),

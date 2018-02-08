@@ -10,6 +10,7 @@ class MenuTable extends We7Table {
 
 	protected $tableName = 'uni_account_menus';
 	private $account_menu_table = 'uni_account_menus';
+	private $coreMenu = 'core_menu';
 	protected $primaryKey = 'id';
 
 	public function uniaccount() {
@@ -48,5 +49,22 @@ class MenuTable extends We7Table {
 		$this->query->from($this->account_menu_table)->where('uniacid', $_W['uniacid'])->where('type', MENU_CURRENTSELF)->where('status', STATUS_ON);
 		$result = $this->query->get();
 		return $result;
+	}
+
+	public function getCoreMenuList() {
+		return $this->query->from($this->coreMenu)->getall('permission_name');
+	}
+
+	public function coreMenuOrderByDisplayorder($order = 'DESC') {
+		$order = empty($order) ? 'ASC' : $order;
+		return $this->query->orderby('displayorder', $order);
+	}
+
+	public function getCoreMenuFillPermissionName() {
+		return $this->query->from($this->coreMenu)->where('permission_name !=', '')->getall('permission_name');
+	}
+
+	public function getTopMenu() {
+		return $this->query->from($this->coreMenu)->where('is_system !=', 1)->getall();
 	}
 }

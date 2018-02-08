@@ -260,11 +260,8 @@ if ($do == 'post') {
 			}
 
 			if (!empty($rid)) {
-				$sql = "DELETE FROM " . tablename('rule_keyword') . " WHERE `rid`=:rid AND `uniacid`=:uniacid";
-				$pars = array();
-				$pars[':rid'] = $rid;
-				$pars[':uniacid'] = $_W['uniacid'];
-				pdo_query($sql, $pars);
+				pdo_delete('rule_keyword', array('rid' => $rid, 'uniacid' => $_W['uniacid']));
+				
 				$rowtpl = array(
 					'rid' => $rid,
 					'uniacid' => $_W['uniacid'],

@@ -130,9 +130,13 @@ if ($do == 'platform') {
 		}
 		$frames = buildframes('account');
 	}
+	$uni_account_module = table('module')->uniAccountModuleInfo($modulename);
 	foreach ($frames['section'] as $secion) {
 		foreach ($secion['menu'] as $menu) {
 			if (!empty($menu['url'])) {
+				if (!empty($uni_account_module['settings']['default_entry']) && !strpos($menu['url'], '&eid=' . $uni_account_module['settings']['default_entry'])) {
+					continue;
+				}
 				header('Location: ' . $_W['siteroot'] . 'web/' . $menu['url']);
 				exit;
 			}

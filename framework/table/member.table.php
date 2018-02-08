@@ -8,6 +8,75 @@ defined('IN_IA') or exit('Access Denied');
 
 class MemberTable extends We7Table {
 
+	public function accountMemberFields($uniacid, $is_available) {
+		if ($is_available) {
+			$this->query->where('a.available', 1);
+		}
+		return $this->query->from('mc_member_fields', 'a')->leftjoin('profile_fields', 'b')->on('a.fieldid', 'b.id')->where('a.uniacid', $uniacid)->select(array('a.title', 'b.field'))->getall('field');
+	}
+
+	public function emailExist($uid, $email) {
+		load()->model('mc');
+		if (empty($email)) {
+			return false;
+		}
+		$this->query->from('mc_members')->where('uniacid', mc_current_real_uniacid())->where('email', trim($email));
+		if (!empty($uid)) {
+			$this->query->where('uid <>', $uid);
+		}
+		$emailexists = $this->query->getcolumn('email');
+		if ($emailexists) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public function mobileExist($uid, $mobile) {
+		load()->model('mc');
+		if (empty($mobile)) {
+			return false;
+		}
+		$this->query->from('mc_members')->where('uniacid', mc_current_real_uniacid())->where('mobile', trim($mobile));
+		if (!empty($uid)) {
+			$this->query->where('uid <>', $uid);
+		}
+		$mobilexists = $this->query->getcolumn('mobile');
+		if ($mobilexists) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public function updateMember($uid, $fields = array()) {
+		load()->model('mc');
+		$member = $this->query->from('mc_members')->where('uid', $uid)->get();
+		if (!empty($fields['email']) && $this->emailExist($uid, $fields['email'])) {
+			unset($fields['email']);
+		}
+		if (!empty($fields['mobile']) && $this->mobileExist($uid, $fields['mobile'])) {
+			unset($fields['mobile']);
+		}
+		if (empty($member)) {
+			if(empty($fields['mobile']) && empty($fields['email'])) {
+				return false;
+			}
+			$fields['uniacid'] = mc_current_real_uniacid();
+			$fields['createtime'] = TIMESTAMP;
+			pdo_insert('mc_members', $fields);
+			$insert_id = pdo_insertid();
+			return $insert_id;
+		} else {
+			if (!empty($fields)) {
+				$result = pdo_update('mc_members', $fields, array('uid' => $uid));
+			} else {
+				$result = 0;
+			}
+			return $result > 0;
+		}
+	}
+
 	public function creditsRecordList()
 	{
 		global $_W;

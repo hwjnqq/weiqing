@@ -114,7 +114,7 @@ function material_news_set($data, $attach_id) {
 			'title' => addslashes($news['title']),
 			'author' => addslashes($news['author']),
 			'digest' => addslashes($news['digest']),
-			'content' => htmlspecialchars_decode($news['content']),
+			'content' => safe_gpc_html(htmlspecialchars_decode($news['content'])),
 			'url' => $news['url'],
 			'show_cover_pic' => intval($news['show_cover_pic']),
 			'displayorder' 		=> intval($key),

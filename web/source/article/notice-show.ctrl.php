@@ -17,7 +17,9 @@ if($do == 'detail') {
 		itoast('公告不存在或已删除', referer(), 'error');
 	}
 	$_W['page']['title'] = $notice['title'] . '-公告列表';
-	pdo_query('UPDATE ' . tablename('article_notice') . ' SET click = click + 1 WHERE id = :id', array(':id' => $id));
+	
+	pdo_update('article_notice', array('click +=' => 1), array('id' => $id));
+
 	if(!empty($_W['uid'])) {
 		pdo_update('article_unread_notice', array('is_new' => 0), array('notice_id' => $id, 'uid' => $_W['uid']));
 	}

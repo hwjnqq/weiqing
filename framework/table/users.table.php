@@ -8,6 +8,11 @@ defined('IN_IA') or exit('Access Denied');
 
 class UsersTable extends We7Table {
 
+	public function moduleClerkPermission($module) {
+		global $_W;
+		return $this->query->from('users_permission', 'p')->leftjoin('uni_account_users', 'u')->on(array('u.uid' => 'p.uid', 'u.uniacid' => 'p.uniacid'))->where('u.role', 'clerk')->where('p.type', $module)->where('u.uniacid', $_W['uniacid'])->getall('uid');
+	}
+
 	public function searchUsersList() {
 		global $_W;
 		$this->query->from('users', 'u')
@@ -120,8 +125,8 @@ class UsersTable extends We7Table {
 		return $this->query->from('users_permission')->where($condition)->getall('type');
 	}
 
-	public function userFounderGroupInfo($uid) {
-		return $this->query->from('users_founder_group')->where('id', $uid)->get();
+	public function userFounderGroupInfo($groupid) {
+		return $this->query->from('users_founder_group')->where('id', $groupid)->get();
 	}
 
 	public function userProfileMobile($mobile) {

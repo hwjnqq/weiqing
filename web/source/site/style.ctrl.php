@@ -155,7 +155,7 @@ if ($do == 'designer') {
 		if (!empty($_GPC['style'])) {
 			$_GPC['style'] = safe_gpc_array($_GPC['style']);
 			foreach ($_GPC['style'] as $variable => $value) {
-				$value = htmlspecialchars_decode($value, ENT_QUOTES);
+				$value = safe_gpc_html(htmlspecialchars_decode($value, ENT_QUOTES));
 				if ($variable == 'imgdir') {
 					$value = safe_gpc_path($value);
 				}

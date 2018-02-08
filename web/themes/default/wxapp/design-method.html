@@ -1,14 +1,12 @@
 {template 'common/header'}
-<link rel="stylesheet" href="./resource/css/wxapp-icon.css">
 <div id="js-wxapp-create">
 	<div class="container">
 		<div class="caret-wxapp">
 			<div class="panel panel-app">
 				<div class="panel-heading">
 					<ol class="breadcrumb we7-breadcrumb">
-						<a href="javascript:;" onclick="history.go(-1)" class="go-back">
-						<i class="wi wi-back-circle"></i></a>
-						<span class="font-lg">新建小程序</span>
+						<li><a href="{url 'wxapp/display'}">小程序列表</a></li>
+						<li>新建小程序</li>
 					</ol>
 				</div>
 				<div class="panel-body">
@@ -34,18 +32,12 @@
 								<a href="{php echo url('wxapp/post/post', array('design_method' => WXAPP_MODULE, 'uniacid' => $uniacid))}" class="btn btn-primary">新建小程序</a>
 							</div>
 						</div>
-						<div class="col-sm-6">
-							<div class="title">
-								<span class="wi wi-wxapp-pack"></span>
-								打包普通应用为小程序
-							</div>
-							<div class="con">
-								打包生成小程序，选择一个公众号应用打包为小程序
-							</div>
-							<div>
-								<a href="{php echo url('wxapp/post/post', array('design_method' => WXAPP_MODULE, 'uniacid' => $uniacid, 'create_type'=>WXAPP_CREATE_MODULE))}" class="btn btn-primary">打包小程序</a>
-							</div>
-						</div>
+						
+					</div>
+
+					<div class="wxapp-creat-select we7-padding clearfix">
+						
+
 					</div>
 
 				</div>

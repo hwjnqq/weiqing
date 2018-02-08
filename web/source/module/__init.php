@@ -5,7 +5,7 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-if (in_array($action, array('permission', 'manage-account'))) {
+if (in_array($action, array('permission', 'default-entry', 'manage-account'))) {
 	define('FRAME', 'account');
 	$referer = (url_params(referer()));
 	if (empty($_GPC['version_id']) && intval($referer['version_id']) > 0) {
@@ -13,7 +13,7 @@ if (in_array($action, array('permission', 'manage-account'))) {
 	}
 	$account_api = WeAccount::create();
 	if (is_error($account_api)) {
-		message($account_api['message'], url('module/display'));
+		itoast('', url('module/display'));
 	}
 	$check_manange = $account_api->checkIntoManage();
 	if (is_error($check_manange)) {

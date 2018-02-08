@@ -25,10 +25,10 @@ if (!empty($_W['uniacid'])) {
 	}
 }
 $site = WeUtility::createModuleWxapp($entry['module']);
+$method = 'doPage' . ucfirst($entry['do']);
 if(!is_error($site)) {
 	$site->appid = $appid;
 	$site->version = $version;
-	$method = 'doPage' . ucfirst($entry['do']);
 	if (!empty($site->token)) {
 		if (!$site->checkSign()) {
 			message(error(1, '签名错误'), '', 'ajax');

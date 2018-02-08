@@ -16,7 +16,7 @@ function cache_redis() {
 	global $_W;
 	static $redisobj;
 	if (!extension_loaded('redis')) {
-		return error(1, 'Class Redis is nit found');
+		return error(1, 'Class Redis is not found');
 	}
 	if (empty($redisobj)) {
 		$config = $_W['config']['setting']['redis'];

@@ -37,8 +37,10 @@ load()->classs('account');
 load()->model('cache');
 load()->model('account');
 load()->model('setting');
+load()->model('module');
 load()->library('agent');
 load()->classs('db');
+load()->func('communication');
 
 
 
@@ -62,8 +64,6 @@ if(DEVELOPMENT) {
 } else {
 	error_reporting(0);
 }
-//include __DIR__.'/../vendor/autoload.php';
-//we7debug();
 
 if(!in_array($_W['config']['setting']['cache'], array('mysql', 'memcache', 'redis'))) {
 	$_W['config']['setting']['cache'] = 'mysql';
@@ -102,12 +102,18 @@ if(substr($_W['siteroot'], -1) != '/') {
 $urls = parse_url($_W['siteroot']);
 $urls['path'] = str_replace(array('/web', '/app', '/payment/wechat', '/payment/alipay', '/payment/jueqiymf', '/api'), '', $urls['path']);
 $_W['siteroot'] = $urls['scheme'].'://'.$urls['host'].((!empty($urls['port']) && $urls['port']!='80') ? ':'.$urls['port'] : '').$urls['path'];
-$_W['siteurl'] = $urls['scheme'].'://'.$urls['host'].((!empty($urls['port']) && $urls['port']!='80') ? ':'.$urls['port'] : '') . $_W['script_name'] . (empty($_SERVER['QUERY_STRING'])?'':'?') . $_SERVER['QUERY_STRING'];
 
 if(MAGIC_QUOTES_GPC) {
 	$_GET = istripslashes($_GET);
 	$_POST = istripslashes($_POST);
 	$_COOKIE = istripslashes($_COOKIE);
+}
+//全局过滤GET中的XSS
+foreach($_GET as $key => $value) {
+	if (is_string($value) && !is_numeric($value)) {
+		$value = safe_gpc_string($value);
+	}
+	$_GET[$key] = $_GPC[$key] = $value;
 }
 $cplen = strlen($_W['config']['cookie']['pre']);
 foreach($_COOKIE as $key => $value) {
@@ -117,9 +123,12 @@ foreach($_COOKIE as $key => $value) {
 }
 unset($cplen, $key, $value);
 
-$_GPC = array_merge($_GET, $_POST, $_GPC);
+$_GPC = array_merge($_GPC, $_POST);
 $_GPC = ihtmlspecialchars($_GPC);
-if(!$_W['isajax']) {
+
+$_W['siteurl'] = $urls['scheme'].'://'.$urls['host'].((!empty($urls['port']) && $urls['port']!='80') ? ':'.$urls['port'] : '') . $_W['script_name'] . '?' . http_build_query($_GET, '', '&');
+
+if (!$_W['isajax']) {
 	$input = file_get_contents("php://input");
 	if (!empty($input)) {
 		$__input = @json_decode($input, true);
@@ -164,4 +173,3 @@ $controller = $_GPC['c'];
 $action = $_GPC['a'];
 $do = $_GPC['do'];
 header('Content-Type: text/html; charset=' . $_W['charset']);
-

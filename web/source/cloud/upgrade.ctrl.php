@@ -14,7 +14,7 @@ if (is_error($cloud_ready)) {
 	message($cloud_ready['message'], url('cloud/profile'), 'error');
 }
 
-$dos = array('upgrade');
+$dos = array('upgrade', 'get_upgrade_info');
 $do = in_array($do, $dos) ? $do : 'upgrade';
 
 if ($do == 'upgrade') {
@@ -39,17 +39,7 @@ if ($do == 'upgrade') {
 			message('检查结果: 恭喜, 你的程序已经是最新版本. ', 'refresh');
 		}
 	}
-	
-	$upgrade_cache = cache_load('upgrade');
-	if (empty($upgrade_cache) || TIMESTAMP - $upgrade_cache['lastupdate'] >= 3600 * 24 || empty($upgrade_cache['data'])) {
-		$upgrade = cloud_build();
-	} else {
-		$upgrade = $upgrade_cache['data'];
-	}
-	cache_delete('cloud:transtoken');
-	if (!empty($upgrade['schemas'])) {
-		$upgrade['database'] = cloud_build_schemas($upgrade['schemas']);
-	}
+
 	$path = IA_ROOT . '/data/patch/' . date('Ymd') . '/';
 	if (is_dir($path)) {
 		if ($handle = opendir($path)) {
@@ -65,5 +55,29 @@ if ($do == 'upgrade') {
 			sort($patchs, SORT_NUMERIC);
 		}
 	}
+}
+
+if ($do == 'get_upgrade_info') {
+	$upgrade_cache = cache_load('upgrade');
+	if (empty($upgrade_cache) || TIMESTAMP - $upgrade_cache['lastupdate'] >= 3600 * 24 || empty($upgrade_cache['data'])) {
+		$upgrade = cloud_build();
+	} else {
+		$upgrade = $upgrade_cache['data'];
+	}
+	cache_delete('cloud:transtoken');
+	if (!empty($upgrade['schemas'])) {
+		$upgrade['database'] = cloud_build_schemas($upgrade['schemas']);
+	}
+	if (!empty($upgrade['files'])) {
+		foreach ($upgrade['files'] as &$file) {
+			if (is_file(IA_ROOT . $file)) {
+				$file = 'M ' . $file;
+			} else {
+				$file = 'A ' . $file;
+			}
+		}
+		unset($value);
+	}
+	iajax(0, $upgrade);
 }
 template('cloud/upgrade');

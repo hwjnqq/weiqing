@@ -17,7 +17,7 @@ if (empty($_W['setting']['register']['open'])) {
 	itoast('本站暂未开启注册功能，请联系管理员！', '', '');
 }
 
-$register_type = safe_gpc_belong(trim($_GPC['register_type']), array('system', 'mobile'), 'system');
+$register_type = safe_gpc_belong(safe_gpc_string($_GPC['register_type']), array('system', 'mobile'), 'system');
 
 if ($register_type == 'system') {
 	$extendfields = OAuth2Client::create($register_type)->systemFields();

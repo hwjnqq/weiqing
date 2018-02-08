@@ -121,7 +121,7 @@ function article_category_delete($id) {
 		foreach ($navs as $row) {
 			file_delete($row['icon']);
 		}
-		pdo_query("DELETE FROM ".tablename('site_nav')." WHERE id IN (".implode(',', array_keys($navs)).")");
+		pdo_delete('site_nav', array('id' => array_keys($navs)));
 	}
 	pdo_delete('site_category', array('id' => $id, 'parentid' => $id), 'OR');
 	return true;

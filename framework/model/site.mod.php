@@ -35,12 +35,8 @@ function site_cover($coverparams = array()) {
 	}
 	if (!empty($rid)) {
 		//更新，添加，删除关键字
-		$sql = 'DELETE FROM '. tablename('rule_keyword') . ' WHERE `rid`=:rid AND `uniacid`=:uniacid';
-		$pars = array();
-		$pars[':rid'] = $rid;
-		$pars[':uniacid'] = $coverparams['uniacid'];
-		pdo_query($sql, $pars);
-			
+		pdo_delete('rule_keyword', array('rid' => $rid, 'uniacid' => $coverparams['uniacid']));
+		
 		$keywordrow = array(
 			'rid' => $rid,
 			'uniacid' => $coverparams['uniacid'],

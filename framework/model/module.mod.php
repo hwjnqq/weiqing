@@ -291,8 +291,8 @@ function module_fetch($name) {
 	$cachekey = cache_system_key(CACHE_KEY_MODULE_INFO, $name);
 	$module = cache_load($cachekey);
 	if (empty($module)) {
-		$sql = 'SELECT * FROM '. tablename('modules') . " as a LEFT JOIN" . tablename('modules_recycle') . " as b ON a.name = b.modulename WHERE a.name = :name AND b.modulename is NULL";
-		$module_info = pdo_fetch($sql, array(':name' => $name));
+		$module_table = table('module');
+		$module_info = $module_table->getInstalledModuleInfo($name);
 		if (empty($module_info)) {
 			return array();
 		}
@@ -324,11 +324,11 @@ function module_fetch($name) {
 			$module_info['app_support'] = MODULE_SUPPORT_ACCOUNT;
 		}
 		$module_info['is_relation'] = $module_info['app_support'] ==2 && $module_info['wxapp_support'] == 2 ? true : false;
-		$module_ban = setting_load('module_ban');
+		$module_ban = (array)setting_load('module_ban');
 		if (in_array($name, $module_ban['module_ban'])) {
 			$module_info['is_ban'] = true;
 		}
-		$module_upgrade = setting_load('module_upgrade');
+		$module_upgrade = (array)setting_load('module_upgrade');
 		if (in_array($name, array_keys($module_upgrade['module_upgrade']))) {
 			$module_info['is_upgrade'] = true;
 		}
@@ -379,8 +379,8 @@ function module_get_all_unistalled($status, $cache = true, $module_type = '')  {
 		$account_type = 'app';
 	} elseif (ACCOUNT_TYPE == ACCOUNT_TYPE_WEBAPP_NORMAL) {
 		$account_type = 'webapp';
-	} else {
-		$account_type = 'system_welcome';
+	} elseif (ACCOUNT_TYPE == ACCOUNT_TYPE_PHONEAPP_NORMAL) {
+		$account_type = 'phoneapp';
 	}
 	if (!empty($module_type)) {
 		$account_type = $module_type;
@@ -457,9 +457,7 @@ function module_uninstall($module_name, $is_clean_rule = false) {
 	if (!empty($module['issystem'])) {
 		return error(1, '系统模块不能卸载！');
 	}
-	if (!empty($module['plugin_list'])) {
-		pdo_delete('modules_plugin', array('main_module' => $module_name));
-	}
+	pdo_delete('modules_plugin', array('main_module' => $module_name));
 
 	pdo_delete('uni_account_modules', array('module' => $module_name));
 	cache_delete(cache_system_key('module:all_uninstall'));
@@ -677,30 +675,16 @@ function module_exist_in_account($module_name, $uniacid) {
 	$founders = explode(',', $_W['config']['setting']['founder']);
 	$owner_uid = pdo_getcolumn('uni_account_users',  array('uniacid' => $uniacid, 'role' => 'owner'), 'uid');
 	if (!empty($owner_uid) && !in_array($owner_uid, $founders)) {
-		$packageids = pdo_getall('uni_account_group', array('uniacid' => $uniacid), array('groupid'), 'groupid');
-		$packageids = array_keys($packageids);
 		if (IMS_FAMILY == 'x') {
 			$site_store_buy_goods = uni_site_store_buy_goods($uniacid);
-			$site_store_buy_package = table('store')->searchUserBuyPackage($uniacid);
-			$packageids = array_merge($packageids, array_keys($site_store_buy_package));
 		} else {
 			$site_store_buy_goods = array();
 		}
-		if (!in_array('-1', $packageids)) {
-			$uni_modules = array();
-			$uni_groups = pdo_fetchall("SELECT `modules` FROM " . tablename('uni_group') . " WHERE " .  "id IN ('".implode("','", $packageids)."') OR " . " uniacid = '{$uniacid}'");
-			if (!empty($uni_groups)) {
-				foreach ($uni_groups as $group) {
-					$group_module = (array)iunserializer($group['modules']);
-					$uni_modules = array_merge($group_module, $uni_modules);
-				}
-			}
-			$user_modules = user_modules($owner_uid);
-			$modules = array_merge(array_keys($user_modules), $uni_modules, $site_store_buy_goods);
-			$result = in_array($module_name, $modules) ? true : false;
-		} else {
-			$result = true;
-		}
+		$account_table = table('account');
+		$uni_modules = $account_table->accountGroupModules($uniacid);
+		$user_modules = user_modules($owner_uid);
+		$modules = array_merge(array_keys($user_modules), $uni_modules, $site_store_buy_goods);
+		$result = in_array($module_name, $modules) ? true : false;
 	} else {
 		$result = true;
 	}
@@ -891,19 +875,12 @@ function module_last_switch($module_name) {
  * 获取模块店员信息
  */
 function module_clerk_info($module_name) {
-	global $_W;
 	$user_permissions = array();
 	$module_name = trim($module_name);
 	if (empty($module_name)) {
 		return $user_permissions;
 	}
-	$params = array(
-			':role' => ACCOUNT_MANAGE_NAME_CLERK,
-			':type' => $module_name,
-			':uniacid' => $_W['uniacid']
-	);
-	$sql = "SELECT u.uid, p.permission FROM " . tablename('uni_account_users') . " u," . tablename('users_permission') . " p WHERE u.uid = p.uid AND u.uniacid = p.uniacid AND u.role = :role AND p.type = :type AND u.uniacid = :uniacid";
-	$user_permissions = pdo_fetchall($sql, $params, 'uid');
+	$user_permissions = table('users')->moduleClerkPermission($module_name);
 	if (!empty($user_permissions)) {
 		foreach ($user_permissions as $key => $value) {
 			$user_permissions[$key]['user_info'] = user_single($value['uid']);

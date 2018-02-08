@@ -28,6 +28,7 @@ if ($do == 'copyright') {
 				'icp' => safe_gpc_string($_GPC['icp']),
 				'mobile_status' => $_GPC['mobile_status'],
 				'login_type' => $_GPC['login_type'],
+				'bind' => $_GPC['bind']
 			);				
 		
 

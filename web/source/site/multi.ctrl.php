@@ -237,7 +237,7 @@ if ($do == 'quickmenu_post' && $_W['isajax'] && $_W['ispost']) {
 		$val = $val == 'true' ? 1 : 0;
 	}
 	unset($val);
-	$html = htmlspecialchars_decode($_GPC['postdata']['html'], ENT_QUOTES);
+	$html = safe_gpc_html(htmlspecialchars_decode($_GPC['postdata']['html'], ENT_QUOTES));
 	$html = preg_replace('/background\-image\:(\s)*url\(\"(.*)\"\)/U', 'background-image: url($2)', $html);
 	$data = array(
 		'uniacid' => $_W['uniacid'],

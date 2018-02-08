@@ -95,7 +95,13 @@ function wxapp_support_wxapp_modules() {
 	$store_table = table('store');
 	$store_table->searchWithEndtime();
 	$buy_wxapp_modules = $store_table->searchAccountBuyGoods($_W['uniacid'], STORE_TYPE_WXAPP_MODULE);
-	$wxapp_modules = array_merge($buy_wxapp_modules, $wxapp_modules);
+	$extra_permission = table('account')->getAccountExtraPermission($_W['uniacid']);
+	$extra_modules = empty($extra_permission['modules']) ? array() : $extra_permission['modules'];
+	foreach ($extra_modules as $key => $value) {
+		$extra_modules[$value] = module_fetch($value);
+		unset($extra_modules[$key]);
+	}
+	$wxapp_modules = array_merge($buy_wxapp_modules, $wxapp_modules, $extra_modules);
 	if (empty($wxapp_modules)) {
 		return array();
 	}
@@ -171,6 +177,7 @@ function wxapp_fetch($uniacid, $version_id = '') {
 		$wxapp_version_info = pdo_get('wxapp_versions', array('id' => $version_id));
 	}
 	if (!empty($wxapp_version_info) && !empty($wxapp_version_info['modules'])) {
+
 		$wxapp_version_info['modules'] = iunserializer($wxapp_version_info['modules']);
 		//如果是单模块版并且本地模块，应该是开发者开发小程序，则模块版本号本地最新的。
 		if ($wxapp_version_info['design_method'] == WXAPP_MODULE) {
@@ -296,8 +303,15 @@ function wxapp_version($version_id) {
 		return $version_info;
 	}
 
+	$cachekey = cache_system_key("wxapp_version:{$version_id}");
+	$cache = cache_load($cachekey);
+	if (!empty($cache)) {
+		return $cache;
+	}
+
 	$version_info = pdo_get('wxapp_versions', array('id' => $version_id));
 	$version_info = wxapp_version_detail_info($version_info);
+	cache_write($cachekey, $version_info);
 
 	return $version_info;
 }
@@ -339,12 +353,15 @@ function wxapp_version_detail_info($version_info) {
 				unset($version_info['modules'][$module['name']]);
 				//模块默认入口
 				$module_info['cover_entrys'] = module_entries($module['name'], array('cover'));
+				$module_info['defaultentry'] = $module['defaultentry'];
+				$module_info['newicon'] = $module['newicon'];
 				$version_info['modules'][] = $module_info;
 			}
 		}
 	}
 	if (count($version_info['modules']) > 0) {
-		$version_info['cover_entrys'] = $version_info['modules'][0]['cover_entrys']['cover'];
+		$cover_entrys = !empty($version_info['modules'][0]['cover_entrys']) ? $version_info['modules'][0]['cover_entrys'] : array();
+		$version_info['cover_entrys'] = !empty($cover_entrys['cover']) ? $cover_entrys['cover'] : array();
 	}
 	if (!empty($version_info['quickmenu'])) {
 		$version_info['quickmenu'] = iunserializer($version_info['quickmenu']);
@@ -464,6 +481,9 @@ function wxapp_search_link_account($module_name = '') {
 	$owned_account = uni_owned();
 	if (!empty($owned_account)) {
 		foreach ($owned_account as $key => $account) {
+			if (!in_array($account['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
+				unset($owned_account[$key]);
+			}
 			$account['role'] = permission_account_user_role($_W['uid'], $account['uniacid']);
 			if (!in_array($account['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER))) {
 				unset($owned_account[$key]);

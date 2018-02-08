@@ -43,7 +43,7 @@ function message($msg, $redirect = '', $type = '') {
 		$redirect = $_W['siteroot'] . 'app/index.php?' . $urls['query'];
 	} else {
 		// 跳转链接只能跳转本域名下 防止钓鱼 如: 用户可能正常从信任站点微擎登录 跳转到第三方网站 会误认为第三方网站也是安全的
-		$redirect = safe_url_not_outside($redirect);
+		$redirect = safe_gpc_url($redirect);
 	}
 	if($redirect == '') {
 		$type = in_array($type, array('success', 'error', 'info', 'warning', 'ajax', 'sql')) ? $type : 'info';
@@ -187,7 +187,7 @@ function register_jssdk($debug = false){
 	
 	$script = <<<EOF
 
-<script src="https://res.wx.qq.com/open/js/jweixin-1.3.0.js"></script>
+<script src="https://res.wx.qq.com/open/js/jweixin-1.3.2.js"></script>
 <script type="text/javascript">
 	window.sysinfo = window.sysinfo || $sysinfo || {};
 	

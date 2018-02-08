@@ -65,14 +65,13 @@ var requireConfig = {
 		'underscore': '../lib/underscore-min',
 		'biz': '../lib/biz',
 		'swiper' : '../../components/swiper/swiper.min',
+		'echarts': '../lib/echarts.min',
 		//兼容
 		'util' : '../app/util',
 		'ueditor': '../../components/ueditor/ueditor.all.min',
 		'angular': '../lib/angular.min',
 		'angular.sanitize': '../lib/angular-sanitize.min',
 		'angular.hotkeys': '../lib/angular.hotkeys',
-		'angular-chart': '../../components/chart/angular-chart',
-		'chart' : '../../components/chart/Chart',
 		'loadcss': '../lib/loadcss.min', //加载CSS
 		'css': '../lib/css.min', //加载CSS
 		/*复制组件（部分浏览器不兼容flash）*/
@@ -154,12 +153,9 @@ var requireConfig = {
 		'chart': {
 			exports: 'Chart'
 		},
-		'angular-chart': {
-			deps: ['chart']
-		},
 		'swiper': {
 			deps: ['loadcss!../../components/swiper/swiper.min.css'],
-		}
+		},
 	}
 };
 if (!jQuery.fn.modal) {

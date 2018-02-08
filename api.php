@@ -9,6 +9,7 @@ define('IN_API', true);
 require_once './framework/bootstrap.inc.php';
 load()->model('reply');
 load()->model('attachment');
+
 load()->app('common');
 load()->classs('wesession');
 $hash = $_GPC['hash'];
@@ -49,6 +50,7 @@ $_W['account']['groupid'] = $_W['uniaccount']['groupid'];
 $_W['account']['qrcode'] = $_W['attachurl'].'qrcode_'.$_W['acid'].'.jpg?time='.$_W['timestamp'];
 $_W['account']['avatar'] = $_W['attachurl'].'headimg_'.$_W['acid'].'.jpg?time='.$_W['timestamp'];
 $_W['attachurl'] = attachment_set_attach_url();
+
 
 $engine = new WeEngine();
 if (!empty($_W['setting']['copyright']['status'])) {
@@ -587,11 +589,11 @@ class WeEngine {
 			return $pars;
 		}
 		//关键字先查缓存有没有匹配规则，缓存超时为5分钟
-		$cachekey = 'we7:' . $_W['uniacid'] . ':keyword:' . md5($message['content']);
-		$keyword_cache = cache_load($cachekey);
-		if (!empty($keyword_cache) && $keyword_cache['expire'] > TIMESTAMP) {
-			return $keyword_cache['data'];
-		}
+// 		$cachekey = 'we7:' . $_W['uniacid'] . ':keyword:' . md5($message['content']);
+// 		$keyword_cache = cache_load($cachekey);
+// 		if (!empty($keyword_cache) && $keyword_cache['expire'] > TIMESTAMP) {
+// 			return $keyword_cache['data'];
+// 		}
 		$condition = <<<EOF
 `uniacid` IN ( 0, {$_W['uniacid']} )
 AND
@@ -632,11 +634,11 @@ EOF;
 			);
 			$pars[] = $params;
 		}
-		$cache = array(
-			'data' => $pars,
-			'expire' => TIMESTAMP + 5 * 60,
-		);
-		cache_write($cachekey, $cache);
+// 		$cache = array(
+// 			'data' => $pars,
+// 			'expire' => TIMESTAMP + 5 * 60,
+// 		);
+// 		cache_write($cachekey, $cache);
 		return $pars;
 	}
 
@@ -649,7 +651,7 @@ EOF;
 			return $this->analyzeClick($message);
 		}
 		if (in_array($message['event'], array('pic_photo_or_album', 'pic_weixin', 'pic_sysphoto'))) {
-			pdo_query("DELETE FROM ".tablename('menu_event')." WHERE createtime < '".($GLOBALS['_W']['timestamp'] - 100)."' OR openid = '{$message['from']}'");
+			pdo_delete('menu_event', array('createtime <' => $GLOBALS['_W']['timestamp'] - 100, 'openid' => $message['from']), 'OR');
 			if (!empty($message['sendpicsinfo']['count'])) {
 				foreach ($message['sendpicsinfo']['piclist'] as $item) {
 					pdo_insert('menu_event', array(

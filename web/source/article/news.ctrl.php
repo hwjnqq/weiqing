@@ -79,7 +79,7 @@ if ($do == 'post') {
 		$data = array(
 			'title' => $title,
 			'cateid' => $cateid,
-			'content' => htmlspecialchars_decode($content),
+			'content' => safe_gpc_html(htmlspecialchars_decode($content)),
 			'source' => trim($_GPC['source']),
 			'author' => trim($_GPC['author']),
 			'displayorder' => intval($_GPC['displayorder']),

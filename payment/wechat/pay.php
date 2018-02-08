@@ -62,7 +62,6 @@ if (!empty($_GPC['code'])) {
 	$oauth = $proxy_pay_account->getOauthInfo($_GPC['code']);
 	if (!empty($oauth['openid'])) {
 		$log['openid'] = $oauth['openid'];
-		pdo_update('core_paylog', array('openid' => $oauth['openid']), array('plid' => $log['plid']));
 	}
 }
 

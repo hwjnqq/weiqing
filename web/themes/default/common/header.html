@@ -76,7 +76,7 @@
 {if !defined('IN_MESSAGE')}
 <div class="container">
 	<a href="javascript:;" class="js-big-main button-to-big color-gray" title="加宽">{if $_GPC['main-lg']}正常{else}宽屏{/if}</a>
-	{if in_array(FRAME, array('account', 'system', 'advertisement', 'wxapp', 'site', 'store', 'webapp')) && !in_array($_GPC['a'], array('news-show', 'notice-show'))}
+	{if in_array(FRAME, array('account', 'system', 'advertisement', 'wxapp', 'site', 'store', 'webapp', 'phoneapp')) && !in_array($_GPC['a'], array('news-show', 'notice-show'))}
 	<div class="panel panel-content main-panel-content {if !empty($frames['section']['platform_module_menu']['plugin_menu'])}panel-content-plugin{/if}">
 		<div class="content-head panel-heading main-panel-heading">
 			{if ($_GPC['c'] != 'cloud' && !empty($_GPC['m']) && !in_array($_GPC['m'], array('keyword', 'special', 'welcome', 'default', 'userapi', 'service'))) || defined('IN_MODULE')}
@@ -114,7 +114,7 @@
 								{else}
 									{if (in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER)) && $menu_id == 'front_download' || $menu_id != 'front_download') && !($menu_id == 'platform_menu' && $_W['account']['level'] == ACCOUNT_SUBSCRIPTION)}
 									<li class="list-group-item {if $menu['active']}active{/if}">
-										<a href="{$menu['url']}" class="text-over" {if $frame_section_id == 'platform_module' || $menu_id == 'system_profile'}target="_blank"{/if}>
+										<a href="{$menu['url']}" class="text-over" {if $frame_section_id == 'platform_module'}target="_blank"{/if}>
 										{if $menu['icon']}
 											{if $frame_section_id == 'platform_module'}
 												<img src="{$menu['icon']}"/>
