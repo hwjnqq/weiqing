@@ -13,35 +13,40 @@ load()->model('message');
 $_W['page']['title'] = '系统管理 - 消息提醒 - 消息提醒';
 
 if ($do == 'display') {
-	$pindex = max(1, intval($_GPC['page']));
+	$message_id = safe_gpc_int($_GPC['message_id']);
+	message_notice_read($message_id);
+
+	$types = $type = safe_gpc_int($_GPC['type']);
+	$pindex = safe_gpc_int($_GPC['page'], 1);
 	$psize = 10;
 
-	
-
-	
-		$types = $type = !empty($_GPC['type']) ? intval($_GPC['type']) : MESSAGE_ACCOUNT_EXPIRE_TYPE;
-	
-
-	if ($type == MESSAGE_ACCOUNT_EXPIRE_TYPE) {
-		$types = array(MESSAGE_ACCOUNT_EXPIRE_TYPE, MESSAGE_WECHAT_EXPIRE_TYPE, MESSAGE_WEBAPP_EXPIRE_TYPE);
-	}
-	$is_read = !empty($_GPC['is_read']) ? trim($_GPC['is_read']) : '';
-
 	$message_table = table('message');
+	$is_read = !empty($_GPC['is_read']) ? safe_gpc_int($_GPC['is_read']) : '';
 
 	if (!empty($is_read)) {
 		$message_table->searchWithIsRead($is_read);
 	}
 
-	$message_table->searchWithType($types);
-	$message_table->searchWithPage($pindex, $psize);
-	$lists = $message_table->messageList();
-
-	if (!empty($lists)) {
-		foreach($lists as &$list) {
-			$list['create_time'] = date('Y-m-d H:i:s', $list['create_time']);
-		}
+	if ($type == MESSAGE_ACCOUNT_EXPIRE_TYPE) {
+		$types = array(MESSAGE_ACCOUNT_EXPIRE_TYPE, MESSAGE_WECHAT_EXPIRE_TYPE, MESSAGE_WEBAPP_EXPIRE_TYPE);
 	}
+
+	
+
+	
+		if (empty($type) && !user_is_founder($_W['uid'])){
+			$types = array(MESSAGE_ACCOUNT_EXPIRE_TYPE, MESSAGE_WECHAT_EXPIRE_TYPE, MESSAGE_WEBAPP_EXPIRE_TYPE, MESSAGE_USER_EXPIRE_TYPE, MESSAGE_WXAPP_MODULE_UPGRADE);
+		}
+	
+
+	if (!empty($types)) {
+		$message_table->searchWithType($types);
+	}
+	$message_table->searchWithPage($pindex, $psize);
+	$lists = $message_table->messageList($type);
+
+	$lists = message_list_detail($lists);
+
 	$total = $message_table->getLastQueryTotal();
 	$pager = pagination($total, $pindex, $psize);
 }
@@ -57,9 +62,14 @@ if ($do == 'event_notice') {
 		iajax(-1);
 	}
 	$message = message_event_notice_list();
-	message_account_expire();
-	message_notice_worker();
-	message_sms_expire_notice();
+	$cookie_name = $_W['config']['cookie']['pre'] . '__notice';
+	if (empty($_COOKIE[$cookie_name]) || $_COOKIE[$cookie_name] < TIMESTAMP) {
+		message_account_expire();
+		message_notice_worker();
+		message_sms_expire_notice();
+		message_user_expire_notice();
+		message_wxapp_modules_version_upgrade();
+	}
 	iajax(0, $message);
 
 }

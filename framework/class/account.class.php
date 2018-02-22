@@ -95,6 +95,10 @@ abstract class WeAccount {
 			load()->classs('webapp.account');
 			$account_obj = new WebappAccount();
 		}
+		if($type == ACCOUNT_TYPE_PHONEAPP_NORMAL) {
+			load()->classs('phoneapp.account');
+			$account_obj = new PhoneappAccount();
+		}
 		$account_obj->uniacid = $uniaccount['uniacid'];
 		$account_obj->uniaccount = $uniaccount;
 		$account_obj->account = $account_obj->fetchAccountInfo();
@@ -693,6 +697,44 @@ class WeUtility {
 		self::defineConst($o);
 		$o->inMobile = defined('IN_MOBILE');
 		if($o instanceof WeModuleWxapp) {
+			return $o;
+		} else {
+			trigger_error('ModuleReceiver Class Definition Error', E_USER_WARNING);
+			return null;
+		}
+	}
+
+	/**
+	 * 创建模块APP类
+	 * @param string $name
+	 */
+	public static function createModulePhoneapp($name) {
+		global $_W;
+		static $file;
+		$classname = "{$name}ModulePhoneapp";
+		if(!class_exists($classname)) {
+			$file = IA_ROOT . "/addons/{$name}/phoneapp.php";
+			if(!is_file($file)) {
+				$file = IA_ROOT . "/framework/builtin/{$name}/phoneapp.php";
+			}
+			if(!is_file($file)) {
+				trigger_error('ModulePhoneapp Definition File Not Found '.$file, E_USER_WARNING);
+				return null;
+			}
+			require $file;
+		}
+		if(!class_exists($classname)) {
+			trigger_error('ModuleSite Definition Class Not Found', E_USER_WARNING);
+			return null;
+		}
+		$o = new $classname();
+		$o->uniacid = $o->weid = $_W['uniacid'];
+		$o->modulename = $name;
+		$o->module = module_fetch($name);
+		$o->__define = $file;
+		self::defineConst($o);
+		$o->inMobile = defined('IN_MOBILE');
+		if($o instanceof WeModulePhoneapp) {
 			return $o;
 		} else {
 			trigger_error('ModuleReceiver Class Definition Error', E_USER_WARNING);
@@ -1328,6 +1370,7 @@ abstract class WeModuleProcessor extends WeBase {
 		$response['ArticleCount'] = count($news);
 		$response['Articles'] = array();
 		foreach ($news as $row) {
+			$row = array_change_key_case($row);
 			$response['Articles'][] = array(
 				'Title' => $row['title'],
 				'Description' => ($response['ArticleCount'] > 1) ? '' : $row['description'],
@@ -1792,10 +1835,13 @@ abstract class WeModuleWxapp extends WeBase {
 					$file_path = "$path/$func_file";
 					return is_dir($path) && file_exists($file_path);
 				});
+				$dirs = array_values($dirs);
+
 				// 再过滤文件
 				$files = array_filter($version_path_tree, function($path) use ($func_file){
 					return is_file($path) && pathinfo($path, PATHINFO_BASENAME) == $func_file;
 				});
+				$files = array_values($files);
 
 				if (count($dirs) > 0) {
 					$file = current($dirs).'/'.$func_file;
@@ -1915,6 +1961,57 @@ abstract class WeModuleWebapp extends WeBase {
 			exit;
 		}
 		return null;
+	}
+}
+
+
+abstract class WeModulePhoneapp extends webase {
+	public $version;
+
+	public function __call($name, $arguments) {
+		$dir = IA_ROOT . '/addons/' . $this->modulename . '/inc/phoneapp';
+		$function_name = strtolower(substr($name, 6));
+		$func_file = "{$function_name}.inc.php";
+		$file = "$dir/{$this->version}/{$function_name}.inc.php";
+		if (!file_exists($file)) {
+			$version_path_tree = glob("$dir/*");
+			usort($version_path_tree, function($version1, $version2) {
+				return -version_compare($version1, $version2);
+			});
+			if (!empty($version_path_tree)) {
+				// 先过滤目录
+				$dirs = array_filter($version_path_tree, function($path) use ($func_file){
+					$file_path = "$path/$func_file";
+					return is_dir($path) && file_exists($file_path);
+				});
+				$dirs = array_values($dirs);
+
+				// 再过滤文件
+				$files = array_filter($version_path_tree, function($path) use ($func_file){
+					return is_file($path) && pathinfo($path, PATHINFO_BASENAME) == $func_file;
+				});
+				$files = array_values($files);
+
+				if (count($dirs) > 0) {
+					$file = $dirs[0].'/'.$func_file;
+				} else if(count($files) > 0){
+					$file = $files[0];
+				}
+			}
+		}
+		if (file_exists($file)) {
+			require $file;
+			exit;
+		}
+		return null;
+	}
+
+	public function result($errno, $message, $data = '') {
+		exit(json_encode(array(
+			'errno' => $errno,
+			'message' => $message,
+			'data' => $data,
+		)));
 	}
 }
 

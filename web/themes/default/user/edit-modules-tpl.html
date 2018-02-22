@@ -58,10 +58,43 @@
 				<col width="90px" />
 				<col width="835px" />
 				<tr class="permission-apply">
-					<td class="vertical-middle">应用</td>
+					<td class="vertical-middle">公众号应用</td>
 					<td>
 						<ul>
 							<li ng-repeat="module in pack.modules" class="col-sm-2 text-over text-left">
+								<img ng-src="{{ module.logo }}" alt="">
+								{{ module.title }}
+							</li>
+						</ul>
+					</td>
+				</tr>
+				<tr class="permission-apply">
+					<td class="vertical-middle">小程序应用</td>
+					<td>
+						<ul>
+							<li ng-repeat="module in pack.wxapp" class="col-sm-2 text-over text-left">
+								<img ng-src="{{ module.logo }}" alt="">
+								{{ module.title }}
+							</li>
+						</ul>
+					</td>
+				</tr>
+				<tr class="permission-apply">
+					<td class="vertical-middle">PC应用</td>
+					<td>
+						<ul>
+							<li ng-repeat="module in pack.webapp" class="col-sm-2 text-over text-left">
+								<img ng-src="{{ module.logo }}" alt="">
+								{{ module.title }}
+							</li>
+						</ul>
+					</td>
+				</tr>
+				<tr class="permission-apply">
+					<td class="vertical-middle">APP应用</td>
+					<td>
+						<ul>
+							<li ng-repeat="module in pack.phonebapp" class="col-sm-2 text-over text-left">
 								<img ng-src="{{ module.logo }}" alt="">
 								{{ module.title }}
 							</li>

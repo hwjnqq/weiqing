@@ -18,20 +18,22 @@
 <table class="table we7-table table-hover table-manage vertical-middle" id="js-users-display" ng-controller="UsersDisplay" ng-cloak>
 	<col width="150px"/>
 	<col width="150px">
-	<col width="180px"/>
-	<col width="140px"/>
-	<col width="140px"/>
-	<col width="140px"/>
-	<col width="160px"/>
-	<col width="150px"/>
+	<col width="170px"/>
+	<col width="100px"/>
+	<col width="100px"/>
+	<col width="80px"/>
+	<col width="80px"/>
+	<col width="130px"/>
+	<col width="130px"/>
 	<col width="150px"/>
 	<tr>
 		<th></th>
 		<th class="text-left">用户名</th>
 		<th>用户权限组</th>
-		<th>创建公众号</th>
-		<th>创建小程序</th>
-		<th>创建pc</th>
+		<th>公众号</th>
+		<th>小程序</th>
+		<th>pc</th>
+		<th>APP</th>
 		<th>注册时间</th>
 		<th>到期时间</th>
 		<th class="text-right">操作</th>
@@ -51,6 +53,7 @@
 		<td class="color-default" ng-bind="user.maxaccount"></td>
 		<td class="color-default" ng-bind="user.maxwxapp"></td>
 		<td class="color-default" ng-bind="user.maxwebapp"></td>
+		<td class="color-default" ng-bind="user.maxphoneapp"></td>
 		<td>
 			<span ng-bind="user.joindate"></span>
 		</td>

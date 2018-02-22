@@ -90,6 +90,7 @@ function itoast($msg, $redirect = '', $type = '') {
 function checkauth() {
 	global $_W, $engine;
 	load()->model('mc');
+	load()->model('account');
 	if(!empty($_W['member']) && (!empty($_W['member']['mobile']) || !empty($_W['member']['email']))) {
 		return true;
 	}
@@ -102,7 +103,16 @@ function checkauth() {
 				$fan = mc_fansinfo($fan['openid']);
 			}
 		}
-		if(_mc_login(array('uid' => intval($fan['uid'])))) {
+
+		if (empty($fan['uid'])) {
+			$setting = uni_setting($_W['uniacid'], array('passport'));
+			if (!isset($setting['passport']) || empty($setting['passport']['focusreg'])) {
+				$reg_members = mc_init_fans_info($_W['openid'], true);
+				$fan['uid'] = $reg_members['uid'];
+			}
+		}
+
+		if(_mc_login(array('uid' => safe_gpc_int($fan['uid'])))) {
 			return true;
 		}
 		if (defined('IN_API')) {

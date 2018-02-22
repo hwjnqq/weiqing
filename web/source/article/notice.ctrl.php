@@ -18,7 +18,7 @@ if ($do == 'category_post') {
 		$i = 0;
 		if (!empty($_GPC['title'])) {
 			foreach ($_GPC['title'] as $k => $v) {
-				$title = trim($v);
+				$title = safe_gpc_string($v);
 				if  (empty($title)) {
 					continue;
 				}
@@ -43,15 +43,15 @@ if ($do == 'category') {
 		if (!empty($_GPC['ids'])) {
 			foreach ($_GPC['ids'] as $k => $v) {
 				$data = array(
-					'title' => trim($_GPC['title'][$k]),
-					'displayorder' => intval($_GPC['displayorder'][$k])
+					'title' => safe_gpc_string($_GPC['title'][$k]),
+					'displayorder' => safe_gpc_int($_GPC['displayorder'][$k])
 				);
 				pdo_update('article_category', $data, array('id' => intval($v)));
 			}
 			itoast('修改公告分类成功', referer(), 'success');
 		}
 	}
-	$data = pdo_fetchall('SELECT * FROM ' . tablename('article_category') . ' WHERE type = :type ORDER BY displayorder DESC', array(':type' => 'notice'));
+	$data = table('articlecategory')->getNoticeCategoryLists();
 	template('article/notice-category');
 }
 
@@ -66,8 +66,8 @@ if ($do == 'category_del') {
 //编辑/添加公告
 if ($do == 'post') {
 	$_W['page']['title'] = '编辑公告-公告管理-文章-系统管理';
-	$id = intval($_GPC['id']);
-	$notice = pdo_fetch('SELECT * FROM ' . tablename('article_notice') . ' WHERE id = :id', array(':id' => $id));
+	$id = safe_gpc_int($_GPC['id']);
+	$notice = table('articlenotice')->searchWithId($id)->get();
 	if (empty($notice)) {
 		$notice = array(
 			'is_display' => 1,
@@ -81,17 +81,17 @@ if ($do == 'post') {
 	$user_groups = table('group')->groupList();
 	$user_vice_founder_groups = table('group')->groupList(true);
 	if (checksubmit()) {
-		$title = trim($_GPC['title']) ? safe_gpc_string($_GPC['title']) : itoast('公告标题不能为空', '', 'error');
-		$cateid = intval($_GPC['cateid']) ? intval($_GPC['cateid']) : itoast('公告分类不能为空', '', 'error');
-		$content = trim($_GPC['content']) ? safe_gpc_string($_GPC['content']) : itoast('公告内容不能为空', '', 'error');
-		$style = array('color' => safe_gpc_string($_GPC['style']['color']), 'bold' => intval($_GPC['style']['bold']));
+		$title = safe_gpc_string($_GPC['title']) ? safe_gpc_string($_GPC['title']) : itoast('公告标题不能为空', '', 'error');
+		$cateid = safe_gpc_int($_GPC['cateid']) ? safe_gpc_int($_GPC['cateid']) : itoast('公告分类不能为空', '', 'error');
+		$content = safe_gpc_string($_GPC['content']) ? safe_gpc_string($_GPC['content']) : itoast('公告内容不能为空', '', 'error');
+		$style = array('color' => safe_gpc_string($_GPC['style']['color']), 'bold' => safe_gpc_int($_GPC['style']['bold']));
 		$group = $vice_group = array();
 		if (!empty($_GPC['group']) && is_array($_GPC['group'])) {
 			foreach ($_GPC['group'] as $value) {
 				if (!is_numeric($value)) {
 					itoast('参数错误！');
 				}
-				$group[] = intval($value);
+				$group[] = safe_gpc_int($value);
 			}
 		}
 		if (!empty($_GPC['vice_founder_group']) && is_array($_GPC['vice_founder_group'])) {
@@ -99,7 +99,7 @@ if ($do == 'post') {
 				if (!is_numeric($vice_founder_value)) {
 					itoast('参数错误！');
 				}
-				$vice_group[] = intval($vice_founder_value);
+				$vice_group[] = safe_gpc_int($vice_founder_value);
 			}
 		}
 		if (empty($group) && empty($vice_group)) {
@@ -127,46 +127,50 @@ if ($do == 'post') {
 		}
 		itoast('编辑公告成功', url('article/notice/list'), 'success');
 	}
-	$categorys = pdo_fetchall('SELECT * FROM ' . tablename('article_category') . ' WHERE type = :type ORDER BY displayorder DESC', array(':type' => 'notice'));
+
+	$categorys = table('articlecategory')->getNoticeCategoryLists();
 	template('article/notice-post');
 }
 
 //公告列表
 if ($do == 'list') {
 	$_W['page']['title'] = '公告列表-公告管理-文章-系统管理';
-	$condition = ' WHERE 1';
-	$cateid = intval($_GPC['cateid']);
-	$createtime = intval($_GPC['createtime']);
-	$search_title = trim($_GPC['title']);
-	$params = array();
-	if ($cateid > 0) {
-		$condition .= ' AND cateid = :cateid';
-		$params[':cateid'] = $cateid;
-	}
-	if ($createtime > 0) {
-		$condition .= ' AND createtime >= :createtime';
-		$params[':createtime'] = strtotime("-{$createtime} days");
-	}
-	if (!empty($search_title)) {
-		$condition .= " AND title LIKE :title";
-		$params[':title'] = "%{$search_title}%";
-	}
-	$order = !empty($_W['setting']['notice_display']) ? $_W['setting']['notice_display'] : 'displayorder';
-
-	$pindex = max(1, intval($_GPC['page']));
+	$pindex = max(1, safe_gpc_int($_GPC['page']));
 	$psize = 20;
-	$sql = 'SELECT * FROM ' . tablename('article_notice') . $condition . " ORDER BY " . $order . " DESC LIMIT " . ($pindex - 1) * $psize .',' .$psize;
-	$notices = pdo_fetchall($sql, $params);
-	foreach ($notices as &$notice_value) {
-		if (!empty($notice_value)) {
-			$notice_value['style'] = iunserializer($notice_value['style']);
+
+	$article_table = table('articlenotice');
+	$cateid = safe_gpc_int($_GPC['cateid']);
+	$createtime = safe_gpc_int($_GPC['createtime']);
+	$title = safe_gpc_string($_GPC['title']);
+
+	if (!empty($cateid)) {
+		$article_table->searchWithCateid($cateid);
+	}
+
+	if (!empty($createtime)) {
+		$article_table->searchWithCreatetimeRange($createtime);
+	}
+
+	if (!empty($title)) {
+		$article_table->searchWithTitle($title);
+	}
+
+	$order = !empty($_W['setting']['news_display']) ? $_W['setting']['news_display'] : 'displayorder';
+
+	$article_table->searchWithPage($pindex, $psize);
+	$notices = $article_table->getArticleNoticeLists($order);
+	if (!empty($notices)) {
+		foreach ($notices as &$notice_value) {
+			if (!empty($notice_value)) {
+				$notice_value['style'] = iunserializer($notice_value['style']);
+			}
 		}
 	}
-	unset($notice_value);
-	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('article_notice') . $condition, $params);
+
+	$total = $article_table->getLastQueryTotal();
 	$pager = pagination($total, $pindex, $psize);
 
-	$categorys = pdo_fetchall('SELECT * FROM ' . tablename('article_category') . ' WHERE type = :type ORDER BY displayorder DESC', array(':type' => 'notice'), 'id');
+	$categorys = table('articlecategory')->getNoticeCategoryLists($order);
 	template('article/notice');
 }
 
@@ -189,7 +193,7 @@ if ($do == 'batch_post') {
 
 //删除公告
 if ($do == 'del') {
-	$id = intval($_GPC['id']);
+	$id = safe_gpc_int($_GPC['id']);
 	pdo_delete('article_notice', array('id' => $id));
 	pdo_delete('article_unread_notice', array('notice_id' => $id));
 	itoast('删除公告成功', referer(), 'success');
@@ -197,7 +201,7 @@ if ($do == 'del') {
 
 //显示排序设置
 if ($do == 'displaysetting') {
-	$setting = trim($_GPC['setting']);
+	$setting = safe_gpc_string($_GPC['setting']);
 	$data = $setting == 'createtime' ? 'createtime' : 'displayorder';
 	setting_save($data, 'notice_display');
 	itoast('更改成功！', referer(), 'success');
