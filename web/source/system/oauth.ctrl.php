@@ -26,10 +26,12 @@ if ($do == 'save_oauth') {
 	}
 
 	$oauth['oauth']['account'] = intval($_GPC['account']);
-	$oauth['oauth']['host'] = rtrim($_GPC['host'],'/');
-	if (!empty($oauth['host']) && !preg_match('/^http(s)?:\/\//', $oauth['host'])) {
-		iajax(-1, '域名不能为空或域名格式不对');
+
+	$oauth['oauth']['host'] = safe_gpc_url(rtrim($_GPC['host'],'/'), false);
+	if (!empty($_GPC['host']) && empty($oauth['oauth']['host'])) {
+		iajax(-1, '域名不合法');
 	}
+
 	$result = setting_save($oauth, 'global_oauth');
 	if (is_error($result)) {
 		iajax(-1, '添加失败');
