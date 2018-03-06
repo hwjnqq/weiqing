@@ -15,9 +15,9 @@ if (checksubmit()) {
 		'password' => $_GPC['password'],
 		'repassword' => $_GPC['repassword'],
 		'remark' => safe_gpc_string($_GPC['remark']),
-		'groupid' => safe_gpc_int($_GPC['groupid']),
+		'groupid' => intval($_GPC['groupid']),
 		'starttime' => TIMESTAMP,
-		'endtime' => safe_gpc_int($_GPC['timelimit']),
+		'endtime' => intval($_GPC['timelimit']),
 		'vice_founder_name' => safe_gpc_string($_GPC['vice_founder_name'])
 	);
 

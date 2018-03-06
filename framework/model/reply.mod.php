@@ -33,7 +33,7 @@ function reply_search($condition = '', $params = array(), $pindex = 0, $psize = 
  * @return array array('rule'=>$rule,'keyword'=>array($rule_key,...))
  */
 function reply_single($id) {
-	$id = safe_gpc_int($id);
+	$id = intval($id);
 	$result = table('rule')->getById($id);
 	if (empty($result)) {
 		return $result;
@@ -88,7 +88,7 @@ function reply_keywords_search($condition = '', $params = array(), $pindex = 0, 
  */
 function reply_contnet_search($rid = 0) {
 	$result = array();
-	$rid = safe_gpc_int($rid);
+	$rid = intval($rid);
 	if (empty($rid)) {
 		return $result;
 	}

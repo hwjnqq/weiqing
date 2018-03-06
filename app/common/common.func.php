@@ -112,7 +112,7 @@ function checkauth() {
 			}
 		}
 
-		if(_mc_login(array('uid' => safe_gpc_int($fan['uid'])))) {
+		if(_mc_login(array('uid' => intval($fan['uid'])))) {
 			return true;
 		}
 		if (defined('IN_API')) {

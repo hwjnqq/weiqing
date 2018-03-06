@@ -38,6 +38,8 @@ define('ACCOUNT_TYPE_APP_NORMAL', 4);
 define('ACCOUNT_TYPE_WEBAPP_NORMAL', 5);
 //正常接入APP
 define('ACCOUNT_TYPE_PHONEAPP_NORMAL', 6);
+//授权接入小程序
+define('ACCOUNT_TYPE_APP_AUTH', 7);
 
 
 //授权登录接入

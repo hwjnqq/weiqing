@@ -22,7 +22,7 @@ if ($do == 'category_post') {
 				}
 				$data = array(
 					'title' => $title,
-					'displayorder' => safe_gpc_int($_GPC['displayorder'][$k]),
+					'displayorder' => intval($_GPC['displayorder'][$k]),
 					'type' => 'news',
 				);
 				pdo_insert('article_category', $data);
@@ -42,7 +42,7 @@ if ($do == 'category') {
 			foreach ($_GPC['ids'] as $k => $v) {
 				$data = array(
 					'title' => safe_gpc_string($_GPC['title'][$k]),
-					'displayorder' => safe_gpc_int($_GPC['displayorder'][$k])
+					'displayorder' => intval($_GPC['displayorder'][$k])
 				);
 				pdo_update('article_category', $data, array('id' => intval($v)));
 			}
@@ -56,7 +56,7 @@ if ($do == 'category') {
 
 //删除分类
 if ($do == 'category_del') {
-	$id = safe_gpc_int($_GPC['id']);
+	$id = intval($_GPC['id']);
 	pdo_delete('article_category', array('id' => $id, 'type' => 'news'));
 	pdo_delete('article_news', array('cateid' => $id));
 	itoast('删除分类成功', referer(), 'success');
@@ -65,7 +65,7 @@ if ($do == 'category_del') {
 //编辑文章
 if ($do == 'post') {
 	$_W['page']['title'] = '编辑新闻-新闻列表';
-	$id = safe_gpc_int($_GPC['id']);
+	$id = intval($_GPC['id']);
 	$new = table('articlenews')->searchWithId($id)->get();
 	if (empty($new)) {
 		$new = array(
@@ -83,10 +83,10 @@ if ($do == 'post') {
 			'content' => safe_gpc_html(htmlspecialchars_decode($content)),
 			'source' => safe_gpc_string($_GPC['source']),
 			'author' => safe_gpc_string($_GPC['author']),
-			'displayorder' => safe_gpc_int($_GPC['displayorder']),
-			'click' => safe_gpc_int($_GPC['click']),
-			'is_display' => safe_gpc_int($_GPC['is_display']),
-			'is_show_home' => safe_gpc_int($_GPC['is_show_home']),
+			'displayorder' => intval($_GPC['displayorder']),
+			'click' => intval($_GPC['click']),
+			'is_display' => intval($_GPC['is_display']),
+			'is_show_home' => intval($_GPC['is_show_home']),
 			'createtime' => TIMESTAMP,
 		);
 		if (!empty($_GPC['thumb'])) {
@@ -117,12 +117,12 @@ if ($do == 'post') {
 if ($do == 'list') {
 	$_W['page']['title'] = '所有新闻-新闻列表';
 
-	$pindex = max(1, safe_gpc_int($_GPC['page']));
+	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 
 	$article_table = table('articlenews');
-	$cateid = safe_gpc_int($_GPC['cateid']);
-	$createtime = safe_gpc_int($_GPC['createtime']);
+	$cateid = intval($_GPC['cateid']);
+	$createtime = intval($_GPC['createtime']);
 	$title = safe_gpc_string($_GPC['title']);
 
 	if (!empty($cateid)) {
@@ -155,8 +155,8 @@ if ($do == 'batch_post') {
 			foreach ($_GPC['ids'] as $k => $v) {
 				$data = array(
 					'title' => trim($_GPC['title'][$k]),
-					'displayorder' => safe_gpc_int($_GPC['displayorder'][$k]),
-					'click' => safe_gpc_int($_GPC['click'][$k]),
+					'displayorder' => intval($_GPC['displayorder'][$k]),
+					'click' => intval($_GPC['click'][$k]),
 				);
 				pdo_update('article_news', $data, array('id' => intval($v)));
 			}
@@ -167,7 +167,7 @@ if ($do == 'batch_post') {
 
 //删除文章
 if ($do == 'del') {
-	$id = safe_gpc_int($_GPC['id']);
+	$id = intval($_GPC['id']);
 	pdo_delete('article_news', array('id' => $id));
 	itoast('删除文章成功', referer(), 'success');
 }

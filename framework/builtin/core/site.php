@@ -130,7 +130,7 @@ class CoreModuleSite extends WeModuleSite {
 			), array('plid' => $paylog['plid']));
 		}
 		$paylog['title'] = $params['title'];
-		if (safe_gpc_int($_GPC['iswxapp'])) {
+		if (intval($_GPC['iswxapp'])) {
 			message(error(2, $_W['siteroot']."app/index.php?i={$_W['uniacid']}&c=wxapp&a=home&do=go_paycenter&title={$params['title']}&plid={$paylog['plid']}"), '', 'ajax', true);
 		}
 

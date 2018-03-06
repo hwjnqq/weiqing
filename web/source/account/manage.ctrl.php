@@ -21,27 +21,27 @@ $account_info = permission_user_account_num();
 
 
 if ($do == 'display') {
-	$message_id = safe_gpc_int($_GPC['message_id']);
+	$message_id = intval($_GPC['message_id']);
 	message_notice_read($message_id);
 
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	/* @var $account_table AccountTable*/
 	$account_table = table('account');
-	
+
 	$type_condition = array(
-		ACCOUNT_TYPE_APP_NORMAL => array(ACCOUNT_TYPE_APP_NORMAL),
+		ACCOUNT_TYPE_APP_NORMAL => array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH),
 		ACCOUNT_TYPE_WEBAPP_NORMAL => array(ACCOUNT_TYPE_WEBAPP_NORMAL),
 		ACCOUNT_TYPE_OFFCIAL_NORMAL => array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH),
 		ACCOUNT_TYPE_PHONEAPP_NORMAL => array(ACCOUNT_TYPE_PHONEAPP_NORMAL),
 	);
 	$account_table->searchWithType($type_condition[ACCOUNT_TYPE]);
-	
+
 	$keyword = trim($_GPC['keyword']);
 	if (!empty($keyword)) {
 		$account_table->searchWithKeyword($keyword);
 	}
-	
+
 	if(isset($_GPC['letter']) && strlen($_GPC['letter']) == 1) {
 		$account_table->searchWithLetter($_GPC['letter']);
 	}
@@ -60,7 +60,6 @@ if ($do == 'display') {
 	} else {
 		$list = $account_table->searchAccountList();
 	}
-
 
 	foreach($list as &$account) {
 		$account = uni_fetch($account['uniacid']);
@@ -99,7 +98,7 @@ if ($do == 'delete') {
 		pdo_update('account', array('isdeleted' => 1), array('acid' => $acid));
 		itoast('删除子公众号成功！您可以在回收站中回复公众号', referer(), 'success');
 	}
-	
+
 	if (!empty($uniacid)) {
 		$account = pdo_get('uni_account', array('uniacid' => $uniacid));
 		if (empty($account)) {

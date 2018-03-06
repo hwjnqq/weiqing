@@ -33,7 +33,7 @@
 				<ul>
 					<li class="select-tem-item" ng-repeat="style in styles" ng-class="{'active': multi.style.id == style.id}" ng-click="selectStyle(style)" ng-show="temtype.name == 'all' || temtype.name == style.type">
 						<input type="text" name="styleid" ng-model="multi.style.id" ng-style="{'display': 'none'}">
-						<img ng-src="../app/themes/{{style.tname}}/preview.jpg" onerror="this.src='http://we7cloud-10016060.file.myqcloud.com/images/2016/11/17/1479364010582d4daaccd11_NHbS9qcx14Sc.jpg'" />
+						<img ng-src="../app/themes/{{style.tname}}/preview.jpg" />
 						<a href="javascript:;" class="cover-dark" ng-style="{'padding': '5px'}">
 							<i class="fa fa-check cover-selected"></i>
 							<span ng-bind="style.name" class="text-over" ng-style="{'position': 'absolute', 'bottom': '1px', 'color': 'white'}"></span>

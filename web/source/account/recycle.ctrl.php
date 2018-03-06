@@ -26,7 +26,7 @@ if ($do == 'display') {
 	$condition = '';
 	$param = array();
 	$keyword = trim($_GPC['keyword']);
-	
+
 	$type_condition = array(
 		ACCOUNT_TYPE_APP_NORMAL => array(ACCOUNT_TYPE_APP_NORMAL),
 		ACCOUNT_TYPE_OFFCIAL_NORMAL => array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH),
@@ -35,7 +35,7 @@ if ($do == 'display') {
 		ACCOUNT_TYPE_PHONEAPP_NORMAL => array(ACCOUNT_TYPE_PHONEAPP_NORMAL),
 	);
 	$type_condition_sql = "'".implode("','", $type_condition[ACCOUNT_TYPE])."'";
-	
+
 	if (!empty($_W['isfounder'])) {
 		$condition .= " WHERE a.acid <> 0 AND b.isdeleted = 1 AND b.type IN ($type_condition_sql)";
 		$order_by = " ORDER BY a.`acid` DESC";

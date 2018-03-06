@@ -23,10 +23,10 @@ if ($do == 'display') {
 		if (!empty($_GPC['displayorder'])) {
 			foreach ($_GPC['displayorder'] as $id => $displayorder) {
 				pdo_update('profile_fields', array(
-				'displayorder' => safe_gpc_int($displayorder),
-				'available' => safe_gpc_int($_GPC['available'][$id]),
-				'showinregister' => safe_gpc_int($_GPC['showinregister'][$id]),
-				'required' => safe_gpc_int($_GPC['required'][$id]),
+				'displayorder' => intval($displayorder),
+				'available' => intval($_GPC['available'][$id]),
+				'showinregister' => intval($_GPC['showinregister'][$id]),
+				'required' => intval($_GPC['required'][$id]),
 				), array('id' => $id));
 			}
 		}
@@ -39,7 +39,7 @@ if ($do == 'display') {
 
 if ($do == 'post') {
 	$_W['page']['title'] = '编辑字段 - 用户管理';
-	$id = safe_gpc_int($_GPC['id']);
+	$id = intval($_GPC['id']);
 
 	if (checksubmit('submit')) {
 		if (empty($_GPC['title'])) {
@@ -54,15 +54,15 @@ if ($do == 'post') {
 		$data = array(
 			'title' => $_GPC['title'],
 			'description' => $_GPC['description'],
-			'displayorder' => safe_gpc_int($_GPC['displayorder']),
-			'available' => safe_gpc_int($_GPC['available']),
-			'unchangeable' => safe_gpc_int($_GPC['unchangeable']),
-			'showinregister' => safe_gpc_int($_GPC['showinregister']),
-			'required' => safe_gpc_int($_GPC['required']),
+			'displayorder' => intval($_GPC['displayorder']),
+			'available' => intval($_GPC['available']),
+			'unchangeable' => intval($_GPC['unchangeable']),
+			'showinregister' => intval($_GPC['showinregister']),
+			'required' => intval($_GPC['required']),
 			'field' => safe_gpc_string($_GPC['field']),
-			'field_length' => safe_gpc_int($_GPC['length'])
+			'field_length' => intval($_GPC['length'])
 		);
-		$length = safe_gpc_int($_GPC['length']);
+		$length = intval($_GPC['length']);
 		if (empty($id)) {
 			pdo_insert('profile_fields', $data);
 			if (!pdo_fieldexists('users_profile', $data['field'])) {

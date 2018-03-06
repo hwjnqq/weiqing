@@ -28,7 +28,7 @@ function phoneapp_support_modules() {
  */
 function phoneapp_get_some_lastversions($uniacid) {
 	$version_lasts = array();
-	$uniacid = safe_gpc_int($uniacid);
+	$uniacid = intval($uniacid);
 
 	if (empty($uniacid)) {
 		return $version_lasts;
@@ -71,12 +71,12 @@ function phoneapp_fetch($uniacid, $version_id = '') {
 	global $_GPC;
 	load()->model('extension');
 	$phoneapp_info = array();
-	$uniacid = safe_gpc_int($uniacid);
+	$uniacid = intval($uniacid);
 	if (empty($uniacid)) {
 		return $phoneapp_info;
 	}
 	if (!empty($version_id)) {
-		$version_id = safe_gpc_int($version_id);
+		$version_id = intval($version_id);
 	}
 
 	$phonaeapp_table = table('phoneapp');
@@ -120,7 +120,7 @@ function phoneapp_fetch($uniacid, $version_id = '') {
  */
 function phoneapp_version($version_id) {
 	$version_info = array();
-	$version_id = safe_gpc_int($version_id);
+	$version_id = intval($version_id);
 
 	if (empty($version_id)) {
 		return $version_info;
@@ -177,8 +177,8 @@ function phoneapp_save_switch($uniacid) {
  */
 function phoneapp_update_last_use_version($uniacid, $version_id) {
 	global $_GPC;
-	$uniacid = safe_gpc_int($uniacid);
-	$version_id = safe_gpc_int($version_id);
+	$uniacid = intval($uniacid);
+	$version_id = intval($version_id);
 	if (empty($uniacid) || empty($version_id)) {
 		return false;
 	}
@@ -219,7 +219,7 @@ function phoneapp_update_last_use_version($uniacid, $version_id) {
 function phoneapp_version_all($uniacid) {
 	load()->model('module');
 	$phoneapp_versions = array();
-	$uniacid = safe_gpc_int($uniacid);
+	$uniacid = intval($uniacid);
 
 	if (empty($uniacid)) {
 		return $phoneapp_versions;

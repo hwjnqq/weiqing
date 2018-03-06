@@ -95,7 +95,7 @@ if ($do == 'post') {
 		}
 		$type = MENU_CURRENTSELF;
 		$default_menu = menu_default();
-		$id = $default_menu['id'];
+		$id = intval($default_menu['id']);
 	}
 	$params = array();
 	if ($id > 0) {

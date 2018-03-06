@@ -880,7 +880,7 @@ function module_clerk_info($module_name) {
 	if (empty($module_name)) {
 		return $user_permissions;
 	}
-	$user_permissions = table('users')->moduleClerkPermission($module_name);
+	$user_permissions = table('userspermission')->moduleClerkPermission($module_name);
 	if (!empty($user_permissions)) {
 		foreach ($user_permissions as $key => $value) {
 			$user_permissions[$key]['user_info'] = user_single($value['uid']);

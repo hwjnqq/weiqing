@@ -67,7 +67,7 @@ if ($do == 'post') {
 }
 
 if ($do == 'del') {
-	$id = safe_gpc_int($_GPC['id']);
+	$id = intval($_GPC['id']);
 	$result = pdo_delete('users_group', array('id' => $id));
 	if(!empty($result)){
 		itoast('删除成功！', url('user/group/display'), 'success');

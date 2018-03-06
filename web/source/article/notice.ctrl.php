@@ -44,7 +44,7 @@ if ($do == 'category') {
 			foreach ($_GPC['ids'] as $k => $v) {
 				$data = array(
 					'title' => safe_gpc_string($_GPC['title'][$k]),
-					'displayorder' => safe_gpc_int($_GPC['displayorder'][$k])
+					'displayorder' => intval($_GPC['displayorder'][$k])
 				);
 				pdo_update('article_category', $data, array('id' => intval($v)));
 			}
@@ -66,7 +66,7 @@ if ($do == 'category_del') {
 //编辑/添加公告
 if ($do == 'post') {
 	$_W['page']['title'] = '编辑公告-公告管理-文章-系统管理';
-	$id = safe_gpc_int($_GPC['id']);
+	$id = intval($_GPC['id']);
 	$notice = table('articlenotice')->searchWithId($id)->get();
 	if (empty($notice)) {
 		$notice = array(
@@ -82,16 +82,16 @@ if ($do == 'post') {
 	$user_vice_founder_groups = table('group')->groupList(true);
 	if (checksubmit()) {
 		$title = safe_gpc_string($_GPC['title']) ? safe_gpc_string($_GPC['title']) : itoast('公告标题不能为空', '', 'error');
-		$cateid = safe_gpc_int($_GPC['cateid']) ? safe_gpc_int($_GPC['cateid']) : itoast('公告分类不能为空', '', 'error');
+		$cateid = intval($_GPC['cateid']) ? intval($_GPC['cateid']) : itoast('公告分类不能为空', '', 'error');
 		$content = safe_gpc_string($_GPC['content']) ? safe_gpc_string($_GPC['content']) : itoast('公告内容不能为空', '', 'error');
-		$style = array('color' => safe_gpc_string($_GPC['style']['color']), 'bold' => safe_gpc_int($_GPC['style']['bold']));
+		$style = array('color' => safe_gpc_string($_GPC['style']['color']), 'bold' => intval($_GPC['style']['bold']));
 		$group = $vice_group = array();
 		if (!empty($_GPC['group']) && is_array($_GPC['group'])) {
 			foreach ($_GPC['group'] as $value) {
 				if (!is_numeric($value)) {
 					itoast('参数错误！');
 				}
-				$group[] = safe_gpc_int($value);
+				$group[] = intval($value);
 			}
 		}
 		if (!empty($_GPC['vice_founder_group']) && is_array($_GPC['vice_founder_group'])) {
@@ -99,7 +99,7 @@ if ($do == 'post') {
 				if (!is_numeric($vice_founder_value)) {
 					itoast('参数错误！');
 				}
-				$vice_group[] = safe_gpc_int($vice_founder_value);
+				$vice_group[] = intval($vice_founder_value);
 			}
 		}
 		if (empty($group) && empty($vice_group)) {
@@ -135,12 +135,12 @@ if ($do == 'post') {
 //公告列表
 if ($do == 'list') {
 	$_W['page']['title'] = '公告列表-公告管理-文章-系统管理';
-	$pindex = max(1, safe_gpc_int($_GPC['page']));
+	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 
 	$article_table = table('articlenotice');
-	$cateid = safe_gpc_int($_GPC['cateid']);
-	$createtime = safe_gpc_int($_GPC['createtime']);
+	$cateid = intval($_GPC['cateid']);
+	$createtime = intval($_GPC['createtime']);
 	$title = safe_gpc_string($_GPC['title']);
 
 	if (!empty($cateid)) {
@@ -193,7 +193,7 @@ if ($do == 'batch_post') {
 
 //删除公告
 if ($do == 'del') {
-	$id = safe_gpc_int($_GPC['id']);
+	$id = intval($_GPC['id']);
 	pdo_delete('article_notice', array('id' => $id));
 	pdo_delete('article_unread_notice', array('notice_id' => $id));
 	itoast('删除公告成功', referer(), 'success');

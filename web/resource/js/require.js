@@ -42,6 +42,7 @@ var requireConfig = {
 		'daterangepicker': '../../components/daterangepicker/daterangepicker',
 		'colorpicker': '../../components/colorpicker/spectrum',
 		'map': 'https://api.map.baidu.com/getscript?v=2.0&ak=F51571495f717ff1194de02366bb8da9&services=&t=20140530104353',
+		'qqmap': 'https://map.qq.com/api/js?v=2.exp',
 		'webuploader' : '../../components/webuploader/webuploader.min',
 		'fileUploader' : '../../components/fileuploader/fileuploader.min',
 		'clockpicker': '../../components/clockpicker/clockpicker.min',
@@ -78,6 +79,8 @@ var requireConfig = {
 		'clipboard' : '../lib/clipboard.min',
 		/*单选多选组件 待完善*/
 		'we7.check' : '../lib/we7.check',
+		'loadjs': '../lib/loadjs', //加载CSS
+
 	},
 	shim:{
 		'ueditor': {
@@ -119,9 +122,9 @@ var requireConfig = {
 			deps: ['loadcss!../../components/switch/bootstrap-switch.min.css'],
 			exports: "$",
 		},
-		'fileUploader': {
-			deps: ['webuploader', 'jquery.jplayer', 'loadcss!../../components/webuploader/webuploader.css', 'loadcss!../../components/webuploader/style.css']
-		},
+		// 'fileUploader': {
+		// 	deps: ['webuploader', 'jquery.jplayer', 'loadcss!../../components/webuploader/webuploader.css', 'loadcss!../../components/webuploader/style.css']
+		// },
 		'clockpicker': {
 			exports: '$',
 			deps: ['loadcss!../../components/clockpicker/clockpicker.min.css']

@@ -28,7 +28,7 @@ if ($do == 'display') {
 	$uni_account_module_setting = table('module')->uniAccountModuleInfo($module_name);
 	$default_entry_id = !empty($uni_account_module_setting['settings']) ? intval($uni_account_module_setting['settings']['default_entry']) : 0;
 	if (checksubmit()) {
-		$default_entry = safe_gpc_int($_GPC['default_entry_id']);
+		$default_entry = intval($_GPC['default_entry_id']);
 		$data = !empty($uni_account_module_setting['settings']) ? $uni_account_module_setting['settings'] : array();
 		if (empty($default_entry)) {
 			unset($data['default_entry']);

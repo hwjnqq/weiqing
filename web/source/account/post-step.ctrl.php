@@ -184,7 +184,7 @@ if($step == 1) {
 		if (!empty($uid)) {
 			//删除原所有者，删除现在所有者其他身份
 			$create_account_info = permission_user_account_num($uid);
-			if ($create_account_info['uniacid_limit'] <= 0) {
+			if ($create_account_info['uniacid_limit'] <= 0 && (!user_is_founder($_W['uid']) || user_is_vice_founder())) {
 				itoast("您所设置的主管理员所在的用户组可添加的公众号数量已达上限，请选择其他人做主管理员！", referer(), 'error');
 			}
 			pdo_delete('uni_account_users', array('uniacid' => $uniacid, 'uid' => $uid));

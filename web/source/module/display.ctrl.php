@@ -15,12 +15,12 @@ if ($do == 'display') {
 	$user_module = array();
 	if (!$_W['isfounder']) {
 		$account_table = table('account');
-		$user_table = table('users');
+		$userspermission_table = table('userspermission');
 		$user_owned_account = $account_table->userOwnedAccount($_W['uid']);
 		if (!empty($user_owned_account) && is_array($user_owned_account)) {
 			foreach ($user_owned_account as $uniacid => $account) {
 				$account_module = uni_modules_by_uniacid($uniacid);
-				$account_user_module = $user_table->userPermission($_W['uid'], $uniacid);
+				$account_user_module = $userspermission_table->userPermission($_W['uid'], $uniacid);
 				if (!empty($account_user_module) && is_array($account_user_module)) {
 					$account_module = array_intersect_key($account_module, $account_user_module);
 				}

@@ -9,7 +9,7 @@ $_W['page']['title'] = 'APP列表';
 $do = safe_gpc_belong($do, array('display', 'switch', 'home'), 'display');
 
 if ($do == 'switch') {
-	$uniacid = safe_gpc_int($_GPC['uniacid']);
+	$uniacid = intval($_GPC['uniacid']);
 
 	if (!empty($uniacid)) {
 		$phoneapp_info = phoneapp_fetch($uniacid);
@@ -19,7 +19,7 @@ if ($do == 'switch') {
 	}
 
 	$module_name = safe_gpc_string($_GPC['module']);
-	$version_id = !empty($_GPC['version_id']) ? safe_gpc_int($_GPC['version_id']) : $wxapp_info['version']['id'];
+	$version_id = !empty($_GPC['version_id']) ? intval($_GPC['version_id']) : $wxapp_info['version']['id'];
 	if (!empty($module_name) && !empty($version_id)) {
 		$version_info = phoneapp_version($version_id);
 		$module_info = array();
@@ -71,7 +71,7 @@ if ($do == 'display') {
 	//模版调用，显示该用户所在用户组可添加的主公号数量，已添加的数量，还可以添加的数量
 	$account_info = permission_user_account_num();
 
-	$pindex = max(1, safe_gpc_int($_GPC['page']));
+	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 
 	$account_table = table('phoneapp');

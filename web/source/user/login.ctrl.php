@@ -49,7 +49,7 @@ function _login($forward = '') {
 			itoast('绑定成功', url('user/profile/bind'), '');
 		}
 	}
-	
+
 	if (is_error($member)) {
 		itoast($member['message'], url('user/login'), '');
 	}

@@ -8,7 +8,7 @@ $do = safe_gpc_belong($do, array('home'), 'home');
 
 $_W['page']['title'] = 'APP - 管理';
 
-$version_id = safe_gpc_int($_GPC['version_id']);
+$version_id = intval($_GPC['version_id']);
 $phoneapp_info = phoneapp_fetch($_W['uniacid']);
 
 if (!empty($version_id)) {

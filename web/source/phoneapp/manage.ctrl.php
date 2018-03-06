@@ -8,7 +8,7 @@ $account_info = permission_user_account_num();
 
 $do = safe_gpc_belong($do, array('create_display', 'save', 'display', 'del_version'), 'display');
 
-$uniacid = safe_gpc_int($_GPC['uniacid']);
+$uniacid = intval($_GPC['uniacid']);
 
 if (!empty($uniacid)) {
 	$state = permission_account_user_role($_W['uid'], $uniacid);
@@ -23,7 +23,7 @@ if (!empty($uniacid)) {
 
 
 if ($do == 'save') {
-	$version_id = safe_gpc_int($_GPC['version_id']);
+	$version_id = intval($_GPC['version_id']);
 	if (empty($uniacid) && empty($account_info['phoneapp_limit']) && !user_is_founder($_W['uid'])) {
 		iajax(-1, '创建APP个数已满', url('phoneapp/manage/create_display'));
 	}
@@ -56,7 +56,7 @@ if ($do == 'save') {
 }
 
 if($do == 'create_display') {
-	$version_id = safe_gpc_int($_GPC['version_id']);
+	$version_id = intval($_GPC['version_id']);
 	$version_info = phoneapp_version($version_id);
 	$modules = phoneapp_support_modules();
 	template('phoneapp/create');
@@ -82,7 +82,7 @@ if ($do == 'display') {
 }
 
 if ($do == 'del_version') {
-	$id = safe_gpc_int($_GPC['version_id']);
+	$id = intval($_GPC['version_id']);
 	if (empty($id)) {
 		iajax(1, '参数错误！');
 	}

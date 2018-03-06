@@ -84,7 +84,7 @@ if ($do == 'edit') {
 		}
 		$addtype = intval($_GPC['addtype']);
 		//添加/修改公众号主管理员时执行数量判断
-		if (is_error($permission = permission_create_account($user['uid'], ACCOUNT_TYPE)) && $addtype == ACCOUNT_MANAGE_TYPE_OWNER) {
+		if (is_error($permission = permission_create_account($user['uid'], ACCOUNT_TYPE)) && $addtype == ACCOUNT_MANAGE_TYPE_OWNER && !in_array($_W['uid'], $founders)) {
 			itoast(error(5, $permission['message']), '', 'error');
 		}
 

@@ -41,7 +41,10 @@ if (($_W['setting']['copyright']['status'] == 1) && empty($_W['isfounder']) && $
 		exit();
 	}
 	isetcookie('__session', '', - 10000);
-	message('站点已关闭，关闭原因：' . $_W['setting']['copyright']['reason'], url('account/welcome'), 'info');
+	
+		message('站点已关闭，关闭原因：' . $_W['setting']['copyright']['reason'], url('user/login'), 'info');
+	
+	
 }
 
 $controllers = array();

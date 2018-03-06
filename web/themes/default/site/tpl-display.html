@@ -28,7 +28,7 @@
 		<div class="site-template-item" ng-class="{'active' : style.styleid == setting.styleid}" ng-repeat="style in stylesResult" ng-if="style.styleid">
 			<h2 class="site-template-title">{{style.title}} ({{style.name}})</h2>
 			<div class="site-template-img" ng-click="selectDefault(style.styleid)">
-				<img ng-src="../app/themes/{{style.name}}/preview.jpg" alt="{{style.name}}" onerror="this.src='http://we7cloud-10016060.file.myqcloud.com/images/2016/11/17/1479364010582d4daaccd11_NHbS9qcx14Sc.jpg'"/>
+				<img ng-src="../app/themes/{{style.name}}/preview.jpg" alt="{{style.name}}"/>
 				<div class="cover-dark">
 					<div class="selected">
 						<i class="fa fa-check"></i>
@@ -50,7 +50,7 @@
 			</div>
 			<h2 class="site-template-title">{{style.title}} ({{style.name}})</h2>
 			<div class="site-template-img">
-				<img src="../app/themes/{{style.name}}/preview.jpg" onerror="this.src='http://we7cloud-10016060.file.myqcloud.com/images/2016/11/17/1479364010582d4daaccd11_NHbS9qcx14Sc.jpg'"/>
+				<img src="../app/themes/{{style.name}}/preview.jpg"/>
 				<div class="cover-dark">
 					<div class="selected">
 						<i class="fa fa-check"></i>
