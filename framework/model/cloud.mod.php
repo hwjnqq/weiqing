@@ -23,8 +23,9 @@ function _cloud_build_params() {
 	global $_W;
 	$pars = array();
 	if (is_array($_W['setting']['site']) && !empty($_W['setting']['site']['url'])) {
-		$pars['host'] = preg_replace('/^http:\/\/|^https:\/\//', '', $_W['setting']['site']['url']);
-	} else {
+		$pars['host'] = parse_url($_W['setting']['site']['url'], PHP_URL_HOST);
+	}
+	if (empty($pars['host'])) {
 		$pars['host'] = $_SERVER['HTTP_HOST'];
 	}
 	$pars['family'] = IMS_FAMILY;
@@ -320,8 +321,10 @@ function cloud_m_prepare($name) {
  */
 function cloud_m_build($modulename, $type = '') {
 	$type = in_array($type, array('uninstall')) ? $type : '';
-	$sql = 'SELECT * FROM ' . tablename('modules') . ' WHERE `name`=:name';
-	$module = pdo_fetch($sql, array(':name' => $modulename));
+	if (empty($modulename)) {
+		return array();
+	}
+	$module = table('module')->getModuleInfo(trim($modulename));
 	$pars = _cloud_build_params();
 	$pars['method'] = 'module.build';
 	$pars['module'] = $modulename;
@@ -424,7 +427,7 @@ function cloud_m_info($name) {
  * @return array|mixed|string
  */
 function cloud_m_upgradeinfo($name) {
-	$module = pdo_fetch("SELECT name, version FROM ".tablename('modules')." WHERE name = '{$name}'");
+	$module = table('module')->getModuleInfo(trim($name), array('name', 'version'));
 	$pars = _cloud_build_params();
 	$pars['method'] = 'module.info';
 	$pars['module'] = $name;
@@ -491,9 +494,10 @@ function cloud_t_info($name) {
 }
 
 function cloud_t_build($name) {
-	$sql = 'SELECT * FROM ' . tablename('site_templates') . ' WHERE `name`=:name';
-	$theme = pdo_fetch($sql, array(':name' => $name));
-
+	if (empty($name)) {
+		return array();
+	}
+	$theme = table('sitetemplates')->getTemplateInfo(trim($name));
 	$pars = _cloud_build_params();
 	$pars['method'] = 'theme.build';
 	$pars['theme'] = $name;
@@ -532,8 +536,10 @@ function cloud_t_build($name) {
  * @return array|mixed|string
  */
 function cloud_t_upgradeinfo($name) {
-	$sql = 'SELECT `name`, `version` FROM ' . tablename('site_templates') . ' WHERE `name` = :name';
-	$theme = pdo_fetch($sql, array(':name' => $name));
+	if (empty($name)) {
+		return array();
+	}
+	$theme = table('sitetemplates')->getTemplateInfo(trim($name));
 	$pars = _cloud_build_params();
 	$pars['method'] = 'theme.upgrade';
 	$pars['theme'] = $theme['name'];
@@ -738,8 +744,7 @@ function cloud_extra_account() {
  * @return string 模块标识序列化
  */
 function cloud_extra_module() {
-	$sql = 'SELECT `name` FROM ' . tablename('modules') . ' WHERE `type` <> :type';
-	$modules = pdo_fetchall($sql, array(':type' => 'system'), 'name');
+	$modules = table('module')->searchWithType('system', '<>')->getModulesList();
 	if (!empty($modules)) {
 		return base64_encode(iserializer(array_keys($modules)));
 	} else {
