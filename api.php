@@ -541,6 +541,27 @@ class WeEngine {
 	private function analyzeQR(&$message) {
 		global $_W;
 		$params = array();
+
+		$setting = uni_setting($_W['uniacid'], array('default_message'));
+		$default_message = $setting['default_message'];
+		if(is_array($default_message) && !empty($default_message['qr']['type'])) {
+			if ($default_message['qr']['type'] == 'keyword') {
+				$message = $this->message;
+				$message['type'] = 'text';
+				$message['redirection'] = true;
+				$message['source'] = 'qr';
+				$message['content'] = $default_message['qr']['keyword'];
+				return $this->analyzeText($message);
+			} else {
+				$params[] = array(
+					'message' => $this->message,
+					'module' => is_array($default_message['qr']) ? $default_message['qr']['module'] : $default_message['qr'],
+					'rule' => '-1',
+				);
+				return $params;
+			}
+		}
+
 		$message['type'] = 'text';
 		$message['redirection'] = true;
 		if(!empty($message['scene'])) {
@@ -704,11 +725,11 @@ EOF;
 			$response = ihttp_get($message['picurl']);
 			if (!empty($response)) {
 				$md5 = md5($response['content']);
-				$event = pdo_fetch("SELECT keyword, type FROM ".tablename('menu_event')." WHERE picmd5 = '$md5'");
+				$event = pdo_get('menu_event', array('picmd5' => $md5), array('keyword', 'type'));
 				if (!empty($event['keyword'])) {
 					pdo_delete('menu_event', array('picmd5' => $md5));
 				} else {
-					$event = pdo_fetch("SELECT keyword, type FROM ".tablename('menu_event')." WHERE openid = '{$message['from']}'");
+					$event = pdo_get('menu_event', array('openid' => $message['from']), array('keyword', 'type'));
 				}
 				if (!empty($event)) {
 					$message['content'] = $event['keyword'];

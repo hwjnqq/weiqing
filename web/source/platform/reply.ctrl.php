@@ -35,7 +35,8 @@ if ($m == 'special') {
 		'merchant_order' => '微小店消息',
 		'ShakearoundUserShake' => '摇一摇:开始摇一摇消息',
 		'ShakearoundLotteryBind' => '摇一摇:摇到了红包消息',
-		'WifiConnected' => 'Wifi连接成功消息'
+		'WifiConnected' => 'Wifi连接成功消息',
+		'qr' => '二维码',
 	);
 }
 
