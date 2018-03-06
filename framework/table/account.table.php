@@ -315,4 +315,10 @@ class AccountTable extends We7Table {
 	public function getOwnerUid() {
 		return $this->query->from($this->uniAccountUsers)->getcolumn('uid');
 	}
+
+	public function getOwnedAccountCount($uid) {
+		return $this->query->from($this->uniAccountUsers, 'u')->select('d.type, count(*) as count')->leftjoin($this->tableName, 'a')
+		->on(array('u.uniacid' => 'a.uniacid'))->leftjoin('account', 'd')->on(array('a.default_acid' => 'd.acid'))
+		->where('u.uid', $uid)->where('u.role', 'owner')->where('d.isdeleted', 0)->groupby('d.type')->getall();
+	}
 }

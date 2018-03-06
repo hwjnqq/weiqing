@@ -16,8 +16,12 @@ class ModuleTable extends We7Table {
 		return $this->hasMany('modulebinding', 'module', 'name');
 	}
 
+	public function getModuleInfo($module, $fields = '*') {
+		return $this->query->from($this->tableName)->select($fields)->where('name', $module)->get();
+	}
+
 	public function getInstalledModuleInfo($module) {
-		return $this->query->from('modules', 'a')->leftjoin('modules_recycle', 'b')->on(array('a.name' => 'b.modulename'))->where('a.name', $module)->where('b.modulename', null)->get();
+		return $this->query->from('modules', 'a')->leftjoin('modules_recycle', 'b')->on(array('a.name' => 'b.modulename'))->where('a.name', $module)->where('b.modulename', 'NULL')->get();
 	}
 
 	public function moduleBindingsInfo($module, $do = '', $entry = '') {
@@ -106,8 +110,17 @@ class ModuleTable extends We7Table {
 		return $this->query->from($this->tableName)->getall('name');
 	}
 
+	public function searchWithType($type, $method = '=') {
+		if ($method == '=') {
+			$this->query->where('type', $type);
+		} else {
+			$this->query->where('type <>', $type);
+		}
+		return $this;
+	}
+
 	public function getInstalledModuleList() {
-		return $this->query->from($this->tableName, 'a')->leftjoin('modules_recycle', 'b')->on(array('a.name' => 'b.modulename'))->where('b.modulename', null)->getall('name');
+		return $this->query->from($this->tableName, 'a')->leftjoin('modules_recycle', 'b')->on(array('a.name' => 'b.modulename'))->where('b.modulename', 'NULL')->getall('name');
 	}
 
 	public function getModuleRecycle() {

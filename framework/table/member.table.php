@@ -8,11 +8,14 @@ defined('IN_IA') or exit('Access Denied');
 
 class MemberTable extends We7Table {
 
-	public function accountMemberFields($uniacid, $is_available) {
+	public function accountMemberFields($uniacid, $is_available, $select = array()) {
 		if ($is_available) {
 			$this->query->where('a.available', 1);
 		}
-		return $this->query->from('mc_member_fields', 'a')->leftjoin('profile_fields', 'b')->on('a.fieldid', 'b.id')->where('a.uniacid', $uniacid)->select(array('a.title', 'b.field'))->getall('field');
+		if (empty($select)) {
+			$select = array('a.title', 'b.field');
+		}
+		return $this->query->from('mc_member_fields', 'a')->leftjoin('profile_fields', 'b')->on('a.fieldid', 'b.id')->where('a.uniacid', $uniacid)->select($select)->orderby('displayorder DESC')->getall('field');
 	}
 
 	public function emailExist($uid, $email) {

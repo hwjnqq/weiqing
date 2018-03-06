@@ -132,6 +132,10 @@ class StoreTable extends We7Table {
 		return $list;
 	}
 
+	public function StoreCreateAccountInfo($uniacid) {
+		return $this->query->from('site_store_create_account')->where('uniacid', $uniacid)->get();
+	}
+
 	public function searchUserBuyAccount($uid) {
 		$sql = "SELECT SUM(b.account_num) FROM " . tablename('site_store_order') . " as a left join " . tablename('site_store_goods') . " as b on a.goodsid = b.id WHERE a.buyerid = :buyerid AND a.type = 3 AND b.type = 2" ;
 		$count = pdo_fetchcolumn($sql, array(':buyerid' => $uid));
