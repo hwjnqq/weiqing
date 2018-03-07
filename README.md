@@ -34,6 +34,11 @@ IIS/Apache/Nginx、PHP >=5.3、MySQL>=5.0
 除 _Master_ 分支外，其它分支皆为开发版本，仅供大家了解微擎最新开发功能。
 我们会将每次升级中产生的数据库变更SQL语句存放在项目目录的 _upgrade_ 目录中，供开发者进行离线升级。将来我们也会引入一些在离线状态下自动化升级的方案。
 ####微擎更新脚本
+##### 执行安装
+1. git clone https://gitee.com/we7coreteam/pros.git
+2. cd pros
+3. 命令行 php console.php install
+
 ##### 执行更新
 >暂不支持文件更新 此更新只包含数据库更新,文件需自己覆盖  
 执行如下命令  
