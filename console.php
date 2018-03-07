@@ -13,14 +13,20 @@ error_reporting(0);
 if (strtoupper(php_sapi_name()) != 'CLI') {
 	We7Command::line('只能在命令行执行');
 }
+define('DEBUG', false);
 
 set_exception_handler(function($ex){
-	echo $ex->getTraceAsString();
-	echo $ex->getMessage();
+	if (DEBUG) {
+		echo $ex->getTraceAsString();
+		echo $ex->getMessage();
+	}
+
 	return true;
 });
 set_error_handler(function($errno, $errstr, $errfile, $errline){
-	echo $errno.':'.$errstr.'file:'.$errfile.':line'.$errline;
+	if (DEBUG) {
+		echo $errno.':'.$errstr.'file:'.$errfile.':line'.$errline;
+	}
 	return true;
 });
 
