@@ -52,17 +52,25 @@
 		{/if}
 	</ul>
 	{/if}
+	{if $pay['mix']['switch'] && $credtis[$setting['creditbehaviors']['currency']] > 0 && $credtis[$setting['creditbehaviors']['currency']] < $params['fee']}
+	<ul class="mui-table-view">
+		<li class="mui-table-view-cell mui-table-view-chevron">
+			<input type="checkbox" name="mix" checked>
+			混合支付<span class="mui-pull-right mui-text-success mui-big" data-price="{php echo sprintf('%.2f', $credtis[$setting['creditbehaviors']['currency']]);}">余额支付{php echo sprintf('%.2f', $credtis[$setting['creditbehaviors']['currency']]);} 元</span>
+		</li>
+	</ul>
+	{/if}
 	<ul class="mui-table-view">
 		<li class="mui-table-view-cell mui-table-view-chevron">
 			还需支付<span class="mui-pull-right mui-text-success mui-big mui-rmb js-need-pay" data-price="{php echo sprintf('%.2f', $params['fee']);}">{php echo sprintf('%.2f', $params['fee']);} 元</span>
 		</li>
 	</ul>
 	<h5 class="mui-desc-title mui-pl10">选择支付方式</h5>
-	<ul class="mui-table-view mui-table-view-chevron">
+	<ul class="mui-table-view mui-table-view-chevron pay-style hide">
 		{if !empty($pay['credit']['switch'])}
-		<li class="mui-table-view-cell">
-			<a class="mui-navigate-right mui-media js-pay" href="javascript:;">
-				<form action="{php echo url('mc/cash/credit');}" method="post">
+		<li class="mui-table-view-cell credit">
+			<a class="mui-navigate-right mui-media credit-js-pay" href="javascript:;">
+				<form action="{php echo url('mc/cash/credit');}" method="post" id="credit_pay">
 					<input type="hidden" name="params" value="{php echo base64_encode(json_encode($params));}" />
 					<input type="hidden" name="code" value="" />
 					<input type="hidden" name="coupon_id" value="" />
@@ -114,6 +122,7 @@
 					<input type="hidden" name="params" value="{php echo base64_encode(json_encode($params));}" />
 					<input type="hidden" name="code" value="" />
 					<input type="hidden" name="coupon_id" value="" />
+					<input type="hidden" name="mix_pay" value="" />
 				</form>
 				<img src="resource/images/wx-icon.png" alt="" class="mui-media-object mui-pull-left"/>
 				<span class="mui-media-body mui-block">
@@ -123,6 +132,20 @@
 			</a>
 		</li>
 		{/if}
+
+
+		<li class="mui-table-view-cell mui-disabled js-webwxapp-pay hide">
+			<a class="mui-navigate-right mui-media" href="javascript:;">
+
+				<img src="resource/images/wx-icon.png" alt="" class="mui-media-object mui-pull-left"/>
+				<span class="mui-media-body mui-block">
+					<span id="wetitle">微信支付</span>
+					<span class="mui-block mui-text-muted mui-mt5">微信支付,安全快捷</span>
+				</span>
+			</a>
+		</li>
+
+
 		{if !empty($pay['jueqiymf']['switch'])}
 		<li class="mui-table-view-cell mui-disabled js-pay">
 			<a class="mui-navigate-right mui-media" href="javascript:;">
@@ -146,6 +169,7 @@
 					<input type="hidden" name="params" value="{php echo base64_encode(json_encode($params));}" />
 					<input type="hidden" name="code" value="" />
 					<input type="hidden" name="coupon_id" value="" />
+					<input type="hidden" name="mix_pay" value="" />
 				</form>
 				<img src="resource/images/zfb-icon.png" alt="" class="mui-media-object mui-pull-left"/>
 				<span class="mui-media-body mui-block">
@@ -169,7 +193,7 @@
 					<span class="mui-block mui-text-muted mui-mt5">线下当面交易，到店付款，货到付款</span>
 				</span>
 			</a>
-		
+
 		{/if}
 		{if !empty($pay['line']['switch'])}
 		<li class="mui-table-view-cell mui-disabled">
@@ -348,11 +372,70 @@
 </script>
 {/if}
 <script type="text/javascript">
+	check_password = '';
+	$('.credit-js-pay').click(function() {
+		{if empty($credit_pay_setting)}
+			$(this).find('form').submit();
+			return true;
+			{/if}
+				mui.prompt('','','请输入6位数的密码',['<div id="submit_password">确定</div>'],function(){
+					$.post("{php echo url('mc/cash/check_password');}", {'password' : $(".mui-popup-input input").val()}, function(data) {
+						data = $.parseJSON(data);
+						if (data.message == 0) {
+							check_password = 'pass';
+							$('#credit_pay').submit();
+							return false;
+						} else {
+							alert('密码输入错误');
+							return false;
+						}
+					});
+				},'div')
+				document.querySelector('.mui-popup-input input').type='password';
+				return false;
+			});
+		{if $pay['mix']['switch'] && $credtis[$setting['creditbehaviors']['currency']] > 0 && $credtis[$setting['creditbehaviors']['currency']] < $params['fee']}
+		$(function() {
+			$('[name="mix_pay"]').val(true);
+			$('.credit').hide();
+			fee = $('.js-need-pay').data('price') - "{$credtis[$setting['creditbehaviors']['currency']]}";
+			$('.js-need-pay').data('price', fee);
+			$('.js-need-pay').html(fee + '元');
+		})
+		{/if}
+		$('[name="mix"]').click(function() {
+			if ($(this).prop('checked') === true) {
+				$('[name="mix_pay"]').val(true);
+				fee = $('.js-need-pay').data('price') - "{!empty($credtis[$setting['creditbehaviors']['currency']]) ? $credtis[$setting['creditbehaviors']['currency']] : 0}";
+				$('.credit').hide();
+			} else {
+				$('[name="mix_pay"]').val(false);
+				fee = parseFloat($('.js-need-pay').data('price')) + parseFloat("{!empty($credtis[$setting['creditbehaviors']['currency']]) ? $credtis[$setting['creditbehaviors']['currency']] : 0}");
+				$('.credit').show();
+			}
+			$('.js-need-pay').data('price', fee);
+			$('.js-need-pay').html(fee + '元');
+		});
+	if(window.__wxjs_environment === 'miniprogram') {
+		$('.pay-style').removeClass('hide');
+		$('.pay-style li').hide();
+		$('.js-webwxapp-pay').removeClass('hide');
+		$('.pay-style .js-webwxapp-pay').show();
+		$('.js-webwxapp-pay').click(function(){
+			wx.miniProgram.navigateTo({
+				url: "/wxapp_web/pages/view/pay?orderid={$params['tid']}&module_name={$params['module']}&title={$params['title']}"
+			})
+		});
+	} else {
+		$('.pay-style').removeClass('hide');
+		$('.pay-style').show();
+	}
 	document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
 		$('.js-wechat-pay').removeClass('mui-disabled');
 		$('.js-wechat-pay a').addClass('js-pay');
 		$('#wetitle').html('微信支付');
 	});
+
 	$(document).on('click', '.js-pay', function() {
 		$(this).prop('disabled', true);
 		$(this).find('form').submit();

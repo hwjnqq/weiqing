@@ -42,19 +42,19 @@ function wxapp_account_create($account) {
 		'hash' => random(8),
 	);
 	pdo_insert('account', $account_data);
-
 	$acid = pdo_insertid();
 
 	$wxapp_data = array(
 		'acid' => $acid,
-		'token' => random(32),
-		'encodingaeskey' => random(43),
+		'token' => isset($account['token']) ? $account['token'] : random(32),
+		'encodingaeskey' => isset($account['encodingaeskey']) ? $account['encodingaeskey'] : random(43),
 		'uniacid' => $uniacid,
 		'name' => $account['name'],
 		'original' => $account['original'],
 		'level' => $account['level'],
 		'key' => $account['key'],
 		'secret' => $account['secret'],
+//		'auth_refresh_token' => isset($account['auth_refresh_token']) ? $account['auth_refresh_token'] : ''
 	);
 	pdo_insert('account_wxapp', $wxapp_data);
 
@@ -63,7 +63,7 @@ function wxapp_account_create($account) {
 		uni_user_account_role($uniacid, $_W['uid'], ACCOUNT_MANAGE_NAME_OWNER);
 		if (empty($user_info['usergroup_wxapp_limit'])) {
 			pdo_update('account', array('endtime' => strtotime('+1 month', time())), array('uniacid' => $uniacid));
-			pdo_insert('site_store_create_account', array('uid' => $_W['uid'], 'uniacid' => $uniacid, 'type' => ACCOUNT_TYPE_APP_NORMAL));
+			pdo_insert('site_store_create_account', array('endtime' => strtotime('+1 month', time()), 'uid' => $_W['uid'], 'uniacid' => $uniacid, 'type' => ACCOUNT_TYPE_APP_NORMAL));
 		}
 	}
 	if (user_is_vice_founder()) {
@@ -337,9 +337,12 @@ function wxapp_version_by_version($version) {
 }
 
 function wxapp_version_detail_info($version_info) {
+	global $_W;
 	if (empty($version_info)) {
 		return array();
 	}
+	$uni_modules = uni_modules();
+	$uni_modules = array_keys($uni_modules);
 	$version_info['cover_entrys'] = array();
 	if (!empty($version_info['modules'])) {
 		$version_info['modules'] = iunserializer($version_info['modules']);
@@ -351,6 +354,9 @@ function wxapp_version_detail_info($version_info) {
 				$module_info = module_fetch($module['name']);
 				$module_info['account'] = $account;
 				unset($version_info['modules'][$module['name']]);
+				if (!in_array($module['name'], $uni_modules)) {
+					continue;
+				}
 				//模块默认入口
 				$module_info['cover_entrys'] = module_entries($module['name'], array('cover'));
 				$module_info['defaultentry'] = $module['defaultentry'];

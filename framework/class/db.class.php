@@ -57,6 +57,7 @@ class DB {
 			load()->library('pdo');
 			$dbclass = 'PDO';
 		}
+
 		$pdo = new $dbclass($dsn, $cfg['username'], $cfg['password'], $options);
 		if(DEVELOPMENT && class_exists('\DebugBar\DataCollector\PDO\TraceablePDO')) {
 			$pdo = new \DebugBar\DataCollector\PDO\TraceablePDO($pdo);

@@ -38,25 +38,13 @@ function refund_order_can_refund($module, $tid) {
  */
 function refund_create_order($tid, $module, $fee = 0, $reason = '') {
 	load()->model('module');
-	global $_W;
 	$order_can_refund = refund_order_can_refund($module, $tid);
 	if (is_error($order_can_refund)) {
 		return $order_can_refund;
 	}
 	$module_info = module_fetch($module);
 	$moduleid =  empty($module_info['mid']) ? '000000' : sprintf("%06d", $module_info['mid']);
-	$refund_uniontid = date('YmdHis') . $moduleid . random(8,1);
-	$paylog = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'tid' => $tid, 'module' => $module));
-	$refund = array (
-		'uniacid' => $_W['uniacid'],
-		'uniontid' => $paylog['uniontid'],
-		'fee' => empty($fee) ? $paylog['card_fee'] : $fee,
-		'status' => 0,
-		'refund_uniontid' => $refund_uniontid,
-		'reason' => $reason
-	);
-	pdo_insert('core_refundlog', $refund);
-	return pdo_insertid();
+	return table('refund')->createRefundLog($moduleid, $module, $tid, $fee, $reason);
 }
 
 /**
@@ -65,7 +53,7 @@ function refund_create_order($tid, $module, $fee = 0, $reason = '') {
  * @return array  成功返回退款详情，失败返回error结构错误
  */
 function refund($refund_id) {
-	load()->classs('pay/pay');
+	load()->classs('pay');
 	global $_W;
 	$refundlog = pdo_get('core_refundlog', array('id' => $refund_id));
 	$paylog = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'uniontid' => $refundlog['uniontid']));
@@ -158,6 +146,13 @@ function reufnd_wechat_build($refund_id) {
 		'nonce_str' => random(8),
 		'refund_desc' => $refundlog['reason']
 	);
+	if ($setting['payment']['wechat']['switch'] == PAYMENT_WECHAT_TYPE_SERVICE) {
+		$refund_param['sub_mch_id'] = $setting['payment']['wechat']['sub_mch_id'];
+		$refund_param['sub_appid'] = $account['key'];
+		$proxy_account = uni_fetch($setting['payment']['wechat']['service']);
+		$refund_param['appid'] = $proxy_account['key'];
+		$refund_param['mch_id'] = $proxy_account['setting']['payment']['wechat_facilitator']['mchid'];
+	}
 	$cert = authcode($refund_setting['cert'], 'DECODE');
 	$key = authcode($refund_setting['key'], 'DECODE');
 	file_put_contents(ATTACHMENT_ROOT . $_W['uniacid'] . '_wechat_refund_all.pem', $cert . $key);

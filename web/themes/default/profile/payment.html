@@ -44,6 +44,23 @@
 			<td></td>
 		</tr>
 		<tr>
+			<td colspan="1">
+				混合支付
+			</td>
+			<td>
+				<span class="related-info">
+					余额不足时，可用剩余余额付部分，用其它支付付剩余部分
+				</span>
+			</td>
+			<td>
+				<label>
+					<input name="" class="form-control" type="checkbox"  style="display: none;" ng-click="saveEdit('mix')">
+					<div ng-class="paysetting.mix.switch === true ? 'switch switchOn' : 'switch'"></div>
+				</label>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
 			<td >
 				支付宝支付
 			</td>

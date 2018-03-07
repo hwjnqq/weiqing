@@ -7,14 +7,15 @@ defined('IN_IA') or exit('Access Denied');
 
 define('ACCOUNT_PLATFORM_API_ACCESSTOKEN', 'https://api.weixin.qq.com/cgi-bin/component/api_component_token');
 define('ACCOUNT_PLATFORM_API_PREAUTHCODE', 'https://api.weixin.qq.com/cgi-bin/component/api_create_preauthcode?component_access_token=');
-define('ACCOUNT_PLATFORM_API_LOGIN', 'https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid=%s&pre_auth_code=%s&redirect_uri=%s');
+define('ACCOUNT_PLATFORM_API_LOGIN', 'https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid=%s&pre_auth_code=%s&redirect_uri=%s&auth_type=%s');
 define('ACCOUNT_PLATFORM_API_QUERY_AUTH_INFO', 'https://api.weixin.qq.com/cgi-bin/component/api_query_auth?component_access_token=');
 define('ACCOUNT_PLATFORM_API_ACCOUNT_INFO', 'https://api.weixin.qq.com/cgi-bin/component/api_get_authorizer_info?component_access_token=');
 define('ACCOUNT_PLATFORM_API_REFRESH_AUTH_ACCESSTOKEN', 'https://api.weixin.qq.com/cgi-bin/component/api_authorizer_token?component_access_token=');
 define('ACCOUNT_PLATFORM_API_OAUTH_CODE', 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s&component_appid=%s&redirect_uri=%s&response_type=code&scope=snsapi_base&state=%s#wechat_redirect');
 define('ACCOUNT_PLATFORM_API_OAUTH_USERINFO', 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s&redirect_uri=%s&response_type=code&scope=snsapi_userinfo&state=%s&component_appid=%s#wechat_redirect');
 define('ACCOUNT_PLATFORM_API_OAUTH_INFO', 'https://api.weixin.qq.com/sns/oauth2/component/access_token?appid=%s&component_appid=%s&code=%s&grant_type=authorization_code&component_access_token=');
-
+define('ACCOUNT_PLATFORM_API_LOGIN_ACCOUNT', 1); //公众号授权
+define('ACCOUNT_PLATFORM_API_LOGIN_WXAPP', 2); //小程序授权
 load()->classs('weixin.account');
 load()->func('communication');
 
@@ -27,10 +28,11 @@ class WeiXinPlatform extends WeiXinAccount {
 	public $account;
 
 	function __construct($account = array()) {
+	
 		$setting = setting_load('platform');
 		$this->menuFrame = 'account';
-		$this->type = ACCOUNT_TYPE_OFFCIAL_AUTH;
-		$this->typeName = '公众号';
+		$this->type =  ACCOUNT_TYPE_OFFCIAL_AUTH;
+		$this->typeName =  '公众号';
 		$this->appid = $setting['platform']['appid'];
 		$this->appsecret = $setting['platform']['appsecret'];
 		$this->token = $setting['platform']['token'];
@@ -175,7 +177,8 @@ class WeiXinPlatform extends WeiXinAccount {
 		if (is_error($preauthcode)) {
 			$authurl = "javascript:alert('{$preauthcode['message']}');";
 		} else {
-			$authurl = sprintf(ACCOUNT_PLATFORM_API_LOGIN, $this->appid, $preauthcode, urlencode($GLOBALS['_W']['siteroot'] . 'index.php?c=account&a=auth&do=forward'));
+			$authurl = sprintf(ACCOUNT_PLATFORM_API_LOGIN, $this->appid,
+				$preauthcode, urlencode($GLOBALS['_W']['siteroot'] . 'index.php?c=account&a=auth&do=forward'), ACCOUNT_PLATFORM_API_LOGIN_ACCOUNT);
 		}
 		return $authurl;
 	}
@@ -292,7 +295,7 @@ class WeiXinPlatform extends WeiXinAccount {
 		exit(array2xml($xml));
 	}
 
-	private function request($url, $post = array()) {
+	protected function request($url, $post = array()) {
 		$response = ihttp_request($url, json_encode($post));
 		$response = json_decode($response['content'], true);
 		if (empty($response) || !empty($response['errcode'])) {
@@ -301,7 +304,7 @@ class WeiXinPlatform extends WeiXinAccount {
 		return $response;
 	}
 
-	private function getAuthRefreshToken() {
+	protected function getAuthRefreshToken() {
 		$auth_refresh_token = cache_load('account:auth:refreshtoken:'.$this->account['acid']);
 		if (empty($auth_refresh_token)) {
 			$auth_refresh_token = $this->account['auth_refresh_token'];
@@ -310,8 +313,17 @@ class WeiXinPlatform extends WeiXinAccount {
 		return $auth_refresh_token;
 	}
 
-	private function setAuthRefreshToken($token) {
-		pdo_update('account_wechats', array('auth_refresh_token' => $token), array('acid' => $this->account['acid']));
+	protected function setAuthRefreshToken($token) {
+		$tablename = 'account_wechats';
+		pdo_update($tablename, array('auth_refresh_token' => $token), array('acid' => $this->account['acid']));
 		cache_write('account:auth:refreshtoken:'.$this->account['acid'], $token);
+	}
+
+	public function result($errno, $message = '', $data = '') {
+		exit(json_encode(array(
+			'errno' => $errno,
+			'message' => $message,
+			'data' => $data,
+		)));
 	}
 }

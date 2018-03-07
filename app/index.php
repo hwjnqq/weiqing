@@ -62,6 +62,14 @@ if(!empty($template) && !empty($style)) {
 	unset($stylevars, $row, $sql, $params);
 }
 
+if (empty($_W['styles']['indexbgimg'])) {
+	if (file_exists('../app/themes/'.$_W['template'].'/preview.jpg')) {
+		$_W['styles']['indexbgimg'] = $_W['siteroot'].'app/themes/'.$_W['template'].'/preview.jpg';
+	} else {
+		$_W['styles']['indexbgimg'] = $_W['siteroot'].'web/resource/images/nopic-203.png';
+	}
+}
+
 $_W['page'] = array();
 $_W['page']['title'] = $multi['title'];
 if(is_array($multi['site_info'])) {

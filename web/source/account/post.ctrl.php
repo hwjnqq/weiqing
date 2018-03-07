@@ -13,7 +13,6 @@ load()->classs('weixin.platform');
 load()->model('wxapp');
 load()->model('utility');
 load()->func('file');
-
 $uniacid = intval($_GPC['uniacid']);
 $acid = intval($_GPC['acid']);
 if (empty($uniacid) || empty($acid)) {
@@ -36,7 +35,7 @@ $dos = array('base', 'sms', 'modules_tpl');
 if ($role_permission) {
 	$do = in_array($do, $dos) ? $do : 'base';
 } elseif ($state == ACCOUNT_MANAGE_NAME_MANAGER) {
-	if (ACCOUNT_TYPE == ACCOUNT_TYPE_APP_NORMAL) {
+	if (ACCOUNT_TYPE == ACCOUNT_TYPE_APP_NORMAL || ACCOUNT_TYPE == ACCOUNT_TYPE_APP_AUTH) {
 		header('Location: ' . url('wxapp/manage/display', array('uniacid' => $uniacid, 'acid' => $acid)));
 		exit;
 	} else {
@@ -132,9 +131,15 @@ if($do == 'base') {
 					$result = pdo_update('account', array('endtime' => -1), array('uniacid' => $uniacid));
 				} else {
 					$endtime = strtotime($_GPC['endtime']);
+					if ($_W['isfounder'] || user_is_vice_founder()) {
+						$result = pdo_update('account', array('endtime' => $endtime), array('uniacid' => $uniacid));
+						
+						break;
+					}
 					$user_endtime = pdo_getcolumn('users', array('uid' => $_W['uid']), 'endtime');
+					
 					if ($user_endtime < $endtime && !empty($user_endtime) && $state == 'owner') {
-						iajax(1, '设置到期日期不能超过主管理员的到期日期');
+						iajax(1, '设置到期日期不能超过' . date('Y-m-d', $user_endtime));
 					}
 					$result = pdo_update('account', array('endtime' => $endtime), array('uniacid' => $uniacid));
 				}
@@ -167,7 +172,7 @@ if($do == 'base') {
 		} else {
 			$authurl = array(
 				'errno' => 0,
-				'url' => sprintf(ACCOUNT_PLATFORM_API_LOGIN, $account_platform->appid, $preauthcode, urlencode($GLOBALS['_W']['siteroot'] . 'index.php?c=account&a=auth&do=forward'))
+				'url' => sprintf(ACCOUNT_PLATFORM_API_LOGIN, $account_platform->appid, $preauthcode, urlencode($GLOBALS['_W']['siteroot'] . 'index.php?c=account&a=auth&do=forward'), ACCOUNT_PLATFORM_API_LOGIN_ACCOUNT)
 			);
 		}
 	}

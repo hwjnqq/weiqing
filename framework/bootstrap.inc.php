@@ -54,16 +54,11 @@ $_W['clientip'] = CLIENT_IP;
 
 unset($configfile, $config);
 
+
 // 附件地址绝对路径
 define('ATTACHMENT_ROOT', IA_ROOT .'/attachment/');
+error_reporting(0);
 
-define('DEVELOPMENT', $_W['config']['setting']['development'] == 1);
-if(DEVELOPMENT) {
-	ini_set('display_errors', '1');
-	error_reporting(E_ALL ^ E_NOTICE);
-} else {
-	error_reporting(0);
-}
 
 if(!in_array($_W['config']['setting']['cache'], array('mysql', 'memcache', 'redis'))) {
 	$_W['config']['setting']['cache'] = 'mysql';
@@ -78,6 +73,7 @@ if(!empty($_W['config']['setting']['memory_limit']) && function_exists('ini_get'
 		@ini_set('memory_limit', $_W['config']['setting']['memory_limit']);
 	}
 }
+
 if (isset($_W['config']['setting']['https']) && $_W['config']['setting']['https'] == '1') {
 	$_W['ishttps'] = $_W['config']['setting']['https'];
 } else {
@@ -144,7 +140,11 @@ setting_load();
 if (empty($_W['setting']['upload'])) {
 	$_W['setting']['upload'] = array_merge($_W['config']['upload']);
 }
-
+define('DEVELOPMENT', $_W['setting']['copyright']['develop_status'] == 1);
+if(DEVELOPMENT) {
+	ini_set('display_errors', '1');
+	error_reporting(E_ALL ^ E_NOTICE);
+}
 $_W['os'] = Agent::deviceType();
 if($_W['os'] == Agent::DEVICE_MOBILE) {
 	$_W['os'] = 'mobile';

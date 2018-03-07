@@ -10,27 +10,25 @@ defined('IN_IA') or exit('Access Denied');
  * @param array $cover
  */
 function site_cover($coverparams = array()) {
-	$where = '';
-	$params = array(':uniacid' => $coverparams['uniacid'], ':module' => $coverparams['module']);
+	$coverreply_table = table('coverreply');
 	if (!empty($coverparams['multiid'])) {
-		$where .= " AND multiid = :multiid";
-		$params[':multiid'] = $coverparams['multiid'];
+		$coverreply_table->searchWithMultiid(intval($coverparams['multiid']));
 	}
-	$cover = pdo_fetch("SELECT * FROM " . tablename('cover_reply') . " WHERE `module` = :module AND uniacid = :uniacid {$where}", $params);
+	$cover = $coverreply_table->getCoverReplayInfo($coverparams['module'], $coverparams['uniacid']);
 	if (empty($cover['rid'])) {
 		$rule = array(
-			'uniacid' => $coverparams['uniacid'],
-			'name' => $coverparams['title'],
+			'uniacid' => intval($coverparams['uniacid']),
+			'name' => safe_gpc_string($coverparams['title']),
 			'module' => 'cover',
 			'status' => 1,
 		);
-		pdo_insert('rule', $rule);
+		table('rule')->fill($rule)->save();
 		$rid = pdo_insertid();
 	} else {
 		$rule = array(
 			'name' => $coverparams['title'],
 		);
-		pdo_update('rule', $rule, array('id' => $cover['rid']));
+		table('rule')->fill($rule)->whereId($cover['rid'])->save();
 		$rid = $cover['rid'];
 	}
 	if (!empty($rid)) {
@@ -39,31 +37,31 @@ function site_cover($coverparams = array()) {
 		
 		$keywordrow = array(
 			'rid' => $rid,
-			'uniacid' => $coverparams['uniacid'],
+			'uniacid' => intval($coverparams['uniacid']),
 			'module' => 'cover',
 			'status' => 1,
 			'displayorder' => 0,
 			'type' => 1,
-			'content' => $coverparams['keyword'],
+			'content' => safe_gpc_string($coverparams['keyword']),
 		);
-		pdo_insert('rule_keyword', $keywordrow);
+		table('rulekeyword')->fill($keywordrow)->save();
 	}
 	$entry = array(
-		'uniacid' => $coverparams['uniacid'],
-		'multiid' => $coverparams['multiid'],
+		'uniacid' => intval($coverparams['uniacid']),
+		'multiid' => intval($coverparams['multiid']),
 		'rid' => $rid,
-		'title' => $coverparams['title'],
-		'description' => $coverparams['description'],
-		'thumb' => $coverparams['thumb'],
-		'url' => $coverparams['url'],
+		'title' => safe_gpc_string($coverparams['title']),
+		'description' => safe_gpc_string($coverparams['description']),
+		'thumb' => safe_gpc_path($coverparams['thumb']),
+		'url' => safe_gpc_url($coverparams['url']),
 		'do' => '',
-		'module' => $coverparams['module'],
+		'module' => safe_gpc_string($coverparams['module']),
 	);
 
 	if (empty($cover['id'])) {
-		pdo_insert('cover_reply', $entry);
+		table('coverreply')->fill($entry)->save();
 	} else {
-		pdo_update('cover_reply', $entry, array('id' => $cover['id']));
+		table('coverreply')->fill($entry)->whereId($cover['id'])->save();
 	}
 	return true;
 }
@@ -71,7 +69,9 @@ function site_cover($coverparams = array()) {
 function site_cover_delete($page_id) {
 	global $_W;
 	$page_id = intval($page_id);
-	$cover = pdo_fetch('SELECT * FROM ' . tablename('cover_reply') . ' WHERE uniacid = :uniacid AND module = :module AND multiid = :id', array(':uniacid' => $_W['uniacid'],':module' => 'page', ':id' => $page_id));
+	$coverreply_table = table('coverreply');
+	$coverreply_table->searchWithMultiid($page_id);
+	$cover = $coverreply_table->getCoverReplayInfo('page', $_W['uniacid']);
 	if(!empty($cover)) {
 		$rid = intval($cover['rid']);
 		pdo_delete('rule', array('id' => $rid));

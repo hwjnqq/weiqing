@@ -6,12 +6,12 @@
 defined('IN_IA') or exit('Access Denied');
 
 /**
- * 更改消息提醒状态
+ * 更改某条消息提醒状态
  * @param $id
  * @return bool
  */
 function message_notice_read($id) {
-	$id = safe_gpc_int($id);
+	$id = intval($id);
 	if (empty($id)) {
 		return true;
 	}
@@ -19,6 +19,23 @@ function message_notice_read($id) {
 	return true;
 }
 
+/**
+ * 更改全部消息或者某种类型消息为已读状态
+ * @return bool
+ */
+function message_notice_all_read($type = '') {
+	global $_W;
+	$message_table = table('message');
+	if (!empty($type)) {
+		$message_table->whereType($type);
+	}
+	if (user_is_founder($_W['uid']) && !user_is_vice_founder($_W['uid'])) {
+		$message_table->fillIsRead(MESSAGE_READ)->whereIsRead(MESSAGE_NOREAD)->save();
+		return true;
+	}
+	$message_table->fillIsRead(MESSAGE_READ)->whereIsRead(MESSAGE_NOREAD)->whereUid($_W['uid'])->save();
+	return true;
+}
 
 /**
  * 消息提醒记录

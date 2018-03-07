@@ -1000,6 +1000,11 @@ function user_founder_templates($founder_groupid) {
 		return array();
 	}
 
+	if (in_array(-1, $group_detail_info['package'])) {
+		$template_list = table('sitetemplates')->getAllTemplates();
+		return $template_list;
+	}
+
 	$template_list = array();
 	foreach ($group_detail_info['package'] as $uni_group) {
 		if (!empty($group_detail_info['package_detail'][$uni_group]['templates'])) {

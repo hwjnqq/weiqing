@@ -75,13 +75,14 @@ if ($do == 'openid') {
 	if (empty($_SESSION['session_key']) || empty($encrypt_data) || empty($iv)) {
 		$account_api->result(1, '请先登录');
 	}
-
-	$sign = sha1(htmlspecialchars_decode($_GPC['rawData']).$_SESSION['session_key']);
+	$sign = sha1($_POST['rawData'].$_SESSION['session_key']);
 	if ($sign !== $_GPC['signature']) {
 		$account_api->result(1, '签名错误');
 	}
 
 	$userinfo = $account_api->pkcs7Encode($encrypt_data, $iv);
+	$userinfo['nickname'] = $userinfo['nickName'];
+	$_SESSION['userinfo'] = base64_encode(iserializer($userinfo));
 
 	$fans = mc_fansinfo($userinfo['openId']);
 	$fans_update = array(
@@ -101,7 +102,15 @@ if ($do == 'openid') {
 	);
 	//如果有unionid则查找相关粉丝，将会员数据同步
 	if (!empty($userinfo['unionId'])) {
-		$union_fans = pdo_get('mc_mapping_fans', array('unionid' => $userinfo['unionId'], 'openid !=' => $userinfo['openId']));
+		// 2000万粉丝卡死bug  openId!= 会导致全表扫描
+//		$union_fans = pdo_get('mc_mapping_fans', array('unionid' => $userinfo['unionId'], 'openid !=' => $userinfo['openId']));
+		$union_fans = pdo_getall('mc_mapping_fans', array('unionid' => $userinfo['unionId']));
+		$union_fans = array_filter($union_fans, function($fans) use ($userinfo){
+			return isset($fans['openid']) ? $fans['openid'] != $userinfo('openId') : false;
+		});
+		if (count($union_fans) > 0) {
+			$union_fans = current($union_fans);
+		}
 		if (!empty($union_fans['uid'])) {
 			if (!empty($fans['uid'])) {
 				//合并积分数据

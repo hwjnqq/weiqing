@@ -20,14 +20,6 @@ $dos = array('subscribe', 'filter', 'check_subscribe', 'check_upgrade', 'get_upg
 $do = in_array($do, $dos) ? $do : 'installed';
 
 
-	if (!in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER, ACCOUNT_MANAGE_NAME_FOUNDER))){
-		itoast('无权限操作！', referer(), 'error');
-	}
-
-
-
-
-
 if ($do == 'subscribe') {
 	$uninstallModules = module_get_all_unistalled($status);
 	$total_uninstalled = $uninstallModules['module_count'];
@@ -141,7 +133,12 @@ if ($do == 'check_upgrade') {
 					continue;
 				}
 				$best_branch = $cloud_m_info['branches'][$best_branch_id];
-				if (version_compare($module['version'], $cloud_branch_version) == -1 || ($cloud_m_info['displayorder'] < $best_branch['displayorder'] && !empty($cloud_m_info['version'])) || (!empty($module_info['site_branch_id']) && $cloud_m_info['site_branch']['id'] > $module_info['site_branch_id'])) {
+				if (($cloud_m_info['displayorder'] < $best_branch['displayorder'] && !empty($cloud_m_info['version'])) || (!empty($module_info['site_branch_id']) && $cloud_m_info['site_branch']['id'] > $module_info['site_branch_id'])){
+					$module['new_branch'] = 1;
+				} else {
+					$module['new_branch'] = 0;
+				}
+				if (version_compare($module['version'], $cloud_branch_version) == -1) {
 					$module['upgrade'] = true;
 				} else {
 					$module['upgrade'] = false;
@@ -519,6 +516,9 @@ if ($do == 'save_module_info') {
 
 	if (in_array($type, $module_field)) {
 		$module_update = array($type => trim($module_info[$type]));
+		if ($type == 'title') {
+			$module_update['title_initial'] = get_first_pinyin($module_info['title']);
+		}
 		$result =  pdo_update('modules', $module_update, array('name' => $module_name));
 	} else {
 		$image_destination_url = IA_ROOT . "/addons/" . $module_name . '/' . $module_icon_map[$type]['filename'];
@@ -692,8 +692,12 @@ if ($do == 'recycle_uninstall') {
 
 if ($do == 'installed') {
 	$_W['page']['title'] = '应用列表';
-	$uninstalled_module = module_get_all_unistalled('uninstalled');
-	$total_uninstalled = $uninstalled_module['module_count'];
+	if (!empty($_GPC['system_welcome'])) {
+		$uninstallModules = module_get_all_unistalled('uninstalled', true, 'system_welcome');
+	} else {
+		$uninstallModules = module_get_all_unistalled('uninstalled');
+	}
+	$total_uninstalled = $uninstallModules['module_count'];
 	$pageindex = max($_GPC['page'], 1);
 	$pagesize = 20;
 	$letter = $_GPC['letter'];
@@ -702,7 +706,7 @@ if ($do == 'installed') {
 	$module_list = $all_modules = user_modules($_W['uid']);
 	if (!empty($module_list)) {
 		foreach ($module_list as $key => &$module) {
-			if (!empty($module['issystem']) || (ACCOUNT_TYPE == ACCOUNT_TYPE_APP_NORMAL && $module['wxapp_support'] != 2) || (ACCOUNT_TYPE == ACCOUNT_TYPE_OFFCIAL_NORMAL && $module['app_support'] != 2) || (ACCOUNT_TYPE == ACCOUNT_TYPE_WEBAPP_NORMAL && $module['webapp_support'] != MODULE_SUPPORT_WEBAPP) || (!empty($_GPC['system_welcome']) && $module['welcome_support'] != 2)) {
+			if (!empty($module['issystem']) || (empty($_GPC['system_welcome']) && ((ACCOUNT_TYPE == ACCOUNT_TYPE_APP_NORMAL && $module['wxapp_support'] != 2) || (ACCOUNT_TYPE == ACCOUNT_TYPE_OFFCIAL_NORMAL && $module['app_support'] != 2) || (ACCOUNT_TYPE == ACCOUNT_TYPE_WEBAPP_NORMAL && $module['webapp_support'] != MODULE_SUPPORT_WEBAPP) || (ACCOUNT_TYPE == ACCOUNT_TYPE_PHONEAPP_NORMAL && $module['phoneapp_support'] != MODULE_SUPPORT_PHONEAPP))) || (!empty($_GPC['system_welcome']) && $module['welcome_support'] != 2)) {
 				unset($module_list[$key]);
 			}
 			if (!empty($letter) && strlen($letter) == 1) {
@@ -736,7 +740,11 @@ if ($do == 'not_installed') {
 	$pageindex = max($_GPC['page'], 1);
 	$pagesize = 20;
 
-	$uninstallModules = module_get_all_unistalled($status, false);
+	if (!empty($_GPC['system_welcome'])) {
+		$uninstallModules = module_get_all_unistalled($status, false, 'system_welcome');
+	} else {
+		$uninstallModules = module_get_all_unistalled($status, false);
+	}
 	$total_uninstalled = $uninstallModules['module_count'];
 	$uninstallModules = (array)$uninstallModules['modules'];
 	if (!empty($uninstallModules)) {

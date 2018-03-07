@@ -2,23 +2,24 @@
 /**
  * 小程序的接口文件
  * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * $sn$.
 */
 defined('IN_IA') or exit('Access Denied');
 load()->model('wxapp');
-$dos = array('nav', 'slide', 'commend', 'wxapp_web', 'wxapp_web_error');
+load()->model('mc');
+$dos = array('nav', 'slide', 'commend', 'wxapp_web', 'wxappweb_pay', 'wxappweb_pay_result', 'package_app', 'go_paycenter', 'oauth');
 $do = in_array($_GPC['do'], $dos) ? $_GPC['do'] : 'nav';
 
 $multiid = intval($_GPC['t']);
 
 if ($do == 'nav') {
 	$navs = pdo_getall('site_nav', array(
-		'uniacid' => $_W['uniacid'], 
-		'multiid' => $multiid, 
-		'status' => 1, 
-		'icon !=' => ''
+		'uniacid' => $_W['uniacid'],
+		'multiid' => $multiid,
+		'status' => 1,
+		'icon !=' => '',
 	), array('url', 'name', 'icon'), '', 'displayorder DESC');
-	
+
 	if (!empty($navs)) {
 		foreach ($navs as $i => &$row) {
 			$row['icon'] = tomedia($row['icon']);
@@ -39,8 +40,8 @@ if ($do == 'nav') {
 } elseif ($do == 'commend') {
 	//获取一级分类
 	$category = pdo_getall('site_category', array(
-		'uniacid' => $_W['uniacid'], 
-		'multiid' => $multiid
+		'uniacid' => $_W['uniacid'],
+		'multiid' => $multiid,
 	), array('id', 'name', 'parentid'), '', 'displayorder DESC');
 	//一级分类不能添加文章，推荐时获取到其子类
 	if (!empty($category)) {
@@ -64,40 +65,83 @@ if ($do == 'nav') {
 }
 
 if ($do == 'wxapp_web') {
-	load()->classs('account/wxapp');
-	load()->classs('query');
-
 	$version = trim($_GPC['v']);
 	$version_info = wxapp_version_by_version($version);
-	$uniacid  = $_W['uniacid'];//保存小程序uniacid
-	if (!empty($version_info['modules'])) {
-		foreach ($version_info['modules'] as $module) {
-			if (!empty($module['account']) && intval($module['account']['uniacid']) > 0) {
-				$_W['uniacid'] = $module['account']['uniacid'];
-				$_W['account']['link_uniacid'] = $module['account']['uniacid'];
-			}
-		}
-	}
 	$url = $_GPC['url'];
-	if(empty($url)) {
-		$wxapp = wxapp_fetch($uniacid, $version_info['id']);
-		$appdomain = $wxapp['appdomain'];
-		if(empty($appdomain)) {
-			$appdomain = $_W['siteroot'].'app/index.php';
+	if (empty($url)) {
+		//无需查询绑定域名 因为本do方法就是根据小程序域名访问的
+		if (count($version_info['modules']) > 1) {
+			$url = murl('wxapp/home/package_app', array('v'=>$version));//多模块打包入口
+		} else {
+			if (!empty($version_info['modules'])) {
+				foreach ($version_info['modules'] as $module) {
+					if (!empty($module['account']) && intval($module['account']['uniacid']) > 0) {
+						$_W['uniacid'] = $module['account']['uniacid'];
+						$_W['account']['link_uniacid'] = $module['account']['uniacid'];
+					}
+				}
+			}
+			$url = murl('entry', array('eid'=>$version_info['entry_id']), true, true);
 		}
-		$url = $appdomain.'?'.http_build_query(array('a'=>'entry', 'eid'=>$version_info['entry_id'], 'i'=>$_W['uniacid']));
 	}
-
-	if($url) {
+	if ($url) {
 		setcookie(session_name(), $_W['session_id']);
-		header('Location:'.$url);
+		header('Location:' . $url);
 		exit;
 	}
 	//跳转到错误页面
-	$error_url = murl('wxapp/home/wxapp_web_error');
-	header('Location:'.$error_url);
+	message('找不到模块入口', 'refresh', 'error');
 }
 
-if ($do == 'wxapp_web_error') {
-	echo '找不到模块入口';
+
+if ($do == 'package_app') {
+	$version = trim($_GPC['v']);
+	$version_info = wxapp_version_by_version($version);
+
+	$version_info['modules'] = array_map(function($module) {
+		 $module['url'] = murl('entry', array('eid'=>$module['defaultentry']), true, true);
+		 return $module;
+	}, $version_info['modules']);
+
+
+
+	$version_info['quickmenu']['menus'] = array_map(function($menu){
+		 $menu['url'] = murl('entry', array('eid'=>$menu['defaultentry']), true, true);
+		 return $menu;
+	}, $version_info['quickmenu']['menus']);
+
+	template('wxapp/wxapp');
+}
+
+
+if ($do == 'wxappweb_pay') {
+	$site = WeUtility::createModuleWxapp('core');
+	$site->doPagePay();
+}
+
+if ($do == 'wxappweb_pay_result') {
+	$site = WeUtility::createModuleWxapp('core');
+	$site->doPagePayResult();
+}
+
+if ($do == 'go_paycenter') {
+	$plid = intval($_GPC['plid']);
+	$params = pdo_get('core_paylog', array('plid' => $plid));
+	$params['title'] = safe_gpc_string($_GPC['title']);
+	template('common/paycenter');
+}
+
+if ($do == 'oauth') {
+	$url = safe_gpc_url($_GPC['url'], false);
+	$oauth_userinfo = mc_oauth_account_userinfo($url);
+	if (is_error($oauth_userinfo)) {
+		message($oauth_userinfo['message'], $url, 'info');
+	}
+	header('Location: ' . $url);
+}
+
+if ($do == 'pay') {
+	$tid = $_GPC['tid'];
+	//
+
 }

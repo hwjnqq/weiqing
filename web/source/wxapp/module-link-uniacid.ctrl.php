@@ -12,6 +12,7 @@ $dos = array('module_link_uniacid', 'search_link_account', 'module_unlink_uniaci
 $do = in_array($do, $dos) ? $do : 'module_link_uniacid';
 
 $_W['page']['title'] = '数据同步 - 小程序 - 管理';
+$module_table = table('module');
 
 $version_id = intval($_GPC['version_id']);
 $wxapp_info = wxapp_fetch($_W['uniacid']);
@@ -22,7 +23,6 @@ if (!empty($version_id)) {
 
 if ($do == 'module_link_uniacid') {
 	$module_name = trim($_GPC['module_name']);
-	$version_info = wxapp_version($version_id);
 
 	if (checksubmit('submit')) {
 		$uniacid = intval($_GPC['uniacid']);
@@ -37,6 +37,18 @@ if ($do == 'module_link_uniacid') {
 		$module_update[$module['name']] = array('name' => $module['name'], 'version' => $module['version'], 'uniacid' => $uniacid);
 		pdo_update('wxapp_versions', array('modules' => serialize($module_update)), array('id' => $version_id));
 		iajax(0, '关联公众号成功');
+	}
+	if (!empty($version_info['modules'])) {
+		foreach ($version_info['modules'] as &$module_value) {
+			$link_uniacid_info = $module_table->moduleLinkUniacidInfo($module_value['name']);
+			if (!empty($link_uniacid_info)) {
+				foreach ($link_uniacid_info as $info) {
+					if ($info['settings']['link_uniacid'] == $_W['uniacid']) {
+						$module_value['other_link'] = uni_fetch($info['uniacid']);
+					}
+				}
+			}
+		}
 	}
 	template('wxapp/version-module-link-uniacid');
 }
@@ -62,9 +74,43 @@ if ($do == 'module_unlink_uniacid') {
 
 if ($do == 'search_link_account') {
 	$module_name = trim($_GPC['module_name']);
+	$account_type = intval($_GPC['type']);
 	if (empty($module_name)) {
 		iajax(0, array());
 	}
-	$account_list = wxapp_search_link_account($module_name);
+	$module = module_fetch($module_name);
+	if (empty($module)) {
+		iajax(0, array());
+	}
+	if (!in_array($account_type, array(ACCOUNT_TYPE_WEBAPP_NORMAL, ACCOUNT_TYPE_OFFCIAL_NORMAL))) {
+		iajax(0, array());
+	}
+	//该模块是否有其他关联
+	$have_link_uniacid = array();
+	$link_uniacid_info = $module_table->moduleLinkUniacidInfo($module_name);
+	if (!empty($link_uniacid_info)) {
+		foreach ($link_uniacid_info as $info) {
+			if (!empty($info['settings']['link_uniacid'])) {
+				$have_link_uniacid[] = $info['uniacid'];
+			}
+		}
+	}
+	//查找可关联的公众号或小程序，并删除已关联的
+	if ($account_type == ACCOUNT_TYPE_OFFCIAL_NORMAL) {
+		$account_normal_list = uni_search_link_account($module_name, ACCOUNT_TYPE_OFFCIAL_NORMAL);
+		$account_auth_list = uni_search_link_account($module_name, ACCOUNT_TYPE_OFFCIAL_AUTH);
+		$account_list = array_merge($account_normal_list, $account_auth_list);
+	} else {
+		$account_list = uni_search_link_account($module_name, $account_type);
+	}
+	if (!empty($account_list)) {
+		foreach ($account_list as $key => $account) {
+			if (in_array($account['uniacid'], $have_link_uniacid)) {
+				unset($account_list[$key]);
+				continue;
+			}
+			$account_list[$key]['logo'] = is_file(IA_ROOT . '/attachment/headimg_' . $account['acid'] . '.jpg') ? tomedia('headimg_'.$account['acid']. '.jpg').'?time='.time() : './resource/images/nopic-107.png';
+		}
+	}
 	iajax(0, $account_list);
 }

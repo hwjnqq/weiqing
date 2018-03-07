@@ -65,6 +65,9 @@ if(is_array($setting['payment'])) {
 			$params = array();
 			$params[':uniontid'] = $get['out_trade_no'];
 			$log = pdo_fetch($sql, $params);
+			if (intval($wechat['switch']) == PAYMENT_WECHAT_TYPE_SERVICE) {
+				$get['openid'] = $log['openid'];
+			}
 			//此处判断微信请求消息金额必须与系统发起的金额一致
 			if(!empty($log) && $log['status'] == '0' && (($get['total_fee'] / 100) == $log['card_fee'])) {
 				$log['tag'] = iunserializer($log['tag']);
@@ -74,6 +77,15 @@ if(is_array($setting['payment'])) {
 				$record['status'] = '1';
 				$record['tag'] = iserializer($log['tag']);
 				pdo_update('core_paylog', $record, array('plid' => $log['plid']));
+				$mix_pay_credit_log = pdo_get('core_paylog', array('module' => $log['module'], 'tid' => $log['tid'], 'uniacid' => $log['uniacid'], 'type' => 'credit'));
+				if (!empty($mix_pay_credit_log)) {
+					pdo_update('core_paylog', array('status' => 1), array('plid' => $mix_pay_credit_log['plid']));
+					$log['fee'] = $mix_pay_credit_log['fee'] + $log['fee'];
+					$log['card_fee'] = $mix_pay_credit_log['fee'] + $log['card_fee'];
+					$setting = uni_setting($_W['uniacid'], array('creditbehaviors'));
+					$credtis = mc_credit_fetch($log['uid']);
+					mc_credit_update($log['uid'], $setting['creditbehaviors']['currency'], -$mix_pay_credit_log['fee'], array($log['uid'], '消费' . $setting['creditbehaviors']['currency'] . ':' . $fee));
+				}
 				if ($log['is_usecard'] == 1 && !empty($log['encrypt_code'])) {
 					$coupon_info = pdo_get('coupon', array('id' => $log['card_id']), array('id'));
 					$coupon_record = pdo_get('coupon_record', array('code' => $log['encrypt_code'], 'status' => '1'));
@@ -81,14 +93,10 @@ if(is_array($setting['payment'])) {
 				 	$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $log['module']);
 				}
 
-				$module = module_fetch($log['module']);
-				if (empty($module)) {
-					exit('success');
-				}
-				if ($module['app_support'] == MODULE_SUPPORT_ACCOUNT) {
-					$site = WeUtility::createModuleSite($log['module']);
-				} elseif ($module['wxapp_support'] == MODULE_SUPPORT_WXAPP) {
+				if ($log['type'] == 'wxapp') {
 					$site = WeUtility::createModuleWxapp($log['module']);
+				} else {
+					$site = WeUtility::createModuleSite($log['module']);
 				}
 				if(!is_error($site)) {
 					$method = 'payResult';

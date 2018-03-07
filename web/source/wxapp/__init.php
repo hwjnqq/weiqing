@@ -4,9 +4,14 @@
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
-$account_api = WeAccount::create();
 
-if (!in_array($action, array('display', 'post', 'manage'))) {
+set_error_handler(function($a, $b, $c, $d){
+//	print_r(func_get_args());
+//	exit;
+});
+
+if (!in_array($action, array('display', 'post', 'manage', 'auth'))) {
+	$account_api = WeAccount::create();
 	if (is_error($account_api)) {
 		itoast('', url('wxapp/display'));
 	}
@@ -16,8 +21,13 @@ if (!in_array($action, array('display', 'post', 'manage'))) {
 		itoast('', $account_display_url);
 	}
 }
+if ($action == 'post') {
+	define('FRAME', 'system');
+}
 
 if (($action == 'version' && $do == 'home') || in_array($action, array('payment', 'refund', 'module-link-uniacid', 'entrance-link', 'front-download'))) {
+	$account_api = WeAccount::create();
+	
 	$account_type = $account_api->menuFrame;
 	define('FRAME', $account_type);
 }

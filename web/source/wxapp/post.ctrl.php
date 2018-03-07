@@ -7,23 +7,46 @@ defined('IN_IA') or exit('Access Denied');
 
 load()->model('module');
 load()->model('wxapp');
+load()->func('communication');
+load()->classs('weixin.platform');
+load()->classs('wxapp.platform');
 
-$dos = array('design_method', 'post', 'get_wxapp_modules');
+$dos = array('design_method', 'post', 'get_wxapp_modules', 'module_binding');
 $do = in_array($do, $dos) ? $do : 'post';
 $_W['page']['title'] = '小程序 - 新建版本';
 $account_info = permission_user_account_num();
 
+
 if ($do == 'design_method') {
+	// 1 普通小程序  2 授权小程序
+	$choose = isset($_GPC['choose_type']) ? intval($_GPC['choose_type']) : 0;
+	if ($choose) {
+		$uniacid = intval($_GPC['uniacid']);
+		template('wxapp/design-method');
+	} else {
+		if($account_info['wxapp_limit'] <= 0 && !$_W['isfounder']) {
+			$authurl = "javascript:alert('创建小程序已达上限！');";
+		}
+		if (empty($authurl) && !empty($_W['setting']['platform']['authstate'])) {
+			$account_platform = new WxAppPlatform();
+			$authurl = $account_platform->getAuthLoginUrl();
+		}
+		template('wxapp/choose-type');
 
-	$uniacid = intval($_GPC['uniacid']);
-	template('wxapp/design-method');
+	}
+
 }
-
 if ($do == 'post') {
 	$uniacid = intval($_GPC['uniacid']);
 	$design_method = intval($_GPC['design_method']);
 	$create_type = intval($_GPC['create_type']);
 
+	$version_id  = intval($_GPC['version_id']);
+	$isedit  =  $version_id > 0 ? 1 : 0;
+	if ($isedit) {
+		$wxapp_version = wxapp_version($version_id);
+//		var_dump($wxapp_version['modules']);
+	}
 	if (empty($design_method)) {
 		itoast('请先选择要添加小程序类型', referer(), 'error');
 	}
@@ -32,14 +55,15 @@ if ($do == 'post') {
 	}
 
 	if (checksubmit('submit')) {
+
 		if ($account_info['wxapp_limit'] <= 0 && empty($uniacid) && !$_W['isfounder']) {
 			iajax(-1, '创建的小程序已达上限！');
 		}
 		if ($design_method == WXAPP_TEMPLATE && empty($_GPC['choose']['modules'])) {
 			iajax(2, '请选择要打包的模块应用', url('wxapp/post'));
 		}
-		if (!preg_match('/^[0-9]{1,2}\.[0-9]{1,2}$/', trim($_GPC['version']))) {
-			iajax('-1', '版本号错误，只能是数字、点，数字最多两位，例如 1.01');
+		if (!preg_match('/^[0-9]{1,2}\.[0-9]{1,2}(\.[0-9]{1,2})?$/', trim($_GPC['version']))) {
+			iajax('-1', '版本号错误，只能是数字、点，数字最多2位，例如 1.1.1 或1.2');
 		}
 		//新建小程序公众号
 		if (empty($uniacid)) {
@@ -96,41 +120,53 @@ if ($do == 'post') {
 		//打包模块
 		if (!empty($_GPC['choose']['modules'])) {
 			$select_modules = array();
-			foreach ($_GPC['choose']['modules'] as $module) {
-				$module = module_fetch($module['module']);
+			foreach ($_GPC['choose']['modules'] as $post_module) {
+				$module = module_fetch($post_module['module']);
 				if (empty($module)) {
 					continue;
 				}
 
-				$select_modules[$module['name']] = array('name' => $module['name'], 'version' => $module['version']);
+				$select_modules[$module['name']] = array('name' => $module['name'],
+					'newicon' => $post_module['newicon'],
+					'version' => $module['version'], 'defaultentry'=>$post_module['defaultentry']);
 			}
+
 			$wxapp_version['modules'] = serialize($select_modules);
 		}
 
 		//快捷菜单
-		if (!empty($_GPC['quickmenu']) && $design_method == WXAPP_TEMPLATE) {
+		if (!empty($_GPC['quickmenu'])) {
 			$quickmenu = array(
 				'color' => $_GPC['quickmenu']['bottom']['color'],
 				'selected_color' => $_GPC['quickmenu']['bottom']['selectedColor'],
 				'boundary' => $_GPC['quickmenu']['bottom']['boundary'],
 				'bgcolor' => $_GPC['quickmenu']['bottom']['bgcolor'],
+				'show' => $_GPC['quickmenu']['show'] == 'true' ? 1 : 0,
 				'menus' => array(),
 			);
 			if (!empty($_GPC['quickmenu']['menus'])) {
+
 				foreach ($_GPC['quickmenu']['menus'] as $row) {
 					$quickmenu['menus'][] = array(
 						'name' => $row['name'],
 						'icon' => $row['defaultImage'],
 						'selectedicon' => $row['selectedImage'],
 						'url' => $row['module']['url'],
-						'module' => $row['module']['module'],
+						'defaultentry' => $row['defaultentry']['eid'],
 					);
 				}
 			}
+
 			$wxapp_version['quickmenu'] = serialize($quickmenu);
 		}
-		pdo_insert('wxapp_versions', $wxapp_version);
-		iajax(0, '小程序创建成功！跳转后请自行下载打包程序', url('wxapp/display/switch', array('uniacid' => $uniacid)));
+		if ($isedit) {
+			$msg = '小程序修改成功';
+			pdo_update('wxapp_versions', $wxapp_version, array('id'=>$version_id, 'uniacid'=>$uniacid));
+		} else {
+			$msg = '小程序创建成功';
+			pdo_insert('wxapp_versions', $wxapp_version);
+		}
+		iajax(0, $msg, url('wxapp/display/switch', array('uniacid' => $uniacid)));
 	}
 	if (!empty($uniacid)) {
 		$wxapp_info = wxapp_fetch($uniacid);
@@ -141,5 +177,43 @@ if ($do == 'post') {
 //获取所有支持小程序的模块
 if ($do == 'get_wxapp_modules') {
 	$wxapp_modules = wxapp_support_wxapp_modules();
+	foreach ($wxapp_modules as $name => $module) {
+		if ($module['issystem']) {
+			$path = '/framework/builtin/'.$module['name'];
+		} else {
+			$path = '../addons/'.$module['name'];
+		}
+		$icon = $path.'/icon-custom.jpg';
+		if (!file_exists($cion)) {
+			$icon = $path.'/icon.jpg';
+			if (!file_exists($icon)) {
+				$icon = './resource/images/nopic-small.jpg';
+			}
+		}
+		$module['logo'] = $icon;
+	}
 	iajax(0, $wxapp_modules, '');
 }
+
+
+if ($do == 'module_binding') {
+	$modules = $_GPC['modules'];
+	if (empty($modules)) {
+		iajax(1, '参数无效');
+		return;
+	}
+	$modules = explode(',', $modules);
+	$modules = array_map(function($item) {
+		return trim($item);
+	}, $modules);
+
+	$modules = table('module')->with(array('bindings' => function($query){
+		return $query->where('entry', 'cover');
+	}))->where('name', $modules)->getall();
+
+	$modules = array_filter($modules, function($module){
+		return count($module['bindings']) > 0;
+	});
+	iajax(0, $modules);
+}
+

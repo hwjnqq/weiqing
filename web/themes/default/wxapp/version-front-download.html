@@ -8,10 +8,9 @@
 			href="./index.php?c=wxapp&a=front-download&do=domainset&version_id={$version_id}">小程序域名设置</a></li>
 	<li class="{if $do == 'custom'}active{/if}"><a
 			href="./index.php?c=wxapp&a=front-download&do=custom&version_id={$version_id}">定制主题<span style="color: red">(beta)</span></a></li>
-	{if $is_module_wxapp}
-	<li class="{if $do == 'entrychoose'}active{/if}"><a
-			href="./index.php?c=wxapp&a=front-download&do=entrychoose&version_id={$version_id}">小程序入口配置</a></li>
-	{/if}
+	
+
+
 </ul>
 {if $do == 'entrychoose'}
 <div class="panel we7-panel">
@@ -149,7 +148,7 @@
 						<tr >
 							<td>
 								<div class="icon js-image"  data-index="{{current}}" data-selected="0">
-									<img ng-src="{{iconPath(tabitem)}}" onload="console.log(this);" />
+									<img ng-src="{{iconPath(tabitem)}}" />
 									<span class="replace ">更换</span>
 								</div>
 							</td>
@@ -164,7 +163,7 @@
 							</td>
 							<td>
 								<div>
-									<select ng-model="tabitem.pagePath" ng-options="tabitem.pagePath for page in pages" style="width:100px;"></select>
+									<select ng-model="tabitem.pagePath" ng-options="x for x in pages" style="width:100px;"></select>
 								</div>
 							</td>
 							<td>
@@ -209,6 +208,7 @@
 				<label class="control-label col-sm-2">设置小程序URL</label>
 				<div class="col-sm-10">
 					<input type="text" class="form-control" name="appurl" value="{$appurl}" placeholder="">
+					<label style="color: red;">https://域名/app/index.php</label>
 				</div>
 			</div>
 			<div class="form-group">
@@ -332,11 +332,11 @@
 			<div>微信扫码预览小程序</div>
 		</div>
 
-		<form action="" class="we7-form" id="codeform"  ng-show="show_step2">
+		<form action="" class="we7-form" id="codeform" ng-show="show_step2" ng-init="user_version = {$version_info['version']}">
 			<div class="form-group">
 				<label class="control-label col-sm-2">版本号</label>
 				<div class="col-sm-10">
-					<input type="number" class="form-control" id="user_version" ng-model="user_version">
+					<input type="text" class="form-control" id="user_version" ng-model="user_version">
 					<span class="help-block">
 													版本号仅限数字
 												</span>
@@ -364,7 +364,7 @@
 			<div class="status-state">上传代码成功，请到微信开发平台小程序后台预览，提交审核应用。</div>
 			<div>微信开发平台小程序后台<a href="https://mp.weixin.qq.com/" class="color-default">https://mp.weixin.qq.com/</a></div>
 			<div class="btns">
-				<a href="https://mp.weixin.qq.com/" class="btn btn-primary">去提交审核</a>
+				<a href="https://mp.weixin.qq.com/" target="_blank" class="btn btn-primary">去提交审核</a>
 				<a href="/web/index.php?c=wxapp&a=display" class="btn btn-default">小程序首页</a>
 			</div>
 		</div>

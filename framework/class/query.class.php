@@ -32,6 +32,8 @@ class Query {
 	private $error = array();
 	private $lastsql = '';
 	private $lastparams = '';
+	//要更新数据列表
+	private $values;
 	
 	public function __construct() {
 		$this->initClauses();
@@ -70,6 +72,7 @@ class Query {
 		}
 		$this->statements[$clause] = null;
 		$this->parameters = array();
+		$this->values = array();
 		if (isset($this->clauses[$clause]) && is_array($this->clauses[$clause])) {
 			$this->statements[$clause] = array();
 		}
@@ -145,7 +148,6 @@ class Query {
 		$this->currentTableAlias = $alias;
 		
 		$this->statements['FROM'] = $this->mainTable;
-		$this->statements['SELECT'] = '*';
 		
 		return $this;
 	}
@@ -230,7 +232,26 @@ class Query {
 		return $this->addStatement('ORDERBY', $field . ' ' . $direction);
 	}
 	
+	public function fill($field, $value = '') {
+		if (is_array($field)) {
+			foreach ($field as $column => $val) {
+				$this->fill($column, $val);
+			}
+			return $this;
+		}
+		$this->values[$field] = $value;
+		return $this;
+	}
+	
+	public function hasWhere() {
+
+		return count($this->statements['WHERE']) > 0;
+	}
+	
 	public function get() {
+		if (empty($this->statements['SELECT'])) {
+			$this->addStatement('SELECT', '*');
+		}
 		$this->lastsql = $this->buildQuery();
 		$this->lastparams = $this->parameters;
 		$result = pdo_fetch($this->lastsql, $this->parameters);
@@ -241,9 +262,15 @@ class Query {
 	}
 	
 	public function getcolumn($field = '') {
+		if (!empty($field)) {
+			$this->select($field);
+		}
+		if (empty($this->statements['SELECT'])) {
+			$this->addStatement('SELECT', '*');
+		}
 		$this->lastsql = $this->buildQuery();
 		$this->lastparams = $this->parameters;
-		$result = pdo_fetchcolumn($this->lastsql, $this->parameters, $field);
+		$result = pdo_fetchcolumn($this->lastsql, $this->parameters);
 		
 		//查询完后，重置Query对象
 		$this->resetClause();
@@ -251,6 +278,9 @@ class Query {
 	}
 	
 	public function getall($keyfield = '') {
+		if (empty($this->statements['SELECT'])) {
+			$this->addStatement('SELECT', '*');
+		}
 		$this->lastsql = $this->buildQuery();
 		$this->lastparams = $this->parameters;
 		$result = pdo_fetchall($this->lastsql, $this->parameters, $keyfield);
@@ -299,6 +329,35 @@ class Query {
 		}
 		return pdo_exists($this->statements['FROM'], $where);
 	}
+	
+	public function delete() {
+	
+		$where = $this->buildWhereArray();
+		$result = pdo_delete($this->statements['FROM'], $where);
+		
+		//查询完后，重置Query对象
+		$this->resetClause();
+		return $result;
+	}
+	
+	public function insert() {
+		$result = pdo_insert($this->statements['FROM'], $this->values);
+		//查询完后，重置Query对象
+		$this->resetClause();
+		return $result;
+	}
+	
+	public function update() {
+		$where = $this->buildWhereArray();
+		if (empty($where)) {
+			return error(-1, '未指定更新条件');
+		}
+		$result = pdo_update($this->statements['FROM'], $this->values, $where);
+		//查询完后，重置Query对象
+		$this->resetClause();
+		return $result;
+	}
+	
 	
 	private function buildQuery() {
 		$query = '';
@@ -376,7 +435,7 @@ class Query {
 	}
 	
 	private function buildQueryInnerjoin() {
-		return $this->buildQueryLeftjoin('INNERJOIN');
+		return $this->buildQueryJoin('INNERJOIN');
 	}
 	
 	private function buildQueryJoin($clause) {
@@ -430,6 +489,16 @@ class Query {
 	
 	private function buildQueryGroupby() {
 		return \SqlPaser::parseGroupby($this->statements['GROUPBY'], $this->currentTableAlias);
+	}
+	
+	private function buildWhereArray() {
+		$where = array();
+		if (!empty($this->statements['WHERE'])) {
+			foreach ($this->statements['WHERE'] as $row) {
+				$where = array_merge($where, $row[1]);
+			}
+		}
+		return $where;
 	}
 	
 	public function getLastQuery() {

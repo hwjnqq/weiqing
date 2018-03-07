@@ -206,6 +206,58 @@
 		
 
 	</table>
+	<table class="table we7-table table-hover table-form">
+		<col />
+		<col />
+		<col />
+		<tr>
+			<th class="text-left" colspan="3">公众号使用权限</th>
+		</tr>
+		<tr>
+			<td class="table-label">可创建总数&nbsp;&nbsp;&nbsp;&nbsp;<strong ng-bind="account_num.maxaccount || 0"></strong></td>
+			<td class="table-label">已创建个数&nbsp;&nbsp;&nbsp;&nbsp;<strong ng-bind="account_num.uniacid_num || 0"></strong></td>
+			<td class="table-label">可创建剩余个数&nbsp;&nbsp;&nbsp;&nbsp;<strong ng-bind="account_num.uniacid_limit || 0"></strong></td>
+		</tr>
+	</table>
+	<table class="table we7-table table-hover table-form">
+		<col />
+		<col />
+		<col />
+		<tr>
+			<th class="text-left" colspan="3">小程序使用权限</th>
+		</tr>
+		<tr>
+			<td class="table-label">可创建总数&nbsp;&nbsp;&nbsp;&nbsp;<strong ng-bind="account_num.maxwxapp || 0"></strong></td>
+			<td class="table-label">已创建个数&nbsp;&nbsp;&nbsp;&nbsp;<strong ng-bind="account_num.wxapp_num || 0"></strong></td>
+			<td class="table-label">可创建剩余个数&nbsp;&nbsp;&nbsp;&nbsp;<strong ng-bind="account_num.wxapp_limit || 0"></strong></td>
+		</tr>
+	</table>
+	<table class="table we7-table table-hover table-form">
+		<col />
+		<col />
+		<col />
+		<tr>
+			<th class="text-left" colspan="3">PC使用权限</th>
+		</tr>
+		<tr>
+			<td class="table-label">可创建总数&nbsp;&nbsp;&nbsp;&nbsp;<strong ng-bind="account_num.maxwebapp || 0"></strong></td>
+			<td class="table-label">已创建个数&nbsp;&nbsp;&nbsp;&nbsp;<strong ng-bind="account_num.webapp_num || 0"></strong></td>
+			<td class="table-label">可创建剩余个数&nbsp;&nbsp;&nbsp;&nbsp;<strong ng-bind="account_num.webapp_limit || 0"></strong></td>
+		</tr>
+	</table>
+	<table class="table we7-table table-hover table-form">
+		<col />
+		<col />
+		<col />
+		<tr>
+			<th class="text-left" colspan="3">APP使用权限</th>
+		</tr>
+		<tr>
+			<td class="table-label">可创建总数&nbsp;&nbsp;&nbsp;&nbsp;<strong ng-bind="account_num.maxphoneapp || 0"></strong></td>
+			<td class="table-label">已创建个数&nbsp;&nbsp;&nbsp;&nbsp;<strong ng-bind="account_num.phoneapp_num || 0"></strong></td>
+			<td class="table-label">可创建剩余个数&nbsp;&nbsp;&nbsp;&nbsp;<strong ng-bind="account_num.phoneapp_limit || 0"></strong></td>
+		</tr>
+	</table>
 	<div class="modal fade" id="realname" role="dialog">
 		<div class="we7-modal-dialog modal-dialog">
 			<div class="modal-content">
@@ -370,6 +422,7 @@ require(['underscore'], function(){
 	angular.module('userProfile').value('config', {
 		user: {php echo !empty($user) ? json_encode($user) : 'null'},
 		profile: {php echo !empty($profile) ? json_encode($profile) : 'null'},
+		account_num: {php echo !empty($account_num) ? json_encode($account_num) : 'null'},
 		links: {
 			userPost: "{php echo url('user/profile/post')}",
 		},

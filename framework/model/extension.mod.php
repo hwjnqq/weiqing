@@ -16,7 +16,8 @@ function ext_module_convert($manifest) {
 		$wxapp_support = in_array('wxapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_WXAPP : MODULE_NONSUPPORT_WXAPP;
 		$welcome_support = in_array('system_welcome', $manifest['platform']['supports']) ? MODULE_SUPPORT_SYSTEMWELCOME : MODULE_NONSUPPORT_SYSTEMWELCOME;
 		$webapp_support = in_array('webapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_WEBAPP : MODULE_NOSUPPORT_WEBAPP;
-		if ($app_support == MODULE_NONSUPPORT_ACCOUNT && $wxapp_support == MODULE_NONSUPPORT_WXAPP && $welcome_support == MODULE_NONSUPPORT_SYSTEMWELCOME && $webapp_support == MODULE_NOSUPPORT_WEBAPP) {
+		$phoneapp_support = in_array('phoneapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_PHONEAPP : MODULE_NOSUPPORT_PHONEAPP;
+		if ($app_support == MODULE_NONSUPPORT_ACCOUNT && $wxapp_support == MODULE_NONSUPPORT_WXAPP && $welcome_support == MODULE_NONSUPPORT_SYSTEMWELCOME && $webapp_support == MODULE_NOSUPPORT_WEBAPP && $phoneapp_support == MODULE_NOSUPPORT_PHONEAPP) {
 			$app_support = MODULE_SUPPORT_ACCOUNT;
 		}
 	} else {
@@ -48,6 +49,7 @@ function ext_module_convert($manifest) {
 		'app_support' => $app_support,
 		'wxapp_support' => $wxapp_support,
 		'webapp_support' => $webapp_support,
+		'phoneapp_support' => $phoneapp_support,
 		'welcome_support' => $welcome_support,
 		'shortcut' => $manifest['bindings']['shortcut'],
 		'function' => $manifest['bindings']['function'],
@@ -340,44 +342,7 @@ function ext_module_bindings() {
  * @return void
  */
 function ext_module_clean($modulename, $isCleanRule = false) {
-	$pars = array();
-	$pars[':module'] = $modulename;
-	$sql = 'DELETE FROM ' . tablename('core_queue') . ' WHERE `module`=:module';
-	pdo_query($sql, $pars);
-
-	$sql = 'DELETE FROM ' . tablename('modules') . ' WHERE `name`=:module';
-	pdo_query($sql, $pars);
-
-	$sql = 'DELETE FROM ' . tablename('modules_bindings') . ' WHERE `module`=:module';
-	pdo_query($sql, $pars);
-
-	if ($isCleanRule) {
-
-		$sql = 'DELETE FROM ' . tablename('rule') . ' WHERE `module`=:module';
-		pdo_query($sql, $pars);
-
-		$sql = 'DELETE FROM ' . tablename('rule_keyword') . ' WHERE `module`=:module';
-		pdo_query($sql, $pars);
-
-		$sql = 'SELECT rid FROM ' . tablename('cover_reply') . ' WHERE `module`=:module';
-		$data = pdo_fetchall($sql, $pars, 'rid');
-		if (!empty($data)) {
-			$rids = array_keys($data);
-			$ridstr = implode(',', $rids);
-			pdo_query('DELETE FROM ' . tablename('rule_keyword') . " WHERE module = 'cover' AND rid IN ({$ridstr})");
-			pdo_query('DELETE FROM ' . tablename('rule') . " WHERE module = 'cover' AND id IN ({$ridstr})");
-
-			$sql = 'DELETE FROM ' . tablename('cover_reply') . ' WHERE `module`=:module';
-			pdo_query($sql, $pars);
-		}
-	}
-
-	$sql = 'DELETE FROM ' . tablename('site_nav') . ' WHERE `module`=:module';
-	pdo_query($sql, $pars);
-
-	$sql = 'DELETE FROM ' . tablename('uni_account_modules') . ' WHERE `module`=:module';
-	pdo_query($sql, $pars);
-
+	table('module')->cleanModuleInfo($modulename, $isCleanRule);
 }
 
 /**

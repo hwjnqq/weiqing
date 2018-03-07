@@ -6,27 +6,14 @@
 
 defined('IN_IA') or exit('Access Denied');
 
-$dos = array('display', 'change_read_status', 'event_notice');
+$dos = array('display', 'change_read_status', 'event_notice', 'all_read');
 $do = in_array($do, $dos) ? $do : 'display';
 load()->model('message');
 
 $_W['page']['title'] = '系统管理 - 消息提醒 - 消息提醒';
 
-if ($do == 'display') {
-	$message_id = safe_gpc_int($_GPC['message_id']);
-	message_notice_read($message_id);
-
-	$types = $type = safe_gpc_int($_GPC['type']);
-	$pindex = safe_gpc_int($_GPC['page'], 1);
-	$psize = 10;
-
-	$message_table = table('message');
-	$is_read = !empty($_GPC['is_read']) ? safe_gpc_int($_GPC['is_read']) : '';
-
-	if (!empty($is_read)) {
-		$message_table->searchWithIsRead($is_read);
-	}
-
+if (in_array($do, array('display', 'all_read'))) {
+	$type = $types = intval($_GPC['type']);
 	if ($type == MESSAGE_ACCOUNT_EXPIRE_TYPE) {
 		$types = array(MESSAGE_ACCOUNT_EXPIRE_TYPE, MESSAGE_WECHAT_EXPIRE_TYPE, MESSAGE_WEBAPP_EXPIRE_TYPE);
 	}
@@ -38,6 +25,21 @@ if ($do == 'display') {
 			$types = array(MESSAGE_ACCOUNT_EXPIRE_TYPE, MESSAGE_WECHAT_EXPIRE_TYPE, MESSAGE_WEBAPP_EXPIRE_TYPE, MESSAGE_USER_EXPIRE_TYPE, MESSAGE_WXAPP_MODULE_UPGRADE);
 		}
 	
+}
+
+if ($do == 'display') {
+	$message_id = intval($_GPC['message_id']);
+	message_notice_read($message_id);
+
+	$pindex = intval($_GPC['page'], 1);
+	$psize = 10;
+
+	$message_table = table('message');
+	$is_read = !empty($_GPC['is_read']) ? intval($_GPC['is_read']) : '';
+
+	if (!empty($is_read)) {
+		$message_table->searchWithIsRead($is_read);
+	}
 
 	if (!empty($types)) {
 		$message_table->searchWithType($types);
@@ -50,6 +52,7 @@ if ($do == 'display') {
 	$total = $message_table->getLastQueryTotal();
 	$pager = pagination($total, $pindex, $psize);
 }
+
 
 if ($do == 'change_read_status') {
 	$id = $_GPC['id'];
@@ -72,5 +75,10 @@ if ($do == 'event_notice') {
 	}
 	iajax(0, $message);
 
+}
+
+if ($do == 'all_read') {
+	message_notice_all_read($types);
+	iajax(0, '全部已读', url('message/notice', array('type' => $type)));
 }
 template('message/notice');

@@ -54,7 +54,10 @@ class CloudApi {
 	}
 	
 	private function cer_filepath($file) {
-		return MODULE_ROOT.'/'.$file;
+		if (defined('MODULE_ROOT')) {
+			return MODULE_ROOT.'/'.$file;
+		}
+		return $file;
 	}
 	
 	private function moduleCerContent(){

@@ -126,13 +126,9 @@ function ihttp_multi_request($urls, $posts = array(), $extra = array(), $timeout
 		} while ($mrc == CURLM_CALL_MULTI_PERFORM);
 
 		while ($active && $mrc == CURLM_OK) {
-			if (curl_multi_select($curl_multi) != -1) {
-				do {
-					$mrc = curl_multi_exec($curl_multi, $active);
-				} while ($mrc == CURLM_CALL_MULTI_PERFORM);
-			} else {
-				return error(2, '请求失败，请检查URL');
-			}
+			do {
+				$mrc = curl_multi_exec($curl_multi, $active);
+			} while ($mrc == CURLM_CALL_MULTI_PERFORM);
 		}
 	}
 	

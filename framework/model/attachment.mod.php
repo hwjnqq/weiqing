@@ -40,10 +40,11 @@ function attachment_alioss_datacenters() {
 	return $bucket_datacenter;
 }
 
-function attachment_newalioss_auth($key, $secret, $bucket){
+function attachment_newalioss_auth($key, $secret, $bucket, $internal = false){
 	load()->library('oss');
 	$buckets = attachment_alioss_buctkets($key, $secret);
-	$url = 'http://'.$buckets[$bucket]['location'].'.aliyuncs.com';
+	$host = $internal ? '-internal.aliyuncs.com' : '.aliyuncs.com';
+	$url = 'http://'.$buckets[$bucket]['location'] . $host;
 	$filename = 'MicroEngine.ico';
 	try {
 		$ossClient = new \OSS\OssClient($key, $secret, $url);

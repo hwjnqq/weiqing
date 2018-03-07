@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  * $sn$
@@ -9,6 +9,17 @@ load()->model('activity');
 load()->model('module');
 load()->model('payment');
 load()->func('communication');
+
+if ($do == 'check_password') {
+	$password = safe_gpc_string($_GPC['password']);
+	$user_info = mc_fetch($_W['member']['uid']);
+	$password = md5($password . $user_info['salt']);
+	if ($password == $user_info['pay_password']) {
+		message(0, '', 'ajax');
+	} else {
+		message(1, '', 'ajax');
+	}
+}
 
 $moduels = uni_modules();
 $params = @json_decode(base64_decode($_GPC['params']), true);
@@ -39,6 +50,9 @@ if(!empty($setting['payment']['baifubao']['switch'])) {
 if(!empty($setting['payment']['jueqiymf']['switch'])) {
 	$dos[] = 'jueqiymf';
 }
+if(!empty($setting['payment']['mix']['switch'])) {
+	$dos[] = 'mix';
+}
 $do = $_GPC['do'];
 $type = in_array($do, $dos) ? $do : '';
 
@@ -51,7 +65,7 @@ if(!empty($type)) {
 	if(!empty($log) && ($type != 'credit' && !empty($_GPC['notify'])) && $log['status'] != '0') {
 		message('这个订单已经支付成功, 不需要重复支付.');
 	}
-	
+
 	$update_card_log = array(
 		'is_usecard' => '0',
 		'card_type' => '0',
@@ -60,22 +74,36 @@ if(!empty($type)) {
 		'type' => $type,
 	);
 	pdo_update('core_paylog', $update_card_log, array('plid' => $log['plid']));
-	
+
 	$log['is_usecard'] = '0';
 	$log['card_type'] = '0';
 	$log['card_id'] = '0';
 	$log['card_fee'] = $log['fee'];
-	
+
 	$moduleid = pdo_fetchcolumn("SELECT mid FROM ".tablename('modules')." WHERE name = :name", array(':name' => $params['module']));
 	$moduleid = empty($moduleid) ? '000000' : sprintf("%06d", $moduleid);
-	
+
 	$record = array();
 	$record['type'] = $type;
 	if (empty($log['uniontid'])) {
 		$record['uniontid'] = $log['uniontid'] = date('YmdHis').$moduleid.random(8,1);
 	}
-	
+
 	if($type != 'delivery') {
+		if ($_GPC['mix_pay']) {
+			$setting = uni_setting($_W['uniacid'], array('creditbehaviors'));
+			$credtis = mc_credit_fetch($_W['member']['uid']);
+			if ($credtis[$setting['creditbehaviors']['currency']] > 0 && in_array('mix', $dos) && $credtis[$setting['creditbehaviors']['currency']] < $log['card_fee']) {
+				$mix_credit_log = $log;
+				unset($mix_credit_log['plid']);
+				$mix_credit_log['uniontid'] = date('YmdHis') . $moduleid . random(8,1);
+				$mix_credit_log['type'] = 'credit';
+				$mix_credit_log['fee'] = $credtis[$setting['creditbehaviors']['currency']];
+				$mix_credit_log['card_fee'] = $credtis[$setting['creditbehaviors']['currency']];
+				pdo_update('core_paylog', array('fee' => $log['card_fee'] - $credtis[$setting['creditbehaviors']['currency']], 'card_fee' => $log['card_fee'] - $credtis[$setting['creditbehaviors']['currency']]), array('plid' => $log['plid']));
+				pdo_insert('core_paylog', $mix_credit_log);
+			}
+		}
 		$we7_coupon_info = module_fetch('we7_coupon');
 		if (!empty($we7_coupon_info)) {
 			$coupon_id = intval($_GPC['coupon_id']);
@@ -102,7 +130,7 @@ if(!empty($type)) {
 						$record['card_type'] = 2;
 						$record['card_id'] = $coupon_info['id'];
 					}
-				}		
+				}
 			}
 		}
 	}
@@ -134,7 +162,7 @@ if(!empty($type)) {
 			exit();
 		}
 	}
-	
+
 	if ($type == 'wechat') {
 		if(!empty($log['plid'])) {
 			$tag = array();
@@ -145,10 +173,14 @@ if(!empty($type)) {
 		$ps['title'] = urlencode($params['title']);
 		$sl = base64_encode(json_encode($ps));
 		$auth = sha1($sl . $_W['uniacid'] . $_W['config']['setting']['authkey']);
-		
-		$callback = $_W['siteroot'] . "payment/wechat/pay.php?i={$_W['uniacid']}&auth={$auth}&ps={$sl}";
+		$oauth = uni_setting_load('oauth', $_W['uniacid']);
+		if (!empty($oauth['host'])) {
+			$callback = $oauth['host'] . "/payment/wechat/pay.php?i={$_W['uniacid']}&auth={$auth}&ps={$sl}";
+		} else {
+			$callback = $_W['siteroot'] . "payment/wechat/pay.php?i={$_W['uniacid']}&auth={$auth}&ps={$sl}";
+		}
 		$global_unisetting = uni_account_global_oauth();
-		$unisetting['oauth']['host'] = !empty($unisetting['oauth']['host']) ? $unisetting['oauth']['host'] : $global_unisetting['oauth']['host'];
+		$unisetting['oauth']['host'] = !empty($unisetting['oauth']['host']) ? $unisetting['oauth']['host'] : (!empty($global_unisetting['oauth']['host']) ? $global_unisetting['oauth']['host'] : '');
 		if (!empty($unisetting['oauth']['host'])) {
 			$callback = str_replace($_W['siteroot'], $unisetting['oauth']['host'].'/', $callback);
 		}
@@ -159,7 +191,7 @@ if(!empty($type)) {
 			header('Location: ' . $forward);
 			exit;
 		}
-		
+
 		header("Location: $callback");
 		exit();
 	}
@@ -220,7 +252,7 @@ if(!empty($type)) {
 				pdo_update('core_paylog', array('status' => '1'), array('plid' => $log['plid']));
 				if (!empty($_W['openid'])) {
 					if (is_error($is_grant_credit)) {
-						$grant_credit_nums = 0; 
+						$grant_credit_nums = 0;
 					} else {
 						$grant_credit_nums = $is_grant_credit['message'];
 					}
@@ -248,7 +280,7 @@ if(!empty($type)) {
 						$ret['card_type'] = $log['card_type']; //区分是系统优惠券还是微信卡券
 						$ret['card_fee'] = $log['card_fee'];
 						$ret['card_id'] = $log['card_id'];
-						
+
 						echo '<iframe style="display:none;" src="'.murl('mc/cash/credit', array('notify' => 'yes', 'params' => $_GPC['params'], 'code' => $_GPC['code'], 'coupon_id' => $_GPC['coupon_id']), true, true).'"></iframe>';
 						$site->$method($ret);
 					}
@@ -282,7 +314,7 @@ if(!empty($type)) {
 			}
 		}
 	}
-	
+
 	if ($type == 'delivery') {
 		$we7_coupon_info = module_fetch('we7_coupon');
 		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `plid`=:plid';

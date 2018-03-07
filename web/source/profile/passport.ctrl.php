@@ -37,13 +37,13 @@ if ($do == 'save_oauth') {
 }
 
 if ($do == 'oauth') {
+	$oauthInfo = table('unisetting')->getOauthByUniacid($_W['uniacid']);
+	$oauth = iunserializer($oauthInfo) ? iunserializer($oauthInfo['oauth']) : array();
+	$jsoauth = $oauthInfo['jsauth_acid'];
+
 	$user_have_accounts = user_borrow_oauth_account_list();
 	$oauth_accounts = $user_have_accounts['oauth_accounts'];
 	$jsoauth_accounts = $user_have_accounts['jsoauth_accounts'];
-//获取已保存的oauth信息
-	$oauth = pdo_fetchcolumn('SELECT `oauth` FROM '.tablename('uni_settings').' WHERE `uniacid` = :uniacid LIMIT 1',array(':uniacid' => $_W['uniacid']));
-	$oauth = iunserializer($oauth) ? iunserializer($oauth) : array();
-	$jsoauth = pdo_getcolumn('uni_settings', array('uniacid' => $_W['uniacid']), 'jsauth_acid');
 }
 
 template('profile/passport');

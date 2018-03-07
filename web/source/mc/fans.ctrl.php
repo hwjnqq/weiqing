@@ -8,7 +8,6 @@ defined('IN_IA') or exit('Access Denied');
 set_time_limit(60);
 
 load()->model('mc');
-load()->model('account');
 
 $dos = array('display', 'add_tag', 'del_tag', 'edit_tagname', 'edit_fans_tag', 'batch_edit_fans_tag', 'download_fans', 'sync', 'fans_sync_set', 'register');
 $do = in_array($do, $dos) ? $do : 'display';
@@ -272,22 +271,17 @@ if ($do == 'download_fans') {
 
 if ($do == 'sync') {
 	$type = $_GPC['type'] == 'all' ? 'all' : 'check';
-
-	$setting = uni_setting($_W['uniacid'], array('passport'));
-	$force_init_member = false;
-	if (!isset($setting['passport']) || empty($setting['passport']['focusreg'])) {
-		$force_init_member = true;
-	}
+	$sync_member = intval($_GPC['sync_member']);
+	$force_init_member = empty($sync_member) ? false : true;
 
 	if ($type == 'all') {
 		$pageindex = $_GPC['pageindex'];
 		$pageindex++;
-		$sync_fans = pdo_getslice('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'acid' => $_W['acid'], 'follow' => '1'), array($pageindex, 5), $total, array(), '', 'fanid DESC');
-		$total = ceil($total/5);
+		$sync_fans = pdo_getslice('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'acid' => $_W['acid'], 'follow' => '1'), array($pageindex, 100), $total, array(), 'openid', 'fanid DESC');
+		$total = ceil($total/100);
+		$start = time();
 		if (!empty($sync_fans)) {
-			foreach ($sync_fans as $fans) {
-				mc_init_fans_info($fans['openid'], $force_init_member);
-			}
+			mc_init_fans_info(array_keys($sync_fans), $force_init_member);
 		}
 		if ($total == $pageindex) {
 			setcookie(cache_system_key('sync_fans_pindex:' . $_W['uniacid']), '', -1);

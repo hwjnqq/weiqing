@@ -69,6 +69,8 @@
 						<td class="text-left">
 							{if $extensions['memcache']['status'] && $setting['memcache']['session'] == 1}
 							<span class="label label-danger">memcache</span>
+							{else if $extensions['redis']['status'] && $setting['redis']['session'] == 1}
+							<span class="label label-success">redis</span>
 							{else}
 							<span class="label label-success">mysql</span>
 							{/if}
@@ -110,25 +112,6 @@
 				</table>
 		</div>
 		<br />
-		<div class="alert we7-page-alert">
-			<p><i class="wi wi-info-sign"></i> 开启后，可以有效的缓存低频的变动数据，提升系统效率。<p>
-			<p><i class="wi wi-info-sign"></i> 此项要求系统必须开启memcache缓存<p>
-		</div>
-		<div class="panel we7-panel">
-			<div class="panel-heading">SQL缓存</div>
-				<table class="table we7-table table-hover site-list">
-					<tr>
-						<td width="200">状态</td>
-						<td class="text-left">
-							{if !empty($extensions['memcache']['status']) && !empty($setting['memcache']['sql'])}
-								<span class="label label-success">已开启</span>
-							{else}
-								<span class="label label-danger">未开启</span>
-							{/if}
-						</td>
-					</tr>
-				</table>
-		</div>
 	</div>
 	<div class="contact-service">
 		<a href="http://crm2.qq.com/page/portalpage/wpa.php?uin=4000828502&aty=0&a=0&curl=&ty=1" target="_blank">

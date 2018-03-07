@@ -156,6 +156,12 @@
 				<span class="mui-pull-right">管理</span>
 			</a>
 		</li>
+		<li class="mui-table-view-cell">
+			<a href="{php echo url('mc/bond/pay_password') . 'wxref=mp.weixin.qq.com#wechat_redirect'}" class="mui-navigate-right">
+				支付密码
+				<span class="mui-pull-right">设置</span>
+			</a>
+		</li>
 	</ul>
 	<ul class="mui-table-view mui-table-view-chevron">
 		{if !empty($reregister)}
@@ -513,5 +519,43 @@ require(['mui.pullrefresh'], function(mui) {
 		</div>
 	</div>
 </form>
+{/if}
+{if $do == 'pay_password'}
+<form class="tab-content clearfix js-ajax-form {if $_W['container'] !== 'wechat'}profile-form{/if}" action="{url 'mc/bond/pay_password'}" method="post" enctype="multipart/form-data">
+	<div class="mui-content mc-email">
+		<div class="mui-control-content mui-active">
+			<div class="mui-input-group mui-mt15">
+				<div class="mui-input-row">
+					<label>开启支付密码</label>
+					<input type="checkbox" name="pay_password_open" onclick="change()" {if !empty($pay_password)}checked{/if}/>
+				</div>
+			</div>
+			<div class="mui-input-group mui-mt15" id="pay_password">
+				<div class="mui-input-row">
+					<label>支付密码</label>
+					<input type="password" name="pay_password" value="" placeholder="请输入密码" />
+				</div>
+				<div class="mui-input-row">
+					<label>确认支付密码</label>
+					<input type="password" name="repeat_pay_password" value="" placeholder="请确认密码"/>
+				</div>
+			</div>
+		</div>
+		<div class="mui-content-padded">
+			<button class="mui-btn mui-btn-block" type="submit">确定</button>
+		</div>
+	</div>
+</form>
+<script>
+	$('#pay_password').hide();
+	var change = function() {
+		open = $('[name="pay_password_open"]').prop('checked');
+		if (open === true) {
+			$('#pay_password').show();
+		} else {
+			$('#pay_password').hide();
+		}
+	};
+</script>
 {/if}
 {template 'common/footer'}

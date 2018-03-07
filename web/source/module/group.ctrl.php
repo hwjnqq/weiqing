@@ -47,7 +47,7 @@ if ($do == 'display') {
 	$_W['page']['title'] = '应用套餐列表';
 	$param = array('uniacid' => 0);
 	$modules = user_modules($_W['uid']);
-	
+
 	$modules_group_list = uni_groups();
 	if (!empty($modules_group_list)) {
 		foreach ($modules_group_list as $group_key => &$group) {
@@ -99,6 +99,7 @@ if ($do == 'post') {
 	$group_have_module_wxapp = array();
 	$group_have_template = array();
 	$group_have_module_webapp = array();
+	$group_have_module_phoneapp = array();
 	if (!empty($group_id)) {
 		$uni_groups = uni_groups();
 		$module_group = $uni_groups[$group_id];
@@ -106,11 +107,13 @@ if ($do == 'post') {
 		$group_have_module_wxapp = empty($module_group['wxapp']) ? array() : $module_group['wxapp'];
 		$group_have_template = empty($module_group['templates']) ? array() : $module_group['templates'];
 		$group_have_module_webapp = empty($module_group['webapp']) ? array() : $module_group['webapp'];
+		$group_have_module_phoneapp = empty($module_group['phoneapp']) ? array() : $module_group['phoneapp'];
 	}
 	$module_list = user_uniacid_modules($_W['uid']);
 	$group_not_have_module_app = array();
 	$group_not_have_module_wxapp = array();
 	$group_not_have_module_webapp = array();
+	$group_not_have_module_phoneapp = array();
 	if (!empty($module_list)) {
 		foreach ($module_list as $name => $module_info) {
 			$module_info = module_fetch($name);
@@ -139,6 +142,10 @@ if ($do == 'post') {
 
 			if ($module_info['webapp_support'] == MODULE_SUPPORT_WEBAPP && !in_array($name, array_keys($group_have_module_webapp))) {
 				$group_not_have_module_webapp[$name] = $module_info;
+			}
+
+			if ($module_info['phoneapp_support'] == MODULE_SUPPORT_PHONEAPP && !in_array($name, array_keys($group_have_module_phoneapp))) {
+				$group_not_have_module_phoneapp[$name] = $module_info;
 			}
 		}
 	}

@@ -78,14 +78,20 @@ abstract class WeAccount {
 
 	static public function includes($uniaccount) {
 		$type = $uniaccount['type'];
-
 		if($type == ACCOUNT_TYPE_OFFCIAL_NORMAL) {
 			load()->classs('weixin.account');
 			$account_obj = new WeiXinAccount();
 		}
+		
 		if($type == ACCOUNT_TYPE_OFFCIAL_AUTH) {
 			load()->classs('weixin.platform');
 			$account_obj = new WeiXinPlatform();
+		}
+		// 授权小程序
+		if ($type == ACCOUNT_TYPE_APP_AUTH) {
+			load()->classs('weixin.platform');
+			load()->classs('wxapp.platform');
+			$account_obj = new WxAppPlatform();
 		}
 		if($type == ACCOUNT_TYPE_APP_NORMAL) {
 			load()->classs('wxapp.account');
@@ -824,6 +830,10 @@ class WeUtility {
 	 * @param string $message
 	 */
 	public static function logging($level = 'info', $message = '') {
+		global $_W;
+		if ($_W['setting']['copyright']['log_status'] != 1) {
+			return false;
+		}
 		$filename = IA_ROOT . '/data/logs/' . date('Ymd') . '.log';
 		load()->func('file');
 		mkdirs(dirname($filename));

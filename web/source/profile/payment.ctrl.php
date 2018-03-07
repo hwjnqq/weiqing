@@ -60,7 +60,7 @@ if ($do == 'save_setting') {
 	$param = $_GPC['param'];
 	$setting = uni_setting_load('payment', $_W['uniacid']);
 	$pay_setting = $setting['payment'];
-	if ($type == 'credit' || $type == 'delivery') {
+	if ($type == 'credit' || $type == 'delivery' || $type == 'mix') {
 		$param['switch'] = $param['switch'] == 'false' ? true : false;
 	}
 	if ($type == 'jueqiymf') {
@@ -143,6 +143,9 @@ if ($do == 'display') {
 	$pay_setting = is_array($setting['payment']) ? $setting['payment'] : array();
 	if (empty($pay_setting['delivery'])) {
 		$pay_setting['delivery'] = array('switch' => false);
+	}
+	if (empty($pay_setting['mix'])) {
+		$pay_setting['mix'] = array('switch' => false);
 	}
 	if (empty($pay_setting['credit'])) {
 		$pay_setting['delivery'] = array('switch' => false);

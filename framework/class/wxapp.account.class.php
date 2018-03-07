@@ -107,12 +107,45 @@ class WxappAccount extends WeAccount {
 	public function getJssdkConfig($url = ''){
 		return array();
 	}
-
-	public function getCodeWithPath($path) {
-
+	
+	/**
+	 * 获取永久二维码
+	 * @param unknown $path
+	 * @param string $width
+	 * @param array $option
+	 */
+	public function getCodeLimit($path, $width = '430', $option = array()) {
+		if (!preg_match('/[0-9a-zA-Z\&\/\:\=\?\-\.\_\~\@]{1,128}/', $path)) {
+			return error(1, '路径值不合法');
+		}
+		$access_token = $this->getAccessToken();
+		if(is_error($access_token)){
+			return $access_token;
+		}
+		$data = array(
+			'path' => $path,
+			'width' => intval($width),
+		);
+		if (!empty($option['auto_color'])) {
+			$data['auto_color'] = intval($option['auto_color']);
+		}
+		if (!empty($option['line_color'])) {
+			$data['line_color'] = array(
+				'r' => $option['line_color']['r'],
+				'g' => $option['line_color']['g'],
+				'b' => $option['line_color']['b'],
+			);
+			$data['auto_color'] = false;
+		}
+		$url = "https://api.weixin.qq.com/wxa/getwxacode?access_token=" . $access_token;
+		$response = $this->requestApi($url, json_encode($data));
+		if (is_error($response)) {
+			return $response;
+		}
+		return $response['content'];
 	}
 
-	public function getCodeUnlimit($scene, $width = '430', $option = array()) {
+	public function getCodeUnlimit($scene, $path = '', $width = '430', $option = array()) {
 		if (!preg_match('/[0-9a-zA-Z\!\#\$\&\'\(\)\*\+\,\/\:\;\=\?\@\-\.\_\~]{1,32}/', $scene)) {
 			return error(1, '场景值不合法');
 		}
@@ -124,9 +157,13 @@ class WxappAccount extends WeAccount {
 			'scene' => $scene,
 			'width' => intval($width),
 		);
-		if (!empty($data['auto_color'])) {
-			$data['auto_color'] = intval($data['auto_color']);
+		if (!empty($path)) {
+			$data['path'] = $path;
 		}
+		if (!empty($option['auto_color'])) {
+			$data['auto_color'] = intval($option['auto_color']);
+		}
+		
 		if (!empty($option['line_color'])) {
 			$data['line_color'] = array(
 				'r' => $option['line_color']['r'],

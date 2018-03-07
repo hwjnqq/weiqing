@@ -60,7 +60,8 @@
 				</div>
 			</div>
 			<div class="text-center">
-				<input name="submit" type="submit" value="立即检查新版本" class="btn btn-danger" />
+				<input name="submit" type="submit" value="{{showtext}}" class="btn btn-danger" disabled ng-show="submitDisabled">
+				<input name="submit" type="submit" value="{{showtext}}" class="btn btn-danger" ng-show="!submitDisabled">
 				<input name="rollback" type="button" value="撤回更新" class="btn btn-default" data-toggle="modal" data-target="#rollback-panel" />
 				<input type="hidden" name="token" value="{$_W['token']}" />
 			</div>
@@ -97,7 +98,7 @@
 					<h4 class="modal-title">更新文件</h4>
 				</div>
 				<div class="modal-body color-dark">
-					<div ng-repeat="line in upgrade.files" ng-if="upgrade.files.length > 0">{{line}}</div>
+					<div ng-repeat="line in upgrade.files track by $index" ng-if="upgrade.files.length > 0">{{line}}</div>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-primary"  data-dismiss="modal">确定</button>
@@ -188,12 +189,41 @@
 </div>
 
 <script>
-	angular.module('cloudApp').value('config', {
+	angular.module('cloudUpgradeApp', []);
+	angular.module('cloudUpgradeApp').value('config', {
 		'links': {
 			'process': "{php echo url('cloud/process')}",
 			'getUpgradeInfo': "{php echo url('cloud/upgrade/get_upgrade_info')}",
 		}
 	});
-	angular.bootstrap($('#js-cloud-upgrade'), ['cloudApp']);
+	angular.module('cloudUpgradeApp').controller('CloudUpgradeCtrl', ['$scope', '$http', 'config', function($scope, $http, config) {
+		$scope.upgrade = {};
+		$scope.showtext = '正在检查更新...';
+		$scope.submitDisabled = true;
+		$scope.submit = function() {
+			var a = $("#agreement_0").is(':checked');
+			var b = $("#agreement_1").is(':checked');
+			var c = $("#agreement_2").is(':checked');
+			if(a && b && c) {
+				if(confirm('更新将直接覆盖本地文件, 请注意备份文件和数据. \n\n**另注意** 更新过程中不要关闭此浏览器窗口.')) {
+					location.href = config.links.process;
+				}
+			} else {
+				util.message("抱歉，更新前请仔细阅读更新协议！", '', 'error');
+				return false;
+			}
+		};
+		$http.post(config.links.getUpgradeInfo)
+			.success(function (data) {
+				$scope.showtext = '立即检查新版本';
+				$scope.submitDisabled = false;
+				if (data.message.errno == 0) {
+					$scope.upgrade = data.message.message;
+				} else {
+					util.message(data.message);
+				}
+			});
+	}]);
+	angular.bootstrap($('#js-cloud-upgrade'), ['cloudUpgradeApp']);
 </script>
 {template 'common/footer'}
