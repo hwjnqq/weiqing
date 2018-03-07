@@ -155,6 +155,7 @@ function user_delete($uid, $is_recycle = false) {
  * @return array 完整的用户信息
  */
 function user_single($user_or_uid) {
+
 	$user = $user_or_uid;
 	if (empty($user)) {
 		return false;
