@@ -8,7 +8,7 @@ defined('IN_IA') or exit('Access Denied');
  */
 
 
-class CreateUpdateUser {
+class CreateUpgradeUser {
 
 	/**
 	 *  执行更新

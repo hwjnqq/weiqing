@@ -17,7 +17,7 @@ class CreateCloudRecycleModule {
 	public function up() {
 		load()->object('cloudapi');
 		$recycle_module = pdo_getall('modules_recycle', array(), array('modulename'), 'modulename');
-		$cloudapi = new CloudApi();
+		$cloudapi = new \CloudApi();
 		$cloudapi->post('cache', 'set', array('key' => cache_system_key('recycle_module:'), 'value' => $recycle_module));
 	}
 	

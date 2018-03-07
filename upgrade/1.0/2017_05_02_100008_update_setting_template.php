@@ -13,7 +13,7 @@ class UpdateSettingTemplate {
 		//更改后台风格统一为官方默认风格
 		global $_W;
 		if ($_W['setting']['basic'] != 'default') {
-			setting_save(array('template' => 'default'), 'basic');
+			 setting_save(array('template' => 'default'), 'basic');
 		}
 	}
 }
