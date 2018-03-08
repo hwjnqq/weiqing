@@ -657,7 +657,7 @@ defined('IN_IA') or exit('Access Denied');
 // --------------------------  CONFIG UPLOAD  --------------------------- //
 \$config['upload']['image']['extentions'] = array('gif', 'jpg', 'jpeg', 'png');
 \$config['upload']['image']['limit'] = 5000;
-\$config['upload']['attachdir'] = 'attchment';
+\$config['upload']['attachdir'] = 'attachment';
 \$config['upload']['audio']['extentions'] = array('mp3');
 \$config['upload']['audio']['limit'] = 5000;
 
