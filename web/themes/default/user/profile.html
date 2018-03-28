@@ -154,6 +154,30 @@
 				</tr>
 			{/if}
 		</table>
+		{if !permission_check_account_user('see_user_add_welcome_account')}
+		<table class="table we7-table table-hover table-form">
+			<col width="160px " />
+			<col />
+			<col width="100px" />
+			<tr>
+				<th class="text-left" colspan="3">用户首页设置</th>
+			</tr>
+			<tr>
+				<td class="table-label">登陆后跳转链接</td>
+				<td class="table-label">
+					<select class="form-control tpl-category-parent we7-select" id="category_parent" ng-model="user.welcome_link" ng-change="httpChange('welcome_link')">
+						<option ng-selected ="user.welcome_link == 0 || user.welcome_link == ''" ng-value="0">用户欢迎页</option>
+						<option ng-selected ="user.welcome_link == 1" ng-value="1" >上次登陆最后访问页面</option>
+						<option ng-selected ="user.welcome_link == 2" ng-value="2">直接跳转至公众号</option>
+						<option ng-selected ="user.welcome_link == 3" ng-value="3">直接跳转至小程序</option>
+						<option ng-selected ="user.welcome_link == 4" ng-value="4">直接跳转至PC</option>
+						<option ng-selected ="user.welcome_link == 5" ng-value="5">直接跳转至APP</option>
+					</select>
+				</td>
+				<td></td>
+			</tr>
+		</table>
+		{/if}
 		{if !permission_check_account_user('see_user_profile_account_num')}
 		<table class="table we7-table table-hover table-form">
 			<col />

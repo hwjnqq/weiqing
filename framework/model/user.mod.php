@@ -155,7 +155,6 @@ function user_delete($uid, $is_recycle = false) {
  * @return array 完整的用户信息
  */
 function user_single($user_or_uid) {
-
 	$user = $user_or_uid;
 	if (empty($user)) {
 		return false;
@@ -169,25 +168,26 @@ function user_single($user_or_uid) {
 	$where = ' WHERE 1 ';
 	$params = array();
 	if (!empty($user['uid'])) {
-		$where .= ' AND `uid`=:uid';
+		$where .= ' AND u.`uid`=:uid';
 		$params[':uid'] = intval($user['uid']);
 	}
 	if (!empty($user['username'])) {
-		$where .= ' AND `username`=:username';
+		$where .= ' AND u.`username`=:username';
 		$params[':username'] = $user['username'];
 	}
 	if (!empty($user['email'])) {
-		$where .= ' AND `email`=:email';
+		$where .= ' AND u.`email`=:email';
 		$params[':email'] = $user['email'];
 	}
 	if (!empty($user['status'])) {
-		$where .= " AND `status`=:status";
+		$where .= " AND u.`status`=:status";
 		$params[':status'] = intval($user['status']);
 	}
 	if (empty($params)) {
 		return false;
 	}
-	$sql = 'SELECT * FROM ' . tablename('users') . " $where LIMIT 1";
+	$sql = 'SELECT u.*, p.avatar FROM ' . tablename('users') . ' AS u LEFT JOIN '. tablename('users_profile') . ' AS p ON u.uid = p.uid '. $where. ' LIMIT 1';
+
 	$record = pdo_fetch($sql, $params);
 	if (empty($record)) {
 		return false;
@@ -584,6 +584,16 @@ function user_login_forward($forward = '') {
 	if (user_is_founder($_W['uid']) && !user_is_vice_founder($_W['uid'])) {
 		return url('home/welcome/system');
 	}
+	if (user_is_vice_founder()) {
+		return url('account/manage', array('account_type' => 1));
+	}
+
+	$url = user_after_login_link();
+
+	if (!empty($url)) {
+		return $url;
+	}
+
 	$login_forward = url('account/display');
 	$visit_key = '__lastvisit_' . $_W['uid'];
 	if (!empty($_GPC[$visit_key])) {
@@ -616,9 +626,7 @@ function user_login_forward($forward = '') {
 			}
 		}
 	}
-	if (user_is_vice_founder()) {
-		return url('account/manage', array('account_type' => 1));
-	}
+
 	if ($_W['user']['type'] == ACCOUNT_OPERATE_CLERK) {
 		return url('module/display');
 	}
@@ -1045,4 +1053,50 @@ function user_is_bind() {
 		}
 	}
 	return true;
+}
+
+/**
+ * 修改用户登陆后首页是否开启
+ * @param $uid
+ * @return bool|int
+ */
+function user_change_welcome_status($uid, $welcome_status) {
+	if (empty($uid)) {
+		return true;
+	}
+	$user_table = table('users');
+	$user_table->fillWelcomeStatus($welcome_status)->whereUid($uid)->save();
+	return true;
+}
+
+/**
+ * 登陆之后跳转链接
+ * @return string
+ */
+function user_after_login_link() {
+	global $_W;
+	$type = $_W['user']['welcome_link'];
+
+	switch ($type) {
+		case WELCOME_DISPLAY_TYPE:
+			$url = url('home/welcome/system_home');
+			break;
+		case ACCOUNT_DISPLAY_TYPE:
+			$url = url('account/display');
+			break;
+		case WXAPP_DISPLAY_TYPE:
+			$url = url('wxapp/display');
+			break;
+		case WEBAPP_DISPLAY_TYPE:
+			$url = url('webapp/home');
+			break;
+		case PHONEAPP_DISPLAY_TYPE:
+			$url = url('phoneapp/display');
+			break;
+		default:
+			$url = '';
+			break;
+	}
+
+	return $url;
 }

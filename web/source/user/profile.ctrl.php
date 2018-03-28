@@ -96,6 +96,11 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 		case 'remark':
 			$result = pdo_update('users', array('remark' => trim($_GPC['remark'])), array('uid' => $uid));
 			break;
+		case 'welcome_link':
+
+			$welcome_link = intval($_GPC['welcome_link']);
+			$result = pdo_update('users', array('welcome_link' => $welcome_link), array('uid' => $uid));
+			break;
 		case 'password':
 			if ($_GPC['newpwd'] !== $_GPC['renewpwd']) iajax(2, '两次密码不一致！', '');
 			if (!$_W['isfounder'] && empty($user['register_type'])) {

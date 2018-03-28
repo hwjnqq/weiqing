@@ -108,12 +108,13 @@
 			</span>
 			可升级应用
 		</div>
-		<div class="panel-body">
-			<a href="{{module.link}}" target="_blank" class="apply-item" ng-repeat="module in upgrade_module_list">
-				<img src="{{module.logo}}" class="apply-img"/>
-				<span class="text-over">{{module.title|limitTo:4}}</span>
-				<span class="color-red">升级</span>
-			</a>
+		<div class="panel-body welcome-apple-list">
+			<div class="apply-item" ng-repeat="module in upgrade_module_list" ng-if="!module.is_ignore">
+				<a href="{{module.link}}" target="_blank"><img src="{{module.logo}}" class="apply-img"/></a>
+				<a href="{{module.link}}" target="_blank"><span class="text-over">{{module.title|limitTo:4}}</span></a>
+				<a href="{{module.link}}" target="_blank" class="color-red">升级</a>
+				<a href="javascript:;"data-toggle="popover" class="ignore" class="color-default" data-placement="bottom" data-trigger="hover" data-content="忽略当前版本更新，重新升级到模块列表自行升级" ng-click="ignoreUpdate(module.name)">忽略</a>
+			</div>
 			<div class="text-center" ng-if="upgrade_modules_show == 0">
 				没有可升级的应用
 			</div>
@@ -144,7 +145,8 @@
 			notices: {php echo !empty($notices) ? json_encode($notices) : 'null'},
 			systemUpgradeUrl : "{php echo url('home/welcome/get_system_upgrade')}",
 			upgradeModulesUrl: "{php echo url('home/welcome/get_upgrade_modules')}",
-			moduleStatisticsUrl: "{php echo url('home/welcome/get_module_statistics')}"
+			moduleStatisticsUrl: "{php echo url('home/welcome/get_module_statistics')}",
+			ignoreUpdateUrl : "{php echo url('home/welcome/ignore_update_module')}",
 		});
 		angular.bootstrap($('.js-system-welcome'), ['systemApp']);
 	});

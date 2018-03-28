@@ -39,6 +39,9 @@
 					<a href="javascript:;" class="cut-btn" ng-click="showAccounts($event, list.name)">
 						<i class="wi wi-changing-over"></i>
 					</a>
+					<a ng-href="./index.php?c=home&a=welcome&do=add_welcome&module={{list.name}}" onclick="return ajaxopen(this.href);" class="home-show" title="添加到首页常用功能">
+						<i class="wi wi-eye"></i>
+					</a>
 					<a href="./index.php?c=module&a=display&do=rank&module_name={{list.name}}" class="stick" title="置顶">
 						<i class="wi wi-stick-sign"></i>
 					</a>
