@@ -448,10 +448,11 @@ class WeiXinAccount extends WeAccount {
 		$result['city'] = hex2bin(html_entity_decode($result['city']));
 		$result['province'] = hex2bin(html_entity_decode($result['province']));
 		$result['country'] = hex2bin(html_entity_decode($result['country']));
+		unset($result['remark'], $result['subscribe_scene'], $result['qr_scene'], $result['qr_scene_str']);
 		if(empty($result)) {
 			return error(-1, "接口调用失败, 元数据: {$response['meta']}");
 		} elseif(!empty($result['errcode'])) {
-			return error(-1, "访问微信接口错误, 错误代码: {$result['errcode']}, 错误信息: {$result['errmsg']},错误详情：{$this->errorCode($result['errcode'])}");
+			return error($result['errcode'], "访问微信接口错误, 错误代码: {$result['errcode']}, 错误信息: {$result['errmsg']},错误详情：{$this->errorCode($result['errcode'])}");
 		}
 		return $result;
 	}
@@ -1664,6 +1665,7 @@ class WeiXinAccount extends WeAccount {
 	public function getOauthUserInfo($accesstoken, $openid) {
 		$apiurl = "https://api.weixin.qq.com/sns/userinfo?access_token={$accesstoken}&openid={$openid}&lang=zh_CN";
 		$response = $this->requestApi($apiurl);
+		unset($response['remark'], $response['subscribe_scene'], $response['qr_scene'], $response['qr_scene_str']);
 		return $response;
 	}
 
