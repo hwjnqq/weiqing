@@ -5,10 +5,6 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-set_error_handler(function($a, $b, $c, $d){
-//	print_r(func_get_args());
-//	exit;
-});
 
 if (!in_array($action, array('display', 'post', 'manage', 'auth'))) {
 	$account_api = WeAccount::create();

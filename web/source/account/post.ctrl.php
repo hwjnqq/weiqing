@@ -294,6 +294,8 @@ if($do == 'modules_tpl') {
 			cache_build_account($uniacid);
 			iajax(0, '修改成功！', '');
 		}
+		
+
 		iajax(40035, '参数错误！', '');
 	}
 	$modules_tpl = $extend = array();

@@ -127,13 +127,14 @@ if (intval($_W['account']['level']) == 4) {
 	}
 }
 if (intval($_W['account']['level']) != 4) {
+	//如果包含Unionid，则直接查原始openid
 	if (!empty($oauth['unionid'])) {
 		$fan = pdo_get('mc_mapping_fans', array('unionid' => $oauth['unionid'], 'uniacid' => $_W['uniacid']));
 		if (!empty($fan)) {
-			if (empty($_SESSION['uid']) && !empty($fan['uid'])) {
+			if (!empty($fan['uid'])) {
 				$_SESSION['uid'] = intval($fan['uid']);
 			}
-			if (empty($_SESSION['openid']) && !empty($fan['openid'])) {
+			if (!empty($fan['openid'])) {
 				$_SESSION['openid'] = strval($fan['openid']);
 			}
 		}

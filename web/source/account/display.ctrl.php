@@ -85,5 +85,4 @@ if ($do == 'display') {
 		iajax(0, $account_list);
 	}
 }
-
 template('account/display');

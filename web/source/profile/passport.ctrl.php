@@ -38,7 +38,7 @@ if ($do == 'save_oauth') {
 
 if ($do == 'oauth') {
 	$oauthInfo = table('unisetting')->getOauthByUniacid($_W['uniacid']);
-	$oauth = iunserializer($oauthInfo) ? iunserializer($oauthInfo['oauth']) : array();
+	$oauth = iunserializer($oauthInfo['oauth']) ? iunserializer($oauthInfo['oauth']) : array();
 	$jsoauth = $oauthInfo['jsauth_acid'];
 
 	$user_have_accounts = user_borrow_oauth_account_list();

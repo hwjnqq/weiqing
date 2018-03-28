@@ -89,9 +89,12 @@
 		<td colspan="7" class="text-center">暂无数据</td>
 	</tr>
 </table>
-<div class="text-right">
+
+<div class="text-right pager-pagination-float">
 	{$pager}
 </div>
+<span class="pager-total">共{php echo $total}个</span>
+
 <script type="text/javascript">
 	$(function(){
 		$('[data-toggle="tooltip"]').tooltip();

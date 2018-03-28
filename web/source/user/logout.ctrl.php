@@ -11,4 +11,5 @@ $forward = $_GPC['forward'];
 if (empty($forward)) {
 	$forward = './?refersh';
 }
-header('Location:' . url('user/login'));
+
+header('Location:' . $_W['siteroot']);

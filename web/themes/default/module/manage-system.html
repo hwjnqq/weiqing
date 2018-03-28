@@ -317,7 +317,7 @@
 <script>
 	angular.module('moduleApp').value('config', {
 		'letters' : {php echo json_encode($letters)},
-		'module_list' : {php echo json_encode($uninstallModules)}
+		'module_list' : {php echo json_encode($uninstall_modules)}
 	});
 	angular.bootstrap($('#js-system-module-not_installed'), ['moduleApp']);
 </script>

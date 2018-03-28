@@ -181,9 +181,9 @@
 							{if !empty($fan['uid'])}
 							<p class="remark-name"><a href="{php echo url('mc/member/base_information', array('uid' => $fan['uid']));}">
 								{if !empty($fan['member']['realname'])}
-								{$fan['member']['realname']}
+									{$fan['member']['realname']}
 								{else}
-								{$fan['uid']}
+									{$fan['uid']}
 								{/if}
 							</a> {if !empty($fan['member']['mobile'])}<i class="wi wi-iphone fans-tel"></i>{/if}</p>
 							{/if}

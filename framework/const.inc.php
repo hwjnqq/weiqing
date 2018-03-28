@@ -8,7 +8,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 define('REGULAR_EMAIL', '/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/i');
-define('REGULAR_MOBILE', '/^1\d{10}$/');
+define('REGULAR_MOBILE', '/^\d{6,15}$/');
 define('REGULAR_USERNAME', '/^[\x{4e00}-\x{9fa5}a-z\d_\.]{3,15}$/iu');
 /*
  * 模板引用相关
@@ -40,6 +40,15 @@ define('ACCOUNT_TYPE_WEBAPP_NORMAL', 5);
 define('ACCOUNT_TYPE_PHONEAPP_NORMAL', 6);
 //授权接入小程序
 define('ACCOUNT_TYPE_APP_AUTH', 7);
+
+//公众号
+define('ACCOUNT_TYPE_SIGN', 'account');
+//小程序
+define('WXAPP_TYPE_SIGN', 'wxapp');
+//PC
+define('WEBAPP_TYPE_SIGN', 'webapp');
+//APP
+define('PHONEAPP_TYPE_SIGN', 'phoneapp');
 
 
 //授权登录接入
@@ -149,6 +158,12 @@ define('MODULE_SUPPORT_PHONEAPP', 2);
 //是否支持系统首页 1不支持  2支持
 define('MODULE_SUPPORT_SYSTEMWELCOME', 2);
 define('MODULE_NONSUPPORT_SYSTEMWELCOME', 1);
+//是否支持安卓 不支持1 支持2
+define('MODULE_NOSUPPORT_ANDROID', 1);
+define('MODULE_SUPPORT_ANDROID', 2);
+//是否支持ios 不支持1 支持2
+define('MODULE_NOSUPPORT_IOS', 1);
+define('MODULE_SUPPORT_IOS', 2);
 
 //权限类型
 define('PERMISSION_ACCOUNT', 'system');
@@ -217,6 +232,7 @@ define('STORE_TYPE_PACKAGE', 5);
 define('STORE_TYPE_API', 6);
 define('STORE_TYPE_ACCOUNT_RENEW', 7);
 define('STORE_TYPE_WXAPP_RENEW', 8);
+define('STORE_TYPE_USER_PACKAGE', 9);
 //订单状态
 define('STORE_ORDER_PLACE', 1);
 define('STORE_ORDER_DELETE', 2);
@@ -266,3 +282,32 @@ define('FILE_NO_UNIACID', -1);
 //模块获取用户授权方式 1.静默授权 2.用户有感知授权
 define('OAUTH_TYPE_BASE', 1);
 define('OAUTH_TYPE_USERINFO', 2);
+
+//文章评论的父级id
+define('ARTICLE_COMMENT_DEFAULT', 0);
+//评论未回复
+define('ARTICLE_NOCOMMENT', 1);
+//评论已回复
+define('ARTICLE_COMMENT', 2);
+//评论未读
+define('ARTICLE_COMMENT_NOREAD', 1);
+//评论已读
+define('ARTICLE_COMMENT_READ', 2);
+
+//关闭文章评论
+define('COMMENT_STATUS_OFF', 0);
+//开启文章评论
+define('COMMENT_STATUS_ON', 1);
+
+//用户欢迎页
+define('WELCOME_DISPLAY_TYPE', 0);
+//上次登陆最后访问页面
+define('LASTVISIT_DISPLAY_TYPE', 1);
+//公众号列表
+define('ACCOUNT_DISPLAY_TYPE', 2);
+//小程序列表
+define('WXAPP_DISPLAY_TYPE', 3);
+//pc列表
+define('WEBAPP_DISPLAY_TYPE', 4);
+//app列表
+define('PHONEAPP_DISPLAY_TYPE', 5);

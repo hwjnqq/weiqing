@@ -20,8 +20,8 @@ $account_info = permission_user_account_num();
 if ($do == 'design_method') {
 	// 1 普通小程序  2 授权小程序
 	$choose = isset($_GPC['choose_type']) ? intval($_GPC['choose_type']) : 0;
+	$uniacid = intval($_GPC['uniacid']);
 	if ($choose) {
-		$uniacid = intval($_GPC['uniacid']);
 		template('wxapp/design-method');
 	} else {
 		if($account_info['wxapp_limit'] <= 0 && !$_W['isfounder']) {

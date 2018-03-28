@@ -58,8 +58,7 @@ class AttachmentTable extends We7Table {
 	 * @param $id
 	 * @return mixed
 	 */
-	public function deleteById($id)
-	{
+	public function deleteById($id) {
 		return $this->where('id', $id)->delete();
 	}
 

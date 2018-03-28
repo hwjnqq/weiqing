@@ -17,7 +17,7 @@ if ($do == 'upload_remote') {
 		if (is_error($result)) {
 			iajax(1, $result['message']);
 		} else {
-			if (dir_exist_image(ATTACHMENT_ROOT . 'images')) {
+			if (file_dir_exist_image(ATTACHMENT_ROOT . 'images')) {
 				iajax(2);
 			} else {
 				iajax(0);
@@ -243,7 +243,7 @@ if ($do == 'remote') {
 	}
 	$remote = $_W['setting']['remote_complete_info'];
 	$bucket_datacenter = attachment_alioss_datacenters();
-	$local_attachment = dir_exist_image(ATTACHMENT_ROOT . 'images');
+	$local_attachment = file_dir_exist_image(ATTACHMENT_ROOT . 'images');
 }
 
 if ($do == 'buckets') {

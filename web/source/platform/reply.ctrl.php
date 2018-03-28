@@ -262,7 +262,7 @@ if ($do == 'post') {
 
 			if (!empty($rid)) {
 				pdo_delete('rule_keyword', array('rid' => $rid, 'uniacid' => $_W['uniacid']));
-				
+
 				$rowtpl = array(
 					'rid' => $rid,
 					'uniacid' => $_W['uniacid'],

@@ -18,7 +18,7 @@ if (!empty($_GPC['state'])) {
 }
 
 if (empty($_W['isfounder']) && !empty($_W['user']) && ($_W['user']['status'] == USER_STATUS_CHECK || $_W['user']['status'] == USER_STATUS_BAN)) {
-	message('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决！');
+	message('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决！', url('user/login'), 'info');
 }
 $acl = require IA_ROOT . '/web/common/permission.inc.php';
 
@@ -145,7 +145,7 @@ function _calc_current_frames(&$frames) {
 			if (empty($frame['menu'])) {
 				continue;
 			}
-			foreach ($frame['menu'] as &$menu) {
+			foreach ($frame['menu'] as $key => &$menu) {
 				$query = parse_url($menu['url'], PHP_URL_QUERY);
 				parse_str($query, $urls);
 				if (empty($urls)) {
@@ -163,7 +163,7 @@ function _calc_current_frames(&$frames) {
 					$get['do'] = $do;
 				}
 				$diff = array_diff_assoc($urls, $get);
-				if (empty($diff)) {
+				if (empty($diff) || $get['c'] == 'profile' && $get['a'] == 'reply-setting' && $key == 'platform_reply') {
 					$menu['active'] = ' active';
 				}
 			}

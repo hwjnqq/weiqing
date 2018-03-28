@@ -92,6 +92,7 @@ if ($do == 'edit_version') {
 	}
 	$data = array('modules' => iserializer($new_module_data), 'version' => trim($_GPC['version_info']['version']), 'description' => trim($_GPC['version_info']['description']));
 	pdo_update('wxapp_versions', $data, array('id' => $versionid));
+	cache_delete(cache_system_key("wxapp_version:{$versionid}"));
 	iajax(0, '修改成功！', referer());
 }
 

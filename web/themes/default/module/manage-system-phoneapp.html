@@ -66,7 +66,7 @@
 			</tr>
 			<tr>
 				<th colspan="2" class="text-left bg-light-gray">
-					PC应用名/版本
+					APP应用名/版本
 				</th>
 				<th class="text-right bg-light-gray">操作</th>
 			</tr>
@@ -311,7 +311,7 @@
 <script>
 	angular.module('moduleApp').value('config', {
 		'letters' : {php echo json_encode($letters)},
-		'module_list' : {php echo json_encode($uninstallModules)}
+		'module_list' : {php echo json_encode($uninstall_modules)}
 	});
 	angular.bootstrap($('#js-system-module-not_installed'), ['moduleApp']);
 </script>

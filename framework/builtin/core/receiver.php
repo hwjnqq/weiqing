@@ -97,7 +97,7 @@ class CoreModuleReceiver extends WeModuleReceiver {
 					'unionid' => $userinfo['unionid'],
 					'nickname' => strip_emoji($userinfo['nickname']),
 					'tag' => base64_encode(iserializer($userinfo)),
-				);				
+				);
 				pdo_update('mc_mapping_fans', $fans, array('openid' => $this->message['from']));
 				$uid = !empty($_W['member']['uid']) ? $_W['member']['uid'] : $this->message['from'];
 				if (!empty($uid)) {

@@ -23,8 +23,7 @@ class AttachmentgroupTable extends We7Table {
 	 * @param $uniacid
 	 * @return mixed
 	 */
-	public function deleteByUniacid($uniacid)
-	{
+	public function deleteByUniacid($uniacid) {
 		return $this->where('uniacid', $uniacid)->delete();
 	}
 }

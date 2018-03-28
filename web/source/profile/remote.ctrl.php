@@ -26,7 +26,7 @@ if ($do == 'upload_remote') {
 if ($do == 'display') {
 	$safe_path = safe_gpc_path(IA_ROOT . '/attachment/images/' . $_W['uniacid']);
 	if (!empty($safe_path)) {
-		$local_attachment = dir_exist_image($safe_path);
+		$local_attachment = file_dir_exist_image($safe_path);
 	} else {
 		$local_attachment = array();
 	}
