@@ -7,6 +7,8 @@
 defined('IN_IA') or exit('Access Denied');
 
 class UsersTable extends We7Table {
+	protected $tableName = 'users';
+	protected $field = array('uid');
 
 	public function searchUsersList() {
 		global $_W;
@@ -18,7 +20,7 @@ class UsersTable extends We7Table {
 		if (user_is_vice_founder()) {
 			$this->query->where('u.owner_uid', $_W['uid']);
 		}
-		return $this->query->getall();
+		return $this->query->getall('uid');
 	}
 
 	/**

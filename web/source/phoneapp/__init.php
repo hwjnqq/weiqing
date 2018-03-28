@@ -22,7 +22,7 @@ if ($action == 'manage') {
 	define('FRAME', 'system');
 }
 
-if (($action == 'version' && $do == 'home') || in_array($action, array('description'))) {
+if (($action == 'version' && $do == 'home') || in_array($action, array('description', 'front-download'))) {
 	$account_type = $account_api->menuFrame;
 	define('FRAME', $account_type);
 }

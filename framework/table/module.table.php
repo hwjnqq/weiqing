@@ -11,6 +11,8 @@ class ModuleTable extends We7Table {
 	protected $tableName = 'modules';
 	protected $primaryKey = 'mid';
 	protected $modulesRecycle = 'modules_recycle';
+	protected $modulesLocal = 'modules_local';
+	protected $modulesIgnore = 'modules_ignore';
 
 	public function bindings() {
 		return $this->hasMany('modulebinding', 'module', 'name');
@@ -108,6 +110,14 @@ class ModuleTable extends We7Table {
 
 	public function getModulesList() {
 		return $this->query->from($this->tableName)->getall('name');
+	}
+
+	public function getModulesLocalList() {
+		return $this->query->from($this->modulesLocal)->getall('name');
+	}
+	
+	public function getModulesIgnoreList() {
+		return $this->query->from($this->modulesIgnore)->getall('name');
 	}
 
 	public function searchWithType($type, $method = '=') {
