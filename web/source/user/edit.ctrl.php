@@ -40,15 +40,20 @@ if ($do == 'edit_modules_tpl') {
 		if ($user['status'] == USER_STATUS_CHECK || $user['status'] == USER_STATUS_BAN) {
 			iajax(-1, '访问错误，该用户未审核或者已被禁用，请先修改用户状态！', '');
 		}
-
 		if (intval($_GPC['groupid']) == $user['groupid']){
 			iajax(2, '未做更改！');
 		}
 		if (!empty($_GPC['type']) && !empty($_GPC['groupid'])) {
 			$data['uid'] = $uid;
 			$data[$_GPC['type']] = intval($_GPC['groupid']);
+			$group_info = user_group_detail_info($_GPC['groupid']);
+			$timelimit = intval($group_info['timelimit']);
+			if ($timelimit > 0) {
+				$data['endtime'] = strtotime($timelimit . ' days');
+			} else {
+				$data['endtime'] = 0;
+			}
 			if (user_update($data)) {
-				$group_info = user_group_detail_info($_GPC['groupid']);
 				iajax(0, $group_info, '');
 			} else {
 				iajax(1, '更改失败！', '');
