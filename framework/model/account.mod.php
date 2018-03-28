@@ -623,7 +623,7 @@ function uni_user_see_more_info($user_type, $see_more = false) {
  * @return array
  */
 function uni_owner_account_nums($uid, $role) {
-	$account_num = $wxapp_num = $webapp_num = 0;
+	$account_num = $wxapp_num = $webapp_num = $phoneapp_num = 0;
 	$condition = array('uid' => $uid, 'role' => $role);
 	$uniacocunts = pdo_getall('uni_account_users', $condition, array(), 'uniacid');
 	if (!empty($uniacocunts)) {
@@ -752,9 +752,12 @@ function uni_account_last_switch() {
 	return $uniacid;
 }
 
-function uni_account_switch($uniacid, $redirect = '') {
+function uni_account_switch($uniacid, $redirect = '', $type = ACCOUNT_TYPE_SIGN) {
 	global $_W;
-	uni_account_save_switch($uniacid);
+	if (!in_array($type, array(ACCOUNT_TYPE_SIGN, WXAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN, PHONEAPP_TYPE_SIGN))) {
+		return error(-1, '账号类型不合法');
+	}
+	uni_account_save_switch($uniacid, $type);
 	isetcookie('__uid', $_W['uid'], 7 * 86400);
 	if (!empty($redirect)) {
 		header('Location: ' . $redirect);
@@ -763,11 +766,18 @@ function uni_account_switch($uniacid, $redirect = '') {
 	return true;
 }
 
+
+
 /**
  * 切换公众号时，保留最后一次操作的小程序，以便点公众号时再切换回
  */
-function uni_account_save_switch($uniacid) {
+function uni_account_save_switch($uniacid, $type = ACCOUNT_TYPE_SIGN) {
 	global $_W, $_GPC;
+	load()->model('visit');
+	if (!in_array($type, array(ACCOUNT_TYPE_SIGN, WXAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN, PHONEAPP_TYPE_SIGN))) {
+		return error(-1, '账号类型不合法');
+	}
+
 	if (empty($_GPC['__switch'])) {
 		$_GPC['__switch'] = random(5);
 	}
@@ -776,11 +786,12 @@ function uni_account_save_switch($uniacid) {
 	$cache_lastaccount = cache_load($cache_key);
 	if (empty($cache_lastaccount)) {
 		$cache_lastaccount = array(
-			'account' => $uniacid,
+			$type => $uniacid,
 		);
 	} else {
-		$cache_lastaccount['account'] = $uniacid;
+		$cache_lastaccount[$type] = $uniacid;
 	}
+	visit_system_update(array('uniacid' => $uniacid, 'uid' => $_W['uid']));
 	cache_write($cache_key, $cache_lastaccount);
 	isetcookie('__uniacid', $uniacid, 7 * 86400);
 	isetcookie('__switch', $_GPC['__switch'], 7 * 86400);
@@ -922,6 +933,8 @@ function account_delete($acid) {
 	global $_W;
 	load()->func('file');
 	load()->model('module');
+	load()->model('job');
+	$jobid  = 0;
 	//判断是不是主公众号
 	$account = pdo_get('uni_account', array('default_acid' => $acid));
 	if ($account) {
@@ -946,29 +959,31 @@ function account_delete($acid) {
 
 		$subaccount = pdo_fetchall("SELECT acid FROM ".tablename('account')." WHERE uniacid = :uniacid", array(':uniacid' => $uniacid));
 		if (!empty($subaccount)) {
-			foreach ($subaccount as $account) {
-				@unlink(IA_ROOT . '/attachment/qrcode_'.$account['acid'].'.jpg');
-				@unlink(IA_ROOT . '/attachment/headimg_'.$account['acid'].'.jpg');
-				file_remote_delete('qrcode_'.$account['acid'].'.jpg');
-				file_remote_delete('headimg_'.$account['acid'].'.jpg');
+			foreach ($subaccount as $childaccount) {
+				@unlink(IA_ROOT . '/attachment/qrcode_'.$childaccount['acid'].'.jpg');
+				@unlink(IA_ROOT . '/attachment/headimg_'.$childaccount['acid'].'.jpg');
+				file_remote_delete('qrcode_'.$childaccount['acid'].'.jpg');
+				file_remote_delete('headimg_'.$childaccount['acid'].'.jpg');
 			}
 			if (!empty($acid)) {
-				rmdirs(IA_ROOT . '/attachment/images/' . $uniacid);
-				@rmdir(IA_ROOT . '/attachment/images/' . $uniacid);
-				rmdirs(IA_ROOT . '/attachment/audios/' . $uniacid);
-				@rmdir(IA_ROOT . '/attachment/audios/' . $uniacid);
+				$jobid = job_create_delete_account($uniacid, $account['name'], $_W['uid']);
+//				rmdirs(IA_ROOT . '/attachment/images/' . $uniacid);
+//				@rmdir(IA_ROOT . '/attachment/images/' . $uniacid);
+//				rmdirs(IA_ROOT . '/attachment/audios/' . $uniacid);
+//				@rmdir(IA_ROOT . '/attachment/audios/' . $uniacid);
 			}
 		}
 
 		//遍历全部表删除公众号数据
 		$tables = array(
-			'account','account_wechats', 'account_wxapp', 'wxapp_versions', 'account_webapp', 'account_phoneapp', 'phoneapp_versions', 'core_attachment','core_paylog','core_queue','core_resource',
-			'wechat_attachment', 'cover_reply', 'mc_chats_record','mc_credits_recharge','mc_credits_record',
+			'account','account_wechats', 'account_wxapp', 'wxapp_versions', 'account_webapp', 'account_phoneapp',
+			'phoneapp_versions','core_paylog','core_queue','core_resource',
+			 'cover_reply', 'mc_chats_record','mc_credits_recharge','mc_credits_record',
 			'mc_fans_groups','mc_groups','mc_handsel','mc_mapping_fans','mc_mapping_ucenter','mc_mass_record',
 			'mc_member_address','mc_member_fields','mc_members','menu_event',
 			'qrcode','qrcode_stat', 'rule','rule_keyword','site_article','site_category','site_multi','site_nav','site_slide',
 			'site_styles','site_styles_vars','stat_keyword', 'stat_rule','uni_account','uni_account_modules','uni_account_users','uni_settings', 'uni_group', 'uni_verifycode','users_permission',
-			'mc_member_fields',
+			'mc_member_fields', 'wechat_news',
 		);
 		if (!empty($tables)) {
 			foreach ($tables as $table) {
@@ -1005,7 +1020,7 @@ function account_delete($acid) {
 		file_remote_delete('qrcode_'.$acid.'.jpg');
 		file_remote_delete('headimg_'.$acid.'.jpg');
 	}
-	return true;
+	return $jobid;
 }
 
 /**

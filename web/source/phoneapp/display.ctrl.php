@@ -19,7 +19,7 @@ if ($do == 'switch') {
 	}
 
 	$module_name = safe_gpc_string($_GPC['module']);
-	$version_id = !empty($_GPC['version_id']) ? intval($_GPC['version_id']) : $wxapp_info['version']['id'];
+	$version_id = !empty($_GPC['version_id']) ? intval($_GPC['version_id']) : $phoneapp_info['version']['id'];
 	if (!empty($module_name) && !empty($version_id)) {
 		$version_info = phoneapp_version($version_id);
 		$module_info = array();
@@ -38,11 +38,11 @@ if ($do == 'switch') {
 			uni_account_switch($module_info['account']['uniacid'], $url);
 		} else {
 			$url .= '&version_id=' . $version_id;
-			phoneapp_switch($version_info['uniacid'], $url);
+			uni_account_switch($version_info['uniacid'], $url, PHONEAPP_TYPE_SIGN);
 		}
 	}
 	phoneapp_update_last_use_version($uniacid, $version_id);
-	phoneapp_switch($uniacid, url('phoneapp/version/home', array('version_id' => $version_id)));
+	uni_account_switch($uniacid, url('phoneapp/version/home', array('version_id' => $version_id)), PHONEAPP_TYPE_SIGN);
 	exit;
 
 }
@@ -54,7 +54,7 @@ if ($do == 'home') {
 		itoast('', $url, 'info');
 	}
 	if (!empty($last_uniacid) && $last_uniacid != $_W['uniacid']) {
-		phoneapp_switch($last_uniacid);
+		uni_account_switch($last_uniacid, '', PHONEAPP_TYPE_SIGN);
 	}
 	$permission = permission_account_user_role($_W['uid'], $last_uniacid);
 	if (empty($permission)) {
@@ -80,6 +80,11 @@ if ($do == 'display') {
 	$keyword = safe_gpc_string($_GPC['keyword']);
 	if (!empty($keyword)) {
 		$account_table->searchWithKeyword($keyword);
+	}
+
+	$letter = $_GPC['letter'];
+	if(isset($letter) && strlen($letter) == 1) {
+		$account_table->searchWithLetter($letter);
 	}
 
 	$account_table->searchWithPage($pindex, $psize);

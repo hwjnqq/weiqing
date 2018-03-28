@@ -17,7 +17,7 @@ if($do == 'switch') {
 	if (empty($uniacid)) {
 		itoast('', url('webapp/manage/list'), 'info');
 	}
-	webapp_save_switch($uniacid);
+	uni_account_save_switch($uniacid, WEBAPP_TYPE_SIGN);
 	itoast('', url('webapp/home/display'));
 }
 
@@ -27,7 +27,7 @@ if($do == 'display') {
 		itoast('', url('webapp/manage/list'), 'info');
 	}
 	if (!empty($last_uniacid) && $last_uniacid != $_W['uniacid']) {
-		webapp_switch($last_uniacid);
+		uni_account_switch($last_uniacid, url('webapp/home'), WEBAPP_TYPE_SIGN);
 	}
 
 	$account = uni_fetch($last_uniacid);

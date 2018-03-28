@@ -28,7 +28,7 @@ if ($do == 'home') {
 		itoast('', $url, 'info');
 	}
 	if (!empty($last_uniacid) && $last_uniacid != $_W['uniacid']) {
-		wxapp_switch($last_uniacid);
+		uni_account_switch($last_uniacid, '', WXAPP_TYPE_SIGN);
 	}
 	$permission = permission_account_user_role($_W['uid'], $last_uniacid);
 	if (empty($permission)) {
@@ -44,7 +44,7 @@ if ($do == 'home') {
 	$account_info = permission_user_account_num();
 
 	$pindex = max(1, intval($_GPC['page']));
-	$psize = 20;
+	$psize = 15;
 
 	$account_table = table('wxapp');
 	$account_table->searchWithType(array(ACCOUNT_TYPE_APP_NORMAL));
@@ -52,6 +52,10 @@ if ($do == 'home') {
 	$keyword = trim($_GPC['keyword']);
 	if (!empty($keyword)) {
 		$account_table->searchWithKeyword($keyword);
+	}
+	$letter = $_GPC['letter'];
+	if(isset($letter) && strlen($letter) == 1) {
+		$account_table->searchWithLetter($letter);
 	}
 
 	$account_table->accountRankOrder();
@@ -95,11 +99,11 @@ if ($do == 'home') {
 			uni_account_switch($module_info['account']['uniacid'], $url);
 		} else {
 			$url .= '&version_id=' . $version_id;
-			wxapp_switch($version_info['uniacid'], $url);
+			uni_account_switch($version_info['uniacid'], $url, WXAPP_TYPE_SIGN);
 		}
 	}
 	wxapp_update_last_use_version($uniacid, $version_id);
-	wxapp_switch($uniacid, url('wxapp/version/home', array('version_id' => $version_id)));
+	uni_account_switch($uniacid, url('wxapp/version/home', array('version_id' => $version_id)), WXAPP_TYPE_SIGN);
 	exit;
 } elseif ($do == 'rank') {
 	uni_account_rank_top($uniacid);
