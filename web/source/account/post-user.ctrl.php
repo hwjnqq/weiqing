@@ -227,8 +227,11 @@ if ($do == 'edit') {
 			}
 		}
 		//模块权限
-		pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $uid, 'type <>' => PERMISSION_ACCOUNT, 'type <>' => PERMISSION_WXAPP));
-
+		
+		// pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $uid, 'type <>' => PERMISSION_ACCOUNT, 'type <>' => PERMISSION_WXAPP));
+		//	不支持，会丢失一个 “type ！=”，sql语句为：DELETE FROM `ims_users_permission` WHERE `uniacid` = :__uniacid_324 AND `uid` = :__uid_325 AND `type` <> :__type_326
+		pdo_query("DELETE FROM " . tablename('users_permission') . " WHERE uniacid = :uniacid AND uid = :uid AND type != '" . PERMISSION_ACCOUNT . "' AND type != '" . PERMISSION_WXAPP . "'", array(':uniacid' => $uniacid, ':uid' => $uid));
+		
 		if (!empty($_GPC['module'])) {
 			foreach($_GPC['module'] as $module_val) {
 				$insert = array(

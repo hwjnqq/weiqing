@@ -164,6 +164,7 @@ $we7_file_permission = array(
 			'manage-system',
 			'permission',
 			'display',
+			'default-entry',
 		),
 		'manager' => array(
 			'manage-account',
@@ -413,6 +414,7 @@ $we7_file_permission = array(
 			'see_module_manage_system_info_edit',
 			'see_module_manage_system_detailinfo',
 			'see_module_manage_system_group_add',
+			'see_account_post_modules_tpl_edit_store_endtime',
 			'see_account_manage_module_tpl_all_permission',
 			'see_account_manage_sms_blance',
 			'see_account_manage_users_edit',
@@ -429,19 +431,21 @@ $we7_file_permission = array(
 			'see_user_create_own_vice_founder',
 			'see_user_profile_edit_username',
 			'see_user_profile_account_num',
+			'see_user_add_welcome_account'
 		),
 		'vice_founder' => array(
 			'see_account_manage_users_adduser',
 			'see_module_manage_system_group_add',
+			'see_user_add_welcome_account'
 		),
 		'owner' => array(
 
 		),
 		'manager' => array(
-
+			'see_user_profile_welcome'
 		),
 		'operator' => array(
-
+			'see_user_profile_welcome'
 		),
 	),
 );
