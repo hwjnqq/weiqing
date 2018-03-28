@@ -283,6 +283,14 @@ class WeEngine {
 				);
 				$resp = str_replace(array_keys($mapping), array_values($mapping), $resp);
 			}
+
+			$reply_times_info = (array)$_SESSION['__reply_times'];
+			if ($reply_times_info['content'] == $message['content']) {
+				$new_times = intval($reply_times_info['times']) + 1;
+			} else {
+				$new_times = 1;
+			}
+			$_SESSION['__reply_times'] = array('content' => $message['content'], 'date' => date('Y-m-d'), 'times' => $new_times);
 			ob_start();
 			echo $resp;
 			ob_start();
@@ -470,6 +478,7 @@ class WeEngine {
 	 * @return array 处理器列表
 	 */
 	private function analyze(&$message) {
+		global $_W;
 		$params = array();
 		if(in_array($message['type'], array('event', 'qr'))) {
 			$params = call_user_func_array(array($this, 'analyze' . $message['type']), array(&$message));
@@ -493,6 +502,11 @@ class WeEngine {
 			}
 		}
 
+		$reply_times_info = (array)$_SESSION['__reply_times'];
+		if (!empty($_W['account']['setting']) && !empty($reply_times_info) && intval($_W['account']['setting']['reply_setting']) > 0 && strtotime($reply_times_info['date']) >= strtotime(date('Y-m-d')) && $reply_times_info['times'] >= $_W['account']['setting']['reply_setting'] && $reply_times_info['content'] == $message['content']) {
+			exit('success');
+		}
+		
 		if(method_exists($this, 'analyze' . $message['type'])) {
 			$temp = call_user_func_array(array($this, 'analyze' . $message['type']), array(&$message));
 			if(!empty($temp) && is_array($temp)){
@@ -541,27 +555,10 @@ class WeEngine {
 	private function analyzeQR(&$message) {
 		global $_W;
 		$params = array();
-
-		$setting = uni_setting($_W['uniacid'], array('default_message'));
-		$default_message = $setting['default_message'];
-		if(is_array($default_message) && !empty($default_message['qr']['type'])) {
-			if ($default_message['qr']['type'] == 'keyword') {
-				$message = $this->message;
-				$message['type'] = 'text';
-				$message['redirection'] = true;
-				$message['source'] = 'qr';
-				$message['content'] = $default_message['qr']['keyword'];
-				return $this->analyzeText($message);
-			} else {
-				$params[] = array(
-					'message' => $this->message,
-					'module' => is_array($default_message['qr']) ? $default_message['qr']['module'] : $default_message['qr'],
-					'rule' => '-1',
-				);
-				return $params;
-			}
+		$params = $this->handler($message['type']);
+		if (!empty($params)) {
+			return $params;
 		}
-
 		$message['type'] = 'text';
 		$message['redirection'] = true;
 		if(!empty($message['scene'])) {
