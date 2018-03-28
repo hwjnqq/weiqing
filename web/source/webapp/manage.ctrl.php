@@ -51,6 +51,11 @@ if($do == 'list') {
 		$account_table->searchWithKeyword($keyword);
 	}
 
+	$letter = $_GPC['letter'];
+	if(isset($letter) && strlen($letter) == 1) {
+		$account_table->searchWithLetter($letter);
+	}
+
 	$account_table->accountRankOrder();
 	$account_table->searchWithPage($pindex, $psize);
 	$list = $account_table->searchAccountList();
