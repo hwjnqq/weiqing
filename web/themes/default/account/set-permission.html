@@ -18,7 +18,7 @@
 					<tr class="text-left">
 						<th colspan="4" class="text-left">
 							<div class="">
-								<!-- <input id="check-{$section_id}" type="checkbox"  we7-check-all="1" name="system_{$section_id}" onChange="selectall(this, 'system_{$section_id}')"> -->
+								<input id="check-{$section_id}" type="checkbox" name="system_{$section_id}" onChange="selectall(this, 'system_{$section_id}')">
 								<label for="check-{$section_id}" class=" we7-margin-horizontal-none">{$section['title']}</label>
 							</div>
 						</th>
@@ -72,7 +72,7 @@
 					<tr class="text-left">
 						<th colspan="4" class="text-left">
 							<div class="">
-								<!-- <input id="check-{$section_id}" type="checkbox"  we7-check-all="1" name="system_{$section_id}" onChange="selectall(this, 'system_{$section_id}')"> -->
+								<input id="check-{$section_id}" type="checkbox" name="system_{$section_id}"  we7-check-all="1" onChange="selectall(this, 'system_{$section_id}')">
 								<label for="check-{$section_id}" class=" we7-margin-horizontal-none">{$section['title']}</label>
 							</div>
 						</th>
@@ -129,8 +129,8 @@
 			<tr>
 				<th colspan="4" class="text-left">
 					<div class="">
-						<!-- <input type="checkbox"  we7-check-all="1" name="module[]" onChange="selectall(this, 'module_select')"> -->
-						<label class=" we7-margin-horizontal-none">应用权限</label>
+						<input id="check-module" type="checkbox" name="module_select"  we7-check-all="1" onChange="selectall(this, 'module_select')">
+						<label for="check-module" class=" we7-margin-horizontal-none">应用权限</label>
 					</div>
 				</th>
 			</tr>
@@ -172,6 +172,7 @@
 </form>
 <script>
 $(function(){
+
 	var uniacid = "{$_GPC['uniacid']}";
 	var acid = "{$_GPC['acid']}";
 	//公众号OR小程序下拉框
@@ -273,6 +274,12 @@ $(function(){
 		}
 	});
 });
+//处理全选函数
+function selectall(obj, a){
+	$('.'+a+' input:checkbox').each(function() {
+		$(this)[0].checked = obj.checked ? true : false;
+	});
+}
 //当已经全选时，默认全选按钮选中
 $(function() {
 	$('.table>tbody').each(function() {
