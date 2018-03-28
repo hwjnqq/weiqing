@@ -204,8 +204,14 @@ function buildframes($framename = ''){
 			foreach ($account_module as $module) {
 				if (!in_array($module['module'], $sysmodules)) {
 					$module = module_fetch($module['module']);
-					if (!empty($module) && !empty($modules[$module['name']]) && empty($module['main_module']) && $module['app_support'] == 2) {
+					if (!empty($module) && !empty($modules[$module['name']]) && empty($module['main_module']) && ($module['app_support'] == 2 || $module['webapp_support'] == 2)) {
 						$frames['account']['section']['platform_module']['menu']['platform_' . $module['name']] = array(
+							'title' => $module['title'],
+							'icon' =>  $module['logo'],
+							'url' => url('home/welcome/ext', array('m' => $module['name'])),
+							'is_display' => 1,
+						);
+						$frames['webapp']['section']['platform_module']['menu']['platform_' . $module['name']] = array(
 							'title' => $module['title'],
 							'icon' =>  $module['logo'],
 							'url' => url('home/welcome/ext', array('m' => $module['name'])),

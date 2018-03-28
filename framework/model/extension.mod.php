@@ -16,7 +16,9 @@ function ext_module_convert($manifest) {
 		$wxapp_support = in_array('wxapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_WXAPP : MODULE_NONSUPPORT_WXAPP;
 		$welcome_support = in_array('system_welcome', $manifest['platform']['supports']) ? MODULE_SUPPORT_SYSTEMWELCOME : MODULE_NONSUPPORT_SYSTEMWELCOME;
 		$webapp_support = in_array('webapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_WEBAPP : MODULE_NOSUPPORT_WEBAPP;
-		$phoneapp_support = in_array('phoneapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_PHONEAPP : MODULE_NOSUPPORT_PHONEAPP;
+		$android_support = in_array('android', $manifest['platform']['supports']) ? MODULE_SUPPORT_ANDROID : MODULE_NOSUPPORT_ANDROID;
+		$ios_support = in_array('ios', $manifest['platform']['supports']) ? MODULE_SUPPORT_IOS : MODULE_NOSUPPORT_IOS;
+		$phoneapp_support = ($android_support == MODULE_SUPPORT_ANDROID || $ios_support == MODULE_SUPPORT_IOS) ? MODULE_SUPPORT_PHONEAPP : MODULE_NOSUPPORT_PHONEAPP;
 		if ($app_support == MODULE_NONSUPPORT_ACCOUNT && $wxapp_support == MODULE_NONSUPPORT_WXAPP && $welcome_support == MODULE_NONSUPPORT_SYSTEMWELCOME && $webapp_support == MODULE_NOSUPPORT_WEBAPP && $phoneapp_support == MODULE_NOSUPPORT_PHONEAPP) {
 			$app_support = MODULE_SUPPORT_ACCOUNT;
 		}
@@ -46,6 +48,8 @@ function ext_module_convert($manifest) {
 		'home' => $manifest['bindings']['home'],
 		'profile' => $manifest['bindings']['profile'],
 		'system_welcome' => $manifest['bindings']['system_welcome'],
+		'webapp' => $manifest['bindings']['webapp'],
+		'phoneapp' => $manifest['bindings']['phoneapp'],
 		'app_support' => $app_support,
 		'wxapp_support' => $wxapp_support,
 		'webapp_support' => $webapp_support,
@@ -330,6 +334,16 @@ function ext_module_bindings() {
 			'name' => 'system_welcome',
 			'title' => '系统首页导航菜单',
 			'desc' => '系统首页导航菜单将会在管理中心生成一个导航入口, 用于对系统首页定义的内容进行管理.',
+		),
+		'webapp' => array(
+			'name' => 'webapp',
+			'title' => 'PC入口',
+			'desc' => '用于PC入口的链接',
+		),
+		'phoneapp' => array(
+			'name' => 'phoneapp',
+			'title' => 'APP入口',
+			'desc' => '用于APP入口的链接',
 		)
 	);
 	return $bindings;

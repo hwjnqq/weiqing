@@ -9,27 +9,13 @@ load()->model('payment');
 load()->model('account');
 load()->func('communication');
 
-$dos = array('save_setting', 'display', 'test_alipay', 'get_setting');
+$dos = array('save_setting', 'display', 'test_alipay', 'get_setting', 'switch');
 $do = in_array($do, $dos) ? $do : 'display';
 permission_check_account_user('profile_pay_setting');
 $_W['page']['title'] = '支付参数 - 公众号选项';
 
 if ($do == 'get_setting') {
-	$setting = uni_setting_load('payment', $_W['uniacid']);
-	$pay_setting = $setting['payment'];
-	if(!is_array($pay_setting) || empty($pay_setting)) {
-		$pay_setting = array(
-			'delivery' => array('switch' => false),
-			'credit' => array('switch' => false),
-			'alipay' => array('switch' => false),
-			'wechat' => array('switch' => false),
-			
-			'unionpay' => array('switch' => false),
-			'baifubao' => array('switch' => false),
-			'line' => array('switch' => false),
-			'jueqiymf' => array('switch' => false),
-		);
-	}
+	$pay_setting = payment_setting();
 	iajax(0, $pay_setting, '');
 }
 
@@ -61,40 +47,48 @@ if ($do == 'save_setting') {
 	$setting = uni_setting_load('payment', $_W['uniacid']);
 	$pay_setting = $setting['payment'];
 	if ($type == 'credit' || $type == 'delivery' || $type == 'mix') {
-		$param['switch'] = $param['switch'] == 'false' ? true : false;
+		$param['recharge_switch'] = false;
+		$param['pay_switch'] = $param['pay_switch'] == 'true' ? true : false;
 	}
 	if ($type == 'jueqiymf') {
-		$param['switch'] = $param['switch'] == 'true' ? true : false;
+		$param['pay_switch'] = $param['pay_switch'] == 'true' ? true : false;
+		$param['recharge_switch'] = $param['recharge_switch'] == 'true' ? true : false;
 	}
 	
 		if ($type == 'alipay' || $type == 'baifubao' || $type == 'line') {
-			$param['switch'] = $param['switch'] == 'true' ? true : false;
+			$param['pay_switch'] = $param['pay_switch'] == 'true' ? true : false;
+			$param['recharge_switch'] = $param['recharge_switch'] == 'true' ? true : false;
 		}
 	
 	
-
 	if ($type == 'wechat') {
 		$param['account'] = $_W['acid'];
-		$param['signkey'] = $param['version'] == 2 ? trim($param['apikey']) : trim($param['signkey']);
+		if ($param['switch'] == 1) {
+			$param['signkey'] = $param['version'] == 2 ? trim($param['apikey']) : trim($param['signkey']);
+		}
+		$param['pay_switch'] = $param['pay_switch'] == 'true' ? true : false;
+		$param['recharge_switch'] = $param['recharge_switch'] == 'true' ? true : false;
 	}
 
 	if ($type == 'unionpay') {
 		$unionpay = $_GPC['unionpay'];
-		if ($unionpay['switch'] && empty($_FILES['unionpay']['tmp_name']['signcertpath']) && !file_exists(IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx')) {
+		$switch_status = ($unionpay['pay_switch'] || $unionpay['recharge_switch']) ? true : false;
+		if ($switch_status && empty($_FILES['unionpay']['tmp_name']['signcertpath']) && !file_exists(IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx')) {
 			itoast('请上联银商户私钥证书.', referer(), 'error');
 		}
 		$param = array(
-			'switch' => $unionpay['switch'] == 'false'? false : true,
+			'pay_switch' => $unionpay['pay_switch'] == 'false'? false : true,
+			'recharge_switch' => $unionpay['recharge_switch'] == 'false'? false : true,
 			'merid' => $unionpay['merid'],
 			'signcertpwd' => $unionpay['signcertpwd']
 		);
-		if($param['switch'] && (empty($param['merid']) || empty($param['signcertpwd']))) {
+		if($switch_status && (empty($param['merid']) || empty($param['signcertpwd']))) {
 			itoast('请输入完整的银联支付接口信息.', referer(), 'error');
 		}
-		if ($param['switch'] && empty($_FILES['unionpay']['tmp_name']['signcertpath']) && !file_exists(IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx')) {
+		if ($switch_status && empty($_FILES['unionpay']['tmp_name']['signcertpath']) && !file_exists(IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx')) {
 			itoast('请上传银联商户私钥证书.', referer(), 'error');
 		}
-		if ($param['switch'] && !empty($_FILES['unionpay']['tmp_name']['signcertpath'])) {
+		if ($switch_status && !empty($_FILES['unionpay']['tmp_name']['signcertpath'])) {
 			load()->func('file');
 			mkdirs(IA_ROOT . '/attachment/unionpay/');
 			file_put_contents(IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx', file_get_contents($_FILES['unionpay']['tmp_name']['signcertpath']));
@@ -137,45 +131,16 @@ MFF/yA==
 	iajax(0, '');
 }
 
-if ($do == 'display') {
+if ($do == 'display' || $do == 'switch') {
 	$proxy_wechatpay_account = account_wechatpay_proxy();
-	$setting = uni_setting_load('payment', $_W['uniacid']);
-	$pay_setting = is_array($setting['payment']) ? $setting['payment'] : array();
-	if (empty($pay_setting['delivery'])) {
-		$pay_setting['delivery'] = array('switch' => false);
-	}
-	if (empty($pay_setting['mix'])) {
-		$pay_setting['mix'] = array('switch' => false);
-	}
-	if (empty($pay_setting['credit'])) {
-		$pay_setting['delivery'] = array('switch' => false);
-	}
-	if (empty($pay_setting['alipay'])) {
-		$pay_setting['alipay'] = array('switch' => false);
-	}
-	if (empty($pay_setting['wechat'])) {
-		$pay_setting['wechat'] = array('switch' => false);
-	}
-	if (empty($pay_setting['unionpay'])) {
-		$pay_setting['unionpay'] = array('switch' => false);
-	}
-	if (empty($pay_setting['baifubao'])) {
-		$pay_setting['baifubao'] = array('switch' => false);
-	}
-	if (empty($pay_setting['line'])) {
-		$pay_setting['line'] = array('switch' => false);
-	}
-	if (empty($pay_setting['jueqiymf'])) {
-		$pay_setting['jueqiymf'] = array('switch' => false);
-	}
-	
-	//废弃微信借用支付
-	if (empty($_W['isfounder'])) {
-		$user_account_list = pdo_getall('uni_account_users', array('uid' => $_W['uid']), array(), 'uniacid');
-		$param['uniacid'] = array_keys($user_account_list);
-	}
+	$pay_setting = payment_setting();
 	$accounts = array();
 	$accounts[$_W['acid']] = array_elements(array('name', 'acid', 'key', 'secret', 'level'), $_W['account']);
-	$pay_setting['unionpay']['signcertexists'] = file_exists(IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx');
+}
+if ($do == 'switch') {
+	$payment_types = payment_types();
+	if (empty($payment_types[$_GPC['type']])) {
+		itoast('参数错误', url('profile/payment'), 'error');
+	}
 }
 template('profile/payment');
