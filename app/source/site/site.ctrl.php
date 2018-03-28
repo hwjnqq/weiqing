@@ -4,9 +4,11 @@
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
-$do = in_array($do, array('list', 'detail', 'handsel')) ? $do : 'list';
+$do = in_array($do, array('list', 'detail', 'handsel', 'comment')) ? $do : 'list';
 load()->model('site');
 load()->model('mc');
+load()->model('article');
+load()->model('account');
 
 if ($do == 'list') {
 	$cid = intval($_GPC['cid']);
@@ -135,6 +137,23 @@ if ($do == 'list') {
 		'title' => $detail['title'],
 		'imgUrl' => $detail['thumb']
 	);
+
+	$setting = uni_setting($_W['uniacid']);
+	if (!empty($setting['comment_status'])) {
+		mc_oauth_userinfo();
+		$pindex = max(1, intval($_GPC['page']));
+		$psize = 10;
+		$comment_table = table('sitearticlecomment');
+		$comment_table->searchWithArticleid($id);
+		$comment_table->searchWithParentid(ARTICLE_COMMENT_DEFAULT);
+		$comment_table->searchWithPage($pindex, $psize);
+
+		$article_lists = $comment_table->articleCommentList();
+		$total = $comment_table->getLastQueryTotal();
+		$pager = pagination($total, $pindex, $psize);
+		$article_lists = article_comment_detail($article_lists);
+	}
+
 	template('site/detail');
 } elseif ($do == 'handsel') {
 	// 处理分享成功后的积分处理
@@ -145,6 +164,7 @@ if ($do == 'list') {
 			':id' => $id
 		));
 		$credit = iunserializer($article['credit']) ? iunserializer($article['credit']) : array();
+		$openid = pdo_getcolumn('mc_mapping_fans', array('acid' => $_W['acid'], 'uid' => $_W['member']['uid']), 'openid');
 		if (! empty($article) && $credit['status'] == 1) {
 			if ($_GPC['action'] == 'share') {
 				$touid = $_W['member']['uid'];
@@ -176,6 +196,7 @@ if ($do == 'list') {
 				':module' => 'article',
 				':sign' => $handsel['sign']
 			));
+
 			if (($total >= $credit['limit']) || (($total + $handsel['credit_value']) > $credit['limit'])) {
 				exit(json_encode(error(- 1, '赠送积分已达到上限')));
 			}
@@ -184,6 +205,12 @@ if ($do == 'list') {
 			if (is_error($status)) {
 				exit(json_encode($status));
 			} else {
+				if ($handsel['action'] == 'share') {
+					$send_msg = '分享文章,赠送积分';
+				}else if ($handsel['action'] == 'click') {
+					$send_msg = '分享的文章被阅读，赠送积分';
+				}
+				mc_notice_credit1($openid, $touid, $credit['share'], $send_msg);
 				exit('success');
 			}
 		} else {
@@ -198,4 +225,27 @@ if ($do == 'list') {
 			'非法操作'
 		)));
 	}
+}
+
+
+if ($do == 'comment') {
+	$article_id = intval($_GPC['article_id']);
+	$parent_id = intval($_GPC['parent_id']);
+	$article_info = pdo_get('site_article', array('id' => $article_id, 'uniacid' => $_W['uniacid']));
+
+	if ($_W['ispost']) {
+		$comment = array(
+			'uniacid' => $_W['uniacid'],
+			'articleid' => intval($_GPC['article_id']),
+			'openid' => $_W['openid'],
+			'content' => safe_gpc_html(htmlspecialchars_decode($_GPC['content']))
+		);
+		$comment_add = article_comment_add($comment);
+		if (is_error($comment_add)) {
+			message($comment_add['message'], referer(), 'error');
+		}
+		header('Location: ' . murl('site/site/detail', array('id' => intval($_GPC['article_id']))));
+		exit();
+	}
+	template('site/comment');
 }

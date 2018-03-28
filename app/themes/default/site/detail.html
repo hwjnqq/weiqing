@@ -50,6 +50,17 @@ body > .tips{display:none;left:50%;padding:20px;position:fixed;text-align:center
 #mbutton > span{float:right; display:inline-block; background:#666; border:1px #DDD solid; color:#FFF; height:30px; line-height:30px; padding:0 10px; margin-left:10px;}
 #mcover{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0, 0, 0, 0.7);display:none;z-index:20000;}
 #mcover img{position:fixed;right: 18px;top:5px;width:260px;height:180px;z-index:20001;}
+.message { border-top: 1px dashed #a3a3a3;position: relative;}
+.message::before {content: '最新留言'; background: #fff;position: absolute;top: -0.8em;left: 50%;margin-left: -2em;padding: 0 5px;}
+.message-head {text-align: right;margin: 20px 0;}
+.message-head a{color: #428bca;}
+.message-list {}
+.message-content {display: flex;font-size: 14px;margin-bottom: 10px;}
+.message-content .logo {width: 40px;height: 40px;margin-right: 10px;}
+.message-list .name, .message-list .time {color: #999999;}
+.reply-list {margin-left: 50px;}
+.reply-item {border-top: 1px solid #e7e7eb;padding: 10px 0;}
+.reply-item .head:before {content: '';border-left: 2px solid #428bca;margin-right: 5px;}
 </style>
 <div class="page-bizinfo">
 	<div class="header">
@@ -67,6 +78,48 @@ body > .tips{display:none;left:50%;padding:20px;position:fixed;text-align:center
 	<div class="text">
 		{$detail['content']}
 	</div>
+	{if !empty($setting['comment_status'])}
+	<div class="message">
+		<div class="message-head">
+			<a href="{php echo murl('site/site/comment', array('article_id' => $id))}">写留言 <img src="{$_W['siteroot']}app/resource/images/reply.png" alt=""></a>
+		</div>
+		{loop $article_lists $comment}
+		<div class="message-list">
+			<div content="message-item">
+				<div class="message-content">
+					<img src="http://prox/app/themes/default/preview.jpg" alt="" class="logo">
+					<div class="message-item-content">
+						<p class="name">{php echo $comment['username']}</p>
+						<p class="content">
+							{php echo $comment['content']}
+						</p>
+						<p class="time">
+							{php echo $comment['createtime']}
+						</p>
+					</div>
+				</div>
+				{loop $comment['son_comment'] $son_comment}
+				<div class="reply-list">
+					<div class="reply-item">
+						<div class="head">
+							作者回复
+						</div>
+						<p class="content">
+							{php echo $comment['content']}
+						</p>
+						<p class="time">
+							{php echo date('Y-m-d H:i:s', $son_comment['createtime']);}
+						</p>
+					</div>
+				</div>
+				{/loop}
+			</div>
+		</div>
+		{/loop}
+		{$pager}
+	</div>
+	{/if}
 </div>
 </div>
+
 {template 'common/footer'}

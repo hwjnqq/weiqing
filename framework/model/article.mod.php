@@ -127,4 +127,62 @@ function article_category_delete($id) {
 	return true;
 }
 
+/**
+ * 评论回复
+ * @param $data
+ */
+function article_comment_add($comment) {
+	if (empty($comment['content'])) {
+		return error(-1, '回复内容不能为空');
+	}
+	if (empty($comment['uid']) && empty($comment['openid'])) {
+		return error(-1, '用户信息不能为空');
+	}
 
+	$article_comment_table = table('sitearticlecomment');
+	$article_comment_table->articleCommentAdd($comment);
+	return true;
+}
+
+function article_comment_detail($article_lists) {
+	global $_W;
+	load()->model('mc');
+	if (empty($article_lists)) {
+		return true;
+	}
+
+	foreach ($article_lists as $list) {
+		$parent_article_comment_ids[] = $list['id'];
+	}
+
+	$comment_table = table('sitearticlecomment');
+	$comment_table->fill('is_read', ARTICLE_COMMENT_READ)->whereId($parent_article_comment_ids)->save();
+	$son_comment_lists = $comment_table->searchWithUniacid($_W['uniacid'])->searchWithParentid($parent_article_comment_ids)->articleCommentList();
+
+	if (!empty($son_comment_lists)) {
+		foreach ($son_comment_lists as $list) {
+			$uids[$list['uid']] = $list['uid'];
+		}
+	}
+
+	$user_table = table('users');
+	$users = $user_table->searchWithUid($uids)->searchUsersList();
+
+	foreach ($article_lists as &$list) {
+		$list['createtime'] = date('Y-m-d H:i:s', $list['createtime']);
+		$fans_info = mc_fansinfo($list['openid']);
+		$list['username'] = $fans_info['nickname'];
+		$list['avatar'] = $fans_info['avatar'];
+		if (empty($son_comment_lists)) {
+			continue;
+		}
+
+		foreach ($son_comment_lists as $son_comment) {
+			if ($son_comment['parentid'] == $list['id']) {
+				$son_comment['username'] = $users[$son_comment['uid']]['username'];
+				$list['son_comment'][] = $son_comment;
+			}
+		}
+	}
+	return $article_lists;
+}

@@ -5,6 +5,8 @@
  */
 defined('IN_IA') or exit('Access Denied');
 load()->func('file');
+load()->model('article');
+load()->model('account');
 
 $dos = array('display', 'post', 'del');
 $do = in_array($do, $dos) ? $do : 'display';
@@ -45,6 +47,16 @@ if ($do == 'display') {
 	$list = pdo_fetchall("SELECT * FROM ".tablename('site_article')." WHERE uniacid = '{$_W['uniacid']}' $condition ORDER BY displayorder DESC, edittime DESC, id DESC LIMIT ".($pindex - 1) * $psize.','.$psize, $params);
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('site_article') . " WHERE uniacid = '{$_W['uniacid']}'".$condition, $params);
 	$pager = pagination($total, $pindex, $psize);
+
+	$article_ids = array();
+	if (!empty($list)) {
+		foreach ($list as $item) {
+			$article_ids[] = $item['id'];
+		}
+	}
+	$article_comment = table('sitearticlecomment')->srticleCommentUnread($article_ids);
+
+	$setting = uni_setting($_W['uniacid']);
 	template('site/article-display');
 } elseif ($do == 'post') {
 	$id = intval($_GPC['id']);
@@ -248,3 +260,4 @@ if ($do == 'display') {
 		}
 	}
 }
+
