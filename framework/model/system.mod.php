@@ -154,3 +154,31 @@ function system_site_info() {
 	$site_info = $api->get('site', 'info');
 	return $site_info;
 }
+
+/**
+ * 第三方统计代码验证
+ * @param $statcode
+ * @return mixed|null|string|string[]
+ */
+function system_check_statcode($statcode) {
+	$allowed_stats = array(
+		'baidu' => array(
+			'enabled' => true,
+			'reg' => '/https\:\/\/hm\.baidu\.com\/hm\.js\?/'
+		),
+
+		'qq' => array(
+			'enabled' => true,
+			'reg' => '/http\:\/\/tajs\.qq\.com/'
+		),
+	);
+
+	foreach($allowed_stats as $key => $item) {
+		$preg = preg_match($item['reg'], $statcode);
+		if ($preg && $item['enabled']) {
+			return htmlspecialchars_decode($statcode);
+		} else {
+			return safe_gpc_html(htmlspecialchars_decode($statcode));
+		}
+	}
+}

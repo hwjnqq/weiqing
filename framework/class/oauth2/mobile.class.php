@@ -92,10 +92,6 @@ class Mobile extends OAuth2Client {
 			return error(-1, '短信验证码已过期，请重新获取');
 		}
 
-		if (!checkcaptcha($_GPC['code'])) {
-			return error(-1, '你输入的验证码不正确, 请重新输入.');
-		}
-
 		if(istrlen($member['password']) < 8) {
 			return error(-1, '必须输入密码，且密码长度不得低于8位。');
 		}
