@@ -758,7 +758,11 @@
 			<div class="mui-input-row">
 				<label>{php echo $fields['title']}</label>
 				{if $fields['bind'] == 'birth'}
-				{php echo tpl_app_fans_form('birth', array('year' => $profile['birthyear'], 'month' => $profile['birthmonth'], 'day' => $profile['birthday']), $fields['title']);}
+					{if empty($profile['birthday'])}
+					{php echo tpl_app_fans_form('birth', array('year' => $profile['birthyear'], 'month' => $profile['birthmonth'], 'day' => $profile['birthday']), $fields['title']);}
+					{else}
+					<input type="text" name="name" value="{$profile['birthyear']}-{$profile['birthmonth']}-{$profile['birthday']}" readonly/>
+					{/if}
 				{elseif $fields['bind'] == 'reside'}
 				{php echo tpl_app_fans_form('reside', array('province' => $profile['resideprovince'], 'city' => $profile['residecity'], 'district' => $profile['residedist']), $fields['title']);}
 				{elseif $fields['bind'] == 'email'}
