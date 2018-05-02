@@ -155,6 +155,13 @@ class UsersTable extends We7Table {
 		return $this;
 	}
 
+	public function userOrderBy($field = 'uid', $order = 'desc') {
+		$field = !empty($field) ? $field : 'joindate';
+		$order = !empty($order) ? $order : 'desc';
+		$this->query->orderby($field, $order);
+		return $this;
+	}
+
 	public function userAccountDelete($uid, $is_recycle = false) {
 		if (!empty($is_recycle)) {
 			pdo_update('users', array('status' => USER_STATUS_BAN) , array('uid' => $uid));

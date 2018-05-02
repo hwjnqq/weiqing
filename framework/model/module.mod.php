@@ -130,6 +130,9 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 			if(empty($bind['icon'])) {
 				$bind['icon'] = 'fa fa-puzzle-piece';
 			}
+			if (!defined('SYSTEM_WELCOME_MODULE') && $bind['entry'] == 'system_welcome') {
+				continue;
+			}
 			$entries[$bind['entry']][] = array('eid' => $bind['eid'], 'title' => $bind['title'], 'do' => $bind['do'], 'url' => $url, 'from' => 'define', 'icon' => $bind['icon'], 'displayorder' => $bind['displayorder'], 'direct' => $bind['direct']);
 		}
 	}
@@ -364,13 +367,13 @@ function module_get_all_unistalled($status, $cache = true, $module_type = '')  {
 	load()->classs('cloudapi');
 	$status = $status == 'recycle' ? 'recycle' : 'uninstalled';
 	$cloud_api = new CloudApi();
-	$uninstallModules = cache_load(cache_system_key('module:all_uninstall'));
+	$uninstall_modules = cache_load(cache_system_key('module:all_uninstall'));
 	if (!$cache && $status == 'uninstalled') {
 		$get_cloud_m_count = $cloud_api->get('site', 'stat', array('module_quantity' => 1), 'json');
 		$cloud_m_count = $get_cloud_m_count['module_quantity'];
 	} else {
-		if(is_array($uninstallModules)){
-			$cloud_m_count = $uninstallModules['cloud_m_count'];
+		if(is_array($uninstall_modules)){
+			$cloud_m_count = $uninstall_modules['cloud_m_count'];
 		}
 	}
 	if (ACCOUNT_TYPE == ACCOUNT_TYPE_APP_NORMAL) {
@@ -385,14 +388,14 @@ function module_get_all_unistalled($status, $cache = true, $module_type = '')  {
 	if (!empty($module_type)) {
 		$account_type = $module_type;
 	}
-	if (!is_array($uninstallModules) || empty($uninstallModules['modules'][$status][$account_type]) || intval($uninstallModules['cloud_m_count']) !== intval($cloud_m_count) || is_error($get_cloud_m_count)) {
-		$uninstallModules = cache_build_uninstalled_module();
+	if (!is_array($uninstall_modules) || empty($uninstall_modules['modules'][$status][$account_type]) || intval($uninstall_modules['cloud_m_count']) !== intval($cloud_m_count) || is_error($get_cloud_m_count)) {
+		$uninstall_modules = cache_build_uninstalled_module();
 	}
 	if (!empty($account_type)) {
-		$uninstallModules['modules'] = (array)$uninstallModules['modules'][$status][$account_type];
-		$uninstallModules['module_count'] = $uninstallModules[$account_type . '_count'];
+		$uninstall_modules['modules'] = (array)$uninstall_modules['modules'][$status][$account_type];
+		$uninstall_modules['module_count'] = $uninstall_modules[$account_type . '_count'];
 	}
-	return $uninstallModules;
+	return $uninstall_modules;
 }
 
 /**
@@ -831,6 +834,7 @@ function module_link_uniacid_fetch($uid, $module_name) {
  */
 function module_save_switch($module_name, $uniacid = 0, $version_id = 0) {
 	global $_W, $_GPC;
+	load()->model('visit');
 	if (empty($_GPC['__switch'])) {
 		$_GPC['__switch'] = random(5);
 	}
@@ -852,6 +856,7 @@ function module_save_switch($module_name, $uniacid = 0, $version_id = 0) {
 			'version_id' => $version_id
 		);
 	}
+	visit_system_update(array('modulename' => $module_name, 'uid' => $_W['uid']));
 	cache_write($cache_key, $cache_lastaccount);
 	isetcookie('__switch', $_GPC['__switch'], 7 * 86400);
 	return true;

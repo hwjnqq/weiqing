@@ -28,6 +28,7 @@ if ($do == 'display') {
 			case 'check':
 				permission_check_account_user('system_user_check');
 				$users_table->searchWithStatus(USER_STATUS_CHECK);
+				$users_table->userOrderBy('joindate', 'DESC');
 				break;
 			case 'recycle':
 				permission_check_account_user('system_user_recycle');
@@ -57,11 +58,11 @@ if ($do == 'display') {
 		}
 
 		
-
 		$users_table->searchWithPage($pindex, $psize);
 		$users = $users_table->searchUsersList();
 		$total = $users_table->getLastQueryTotal();
 		$users = user_list_format($users);
+		$users = array_values($users);
 		$pager = pagination($total, $pindex, $psize);
 	}
 	template('user/display');

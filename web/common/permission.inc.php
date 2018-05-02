@@ -447,6 +447,9 @@ $we7_file_permission = array(
 		'operator' => array(
 			'see_user_profile_welcome'
 		),
+		'clerk' => array(
+
+		)
 	),
 );
 

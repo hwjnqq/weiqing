@@ -46,10 +46,6 @@ if ($do == 'custom_default') {
 if ($do == 'custom_save') {
 	$json = $_GPC['json'];
 	$result = wxapp_code_save_appjson($version_id, $json);
-	if ($result) {
-		$cachekey = cache_system_key("wxapp_version:{$version_id}");
-		cache_delete($cachekey);
-	}
 	iajax($result, '');
 }
 

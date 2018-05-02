@@ -330,6 +330,10 @@ class RechargeModuleSite extends WeModuleSite {
 			pdo_insert('core_paylog', $log);
 		}
 		$pay = $setting['payment'];
+		foreach ($pay as &$value) {
+			$value['switch'] = $value['recharge_switch'];
+		}
+		unset($value);
 		$pay['credit']['switch'] = false;
 		$pay['delivery']['switch'] = false;
 		include $this->template('common/paycenter');

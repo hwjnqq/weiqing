@@ -13,13 +13,15 @@ if (!defined('IFRAME')) {
 if ($do == 'display') {
 	$list = job_list($_W['uid'], $_W['isfounder']);
 	$jobid = intval($_GPC['jobid']);
-	array_walk($list, function(&$item){
-		$progress = $item['total'] > 0 ? $item['handled']/$item['total']*100 : 0;
-		$item['progress'] = $item['status'] ? 100 : intval($progress);
-		$item['createtime'] = date('Y-m-d H:i:s', $item['createtime']);
-		$item['endtime'] = date('Y-m-d H:i:s', $item['endtime']);
-		return $item;
-	});
+	if (is_array($list) && !empty($array)) {
+		array_walk($list, function(&$item){
+			$progress = $item['total'] > 0 ? $item['handled']/$item['total']*100 : 0;
+			$item['progress'] = $item['status'] ? 100 : intval($progress);
+			$item['createtime'] = date('Y-m-d H:i:s', $item['createtime']);
+			$item['endtime'] = date('Y-m-d H:i:s', $item['endtime']);
+			return $item;
+		});
+	}
 	template('system/job');
 }
 

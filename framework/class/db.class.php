@@ -484,7 +484,7 @@ class DB {
 	 * @return string
 	 */
 	public function tablename($table) {
-		return "`{$this->tablepre}{$table}`";
+		return (strpos($table, $this->tablepre) === 0 || strpos($table, 'ims_') === 0) ? $table : "`{$this->tablepre}{$table}`";
 	}
 
 	/**

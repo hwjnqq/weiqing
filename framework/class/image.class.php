@@ -113,11 +113,14 @@ class Image {
 		$func = 'image' . $ext;
 		$real_quality = $this->realQuality($quality);
 		$saved = false;
+		$image = $this->image();
+		imagealphablending($image, false);
+		imagesavealpha($image, true);
 		if (is_null($real_quality)) {
-			$saved = $func($this->image(), $path);
+			$saved = $func($image, $path);
 		} else {
 			if (!$this->isGif()) {
-				$saved = $func($this->image(), $path, $real_quality);
+				$saved = $func($image, $path, $real_quality);
 			}
 		}
 		$this->destroy();

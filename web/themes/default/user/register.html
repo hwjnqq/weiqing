@@ -82,16 +82,17 @@
 						</div>
 					</div>
 
-					<div ng-repeat="item in extendfields" class="form-group" ng-class="{true:'has-error has-feedback',false:'has-success has-feedback'}[item.fieldErr]">
-						<label class="control-label col-sm-1" ng-switch="item.required">{{ item.title }}:
-							<span class="color-red" ng-switch-when="1">*</span>
-						</label>
-						<div class="col-sm-11">
-							<input name="{{ item.field }} " id="{{ item.field }}" class="form-control col-sm-10" placeholder="{{ item.title }}" ng-blur="checkExtendfield(item.field)">
-							<span ng-class="{true:'fa fa-times form-control-feedback reg-system-valid',false:'fa fa-check form-control-feedback reg-system-valid'}[item.fieldErr]" aria-hidden="true"></span>
-							<span ng-class="{true:'color-red',false:'sr-only'}[item.fieldErr]" ng-bind="item.fieldMsg"></span>
-						</div>
-					</div>
+					<!--用户注册拓展字段 end -->
+					{if $extendfields}
+						{loop $extendfields $item}
+							<div class="form-group">
+								<label class="control-label col-sm-1">{$item['title']}:{if $item['required']}<span class="color-red">*</span>{/if}</label>
+								<div class="col-sm-11">
+									{php echo tpl_fans_form($item['field'])}
+								</div>
+							</div>
+						{/loop}
+					{/if}
 
 					{if $_W['setting']['register']['code']}
 					<div class="form-group">
@@ -173,7 +174,7 @@
 							</div>
 						</div>
 						<div class="login-submit text-center">
-							<input type="submit" ng-click="register()" value="注册" class="btn btn-primary" ng-disabled="mobleInvalid || smscodeInvalid || imageInvalid || passwordInvalid || repasswordInvalid" />
+							<input type="submit" ng-click="register()" value="注册" class="btn btn-primary" />
 							<a href="{url 'user/login'}" class="btn btn-default">登录</a>
 						</div>
 					</div>
@@ -183,10 +184,11 @@
 		</div>
 	</div>
 </div>
+
 <script type="text/javascript">
 	angular.module('userManageApp').value('config', {
-		'owner_uid': "{php echo !empty($_GPC['owner_uid']) ? $_GPC['owner_uid'] : 0}",
-		'register_type': "{php echo !empty($_GPC['register_type']) ? $_GPC['register_type'] : 0}",
+		'owner_uid': "{php echo !empty($owner_uid) ? $owner_uid : 0}",
+		'register_type': "{php echo !empty($register_type) ? $register_type : 0}",
 		'register_sign': "{php echo !empty($register_sign) ? $register_sign : 'null'}",
 		'image': "{php echo url('utility/code')}",
 		'links': {
@@ -203,4 +205,5 @@
 
 	angular.bootstrap($('.register-mobile'), ['userManageApp']);
 </script>
+
 {template 'common/footer-base'}

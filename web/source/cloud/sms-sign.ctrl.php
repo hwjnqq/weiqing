@@ -12,11 +12,11 @@ $dos = array('display', 'save_sms_sign');
 $do = in_array($do, $dos) ? $do : 'display';
 
 $setting_sms_sign = setting_load('site_sms_sign');
-$setting_sms_sign = !empty($setting_sms_sign['site_sms_sign']) ? $setting_sms_sign['site_sms_sign'] : '';
+$setting_sms_sign = !empty($setting_sms_sign['site_sms_sign']) ? $setting_sms_sign['site_sms_sign'] : array();
 
 if ($do == 'display') {
-	$cloud_sms_info = cloud_sms_info();
-	$cloud_sms_signs = $cloud_sms_info['sms_sign'];
+	$sms_info = setting_load('sms.info');
+	$cloud_sms_signs = !empty($sms_info['sms.info']) ? $sms_info['sms.info']['sms_sign'] : array();
 	$setting_sms_sign['register'] = !empty($setting_sms_sign['register']) ? $setting_sms_sign['register'] : '';
 	$setting_sms_sign['find_password'] = !empty($setting_sms_sign['find_password']) ? $setting_sms_sign['find_password'] : '';
 	$setting_sms_sign['user_expire'] = !empty($setting_sms_sign['user_expire']) ? $setting_sms_sign['user_expire'] : '';

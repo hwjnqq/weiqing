@@ -164,12 +164,12 @@ function system_check_statcode($statcode) {
 	$allowed_stats = array(
 		'baidu' => array(
 			'enabled' => true,
-			'reg' => '/https\:\/\/hm\.baidu\.com\/hm\.js\?/'
+			'reg' => '/(http[s]?\:)?\/\/hm\.baidu\.com\/hm\.js\?/'
 		),
 
 		'qq' => array(
 			'enabled' => true,
-			'reg' => '/http\:\/\/tajs\.qq\.com/'
+			'reg' => '/(http[s]?\:)?\/\/tajs\.qq\.com/'
 		),
 	);
 
