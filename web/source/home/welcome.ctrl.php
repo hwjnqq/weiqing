@@ -18,15 +18,15 @@ load()->model('account');
 load()->model('message');
 load()->model('visit');
 
-$dos = array('platform', 'system', 'ext', 'get_fans_kpi', 'get_last_modules', 'get_system_upgrade', 'get_upgrade_modules', 'get_module_statistics', 'get_ads', 'get_not_installed_modules', 'system_home', 'set_top', 'add_welcome', 'ignore_update_module');
+$dos = array('platform', 'system', 'ext', 'get_fans_kpi', 'get_last_modules', 'get_system_upgrade', 'get_upgrade_modules', 'get_module_statistics', 'get_ads', 'get_not_installed_modules', 'system_home', 'set_top', 'add_welcome');
 $do = in_array($do, $dos) ? $do : 'platform';
 
 if ($do == 'get_not_installed_modules') {
 	$data = array();
-	$not_installed_modules = module_get_all_uninstalled('uninstalled');
+	$not_installed_modules = module_get_all_unistalled('uninstalled');
 	$not_installed_modules = $not_installed_modules['modules']['uninstalled'];
 	$data['app_count'] = count($not_installed_modules['app']);
-	$data['wxapp_count'] = count($not_installed_modules['wxapp']);
+	$data['wxapp_count'] = count($not_installed_modules['wxapp_count']);
 	$not_installed_modules['app'] = is_array($not_installed_modules['app']) ? array_slice($not_installed_modules['app'], 0, 4) : array();
 	$not_installed_modules['wxapp'] = is_array($not_installed_modules['wxapp']) ? array_slice($not_installed_modules['wxapp'], 0, 4) : array();
 	$data['module'] = array_merge($not_installed_modules['app'], $not_installed_modules['wxapp']);
@@ -94,7 +94,7 @@ if ($do == 'platform') {
 	}
 	template('home/welcome-system');
 } elseif ($do =='get_module_statistics') {
-	$uninstall_modules = module_get_all_uninstalled('uninstalled');
+	$uninstall_modules = module_get_all_unistalled('uninstalled');
 	$account_uninstall_modules_nums = $uninstall_modules['app_count'];
 	$wxapp_uninstall_modules_nums = $uninstall_modules['wxapp_count'];
 
@@ -119,6 +119,7 @@ if ($do == 'platform') {
 	define('FRAME', 'account');
 	define('IN_MODULE', $modulename);
 	if ($_GPC['system_welcome'] && $_W['isfounder']) {
+		define('SYSTEM_WELCOME_MODULE', true);
 		$frames = buildframes('system_welcome');
 	} else {
 		$site = WeUtility::createModule($modulename);
@@ -182,23 +183,12 @@ if ($do == 'platform') {
 	$account_upgrade_modules = module_upgrade_new('account');
 	$account_upgrade_module_nums = count($account_upgrade_modules);
 	$wxapp_upgrade_modules = module_upgrade_new('wxapp');
-	if (!empty($account_upgrade_modules) && is_array($account_upgrade_modules)) {
-		foreach ($account_upgrade_modules as $key => $value) {
-			if (!empty($value['is_ignore'])) {
-				unset($account_upgrade_modules[$key]);
-			}
-		}
-	}
-	if (!empty($wxapp_upgrade_modules) && is_array($wxapp_upgrade_modules)) {
-		foreach ($wxapp_upgrade_modules as $k => $val) {
-			if (!empty($val['is_ignore'])) {
-				unset($wxapp_upgrade_modules[$k]);
-			}
-		}
-	}
 	$wxapp_upgrade_module_nums = count($wxapp_upgrade_modules);
-	$all_upgrade_module_list = array_merge($account_upgrade_modules, $wxapp_upgrade_modules);
-	$upgrade_module_list = array_slice($all_upgrade_module_list, 0, 8);
+
+	$account_upgrade_module_list = array_slice($account_upgrade_modules, 0, 4);
+	$wxapp_upgrade_module_list = array_slice($wxapp_upgrade_modules, 0, 4);
+	$upgrade_module_list = array_merge($account_upgrade_module_list, $wxapp_upgrade_module_list);
+
 	$upgrade_module = array(
 		'upgrade_module_list' => $upgrade_module_list,
 		'upgrade_module_nums' => array(
@@ -217,15 +207,20 @@ if ($do == 'platform') {
 }
 
 if ($do == 'system_home') {
+	define('FRAME', '');
 	$user_info = user_single($_W['uid']);
 	$account_num = permission_user_account_num();
 
 	$last_accounts_modules = pdo_getall('system_stat_visit', array('uid' => $_W['uid']), array(), '', array('displayorder desc', 'updatetime desc'), 20);
 
 	if (!empty($last_accounts_modules)) {
-		foreach ($last_accounts_modules as &$info) {
+		foreach ($last_accounts_modules as $key => &$info) {
 			if (!empty($info['uniacid'])) {
 				$info['account'] = uni_fetch($info['uniacid']);
+			}
+			if ($info['account']['isdeleted'] || empty($info['account'])) {
+				unset($last_accounts_modules[$key]);
+				continue;
 			}
 			if (!empty($info['modulename'])) {
 				$info['account'] = module_fetch($info['modulename']);
@@ -238,10 +233,6 @@ if ($do == 'system_home') {
 	$types = array(MESSAGE_ACCOUNT_EXPIRE_TYPE, MESSAGE_WECHAT_EXPIRE_TYPE, MESSAGE_WEBAPP_EXPIRE_TYPE, MESSAGE_USER_EXPIRE_TYPE, MESSAGE_WXAPP_MODULE_UPGRADE);
 	$messages = pdo_getall('message_notice_log', array('uid' => $_W['uid'], 'type' => $types, 'is_read' => MESSAGE_NOREAD), array(), '', array('id desc'), 10);
 	$messages = message_list_detail($messages);
-	echo "<pre>";
-	print_r($last_accounts_modules);
-	echo "</pre>";
-// 	exit;
 	template('home/welcome-system-home');
 }
 
@@ -256,23 +247,4 @@ if ($do == 'set_top') {
 if ($do == 'add_welcome') {
 	visit_system_update(array('uid' => $_W['uid'], 'uniacid' => intval($_GPC['uniacid']), 'modulename' => safe_gpc_string($_GPC['module'])), true);
 	itoast(0, referer());
-}
-
-if ($do == 'ignore_update_module') {
-	if (empty($_GPC['name'])) {
-		iajax(1, '参数错误');
-	}
-	$module_info = module_fetch($_GPC['name']);
-	if (empty($module_info)) {
-		iajax(1, '参数错误');
-	}
-	pdo_delete('modules_ignore', array('name' => $_GPC['name']));
-	$modules_local = pdo_get('modules_local', array('name' => $_GPC['name']), array('name', 'version'));
-	$ignore_module = array(
-		'mid' => $module_info['mid'],
-		'name' => $module_info['name'],
-		'version' => $modules_local['version']
-	);
-	pdo_insert('modules_ignore', $ignore_module);
-	iajax(0, '');
 }
