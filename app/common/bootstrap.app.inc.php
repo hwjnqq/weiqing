@@ -8,6 +8,7 @@ load()->model('app');
 load()->model('account');
 load()->model('attachment');
 load()->model('module');
+
 $_W['uniacid'] = intval($_GPC['i']);
 if(empty($_W['uniacid'])) {
 	$_W['uniacid'] = intval($_GPC['weid']);
@@ -18,6 +19,7 @@ if(empty($_W['uniaccount'])) {
 	header("status: 404 Not Found");
 	exit;
 }
+
 if (!empty($_W['uniaccount']['endtime']) && TIMESTAMP > $_W['uniaccount']['endtime']) {
 	exit('抱歉，您的公众号服务已过期，请及时联系管理员');
 }
@@ -164,9 +166,8 @@ if (!empty($_W['account']['oauth']) && $_W['account']['oauth']['level'] == '4' &
 				$oauth_type = 'snsapi_userinfo';
 			}
 		}
-		$global_unisetting = uni_account_global_oauth();
-		$unisetting['oauth']['host'] = !empty($unisetting['oauth']['host']) ? $unisetting['oauth']['host'] : (!empty($global_unisetting['oauth']['host']) ? $global_unisetting['oauth']['host'] : '');
-		$url = (!empty($unisetting['oauth']['host']) ? ($unisetting['oauth']['host'] . $sitepath . '/') : $_W['siteroot'] . 'app/') . "index.php?i={$_W['uniacid']}{$str}&c=auth&a=oauth&scope=" . $oauth_type;
+		$oauth_url = uni_account_oauth_host();
+		$url = $oauth_url . "app/index.php?i={$_W['uniacid']}{$str}&c=auth&a=oauth&scope=" . $oauth_type;
 		$callback = urlencode($url);
 		$oauth_account = WeAccount::create($_W['account']['oauth']);
 		if ($oauth_type == 'snsapi_base') {
