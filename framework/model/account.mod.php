@@ -252,6 +252,13 @@ function uni_modules_by_uniacid($uniacid, $enabled = true) {
 	if (!empty($modules)) {
 		foreach ($modules as $name => $module) {
 			$module_info = module_fetch($name);
+			if ($module_info['welcome_support'] != MODULE_SUPPORT_SYSTEMWELCOME &&
+				($module_info['app_support'] != MODULE_SUPPORT_ACCOUNT && in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)) ||
+				//$module_info['wxapp_support'] != MODULE_SUPPORT_WXAPP && in_array($_W['account']['type'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH)) ||
+				$module_info['webapp_support'] != MODULE_SUPPORT_WEBAPP && in_array($_W['account']['type'], array(ACCOUNT_TYPE_WEBAPP_NORMAL)) ||
+				$module_info['phoneapp_support'] != MODULE_SUPPORT_PHONEAPP && in_array($_W['account']['type'], array(ACCOUNT_TYPE_PHONEAPP_NORMAL)))) {
+				continue;
+			}
 			if (!empty($module_info)) {
 				$module_list[$name] = $module_info;
 			}
@@ -322,6 +329,7 @@ function uni_groups($groupids = array(), $show_all = false) {
 	global $_W;
 	$cachekey = cache_system_key(CACHE_KEY_UNI_GROUP);
 	$list = cache_load($cachekey);
+
 	if (empty($list)) {
 		$condition = ' WHERE uniacid = 0';
 		$list = pdo_fetchall("SELECT * FROM " . tablename('uni_group') . $condition . " ORDER BY id DESC", array(), 'id');
@@ -333,42 +341,37 @@ function uni_groups($groupids = array(), $show_all = false) {
 				$list[0] = array('id' => 0, 'name' => '基础服务', 'modules' => array('title' => '系统模块'), 'templates' => array('title' => '系统模板'));
 			}
 		}
+
 		if (!empty($list)) {
-			foreach ($list as $k=>&$row) {
-				$row['wxapp'] = array();
+			foreach ($list as $k => &$row) {
 				if (!empty($row['modules'])) {
-					$modules = iunserializer($row['modules']);
-					if (is_array($modules)) {
-						$module_list = pdo_getall('modules', array('name' => $modules), array(), 'name');
-						$row['modules'] = array();
-						if (!empty($module_list)) {
-							foreach ($module_list as $key => &$module) {
-								$module = module_fetch($key);
-								if ($module['wxapp_support'] == MODULE_SUPPORT_WXAPP) {
-									$row['wxapp'][$module['name']] = $module;
-								}
-
-								if ($module['webapp_support'] == MODULE_SUPPORT_WEBAPP) {
-									$row['webapp'][$module['name']] = $module;
-								}
-
-								if ($module['phoneapp_support'] == MODULE_SUPPORT_PHONEAPP) {
-									$row['phoneapp'][$module['name']] = $module;
-								}
-
-								if ($module['app_support'] == MODULE_SUPPORT_ACCOUNT) {
-									if (!empty($module['main_module'])) {
-										continue;
-									}
-									$row['modules'][$module['name']] = $module;
-									if (!empty($module['plugin'])) {
-										$group_have_plugin = array_intersect($module['plugin_list'], array_keys($module_list));
-										if (!empty($group_have_plugin)) {
-											foreach ($group_have_plugin as $plugin) {
-												$row['modules'][$plugin] = module_fetch($plugin);
-											}
-										}
-									}
+					$modules = (array)iunserializer($row['modules']);
+					$row['modules'] = $row['wxapp'] = $row['webapp'] = $row['phoneapp'] = array();
+					if (empty($modules)) {
+						continue;
+					}
+					foreach ($modules as $modulename) {
+						$module = module_fetch($modulename);
+						if (empty($module)) {
+							continue;
+						}
+						if ($module['wxapp_support'] == MODULE_SUPPORT_WXAPP) {
+							$row['wxapp'][] = $modulename;
+						}
+						if ($module['webapp_support'] == MODULE_SUPPORT_WEBAPP) {
+							$row['webapp'][] = $modulename;
+						}
+						if ($module['phoneapp_support'] == MODULE_SUPPORT_PHONEAPP) {
+							$row['phoneapp'][] = $modulename;
+						}
+						if ($module['app_support'] == MODULE_SUPPORT_ACCOUNT) {
+							if (!empty($module['main_module'])) {
+								continue;
+							}
+							$row['modules'][] = $modulename;
+							if (!empty($module['plugin_list'])) {
+								foreach ($module['plugin_list'] as $plugin) {
+									$row['modules'][] = $plugin;
 								}
 							}
 						}
@@ -376,9 +379,9 @@ function uni_groups($groupids = array(), $show_all = false) {
 				}
 
 				if (!empty($row['templates'])) {
-					$templates = iunserializer($row['templates']);
-					if (is_array($templates)) {
-						$row['templates'] = pdo_getall('site_templates', array('id' => $templates), array('id', 'name', 'title'), 'name');
+					$row['templates'] = (array)iunserializer($row['templates']);
+					if (!empty($row['templates'])) {
+						$row['templates'] = pdo_getall('site_templates', array('id' => $row['templates']), array('id', 'name', 'title'), 'name');
 					}
 				}
 			}
@@ -400,6 +403,22 @@ function uni_groups($groupids = array(), $show_all = false) {
 			}
 		}
 		$group_list = $list;
+	}
+
+	$module_section = array('modules', 'phoneapp', 'wxapp', 'webapp');
+	if (!empty($group_list)) {
+		foreach ($group_list as $id => $group) {
+			foreach ($module_section as $section) {
+				if (!empty($group_list[$id][$section])) {
+					$modules = $group_list[$id][$section];
+					$group_list[$id][$section] = array();
+
+					foreach ($modules as $modulename) {
+						$group_list[$id][$section][$modulename] = module_fetch($modulename);
+					}
+				}
+			}
+		}
 	}
 	return $group_list;
 }
@@ -791,8 +810,12 @@ function uni_account_save_switch($uniacid, $type = ACCOUNT_TYPE_SIGN) {
 	} else {
 		$cache_lastaccount[$type] = $uniacid;
 	}
+
 	visit_system_update(array('uniacid' => $uniacid, 'uid' => $_W['uid']));
 	cache_write($cache_key, $cache_lastaccount);
+
+	cache_write('we7:$cache_last_account_type', $type);
+
 	isetcookie('__uniacid', $uniacid, 7 * 86400);
 	isetcookie('__switch', $_GPC['__switch'], 7 * 86400);
 	return true;
@@ -1108,8 +1131,7 @@ function uni_account_member_fields($uniacid) {
 
 
 /**
- * 获取公众号的oauth
- * @param string $uni_host 当前公众号的oauth host
+ * 获取全局oauth信息
  * @return string
  */
 function uni_account_global_oauth() {
@@ -1161,4 +1183,25 @@ function uni_search_link_account($module_name, $account_type) {
 		}
 	}
 	return $owned_account;
+}
+
+/**
+ * 获取公众号的有效的 oauth 域名
+ * @param $unisetting
+ */
+function uni_account_oauth_host() {
+	global $_W;
+	$oauth_url = $_W['siteroot'];
+	$unisetting = uni_setting_load();
+	if (!empty($unisetting['bind_domain']) && !empty($unisetting['bind_domain']['domain'])) {
+		$oauth_url = $unisetting['bind_domain']['domain'] . '/';
+	} else {
+		if (!empty($unisetting['oauth']['host'])) {
+			$oauth_url = $unisetting['oauth']['host'] . '/';
+		} else {
+			$global_unisetting = uni_account_global_oauth();
+			$oauth_url = !empty($global_unisetting['oauth']['host']) ? $global_unisetting['oauth']['host'] . '/' : $oauth_url;
+		}
+	}
+	return $oauth_url;
 }
