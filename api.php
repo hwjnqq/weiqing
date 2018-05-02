@@ -506,7 +506,7 @@ class WeEngine {
 		if (!empty($_W['account']['setting']) && !empty($reply_times_info) && intval($_W['account']['setting']['reply_setting']) > 0 && strtotime($reply_times_info['date']) >= strtotime(date('Y-m-d')) && $reply_times_info['times'] >= $_W['account']['setting']['reply_setting'] && $reply_times_info['content'] == $message['content']) {
 			exit('success');
 		}
-		
+
 		if(method_exists($this, 'analyze' . $message['type'])) {
 			$temp = call_user_func_array(array($this, 'analyze' . $message['type']), array(&$message));
 			if(!empty($temp) && is_array($temp)){
@@ -607,11 +607,11 @@ class WeEngine {
 			return $pars;
 		}
 		//关键字先查缓存有没有匹配规则，缓存超时为5分钟
-// 		$cachekey = 'we7:' . $_W['uniacid'] . ':keyword:' . md5($message['content']);
-// 		$keyword_cache = cache_load($cachekey);
-// 		if (!empty($keyword_cache) && $keyword_cache['expire'] > TIMESTAMP) {
-// 			return $keyword_cache['data'];
-// 		}
+		$cachekey = 'we7:' . $_W['uniacid'] . ':keyword:' . md5($message['content']);
+		$keyword_cache = cache_load($cachekey);
+		if (!empty($keyword_cache) && $keyword_cache['expire'] > TIMESTAMP) {
+			return $keyword_cache['data'];
+		}
 		$condition = <<<EOF
 `uniacid` IN ( 0, {$_W['uniacid']} )
 AND
@@ -641,7 +641,12 @@ EOF;
 		if(empty($keywords)) {
 			return $pars;
 		}
+		//系统模块处理回复，则走缓存机制；其他模块不走缓存（可能有动态处理）
+		$system_module_reply = true;
 		foreach($keywords as $keyword) {
+			if (!in_array($keyword['module'], array('defalut', 'cover', 'reply'))) {
+				$system_module_reply = false;
+			}
 			$params = array(
 				'message' => $message,
 				'module' => $keyword['module'],
@@ -652,11 +657,13 @@ EOF;
 			);
 			$pars[] = $params;
 		}
-// 		$cache = array(
-// 			'data' => $pars,
-// 			'expire' => TIMESTAMP + 5 * 60,
-// 		);
-// 		cache_write($cachekey, $cache);
+		if (!empty($system_module_reply)) {
+			$cache = array(
+				'data' => $pars,
+				'expire' => TIMESTAMP + 5 * 60,
+			);
+			cache_write($cachekey, $cache);
+		}
 		return $pars;
 	}
 
