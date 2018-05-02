@@ -7,6 +7,13 @@ defined('IN_IA') or exit('Access Denied');
 
 $we7_system_menu = array();
 
+$we7_system_menu['platform'] = array(
+	'title' => '平台',
+	'icon' => 'wi wi-platform',
+	'url' => url('account/display/platform'),
+	'section' => array(),
+);
+
 $we7_system_menu['account'] = array(
 	'title' => '公众号',
 	'icon' => 'wi wi-white-collar',
@@ -555,6 +562,17 @@ $we7_system_menu['system'] = array(
 				),
 			),
 		),
+		'workorder'=> array(
+			'title' => '工单系统',
+			'menu'=> array(
+				'system_workorder'=> array(
+					'title' => '工单系统',
+					'url' => url('system/workorder/display'),
+					'icon' => 'wi wi-system-work',
+					'permission_name' => 'system_workorder',
+				),
+			),
+		),
 	),
 );
 
@@ -692,17 +710,6 @@ $we7_system_menu['site'] = array(
 				),
 			)
 		),
-		'workorder'=> array(
-			'title' => '工单系统',
-			'menu'=> array(
-				'system_workorder'=> array(
-					'title' => '工单系统',
-					'url' => url('system/workorder/display'),
-					'icon' => 'wi wi-system-work',
-					'permission_name' => 'system_workorder',
-				)
-			)
-		),
 		'backjob'=> array(
 			'title' => '后台任务',
 			'menu'=> array(
@@ -718,7 +725,7 @@ $we7_system_menu['site'] = array(
 	'founder' => true,
 );
 
-$we7_system_menu['advertisement'] = array (
+/*$we7_system_menu['advertisement'] = array (
 	'title' => '广告联盟',
 	'icon' => 'wi wi-advert',
 	'url' => url('advertisement/content-provider'),
@@ -742,7 +749,7 @@ $we7_system_menu['advertisement'] = array (
 		),
 	),
 	'founder' => true,
-);
+);*/
 
 $we7_system_menu['appmarket'] = array(
 	'title' => '市场',
@@ -758,7 +765,8 @@ $we7_system_menu['help'] = array(
 	'icon' => 'wi wi-market',
 	'url' => url('help/display'),
 	'section' => array(),
-	'blank' => false
+	'blank' => false,
+	'founder' => true,
 );
 
 $we7_system_menu['custom_help'] = array(
@@ -767,7 +775,8 @@ $we7_system_menu['custom_help'] = array(
 	'url' => url('help/display/custom'),
 	'section' => array(),
 	'blank' => false,
-	'is_display' => 0
+	'is_display' => 0,
+	'founder' => true,
 );
 
 
