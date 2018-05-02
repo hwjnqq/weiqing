@@ -24,7 +24,7 @@ function table($name) {
 	load()->classs('table');
 	load()->table($name);
 	$service = false;
-	
+
 	$class_name = "{$name}Table";
 	if (class_exists($class_name)) {
 		$service = new $class_name();
@@ -34,7 +34,7 @@ function table($name) {
 
 /**
  * php文件加载器
- * 
+ *
  * @method boolean func($name)
  * @method boolean model($name)
  * @method boolean classs($name)
@@ -43,7 +43,7 @@ function table($name) {
  * @method boolean library($name)
  */
 class Loader {
-	
+
 	private $cache = array();
 	private $singletonObject = array();
 	private $libraryMap = array(
@@ -60,6 +60,7 @@ class Loader {
 		'qiniu' => 'qiniu/autoload',
 		'cos' => 'cosv4.2/include',
 		'cosv3' => 'cos/include',
+		'sentry' => 'sentry/Raven/Autoloader',
 	);
 	private $loadTypeMap = array(
 		'func' => '/framework/function/%s.func.php',
@@ -94,7 +95,7 @@ class Loader {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * 获取一个服务单例，目录是在framework/class目录下
 	 * @param unknown $name
@@ -106,7 +107,7 @@ class Loader {
 		$this->singletonObject[$name] = $this->object($name);
 		return $this->singletonObject[$name];
 	}
-	
+
 	/**
 	 * 获取一个服务对象，目录是在framework/class目录下
 	 * @param unknown $name
