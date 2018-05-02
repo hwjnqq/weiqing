@@ -238,8 +238,6 @@ if($do == 'sms') {
 }
 
 if($do == 'modules_tpl') {
-	$unigroups = uni_groups(array(), true);
-	$uni_groups = uni_groups();
 	$owner = account_owner($uniacid);
 
 	if($_W['isajax'] && $_W['ispost'] && ($role_permission)) {
@@ -330,7 +328,7 @@ if($do == 'modules_tpl') {
 				}elseif ($package_value == 0) {
 
 				}else {
-					$defaultmodule = $unigroups[$package_value];
+					$defaultmodule = current(uni_groups(array($package_value)));
 					$defaultmodule['type'] = 'default';
 					$modules_tpl[] = $defaultmodule;
 				}
@@ -351,7 +349,7 @@ if($do == 'modules_tpl') {
 				}elseif ($extendpackage_val['groupid'] == 0) {
 
 				}else {
-					$ex_module = $unigroups[$extendpackage_val['groupid']];
+					$ex_module = current(uni_groups(array($extendpackage_val['groupid'])));
 					$ex_module['type'] = 'extend';
 					$modules_tpl[] = $ex_module;
 				}
