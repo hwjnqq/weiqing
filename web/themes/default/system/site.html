@@ -79,6 +79,34 @@
 				</label>
 			</div>
 		</div>
+		<h5 class="page-header">调试开关</h5>
+		<div class="form-group">
+			<label class="col-sm-2 control-label" style="text-align:left;">是否开启调试模式</label>
+			<div class="col-sm-8 form-control-static">
+				<input type="radio" id="develop_status-1" name="develop_status" {if $settings['develop_status'] == 1} checked="checked" {/if} value="1" />
+				<label class="radio-inline" for="develop_status-1">
+					是
+				</label>
+				<input type="radio" id="develop_status-0" name="develop_status" {if $settings['develop_status'] == 0} checked="checked" {/if} value="0" />
+				<label class="radio-inline" for="develop_status-0">
+					否
+				</label>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-sm-2 control-label" style="text-align:left;">是否开启日志</label>
+			<div class="col-sm-8 form-control-static">
+				<input type="radio" id="log_status-1" name="log_status" {if $settings['log_status'] == 1} checked="checked" {/if} value="1" />
+				<label class="radio-inline" for="log_status-1">
+					是
+				</label>
+				<input type="radio" id="log_status-0" name="log_status" {if $settings['log_status'] == 0} checked="checked" {/if} value="0" />
+				<label class="radio-inline" for="log_status-0">
+					否
+				</label>
+			</div>
+		</div>
+		
 		
 		<div class="form-group">
 			<div class="col-sm-offset-2 col-md-offset-2 col-lg-offset-1 col-xs-12 col-sm-10 col-md-10 col-lg-11">
