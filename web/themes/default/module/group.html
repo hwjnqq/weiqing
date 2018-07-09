@@ -68,7 +68,7 @@
 				</td>
 			</tr>
 			<tr class="collapse bg-light-gray" aria-expanded="true" data-id="toggle-{$module_group['id']}">
-				<td colspan="6">
+				<td colspan="7">
 					<div class="col-sm-1 color-gray text-left we7-padding-none">公众号应用</div>
 					<div class="col-sm-11">
 						{loop $module_group['account_modules'] $module}
@@ -90,7 +90,7 @@
 				</td>
 			</tr>
 			<tr class="collapse bg-light-gray" aria-expanded="true" data-id="toggle-{$module_group['id']}">
-				<td colspan="6">
+				<td colspan="7">
 					<div class="col-sm-1 color-gray text-left we7-padding-none">小程序应用</div>
 					<div class="col-sm-11">
 						{loop $module_group['wxapp_modules'] $wxapp}
@@ -103,7 +103,7 @@
 				</td>
 			</tr>
 			<tr class="collapse bg-light-gray" aria-expanded="true" data-id="toggle-{$module_group['id']}">
-				<td colspan="6">
+				<td colspan="7">
 					<div class="col-sm-1 color-gray text-left we7-padding-none">PC应用</div>
 					<div class="col-sm-11">
 						{loop $module_group['webapp_modules'] $webapp}
@@ -117,8 +117,8 @@
 			</tr>
 
 			<tr class="collapse bg-light-gray" aria-expanded="true" data-id="toggle-{$module_group['id']}">
-				<td colspan="5">
-					<div class="col-sm-1 color-gray text-left we7-padding-none">PC应用</div>
+				<td colspan="7">
+					<div class="col-sm-1 color-gray text-left we7-padding-none">APP应用</div>
 					<div class="col-sm-11">
 						{loop $module_group['phoneapp_modules'] $phoneapp}
 						<div class="col-sm-3 text-left text-over">
@@ -131,7 +131,7 @@
 			</tr>
 
 			<tr class="collapse bg-light-gray" aria-expanded="true" data-id="toggle-{$module_group['id']}">
-				<td colspan="6">
+				<td colspan="7">
 					<div class="col-sm-1 color-gray text-left we7-padding-none">模板</div>
 					<div class="col-sm-11">
 						{loop $module_group['templates'] $template}
@@ -187,7 +187,7 @@
 						<img ng-src="{{ module.logo }}" alt="" style="width:33px;height:33px;" ng-if="module.main_module == ''">
 						<span class="img" ng-if="module.main_module != ''">
 							<img ng-src="{{ module.logo }}" alt="子应用icon" class="plugin-img"/>
-							<img ng-src="{{ groupHaveModuleApp[module.main_module].logo || groupNotHaveModuleApp[module.main_module].logo }}" alt="主应用icon" class="module-img"/>
+							<img ng-src="{{ groupHaveModuleApp[module.main_module].main_module_logo || groupNotHaveModuleApp[module.main_module].main_module_logo }}" alt="主应用icon" class="module-img"/>
 						</span>
 						<span class="name">{{ module.title }}</span>
 						<span class="del bg-default" ng-click="delHaveModule(module)">删除</span>

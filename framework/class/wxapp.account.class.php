@@ -14,6 +14,7 @@ class WxappAccount extends WeAccount {
 		$this->type = ACCOUNT_TYPE_APP_NORMAL;
 		$this->typeName = '小程序';
 		$this->typeTempalte = '-wxapp';
+		$this->typeSign = WXAPP_TYPE_SIGN;
 	}
 
 	public function accountDisplayUrl() {
@@ -81,7 +82,7 @@ class WxappAccount extends WeAccount {
 	}
 
 	public function getAccessToken() {
-		$cachekey = "accesstoken:{$this->account['key']}";
+		$cachekey = cache_system_key('accesstoken_key', array('key' => $this->account['key']));
 		$cache = cache_load($cachekey);
 		if (!empty($cache) && !empty($cache['token']) && $cache['expire'] > TIMESTAMP) {
 			$this->account['access_token'] = $cache;

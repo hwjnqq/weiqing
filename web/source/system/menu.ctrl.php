@@ -10,13 +10,13 @@ $dos = array('display', 'post', 'display_status', 'delete', 'change_displayorder
 $do = in_array($do, $dos) ? $do : 'display';
 $_W['page']['title'] = '系统管理 - 菜单设置';
 
-$system_top_menu = array('account', 'wxapp', 'module', 'help', 'advertisement', 'site', 'system', 'webapp', 'appmarket', 'custom_help', 'phoneapp');
+$system_top_menu = array('account', 'wxapp', 'module', 'help', 'advertisement', 'site', 'system', 'webapp', 'appmarket', 'custom_help', 'phoneapp', 'platform');
 
 
-$system_menu = cache_load('system_frame');
+$system_menu = cache_load(cache_system_key('system_frame'));
 if(empty($system_menu)) {
 	cache_build_frame_menu();
-	$system_menu = cache_load('system_frame');
+	$system_menu = cache_load(cache_system_key('system_frame'));
 }
 
 //获取全部permission_name，方便判断是否是系统菜单
@@ -40,7 +40,7 @@ if (!empty($system_menu)) {
 	}
 }
 if ($do == 'display') {
-	$add_top_nav = pdo_getall('core_menu', array('group_name' => 'frame', 'is_system <>' => 1), array('title', 'url', 'permission_name', 'displayorder'));
+	$add_top_nav = pdo_getall('core_menu', array('group_name' => 'frame', 'is_system <>' => 1), array('title', 'url', 'permission_name', 'displayorder', 'is_display'));
 	if (!empty($add_top_nav)) {
 		foreach ($add_top_nav as $menu) {
 			$system_menu[$menu['permission_name']] = array(
@@ -49,6 +49,7 @@ if ($do == 'display') {
 				'displayorder' => $menu['displayorder'],
 				'permission_name' => $menu['permission_name'],
 				'url' => $menu['url'],
+				'is_display' => $menu['is_display']
 			);
 		}
 	}

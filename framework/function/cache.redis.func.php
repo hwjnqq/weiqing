@@ -104,11 +104,25 @@ function cache_delete($key){
 	if (is_error($redis)) {
 		return $redis;
 	}
-	if($redis->delete(cache_prefix($key))) {
-		unset($GLOBALS['_W']['cache'][$key]);
-		return true;
+
+	$cache_relation_keys = cache_relation_keys($key);
+	if (is_error($cache_relation_keys)) {
+		return $cache_relation_keys;
 	}
-	return false;
+	if (is_array($cache_relation_keys) && !empty($cache_relation_keys)) {
+		foreach ($cache_relation_keys as $key) {
+			$cache_info = cache_load($key);
+			if (!empty($cache_info)) {
+				$result = $redis->delete(cache_prefix($key));
+				if ($result) {
+					unset($GLOBALS['_W']['cache'][$key]);
+				} else {
+					return error(1, '缓存：' . $key . ' 删除失败！');
+				}
+			}
+		}
+	}
+	return true;
 }
 
 /**
@@ -122,10 +136,27 @@ function cache_clean($key = '') {
 		return $redis;
 	}
 	if (!empty($key)) {
-		if ($keys = $redis->keys(cache_prefix($key) . "*")) {
-			unset($GLOBALS['_W']['cache']);
-			return $redis->delete($keys) ? true : false;
+		$cache_relation_keys = cache_relation_keys($key);
+		if (is_error($cache_relation_keys)) {
+			return $cache_relation_keys;
 		}
+
+		if (is_array($cache_relation_keys) && !empty($cache_relation_keys)) {
+			foreach ($cache_relation_keys as $key) {
+				$cache_info = cache_load($key);
+				if (!empty($cache_info)) {
+					preg_match_all('/\:([a-zA-Z0-9\-\_]+)/', $key, $matches);
+					if ($keys = $redis->keys(cache_prefix('we7:' . $matches[1][0]) . "*")) {
+						unset($GLOBALS['_W']['cache']);
+						$res = $redis->delete($keys);
+						if (!$res) {
+							return error(-1, '缓存 ' . $key . ' 删除失败');
+						}
+					}
+				}
+			}
+		}
+		return true;
 	}
 	if ($redis->flushAll()) {
 		unset($GLOBALS['_W']['cache']);

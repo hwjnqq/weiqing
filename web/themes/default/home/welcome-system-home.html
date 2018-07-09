@@ -17,7 +17,7 @@
 				<div class="right">
 					设置登录显示页面
 					<i class="wi wi-info" data-container=".welcome-system-home" data-trigger=" click" data-toggle="popover" data-placement="bottom" data-html="true" data-content="设置登录后，用户显示的页面。在我的账号-用户欢迎页设置里边更改设置"></i>
-					<span> <i class="wi wi-help"></i> 帮助系统</span>
+					<span> <i class="wi wi-help"></i> <a href="{php echo url('help/display')}">帮助系统</a></span>
 				</div>
 			</div>
 		</div>
@@ -28,22 +28,22 @@
 		</div>
 		<div class="panel-body we7-padding-vertical create">
 			<div class="col-sm-3 text-center create-item">
-				<div class="head">可创建公众号</div>
+				<div class="create-item__head">可创建公众号</div>
 				<div class="num">{{account_num.maxaccount}}</div>
 				<div class="has">已创建  {{account_num.uniacid_num}} | <a href="{php echo url('account/post-step')}" class="color-default">去创建 ></a></div>
 			</div>
 			<div class="col-sm-3 text-center create-item">
-				<div class="head">可创建小程序</div>
+				<div class="create-item__head">可创建小程序</div>
 				<div class="num">{{account_num.maxwxapp}}</div>
 				<div class="has">已创建  {{account_num.wxapp_num}} | <a href="{php echo url('wxapp/post/design_method')}" class="color-default">去创建 ></a></div>
 			</div>
 			<div class="col-sm-3 text-center create-item">
-				<div class="head">可创建PC</div>
+				<div class="create-item__head">可创建PC</div>
 				<div class="num">{{account_num.maxwebapp}}</div>
 				<div class="has">已创建  {{account_num.webapp_num}} | <a href="{php echo url('webapp/manage/create_display')}" class="color-default">去创建 ></a></div>
 			</div>
 			<div class="col-sm-3 text-center create-item">
-				<div class="head">可创建APP</div>
+				<div class="create-item__head">可创建APP</div>
 				<div class="num">{{account_num.maxphoneapp}}</div>
 				<div class="has">已创建  {{account_num.phoneapp_num}} | <a href="{php echo url('phoneapp/manage/create_display')}" class="color-default">去创建 ></a></div>
 			</div>

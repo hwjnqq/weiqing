@@ -103,12 +103,9 @@ if ($do == 'confirm') {
 	), array('acid' => $acid));
 	pdo_update('account', array('isconnect' => '1', 'type' => ACCOUNT_TYPE_APP_AUTH, 'isdeleted' => 0), array('acid' => $acid));
 
-	cache_delete("uniaccount:{$uniacid}");
-	cache_delete("unisetting:{$uniacid}");
-	cache_delete("accesstoken:{$acid}");
-	cache_delete("jsticket:{$acid}");
-	cache_delete("cardticket:{$acid}");
-	cache_delete("account:auth:refreshtoken:{$acid}");
+	cache_delete(cache_system_key('uniaccount', array('uniacid' => $uniacid)));
+	cache_delete(cache_system_key('accesstoken', array('acid' => $acid)));
+	cache_delete(cache_system_key('account_auth_refreshtoken', array('acid' => $acid)));
 	$url = url('wxapp/post/design_method', array('acid' => $acid, 'uniacid' => $uniacid, 'choose_type'=>2));
 
 	itoast('更改小程序授权接入成功', $url, 'success');

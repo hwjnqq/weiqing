@@ -329,7 +329,7 @@ $we7_system_menu['system'] = array(
 				),
 				'system_module' => array(
 					'title' => '公众号应用',
-					'url' => url('module/manage-system', array('account_type' => '1')),
+					'url' => url('module/manage-system', array('support' => MODULE_SUPPORT_ACCOUNT_NAME)),
 					'icon' => 'wi wi-wx-apply',
 					'permission_name' => 'system_module',
 				),
@@ -384,7 +384,7 @@ $we7_system_menu['system'] = array(
 				),
 				'system_module_wxapp' => array(
 					'title' => '小程序应用',
-					'url' => url('module/manage-system', array('account_type' => '4')),
+					'url' => url('module/manage-system', array('support' => MODULE_SUPPORT_WXAPP_NAME)),
 					'icon' => 'wi wi-wxapp-apply',
 					'permission_name' => 'system_module_wxapp',
 				),
@@ -404,7 +404,7 @@ $we7_system_menu['system'] = array(
 				),
 				'system_module_webapp' => array(
 					'title' => 'PC应用',
-					'url' => url('module/manage-system', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL)),
+					'url' => url('module/manage-system', array('support' => MODULE_SUPPORT_WEBAPP_NAME)),
 					'icon' => 'wi wi-pc-apply',
 					'permission_name' => 'system_module_webapp',
 				),
@@ -423,7 +423,7 @@ $we7_system_menu['system'] = array(
 				),
 				'system_module_phoneapp' => array(
 					'title' => 'APP应用',
-					'url' => url('module/manage-system', array('account_type' => ACCOUNT_TYPE_PHONEAPP_NORMAL)),
+					'url' => url('module/manage-system', array('support' => MODULE_SUPPORT_PHONEAPP_NAME)),
 					'icon' => 'wi wi-app-apply',
 					'permission_name' => 'system_module_phoneapp',
 				),
@@ -559,17 +559,6 @@ $we7_system_menu['system'] = array(
 					'url' => url('system/updatecache'),
 					'icon' => 'wi wi-update',
 					'permission_name' => 'system_setting_updatecache',
-				),
-			),
-		),
-		'workorder'=> array(
-			'title' => '工单系统',
-			'menu'=> array(
-				'system_workorder'=> array(
-					'title' => '工单系统',
-					'url' => url('system/workorder/display'),
-					'icon' => 'wi wi-system-work',
-					'permission_name' => 'system_workorder',
 				),
 			),
 		),
@@ -710,6 +699,17 @@ $we7_system_menu['site'] = array(
 				),
 			)
 		),
+		'workorder'=> array(
+			'title' => '工单系统',
+			'menu'=> array(
+				'system_workorder'=> array(
+					'title' => '工单系统',
+					'url' => url('system/workorder/display'),
+					'icon' => 'wi wi-system-work',
+					'permission_name' => 'system_workorder',
+				),
+			),
+		),
 		'backjob'=> array(
 			'title' => '后台任务',
 			'menu'=> array(
@@ -766,7 +766,6 @@ $we7_system_menu['help'] = array(
 	'url' => url('help/display'),
 	'section' => array(),
 	'blank' => false,
-	'founder' => true,
 );
 
 $we7_system_menu['custom_help'] = array(
@@ -776,7 +775,6 @@ $we7_system_menu['custom_help'] = array(
 	'section' => array(),
 	'blank' => false,
 	'is_display' => 0,
-	'founder' => true,
 );
 
 

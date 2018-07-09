@@ -29,7 +29,7 @@ if ($do == 'mail') {
 			pdo_update('uni_settings', $setting, array('uniacid' => $_W['uniacid']));
 			itoast('配置失败，请检查配置信息', url('profile/notify'), 'info');
 		} else {
-			cache_delete("unisetting:{$_W['uniacid']}");
+			cache_delete(cache_system_key('unisetting', array('uniacid' => $_W['uniacid'])));
 			itoast('配置成功！', url('profile/notify',array('do' => 'mail')), 'success');
 		}
 	}

@@ -278,7 +278,7 @@ if($do == 'member_credits') {
 	$member_table->searchCreditsRecordType($type);
 
 	$member_table->searchWithPage($pindex, $psize);
-	
+
 	$records = $member_table->creditsRecordList();
 	$total = $member_table->getLastQueryTotal();
 
@@ -288,13 +288,13 @@ if($do == 'member_credits') {
 
 if ($do == 'base_information') {
 	$uid = intval($_GPC['uid']);
-	$profile = mc_fetch($uid);
+	$profile = mc_fetch_one($uid, $_W['uniacid']);
 	$profile = mc_parse_profile($profile);
 	$member_table = table('member');
 	$uniacid_fields = $member_table->mcFieldsList($_W['uniacid']);
 	$all_fields = mc_fields();
 	$custom_fields = array();
-	$base_fields = cache_load('userbasefields');
+	$base_fields = cache_load(cache_system_key('userbasefields'));
 	$base_fields = array_keys($base_fields);
 	foreach ($all_fields as $field => $title) {
 		if (!in_array($field, $base_fields)) {

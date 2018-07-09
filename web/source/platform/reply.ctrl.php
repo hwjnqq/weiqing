@@ -42,7 +42,6 @@ if ($m == 'special') {
 
 //功能模块用
 $sysmods = system_modules();
-
 if (in_array($m, array('custom'))) {
 	$site = WeUtility::createModuleSite('reply');
 	$site_urls = $site->getTabUrls();
@@ -174,7 +173,7 @@ if ($do == 'post') {
 			}
 			$keyword = preg_replace('/，/', ',', $keyword);
 			$keyword_arr = explode(',', $keyword);
-			$result = pdo_getall('rule_keyword', array('uniacid' => $_W['uniacid'], 'content IN' => $keyword_arr), array('rid'));
+			$result = pdo_getall('rule_keyword', array('uniacid' => $_W['uniacid'], 'content IN' => $keyword_arr, 'status !=' => 1), array('rid'));
 			if (!empty($result)) {
 				$keywords = array();
 				foreach ($result as $reply) {
@@ -343,8 +342,8 @@ if ($do == 'post') {
 				$settings['uniacid'] = $_W['uniacid'];
 				pdo_insert('uni_settings', $settings);
 			}
-			cache_delete("unisetting:{$_W['uniacid']}");
-			cache_delete('we7:' . $_W['uniacid'] . ':keyword:' . md5($rule['content']));
+			cache_delete(cache_system_key('unisetting', array('uniacid' => $_W['uniacid'])));
+			cache_delete(cache_system_key('keyword', array('content' => md5($rule['content']), 'uniacid' => $_W['uniacid'])));
 			itoast('系统回复更新成功！', url('platform/reply', array('m' => $m)), 'success');
 		}
 	}
@@ -441,8 +440,8 @@ if ($do == 'change_status') {
 				iajax(1, '参数错误');
 			}
 		}
-		$userapi_config = pdo_getcolumn('uni_account_modules', array('uniacid' => $_W['uniacid'], 'module' => 'userapi'), 'settings');
-		$config = iunserializer($userapi_config);
+		$userapi_module = module_fetch('userapi');
+		$config = $userapi_module['config'];
 		$config[$rid] = isset($config[$rid]) && $config[$rid] ? false : true;
 		$module_api = WeUtility::createModule('userapi');
 		$module_api->saveSettings($config);

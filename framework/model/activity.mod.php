@@ -676,7 +676,7 @@ function activity_get_member($type, $param = array()) {
  */
 function activity_coupon_sync() {
 	global $_W;
-	$cachekey = "couponsync:{$_W['uniacid']}";
+	$cachekey = cache_system_key('couponsync', array('uniacid' => $_W['uniacid']));
 	$cache = cache_load($cachekey);
 	if (!empty($cache) && $cache['expire'] > time()) {
 		return false;
@@ -780,7 +780,7 @@ function activity_coupon_download($card_list) {
 function activity_store_sync() {
 	global $_W;
 	load()->classs('coupon');
-	$cachekey = "storesync:{$_W['uniacid']}";
+	$cachekey = cache_system_key('storesync', array('uniacid' => $_W['uniacid']));
 	$cache = cache_load($cachekey);
 	if (!empty($cache) && $cache['expire'] > time()) {
 		return false;

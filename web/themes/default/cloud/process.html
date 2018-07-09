@@ -27,7 +27,7 @@
 					} else if (config.type == 'webtheme') {
 						targetUrl = './index.php?c=cloud&a=process&step=schemas&w=' + config.appname + '&is_upgrade=' + config.is_upgrade;
 					} else {
-						targetUrl = './index.php?c=cloud&a=process&step=schemas&m=' + config.appname + '&is_upgrade=' + config.is_upgrade + '&batch=1&account_type=' + config.account_type;
+						targetUrl = './index.php?c=cloud&a=process&step=schemas&m=' + config.appname + '&is_upgrade=' + config.is_upgrade + '&batch=1&support=' + config.account_type;
 					}
 					util.message('文件同步完成，正在处理数据同步......', targetUrl, 'success');
 				}
@@ -251,7 +251,7 @@
 			type : '{$type}',
 			appname : '{$m}',
 			is_upgrade : '{$is_upgrade}',
-			account_type : "{$_GPC['account_type']}",
+			account_type : "{$_GPC['support']}",
 			tasknum : '{$packet['task']}',
 		});
 		angular.bootstrap($('.js-processor'), ['cloudApp']);
@@ -274,7 +274,7 @@
 			</script>
 			{else}
 			<script>
-				location.href = '{url "module/manage-system/install" array("module_name" => $m, "flag" => 1, "account_type" => $_GPC["account_type"])}';
+				location.href = '{url "module/manage-system/install" array("module_name" => $m, "flag" => 1, "support" => $_GPC["support"])}';
 			</script>
 			{/if}
 		{/if}
@@ -290,9 +290,9 @@
 		{else}
 		<script>
 			{if $_GPC['batch']}
-				location.href = '{url "cloud/process" array("step" => "scripts", "m" => $m, "is_upgrade" => $is_upgrade, "batch" => 1, "account_type" => $_GPC["account_type"])}';
+				location.href = '{url "cloud/process" array("step" => "scripts", "m" => $m, "is_upgrade" => $is_upgrade, "batch" => 1, "support" => $_GPC["support"])}';
 			{else}
-				location.href = '{url "cloud/process" array("step" => "scripts", "m" => $m, "is_upgrade" => $is_upgrade, "account_type" => $_GPC["account_type"])}';
+				location.href = '{url "cloud/process" array("step" => "scripts", "m" => $m, "is_upgrade" => $is_upgrade, "support" => $_GPC["support"])}';
 			{/if}
 		</script>
 		{/if}
@@ -339,7 +339,7 @@
 			</script>
 			{else}
 			<script>
-				location.href = '{url "module/manage-system/upgrade" array("module_name" => $m, "flag" => 1, "account_type" => $_GPC["account_type"])}';
+				location.href = '{url "module/manage-system/upgrade" array("module_name" => $m, "flag" => 1, "support" => $_GPC["support"])}';
 			</script>
 			{/if}
 			

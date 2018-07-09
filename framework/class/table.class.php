@@ -42,6 +42,7 @@ abstract class We7Table {
 		//实例化Query对象,并重置查询信息
 		load()->classs('validator');
 		$this->query = load()->object('Query');
+		$this->query->fixTable = $this->tableName;
 		$this->query->from($this->tableName);
 	}
 
@@ -510,6 +511,11 @@ abstract class We7Table {
 	public function whereor($condition, $parameters = array()) {
 		return $this->where($condition, $parameters, 'OR');
 	}
+	
+	public function orderby($field, $direction = 'ASC') {
+		return $this->query->orderby($field, $direction);
+	}
+	
 	/**
 	 *  创建对象
 	 */

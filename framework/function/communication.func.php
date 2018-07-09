@@ -1,7 +1,7 @@
 <?php
 /**
  * Http协议
- * 
+ *
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
@@ -37,9 +37,9 @@ function ihttp_request($url, $post = '', $extra = array(), $timeout = 60) {
 	if (!empty($urlset['ip'])) {
 		$urlset['host'] = $urlset['ip'];
 	}
-	
+
 	$body = ihttp_build_httpbody($url, $post, $extra);
-	
+
 	if ($urlset['scheme'] == 'https') {
 		$fp = ihttp_socketopen('ssl://' . $urlset['host'], $urlset['port'], $errno, $error);
 	} else {
@@ -92,7 +92,7 @@ function ihttp_post($url, $data) {
  *                     一维数组时，每个请求使用此数据
  * @param array $extra 同 ihttp_request
  * @param int $timeout 同 ihttp_request
- * 
+ *
  * @return array 返回结果与url键值对应结果数组
  */
 function ihttp_multi_request($urls, $posts = array(), $extra = array(), $timeout = 60) {
@@ -131,7 +131,7 @@ function ihttp_multi_request($urls, $posts = array(), $extra = array(), $timeout
 			} while ($mrc == CURLM_CALL_MULTI_PERFORM);
 		}
 	}
-	
+
 	foreach ($curl_client as $i => $curl) {
 		$response[$i] = curl_multi_getcontent($curl);
 		curl_multi_remove_handle($curl_multi, $curl);
@@ -154,13 +154,14 @@ function ihttp_socketopen($hostname, $port = 80, &$errno, &$errstr, $timeout = 1
 
 /**
  * 对请求得到的数据的进行分析和封装
- * 
+ *
  * @param string $data
  * @param boolean $chunked
  * @return array error 或 $data 的封装
  */
 function ihttp_response_parse($data, $chunked = false) {
 	$rlt = array();
+
 	$headermeta = explode('HTTP/', $data);
 	if (count($headermeta) > 2) {
 		$data = 'HTTP/' . array_pop($headermeta);
@@ -168,12 +169,12 @@ function ihttp_response_parse($data, $chunked = false) {
 	$pos = strpos($data, "\r\n\r\n");
 	$split1[0] = substr($data, 0, $pos);
 	$split1[1] = substr($data, $pos + 4, strlen($data));
-	
+
 	$split2 = explode("\r\n", $split1[0], 2);
 	preg_match('/^(\S+) (\S+) (.*)$/', $split2[0], $matches);
-	$rlt['code'] = $matches[2];
-	$rlt['status'] = $matches[3];
-	$rlt['responseline'] = $split2[0];
+	$rlt['code'] = !empty($matches[2]) ? $matches[2] : 200;
+	$rlt['status'] = !empty($matches[3]) ? $matches[3] : 'OK';
+	$rlt['responseline'] = !empty($split2[0]) ? $split2[0] : '';
 	$header = explode("\r\n", $split2[1]);
 	$isgzip = false;
 	$ischunk = false;
@@ -216,7 +217,7 @@ function ihttp_response_parse($data, $chunked = false) {
 
 function ihttp_response_parse_unchunk($str = null) {
 	if(!is_string($str) or strlen($str) < 1) {
-		return false; 
+		return false;
 	}
 	$eol = "\r\n";
 	$add = strlen($eol);
@@ -274,7 +275,7 @@ function ihttp_parse_url($url, $set_default_port = false) {
 	} else if (! ihttp_allow_host($urlset['host'])){
 		return error(1, 'host 非法');
 	}
-	
+
 	if ($set_default_port && empty($urlset['port'])) {
 		$urlset['port'] = $urlset['scheme'] == 'https' ? '443' : '80';
 	}
@@ -304,23 +305,23 @@ function ihttp_allow_host($host) {
 /**
  * 创建一个curl请求对象
  * 参数同 ihttp_request
- * 
+ *
  * @return curl response
  */
 function ihttp_build_curl($url, $post, $extra, $timeout) {
 	if (!function_exists('curl_init') || !function_exists('curl_exec')) {
 		return error(1, 'curl扩展未开启');
 	}
-	
+
 	$urlset = ihttp_parse_url($url);
 	if (is_error($urlset)) {
 		return $urlset;
 	}
-	
+
 	if (!empty($urlset['ip'])) {
 		$extra['ip'] = $urlset['ip'];
 	}
-	
+
 	$ch = curl_init();
 	if (!empty($extra['ip'])) {
 		$extra['Host'] = $urlset['host'];
@@ -399,11 +400,11 @@ function ihttp_build_httpbody($url, $post, $extra) {
 	if (is_error($urlset)) {
 		return $urlset;
 	}
-	
+
 	if (!empty($urlset['ip'])) {
 		$extra['ip'] = $urlset['ip'];
 	}
-	
+
 	$body = '';
 	if (!empty($post) && is_array($post)) {
 		$filepost = false;
@@ -412,7 +413,7 @@ function ihttp_build_httpbody($url, $post, $extra) {
 			if ((is_string($value) && substr($value, 0, 1) == '@') && file_exists(ltrim($value, '@'))) {
 				$filepost = true;
 				$file = ltrim($value, '@');
-	
+
 				$body .= "--$boundary\r\n";
 				$body .= 'Content-Disposition: form-data; name="'.$name.'"; filename="'.basename($file).'"; Content-Type: application/octet-stream'."\r\n\r\n";
 				$body .= file_get_contents($file)."\r\n";
@@ -428,7 +429,7 @@ function ihttp_build_httpbody($url, $post, $extra) {
 			$body .= "--$boundary\r\n";
 		}
 	}
-	
+
 	$method = empty($post) ? 'GET' : 'POST';
 	$fdata = "{$method} {$urlset['path']}{$urlset['query']} HTTP/1.1\r\n";
 	$fdata .= "Accept: */*\r\n";
@@ -524,14 +525,14 @@ function ihttp_email($to, $subject, $body, $global = false) {
 					if(!is_file($file = ltrim($value, '@'))){
 						return error(1, $file . ' 附件不存在或非文件！');
 					}
-					$mailer->addAttachment($file);	
+					$mailer->addAttachment($file);
 				} else {
 					$body .= $value . '\n';
 				}
 			}
 		} else {
 			if (substr($body, 0, 1) == '@') {
-				$mailer->addAttachment(ltrim($body, '@'));	
+				$mailer->addAttachment(ltrim($body, '@'));
 				$body = '';
 			}
 		}

@@ -651,7 +651,8 @@
 		'saveurl' : "{php echo url('profile/payment/save_setting')}",
 		'text_alipay_url' : "{php echo url('profile/payment/test_alipay')}",
 		'borrows' : {php echo json_encode($proxy_wechatpay_account['borrow'])},
-		
+		'change_status': "{php echo url('profile/payment/change_status')}",
+		'services' : {php echo json_encode($proxy_wechatpay_account['service'])},
 		'get_setting_url' : "{php echo url('profile/payment/get_setting')}",
 		'account_level' : "{$accounts[$_W['acid']]['level']}"
 	});

@@ -327,7 +327,7 @@ if ($do == 'setting') {
 		$stat['use_ratio'] = intval($_GPC['use_ratio']);
 		$stat = iserializer($stat);
 		pdo_update('uni_settings', array('stat' => $stat), array('uniacid' => $_W['uniacid']));
-		cache_delete("unisetting:{$_W['uniacid']}");
+		cache_delete(cache_system_key('unisetting', array('uniacid' => $_W['uniacid'])));
 		itoast('设置参数成功', 'refresh', 'success');
 	}
 	template('platform/stat-setting');

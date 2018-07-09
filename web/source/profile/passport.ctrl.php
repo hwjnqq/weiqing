@@ -27,11 +27,11 @@ if ($do == 'save_oauth') {
 			'account' => $account,
 		);
 		pdo_update('uni_settings', array('oauth' => iserializer($data)), array('uniacid' => $_W['uniacid']));
-		cache_delete("unisetting:{$_W['uniacid']}");
+		cache_delete(cache_system_key('unisetting', array('uniacid' => $_W['uniacid'])));
 	}
 	if ($type == 'jsoauth') {
 		pdo_update('uni_settings', array('jsauth_acid' => $account), array('uniacid' => $_W['uniacid']));
-		cache_delete("unisetting:{$_W['uniacid']}");
+		cache_delete(cache_system_key('unisetting', array('uniacid' => $_W['uniacid'])));
 	}
 	iajax(0, '');
 }

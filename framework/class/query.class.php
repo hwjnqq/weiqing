@@ -34,6 +34,8 @@ class Query {
 	private $lastparams = '';
 	//要更新数据列表
 	private $values;
+	//用于table类查询后重置条件时，设置默认from表名
+	public $fixTable;
 	
 	public function __construct() {
 		$this->initClauses();
@@ -63,6 +65,9 @@ class Query {
 			$this->statements[$clause] = $value;
 		}
 		$this->parameters = array();
+		if (!empty($this->fixTable)) {
+			$this->from($this->fixTable);
+		}
 	}
 	
 	private function resetClause($clause = '') {

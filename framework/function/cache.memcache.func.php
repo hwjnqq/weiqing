@@ -71,7 +71,6 @@ function cache_search($key) {
  */
 function cache_write($key, $value, $ttl = 0, $forcecache = true) {
 	$key = cache_namespace($key);
-	
 	$memcache = cache_memcache();
 	if (is_error($memcache)) {
 		return $memcache;
@@ -95,25 +94,32 @@ function cache_write($key, $value, $ttl = 0, $forcecache = true) {
  * @return mixed 
  */
 function cache_delete($key, $forcecache = true) {
-	$origins_cache_key = $key;
-	$key = cache_namespace($key);
-	
 	$memcache = cache_memcache();
 	if (is_error($memcache)) {
 		return $memcache;
 	}
-	
-	if (empty($forcecache)) {
-		pdo_delete('core_cache', array('key' => $key));
+	$cache_relation_keys = cache_relation_keys($key);
+	if (is_error($cache_relation_keys)) {
+		return $cache_relation_keys;
 	}
-	
-	if ($memcache->delete(cache_prefix($key))) {
-		unset($GLOBALS['_W']['cache'][$origins_cache_key]);
-		return true;
-	} else {
-		unset($GLOBALS['_W']['cache'][$origins_cache_key]);
-		return false;
+	if (is_array($cache_relation_keys) && !empty($cache_relation_keys)) {
+		foreach ($cache_relation_keys as $key) {
+			$cache_info = cache_load($key);
+			if (!empty($cache_info)) {
+				$origins_cache_key = $key;
+				$key = cache_namespace($key);
+				if (empty($forcecache)) {
+					pdo_delete('core_cache', array('key' => $key));
+				}
+				$result = $memcache->delete(cache_prefix($key));
+				unset($GLOBALS['_W']['cache'][$origins_cache_key]);
+				if (!$result) {
+					return error(1, '缓存: ' . $key . ' 删除失败！');
+				}
+			}
+		}
 	}
+	return true;
 }
 
 /**
@@ -122,9 +128,21 @@ function cache_delete($key, $forcecache = true) {
  */
 function cache_clean($prefix = '') {
 	if (!empty($prefix)) {
-		$cache_namespace = cache_namespace($prefix, true);
-		unset($GLOBALS['_W']['cache']);
-		pdo_delete('core_cache', array('key LIKE' => $cache_namespace . '%'));
+		$cache_relation_keys = cache_relation_keys($prefix);
+		if (is_error($cache_relation_keys)) {
+			return $cache_relation_keys;
+		}
+		if (is_array($cache_relation_keys) && !empty($cache_relation_keys)) {
+			foreach ($cache_relation_keys as $key) {
+				$cache_info = cache_load($key);
+				if (!empty($cache_info)) {
+					preg_match_all('/\:([a-zA-Z0-9\-\_]+)/', $key, $matches);
+					$cache_namespace = cache_namespace('we7:' . $matches[1][0], true);
+					unset($GLOBALS['_W']['cache']);
+					pdo_delete('core_cache', array('key LIKE' => $cache_namespace . '%'));
+				}
+			}
+		}
 		return true;
 	}
 	$memcache = cache_memcache();

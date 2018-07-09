@@ -120,8 +120,8 @@ function wxapp_support_wxapp_modules() {
  *
  * @return array
  */
-function wxapp_support_uniacid_modules() {
-	$uni_modules = uni_modules();
+function wxapp_support_uniacid_modules($uniacid) {
+	$uni_modules = uni_modules_by_uniacid($uniacid);
 	$wxapp_modules = array();
 	if (!empty($uni_modules)) {
 		foreach ($uni_modules as $module_name => $module_info) {
@@ -303,7 +303,7 @@ function wxapp_version($version_id) {
 		return $version_info;
 	}
 
-	$cachekey = cache_system_key("wxapp_version:{$version_id}");
+	$cachekey = cache_system_key('wxapp_version', array('version_id' => $version_id));
 	$cache = cache_load($cachekey);
 	if (!empty($cache)) {
 		return $cache;
@@ -462,7 +462,7 @@ function wxapp_search_link_account($module_name = '') {
 			$account_modules = uni_modules_by_uniacid($account['uniacid']);
 			if (empty($account_modules[$module_name])) {
 				unset($owned_account[$key]);
-			} elseif ($account_modules[$module_name]['app_support'] != MODULE_SUPPORT_ACCOUNT || $account_modules[$module_name]['wxapp_support'] != MODULE_SUPPORT_WXAPP) {
+			} elseif ($account_modules[$module_name][MODULE_SUPPORT_ACCOUNT_NAME] != MODULE_SUPPORT_ACCOUNT || $account_modules[$module_name]['wxapp_support'] != MODULE_SUPPORT_WXAPP) {
 				unset($owned_account[$key]);
 			}
 		}
@@ -680,13 +680,13 @@ function wxapp_code_current_appjson($version_id) {
 	$version_info = wxapp_version($version_id);
 	//自定义appjson
 	if (!$version_info['use_default'] && isset($version_info['appjson'])) {
-		return unserialize($version_info['appjson']);
+		return iunserializer($version_info['appjson']);
 	}
 	//默认appjson
 	if ($version_info['use_default']) {
 		$appjson = $version_info['default_appjson'];
 		if ($appjson) {
-			return unserialize($appjson);
+			return iunserializer($appjson);
 		}
 		// 从云中取
 		$cloud_api = new CloudApi();
@@ -716,7 +716,7 @@ function wxapp_code_current_appjson($version_id) {
 function wxapp_code_custom_appjson_tobase64($version_id) {
 	load()->classs('image');
 	$version_info = wxapp_version($version_id);
-	$appjson = unserialize($version_info['appjson']);
+	$appjson = iunserializer($version_info['appjson']);
 	if (!$appjson) {
 		return false;
 	}

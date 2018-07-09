@@ -76,12 +76,12 @@ abstract class OAuth2Client {
 	abstract function showLoginUrl($calback_url = '');
 
 	abstract function user();
-	
+
 	abstract function login();
 
 	abstract function bind();
 	abstract function unbind();
-	
+
 	abstract function register();
 
 	public function user_register($register) {
@@ -108,9 +108,6 @@ abstract class OAuth2Client {
 			$member['endtime'] = strtotime($timelimit . ' days');
 		}
 		$member['starttime'] = TIMESTAMP;
-		if (!empty($owner_uid)) {
-			$member['owner_uid'] = pdo_getcolumn('users', array('uid' => $owner_uid, 'founder_groupid' => ACCOUNT_MANAGE_GROUP_VICE_FOUNDER), 'uid');
-		}
 
 		$user_id = user_register($member);
 		if (in_array($member['register_type'], array(USER_REGISTER_TYPE_QQ, USER_REGISTER_TYPE_WECHAT, USER_REGISTER_TYPE_MOBILE))) {

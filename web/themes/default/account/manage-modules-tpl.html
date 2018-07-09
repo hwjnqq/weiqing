@@ -214,7 +214,7 @@
 					<div class="material-body" ng-show="jurindex==0" id="content-modules">
 						<div class="row">
 							{loop $modules $module_name $module}
-							{if empty($module['issystem']) && $module['app_support'] == 2}
+							{if empty($module['issystem']) && $module['account_support'] == 2}
 							<div class="col-sm-2">
 								<div class="item {if is_array($current_module_names) && in_array($module_name, $current_module_names)}active{/if}"
 								     data-title="{$module['title']}"

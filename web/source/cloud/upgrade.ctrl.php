@@ -34,8 +34,8 @@ if ($do == 'upgrade') {
 		if ($upgrade['upgrade']) {
 			message("检测到新版本: <strong>{$upgrade['version']} (Release {$upgrade['release']})</strong>, 请立即更新.", 'refresh');
 		} else {
-			cache_delete('checkupgrade:system');
-			cache_delete('cloud:transtoken');
+			cache_delete(cache_system_key('checkupgrade'));
+			cache_delete(cache_system_key('cloud_transtoken'));
 			message('检查结果: 恭喜, 你的程序已经是最新版本. ', 'refresh');
 		}
 	}
@@ -58,13 +58,13 @@ if ($do == 'upgrade') {
 }
 
 if ($do == 'get_upgrade_info') {
-	$upgrade_cache = cache_load('upgrade');
+	$upgrade_cache = cache_load(cache_system_key('upgrade'));
 	if (empty($upgrade_cache) || TIMESTAMP - $upgrade_cache['lastupdate'] >= 3600 * 24 || empty($upgrade_cache['data'])) {
 		$upgrade = cloud_build();
 	} else {
 		$upgrade = $upgrade_cache['data'];
 	}
-	cache_delete('cloud:transtoken');
+	cache_delete(cache_system_key('cloud_transtoken'));
 	if (!empty($upgrade['schemas'])) {
 		$upgrade['database'] = cloud_build_schemas($upgrade['schemas']);
 	}

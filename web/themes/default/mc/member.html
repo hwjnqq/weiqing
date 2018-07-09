@@ -492,7 +492,7 @@
 					<div class="col-sm-9 col-xs-12">
 						<input id="radio-8" type="radio" name="passport[type]" value="code" {if $register_setting['type'] == 'code'} checked="checked"{/if}/>
 						<label for="radio-8">随机密码</label>
-						<input id="radio-9" type="radio" name="passport[type]" value="password" {if $register_setting['type'] == 'password' || empty($passport['type'])} checked="checked"{/if}/>
+						<input id="radio-9" type="radio" name="passport[type]" value="password" {if $register_setting['type'] == 'password'} checked="checked"{/if}/>
 						<label for="radio-9">固定密码</label>
 						<input id="radio-10" type="radio" name="passport[type]" value="hybird" {if $register_setting['type'] == 'hybird'} checked="checked"{/if}/>
 						<label for="radio-10">混合密码</label>

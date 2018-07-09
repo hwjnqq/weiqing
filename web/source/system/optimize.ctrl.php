@@ -8,7 +8,6 @@
 defined('IN_IA') or exit('Access Denied');
 
 load()->func('cache');
-load()->func('communication');
 
 $dos = array('opcache');
 $do = in_array($do, $dos) ? $do : 'index';
@@ -69,12 +68,6 @@ if ($do == 'opcache') {
 				$extensions['redis']['extra'] = '消耗峰值：' . round($status['used_memory_peak'] / 1048576, 2) . ' M/ 内存总量：' . round($status['used_memory'] / 1048576, 2) . ' M';
 			}
 		}
-	}
-	//检测是否 ningx+apache 开启 fastcgi_ignore_client_abort on;  proxy_ignore_client_abort on; 参数
-	$url = url('user/login');
-	$response = ihttp_request($url);
-	if (strexists($response['headers']['Server'], 'nginx') && is_error(fastcgi_finish_request())) {
-		$ignore_client_abort = false;
 	}
 	template('system/optimize');
 }

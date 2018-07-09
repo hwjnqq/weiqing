@@ -93,7 +93,6 @@ if($sign == $_GET['sign']){
 				if ($order['type'] == 1) {
 					pdo_update('site_store_order', array('type' => 3), array('orderid' => $_GET['out_trade_no']));
 				}
-				cache_delete(cache_system_key($order['uniacid'] . ':site_store_buy_modules'));
 				cache_build_account_modules($order['uniacid']);
 				header('Location: ./index.php?c=site&a=entry&direct=1&m=store&do=orders');
 			}

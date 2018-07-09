@@ -7,7 +7,7 @@ defined('IN_IA') or exit('Access Denied');
 
 /**
  * 构建管理员或操作员权限数据
- * @return boolean
+ * @return array|mixed
  */
 function permission_build() {
 	global $_W, $acl;
@@ -17,8 +17,9 @@ function permission_build() {
 		return $we7_file_permission;
 	}
 
-	$cachekey = cache_system_key("permission:{$_W['uniacid']}:{$_W['uid']}");
+	$cachekey = cache_system_key('permission', array('uniacid' => $_W['uniacid'], 'uid' => $_W['uid']));
 	$cache = cache_load($cachekey);
+
 	if (!empty($cache)) {
 		return $cache;
 	}
@@ -31,7 +32,7 @@ function permission_build() {
 		$we7_file_permission['module'][$_W['role']] = array('manage-account', 'display');
 		$we7_file_permission['wxapp'][$_W['role']] = array('display', 'payment', 'post', 'version');
 		$we7_file_permission['webapp'][$_W['role']] = array('home', 'manage');
-		$we7_file_permission['phoneapp'][$_W['role']] = array('display', 'manage');
+		$we7_file_permission['phoneapp'][$_W['role']] = array('display', 'manage', 'version');
 		cache_write($cachekey, $we7_file_permission);
 		return $we7_file_permission;
 	}
@@ -439,7 +440,7 @@ function permission_check_account_user_module($action = '', $module_name = '') {
 	$m = trim($_GPC['m']);
 	//参数设置权限
 	if ($a == 'manage-account' && $do == 'setting' && !empty($m)) {
-		$permission_name = $m . '_setting';
+		$permission_name = $m . '_settings';
 		$users_permission = permission_account_user($m);
 		if ($users_permission[0] != 'all' && !in_array($permission_name, $users_permission)) {
 			return false;
@@ -451,7 +452,7 @@ function permission_check_account_user_module($action = '', $module_name = '') {
 		}
 		//模块其他业务菜单
 	} elseif (!empty($do) && !empty($m)) {
-		$is_exist = table('module')->moduleBindingsInfo($m, $do, 'menu');
+		$is_exist = table('modules_bindings')->isEntryExists($m, 'menu', $do);
 		if(empty($is_exist)) {
 			return true;
 		}
@@ -504,10 +505,10 @@ function permission_user_account_num($uid = 0) {
 	}
 	/* @var $store_table StoreTable*/
 	$store_table = table('store');
-	$create_buy_account_num = $store_table->searchUserCreateAccountNum($_W['uid']);
-	$create_buy_wxapp_num = $store_table->searchUserCreateWxappNum($_W['uid']);
-	$store_buy_account = $store_table->searchUserBuyAccount($_W['uid']);
-	$store_buy_wxapp = $store_table->searchUserBuyWxapp($_W['uid']);
+	$create_buy_account_num = $store_table->searchUserCreateAccountNum($uid);
+	$create_buy_wxapp_num = $store_table->searchUserCreateWxappNum($uid);
+	$store_buy_account = $store_table->searchUserBuyAccount($uid);
+	$store_buy_wxapp = $store_table->searchUserBuyWxapp($uid);
 	$uniacid_limit = max((intval($group['maxaccount']) + intval($store_buy_account) - $group_num['account_num']), 0);
 	$wxapp_limit = max((intval($group['maxwxapp']) + intval($store_buy_wxapp) - $group_num['wxapp_num']), 0);
 	$webapp_limit = max(intval($group['maxwebapp']) - $group_num['webapp_num'], 0);

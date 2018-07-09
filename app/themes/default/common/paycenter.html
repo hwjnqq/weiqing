@@ -66,7 +66,7 @@
 		</li>
 	</ul>
 	<h5 class="mui-desc-title mui-pl10">选择支付方式</h5>
-	<ul class="mui-table-view mui-table-view-chevron pay-style hide">
+	<ul class="mui-table-view mui-table-view-chevron pay-style">
 		{if !empty($pay['credit']['switch'])}
 		<li class="mui-table-view-cell credit">
 			<a class="mui-navigate-right mui-media credit-js-pay" href="javascript:;">
@@ -395,10 +395,12 @@
 				return false;
 			});
 		{if $pay['mix']['switch'] && $credtis[$setting['creditbehaviors']['currency']] > 0 && $credtis[$setting['creditbehaviors']['currency']] < $params['fee']}
+		var price = parseFloat($('.js-need-pay').data('price'));
+		var currency = parseFloat("{$credtis[$setting['creditbehaviors']['currency']]}");
 		$(function() {
 			$('[name="mix_pay"]').val(true);
 			$('.credit').hide();
-			fee = $('.js-need-pay').data('price') - "{$credtis[$setting['creditbehaviors']['currency']]}";
+			fee = (price * 100 - currency * 100)/100;
 			$('.js-need-pay').data('price', fee);
 			$('.js-need-pay').html(fee + '元');
 		})
@@ -406,31 +408,33 @@
 		$('[name="mix"]').click(function() {
 			if ($(this).prop('checked') === true) {
 				$('[name="mix_pay"]').val(true);
-				fee = $('.js-need-pay').data('price') - "{!empty($credtis[$setting['creditbehaviors']['currency']]) ? $credtis[$setting['creditbehaviors']['currency']] : 0}";
+				fee = (price * 100 - currency * 100)/100;
 				$('.credit').hide();
 			} else {
 				$('[name="mix_pay"]').val(false);
-				fee = parseFloat($('.js-need-pay').data('price')) + parseFloat("{!empty($credtis[$setting['creditbehaviors']['currency']]) ? $credtis[$setting['creditbehaviors']['currency']] : 0}");
+				fee = (price * 100 - currency * 100)/100;
 				$('.credit').show();
 			}
 			$('.js-need-pay').data('price', fee);
 			$('.js-need-pay').html(fee + '元');
 		});
-	if(window.__wxjs_environment === 'miniprogram') {
-		$('.pay-style').removeClass('hide');
-		$('.pay-style li').hide();
-		$('.js-webwxapp-pay').removeClass('hide');
-		$('.pay-style .js-webwxapp-pay').show();
-		$('.js-webwxapp-pay').click(function(){
-			wx.miniProgram.navigateTo({
-				url: "/wxapp_web/pages/view/pay?orderid={$params['tid']}&module_name={$params['module']}&title={$params['title']}"
-			})
-		});
-	} else {
-		$('.pay-style').removeClass('hide');
-		$('.pay-style').show();
-	}
 	document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+		var miniprogram_environment = false;
+		wx.miniProgram.getEnv(function(res) {
+			if (res.miniprogram) {
+				miniprogram_environment = true;
+			}
+		})
+		if(window.__wxjs_environment === 'miniprogram' || miniprogram_environment) {
+			$('.pay-style li').hide();
+			$('.js-webwxapp-pay').removeClass('hide');
+			$('.pay-style .js-webwxapp-pay').show();
+			$('.js-webwxapp-pay').click(function(){
+				wx.miniProgram.navigateTo({
+					url: "/wxapp_web/pages/view/pay?orderid={$params['tid']}&module_name={$params['module']}&title={$params['title']}"
+				})
+			});
+		}
 		$('.js-wechat-pay').removeClass('mui-disabled');
 		$('.js-wechat-pay a').addClass('js-pay');
 		$('#wetitle').html('微信支付');

@@ -17,7 +17,7 @@ class coupon extends WeiXinAccount {
 	}
 
 	public function getCardTicket(){
-		$cachekey = "cardticket:{$this->account['acid']}";
+		$cachekey = cache_system_key('cardticket', array('acid' => $this->account['acid']));
 		$cache = cache_load($cachekey);
 		if (!empty($cache) && !empty($cache['ticket']) && $cache['expire'] > TIMESTAMP) {
 			$this->account['card_ticket'] = $cache;

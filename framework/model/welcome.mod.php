@@ -59,7 +59,7 @@ function welcome_notices_get() {
  */
 function welcome_database_backup_days($time) {
 	global $_W;
-	$cachekey = cache_system_key("back_days:");
+	$cachekey = cache_system_key('back_days');
 	$cache = cache_load($cachekey);
 	if (!empty($cache)) {
 		return $cache;
@@ -86,22 +86,29 @@ function welcome_database_backup_days($time) {
  * @return array() ;
  */
 function welcome_get_cloud_upgrade() {
-	$upgrade_cache = cache_load('upgrade');
+	load()->model('cloud');
+	$upgrade_cache = cache_load(cache_system_key('upgrade'));
 	if (empty($upgrade_cache) || TIMESTAMP - $upgrade_cache['lastupdate'] >= 3600 * 24 || empty($upgrade_cache['data'])) {
 		$upgrade = cloud_build();
 	} else {
 		$upgrade = $upgrade_cache['data'];
 	}
-	cache_delete('cloud:transtoken');
+	cache_delete(cache_system_key('cloud_transtoken'));
 	if (is_error($upgrade) || empty($upgrade['upgrade'])) {
 		$upgrade = array();
 	}
 	if (!empty($upgrade['schemas'])) {
 		$upgrade['database'] = cloud_build_schemas($schems);
 	}
-	$file_nums = count($upgrade['files']);
-	$database_nums = count($upgrade['database']);
-	$script_nums = count($upgrade['scripts']);
+	if (!empty($upgrade['files'])) {
+		$file_nums = count($upgrade['files']);
+	}
+	if (!empty($upgrade['database'])) {
+		$database_nums = count($upgrade['database']);
+	}
+	if (!empty($upgrade['scripts'])) {
+		$script_nums = count($upgrade['scripts']);
+	}
 	$upgrade['file_nums'] = $file_nums;
 	$upgrade['database_nums'] = $database_nums;
 	$upgrade['script_nums'] = $script_nums;

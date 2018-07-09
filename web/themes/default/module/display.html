@@ -27,8 +27,8 @@
 				<div class="version">
 					<span class="name">支持</span>
 					<div class="version-detail">
-						<span ng-if="list.app_support == 2">公众号</span>
-						<span ng-if="list.app_support == 2 && list.wxapp_support == 2">、</span>
+						<span ng-if="list.{MODULE_SUPPORT_ACCOUNT_NAME} == 2">公众号</span>
+						<span ng-if="list.{MODULE_SUPPORT_ACCOUNT_NAME} == 2 && list.wxapp_support == 2">、</span>
 						<span ng-if="list.wxapp_support == 2">小程序</span>
 					</div>
 				</div>

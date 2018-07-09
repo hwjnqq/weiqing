@@ -40,7 +40,8 @@ define('ACCOUNT_TYPE_WEBAPP_NORMAL', 5);
 define('ACCOUNT_TYPE_PHONEAPP_NORMAL', 6);
 //授权接入小程序
 define('ACCOUNT_TYPE_APP_AUTH', 7);
-
+//正常接入企业小程序
+define('ACCOUNT_TYPE_WXAPP_WORK', 8);
 //公众号
 define('ACCOUNT_TYPE_SIGN', 'account');
 //小程序
@@ -49,6 +50,8 @@ define('WXAPP_TYPE_SIGN', 'wxapp');
 define('WEBAPP_TYPE_SIGN', 'webapp');
 //APP
 define('PHONEAPP_TYPE_SIGN', 'phoneapp');
+//欢迎页
+define('WELCOMESYSTEM_TYPE_SIGN', 'welcome');
 
 
 //授权登录接入
@@ -88,6 +91,8 @@ define('ACCOUNT_MANAGE_GROUP_GENERAL', 0);
 define('ACCOUNT_MANAGE_NAME_UNBIND_USER', 'unbind_user');
 //admin创建用户，用户组 owner_uid=0
 define('ACCOUNT_NO_OWNER_UID', 0);
+//到期用户
+define('ACCOUNT_MANAGE_NAME_EXPIRED', 'expired');
 
 //系统卡券
 define('SYSTEM_COUPON', 1);
@@ -130,19 +135,6 @@ define('CACHE_EXPIRE_MIDDLE', 300);
 define('CACHE_EXPIRE_LONG', 3600);
 define('CACHE_KEY_LENGTH', 100); //缓存键的最大长度
 
-//模块配置信息
-define('CACHE_KEY_MODULE_SETTING', 'module_setting:%s:%s');
-//模块详细信息，包含 CACHE_KEY_MODULE_SETTING
-define('CACHE_KEY_MODULE_INFO', 'module_info:%s');
-//当前公众号及所有者可用的模块
-define('CACHE_KEY_ACCOUNT_MODULES', 'unimodules:%s:%s');
-//模块所有注册菜单
-define('CACHE_KEY_ACCOUNT_MODULES_BINDING', 'unimodules:binding:%s');
-//用户信息
-define('CACHE_KEY_MEMBER_INFO', 'memberinfo:%s');
-define('CACHE_KEY_UNI_GROUP', 'uni_group');
-define('CACHE_KEY_ACCOUNT_SWITCH', 'lastaccount:%s');
-
 //模块是否支持小程序
 define('MODULE_SUPPORT_WXAPP', 2);
 define('MODULE_NONSUPPORT_WXAPP', 1);
@@ -164,6 +156,27 @@ define('MODULE_SUPPORT_ANDROID', 2);
 //是否支持ios 不支持1 支持2
 define('MODULE_NOSUPPORT_IOS', 1);
 define('MODULE_SUPPORT_IOS', 2);
+
+define('MODULE_SUPPORT_WXAPP_NAME', 'wxapp_support');
+define('MODULE_SUPPORT_ACCOUNT_NAME', 'account_support');
+define('MODULE_SUPPORT_WEBAPP_NAME', 'webapp_support');
+define('MODULE_SUPPORT_PHONEAPP_NAME', 'phoneapp_support');
+define('MODULE_SUPPORT_SYSTEMWELCOME_NAME', 'welcome_support');
+
+//模块安装来源
+//本地安装 
+define('MODULE_LOCAL_INSTALL', '1');
+//本地未安装
+define('MODULE_LOCAL_UNINSTALL', '2');
+//线上安装
+define('MODULE_CLOUD_INSTALL', '3');
+//线上未安装 
+define('MODULE_CLOUD_UNINSTALL', '4');
+//模块卸载类型 
+//停用已安装
+define('MODULE_RECYCLE_INSTALL_DISABLED', '1');
+//忽略未安装
+define('MODULE_RECYCLE_UNINSTALL_IGNORE', '2');
 
 //权限类型
 define('PERMISSION_ACCOUNT', 'system');
@@ -300,7 +313,7 @@ define('COMMENT_STATUS_OFF', 0);
 define('COMMENT_STATUS_ON', 1);
 
 //用户欢迎页
-define('WELCOME_DISPLAY_TYPE', 0);
+define('WELCOME_DISPLAY_TYPE', 9);
 //上次登陆最后访问页面
 define('LASTVISIT_DISPLAY_TYPE', 1);
 //公众号列表
@@ -311,3 +324,5 @@ define('WXAPP_DISPLAY_TYPE', 3);
 define('WEBAPP_DISPLAY_TYPE', 4);
 //app列表
 define('PHONEAPP_DISPLAY_TYPE', 5);
+//平台
+define('PLATFORM_DISPLAY_TYPE', 6);

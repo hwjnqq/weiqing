@@ -51,6 +51,7 @@ $qrcodeimgsrc = tomedia('qrcode_'.$acid.'.jpg');
 $account = account_fetch($acid);
 
 if($do == 'base') {
+
 	if (!$role_permission) {
 		itoast('无权限操作！', url('account/post/modules_tpl', array('uniacid' => $uniacid, 'acid' => $acid)), 'error');
 	}
@@ -148,13 +149,9 @@ if($do == 'base') {
 			$result = pdo_update(uni_account_tablename(ACCOUNT_TYPE), $data, array('acid' => $acid, 'uniacid' => $uniacid));
 		}
 		if($result) {
-			cache_delete("uniaccount:{$uniacid}");
-			cache_delete("unisetting:{$uniacid}");
-			cache_delete("accesstoken:{$acid}");
-			cache_delete("jsticket:{$acid}");
-			cache_delete("cardticket:{$acid}");
-			$cachekey = cache_system_key("statistics:{$uniacid}");
-			cache_delete($cachekey);
+			cache_delete(cache_system_key('uniaccount', array('uniacid' => $uniacid)));
+			cache_delete(cache_system_key('accesstoken', array('acid' => $acid)));
+			cache_delete(cache_system_key('statistics', array('uniacid' => $uniacid)));
 			iajax(0, '修改成功！', '');
 		}else {
 			iajax(1, '修改失败！', '');
@@ -176,6 +173,13 @@ if($do == 'base') {
 			);
 		}
 	}
+
+	$table_name = in_array(ACCOUNT_TYPE, array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)) ? 'account_wechats' : 'account_' . TYPE_SIGN;
+	if (in_array(ACCOUNT_TYPE, array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH, ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH))) {
+		$account_other_info = pdo_get($table_name, array('uniacid' => $uniacid, 'acid' => $acid), array('key', 'secret', 'token', 'encodingaeskey'));
+	}
+	$account_other_info = (array)$account_other_info;
+	$account = array_merge($account, $account_other_info);
 	$account['end'] = $account['endtime'] == 0 ? '永久' : date('Y-m-d', $account['endtime']);
 	$account['endtype'] = $account['endtime'] == 0 ? 1 : 2;
 	$statistics_setting = (array)uni_setting_load(array('statistics'), $uniacid);
@@ -299,6 +303,9 @@ if($do == 'modules_tpl') {
 	$modules_tpl = $extend = array();
 
 	$founders = explode(',', $_W['config']['setting']['founder']);
+	if (in_array($_W['uid'], $founders)) {
+		$uni_groups = uni_groups();
+	}
 	if (in_array($owner['uid'], $founders)) {
 		$modules_tpl[] = array(
 			'id' => -1,
@@ -314,7 +321,7 @@ if($do == 'modules_tpl') {
 			$owner['group'] = pdo_get('users_group', array('id' => $owner['groupid']), array('id', 'name', 'package'));
 		}
 
-		$owner['group']['package'] = iunserializer($owner['group']['package']);
+		$owner['group']['package'] = (array)iunserializer($owner['group']['package']);
 		if(!empty($owner['group']['package'])){
 			foreach ($owner['group']['package'] as $package_value) {
 				if($package_value == -1){

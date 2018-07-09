@@ -137,10 +137,10 @@ if($step == 1) {
 			unset($update['type']);
 			pdo_update('account_wechats', $update, array('acid' => $acid, 'uniacid' => $uniacid));
 		}
-		if(parse_path($_GPC['qrcode'])) {
+		if(parse_path($_GPC['qrcode']) && in_array(pathinfo($_GPC['qrcode'], PATHINFO_EXTENSION), $_W['config']['upload']['image']['extentions'])) {
 			copy($_GPC['qrcode'], IA_ROOT . '/attachment/qrcode_'.$acid.'.jpg');
 		}
-		if(parse_path($_GPC['headimg'])) {
+		if(parse_path($_GPC['headimg']) && in_array(pathinfo($_GPC['qrcode'], PATHINFO_EXTENSION), $_W['config']['upload']['image']['extentions'])) {
 			copy($_GPC['headimg'], IA_ROOT . '/attachment/headimg_'.$acid.'.jpg');
 		}
 		//当是认证服务号的时候设置权限到借用oauth中
@@ -148,8 +148,7 @@ if($step == 1) {
 		if ($acid && !empty($update['key']) && !empty($update['secret']) && empty($oauth['oauth']['account']) && $update['level'] == ACCOUNT_SERVICE_VERIFY) {
 			pdo_update('uni_settings', array('oauth' => iserializer(array('account' => $acid, 'host' => $oauth['oauth']['host']))), array('uniacid' => $uniacid));
 		}
-		cache_delete("unisetting:{$uniacid}");
-
+		cache_delete(cache_system_key('unisetting', array('uniacid' => $uniacid)));
 		if (!empty($_GPC['uniacid']) || empty($_W['isfounder'])) {
 			header("Location: ".url('account/post-step/', array('uniacid' => $uniacid, 'acid' => $acid, 'step' => 4)));
 		} else {
@@ -252,14 +251,16 @@ if($step == 1) {
 		} else {
 			pdo_delete('uni_group', array('uniacid' => $uniacid));
 		}
-		cache_delete("unisetting:{$uniacid}");
-		cache_delete("unimodules:{$uniacid}:1");
-		cache_delete("unimodules:{$uniacid}:");
-		cache_delete("uniaccount:{$uniacid}");
-		cache_delete("accesstoken:{$acid}");
-		cache_delete("jsticket:{$acid}");
-		cache_delete("cardticket:{$acid}");
-		cache_delete(cache_system_key('proxy_wechatpay_account:'));
+
+		cache_delete(cache_system_key('uniaccount', array('uniacid' => $uniacid)));
+
+		cache_delete(cache_system_key('unimodules', array('uniacid' => $uniacid, 'enabled' => 1)));
+		cache_delete(cache_system_key('unimodules', array('uniacid' => $uniacid, 'enabled' => '')));
+
+		cache_delete(cache_system_key('accesstoken', array('acid' => $acid)));
+
+		cache_delete(cache_system_key('proxy_wechatpay_account'));
+
 		cache_clean(cache_system_key('user_accounts'));
 
 		if (!empty($_GPC['from'])) {
@@ -313,7 +314,10 @@ if($step == 1) {
 	}
 	$extend['package'] = pdo_getall('uni_account_group', array('uniacid' => $uniacid), array(), 'groupid');
 	$groups = user_group();
-	$modules = user_uniacid_modules($_W['uid']);
+	$modules = user_modules($_W['uid']);
+	$modules = array_filter($modules, function($module) {
+		return empty($module['issystem']);
+	});
 	$templates  = pdo_fetchall("SELECT * FROM ".tablename('site_templates'));
 } elseif($step == 4) {
 	$uniacid = intval($_GPC['uniacid']);

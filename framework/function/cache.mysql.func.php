@@ -56,6 +56,7 @@ function cache_write($key, $data, $expire = 0) {
 	if (empty($key) || !isset($data)) {
 		return false;
 	}
+
 	$record = array();
 	$record['key'] = $key;
 	if (!empty($expire)) {
@@ -76,11 +77,25 @@ function cache_write($key, $data, $expire = 0) {
  * @return boolean
  */
 function cache_delete($key) {
-	$sql = 'DELETE FROM ' . tablename('core_cache') . ' WHERE `key`=:key';
-	$params = array();
-	$params[':key'] = $key;
-	$result = pdo_query($sql, $params);
-	return $result;
+	$cache_relation_keys = cache_relation_keys($key);
+	if (is_error($cache_relation_keys)) {
+		return $cache_relation_keys;
+	}
+	if (is_array($cache_relation_keys) && !empty($cache_relation_keys)) {
+		foreach ($cache_relation_keys as $key) {
+			$cache_info = cache_load($key);
+			if (!empty($cache_info)) {
+				$sql = 'DELETE FROM ' . tablename('core_cache') . ' WHERE `key`=:key';
+				$params = array();
+				$params[':key'] = $key;
+				$result = pdo_query($sql, $params);
+				if (!$result) {
+					return error(1, '缓存：' . $key . ' 删除失败!');
+				}
+			}
+		}
+		return true;
+	}
 }
 
 /**
@@ -97,10 +112,26 @@ function cache_clean($prefix = '') {
 			unset($_W['cache']);
 		}
 	} else {
-		$sql = 'DELETE FROM ' . tablename('core_cache') . ' WHERE `key` LIKE :key';
-		$params = array();
-		$params[':key'] = "{$prefix}:%";
-		$result = pdo_query($sql, $params);
+		$cache_relation_keys = cache_relation_keys($prefix);
+		if (is_error($cache_relation_keys)) {
+			return $cache_relation_keys;
+		}
+
+		if (is_array($cache_relation_keys) && !empty($cache_relation_keys)) {
+			foreach ($cache_relation_keys as $key) {
+				$cache_info = cache_load($key);
+				if (!empty($cache_info)) {
+					preg_match_all('/\:([a-zA-Z0-9\-\_]+)/', $key, $matches);
+					$sql = "DELETE FROM " . tablename('core_cache') . ' WHERE `key` LIKE :key';
+					$params = array();
+					$params[':key'] = "we7:{$matches[1][0]}%";
+					$result = pdo_query($sql, $params);
+					if (!$result) {
+						return error(-1, '缓存 ' . $key . '删除失败!');
+					}
+				}
+			}
+		}
 	}
-	return $result;
+	return true;
 }

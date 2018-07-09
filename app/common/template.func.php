@@ -304,7 +304,7 @@ function site_navs($params = array()) {
 					$row['url'] = $row['linkurl'];
 				}
 			}
-			$row['css'] = unserialize($row['css']);
+			$row['css'] = iunserializer($row['css']);
 			if(empty($row['css']['icon']['icon'])){
 				$row['css']['icon']['icon'] = 'fa fa-external-link';
 			}
@@ -387,7 +387,7 @@ function site_category($params = array()) {
 				$row['linkurl'] = url('site/site/list', array('cid' =>$row['id']));
 			}
 			$row['icon'] = tomedia($row['icon']);
-			$row['css'] = unserialize($row['css']);
+			$row['css'] = iunserializer($row['css']);
 			if(empty($row['css']['icon']['icon'])){
 				$row['css']['icon']['icon'] = 'fa fa-external-link';
 			}

@@ -16,17 +16,20 @@ abstract class WeAccount {
 	public $uniacid = 0;
 	//当前菜单类型
 	public $menuFrame;
-	//帐号类型
+	//帐号类型，数值
 	public $type;
 	//帐号类型中文名称
 	public $typeName;
+	//帐号对应的英文类型 
+	public $typeSign;
 	//相应类型对应的模板后缀
 	public $typeTempalte;
+	//当前公众号类型 
 
 	/**
 	 * 创建平台特定的公众号操作对象
 	 * @param int $acid 公众号编号
-	 * @return WeAccount|NULL
+	 * @return WeiXinAccount
 	 */
 	public static function create($acidOrAccount = array()) {
 		global $_W;
@@ -104,6 +107,10 @@ abstract class WeAccount {
 		if($type == ACCOUNT_TYPE_PHONEAPP_NORMAL) {
 			load()->classs('phoneapp.account');
 			$account_obj = new PhoneappAccount();
+		}
+		if($type == ACCOUNT_TYPE_WXAPP_WORK) {
+			load()->classs('wxapp.work');
+			$account_obj = new WxappWork();
 		}
 		$account_obj->uniacid = $uniaccount['uniacid'];
 		$account_obj->uniaccount = $uniaccount;
@@ -377,8 +384,7 @@ abstract class WeAccount {
 		);
 		$code = strval($code);
 		if($code == '40001' || $code == '42001') {
-			$cachekey = "accesstoken:{$this->account['acid']}";
-			cache_delete($cachekey);
+			cache_delete(cache_system_key('accesstoken', array('acid' => $this->account['acid'])));
 			return '微信公众平台授权异常, 系统已修复这个错误, 请刷新页面重试.';
 		}
 		if($errors[$code]) {
@@ -884,7 +890,7 @@ abstract class WeBase {
 	/**
 	 * @var array 当前模块参数及配置信息
 	 */
-	private $module;
+	public $module;
 	/**
 	 * @var string 当前模块名称 {identifie}
 	 */
@@ -913,12 +919,13 @@ abstract class WeBase {
 		$pars = array('module' => $this->modulename, 'uniacid' => $_W['uniacid']);
 		$row = array();
 		$row['settings'] = iserializer($settings);
-		cache_build_module_info($this->modulename);
 		if (pdo_fetchcolumn("SELECT module FROM ".tablename('uni_account_modules')." WHERE module = :module AND uniacid = :uniacid", array(':module' => $this->modulename, ':uniacid' => $_W['uniacid']))) {
-			return pdo_update('uni_account_modules', $row, $pars) !== false;
+			$result = pdo_update('uni_account_modules', $row, $pars) !== false;
 		} else {
-			return pdo_insert('uni_account_modules', array('settings' => iserializer($settings), 'module' => $this->modulename ,'uniacid' => $_W['uniacid'], 'enabled' => 1)) !== false;
+			$result = pdo_insert('uni_account_modules', array('settings' => iserializer($settings), 'module' => $this->modulename ,'uniacid' => $_W['uniacid'], 'enabled' => 1)) !== false;
 		}
+		cache_build_module_info($this->modulename);	
+		return $result;
 	}
 
 	/**

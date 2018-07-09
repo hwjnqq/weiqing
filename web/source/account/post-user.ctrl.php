@@ -65,6 +65,7 @@ if ($do == 'edit') {
 		}
 		$result = pdo_delete('uni_account_users', $data);
 		if ($result) {
+			pdo_delete('system_stat_visit', $data);
 			itoast('删除成功！', referer(), 'success');
 		} else {
 			itoast('删除失败，请重试！', referer(), 'error');
@@ -75,7 +76,7 @@ if ($do == 'edit') {
 } elseif ($do == 'set_manager') {
 	$username = trim($_GPC['username']);
 	$user = user_single(array('username' => $username));
-	if (!empty($user)) {
+	if (!empty($user) && $_W['token'] == $_GPC['token']) {
 		if ($user['status'] != 2) {
 			iajax(3, '用户未通过审核或不存在！', '');
 		}
@@ -161,7 +162,7 @@ if ($do == 'edit') {
 	$module = uni_modules_by_uniacid($uniacid);
 	if (!empty($module)) {
 		foreach ($module as $key => $value) {
-			if (in_array($account['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)) && $value['app_support'] != MODULE_SUPPORT_ACCOUNT) {
+			if (in_array($account['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)) && $value[MODULE_SUPPORT_ACCOUNT_NAME] != MODULE_SUPPORT_ACCOUNT) {
 				unset($module[$key]);
 			}
 			if ($account['type'] == ACCOUNT_TYPE_APP_NORMAL && $value['wxapp_support'] != MODULE_SUPPORT_WXAPP) {
@@ -227,11 +228,11 @@ if ($do == 'edit') {
 			}
 		}
 		//模块权限
-		
+
 		// pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $uid, 'type <>' => PERMISSION_ACCOUNT, 'type <>' => PERMISSION_WXAPP));
 		//	不支持，会丢失一个 “type ！=”，sql语句为：DELETE FROM `ims_users_permission` WHERE `uniacid` = :__uniacid_324 AND `uid` = :__uid_325 AND `type` <> :__type_326
 		pdo_query("DELETE FROM " . tablename('users_permission') . " WHERE uniacid = :uniacid AND uid = :uid AND type != '" . PERMISSION_ACCOUNT . "' AND type != '" . PERMISSION_WXAPP . "'", array(':uniacid' => $uniacid, ':uid' => $uid));
-		
+
 		if (!empty($_GPC['module'])) {
 			foreach($_GPC['module'] as $module_val) {
 				$insert = array(
@@ -255,8 +256,7 @@ if ($do == 'edit') {
 				}
 			}
 		}
-		$cachekey = cache_system_key("permission:{$uniacid}:{$uid}");
-		cache_delete($cachekey);
+		cache_delete(cache_system_key('permission', array('uniacid' => $uniacid, 'uid' => $uid)));
 		itoast('操作菜单权限成功！', referer(), 'success');
 	}
 	template('account/set-permission');

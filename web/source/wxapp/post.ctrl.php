@@ -208,7 +208,7 @@ if ($do == 'module_binding') {
 		return trim($item);
 	}, $modules);
 
-	$modules = table('module')->with(array('bindings' => function($query){
+	$modules = table('modules')->with(array('bindings' => function($query){
 		return $query->where('entry', 'cover');
 	}))->where('name', $modules)->getall();
 

@@ -24,7 +24,7 @@ function setting_save($data = '', $key = '') {
 	} else {
 		$return = table('coresetting')->settingSave($key, $data);
 	}
-	$cachekey = "setting";
+	$cachekey = cache_system_key('setting');
 	cache_write($cachekey, '');
 	return $return;
 }
@@ -37,7 +37,7 @@ function setting_save($data = '', $key = '') {
 function setting_load($key = '') {
 	global $_W;
 
-	$cachekey = "setting";
+	$cachekey = cache_system_key('setting');
 	$settings = cache_load($cachekey);
 	if (empty($settings)) {
 		$settings = table('coresetting')->getSettingList();

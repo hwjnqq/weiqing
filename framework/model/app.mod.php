@@ -35,7 +35,7 @@ function app_navs($type = 'home', $multiid = 0, $section = 0) {
 				$row['url'] .= strexists($row['url'], '?') ? "&i={$_W['uniacid']}" : "?i={$_W['uniacid']}";
 			}
 			if (is_serialized($row['css'])) {
-				$row['css'] = unserialize($row['css']);
+				$row['css'] = iunserializer($row['css']);
 			}
 			if (empty($row['css'])) {
 				$row['css'] = array(
@@ -106,6 +106,7 @@ function app_update_today_visit($module_name) {
  * @return boolean
  */
 function app_pass_visit_limit($uniacid = 0) {
+
 	global $_W;
 	if ($_W['isajax'] || $_W['ispost'] || strpos($_W['siteurl'], 'c=utility&a=visit') !== false) {
 		return false;
@@ -114,10 +115,11 @@ function app_pass_visit_limit($uniacid = 0) {
 
 	$limit = uni_setting_load('statistics', $uniacid);
 	$limit = $limit['statistics'];
+
 	if (empty($limit)) {
 		return false;
 	}
-	$cachekey = cache_system_key("statistics:{$uniacid}");
+	$cachekey = cache_system_key('statistics', array('uniacid' => $uniacid));
 	$cache = cache_load($cachekey);
 	if (!empty($cache) && ($cache['time'] + $limit['interval'] > TIMESTAMP)) {
 		return $cache['limit'];
@@ -167,7 +169,7 @@ function app_month_visit_till_today($uniacid = 0) {
 	$result = 0;
 	$uniacid = intval($uniacid) > 0 ? intval($uniacid) : $_W['uniacid'];
 	$today = date('Ymd');
-	$cachekey = cache_system_key("uniacid_visit:{$uniacid}:{$today}");
+	$cachekey = cache_system_key('uniacid_visit', array('uniacid' => $uniacid, 'today' => $today));
 	$cache = cache_load($cachekey);
 	if (!empty($cache)) {
 		return $cache;
@@ -220,9 +222,8 @@ function app_link_uniaicd_info($module_name) {
 	if (empty($module_info)) {
 		return $result;
 	}
-	$account_module = table('module')->uniAccountModuleInfo($module_name);
-	if (!empty($account_module)) {
-		$settings = (array)$account_module['settings'];
+	if (!empty($module_info['config'])) {
+		$settings = (array)$module_info['config'];
 		$result = !empty($settings['link_uniacid']) ? intval($settings['link_uniacid']) : 0;
 	}
 	return $result;

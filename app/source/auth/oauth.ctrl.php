@@ -171,6 +171,9 @@ if ($scope == 'userinfo' || $scope == 'snsapi_userinfo') {
 			$record['updatetime'] = TIMESTAMP;
 			$record['nickname'] = stripslashes($userinfo['nickname']);
 			$record['tag'] = base64_encode(iserializer($userinfo));
+			if (empty($fan['unionid'])) {
+				$record['unionid'] = !empty($userinfo['unionid']) ? $userinfo['unionid'] : '';
+			}
 			pdo_update('mc_mapping_fans', $record, array('openid' => $fan['openid'], 'acid' => $_W['acid'], 'uniacid' => $_W['uniacid']));
 			if (!empty($fan['uid']) || !empty($_SESSION['uid'])) {
 				$uid = $fan['uid'];
@@ -213,7 +216,8 @@ if ($scope == 'userinfo' || $scope == 'snsapi_userinfo') {
 				'follow' => 0,
 				'followtime' => 0,
 				'unfollowtime' => 0,
-				'tag' => base64_encode(iserializer($userinfo))
+				'tag' => base64_encode(iserializer($userinfo)),
+				'unionid' => !empty($userinfo['unionid']) ? $userinfo['unionid'] : ''
 			);
 			if (!isset($unisetting['passport']) || empty($unisetting['passport']['focusreg'])) {
 				$default_groupid = pdo_fetchcolumn('SELECT groupid FROM ' .tablename('mc_groups') . ' WHERE uniacid = :uniacid AND isdefault = 1', array(':uniacid' => $_W['uniacid']));

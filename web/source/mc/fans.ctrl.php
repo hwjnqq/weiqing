@@ -284,9 +284,9 @@ if ($do == 'sync') {
 			mc_init_fans_info(array_keys($sync_fans), $force_init_member);
 		}
 		if ($total == $pageindex) {
-			setcookie(cache_system_key('sync_fans_pindex:' . $_W['uniacid']), '', -1);
+			setcookie(cache_system_key('sync_fans_pindex', array('uniacid' => $_W['uniacid'])), '', -1);
 		} else {
-			setcookie(cache_system_key('sync_fans_pindex:' . $_W['uniacid']), $pageindex);
+			setcookie(cache_system_key('sync_fans_pindex', array('uniacid' => $_W['uniacid'])), $pageindex);
 		}
 		iajax(0, array('pageindex' => $pageindex, 'total' => $total), '');
 	}

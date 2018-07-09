@@ -13,20 +13,14 @@ error_reporting(0);
 if (strtoupper(php_sapi_name()) != 'CLI') {
 	We7Command::line('只能在命令行执行');
 }
-define('DEBUG', false);
 
-set_exception_handler(function($ex){
-	if (DEBUG) {
-		echo $ex->getTraceAsString();
-		echo $ex->getMessage();
-	}
-
+set_exception_handler(function(Error $ex){
+//	echo $ex->getTraceAsString();
+//	echo $ex->getMessage();
 	return true;
 });
 set_error_handler(function($errno, $errstr, $errfile, $errline){
-	if (DEBUG) {
-		echo $errno.':'.$errstr.'file:'.$errfile.':line'.$errline;
-	}
+//	echo $errno.':'.$errstr.'file:'.$errfile.':line'.$errline;
 	return true;
 });
 
@@ -76,10 +70,9 @@ abstract class We7Command {
 		}
 		self::line('当前命令不存在');
 		self::line('支持的命令如下:');
-		self::line('php console install => 执行安装微擎脚本');
 		self::line('php console make:upgrade name=更新的文件名 => 创建更新文件');
 		self::line('php console upgrade => 执行更新 ');
-		self::line('php console start => 运行微擎');
+		self::line('php console install => 执行安装微擎脚本');
 	}
 
 	public static function createCommand() {
@@ -96,10 +89,6 @@ abstract class We7Command {
 			}
 			if ($commandName == 'install') {
 				return new We7InstallCommand();
-			}
-
-			if ($commandName == 'start') {
-				return new We7StartCommand();
 			}
 		}
 
@@ -449,7 +438,6 @@ PRIMARY KEY (`id`)
 class We7InstallCommand extends We7Command {
 
 	protected $name = 'install';
-	private $authKey = '';
 	private $table_pre = 'ims_';
 
 	protected function init()
@@ -465,9 +453,7 @@ class We7InstallCommand extends We7Command {
 			return;
 		}
 		ini_set('memory_limit', '1024M');
-		$this->authKey = uniqid();
 		$this->installDB();
-		$this->writeConfig();
 		$this->addAdmin();
 		$this->updateTable();
 		$this->line('微擎数据安装成功 默认用户名 admin 密码 123456');
@@ -649,7 +635,7 @@ defined('IN_IA') or exit('Access Denied');
 \$config['setting']['timezone'] = 'Asia/Shanghai';
 \$config['setting']['memory_limit'] = '256M';
 \$config['setting']['filemode'] = 0644;
-\$config['setting']['authkey'] = '{$this->authKey}';
+\$config['setting']['authkey'] = '{authkey}';
 \$config['setting']['founder'] = '1';
 \$config['setting']['development'] = 0;
 \$config['setting']['referrer'] = 0;
@@ -741,22 +727,15 @@ EOT;
 			}
 		}
 
-
-	}
-
-	private function writeConfig() {
 		$config = $this->createConfig();
 		file_put_contents($this->rootPath().'/data/config.php', $config);
 	}
 
+
 	private function addAdmin() {
 		$tableName = $this->table_pre.'users';
-		$salt = '2b82020d';
-		$password = '123456';
-		$password_hash  = sha1("{$password}-{$salt}-{$this->authKey}");
-		$now = time();
 		$sql = <<<EOT
-		 INSERT INTO $tableName(`uid`, `owner_uid`, `groupid`, `founder_groupid`, `username`, `password`, `salt`, `type`, `status`, `joindate`, `joinip`, `lastvisit`, `lastip`, `remark`, `starttime`, `endtime`, `register_type`, `openid`) VALUES (1, 0, 0, 1, 'admin', '{$password_hash}', '2b82020d', 2, 127, {$now}, '1388888888', 444, '127.0.0.1', '中华人民共和国万岁和国万岁和国万岁和国万岁和国万岁和国万岁', $now, 0, 1, '0');
+		 INSERT INTO $tableName(`uid`, `owner_uid`, `groupid`, `founder_groupid`, `username`, `password`, `salt`, `type`, `status`, `joindate`, `joinip`, `lastvisit`, `lastip`, `remark`, `starttime`, `endtime`, `register_type`, `openid`) VALUES (1, 0, 0, 1, 'admin', 'b8ae8320fa6192d40ab1aac7c191272056055299', '2b82020d', 2, 127, 1520388458, '1520388458', 444, '127.0.0.1', '中华人民共和国万岁和国万岁和国万岁和国万岁和国万岁和国万岁', 1456743079, 0, 1, '0');
 EOT;
 		try {
 			$this->exec($sql);
@@ -771,10 +750,10 @@ EOT;
 	}
 
 	private function updateTable() {
-		$this->line('开始数据库表结构更新: start update table schame....');
+		$this->line('开始数据库表结构更新: start update table schama....');
 		$command = new We7UpgradeCommand();
 		$command->update();
-		$this->line('数据库表结构更新完成: end update table schame');
+		$this->line('开始数据库表结构更新完成: end update table schama');
 	}
 
 
@@ -831,15 +810,5 @@ EOT;
 
 		$sql .= "\n) ENGINE=$engine DEFAULT CHARSET=$charset;\n\n";
 		return $sql;
-	}
-}
-
-class We7StartCommand extends We7Command {
-	public $name = 'start';
-	public function handle()
-	{
-		exec('start http://127.0.0.1:8888/');
-		exec('php -S 127.0.0.1:8888');
-
 	}
 }

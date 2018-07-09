@@ -140,7 +140,7 @@ function material_news_set($data, $attach_id) {
 			unset($news['id']);
 			pdo_insert('wechat_news', $news);
 		}
-		cache_delete(cache_system_key('material_reply:' . $attach_id));
+		cache_delete(cache_system_key('material_reply', array('attach_id' => $attach_id)));
 	} else {
 		$wechat_attachment = array(
 			'uniacid' => $_W['uniacid'],
@@ -218,7 +218,7 @@ function material_build_reply($attach_id) {
 	if (empty($attach_id)) {
 		return error(1, "素材id参数不能为空");
 	}
-	$cachekey = cache_system_key('material_reply:' . $attach_id);
+	$cachekey = cache_system_key('material_reply', array('attach_id' => $attach_id));
 	$reply = cache_load($cachekey);
 	if (!empty($reply)) {
 		return $reply;
@@ -500,7 +500,17 @@ function material_delete($material_id, $location){
 		$account_api = WeAccount::create($_W['acid']);
 		$result = $account_api->delMaterial($material['media_id']);
 	} else {
-		if (! empty($_W['setting']['remote']['type'])) {
+		//若素材归属某一账号，则主管理员以上权限才不判断是否有权限；
+		//若素材不归属某一账号，则判断素材是否是该uid所属
+		if (!empty($material['uniacid'])) {
+			$role = permission_account_user_role($_W['uid'], $material['uniacid']);
+			if (in_array($role, array(ACCOUNT_MANAGE_NAME_OPERATOR, ACCOUNT_MANAGE_NAME_MANAGER)) && $_W['uid'] != $material['uid']) {
+				return error('-1', '您没有权限删除该文件');
+			}
+		} elseif ($_W['uid'] != $material['uid']) {
+			return error('-1', '您没有权限删除该文件');
+		}
+		if (!empty($_W['setting']['remote']['type'])) {
 			$result = file_remote_delete($material['attachment']);
 		} else {
 			$result = file_delete($material['attachment']);

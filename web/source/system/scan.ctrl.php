@@ -14,7 +14,7 @@ $do = in_array($do, $dos) ? $do : 'post';
 $_W['page']['title'] = '木马查杀 - 常用系统工具 - 系统管理';
 
 if ($do == 'post') {
-	$config = iunserializer(cache_read('scan:config'));
+	$config = iunserializer(cache_read(cache_system_key('scan_config')));
 	$list = glob(IA_ROOT.'/*', GLOB_NOSORT);
 	$ignore = array('data','attachment');
 	foreach ($list as $key => $li) {
@@ -44,10 +44,8 @@ if ($do == 'post') {
 		$info['code'] = trim($_GPC['code']) ? trim($_GPC['code']) : 'weidongli|sinaapp';
 		$info['md5_file'] = trim($_GPC['md5_file']);
 		$info['dir'] = $_GPC['dir'];
-		cache_delete('scan:config');
-		cache_delete('scan:file');
-		cache_delete('scan:badfile');
-		cache_write('scan:config', iserializer($info));
+		cache_delete(cache_system_key('scan_file'));
+		cache_write(cache_system_key('scan_config'), iserializer($info));
 		itoast("配置保存完成，开始文件统计。。。", url('system/scan', array('do' => 'count')), 'success');
 	}
 }
@@ -55,7 +53,7 @@ if ($do == 'post') {
 //文件统计
 if ($do == 'count') {
 	$files = array();
-	$config = iunserializer(cache_read('scan:config'));
+	$config = iunserializer(cache_read(cache_system_key('scan_config')));
 	if (empty($config)) {
 		itoast('获取扫描配置失败', url('system/scan'), 'error');
 	}
@@ -74,14 +72,14 @@ if ($do == 'count') {
 	}
 	unset($list_arr['data/config.php']);
 	$list_arr = iserializer($list_arr);
-	cache_write('scan:file', $list_arr);
+	cache_write(cache_system_key('scan_file'), $list_arr);
 	itoast("文件统计完成，进行特征函数过滤。。。", url('system/scan', array('do' => 'filter_func')), 'success');
 }
 
 //特征函数过滤
 if ($do == 'filter_func') {
-	$config = iunserializer(cache_read('scan:config'));
-	$file = iunserializer(cache_read('scan:file'));
+	$config = iunserializer(cache_read(cache_system_key('scan_config')));
+	$file = iunserializer(cache_read(cache_system_key('scan_file')));
 	if (isset($config['func']) && !empty($config['func'])) {
 		foreach ($file as $key => $val) {
 			$html = file_get_contents(IA_ROOT . '/' . $key);
@@ -91,15 +89,15 @@ if ($do == 'filter_func') {
 		}
 	}
 	if (!isset($badfiles)) $badfiles = array();
-	cache_write('scan:badfile', iserializer($badfiles));
+	cache_write(cache_system_key('scan_badfile'), iserializer($badfiles));
 	itoast("特征函数过滤完成，进行特征代码过滤。。。", url('system/scan', array('do' => 'filter_code')), 'success');
 }
 
 //特征代码过滤
 if ($do == 'filter_code') {
-	$config = iunserializer(cache_read('scan:config'));
-	$file = iunserializer(cache_read('scan:file'));
-	$badfiles = unserialize(cache_read('scan:badfile'));
+	$config = iunserializer(cache_read(cache_system_key('scan_config')));
+	$file = iunserializer(cache_read(cache_system_key('scan_file')));
+	$badfiles = iunserializer(cache_read(cache_system_key('scan_badfile')));
 	if (isset($config['code']) && !empty($config['code'])) {
 		foreach ($file as $key => $val) {
 			if (!empty($config['code'])) {
@@ -114,14 +112,14 @@ if ($do == 'filter_code') {
 			$html = '';
 		}
 	}
-	cache_write('scan:badfile', iserializer($badfiles));
+	cache_write(cache_system_key('scan_badfile'), iserializer($badfiles));
 	itoast("特征代码过滤完成，进行加密文件过滤。。。", url('system/scan', array('do' => 'encode')), 'success');
 }
 
 //加密文件过滤
 if ($do == 'encode') {
-	$file = iunserializer(cache_read('scan:file'));
-	$badfiles = iunserializer(cache_read('scan:badfile'));
+	$file = iunserializer(cache_read(cache_system_key('scan_file')));
+	$badfiles = iunserializer(cache_read(cache_system_key('scan_badfile')));
 	foreach ($file as $key => $val) {
 		if (strtolower(substr($key, -4)) == '.php') {
 			$html = file_get_contents(IA_ROOT . '/' . $key);
@@ -138,13 +136,13 @@ if ($do == 'encode') {
 			}
 		}
 	}
-	cache_write('scan:badfile', iserializer($badfiles));
+	cache_write(cache_system_key('scan_badfile'), iserializer($badfiles));
 	itoast("扫描完成。。。", url('system/scan', array('do' => 'display')), 'success');
 }
 
 //查杀报告
 if ($do == 'display') {
-	$badfiles = iunserializer(cache_read('scan:badfile'));
+	$badfiles = iunserializer(cache_read(cache_system_key('scan_badfile')));
 	if (empty($badfiles)) {
 		itoast('没有找到扫描结果，请重新扫描',  url('system/scan'), 'error');
 	}
@@ -190,7 +188,7 @@ if ($do == 'view') {
 	if (!is_file($file)) {
 		itoast('文件不存在', referer(), 'error');
 	}
-	$badfiles = iunserializer(cache_read('scan:badfile'));
+	$badfiles = iunserializer(cache_read(cache_system_key('scan_badfile')));
 	$info = $badfiles[$file_tmp];
 	unset($badfiles);
 

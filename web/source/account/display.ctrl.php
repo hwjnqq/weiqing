@@ -15,14 +15,14 @@ $_W['page']['title'] = '所有权限';
 $account_info = permission_user_account_num();
 
 if ($do == 'platform') {
-	$cache_last_account_type = cache_load('we7:$cache_last_account_type');
+	$cache_last_account_type = cache_load(cache_system_key('last_account_type'));
 	if (!empty($cache_last_account_type)) {
 		if ($cache_last_account_type == ACCOUNT_TYPE_SIGN) {
 			header('Location: ' . url('home/welcome'));
 		} elseif ($cache_last_account_type == WXAPP_TYPE_SIGN) {
 			header('Location: ' . url('wxapp/display/home'));
 		} elseif ($cache_last_account_type == WEBAPP_TYPE_SIGN) {
-			$cache_key = cache_system_key(CACHE_KEY_ACCOUNT_SWITCH, $_GPC['__switch']);
+			$cache_key = cache_system_key('last_account', array('switch' => $_GPC['__switch']));
 			$cache_lastaccount = cache_load($cache_key);
 			$webapp_info = table('account')->getUniAccountByUniacid($cache_lastaccount[WEBAPP_TYPE_SIGN]);
 			if (!empty($webapp_info)) {

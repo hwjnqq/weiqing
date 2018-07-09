@@ -36,7 +36,7 @@ if ($do == 'display') {
 		$version_exist = wxapp_fetch($account['uniacid']);
 		if (!empty($version_exist)) {
 			$wxapp_version_lists = wxapp_version_all($account['uniacid']);
-			$wxapp_modules = wxapp_support_uniacid_modules();
+			$wxapp_modules = wxapp_support_uniacid_modules($account['uniacid']);
 		}
 	}
 
@@ -92,7 +92,7 @@ if ($do == 'edit_version') {
 	}
 	$data = array('modules' => iserializer($new_module_data), 'version' => trim($_GPC['version_info']['version']), 'description' => trim($_GPC['version_info']['description']));
 	pdo_update('wxapp_versions', $data, array('id' => $versionid));
-	cache_delete(cache_system_key("wxapp_version:{$versionid}"));
+	cache_delete(cache_system_key('wxapp_version', array('version_id' => $versionid)));
 	iajax(0, '修改成功！', referer());
 }
 

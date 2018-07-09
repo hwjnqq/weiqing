@@ -102,7 +102,7 @@ if($do == 'register') {
 				$map_fans = $fan['tag'];
 			}
 			if (empty($map_fans) && isset($_SESSION['userinfo'])) {
-				$map_fans = unserialize(base64_decode($_SESSION['userinfo']));
+				$map_fans = iunserializer(base64_decode($_SESSION['userinfo']));
 			}
 		}
 

@@ -137,7 +137,7 @@ if ($do == 'forward') {
 	file_put_contents(IA_ROOT . '/attachment/qrcode_'.$acid.'.jpg', $qrcode['content']);
 
 	cache_build_account($uniacid);
-	cache_delete(cache_system_key('proxy_wechatpay_account:'));
+	cache_delete(cache_system_key('proxy_wechatpay_account'));
 	cache_clean(cache_system_key('user_accounts'));
 	itoast('授权登录成功', url('account/manage', array('type' => '3')), 'success');
 } elseif ($do == 'confirm') {
@@ -155,13 +155,9 @@ if ($do == 'forward') {
 		'key' => $auth_appid,
 	), array('acid' => $acid));
 	pdo_update('account', array('isconnect' => '1', 'type' => ACCOUNT_OAUTH_LOGIN, 'isdeleted' => 0), array('acid' => $acid));
-
-	cache_delete("uniaccount:{$uniacid}");
-	cache_delete("unisetting:{$uniacid}");
-	cache_delete("accesstoken:{$acid}");
-	cache_delete("jsticket:{$acid}");
-	cache_delete("cardticket:{$acid}");
-	cache_delete("account:auth:refreshtoken:{$acid}");
+	cache_delete(cache_system_key('uniaccount', array('uniacid' => $uniacid)));
+	cache_delete(cache_system_key('accesstoken', array('acid' => $acid)));
+	cache_delete(cache_system_key('account_auth_refreshtoken', array('acid' => $acid)));
 	itoast('更改公众号授权接入成功', url('account/post', array('acid' => $acid, 'uniacid' => $uniacid)), 'success');
 } elseif ($do == 'ticket') {
 	$post = file_get_contents('php://input');
@@ -176,7 +172,7 @@ if ($do == 'forward') {
 		exit('fail');
 	}
 	if (!empty($ticket_xml->ComponentVerifyTicket) && $ticket_xml->InfoType == 'component_verify_ticket') {
-		cache_write('account:ticket', strval($ticket_xml->ComponentVerifyTicket));
+		cache_write(cache_system_key('account_ticket'), strval($ticket_xml->ComponentVerifyTicket));
 	}
 	exit('success');
 } elseif ($do == 'test') {
