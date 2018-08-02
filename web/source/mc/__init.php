@@ -3,7 +3,7 @@
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 
-$account_api = WeAccount::create();
+$account_api = WeAccount::createByUniacid($_W['uniacid']);
 if (is_error($account_api)) {
 	message($account_api['message'], url('account/display'));
 }

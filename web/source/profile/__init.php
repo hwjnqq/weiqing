@@ -11,7 +11,7 @@ if (strexists($_W['siteurl'], 'c=profile&a=module&do=setting')) {
 	itoast('', url('module/manage-account/setting'). $other_params, 'info');
 }
 
-$account_api = WeAccount::create();
+$account_api = WeAccount::createByUniacid($_W['uniacid']);
 if (is_error($account_api)) {
 	itoast('', url('account/display'));
 }

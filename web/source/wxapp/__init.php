@@ -5,9 +5,12 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
+if ($action == 'post') {
+	define('FRAME', 'system');
+}
 
 if (!in_array($action, array('display', 'post', 'manage', 'auth'))) {
-	$account_api = WeAccount::create();
+	$account_api = WeAccount::createByUniacid($_W['uniacid']);
 	if (is_error($account_api)) {
 		itoast('', url('account/display', array('type' => WXAPP_TYPE_SIGN)));
 	}
@@ -16,14 +19,6 @@ if (!in_array($action, array('display', 'post', 'manage', 'auth'))) {
 		$account_display_url = $account_api->accountDisplayUrl();
 		itoast('', $account_display_url);
 	}
-}
-if ($action == 'post') {
-	define('FRAME', 'system');
-}
-
-if (($action == 'version' && $do == 'home') || in_array($action, array('payment', 'refund', 'module-link-uniacid', 'entrance-link', 'front-download'))) {
-	$account_api = WeAccount::create();
-	
 	$account_type = $account_api->menuFrame;
 	define('FRAME', $account_type);
 }

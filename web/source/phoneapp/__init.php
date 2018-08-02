@@ -4,7 +4,7 @@
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
-$account_api = WeAccount::create();
+$account_api = WeAccount::createByUniacid($_W['uniacid']);
 
 
 if (!in_array($action, array('display', 'manage'))) {

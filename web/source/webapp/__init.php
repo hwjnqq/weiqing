@@ -9,7 +9,7 @@ if ($action == 'manage' && $do == 'create_display') {
 	define('FRAME', 'system');
 }
 
-$account_api = WeAccount::create();
+$account_api = WeAccount::createByUniacid($_W['uniacid']);
 
 if ($action != 'manage' && $do != 'switch') {
 	if (is_error($account_api)) {
