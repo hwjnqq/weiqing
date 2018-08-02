@@ -7,10 +7,11 @@ define([], function(){
 			$('#consume-Modal, #credit-Modal, #card-Modal, #card-edit-Modal, #group-Modal, #cardconsume-Modal').remove();
 			var type = $(this).data('type');
 			var uid = parseInt($(this).data('uid'));
+			var title = $(this).data('title');
 			if(type == 'consume') {
 				trade.consume(uid);
 			} else if (type == 'credit1' || type == 'credit2') {
-				trade.credit(type, uid);
+				trade.credit(type, uid, title);
 			} else if (type == 'card') {
 				trade.card(uid);
 			} else if (type == 'cardsn') {
@@ -571,15 +572,14 @@ define([], function(){
 		});
 	};
 
-	trade.credit = function(type, uid) {
-		var types = {'credit1': '积分', 'credit2': '余额'};
+	trade.credit = function(type, uid, title) {
 		var html = '<div class="modal fade" id="credit-Modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">'+
 			'	<div class="modal-dialog modal-lg" role="document">'+
 			'		<div class="modal-content">'+
 			'			<form class="table-responsive form-inline" method="post" action="" id="form-credit">'+
 			'				<div class="modal-header">'+
 			'					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+
-			'					<h4 class="modal-title" id="myModalLabel">会员'+types[type]+'操作</h4>'+
+			'					<h4 class="modal-title" id="myModalLabel">会员'+title+'操作</h4>'+
 			'				</div>'+
 			'				<div class="modal-body">'+
 			'					<table class="table table-hover table-bordered">'+
@@ -607,7 +607,7 @@ define([], function(){
 			'							</td>'+
 			'						</tr>'+
 			'						<tr>'+
-			'							<th>修改'+types[type]+'(增减)</th>'+
+			'							<th>修改'+title+'(增减)</th>'+
 			'							<td>'+
 			'								<div class="form-group">'+
 			'									<input type="text" value="" name="num" id="total" class="form-control"/>'+
