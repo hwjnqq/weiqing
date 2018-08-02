@@ -57,7 +57,7 @@ if(is_array($setting['payment'])) {
 			$facilitator_setting = uni_setting($wechat['service'], array('payment'));
 			$wechat['signkey'] = $facilitator_setting['payment']['wechat_facilitator']['signkey'];
 		} else {
-			$wechat['signkey'] = ($wechat['version'] == 1) ? $wechat['key'] : $wechat['signkey'];
+			$wechat['signkey'] = ($wechat['version'] == 1) ? $wechat['key'] : (!empty($wechat['apikey']) ? $wechat['apikey'] : $wechat['signkey']);  //todo 临时解决方案
 		}
 		$sign = strtoupper(md5($string1 . "key={$wechat['signkey']}"));
 		if($sign == $get['sign']) {
