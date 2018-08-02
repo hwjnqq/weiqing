@@ -17,21 +17,26 @@ $dos = array('display', 'setting', 'shortcut', 'enable', 'check_status');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
 
 $modulelist = uni_modules(false);
+
 //检测模块更新和是否盗版
 if ($do == 'check_status') {
 	$modulename = $_GPC['module'];
-	if (!empty($modulename)) {
-		$module_status = module_status($modulename);
-		if (!empty($module_status)) {
-			isetcookie('module_status:' . $modulename, json_encode($module_status));
-		}
-		if ($module_status['ban']) {
-			iajax(1, '您的站点存在盗版模块, 请删除文件后联系客服');
-		}
-		if ($module_status['upgrade']['upgrade']) {
-			iajax(2, $module_status['upgrade']['name'] . '检测最新版为' . $module_status['upgrade']['version'] . '，请尽快更新');
-		}
+
+	if (empty($modulename)) {
+		iajax(0, '', '');
 	}
+
+	$module_status = module_status($modulename);
+	if (!empty($module_status)) {
+		isetcookie('module_status:' . $modulename, json_encode($module_status));
+	}
+	if ($module_status['ban']) {
+		iajax(1, '您的站点存在盗版模块, 请删除文件后联系客服');
+	}
+	if ($module_status['upgrade']['has_upgrade']) {
+		iajax(2, $module_status['upgrade']['name'] . '检测最新版为' . $module_status['upgrade']['version'] . '，请尽快更新');
+	}
+
 	iajax(0, '', '');
 }
 
@@ -40,37 +45,32 @@ if($do == 'display') {
 	$pageindex = max(1, intval($_GPC['page']));
 	$pagesize = 30;
 
-	if (user_is_vice_founder()) {
-		$uni_modules = uni_modules_by_uniacid($_W['uniacid']);
-		$modules = user_modules($_W['uid']);
-		$modulelist = array_intersect_assoc($uni_modules, $modules);
-	}
-
+	$modules = array();
 	if (!empty($modulelist)) {
-		foreach ($modulelist as $name => &$row) {
-			if (!empty($row['issystem']) || $row['app_support'] != 2 || (!empty($_GPC['keyword']) && !strexists ($row['title'], $_GPC['keyword'])) || (!empty($_GPC['letter']) && $row['title_initial'] != $_GPC['letter'])) {
-				unset($modulelist[$name]);
+		foreach ($modulelist as $name => $row) {
+			if (!empty($row['issystem'])) {
 				continue;
 			}
+			if (!empty($_GPC['keyword']) && !strexists($row['title'], $_GPC['keyword'])) {
+				continue;
+			}
+			if (!empty($_GPC['letter']) && $row['title_initial'] != $_GPC['letter']) {
+				continue;
+			}
+			$modules[$name] = $row;
 		}
-		$modules = $modulelist;
 	}
+
 	template ('module/manage-account');
 } elseif ($do == 'shortcut') {
 	$status = intval($_GPC['shortcut']);
 	$modulename = $_GPC['modulename'];
-	$module = module_fetch($modulename);
-	if(empty($module)) {
-		itoast('抱歉，你操作的模块不能被访问！', '', '');
-	}
 
-	$module_enabled = uni_account_module_shortcut_enabled($modulename, $_W['uniacid'], $status);
-
-	if ($status) {
-		itoast('添加模块快捷操作成功！', referer(), 'success');
-	} else {
-		itoast('取消模块快捷操作成功！', referer(), 'success');
+	$module_enabled = uni_account_module_shortcut_enabled($modulename, $status);
+	if (is_error($module_enabled)) {
+		itoast($module_enabled['message'], referer(), 'error');
 	}
+	itoast(($status ? '添加' : '取消') . '添加模块快捷操作成功！', referer(), 'success');
 } elseif ($do == 'enable') {
 	$modulename = $_GPC['modulename'];
 	if(empty($modulelist[$modulename])) {
@@ -104,6 +104,7 @@ if($do == 'display') {
 			'shortcut' => STATUS_OFF,
 		));
 	}
+	cache_build_module_info($modulename);
 	cache_build_account_modules($_W['uniacid']);
 	itoast('模块置顶成功', referer(), 'success');
 } elseif ($do == 'setting') {

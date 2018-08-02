@@ -14,14 +14,34 @@ $do = in_array($do, $dos) ? $do : 'display';
 
 if ($do == 'display') {
 	$user_module = array();
-	if (!$_W['isfounder']) {
+	if (!$_W['isfounder'] || user_is_vice_founder()) {
 		$account_table = table('account');
 		$userspermission_table = table('userspermission');
 		$user_owned_account = $account_table->userOwnedAccount($_W['uid']);
+
 		if (!empty($user_owned_account) && is_array($user_owned_account)) {
 			foreach ($user_owned_account as $uniacid => $account) {
-				$account_module = uni_modules_by_uniacid($uniacid);
+				$account_module = uni_modules_list($uniacid, true, $account['type']);
 				$account_user_module = $userspermission_table->userPermission($_W['uid'], $uniacid);
+				// 非管理员情况下，过滤掉没有添加到相关小程序（没有权限）的应用
+				if ($account['type'] == ACCOUNT_TYPE_APP_NORMAL || $account['type'] == ACCOUNT_TYPE_APP_AUTH) {
+					$wxapp_versions = pdo_getall('wxapp_versions', array('uniacid' => $uniacid), '');
+					if (is_array($wxapp_versions) && !empty($wxapp_versions)) {
+						$versions = array();
+						foreach($wxapp_versions as $version) {
+							$version_module = (array)iunserializer($version['modules']);
+							$version_module = array_keys($version_module);
+							$versions[] = $version_module[0];
+						}
+						$diffs = array_diff(array_keys($account_module), $versions);
+						foreach($diffs as $diff) {
+							unset($account_module[$diff]);
+						}
+					} else {
+						$account_module = array();
+					}
+				}
+
 				if (!empty($account_user_module) && is_array($account_user_module)) {
 					$account_module = array_intersect_key($account_module, $account_user_module);
 				}
@@ -30,15 +50,50 @@ if ($do == 'display') {
 		}
 	} else {
 		$user_module = user_modules($_W['uid']);
+		$user_owned_account = table('account')->userOwnedAccount($_W['uid']);
+		foreach($user_owned_account as $account_key => $account) {
+			if (in_array($account['type'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_WXAPP_WORK))) {
+				$versions = wxapp_version_all($account['uniacid']);
+				if (empty($versions)) {
+					$user_owned_account[$account_key]['premission_modules'][] = '';
+					continue;
+				}
+				foreach($versions as $version) {
+					if (empty($version['modules'])) {
+						$user_owned_account[$account_key]['premission_modules'][] = '';
+						continue;
+					}
+					$module_info = current($version['modules']);
+					$user_owned_account[$account_key]['premission_modules'][] = $module_info['name'];
+				}
+				$user_owned_account[$account_key]['premission_modules'] = array_unique($user_owned_account[$account_key]['premission_modules']);
+			} else {
+				$account_modules = uni_modules_list($account['uniacid'], true, $account['type']);
+				$user_owned_account[$account_key]['premission_modules'] = array_keys($account_modules);
+			}
+		}
+		foreach($user_module as $key => $module) {
+			$show_module = false;
+
+			foreach($user_owned_account as $account) {
+				if (in_array($module['name'], $account['premission_modules'])) {
+					$show_module = true;
+					break;
+				}
+			}
+			if ($show_module == false) {
+				unset($user_module[$key]);
+			}
+		}
 	}
-	$module_table = table('module');
-	$module_rank = $module_table->moduleRank();
+	$module_rank = table('modules_rank')->getByModuleNameList(array_keys($user_module));
+
 	$rank = array();
-	foreach ($user_module as $key => $module_info) {
-		if (!empty($module_info['issystem']) || ($module_info['welcome_support'] == MODULE_SUPPORT_SYSTEMWELCOME && $module_info['app_support'] != MODULE_SUPPORT_ACCOUNT && $module_info['wxapp_support'] != MODULE_SUPPORT_WXAPP && $module_info['webapp_support'] != MODULE_SUPPORT_WEBAPP && $module_info['phoneapp_support'] != MODULE_SUPPORT_PHONEAPP)) {
-			unset($user_module[$key]);
+	foreach ($user_module as $module_name => $module_info) {
+		if (!empty($module_info['issystem']) || ($module_info[MODULE_SUPPORT_SYSTEMWELCOME_NAME] == MODULE_SUPPORT_SYSTEMWELCOME && $module_info[MODULE_SUPPORT_ACCOUNT_NAME] != MODULE_SUPPORT_ACCOUNT && $module_info[MODULE_SUPPORT_WXAPP_NAME] != MODULE_SUPPORT_WXAPP && $module_info[MODULE_SUPPORT_WEBAPP_NAME] != MODULE_SUPPORT_WEBAPP && $module_info[MODULE_SUPPORT_PHONEAPP_NAME] != MODULE_SUPPORT_PHONEAPP && $module_info[MODULE_SUPPORT_XZAPP_NAME] != MODULE_SUPPORT_XZAPP)) {
+			unset($user_module[$module_name]);
 		} else {
-			$rank[] = !empty($module_rank[$key]['rank']) ? $module_rank[$key]['rank'] : 0;
+			$rank[] = !empty($module_rank[$module_name]['rank']) ? $module_rank[$module_name]['rank'] : 0;
 		}
 	}
 	array_multisort($rank, SORT_DESC, $user_module);

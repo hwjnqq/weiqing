@@ -94,7 +94,7 @@ if ($do == 'post') {
 				itoast('两次输入密码不一致');
 			}
 			unset($insert_user['repassword']);
-			$uid = user_register($insert_user);
+			$uid = user_register($insert_user, 'admin');
 			if (!$uid) {
 				itoast('注册账号失败', '', '');
 			}
@@ -154,6 +154,43 @@ if ($do == 'post') {
 	}
 }
 
+if ($do == 'add_clerk') {
+	$founders = explode(',', $_W['config']['setting']['founder']);
+	$username = trim($_GPC['username']);
+	$user = user_single(array('username' => $username));
+
+	if (!empty($user)) {
+		if ($user['status'] != 2) {
+			itoast('用户未通过审核或不存在', url('module/permission', array('m' => $module_name)), 'error');
+		}
+		if (in_array($user['uid'], $founders)) {
+			itoast('不可操作网站创始人!', url('module/permission', array('m' => $module_name)), 'error');
+		}
+	} else {
+		itoast('用户不存在', url('module/permission', array('m' => $module_name)), 'error');
+	}
+	$data = array('uniacid' => $_W['uniacid'], 'uid' => $user['uid'], 'type' => $module_name);
+	$exists = pdo_get('users_permission', $data);
+
+	if (is_array($exists) && !empty($exists)) {
+		itoast('操作员已经存在！', url('module/permission', array('m' => $module_name)), 'error');
+	}
+
+	$data['permission'] = 'all';
+	$res = pdo_insert('users_permission', $data);
+	if ($res) {
+		$role = table('users')->userOwnedAccountRole($user['uid'], $_W['uniacid']);
+		if (empty($role)) {
+			pdo_insert('uni_account_users', array('uniacid' => $_W['uniacid'], 'uid' => $user['uid'], 'role' => 'clerk'));
+		} else {
+			pdo_update('uni_account_users', array('role' => 'clerk'), array('uniacid' => $_W['uniacid'], 'uid' => $user['uid']));
+		}
+		itoast('添加成功!', url('module/permission', array('m' => $module_name)), 'success');
+	} else {
+		itoast('操作失败!', url('module/permission', array('m' => $module_name)), 'error');
+	}
+}
+
 if ($do == 'delete') {
 	$operator_id = intval($_GPC['uid']);
 	if (empty($operator_id)) {
@@ -163,9 +200,6 @@ if ($do == 'delete') {
 		if (!empty($user)) {
 			$delete_account_users = pdo_delete('uni_account_users', array('uid' => $operator_id, 'role' => 'clerk', 'uniacid' => $_W['uniacid']));
 			$delete_user_permission = pdo_delete('users_permission', array('uid' => $operator_id, 'type' => $module_name, 'uniacid' => $_W['uniacid']));
-			if (!empty($delete_account_users) && !empty($delete_user_permission)) {
-				pdo_delete('users', array('uid' => $operator_id));
-			}
 		}
 		itoast('删除成功', referer(), 'success');
 	}
