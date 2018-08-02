@@ -16,14 +16,14 @@ load()->func('file');
 $uniacid = intval($_GPC['uniacid']);
 $acid = intval($_GPC['acid']);
 if (empty($uniacid) || empty($acid)) {
-	itoast('请选择要编辑的公众号', url('account/manage'), 'error');
+	$url = url('account/manage', array('account_type' => ACCOUNT_TYPE));
+	itoast('请选择要编辑的' . ACCOUNT_TYPE_NAME, $url, 'error');
 }
 $defaultaccount = uni_account_default($uniacid);
 if (!$defaultaccount) {
 	itoast('无效的acid', url('account/manage'), 'error');
 }
 $acid = $defaultaccount['acid']; //强制使用默认的acid
-
 
 $state = permission_account_user_role($_W['uid'], $uniacid);
 $dos = array('base', 'sms', 'modules_tpl');
@@ -45,20 +45,19 @@ if ($role_permission) {
 	itoast('您是该公众号的操作员，无权限操作！', url('account/manage'), 'error');
 }
 
-$_W['page']['title'] = '管理设置 - 微信' . ACCOUNT_TYPE_NAME . '管理';
+$_W['page']['title'] = '管理设置 - ' . ACCOUNT_TYPE_NAME . '管理';
 $headimgsrc = tomedia('headimg_'.$acid.'.jpg');
 $qrcodeimgsrc = tomedia('qrcode_'.$acid.'.jpg');
 $account = account_fetch($acid);
 
 if($do == 'base') {
-
 	if (!$role_permission) {
 		itoast('无权限操作！', url('account/post/modules_tpl', array('uniacid' => $uniacid, 'acid' => $acid)), 'error');
 	}
 	if($_W['ispost'] && $_W['isajax']) {
 		if(!empty($_GPC['type'])) {
 			$type = trim($_GPC['type']);
-		}else {
+		} else {
 			iajax(40035, '参数错误！', '');
 		}
 		switch ($type) {
@@ -107,10 +106,11 @@ if($do == 'base') {
 				break;
 			case 'jointype':
 				$original_type = pdo_get('account', array('uniacid' => $uniacid), 'type');
-				if ($original_type['type'] == ACCOUNT_NORMAL_LOGIN) {
+				$normal_login = $original_type['type'] == ACCOUNT_NORMAL_LOGIN ? ACCOUNT_NORMAL_LOGIN : ACCOUNT_TYPE_XZAPP_NORMAL;
+				if ($original_type['type'] == $normal_login) {
 					$result = true;
 				} else {
-					$update_type = pdo_update('account', array('type' => ACCOUNT_NORMAL_LOGIN), array('uniacid' => $uniacid));
+					$update_type = pdo_update('account', array('type' => $normal_login), array('uniacid' => $uniacid));
 					$result = $update_type ? true : false;
 				}
 				break;
@@ -145,6 +145,7 @@ if($do == 'base') {
 					$result = pdo_update('account', array('endtime' => $endtime), array('uniacid' => $uniacid));
 				}
 		}
+
 		if(!in_array($type, array('qrcodeimgsrc', 'headimgsrc', 'name', 'endtime', 'jointype', 'highest_visit'))) {
 			$result = pdo_update(uni_account_tablename(ACCOUNT_TYPE), $data, array('acid' => $acid, 'uniacid' => $uniacid));
 		}
@@ -153,7 +154,7 @@ if($do == 'base') {
 			cache_delete(cache_system_key('accesstoken', array('acid' => $acid)));
 			cache_delete(cache_system_key('statistics', array('uniacid' => $uniacid)));
 			iajax(0, '修改成功！', '');
-		}else {
+		} else {
 			iajax(1, '修改失败！', '');
 		}
 	}
@@ -175,7 +176,7 @@ if($do == 'base') {
 	}
 
 	$table_name = in_array(ACCOUNT_TYPE, array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)) ? 'account_wechats' : 'account_' . TYPE_SIGN;
-	if (in_array(ACCOUNT_TYPE, array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH, ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH))) {
+	if (in_array(ACCOUNT_TYPE, array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH, ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_XZAPP_NORMAL))) {
 		$account_other_info = pdo_get($table_name, array('uniacid' => $uniacid, 'acid' => $acid), array('key', 'secret', 'token', 'encodingaeskey'));
 	}
 	$account_other_info = (array)$account_other_info;
@@ -243,7 +244,6 @@ if($do == 'sms') {
 
 if($do == 'modules_tpl') {
 	$owner = account_owner($uniacid);
-
 	if($_W['isajax'] && $_W['ispost'] && ($role_permission)) {
 		if($_GPC['type'] == 'group') {
 			$groups = $_GPC['groupdata'];
@@ -278,11 +278,34 @@ if($do == 'modules_tpl') {
 			$tpl = $_GPC['tpl'];
 			if (!empty($module) || !empty($tpl)) {
 				$data = array(
-					'modules' => iserializer($module),
-					'templates' => iserializer($tpl),
+					'modules' => array('modules' => array(), 'wxapp' => array(), 'webapp' => array(), 'xzapp' => array(), 'phoneapp' => array()),
+					'templates' => empty($tpl) ? '' : iserializer($tpl),
 					'uniacid' => $uniacid,
 					'name' => '',
 				);
+				switch ($defaultaccount['type']) {
+					case ACCOUNT_TYPE_OFFCIAL_NORMAL:
+					case ACCOUNT_TYPE_OFFCIAL_AUTH:
+						$data['modules']['modules'] = $module;
+						break;
+					case ACCOUNT_TYPE_APP_NORMAL:
+					case ACCOUNT_TYPE_APP_AUTH:
+					case ACCOUNT_TYPE_WXAPP_WORK:
+						$data['modules']['wxapp'] = $module;
+						break;
+					case ACCOUNT_TYPE_WEBAPP_NORMAL:
+						$data['modules']['webapp'] = $module;
+						break;
+					case ACCOUNT_TYPE_XZAPP_NORMAL:
+					case ACCOUNT_TYPE_XZAPP_AUTH:
+						$data['modules']['xzapp'] = $module;
+						break;
+					case ACCOUNT_TYPE_PHONEAPP_NORMAL:
+						$data['modules']['phoneapp'] = $module;
+						break;
+				}
+				$data['modules'] = iserializer($data['modules']);
+
 				$id = pdo_fetchcolumn("SELECT id FROM ".tablename('uni_group')." WHERE uniacid = :uniacid", array(':uniacid' => $uniacid));
 				if (empty($id)) {
 					pdo_insert('uni_group', $data);
@@ -357,8 +380,10 @@ if($do == 'modules_tpl') {
 
 				}else {
 					$ex_module = current(uni_groups(array($extendpackage_val['groupid'])));
-					$ex_module['type'] = 'extend';
-					$modules_tpl[] = $ex_module;
+					if (!empty($ex_module)) {
+						$ex_module['type'] = 'extend';
+						$modules_tpl[] = $ex_module;
+					}
 				}
 			}
 		}
@@ -367,7 +392,13 @@ if($do == 'modules_tpl') {
 	$modules = user_modules($_W['uid']);
 	$templates = pdo_getall('site_templates', array(), array('id', 'name', 'title'));
 	$extend = pdo_get('uni_group', array('uniacid' => $uniacid));
-	$extend['modules'] = $current_module_names = iunserializer($extend['modules']);
+	$extend_modules = iunserializer($extend['modules']);
+	$extend['modules'] = array();
+	foreach ($extend_modules as $modulenames) {
+		if (!empty($modulenames)) {
+			$extend['modules'] = $current_module_names = array_merge($extend['modules'], $modulenames);
+		}
+	}
 	$extend['templates'] = iunserializer($extend['templates']);
 	$canmodify = false;
 	

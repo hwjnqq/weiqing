@@ -12,7 +12,7 @@ load()->model('phoneapp');
 $dos = array('rank', 'display', 'switch', 'platform');
 $do = in_array($_GPC['do'], $dos) ? $do : 'display';
 $_W['page']['title'] = '所有权限';
-$account_info = permission_user_account_num();
+$account_info = permission_user_account_num($_W['uid']);
 
 if ($do == 'platform') {
 	$cache_last_account_type = cache_load(cache_system_key('last_account_type'));
@@ -32,6 +32,8 @@ if ($do == 'platform') {
 			}
 		} elseif ($cache_last_account_type == PHONEAPP_TYPE_SIGN) {
 			header('Location: ' . url('phoneapp/display/home'));
+		} elseif ($cache_last_account_type == XZAPP_TYPE_SIGN) {
+			header('Location: ' . url('xzapp/home/display'));
 		}
 	} else {
 		header('Location: ' . url('account/display'));
@@ -45,15 +47,15 @@ if ($do == 'display') {
 
 	$type = safe_gpc_string($_GPC['type']);
 	$title = safe_gpc_string($_GPC['title']);
-	$type = in_array($type, array('all', ACCOUNT_TYPE_SIGN, WXAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN, PHONEAPP_TYPE_SIGN)) ? $type : 'all';
+	$type = in_array($type, array('all', ACCOUNT_TYPE_SIGN, WXAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN, PHONEAPP_TYPE_SIGN, XZAPP_TYPE_SIGN)) ? $type : 'all';
 
 	if ($type == 'all') {
-		$title = ' 公众号/小程序/PC/APP ';
+		$title = ' 公众号/小程序/PC/APP/熊掌号 ';
 	}
 
 	if ($type == 'all') {
 		$tableName = ACCOUNT_TYPE_SIGN;
-		$condition = array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH, ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_WEBAPP_NORMAL, ACCOUNT_TYPE_PHONEAPP_NORMAL);
+		$condition = array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH, ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_WEBAPP_NORMAL, ACCOUNT_TYPE_PHONEAPP_NORMAL, ACCOUNT_TYPE_XZAPP_NORMAL);
 		$fields = 'a.uniacid,b.type';
 	} elseif ($type == ACCOUNT_TYPE_SIGN) {
 		$tableName = ACCOUNT_TYPE_SIGN;
@@ -67,6 +69,9 @@ if ($do == 'display') {
 	} elseif ($type == PHONEAPP_TYPE_SIGN) {
 		$tableName = PHONEAPP_TYPE_SIGN;
 		$condition = array(ACCOUNT_TYPE_PHONEAPP_NORMAL);
+	} elseif ($type == XZAPP_TYPE_SIGN) {
+		$tableName = 'account_' . XZAPP_TYPE_SIGN;
+		$condition = array(ACCOUNT_TYPE_XZAPP_NORMAL);
 	}
 
 	$table = table($tableName);
@@ -84,12 +89,16 @@ if ($do == 'display') {
 
 	$table->accountRankOrder();
 	$table->searchWithPage($pindex, $psize);
+
 	$list = $table->searchAccountListFields($fields);
+
 	$total = $table->getLastQueryTotal();
+
 	$list = array_values($list);
 	foreach($list as &$account) {
 		$account = uni_fetch($account['uniacid']);
 		switch ($account['type']) {
+			case ACCOUNT_TYPE_XZAPP_NORMAL:
 			case ACCOUNT_TYPE_OFFCIAL_NORMAL :
 			case ACCOUNT_TYPE_OFFCIAL_AUTH :
 				$account['role'] = permission_account_user_role($_W['uid'], $account['uniacid']);
@@ -145,7 +154,7 @@ if ($do == 'switch') {
 	if (!empty($uniacid)) {
 		$account_info = uni_fetch($uniacid);
 		$type = $account_info['type'];
-		if ($type == ACCOUNT_TYPE_OFFCIAL_NORMAL || $type == ACCOUNT_TYPE_OFFCIAL_AUTH) {
+		if ($type == ACCOUNT_TYPE_OFFCIAL_NORMAL || $type == ACCOUNT_TYPE_OFFCIAL_AUTH || $type == ACCOUNT_TYPE_XZAPP_NORMAL) {
 			$role = permission_account_user_role($_W['uid'], $uniacid);
 			if(empty($role)) {
 				itoast('操作失败, 非法访问.', '', 'error');
@@ -161,18 +170,14 @@ if ($do == 'switch') {
 			$module_name = trim($_GPC['module_name']);
 			$version_id = intval($_GPC['version_id']);
 			if (empty($module_name)) {
-				$url = url('home/welcome');
+				$url = url('home/welcome', array('account_type' => $type));
 			} else {
-				$url = url('home/welcome/ext', array('m' => $module_name, 'version_id' => $version_id));
+				$url = url('home/welcome/ext', array('m' => $module_name, 'version_id' => $version_id, 'account_type' => $type));
 			}
 			uni_account_switch($uniacid, $url);
 		}
 
 		if ($type == ACCOUNT_TYPE_WEBAPP_NORMAL) {
-			$uniacid = intval($_GPC['uniacid']);
-			if (empty($uniacid)) {
-				itoast('', url('account/display', array('type' => WEBAPP_TYPE_SIGN)), 'info');
-			}
 			uni_account_save_switch($uniacid, WEBAPP_TYPE_SIGN);
 			itoast('', url('webapp/home/display'));
 		}
@@ -183,7 +188,11 @@ if ($do == 'switch') {
 				if (!empty($_GPC['version_id'])) {
 					$version_id = intval($_GPC['version_id']);
 				} else {
-					$versions = wxapp_get_some_lastversions($uniacid);
+					if ($type == ACCOUNT_TYPE_PHONEAPP_NORMAL) {
+						$versions = phoneapp_get_some_lastversions($uniacid);
+					} else {
+						$versions = wxapp_get_some_lastversions($uniacid);
+					}
 					foreach ($versions as $val) {
 						if ($val['current']) {
 							$version_id = $val['id'];
@@ -192,7 +201,11 @@ if ($do == 'switch') {
 				}
 
 				if (!empty($module_name) && !empty($version_id)) {
-					$version_info = wxapp_version($version_id);
+					if ($type == ACCOUNT_TYPE_PHONEAPP_NORMAL) {
+						$version_info = phoneapp_version($version_id);
+					} else {
+						$version_info = wxapp_version($version_id);
+					}
 					$module_info = array();
 					if (!empty($version_info['modules'])) {
 						foreach ($version_info['modules'] as $key => $module_val) {
@@ -227,6 +240,11 @@ if ($do == 'switch') {
 			} else {
 				itoast('账号不存在', referer(), 'error');
 			}
+		}
+
+		if ($type == ACCOUNT_TYPE_XZAPP_NORMAL) {
+			uni_account_save_switch($uniacid, XZAPP_TYPE_SIGN);
+			itoast('', url('xzapp/home/display'));
 		}
 	}
 }

@@ -33,10 +33,11 @@ if ($do == 'display') {
 		ACCOUNT_TYPE_OFFCIAL_AUTH => array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH),
 		ACCOUNT_TYPE_WEBAPP_NORMAL => array(ACCOUNT_TYPE_WEBAPP_NORMAL),
 		ACCOUNT_TYPE_PHONEAPP_NORMAL => array(ACCOUNT_TYPE_PHONEAPP_NORMAL),
+		ACCOUNT_TYPE_XZAPP_NORMAL => array(ACCOUNT_TYPE_XZAPP_NORMAL),
 	);
 	$type_condition_sql = "'".implode("','", $type_condition[ACCOUNT_TYPE])."'";
 
-	if (!empty($_W['isfounder'])) {
+	if (user_is_founder($_W['uid'], true)) {
 		$condition .= " WHERE a.acid <> 0 AND b.isdeleted = 1 AND b.type IN ($type_condition_sql)";
 		$order_by = " ORDER BY a.`acid` DESC";
 	} else {
@@ -72,7 +73,7 @@ if ($do == 'recover') {
 	$acid = intval($_GPC['acid']);
 	$uniacid = intval($_GPC['uniacid']);
 	$state = permission_account_user_role($_W['uid'], $uniacid);
-	if($state != ACCOUNT_MANAGE_NAME_FOUNDER && $state != ACCOUNT_MANAGE_NAME_OWNER) {
+	if (!in_array($state, array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
 		itoast('没有权限，请联系该公众号的主管理员或网站创始人进行恢复操作！', referer(), 'error');
 	}
 	$account_info = permission_user_account_num();

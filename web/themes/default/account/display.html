@@ -26,6 +26,11 @@
 						{if !empty($account_info['phoneapp_limit']) && (!empty($account_info['founder_phoneapp_limit']) && $_W['user']['owner_uid'] || empty($_W['user']['owner_uid'])) || $_W['isfounder'] && !user_is_vice_founder()}
 						<li><i class="wi wi-app"></i><br/><a href="{php echo url('phoneapp/manage/create_display')}" class="name" title="新建APP"></a></li>
 						{/if}
+
+						{if !empty($account_info['xzapp_limit']) && (!empty($account_info['founder_xzapp_limit']) && $_W['user']['owner_uid'] || empty($_W['user']['owner_uid'])) || $_W['isfounder'] && !user_is_vice_founder()}
+						<li><i class="wi wi-app"></i><br/><a href="{php echo url('xzapp/post-step')}" class="name" title="新建熊掌号"></a></li>
+						{/if}
+
 					</ul>
 				</div>
 			</div>
@@ -78,7 +83,7 @@
 					
 
 					
-					<div class="creat">
+					<div class="creat" ng-switch="type">
 						{if !empty($account_info['uniacid_limit']) || $_W['isfounder']}
 						<a href="./index.php?c=account&a=post-step" class="color-default" ng-if="type == 'account'">
 							<i class="wi wi-registersite"></i>新增公众号
@@ -101,6 +106,10 @@
 						<a href="{php echo url('phoneapp/manage/create_display')}" class="color-default" ng-if="type == 'phoneapp'">
 							<i class="wi wi-registersite"></i>新建APP
 						</a>
+						{/if}
+
+						{if !empty($account_info['xzapp_limit']) || $_W['isfounder']}
+						<a href="{php echo url('xzapp/post-step')}" class="color-default" ng-if="type == 'xzapp'"><i class="wi wi-registersite"></i>新建熊掌号</a>
 						{/if}
 					</div>
 					
@@ -126,6 +135,12 @@
 							<i class="wi wi-manage"></i>
 							APP管理
 						</a>
+
+						<a ng-switch-when="xzapp" href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_XZAPP_NORMAL))}" class="color-default">
+							<i class="wi wi-manage"></i>
+							熊掌号管理
+						</a>
+
 					</div>
 
 				</div>
@@ -155,6 +170,7 @@
 								<i ng-if="detail.type == types.wxapp_auth" class="wi wi-wxapp"></i>
 								<i ng-if="detail.type == types.webapp" class="wi wi-pc"></i>
 								<i ng-if="detail.type == types.phoneapp" class="wi wi-app"></i>
+								<i ng-if="detail.type == types.xzapp" class="wi wi-xzapp"></i>
 							</div>
 							<div class="info">
 								<div class="name" ng-bind="detail.name"></div>
@@ -173,6 +189,11 @@
 									<span>类型：PC应用</span>
 								</div>
 
+
+								<div class="type" ng-if="detail.type == types.xzapp">
+									<span>类型：熊掌号</span>
+								</div>
+
 							</div>
 
 						</div>
@@ -180,7 +201,7 @@
 					<!--鼠标悬停遮罩效果-->
 					<div class="mask">
 						<!-- 进入公众号/PC -->
-						<a href="{{detail.switchurl}}&type={{detail.type}}" class="entry" ng-if="detail.type == types.account_normal || detail.type == types.account_auth"><div>进入 公众号 <i class="wi wi-angle-right"></i></div></a>
+						<a href="{{detail.switchurl}}&type={{detail.type}}" class="entry" ng-if="detail.type == types.account_normal || detail.type == types.account_auth"><div>进入公众号 <i class="wi wi-angle-right"></i></div></a>
 
 						<!-- 进入PC -->
 						<a href="{{detail.switchurl}}" class="entry" ng-if="detail.type == types.webapp"><div>进入PC <i class="wi wi-angle-right"></i></div></a>
@@ -192,6 +213,9 @@
 						<a ng-href="{{links.switch}}uniacid={{detail.uniacid}}&version_id={{detail.current_version.id}}&type={{detail.type}}" class="entry" ng-if="detail.type == types.phoneapp">
 							<div>进入APP <i class="wi wi-angle-right"></i></div>
 						</a>
+
+						<!-- 进入熊掌号 -->
+						<a href="{{detail.switchurl}}&type={{detail.type}}" class="entry" ng-if="detail.type == types.xzapp"><div>进入熊掌号 <i class="wi wi-angle-right"></i></div></a>
 
 						<!-- 小程序/APP 查看版本 -->
 						<a href="javascript:;" class="cut-btn" ng-click="showVersions($event)" ng-if="detail.type == types.wxapp_normal || detail.type == types.wxapp_auth || detail.type == types.phoneapp">
@@ -255,7 +279,8 @@
 			'wxapp_normal' : "{ACCOUNT_TYPE_APP_NORMAL}",
 			'wxapp_auth' : "{ACCOUNT_TYPE_APP_AUTH}",
 			'webapp' : "{ACCOUNT_TYPE_WEBAPP_NORMAL}",
-			'phoneapp' : "{ACCOUNT_TYPE_PHONEAPP_NORMAL}"
+			'phoneapp' : "{ACCOUNT_TYPE_PHONEAPP_NORMAL}",
+			'xzapp' : "{ACCOUNT_TYPE_XZAPP_NORMAL}"
 	},
 	scrollUrl : "{php echo url('account/display', array('type'=>$type))}"
 	});

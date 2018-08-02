@@ -12,7 +12,6 @@ load()->model('wxapp');
 $dos = array('display', 'delete');
 $do = in_array($_GPC['do'], $dos)? $do : 'display';
 
-
 $_W['page']['title'] = $account_typename . '列表 - ' . $account_typename;
 //模版调用，显示该用户所在用户组可添加的主公号数量，已添加的数量，还可以添加的数量
 $account_info = permission_user_account_num();
@@ -35,6 +34,7 @@ if ($do == 'display') {
 		ACCOUNT_TYPE_WEBAPP_NORMAL => array(ACCOUNT_TYPE_WEBAPP_NORMAL),
 		ACCOUNT_TYPE_OFFCIAL_NORMAL => array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH),
 		ACCOUNT_TYPE_PHONEAPP_NORMAL => array(ACCOUNT_TYPE_PHONEAPP_NORMAL),
+		ACCOUNT_TYPE_XZAPP_NORMAL => array(ACCOUNT_TYPE_XZAPP_NORMAL),
 	);
 	$account_table->searchWithType($type_condition[ACCOUNT_TYPE]);
 
@@ -75,6 +75,7 @@ if ($do == 'display') {
 			}
 		}
 	}
+	$list = array_values($list);
 	$total = $account_table->getLastQueryTotal();
 	$pager = pagination($total, $pindex, $psize);
 	template('account/manage-display' . ACCOUNT_TYPE_TEMPLATE);
@@ -131,3 +132,4 @@ if ($do == 'delete') {
 	}
 	itoast('停用成功！，您可以在回收站中恢复', url('account/manage', array('account_type' => ACCOUNT_TYPE)), 'success');
 }
+
