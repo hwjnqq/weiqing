@@ -420,11 +420,13 @@
 		});
 	document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
 		var miniprogram_environment = false;
-		wx.miniProgram.getEnv(function(res) {
-			if (res.miniprogram) {
-				miniprogram_environment = true;
-			}
-		})
+		if(wx && wx.miniProgram && wx.miniProgram.getEnv) {
+			wx.miniProgram.getEnv(function(res) {
+				if (res.miniprogram) {
+					miniprogram_environment = true;
+				}
+			})
+		}
 		if(window.__wxjs_environment === 'miniprogram' || miniprogram_environment) {
 			$('.pay-style li').hide();
 			$('.js-webwxapp-pay').removeClass('hide');

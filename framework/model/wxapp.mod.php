@@ -226,7 +226,7 @@ function wxapp_version_all($uniacid) {
  * @param int $uniacid
  * @param int $page
  * @param int $pagesize
- *                      return array
+ *					  return array
  */
 function wxapp_get_some_lastversions($uniacid) {
 	$version_lasts = array();
@@ -252,7 +252,7 @@ function wxapp_get_some_lastversions($uniacid) {
  * 更新最新使用版本.
  *
  * @param int $version_id
- *                        return boolean
+ *						return boolean
  */
 function wxapp_update_last_use_version($uniacid, $version_id) {
 	global $_GPC;
@@ -344,6 +344,7 @@ function wxapp_version_detail_info($version_info) {
 	$uni_modules = uni_modules_by_uniacid($version_info['uniacid']);
 	$uni_modules = array_keys($uni_modules);
 	$version_info['cover_entrys'] = array();
+	$version_info['last_modules'] = iunserializer($version_info['last_modules']);
 	if (!empty($version_info['modules'])) {
 		$version_info['modules'] = iunserializer($version_info['modules']);
 		if (!empty($version_info['modules'])) {
@@ -418,12 +419,17 @@ function wxapp_update_daily_visittrend() {
 	if (!empty($trend)) {
 		return true;
 	}
+	return wxapp_insert_date_visit_trend($yesterday);
+}
+
+function wxapp_insert_date_visit_trend($date) {
+	global $_W;
 	$account_api = WeAccount::create();
-	$wxapp_stat = $account_api->getDailyVisitTrend();
+	$wxapp_stat = $account_api->getDailyVisitTrend($date);
 	if (is_error($wxapp_stat) || empty($wxapp_stat)) {
 		return error(-1, '调用微信接口错误');
 	} else {
-		$update_stat = array(
+		$insert_stat = array(
 			'uniacid' => $_W['uniacid'],
 			'session_cnt' => $wxapp_stat['session_cnt'],
 			'visit_pv' => $wxapp_stat['visit_pv'],
@@ -435,10 +441,9 @@ function wxapp_update_daily_visittrend() {
 			'visit_depth' => $wxapp_stat['visit_depth'],
 			'ref_date' => $wxapp_stat['ref_date'],
 		);
-		pdo_insert('wxapp_general_analysis', $update_stat);
+		pdo_insert('wxapp_general_analysis', $insert_stat);
 	}
-
-	return true;
+	return $insert_stat;
 }
 
 function wxapp_search_link_account($module_name = '') {
@@ -595,7 +600,7 @@ function wxapp_code_qrcode($code_token) {
  * @param $last //微信返回的扫码状态
  *
  * @return array|mixed|string array('errno'=>,'message', 'data'=>array('errcode'=>,'code_token'=>'上传代码凭证'))
- *                            errcode 408 超时 404 已扫码 403 已取消 405 已确认扫码
+ *							errcode 408 超时 404 已扫码 403 已取消 405 已确认扫码
  */
 function wxapp_code_check_scan($code_token, $last) {
 	$cloud_api = new CloudApi();
@@ -633,8 +638,8 @@ function wxapp_code_preview_qrcode($code_uuid, $code_token) {
 /**
  * @param $code_uuid  服务器生成代码 返回的UUID
  * @param $code_token  //开发工具调用凭据
- * @param int    $user_version //用户版本
- * @param string $user_desc    // 用户描述
+ * @param int	$user_version //用户版本
+ * @param string $user_desc	// 用户描述
  *
  * @return array('errno'=>0|1, $message=>'');
  */

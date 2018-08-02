@@ -30,6 +30,8 @@ function _cloud_build_params() {
 	}
 	$pars['family'] = IMS_FAMILY;
 	$pars['version'] = IMS_VERSION;
+	$pars['php_version'] = PHP_VERSION;
+	$pars['current_host'] = $_SERVER['HTTP_HOST'];
 	$pars['release'] = IMS_RELEASE_DATE;
 	if (!empty($_W['setting']['site'])) {
 		$pars['key'] = $_W['setting']['site']['key'];
@@ -124,7 +126,7 @@ function cloud_prepare() {
 	global $_W;
 	setting_load();
 	if(empty($_W['setting']['site']['key']) || empty($_W['setting']['site']['token'])) {
-		return error('-1', "您的站点只有在微擎云服务平台成功注册后，才能使用云服务的相应功能。");
+		return error('-1', '您的站点只有在微擎云服务平台成功注册后，才能使用云服务的相应功能。<div><a class="btn btn-primary" style="width:80px;" href="' . url('cloud/profile') . '">去注册</a></div>');
 	}
 	return true;
 }
@@ -429,9 +431,9 @@ function cloud_m_info($name) {
  */
 function cloud_m_upgradeinfo($modulename) {
 	load()->model('module');
-	
+
 	$module = module_fetch($modulename);
-	
+
 	$pars = _cloud_build_params();
 	$pars['method'] = 'module.info';
 	$pars['module'] = $modulename;
@@ -440,14 +442,14 @@ function cloud_m_upgradeinfo($modulename) {
 	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/module.info';
 	$ret = _cloud_shipping_parse($dat, $file);
-	
+
 	if (empty($ret) || is_error($ret)) {
 		return array();
 	}
 	if (version_compare($ret['version']['version'], $module['version'], '>')) {
 		$ret['upgrade'] = true;
 	}
-	
+
 	$ret['site_branch'] = $ret['branches'][$ret['version']['branch_id']];
 	$ret['from'] = 'cloud';
 	foreach ($ret['branches'] as &$branch) {
@@ -728,14 +730,15 @@ function cloud_sms_info() {
 
 	$pars = _cloud_build_params();
 	$pars['method'] = 'sms.info';
-	$dat = cloud_request('http://s.we7.cc/gateway.php?', $pars);
-	if ($dat['content'] == 'success') {
-		$setting_key = "sms.info";
-		$dat = setting_load($setting_key);
-		return $dat[$setting_key];
+	$response = ihttp_request('http://api.w7.cc/sms/info?', $pars);
+	$result = @json_decode($response['content'], true);
+	if(is_error($result)) {
+		return error($result['error'], "错误详情: {$result['data']}");
 	}
-
-	return array();
+	if (!empty($result['data'])) {
+		$result['data']['sms_sign'] = explode('、', $result['data']['sms_sign']);
+	}
+	return (array)$result['data'];
 }
 
 /**
@@ -1408,4 +1411,15 @@ function cloud_path_is_writable($dir) {
 		}
 	}
 	return $writeable;
+}
+
+/**
+ * 从云服务获取推送的消息
+ * @return array()
+ */
+function cloud_get_store_notice() {
+	load()->classs('cloudapi');
+	$api = new CloudApi();
+	$result = $api->get('store', 'official_dynamics');
+	return $result;
 }

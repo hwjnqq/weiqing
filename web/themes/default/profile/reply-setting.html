@@ -7,8 +7,10 @@
 	<li><a href="{url 'platform/reply' array('m' => 'special')}">非文字自动回复</a></li>
 	<li><a href="{url 'platform/reply' array('m' => 'welcome')}">首次访问自动回复</a></li>
 	<li><a href="{url 'platform/reply' array('m' => 'default')}">默认回复</a></li>
+	{if !in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
 	<li><a href="{url 'platform/reply' array('m' => 'service')}">常用服务</a></li>
 	<li><a href="{url 'platform/reply' array('m' => 'userapi')}">自定义接口回复</a></li>
+	{/if}
 	<li class="active"><a href="{url 'profile/reply-setting'}">回复设置</a></li>
 </ul>
 <div class="alert alert-info">

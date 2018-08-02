@@ -152,6 +152,7 @@ if ($do == 'designer') {
 	}
 	$styles = pdo_fetchall("SELECT variable, content, description FROM " . tablename('site_styles_vars') . " WHERE styleid = :styleid AND uniacid = :uniacid", array(':styleid' => $styleid, ':uniacid' => $_W['uniacid']), 'variable');
 	if (checksubmit('submit')) {
+
 		if (!empty($_GPC['style'])) {
 			$_GPC['style'] = safe_gpc_array($_GPC['style']);
 			foreach ($_GPC['style'] as $variable => $value) {
@@ -207,13 +208,14 @@ if ($do == 'designer') {
 				}
 			}
 		}
+
 		if (!empty($styles)) {
 			$stylekeys = array_keys($styles);
 			$stylekeys = array_map(function($item){
 				return str_replace(' ','',$item);
 			},$stylekeys);
 			$stylekeys_str = implode(',', $stylekeys);
-			pdo_query("DELETE FROM " . tablename('site_styles_vars') . " WHERE variable IN ('" . $stylekeys . "') AND styleid = :styleid AND uniacid = '{$_W['uniacid']}'", array(':styleid' => $styleid));
+			pdo_query("DELETE FROM " . tablename('site_styles_vars') . " WHERE variable IN ('" . $stylekeys_str . "') AND styleid = :styleid AND uniacid = '{$_W['uniacid']}'", array(':styleid' => $styleid));
 		}
 		pdo_update('site_styles', array('name' => $_GPC['name']), array('id' => $styleid));
 		itoast('更新风格成功！', url('site/style'), 'success');

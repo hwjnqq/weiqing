@@ -12,7 +12,6 @@ $do = in_array($do, $dos) ? $do : 'display';
 
 $_W['page']['title'] = '登录配置';
 
-
 $types = OAuth2Client::supportLoginType();
 
 $type = trim($_GPC['type']);
@@ -23,7 +22,6 @@ if ($do == 'save_setting') {
 		$appid = trim($_GPC['appid']);
 		$appsecret = trim($_GPC['appsecret']);
 		$authstate = trim($_GPC['authstate']);
-		$type = trim($_GPC['type']);
 
 		$data = array();
 		$data[$type]['appid'] = !empty($appid) ? $appid : $_W['setting']['thirdlogin'][$type]['appid'];

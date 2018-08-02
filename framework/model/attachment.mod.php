@@ -103,7 +103,7 @@ function attachment_cos_auth($bucket,$appid, $key, $secret, $bucket_local = '') 
 		return error(-1, '传入secretkey值不合法，请重新传入');
 	}
 	if (!empty($bucket_local)) {
-		$con = $original = @file_get_contents(IA_ROOT.'/framework/library/cosv4.2/qcloudcos/conf.php');
+		$con = $original = file_get_contents(IA_ROOT.'/framework/library/cosv4.2/qcloudcos/conf.php');
 		if (empty($con)) {
 			$conf_content = base64_decode("PD9waHANCg0KbmFtZXNwYWNlIHFjbG91ZGNvczsNCg0KY2xhc3MgQ29uZiB7DQogICAgLy8gQ29zIHBocCBzZGsgdmVyc2lvbiBudW1iZXIuDQogICAgY29uc3QgVkVSU0lPTiA9ICd2NC4yLjInOw0KICAgIGNvbnN0IEFQSV9DT1NBUElfRU5EX1BPSU5UID0gJ2h0dHA6Ly9yZWdpb24uZmlsZS5teXFjbG91ZC5jb20vZmlsZXMvdjIvJzsNCg0KICAgIC8vIFBsZWFzZSByZWZlciB0byBodHRwOi8vY29uc29sZS5xY2xvdWQuY29tL2NvcyB0byBmZXRjaCB5b3VyIGFwcF9pZCwgc2VjcmV0X2lkIGFuZCBzZWNyZXRfa2V5Lg0KICAgIGNvbnN0IEFQUF9JRCA9ICcnOw0KICAgIGNvbnN0IFNFQ1JFVF9JRCA9ICcnOw0KICAgIGNvbnN0IFNFQ1JFVF9LRVkgPSAnJzsNCg0KICAgIC8qKg0KICAgICAqIEdldCB0aGUgVXNlci1BZ2VudCBzdHJpbmcgdG8gc2VuZCB0byBDT1Mgc2VydmVyLg0KICAgICAqLw0KICAgIHB1YmxpYyBzdGF0aWMgZnVuY3Rpb24gZ2V0VXNlckFnZW50KCkgew0KICAgICAgICByZXR1cm4gJ2Nvcy1waHAtc2RrLScgLiBzZWxmOjpWRVJTSU9OOw0KICAgIH0NCn0NCg==");
 			file_put_contents(IA_ROOT.'/framework/library/cosv4.2/qcloudcos/conf.php', $conf_content);
@@ -116,7 +116,8 @@ function attachment_cos_auth($bucket,$appid, $key, $secret, $bucket_local = '') 
 		load()->library('cos');
 		qcloudcos\Cosapi :: setRegion($bucket_local);
 		qcloudcos\Cosapi :: setTimeout(180);
-		$uploadRet = qcloudcos\Cosapi::upload($bucket, ATTACHMENT_ROOT.'images/global/MicroEngine.ico', '/MicroEngine.ico','',3 * 1024 * 1024, 0);
+		
+		$uploadRet = qcloudcos\Cosapi::upload($bucket, ATTACHMENT_ROOT . 'images/global/MicroEngine.ico', '/MicroEngine.ico','',3 * 1024 * 1024, 0);
 	} else {
 		load()->library('cosv3');
 		$con = $original = @file_get_contents(IA_ROOT.'/framework/library/cos/Qcloud_cos/Conf.php');
@@ -148,6 +149,8 @@ function attachment_cos_auth($bucket,$appid, $key, $secret, $bucket_local = '') 
 			case -133:
 				$message = '请确认你的bucket是否存在';
 				break;
+			default:
+				$message = $uploadRet['message'];
 		}
 		if (empty($bucket_local)) {
 			file_put_contents(IA_ROOT.'/framework/library/cos/Qcloud_cos/Conf.php', $original);
@@ -166,12 +169,11 @@ function attachment_cos_auth($bucket,$appid, $key, $secret, $bucket_local = '') 
  */
 function attachment_reset_uniacid($uniacid) {
 	global $_W;
-	if (empty($uniacid) || intval($uniacid) < 0) {
-		if($_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER ) {
+	if ($_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER) {
+		if (empty($uniacid)) {
 			$_W['uniacid'] = 0;
-			return 0;
 		}
-	}else {
+	} else {
 		/* @var $account AccountTable*/
 		$account = table('account');
 		$accounts = $account->userOwnedAccount($_W['uid']);
@@ -179,4 +181,5 @@ function attachment_reset_uniacid($uniacid) {
 			$_W['uniacid'] = $uniacid;
 		}
 	}
+	return true;
 }

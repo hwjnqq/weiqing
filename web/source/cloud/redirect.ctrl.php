@@ -70,6 +70,10 @@ if($do == 'callback') {
 	$secret = $_GPC['token'];
 	if(strlen($secret) == 32) {
 		$cache = cache_read(cache_system_key('cloud_auth_transfer'));
+		//兼容处理一下更新时，旧缓存名获取数据
+		if (empty($cache) || empty($cache['secret'])) {
+			$cache = cache_read('cloud_auth_transfer');
+		}
 		cache_delete(cache_system_key('cloud_auth_transfer'));
 		if(!empty($cache) && $cache['secret'] == $secret) {
 			$site = $cache;

@@ -1,10 +1,10 @@
 <?php
 /**
- * @package     ${NAMESPACE}
+ * @package	 ${NAMESPACE}
  * @subpackage
  * @since 1.6.3
  * @copyright   A copyright
- * @license     A "Slug" license name e.g. GPL2
+ * @license	 A "Slug" license name e.g. GPL2
  */
 defined('IN_IA') or exit('Access Denied');
 load()->table('account');

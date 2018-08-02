@@ -115,7 +115,7 @@ if ($do == 'display') {
 
 	$templates = uni_templates();
 	$params[':uniacid'] = $_W['uniacid'];
-	$multis = pdo_fetchall('SELECT * FROM ' . tablename('site_multi') . ' WHERE uniacid = :uniacid'.$condition.' LIMIT '.($pindex -1)* $psize.','.$psize, $params);
+	$multis = pdo_fetchall('SELECT * FROM ' . tablename('site_multi') . ' WHERE uniacid = :uniacid'.$condition.' ORDER BY id ASC LIMIT '.($pindex -1)* $psize.','.$psize, $params);
 	foreach ($multis as &$li) {
 		$li['style'] = pdo_fetch('SELECT * FROM ' .tablename('site_styles') . ' WHERE uniacid = :uniacid AND id = :id', array(':uniacid' => $_W['uniacid'], ':id' => $li['styleid']));
 		$li['template'] = pdo_fetch("SELECT * FROM ".tablename('site_templates')." WHERE id = :id", array(':id' => $li['style']['templateid']));

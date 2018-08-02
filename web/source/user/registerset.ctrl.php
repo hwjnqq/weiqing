@@ -6,7 +6,7 @@
 defined('IN_IA') or exit('Access Denied');
 load()->model('setting');
 
-$_W['page']['title'] = '注册选项 - 用户管理';
+$_W['page']['title'] = '用户登录/注册设置 - 注册设置';
 
 
 if (checksubmit('submit')) {

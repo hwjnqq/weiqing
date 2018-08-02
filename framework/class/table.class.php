@@ -441,7 +441,7 @@ abstract class We7Table {
 	 * @return array
 	 */
 	protected function belongsMany($table, $foreign_key, $owner_key, $center_table, $center_foreign_key = false,
-	                               $center_owner_key = false) {
+								   $center_owner_key = false) {
 		if (! $owner_key) {
 			$owner_key = $this->primaryKey;
 		}

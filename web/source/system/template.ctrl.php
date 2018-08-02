@@ -92,6 +92,9 @@ if ($do == 'not_install') {
 	if(!is_error($cloud_template)) {
 		$cloudUninstallThemes = array();
 		foreach($cloud_template as $name => $template_info) {
+			if (empty($template_info) || !is_array($template_info)) {
+				continue;
+			}
 			if(!in_array(strtolower($name), array_keys($installed_template))) {
 				if (!empty($_GPC['keyword']) && !strexists($template_info['title'], trim($_GPC['keyword']))) {
 					continue;

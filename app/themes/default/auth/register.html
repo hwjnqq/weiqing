@@ -5,16 +5,7 @@
 		$(document).on('input propertychange', '.js-mobile-val', function(){
 			var mobile_value = $(this).val();
 			if (mobile_value.length == '11') {
-				$.post("{php echo url('auth/login/mobile_exist')}", {'mobile' : mobile_value}, function(data) {
-					data = $.parseJSON(data);
-					if (data.message.errno == '1') {
-						$('.js-check-mobile').removeClass('send-code');
-						util.toast('手机号已注册', '', 'error');
-						return;
-					} else if (data.message.errno == '2'){
-						$('.js-check-mobile').addClass('send-code');
-					}
-				});
+				$('.js-check-mobile').addClass('send-code');
 			} else {
 				$('.js-check-mobile').removeClass('send-code');
 			}

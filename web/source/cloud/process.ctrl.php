@@ -124,7 +124,7 @@ DAT;
 	}
 } else {
 	if (is_error($packet)) {
-		itoast($packet['message'], '', 'error');
+		message($packet['message'], '', 'error');
 	} else {
 		cache_delete(cache_system_key('checkupgrade'));
 		cache_delete(cache_system_key('cloud_transtoken'));

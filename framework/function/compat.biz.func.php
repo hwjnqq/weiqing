@@ -127,3 +127,7 @@ if (!function_exists('uni_user_permission_check')) {
 		return permission_check_account_user($permission_name, $show_message, $action);
 	}
 }
+if (!defined('CACHE_KEY_MODULE_SETTING')) {
+	//模块配置信息
+	define('CACHE_KEY_MODULE_SETTING', 'module_setting:%s:%s');
+}

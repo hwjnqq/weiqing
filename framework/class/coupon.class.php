@@ -266,10 +266,18 @@ class coupon extends WeiXinAccount {
 		if ($_W['account']['level'] != ACCOUNT_SERVICE_VERIFY && $_W['account']['level'] != ACCOUNT_SUBSCRIPTION_VERIFY) {
 			return false;
 		} else {
-			if ($setting['coupon_type'] == SYSTEM_COUPON) {
-				return false;
+			if (!empty($setting['setting']['coupon_type'])) {
+				if ($setting['setting']['coupon_type'] == SYSTEM_COUPON) {
+					return false;
+				} else {
+					return true;
+				}
 			} else {
-				return true;
+				if ($setting['coupon_type'] == SYSTEM_COUPON) {
+					return false;
+				} else {
+					return true;
+				}
 			}
 		}
 	}

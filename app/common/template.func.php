@@ -410,7 +410,7 @@ function site_category($params = array()) {
 function site_slide_search($params = array()) {
 	global $_W;
 	if(empty($params['limit'])) {
-		$params['limit'] = 4;
+		$params['limit'] = 8;
 	}
 	if(empty($params['multiid'])) {
 		$multiid = pdo_fetchcolumn('SELECT default_site FROM ' . tablename('uni_settings') . ' WHERE uniacid = :id', array(':id' => $_W['uniacid']));

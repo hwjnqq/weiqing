@@ -236,12 +236,12 @@
 			<dt>整体进度</dt>
 			<dd>{{pragress}}</dd>
 			<dt>正在下载文件</dt>
-			<dd>{{file}}</dd>
+			<dd class="text-over">{{file}}</dd>
 		</dl>
 		<dl class="dl-horizontal" ng-show="fails.length > 0">
 			<dt>下载失败的文件</dt>
 			<dd>
-				<p class="text-danger" ng-repeat="file in fails" style="margin:0;">{{file}}</p>
+				<p class="text-danger text-over" ng-repeat="file in fails" style="margin:0;">{{file}}</p>
 			</dd>
 		</dl>
 	</div>

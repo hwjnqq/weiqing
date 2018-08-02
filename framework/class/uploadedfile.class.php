@@ -245,7 +245,7 @@ class UploadedFile extends SplFileInfo {
 	 * {@inheritdoc}
 	 *
 	 * @return string|null The filename sent by the client or null if none
-	 *                     was provided.
+	 *					 was provided.
 	 */
 	public function getClientFilename() {
 		return $this->clientFilename;

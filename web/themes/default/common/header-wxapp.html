@@ -2,7 +2,7 @@
 <span class="wxapp-name">{$_W['account']['name']}</span>
 <span class="wxapp-version">{$version_info['version']}</span>
 <div class="pull-right">
-	<a href="{php echo url('wxapp/version/display', array('uniacid' => $_W['uniacid']))}" class="color-default"><i class="wi wi-cut"></i>切换版本</a>
+	<a href="{php echo url('wxapp/display/version_display')}" class="color-default"><i class="wi wi-cut"></i>切换版本</a>
 	{if in_array($role, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER)) || $_W['isfounder']}
 	<a href="{php echo url('wxapp/manage/display', array('uniacid' => $_W['uniacid']))}" class="color-default"><i class="wi wi-text"></i>管理</a>
 	{/if}

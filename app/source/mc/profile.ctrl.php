@@ -128,9 +128,6 @@ if ($do == 'addressadd') {
 		if (empty($address['city'])) {
 			message('请输入您的所在市', referer(), 'error');
 		}
-		if (empty($address['district'])) {
-			message('请输入您的所在区', referer(), 'error');
-		}
 		if (empty($address['address'])) {
 			message('请输入您的详细地址', referer(), 'error');
 		}

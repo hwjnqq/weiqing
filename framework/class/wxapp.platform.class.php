@@ -7,8 +7,8 @@ defined('IN_IA') or exit('Access Denied');
 
 
 class WxAppPlatform extends WeiXinPlatform {
-    
-    const JSCODEURL = 'https://api.weixin.qq.com/sns/component/jscode2session?appid=%s&js_code=%s&grant_type=authorization_code&component_appid=%s&component_access_token=%s';
+
+	const JSCODEURL = 'https://api.weixin.qq.com/sns/component/jscode2session?appid=%s&js_code=%s&grant_type=authorization_code&component_appid=%s&component_access_token=%s';
 
 
 	function __construct($account = array()) {
@@ -55,7 +55,7 @@ class WxAppPlatform extends WeiXinPlatform {
 		if (is_error($component_accesstoken)) {
 			return $component_accesstoken;
 		}
-        $apiurl = sprintf(self::JSCODEURL, $this->account['key'], $code, $this->appid, $component_accesstoken);
+		$apiurl = sprintf(self::JSCODEURL, $this->account['key'], $code, $this->appid, $component_accesstoken);
 
 		$response = $this->request($apiurl);
 		if (is_error($response)) {

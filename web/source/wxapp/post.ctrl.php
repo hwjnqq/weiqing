@@ -14,7 +14,7 @@ load()->classs('wxapp.platform');
 $dos = array('design_method', 'post', 'get_wxapp_modules', 'module_binding');
 $do = in_array($do, $dos) ? $do : 'post';
 $_W['page']['title'] = '小程序 - 新建版本';
-$account_info = permission_user_account_num();
+$account_info = permission_user_account_num($_W['uid']);
 
 
 if ($do == 'design_method') {

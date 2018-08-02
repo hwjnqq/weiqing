@@ -1,4 +1,4 @@
-<img src="{php echo tomedia('headimg_'.$wxapp_info['acid'].'.jpg')}?time={php echo time()}" class="head-logo">
+<img src="{php echo tomedia('headimg_'.$_W['acid'].'.jpg')}?time={php echo time()}" class="head-logo">
 <span class="wxapp-name">{$account['name']}</span>
 <div class="pull-right">
 	{if in_array($role, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER)) || $_W['isfounder']}

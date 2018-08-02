@@ -17,49 +17,49 @@
 $url = null;// 'https://www.baidu.com/&ssd=as&as=../asd../\asdad\\sdff..//asdas..sdf&script=123';
 	$file = __DIR__.'/test_1x.php';
 	$validor = new Validator(
-	    array(
-	        'data_url'=>$url,
-	        'data_int'=>3232,
-	        'data_file'=>$file,
-	        'data_array'=>array(1,2,3),
-	        'data_email'=>'sdjkd@qqcom',
-	        'data_string'=>'3',
-	        'data_ip'=> '1.25.55.55133',
-	        'data_in'=> '2',
-	        'data_notin'=>'4',
-	        'data_between'=>3,
-	        'data_same'=>'3',
-	        'data_date'=>'2017-11-22',
-	        'data_after'=>'2017-11-20',
-	        'data_before'=>'2017-11-23',
-	        'data_bool'=>'2232',
-	        'data_sms'=>'32'
-	        ),
-	    array(
-	    'data_url'=>'required|url',
-	    'data_int'=>'min:3233|max:90',
-	    'data_file'=>'file|min:8|max:3',
-	    'data_array'=>'array|size:3',
-	    'data_email'=>'email',
-	    'data_string'=>'required|string',
-	    'data_ip'=>'ip',
-	    'data_between'=>'between:5,10',
-	    'data_same'=> 'same:data_string'	,
-	    'data_date'=>'date',
-	    'data_after'=>'after:2017-11-21',
-	    'data_before'=>'before:data_date',
-	    'data_in'=>'in:3,4,5',
-	    'data_notin'=>array(array('name'=>'notin', 'params'=>array('3', '4', '7'))),
-	    'data_bool'=>'bool',
-	    'data_sms' => 'required|sms|size:5',
+		array(
+			'data_url'=>$url,
+			'data_int'=>3232,
+			'data_file'=>$file,
+			'data_array'=>array(1,2,3),
+			'data_email'=>'sdjkd@qqcom',
+			'data_string'=>'3',
+			'data_ip'=> '1.25.55.55133',
+			'data_in'=> '2',
+			'data_notin'=>'4',
+			'data_between'=>3,
+			'data_same'=>'3',
+			'data_date'=>'2017-11-22',
+			'data_after'=>'2017-11-20',
+			'data_before'=>'2017-11-23',
+			'data_bool'=>'2232',
+			'data_sms'=>'32'
+			),
+		array(
+		'data_url'=>'required|url',
+		'data_int'=>'min:3233|max:90',
+		'data_file'=>'file|min:8|max:3',
+		'data_array'=>'array|size:3',
+		'data_email'=>'email',
+		'data_string'=>'required|string',
+		'data_ip'=>'ip',
+		'data_between'=>'between:5,10',
+		'data_same'=> 'same:data_string'	,
+		'data_date'=>'date',
+		'data_after'=>'after:2017-11-21',
+		'data_before'=>'before:data_date',
+		'data_in'=>'in:3,4,5',
+		'data_notin'=>array(array('name'=>'notin', 'params'=>array('3', '4', '7'))),
+		'data_bool'=>'bool',
+		'data_sms' => 'required|sms|size:5',
 
 	),array(
-	    'data_notin.notin'=>'字段内容必须不在 3,4,7 内',
-	    'data_same'=>'字段必须和data_string字段一致',
-	    'data_sms'=>'短信验证码不正确'
+		'data_notin.notin'=>'字段内容必须不在 3,4,7 内',
+		'data_same'=>'字段必须和data_string字段一致',
+		'data_sms'=>'短信验证码不正确'
 	));
 	$validor->addRule('sms', function($key, $value, $params, $validor){
-	    return false;
+		return false;
 
 	});
 	$validor->valid();

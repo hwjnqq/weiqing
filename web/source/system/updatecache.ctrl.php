@@ -23,9 +23,10 @@ if (checksubmit('submit', true)) {
 	cache_build_template();
 	cache_build_users_struct();
 	cache_build_setting();
-	cache_build_frame_menu();
 	cache_build_module_subscribe_type();
 	cache_build_cloud_ad();
+	//清除模块接口缓存表中的数据
+	pdo_delete('modules_cloud');
 	iajax(0, '更新缓存成功！', '');
 }
 

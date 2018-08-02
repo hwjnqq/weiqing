@@ -9,6 +9,7 @@ $account_info = permission_user_account_num();
 $do = safe_gpc_belong($do, array('create_display', 'save', 'display', 'del_version'), 'display');
 
 $uniacid = intval($_GPC['uniacid']);
+$acid = intval($_GPC['acid']);
 
 if (!empty($uniacid)) {
 	$state = permission_account_user_role($_W['uid'], $uniacid);

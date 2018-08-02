@@ -146,7 +146,7 @@ class WxappAccount extends WeAccount {
 		return $response['content'];
 	}
 
-	public function getCodeUnlimit($scene, $path = '', $width = '430', $option = array()) {
+	public function getCodeUnlimit($scene, $page = '', $width = '430', $option = array()) {
 		if (!preg_match('/[0-9a-zA-Z\!\#\$\&\'\(\)\*\+\,\/\:\;\=\?\@\-\.\_\~]{1,32}/', $scene)) {
 			return error(1, '场景值不合法');
 		}
@@ -158,8 +158,8 @@ class WxappAccount extends WeAccount {
 			'scene' => $scene,
 			'width' => intval($width),
 		);
-		if (!empty($path)) {
-			$data['path'] = $path;
+		if (!empty($page)) {
+			$data['page'] = $page;
 		}
 		if (!empty($option['auto_color'])) {
 			$data['auto_color'] = intval($option['auto_color']);
@@ -323,7 +323,7 @@ class WxappAccount extends WeAccount {
 		)));
 	}
 
-	public function getDailyVisitTrend() {
+	public function getDailyVisitTrend($date) {
 		global $_W;
 		$token = $this->getAccessToken();
 		if (is_error($token)) {
@@ -331,8 +331,8 @@ class WxappAccount extends WeAccount {
 		}
 		$url = "https://api.weixin.qq.com/datacube/getweanalysisappiddailyvisittrend?access_token={$token}";
 		$data = array(
-			'begin_date' => date('Y-m-d', strtotime('-1 days')),
-			'end_date' => date('Y-m-d', strtotime('-1 days'))
+			'begin_date' => $date,
+			'end_date' => $date
 		);
 
 		$response = $this->requestApi($url, json_encode($data));

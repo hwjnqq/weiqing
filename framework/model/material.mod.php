@@ -559,6 +559,7 @@ function material_news_list($server = '', $search ='', $page = array('page_index
 	$total_sql = sprintf($select_sql, "count(*)", '');
 	$total = pdo_fetchcolumn($total_sql, $conditions);
 	$news_list = pdo_fetchall($list_sql, $conditions);
+
 	$material_list = array();
 	if (! empty($news_list)) {
 		foreach ($news_list as $news){
@@ -579,6 +580,7 @@ function material_news_list($server = '', $search ='', $page = array('page_index
 			}
 		}
 	}
+
 	// 转换微信图片地址
 	foreach ($material_list as $key => &$news) {
 		if (isset($news['items']) && is_array($news['items'])) {

@@ -17,17 +17,17 @@ $GLOBALS['_W']['config']['db']['tablepre'] = empty($GLOBALS['_W']['config']['db'
  * // SHOW FULL COLUMNS FROM 'tablename'
  * $ret['tablename'] = '表名'; //string
  * $ret['charset']   = '字符集'; //string
- * $ret['engine']    = '存储引擎'; //string
+ * $ret['engine']	= '存储引擎'; //string
  * $ret['increment'] = '主键自增基数'; //int
  *
  * $ret['fields'] = array(); // 数据字段
  * $ret['fields']['field1'] = array();
- * $ret['fields']['field1']['name']      = '字段名称'; //string
- * $ret['fields']['field1']['type']      = '字段类型'; //string
- * $ret['fields']['field1']['length']    = '字段长度'; //string
- * $ret['fields']['field1']['null']      = '是否可空'; //bool
+ * $ret['fields']['field1']['name']	  = '字段名称'; //string
+ * $ret['fields']['field1']['type']	  = '字段类型'; //string
+ * $ret['fields']['field1']['length']	= '字段长度'; //string
+ * $ret['fields']['field1']['null']	  = '是否可空'; //bool
  * $ret['fields']['field1']['default']   = '字段默认值'; //string
- * $ret['fields']['field1']['signed']    = '有符号, 无符号'; //bool
+ * $ret['fields']['field1']['signed']	= '有符号, 无符号'; //bool
  * $ret['fields']['field1']['increment'] = '是否增字段'; //bool
  * $ret['fields']['field1']['comment']   = '备注信息'; //string
  * $ret['fields']['field2'] = ...

@@ -197,7 +197,7 @@
 		{/if}
 	</table>
 	{/if}
-	{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders) || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER && $owner['uid'] != $_W['uid']}
+
 		
 	<div  class="uploader-modal modal fade module" id="jurisdiction-add">
 		<div class="modal-dialog modal-lg">
@@ -362,7 +362,7 @@
 			</div>
 		</div>
 	</div>
-	{/if}
+
 </div>
 <script>
 	angular.module('accountApp').value('config', {
