@@ -9,7 +9,6 @@ $dos = array('module_link_uniacid', 'search_link_account', 'module_unlink_uniaci
 $do = in_array($do, $dos) ? $do : 'module_link_uniacid';
 
 $_W['page']['title'] = '数据同步 - PC - 管理';
-$module_table = table('module');
 
 if ($do == 'module_link_uniacid') {
 	if (checksubmit('submit')) {
@@ -25,7 +24,7 @@ if ($do == 'module_link_uniacid') {
 
 		$account_module = pdo_get('uni_account_modules', array('module' => $module_name, 'uniacid' => $_W['uniacid']), array('id', 'settings'));
 		if (!empty($account_module)) {
-			$settings = iunserializer($account_module['settings']);
+			$settings = (array)iunserializer($account_module['settings']);
 			$settings['link_uniacid'] = $uniacid;
 			pdo_update('uni_account_modules', array('settings' => iserializer($settings)), array('id' => $account_module['id']));
 		} else {
@@ -38,13 +37,15 @@ if ($do == 'module_link_uniacid') {
 			);
 			pdo_insert('uni_account_modules', $data);
 		}
+		uni_passive_link_uniacid($uniacid, $module_name);
 		cache_build_module_info($module_name);
-		iajax(0, '关联公众号成功');
+		iajax(0, '关联成功');
 	}
 
 	$modules = uni_modules();
+	//1.过滤不支持关联的模块,2.获取已关联模块的uniacid信息,3.获取被关联模块的uniacid信息
 	foreach ($modules as $key => $value) {
-		if ($value['wxapp_support'] == MODULE_NONSUPPORT_WXAPP && $value['webapp_support'] == MODULE_NOSUPPORT_WEBAPP || !empty($value['issystem'])) {
+		if ($value[MODULE_SUPPORT_WXAPP_NAME] == MODULE_NONSUPPORT_WXAPP && $value[MODULE_SUPPORT_ACCOUNT_NAME] == MODULE_NONSUPPORT_ACCOUNT || !empty($value['issystem'])) {
 			unset($modules[$key]);
 			continue;
 		}
@@ -52,14 +53,8 @@ if ($do == 'module_link_uniacid') {
 			$modules[$key]['link_uniacid_info'] = uni_fetch($value['config']['link_uniacid']);
 			continue;
 		}
-		$link_uniacid_info = $module_table->moduleLinkUniacidInfo($value['name']);
-		if (empty($link_uniacid_info)) {
-			continue;
-		}
-		foreach ($link_uniacid_info as $info) {
-			if ($info['settings']['link_uniacid'] == $_W['uniacid']) {
-				$modules[$key]['other_link'] = uni_fetch($info['uniacid']);
-			}
+		if (!empty($value['config']['passive_link_uniacid'])) {
+			$modules[$key]['other_link'] = uni_fetch($value['config']['passive_link_uniacid']);
 		}
 	}
 	template('webapp/module-link-uniacid');
@@ -108,7 +103,7 @@ if ($do == 'search_link_account') {
 	}
 	//该模块是否有其他关联
 	$have_link_uniacid = array();
-	$link_uniacid_info = $module_table->moduleLinkUniacidInfo($module_name);
+	$link_uniacid_info = module_link_uniacid_info($module_name);
 	if (!empty($link_uniacid_info)) {
 		foreach ($link_uniacid_info as $info) {
 			if (!empty($info['settings']['link_uniacid'])) {
