@@ -12,6 +12,7 @@ class Agent
 	const BROWSER_TYPE_IPAD    = 2;
 	const BROWSER_TYPE_IPOD	   = 3;
 	const BROWSER_TYPE_ANDROID = 4;
+	const BROWSER_TYPE_XZAPP   = 5;
 	const BROWSER_TYPE_UNKNOWN = -1;
 	
 	// 系统类型
@@ -51,7 +52,10 @@ class Agent
 	public static function browserType($agent = '')
 	{
 		$agent = self::getAgent($agent);
-	
+		if (stripos($agent, 'baiduboxapp') !== false) {
+			return self::BROWSER_TYPE_XZAPP;
+		}
+
 		if (stripos($agent, 'iphone') !== false) {
 			return self::BROWSER_TYPE_IPHONE;
 		}

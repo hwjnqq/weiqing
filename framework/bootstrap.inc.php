@@ -180,8 +180,14 @@ if(Agent::isMicroMessage() == Agent::MICRO_MESSAGE_YES) {
 	$_W['container'] = 'iphone';
 } elseif ($_W['container'] == Agent::BROWSER_TYPE_IPOD) {
 	$_W['container'] = 'ipod';
+} elseif ($_W['container'] == Agent::BROWSER_TYPE_XZAPP) {
+	$_W['container'] = 'baidu';
 } else {
 	$_W['container'] = 'unknown';
+}
+
+if ($_W['container'] == 'wechat' || $_W['container'] == 'baidu') {
+	$_W['container'] = 'account';
 }
 
 $controller = $_GPC['c'];

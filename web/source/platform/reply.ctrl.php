@@ -38,6 +38,14 @@ if ($m == 'special') {
 		'WifiConnected' => 'Wifi连接成功消息',
 		'qr' => '二维码',
 	);
+
+	if (in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))) {
+		$mtypes = array(
+			'image' => '图片消息',
+			'voice' => '语音消息',
+			'video' => '视频消息',
+		);
+	}
 }
 
 //功能模块用

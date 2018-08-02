@@ -28,7 +28,7 @@
 					<a href="javascript:void(0);" onclick="select_mediaid('basic');">&nbsp;<i class="wi wi-text"></i><span class="msg-tab-title">文字</span></a>
 				</li>
 				<li class="tab-nav tab-img {if $options['image']}hidden{/if}">
-					<a href="javascript:void(0);" onclick="select_mediaid('image');">&nbsp;<i class="wi wi-img"></i><span class="msg-tab-title">微信图片</span></a>
+					<a href="javascript:void(0);" onclick="select_mediaid('image');">&nbsp;<i class="wi wi-img"></i><span class="msg-tab-title">{if in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}熊掌号{else}微信{/if}图片</span></a>
 				</li>
 				<li class="tab-nav tab-audio {if $options['music']}hidden{/if}">
 					<a href="javascript:void(0);" onclick="select_mediaid('music');">&nbsp;<i class="wi wi-notice"></i><span class="msg-tab-title">音乐</span></a>

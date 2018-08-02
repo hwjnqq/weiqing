@@ -490,7 +490,6 @@ function permission_user_account_num($uid = 0) {
 		$role = ACCOUNT_MANAGE_NAME_OWNER;
 		$group = $user_table->usersGroupInfo($user['groupid']);
 		$group_num = uni_owner_account_nums($user['uid'], $role);
-
 		if (empty($_W['isfounder'])) {
 			if (!empty($user['owner_uid'])) {
 				$owner_info = $user_table->usersInfo($user['owner_uid']);
@@ -500,24 +499,27 @@ function permission_user_account_num($uid = 0) {
 				$group['maxwxapp'] = min(intval($group['maxwxapp']), intval($group_vice['maxwxapp']));
 				$group['maxwebapp'] = min(intval($group['maxwebapp']), intval($group_vice['maxwebapp']));
 				$group['maxphoneapp'] = min(intval($group['maxphoneapp']), intval($group_vice['maxphoneapp']));
+				$group['maxxzapp'] = min(intval($group['maxxzapp']), intval($group_vice['maxxzapp']));
 			}
 		}
 	}
 	/* @var $store_table StoreTable*/
 	$store_table = table('store');
-	$create_buy_account_num = $store_table->searchUserCreateAccountNum($uid);
-	$create_buy_wxapp_num = $store_table->searchUserCreateWxappNum($uid);
-	$store_buy_account = $store_table->searchUserBuyAccount($uid);
-	$store_buy_wxapp = $store_table->searchUserBuyWxapp($uid);
+	$create_buy_account_num = $store_table->searchUserCreateAccountNum($user['uid']);
+	$create_buy_wxapp_num = $store_table->searchUserCreateWxappNum($user['uid']);
+	$store_buy_account = $store_table->searchUserBuyAccount($user['uid']);
+	$store_buy_wxapp = $store_table->searchUserBuyWxapp($user['uid']);
+
 	$uniacid_limit = max((intval($group['maxaccount']) + intval($store_buy_account) - $group_num['account_num']), 0);
 	$wxapp_limit = max((intval($group['maxwxapp']) + intval($store_buy_wxapp) - $group_num['wxapp_num']), 0);
 	$webapp_limit = max(intval($group['maxwebapp']) - $group_num['webapp_num'], 0);
 	$phoneapp_limit = max(intval($group['maxphoneapp']) - $group_num['phoneapp_num'], 0);
-
+	$xzapp_limit = max(intval($group['maxxzapp']) - $group_num['phoneapp_num'], 0);
 	$founder_uniacid_limit = max((intval($group_vice['maxaccount']) + intval($store_buy_account) - $founder_group_num['account_num']), 0);
 	$founder_wxapp_limit = max((intval($group_vice['maxwxapp']) + intval($store_buy_wxapp) - $founder_group_num['wxapp_num']), 0);
 	$founder_webapp_limit = max(intval($group_vice['maxwebapp']) - $founder_group_num['webapp_num'], 0);
 	$founder_phoneapp_limit = max(intval($group_vice['maxphoneapp']) - $founder_group_num['phoneapp_num'], 0);
+	$founder_xzapp_limit = max(intval($group_vice['xzapp']) - $founder_group_num['xzapp_num'], 0);
 	$data = array(
 		'group_name' => $group['name'],
 		'vice_group_name' => $group_vice['name'],
@@ -526,6 +528,7 @@ function permission_user_account_num($uid = 0) {
 		'usergroup_wxapp_limit' => max($group['maxwxapp'] - $group_num['wxapp_num'] - $create_buy_wxapp_num, 0),//用户组剩余创建小程序个数
 		'usergroup_webapp_limit' => max($group['maxwebapp'] - $group_num['webapp_num'], 0),//用户组剩余创建PC个数
 		'usergroup_phoneapp_limit' => max($group['maxphoneapp'] - $group_num['phoneapp_num'], 0),//用户组剩余创建APP个数
+		'usergroup_xzapp_limit' => max($group['maxxzapp'] - $group_num['xzapp_num'], 0), // 用户组剩余创建熊掌号个数
 		'uniacid_num' => $group_num['account_num'],
 		'uniacid_limit' => max($uniacid_limit, 0),
 		'founder_uniacid_limit' => max($founder_uniacid_limit, 0),
@@ -540,7 +543,11 @@ function permission_user_account_num($uid = 0) {
 		'maxphoneapp' => $group['maxphoneapp'],
 		'phoneapp_num' => $group_num['phoneapp_num'],
 		'phoneapp_limit' => $phoneapp_limit,
-		'founder_phoneapp_limit' => max($founder_phoneapp_limit, 0)
+		'founder_phoneapp_limit' => max($founder_phoneapp_limit, 0),
+		'maxxzapp' => $group['maxxzapp'],
+		'xzapp_num' => $group_num['xzapp_num'],
+		'xzapp_limit' => $xzapp_limit,
+		'founder_xzapp_limit' => max($founder_xzapp_limit, 0)
 	);
 	return $data;
 }

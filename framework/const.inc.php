@@ -42,6 +42,10 @@ define('ACCOUNT_TYPE_PHONEAPP_NORMAL', 6);
 define('ACCOUNT_TYPE_APP_AUTH', 7);
 //正常接入企业小程序
 define('ACCOUNT_TYPE_WXAPP_WORK', 8);
+//正常接入熊掌号
+define('ACCOUNT_TYPE_XZAPP_NORMAL', 9);
+//授权接入熊掌号
+define('ACCOUNT_TYPE_XZAPP_AUTH', 10);
 //公众号
 define('ACCOUNT_TYPE_SIGN', 'account');
 //小程序
@@ -52,6 +56,8 @@ define('WEBAPP_TYPE_SIGN', 'webapp');
 define('PHONEAPP_TYPE_SIGN', 'phoneapp');
 //欢迎页
 define('WELCOMESYSTEM_TYPE_SIGN', 'welcome');
+//熊掌号
+define('XZAPP_TYPE_SIGN', 'xzapp');
 
 
 //授权登录接入
@@ -156,12 +162,16 @@ define('MODULE_SUPPORT_ANDROID', 2);
 //是否支持ios 不支持1 支持2
 define('MODULE_NOSUPPORT_IOS', 1);
 define('MODULE_SUPPORT_IOS', 2);
+// 是否支持熊掌号 不支持1 支持2
+define('MODULE_SUPPORT_XZAPP', 2);
+define('MODULE_NOSUPPORT_XZAPP', 1);
 
 define('MODULE_SUPPORT_WXAPP_NAME', 'wxapp_support');
 define('MODULE_SUPPORT_ACCOUNT_NAME', 'account_support');
 define('MODULE_SUPPORT_WEBAPP_NAME', 'webapp_support');
 define('MODULE_SUPPORT_PHONEAPP_NAME', 'phoneapp_support');
 define('MODULE_SUPPORT_SYSTEMWELCOME_NAME', 'welcome_support');
+define('MODULE_SUPPORT_XZAPP_NAME', 'xzapp_support');
 
 //模块安装来源
 //本地安装 
@@ -268,8 +278,10 @@ define('USER_REGISTER_TYPE_WECHAT', 2);
 define('USER_REGISTER_TYPE_MOBILE', 3);
 
 //消息提醒类型
-//订单消息类型
+//提交订单消息类型
 define('MESSAGE_ORDER_TYPE', 1);
+//订单支付消息类型
+define('MESSAGE_ORDER_PAY_TYPE', 9);
 //公众号过期消息类型
 define('MESSAGE_ACCOUNT_EXPIRE_TYPE', 2);
 //小程序过期消息类型
@@ -284,6 +296,14 @@ define('MESSAGE_REGISTER_TYPE', 4);
 define('MESSAGE_USER_EXPIRE_TYPE', 7);
 //小程序应用升级
 define('MESSAGE_WXAPP_MODULE_UPGRADE', 8);
+//系统更新消息
+define('MESSAGE_SYSTEM_UPGRADE', 10);
+//官方动态消息
+define('MESSAGE_OFFICIAL_DYNAMICS', 11);
+
+//消息开关是否开启 1开启 2关闭
+define('MESSAGE_ENABLE', 1);
+define('MESSAGE_DISABLE', 2);
 
 //消息是否读取 1未读  2已读
 define('MESSAGE_NOREAD', 1);
