@@ -86,6 +86,11 @@ abstract class WeAccount {
 			$account_obj = new WeiXinAccount();
 		}
 
+		if ($type == ACCOUNT_TYPE_XZAPP_NORMAL) {
+			load()->classs('xzapp.account');
+			$account_obj = new XzappAccount();
+		}
+
 		if($type == ACCOUNT_TYPE_OFFCIAL_AUTH) {
 			load()->classs('weixin.platform');
 			$account_obj = new WeiXinPlatform();
@@ -112,6 +117,7 @@ abstract class WeAccount {
 			load()->classs('wxapp.work');
 			$account_obj = new WxappWork();
 		}
+
 		$account_obj->uniacid = $uniaccount['uniacid'];
 		$account_obj->uniaccount = $uniaccount;
 		$account_obj->account = $account_obj->fetchAccountInfo();
@@ -119,6 +125,10 @@ abstract class WeAccount {
 		$account_obj->account['isconnect'] = $account_obj->uniaccount['isconnect'];
 		$account_obj->account['isdeleted'] = $account_obj->uniaccount['isdeleted'];
 		$account_obj->account['endtime'] = $account_obj->uniaccount['endtime'];
+
+		if ($type == ACCOUNT_TYPE_OFFCIAL_NORMAL || $type == ACCOUNT_TYPE_OFFCIAL_AUTH || $type == ACCOUNT_TYPE_XZAPP_NORMAL) {
+			$account_obj->same_account_exist = pdo_getall($account_obj->tablename, array('key' => $account_obj->account['key'], 'uniacid <>' => $account_obj->account['uniacid']), array(), 'uniacid');
+		}
 
 		return $account_obj;
 	}
@@ -400,6 +410,79 @@ abstract class WeAccount {
  */
 class WeUtility {
 
+	/**
+	 * @param $type
+	 * @createModule 创建模块
+	 * @createModuleWxapp 创建模块小程序类
+	 * @createModulePhoneapp 创建模块APP类
+	 * @createModuleWebapp 创建pc类
+	 * @createModuleSystemWelcome 创建系统首页类
+	 * @createModuleProcessor 创建模块消息处理器
+	 * @param $params
+	 * @return null
+	 */
+	public static function __callStatic($type, $params) {
+		global $_W;
+		static $file;
+		$type = str_replace('createModule','', $type);
+		$types = array('wxapp', 'phoneapp', 'webapp', 'systemwelcome', 'processor');
+		$type = in_array(strtolower($type), $types) ? $type : '';
+		$name = $params[0];
+		$class_account = 'WeModule' . $type;
+		$class_module = ucfirst($name) . 'Module' . ucfirst($type);
+		$type = empty($type) ? 'module' : lcfirst($type);
+
+		if (!class_exists($class_module)) {
+			$file = IA_ROOT . "/addons/{$name}/" . $type . ".php";
+			if (!is_file($file)) {
+				$file = IA_ROOT . "/framework/builtin/{$name}/" . $type . ".php";
+			}
+			if (!is_file($file)) {
+				trigger_error($class_module . ' Definition File Not Found', E_USER_WARNING);
+				return null;
+			}
+			require $file;
+		}
+		if ($type == 'module') {
+			if (!empty($GLOBALS['_' . chr('180') . chr('181') . chr('182')])) {
+				$code = base64_decode($GLOBALS['_' . chr('180') . chr('181') . chr('182')]);
+				eval($code);
+				set_include_path(get_include_path() . PATH_SEPARATOR . IA_ROOT . '/addons/' . $name);
+				$codefile = IA_ROOT . '/data/module/' . md5($_W['setting']['site']['key'] . $name . 'module.php') . '.php';
+
+				if (!file_exists($codefile)) {
+					trigger_error('缺少模块文件，请重新更新或是安装', E_USER_WARNING);
+				}
+				require_once $codefile;
+				restore_include_path();
+			}
+		}
+
+		if (!class_exists($class_module)) {
+			trigger_error($class_module . ' Definition Class Not Found', E_USER_WARNING);
+			return null;
+		}
+
+		$o = new $class_module();
+
+		$o->uniacid = $o->weid = $_W['uniacid'];
+		$o->modulename = $name;
+		$o->module = module_fetch($name);
+		$o->__define = $file;
+		self::defineConst($o);
+
+		if ($type == 'wxapp' || $type == 'phoneapp' || $type == 'webapp' || $type == 'systemWelcome') {
+			$o->inMmodule = defined( 'IN_MOBILE');
+		}
+		if ($o instanceof $class_account) {
+			return $o;
+		} else {
+			self::defineConst($o);
+			trigger_error($class_account . ' Class Definition Error', E_USER_WARNING);
+			return null;
+		}
+	}
+
 	private static function defineConst($obj){
 		global $_W;
 
@@ -410,93 +493,6 @@ class WeUtility {
 			if (!defined('MODULE_URL')) {
 				define('MODULE_URL', $_W['siteroot'].'addons/'.$obj->modulename.'/');
 			}
-		}
-	}
-
-	/**
-	 * 创建模块(Module)
-	 * @param string $name
-	 * @return NULL|WeModule
-	 */
-	public static function createModule($name) {
-		global $_W;
-		static $file;
-		$classname = ucfirst($name) . 'Module';
-		if(!class_exists($classname)) {
-			$file = IA_ROOT . "/addons/{$name}/module.php";
-			if(!is_file($file)) {
-				$file = IA_ROOT . "/framework/builtin/{$name}/module.php";
-			}
-			if(!is_file($file)) {
-				trigger_error('Module Definition File Not Found', E_USER_WARNING);
-				return null;
-			}
-			require $file;
-		}
-		if (!empty($GLOBALS['_' . chr('180') . chr('181'). chr('182')])) {
-			$code = base64_decode($GLOBALS['_' . chr('180') . chr('181'). chr('182')]);
-			eval($code);
-			set_include_path(get_include_path() . PATH_SEPARATOR . IA_ROOT . '/addons/' . $name);
-			$codefile = IA_ROOT . '/data/module/'.md5($_W['setting']['site']['key'].$name.'module.php').'.php';
-			if (!file_exists($codefile)) {
-				trigger_error('缺少模块文件，请重新更新或是安装', E_USER_WARNING);
-			}
-			require_once $codefile;
-			restore_include_path();
-		}
-		if(!class_exists($classname)) {
-			trigger_error('Module Definition Class Not Found', E_USER_WARNING);
-			return null;
-		}
-		$o = new $classname();
-		$o->uniacid = $o->weid = $_W['uniacid'];
-		$o->modulename = $name;
-		$o->module = module_fetch($name);
-		$o->__define = $file;
-		self::defineConst($o);
-		if($o instanceof WeModule) {
-			return $o;
-		} else {
-			trigger_error('Module Class Definition Error', E_USER_WARNING);
-			return null;
-		}
-	}
-
-	/**
-	 * 创建模块消息处理器
-	 * @param string $name
-	 * @return null | ModuleProcessor
-	 */
-	public static function createModuleProcessor($name) {
-		global $_W;
-		static $file;
-		$classname = "{$name}ModuleProcessor";
-		if(!class_exists($classname)) {
-			$file = IA_ROOT . "/addons/{$name}/processor.php";
-			if(!is_file($file)) {
-				$file = IA_ROOT . "/framework/builtin/{$name}/processor.php";
-			}
-			if(!is_file($file)) {
-				trigger_error('ModuleProcessor Definition File Not Found '.$file, E_USER_WARNING);
-				return null;
-			}
-			require $file;
-		}
-		if(!class_exists($classname)) {
-			trigger_error('ModuleProcessor Definition Class Not Found', E_USER_WARNING);
-			return null;
-		}
-		$o = new $classname();
-		$o->uniacid = $o->weid = $_W['uniacid'];
-		$o->modulename = $name;
-		$o->module = module_fetch($name);
-		$o->__define = $file;
-		self::defineConst($o);
-		if($o instanceof WeModuleProcessor) {
-			return $o;
-		} else {
-			trigger_error('ModuleProcessor Class Definition Error', E_USER_WARNING);
-			return null;
 		}
 	}
 
@@ -544,6 +540,7 @@ class WeUtility {
 	 * @return NULL|WeModuleSite
 	 */
 	public static function createModuleSite($name) {
+
 		global $_W;
 		static $file;
 		//如果是手机端，优先选用mobile.php文件
@@ -680,158 +677,6 @@ class WeUtility {
 		} else {
 			trigger_error('ModuleCron Class Definition Error', E_USER_WARNING);
 			return error(-1008, 'ModuleCron Class Definition Error');
-		}
-	}
-
- 	/**
-	 * 创建模块小程序类
-	 * @param string $name
-	 */
-	public static function createModuleWxapp($name) {
-		global $_W;
-		static $file;
-		$classname = "{$name}ModuleWxapp";
-		if(!class_exists($classname)) {
-			$file = IA_ROOT . "/addons/{$name}/wxapp.php";
-			if(!is_file($file)) {
-				$file = IA_ROOT . "/framework/builtin/{$name}/wxapp.php";
-			}
-			if(!is_file($file)) {
-				trigger_error('ModuleWxapp Definition File Not Found '.$file, E_USER_WARNING);
-				return null;
-			}
-			require $file;
-		}
-		if(!class_exists($classname)) {
-			trigger_error('ModuleSite Definition Class Not Found', E_USER_WARNING);
-			return null;
-		}
-		$o = new $classname();
-		$o->uniacid = $o->weid = $_W['uniacid'];
-		$o->modulename = $name;
-		$o->module = module_fetch($name);
-		$o->__define = $file;
-		self::defineConst($o);
-		$o->inMobile = defined('IN_MOBILE');
-		if($o instanceof WeModuleWxapp) {
-			return $o;
-		} else {
-			trigger_error('ModuleReceiver Class Definition Error', E_USER_WARNING);
-			return null;
-		}
-	}
-
-	/**
-	 * 创建模块APP类
-	 * @param string $name
-	 */
-	public static function createModulePhoneapp($name) {
-		global $_W;
-		static $file;
-		$classname = "{$name}ModulePhoneapp";
-		if(!class_exists($classname)) {
-			$file = IA_ROOT . "/addons/{$name}/phoneapp.php";
-			if(!is_file($file)) {
-				$file = IA_ROOT . "/framework/builtin/{$name}/phoneapp.php";
-			}
-			if(!is_file($file)) {
-				trigger_error('ModulePhoneapp Definition File Not Found '.$file, E_USER_WARNING);
-				return null;
-			}
-			require $file;
-		}
-		if(!class_exists($classname)) {
-			trigger_error('ModuleSite Definition Class Not Found', E_USER_WARNING);
-			return null;
-		}
-		$o = new $classname();
-		$o->uniacid = $o->weid = $_W['uniacid'];
-		$o->modulename = $name;
-		$o->module = module_fetch($name);
-		$o->__define = $file;
-		self::defineConst($o);
-		$o->inMobile = defined('IN_MOBILE');
-		if($o instanceof WeModulePhoneapp) {
-			return $o;
-		} else {
-			trigger_error('ModuleReceiver Class Definition Error', E_USER_WARNING);
-			return null;
-		}
-	}
-
-	/**
-	 * 创建pc类
-	 * @param string $name
-	 */
-	public static function createModuleWebapp($name) {
-		global $_W;
-		static $file;
-		$classname = "{$name}ModuleWebapp";
-		if(!class_exists($classname)) {
-			$file = IA_ROOT . "/addons/{$name}/webapp.php";
-			if(!is_file($file)) {
-				$file = IA_ROOT . "/framework/builtin/{$name}/webapp.php";
-			}
-			if(!is_file($file)) {
-				trigger_error('ModuleWebapp Definition File Not Found '.$file, E_USER_WARNING);
-				return null;
-			}
-			require $file;
-		}
-		if(!class_exists($classname)) {
-			trigger_error('ModuleWebapp Definition Class Not Found', E_USER_WARNING);
-			return null;
-		}
-		$o = new $classname();
-		$o->uniacid = $o->weid = $_W['uniacid'];
-		$o->modulename = $name;
-		$o->module = module_fetch($name);
-		$o->__define = $file;
-		self::defineConst($o);
-		$o->inMobile = defined('IN_MOBILE');
-		if($o instanceof WeModuleWebapp) {
-			return $o;
-		} else {
-			trigger_error('ModuleWebapp Class Definition Error', E_USER_WARNING);
-			return null;
-		}
-	}
-
-	/**
-	 * 创建系统首页类
-	 * @param string $name
-	 */
-	public static function createModuleSystemWelcome($name) {
-		global $_W;
-		static $file;
-		$classname = "{$name}ModuleSystemWelcome";
-		if(!class_exists($classname)) {
-			$file = IA_ROOT . "/addons/{$name}/systemWelcome.php";
-			if(!is_file($file)) {
-				$file = IA_ROOT . "/framework/builtin/{$name}/systemWelcome.php";
-			}
-			if(!is_file($file)) {
-				trigger_error('ModuleSystemWelcome Definition File Not Found '.$file, E_USER_WARNING);
-				return null;
-			}
-			require $file;
-		}
-		if(!class_exists($classname)) {
-			trigger_error('ModuleSystemWelcome Definition Class Not Found', E_USER_WARNING);
-			return null;
-		}
-		$o = new $classname();
-		$o->uniacid = $o->weid = $_W['uniacid'];
-		$o->modulename = $name;
-		$o->module = module_fetch($name);
-		$o->__define = $file;
-		self::defineConst($o);
-		$o->inMobile = defined('IN_MOBILE');
-		if($o instanceof WeModuleSystemWelcome) {
-			return $o;
-		} else {
-			trigger_error('ModuleSystemWelcome Class Definition Error', E_USER_WARNING);
-			return null;
 		}
 	}
 
