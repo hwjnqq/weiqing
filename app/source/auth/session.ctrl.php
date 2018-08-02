@@ -8,16 +8,39 @@ defined('IN_IA') or exit('Access Denied');
 
 load()->model('mc');
 
-$dos = array('openid', 'userinfo', 'touch');
+$dos = array('openid', 'userinfo', 'check');
 $do = in_array($do, $dos) ? $do : 'openid';
 
 $account_api = WeAccount::create();
+if (!empty($_GPC['wxwork'])) {
+	//如果是企业微信，实例化wxapp.work类，目前没有独立出来小程序企业号类型 先这样处理
+	$_W['account']['type'] = ACCOUNT_TYPE_WXAPP_WORK;
+	$account_api = WeAccount::includes($_W['account']);
+}
 if ($do == 'openid') {
+	/**
+	 * 用户可通过code码或是Openid来获取用户信息
+	 */
 	$code = $_GPC['code'];
-	if (empty($_W['account']['oauth']) || empty($code)) {
+	$openid = $_GPC['openid'];
+	
+	if (empty($openid) && !empty($_W['openid'])) {
+		$openid = $_W['openid'];
+	}
+	
+	if (empty($_W['account']['oauth']) || (empty($code) && empty($openid))) {
 		exit('通信错误，请在微信中重新发起请求');
 	}
-
+	
+	if (!empty($openid)) {
+		$_SESSION['openid'] = $oauth['openid'];
+		$fans = mc_fansinfo($openid);
+		if (!empty($fans)) {
+			$account_api->result(0, '', array('sessionid' => $_W['session_id'], 'userinfo' => $fans));
+		} else {
+			$account_api->result(1, 'openid不存在');
+		}
+	}
 	$oauth = $account_api->getOauthInfo($code);
 	if (!empty($oauth) && !is_error($oauth)) {
 		$_SESSION['openid'] = $oauth['openid'];
@@ -64,8 +87,17 @@ if ($do == 'openid') {
 			$record['uid'] = $uid;
 			$_SESSION['uid'] = $uid;
 			pdo_insert('mc_mapping_fans', $record);
+		} else {
+			$userinfo = $fans['tag'];
+			$uid = $fans['uid'];
 		}
-		$account_api->result(0, '', array('sessionid' => $_W['session_id']));
+		if (empty($userinfo)) {
+			$userinfo = array(
+				'openid' => $oauth['openid'],
+			);
+		}
+		$_SESSION['userinfo'] = base64_encode(iserializer($userinfo));
+		$account_api->result(0, '', array('sessionid' => $_W['session_id'], 'userinfo' => $fans, 'openid' => $oauth['openid']));
 	} else {
 		$account_api->result(1, $oauth['message']);
 	}
@@ -101,16 +133,9 @@ if ($do == 'openid') {
 		))),
 	);
 	//如果有unionid则查找相关粉丝，将会员数据同步
+	//如果有unionid则查找相关粉丝，将会员数据同步
 	if (!empty($userinfo['unionId'])) {
-		// 2000万粉丝卡死bug  openId!= 会导致全表扫描
-//		$union_fans = pdo_get('mc_mapping_fans', array('unionid' => $userinfo['unionId'], 'openid !=' => $userinfo['openId']));
-		$union_fans = pdo_getall('mc_mapping_fans', array('unionid' => $userinfo['unionId']));
-		$union_fans = array_filter($union_fans, function($fans) use ($userinfo){
-			return isset($fans['openid']) ? $fans['openid'] != $userinfo('openId') : false;
-		});
-		if (count($union_fans) > 0) {
-			$union_fans = current($union_fans);
-		}
+		$union_fans = pdo_get('mc_mapping_fans', array('unionid' => $userinfo['unionId'], 'openid !=' => $userinfo['openId']));
 		if (!empty($union_fans['uid'])) {
 			if (!empty($fans['uid'])) {
 				//合并积分数据
@@ -127,4 +152,10 @@ if ($do == 'openid') {
 	unset($member['password']);
 	unset($member['salt']);
 	$account_api->result(0, '', $member);
+} elseif ($do == 'check') {
+	if (!empty($_W['openid'])) {
+		$account_api->result(0);
+	} else {
+		$account_api->result(1, 'session失效，请重新发起登录请求');
+	}
 }
