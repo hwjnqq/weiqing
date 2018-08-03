@@ -9,13 +9,13 @@ defined('IN_IA') or exit('Access Denied');
  * 说明（以$we7_file_permission数组下第一个元素account为例）：
  * account  代表  设定/web/source/account文件夹下的权限（即代码中的 $controller 或 $_GPC['c']）
  * account数组下的元素：
- *    'default'       代表  进入此controller后在没有指定$action（即$_GPC['a']）的情况下，默认进入的文件
- *    'direct'        代表  无需任何权限，可以直接进入的权限
- *    'vice_founder'  代表  副创始人拥有的权限
- *    'owner'         代表  主管理员拥有的权限
- *    'manager'       代表  管理员拥有的权限
- *    'operator'      代表  操作员拥有的权限
- *    'clerk'         代表  店员拥有的权限
+ *	'default'	   代表  进入此controller后在没有指定$action（即$_GPC['a']）的情况下，默认进入的文件
+ *	'direct'		代表  无需任何权限，可以直接进入的权限
+ *	'vice_founder'  代表  副创始人拥有的权限
+ *	'owner'		 代表  主管理员拥有的权限
+ *	'manager'	   代表  管理员拥有的权限
+ *	'operator'	  代表  操作员拥有的权限
+ *	'clerk'		 代表  店员拥有的权限
  * 权限中带星号'*'指拥有该文件夹下所有权限
  */
 $we7_file_permission = array();
@@ -134,6 +134,7 @@ $we7_file_permission = array(
 		'operator' => array('home*'),
 		'clerk' => array('welcome'),
 		'unbind_user' => array(),
+		'expired' => array('welcome'),
 	),
 	'mc' => array(
 		'default' => '',
@@ -176,6 +177,7 @@ $we7_file_permission = array(
 		),
 		'clerk' => array(
 			'display',
+			'manage-account'
 		),
 		'unbind_user' => array(),
 	),
@@ -268,6 +270,10 @@ $we7_file_permission = array(
 		),
 		'clerk' => array(),
 		'unbind_user' => array(),
+		'expired' => array(
+			'goods-buyer',
+			'orders',
+		)
 	),
 	'system' => array(
 		'default' => '',
@@ -294,6 +300,9 @@ $we7_file_permission = array(
 			'workorder',
 		),
 		'unbind_user' => array(),
+		'expired' => array(
+			'updatecache',
+		)
 	),
 	'user' => array(
 		'default' => 'display',
@@ -318,6 +327,9 @@ $we7_file_permission = array(
 			'profile',
 		),
 		'unbind_user' => array(),
+		'expired' => array(
+			'user*',
+		)
 	),
 	'wxapp' => array(
 		'default' => '',
@@ -328,11 +340,13 @@ $we7_file_permission = array(
 			'display',
 			'version',
 			'post',
+			'auth',
 		),
 		'operator' => array(
 			'display',
 			'version',
 			'post',
+			'auth',
 		),
 		'clerk' => array(
 			'display',
@@ -414,13 +428,21 @@ $we7_file_permission = array(
 			'see_module_manage_system_info_edit',
 			'see_module_manage_system_detailinfo',
 			'see_module_manage_system_group_add',
+			'see_module_manage_system_welcome_support',
 			'see_account_post_modules_tpl_edit_store_endtime',
 			'see_account_manage_module_tpl_all_permission',
 			'see_account_manage_sms_blance',
-			'see_account_manage_users_edit',
+			'see_account_manage_users_edit_vicefounder',
+			'see_account_manage_users_edit_owner',
+			'see_account_manage_users_set_permission_for_manager',
+			'see_account_manage_users_set_permission_for_operator',
+			'see_account_manage_users_addmanager',
+			'see_account_manage_users_delmanager',
+			'see_account_manage_users_deloperator',
 			'see_account_manage_users_adduser',
 			'see_account_manage_users_add_viceuser',
 			'see_system_upgrade',
+			'see_system_updatecache',
 			'see_system_manage_clerk',
 			'see_system_manage_user_setting',
 			'see_system_manage_vice_founder',
@@ -431,21 +453,37 @@ $we7_file_permission = array(
 			'see_user_create_own_vice_founder',
 			'see_user_profile_edit_username',
 			'see_user_profile_account_num',
-			'see_user_add_welcome_account'
+			'see_user_add_welcome_account',
+			'see_workorder',
 		),
 		'vice_founder' => array(
 			'see_account_manage_users_adduser',
+			'see_account_manage_users_edit_owner',
+			'see_account_manage_users_set_permission_for_manage',
+			'see_account_manage_users_set_permission_for_operator',
+			'see_account_manage_users_deloperator',
+			'see_account_manage_users_delmanager',
 			'see_module_manage_system_group_add',
-			'see_user_add_welcome_account'
+			'see_user_add_welcome_account',
+			'see_system_updatecache',
 		),
 		'owner' => array(
-
+			'see_system_updatecache',
+			'see_account_manage_users_set_permission_for_manage',
+			'see_account_manage_users_set_permission_for_operator',
+			'see_account_manage_users_deloperator',
+			'see_account_manage_users_delmanager',
+			'see_modules_recharge'
 		),
 		'manager' => array(
-			'see_user_profile_welcome'
+			'see_account_manage_users_set_permission_for_operator',
+			'see_account_manage_users_deloperator',
+			'see_user_profile_welcome',
+			'see_system_updatecache',
 		),
 		'operator' => array(
-			'see_user_profile_welcome'
+			'see_user_profile_welcome',
+			'see_system_updatecache',
 		),
 		'clerk' => array(
 
