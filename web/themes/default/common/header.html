@@ -6,7 +6,7 @@
 		<div class="container {if !empty($frames['section']['platform_module_menu']['plugin_menu'])}plugin-head{/if}">
 			<div class="navbar-header">
 				<a class="navbar-brand" href="{$_W['siteroot']}">
-					<img src="{if !empty($_W['setting']['copyright']['blogo'])}{php echo tomedia($_W['setting']['copyright']['blogo'])}{else}./resource/images/logo/logo.png{/if}" class="pull-left" width="110px" height="35px">
+					<img src="{if !empty($_W['setting']['copyright']['blogo']) && function_exists('to_global_media')}{php echo to_global_media($_W['setting']['copyright']['blogo'])}{else}./resource/images/logo/logo.png{/if}" class="pull-left" width="110px" height="35px">
 					<span class="version hidden">{IMS_VERSION}</span>
 				</a>
 			</div>
@@ -22,7 +22,7 @@
 				{php $platform_url=url('account/display')}
 				{php $nav_top_fold[] = array('name' => 'all', 'title'=>'全部', 'type' => 'all', 'url' => $platform_url)}
 				{loop $top_nav $nav}
-					{if in_array($nav['name'], array(ACCOUNT_TYPE_SIGN, WXAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN, PHONEAPP_TYPE_SIGN))}
+					{if in_array($nav['name'], array(ACCOUNT_TYPE_SIGN, WXAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN, PHONEAPP_TYPE_SIGN, XZAPP_TYPE_SIGN))}
 						{php $nav_top_fold[]=$nav}
 					{elseif in_array($nav['name'], array('platform', 'module', 'system', 'site'))}
 						{php $nav_top_tiled_system[]=$nav}
@@ -65,17 +65,17 @@
 						</a>
 					</li>
 					{/if}
-					{php $workorder_nav=$frames['section']['workorder']['menu']['system_workorder']}
-					{if empty($workorder_nav['url'])}
-						{php $frames_site = buildframes('site')}
-						{php $workorder_nav=$frames_site['section']['workorder']['menu']['system_workorder']}
-					{/if}
-					{if !empty($workorder_nav) && $_W['isfounder']}
+
+					{php $frames_site = buildframes('site')}
+					{php $workorder_nav=$frames_site['section']['workorder']['menu']['system_workorder']}
+					{if $workorder_nav['is_display']}
+					{if permission_check_account_user('see_workorder')}
 					<li>
-						<a href="{if empty($workorder_nav['url'])}{php echo url('home/welcome/' . $workorder_nav['name']);}{else}{$workorder_nav['url']}{/if}" data-toggle="tooltip"  data-placement="bottom" title="工单">
-							<i class="{$workorder_nav['icon']} color-gray" ></i>
+						<a href="{php echo url('system/workorder/display')}" data-toggle="tooltip"  data-placement="bottom" title="工单">
+							<i class="wi wi-system-work color-gray" ></i>
 						</a>
 					</li>
+					{/if}
 					{/if}
 
 					{template 'common/header-notice'}
@@ -90,12 +90,10 @@
 							{if permission_check_account_user('see_system_upgrade')}
 							<li><a href="{url 'cloud/upgrade'}" target="_blank"><i class="wi wi-update color-gray"></i> 自动更新</a></li>
 							{/if}
-
-							{if $_W['role'] != ACCOUNT_MANAGE_NAME_CLERK}
+							{if permission_check_account_user('see_system_updatecache')}
 							<li><a href="{url 'system/updatecache'}" target="_blank"><i class="wi wi-cache color-gray"></i> 更新缓存</a></li>
 							<li class="divider"></li>
 							{/if}
-
 							<li>
 								<a href="{url 'user/logout'}"><i class="fa fa-sign-out color-gray"></i> 退出系统</a>
 							</li>
@@ -142,7 +140,7 @@
 {if !defined('IN_MESSAGE')}
 <div class="container">
 	<a href="javascript:;" class="js-big-main button-to-big color-gray" title="加宽">{if $_GPC['main-lg']}正常{else}宽屏{/if}</a>
-	{if in_array(FRAME, array('account', 'system', 'advertisement', 'wxapp', 'site', 'store', 'webapp', 'phoneapp')) && !in_array($_GPC['a'], array('news-show', 'notice-show'))}
+	{if in_array(FRAME, array('account', 'system', 'advertisement', 'wxapp', 'site', 'store', 'webapp', 'phoneapp', 'xzapp')) && !in_array($_GPC['a'], array('news-show', 'notice-show'))}
 	<div class="panel panel-content main-panel-content {if !empty($frames['section']['platform_module_menu']['plugin_menu'])}panel-content-plugin{/if}">
 		<div class="content-head panel-heading main-panel-heading">
 			{if ($_GPC['c'] != 'cloud' && !empty($_GPC['m']) && !in_array($_GPC['m'], array('keyword', 'special', 'welcome', 'default', 'userapi', 'service'))) || defined('IN_MODULE')}
@@ -178,7 +176,7 @@
 										<a href="{php echo $menu['url']}"><span class="label label-more">更多应用</span></a>
 									</li>
 								{else}
-									{if (in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER)) && $menu_id == 'front_download' || $menu_id != 'front_download') && !($menu_id == 'platform_menu' && $_W['account']['level'] == ACCOUNT_SUBSCRIPTION)}
+									{if (in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER)) && $menu_id == 'front_download' || $menu_id != 'front_download') && !($menu_id == 'platform_menu' && $_W['account']['level'] == ACCOUNT_SUBSCRIPTION) || $_W['account']['type'] == ACCOUNT_TYPE_XZAPP_NORMAL}
 									<li class="list-group-item {if $menu['active']}active{/if}">
 										<a href="{$menu['url']}" class="text-over" {if $frame_section_id == 'platform_module'}target="_blank"{/if}>
 										{if $menu['icon']}
@@ -189,6 +187,7 @@
 											{/if}
 										{/if}
 										{$menu['title']}
+										{if !empty($menu['need_upload']) && $action != 'front-download'}<i class="wi wi-info-sign color-red" style="font-size:14px;position:relative;bottom:4px"></i>{/if}
 										</a>
 									</li>
 									{/if}

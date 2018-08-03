@@ -388,8 +388,9 @@ function is_serialized($data, $strict = true) {
 			}
 		// or else fall through
 		case 'a' :
-		case 'O' :
 			return (bool)preg_match("/^{$token}:[0-9]+:/s", $data);
+		case 'O' :
+			return false;
 		case 'b' :
 		case 'i' :
 		case 'd' :
@@ -492,6 +493,13 @@ function pagination($total, $pageIndex, $pageSize = 15, $url = '', $context = ar
 		'lindex' => 0,
 		'options' => ''
 	);
+	if (empty($context['before'])) {
+		$context['before'] = 5;
+	}
+	if (empty($context['after'])) {
+		$context['after'] = 4;
+	}
+
 	if ($context['ajaxcallback']) {
 		$context['isajax'] = true;
 	}
@@ -518,10 +526,10 @@ function pagination($total, $pageIndex, $pageSize = 15, $url = '', $context = ar
 		if (empty($url)) {
 			$url = $_W['script_name'] . '?' . http_build_query($_GET);
 		}
-		$pdata['faa'] = 'href="javascript:;" page="' . $pdata['findex'] . '" '. ($callbackfunc ? 'onclick="'.$callbackfunc.'(\'' . $url . '\', \'' . $pdata['findex'] . '\', this);return false;"' : '');
-		$pdata['paa'] = 'href="javascript:;" page="' . $pdata['pindex'] . '" '. ($callbackfunc ? 'onclick="'.$callbackfunc.'(\'' . $url . '\', \'' . $pdata['pindex'] . '\', this);return false;"' : '');
-		$pdata['naa'] = 'href="javascript:;" page="' . $pdata['nindex'] . '" '. ($callbackfunc ? 'onclick="'.$callbackfunc.'(\'' . $url . '\', \'' . $pdata['nindex'] . '\', this);return false;"' : '');
-		$pdata['laa'] = 'href="javascript:;" page="' . $pdata['lindex'] . '" '. ($callbackfunc ? 'onclick="'.$callbackfunc.'(\'' . $url . '\', \'' . $pdata['lindex'] . '\', this);return false;"' : '');
+		$pdata['faa'] = 'href="javascript:;" page="' . $pdata['findex'] . '" '. ($callbackfunc ? 'ng-click="'.$callbackfunc.'(\'' . $url . '\', \'' . $pdata['findex'] . '\', this);"' : '');
+		$pdata['paa'] = 'href="javascript:;" page="' . $pdata['pindex'] . '" '. ($callbackfunc ? 'ng-click="'.$callbackfunc.'(\'' . $url . '\', \'' . $pdata['pindex'] . '\', this);"' : '');
+		$pdata['naa'] = 'href="javascript:;" page="' . $pdata['nindex'] . '" '. ($callbackfunc ? 'ng-click="'.$callbackfunc.'(\'' . $url . '\', \'' . $pdata['nindex'] . '\', this);"' : '');
+		$pdata['laa'] = 'href="javascript:;" page="' . $pdata['lindex'] . '" '. ($callbackfunc ? 'ng-click="'.$callbackfunc.'(\'' . $url . '\', \'' . $pdata['lindex'] . '\', this);"' : '');
 	} else {
 		if ($url) {
 			$pdata['faa'] = 'href="?' . str_replace('*', $pdata['findex'], $url) . '"';
@@ -541,10 +549,9 @@ function pagination($total, $pageIndex, $pageSize = 15, $url = '', $context = ar
 	}
 
 	$html = '<div><ul class="pagination pagination-centered">';
-	if ($pdata['cindex'] > 1) {
-		$html .= "<li><a {$pdata['faa']} class=\"pager-nav\">首页</a></li>";
-		$html .= "<li><a {$pdata['paa']} class=\"pager-nav\">&laquo;上一页</a></li>";
-	}
+	$html .= "<li><a {$pdata['faa']} class=\"pager-nav\">首页</a></li>";
+	empty($callbackfunc) && $html .= "<li><a {$pdata['paa']} class=\"pager-nav\">&laquo;上一页</a></li>";
+
 	//页码算法：前5后4，不足10位补齐
 	if (!$context['before'] && $context['before'] != 0) {
 		$context['before'] = 5;
@@ -563,7 +570,7 @@ function pagination($total, $pageIndex, $pageSize = 15, $url = '', $context = ar
 		}
 		for ($i = $range['start']; $i <= $range['end']; $i++) {
 			if ($context['isajax']) {
-				$aa = 'href="javascript:;" page="' . $i . '" '. ($callbackfunc ? 'onclick="'.$callbackfunc.'(\'' . $url . '\', \'' . $i . '\', this);return false;"' : '');
+				$aa = 'href="javascript:;" page="' . $i . '" '. ($callbackfunc ? 'ng-click="'.$callbackfunc.'(\'' . $url . '\', \'' . $i . '\', this);"' : '');
 			} else {
 				if ($url) {
 					$aa = 'href="?' . str_replace('*', $i, $url) . '"';
@@ -572,12 +579,16 @@ function pagination($total, $pageIndex, $pageSize = 15, $url = '', $context = ar
 					$aa = 'href="?' . http_build_query($_GET) . '"';
 				}
 			}
-			$html .= ($i == $pdata['cindex'] ? '<li class="active"><a href="javascript:;">' . $i . '</a></li>' : "<li><a {$aa}>" . $i . '</a></li>');
+			if (!empty($context['isajax'])) {
+				$html .= ($i == $pdata['cindex'] ? '<li class="active">' : '<li>') . "<a {$aa}>" . $i . '</a></li>';
+			} else {
+				$html .= ($i == $pdata['cindex'] ? '<li class="active"><a href="javascript:;">' . $i . '</a></li>' : "<li><a {$aa}>" . $i . '</a></li>');
+			}
 		}
 	}
 
 	if ($pdata['cindex'] < $pdata['tpage']) {
-		$html .= "<li><a {$pdata['naa']} class=\"pager-nav\">下一页&raquo;</a></li>";
+		empty($callbackfunc) && $html .= "<li><a {$pdata['naa']} class=\"pager-nav\">下一页&raquo;</a></li>";
 		$html .= "<li><a {$pdata['laa']} class=\"pager-nav\">尾页</a></li>";
 	}
 	$html .= '</ul></div>';
@@ -618,6 +629,36 @@ function tomedia($src, $local_path = false){
 		$src = $_W['siteroot'] . $_W['config']['upload']['attachdir'] . '/' . $src;
 	} else {
 		$src = $_W['attachurl_remote'] . $src;
+	}
+	return $src;
+}
+
+/*
+ * 根据全局远程附件设置获取附件的HTTP绝对路径
+ * @param string $src 附件地址
+ * @return string
+ */
+function to_global_media($src) {
+	global $_W;
+	$lower_src = strtolower($src);
+	if ((substr($lower_src, 0, 7) == 'http://') || (substr($lower_src, 0, 8) == 'https://') || (substr($lower_src, 0, 2) == '//')) {
+		return $src;
+	}
+	$remote = setting_load('remote');
+	$remote = empty($remote) ? array() : $remote['remote'];
+	if (empty($remote['type']) || file_exists(IA_ROOT . '/' . $_W['config']['upload']['attachdir'] . '/' . $src)) {
+		$src = $_W['siteroot'] . $_W['config']['upload']['attachdir'] . '/' . $src;
+	} else {
+		if ($remote['type'] == ATTACH_FTP) {
+			$attach_url = $remote['ftp']['url'] . '/';
+		} elseif ($remote['type'] == ATTACH_OSS) {
+			$attach_url = $remote['alioss']['url'] . '/';
+		} elseif ($remote['type'] == ATTACH_QINIU) {
+			$attach_url = $remote['qiniu']['url'] . '/';
+		} elseif ($remote['type'] == ATTACH_COS) {
+			$attach_url = $remote['cos']['url'] . '/';
+		}
+		$src = $attach_url . $src;
 	}
 	return $src;
 }
@@ -673,7 +714,7 @@ function detect_sensitive_word($string) {
  */
 function referer($default = '') {
 	global $_GPC, $_W;
-	$_W['referer'] = !empty($_GPC['referer']) ? $_GPC['referer'] : $_SERVER['HTTP_REFERER'];;
+	$_W['referer'] = !empty($_GPC['referer']) ? $_GPC['referer'] : $_SERVER['HTTP_REFERER'];
 	$_W['referer'] = substr($_W['referer'], -1) == '?' ? substr($_W['referer'], 0, -1) : $_W['referer'];
 
 	if (strpos($_W['referer'], 'member.php?act=login')) {
@@ -1354,5 +1395,35 @@ if (!function_exists('starts_with')) {
 		return false;
 	}
 }
+
+/**
+ * 第一个参数作为回调函数调用，函数不存在则返回空(回调函数最多支持4个参数)
+ * @param string $callback
+ * @return mixed
+ */
+function icall_user_func($callback) {
+	if (function_exists($callback)) {
+		$args = func_get_args();
+		switch(func_num_args()) {
+			case 1:
+				return call_user_func($callback);
+				break;
+			case 2:
+				return call_user_func($callback, $args[1]);
+				break;
+			case 3:
+				return call_user_func($callback, $args[1], $args[2]);
+				break;
+			case 4:
+				return call_user_func($callback, $args[1], $args[2], $args[3]);
+				break;
+			case 5:
+				return call_user_func($callback, $args[1], $args[2], $args[3], $args[4]);
+				break;
+		}
+	}
+	return '';
+}
+
 load()->func('safe');
 load()->func('system');
