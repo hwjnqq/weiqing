@@ -36,6 +36,21 @@ if ($do == 'display') {
 		$version_exist = wxapp_fetch($account['uniacid']);
 		if (!empty($version_exist)) {
 			$wxapp_version_lists = wxapp_version_all($account['uniacid']);
+			if (!empty($wxapp_version_lists)) {
+				foreach ($wxapp_version_lists as &$row) {
+					if (!empty($row['modules'])) {
+						$row['module'] = current($row['modules']);
+					}
+					if (!empty($row['last_modules'])) {
+						$row['last_modules'] = current($row['last_modules']);
+						$module = module_fetch($row['last_modules']['name']);
+						if (!empty($module)) {
+							$row['last_modules'] = array_merge($module, $row['last_modules']);
+						}
+					}
+				}
+				unset($row);
+			}
 			$wxapp_modules = wxapp_support_uniacid_modules($account['uniacid']);
 		}
 	}
@@ -90,8 +105,7 @@ if ($do == 'edit_version') {
 	if (empty($new_module_data)) {
 		iajax(1, '应用模块不可为空！');
 	}
-	$data = array('modules' => iserializer($new_module_data), 'version' => trim($_GPC['version_info']['version']), 'description' => trim($_GPC['version_info']['description']));
-	pdo_update('wxapp_versions', $data, array('id' => $versionid));
+	pdo_update('wxapp_versions', array('modules' => iserializer($new_module_data)), array('id' => $versionid));
 	cache_delete(cache_system_key('wxapp_version', array('version_id' => $versionid)));
 	iajax(0, '修改成功！', referer());
 }

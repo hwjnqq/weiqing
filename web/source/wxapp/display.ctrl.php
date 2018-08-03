@@ -6,7 +6,7 @@
 defined('IN_IA') or exit('Access Denied');
 load()->model('wxapp');
 
-$dos = array('home');
+$dos = array('home', 'version_display');
 $do = in_array($do, $dos) ? $do : 'home';
 
 if ($do == 'home') {
@@ -27,4 +27,9 @@ if ($do == 'home') {
 		$url = url('wxapp/version/home', array('version_id' => $last_version['version']['id']));
 	}
 	itoast('', $url, 'info');
+}
+
+if ($do == 'version_display') {
+	$wxapp_version_list = wxapp_version_all($_W['uniacid']);
+	template('wxapp/version-display');
 }

@@ -26,7 +26,7 @@ if ($do == 'get_setting') {
 }
 
 if ($do == 'display') {
-	$pay_setting['wechat'] = empty($pay_setting['wechat']) ? array() : $pay_setting['wechat'];
+	$pay_setting['wechat'] = empty($pay_setting['wechat']) ? array('mchid'=>'', 'signkey' => '') : $pay_setting['wechat'];
 }
 
 if ($do == 'save_setting') {
@@ -42,6 +42,6 @@ if ($do == 'save_setting') {
 	$pay_setting[$type] = $param;
 	$payment = iserializer($pay_setting);
 	uni_setting_save('payment', $payment);
-	iajax(0, '设置成功', url('wxapp/payment'));
+	iajax(0, '设置成功', url('account/display', array('do' => 'switch', 'uniacid' => $_W['uniacid'])));
 }
 template('wxapp/payment');

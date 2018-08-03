@@ -8,19 +8,14 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('wxapp');
 load()->model('welcome');
 
-$dos = array('display', 'home', 'get_daily_visittrend');
-$do = in_array($do, $dos) ? $do : 'display';
+$dos = array('home', 'get_daily_visittrend');
+$do = in_array($do, $dos) ? $do : 'home';
 $_W['page']['title'] = '小程序 - 管理';
 
 $version_id = intval($_GPC['version_id']);
 $wxapp_info = wxapp_fetch($_W['uniacid']);
 if (!empty($version_id)) {
 	$version_info = wxapp_version($version_id);
-}
-
-if ($do == 'display') {
-	$wxapp_version_list = wxapp_version_all($_W['uniacid']);
-	template('wxapp/version-display');
 }
 
 if ($do == 'home') {
