@@ -1,0 +1,40 @@
+<?php
+/**
+ * [WeEngine System] Copyright (c) 2013 WE7.CC
+ */
+namespace We7\Table\System;
+
+class StatVisit extends \We7Table {
+	protected $tableName = 'system_stat_visit';
+	protected $primaryKey = 'id';
+	protected $field = array(
+		'uniacid',
+		'modulename',
+		'uid',
+		'displayorder',
+		'createtime',
+		'updatetime',
+	);
+	protected $default = array(
+		'uniacid' => '',
+		'modulename' => '',
+		'uid' => '',
+		'displayorder' => 0,
+		'createtime' => '',
+		'updatetime' => '',
+	);
+
+
+	public function deleteVisitRecord($uid, $delete_modules = array()) {
+		if (!empty($delete_modules)) {
+			$this->query->where('modulename', $delete_modules);
+		}
+		return $this->query->where('uid', $uid)
+			->where('uniacid', 0)
+			->delete();
+	}
+
+	public function getVistedModule($uid) {
+		return $this->query->where('uid', $uid)->where('uniacid', 0)->getall('modulename');
+	}
+}

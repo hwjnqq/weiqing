@@ -17,10 +17,41 @@ function load() {
 }
 
 /**
+ * 加载一个表抽象对象
  * @param string $name 服务名称
  * @return We7Table 表模型
  */
 function table($name) {
+	$table_classname = "\\We7\\Table\\";
+	$subsection_name = explode('_', $name);
+	if (count($subsection_name) == 1) {
+		$table_classname .= ucfirst($subsection_name[0]) . "\\" . ucfirst($subsection_name[0]);
+	} else {
+		foreach ($subsection_name as $key => $val) {
+			if ($key == 0) {
+				$table_classname .= ucfirst($val) . '\\';
+			} else {
+				$table_classname .= ucfirst($val);
+			}
+		}
+	}
+
+	if (in_array($name, array(
+		'modules_rank',
+		'modules_bindings',
+		'modules_plugin',
+		'modules_cloud',
+		'modules_recycle',
+		'modules',
+		'modules_ignore',
+		'account_xzapp',
+		'uni_account_modules',
+		'system_stat_visit',
+		'core_profile_fields',
+	))) {
+		return new $table_classname;
+	}
+
 	load()->classs('table');
 	load()->table($name);
 	$service = false;
@@ -71,6 +102,44 @@ class Loader {
 		'web' => '/web/common/%s.func.php',
 		'app' => '/app/common/%s.func.php',
 	);
+
+	public function __construct() {
+		$this->registerAutoload();
+	}
+
+	public function registerAutoload() {
+		spl_autoload_register(array($this, 'autoload'));
+		//spl_autoload_register(array($this, 'autoloadBiz'));
+	}
+
+	public function autoload($class) {
+		$section = array(
+			'Table' => '/framework/table/',
+		);
+		//兼容旧版load()方式加载类
+		$classmap = array(
+			'We7Table' => 'table',
+		);
+		if (isset($classmap[$class])) {
+			load()->classs($classmap[$class]);
+		} elseif (preg_match('/^[0-9a-zA-Z\-\\\\_]+$/', $class)
+			&& (stripos($class, 'We7') === 0 || stripos($class, '\We7') === 0)
+			&& stripos($class, "\\") !== false) {
+				$group = explode("\\", $class);
+				$path = IA_ROOT . $section[$group[1]];
+				unset($group[0]);
+				unset($group[1]);
+				$file_path = $path . implode('/', $group) . '.php';
+				if(is_file($file_path)) {
+					include $file_path;
+				}
+				//如果没有找到表，默认路由到Core命名空间，兼容之前命名不标准
+				$file_path = $path . 'Core/' .  implode('', $group) . '.php';
+				if(is_file($file_path)) {
+					include $file_path;
+				}
+		}
+	}
 
 	public function __call($type, $params) {
 		global $_W;
