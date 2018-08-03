@@ -1,5 +1,5 @@
 {template 'common/header'}
-{template 'user/user-header'}
+{template 'system/user-setting-header'}
 <form action="" method="post" class="we7-form" id="js-registerset" ng-controller="RegistersetCtrl" ng-cloak>
 	<div class="form-group">
 		<label for="" class="control-label col-sm-2" style="width: 150px;">是否开启用户注册</label>
@@ -9,6 +9,7 @@
 			<input id='open-radio-2' type="radio" name='open' value="0" ng-checked="settings.open == 0">
 			<label for="open-radio-2">否</label>
 			<span class="help-block"></span>
+			<span class="help-block"> 开启后，用户可以在登录页面注册账号。</span>
 		</div>
 	</div>
 
@@ -20,6 +21,7 @@
 			<input id='verify-radio-2' type="radio" name='verify' value="0" ng-checked="settings.verify == 0">
 			<label for="verify-radio-2">否</label>
 			<span class="help-block"></span>
+			<span class="help-block"> 开启后，用户提交注册后，管理员要手动审核通过/拒绝。</span>
 		</div>
 	</div>
 	<div class="form-group">
@@ -30,6 +32,7 @@
 			<input id='code-radio-2' type="radio" name='code' value="0" ng-checked="settings.code == 0">
 			<label for="code-radio-2">否</label>
 			<span class="help-block"></span>
+			<span class="help-block"> 开启后，用户注册需要输入图形验证码，验证通过后方可注册。</span>
 		</div>
 	</div>
 

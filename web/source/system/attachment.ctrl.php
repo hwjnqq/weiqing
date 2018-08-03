@@ -219,14 +219,15 @@ if ($do == 'remote') {
 			if (empty($remote['cos']['bucket'])) {
 				itoast('请填写BUCKET', referer(), 'info');
 			}
-			if (empty($remote['cos']['url'])) {
-				$remote['cos']['url'] = 'http://'.$remote['cos']['bucket'].'-'.$remote['cos']['appid'].'.cos.myqcloud.com';
-			} else {
-				if (strexists($remote['cos']['url'], '.cos.myqcloud.com') && !strexists($url, '//'.$remote['cos']['bucket'].'-')) {
-					$remote['cos']['url'] = 'http://'.$remote['cos']['bucket'].'-'.$remote['cos']['appid'].'.cos.myqcloud.com';
-				}
-				$remote['cos']['url'] = strexists($remote['cos']['url'], 'http') ? trim($remote['cos']['url'], '/') : 'http://'. trim($remote['cos']['url'], '/');
+			$remote['cos']['bucket'] =  str_replace("-{$remote['cos']['appid']}", '', trim($remote['cos']['bucket']));
+
+			if (empty($url)) {
+				$url = sprintf('https://%s-%s.cos%s.myqcloud.com', $bucket, $appid, $_GPC['local']);
 			}
+			if (empty($remote['cos']['url'])) {
+				$remote['cos']['url'] = sprintf('https://%s-%s.cos%s.myqcloud.com', $remote['cos']['bucket'], $remote['cos']['appid'], $remote['cos']['local']);
+			}
+			$remote['cos']['url'] = rtrim($remote['cos']['url'], '/');
 			$auth = attachment_cos_auth($remote['cos']['bucket'], $remote['cos']['appid'], $remote['cos']['secretid'], $remote['cos']['secretkey'], $remote['cos']['local']);
 
 			if (is_error($auth)) {
@@ -370,21 +371,21 @@ if ($do == 'qiniu') {
 if ($do == 'cos') {
 	load()->model('attachment');
 	$url = $_GPC['url'];
+	$appid = trim($_GPC['appid']);
+	$secretid = trim($_GPC['secretid']);
+	$secretkey = strexists($_GPC['secretkey'], '*') ? $_W['setting']['remote_complete_info']['cos']['secretkey'] : trim($_GPC['secretkey']);
+	$bucket =  str_replace("-{$appid}", '', trim($_GPC['bucket']));
+
 	if (empty($url)) {
-		$url = 'http://'.$_GPC['bucket'].'-'. $_GPC['appid'].'.cos.myqcloud.com';
+		$url = sprintf('https://%s-%s.cos%s.myqcloud.com', $bucket, $appid, $_GPC['local']);
 	}
-	$bucket =  trim($_GPC['bucket']);
-	$_GPC['secretkey'] = strexists($_GPC['secretkey'], '*') ? $_W['setting']['remote_complete_info']['cos']['secretkey'] : $_GPC['secretkey'];
-	if (!strexists($url, '//'.$bucket.'-') && strexists($url, '.cos.myqcloud.com')) {
-		$url = 'http://'.$bucket.'-'.trim($_GPC['appid']).'.cos.myqcloud.com';
-	}
-	$auth= attachment_cos_auth(trim($_GPC['bucket']), trim($_GPC['appid']), trim($_GPC['secretid']), trim($_GPC['secretkey']), $_GPC['local']);
+	$url = rtrim($url, '/');
+	$auth= attachment_cos_auth($bucket, $appid, $secretid, $secretkey, $_GPC['local']);
 
 	if (is_error($auth)) {
-		iajax(-1, '配置失败，请检查配置', '');
+		iajax(-1, '配置失败，请检查配置' . $auth['message'], '');
 	}
 	load()->func('communication');
-	$url = strexists($url, 'http') ? trim($url, '/') : 'http://'.trim($url, '/');
 	$filename = 'MicroEngine.ico';
 	$response = ihttp_request($url. '/'.$filename, array(), array('CURLOPT_REFERER' => $_SERVER['SERVER_NAME']));
 	if (is_error($response)) {

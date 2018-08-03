@@ -1,13 +1,5 @@
 {template 'common/header'}
-<div class="we7-page-title">
-	第三方登录配置
-</div>
-
-<ul class="we7-page-tab">
-	<!--<li {if $type == 'system'}class="active"{/if}><a href="{php echo url('system/thirdlogin', array('type' => 'system'))}">系统登录</a></li>-->
-	<li {if $type == 'qq'}class="active"{/if}><a href="{php echo url('system/thirdlogin', array('type' => 'qq'))}">QQ互联</a></li>
-	<li {if $type == 'wechat'}class="active"{/if}><a href="{php echo url('system/thirdlogin', array('type' => 'wechat'))}">微信登录</a></li>
-</ul>
+{template 'system/user-setting-header'}
 <div id="js-system-thirdparty-login" ng-controller="SystemThirdpartyLogin" ng-cloak>
 {if $type == 'system'}
 	<table class="table we7-table table-hover table-form we7-form">
@@ -28,45 +20,67 @@
 		</tr>
 	</table>
 {/if}
-{if $type == 'qq'}
+{if $type == 'qq' || $type == 'wechat'}
 	<table class="table we7-table table-hover table-form we7-form">
 		<col width="220px " />
 		<col />
 		<col width="230px" />
 		<tr>
-			<th class="text-left" colspan="2">QQ互联管理中心开发信息</th>
-			<th class="we7-padding-right"></th>
-		</tr>
-		<tr>
-			<td class="table-label" colspan="2">是否启用qq登录授权</td>
-			<td>
+			<th class="table-label" colspan="2">QQ授权登录</th>
+			<th class="text-right">
 				<label>
-					<div class="switch" ng-class="{'switchOn' : thirdlogin.qq.authstate}" ng-click="httpChange('authstate')"></div>
+					<div class="switch" ng-class="{'switchOn' : thirdlogin.qq.authstate}" ng-click="httpChange('authstate', 'qq')"></div>
 				</label>
-			</td>
+			</th>
 		</tr>
-		<tr>
-			<td class="table-label">AppID</td>
-			<td>
-				<input type="text"  name="appid" ng-model="thirdlogin.qq.appid" readonly class="form-control">
-				<div class="help-block">在QQ互联平台注册创建应用后可以获取到AppId</div>
-			</td>
-			<td>
-				<div class="link-group">
-					<a href="javascript:;" data-toggle="modal" data-target="#AppID">修改</a>
-				</div>
-			</td>
-		</tr>
-		<tr>
-			<td class="table-label">AppSecret</td>
-			<td>
-				<input type="text" name="appsecret" ng-model="thirdlogin.qq.appsecret" readonly class="form-control">
-				<div class="help-block">在QQ互联平台注册创建应用后可以获取到AppSecret</div>
-			</td>
-			<td>
-				<div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#AppSecret">修改</a></div>
-			</td>
-		</tr>
+		<tbody ng-show="thirdlogin.qq.authstate">
+			<tr>
+				<td class="text-left" colspan="2">QQ互联管理中心开发信息</td>
+				<td class="we7-padding-right"></td>
+			</tr>
+
+			<tr>
+				<td class="table-label">AppID</td>
+				<td>
+					<input type="text"  name="appid" ng-model="thirdlogin.qq.appid" readonly class="form-control">
+					<div class="help-block">在QQ互联平台注册创建应用后可以获取到AppId</div>
+				</td>
+				<td>
+					<div class="link-group">
+						<a href="javascript:;" data-toggle="modal" data-target="#AppID">修改</a>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td class="table-label">AppSecret</td>
+				<td>
+					<input type="text" name="appsecret" ng-model="thirdlogin.qq.appsecret" readonly class="form-control">
+					<div class="help-block">在QQ互联平台注册创建应用后可以获取到AppSecret</div>
+				</td>
+				<td>
+					<div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#AppSecret">修改</a></div>
+				</td>
+			</tr>
+			<tr>
+				<td class="text-left" colspan="3">QQ互联接入配置项</td>
+			</tr>
+			<tr>
+				<td class="table-label">网站地址:</td>
+				<td>
+					<span>{$siteroot_parse_array['host']}</span>
+				</td>
+				<td>
+					<div class="link-group"><a href="javascript:;" id="copy-0" clipboard supported="supported" text="url.host" on-copied="success('0')">点击复制</a></div>
+				</td>
+			</tr>
+			<tr>
+				<td class="table-label">网站回调域:</td>
+				<td>
+					<span>{$_W['siteroot']}web/index.php</span>
+				</td>
+				<td><div class="link-group"><a href="javascript:;" id="copy-1" clipboard supported="supported" text="siteroot+'web/index.php'" on-copied="success('1')">点击复制</a></div></td>
+			</tr>
+		</tbody>
 	</table>
 	<div class="modal fade" id="AppID" tabindex="-1" role="dialog" aria-hidden="true">
 		<div class="we7-modal-dialog modal-dialog">
@@ -82,7 +96,7 @@
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-primary" ng-click="httpChange('appid')">确定</button>
+					<button type="button" class="btn btn-primary" ng-click="httpChange('appid', 'qq')">确定</button>
 					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
 				</div>
 			</div>
@@ -102,7 +116,7 @@
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-primary" ng-click="httpChange('appsecret')">确定</button>
+					<button type="button" class="btn btn-primary" ng-click="httpChange('appsecret', 'qq')">确定</button>
 					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
 				</div>
 			</div>
@@ -112,68 +126,50 @@
 		<col width="220px " />
 		<col />
 		<col width="230px"/>
-		<tr>
-			<th class="text-left" colspan="3">QQ互联接入配置项</th>
-		</tr>
-		<tr>
-			<td class="table-label">网站地址:</td>
-			<td>
-				<span>{$siteroot_parse_array['host']}</span>
-			</td>
-			<td>
-				<div class="link-group"><a href="javascript:;" id="copy-0" clipboard supported="supported" text="url.host" on-copied="success('0')">点击复制</a></div>
-			</td>
-		</tr>
-		<tr>
-			<td class="table-label">网站回调域:</td>
-			<td>
-				<span>{$_W['siteroot']}web/index.php</span>
-			</td>
-			<td><div class="link-group"><a href="javascript:;" id="copy-1" clipboard supported="supported" text="siteroot+'web/index.php'" on-copied="success('1')">点击复制</a></div></td>
-		</tr>
 	</table>
-{/if}
-{if $type == 'wechat'}
 	<table class="table we7-table table-hover table-form we7-form">
 		<col width="220px " />
 		<col />
 		<col width="230px" />
 		<tr>
-			<th class="text-left" colspan="2">微信登录配置信息</th>
-			<th class="we7-padding-right"></th>
-		</tr>
-		<tr>
-			<td class="table-label" colspan="2">是否启用微信登录</td>
-			<td>
+			<th class="table-label" colspan="2">微信授权登录</th>
+			<th class="text-right">
 				<label>
-					<div class="switch" ng-class="{'switchOn' : thirdlogin.wechat.authstate}" ng-click="httpChange('authstate')"></div>
+					<div class="switch" ng-class="{'switchOn' : thirdlogin.wechat.authstate}" ng-click="httpChange('authstate', 'wechat')"></div>
 				</label>
-			</td>
+			</th>
 		</tr>
-		<tr>
-			<td class="table-label">AppID</td>
-			<td>
-				<input type="text"  name="appid" ng-model="thirdlogin.wechat.appid" readonly class="form-control">
-				<div class="help-block">在微信开放平台注册创建网站应用后可以获取到AppId</div>
-			</td>
-			<td>
-				<div class="link-group">
-					<a href="javascript:;" data-toggle="modal" data-target="#AppID">修改</a>
-				</div>
-			</td>
-		</tr>
-		<tr>
-			<td class="table-label">AppSecret</td>
-			<td>
-				<input type="text" name="appsecret" ng-model="thirdlogin.wechat.appsecret" readonly class="form-control">
-				<div class="help-block">在微信开放平台注册创建网站应用后可以获取到AppSecret</div>
-			</td>
-			<td>
-				<div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#AppSecret">修改</a></div>
-			</td>
-		</tr>
+		<tbody ng-show="thirdlogin.wechat.authstate">
+			<tr>
+				<td class="text-left" colspan="2">微信登录配置信息</td>
+				<td class="we7-padding-right"></td>
+			</tr>
+
+			<tr>
+				<td class="table-label">AppID</td>
+				<td>
+					<input type="text"  name="appid" ng-model="thirdlogin.wechat.appid" readonly class="form-control">
+					<div class="help-block">在微信开放平台注册创建网站应用后可以获取到AppId</div>
+				</td>
+				<td>
+					<div class="link-group">
+						<a href="javascript:;" data-toggle="modal" data-target="#WechatID">修改</a>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td class="table-label">AppSecret</td>
+				<td>
+					<input type="text" name="appsecret" ng-model="thirdlogin.wechat.appsecret" readonly class="form-control">
+					<div class="help-block">在微信开放平台注册创建网站应用后可以获取到AppSecret</div>
+				</td>
+				<td>
+					<div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#WechatSecret">修改</a></div>
+				</td>
+			</tr>
+		</tbody>
 	</table>
-	<div class="modal fade" id="AppID" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal fade" id="WechatID" tabindex="-1" role="dialog" aria-hidden="true">
 		<div class="we7-modal-dialog modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -187,13 +183,13 @@
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-primary" ng-click="httpChange('appid')">确定</button>
+					<button type="button" class="btn btn-primary" ng-click="httpChange('appid', 'wechat')">确定</button>
 					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
 				</div>
 			</div>
 		</div>
 	</div>
-	<div class="modal fade" id="AppSecret" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal fade" id="WechatSecret" tabindex="-1" role="dialog" aria-hidden="true">
 		<div class="we7-modal-dialog modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -207,7 +203,7 @@
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-primary" ng-click="httpChange('appsecret')">确定</button>
+					<button type="button" class="btn btn-primary" ng-click="httpChange('appsecret', 'wechat')">确定</button>
 					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
 				</div>
 			</div>
@@ -217,11 +213,10 @@
 </div>
 <script type="text/javascript">
 	angular.module('systemApp').value('config', {
-		'type' : "{php echo !empty($type) ? $type: 'System'}",
 		'thirdlogin' : {php echo !empty($_W['setting']['thirdlogin']) ? json_encode($_W['setting']['thirdlogin']) : 'null'},
 		'siteroot': "{php echo $_W['siteroot']}",
 		'links': {
-			'save_setting': "{php echo url('system/thirdlogin/save_setting')}",
+			'save_setting': "{php echo url('system/thirdlogin/save_setting', array('type' => $type))}",
 		},
 		'url' : {
 			'host' : "{$siteroot_parse_array['host']}",
