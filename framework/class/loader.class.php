@@ -45,9 +45,31 @@ function table($name) {
 		'modules',
 		'modules_ignore',
 		'account_xzapp',
+		'account_aliapp',
+		'account_wxapp',
 		'uni_account_modules',
 		'system_stat_visit',
 		'core_profile_fields',
+		'article_comment',
+		'wxapp_versions',
+		'article_category',
+		'article_news',
+		'article_notice',
+		'attachment_group',
+		'core_sendsms_log',
+		'core_settings',
+		'cover_reply',
+		'message_notice_log',
+		'phoneapp_versions',
+		'qrcode',
+		'rule',
+		'rule_keyword',
+		'site_article_comment',
+		'site_templates',
+		'users',
+		'users_permission',
+		'users_profile',
+		'stat_visit',
 	))) {
 		return new $table_classname;
 	}
@@ -102,6 +124,20 @@ class Loader {
 		'web' => '/web/common/%s.func.php',
 		'app' => '/app/common/%s.func.php',
 	);
+	private $accountMap = array(
+		'account' => 'account/account',
+		'weixin.account' => 'account/weixin.account',
+		'aliapp.account' => 'account/aliapp.account',
+		'phoneapp.account' => 'account/phoneapp.account',
+		'webapp.account' => 'account/webapp.account',
+		'weixin.account' => 'account/weixin.account',
+		'weixin.platform' => 'account/weixin.platform',
+		'wxapp.account' => 'account/wxapp.account',
+		'wxapp.platform' => 'account/wxapp.platform',
+		'wxapp.work' => 'account/wxapp.work',
+		'xzapp.account' => 'account/xzapp.account',
+		'xzapp.platform' => 'account/xzapp.platform',
+	);
 
 	public function __construct() {
 		$this->registerAutoload();
@@ -153,6 +189,13 @@ class Loader {
 		//第三方库文件因为命名差异，支持定义别名
 		if ($type == 'library' && !empty($this->libraryMap[$name])) {
 			$name = $this->libraryMap[$name];
+		}
+		if ($type == 'classs' && !empty($this->accountMap[$name])) {
+			//兼容升级写法，后续直接去掉if判断
+			$filename = sprintf($this->loadTypeMap[$type], $this->accountMap[$name]);
+			if (file_exists(IA_ROOT . $filename)) {
+				$name = $this->accountMap[$name];
+			}
 		}
 		$file = sprintf($this->loadTypeMap[$type], $name);
 		if (file_exists(IA_ROOT . $file)) {
