@@ -4,13 +4,13 @@
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
+
 load()->model('payment');
-load()->model('account');
 load()->classs('uploadedfile');
+
 $dos = array('save_setting', 'display');
 $do = in_array($do, $dos) ? $do : 'display';
 $_W['page']['title'] = '退款参数 - 小程序选项';
-$version_id = intval($_GPC['version_id']);
 
 if ($do == 'display') {
 	$setting = uni_setting_load('payment', $_W['uniacid']);

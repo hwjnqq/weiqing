@@ -33,7 +33,8 @@ if ($do == 'display') {
 		ACCOUNT_TYPE_OFFCIAL_AUTH => array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH),
 		ACCOUNT_TYPE_WEBAPP_NORMAL => array(ACCOUNT_TYPE_WEBAPP_NORMAL),
 		ACCOUNT_TYPE_PHONEAPP_NORMAL => array(ACCOUNT_TYPE_PHONEAPP_NORMAL),
-		ACCOUNT_TYPE_XZAPP_NORMAL => array(ACCOUNT_TYPE_XZAPP_NORMAL),
+		ACCOUNT_TYPE_XZAPP_NORMAL => array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH),
+		ACCOUNT_TYPE_ALIAPP_NORMAL => array(ACCOUNT_TYPE_ALIAPP_NORMAL),
 	);
 	$type_condition_sql = "'".implode("','", $type_condition[ACCOUNT_TYPE])."'";
 
@@ -66,7 +67,7 @@ if ($do == 'display') {
 		}
 	}
 	$pager = pagination($total, $pindex, $psize);
-	template('account/recycle' . ACCOUNT_TYPE_TEMPLATE);
+	template('account/recycle');
 }
 
 if ($do == 'recover') {

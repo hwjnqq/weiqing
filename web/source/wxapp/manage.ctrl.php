@@ -7,7 +7,7 @@ defined('IN_IA') or exit('Access Denied');
 
 define('FRAME', 'system');
 load()->model('system');
-load()->model('wxapp');
+load()->model('miniapp');
 
 $dos = array('delete', 'display', 'edit_version', 'del_version', 'get_available_apps');
 $do = in_array($do, $dos) ? $do : 'display';
@@ -33,9 +33,9 @@ if ($do == 'display') {
 		itoast($account['message'], url('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL)), 'error');
 	} else {
 		$wxapp_info = pdo_get('account_wxapp', array('uniacid' => $account['uniacid']));
-		$version_exist = wxapp_fetch($account['uniacid']);
+		$version_exist = miniapp_fetch($account['uniacid']);
 		if (!empty($version_exist)) {
-			$wxapp_version_lists = wxapp_version_all($account['uniacid']);
+			$wxapp_version_lists = miniapp_version_all($account['uniacid']);
 			if (!empty($wxapp_version_lists)) {
 				foreach ($wxapp_version_lists as &$row) {
 					if (!empty($row['modules'])) {
@@ -51,7 +51,7 @@ if ($do == 'display') {
 				}
 				unset($row);
 			}
-			$wxapp_modules = wxapp_support_uniacid_modules($account['uniacid']);
+			$wxapp_modules = miniapp_support_uniacid_modules($account['uniacid'], MODULE_SUPPORT_WXAPP_NAME);
 		}
 	}
 
@@ -66,12 +66,12 @@ if ($do == 'edit_version') {
 		iajax(1, '应用模块不可为空！');
 	}
 	$versionid = intval($_GPC['version_info']['id']);
-	$version_exist = wxapp_fetch($uniacid, $versionid);
+	$version_exist = miniapp_fetch($uniacid, $versionid);
 	if(empty($version_exist)) {
 		iajax(1, '版本不存在或已删除！');
 	}
 	$have_permission = false;
-	$wxapp_modules = wxapp_support_wxapp_modules();
+	$wxapp_modules = miniapp_support_wxapp_modules();
 	$supoort_modulenames = array_keys($wxapp_modules);
 	$new_module_data = array();
 	if (intval($_GPC['version_info']['design_method']) == WXAPP_TEMPLATE) {
@@ -106,7 +106,7 @@ if ($do == 'edit_version') {
 		iajax(1, '应用模块不可为空！');
 	}
 	pdo_update('wxapp_versions', array('modules' => iserializer($new_module_data)), array('id' => $versionid));
-	cache_delete(cache_system_key('wxapp_version', array('version_id' => $versionid)));
+	cache_delete(cache_system_key('miniapp_version', array('version_id' => $versionid)));
 	iajax(0, '修改成功！', referer());
 }
 
@@ -131,7 +131,7 @@ if ($do == 'delete') {
 	$id = intval($_GPC['id']);
 	$version_info = pdo_get('wxapp_versions', array('id' => $id));
 	if (!empty($version_info)) {
-		$allversions = wxapp_version_all($uniacid);
+		$allversions = miniapp_version_all($uniacid);
 		if (count($allversions) <= 1) {
 			itoast('请至少保留一个版本！', referer(), 'error');
 		}

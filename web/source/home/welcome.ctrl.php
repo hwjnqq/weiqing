@@ -6,46 +6,26 @@
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('welcome');
-load()->model('cloud');
-load()->func('communication');
-load()->func('db');
-load()->model('extension');
 load()->model('module');
 load()->model('system');
 load()->model('user');
-load()->model('wxapp');
+load()->model('miniapp');
 load()->model('account');
 load()->model('message');
 load()->model('visit');
 
-$dos = array('platform', 'system', 'ext', 'get_fans_kpi', 'get_last_modules', 'get_system_upgrade', 'get_upgrade_modules', 'get_module_statistics', 'get_ads', 'get_not_installed_modules', 'system_home', 'set_top', 'add_welcome');
+$dos = array('platform', 'system', 'ext', 'get_fans_kpi', 'get_last_modules', 'get_system_upgrade', 'get_upgrade_modules', 'get_module_statistics', 'get_ads', 'get_not_installed_modules', 'system_home', 'set_top', 'add_welcome', 'ignore_update_module');
 $do = in_array($do, $dos) ? $do : 'platform';
 
 if ($do == 'get_not_installed_modules') {
-	$data = array();
-	$not_installed_modules = module_get_all_unistalled('uninstalled');
-	$not_installed_modules = $not_installed_modules['modules']['uninstalled'];
-	$data['app_count'] = count($not_installed_modules['app']);
-	$data['wxapp_count'] = count($not_installed_modules['wxapp_count']);
-	$not_installed_modules['app'] = is_array($not_installed_modules['app']) ? array_slice($not_installed_modules['app'], 0, 4) : array();
-	$not_installed_modules['wxapp'] = is_array($not_installed_modules['wxapp']) ? array_slice($not_installed_modules['wxapp'], 0, 4) : array();
-	$data['module'] = array_merge($not_installed_modules['app'], $not_installed_modules['wxapp']);
-	if (is_array($data['module']) && !empty($data['module'])) {
-		foreach ($data['module'] as &$module) {
-			if ($module['app_support'] == 2) {
-				$module['link'] = url('module/manage-system/not_installed', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL));
-			} else {
-				$module['link'] = url('module/manage-system/not_installed', array('account_type' => ACCOUNT_TYPE_APP_NORMAL));
-			}
-		}
-	}
-	iajax(0, $data);
+	$not_installed_modules = module_uninstall_list();
+	iajax(0, $not_installed_modules);
 }
 
 
 	if ($do == 'ext') {
 		if (!empty($_GPC['version_id'])) {
-			$version_info = wxapp_version($_GPC['version_id']);
+			$version_info = miniapp_version($_GPC['version_id']);
 		}
 		$account_api = WeAccount::create();
 		if (is_error($account_api)) {
@@ -62,22 +42,17 @@ if ($do == 'get_not_installed_modules') {
 
 
 if ($do == 'platform') {
-	$last_uniacid = uni_account_last_switch();
-	if (empty($last_uniacid)) {
-		itoast('', url('account/display'), 'info');
-	}
-	if (!empty($last_uniacid) && $last_uniacid != $_W['uniacid']) {
-		uni_account_switch($last_uniacid,  url('home/welcome'));
-	}
 	define('FRAME', 'account');
-	if (empty($_W['account']['endtime']) && !empty($_W['account']['endtime']) && $_W['account']['endtime'] < time()) {
+	if (!empty($_W['account']['endtime']) && $_W['account']['endtime'] < time() && !user_is_founder($_W['uid'], true)) {
 		itoast('公众号已到服务期限，请联系管理员并续费', url('account/manage'), 'info');
 	}
 	//公告
 	$notices = welcome_notices_get();
 
 	template('home/welcome');
-} elseif ($do == 'system') {
+}
+
+if ($do == 'system') {
 	define('FRAME', 'system');
 	$_W['page']['title'] = '欢迎页 - 系统管理';
 	if(!$_W['isfounder'] || user_is_vice_founder()){
@@ -93,25 +68,35 @@ if ($do == 'platform') {
 		$backup_days = 0;
 	}
 	template('home/welcome-system');
-} elseif ($do =='get_module_statistics') {
-	$uninstall_modules = module_get_all_unistalled('uninstalled');
-	$account_uninstall_modules_nums = $uninstall_modules['app_count'];
-	$wxapp_uninstall_modules_nums = $uninstall_modules['wxapp_count'];
-
-	$account_modules = user_module_by_account_type('account');
-	$wxapp_modules = user_module_by_account_type('wxapp');
-
-	$account_modules_total = count($account_modules) + $account_uninstall_modules_nums;
-	$wxapp_modules_total = count($wxapp_modules) + $wxapp_uninstall_modules_nums;
+}
+if ($do =='get_module_statistics') {
+	$install_modules = module_installed_list();
 
 	$module_statistics = array(
-		'account_uninstall_modules_nums' => $account_uninstall_modules_nums,
-		'wxapp_uninstall_modules_nums' => $wxapp_uninstall_modules_nums,
-		'account_modules_total' => $account_modules_total,
-		'wxapp_modules_total' => $wxapp_modules_total
+		'account' => array(
+			'total' => array(
+				'uninstall' => module_uninstall_total('account'),
+				'upgrade' => module_upgrade_total('account'),
+				'all' => 0
+			),
+		),
+		'wxapp' => array(
+			'total' => array(
+				'uninstall' => module_uninstall_total('wxapp'),
+				'upgrade' => module_upgrade_total('wxapp'),
+				'all' => 0,
+			)
+		),
 	);
+
+	//因权限问题，用户所分配的模块不同，所以此处直接count安装列表
+	$module_statistics['account']['total']['all'] = $module_statistics['account']['total']['uninstall'] + count((array)$install_modules['account']);
+	$module_statistics['wxapp']['total']['all'] = $module_statistics['wxapp']['total']['uninstall'] + count((array)$install_modules['wxapp']);
+
 	iajax(0, $module_statistics, '');
-} elseif ($do == 'ext') {
+}
+
+if ($do == 'ext') {
 	$modulename = $_GPC['m'];
 	if (!empty($modulename)) {
 		$_W['current_module'] = module_fetch($modulename);
@@ -134,11 +119,10 @@ if ($do == 'platform') {
 		}
 		$frames = buildframes('account');
 	}
-	$uni_account_module = table('module')->uniAccountModuleInfo($modulename);
 	foreach ($frames['section'] as $secion) {
 		foreach ($secion['menu'] as $menu) {
 			if (!empty($menu['url'])) {
-				if (!empty($uni_account_module['settings']['default_entry']) && !strpos($menu['url'], '&eid=' . $uni_account_module['settings']['default_entry'])) {
+				if (!empty($_W['current_module']['config']['default_entry']) && !strpos($menu['url'], '&eid=' . $_W['current_module']['config']['default_entry'])) {
 					continue;
 				}
 				header('Location: ' . $_W['siteroot'] . 'web/' . $menu['url']);
@@ -147,7 +131,9 @@ if ($do == 'platform') {
 		}
 	}
 	template('home/welcome-ext');
-} elseif ($do == 'get_fans_kpi') {
+}
+
+if ($do == 'get_fans_kpi') {
 	uni_update_week_stat();
 	//今日昨日指标
 	$yesterday = date('Ymd', strtotime('-1 days'));
@@ -166,7 +152,9 @@ if ($do == 'platform') {
 		$today_stat['cumulate'] = 0;
 	}
 	iajax(0, array('yesterday' => $yesterday_stat, 'today' => $today_stat), '');
-} elseif ($do == 'get_last_modules') {
+}
+
+if ($do == 'get_last_modules') {
 	//最新模块
 	$last_modules = welcome_get_last_modules();
 	if (is_error($last_modules)) {
@@ -174,30 +162,21 @@ if ($do == 'platform') {
 	} else {
 		iajax(0, $last_modules, '');
 	}
-} elseif ($do == 'get_system_upgrade') {
+}
+
+if ($do == 'get_system_upgrade') {
 	//系统更新信息
 	$upgrade = welcome_get_cloud_upgrade();
 	iajax(0, $upgrade, '');
 } elseif ($do == 'get_upgrade_modules') {
 	//可升级应用
-	$account_upgrade_modules = module_upgrade_new('account');
-	$account_upgrade_module_nums = count($account_upgrade_modules);
-	$wxapp_upgrade_modules = module_upgrade_new('wxapp');
-	$wxapp_upgrade_module_nums = count($wxapp_upgrade_modules);
+	module_upgrade_info();
+	$upgrade_modules = module_upgrade_list();
 
-	$account_upgrade_module_list = array_slice($account_upgrade_modules, 0, 4);
-	$wxapp_upgrade_module_list = array_slice($wxapp_upgrade_modules, 0, 4);
-	$upgrade_module_list = array_merge($account_upgrade_module_list, $wxapp_upgrade_module_list);
+	iajax(0, $upgrade_modules, '');
+}
 
-	$upgrade_module = array(
-		'upgrade_module_list' => $upgrade_module_list,
-		'upgrade_module_nums' => array(
-			'account_upgrade_module_nums' => $account_upgrade_module_nums,
-			'wxapp_upgrade_module_nums' => $wxapp_upgrade_module_nums
-		)
-	);
-	iajax(0, $upgrade_module, '');
-} elseif ($do == 'get_ads') {
+if ($do == 'get_ads') {
 	$ads = welcome_get_ads();
 	if (is_error($ads)) {
 		iajax(1, $ads['message']);
@@ -214,20 +193,18 @@ if ($do == 'system_home') {
 	$last_accounts_modules = pdo_getall('system_stat_visit', array('uid' => $_W['uid']), array(), '', array('displayorder desc', 'updatetime desc'), 20);
 
 	if (!empty($last_accounts_modules)) {
-		foreach ($last_accounts_modules as $key => &$info) {
+		foreach ($last_accounts_modules as &$info) {
 			if (!empty($info['uniacid'])) {
 				$info['account'] = uni_fetch($info['uniacid']);
 			}
-			if ($info['account']['isdeleted'] || empty($info['account'])) {
-				unset($last_accounts_modules[$key]);
-				continue;
-			}
+
 			if (!empty($info['modulename'])) {
 				$info['account'] = module_fetch($info['modulename']);
 				$info['account']['switchurl'] = url('module/display/switch', array('module_name' => $info['modulename']));
 				unset($info['account']['type']);
 			}
 		}
+		unset($info);
 	}
 
 	$types = array(MESSAGE_ACCOUNT_EXPIRE_TYPE, MESSAGE_WECHAT_EXPIRE_TYPE, MESSAGE_WEBAPP_EXPIRE_TYPE, MESSAGE_USER_EXPIRE_TYPE, MESSAGE_WXAPP_MODULE_UPGRADE);
@@ -247,4 +224,19 @@ if ($do == 'set_top') {
 if ($do == 'add_welcome') {
 	visit_system_update(array('uid' => $_W['uid'], 'uniacid' => intval($_GPC['uniacid']), 'modulename' => safe_gpc_string($_GPC['module'])), true);
 	itoast(0, referer());
+}
+
+if ($do == 'ignore_update_module') {
+	if (empty($_GPC['name'])) {
+		iajax(1, '参数错误');
+	}
+	$module_info = module_fetch($_GPC['name']);
+	if (empty($module_info)) {
+		iajax(1, '参数错误');
+	}
+
+	$upgrade_version = table('modules_cloud')->getByName($module_info['name']);
+
+	table('modules_ignore')->add($module_info['name'], $upgrade_version['version']);
+	iajax(0, '');
 }

@@ -122,7 +122,6 @@ if ($step == 2) {
 		} else {
 			pdo_update('account', array('type' => ACCOUNT_TYPE_XZAPP_NORMAL, 'hash' => ''), array('acid' => $acid, 'uniacid' => $uniacid));
 			unset($update['type']);
-			table('account_xzapp')->updateByUniacidAcid($uniacid, $acid);
 		}
 
 		if(parse_path($_GPC['headimg']) && in_array(pathinfo($_GPC['qrcode'], PATHINFO_EXTENSION), $_W['config']['upload']['image']['extentions'])) {

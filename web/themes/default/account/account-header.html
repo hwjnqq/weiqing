@@ -48,5 +48,8 @@
 	{if ACCOUNT_TYPE == ACCOUNT_TYPE_PHONEAPP_NORMAL}
 	<a href="{php echo url('phoneapp/manage/display', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => ACCOUNT_TYPE))}" class="btn btn-default {if $action == 'manage' && $do == 'display'} active{/if}">版本管理</a>
 	{/if}
+	{if ACCOUNT_TYPE == ACCOUNT_TYPE_ALIAPP_NORMAL}
+	<a href="{php echo url('miniapp/manage/display', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => ACCOUNT_TYPE))}" class="btn btn-default {if $action == 'manage' && $do == 'display'} active{/if}">版本管理</a>
+	{/if}
 	<a href="{php echo url('account/post/modules_tpl', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => ACCOUNT_TYPE))}" class="btn btn-default {if $action == 'post' && $do == 'modules_tpl'} active{/if}">可用应用模板/模块</a>
 </div>

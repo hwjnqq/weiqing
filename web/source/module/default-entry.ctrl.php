@@ -6,7 +6,6 @@
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('module');
-load()->model('wxapp');
 
 $dos = array('display');
 $do = in_array($do, $dos) ? $do : 'display';

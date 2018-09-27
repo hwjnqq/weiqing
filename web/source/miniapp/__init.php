@@ -5,20 +5,15 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-load()->model('miniapp');
-$version_id = intval($_GPC['version_id']);
-if (!empty($version_id)) {
-	$version_info = miniapp_version($version_id);
-}
-
-if ($action == 'post') {
+if (in_array($action, array('post', 'manage'))) {
+	$account_api = WeAccount::createByUniacid(intval($_GPC['uniacid']));
 	define('FRAME', 'system');
 }
 
 if (!in_array($action, array('display', 'post', 'manage', 'auth'))) {
 	$account_api = WeAccount::createByUniacid($_W['uniacid']);
 	if (is_error($account_api)) {
-		itoast('', url('account/display', array('type' => WXAPP_TYPE_SIGN)));
+		itoast('', url('account/display'));
 	}
 	$check_manange = $account_api->checkIntoManage();
 	if (is_error($check_manange)) {
@@ -28,3 +23,6 @@ if (!in_array($action, array('display', 'post', 'manage', 'auth'))) {
 	$account_type = $account_api->menuFrame;
 	define('FRAME', $account_type);
 }
+define('ACCOUNT_TYPE', $account_api->type);
+define('TYPE_SIGN', $account_api->typeSign);
+define('ACCOUNT_TYPE_NAME', $account_api->typeName);

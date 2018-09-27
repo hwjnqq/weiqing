@@ -8,9 +8,9 @@ defined('IN_IA') or exit('Access Denied');
 load()->func('communication');
 load()->classs('weixin.platform');
 load()->classs('wxapp.platform');
-load()->model('wxapp');
+load()->model('miniapp');
 
-$account_platform = new WxAppPlatform();
+$account_platform = new WxappPlatform();
 $dos = array('forward', 'confirm');
 $do = in_array($do, $dos) ? $do : 'forward';
 
@@ -68,19 +68,19 @@ if ($do == 'forward') {
 		'key' => trim($auth_appid),
 		'secret' => trim($_GPC['appsecret']),
 		'type' => ACCOUNT_TYPE_APP_AUTH,
-		'encodingaeskey'=>$account_platform->encodingaeskey,
+		'encodingaeskey' => $account_platform->encodingaeskey,
 		'auth_refresh_token'=>$auth_refresh_token,
 		'token' => $account_platform->token,
 	);
-	$uniacid = wxapp_account_create($account_wxapp_data);
+	$uniacid = miniapp_create($account_wxapp_data, ACCOUNT_TYPE_APP_AUTH);
 	if (!$uniacid) {
 		itoast('授权登录新建小程序失败，请重试', url('wxapp/manage'), 'error');
 	}
 
 	$headimg = ihttp_request($account_info['authorizer_info']['head_img']);
 	$qrcode = ihttp_request($account_info['authorizer_info']['qrcode_url']);
-	file_put_contents(IA_ROOT . '/attachment/headimg_' . $acid . '.jpg', $headimg['content']);
-	file_put_contents(IA_ROOT . '/attachment/qrcode_' . $acid . '.jpg', $qrcode['content']);
+	file_put_contents(IA_ROOT . '/attachment/headimg_' . $uniacid . '.jpg', $headimg['content']);
+	file_put_contents(IA_ROOT . '/attachment/qrcode_' . $uniacid . '.jpg', $qrcode['content']);
 
 	cache_build_account($uniacid);
 	itoast('授权登录成功', url('wxapp/post/design_method', array('uniacid' => $uniacid, 'choose_type'=>2)), 'success');
@@ -134,7 +134,7 @@ if ($do == 'test') {
 		'auth_refresh_token'=>'authken',
 		'token' => 'token',//$account_platform->token,
 	);
-	$uniacid = wxapp_account_create($account_wxapp_data);
+	$uniacid = miniapp_account_create($account_wxapp_data, ACCOUNT_TYPE_APP_AUTH);
 	if (!$uniacid) {
 		itoast('授权登录新建小程序失败，请重试', url('wxapp/manage'), 'error');
 	}

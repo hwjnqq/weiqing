@@ -6,7 +6,7 @@
 
 defined('IN_IA') or exit('Access Denied');
 
-load()->model('wxapp');
+load()->model('miniapp');
 
 if (strexists($_SERVER['HTTP_REFERER'], 'https://servicewechat.com/')) {
 	$referer_url = parse_url($_SERVER['HTTP_REFERER']);
@@ -14,7 +14,7 @@ if (strexists($_SERVER['HTTP_REFERER'], 'https://servicewechat.com/')) {
 }
 if (!empty($_W['uniacid'])) {
 	$version = trim($_GPC['v']);
-	$version_info = wxapp_version_by_version($version);
+	$version_info = miniapp_version_by_version($version);
 	if (!empty($version_info['modules'])) {
 		foreach ($version_info['modules'] as $module) {
 			if (!empty($module['account']) && intval($module['account']['uniacid']) > 0) {

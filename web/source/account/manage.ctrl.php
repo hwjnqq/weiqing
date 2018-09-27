@@ -8,17 +8,14 @@ defined('IN_IA') or exit('Access Denied');
 load()->func('file');
 load()->model('user');
 load()->model('message');
-load()->model('wxapp');
+load()->model('miniapp');
 $dos = array('display', 'delete');
 $do = in_array($_GPC['do'], $dos)? $do : 'display';
 
 $_W['page']['title'] = $account_typename . '列表 - ' . $account_typename;
 //模版调用，显示该用户所在用户组可添加的主公号数量，已添加的数量，还可以添加的数量
 $account_info = permission_user_account_num();
-
-
-	$role_type = in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER));
-
+$role_type = in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER));
 
 if ($do == 'display') {
 	$message_id = intval($_GPC['message_id']);
@@ -34,7 +31,8 @@ if ($do == 'display') {
 		ACCOUNT_TYPE_WEBAPP_NORMAL => array(ACCOUNT_TYPE_WEBAPP_NORMAL),
 		ACCOUNT_TYPE_OFFCIAL_NORMAL => array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH),
 		ACCOUNT_TYPE_PHONEAPP_NORMAL => array(ACCOUNT_TYPE_PHONEAPP_NORMAL),
-		ACCOUNT_TYPE_XZAPP_NORMAL => array(ACCOUNT_TYPE_XZAPP_NORMAL),
+		ACCOUNT_TYPE_XZAPP_NORMAL => array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH),
+		ACCOUNT_TYPE_ALIAPP_NORMAL => array(ACCOUNT_TYPE_ALIAPP_NORMAL),
 	);
 	$account_table->searchWithType($type_condition[ACCOUNT_TYPE]);
 
@@ -61,12 +59,11 @@ if ($do == 'display') {
 	} else {
 		$list = $account_table->searchAccountList();
 	}
-
 	foreach($list as &$account) {
 		$account = uni_fetch($account['uniacid']);
-		$account['end'] = $account['endtime'] == 0 ? '永久' : date('Y-m-d', $account['starttime']) . '~'. date('Y-m-d', $account['endtime']);
+		$account['end'] = $account['endtime'] == 0 ? '永久' : date('Y-m-d', $account['endtime']);
 		$account['role'] = permission_account_user_role($_W['uid'], $account['uniacid']);
-		$account['versions'] = wxapp_get_some_lastversions($account['uniacid']);
+		$account['versions'] = miniapp_get_some_lastversions($account['uniacid']);
 		if (!empty($account['versions'])) {
 			foreach ($account['versions'] as $version) {
 				if (!empty($version['current'])) {

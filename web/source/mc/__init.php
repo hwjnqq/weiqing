@@ -3,6 +3,11 @@
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 
+$version_id = intval($_GPC['version_id']);
+if (!empty($version_id)) {
+	load()->model('miniapp');
+	$version_info = miniapp_version($version_id);
+}
 $account_api = WeAccount::createByUniacid($_W['uniacid']);
 if (is_error($account_api)) {
 	message($account_api['message'], url('account/display'));

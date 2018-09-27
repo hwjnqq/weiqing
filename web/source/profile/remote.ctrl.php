@@ -5,10 +5,16 @@
  */
 load()->func('communication');
 load()->model('attachment');
+load()->model('miniapp');
 
 $dos = array('display', 'save', 'test_setting', 'upload_remote');
 $do = in_array($do, $dos) ? $do : 'display';
 $_W['page']['title'] = '远程附件 - 公众号选项';
+
+if (!empty($_GPC['version_id'])) {
+	$version_id = intval($_GPC['version_id']);
+	$version_info = miniapp_version($version_id);
+}
 
 $remote = $_W['setting']['remote_complete_info'][$_W['uniacid']];
 if ($do == 'upload_remote') {

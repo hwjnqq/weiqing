@@ -5,21 +5,13 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-load()->model('account');
-load()->model('wxapp');
-
 $dos = array('get_setting', 'display', 'save_setting');
 $do = in_array($do, $dos) ? $do : 'display';
 permission_check_account_user('wxapp_payment', true, 'wxapp');
 $_W['page']['title'] = '支付参数';
 
-$pay_setting = wxapp_payment_param();
-
-$version_id = intval($_GPC['version_id']);
-if (!empty($version_id)) {
-	$version_info = wxapp_version($version_id);
-	$wxapp_info = wxapp_fetch($version_info['uniacid']);
-}
+$pay_setting = miniapp_payment_param();
+$wxapp_info = miniapp_fetch($_W['uniacid']);
 
 if ($do == 'get_setting') {
 	iajax(0, $pay_setting, '');

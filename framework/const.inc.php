@@ -9,7 +9,7 @@ defined('IN_IA') or exit('Access Denied');
 
 define('REGULAR_EMAIL', '/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/i');
 define('REGULAR_MOBILE', '/^\d{6,15}$/');
-define('REGULAR_USERNAME', '/^[\x{4e00}-\x{9fa5}a-z\d_\.]{3,15}$/iu');
+define('REGULAR_USERNAME', '/^[\x{4e00}-\x{9fa5}a-z\d_\.]{3,30}$/iu');
 /*
  * 模板引用相关
  */
@@ -46,6 +46,8 @@ define('ACCOUNT_TYPE_WXAPP_WORK', 8);
 define('ACCOUNT_TYPE_XZAPP_NORMAL', 9);
 //授权接入熊掌号
 define('ACCOUNT_TYPE_XZAPP_AUTH', 10);
+//支付宝小程序
+define('ACCOUNT_TYPE_ALIAPP_NORMAL', 11);
 //公众号
 define('ACCOUNT_TYPE_SIGN', 'account');
 //小程序
@@ -58,6 +60,8 @@ define('PHONEAPP_TYPE_SIGN', 'phoneapp');
 define('WELCOMESYSTEM_TYPE_SIGN', 'welcome');
 //熊掌号
 define('XZAPP_TYPE_SIGN', 'xzapp');
+//支付宝小程序
+define('ALIAPP_TYPE_SIGN', 'aliapp');
 
 
 //授权登录接入
@@ -165,6 +169,9 @@ define('MODULE_SUPPORT_IOS', 2);
 // 是否支持熊掌号 不支持1 支持2
 define('MODULE_SUPPORT_XZAPP', 2);
 define('MODULE_NOSUPPORT_XZAPP', 1);
+// 是否支持支付宝小程序 不支持1 支持2
+define('MODULE_SUPPORT_ALIAPP', 2);
+define('MODULE_NOSUPPORT_ALIAPP', 1);
 
 define('MODULE_SUPPORT_WXAPP_NAME', 'wxapp_support');
 define('MODULE_SUPPORT_ACCOUNT_NAME', 'account_support');
@@ -172,6 +179,7 @@ define('MODULE_SUPPORT_WEBAPP_NAME', 'webapp_support');
 define('MODULE_SUPPORT_PHONEAPP_NAME', 'phoneapp_support');
 define('MODULE_SUPPORT_SYSTEMWELCOME_NAME', 'welcome_support');
 define('MODULE_SUPPORT_XZAPP_NAME', 'xzapp_support');
+define('MODULE_SUPPORT_ALIAPP_NAME', 'aliapp_support');
 
 //模块安装来源
 //本地安装 
@@ -260,6 +268,7 @@ define('STORE_TYPE_USER_PACKAGE', 9);
 define('STORE_ORDER_PLACE', 1);
 define('STORE_ORDER_DELETE', 2);
 define('STORE_ORDER_FINISH', 3);
+define('STORE_ORDER_DEACTIVATE', 4);
 //商品状态
 define('STORE_GOODS_STATUS_OFFlINE', 0);
 define('STORE_GOODS_STATUS_ONLINE', 1);
@@ -346,3 +355,7 @@ define('WEBAPP_DISPLAY_TYPE', 4);
 define('PHONEAPP_DISPLAY_TYPE', 5);
 //平台
 define('PLATFORM_DISPLAY_TYPE', 6);
+
+//密码强度
+define('PASSWORD_STRONG_STATE', '至少8-16个字符，至少1个大写字母，1个小写字母和1个数字，其他可以是任意字符');
+define('PASSWORD_STRONG_REGULAR', '/(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,30}/');

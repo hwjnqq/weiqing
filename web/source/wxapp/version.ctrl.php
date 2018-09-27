@@ -5,22 +5,17 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-load()->model('wxapp');
 load()->model('welcome');
 
 $dos = array('home', 'get_daily_visittrend');
 $do = in_array($do, $dos) ? $do : 'home';
 $_W['page']['title'] = '小程序 - 管理';
 
-$version_id = intval($_GPC['version_id']);
-$wxapp_info = wxapp_fetch($_W['uniacid']);
-if (!empty($version_id)) {
-	$version_info = wxapp_version($version_id);
-}
+$wxapp_info = miniapp_fetch($_W['uniacid']);
 
 if ($do == 'home') {
 	if ($version_info['design_method'] == WXAPP_TEMPLATE) {
-		$version_site_info = wxapp_site_info($version_info['multiid']);
+		$version_site_info = miniapp_site_info($version_info['multiid']);
 	}
 	$role = permission_account_user_role($_W['uid'], $wxapp_info['uniacid']);
 
@@ -29,7 +24,7 @@ if ($do == 'home') {
 }
 
 if ($do == 'get_daily_visittrend') {
-	wxapp_update_daily_visittrend();
+	miniapp_update_daily_visittrend();
 	//昨日指标
 	$yesterday = date('Ymd', strtotime('-1 days'));
 	$yesterday_stat = pdo_get('wxapp_general_analysis', array('uniacid' => $_W['uniacid'], 'type' => '2', 'ref_date' => $yesterday));
