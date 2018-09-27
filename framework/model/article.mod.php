@@ -139,7 +139,7 @@ function article_comment_add($comment) {
 		return error(-1, '用户信息不能为空');
 	}
 
-	$article_comment_table = table('sitearticlecomment');
+	$article_comment_table = table('site_article_comment');
 	$article_comment_table->articleCommentAdd($comment);
 	return true;
 }
@@ -148,14 +148,14 @@ function article_comment_detail($article_lists) {
 	global $_W;
 	load()->model('mc');
 	if (empty($article_lists)) {
-		return true;
+		return array();
 	}
 
 	foreach ($article_lists as $list) {
 		$parent_article_comment_ids[] = $list['id'];
 	}
 
-	$comment_table = table('sitearticlecomment');
+	$comment_table = table('site_article_comment');
 	$comment_table->fill('is_read', ARTICLE_COMMENT_READ)->whereId($parent_article_comment_ids)->save();
 	$son_comment_lists = $comment_table->searchWithUniacid($_W['uniacid'])->searchWithParentid($parent_article_comment_ids)->articleCommentList();
 

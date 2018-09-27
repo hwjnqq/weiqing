@@ -69,12 +69,12 @@ function app_navs($type = 'home', $multiid = 0, $section = 0) {
 function app_update_today_visit($module_name) {
 	global $_W;
 	$module_name = trim($module_name);
-	if (empty($module_name) || !in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
+	if (empty($module_name) || !in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH, ACCOUNT_TYPE_WEBAPP_NORMAL))) {
 		return false;
 	}
 	$today = date('Ymd');
 
-	$statistics_table = table('statistics');
+	$statistics_table = table('stat_visit');
 	$params = array(
 		'date' => $today,
 		'uniacid' => $_W['uniacid'],
@@ -177,7 +177,7 @@ function app_month_visit_till_today($uniacid = 0) {
 	$start = date('Ym01', strtotime(date("Ymd")));
 	$end = date('Ymd', strtotime('-1 day'));
 	$params = array('date >=' => $start, 'date <=' => $end, 'uniacid' => $uniacid, 'type' => 'app');
-	$visit = table('statistics')->visitList($params);
+	$visit = table('stat_visit')->visitList($params);
 	if (!empty($visit)) {
 		foreach ($visit as $val) {
 			$result += $val['count'];
@@ -198,7 +198,7 @@ function app_today_visit($uniacid = 0) {
 	$uniacid = intval($uniacid) > 0 ? intval($uniacid) : $_W['uniacid'];
 
 	$params = array('date' => date('Ymd'), 'uniacid' => $uniacid, 'type' => 'app');
-	$today = table('statistics')->visitList($params);
+	$today = table('stat_visit')->visitList($params);
 	if (!empty($today)) {
 		foreach ($today as $val) {
 			$result += $val['count'];

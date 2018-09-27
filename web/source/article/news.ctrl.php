@@ -50,7 +50,7 @@ if ($do == 'category') {
 		}
 	}
 
-	$data = table('articlecategory')->getNewsCategoryLists();
+	$data = table('article_category')->getNewsCategoryLists();
 	template('article/news-category');
 }
 
@@ -66,7 +66,7 @@ if ($do == 'category_del') {
 if ($do == 'post') {
 	$_W['page']['title'] = '编辑新闻-新闻列表';
 	$id = intval($_GPC['id']);
-	$new = table('articlenews')->searchWithId($id)->get();
+	$new = table('article_news')->searchWithId($id)->get();
 	if (empty($new)) {
 		$new = array(
 			'is_display' => 1,
@@ -109,7 +109,7 @@ if ($do == 'post') {
 		itoast('编辑文章成功', url('article/news/list'), 'success');
 	}
 
-	$categorys = table('articlecategory')->getNewsCategoryLists();
+	$categorys = table('article_category')->getNewsCategoryLists();
 	template('article/news-post');
 }
 
@@ -120,7 +120,7 @@ if ($do == 'list') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 
-	$article_table = table('articlenews');
+	$article_table = table('article_news');
 	$cateid = intval($_GPC['cateid']);
 	$createtime = intval($_GPC['createtime']);
 	$title = safe_gpc_string($_GPC['title']);
@@ -144,7 +144,7 @@ if ($do == 'list') {
 	$total = $article_table->getLastQueryTotal();
 	$pager = pagination($total, $pindex, $psize);
 
-	$categorys = table('articlecategory')->getNewsCategoryLists($order);
+	$categorys = table('article_category')->getNewsCategoryLists($order);
 	template('article/news');
 }
 

@@ -13,7 +13,8 @@ $do = in_array($do, $dos) ? $do : 'display';
 
 permission_check_account_user('platform_site');
 $_W['page']['title'] = '文章管理 - 微官网';
-$category = pdo_fetchall("SELECT id,parentid,name FROM ".tablename('site_category')." WHERE uniacid = '{$_W['uniacid']}' ORDER BY parentid ASC, displayorder ASC, id ASC ", array(), 'id');
+$category = pdo_fetchall("SELECT id,parentid,name FROM ".tablename('site_category')." WHERE uniacid = '{$_W['uniacid']}' AND enabled=1 ORDER BY parentid ASC, displayorder ASC, id ASC ", array(), 'id');
+
 $parent = array();
 $children = array();
 
@@ -54,7 +55,7 @@ if ($do == 'display') {
 			$article_ids[] = $item['id'];
 		}
 	}
-	$article_comment = table('sitearticlecomment')->srticleCommentUnread($article_ids);
+	$article_comment = table('site_article_comment')->srticleCommentUnread($article_ids);
 
 	$setting = uni_setting($_W['uniacid']);
 	template('site/article-display');

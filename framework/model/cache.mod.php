@@ -14,7 +14,7 @@ function cache_build_template() {
  * @return mixed
  */
 function cache_build_setting() {
-	$setting = table('coresetting')->getSettingList();
+	$setting = table('core_settings')->getSettingList();
 	if (is_array($setting)) {
 		foreach ($setting as $k => $v) {
 			$setting[$v['key']] = iunserializer($v['value']);
@@ -131,7 +131,7 @@ function cache_build_users_struct() {
 		'pay_password' => '支付密码',
 	);
 	cache_write(cache_system_key('userbasefields'), $base_fields);
-	$fields = table('profile')->getProfileFields();
+	$fields = table('core_profile_fields')->getProfileFields();
 	if (!empty($fields)) {
 		foreach ($fields as &$field) {
 			$field = $field['title'];
@@ -157,6 +157,7 @@ function cache_build_frame_menu() {
 	global $_W;
 	$table_name = table('menu');
 	$system_menu_db = $table_name->getCoreMenuFillPermissionName();
+	$account = pdo_get('account', array('uniacid' => $_W['uniacid']));
 	$system_menu = require IA_ROOT . '/web/common/frames.inc.php';
 	if (!empty($system_menu) && is_array($system_menu)) {
 		$system_displayoder = 1;
@@ -166,6 +167,9 @@ function cache_build_frame_menu() {
 			$system_menu[$menu_name]['displayorder'] = !empty($system_menu_db[$menu_name]) ? intval($system_menu_db[$menu_name]['displayorder']) : ++$system_displayoder;
 			if ($_W['role'] == ACCOUNT_MANAGE_NAME_EXPIRED && $menu_name != 'store' && $menu_name != 'system') {
 				$system_menu[$menu_name]['is_display'] = false;
+			}
+			if ($menu_name == 'appmarket') {
+				$system_menu[$menu_name]['is_display'] = true;
 			}
 			foreach ($menu['section'] as $section_name => $section) {
 				$displayorder = max(count($section['menu']), 1);
@@ -188,7 +192,7 @@ function cache_build_frame_menu() {
 					$sub_menu_db = $system_menu_db[$sub_menu['permission_name']];
 					$system_menu[$menu_name]['section'][$section_name]['menu'][$permission_name] = array(
 						'is_system' => isset($sub_menu['is_system']) ? $sub_menu['is_system'] : 1,
-						'is_display' => isset($sub_menu['is_display']) && empty($sub_menu['is_display']) ? 0 : (isset($sub_menu_db['is_display']) ? $sub_menu_db['is_display'] : 1),
+						'is_display' => isset($sub_menu_db['is_display']) ? $sub_menu_db['is_display'] : ((isset($sub_menu['is_display']) && (empty($sub_menu['is_display']) || (is_array($sub_menu['is_display']) && !in_array($account['type'], $sub_menu['is_display'])))) ? 0 : 1),
 						'title' => !empty($sub_menu_db['title']) ? $sub_menu_db['title'] : $sub_menu['title'],
 						'url' => $sub_menu['url'],
 						'permission_name' => $sub_menu['permission_name'],
@@ -219,8 +223,8 @@ function cache_build_frame_menu() {
 			}
 		}
 		$system_menu = iarray_sort($system_menu, 'displayorder', 'asc');
-		cache_delete(cache_system_key('system_frame'));
-		cache_write(cache_system_key('system_frame'), $system_menu);
+		cache_delete(cache_system_key('system_frame', array('uniacid' => $_W['uniacid'])));
+		cache_write(cache_system_key('system_frame', array('uniacid' => $_W['uniacid'])), $system_menu);
 		return $system_menu;
 	}
 }
@@ -298,7 +302,7 @@ function cache_build_uninstalled_module() {
 			continue;
 		}
 
-		if (!file_exists($path . '/manifest.xml')) {
+		if (!is_dir($path) || !file_exists($path . '/manifest.xml')) {
 			continue;
 		}
 
@@ -315,7 +319,7 @@ function cache_build_uninstalled_module() {
 		);
 
 		if (!empty($manifest['platform']['supports'])) {
-			foreach (array('app', 'wxapp', 'webapp', 'phoneapp', 'system_welcome') as $support) {
+			foreach (array('app', 'wxapp', 'webapp', 'phoneapp', 'system_welcome', 'xzapp', 'aliapp') as $support) {
 				if (in_array($support, $manifest['platform']['supports'])) {
 					//纠正支持类型名字，统一
 					if ($support == 'app') {

@@ -84,7 +84,7 @@ function job_execute_delete_account($job) {
 
 	// 都为0 说明已经删除完了
 	if (count($core_attchments) == 0 && count($wechat_attachments) == 0) {
-		table('attachmentgroup')->deleteByUniacid($uniacid);
+		table('attachment_group')->deleteByUniacid($uniacid);
 		$upjob = table('job')->where('id', $job['id']);
 		$upjob->fill('status', 1);//改为完成状态
 		$upjob->fill('endtime', TIMESTAMP);//加结束时间

@@ -38,7 +38,7 @@ function reply_single($id) {
 	if (empty($result)) {
 		return $result;
 	}
-	$result['keywords'] = table('rulekeyword')->whereRid($id)->getall();
+	$result['keywords'] = table('rule_keyword')->whereRid($id)->getall();
 	return $result;
 }
 

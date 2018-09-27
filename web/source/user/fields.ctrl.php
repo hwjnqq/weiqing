@@ -12,7 +12,7 @@ $do = in_array($do, $dos) ? $do : 'display';
 if ($do == 'display') {
 	$_W['page']['title'] = '字段管理 - 用户管理';
 
-	$table = table('profilefields');
+	$table = table('core_profile_fields');
 
 	$keyword = safe_gpc_string($_GPC['keyword']);
 	if (!empty($keyword)) {

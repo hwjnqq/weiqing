@@ -508,7 +508,7 @@ function cloud_t_build($name) {
 	if (empty($name)) {
 		return array();
 	}
-	$theme = table('sitetemplates')->getTemplateInfo(trim($name));
+	$theme = table('site_templates')->getTemplateInfo(trim($name));
 	$pars = _cloud_build_params();
 	$pars['method'] = 'theme.build';
 	$pars['theme'] = $name;
@@ -550,7 +550,7 @@ function cloud_t_upgradeinfo($name) {
 	if (empty($name)) {
 		return array();
 	}
-	$theme = table('sitetemplates')->getTemplateInfo(trim($name));
+	$theme = table('site_templates')->getTemplateInfo(trim($name));
 	$pars = _cloud_build_params();
 	$pars['method'] = 'theme.upgrade';
 	$pars['theme'] = $theme['name'];

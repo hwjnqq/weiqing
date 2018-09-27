@@ -17,7 +17,7 @@ if ($do == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 10;
 
-	$comment_table = table('sitearticlecomment');
+	$comment_table = table('site_article_comment');
 	$comment_table->searchWithArticleid($articleId);
 	$comment_table->searchWithParentid(ARTICLE_COMMENT_DEFAULT);
 	$comment_table->searchWithPage($pindex, $psize);

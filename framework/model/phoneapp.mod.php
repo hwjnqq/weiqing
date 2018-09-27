@@ -33,7 +33,7 @@ function phoneapp_get_some_lastversions($uniacid) {
 	if (empty($uniacid)) {
 		return $version_lasts;
 	}
-	$version_lasts = table('phoneappversions')->phoneappLatestVersion($uniacid);
+	$version_lasts = table('phoneapp_versions')->phoneappLatestVersion($uniacid);
 	$last_switch_version = phoneapp_last_switch_version();
 	if (!empty($last_switch_version[$uniacid]) && !empty($version_lasts[$last_switch_version[$uniacid]['version_id']])) {
 		$version_lasts[$last_switch_version[$uniacid]['version_id']]['current'] = true;
@@ -99,10 +99,10 @@ function phoneapp_fetch($uniacid, $version_id = '') {
 		}
 
 		if (empty($phoneapp_version_info)) {
-			$phoneapp_version_info = table('phoneappversions')->phoneappLastVersion($uniacid);
+			$phoneapp_version_info = table('phoneapp_versions')->phoneappLastVersion($uniacid);
 		}
 	} else {
-		$phoneapp_version_info = table('phoneappversions')->getById($version_id);
+		$phoneapp_version_info = table('phoneapp_versions')->getById($version_id);
 	}
 	if (!empty($phoneapp_version_info) && !empty($phoneapp_version_info['modules'])) {
 		$phoneapp_version_info['modules'] = iunserializer($phoneapp_version_info['modules']);
@@ -126,7 +126,7 @@ function phoneapp_version($version_id) {
 		return $version_info;
 	}
 
-	$version_info = table('phoneappversions')->getById($version_id);
+	$version_info = table('phoneapp_versions')->getById($version_id);
 	$version_info['modules'] = iunserializer($version_info['modules']);
 	return $version_info;
 }
@@ -196,7 +196,7 @@ function phoneapp_version_all($uniacid) {
 		return $phoneapp_versions;
 	}
 
-	$phoneapp_versions = table('phoneappversions')->phoneappAllVersion($uniacid);
+	$phoneapp_versions = table('phoneapp_versions')->phoneappAllVersion($uniacid);
 	if (!empty($phoneapp_versions)) {
 		foreach ($phoneapp_versions as &$version) {
 			$version = phoneapp_version($version['id']);

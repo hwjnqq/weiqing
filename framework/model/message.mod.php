@@ -15,7 +15,7 @@ function message_notice_read($id) {
 	if (empty($id)) {
 		return true;
 	}
-	table('message')->fillIsRead(MESSAGE_READ)->whereId($id)->save();
+	table('message_notice_log')->fillIsRead(MESSAGE_READ)->whereId($id)->save();
 	return true;
 }
 
@@ -25,7 +25,7 @@ function message_notice_read($id) {
  */
 function message_notice_all_read($type = '') {
 	global $_W;
-	$message_table = table('message');
+	$message_table = table('message_notice_log');
 	if (!empty($type)) {
 		$message_table->whereType($type);
 	}
@@ -62,7 +62,7 @@ function message_notice_record($content, $uid, $sign, $type, $extend_message = a
 	if (in_array($type, $push_cloud_message_type)) {
 		message_notice_record_cloud($message_notice_log);
 	}
-	table('message')->fill($message_notice_log)->save();
+	table('message_notice_log')->fill($message_notice_log)->save();
 	return true;
 }
 
@@ -70,7 +70,7 @@ function message_notice_record($content, $uid, $sign, $type, $extend_message = a
  * 检测消息记录是否已经插入数据库
  */
 function message_validate_exists($message) {
-	$message_exists = table('message')->messageExists($message);
+	$message_exists = table('message_notice_log')->messageExists($message);
 	if (!empty($message_exists)) {
 		return true;
 	}
@@ -85,8 +85,9 @@ function message_validate_exists($message) {
 function message_event_notice_list() {
 	load()->model('user');
 	global $_W;
-	$message_table = table('message');
+	$message_table = table('message_notice_log');
 	$message_table->searchWithIsRead(MESSAGE_NOREAD);
+	$message_table->searchWithType(array(MESSAGE_SYSTEM_UPGRADE, MESSAGE_OFFICIAL_DYNAMICS));
 	$type = '';
 	if (user_is_vice_founder() || !user_is_founder($_W['uid'])) {
 		$type = array(MESSAGE_ACCOUNT_EXPIRE_TYPE, MESSAGE_WECHAT_EXPIRE_TYPE, MESSAGE_USER_EXPIRE_TYPE, MESSAGE_WEBAPP_EXPIRE_TYPE, MESSAGE_WXAPP_MODULE_UPGRADE);
@@ -161,7 +162,7 @@ function message_notice_worker() {
 	load()->func('communication');
 	load()->classs('cloudapi');
 	$api = new CloudApi();
-	$table = table('message');
+	$table = table('message_notice_log');
 	$time = 0;
 	$table->searchWithType(MESSAGE_WORKORDER_TYPE);
 	$message_record = $table->messageRecord();
@@ -230,9 +231,9 @@ function message_sms_expire_notice() {
 				$content = "您的用户名{$v['username']}即将过期。";
 
 				$data = array('mobile' => $v['mobile'], 'content' => $content, 'result' => $result['errno'] . $result['message'], 'createtime' => TIMESTAMP);
-				table('coresendsmslog')->fill($data)->save();
+				table('core_sendsms_log')->fill($data)->save();
 			} else {
-				table('usersprofile')->fill('send_expire_status', 1)->whereUid($v['uid'])->save();
+				table('users_profile')->fill('send_expire_status', 1)->whereUid($v['uid'])->save();
 			}
 		}
 	}
@@ -270,18 +271,17 @@ function message_notice_record_cloud($message) {
  */
 function message_wxapp_modules_version_upgrade() {
 	global $_W;
-	load()->model('wxapp');
+	load()->model('miniapp');
 	load()->model('account');
 
-	$wxapp_table = table('wxapp');
+	$wxapp_table = table('account');
 	$wxapp_table->searchWithType(array(ACCOUNT_TYPE_APP_NORMAL));
 	$uniacid_list = $wxapp_table->searchAccountList();
 
 	if (empty($uniacid_list)) {
 		return true;
 	}
-
-	$wxapp_list = $wxapp_table->wxappInfo(array_keys($uniacid_list));
+	$wxapp_list = table('account_wxapp')->wxappInfo(array_keys($uniacid_list));
 	$wxapp_modules = table('modules')->getSupportWxappList();
 
 	foreach ($uniacid_list as $uniacid_info) {
@@ -290,7 +290,7 @@ function message_wxapp_modules_version_upgrade() {
 			continue;
 		}
 
-		$uniacid_modules = wxapp_version_all($uniacid_info['uniacid']);
+		$uniacid_modules = miniapp_version_all($uniacid_info['uniacid']);
 
 		if (empty($uniacid_modules[0]['modules'])) {
 			continue;
@@ -332,12 +332,19 @@ function message_list_detail($lists) {
 			$message['url'] = url('account/manage', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL, 'message_id' => $message['id']));
 		}
 
-		if ($message['type'] == MESSAGE_REGISTER_TYPE && $message['status'] == USER_STATUS_CHECK) {
-			$message['url'] = url('user/display', array('type' => 'check', 'message_id' => $message['id']));
-		}
-
-		if ($message['type'] == MESSAGE_REGISTER_TYPE && $message['status'] == USER_STATUS_NORMAL) {
-			$message['url'] = url('user/display', array('message_id' => $message['id']));
+		if ($message['type'] == MESSAGE_REGISTER_TYPE) {
+			if ($message['status'] == USER_STATUS_CHECK) {
+				$message['url'] = url('user/display', array('type' => 'check', 'message_id' => $message['id']));
+			}
+			if ($message['status'] == USER_STATUS_NORMAL) {
+				$message['url'] = url('user/display', array('message_id' => $message['id']));
+			}
+			$source_array = array('mobile' => '手动注册', 'system' => '手动注册', 'qq' => 'QQ 注册', 'wechat' => '微信注册', 'admin' => '管理员添加');
+			$msg = explode('--', $message['message']);
+			if (count($msg) > 1 && !empty($source_array[$msg[1]])) {
+				$message['message'] = $msg[0];
+				$message['source'] = $source_array[$msg[1]];
+			}
 		}
 
 		if ($message['type'] == MESSAGE_USER_EXPIRE_TYPE) {
@@ -353,4 +360,134 @@ function message_list_detail($lists) {
 	}
 
 	return $lists;
+}
+
+/**
+ * 消息类型对应的属性
+ * @return multitype:string
+ */
+function message_setting() {
+	$setting = setting_load('message_notice_setting');
+	if (!empty($setting['message_notice_setting'])) {
+		return $setting['message_notice_setting'];
+	}
+	return array(
+		'order'	=> array(
+			'title' => '订单消息',
+			'msg' => '用户购买模块，服务等，提交订单或付款后，将会有消息提醒，建议打开',
+			'types' => array(
+				MESSAGE_ORDER_TYPE => array(
+					'type' => MESSAGE_ORDER_TYPE,
+					'title' => '提交订单',
+					'msg' => '用户购买模块，服务等，提交订单后，将会有消息提醒，建议打开',
+				),
+				MESSAGE_ORDER_PAY_TYPE => array(
+					'type' => MESSAGE_ORDER_PAY_TYPE,
+					'title' => '支付成功',
+					'msg' => '用户购买模块，服务等，付款后，将会有消息提醒，建议打开',
+				),
+			),
+		),
+		'expire' => array(
+			'title' => '到期消息',
+			'msg' => '用户公众号到，小程序到期，平台类型到期，将会有消息提醒，建议打开',
+			'types' => array(
+				MESSAGE_ACCOUNT_EXPIRE_TYPE => array(
+					'type' => MESSAGE_ACCOUNT_EXPIRE_TYPE,
+					'title' => '公众号到期',
+					'msg' => '用户公众号到期后，将会有消息提醒，建议打开',
+				),
+				MESSAGE_WECHAT_EXPIRE_TYPE => array(
+					'type' => MESSAGE_WECHAT_EXPIRE_TYPE,
+					'title' => '小程序到期',
+					'msg' => '用户小程序到期后，将会有消息提醒，建议打开',
+				),
+				MESSAGE_WEBAPP_EXPIRE_TYPE => array(
+					'type' => MESSAGE_WEBAPP_EXPIRE_TYPE,
+					'title' => 'pc过期',
+					'msg' => '用户pc类型到期后，将会有消息提醒，建议打开',
+				),
+				MESSAGE_USER_EXPIRE_TYPE => array(
+					'type' => MESSAGE_USER_EXPIRE_TYPE,
+					'title' => '用户账号到期',
+					'msg' => '用户账号到期后，将会有消息提醒，建议打开',
+				),
+			),
+		),
+		'work' => array(
+			'title' => '工单提醒',
+			'msg' => '站点有工单消息时，将会有消息提醒，建议打开',
+			'types' => array(
+				MESSAGE_WORKORDER_TYPE => array(
+					'type' => MESSAGE_WORKORDER_TYPE,
+					'title' => '新工单',
+					'msg' => '站点有新工时，将会有消息提醒，建议打开',
+				),
+			),
+		),
+		'register' => array(
+			'title' => '注册提醒',
+			'msg' => '用户注册后，将会有消息提醒，建议打开',
+			'types' => array(
+				MESSAGE_REGISTER_TYPE => array(
+					'type' => MESSAGE_REGISTER_TYPE,
+					'title' => '新用户注册',
+					'msg' => '新用户注册后，将会有消息提醒，建议打开',
+				),
+			),
+		),
+	);
+}
+
+
+/**
+ * 将获取到的消息数据加入通知表
+ */
+function message_store_notice() {
+	load()->model('cloud');
+	$data = cloud_get_store_notice();
+	if (is_error($data)) {
+		return $data;
+	}
+
+	$insert_data = array();
+	$signs = array();
+	$create_time = array();
+	foreach ($data['version'] as $item) {
+		$signs[] = $item['itemid'];
+		$create_time[] = $item['datetime'];
+		$insert_data[] = array(
+			'sign' => $item['itemid'],
+			'message' => $item['title'],
+			'url' => $item['url'],
+			'create_time' => $item['datetime'],
+			'type' => MESSAGE_SYSTEM_UPGRADE,
+			'is_read' => MESSAGE_NOREAD,
+		);
+	}
+	foreach ($data['info'] as $item) {
+		$signs[] = $item['itemid'];
+		$create_time[] = $item['datetime'];
+		$insert_data[] = array(
+			'sign' => $item['itemid'],
+			'message' => $item['title'],
+			'url' => $item['url'],
+			'create_time' => $item['datetime'],
+			'type' => MESSAGE_OFFICIAL_DYNAMICS,
+			'is_read' => MESSAGE_NOREAD,
+		);
+	}
+
+	if (!empty($signs)) {
+		array_multisort($create_time, SORT_ASC, SORT_NUMERIC, $insert_data);
+
+		$signs = pdo_getall('message_notice_log', array('sign' => $signs), array('sign'), 'sign');
+		$signs = array_keys($signs);
+		foreach ($insert_data as $item) {
+			if (!in_array($item['sign'], $signs)) {
+				pdo_insert('message_notice_log', $item);
+			}
+		}
+	}
+	return true;
 }

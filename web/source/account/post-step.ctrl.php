@@ -23,7 +23,7 @@ if($step == 1) {
 	}
 
 	if (empty($authurl) && !empty($_W['setting']['platform']['authstate'])) {
-		$account_platform = new WeiXinPlatform();
+		$account_platform = new WeixinPlatform();
 		$authurl = $account_platform->getAuthLoginUrl();
 	}
 } elseif ($step == 2) {
