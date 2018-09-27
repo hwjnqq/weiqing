@@ -19,7 +19,7 @@ class UserapireplyTable extends We7Table {
 			foreach ($all_service[$file]['keywords'] as $keyword_info) {
 				$rule_keyword_info['content'] = $keyword_info[1];
 				$rule_keyword_info['type'] = $keyword_info[0];
-				table('rulekeyword')->fill($rule_keyword_info)->save();
+				table('rule_keyword')->fill($rule_keyword_info)->save();
 			}
 		}
 

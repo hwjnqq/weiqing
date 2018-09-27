@@ -4,21 +4,23 @@
  */
 namespace We7\Table\Account;
 
-class Xzapp extends \We7Table {
-	protected $tableName = 'account_xzapp';
+class Aliapp extends \We7Table {
+	protected $tableName = 'account_aliapp';
 	protected $primaryKey = 'acid';
 	protected $field = array(
-		'acid',
 		'uniacid',
+		'level',
 		'name',
+		'appid',
 	);
 	protected $default = array(
-		'acid' => '',
 		'uniacid' => '',
+		'level' => 0,
 		'name' => '',
+		'appid' => '',
 	);
 
-	public function getByAcid($acid) {
-		return $this->query->where('acid' , $acid)->get();
+	public function getAccount($acid) {
+		return $this->query->where('acid', $acid)->get();
 	}
 }

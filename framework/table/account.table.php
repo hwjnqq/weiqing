@@ -53,6 +53,26 @@ class AccountTable extends We7Table {
 		if (!empty($expire)) {
 			$this->searchWithExprie();
 		}
+		$list = $this->query->getall('uniacid');
+		return $list;
+	}
+
+	public function searchAccountListFields($fields = 'a.uniacid',$expire = false) {
+		global $_W;
+		$this->query->from('uni_account', 'a')->select($fields)->leftjoin('account', 'b')
+			->on(array('a.uniacid' => 'b.uniacid', 'a.default_acid' => 'b.acid'))
+			->where('b.isdeleted !=', '1');
+
+		//普通用户和副站长查询时，要附加可操作公众条件
+		if (!user_is_founder($_W['uid']) || user_is_vice_founder()) {
+			$this->query->leftjoin('uni_account_users', 'c')->on(array('a.uniacid' => 'c.uniacid'))
+				->where('a.default_acid !=', '0')->where('c.uid', $_W['uid']);
+		} else {
+			$this->query->where('a.default_acid !=', '0');
+		}
+		if (!empty($expire)) {
+			$this->searchWithExprie();
+		}
 		$this->accountUniacidOrder();
 		$list = $this->query->getall('uniacid');
 		return $list;
@@ -64,8 +84,8 @@ class AccountTable extends We7Table {
 	public function userOwnedAccount($uid = 0) {
 		global $_W;
 		$uid = intval($uid) > 0 ? intval($uid) : $_W['uid'];
-		$is_founder = user_is_founder($uid);
-		if (empty($is_founder) || user_is_vice_founder($uid)) {
+		$is_founder = user_is_founder($uid, true);
+		if (empty($is_founder)) {
 			$users_table = table('users');
 			$uniacid_list = $users_table->userOwnedAccount($uid);
 			if (empty($uniacid_list)) {
@@ -140,6 +160,18 @@ class AccountTable extends We7Table {
 				->where(array('au.uid' => $uid))
 				->orderby('a.uniacid', 'asc')
 				->getall('acid');
+	}
+
+	public function accountXzappInfo($uniacids, $uid) {
+		return $this->query->from('uni_account', 'a')
+			->leftjoin('account_xzapp', 'w')
+			->on(array('w.uniacid' => 'a.uniacid'))
+			->leftjoin('uni_account_users', 'au')
+			->on(array('a.uniacid' => 'au.uniacid'))
+			->where(array('a.uniacid' => $uniacids))
+			->where(array('au.uid' => $uid))
+			->orderby('a.uniacid', 'asc')
+			->getall('acid');
 	}
 
 	public function searchWithKeyword($title) {
@@ -235,23 +267,52 @@ class AccountTable extends We7Table {
 		}
 	}
 
-	public function accountGroupModules($uniacid) {
+	public function accountGroupModules($uniacid, $type = '') {
 		$packageids = $this->query->from('uni_account_group')->where('uniacid', $uniacid)->select('groupid')->getall('groupid');
-		$uni_modules = array();
-		if (IMS_FAMILY == 'x') {
-			$site_store_buy_package = table('store')->searchUserBuyPackage($uniacid);
-			$packageids = array_merge($packageids, $site_store_buy_package);
-		}
-		if (in_array('-1', array_keys($packageids))) {
+		$packageids = empty($packageids) ? array() : array_keys($packageids);
+		if (in_array('-1', $packageids)) {
 			$modules = $this->query->from('modules')->select('name')->getall('name');
 			return array_keys($modules);
 		}
-		$uni_groups = $this->query->from('uni_group')->where('uniacid', $uniacid)->whereor('id', array_keys($packageids))->getall('modules');
+		$uni_modules = array();
+		
+		$uni_groups = $this->query->from('uni_group')->where('uniacid', $uniacid)->whereor('id', $packageids)->getall('modules');
 		if (!empty($uni_groups)) {
+			if (empty($type)) {
+				$account = $this->getAccountByUniacid($uniacid);
+				$type = $account['type'];
+			}
 			foreach ($uni_groups as $group) {
 				$group_module = (array)iunserializer($group['modules']);
-				$uni_modules = array_merge($group_module, $uni_modules);
+				if (empty($group_module)) {
+					continue;
+				}
+				switch ($type) {
+					case ACCOUNT_TYPE_OFFCIAL_NORMAL:
+					case ACCOUNT_TYPE_OFFCIAL_AUTH:
+						$uni_modules = is_array($group_module['modules']) ? array_merge($group_module['modules'], $uni_modules) : $uni_modules;
+						break;
+					case ACCOUNT_TYPE_APP_NORMAL:
+					case ACCOUNT_TYPE_APP_AUTH:
+					case ACCOUNT_TYPE_WXAPP_WORK:
+						$uni_modules = is_array($group_module['wxapp']) ? array_merge($group_module['wxapp'], $uni_modules) : $uni_modules;
+						break;
+					case ACCOUNT_TYPE_WEBAPP_NORMAL:
+						$uni_modules = is_array($group_module['webapp']) ? array_merge($group_module['webapp'], $uni_modules) : $uni_modules;
+						break;
+					case ACCOUNT_TYPE_XZAPP_NORMAL:
+					case ACCOUNT_TYPE_XZAPP_AUTH:
+						$uni_modules = is_array($group_module['xzapp']) ? array_merge($group_module['xzapp'], $uni_modules) : $uni_modules;
+						break;
+					case ACCOUNT_TYPE_PHONEAPP_NORMAL:
+						$uni_modules = is_array($group_module['phoneapp']) ? array_merge($group_module['phoneapp'], $uni_modules) : $uni_modules;
+						break;
+					case ACCOUNT_TYPE_ALIAPP_NORMAL:
+						$uni_modules = is_array($group_module['aliapp']) ? array_merge($group_module['aliapp'], $uni_modules) : $uni_modules;
+						break;
+				}
 			}
+			$uni_modules = array_unique($uni_modules);
 		}
 		return $uni_modules;
 	}
@@ -277,8 +338,36 @@ class AccountTable extends We7Table {
 		}
 		$result = $this->query->from('uni_group')->where('uniacid', $uniacid)->get();
 		if (!empty($result)) {
-			$result['modules'] = iunserializer($result['modules']);
 			$result['templates'] = iunserializer($result['templates']);
+			$group_module = (array)iunserializer($result['modules']);
+			if (empty($group_module)) {
+				$result['modules'] = array();
+			} else {
+				$account = $this->getAccountByUniacid($uniacid);
+				switch ($account['type']) {
+					case ACCOUNT_TYPE_OFFCIAL_NORMAL:
+					case ACCOUNT_TYPE_OFFCIAL_AUTH:
+						$result['modules'] = $group_module['modules'];
+						break;
+					case ACCOUNT_TYPE_APP_NORMAL:
+					case ACCOUNT_TYPE_APP_AUTH:
+					case ACCOUNT_TYPE_WXAPP_WORK:
+						$result['modules'] = $group_module['wxapp'];
+						break;
+					case ACCOUNT_TYPE_WEBAPP_NORMAL:
+						$result['modules'] = $group_module['webapp'];
+						break;
+					case ACCOUNT_TYPE_XZAPP_NORMAL:
+					case ACCOUNT_TYPE_XZAPP_AUTH:
+						$result['modules'] = $group_module['xzapp'];
+						break;
+					case ACCOUNT_TYPE_PHONEAPP_NORMAL:
+						$result['modules'] = $group_module['phoneapp'];
+						break;
+					default:
+						$result['modules'] = array();
+				}
+			}
 		} else {
 			$result = array();
 		}

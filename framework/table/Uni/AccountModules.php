@@ -31,15 +31,11 @@ class AccountModules extends \We7Table {
 		return $this->query->where('module', $module_name)->where('uniacid', $_W['uniacid'])->exists();
 	}
 
-	public function getSettings($uniacid, $module_name) {
-		if (intval($uniacid) < 0 || empty($module_name)) {
-			return array();
+	public function getByUniacidAndModule($module_name, $uniacid) {
+		$result = $this->query->where('module', $module_name)->where('uniacid', $uniacid)->get();
+		if (!empty($result)) {
+			$result['settings'] = iunserializer($result['settings']);
 		}
-		$result = $this->query->where(array('module' => $module_name, 'uniacid' => $uniacid))->get();
-		if (empty($result)) {
-			return array();
-		} else {
-			return iunserializer($result['settings']);
-		}
+		return (array)$result;
 	}
 }
