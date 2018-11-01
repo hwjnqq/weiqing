@@ -102,6 +102,7 @@ function wechat_build($params, $wechat) {
 		$string1 = '';
 		foreach($package as $key => $v) {
 			if (empty($v)) {
+				unset($package[$key]);
 				continue;
 			}
 			$string1 .= "{$key}={$v}&";
@@ -167,6 +168,7 @@ function wechat_build($params, $wechat) {
 		$string1 = '';
 		foreach($package as $key => $v) {
 			if (empty($v)) {
+				unset($package[$key]);
 				continue;
 			}
 			$string1 .= "{$key}={$v}&";
