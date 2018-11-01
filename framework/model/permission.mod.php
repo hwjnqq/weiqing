@@ -117,7 +117,11 @@ function permission_create_account($uid, $type = ACCOUNT_TYPE_OFFCIAL_NORMAL) {
 	}
 	$user_table = table('users');
 	$userinfo = $user_table->usersInfo($uid);
-	$groupdata = $user_table->usersGroupInfo($userinfo['groupid']);
+	if (user_is_vice_founder($uid)) {
+		$groupdata = $user_table->userFounderGroupInfo($userinfo['groupid']);
+	} else {
+		$groupdata = $user_table->usersGroupInfo($userinfo['groupid']);
+	}
 	$list = table('account')->getOwnedAccountCount($uid);
 	foreach ($list as $item) {
 		if ($item['type'] == ACCOUNT_TYPE_APP_NORMAL) {
@@ -151,17 +155,22 @@ function permission_account_user_role($uid = 0, $uniacid = 0) {
 	$role = '';
 	$uid = empty($uid) ? $_W['uid'] : intval($uid);
 
-	if (user_is_founder($uid) && !user_is_vice_founder($uid)) {
+	if (user_is_founder($uid, true)) {
 		return ACCOUNT_MANAGE_NAME_FOUNDER;
+	} else {
+		$user_table = table('users');
+		$user_info = pdo_get('users', array('uid' => $uid));
+		if (!empty($user_info['endtime']) && $user_info['endtime'] < TIMESTAMP) {
+			return ACCOUNT_MANAGE_NAME_EXPIRED;
+		}
+		if (user_is_vice_founder($uid)) {
+			return ACCOUNT_MANAGE_NAME_VICE_FOUNDER;
+		}
+		if (!user_is_bind()) {
+			return ACCOUNT_MANAGE_NAME_UNBIND_USER;
+		}
 	}
 
-	if (user_is_vice_founder($uid)) {
-		return ACCOUNT_MANAGE_NAME_VICE_FOUNDER;
-	}
-	if (!user_is_bind()) {
-		return ACCOUNT_MANAGE_NAME_UNBIND_USER;
-	}
-	$user_table = table('users');
 	if (!empty($uniacid)) {
 		$role = $user_table->userOwnedAccountRole($uid, $uniacid);
 		if ($role == ACCOUNT_MANAGE_NAME_OWNER) {
@@ -208,10 +217,10 @@ function permission_account_user_permission_exist($uid = 0, $uniacid = 0) {
 	if (user_is_founder($uid)) {
 		return false;
 	}
-	if (FRAME == 'system') {
+	if (defined('FRAME') && FRAME == 'system') {
 		return true;
 	}
-	$is_exist = table('userspermission')->userPermissionInfo($uid, $uniacid);
+	$is_exist = table('users_permission')->getUserPermissionByType($uid, $uniacid);
 	if(empty($is_exist)) {
 		return false;
 	} else {
@@ -225,11 +234,9 @@ function permission_account_user_permission_exist($uid = 0, $uniacid = 0) {
  */
 function permission_account_user($type = 'system') {
 	global $_W;
-	$user_permission = table('userspermission')->userPermissionInfo($_W['uid'], $_W['uniacid'], $type);
+	$user_permission = table('users_permission')->getUserPermissionByType($_W['uid'], $_W['uniacid'], $type);
 	$user_permission = $user_permission['permission'];
-	if (!empty($user_permission)) {
-		$user_permission = explode('|', $user_permission);
-	} else {
+	if (empty($user_permission)) {
 		$user_permission = array('account*', 'wxapp*', 'phoneapp*');
 	}
 	$permission_append = frames_menu_append();
@@ -264,17 +271,15 @@ function permission_account_user_menu($uid, $uniacid, $type) {
 	if (empty($permission_exist)) {
 		return array('all');
 	}
-	$user_permission_table = table('userspermission');
+	$user_permission_table = table('users_permission');
 	if ($type == 'modules') {
-		$user_menu_permission = $user_permission_table->userModulesPermission($uid, $uniacid);
+		$user_menu_permission = $user_permission_table->getAllUserModulePermission($uid, $uniacid);
 	} else {
 		$module = uni_modules_by_uniacid($uniacid);
 		$module = array_keys($module);
 		if (in_array($type, $module) || in_array($type, array(PERMISSION_ACCOUNT, PERMISSION_WXAPP, PERMISSION_SYSTEM))) {
-			$menu_permission = $user_permission_table->userPermissionInfo($uid, $uniacid, $type);
-			if (!empty($menu_permission['permission'])) {
-				$user_menu_permission = explode('|', $menu_permission['permission']);
-			}
+			$menu_permission = $user_permission_table->getUserPermissionByType($uid, $uniacid, $type);
+			$user_menu_permission = !empty($menu_permission['permission']) ? $menu_permission['permission'] : array();
 		}
 	}
 
@@ -348,12 +353,12 @@ function permission_update_account_user($uid, $uniacid, $data) {
 			'type' => $data['type'],
 			'permission' => $data['permission'],
 		);
-		$result = table('userspermission')->fill($insert)->save();
+		$result = table('users_permission')->fill($insert)->save();
 	} else {
 		$update = array(
 			'permission' => $data['permission'],
 		);
-		$result = table('userspermission')->fill($update)->whereUniacid($uniacid)->whereUid($uid)->whereType($data['type'])->save();
+		$result = table('users_permission')->fill($update)->whereUniacid($uniacid)->whereUid($uid)->whereType($data['type'])->save();
 	}
 	return $result;
 }
@@ -367,6 +372,7 @@ function permission_update_account_user($uid, $uniacid, $data) {
 
 function permission_check_account_user($permission_name, $show_message = true, $action = '') {
 	global $_W, $_GPC, $acl;
+	load()->model('module');
 	$see_more_info = $acl['see_more_info'];
 	if (strpos($permission_name, 'see_') === 0) {
 		$can_see_more = false;
@@ -388,7 +394,7 @@ function permission_check_account_user($permission_name, $show_message = true, $
 	$entry_id = intval($_GPC['eid']);
 
 	if ($action == 'reply') {
-		$system_modules = system_modules();
+		$system_modules = module_system();
 		if (!empty($modulename) && !in_array($modulename, $system_modules)) {
 			$permission_name = $modulename . '_rule';
 			$users_permission = permission_account_user($modulename);
@@ -408,7 +414,7 @@ function permission_check_account_user($permission_name, $show_message = true, $
 		} else {
 			return true;
 		}
-	} elseif ($action == 'wxapp' || !empty($_W['account']) && $_W['account']['type'] == ACCOUNT_TYPE_APP_NORMAL) {
+	} elseif ($action == 'wxapp' || !empty($_W['account']) && $_W['account']['type_sign'] == WXAPP_TYPE_SIGN) {
 		$users_permission = permission_account_user('wxapp');
 	} else {
 		$users_permission = permission_account_user('system');
@@ -417,6 +423,14 @@ function permission_check_account_user($permission_name, $show_message = true, $
 		$users_permission = permission_account_user('system');
 	}
 	if ($users_permission[0] != 'all' && !in_array($permission_name, $users_permission)) {
+		if (in_array($permission_name, permission_first_sub_permission()) && !empty($show_message)) {
+			load()->model('system');
+			$permission_string = explode('_', $permission_name);
+			$goto_permission = permission_subpermission($permission_string[0] . '_' . $permission_string[1] . '_');
+			$system_menu = system_menu_permission_list(ACCOUNT_MANAGE_NAME_OPERATOR);
+			$goto_url = $system_menu[FRAME]['section'][$permission_string[0]]['menu'][$permission_string[0] . '_' . $permission_string[1]]['sub_permission'][$goto_permission]['url'];
+			itoast('', $goto_url);
+		}
 		if ($show_message) {
 			itoast('您没有进行该操作的权限', referer(), 'error');
 		} else {
@@ -426,6 +440,34 @@ function permission_check_account_user($permission_name, $show_message = true, $
 	return true;
 }
 
+function permission_first_sub_permission() {
+	return array(
+		'platform_reply_keyword',
+		'platform_menu_default',
+		'platform_qr_qr',
+		'platform_masstask_post',
+		'platform_material_news',
+		'platform_site_multi',
+		'mc_fans_display',
+		'mc_member_diaplsy',
+		'profile_setting_remote',
+		'profile_payment_pay',
+		'statistics_visit_app',
+		'wxapp_payment_pay',
+	);
+}
+
+function permission_check_module_user($permission_name) {
+	global $_W;
+	if (empty($_W['current_module']) || empty($permission_name)) {
+		return false;
+	}
+	$users_permission = permission_account_user($_W['current_module']['name']);
+	if (!in_array($permission_name, $users_permission)) {
+		return false;
+	}
+	return true;
+}
 /*
  * 判断操作员是否具有模块某个业务功能菜单的权限
  */
@@ -500,6 +542,7 @@ function permission_user_account_num($uid = 0) {
 				$group['maxwebapp'] = min(intval($group['maxwebapp']), intval($group_vice['maxwebapp']));
 				$group['maxphoneapp'] = min(intval($group['maxphoneapp']), intval($group_vice['maxphoneapp']));
 				$group['maxxzapp'] = min(intval($group['maxxzapp']), intval($group_vice['maxxzapp']));
+				$group['maxaliapp'] = min(intval($group['maxaliapp']), intval($group_vice['maxaliapp']));
 			}
 		}
 	}
@@ -514,12 +557,14 @@ function permission_user_account_num($uid = 0) {
 	$wxapp_limit = max((intval($group['maxwxapp']) + intval($store_buy_wxapp) - $group_num['wxapp_num']), 0);
 	$webapp_limit = max(intval($group['maxwebapp']) - $group_num['webapp_num'], 0);
 	$phoneapp_limit = max(intval($group['maxphoneapp']) - $group_num['phoneapp_num'], 0);
-	$xzapp_limit = max(intval($group['maxxzapp']) - $group_num['phoneapp_num'], 0);
+	$xzapp_limit = max(intval($group['maxxzapp']) - $group_num['xzapp_num'], 0);
+	$aliapp_limit = max(intval($group['maxaliapp']) - $group_num['aliapp_num'], 0);
 	$founder_uniacid_limit = max((intval($group_vice['maxaccount']) + intval($store_buy_account) - $founder_group_num['account_num']), 0);
 	$founder_wxapp_limit = max((intval($group_vice['maxwxapp']) + intval($store_buy_wxapp) - $founder_group_num['wxapp_num']), 0);
 	$founder_webapp_limit = max(intval($group_vice['maxwebapp']) - $founder_group_num['webapp_num'], 0);
 	$founder_phoneapp_limit = max(intval($group_vice['maxphoneapp']) - $founder_group_num['phoneapp_num'], 0);
 	$founder_xzapp_limit = max(intval($group_vice['xzapp']) - $founder_group_num['xzapp_num'], 0);
+	$founder_aliapp_limit = max(intval($group_vice['aliapp']) - $founder_group_num['aliapp_num'], 0);
 	$data = array(
 		'group_name' => $group['name'],
 		'vice_group_name' => $group_vice['name'],
@@ -529,6 +574,7 @@ function permission_user_account_num($uid = 0) {
 		'usergroup_webapp_limit' => max($group['maxwebapp'] - $group_num['webapp_num'], 0),//用户组剩余创建PC个数
 		'usergroup_phoneapp_limit' => max($group['maxphoneapp'] - $group_num['phoneapp_num'], 0),//用户组剩余创建APP个数
 		'usergroup_xzapp_limit' => max($group['maxxzapp'] - $group_num['xzapp_num'], 0), // 用户组剩余创建熊掌号个数
+		'usergroup_aliapp_limit' => max($group['maxaliapp'] - $group_num['aliapp_num'], 0), // 用户组剩余创建支付宝小程序个数
 		'uniacid_num' => $group_num['account_num'],
 		'uniacid_limit' => max($uniacid_limit, 0),
 		'founder_uniacid_limit' => max($founder_uniacid_limit, 0),
@@ -547,7 +593,47 @@ function permission_user_account_num($uid = 0) {
 		'maxxzapp' => $group['maxxzapp'],
 		'xzapp_num' => $group_num['xzapp_num'],
 		'xzapp_limit' => $xzapp_limit,
-		'founder_xzapp_limit' => max($founder_xzapp_limit, 0)
+		'founder_xzapp_limit' => max($founder_xzapp_limit, 0),
+		'maxaliapp' => $group['maxaliapp'],
+		'aliapp_num' => $group_num['aliapp_num'],
+		'aliapp_limit' => $aliapp_limit,
+		'founder_aliapp_limit' => max($founder_aliapp_limit, 0),
 	);
 	return $data;
+}
+
+function permission_subpermission($prefix, $module = '') {
+	global $_W;
+	$result = '';
+	if (empty($prefix)) {
+		return $result;
+	}
+	$type = !empty($module) ? safe_gpc_string($module) : ($_W['account']['type_sign'] == 'account' ? 'system' : $_W['account']['type_sign']);
+	$account_premission = table('users_permission')->getUserPermissionByType($_W['uid'], $_W['uniacid'], $type);
+	if (!empty($account_premission['permission'])) {
+		foreach ($account_premission['permission'] as $permission) {
+			$if_exist = strpos($permission, $prefix);
+			$result = $if_exist !== false ? $permission : '';
+			if (!empty($result)) break;
+		}
+	}
+	return $result;
+}
+
+/**
++ * 是否可创建帐号
++ * @param $uid
++ * @param $type_sign
++ * @return bool
++ */
+function permission_user_account_creatable($uid = 0, $type_sign = '') {
+	global $_W;
+	$uid = empty($uid) ? $_W['uid'] : $uid;
+	$type_sign = empty($type_sign) ? 'account' : $type_sign;
+	if(user_is_founder($uid) && !user_is_vice_founder()) {
+		return true;
+	}
+	$key = $type_sign . '_limit';
+	$data = permission_user_account_num($uid);
+	return isset($data[$key]) && $data[$key] > 0;
 }

@@ -28,7 +28,7 @@ class Bindings extends \We7Table {
 		'state' => '',
 		'direct' => 0,
 		'url' => '',
-		'icon' => 'fa fa-puzzle-piece',
+		'icon' => 'wi wi-appsetting',
 		'displayorder' => 0,
 	);
 	
@@ -42,5 +42,13 @@ class Bindings extends \We7Table {
 	
 	public function isCallExists($modulename, $entry, $call) {
 		return $this->query->where('module', $modulename)->where('entry', $entry)->where('call', $call)->exists();
+	}
+
+	public function getByEntryDo($modulename, $entry, $do) {
+		return $this->query->where('module', $modulename)->where('entry', $entry)->where('do', $do)->get();
+	}
+
+	public function getByEntryCall($modulename, $entry, $call) {
+		return $this->query->where('module', $modulename)->where('entry', $entry)->where('call', $call)->get();
 	}
 }

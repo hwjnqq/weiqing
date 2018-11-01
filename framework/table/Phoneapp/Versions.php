@@ -22,15 +22,29 @@ class Versions extends \We7Table {
 		'createtime' => '',
 	);
 
-	public function phoneappLatestVersion($uniacid) {
-		return $this->query->from($this->tableName)->where('uniacid', $uniacid)->orderby('id', 'desc')->limit(4)->getall('id');
+	public function getById($id) {
+		$data = $this->where('id', $id)->get();
+		if (empty($data)) {
+			return array();
+		}
+		$data['modules'] = iunserializer($data['modules']);
+		return $data;
 	}
 
-	public function phoneappLastVersion($uniacid) {
-		return $this->query->from($this->tableName)->where('uniacid', $uniacid)->orderby('id', 'desc')->limit(1)->get();
+	public function getLatestByUniacid($uniacid) {
+		return $this->where('uniacid', $uniacid)->orderby('id', 'desc')->limit(4)->getall('id');
 	}
 
-	public function phoneappAllVersion($uniacid) {
-		return $this->query->from($this->tableName)->where('uniacid', $uniacid)->orderby('id', 'desc')->getall();
+	public function getLastByUniacid($uniacid) {
+		$data = $this->where('uniacid', $uniacid)->orderby('id', 'desc')->get();
+		if (empty($data)) {
+			return array();
+		}
+		$data['modules'] = iunserializer($data['modules']);
+		return $data;
+	}
+
+	public function getByUniacid($uniacid) {
+		return $this->where('uniacid', $uniacid)->orderby('id', 'desc')->getall();
 	}
 }

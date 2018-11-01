@@ -28,10 +28,15 @@ class Templates extends \We7Table {
 		'sections' => '',
 	);
 
+	public function getById($id) {
+		return $this->query->where('id', $id)->get();
+	}
+
 	public function getAllTemplates() {
 		return $this->query->getall('name');
 	}
-	public function getTemplateInfo($name) {
-		return $this->query->from($this->tableName)->where('name', $name)->get();
+
+	public function getByName($name) {
+		return $this->query->where('name', $name)->get();
 	}
 }

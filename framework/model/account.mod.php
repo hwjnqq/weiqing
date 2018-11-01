@@ -41,17 +41,20 @@ function uni_user_accounts($uid = 0, $type = 'app') {
 		$type = 'app';
 	}
 	$type = $type == 'app' ? 'wechats' : $type;
-	$cachekey = cache_system_key("user_{$type}_accounts:{$uid}");
+	$cachekey = cache_system_key('user_accounts', array('type' => $type, 'uid' => $uid));
 	$cache = cache_load($cachekey);
 	if (!empty($cache)) {
 		return $cache;
 	}
-	$field = '';
+	$select_fields = 'w.acid, w.uniacid, w.name, a.type';
+	if (in_array($type, array('wechats', 'wxapp', 'xzapp'))) {
+		$select_fields .= ', w.level, w.key, w.secret, w.token';
+	}
 	$where = '';
 	$params = array();
 	$user_is_founder = user_is_founder($uid);
 	if (empty($user_is_founder) || user_is_vice_founder($uid)) {
-		$field .= ', u.role';
+		$select_fields .= ', u.role';
 		$where .= " LEFT JOIN " . tablename('uni_account_users') . " u ON u.uniacid = w.uniacid WHERE u.uid = :uid AND u.role IN(:role1, :role2) ";
 		$params[':uid'] = $uid;
 		$params[':role1'] = ACCOUNT_MANAGE_NAME_OWNER;
@@ -59,7 +62,7 @@ function uni_user_accounts($uid = 0, $type = 'app') {
 	}
 	$where .= !empty($where) ? " AND a.isdeleted <> 1 AND u.role IS NOT NULL" : " WHERE a.isdeleted <> 1";
 
-	$sql = "SELECT w.*, a.type" . $field . " FROM " . tablename('account_' . $type) . " w LEFT JOIN " . tablename('account') . " a ON a.acid = w.acid AND a.uniacid = w.uniacid" . $where;
+	$sql = "SELECT " . $select_fields . " FROM " . tablename('account_' . $type) . " w LEFT JOIN " . tablename('account') . " a ON a.acid = w.acid AND a.uniacid = w.uniacid" . $where;
 	$result = pdo_fetchall($sql, $params, 'uniacid');
 	cache_write($cachekey, $result);
 	return $result;
@@ -113,57 +116,13 @@ function uni_accounts($uniacid = 0) {
  */
 function uni_fetch($uniacid = 0) {
 	global $_W;
-	load()->model('mc');
-
 	$uniacid = empty($uniacid) ? $_W['uniacid'] : intval($uniacid);
-	$cachekey = "uniaccount:{$uniacid}";
-	$cache = cache_load($cachekey);
-	if (!empty($cache)) {
-		return $cache;
-	}
-
-	$acid = table('account')->getAccountByUniacid($uniacid);
-	if (empty($acid)) {
-		return false;
-	}
-	$account_api = WeAccount::create($acid['acid']);
+	$account_api = WeAccount::createByUniacid($uniacid);
 	if (is_error($account_api)) {
 		return $account_api;
 	}
-	$account = $account_api->account;
-	if (empty($account) || $account['isdeleted'] == 1) {
-		return array();
-	}
-
-	$owner = account_owner($uniacid);
-
-	$account['uid'] = $owner['uid'];
-	$account['starttime'] = $owner['starttime'];
-	if (!empty($account['endtime'])) {
-		$account['endtime'] = $account['endtime'] == '-1' ? 0 : $account['endtime'];
-	} else {
-		$account['endtime'] = $owner['endtime'];
-	}
-
-	$account['groups'] = mc_groups($uniacid);
-	$account['setting'] = uni_setting($uniacid);
-	$account['grouplevel'] = $account['setting']['grouplevel'];
-	$account['logo'] = tomedia('headimg_'.$account['acid']. '.jpg').'?time='.time();
-	$account['qrcode'] = tomedia('qrcode_'.$account['acid']. '.jpg').'?time='.time();
-
-	//切换公号链接
-	$account['switchurl'] = wurl('account/display/switch', array('uniacid' => $account['uniacid']));
-	//公众号剩余短信
-	if (!empty($account['settings']['notify'])) {
-		$account['sms'] = $account['setting']['notify']['sms']['balance'];
-	} else {
-		$account['sms'] = 0;
-	}
-	//公众号到期
-	$account['setmeal'] = uni_setmeal($account['uniacid']);
-
-	cache_write($cachekey, $account);
-	return $account;
+	$account_api->__toArray();
+	return $account_api;
 }
 
 /**
@@ -173,7 +132,7 @@ function uni_fetch($uniacid = 0) {
  * @return array 模块列表
  */
 function uni_site_store_buy_goods($uniacid, $type = STORE_TYPE_MODULE) {
-	$cachekey = cache_system_key($uniacid . ':site_store_buy_' . $type);
+	$cachekey = cache_system_key('site_store_buy', array('type' => $type, 'uniacid' => $uniacid));
 	$site_store_buy_goods = cache_load($cachekey);
 	if (!empty($site_store_buy_goods)) {
 		return $site_store_buy_goods;
@@ -198,65 +157,86 @@ function uni_site_store_buy_goods($uniacid, $type = STORE_TYPE_MODULE) {
  * 获取指定公号下所有安装模块及模块信息
  * 公众号的权限是owner所有套餐内的全部模块权限
  * @param int $uniacid 公众号id
- * @param boolean $enabled 是否只显示可用模块
  * @return array 模块列表
  */
-
-function uni_modules_by_uniacid($uniacid, $enabled = true) {
+function uni_modules_by_uniacid($uniacid) {
 	global $_W;
 	load()->model('user');
 	load()->model('module');
-	$cachekey = cache_system_key(CACHE_KEY_ACCOUNT_MODULES, $uniacid, $enabled);
+	$account_info = uni_fetch($uniacid);
+	$founders = explode(',', $_W['config']['setting']['founder']);
+	$owner_uid = pdo_getall('uni_account_users',  array('uniacid' => $uniacid, 'role' => array('owner', 'vice_founder')), array('uid', 'role'), 'role');
+	$owner_uid = !empty($owner_uid['owner']) ? $owner_uid['owner']['uid'] : (!empty($owner_uid['vice_founder']) ? $owner_uid['vice_founder']['uid'] : 0);
+
+	$cachekey = cache_system_key('unimodules', array('uniacid' => $uniacid));
 	$modules = cache_load($cachekey);
 	if (empty($modules)) {
-		$founders = explode(',', $_W['config']['setting']['founder']);
-		$owner_uid = pdo_getcolumn('uni_account_users',  array('uniacid' => $uniacid, 'role' => 'owner'), 'uid');
-		$condition = "WHERE 1";
-		$site_store_buy_goods = array();
-		
+		$enabled_modules = table('modules')->searchWithRecycle();
 
 		if (!empty($owner_uid) && !in_array($owner_uid, $founders)) {
-			$uni_modules = array();
-			$packageids = pdo_getall('uni_account_group', array('uniacid' => $uniacid), array('groupid'), 'groupid');
-			$packageids = array_keys($packageids);
-
-			if (IMS_FAMILY == 'x') {
-				$store = table('store');
-				$site_store_buy_package = $store->searchUserBuyPackage($uniacid);
-				$packageids = array_merge($packageids, array_keys($site_store_buy_package));
+			//设置的公众号应用权限和商城购买的应用权限
+			$group_modules = table('account')->accountGroupModules($uniacid, $type);
+			//商城购买的模块
+			
+			//公众号owner的权限
+			$user_modules = user_modules($owner_uid);
+			if (!empty($user_modules)) {
+				$group_modules = array_unique(array_merge($group_modules, array_keys($user_modules)));
+				$group_modules = array_intersect(array_keys($enabled_modules), $group_modules);
 			}
-			if (!in_array('-1', $packageids)) {
-				$uni_groups = pdo_fetchall("SELECT `modules` FROM " . tablename('uni_group') . " WHERE " .  "id IN ('".implode("','", $packageids)."') OR " . " uniacid = '{$uniacid}'");
-				if (!empty($uni_groups)) {
-					foreach ($uni_groups as $group) {
-						$group_module = (array)iunserializer($group['modules']);
-						$uni_modules = array_merge($group_module, $uni_modules);
-					}
-				}
-				$user_modules = user_modules($owner_uid);
-				$modules = array_merge(array_keys($user_modules), $uni_modules, $site_store_buy_goods);
-				if (!empty($modules)) {
-					$condition .= " AND a.name IN ('" . implode("','", $modules) . "')";
-				} else {
-					$condition .= " AND a.name = ''";
-				}
-			}
+		} else {
+			$group_modules = array_keys($enabled_modules);
 		}
-		$condition .= $enabled ?  " AND (b.enabled = 1 OR b.enabled is NULL) OR a.issystem = 1" : " OR a.issystem = 1";
-		$sql = "SELECT a.name FROM " . tablename('modules') . " AS a LEFT JOIN " . tablename('uni_account_modules') . " AS b ON a.name = b.module AND b.uniacid = :uniacid " . $condition . " ORDER BY b.displayorder DESC, b.id DESC";
-		$modules = pdo_fetchall($sql, array(':uniacid' => $uniacid), 'name');
-		cache_write($cachekey, $modules);
+		cache_write($cachekey, $group_modules);
+		$modules = $group_modules;
 	}
+	//中秋后删除-start
+	$system_modules = array(
+		'basic', 'news', 'music', 'service', 'userapi', 'recharge', 'images', 'video', 'voice', 'wxcard',
+		'custom', 'chats', 'paycenter', 'keyword', 'special', 'welcome', 'default', 'apply', 'reply', 'core', 'store',
+	);
+	$modules = array_merge($modules, $system_modules);
+	//中秋后删除-end
 
+	//中秋后放开下行注释
+	//$modules = array_merge($modules, module_system());
 	$module_list = array();
 	if (!empty($modules)) {
-		foreach ($modules as $name => $module) {
+		foreach ($modules as $name) {
 			$module_info = module_fetch($name);
-			if ($module_info['welcome_support'] != MODULE_SUPPORT_SYSTEMWELCOME &&
-				($module_info['app_support'] != MODULE_SUPPORT_ACCOUNT && in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)) ||
-				//$module_info['wxapp_support'] != MODULE_SUPPORT_WXAPP && in_array($_W['account']['type'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH)) ||
-				$module_info['webapp_support'] != MODULE_SUPPORT_WEBAPP && in_array($_W['account']['type'], array(ACCOUNT_TYPE_WEBAPP_NORMAL)) ||
-				$module_info['phoneapp_support'] != MODULE_SUPPORT_PHONEAPP && in_array($_W['account']['type'], array(ACCOUNT_TYPE_PHONEAPP_NORMAL)))) {
+
+			//不支持当前account类型或仅支持系统首页的模块直接continue
+			if ($module_info[MODULE_SUPPORT_ACCOUNT_NAME] != MODULE_SUPPORT_ACCOUNT &&
+				in_array($account_info['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
+				continue;
+			}
+			if ($module_info[MODULE_SUPPORT_WEBAPP_NAME] != MODULE_SUPPORT_WEBAPP &&
+				in_array($account_info['type'], array(ACCOUNT_TYPE_WEBAPP_NORMAL))) {
+				continue;
+			}
+			if ($module_info[MODULE_SUPPORT_PHONEAPP_NAME] != MODULE_SUPPORT_PHONEAPP &&
+				in_array($account_info['type'], array(ACCOUNT_TYPE_PHONEAPP_NORMAL))) {
+				continue;
+			}
+			if ($module_info[MODULE_SUPPORT_XZAPP_NAME] != MODULE_SUPPORT_XZAPP &&
+				in_array($account_info['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))) {
+				continue;
+			}
+			if ($module_info[MODULE_SUPPORT_ALIAPP_NAME] != MODULE_SUPPORT_ALIAPP &&
+				in_array($account_info['type'], array(ACCOUNT_TYPE_ALIAPP_NORMAL))) {
+				continue;
+			}
+			if ($module_info[MODULE_SUPPORT_WXAPP_NAME] != MODULE_SUPPORT_WXAPP &&
+				$module_info[MODULE_SUPPORT_ACCOUNT_NAME] != MODULE_SUPPORT_ACCOUNT &&
+				in_array($account_info['type'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH))) {
+				continue;
+			}
+			if ($module_info[MODULE_SUPPORT_SYSTEMWELCOME_NAME] == MODULE_SUPPORT_SYSTEMWELCOME &&
+				$module_info[MODULE_SUPPORT_ACCOUNT_NAME] != MODULE_SUPPORT_ACCOUNT &&
+				$module_info[MODULE_SUPPORT_WEBAPP_NAME] != MODULE_SUPPORT_WEBAPP &&
+				$module_info[MODULE_SUPPORT_PHONEAPP_NAME] != MODULE_SUPPORT_PHONEAPP &&
+				$module_info[MODULE_SUPPORT_ALIAPP_NAME] != MODULE_SUPPORT_ALIAPP &&
+				$module_info[MODULE_SUPPORT_WXAPP_NAME] != MODULE_SUPPORT_WXAPP) {
 				continue;
 			}
 			if (!empty($module_info)) {
@@ -269,18 +249,105 @@ function uni_modules_by_uniacid($uniacid, $enabled = true) {
 }
 
 /**
+ * 获取非管理员登录时（指定公众号下所有安装的模块及模块信息）
+ * @param $uniacid
+ * @param int $type 帐号类型
+ * @return array
+ */
+function uni_modules_list($uniacid, $type = '') {
+	global $_W;
+	if ($type == '') {
+		$account_info = uni_fetch($uniacid);
+		$type = $account_info['type'];
+	}
+
+	$founders = explode(',', $_W['config']['setting']['founder']);
+	$owner_uid = pdo_getcolumn('uni_account_users',  array('uniacid' => $uniacid, 'role' => 'owner'), 'uid');
+
+	$modules = table('modules')->searchWithRecycle();
+	if (!empty($owner_uid) && !in_array($owner_uid, $founders)) {
+		//设置的公众号应用权限和商城购买的应用权限
+		$group_modules = table('account')->accountGroupModules($uniacid, $type);
+		//商城购买的模块
+		
+		//公众号owner的权限
+		$user_modules = user_modules($owner_uid);
+		if (!empty($user_modules)) {
+			$group_modules = array_merge($group_modules, array_keys($user_modules));
+		}
+	} else {
+		$group_modules = array_keys($modules);
+	}
+	$module_list = array();
+	if (!empty($group_modules)) {
+		foreach ($group_modules as $module_name) {
+			$module_info = $modules[$module_name];
+			if (file_exists (IA_ROOT . '/addons/' . $module_info['name'] . '/icon-custom.jpg')) {
+				$module_info['logo'] = tomedia (IA_ROOT . '/addons/' . $module_info['name'] . '/icon-custom.jpg') . "?v=" . time ();
+			} else {
+				$module_info['logo'] = tomedia (IA_ROOT . '/addons/' . $module_info['name'] . '/icon.jpg') . "?v=" . time ();
+			}
+			//不支持当前account类型或仅支持系统首页的模块直接continue
+			if ($module_info[MODULE_SUPPORT_ACCOUNT_NAME] != MODULE_SUPPORT_ACCOUNT &&
+				in_array($type, array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
+				continue;
+			}
+
+			if ($module_info[MODULE_SUPPORT_WEBAPP_NAME] != MODULE_SUPPORT_WEBAPP &&
+				in_array($type, array(ACCOUNT_TYPE_WEBAPP_NORMAL))) {
+				continue;
+			}
+
+			if ($module_info[MODULE_SUPPORT_PHONEAPP_NAME] != MODULE_SUPPORT_PHONEAPP &&
+				in_array($type, array(ACCOUNT_TYPE_PHONEAPP_NORMAL))) {
+				continue;
+			}
+
+			if ($module_info[MODULE_SUPPORT_XZAPP_NAME] != MODULE_SUPPORT_XZAPP &&
+				in_array($type, array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))) {
+				continue;
+			}
+
+			if ($module_info[MODULE_SUPPORT_ALIAPP_NAME] != MODULE_SUPPORT_ALIAPP &&
+				in_array($type, array(ACCOUNT_TYPE_ALIAPP_NORMAL))) {
+				continue;
+			}
+
+			if ($module_info[MODULE_SUPPORT_WXAPP_NAME] != MODULE_SUPPORT_WXAPP &&
+				$module_info[MODULE_SUPPORT_ACCOUNT_NAME] != MODULE_SUPPORT_ACCOUNT &&
+				in_array($type, array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH))) {
+				continue;
+			}
+
+			if ($module_info[MODULE_SUPPORT_SYSTEMWELCOME_NAME] == MODULE_SUPPORT_SYSTEMWELCOME &&
+				$module_info[MODULE_SUPPORT_ACCOUNT_NAME] != MODULE_SUPPORT_ACCOUNT &&
+				$module_info[MODULE_SUPPORT_WEBAPP_NAME] != MODULE_SUPPORT_WEBAPP &&
+				$module_info[MODULE_SUPPORT_PHONEAPP_NAME] != MODULE_SUPPORT_PHONEAPP &&
+				$module_info[MODULE_SUPPORT_WXAPP_NAME] != MODULE_SUPPORT_WXAPP) {
+				continue;
+			}
+			if (!empty($module_info)) {
+				$module_list[$module_name] = $module_info;
+			}
+		}
+	}
+	$module_list['core'] = array('title' => '系统事件处理模块', 'name' => 'core', 'issystem' => 1, 'enabled' => 1, 'isdisplay' => 0);
+	return $module_list;
+}
+
+
+/**
  * 获取当前公号下所有安装模块及模块信息
- * @param boolean $enabled 是否只显示可用模块
  * @return array 模块列表
  */
-function uni_modules($enabled = true) {
+function uni_modules() {
 	global $_W;
-	return uni_modules_by_uniacid($_W['uniacid'], $enabled);
+	return uni_modules_by_uniacid($_W['uniacid']);
 }
 
 function uni_modules_app_binding() {
 	global $_W;
-	$cachekey = cache_system_key(CACHE_KEY_ACCOUNT_MODULES_BINDING, $_W['uniacid']);
+	$cachekey = cache_system_key('unimodules_binding', array('uniacid' => $_W['uniacid']));
 	$cache = cache_load($cachekey);
 	if (!empty($cache)) {
 		return $cache;
@@ -327,11 +394,10 @@ function uni_modules_app_binding() {
 function uni_groups($groupids = array(), $show_all = false) {
 	load()->model('module');
 	global $_W;
-	$cachekey = cache_system_key(CACHE_KEY_UNI_GROUP);
+	$cachekey = cache_system_key('uni_groups');
 	$list = cache_load($cachekey);
-
 	if (empty($list)) {
-		$condition = ' WHERE uniacid = 0';
+		$condition = ' WHERE uniacid = 0 AND uid = 0';
 		$list = pdo_fetchall("SELECT * FROM " . tablename('uni_group') . $condition . " ORDER BY id DESC", array(), 'id');
 		if (!empty($groupids)) {
 			if (in_array('-1', $groupids)) {
@@ -344,35 +410,49 @@ function uni_groups($groupids = array(), $show_all = false) {
 
 		if (!empty($list)) {
 			foreach ($list as $k => &$row) {
-				if (!empty($row['modules'])) {
-					$modules = (array)iunserializer($row['modules']);
-					$row['modules'] = $row['wxapp'] = $row['webapp'] = $row['phoneapp'] = array();
-					if (empty($modules)) {
-						continue;
-					}
-					foreach ($modules as $modulename) {
-						$module = module_fetch($modulename);
-						if (empty($module)) {
+				$modules = (array)iunserializer($row['modules']);
+				$row['modules'] = $row['wxapp'] = $row['webapp'] = $row['phoneapp'] = $row['xzapp'] = $row['aliapp'] = array();
+				if (!empty($modules)) {
+					foreach ($modules as $type => $modulenames) {
+						if (empty($modulenames) || !is_array($modulenames)) {
 							continue;
 						}
-						if ($module['wxapp_support'] == MODULE_SUPPORT_WXAPP) {
-							$row['wxapp'][] = $modulename;
-						}
-						if ($module['webapp_support'] == MODULE_SUPPORT_WEBAPP) {
-							$row['webapp'][] = $modulename;
-						}
-						if ($module['phoneapp_support'] == MODULE_SUPPORT_PHONEAPP) {
-							$row['phoneapp'][] = $modulename;
-						}
-						if ($module['app_support'] == MODULE_SUPPORT_ACCOUNT) {
-							if (!empty($module['main_module'])) {
+						foreach ($modulenames as $name) {
+							$module = module_fetch($name);
+							if (empty($module)) {
 								continue;
 							}
-							$row['modules'][] = $modulename;
-							if (!empty($module['plugin_list'])) {
-								foreach ($module['plugin_list'] as $plugin) {
-									$row['modules'][] = $plugin;
-								}
+							switch ($type) {
+								case 'modules':
+									if ($module[MODULE_SUPPORT_ACCOUNT_NAME] == MODULE_SUPPORT_ACCOUNT) {
+										$row['modules'][] = $name;
+									}
+									break;
+								case 'wxapp':
+									if ($module[MODULE_SUPPORT_WXAPP_NAME] == MODULE_SUPPORT_WXAPP) {
+										$row['wxapp'][] = $name;
+									}
+									break;
+								case 'webapp':
+									if ($module[MODULE_SUPPORT_WEBAPP_NAME] == MODULE_SUPPORT_WEBAPP) {
+										$row['webapp'][] = $name;
+									}
+									break;
+								case 'xzapp':
+									if ($module[MODULE_SUPPORT_XZAPP_NAME] == MODULE_SUPPORT_XZAPP) {
+										$row['xzapp'][] = $name;
+									}
+									break;
+								case 'phoneapp':
+									if ($module[MODULE_SUPPORT_PHONEAPP_NAME] == MODULE_SUPPORT_PHONEAPP) {
+										$row['phoneapp'][] = $name;
+									}
+									break;
+								case 'aliapp':
+									if ($module[MODULE_SUPPORT_ALIAPP_NAME] == MODULE_SUPPORT_ALIAPP) {
+										$row['aliapp'][] = $name;
+									}
+									break;
 							}
 						}
 					}
@@ -386,6 +466,7 @@ function uni_groups($groupids = array(), $show_all = false) {
 				}
 			}
 		}
+
 		cache_write($cachekey, $list);
 	}
 	$group_list = array();
@@ -405,7 +486,7 @@ function uni_groups($groupids = array(), $show_all = false) {
 		$group_list = $list;
 	}
 
-	$module_section = array('modules', 'phoneapp', 'wxapp', 'webapp');
+	$module_section = array('modules', 'phoneapp', 'wxapp', 'webapp', 'xzapp', 'aliapp');
 	if (!empty($group_list)) {
 		foreach ($group_list as $id => $group) {
 			foreach ($module_section as $section) {
@@ -414,7 +495,9 @@ function uni_groups($groupids = array(), $show_all = false) {
 					$group_list[$id][$section] = array();
 
 					foreach ($modules as $modulename) {
-						$group_list[$id][$section][$modulename] = module_fetch($modulename);
+						if (is_string($modulename)) {
+							$group_list[$id][$section][$modulename] = module_fetch($modulename);
+						}
 					}
 				}
 			}
@@ -503,10 +586,7 @@ function uni_setting_save($name, $value) {
 	} else {
 		pdo_insert('uni_settings', array($name => $value, 'uniacid' => $_W['uniacid']));
 	}
-	$cachekey = "unisetting:{$_W['uniacid']}";
-	$account_cachekey = "uniaccount:{$_W['uniacid']}";
-	cache_delete($cachekey);
-	cache_delete($account_cachekey);
+	cache_delete(cache_system_key('uniaccount', array('uniacid' => $_W['uniacid'])));
 	return true;
 }
 
@@ -519,7 +599,7 @@ function uni_setting_save($name, $value) {
 function uni_setting_load($name = '', $uniacid = 0) {
 	global $_W;
 	$uniacid = empty($uniacid) ? $_W['uniacid'] : $uniacid;
-	$cachekey = "unisetting:{$uniacid}";
+	$cachekey = cache_system_key('unisetting', array('uniacid' => $uniacid));
 	$unisetting = cache_load($cachekey);
 	if (empty($unisetting)) {
 		$unisetting = pdo_get('uni_settings', array('uniacid' => $uniacid));
@@ -602,6 +682,10 @@ function uni_account_tablename($type) {
 			return 'account_webapp';
 		case ACCOUNT_TYPE_PHONEAPP_NORMAL:
 			return 'account_phoneapp';
+		case ACCOUNT_TYPE_XZAPP_NORMAL:
+			return 'account_xzapp';
+		case ACCOUNT_TYPE_ALIAPP_NORMAL:
+			return 'account_aliapp';
 	}
 }
 
@@ -642,9 +726,10 @@ function uni_user_see_more_info($user_type, $see_more = false) {
  * @return array
  */
 function uni_owner_account_nums($uid, $role) {
-	$account_num = $wxapp_num = $webapp_num = $phoneapp_num = 0;
+	$account_num = $wxapp_num = $webapp_num = $phoneapp_num = $xzapp_num = $aliapp_num = 0;
 	$condition = array('uid' => $uid, 'role' => $role);
 	$uniacocunts = pdo_getall('uni_account_users', $condition, array(), 'uniacid');
+
 	if (!empty($uniacocunts)) {
 		$all_account = pdo_fetchall('SELECT * FROM (SELECT u.uniacid, a.default_acid FROM ' . tablename('uni_account_users') . ' as u RIGHT JOIN '. tablename('uni_account').' as a  ON a.uniacid = u.uniacid  WHERE u.uid = :uid AND u.role = :role ) AS c LEFT JOIN '.tablename('account').' as d ON c.default_acid = d.acid WHERE d.isdeleted = 0', array(':uid' => $uid, ':role' => $role));
 		foreach ($all_account as $account) {
@@ -660,19 +745,27 @@ function uni_owner_account_nums($uid, $role) {
 			if ($account['type'] == ACCOUNT_TYPE_PHONEAPP_NORMAL) {
 				$phoneapp_num++;
 			}
+			if ($account['type'] == ACCOUNT_TYPE_XZAPP_NORMAL) {
+				$xzapp_num++;
+			}
+			if ($account['type'] == ACCOUNT_TYPE_ALIAPP_NORMAL) {
+				$aliapp_num++;
+			}
 		}
 	}
 	$num = array(
 		'account_num' => $account_num,
 		'wxapp_num' => $wxapp_num,
 		'webapp_num' => $webapp_num,
-		'phoneapp_num' => $phoneapp_num
+		'phoneapp_num' => $phoneapp_num,
+		'xzapp_num' => $xzapp_num,
+		'aliapp_num' => $aliapp_num,
 	);
 	return $num;
 }
 function uni_update_week_stat() {
 	global $_W;
-	$cachekey = "stat:todaylock:{$_W['uniacid']}";
+	$cachekey = cache_system_key('stat_todaylock', array('uniacid' => $_W['uniacid']));
 	$cache = cache_load($cachekey);
 	if(!empty($cache) && $cache['expire'] > TIMESTAMP) {
 		return true;
@@ -699,7 +792,7 @@ function uni_update_week_stat() {
 	}
 	foreach($seven_days as $sevens) {
 		if($_W['account']['level'] == ACCOUNT_SUBSCRIPTION_VERIFY || $_W['account']['level'] == ACCOUNT_SERVICE_VERIFY) {
-			$account_obj = WeAccount::create();
+			$account_obj = WeAccount::createByUniacid();
 			$weixin_stat = $account_obj->getFansStat();
 			if(is_error($weixin_stat) || empty($weixin_stat)) {
 				return error(-1, '调用微信接口错误');
@@ -749,31 +842,19 @@ function uni_account_rank_top($uniacid) {
 }
 
 /**
- * 获取最后操作的uniacid，由于存在多个帐号类型
- * 所以根据不同入口，获取相应的最后操作帐号
+ * 获取最后操作的uniacid
  * @return intval $uniacid
  */
 function uni_account_last_switch() {
 	global $_W, $_GPC;
-	$cache_key = cache_system_key(CACHE_KEY_ACCOUNT_SWITCH, $_GPC['__switch']);
-	$cache_lastaccount = (array)cache_load($cache_key);
-
-	if (strexists($_W['siteurl'], 'c=webapp')) {
-		$uniacid = $cache_lastaccount['webapp'];
-	} else if (strexists($_W['siteurl'], 'c=wxapp')) {
-		$uniacid = $cache_lastaccount['wxapp'];
-	} else if (strexists($_W['siteurl'], 'c=phoneapp')) {
-		$uniacid = $cache_lastaccount['phoneapp'];
-	} else {
-		$uniacid = $cache_lastaccount['account'];
-	}
-
-	return $uniacid;
+	$cache_key = cache_system_key('last_account', array('switch' => $_GPC['__switch']));
+	$cache_lastaccount = (int)cache_load($cache_key);
+	return $cache_lastaccount;
 }
 
 function uni_account_switch($uniacid, $redirect = '', $type = ACCOUNT_TYPE_SIGN) {
 	global $_W;
-	if (!in_array($type, array(ACCOUNT_TYPE_SIGN, WXAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN, PHONEAPP_TYPE_SIGN))) {
+	if (!in_array($type, array(ACCOUNT_TYPE_SIGN, WXAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN, PHONEAPP_TYPE_SIGN, XZAPP_TYPE_SIGN, ALIAPP_TYPE_SIGN))) {
 		return error(-1, '账号类型不合法');
 	}
 	uni_account_save_switch($uniacid, $type);
@@ -793,29 +874,17 @@ function uni_account_switch($uniacid, $redirect = '', $type = ACCOUNT_TYPE_SIGN)
 function uni_account_save_switch($uniacid, $type = ACCOUNT_TYPE_SIGN) {
 	global $_W, $_GPC;
 	load()->model('visit');
-	if (!in_array($type, array(ACCOUNT_TYPE_SIGN, WXAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN, PHONEAPP_TYPE_SIGN))) {
+	if (!in_array($type, array(ACCOUNT_TYPE_SIGN, WXAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN, PHONEAPP_TYPE_SIGN, XZAPP_TYPE_SIGN, ALIAPP_TYPE_SIGN))) {
 		return error(-1, '账号类型不合法');
 	}
-
 	if (empty($_GPC['__switch'])) {
 		$_GPC['__switch'] = random(5);
 	}
-
-	$cache_key = cache_system_key(CACHE_KEY_ACCOUNT_SWITCH, $_GPC['__switch']);
-	$cache_lastaccount = cache_load($cache_key);
-	if (empty($cache_lastaccount)) {
-		$cache_lastaccount = array(
-			$type => $uniacid,
-		);
-	} else {
-		$cache_lastaccount[$type] = $uniacid;
-	}
-
+	$cache_key = cache_system_key('last_account', array('switch' => $_GPC['__switch']));
+	$cache_lastaccount = $uniacid;
 	visit_system_update(array('uniacid' => $uniacid, 'uid' => $_W['uid']));
 	cache_write($cache_key, $cache_lastaccount);
-
-	cache_write('we7:$cache_last_account_type', $type);
-
+	cache_write(cache_system_key('last_account_type'), $type);
 	isetcookie('__uniacid', $uniacid, 7 * 86400);
 	isetcookie('__switch', $_GPC['__switch'], 7 * 86400);
 	return true;
@@ -833,7 +902,7 @@ function account_create($uniacid, $account) {
 	$user_create_account_info = permission_user_account_num();
 	if (empty($_W['isfounder']) && empty($user_create_account_info['usergroup_account_limit'])) {
 		$accountdata['endtime'] = strtotime('+1 month', time());
-		pdo_insert('site_store_create_account', array('endtime' => strtotime('+1 month', time()), 'uid' => $_W['uid'], 'uniacid' => $uniacid, 'type' => ACCOUNT_TYPE_OFFCIAL_NORMAL));
+		pdo_insert('site_store_create_account', array('endtime' => strtotime('+1 month', time()), 'uid' => $_W['uid'], 'uniacid' => $uniacid, 'type' => $account['type']));
 	}
 	pdo_insert('account', $accountdata);
 	$acid = pdo_insertid();
@@ -841,8 +910,9 @@ function account_create($uniacid, $account) {
 	$account['token'] = random(32);
 	$account['encodingaeskey'] = random(43);
 	$account['uniacid'] = $uniacid;
+	$table = $account['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL ? 'account_wechats' : 'account_xzapp';
 	unset($account['type']);
-	pdo_insert('account_wechats', $account);
+	pdo_insert($table, $account);
 	return $acid;
 }
 
@@ -936,14 +1006,15 @@ function uni_is_multi_acid($uniacid = 0) {
 	if(!$uniacid) {
 		$uniacid = $_W['uniacid'];
 	}
-	$cachekey = "unicount:{$uniacid}";
+	$cachekey = cache_system_key('unicount', array('uniacid' => $uniacid));
 	$nums = cache_load($cachekey);
 	$nums = intval($nums);
+
 	if(!$nums) {
 		$nums = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('account_wechats') . ' WHERE uniacid = :uniacid', array(':uniacid' => $_W['uniacid']));
 		cache_write($cachekey, $nums);
 	}
-	if($nums == 1) {
+	if($nums <= 1) {
 		return false;
 	}
 	return true;
@@ -969,7 +1040,7 @@ function account_delete($acid) {
 		if($uniacid == $_W['uniacid']) {
 			isetcookie('__uniacid', '');
 		}
-		cache_delete("uniaccount:{$uniacid}");
+		cache_delete(cache_system_key('uniaccount', array('uniacid' => $uniacid)));
 		$modules = array();
 		//获取全部规则
 		$rules = pdo_fetchall("SELECT id, module FROM ".tablename('rule')." WHERE uniacid = '{$uniacid}'");
@@ -1000,7 +1071,7 @@ function account_delete($acid) {
 		//遍历全部表删除公众号数据
 		$tables = array(
 			'account','account_wechats', 'account_wxapp', 'wxapp_versions', 'account_webapp', 'account_phoneapp',
-			'phoneapp_versions','core_paylog','core_queue','core_resource',
+			'phoneapp_versions','core_paylog','core_resource',
 			 'cover_reply', 'mc_chats_record','mc_credits_recharge','mc_credits_record',
 			'mc_fans_groups','mc_groups','mc_handsel','mc_mapping_fans','mc_mapping_ucenter','mc_mass_record',
 			'mc_member_address','mc_member_fields','mc_members','menu_event',
@@ -1030,9 +1101,8 @@ function account_delete($acid) {
 		}
 		pdo_delete('account', array('acid' => $acid));
 		pdo_delete('account_wechats', array('acid' => $acid, 'uniacid' => $uniacid));
-		cache_delete("uniaccount:{$uniacid}");
-		cache_delete("unisetting:{$uniacid}");
-		cache_delete('account:auth:refreshtoken:'.$acid);
+		cache_delete(cache_system_key('uniaccount', array('uniacid' => $uniacid)));
+		cache_delete(cache_system_key('account_auth_refreshtoken', array('acid' => $acid)));
 		$oauth = uni_setting($uniacid, array('oauth'));
 		if($oauth['oauth']['account'] == $acid) {
 			$acid = pdo_fetchcolumn('SELECT acid FROM ' . tablename('account_wechats') . " WHERE uniacid = :id AND level = 4 AND secret != '' AND `key` != ''", array(':id' => $uniacid));
@@ -1052,7 +1122,7 @@ function account_delete($acid) {
  */
 function account_wechatpay_proxy () {
 	global $_W;
-	$proxy_account = cache_load(cache_system_key('proxy_wechatpay_account:'));
+	$proxy_account = cache_load(cache_system_key('proxy_wechatpay_account'));
 	if (empty($proxy_account)) {
 		$proxy_account = cache_build_proxy_wechatpay_account();
 	}
@@ -1064,19 +1134,17 @@ function account_wechatpay_proxy () {
 /**
  * 设置模块是否在快捷菜单显示
  */
-function uni_account_module_shortcut_enabled($modulename, $uniacid = 0, $status = STATUS_ON) {
+function uni_account_module_shortcut_enabled($modulename, $status = STATUS_ON) {
 	global $_W;
 	$module = module_fetch($modulename);
 	if(empty($module)) {
 		return error(1, '抱歉，你操作的模块不能被访问！');
 	}
-	$uniacid = intval($uniacid);
-	$uniacid = !empty($uniacid) ? $uniacid : $_W['uniacid'];
 
-	$module_status = pdo_get('uni_account_modules', array('module' => $modulename, 'uniacid' => $uniacid), array('id', 'shortcut'));
+	$module_status = pdo_get('uni_account_modules', array('module' => $modulename, 'uniacid' => $_W['uniacid']), array('id', 'shortcut'));
 	if (empty($module_status)) {
 		$data = array(
-			'uniacid' => $uniacid,
+			'uniacid' => $_W['uniacid'],
 			'module' => $modulename,
 			'enabled' => STATUS_ON,
 			'shortcut' => $status ? STATUS_ON : STATUS_OFF,
@@ -1088,8 +1156,8 @@ function uni_account_module_shortcut_enabled($modulename, $uniacid = 0, $status 
 			'shortcut' => $status ? STATUS_ON : STATUS_OFF,
 		);
 		pdo_update('uni_account_modules', $data, array('id' => $module_status['id']));
-		cache_build_module_info($modulename);
 	}
+	cache_build_module_info($modulename);
 	return true;
 }
 
@@ -1143,13 +1211,14 @@ function uni_account_global_oauth() {
 
 function uni_search_link_account($module_name, $account_type) {
 	global $_W;
+	load()->model('miniapp');
 	$module_name = trim($module_name);
-	if (empty($module_name) || empty($account_type) || !in_array($account_type, array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH, ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_WEBAPP_NORMAL))) {
+	if (empty($module_name) || empty($account_type) || !in_array($account_type, array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH, ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_WEBAPP_NORMAL))) {
 		return array();
 	}
 	if (in_array($account_type, array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
 		$owned_account = uni_user_accounts($_W['uid'], 'app');
-	} elseif ($account_type == ACCOUNT_TYPE_APP_NORMAL) {
+	} elseif (in_array($account_type, array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH))) {
 		$owned_account = uni_user_accounts($_W['uid'], 'wxapp');
 	} elseif ($account_type == ACCOUNT_TYPE_WEBAPP_NORMAL) {
 		$owned_account = uni_user_accounts($_W['uid'], 'webapp');
@@ -1158,12 +1227,12 @@ function uni_search_link_account($module_name, $account_type) {
 	}
 	if (!empty($owned_account)) {
 		foreach ($owned_account as $key => $account) {
-			if ($account['type'] != $account_type) {
+			if ($account['type'] != $account_type || $account['uniacid'] == $_W['uniacid']) {
 				unset($owned_account[$key]);
 				continue;
 			}
 			$account['role'] = permission_account_user_role($_W['uid'], $account['uniacid']);
-			if (!in_array($account['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER))) {
+			if (!in_array($account['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER, ACCOUNT_MANAGE_NAME_FOUNDER))) {
 				unset($owned_account[$key]);
 			}
 		}
@@ -1173,9 +1242,21 @@ function uni_search_link_account($module_name, $account_type) {
 				unset($owned_account[$key]);
 				continue;
 			}
-			if (in_array($account_type, array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)) && $account_modules[$module_name]['app_support'] != MODULE_SUPPORT_ACCOUNT) {
+			if (in_array($account_type, array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH))) {
+				$last_version = (array)miniapp_fetch($account['uniacid']);
+				if (empty($last_version['version']) || empty($last_version['version']['modules']) || current((array)array_keys($last_version['version']['modules'])) != $module_name) {
+					unset($owned_account[$key]);
+					continue;
+				}
+				$current_module = current($last_version['version']['modules']);
+				if (!empty($current_module['account'])) {
+					unset($owned_account[$key]);
+					continue;
+				}
+			}
+			if (in_array($account_type, array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)) && $account_modules[$module_name][MODULE_SUPPORT_ACCOUNT_NAME] != MODULE_SUPPORT_ACCOUNT) {
 				unset($owned_account[$key]);
-			} elseif ($account_type == ACCOUNT_TYPE_APP_NORMAL && $account_modules[$module_name]['wxapp_support'] != MODULE_SUPPORT_WXAPP) {
+			} elseif (in_array($account_type, array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH)) && $account_modules[$module_name]['wxapp_support'] != MODULE_SUPPORT_WXAPP) {
 				unset($owned_account[$key]);
 			} elseif ($account_type == ACCOUNT_TYPE_WEBAPP_NORMAL && $account_modules[$module_name]['webapp_support'] != MODULE_SUPPORT_WEBAPP) {
 				unset($owned_account[$key]);
@@ -1204,4 +1285,63 @@ function uni_account_oauth_host() {
 		}
 	}
 	return $oauth_url;
+}
+
+/**
+ * 数据同步反向记录（比如某一模块的小程序A同步公众号B，则调用该函数，反向记录B被A同步）
+ */
+function uni_passive_link_uniacid($uniacid, $module_name) {
+	global $_W;
+	$uniacid = intval($uniacid);
+	$module_name = trim($module_name);
+	if (empty($uniacid) || empty($module_name)) {
+		return false;
+	}
+	//此处没有使用module_fetch中的配置，因为可能设置的不是当前公众号
+	$passive_link_module = pdo_get('uni_account_modules', array('module' => $module_name, 'uniacid' => $uniacid), array('id', 'settings'));
+	if (!empty($passive_link_module)) {
+		$passive_settings = (array)iunserializer($passive_link_module['settings']);
+		if (!is_array($passive_settings['passive_link_uniacid']) && !empty($passive_settings['passive_link_uniacid'])) {
+			$passive_settings = array($passive_settings['passive_link_uniacid']);
+		}
+		if (empty($passive_settings)) {
+			$passive_settings = array('passive_link_uniacid' => array($_W['uniacid']));
+		} elseif (empty($passive_settings['passive_link_uniacid'])) {
+			$passive_settings['passive_link_uniacid'] = array($_W['uniacid']);
+		} elseif (!empty($passive_settings['passive_link_uniacid']) && !in_array($_W['uniacid'], $passive_settings['passive_link_uniacid'])) {
+
+			array_push($passive_settings['passive_link_uniacid'], array($_W['uniacid']));
+		}
+		pdo_update('uni_account_modules', array('settings' => iserializer($passive_settings)), array('id' => $passive_link_module['id']));
+	} else {
+		$passive_settings = array('passive_link_uniacid' => array($_W['uniacid']));
+		$passive_data = array(
+			'settings' => iserializer($passive_settings),
+			'uniacid' => $uniacid,
+			'module' => $module_name,
+			'enabled' => STATUS_ON,
+		);
+		pdo_insert('uni_account_modules', $passive_data);
+	}
+	//删除特定的公众号模块缓存
+	cache_clean(cache_system_key('module_setting'));
+	return true;
+}
+
+function uni_unpassive_link_uniacid($uniacid, $module_name) {
+	global $_W;
+	if (empty($uniacid) || empty($module_name)) {
+		return false;
+	}
+	$passive_info = table('uni_account_modules')->getByUniacidAndModule($module_name, $uniacid);
+	if (!empty($passive_info['settings']) && is_array($passive_info['settings']['passive_link_uniacid'])) {
+		foreach ($passive_info['settings']['passive_link_uniacid'] as $key => $value) {
+			if ($_W['uniacid'] == $value) {
+				unset($passive_info['settings']['passive_link_uniacid'][$key]);
+				break;
+			}
+		}
+		table('uni_account_modules')->fill(array('settings' => iserializer($passive_info['settings'])))->where('module', $module_name)->where('uniacid', $uniacid)->save();
+		cache_delete(cache_system_key('module_setting', array('module_name' => $module_name, 'uniacid' => $uniacid)));
+	}
 }

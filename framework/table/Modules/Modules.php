@@ -76,6 +76,6 @@ class Modules extends \We7Table {
 	}
 
 	public function searchWithRecycle() {
-		return $this->query->from('modules', 'a')->select('a.*')->leftjoin('modules_recycle', 'b')->on(array('a.name' => 'b.name'))->where('b.name', 'NULL')->orderby('a.mid', 'DESC')->getall('name');
+		return $this->query->from('modules', 'a')->select('a.*')->leftjoin('modules_recycle', 'b')->on(array('a.name' => 'b.name'))->where('a.issystem' , 0)->where('b.name', 'NULL')->orderby('a.mid', 'DESC')->getall('name');
 	}
 }

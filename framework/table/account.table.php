@@ -37,44 +37,44 @@ class AccountTable extends We7Table {
 		return $this->belongsMany('unigroup', 'id', 'uniacid', 'uni_account_group', 'groupid' ,'uniacid');
 	}
 
-	public function searchAccountList($expire = false) {
+	public function searchAccount($expire, $fields, $founder_id) {
 		global $_W;
-		$this->query->from('uni_account', 'a')->select('a.uniacid')->leftjoin('account', 'b')
-				->on(array('a.uniacid' => 'b.uniacid', 'a.default_acid' => 'b.acid'))
-				->where('b.isdeleted !=', '1');
+		$this->query->from('uni_account', 'a')
+			->select($fields)
+			->leftjoin('account', 'b')
+			->on(array('a.uniacid' => 'b.uniacid', 'a.default_acid' => 'b.acid'))
+			->where('b.isdeleted !=', '1')
+			->where('a.default_acid !=', '0');
 
 		//普通用户和副站长查询时，要附加可操作公众条件
-		if (!user_is_founder($_W['uid']) || user_is_vice_founder()) {
-			$this->query->leftjoin('uni_account_users', 'c')->on(array('a.uniacid' => 'c.uniacid'))
-						->where('a.default_acid !=', '0')->where('c.uid', $_W['uid']);
-		} else {
-			$this->query->where('a.default_acid !=', '0');
+		if (!user_is_founder($_W['uid']) || user_is_vice_founder() || !empty($founder_id)) {
+			$this->query->leftjoin('uni_account_users', 'c')
+				->on(array('a.uniacid' => 'c.uniacid'))
+				->where('c.uid', empty($founder_id) ? $_W['uid'] : $founder_id);
 		}
 		if (!empty($expire)) {
 			$this->searchWithExprie();
 		}
+		return $this;
+	}
+
+	public function searchAccountList($expire = false, $fields = 'a.uniacid', $founder_id = 0) {
+		$this->searchAccount($expire, $fields, $founder_id);
 		$list = $this->query->getall('uniacid');
 		return $list;
 	}
 
 	public function searchAccountListFields($fields = 'a.uniacid',$expire = false) {
-		global $_W;
-		$this->query->from('uni_account', 'a')->select($fields)->leftjoin('account', 'b')
-			->on(array('a.uniacid' => 'b.uniacid', 'a.default_acid' => 'b.acid'))
-			->where('b.isdeleted !=', '1');
-
-		//普通用户和副站长查询时，要附加可操作公众条件
-		if (!user_is_founder($_W['uid']) || user_is_vice_founder()) {
-			$this->query->leftjoin('uni_account_users', 'c')->on(array('a.uniacid' => 'c.uniacid'))
-				->where('a.default_acid !=', '0')->where('c.uid', $_W['uid']);
-		} else {
-			$this->query->where('a.default_acid !=', '0');
-		}
-		if (!empty($expire)) {
-			$this->searchWithExprie();
-		}
+		$this->searchAccount($expire, $fields, 0);
 		$this->accountUniacidOrder();
 		$list = $this->query->getall('uniacid');
+		return $list;
+	}
+
+	public function searchAccounTotal($expire = false, $founder_id = 0) {
+		$this->searchAccount($expire, 'count(*) as total, b.type', $founder_id);
+		$this->query->groupby('b.type');
+		$list = $this->query->getall();
 		return $list;
 	}
 
@@ -175,6 +175,9 @@ class AccountTable extends We7Table {
 	}
 
 	public function searchWithKeyword($title) {
+		if (empty($title)) {
+			return $this;
+		}
 		$this->query->where('a.name LIKE', "%{$title}%");
 		return $this;
 	}
@@ -190,10 +193,8 @@ class AccountTable extends We7Table {
 	}
 
 	public function searchWithLetter($letter) {
-		if (!empty($letter)) {
+		if (!empty($letter) && strlen($letter) == 1) {
 			$this->query->where('a.title_initial', $letter);
-		} else {
-			$this->query->where('a.title_initial', '');
 		}
 		return $this;
 	}

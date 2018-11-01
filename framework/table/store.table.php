@@ -38,7 +38,15 @@ class StoreTable extends We7Table {
 			$number_list = $this->query->from('site_store_goods', 'g')->leftjoin('site_store_order', 'r')->on(array('g.id' => 'r.goodsid'))->where('r.uniacid', $uniacid)->where('g.type', $type)->where('r.type', STORE_ORDER_FINISH)->select($type_name[$type])->getall('number');
 			return array_sum(array_keys($number_list));
 		} else{
-			$this->query->from('site_store_goods', 'g')->leftjoin('site_store_order', 'r')->on(array('g.id' => 'r.goodsid'))->where('r.uniacid', $uniacid)->where('g.type', $type)->where('r.type', STORE_ORDER_FINISH)->where('r.type <>', STORE_ORDER_DEACTIVATE);
+			$this->query->from('site_store_goods', 'g')
+				->leftjoin('site_store_order', 'r')
+				->on(array('g.id' => 'r.goodsid'))
+				->where('g.type', $type)
+				->where('r.type', STORE_ORDER_FINISH)
+				->where('r.type <>', STORE_ORDER_DEACTIVATE)
+				->where(function ($query) use ($uniacid) {
+					$query->where('r.uniacid', $uniacid)->whereor('r.wxapp', $uniacid);
+				});
 			return  $this->query->getall($type_name[$type]);
 		}
 	}
@@ -153,8 +161,8 @@ class StoreTable extends We7Table {
 	}
 
 	public function searchUserBuyPackage($uniacid) {
-		$sql = "SELECT * FROM " . tablename('site_store_order') . " as a left join " . tablename('site_store_goods') . " as b on a.goodsid = b.id WHERE a.uniacid = :uniacid AND a.type = 3 AND b.type = 5" ;
-		return pdo_fetchall($sql, array(':uniacid' => $uniacid), 'module_group');
+		$sql = "SELECT * FROM " . tablename('site_store_order') . " as a left join " . tablename('site_store_goods') . " as b on a.goodsid = b.id WHERE (a.uniacid = :uniacid OR a.wxapp = :wxapp) AND a.type = 3 AND b.type = 5" ;
+		return pdo_fetchall($sql, array(':uniacid' => $uniacid, ':wxapp' => $uniacid), 'module_group');
 	}
 
 	public function searchUserCreateAccountNum($uid) {
