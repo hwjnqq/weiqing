@@ -24,7 +24,7 @@ if ($do == 'send') {
 		iajax(1, '素材不存在', '');
 	}
 	$group = $group > 0 ? $group : -1;
-	$account_api = WeAccount::create();
+	$account_api = WeAccount::createByUniacid();
 	$result = $account_api->fansSendAll($group, $type, $media['media_id']);
 	if (is_error($result)) {
 		iajax(1, $result['message'], '');
@@ -60,7 +60,9 @@ if ($do == 'send') {
 }
 
 if ($do == 'display') {
-	$type = in_array(trim($_GPC['type']), array('news', 'image', 'voice', 'video')) ? trim($_GPC['type']) : 'news';
+	$type = trim($_GPC['type']);
+	$type = in_array($type, array('news', 'image', 'voice', 'video')) ? $type : 'news';
+	permission_check_account_user('platform_material_' . $type);
 	$server = in_array(trim($_GPC['server']), array(MATERIAL_LOCAL, MATERIAL_WEXIN)) ? trim($_GPC['server']) : '';
 	$group = mc_fans_groups(true);
 	$page_index = max(1, intval($_GPC['page']));
@@ -105,7 +107,7 @@ if ($do == 'delete') {
 }
 
 if ($do == 'sync') {
-	$account_api = WeAccount::create($_W['acid']);
+	$account_api = WeAccount::createByUniacid();
 	$pageindex = max(1, $_GPC['pageindex']);
 	$type = empty($_GPC['type']) ? 'news' : $_GPC['type'];
 	$news_list = $account_api->batchGetMaterial($type, ($pageindex - 1) * 20);

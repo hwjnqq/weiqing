@@ -7,15 +7,21 @@ load()->classs('xzapp.account');
 
 class XzappPlatform extends XzappAccount {
 
-	public $appid;
-	public $appsecret;
-	public $encodingaeskey;
-	public $token;
-	public $refreshtoken;
-	public $account;
+	protected $appid;
+	protected $appsecret;
+	protected $encodingaeskey;
+	protected $token;
+	protected $refreshtoken;
+	protected $account;
+	protected $tablename = 'account_xzapp';
+	protected $menuFrame = 'account';
+	protected $type = ACCOUNT_TYPE_XZAPP_NORMAL;
+	protected $typeName = '熊掌号';
+	protected $typeSign = XZAPP_TYPE_SIGN;
+	protected $supportOauthInfo = STATUS_ON;
+	protected $supportJssdk = STATUS_ON;
 
-	function __construct(array $account = array())
-	{
+	public function __construct($uniaccount = array()) {
 		$setting['token'] = 'we7';
 		$setting['encodingaeskey'] = 'g4LUbkbCbYmdXBeilamDMsU905IXfqjT5avgMETyV0e';
 		$setting['appid'] = 'TrarDDV5IcTTxOffEXx58Gt5LsqlGyVi';
@@ -24,18 +30,13 @@ class XzappPlatform extends XzappAccount {
 		$setting['url'] = 'https://ccceshi.w7.cc/xiongzhang_api.php';
 
 		$_W['setting']['xzapp'] = $setting;
-
-		$this->menuFrame = 'account';
-		$this->type = ACCOUNT_TYPE_XZAPP_NORMAL;
-		$this->typeName = '熊掌号';
-		$this->typeSign = XZAPP_TYPE_SIGN;
-
 		$this->appid = $setting['appid'];
 		$this->appsecret = $setting['appsecret'];
 		$this->token = $setting['token'];
 		$this->encodingaeskey = $setting['encodingaeskey'];
 	}
 
-
-
+	protected function getAccountInfo($acid) {
+		return table('account_xzapp')->getByAcid($acid);
+	}
 }

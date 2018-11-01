@@ -20,41 +20,40 @@ load()->classs('weixin.account');
 load()->func('communication');
 
 class WeixinPlatform extends WeixinAccount {
+	//以下声明成public的,控制器中会调用，以防后续整理代码又改成protected
 	public $appid;
-	public $appsecret;
-	public $encodingaeskey;
+	protected $appsecret;
 	public $token;
-	public $refreshtoken;
-	public $account;
+	public $encodingaeskey;
+	protected $refreshtoken;
+	protected $tablename = 'account_wechats';
+	protected $menuFrame = 'account';
+	protected $type =  ACCOUNT_TYPE_OFFCIAL_AUTH;
+	protected $typeName =  '公众号';
+	protected $typeSign = ACCOUNT_TYPE_SIGN;
 
-	function __construct($account = array()) {
-	
+	public function __construct($uniaccount = array()) {
 		$setting = setting_load('platform');
-		$this->menuFrame = 'account';
-		$this->type =  ACCOUNT_TYPE_OFFCIAL_AUTH;
-		$this->typeName =  '公众号';
-		$this->typeSign = ACCOUNT_TYPE_SIGN;
-		
 		$this->appid = $setting['platform']['appid'];
 		$this->appsecret = $setting['platform']['appsecret'];
 		$this->token = $setting['platform']['token'];
 		$this->encodingaeskey = $setting['platform']['encodingaeskey'];
+		parent::__construct($uniaccount);
 	}
 
-	function fetchAccountInfo() {
-		if ($this->uniaccount['key'] == 'wx570bc396a51b8ff8') {
-			$this->uniaccount['key'] = $this->appid;
-			$this->account = $this->uniaccount;
+	protected function getAccountInfo($acid) {
+		if ($this->account['key'] == 'wx570bc396a51b8ff8') {
+			$this->account['key'] = $this->appid;
 			$this->openPlatformTestCase();
 		}
 		$account_table = table('account');
-		$account = $account_table->getWechatappAccount($this->uniaccount['acid']);
+		$account = $account_table->getWechatappAccount($acid);
 		$account['encrypt_key'] = $this->appid;
 		return $account;
 	}
 
-	function accountDisplayUrl() {
-		return url('account/display');
+	public function fetchSameAccountByAppid($appid) {
+		return pdo_get($this->tablename, array('key' => $appid));
 	}
 
 	function getComponentAccesstoken() {
@@ -123,7 +122,7 @@ class WeixinPlatform extends WeixinAccount {
 		return $response;
 	}
 
-	public function getAccountInfo($appid = '') {
+	public function getAuthorizerInfo($appid = '') {
 		$component_accesstoken = $this->getComponentAccesstoken();
 		if (is_error($component_accesstoken)) {
 			return $component_accesstoken;
@@ -202,8 +201,8 @@ class WeixinPlatform extends WeixinAccount {
 		$response = $this->request($apiurl);
 		if (is_error($response)) {
 			return $response;
-		}			
-		cache_write(cache_system_key('account_auth_accesstoken', array('key' => $this->account['key'])), $response['refresh_token']);
+		}
+		cache_write('account_oauth_refreshtoken'.$this->account['key'], $response['refresh_token']);
 		return $response;
 	}
 

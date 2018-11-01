@@ -11,15 +11,14 @@ if (strexists($_W['siteurl'], 'c=profile&a=module&do=setting')) {
 	itoast('', url('module/manage-account/setting'). $other_params, 'info');
 }
 
-$account_api = WeAccount::createByUniacid($_W['uniacid']);
+$account_api = WeAccount::createByUniacid();
 if (is_error($account_api)) {
 	itoast('', url('account/display'));
 }
 $check_manange = $account_api->checkIntoManage();
 
 if (is_error($check_manange)) {
-	$account_display_url = $account_api->accountDisplayUrl();
-	itoast('', $account_display_url);
+	itoast('', $account_api->displayUrl);
 }
 $account_type = $account_api->menuFrame;
 define('FRAME', $account_type);

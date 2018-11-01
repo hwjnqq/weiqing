@@ -27,14 +27,13 @@ if ($do == 'get_not_installed_modules') {
 		if (!empty($_GPC['version_id'])) {
 			$version_info = miniapp_version($_GPC['version_id']);
 		}
-		$account_api = WeAccount::create();
+		$account_api = WeAccount::createByUniacid();
 		if (is_error($account_api)) {
 			message($account_api['message'], url('account/display'));
 		}
 		$check_manange = $account_api->checkIntoManage();
 		if (is_error($check_manange)) {
-			$account_display_url = $account_api->accountDisplayUrl();
-			itoast('', $account_display_url);
+			itoast('', $account_api->displayUrl);
 		}
 	}
 

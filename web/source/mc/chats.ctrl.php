@@ -16,6 +16,10 @@ $do = in_array($do , $dos) ? $do : 'chats';
 permission_check_account_user('mc_fans');
 
 if ($do == 'chats') {
+	$account_api = WeAccount::createByUniacid();
+	$supports = $account_api->getMaterialSupport();
+	$show_chast_content = $supports['chats'];
+
 	$_W['page']['title'] = '粉丝聊天';
 	$openid = addslashes($_GPC['openid']);
 	$fans_info = mc_fansinfo($openid);
@@ -31,10 +35,10 @@ if ($do == 'send') {
 	$send = $content_formate['send'];
 	$content = $content_formate['content'];
 
-	$account_api = WeAccount::create($_W['acid']);
+	$account_api = WeAccount::createByUniacid();
 	$result = $account_api->sendCustomNotice($send);
 	if (is_error($result)) {
-		iajax(-1, $result['meaasge']);
+		iajax(-1, $result['message']);
 	} else {
 		//生成上下文
 		$account = account_fetch($_W['acid']);

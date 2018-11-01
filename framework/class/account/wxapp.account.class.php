@@ -8,22 +8,16 @@ defined('IN_IA') or exit('Access Denied');
 load()->func('communication');
 
 class WxappAccount extends WeAccount {
-	public function __construct($account = array()) {
-		$this->account = $account;
-		$this->menuFrame = 'wxapp';
-		$this->type = ACCOUNT_TYPE_APP_NORMAL;
-		$this->typeName = '微信小程序';
-		$this->typeTempalte = '-wxapp';
-		$this->typeSign = WXAPP_TYPE_SIGN;
-	}
+	protected $tablename = 'account_wxapp';
+	protected $menuFrame = 'wxapp';
+	protected $type = ACCOUNT_TYPE_APP_NORMAL;
+	protected $typeName = '微信小程序';
+	protected $typeTempalte = '-wxapp';
+	protected $typeSign = WXAPP_TYPE_SIGN;
+	protected $supportVersion = STATUS_ON;
 
-	public function accountDisplayUrl() {
-		return url('account/display', array('type' => WXAPP_TYPE_SIGN));
-	}
-
-	public function fetchAccountInfo() {
-		$account_table = table('account');
-		$account = $account_table->getWxappAccount($this->uniaccount['acid']);
+	protected function getAccountInfo($acid) {
+		$account = table('account')->getWxappAccount($acid);
 		$account['encrypt_key'] = $account['key'];
 		return $account;
 	}

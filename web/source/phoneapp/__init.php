@@ -4,7 +4,7 @@
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
-$account_api = WeAccount::createByUniacid($_W['uniacid']);
+$account_api = WeAccount::createByUniacid();
 
 
 if (!in_array($action, array('display', 'manage'))) {
@@ -13,8 +13,7 @@ if (!in_array($action, array('display', 'manage'))) {
 	}
 	$check_manange = $account_api->checkIntoManage();
 	if (is_error($check_manange)) {
-		$account_display_url = $account_api->accountDisplayUrl();
-		itoast('', $account_display_url);
+		itoast('', $account_api->displayUrl);
 	}
 }
 

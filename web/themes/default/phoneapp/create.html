@@ -1,8 +1,8 @@
 {template 'common/header'}
 <div>
     <ol class="breadcrumb we7-breadcrumb">
-        <a href="{url 'account/manage'}"><i class="wi wi-back-circle"></i></a>
-        <li><a href="{url 'account/manage'}">APP列表</a></li>
+        <a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_PHONEAPP_NORMAL))}"><i class="wi wi-back-circle"></i></a>
+        <li><a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_PHONEAPP_NORMAL))}">APP列表</a></li>
         <li>新建APP</li>
     </ol>
     <div id="js-phone-app" ng-controller="phoneCreateCtrl">

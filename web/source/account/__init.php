@@ -16,7 +16,7 @@ if ($controller == 'account' && $action == 'manage') {
 	}
 }
 
-$account_param = WeAccount::createByType($_GPC['account_type']);
+$account_param = WeAccount::create(array('type' => $_GPC['account_type']));
 define('ACCOUNT_TYPE', $account_param->type);
 define('TYPE_SIGN', $account_param->typeSign);
 define('ACCOUNT_TYPE_NAME', $account_param->typeName);

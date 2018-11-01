@@ -2,8 +2,8 @@
 {if $_GPC['step'] == 1 || $_GPC['step'] == ''}
 	<div class="account-list-add" id="js-account-post-step1" ng-controller="AccountPostStepOne" ng-cloak>
 		<ol class="breadcrumb we7-breadcrumb">
-			<a href="{url 'account/manage'}"><i class="wi wi-back-circle"></i></a>
-			<li><a href="{url 'account/manage'}">公众号列表</a></li>
+			<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL))}"><i class="wi wi-back-circle"></i></a>
+			<li><a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL))}">公众号列表</a></li>
 			<li>新建公众号</li>
 		</ol>
 		<div class="panel we7-panel">
@@ -51,8 +51,8 @@
 {elseif $_GPC['step'] == 2}
 	<div class="account-list-add-step">
 		<ol class="breadcrumb we7-breadcrumb">
-			<a href="{url 'account/manage'}"><i class="wi wi-back-circle"></i> </a>
-			<li><a href="{url 'account/manage'}">公众号列表</a></li>
+			<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL))}"><i class="wi wi-back-circle"></i> </a>
+			<li><a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL))}">公众号列表</a></li>
 			<li>新建公众号</li>
 		</ol>
 		<div class="we7-step">
@@ -174,8 +174,8 @@
 {elseif $_GPC['step'] == 3}
 	<div class="account-list-add-step">
 		<ol class="breadcrumb we7-breadcrumb">
-			<a href="{url 'account/manage'}"><i class="wi wi-back-circle"></i> </a>
-			<li><a href="{url 'account/manage'}">公众号列表</a></li>
+			<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL))}"><i class="wi wi-back-circle"></i> </a>
+			<li><a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL))}">公众号列表</a></li>
 			<li>新建公众号</li>
 		</ol>
 		<div class="we7-step">
@@ -194,21 +194,6 @@
 			<input type="hidden" name="uniacid" value="{$_GPC['uniacid']}">
 			<input type="hidden" name="acid" value="{$_GPC['acid']}">
 			<!--第三步:设置权限-->
-			<div class="form-group">
-				<label for="" class="control-label col-sm-2">公众号过期时间</label>
-				<div class="form-controls col-sm-8">
-					<div class="form-group">
-						<input id="istop-1" type="radio" name="is-set-endtime" ng-model="owner.endtime" value="1">
-						<label for="istop-1">设置</label>
-						<input id="istop-2" type="radio" name="is-set-endtime" ng-model="owner.endtime" value="0" ng-checked="1">
-						<label for="istop-2">不限</label>
-					</div>
-					<div class="form-group" ng-show="owner.endtime == 1">
-						{php echo tpl_form_field_date('endtime', $owner['endtime']);}
-						<span class="help-block">用户的使用时间过期时，将来无法登录，公众号权限也暂停使用，不设置为永久可用</span>
-					</div>
-				</div>
-			</div>
 			<div class="panel we7-panel">
 				<div class="panel-heading">主管理员设置</div>
 				<div class="panel-body we7-padding-top">
@@ -222,7 +207,7 @@
 									<button class="btn btn-default" ng-click="selectOwner($event)">选择管理员</button>
 								</span>
 							</div>
-							<span class="help-block">如果是新用户,请先 <a href="{url 'user/create'}" target="_blank" class="color-default">添加用户</a></span>
+							<span class="help-block">如果是新用户,请先 <a href="{url 'user/create'}" target="_blank" class="color-default">添加用户</a>，不设置（即留空）则默认为创始人</span>
 						</div>
 					</div>
 					<div class="form-group">
@@ -231,10 +216,25 @@
 							<select name="groupid" class="we7-select col-sm-3" id="groupid" ng-model="owner.groupid" ng-change="changeGroup()">
 								<option value="0">不设置</option>
 								{loop $groups $row}
-								{php $package = $row['package'] ? implode(',', iunserializer($row['package'])) : '';}
+								{php $package = iunserializer($row['package']) ? implode(',', iunserializer($row['package'])) : '';}
 								<option value="{$row['id']}" {if $row['id'] == $owner['groupid']}selected{/if} data-package="[{$package}]">{$row['name']}</option>
 								{/loop}
 							</select>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="" class="control-label col-sm-2">平台过期时间</label>
+						<div class="form-controls col-sm-8">
+							<div class="form-group">
+								<input id="istop-1" type="radio" name="is-set-endtime" ng-model="owner.endtime" value="1">
+								<label for="istop-1">设置</label>
+								<input id="istop-2" type="radio" name="is-set-endtime" ng-model="owner.endtime" value="0" ng-checked="1">
+								<label for="istop-2">不限</label>
+							</div>
+							<div class="form-group" ng-show="owner.endtime == 1">
+								{php echo tpl_form_field_date('endtime', $owner['endtime']);}
+								<span class="help-block">平台有效期默认与主管理员一致，修改日期不可超过主管理员有效期的最大期限。未设置主管理员时，创始人默认为主管理员</span>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -432,8 +432,8 @@
 {elseif $_GPC['step'] == 4}
 	<div class="account-list-add-step">
 		<ol class="breadcrumb we7-breadcrumb">
-			<a href="{url 'account/manage'}"><i class="wi wi-back-circle"></i> </a>
-			<li><a href="{url 'account/manage'}">公众号列表</a></li>
+			<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL))}"><i class="wi wi-back-circle"></i> </a>
+			<li><a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL))}">公众号列表</a></li>
 			<li>新建公众号</li>
 		</ol>
 		<div class="we7-step">
@@ -542,7 +542,7 @@
 			links: {
 				siteroot: "{$_W['siteroot']}",
 				post: "{php echo url('account/post')}",
-				manage: "{php echo url('account/manage')}",
+				manage: "{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL))}",
 				wxapp_manage: "{php echo url('account/manage')}",
 				switch: "{php echo url('account/display/switch')}",
 			}

@@ -1,7 +1,7 @@
 {template 'common/header'}
 <div class="we7-page-title">小程序管理</div>
 <ul class="we7-page-tab">
-	<li class="active"><a href="{php echo url ('account/manage', array('account_type' => '4'))}">小程序列表</a></li>
+	<li class="active"><a href="{php echo url ('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL))}">小程序列表</a></li>
 	
 	
 		{if $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER || $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER}
@@ -71,7 +71,7 @@
 	</tr>
 	<tr>
 		<th colspan="2" class="text-left">小程序应用</th>
-		<th>有效期</th>
+		<th>平台过期时间</th>
 		<th class="text-right">操作</th>
 	</tr>
 	<tr class="color-gray" ng-repeat="list in lists">
@@ -102,6 +102,7 @@
 				<a href="{{links.post}}&acid={{list.acid}}&uniacid={{list.uniacid}}" ng-show="list.role == 'owner' || list.role == 'founder' || list.role == 'vice_founder'">基础信息</a>
 				<a href="{{links.postUser}}&do=edit&uniacid={{list.uniacid}}&acid={{list.acid}}">使用者管理</a>
 				<a href="{{links.postVersion}}&do=display&uniacid={{list.uniacid}}&acid={{list.acid}}">版本管理</a>
+				<a href="{{links.post}}&do=modules_tpl&uniacid={{list.uniacid}}&acid={{list.acid}}&account_type={{list.type}}">可用应用模板/模块</a>
 				{if $_W['role'] != ACCOUNT_MANAGE_NAME_MANAGER}
 				<a ng-href="{{links.del}}&acid={{list.acid}}&uniacid={{list.uniacid}}" ng-show="list.role == 'owner' || list.role == 'founder' || list.role == 'vice_founder'" onclick="if(!confirm('确认放入回收站吗？')) return false;" class="del">停用</a>
 				{/if}

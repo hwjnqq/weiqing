@@ -9,7 +9,11 @@ defined('IN_IA') or exit('Access Denied');
  * 微信平台公众号业务操作类
  */
 class WeixinAccount extends WeAccount {
-	public $tablename = 'account_wechats';
+	protected $tablename = 'account_wechats';
+	protected $menuFrame = 'account';
+	protected $type = ACCOUNT_TYPE_OFFCIAL_NORMAL;
+	protected $typeName = '公众号';
+	protected $typeSign = ACCOUNT_TYPE_SIGN;
 	/**
 	 * 与公众平台访问的接口地址
 	 *
@@ -29,20 +33,8 @@ class WeixinAccount extends WeAccount {
 		'pic_weixin', 'location_select', 'media_id', 'view_limited'
 	);
 
-	public function __construct($account = array()) {
-		$this->menuFrame = 'account';
-		$this->type = ACCOUNT_TYPE_OFFCIAL_NORMAL;
-		$this->typeName = '公众号';
-		$this->typeSign = ACCOUNT_TYPE_SIGN;
-	}
-
-	public function accountDisplayUrl() {
-		return url('account/display');
-	}
-
-	public function fetchAccountInfo() {
-		$account_table = table('account');
-		$account = $account_table->getWechatappAccount($this->uniaccount['acid']);
+	protected function getAccountInfo($acid) {
+		$account = table('account')->getWechatappAccount($acid);
 		$account['encrypt_key'] = $account['key'];
 		return $account;
 	}
@@ -71,7 +63,7 @@ class WeixinAccount extends WeAccount {
 	}
 
 	public function checkIntoManage() {
-		if (empty($this->uniaccount) || (!empty($this->uniaccount['account']) && !in_array($this->uniaccount['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)) && !defined('IN_MODULE'))) {
+		if (empty($this->account) || (!empty($this->account['account']) && !in_array($this->account['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)) && !defined('IN_MODULE'))) {
 			return false;
 		}
 		return true;
@@ -1389,13 +1381,10 @@ class WeixinAccount extends WeAccount {
 			} elseif(!empty($result['errcode'])) {
 			return error(-1, "访问微信接口错误, 错误代码: {$result['errcode']}, 错误信息: {$result['errmsg']},信息详情：{$this->errorCode($result['errcode'])}");
 			}*/
-
+		$data = array();
 		if (!empty($miniprogram['appid']) && !empty($miniprogram['pagepath'])) {
-			$url = 'http://weixin.qq.com/download';
 			$data['miniprogram'] = $miniprogram;
 		}
-
-		$data = array();
 		$data['touser'] = $touser;
 		$data['template_id'] = trim($template_id);
 		$data['url'] = trim($url);
@@ -1917,6 +1906,137 @@ class WeixinAccount extends WeAccount {
 			}
 		}
 		return $result;
+	}
+
+	/**
+	 * 查看指定文章的评论数据
+	 * @param $msg_data_id 群发返回的msg_data_id
+	 * @param $index 多图文时，用来指定第几篇图文，从0开始，不带默认返回该msg_data_id的第一篇图文
+	 * @param int $type type=0 普通评论&精选评论 type=1 普通评论 type=2 精选评论
+	 * @param int $begin 起始位置
+	 * @param int $count 获取数目（>=50会被拒绝）
+	 * @return array|mixed
+	 */
+	public function getComment($msg_data_id, $index, $type = 0, $begin = 0, $count = 50) {
+		$token = $this->getAccessToken();
+		$url = "https://api.weixin.qq.com/cgi-bin/comment/list?access_token={$token}";
+		$data = array(
+			'msg_data_id' => $msg_data_id,
+			'index' => $index,
+			'begin' => $begin,
+			'count' => $count,
+			'type' => $type,
+		);
+		$response = $this->requestApi($url, json_encode($data));
+		return $response;
+	}
+
+	/**
+	 * 回复评论（新增接口）
+	 * @param $msg_data_id 群发返回的msg_data_id
+	 * @param $user_comment_id 评论id
+	 * @param $content 回复内容
+	 * @param int $index 多图文时，用来指定第几篇图文，从0开始，不带默认操作该msg_data_id的第一篇图文
+	 * @return array|mixed
+	 */
+	public function commentReply($msg_data_id,  $user_comment_id, $content, $index = 0) {
+		$token = $this->getAccessToken();
+		$url = "https://api.weixin.qq.com/cgi-bin/comment/reply/add?access_token={$token}";
+		$data = array(
+			'msg_data_id' => $msg_data_id,
+			'user_comment_id' => $user_comment_id,
+			'content' => $content,
+			'index' => $index,
+		);
+		$response = $this->requestApi($url, stripslashes(ijson_encode($data, JSON_UNESCAPED_UNICODE)));
+		return $response;
+	}
+
+	/**
+	 * 将评论标记精选/将评论取消精选
+	 * @param $msg_data_id 群发返回的msg_data_id
+	 * @param $user_comment_id 用户评论id
+	 * @param $comment_type 1 为精选评论 0 非精选评论
+	 * @param int $index 多图文时，用来指定第几篇图文，从0开始，不带默认操作该msg_data_id的第一篇图文
+	 * @return array|mixed
+	 */
+	public function commentMark($msg_data_id, $user_comment_id, $comment_type, $index = 0) {
+		$token = $this->getAccessToken();
+		if ($comment_type != 1) {
+			$url = "https://api.weixin.qq.com/cgi-bin/comment/markelect?access_token={$token}";
+		} else {
+			$url = "https://api.weixin.qq.com/cgi-bin/comment/unmarkelect?access_token={$token}";
+		}
+
+		$data = array(
+			'msg_data_id' => $msg_data_id,
+			'user_comment_id' => $user_comment_id,
+			'index' => $index,
+		);
+		$response = $this->requestApi($url, json_encode($data));
+		return $response;
+	}
+
+	/**
+	 * 删除留言
+	 * @param $msg_data_id 群发返回的msg_data_id
+	 * @param $user_comment_id 用户评论id
+	 * @param int $index 多图文时，用来指定第几篇图文，从0开始，不带默认操作该msg_data_id的第一篇图文
+	 * @return array|mixed
+	 */
+	public function commentDelete($msg_data_id, $user_comment_id, $index = 0) {
+		$token = $this->getAccessToken();
+		$url = "https://api.weixin.qq.com/cgi-bin/comment/delete?access_token={$token}";
+
+		$data = array(
+			'msg_data_id' => $msg_data_id,
+			'user_comment_id' => $user_comment_id,
+			'index' => $index,
+		);
+		$response = $this->requestApi($url, json_encode($data));
+		return $response;
+	}
+
+	/**
+	 * 删除回复
+	 * @param $msg_data_id 群发返回的msg_data_id
+	 * @param $user_comment_id 用户评论id
+	 * @param int $index 多图文时，用来指定第几篇图文，从0开始，不带默认操作该msg_data_id的第一篇图文
+	 * @return array|mixed
+	 */
+	public function commentReplyDelete($msg_data_id, $user_comment_id, $index = 0) {
+		$token = $this->getAccessToken();
+		$url = "https://api.weixin.qq.com/cgi-bin/comment/reply/delete?access_token={$token}";
+		$data = array(
+			'msg_data_id' => $msg_data_id,
+			'user_comment_id' => $user_comment_id,
+			'index' => $index,
+		);
+		$response = $this->requestApi($url, json_encode($data));
+		return $response;
+	}
+
+	/**
+	 * 打开/关闭已群发文章评论
+	 * @param $msg_data_id 群发返回的msg_data_id
+	 * @param $need_open_comment 是否打开评论，0不打开，1打开
+	 * @param int $index 多图文时，用来指定第几篇图文，从0开始，不带默认操作该msg_data_id的第一篇图文
+	 * @return array|mixed
+	 */
+	public function commentSwitch($msg_data_id, $need_open_comment, $index = 0) {
+		$token = $this->getAccessToken();
+		if ($need_open_comment == 1) {
+			$url = "https://api.weixin.qq.com/cgi-bin/comment/close?access_token={$token}";
+		} else {
+			$url = "https://api.weixin.qq.com/cgi-bin/comment/open?access_token={$token}";
+		}
+
+		$data = array(
+			'msg_data_id' => $msg_data_id,
+			'index' => $index,
+		);
+		$response = $this->requestApi($url, json_encode($data));
+		return $response;
 	}
 
 	protected function requestApi($url, $post = '') {

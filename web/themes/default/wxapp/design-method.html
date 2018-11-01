@@ -1,8 +1,8 @@
 {template 'common/header'}
 <div  class="account-list-add">
 	<ol class="breadcrumb we7-breadcrumb">
-		<a href="{url 'wxapp/manage'}"><i class="wi wi-back-circle"></i></a>
-		<li><a href="{url 'wxapp/display'}">小程序列表</a></li>
+		<a href="{php echo url ('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL))}"><i class="wi wi-back-circle"></i></a>
+		<li><a href="{php echo url ('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL))}">小程序列表</a></li>
 		<li>新建小程序</li>
 	</ol>
 	<div class="panel we7-panel">

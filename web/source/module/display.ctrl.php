@@ -21,8 +21,8 @@ if ($do == 'display') {
 
 		if (!empty($user_owned_account) && is_array($user_owned_account)) {
 			foreach ($user_owned_account as $uniacid => $account) {
-				$account_module = uni_modules_list($uniacid, true, $account['type']);
-				$account_user_module = $userspermission_table->userPermission($_W['uid'], $uniacid);
+				$account_module = uni_modules_list($uniacid, $account['type']);
+				$account_user_module = $userspermission_table->getAllUserPermission($_W['uid'], $uniacid);
 				// 非管理员情况下，过滤掉没有添加到相关小程序（没有权限）的应用
 				if ($account['type'] == ACCOUNT_TYPE_APP_NORMAL || $account['type'] == ACCOUNT_TYPE_APP_AUTH) {
 					$wxapp_versions = pdo_getall('wxapp_versions', array('uniacid' => $uniacid), '');
@@ -68,7 +68,7 @@ if ($do == 'display') {
 				}
 				$user_owned_account[$account_key]['premission_modules'] = array_unique($user_owned_account[$account_key]['premission_modules']);
 			} else {
-				$account_modules = uni_modules_list($account['uniacid'], true, $account['type']);
+				$account_modules = uni_modules_list($account['uniacid'], $account['type']);
 				$user_owned_account[$account_key]['premission_modules'] = array_keys($account_modules);
 			}
 		}
@@ -142,7 +142,7 @@ if ($do == 'switch') {
 	if (empty($uniacid) && !empty($version_id)) {
 		uni_account_save_switch($version_info['uniacid'], WXAPP_TYPE_SIGN);
 		miniapp_update_last_use_version($version_info['uniacid'], $version_id);
-		itoast('', url('account/display/switch', array('uniacid' => $uniacid, 'module' => $module_name, 'version_id' => $version_id, 'type' => ACCOUNT_TYPE_APP_NORMAL)), 'success');
+		itoast('', url('account/display/switch', array('uniacid' => $uniacid, 'module_name' => $module_name, 'version_id' => $version_id, 'type' => ACCOUNT_TYPE_APP_NORMAL)), 'success');
 	}
 	if (!empty($uniacid)) {
 		if (empty($version_id)) {
@@ -153,7 +153,7 @@ if ($do == 'switch') {
 		} else {
 			uni_account_save_switch($version_info['uniacid'], WXAPP_TYPE_SIGN);
 			miniapp_update_last_use_version($version_info['uniacid'], $version_id);
-			itoast('', url('account/display/switch', array('uniacid' => $uniacid, 'module' => $module_name, 'version_id' => $version_id, 'type' => ACCOUNT_TYPE_APP_NORMAL)), 'success');
+			itoast('', url('account/display/switch', array('uniacid' => $uniacid, 'module_name' => $module_name, 'version_id' => $version_id, 'type' => ACCOUNT_TYPE_APP_NORMAL)), 'success');
 		}
 	}
 }

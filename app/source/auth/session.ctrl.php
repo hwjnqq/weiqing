@@ -11,7 +11,7 @@ load()->model('mc');
 $dos = array('openid', 'userinfo', 'check');
 $do = in_array($do, $dos) ? $do : 'openid';
 
-$account_api = WeAccount::create();
+$account_api = WeAccount::createByUniacid();
 if (!empty($_GPC['wxwork'])) {
 	//如果是企业微信，实例化wxapp.work类，目前没有独立出来小程序企业号类型 先这样处理
 	$_W['account']['type'] = ACCOUNT_TYPE_WXAPP_WORK;
@@ -50,6 +50,7 @@ if ($do == 'openid') {
 		if (empty($fans)) {
 			$record = array(
 				'openid' => $oauth['openid'],
+				'unionid' => $oauth['unionid'],
 				'uid' => 0,
 				'acid' => $_W['acid'],
 				'uniacid' => $_W['uniacid'],
@@ -133,7 +134,6 @@ if ($do == 'openid') {
 		))),
 	);
 	//如果有unionid则查找相关粉丝，将会员数据同步
-	//如果有unionid则查找相关粉丝，将会员数据同步
 	if (!empty($userinfo['unionId'])) {
 		$union_fans = pdo_get('mc_mapping_fans', array('unionid' => $userinfo['unionId'], 'openid !=' => $userinfo['openId']));
 		if (!empty($union_fans['uid'])) {
@@ -146,9 +146,30 @@ if ($do == 'openid') {
 			$_SESSION['uid'] = $union_fans['uid'];
 		}
 	}
-	pdo_update('mc_mapping_fans', $fans_update, array('fanid' => $fans['fanid']));
-	pdo_update('mc_members', array('nickname' => $userinfo['nickName'], 'avatar' => $userinfo['avatarUrl'], 'gender' => $userinfo['gender']), array('uid' => $fans['uid']));
+	
 	$member = mc_fetch($fans['uid']);
+	if (!empty($member)) {
+		pdo_update('mc_members', array('nickname' => $userinfo['nickName'], 'avatar' => $userinfo['avatarUrl'], 'gender' => $userinfo['gender']), array('uid' => $fans['uid']));
+	} else {
+		$default_groupid = pdo_fetchcolumn('SELECT groupid FROM ' .tablename('mc_groups') . ' WHERE uniacid = :uniacid AND isdefault = 1', array(':uniacid' => $_W['uniacid']));
+		$member = array(
+			'uniacid' => $_W['uniacid'],
+			'email' => md5($_SESSION['openid']).'@we7.cc',
+			'salt' => random(8),
+			'groupid' => $default_groupid,
+			'createtime' => TIMESTAMP,
+			'password' => md5($member['salt'] . $_W['config']['setting']['authkey']),
+			'nickname' => $userinfo['nickName'],
+			'avatar' => $userinfo['avatarUrl'],
+			'gender' => $userinfo['gender'],
+			'nationality' => '',
+			'resideprovince' => '',
+			'residecity' => '',
+		);
+		pdo_insert('mc_members', $member);
+		$fans_update['uid'] = pdo_insertid();
+	}
+	pdo_update('mc_mapping_fans', $fans_update, array('fanid' => $fans['fanid']));
 	unset($member['password']);
 	unset($member['salt']);
 	$account_api->result(0, '', $member);

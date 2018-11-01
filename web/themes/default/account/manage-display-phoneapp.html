@@ -1,7 +1,7 @@
 {template 'common/header'}
 <div class="we7-page-title">APP管理</div>
 <ul class="we7-page-tab">
-	<li class="active"><a href="{url 'account/manage'}">APP列表</a></li>
+	<li class="active"><a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_PHONEAPP_NORMAL))}">APP列表</a></li>
 	
 
 	
@@ -73,7 +73,7 @@
 	</tr>
 	<tr>
 		<th colspan="2" class="text-left">帐号</th>
-		<th>有效期</th>
+		<th>平台过期时间</th>
 		<th>短信数(条)</th>
 		<th class="text-right">操作</th>
 	</tr>

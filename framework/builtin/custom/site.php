@@ -45,7 +45,7 @@ class CustomModuleSite extends WeModuleSite {
 			}
 			if($acid > 0 && !empty($starttime) && !empty($endtime)) {
 				$pindex = max(1, intval($_GPC['page']));
-				$acc = WeAccount::create($acid);
+				$acc = WeAccount::createByUniacid();
 				$params = array('openid' => trim($user['openid']), 'starttime' => $starttime, 'endtime' => $endtime, 'pageindex' => $pindex, 'pagesize' => 50);
 				$logs = $acc->fetchChatLog($params);
 				$next = 1;

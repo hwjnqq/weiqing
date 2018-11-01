@@ -11,7 +11,7 @@ load()->library('qrcode');
 
 $dos = array('display', 'change', 'qr', 'chat', 'down_qr');
 $do = !empty($_GPC['do']) && in_array($do, $dos) ? $do : 'display';
-permission_check_account_user('platform_qr');
+permission_check_account_user('platform_qr_qr');
 $_W['page']['title'] = '长链接转二维码';
 
 if ($do == 'display') {
@@ -21,7 +21,8 @@ if ($do == 'display') {
 if ($do == 'change') {
 	if ($_W['ispost'] && $_W['isajax']) {
 		$longurl = trim($_GPC['longurl']);
-		$token = WeAccount::token();
+		$token = $_W['account']->getAccessToken();
+
 		$url = "https://api.weixin.qq.com/cgi-bin/shorturl?access_token={$token}";
 		$send = array();
 		$send['action'] = 'long2short';

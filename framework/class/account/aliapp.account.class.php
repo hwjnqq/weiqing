@@ -9,28 +9,20 @@ defined('IN_IA') or exit('Access Denied');
  * 微信平台公众号业务操作类
  */
 class AliappAccount extends WeAccount {
-	public $tablename = 'account_aliapp';
+	protected $tablename = 'account_aliapp';
+	protected $menuFrame = 'wxapp';
+	protected $type = ACCOUNT_TYPE_ALIAPP_NORMAL;
+	protected $typeName = '支付宝小程序';
+	protected $typeTempalte = '-aliapp';
+	protected $typeSign = ALIAPP_TYPE_SIGN;
+	protected $supportVersion = STATUS_ON;
 
-	public function __construct($account = array()) {
-		$this->menuFrame = 'wxapp';
-		$this->type = ACCOUNT_TYPE_ALIAPP_NORMAL;
-		$this->typeName = '支付宝小程序';
-		$this->typeTempalte = '-aliapp';
-		$this->typeSign = ALIAPP_TYPE_SIGN;
+	protected function getAccountInfo($acid) {
+		return table('account_aliapp')->getAccount($acid);
 	}
 
-	public function accountDisplayUrl() {
-		return url('account/display');
-	}
-
-	public function fetchAccountInfo() {
-		$account_table = table('account_aliapp');
-		$account = $account_table->getAccount($this->uniaccount['acid']);
-		$account['encrypt_key'] = $account['key'];
-		return $account;
-	}
 	public function checkIntoManage() {
-		if (empty($this->account) || (!empty($this->uniaccount['account']) && $this->uniaccount['type'] != ACCOUNT_TYPE_PHONEAPP_NORMAL && !defined('IN_MODULE'))) {
+		if (empty($this->account) || (!empty($this->account['account']) && $this->account['type'] != ACCOUNT_TYPE_PHONEAPP_NORMAL && !defined('IN_MODULE'))) {
 			return false;
 		}
 		return true;

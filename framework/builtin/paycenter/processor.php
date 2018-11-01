@@ -35,7 +35,7 @@ class PaycenterModuleProcessor extends WeModuleProcessor {
 				'card_ext' => $card['card_ext'],
 			)
 		);
-		$acc = WeAccount::create($_W['acid']);
+		$acc = WeAccount::createByUniacid();
 		$status = $acc->sendCustomNotice($data);
 		if(is_error($status)) {
 			$this->error($reply, $status['message']);

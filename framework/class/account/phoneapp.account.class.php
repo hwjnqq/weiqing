@@ -7,28 +7,23 @@
 defined('IN_IA') or exit('Access Denied');
 
 class PhoneappAccount extends WeAccount {
-	public function __construct($account = array()) {
-		$this->menuFrame = 'phoneapp';
-		$this->type = ACCOUNT_TYPE_PHONEAPP_NORMAL;
-		$this->typeSign = PHONEAPP_TYPE_SIGN;
-		$this->typeName = 'APP';
-		$this->typeTempalte = '-phoneapp';
-	}
+	protected $tablename = 'account_phoneapp';
+	protected $menuFrame = 'phoneapp';
+	protected $type = ACCOUNT_TYPE_PHONEAPP_NORMAL;
+	protected $typeSign = PHONEAPP_TYPE_SIGN;
+	protected $typeName = 'APP';
+	protected $typeTempalte = '-phoneapp';
+	protected $supportVersion = STATUS_ON;
 
 	public function checkIntoManage() {
-		if (empty($this->account) || (!empty($this->uniaccount['account']) && $this->uniaccount['type'] != ACCOUNT_TYPE_PHONEAPP_NORMAL && !defined('IN_MODULE'))) {
+		if (empty($this->account) || (!empty($this->account['account']) && $this->account['type'] != ACCOUNT_TYPE_PHONEAPP_NORMAL && !defined('IN_MODULE'))) {
 			return false;
 		}
 		return true;
 	}
 
-	public function fetchAccountInfo() {
-		$account_table = table('account');
-		$account = $account_table->getPhoneappAccount($this->uniaccount['acid']);
+	protected function getAccountInfo($acid) {
+		$account = table('account')->getPhoneappAccount($acid);
 		return $account;
-	}
-
-	public function accountDisplayUrl() {
-		return url('account/display', array('type' => PHONEAPP_TYPE_SIGN));
 	}
 }

@@ -10,7 +10,7 @@ $data = pdo_get('mc_mass_record', array('uniacid' => $_W['uniacid'], 'id' => $id
 if(empty($data)) {
 	$this->addCronLog($id, -1100, '未找到群发的设置信息');
 }
-$acc = WeAccount::create($_W['acid']);
+$acc = WeAccount::createByUniacid();
 if(is_error($acc)) {
 	$this->addCronLog($id, -1101, '创建公众号操作对象失败');
 }

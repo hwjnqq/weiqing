@@ -1,9 +1,9 @@
 {template 'common/header'}
 <div class="alert we7-page-alert">
-	<p><i class="wi wi-info-sign"></i>本公众号可操作的模块中，仅显示可进行同步的模块；</p>
-	<p><i class="wi wi-info-sign"></i>可以把小程序应用或PC应用的会员、数据等信息同步至公众号应用当中；</p>
+	<p><i class="wi wi-info-sign"></i>本{$_W['account']['type_name']}可操作的模块中，仅显示可进行同步的模块；</p>
+	<p><i class="wi wi-info-sign"></i>可以把小程序应用或PC应用的会员、数据等信息同步至{$_W['account']['type_name']}应用当中；</p>
 	<p><i class="wi wi-info-sign"></i>一个模块，同步了小程序则不可再同步PC，同步了PC则不可再同步小程序；</p>
-	<p><i class="wi wi-info-sign"></i>若小程序A应用已同步公众号，则公众号同步小程序应用时，无法选择小程序A且小程序A不会显示在同步列表中，即两者不可相互同步,PC同理。</p>
+	<p><i class="wi wi-info-sign"></i>若小程序A应用已同步{$_W['account']['type_name']}，则{$_W['account']['type_name']}同步小程序应用时，无法选择小程序A且小程序A不会显示在同步列表中，即两者不可相互同步,PC同理。</p>
 </div>
 <div class="we7-page-title">关联设置</div>
 <div id="js-app-module-link-uniacid" ng-controller="appModuleLinkUniacidCtrl" ng-cloak>

@@ -10,35 +10,37 @@ load()->classs('weixin.platform');
 class WxappPlatform extends WeixinPlatform {
 
 	const JSCODEURL = 'https://api.weixin.qq.com/sns/component/jscode2session?appid=%s&js_code=%s&grant_type=authorization_code&component_appid=%s&component_access_token=%s';
+	//以下声明成public的,控制器中会调用，以防后续整理代码又改成protected
+	public $appid;
+	protected $appsecret;
+	public $encodingaeskey;
+	public $token;
+	protected $refreshtoken;
+	protected $tablename = 'account_wxapp';
+	protected $menuFrame = 'wxapp';
+	protected $type = ACCOUNT_TYPE_APP_AUTH;
+	protected $typeName =  '小程序';
+	protected $typeSign = WXAPP_TYPE_SIGN;
+	protected $supportVersion = STATUS_ON;
 
-
-	function __construct($account = array()) {
-
-		parent::__construct($account);
-		$this->menuFrame = 'wxapp';
-		$this->type = ACCOUNT_TYPE_APP_AUTH;
-		$this->typeName =  '小程序';
-		$this->typeSign = WXAPP_TYPE_SIGN;
-
+	public function __construct($uniaccount = array()) {
+		$setting = setting_load('platform');
+		$this->appid = $setting['platform']['appid'];
+		$this->appsecret = $setting['platform']['appsecret'];
+		$this->token = $setting['platform']['token'];
+		$this->encodingaeskey = $setting['platform']['encodingaeskey'];
+		parent::__construct($uniaccount);
 	}
 
-	function fetchAccountInfo() {
-		if ($this->uniaccount['key'] == 'wx570bc396a51b8ff8') {
-			$this->uniaccount['key'] = $this->appid;
-			$this->account = $this->uniaccount;
+	protected function getAccountInfo($acid) {
+		if ($this->account['key'] == 'wx570bc396a51b8ff8') {
+			$this->account['key'] = $this->appid;
 			$this->openPlatformTestCase();
 		}
-		$account_table = table('account');
-		$account = $account_table->getWxappAccount($this->uniaccount['acid']);
+		$account = table('account')->getWxappAccount($acid);
 		$account['encrypt_key'] = $this->appid;
 		return $account;
 	}
-
-	function accountDisplayUrl() {
-		return url('account/display', array('type' => WXAPP_TYPE_SIGN));
-	}
-
-
 
 	public function getAuthLoginUrl() {
 		$preauthcode = $this->getPreauthCode();
@@ -62,15 +64,14 @@ class WxappPlatform extends WeixinPlatform {
 		if (is_error($response)) {
 			return $response;
 		}
-
-		cache_write(cache_system_key('account_auth_accesstoken', array('key' => $this->account['key'])), $response['refresh_token']);
+		cache_write('account_oauth_refreshtoken'.$this->account['key'], $response['refresh_token']);
 		return $response;
 	}
 
 	protected function setAuthRefreshToken($token) {
 		$tablename = 'account_wxapp';
 		pdo_update($tablename, array('auth_refresh_token' => $token), array('acid' => $this->account['acid']));
-		cache_write(cache_system_key('account_auth_accesstoken', array('key' => $this->account['key'])), $token);
+		cache_write(cache_system_key('account_auth_refreshtoken', array('acid' => $this->account['acid'])), $token);
 	}
 
 	/**

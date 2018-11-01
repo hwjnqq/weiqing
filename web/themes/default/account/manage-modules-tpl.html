@@ -2,8 +2,9 @@
 {template 'account/account-header'}
 <div id="js-account-manage-modules-tpl" ng-controller="AccountMangeModulesTpl" ng-cloak>
 	<div class="alert alert-info">
-			<p><i class="fa fa-exclamation-circle"></i> 无主管理员时，创始人为默认主管理员，公众号拥有所有权限</p>
+		<p><i class="fa fa-exclamation-circle"></i> 无主管理员时，创始人为默认主管理员，{php echo $account->typeName}拥有所有权限</p>
 	</div>
+
 	{if !in_array($owner['uid'], $founders)}
 	<table class="table we7-table table-hover" >
 		<col />
@@ -42,9 +43,16 @@
 			</tr>
 			<tr ng-show="module_tpl.show">
 				<td colspan="5">
-					<div class="col-sm-1 color-gray text-left we7-padding-none">公众号应用</div>
+					<div class="col-sm-1 color-gray text-left we7-padding-none">{php echo $account->typeName}应用</div>
 					<div class="col-sm-11">
-						<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="module in module_tpl.modules">
+						<div class="col-sm-3 text-left we7-margin-bottom" 
+						{if $account->typeSign == ACCOUNT_TYPE_SIGN} ng-repeat="module in module_tpl.modules" 
+						{elseif $account->typeSign == WXAPP_TYPE_SIGN} ng-repeat="module in module_tpl.wxapp"
+						{elseif $account->typeSign == WEBAPP_TYPE_SIGN} ng-repeat="module in module_tpl.webapp"
+						{elseif $account->typeSign == PHONEAPP_TYPE_SIGN} ng-repeat="module in module_tpl.phoneapp"
+						{elseif $account->typeSign == XZAPP_TYPE_SIGN} ng-repeat="module in module_tpl.xzapp"
+						{elseif $account->typeSign == ALIAPP_TYPE_SIGN} ng-repeat="module in module_tpl.aliapp"
+						{/if} >
 							<div ng-if="module.name != 'all'" class="text-over text-left">
 								<img ng-src="{{ module.logo }}" alt="" style="width:50px;height:50px;">
 								{{ module.title }}
@@ -55,18 +63,7 @@
 				</td>
 				<td class="we7-padding-right color-default"></td>
 			</tr>
-			<tr style="display:none;">
-				<td colspan="5">
-					<div class="col-sm-1 color-gray text-left we7-padding-none">小程序应用</div>
-					<div class="col-sm-11">
-						<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="module in module_tpl.wxapp">
-							<a href="javascript:;" class="label label-info" ng-bind="module.title"></a>
-						</div>
-						
-					</div>
-				</td>
-				<td class="we7-padding-right color-default"></td>
-			</tr>
+			{if $account->typeSign == ACCOUNT_TYPE_SIGN}
 			<tr ng-show="module_tpl.show">
 				<td colspan="5">
 					<div class="col-sm-1 color-gray text-left we7-padding-none">模板</div>
@@ -74,11 +71,11 @@
 						<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="tpl in module_tpl.templates">
 							<a href="javascript:;" class="label label-info" ng-bind="tpl.title"></a>
 						</div>
-						
 					</div>
 				</td>
 				<td class="we7-padding-right color-default"></td>
 			</tr>
+			{/if}
 		</tbody>
 	</table>
 	<table class="table we7-table table-hover">
@@ -94,7 +91,6 @@
 				{/if}
 			
 		</tr>
-
 		<tbody ng-repeat="module_tpl in modules_tpl | filter:{'type':'extend'}">
 			<tr>
 				<td colspan="5" class="text-left we7-padding-right" ng-init="module_tpl.show = true">
@@ -104,13 +100,12 @@
 					<div class="link-group">
 						<a href="javascript:;" class="color-default" ng-show="module_tpl.show" ng-click="module_tpl.show = false">收起</a>
 						<a href="javascript:;" class="color-default" ng-show="!module_tpl.show" ng-click="module_tpl.show = true">展开</a>
-
 					</div>
 				</td><!--默认展开-->
 			</tr>
 			<tr ng-show="module_tpl.show">
 				<td colspan="5">
-					<div class="col-sm-1 color-gray text-left we7-padding-none">公众号应用</div>
+					<div class="col-sm-1 color-gray text-left we7-padding-none">{php echo $account->typeName}应用</div>
 					<div class="col-sm-11">
 						<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="module in module_tpl.modules">
 							<div ng-if="module.name != 'all'" class="text-over text-left">
@@ -123,18 +118,7 @@
 				</td>
 				<td class="we7-padding-right color-default"></td>
 			</tr>
-			<tr style="display:none;">
-				<td colspan="5">
-					<div class="col-sm-1 color-gray text-left we7-padding-none">小程序应用</div>
-					<div class="col-sm-11">
-						<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="module in module_tpl.wxapp">
-							<a href="javascript:;" class="label label-info" ng-bind="module.title"></a>
-						</div>
-
-					</div>
-				</td>
-				<td class="we7-padding-right color-default"></td>
-			</tr>
+			{if $account->typeSign == ACCOUNT_TYPE_SIGN}
 			<tr ng-show="module_tpl.show">
 				<td colspan="5">
 					<div class="col-sm-1 color-gray text-left we7-padding-none">模板</div>
@@ -142,14 +126,13 @@
 						<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="tpl in module_tpl.templates">
 							<a href="javascript:;" class="label label-info" ng-bind="tpl.title"></a>
 						</div>
-
 					</div>
 				</td>
 				<td class="we7-padding-right color-default"></td>
 			</tr>
+			{/if}
 		</tbody>
 	</table>
-
 	<table class="table we7-table table-hover account-package-extra">
 		<tr>
 			<th colspan="5" class="text-left">
@@ -166,7 +149,7 @@
 		{if !in_array($owner['uid'], $founders)}
 		<tr>
 			<td colspan="6">
-				<div class="col-sm-1 color-gray text-left we7-padding-none">公众号应用</div>
+				<div class="col-sm-1 color-gray text-left we7-padding-none">{php echo $account->typeName}应用</div>
 				<div class="col-sm-11 js-extra-modules">
 					<div class="col-sm-3 text-left we7-margin-bottom" ng-repeat="module in extend.modules" ng-if="extend.modules">
 						<div ng-if="module.name != 'all'" class="text-over text-left">
@@ -181,6 +164,7 @@
 				</div>
 			</td>
 		</tr>
+		{if $account->typeSign == ACCOUNT_TYPE_SIGN}
 		<tr>
 			<td colspan="6">
 				<div class="col-sm-1 color-gray text-left we7-padding-none">模板</div>
@@ -195,10 +179,12 @@
 			</td>
 		</tr>
 		{/if}
+		{/if}
 	</table>
 	{/if}
 
-		
+	
+
 	<div  class="uploader-modal modal fade module" id="jurisdiction-add">
 		<div class="modal-dialog modal-lg">
 			<div class="modal-content ">
@@ -209,12 +195,12 @@
 				<div class="modal-body material-content clearfix">
 					<div class="material-nav">
 						<a href="javascript:;" ng-click="tabChange(0)"  ng-class="{true:'active',false:''}[jurindex==0]" >应用</a>
-						<a href="javascript:;" ng-click="tabChange(1)" ng-class="{true:'active',false:''}[jurindex==1]">模板</a>
+						{if $account->typeSign == ACCOUNT_TYPE_SIGN}<a href="javascript:;" ng-click="tabChange(1)" ng-class="{true:'active',false:''}[jurindex==1]">模板</a>{/if}
 					</div>
 					<div class="material-body" ng-show="jurindex==0" id="content-modules">
 						<div class="row">
 							{loop $modules $module_name $module}
-							{if empty($module['issystem']) && $module['account_support'] == 2}
+							{if empty($module['issystem']) && $module[$account->typeSign . '_support'] == 2}
 							<div class="col-sm-2">
 								<div class="item {if is_array($current_module_names) && in_array($module_name, $current_module_names)}active{/if}"
 								     data-title="{$module['title']}"
@@ -232,6 +218,7 @@
 							{/loop}
 						</div>
 					</div>
+					{if $account->typeSign == ACCOUNT_TYPE_SIGN}
 					<div class="material-body" ng-show="jurindex==1" id="content-templates">
 						<div class="row">
 							{loop $templates $temp}
@@ -247,6 +234,7 @@
 							{/loop}
 						</div>
 					</div>
+					{/if}
 				</div>
 				<div class="material-pager text-right clearfix">
 					<div class="pull-left we7-form">
@@ -308,7 +296,7 @@
 							</tr>
 							{/if}
 							{loop $uni_groups $package}
-							{if !(is_array($owner['group']['package']) && in_array($package['id'], $owner['group']['package']))}
+								{if !(is_array($owner['group']['package']) && in_array($package['id'], $owner['group']['package']))}
 								<tr>
 									<td class="text-left">
 										<input id="check-{$package['id']}" type="checkbox" name="package[]" autocomplete="off" {if is_array($owner['group']['package']) && in_array($package['id'], $owner['group']['package'])}checked disabled{/if} {if is_array($extendpackage) && !empty($extendpackage[$package['id']])}checked {/if} value="{$package['id']}" />
@@ -352,7 +340,7 @@
 								</tr>
 								{/if}
 							{/loop}
-						</table>						
+						</table>
 					</div>
 				</div>
 				<div class="modal-footer">

@@ -10,13 +10,13 @@
 		</a>
 		{/if}
 	{/if}
-	{if $_W['account']['type'] == ACCOUNT_TYPE_APP_NORMAL}
+	{if in_array($_W['account']['type'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_ALIAPP_NORMAL))}
 		{if $selected_account['version_info']['uniacid'] != $selected_account['uniacid']}
 		<a href="{if $_W['role'] == ACCOUNT_MANAGE_NAME_CLERK}javascript:;{else}{php echo url('account/display/switch', array('uniacid' => $selected_account['uniacid'], 'type' => $_W['account']['type']))}" title="{php echo $_W['account']['name']}{/if}" target="_blank">
-			<i class="wi wi-wechat"></i>{$_W['account']['name']}
+			<i class="wi wi-{php echo $_W['account']['type_sign']}"></i>{$_W['account']['name']}
 		</a>
 		{/if}
-		<a href="{if $_W['role'] == ACCOUNT_MANAGE_NAME_CLERK}javascript:;{else}{php echo url('account/display/switch', array('uniacid' => $selected_account['version_info']['uniacid'], 'version_id' => $selected_account['version_id'], 'type' => $_W['account']['type']))}{/if}" title="{php echo $selected_account['wxapp_name']}" target="_blank">
+		<a href="{if $_W['role'] == ACCOUNT_MANAGE_NAME_CLERK}javascript:;{else}{php echo url('account/display/switch', array('uniacid' => $selected_account['version_info']['uniacid'], 'version_id' => $selected_account['version_id'], 'type' => $_W['account']['type']))}{/if}" title="{php echo $selected_account['wxapp_name']}" target="_blank" class="hidden">
 			<i class="wi wi-wxapp"></i>{$selected_account['wxapp_name']}
 		</a>
 	{/if}
@@ -28,11 +28,22 @@
 		{loop $accounts_list $account}
 		<li>
 			<a href="{php echo $account['url']}">
-				{if !empty($account['app_name'])}<span><i class="wi wi-wechat"></i>{$account['app_name']}</span>{/if}
-				{if !empty($account['app_name']) && !empty($account['wxapp_name'])}
-				<span class="plus"><i class="wi wi-plus"></i></span>
-				{/if}
-				{if !empty($account['wxapp_name'])}<span><i class="wi wi-wxapp"></i>{$account['wxapp_name']}</span>{/if}
+				<span>
+					{if $account['type_name'] == ACCOUNT_TYPE_SIGN}
+					<i class="wi wi-wechat"></i>
+					{elseif $account['type_name'] == WXAPP_TYPE_SIGN}
+					<i class="wi wi-wxapp"></i>
+					{elseif $account['type_name'] == WEBAPP_TYPE_SIGN}
+					<i class="wi wi-pc"></i>
+					{elseif $account['type_name'] == PHONEAPP_TYPE_SIGN}
+					<i class="wi wi-app"></i>
+					{elseif $account['type_name'] == XZAPP_TYPE_SIGN}
+					<i class="wi wi-xzapp"></i>
+					{elseif $account['type_name'] == ALIAPP_TYPE_SIGN}
+					<i class="wi wi-aliapp"></i>
+					{/if}
+					{$account['account_name']}
+				</span>
 			</a>
 		</li>
 		{/loop}

@@ -15,7 +15,6 @@ $do = in_array($do, $dos) ? $do : 'forward';
 
 $account_platform = new WeixinPlatform();
 
-$setting = setting_load('platform');
 if ($do == 'forward') {
 	if (empty($_GPC['auth_code'])) {
 		itoast('授权登录失败，请重试', url('account/manage'), 'error');
@@ -27,7 +26,7 @@ if ($do == 'forward') {
 	$auth_refresh_token = $auth_info['authorization_info']['authorizer_refresh_token'];
 	$auth_appid = $auth_info['authorization_info']['authorizer_appid'];
 
-	$account_info = $account_platform->getAccountInfo($auth_appid);
+	$account_info = $account_platform->getAuthorizerInfo($auth_appid);
 	if (is_error($account_info)) {
 		itoast('授权登录新建公众号失败：' . $account_info['message'], url('account/manage'), 'error');
 	}
@@ -48,11 +47,9 @@ if ($do == 'forward') {
 			$level = '2';
 		}
 	}
-	if (!empty($account_info['authorizer_info']['user_name'])) {
-		$account_found = pdo_get('account_wechats', array('original' => $account_info['authorizer_info']['user_name']));
-		if (!empty($account_found)) {
-			message('公众号已经在系统中接入，是否要更改为授权接入方式？ <div><a class="btn btn-primary" href="' . url('account/auth/confirm', array('level' => $level, 'auth_refresh_token' => $auth_refresh_token, 'auth_appid' => $auth_appid, 'acid' => $account_found['acid'], 'uniacid' => $account_found['uniacid'])) . '">是</a> &nbsp;&nbsp;<a class="btn btn-default" href="index.php">否</a></div>', '', 'tips');
-		}
+	$account_found = $account_platform->fetchSameAccountByAppid($auth_appid);
+	if (!empty($account_found)) {
+		message('公众号已经在系统中接入，是否要更改为授权接入方式？ <div><a class="btn btn-primary" href="' . url('account/auth/confirm', array('level' => $level, 'auth_refresh_token' => $auth_refresh_token, 'auth_appid' => $auth_appid, 'acid' => $account_found['acid'], 'uniacid' => $account_found['uniacid'])) . '">是</a> &nbsp;&nbsp;<a class="btn btn-default" href="index.php">否</a></div>', '', 'tips');
 	}
 	$account_insert = array(
 		'name' => $account_info['authorizer_info']['nick_name'],
@@ -139,7 +136,7 @@ if ($do == 'forward') {
 	cache_build_account($uniacid);
 	cache_delete(cache_system_key('proxy_wechatpay_account'));
 	cache_clean(cache_system_key('user_accounts'));
-	itoast('授权登录成功', url('account/manage', array('type' => '3')), 'success');
+	itoast('授权登录成功', url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL)), 'success');
 } elseif ($do == 'confirm') {
 	$auth_refresh_token = $_GPC['auth_refresh_token'];
 	$auth_appid = $_GPC['auth_appid'];
@@ -166,7 +163,7 @@ if ($do == 'forward') {
 	if (empty($post) || empty($encode_ticket)) {
 		exit('fail');
 	}
-	$decode_ticket = aes_decode($encode_ticket->Encrypt, $setting['platform']['encodingaeskey']);
+	$decode_ticket = aes_decode($encode_ticket->Encrypt, $account_platform->encodingaeskey);
 	$ticket_xml = isimplexml_load_string($decode_ticket, 'SimpleXMLElement', LIBXML_NOCDATA);
 	if (empty($ticket_xml)) {
 		exit('fail');

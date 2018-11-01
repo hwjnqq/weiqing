@@ -10,7 +10,7 @@ if (in_array($action, array('permission', 'default-entry', 'manage-account'))) {
 	if (empty($_GPC['version_id']) && intval($referer['version_id']) > 0) {
 		itoast('', $_W['siteurl'] . '&version_id=' . $referer['version_id']);
 	}
-	$account_api = WeAccount::createByUniacid($_W['uniacid']);
+	$account_api = WeAccount::createByUniacid();
 	if (is_error($account_api)) {
 		itoast('', url('module/display'));
 	}
@@ -18,8 +18,7 @@ if (in_array($action, array('permission', 'default-entry', 'manage-account'))) {
 	//模块内定死使用account
 	define('FRAME', 'account');
 	if (is_error($check_manange)) {
-		$account_display_url = $account_api->accountDisplayUrl();
-		itoast('', $account_display_url);
+		itoast('', $account_api->displayUrl);
 	}
 }
 if (in_array($action, array('group', 'manage-system'))) {
@@ -29,10 +28,6 @@ if (in_array($action, array('group', 'manage-system'))) {
 if (in_array($action, array('display'))) {
 	define('FRAME', '');
 }
-
-$account_base = WeAccount::createByType($_GPC['account_type']);
-define('ACCOUNT_TYPE', $account_base->type);
-define('ACCOUNT_TYPE_TEMPLATE', $account_base->typeTempalte);
 
 $module_all_support = module_support_type();
 $module_support = !empty($module_all_support[$_GPC['support']]) ? $module_all_support[$_GPC['support']]['type'] : ACCOUNT_TYPE_SIGN;
