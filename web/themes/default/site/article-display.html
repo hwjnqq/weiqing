@@ -1,10 +1,11 @@
 {template 'common/header'}
 <div class="we7-page-title">微官网</div>
 <ul class="we7-page-tab">
-	<li><a href="{php echo url('site/multi')}">微官网列表</a></li>
-	<li><a href="{php echo url('site/style')}">微官网模板</a></li>
-	<li class="active"><a href="{php echo url('site/article')}">文章管理</a></li>
-	<li><a href="{php echo url('site/category')}">文章分类管理</a></li>
+	{loop $active_sub_permission $active_menu}
+	{if permission_check_account_user($active_menu['permission_name'], false) && (empty($active_menu['is_display']) || is_array($active_menu['is_display']) && in_array($_W['account']['type'], $active_menu['is_display']))}
+	<li {if $action == $active_menu['active']}class="active"{/if}><a href="{$active_menu['url']}">{$active_menu['title']}</a></li>
+	{/if}
+	{/loop}
 </ul>
 <div id="js-wesite-article-display" ng-controller="wesiteArticleDisplay" ng-cloak>
 	<div class="we7-page-search we7-padding-bottom clearfix">
@@ -31,7 +32,7 @@
 				<span ng-class="setting.comment_status == 1 ? 'switch switchOn' : 'switch'" ng-click="comment()"></span>
 			</div>
 			<div class="panel-body">
-				<table class="table we7-table table-hover article-list vertical-middle" style="table-layout: fixed;">
+				<table class="table we7-table table-hover article-list vertical-middle">
 					<col width="80px">
 					<col width="70px"/>
 					<col />
@@ -53,7 +54,7 @@
 							<label for="rid-{{article.id}}">&nbsp;</label>
 						</td>
 						<td ng-bind="article.displayorder"></td>
-						<td class="text-left" ng-bind="article.title" style="text-overflow:ellipsis; white-space: nowrap;"></td>
+						<td class="text-left"><div ng-bind="article.title" class="text-over" style="max-width: 220px"></div></td>
 						<td>
 							<span class="label label-primary" ng-if="article.ishot == 1">头条</span>
 							<span class="label label-primary" ng-if="article.iscommend == 1">推荐</span>

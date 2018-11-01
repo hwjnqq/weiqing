@@ -4,19 +4,18 @@
 		素材定时群发
 	</div>
 	<ul class="we7-page-tab">
-		<li {if $_GPC['a'] == 'mass'  && $do == 'post'}class="active"{/if}>
-		<a href="{php echo url('platform/mass/post')}" >素材编辑</a>
-		</li>
-		<li {if $_GPC['a'] == 'mass' && $do == 'send'}class="active"{/if}>
-		<a href="{php echo url('platform/mass/send')}">群发记录</a>
-		</li>
+		{loop $active_sub_permission $active_menu}
+		{if permission_check_account_user($active_menu['permission_name'], false) && (empty($active_menu['is_display']) || is_array($active_menu['is_display']) && in_array($_W['account']['type'], $active_menu['is_display']))}
+		<li {if $do == $active_menu['active']}class="active"{/if}><a href="{$active_menu['url']}">{$active_menu['title']}</a></li>
+		{/if}
+		{/loop}
 	</ul>
 {/if}
 <div class="">
 	{if !empty($id)}
 		<ol class="breadcrumb we7-breadcrumb">
 			<a href="{php echo url('platform/mass/send')}"><i class="wi wi-back-circle"></i> </a>
-			<li><a href="{php echo url('platform/mass/')}">素材定时群发</a></li>
+			<li><a href="{php echo url('platform/mass/')}">定时群发</a></li>
 			<li><a href="{php echo url('platform/mass/post')}">编辑</a></li>
 		</ol>
 	{/if}
@@ -53,7 +52,7 @@
 					<span class="help-block text-danger">特别注意:发送时间不能小于当前时间.不要超过晚上11点</span>
 				</div>
 			</div>
-			{php echo module_build_form('core', $mass_info['id'], array('news'=> false, 'image'=> false,'voice'=> false,'video'=> false))}
+			{php echo module_build_form('core', $mass_info['id'], $show_post_content)}
 			<input type="submit" name="submit" value="发布" class="btn btn-primary btn-submit"/>
 		</form>
 	</div>

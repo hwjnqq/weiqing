@@ -4,10 +4,13 @@
 		<img src="./resource/images/logo/logo-lg.png" alt="" class="we7-logo"/>
 		<h2 class="upgrade-version">系统当前版本: {IMS_FAMILY}{IMS_VERSION}（{IMS_RELEASE_DATE}）</h2>
 	</div>
+	<div class="alert we7-page-alert">
+		<p><i class="wi wi-info-sign"></i>系统更新后，如果出现样式错误等，请自行更新缓存并“CTRL+F5”强行刷新</p>
+	</div>
 	<form action="" class="form we7-form" ng-if="upgrade && upgrade.upgrade">
 		<div class="upgrade-info we7-padding-bottom">
 			<div class="panel we7-panel">
-				<div class="panel-heading we7-padding">
+				<div class="panel-heading we7-padding hidden">
 					<span class="col-sm-2 we7-padding-none color-gray">最新版本</span>
 					<span class="col-sm-7 we7-padding-none">微擎 {{upgrade.family}}{{upgrade.version}}【{{upgrade.release}}】版</span>
 				</div>
@@ -67,25 +70,10 @@
 			</div>
 		</div>
 	</form>
-	<div class="panel we7-panel">
-		<div class="panel-heading">
-			更新通知
-		</div>
-		<div class="panel-body we7-padding">
-			<ul class="list-unstyled">
-			<script type="text/javascript" src="//bbs.we7.cc/api.php?mod=js&bid=17"></script>
-			</ul>
-		</div>
-	</div>
-	<div class="panel we7-panel">
-		<div class="panel-heading">
-			官方动态
-		</div>
-		<div class="panel-body we7-padding">
-			<ul class="list-unstyled">
-			<script type="text/javascript" src="//bbs.we7.cc/api.php?mod=js&bid=20"></script>
-			</ul>
-		</div>
+	<div class="upgrade-qr">
+		<i class="wi wi-wx-circle"></i>
+		<p>更新说明和官方公告请关注 <span>“微 擎 团 队”</span>订阅号查看</p>
+		<img src="//cdn.w7.cc/web/resource/images/wechat/dyh.jpg" alt="">
 	</div>
 	<div class="modal fade" id="upgrade-file" tabindex="-1" role="dialog" aria-hidden="true">
 		<div class="modal-dialog we7-modal-dialog">

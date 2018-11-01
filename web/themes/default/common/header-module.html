@@ -17,7 +17,7 @@
 
 
 <!-- 兼容历史性问题：模块内获取不到模块信息$module的问题-start -->
-{if CRUMBS_NAV == 1}
+{if defined('CRUMBS_NAV') && CRUMBS_NAV == 1}
 {php global $module;}
 {/if}
 <!-- end -->

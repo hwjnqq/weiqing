@@ -54,3 +54,25 @@ function utility_image_rename($image_source_url, $image_destination_url) {
 	$result = copy($img_source_path, $image_destination_url);
 	return $result;
 }
+
+/**
+ * 检测/更新手机验证码错误次数
+ * @param $uniacid
+ * @param $receiver
+ * @param string $verifycode
+ * @return array
+ */
+function utility_smscode_verify($uniacid, $receiver, $verifycode = '') {
+	$table = table('uni_verifycode');
+	$verify_info = $table->getByReceiverVerifycode($uniacid, $receiver, $verifycode);
+
+	if (empty($verify_info)) {
+		$table->updateFailedCount($receiver);
+		return error(-1, '短信验证码不正确');
+	} else if ($verify_info['createtime'] + 120 < TIMESTAMP) {
+		return error(-2, '短信验证码已过期，请重新获取');
+	} else {
+		return error(0, '短信验证码正确');
+	}
+
+}

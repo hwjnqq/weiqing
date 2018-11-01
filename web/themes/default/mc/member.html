@@ -16,6 +16,7 @@
 		<form action="./index.php" method="get" class="we7-form" role="form">
 			<input type="hidden" name="c" value="mc">
 			<input type="hidden" name="a" value="member">
+			<input type="hidden" name="version_id" value="{$_GPC['version_id']}">
 			<div class="form-group">
 				<label class="col-sm-2 control-label">昵称/姓名/手机号码/openid</label>
 				<div class="col-sm-5">
@@ -86,7 +87,7 @@
 					<th>昵称/真实姓名</th>
 					<th>手机</th>
 					<th >邮箱</th>
-					<th class="text-left">余额/积分</th>
+					<th class="text-left">{$creditnames['credit2']['title']}/{$creditnames['credit1']['title']}</th>
 					<th >注册时间</th>
 					<th class="text-right">操作</th>
 				</tr>
@@ -105,9 +106,9 @@
 					<td>{if $li['mobile']}{$li['mobile']}{else}未完善{/if}</td>
 					<td>{if $li['email_effective'] == 1}{$li['email']}{else}未完善{/if}</td>
 					<td class="text-left">
-						<span class="label label-primary">余额：{$li['credit2']}</span>
+						<span class="label label-primary">{$creditnames['credit2']['title']}：{$li['credit2']}</span>
 						<br>
-						<span class="label label-warning">积分：{$li['credit1']}</span>
+						<span class="label label-warning">{$creditnames['credit1']['title']}：{$li['credit1']}</span>
 					</td>
 					<td >{php echo date('Y-m-d H:i',$li['createtime'])}</td>
 					<td style="overflow:visible;">
@@ -162,13 +163,13 @@
 				</div>
 			</div>
 			<div class="form-group">
-				<label class="col-sm-2 control-label">积分</label>
+				<label class="col-sm-2 control-label">{$creditnames['credit1']['title']}</label>
 				<div class="col-sm-9 col-xs-12">
 					<input type="text" name="credit1" value="0" class="form-control"/>
 				</div>
 			</div>
 			<div class="form-group">
-				<label class="col-sm-2 control-label">余额</label>
+				<label class="col-sm-2 control-label">{$creditnames['credit2']['title']}</label>
 				<div class="col-sm-9 col-xs-12">
 					<input type="text" name="credit2" value="0" class="form-control"/>
 				</div>
@@ -377,7 +378,7 @@
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-					<div class="modal-title">设置积分名称</div>
+					<div class="modal-title">设置名称</div>
 				</div>
 				<div class="modal-body">
 					<div class="we7-form">

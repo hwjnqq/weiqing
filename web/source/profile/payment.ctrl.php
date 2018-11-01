@@ -9,9 +9,9 @@ load()->model('payment');
 load()->model('account');
 load()->func('communication');
 
-$dos = array('save_setting', 'display', 'test_alipay', 'get_setting', 'switch');
+$dos = array('save_setting', 'display', 'test_alipay', 'get_setting', 'switch', 'change_status');
 $do = in_array($do, $dos) ? $do : 'display';
-permission_check_account_user('profile_pay_setting');
+permission_check_account_user('profile_payment_pay');
 $_W['page']['title'] = '支付参数 - 公众号选项';
 
 if ($do == 'get_setting') {
@@ -46,28 +46,12 @@ if ($do == 'save_setting') {
 	$param = $_GPC['param'];
 	$setting = uni_setting_load('payment', $_W['uniacid']);
 	$pay_setting = $setting['payment'];
-	if ($type == 'credit' || $type == 'delivery' || $type == 'mix') {
-		$param['recharge_switch'] = false;
-		$param['pay_switch'] = $param['pay_switch'] == 'true' ? true : false;
-	}
-	if ($type == 'jueqiymf') {
-		$param['pay_switch'] = $param['pay_switch'] == 'true' ? true : false;
-		$param['recharge_switch'] = $param['recharge_switch'] == 'true' ? true : false;
-	}
-	
-		if ($type == 'alipay' || $type == 'baifubao' || $type == 'line') {
-			$param['pay_switch'] = $param['pay_switch'] == 'true' ? true : false;
-			$param['recharge_switch'] = $param['recharge_switch'] == 'true' ? true : false;
-		}
-	
 	
 	if ($type == 'wechat') {
 		$param['account'] = $_W['acid'];
 		if ($param['switch'] == 1) {
 			$param['signkey'] = $param['version'] == 2 ? trim($param['apikey']) : trim($param['signkey']);
 		}
-		$param['pay_switch'] = $param['pay_switch'] == 'true' ? true : false;
-		$param['recharge_switch'] = $param['recharge_switch'] == 'true' ? true : false;
 	}
 
 	if ($type == 'unionpay') {
@@ -77,8 +61,6 @@ if ($do == 'save_setting') {
 			itoast('请上联银商户私钥证书.', referer(), 'error');
 		}
 		$param = array(
-			'pay_switch' => $unionpay['pay_switch'] == 'false'? false : true,
-			'recharge_switch' => $unionpay['recharge_switch'] == 'false'? false : true,
 			'merid' => $unionpay['merid'],
 			'signcertpwd' => $unionpay['signcertpwd']
 		);
@@ -124,11 +106,30 @@ MFF/yA==
 	$payment = iserializer($pay_setting);
 	uni_setting_save('payment', $payment);
 	
-	if ($type == 'unionpay') {
-		header('LOCATION: '.url('profile/payment'));
-		exit();
+	iajax(0, '设置成功！', referer());
+}
+
+if ($do == 'change_status') {
+	$types = array('unionpay', 'jueqiymf', 'alipay', 'baifubao', 'line', 'credit', 'delivery', 'mix', 'wechat');
+	$type = in_array($_GPC['type'], $types) ? $_GPC['type'] : '';
+	if (empty($type)) {
+		iajax(-1, '参数错误！');
 	}
-	iajax(0, '');
+	$param = $_GPC['param'];
+	$setting = uni_setting_load('payment', $_W['uniacid']);
+	$pay_setting = $setting['payment'];
+	$setting_data = array(
+		'pay_switch' => $param['pay_switch'] == 'true' ? true : false,
+		'recharge_switch' => $param['recharge_switch'] == 'true' ? true : false,
+	);
+	if ($type == 'credit' || $type == 'delivery' || $type == 'mix') {
+		$param['recharge_switch'] = false;
+	}
+	$pay_setting[$type]['pay_switch'] = $setting_data['pay_switch'];
+	$pay_setting[$type]['recharge_switch'] = $setting_data['recharge_switch'];
+	$payment = iserializer($pay_setting);
+	uni_setting_save('payment', $payment);
+	iajax(0, '设置成功！', referer());
 }
 
 if ($do == 'display' || $do == 'switch') {

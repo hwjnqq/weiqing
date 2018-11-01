@@ -65,6 +65,17 @@ if (is_file($init)) {
 	require $init;
 }
 
+if (!(defined('FRAME') && in_array(FRAME, array('site', 'system')))) {
+	if (!empty($_W['uniacid'])) {
+		$_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);
+		if (empty($_W['account'])) {
+			unset($_W['uniacid']);
+		}
+		$_W['acid'] = $_W['account']['acid'];
+		$_W['weid'] = $_W['uniacid'];
+	}
+}
+
 $actions = array();
 $actions_path = file_tree(IA_ROOT . '/web/source/' . $controller);
 foreach ($actions_path as $action_path) {
@@ -163,7 +174,13 @@ function _calc_current_frames(&$frames) {
 					$get['do'] = $do;
 				}
 				$diff = array_diff_assoc($urls, $get);
-				if (empty($diff) || $get['c'] == 'profile' && $get['a'] == 'reply-setting' && $key == 'platform_reply') {
+				if (empty($diff) ||
+					$key == 'platform_site' && in_array($get['a'], array('style', 'article', 'category')) ||
+					$key == 'mc_member' && in_array($get['a'], array('editor', 'group', 'fields')) ||
+					$key == 'profile_setting' && in_array($get['a'], array('passport', 'tplnotice', 'notify', 'common')) ||
+					$key == 'profile_payment' && in_array($get['a'], array('refund')) ||
+					$key == 'statistics_visit' && in_array($get['a'], array('site', 'setting')) ||
+					$key == 'wxapp_payment' && in_array($get['a'], array('refund'))) {
 					$menu['active'] = ' active';
 				}
 			}

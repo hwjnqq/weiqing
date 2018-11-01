@@ -402,6 +402,22 @@ function cloud_m_query($module = array()) {
 	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/module.query';
 	$ret = _cloud_shipping_parse($dat, $file);
+	if (!is_error($ret)) {
+		$pirate_apps = $ret['pirate_apps'];
+		unset($ret['pirate_apps']);
+		$support_names = array('app', 'wxapp', 'webapp', 'system_welcome', 'android', 'ios', 'xzapp', 'aliapp');
+
+		foreach ($ret as $modulename => &$info) {
+			foreach ($support_names as $support) {
+				if (in_array($support, $info['site_branch']['bought']) && !empty($info['site_branch']["{$support}_support"]) && $info['site_branch']["{$support}_support"] == 2) {
+					$info['site_branch']["{$support}_support"] = 2;
+				} else {
+					$info['site_branch']["{$support}_support"] = 1;
+				}
+			}
+		}
+		$ret['pirate_apps'] = $pirate_apps;
+	}
 	return $ret;
 }
 
@@ -508,7 +524,7 @@ function cloud_t_build($name) {
 	if (empty($name)) {
 		return array();
 	}
-	$theme = table('site_templates')->getTemplateInfo(trim($name));
+	$theme = table('site_templates')->getByName(trim($name));
 	$pars = _cloud_build_params();
 	$pars['method'] = 'theme.build';
 	$pars['theme'] = $name;
@@ -550,7 +566,7 @@ function cloud_t_upgradeinfo($name) {
 	if (empty($name)) {
 		return array();
 	}
-	$theme = table('site_templates')->getTemplateInfo(trim($name));
+	$theme = table('site_templates')->getByName(trim($name));
 	$pars = _cloud_build_params();
 	$pars['method'] = 'theme.upgrade';
 	$pars['theme'] = $theme['name'];
@@ -680,10 +696,14 @@ function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '
 	if(empty($sign)) {
 		$sign = '涛盛微擎团队';
 	}
+	$account_name = empty($_W['account']['type_name']) ? '' : $_W['account']['type_name'];
+	$account_name .= empty($_W['account']['name']) ? '' : " [ {$_W['account']['name']} ] ";
+
 	$pars = _cloud_build_params();
 	$pars['method'] = 'sms.sendnew';
 	$pars['mobile'] = $mobile;
 	$pars['uniacid'] = $_W['uniacid'];
+	$pars['account_name'] = empty($account_name) ? '当前公众号' : $account_name;
 	$pars['balance'] = $balance;
 	$pars['sign'] = $sign;
 	if (!empty($postdata)) {

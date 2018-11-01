@@ -9,11 +9,14 @@ set_time_limit(60);
 
 load()->model('mc');
 
-$dos = array('display', 'add_tag', 'del_tag', 'edit_tagname', 'edit_fans_tag', 'batch_edit_fans_tag', 'download_fans', 'sync', 'fans_sync_set', 'register');
+$dos = array('display', 'add_tag', 'del_tag', 'edit_tagname', 'edit_fans_tag', 'batch_edit_fans_tag', 'download_fans', 'sync', 'fans_sync_set', 'register', 'sync_member');
 $do = in_array($do, $dos) ? $do : 'display';
 
 if ($do == 'display') {
 	$_W['page']['title'] = '粉丝列表';
+	permission_check_account_user('mc_fans_display');
+	$sync_member = uni_setting_load('sync_member');
+	$sync_member = empty($sync_member['sync_member']) ? 0 : 1;
 	$fans_tag = mc_fans_groups(true);
 	$pageindex = max(1, intval($_GPC['page']));
 	$search_mod = intval($_GPC['search_mod']) == '' ? 1 : intval($_GPC['search_mod']);
@@ -48,14 +51,12 @@ if ($do == 'display') {
 
 	$follow = intval($_GPC['follow']) ? intval($_GPC['follow']) : 1;
 	if ($follow == 1) {
-		$orderby = " ORDER BY f.`followtime` DESC";
 		$condition .= " AND f.`follow` = 1";
 	} elseif ($follow == 2) {
-		$orderby = " ORDER BY f.`unfollowtime` DESC";
 		$condition .= " AND f.`follow` = 0";
 	}
 	$select_sql = "SELECT %s FROM " .tablename('mc_mapping_fans')." AS f LEFT JOIN ".tablename('mc_fans_tag_mapping')." AS m ON m.`fanid` = f.`fanid` " . $condition ." %s";
-	$fans_list_sql = sprintf($select_sql, "f.* ", " GROUP BY f.`fanid`" . $orderby . " LIMIT " .($pageindex - 1) * $pagesize.",".$pagesize);
+	$fans_list_sql = sprintf($select_sql, "f.fanid, f.acid, f.uniacid, f.uid, f.openid, f.nickname, f.groupid, f.follow, f.followtime, f.unfollowtime, f.tag ", " GROUP BY f.`fanid` ORDER BY f.`fanid` DESC LIMIT " .($pageindex - 1) * $pagesize.",".$pagesize);
 	$fans_list = pdo_fetchall($fans_list_sql, $param);
 	if (!empty($fans_list)) {
 		foreach ($fans_list as &$v) {
@@ -108,7 +109,7 @@ if ($do == 'add_tag') {
 	if (empty($tag_name)) {
 		iajax(1, '请填写标称名称', '');
 	}
-	$account_api = WeAccount::create();
+	$account_api = WeAccount::createByUniacid();
 	$result = $account_api->fansTagAdd($tag_name);
 	if (is_error($result)) {
 		iajax(1, $result);
@@ -122,32 +123,31 @@ if ($do == 'del_tag') {
 	if (empty($tagid)) {
 		iajax(1, '标签id为空', '');
 	}
-	$account_api = WeAccount::create();
+	$account_api = WeAccount::createByUniacid();
 	$tags = $account_api->fansTagDelete($tagid);
 
-	if (!is_error($tags)) {
-		$fans_list = pdo_getall('mc_mapping_fans', array('groupid LIKE' => "%,{$tagid},%"));
-		$count = count($fans_list);
-		if (!empty($count)) {
-			$buffSize = ceil($count / 500);
-			for ($i = 0; $i < $buffSize; $i++) {
-				$sql = '';
-				$wechat_fans = array_slice($fans_list, $i * 500, 500);
-				foreach ($wechat_fans as $fans) {
-					$tagids = trim(str_replace(','.$tagid.',', ',', $fans['groupid']), ',');
-					if ($tagids == ',') {
-						$tagids = '';
-					}
-					$sql .= 'UPDATE ' . tablename('mc_mapping_fans') . " SET `groupid`='" . $tagids . "' WHERE `fanid`={$fans['fanid']};";
-				}
-				pdo_query($sql); 		// 500条更新，执行一次sql请求
-			}
-		}
-		pdo_delete('mc_fans_tag_mapping', array('tagid' => $tagid));
-		iajax(0, 'success', '');
-	} else {
+	if (is_error($tags)) {
 		iajax(-1, $tags['message'], '');
 	}
+	$fans_list = pdo_getall('mc_mapping_fans', array('groupid LIKE' => "%,{$tagid},%"));
+	$count = count($fans_list);
+	if (!empty($count)) {
+		$buffSize = ceil($count / 500);
+		for ($i = 0; $i < $buffSize; $i++) {
+			$sql = '';
+			$wechat_fans = array_slice($fans_list, $i * 500, 500);
+			foreach ($wechat_fans as $fans) {
+				$tagids = trim(str_replace(','.$tagid.',', ',', $fans['groupid']), ',');
+				if ($tagids == ',') {
+					$tagids = '';
+				}
+				$sql .= 'UPDATE ' . tablename('mc_mapping_fans') . " SET `groupid`='" . $tagids . "' WHERE `fanid`={$fans['fanid']};";
+			}
+			pdo_query($sql); 		// 500条更新，执行一次sql请求
+		}
+	}
+	pdo_delete('mc_fans_tag_mapping', array('tagid' => $tagid));
+	iajax(0, 'success', '');
 }
 
 if ($do == 'edit_tagname') {
@@ -160,7 +160,7 @@ if ($do == 'edit_tagname') {
 		iajax(1, '标签名为空', '');
 	}
 
-	$account_api = WeAccount::create();
+	$account_api = WeAccount::createByUniacid();
 	$result = $account_api->fansTagEdit($tag, $tag_name);
 	if (is_error($result)) {
 		iajax(1, $result);
@@ -171,11 +171,17 @@ if ($do == 'edit_tagname') {
 
 if ($do == 'edit_fans_tag') {
 	$fanid = intval($_GPC['fanid']);
-	$tags = $_GPC['tags'];
-
+	$tagids = $_GPC['tags'];
+	if (is_array($tagids)) {
+		foreach ($tagids as $key => $id) {
+			$tagids[$key] = intval($id);
+		}
+	} else {
+		$tagids = intval($tagids);
+	}
 	$openid = pdo_getcolumn('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'fanid' => $fanid), 'openid');
-	$account_api = WeAccount::create();
-	if (empty($tags) || !is_array($tags)) {
+	$account_api = WeAccount::createByUniacid();
+	if (empty($tagids) || !is_array($tagids)) {
 		$fans_tags =pdo_getall('mc_fans_tag_mapping', array('fanid' => $fanid), array(), 'tagid');
 		if (!empty($fans_tags)) {
 			foreach ($fans_tags as $tag) {
@@ -185,18 +191,18 @@ if ($do == 'edit_fans_tag') {
 			iajax(0);
 		}
 	} else {
-		$result = $account_api->fansTagTagging($openid, $tags);
+		$result = $account_api->fansTagTagging($openid, $tagids);
 	}
 
 	if (!is_error($result)) {
 		pdo_delete('mc_fans_tag_mapping', array('fanid' => $fanid));
-		if (!empty($tags)) {
-			foreach ($tags as $tag) {
+		if (!empty($tagids)) {
+			foreach ($tagids as $tag) {
 				pdo_insert('mc_fans_tag_mapping', array('fanid' => $fanid, 'tagid' => $tag));
 			}
-			$tags = implode(',', $tags);
+			$tagids = implode(',', $tagids);
 		}
-		pdo_update('mc_mapping_fans', array('groupid' => $tags), array('fanid' => $fanid));
+		pdo_update('mc_mapping_fans', array('groupid' => $tagids), array('fanid' => $fanid));
 	}
 	iajax(0, $result);
 }
@@ -211,7 +217,7 @@ if ($do == 'batch_edit_fans_tag') {
 		iajax(1, '请选择标签', '');
 	}
 
-	$account_api = WeAccount::create();
+	$account_api = WeAccount::createByUniacid();
 	foreach ($tags as $tag) {
 		$result = $account_api->fansTagBatchTagging($openid_list, $tag);
 		if (is_error($result)) {
@@ -228,11 +234,7 @@ if ($do == 'batch_edit_fans_tag') {
 }
 
 if ($do == 'download_fans') {
-	$next_openid = $_GPC['next_openid'];
-	if (empty($next_openid)) {
-		pdo_update('mc_mapping_fans', array('follow' => 0), array('uniacid' => $_W['uniacid']));
-	}
-	$account_api = WeAccount::create();
+	$account_api = WeAccount::createByUniacid();
 	$wechat_fans_list = $account_api->fansAll();
 
 	//重复接入公众号处理机制
@@ -271,8 +273,8 @@ if ($do == 'download_fans') {
 
 if ($do == 'sync') {
 	$type = $_GPC['type'] == 'all' ? 'all' : 'check';
-	$sync_member = intval($_GPC['sync_member']);
-	$force_init_member = empty($sync_member) ? false : true;
+	$sync_member = uni_setting_load('sync_member');
+	$force_init_member = empty($sync_member['sync_member']) ? false : true;
 
 	if ($type == 'all') {
 		$pageindex = $_GPC['pageindex'];
@@ -307,6 +309,7 @@ if ($do == 'sync') {
 
 if ($do == 'fans_sync_set') {
 	$_W['page']['title'] = '更新粉丝信息 - 公众号选项';
+	permission_check_account_user('mc_fans_fans_sync_set');
 	$operate = $_GPC['operate'];
 	if ($operate == 'save_setting') {
 		uni_setting_save('sync', intval($_GPC['setting']));
@@ -329,8 +332,14 @@ if ($do == 'register') {
 	$member_info = mc_init_fans_info($open_id, true);
 	$member_salt = pdo_getcolumn('mc_members', array('uid' => $member_info['uid']), 'salt');
 	$password = md5($password . $member_salt . $_W['config']['setting']['authkey']);
-	pdo_update('mc_members', array('password' => $password), array('uid' => $uid));
+	pdo_update('mc_members', array('password' => $password), array('uid' => $member_info['uid']));
 	iajax('0', '注册成功', url('mc/member/base_information', array('uid' => $member_info['uid'])));
+}
+
+if ($do == 'sync_member') {
+	$sync_member = $_GPC['sync_member'] == 1 ? 1 : 0;
+	uni_setting_save('sync_member', $sync_member);
+	iajax(0, $sync_member);
 }
 template('mc/fans');
 

@@ -6,7 +6,15 @@
 		<input type="hidden" name="a" value="display">
 		<input type="hidden" name="do" value="{$_GPC['do']}">
 		<input type="hidden" name="type" value="{$_GPC['type']}">
-		<label for="" class="col-sm-1 control-label">用户组</label>
+		<label for="" class="col-sm-1 control-label" style="width: 60px;">用户状态</label>
+		<div class="col-sm-2" style="width: 140px;">
+			<select name="expire" class="form-control">
+				<option value="0" {if $_GPC['expire'] == 0}selected="selected"{/if}>不限</option>
+				<option value="1" {if $_GPC['expire'] == 1}selected="selected"{/if}>未到期</option>
+				<option value="2" {if $_GPC['expire'] == 2}selected="selected"{/if}>已到期</option>
+			</select>
+		</div>
+		<label for="" class="col-sm-1 control-label" style="width: 50px;">用户组</label>
 		<div class="input-controls col-sm-3">
 			<select name="groupid" class="we7-select form-control">
 				<option value="" selected="selected">不限</option>
@@ -15,7 +23,7 @@
 				{/loop}
 			</select>
 		</div>
-		<div class="input-group pull-left col-sm-4">
+		<div class="input-group pull-left col-sm-3">
 			<input type="text" name="search" id="" value="{$_GPC['search']}" class="form-control"  placeholder="搜索用户名或手机号" />
 			<span class="input-group-btn"><button class="btn btn-default"><i class="fa fa-search"></i></button></span>
 		</div>
@@ -78,7 +86,7 @@
 				<a href="javascript:;" ng-click="operate(user.uid, 'recycle_restore')" ng-if="type == 'recycle'">启用</a>
 				<a href="javascript:;" ng-click="operate(user.uid, 'recycle_delete')" class="del" ng-if="type == 'recycle'">删除</a>
 			</div>
-			<div class="manage-option text-right" ng-if="!user.founder">
+			<div class="manage-option text-right" ng-if="!user.founder && type != 'recycle' && type != 'check'">
 				<a href="{{links.edit}}uid={{user.uid}}">基础信息</a>
 				<a href="{{links.edit}}&do=edit_modules_tpl&uid={{user.uid}}">应用模板权限</a>
 				<a href="{{links.edit}}&do=edit_account&uid={{user.uid}}">使用账号列表</a>
@@ -86,7 +94,7 @@
 		</td>
 	</tr>
 	<tr ng-if="!users">
-		<td colspan="7" class="text-center">暂无数据</td>
+		<td colspan="10" class="text-center">暂无数据</td>
 	</tr>
 </table>
 

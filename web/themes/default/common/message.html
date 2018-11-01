@@ -21,7 +21,13 @@
 				</script>
 			</div>
 			{else}
-				<p><a href="javascript:history.go(-1);" class="btn btn-primary">点击这里返回上一页</a> &nbsp; <a href="./?refresh" class="btn btn-primary">首页</a></p>
+				<p>
+					<a href="javascript:history.go(-1);" class="btn btn-primary">点击这里返回上一页</a>
+					<a href="./?c=account&a=display" class="btn btn-primary">首页</a>
+					{loop $extend $button}
+						<a href="{$button['url']}" class="{$button['class']}">{$button['title']}</a>
+					{/loop}
+				</p>
 			{/if}		
 		</div>
 	{template 'common/footer'}

@@ -36,13 +36,13 @@
 				</div>
 			</div>
 			<div class="form-group">
-				<label class="col-sm-2 control-label">积分</label>
+				<label class="col-sm-2 control-label">{$creditnames['credit1']['title']}</label>
 				<div class="col-sm-9 col-xs-12">
 					<input type="text" name="credit1" value="0" class="form-control"/>
 				</div>
 			</div>
 			<div class="form-group">
-				<label class="col-sm-2 control-label">余额</label>
+				<label class="col-sm-2 control-label">{$creditnames['credit2']['title']}</label>
 				<div class="col-sm-9 col-xs-12">
 					<input type="text" name="credit2" value="0" class="form-control"/>
 				</div>
@@ -68,6 +68,8 @@
 </form>
 <script>
 	require(['validator'], function(){
+		var credit2_title = "{$creditnames['credit2']['title']}";
+		var credit1_title = "{$creditnames['credit1']['title']}";
 		$(function(){
 			$('#form1').bootstrapValidator({
 				fields: {
@@ -133,7 +135,7 @@
 						validators: {
 							regexp: {
 								regexp: /^[0-9]\d*$/i,
-								message: '积分格式不正确'
+								message: credit1_title + '格式不正确'
 							}
 						}
 					},
@@ -141,7 +143,7 @@
 						validators: {
 							regexp: {
 								regexp: /^[0-9]\d*$/i,
-								message: '余额格式不正确'
+								message: credit2_title + '格式不正确'
 							}
 						}
 					}

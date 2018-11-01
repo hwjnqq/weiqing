@@ -1,8 +1,8 @@
 {template 'common/header'}
 <div class="account-list-add-step" id="js-wxapp-create" ng-controller="MainCtrl" ng-cloak>
 	<ol class="breadcrumb we7-breadcrumb">
-		<a href="{url 'wxapp/manage'}"><i class="wi wi-back-circle"></i></a>
-		<li><a href="{url 'wxapp/display'}">小程序列表</a></li>
+		<a href="{php echo url ('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL))}"><i class="wi wi-back-circle"></i></a>
+		<li><a href="{php echo url ('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL))}">小程序列表</a></li>
 		<li>新建小程序</li>
 	</ol>
 	<div class="we7-step">
@@ -64,6 +64,36 @@
 											<label for="" class="control-label col-sm-2">版本号</label>
 											<div class="form-controls col-sm-10">
 												<input type="text" name="version" ng-model="wxappinfo.version" class="form-control wxapp-name" placeholder="版本号，只能是数字、点，数字最多两位，例如 1.01 / 1.0.1">
+											</div>
+										</div>
+										<div class="form-group">
+											<label for="" class="control-label col-sm-2">头像</label>
+											<div class="form-controls col-sm-8">
+												<div class="input-more we7-input-img" ng-class="{'active': wxappinfo.headimg}">
+													<img ng-src="{{wxappinfo.headimg}}" width="150px" ng-if="wxappinfo.headimg" ng-style="{'height': 'auto'}">
+													<a href="javascript:;" class="input-addon" ng-click="uploadMultiImage('headimg')" ng-hide="wxappinfo.headimg"><span>+</span></a>
+													<input type="text" name="headimg" ng-model="wxappinfo.headimg" ng-style="{'display' : 'none'}">
+													<div class="cover-dark">
+														<a href="javascript:;" class="cut" ng-click="uploadMultiImage('headimg')">更换</a>
+														<a href="javascript:;" class="del" ng-click="delMultiImage('headimg')"><i class="fa fa-times text-danger"></i></a>
+													</div>
+												</div>
+												<span class="help-block"></span>
+											</div>
+										</div>
+										<div class="form-group">
+											<label for="" class="control-label col-sm-2">二维码</label>
+											<div class="form-controls col-sm-8">
+												<div class="input-more we7-input-img" ng-class="{'active': wxappinfo.qrcode}">
+													<img ng-src="{{wxappinfo.qrcode}}" width="150px" ng-if="wxappinfo.qrcode" ng-style="{'height': 'auto'}">
+													<a href="javascript:;" class="input-addon" ng-click="uploadMultiImage('qrcode')" ng-hide="wxappinfo.qrcode"><span>+</span></a>
+													<input type="text" name="qrcode" ng-model="wxappinfo.qrcode" ng-style="{'display' : 'none'}">
+													<div class="cover-dark">
+														<a href="javascript:;" class="cut" ng-click="uploadMultiImage('qrcode')">更换</a>
+														<a href="javascript:;" class="del" ng-click="delMultiImage('qrcode')"><i class="fa fa-times text-danger"></i></a>
+													</div>
+												</div>
+												<span class="help-block"></span>
 											</div>
 										</div>
 										<div class="form-group">

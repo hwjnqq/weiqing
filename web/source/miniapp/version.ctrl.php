@@ -8,7 +8,7 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('miniapp');
 load()->model('welcome');
 
-$dos = array('home');
+$dos = array('home', 'display');
 $do = in_array($do, $dos) ? $do : 'home';
 $_W['page']['title'] = '小程序 - 管理';
 
@@ -18,6 +18,10 @@ if (!empty($version_id)) {
 	$version_info = miniapp_version($version_id);
 }
 
+if ($do == 'display') {
+	$version_list = miniapp_version_all($_W['uniacid']);
+	template('miniapp/version-display');
+}
 if ($do == 'home') {
 	$notices = welcome_notices_get();
 	template('miniapp/version-home');

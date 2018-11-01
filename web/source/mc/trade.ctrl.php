@@ -10,7 +10,8 @@ load()->model('card');
 load()->model('module');
 
 permission_check_account_user('mc_member');
-
+$creditnames = uni_setting_load('creditnames');
+$creditnames = $creditnames['creditnames'];
 $_W['page']['title'] = '会员交易-会员管理';
 $dos = array('consume', 'user', 'modal', 'credit', 'card', 'cardsn', 'tpl', 'cardconsume');
 $do = in_array($do, $dos) ? $do : 'tpl';
@@ -248,7 +249,7 @@ if($do == 'consume') {
 if($do == 'credit') {
 	$type = trim($_GPC['type']);
 	$num = floatval($_GPC['num']);
-	$names = array('credit1' => '积分', 'credit2' => '余额');
+	$names = array('credit1' => $creditnames['credit1']['title'], 'credit2' => $creditnames['credit2']['title']);
 	$credits = mc_credit_fetch($uid);
 	if($num < 0 && abs($num) > $credits[$type]) {
 		exit("会员账户{$names[$type]}不够");
@@ -263,13 +264,13 @@ if($do == 'credit') {
 	$openid = pdo_fetchcolumn('SELECT openid FROM ' . tablename('mc_mapping_fans') . ' WHERE acid = :acid AND uid = :uid', array(':acid' => $_W['acid'], ':uid' => $uid));
 	if(!empty($openid)) {
 		if($type == 'credit1') {
-			mc_notice_credit1($openid, $uid, $num, '管理员后台操作积分');
+			mc_notice_credit1($openid, $uid, $num, '管理员后台操作' . $creditnames['credit1']['title']);
 		}
 		if($type == 'credit2') {
 			if($num > 0) {
-				mc_notice_recharge($openid, $uid, $num, '', "管理员后台操作余额,增加{$value}余额");
+				mc_notice_recharge($openid, $uid, $num, '', "管理员后台操作{$creditnames['credit1']['title']},增加{$value}{$creditnames['credit2']['title']}");
 			} else {
-				mc_notice_credit2($openid, $uid, $num, 0, '', '',  "管理员后台操作余额,减少{$value}余额");
+				mc_notice_credit2($openid, $uid, $num, 0, '', '',  "管理员后台操作{$creditnames['credit1']['title']},减少{$value}{$creditnames['credit2']['title']}");
 			}
 		}
 	}

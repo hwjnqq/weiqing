@@ -1,7 +1,7 @@
 {template 'common/header'}
 <div class="we7-page-title">会员管理</div>
 {template 'mc/common'}
-{if $do == 'display'}
+{if $do == 'list'}
 <form action="" method="post">
 <div class="panel panel-default">
 	<div class="panel-heading">
@@ -50,8 +50,7 @@
 				<td></td>
 			</tr>
 		</tbody>
-	</table>
-	</div>
+		</table>
 	</div>
 	<div>
 		<button type="submit" class="btn btn-primary col-lg-1" name="submit" value="提交">提交</button>

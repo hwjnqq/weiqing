@@ -198,15 +198,6 @@
 	});
 //-->
 </script>
-<ol class="breadcrumb we7-breadcrumb">
-	<a href="./index.php?c=platform&amp;a=reply&amp;m=keyword"><i class="fa fa-chevron-circle-left"></i> </a>
-	<li>
-		<a href="./index.php?c=platform&amp;a=reply&amp;m=keyword">系统更新</a>
-	</li>
-	<li>
-		<a href="./index.php?c=platform&amp;a=reply&amp;do=post&amp;m=keyword">升级处理</a>
-	</li>
-</ol>
 {if $step == 'files'}
 {if !empty($_GPC['m'])}
 <div class="steps">
@@ -339,7 +330,7 @@
 			</script>
 			{else}
 			<script>
-				location.href = '{url "module/manage-system/upgrade" array("module_name" => $m, "flag" => 1, "support" => $_GPC["support"])}';
+				location.href = '{url "module/manage-system/upgrade" array("module_name" => $m, "flag" => 1, "support" => $_GPC["support"], "has_new_support" => $has_new_support)}';
 			</script>
 			{/if}
 			

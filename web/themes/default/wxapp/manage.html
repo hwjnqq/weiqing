@@ -53,9 +53,9 @@
 				<div class="color-gray" ng-bind="item.description"></div>
 			</td>
 			<td class="clearfix">
-				<div class="item col-sm-6" ng-if="item.last_modules">
-					<img ng-src="{{item.last_modules.logo}}" class="icon"/>
-					<div class="name" ng-bind="item.last_modules.title"></div>
+				<div class="item col-sm-6" ng-if="item.module">
+					<img ng-src="{{item.module.logo}}" class="icon"/>
+					<div class="name" ng-bind="item.module.title"></div>
 				</div>
 			</td>
 			<td class="text-center">
@@ -78,7 +78,7 @@
 			</td>
 		</tr>
 		<tr ng-if="!version_exist">
-			<td colspan="3" class="text-center">暂无数据</td>
+			<td colspan="5" class="text-center">暂无数据</td>
 		</tr>
 	</table>
 	<div class="modal fade" id="modal_edit_versioninfo"  tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -133,7 +133,7 @@
 					<h4 class="modal-title">选择小程序</h4>
 				</div>
 				<div class="modal-body">
-					<div class="input-group" style="width: 500px">
+					<div class="input-group" style="width: 400px">
 						<input class="form-control" name="title" ng-model="search.moduleName" type="text" placeholder="名称">
 						<span class="input-group-btn">
 							<button ng-click="searchModuleName()" class="btn btn-default">
@@ -141,7 +141,7 @@
 							</button>
 						</span>
 					</div>
-					<div class="we7-padding">
+					<div class="we7-margin-top">
 						<div class="col-sm-2 text-center we7-margin-bottom select-module-wxapp" ng-repeat="module in modules" ng-if="modules">
 							<a href="javascript:;" ng-click="selectedWxModule(module, $event)">
 								<img ng-src="{{module.logo}}" style="width:50px;height:50px;">

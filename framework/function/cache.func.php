@@ -16,7 +16,7 @@ function cache_type() {
 	global $_W;
 	$cacher = $connect = '';
 	$cache_type = strtolower($_W['config']['setting']['cache']);
-	
+
 	if (extension_loaded($cache_type)) {
 		$config = $_W['config']['setting'][$cache_type];
 		if (!empty($config['server']) && !empty($config['port'])) {
@@ -68,7 +68,7 @@ function cache_load($key, $unserialize = false) {
 }
 
 function &cache_global($key) {
-	
+
 }
 
 /**
@@ -77,8 +77,26 @@ function &cache_global($key) {
  * @param array $params
  * @return array|mixed|string
  */
-function cache_system_key($cache_key, $params = array()) {
+function cache_system_key($cache_key) {
 	$cache_key_all = cache_key_all();
+
+	// 兼容旧函数（字符串形式传入参数拼接缓存键）
+	$params = array();
+	$args = func_get_args();
+	if (empty($args[1])) {
+		$args[1] = '';
+	}
+	if (!is_array($args[1])) {
+		$cache_key = $cache_key_all['caches'][$cache_key]['key'];
+		preg_match_all('/\%([a-zA-Z\_\-0-9]+)/', $cache_key, $matches);
+		for ($i = 0; $i < func_num_args()-1; $i++) {
+			$cache_key = str_replace($matches[0][$i], $args[$i+1], $cache_key);
+		}
+		return 'we7:' . $cache_key;
+	} else {
+		$params = $args[1];
+	}
+
 	// 如果是直接传入字符串缓存键（如module_info:wnstore:128），检查后直接返回
 	if (empty($params)) {
 		$res = preg_match_all('/([a-zA-Z\_\-0-9]+):/', $cache_key, $matches);
@@ -167,6 +185,10 @@ function cache_relation_keys($key) {
 		return $key;
 	}
 
+	if (!strexists($key, 'we7:')) {
+		return array($key);
+	}
+
 	// 将传入的缓存键的参数值取出 => we7:user:liuguilong:18
 	$cache_param_values = explode(':', $key);
 	$cache_name = $cache_param_values[1];
@@ -181,9 +203,7 @@ function cache_relation_keys($key) {
 	$cache_key_all = cache_key_all();
 	$cache_relations = $cache_key_all['groups'];
 	$cache_common_params = $cache_key_all['common_params'];
-
 	$cache_info = $cache_key_all['caches'][$cache_name];
-
 	if (empty($cache_info)) {
 		return error(2, '缓存 : ' . $key . '不存在');
 	}
@@ -194,7 +214,6 @@ function cache_relation_keys($key) {
 		}
 		$relation_keys = $cache_relations[$cache_info['group']]['relations'];
 		$cache_keys = array();
-
 		foreach ($relation_keys as $key => $val) {
 			// 获取到 $cache_key_all 数组中保存的缓存键名
 			if ($val == $cache_name) {
@@ -202,7 +221,6 @@ function cache_relation_keys($key) {
 			} else {
 				$relation_cache_key = $cache_key_all['caches'][$cache_name]['key'];
 			}
-
 			foreach ($cache_common_params as $param_name => $param_val) {
 				// 取出参数名称 => user:%name:%uid
 				preg_match_all('/\%([a-zA-Z\_\-0-9]+)/', $relation_cache_key, $matches);
@@ -211,7 +229,11 @@ function cache_relation_keys($key) {
 					$cache_key_params[$param_name] = $cache_common_params[$param_name];
 				}
 				// 将参数名称 和 参数值进行拼接 array('name' => 'liuguilong', 'uid' => 18)
-				$cache_key_params = array_combine($matches[1], $cache_param_values);
+				if (!empty($cache_prams_values) || count($matches[1]) == count($cache_param_values)) {
+					$cache_key_params = array_combine($matches[1], $cache_param_values);
+				} else {
+					$cache_key_params = array();
+				}
 			}
 
 			$cache_key = cache_system_key($val, $cache_key_params);
@@ -244,6 +266,13 @@ function cache_key_all() {
 		),
 
 		'caches' => array(
+
+			'test' => array(
+				// 模块详细信息
+				'key' => 'test:%name:%sex:%age',
+				'group' => '',
+			),
+
 			'module_info' => array(
 				// 模块详细信息
 				'key' => 'module_info:%module_name',
@@ -281,7 +310,7 @@ function cache_key_all() {
 
 			'unimodules' => array(
 				// 当前公众号及所有者可用的模块(获取指定公号下所有安装模块及模块信息)
-				'key' => 'unimodules:%uniacid:%enabled',
+				'key' => 'unimodules:%uniacid',
 				'group' => '',
 			),
 
@@ -335,8 +364,8 @@ function cache_key_all() {
 				'group' => '',
 			),
 
-			'wxapp_version' => array(
-				'key' => 'wxapp_version:%version_id',
+			'miniapp_version' => array(
+				'key' => 'miniapp_version:%version_id',
 				'group' => '',
 			),
 
@@ -404,8 +433,8 @@ function cache_key_all() {
 				'group' => '',
 			),
 
-			'account_auth_refreshtoken' => array(
-				'key' => 'account_auth_refreshtoken:%acid',
+			'account_oauth_refreshtoken' => array(
+				'key' => 'account_oauth_refreshtoken:%acid',
 				'group' => '',
 			),
 
@@ -556,7 +585,7 @@ function cache_key_all() {
 			),
 
 			'system_frame' => array(
-				'key' => 'system_frame:%uid',
+				'key' => 'system_frame:%uniacid',
 				'group' => '',
 			),
 

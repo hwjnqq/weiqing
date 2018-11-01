@@ -123,13 +123,24 @@ function miniapp_support_wxapp_modules() {
 	$store_table = table('store');
 	$store_table->searchWithEndtime();
 	$buy_wxapp_modules = $store_table->searchAccountBuyGoods($_W['uniacid'], STORE_TYPE_WXAPP_MODULE);
+	$store_table->searchWithEndtime();
+	$buy_group = $store_table->searchAccountBuyGoods($_W['uniacid'], STORE_TYPE_PACKAGE);
+	$buy_group_wxapp_modules = array();
+	if (!empty($buy_group)) {
+		foreach ($buy_group as $id => $group) {
+			$uni_groups = uni_groups(array($id));
+			if (is_array($uni_groups[$id]['wxapp'])) {
+				$buy_group_wxapp_modules = array_merge($buy_group_wxapp_modules, $uni_groups[$id]['wxapp']);
+			}
+		}
+	}
 	$extra_permission = table('account')->getAccountExtraPermission($_W['uniacid']);
 	$extra_modules = empty($extra_permission['modules']) ? array() : $extra_permission['modules'];
 	foreach ($extra_modules as $key => $value) {
 		$extra_modules[$value] = module_fetch($value);
 		unset($extra_modules[$key]);
 	}
-	$wxapp_modules = array_merge($buy_wxapp_modules, $wxapp_modules, $extra_modules);
+	$wxapp_modules = array_merge($buy_wxapp_modules, $buy_group_wxapp_modules, $wxapp_modules, $extra_modules);
 	if (empty($wxapp_modules)) {
 		return array();
 	}
@@ -351,6 +362,8 @@ function miniapp_version($version_id) {
 		return $version_info;
 	}
 
+	//需包含对象的类的定义，否则在解序列化对象的时候，报错__PHP_Incomplete_Class_Name
+	load()->classs('wxapp.account');
 	$cachekey = cache_system_key('miniapp_version', array('version_id' => $version_id));
 	$cache = cache_load($cachekey);
 	if (!empty($cache)) {
@@ -378,8 +391,7 @@ function miniapp_version_detail_info($version_info) {
 			foreach ($version_info['modules'] as $i => $module) {
 				$module_info = module_fetch($module['name']);
 				if (!empty($module['uniacid'])) {
-					$link_account = uni_fetch($module['uniacid']);
-					$module_info['account'] = $link_account;
+					$module_info['account'] = (array) uni_fetch($module['uniacid']);
 				}
 				unset($version_info['modules'][$module['name']]);
 				if (!in_array($module['name'], $uni_modules)) {
@@ -482,7 +494,7 @@ function miniapp_update_daily_visittrend() {
 
 function miniapp_insert_date_visit_trend($date) {
 	global $_W;
-	$account_api = WeAccount::create();
+	$account_api = WeAccount::createByUniacid();
 	$wxapp_stat = $account_api->getDailyVisitTrend($date);
 	if (is_error($wxapp_stat) || empty($wxapp_stat)) {
 		return error(-1, '调用微信接口错误');

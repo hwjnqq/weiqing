@@ -1,10 +1,11 @@
 {template 'common/header'}
 <div class="we7-page-title">微官网</div>
 <ul class="we7-page-tab">
-	<li class="active"><a href="{php echo url('site/multi')}" >微官网列表</a></li>
-	<li><a href="{php echo url('site/style')}">微官网模板</a></li>
-	<li><a href="{php echo url('site/article')}">文章管理</a></li>
-	<li><a href="{php echo url('site/category')}">文章分类管理</a></li>
+	{loop $active_sub_permission $active_menu}
+	{if permission_check_account_user($active_menu['permission_name'], false) && (empty($active_menu['is_display']) || is_array($active_menu['is_display']) && in_array($_W['account']['type'], $active_menu['is_display']))}
+	<li {if $action == $active_menu['active']}class="active"{/if}><a href="{$active_menu['url']}">{$active_menu['title']}</a></li>
+	{/if}
+	{/loop}
 </ul>
 <div id="js-wesite-display" ng-controller="WesiteDisplay" ng-cloak>
 	<div class="we7-page-search we7-padding-bottom clearfix">

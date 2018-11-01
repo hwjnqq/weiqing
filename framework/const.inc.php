@@ -202,9 +202,9 @@ define('PERMISSION_WXAPP', 'wxapp');
 define('PERMISSION_SYSTEM', 'site');
 
 //微信支付类型
-define('PAYMENT_WECHAT_TYPE_NORMAL', 1);
-define('PAYMENT_WECHAT_TYPE_BORROW', 2);
-define('PAYMENT_WECHAT_TYPE_SERVICE', 3);
+define('PAYMENT_WECHAT_TYPE_NORMAL', 1);//微信支付
+define('PAYMENT_WECHAT_TYPE_BORROW', 2);//借用支付
+define('PAYMENT_WECHAT_TYPE_SERVICE', 3);//服务商支付
 define('PAYMENT_WECHAT_TYPE_CLOSE', 4);
 
 //平台给粉丝发消息的类型
@@ -355,6 +355,8 @@ define('WEBAPP_DISPLAY_TYPE', 4);
 define('PHONEAPP_DISPLAY_TYPE', 5);
 //平台
 define('PLATFORM_DISPLAY_TYPE', 6);
+//应用
+define('MODULE_DISPLAY_TYPE', 7);
 
 //密码强度
 define('PASSWORD_STRONG_STATE', '至少8-16个字符，至少1个大写字母，1个小写字母和1个数字，其他可以是任意字符');

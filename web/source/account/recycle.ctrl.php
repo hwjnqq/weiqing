@@ -5,8 +5,6 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-load()->model('account');
-
 $dos = array('display', 'recover', 'delete');
 $do = in_array($do, $dos) ? $do : 'display';
 //只有创始人、主管理员才有权限使用回收站功能
@@ -104,5 +102,15 @@ if($do == 'delete') {
 		}
 	
 	$jobid = account_delete($acid);
-	iajax(0, '删除成功！', url('system/job/display', array('jobid'=>$jobid)));
+	if (user_is_founder($_W['uid'], true)) {
+		$url = url('system/job/display', array('jobid'=>$jobid));
+	} else {
+		$highrole = permission_account_user_role($_W['uid']);
+		if (in_array($highrole, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
+			$url = url('account/recycle', array('account_type' => ACCOUNT_TYPE));
+		} else {
+			$url = url('account/manage', array('account_type' => ACCOUNT_TYPE));
+		}
+	}
+	iajax(0, '删除成功！', $url);
 }

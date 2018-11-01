@@ -4,12 +4,11 @@
 </div>
 {if $do == 'display'}
 <ul class="we7-page-tab">
-	<li {if $action == 'payment'} class="active"{/if}>
-	<a href="{php echo url('profile/payment/display')}">支付配置</a>
-	</li>
-	<li {if $action == 'refund'} class="active"{/if}>
-	<a href="{php echo url('profile/refund/display')}">退款配置</a>
-	</li>
+	{loop $active_sub_permission $active_menu}
+	{if permission_check_account_user($active_menu['permission_name'], false) && (empty($active_menu['is_display']) || is_array($active_menu['is_display']) && in_array($_W['account']['type'], $active_menu['is_display']))}
+	<li {if $action == $active_menu['active']}class="active"{/if}><a href="{$active_menu['url']}">{$active_menu['title']}</a></li>
+	{/if}
+	{/loop}
 </ul>
 <div class="js-profile-payment" ng-controller="paymentCtrl" ng-cloak>
 	<table class="table we7-table table-hover table-form">
@@ -623,7 +622,7 @@
 				<label>
 					<input name="" class="form-control" type="checkbox" style="display: none;" ng-click="switchStatus(config.paytype, 'recharge_switch')" ng-if="paysetting[config.paytype].recharge_set === true">
 					<input name="" class="form-control" type="checkbox" style="display: none;" ng-else>
-					<div ng-class="paysetting[config.paytype].recharge_switch === true ? 'switch switchOn' : 'switch'"></div>
+					<div ng-class="paysetting[config.paytype].recharge_switch === true || paysetting[config.paytype].recharge_switch === 'true' ? 'switch switchOn' : 'switch'"></div>
 				</label>
 			</td>
 			<td colspan="2" ng-if="paysetting[config.paytype].recharge_set !== true">不可启用</td>
@@ -636,7 +635,7 @@
 			<td colspan="2">
 				<label>
 					<input name="" class="form-control" type="checkbox"  style="display: none;" ng-click="switchStatus(config.paytype, 'pay_switch')">
-					<div ng-class="paysetting[config.paytype].pay_switch === true ? 'switch switchOn' : 'switch'"></div>
+					<div ng-class="paysetting[config.paytype].pay_switch === true || paysetting[config.paytype].pay_switch === 'true' ? 'switch switchOn' : 'switch'"></div>
 				</label>
 			</td>
 			<td colspan="2"></td>

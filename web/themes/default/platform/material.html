@@ -3,18 +3,11 @@
 	素材管理
 </div>
 <ul class="we7-page-tab">
-	<li{if $type == 'news'} class="active"{/if}>
-	<a href="{php echo url('platform/material', array('type' => 'news'))}">微信图文</a>
-	</li>
-	<li{if $type == 'image'} class="active"{/if}>
-	<a href="{php echo url('platform/material', array('type' => 'image', 'server' => MATERIAL_WEXIN))}">图片</a>
-	</li>
-	<li{if $type == 'voice'} class="active"{/if}>
-	<a href="{php echo url('platform/material', array('type' => 'voice', 'server' => MATERIAL_WEXIN))}">语音</a>
-	</li>
-	<li{if $type == 'video'} class="active"{/if}>
-	<a href="{php echo url('platform/material', array('type' => 'video', 'server' => MATERIAL_WEXIN))}">视频</a>
-	</li>
+	{loop $active_sub_permission $active_menu}
+	{if permission_check_account_user($active_menu['permission_name'], false) && $active_menu['is_display'] !== false && (empty($active_menu['is_display']) || is_array($active_menu['is_display']) && in_array($_W['account']['type'], $active_menu['is_display']))}
+	<li {if $type == $active_menu['active']}class="active"{/if}><a href="{$active_menu['url']}">{$active_menu['title']}</a></li>
+	{/if}
+	{/loop}
 </ul>
 <div id="main" ng-controller="materialDisplay" ng-cloak>
 	<div class="material">
@@ -36,8 +29,8 @@
 					</div>
 				</div>
 				<div class="pull-right">
-					{if $_W['account']['level'] > 2 && $_W['account']['isconnect'] = 1}
-					<a href="javascript:;" ng-click="sync('{$type}')" class="btn btn-default">同步微信</a>
+					{if $_W['account']['level'] > 2 || $_W['account']['type'] == ACCOUNT_TYPE_XZAPP_NORMAL && $_W['account']['isconnect'] = 1}
+					<a href="javascript:;" ng-click="sync('{$type}')" class="btn btn-default">同步{$_W['account']['type_name']}</a>
 					{/if}
 					<a href="javascript:;" data-toggle="modal" data-target="#new_type" class="btn btn-primary we7-margin-left">新建图文消息</a>
 				</div>
@@ -53,9 +46,9 @@
 									<a href="javascript:;">
 										<img src="./resource/images/reply.png" alt="" />
 										<div class="content">
-											<div class="title">创建微信图文</div>
+											<div class="title">创建{$_W['account']['type_name']}图文</div>
 											<div class="state">
-												微信图文消息会自动同步至微信素材库，
+												图文消息会自动同步至{$_W['account']['type_name']}素材库，
 												并可以直接群发给粉丝
 											</div>
 										</div>
@@ -80,7 +73,7 @@
 			</div>
 			<div class="btn-group we7-btn-group" style="top:15px;">
 				<a href="{php echo url('platform/material', array('type' => $type))}" class="btn {if $server != MATERIAL_WEXIN && $server != MATERIAL_LOCAL} active {/if}">全部</a>
-				<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_WEXIN))}" class="btn {if $server == MATERIAL_WEXIN} active {/if}">微信</a>
+				<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_WEXIN))}" class="btn {if $server == MATERIAL_WEXIN} active {/if}">{$_W['account']['type_name']}</a>
 				<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_LOCAL))}" class="btn {if $server == MATERIAL_LOCAL} active {/if}">服务器</a>
 			</div>
 			<div class="material-appmsg-list">
@@ -92,7 +85,11 @@
 							{if $material['model'] == 'local'}
 							<i class="wi wi-local pull-right color-default" style="font-size: 20px;"></i>
 							{else}
-							<i class="wi wi-wx-circle pull-right color-green" style="font-size: 20px;"></i>
+								{if in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
+									<i class="wi wi-xzapp pull-right color-green" style="font-size: 20px;"></i>
+								{else}
+									<i class="wi wi-wx-circle pull-right color-green" style="font-size: 20px;"></i>
+								{/if}
 							{/if}
 							{if $material['prompt_msg'] && $material['model'] != 'local'}
 							<div class="undone-tips">
@@ -175,17 +172,17 @@
 			<div class="upload-queue"></div>
 			<div class="material-list-head clearfix">
 				<div class="action">
-					{if $_W['account']['level'] > 2 && $_W['account']['isconnect'] = 1}
-					<a href="javascript:;" class="btn btn-default" ng-click="sync('{$type}')">同步微信</a>
+					{if $_W['account']['level'] > 2 || $_W['account']['type'] == ACCOUNT_TYPE_XZAPP_NORMAL && $_W['account']['isconnect'] = 1}
+					<a href="javascript:;" class="btn btn-default" ng-click="sync('{$type}')">同步{$_W['account']['type_name']}</a>
 					{/if}
 					{if $server == MATERIAL_WEXIN}
-					<a href="javascript:;" class="btn btn-primary we7-margin-left" ng-click="upload('image', true, true)">上传微信图片</a>
+					<a href="javascript:;" class="btn btn-primary we7-margin-left" ng-click="upload('image', true, true)">上传{$_W['account']['type_name']}图片</a>
 					{else}
 					<a href="javascript:;" class="btn btn-primary we7-margin-left" ng-click="upload('image', true, false)">上传服务器图片</a>
 					{/if}
 				</div>
 				<div class="btn-group we7-btn-group">
-					<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_WEXIN))}" class="btn {if $server == MATERIAL_WEXIN} active {/if}">微信</a>
+					<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_WEXIN))}" class="btn {if $server == MATERIAL_WEXIN} active {/if}">{$_W['account']['type_name']}</a>
 					<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_LOCAL))}" class="btn {if $server == MATERIAL_LOCAL} active {/if}">服务器</a>
 				</div>
 			</div>
@@ -196,15 +193,19 @@
 						{if $server == 'local'}
 						<i class="wi wi-local pull-right color-default" style="font-size: 20px;"></i>
 						{else}
-						<i class="wi wi-wx-circle pull-right color-green" style="font-size: 20px;"></i>
+							{if in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
+								<i class="wi wi-xzapp pull-right color-green" style="font-size: 20px;"></i>
+							{else}
+								<i class="wi wi-wx-circle pull-right color-green" style="font-size: 20px;"></i>
+							{/if}
 						{/if}
 						<span class="appimg-title">{$image['filename']}</span>
 					</div>
 					<div class="img-item">
-						{if $server == 'local'}
-						<img class="img-thumb" src="{php echo tomedia($image['attachment']);}">
+						{if $server == 'local' || !empty($_W['setting']['remote']['type'])}
+							<img class="img-thumb" src="{php echo tomedia($image['attachment']);}">
 						{else}
-						<img class="img-thumb" src="{php echo tomedia($image['attachment'], true);}">
+							<img class="img-thumb" src="{php echo tomedia($image['attachment'], true);}">
 						{/if}
 					</div>
 					<div class="img-opr">
@@ -233,10 +234,10 @@
 			<div class="material-list-head clearfix">
 				<div class="action">
 					{if $_W['account']['level'] > 2 && $_W['account']['isconnect'] = 1}
-					<a href="javascript:;" class="btn btn-default" ng-click="sync('voice')">同步微信</a>
+					<a href="javascript:;" class="btn btn-default" ng-click="sync('voice')">同步{$_W['account']['type_name']}</a>
 					{/if}
 					{if $server == MATERIAL_WEXIN}
-					<a href="javascript:;" class="btn btn-primary we7-margin-left" ng-click="upload('voice', true, true)">上传微信语音</a>
+					<a href="javascript:;" class="btn btn-primary we7-margin-left" ng-click="upload('voice', true, true)">上传{$_W['account']['type_name']}语音</a>
 					{else}
 					<a href="javascript:;" class="btn btn-primary we7-margin-left" ng-click="upload('voice', true, false)">上传服务器语音</a>
 					{/if}
@@ -253,7 +254,11 @@
 						{if $server == 'local'}
 						<i class="wi wi-local pull-right color-default" style="font-size: 20px;"></i>
 						{else}
-						<i class="wi wi-wx-circle pull-right color-green" style="font-size: 20px;"></i>
+							{if in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
+								<i class="wi wi-xzapp pull-right color-green" style="font-size: 20px;"></i>
+							{else}
+								<i class="wi wi-wx-circle pull-right color-green" style="font-size: 20px;"></i>
+							{/if}
 						{/if}
 						<span class="audio-time">{php echo date('m月d日', $voice['createtime'])}</span>
 					</div>
@@ -428,6 +433,7 @@
 			'postwechat_url' : "{php echo url('platform/material-post/upload_news')}",
 			'group' : {php echo json_encode($group)},
 			'syncNews' : "{$_GPC['sync_news']}",
+			'typeName' : "{$_W['account']['type_name']}"
 		});
 		angular.bootstrap($('#main'), ['materialApp']);
 		$('.material-appmsg-list .material-appmsg-item').wookmark({

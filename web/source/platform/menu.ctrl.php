@@ -7,10 +7,11 @@ defined('IN_IA') or exit('Access Denied');
 
 load()->model('mc');
 load()->model('menu');
+load()->model('material');
 
 $dos = array('display', 'delete', 'refresh', 'post', 'push', 'copy', 'current_menu');
 $do = in_array($do, $dos) ? $do : 'display';
-$_W['page']['title'] = '公众号 - 自定义菜单';
+$_W['page']['title'] = $_W['account']['type_name'] . ' - 自定义菜单';
 
 if($_W['isajax']) {
 	if(!empty($_GPC['method'])) {
@@ -18,7 +19,9 @@ if($_W['isajax']) {
 	}
 }
 
+
 if($do == 'display') {
+	permission_check_account_user('platform_menu_conditional');
 	set_time_limit(0);
 
 	$type = !empty($_GPC['type']) ? intval($_GPC['type']) : MENU_CURRENTSELF;
@@ -83,6 +86,7 @@ if ($do == 'copy') {
 }
 
 if ($do == 'post') {
+	permission_check_account_user('platform_menu_default');
 	$type = intval($_GPC['type']);
 	$id = intval($_GPC['id']);
 	$copy = intval($_GPC['copy']);
@@ -205,10 +209,9 @@ if ($do == 'post') {
 		}
 
 		$is_conditional = $post['type'] == MENU_CONDITIONAL ? true : false;
-		$menu = menu_construct_createmenu_data($post, $is_conditional);
-
+		$account_api = WeAccount::createByUniacid();
+		$menu = $account_api->menuBuild($post, $is_conditional);
 		if ($_GPC['submit_type'] == 'publish' || $is_conditional) {
-			$account_api = WeAccount::create();
 			$result = $account_api->menuCreate($menu);
 		} else {
 			$result = true;

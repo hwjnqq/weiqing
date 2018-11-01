@@ -1,7 +1,22 @@
 {template 'common/header'}
+<ol class="breadcrumb we7-breadcrumb">
+	<a href="{php echo url('mc/member')}"><i class="wi wi-back-circle"></i> </a>
+	<li>
+		<a href="{php echo url('mc/member')}">会员列表</a>
+	</li>
+	<li>
+		{if $do == 'credit_statistics'}
+		数据统计
+		{elseif $do == 'member_credits'}
+		积分/余额
+		{else}
+		基本信息
+		{/if}
+	</li>
+</ol>
 <div class="btn-group we7-btn-group">
 	<a href="{php echo url('mc/member/base_information', array('uid' => $uid))}" class="btn {if $do == 'base_information'}active{/if}">基本信息</a>
-	<a href="{php echo url('mc/member/member_credits', array('uid' => $uid))}" class="btn {if $do == 'member_credits'}active{/if}">积分/余额</a>
+	<a href="{php echo url('mc/member/member_credits', array('uid' => $uid))}" class="btn {if $do == 'member_credits'}active{/if}">{$creditnames['credit1']['title']}/{$creditnames['credit2']['title']}</a>
 	<a href="{php echo url('mc/member/credit_statistics', array('uid' => $uid, 'type' => 1))}" class="btn {if $do == 'credit_statistics'}active{/if}">数据统计</a>
 </div>
 {if $do == 'credit_statistics'}
@@ -63,20 +78,22 @@
 			<col />
 			<col width="100px">
 			<tr>
-				<th class="text-left" colspan="3">会员积分/余额操作</th>
+				<th class="text-left" colspan="3">会员{$creditnames['credit1']['title']}/{$creditnames['credit2']['title']}操作</th>
 			</tr>
 			<tr>
-				<td class="table-label">积分</td>
+				<td class="table-label">{$creditnames['credit1']['title']}</td>
 				<td>{$credits['credit1']}</td>
 				<td class="text-right">
-					<div class="link-group"><a href="javascript:;" title="积分" class="modal-trade-credit1" data-type="credit1" data-uid="{$uid}">修改</a></div>
+					<div class="link-group"><a href="javascript:;" title="{$creditnames['credit1']['title']}" class="modal-trade-credit1" data-type="credit1" data-uid="{$uid}" data-title="{$creditnames['credit1']['title']}
+">修改</a></div>
 				</td>
 			</tr>
 			<tr>
-				<td class="table-label">余额</td>
+				<td class="table-label">{$creditnames['credit2']['title']}</td>
 				<td>{$credits['credit2']}</td>
 				<td class="text-right">
-					<div class="link-group"><a href="javascript:;" title="余额" class="modal-trade-credit2" data-type="credit2" data-uid="{$uid}">修改</a></div>
+					<div class="link-group"><a href="javascript:;" title="{$creditnames['credit2']['title']}" class="modal-trade-credit2" data-type="credit2" data-uid="{$uid}" data-title="{$creditnames['credit2']['title']}
+">修改</a></div>
 				</td>
 			</tr>
 		</table>
@@ -90,15 +107,15 @@
 			<tr>
 				<th colspan="6">
 					<div class="btn-group we7-btn-group">
-						<a href="{php echo url('mc/member/member_credits', array('uid' => $uid, 'type' => 'credit1'))}" class="btn {if $type == 'credit1'}active{/if}">积分记录</a>
-						<a href="{php echo url('mc/member/member_credits', array('uid' => $uid, 'type' => 'credit2'))}" class="btn {if $type == 'credit2'}active{/if}">余额记录</a>
+						<a href="{php echo url('mc/member/member_credits', array('uid' => $uid, 'type' => 'credit1'))}" class="btn {if $type == 'credit1'}active{/if}">{$creditnames['credit1']['title']}记录</a>
+						<a href="{php echo url('mc/member/member_credits', array('uid' => $uid, 'type' => 'credit2'))}" class="btn {if $type == 'credit2'}active{/if}">{$creditnames['credit2']['title']}记录</a>
 					</div>
 				</th>
 			</tr>
 			<tr>
 				<th>账户类型</th>
 				<th class="text-center">操作员</th>
-				<th class="text-center">积分增减</th>
+				<th class="text-center">{$creditnames[$type]['title']}增减</th>
 				<th class="text-center">模块</th>
 				<th class="text-center">操作时间</th>
 				<th class="text-center">备注</th>
@@ -106,7 +123,7 @@
 			{if !empty($records)}
 				{loop $records $record}
 				<tr>
-					<td class="text-center">{if $record['credittype'] == 'credit2'}余额{else}积分{/if}</td>
+					<td class="text-center">{if $record['credittype'] == 'credit2'}{$creditnames['credit2']['title']}{else}{$creditnames['credit1']['title']}{/if}</td>
 					<td class="text-center">{$record['username']}</td>
 					<td class="text-center">{$record['num']}</td>
 					<td class="text-center">{$record['system']}</td>

@@ -80,6 +80,11 @@ class DB {
 			trigger_error($sqlsafe['message'], E_USER_ERROR);
 			return false;
 		}
+		if ($GLOBALS['_W']['config']['setting']['development'] == 3) {
+			if ($GLOBALS['error_handler'] instanceof Raven_ErrorHandler) {
+				$GLOBALS['error_handler']->handleError(E_USER_ERROR, $sql);
+			}
+		}
 		$statement = $this->pdo->prepare($sql);
 		return $statement;
 	}
@@ -99,7 +104,7 @@ class DB {
 			trigger_error($sqlsafe['message'], E_USER_ERROR);
 			return false;
 		}
-		$starttime = microtime();
+		$starttime = microtime(true);
 		if (empty($params)) {
 			$result = $this->pdo->exec($sql);
 			$this->logging($sql, array(), $this->pdo->errorInfo());
@@ -110,7 +115,7 @@ class DB {
 
 		$this->logging($sql, $params, $statement->errorInfo());
 
-		$endtime = microtime();
+		$endtime = microtime(true);
 		$this->performance($sql, $endtime - $starttime);
 		if (!$result) {
 			return false;
@@ -481,6 +486,7 @@ class DB {
 	/**
 	 * 返回完整数据表名(加前缀)(返回是主库的数据表前缀+表明)
 	 * @param string $table 表名
+	 * @param boolean $force 是否强制增加前缀，某些用户设置前缀会和表名有前部一样，导致无法添加前缀
 	 * @return string
 	 */
 	public function tablename($table) {

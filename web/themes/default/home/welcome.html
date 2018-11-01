@@ -1,6 +1,7 @@
 {template 'common/header'}
 <div class="welcome-container" id="js-home-welcome" ng-controller="WelcomeCtrl" ng-cloak>
 	<div class="welcome-container">
+		{if permission_check_account_user('statistics_fans', false)}
 		<div class="panel we7-panel account-stat">
 			<div class="panel-heading">
 				今日关键指标/昨日关键指标
@@ -38,6 +39,7 @@
 				</div>
 			</div>
 		</div>
+		{/if}
 		<div class="panel we7-panel notice notice-tab">
 			<div class="panel-heading">
 				{if permission_check_account_user('see_notice_post')}<a href="./index.php?c=article&a=notice&do=post" class="color-default pull-right we7-margin-left">+新建</a>{/if}

@@ -132,20 +132,25 @@ function mc_fetch($uid, $fields = array()) {
 /**
  * 获取一个会员所有信息
  * @param mixed $uid 会员 uid
+ * @param int $uniacid 所属帐号uniacid
  * @return array
  * */
-function mc_fetch_one($uid) {
+function mc_fetch_one($uid, $uniacid = 0) {
 	$uid = mc_openid2uid($uid);
 	if (empty($uid)) {
 		return array();
 	}
-	$cachekey = cache_system_key(CACHE_KEY_MEMBER_INFO, $uid);
+	$cachekey = cache_system_key('memberinfo', array('uid' => $uid));
 	$cache = cache_load($cachekey);
 
 	if (!empty($cache)) {
 		return $cache;
 	}
-	$result = pdo_get('mc_members', array('uid' => $uid));
+	$params = array('uid' => $uid);
+	if (!empty($uniacid) && intval($uniacid) > 0) {
+		$params['uniacid'] = intval($uniacid);
+	}
+	$result = pdo_get('mc_members', $params);
 	if (!empty($result)) {
 		$result['avatar'] = tomedia($result['avatar']);
 		$result['credit1'] = floatval($result['credit1']);
@@ -213,7 +218,7 @@ function mc_fansinfo($openidOruid, $acid = 0, $uniacid = 0){
 		}
 	}
 	if (empty($fan) && $openid == $_W['openid'] && !empty($_SESSION['userinfo'])) {
-		$fan['tag'] = unserialize(base64_decode($_SESSION['userinfo']));
+		$fan['tag'] = iunserializer(base64_decode($_SESSION['userinfo']));
 		$fan['uid'] = 0;
 		$fan['openid'] = $fan['tag']['openid'];
 		$fan['follow'] = 0;
@@ -253,30 +258,35 @@ function mc_oauth_fans($openid, $acid = 0){
 function mc_oauth_userinfo($acid = 0) {
 	global $_W;
 	if (isset($_SESSION['userinfo'])) {
-		$userinfo = unserialize(base64_decode($_SESSION['userinfo']));
-		if (!empty($userinfo['subscribe']) || !empty($userinfo['nickname'])) {
+		$userinfo = iunserializer(base64_decode($_SESSION['userinfo']));
+		if (!empty($userinfo) || is_array($userinfo)) {
 			return $userinfo;
 		}
 	}
 	if ($_W['container'] != 'wechat') {
 		return array();
 	}
-	load()->func('tpl');
-	include template('mc/iswxapp', TEMPLATE_INCLUDEPATH);
-	exit;
+	//公众号不能授权直接判断小程序是否可以授权
+	$result = mc_oauth_account_userinfo();
+	if (is_error($result)) {
+		load()->func('tpl');
+		include template('mc/iswxapp', TEMPLATE_INCLUDEPATH);
+		exit;
+	}
+	return $result;
+
 }
 
 function mc_oauth_account_userinfo($url = '') {
 	global $_W;
 	// 认证号, 静默获取用户信息, 不需要跳转到网页授权获取用户信息.
 	if (!empty($_SESSION['openid']) && intval($_W['account']['level']) >= 3) {
-		$oauth_account = WeAccount::create();
+		$oauth_account = WeAccount::createByUniacid();
 		$userinfo = $oauth_account->fansQueryInfo($_SESSION['openid']);
 		if (!is_error($userinfo) && !empty($userinfo) && is_array($userinfo) && !empty($userinfo['nickname'])) {
 			$userinfo['nickname'] = stripcslashes($userinfo['nickname']);
 			$userinfo['avatar'] = $userinfo['headimgurl'];
 			$_SESSION['userinfo'] = base64_encode(iserializer($userinfo));
-
 			$fan = mc_fansinfo($_SESSION['openid']);
 			if (!empty($fan)) {
 				$record = array(
@@ -339,7 +349,7 @@ function mc_oauth_account_userinfo($url = '') {
 	if (empty($_W['account']['oauth']['key'])) {
 		return error(-2, '公众号未设置 appId 或 secret.');
 	}
-	if (intval($_W['account']['oauth']['level']) < 4) {
+	if (intval($_W['account']['oauth']['level']) < 4 && !in_array($_W['account']['oauth']['level'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_WXAPP_WORK))) {
 		return error(-3, '公众号非认证服务号, 无法获取用户信息.');
 	}
 
@@ -348,13 +358,12 @@ function mc_oauth_account_userinfo($url = '') {
 	if (!empty($url)) {
 		$_SESSION['dest_url'] = urlencode($url);
 	}
-
-	$unisetting = uni_setting($_W['uniacid']);
 	$str = '';
 	if(uni_is_multi_acid()) {
 		$str = "&j={$_W['acid']}";
 	}
-	$url = (!empty($unisetting['oauth']['host']) ? ($unisetting['oauth']['host'] . '/') : $_W['siteroot']) . "app/index.php?i={$_W['uniacid']}{$str}&c=auth&a=oauth&scope=userinfo";
+	$oauth_url = uni_account_oauth_host();
+	$url = $oauth_url . "app/index.php?i={$_W['uniacid']}{$str}&c=auth&a=oauth&scope=userinfo";
 	$callback = urlencode($url);
 
 	$oauth_account = WeAccount::create($_W['account']['oauth']);
@@ -504,6 +513,9 @@ function mc_require($uid, $fields, $pre = '') {
  */
 function mc_credit_update($uid, $credittype, $creditval = 0, $log = array()) {
 	global $_W;
+	$creditnames = uni_setting_load('creditnames');
+	$creditnames = $creditnames['creditnames'];
+
 	$credittype = trim($credittype);
 	$credittypes = mc_credit_types();
 	$clerk_types = array(
@@ -548,7 +560,7 @@ function mc_credit_update($uid, $credittype, $creditval = 0, $log = array()) {
 		}
 	}
 	if ($credittype == 'credit1') {
-		$credittype_name = '积分';
+		$credittype_name = $creditnames['credit1']['title'];
 	} elseif ($credittype == 'credit2') {
 		$credittype_name = '元';
 	}
@@ -573,6 +585,7 @@ function mc_credit_update($uid, $credittype, $creditval = 0, $log = array()) {
 		'store_id' => intval($log[4]),
 		'clerk_type' => $clerk_type,
 		'remark' => $log[1],
+		'real_uniacid' => mc_current_real_uniacid()
 	);
 	pdo_insert('mc_credits_record', $data);
 
@@ -669,7 +682,7 @@ function mc_fans_groups($force_update = false) {
 	if(!empty($results) && !$force_update) {
 		return $results;
 	}
-	$account_api = WeAccount::create();
+	$account_api = WeAccount::createByUniacid();
 	if (!$account_api->isTagSupported()) {
 		return array();
 	}
@@ -738,11 +751,11 @@ function _mc_login($member) {
  * @return array
  */
 function mc_fields() {
-	$fields = cache_load('usersfields');
+	$fields = cache_load(cache_system_key('usersfields'));
 	if (empty($fields)) {
 		load()->model('cache');
 		cache_build_users_struct();
-		$fields = cache_load('usersfields');
+		$fields = cache_load(cache_system_key('usersfields'));
 	}
 	return $fields;
 }
@@ -944,7 +957,7 @@ function mc_group_update($uid = 0) {
 		$user = $_W['member'];
 		$user['openid'] = $_W['openid'];
 	} else {
-		$user = pdo_get('mc_members', array('uniacid' => $_W['uniacid'], 'uid' => $uid), array('uid', ' realname', ' credit1', ' credit6', ' groupid'));
+		$user = pdo_get('mc_members', array('uniacid' => $_W['uniacid'], 'uid' => $uid), array('uid', 'realname', 'credit1', 'credit6', 'groupid'));
 		$user['openid'] = pdo_getcolumn('mc_mapping_fans', array('acid' => $_W['acid'], 'uid' => $uid), 'openid');
 	}
 	if(empty($user)) {
@@ -1001,7 +1014,7 @@ function mc_notice_init() {
 	if($_W['account']['level'] < 3) {
 		return error(1, '公众号没有经过认证，不能使用模板消息和客服消息');
 	}
-	$account = WeAccount::create();
+	$account = WeAccount::createByUniacid($_W['uniacid']);
 	if(is_null($account)) {
 		return error(1, '创建公众号操作对象失败');
 	}
@@ -1049,9 +1062,9 @@ function mc_notice_public($openid, $title, $sender, $content, $url = '', $remark
 /*
  * 会员余额充值微信模板消息和客服消息通知
  * $openid  粉丝openid
- * $uid     会员uid 默认为当前会员
- * $num     充值金额。单位（元）
- * $url     跳转链接
+ * $uid	 会员uid 默认为当前会员
+ * $num	 充值金额。单位（元）
+ * $url	 跳转链接
  * $remark  操作备注
  * */
 function mc_notice_recharge($openid, $uid = 0, $num = 0, $url = '', $remark = '') {
@@ -1116,13 +1129,13 @@ function mc_notice_recharge($openid, $uid = 0, $num = 0, $url = '', $remark = ''
 
 /*
  * 会员余额变更通知
- * $openid          粉丝openid
- * $uid             会员uid 默认为当前会员
- * $credit2_num     消费金额。单位（元）
- * $credit1_num     获得积分
- * $store           消费门店
- * $url             跳转链接
- * $remark          备注
+ * $openid		  粉丝openid
+ * $uid			 会员uid 默认为当前会员
+ * $credit2_num	 消费金额。单位（元）
+ * $credit1_num	 获得积分
+ * $store		   消费门店
+ * $url			 跳转链接
+ * $remark		  备注
  * */
 function mc_notice_credit2($openid, $uid, $credit2_num, $credit1_num = 0, $store = '线下消费', $url = '', $remark = '谢谢惠顾，点击查看详情') {
 	global $_W;
@@ -1190,12 +1203,12 @@ function mc_notice_credit2($openid, $uid, $credit2_num, $credit1_num = 0, $store
 
 /*
  * 会员积分变更通知
- * $openid          粉丝openid
- * $uid             会员uid 默认为当前会员
- * $credit1_num     积分数量。如果是消耗积分，使用负数即可。即：-1000
- * $tip             积分变更原因
- * $url             跳转链接
- * $remark          备注
+ * $openid		  粉丝openid
+ * $uid			 会员uid 默认为当前会员
+ * $credit1_num	 积分数量。如果是消耗积分，使用负数即可。即：-1000
+ * $tip			 积分变更原因
+ * $url			 跳转链接
+ * $remark		  备注
  * */
 function mc_notice_credit1($openid, $uid, $credit1_num, $tip, $url = '', $remark = '谢谢惠顾，点击查看详情') {
 	global $_W;
@@ -1332,13 +1345,13 @@ function mc_notice_group($openid, $old_group, $now_group, $url = '', $remark = '
 
 /*
  * 会员卡计次充值
- * $openid          粉丝openid
- * $uid             会员uid
- * $type            冲次项目（eg:理发计次）
- * $num             本次充值次数
- * $total_num       总剩余次数
- * $endtime         服务截至日期
- * $remark          备注
+ * $openid		  粉丝openid
+ * $uid			 会员uid
+ * $type			冲次项目（eg:理发计次）
+ * $num			 本次充值次数
+ * $total_num	   总剩余次数
+ * $endtime		 服务截至日期
+ * $remark		  备注
  * */
 function mc_notice_nums_plus($openid, $type, $num, $total_num, $remark = '感谢您的支持，祝您生活愉快！') {
 	global $_W;
@@ -1395,13 +1408,13 @@ function mc_notice_nums_plus($openid, $type, $num, $total_num, $remark = '感谢
 
 /*
  * 会员卡计次消费
- * $openid          粉丝openid
- * $uid             会员uid
- * $card_id         卡号
- * $type            消费项目（eg:理发计次）
- * $num             剩余次数
- * $endtime         服务截至日期
- * $remark          备注
+ * $openid		  粉丝openid
+ * $uid			 会员uid
+ * $card_id		 卡号
+ * $type			消费项目（eg:理发计次）
+ * $num			 剩余次数
+ * $endtime		 服务截至日期
+ * $remark		  备注
  * */
 function mc_notice_nums_times($openid, $card_id, $type, $num, $remark = '感谢您对本店的支持，欢迎下次再来！') {
 	global $_W;
@@ -1458,13 +1471,13 @@ function mc_notice_nums_times($openid, $card_id, $type, $num, $remark = '感谢�
 
 /*
  * 会员卡计时充值
- * $openid          粉丝openid
- * $uid             会员uid
- * $card_id         卡号
- * $type            消费项目（eg:理发计次）
- * $num             剩余次数
- * $endtime         服务截至日期
- * $remark          备注
+ * $openid		  粉丝openid
+ * $uid			 会员uid
+ * $card_id		 卡号
+ * $type			消费项目（eg:理发计次）
+ * $num			 剩余次数
+ * $endtime		 服务截至日期
+ * $remark		  备注
  * */
 function mc_notice_times_plus($openid, $card_id, $type, $fee, $days, $endtime = '', $remark = '感谢您对本店的支持，欢迎下次再来！') {
 	global $_W;
@@ -1521,11 +1534,11 @@ function mc_notice_times_plus($openid, $card_id, $type, $fee, $days, $endtime = 
 
 /*
  * 会员服务到期提醒
- * $openid          粉丝openid
- * $title           服务说明（eg:您好，您有商品即将到期，请您注意。）
- * $type            服务项目（eg:游泳时长）
- * $endtime         服务截至日期
- * $remark          备注
+ * $openid		  粉丝openid
+ * $title		   服务说明（eg:您好，您有商品即将到期，请您注意。）
+ * $type			服务项目（eg:游泳时长）
+ * $endtime		 服务截至日期
+ * $remark		  备注
  * */
 function mc_notice_times_times($openid, $title, $type, $endtime = '', $remark = '请注意时间，防止服务失效！') {
 	global $_W;
@@ -1558,6 +1571,72 @@ function mc_notice_times_times($openid, $title, $type, $endtime = '', $remark = 
 	if($_W['account']['level'] == ACCOUNT_SUBSCRIPTION_VERIFY || is_error($status) || empty($account->noticetpl['times_times']['tpl'])) {
 		$info = "【{$_W['account']['name']}】-【{$type}】服务到期通知\n";
 		$info .= "您的{$type}即将到期，有效期至【{$endtime}】。\n";
+		$info .= !empty($remark) ? "备注：{$remark}\n\n" : '';
+		$custom = array(
+			'msgtype' => 'text',
+			'text' => array('content' => urlencode($info)),
+			'touser' => $openid,
+		);
+		$status = $account->sendCustomNotice($custom);
+	}
+	return $status;
+}
+
+/**
+ * 订单支付成功通知
+ * @param $openid  接收用户的openid
+ * @param $username  用户名
+ * @param $order_sn	订单号
+ * @param $money 订单金额
+ * @param $goods_info  商品信息
+ * @param string $title  通知摘要
+ * @param string $remark  通知备注
+ * @param string $url  消息跳转链接
+ * @return array|bool
+ */
+function mc_notice_pay_success($openid, $username, $order_sn, $money, $goods_info, $title = '尊敬的客户，您的订单已支付成功', $remark = '', $url = '') {
+	global $_W;
+	$money = sprintf("%.2f", $money);
+	if(empty($money)|| empty($openid)) {
+		return error(-1, '参数错误');
+	}
+	$account = mc_notice_init();
+	if(is_error($account)) {
+		return error(-1, $account['message']);
+	}
+	if($_W['account']['level'] == ACCOUNT_SERVICE_VERIFY && !empty($account->noticetpl['pay_success']['tpl'])) {
+		$data = array(
+			'first' => array(
+				'value' => $title,
+				'color' => '#ff510'
+			),
+			'keyword1' => array(
+				'value' => $username,
+				'color' => '#ff510'
+			),
+			'keyword2' => array(
+				'value' => $order_sn,
+				'color' => '#ff510'
+			),
+			'keyword3' => array(
+				'value' => $money. '元',
+				'color' => '#ff510'
+			),
+			'keyword4' => array(
+				'value' => $goods_info,
+				'color' => '#ff510'
+			),
+			'remark' => array(
+				'value' => $remark ,
+				'color' => '#ff510'
+			),
+		);
+		$status = $account->sendTplNotice($openid, $account->noticetpl['pay_success']['tpl'], $data, $url);
+	}
+	if($_W['account']['level'] == ACCOUNT_SUBSCRIPTION_VERIFY || is_error($status) || empty($account->noticetpl['pay_success']['tpl'])) {
+		$info = "【{$_W['account']['name']}】付款成功通知\n";
+		$info .= "您编号为{$order_sn}的订单已成功支付{$money}。\n";
+		$info .= "商品信息:{$goods_info}。\n";
 		$info .= !empty($remark) ? "备注：{$remark}\n\n" : '';
 		$custom = array(
 			'msgtype' => 'text',
@@ -1636,7 +1715,7 @@ function mc_init_fans_info($openid, $force_init_member = false){
 	global $_W;
 	static $account_api;
 	if (empty($account_api)) {
-		$account_api = WeAccount::create();
+		$account_api = WeAccount::createByUniacid();
 	}
 	if (is_array($openid)) {
 		$fans_list = $account_api->fansBatchQueryInfo($openid);
@@ -1644,7 +1723,16 @@ function mc_init_fans_info($openid, $force_init_member = false){
 		$fans_list = $account_api->fansQueryInfo($openid);
 	}
 	if (empty($fans_list) || is_error($fans_list)) {
-		return true;
+		//未认证号没有获取用户信息权限，此处直接插入一个Openid空记录
+		if ($fans_list['errno'] == '48001') {
+			$fans_list = array(
+				'openid' => $openid,
+				'subscribe_time' => TIMESTAMP,
+				'subscribe' => 1,
+			);
+		} else {
+			return true;
+		}
 	}
 	if (!is_array($openid)) {
 		$fans_list = array($fans_list);
@@ -1656,6 +1744,7 @@ function mc_init_fans_info($openid, $force_init_member = false){
 		}
 
 		$fans_mapping = mc_fansinfo($fans['openid']);
+		unset($fans['remark'], $fans['subscribe_scene'], $fans['qr_scene'], $fans['qr_scene_str']);
 		$fans_update_info = array(
 			'openid' => $fans['openid'],
 			'acid' => $_W['acid'],
@@ -1668,6 +1757,9 @@ function mc_init_fans_info($openid, $force_init_member = false){
 			'unionid' => $fans['unionid'],
 			'groupid' => !empty($fans['tagid_list']) ? (','.join(',', $fans['tagid_list']).',') : '',
 		);
+		if (empty($fans_update_info['groupid'])) {
+			unset($fans_update_info['groupid']);
+		}
 		if ($force_init_member) {
 			$member_update_info = array(
 				'uniacid' => $_W['uniacid'],
@@ -1680,7 +1772,7 @@ function mc_init_fans_info($openid, $force_init_member = false){
 			);
 
 			if (empty($fans_mapping['uid'])) {
-				$email = md5($openid).'@we7.cc';
+				$email = md5($fans['openid']).'@we7.cc';
 				$email_exists_member = pdo_getcolumn('mc_members', array('email' => $email), 'uid');
 				if (!empty($email_exists_member)) {
 					$uid = $email_exists_member;
@@ -1698,8 +1790,7 @@ function mc_init_fans_info($openid, $force_init_member = false){
 			} else {
 				$fans_update_info['uid'] = $fans_mapping['uid'];
 				pdo_update('mc_members', $member_update_info, array('uid' => $fans_mapping['uid']));
-				$cachekey = cache_system_key(CACHE_KEY_MEMBER_INFO, $fans_mapping['uid']);
-				cache_delete($cachekey);
+				cache_delete(cache_system_key('memberinfo', array('uid' => $fans_mapping['uid'])));
 			}
 		}
 
@@ -1912,15 +2003,11 @@ function mc_parse_profile($profile) {
  * @param unknown $members 会员数组
  * @return string 处理后的会员信息字符串
  */
-function mc_member_export_parse($members){
+function mc_member_export_parse($members, $header = array()){
 	if (empty($members)) {
 		return false;
 	}
 	$groups = mc_groups();
-	$header = array(
-		'uid' => 'UID', 'nickname' => '昵称', 'realname' => '姓名', 'groupid' => '会员组',
-		'mobile' => '手机', 'email' => '邮箱', 'birthday' => '生日', 'credit1' => '积分', 'credit2' => '余额', 'createtime' => '注册时间',
-	);
 	$keys = array_keys($header);
 	$html = "\xEF\xBB\xBF";
 	foreach ($header as $li) {
@@ -2066,7 +2153,7 @@ function mc_send_content_formate($data) {
 	$send['touser'] = trim($data['openid']);
 	$send['msgtype'] = $type;
 	if ($type == 'text') {
-		$send['text'] = array('content' => urlencode($content));
+		$send['text'] = array('content' => urlencode(emoji_unicode_decode($content)));
 	} elseif ($type == 'image') {
 		$send['image'] = array('media_id' => $content);
 		$material = material_get($content);

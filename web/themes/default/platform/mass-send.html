@@ -3,12 +3,11 @@
 	素材定时群发
 </div>
 <ul class="we7-page-tab">
-	<li {if $_GPC['a'] == 'mass'  && $do == 'list'}class="active"{/if}>
-		<a href="{php echo url('platform/mass/')}" >素材定时群发</a>
-	</li>
-	<li {if $_GPC['a'] == 'mass' && $do == 'send'}class="active"{/if}>
-		<a href="{php echo url('platform/mass/send')}">群发记录</a>
-	</li>
+	{loop $active_sub_permission $active_menu}
+	{if permission_check_account_user($active_menu['permission_name'], false) && (empty($active_menu['is_display']) || is_array($active_menu['is_display']) && in_array($_W['account']['type'], $active_menu['is_display']))}
+	<li {if $do == $active_menu['active']}class="active"{/if}><a href="{$active_menu['url']}">{$active_menu['title']}</a></li>
+	{/if}
+	{/loop}
 </ul>
 <div class="mass-send" id="js-mass-send" ng-controller="MassSend" ng-cloak>
 	<table class="table we7-table table-hover vertical-middle">

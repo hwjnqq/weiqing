@@ -14,16 +14,17 @@ if (!empty($version_id)) {
 if ($action == 'post') {
 	define('FRAME', 'system');
 }
-
-if (!in_array($action, array('display', 'post', 'manage', 'auth'))) {
-	$account_api = WeAccount::createByUniacid($_W['uniacid']);
+if ($action == 'version' && $do == 'display') {
+	define('FRAME', '');
+}
+if (!in_array($action, array('post', 'manage', 'auth'))) {
+	$account_api = WeAccount::createByUniacid();
 	if (is_error($account_api)) {
 		itoast('', url('account/display', array('type' => WXAPP_TYPE_SIGN)));
 	}
 	$check_manange = $account_api->checkIntoManage();
 	if (is_error($check_manange)) {
-		$account_display_url = $account_api->accountDisplayUrl();
-		itoast('', $account_display_url);
+		itoast('', $account_api->displayUrl);
 	}
 	$account_type = $account_api->menuFrame;
 	define('FRAME', $account_type);

@@ -78,6 +78,21 @@ if ($do == 'installed') {
 	if (!empty($_GPC['keyword'])) {
 		$param['title LIKE'] = "%". trim($_GPC['keyword'])."%";
 	}
+
+	if (!$_W['isfounder'] || user_is_vice_founder()) {
+		$group_info = pdo_get('users_founder_group', array('id' => $_W['user']['groupid']));
+		$group_info['package'] = unserialize($group_info['package']);
+		$uni_groups = pdo_getall('uni_group', array('uniacid' => 0, 'id' => $group_info['package']), array(), '', array('id DESC'));
+		$templates = array();
+		foreach ($uni_groups as $key => $group) {
+			$ids = unserialize($group['templates']);
+			foreach ($ids as $val) {
+				$templates[] = $val;
+			}
+		}
+		$param['id'] = $templates;
+	}
+
 	$template_list = pdo_getslice('site_templates', $param, array($pindex, $pagesize), $total, array(), 'name');
 	$pager = pagination($total, $pindex, $pagesize);
 	$temtypes = ext_template_type();

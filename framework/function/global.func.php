@@ -189,6 +189,7 @@ function checkcaptcha($code) {
 	isetcookie('__code', '');
 	return $return;
 }
+
 /**
  * 获取完整数据表名
  * @param string $table 数据表名
@@ -316,7 +317,14 @@ function iunserializer($value) {
 	if (!is_serialized($value)) {
 		return $value;
 	}
-	$result = unserialize($value);
+	if(version_compare(PHP_VERSION, '7.0.0', '>=')){
+		$result = unserialize($value, array('allowed_classes' => false));
+	}else{
+		if(preg_match('/[oc]:[^:]*\d+:/i', $seried)){
+			return array();
+		}
+		$result = unserialize($value);
+	}
 	if ($result === false) {
 		$temp = preg_replace_callback('!s:(\d+):"(.*?)";!s', function ($matchs){
 			return 's:'.strlen($matchs[2]).':"'.$matchs[2].'";';
@@ -603,6 +611,7 @@ function pagination($total, $pageIndex, $pageSize = 15, $url = '', $context = ar
  */
 function tomedia($src, $local_path = false){
 	global $_W;
+	$src = trim($src);
 	if (empty($src)) {
 		return '';
 	}
@@ -625,7 +634,11 @@ function tomedia($src, $local_path = false){
 	if ((substr($t, 0, 7) == 'http://') || (substr($t, 0, 8) == 'https://') || (substr($t, 0, 2) == '//')) {
 		return $src;
 	}
-	if ($local_path || empty($_W['setting']['remote']['type']) || file_exists(IA_ROOT . '/' . $_W['config']['upload']['attachdir'] . '/' . $src)) {
+	//全局未设置远程附件，帐号内设置远程附件的情况要考虑在内，否则帐号内不显示图片，即第二个“||”判断
+	if ($local_path ||
+		empty($_W['setting']['remote']['type']) && (empty($_W['uniacid']) || !empty($_W['uniacid']) && empty($_W['setting']['remote'][$_W['uniacid']]['type'])) ||
+		file_exists(IA_ROOT . '/' . $_W['config']['upload']['attachdir'] . '/' . $src)) {
+
 		$src = $_W['siteroot'] . $_W['config']['upload']['attachdir'] . '/' . $src;
 	} else {
 		$src = $_W['attachurl_remote'] . $src;
@@ -999,7 +1012,7 @@ function authcode($string, $operation = 'DECODE', $key = '', $expiry = 0) {
  * @param int $size 文件原始大小
  * @return string
  */
-function sizecount($size) {
+function sizecount($size, $unit = false) {
 	if($size >= 1073741824) {
 		$size = round($size / 1073741824 * 100) / 100 . ' GB';
 	} elseif($size >= 1048576) {
@@ -1008,6 +1021,9 @@ function sizecount($size) {
 		$size = round($size / 1024 * 100) / 100 . ' KB';
 	} else {
 		$size = $size . ' Bytes';
+	}
+	if ($unit) {
+		$size = preg_replace('/[^0-9\.]/','', $size);
 	}
 	return $size;
 }
@@ -1236,6 +1252,7 @@ function isimplexml_load_string($string, $class_name = 'SimpleXMLElement', $opti
 	if (preg_match('/(\<\!DOCTYPE|\<\!ENTITY)/i', $string)) {
 		return false;
 	}
+	$string = preg_replace("/[\\x00-\\x08\\x0b-\\x0c\\x0e-\\x1f\\x7f]/", '', $string); //过滤xml中的控制字符
 	return simplexml_load_string($string, $class_name, $options, $ns, $is_prefix);
 }
 /*
@@ -1424,6 +1441,8 @@ function icall_user_func($callback) {
 	}
 	return '';
 }
+
+
 
 load()->func('safe');
 load()->func('system');

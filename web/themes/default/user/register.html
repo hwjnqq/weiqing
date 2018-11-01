@@ -128,33 +128,44 @@
 							<label class="control-label col-sm-2">手机号:<span class="color-red">*</span></label>
 							<div class="col-sm-10">
 								<div class="input-group">
-									<input type="text" class="form-control" placeholder="请输入常用手机号" ng-model="mobile" ng-blur="checkMobile()">
+									<input type="text" class="form-control" placeholder="请输入常用手机号" ng-model="mobile">
 									<a href="javascript:;" class="input-group-btn">
 										<!--<button class="btn btn-primary">发送验证码</button>-->
 										<input type="button" class="btn btn-primary send-code" ng-disabled="isDisable" ng-click="sendMessage()" value="{{text}}">
 									</a>
 								</div>
-								<span ng-class="{true:'fa fa-times form-control-feedback color-red reg-mobile-valid',false:'fa fa-check form-control-feedback color-green reg-mobile-valid'}[mobileErr]" aria-hidden="true"></span>
-								<span ng-class="{true:'color-red',false:'sr-only'}[mobileErr]" ng-bind="mobileMsg"></span>
 							</div>
 						</div>
-						<div class="form-group">
-							<label class="control-label col-sm-2">输入验证码:<span class="color-red">*</span></label>
-							<div class="col-sm-10">
-								<div class="input-group">
-									<input ng-model="imagecode" type="text" class="form-control" placeholder="请输入图形验证码" ng-blur="checkImagecode()">
-									<a href="javascript:;" class="input-group-btn imgverify" ng-click="changeVerify()"><img ng-src="{{image}}" style="height: 32px;"/></a>
+
+						<button style="display:none;" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#imageCode" >开始演示模态框</button>
+						<div class="modal fade" id="imageCode" role="dialog" >
+							<div class="we7-modal-dialog modal-dialog">
+								<div class="modal-content">
+									<div class="modal-header">
+										<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+										<div class="modal-title">输入图形验证码</div>
+									</div>
+									<div class="modal-body">
+										<div class="form-group">
+											<div class="input-group">
+												<input ng-model="imagecode" type="text" class="form-control" placeholder="请输入图形验证码">
+												<a href="javascript:;" class="input-group-btn imgverify" ng-click="changeVerify()">
+													<img ng-src="{{image}}" style="height: 32px;"/>
+												</a>
+											</div>
+											<span ng-class="{true:'color-red',false:'sr-only'}[imagecodeErr]" ng-bind="imagecodeMsg"></span>
+										</div>
+									</div>
+									<div class="modal-footer">
+										<button type="button" class="btn btn-primary" ng-click="sendMessage()">发送短信验证码</button>
+									</div>
 								</div>
-								<span ng-class="{true:'fa fa-times form-control-feedback color-red reg-mobile-valid',false:'fa fa-check form-control-feedback color-green reg-mobile-valid'}[imagecodeErr]" aria-hidden="true"></span>
-								<span ng-class="{true:'color-red',false:'sr-only'}[imagecodeErr]" ng-bind="imagecodeMsg"></span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="control-label col-sm-2">输入验证码:<span class="color-red">*</span></label>
 							<div class="col-sm-10">
-								<input ng-model='smscode' type="text" class="form-control" placeholder="请输入手机验证码" ng-blur="checkMobileCode()">
-								<span ng-class="{true:'fa fa-times form-control-feedback color-red reg-system-valid',false:'fa fa-check form-control-feedback color-green reg-system-valid'}[smscodeErr]" aria-hidden="true"></span>
-								<span ng-class="{true:'color-red',false:'sr-only'}[smscodeErr]" ng-bind="smscodeMsg"></span>
+								<input ng-model='smscode' type="text" class="form-control" placeholder="请输入手机验证码">
 							</div>
 						</div>
 						<div class="form-group">
@@ -191,18 +202,18 @@
 		'register_type': "{php echo !empty($register_type) ? $register_type : 0}",
 		'register_sign': "{php echo !empty($register_sign) ? $register_sign : 'null'}",
 		'image': "{php echo url('utility/code')}",
+		'password_safe': "{$setting['safe']}",
 		'links': {
 			'valid_mobile_link': "{php echo url('user/register/valid_mobile')}",
-			'send_code_link': "{php echo url('utility/verifycode')}",
+			'send_code_link': "{php echo url('utility/verifycode/send_code')}",
+			'check_smscode_link': "{php echo url('utility/verifycode/check_smscode')}",
 			'img_verify_link': "{php echo url('utility/code')}",
 			'register_link': "{php echo url('user/register/register')}",
 			'check_username_link': "{php echo url('user/register/check_username')}",
-			'get_extendfields_link': "{php echo url('user/register/get_extendfields')}",
 			'check_code_link': "{php echo url('user/register/check_code')}",
-			'check_mobile_code_link': "{php echo url('user/register/check_mobile_code')}",
+			'check_password_link': "{php echo url('user/register/check_password_safe')}",
 		},
 	});
-
 	angular.bootstrap($('.register-mobile'), ['userManageApp']);
 </script>
 

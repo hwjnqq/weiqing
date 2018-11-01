@@ -36,6 +36,7 @@
 			<col width="70px" />
 			<col width="70px" />
 			<col width="70px" />
+			<col width="70px" />
 			<col width="350px" />
 			<tr>
 				<th class="text-left">套餐名称</th>
@@ -45,17 +46,19 @@
 				<th class="text-center"><i class="wi wi-pc-apply" style="font-size: 24px"></i></th>
 				<th class="text-center"><i class="wi wi-app-apply" style="font-size: 24px"></i></th>
 				<th class="text-center"><i class="wi wi-xzapp-apply" style="font-size: 24px"></i></th>
+				<th class="text-center"><i class="wi wi-aliapp-apply" style="font-size: 24px"></i></th>
 				<th class="text-right">操作</th>
 			</tr>
 			{loop $modules_group_list $module_group}
 			<tr >
 				<td class="text-left">{$module_group['name']}</td>
 				<td class="text-center"><span data-toggle="tooltip" data-placement="bottom" title="" data-original-title="公众号应用个数">{php echo intval($module_group['account_num'])}</span></td>
-				<td class="text-center"><span data-toggle="tooltip" data-placement="bottom" title="" data-original-title="小程序应用个数">{php echo intval($module_group['wxapp_num'])}</span></td>
+				<td class="text-center"><span data-toggle="tooltip" data-placement="bottom" title="" data-original-title="微信小程序应用个数">{php echo intval($module_group['wxapp_num'])}</span></td>
 				<td class="text-center"><span data-toggle="tooltip" data-placement="bottom" title="" data-original-title="模版个数">{php echo intval($module_group['template_num'])}</span></td>
 				<td class="text-center"><span data-toggle="tooltip" data-placement="bottom" title="" data-original-title="PC应用个数">{php echo intval($module_group['webapp_num'])}</span></td>
 				<td class="text-center"><span data-toggle="tooltip" data-placement="bottom" title="" data-original-title="APP应用个数">{php echo intval($module_group['phoneapp_num'])}</span></td>
 				<td class="text-center"><span data-toggle="tooltip" data-placement="bottom" title="" data-original-title="熊掌号应用个数">{php echo intval($module_group['xzapp_num'])}</span></td>
+				<td class="text-center"><span data-toggle="tooltip" data-placement="bottom" title="" data-original-title="支付宝小程序应用个数">{php echo intval($module_group['aliapp_num'])}</span></td>
 				<td>
 					<div class="link-group">
 						<a href="javascript:;" class="color-default js-unfold" data-toggle="table-collapse" data-target="toggle-{$module_group['id']}" ng-click="changeText($event)">展开</a>
@@ -71,7 +74,7 @@
 				</td>
 			</tr>
 			<tr class="collapse bg-light-gray" aria-expanded="true" data-id="toggle-{$module_group['id']}">
-				<td colspan="8">
+				<td colspan="10">
 					<div class="col-sm-1 color-gray text-left we7-padding-none">公众号应用</div>
 					<div class="col-sm-11">
 						{loop $module_group['account_modules'] $module}
@@ -93,8 +96,8 @@
 				</td>
 			</tr>
 			<tr class="collapse bg-light-gray" aria-expanded="true" data-id="toggle-{$module_group['id']}">
-				<td colspan="8">
-					<div class="col-sm-1 color-gray text-left we7-padding-none">小程序应用</div>
+				<td colspan="10">
+					<div class="col-sm-1 color-gray text-left we7-padding-none">微信小程序应用</div>
 					<div class="col-sm-11">
 						{loop $module_group['wxapp_modules'] $wxapp}
 						<div class="col-sm-3 text-left text-over">
@@ -106,7 +109,7 @@
 				</td>
 			</tr>
 			<tr class="collapse bg-light-gray" aria-expanded="true" data-id="toggle-{$module_group['id']}">
-				<td colspan="8">
+				<td colspan="10">
 					<div class="col-sm-1 color-gray text-left we7-padding-none">PC应用</div>
 					<div class="col-sm-11">
 						{loop $module_group['webapp_modules'] $webapp}
@@ -120,7 +123,7 @@
 			</tr>
 
 			<tr class="collapse bg-light-gray" aria-expanded="true" data-id="toggle-{$module_group['id']}">
-				<td colspan="8">
+				<td colspan="10">
 					<div class="col-sm-1 color-gray text-left we7-padding-none">APP应用</div>
 					<div class="col-sm-11">
 						{loop $module_group['phoneapp_modules'] $phoneapp}
@@ -134,7 +137,7 @@
 			</tr>
 
 			<tr class="collapse bg-light-gray" aria-expanded="true" data-id="toggle-{$module_group['id']}">
-				<td colspan="8">
+				<td colspan="10">
 					<div class="col-sm-1 color-gray text-left we7-padding-none">熊掌号应用</div>
 					<div class="col-sm-11">
 						{loop $module_group['xzapp_modules'] $xzapp}
@@ -148,7 +151,21 @@
 			</tr>
 
 			<tr class="collapse bg-light-gray" aria-expanded="true" data-id="toggle-{$module_group['id']}">
-				<td colspan="8">
+				<td colspan="10">
+					<div class="col-sm-1 color-gray text-left we7-padding-none">支付宝小程序应用</div>
+					<div class="col-sm-11">
+						{loop $module_group['aliapp_modules'] $aliapp}
+						<div class="col-sm-3 text-left text-over">
+							<img src="{$aliapp['logo']}">
+							<a href="">{$aliapp['title']}</a>
+						</div>
+						{/loop}
+					</div>
+				</td>
+			</tr>
+
+			<tr class="collapse bg-light-gray" aria-expanded="true" data-id="toggle-{$module_group['id']}">
+				<td colspan="10">
 					<div class="col-sm-1 color-gray text-left we7-padding-none">模板</div>
 					<div class="col-sm-11">
 						{loop $module_group['templates'] $template}
@@ -221,7 +238,7 @@
 		</div>
 		<div class="panel we7-panel">
 			<div class="panel-heading">
-				选择小程序应用
+				选择微信小程序应用
 			</div>
 			<div class="panel-body we7-padding">
 				<div class="row">
@@ -314,6 +331,27 @@
 					<div class="col-sm-2 add-more">
 						<div class="we7-input-img input-more input-img">
 							<a href="" class="input-addon" ng-click="addModuleXzapp()">
+								<span class="color-gray"></span>
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="panel we7-panel">
+			<div class="panel-heading">
+				选择支付宝小程序应用
+			</div>
+			<div class="panel-body we7-padding">
+				<div class="row">
+					<div class="col-sm-2 text-left" ng-repeat="module in groupHaveModuleAliapp" style="overflow: hidden">
+						<img ng-src="{{ module.logo }}" alt="" class="img">{{ module.title }}
+						<span class="del bg-default" ng-click="delHaveModuleAliapp(module)">删除</span>
+					</div>
+					<div class="col-sm-2 add-more">
+						<div class="we7-input-img input-more input-img">
+							<a href="" class="input-addon" ng-click="addModuleAliapp()">
 								<span class="color-gray"></span>
 							</a>
 						</div>
@@ -424,7 +462,7 @@
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-					<h4 class="modal-title">添加小程序(点击添加)</h4>
+					<h4 class="modal-title">添加微信小程序(点击添加)</h4>
 				</div>
 
 				<div class="modal-body material-content clearfix">
@@ -587,6 +625,47 @@
 		</div>
 	</div>
 
+	<div class="uploader-modal modal fade module" id="add_module_aliapp"  tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog we7-modal-dialog" >
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+					<h4 class="modal-title">添加支付宝小程序应用(点击添加)</h4>
+				</div>
+
+				<div class="modal-body material-content clearfix">
+					<div class="material-body">
+						<div class="row">
+							<div class="col-sm-2 select-module" ng-repeat="module in groupNotHaveModuleAliapp" ng-click="selectOrCancelModule(module, 'module_aliapp')">
+								<div class="item" ng-class="{true:'active',false:''}[module.selected]">
+									<img ng-src="{{ module.logo }}"  alt="" class="icon"/>
+									<div class="name">{{ module.title }}</div>
+									<div class="mask">
+										<span class="wi wi-right"></span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!--注意全部有分页-->
+					<div class="material-pager text-right clearfix">
+						<div class="pull-left we7-form">
+							<input type="checkbox" id="selected-all6" ng-change="selecteAllAliapp(allaliappsel)" ng-model="allaliappsel">
+							<label for="selected-all6">全选</label>
+						</div>
+						<ul class="pagination">
+						</ul>
+					</div>
+
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" ng-click="addHaveModuleAliapp()">确定</button>
+					<button type="button" class="btn btn-default" ng-click="cancel('add_module_aliapp')">取消</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<span class="btn btn-primary we7-padding-horizontal" ng-click="saveGroup()">提交</span>
 </div>
 <script>
@@ -598,16 +677,17 @@ require(['underscore'], function() {
 		'groupHaveModuleWebapp' : {php echo json_encode($group_have_module_webapp)},
 		'groupHaveModulePhoneapp' : {php echo json_encode($group_have_module_phoneapp)},
 		'groupHaveModuleXzapp' : {php echo json_encode($group_have_module_xzapp)},
+		'groupHaveModuleAliapp' : {php echo json_encode($group_have_module_aliapp)},
 		'groupNotHaveModuleApp' : {php echo json_encode($group_not_have_module_app)},
 		'groupNotHaveModuleWebapp' : {php echo json_encode($group_not_have_module_webapp)}, // angular filter 只能数组
 		'groupNotHaveModulePhoneapp' : {php echo json_encode($group_not_have_module_phoneapp)},
 		'groupNotHaveModuleWxapp' : {php echo json_encode($group_not_have_module_wxapp)},
 		'groupNotHaveModuleXzapp' : {php echo json_encode($group_not_have_module_xzapp)},
+		'groupNotHaveModuleAliapp' : {php echo json_encode($group_not_have_module_aliapp)},
 		'groupHaveTemplate' : {php echo json_encode($group_have_template)},
 		'groupNotHaveTemplate' : {php echo json_encode($group_not_have_template)},
 		'url' : "{php echo url('module/group/save')}"
 	});
-
 	angular.bootstrap($('.js-modulegroup-post'), ['moduleApp']);
 
 	$('[data-toggle="table-collapse"]').on('click',function(){

@@ -6,6 +6,16 @@
 defined('IN_IA') or exit('Access Denied');
 
 /**
+ * 系统预置的模块
+ */
+function module_system() {
+	return array(
+		'basic', 'news', 'music', 'service', 'userapi', 'recharge', 'images', 'video', 'voice', 'wxcard',
+		'custom', 'chats', 'paycenter', 'keyword', 'special', 'welcome', 'default', 'apply', 'reply', 'core', 'store',
+	);
+}
+
+/**
  * 模块类型
  *
  * @return array
@@ -62,30 +72,37 @@ function module_support_type() {
 		'wxapp_support' => array(
 			'type' => WXAPP_TYPE_SIGN,
 			'support' => MODULE_SUPPORT_WXAPP,
+			'not_support' => MODULE_NONSUPPORT_WXAPP,
 		),
 		'account_support' => array(
 			'type' => ACCOUNT_TYPE_SIGN,
 			'support' => MODULE_SUPPORT_ACCOUNT,
+			'not_support' => MODULE_NONSUPPORT_ACCOUNT,
 		),
 		'welcome_support' => array(
 			'type' => WELCOMESYSTEM_TYPE_SIGN,
 			'support' => MODULE_SUPPORT_SYSTEMWELCOME,
+			'not_support' => MODULE_NONSUPPORT_SYSTEMWELCOME,
 		),
 		'webapp_support' => array(
 			'type' => WEBAPP_TYPE_SIGN,
 			'support' => MODULE_SUPPORT_WEBAPP,
+			'not_support' => MODULE_NOSUPPORT_WEBAPP,
 		),
 		'phoneapp_support' => array(
 			'type' => PHONEAPP_TYPE_SIGN,
 			'support' => MODULE_SUPPORT_PHONEAPP,
+			'not_support' => MODULE_NOSUPPORT_PHONEAPP,
 		),
 		'xzapp_support' => array(
 			'type' => XZAPP_TYPE_SIGN,
 			'support' => MODULE_SUPPORT_XZAPP,
+			'not_support' => MODULE_NOSUPPORT_XZAPP,
 		),
 		'aliapp_support' => array(
 			'type' => ALIAPP_TYPE_SIGN,
 			'support' => MODULE_SUPPORT_ALIAPP,
+			'not_support' => MODULE_NOSUPPORT_ALIAPP,
 		)
 	);
 	return $module_support_type;
@@ -151,7 +168,7 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 			}
 
 			if(empty($bind['icon'])) {
-				$bind['icon'] = 'fa fa-puzzle-piece';
+				$bind['icon'] = 'wi wi-appsetting';
 			}
 			if (!defined('SYSTEM_WELCOME_MODULE') && $bind['entry'] == 'system_welcome') {
 				continue;
@@ -431,13 +448,24 @@ function module_permission_fetch($name) {
 	}
 	if(!empty($entries['menu'])) {
 		foreach($entries['menu'] as $menu) {
-			$data[] = array('title' => $menu['title'], 'permission' => $name.'_menu_'.$menu['do']);
+			$data[$menu['do']] = array('title' => $menu['title'], 'permission' => $name.'_menu_'.$menu['do']);
 		}
 	}
 	unset($entries);
 	if(!empty($module['permissions'])) {
 		$module['permissions'] = (array)iunserializer($module['permissions']);
 		foreach ($module['permissions'] as $permission) {
+			if (!empty($permission['parent']) && !empty($data[$permission['parent']])) {
+				$sub_permission = array(
+					'title' => $permission['title'],
+					'permission' => $name . '_menu_' . $permission['parent'] . '_' . $permission['permission'],
+				);
+				if (empty($data[$permission['parent']]['sub_permission'])) {
+					$data[$permission['parent']]['sub_permission'] = array($sub_permission);
+				} else {
+					array_push($data[$permission['parent']]['sub_permission'], $sub_permission);
+				}
+			}
 			$data[] = array('title' => $permission['title'], 'permission' => $name . '_permission_' . $permission['permission']);
 		}
 	}
@@ -773,7 +801,7 @@ function module_clerk_info($module_name) {
 	if (empty($module_name)) {
 		return $user_permissions;
 	}
-	$user_permissions = table('users_permission')->moduleClerkPermission($module_name);
+	$user_permissions = table('users_permission')->getClerkPermission($module_name);
 	if (!empty($user_permissions)) {
 		foreach ($user_permissions as $key => $value) {
 			$user_permissions[$key]['user_info'] = user_single($value['uid']);
@@ -948,7 +976,7 @@ function module_upgrade_info($modulelist = array()) {
 			$manifest['platform']['supports'][] = 'webapp';
 		}
 		if ($manifest_cloud['site_branch']['android_support'] == MODULE_SUPPORT_PHONEAPP ||
-			$manifest_cloud['site_branch']['ios_aupport'] == MODULE_SUPPORT_PHONEAPP) {
+			$manifest_cloud['site_branch']['ios_support'] == MODULE_SUPPORT_PHONEAPP) {
 			$manifest['platform']['supports'][] = 'phoneapp';
 		}
 		if ($manifest_cloud['site_branch']['system_welcome_support'] == MODULE_SUPPORT_SYSTEMWELCOME) {
@@ -1083,4 +1111,39 @@ function module_upgrade_info($modulelist = array()) {
 
 function module_recycle_fetch($modulename) {
 	return table('modules_recycle')->getByName($modulename);
+}
+
+function module_check_notinstalled_support($module, $manifest_support) {
+	if (empty($manifest_support)) {
+		return array();
+	}
+	$has_notinstalled_support = false;
+	$notinstalled_support = array();
+	$module_support_type = module_support_type();
+
+	foreach ($manifest_support as $support) {
+		if ($support == 'app') {
+			$support = 'account';
+		} elseif ($support == 'system_welcome') {
+			$support = 'welcome';
+		} elseif ($support == 'android' || $support == 'ios') {
+			$support = 'phoneapp';
+		}
+		$support .= '_support';
+		if (!in_array($support, array_keys($module_support_type))) {
+			continue;
+		}
+
+		if ($module[$support] != $module_support_type[$support]['support']) {
+			$has_notinstalled_support = true;
+			$notinstalled_support[$support] = $module_support_type[$support]['support'];
+		} else {
+			$notinstalled_support[$support] = $module_support_type[$support]['not_support'];
+		}
+	}
+	if ($has_notinstalled_support) {
+		return $notinstalled_support;
+	} else {
+		return array();
+	}
 }

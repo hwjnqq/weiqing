@@ -10,19 +10,16 @@ defined('IN_IA') or exit('Access Denied');
  */
 function system_menu_permission_list($role = '') {
 	global $_W;
-	$system_menu = cache_load(cache_system_key('system_frame'));
+	$system_menu = cache_load(cache_system_key('system_frame', array('uniacid' => $_W['uniacid'])));
 	if(empty($system_menu)) {
 		cache_build_frame_menu();
-		$system_menu = cache_load(cache_system_key('system_frame'));
+		$system_menu = cache_load(cache_system_key('system_frame', array('uniacid' => $_W['uniacid'])));
 	}
 	//根据不同的角色得到不同的菜单权限
 	if ($role == ACCOUNT_MANAGE_NAME_OPERATOR) {
 		unset($system_menu['appmarket']);
 		unset($system_menu['advertisement']);
 		unset($system_menu['system']);
-	} if ($role == ACCOUNT_MANAGE_NAME_OPERATOR) {
-		unset($system_menu['appmarket']);
-		unset($system_menu['advertisement']);
 	}
 	return $system_menu;
 }
@@ -173,7 +170,6 @@ function system_check_statcode($statcode) {
 			'reg' => '/(http[s]?\:)?\/\/tajs\.qq\.com/'
 		),
 	);
-
 	foreach($allowed_stats as $key => $item) {
 		$preg = preg_match($item['reg'], $statcode);
 		if ($preg && $item['enabled']) {

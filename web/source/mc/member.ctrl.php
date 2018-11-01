@@ -10,6 +10,7 @@ $do = in_array($do, $dos) ? $do : 'display';
 
 $creditnames = uni_setting_load('creditnames');
 $creditnames = $creditnames['creditnames'];
+
 if ($do == 'save_tactics_setting') {
 	$setting = $_GPC['setting'];
 	if (empty($setting)) {
@@ -30,6 +31,7 @@ if ($do == 'save_credit_setting') {
 
 if ($do == 'register_setting') {
 	$_W['page']['title'] = '注册设置';
+	permission_check_account_user('mc_member_register_seting');
 	if (checksubmit('submit')) {
 		$passport = $_GPC['passport'];
 		if (!empty($passport)) {
@@ -44,11 +46,12 @@ if ($do == 'register_setting') {
 
 if ($do == 'credit_setting') {
 	$_W['page']['title'] = '积分设置';
+	permission_check_account_user('mc_member_credit_setting');
 	$credit_setting = uni_setting_load('creditnames');
 	$credit_setting = $credit_setting['creditnames'];
 
 	$credit_tactics = uni_setting_load('creditbehaviors');
-	$credit_tactics = $credit_tactics['creditbehaviors'];
+	$credit_tactics = empty($credit_tactics['creditbehaviors']) ? array() : $credit_tactics['creditbehaviors'];
 
 	$enable_credit = array();
 	if (!empty($credit_setting)) {
@@ -64,6 +67,7 @@ if ($do == 'credit_setting') {
 
 if($do == 'display') {
 	$_W['page']['title'] = '会员列表';
+	permission_check_account_user('mc_member_diaplsy');
 	$groups = mc_groups();
 	$search_mod = intval($_GPC['search_mod']) == 1 ? '1' : '2';
 	$pindex = max(1, intval($_GPC['page']));
@@ -104,9 +108,20 @@ if($do == 'display') {
 		$params[':groupid'] = intval($_GPC['groupid']);
 	}
 	if(checksubmit('export_submit', true)) {
-		$sql = "SELECT `uid`, `uniacid`, `groupid`, `realname`, `birthmonth`, `birthday`, `nickname`, `email`, `mobile`, `credit1`, `credit2`, `credit6`, `createtime` FROM". tablename('mc_members') . " WHERE uniacid = :uniacid " . $condition;
+		$account_member_fields = uni_account_member_fields($_W['uniacid']);
+		$available_fields = array();
+		foreach($account_member_fields as $key => $val) {
+			if ($val['available']) {
+				$available_fields[$val['field']] = $val['title'];
+			}
+		}
+
+		$keys = array_keys($available_fields);
+		$keys = implode(',', $keys);
+		$sql = "SELECT " . $keys . " FROM". tablename('mc_members') . " WHERE uniacid = :uniacid " . $condition;
+
 		$members = pdo_fetchall($sql, $params);
-		$html = mc_member_export_parse($members);
+		$html = mc_member_export_parse($members, $available_fields);
 		header("Content-type:text/csv");
 		header("Content-Disposition:attachment; filename=会员数据.csv");
 		echo $html;

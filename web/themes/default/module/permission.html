@@ -58,7 +58,11 @@
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 					<h3 class="modal-title">添加应用操作员</h3>
 				</div>
-				<form action="{php echo url('module/permission/add_clerk', array('m' => $module_name))}" method="post">
+				<form action="" method="post">
+				<input type="hidden" name="c" value="module">
+				<input type="hidden" name="a" value="permission">
+				<input type="hidden" name="do" value="add_clerk">
+				<input type="hidden" name="m" value="{php echo $module_name}">
 				<div class="modal-body we7-form">
 					<div class="form-group">
 						<label class="control-label col-sm-2"></label>
@@ -89,7 +93,7 @@
 {/if}
 {if $do == 'post'}
 <div class="clearfix">
-	<form action="" method="post" class="form-horizontal ajaxfrom we7-form" role="form" id="form-user">
+	<form action="" method="post" class="form-horizontal form ajaxfrom we7-form" role="form" id="form-user">
 		<div class="form-group">
 			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">用户名</label>
 			<div class="col-sm-10 col-lg-9 col-xs-12">
@@ -118,17 +122,29 @@
 				<span class="help-block">方便注明此用户的身份</span>
 			</div>
 		</div>
-		<div class="form-group">
+		<div class="form-group module-permission">
 			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">权限设置</label>
 			<div class="col-sm-10 col-lg-10 col-xs-12">
 				{loop $all_permission $key $module_val}
 					<div class="col-sm-10 col-lg-10 col-xs-12 plugin-name">{$module_val['info']['title']}</div>
 					{loop $module_val['permission'] $sub_key $permission}
-					<div class="col-sm-4">
-						<div class="checkbox">
+					<div class="col-sm-4 dropdown">
+						<span class="checkbox">
 							<input id="check-child-{$key}-{$sub_key}" type="checkbox" value="{$permission['permission']}" name="module_permission[{$module_val['info']['name']}][]" {if !empty($permission['checked'])}checked{/if}>
-							<label for="check-child-{$key}-{$sub_key}">{$permission['title']}</label>
-						</div>
+							<label for="check-child-{$key}-{$sub_key}" data-toggle="tooltip">{$permission['title']}{if !empty($menu['sub_permission'])}<span class="caret"></span>{/if}</label>
+						</span>
+						{if $permission['sub_permission']}
+						<ul class="dropdown-menu">
+							{loop $permission['sub_permission'] $sub_permission}
+							<li class="text-left">
+								<input id="check-child-{$sub_permission['permission']}"  we7-check-all="1" type="checkbox" value="{$sub_permission['permission']}" {if !empty($sub_permission['checked'])}checked{/if} name="module_permission[{$module_val['info']['name']}][]">
+								<label for="check-child-{$sub_permission['permission']}">
+									{$sub_permission['title']}
+								</label>
+							</li>
+							{/loop}
+						</ul>
+						{/if}
 					</div>
 					{/loop}
 				{/loop}
@@ -143,6 +159,15 @@
 	</form>
 </div>
 <script>
+    $('.module-permission .dropdown span').hover(function(){
+        $(this).parent().addClass('open').find('.dropdown-menu').show();
+        $(this).parent().find('.dropdown-menu').hover(
+            function(){$(this).show();$(this).parent().addClass('open')},
+            function(){$(this).hide();$(this).parent().removeClass('open');}
+        );
+    },function(){
+        $(this).parent().removeClass('open').find('.dropdown-menu').hide();
+    });
 var haveChecked = false;
 $('input[type="checkbox"]').each(function(i, n) {
 	if ($(n).prop('checked')) {

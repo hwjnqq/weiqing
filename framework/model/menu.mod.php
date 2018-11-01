@@ -65,127 +65,31 @@ function menu_default() {
 }
 
 /**
- * 构造可直接请求自定义菜单创建接口的数据
- * @param array $data_array
- * @param int $is_conditional 是否是个性化菜单数据,默认为否
- */
-function menu_construct_createmenu_data($data_array, $is_conditional = false) {
-	$menu = array();
-	if (empty($data_array) || empty($data_array['button']) || !is_array($data_array)) {
-		return $menu;
-	}
-	foreach ($data_array['button'] as $button) {
-		$temp = array();
-		$temp['name'] = preg_replace_callback('/\:\:([0-9a-zA-Z_-]+)\:\:/', create_function('$matches', 'return utf8_bytes(hexdec($matches[1]));'), $button['name']);
-		$temp['name'] = urlencode($temp['name']);
-		if (empty($button['sub_button'])) {
-			$temp['type'] = $button['type'];
-			if ($button['type'] == 'view') {
-				$temp['url'] = urlencode($button['url']);
-			} elseif ($button['type'] == 'click') {
-				if (!empty($button['media_id']) && empty($button['key'])) {
-					$temp['media_id'] = urlencode($button['media_id']);
-					$temp['type'] = 'media_id';
-				} elseif (empty($button['media_id']) && !empty($button['key'])) {
-					$temp['type'] = 'click';
-					$temp['key'] = urlencode($button['key']);
-				}
-			} elseif ($button['type'] == 'media_id' || $button['type'] == 'view_limited') {
-				$temp['media_id'] = urlencode($button['media_id']);
-			} elseif ($button['type'] == 'miniprogram') {
-				$temp['appid'] = trim($button['appid']);
-				$temp['pagepath'] = urlencode($button['pagepath']);
-				$temp['url'] = urlencode($button['url']);
-			} else {
-				$temp['key'] = urlencode($button['key']);
-			}
-		} else {
-			foreach ($button['sub_button'] as $sub_button) {
-				$sub_temp = array();
-				$sub_temp['name'] = preg_replace_callback('/\:\:([0-9a-zA-Z_-]+)\:\:/', create_function('$matches', 'return utf8_bytes(hexdec($matches[1]));'), $sub_button['name']);
-				$sub_temp['name'] = urlencode($sub_temp['name']);
-				$sub_temp['type'] = $sub_button['type'];
-				if ($sub_button['type'] == 'view') {
-					$sub_temp['url'] = urlencode($sub_button['url']);
-				} elseif ($sub_button['type'] == 'click') {
-					if (!empty($sub_button['media_id']) && empty($sub_button['key'])) {
-						$sub_temp['media_id'] = urlencode($sub_button['media_id']);
-						$sub_temp['type'] = 'media_id';
-					} elseif (empty($sub_button['media_id']) && !empty($sub_button['key'])) {
-						$sub_temp['type'] = 'click';
-						$sub_temp['key'] = urlencode($sub_button['key']);
-					}
-				} elseif ($sub_button['type'] == 'media_id' || $sub_button['type'] == 'view_limited') {
-					$sub_temp['media_id'] = urlencode($sub_button['media_id']);
-				} elseif ($sub_button['type'] == 'miniprogram') {
-					$sub_temp['appid'] = trim($sub_button['appid']);
-					$sub_temp['pagepath'] = urlencode($sub_button['pagepath']);
-					$sub_temp['url'] = urlencode($sub_button['url']);
-				} else {
-					$sub_temp['key'] = urlencode($sub_button['key']);
-				}
-				$temp['sub_button'][] = $sub_temp;
-			}
-		}
-		$menu['button'][] = $temp;
-	}
-
-	if (empty($is_conditional) || empty($data_array['matchrule']) || !is_array($data_array['matchrule'])) {
-		return $menu;
-	}
-
-	if($data_array['matchrule']['sex'] > 0) {
-		$menu['matchrule']['sex'] = $data_array['matchrule']['sex'];
-	}
-	if($data_array['matchrule']['group_id'] != -1) {
-		$menu['matchrule']['tag_id'] = $data_array['matchrule']['group_id'];
-	}
-	if($data_array['matchrule']['client_platform_type'] > 0) {
-		$menu['matchrule']['client_platform_type'] = $data_array['matchrule']['client_platform_type'];
-	}
-	if(!empty($data_array['matchrule']['province'])) {
-		$menu['matchrule']['country'] = urlencode('中国');
-		$menu['matchrule']['province'] = urlencode($data_array['matchrule']['province']);
-		if(!empty($data_array['matchrule']['city'])) {
-			$menu['matchrule']['city'] = urlencode($data_array['matchrule']['city']);
-		}
-	}
-	if(!empty($data_array['matchrule']['language'])) {
-		$inarray = 0;
-		$languages = menu_languages();
-		foreach ($languages as $key => $value) {
-			if(in_array($data_array['matchrule']['language'], $value, true)) {
-				$inarray = 1;
-				break;
-			}
-		}
-		if($inarray === 1) {
-			$menu['matchrule']['language'] = $data_array['matchrule']['language'];
-		}
-	}
-
-	return $menu;
-}
-
-/**
  * 接口获取默认菜单并更新本地数据库
  */
 function menu_update_currentself() {
 	global $_W;
-	$account_api = WeAccount::create();
+	$account_api = WeAccount::createByUniacid();
 	$default_menu_info = $account_api->menuCurrentQuery();
 	if (is_error($default_menu_info)) {
 		return error(-1, $default_menu_info['message']);
 	}
-	if (empty($default_menu_info['is_menu_open']) || empty($default_menu_info['selfmenu_info'])) {
-		return true;
+
+	if ($account_api->type != ACCOUNT_TYPE_XZAPP_NORMAL && $account_api->type != ACCOUNT_TYPE_XZAPP_AUTH) {
+		if (empty($default_menu_info['is_menu_open']) || empty($default_menu_info['selfmenu_info'])) {
+			return true;
+		}
+		$default_menu = $default_menu_info['selfmenu_info'];
+	} else {
+		$default_menu = $default_menu_info['menu'];
 	}
-	$default_menu = $default_menu_info['selfmenu_info'];
 	$default_sub_button = array();
 	if (!empty($default_menu['button'])) {
 		foreach ($default_menu['button'] as $key => &$button) {
 			if (!empty($button['sub_button'])) {
 				$default_sub_button[$key] = $button['sub_button'];
+			} else {
+				unset($button['sub_button']);
 			}
 			ksort($button);
 		}
@@ -248,7 +152,7 @@ function menu_update_currentself() {
  */
 function menu_update_conditional() {
 	global $_W;
-	$account_api = WeAccount::create();
+	$account_api = WeAccount::createByUniacid();
 	$conditional_menu_info = $account_api->menuQuery();
 	if (is_error($conditional_menu_info)) {
 		return error(-1, $conditional_menu_info['message']);
@@ -299,7 +203,7 @@ function menu_delete($id) {
 		return error(0, '删除菜单成功！');
 	}
 	if ($menu_info['type'] == MENU_CONDITIONAL && $menu_info['menuid'] > 0 && $menu_info['status'] != STATUS_OFF) {
-		$account_api = WeAccount::create($_W['acid']);
+		$account_api = WeAccount::createByUniacid();
 		$result = $account_api->menuDelete($menu_info['menuid']);
 		if (is_error($result)) {
 			return error(-1, $result['message']);
@@ -325,9 +229,9 @@ function menu_push($id) {
 			return error(-1, '菜单数据错误');
 		}
 		$is_conditional = (!empty($post['matchrule']) && $menu_info['type'] == MENU_CONDITIONAL) ? true : false;
-		$menu = menu_construct_createmenu_data($post, $is_conditional);
 
-		$account_api = WeAccount::create();
+		$account_api = WeAccount::createByUniacid();
+		$menu = $account_api->menuBuild($post, $is_conditional);
 		$result = $account_api->menuCreate($menu);
 		if (is_error($result)) {
 			return error(-1, $result['message']);
@@ -347,7 +251,7 @@ function menu_push($id) {
 	}
 	//只有个性化菜单才有关闭交互（默认菜单有且只有一个未开启状态，已在推送创建菜单中处理）
 	if ($menu_info['status'] == STATUS_ON && $menu_info['type'] == MENU_CONDITIONAL && $menu_info['menuid'] > 0) {
-		$account_api = WeAccount::create();
+		$account_api = WeAccount::createByUniacid();
 		$result = $account_api->menuDelete($menu_info['menuid']);
 		if (is_error($result)) {
 			return error(-1, $result['message']);

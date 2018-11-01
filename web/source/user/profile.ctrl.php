@@ -59,7 +59,8 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 					iajax(-1, '手机号不正确', '');
 				}
 				$users_mobile = pdo_get('users_profile', array('mobile' => trim($_GPC[$type]), 'uid <>' => $uid));
-				if (!empty($users_mobile)) {
+				$bind_mobile = pdo_get('users_bind', array('bind_sign' => trim($_GPC[$type]), 'uid<>' => $uid));
+				if (!empty($users_mobile) || !empty($bind_mobile)) {
 					iajax(-1, '手机号已存在，请联系管理员', '');
 				}
 			}
@@ -73,13 +74,28 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 				);
 				$result = pdo_insert('users_profile', $data);
 			}
+			$data = array(
+				'uid' => $uid,
+				'bind_sign' => trim($_GPC[$type]),
+				'third_nickname' => trim($_GPC[$type]),
+				'third_type' => USER_REGISTER_TYPE_MOBILE,
+			);
+			$users_bind_exist = pdo_get('users_bind', array('uid' => $uid, 'third_type' => USER_REGISTER_TYPE_MOBILE));
+			if ($users_bind_exist) {
+				$result_bind = pdo_update('users_bind', $data, array('uid' => $uid, 'third_type' => USER_REGISTER_TYPE_MOBILE));
+			} else {
+				$result_bind = pdo_insert('users_bind', $data);
+			}
+			if (!$result_bind) {
+				iajax(-1, '绑定手机号失败，请联系管理员解决！', '');
+			}
 			break;
 		case 'username':
 			$founders = explode(',', $_W['config']['setting']['founder']);
-			if (!in_array($_W['uid'], $founders)) {
+			if (!in_array($_W['uid'], $founders) && $_W['uid'] != $user['owner_uid']) {
 				iajax(1, '无权限修改，请联系网站创始人！');
 			}
-			$username = trim($_GPC['username']);
+			$username = safe_gpc_string($_GPC['username']);
 			$name_exist = pdo_get('users', array('username' => $username));
 			if (!empty($name_exist)) {
 				iajax(2, '用户名已存在，请更换其他用户名！', '');
@@ -87,22 +103,27 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 			$result = pdo_update('users', array('username' => $username), array('uid' => $uid));
 			break;
 		case 'vice_founder_name':
-			$userinfo = user_single(array('username' => $_GPC['vice_founder_name']));
-			if (empty($userinfo) || user_is_vice_founder($userinfo['uid'])) {
+			$userinfo = user_single(array('username' => safe_gpc_string($_GPC['vice_founder_name'])));
+			if (empty($userinfo) || $userinfo['founder_groupid'] != ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
 				iajax(1, '用户不存在或该用户不是副创始人', '');
 			}
 			$result = pdo_update('users', array('owner_uid' => $userinfo['uid']), array('uid' => $uid));
 			break;
 		case 'remark':
-			$result = pdo_update('users', array('remark' => trim($_GPC['remark'])), array('uid' => $uid));
+			$result = pdo_update('users', array('remark' => safe_gpc_string($_GPC['remark'])), array('uid' => $uid));
 			break;
 		case 'welcome_link':
-
 			$welcome_link = intval($_GPC['welcome_link']);
 			$result = pdo_update('users', array('welcome_link' => $welcome_link), array('uid' => $uid));
 			break;
 		case 'password':
 			if ($_GPC['newpwd'] !== $_GPC['renewpwd']) iajax(2, '两次密码不一致！', '');
+			$_GPC['newpwd'] = safe_gpc_string($_GPC['newpwd']);
+			$check_safe = safe_check_password($_GPC['newpwd']);
+			if (is_error($check_safe)) {
+				iajax(4, $check_safe['message']);
+			}
+
 			if (!$_W['isfounder'] && empty($user['register_type'])) {
 				$pwd = user_hash($_GPC['oldpwd'], $user['salt']);
 				if ($pwd != $user['password']) iajax(3, '原密码不正确！', '');
@@ -144,15 +165,18 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 			}
 			break;
 		case 'reside':
+			$province = safe_gpc_string($_GPC['province']);
+			$city = safe_gpc_string($_GPC['city']);
+			$district = safe_gpc_string($_GPC['district']);
 			if ($users_profile_exist) {
-				$result = pdo_update('users_profile', array('resideprovince' => $_GPC['province'], 'residecity' => $_GPC['city'], 'residedist' => $_GPC['district']), array('uid' => $uid));
+				$result = pdo_update('users_profile', array('resideprovince' => $province, 'residecity' => $city, 'residedist' => $district), array('uid' => $uid));
 			} else {
 				$data = array(
 					'uid' => $uid,
 					'createtime' => TIMESTAMP,
-					'resideprovince' => $_GPC['province'],
-					'residecity' => $_GPC['city'],
-					'residedist' => $_GPC['district']
+					'resideprovince' => $province,
+					'residecity' => $city,
+					'residedist' => $district
 				);
 				$result = pdo_insert('users_profile', $data);
 			}
@@ -197,6 +221,8 @@ if ($do == 'base') {
 			$account_detail = user_account_detail_info($_W['uid']);
 		}
 	
+	$table = table('core_profile_fields');
+	$extra_fields = $table->getExtraFields();
 	template('user/profile');
 }
 
@@ -274,12 +300,23 @@ if (in_array($do, array('validate_mobile', 'bind_mobile')) || $_GPC['bind_type']
 	}
 }
 if ($do == 'validate_mobile') {
+	$user = array('username' => trim($_GPC['mobile']));
+	$mobile_exists = user_check($user);
+	if ($mobile_exists) {
+		iajax(-1, '手机号已经存在');
+	}
 	iajax(0, '本地校验成功');
 }
 
 if ($do == 'bind_mobile') {
 	if ($_W['isajax'] && $_W['ispost']) {
 		$bind_info = OAuth2Client::create('mobile')->bind();
+
+		$user = array('username' => trim($_GPC['mobile']));
+		$mobile_exists = user_check($user);
+		if ($mobile_exists) {
+			iajax(-1, '手机号已经存在');
+		}
 
 		if (is_error($bind_info)) {
 			iajax(-1, $bind_info['message']);

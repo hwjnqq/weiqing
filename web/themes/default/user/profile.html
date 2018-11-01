@@ -131,6 +131,12 @@
 				<td ng-bind="profile.resides"></td>
 				<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#reside">修改</a></div></td>
 			</tr>
+
+			<tr ng-repeat="field in extra_fields">
+				<td class="table-label" ng-bind="field.title"></td>
+				<td ng-bind="profile[field.field]"></td>
+			</tr>
+
 			<tr>
 				<td class="table-label">上次登录时间</td>
 				<td ng-bind="user.last_visit"></td>
@@ -169,6 +175,7 @@
 					<select class="form-control tpl-category-parent we7-select" id="category_parent" ng-model="user.welcome_link" ng-change="httpChange('welcome_link')">
 						<option ng-selected ="user.welcome_link == {WELCOME_DISPLAY_TYPE} || user.welcome_link == ''" ng-value="{WELCOME_DISPLAY_TYPE}">用户欢迎页</option>
 						<option ng-selected ="user.welcome_link == {PLATFORM_DISPLAY_TYPE}" ng-value="{PLATFORM_DISPLAY_TYPE}">平台</option>
+						<option ng-selected ="user.welcome_link == {MODULE_DISPLAY_TYPE}" ng-value="{MODULE_DISPLAY_TYPE}">应用</option>
 					</select>
 				</td>
 				<td></td>
@@ -505,6 +512,7 @@ require(['underscore'], function(){
 		wechats: {php echo !empty($account_detail['wechat']) ? json_encode($account_detail['wechat']) : 'null'},
 		wxapps: {php echo !empty($account_detail['wxapp']) ? json_encode($account_detail['wxapp']) : 'null'},
 		account_num: {php echo !empty($account_num) ? json_encode($account_num) : 'null'},
+		extra_fields: {php echo !empty($extra_fields) ? json_encode($extra_fields) : 'null'},
 		links: {
 			userPost: "{php echo url('user/profile/post')}",
 		},

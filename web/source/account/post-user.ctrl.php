@@ -23,6 +23,7 @@ if (!$role_permission) {
 	itoast('无权限操作！', referer(), 'error');
 }
 $founders = explode(',', $_W['config']['setting']['founder']);
+$founder_info = pdo_getcolumn('users', array('uid' => current($founders)), 'username');
 $headimgsrc = tomedia('headimg_'.$acid.'.jpg');
 $account = account_fetch($acid);
 if (is_error($account)) {
@@ -31,22 +32,37 @@ if (is_error($account)) {
 
 if ($do == 'edit') {
 	$permissions = pdo_fetchall("SELECT id, uid, role FROM ".tablename('uni_account_users')." WHERE uniacid = '$uniacid' and role != :role  ORDER BY uid ASC, role DESC", array(':role' => 'clerk'), 'uid');
-	$owner = pdo_get('uni_account_users', array('uniacid' => $uniacid, 'role' => 'owner'), array('uid', 'id'));
 	if (!empty($permissions)) {
 		$member = pdo_fetchall("SELECT username, uid FROM ".tablename('users')." WHERE uid IN (".implode(',', array_keys($permissions)).")", array(), 'uid');
 		if (!empty($member)) {
+			$operator = $manager = $owner = $vice_founder = array();
 			foreach ($permissions as $key => $per_val) {
-				$permissions[$key]['isfounder'] = in_array($member[$key]['uid'], $founders) ? 1 : 0;
-				$permissions[$key]['username'] = $member[$key]['username'] ? $member[$key]['username'] : '';
+				$per_val['isfounder'] = in_array($member[$key]['uid'], $founders) ? 1 : 0;
+				$per_val['username'] = $member[$key]['username'] ? $member[$key]['username'] : '';
+				switch($per_val['role']) {
+					case 'vice_founder':
+						$vice_founder = $per_val;
+						break;
+					case 'owner':
+						$owner = $per_val;
+						break;
+					case 'manager':
+						$manager[] = $per_val;
+						break;
+					case 'operator':
+						$operator[] = $per_val;
+						break;
+					default:
+						break;
+				}
 			}
 		}
 	}
-	$uids = array();
-	foreach ($permissions as $v) {
-		$uids[] = $v['uid'];
-	}
+
 	template('account/manage-users');
-} elseif ($do == 'delete') {
+}
+
+if ($do == 'delete') {
 	if (!$_W['isajax'] || !$_W['ispost']) {
 		itoast('非法操作！', referer(), 'error');
 	}
@@ -73,17 +89,26 @@ if ($do == 'edit') {
 	} else {
 		itoast('该公众号下不存在该用户！', referer(), 'error');
 	}
-} elseif ($do == 'set_manager') {
+}
+
+if ($do == 'set_manager') {
 	$username = trim($_GPC['username']);
 	$user = user_single(array('username' => $username));
-	if (!empty($user) && $_W['token'] == $_GPC['token']) {
+	if (!empty($user)) {
 		if ($user['status'] != 2) {
 			iajax(3, '用户未通过审核或不存在！', '');
 		}
+		$addtype = intval($_GPC['addtype']);
+		if (!in_array($addtype, array(ACCOUNT_MANAGE_TYPE_OPERATOR, ACCOUNT_MANAGE_TYPE_MANAGER, ACCOUNT_MANAGE_TYPE_OWNER, ACCOUNT_MANAGE_TYPE_VICE_FOUNDER))) {
+			iajax(-1, '添加使用者类型有误，只能添加操作员/管理员/主管理员/副创始人！');
+		}
 		if (in_array($user['uid'], $founders)) {
+			if ($addtype == ACCOUNT_MANAGE_TYPE_OWNER) {
+				pdo_delete('uni_account_users', array('uniacid' => $uniacid, 'role' => ACCOUNT_MANAGE_NAME_OWNER));
+				iajax(0, '修改成功！', '');
+			}
 			iajax(1, '不可操作网站创始人！', '');
 		}
-		$addtype = intval($_GPC['addtype']);
 		//添加/修改公众号主管理员时执行数量判断
 		if (is_error($permission = permission_create_account($user['uid'], ACCOUNT_TYPE)) && $addtype == ACCOUNT_MANAGE_TYPE_OWNER && !in_array($_W['uid'], $founders)) {
 			itoast(error(5, $permission['message']), '', 'error');
@@ -95,13 +120,13 @@ if ($do == 'edit') {
 		);
 
 		$exists = pdo_get('uni_account_users', $data);
-		$owner = pdo_get('uni_account_users', array('uniacid' => $uniacid, 'role' => 'owner'));
 		if (empty($exists)) {
 			
 			if ($addtype == ACCOUNT_MANAGE_TYPE_OWNER) {
 				if ($state == ACCOUNT_MANAGE_NAME_MANAGER) {
 					iajax(4, '管理员不可操作主管理员', '');
 				}
+				$owner = pdo_get('uni_account_users', array('uniacid' => $uniacid, 'role' => 'owner'));
 				if (empty($owner)) {
 					$data['role'] = ACCOUNT_MANAGE_NAME_OWNER;
 				} else  {
@@ -142,7 +167,9 @@ if ($do == 'edit') {
 	} else  {
 		iajax(-1, '参数错误，请刷新重试！', '');
 	}
-} elseif ($do == 'set_permission') {
+}
+
+if ($do == 'set_permission') {
 
 	$uid = intval($_GPC['uid']);
 	$user = user_single(array('uid' => $uid));
@@ -260,7 +287,9 @@ if ($do == 'edit') {
 		itoast('操作菜单权限成功！', referer(), 'success');
 	}
 	template('account/set-permission');
-} elseif($do == 'module' && $_W['isajax']) {
+}
+
+if($do == 'module' && $_W['isajax']) {
 	$uid = intval($_GPC['uid']);
 	$user = user_single($uid);
 	if(empty($user)) {

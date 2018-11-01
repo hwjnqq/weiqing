@@ -52,6 +52,10 @@ if ($do == 'platform') {
 
 if ($do == 'display') {
 	$account_info = permission_user_account_num($_W['uid']);
+	if (user_is_founder($_W['uid'])) {
+		$founders = pdo_getall('users', array('founder_groupid' => 2), array('uid', 'username'), 'uid');
+		$founder_id = intval($_GPC['founder_id']);
+	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 10;
 
@@ -64,7 +68,6 @@ if ($do == 'display') {
 
 	if ($type == 'all') {
 		$condition = array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH, ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_WEBAPP_NORMAL, ACCOUNT_TYPE_PHONEAPP_NORMAL, ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_ALIAPP_NORMAL);
-		$fields = 'a.uniacid,b.type';
 	} elseif ($type == ACCOUNT_TYPE_SIGN) {
 		$condition = array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH);
 	} elseif ($type == WXAPP_TYPE_SIGN) {
@@ -74,34 +77,57 @@ if ($do == 'display') {
 	} elseif ($type == PHONEAPP_TYPE_SIGN) {
 		$condition = array(ACCOUNT_TYPE_PHONEAPP_NORMAL);
 	} elseif ($type == XZAPP_TYPE_SIGN) {
-		$condition = array(ACCOUNT_TYPE_XZAPP_NORMAL);
+		$condition = array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH);
 	} elseif ($type == ALIAPP_TYPE_SIGN) {
 		$condition = array(ACCOUNT_TYPE_ALIAPP_NORMAL);
 	}
+	$keyword = safe_gpc_string($_GPC['keyword']);
+	$letter = safe_gpc_string($_GPC['letter']);
 
 	$table = table('account');
 	$table->searchWithType($condition);
+	$table->searchWithKeyword($keyword);
+	$table->searchWithLetter($letter);
 
-	$keyword = safe_gpc_string($_GPC['keyword']);
-	if (!empty($keyword)) {
+	if ($type == 'all') {
+		$total_list = array('account' => 0, 'xzapp' => 0, 'wxapp' => 0, 'webapp' => 0, 'phoneapp' => 0, 'aliapp' => 0);
+		$account_total = $table->searchAccounTotal(false, $founder_id);
+		$table->searchWithType($condition);
 		$table->searchWithKeyword($keyword);
-	}
-
-	$letter = safe_gpc_string($_GPC['letter']);
-	if (isset($letter) && strlen($letter) == 1) {
 		$table->searchWithLetter($letter);
+		foreach ($account_total as $row) {
+			if (in_array($row['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
+				$total_list['account'] += $row['total'];
+			} elseif (in_array($row['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))) {
+				$total_list['xzapp'] += $row['total'];
+			} elseif (in_array($row['type'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH))) {
+				$total_list['wxapp'] += $row['total'];
+			} elseif (in_array($row['type'], array(ACCOUNT_TYPE_WEBAPP_NORMAL))) {
+				$total_list['webapp'] += $row['total'];
+			} elseif (in_array($row['type'], array(ACCOUNT_TYPE_PHONEAPP_NORMAL))) {
+				$total_list['phoneapp'] += $row['total'];
+			} elseif (in_array($row['type'], array(ACCOUNT_TYPE_ALIAPP_NORMAL))) {
+				$total_list['aliapp'] += $row['total'];
+			}
+		}
 	}
 
 	$table->accountRankOrder();
+	$table->accountUniacidOrder();
 	$table->searchWithPage($pindex, $psize);
 
-	$list = $table->searchAccountListFields($fields);
+	$list = $table->searchAccountList(false, $fields, $founder_id);
 
 	$total = $table->getLastQueryTotal();
 
 	$list = array_values($list);
 	foreach($list as &$account) {
 		$account = uni_fetch($account['uniacid']);
+		if ($account['endtime'] > 0 && $account['endtime'] < TIMESTAMP) {
+			$account['endtime_status'] = 1;
+		} else {
+			$account['endtime_status'] = 0;
+		}
 		switch ($account['type']) {
 			case ACCOUNT_TYPE_APP_NORMAL :
 			case ACCOUNT_TYPE_APP_AUTH :
@@ -159,24 +185,18 @@ if ($do == 'switch') {
 		}
 		$type = $account_info['type'];
 		$module_name = safe_gpc_string($_GPC['module_name']);
-		if (empty($module_name)) {
-			$module_name = safe_gpc_string($_GPC['module']);
-		}
 		$version_id = intval($_GPC['version_id']);
 
-		if ($type == ACCOUNT_TYPE_OFFCIAL_NORMAL || $type == ACCOUNT_TYPE_OFFCIAL_AUTH || $type == ACCOUNT_TYPE_XZAPP_NORMAL) {
+		if ($account_info->supportVersion != STATUS_ON) {
 			if (empty($module_name)) {
 				$url = url('home/welcome');
 			} else {
-				$url = url('home/welcome/ext', array('m' => $module_name, 'version_id' => $version_id));
+				$url = url('home/welcome/ext', array('m' => $module_name));
 			}
-		}
-
-		if ($type == ACCOUNT_TYPE_WEBAPP_NORMAL) {
-			$url = url('webapp/home/display');
-		}
-
-		if (in_array($type, array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_PHONEAPP_NORMAL, ACCOUNT_TYPE_ALIAPP_NORMAL))) {
+			if ($type == ACCOUNT_TYPE_WEBAPP_NORMAL) {
+				$url = url('webapp/home/display');
+			}
+		} else {
 			if (empty($version_id)) {
 				if ($type == ACCOUNT_TYPE_PHONEAPP_NORMAL) {
 					$versions = phoneapp_get_some_lastversions($uniacid);

@@ -26,6 +26,11 @@ if (empty($entry) || empty($entry['do'])) {
 	itoast('非法访问.', '', '');
 }
 
+$module = module_fetch($entry['module']);
+if (empty($module)) {
+	itoast("访问非法, 没有操作权限. (module: {$entry['module']})", '', '');
+}
+
 if (!$entry['direct']) {
 	checklogin();
 	$referer = (url_params(referer()));
@@ -46,10 +51,6 @@ if (!$entry['direct']) {
 			}
 		}
 	
-	$module = module_fetch($entry['module']);
-	if (empty($module)) {
-		itoast("访问非法, 没有操作权限. (module: {$entry['module']})", '', '');
-	}
 
 	if ($entry['entry'] == 'menu') {
 		$permission = permission_check_account_user_module($entry['module'] . '_menu_' . $entry['do'], $entry['module']);
@@ -79,8 +80,7 @@ $_GPC['state'] = $entry['state'];
 $_GPC['m'] = $entry['module'];
 $_GPC['do'] = $entry['do'];
 
-$modules = uni_modules();
-$_W['current_module'] = $modules[$entry['module']];
+$_W['current_module'] = $module;
 
 
 
@@ -94,7 +94,7 @@ if (!is_error($site)) {
 	if ($_W['role'] == ACCOUNT_MANAGE_NAME_OWNER) {
 		$_W['role'] = ACCOUNT_MANAGE_NAME_MANAGER;
 	}
-	$sysmodule = system_modules();
+	$sysmodule = module_system();
 	if (in_array($m, $sysmodule)) {
 		$site_urls = $site->getTabUrls();
 	}

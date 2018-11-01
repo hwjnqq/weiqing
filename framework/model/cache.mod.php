@@ -188,10 +188,11 @@ function cache_build_frame_menu() {
 					}
 				}
 				$section_hidden_menu_count = 0;
-				foreach ($section['menu']  as $permission_name => $sub_menu) {
+				foreach ($section['menu'] as $permission_name => $sub_menu) {
 					$sub_menu_db = $system_menu_db[$sub_menu['permission_name']];
 					$system_menu[$menu_name]['section'][$section_name]['menu'][$permission_name] = array(
 						'is_system' => isset($sub_menu['is_system']) ? $sub_menu['is_system'] : 1,
+						'permission_display' => $sub_menu['is_display'],
 						'is_display' => isset($sub_menu_db['is_display']) ? $sub_menu_db['is_display'] : ((isset($sub_menu['is_display']) && (empty($sub_menu['is_display']) || (is_array($sub_menu['is_display']) && !in_array($account['type'], $sub_menu['is_display'])))) ? 0 : 1),
 						'title' => !empty($sub_menu_db['title']) ? $sub_menu_db['title'] : $sub_menu['title'],
 						'url' => $sub_menu['url'],
@@ -297,9 +298,25 @@ function cache_build_uninstalled_module() {
 			//如果之前存入未安装，但是已经安装了，则更新数据
 			$module_cloud_upgrade = table('modules_cloud')->getByName($modulename);
 			if (!empty($module_cloud_upgrade)) {
-				table('modules_cloud')->deleteByName($modulename);
+				$has_new_support = false;
+				$new_support = array();
+				$all_support = array('account_support', 'wxapp_support', 'webapp_support', 'phoneapp_support', 'welcome_support', 'xzapp_support', 'aliapp_support');
+				foreach ($all_support as $support) {
+					if ($module_cloud_upgrade[$support] == MODULE_SUPPORT_ACCOUNT && $modulelist[$modulename][$support] == MODULE_NONSUPPORT_ACCOUNT) {
+						$new_support[$support] = MODULE_SUPPORT_ACCOUNT;
+						$has_new_support = true;
+					} else {
+						$new_support[$support] = MODULE_NONSUPPORT_ACCOUNT;
+					}
+				}
+				if ($has_new_support) {
+					$new_support['install_status'] = MODULE_CLOUD_UNINSTALL;
+					table('modules_cloud')->fill($new_support)->where('name', $modulename)->save();
+				} else {
+					table('modules_cloud')->deleteByName($modulename);
+				}
+				continue;
 			}
-			continue;
 		}
 
 		if (!is_dir($path) || !file_exists($path . '/manifest.xml')) {
@@ -329,6 +346,15 @@ function cache_build_uninstalled_module() {
 				}
 			}
 		}
+		if (!empty($modulelist[$modulename])) {
+			$new_support = module_check_notinstalled_support($modulelist[$modulename], $manifest['platform']['supports']);
+			if (!empty($new_support)) {
+				$module_upgrade_data = array_merge($module_upgrade_data, $new_support);
+			} else {
+				table('modules_cloud')->deleteByName($modulename);
+				continue;
+			}
+		}
 		$module_cloud_upgrade = table('modules_cloud')->getByName($modulename);
 
 		if (empty($module_cloud_upgrade)) {
@@ -355,7 +381,7 @@ function cache_build_proxy_wechatpay_account() {
 			$account = account_fetch($uniaccount['default_acid']);
 			$account_setting = $account_table->searchWithUniacid($account['uniacid'])->getUniSetting();
 			$payment = iunserializer($account_setting['payment']);
-			if (is_array($account) && !empty($account['key']) && !empty($account['secret']) && in_array($account['level'], array (4)) &&
+			if (!empty($account['key']) && !empty($account['secret']) && in_array($account['level'], array (4)) &&
 				is_array($payment) && !empty($payment) && intval($payment['wechat']['switch']) == 1) {
 
 				if ((!is_bool ($payment['wechat']['switch']) && $payment['wechat']['switch'] != 4) || (is_bool ($payment['wechat']['switch']) && !empty($payment['wechat']['switch']))) {
