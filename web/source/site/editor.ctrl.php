@@ -10,7 +10,10 @@ load()->library('qrcode');
 
 $do = !empty($do) ? $do : 'uc';
 $do = in_array($do, array('quickmenu', 'uc', 'qrcode')) ? $do : 'uc';
-permission_check_account_user('mc_member');
+
+if (in_array($do, array('quickmenu', 'uc'))) {
+	permission_check_account_user('mc_member_' . $do);
+}
 
 if ($do == 'uc') {
 	$_W['page']['title'] = '会员中心 - 微站功能';
@@ -26,6 +29,7 @@ if ($do == 'uc') {
 		}
 		$page = $params[0];
 		$html = safe_gpc_html(htmlspecialchars_decode($_GPC['wapeditor']['html'], ENT_QUOTES));
+		$html = str_replace('<li<x>nk', '<link', $html);
 		$data = array(
 			'uniacid' => $_W['uniacid'],
 			'multiid' => '0',
@@ -42,7 +46,7 @@ if ($do == 'uc') {
 			pdo_insert('site_page', $data);
 			$id = pdo_insertid();
 		} else {
-			pdo_update('site_page', $data, array('id' => $id));
+			pdo_update('site_page', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
 		}
 		if (!empty($page['params']['keyword'])) {
 			$cover = array(
@@ -72,7 +76,7 @@ if ($do == 'uc') {
 					'displayorder' => 0,
 				);
 				if (!empty($row['id'])) {
-					pdo_update('site_nav', $data, array('id' => $row['id']));
+					pdo_update('site_nav', $data, array('id' => $row['id'], 'uniacid' => $_W['uniacid']));
 				} else {
 					$data['status'] = 1;
 					pdo_insert('site_nav', $data);
@@ -137,7 +141,7 @@ if ($do == 'uc') {
 			$id = pdo_fetchcolumn("SELECT id FROM ".tablename('site_page')." WHERE multiid = :multiid AND type = :type", array(':multiid' => $multiid, ':type' => $type));
 		}
 		if (!empty($id)) {
-			pdo_update('site_page', $data, array('id' => $id));
+			pdo_update('site_page', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
 		} else {
 			if ($type == 4) {
 				$data['status'] = 1;
