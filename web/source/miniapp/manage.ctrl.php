@@ -72,7 +72,7 @@ if ($do == 'edit_version') {
 		'name' => $module_name,
 		'version' => $module_info['version']
 	);
-	pdo_update('wxapp_versions', array('modules' => iserializer($new_module_data)), array('id' => $versionid));
+	pdo_update('wxapp_versions', array('modules' => iserializer($new_module_data)), array('id' => $versionid, 'uniacid' => $uniacid));
 	cache_delete(cache_system_key('miniapp_version', array('version_id' => $versionid)));
 	iajax(0, '修改成功！', referer());
 }

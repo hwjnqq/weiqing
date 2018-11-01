@@ -9,7 +9,7 @@ $dos = array('display', 'post', 'delete');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
 
 $module_name = trim($_GPC['m']);
-$modulelist = uni_modules(false);
+$modulelist = uni_modules();
 $module = $_W['current_module'] = $modulelist[$module_name];
 define('IN_MODULE', $module_name);
 if(empty($module)) {
@@ -65,6 +65,13 @@ if ($do == 'post') {
 				if (in_array($value['permission'], $have_permission[$plugin]) || in_array('all', $have_permission[$plugin])) {
 					$all_permission[$plugin]['permission'][$key]['checked'] = 1;
 				}
+				if (!empty($value['sub_permission'])) {
+					foreach ($value['sub_permission'] as $sub_permission_key => $sub_permission_val) {
+						if (in_array($sub_permission_val['permission'], $have_permission[$plugin])) {
+							$all_permission[$plugin]['permission'][$key]['sub_permission'][$sub_permission_key]['checked'] = 1;
+						}
+					}
+				}
 			}
 		}
 		if (is_error($have_permission)) {
@@ -73,10 +80,10 @@ if ($do == 'post') {
 	}
 	if (checksubmit()) {
 		$insert_user = array(
-			'username' => trim($_GPC['username']),
-			'remark' => trim($_GPC['remark']),
-			'password' => trim($_GPC['password']),
-			'repassword' => trim($_GPC['repassword']),
+			'username' => safe_gpc_string($_GPC['username']),
+			'remark' => safe_gpc_string($_GPC['remark']),
+			'password' => safe_gpc_string($_GPC['password']),
+			'repassword' => safe_gpc_string($_GPC['repassword']),
 			'type' => ACCOUNT_OPERATE_CLERK
 		);
 		if (empty($insert_user['username'])) {
@@ -95,6 +102,11 @@ if ($do == 'post') {
 			}
 			unset($insert_user['repassword']);
 			$uid = user_register($insert_user, 'admin');
+
+			if (is_error($uid)) {
+				itoast($uid['message'], '', '');
+			}
+
 			if (!$uid) {
 				itoast('注册账号失败', '', '');
 			}
@@ -117,6 +129,7 @@ if ($do == 'post') {
 		}
 		$permission = $_GPC['module_permission'];
 		if (!empty($permission) && is_array($permission)) {
+			$permission = safe_gpc_array($permission);
 			foreach ($module_and_plugins as $name) {
 				if (empty($permission[$name])) {
 					$module_permission = '';

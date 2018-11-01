@@ -11,6 +11,7 @@ load()->model('account');
 load()->model('material');
 load()->model('attachment');
 load()->model('mc');
+load()->model('module');
 
 if (!in_array($do, array('upload', 'fetch', 'browser', 'delete', 'image' ,'module' ,'video', 'voice', 'news', 'keyword',
 	'networktowechat', 'networktolocal', 'towechat', 'tolocal','wechat_upload',
@@ -27,6 +28,7 @@ error_reporting(0);
 $type  =  $_GPC['upload_type'];$type = in_array($type, array('image','audio','video')) ? $type : 'image';
 $option = array();
 $option = array_elements(array('uploadtype', 'global', 'dest_dir'), $_POST);
+
 $option['width'] = intval($option['width']);
 $option['global'] = $_GPC['global'];
 
@@ -135,7 +137,6 @@ if ($do == 'upload') {
 	$ext = strtolower($ext);
 	$size = intval($_FILES['file']['size']);
 	$originname = $_FILES['file']['name'];
-
 	$filename = file_random_name(ATTACHMENT_ROOT . '/' . $setting['folder'], $ext);
 
 	$file = file_upload($_FILES['file'], $type, $setting['folder'] . $filename, true);
@@ -206,7 +207,7 @@ if ($do == 'fetch' || $do == 'upload') {
 	pdo_insert('core_attachment', array(
 		'uniacid' => $uniacid,
 		'uid' => $_W['uid'],
-		'filename' => $originname,
+		'filename' => safe_gpc_html(htmlspecialchars_decode($originname, ENT_QUOTES)),
 		'attachment' => $pathname,
 		'type' => $type == 'image' ? 1 : ($type == 'audio'||$type == 'voice' ? 2 : 3),
 		'createtime' => TIMESTAMP,
@@ -231,6 +232,9 @@ if ($do == 'delete') {
 	$table->searchWithUniacidOrUid($uniacid, $_W['uid']);
 	$attachments = $table->getall();
 	$delete_ids = array();
+	if (!empty($_W['setting']['remote'][$_W['uniacid']]['type'])) {
+		$_W['setting']['remote'] = $_W['setting']['remote'][$_W['uniacid']];
+	}
 	foreach ($attachments as $media) {
 		if (!empty($_W['setting']['remote']['type'])) {
 			$status = file_remote_delete($media['attachment']);
@@ -308,28 +312,6 @@ $limit['file_upload'] = array(
 		'errmsg' => '图片只支持jpg格式,大小不超过为1M',
 	)
 );
-
-$apis = array();
-$apis['temp'] = array(
-	'add' => 'https://api.weixin.qq.com/cgi-bin/media/upload',
-	'get' => 'https://api.weixin.qq.com/cgi-bin/media/get',
-	'post_key' => 'media'
-);
-$apis['perm'] = array(
-	'add' => 'https://api.weixin.qq.com/cgi-bin/material/add_material',
-	'get' => 'https://api.weixin.qq.com/cgi-bin/material/get_material',
-	'del' => 'https://api.weixin.qq.com/cgi-bin/material/del_material',
-	'count' => 'https://api.weixin.qq.com/cgi-bin/material/get_materialcount',
-	'batchget' => 'https://api.weixin.qq.com/cgi-bin/material/batchget_material',
-	'post_key' => 'media',
-);
-
-$apis['file_upload'] = array(
-	'add' => 'https://api.weixin.qq.com/cgi-bin/media/uploadimg',
-	'post_key' => 'buffer',
-);
-
-
 if ($do == 'wechat_upload') {
 	$type = trim($_GPC['upload_type']);
 	$mode = trim($_GPC['mode']);
@@ -371,13 +353,15 @@ if ($do == 'wechat_upload') {
 	$size = intval($_FILES['file']['size']);
 	$originname = $_FILES['file']['name'];
 
-		if(!in_array($ext, $limit[$mode][$type]['ext']) || ($size > $limit[$mode][$type]['size'])) {
+	if(!in_array($ext, $limit[$mode][$type]['ext']) || ($size > $limit[$mode][$type]['size'])) {
 		$result['message'] = $limit[$mode][$type]['errmsg'];
 		die(json_encode($result));
 	}
 
 	$filename = file_random_name(ATTACHMENT_ROOT .'/'. $setting['folder'], $ext);
+
 	$file = file_wechat_upload($_FILES['file'], $type, $setting['folder'] . $filename, true);
+
 	if (is_error($file)) {
 		$result['message'] = $file['message'];
 		die(json_encode($result));
@@ -385,50 +369,15 @@ if ($do == 'wechat_upload') {
 
 	$pathname = $file['path'];
 	$fullname = ATTACHMENT_ROOT  . '/' . $pathname;
-
-		$acc = WeAccount::create($acid);
-	$token = $acc->getAccessToken();
-	if (is_error($token)) {
-		$result['message'] = $token['message'];
-		die(json_encode($result));
-	}
-	if($mode == 'perm' || $mode == 'temp') {
-		$sendapi = $apis[$mode]['add'] . "?access_token={$token}&type={$type}";
-		$media = '@'.$fullname;
-		$data = array(
-			'media' => $media
-		);
-		if($type == 'video') {
-			$description = array(
-				'title' => $originname,
-				'introduction' => $originname,
-			);
-			$data['description'] = urldecode(json_encode($description));
+	$acc = WeAccount::createByUniacid();
+	if ($mode == 'perm' || $mode == 'temp') {
+		if ($type != 'video') {
+			$result = $acc->uploadMediaFixed($pathname, $type);
+		} else {
+			$result = $acc->uploadVideoFixed($originname, $originname, $pathname);
 		}
-	} elseif($mode == 'file_upload') {
-		$sendapi = $apis[$mode]['add'] . "?access_token={$token}";
-		$data = array(
-			'buffer' => '@'.$fullname
-		);
-		$type = 'image';
 	}
-	$resp = ihttp_request($sendapi, $data);
-	if(is_error($resp)) {
-		$result['error'] = 0;
-		$result['message'] = $resp['message'];
-		die(json_encode($result));
-	}
-	$content = @json_decode($resp['content'], true);
-	if(empty($content)) {
-		$result['error'] = 0;
-		$result['message'] = "接口调用失败, 元数据: {$resp['meta']}";
-		die(json_encode($result));
-	}
-	if(!empty($content['errcode'])) {
-		$result['error'] = 0;
-		$result['message'] = "访问微信接口错误, 错误代码: {$content['errcode']}, 错误信息: {$content['errmsg']},错误详情：{$acc->errorCode($content['errcode'])}";
-		die(json_encode($result));
-	}
+
 	if($mode == 'perm' || $mode == 'temp') {
 		if(!empty($content['media_id'])){
 			$result['media_id'] = $content['media_id'];
@@ -441,12 +390,13 @@ if ($do == 'wechat_upload') {
 	}
 
 	if ($type == 'image' || $type == 'thumb' ) {
-				$file['path'] = file_image_thumb($fullname, '', 300);
+		$file['path'] = file_image_thumb($fullname, '', 300);
 	}
+
 	if (!empty($_W['setting']['remote']['type']) && !empty($file['path'])) {
 		$remotestatus = file_remote_upload($file['path']);
 		if (is_error($remotestatus)) {
-						file_delete($pathname);
+			file_delete($pathname);
 			if($type == 'image' || $type == 'thumb'){
 				file_delete($file['path']);
 			}
@@ -454,7 +404,7 @@ if ($do == 'wechat_upload') {
 			$result['message'] = '远程附件上传失败，请检查配置并重新上传';
 			die(json_encode($result));
 		} else {
-						file_delete($pathname);
+			file_delete($pathname);
 			if($type == 'image' || $type == 'thumb'){
 				file_delete($file['path']);
 			}
@@ -479,7 +429,7 @@ if ($do == 'wechat_upload') {
 		$insert['width'] = $size[0];
 		$insert['height'] = $size[1];
 		if($mode == 'perm') {
-						$insert['tag'] = $content['url'];
+			$insert['tag'] = $content['url'];
 		}
 		if(!empty($insert['tag'])) {
 			$insert['attachment'] = $content['url'];
@@ -488,7 +438,7 @@ if ($do == 'wechat_upload') {
 		$result['hieght'] = $size[1];
 	}
 	if($type == 'video') {
-		$insert['tag'] = iserializer($description);
+		$insert['tag'] = iserializer(array('title' => $originname, 'url' => ''));
 	}
 	pdo_insert('wechat_attachment', $insert);
 	$result['type'] = $type;
@@ -496,10 +446,6 @@ if ($do == 'wechat_upload') {
 
 	if($type == 'image' || $type == 'thumb') {
 		@unlink($fullname);
-	}
-	if($type == 'video') {
-		$result['title'] = $description['title'];
-		$result['introduction'] = $description['introduction'];
 	}
 	$result['mode'] = $mode;
 	die(json_encode($result));
@@ -509,7 +455,8 @@ $type = $_GPC['type']; $resourceid = intval($_GPC['resource_id']); $uid = intval
 $acid = intval($_W['acid']);
 $url = $_GPC['url'];
 $isnetwork_convert = !empty($url);
-$islocal = $_GPC['local'] == 'local'; if ($do == 'keyword') {
+$islocal = $_GPC['local'] == 'local'; 
+if ($do == 'keyword') {
 	$keyword = addslashes($_GPC['keyword']);
 	$pindex = max(1, $_GPC['page']);
 	$psize = 24;
@@ -527,23 +474,36 @@ $islocal = $_GPC['local'] == 'local'; if ($do == 'keyword') {
 if ($do == 'module') {
 	$enable_modules = array();
 	$is_user_module = isset($_GPC['user_module']) ? intval($_GPC['user_module']) : 0;
-	$is_wxapp_module = intval($_GPC['mtype']);
+	$have_cover = $_GPC['cover'] == 'true' ? true : false;
+	$module_type = in_array($_GPC['mtype'], array(ACCOUNT_TYPE_SIGN, WXAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN, PHONEAPP_TYPE_SIGN, ALIAPP_TYPE_SIGN)) ? $_GPC['mtype'] : '';
 	if ($is_user_module) {
 		$installedmodulelist = user_modules($_W['uid']);
 	} else {
-		$installedmodulelist = uni_modules(false);
+		$installedmodulelist = uni_modules();
 	}
 
-	$sysmods = system_modules();
+	$sysmods = module_system();
 	foreach ($installedmodulelist as $k => $value) {
 		if ($value['type'] == 'system' || in_array($value['name'], $sysmods)) {
 			unset($installedmodulelist[$k]);
 			continue;
 		}
-		if ($is_wxapp_module == 1 && $value['wxapp_support'] != 2) {
+		if ($module_type == ACCOUNT_TYPE_SIGN && $value[MODULE_SUPPORT_ACCOUNT_NAME] != 2 ||
+			$module_type == WXAPP_TYPE_SIGN && $value[MODULE_SUPPORT_WXAPP_NAME] != 2 ||
+			$module_type == WEBAPP_TYPE_SIGN && $value[MODULE_SUPPORT_WEBAPP_NAME] != 2 ||
+			$module_type == ALIAPP_TYPE_SIGN && $value[MODULE_SUPPORT_ALIAPP_NAME] != 2 ||
+			$module_type == PHONEAPP_TYPE_SIGN && $value[MODULE_SUPPORT_PHONEAPP_NAME] != 2) {
 			unset($installedmodulelist[$k]);
 			continue;
 		}
+		if ($have_cover) {
+			$module_entries = module_entries($value['name'], array('cover'));
+			if (empty($module_entries)) {
+				unset($installedmodulelist[$k]);
+				continue;
+			}
+		}
+
 		$installedmodulelist[$k]['official'] = empty($value['issystem']) && (strexists($value['author'], 'WeEngine Team') || strexists($value['author'], '微擎团队'));
 	}
 	foreach ($installedmodulelist as $name => $module) {
@@ -560,11 +520,7 @@ if ($do == 'module') {
 			}
 		}
 		$module['icon'] = $cion;
-		if ($module['enabled'] == 1 || $is_user_module) {
-			$enable_modules[] = $module;
-		} else {
-			$unenable_modules[$name] = $module;
-		}
+		$enable_modules[] = $module;
 	}
 	$result = array('items' => $enable_modules, 'pager' => '');
 	iajax(0, $result);
@@ -603,7 +559,7 @@ if ($do == 'image') {
 	$month = $_GPC['month'];
 	$page = intval($_GPC['page']);
 	$groupid = intval($_GPC['groupid']);
-	$page_size = 24;
+	$page_size = 10;
 	$page = max(1, $page);
 	$is_local_image = $islocal == 'local' ? true : false;
 	$attachment_table = table('attachment');
@@ -614,8 +570,12 @@ if ($do == 'image') {
 	if (empty($uniacid)) {
 		$attachment_table->searchWithUid($_W['uid']);
 	}
-	if ($groupid >=0) {
+	if ($groupid > 0) {
 		$attachment_table->searchWithGroupId($groupid);
+	}
+
+	if ($groupid == 0) {
+		$attachment_table->searchWithGroupId(-1);
 	}
 
 	if ($year || $month) {
@@ -629,6 +589,7 @@ if ($do == 'image') {
 		$attachment_table->searchWithType(ATTACHMENT_IMAGE);
 	}
 	$attachment_table->searchWithPage($page, $page_size);
+
 	$list = $attachment_table->searchAttachmentList();
 	$total = $attachment_table->getLastQueryTotal();
 	if (!empty($list)) {
@@ -637,7 +598,11 @@ if ($do == 'image') {
 				$meterial['url'] = tomedia($meterial['attachment']);
 				unset($meterial['uid']);
 			} else {
-				$meterial['attach'] = tomedia($meterial['attachment'], true);
+				if(!empty($_W['setting']['remote']['type'])) {
+					$meterial['attach'] = tomedia($meterial['attachment']);
+				} else {
+					$meterial['attach'] = tomedia($meterial['attachment'], true);
+				}
 				$meterial['url'] = $meterial['attach'];
 			}
 		}
@@ -691,8 +656,13 @@ if ($do == 'networktowechat') {
 	if (!in_array($type,array('image','video'))) {
 		$type = 'image';
 	}
-
-	$material = material_network_to_wechat($url, $uniacid, $uid, $acid, $type); 	if (is_error($material)) {
+	$url_host =  parse_url($url, PHP_URL_HOST);
+	$is_ip = preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $url_host);
+	if ($is_ip) {
+		iajax(1, '网络链接不支持IP地址！');
+	}
+	$material = material_network_to_wechat($url, $uniacid, $uid, $acid, $type);
+	if (is_error($material)) {
 		iajax(1, $material['message']);
 
 		return;
@@ -723,14 +693,14 @@ $is_local_image = $islocal == 'local' ? true : false;
  *  图片分组列表
  */
 if ($do == 'group_list') {
-	$query = table('attachmentgroup')->where('type', $is_local_image ? 0 : 1);
+	$query = table('attachment_group')->where('type', $is_local_image ? 0 : 1);
 	$query->searchWithUniacidOrUid($uniacid, $_W['uid']);
 	$list = $query->getall();
 	iajax(0, $list);
 }
 
 if ($do == 'add_group') {
-	$table = table('attachmentgroup');
+	$table = table('attachment_group');
 	$table->fill(array(
 		'uid' => $_W['uid'],
 		'uniacid'=>$uniacid,
@@ -745,7 +715,7 @@ if ($do == 'add_group') {
 }
 
 if ($do == 'change_group') {
-	$table = table('attachmentgroup');
+	$table = table('attachment_group');
 	$type = $is_local_image ? 0 : 1;
 	$name = trim($_GPC['name']);
 	$id = intval($_GPC['id']);
@@ -757,7 +727,7 @@ if ($do == 'change_group') {
 }
 
 if ($do == 'del_group') {
-	$table = table('attachmentgroup');
+	$table = table('attachment_group');
 	$type = $is_local_image ? 0 : 1;
 	$id = intval($_GPC['id']);
 	$table->searchWithUniacidOrUid($uniacid, $_W['uid']);
@@ -768,13 +738,12 @@ if ($do == 'del_group') {
 
 
 if ($do == 'move_to_group') {
-	$table = table('attachmentgroup');
 	$group_id = intval($_GPC['id']);
 	$ids = $_GPC['keys'];
 	$ids = safe_gpc_array($ids);
 
 	$table = table('attachment')->local($is_local_image);
-	$updated = $table->where('id', $ids)->fill('group_id', $group_id)->save();
+	$updated = $table->where('id', $ids)->where('uniacid', $_W['uniacid'])->fill('group_id', $group_id)->save();
 
 	iajax($updated ? 0 : 1, $updated ? '更新成功' : '更新失败');
 }

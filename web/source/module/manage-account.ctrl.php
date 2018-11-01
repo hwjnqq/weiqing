@@ -16,7 +16,7 @@ load()->model('extension');
 $dos = array('display', 'setting', 'shortcut', 'enable', 'check_status');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
 
-$modulelist = uni_modules(false);
+$modulelist = uni_modules();
 
 //检测模块更新和是否盗版
 if ($do == 'check_status') {
@@ -45,7 +45,7 @@ if($do == 'display') {
 	$pageindex = max(1, intval($_GPC['page']));
 	$pagesize = 30;
 
-	$modules = array();
+	$modules = $displayorder = array();
 	if (!empty($modulelist)) {
 		foreach ($modulelist as $name => $row) {
 			if (!empty($row['issystem'])) {
@@ -57,10 +57,11 @@ if($do == 'display') {
 			if (!empty($_GPC['letter']) && $row['title_initial'] != $_GPC['letter']) {
 				continue;
 			}
+			$displayorder[$name] = $row['displayorder'];
 			$modules[$name] = $row;
 		}
 	}
-
+	array_multisort($displayorder, SORT_DESC, $modules);
 	template ('module/manage-account');
 } elseif ($do == 'shortcut') {
 	$status = intval($_GPC['shortcut']);
@@ -94,7 +95,7 @@ if($do == 'display') {
 
 	$module_profile = pdo_get('uni_account_modules', array('module' => $modulename, 'uniacid' => $_W['uniacid']));
 	if (!empty($module_profile)) {
-		pdo_update('uni_account_modules', array('displayorder' => ++$max_displayorder), array('id' => $module_profile['id']));
+		pdo_update('uni_account_modules', array('displayorder' => ++$max_displayorder), array('id' => $module_profile['id'], 'uniacid' => $_W['uniacid']));
 	} else {
 		pdo_insert('uni_account_modules', array(
 			'displayorder' => ++$max_displayorder,

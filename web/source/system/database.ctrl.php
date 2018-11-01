@@ -27,19 +27,19 @@ if ($do == 'backup') {
 			itoast('数据已经备份完成', url('system/database/'), 'success');
 		}	
 		$series = max(1, intval($_GPC['series']));
-		if (!empty($_GPC['volume_suffix'])) {
+		if (!empty($_GPC['volume_suffix']) && !preg_match('/[^0-9A-Za-z-_]/', $_GPC['volume_suffix'])) {
 			$volume_suffix =  $_GPC['volume_suffix'];
 		} else {
 			$volume_suffix = random(10);
 		}	
-		if (!empty($_GPC['folder_suffix'])) {
+		if (!empty($_GPC['folder_suffix']) && !preg_match('/[^0-9A-Za-z-_]/', $_GPC['folder_suffix'])) {
 			$folder_suffix = $_GPC['folder_suffix'];
 		} else {
 			$folder_suffix = TIMESTAMP . '_' . random(8);
 		}
 		$bakdir = IA_ROOT . '/data/backup/' . $folder_suffix;
 		if (trim($_GPC['start'])) {
-			$result = mkdirs($bakdir);		
+			$result = mkdirs($bakdir);
 		}
 		$size = 300;
 		$volumn = 1024 * 1024 * 2;
@@ -68,7 +68,7 @@ if ($do == 'backup') {
 			}
 			$index = 0;
 			if (!empty($_GPC['index'])) {
-				$index = $_GPC['index'];
+				$index = intval($_GPC['index']);
 				$_GPC['index'] = 0;
 			}
 			//枚举所有表的INSERT语句

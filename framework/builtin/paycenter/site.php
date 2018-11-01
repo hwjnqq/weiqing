@@ -13,7 +13,7 @@ class PaycenterModuleSite extends WeModuleSite {
 			if(is_array($session)) {
 				load()->model('user');
 				$user = user_single(array('uid'=>$session['uid']));
-				if(is_array($user) && $session['hash'] == md5($user['password'] . $user['salt'])) {
+				if(is_array($user) && $session['hash'] === $user['hash']) {
 					$clerk = pdo_get('activity_clerks', array('uniacid' => $_W['uniacid'], 'uid' => $user['uid']));
 					if(empty($clerk)) {
 						message('您没有管理该店铺的权限', referer(), 'error');
@@ -70,7 +70,7 @@ class PaycenterModuleSite extends WeModuleSite {
 			}
 			$cookie = array();
 			$cookie['uid'] = $user['uid'];
-			$cookie['hash'] = md5($user['password'] . $user['salt']);
+			$cookie['hash'] = $user['hash'];
 			$session = base64_encode(json_encode($cookie));
 			isetcookie('_pc_session', $session, !empty($_GPC['rember']) ? 7 * 86400 : 0, true);
 			message(error(0, ''), '', 'ajax');

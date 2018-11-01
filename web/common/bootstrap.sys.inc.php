@@ -19,10 +19,8 @@ load()->classs('oauth2/oauth2client');
 $_W['token'] = token();
 $session = json_decode(authcode($_GPC['__session']), true);
 if (is_array($session)) {
-	$user = user_single(array('uid'=>$session['uid']));
-	//todo 1.7.5记得更新此if语句
-	if (is_array($user) && ($session['hash'] === md5($user['password'] . $user['salt']) || $session['hash'] == $user['hash'])) {
-		unset($user['password'], $user['salt']);
+	$user = user_single(array('uid'=>$session['uid']), false);
+	if (is_array($user) && $session['hash'] === $user['hash']) {
 		$_W['uid'] = $user['uid'];
 		$_W['username'] = $user['username'];
 		$user['currentvisit'] = $user['lastvisit'];
@@ -48,10 +46,7 @@ if (!empty($_GPC['__uniacid'])) {
 if (!empty($_W['uid'])) {
 	$_W['highest_role'] = permission_account_user_role($_W['uid']);
 	$_W['role'] = permission_account_user_role($_W['uid'], $_W['uniacid']);
-
-	if ((empty($_W['isfounder']) || user_is_vice_founder()) && !empty($_W['user']['endtime']) && $_W['user']['endtime'] < TIMESTAMP) {
-		$_W['role'] = ACCOUNT_MANAGE_NAME_EXPIRED;
-	}
+	$_W['role'] = !empty($_W['role']) ? $_W['role'] : $_W['highest_role'];
 }
 
 $_W['template'] = !empty($_W['setting']['basic']['template']) ? $_W['setting']['basic']['template'] : 'default';

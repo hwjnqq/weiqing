@@ -35,7 +35,7 @@ if ($step == 'scripts' && $_W['ispost']) {
 	}
 	exit('failed');
 }
-
+$has_new_support = intval($_GPC['has_new_support']);
 if (!empty($_GPC['m'])) {
 	$m = $_GPC['m'];
 	$type = 'module';

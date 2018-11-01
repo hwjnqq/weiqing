@@ -11,6 +11,9 @@ load()->model('extension');
 $dos = array('display', 'post', 'del', 'default', 'copy', 'switch', 'quickmenu_display', 'quickmenu_post');
 $do = in_array($do, $dos) ? $do : 'display';
 $_W['page']['title'] = '微官网';
+
+permission_check_account_user('platform_site_multi');
+
 //获取默认微站
 $setting = uni_setting($_W['uniacid'], 'default_site');
 $default_site = intval($setting['default_site']);
@@ -48,9 +51,6 @@ if ($do == 'post') {
 			)),
 			'bindhost' => trim($_GPC['bindhost']),
 		);
-		if (empty($data['title'])) {
-			itoast('请填写站点名称', referer(), 'error');
-		}
 		if (!empty($id)) {
 			//默认微站状态不可关闭
 			if ($id == $default_site) {
@@ -208,7 +208,7 @@ if ($do == 'switch') {
 		itoast('微站不存在或已删除', referer(), 'error');
 	}
 	$data = array('status' => $multi_info['status'] == 1 ? 0 : 1);
-	$result = pdo_update('site_multi', $data, array('id' => $id));
+	$result = pdo_update('site_multi', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
 	if(!empty($result)) {
 		iajax(0, '更新成功！', '');
 	}else {
@@ -252,7 +252,7 @@ if ($do == 'quickmenu_post' && $_W['isajax'] && $_W['ispost']) {
 	);
 	$id = pdo_fetchcolumn("SELECT id FROM ".tablename('site_page')." WHERE multiid = :multiid AND type = 2", array(':multiid' => intval($_GPC['multiid'])));
 	if (!empty($id)) {
-		$result = pdo_update('site_page', $data, array('id' => $id));
+		$result = pdo_update('site_page', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
 	} else {
 		$result = pdo_insert('site_page', $data);
 		$id = pdo_insertid();
