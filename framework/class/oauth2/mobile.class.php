@@ -19,10 +19,10 @@ class Mobile extends OAuth2Client {
 		global $_GPC, $_W;
 		$mobile = trim($_GPC['username']);
 		$member['password'] = $_GPC['password'];
-		pdo_delete('users_failed_login', array('lastupdate <' => TIMESTAMP-300));
+		pdo_delete('users_failed_login', array('lastupdate <' => TIMESTAMP-3600));
 		$failed = pdo_get('users_failed_login', array('username' => $mobile, 'ip' => CLIENT_IP));
 		if ($failed['count'] >= 5) {
-			return error('-1', '输入密码错误次数超过5次，请在5分钟后再登录');
+			return error('-1', '输入密码错误次数超过5次，请在1小时后再登录');
 		}
 		if (!empty($_W['setting']['copyright']['verifycode'])) {
 			$verify = trim($_GPC['verify']);
@@ -84,13 +84,10 @@ class Mobile extends OAuth2Client {
 			return error(-1, '短信验证码不能为空');
 		}
 
-		$user_table = table('users');
-		$code_info = $user_table->userVerifyCode($mobile, $smscode);
-		if (empty($code_info)) {
-			return error(-1, '短信验证码不正确');
-		}
-		if ($code_info['createtime'] + 120 < TIMESTAMP) {
-			return error(-1, '短信验证码已过期，请重新获取');
+		load()->model('utility');
+		$verify_info = utility_smscode_verify(0, $mobile, $smscode);
+		if (is_error($verify_info)) {
+			return error(-1, $verify_info['message']);
 		}
 
 		if(istrlen($member['password']) < 8) {
@@ -170,7 +167,6 @@ class Mobile extends OAuth2Client {
 		$image_code =trim($_GPC['imagecode']);
 		$sms_code = trim($_GPC['smscode']);
 
-		$user_table = table('users');
 		if (empty($sms_code)) {
 			return error(-1, '短信验证码不能为空');
 		}
@@ -194,12 +190,10 @@ class Mobile extends OAuth2Client {
 			}
 		}
 
-		$code_info = $user_table->userVerifyCode($mobile, $sms_code);
-		if (empty($code_info)) {
-			return error(-1, '短信验证码不正确');
-		}
-		if ($code_info['createtime'] + 120 < TIMESTAMP) {
-			return error(-1, '短信验证码已过期，请重新获取');
+		load()->model('utility');
+		$verify_info = utility_smscode_verify(0, $mobile, $smscode);
+		if (is_error($verify_info)) {
+			return error(-1, $verify_info['message']);
 		}
 	}
 }

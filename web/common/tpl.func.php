@@ -50,7 +50,7 @@ function _tpl_form_field_date($name, $value = '', $withtime = false) {
  * @return string
  */
 function tpl_form_field_link($name, $value = '', $options = array()) {
-	global $_GPC;
+	global $_GPC, $_W;
 	if(!empty($options)) {
 		foreach ($options as $key => $val){
 			$options .= $key.':'.$val.',';
@@ -58,8 +58,10 @@ function tpl_form_field_link($name, $value = '', $options = array()) {
 	}
 	$s = '';
 	if (!defined('TPL_INIT_LINK')) {
-		$s = '
+		$s .= '
 		<script type="text/javascript">
+			window.HOST_TYPE = "2";
+			window.BMap_loadScriptTime = (new Date).getTime();
 			function showLinkDialog(elm) {
 				var ipt = $(elm).parent().parent().parent().prev();
 				util.linkBrowser(function(href){

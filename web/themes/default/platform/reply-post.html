@@ -179,7 +179,11 @@
 			{if $m ==  'userapi'}
 			{php echo module_build_form('userapi', $rid)}
 			{elseif in_array($m, $sysmods)}
-			{php echo module_build_form('core', $rid, array('basic'=> false,'news'=> false,'image'=> false,'music'=> false,'voice'=> false,'video'=> false))}
+				{if !in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
+					{php echo module_build_form('core', $rid, array('basic'=> false,'news'=> false,'image'=> false,'music'=> false,'voice'=> false,'video'=> false))}
+				{else}
+					{php echo module_build_form('core', $rid, array('basic'=> false,'news'=> false,'image'=> false,'music'=> true,'voice'=> true,'video'=> true))}
+				{/if}
 			{else}
 			{php echo module_build_form($m, $rid)}
 			{/if}

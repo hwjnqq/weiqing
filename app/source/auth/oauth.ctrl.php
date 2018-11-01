@@ -253,6 +253,11 @@ if(uni_is_multi_acid()) {
 	$str = "&j={$_W['acid']}";
 }
 $forward = strexists($forward, 'i=') ? $forward : "{$forward}&i={$_W['uniacid']}{$str}";
-$forward = strexists($forward, '&wxref=mp.weixin.qq.com#wechat_redirect') ? $forward : $forward . '&wxref=mp.weixin.qq.com#wechat_redirect';
+//部分开发者链接内有‘&wxref=mp.weixin.qq.com’，而没有‘#wechat_redirect’会导致判断错误，故不能直接判断‘&wxref=mp.weixin.qq.com#wechat_redirect’
+if (strpos($forward, '&wxref=mp.weixin.qq.com')) {
+	$forward = strstr($forward, '&wxref=mp.weixin.qq.com', true) . '&wxref=mp.weixin.qq.com#wechat_redirect';
+} else {
+	$forward .= '&wxref=mp.weixin.qq.com#wechat_redirect';
+}
 header('Location: ' . $forward);
 exit;

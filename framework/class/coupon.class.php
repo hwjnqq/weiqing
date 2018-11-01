@@ -853,7 +853,7 @@ class Card {
 	public $pay_info = array();//是否支持刷卡支付
 
 	//aj修改
-	public $get_custom_code_mode = "GET_CUSTOM_CODE_MODE_DEPOSIT";
+	public $get_custom_code_mode = '';//非必填, 填入GET_CUSTOM_CODE_MODE_DEPOSIT 卡券为预存code模式，须导入超过库存数目的自定义code
 
 	private $types = array('', 'DISCOUNT', 'CASH', 'GROUPON', 'GIFT', 'GENERAL_COUPON', "MEMBER_CARD", "SCENIC_TICKET", "MOVIE_TICKET");
 	private $code_types = array(COUPON_CODE_TYPE_TEXT => 'CODE_TYPE_TEXT', COUPON_CODE_TYPE_QRCODE => 'CODE_TYPE_QRCODE',COUPON_CODE_TYPE_BARCODE => 'CODE_TYPE_BARCODE');

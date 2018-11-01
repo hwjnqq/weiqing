@@ -94,7 +94,7 @@ class Validator {
 		'after' => ':attribute 日期不能小于 %s',
 		'before' => ':attribute 日期不能大于 %s',
 		'regex' => ':attribute 不是有效的数据', //regex:pattern
-		'same' => ':attribute 和 $s 不一致', //some:field
+		'same' => ':attribute 和 %s 不一致', //some:field
 		'bool' => ':attribute 必须是bool值',
 		'path' => ':attribute 不是有效的路径'
 	);

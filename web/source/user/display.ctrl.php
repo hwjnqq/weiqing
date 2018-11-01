@@ -22,6 +22,7 @@ if ($do == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	$users_table = table('users');
+	$users_table->searchWithTimelimitStatus(intval($_GPC['expire']));
 	$type = empty($_GPC['type']) ? 'display' : $_GPC['type'];
 	if (in_array($type, array('display', 'check', 'recycle', 'clerk'))) {
 		switch ($type) {

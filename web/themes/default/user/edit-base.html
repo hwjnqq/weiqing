@@ -15,7 +15,7 @@
 <div id="js-user-edit-base" ng-controller="UserProfileDisplay" ng-cloak>
 	<div class="user-head-info clearfix" >
 		<span class="icon pull-left"><i class="wi wi-user"></i></span>
-		<img ng-src="{{profile.avatar}}" class="img-circle user-avatar pull-left">
+		<img src="{{profile.avatar}}" class="img-circle user-avatar pull-left">
 		<h3 class="pull-left" ng-bind="user.username"></h3>
 		<div class="user-edit pull-right">
 			
@@ -40,7 +40,7 @@
 		</tr>
 		<tr>
 			<td class="table-label">头像</td>
-			<td><img ng-src="{{profile.avatar}}" class="img-circle" width="65px" height="65px" /></td>
+			<td><img src="{{profile.avatar}}" class="img-circle" width="65px" height="65px" /></td>
 			<td><div class="link-group"><a href="javascript:;" ng-click="changeAvatar()">修改</a></div></td>
 		</tr>
 		<tr>
@@ -177,6 +177,11 @@
 			<td class="table-label">居住地址</td>
 			<td ng-bind="profile.resides"></td>
 			<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#reside">修改</a></div></td>
+		</tr>
+		<tr ng-repeat="field in extra_fields">
+			<td class="table-label" ng-bind="field.title"></td>
+			<td ng-bind="profile[field.field]"></td>
+			<td></td>
 		</tr>
 		<tr>
 			<td class="table-label">上次登录时间</td>
@@ -423,10 +428,13 @@ require(['underscore'], function(){
 		user: {php echo !empty($user) ? json_encode($user) : 'null'},
 		profile: {php echo !empty($profile) ? json_encode($profile) : 'null'},
 		account_num: {php echo !empty($account_num) ? json_encode($account_num) : 'null'},
+		extra_fields: {php echo !empty($extra_fields) ? json_encode($extra_fields) : 'null'},
 		links: {
 			userPost: "{php echo url('user/profile/post')}",
+			recycleUser: "{php echo url('user/display/operate', array('type' => 'recycle'))}",
 		},
 	});
+
 	angular.bootstrap($('#js-user-edit-base'), ['userProfile']);
 });
 </script>

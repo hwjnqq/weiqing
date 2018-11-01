@@ -5,7 +5,7 @@
 
 defined('IN_IA') or exit('Access Denied');
 
-permission_check_account_user('mc_member');
+permission_check_account_user('mc_member_group');
 
 $dos = array('display', 'change_group_level', 'save_group', 'get_group', 'set_default', 'del_group');
 $do = in_array($do, $dos) ? $do : 'display';
@@ -36,14 +36,15 @@ if ($do == 'save_group') {
 		iajax(1, '编辑失败', '');
 	}
 	$data = array(
-		'title' => $group['title'],
-		'credit' => $group['credit']
+		'title' => safe_gpc_string($group['title']),
+		'credit' => intval($group['credit'])
 	);
 	if (empty($data['title'])) {
 		iajax(1, '请填写会员组名称', '');
 	}
-	if (!empty($group['groupid'])) {
-		pdo_update('mc_groups', $data, array('groupid' => $group['groupid']));
+	$groupid = intval($group['groupid']);
+	if (!empty($groupid)) {
+		pdo_update('mc_groups', $data, array('groupid' => $groupid, 'uniacid' => $_W['uniacid']));
 		iajax(2, '修改成功', '');
 	} else {
 		$data['uniacid'] = $_W['uniacid'];
@@ -76,13 +77,13 @@ if ($do == 'get_group') {
 if ($do == 'set_default') {
 	$group_id = intval($_GPC['group_id']);
 	pdo_update('mc_groups', array('isdefault' => 0), array('uniacid' => $_W['uniacid']));
-	pdo_update('mc_groups', array('isdefault' => 1), array('groupid' => $group_id));
+	pdo_update('mc_groups', array('isdefault' => 1), array('groupid' => $group_id, 'uniacid' => $_W['uniacid']));
 	iajax(0, '');
 }
 
 if ($do == 'del_group') {
 	$group_id = intval($_GPC['group_id']);
-	pdo_delete('mc_groups', array('groupid' => $group_id));
+	pdo_delete('mc_groups', array('groupid' => $group_id, 'uniacid' => $_W['uniacid']));
 	iajax(0, '');
 }
 template('mc/group');

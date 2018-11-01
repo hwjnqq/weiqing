@@ -81,13 +81,14 @@ if ($do == 'avatar') {
 }
 /*收货地址*/
 if ($do == 'address') {
+	$address_id = intval($_GPC['id']);
 	if ($_GPC['op'] == 'default') {
 		pdo_update('mc_member_address', array('isdefault' => 0), array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
-		pdo_update('mc_member_address', array('isdefault' => 1), array('id' => $_GPC['id']));
-		mc_update($_W['member']['uid'], array('address' => $_GPC['address']));
+		pdo_update('mc_member_address', array('isdefault' => 1), array('id' => $address_id, 'uniacid' => $_W['uniacid']));
+		mc_update($_W['member']['uid'], array('address' => safe_gpc_string($_GPC['address'])));
 	}
 	if ($_GPC['op'] == 'delete') {
-		pdo_delete('mc_member_address', array('id' => $_GPC['id']));
+		pdo_delete('mc_member_address', array('id' => $address_id));
 	}
 	$where = ' WHERE 1';
 	$params = array(':uniacid' => $_W['uniacid'], ':uid' => $_W['member']['uid']);

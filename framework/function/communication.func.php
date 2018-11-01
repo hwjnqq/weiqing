@@ -162,10 +162,6 @@ function ihttp_socketopen($hostname, $port = 80, &$errno, &$errstr, $timeout = 1
 function ihttp_response_parse($data, $chunked = false) {
 	$rlt = array();
 
-	$headermeta = explode('HTTP/', $data);
-	if (count($headermeta) > 2) {
-		$data = 'HTTP/' . array_pop($headermeta);
-	}
 	$pos = strpos($data, "\r\n\r\n");
 	$split1[0] = substr($data, 0, $pos);
 	$split1[1] = substr($data, $pos + 4, strlen($data));
@@ -330,7 +326,7 @@ function ihttp_build_curl($url, $post, $extra, $timeout) {
 	}
 	curl_setopt($ch, CURLOPT_URL, $urlset['scheme'] . '://' . $urlset['host'] . ($urlset['port'] == '80' || empty($urlset['port']) ? '' : ':' . $urlset['port']) . $urlset['path'] . $urlset['query']);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-	@curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+	//@curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 	curl_setopt($ch, CURLOPT_HEADER, 1);
 	@curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
 	if ($post) {

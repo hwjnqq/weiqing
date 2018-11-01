@@ -48,13 +48,15 @@ if ($do == 'display') {
 							$row['last_modules'] = array_merge($module, $row['last_modules']);
 						}
 					}
+					if (empty($row['last_modules'])) {
+						$row['last_modules'] = $row['module'];
+					}
 				}
 				unset($row);
 			}
 			$wxapp_modules = miniapp_support_uniacid_modules($account['uniacid'], MODULE_SUPPORT_WXAPP_NAME);
 		}
 	}
-
 	template('wxapp/manage');
 }
 

@@ -11,7 +11,7 @@ load()->model('account');
 $dos = array('display', 'post', 'del');
 $do = in_array($do, $dos) ? $do : 'display';
 
-permission_check_account_user('platform_site');
+permission_check_account_user('platform_site_article');
 $_W['page']['title'] = '文章管理 - 微官网';
 $category = pdo_fetchall("SELECT id,parentid,name FROM ".tablename('site_category')." WHERE uniacid = '{$_W['uniacid']}' AND enabled=1 ORDER BY parentid ASC, displayorder ASC, id ASC ", array(), 'id');
 
@@ -217,7 +217,7 @@ if ($do == 'display') {
 				$data['rid'] = 0;
 				$data['kid'] = 0;
 			}
-			pdo_update('site_article', $data, array('id' => $id));
+			pdo_update('site_article', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
 		}
 		itoast('文章更新成功！', url('site/article/display'), 'success');
 	} else {

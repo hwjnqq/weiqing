@@ -10,8 +10,8 @@ load()->model('module');
 $dos = array('entrance_link');
 $do = in_array($do, $dos) ? $do : 'entrance_link';
 
+permission_check_account_user('wxapp_entrance_link');
 $_W['page']['title'] = '入口页面 - 小程序 - 管理';
-
 $wxapp_info = miniapp_fetch($_W['uniacid']);
 
 if ($do == 'entrance_link') {

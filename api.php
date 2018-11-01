@@ -567,13 +567,12 @@ class WeEngine {
 		if(!empty($message['scene'])) {
 			$message['source'] = 'qr';
 			$sceneid = trim($message['scene']);
-			$scene_condition = '';
 			if (is_numeric($sceneid)) {
 				$scene_condition = " `qrcid` = '{$sceneid}'";
 			}else{
 				$scene_condition = " `scene_str` = '{$sceneid}'";
 			}
-			$qr = pdo_fetch("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE {$scene_condition} AND `uniacid` = '{$_W['uniacid']}'");
+			$qr = pdo_fetch("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE {$scene_condition} AND `uniacid` = '{$_W['uniacid']}' AND `type` = 'scene'");
 
 		}
 		if (empty($qr) && !empty($message['ticket'])) {

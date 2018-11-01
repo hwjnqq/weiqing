@@ -25,7 +25,7 @@ if ($do == 'mail') {
 		pdo_update('uni_settings', $setting, array('uniacid' => $_W['uniacid']));
 		$result = ihttp_email($notify['mail']['username'], $_W['account']['name'] . '验证邮件'.date('Y-m-d H:i:s'), '如果您收到这封邮件则表示您系统的发送邮件配置成功！');
 		if (is_error($result)) {
-			$setting = array('notify' => iserializer($original_setting));
+			$setting = iserializer($original_setting);
 			pdo_update('uni_settings', $setting, array('uniacid' => $_W['uniacid']));
 			itoast('配置失败，请检查配置信息', url('profile/notify'), 'info');
 		} else {

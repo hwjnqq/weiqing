@@ -16,57 +16,57 @@
 </div>
 <table class="table we7-table table-hover" id="js-user-group-display" ng-controller="UserGroupDisplay" ng-cloak>
 	<col width="120px"/>
-	<col width="100px"/>
-	<col width="120px"/>
-	<col width="120px"/>
-	<col width="120px"/>
-	<col width="100px"/>
-	<col width="100px"/>
-	<col width="100px"/>
-	<col width="100px"/>
-	<col width="100px"/>
-	<col width="160px"/>
+	<col width="220px"/>
+	<col width="40px"/>
+	<col width="40px"/>
+	<col width="40px"/>
+	<col width="40px"/>
+	<col width="40px"/>
+	<col width="40px"/>
+	<col width="280px"/>
 	<tr>
 		<th class="text-left">用户组</th>
 		<th>有限期</th>
-		<th>可创建公众号</th>
-		<th>可创建小程序</th>
-		<th>可创建PC</th>
-		<th>可创建APP</th>
-		<th>应用权限套餐</th>
-		<th>可用应用</th>
-		<th>可用小程序应用</th>
-		<th>可用PC应用</th>
-		<th>可用APP应用</th>
+		<th class="text-center"><i class="wi wi-wechat" style="font-size: 24px"></i></th>
+		<th class="text-center"><i class="wi wi-wxapp" style="font-size: 24px"></i></th>
+		<th class="text-center"><i class="wi wi-pc" style="font-size: 24px"></i></th>
+		<th class="text-center"><i class="wi wi-app" style="font-size: 24px"></i></th>
+		<th class="text-center"><i class="wi wi-xzapp" style="font-size: 24px"></i></th>
+		<th class="text-center"><i class="wi wi-aliapp" style="font-size: 24px"></i></th>
 		<th class="text-right">操作</th>
 	</tr>
 	<tr ng-repeat="list in lists">
 		<td class="text-left" ng-bind="list.name"></td>
 		<td><span ng-if="list.timelimit != 0" ng-bind="list.timelimit+'天'"></span><span ng-if="list.timelimit == 0">永久有效</span></td>
-		<td><span ng-if="list.maxaccount == 0">无权限</span><span ng-if="list.maxaccount != 0" ng-bind="list.maxaccount"></span></td>
-		<td><span ng-if="list.maxwxapp == 0">无权限</span><span ng-if="list.maxwxapp != 0" ng-bind="list.maxwxapp"></span></td>
-		<td><span ng-if="list.maxwebapp == 0">无权限</span><span ng-if="list.maxwebapp != 0" ng-bind="list.maxwebapp"></span></td>
-		<td><span ng-if="list.maxphoneapp == 0">无权限</span><span ng-if="list.maxphoneapp != 0" ng-bind="list.maxphoneapp"></span></td>
-		<td>
-			<span ng-if="list.module_nums == -1">全部</span>
-			<span ng-if="list.package != 'N;'" class="color-default" ng-bind="list.packages"></span>
-			<span ng-if="list.package == 'N;'">无</span>
+		<td class="text-center">
+			<span data-toggle="tooltip" data-placement="bottom" title="" data-original-title="可创建公众号">
+				<span ng-if="list.maxaccount == 0">0</span><span ng-if="list.maxaccount != 0" ng-bind="list.maxaccount"></span>
+			</span>
 		</td>
-		<td>
-			<span ng-if="list.module_nums == -1">全部</span>
-			<span ng-if="list.module_nums != -1" ng-bind="list.module_nums"></span>
+		<td class="text-center">
+			<span data-toggle="tooltip" data-placement="bottom" title="" data-original-title="可创建小程序">
+				<span ng-if="list.maxwxapp == 0">0</span><span ng-if="list.maxwxapp != 0" ng-bind="list.maxwxapp"></span>
+			</span>
 		</td>
-		<td>
-			<span ng-if="list.wxapp_nums == -1">全部</span>
-			<span ng-if="list.wxapp_nums != -1" ng-bind="list.wxapp_nums"></span>
+		<td class="text-center">
+			<span data-toggle="tooltip" data-placement="bottom" title="" data-original-title="可创建PC">
+				<span ng-if="list.maxwebapp == 0">0</span><span ng-if="list.maxwebapp != 0" ng-bind="list.maxwebapp"></span>
+			</span>
 		</td>
-		<td>
-			<span ng-if="list.webapp_nums == -1">全部</span>
-			<span ng-if="list.webapp_nums != -1" ng-bind="list.webapp_nums"></span>
+		<td class="text-center">
+			<span data-toggle="tooltip" data-placement="bottom" title="" data-original-title="可创建APP">
+				<span ng-if="list.maxphoneapp == 0">0</span><span ng-if="list.maxphoneapp != 0" ng-bind="list.maxphoneapp"></span>
+			</span>
 		</td>
-		<td>
-			<span ng-if="list.phoneapp_nums == -1">全部</span>
-			<span ng-if="list.phoneapp_nums != -1" ng-bind="list.phoneapp_nums"></span>
+		<td class="text-center">
+			<span data-toggle="tooltip" data-placement="bottom" title="" data-original-title="可创建熊掌号">
+				<span ng-if="list.maxxzapp == 0">0</span><span ng-if="list.maxxzapp != 0" ng-bind="list.maxxzapp"></span>
+			</span>
+		</td>
+		<td class="text-center">
+			<span data-toggle="tooltip" data-placement="bottom" title="" data-original-title="可创建支付宝小程序">
+				<span ng-if="list.maxaliapp == 0">0</span><span ng-if="list.maxaliapp != 0" ng-bind="list.maxaliapp"></span>
+			</span>
 		</td>
 		<td>
 			<div class="link-group">

@@ -10,7 +10,7 @@ load()->model('module');
 $dos = array('module', 'post');
 $do = in_array($do, $dos) ? $do : 'module';
 
-$system_modules = system_modules();
+$system_modules = module_system();
 if (!in_array($_GPC['m'], $system_modules) && $do == 'post') {
 	permission_check_account_user('', true, 'cover');
 }
@@ -66,13 +66,7 @@ if ($do == 'module') {
 	$reply = pdo_get('cover_reply', array('module' => $entry['module'], 'do' => $entry['do'], 'uniacid' => $_W['uniacid']));
 
 	if (checksubmit('submit')) {
-		if (trim($_GPC['keywords']) == '') {
-			itoast('必须输入触发关键字.', '', '');
-		}
 		$keywords = @json_decode(htmlspecialchars_decode($_GPC['keywords']), true);
-		if (empty($keywords)) {
-			itoast('必须填写有效的触发关键字.', '', '');
-		}
 		$rule = array(
 			'uniacid' => $_W['uniacid'],
 			'name' => $entry['title'],
@@ -88,7 +82,7 @@ if ($do == 'module') {
 		}
 		if (!empty($reply)) {
 			$rid = $reply['rid'];
-			$result = pdo_update('rule', $rule, array('id' => $rid));
+			$result = pdo_update('rule', $rule, array('id' => $rid, 'uniacid' => $_W['uniacid']));
 		} else {
 			$result = pdo_insert('rule', $rule);
 			$rid = pdo_insertid();
@@ -97,18 +91,20 @@ if ($do == 'module') {
 		if (!empty($rid)) {
 			//更新，添加，删除关键字
 			pdo_delete('rule_keyword', array('rid' => $rid, 'uniacid' => $_W['uniacid']));
-			$keyword_row = array(
-				'rid' => $rid,
-				'uniacid' => $_W['uniacid'],
-				'module' => 'cover',
-				'status' => $rule['status'],
-				'displayorder' => $rule['displayorder'],
-			);
-			foreach ($keywords as $keyword) {
-				$keyword_insert = $keyword_row;
-				$keyword_insert['type'] = range_limit($keyword['type'], 1, 4);
-				$keyword_insert['content'] = $keyword['content'];
-				pdo_insert('rule_keyword', $keyword_insert);
+			if (!empty($keywords)) {
+				$keyword_row = array(
+					'rid' => $rid,
+					'uniacid' => $_W['uniacid'],
+					'module' => 'cover',
+					'status' => $rule['status'],
+					'displayorder' => $rule['displayorder'],
+				);
+				foreach ($keywords as $keyword) {
+					$keyword_insert = $keyword_row;
+					$keyword_insert['type'] = range_limit($keyword['type'], 1, 4);
+					$keyword_insert['content'] = $keyword['content'];
+					pdo_insert('rule_keyword', $keyword_insert);
+				}
 			}
 
 			$entry = array(
@@ -125,7 +121,7 @@ if ($do == 'module') {
 			if (empty($reply['id'])) {
 				pdo_insert('cover_reply', $entry);
 			} else {
-				pdo_update('cover_reply', $entry, array('id' => $reply['id']));
+				pdo_update('cover_reply', $entry, array('id' => $reply['id'], 'uniacid' => $_W['uniacid']));
 			}
 			itoast('封面保存成功！', url('platform/cover', array('m' => $entry['module'])), 'success');
 		} else {

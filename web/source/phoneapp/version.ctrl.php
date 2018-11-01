@@ -16,7 +16,6 @@ if (!empty($version_id)) {
 }
 
 if ($do == 'home') {
-	$role = permission_account_user_role($_W['uid'], $wxapp_info['uniacid']);
 	$notices = welcome_notices_get();
 	template('phoneapp/version-home');
 }

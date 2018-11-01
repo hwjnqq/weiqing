@@ -2,6 +2,13 @@
 <!--小程序前端下载-->
 
 {if $do != 'custom'}
+{if $_W['account']['type'] == ACCOUNT_TYPE_ALIAPP_NORMAL}
+<ul class="we7-page-tab">
+	<li class="{if $do == 'front_download'}active{/if}">
+		<a href="{php echo url('wxapp/front-download/', array('version_id' => $version_id));}">支付宝小程序下载</a>
+	</li>
+</ul>
+{else}
 <ul class="we7-page-tab">
 	<li class="{if $do == 'front_download'}active{/if}">
 		<a href="{php echo url('wxapp/front-download/front_download', array('version_id' => $version_id));}">小程序上传</a>
@@ -11,6 +18,7 @@
 	</li>
 	
 </ul>
+{/if}
 {else}
 <ol class="breadcrumb" style="background-color: transparent;">
 	<a href="{php echo url('wxapp/front-download/front_download', array('version_id' => $version_id));}">
@@ -187,10 +195,8 @@
 			</div>
 		</div>
 	</div>
-	<a href="{php echo url('wxapp/front-download/custom_default', array('version_id' => $version_id));}" class="btn btn-primary">恢复默认</a>
-	<a href="{php echo url('wxapp/front-download/custom_save', array('version_id' => $version_id));}" class="btn btn-primary">保存</a>
-	<!--<button class="btn btn-primary" ng-click="default()">恢复默认</button>
-	<button class="btn btn-primary" ng-click="save()">保存</button>-->
+	<button class="btn btn-primary" ng-click="default()">恢复默认</button>
+	<button class="btn btn-primary" ng-click="save()">保存</button>
 </div>
 
 <script type="text/javascript">
@@ -249,6 +255,9 @@
 {/if}
 
 {if $do == 'front_download'}
+{if $_W['account']['type'] == ACCOUNT_TYPE_ALIAPP_NORMAL}
+<div><a href="{php echo url('wxapp/front-download/getpackage', array('version_id' => $version_id))}" class="btn btn-primary text-center">下载</a></div>
+{else}
 <!--在微信小程序后台提交审核-->
 {if $uptype == 'normal'}
 <div class="media media-wechat-setting">
@@ -441,6 +450,7 @@
 	angular.bootstrap($('#codeupload'), ['we7codeuploadApp']);
 </script>
 
+{/if}
 {/if}
 {/if}
 {template 'common/footer'}

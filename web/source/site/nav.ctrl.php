@@ -10,7 +10,7 @@ load()->model('module');
 $dos = array('home', 'profile', 'homemenu_display', 'homemenu_post', 'homemenu_del', 'homemenu_switch');
 $do = in_array($do, $dos) ? $do : 'home';
 
-$system_modules = system_modules();
+$system_modules = module_system();
 if (!in_array($_GPC['m'], $system_modules)) {
 	permission_check_account_user('', true, 'nav');
 }
@@ -26,9 +26,9 @@ if ($do == 'homemenu_display') {
 			/*处理icon图片链接*/
 			if (is_serialized($nav['css'])) {
 				$nav['css'] = iunserializer($nav['css']);
-			}
-			if (empty($nav['css']['icon']['icon'])) {
-				$nav['css']['icon']['icon'] = 'fa fa-external-link';
+				if (empty($nav['css']['icon']['icon'])) {
+					$nav['css']['icon']['icon'] = 'fa fa-external-link';
+				}
 			}
 			$navigations[] = array(
 				'id' => $nav['id'],
@@ -54,7 +54,13 @@ if ($do == 'homemenu_post') {
 	if (empty($post['name'])) {
 		iajax(-1, '抱歉，请输入导航菜单的名称！', '');
 	}
-	$url = safe_gpc_url($post['url'], false);
+
+	if (strexists($post['url'], 'tel')) {
+		$url = safe_gpc_string($post['url'], false);
+	} else {
+		$url = safe_gpc_url($post['url'], false);
+	}
+
 	if (is_array($post['section']) && !empty($post['section'])) {
 		if (intval($post['section']['num']) > 10) {
 			$section_num = 10;
@@ -68,26 +74,26 @@ if ($do == 'homemenu_post') {
 		'uniacid' => $_W['uniacid'],
 		'multiid' => $multiid,
 		'section' => $section_num,
-		'name' => trim($post['name']),
-		'description' => trim($post['description']),
+		'name' => safe_gpc_string($post['name']),
+		'description' => safe_gpc_string($post['description']),
 		'displayorder' => intval($post['displayorder']),
 		'url' => $url,
 		'status' => intval($post['status']),
 		'position' => 1
 	);
 	//获取icon的类型 1:系统内置图标 2:自定义上传图标
-	$icontype = $post['icontype'];
+	$icontype = safe_gpc_string($post['icontype']);
 	if ($icontype == 1) {
 		$data['icon'] = '';
 		$data['css'] = serialize(array(
 				'icon' => array(
-					'font-size' => $post['css']['icon']['width'],
-					'color' => $post['css']['icon']['color'],
-					'width' => $post['css']['icon']['width'],
-					'icon' => empty($post['css']['icon']['icon']) ? 'fa fa-external-link' : $post['css']['icon']['icon'],
+					'font-size' => intval($post['css']['icon']['width']),
+					'color' => safe_gpc_string($post['css']['icon']['color']),
+					'width' => intval($post['css']['icon']['width']),
+					'icon' => empty($post['css']['icon']['icon']) ? 'fa fa-external-link' : safe_gpc_string($post['css']['icon']['icon']),
 				),
 				'name' => array(
-					'color' => $post['css']['icon']['color'],
+					'color' => safe_gpc_string($post['css']['icon']['color']),
 				),
 			)
 		);
@@ -98,7 +104,7 @@ if ($do == 'homemenu_post') {
 	if (empty($post['id'])) {
 		pdo_insert('site_nav', $data);
 	} else {
-		pdo_update('site_nav', $data, array('id' => $post['id']));
+		pdo_update('site_nav', $data, array('id' => $post['id'], 'uniacid' => $_W['uniacid']));
 	}
 	iajax(0, '更新成功！', '');
 }
@@ -128,7 +134,7 @@ if ($do == 'homemenu_switch') {
 		iajax(-1, '本公众号不存在该导航');
 	} else {
 		$status = $nav_exist['status'] == 1 ? 0 : 1;
-		$nav_update = pdo_update('site_nav', array('status' => $status), array('id' => $id));
+		$nav_update = pdo_update('site_nav', array('status' => $status), array('id' => $id, 'uniacid' => $_W['uniacid']));
 		if (!empty($nav_update)) {
 			iajax(0, '更新成功！', '');
 		} else {

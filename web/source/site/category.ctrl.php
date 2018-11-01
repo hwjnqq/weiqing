@@ -147,7 +147,7 @@ if ($do == 'display') {
 		}
 		if (!empty($id)) {
 			unset($data['parentid']);
-			pdo_update('site_category', $data, array('id' => $id));
+			pdo_update('site_category', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
 		} else {
 			pdo_insert('site_category', $data);
 			$id = pdo_insertid();
@@ -179,7 +179,7 @@ if ($do == 'display') {
 	$category_exist = pdo_get('site_category', array('id' => $id, 'uniacid' => $_W['uniacid']));
 	if (!empty($category_exist)) {
 		$status = $category_exist['enabled'] == 1 ? 0 : 1;
-		$result = pdo_update('site_category', array('enabled' => $status), array('id' => $id));
+		$result = pdo_update('site_category', array('enabled' => $status), array('id' => $id, 'uniacid' => $_W['uniacid']));
 		if ($result) {
 			iajax(0, '更改成功！', url('site/category'));
 		} else {

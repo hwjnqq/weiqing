@@ -107,15 +107,15 @@ if ($do == 'domainset') {
 		}
 
 		if ($version_info) {
-			$update = pdo_update('account_wxapp', array('appdomain' => $appurl),
-				array('uniacid' => $uniacid));
-			itoast('更新小程序域名成功'); //新 旧域名一样 返回$update 为0
+			$update = pdo_update('account_wxapp', array('appdomain' => $appurl), array('uniacid' => $uniacid));
+			itoast('更新成功'); //新 旧域名一样 返回$update 为0
 		}
 	}
 	template('wxapp/version-front-download');
 }
 
 if ($do == 'front_download') {
+	permission_check_account_user('wxapp_profile_front_download');
 	$appurl = $_W['siteroot'].'/app/index.php';
 	$uptype = $_GPC['uptype'];
 	$wxapp_versions_info = miniapp_version($version_id);

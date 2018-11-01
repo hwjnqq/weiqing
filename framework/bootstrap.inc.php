@@ -187,7 +187,7 @@ if(Agent::isMicroMessage() == Agent::MICRO_MESSAGE_YES) {
 }
 
 if ($_W['container'] == 'wechat' || $_W['container'] == 'baidu') {
-	$_W['container'] = 'account';
+	$_W['platform'] = 'account';
 }
 
 $controller = $_GPC['c'];

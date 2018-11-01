@@ -82,7 +82,7 @@ if ($do == 'post') {
 			$unisettings['creditnames'] = array('credit1' => array('title' => '积分', 'enabled' => 1), 'credit2' => array('title' => '余额', 'enabled' => 1));
 			$unisettings['creditnames'] = iserializer($unisettings['creditnames']);
 			$unisettings['uniacid'] = $uniacid;
-			pdo_insert('uni_settings', $unisettings);
+			pdo_insert('uni_settings', array('uniacid' => $uniacid));
 
 			if (is_error($uniacid)) {
 				iajax(3, '添加小程序信息失败', url('wxapp/post'));

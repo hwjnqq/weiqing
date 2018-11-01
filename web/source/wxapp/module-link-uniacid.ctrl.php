@@ -9,7 +9,7 @@ load()->model('module');
 
 $dos = array('module_link_uniacid', 'search_link_account', 'module_unlink_uniacid');
 $do = in_array($do, $dos) ? $do : 'module_link_uniacid';
-
+permission_check_account_user('wxapp_profile_module_link_uniacid');
 $_W['page']['title'] = '数据同步 - 小程序 - 管理';
 
 $wxapp_info = miniapp_fetch($_W['uniacid']);
@@ -40,7 +40,7 @@ if ($do == 'module_link_uniacid') {
 				foreach ($link_uniacid_info as $info) {
 					if ($info['settings']['link_uniacid'] == $_W['uniacid'] ||
 						!empty($info['settings']['passive_link_uniacid']) && $info['uniacid'] == $_W['uniacid']) {
-						$module_value['other_link'] = uni_fetch($info['settings']['passive_link_uniacid']);
+						$module_value['other_link'] = uni_fetch(current($info['settings']['passive_link_uniacid']));
 					}
 				}
 			}

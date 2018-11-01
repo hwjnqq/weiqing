@@ -18,9 +18,8 @@ if(empty($settings) || !is_array($settings)) {
 if ($do == 'login') {
 	$_W['page']['title'] = '用户登录/注册设置 - 登录设置';
 	if (checksubmit('submit')) {
-		
-		$settings['mobile_status'] = intval($_GPC['mobile_status']);
-		$settings['login_type'] = intval($_GPC['login_type']);
+		$settings['verifycode'] = intval($_GPC['verifycode']);
+		$settings['welcome_link'] = intval($_GPC['welcome_link']);
 
 		setting_save($settings, 'copyright');
 		itoast('更新设置成功！', '', 'success');
@@ -31,7 +30,7 @@ if ($do == 'binding') {
 	$_W['page']['title'] = '用户登录/注册设置 - 绑定设置';
 	if (checksubmit('submit')) {
 		$settings['bind'] = safe_gpc_string($_GPC['bind']);
-		$settings['welcome_link'] = intval($_GPC['welcome_link']);
+		$settings['oauth_bind'] = intval($_GPC['oauth_bind']);
 
 		setting_save($settings, 'copyright');
 		itoast('更新设置成功！', '', 'success');

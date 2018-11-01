@@ -26,7 +26,7 @@ if ($do == 'module_link_uniacid') {
 		if (!empty($account_module)) {
 			$settings = (array)iunserializer($account_module['settings']);
 			$settings['link_uniacid'] = $uniacid;
-			pdo_update('uni_account_modules', array('settings' => iserializer($settings)), array('id' => $account_module['id']));
+			pdo_update('uni_account_modules', array('settings' => iserializer($settings)), array('id' => $account_module['id'], 'uniacid' => $_W['uniacid']));
 		} else {
 			$settings = array('link_uniacid' => $uniacid);
 			$data = array(
@@ -54,7 +54,7 @@ if ($do == 'module_link_uniacid') {
 			continue;
 		}
 		if (!empty($value['config']['passive_link_uniacid'])) {
-			$modules[$key]['other_link'] = uni_fetch($value['config']['passive_link_uniacid']);
+			$modules[$key]['other_link'] = uni_fetch(current($value['config']['passive_link_uniacid']));
 		}
 	}
 	template('profile/module-link-uniacid');
@@ -77,7 +77,7 @@ if ($do == 'module_unlink_uniacid') {
 		} else {
 			unset($settings['link_uniacid']);
 			$data = empty($settings) ? '' : iserializer($settings);
-			$result = pdo_update('uni_account_modules', array('settings' => $data), array('id' => $account_module['id']));
+			$result = pdo_update('uni_account_modules', array('settings' => $data), array('id' => $account_module['id'], 'uniacid' => $_W['uniacid']));
 		}
 	}
 	if ($result) {

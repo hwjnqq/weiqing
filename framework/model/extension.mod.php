@@ -271,7 +271,8 @@ function _ext_module_manifest_entries($elm) {
 				'title' => $entry->getAttribute('title'),
 				'do' => $entry->getAttribute('do'),
 				'direct' => !empty($direct) && $direct != 'false' ? true : false,
-				'state' => $entry->getAttribute('state')
+				'state' => $entry->getAttribute('state'),
+				'icon' => $entry->getAttribute('icon')
 			);
 			if (!empty($row['title']) && !empty($row['do'])) {
 				$ret[] = $row;

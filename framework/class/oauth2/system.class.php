@@ -19,10 +19,10 @@ class System extends OAuth2Client {
 	public function user() {
 		global $_GPC, $_W;
 		$username = trim($_GPC['username']);
-		pdo_delete('users_failed_login', array('lastupdate <' => TIMESTAMP-300));
-		$failed = pdo_get('users_failed_login', array('username' => $username, 'ip' => CLIENT_IP));
+		pdo_delete('users_failed_login', array('lastupdate <' => TIMESTAMP-3600));
+		$failed = pdo_get('users_failed_login', array('username' => $username));
 		if ($failed['count'] >= 5) {
-			return error('-1', '输入密码错误次数超过5次，请在5分钟后再登录');
+			return error('-1', '输入密码错误次数超过5次，请在1小时后再登录');
 		}
 		if (!empty($_W['setting']['copyright']['verifycode'])) {
 			$verify = trim($_GPC['verify']);

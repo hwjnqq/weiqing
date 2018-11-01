@@ -10,11 +10,12 @@ load()->func('communication');
 
 class CloudApi {
 	
-	private $url = 'http://api.we7.cc/index.php?c=%s&a=%s&access_token=%s&';
+	//private $url = 'http://api.we7.cc/index.php?c=%s&a=%s&access_token=%s&';
+	private $url = 'http://swoft.cc/%s%s?access_token=%s&';
 	private $development = false;
 	private $module = null;
 	private $sys_call = false;
-	private $default_token = '91ec1f9324753048c0096d036a694f86';
+	private $default_token = 'E2D647133D6892A9DD71ACCB52197580U4N431J1B8411H1QP3';
 	
 	const ACCESS_TOKEN_EXPIRE_IN = 7200;
 	
@@ -95,7 +96,7 @@ class CloudApi {
 	
 	private function systemCerContent(){
 		global $_W;
-		if (empty($_W['setting']['site'])) {
+		if (empty($_W['setting']['site']) || !empty($_W['config']['setting']['development'])) {
 			return $this->default_token;
 		}
 		
@@ -107,7 +108,7 @@ class CloudApi {
 		if (!is_dir($we7_team_dir)) {
 			mkdirs($we7_team_dir);
 		}
-		
+		echo $cer_filepath;exit;
 		if (is_file($cer_filepath)) {
 			$expire_time = filemtime($cer_filepath) + CloudApi::ACCESS_TOKEN_EXPIRE_IN - 200;
 			if (TIMESTAMP > $expire_time) {
@@ -211,11 +212,10 @@ class CloudApi {
 			}
 			if (is_error($json_result)) {
 				if ($json_result['errno'] == 10000) {
+					$this->deleteCer();
 					$this->deleteModuleCer();
 				};
-				if($json_result['errno'] == 1) {
-					$this->deleteCer();
-				}
+
 				return $json_result;
 			}
 			return $json_result;
@@ -234,7 +234,7 @@ class CloudApi {
 		$response = ihttp_get($url);
 
 		if (is_error($response)) {
-			$this->deleteCer();
+			//$this->deleteCer();
 			return $response;
 		}
 
@@ -253,7 +253,7 @@ class CloudApi {
 
 			$response = ihttp_request($url, array(), $ihttp_options);
 			if (is_error($response)) {
-				$this->deleteCer();
+//				$this->deleteCer();
 				return $response;
 			}
 		}
@@ -263,7 +263,6 @@ class CloudApi {
 	
 	public function post($api, $method, $post_params = array(), $dataType = 'json', $with_cookie = true) {
 		$url = $this->url($api, $method, array(), $dataType);
-
 		if (is_error($url)) {
 			return $url;
 		}
@@ -272,7 +271,7 @@ class CloudApi {
 		if($with_cookie) {
 			$response = ihttp_get($url);
 			if (is_error($response)) {
-				$this->deleteCer();
+//				$this->deleteCer();
 				return $response;
 			}
 			$ihttp_options = array();
@@ -289,12 +288,16 @@ class CloudApi {
 		}
 		$response = ihttp_request($url, $post_params, $ihttp_options);
 		if (is_error($response)) {
-			$this->deleteCer();
+//			$this->deleteCer();
 			return $response;
 		}
-
+		if ($dataType == 'binary') {
+			return $response;
+		}
 		return $this->actionResult($response['content'], $dataType);
 	}
+
+
 
 	private function deleteCer() {
 		if($this->sys_call) {

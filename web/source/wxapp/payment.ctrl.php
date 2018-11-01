@@ -7,7 +7,7 @@ defined('IN_IA') or exit('Access Denied');
 
 $dos = array('get_setting', 'display', 'save_setting');
 $do = in_array($do, $dos) ? $do : 'display';
-permission_check_account_user('wxapp_payment', true, 'wxapp');
+permission_check_account_user('wxapp_payment_pay');
 $_W['page']['title'] = '支付参数';
 
 $pay_setting = miniapp_payment_param();

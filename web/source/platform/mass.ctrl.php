@@ -75,9 +75,13 @@ if ($do == 'del') {
 }
 
 if ($do == 'post') {
+	permission_check_account_user('platform_masstask_post');
 	$id = intval($_GPC['id']);
 	$mass_info = pdo_get('mc_mass_record', array('id' => $id));
 	$groups = mc_fans_groups();
+	$account_api = WeAccount::createByUniacid();
+	$supports = $account_api->getMaterialSupport();
+	$show_post_content = $supports['mass'];
 
 	if (checksubmit('submit')) {
 		$type = in_array(intval($_GPC['type']), array(0, 1)) ? intval($_GPC['type']) : 0;
@@ -114,7 +118,6 @@ if ($do == 'post') {
 			$mass_record['media_id'] = $material;
 			$mass_record['attach_id'] = $attachment['id'];
 			$mass_record['msgtype'] = $msgtype;
-
 			break;
 		}
 
@@ -169,13 +172,17 @@ if ($do == 'post') {
 				itoast($message, url('platform/mass/send'), 'info');
 			}
 
-			pdo_update('mc_mass_record', array('cron_id' => $status), array('id' => $mass_record_id));
+			pdo_update('mc_mass_record', array('cron_id' => $status), array('id' => $mass_record_id, 'uniacid' => $_W['uniacid']));
 			itoast('定时群发设置成功', url('platform/mass/send'), 'success');
 		} else {
-			$account_api = WeAccount::create();
+			$account_api = WeAccount::createByUniacid();
 			$result = $account_api->fansSendAll($group['id'], $msgtype, $mass_record['media_id']);
 			if (is_error($result)) {
 				itoast($result['message'], url('platform/mass'), 'info');
+			}
+			if ($msgtype == 'news') {
+				$mass_record['msg_id'] = $result['msg_id'];
+				$mass_record['msg_data_id'] = $result['msg_data_id'];
 			}
 			$mass_record['status'] = 0;
 			pdo_insert('mc_mass_record', $mass_record);
@@ -216,7 +223,7 @@ if ($do == 'preview') {
 	}
 	$type = trim($_GPC['type']);
 	$media_id = trim($_GPC['media_id']);
-	$account_api = WeAccount::create();
+	$account_api = WeAccount::createByUniacid();
 	$data = $account_api->fansSendPreview($wxname, $media_id, $type);
 	if (is_error($data)) {
 		iajax(-1, $data['message'], '');
@@ -226,6 +233,7 @@ if ($do == 'preview') {
 
 if ($do == 'send') {
 	$_W['page']['title'] = '定时群发记录-定时群发';
+	permission_check_account_user('platform_masstask_send');
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	$condition = ' WHERE `uniacid` = :uniacid AND `acid` = :acid';

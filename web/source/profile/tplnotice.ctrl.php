@@ -6,8 +6,8 @@
 
 defined('IN_IA') or exit('Access Denied');
 
-$dos = array('set', 'display');
-$do = in_array($do, $dos) ? $do : 'display';
+$dos = array('set', 'list');
+$do = in_array($do, $dos) ? $do : 'list';
 
 permission_check_account_user('profile_setting');
 $_W['page']['title'] = '会员微信通知-会员中心';
@@ -77,6 +77,11 @@ $tpl = array(
 		'tpl' => $tpl_setting['times_times']['tpl'],
 		'name' => '会员卡计时即将到期',
 		'help' => '请在“微信公众平台”选择行业为：“IT科技 - 互联网|电子商务”，添加标题为：”会员到期提醒“，编号为：“TM00008”的模板',
+	),
+	'pay_success' => array(
+		'tpl' => $tpl_setting['pay_success']['tpl'],
+		'name' => '订单支付成功通知',
+		'help' => '请在“微信公众平台”选择行业为：“IT科技 - 互联网|电子商务”，添加标题为：”订单支付成功通知“，编号为：“OPENTM207498902”的模板。',
 	),
 );
 template('profile/tplnotice');

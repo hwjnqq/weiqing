@@ -43,7 +43,7 @@
 					<a href="javascript:void(0);" onclick="select_mediaid('wxcard');">&nbsp;<i class="wi wi-card"></i><span class="msg-tab-title">卡劵</span></a>
 				</li>
 				<li class="tab-nav tab-cardmsg {if $options['keyword']}hidden{/if}">
-					<a href="javascript:void(0);" onclick="select_mediaid('keyword');">&nbsp;<i class="wi wi-keyword"></i><span class="msg-tab-title">触发关键字</span></a>
+					<a href="javascript:void(0);" onclick="select_mediaid('keyword');">&nbsp;<i class="wi wi-keyword"></i><span class="msg-tab-title">{if $_GPC['m'] == 'welcome'}匹配{else}触发{/if}关键字</span></a>
 				</li>
 				<li class="tab-nav tab-cardmsg {if $options['module']}hidden{/if}">
 					<a href="javascript:void(0);" onclick="select_mediaid('module');">&nbsp;<i class="wi wi-keyword"></i><span class="msg-tab-title">模块</span></a>

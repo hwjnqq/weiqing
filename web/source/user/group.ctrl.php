@@ -71,6 +71,7 @@ if ($do == 'post') {
 			'maxwebapp' => intval($_GPC['maxwebapp']),
 			'maxphoneapp' => intval($_GPC['maxphoneapp']),
 			'maxxzapp' => intval($_GPC['maxxzapp']),
+			'maxaliapp' => intval($_GPC['maxaliapp']),
 			'timelimit' => intval($_GPC['timelimit'])
 		);
 		$user_group_info = user_save_group($user_group);

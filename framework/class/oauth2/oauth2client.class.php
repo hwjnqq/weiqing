@@ -110,7 +110,7 @@ abstract class OAuth2Client {
 		$member['starttime'] = TIMESTAMP;
 
 		$user_id = user_register($member, $this->stateParam['from']);
-		if (in_array($member['register_type'], array(USER_REGISTER_TYPE_QQ, USER_REGISTER_TYPE_WECHAT, USER_REGISTER_TYPE_MOBILE))) {
+		if (in_array($member['register_type'], array(USER_REGISTER_TYPE_QQ, USER_REGISTER_TYPE_WECHAT))) {
 			pdo_update('users', array('username' => $member['username'] . $user_id . rand(100,999)), array('uid' => $user_id));
 		}
 		if($user_id > 0) {

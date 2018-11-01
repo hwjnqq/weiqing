@@ -169,7 +169,7 @@ if ($do == 'flow_control') {
 	$current_account = uni_fetch($_GPC['uniacid']);
 	load() -> model('account');
 	$_W['uniacid'] = $_GPC['uniacid'];
-	$installedmodulelist = uni_modules(false);
+	$installedmodulelist = uni_modules();
 	foreach ($installedmodulelist as $val) {
 		if ($val['issystem'] == 0 && $val['enabled'] == 1) {
 			$path = '../addons/' . $val['name'];

@@ -52,8 +52,8 @@ if ($do == 'post') {
 			itoast('请使用字母或数字或下划线组合字段名!', '', '');
 		}
 		$data = array(
-			'title' => $_GPC['title'],
-			'description' => $_GPC['description'],
+			'title' => safe_gpc_string($_GPC['title']),
+			'description' => safe_gpc_string($_GPC['description']),
 			'displayorder' => intval($_GPC['displayorder']),
 			'available' => intval($_GPC['available']),
 			'unchangeable' => intval($_GPC['unchangeable']),

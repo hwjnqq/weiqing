@@ -11,6 +11,9 @@ load()->model('message');
 load()->classs('oauth2/oauth2client');
 load()->model('setting');
 
+if (!empty($_W['uid'])) {
+	itoast('请先退出再登录！');
+}
 if (checksubmit() || $_W['isajax']) {
 	_login($_GPC['referer']);
 }
@@ -22,6 +25,7 @@ if (in_array($_GPC['login_type'], $support_login_types)) {
 
 $setting = $_W['setting'];
 $_GPC['login_type'] = !empty($_GPC['login_type']) ? $_GPC['login_type'] : (!empty($_W['setting']['copyright']['login_type']) ? 'mobile': 'system');
+
 $login_urls = user_support_urls();
 template('user/login');
 
@@ -35,14 +39,13 @@ function _login($forward = '') {
 		$_GPC['handle_type'] = 'login';
 	}
 
-
 	if ($_GPC['handle_type'] == 'login') {
 		$member = OAuth2Client::create($_GPC['login_type'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appid'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appsecret'])->login();
 	} else {
 		$member = OAuth2Client::create($_GPC['login_type'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appid'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appsecret'])->bind();
 	}
 
-	if (!empty($_W['user']) && $_GPC['handle_type'] == 'bind') {
+	if (!empty($_W['user']) && $_GPC['handle_type'] != ''  && $_GPC['handle_type'] == 'bind') {
 		if (is_error($member)) {
 			itoast($member['message'], url('user/profile/bind'), '');
 		} else {
@@ -53,7 +56,9 @@ function _login($forward = '') {
 	if (is_error($member)) {
 		itoast($member['message'], url('user/login'), '');
 	}
+
 	$record = user_single($member);
+	$failed = pdo_get('users_failed_login', array('username' => trim($_GPC['username'])));
 	if (!empty($record)) {
 		if ($record['status'] == USER_STATUS_CHECK || $record['status'] == USER_STATUS_BAN) {
 			itoast('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决?', url('user/login'), '');
@@ -62,23 +67,29 @@ function _login($forward = '') {
 		$_W['isfounder'] = user_is_founder($record['uid']);
 		$_W['user'] = $record;
 
-		
-
-		
-			if (empty($_W['isfounder'])) {
-				if (!empty($record['endtime']) && $record['endtime'] < TIMESTAMP) {
-					itoast('您的账号有效期限已过，请联系网站管理员解决！', '', '');
+		if (!empty($_W['setting']['copyright']['oauth_bind'])) {
+			if ($record['register_type'] == USER_REGISTER_TYPE_QQ || $record['register_type'] == USER_REGISTER_TYPE_WECHAT) {
+				if (!$record['is_bind'] && empty($_W['isfounder'])) {
+					message('您还没有注册账号，请前往注册', url('user/third-bind/bind_oauth', array('uid' => $record['uid'], 'type' => $record['type'])));
+					exit;
 				}
 			}
-		
+		}
+
+		if (($_GPC['login_type'] == 'qq' || $_GPC['login_type'] == 'wechat') && !empty($_W['setting']['copyright']['oauth_bind']) && !$record['is_bind'] && empty($_W['isfounder']) && ($record['register_type'] == USER_REGISTER_TYPE_QQ || $record['register_type'] == USER_REGISTER_TYPE_WECHAT)) {
+			message('您还没有注册账号，请前往注册', url('user/third-bind/bind_oauth', array('uid' => $record['uid'], 'type' => $record['type'])));
+			exit;
+		}
+
 		if (!empty($_W['siteclose']) && empty($_W['isfounder'])) {
 			itoast('站点已关闭，关闭原因:'. $_W['setting']['copyright']['reason'], '', '');
 		}
+
 		$cookie = array();
 		$cookie['uid'] = $record['uid'];
 		$cookie['lastvisit'] = $record['lastvisit'];
 		$cookie['lastip'] = $record['lastip'];
-		$cookie['hash'] = md5($record['password'] . $record['salt']);
+		$cookie['hash'] = $record['hash'];
 		$session = authcode(json_encode($cookie), 'encode');
 		isetcookie('__session', $session, !empty($_GPC['rember']) ? 7 * 86400 : 0, true);
 		$status = array();
@@ -97,8 +108,15 @@ function _login($forward = '') {
 			isetcookie('__uniacid', '', -7 * 86400);
 			isetcookie('__uid', '', -7 * 86400);
 		}
-		$failed = pdo_get('users_failed_login', array('username' => trim($_GPC['username']), 'ip' => CLIENT_IP));
-		pdo_delete('users_failed_login', array('id' => $failed['id']));
+		if (!empty($failed)) {
+			pdo_delete('users_failed_login', array('id' => $failed['id']));
+		}
+
+		if ((empty($_W['isfounder']) || user_is_vice_founder()) && !empty($_W['user']['endtime']) && $_W['user']['endtime'] < TIMESTAMP) {
+			$url = url('home/welcome/ext', array('m' => 'store'));
+			message('您的账号已到期，请前往商城购买续费。<div><a class="btn btn-primary" style="width:80px;" href="' . $url . '">去续费</a></div>', $url, 'error');
+		}
+		cache_build_frame_menu();
 		itoast("欢迎回来，{$record['username']}", $forward, 'success');
 	} else {
 		if (empty($failed)) {

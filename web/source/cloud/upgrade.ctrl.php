@@ -26,13 +26,15 @@ if ($do == 'upgrade') {
 		}
 		setting_save(array('ip' => $cloudip, 'expire' => TIMESTAMP + 3600), 'cloudip');
 	}
+
 	if (checksubmit('submit')) {
 		$upgrade = cloud_build();
 		if (is_error($upgrade)) {
 			message($upgrade['message'], '', 'error');
 		}
 		if ($upgrade['upgrade']) {
-			message("检测到新版本: <strong>{$upgrade['version']} (Release {$upgrade['release']})</strong>, 请立即更新.", 'refresh');
+			$extend[] = array('title' => '立即更新', 'url' => url('cloud/process'), 'class' => 'btn btn-danger');
+			message("检测到新版本: <strong>{$upgrade['version']} (Release {$upgrade['release']})</strong>, 请立即更新.", 'refresh', '', '', $extend);
 		} else {
 			cache_delete(cache_system_key('checkupgrade'));
 			cache_delete(cache_system_key('cloud_transtoken'));

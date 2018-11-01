@@ -12,7 +12,7 @@ $do = in_array($do, $dos) ? $do : 'display';
 
 $m = empty($_GPC['m']) ? 'keyword' : trim($_GPC['m']);
 if (in_array($m, array('keyword', 'special', 'welcome', 'default', 'apply', 'service', 'userapi'))) {
-	permission_check_account_user('platform_reply');
+	permission_check_account_user('platform_reply_' . $m);
 } else {
 	permission_check_account_user('', true, 'reply');
 	$modules = uni_modules();
@@ -49,7 +49,7 @@ if ($m == 'special') {
 }
 
 //功能模块用
-$sysmods = system_modules();
+$sysmods = module_system();
 if (in_array($m, array('custom'))) {
 	$site = WeUtility::createModuleSite('reply');
 	$site_urls = $site->getTabUrls();
@@ -261,7 +261,7 @@ if ($do == 'post') {
 				itoast($msg.$user_module_error_msg, '', '');
 			}
 			if (!empty($rid)) {
-				$result = pdo_update('rule', $rule, array('id' => $rid));
+				$result = pdo_update('rule', $rule, array('id' => $rid, 'uniacid' => $_W['uniacid']));
 			} else {
 				$result = pdo_insert('rule', $rule);
 				$rid = pdo_insertid();
@@ -485,10 +485,10 @@ if ($do == 'change_keyword_status') {
 	if (!empty($result)) {
 		$rule = $rule_keyword = false;
 		if ($result['status'] == 1) {
-			$rule = pdo_update('rule', array('status' => 0), array('id' => $id));
+			$rule = pdo_update('rule', array('status' => 0), array('id' => $id, 'uniacid' => $_W['uniacid']));
 			$rule_keyword = pdo_update('rule_keyword', array('status' => 0), array('uniacid' => $_W['uniacid'], 'rid' => $id));
 		} else {
-			$rule = pdo_update('rule', array('status' => 1), array('id' => $id));
+			$rule = pdo_update('rule', array('status' => 1), array('id' => $id, 'uniacid' => $_W['uniacid']));
 			$rule_keyword = pdo_update('rule_keyword', array('status' => 1), array('uniacid' => $_W['uniacid'], 'rid' => $id));
 		}
 		if ($rule && $rule_keyword) {
