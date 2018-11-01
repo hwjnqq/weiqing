@@ -137,11 +137,13 @@ if($step == 1) {
 			unset($update['type']);
 			pdo_update('account_wechats', $update, array('acid' => $acid, 'uniacid' => $uniacid));
 		}
-		if(parse_path($_GPC['qrcode']) && in_array(pathinfo($_GPC['qrcode'], PATHINFO_EXTENSION), $_W['config']['upload']['image']['extentions'])) {
-			copy($_GPC['qrcode'], IA_ROOT . '/attachment/qrcode_'.$acid.'.jpg');
+		$qrcode = safe_gpc_path($_GPC['qrcode']);
+		$headimg = safe_gpc_path($_GPC['headimg']);
+		if(file_is_image($qrcode)) {
+			copy($qrcode, IA_ROOT . '/attachment/qrcode_'.$acid.'.jpg');
 		}
-		if(parse_path($_GPC['headimg']) && in_array(pathinfo($_GPC['qrcode'], PATHINFO_EXTENSION), $_W['config']['upload']['image']['extentions'])) {
-			copy($_GPC['headimg'], IA_ROOT . '/attachment/headimg_'.$acid.'.jpg');
+		if(file_is_image($headimg)) {
+			copy($headimg, IA_ROOT . '/attachment/headimg_'.$acid.'.jpg');
 		}
 		//当是认证服务号的时候设置权限到借用oauth中
 		$oauth = uni_setting($uniacid, array('oauth'));
@@ -357,8 +359,12 @@ if($step == 1) {
 	$acid = intval($_GPC['acid']);
 	$uni_account = pdo_get('uni_account', array('uniacid' => $uniacid));
 	if (empty($uni_account)) {
-		itoast('非法访问', '', '');
+		itoast('非法访问');
+	}
+	$owner_info = account_owner($uniacid);
+	if (!(user_is_founder($_W['uid'], true) || $_W['uid'] == $owner_info['uid'])) {
+		itoast('非法访问');
 	}
 	$account = account_fetch($uni_account['default_acid']);
 }
-template('account/post-step' . $template_show);
+template('account/post-step');
