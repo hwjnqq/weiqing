@@ -51,7 +51,7 @@ function setting_load($key = '') {
 	if (!is_array($_W['setting'])) {
 		$_W['setting'] = array();
 	}
-	$_W['setting'] = array_merge($_W['setting'], $settings);
+	$_W['setting'] = array_merge($settings, $_W['setting']);
 	if (!empty($key)) {
 		return array($key => $settings[$key]);
 	} else {
