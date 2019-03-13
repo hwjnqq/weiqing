@@ -35,10 +35,9 @@ function job_single($id) {
  */
 function job_create_delete_account($uniacid, $accountName, $uid) {
 	global $_W;
-	/* @var $job JobTable */
 	$job = table('job');
-	$core_count = table('attachment')->where('uniacid', $uniacid)->count();
-	$wechat_count = table('attachment')->local(false)->where('uniacid', $uniacid)->count();
+	$core_count = table('core_attachment')->where('uniacid', $uniacid)->count();
+	$wechat_count = table('wechat_attachment')->where('uniacid', $uniacid)->count();
 	$total = $core_count + intval($wechat_count);
 	return $job->createDeleteAccountJob($uniacid, $accountName, $total, $uid);
 }
@@ -67,7 +66,7 @@ function job_execute_delete_account($job) {
 
 	$uniacid = $job['uniacid'];
 	// 先查询出来数据 然后文件再删除记录
-	$core_attchments = table('attachment')->where('uniacid', $uniacid)
+	$core_attchments = table('core_attachment')->where('uniacid', $uniacid)
 		->searchWithPage(1, 10)->getall('id');
 
 	array_walk($core_attchments, function($item) {
@@ -75,7 +74,7 @@ function job_execute_delete_account($job) {
 		file_delete($path);
 	});
 
-	$wechat_attachments = table('attachment')->local(false)->where('uniacid', $uniacid)
+	$wechat_attachments = table('wechat_attachment')->where('uniacid', $uniacid)
 		->searchWithPage(1, 10)->getall('id');
 	array_walk($wechat_attachments, function($item) {
 		$path = $item['attachment'];
@@ -84,7 +83,7 @@ function job_execute_delete_account($job) {
 
 	// 都为0 说明已经删除完了
 	if (count($core_attchments) == 0 && count($wechat_attachments) == 0) {
-		table('attachment_group')->deleteByUniacid($uniacid);
+		table('core_attachment_group')->where('uniacid', $uniacid)->delete();
 		$upjob = table('job')->where('id', $job['id']);
 		$upjob->fill('status', 1);//改为完成状态
 		$upjob->fill('endtime', TIMESTAMP);//加结束时间
@@ -98,10 +97,10 @@ function job_execute_delete_account($job) {
 	$wechat_ids = array_keys($wechat_attachments);
 
 	if (count($core_ids) > 0) {
-		table('attachment')->deleteById($core_ids);
+		table('core_attachment')->deleteById($core_ids);
 	}
 	if (count($wechat_ids) > 0) {
-		table('attachment')->local(false)->deleteById($wechat_ids);
+		table('wechat_attachment')->deleteById($wechat_ids);
 	}
 
 	$handled = count($core_ids) + count($wechat_ids);

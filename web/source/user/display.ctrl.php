@@ -11,7 +11,6 @@ load()->model('message');
 $dos = array('display', 'operate');
 $do = in_array($do, $dos) ? $do: 'display';
 
-$_W['page']['title'] = '用户列表 - 用户管理';
 $founders = explode(',', $_W['config']['setting']['founder']);
 
 if ($do == 'display') {
@@ -23,8 +22,17 @@ if ($do == 'display') {
 	$psize = 20;
 	$users_table = table('users');
 	$users_table->searchWithTimelimitStatus(intval($_GPC['expire']));
+	if (!empty($_GPC['user_type'])) {
+		$user_type = $_GPC['user_type'] == USER_TYPE_COMMON ? USER_TYPE_COMMON : USER_TYPE_CLERK;
+		if ($user_type == USER_TYPE_CLERK) {
+			$users_table->searchWithType(USER_TYPE_CLERK);
+		} else {
+			$users_table->searchWithType(USER_TYPE_COMMON);
+		}
+	}
+
 	$type = empty($_GPC['type']) ? 'display' : $_GPC['type'];
-	if (in_array($type, array('display', 'check', 'recycle', 'clerk'))) {
+	if (in_array($type, array('display', 'check', 'recycle'))) {
 		switch ($type) {
 			case 'check':
 				permission_check_account_user('system_user_check');
@@ -35,15 +43,9 @@ if ($do == 'display') {
 				permission_check_account_user('system_user_recycle');
 				$users_table->searchWithStatus(USER_STATUS_BAN);
 				break;
-			case 'clerk':
-				permission_check_account_user('system_user_clerk');
-				$users_table->searchWithStatus(USER_STATUS_NORMAL);
-				$users_table->searchWithType(USER_TYPE_CLERK);
-				break;
 			default:
 				permission_check_account_user('system_user');
 				$users_table->searchWithStatus(USER_STATUS_NORMAL);
-				$users_table->searchWithType(USER_TYPE_COMMON);
 				$users_table->searchWithFounder(array(ACCOUNT_MANAGE_GROUP_GENERAL, ACCOUNT_MANAGE_GROUP_FOUNDER));
 				break;
 		}
@@ -59,8 +61,10 @@ if ($do == 'display') {
 		}
 
 		
+
+		$users_table->searchWithoutFounder();
 		$users_table->searchWithPage($pindex, $psize);
-		$users = $users_table->searchUsersList();
+		$users = $users_table->getUsersList();
 		$total = $users_table->getLastQueryTotal();
 		$users = user_list_format($users);
 		$users = array_values($users);

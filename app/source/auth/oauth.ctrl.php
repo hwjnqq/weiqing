@@ -1,7 +1,7 @@
 <?php
 /**
  * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->func('communication');
@@ -29,7 +29,10 @@ $oauth_account = WeAccount::create($_W['account']['oauth']);
 $oauth = $oauth_account->getOauthInfo($code);
 
 if (is_error($oauth) || empty($oauth['openid'])) {
-	$state = 'we7sid-'.$_W['session_id'];
+	$state = '';
+	if (isset($_GPC['state']) && !empty($_GPC['state']) && strexists($_GPC['state'], 'we7sid-')) {
+		$state = $_GPC['state'];
+	}
 	$str = '';
 	if(uni_is_multi_acid()) {
 		$str = "&j={$_W['acid']}";
@@ -51,7 +54,7 @@ if (!empty($_SESSION['pay_params'])) {
 $_SESSION['oauth_openid'] = $oauth['openid'];
 $_SESSION['oauth_acid'] = $_W['account']['oauth']['acid'];
 
-if (intval($_W['account']['level']) == 4) {
+if (intval($_W['account']['level']) == ACCOUNT_SERVICE_VERIFY) {
 	$fan = mc_fansinfo($oauth['openid']);
 	if (!empty($fan)) {
 		$_SESSION['openid'] = $oauth['openid'];
@@ -86,7 +89,7 @@ if (intval($_W['account']['level']) == 4) {
 			);
 			if (!isset($unisetting['passport']) || empty($unisetting['passport']['focusreg'])) {
 				$email = md5($oauth['openid']).'@we7.cc';
-				$email_exists_member = pdo_getcolumn('mc_members', array('email' => $email), 'uid');
+				$email_exists_member = pdo_getcolumn('mc_members', array('email' => $email, 'uniacid' => $_W['uniacid']), 'uid');
 				if (!empty($email_exists_member)) {
 					$uid = $email_exists_member;
 				} else {
@@ -126,7 +129,7 @@ if (intval($_W['account']['level']) == 4) {
 		$_W['fans']['from_user'] = $record['openid'];
 	}
 }
-if (intval($_W['account']['level']) != 4) {
+if (intval($_W['account']['level']) != ACCOUNT_SERVICE_VERIFY) {
 	//如果包含Unionid，则直接查原始openid
 	if (!empty($oauth['unionid'])) {
 		$fan = pdo_get('mc_mapping_fans', array('unionid' => $oauth['unionid'], 'uniacid' => $_W['uniacid']));
@@ -255,7 +258,8 @@ if(uni_is_multi_acid()) {
 $forward = strexists($forward, 'i=') ? $forward : "{$forward}&i={$_W['uniacid']}{$str}";
 //部分开发者链接内有‘&wxref=mp.weixin.qq.com’，而没有‘#wechat_redirect’会导致判断错误，故不能直接判断‘&wxref=mp.weixin.qq.com#wechat_redirect’
 if (strpos($forward, '&wxref=mp.weixin.qq.com')) {
-	$forward = strstr($forward, '&wxref=mp.weixin.qq.com', true) . '&wxref=mp.weixin.qq.com#wechat_redirect';
+	//部分开发者链接形如： i=1&c=enrey&do=detail&wxref=mp.weixin.qq.com&m=we7_mall&id=2,此时使用strstr会丢失&wxref=mp.weixin.qq.com后的值
+	$forward = str_replace('&wxref=mp.weixin.qq.com', '', $forward) . '&wxref=mp.weixin.qq.com#wechat_redirect';
 } else {
 	$forward .= '&wxref=mp.weixin.qq.com#wechat_redirect';
 }

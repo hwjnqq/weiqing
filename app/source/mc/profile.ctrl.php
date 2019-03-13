@@ -11,7 +11,17 @@ $title = $_W['account']['name'] . '微站';
 $dos = array('index', 'editprofile', 'personal_info', 'contact_method', 'education_info', 'jobedit', 'avatar', 'address', 'addressadd');
 $do = in_array($do, $dos) ? $do : 'index';
 $navs = app_navs('profile');
+if (empty($_W['member']['uid'])) {
+	message('请先登录!', url('auth/login', array('i' => $_W['uniacid'])), 'error');
+}
+
 $profile = mc_fetch($_W['member']['uid']);
+if(!empty($profile)) {
+	if(empty($profile['email']) || (!empty($profile['email']) && substr($profile['email'], -6) == 'we7.cc' && strlen($profile['email']) == 39)) {
+		$profile['email'] = '';
+		$profile['email_effective'] = 1;
+	}
+}
 //如果有openid,获取从公众平台同步的用户信息
 if(!empty($_W['openid'])) {
 	$map_fans = pdo_getcolumn('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'openid' => $_W['openid']), 'tag');
@@ -37,13 +47,6 @@ if(!empty($_W['openid'])) {
 	}
 }
 
-$profile = pdo_get('mc_members', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
-if(!empty($profile)) {
-	if(empty($profile['email']) || (!empty($profile['email']) && substr($profile['email'], -6) == 'we7.cc' && strlen($profile['email']) == 39)) {
-		$profile['email'] = '';
-		$profile['email_effective'] = 1;
-	}
-}
 
 // 会员启用字段
 $sql = 'SELECT `mf`.*, `pf`.`field` FROM ' . tablename('mc_member_fields') . ' AS `mf` JOIN ' . tablename('profile_fields') . " AS `pf`
@@ -58,7 +61,6 @@ $jobedit_hide = mc_card_settings_hide('jobedit');
 if ($do == 'editprofile'){
 	if ($_W['isajax'] && $_W['ispost']) {
 		if (!empty($_GPC)) {
-			$_GPC['createtime'] = TIMESTAMP;
 			foreach ($_GPC as $field => $value) {
 				if (!isset($value) || in_array($field, array('uid','act', 'name', 'token', 'submit', 'session'))) {
 					unset($_GPC[$field]);
@@ -68,13 +70,13 @@ if ($do == 'editprofile'){
 			if(empty($_GPC['email']) && $profile['email_effective'] == 1) {
 				unset($_GPC['email']);
 			}
-			mc_update($_W['member']['uid'], $_GPC);
+			mc_update($_W['member']['uid'], safe_gpc_array($_GPC));
 		}
 		message('更新资料成功！', referer(), 'success');
 	}
 }
 if ($do == 'avatar') {
-	$avatar = array('avatar' => trim($_GPC['avatar']));
+	$avatar = array('avatar' => safe_gpc_string($_GPC['avatar']));
 	if (mc_update($_W['member']['uid'], $avatar)) {
 		message('头像设置成功！', referer(), 'success');
 	}
@@ -88,7 +90,9 @@ if ($do == 'address') {
 		mc_update($_W['member']['uid'], array('address' => safe_gpc_string($_GPC['address'])));
 	}
 	if ($_GPC['op'] == 'delete') {
-		pdo_delete('mc_member_address', array('id' => $address_id));
+		if (!empty($profile) && !empty($_W['openid'])) {
+			pdo_delete('mc_member_address', array('id' => $address_id, 'uid' => $_W['member']['uid']));
+		}
 	}
 	$where = ' WHERE 1';
 	$params = array(':uniacid' => $_W['uniacid'], ':uid' => $_W['member']['uid']);
@@ -112,50 +116,61 @@ if ($do == 'address') {
 }
 /*添加或编辑地址*/
 if ($do == 'addressadd') {
+	$addid = intval($_GPC['addid']);
 	if ($_W['isajax'] && $_W['ispost']) {
-		$address = $_GPC['address'];
-		if (empty($address['username'])) {
+		$post = safe_gpc_array($_GPC['address']);
+		if (empty($post['username'])) {
 			message('请输入您的姓名', referer(), 'error');
 		}
-		if (empty($address['mobile'])) {
+		if (empty($post['mobile'])) {
 			message('请输入您的手机号', referer(), 'error');
 		}
-		if (empty($address['zipcode'])) {
+		if (empty($post['zipcode'])) {
 			message('请输入您的邮政编码', referer(), 'error');
 		}
-		if (empty($address['province'])) {
+		if (empty($post['province'])) {
 			message('请输入您的所在省', referer(), 'error');
 		}
-		if (empty($address['city'])) {
+		if (empty($post['city'])) {
 			message('请输入您的所在市', referer(), 'error');
 		}
-		if (empty($address['address'])) {
+		if (empty($post['address'])) {
 			message('请输入您的详细地址', referer(), 'error');
 		}
-		$address['uniacid'] = $_W['uniacid'];
-		$address['uid'] = $_W['member']['uid'];
-		$address_data = pdo_get('mc_member_address', array('uniacid' => $_W['uniacid'], 'uid' => $address['uid']));
+		$address = array(
+			'username' => $post['username'],
+			'mobile' => $post['mobile'],
+			'zipcode' => $post['zipcode'],
+			'province' => $post['province'],
+			'city' => $post['city'],
+			'district' => empty($post['district']) ? '' : $post['district'],
+			'address' => $post['address'],
+		);
+		$address_data = pdo_get('mc_member_address', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
 		if (empty($address_data)) {
 			$address['isdefault'] = 1;
 		}
-		if (!empty($_GPC['addid'])) {
-			if (pdo_update('mc_member_address', $address, array('id' => intval($_GPC['addid']), 'uid' => $address['uid']))) {
+		if (!empty($addid)) {
+			if (pdo_update('mc_member_address', $address, array('id' => $addid, 'uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']))) {
 				message('修改收货地址成功', url('mc/profile/address'), 'success');
 			} else {
 				message('修改收货地址失败，请稍后重试', url('mc/profile/address'), 'error');
 			}
-		}
-		if (pdo_insert('mc_member_address', $address)) {
-			$adres = pdo_get('mc_member_address', array('uniacid' => $_W['uniacid'], 'uid' => $address['uid'], 'isdefault'=> 1));
-			if (!empty($adres)) {
-				$adres['address'] = $adres['province'].$adres['city'].$adres['district'].$adres['address'];
-				mc_update($address['uid'], array('address' => $adres['address']));
+		} else {
+			$address['uniacid'] = $_W['uniacid'];
+			$address['uid'] = $_W['member']['uid'];
+			if (pdo_insert('mc_member_address', $address)) {
+				$adres = pdo_get('mc_member_address', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid'], 'isdefault'=> 1));
+				if (!empty($adres)) {
+					$adres['address'] = $adres['province'].$adres['city'].$adres['district'].$adres['address'];
+					mc_update($_W['member']['uid'], array('address' => $adres['address']));
+				}
+				message('地址添加成功', url('mc/profile/address'), 'success');
 			}
-			message('地址添加成功', url('mc/profile/address'), 'success');
 		}
 	}
-	if (!empty($_GPC['addid'])) {
-		$address = pdo_get('mc_member_address', array('id' => $_GPC['addid'], 'uniacid' => $_W['uniacid']));
+	if (!empty($addid)) {
+		$address = pdo_get('mc_member_address', array('id' => $addid, 'uniacid' => $_W['uniacid']));
 	}
 }
 template('mc/profile');

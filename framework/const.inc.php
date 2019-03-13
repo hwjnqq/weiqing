@@ -48,6 +48,11 @@ define('ACCOUNT_TYPE_XZAPP_NORMAL', 9);
 define('ACCOUNT_TYPE_XZAPP_AUTH', 10);
 //支付宝小程序
 define('ACCOUNT_TYPE_ALIAPP_NORMAL', 11);
+//百度小程序
+define('ACCOUNT_TYPE_BAIDUAPP_NORMAL', 12);
+//头条小程序
+define('ACCOUNT_TYPE_TOUTIAOAPP_NORMAL', 13);
+
 //公众号
 define('ACCOUNT_TYPE_SIGN', 'account');
 //小程序
@@ -62,6 +67,10 @@ define('WELCOMESYSTEM_TYPE_SIGN', 'welcome');
 define('XZAPP_TYPE_SIGN', 'xzapp');
 //支付宝小程序
 define('ALIAPP_TYPE_SIGN', 'aliapp');
+//百度小程序
+define('BAIDUAPP_TYPE_SIGN', 'baiduapp');
+//头条小程序
+define('TOUTIAOAPP_TYPE_SIGN', 'toutiaoapp');
 
 
 //授权登录接入
@@ -145,7 +154,7 @@ define('CACHE_EXPIRE_MIDDLE', 300);
 define('CACHE_EXPIRE_LONG', 3600);
 define('CACHE_KEY_LENGTH', 100); //缓存键的最大长度
 
-//模块是否支持小程序
+//模块是否支持微信小程序
 define('MODULE_SUPPORT_WXAPP', 2);
 define('MODULE_NONSUPPORT_WXAPP', 1);
 //模块是否支持公众号应用
@@ -172,6 +181,12 @@ define('MODULE_NOSUPPORT_XZAPP', 1);
 // 是否支持支付宝小程序 不支持1 支持2
 define('MODULE_SUPPORT_ALIAPP', 2);
 define('MODULE_NOSUPPORT_ALIAPP', 1);
+// 是否支持百度小程序 不支持1 支持2
+define('MODULE_SUPPORT_BAIDUAPP', 2);
+define('MODULE_NOSUPPORT_BAIDUAPP', 1);
+// 是否支持头条小程序 不支持1 支持2
+define('MODULE_SUPPORT_TOUTIAOAPP', 2);
+define('MODULE_NOSUPPORT_TOUTIAOAPP', 1);
 
 define('MODULE_SUPPORT_WXAPP_NAME', 'wxapp_support');
 define('MODULE_SUPPORT_ACCOUNT_NAME', 'account_support');
@@ -180,6 +195,8 @@ define('MODULE_SUPPORT_PHONEAPP_NAME', 'phoneapp_support');
 define('MODULE_SUPPORT_SYSTEMWELCOME_NAME', 'welcome_support');
 define('MODULE_SUPPORT_XZAPP_NAME', 'xzapp_support');
 define('MODULE_SUPPORT_ALIAPP_NAME', 'aliapp_support');
+define('MODULE_SUPPORT_BAIDUAPP_NAME', 'baiduapp_support');
+define('MODULE_SUPPORT_TOUTIAOAPP_NAME', 'toutiaoapp_support');
 
 //模块安装来源
 //本地安装 
@@ -253,6 +270,8 @@ define('USER_TYPE_CLERK', 3);
 define('PERSONAL_BASE_TYPE', 1);
 define('PERSONAL_AUTH_TYPE', 2);
 define('PERSONAL_LIST_TYPE', 3);
+define('PERSONAL_BIND_TYPE', 4);
+define('PERSONAL_LIMIT_TYPE', 5);
 
 //商品类型
 define('STORE_TYPE_MODULE', 1);
@@ -264,6 +283,7 @@ define('STORE_TYPE_API', 6);
 define('STORE_TYPE_ACCOUNT_RENEW', 7);
 define('STORE_TYPE_WXAPP_RENEW', 8);
 define('STORE_TYPE_USER_PACKAGE', 9);
+define('STORE_TYPE_ACCOUNT_PACKAGE', 10);
 //订单状态
 define('STORE_ORDER_PLACE', 1);
 define('STORE_ORDER_DELETE', 2);
@@ -285,6 +305,8 @@ define('USER_REGISTER_TYPE_QQ', 1);
 define('USER_REGISTER_TYPE_WECHAT', 2);
 //手机注册
 define('USER_REGISTER_TYPE_MOBILE', 3);
+//微信开放平台 unionid
+define('USER_REGISTER_TYPE_OPEN_WECHAT', 4);
 
 //消息提醒类型
 //提交订单消息类型
@@ -359,5 +381,5 @@ define('PLATFORM_DISPLAY_TYPE', 6);
 define('MODULE_DISPLAY_TYPE', 7);
 
 //密码强度
-define('PASSWORD_STRONG_STATE', '至少8-16个字符，至少1个大写字母，1个小写字母和1个数字，其他可以是任意字符');
+define('PASSWORD_STRONG_STATE', '密码至少8-16个字符，至少1个大写字母，1个小写字母和1个数字，其他可以是任意字符');
 define('PASSWORD_STRONG_REGULAR', '/(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,30}/');

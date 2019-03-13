@@ -12,6 +12,7 @@ defined('IN_IA') or exit('Access Denied');
  * @return int 成功返回新增的用户编号，失败返回 0
  */
 function user_register($user, $source) {
+	global $_W;
 	load()->model('message');
 	if (empty($user) || !is_array($user)) {
 		return 0;
@@ -20,9 +21,12 @@ function user_register($user, $source) {
 		unset($user['uid']);
 	}
 
-	$check_pass = safe_check_password(safe_gpc_string($user['password']));
-	if (is_error($check_pass)) {
-		return $check_pass;
+	$support_login_types = Oauth2CLient::supportThirdLoginType();
+	if (!in_array($source, $support_login_types)) {
+		$check_pass = safe_check_password(safe_gpc_string($user['password']));
+		if (is_error($check_pass)) {
+			return $check_pass;
+		}
 	}
 
 	$user['salt'] = random(8);
@@ -48,12 +52,12 @@ function user_register($user, $source) {
 	if (!empty($result)) {
 		$user['uid'] = pdo_insertid();
 	}
-	$content = $user['username'] . ' ' .date("Y-m-d H:i:s") . '注册成功--' . $source;
-	$message = array(
-		'status' => $user['status']
-	);
-	message_notice_record($content, $user['uid'], $user['uid'], MESSAGE_REGISTER_TYPE, $message);
-
+	message_notice_record($_W['config']['setting']['founder'], MESSAGE_REGISTER_TYPE, array(
+		'uid' => $user['uid'],
+		'username' => $user['username'],
+		'status' => $user['status'],
+		'source' => $source,
+	));
 	return intval($user['uid']);
 }
 
@@ -128,7 +132,7 @@ function user_is_vice_founder($uid = 0) {
 	if (empty($uid)) {
 		$user_info = $_W['user'];
 	} else {
-		$user_info = user_single($uid);
+		$user_info = table('users')->getById($uid);
 	}
 	if ($user_info['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
 		return true;
@@ -143,17 +147,37 @@ function user_is_vice_founder($uid = 0) {
  */
 function user_delete($uid, $is_recycle = false) {
 	load()->model('cache');
-	$user_table = table('users');
-	if (empty($is_recycle)) {
-		$user_table->userAccountRole(ACCOUNT_MANAGE_NAME_OWNER);
-		$user_accounts = $user_table->userOwnedAccount($uid);
-		if (!empty($user_accounts)) {
-			foreach ($user_accounts as $uniacid) {
-				cache_build_account_modules($uniacid);
-			}
+	if (!empty($is_recycle)) {
+		pdo_update('users', array('status' => USER_STATUS_BAN) , array('uid' => $uid));
+		return true;
+	}
+
+	$user_accounts = table('uni_account_users')->getOwnedAccountsByUid($uid);
+	if (!empty($user_accounts)) {
+		foreach ($user_accounts as $uniacid => $account) {
+			cache_build_account_modules($uniacid);
 		}
 	}
-	$user_table->userAccountDelete($uid, $is_recycle);
+	$user_info = table('users')->getById($uid);
+	if ($user_info['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
+		pdo_update('users', array('owner_uid' => ACCOUNT_NO_OWNER_UID), array('owner_uid' => $uid));
+		pdo_update('users_group', array('owner_uid' => ACCOUNT_NO_OWNER_UID), array('owner_uid' => $uid));
+		pdo_update('uni_group', array('owner_uid' => ACCOUNT_NO_OWNER_UID), array('owner_uid' => $uid));
+		# 如果删除的是副创始人删除，删除所有关联关系
+		pdo_delete('users_founder_own_users', array('founder_uid' => $uid));
+		pdo_delete('users_founder_own_users_groups', array('founder_uid' => $uid));
+		pdo_delete('users_founder_own_uni_groups', array('founder_uid' => $uid));
+		pdo_delete('users_founder_own_create_groups', array('founder_uid' => $uid));
+	}
+	pdo_delete('users', array('uid' => $uid));
+	pdo_delete('uni_account_users', array('uid' => $uid));
+	pdo_delete('users_profile', array('uid' => $uid));
+	pdo_delete('users_bind', array('uid' => $uid));
+	pdo_delete('users_extra_group', array('uid' => $uid));
+	pdo_delete('users_extra_limit', array('uid' => $uid));
+	pdo_delete('users_extra_modules', array('uid' => $uid));
+	pdo_delete('users_extra_templates', array('uid' => $uid));
+	pdo_delete('users_founder_own_users', array('uid' => $uid));
 	return true;
 }
 
@@ -161,10 +185,9 @@ function user_delete($uid, $is_recycle = false) {
  * 获取单条用户信息，如果查询参数多于一个字段，则查询满足所有字段的用户
  * PS:密码字段不要加密
  * @param array $user_or_uid 要查询的用户字段，可以包括  uid, username, password, status
- * @param boolean $delete_keypoint 是否删除关键信息（密码/加密盐）
  * @return array 完整的用户信息
  */
-function user_single($user_or_uid, $delete_keypoint = true) {
+function user_single($user_or_uid) {
 	$user = $user_or_uid;
 	if (empty($user)) {
 		return false;
@@ -221,13 +244,18 @@ function user_single($user_or_uid, $delete_keypoint = true) {
 	}
 
 	$record['hash'] = md5($record['password'] . $record['salt']);
-	//删除关键信息,
- 	if (!empty($delete_keypoint)) {
- 		unset($record['password'], $record['salt']);
- 	}
-
-	if (!empty($record['owner_uid'])) {
-		$record['vice_founder_name'] = pdo_getcolumn('users', array('uid' => $record['owner_uid']), 'username');
+	//删除关键信息,避免暴露
+    unset($record['password'], $record['salt']);
+	//1.8.5删除此IF判断
+	if (class_exists('\We7\Table\Users\FounderOwnUsers')) {
+		$founder_own_user_table = table('users_founder_own_users');
+		//1.8.5删除此IF判断
+		if (method_exists($founder_own_user_table, 'getFounderByUid') && pdo_tableexists('users_founder_own_users')) {
+			$founder_own_user_info = $founder_own_user_table->getFounderByUid($user['uid']);
+		}
+	}
+	if (!empty($founder_own_user_info['founder_uid'])) {
+		$record['vice_founder_name'] = pdo_getcolumn('users', array('uid' => $founder_own_user_info['founder_uid']), 'username');
 	}
 	if($record['type'] == ACCOUNT_OPERATE_CLERK) {
 		$clerk = pdo_get('activity_clerks', array('uid' => $record['uid']));
@@ -252,6 +280,8 @@ function user_single($user_or_uid, $delete_keypoint = true) {
 		$record['wechat_openid'] = $third_info[USER_REGISTER_TYPE_WECHAT]['bind_sign'];
 		$record['mobile'] = $third_info[USER_REGISTER_TYPE_MOBILE]['bind_sign'];
 	}
+	$record['notice_setting'] = iunserializer($record['notice_setting']);
+	$record['endtime'] = user_end_time($user['uid']);
 	return $record;
 }
 
@@ -296,6 +326,25 @@ function user_update($user) {
 	}
 	if (isset($user['groupid'])) {
 		$record['groupid'] = $user['groupid'];
+		$user_info = table('users')->getById($user['uid']);
+		if ($user_info['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
+			$group_info = user_founder_group_detail_info($user['groupid']);
+		} else {
+			$group_info = user_group_detail_info($user['groupid']);
+		}
+		$group_info['timelimit'] = intval($group_info['timelimit']);
+
+		if (!empty($group_info)) {
+			if ($group_info['timelimit'] > 0) {
+				$user_end_time = strtotime($group_info['timelimit'] . ' days', max($user_info['joindate'], $user_info['starttime']));
+				if (user_is_vice_founder() && !empty($_W['user']['endtime'])) {
+					$user_end_time = min($user_end_time, $_W['user']['endtime']);
+				}
+			} else {
+				$user_end_time = 0;
+			}
+			$record['endtime'] = $user_end_time;
+		}
 	}
 	if (isset($user['starttime'])) {
 		$record['starttime'] = $user['starttime'];
@@ -305,6 +354,9 @@ function user_update($user) {
 	}
 	if(isset($user['lastuniacid'])) {
 		$record['lastuniacid'] = intval($user['lastuniacid']);
+	}
+	if(is_array($user['notice_setting'])) {
+		$record['notice_setting'] = iserializer($user['notice_setting']);
 	}
 	if (empty($record)) {
 		return false;
@@ -322,6 +374,40 @@ function user_hash($passwordinput, $salt) {
 	global $_W;
 	$passwordinput = "{$passwordinput}-{$salt}-{$_W['config']['setting']['authkey']}";
 	return sha1($passwordinput);
+}
+
+/**
+ * 获取用户数据库所存密码(该值已加密过)的hash值
+ * @param string $password 密码
+ * @param uid $uid
+ * @return string
+ */
+function user_password_hash($password, $uid) {
+	if (empty($password) || intval($uid) <= 0) {
+		return '';
+	}
+	$user_info = table('users')->getById($uid);
+	if (empty($user_info)) {
+		return '';
+	}
+	return md5($password . $user_info['salt']);
+}
+
+/**
+ * 通过用户输入的密码计算加密密码
+ * @param string $passwordinput 用户输入的密码
+ * @param int $uid 用户UID
+ * @return string
+ */
+function user_password($passwordinput, $uid) {
+	if (empty($passwordinput) || intval($uid) <= 0) {
+		return '';
+	}
+	$user_info = table('users')->getById($uid);
+	if (empty($user_info)) {
+		return '';
+	}
+	return user_hash($passwordinput, $user_info['salt']);
 }
 
 /**
@@ -344,13 +430,11 @@ function user_level() {
  */
 function user_group() {
 	global $_W;
+	$users_group_table = table('users_group');
 	if (user_is_vice_founder()) {
-		$condition = array(
-			'owner_uid' => $_W['uid'],
-		);
+		$users_group_table->getOwnUsersGroupsList($_W['uid']);
 	}
-	$groups = pdo_getall('users_group', $condition, array('id', 'name', 'package'), 'id', 'id ASC');
-	return $groups;
+	return $users_group_table->getUsersGroupList();
 }
 
 /**
@@ -380,9 +464,25 @@ function user_group_detail_info($groupid = 0) {
 	}
 
 	$group_info['package'] = (array)iunserializer($group_info['package']);
-	if (!empty($group_info['package'])) {
+	if (!empty($group_info['package']) && !in_array(-1, $group_info['package'])) {
 		$group_info['package_detail'] = uni_groups($group_info['package']);
+
+		# 获取该用户组中所有的模块信息
+		$group_info['user_group_modules_all'] = array();
+		if (!empty($group_info['package_detail'])) {
+			foreach ($group_info['package_detail'] as $package_detail) {
+				if (!empty($package_detail['modules_all'])) {
+					foreach  ($package_detail['modules_all'] as $mdoule_key => $module_val) {
+						$group_info['user_group_modules_all'][$mdoule_key]= $module_val;
+					}
+				}
+			}
+		}
+	} else {
+		$group_info['modules'] = empty($group_info['package']) ? '' : 'all';
+		$group_info['templates'] = empty($group_info['package']) ? '' : 'all';
 	}
+
 	return $group_info;
 }
 
@@ -424,64 +524,25 @@ function user_account_detail_info($uid) {
 	}
 
 	$account_users_info = table('account')->userOwnedAccount($uid);
-
+	$account_type_signs = uni_account_type_sign();
+	$accounts = array();
 	if (!empty($account_users_info)) {
 		foreach ($account_users_info as $uniacid => $account) {
-			if ($account['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $account['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
-				$app_user_info[$uniacid] = $account;
-			} elseif ($account['type'] == ACCOUNT_TYPE_APP_NORMAL) {
-				$wxapp_user_info[$uniacid] = $account;
-			} elseif ($account['type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
-				$webapp_user_info[$uniacid] = $account;
-			} elseif ($account['type'] == ACCOUNT_TYPE_PHONEAPP_NORMAL) {
-				$phoneapp_user_info[$uniacid] = $account;
-			} elseif ($account['type'] == ACCOUNT_TYPE_XZAPP_NORMAL) {
-				$xzapp_user_info[$uniacid] = $account;
-			}
-		}
-	}
-
-	$wxapps = $wechats = $webapps = $pohoneapp = $xzapp = array();
-	if (!empty($wxapp_user_info)) {
-		$wxapps = table('account')->accountWxappInfo(array_keys($wxapp_user_info), $uid);
-	}
-	if (!empty($app_user_info)) {
-		$wechats = table('account')->accountWechatsInfo(array_keys($app_user_info), $uid);
-	}
-	if (!empty($webapp_user_info)) {
-		$webapps = table('account')->accountWebappInfo(array_keys($webapp_user_info), $uid);
-	}
-	if (!empty($webapp_user_info)) {
-		$pohoneapp = table('account')->accountPhoneappInfo(array_keys($webapp_user_info), $uid);
-	}
-	if (!empty($xzapp_user_info)) {
-		$xzapp = table('account')->accountXzappInfo(array_keys($xzapp_user_info), $uid);
-	}
-
-	$accounts = array_merge($wxapps, $wechats, $webapps, $pohoneapp, $xzapp);
-	if (!empty($accounts)) {
-		foreach ($accounts as &$account_val) {
-			$account_val['thumb'] = tomedia('headimg_'.$account_val['default_acid']. '.jpg');
-			foreach ($account_users_info as $uniacid => $user_info) {
-				if ($account_val['uniacid'] == $uniacid) {
-					$account_val['type'] = $user_info['type'];
-					if ($user_info['type'] == ACCOUNT_TYPE_APP_NORMAL || $user_info['type'] == ACCOUNT_TYPE_APP_AUTH) {
-						$account_lists['wxapp'][$uniacid] = $account_val;
-					} elseif ($user_info['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $user_info['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
-						$account_lists['wechat'][$uniacid] = $account_val;
-					} elseif ($user_info['type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
-						$account_lists['webapp'][$uniacid] = $account_val;
-					} elseif ($user_info['type'] == ACCOUNT_TYPE_PHONEAPP_NORMAL) {
-						$account_lists['phoneapp'][$uniacid] = $account_val;
-					} elseif ($user_info['type'] == ACCOUNT_TYPE_XZAPP_NORMAL) {
-						$account_lists['xzapp'][$uniacid] = $account_val;
+			foreach ($account_type_signs as $type_sign_key => $type_sign_val) {
+				if (in_array($account['type'], $type_sign_val['contain_type'])) {
+					$type = $type_sign_key == 'account' ? 'wechats' : $type_sign_key;
+					$account_method = 'account' . ucfirst($type) . 'Info';
+					if (method_exists(table('account'), $account_method)) {
+						$account_info = current(table('account')->$account_method($uniacid, $uid));
+						$account_info['type'] = $account['type'];
+						$account_info['thumb'] =  tomedia('headimg_'.$account_info['default_acid']. '.jpg');
+						$accounts[$type][$uniacid] = $account_info;
 					}
 				}
 			}
 		}
-		unset($account_val);
 	}
-	return $account_lists;
+	return $accounts;
 }
 
 /**
@@ -491,29 +552,32 @@ function user_account_detail_info($uid) {
  */
 function user_modules($uid = 0) {
 	global $_W;
+	load()->model('module');
 	if (empty($uid)) {
 		$uid = $_W['uid'];
 	}
+	$support_type = module_support_type();
 	$modules = cache_load(cache_system_key('user_modules', array('uid' => $uid)));
 	if (empty($modules)) {
 		$user_info = user_single(array ('uid' => $uid));
+		$extra_modules = table('users_extra_modules')->getExtraModulesByUid($uid);
+
+		$users_extra_group_table = table('users_extra_group');
+		$extra_groups = $users_extra_group_table->getUniGroupsByUid($uid);
 
 		if (empty($uid) || user_is_founder($uid, true)) {
-			$module_list = table('modules')->searchWithRecycle();
+			$module_list = table('modules')->getNonRecycleModules();
 			$module_list = modules_support_all(array_keys($module_list));
-
-		} elseif (!empty($user_info) && $user_info['type'] == ACCOUNT_OPERATE_CLERK) {
+		} elseif (!empty($user_info) && $user_info['type'] == ACCOUNT_OPERATE_CLERK && $user_info['founder_groupid'] != ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
 			$clerk_module = pdo_fetch("SELECT p.type FROM " . tablename('users_permission') . " p LEFT JOIN " . tablename('uni_account_users') . " u ON p.uid = u.uid AND p.uniacid = u.uniacid WHERE u.role = :role AND p.uid = :uid", array(':role' => ACCOUNT_MANAGE_NAME_CLERK, ':uid' => $uid));
 			if (empty($clerk_module)) {
 				return array();
 			}
 			$module_list = array($clerk_module['type'] => $clerk_module['type']);
 			$module_list = modules_support_all(array_keys($module_list));
-
-		} elseif (!empty($user_info) && empty($user_info['groupid'])) {
-			$module_list = pdo_getall('modules', array('issystem' => 1), array('name'), 'name');;
+		} elseif (!empty($user_info) && empty($user_info['groupid']) && empty($extra_modules) && empty($extra_groups)) {
+			$module_list = pdo_getall('modules', array('issystem' => 1), array('name'), 'name');
 			$module_list = modules_support_all(array_keys($module_list));
-
 		} else {
 			if ($user_info['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
 				$user_group_info = user_founder_group_detail_info($user_info['groupid']);
@@ -522,39 +586,61 @@ function user_modules($uid = 0) {
 			}
 			$packageids = $user_group_info['package'];
 			if (!empty($packageids) && in_array('-1', $packageids)) {
-				$module_list = table('modules')->searchWithRecycle();
+				$module_list = table('modules')->getNonRecycleModules();
 				$module_list = modules_support_all(array_keys($module_list));
-
 			} else {
-				$module_list = array();
-				$package_group = (array) pdo_getall('uni_group', array('id' => $packageids));
-				$package_group[] = pdo_get('uni_group', array('uid' => $uid)); //用户附加权限
+				# 获取用户应用权限组内的所有模块 并按照支持类型标记分组
+				$module_list = array();	# 数据结构:array('module_name' => 'all', 'moduel_name_1' => array('account_support', 'wxapp_support', ...));
+
+				$package_group = (array) pdo_getall('uni_group', array('id' => $packageids));	# 用户组下的应用权限组
+				$uni_group_add = pdo_get('uni_group', array('uid' => $uid));	# 用户附加权限
+				if (!empty($uni_group_add)) {
+					$package_group[] = $uni_group_add;
+				}
+
+				$users_extra_group_table = table('users_extra_group');
+				$extra_groups = $users_extra_group_table->getUniGroupsByUid($uid);
+				$extra_uni_groups = pdo_getall('uni_group', array('id' => array_keys($extra_groups)));
+				$package_group = array_merge($package_group, $extra_uni_groups);
 				if (!empty($package_group)) {
 					foreach ($package_group as $row) {
-						if (empty($row)) {
+						$row['modules'] = iunserializer($row['modules']);
+						if (empty($row) || empty($row['modules'])) {
 							continue;
 						}
-						$row['modules'] = iunserializer($row['modules']);
-						if (!empty($row['modules'])) {
-							foreach ($row['modules'] as $type => $modulenames) {
-								foreach ($modulenames as $name) {
-									switch ($type) {
-										case 'modules':
-											$module_list[$name][] = MODULE_SUPPORT_ACCOUNT_NAME;
-											break;
-										case 'wxapp':
-											$module_list[$name][] = MODULE_SUPPORT_WXAPP_NAME;
-											break;
-										case 'webapp':
-											$module_list[$name][] = MODULE_SUPPORT_WEBAPP_NAME;
-											break;
-										case 'xzapp':
-											$module_list[$name][] = MODULE_SUPPORT_XZAPP_NAME;
-											break;
-										case 'phoneapp':
-											$module_list[$name][] = MODULE_SUPPORT_PHONEAPP_NAME;
-											break;
-									}
+						foreach ($row['modules'] as $type => $modulenames) {
+							if (!is_array($modulenames) || empty($modulenames)) {
+								continue;
+							}
+							foreach ($modulenames as $name) {
+								switch ($type) {
+									case 'modules':
+										$module_list[$name][] = MODULE_SUPPORT_ACCOUNT_NAME;
+										break;
+									case 'account':
+										$module_list[$name][] = MODULE_SUPPORT_ACCOUNT_NAME;
+										break;
+									case 'wxapp':
+										$module_list[$name][] = MODULE_SUPPORT_WXAPP_NAME;
+										break;
+									case 'webapp':
+										$module_list[$name][] = MODULE_SUPPORT_WEBAPP_NAME;
+										break;
+									case 'xzapp':
+										$module_list[$name][] = MODULE_SUPPORT_XZAPP_NAME;
+										break;
+									case 'phoneapp':
+										$module_list[$name][] = MODULE_SUPPORT_PHONEAPP_NAME;
+										break;
+									case 'aliapp':
+										$module_list[$name][] = MODULE_SUPPORT_ALIAPP_NAME;
+										break;
+									case 'baiduapp':
+										$module_list[$name][] = MODULE_SUPPORT_BAIDUAPP_NAME;
+										break;
+									case 'toutiaoapp':
+										$module_list[$name][] = MODULE_SUPPORT_TOUTIAOAPP_NAME;
+										break;
 								}
 							}
 						}
@@ -563,6 +649,13 @@ function user_modules($uid = 0) {
 			}
 		}
 
+		if (!empty($extra_modules)) {
+			foreach ($extra_modules as $extra_module_key => $extra_module_val) {
+				$module_list[$extra_module_val['module_name']][] = $extra_module_val['support'];
+			}
+		}
+
+		# 去除掉没有主模块的插件模块
 		$modules = array();
 		if (!empty($module_list)) {
 			$have_plugin_module = array();
@@ -592,36 +685,61 @@ function user_modules($uid = 0) {
 
 	$module_list = array();
 	if (!empty($modules)) {
-		foreach ($modules as $module => $support) {
-			$module_info = module_fetch($module);
-			//欢迎模块只能创始人操作，如果当前非创始人，忽略欢迎模块
-			if (!user_is_founder($_W['uid'], true) &&
-				$module_info[MODULE_SUPPORT_SYSTEMWELCOME_NAME] == MODULE_SUPPORT_SYSTEMWELCOME &&
-				$module_info[MODULE_SUPPORT_ACCOUNT_NAME] != MODULE_SUPPORT_ACCOUNT &&
-				$module_info[MODULE_SUPPORT_WXAPP_NAME] != MODULE_SUPPORT_WXAPP &&
-				$module_info[MODULE_SUPPORT_WEBAPP_NAME] != MODULE_SUPPORT_WEBAPP &&
-				$module_info[MODULE_SUPPORT_PHONEAPP_NAME] != MODULE_SUPPORT_PHONEAPP) {
+		$modulenames = array_keys($modules);
+		$all_modules = table('modules')->searchWithName($modulenames)->getAll('name');
+		$plugin_data = table('modules_plugin')->getAllByNameOrMainModule($modulenames);
+		$all_recycle_info = table('modules_recycle')->searchWithNameType($modulenames, MODULE_RECYCLE_INSTALL_DISABLED)->getall('name');
+
+		foreach ($all_modules as $k => $value) {
+			$all_modules[$k]['logo'] = tomedia($all_modules[$k]['logo']);
+			$all_modules[$k]['subscribes'] = (array)iunserializer($all_modules[$k]['subscribes']);
+			$all_modules[$k]['handles'] = (array)iunserializer($all_modules[$k]['handles']);
+			$all_modules[$k]['isdisplay'] = 1;
+			$all_modules[$k]['main_module'] = '';
+			$all_modules[$k]['plugin_list'] = array();
+		}
+		foreach ($plugin_data as $value) {
+			$all_modules[$value['main_module']]['plugin_list'][] = $value['name'];
+			$all_modules[$value['name']]['main_module'] = $value['main_module'];
+			$all_modules[$value['name']]['main_module_logo'] = $all_modules[$value['main_module']]['logo'];
+			$all_modules[$value['name']]['main_module_title'] = $all_modules[$value['main_module']]['title'];
+		}
+		$is_main_founder = user_is_founder($_W['uid'], true);
+
+		foreach ($modules as $modulename => $support) {
+			if (empty($all_modules[$modulename])) {
 				continue;
 			}
-			//无全部权限时，如果用户应用支持的适用类型不在用户权限范围内时，则设置为不支持该类型
-			if ($support !== 'all') {
-				if ($module_info[MODULE_SUPPORT_ACCOUNT_NAME] == MODULE_SUPPORT_ACCOUNT && !in_array(MODULE_SUPPORT_ACCOUNT_NAME, $support)) {
-					$module_info[MODULE_SUPPORT_ACCOUNT_NAME] = MODULE_NONSUPPORT_ACCOUNT;
+			$module_info = $all_modules[$modulename];
+			foreach ($support_type as $support_name => $value) {
+				//将停用的支持设置为不支持
+				if (!empty($all_recycle_info[$modulename])) {
+					if ($all_recycle_info[$modulename][$support_name] > 0 && $module_info[$support_name] == $value['support']) {
+						$module_info[$support_name] = $value['not_support'];
+					}
 				}
-				if ($module_info[MODULE_SUPPORT_WXAPP_NAME] == MODULE_SUPPORT_WXAPP && !in_array(MODULE_SUPPORT_WXAPP_NAME, $support)) {
-					$module_info[MODULE_SUPPORT_WXAPP_NAME] = MODULE_NONSUPPORT_WXAPP;
-				}
-				if ($module_info[MODULE_SUPPORT_WEBAPP_NAME] == MODULE_SUPPORT_WEBAPP && !in_array(MODULE_SUPPORT_WEBAPP_NAME, $support)) {
-					$module_info[MODULE_SUPPORT_WEBAPP_NAME] = MODULE_NOSUPPORT_WEBAPP;
-				}
-				if ($module_info[MODULE_SUPPORT_XZAPP_NAME] == MODULE_SUPPORT_XZAPP && !in_array(MODULE_SUPPORT_XZAPP_NAME, $support)) {
-					$module_info[MODULE_SUPPORT_XZAPP_NAME] = MODULE_NOSUPPORT_XZAPP;
-				}
-				if ($module_info[MODULE_SUPPORT_PHONEAPP_NAME] == MODULE_SUPPORT_PHONEAPP && !in_array(MODULE_SUPPORT_PHONEAPP_NAME, $support)) {
-					$module_info[MODULE_SUPPORT_PHONEAPP_NAME] = MODULE_NOSUPPORT_PHONEAPP;
+				//无全部支持权限时，将不在用户权限范围内的支持设置为不支持
+				if ($support !== 'all' && !empty($support)) {
+					if ($module_info[$support_name] == $value['support'] && !in_array($support_name, $support)) {
+						$module_info[$support_name] = $value['not_support'];
+					}
 				}
 			}
-			$module_list[$module] = $module_info;
+
+			$is_continue = true;
+			foreach ($support_type as $support_name => $value) {
+				//欢迎模块只能创始人操作，如果当前非创始人，忽略欢迎模块
+				if (!$is_main_founder && $support_name == MODULE_SUPPORT_SYSTEMWELCOME_NAME) {
+					continue;
+				}
+				if ($module_info[$support_name] == $value['support']) {
+					$is_continue = false;
+				}
+			}
+			if ($is_continue) {
+				continue;
+			}
+			$module_list[$modulename] = $module_info;
 		}
 	}
 	return $module_list;
@@ -659,20 +777,18 @@ function user_login_forward($forward = '') {
 		return $login_forward;
 	}
 
-	if (empty($_W['isfounder']) || user_is_vice_founder()) {
+	if (user_is_founder($_W['uid'], true)) {
+		return url('home/welcome/system', array('page' => 'home'));
+	} else {
 		if (!empty($_W['user']['endtime']) && $_W['user']['endtime'] < TIMESTAMP) {
 			return url('user/profile');
 		}
-	}
-
-	if (user_is_founder($_W['uid']) && !user_is_vice_founder($_W['uid'])) {
-		return url('home/welcome/system');
-	}
-	if (user_is_vice_founder()) {
-		return url('account/manage', array('account_type' => 1));
-	}
-	if ($_W['user']['type'] == ACCOUNT_OPERATE_CLERK) {
-		return url('module/display');
+		if (user_is_vice_founder()) {
+			return url('account/manage', array('account_type' => 1));
+		}
+		if ($_W['user']['type'] == ACCOUNT_OPERATE_CLERK || permission_account_user_role($_W['uid']) == ACCOUNT_MANAGE_NAME_CLERK) {
+			return url('module/display');
+		}
 	}
 
 	$url = user_after_login_link();
@@ -741,13 +857,54 @@ function user_invite_register_url($uid = 0) {
 }
 
 /**
+ * 添加账户权限组
+ * @param $account_group_info
+ * @return array
+ */
+function user_save_create_group($account_group_info) {
+	global $_W;
+	$account_group_table = table('users_create_group');
+
+	$group_name = trim($account_group_info['group_name']);
+	$id = $account_group_info['id'];
+
+	if (empty($group_name)) {
+		return error(-1, '账户权限组不能为空');
+	}
+
+	$account_group_table->searchWithGroupName($group_name);
+
+	if (!empty($id)) {
+		$account_group_table->searchWithoutId($id);
+	}
+
+	$account_group_exist = $account_group_table->getCreateGroupInfo();
+
+	if (!empty($account_group_exist)) {
+		return error(-1, '账户权限组已经存在！');
+	}
+
+	if (empty($id)) {
+		 pdo_insert('users_create_group', $account_group_info);
+		 $create_group_id = pdo_insertid();
+		 if (user_is_vice_founder()) {
+			$own_create_group_table = table('users_founder_own_create_groups');
+			$own_create_group_table->addOwnCreateGroup($_W['uid'], $create_group_id);
+		 }
+	} else {
+		 pdo_update('users_create_group', $account_group_info, array('id' => $account_group_info['id']));
+	}
+	return error(0, '添加成功!');
+}
+
+/**
  * 添加用户组
  * @param $group_info
  * @return array
  */
 function user_save_group($group_info) {
 	global $_W;
-	$group_table = table('group');
+	$group_table = table('users_group');
 	$name = trim($group_info['name']);
 	if (empty($name)) {
 		return error(-1, '用户权限组名不能为空');
@@ -757,31 +914,35 @@ function user_save_group($group_info) {
 	if (!empty($group_info['id'])) {
 		$group_table->searchWithNoId($group_info['id']);
 	}
-	$name_exist = $group_table->searchGroup();
+	$name_exist = $group_table->getUsersGroupList();
+
 	if (!empty($name_exist)) {
 		return error(-1, '用户权限组名已存在！');
 	}
-
 	if (user_is_vice_founder()) {
-		$group_table->searchWithId($_W['user']['groupid']);
-		$founder_info = $group_table->searchGroup(true);
-		if ($group_info['maxaccount'] > $founder_info['maxaccount']) {
-			return error(-1, '当前用户组的公众号个数不能超过' . $founder_info['maxaccount'] . '个！');
+		$founder_group_table = table('users_founder_group');
+		$founder_group_info = $founder_group_table->getUserFounderGroupById($_W['user']['groupid']);
+
+		if ($founder_group_info['timelimit'] > 0 && $group_info['timelimit'] > $founder_group_info['timelimit']) {
+			return error(-1, '当前用户组的有效期不能超过' . $founder_group_info['timelimit'] . '天！');
 		}
-		if ($group_info['maxwxapp'] > $founder_info['maxwxapp']) {
-			return error(-1, '当前用户组的小程序个数不能超过' . $founder_info['maxwxapp'] . '个！');
+		if ($group_info['maxaccount'] > $founder_group_info['maxaccount']) {
+			return error(-1, '当前用户组的公众号个数不能超过' . $founder_group_info['maxaccount'] . '个！');
 		}
-		if ($group_info['maxwebapp'] > $founder_info['maxwebapp']) {
-			return error(-1, '当前用户组的PC个数不能超过' . $founder_info['maxwebapp'] . '个！');
+		if ($group_info['maxwxapp'] > $founder_group_info['maxwxapp']) {
+			return error(-1, '当前用户组的小程序个数不能超过' . $founder_group_info['maxwxapp'] . '个！');
 		}
-		if ($group_info['maxphoneapp'] > $founder_info['maxphoneapp']) {
-			return error(-1, '当前用户组的APP个数不能超过' . $founder_info['maxphoneapp'] . '个！');
+		if ($group_info['maxwebapp'] > $founder_group_info['maxwebapp']) {
+			return error(-1, '当前用户组的PC个数不能超过' . $founder_group_info['maxwebapp'] . '个！');
 		}
-		if ($group_info['maxxzapp'] > $founder_info['maxxzapp']) {
-			return error(-1, '当前用户组的熊掌号个数不能超过' . $founder_info['maxxzapp'] . '个！');
+		if ($group_info['maxphoneapp'] > $founder_group_info['maxphoneapp']) {
+			return error(-1, '当前用户组的APP个数不能超过' . $founder_group_info['maxphoneapp'] . '个！');
 		}
-		if ($group_info['maxaliapp'] > $founder_info['maxaliapp']) {
-			return error(-1, '当前用户组的支付宝小程序个数不能超过' . $founder_info['maxaliapp'] . '个！');
+		if ($group_info['maxxzapp'] > $founder_group_info['maxxzapp']) {
+			return error(-1, '当前用户组的熊掌号个数不能超过' . $founder_group_info['maxxzapp'] . '个！');
+		}
+		if ($group_info['maxaliapp'] > $founder_group_info['maxaliapp']) {
+			return error(-1, '当前用户组的支付宝小程序个数不能超过' . $founder_group_info['maxaliapp'] . '个！');
 		}
 	}
 
@@ -791,14 +952,40 @@ function user_save_group($group_info) {
 		}
 	}
 	$group_info['package'] = iserializer($package);
-	if (user_is_vice_founder()) {
-		$group_info['owner_uid'] = $_W['uid'];
-	}
-
 	if (empty($group_info['id'])) {
 		pdo_insert('users_group', $group_info);
+
+		$users_group_id = pdo_insertid();
+		if (user_is_vice_founder()) {
+			$table = table('users_founder_own_users_groups');
+			$table->addOwnUsersGroup($_W['uid'], $users_group_id);
+		}
 	} else {
-		pdo_update('users_group', $group_info, array('id' => $group_info['id']));
+		$old_group = $group_table->getById($group_info['id']);
+		if (empty($old_group)) {
+			return error(-1, '参数有误');
+		}
+		$result = pdo_update('users_group', $group_info, array('id' => $group_info['id']));
+		//修改组内用户的endtime
+		if (!empty($result) && $old_group['timelimit'] != $group_info['timelimit']) {
+			$all_group_users = table('users')
+				->where('founder_groupid' , ACCOUNT_MANAGE_GROUP_GENERAL)
+				->where('groupid' , $old_group['id'])
+				->getall();
+			if (!empty($all_group_users)) {
+				foreach ($all_group_users as $user) {
+					if ($group_info['timelimit'] > 0) {
+						$endtime = strtotime($group_info['timelimit'] . ' days', max($user['joindate'], $user['starttime']));
+						if (user_is_vice_founder() && !empty($_W['user']['endtime'])) {
+							$endtime = min($endtime, $_W['user']['endtime']);
+						}
+					} else {
+						$endtime = 0;
+					}
+					user_update(array('uid' => $user['uid'], 'endtime' => $endtime));
+				}
+			}
+		}
 	}
 
 	return error(0, '添加成功');
@@ -835,7 +1022,28 @@ function user_save_founder_group($group_info) {
 	if (empty($group_info['id'])) {
 		pdo_insert('users_founder_group', $group_info);
 	} else {
-		pdo_update('users_founder_group', $group_info, array('id' => $group_info['id']));
+		$old_group = table('users_founder_group')->getById($group_info['id']);
+		if (empty($old_group)) {
+			return error(-1, '参数有误');
+		}
+		$result = pdo_update('users_founder_group', $group_info, array('id' => $group_info['id']));
+		//修改组内用户的endtime
+		if (!empty($result) && $old_group['timelimit'] != $group_info['timelimit']) {
+			$all_group_users = table('users')
+				->where('founder_groupid' , ACCOUNT_MANAGE_GROUP_VICE_FOUNDER)
+				->where('groupid' , $old_group['id'])
+				->getall();
+			if (!empty($all_group_users)) {
+				foreach ($all_group_users as $user) {
+					if ($group_info['timelimit'] > 0) {
+						$endtime = strtotime($group_info['timelimit'] . ' days', max($user['joindate'], $user['starttime']));
+					} else {
+						$endtime = 0;
+					}
+					user_update(array('uid' => $user['uid'], 'endtime' => $endtime));
+				}
+			}
+		}
 	}
 
 	return error(0, '添加成功');
@@ -865,6 +1073,7 @@ function user_group_format($lists) {
 
 	foreach ($lists as $key => $group) {
 		$package = iunserializer($group['package']);
+		$lists[$key]['package'] = $package;
 		$group['package'] = array();
 		if (is_array($package)) {
 			foreach ($package as $packageid) {
@@ -920,6 +1129,38 @@ function user_group_format($lists) {
 	return $lists;
 }
 
+/*
+ * 获取用户的到期时间
+ * @param $uid
+ * @return int
+ * */
+function user_end_time($uid) {
+	$user_info = table('users')->getById($uid);
+	if (empty($user_info['endtime'])) {
+		return $user_info['endtime'];
+	}
+	if (user_is_vice_founder($uid)) {
+		if (!empty($user_info['groupid'])) {
+			$founder_group_info = table('users_founder_group')->getUserFounderGroupById($user_info['groupid']);
+			if ($user_info['endtime'] == 0) {
+				$user_start = date('Y-m-d', $user_info['starttime']);
+				$user_info['endtime'] = strtotime("$user_start + " . $founder_group_info['timelimit'] . "days");
+			}
+		}
+		return $user_info['endtime'];
+	}
+
+	$extra_limit_table = table('users_extra_limit');
+	$extraLimit = $extra_limit_table->getExtraLimitByUid($user_info['uid']);
+	if (!empty($extraLimit)) {
+		$user_end = date('Y-m-d', $user_info['endtime']);
+		$endtime = strtotime("$user_end + " . $extraLimit['timelimit'] . "days");
+	} else {
+		return $user_info['endtime'];
+	}
+	return $endtime;
+}
+
 /**
  * 用户和副创始人列表数据格式化
  * @param $users
@@ -930,13 +1171,12 @@ function user_list_format($users) {
 	if (empty($users)) {
 		return array();
 	}
-	$users_table = table('users');
-	$groups = $users_table->usersGroup();
-	$founder_groups = $users_table->usersFounderGroup();
-
+	$groups = table('users_group')->getall('id');
+	$founder_groups = table('users_founder_group')->getall('id');
 	foreach ($users as &$user) {
 		$user['avatar'] = !empty($user['avatar']) ? $user['avatar'] : './resource/images/nopic-user.png';
 		$user['joindate'] = date('Y-m-d', $user['joindate']);
+		$user['endtime'] = user_end_time($user['uid']);
 		if (empty($user['endtime'])) {
 			$user['endtime'] = '永久有效';
 		} else {
@@ -944,21 +1184,43 @@ function user_list_format($users) {
 		}
 
 		$user['module_num'] =array();
+		$user['account_created_total'] = 0;
 		if ($user['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
 			$group = $founder_groups[$user['groupid']];
 		} else {
 			$group = $groups[$user['groupid']];
 		}
-
-		$user['maxaccount'] = $user['founder_groupid'] == 1 ? '不限' : (empty($group) ? 0 : $group['maxaccount']);
-		$user['maxwxapp'] = $user['founder_groupid'] == 1 ? '不限' : (empty($group) ? 0 : $group['maxwxapp']);
-		$user['maxwebapp'] = $user['founder_groupid'] == 1 ? '不限' : (empty($group) ? 0 : $group['maxwebapp']);
-		$user['maxphoneapp'] = $user['founder_groupid'] == 1 ? '不限' : (empty($group) ? 0 : $group['maxphoneapp']);
-		$user['maxxzapp'] = $user['founder_groupid'] == 1 ? '不限' : (empty($group) ? 0 : $group['maxxzapp']);
+		$account_all_type_sign = array_keys(uni_account_type_sign());
+		foreach ($account_all_type_sign as $type) {
+			$maxtype = 'max' . $type;
+			$user[$maxtype] = $user['founder_groupid'] == 1 ? '不限' : (empty($group) ? 0 : $group[$maxtype]);
+			$user['account_created_total'] += intval($user[$maxtype]);
+		}
 		$user['groupname'] = $group['name'];
 		unset($user);
 	}
 	return $users;
+}
+
+function user_info_check($user) {
+	if (!preg_match(REGULAR_USERNAME, $user['username'])) {
+		return error(-1, '必须输入用户名，格式为 3-30 位字符，可以包括汉字、字母（不区分大小写）、数字、下划线和句点。');
+	}
+	if (user_check(array('username' => $user['username']))) {
+		return error(-2, '非常抱歉，此用户名已经被注册，你需要更换注册名称！');
+	}
+	if (istrlen($user['password']) < 8) {
+		return error(-3, '必须输入密码，且密码长度不得低于8位。');
+	} else {
+		$check_pass = safe_check_password(safe_gpc_string($user['password']));
+		if (is_error($check_pass)) {
+			return $check_pass;
+		}
+	}
+	if (trim($user['password']) !== trim($user['repassword'])) {
+		return error(-4, '两次密码不一致！');
+	}
+	return error(0, '');
 }
 
 /**
@@ -969,23 +1231,9 @@ function user_list_format($users) {
  */
 function user_info_save($user, $is_founder_group = false) {
 	global $_W;
-	if (!preg_match(REGULAR_USERNAME, $user['username'])) {
-		return error(-1, '必须输入用户名，格式为 3-30 位字符，可以包括汉字、字母（不区分大小写）、数字、下划线和句点。');
-	}
-	if (user_check(array('username' => $user['username']))) {
-		return error(-1, '非常抱歉，此用户名已经被注册，你需要更换注册名称！');
-	}
-	if (istrlen($user['password']) < 8) {
-		return error(-1, '必须输入密码，且密码长度不得低于8位。');
-	} else {
-		$check_pass = safe_check_password(safe_gpc_string($user['password']));
-		if (is_error($check_pass)) {
-			return $check_pass;
-		}
-	}
-
-	if (trim($user['password']) !== trim($user['repassword'])) {
-		return error(-1, '两次密码不一致！');
+	$check_result = user_info_check($user);
+	if (is_error($check_result)) {
+		return $check_result;
 	}
 	if (intval($user['groupid'])) {
 		if ($is_founder_group) {
@@ -1012,9 +1260,6 @@ function user_info_save($user, $is_founder_group = false) {
 		$user['endtime'] = max(0, $user['endtime']);
 	} else {
 		$user['endtime'] =  empty($user['endtime']) ? $timeadd : min($timeadd, $user['endtime']);
-	}
-	if (user_is_vice_founder()) {
-		$user['owner_uid'] = $_W['uid'];
 	}
 	unset($user['vice_founder_name']);
 	unset($user['repassword']);
@@ -1128,30 +1373,23 @@ function user_founder_templates($founder_groupid) {
  */
 function user_is_bind() {
 	global $_W;
-	if (!empty($_W['setting']['copyright']['bind'])) {
-		$complete_info = false;
-		switch($_W['setting']['copyright']['bind']) {
-			case 'qq' :
-				if (!empty($_W['user']['qq_openid'])) {
-					$complete_info = true;
-				}
-				break;
-			case 'mobile' :
-				if (!empty($_W['user']['mobile'])) {
-					$complete_info = true;
-				}
-				break;
-			case 'wechat' :
-				if (!empty($_W['user']['wechat_openid'])) {
-					$complete_info = true;
-				}
-				break;
-		}
-		if (empty($_W['isfounder']) && !$complete_info) {
-			return false;
-		}
+	if ($_W['isfounder']) {
+		return true;
 	}
-	return true;
+	$setting_bind = empty($_W['setting']['copyright']['bind']) ? '' : $_W['setting']['copyright']['bind'];
+	if (!empty($_W['user']['type']) && $_W['user']['type'] == USER_TYPE_CLERK) {
+		$setting_bind = empty($_W['setting']['copyright']['clerk']['bind']) ? '' : $_W['setting']['copyright']['clerk']['bind'];
+	}
+	if (empty($setting_bind)) {
+		return true;
+	}
+
+	load()->classs('oauth2/oauth2client');
+	$type_info = OAuth2Client::supportBindTypeInfo($setting_bind);
+	if (empty($type_info)) {
+		return true;
+	}
+	return OAuth2Client::create($setting_bind)->isbind();
 }
 
 /**
@@ -1167,12 +1405,11 @@ function user_check_mobile($mobile) {
 		return error(-1, '手机号格式不正确');
 	}
 
-	$user_profile = table('users');
-	$find_mobile = $user_profile->userProfileMobile($mobile);
+	$find_mobile = table('users_profile')->getByMobile($mobile);
 	if (empty($find_mobile)) {
 		return error(-1, '手机号不存在');
 	}
-	return error(0, '手机号正确');
+	return $find_mobile;
 }
 
 /**
@@ -1196,14 +1433,9 @@ function user_change_welcome_status($uid, $welcome_status) {
 function user_after_login_link() {
 	global $_W;
 
+	$type = WELCOME_DISPLAY_TYPE;
 	if (!empty($_W['user']['welcome_link'])) {
 		$type = $_W['user']['welcome_link'];
-	} else {
-		if (!empty($_W['setting']['copyright']['welcome_link'])) {
-			$type = $_W['setting']['copyright']['welcome_link'];
-		} else {
-			$type = WELCOME_DISPLAY_TYPE;
-		}
 	}
 
 	switch ($type) {
@@ -1214,7 +1446,7 @@ function user_after_login_link() {
 			$url = url('account/display/platform');
 			break;
 		case MODULE_DISPLAY_TYPE:
-			$url = url('module/display');
+			$url = url('module/display/switch_last_module');
 			break;
 		default:
 			$url = '';
@@ -1222,4 +1454,22 @@ function user_after_login_link() {
 	}
 
 	return $url;
+}
+
+function user_available_extra_fields() {
+	$default_field = array('realname', 'births', 'qq', 'mobile', 'address', 'resides');
+	$fields = table('core_profile_fields')->getall();
+	$extra_fields = array();
+	if (!empty($fields) && is_array($fields)) {
+		foreach ($fields as $field_info) {
+			if ($field_info['available'] == 1 && $field_info['showinregister'] == 1 && !in_array($field_info['field'], $default_field)) {
+				$extra_fields[] = $field_info;
+			}
+		}
+	}
+	return $extra_fields;
+}
+
+function user_lastuse_module_default_account() {
+	return table('users_lastuse')->getDefaultModulesAccount();
 }

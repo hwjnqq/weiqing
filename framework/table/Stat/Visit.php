@@ -22,30 +22,27 @@ class Visit extends \We7Table {
 		'date' => '',
 	);
 
-	public function visitList($params, $type = 'more') {
-		if (!empty($params['uniacid'])) {
-			$this->query->where('uniacid', $params['uniacid']);
-		}
-		if (!empty($params['date'])) {
-			$this->query->where('date', $params['date']);
-		}
-		if (!empty($params['date >='])) {
-			$this->query->where('date >=', $params['date >=']);
-		}
-		if (!empty($params['date <='])) {
-			$this->query->where('date <=', $params['date <=']);
-		}
-		if (!empty($params['module'])) {
-			$this->query->where('module', $params['module']);
-		}
-		if (!empty($params['type'])) {
-			$this->query->where('type', $params['type']);
-		}
+	public function searchWithUnacid($uniacid) {
+		return $this->query->where('uniacid', $uniacid);
+	}
 
-		if ($type == 'one') {
-			return $this->query->get();
-		} else {
-			return $this->query->getall();
-		}
+	public function searchWithDate($date) {
+		return $this->query->where('date', $date);
+	}
+
+	public function searchWithGreaterThenDate($date) {
+		return $this->query->where('date >=', $date);
+	}
+
+	public function searchWithLessThenDate($date) {
+		return $this->query->where('date <=', $date);
+	}
+
+	public function searchWithModule($module) {
+		return $this->query->where('module', $module);
+	}
+
+	public function searchWithType($type) {
+		return $this->query->where('type', $type);
 	}
 }

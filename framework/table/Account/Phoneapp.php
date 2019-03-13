@@ -10,11 +10,13 @@ class Phoneapp extends \We7Table {
 	protected $field = array(
 		'uniacid',
 		'name',
-
 	);
 	protected $default = array(
 		'uniacid' => '',
 		'name' => '',
-
 	);
+
+	public function getAccount($acid) {
+		return $this->query->where('acid', $acid)->get();
+	}
 }

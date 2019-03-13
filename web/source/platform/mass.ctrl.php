@@ -13,7 +13,6 @@ load()->model('material');
 
 $dos = array('list', 'post', 'cron', 'send', 'del', 'preview');
 $do = in_array($do, $dos) ? $do : 'post';
-$_W['page']['title'] = '定时群发-微信素材';
 
 if ($do == 'list') {
 	$time = strtotime(date('Y-m-d'));
@@ -90,7 +89,6 @@ if ($do == 'post') {
 		if (empty($_GPC['reply'])) {
 			itoast('请选择要群发的素材', '', 'error');
 		}
-
 		$mass_record = array(
 			'uniacid' => $_W['uniacid'],
 			'acid' => $_W['acid'],
@@ -115,6 +113,12 @@ if ($do == 'post') {
 			if ($attachment['model'] == 'local') {
 				itoast('图文素材请选择微信素材', '', 'error');
 			}
+
+			if ($material_type == 'reply_basic') {
+				$material = htmlspecialchars_decode($material);
+				$material = trim($material, '\"');
+			}
+
 			$mass_record['media_id'] = $material;
 			$mass_record['attach_id'] = $attachment['id'];
 			$mass_record['msgtype'] = $msgtype;
@@ -176,6 +180,7 @@ if ($do == 'post') {
 			itoast('定时群发设置成功', url('platform/mass/send'), 'success');
 		} else {
 			$account_api = WeAccount::createByUniacid();
+			$msgtype = $msgtype == 'basic' ? 'text' : $msgtype;
 			$result = $account_api->fansSendAll($group['id'], $msgtype, $mass_record['media_id']);
 			if (is_error($result)) {
 				itoast($result['message'], url('platform/mass'), 'info');
@@ -232,7 +237,6 @@ if ($do == 'preview') {
 }
 
 if ($do == 'send') {
-	$_W['page']['title'] = '定时群发记录-定时群发';
 	permission_check_account_user('platform_masstask_send');
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;

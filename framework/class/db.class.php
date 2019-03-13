@@ -67,6 +67,7 @@ class DB {
 		$sql = "SET NAMES '{$cfg['charset']}';";
 		$this->pdo->exec($sql);
 		$this->pdo->exec("SET sql_mode='';");
+		$this->pdo->exec("SET GLOBAL max_allowed_packet = 2*1024*1024*10;");
 		if(is_string($name)) {
 			$this->link[$name] = $this->pdo;
 		}

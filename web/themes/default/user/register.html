@@ -48,17 +48,24 @@
 		<div class="panel panel-default">
 			<div class="panel-body">
 				<div class="title register-nav">
-					<a href="{php echo url('user/register', array('register_type' => 'system', 'owner_uid' => $_GPC['owner_uid']))}" {if $_GPC['register_type'] == 'system' || empty($_GPC['register_type'])}class="active"{/if}>用户名密码</a>
+					{if !empty($_W['setting']['register']['open'])}
+					<a href="{php echo url('user/register', array('register_type' => 'system', 'owner_uid' => $_GPC['owner_uid'], 'type' => $user_type, 'm' => $_GPC['m'], 'redirect' => $_GPC['redirect']))}" {if $_GPC['register_type'] == 'system' || empty($_GPC['register_type'])}class="active"{/if}>用户名密码</a>
+					{/if}
 					{if !empty($_W['setting']['copyright']['mobile_status'])}
-					<a href="{php echo url('user/register', array('register_type' => 'mobile', 'owner_uid' => $_GPC['owner_uid']))}" {if $_GPC['register_type'] == 'mobile'}class="active"{/if}>手机注册</a>
+					<a href="{php echo url('user/register', array('register_type' => 'mobile', 'owner_uid' => $_GPC['owner_uid'], 'type' => $user_type, 'm' => $_GPC['m'], 'redirect' => $_GPC['redirect']))}" {if $_GPC['register_type'] == 'mobile'}class="active"{/if}>手机注册</a>
 					{/if}
 				</div>
+
+				{if !empty($_W['setting']['register']['open'])}
 				{if $_GPC['register_type'] == 'system' || empty($_GPC['register_type'])}
 				<form action="" class="we7-form register-mobile" method="post" role="form" id="form1" ng-controller="UserRegisterSystem" ng-cloak>
+					{if $user_type == USER_TYPE_CLERK}
+					<input type="hidden" name="type" value="{USER_TYPE_CLERK}"/>
+					{/if}
 					<div class="form-group" ng-class="{true:'has-error has-feedback',false:'has-success has-feedback'}[usernameErr]">
 						<label class="control-label col-sm-1">用户名:<span class="color-red">*</span></label>
 						<div class="col-sm-11">
-							<input name="username" type="text" class="form-control" placeholder="请输入用户名" ng-model="username" ng-blur="checkUsername()" required>
+							<input name="username" type="text" class="form-control" placeholder="请输入{if $user_type == USER_TYPE_CLERK}应用操作员{/if}用户名" ng-model="username" ng-blur="checkUsername()" required>
 							<span ng-class="{true:'fa fa-times form-control-feedback reg-system-valid',false:'fa fa-check form-control-feedback reg-system-valid'}[usernameErr]" aria-hidden="true"></span>
 							<span ng-class="{true:'color-red',false:'sr-only'}[usernameErr]" ng-bind="usernameMsg"></span>
 						</div>
@@ -117,10 +124,12 @@
 					</div>
 				</form>
 				{/if}
+				{/if}
 				<!--div class="form-group">
 					<label>邀请码:<span style="color:red">*</span></label>
 					<input name="invitation" type="text" class="form-control" placeholder="请输入邀请码">
 				</div-->
+				{if !empty($_W['setting']['copyright']['mobile_status'])}
 				{if $_GPC['register_type'] == 'mobile'}
 				<form action="javascript:;" class="we7-form">
 					<div class="register-mobile" ng-controller="UsersRegisterMobile" ng-cloak>
@@ -191,6 +200,7 @@
 					</div>
 				</form>
 				{/if}
+				{/if}
 			</div>
 		</div>
 	</div>
@@ -208,7 +218,7 @@
 			'send_code_link': "{php echo url('utility/verifycode/send_code')}",
 			'check_smscode_link': "{php echo url('utility/verifycode/check_smscode')}",
 			'img_verify_link': "{php echo url('utility/code')}",
-			'register_link': "{php echo url('user/register/register')}",
+			'register_link': "{php echo url('user/register/register', array('type' => $user_type, 'm' => $_GPC['m'], 'redirect' => $_GPC['redirect']))}",
 			'check_username_link': "{php echo url('user/register/check_username')}",
 			'check_code_link': "{php echo url('user/register/check_code')}",
 			'check_password_link': "{php echo url('user/register/check_password_safe')}",

@@ -147,7 +147,7 @@ class UserapiModuleProcessor extends WeModuleProcessor {
 		}
 		if ($item['cachetime'] > 0) {
 			$key = md5($item['id'].$this->message['from']);
-			$cache = pdo_fetch("SELECT * FROM " . tablename('userapi_cache') . " WHERE `key` = '$key' LIMIT 1");
+			$cache = table('userapi_cache')->where('key', $key)->get();
 			if (!empty($cache) && TIMESTAMP - $cache['lastupdate'] <= $item['cachetime']) {
 				return iunserializer($cache['content']);
 			}

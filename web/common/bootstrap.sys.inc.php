@@ -15,11 +15,12 @@ load()->model('user');
 load()->model('permission');
 load()->model('attachment');
 load()->classs('oauth2/oauth2client');
+load()->model('switch');
 
 $_W['token'] = token();
 $session = json_decode(authcode($_GPC['__session']), true);
 if (is_array($session)) {
-	$user = user_single(array('uid'=>$session['uid']), false);
+	$user = user_single(array('uid'=>$session['uid']));
 	if (is_array($user) && $session['hash'] === $user['hash']) {
 		$_W['uid'] = $user['uid'];
 		$_W['username'] = $user['username'];
@@ -29,7 +30,6 @@ if (is_array($session)) {
 		$user['lastip'] = $session['lastip'];
 		$_W['user'] = $user;
 		$_W['isfounder'] = user_is_founder($_W['uid']);
-		unset($founders);
 	} else {
 		isetcookie('__session', false, -100);
 	}
@@ -37,18 +37,20 @@ if (is_array($session)) {
 }
 unset($session);
 
-if (!empty($_GPC['__uniacid'])) {
-	$_W['uniacid'] = intval($_GPC['__uniacid']);
-} else {
-	$_W['uniacid'] = uni_account_last_switch();
+$_W['uniacid'] = igetcookie('__uniacid');
+if (empty($_W['uniacid'])) {
+	//todo 兼容代码,后续删除
+	$_W['uniacid'] = (function_exists('switch_get_account_display') && pdo_tableexists('users_lastuse')) ? switch_get_account_display() : 0;
 }
+$_W['uniacid'] = intval($_W['uniacid']);
 
 if (!empty($_W['uid'])) {
 	$_W['highest_role'] = permission_account_user_role($_W['uid']);
 	$_W['role'] = permission_account_user_role($_W['uid'], $_W['uniacid']);
-	$_W['role'] = !empty($_W['role']) ? $_W['role'] : $_W['highest_role'];
 }
 
-$_W['template'] = !empty($_W['setting']['basic']['template']) ? $_W['setting']['basic']['template'] : 'default';
+$_W['template'] = '2.0';
+
+
 $_W['attachurl'] = attachment_set_attach_url();
 load()->func('compat.biz');

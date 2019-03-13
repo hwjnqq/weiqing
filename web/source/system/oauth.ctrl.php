@@ -1,6 +1,6 @@
 <?php
 /**
- * oauth全局设置
+ * 全局借用权限设置
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
@@ -10,7 +10,6 @@ load()->model('user');
 
 $dos = array('display', 'save_oauth');
 $do = in_array($_GPC['do'], $dos)? $do : 'display';
-$_W['page']['title'] = '站点管理 - oauth全局设置 - oauth全局设置';
 
 $oauth = setting_load('global_oauth');
 $oauth = !empty($oauth['global_oauth']) ? $oauth['global_oauth'] : array();

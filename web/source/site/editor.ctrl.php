@@ -16,8 +16,6 @@ if (in_array($do, array('quickmenu', 'uc'))) {
 }
 
 if ($do == 'uc') {
-	$_W['page']['title'] = '会员中心 - 微站功能';
-
 	if (!empty($_GPC['wapeditor'])) {
 		$params = $_GPC['wapeditor']['params'];
 		if (empty($params)) {
@@ -29,7 +27,7 @@ if ($do == 'uc') {
 		}
 		$page = $params[0];
 		$html = safe_gpc_html(htmlspecialchars_decode($_GPC['wapeditor']['html'], ENT_QUOTES));
-		$html = str_replace('<li<x>nk', '<link', $html);
+		$html = preg_replace('/background\-image\:(\s)*url\(\"(.*)\"\)/U', 'background-image: url($2)', $html);
 		$data = array(
 			'uniacid' => $_W['uniacid'],
 			'multiid' => '0',
@@ -110,7 +108,6 @@ if ($do == 'uc') {
 	$page = pdo_fetch("SELECT * FROM ".tablename('site_page')." WHERE uniacid = :uniacid AND type = '3'", array(':uniacid' => $_W['uniacid']));
 	template('site/editor');
 } elseif ($do == 'quickmenu') {
-	$_W['page']['title'] = '快捷菜单 - 站点管理 - 微站功能';
 	$multiid = intval($_GPC['multiid']);
 	$type = intval($_GPC['type']) ? intval($_GPC['type']) : 2;
 	if ($_GPC['wapeditor']) {

@@ -1,7 +1,7 @@
 <?php
 /**
  * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -23,13 +23,18 @@ function miniapp_getpackage($data, $if_single = false) {
 
 /**
  * @param array $account account数据
- * @param int 帐号类型 11、支付宝小程序；4、7微信小程序
+ * @return mixed
  */
-function miniapp_create($account, $type) {
+function miniapp_create($account) {
 	global $_W;
 	load()->model('account');
 	load()->model('user');
 	load()->model('permission');
+
+	$account_type_info = uni_account_type($account['type']);
+	if (empty($account['type']) || empty($account_type_info['support_version'])) {
+		return error(1, '账号类型错误!');
+	}
 	$uni_account_data = array(
 		'name' => $account['name'],
 		'description' => $account['description'],
@@ -47,6 +52,7 @@ function miniapp_create($account, $type) {
 	);
 	pdo_insert('account', $account_data);
 	$acid = pdo_insertid();
+	pdo_update('uni_account', array('default_acid' => $acid), array('uniacid' => $uniacid));
 
 	load()->model('utility');
 	if (!empty($account['headimg'])) {
@@ -56,17 +62,7 @@ function miniapp_create($account, $type) {
 		utility_image_rename($account['qrcode'], ATTACHMENT_ROOT . 'qrcode_' . $acid . '.jpg');
 	}
 
-	if (in_array($type, array(ACCOUNT_TYPE_ALIAPP_NORMAL))) {
-		$data = array(
-			'acid' => $acid,
-			'uniacid' => $uniacid,
-			'name' => $account['name'],
-			'description' => $account['description'],
-			'level' => $account['level'],
-			'key' => $account['appid'],
-		);
-		pdo_insert('account_aliapp', $data);
-	} elseif (in_array($type, array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH))) {
+	if (in_array($account['type'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH))) {
 		$data = array(
 			'acid' => $acid,
 			'token' => isset($account['token']) ? $account['token'] : random(32),
@@ -79,18 +75,37 @@ function miniapp_create($account, $type) {
 			'key' => $account['key'],
 			'secret' => $account['secret'],
 		);
-		pdo_insert('account_wxapp', $data);
 
 		if (empty($_W['isfounder'])) {
 			$user_info = permission_user_account_num($_W['uid']);
-			uni_user_account_role($uniacid, $_W['uid'], ACCOUNT_MANAGE_NAME_OWNER);
 			if (empty($user_info['usergroup_wxapp_limit'])) {
 				pdo_update('account', array('endtime' => strtotime('+1 month', time())), array('uniacid' => $uniacid));
 				pdo_insert('site_store_create_account', array('endtime' => strtotime('+1 month', time()), 'uid' => $_W['uid'], 'uniacid' => $uniacid, 'type' => ACCOUNT_TYPE_APP_NORMAL));
 			}
 		}
+	} else {
+		$data = array(
+			'acid' => $acid,
+			'uniacid' => $uniacid,
+			'name' => $account['name'],
+			'description' => $account['description'],
+		);
+		//由于各种小程序属性不同,故不同的单独写
+		if (isset($account['secret']) && !empty($account['secret'])) {
+			$data['secret'] = $account['secret'];
+		}
+		if (isset($account['key']) && !empty($account['key'])) {
+			$data['key'] = $account['key'];
+		}
+		if (isset($account['appid']) && !empty($account['appid'])) {
+			$data['appid'] = $account['appid'];
+		}
+		if (isset($account['level']) && !empty($account['level'])) {
+			$data['level'] = $account['level'];
+		}
 	}
 
+	pdo_insert($account_type_info['table_name'], $data);
 	if (empty($_W['isfounder'])) {
 		uni_user_account_role($uniacid, $_W['uid'], ACCOUNT_MANAGE_NAME_OWNER);
 	}
@@ -100,7 +115,12 @@ function miniapp_create($account, $type) {
 	if (!empty($_W['user']['owner_uid'])) {
 		uni_user_account_role($uniacid, $_W['user']['owner_uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
 	}
-	pdo_update('uni_account', array('default_acid' => $acid), array('uniacid' => $uniacid));
+	$unisettings['creditnames'] = array('credit1' => array('title' => '积分', 'enabled' => 1), 'credit2' => array('title' => '余额', 'enabled' => 1));
+	$unisettings['creditnames'] = iserializer($unisettings['creditnames']);
+	$unisettings['creditbehaviors'] = array('activity' => 'credit1', 'currency' => 'credit2');
+	$unisettings['creditbehaviors'] = iserializer($unisettings['creditbehaviors']);
+	$unisettings['uniacid'] = $uniacid;
+	pdo_insert('uni_settings', $unisettings);
 
 	return $uniacid;
 }
@@ -108,9 +128,10 @@ function miniapp_create($account, $type) {
 /**
  * 获取所有支持小程序的模块.
  */
-function miniapp_support_wxapp_modules() {
+function miniapp_support_wxapp_modules($uniacid = 0) {
 	global $_W;
 	load()->model('user');
+	$uniacid = empty($uniacid) ? $_W['uniacid'] : intval($uniacid);
 	$modules = user_modules($_W['uid']);
 	$wxapp_modules = array();
 	if (!empty($modules)) {
@@ -122,9 +143,9 @@ function miniapp_support_wxapp_modules() {
 	}
 	$store_table = table('store');
 	$store_table->searchWithEndtime();
-	$buy_wxapp_modules = $store_table->searchAccountBuyGoods($_W['uniacid'], STORE_TYPE_WXAPP_MODULE);
+	$buy_wxapp_modules = $store_table->searchAccountBuyGoods($uniacid, STORE_TYPE_WXAPP_MODULE);
 	$store_table->searchWithEndtime();
-	$buy_group = $store_table->searchAccountBuyGoods($_W['uniacid'], STORE_TYPE_PACKAGE);
+	$buy_group = $store_table->searchAccountBuyGoods($uniacid, STORE_TYPE_PACKAGE);
 	$buy_group_wxapp_modules = array();
 	if (!empty($buy_group)) {
 		foreach ($buy_group as $id => $group) {
@@ -134,7 +155,7 @@ function miniapp_support_wxapp_modules() {
 			}
 		}
 	}
-	$extra_permission = table('account')->getAccountExtraPermission($_W['uniacid']);
+	$extra_permission = table('account')->getAccountExtraPermission($uniacid);
 	$extra_modules = empty($extra_permission['modules']) ? array() : $extra_permission['modules'];
 	foreach ($extra_modules as $key => $value) {
 		$extra_modules[$value] = module_fetch($value);
@@ -160,20 +181,16 @@ function miniapp_support_wxapp_modules() {
  * @param string 支持的类型
  * @return array
  */
-function miniapp_support_uniacid_modules($uniacid, $support_name) {
+function miniapp_support_uniacid_modules($uniacid) {
 	$uni_modules = uni_modules_by_uniacid($uniacid);
-	$miniapp_modules = array();
 	if (!empty($uni_modules)) {
 		foreach ($uni_modules as $module_name => $module_info) {
-			if ($support_name == MODULE_SUPPORT_ALIAPP_NAME && $module_info[MODULE_SUPPORT_ALIAPP_NAME] == MODULE_SUPPORT_ALIAPP) {
-				$miniapp_modules[$module_name] = $module_info;
-			} elseif ($support_name == MODULE_SUPPORT_WXAPP_NAME && $module_info[MODULE_SUPPORT_WXAPP_NAME] == MODULE_SUPPORT_WXAPP) {
-				$miniapp_modules[$module_name] = $module_info;
+			if ($module_info['issystem'] == 1) {
+				unset($uni_modules[$module_name]);
 			}
 		}
 	}
-
-	return $miniapp_modules;
+	return $uni_modules;
 }
 
 /*
@@ -186,19 +203,12 @@ function miniapp_fetch($uniacid, $version_id = '') {
 	global $_GPC;
 	load()->model('extension');
 	$miniapp_info = array();
-	$uniacid = intval($uniacid);
-	if (empty($uniacid)) {
+	$version_id = max(0, intval($version_id));
+	$account_extra_info = uni_account_extra_info($uniacid);
+	if (empty($account_extra_info)) {
 		return $miniapp_info;
 	}
-	if (!empty($version_id)) {
-		$version_id = intval($version_id);
-	}
-	$account = pdo_get('account', array('uniacid' => $uniacid));
-	if (in_array($account['type'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH))) {
-		$miniapp_info = pdo_get('account_wxapp', array('uniacid' => $uniacid));
-	} elseif (in_array($account['type'], array(ACCOUNT_TYPE_ALIAPP_NORMAL))) {
-		$miniapp_info = pdo_get('account_aliapp', array('uniacid' => $uniacid));
-	}
+	$miniapp_info = pdo_get($account_extra_info['table_name'], array('uniacid' => $uniacid));
 	if (empty($miniapp_info)) {
 		return $miniapp_info;
 	}
@@ -216,11 +226,11 @@ function miniapp_fetch($uniacid, $version_id = '') {
 		}
 
 		if (empty($miniapp_version_info)) {
-			$sql = 'SELECT * FROM ' . tablename('wxapp_versions') . ' WHERE `uniacid`=:uniacid ORDER BY `id` DESC';
+			$sql = 'SELECT * FROM ' . tablename($account_extra_info['version_tablename']) . ' WHERE `uniacid`=:uniacid ORDER BY `id` DESC';
 			$miniapp_version_info = pdo_fetch($sql, array(':uniacid' => $uniacid));
 		}
 	} else {
-		$miniapp_version_info = pdo_get('wxapp_versions', array('id' => $version_id));
+		$miniapp_version_info = pdo_get($account_extra_info['version_tablename'], array('id' => $version_id, 'uniacid' => $uniacid));
 	}
 	if (!empty($miniapp_version_info) && !empty($miniapp_version_info['modules'])) {
 
@@ -256,13 +266,14 @@ function miniapp_version_all($uniacid) {
 		return $miniapp_versions;
 	}
 
-	$miniapp_versions = pdo_getall('wxapp_versions', array('uniacid' => $uniacid), array('id'), '', array('id DESC'));
+	$miniapp_versions = table('wxapp_versions')->getAllByUniacid($uniacid);
+
 	if (!empty($miniapp_versions)) {
 		foreach ($miniapp_versions as &$version) {
 			$version = miniapp_version($version['id']);
 		}
+		unset($version);
 	}
-
 	return $miniapp_versions;
 }
 
@@ -377,7 +388,6 @@ function miniapp_version($version_id) {
 }
 
 function miniapp_version_detail_info($version_info) {
-	global $_W;
 	if (empty($version_info) || empty($version_info['uniacid']) || empty($version_info['modules'])) {
 		return $version_info;
 	}
@@ -389,19 +399,24 @@ function miniapp_version_detail_info($version_info) {
 	if (in_array($account['type'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH))) {
 		if (!empty($version_info['modules'])) {
 			foreach ($version_info['modules'] as $i => $module) {
-				$module_info = module_fetch($module['name']);
-				if (!empty($module['uniacid'])) {
-					$module_info['account'] = (array) uni_fetch($module['uniacid']);
-				}
-				unset($version_info['modules'][$module['name']]);
 				if (!in_array($module['name'], $uni_modules)) {
+					unset($version_info['modules'][$i]);
 					continue;
+				}
+				$module_info = module_fetch($module['name']);
+				$module_info['version'] = $module['version'];
+				$module['uniacid'] = table('uni_link_uniacid')->getMainUniacid($version_info['uniacid'], $module['name'], $version_info['version_id']);
+				if (!empty($module['uniacid'])) {
+					$module_info['uniacid'] = $module['uniacid'];
+					$link_account = uni_fetch($module['uniacid']);
+					$module_info['account'] = $link_account->account;
+					$module_info['account']['logo'] = $link_account->logo;
 				}
 				//模块默认入口
 				$module_info['cover_entrys'] = module_entries($module['name'], array('cover'));
 				$module_info['defaultentry'] = $module['defaultentry'];
 				$module_info['newicon'] = $module['newicon'];
-				$version_info['modules'][] = $module_info;
+				$version_info['modules'][$i] = $module_info;
 			}
 		}
 		if (count($version_info['modules']) > 0) {
@@ -409,19 +424,27 @@ function miniapp_version_detail_info($version_info) {
 			$version_info['cover_entrys'] = !empty($cover_entrys['cover']) ? $cover_entrys['cover'] : array();
 		}
 		$version_info['last_modules'] = iunserializer($version_info['last_modules']);
+		$version_info['tominiprogram'] = iunserializer($version_info['tominiprogram']);
 		if (!empty($version_info['quickmenu'])) {
 			$version_info['quickmenu'] = iunserializer($version_info['quickmenu']);
 		}
-	} elseif (in_array($account['type'], array(ACCOUNT_TYPE_ALIAPP_NORMAL))) {
+	} else {
 		foreach ($version_info['modules'] as $i => $module) {
 			if (!in_array($module['name'], $uni_modules)) {
+				unset($version_info['modules'][$i]);
 				continue;
 			}
-			$version_info['modules'][$i]['module_info'] = module_fetch($module['name']);
-			$version_info['modules'][$i]['logo'] = $version_info['modules'][$i]['module_info']['logo'];
-			$version_info['modules'][$i]['title'] = $version_info['modules'][$i]['module_info']['title'];
+			$module_info = module_fetch($module['name']);
+			$module_info['version'] = $module['version'];
+			$module['uniacid'] = table('uni_link_uniacid')->getMainUniacid($version_info['uniacid'], $module['name'], $version_info['version_id']);
+			if (!empty($module['uniacid'])) {
+				$module_info['uniacid'] = $module['uniacid'];
+				$link_account = uni_fetch($module['uniacid']);
+				$module_info['account'] = $link_account->account;
+				$module_info['account']['logo'] = $link_account->logo;
+			}
+			$version_info['modules'][$i] = $module_info;
 		}
-
 	}
 
 	return $version_info;
@@ -542,22 +565,24 @@ function miniapp_code_generate($version_id, $user_version) {
 
 	$appid = $account_wxapp_info['key'];
 	$siteinfo = array(
-			'name' => $account_wxapp_info['name'],
-			'uniacid' => $account_wxapp_info['uniacid'],
-			'acid' => $account_wxapp_info['acid'],
-			'multiid' => $account_wxapp_info['version']['multiid'],
-			'version' => $user_version,
-			'siteroot' => $siteurl,
-			'design_method' => $account_wxapp_info['version']['design_method'],
+		'name' => $account_wxapp_info['name'],
+		'uniacid' => $account_wxapp_info['uniacid'],
+		'acid' => $account_wxapp_info['acid'],
+		'multiid' => $account_wxapp_info['version']['multiid'],
+		'version' => $user_version,
+		'siteroot' => $siteurl,
+		'design_method' => $account_wxapp_info['version']['design_method'],
+		'tominiprogram' => array_keys($version_info['tominiprogram']),
 	);
 
-	$commit_data = array('do' => 'generate',
-			'appid' => $appid,
-			'modules' => $account_wxapp_info['version']['modules'],
-			'siteinfo' => $siteinfo,
-			'tabBar' => json_decode($account_wxapp_info['version']['quickmenu'], true),
-			// 小程序类型 如果是模块类型使用默认网页小程序
-			'wxapp_type' => isset($version_info['type']) ? $version_info['type'] : 0,
+	$commit_data = array(
+		'do' => 'generate',
+		'appid' => $appid,
+		'modules' => $account_wxapp_info['version']['modules'],
+		'siteinfo' => $siteinfo,
+		'tabBar' => json_decode($account_wxapp_info['version']['quickmenu'], true),
+		// 小程序类型 如果是模块类型使用默认网页小程序
+		'wxapp_type' => isset($version_info['type']) ? $version_info['type'] : 0,
 	);
 
 	$do = 'upload2';
@@ -772,9 +797,7 @@ function miniapp_code_path_convert($attachment_id) {
 
 	$attchid = intval($attachment_id);
 	global $_W;
-	/* @var  $att_table  AttachmentTable */
-	$att_table = table('attachment');
-	$attachment = $att_table->getById($attchid);
+	$attachment = table('core_attachment')->getById($attchid);
 	if ($attachment) {
 		$attach_path = $attachment['attachment'];
 		$ext = pathinfo($attach_path, PATHINFO_EXTENSION);
@@ -818,6 +841,12 @@ function miniapp_code_save_appjson($version_id, $json) {
  */
 function miniapp_code_set_default_appjson($version_id) {
 	$result = pdo_update('wxapp_versions', array('appjson' => '', 'use_default' => 1), array('id' => $version_id));
+	cache_delete(cache_system_key('miniapp_version', array('version_id' => $version_id)));
+	return $result;
+}
+
+function miniapp_version_update($version_id, $data) {
+	$result = table('wxapp_versions')->fill($data)->where('id', $version_id)->save();
 	cache_delete(cache_system_key('miniapp_version', array('version_id' => $version_id)));
 	return $result;
 }

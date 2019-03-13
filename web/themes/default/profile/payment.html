@@ -1,7 +1,4 @@
 {template 'common/header'}
-<div class="we7-page-title">
-	支付参数设置
-</div>
 {if $do == 'display'}
 <ul class="we7-page-tab">
 	{loop $active_sub_permission $active_menu}
@@ -30,7 +27,7 @@
 			<td>
 				{{  paysetting.delivery.support_set === true ? '未设置' : '已设置'  }}
 			</td>
-			<td class="text-center">
+			<td >
 				<div class="link-group">
 					<a href="{php echo url('profile/payment/switch', array('type' => 'delivery'))}">支付支持</a>
 				</div>
@@ -44,7 +41,7 @@
 			<td>
 				{{  paysetting.credit.support_set === true ? '未设置' : '已设置'  }}
 			</td>
-			<td class="text-center">
+			<td >
 				<div class="link-group">
 					<a href="{php echo url('profile/payment/switch', array('type' => 'credit'))}">支付支持</a>
 				</div>
@@ -63,7 +60,7 @@
 			<td>
 				{{  paysetting.mix.support_set === true ? '未设置' : '已设置'  }}
 			</td>
-			<td class="text-center">
+			<td >
 				<div class="link-group">
 					<a href="{php echo url('profile/payment/switch', array('type' => 'mix'))}">支付支持</a>
 				</div>
@@ -84,12 +81,12 @@
 			<td>
 				{{  paysetting.alipay.support_set === true ? '未设置' : '已设置'  }}
 			</td>
-			<td class="text-center">
+			<td >
 				<div class="link-group">
 					<a href="javascript:;" data-toggle="modal" data-target="#zhifubao">
 						{{  paysetting.alipay.has_config === true ? '修改配置' : '去配置'  }}
 					</a>
-					<a href="{php echo url('profile/payment/switch', array('type' => 'alipay'))}" ng-if="paysetting.alipay.has_config === true">支付支持</a>
+					<a href="{php echo url('profile/payment/switch', array('type' => 'alipay'))}">支付支持</a>
 				</div>
 			</td>
 		</tr>
@@ -109,7 +106,7 @@
 			<td>
 				{{  paysetting.wechat.support_set === true ? '未设置' : '已设置'  }}
 			</td>
-			<td class="text-center">
+			<td >
 				<div class="link-group">
 					<a href="javascript:;" ng-click="check_wechat()">
 						{{  paysetting.wechat.has_config === true ? '修改配置' : '去配置'  }}
@@ -133,7 +130,7 @@
 			<td>
 				{{  paysetting.jueqiymf.support_set === true ? '未设置' : '已设置'  }}
 			</td>
-			<td class="text-center">
+			<td >
 				<div class="link-group">
 					<a href="javascript:;" data-toggle="modal" data-target="#jueqiymf">
 						{{  paysetting.jueqiymf.has_config === true ? '修改配置' : '去配置'  }}
@@ -156,7 +153,7 @@
 			<td>
 				{{  paysetting.unionpay.support_set === true ? '未设置' : '已设置'  }}
 			</td>
-			<td class="text-center">
+			<td >
 				<div class="link-group">
 					<a href="javascript:;" data-toggle="modal" data-target="#yinlian">
 						{{  paysetting.unionpay.has_config === true ? '修改配置' : '去配置'  }}
@@ -178,7 +175,7 @@
 			<td>
 				{{  paysetting.baifubao.support_set === true ? '未设置' : '已设置'  }}
 			</td>
-			<td class="text-center">
+			<td >
 				<div class="link-group">
 					<a href="javascript:;" data-toggle="modal" data-target="#baidu">
 						{{  paysetting.baifubao.has_config === true ? '修改配置' : '去配置'  }}
@@ -200,7 +197,7 @@
 			<td>
 				{{  paysetting.line.support_set === true ? '未设置' : '已设置'  }}
 			</td>
-			<td class="text-center">
+			<td >
 				<div class="link-group">
 					<a href="javascript:;" data-toggle="modal" data-target="#huikuan">
 						{{  paysetting.line.has_config === true ? '修改配置' : '去配置'  }}
@@ -299,8 +296,8 @@
 					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 					<div class="modal-title">微信支付</div>
 				</div>
-				<div class="modal-body">
-					<div class="we7-form">
+				<div class="modal-body overflow-auto">
+					<div class="we7-form ">
 						<div class="form-group">
 							<label for="" class="control-label col-sm-2">微信支付</label>
 							<div class="form-controls col-sm-10">
@@ -308,7 +305,7 @@
 									你必须向微信公众平台提交企业信息以及银行账户资料，审核通过并签约后才能使用微信支付功能,
 									<a href="https://pay.weixin.qq.com/guide/webbased_payment.shtml" class="color-default" target="_blank">申请及详情请查看这里</a>
 								</div>
-								<div class="alert alert-warning">
+								<div class="alert alert-warning" >
 									<p>微信支付的接口说明如下：</p>
 									<br>
 									<h4>JS API网页支付参数</h4>
@@ -324,7 +321,7 @@
 								{if $accounts[$_W['acid']]['level'] > ACCOUNT_SERVICE}
 								{if $accounts[$_W['acid']]['level'] == ACCOUNT_SERVICE_VERIFY}
 								<input id='radio-11' type="radio" name='wechat[switch]' ng-checked='paysetting.wechat.switch == 1' ng-click="changeSwitch('wechat', 1)" value="1"/>
-								<label for="radio-11">微信支付  </label>
+								<label for="radio-11">微信支付 </label>
 								{/if}
 								{if !empty($proxy_wechatpay_account['borrow'])}
 								<input id='radio-12' type="radio" name='wechat[switch]' ng-checked='paysetting.wechat.switch == 2' ng-click="changeSwitch('wechat', 2)" value="2"/>

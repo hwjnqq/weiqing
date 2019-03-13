@@ -148,7 +148,7 @@ if ($do == 'list') {
 		$comment_table->searchWithParentid(ARTICLE_COMMENT_DEFAULT);
 		$comment_table->searchWithPage($pindex, $psize);
 
-		$article_lists = $comment_table->articleCommentList();
+		$article_lists = $comment_table->getAllByCurrentUniacid();
 		$total = $comment_table->getLastQueryTotal();
 		$pager = pagination($total, $pindex, $psize);
 		$article_lists = article_comment_detail($article_lists);

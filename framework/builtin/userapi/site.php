@@ -61,6 +61,7 @@ class UserApiModuleSite extends WeModuleSite {
 	public function doWebManage() {
 		global $_W, $_GPC;
 		$foo = !empty($_GPC['foo']) ? $_GPC['foo'] : 'display';
+		permission_check_account_user('platform_reply_userapi');
 
 		if($foo == 'display') {
 			require model('rule');
@@ -148,8 +149,8 @@ class UserApiModuleSite extends WeModuleSite {
 		}
 		if($foo == 'delete') {
 			$rid = intval($_GPC['rid']);
-			pdo_delete('rule', array('module' => 'userapi', 'id' => $rid));
-			pdo_delete('rule_keyword', array('module' => 'userapi', 'rid' => $rid));
+			pdo_delete('rule', array('module' => 'userapi', 'id' => $rid, 'uniacid' => $_W['uniacid']));
+			pdo_delete('rule_keyword', array('module' => 'userapi', 'rid' => $rid, 'uniacid' => $_W['uniacid']));
 			pdo_delete($this->tablename, array('rid' => $rid));
 			
 			itoast('成功删除.', referer(), 'success');

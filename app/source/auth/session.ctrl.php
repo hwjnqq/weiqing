@@ -63,7 +63,7 @@ if ($do == 'openid') {
 				'tag' => '',
 			);
 			$email = md5($oauth['openid']).'@we7.cc';
-			$email_exists_member = pdo_getcolumn('mc_members', array('email' => $email), 'uid');
+			$email_exists_member = pdo_getcolumn('mc_members', array('email' => $email, 'uniacid' => $_W['uniacid']), 'uid');
 			if (!empty($email_exists_member)) {
 				$uid = $email_exists_member;
 			} else {

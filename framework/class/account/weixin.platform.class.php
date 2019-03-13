@@ -59,7 +59,7 @@ class WeixinPlatform extends WeixinAccount {
 	function getComponentAccesstoken() {
 		$accesstoken = cache_load(cache_system_key('account_component_assesstoken'));
 		if (empty($accesstoken) || empty($accesstoken['value']) || $accesstoken['expire'] < TIMESTAMP) {
-			$ticket = cache_load(cache_system_key('account_ticket'));
+			$ticket = $GLOBALS['_W']['setting']['account_ticket'];
 			if (empty($ticket)) {
 				return error(1, '缺少接入平台关键数据，等待微信开放平台推送数据，请十分钟后再试或是检查“授权事件接收URL”是否写错（index.php?c=account&amp;a=auth&amp;do=ticket地址中的&amp;符号容易被替换成&amp;amp;）');
 			}

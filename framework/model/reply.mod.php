@@ -94,7 +94,11 @@ function reply_contnet_search($rid = 0) {
 	}
 
 	$modules = array('basic', 'images', 'news', 'music', 'voice', 'video');
-	$result = table('reply')->getModuleReplayCount($modules, $rid);
+	$params = array(':rid' => $rid);
+	foreach ($modules as $key => $module) {
+		$result[$module] = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename($module.'_reply') . ' WHERE `rid` = :rid', $params);
+		$result['sum'] += $result[$module];
+	}
 	return $result;
 }
 
@@ -161,8 +165,8 @@ function reply_predefined_service() {
  */
 function reply_getall_common_service() {
 	global $_W;
-	$rule_setting_select = table('uniaccountmodules')->whereUniacid($_W['uniacid'])->whereModule('userapi')->getcolumn('settings');
-	$rule_setting_select = iunserializer($rule_setting_select);
+	$rule_setting_select = table('uni_account_modules')->getByUniacidAndModule('userapi', $_W['uniacid']);
+	$rule_setting_select = (array)$rule_setting_select['settings'];
 	$exists_rule = table('rule')->where(array('uniacid' => 0, 'module' => 'userapi', 'status' => 1))->getall();
 	$service_list = array();
 	$rule_ids = array();
@@ -173,7 +177,7 @@ function reply_getall_common_service() {
 			$service_list[$rule_detail['id']] = $rule_detail;
 		}
 
-		$all_description = table('userapireply')->whereRid($rule_ids)->getall();
+		$all_description = table('userapi_reply')->where('rid IN', $rule_ids)->getall();
 		if (!empty($all_description)) {
 			foreach ($all_description as $description) {
 				$service_list[$description['rid']]['description'] = $description['description'];
@@ -203,17 +207,30 @@ function reply_getall_common_service() {
  * @return int
  */
 function reply_insert_without_service($file) {
-	$rule_id = table('userapireply')->whereApiurl($file)->getcolumn('rid');
-	if (!empty($rule_id)) {
-		return $rule_id;
-	}
-
 	$all_service = reply_predefined_service();
 	$all_url = array_keys($all_service);
 	if (!in_array($file, $all_url)) {
 		return false;
 	}
+	$userapi_reply_info = table('userapi_reply')->getByApiurl($file);
+	if (!empty($userapi_reply_info) && !empty($userapi_reply_info['rid'])) {
+		return $userapi_reply_info['rid'];
+	}
 
-	$rule_id = table('userapireply')->userapiSave($all_service, $file);
+	$rule_info = array('uniacid' => 0, 'name' => $all_service[$file]['title'], 'module' => 'userapi', 'displayorder' => 255, 'status' => 1);
+	table('rule')->fill($rule_info)->save();
+
+	$rule_id = pdo_insertid();
+	$rule_keyword_info = array('rid' => $rule_id, 'uniacid' => 0, 'module' => 'userapi', 'displayorder' => $rule_info['displayorder'], 'status' => $rule_info['status']);
+	if (!empty($all_service[$file]['keywords'])) {
+		foreach ($all_service[$file]['keywords'] as $keyword_info) {
+			$rule_keyword_info['content'] = $keyword_info[1];
+			$rule_keyword_info['type'] = $keyword_info[0];
+			table('rule_keyword')->fill($rule_keyword_info)->save();
+		}
+	}
+
+	$userapi_reply = array('rid' => $rule_id, 'description' => htmlspecialchars($all_service[$file]['description']), 'apiurl' => $file);
+	table('userapi_reply')->fill($userapi_reply)->save();
 	return $rule_id;
 }

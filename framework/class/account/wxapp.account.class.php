@@ -17,7 +17,7 @@ class WxappAccount extends WeAccount {
 	protected $supportVersion = STATUS_ON;
 
 	protected function getAccountInfo($acid) {
-		$account = table('account')->getWxappAccount($acid);
+		$account = table('account_wxapp')->getAccount($acid);
 		$account['encrypt_key'] = $account['key'];
 		return $account;
 	}

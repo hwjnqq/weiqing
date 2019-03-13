@@ -12,7 +12,7 @@ $setting = uni_setting($_W['uniacid'], array('uc', 'passport'));
 $uc_setting = $setting['uc'] ? $setting['uc'] : array();
 $ltype = empty($setting['passport']['type']) ? 'hybird' : $setting['passport']['type'];
 $audit = @intval($setting['passport']['audit']);
-$item = !empty($setting['passport']['item']) ? $setting['passport']['item'] : 'random';
+$item = is_array($setting['passport']) && !empty($setting['passport']['item']) ? $setting['passport']['item'] : 'random';
 $type = trim($_GPC['type']) ? trim($_GPC['type']) : 'email';
 $forward = url('mc');
 if(!empty($_GPC['forward'])) {
@@ -23,19 +23,20 @@ if($do == 'mobile_exist') {
 	if($_W['ispost'] && $_W['isajax']) {
 		$type = safe_gpc_string($_GPC['find_mode']);
 		$info = safe_gpc_string($_GPC['mobile']);
-		$member_table = table('member');
+		$member_table = table('mc_members');
 		switch ($type) {
 			case 'mobile':
 				$member_table->searchWithMobile($info);
 				break;
 			case 'email':
-				$member_table->searchWithMemberEmail($info);
+				$member_table->searchWithEmail($info);
 				break;
 			default:
-				$member_table->searchWithRandom($info);
+				$member_table->searchWithMobileOrEmail($info);
 				break;
 		}
-		$is_exist = $member_table->searchWithMember();
+		$member_table->searchWithUniacid($_W['uniacid']);
+		$is_exist = $member_table->get();
 		if (!empty($is_exist)) {
 			message(error(1, ''), '', 'ajax');
 		} else {
@@ -43,6 +44,7 @@ if($do == 'mobile_exist') {
 		}
 	}
 }
+
 if(!empty($_W['member']) && (!empty($_W['member']['mobile']) || !empty($_W['member']['email']))) {
 	header('location: ' . $forward);
 	exit;

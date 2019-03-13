@@ -109,7 +109,7 @@ class Qq extends OAuth2Client {
 		$profile = array();
 		$user['username'] = strip_emoji($user_info['nickname']);
 		$user['password'] = '';
-		$user['type'] = USER_TYPE_COMMON;
+		$user['type'] = $this->user_type;
 		$user['starttime'] = TIMESTAMP;
 		$user['openid'] = $openid;
 		$user['register_type'] = USER_REGISTER_TYPE_QQ;
@@ -137,9 +137,8 @@ class Qq extends OAuth2Client {
 		if (is_error($user)) {
 			return $user;
 		}
-		$user_table = table('users');
 		$user_id = pdo_getcolumn('users', array('openid' => $user['member']['openid']), 'uid');
-		$user_bind_info = $user_table->userBindInfo($user['member']['openid'], $user['member']['register_type']);
+		$user_bind_info = table('users_bind')->getByTypeAndBindsign($user['member']['register_type'], $user['member']['openid']);
 
 		if (!empty($user_id)) {
 			return $user_id;
@@ -160,9 +159,8 @@ class Qq extends OAuth2Client {
 	public function bind() {
 		global $_W;
 		$user = $this->user();
-		$user_table = table('users');
 		$user_id = pdo_getcolumn('users', array('openid' => $user['member']['openid']), 'uid');
-		$user_bind_info = $user_table->userBindInfo($user['member']['openid'], $user['member']['register_type']);
+		$user_bind_info = table('users_bind')->getByTypeAndBindsign($user['member']['register_type'], $user['member']['openid']);
 
 		if (!empty($user_id) || !empty($user_bind_info)) {
 			return error(-1, '已被其他用户绑定，请更换账号');
@@ -173,11 +171,8 @@ class Qq extends OAuth2Client {
 
 	public function unbind() {
 		global $_GPC, $_W;
-		$user_table = table('users');
-		$third_type = $_GPC['bind_type'];
-		$user_table->bindSearchWithUser($_W['uid']);
-		$user_table->bindSearchWithType($third_type);
-		$bind_info = $user_table->bindInfo();
+		$third_type = intval($_GPC['bind_type']);
+		$bind_info = table('users_bind')->getByTypeAndUid($third_type, $_W['uid']);
 
 		if (empty($bind_info)) {
 			return error(-1, '已经解除绑定');
@@ -187,4 +182,9 @@ class Qq extends OAuth2Client {
 		return error(0, '成功');
 	}
 
+	public function isbind() {
+		global $_W;
+		$bind_info = table('users_bind')->getByTypeAndUid(USER_REGISTER_TYPE_QQ, $_W['uid']);
+		return !empty($bind_info['bind_sign']);
+	}
 }

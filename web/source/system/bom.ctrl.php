@@ -5,8 +5,6 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-$_W['page']['title'] = '检测文件BOM - 常用系统工具 - 系统管理';
-
 set_time_limit(0);
 
 load()->func('file');

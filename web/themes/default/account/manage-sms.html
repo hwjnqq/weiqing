@@ -11,7 +11,7 @@
 		<tr> 
 			<td ng-if="notify.sms"><span ng-bind="notify.sms.balance"></span>条</td>
 			<td ng-if="!notify.sms">0条</td>
-			<td>
+			<td class="text-right">
 				<div class="link-group">
 					{if permission_check_account_user('see_account_manage_sms_blance')}
 					<a href="javascript:;" data-toggle="modal" data-target="#balance" ng-click="editSms('balance', notify.sms.balance)">分配短信</a>
@@ -50,12 +50,8 @@
 				<div class="modal-body">
 					<div class="form-group">
 						<select name="signature" class="we7-select" ng-model="middleSms.signature">
-							{if !empty($notify['sms']['signature'])}
-								{if in_array($notify['sms']['signature'], $signatures)}
-									<option selected value="{$notify['sms']['signature']}">{$notify['sms']['signature']}</option>
-								{elseif !empty($notify['sms']['signature'])}
-									<option value="{$notify['sms']['signature']}">{$notify['sms']['signature']}（未通过云服务审核）</option>
-								{/if}
+							{if !empty($notify['sms']['signature']) && in_array($notify['sms']['signature'], $signatures)}
+								<option value="{$notify['sms']['signature']}" ng-selected="1">{$notify['sms']['signature']}</option>
 							{/if}
 							{loop $signatures $signa}
 								{if $signa != $notify['sms']['signature']}

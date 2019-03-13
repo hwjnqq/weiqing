@@ -5,10 +5,6 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-if ($action == 'manage' && $do == 'create_display') {
-	define('FRAME', 'system');
-}
-
 $account_api = WeAccount::createByUniacid();
 
 if ($action != 'manage' && $do != 'switch') {
@@ -21,7 +17,7 @@ if ($action != 'manage' && $do != 'switch') {
 	}
 }
 
-if ($action == 'manage' && $do == 'list') {
+if ($action == 'manage') {
 	define('FRAME', '');
 } else {
 	$account_type = $account_api->menuFrame;

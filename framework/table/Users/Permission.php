@@ -13,8 +13,6 @@ class Permission extends \We7Table {
 		'type',
 		'permission',
 		'url',
-		'modules',
-		'templates',
 	);
 	protected $default = array(
 		'uniacid' => '',
@@ -22,8 +20,6 @@ class Permission extends \We7Table {
 		'type' => '',
 		'permission' => '',
 		'url' => '',
-		'modules' => '',
-		'templates' => '',
 	);
 
 	public function getUserPermissionByType($uid, $uniacid, $type = '') {
@@ -44,8 +40,8 @@ class Permission extends \We7Table {
 	}
 	public function getAllUserModulePermission($uid, $uniacid) {
 		return $this->query->where('uid', $uid)
-					->where('uniacid', $uniacid)
-					->where('type !=', array(PERMISSION_ACCOUNT, PERMISSION_WXAPP))->getall('type');
+			 				->where('uniacid', $uniacid)
+							->where('type !=', array(PERMISSION_ACCOUNT, PERMISSION_WXAPP))->getall('type');
 	}
 	public function getUserExtendPermission() {}
 

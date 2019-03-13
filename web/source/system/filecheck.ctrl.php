@@ -11,15 +11,14 @@ load()->func('communication');
 
 $dos = array('check');
 $do = in_array($do, $dos) ? $do : '';
-$_W['page']['title'] = '系统文件校验 - 常用系统工具 - 系统管理';
 
 if ($do == 'check') {
 	$filetree = file_tree(IA_ROOT, array('api', 'app', 'framework', 'payment', 'web', 'api.php', 'index.php'));
 	$modify = $unknown = $lose = $clouds = array();
 
 	$params = _cloud_build_params();
-	$params['method'] = 'application.build';
-	$response = cloud_request('http://v2.addons.we7.cc/gateway.php', $params);
+	$params['method'] = 'application.build4';
+	$response = cloud_request('http://api-upgrade.w7.cc/gateway.php', $params);
 	$file = IA_ROOT . '/data/application.build';
 	$cloud_data = _cloud_shipping_parse($response, $file);
 

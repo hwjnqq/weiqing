@@ -11,7 +11,7 @@ $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
 $module_name = trim($_GPC['m']);
 $modulelist = uni_modules();
 $module = $_W['current_module'] = $modulelist[$module_name];
-define('IN_MODULE', $module_name);
+
 if(empty($module)) {
 	itoast('抱歉，你操作的模块不能被访问！');
 }
@@ -20,8 +20,9 @@ if(!permission_check_account_user_module($module_name.'_permissions', $module_na
 }
 
 if ($do == 'display') {
-	$user_permissions = module_clerk_info($module_name);
-	$current_module_permission = module_permission_fetch($module_name);
+	$user_permissions = module_clerk_info($module_name); # 模块店员信息
+	$current_module_permission = module_permission_fetch($module_name); # 某个模块的权限列表
+
 	$permission_name = array();
 	if (!empty($current_module_permission)) {
 		foreach ($current_module_permission as $key => $permission) {
@@ -39,6 +40,9 @@ if ($do == 'display') {
 			}
 		}
 		unset($permission);
+	}
+	if($_W['ispost'] && $_W['isajax']) {
+		iajax(0, $user_permissions, '');
 	}
 }
 
@@ -78,55 +82,31 @@ if ($do == 'post') {
 			itoast($have_permission['message']);
 		}
 	}
+
 	if (checksubmit()) {
-		$insert_user = array(
-			'username' => safe_gpc_string($_GPC['username']),
-			'remark' => safe_gpc_string($_GPC['remark']),
-			'password' => safe_gpc_string($_GPC['password']),
-			'repassword' => safe_gpc_string($_GPC['repassword']),
-			'type' => ACCOUNT_OPERATE_CLERK
-		);
-		if (empty($insert_user['username'])) {
-			itoast('必须输入用户名，格式为 1-15 位字符，可以包括汉字、字母（不区分大小写）、数字、下划线和句点。');
-		}
-		$operator = array();
 		if (empty($uid)) {
-			if (user_check(array('username' => $insert_user['username']))) {
-				itoast('非常抱歉，此用户名已经被注册，你需要更换注册名称！');
-			}
-			if (empty($insert_user['password']) || istrlen($insert_user['password']) < 8) {
-				itoast('必须输入密码，且密码长度不得低于8位。');
-			}
-			if ($insert_user['repassword'] != $insert_user['password']) {
-				itoast('两次输入密码不一致');
-			}
-			unset($insert_user['repassword']);
-			$uid = user_register($insert_user, 'admin');
+			$founders = explode(',', $_W['config']['setting']['founder']);
+			$username = trim($_GPC['username']);
+			$user = user_single(array('username' => $username));
 
-			if (is_error($uid)) {
-				itoast($uid['message'], '', '');
-			}
-
-			if (!$uid) {
-				itoast('注册账号失败', '', '');
-			}
-		} else {
-			if (!empty($insert_user['password'])) {
-				if (istrlen($insert_user['password']) < 8) {
-					itoast('必须输入密码，且密码长度不得低于8位。');
+			if (!empty($user)) {
+				if ($user['status'] != 2) {
+					itoast('用户未通过审核或不存在', url('module/permission', array('m' => $module_name)), 'error');
 				}
-				if ($insert_user['repassword'] != $insert_user['password']) {
-					itoast('两次输入密码不一致');
+				if (in_array($user['uid'], $founders)) {
+					itoast('不可操作网站创始人!', url('module/permission', array('m' => $module_name)), 'error');
 				}
+			} else {
+				itoast('用户不存在', url('module/permission', array('m' => $module_name)), 'error');
 			}
-			$operator['password'] = $insert_user['password'];
-			$operator['salt'] = $user['salt'];
-			$operator['uid'] = $uid;
-			$operator['username'] = $insert_user['username'];
-			$operator['remark'] = $insert_user['remark'];
-			$operator['type'] = $insert_user['type'];
-			user_update($operator);
+			$data = array('uniacid' => $_W['uniacid'], 'uid' => $user['uid'], 'type' => $module_name);
+			$exists = pdo_get('users_permission', $data);
+			if (is_array($exists) && !empty($exists)) {
+				itoast('操作员已经存在！', url('module/permission', array('m' => $module_name)), 'error');
+			}
+			$uid = $user['uid'];
 		}
+
 		$permission = $_GPC['module_permission'];
 		if (!empty($permission) && is_array($permission)) {
 			$permission = safe_gpc_array($permission);
@@ -150,57 +130,30 @@ if ($do == 'post') {
 				}
 			}
 		} else {
-			foreach ($module_and_plugins as $name) {
-				if (!empty($have_permission[$name])) {
-					pdo_delete('users_permission', array('uniacid' => $_W['uniacid'], 'uid' => $uid, 'type' => $name));
+			if (empty($all_permission[$module_name]['permission'])) {
+				$data = array('uniacid' => $_W['uniacid'], 'uid' => $user['uid'], 'type' => $module_name);
+				$exists = pdo_get('users_permission', $data);
+				if (is_array($exists) && !empty($exists)) {
+					itoast('操作员已经存在！', url('module/permission', array('m' => $module_name)), 'error');
+				}
+				$data['permission'] = 'all';
+				pdo_insert('users_permission', $data);
+			} else {
+				foreach ($module_and_plugins as $name) {
+					if (!empty($have_permission[$name]) && empty($all_permission[$module_name]['permission'])) {
+						pdo_delete('users_permission', array('uniacid' => $_W['uniacid'], 'uid' => $uid, 'type' => $name));
+					}
 				}
 			}
 		}
 
-		$role = table('users')->userOwnedAccountRole($uid, $_W['uniacid']);
+		$role = table('uni_account_users')->getUserRoleByUniacid($uid, $_W['uniacid']);
 		if (empty($role)) {
 			pdo_insert('uni_account_users', array('uniacid' => $_W['uniacid'], 'uid' => $uid, 'role' => 'clerk'));
 		} else {
 			pdo_update('uni_account_users', array('role' => 'clerk'), array('uniacid' => $_W['uniacid'], 'uid' => $uid));
 		}
-		itoast('编辑店员资料成功', url('module/permission', array('m' => $module_name)), 'success');
-	}
-}
-
-if ($do == 'add_clerk') {
-	$founders = explode(',', $_W['config']['setting']['founder']);
-	$username = trim($_GPC['username']);
-	$user = user_single(array('username' => $username));
-
-	if (!empty($user)) {
-		if ($user['status'] != 2) {
-			itoast('用户未通过审核或不存在', url('module/permission', array('m' => $module_name)), 'error');
-		}
-		if (in_array($user['uid'], $founders)) {
-			itoast('不可操作网站创始人!', url('module/permission', array('m' => $module_name)), 'error');
-		}
-	} else {
-		itoast('用户不存在', url('module/permission', array('m' => $module_name)), 'error');
-	}
-	$data = array('uniacid' => $_W['uniacid'], 'uid' => $user['uid'], 'type' => $module_name);
-	$exists = pdo_get('users_permission', $data);
-
-	if (is_array($exists) && !empty($exists)) {
-		itoast('操作员已经存在！', url('module/permission', array('m' => $module_name)), 'error');
-	}
-
-	$data['permission'] = 'all';
-	$res = pdo_insert('users_permission', $data);
-	if ($res) {
-		$role = table('users')->userOwnedAccountRole($user['uid'], $_W['uniacid']);
-		if (empty($role)) {
-			pdo_insert('uni_account_users', array('uniacid' => $_W['uniacid'], 'uid' => $user['uid'], 'role' => 'clerk'));
-		} else {
-			pdo_update('uni_account_users', array('role' => 'clerk'), array('uniacid' => $_W['uniacid'], 'uid' => $user['uid']));
-		}
-		itoast('添加成功!', url('module/permission', array('m' => $module_name)), 'success');
-	} else {
-		itoast('操作失败!', url('module/permission', array('m' => $module_name)), 'error');
+		itoast('操作成功', url('module/permission', array('m' => $module_name)), 'success');
 	}
 }
 
@@ -212,7 +165,15 @@ if ($do == 'delete') {
 		$user = pdo_get('users', array('uid' => $operator_id), array('uid'));
 		if (!empty($user)) {
 			$delete_account_users = pdo_delete('uni_account_users', array('uid' => $operator_id, 'role' => 'clerk', 'uniacid' => $_W['uniacid']));
+
+			$module_info = module_fetch($module_name);
+			$module_plugin_list = $module_info['plugin_list'];
+			if (!empty($module_plugin_list)) {
+				pdo_delete('users_permission', array('uid' => $_GPC['uid'], 'uniacid' => $_W['uniacid'], 'type in' => $module_plugin_list));
+			}
+
 			$delete_user_permission = pdo_delete('users_permission', array('uid' => $operator_id, 'type' => $module_name, 'uniacid' => $_W['uniacid']));
+			pdo_delete('users_lastuse', array('uid' => $operator_id, 'uniacid' => $_W['uniacid'], 'modulename' => $module_name));
 		}
 		itoast('删除成功', referer(), 'success');
 	}

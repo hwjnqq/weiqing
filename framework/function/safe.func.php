@@ -161,7 +161,7 @@ function safe_gpc_url($value, $strict_domain = true, $default = '') {
 	if (empty($value) || !is_string($value)) {
 		return $default;
 	}
-
+	$value = urldecode($value);
 	if (starts_with($value, './')) {
 		return $value;
 	}

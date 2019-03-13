@@ -165,6 +165,9 @@ function tpl_form_field_calendar($name, $values = array()) {
 							day[0].options[0].selected = "selected";
 						}
 					}
+					if($("select").niceSelect) {
+						$("select").niceSelect("update");
+					}
 				});
 			}
 			require([""], function(){
@@ -302,6 +305,9 @@ function tpl_form_field_category_2level($name, $parents, $children, $parentid, $
 						html += \'<option value="\'+window[\'_\'+name][index][i][\'id\']+\'">\'+window[\'_\'+name][index][i][\'name\']+\'</option>\';
 					}
 					$selectChild.html(html);
+					if($("select").niceSelect) {
+						$("select").niceSelect("update");
+					}
 				});
 			}
 		</script>

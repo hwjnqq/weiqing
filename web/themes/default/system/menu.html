@@ -1,15 +1,11 @@
 {template 'common/header'}
-<div class="we7-page-title">
-	菜单管理
-</div>
-<ul class="we7-page-tab"></ul>
 <div class="js-menu-container" ng-controller="MenuCtrl" ng-cloak>
 	<div class="we7-padding-bottom clearfix">
 		<div class="pull-right">
 			<a class="btn btn-primary we7-padding-horizontal" ng-click="editItemPanel({group : 'frame'})">+新建菜单</a>
 		</div>
 	</div>
-	<div class="panel we7-panel">
+	<div class="panel we7-panel panel-table">
 		<div class="panel-heading">
 			<div class="table-div table-div-menu">
 				<div class="table-div__item order">排序</div>
@@ -29,7 +25,7 @@
 						</div>
 						<div class="table-div__item name">{$menu['title']}</div>
 						<div class="table-div__item display">
-							{if in_array($permission_name, array('appmarket', 'site'))}
+							{if in_array($permission_name, array('appmarket', 'site', 'myself'))}
 							<span class="color-gray">不可关闭</span>
 							{else}
 							<span class="switch" ng-init="displayStatus['{$permission_name}'] = {php echo $menu['is_display'] ? 'true' : 'false'}" ng-click="changeDisplay('{$permission_name}')" ng-class="{'switchOn' : displayStatus['{$permission_name}'], 'switchOff' : !displayStatus['{$permission_name}']}"></span>
@@ -56,22 +52,19 @@
 								</div>
 								<div class="table-div__item name">{$section['title']}</div>
 								<div class="table-div__item display">
-									{if in_array($section_name, array('account', 'wxapp', 'xzapp', 'phoneapp', 'webapp', 'aliapp'))}
+									{if in_array($section_name, $account_all_type_sign)}
 									<span class="switch" ng-init="displayStatus['{$section_name}'] = {php echo $section['is_display'] ? 'true' : 'false'}" ng-click="changeDisplay('{$section_name}')" ng-class="{'switchOn' : displayStatus['{$section_name}'], 'switchOff' : !displayStatus['{$section_name}']}"></span>
 									{/if}
 									<!--<span class="switch switchOn"></span>-->
 								</div>
 								<div class="table-div__item action">
 									<div class="link-group">
-										{if $section_name != 'platform_module'}
-										<a href="javascript:;" ng-click="addSubItem('{$section_name}', {title : '', displayorder : 0, isDisplay : 1})">+添加子菜单</a>
-										{/if}
 										<a href="javascript:;" class="toggle"></a>
 									</div>
 								</div>
 							</div>
 							<ul class="three">
-								{if in_array($section_name, array('account', 'wxapp', 'xzapp', 'phoneapp', 'webapp', 'aliapp'))}
+								{if in_array($section_name, $account_all_type_sign)}
 									{php $section_menu_two = $section['section']}
 								{else}
 									{php $section_menu_two = $section['menu']}
@@ -92,7 +85,7 @@
 											<span class="color-gray">默认开启</span>
 											{else}
 
-											{if !in_array($section_name, array('account', 'wxapp', 'xzapp', 'phoneapp', 'webapp', 'aliapp'))}
+											{if !in_array($section_name, $account_all_type_sign)}
 											<span class="switch" ng-init="displayStatus['{$sub_menu['permission_name']}'] = {php echo $sub_menu['is_display'] ? 'true' : 'false'}" ng-click="changeDisplay('{$sub_menu['permission_name']}')" ng-class="{'switchOn' : displayStatus['{$sub_menu['permission_name']}'], 'switchOff' : !displayStatus['{$sub_menu['permission_name']}']}"></span>
 											{/if}
 
@@ -100,6 +93,9 @@
 										</div>
 										<div class="table-div__item action">
 											<div class="link-group">
+												{if $section_name != 'platform_module'}
+												<a href="javascript:;" ng-click="addSubItem('{$sub_permission_name}', {title : '', displayorder : 0, isDisplay : 1})">+添加子菜单</a>
+												{/if}
 												<a href="javascript:;" ng-click="editItemPanel({displayorder: '{$sub_menu['displayorder']}', title : '{$sub_menu['title']}', url : '{$sub_menu['url']}', permissionName : '{$sub_menu['permission_name']}', isSystem : '{$sub_menu['is_system']}', id : '{$sub_menu['id']}', 'group' : '{$sub_menu['group']}', 'icon' : '{$sub_menu['icon']}'})">编辑</a>
 												{if empty($sub_menu['is_system'])}<a href="javascript:;" ng-click="removeSubItem('{$sub_permission_name}')">删除</a>{/if}
 												{if !empty($sub_menu['menu'])}
@@ -109,7 +105,7 @@
 										</div>
 									</div>
 									<ul class="four">
-										{if in_array($section_name, array('account', 'wxapp', 'xzapp', 'phoneapp', 'webapp', 'aliapp'))}
+										{if in_array($section_name, $account_all_type_sign)}
 										{loop $sub_menu['menu'] $sub_menu_permission_name $sub_menu_permission}
 										<li class="menu-item ">
 											<div class="table-div table-div-menu">
@@ -121,13 +117,13 @@
 													{if $sub_menu_permission_name == 'system_setting_menu'}
 													<span class="color-gray">默认开启</span>
 													{else}
-													<span class="switch" ng-init="displayStatus['{$sub_menu_permission_name}'] = {php echo $sub_menu_permission['is_display'] ? 'true' : 'false'}" ng-click="changeDisplay('{$sub_menu_permission['permission_name']}')" ng-class="{'switchOn' : displayStatus['{$sub_menu_permission_name}'], 'switchOff' : !displayStatus['{$sub_menu_permission_name}']}"></span>
+													<span class="switch" ng-init="displayStatus['{$sub_menu_permission['permission_name']}'] = {php echo $sub_menu_permission['is_display'] ? 'true' : 'false'}" ng-click="changeDisplay('{$sub_menu_permission['permission_name']}')" ng-class="{'switchOn' : displayStatus['{$sub_menu_permission['permission_name']}'], 'switchOff' : !displayStatus['{$sub_menu_permission['permission_name']}']}"></span>
 													{/if}
 												</div>
 												<div class="table-div__item action">
 													<div class="link-group">
-														<a href="javascript:;" ng-click="editItemPanel({displayorder: '{$sub_menu['displayorder']}', title : '{$sub_menu['title']}', url : '{$sub_menu['url']}', permissionName : '{$sub_menu['permission_name']}', isSystem : '{$sub_menu['is_system']}', id : '{$sub_menu['id']}', 'group' : '{$sub_menu['group']}', 'icon' : '{$sub_menu['icon']}'})">编辑</a>
-														{if empty($sub_menu['is_system'])}<a href="javascript:;" ng-click="removeSubItem('{$sub_permission_name}')">删除</a>{/if}
+														<a href="javascript:;" ng-click="editItemPanel({displayorder: '{$sub_menu_permission['displayorder']}', title : '{$sub_menu_permission['title']}', url : '{$sub_menu_permission['url']}', permissionName : '{$sub_menu_permission['permission_name']}', isSystem : '{$sub_menu_permission['is_system']}', id : '{$sub_menu_permission['id']}', 'group' : '{$sub_menu_permission['group']}', 'icon' : '{$sub_menu_permission['icon']}'})">编辑</a>
+														{if empty($sub_menu_permission['is_system'])}<a href="javascript:;" ng-click="removeSubItem('{$sub_menu_permission['permission_name']}')">删除</a>{/if}
 														<a href="javascript:;" class="toggle"></a>
 													</div>
 												</div>

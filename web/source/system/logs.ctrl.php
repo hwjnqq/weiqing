@@ -7,7 +7,6 @@ defined('IN_IA') or exit('Access Denied');
 
 $dos = array('wechat', 'system', 'database','sms');
 $do = in_array($do, $dos) ? $do : 'wechat';
-$_W['page']['title'] = '查看日志  - 系统管理';
 
 $params = array();
 $where  = '';
@@ -26,13 +25,13 @@ if ($do == 'wechat') {
 	$path = IA_ROOT . '/data/logs/';
 	$files = glob($path . '*');
 	if (!empty($_GPC['searchtime'])) {
-		$searchtime = $_GPC['searchtime'] . '.log';
+		$searchtime = $_GPC['searchtime'] . '.php';
 	} else {
-		$searchtime = date('Ymd', time()) . '.log';
+		$searchtime = date('Ymd', time()) . '.php';
 	}
 	$tree = array();
 	foreach ($files as $key => $file) {
-		if (!preg_match('/\/[0-9]+\.log/', $file)) {
+		if (!preg_match('/\/[0-9]+\.php/', $file)) {
 			continue;
 		}
 		$pathinfo = pathinfo($file);

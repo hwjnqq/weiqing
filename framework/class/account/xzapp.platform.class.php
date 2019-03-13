@@ -18,8 +18,7 @@ class XzappPlatform extends XzappAccount {
 	protected $type = ACCOUNT_TYPE_XZAPP_NORMAL;
 	protected $typeName = '熊掌号';
 	protected $typeSign = XZAPP_TYPE_SIGN;
-	protected $supportOauthInfo = STATUS_ON;
-	protected $supportJssdk = STATUS_ON;
+	protected $typeTempalte = '-xzapp';
 
 	public function __construct($uniaccount = array()) {
 		$setting['token'] = 'we7';

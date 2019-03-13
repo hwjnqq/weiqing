@@ -5,19 +5,16 @@
  */
 
 defined('IN_IA') or exit('Access Denied');
+load()->model('system');
 
 $dos = array('display', 'post', 'display_status', 'delete', 'change_displayorder');
 $do = in_array($do, $dos) ? $do : 'display';
-$_W['page']['title'] = '系统管理 - 菜单设置';
 
-$system_top_menu = array('account', 'wxapp', 'module', 'help', 'advertisement', 'site', 'system', 'webapp', 'appmarket', 'custom_help', 'phoneapp', 'platform', 'xzapp');
+$system_top_menu = array_keys(system_menu());
+$system_menu = system_menu_permission_list();
 
-
-$system_menu = cache_load(cache_system_key('system_frame', array('uniacid' => $_W['uniacid'])));
-if(empty($system_menu)) {
-	cache_build_frame_menu();
-	$system_menu = cache_load(cache_system_key('system_frame', array('uniacid' => $_W['uniacid'])));
-}
+$account_all_type = uni_account_type();
+$account_all_type_sign = array_keys(uni_account_type_sign());
 //获取全部permission_name，方便判断是否是系统菜单
 $system_menu_permission = array();
 if (!empty($system_menu)) {
@@ -36,26 +33,13 @@ if (!empty($system_menu)) {
 				}
 			}
 		}
-		if (in_array($menu_name, array('account', 'wxapp', 'xzapp', 'phoneapp', 'webapp', 'aliapp'))) {
+		if (in_array($menu_name, $account_all_type_sign)) {
 			$system_menu['platform']['section'][$menu_name] = $menu;
 			unset($system_menu[$menu_name]);
 		}
 	}
 }
 if ($do == 'display') {
-	$add_top_nav = pdo_getall('core_menu', array('group_name' => 'frame', 'is_system <>' => 1), array('title', 'url', 'permission_name', 'displayorder', 'is_display'));
-	if (!empty($add_top_nav)) {
-		foreach ($add_top_nav as $menu) {
-			$system_menu[$menu['permission_name']] = array(
-				'title' => $menu['title'],
-				'is_system' => 0,
-				'displayorder' => $menu['displayorder'],
-				'permission_name' => $menu['permission_name'],
-				'url' => $menu['url'],
-				'is_display' => $menu['is_display']
-			);
-		}
-	}
 	template('system/menu');
 } elseif ($do == 'post') {
 	$id = intval($_GPC['id']);
@@ -101,7 +85,7 @@ if ($do == 'display') {
 		$menu['is_display'] = 1;
 		pdo_insert('core_menu', $menu);
 	}
-	cache_build_frame_menu();
+	cache_clean(cache_system_key('system_frame'));
 	iajax(0, '更新成功', referer());
 } elseif ($do == 'display_status') {
 	$permission_name = $_GPC['permission_name'];
@@ -118,7 +102,7 @@ if ($do == 'display') {
 		}
 		pdo_insert('core_menu',  $menu_data);
 	}
-	cache_build_frame_menu();
+	cache_clean(cache_system_key('system_frame'));
 	iajax(0, '更新成功', referer());
 } elseif ($do == 'delete') {
 	$permission_name = $_GPC['permission_name'];
@@ -129,7 +113,7 @@ if ($do == 'display') {
 	}
 	if (!empty($menu_db)) {
 		pdo_delete('core_menu', array('id' => $menu_db['id']));
-		cache_build_frame_menu();
+		cache_clean(cache_system_key('system_frame'));
 	}
 	iajax(0, '更新成功', referer());
 } elseif ($do == 'change_displayorder') {
@@ -148,6 +132,6 @@ if ($do == 'display') {
 	} else {
 		pdo_update('core_menu', array('displayorder' => intval($_GPC['displayorder'])), array('id' => $menu_db['id']));
 	}
-	cache_build_frame_menu();
+	cache_clean(cache_system_key('system_frame'));
 	iajax(0, '更新成功', referer());
 }

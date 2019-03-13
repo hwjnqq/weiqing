@@ -13,12 +13,13 @@ $step = $_GPC['step'];
 $steps = array('files', 'schemas', 'scripts');
 $step = in_array($step, $steps) ? $step : 'files';
 
+
 if ($step == 'files' && $_W['ispost']) {
 	$ret = cloud_download($_GPC['path'], $_GPC['type']);
-	if (!is_error($ret)) {
-		exit('success');
+	if (is_error($ret)) {
+		exit($ret['message']);
 	}
-	exit($ret['message']);
+	exit('success');
 }
 
 if ($step == 'scripts' && $_W['ispost']) {
@@ -126,9 +127,8 @@ DAT;
 	if (is_error($packet)) {
 		message($packet['message'], '', 'error');
 	} else {
-		cache_delete(cache_system_key('checkupgrade'));
-		cache_delete(cache_system_key('cloud_transtoken'));
-		itoast('更新已完成. ', url('cloud/upgrade'), 'info');
+		cache_updatecache();
+		itoast('更新已完成. ', url('cloud/upgrade'), 'success');
 	}
 }
 template('cloud/process');

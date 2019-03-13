@@ -63,10 +63,43 @@ function mc_update($uid, $fields) {
 			$fields['avatar'] = str_replace($_W['attachurl'], '', $fields['avatar']);
 		}
 	}
-	$member_table = table('member');
-	$result = $member_table->updateMember($uid, $fields);
+
+	$member = table('mc_members')->getById($uid);
+	if (!empty($fields['email'])) {
+		$mc_members = table('mc_members');
+		$mc_members->searchWithUniacid(mc_current_real_uniacid());
+		$mc_members->searchWithoutUid($uid);
+		$mc_members->searchWithEmail($fields['email']);
+		$emailexists = $mc_members->getcolumn('email');
+		if ($emailexists) {
+			unset($fields['email']);
+		}
+	}
+	if (!empty($fields['mobile'])) {
+		$mc_members = table('mc_members');
+		$mc_members->searchWithUniacid(mc_current_real_uniacid());
+		$mc_members->searchWithoutUid($uid);
+		$mc_members->searchWithEmail($fields['mobile']);
+		$mobilexists = $mc_members->getcolumn('mobile');
+		if ($mobilexists) {
+			unset($fields['mobile']);
+		}
+	}
+	if (empty($member)) {
+		if(empty($fields['mobile']) && empty($fields['email'])) {
+			return false;
+		}
+		$fields['uniacid'] = mc_current_real_uniacid();
+		$fields['createtime'] = TIMESTAMP;
+		pdo_insert('mc_members', $fields);
+	} else {
+		if (!empty($fields)) {
+			pdo_update('mc_members', $fields, array('uid' => $uid, 'uniacid' => $_W['uniacid']));
+		}
+	}
+
 	if (!empty($openid) && empty($uid)) {
-		table('fans')->fill(array('uid' => $result))->where(array('uniacid' => mc_current_real_uniacid(), 'openid' => $openid))->save();
+		table('mc_mapping_fans')->fill(array('uid' => $result))->where(array('uniacid' => mc_current_real_uniacid(), 'openid' => $openid))->save();
 	}
 	cache_build_memberinfo($uid);
 	return true;
@@ -136,6 +169,7 @@ function mc_fetch($uid, $fields = array()) {
  * @return array
  * */
 function mc_fetch_one($uid, $uniacid = 0) {
+	global $_W;
 	$uid = mc_openid2uid($uid);
 	if (empty($uid)) {
 		return array();
@@ -147,9 +181,8 @@ function mc_fetch_one($uid, $uniacid = 0) {
 		return $cache;
 	}
 	$params = array('uid' => $uid);
-	if (!empty($uniacid) && intval($uniacid) > 0) {
-		$params['uniacid'] = intval($uniacid);
-	}
+	$params['uniacid'] = intval($uniacid) > 0 ? intval($uniacid) : $_W['uniacid'];
+
 	$result = pdo_get('mc_members', $params);
 	if (!empty($result)) {
 		$result['avatar'] = tomedia($result['avatar']);
@@ -186,15 +219,12 @@ function mc_fansinfo($openidOruid, $acid = 0, $uniacid = 0){
 		$openid = $openidOruid;
 	}
 
-	$fans_table = table('fans');
-	$fans_table->searchWithOpenid($openid);
+	$mc_mapping_fans_table = table('mc_mapping_fans');
 	if (!empty($uniacid)) {
-		$fans_table->searchWithUniacid($uniacid);
+		$mc_mapping_fans_table->searchWithUniacid($uniacid);
 	}
-	if (!empty($acid)) {
-		$fans_table->searchWithAcid($acid);
-	}
-	$fan = $fans_table->fansInfo($openid);
+	$mc_mapping_fans_table->searchWithOpenid($openid);
+	$fan = $mc_mapping_fans_table->get();
 
 	if (!empty($fan)) {
 		if (!empty($fan['tag']) && is_string($fan['tag'])) {
@@ -242,11 +272,12 @@ function mc_fansinfo($openidOruid, $acid = 0, $uniacid = 0){
  * @return array
  */
 function mc_oauth_fans($openid, $acid = 0){
-	$fans_table = table('fans');
+	$mc_oauth_fans_table = table('mc_oauth_fans');
 	if (!empty($acid)) {
-		$fans_table->searchWithAcid($acid);
+		$mc_oauth_fans_table->searchWithAcid($acid);
 	}
-	$fan = $fans_table->oauthFans($openid);
+	$mc_oauth_fans_table->searchWithoAuthopenid($openid);
+	$fan = $mc_oauth_fans_table->get();
 	return $fan;
 }
 
@@ -294,6 +325,7 @@ function mc_oauth_account_userinfo($url = '') {
 					'nickname' => stripslashes($userinfo['nickname']),
 					'follow' => $userinfo['subscribe'],
 					'followtime' => $userinfo['subscribe_time'],
+					'unionid' => $userinfo['unionid'],
 					'tag' => base64_encode(iserializer($userinfo))
 				);
 				pdo_update('mc_mapping_fans', $record, array('openid' => $_SESSION['openid'], 'acid' => $_W['acid'], 'uniacid' => $_W['uniacid']));
@@ -415,7 +447,10 @@ function mc_require($uid, $fields, $pre = '') {
 		$profile = mc_fetch($uid, $fields);
 		$uniacid = $profile['uniacid'];
 	}
-	$system_fields = table('member')->accountMemberFields($_W['uniacid'], false, array('b.field', 'b.id as fid', 'a.*'));
+	$mc_member_fields = table('mc_member_fields');
+	$mc_member_fields->searchWithUniacid($_W['uniacid']);
+	$mc_member_fields->selectFields(array('b.field', 'b.id as fid', 'a.*'));
+	$system_fields = $mc_member_fields->getAllFields();
 	if (empty($system_fields)) {
 		$system_fields = pdo_getall('profile_fields', array(), array('id', 'field', 'title'), '');
 	}
@@ -468,13 +503,21 @@ function mc_require($uid, $fields, $pre = '') {
 			}
 			$condition = " AND uid != {$uid} ";
 			if (in_array('email', $fields)) {
-				$emailexists = table('member')->emailExist($uid, trim($record['email']));
+				$mc_members = table('mc_members');
+				$mc_members->searchWithUniacid(mc_current_real_uniacid());
+				$mc_members->searchWithoutUid($uid);
+				$mc_members->searchWithEmail(trim($record['email']));
+				$emailexists = $mc_members->getcolumn('email');
 				if ($emailexists) {
 					itoast('抱歉，您填写的手机号已经被使用，请更新。', 'refresh', 'error');
 				}
 			}
 			if (in_array('mobile', $fields)) {
-				$mobilexists = table('member')->mobileExist($uid, trim($record['mobile']));
+				$mc_members = table('mc_members');
+				$mc_members->searchWithUniacid(mc_current_real_uniacid());
+				$mc_members->searchWithoutUid($uid);
+				$mc_members->searchWithEmail(trim($record['mobile']));
+				$mobilexists = $mc_members->getcolumn('mobile');
 				if ($mobilexists) {
 					itoast('抱歉，您填写的手机号已经被使用，请更新。', 'refresh', 'error');
 				}
@@ -675,9 +718,8 @@ function mc_groups($uniacid = 0) {
  */
 function mc_fans_groups($force_update = false) {
 	global $_W;
-
-	$fans_table = table('fans');
-	$results = $fans_table->tagGroup($_W['uniacid']);
+	$results = table('mc_fans_groups')->getByUniacid($_W['uniacid']);
+	$results = empty($results['groups']) ? array() : $results['groups'];
 
 	if(!empty($results) && !$force_update) {
 		return $results;
@@ -766,11 +808,14 @@ function mc_fields() {
  * */
 function mc_acccount_fields($uniacid = 0, $is_available = true) {
 	global $_W;
-	if(!$uniacid) {
-		$uniacid = $_W['uniacid'];
-	}
-	$member_table = table('member');
-	$data = $member_table->accountMemberFields($uniacid, $is_available);
+	$uniacid = !empty($uniacid) ? intval($uniacid) : $_W['uniacid'];
+	$is_available = !empty($is_available) ? 1 : 0;
+	
+	$mc_member_fields = table('mc_member_fields');
+	$mc_member_fields->searchWithUniacid($uniacid);
+	$mc_member_fields->searchWithAvailable($is_available);
+	$mc_member_fields->selectFields(array('a.title', 'b.field'));
+	$data = $mc_member_fields->getAllFields();
 	$fields = array();
 	foreach($data as $row) {
 		$fields[$row['field']] = $row['title'];
@@ -1245,32 +1290,16 @@ function mc_notice_credit1($openid, $uid, $credit1_num, $tip, $url = '', $remark
 				'value' => "您好，您在{$time}有积分变更",
 				'color' => '#ff510'
 			),
-			'account' => array(
-				'value' => $username,
+			'keyword1' => array(
+				'value' => "原有积分 : " . ($credit['credit1'] - $credit1_num),
 				'color' => '#ff510'
 			),
-			'time' => array(
-				'value' => $time,
+			'keyword2' => array(
+				'value' => "现有积分 : " . $credit['credit1'],
 				'color' => '#ff510'
 			),
-			'type' => array(
-				'value' => $tip,
-				'color' => '#ff510'
-			),
-			'creditChange' => array(
-				'value' => $type,
-				'color' => '#ff510'
-			),
-			'number' => array(
-				'value' => abs($credit1_num) . '积分',
-				'color' => '#ff510'
-			),
-			'creditName' => array(
-				'value' => '账户积分',
-				'color' => '#ff510'
-			),
-			'amount' => array(
-				'value' => abs($credit['credit1']) . '积分',
+			'keyword3' => array(
+				'value' => "时间 : {$time} ",
 				'color' => '#ff510'
 			),
 			'remark' => array(
@@ -1773,7 +1802,7 @@ function mc_init_fans_info($openid, $force_init_member = false){
 
 			if (empty($fans_mapping['uid'])) {
 				$email = md5($fans['openid']).'@we7.cc';
-				$email_exists_member = pdo_getcolumn('mc_members', array('email' => $email), 'uid');
+				$email_exists_member = pdo_getcolumn('mc_members', array('email' => $email, 'uniacid' => $_W['uniacid']), 'uid');
 				if (!empty($email_exists_member)) {
 					$uid = $email_exists_member;
 				} else {

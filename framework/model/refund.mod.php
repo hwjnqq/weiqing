@@ -1,7 +1,7 @@
 <?php
 /**
  * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 
 defined('IN_IA') or exit('Access Denied');
@@ -37,6 +37,7 @@ function refund_order_can_refund($module, $tid) {
  * @return int  成功返回退款单id，失败返回error结构错误
  */
 function refund_create_order($tid, $module, $fee = 0, $reason = '') {
+	global $_W;
 	load()->model('module');
 	$order_can_refund = refund_order_can_refund($module, $tid);
 	if (is_error($order_can_refund)) {
@@ -44,7 +45,18 @@ function refund_create_order($tid, $module, $fee = 0, $reason = '') {
 	}
 	$module_info = module_fetch($module);
 	$moduleid =  empty($module_info['mid']) ? '000000' : sprintf("%06d", $module_info['mid']);
-	return table('refund')->createRefundLog($moduleid, $module, $tid, $fee, $reason);
+	$refund_uniontid = date('YmdHis') . $moduleid . random(8,1);
+	$paylog = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'tid' => $tid, 'module' => $module));
+	$refund = array (
+		'uniacid' => $_W['uniacid'],
+		'uniontid' => $paylog['uniontid'],
+		'fee' => empty($fee) ? $paylog['card_fee'] : number_format($fee, 2, '.', ''),
+		'status' => 0,
+		'refund_uniontid' => $refund_uniontid,
+		'reason' => safe_gpc_string($reason)
+	);
+	pdo_insert('core_refundlog', $refund);
+	return pdo_insertid();
 }
 
 /**
@@ -108,7 +120,7 @@ function reufnd_ali_build($refund_id) {
 		'timestamp' => date('Y-m-d H:i:s'),
 		'version' => '1.0',
 		'biz_content' => array(
-			'out_trade_no' => $paylog['tid'],
+			'out_trade_no' => $refundlog['uniontid'],
 			'refund_amount' => $refundlog['fee'],
 			'refund_reason' => $refundlog['reason'],
 		)

@@ -11,7 +11,6 @@ load()->func('file');
 
 $dos = array('post', 'count', 'filter_func', 'filter_code', 'encode', 'display','view');
 $do = in_array($do, $dos) ? $do : 'post';
-$_W['page']['title'] = '木马查杀 - 常用系统工具 - 系统管理';
 
 if ($do == 'post') {
 	$config = iunserializer(cache_read(cache_system_key('scan_config')));

@@ -6,11 +6,11 @@
 defined('IN_IA') or exit('Access Denied');
 
 if (in_array($action, array('post', 'manage'))) {
-	$account_api = WeAccount::createByUniacid(intval($_GPC['uniacid']));
-	define('FRAME', 'system');
-}
-
-if (!in_array($action, array('display', 'post', 'manage', 'auth'))) {
+	define('FRAME', '');
+} else {
+	if (!empty($_GPC['uniacid']) && intval($_GPC['uniacid']) != $_W['uniacid']) {
+		itoast('', url('account/display/switch', array('uniacid' => intval($_GPC['uniacid']), 'version_id' => intval($_GPC['version_id']))));
+	}
 	$account_api = WeAccount::createByUniacid();
 	if (is_error($account_api)) {
 		itoast('', url('account/display'));
@@ -20,8 +20,13 @@ if (!in_array($action, array('display', 'post', 'manage', 'auth'))) {
 		itoast('', $account_api->displayUrl);
 	}
 	$account_type = $account_api->menuFrame;
-	define('FRAME', $account_type);
+	if ($action == 'version' && $do == 'display') {
+		define('FRAME', '');
+	} else {
+		define('FRAME', $account_type);
+	}
+	define('ACCOUNT_TYPE', $account_api->type);
+	define('TYPE_SIGN', $account_api->typeSign);
+	define('ACCOUNT_TYPE_NAME', $account_api->typeName);
 }
-define('ACCOUNT_TYPE', $account_api->type);
-define('TYPE_SIGN', $account_api->typeSign);
-define('ACCOUNT_TYPE_NAME', $account_api->typeName);
+$account_all_type = uni_account_type();

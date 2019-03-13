@@ -17,7 +17,7 @@ if (is_error($account_api)) {
 }
 $check_manange = $account_api->checkIntoManage();
 
-if (is_error($check_manange)) {
+if (is_error($check_manange) || ($account_api->supportVersion && !in_array($action, array('remote')))) {
 	itoast('', $account_api->displayUrl);
 }
 $account_type = $account_api->menuFrame;

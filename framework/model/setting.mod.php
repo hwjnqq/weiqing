@@ -22,7 +22,7 @@ function setting_save($data = '', $key = '') {
 			$return = pdo_query("REPLACE INTO " . tablename('core_settings') . " (`key`, `value`) VALUES " . implode(',', $record));
 		}
 	} else {
-		$return = table('core_settings')->settingSave($key, $data);
+		$return = pdo_insert('core_settings', array('key'=> $key, 'value' => iserializer($data)), TRUE);
 	}
 	$cachekey = cache_system_key('setting');
 	cache_write($cachekey, '');
@@ -40,7 +40,9 @@ function setting_load($key = '') {
 	$cachekey = cache_system_key('setting');
 	$settings = cache_load($cachekey);
 	if (empty($settings)) {
-		$settings = table('core_settings')->getSettingList();
+		//todo 2.0内测升级文件顺序不可调整,table暂时改成pdo
+		//$settings = table('core_settings')->getall('key');
+		$settings = pdo_getall('core_settings', array(), array(), 'key');
 		if (is_array($settings)) {
 			foreach ($settings as $k => &$v) {
 				$settings[$k] = iunserializer($v['value']);
@@ -65,13 +67,13 @@ function setting_upgrade_version($family, $version, $release) {
 <?php
 /**
  * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
-define('IMS_FAMILY', '{$family}');
-define('IMS_VERSION', '{$version}');
-define('IMS_RELEASE_DATE', '{$release}');
+define('IMS_FAMILY', "{$family}");
+define('IMS_VERSION', "{$version}");
+define('IMS_RELEASE_DATE', "{$release}");
 VER;
 	return file_put_contents($verfile, trim($verdat));
 }

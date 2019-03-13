@@ -18,7 +18,7 @@
 			<div class="form-group">
 				<label for="" class="control-label col-sm-2">字段长度</label>
 				<div class="form-controls col-sm-8">
-					<select name="length" class="we7-select">
+					<select name="length" >
 						<option value="64">64</option>
 						<option value="128" ng-selected="item.field_length == 128">128</option>
 						<option value="255" ng-selected="item.field_length == 255">255</option>
@@ -85,8 +85,10 @@
 					<span class="help-block"></span>
 				</div>
 			</div>
-			<input type="submit" name="submit" value="保存" class="btn btn-primary" ng-style="{'padding': '6px 50px'}"/>
-			<input type="hidden" name="token" value="{$_W['token']}" />
+			<div class="col-sm-offset-2">
+				<input type="submit" name="submit" value="保存" class="btn btn-primary" ng-style="{'padding': '6px 50px'}"/>
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
 	</form>
 	</div>
 </div>

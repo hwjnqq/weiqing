@@ -11,7 +11,7 @@ load()->model('message');
 load()->classs('oauth2/oauth2client');
 load()->model('setting');
 
-if (!empty($_W['uid'])) {
+if (!empty($_W['uid']) && $_GPC['handle_type'] != 'bind') {
 	itoast('请先退出再登录！');
 }
 if (checksubmit() || $_W['isajax']) {
@@ -67,17 +67,9 @@ function _login($forward = '') {
 		$_W['isfounder'] = user_is_founder($record['uid']);
 		$_W['user'] = $record;
 
-		if (!empty($_W['setting']['copyright']['oauth_bind'])) {
-			if ($record['register_type'] == USER_REGISTER_TYPE_QQ || $record['register_type'] == USER_REGISTER_TYPE_WECHAT) {
-				if (!$record['is_bind'] && empty($_W['isfounder'])) {
-					message('您还没有注册账号，请前往注册', url('user/third-bind/bind_oauth', array('uid' => $record['uid'], 'type' => $record['type'])));
-					exit;
-				}
-			}
-		}
-
-		if (($_GPC['login_type'] == 'qq' || $_GPC['login_type'] == 'wechat') && !empty($_W['setting']['copyright']['oauth_bind']) && !$record['is_bind'] && empty($_W['isfounder']) && ($record['register_type'] == USER_REGISTER_TYPE_QQ || $record['register_type'] == USER_REGISTER_TYPE_WECHAT)) {
-			message('您还没有注册账号，请前往注册', url('user/third-bind/bind_oauth', array('uid' => $record['uid'], 'type' => $record['type'])));
+		$support_login_bind_types = Oauth2CLient::supportThirdLoginBindType();
+		if (in_array($_GPC['login_type'], $support_login_bind_types) && !empty($_W['setting']['copyright']['oauth_bind']) && !$record['is_bind'] && empty($_W['isfounder']) && ($record['register_type'] == USER_REGISTER_TYPE_QQ || $record['register_type'] == USER_REGISTER_TYPE_WECHAT)) {
+			message('您还没有注册账号，请前往注册', url('user/third-bind/bind_oauth', array('uid' => $record['uid'], 'openid' => $record['openid'], 'register_type' => $record['register_type'])));
 			exit;
 		}
 
@@ -89,7 +81,7 @@ function _login($forward = '') {
 		$cookie['uid'] = $record['uid'];
 		$cookie['lastvisit'] = $record['lastvisit'];
 		$cookie['lastip'] = $record['lastip'];
-		$cookie['hash'] = $record['hash'];
+		$cookie['hash'] = !empty($record['hash']) ? $record['hash'] : md5($record['password'] . $record['salt']);
 		$session = authcode(json_encode($cookie), 'encode');
 		isetcookie('__session', $session, !empty($_GPC['rember']) ? 7 * 86400 : 0, true);
 		$status = array();

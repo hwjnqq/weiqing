@@ -22,7 +22,6 @@ if ($do == 'template') {
 	$setting = uni_setting($_W['uniacid'], array('default_site'));
 	$site_multi_info = $site_multi_table->getById($setting['default_site']);
 	$setting['styleid'] = $site_multi_info['styleid'];
-	$_W['page']['title'] = '风格管理 - 网站风格设置 - 微站功能';
 	$site_styles_table->searchWithTemplates();
 	$site_styles_table->where('a.uniacid', $_W['uniacid']);
 	if (!empty($_GPC['keyword'])) {
@@ -243,7 +242,6 @@ if ($do == 'designer') {
 
 if ($do == 'module') {
 	// permission_check_account_user('site_style_module');
-	$_W['page']['title'] = '模块扩展模板说明 - 网站风格设置 - 微站功能';
 	if (empty($_W['isfounder'])) {
 		itoast('您无权进行该操作！', '', '');
 	}
@@ -275,8 +273,6 @@ if ($do == 'module') {
 	}
 	template('site/style');
 }
-
-
 
 if ($do == 'build') {
 	$templateid = intval($_GPC['styleid']);
@@ -322,9 +318,6 @@ if ($do == 'build') {
 
 if ($do == 'copy') {
 	$styleid = intval($_GPC['styleid']);
-
-
-
 
 	$style = $site_styles_table->getById($styleid);
 	if (empty($style)) {

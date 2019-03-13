@@ -158,21 +158,30 @@ if ($do == 'display') {
 	}
 	template('site/category-post');
 } elseif ($do == 'delete') {
+	$owner_info = account_owner($_W['uniacid']);
 	if (checksubmit('submit')) {
-		foreach ($_GPC['rid'] as $key => $id) {
+		if (user_is_founder($_W['uid']) || $_W['uid'] == $owner_info['uid']) {
+			foreach ($_GPC['rid'] as $key => $id) {
+				$category_delete = article_category_delete($id);
+				if (empty($category_delete)) {
+					itoast('抱歉，分类不存在或是已经被删除！', referer(), 'error');
+				}
+			}
+			itoast('分类批量删除成功！', referer(), 'success');
+		} else {
+			itoast('操作失败！', referer(), 'error');
+		}
+	} else {
+		$id = intval($_GPC['id']);
+		if (user_is_founder($_W['uid']) || $_W['uid'] == $owner_info['uid']) {
 			$category_delete = article_category_delete($id);
 			if (empty($category_delete)) {
 				itoast('抱歉，分类不存在或是已经被删除！', referer(), 'error');
 			}
+			itoast('分类删除成功！', referer(), 'success');
+		} else {
+			itoast('操作失败！', referer(), 'error');
 		}
-		itoast('分类批量删除成功！', referer(), 'success');
-	} else {
-		$id = intval($_GPC['id']);
-		$category_delete = article_category_delete($id);
-		if (empty($category_delete)) {
-			itoast('抱歉，分类不存在或是已经被删除！', referer(), 'error');
-		}
-		itoast('分类删除成功！', referer(), 'success');
 	}
 } else if ($do == 'change_status') {
 	$id = intval($_GPC['id']);

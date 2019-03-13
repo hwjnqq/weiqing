@@ -159,8 +159,6 @@ class WeixinAccount extends WeAccount {
 
 		$key = base64_decode($encodingaeskey . '=');
 		$text = random(16) . pack("N", strlen($text)) . $text . $appid;
-		$size = mcrypt_get_block_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC);
-		$module = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_CBC, '');
 		$iv = substr($key, 0, 16);
 		$block_size = 32;
 		$text_length = strlen($text);
@@ -176,11 +174,9 @@ class WeixinAccount extends WeAccount {
 			$tmp .= $pad_chr;
 		}
 		$text = $text . $tmp;
-		mcrypt_generic_init($module, $key, $iv);
-		//加密
-		$encrypted = mcrypt_generic($module, $text);
-		mcrypt_generic_deinit($module);
-		mcrypt_module_close($module);
+
+		//php7不支持mcrypt,换成openssl
+		$encrypted = openssl_encrypt($text, 'AES-256-CBC', $key, OPENSSL_RAW_DATA|OPENSSL_ZERO_PADDING, $iv);
 		//加密后的消息
 		$encrypt_msg = base64_encode($encrypted);
 		//生成的签名
@@ -215,13 +211,9 @@ class WeixinAccount extends WeAccount {
 		}
 		//对消息进行解密
 		$ciphertext_dec = base64_decode($packet['encrypt']);
-		$module = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_CBC, '');
 		$iv = substr($key, 0, 16);
-		mcrypt_generic_init($module, $key, $iv);
-		$decrypted = mdecrypt_generic($module, $ciphertext_dec);
-		mcrypt_generic_deinit($module);
-		mcrypt_module_close($module);
-		$block_size = 32;
+		//php7不支持mcrypt,换成openssl
+		$decrypted = openssl_decrypt($ciphertext_dec, 'AES-256-CBC', $key, OPENSSL_RAW_DATA|OPENSSL_ZERO_PADDING, $iv);
 
 		$pad = ord(substr($decrypted, -1));
 		if ($pad < 1 || $pad > 32) {
@@ -543,6 +535,7 @@ class WeixinAccount extends WeAccount {
 		$result['city'] = hex2bin(html_entity_decode($result['city']));
 		$result['province'] = hex2bin(html_entity_decode($result['province']));
 		$result['country'] = hex2bin(html_entity_decode($result['country']));
+		$result['headimgurl'] = str_replace('http:', 'https:', $result['headimgurl']);
 		unset($result['remark'], $result['subscribe_scene'], $result['qr_scene'], $result['qr_scene_str']);
 		if(empty($result)) {
 			return error(-1, "接口调用失败, 元数据: {$response['meta']}");
@@ -1242,15 +1235,14 @@ class WeixinAccount extends WeAccount {
 		if($group == - 1) {
 			$is_to_all = true;
 		}
+		$send_conent = ($msgtype == 'text') ? array('content' => $media_id) : array('media_id' => $media_id);
 		$data = array(
 				'filter' => array(
 						'is_to_all' => $is_to_all,
 						'group_id' => $group
 				),
 				'msgtype' => $types[$msgtype],
-				$types[$msgtype] => array(
-						'media_id' => $media_id
-				)
+				$types[$msgtype] => $send_conent
 		);
 		if($msgtype == 'wxcard') {
 			unset($data['wxcard']['media_id']);
@@ -1261,7 +1253,7 @@ class WeixinAccount extends WeAccount {
 			return $token;
 		}
 		$url = "https://api.weixin.qq.com/cgi-bin/message/mass/sendall?access_token={$token}";
-		$data = urldecode(json_encode($data));
+		$data = urldecode(json_encode($data, JSON_UNESCAPED_UNICODE));
 		$response = ihttp_request($url, $data);
 		if(is_error($response)) {
 			return error(-1, "访问公众平台接口失败, 错误: {$response['message']}");
@@ -1307,7 +1299,7 @@ class WeixinAccount extends WeAccount {
 			);
 		}
 
-		$response = ihttp_request($url, json_encode($send));
+		$response = ihttp_request($url, json_encode($send, JSON_UNESCAPED_UNICODE));
 		if(is_error($response)) {
 			return error(-1, "访问公众平台接口失败, 错误: {$response['message']}");
 		}
@@ -2060,7 +2052,7 @@ class WeixinAccount extends WeAccount {
 	 */
 	public function getMaterialSupport() {
 		return array(
-			'mass' => array('news'=> false, 'image'=> false,'voice'=> false,'video'=> false),
+			'mass' => array('basic' => false, 'news'=> false, 'image'=> false,'voice'=> false,'video'=> false),
 			'chats' => array('basic'=> false,'news'=> false,'image'=> false,'music'=> false,'voice'=> false,'video'=> false)
 		);
 	}

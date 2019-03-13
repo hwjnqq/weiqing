@@ -10,7 +10,6 @@ load()->model('account');
 $dos = array('save_setting', 'display');
 $do = in_array($do, $dos) ? $do : 'display';
 permission_check_account_user('profile_payment_refund');
-$_W['page']['title'] = '退款参数 - 公众号选项';
 
 if ($do == 'display') {
 	$setting = uni_setting_load('payment', $_W['uniacid']);

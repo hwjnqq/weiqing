@@ -13,8 +13,6 @@ $do = in_array($do, $dos) ? $do : 'news';
 
 permission_check_account_user('platform_material');
 
-$_W['page']['title'] = '新增素材-微信素材';
-
 if ($do == 'tomedia') {
 	iajax('0', tomedia($_GPC['url']), '');
 }

@@ -1,7 +1,7 @@
 <?php
 /**
  * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -29,9 +29,19 @@ function template_page($id, $flag = TEMPLATE_DISPLAY) {
 	}
 	$page['html'] = str_replace(array('<?', '<%', '<?php', '{php'), '_', $page['html']);
 	$page['html'] = preg_replace('/<\s*?script.*(src|language)+/i', '_', $page['html']);
+
+	$script_start = "<sc<x>ript type=\"text/ja<x>vasc<x>ript\">";
+	$script_end = "</sc<x>ript>";
+	$count_down_script = <<<EOF
+$(document).ready(function(){\r\n\t\t\t\t\tsetInterval(function(){\r\n\t\t\t\t\t\tvar timer = $('.timer');\r\n\t\t\t\t\t\tfor (var i = 0; i < timer.length; i++) {\r\n\t\t\t\t\t\t\tvar dead = $(timer.get(i)).attr('data');\r\n\t\t\t\t\t\t\tvar deadtime = dead.replace(/-/g,'/');\r\n\t\t\t\t\t\t\tdeadtime = new Date(deadtime).getTime();\r\n\t\t\t\t\t\t\tvar nowtime = Date.parse(Date());\r\n\t\t\t\t\t\t\tvar diff = deadtime - nowtime > 0 ? deadtime - nowtime : 0;\r\n\t\t\t\t\t\t\tvar res = {};\r\n\t\t\t\t\t\t\tres.day = parseInt(diff / (24 * 60 * 60 * 1000));\r\n\t\t\t\t\t\t\tres.hour = parseInt(diff / (60 * 60 * 1000) % 24);\r\n\t\t\t\t\t\t\tres.min = parseInt(diff / (60 * 1000) % 60);\r\n\t\t\t\t\t\t\tres.sec = parseInt(diff / 1000 % 60);\r\n\t\t\t\t\t\t\t$('.timer[data="'+dead+'"] .day').text(res.day);\r\n\t\t\t\t\t\t\t$('.timer[data="'+dead+'"] .hours').text(res.hour);\r\n\t\t\t\t\t\t\t$('.timer[data="'+dead+'"] .minutes').text(res.min);\r\n\t\t\t\t\t\t\t$('.timer[data="'+dead+'"] .seconds').text(res.sec);\r\n\t\t\t\t\t\t};\r\n\t\t\t\t\t}, 1000);\r\n\t\t\t\t});
+EOF;
+	if (strexists($page['html'], $script_start . $count_down_script . $script_end)) {
+		$page['html'] = str_replace($script_start . $count_down_script . $script_end, "<script type=text/javascript>" . $count_down_script . "</script>", $page['html']);
+	}
+
 	$page['params'] = json_decode($page['params'], true);
 	$GLOBALS['title'] = htmlentities($page['title'], ENT_QUOTES, 'UTF-8');
-	$GLOBALS['_share'] = array('desc' => $page['description'], 'title' => $page['title'], 'imgUrl' => tomedia($page['params']['0']['params']['thumb']));;
+	$GLOBALS['_share'] = array('desc' => $page['description'], 'title' => $page['title'], 'imgUrl' => tomedia($page['params']['0']['params']['thumb']));
 
 	$compile = IA_ROOT . "/data/tpl/app/{$id}.{$_W['template']}.tpl.php";
 	$path = dirname($compile);

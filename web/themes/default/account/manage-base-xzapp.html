@@ -12,18 +12,18 @@
 		</tr>
 		<tr>
 			<td class="table-label">头像</td>
-			<td><img ng-src="{{other.headimgsrc}}" width="75px" height="75px" /></td>
-			<td><div class="link-group"><a href="javascript:;" ng-click="changeImage('headimgsrc','{$uniacid}')">修改</a></div></td>
+			<td><img ng-src="{{other.headimgsrc}}" class="account-img" /></td>
+			<td class="text-right"><div class="link-group"><a href="javascript:;" ng-click="changeImage('headimgsrc','{$uniacid}')">修改</a></div></td>
 		</tr>
 		<tr>
 			<td class="table-label">熊掌号名称</td>
 			<td ng-bind="account.name"></td>
-			<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#name" ng-click="editInfo('name', account.name)">修改</a></div></td>
+			<td class="text-right"><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#name" ng-click="editInfo('name', account.name)">修改</a></div></td>
 		</tr>
 		<tr>
 			<td class="table-label">熊掌号ID</td>
 			<td ng-bind="account.original"></td>
-			<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#original" ng-click="editInfo('original', account.original)">修改</a></div></td>
+			<td class="text-right"><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#original" ng-click="editInfo('original', account.original)">修改</a></div></td>
 		</tr>
 		<tr>
 			<td class="table-label">类型</td>
@@ -32,13 +32,13 @@
 			<td ng-if="account.level == 3">企业</td>
 			<td ng-if="account.level == 4">政府</td>
 			<td ng-if="account.level == 5">其他组织</td>
-			<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#level" ng-click="editInfo('level', account.level)">修改</a></div></td>
+			<td class="text-right"><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#level" ng-click="editInfo('level', account.level)">修改</a></div></td>
 		</tr>
 		<tr>
 			<td class="table-label">接入方式</td>
 			<td ng-if="account.type == 9">普通接入</td>
 			<td ng-if="account.type == 10">授权接入</td>
-			<td ng-if="authstate && authurl">
+			<td class="text-right" ng-if="authstate && authurl">
 				<div class="link-group">
 					<a href="javascript:;" data-toggle="modal" data-target="#jointype" ng-click="editInfo('type', account.type)">修改</a>
 				</div>
@@ -48,7 +48,7 @@
 		<tr>
 			<td class="table-label">到期时间</td>
 			<td><span ng-bind="account.end"></span><span class="color-gray"></span></td>
-			<td>
+			<td class="text-right">
 				<div class="link-group" ng-if="founder || owner">
 					<a href="javascript:;" data-toggle="modal" data-target="#endtype" ng-click="editInfo('endtype', account.endtype)">修改</a>
 					
@@ -56,12 +56,12 @@
 			</td>
 		</tr>
 		<tr>
-			<td class="table-label">附件空间</td>
+			<td class="table-label">本地附件空间</td>
 			<td>
 				<span ng-if="account.attachment_limit != -1">{{account.attachment_limit}}M</span>
 				<span ng-if="account.attachment_limit == -1">不限</span>
 			</td>
-			<td>
+			<td class="text-right">
 				<div class="link-group" ng-if="founder || owner">
 					<a href="javascript:;" data-toggle="modal" data-target="#attachment_limit" ng-click="editInfo('attachment_limit', account.attachment_limit)">修改</a>
 				</div>
@@ -209,7 +209,7 @@
 	
 
 	<!-- 修改熊掌号 appid appsecret-->
-	<table class="table we7-table table-hover table-form wechat-menu">
+	<table class="table we7-table table-hover table-form">
 		<col width="140px " />
 		<col />
 		<col width="100px" />
@@ -267,7 +267,7 @@
 	</div>
 
 	<!-- 服务器配置-->
-	<table class="table wechat-communication">
+	<table class="table we7-table">
 		<col width="160px" />
 		<col />
 		<col width="230px"/>

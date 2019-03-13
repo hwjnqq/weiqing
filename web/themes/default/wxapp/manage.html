@@ -1,8 +1,8 @@
 {template 'common/header'}
 <ol class="breadcrumb we7-breadcrumb">
-	<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL))}"><i class="wi wi-back-circle"></i> </a>
-	<li><a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL))}">小程序管理</a></li>
-	<li>小程序设置</li>
+	<a href="{php echo url('account/manage')}"><i class="wi wi-back-circle"></i> </a>
+	<li><a href="{php echo url('account/manage')}">平台管理</a></li>
+	<li>{php echo $account->typeName}设置</li>
 </ol>
 <div class="media media-wechat-setting">
 	<a class="media-left">
@@ -37,7 +37,7 @@
 <div id="js-account-manage-wxapp" ng-controller="AccountManageWxappCtrl" ng-cloak>
 	<!--版本管理-->
 	<div class="text-right we7-margin-bottom">
-		<a href="{php echo url('wxapp/post/design_method', array('uniacid' => $account['uniacid']))}" class="btn btn-primary" target="_blank">添加新版本</a>
+		<a href="{php echo url('miniapp/post', array('uniacid' => $account['uniacid'], 'type' => $account['type']))}" class="btn btn-primary" target="_blank">添加新版本</a>
 	</div>
 	<table class="table we7-table vertical-middle wxapp-version-table">
 		<tr>
@@ -47,7 +47,7 @@
 			<th class="text-center">最新应用版本</th>
 			<th class="text-right">操作</th>
 		</tr>
-		<tr ng-if="version_exist" ng-repeat="item in wxapp_version_lists">
+		<tr ng-if="wxapp_version_lists" ng-repeat="item in wxapp_version_lists">
 			<td class="text-left">
 				<div class="version" ng-bind="item.version"></div>
 				<div class="color-gray" ng-bind="item.description"></div>
@@ -77,8 +77,10 @@
 				</div>
 			</td>
 		</tr>
-		<tr ng-if="!version_exist">
-			<td colspan="5" class="text-center">暂无数据</td>
+		<tr ng-if="!wxapp_version_lists">
+			<td colspan="5" class="text-center">
+				<div class="we7-empty-block">暂无数据</div>
+			</td>
 		</tr>
 	</table>
 	<div class="modal fade" id="modal_edit_versioninfo"  tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

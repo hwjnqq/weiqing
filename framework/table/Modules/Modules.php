@@ -33,6 +33,8 @@ class Modules extends \We7Table {
 		'aliapp_support',
 		'oauth_type',
 		'phoneapp_support',
+		'baiduapp_support',
+		'toutiaoapp_support',
 	);
 
 	public function bindings() {
@@ -75,7 +77,29 @@ class Modules extends \We7Table {
 		return $this;
 	}
 
-	public function searchWithRecycle() {
-		return $this->query->from('modules', 'a')->select('a.*')->leftjoin('modules_recycle', 'b')->on(array('a.name' => 'b.name'))->where('a.issystem' , 0)->where('b.name', 'NULL')->orderby('a.mid', 'DESC')->getall('name');
+	public function getNonRecycleModules() {
+		load()->model('module');
+		$modules = $this->where('issystem' , 0)->orderby('mid', 'DESC')->getall('name');
+		if (empty($modules)) {
+			return array();
+		}
+		foreach ($modules as &$module) {
+			$module_info = module_fetch($module['name']);
+			if (empty($module_info)) {
+				unset($module);
+			}
+			if (!empty($module_info['recycle_info'])) {
+				foreach (module_support_type() as $support => $value) {
+					if ($module_info['recycle_info'][$support] > 0 && $module_info[$support] == $value['support']) {
+						$module[$support] = $value['not_support'];
+					}
+				}
+			}
+		}
+		return $modules;
+	}
+
+	public function getInstalled() {
+		return $this->query->select(array('name', 'version'))->where(array('issystem' => '0'))->getall('name');
 	}
 }

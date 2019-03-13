@@ -20,7 +20,6 @@ if ($do == 'chats') {
 	$supports = $account_api->getMaterialSupport();
 	$show_chast_content = $supports['chats'];
 
-	$_W['page']['title'] = '粉丝聊天';
 	$openid = addslashes($_GPC['openid']);
 	$fans_info = mc_fansinfo($openid);
 	if (!empty($fans_info['uid'])) {

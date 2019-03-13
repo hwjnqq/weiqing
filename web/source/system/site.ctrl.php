@@ -4,42 +4,67 @@
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
+load()->model('system');
 
-$dos = array('copyright');
-$do = in_array($do, $dos) ? $do : 'copyright';
-$_W['page']['title'] = '站点设置 - 工具  - 系统管理';
+$dos = array('basic', 'copyright', 'about', 'save_setting');
+$do = in_array($do, $dos) ? $do : 'basic';
 $settings = $_W['setting']['copyright'];
-
 if(empty($settings) || !is_array($settings)) {
 	$settings = array();
 } else {
 	$settings['slides'] = iunserializer($settings['slides']);
 }
 
-if ($do == 'copyright') {
+if ($do == 'basic') {
 	
-	if (checksubmit('submit')) {
-		
-		
-			$data = array(
-				'status' => $_GPC['status'],
-				'reason' => $_GPC['reason'],
-				'icp' => safe_gpc_string($_GPC['icp']),
-				'mobile_status' => $settings['mobile_status'],
-				'login_type' => $settings['login_type'],
-				'log_status' => intval($_GPC['log_status']),
-				'develop_status' => intval($_GPC['develop_status']),
-				'bind' => $settings['bind'],
-				'welcome_link' => $settings['welcome_link'],
-			);
-		
+}
 
-		$test = setting_save($data, 'copyright');
+if ($do == 'save_setting') {
+	$system_setting_items = system_setting_items();
+	$key = safe_gpc_string($_GPC['key']);
 
-		
-
-		itoast('更新设置成功！', url('system/site'), 'success');
+	switch ($key) {
+		case 'statcode':
+			$settings[$key] = system_check_statcode($_GPC['value']);
+			break;
+		case 'url':
+			$settings[$key] = (strexists($_GPC['value'], 'http://') || strexists($_GPC['value'], 'https://')) ? $_GPC['value'] : "http://{$_GPC['value']}";
+			break;
+		case 'footerleft':
+			$settings[$key] = safe_gpc_html(htmlspecialchars_decode($_GPC['value']));
+			break;
+		case 'footerright':
+			$settings[$key] = safe_gpc_html(htmlspecialchars_decode($_GPC['value']));
+			break;
+		case 'slides':
+			$settings[$key] = iserializer($_GPC['value']);
+			break;
+		case 'companyprofile':
+			$settings[$key] = safe_gpc_html(htmlspecialchars_decode($_GPC['value']));
+			break;
+		case 'template':
+			break;
+		case 'baidumap':
+			break;
+		default:
+			$settings[$key] = $_GPC['is_int'] == 1 ? intval($_GPC['value']) : safe_gpc_string($_GPC['value']);
+			break;
 	}
+
+	if (!in_array($key, $system_setting_items)) {
+		iajax(-1, '参数错误！', url('system/site'));
+	}
+
+	if ($key == 'template') {
+		setting_save(array('template' => safe_gpc_string($_GPC['value'])), 'basic');
+	} else if($key = 'baidumap') {
+		$settings['baidumap'] = array('lng' => $_GPC['lng'], 'lat' => $_GPC['lat']);
+		setting_save($settings, 'copyright');
+	} else {
+		setting_save($settings, 'copyright');
+	}
+
+	iajax(0, '更新设置成功！', referer());
 }
 
 template('system/site');

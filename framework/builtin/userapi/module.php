@@ -52,6 +52,7 @@ class UserapiModule extends WeModule {
 
 	public function fieldsFormSubmit($rid = 0) {
 		global $_GPC, $_W;
+		permission_check_account_user('platform_reply_userapi');
 		$reply = array(
 			'rid' => $rid,
 			'description' => $_GPC['description'],
@@ -74,6 +75,7 @@ class UserapiModule extends WeModule {
 	}
 
 	public function ruleDeleted($rid = 0) {
+		permission_check_account_user('platform_reply_userapi');
 		pdo_delete($this->tablename, array('rid' => $rid));
 	}
 

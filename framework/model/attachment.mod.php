@@ -183,3 +183,20 @@ function attachment_reset_uniacid($uniacid) {
 	}
 	return true;
 }
+
+/**
+ * 更换远程附件的 url 时，修改系统文章的图片url
+ * @param $old_url
+ * @param $new_url
+ * @return mixed
+ */
+function attachment_replace_article_remote_url($old_url, $new_url) {
+	if (empty($old_url) || empty($new_url) || $old_url == $new_url) {
+		return false;
+	}
+	$content_exists = pdo_get('article_news', array('content LIKE' => "%{$old_url}%"));
+	if (!empty($content_exists)) {
+		$update_sql = "UPDATE " . tablename('article_news') . " SET `content`=REPLACE(content, :old_url, :new_url)";
+		return pdo_query($update_sql, array(':old_url' => $old_url, ':new_url' => $new_url));
+	}
+}

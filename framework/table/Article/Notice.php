@@ -32,15 +32,27 @@ class Notice extends \We7Table {
 		'group' => '',
 	);
 
-	public function getArticleNoticeLists($order) {
-		return $this->query->from($this->tableName)->orderby($order, 'DESC')->getall();
+	public function getList() {
+		$data = $this->getall();
+		if (empty($data)) {
+			return array();
+		}
+		foreach ($data as $key => $row) {
+			$data[$key]['style'] = iunserializer($row['style']);
+			$data[$key]['group'] = iunserializer($row['group']);
+		}
+		return $data;
 	}
 
 	public function searchWithCreatetimeRange($time) {
-		return $this->query->where('createtime >=', strtotime("-{$time} days"));
+		return $this->where('createtime >=', strtotime("-{$time} days"));
 	}
 
 	public function searchWithTitle($title) {
-		return $this->query->where('title LIKE', "%{$title}%");
+		return $this->where('title LIKE', "%{$title}%");
+	}
+
+	public function searchWithIsDisplay() {
+		return $this->where('is_display', 1);
 	}
 }

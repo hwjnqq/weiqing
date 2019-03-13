@@ -9,7 +9,6 @@ load()->model('setting');
 
 $dos = array('display', 'add', 'delete');
 $do = in_array($_GPC['do'], $dos)? $do : 'display';
-$_W['page']['title'] = '站点管理 - 设置 - 敏感词过滤';
 
 $words_list = setting_load('sensitive_words');
 $words_list = !empty($words_list['sensitive_words']) ? $words_list['sensitive_words'] : array();

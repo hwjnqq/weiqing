@@ -30,28 +30,26 @@ class ArticleComment extends \We7Table {
 		'createtime' => '',
 	);
 
-	public function articleCommentList() {
+	public function getAllByCurrentUniacid()	{
 		global $_W;
-		return $this->query->from($this->tableName)->where('uniacid', $_W['uniacid'])->getall();
+		return $this->where('uniacid', $_W['uniacid'])->getall();
 	}
 
-
-	public function articleCommentOrder($order = 'DESC') {
-		$order = !empty($order) ? $order : 'DESC';
-		return $this->query->orderby('id', $order);
-	}
-
-	public function articleCommentAdd($comment) {
+	public function addComment($comment) {
 		if (!empty($comment['parentid'])) {
-			table('site_article_comment')->where('id', $comment['parentid'])->fill('iscomment', ARTICLE_COMMENT)->save();
+			$this->where('id', $comment['parentid'])->fill('iscomment', ARTICLE_COMMENT)->save();
 		}
 		$comment['createtime'] = TIMESTAMP;
-		table('site_article_comment')->fill($comment)->save();
-		return true;
+		return $this->fill($comment)->save();
 	}
 
-	public function srticleCommentUnread($articleIds) {
+	public function srticleCommentUnread($article_ids) {
 		global $_W;
-		return $this->query->from($this->tableName)->select('articleid, count(*) as count')->where('uniacid', $_W['uniacid'])->where('articleid', $articleIds)->where('is_read', ARTICLE_COMMENT_NOREAD)->groupby('articleid')->getall('articleid');
+		return $this->query->select('articleid, count(*) as count')
+			->where('uniacid', $_W['uniacid'])
+			->where('articleid', $article_ids)
+			->where('is_read', ARTICLE_COMMENT_NOREAD)
+			->groupby('articleid')
+			->getall('articleid');
 	}
 }

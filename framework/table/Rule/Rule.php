@@ -15,14 +15,16 @@ class Rule extends \We7Table {
 		'displayorder',
 		'status',
 		'reply_type',
+
 	);
 	protected $default = array(
-		'uniacid' => 0,
+		'uniacid' => '0',
 		'name' => '',
 		'module' => '',
 		'containtype' => '',
-		'displayorder' => 0,
-		'status' => 1,
-		'reply_type' => 1,
+		'displayorder' => '0',
+		'status' => '1',
+		'reply_type' => '1',
+
 	);
 }

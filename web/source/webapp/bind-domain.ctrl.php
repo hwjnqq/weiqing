@@ -8,9 +8,6 @@ defined('IN_IA') or exit('Access Denied');
 $dos = array('bind_domain', 'delete', 'default_module');
 $do = in_array($do, $dos) ? $do : 'bind_domain';
 
-$_W['page']['title'] = '域名访问设置';
-
-
 if ($do == 'bind_domain') {
 	
 	$modulelist = uni_modules();

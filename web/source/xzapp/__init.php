@@ -5,8 +5,8 @@
  */
 defined('IN_IA') or exit('Access Denied');
 $account_api = WeAccount::createByUniacid();
-if ($action == 'manage' || $action == 'post-step') {
-	define('FRAME', 'system');
+if ($action == 'post-step') {
+	define('FRAME', '');
 } else {
 	define('FRAME', $account_api->menuFrame);
 }

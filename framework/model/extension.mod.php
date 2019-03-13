@@ -18,15 +18,33 @@ function ext_module_convert($manifest) {
 		$webapp_support = in_array('webapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_WEBAPP : MODULE_NOSUPPORT_WEBAPP;
 		$xzapp_support = in_array('xzapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_XZAPP : MODULE_NOSUPPORT_XZAPP;
 		$aliapp_support = in_array('aliapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_ALIAPP : MODULE_NOSUPPORT_ALIAPP;
+		$baiduapp_support = in_array('baiduapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_BAIDUAPP : MODULE_NOSUPPORT_BAIDUAPP;
+		$toutiaoapp_support = in_array('toutiaoapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_TOUTIAOAPP : MODULE_NOSUPPORT_TOUTIAOAPP;
 		$android_support = in_array('android', $manifest['platform']['supports']) ? MODULE_SUPPORT_ANDROID : MODULE_NOSUPPORT_ANDROID;
 		$ios_support = in_array('ios', $manifest['platform']['supports']) ? MODULE_SUPPORT_IOS : MODULE_NOSUPPORT_IOS;
 		$phoneapp_support = ($android_support == MODULE_SUPPORT_ANDROID || $ios_support == MODULE_SUPPORT_IOS) ? MODULE_SUPPORT_PHONEAPP : MODULE_NOSUPPORT_PHONEAPP;
-		if ($app_support == MODULE_NONSUPPORT_ACCOUNT && $wxapp_support == MODULE_NONSUPPORT_WXAPP && $welcome_support == MODULE_NONSUPPORT_SYSTEMWELCOME && $webapp_support == MODULE_NOSUPPORT_WEBAPP && $phoneapp_support == MODULE_NOSUPPORT_PHONEAPP) {
+		if ($app_support == MODULE_NONSUPPORT_ACCOUNT
+			&& $wxapp_support == MODULE_NONSUPPORT_WXAPP
+			&& $welcome_support == MODULE_NONSUPPORT_SYSTEMWELCOME
+			&& $webapp_support == MODULE_NOSUPPORT_WEBAPP
+			&& $xzapp_support == MODULE_NOSUPPORT_XZAPP
+			&& $aliapp_support == MODULE_NOSUPPORT_ALIAPP
+			&& $baiduapp_support == MODULE_NOSUPPORT_BAIDUAPP
+			&& $toutiaoapp_support == MODULE_NOSUPPORT_TOUTIAOAPP
+			&& $phoneapp_support == MODULE_NOSUPPORT_PHONEAPP
+		) {
 			$app_support = MODULE_SUPPORT_ACCOUNT;
 		}
 	} else {
 		$app_support = MODULE_SUPPORT_ACCOUNT;
 		$wxapp_support = MODULE_NONSUPPORT_WXAPP;
+		$welcome_support = MODULE_NONSUPPORT_SYSTEMWELCOME;
+		$webapp_support = MODULE_NOSUPPORT_WEBAPP;
+		$xzapp_support = MODULE_NOSUPPORT_XZAPP;
+		$aliapp_support = MODULE_NOSUPPORT_ALIAPP;
+		$baiduapp_support = MODULE_NOSUPPORT_BAIDUAPP;
+		$toutiaoapp_support = MODULE_NOSUPPORT_TOUTIAOAPP;
+		$phoneapp_support = MODULE_NOSUPPORT_PHONEAPP;
 	}
 	return array(
 		'name' => $manifest['application']['identifie'],
@@ -58,6 +76,8 @@ function ext_module_convert($manifest) {
 		'phoneapp_support' => $phoneapp_support,
 		'xzapp_support' => $xzapp_support,
 		'aliapp_support' => $aliapp_support,
+		'baiduapp_support' => $baiduapp_support,
+		'toutiaoapp_support' => $toutiaoapp_support,
 		'welcome_support' => $welcome_support,
 		'shortcut' => $manifest['bindings']['shortcut'],
 		'function' => $manifest['bindings']['function'],

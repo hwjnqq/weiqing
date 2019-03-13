@@ -326,7 +326,7 @@ function ihttp_build_curl($url, $post, $extra, $timeout) {
 	}
 	curl_setopt($ch, CURLOPT_URL, $urlset['scheme'] . '://' . $urlset['host'] . ($urlset['port'] == '80' || empty($urlset['port']) ? '' : ':' . $urlset['port']) . $urlset['path'] . $urlset['query']);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-	//@curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+	@curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 	curl_setopt($ch, CURLOPT_HEADER, 1);
 	@curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
 	if ($post) {

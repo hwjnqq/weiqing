@@ -18,18 +18,18 @@ $account_platform = new WxappPlatform();
 if ($do == 'forward') {
 
 	if (empty($_GPC['auth_code'])) {
-		itoast('授权登录失败，请重试', url('wxapp/manage'), 'error');
+		itoast('授权登录失败，请重试', url('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL)), 'error');
 	}
 	$auth_info = $account_platform->getAuthInfo($_GPC['auth_code']);
 	if (is_error($auth_info)) {
-		itoast('授权登录新建小程序失败：' . $auth_info['message'], url('wxapp/manage'), 'error');
+		itoast('授权登录新建小程序失败：' . $auth_info['message'], url('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL)), 'error');
 	}
 	$auth_refresh_token = $auth_info['authorization_info']['authorizer_refresh_token'];
 	$auth_appid = $auth_info['authorization_info']['authorizer_appid'];
 
 	$account_info = $account_platform->getAuthorizerInfo($auth_appid);
 	if (is_error($account_info)) {
-		itoast('授权登录新建小程序失败：' . $account_info['message'], url('wxapp/manage'), 'error');
+		itoast('授权登录新建小程序失败：' . $account_info['message'], url('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL)), 'error');
 	}
 	if (!empty($_GPC['test'])) {
 		echo "此为测试平台接入返回结果：<br/> 小程序名称：{$account_info['authorizer_info']['nick_name']} <br/> 接入状态：成功";
@@ -55,9 +55,9 @@ if ($do == 'forward') {
 		'auth_refresh_token'=>$auth_refresh_token,
 		'token' => $account_platform->token,
 	);
-	$uniacid = miniapp_create($account_wxapp_data, ACCOUNT_TYPE_APP_AUTH);
+	$uniacid = miniapp_create($account_wxapp_data);
 	if (!$uniacid) {
-		itoast('授权登录新建小程序失败，请重试', url('wxapp/manage'), 'error');
+		itoast('授权登录新建小程序失败，请重试', url('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL)), 'error');
 	}
 
 	$headimg = ihttp_request($account_info['authorizer_info']['head_img']);
@@ -75,6 +75,16 @@ if ($do == 'confirm') {
 	$level = intval($_GPC['level']);
 	$acid = intval($_GPC['acid']);
 	$uniacid = intval($_GPC['uniacid']);
+
+	if (user_is_founder($_W['uid'])) {
+		$user_accounts = table('account')->getUniAccountList();
+	} else {
+		$user_accounts = uni_user_accounts($_W['uid'], 'wxapp');
+	}
+	$user_accounts = array_column($user_accounts, 'uniacid');
+	if (empty($user_accounts) || !in_array($uniacid, $user_accounts)) {
+		itoast('账号或用户信息错误!', url('account/post', array('acid' => $acid, 'uniacid' => $uniacid)), 'error');
+	}
 
 	pdo_update('account_wxapp', array(
 		'auth_refresh_token' => $auth_refresh_token,

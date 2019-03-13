@@ -4,8 +4,8 @@
  * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
-define('CLOUD_GATEWAY_URL', 'https://v2.addons.we7.cc/gateway.php');
-define('CLOUD_GATEWAY_URL_NORMAL', 'http://v2.addons.we7.cc/gateway.php');
+define('CLOUD_GATEWAY_URL', 'https://api-upgrade.w7.cc/gateway.php');
+define('CLOUD_GATEWAY_URL_NORMAL', 'http://api-upgrade.w7.cc/gateway.php');
 
 function cloud_client_define() {
 	return array(
@@ -19,14 +19,16 @@ function cloud_client_define() {
 	);
 }
 
-function _cloud_build_params() {
+/**
+ * @param bool $must_authorization_host 是否校验授权域名请求接口
+ * @return array
+ */
+function _cloud_build_params($must_authorization_host = true) {
 	global $_W;
 	$pars = array();
-	if (is_array($_W['setting']['site']) && !empty($_W['setting']['site']['url'])) {
+	$pars['host'] = $_SERVER['HTTP_HOST'];
+	if (is_array($_W['setting']['site']) && !empty($_W['setting']['site']['url']) && !$must_authorization_host) {
 		$pars['host'] = parse_url($_W['setting']['site']['url'], PHP_URL_HOST);
-	}
-	if (empty($pars['host'])) {
-		$pars['host'] = $_SERVER['HTTP_HOST'];
 	}
 	$pars['family'] = IMS_FAMILY;
 	$pars['version'] = IMS_VERSION;
@@ -67,7 +69,13 @@ function _cloud_shipping_parse($dat, $file) {
 	if ($dat['content'] == 'blacklist') {
 		return error(-1, '抱歉，您的站点已被列入云服务黑名单，云服务一切业务已被禁止，请联系微擎客服！');
 	}
+
 	if (strlen($dat['content']) != 32) {
+		$content = json_decode($dat['content'], true);
+		if (!empty($content) && is_array($content)) {
+			return $content;
+		}
+
 		$dat['content'] = iunserializer($dat['content']);
 		if (is_array($dat['content']) && isset($dat['content']['files'])) {
 			if (!empty($dat['content']['manifest'])) {
@@ -112,14 +120,36 @@ function cloud_request($url, $post = '', $extra = array(), $timeout = 60) {
 	if (!empty($_W['setting']['cloudip']['ip']) && empty($extra['ip'])) {
 		$extra['ip'] = $_W['setting']['cloudip']['ip'];
 	}
-	if (strexists($url, 's.we7.cc')) {
+	if (strexists($url, 's.w7.cc')) {
 		$extra = array();
 	}
+
 	$response = ihttp_request($url, $post, $extra, $timeout);
 	if (is_error($response)) {
 		setting_save(array(), 'cloudip');
 	}
 	return $response;
+}
+
+function cloud_api($method, $data = array()) {
+	$cache_key = cache_system_key($method);
+	$cache = cache_load($cache_key);
+	if (!empty($cache) && $cache['expire'] > time()) {
+		return $cache;
+	}
+	$api_url = 'http://api.w7.cc/%s';
+	$method = rtrim($method, '/');
+
+	if (!strexists($method, '/index')) {
+		$method .= '/index';
+	}
+	$pars = _cloud_build_params();
+	$data = array_merge($pars, $data);
+	$response = ihttp_request(sprintf($api_url, $method), $data);
+	$file = IA_ROOT . '/data/' . $method;
+	$ret = _cloud_shipping_parse($response, $file);
+	cache_write($cache_key, $ret, 300);
+	return $ret;
 }
 
 function cloud_prepare() {
@@ -137,69 +167,96 @@ function cloud_build() {
 		message('下列文件或是目录无读写权限，导致无法进行系统更新，请及时修复，如有疑问请提交工单或联系客服: <br />' . implode('; <br />', $error_file_list), '', 'error');
 	}
 	$pars = _cloud_build_params();
-	$pars['method'] = 'application.build3';
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
+	$pars['method'] = 'application.build4';
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/application.build';
 	$ret = _cloud_shipping_parse($dat, $file);
-	if(!is_error($ret)) {
-		if($ret['state'] == 'warning') {
-			$ret['files'] = cloud_client_define();
-			unset($ret['schemas']);
-			unset($ret['scripts']);
-		} else {
-			$files = array();
-			if(!empty($ret['files'])) {
-				foreach($ret['files'] as $file) {
-					$entry = IA_ROOT . $file['path'];
-					if(!is_file($entry) || md5_file($entry) != $file['checksum']) {
-						$files[] = $file['path'];
-					}
-				}
-			}
-			$ret['files'] = $files;
-			if (!empty($ret['files'])) {
-				cloud_bakup_files($ret['files']);
-			}
-			$schemas = array();
-			if(!empty($ret['schemas'])) {
-				load()->func('db');
-				foreach($ret['schemas'] as $remote) {
-					$name = substr($remote['tablename'], 4);
-					$local = db_table_schema(pdo(), $name);
-					unset($remote['increment']);
-					unset($local['increment']);
-					if(empty($local)) {
-						$schemas[] = $remote;
-					} else {
-						$sqls = db_table_fix_sql($local, $remote);
-						if(!empty($sqls)) {
-							$schemas[] = $remote;
-						}
-					}
-				}
-			}
-			$ret['schemas'] = $schemas;
+
+	if (is_error($ret)) {
+		return $ret;
+	}
+
+	if($ret['state'] == 'warning') {
+		$ret['files'] = cloud_client_define();
+		unset($ret['schemas']);
+		unset($ret['scripts']);
+	} else {
+		$patch_path = sprintf('%s/data/patch/upgrade/%s', IA_ROOT, date('Ymd'));
+		if (!is_dir($patch_path)) {
+			mkdirs($patch_path);
 		}
 
-		if (IMS_FAMILY != $ret['family']) {
-			$update_version_success = setting_upgrade_version($ret['family'], IMS_VERSION, IMS_RELEASE_DATE);
-			if (empty($update_version_success)) {
-				message('切换版本失败，请修改 /framework/version.inc.php 文件权限为 User 可写或是 777', 'refresh', 'error');
-			} else {
-				message('更新系统正在为您自动切换版本', 'refresh');
+		$files = $files_allowed = array();
+		if(!empty($ret['files'])) {
+			foreach($ret['files'] as $file) {
+				$entry = IA_ROOT . $file['path'];
+				if(!is_file($entry) || md5_file($entry) != $file['checksum']) {
+					$files_allowed[] = $file['path'];
+				}
+
+				$entry = $patch_path . $file['path'];
+				if (!is_file($entry)) {
+					$entry = IA_ROOT . $file['path'];
+				}
+				if(!is_file($entry) || md5_file($entry) != $file['checksum']) {
+					$files[] = $file['path'];
+				}
 			}
 		}
-		$ret['upgrade'] = false;
-		if(!empty($ret['files']) || !empty($ret['schemas']) || !empty($ret['scripts'])) {
-			$ret['upgrade'] = true;
+		$ret['files'] = $files;
+		if (!empty($ret['files'])) {
+			cloud_bakup_files($ret['files']);
+		} else {
+			if (!empty($files_allowed)) {
+				foreach ($files_allowed as $file) {
+					$dir = pathinfo(IA_ROOT . $file, PATHINFO_DIRNAME);
+					if (!is_dir($dir)) {
+						mkdirs($dir);
+					}
+					file_put_contents(IA_ROOT . $file, file_get_contents($patch_path . $file));
+				}
+				rmdirs($patch_path);
+			}
 		}
-		$upgrade = array();
-		$upgrade['upgrade'] = $ret['upgrade'];
-		$upgrade['data'] = $ret;
-		$upgrade['lastupdate'] = TIMESTAMP;
-		cache_write(cache_system_key('upgrade'), $upgrade);
-		cache_write(cache_system_key('cloud_transtoken'), authcode($ret['token'], 'ENCODE'));
+		$schemas = array();
+		if(!empty($ret['schemas'])) {
+			load()->func('db');
+			foreach($ret['schemas'] as $remote) {
+				$name = substr($remote['tablename'], 4);
+				$local = db_table_schema(pdo(), $name);
+				unset($remote['increment']);
+				unset($local['increment']);
+				if(empty($local)) {
+					$schemas[] = $remote;
+				} else {
+					$sqls = db_table_fix_sql($local, $remote);
+					if(!empty($sqls)) {
+						$schemas[] = $remote;
+					}
+				}
+			}
+		}
+		$ret['schemas'] = $schemas;
 	}
+
+	if (IMS_FAMILY != $ret['family']) {
+		$update_version_success = setting_upgrade_version($ret['family'], IMS_VERSION, IMS_RELEASE_DATE);
+		if (empty($update_version_success)) {
+			message('切换版本失败，请修改 /framework/version.inc.php 文件权限为 User 可写或是 777', 'refresh', 'error');
+		} else {
+			message('更新系统正在为您自动切换版本', 'refresh');
+		}
+	}
+	$ret['upgrade'] = false;
+	if(!empty($ret['files']) || !empty($ret['schemas']) || !empty($ret['scripts'])) {
+		$ret['upgrade'] = true;
+	}
+	$upgrade = array();
+	$upgrade['upgrade'] = $ret['upgrade'];
+	$upgrade['data'] = $ret;
+	$upgrade['lastupdate'] = TIMESTAMP;
+	cache_write(cache_system_key('upgrade'), $upgrade);
+	cache_write(cache_system_key('cloud_transtoken'), authcode($ret['token'], 'ENCODE'));
 
 	return $ret;
 }
@@ -207,7 +264,7 @@ function cloud_build() {
 function cloud_schema() {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'application.schema';
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/application.schema';
 	$ret = _cloud_shipping_parse($dat, $file);
 	if(!is_error($ret)) {
@@ -235,6 +292,7 @@ function cloud_schema() {
 }
 
 function cloud_download($path, $type = '') {
+	global $_W;
 	$pars = _cloud_build_params();
 	$pars['method'] = 'application.shipping';
 	$pars['path'] = $path;
@@ -242,7 +300,7 @@ function cloud_download($path, $type = '') {
 	$pars['gz'] = function_exists('gzcompress') && function_exists('gzuncompress') ? 'true' : 'false';
 	$pars['download'] = 'true';
 	$headers = array('content-type' => 'application/x-www-form-urlencoded');
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars, $headers, 300);
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars, $headers, 300);
 	if(is_error($dat)) {
 		return error(-1, '网络存在错误， 请稍后重试。' . $dat['message']);
 	}
@@ -271,25 +329,16 @@ function cloud_download($path, $type = '') {
 			if (!cloud_file_permission_pass($error_file_list)) {
 				return error(-1, '请修复下列文件读写权限 : ' . implode('; ', $error_file_list));
 			}
-			$path = IA_ROOT . $ret['path'];
+			//模块和微官网模板无需先放在data下，系统文件需放在data下以防升级时文件没有更新完而报错
+			if ($type == 'module' || $type == 'theme') {
+				$patch_path = IA_ROOT;
+			} else {
+				$patch_path = sprintf('%s/data/patch/upgrade/%s', IA_ROOT, date('Ymd'));
+			}
+			$path = $patch_path . $ret['path'];
 			load()->func('file');
 			@mkdirs(dirname($path));
 			if (file_put_contents($path, $file)) {
-				if (!empty($ret['extend'])) {
-					foreach ($ret['extend'] as $file) {
-						$path = base64_decode($file['path']);
-						$file = base64_decode($file['file']);
-						if (empty($path) || empty($file)) {
-							continue;
-						}
-						if($gz) {
-							$file = gzuncompress($file);
-						}
-						$path = IA_ROOT . $path;
-						@mkdirs(dirname($path));
-						file_put_contents($path, $file);
-					}
-				}
 				return true;
 			} else {
 				return error(-1, '写入失败');
@@ -302,7 +351,7 @@ function cloud_download($path, $type = '') {
 function cloud_m_prepare($name) {
 	$pars['method'] = 'module.check';
 	$pars['module'] = $name;
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
 	if (is_error($dat)) {
 		return $dat;
 	}
@@ -340,7 +389,7 @@ function cloud_m_build($modulename, $type = '') {
 	}
 
 	// 获取应用文件结构
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/module.build';
 	$ret = _cloud_shipping_parse($dat, $file);
 
@@ -393,19 +442,20 @@ function cloud_m_build($modulename, $type = '') {
 function cloud_m_query($module = array()) {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'module.query';
-	if (!empty($module)) {
-		if (!is_array($module)) {
-			$module = array($module);
-		}
-		$pars['module'] = base64_encode(iserializer($module));
+	if (empty($module)) {
+		$module = cloud_extra_module();
 	}
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
+	if (!is_array($module)) {
+		$module = array($module);
+	}
+	$pars['module'] = base64_encode(iserializer($module));
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/module.query';
 	$ret = _cloud_shipping_parse($dat, $file);
 	if (!is_error($ret)) {
 		$pirate_apps = $ret['pirate_apps'];
 		unset($ret['pirate_apps']);
-		$support_names = array('app', 'wxapp', 'webapp', 'system_welcome', 'android', 'ios', 'xzapp', 'aliapp');
+		$support_names = array('app', 'wxapp', 'webapp', 'system_welcome', 'android', 'ios', 'xzapp', 'aliapp', 'baiduapp', 'toutiaoapp');
 
 		foreach ($ret as $modulename => &$info) {
 			foreach ($support_names as $support) {
@@ -424,7 +474,7 @@ function cloud_m_query($module = array()) {
 function cloud_m_bought() {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'module.bought';
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/module.bought';
 	$ret = _cloud_shipping_parse($dat, $file);
 	return $ret;
@@ -434,7 +484,7 @@ function cloud_m_info($name) {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'module.info';
 	$pars['module'] = $name;
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/module.info';
 	$ret = _cloud_shipping_parse($dat, $file);
 	return $ret;
@@ -455,12 +505,15 @@ function cloud_m_upgradeinfo($modulename) {
 	$pars['module'] = $modulename;
 	$pars['curversion'] = $module['version'];
 	$pars['isupgrade'] = 1;
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/module.info';
 	$ret = _cloud_shipping_parse($dat, $file);
 
-	if (empty($ret) || is_error($ret)) {
+	if (empty($ret)) {
 		return array();
+	}
+	if (is_error($ret)) {
+		return $ret;
 	}
 	if (version_compare($ret['version']['version'], $module['version'], '>')) {
 		$ret['upgrade'] = true;
@@ -486,7 +539,7 @@ function cloud_m_upgradeinfo($modulename) {
 function cloud_t_prepare($name) {
 	$pars['method'] = 'theme.check';
 	$pars['theme'] = $name;
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
 	if (is_error($dat)) {
 		return $dat;
 	}
@@ -504,7 +557,7 @@ function cloud_t_query() {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'theme.query';
 	$pars['theme'] = cloud_extra_theme();
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/theme.query';
 	$ret = _cloud_shipping_parse($dat, $file);
 	return $ret;
@@ -514,7 +567,7 @@ function cloud_t_info($name) {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'theme.info';
 	$pars['theme'] = $name;
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/theme.info';
 	$ret = _cloud_shipping_parse($dat, $file);
 	return $ret;
@@ -531,7 +584,7 @@ function cloud_t_build($name) {
 	if(!empty($theme)) {
 		$pars['themeversion'] = $theme['version'];
 	}
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/theme.build';
 	$ret = _cloud_shipping_parse($dat, $file);
 	if(!is_error($ret)) {
@@ -572,7 +625,7 @@ function cloud_t_upgradeinfo($name) {
 	$pars['theme'] = $theme['name'];
 	$pars['version'] = $theme['version'];
 	$pars['isupgrade'] = 1;
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/module.info';
 	$ret = _cloud_shipping_parse($dat, $file);
 	return $ret;
@@ -582,7 +635,7 @@ function cloud_t_upgradeinfo($name) {
 function cloud_w_prepare($name) {
 	$pars['method'] = 'webtheme.check';
 	$pars['webtheme'] = $name;
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
 	if (is_error($dat)) {
 		return $dat;
 	}
@@ -600,7 +653,7 @@ function cloud_w_query() {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'webtheme.query';
 	$pars['webtheme'] = cloud_extra_webtheme();
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/webtheme.query';
 	$ret = _cloud_shipping_parse($dat, $file);
 	return $ret;
@@ -610,7 +663,7 @@ function cloud_w_info($name) {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'webtheme.info';
 	$pars['webtheme'] = $name;
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/webtheme.info';
 	$ret = _cloud_shipping_parse($dat, $file);
 	return $ret;
@@ -626,7 +679,7 @@ function cloud_w_build($name) {
 	if(!empty($webtheme)) {
 		$pars['webtheme_version'] = $webtheme['version'];
 	}
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/webtheme.build';
 	$ret = _cloud_shipping_parse($dat, $file);
 	if(!is_error($ret)) {
@@ -665,7 +718,7 @@ function cloud_w_upgradeinfo($name) {
 	$pars['webtheme'] = $webtheme['name'];
 	$pars['version'] = $webtheme['version'];
 	$pars['isupgrade'] = 1;
-	$dat = cloud_request('http://v2.addons.we7.cc/gateway.php', $pars);
+	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
 	$file = IA_ROOT . '/data/webtheme.info';
 	$ret = _cloud_shipping_parse($dat, $file);
 	return $ret;
@@ -691,7 +744,7 @@ function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '
 		$config = $row['notify']['sms'];
 		$balance = intval($config['balance']);
 
-		$sign = $config['signature'];
+		$sign = empty($custom_sign) ? $config['signature'] : $custom_sign;
 	}
 	if(empty($sign)) {
 		$sign = '涛盛微擎团队';
@@ -699,7 +752,7 @@ function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '
 	$account_name = empty($_W['account']['type_name']) ? '' : $_W['account']['type_name'];
 	$account_name .= empty($_W['account']['name']) ? '' : " [ {$_W['account']['name']} ] ";
 
-	$pars = _cloud_build_params();
+	$pars = _cloud_build_params(false);
 	$pars['method'] = 'sms.sendnew';
 	$pars['mobile'] = $mobile;
 	$pars['uniacid'] = $_W['uniacid'];
@@ -713,7 +766,7 @@ function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '
 		$pars['content'] = "{$content} 【{$sign}】";
 	}
 
-	$response = cloud_request('http://s.we7.cc/gateway.php', $pars);
+	$response = cloud_request('https://s.w7.cc/gateway.php', $pars);
 	if (is_error($response)) {
 		return error($response['errno'], '短信发送失败, 原因:'.$response['message']);
 	}
@@ -746,19 +799,14 @@ function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '
  * 获取当前站点可用短信签名.
  */
 function cloud_sms_info() {
-	global $_W;
-
-	$pars = _cloud_build_params();
+	$pars = _cloud_build_params(false);
 	$pars['method'] = 'sms.info';
 	$response = ihttp_request('http://api.w7.cc/sms/info?', $pars);
 	$result = @json_decode($response['content'], true);
 	if(is_error($result)) {
-		return error($result['error'], "错误详情: {$result['data']}");
+		return error($result['error'], "错误详情: {$result['message']}");
 	}
-	if (!empty($result['data'])) {
-		$result['data']['sms_sign'] = explode('、', $result['data']['sms_sign']);
-	}
-	return (array)$result['data'];
+	return (array)$result;
 }
 
 /**
@@ -776,12 +824,7 @@ function cloud_extra_account() {
  * @return string 模块标识序列化
  */
 function cloud_extra_module() {
-	$modules = table('modules')->searchWithType('system', '<>')->getall('name');
-	if (!empty($modules)) {
-		return base64_encode(iserializer(array_keys($modules)));
-	} else {
-		return '';
-	}
+	return table('modules')->getInstalled();
 }
 
 /**
@@ -821,7 +864,7 @@ function cloud_cron_create($cron) {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'cron.create';
 	$pars['cron'] = base64_encode(iserializer($cron));
-	$result = cloud_request('http://s.we7.cc/gateway.php', $pars);
+	$result = cloud_request('https://s.w7.cc/gateway.php', $pars);
 	return _cloud_cron_parse($result);
 }
 
@@ -834,7 +877,7 @@ function cloud_cron_update($cron) {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'cron.update';
 	$pars['cron'] = base64_encode(iserializer($cron));
-	$result = cloud_request('http://s.we7.cc/gateway.php', $pars);
+	$result = cloud_request('https://s.w7.cc/gateway.php', $pars);
 	return _cloud_cron_parse($result);
 }
 
@@ -847,7 +890,7 @@ function cloud_cron_get($cron_id) {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'cron.get';
 	$pars['cron_id'] = $cron_id;
-	$result = cloud_request('http://s.we7.cc/gateway.php', $pars);
+	$result = cloud_request('https://s.w7.cc/gateway.php', $pars);
 	return _cloud_cron_parse($result);
 }
 
@@ -862,7 +905,7 @@ function cloud_cron_change_status($cron_id, $status) {
 	$pars['method'] = 'cron.status';
 	$pars['cron_id'] = $cron_id;
 	$pars['status'] = $status;
-	$result = cloud_request('http://s.we7.cc/gateway.php', $pars);
+	$result = cloud_request('https://s.w7.cc/gateway.php', $pars);
 	return _cloud_cron_parse($result);
 }
 
@@ -875,7 +918,7 @@ function cloud_cron_remove($cron_id) {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'cron.remove';
 	$pars['cron_id'] = $cron_id;
-	$result = cloud_request('http://s.we7.cc/gateway.php', $pars);
+	$result = cloud_request('https://s.w7.cc/gateway.php', $pars);
 	return _cloud_cron_parse($result);
 }
 
@@ -932,7 +975,7 @@ function cloud_auth_url($forward, $data = array()){
 		$auth = array_merge($auth, $data);
 	}
 	$query = base64_encode(json_encode($auth));
-	$auth_url = 'https://s.we7.cc/index.php?c=auth&a=passport&__auth=' . $query;
+	$auth_url = 'https://s.w7.cc/index.php?c=auth&a=passport&__auth=' . $query;
 	return $auth_url;
 }
 
@@ -969,12 +1012,12 @@ function cloud_resource_to_local($uniacid, $type, $url){
 	load()->func('file');
 
 	$setting = $_W['setting']['upload'][$type];
-
-	if (!file_is_image($url)) {
-		return error(1, '远程图片后缀非法,请重新上传');;
-	}
 	if (substr($url, 0, 2) == '//') {
 		$url = 'http:' . $url;
+	}
+
+	if (!file_is_image($url)) {
+		return error(1, '远程图片后缀非法,请重新上传');
 	}
 	$pathinfo = pathinfo($url);
 	$extension = $pathinfo['extension'];
@@ -1030,7 +1073,7 @@ function cloud_bakup_files($files) {
 	}
 	$map = json_encode($files);
 	$hash  = md5($map.$_W['config']['setting']['authkey']);
-	if ($handle = opendir(IA_ROOT . '/data/patch/' . date('Ymd'))) {
+	if ($handle = opendir(IA_ROOT . '/data/patch/backup/' . date('Ymd'))) {
 		while (false !== ($patchpath = readdir($handle))) {
 			if ($patchpath != '.' && $patchpath != '..') {
 				if (strexists($patchpath, $hash)) {
@@ -1040,7 +1083,7 @@ function cloud_bakup_files($files) {
 		}
 	}
 
-	$path = IA_ROOT . '/data/patch/' . date('Ymd') . '/' . date('Hi') . '_' . $hash;
+	$path = IA_ROOT . '/data/patch/backup/' . date('Ymd') . '/' . date('Hi') . '_' . $hash;
 	load()->func('file');
 	if (!is_dir($path) && mkdirs($path)) {
 		foreach ($files as $file) {
@@ -1069,7 +1112,7 @@ function cloud_flow_master_post($flow_master) {
 		'id_card_photo' => $flow_master['id_card_photo'], // 身份证 url
 		'business_licence_photo' => $flow_master['business_licence_photo'], // 营业执照 url
 	);
-	$dat = cloud_request('http://s.we7.cc/gateway.php', $pars, array(), 300);
+	$dat = cloud_request('https://s.w7.cc/gateway.php', $pars, array(), 300);
 	if(is_error($dat)) {
 		return error(-1, '网络存在错误， 请稍后重试。' . $dat['message']);
 	}
@@ -1091,7 +1134,7 @@ function cloud_flow_master_get() {
 	}
 	$pars = _cloud_build_params();
 	$pars['method'] = 'flow.master_get';
-	$dat = cloud_request('http://s.we7.cc/gateway.php', $pars, array(), 300);
+	$dat = cloud_request('https://s.w7.cc/gateway.php', $pars, array(), 300);
 	if(is_error($dat)) {
 		return error(-1, '网络存在错误， 请稍后重试。' . $dat['message']);
 	}
@@ -1115,7 +1158,7 @@ function cloud_flow_uniaccount_post($uniaccount) {
 	isset($uniaccount['gh_type']) && $pars['uniaccount']['gh_type'] = $uniaccount['gh_type']; // 公众号类型, 服务,认证等
 	isset($uniaccount['ad_tags']) && $pars['uniaccount']['ad_tags'] = $uniaccount['ad_tags']; // array(3 => '游戏', 4 => '地产')
 	isset($uniaccount['enable']) && $pars['uniaccount']['enable'] = $uniaccount['enable']; // 1. 停用, 2. 开启.
-	$dat = cloud_request('http://s.we7.cc/gateway.php', $pars, array(), 300);
+	$dat = cloud_request('https://s.w7.cc/gateway.php', $pars, array(), 300);
 	if(is_error($dat)) {
 		return error(-1, '网络存在错误， 请稍后重试。' . $dat['message']);
 	}
@@ -1137,7 +1180,7 @@ function cloud_flow_uniaccount_get($uniacid) {
 		'uniacid' => $uniacid,
 	);
 	$pars['md5'] = md5(base64_encode(serialize($pars['uniaccount'])));
-	$dat = cloud_request('http://s.we7.cc/gateway.php', $pars, array(), 300);
+	$dat = cloud_request('https://s.w7.cc/gateway.php', $pars, array(), 300);
 	if(is_error($dat)) {
 		return error(-1, '网络存在错误， 请稍后重试。' . $dat['message']);
 	}
@@ -1154,7 +1197,7 @@ function cloud_flow_uniaccount_list_get() {
 	}
 	$pars = _cloud_build_params();
 	$pars['method'] = 'flow.uniaccount_list_get';
-	$dat = cloud_request('http://s.we7.cc/gateway.php', $pars, array(), 300);
+	$dat = cloud_request('https://s.w7.cc/gateway.php', $pars, array(), 300);
 	if(is_error($dat)) {
 		return error(-1, '网络存在错误， 请稍后重试。' . $dat['message']);
 	}
@@ -1171,7 +1214,7 @@ function cloud_flow_ad_tag_list() {
 	}
 	$pars = _cloud_build_params();
 	$pars['method'] = 'flow.ad_tag_list';
-	$dat = cloud_request('http://s.we7.cc/gateway.php', $pars, array(), 300);
+	$dat = cloud_request('https://s.w7.cc/gateway.php', $pars, array(), 300);
 	if(is_error($dat)) {
 		return error(-1, '网络存在错误， 请稍后重试。' . $dat['message']);
 	}
@@ -1188,7 +1231,7 @@ function cloud_flow_ad_type_list() {
 	}
 	$pars = _cloud_build_params();
 	$pars['method'] = 'flow.ad_type_list';
-	$dat = cloud_request('http://s.we7.cc/gateway.php', $pars, array(), 300);
+	$dat = cloud_request('https://s.w7.cc/gateway.php', $pars, array(), 300);
 	if(is_error($dat)) {
 		return error(-1, '网络存在错误， 请稍后重试。' . $dat['message']);
 	}
@@ -1210,7 +1253,7 @@ function cloud_flow_app_post($uniacid, $module_name, $enable = 0, $ad_types = nu
 	if (is_array($ad_types)) {
 		$pars['uniaccount_app']['ad_types'] = $ad_types; // array(3 => '广告位1', 4 => '广告位2')
 	}
-	$dat = cloud_request('http://s.we7.cc/gateway.php', $pars, array(), 300);
+	$dat = cloud_request('https://s.w7.cc/gateway.php', $pars, array(), 300);
 	if(is_error($dat)) {
 		return error(-1, '网络存在错误， 请稍后重试。' . $dat['message']);
 	}
@@ -1233,7 +1276,7 @@ function cloud_flow_app_list_get($uniacid) {
 	$pars['uniaccount'] = array(
 		'uniacid' => $uniacid,
 	);
-	$dat = cloud_request('http://s.we7.cc/gateway.php', $pars, array(), 300);
+	$dat = cloud_request('https://s.w7.cc/gateway.php', $pars, array(), 300);
 	if(is_error($dat)) {
 		return error(-1, '网络存在错误， 请稍后重试。' . $dat['message']);
 	}
@@ -1254,7 +1297,7 @@ function cloud_flow_app_support_list($module_names) {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'flow.app_support_list';
 	$pars['modules'] = $module_names;
-	$dat = cloud_request('http://s.we7.cc/gateway.php', $pars, array(), 300);
+	$dat = cloud_request('https://s.w7.cc/gateway.php', $pars, array(), 300);
 	if(is_error($dat)) {
 		return error(-1, '网络存在错误， 请稍后重试。' . $dat['message']);
 	}
@@ -1277,7 +1320,7 @@ function cloud_flow_site_stat_day($condition) {
 	$pars['condition']['page'] = $condition['page'];
 	$pars['condition']['size'] = $condition['size'];
 
-	$dat = cloud_request('http://s.we7.cc/gateway.php', $pars, array(), 300);
+	$dat = cloud_request('https://s.w7.cc/gateway.php', $pars, array(), 300);
 	if(is_error($dat)) {
 		return error(-1, '网络存在错误， 请稍后重试。' . $dat['message']);
 	}
@@ -1387,7 +1430,7 @@ function cloud_file_permission_pass(&$error_file_list = array()) {
 
 	foreach ($check_file as $file) {
 		if (!is_writable(IA_ROOT . $file)) {
-			$error_file_list[] = str_replace(IA_ROOT, '', $file);;
+			$error_file_list[] = str_replace(IA_ROOT, '', $file);
 		}
 	}
 	return empty($error_file_list) ? true : false;
@@ -1441,5 +1484,25 @@ function cloud_get_store_notice() {
 	load()->classs('cloudapi');
 	$api = new CloudApi();
 	$result = $api->get('store', 'official_dynamics');
+	return $result;
+}
+
+/**
+ * 盗版检测
+ * @param string $url 可请求的盗版的URL
+ */
+function cloud_v_to_xs($url) {
+	if (empty($url)) {
+		return false;
+	}
+	$pars = _cloud_build_params();
+	$pars['method'] = 'module.query';
+	$pars['url'] = urlencode($url);
+	cloud_request('http://api-old.w7.cc/site/pirate/index', $pars);
+	return true;
+}
+
+function cloud_workorder() {
+	$result = cloud_api('work-order/status');
 	return $result;
 }

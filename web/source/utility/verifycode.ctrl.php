@@ -70,15 +70,13 @@ if ($do == 'send_code') {
 		}
 
 		$record['total'] = $row['total'] + 1;
-		$record['verifycode'] = $code;
-		$record['createtime'] = TIMESTAMP;
 	} else {
 		$record['uniacid'] = $_W['uniacid'];
 		$record['receiver'] = $receiver;
 		$record['total'] = 1;
-		$record['verifycode'] = $code;
-		$record['createtime'] = TIMESTAMP;
 	}
+	$record['verifycode'] = $code;
+	$record['createtime'] = TIMESTAMP;
 
 	if(!empty($row)) {
 		pdo_update('uni_verifycode', $record, array('id' => $row['id']));
@@ -96,8 +94,8 @@ if ($do == 'send_code') {
 			iajax(-1, $r['message']);
 		}
 		$setting = uni_setting($_W['uniacid'], 'notify');
-		$content = "您的短信验证码为: {$code} 您正在使用{$uniacid_arr['name']}相关功能, 需要你进行身份确认. ".random(3);
-		$result = cloud_sms_send($receiver, $content, array(), $custom_sign);
+		$postdata = array('verify_code' => $code, 'module' => $uniacid_arr['name']);
+		$result = cloud_sms_send($receiver, '800002', $postdata, $custom_sign);
 	}
 	if (is_error($result)) {
 		iajax(-1, $result['message']);

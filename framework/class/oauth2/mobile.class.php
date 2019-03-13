@@ -44,13 +44,13 @@ class Mobile extends OAuth2Client {
 			return error('-1', '请输入密码');
 		}
 
-		$user_table = table('users');
-		$user_profile = $user_table->userProfileMobile($mobile);
+		$user_profile = table('users_profile')->getByMobile($mobile);
 
 		if (empty($user_profile)) {
 			return error(-1, '手机号未注册');
 		}
 		$member['uid'] = $user_profile['uid'];
+		$member['type'] = $this->user_type;
 		return $member;
 	}
 
@@ -63,8 +63,7 @@ class Mobile extends OAuth2Client {
 		if (!preg_match(REGULAR_MOBILE, $mobile)) {
 			return error(-1, '手机号格式不正确');
 		}
-		$user_table = table('users');
-		$mobile_exists = $user_table->userProfileMobile($mobile);
+		$mobile_exists = table('users_profile')->getByMobile($mobile);
 		if (!empty($mobile_exists)) {
 			return error(-1, '手机号已存在');
 		}
@@ -115,12 +114,13 @@ class Mobile extends OAuth2Client {
 
 	public function bind() {
 		global $_GPC, $_W;
-		$user_table = table('users');
-		$password = $_GPC['password'];
-		$mobile = trim($_GPC['mobile']);
+		$mobile = safe_gpc_string($_GPC['mobile']);
 
-		$user = $user_table->usersInfo($_W['uid']);
-		$user_profile = $user_table->userProfile($_W['uid']);
+		$user = table('users')->getById($_W['uid']);
+		if (empty($user)) {
+			return error(-1, '请先登录');
+		}
+		$user_profile = table('users_profile')->getByUid($_W['uid']);
 
 		$param_validate = $this->paramValidate();
 
@@ -128,7 +128,6 @@ class Mobile extends OAuth2Client {
 			return $param_validate;
 		}
 
-		pdo_update('users', array('password' => user_hash($password, $user['salt'])), array('uid' => $_W['uid']));
 		if (empty($user_profile)) {
 			pdo_insert('users_profile', array('uid' => $_W['uid'], 'mobile' => $mobile));
 		} else {
@@ -141,10 +140,9 @@ class Mobile extends OAuth2Client {
 
 	public function unbind() {
 		global $_GPC, $_W;
-		$user_table = table('users');
-		$mobile = trim($_GPC['mobile']);
+		$mobile = safe_gpc_string($_GPC['mobile']);
 
-		$user_profile = $user_table->userProfile($_W['uid']);
+		$user_profile = table('users_profile')->getByUid($_W['uid']);
 
 		$param_validate = $this->paramValidate();
 
@@ -159,10 +157,14 @@ class Mobile extends OAuth2Client {
 		return error(0, '解除绑定成功');
 	}
 
-	public function paramValidate($type = false) {
+	public function isbind() {
+		global $_W;
+		$bind_info = table('users_bind')->getByTypeAndUid(USER_REGISTER_TYPE_MOBILE, $_W['uid']);
+		return !empty($bind_info['bind_sign']);
+	}
+
+	public function paramValidate() {
 		global $_GPC;
-		$password = $_GPC['password'];
-		$repassword = $_GPC['repassword'];
 		$mobile = trim($_GPC['mobile']);
 		$image_code =trim($_GPC['imagecode']);
 		$sms_code = trim($_GPC['smscode']);
@@ -180,18 +182,8 @@ class Mobile extends OAuth2Client {
 			return error(-1, '图形验证码错误,请重新获取');
 		}
 
-		if (!empty($type)) {
-			if ((empty($password) || empty($repassword))) {
-				return error(-1, '密码不能为空');
-			}
-
-			if ($password != $repassword) {
-				return error(-1, '两次密码不一致');
-			}
-		}
-
 		load()->model('utility');
-		$verify_info = utility_smscode_verify(0, $mobile, $smscode);
+		$verify_info = utility_smscode_verify(0, $mobile, $sms_code);
 		if (is_error($verify_info)) {
 			return error(-1, $verify_info['message']);
 		}

@@ -10,7 +10,6 @@ load()->classs('weixin.platform');
 setting_load('platform');
 
 $founders = explode(',', $_W['config']['setting']['founder']);
-$_W['page']['title'] = '开放平台设置';
 
 if($_W['isajax'] && $_W['ispost']) {
 	$data = array();
@@ -45,9 +44,6 @@ if(empty($_W['setting']['platform'])) {
 	setting_save($_W['setting']['platform'],'platform');
 }
 $siteroot_parse_array = parse_url($_W['siteroot']);
-if (!function_exists('mcrypt_module_open')) {
-	itoast('抱歉，您的系统不支持加解密 mcrypt 模块，无法进行平台接入', '', '');
-}
 $account_platform = new WeixinPlatform();
 $authurl = $account_platform->getAuthLoginUrl();
 template('system/platform');

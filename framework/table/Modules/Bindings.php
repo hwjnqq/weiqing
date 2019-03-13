@@ -31,7 +31,11 @@ class Bindings extends \We7Table {
 		'icon' => 'wi wi-appsetting',
 		'displayorder' => 0,
 	);
-	
+
+	public function searchWithModuleEntry($modulename, $entry) {
+		return $this->query->where('module', $modulename)->where('entry', $entry);
+	}
+
 	public function deleteByName($modulename) {
 		return $this->query->where('module', $modulename)->delete();
 	}

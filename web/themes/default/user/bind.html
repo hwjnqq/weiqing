@@ -1,5 +1,5 @@
 {template 'common/header'}
-<ul class="we7-page-tab">
+<ul class="we7-page-tab hidden">
 	<li {if $do == 'base'}class="active"{/if}><a href="{php echo url('user/profile')}">我的账户</a></li>
 	<li {if $do == 'bind'}class="active"{/if}><a href="{php echo url('user/profile/bind')}">账号绑定</a></li>
 </ul>
@@ -34,7 +34,7 @@
 		</td>
 	</tr>
 	<tr>
-		<td class="table-label"><span class="wi wi-wechat" style="font-size: 32px; color: #00bb00;"></span></td>
+		<td class="table-label"><span class="wi wi-account" style="font-size: 32px; color: #00bb00;"></span></td>
 		<td>{{bindwechat.third_nickname}}</td>
 		<td>
 			<div class="link-group">

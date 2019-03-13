@@ -11,7 +11,6 @@ $dos = array('display', 'get_attach_size');
 $do = in_array($do, $dos) ? $do : 'display';
 
 if ($do == 'display') {
-	$_W['page']['title'] = '系统信息 - 工具  - 系统管理';
 	$info = array(
 		'os' => php_uname(),
 		'php' => phpversion(),

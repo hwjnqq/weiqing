@@ -10,7 +10,6 @@ load()->model('setting');
 
 $dos = array('display', 'change_status', 'add', 'delete');
 $do = in_array($_GPC['do'], $dos)? $do : 'display';
-$_W['page']['title'] = '站点管理 - 设置  - IP白名单';
 
 $ip_lists = setting_load('ip_white_list');
 $ip_lists = $ip_lists['ip_white_list'];

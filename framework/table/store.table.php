@@ -17,7 +17,7 @@ class StoreTable extends We7Table {
 			$this->query->where('type', $type);
 		}
 		$goods_list = array(
-			'goods_list' => $this->searchWithPage($pageindex, $pagesize)->query->where('status !=', STORE_GOODS_STATUS_DELETE)->getall('id'),
+			'goods_list' => $this->searchWithPage($pageindex, $pagesize)->getall('id'),
 			'total' => $this->getLastQueryTotal()
 		);
 		return $goods_list;
@@ -86,9 +86,7 @@ class StoreTable extends We7Table {
 	}
 
 	public function goodsInfo($id) {
-		$id = intval($id);
-		$this->query->from('site_store_goods')->where('id', $id);
-		return $this->query->get();
+		return $this->query->from('site_store_goods')->where('id', $id)->getall('id');
 	}
 
 	public function searchOrderList($pageindex = 0, $pagesize = 0) {
@@ -115,9 +113,7 @@ class StoreTable extends We7Table {
 	}
 
 	public function searchOrderInfo($id) {
-		$id = intval($id);
-		$result = $this->query->from('site_store_order')->where('id', $id)->get();
-		return $result;
+		return $this->query->from('site_store_order')->where('id', $id)->getall('id');
 	}
 
 	public function searchOrderWithUid($uid) {
@@ -128,7 +124,7 @@ class StoreTable extends We7Table {
 
 	public function searchHaveModule($type = STORE_TYPE_MODULE) {
 		$this->query->from('site_store_goods');
-		$result = $this->query->where('type', $type)->where('status !=', STORE_GOODS_STATUS_DELETE)->getall('module');
+		$result = $this->query->where('type', $type)->where('status !=', STORE_GOODS_STATUS_DELETE)->getall();
 		return $result;
 	}
 
@@ -166,16 +162,21 @@ class StoreTable extends We7Table {
 	}
 
 	public function searchUserCreateAccountNum($uid) {
-		$count = $this->query->from('site_store_create_account', 'a')->leftjoin('account', 'b')->on('a.uniacid', 'b.uniacid')->where('a.uid', $uid)->where('b.type', 1)->where('b.isdeleted', 0)->select('count(*) as count')->get('count');
+		$count = $this->query->from('site_store_create_account', 'a')->leftjoin('account', 'b')->on('a.uniacid', 'b.uniacid')->where('a.uid', $uid)->where('b.type', 1)->select('count(*) as count')->get('count');
 		return $count['count'];
 	}
 
 	public function searchUserCreateWxappNum($uid) {
-		$count = $this->query->from('site_store_create_account', 'a')->leftjoin('account', 'b')->on('a.uniacid', 'b.uniacid')->where('a.uid', $uid)->where('b.type', 4)->where('b.isdeleted', 0)->select('count(*) as count')->get('count');
+		$count = $this->query->from('site_store_create_account', 'a')->leftjoin('account', 'b')->on('a.uniacid', 'b.uniacid')->where('a.uid', $uid)->where('b.type', 4)->select('count(*) as count')->get('count');
 		return $count['count'];
 	}
 
 	public function searchPaymentsOrder() {
 		return  $this->query->from('site_store_order', 'a')->leftjoin('site_store_goods', 'b')->on('a.goodsid', 'b.id')->where('a.type', 3)->orderby('a.createtime', 'desc')->select(array('a.id', 'a.createtime', 'b.title', 'a.orderid', 'b.type', 'a.amount'))->getall();
+	}
+
+	public function getStatisticsOrderInfoByDate($starttime, $endtime) {
+		$sql = "SELECT COUNT(id) AS total_orders, SUM(amount) AS total_amounts FROM " . tablename('site_store_order') . " WHERE type=3 AND createtime >= :starttime AND createtime <= :endtime";
+		return pdo_fetch($sql, array(':starttime' => $starttime, ':endtime' => $endtime));
 	}
 }

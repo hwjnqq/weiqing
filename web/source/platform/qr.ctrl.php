@@ -24,7 +24,6 @@ if ($do == 'check_scene_str') {
 }
 
 if ($do == 'list') {
-	$_W['page']['title'] = '二维码管理 - 高级功能';
 	permission_check_account_user('platform_qr_qr');
 	$wheresql = " WHERE uniacid = :uniacid AND acid = :acid AND type = 'scene'";
 	$param = array(':uniacid' => $_W['uniacid'], ':acid' => $_W['acid']);
@@ -79,8 +78,6 @@ if ($do == 'del') {
 }
 
 if ($do == 'post') {
-	$_W['page']['title'] = '生成二维码 - 二维码管理 - 高级功能';
-
 	if (checksubmit('submit')){
 		//二维码结构定义
 		$barcode = array(
@@ -94,7 +91,7 @@ if ($do == 'post') {
 		$acid = intval($_W['acid']);
 		$uniacccount = WeAccount::createByUniacid();
 		$id = intval($_GPC['id']);
-		$keyword_id = intval(trim(htmlspecialchars_decode($_GPC['reply']['reply_keyword']), "\""));;
+		$keyword_id = intval(trim(htmlspecialchars_decode($_GPC['reply']['reply_keyword']), "\""));
 		$keyword = pdo_get('rule_keyword', array('id' => $keyword_id), array('content'));
 		if (!empty($id)) {
 			$update = array(
@@ -188,21 +185,26 @@ if ($do == 'display' || $do == 'change_status') {
 }
 
 if ($do == 'display') {
-	$_W['page']['title'] = '扫描统计 - 二维码管理 - 高级功能';
 	permission_check_account_user('platform_qr_statistics');
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 30;
-	$qrcode_table = table('qrcode');
+	$qrcode_table = table('qrcode_stat');
 	$starttime = empty($_GPC['time']['start']) ? TIMESTAMP -  86399 * 30 : strtotime($_GPC['time']['start']);
 	$endtime = empty($_GPC['time']['end']) ? TIMESTAMP + 6*86400 : strtotime($_GPC['time']['end']) + 86399;
 
-	$qrcode_table->searchTime($starttime, $endtime);
+	$qrcode_table->searchWithTime($starttime, $endtime);
 	$keyword = trim($_GPC['keyword']);
 	if (!empty($keyword)) {
-		$qrcode_table->searchKeyword($keyword);
+		$qrcode_table->searchWithKeyword($keyword);
 	}
 	$qrcode_table->searchWithPage($pindex, $psize);
-	$list = $qrcode_table->qrcodeStaticList($status);
+	$qrcode_table->searchWithUniacid($_W['uniacid']);
+	if (!empty($status)) {
+		$qrcode_table->groupby('qid');
+		$qrcode_table->groupby('openid');
+		$qrcode_table->groupby('type');
+	}
+	$list = $qrcode_table->orderby('createtime', 'DESC')->getall();
 	$total = $count = $qrcode_table->getLastQueryTotal();
 
 	if (!empty($list)) {
@@ -213,8 +215,10 @@ if ($do == 'display') {
 			}
 		}
 		unset($qrcode);
-		$fans_table = table('fans');
-		$nickname = $fans_table->fansAll($openid);
+		$mc_mapping_fans_table = table('mc_mapping_fans');
+		$mc_mapping_fans_table->searchWithUniacid($_W['uniacid']);
+		$mc_mapping_fans_table->searchWithOpenid($openid);
+		$nickname = $mc_mapping_fans_table->getall('openid');
 	}
 	$pager = pagination($total, $pindex, $psize);
 	template('platform/qr-display');
@@ -237,5 +241,5 @@ if ($do == 'change_status') {
 	if ($update) {
 		iajax(0, '');
 	}
-	iajax(-1, '更新失败', url('platform/qr/display'));
+	iajax(-1, '更新成功!', url('platform/qr/display'));
 }

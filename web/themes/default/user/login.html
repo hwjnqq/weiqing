@@ -3,7 +3,7 @@
 
 	<div class="head">
 		<a href="/" class="logo-version">
-			<img src="{if !empty($_W['setting']['copyright']['flogo'])}{php echo to_global_media($_W['setting']['copyright']['flogo'])}{else}./resource/images/logo/logo.png{/if}" class="logo">
+			<img src="{if !empty($_W['setting']['copyright']['flogo'])}{php echo to_global_media($_W['setting']['copyright']['flogo'])}{else}./resource/images/logo/login-logo.png{/if}" class="logo">
 			<span class="version hidden">{IMS_VERSION}</span>
 		</a>
 		{if !empty($_W['setting']['copyright']['showhomepage'])}
@@ -18,6 +18,7 @@
 
 			<div class="input-group-vertical">
 				<input name="login_type" type="hidden" class="form-control " value="system">
+				<input name="referer" type="hidden" value="{$_GPC['referer']}">
 				<input name="username" type="text" class="form-control " placeholder="请输入用户名/手机登录">
 				<input name="password" id="password" type="password" class="form-control password" placeholder="请输入登录密码">
 				<span style="display:none;color:red;">大写锁定已打开</span>
@@ -63,7 +64,7 @@
 		</form>
 	</div>
 </div>
-{template 'common/footer-base'}
+{template 'common/footer'}
 
 <script>
 	function detectCapsLock(event) {
@@ -89,6 +90,9 @@
 		return true;
 	}
 	var h = document.documentElement.clientHeight;
+	if($('.footer').length) {
+		h = h - $('.footer').outerHeight();
+	}
 	$(".system-login").css('height',h);
 	$('#toggle').click(function() {
 		$('#imgverify').prop('src', '{php echo url('utility/code')}r='+Math.round(new Date().getTime()));

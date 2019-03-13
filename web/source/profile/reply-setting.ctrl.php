@@ -7,8 +7,7 @@ defined('IN_IA') or exit('Access Denied');
 
 $dos = array('display', 'post');
 $do = in_array($do, $dos) ? $do : 'display';
-
-$_W['page']['title'] = '回复设置';
+permission_check_account_user('platform_reply_setting');
 
 if ($do == 'display') {
 	$times = empty($_W['account']['setting']) ? 0 : intval($_W['account']['setting']['reply_setting']);
@@ -16,12 +15,12 @@ if ($do == 'display') {
 }
 
 if ($do == 'post') {
-	if (checksubmit()) {
+	if ($_W['isajax'] && $_W['ispost']) {
 		$new_times = intval($_GPC['times']);
 		if ($new_times > 50 || $new_times < 0) {
 			itoast('次数超过限制，请重新设置！');
 		}
 		uni_setting_save('reply_setting', $new_times);
-		itoast('保存成功！', referer(), 'success');
+		iajax(0, '保存成功！', referer());
 	}
 }

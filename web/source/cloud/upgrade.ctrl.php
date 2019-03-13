@@ -18,9 +18,8 @@ $dos = array('upgrade', 'get_upgrade_info');
 $do = in_array($do, $dos) ? $do : 'upgrade';
 
 if ($do == 'upgrade') {
-	$_W['page']['title'] = '一键更新 - 云服务';
 	if (empty($_W['setting']['cloudip']) || $_W['setting']['cloudip']['expire'] < TIMESTAMP) {
-		$cloudip = gethostbyname('v2.addons.we7.cc');
+		$cloudip = gethostbyname('api-upgrade.w7.cc');
 		if (empty($cloudip) || !preg_match('/^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$/', $cloudip)) {
 			itoast('云服务域名解析失败，请查看服务器DNS设置或是在“云服务诊断”中手动设置云服务IP', url('cloud/diagnose'), 'error');
 		}

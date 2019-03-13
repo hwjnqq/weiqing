@@ -10,7 +10,6 @@ load()->model('extension');
 
 $dos = array('display', 'post', 'del', 'default', 'copy', 'switch', 'quickmenu_display', 'quickmenu_post');
 $do = in_array($do, $dos) ? $do : 'display';
-$_W['page']['title'] = '微官网';
 
 permission_check_account_user('platform_site_multi');
 
@@ -26,7 +25,7 @@ if ($default_site_status != 1) {
 if ($do == 'post') {
 	if ($_W['isajax'] && $_W['ispost']) {
 		//搜索模板
-		$name = trim($_GPC['name']);
+		$name = safe_gpc_string($_GPC['name']);
 		$sql = "SELECT s.*, t.`name` AS `tname`, t.`title`, t.`type` FROM " . tablename('site_styles') . " AS s LEFT JOIN " . tablename('site_templates') . " AS t ON s.`templateid` = t.`id` WHERE s.`uniacid` = :uniacid AND s.`name` LIKE :name";
 		$styles = pdo_fetchall($sql, array(':uniacid' => $_W['uniacid'], ':name' => "%{$name}%"));
 		iajax(0, $styles, '');
@@ -35,21 +34,21 @@ if ($do == 'post') {
 
 	if (checksubmit('submit')) {
 		$bindhost = parse_url($_W['siteroot']);
-		if ($bindhost['host'] == trim($_GPC['bindhost'])) {
+		if ($bindhost['host'] == safe_gpc_string($_GPC['bindhost'])) {
 			itoast('绑定域名有误', referer(), 'error');
 		}
 		$data = array(
 			'uniacid' => $_W['uniacid'],
-			'title' => trim($_GPC['title']),
+			'title' => safe_gpc_string($_GPC['title']),
 			'styleid' => intval($_GPC['styleid']),
 			'status' => intval($_GPC['status']),
 			'site_info' => iserializer(array(
-				'thumb' => trim($_GPC['thumb']),
-				'keyword' => trim($_GPC['keyword']),
-				'description' => trim($_GPC['description']),
+				'thumb' => safe_gpc_string($_GPC['thumb']),
+				'keyword' => !empty($_GPC['keyword']) ? safe_gpc_string($_GPC['keyword']) : '微官网',
+				'description' => safe_gpc_string($_GPC['description']),
 				'footer' => htmlspecialchars($_GPC['footer'])
 			)),
-			'bindhost' => trim($_GPC['bindhost']),
+			'bindhost' => safe_gpc_string($_GPC['bindhost']),
 		);
 		if (!empty($id)) {
 			//默认微站状态不可关闭
@@ -61,19 +60,19 @@ if ($do == 'post') {
 			pdo_insert('site_multi', $data);
 			$id = pdo_insertid();
 		}
-		if (!empty($_GPC['keyword'])) {
-			$cover = array(
-				'uniacid' => $_W['uniacid'],
-				'title' => $data['title'],
-				'keyword' => trim($_GPC['keyword']),
-				'url' => url('home', array('i' => $_W['uniacid'], 't' => $id)),
-				'description' => trim($_GPC['description']),
-				'thumb' => trim($_GPC['thumb']),
-				'module' => 'site',
-				'multiid' => $id,
-			);
-			site_cover($cover);
-		}
+
+		$cover = array(
+			'uniacid' => $_W['uniacid'],
+			'title' => $data['title'],
+			'keyword' => !empty($_GPC['keyword']) ? safe_gpc_string($_GPC['keyword']) : '微官网',
+			'url' => url('home', array('i' => $_W['uniacid'], 't' => $id)),
+			'description' => safe_gpc_string($_GPC['description']),
+			'thumb' => safe_gpc_string($_GPC['thumb']),
+			'module' => 'site',
+			'multiid' => $id,
+		);
+		site_cover($cover);
+
 		itoast('更新站点信息成功！', url('site/multi/display'), 'success');
 	}
 

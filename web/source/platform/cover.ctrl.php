@@ -25,6 +25,7 @@ if ($do == 'module') {
 		$modulename = $entry['module'];
 	}
 	$module = $_W['current_module'] = module_fetch($modulename);
+
 	if (empty($module)) {
 		itoast('模块不存在或是未安装', '', 'error');
 	}
@@ -34,6 +35,7 @@ if ($do == 'module') {
 	if (empty($url)) {
 		$url = url('platform/cover', array('m' => $module['name'], 'eid' => $entry_id));
 	}
+
 	define('ACTIVE_FRAME_URL', $url);
 	$entries = module_entries($modulename);
 	$sql = "SELECT b.`do`, a.`type`, a.`content` FROM ".tablename('rule_keyword')." as a LEFT JOIN ".tablename('cover_reply')." as b ON a.rid = b.rid WHERE b.uniacid = :uniacid AND b.module = :module";
@@ -43,6 +45,7 @@ if ($do == 'module') {
 		$cover_keywords[$replay['do']][] = $replay;
 	}
 	$module_permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], $modulename);
+
 	foreach ($entries['cover'] as $key => &$cover){
 		$permission_name = $modulename . '_cover_' . trim($cover['do']);
 		if ($module_permission[0] != 'all' && !in_array($permission_name, $module_permission)) {

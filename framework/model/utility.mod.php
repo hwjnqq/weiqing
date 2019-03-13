@@ -13,7 +13,8 @@ defined('IN_IA') or exit('Access Denied');
  * @return boolean
  */
 function code_verify($uniacid, $receiver, $code) {
-	if (!is_numeric($receiver) || !is_numeric($code)) {
+	$receiver = safe_gpc_string($receiver);
+	if (empty($receiver) || !is_numeric($code)) {
 		return false;
 	}
 	$params = array('uniacid' => intval($uniacid), 'receiver' => $receiver, 'verifycode' => $code, 'createtime >' => (TIMESTRAP - 1800));
@@ -34,7 +35,7 @@ function utility_image_rename($image_source_url, $image_destination_url) {
 	global $_W;
 	load()->func('file');
 	$image_source_url = str_replace(array("\0","%00","\r"),'',$image_source_url);
-	if (empty($image_source_url) || !parse_path($image_source_url) || !file_is_image($image_source_url)) {
+	if (empty($image_source_url) || !parse_path($image_source_url)) {
 		return false;
 	}
 	if (!strexists($image_source_url, $_W['siteroot'])) {
@@ -50,6 +51,9 @@ function utility_image_rename($image_source_url, $image_destination_url) {
 			return false;
 		}
 		$img_source_path = IA_ROOT . '/' . $img_local_path;
+	}
+	if (!file_is_image($img_source_path)) {
+		return false;
 	}
 	$result = copy($img_source_path, $image_destination_url);
 	return $result;

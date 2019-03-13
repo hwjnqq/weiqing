@@ -9,7 +9,8 @@ define('IN_API', true);
 require_once './framework/bootstrap.inc.php';
 load()->model('reply');
 load()->model('attachment');
-
+load()->model('visit');
+load()->model('app');
 load()->app('common');
 load()->classs('wesession');
 $hash = $_GPC['hash'];
@@ -34,7 +35,10 @@ if(empty($id)) {
 }
 if (!empty($id)) {
 	$uniacid = pdo_getcolumn('account', array('acid' => $id), 'uniacid');
-	$_W['account'] = uni_fetch($uniacid);
+	$_W['account'] = $_W['uniaccount'] = uni_fetch($uniacid);
+	if (!empty($_W['account']['uniacid']) && app_pass_visit_limit($_W['account']['uniacid'])) {
+		exit('success');
+	}
 }
 if(empty($_W['account'])) {
 	exit('initial error hash or id');
@@ -45,12 +49,12 @@ if(empty($_W['account']['token'])) {
 $_W['debug'] = intval($_GPC['debug']);
 $_W['acid'] = $_W['account']['acid'];
 $_W['uniacid'] = $_W['account']['uniacid'];
-$_W['uniaccount'] = uni_fetch($_W['uniacid']);
 $_W['account']['groupid'] = $_W['uniaccount']['groupid'];
 $_W['account']['qrcode'] = $_W['attachurl'].'qrcode_'.$_W['acid'].'.jpg?time='.$_W['timestamp'];
 $_W['account']['avatar'] = $_W['attachurl'].'headimg_'.$_W['acid'].'.jpg?time='.$_W['timestamp'];
 $_W['attachurl'] = attachment_set_attach_url();
 
+register_shutdown_function('visit_update_today', 'app', 'we7_api');
 
 $engine = new WeEngine();
 if (!empty($_W['setting']['copyright']['status'])) {
@@ -529,13 +533,13 @@ class WeEngine {
 		if(!empty($message['scene'])) {
 			$message['source'] = 'qr';
 			$sceneid = trim($message['scene']);
-			$scene_condition = '';
 			if (is_numeric($sceneid)) {
-				$scene_condition = " `qrcid` = '{$sceneid}'";
+				$scene_condition = " `qrcid` = :sceneid";
 			}else{
-				$scene_condition = " `scene_str` = '{$sceneid}'";
+				$scene_condition = " `scene_str` = :sceneid";
 			}
-			$qr = pdo_fetch("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE {$scene_condition} AND `uniacid` = '{$_W['uniacid']}'");
+			$condition = array(':sceneid' => $sceneid, ':uniacid' => $_W['uniacid']);
+			$qr = pdo_fetch("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE {$scene_condition} AND `uniacid` = :uniacid", $condition);
 			if(!empty($qr)) {
 				$message['content'] = $qr['keyword'];
 				if (!empty($qr['type']) && $qr['type'] == 'scene') {
@@ -568,18 +572,19 @@ class WeEngine {
 			$message['source'] = 'qr';
 			$sceneid = trim($message['scene']);
 			if (is_numeric($sceneid)) {
-				$scene_condition = " `qrcid` = '{$sceneid}'";
+				$scene_condition = " `qrcid` = :sceneid";
 			}else{
-				$scene_condition = " `scene_str` = '{$sceneid}'";
+				$scene_condition = " `scene_str` = :sceneid";
 			}
-			$qr = pdo_fetch("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE {$scene_condition} AND `uniacid` = '{$_W['uniacid']}' AND `type` = 'scene'");
+			$condition = array(':sceneid' => $sceneid, ':uniacid' => $_W['uniacid']);
+			$qr = pdo_fetch("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE {$scene_condition} AND `uniacid` = :uniacid AND `type` = 'scene'", $condition);
 
 		}
 		if (empty($qr) && !empty($message['ticket'])) {
 			$message['source'] = 'qr';
 			$ticket = trim($message['ticket']);
 			if(!empty($ticket)) {
-				$qr = pdo_fetchall("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE `uniacid` = '{$_W['uniacid']}' AND ticket = '{$ticket}'");
+				$qr = pdo_fetchall("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE `uniacid` = :uniacid AND ticket = :ticket", array(':uniacid' => $_W['uniacid'], ':ticket' => $ticket));
 				if(!empty($qr)) {
 					if(count($qr) != 1) {
 						$qr = array();
@@ -851,5 +856,3 @@ EOF;
 		exit($resp);
 	}
 }
-
-

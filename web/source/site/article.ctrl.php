@@ -12,7 +12,6 @@ $dos = array('display', 'post', 'del');
 $do = in_array($do, $dos) ? $do : 'display';
 
 permission_check_account_user('platform_site_article');
-$_W['page']['title'] = '文章管理 - 微官网';
 $category = pdo_fetchall("SELECT id,parentid,name FROM ".tablename('site_category')." WHERE uniacid = '{$_W['uniacid']}' AND enabled=1 ORDER BY parentid ASC, displayorder ASC, id ASC ", array(), 'id');
 
 $parent = array();
@@ -133,14 +132,10 @@ if ($do == 'display') {
 			}
 		} elseif (!empty($_GPC['autolitpic'])) {
 			$match = array();
-			preg_match('/&lt;img.*?src=&quot;?(.+\.(jpg|jpeg|gif|bmp|png))&quot;/', $_GPC['content'], $match);
-			if (!empty($match[1])) {
-				$url = $match[1];
-				$file = file_remote_attach_fetch($url);
-				if (!is_error($file)) {
-					$data['thumb'] = $file;
-					file_remote_upload($file);
-				}
+			preg_match('/&lt;img.*?src=&quot;(.+\.(jpg|jpeg|gif|bmp|png))&quot;/U', $_GPC['content'], $match);
+			if (file_is_image($match[1])) {
+				$data['thumb'] = $match[1];
+				//之前正则匹配结果有误, 且未判断本地是否存在该图片就上传, 会导致同一个图片被重复上传.
 			}
 		} else {
 			$data['thumb'] = '';

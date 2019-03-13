@@ -71,7 +71,6 @@ if ($do == 'check_upgrade') {
 }
 
 if ($do == 'installed') {
-	$_W['page']['title'] = '已安装的微站风格 - 风格主题';
 	$pindex = max(1, $_GPC['page']);
 	$pagesize = 20;
 	$param = empty($_GPC['type']) ? array() : array('type' => $_GPC['type']);
@@ -99,7 +98,6 @@ if ($do == 'installed') {
 }
 
 if ($do == 'not_install') {
-	$_W['page']['title'] = '安装微站风格 - 风格主题 - 扩展';
 	$installed_template = pdo_getall("site_templates", array(), array(), 'name');
 	$uninstall_template = array();
 

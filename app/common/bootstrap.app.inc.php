@@ -3,33 +3,37 @@
  * [WeEngine System] Copyright (c) 2013 WE7.CC
  */
 defined('IN_IA') or exit('Access Denied');
+load()->app('common');
+load()->app('template');
 load()->model('mc');
 load()->model('app');
 load()->model('account');
 load()->model('attachment');
+load()->model('permission');
 load()->model('module');
 
 $_W['uniacid'] = intval($_GPC['i']);
 if(empty($_W['uniacid'])) {
 	$_W['uniacid'] = intval($_GPC['weid']);
 }
-$_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);
-if(empty($_W['uniaccount'])) {
+//放在uni_fetch之前(因为传的值是$_W['uniacid'],所以此判断效果一样)，否则会导致误删session
+if(empty($_W['uniacid'])) {
 	header('HTTP/1.1 404 Not Found');
 	header("status: 404 Not Found");
 	exit;
 }
+$_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);
 
 if (!empty($_W['uniaccount']['endtime']) && TIMESTAMP > $_W['uniaccount']['endtime']) {
-	exit('抱歉，您的公众号服务已过期，请及时联系管理员');
+	message('抱歉，您的平台账号服务已过期，请及时联系管理员');
 }
 if (app_pass_visit_limit()) {
-	exit('访问受限，请及时联系管理员！');
+	message('访问受限，请及时联系管理员！');
 }
 $_W['acid'] = $_W['uniaccount']['acid'];
 $isdel_account = pdo_get('account', array('isdeleted' => 1, 'acid' => $_W['acid']));
 if (!empty($isdel_account)) {
-	exit('指定公众号已被删除');
+	message('指定公众号已被删除');
 }
 
 $_W['session_id'] = '';
@@ -110,8 +114,9 @@ $_W['oauth_account'] = $_W['account']['oauth'] = array(
 	'support_jssdk' => $_W['account']->supportJssdk,
 );
 $unisetting = uni_setting_load();
-if (empty($unisetting['oauth'])) {
-	$unisetting['oauth'] = uni_account_global_oauth();
+if (empty($unisetting['oauth']) && $_W['account']->typeSign == 'account' && $_W['account']['level'] != ACCOUNT_SERVICE_VERIFY) {
+	$global_oauth = uni_account_global_oauth();
+	$unisetting['oauth'] = (array)$global_oauth['oauth'];
 }
 if (!empty($unisetting['oauth']['account'])) {
 	$oauth = account_fetch($unisetting['oauth']['account']);
@@ -183,7 +188,7 @@ if ($_W['platform'] == 'account' && $_W['account']->supportJssdk && $controller 
 	if (!empty($unisetting['jsauth_acid'])) {
 		$jsauth_acid = $unisetting['jsauth_acid'];
 	} else {
-		if ($_W['account']['level'] < 3 && !empty($unisetting['oauth']['account'])) {
+		if ($_W['account']['level'] < ACCOUNT_SUBSCRIPTION_VERIFY && !empty($unisetting['oauth']['account'])) {
 			$jsauth_acid = $unisetting['oauth']['account'];
 		} else {
 			$jsauth_acid = $_W['acid'];

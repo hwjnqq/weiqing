@@ -12,11 +12,9 @@ $dos = array('display', 'testapi');
 $do = in_array($do, $dos) ? $do : 'display';
 permission_check_account_user('system_cloud_diagnose');
 
-$_W['page']['title'] = '云服务诊断 - 云服务';
-
 if ($do == 'testapi') {
 	$starttime = microtime(true);
-	$response = cloud_request('http://v2.addons.we7.cc', array(), array('ip' => $_GPC['ip']));
+	$response = cloud_request('http://api-upgrade.w7.cc', array(), array('ip' => $_GPC['ip']));
 	$endtime = microtime(true);
 	iajax(0,'请求接口成功，耗时 '.(round($endtime - $starttime, 5)).' 秒');
 } else {
@@ -40,13 +38,13 @@ if ($do == 'testapi') {
 		$checkips[] = $_W['setting']['cloudip']['ip'];
 	}
 	if (strexists(strtoupper(PHP_OS), 'WINNT')) {
-		$cloudip = gethostbyname('v2.addons.we7.cc');
+		$cloudip = gethostbyname('api-upgrade.w7.cc');
 		if (!in_array($cloudip, $checkips)) {
 			$checkips[] = $cloudip;
 		}
 	} else {
 		for ($i = 0; $i <= 10; $i++) {
-			$cloudip = gethostbyname('v2.addons.we7.cc');
+			$cloudip = gethostbyname('api-upgrade.w7.cc');
 			if (!in_array($cloudip, $checkips)) {
 				$checkips[] = $cloudip;
 			}

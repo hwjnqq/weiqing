@@ -6,16 +6,21 @@
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('miniapp');
+
 $version_id = intval($_GPC['version_id']);
 if (!empty($version_id)) {
+	$account = table('account')->getUniAccountByUniacid($_W['uniacid']);
 	$version_info = miniapp_version($version_id);
+	if ($version_info['uniacid'] != $_W['uniacid']) {
+		itoast('', url('account/display/all'));
+	}
 }
 
-if ($action == 'post') {
-	define('FRAME', 'system');
-}
 if ($action == 'version' && $do == 'display') {
 	define('FRAME', '');
+}
+if (in_array($action, array('manage', 'post'))) {
+	define('FRAME', 'account_manage');
 }
 if (!in_array($action, array('post', 'manage', 'auth'))) {
 	$account_api = WeAccount::createByUniacid();
@@ -29,3 +34,4 @@ if (!in_array($action, array('post', 'manage', 'auth'))) {
 	$account_type = $account_api->menuFrame;
 	define('FRAME', $account_type);
 }
+$account_all_type = uni_account_type();

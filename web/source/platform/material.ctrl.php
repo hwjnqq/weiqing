@@ -13,8 +13,6 @@ load()->func('file');
 $dos = array('display', 'sync', 'delete', 'send');
 $do = in_array($do, $dos) ? $do : 'display';
 
-$_W['page']['title'] = '永久素材-' . $_W['account']['type_name'] . '素材';
-
 if ($do == 'send') {
 	$group = intval($_GPC['group']);
 	$type = trim($_GPC['type']);
@@ -131,7 +129,7 @@ if ($do == 'sync') {
 			$original_newsid = array();
 		}
 		$original_newsid = array_filter($original_newsid, function($item){
-			return is_int($item);
+			return is_numeric($item);
 		});
 	}
 	$delete_id = array_diff($original_newsid, $wechat_existid);

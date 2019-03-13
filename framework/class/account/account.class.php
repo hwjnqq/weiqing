@@ -83,6 +83,8 @@ class WeAccount extends ArrayObject {
 	protected $menuFrame;
 	//帐号类型，数值
 	protected $type;
+	//表名
+	protected $tablename;
 	//帐号类型中文名称
 	protected $typeName;
 	//帐号对应的英文类型
@@ -92,9 +94,9 @@ class WeAccount extends ArrayObject {
 	//账号是否支持版本,默认不支持
 	protected $supportVersion = STATUS_OFF;
 	//账号是否支持授权获取用户信息
-	protected $supportOauthInfo = STATUS_OFF;
+	protected $supportOauthInfo;
 	//账号是否支持jssdk
-	protected $supportJssdk = STATUS_OFF;
+	protected $supportJssdk;
 
 	protected $toArrayMap = array(
 		'type_sign' => 'typeSign',
@@ -108,6 +110,7 @@ class WeAccount extends ArrayObject {
 		'type_name' => 'typeName',
 		'switchurl' => 'switchUrl',
 		'setmeal' => 'setMeal',
+		'current_user_role' => 'CurrentUserRole',
 	);
 
 	//帐号类型所对应的类名及文件
@@ -122,6 +125,8 @@ class WeAccount extends ArrayObject {
 		ACCOUNT_TYPE_XZAPP_NORMAL => 'xzapp.account',
 		ACCOUNT_TYPE_XZAPP_AUTH => 'xzapp.platform',
 		ACCOUNT_TYPE_ALIAPP_NORMAL => 'aliapp.account',
+		ACCOUNT_TYPE_BAIDUAPP_NORMAL => 'baiduapp.account',
+		ACCOUNT_TYPE_TOUTIAOAPP_NORMAL => 'toutiaoapp.account',
 	);
 	//实例化数组
 	private static $accountObj = array();
@@ -174,7 +179,7 @@ class WeAccount extends ArrayObject {
 		if (!empty(self::$accountObj[$uniaccount['uniacid']])) {
 			return self::$accountObj[$uniaccount['uniacid']];
 		}
-		if(!empty($uniaccount) && isset($uniaccount['type'])) {
+		if(!empty($uniaccount) && isset($uniaccount['type']) || !empty($uniaccount['isdeleted'])) {
 			return self::includes($uniaccount);
 		} else {
 			return error('-1', '帐号不存在或是已经被删除');
@@ -189,7 +194,16 @@ class WeAccount extends ArrayObject {
 	public static function createByUniacid($uniacid = 0) {
 		global $_W;
 		$uniacid = intval($uniacid) > 0 ? intval($uniacid) : $_W['uniacid'];
+		if (!empty(self::$accountObj[$uniacid])) {
+			return self::$accountObj[$uniacid];
+		}
 		$uniaccount = table('account')->getUniAccountByUniacid($uniacid);
+		if (empty($uniaccount)) {
+			return error('-1', '帐号不存在或是已经被删除');
+		}
+		if (!empty($_W['uid']) && !user_is_founder($_W['uid'], true) && !permission_account_user_role($_W['uid'], $uniacid)) {
+			return error('-1', '无权限操作该平台账号');
+		}
 		return self::create($uniaccount);
 	}
 
@@ -228,6 +242,12 @@ class WeAccount extends ArrayObject {
 
 	protected function fetchDisplayUrl() {
 		return url('account/display', array('type' => $this->typeSign));
+	}
+
+	protected function fetchCurrentUserRole() {
+		global $_W;
+		load()->model('permission');
+		return permission_account_user_role($_W['uid'], $this->uniacid);
 	}
 
 	protected function fetchLogo() {
@@ -300,7 +320,7 @@ class WeAccount extends ArrayObject {
 	}
 
 	protected function supportJssdk() {
-		if ($this->account['level'] >= ACCOUNT_SUBSCRIPTION_VERIFY || $this->typeSign == XZAPP_TYPE_SIGN) {
+		if (in_array($this->typeSign, array(XZAPP_TYPE_SIGN, WXAPP_TYPE_SIGN, ACCOUNT_TYPE_SIGN))) {
 			return STATUS_ON;
 		} else {
 			return STATUS_OFF;
@@ -590,7 +610,7 @@ class WeUtility {
 		global $_W;
 		static $file;
 		$type = str_replace('createModule','', $type);
-		$types = array('wxapp', 'phoneapp', 'webapp', 'systemwelcome', 'processor', 'aliapp');
+		$types = array('wxapp', 'phoneapp', 'webapp', 'systemwelcome', 'processor', 'aliapp', 'baiduapp', 'toutiaoapp');
 		$type = in_array(strtolower($type), $types) ? $type : '';
 		$name = $params[0];
 		$class_account = 'WeModule' . $type;
@@ -636,8 +656,8 @@ class WeUtility {
 		$o->__define = $file;
 		self::defineConst($o);
 
-		if ($type == 'wxapp' || $type == 'phoneapp' || $type == 'webapp' || $type == 'systemWelcome') {
-			$o->inMmodule = defined( 'IN_MOBILE');
+		if (in_array($type, $types)) {
+			$o->inMobile = defined( 'IN_MOBILE');
 		}
 		if ($o instanceof $class_account) {
 			return $o;
@@ -855,10 +875,11 @@ class WeUtility {
 		if ($_W['setting']['copyright']['log_status'] != 1) {
 			return false;
 		}
-		$filename = IA_ROOT . '/data/logs/' . date('Ymd') . '.log';
+		$filename = IA_ROOT . '/data/logs/' . date('Ymd') . '.php';
 		load()->func('file');
 		mkdirs(dirname($filename));
-		$content = date('Y-m-d H:i:s') . " {$level} :\n------------\n";
+		$content = "<?php exit;?>\t";
+		$content .= date('Y-m-d H:i:s') . " {$level} :\n------------\n";
 		if(is_string($message) && !in_array($message, array('post', 'get'))) {
 			$content .= "String:\n{$message}\n";
 		}
@@ -2058,7 +2079,7 @@ abstract class WeModuleWxapp extends WeBase {
 	}
 }
 
-/*
+/**
  * 模块支付宝小程序
  */
 abstract class WeModuleAliapp extends WeBase {
@@ -2109,6 +2130,116 @@ abstract class WeModuleAliapp extends WeBase {
 				'errno' => $errno,
 				'message' => $message,
 				'data' => $data,
+		)));
+	}
+}
+
+/**
+ * 模块百度小程序
+ */
+abstract class WeModuleBaiduapp extends WeBase {
+	public $appid;
+	public $version;
+
+	public function __call($name, $arguments) {
+		$dir = IA_ROOT . '/addons/' . $this->modulename . '/inc/baiduapp';
+		$function_name = strtolower(substr($name, 6));
+		//版本号不存在相应的目录则直接使用最新版
+		$func_file = "{$function_name}.inc.php";
+		$file = "$dir/{$this->version}/{$function_name}.inc.php";
+		if (!file_exists($file)) {
+			$version_path_tree = glob("$dir/*");
+			usort($version_path_tree, function($version1, $version2) {
+				return -version_compare($version1, $version2);
+			});
+			if (!empty($version_path_tree)) {
+				// 先过滤目录
+				$dirs = array_filter($version_path_tree, function($path) use ($func_file){
+					$file_path = "$path/$func_file";
+					return is_dir($path) && file_exists($file_path);
+				});
+				$dirs = array_values($dirs);
+
+				// 再过滤文件
+				$files = array_filter($version_path_tree, function($path) use ($func_file){
+					return is_file($path) && pathinfo($path, PATHINFO_BASENAME) == $func_file;
+				});
+				$files = array_values($files);
+
+				if (count($dirs) > 0) {
+					$file = current($dirs).'/'.$func_file;
+				} else if(count($files) > 0){
+					$file = current($files);
+				}
+			}
+		}
+		if(file_exists($file)) {
+			require $file;
+			exit;
+		}
+		return null;
+	}
+
+	public function result($errno, $message, $data = '') {
+		exit(json_encode(array(
+			'errno' => $errno,
+			'message' => $message,
+			'data' => $data,
+		)));
+	}
+}
+
+/**
+ * 模块头条小程序
+ */
+abstract class WeModuleToutiaoapp extends WeBase {
+	public $appid;
+	public $version;
+
+	public function __call($name, $arguments) {
+		$dir = IA_ROOT . '/addons/' . $this->modulename . '/inc/toutiaoapp';
+		$function_name = strtolower(substr($name, 6));
+		//版本号不存在相应的目录则直接使用最新版
+		$func_file = "{$function_name}.inc.php";
+		$file = "$dir/{$this->version}/{$function_name}.inc.php";
+		if (!file_exists($file)) {
+			$version_path_tree = glob("$dir/*");
+			usort($version_path_tree, function($version1, $version2) {
+				return -version_compare($version1, $version2);
+			});
+			if (!empty($version_path_tree)) {
+				// 先过滤目录
+				$dirs = array_filter($version_path_tree, function($path) use ($func_file){
+					$file_path = "$path/$func_file";
+					return is_dir($path) && file_exists($file_path);
+				});
+				$dirs = array_values($dirs);
+
+				// 再过滤文件
+				$files = array_filter($version_path_tree, function($path) use ($func_file){
+					return is_file($path) && pathinfo($path, PATHINFO_BASENAME) == $func_file;
+				});
+				$files = array_values($files);
+
+				if (count($dirs) > 0) {
+					$file = current($dirs).'/'.$func_file;
+				} else if(count($files) > 0){
+					$file = current($files);
+				}
+			}
+		}
+		if(file_exists($file)) {
+			require $file;
+			exit;
+		}
+		return null;
+	}
+
+	public function result($errno, $message, $data = '') {
+		exit(json_encode(array(
+			'errno' => $errno,
+			'message' => $message,
+			'data' => $data,
 		)));
 	}
 }

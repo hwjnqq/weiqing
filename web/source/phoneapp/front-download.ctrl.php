@@ -12,18 +12,16 @@ load()->classs('uploadedfile');
 $dos = array('front_download', 'getpackage');
 $do = in_array($do, $dos) ? $do : 'front_download';
 
-$_W['page']['title'] = 'APP下载 - APP - 管理';
+$type = $_GPC['type'] == 'ipa' ? 'ipa' : 'apk';
 
 $version_id = intval($_GPC['version_id']);
-
 
 // 是否是模块打包小程序
 $is_module_wxapp = false;
 if (!empty($version_id)) {
 	$version_info = phoneapp_version($version_id);
+	$module = current($version_info['modules']);
 }
-
-
 
 if ($do == 'front_download') {
 	$appurl = $_W['siteroot'].'/app/index.php';

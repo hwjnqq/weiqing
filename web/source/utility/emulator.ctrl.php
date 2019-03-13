@@ -1,12 +1,12 @@
 <?php
 /**
  * 用于调试时模拟用户发送信息到微号公众号 PGCAO改良 www.kl3w.com
- * [WeEngine System] Copyright (c) 2013 we7.cc
+ * [WeEngine System] Copyright (c) 2013 w7.cc
  */
 $_W['page']['title'] = '模拟测试';
 $development = 1;
 $accounts = uni_owned(0, false);
-
+define('FRAME', '');
 template('common/header');
 
 ?>

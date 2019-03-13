@@ -201,6 +201,7 @@ class CoreModule extends WeModule {
 
 	public function fieldsFormSubmit($rid = 0) {
 		global $_GPC, $_W;
+		permission_check_account_user('platform_reply_keyword');
 		$delsql = '';
 		foreach ($this->modules as $k => $val) {
 			$tablename = $this->tablename[$val];
@@ -294,9 +295,11 @@ class CoreModule extends WeModule {
 	}
 
 	public function ruleDeleted($rid = 0) {
+		global $_W;
+		permission_check_account_user('platform_reply_keyword');
 		$reply_modules = array("basic", "news", "music", "images", "voice", "video", "wxcard");
 		foreach($this->tablename as $tablename) {
-			pdo_delete($tablename, array('rid' => $rid));
+			pdo_delete($tablename, array('rid' => $rid, 'uniacid' => $_W['uniacid']));
 		}
 	}
 }

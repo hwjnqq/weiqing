@@ -11,19 +11,14 @@ load()->classs('uploadedfile');
 
 $dos = array('front_download', 'domainset', 'code_uuid', 'code_gen', 'code_token', 'qrcode', 'checkscan',
 	'commitcode', 'preview', 'getpackage', 'entrychoose', 'set_wxapp_entry',
-	'custom', 'custom_save', 'custom_default', 'custom_convert_img', 'upgrade_module');
+	'custom', 'custom_save', 'custom_default', 'custom_convert_img', 'upgrade_module', 'tominiprogram', 'del_tominiprogram');
 $do = in_array($do, $dos) ? $do : 'front_download';
 
-$_W['page']['title'] = '小程序下载 - 小程序 - 管理';
-
-$version_id = intval($_GPC['version_id']);
 $wxapp_info = miniapp_fetch($_W['uniacid']);
-
 
 // 是否是模块打包小程序
 $is_module_wxapp = false;
 if (!empty($version_id)) {
-	$version_info = miniapp_version($version_id);
 	$is_single_module_wxapp = $version_info['type'] == WXAPP_CREATE_MODULE; //是否单应用打包
 }
 
@@ -79,41 +74,6 @@ if ($do == 'custom_convert_img') {
 	iajax(0, $filename);
 }
 
-if ($do == 'domainset') {
-	$appurl = $_W['siteroot'].'app/index.php';
-	$uniacid = 0;
-	if ($version_info) {
-		$wxapp = pdo_get('account_wxapp', array('uniacid' => $version_info['uniacid']));
-		if ($wxapp && !empty($wxapp['appdomain'])) {
-			$appurl = $wxapp['appdomain'];
-		}
-		if (!starts_with($appurl, 'https')) { //不是https 开头强制改为https开头
-			$appurl = str_replace('http', 'https', $appurl);
-		}
-		$uniacid = $version_info['uniacid'];
-	}
-	if ($_W['ispost']) {
-		$files = UploadedFile::createFromGlobal();
-		$appurl = $_GPC['appurl'];
-		if (!starts_with($appurl, 'https')) {
-			itoast('域名必须以https开头');
-			return;
-		}
-
-		/** @var $file UploadedFile */
-		$file = isset($files['file']) ? $files['file'] : null;
-		if ($file && $file->isOk() && $file->allowExt('txt')) {
-			$file->moveTo(IA_ROOT.'/'.$file->getClientFilename()); //上传业务域名
-		}
-
-		if ($version_info) {
-			$update = pdo_update('account_wxapp', array('appdomain' => $appurl), array('uniacid' => $uniacid));
-			itoast('更新成功'); //新 旧域名一样 返回$update 为0
-		}
-	}
-	template('wxapp/version-front-download');
-}
-
 if ($do == 'front_download') {
 	permission_check_account_user('wxapp_profile_front_download');
 	$appurl = $_W['siteroot'].'/app/index.php';
@@ -129,13 +89,15 @@ if ($do == 'front_download') {
 	$module = array();
 	if (!empty($wxapp_versions_info['modules'])) {
 		foreach ($wxapp_versions_info['modules'] as $item) {
-			$module = $item;
+			$module = module_fetch($item['name']);
 			$need_upload = !empty($last_modules) && ($module['version'] != $last_modules['version']);
 		}
 	}
-	$user_version = explode('.', $wxapp_versions_info['version']);
-	$user_version[count($user_version)-1] += 1;
-	$user_version = join('.', $user_version);
+	if (!empty($wxapp_versions_info['version'])) {
+		$user_version = explode('.', $wxapp_versions_info['version']);
+		$user_version[count($user_version) - 1] += 1;
+		$user_version = join('.', $user_version);
+	}
 	template('wxapp/version-front-download');
 }
 
@@ -155,6 +117,7 @@ if ($do == 'upgrade_module') {
 			'last_modules' => $modules,
 			'version' => $_GPC['version'],
 			'description' => trim($_GPC['description']),
+			'upload_time' => TIMESTAMP,
 		), array('id' => $version_id));
 		cache_delete(cache_system_key('miniapp_version', array('version_id' => $version_id)));
 	}
@@ -210,10 +173,61 @@ if ($do == 'commitcode') {
 	echo json_encode($data);
 }
 
+if ($do == 'tominiprogram') {
+	$tomini_lists = iunserializer($version_info['tominiprogram']);
+	if (checksubmit()) {
+		$tominiprogram_data = array();
+		$appid = safe_gpc_string(trim($_GPC['appid']));
+		$app_name = safe_gpc_string(trim($_GPC['app_name']));
+		$tominiprogram_data[$appid] = array('appid' => $appid, 'app_name' => $app_name);
+		if (empty($appid)) {
+			itoast('appid不可为空！', referer(), 'error');
+		}
+		if (empty($app_name)) {
+			itoast('app_name不可为空！', referer(), 'error');
+		}
+		if (in_array($appid, array_keys($tomini_lists))) {
+			itoast('该appid值已存在！', referer(), 'error');
+		}
+		if (count($tomini_lists) == 10) {
+			itoast('要跳转的小程序不可超过10个！', referer(), 'error');
+		}
+		if (empty($tomini_lists)) {
+			$data = array('tominiprogram' => iserializer($tominiprogram_data));
+		} else {
+			$tomini_lists[$appid] = array('appid' => $appid, 'app_name' => $app_name);
+			$data = array('tominiprogram' => iserializer($tomini_lists));
+		}
+		miniapp_version_update($version_id, $data);
+		itoast('保存成功！', referer(), 'success');
+	}
+
+	template('wxapp/version-front-download');
+}
+
+if ($do == 'del_tominiprogram') {
+	$tomini_lists = iunserializer($version_info['tominiprogram']);
+	$appid = safe_gpc_string(trim($_GPC['appid']));
+	$app_name = safe_gpc_string(trim($_GPC['app_name']));
+
+	if (!in_array($appid, array_keys($tomini_lists))) {
+		itoast('不存在该appid', referer(), 'error');
+	}
+	$tomini_lists = array_diff($tomini_lists, array($appid));
+	unset($tomini_lists[$appid]);
+	$data = array('tominiprogram' => iserializer($tomini_lists));
+	miniapp_version_update($version_id, $data);
+	itoast('删除成功！', referer(), 'success');
+}
 if ($do == 'getpackage') {
 	if (empty($version_id)) {
 		itoast('参数错误！', '', '');
 	}
+	$account_wxapp_info = miniapp_fetch($version_info['uniacid'], $version_id);
+	if (empty($account_wxapp_info)) {
+		itoast('版本不存在！', referer(), 'error');
+	}
+
 	$siteurl = $_W['siteroot'].'app/index.php';
 	if (!empty($account_wxapp_info['appdomain'])) {
 		$siteurl = $account_wxapp_info['appdomain'];

@@ -10,7 +10,6 @@ $dos = array('set', 'list');
 $do = in_array($do, $dos) ? $do : 'list';
 
 permission_check_account_user('profile_setting');
-$_W['page']['title'] = '会员微信通知-会员中心';
 
 if ($do  == 'set') {
 	$tpl_list = $_GPC['tpl'];
@@ -51,7 +50,7 @@ $tpl = array(
 	'credit1' => array(
 		'tpl' => $tpl_setting['credit1']['tpl'],
 		'name' => '会员积分变更',
-		'help' => '请在“微信公众平台”选择行业为：“IT科技 - 互联网|电子商务”，添加标题为：”积分提醒“，编号为：“TM00335”的模板。',
+		'help' => '请在“微信公众平台”选择行业为：“IT科技 - 互联网|电子商务”，添加标题为：”变更通知“，编号为：“OPENTM403182052”的模板。',
 	),
 	'group' => array(
 		'tpl' => $tpl_setting['group']['tpl'],

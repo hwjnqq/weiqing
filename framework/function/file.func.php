@@ -546,6 +546,12 @@ function file_delete($file) {
 	if (empty($file)) {
 		return false;
 	}
+	$file = safe_gpc_path($file);
+	$file_extension = pathinfo($file, PATHINFO_EXTENSION);
+	if (in_array($file_extension, array('php', 'html', 'js', 'css', 'ttf', 'otf', 'eot', 'svg', 'woff'))) {
+		return false;
+	}
+
 	if (file_exists(ATTACHMENT_ROOT . '/' . $file) && file_is_uni_attach(ATTACHMENT_ROOT . '/' . $file)) {
 		file_change_uni_attchsize(ATTACHMENT_ROOT . '/' . $file, false);
 	}
@@ -804,47 +810,14 @@ function file_remote_attach_fetch($url, $limit = 0, $path = '') {
 	if (intval($resp['code']) != 200) {
 		return error(-1, '提取文件失败: 未找到该资源文件.');
 	}
-	$ext = $type = '';
-	switch ($resp['headers']['Content-Type']) {
-		case 'application/x-jpg':
-		case 'image/jpg':
-		case 'image/jpeg':
-			$ext = 'jpg';
-			$type = 'images';
-			break;
-		case 'image/png':
-			$ext = 'png';
-			$type = 'images';
-			break;
-		case 'image/gif':
-			$ext = 'gif';
-			$type = 'images';
-			break;
-		case 'video/mp4':
-		case 'video/mpeg4':
-			$ext = 'mp4';
-			$type = 'videos';
-			break;
-		case 'video/x-ms-wmv':
-			$ext = 'wmv';
-			$type = 'videos';
-			break;
-		case 'audio/mpeg':
-			$ext = 'mp3';
-			$type = 'audios';
-			break;
-		case 'audio/mp4':
-			$ext = 'mp4';
-			$type = 'audios';
-			break;
-		case 'audio/x-ms-wma':
-			$ext = 'wma';
-			$type = 'audios';
-			break;
-		default:
-			return error(-1, '提取资源失败, 资源文件类型错误.');
-			break;
+	$get_headers = file_media_content_type($url);
+	if (empty($get_headers)) {
+		return error(-1, '提取资源失败, 资源文件类型错误.');
+	} else {
+		$ext = $get_headers['ext'];
+		$type = $get_headers['type'];
 	}
+
 	if (empty($path)) {
 		$path = $type . "/{$_W['uniacid']}/" . date('Y/m/');
 	} else {
@@ -884,17 +857,120 @@ function file_remote_attach_fetch($url, $limit = 0, $path = '') {
 	return $pathname;
 }
 
-function file_is_image($url) {
-	global $_W;
-	if (!parse_path($url)) {
+/**
+ * 获取素材类型及扩展名
+ * @param $url
+ * @return array|bool
+ */
+function file_media_content_type($url) {
+	$file_header = iget_headers($url, 1);
+	if (empty($url) || !is_array($file_header)) {
 		return false;
 	}
-	$info = @getimagesize($url);
+	switch ($file_header['Content-Type']) {
+		case 'application/x-jpg':
+		case 'image/jpg':
+		case 'image/jpeg':
+			$ext = 'jpg';
+			$type = 'images';
+			break;
+		case 'image/png':
+			$ext = 'png';
+			$type = 'images';
+			break;
+		case 'image/gif':
+			$ext = 'gif';
+			$type = 'images';
+			break;
+		case 'video/mp4':
+		case 'video/mpeg4':
+			$ext = 'mp4';
+			$type = 'videos';
+			break;
+		case 'video/x-ms-wmv':
+			$ext = 'wmv';
+			$type = 'videos';
+			break;
+		case 'audio/mpeg':
+			$ext = 'mp3';
+			$type = 'audios';
+			break;
+		case 'audio/mp4':
+			$ext = 'mp4';
+			$type = 'audios';
+			break;
+		case 'audio/x-ms-wma':
+			$ext = 'wma';
+			$type = 'audios';
+			break;
+		default:
+			return false;
+			break;
+	}
+	return array('ext' => $ext, 'type' => $type);
+}
+
+/**
+ * 获取系统支持的素材类型
+ * @param $type 图片和音视频
+ * @return array
+ */
+function file_allowed_media($type) {
+	global $_W;
+	if (!in_array($type, array('image', 'audio'))) {
+		return array();
+	}
+	if (empty($_W['setting']['upload'][$type]['extention']) || !is_array($_W['setting']['upload'][$type]['extention'])) {
+		return $_W['config']['upload'][$type]['extentions'];
+	}
+	return $_W['setting']['upload'][$type]['extention'];
+}
+
+function file_is_image($url) {
+	global $_W;
+	$allowed_media = file_allowed_media('image');
+
+	if (substr($url, 0, 2) == '//') {
+		$url = 'http:' . $url;
+	}
+	$lower_url = strtolower($url);
+	if ((substr($lower_url, 0, 7) == 'http://') || (substr($lower_url, 0, 8) == 'https://')) {
+		$img_headers = file_media_content_type($url);
+		if (empty($img_headers) || !in_array($img_headers['ext'], (array)$_W['setting']['upload']['image']['extentions'])) {
+			return false;
+
+		}
+	}
+
+	$info = igetimagesize($url);
 	if (!is_array($info)) {
 		return false;
 	}
-	$extension = image_type_to_extension($info['2'], false);
-	return !empty($extension) && in_array($extension, $_W['config']['upload']['image']['extentions']);
+	return true;
+}
+
+function file_image_type_map() {
+	return array (
+		0=>'unknown',
+		1=>'gif',
+		2=>'jpg',
+		3=>'png',
+		4=>'swf',
+		5=>'psd',
+		6=>'bmp',
+		7=>'tiff_ii',
+		8=>'tiff_mm',
+		9=>'jpc',
+		10=>'jp2',
+		11=>'jpx',
+		12=>'jb2',
+		13=>'swc',
+		14=>'iff',
+		15=>'wbmp',
+		16=>'xbm',
+		17=>'ico',
+		18=>'count'  
+	);
 }
 
 /**
@@ -911,6 +987,9 @@ function file_image_quality($src, $to_path, $ext) {
 	load()->classs('image');
 	global $_W;
 	//不压缩
+	if (strtolower($ext) == 'gif') {
+		return;
+	}
 	$quality = intval($_W['setting']['upload']['image']['zip_percentage']);
 	if ($quality <= 0 || $quality >= 100) {
 		return;

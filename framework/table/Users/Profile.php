@@ -67,11 +67,11 @@ class Profile extends \We7Table {
 		'qq' => '',
 		'mobile' => '',
 		'fakeid' => '',
-		'vip' => 0,
-		'gender' => 0,
-		'birthyear' => 0,
-		'birthmonth' => 0,
-		'birthday' => 0,
+		'vip' => '0',
+		'gender' => '0',
+		'birthyear' => '0',
+		'birthmonth' => '0',
+		'birthday' => '0',
 		'constellation' => '',
 		'zodiac' => '',
 		'telephone' => '',
@@ -103,8 +103,16 @@ class Profile extends \We7Table {
 		'bio' => '',
 		'interest' => '',
 		'workerid' => '',
-		'send_expire_status' => 0,
+		'send_expire_status' => '0',
 		'is_send_mobile_status' => '',
 		'location' => '',
 	);
+
+	public function getByUid($uid) {
+		return $this->query->where('uid', $uid)->get();
+	}
+
+	public function getByMobile($mobile) {
+		return $this->query->where('mobile', $mobile)->get();
+	}
 }

@@ -2,7 +2,7 @@
 /**
  * 系统中一些必须以模块形式表现的功能
  * @author 微擎团队
- * @url http://bbs.we7.cc/
+ * @url http://bbs.w7.cc/
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -65,7 +65,12 @@ class CoreModuleSite extends WeModuleSite {
 		
 		include $this->template('pay');
 	}
-	
+
+	/**
+	 * 各个支付都配置有支付开关：pay_switch和充值开关：recharge_switch,
+	 * 支付中使用pay_switch(如本方法中),充值中使用recharge_switch(recharge/site.php中,目前充值只有这一个),
+	 * 最后在common/paycenter中统一使用switch
+	 */
 	public function doMobilePay() {
 		global $_W, $_GPC;
 		
@@ -78,22 +83,22 @@ class CoreModuleSite extends WeModuleSite {
 		
 		$setting = uni_setting($_W['uniacid'], 'payment');
 		$dos = array();
-		if(!empty($setting['payment']['credit']['switch'])) {
+		if(!empty($setting['payment']['credit']['pay_switch'])) {
 			$dos[] = 'credit';
 		}
-		if(!empty($setting['payment']['alipay']['switch'])) {
+		if(!empty($setting['payment']['alipay']['pay_switch'])) {
 			$dos[] = 'alipay';
 		}
-		if(!empty($setting['payment']['wechat']['switch'])) {
+		if(!empty($setting['payment']['wechat']['pay_switch'])) {
 			$dos[] = 'wechat';
 		}
-		if(!empty($setting['payment']['delivery']['switch'])) {
+		if(!empty($setting['payment']['delivery']['pay_switch'])) {
 			$dos[] = 'delivery';
 		}
-		if(!empty($setting['payment']['unionpay']['switch'])) {
+		if(!empty($setting['payment']['unionpay']['pay_switch'])) {
 			$dos[] = 'unionpay';
 		}
-		if(!empty($setting['payment']['baifubao']['switch'])) {
+		if(!empty($setting['payment']['baifubao']['pay_switch'])) {
 			$dos[] = 'baifubao';
 		}
 		$type = in_array($params['method'], $dos) ? $params['method'] : '';

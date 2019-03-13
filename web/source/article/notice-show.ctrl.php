@@ -36,8 +36,6 @@ if($do == 'detail') {
 		itoast($result ? '评论成功' : '评论失败', url('article/notice-show/detail', array('id' => $id, 'page' => 1)), $result ? 'success' : 'error');
 	}
 
-	$_W['page']['title'] = $notice['title'] . '-公告列表';
-	
 	pdo_update('article_notice', array('click +=' => 1), array('id' => $id));
 
 	if(!empty($_W['uid'])) {
@@ -51,10 +49,26 @@ if ($do == 'more_comments') {
 	$pageindex = max(1, intval($_GPC['page']));
 	$pagesize = 15;
 	$comment_table = table('article_comment');
-	$comment_list = $comment_table->getComments(intval($_GPC['id']), $pageindex, $pagesize, $order);
-	$comment_list['list'] = empty($comment_list['list']) ? array() : array_values($comment_list['list']);
-	$comment_list['pager'] = pagination($comment_list['total'], $pageindex, $pagesize, '', array('ajaxcallback' => true, 'callbackfuncname' => 'changePage'));
-	iajax(0, $comment_list);
+	$comment_table->orderby('id', 'DESC');
+	$comment_table->searchWithPage($pageindex, $pagesize);
+	$comments = $comment_table->getCommentsByArticleid(intval($_GPC['id']));
+	$total = $comment_table->getLastQueryTotal();
+	if (!empty($comments)) {
+		$uids = array();
+		foreach ($comments as $comment) {
+			$uids[$comment['uid']] = $comment['uid'];
+		}
+		$user_info = table('users')->searchWithUid($uids)->getUsersList();
+		foreach ($comments as $k => $comment) {
+			if (!empty($user_info[$comment['uid']])) {
+				$comments[$k] = array_merge($user_info[$comment['uid']], $comment);
+			}
+		}
+	}
+	iajax(0, array(
+		'list' => array_values($comments),
+		'pager' => pagination($total, $pageindex, $pagesize, '', array('ajaxcallback' => true, 'callbackfuncname' => 'changePage'))
+	));
 }
 
 if ($do == 'like_comment') {
@@ -66,10 +80,9 @@ if ($do == 'like_comment') {
 	if (empty($comment)) {
 		iajax(1, '评论不存在');
 	}
-	if ($article_comment_table->hasLiked($articleid, $comment_id)) {
+	if (!empty($article_comment_table->getLikeComment($_W['uid'], $articleid, $comment_id))) {
 		iajax(1, '已赞');
 	}
-
 	if ($article_comment_table->likeComment($_W['uid'], $articleid, $comment_id)) {
 		iajax(0);
 	} else {
@@ -78,12 +91,10 @@ if ($do == 'like_comment') {
 }
 
 if($do == 'list') {
-	$_W['page']['title'] = '-新闻列表';
 	$categroys = article_categorys('notice');
 	$categroys[0] = array('title' => '所有公告');
 
 	$cateid = intval($_GPC['cateid']);
-	$_W['page']['title'] = $categroys[$cateid]['title'] . '-公告列表';
 
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;

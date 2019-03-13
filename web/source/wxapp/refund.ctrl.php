@@ -11,7 +11,6 @@ load()->classs('uploadedfile');
 $dos = array('save_setting', 'display');
 $do = in_array($do, $dos) ? $do : 'display';
 permission_check_account_user('profile_payment_refund', true, 'wxapp');
-$_W['page']['title'] = '退款参数 - 小程序选项';
 
 if ($do == 'display') {
 	$setting = uni_setting_load('payment', $_W['uniacid']);

@@ -1,7 +1,7 @@
 <?php
 /**
  * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 
 error_reporting(0);
@@ -70,7 +70,9 @@ if(is_array($query) && count($query) == 2) {
 		
 			if(in_array($get['action'], array('test', 'deleteuser', 'renameuser', 'gettag', 'synlogin', 'synlogout', 'updatepw', 'updatebadwords', 'updatehosts', 'updateapps', 'updateclient', 'updatecredit', 'getcredit', 'getcreditsettings', 'updatecreditsettings', 'addfeed'))) {
 				$note = new uc_note();
-				echo $note->$get['action']($get, $post);
+				//php7.0以上不支持$note->$%get['action']写法，会报语法错误
+				$function = $get['action'];
+				echo $note->$function($get, $post);
 				exit();
 			} else {
 				exit(API_RETURN_FAILED);

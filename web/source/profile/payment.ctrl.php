@@ -12,7 +12,6 @@ load()->func('communication');
 $dos = array('save_setting', 'display', 'test_alipay', 'get_setting', 'switch', 'change_status');
 $do = in_array($do, $dos) ? $do : 'display';
 permission_check_account_user('profile_payment_pay');
-$_W['page']['title'] = '支付参数 - 公众号选项';
 
 if ($do == 'get_setting') {
 	$pay_setting = payment_setting();

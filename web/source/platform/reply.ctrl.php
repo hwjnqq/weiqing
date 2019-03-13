@@ -19,7 +19,7 @@ if (in_array($m, array('keyword', 'special', 'welcome', 'default', 'apply', 'ser
 	$_W['current_module'] = $modules[$m];
 	define('IN_MODULE', $m);
 }
-$_W['page']['title'] = '自动回复';
+
 if (empty($m)) {
 	itoast('错误访问.', '', '');
 }

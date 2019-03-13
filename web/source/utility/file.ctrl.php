@@ -1,7 +1,7 @@
 <?php
 /**
  * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -150,8 +150,9 @@ if ($do == 'upload') {
 }
 
 if ($do == 'fetch' || $do == 'upload') {
-		if ($type == 'image') {
-		$thumb = empty($setting['thumb']) ? 0 : 1; 		$width = intval($setting['width']);
+	if ($type == 'image') {
+		$thumb = empty($setting['thumb']) || $ext == 'gif' ? 0 : 1;
+		$width = intval($setting['width']);
 		if (isset($option['thumb'])) {
 			$thumb = empty($option['thumb']) ? 0 : 1;
 		}
@@ -190,8 +191,11 @@ if ($do == 'fetch' || $do == 'upload') {
 		$size = filesize($fullname);
 		$info['size'] = sizecount($size);
 	}
-	if (!empty($_W['setting']['remote'][$_W['uniacid']]['type'])) {
+	if (empty($option['global']) && !empty($_W['setting']['remote'][$_W['uniacid']]['type'])) {
 		$_W['setting']['remote'] = $_W['setting']['remote'][$_W['uniacid']];
+	}
+	if (!empty($option['global'])) {
+		$_W['setting']['remote'] = $_W['setting']['remote_complete_info'];
 	}
 	if (!empty($_W['setting']['remote']['type'])) {
 		$remotestatus = file_remote_upload($pathname);
@@ -228,9 +232,14 @@ if ($do == 'delete') {
 		$id = array(intval($id));
 	}
 	$id = safe_gpc_array($id);
-	$table = table('attachment')->where('id', $id);
-	$table->searchWithUniacidOrUid($uniacid, $_W['uid']);
-	$attachments = $table->getall();
+	$core_attachment_table = table('core_attachment');
+	$core_attachment_table->searchWithId($id);
+	if (empty($uniacid)) {
+		$core_attachment_table->searchWithUid($_W['uid']);
+	} else {
+		$core_attachment_table->searchWithUniacid($uniacid);
+	}
+	$attachments = $core_attachment_table->getall();
 	$delete_ids = array();
 	if (!empty($_W['setting']['remote'][$_W['uniacid']]['type'])) {
 		$_W['setting']['remote'] = $_W['setting']['remote'][$_W['uniacid']];
@@ -455,7 +464,7 @@ $type = $_GPC['type']; $resourceid = intval($_GPC['resource_id']); $uid = intval
 $acid = intval($_W['acid']);
 $url = $_GPC['url'];
 $isnetwork_convert = !empty($url);
-$islocal = $_GPC['local'] == 'local'; 
+$islocal = $_GPC['local'] == 'local';
 if ($do == 'keyword') {
 	$keyword = addslashes($_GPC['keyword']);
 	$pindex = max(1, $_GPC['page']);
@@ -474,12 +483,15 @@ if ($do == 'keyword') {
 if ($do == 'module') {
 	$enable_modules = array();
 	$is_user_module = isset($_GPC['user_module']) ? intval($_GPC['user_module']) : 0;
+	$uid = empty($_GPC['uid']) ? $_W['uid'] : intval($_GPC['uid']);
+	$module_uniacid = empty($_GPC['module_uniacid']) ? $_W['uniacid'] : intval($_GPC['module_uniacid']);
 	$have_cover = $_GPC['cover'] == 'true' ? true : false;
-	$module_type = in_array($_GPC['mtype'], array(ACCOUNT_TYPE_SIGN, WXAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN, PHONEAPP_TYPE_SIGN, ALIAPP_TYPE_SIGN)) ? $_GPC['mtype'] : '';
+	$account_all_type = uni_account_type();
+	$module_type = in_array($_GPC['mtype'], array_keys(uni_account_type_sign())) ? $_GPC['mtype'] : '';
 	if ($is_user_module) {
-		$installedmodulelist = user_modules($_W['uid']);
+		$installedmodulelist = user_modules($uid);
 	} else {
-		$installedmodulelist = uni_modules();
+		$installedmodulelist = uni_modules_by_uniacid($module_uniacid);
 	}
 
 	$sysmods = module_system();
@@ -488,14 +500,19 @@ if ($do == 'module') {
 			unset($installedmodulelist[$k]);
 			continue;
 		}
-		if ($module_type == ACCOUNT_TYPE_SIGN && $value[MODULE_SUPPORT_ACCOUNT_NAME] != 2 ||
-			$module_type == WXAPP_TYPE_SIGN && $value[MODULE_SUPPORT_WXAPP_NAME] != 2 ||
-			$module_type == WEBAPP_TYPE_SIGN && $value[MODULE_SUPPORT_WEBAPP_NAME] != 2 ||
-			$module_type == ALIAPP_TYPE_SIGN && $value[MODULE_SUPPORT_ALIAPP_NAME] != 2 ||
-			$module_type == PHONEAPP_TYPE_SIGN && $value[MODULE_SUPPORT_PHONEAPP_NAME] != 2) {
+
+		$continue = false;
+		foreach ($account_all_type as $account_type) {
+			if ($module_type == $account_type['type_sign'] && $value[$account_type['module_support_name']] != $account_type['module_support_value']) {
+				$continue = true;
+				break;
+			}
+		}
+		if ($continue) {
 			unset($installedmodulelist[$k]);
 			continue;
 		}
+
 		if ($have_cover) {
 			$module_entries = module_entries($value['name'], array('cover'));
 			if (empty($module_entries)) {
@@ -562,8 +579,11 @@ if ($do == 'image') {
 	$page_size = 10;
 	$page = max(1, $page);
 	$is_local_image = $islocal == 'local' ? true : false;
-	$attachment_table = table('attachment');
-	$attachment_table = $attachment_table->local($is_local_image);
+	if ($is_local_image) {
+		$attachment_table = table('core_attachment');
+	} else {
+		$attachment_table = table('wechat_attachment');
+	}
 	$attachment_table->searchWithUniacid($uniacid);
 	$attachment_table->searchWithUploadDir($module_upload_dir);
 
@@ -590,12 +610,16 @@ if ($do == 'image') {
 	}
 	$attachment_table->searchWithPage($page, $page_size);
 
-	$list = $attachment_table->searchAttachmentList();
+	$list = $attachment_table->orderby('createtime', 'desc')->getall();
 	$total = $attachment_table->getLastQueryTotal();
 	if (!empty($list)) {
 		foreach ($list as &$meterial) {
 			if ($islocal) {
-				$meterial['url'] = tomedia($meterial['attachment']);
+				if (empty($option['global'])) {
+					$meterial['url'] = tomedia($meterial['attachment']);
+				} else {
+					$meterial['url'] = to_global_media($meterial['attachment']);
+				}
 				unset($meterial['uid']);
 			} else {
 				if(!empty($_W['setting']['remote']['type'])) {
@@ -693,14 +717,14 @@ $is_local_image = $islocal == 'local' ? true : false;
  *  图片分组列表
  */
 if ($do == 'group_list') {
-	$query = table('attachment_group')->where('type', $is_local_image ? 0 : 1);
+	$query = table('core_attachment_group')->where('type', $is_local_image ? 0 : 1);
 	$query->searchWithUniacidOrUid($uniacid, $_W['uid']);
 	$list = $query->getall();
 	iajax(0, $list);
 }
 
 if ($do == 'add_group') {
-	$table = table('attachment_group');
+	$table = table('core_attachment_group');
 	$table->fill(array(
 		'uid' => $_W['uid'],
 		'uniacid'=>$uniacid,
@@ -715,7 +739,7 @@ if ($do == 'add_group') {
 }
 
 if ($do == 'change_group') {
-	$table = table('attachment_group');
+	$table = table('core_attachment_group');
 	$type = $is_local_image ? 0 : 1;
 	$name = trim($_GPC['name']);
 	$id = intval($_GPC['id']);
@@ -727,7 +751,7 @@ if ($do == 'change_group') {
 }
 
 if ($do == 'del_group') {
-	$table = table('attachment_group');
+	$table = table('core_attachment_group');
 	$type = $is_local_image ? 0 : 1;
 	$id = intval($_GPC['id']);
 	$table->searchWithUniacidOrUid($uniacid, $_W['uid']);
@@ -742,8 +766,12 @@ if ($do == 'move_to_group') {
 	$ids = $_GPC['keys'];
 	$ids = safe_gpc_array($ids);
 
-	$table = table('attachment')->local($is_local_image);
-	$updated = $table->where('id', $ids)->where('uniacid', $_W['uniacid'])->fill('group_id', $group_id)->save();
+	if ($is_local_image) {
+		$table = table('core_attachment');
+	} else {
+		$table = table('wechat_attachment');
+	}
+	$updated = $table->where('id', $ids)->where('uniacid', $uniacid)->fill('group_id', $group_id)->save();
 
 	iajax($updated ? 0 : 1, $updated ? '更新成功' : '更新失败');
 }

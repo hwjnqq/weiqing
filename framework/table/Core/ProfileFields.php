@@ -30,30 +30,16 @@ class ProfileFields extends \We7Table {
 		'field_length' => 0,
 	);
 	
-	public function getProfileFields() {
-		return $this->query->from($this->tableName)->getall('field');
-	}
-	
-	public function searchKeyword($keyword) {
+	public function searchWithKeyword($keyword) {
 		$this->query->where('title LIKE', "%{$keyword}%");
 		return $this;
 	}
 	
 	public function getFieldsList() {
-		return $this->query->from($this->tableName)->orderby('displayorder', 'DESC')->getall();
+		return $this->query->orderby('displayorder', 'DESC')->getall();
 	}
-	
-	public function getExtraFields() {
-		$default_field = array('realname', 'births', 'qq', 'mobile', 'address', 'resides');
-		$fields = $this->getFieldsList();
-		$extra_fields = array();
-		if (!empty($fields) && is_array($fields)) {
-			foreach ($fields as $field_info) {
-				if ($field_info['available'] == 1 && $field_info['showinregister'] == 1 && !in_array($field_info['field'], $default_field)) {
-					$extra_fields[] = $field_info;
-				}
-			}
-		}
-		return $extra_fields;
+
+	public function getAvailableAndShowableFields() {
+		return $this->query->where('available', 1)->where('showinregister', 1)->orderby('displayorder', 'desc')->getall('field');
 	}
 }

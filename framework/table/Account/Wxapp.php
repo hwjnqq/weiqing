@@ -18,6 +18,7 @@ class Wxapp extends \We7Table {
 		'secret',
 		'name',
 		'appdomain',
+		'auth_refresh_token',
 	);
 	protected $default = array(
 		'uniacid' => '',
@@ -30,7 +31,12 @@ class Wxapp extends \We7Table {
 		'secret' => '',
 		'name' => '',
 		'appdomain' => '',
+		'auth_refresh_token' => '',
 	);
+
+	public function getAccount($acid) {
+		return $this->query->where('acid', $acid)->get();
+	}
 
 	public function wxappInfo($uniacid) {
 		if (is_array($uniacid)) {

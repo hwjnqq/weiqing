@@ -1,11 +1,11 @@
 
-<div id="js-article-comment-display" ng-controller="commentsCtr" class="ng-scope">
+<div id="js-article-comment-display" ng-controller="commentsCtr" class="ng-scope" ng-cloak>
 	<div class="panel-body js-list">
 		<div class="article-reply-item icon-selection" ng-repeat="comment in comment_list">
 			<div class="media">
 				<div class="media-left">
 					<a href="javascript:;">
-						<img class="media-object reply-logo" ng-src="{{comment.avatar}}">
+						<img class="media-object reply-logo user-avatar" src="{{comment.avatar || './resource/images/nopic-user.png'}}"/>
 					</a>
 				</div>
 				<div class="media-body">

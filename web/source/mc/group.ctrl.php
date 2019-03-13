@@ -11,11 +11,11 @@ $dos = array('display', 'change_group_level', 'save_group', 'get_group', 'set_de
 $do = in_array($do, $dos) ? $do : 'display';
 
 if ($do == 'display') {
-	$_W['page']['title'] = '会员 - 会员组 ';
 	$group_level_setting = pdo_get('uni_settings', array('uniacid' => $_W['uniacid']), array('grouplevel'));
 	$group_level = empty($group_level_setting['grouplevel']) ? 0 : $group_level_setting['grouplevel'];
 
 	$group_list = pdo_getall('mc_groups', array('uniacid' => $_W['uniacid']), array(), 'groupid',array(' isdefault DESC', ' credit ASC'));
+
 	$group_person_count = pdo_fetchall('SELECT groupid,COUNT(*) AS num FROM ' . tablename('mc_members') . ' WHERE uniacid = :uniacid GROUP BY groupid', array(':uniacid' => $_W['uniacid']), 'groupid');
 	$default_group = pdo_get('mc_groups', array('uniacid' => $_W['uniacid'], 'isdefault' => 1));
 	if (empty($default_group)) {

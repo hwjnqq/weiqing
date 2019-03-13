@@ -27,7 +27,7 @@
 					} else if (config.type == 'webtheme') {
 						targetUrl = './index.php?c=cloud&a=process&step=schemas&w=' + config.appname + '&is_upgrade=' + config.is_upgrade;
 					} else {
-						targetUrl = './index.php?c=cloud&a=process&step=schemas&m=' + config.appname + '&is_upgrade=' + config.is_upgrade + '&batch=1&support=' + config.account_type;
+						targetUrl = './index.php?c=cloud&a=process&step=schemas&m=' + config.appname + '&is_upgrade=' + config.is_upgrade + '&batch=1&support=' + config.account_type + '&has_new_support={$has_new_support}';
 					}
 					util.message('文件同步完成，正在处理数据同步......', targetUrl, 'success');
 				}
@@ -35,6 +35,9 @@
 			}
 			$scope.file = path;
 			$scope.pragress = i + '/' + total;
+			$scope.pragressPer = Math.floor((i / total) * 100);
+			$scope.topPragress = $scope.pragressPer < 50 ? $scope.pragressPer * 3.6 - 135 : 45;
+			$scope.bottomPragress = $scope.pragressPer > 50 ? ($scope.pragressPer - 50) * 3.6 - 135 : -135;
 			var params = {path: path, type : config.type};
 			$http.post(location.href, params).success(function(dat){
 				i++;
@@ -83,6 +86,9 @@
 			}
 			$scope.schema = schema;
 			$scope.pragress = i + '/' + total;
+			$scope.pragressPer = Math.floor((i / total) * 100);
+			$scope.topPragress = $scope.pragressPer < 50 ? $scope.pragressPer * 3.6 - 135 : 45;
+			$scope.bottomPragress = $scope.pragressPer > 50 ? ($scope.pragressPer - 50) * 3.6 - 135 : -135;
 			var params = {table: schema};
 			$http.post(location.href, params).success(function(dat){
 				i++;
@@ -102,39 +108,7 @@
 		}
 		proc();
 	})
-	.controller('CloudDiagnoseCtrl', ['$scope', '$http', 'config', function($scope, $http, config){
-		$scope.showToken = function() {
-			util.message('Token:' + $('#token').val(), '', 'info');
-		};
-
-		$('.js-checkip p').each(function(){
-			var $this = $(this);
-			$.getJSON('./index.php?c=cloud&a=diagnose&do=testapi&ip='+$this.find('#serverdnsip').html(), function(testdata) {
-				$this.find('#checkresult').html(testdata.message.message);
-			});
-		});
-		$.ajax({
-			type : "get",
-			data : {'date' : config.date, 'version' : config.version, 'siteurl' : config.siteurl},
-			url : "https://v2.addons.we7.cc/web/index.php?c=site&a=diagnose&jsonpcallback=?",
-			dataType : "jsonp",
-			success : function(data){
-				if (data['check_time']['errno'] == '0') {
-					$('#check-time').html('<i class="fa fa-check text-success"></i> 正常');
-				} else {
-					$('#check-time').html('<i class="fa fa-remove text-warning"></i> 异常，当前时间为：'+data['check_time']['message']['localtime']+"; 服务器时间为："+data['check_time']['message']['servertime']);
-				}
-				if (data['check_touch']['errno'] == '0') {
-					$('#check-touch').html('<i class="fa fa-check text-success"></i> 正常');
-				} else {
-					$('#check-touch').html('<i class="fa fa-remove text-warning"></i> 异常，'+data['check_touch']['message']);
-				}
-			},
-			error:function(){
-				alert('fail');
-			}
-		});
-	}]).controller('processor', function($scope, $http){
+	.controller('processor', function($scope, $http){
 		if (packet && (packet.files.length > 0 || packet.files.schemas > 0)) {
 			util.message('请先完成文件或是数据库同步', './index.php?c=cloud&a=upgrade');
 			return false;
@@ -179,6 +153,9 @@
 			$scope.script = script.fname;
 			$scope.message = script.message;
 			$scope.pragress = i + '/' + total;
+			$scope.pragressPer = Math.floor((i / total) * 100);
+			$scope.topPragress = $scope.pragressPer < 50 ? $scope.pragressPer * 3.6 - 135 : 45;
+			$scope.bottomPragress = $scope.pragressPer > 50 ? ($scope.pragressPer - 50) * 3.6 - 135 : -135;
 			var params = {fname: script.fname};
 			$http.post(location.href, params).success(function(dat){
 				i++;
@@ -200,29 +177,34 @@
 </script>
 {if $step == 'files'}
 {if !empty($_GPC['m'])}
-<div class="steps">
-	<div class="steps-item steps-status-finish">
-		<div class="steps-line"><span class="steps-num">1</span></div>
-		<div class="steps-state">安装应用</div>
-	</div>
-	<div class="steps-item steps-status-wait">
-		<div class="steps-line"><span class="steps-num">2</span></div>
-		<div class="steps-state">分配应用权限</div>
-	</div>
-	<div class="steps-item steps-status-wait">
-		<div class="steps-line"><span class="steps-num">3</span></div>
-		<div class="steps-state">安装成功</div>
-	</div>
-</div>
+<ul class="we7-step">
+	<li class="active"><span class="content">1 安装应用</span></li>
+	<li ><span class="content">2 分配应用权限</span> </li>
+	<li><span class="content">3 安装成功</span> </li>
+</ul>
 {/if}
-<div class="clearfix js-processor">
-	<div class="alert alert-warning">
-		正在更新系统文件, 请不要关闭窗口.
+<div class="clearfix js-processor" ng-controller="FileProcessorCtrl" ng-cloak>
+	<div class="upgrade-pragress we7-margin-bottom">
+		<div class="wrapper top">
+            <div class="circleProgress topcircle" ng-style="{transform: 'rotate('+ topPragress +'deg)'}"></div>
+        </div>
+        <div class="wrapper bottom">
+            <div class="circleProgress bottomcircle" ng-style="{transform: 'rotate('+ bottomPragress +'deg)'}"></div>
+        </div>
+		<div class="circle">
+			<img src="./resource/images/upgrade.png" alt="">
+			<div class="pragress">
+				{{pragressPer}}%
+			</div>
+		</div>
 	</div>
-	<div class="alert alert-warning">
+	<div class="alert we7-page-alert">
+		正在更新系统文件, 请不要关闭窗口
+	</div>
+	<div class="alert we7-page-alert">
 		如果下载文件失败，可能造成的原因：写入失败，请仔细检查写入权限是否正确。
 	</div>
-	<div class="alert alert-info form-horizontal ng-cloak" ng-controller="FileProcessorCtrl">
+	<div class="alert alert-info form-horizontal ng-cloak" >
 		<dl class="dl-horizontal">
 			<dt>整体进度</dt>
 			<dd>{{pragress}}</dd>
@@ -250,7 +232,7 @@
 </div>
 {/if}
 {if $step == 'schemas'}
-<div class="clearfix js-processor">
+<div class="clearfix js-processor" ng-cloak ng-controller="SchemasProcessorCtrl">
 	{if empty($packet['schemas'])}
 		<!-- 如果是安装模块,数据库操作完成后,不处理script,直接跳转到system/module/install -->
 		<!-- 安装 -->
@@ -281,18 +263,32 @@
 		{else}
 		<script>
 			{if $_GPC['batch']}
-				location.href = '{url "cloud/process" array("step" => "scripts", "m" => $m, "is_upgrade" => $is_upgrade, "batch" => 1, "support" => $_GPC["support"])}';
+				location.href = '{url "cloud/process" array("step" => "scripts", "m" => $m, "is_upgrade" => $is_upgrade, "batch" => 1, "support" => $_GPC["support"], "has_new_support" => $has_new_support)}';
 			{else}
-				location.href = '{url "cloud/process" array("step" => "scripts", "m" => $m, "is_upgrade" => $is_upgrade, "support" => $_GPC["support"])}';
+				location.href = '{url "cloud/process" array("step" => "scripts", "m" => $m, "is_upgrade" => $is_upgrade, "support" => $_GPC["support"], "has_new_support" => $has_new_support)}';
 			{/if}
 		</script>
 		{/if}
 
 	{/if}
-	<div class="alert alert-warning">
+	<div class="upgrade-pragress we7-margin-bottom">
+		<div class="wrapper top">
+			<div class="circleProgress topcircle" ng-style="{transform: 'rotate('+ topPragress +'deg)'}"></div>
+		</div>
+		<div class="wrapper bottom">
+			<div class="circleProgress bottomcircle" ng-style="{transform: 'rotate('+ bottomPragress +'deg)'}"></div>
+		</div>
+		<div class="circle">
+			<img src="./resource/images/upgrade.png" alt="">
+			<div class="pragress">
+				{{pragressPer}}%
+			</div>
+		</div>
+	</div>
+	<div class="alert alert-warning we7-page-alert">
 		正在更新数据库, 请不要关闭窗口.
 	</div>
-	<div class="alert alert-info form-horizontal ng-cloak" ng-controller="SchemasProcessorCtrl">
+	<div class="alert alert-info form-horizontal" >
 		<dl class="dl-horizontal">
 			<dt>整体进度</dt>
 			<dd>{{pragress}}</dd>
@@ -316,7 +312,7 @@
 </div>
 {/if}
 {if $step == 'scripts'}
-<div class="clearfix js-processor">
+<div class="clearfix js-processor" ng-cloak  ng-controller="processor">
 	{if empty($packet['scripts']) || !empty($packet['type'])}
 		<!-- 如果是更新模块,跳转到system/module/upgrade -->
 		{if $is_upgrade == 1}
@@ -350,10 +346,24 @@
 			}
 		</script>
 	{/if}
-	<div class="alert alert-warning">
+	<div class="upgrade-pragress we7-margin-bottom">
+		<div class="wrapper top">
+			<div class="circleProgress topcircle" ng-style="{transform: 'rotate('+ topPragress +'deg)'}"></div>
+		</div>
+		<div class="wrapper bottom">
+			<div class="circleProgress bottomcircle" ng-style="{transform: 'rotate('+ bottomPragress +'deg)'}"></div>
+		</div>
+		<div class="circle">
+			<img src="./resource/images/upgrade.png" alt="">
+			<div class="pragress">
+				{{pragressPer}}%
+			</div>
+		</div>
+	</div>
+	<div class="alert alert-warning we7-page-alert">
 		正在数据迁移及清理操作, 请不要关闭窗口.
 	</div>
-	<div class="alert alert-info form-horizontal ng-cloak" ng-controller="processor">
+	<div class="alert alert-info form-horizontal " >
 		<dl class="dl-horizontal">
 			<dt>整体进度</dt>
 			<dd>{{pragress}}</dd>

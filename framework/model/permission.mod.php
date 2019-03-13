@@ -11,8 +11,9 @@ defined('IN_IA') or exit('Access Denied');
  */
 function permission_build() {
 	global $_W, $acl;
+	load()->model('system');
 	$we7_file_permission = $acl;
-	$permission_frames = require IA_ROOT . '/web/common/frames.inc.php';
+	$permission_frames = system_menu();
 	if (!in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OPERATOR, ACCOUNT_MANAGE_NAME_MANAGER)) || empty($_W['uniacid'])) {
 		return $we7_file_permission;
 	}
@@ -25,14 +26,6 @@ function permission_build() {
 	}
 	$permission_exist = permission_account_user_permission_exist($_W['uid'], $_W['uniacid']);
 	if (empty($permission_exist)) {
-		$we7_file_permission['platform'][$_W['role']] = array('platform*');
-		$we7_file_permission['site'][$_W['role']] = array('site*');
-		$we7_file_permission['mc'][$_W['role']] = array('mc*');
-		$we7_file_permission['profile'][$_W['role']] = array('profile*');
-		$we7_file_permission['module'][$_W['role']] = array('manage-account', 'display');
-		$we7_file_permission['wxapp'][$_W['role']] = array('display', 'payment', 'post', 'version');
-		$we7_file_permission['webapp'][$_W['role']] = array('home', 'manage');
-		$we7_file_permission['phoneapp'][$_W['role']] = array('display', 'manage', 'version');
 		cache_write($cachekey, $we7_file_permission);
 		return $we7_file_permission;
 	}
@@ -104,45 +97,6 @@ function permission_get_nameandurl($permission) {
 	return $result;
 }
 
-/*
- * 添加公众号时执行数量判断权限
- * @param int $uid 操作用户
- * @param int $type 公众号类型 (1. 主公众号; 2. 子公众号; 4. 小程序)
- * @return array|boolean 错误原因或成功
- */
-function permission_create_account($uid, $type = ACCOUNT_TYPE_OFFCIAL_NORMAL) {
-	$uid = intval($uid);
-	if (empty($uid)) {
-		return error(-1, '用户数据错误！');
-	}
-	$user_table = table('users');
-	$userinfo = $user_table->usersInfo($uid);
-	if (user_is_vice_founder($uid)) {
-		$groupdata = $user_table->userFounderGroupInfo($userinfo['groupid']);
-	} else {
-		$groupdata = $user_table->usersGroupInfo($userinfo['groupid']);
-	}
-	$list = table('account')->getOwnedAccountCount($uid);
-	foreach ($list as $item) {
-		if ($item['type'] == ACCOUNT_TYPE_APP_NORMAL) {
-			$wxapp_num = $item['count'];
-		} else {
-			$account_num = $item['count'];
-		}
-	}
-	//添加主公号
-	if ($type == ACCOUNT_TYPE_OFFCIAL_NORMAL || $type == ACCOUNT_TYPE_OFFCIAL_AUTH) {
-		if ($account_num >= $groupdata['maxaccount']) {
-			return error('-1', '您所在的用户组最多只能创建' . $groupdata['maxaccount'] . '个主公众号');
-		}
-	} elseif ($type == ACCOUNT_TYPE_APP_NORMAL) {
-		if ($wxapp_num >= $groupdata['maxwxapp']) {
-			return error('-1', '您所在的用户组最多只能创建' . $groupdata['maxwxapp'] . '个小程序');
-		}
-	}
-	return true;
-}
-
 /**
  * 获取指定操作用户在指定的公众号所具有的操作权限
  * @param int $uid 操作用户
@@ -158,8 +112,9 @@ function permission_account_user_role($uid = 0, $uniacid = 0) {
 	if (user_is_founder($uid, true)) {
 		return ACCOUNT_MANAGE_NAME_FOUNDER;
 	} else {
-		$user_table = table('users');
 		$user_info = pdo_get('users', array('uid' => $uid));
+		$user_info['endtime'] = user_end_time($user_info['uid']);
+
 		if (!empty($user_info['endtime']) && $user_info['endtime'] < TIMESTAMP) {
 			return ACCOUNT_MANAGE_NAME_EXPIRED;
 		}
@@ -169,10 +124,13 @@ function permission_account_user_role($uid = 0, $uniacid = 0) {
 		if (!user_is_bind()) {
 			return ACCOUNT_MANAGE_NAME_UNBIND_USER;
 		}
+		if ($user_info['type'] == ACCOUNT_OPERATE_CLERK) {
+			return ACCOUNT_MANAGE_NAME_CLERK;
+		}
 	}
 
 	if (!empty($uniacid)) {
-		$role = $user_table->userOwnedAccountRole($uid, $uniacid);
+		$role = table('uni_account_users')->getUserRoleByUniacid($uid, $uniacid);
 		if ($role == ACCOUNT_MANAGE_NAME_OWNER) {
 			$role = ACCOUNT_MANAGE_NAME_OWNER;
 		} elseif ($role == ACCOUNT_MANAGE_NAME_VICE_FOUNDER) {
@@ -186,7 +144,8 @@ function permission_account_user_role($uid = 0, $uniacid = 0) {
 		}
 		return $role;
 	} else {
-		$roles = $user_table->userOwnedAccountRole($uid);
+		$roles = table('uni_account_users')->getAllUserRole($uid);
+		$roles = array_keys($roles);
 		if (in_array(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, $roles)) {
 			$role = ACCOUNT_MANAGE_NAME_VICE_FOUNDER;
 		} elseif (in_array(ACCOUNT_MANAGE_NAME_OWNER, $roles)) {
@@ -195,8 +154,6 @@ function permission_account_user_role($uid = 0, $uniacid = 0) {
 			$role = ACCOUNT_MANAGE_NAME_MANAGER;
 		} elseif (in_array(ACCOUNT_MANAGE_NAME_OPERATOR, $roles)) {
 			$role = ACCOUNT_MANAGE_NAME_OPERATOR;
-		} elseif (in_array(ACCOUNT_MANAGE_NAME_CLERK, $roles)) {
-			$role = ACCOUNT_MANAGE_NAME_CLERK;
 		}
 	}
 	$role = empty($role) ? ACCOUNT_MANAGE_NAME_OPERATOR : $role;
@@ -346,19 +303,16 @@ function permission_update_account_user($uid, $uniacid, $data) {
 		return error('-1', '参数错误！');
 	}
 
-	if (empty($user_menu_permission)) {
-		$insert = array(
+	$permission = table('users_permission')->getUserPermissionByType($uid, $uniacid, $data['type']);
+	if (empty($permission)) {
+		$result = table('users_permission')->fill(array(
 			'uniacid' => $uniacid,
 			'uid' => $uid,
 			'type' => $data['type'],
 			'permission' => $data['permission'],
-		);
-		$result = table('users_permission')->fill($insert)->save();
-	} else {
-		$update = array(
-			'permission' => $data['permission'],
-		);
-		$result = table('users_permission')->fill($update)->whereUniacid($uniacid)->whereUid($uid)->whereType($data['type'])->save();
+		))->save();
+	}  else {
+		$result = table('users_permission')->fill(array('permission' => $data['permission']))->whereId($permission['id'])->save();
 	}
 	return $result;
 }
@@ -376,7 +330,7 @@ function permission_check_account_user($permission_name, $show_message = true, $
 	$see_more_info = $acl['see_more_info'];
 	if (strpos($permission_name, 'see_') === 0) {
 		$can_see_more = false;
-		if (defined('FRAME') && FRAME == 'system') {
+		if (in_array(FRAME, array('system', 'site', 'account_manage', 'myself'))) {
 			$can_see_more = in_array($permission_name, $see_more_info[$_W['highest_role']]) ? true : false;
 		} else {
 			if (is_array($see_more_info[$_W['role']]) && !empty($see_more_info[$_W['role']])) {
@@ -422,7 +376,7 @@ function permission_check_account_user($permission_name, $show_message = true, $
 	if (!isset($users_permission)) {
 		$users_permission = permission_account_user('system');
 	}
-	if ($users_permission[0] != 'all' && !in_array($permission_name, $users_permission)) {
+	if ($users_permission[0] != 'all' && !in_array($permission_name, $users_permission) && !in_array(FRAME . '*', $users_permission)) {
 		if (in_array($permission_name, permission_first_sub_permission()) && !empty($show_message)) {
 			load()->model('system');
 			$permission_string = explode('_', $permission_name);
@@ -487,11 +441,6 @@ function permission_check_account_user_module($action = '', $module_name = '') {
 		if ($users_permission[0] != 'all' && !in_array($permission_name, $users_permission)) {
 			return false;
 		}
-		//默认入口设置权限
-	} elseif ($a == 'default-entry' && !empty($m)) {
-		if (!($_W['isfounder'] || $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER)) {
-			return false;
-		}
 		//模块其他业务菜单
 	} elseif (!empty($do) && !empty($m)) {
 		$is_exist = table('modules_bindings')->isEntryExists($m, 'menu', $do);
@@ -516,89 +465,106 @@ function permission_check_account_user_module($action = '', $module_name = '') {
 function permission_user_account_num($uid = 0) {
 	global $_W;
 	$uid = intval($uid);
-	if ($uid <= 0) {
-		$user = $_W['user'];
-	} else {
-		load()->model('user');
-		$user = user_single($uid);
+	$user = $uid > 0 ? user_single($uid) : $_W['user'];
+	if (empty($user)) {
+		return array();
 	}
-	/** @var  $user_table  UsersTable*/
-	$user_table = table('users');
+	$account_all_type_sign = array_keys(uni_account_type_sign());
+	$extra_group_table = table('users_extra_group');
+	$extra_limit_table = table('users_extra_limit');
 	if (user_is_vice_founder($user['uid'])) {
 		$role = ACCOUNT_MANAGE_NAME_VICE_FOUNDER;
-		$group = $user_table->userFounderGroupInfo($user['groupid']);
+		$group = table('users_founder_group')->getById($user['groupid']);
 		$group_num = uni_owner_account_nums($user['uid'], $role);
+
+		//获取副创始人下的所有用户所创建的帐号数量
+		$uids = table('users_founder_own_users')->getFounderOwnUsersList($user['uid']);
+		foreach ($uids as $u_key => $u_val) {
+			$own_user_group_nums = uni_owner_account_nums($u_val['uid'], ACCOUNT_MANAGE_NAME_OWNER);
+			foreach ($account_all_type_sign as $sign) {
+				$sign_num = $sign . '_num';
+				$group_num[$sign_num] += $own_user_group_nums[$sign_num];
+			}
+		}
 	} else {
 		$role = ACCOUNT_MANAGE_NAME_OWNER;
-		$group = $user_table->usersGroupInfo($user['groupid']);
+		$group = table('users_group')->getById($user['groupid']);
 		$group_num = uni_owner_account_nums($user['uid'], $role);
 		if (empty($_W['isfounder'])) {
 			if (!empty($user['owner_uid'])) {
-				$owner_info = $user_table->usersInfo($user['owner_uid']);
-				$group_vice = $user_table->userFounderGroupInfo($owner_info['groupid']);
+				$owner_info = table('users')->getById($user['owner_uid']);
+				$group_vice = table('users_founder_group')->getById($owner_info['groupid']);
+
 				$founder_group_num = uni_owner_account_nums($owner_info['uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
-				$group['maxaccount'] = min(intval($group['maxaccount']), intval($group_vice['maxaccount']));
-				$group['maxwxapp'] = min(intval($group['maxwxapp']), intval($group_vice['maxwxapp']));
-				$group['maxwebapp'] = min(intval($group['maxwebapp']), intval($group_vice['maxwebapp']));
-				$group['maxphoneapp'] = min(intval($group['maxphoneapp']), intval($group_vice['maxphoneapp']));
-				$group['maxxzapp'] = min(intval($group['maxxzapp']), intval($group_vice['maxxzapp']));
-				$group['maxaliapp'] = min(intval($group['maxaliapp']), intval($group_vice['maxaliapp']));
+				foreach ($account_all_type_sign as $sign) {
+					$maxsign = 'max' . $sign;
+					$group[$maxsign] = min(intval($group[$maxsign]), intval($group_vice[$maxsign]));
+				}
 			}
 		}
 	}
-	/* @var $store_table StoreTable*/
-	$store_table = table('store');
-	$create_buy_account_num = $store_table->searchUserCreateAccountNum($user['uid']);
-	$create_buy_wxapp_num = $store_table->searchUserCreateWxappNum($user['uid']);
-	$store_buy_account = $store_table->searchUserBuyAccount($user['uid']);
-	$store_buy_wxapp = $store_table->searchUserBuyWxapp($user['uid']);
 
-	$uniacid_limit = max((intval($group['maxaccount']) + intval($store_buy_account) - $group_num['account_num']), 0);
-	$wxapp_limit = max((intval($group['maxwxapp']) + intval($store_buy_wxapp) - $group_num['wxapp_num']), 0);
-	$webapp_limit = max(intval($group['maxwebapp']) - $group_num['webapp_num'], 0);
-	$phoneapp_limit = max(intval($group['maxphoneapp']) - $group_num['phoneapp_num'], 0);
-	$xzapp_limit = max(intval($group['maxxzapp']) - $group_num['xzapp_num'], 0);
-	$aliapp_limit = max(intval($group['maxaliapp']) - $group_num['aliapp_num'], 0);
-	$founder_uniacid_limit = max((intval($group_vice['maxaccount']) + intval($store_buy_account) - $founder_group_num['account_num']), 0);
-	$founder_wxapp_limit = max((intval($group_vice['maxwxapp']) + intval($store_buy_wxapp) - $founder_group_num['wxapp_num']), 0);
-	$founder_webapp_limit = max(intval($group_vice['maxwebapp']) - $founder_group_num['webapp_num'], 0);
-	$founder_phoneapp_limit = max(intval($group_vice['maxphoneapp']) - $founder_group_num['phoneapp_num'], 0);
-	$founder_xzapp_limit = max(intval($group_vice['xzapp']) - $founder_group_num['xzapp_num'], 0);
-	$founder_aliapp_limit = max(intval($group_vice['aliapp']) - $founder_group_num['aliapp_num'], 0);
+	$store_table = table('store');
+	$create_buy_num['account'] = $store_table->searchUserCreateAccountNum($user['uid']);
+	$create_buy_num['wxapp'] = $store_table->searchUserCreateWxappNum($user['uid']);
+	$store_buy['account'] = $store_table->searchUserBuyAccount($user['uid']);
+	$store_buy['wxapp'] = $store_table->searchUserBuyWxapp($user['uid']);
+
+	$extra_create_group_info  = array_keys($extra_group_table->getCreateGroupsByUid($user['uid']));
+	$extra_limits_info = $extra_limit_table->getExtraLimitByUid($user['uid']);
+	$create_group_info_all = array();
+	if (!empty($extra_create_group_info)) {
+		$create_group_table = table('users_create_group');
+		$create_groups = array();
+		foreach($extra_create_group_info as $create_group_id) {
+			$create_group_info = $create_group_table->getById($create_group_id);
+			$create_groups[] = $create_group_info;
+			foreach ($account_all_type_sign as $sign) {
+				$maxsign = 'max' . $sign;
+				$create_group_info_all[$maxsign] += $create_group_info[$maxsign];
+			}
+		}
+	}
+
+	$extra = $limit = $founder_limit = array();
+	foreach ($account_all_type_sign as $sign) {
+		$maxsign = 'max' . $sign;
+		$extra[$sign] = $create_group_info_all[$maxsign] + $extra_limits_info[$maxsign];
+
+		$sign_num = $sign . '_num';
+		$limit[$sign] = max((intval($group[$maxsign]) + $extra[$sign] + intval($store_buy[$sign]) - $group_num[$sign_num]), 0);
+
+		$founder_limit[$sign] = max((intval($group_vice[$maxsign]) + intval($store_buy[$sign]) - $founder_group_num[$sign_num]), 0);
+	}
+
 	$data = array(
 		'group_name' => $group['name'],
 		'vice_group_name' => $group_vice['name'],
-		'maxaccount' => $group['maxaccount'] + $store_buy_account,
-		'usergroup_account_limit' => max($group['maxaccount'] - $group_num['account_num'] - $create_buy_account_num, 0),//用户组剩余创建公众号个数
-		'usergroup_wxapp_limit' => max($group['maxwxapp'] - $group_num['wxapp_num'] - $create_buy_wxapp_num, 0),//用户组剩余创建小程序个数
-		'usergroup_webapp_limit' => max($group['maxwebapp'] - $group_num['webapp_num'], 0),//用户组剩余创建PC个数
-		'usergroup_phoneapp_limit' => max($group['maxphoneapp'] - $group_num['phoneapp_num'], 0),//用户组剩余创建APP个数
-		'usergroup_xzapp_limit' => max($group['maxxzapp'] - $group_num['xzapp_num'], 0), // 用户组剩余创建熊掌号个数
-		'usergroup_aliapp_limit' => max($group['maxaliapp'] - $group_num['aliapp_num'], 0), // 用户组剩余创建支付宝小程序个数
-		'uniacid_num' => $group_num['account_num'],
-		'uniacid_limit' => max($uniacid_limit, 0),
-		'founder_uniacid_limit' => max($founder_uniacid_limit, 0),
-		'maxwxapp' => $group['maxwxapp'] + $store_buy_wxapp,
-		'wxapp_num' => $group_num['wxapp_num'],
-		'wxapp_limit' => max($wxapp_limit, 0),
-		'founder_wxapp_limit' => max($founder_wxapp_limit, 0),
-		'maxwebapp'=>$group['maxwebapp'],//pc 最大创建数量
-		'webapp_limit' => $webapp_limit, //pc 剩余创建数量,
-		'founder_webapp_limit' => max($founder_webapp_limit, 0),
-		'webapp_num'=> $group_num['webapp_num'], //pc 已创建pc数量
-		'maxphoneapp' => $group['maxphoneapp'],
-		'phoneapp_num' => $group_num['phoneapp_num'],
-		'phoneapp_limit' => $phoneapp_limit,
-		'founder_phoneapp_limit' => max($founder_phoneapp_limit, 0),
-		'maxxzapp' => $group['maxxzapp'],
-		'xzapp_num' => $group_num['xzapp_num'],
-		'xzapp_limit' => $xzapp_limit,
-		'founder_xzapp_limit' => max($founder_xzapp_limit, 0),
-		'maxaliapp' => $group['maxaliapp'],
-		'aliapp_num' => $group_num['aliapp_num'],
-		'aliapp_limit' => $aliapp_limit,
-		'founder_aliapp_limit' => max($founder_aliapp_limit, 0),
+		'create_groups' => $create_groups,
+
+		//商城购买权限
+		'store_buy_account' => $store_buy['account'],
+		'store_buy_wxapp' => $store_buy['wxapp'],
 	);
+	foreach ($account_all_type_sign as $sign) {
+		$maxsign = 'max' . $sign;
+		$sign_num = $sign . '_num';
+		//用户组可创建数量
+		$data['user_group_max' . $sign] = $group[$maxsign];
+		//用户组剩余创建数量
+		$data['usergroup_' . $sign . '_limit'] = max($group[$maxsign] - $group_num[$sign_num] - intval($create_buy_num[$sign]), 0);
+		//最大创建数量
+		$data[$maxsign] = $group[$maxsign] + intval($store_buy[$sign]) + $extra[$sign];
+		//已创建的数量
+		$data[$sign_num] = $group_num[$sign_num];
+		//剩余创建数量
+		$data[$sign . '_limit'] = max($limit[$sign], 0);
+		//附加权限
+		$data['extra_' . $sign] = $extra_limits_info[$maxsign];
+		//副创始人账号剩余
+		$data['founder_' . $sign . '_limit'] = max($founder_limit[$sign], 0);
+	}
+	ksort($data);
 	return $data;
 }
 

@@ -8,7 +8,6 @@ defined('IN_IA') or exit('Access Denied');
 $dos = array('get_setting', 'display', 'save_setting');
 $do = in_array($do, $dos) ? $do : 'display';
 permission_check_account_user('wxapp_payment_pay');
-$_W['page']['title'] = '支付参数';
 
 $pay_setting = miniapp_payment_param();
 $wxapp_info = miniapp_fetch($_W['uniacid']);
@@ -18,7 +17,11 @@ if ($do == 'get_setting') {
 }
 
 if ($do == 'display') {
-	$pay_setting['wechat'] = empty($pay_setting['wechat']) ? array('mchid'=>'', 'signkey' => '') : $pay_setting['wechat'];
+	if (empty($pay_setting) || empty($pay_setting['wechat'])) {
+		$pay_setting = array(
+			'wechat' => array('mchid' => '', 'signkey' => '')
+		);
+	}
 }
 
 if ($do == 'save_setting') {

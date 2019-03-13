@@ -71,14 +71,23 @@ function template($filename, $flag = TEMPLATE_DISPLAY) {
  * @param string $to 编译后的 PHP 文件路径
  */
 function template_compile($from, $to, $inmodule = false) {
+	global $_W;
 	$path = dirname($to);
 	if (!is_dir($path)) {
 		load()->func('file');
 		mkdirs($path);
 	}
 	$content = template_parse(file_get_contents($from), $inmodule);
-	if(IMS_FAMILY == 'x' && !preg_match('/(footer|header|account\/welcome|login|register|home\/welcome)+/', $from)) {
+	if(IMS_FAMILY == 'x' && !preg_match('/(footer|header|account\/welcome|login|register|home\/welcome|cloud\/upgrade)+/', $from)) {
 		$content = str_replace('微擎', '系统', $content);
+	}
+	if (defined('IN_MODULE') &&
+		module_get_direct_enter_status($_W['current_module']['name']) == STATUS_ON &&
+		!preg_match('/\<script\>var we7CommonForModule.*document\.body\.appendChild\(we7CommonForModule\)\<\/script\>/', $content) &&
+		!preg_match('/(footer|header|account\/welcome|module\/welcome)+/', $from)) {
+		$extra_code = "<script>var we7CommonForModule = document.createElement(\"script\");we7CommonForModule.src = '//cdn.w7.cc/we7/w7windowside.js?v=201903081513';document.body.appendChild(we7CommonForModule)
+</script>";
+		$content .= $extra_code;
 	}
 	file_put_contents($to, $content);
 }

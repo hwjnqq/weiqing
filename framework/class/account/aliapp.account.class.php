@@ -22,7 +22,7 @@ class AliappAccount extends WeAccount {
 	}
 
 	public function checkIntoManage() {
-		if (empty($this->account) || (!empty($this->account['account']) && $this->account['type'] != ACCOUNT_TYPE_PHONEAPP_NORMAL && !defined('IN_MODULE'))) {
+		if (empty($this->account) || (!empty($this->account['account']) && $this->account['type'] != ACCOUNT_TYPE_ALIAPP_NORMAL && !defined('IN_MODULE'))) {
 			return false;
 		}
 		return true;

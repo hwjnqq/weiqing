@@ -34,15 +34,11 @@ class News extends \We7Table {
 		'click' => 0,
 	);
 
-	public function getArticleNewsLists($order) {
-		return $this->query->from($this->tableName)->orderby($order, 'DESC')->getall();
-	}
-
 	public function searchWithCreatetimeRange($time) {
-		return $this->query->where('createtime >=', strtotime("-{$time} days"));
+		return $this->where('createtime >=', strtotime("-{$time} days"));
 	}
 
 	public function searchWithTitle($title) {
-		return $this->query->where('title LIKE', "%{$title}%");
+		return $this->where('title LIKE', "%{$title}%");
 	}
 }

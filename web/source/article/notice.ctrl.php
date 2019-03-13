@@ -13,7 +13,6 @@ permission_check_account_user('system_article_notice');
 
 //添加公告分类
 if ($do == 'category_post') {
-	$_W['page']['title'] = '公告分类-公告管理-文章-系统管理';
 	if (checksubmit('submit')) {
 		$i = 0;
 		if (!empty($_GPC['title'])) {
@@ -38,20 +37,23 @@ if ($do == 'category_post') {
 
 //修改公告分类
 if ($do == 'category') {
-	$_W['page']['title'] = '分类列表-公告分类-公告管理-文章-系统管理';
+	$category_table = table('article_category');
 	if (checksubmit('submit')) {
-		if (!empty($_GPC['ids'])) {
-			foreach ($_GPC['ids'] as $k => $v) {
-				$data = array(
-					'title' => safe_gpc_string($_GPC['title'][$k]),
-					'displayorder' => intval($_GPC['displayorder'][$k])
-				);
-				pdo_update('article_category', $data, array('id' => intval($v)));
-			}
-			itoast('修改公告分类成功', referer(), 'success');
+		$id = intval($_GPC['id']);
+		if (empty($id)) {
+			iajax(1, '参数有误');
 		}
+		if (empty($_GPC['title'])) {
+			iajax(1, '分类名称不能为空');
+		}
+		$update =  array(
+			'title' => safe_gpc_string($_GPC['title']),
+			'displayorder' => max(0,intval($_GPC['displayorder']))
+		);
+		$category_table->fill($update)->where('id', $id)->save();
+		iajax(0, '修改分类成功');
 	}
-	$data = table('article_category')->getNoticeCategoryLists();
+	$data = $category_table->getNoticeCategoryLists();
 	template('article/notice-category');
 }
 
@@ -65,7 +67,6 @@ if ($do == 'category_del') {
 
 //编辑/添加公告
 if ($do == 'post') {
-	$_W['page']['title'] = '编辑公告-公告管理-文章-系统管理';
 	$id = intval($_GPC['id']);
 	$notice = table('article_notice')->searchWithId($id)->get();
 	if (empty($notice)) {
@@ -78,8 +79,8 @@ if ($do == 'post') {
 		$notice['style'] = iunserializer($notice['style']);
 		$notice['group'] = empty($notice['group']) ? array('vice_founder' => array(), 'normal' => array()) : iunserializer($notice['group']);
 	}
-	$user_groups = table('group')->groupList();
-	$user_vice_founder_groups = table('group')->groupList(true);
+	$user_groups = table('users_group')->getall();
+	$user_vice_founder_groups = table('users_founder_group')->getall();
 	if (checksubmit()) {
 		$title = safe_gpc_string($_GPC['title']) ? safe_gpc_string($_GPC['title']) : itoast('公告标题不能为空', '', 'error');
 		$cateid = intval($_GPC['cateid']) ? intval($_GPC['cateid']) : itoast('公告分类不能为空', '', 'error');
@@ -134,7 +135,6 @@ if ($do == 'post') {
 
 //公告列表
 if ($do == 'list') {
-	$_W['page']['title'] = '公告列表-公告管理-文章-系统管理';
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 
@@ -158,19 +158,12 @@ if ($do == 'list') {
 	$order = !empty($_W['setting']['news_display']) ? $_W['setting']['news_display'] : 'displayorder';
 
 	$article_table->searchWithPage($pindex, $psize);
-	$notices = $article_table->getArticleNoticeLists($order);
-	if (!empty($notices)) {
-		foreach ($notices as &$notice_value) {
-			if (!empty($notice_value)) {
-				$notice_value['style'] = iunserializer($notice_value['style']);
-			}
-		}
-	}
-
+	$article_table->orderby($order, 'DESC');
+	$notices = $article_table->getList();
 	$total = $article_table->getLastQueryTotal();
 	$pager = pagination($total, $pindex, $psize);
 
-	$categorys = table('article_category')->getNoticeCategoryLists($order);
+	$categorys = table('article_category')->getNoticeCategoryLists();
 
 	$comment_status = setting_load('notice_comment_status');
 	$comment_status = empty($comment_status['notice_comment_status']) ? 0 : 1;

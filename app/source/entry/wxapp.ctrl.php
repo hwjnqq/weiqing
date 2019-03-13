@@ -13,8 +13,7 @@ if (strexists($_SERVER['HTTP_REFERER'], 'https://servicewechat.com/')) {
 	list($appid, $version) = explode('/', ltrim($referer_url['path'], '/'));
 }
 if (!empty($_W['uniacid'])) {
-	$version = trim($_GPC['v']);
-	$version_info = miniapp_version_by_version($version);
+	$version_info = miniapp_version_by_version(safe_gpc_string(trim($_GPC['v'])));
 	if (!empty($version_info['modules'])) {
 		foreach ($version_info['modules'] as $module) {
 			if (!empty($module['account']) && intval($module['account']['uniacid']) > 0) {

@@ -7,6 +7,7 @@ abstract class OAuth2Client {
 	protected $ak;
 	protected $sk;
 	protected $login_type;
+	protected $user_type = USER_TYPE_COMMON;
 	protected $stateParam = array(
 		'state' => '',
 		'from' => '',
@@ -33,11 +34,46 @@ abstract class OAuth2Client {
 		$this->login_type = $login_type;
 	}
 
+	public function setUserType($user_type) {
+		$this->user_type = $user_type;
+		return $this;
+	}
+
 	public static function supportLoginType(){
 		return array('system', 'qq', 'wechat', 'mobile');
 	}
 
 	public static function supportThirdLoginType() {
+		return array('qq', 'wechat');
+	}
+
+	public static function supportBindTypeInfo($type = '') {
+		$data = array(
+			'qq' => array(
+				'type' => 'qq',
+				'title' => 'QQ',
+			),
+			'wechat' => array(
+				'type' => 'wechat',
+				'title' => '微信',
+			),
+			'mobile' => array(
+				'type' => 'mobile',
+				'title' => '手机号',
+			)
+		);
+		if (!empty($type)) {
+			return $data[$type];
+		} else {
+			return $data;
+		}
+	}
+
+	/**
+	 * 第三方登陆后需要进行再次注册绑定的类型
+	 * @return array
+	 */
+	public static function supportThirdLoginBindType() {
 		return array('qq', 'wechat');
 	}
 
@@ -81,6 +117,7 @@ abstract class OAuth2Client {
 
 	abstract function bind();
 	abstract function unbind();
+	abstract function isbind();
 
 	abstract function register();
 
@@ -94,7 +131,12 @@ abstract class OAuth2Client {
 		$member = $register['member'];
 		$profile = $register['profile'];
 
-		$member['status'] = !empty($_W['setting']['register']['verify']) ? 1 : 2;
+		$member['type'] = $this->user_type;
+		if ($member['type'] == USER_TYPE_CLERK) {
+			$member['status'] = !empty($_W['setting']['register']['clerk']['verify']) ? 1 : 2;
+		} else {
+			$member['status'] = !empty($_W['setting']['register']['verify']) ? 1 : 2;
+		}
 		$member['remark'] = '';
 		$member['groupid'] = intval($_W['setting']['register']['groupid']);
 		if (empty($member['groupid'])) {

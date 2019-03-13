@@ -18,6 +18,7 @@ if (!empty($_GPC['state'])) {
 }
 
 if (empty($_W['isfounder']) && !empty($_W['user']) && ($_W['user']['status'] == USER_STATUS_CHECK || $_W['user']['status'] == USER_STATUS_BAN)) {
+	isetcookie('__session', '', -10000);
 	message('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决！', url('user/login'), 'info');
 }
 $acl = require IA_ROOT . '/web/common/permission.inc.php';
@@ -65,11 +66,11 @@ if (is_file($init)) {
 	require $init;
 }
 
-if (!(defined('FRAME') && in_array(FRAME, array('site', 'system')))) {
+if (defined('FRAME') && in_array(FRAME, array('account', 'wxapp'))) {
 	if (!empty($_W['uniacid'])) {
 		$_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);
-		if (empty($_W['account'])) {
-			unset($_W['uniacid']);
+		if (is_error($_W['account'])) {
+			itoast('', url('account/display'));
 		}
 		$_W['acid'] = $_W['account']['acid'];
 		$_W['weid'] = $_W['uniacid'];
@@ -111,19 +112,26 @@ if ($_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER) {
 	if ($_W['role'] == ACCOUNT_MANAGE_NAME_UNBIND_USER) {
 		itoast('', url('user/third-bind'));
 	}
-	if (empty($_W['uniacid'])) {
-		if (defined('FRAME') && FRAME == 'account') {
-			itoast('', url('account/display', array('type' => ACCOUNT_TYPE_SIGN)), 'info');
-		}
-		if (defined('FRAME') && FRAME == 'wxapp') {
-			itoast('', url('account/display', array('type' => WXAPP_TYPE_SIGN)), 'info');
-		}
+	if (!defined('FRAME')) {
+		define('FRAME', '');
 	}
+	if (empty($_W['uniacid']) && in_array(FRAME, array('account', 'wxapp')) && $_GPC['m'] != 'store') {
+		itoast('', url('account/display/platform'), 'info');
+	}
+
 	$acl = permission_build();
-	if (empty($acl[$controller][$_W['role']]) || (!in_array($controller.'*', $acl[$controller][$_W['role']]) && !in_array($action, $acl[$controller][$_W['role']]))) {
+	if (in_array(FRAME, array('system', 'site', 'account_manage', 'platform', 'module', 'welcome'))) {
+		$checked_role = $_W['highest_role'];
+	} else {
+		$checked_role = $_W['role'];
+	}
+	if (empty($acl[$controller][$checked_role]) ||
+		(!in_array($controller.'*', $acl[$controller][$checked_role]) && !in_array($action, $acl[$controller][$checked_role]))) {
 		message('不能访问, 需要相应的权限才能访问！');
 	}
+	unset($checked_role);
 }
+
 // 用户权限判断
 require _forward($controller, $action);
 
@@ -150,12 +158,15 @@ function _forward($c, $a) {
 	return $file;
 }
 function _calc_current_frames(&$frames) {
-	global $controller, $action;
+	global $_W, $controller, $action;
+	$_W['page']['title'] = (isset($_W['page']['title']) && !empty($_W['page']['title'])) ? $_W['page']['title'] : ($frames['dimension'] == 2 ? $frames['title'] : '');
+
 	if (!empty($frames['section']) && is_array($frames['section'])) {
 		foreach ($frames['section'] as &$frame) {
 			if (empty($frame['menu'])) {
 				continue;
 			}
+			$finished = false;
 			foreach ($frame['menu'] as $key => &$menu) {
 				$query = parse_url($menu['url'], PHP_URL_QUERY);
 				parse_str($query, $urls);
@@ -173,16 +184,29 @@ function _calc_current_frames(&$frames) {
 				if (!empty($do)) {
 					$get['do'] = $do;
 				}
+				if (strpos($get['do'], 'post') !== false && !in_array($key, array('platform_menu'))) {
+					$_W['page']['title'] = '';
+					continue;
+				}
 				$diff = array_diff_assoc($urls, $get);
 				if (empty($diff) ||
+					$key == 'platform_menu' && $get['a'] == 'menu' && in_array($get['do'], array('display')) ||
 					$key == 'platform_site' && in_array($get['a'], array('style', 'article', 'category')) ||
 					$key == 'mc_member' && in_array($get['a'], array('editor', 'group', 'fields')) ||
 					$key == 'profile_setting' && in_array($get['a'], array('passport', 'tplnotice', 'notify', 'common')) ||
 					$key == 'profile_payment' && in_array($get['a'], array('refund')) ||
 					$key == 'statistics_visit' && in_array($get['a'], array('site', 'setting')) ||
-					$key == 'wxapp_payment' && in_array($get['a'], array('refund'))) {
+					$key == 'platform_reply' && in_array($get['a'], array('reply-setting')) ||
+					$key == 'system_setting_thirdlogin' && in_array($get['a'], array('thirdlogin')) ||
+					$key == 'wxapp_profile_payment' && in_array($get['a'], array('refund'))) {
 					$menu['active'] = ' active';
+					$_W['page']['title'] = !empty($_W['page']['title']) ? $_W['page']['title'] : $menu['title'];
+					$finished = true;
+					break;
 				}
+			}
+			if ($finished) {
+				break;
 			}
 		}
 	}

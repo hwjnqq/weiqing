@@ -28,10 +28,6 @@ class Comment extends \We7Table {
 		'createtime' => '',
 	);
 
-	public function getById($comment_id) {
-		return $this->where('id' ,$comment_id)->get();
-	}
-
 	public function addComment($comment) {
 		if (!empty($comment['parentid'])) {
 			$result = $this->where('id', $comment['parentid'])->fill('is_reply', 1)->save();
@@ -44,10 +40,18 @@ class Comment extends \We7Table {
 		return $this->fill($comment)->save();
 	}
 
-	public function hasLiked($articleid, $comment_id) {
-		global $_W;
-		$liked = $this->where(array('articleid' => $articleid, 'parentid' => $comment_id, 'is_like' => 1, 'uid' => $_W['uid']))->getcolumn('id');
-		return boolval($liked);
+	public function getCommentsByArticleid($articleid) {
+		$comments = $this->where('articleid', $articleid)->where('parentid', 0)->where('is_like', 2)->getall('id');
+		if (!empty($comments)) {
+			foreach ($comments as $k => &$comment) {
+				$comment['createtime'] = date('Y-m-d H:i', $comment['createtime']);
+			}
+		}
+		return $comments;
+	}
+
+	public function getLikeComment($uid, $articleid, $comment_id) {
+		return $this->where(array('articleid' => $articleid, 'parentid' => $comment_id, 'is_like' => 1, 'uid' => $uid))->get();
 	}
 
 	public function likeComment($uid, $articleid, $comment_id) {
@@ -67,49 +71,5 @@ class Comment extends \We7Table {
 			'createtime' => TIMESTAMP,
 		));
 		return $this->save();
-	}
-
-	public function getComments($articleid, $pageindex, $pagesize = 15, $order = 'id') {
-		$comments = $this->where('articleid', $articleid)
-			->where('parentid', 0)
-			->where('is_like', 2)
-			->orderby($order, 'DESC')
-			->page($pageindex, $pagesize)
-			->getall('id');
-		$total = $this->getLastQueryTotal();
-
-		if (!empty($comments)) {
-			$this->extendUserinfo($comments);
-			foreach ($comments as $k => &$comment) {
-				$comment['createtime'] = date('Y-m-d H:i', $comment['createtime']);
-			}
-		}
-		return array('list' => $comments, 'total' => $total);
-	}
-
-	public function extendUserinfo(&$comments) {
-		if (empty($comments)) {
-			return true;
-		}
-		$uids = array();
-		foreach ($comments as $comment) {
-			$uids[$comment['uid']] = $comment['uid'];
-		}
-		if (!empty($uids)) {
-			$users = $this->getQuery()
-				->select('u.uid, u.username, p.realname, p.nickname, p.avatar, p.mobile')
-				->from('users', 'u')
-				->leftjoin('users_profile', 'p')
-				->on(array('u.uid' => 'p.uid'))
-				->where('u.uid', $uids)
-				->getall('uid');
-
-			foreach ($comments as &$comment) {
-				if (!empty($users[$comment['uid']])) {
-					$comment = array_merge($comment, $users[$comment['uid']]);
-				}
-			}
-		}
-		return true;
 	}
 }

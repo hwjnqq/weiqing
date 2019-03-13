@@ -13,7 +13,6 @@ $dos = array('message_list', 'message_info', 'message_reply', 'message_mark', 'm
 $do = in_array($do , $dos) ? $do : 'message_list';
 
 if ($do == 'message_list') {
-	$_W['page']['title'] = '留言管理-文章列表';
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	$condition = array('uniacid' => $_W['uniacid'], 'acid' => $_W['acid'], 'status' => 0);
@@ -41,10 +40,9 @@ if ($do == 'message_list') {
 }
 
 if ($do == 'message_info') {
-	$_W['page']['title'] = '留言管理-留言信息';
-	$index = empty(intval($_GPC['index'])) ? 0 : intval($_GPC['index']);
+	$index = intval($_GPC['index']) > 0 ? intval($_GPC['index']) : 0;
 	$msg_data_id = safe_gpc_string($_GPC['msg_data_id']);
-	$type = empty(intval($_GPC['type'])) ? 0 : intval($_GPC['type']);
+	$type = intval($_GPC['type']) > 0 ? intval($_GPC['type']) : 0;
 
 	$account_api = WeAccount::createByUniacid();
 	$res = $account_api->getComment($msg_data_id, $index, $type);

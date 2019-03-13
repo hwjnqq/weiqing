@@ -30,7 +30,6 @@ if ($do == 'save_credit_setting') {
 }
 
 if ($do == 'register_setting') {
-	$_W['page']['title'] = '注册设置';
 	permission_check_account_user('mc_member_register_seting');
 	if (checksubmit('submit')) {
 		$passport = $_GPC['passport'];
@@ -45,7 +44,6 @@ if ($do == 'register_setting') {
 }
 
 if ($do == 'credit_setting') {
-	$_W['page']['title'] = '积分设置';
 	permission_check_account_user('mc_member_credit_setting');
 	$credit_setting = uni_setting_load('creditnames');
 	$credit_setting = $credit_setting['creditnames'];
@@ -66,13 +64,16 @@ if ($do == 'credit_setting') {
 }
 
 if($do == 'display') {
-	$_W['page']['title'] = '会员列表';
 	permission_check_account_user('mc_member_diaplsy');
 	$groups = mc_groups();
 	$search_mod = intval($_GPC['search_mod']) == 1 ? '1' : '2';
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 25;
 
+	if (empty($_GPC['datelimit'])) {
+		$_GPC['datelimit']['start'] = date('Y-m-d', strtotime("-1 year"));
+		$_GPC['datelimit']['end'] = date('Y-m-d');
+	}
 	$condition = '';
 	$params = array(':uniacid' => $_W['uniacid']);
 	if (!empty($_GPC['username'])) {
@@ -113,6 +114,11 @@ if($do == 'display') {
 		foreach($account_member_fields as $key => $val) {
 			if ($val['available']) {
 				$available_fields[$val['field']] = $val['title'];
+			}
+		}
+		foreach ($creditnames as $key => $info) {
+			if ($info['enabled'] == 1) {
+				$available_fields[$key] = empty($info['title']) ? $key : $info['title'];
 			}
 		}
 
@@ -250,7 +256,6 @@ if($do == 'group') {
 }
 
 if ($do == 'credit_statistics') {
-	$_W['page']['title'] = '积分日志-会员管理';
 	$uid = intval($_GPC['uid']);
 	$credits = array(
 			'credit1' => $creditnames['credit1']['title'],
@@ -282,7 +287,6 @@ if ($do == 'credit_statistics') {
 }
 
 if($do == 'member_credits') {
-	$_W['page']['title'] = '编辑会员资料 - 会员 - 会员中心';
 	$uid = intval($_GPC['uid']);
 	$credits = mc_credit_fetch($uid, array('credit1', 'credit2'));
 	//积分或余额记录
@@ -290,15 +294,11 @@ if($do == 'member_credits') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 50;
 
-	$member_table = table('member');
-
-	$member_table->searchCreditsRecordUid($uid);
-	$member_table->searchCreditsRecordType($type);
-
-	$member_table->searchWithPage($pindex, $psize);
-
-	$records = $member_table->creditsRecordList();
-	$total = $member_table->getLastQueryTotal();
+	$mc_credits_record = table('mc_credits_record');
+	$mc_credits_record->searchWithUniacid($_W['uniacid']);
+	$mc_credits_record->searchWithPage($pindex, $psize);
+	$records = $mc_credits_record->getCreditsRecordListByUidAndCredittype($uid, $type);
+	$total = $mc_credits_record->getLastQueryTotal();
 
 	$pager = pagination($total, $pindex, $psize);
 	template('mc/member-information');
@@ -308,8 +308,10 @@ if ($do == 'base_information') {
 	$uid = intval($_GPC['uid']);
 	$profile = mc_fetch_one($uid, $_W['uniacid']);
 	$profile = mc_parse_profile($profile);
-	$member_table = table('member');
-	$uniacid_fields = $member_table->mcFieldsList($_W['uniacid']);
+	$mc_member_fields = table('mc_member_fields');
+	$mc_member_fields->searchWithUniacid($_W['uniacid']);
+	$mc_member_fields->selectFields(array('a.title', 'a.fieldid', 'b.field'));
+	$uniacid_fields = $mc_member_fields->getAllFields();
 	$all_fields = mc_fields();
 	$custom_fields = array();
 	$base_fields = cache_load(cache_system_key('userbasefields'));

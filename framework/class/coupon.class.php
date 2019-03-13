@@ -749,8 +749,10 @@ EOF;
 	public function BatchAddCard($data) {
 		$acid = $this->account['acid'];
 		$condition = '';
+		$params = array();
 		if(!empty($data['type'])) {
-			$condition .= " AND type = '{$data['type']}'";
+			$condition .= " AND type = :type";
+			$params[':type'] = $data['type'];
 		} else {
 			$ids = array();
 			foreach($data as $da) {
@@ -769,7 +771,8 @@ EOF;
 
 		$card = array();
 		if(!empty($condition)) {
-			$card = pdo_fetchall('SELECT id, card_id FROM ' . tablename('coupon') . " WHERE acid = {$acid} " . $condition);
+			$params[':acid'] = $acid;
+			$card = pdo_fetchall('SELECT id, card_id FROM ' . tablename('coupon') . " WHERE acid = :acid " . $condition, $params);
 		}
 		//生成数组
 		foreach($card as $ca) {

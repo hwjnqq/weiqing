@@ -43,10 +43,11 @@ if($do == 'module') { //模块工单
 	$data = $cloud->get('system','workorder', array('do'=>'siteworkorder'), 'json');
 	if(is_error($data)) {
 		echo json_encode(array('errno'=>0, 'message'=>'无权限进入工单系统'));
+		exit;
 	}
 	$iframe_url = $data['data']['url'] . '&' . $param;
 	echo json_encode(array('errno'=>0, 'message'=>'', 'data'=>array('url'=>$iframe_url)));
-
+	exit;
 }
 
 

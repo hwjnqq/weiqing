@@ -16,7 +16,6 @@ $do = in_array($do, $dos) ? $do : 'backup';
 
 //备份
 if ($do == 'backup') {
-	$_W['page']['title'] = '备份 - 数据库 - 常用系统工具 - 系统管理';
 	if ($_GPC['status']) {
 		if (empty($_W['setting']['copyright']['status'])) {
 			itoast('为了保证备份数据完整请关闭站点后再进行此操作', url('system/site'), 'error');
@@ -111,7 +110,6 @@ if ($do == 'backup') {
 }
 //还原
 if($do == 'restore') {
-	$_W['page']['title'] = '还原 - 数据库 - 常用系统工具 - 系统管理';
 	//获取备份目录下数据库备份数组
 	$reduction = system_database_backup();
 	//备份还原
@@ -187,21 +185,21 @@ if ($do == 'trim') {
 	*/
 	
 	if (!empty($schemas)) {
-		foreach ($schemas as $key=>$value) {
+		foreach ($schemas as $key => $value) {
 			$tablename =  substr($value['tablename'], 4);
 			$struct = db_table_schema(pdo(), $tablename);
 			if (!empty($struct)) {
 				$temp = db_schema_compare($schemas[$key],$struct);
 				if (!empty($temp['fields']['less'])) {
 					$diff[$tablename]['name'] = $value['tablename'];
-					foreach ($temp['fields']['less'] as $key=>$value) {
-						$diff[$tablename]['fields'][] = $value;
+					foreach ($temp['fields']['less'] as $key => $fields_value) {
+						$diff[$tablename]['fields'][] = $fields_value;
 					}
 				}
 				if (!empty($temp['indexes']['less'])) {
 					$diff[$tablename]['name'] = $value['tablename'];
-					foreach ($temp['indexes']['less'] as $key=>$value) {
-						$diff[$tablename]['indexes'][] = $value;
+					foreach ($temp['indexes']['less'] as $key => $indexes_value) {
+						$diff[$tablename]['indexes'][] = $indexes_value;
 					}
 				}
 			}
@@ -210,7 +208,6 @@ if ($do == 'trim') {
 }
 //优化
 if ($do == 'optimize') {
-	$_W['page']['title'] = '优化 - 数据库 - 常用系统工具 - 系统管理';
 	$optimize_table = array();
 	$sql = "SHOW TABLE STATUS LIKE '{$_W['config']['db']['tablepre']}%'";
 	$tables = pdo_fetchall($sql);
@@ -243,7 +240,6 @@ if ($do == 'optimize') {
 }
 //运行SQL
 if ($do == 'run') {
-	$_W['page']['title'] = '运行SQL - 数据库 - 常用系统工具 - 系统管理';
 	if (!DEVELOPMENT) {
 		itoast('请先开启开发模式后再使用此功能', referer(), 'info');
 	}

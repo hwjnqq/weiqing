@@ -1,7 +1,7 @@
 <?php
 /**
  * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -13,14 +13,16 @@ load()->classs('oauth2/oauth2client');
 $dos = array('display', 'valid_mobile', 'register', 'check_username', 'get_extendfields', 'check_code', 'check_mobile_code', 'check_password_safe', 'check_failed_code');
 $do = in_array($do, $dos) ? $do : 'display';
 
-$_W['page']['title'] = '注册选项 - 用户设置 - 用户管理';
-if (empty($_W['setting']['register']['open'])) {
+if (empty($_W['setting']['register']['open']) && empty($_W['setting']['copyright']['mobile_status'])) {
 	itoast('本站暂未开启注册功能，请联系管理员！', '', '');
 }
-
+if (empty($_GPC['register_type'])) {
+	$_GPC['register_type'] = !empty($_W['setting']['register']['open']) ? 'system' : 'mobile';
+}
 $register_type = safe_gpc_belong(safe_gpc_string($_GPC['register_type']), array('system', 'mobile'), 'system');
 $owner_uid = intval($_GPC['owner_uid']);
 $setting = $_W['setting']['register'];
+$user_type = empty($_GPC['type']) || $_GPC['type'] == USER_TYPE_COMMON ? USER_TYPE_COMMON : USER_TYPE_CLERK;
 
 if ($register_type == 'system') {
 	$extendfields = OAuth2Client::create($register_type)->systemFields();
@@ -38,12 +40,20 @@ if ($do == 'valid_mobile' || $do == 'register' && $register_type == 'mobile') {
 
 if ($do == 'register') {
 	if(checksubmit() || $_W['ispost'] && $_W['isajax']) {
-		$register_user = OAuth2Client::create($register_type)->register();
+		$register_user = OAuth2Client::create($register_type)->setUserType($user_type)->register();
+		$redirect = url('user/login');
+		if ($user_type == USER_TYPE_CLERK && !empty($_GPC['m'])) {
+			if (empty($_GPC['redirect'])) {
+				$redirect = url('module/permission/display', array('m' => $_GPC['m']));
+			} else {
+				$redirect = url('module/permission/post', array('m' => $_GPC['m']));
+			}
+		}
 		if ($register_type == 'system') {
 			if (is_error($register_user)) {
 				itoast($register_user['message']);
 			} else {
-				itoast($register_user['message'], url('user/login'));
+				itoast($register_user['message'], $redirect);
 			}
 		}
 
@@ -51,7 +61,7 @@ if ($do == 'register') {
 			if (is_error($register_user)) {
 				iajax(-1, $register_user['message']);
 			} else {
-				iajax(0, $register_user['message'], url('user/login'));
+				iajax(0, $register_user['message'], $redirect);
 			}
 		}
 	}

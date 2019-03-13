@@ -8,7 +8,7 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('cloud');
 load()->func('communication');
 
-$dos = array('profile', 'callback', 'appstore', 'buybranch', 'sms');
+$dos = array('profile', 'callback', 'appstore', 'buybranch', 'sms', 'vsx');
 $do = in_array($do, $dos) ? $do : 'profile';
 
 if($do == 'profile') {
@@ -22,6 +22,11 @@ if($do == 'sms') {
 	permission_check_account_user('system_cloud_sms');
 	$iframe = cloud_auth_url('sms');
 	$title = '云短信';
+}
+if ($do == 'vsx') {
+	$url = safe_gpc_string($_GPC['url']);
+	cloud_v_to_xs($url);
+	exit;
 }
 
 if($do == 'appstore') {
@@ -72,7 +77,7 @@ if($do == 'callback') {
 		$cache = cache_read(cache_system_key('cloud_auth_transfer'));
 		//兼容处理一下更新时，旧缓存名获取数据
 		if (empty($cache) || empty($cache['secret'])) {
-			$cache = cache_read('cloud_auth_transfer');
+			$cache = cache_read('cloud:auth:transfer');
 		}
 		cache_delete(cache_system_key('cloud_auth_transfer'));
 		if(!empty($cache) && $cache['secret'] == $secret) {

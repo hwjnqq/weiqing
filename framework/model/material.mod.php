@@ -168,15 +168,14 @@ function material_get($attach_id) {
 		return error(1, "素材id参数不能为空");
 	}
 	if (is_numeric($attach_id)) {
-		$material = pdo_get('wechat_attachment', array('id' => $attach_id));
+		$material = table('wechat_attachment')->getById($attach_id);
 	} else {
 		$media_id = trim($attach_id);
-		$material = pdo_get('wechat_attachment', array('media_id' => $media_id));
+		$material = table('wechat_attachment')->getByMediaId($media_id);
 	}
 	if (!empty($material)) {
 		if ($material['type'] == 'news') {
-			$material_table = table('material');
-			$news = $material_table->materialNewsList($material['id']);
+			$news = table('wechat_news')->getAllByAttachId($material['id']);
 			if (!empty($news)) {
 				foreach ($news as &$news_row) {
 					$news_row['content_source_url'] = $news_row['content_source_url'];
@@ -511,6 +510,10 @@ function material_delete($material_id, $location){
 		}
 		if (!empty($_W['setting']['remote']['type'])) {
 			$result = file_remote_delete($material['attachment']);
+			//图片未上传到远程附件时, 删除本地图片
+			if (file_exists(IA_ROOT . '/' . $_W['config']['upload']['attachdir'] . '/' . $material['attachment'])) {
+				$result = file_delete($material['attachment']);
+			}
 		} else {
 			$result = file_delete($material['attachment']);
 		}
@@ -583,6 +586,9 @@ function material_news_list($server = '', $search ='', $page = array('page_index
 	// 转换微信图片地址
 	foreach ($material_list as $key => &$news) {
 		if (isset($news['items']) && is_array($news['items'])) {
+			if (empty($news['items'][0])) {
+				$news['items'] = array_values($news['items']);
+			}
 			foreach ($news['items'] as &$item) {
 				$item['thumb_url'] = tomedia($item['thumb_url']);
 			}

@@ -1,7 +1,6 @@
 {template 'common/header'}
 <ol class="breadcrumb we7-breadcrumb">
-	<a href="javascript:history.go(-1);"><i class="wi wi-back-circle"></i> </a>
-	<li>权限设置</li>
+	<li><a href="javascript:;" onclick="javascript:history.go(-1);"><i class="wi wi-back-circle"></i> 权限设置</a></li>
 </ol>
 <form class="form-horizontal form we7-form" action="" method="post">
 
@@ -9,7 +8,7 @@
 	<table class="table we7-table table-hover we7-form account-and-wxapp">
 	{loop $menus $name $sections}
 		{if $sections['section'] && $name == 'account' && in_array($account['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))}
-			<div class="we7-page-title">{$sections['title']}<span class="color-default font-sm">（<i class="fa fa-exclamation-circle"></i> 默认未勾选任何菜单时，用户拥有全部权限）</span>
+			<div>{$sections['title']}<span class="color-default font-sm">（<i class="fa fa-exclamation-circle"></i> 默认未勾选任何菜单时，用户拥有全部权限）</span>
 			</div>
 			{loop $sections['section'] $section_id $section}
 				{if !in_array($section_id, array('platform_module'))}
@@ -66,7 +65,7 @@
 			{/loop}
 		{/if}
 		{if $sections['section'] && $name == 'wxapp' && $account['type'] == ACCOUNT_TYPE_APP_NORMAL}
-			<div class="we7-page-title">{$sections['title']}</div>
+			<div>{$sections['title']}<span class="color-default font-sm">（<i class="fa fa-exclamation-circle"></i> 默认未勾选任何菜单时，用户拥有全部权限）</span></div>
 			{loop $sections['section'] $section_id $section}
 				{if !in_array($section_id, array('platform_module'))}
 					<thead>
@@ -74,7 +73,7 @@
 						<th colspan="4" class="text-left">
 							<div class="">
 								<input id="check-{$section_id}" type="checkbox" name="system_{$section_id}"  we7-check-all="1" onChange="selectall(this, 'system_{$section_id}')">
-								<label for="check-{$section_id}" class=" we7-margin-horizontal-none">{$section['title']}<span class="caret"></span></label>
+								<label for="check-{$section_id}" class=" we7-margin-horizontal-none">{$section['title']}</label>
 							</div>
 						</th>
 					</tr>
@@ -125,7 +124,7 @@
 
 	{if !empty($module)}
 	<table class="table we7-table table-hover vertical-middle we7-form">
-		<div class="we7-page-title">应用<span class="color-default font-sm">（<i class="fa fa-exclamation-circle"></i> 默认未勾选任何菜单时，用户拥有全部权限）</span></div>
+		<div>应用<span class="color-default font-sm">（<i class="fa fa-exclamation-circle"></i> 默认未勾选任何菜单时，用户拥有全部权限）</span></div>
 		<thead>
 			<tr>
 				<th colspan="4" class="text-left">

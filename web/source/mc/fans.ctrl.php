@@ -13,7 +13,6 @@ $dos = array('display', 'add_tag', 'del_tag', 'edit_tagname', 'edit_fans_tag', '
 $do = in_array($do, $dos) ? $do : 'display';
 
 if ($do == 'display') {
-	$_W['page']['title'] = '粉丝列表';
 	permission_check_account_user('mc_fans_display');
 	$sync_member = uni_setting_load('sync_member');
 	$sync_member = empty($sync_member['sync_member']) ? 0 : 1;
@@ -22,11 +21,8 @@ if ($do == 'display') {
 	$search_mod = intval($_GPC['search_mod']) == '' ? 1 : intval($_GPC['search_mod']);
 	$pagesize = 10;
 
-	$param = array(
-		':uniacid' => $_W['uniacid'],
-		':acid' => $_W['acid']
-		);
-	$condition = " WHERE f.`uniacid` = :uniacid AND f.`acid` = :acid";
+	$param = array(':uniacid' => $_W['uniacid']);
+	$condition = " WHERE f.`uniacid` = :uniacid";
 	$tag = intval($_GPC['tag']) ? intval($_GPC['tag']) : 0;
 	if (!empty($tag)) {
 		$param[':tagid'] = $tag;
@@ -55,7 +51,11 @@ if ($do == 'display') {
 	} elseif ($follow == 2) {
 		$condition .= " AND f.`follow` = 0";
 	}
-	$select_sql = "SELECT %s FROM " .tablename('mc_mapping_fans')." AS f LEFT JOIN ".tablename('mc_fans_tag_mapping')." AS m ON m.`fanid` = f.`fanid` " . $condition ." %s";
+	if (!empty($tag)) {
+		$select_sql = "SELECT %s FROM " .tablename('mc_mapping_fans')." AS f LEFT JOIN ".tablename('mc_fans_tag_mapping')." AS m ON m.`fanid` = f.`fanid` " . $condition ." %s";
+	} else {
+		$select_sql = "SELECT %s FROM " .tablename('mc_mapping_fans')." AS f " . $condition ." %s";
+	}
 	$fans_list_sql = sprintf($select_sql, "f.fanid, f.acid, f.uniacid, f.uid, f.openid, f.nickname, f.groupid, f.follow, f.followtime, f.unfollowtime, f.tag ", " GROUP BY f.`fanid` ORDER BY f.`fanid` DESC LIMIT " .($pageindex - 1) * $pagesize.",".$pagesize);
 	$fans_list = pdo_fetchall($fans_list_sql, $param);
 	if (!empty($fans_list)) {
@@ -308,7 +308,6 @@ if ($do == 'sync') {
 }
 
 if ($do == 'fans_sync_set') {
-	$_W['page']['title'] = '更新粉丝信息 - 公众号选项';
 	permission_check_account_user('mc_fans_fans_sync_set');
 	$operate = $_GPC['operate'];
 	if ($operate == 'save_setting') {

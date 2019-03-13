@@ -19,10 +19,11 @@ class System extends OAuth2Client {
 	public function user() {
 		global $_GPC, $_W;
 		$username = trim($_GPC['username']);
-		pdo_delete('users_failed_login', array('lastupdate <' => TIMESTAMP-3600));
+		$refused_login_limit = $_W['setting']['copyright']['refused_login_limit'];
+		pdo_delete('users_failed_login', array('lastupdate <' => TIMESTAMP - $refused_login_limit * 60));
 		$failed = pdo_get('users_failed_login', array('username' => $username));
 		if ($failed['count'] >= 5) {
-			return error('-1', '输入密码错误次数超过5次，请在1小时后再登录');
+			return error('-1', "输入密码错误次数超过5次，请在{$refused_login_limit}分钟后再登录");
 		}
 		if (!empty($_W['setting']['copyright']['verifycode'])) {
 			$verify = trim($_GPC['verify']);
@@ -39,6 +40,7 @@ class System extends OAuth2Client {
 		}
 		$member['username'] = $username;
 		$member['password'] = $_GPC['password'];
+		$member['type'] = $this->user_type;
 		if (empty($member['password'])) {
 			return error('-1', '请输入密码');
 		}
@@ -104,8 +106,7 @@ class System extends OAuth2Client {
 	}
 
 	public function systemFields() {
-		$user_table = table('users');
-		return $user_table->userProfileFields();
+		return table('core_profile_fields')->getAvailableAndShowableFields();
 	}
 
 	public function login() {
@@ -117,6 +118,10 @@ class System extends OAuth2Client {
 	}
 
 	public function unbind() {
+		return true;
+	}
+
+	public function isbind() {
 		return true;
 	}
 }

@@ -12,9 +12,8 @@ $do = in_array($do, $dos) ? $do : 'edit';
 
 $uniacid = intval($_GPC['uniacid']);
 $acid = intval($_GPC['acid']);
-$_W['page']['title'] = '管理设置 - 微信' . ACCOUNT_TYPE_NAME . '管理';
 if (empty($uniacid) || empty($acid)) {
-	itoast('请选择要编辑的公众号', referer(), 'error');
+	itoast('请选择要编辑的平台账号', referer(), 'error');
 }
 $state = permission_account_user_role($_W['uid'], $uniacid);
 //只有创始人、主管理员、管理员才有权限
@@ -31,7 +30,7 @@ if (is_error($account)) {
 }
 
 if ($do == 'edit') {
-	$permissions = pdo_fetchall("SELECT id, uid, role FROM ".tablename('uni_account_users')." WHERE uniacid = '$uniacid' and role != :role  ORDER BY uid ASC, role DESC", array(':role' => 'clerk'), 'uid');
+	$permissions = pdo_fetchall("SELECT id, uid, role FROM ".tablename('uni_account_users')." WHERE uniacid = '$uniacid' ORDER BY uid ASC, role DESC", array(), 'uid');
 	if (!empty($permissions)) {
 		$member = pdo_fetchall("SELECT username, uid FROM ".tablename('users')." WHERE uid IN (".implode(',', array_keys($permissions)).")", array(), 'uid');
 		if (!empty($member)) {
@@ -75,20 +74,25 @@ if ($do == 'delete') {
 		'uid' => $uid,
 	);
 	$exists = pdo_get('uni_account_users', array('uniacid' => $uniacid, 'uid' => $uid));
-	if (!empty($exists)) {
-		if ($state == ACCOUNT_MANAGE_NAME_MANAGER && ($exists['role'] == ACCOUNT_MANAGE_NAME_OWNER || $exists['role'] == ACCOUNT_MANAGE_NAME_MANAGER)) {
-			itoast('管理员不可操作其他管理员', referer(), 'error');
-		}
-		$result = pdo_delete('uni_account_users', $data);
-		if ($result) {
-			pdo_delete('system_stat_visit', $data);
-			itoast('删除成功！', referer(), 'success');
-		} else {
-			itoast('删除失败，请重试！', referer(), 'error');
-		}
-	} else {
-		itoast('该公众号下不存在该用户！', referer(), 'error');
+	if (empty($exists)) {
+		itoast('该平台账号下不存在该用户！', referer(), 'error');
 	}
+
+	if ($state == ACCOUNT_MANAGE_NAME_MANAGER && ($exists['role'] == ACCOUNT_MANAGE_NAME_OWNER || $exists['role'] == ACCOUNT_MANAGE_NAME_MANAGER)) {
+		itoast('管理员不可操作其他管理员', referer(), 'error');
+	}
+	$result = pdo_delete('uni_account_users', $data);
+	if ($result) {
+		if ($exists['role'] == ACCOUNT_MANAGE_NAME_OPERATOR) {
+			pdo_delete('users_permission', $data);
+		}
+		pdo_delete('users_lastuse', $data);
+		pdo_delete('system_stat_visit', $data);
+		itoast('删除成功！', referer(), 'success');
+	} else {
+		itoast('删除失败，请重试！', referer(), 'error');
+	}
+
 }
 
 if ($do == 'set_manager') {
@@ -110,8 +114,11 @@ if ($do == 'set_manager') {
 			iajax(1, '不可操作网站创始人！', '');
 		}
 		//添加/修改公众号主管理员时执行数量判断
-		if (is_error($permission = permission_create_account($user['uid'], ACCOUNT_TYPE)) && $addtype == ACCOUNT_MANAGE_TYPE_OWNER && !in_array($_W['uid'], $founders)) {
-			itoast(error(5, $permission['message']), '', 'error');
+		if ($addtype == ACCOUNT_MANAGE_TYPE_OWNER && !in_array($_W['uid'], $founders)) {
+			$creat_limit = permission_user_account_num($user['uid']);
+			if ($creat_limit[TYPE_SIGN . '_limit'] <= 0) {
+				itoast(error(5, ACCOUNT_TYPE_NAME . '创建数量已达上限'), '', 'error');
+			}
 		}
 
 		$data = array(
@@ -135,6 +142,7 @@ if ($do == 'set_manager') {
 						//设置主管理员后，删除该用户在该公众号下设置的权限（即主管理员拥有该公众号所有权限）
 						pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $user['uid']));
 						cache_clean(cache_system_key("user_accounts"));
+						cache_build_account_modules($uniacid);
 						iajax(0, '修改成功！', '');
 					} else  {
 						iajax(1, '修改失败！', '');
@@ -149,13 +157,16 @@ if ($do == 'set_manager') {
 			} else if ($addtype == ACCOUNT_MANAGE_TYPE_OPERATOR) {
 				$data['role'] = ACCOUNT_MANAGE_NAME_OPERATOR;
 			}
-			pdo_delete('uni_account_users',  array('uniacid' => $uniacid,'uid' => $user['uid']));
+
+			pdo_delete('uni_account_users', array('uniacid' => $uniacid,'uid' => $user['uid']));
 			$result = pdo_insert('uni_account_users', $data);
+
 			if ($result) {
 				if ($addtype == ACCOUNT_MANAGE_TYPE_OWNER) {
 					pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $user['uid']));
 				}
 				cache_clean(cache_system_key("user_accounts"));
+				cache_build_account_modules($uniacid);
 				iajax(0, '添加成功！', '');
 			} else  {
 				iajax(1, '添加失败！', '');
@@ -165,7 +176,7 @@ if ($do == 'set_manager') {
 			iajax(2, $username.'已经是该公众号的店员或操作员或管理员，请勿重复添加！', '');
 		}
 	} else  {
-		iajax(-1, '参数错误，请刷新重试！', '');
+		iajax(-1, '用户不存在!', '');
 	}
 }
 
@@ -185,7 +196,7 @@ if ($do == 'set_permission') {
 	if (is_error($module_permission)) {
 		itoast('参数错误！');
 	}
-	$module_permission_keys = array_keys($module_permission);
+	$module_permission_keys = current($module_permission) == 'all' ? array() : array_keys($module_permission);
 	$module = uni_modules_by_uniacid($uniacid);
 	if (!empty($module)) {
 		foreach ($module as $key => $value) {

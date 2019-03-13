@@ -266,13 +266,6 @@ function cache_key_all() {
 		),
 
 		'caches' => array(
-
-			'test' => array(
-				// 模块详细信息
-				'key' => 'test:%name:%sex:%age',
-				'group' => '',
-			),
-
 			'module_info' => array(
 				// 模块详细信息
 				'key' => 'module_info:%module_name',
@@ -287,7 +280,7 @@ function cache_key_all() {
 
 			'last_account' => array(
 				// 对某一模块，保留最后一次进入的小程序OR公众号，以便点进入列表页时可以默认进入
-				'key' => 'last_account:%switch',
+				'key' => 'last_account:%switch:%uid',
 				'group' => '',
 			),
 
@@ -322,7 +315,7 @@ function cache_key_all() {
 
 			'uni_groups' => array(
 				// 一个或多个公众号套餐信息
-				'key' => 'uni_groups',
+				'key' => 'uni_groups:%groupids',
 				'group' => '',
 			),
 
@@ -438,6 +431,11 @@ function cache_key_all() {
 				'group' => '',
 			),
 
+			'account_auth_refreshtoken' => array(
+				'key' => 'account_auth_refreshtoken:%acid',
+				'group' => '',
+			),
+
 			'unicount' => array(
 				// 公众号下的子号的数量
 				'key' => 'unicount:%uniacid',
@@ -511,6 +509,11 @@ function cache_key_all() {
 
 			'cloud_ad_site_finance' => array(
 				'key' => 'cloud_ad_site_finance',
+				'group' => '',
+			),
+
+			'cloud_ad_store_notice' => array(
+				'key' => 'cloud_ad_store_notice',
 				'group' => '',
 			),
 
@@ -591,6 +594,21 @@ function cache_key_all() {
 
 			'module_receive_enable' => array(
 				'key' => 'module_receive_enable',
+				'group' => '',
+			),
+
+			'module_entry_call' => array(
+				'key' => 'module_entry_call:%module_name',
+				'group' => '',
+			),
+
+			'system_check' => array(
+				'key' => 'system_check',
+				'group' => '',
+			),
+
+			'delete_visit_ip' => array(
+				'key' => 'delete_visit_ip:%date',
 				'group' => '',
 			),
 		),

@@ -140,7 +140,7 @@ function article_comment_add($comment) {
 	}
 
 	$article_comment_table = table('site_article_comment');
-	$article_comment_table->articleCommentAdd($comment);
+	$article_comment_table->addComment($comment);
 	return true;
 }
 
@@ -166,7 +166,7 @@ function article_comment_detail($article_lists) {
 	}
 
 	$user_table = table('users');
-	$users = $user_table->searchWithUid($uids)->searchUsersList();
+	$users = $user_table->searchWithUid($uids)->getUsersList();
 
 	foreach ($article_lists as &$list) {
 		$list['createtime'] = date('Y-m-d H:i:s', $list['createtime']);

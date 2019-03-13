@@ -30,6 +30,30 @@ function ver_compare($version1, $version2) {
 	return version_compare($version1, $version2);
 }
 
+function iget_headers($url, $format = 0) {
+	$result = @get_headers($url, $format);
+	if (empty($result)) {
+		stream_context_set_default(array(
+			'ssl' => array(
+				'verify_peer' => false,
+				'verify_peer_name' => false,
+			),
+		));
+		$result = get_headers($url, $format);
+	}
+	return $result;
+}
+
+function igetimagesize($filename, $imageinfo = array()) {
+	$result = @getimagesize($filename, $imageinfo);
+	if (empty($result)) {
+		$file_content = ihttp_request($filename);
+		$content = $file_content['content'];
+		$result = getimagesize('data://image/jpeg;base64,'. base64_encode($content), $imageinfo);
+	}
+	return $result;
+}
+
 /**
  * 反转义字符串或数组中的 \
  * @param mixed $var
@@ -74,6 +98,17 @@ function isetcookie($key, $value, $expire = 0, $httponly = false) {
 	$expire = $expire != 0 ? (TIMESTAMP + $expire) : 0;
 	$secure = $_SERVER['SERVER_PORT'] == 443 ? 1 : 0;
 	return setcookie($_W['config']['cookie']['pre'] . $key, $value, $expire, $_W['config']['cookie']['path'], $_W['config']['cookie']['domain'], $secure, $httponly);
+}
+
+/**
+ * 获取cookie值
+ * @param $key 要获取的cookie名称
+ * @return mixed
+ */
+function igetcookie($key) {
+	global $_W;
+	$key = $_W['config']['cookie']['pre'] . $key;
+	return $_COOKIE[$key];
 }
 
 /**
@@ -607,17 +642,36 @@ function pagination($total, $pageIndex, $pageSize = 15, $url = '', $context = ar
  * 获取附件的HTTP绝对路径
  * @param string $src 附件地址
  * @param bool $local_path 是否直接返回本地图片路径
+ * @param bool $is_cache 是否读取缓存
  * @return string
  */
-function tomedia($src, $local_path = false){
+function tomedia($src, $local_path = false, $is_cahce = false){
 	global $_W;
 	$src = trim($src);
 	if (empty($src)) {
 		return '';
 	}
+	if ($is_cahce) {
+		$src .= "?v=" . time ();
+	}
+
 	if (strexists($src, "c=utility&a=wxcode&do=image&attach=")) {
 		return $src;
 	}
+
+	$t = strtolower($src);
+	if (strexists($t, 'https://mmbiz.qlogo.cn') || strexists($t, 'http://mmbiz.qpic.cn')) {
+		$url = url('utility/wxcode/image', array('attach' => $src));
+		return $_W['siteroot'] . 'web' . ltrim($url, '.');
+	}
+
+	if (substr($src, 0, 2) == '//') {
+		return 'http:' . $src;
+	}
+	if ((substr($src, 0, 7) == 'http://') || (substr($src, 0, 8) == 'https://')) {
+		return $src;
+	}
+
 	if (strexists($src, 'addons/')) {
 		return $_W['siteroot'] . substr($src, strpos($src, 'addons/'));
 	}
@@ -626,14 +680,7 @@ function tomedia($src, $local_path = false){
 		$urls = parse_url($src);
 		$src = $t = substr($urls['path'], strpos($urls['path'], 'images'));
 	}
-	$t = strtolower($src);
-	if (strexists($t, 'https://mmbiz.qlogo.cn') || strexists($t, 'http://mmbiz.qpic.cn')) {
-		$url = url('utility/wxcode/image', array('attach' => $src));
-		return $_W['siteroot'] . 'web' . ltrim($url, '.');
-	}
-	if ((substr($t, 0, 7) == 'http://') || (substr($t, 0, 8) == 'https://') || (substr($t, 0, 2) == '//')) {
-		return $src;
-	}
+
 	//全局未设置远程附件，帐号内设置远程附件的情况要考虑在内，否则帐号内不显示图片，即第二个“||”判断
 	if ($local_path ||
 		empty($_W['setting']['remote']['type']) && (empty($_W['uniacid']) || !empty($_W['uniacid']) && empty($_W['setting']['remote'][$_W['uniacid']]['type'])) ||

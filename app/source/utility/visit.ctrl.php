@@ -10,11 +10,10 @@ load()->model('app');
 $dos = array('showjs', 'health');
 $do = in_array($do, $dos) ? $do : 'showjs';
 
-	if ($do == 'showjs') {
-		echo '';
-		exit;
-	}
-
+if ($do == 'showjs') {
+	$module_name = !empty($_GPC['m']) ? $_GPC['m'] : 'wesite';
+	app_update_today_visit($module_name);
+}
 
 
 // https 站点校验是否能正常访问

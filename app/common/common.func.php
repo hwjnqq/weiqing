@@ -38,7 +38,7 @@ function message($msg, $redirect = '', $type = '') {
 	global $_W;
 	if($redirect == 'refresh') {
 		$redirect = $_W['script_name'] . '?' . $_SERVER['QUERY_STRING'];
-	} elseif (!empty($redirect) && !strexists($redirect, 'http://')) {
+	} elseif (!empty($redirect) && !strexists($redirect, 'http://') && !strexists($redirect, 'https://')) {
 		$urls = parse_url($redirect);
 		$redirect = $_W['siteroot'] . 'app/index.php?' . $urls['query'];
 	} else {

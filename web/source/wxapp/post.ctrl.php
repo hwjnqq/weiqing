@@ -12,7 +12,6 @@ load()->classs('wxapp.platform');
 
 $dos = array('design_method', 'post', 'get_wxapp_modules', 'module_binding');
 $do = in_array($do, $dos) ? $do : 'post';
-$_W['page']['title'] = '小程序 - 新建版本';
 $account_info = permission_user_account_num($_W['uid']);
 
 
@@ -37,9 +36,9 @@ if ($do == 'post') {
 	$uniacid = intval($_GPC['uniacid']);
 	$design_method = intval($_GPC['design_method']);
 	$create_type = intval($_GPC['create_type']);
-
+	$is_submit = checksubmit('submit');
 	if (empty($unicid) && !permission_user_account_creatable($_W['uid'], WXAPP_TYPE_SIGN)) {
-		itoast('创建的小程序已达上限！', '', '');
+		$is_submit ? iajax(-1, '创建的小程序已达上限') : itoast('创建的小程序已达上限！', '', '');
 	}
 
 	$version_id  = intval($_GPC['version_id']);
@@ -48,13 +47,13 @@ if ($do == 'post') {
 		$wxapp_version = miniapp_version($version_id);
 	}
 	if (empty($design_method)) {
-		itoast('请先选择要添加小程序类型', referer(), 'error');
+		$is_submit ? iajax(-1, '请先选择要添加小程序类型') : itoast('请先选择要添加小程序类型', referer(), 'error');
 	}
 	if ($design_method == WXAPP_TEMPLATE) {
-		itoast('拼命开发中。。。', referer(), 'info');
+		$is_submit ? iajax(-1, '拼命开发中。。。') : itoast('拼命开发中。。。', referer(), 'info');
 	}
 
-	if (checksubmit('submit')) {
+	if ($is_submit) {
 		if ($design_method == WXAPP_TEMPLATE && empty($_GPC['choose']['modules'])) {
 			iajax(2, '请选择要打包的模块应用', url('wxapp/post'));
 		}
@@ -77,12 +76,14 @@ if ($do == 'post') {
 				'headimg' => file_is_image( $_GPC['headimg']) ?  $_GPC['headimg'] : '',
 				'qrcode' => file_is_image( $_GPC['qrcode']) ?  $_GPC['qrcode'] : '',
 			);
-			$uniacid = miniapp_create($account_wxapp_data, ACCOUNT_TYPE_APP_NORMAL);
+			$uniacid = miniapp_create($account_wxapp_data);
 
 			$unisettings['creditnames'] = array('credit1' => array('title' => '积分', 'enabled' => 1), 'credit2' => array('title' => '余额', 'enabled' => 1));
 			$unisettings['creditnames'] = iserializer($unisettings['creditnames']);
+			$unisettings['creditbehaviors'] = array('activity' => 'credit1', 'currency' => 'credit2');
+			$unisettings['creditbehaviors'] = iserializer($unisettings['creditbehaviors']);
 			$unisettings['uniacid'] = $uniacid;
-			pdo_insert('uni_settings', array('uniacid' => $uniacid));
+			pdo_insert('uni_settings', $unisettings);
 
 			if (is_error($uniacid)) {
 				iajax(3, '添加小程序信息失败', url('wxapp/post'));
@@ -170,7 +171,9 @@ if ($do == 'post') {
 		} else {
 			$msg = '小程序创建成功';
 			pdo_insert('wxapp_versions', $wxapp_version);
+			$version_id = pdo_insertid();
 		}
+		cache_delete(cache_system_key('user_accounts', array('type' => 'wxapp', 'uid' => $_W['uid'])));
 		iajax(0, $msg, url('account/display/switch', array('uniacid' => $uniacid, 'type' => ACCOUNT_TYPE_APP_NORMAL)));
 	}
 	if (!empty($uniacid)) {

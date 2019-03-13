@@ -828,6 +828,7 @@ class XzappAccount extends WeAccount {
 		if (empty($types[$msgtype])) {
 			return error(-1, '消息类型不合法');
 		}
+		$send_conent = ($types[$msgtype] == 'text') ? array('content' => $media_id) : array('media_id' => $media_id);
 		if ($group == -1) {
 			$data = array(
 				'filter' => array(
@@ -835,18 +836,14 @@ class XzappAccount extends WeAccount {
 					'group_id' => $group
 				),
 				'msgtype' => $types[$msgtype],
-				$types[$msgtype] => array(
-					'media_id' => $media_id
-				)
+				$types[$msgtype] => $send_conent,
 			);
 		} else {
 			$openids = $this->getFansByTag($group);
 			$data = array(
 				'touser' => $openids,
 				'msgtype' => $types[$msgtype],
-				$types[$msgtype] => array(
-					'media_id' => $media_id
-				)
+				$types[$msgtype] => $send_conent,
 			);
 		}
 		$token = $this->getAccessToken();

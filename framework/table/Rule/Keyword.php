@@ -17,12 +17,12 @@ class Keyword extends \We7Table {
 		'status',
 	);
 	protected $default = array(
-		'rid' => 0,
-		'uniacid' => 0,
+		'rid' => '0',
+		'uniacid' => '0',
 		'module' => '',
 		'content' => '',
-		'type' => 1,
-		'displayorder' => 1,
-		'status' => 1,
+		'type' => '1',
+		'displayorder' => '1',
+		'status' => '1',
 	);
 }

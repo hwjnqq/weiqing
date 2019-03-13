@@ -142,7 +142,7 @@ if ($do == 'module.setting.cloud') {
 				foreach ($matches[1] as $url) {
 					$attach = cloud_resource_to_local($uniacid, 'image', $url);
 					if (!is_error($attach)) {
-						$new_urls[] = $attach['url'];;
+						$new_urls[] = $attach['url'];
 					} else {
 						echo "富文本(字段 {$name})中图片本地化失败";
 						exit;

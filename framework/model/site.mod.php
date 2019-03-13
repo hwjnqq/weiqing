@@ -10,11 +10,11 @@ defined('IN_IA') or exit('Access Denied');
  * @param array $cover
  */
 function site_cover($coverparams = array()) {
-	$coverreply_table = table('cover_reply');
+	$coverreply_table = table('core_cover_reply');
 	if (!empty($coverparams['multiid'])) {
 		$coverreply_table->searchWithMultiid(intval($coverparams['multiid']));
 	}
-	$cover = $coverreply_table->getCoverReplayInfo($coverparams['module'], $coverparams['uniacid']);
+	$cover = $coverreply_table->getByModuleAndUniacid($coverparams['module'], $coverparams['uniacid']);
 	if (empty($cover['rid'])) {
 		$rule = array(
 			'uniacid' => intval($coverparams['uniacid']),
@@ -59,9 +59,9 @@ function site_cover($coverparams = array()) {
 	);
 
 	if (empty($cover['id'])) {
-		table('cover_reply')->fill($entry)->save();
+		table('coverreply')->fill($entry)->save();
 	} else {
-		table('cover_reply')->fill($entry)->whereId($cover['id'])->save();
+		table('coverreply')->fill($entry)->whereId($cover['id'])->save();
 	}
 	return true;
 }
@@ -69,9 +69,9 @@ function site_cover($coverparams = array()) {
 function site_cover_delete($page_id) {
 	global $_W;
 	$page_id = intval($page_id);
-	$coverreply_table = table('cover_reply');
+	$coverreply_table = table('core_cover_reply');
 	$coverreply_table->searchWithMultiid($page_id);
-	$cover = $coverreply_table->getCoverReplayInfo('page', $_W['uniacid']);
+	$cover = $coverreply_table->getByModuleAndUniacid('page', $_W['uniacid']);
 	if(!empty($cover)) {
 		$rid = intval($cover['rid']);
 		pdo_delete('rule', array('id' => $rid));

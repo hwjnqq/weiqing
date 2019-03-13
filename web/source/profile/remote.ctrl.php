@@ -10,7 +10,6 @@ load()->model('miniapp');
 
 $dos = array('display', 'save', 'test_setting', 'upload_remote');
 $do = in_array($do, $dos) ? $do : 'display';
-$_W['page']['title'] = '远程附件 - 公众号选项';
 
 permission_check_account_user('profile_setting_remote');
 
@@ -22,14 +21,17 @@ if (!empty($_GPC['version_id'])) {
 $remote = $_W['setting']['remote_complete_info'][$_W['uniacid']];
 if ($do == 'upload_remote') {
 	if (!empty($_W['setting']['remote_complete_info'][$_W['uniacid']]['type'])) {
+		if (empty($_W['setting']['remote']['type'])) {
+			iajax(3, '未开启全局远程附件');
+		}
 		$result = file_dir_remote_upload(ATTACHMENT_ROOT . 'images/' . $_W['uniacid']);
 		if (is_error($result)) {
-			itoast($result['message'], url('profile/remote'), 'info');
+			iajax(1, $result['message']);
 		} else {
-			itoast('上传成功!', url('profile/remote'), 'success');
+			iajax(0, '上传成功!');
 		}
 	} else {
-		itoast('请先填写并开启远程附件设置。', '', 'info');
+		iajax(1, '请先填写并开启远程附件设置。');
 	}
 }
 if ($do == 'display') {
@@ -41,7 +43,7 @@ if ($do == 'display') {
 	}
 }
 
-if ($do == 'save'){
+if ($do == 'save') {
 	$remote_data = array(
 		'type' => $_GPC['type'],
 		'qiniu' => array(
@@ -53,40 +55,40 @@ if ($do == 'save'){
 	);
 	if ($remote_data['type'] == ATTACH_QINIU) {
 		if (empty($remote_data['qiniu']['accesskey'])) {
-			itoast ('请填写Accesskey', referer (), 'info');
+			iajax(1, '请填写Accesskey');
 		}
 		if (empty($remote_data['qiniu']['secretkey'])) {
-			itoast ('secretkey', referer (), 'info');
+			iajx(1, '请填写secretkey');
 		}
 		if (empty($remote_data['qiniu']['bucket'])) {
-			itoast ('请填写bucket', referer (), 'info');
+			iajx(1, '请填写bucket');
 		}
 		if (empty($remote_data['qiniu']['url'])) {
-			itoast ('请填写url', referer (), 'info');
+			iajx(1, '请填写url');
 		} else {
 			$remote_data['qiniu']['url'] = strexists ($remote_data['qiniu']['url'], 'http') ? trim ($remote_data['qiniu']['url'], '/') : 'http://' . trim ($remote_data['qiniu']['url'], '/');
 		}
 		$auth = attachment_qiniu_auth ($remote_data['qiniu']['accesskey'], $remote_data['qiniu']['secretkey'], $remote_data['qiniu']['bucket']);
 		if (is_error ($auth)) {
 			$message = $auth['message']['error'] == 'bad token' ? 'Accesskey或Secretkey填写错误， 请检查后重新提交' : 'bucket填写错误或是bucket所对应的存储区域选择错误，请检查后重新提交';
-			itoast ($message, referer (), 'info');
+			iajx(1, $message);
 		}
 	}
 	$_W['setting']['remote_complete_info'][$_W['uniacid']] = $remote_data;
 	setting_save($_W['setting']['remote_complete_info'], 'remote');
-	itoast('保存成功', '', 'success');
+	iajax(0, '保存成功', url('profile/remote'));
 }
 
 if ($do == 'test_setting') {
 	$type = $_GPC['type'];
 	if ($type == ATTACH_QINIU) {
-		$_GPC['secretkey'] = strexists($_GPC['secretkey'], '*') ? $remote['qiniu']['secretkey'] : $_GPC['secretkey'];
-		$auth= attachment_qiniu_auth(trim($_GPC['accesskey']), trim($_GPC['secretkey']), trim($_GPC['bucket']));
+		$_GPC['qiniu']['secretkey'] = strexists($_GPC['qiniu']['secretkey'], '*') ? $remote['qiniu']['secretkey'] : $_GPC['qiniu']['secretkey'];
+		$auth = attachment_qiniu_auth(trim($_GPC['qiniu']['accesskey']), trim($_GPC['qiniu']['secretkey']), trim($_GPC['qiniu']['bucket']));
 		if (is_error($auth)) {
 			iajax(-1, '配置失败，请检查配置。注：请检查存储区域是否选择的是和bucket对应<br/>的区域', '');
 		}
-		$url = $_GPC['url'];
-		$url = strexists($url, 'http') ? trim($url, '/') : 'http://'.trim($url, '/');
+		$url = trim(safe_gpc_string($_GPC['qiniu']['url']), '/');
+		$url = strexists($url, 'http') ? $url : 'http://'. $url;
 		$filename = 'MicroEngine.ico';
 		$response = ihttp_request($url. '/'.$filename, array(), array('CURLOPT_REFERER' => $_SERVER['SERVER_NAME']));
 		if (is_error($response)) {

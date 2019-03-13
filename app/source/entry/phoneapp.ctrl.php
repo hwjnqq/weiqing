@@ -5,8 +5,7 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('phoneapp');
 
 if (!empty($_W['uniacid'])) {
-	$version = intval($_GPC['v']);
-	$version_info = phoneapp_version($version);
+	$version_info = phoneapp_version_by_version(safe_gpc_string(trim($_GPC['v'])));
 	if (!empty($version_info['modules'])) {
 		foreach ($version_info['modules'] as $module) {
 			if (!empty($module['account']) && intval($module['account']['uniacid']) > 0) {

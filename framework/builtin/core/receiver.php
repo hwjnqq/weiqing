@@ -3,7 +3,7 @@
  * 粉丝管理模块订阅器
  *
  * @author WeEngine Team
- * @url http://bbs.we7.cc/forum.php?mod=forumdisplay&fid=36&filter=typeid&typeid=1
+ * @url http://bbs.w7.cc/forum.php?mod=forumdisplay&fid=36&filter=typeid&typeid=1
  */
 defined('IN_IA') or exit('Access Denied');
 class CoreModuleReceiver extends WeModuleReceiver {
@@ -15,7 +15,10 @@ class CoreModuleReceiver extends WeModuleReceiver {
 			$uniacid = $this->uniacid;
 			$ticket = trim($this->message['ticket']);
 			if(!empty($ticket)) {
-				$qr = pdo_fetchall("SELECT `id`, `keyword`, `name`, `acid` FROM " . tablename('qrcode') . " WHERE `uniacid` = '{$uniacid}' AND ticket = '{$ticket}'");
+				$qr = pdo_fetchall(
+					"SELECT `id`, `keyword`, `name`, `acid` FROM " . tablename('qrcode') . " WHERE `uniacid` = :uniacid AND ticket = :ticket",
+					array(':uniacid' => $uniacid, ':ticket' => $ticket)
+				);
 				if(!empty($qr)) {
 					if(count($qr) != 1) {
 						$qr = array();
@@ -27,11 +30,12 @@ class CoreModuleReceiver extends WeModuleReceiver {
 			if(empty($qr)) {
 				$sceneid = trim($this->message['scene']);
 				if(is_numeric($sceneid)) {
-					$scene_condition = " `qrcid` = '{$sceneid}'";
+					$scene_condition = " `qrcid` = :sceneid";
 				} else {
-					$scene_condition = " `scene_str` = '{$sceneid}'";
+					$scene_condition = " `scene_str` = :sceneid";
 				}
-				$qr = pdo_fetch("SELECT `id`, `keyword`, `name`, `acid` FROM " . tablename('qrcode') . " WHERE `uniacid` = '{$uniacid}' AND {$scene_condition}");
+				$condition = array(':sceneid' => $sceneid, ':uniacid' => $_W['uniacid']);
+				$qr = pdo_fetch("SELECT `id`, `keyword`, `name`, `acid` FROM " . tablename('qrcode') . " WHERE `uniacid` = :uniacid AND {$scene_condition}", $condition);
 			}
 			$insert = array(
 				'uniacid' => $_W['uniacid'],
@@ -50,11 +54,12 @@ class CoreModuleReceiver extends WeModuleReceiver {
 			$uniacid = $this->uniacid;
 			$sceneid = trim($this->message['scene']);
 			if(is_numeric($sceneid)) {
-				$scene_condition = " `qrcid` = '{$sceneid}'";
+				$scene_condition = " `qrcid` = :sceneid";
 			} else {
-				$scene_condition = " `scene_str` = '{$sceneid}'";
+				$scene_condition = " `scene_str` = :sceneid";
 			}
-			$row = pdo_fetch("SELECT `id`, `keyword`, `name`, `acid` FROM " . tablename('qrcode') . " WHERE `uniacid` = '{$uniacid}' AND {$scene_condition} AND `type` = 'scene'");
+			$condition = array(':sceneid' => $sceneid, ':uniacid' => $_W['uniacid']);
+			$row = pdo_fetch("SELECT `id`, `keyword`, `name`, `acid` FROM " . tablename('qrcode') . " WHERE `uniacid` = :uniacid AND {$scene_condition} AND `type` = 'scene'", $condition);
 			$insert = array(
 				'uniacid' => $_W['uniacid'],
 				'acid' => $row['acid'],

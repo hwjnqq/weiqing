@@ -1,46 +1,48 @@
 {template 'common/header'}
 <ol class="breadcrumb we7-breadcrumb">
-	<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE))}"><i class="wi wi-back-circle"></i> </a>
-	<li><a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE))}">{php echo ACCOUNT_TYPE_NAME}管理</a></li>
-	<li>{php echo ACCOUNT_TYPE_NAME}设置</li>
+	<a href="{php echo url('account/manage')}"><i class="wi wi-back-circle"></i> </a>
+	<li><a href="{php echo url('account/manage')}">平台列表</a></li>
+	<li>{php echo $account->typeName}设置</li>
 </ol>
 <div class="media media-wechat-setting">
 	<a class="media-left">
-		<span class="icon"><i class="wi wi-aliapp"></i></span>
+		<span class="icon"><i class="wi wi-{$account['type_sign']}"></i></span>
 		<img src="{$account['logo']}" class="wechat-img">
 	</a>
 	<div class="media-body media-middle ">
 		<h4 class="media-heading color-dark">{$account['name']}</h4>
-		<span class="color-gray">{php echo ACCOUNT_TYPE_NAME}</span>
+		<span class="color-gray">{php echo $account->typeName}</span>
 	</div>
 	{if $state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER}
 	<div class="media-right media-middle">
-		<a href="{php echo url('account/manage/delete', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => ACCOUNT_TYPE))}" class="btn btn-primary" onclick="return confirm('确认放入回收站吗？')">停  用</a>
+		<a href="{php echo url('account/manage/delete', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => $account['type']))}" class="btn btn-primary" onclick="return confirm('确认放入回收站吗？')">停  用</a>
 	</div>
 	{/if}
 </div>
 <div class="clearfix"></div>
 <div class="btn-group we7-btn-group wechat-edit-group">
 	{if $state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER || $state == ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
-	<a href="{php echo url('account/post/base', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => ACCOUNT_TYPE))}" class="btn btn-default {if $do == 'base'} active{/if}">基础信息</a>
+	<a href="{php echo url('account/post/base', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => $account['type']))}" class="btn btn-default {if $do == 'base'} active{/if}">基础信息</a>
 	{/if}
 
-	<a href="{php echo url('account/post-user/edit', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => ACCOUNT_TYPE))}" class="btn btn-default {if $action == 'post-user' && $do == 'edit'} active{/if}">使用者管理</a>
-	<a href="{php echo url('miniapp/manage/display', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => ACCOUNT_TYPE))}" class="btn btn-default {if $action == 'manage' && $do == 'display'} active{/if}">版本管理</a>
-	<a href="{php echo url('account/post/modules_tpl', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => ACCOUNT_TYPE))}" class="btn btn-default {if $action == 'post' && $do == 'modules_tpl'} active{/if}">可用应用模板/模块</a>
+	<a href="{php echo url('account/post-user/edit', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => $account['type']))}" class="btn btn-default {if $action == 'post-user' && $do == 'edit'} active{/if}">使用者管理</a>
+	<a href="{php echo url('miniapp/manage/display', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => $account['type']))}" class="btn btn-default {if $action == 'manage' && $do == 'display'} active{/if}">版本管理</a>
+	<a href="{php echo url('account/post/modules_tpl', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => $account['type']))}" class="btn btn-default {if $action == 'post' && $do == 'modules_tpl'} active{/if}">可用应用模板/模块</a>
 </div>
 
 <div id="js-account-manage-aliapp" ng-controller="MiniappManageCtrl" ng-cloak>
 	<!--版本管理-->
 	<div class="text-right we7-margin-bottom">
-		<a href="{php echo url('miniapp/post', array('uniacid' => $account['uniacid']))}" class="btn btn-primary" target="_blank">添加新版本</a>
+		<a href="{php echo url('miniapp/post', array('uniacid' => $account['uniacid'], 'type' => $account['type']))}" class="btn btn-primary" target="_blank">添加新版本</a>
 	</div>
 	<table class="table we7-table vertical-middle wxapp-version-table">
 		<tr>
 			<th class="text-left">版本号</th>
 			<th class="text-left">应用</th>
+			{if $account['type_sign'] == 'wxapp'}
 			<th class="text-center">之前应用版本</th>
 			<th class="text-center">最新应用版本</th>
+			{/if}
 			<th class="text-right">操作</th>
 		</tr>
 		<tr ng-if="version_exist" ng-repeat="item in version_lists">
@@ -54,6 +56,7 @@
 					<div class="name" ng-bind="item.module.module_info.title" title="{{item.module.module_info.title}}"></div>
 				</div>
 			</td>
+			{if $account['type_sign'] == 'wxapp'}
 			<td class="text-center">
 				<div ng-bind="item.module.version"></div>
 			</td>
@@ -64,6 +67,7 @@
 					<span style="font-size: 10px">需上传微信审核</span>
 				</div>
 			</td>
+			{/if}
 			<td class="text-right">
 				<div class="link-group">
 					<a href="./index.php?c=account&a=display&do=switch&uniacid={{item.uniacid}}&version_id={{item.id}}">进入</a>
@@ -125,9 +129,9 @@
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-					<h4 class="modal-title">选择{php echo ACCOUNT_TYPE_NAME}</h4>
+					<h4 class="modal-title">选择{php echo $account->typeName}</h4>
 				</div>
-				<div class="modal-body">
+				<div class="modal-body overflow-auto">
 					<div class="input-group" style="width: 400px">
 						<input class="form-control" name="title" ng-model="search.moduleName" type="text" placeholder="名称">
 						<span class="input-group-btn">
@@ -166,8 +170,8 @@ require(['underscore'], function() {
 		'miniapp_modules' : {php echo !empty($miniapp_modules) ? json_encode($miniapp_modules) : 'null'},
 		'version_exist': {php echo !empty($version_exist) ? json_encode($version_exist) : 'null'},
 		'links': {
-			'edit_version': "{php echo url('miniapp/manage/edit_version', array('acid' => $account['acid'], 'uniacid' => $account['uniacid'], 'account_type' => ACCOUNT_TYPE))}",
-			'del_version': "{php echo url('miniapp/manage/del_version', array('acid' => $account['acid'], 'uniacid' => $account['uniacid'], 'account_type' => ACCOUNT_TYPE))}",
+			'edit_version': "{php echo url('miniapp/manage/edit_version', array('acid' => $account['acid'], 'uniacid' => $account['uniacid'], 'account_type' => $account['type']))}",
+			'del_version': "{php echo url('miniapp/manage/del_version', array('acid' => $account['acid'], 'uniacid' => $account['uniacid'], 'account_type' => $account['type']))}",
 		},
 	});
 	angular.bootstrap($('#js-account-manage-aliapp'), ['wxApp']);

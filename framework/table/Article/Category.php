@@ -19,10 +19,10 @@ class Category extends \We7Table {
 	);
 
 	public function getNewsCategoryLists() {
-		return $this->query->from($this->tableName)->where('type', 'news')->orderby('displayorder', 'DESC')->getall('id');
+		return $this->where('type', 'news')->orderby(array('displayorder' => 'DESC', 'id' => 'DESC'))->getall('id');
 	}
 
 	public function getNoticeCategoryLists() {
-		return $this->query->from($this->tableName)->where('type', 'notice')->orderby('displayorder', 'DESC')->getall('id');
+		return $this->where('type', 'notice')->orderby(array('displayorder' => 'DESC', 'id' => 'DESC'))->getall('id');
 	}
 }

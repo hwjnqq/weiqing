@@ -22,6 +22,7 @@ class WxappPlatform extends WeixinPlatform {
 	protected $typeName =  '小程序';
 	protected $typeSign = WXAPP_TYPE_SIGN;
 	protected $supportVersion = STATUS_ON;
+	protected $typeTempalte = '-wxapp';
 
 	public function __construct($uniaccount = array()) {
 		$setting = setting_load('platform');
@@ -37,7 +38,7 @@ class WxappPlatform extends WeixinPlatform {
 			$this->account['key'] = $this->appid;
 			$this->openPlatformTestCase();
 		}
-		$account = table('account')->getWxappAccount($acid);
+		$account = table('account_wxapp')->getAccount($acid);
 		$account['encrypt_key'] = $this->appid;
 		return $account;
 	}

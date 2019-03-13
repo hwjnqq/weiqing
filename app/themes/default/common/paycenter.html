@@ -69,7 +69,7 @@
 	<ul class="mui-table-view mui-table-view-chevron pay-style">
 		{if !empty($pay['credit']['switch'])}
 		<li class="mui-table-view-cell credit">
-			<a class="mui-navigate-right mui-media credit-js-pay" href="javascript:;">
+			<a class="mui-navigate-right mui-media js-pay credit-js-pay" href="javascript:;">
 				<form action="{php echo url('mc/cash/credit');}" method="post" id="credit_pay">
 					<input type="hidden" name="params" value="{php echo base64_encode(json_encode($params));}" />
 					<input type="hidden" name="code" value="" />

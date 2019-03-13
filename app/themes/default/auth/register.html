@@ -40,18 +40,18 @@
 			var params = {};
 			params.receiver = username;
 			params.uniacid = uniacid;
-			$.post('../web/index.php?c=utility&a=verifycode', params).success(function(dat){
-				if(dat == 'success') {
-					util.toast('发送验证码成功');
-					$('.codeverify .mui-text-success').text(username);
-					$('.sendcode').hide();
-					$('.codeverify').show();
-				} else {
-					util.toast('发送验证码失败', '', 'error');
-					$('.sendcode').show();
-					$('.codeverify').hide();
-				}
-			});
+            $.post('../web/index.php?c=utility&a=verifycode', params, function(dat) {
+                if(dat.message.errno == 0) {
+                    util.toast('发送验证码成功');
+                    $('.codeverify .mui-text-success').text(username);
+                    $('.sendcode').hide();
+                    $('.codeverify').show();
+                } else {
+                    util.toast('发送验证码失败', '', 'error');
+                    $('.sendcode').show();
+                    $('.codeverify').hide();
+                }
+            }, "json");
 		});
 		$(document).on('click', '.js-code', function() {
 			var username = $('#register-code input[name="username"]').val();

@@ -1,15 +1,13 @@
 <?php
 /**
  * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('job');
 $dos = array('clear', 'execute', 'display');
 $do = in_array($do, $dos) ? $do : 'display';
-if (!defined('IFRAME')) {
-	define('IFRAME', 'site');
-}
+
 if ($do == 'display') {
 	$list = job_list($_W['uid'], $_W['isfounder']);
 	$jobid = intval($_GPC['jobid']);

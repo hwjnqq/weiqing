@@ -10,10 +10,9 @@ $dos = array('display', 'validate_mobile', 'bind_mobile', 'bind_oauth');
 $do = in_array($do, $dos) ? $do : 'display';
 
 if (in_array($do, array('validate_mobile', 'bind_mobile'))) {
-	$user_table = table('users');
-	$user_profile = $user_table->userProfile($_W['uid']);
+	$user_profile = table('users_profile')->getByUid($_W['uid']);
 	$mobile = safe_gpc_string($_GPC['mobile']);
-	$module_exists = $user_table->userBindInfo($mobile, 3);
+	$mobile_exists = table('users_bind')->getByTypeAndBindsign(USER_REGISTER_TYPE_MOBILE, $mobile);
 	if (empty($mobile)) {
 		iajax(-1, '手机号不能为空');
 	}
@@ -45,10 +44,19 @@ if ($do == 'display') {
 	$support_bind_urls = user_support_urls();
 	$setting_sms_sign = setting_load('site_sms_sign');
 	$bind_sign = !empty($setting_sms_sign['site_sms_sign']['register']) ? $setting_sms_sign['site_sms_sign']['register'] : '';
+	if (!empty($_W['user']['type']) && $_W['user']['type'] == USER_TYPE_CLERK) {
+		$_W['setting']['copyright']['bind'] = empty($_W['setting']['copyright']['clerk']['bind']) ? '' : $_W['setting']['copyright']['clerk']['bind'];
+	}
 }
 
 if ($do == 'bind_oauth') {
 	$uid = intval($_GPC['uid']);
+	$openid = safe_gpc_string($_GPC['openid']);
+	$register_type = intval($_GPC['register_type']);
+
+	if (empty($uid) || empty($openid) || !in_array($register_type, array(USER_REGISTER_TYPE_QQ, USER_REGISTER_TYPE_WECHAT))) {
+		itoast('参数错误!', url('user/login'), '');
+	}
 
 	$user_info = user_single($uid);
 	if ($user_info['is_bind']) {
@@ -88,10 +96,12 @@ if ($do == 'bind_oauth') {
 
 		$member['salt'] = random(8);
 		$member['password'] = user_hash($member['password'], $member['salt']);
-		$result = pdo_update('users', $member, array('uid' => $uid));
+		$result = pdo_update('users', $member, array('uid' => $uid, 'openid' => $openid, 'register_type' => $register_type));
 		
 		if ($result) {
 			itoast('注册绑定成功!', url('user/login'), '');
+		} else {
+			itoast('注册绑定失败, 请联系管理员解决!', url('user/login'), '');
 		}
 	} else {
 		template('user/bind-oauth');

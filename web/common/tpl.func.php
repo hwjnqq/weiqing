@@ -343,8 +343,12 @@ function tpl_form_field_image($name, $value = '', $default = '', $options = arra
 	if (!empty($value)) {
 		$val = tomedia($value);
 	}
+	if (defined('SYSTEM_WELCOME_MODULE')) {
+		$options['uniacid'] = 0;
+	}
 	if (!empty($options['global'])) {
 		$options['global'] = true;
+		$val = to_global_media(empty($value) ? $default : $value);
 	} else {
 		$options['global'] = false;
 	}

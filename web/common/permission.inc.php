@@ -1,7 +1,7 @@
 <?php
 /**
  * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -39,6 +39,7 @@ $we7_file_permission = array(
 			'display',
 			'manage',
 			'post-step',
+			'create',
 		),
 		'clerk' => array(
 			'display',
@@ -126,7 +127,7 @@ $we7_file_permission = array(
 		'unbind_user' => array(),
 	),
 	'home' => array(
-		'default' => '',
+		'default' => 'welcome',
 		'direct' => array(),
 		'vice_founder' => array('home*'),
 		'owner' => array('home*'),
@@ -146,6 +147,9 @@ $we7_file_permission = array(
 			'fields',
 			'group',
 			'trade',
+			'fans',
+			'member',
+			'message',
 		),
 		'operator' => array(
 			'chats',
@@ -165,19 +169,38 @@ $we7_file_permission = array(
 			'manage-system',
 			'permission',
 			'display',
-			'default-entry',
+			'welcome',
+			'link',
+			'link-account',
+			'shortcut',
+			'plugin',
 		),
 		'manager' => array(
 			'manage-account',
 			'display',
+			'welcome',
+			'link',
+			'link-account',
+			'shortcut',
+			'plugin',
 		),
 		'operator' => array(
 			'manage-account',
 			'display',
+			'welcome',
+			'link',
+			'link-account',
+			'shortcut',
+			'plugin',
 		),
 		'clerk' => array(
 			'display',
-			'manage-account'
+			'manage-account',
+			'welcome',
+			'link',
+			'link-account',
+			'shortcut',
+			'plugin',
 		),
 		'unbind_user' => array(),
 	),
@@ -189,6 +212,9 @@ $we7_file_permission = array(
 		'manager' => array(
 			'cover',
 			'reply',
+			'menu',
+			'qr',
+			'mass',
 			'material',
 			'material-post'
 		),
@@ -211,10 +237,20 @@ $we7_file_permission = array(
 		'direct' => array(),
 		'vice_founder' => array('profile*'),
 		'owner' => array('profile*'),
-		'manager' => array(),
+		'manager' => array(
+			'remote',
+			'passport',
+			'tplnotice',
+			'notify',
+			'common',
+			'payment',
+			'refund',
+			'module-link-uniacid',
+			'bind-domain',
+		),
 		'operator' => array(),
 		'clerk' => array(),
-		'unbind_user' => array(),
+		'unbind_user' => array('profile*'),
 	),
 	'site' => array(
 		'default' => '',
@@ -230,6 +266,7 @@ $we7_file_permission = array(
 			'style',
 			'nav',
 			'slide',
+			'multi',
 		),
 		'operator' => array(
 			'editor',
@@ -249,7 +286,12 @@ $we7_file_permission = array(
 		'direct' => array(),
 		'vice_founder' => array('statistics*'),
 		'owner' => array('statistics*'),
-		'manager' => array(),
+		'manager' => array(
+			'app',
+			'site',
+			'setting',
+			'fans',
+		),
 		'operator' => array(),
 		'clerk' => array(),
 		'unbind_user' => array(),
@@ -298,7 +340,9 @@ $we7_file_permission = array(
 			'updatecache',
 		),
 		'clerk' => array(),
-		'unbind_user' => array(),
+		'unbind_user' => array(
+			'updatecache',
+		),
 		'expired' => array(
 			'updatecache',
 		)
@@ -325,7 +369,9 @@ $we7_file_permission = array(
 		'clerk' => array(
 			'profile',
 		),
-		'unbind_user' => array(),
+		'unbind_user' => array(
+			'profile',
+		),
 		'expired' => array(
 			'user*',
 		)
@@ -392,6 +438,19 @@ $we7_file_permission = array(
 		),
 		'unbind_user' => array(),
 	),
+	'xzapp' => array(
+		'default' => '',
+		'direct' => array(),
+		'vice_founder' => array('xzapp*'),
+		'owner' => array('xzapp*'),
+		'manager' => array(),
+		'operator' => array(
+			'post-step',
+			'create',
+		),
+		'clerk' => array(),
+		'unbind_user' => array(),
+	),
 	'phoneapp' => array(
 		'default' => '',
 		'direct' => array(),
@@ -422,6 +481,7 @@ $we7_file_permission = array(
 			'wxcode',
 			'modules',
 			'link',
+			'visit'
 		),
 		'vice_founder' => array(
 			'user',
@@ -462,19 +522,34 @@ $we7_file_permission = array(
 			'see_account_manage_users_deloperator',
 			'see_account_manage_users_adduser',
 			'see_account_manage_users_add_viceuser',
+			'see_account_manage_display',
+			'see_account_manage_recycle',
+			'see_account_manage_system_platform',
+			'see_permission_create_account_group',
+			'see_permission_module_group',
+			'see_permission_user_group',
+			'see_permission_founder_group',
 			'see_system_upgrade',
 			'see_system_updatecache',
 			'see_system_manage_clerk',
-			'see_system_manage_user_setting',
 			'see_system_manage_vice_founder',
 			'see_system_add_vice_founder',
 			'see_notice_post',
+			'see_message_official',
+			'see_message_order',
+			'see_message_register',
+			'see_message_worker',
 			'see_module_manage_system_newversion',
 			'see_user_edit_base_founder_name',
 			'see_user_create_own_vice_founder',
 			'see_user_profile_edit_username',
-			'see_user_profile_account_num',
-			'see_user_add_welcome_account',
+			'see_user_manage_display',
+			'see_user_manage_founder',
+			'see_user_manage_clerk',
+			'see_user_manage_check',
+			'see_user_manage_recycle',
+			'see_user_manage_fields',
+			'see_user_manage_expire',
 			'see_workorder',
 			'see_modules_deactivate',
 		),
@@ -485,8 +560,17 @@ $we7_file_permission = array(
 			'see_account_manage_users_set_permission_for_operator',
 			'see_account_manage_users_deloperator',
 			'see_account_manage_users_delmanager',
+			'see_account_manage_display',
+			'see_account_manage_recycle',
 			'see_module_manage_system_group_add',
+			'see_permission_create_account_group',
+			'see_permission_module_group',
+			'see_permission_user_group',
 			'see_user_add_welcome_account',
+			'see_user_profile_account_num',
+			'see_user_manage_display',
+			'see_user_manage_check',
+			'see_user_manage_recycle',
 			'see_system_updatecache',
 		),
 		'owner' => array(
@@ -495,17 +579,27 @@ $we7_file_permission = array(
 			'see_account_manage_users_set_permission_for_operator',
 			'see_account_manage_users_deloperator',
 			'see_account_manage_users_delmanager',
-			'see_modules_recharge'
+			'see_account_manage_display',
+			'see_account_manage_recycle',
+			'see_modules_recharge',
+			'see_user_add_welcome_account',
+			'see_user_profile_account_num',
 		),
 		'manager' => array(
 			'see_account_manage_users_set_permission_for_operator',
 			'see_account_manage_users_deloperator',
+			'see_account_manage_display',
 			'see_user_profile_welcome',
 			'see_system_updatecache',
+			'see_user_add_welcome_account',
+			'see_user_profile_account_num',
 		),
 		'operator' => array(
+			'see_account_manage_display',
 			'see_user_profile_welcome',
 			'see_system_updatecache',
+			'see_user_add_welcome_account',
+			'see_user_profile_account_num',
 		),
 		'clerk' => array(
 

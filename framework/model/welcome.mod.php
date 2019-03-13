@@ -37,8 +37,11 @@ function welcome_get_ads() {
 function welcome_notices_get() {
 	global $_W;
 	$order = !empty($_W['setting']['notice_display']) ? $_W['setting']['notice_display'] : 'displayorder';
-	$params = array('fields' => array('id', 'title', 'createtime', 'style', 'group'), 'is_display' => 1, 'order' => array($order => 'DESC'), 'limit' => array(0, 15));
-	$notices = table('article')->articleList($params);
+	$article_table = table('article_notice');
+	$article_table->orderby($order, 'DESC');
+	$article_table->searchWithIsDisplay();
+	$article_table->searchWithPage(0, 15);
+	$notices = $article_table->getall();
 	if(!empty($notices)) {
 		foreach ($notices as $key => $notice_val) {
 			$notices[$key]['url'] = url('article/notice-show/detail', array('id' => $notice_val['id']));

@@ -24,7 +24,7 @@ if ($do == 'display') {
 
 	$order_sort = !empty($_GPC['order']) ? intval($_GPC['order']) : 2;
 	$order = $order_sort == 1 ? 'ASC' : 'DESC';
-	$comment_table->articleCommentOrder($order);
+	$comment_table->orderby('id', $order);
 
 
 	$is_comment = intval($_GPC['iscommend']);
@@ -32,7 +32,7 @@ if ($do == 'display') {
 		$comment_table->searchWithIscomment($is_comment);
 	}
 
-	$article_lists = $comment_table->articleCommentList();
+	$article_lists = $comment_table->getAllByCurrentUniacid();
 	$total = $comment_table->getLastQueryTotal();
 	$pager = pagination($total, $pindex, $psize);
 	$article_lists = article_comment_detail($article_lists);
