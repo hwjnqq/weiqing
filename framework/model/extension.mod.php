@@ -287,15 +287,19 @@ function _ext_module_manifest_entries($elm) {
 		for ($i = 0; $i < $entries->length; $i++) {
 			$entry = $entries->item($i);
 			$direct = $entry->getAttribute('direct');
+			$is_multilevel_menu = $entry->getAttribute('multilevel');
 			$row = array(
 				'title' => $entry->getAttribute('title'),
 				'do' => $entry->getAttribute('do'),
 				'direct' => !empty($direct) && $direct != 'false' ? true : false,
 				'state' => $entry->getAttribute('state'),
-				'icon' => $entry->getAttribute('icon')
+				'icon' => $entry->getAttribute('icon'),
+				'displayorder' => $entry->getAttribute('displayorder'),
+				'multilevel' => !empty($is_multilevel_menu) && $is_multilevel_menu == 'true' ? true : false,
+				'parent' => $entry->getAttribute('parent'),
 			);
 			if (!empty($row['title']) && !empty($row['do'])) {
-				$ret[] = $row;
+				$ret[$row['do']] = $row;
 			}
 		}
 	}

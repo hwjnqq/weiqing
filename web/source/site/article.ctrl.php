@@ -193,9 +193,7 @@ if ($do == 'display') {
 			pdo_update('news_reply', array('url' => murl('site/site/detail', array('id' => $aid))), array('rid' => $rid));
 		} else {
 			unset($data['createtime']);
-			pdo_delete('rule', array('id' => $item['rid'], 'uniacid' => $_W['uniacid']));
-			pdo_delete('rule_keyword', array('rid' => $item['rid'], 'uniacid' => $_W['uniacid']));
-			pdo_delete('news_reply', array('rid' => $item['rid']));
+			uni_delete_rule($item['rid'], 'news_reply');
 			if (!empty($keywords)) {
 				pdo_insert('rule', $rule);
 				$rid = pdo_insertid();
@@ -229,9 +227,7 @@ if ($do == 'display') {
 			}
 
 			if (!empty($row['rid'])) {
-				pdo_delete('rule', array('id' => $row['rid'], 'uniacid' => $_W['uniacid']));
-				pdo_delete('rule_keyword', array('rid' => $row['rid'], 'uniacid' => $_W['uniacid']));
-				pdo_delete('news_reply', array('rid' => $row['rid']));
+				uni_delete_rule($row['rid'], 'news_reply');
 			}
 			pdo_delete('site_article', array('id' => $id, 'uniacid'=>$_W['uniacid']));
 		}
@@ -245,9 +241,7 @@ if ($do == 'display') {
 		}
 
 		if (!empty($row['rid'])) {
-			pdo_delete('rule', array('id' => $row['rid'], 'uniacid' => $_W['uniacid']));
-			pdo_delete('rule_keyword', array('rid' => $row['rid'], 'uniacid' => $_W['uniacid']));
-			pdo_delete('news_reply', array('rid' => $row['rid']));
+			uni_delete_rule($row['rid'], 'news_reply');
 		}
 		if (pdo_delete('site_article', array('id' => $id,'uniacid'=>$_W['uniacid']))){
 			itoast('删除成功！', referer(), 'success');

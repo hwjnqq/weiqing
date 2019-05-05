@@ -14,8 +14,6 @@ class Rule extends \We7Table {
 		'containtype',
 		'displayorder',
 		'status',
-		'reply_type',
-
 	);
 	protected $default = array(
 		'uniacid' => '0',
@@ -24,7 +22,5 @@ class Rule extends \We7Table {
 		'containtype' => '',
 		'displayorder' => '0',
 		'status' => '1',
-		'reply_type' => '1',
-
 	);
 }

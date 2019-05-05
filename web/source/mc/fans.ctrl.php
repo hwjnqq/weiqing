@@ -52,12 +52,13 @@ if ($do == 'display') {
 		$condition .= " AND f.`follow` = 0";
 	}
 	if (!empty($tag)) {
-		$select_sql = "SELECT %s FROM " .tablename('mc_mapping_fans')." AS f LEFT JOIN ".tablename('mc_fans_tag_mapping')." AS m ON m.`fanid` = f.`fanid` " . $condition ." %s";
+		$select_sql = "SELECT %s FROM " .tablename('mc_mapping_fans')." AS f LEFT JOIN ".tablename('mc_fans_tag_mapping')." AS m ON m.`fanid` = f.`fanid` " . "LEFT JOIN " . tablename('mc_fans_tag') . " AS t ON t.`openid` = f.`openid` " . $condition ." %s";
 	} else {
-		$select_sql = "SELECT %s FROM " .tablename('mc_mapping_fans')." AS f " . $condition ." %s";
+		$select_sql = "SELECT %s FROM " .tablename('mc_mapping_fans')." AS f LEFT JOIN " . tablename('mc_fans_tag') . " as t ON t.`openid` = f.`openid` " . $condition ." %s";
 	}
-	$fans_list_sql = sprintf($select_sql, "f.fanid, f.acid, f.uniacid, f.uid, f.openid, f.nickname, f.groupid, f.follow, f.followtime, f.unfollowtime, f.tag ", " GROUP BY f.`fanid` ORDER BY f.`fanid` DESC LIMIT " .($pageindex - 1) * $pagesize.",".$pagesize);
+	$fans_list_sql = sprintf($select_sql, "f.fanid, f.acid, f.uniacid, f.uid, f.openid, f.nickname as nickname, f.groupid, f.follow, f.followtime, f.unfollowtime, t.headimgurl", " GROUP BY f.`fanid` ORDER BY f.`fanid` DESC LIMIT " .($pageindex - 1) * $pagesize.",".$pagesize);
 	$fans_list = pdo_fetchall($fans_list_sql, $param);
+
 	if (!empty($fans_list)) {
 		foreach ($fans_list as &$v) {
 			$v['tag_show'] = mc_show_tag($v['groupid']);
@@ -69,31 +70,8 @@ if ($do == 'display') {
 			if (!empty($user)) {
 				$v['member'] = $user;
 			}
-			if (!empty($v['tag']) && is_string($v['tag'])) {
-				if (is_base64($v['tag'])) {
-					$v['tag'] = base64_decode($v['tag']);
-				}
-				// report warning
-				if (is_serialized($v['tag'])) {
-					$v['tag'] = @iunserializer($v['tag']);
-				}
-				if (!empty($v['tag']['headimgurl'])) {
-					$v['tag']['avatar'] = tomedia($v['tag']['headimgurl']);
-				}
-				if (empty($v['nickname']) && !empty($v['tag']['nickname'])) {
-					$v['nickname'] = strip_emoji($v['tag']['nickname']);
-				}
-			}
-			if (empty($v['tag'])) {
-				$v['tag'] = array();
-			}
-			if (empty($v['user']['nickname']) && !empty($v['tag']['nickname'])) {
-				$v['user']['nickname'] = strip_emoji($v['tag']['nickname']);
-			}
-			if (empty($v['user']['avatar']) && !empty($v['tag']['avatar'])) {
-				$v['user']['avatar'] = $v['tag']['avatar'];
-			}
-			unset($user,$niemmo,$niemmo_effective);
+			$v['nickname'] = !empty($v['nickname']) ? strip_emoji($v['nickname']) : '';
+			unset($user);
 		}
 		unset($v);
 	}
@@ -101,7 +79,7 @@ if ($do == 'display') {
 	$total_sql = sprintf($select_sql, "COUNT(DISTINCT f.`fanid`) ", '');
 	$total = pdo_fetchcolumn($total_sql, $param);
 	$pager = pagination($total, $pageindex, $pagesize);
-	$fans['total'] = pdo_getcolumn("mc_mapping_fans", array('uniacid' => $_W['uniacid'], 'acid' => $_W['acid'], 'follow' => 1), 'count(*)');
+	$fans['total'] = pdo_getcolumn("mc_mapping_fans", array('uniacid' => $_W['uniacid'], 'follow' => 1), 'count(*)');
 }
 
 if ($do == 'add_tag') {

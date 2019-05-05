@@ -5,7 +5,7 @@
  */
 defined('IN_IA') or exit('Access Denied');
 if (in_array($action, array('site', 'menu', 'attachment', 'systeminfo', 'logs', 'filecheck', 'optimize',
-	'database', 'scan', 'bom', 'ipwhitelist', 'sensitiveword', 'thirdlogin', 'oauth', 'usersetting', 'job', 'check', 'save_setting'))) {
+	'database', 'scan', 'bom', 'ipwhitelist', 'sensitiveword', 'thirdlogin', 'oauth', 'usersetting', 'job', 'check', 'save_setting', 'scrapfile'))) {
 	define('FRAME', 'site');
 }
 if ($action == 'platform') {

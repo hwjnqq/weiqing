@@ -57,6 +57,9 @@ if($do == 'basic') {
 		if (empty($username)) {
 			message('用户名不能为空', '', 'error');
 		}
+		if (empty($mode) || !in_array($mode, array('code', 'basic'))) {
+			message('非法操作，请刷新页面重试！', '', 'error');
+		}
 		if (empty($password)) {
 			if ($mode == 'code') {
 				message('验证码不能为空', '', 'error');

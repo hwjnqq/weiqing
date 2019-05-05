@@ -20,17 +20,25 @@
 		</div>
 		
 	</div>
+
 	<div class="btn-group we7-btn-group we7-padding-bottom">
 		<a href="{php echo url('user/edit/edit_base', array('uid' => $_GPC['uid']))}" class="btn btn-default">基础信息</a>
 		{if empty($user['founder_groupid'])}
 		<a href="{php echo url('user/edit/edit_modules_tpl', array('uid' => $_GPC['uid']))}" class="btn btn-default">应用模板权限</a>
-		<a href="{php echo url('user/edit/edit_create_account_list', array('uid' => $_GPC['uid']))}" class="btn btn-default active">账号创建权限</a>
-		<a href="{php echo url('user/edit/edit_account_dateline', array('uid' => $_GPC['uid']))}" class="btn btn-default ">账号使用期限</a>
-		<a href="{php echo url('user/edit/edit_account', array('uid' => $_GPC['uid']))}" class="btn btn-default">使用账号列表</a>
-		{else}
-		
 		{/if}
+
+		
+
+		<a href="{php echo url('user/edit/edit_create_account_list', array('uid' => $_GPC['uid']))}" class="btn btn-default active">账号创建权限</a>
+		<a href="{php echo url('user/edit/edit_account_dateline', array('uid' => $_GPC['uid']))}" class="btn btn-default">账号使用期限</a>
+
+		{if empty($user['founder_groupid'])}
+		<a href="{php echo url('user/edit/edit_account', array('uid' => $_GPC['uid']))}" class="btn btn-default">使用账号列表</a>
+		{/if}
+
+		
 	</div>
+
 	<div class="edit-account-num hidden">
 		<div class="item">
 			<div class="title">公众号</div>
@@ -72,7 +80,10 @@
 	<div class="panel we7-panel user-permission">
 		<div class="panel-heading">
 			<span>所属用户组：<span >{$user_permission_account['group_name']}</span></span>
-			<a href="javascript:;" class="color-default pull-right" data-toggle="modal" data-target="#group">修改</a>
+			<span class="pull-right">
+				<a href="javascript:;" ng-if="user.groupid != 0" class="color-default" ng-click="delUserGroup(group_info.id)">删除</a>
+				<a href="javascript:;" class="color-default" data-toggle="modal" data-target="#group">修改</a>
+			</span>
 		</div>
 		<div class="panel-body ">
 			{if $user_permission_account['group_name']}
@@ -199,6 +210,7 @@
 		</div>
 		{/if}
 	</div>
+	{if user_is_founder($_W['uid']) || user_is_vice_founder($_W['uid'])}
 	<div class="panel we7-panel user-permission">
 		<div class="panel-heading">
 			<span>附加权限</span>
@@ -260,6 +272,7 @@
 		</div>
 		{/if}
 	</div>
+	{/if}
 	<div class="panel we7-panel user-permission">
 		<div class="panel-heading">
 			<span>商城购买账号权限</span>
@@ -394,6 +407,7 @@
 <script>
 	require(['daterangepicker'], function() {
 		angular.module('userManageApp').value('config', {
+			uid : {php echo $_GPC['uid']},
 			user: {php echo !empty($user) ? json_encode($user) : 'null'},
 			wechats: {php echo !empty($account_detail['wechat']) ? json_encode($account_detail['wechat']) : 'null'},
 			wxapps: {php echo !empty($account_detail['wxapp']) ? json_encode($account_detail['wxapp']) : 'null'},
@@ -408,10 +422,10 @@
 				recycleUser: "{php echo url('user/display/operate', array('type' => 'recycle'))}",
 				editGroup: "{php echo url('user/edit/edit_modules_tpl')}",
 				editCreateAccountList: "{php echo url('user/edit/edit_create_account_list', array('uid' => $uid))}",
+				deleteUserGroupUrl: "{php echo url('user/edit/delete_user_group')}",
 				extra_create_account_url: "{php echo url('user/edit/edit_user_extra_group', array('uid' => $uid))}",
 			},
 		});
-
 		angular.bootstrap($('#js-user-edit-account'), ['userManageApp']);
 	});
 </script>

@@ -37,7 +37,7 @@ class ExtraModules extends \We7Table {
 		return $this->query->where('uid', $uid);
 	}
 
-	public function earchByModuleName($module_name) {
+	public function searchByModuleName($module_name) {
 		return $this->query->where('module_name', $module_name);
 	}
 

@@ -32,6 +32,7 @@ require IA_ROOT . '/framework/const.inc.php';
 require IA_ROOT . '/framework/class/loader.class.php';
 load()->func('global');
 load()->func('compat');
+load()->func('compat.biz');
 load()->func('pdo');
 load()->classs('account');
 load()->model('cache');

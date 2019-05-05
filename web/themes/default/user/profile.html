@@ -149,11 +149,16 @@
 				<td ng-bind="user.lastip"></td>
 				<td></td>
 			</tr>
-				<tr>
-					<td class="table-label">注册时间</td>
-					<td ng-bind="user.joindate"></td>
-					<td></td>
-				</tr>
+			<tr>
+				<td class="table-label">注册时间</td>
+				<td ng-bind="user.joindate"></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td class="table-label">到期时间</td>
+				<td >{$endtime}</td>
+				<td></td>
+			</tr>
 			{if $_W['isfounder'] && !user_is_vice_founder()}
 				<tr>
 					<td class="table-label">备注</td>

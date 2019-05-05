@@ -26,6 +26,10 @@ if($do == 'verifycode') {
 	if(empty($image)) {
 		exit();
 	}
+	//不是微信图片的统一false，防止ssrf
+	if (!starts_with($image, array('http://mmbiz.qpic.cn/mmbiz_', 'https://mmbiz.qpic.cn/mmbiz_'))) {
+		exit();
+	}
 	$content = ihttp_request($image, '', array('CURLOPT_REFERER' => 'http://www.qq.com'));
 	header('Content-Type:image/jpg');
 	echo $content['content'];

@@ -53,14 +53,19 @@ class UserapiModule extends WeModule {
 	public function fieldsFormSubmit($rid = 0) {
 		global $_GPC, $_W;
 		permission_check_account_user('platform_reply_userapi');
+		$rid = intval($rid);
 		$reply = array(
 			'rid' => $rid,
-			'description' => $_GPC['description'],
-			'apiurl' => empty($_GPC['type']) ? $_GPC['apilocal'] : $_GPC['apiurl'],
-			'token' => $_GPC['wetoken'],
-			'default_text' => $_GPC['default-text'],
+			'description' => safe_gpc_string($_GPC['description']),
+			'apiurl' => empty($_GPC['type']) ? safe_gpc_string($_GPC['apilocal']) : safe_gpc_string($_GPC['apiurl']),
+			'token' => safe_gpc_string($_GPC['wetoken']),
+			'default_text' => safe_gpc_string($_GPC['default-text']),
 			'cachetime' => intval($_GPC['cachetime']),
 		);
+		$rule_exists = pdo_get('rule', array('id' => $rid, 'uniacid' => $_W['uniacid']));
+		if (empty($rule_exists)) {
+			return false;
+		}
 		$is_exists = pdo_fetchcolumn('SELECT id FROM ' . tablename($this->tablename) . ' WHERE rid = :rid', array(':rid' => $rid));
 		if(!empty($is_exists)) {
 			if(pdo_update($this->tablename, $reply, array('rid' => $rid)) !== false) {
@@ -75,8 +80,15 @@ class UserapiModule extends WeModule {
 	}
 
 	public function ruleDeleted($rid = 0) {
+		global $_W;
+		$rid = intval($rid);
 		permission_check_account_user('platform_reply_userapi');
-		pdo_delete($this->tablename, array('rid' => $rid));
+		$rule_exists = pdo_get('rule', array('id' => $rid, 'uniacid' => $_W['uniacid']));
+		if (empty($rule_exists)) {
+			return false;
+		}
+		$result = pdo_delete($this->tablename, array('rid' => $rid));
+		return $result;
 	}
 
 	public function doSwitch() {

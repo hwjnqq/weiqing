@@ -10,7 +10,8 @@ session_start();
 
 $captcha = new Captcha();
 $captcha->build(150, 40);
-$hash = md5(strtolower($captcha->phrase) . $_W['config']['setting']['authkey']);
+$key = complex_authkey();
+$hash = md5(strtolower($captcha->phrase) . $key);
 isetcookie('__code', $hash);
 $_SESSION['__code'] = $hash;
 

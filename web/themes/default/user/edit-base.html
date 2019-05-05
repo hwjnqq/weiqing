@@ -20,17 +20,23 @@
 		{/if}
 		{/if}
 	</div>
+
 	<div class="btn-group we7-btn-group we7-padding-bottom">
 		<a href="{php echo url('user/edit/edit_base', array('uid' => $_GPC['uid']))}" class="btn btn-default active">基础信息</a>
 		{if empty($user['founder_groupid'])}
 		<a href="{php echo url('user/edit/edit_modules_tpl', array('uid' => $_GPC['uid']))}" class="btn btn-default">应用模板权限</a>
-
-		<a href="{php echo url('user/edit/edit_create_account_list', array('uid' => $_GPC['uid']))}" class="btn btn-default ">账号创建权限</a>
-		<a href="{php echo url('user/edit/edit_account_dateline', array('uid' => $_GPC['uid']))}" class="btn btn-default ">账号使用期限</a>
-		<a href="{php echo url('user/edit/edit_account', array('uid' => $_GPC['uid']))}" class="btn btn-default">使用账号列表</a>
-		{else}
-		
 		{/if}
+
+		
+
+		<a href="{php echo url('user/edit/edit_create_account_list', array('uid' => $_GPC['uid']))}" class="btn btn-default">账号创建权限</a>
+		<a href="{php echo url('user/edit/edit_account_dateline', array('uid' => $_GPC['uid']))}" class="btn btn-default">账号使用期限</a>
+
+		{if empty($user['founder_groupid'])}
+		<a href="{php echo url('user/edit/edit_account', array('uid' => $_GPC['uid']))}" class="btn btn-default">使用账号列表</a>
+		{/if}
+
+		
 	</div>
 	<table class="table we7-table table-hover table-form">
 		<col width="140px " />
@@ -96,7 +102,6 @@
 							<label for="" class="control-label col-sm-2">新密码</label>
 							<div class="form-controls col-sm-10">
 								<input type="password" value="" class="form-control new-password">
-								
 							</div>
 						</div>
 						<div class="form-group">
@@ -143,8 +148,8 @@
 		<col width="100px" />
 		<tr>
 			<th class="text-left" colspan="3">基础信息</th>
-		</tr>      
-		<tr>     
+		</tr>
+		<tr>
 			<td class="table-label">真实姓名</td>
 			<td ng-bind="profile.realname"></td>
 			<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#realname" ng-click="editInfo('realname', profile.realname)">修改</a></div></td>
@@ -174,11 +179,13 @@
 			<td ng-bind="profile.resides"></td>
 			<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#reside">修改</a></div></td>
 		</tr>
+		<!-- 拓展字段 start -->
 		<tr ng-repeat="field in extra_fields">
 			<td class="table-label" ng-bind="field.title"></td>
 			<td ng-bind="profile[field.field]"></td>
-			<td></td>
+			<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#extra" ng-click="editExtra(field, profile )">修改</a></div></td>
 		</tr>
+		<!-- 拓展字段 end -->
 		<tr>
 			<td class="table-label">上次登录时间</td>
 			<td ng-bind="user.last_visit"></td>
@@ -375,6 +382,30 @@
 			</div>
 		</div>
 	</div>
+
+	<!-- 修改拓展字段模态框 start -->
+	<div class="modal fade" id="extra" role="dialog">
+		<div class="we7-modal-dialog modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+					<div class="modal-title">修改{{ edit_extra_filed.title }}</div>
+				</div>
+				<div class="modal-body">
+					<div class="form-group">
+						<input type="text" ng-model="edit_extra_field_val" class="form-control" placeholder="{{ edit_extra_filed.title }}" />
+						<span class="help-block"></span>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" ng-click="httpChange(edit_extra_filed.field)">确定</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- 修改拓展字段模态框 end -->
+
 </div>
 <script>
 require(['underscore'], function(){
@@ -388,7 +419,6 @@ require(['underscore'], function(){
 			recycleUser: "{php echo url('user/display/operate', array('type' => 'recycle'))}",
 		},
 	});
-
 	angular.bootstrap($('#js-user-edit-base'), ['userProfile']);
 });
 </script>

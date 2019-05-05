@@ -1,5 +1,10 @@
 {template 'common/header-base'}
-<div class="system-login" {if !empty($_W['setting']['copyright']['background_img'])} style="background-image:url('{php echo to_global_media($_W['setting']['copyright']['background_img']);}')" {else} style="background-image: url('./resource/images/bg-login.png');" {/if}>
+<div class="system-login" >
+	{if !empty($_W['setting']['copyright']['background_img'])}
+		<img src="{php echo to_global_media($_W['setting']['copyright']['background_img']);}" class="bg-img" width="100%"/>
+	{else}
+		<img src="./resource/images/bg-login.png" class="bg-img"/>
+	{/if}
 
 	<div class="head">
 		<a href="/" class="logo-version">
@@ -45,10 +50,14 @@
 						{if empty($_GPC['login_type']) || $_GPC['login_type'] == 'system'}
 						<a href="{url 'user/register'}" class="color-default">立即注册</a>
 						{/if}
+					{/if}
+
+					{if !$_W['siteclose'] && !empty($_W['setting']['copyright']['mobile_status'])}
 						{if $_GPC['login_type'] == 'mobile'}
 						<a href="{php echo url('user/register', array('register_type' => 'mobile'))}" class="color-default">立即注册</a>
 						{/if}
 					{/if}
+
 				</div>
 				<input name="token" value="{$_W['token']}" type="hidden" />
 			</div>

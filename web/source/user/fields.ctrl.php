@@ -18,8 +18,16 @@ if ($do == 'display') {
 	}
 
 	if ($_W['isajax'] && $_W['ispost']) {
-		$res = pdo_update('profile_fields', array(safe_gpc_string($_GPC['key']) => intval($_GPC['val'])), array('id' => intval($_GPC['id'])));
-		if ($res) {
+		$id = intval($_GPC['id']);
+		$key = safe_gpc_string($_GPC['key']);
+		$value = intval($_GPC['val']);
+		$allowed_key = array('required', 'showinregister', 'available');
+		if (!in_array($key, $allowed_key)) {
+			iajax(-1, '不允许的键值', referer());
+		}
+		$filldata = array($key => $value);
+		$result = $table->fill($filldata)->where('id', $id)->save();
+		if ($result) {
 			iajax(0, '修改成功!', referer());
 		} else {
 			iajax(0, '修改失败!', referer());

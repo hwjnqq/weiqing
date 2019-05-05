@@ -122,44 +122,60 @@ if($do == 'display') {
 	// 兼容历史性问题：模块内获取不到模块信息$module的问题
 	define('CRUMBS_NAV', 1);
 
-	$config = $module['config'];
+	$config = empty($module['config']) ? array() : $module['config'];
 	if (($module['settings'] == 2) && !is_file(IA_ROOT."/addons/{$module['name']}/developer.cer")) {
 
 		if (empty($_W['setting']['site']['key']) || empty($_W['setting']['site']['token'])) {
 			itoast('站点未注册，请先注册站点。', url('cloud/profile'), 'info');
 		}
-
-		if (empty($config)) {
-			$config = array();
-		}
-
-		load()->model('cloud');
-		load()->func('communication');
-
-		$pro_attach_url = tomedia('pro_attach_url');
-		$pro_attach_url = str_replace('pro_attach_url', '', $pro_attach_url);
-
-		$module_simple = array_elements(array('name', 'type', 'title', 'version', 'settings'), $module);
-		$module_simple['pro_attach_url'] = $pro_attach_url;
-
-		$iframe = cloud_module_setting_prepare($module_simple, 'setting');
-		$result = ihttp_post($iframe, array('inherit_setting' => base64_encode(iserializer($config))));
-		if (is_error($result)) {
-			itoast($result['message'], '', '');
-		}
-		$result = json_decode($result['content'], true);
-		if (is_error($result)) {
-			itoast($result['message'], '', '');
-		}
-
-		$module_simple = array_elements(array('name', 'type', 'title', 'version', 'settings'), $module);
-		$module_simple['pro_attach_url'] = $pro_attach_url;
-
-		$iframe = cloud_module_setting_prepare($module_simple, 'setting');
 		template('module/manage-account-setting');
 		exit();
 	}
 	$obj = WeUtility::createModule($module['name']);
 	$obj->settingsDisplay($config);
 	exit();
+
+} elseif ($do == 'setting_params') {
+	$modulename = safe_gpc_string(trim($_GPC['m']));
+	$module = module_fetch($modulename);
+	if (empty($module)) {
+		iajax(-1, '抱歉，你操作的模块不能被访问！');
+	}
+	if ($module['settings'] != 2 || is_file(IA_ROOT."/addons/{$module['name']}/developer.cer")) {
+		iajax(-1, '模块未开启云参数');
+	}
+	if (!permission_check_account_user_module($modulename.'_settings', $modulename)) {
+		iajax(-1, '您没有权限进行该操作');
+	}
+	if (empty($_W['setting']['site']['key']) || empty($_W['setting']['site']['token'])) {
+		iajax(-1,'站点未注册，请先注册站点。');
+	}
+
+	if (checksubmit('submit')) {
+		$post = array(
+			'setting' => safe_gpc_array($_GPC['setting']),
+			'params' => safe_gpc_array($_GPC['params']),
+		);
+		if (is_array($post['params'])) {
+			foreach ($post['params'] as $param) {
+				if ($param['type'] == 'richtext' && !empty($post['setting'][$param['name']])) {
+					$post['setting'][$param['name']] = safe_gpc_html(htmlspecialchars_decode($post['setting'][$param['name']], ENT_QUOTES));
+				}
+			}
+		}
+
+		$result = cloud_module_setting_save($_W['uniacid'], $module['name'], $post['setting']);
+		if (is_error($result)) {
+			iajax(-1, $result['message']);
+		}
+		iajax(0, $result);
+	}
+
+	$setting = cloud_module_setting($_W['uniacid'], $module);
+
+	if (is_error($setting)) {
+		iajax(-1, $setting['message']);
+	}
+	$setting['setting'] = $module['config'];
+	iajax(0, $setting);
 }

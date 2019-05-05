@@ -11,10 +11,14 @@
 		</div>
 		<div class="type">
 			<i class="wi wi-{php echo $account['type_sign']}"></i>
-			{if ACCOUNT_TYPE == ACCOUNT_TYPE_APP_NORMAL}
+			{if $account['type'] == ACCOUNT_TYPE_APP_NORMAL}
 			小程序
 			{else}
-				{if $account['level'] == 1}普通订阅号{/if}{if $account['level'] == 2}普通服务号{/if}{if $account['level'] == 3}认证订阅号{/if}{if $account['level'] == 4}认证服务号/认证媒体/政府订阅号{/if}
+				{if $account['level'] == 1}普通订阅号{/if}
+				{if $account['level'] == 2}普通服务号{/if}
+				{if $account['level'] == 3}认证订阅号{/if}
+				{if $account['level'] == 4}认证服务号/认证媒体/政府订阅号{/if}
+				{if $account['level'] == 0}---{/if}
 			{/if}
 		</div>
 	</div>
@@ -28,7 +32,7 @@
 	
 		{if $state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER}
 		<a href="{php echo url('account/post/base', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => ACCOUNT_TYPE))}" class="btn btn-default {if $do == 'base'} active{/if}">基础信息</a>
-		{if ACCOUNT_TYPE == ACCOUNT_TYPE_OFFCIAL_NORMAL}
+		{if ACCOUNT_TYPE == ACCOUNT_TYPE_OFFCIAL_NORMAL || ACCOUNT_TYPE == ACCOUNT_TYPE_OFFCIAL_AUTH}
 		<a href="{php echo url('account/post/sms', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => ACCOUNT_TYPE))}" class="btn btn-default {if $do == 'sms'} active{/if}">短信信息</a>
 		{/if}
 		{/if}

@@ -112,7 +112,6 @@ if ($do == 'post') {
 				foreach ($menu['data']['button'] as &$button) {
 					if (!empty($button['url'])) {
 						$button['url'] = preg_replace('/(.*)redirect_uri=(.*)&response_type(.*)wechat_redirect/', '$2', $button['url']);
-						$button['url'] = urldecode($button['url']);
 					}
 					if (empty($button['sub_button'])) {
 						if ($button['type'] == 'media_id') {
@@ -124,7 +123,6 @@ if ($do == 'post') {
 						foreach ($button['sub_button'] as &$subbutton) {
 							if (!empty($subbutton['url'])) {
 								$subbutton['url'] = preg_replace('/(.*)redirect_uri=(.*)&response_type(.*)wechat_redirect/', '$2', $subbutton['url']);
-								$subbutton['url'] = urldecode($subbutton['url']);
 							}
 							if ($subbutton['type'] == 'media_id') {
 								$subbutton['type'] = 'click';

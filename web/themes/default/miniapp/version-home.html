@@ -74,11 +74,13 @@
 						</div>
 					</ul>
 				</div>
+				
 				<div class="tab-pane" id="we7notice" >
 					<ul class="list-group notice-statistics">
 						<script type="text/javascript" src="//bbs.w7.cc/api.php?mod=js&bid=20"></script>
 					</ul>
 				</div>
+				
 			</div>
 		</div>
 	</div>
@@ -88,11 +90,11 @@
 		<div class="panel-heading">
 			<h4>推荐应用</h4>
 			<ul class="nav nav-tabs" role="tablist">
-				<li role="presentation" class="active"><a href="#recommend-app" aria-controls="recommend-app" role="tab" data-toggle="tab">推荐应用</a></li>
-				<li role="presentation"><a href="#new-app" aria-controls="new-app" role="tab" data-toggle="tab">新应用</a></li>
-				<li role="presentation"><a href="#hot-app" aria-controls="hot-app" role="tab" data-toggle="tab">热门排行</a></li>
-				<li role="presentation"><a href="#down-app" aria-controls="down-app" role="tab" data-toggle="tab">下载排行</a></li>
-				<li role="presentation"><a href="#big-app" aria-controls="big-app" role="tab" data-toggle="tab">大额应用排行</a></li>
+				<li role="presentation" class="active"><a href="#recommend-app" data-type="recommend" aria-controls="recommend-app" role="tab" data-toggle="tab">推荐应用</a></li>
+				<li role="presentation"><a href="#new-app" data-type="new-app" aria-controls="new-app" role="tab" data-toggle="tab">新应用</a></li>
+				<li role="presentation"><a href="#hot-app" data-type="hot" aria-controls="hot-app" role="tab" data-toggle="tab">热门排行</a></li>
+				<li role="presentation"><a href="#down-app" data-type="essential" aria-controls="down-app" role="tab" data-toggle="tab">下载排行</a></li>
+				<li role="presentation"><a href="#big-app" data-type="large" aria-controls="big-app" role="tab" data-toggle="tab">大额应用排行</a></li>
 			</ul>
 			<a href="http://s.w7.cc/" target="_blank" class="more">去市场</a>
 		</div>
@@ -106,7 +108,7 @@
 									<li data-target="#recommond-app-carousel" data-slide-to="{{index}}"  ng-class="{active: index == 0}" ng-repeat="(index, ad) in recommend_ads"></li>
 								</ol>
 								<div class="carousel-inner" role="listbox">
-									<div class="item " ng-class="{active: index == 0}" ng-repeat="(index, ad) in recommend_ads">
+									<div class="item advertising-box" ng-class="{active: index == 0}" ng-repeat="(index, ad) in recommend_ads">
 										<a ng-href="{{ad.url}}" target="_blank">
 											<img ng-src="{{ad.cdn_logo}}" alt="">
 										</a>
@@ -295,6 +297,7 @@
 </div>
 <script>
 	angular.module('wxApp').value('config', {
+		family: "{php echo IMS_FAMILY}",
 		notices: {php echo !empty($notices) ? json_encode($notices) : 'null'},
 		'apiLink': '//api.w7.cc',
 	});

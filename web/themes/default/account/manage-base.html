@@ -19,7 +19,7 @@
 		</tr>
 		<tr>
 			<td class="table-label">二维码</td>
-			<td><img ng-src="{{other.qrcodeimgsrc}}" width="75px" height="75px"></td>
+			<td><img ng-src="{{other.qrcodeimgsrc}}" ng-if="other" width="75px" height="75px"></td>
 			<td class="text-right"><div class="link-group"><a href="javascript:;" ng-click="changeImage('qrcodeimgsrc','{$uniacid}')">修改</a></div></td>
 		</tr>
 		<tr>

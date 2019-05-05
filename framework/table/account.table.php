@@ -55,7 +55,14 @@ class AccountTable extends We7Table {
 		//非主创始人查询时，要附加可操作账号条件
 		if (!user_is_founder($_W['uid'], true)) {
 			if (empty($expire_type)) {
-				$this->query->leftjoin('uni_account_users', 'c')->on(array('a.uniacid' => 'c.uniacid'))->where('c.uid', $_W['uid']);
+				$this->query->leftjoin('uni_account_users', 'c')->on(array('a.uniacid' => 'c.uniacid'));
+			}
+
+			if (user_is_vice_founder($_W['uid'])) {
+				$users_uids = table('users_founder_own_users')->getFounderOwnUsersList($_W['uid']);
+				$users_uids = array_keys($users_uids);
+				$users_uids[] = $_W['uid'];
+				$this->query->where('c.uid', $users_uids)->where('c.role', array('manager', 'owner', 'vice_founder'));
 			} else {
 				$this->query->where('c.uid', $_W['uid']);
 			}

@@ -43,4 +43,12 @@ class News extends \We7Table {
 	public function getAllByAttachId($attach_id) {
 		return $this->query->where('attach_id', $attach_id)->orderby('displayorder', 'ASC')->getall();
 	}
+
+	public function searchKeyword($keyword) {
+		return $this->query->where('title LIKE', $keyword)->whereor('author LIKE', $keyword)->whereor('digest LIKE', $keyword);
+	}
+
+	public function searchWithUniacid($uniacid) {
+		return $this->query->where('uniacid', $uniacid);
+	}
 }

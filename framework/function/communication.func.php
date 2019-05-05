@@ -373,6 +373,9 @@ function ihttp_build_curl($url, $post, $extra, $timeout) {
 		curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1);
 	}
 	curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:9.0.1) Gecko/20100101 Firefox/9.0.1');
+	if ($GLOBALS['_W']['config']['setting']['development'] == 3) {
+		$extra = array('CURLOPT_USERAGENT' => 'development');
+	}
 	if (!empty($extra) && is_array($extra)) {
 		$headers = array();
 		foreach ($extra as $opt => $value) {

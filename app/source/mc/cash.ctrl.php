@@ -255,6 +255,9 @@ if(!empty($type)) {
 					} else {
 						$grant_credit_nums = $is_grant_credit['message'];
 					}
+					if (!empty($params['grant_credit1_num'])) {
+						$grant_credit_nums += intval($params['grant_credit1_num']);
+					}
 					mc_notice_credit2($_W['openid'], $_W['member']['uid'], $fee, $grant_credit_nums, '线上消费');
 				}
 				$site = WeUtility::createModuleSite($log['module']);

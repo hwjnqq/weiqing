@@ -24,12 +24,10 @@ if(empty($_W['uniacid'])) {
 }
 $_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);
 
-if (!empty($_W['uniaccount']['endtime']) && TIMESTAMP > $_W['uniaccount']['endtime']) {
+if (!empty($_W['uniaccount']['endtime']) && TIMESTAMP > $_W['uniaccount']['endtime']  && !in_array($_W['uniaccount']['endtime'], array(USER_ENDTIME_GROUP_EMPTY_TYPE, USER_ENDTIME_GROUP_UNLIMIT_TYPE))) {
 	message('抱歉，您的平台账号服务已过期，请及时联系管理员');
 }
-if (app_pass_visit_limit()) {
-	message('访问受限，请及时联系管理员！');
-}
+
 $_W['acid'] = $_W['uniaccount']['acid'];
 $isdel_account = pdo_get('account', array('isdeleted' => 1, 'acid' => $_W['acid']));
 if (!empty($isdel_account)) {
@@ -137,17 +135,6 @@ if (!empty($unisetting['oauth']['account'])) {
 if($controller != 'utility') {
 	$_W['token'] = token();
 }
-//回调时如果有scope和code则自动获取粉丝信息
-if (!empty($_GPC['scope']) && $_GPC['scope'] == 'snsapi_base' && !empty($_GPC['code'])) {
-	$oauth_account = WeAccount::create($_W['account']['oauth']);
-	$oauth = $oauth_account->getOauthInfo($_GPC['code']);
-	$fans = mc_init_fans_info($oauth['openid'], true);
-	$_SESSION['oauth_openid'] = $oauth['openid'];
-	$_SESSION['oauth_acid'] = $_W['account']['oauth']['acid'];
-	$_SESSION['openid'] = $oauth['openid'];
-	$_SESSION['uid'] = $fans['uid'];
-	$_SESSION['userinfo'] = $fans['tag'];
-}
 
 if (!empty($_W['account']['oauth']) && $_W['account']['oauth']['support_oauthinfo'] && empty($_W['isajax'])) {
 	if (($_W['platform'] == 'account' && !$_GPC['logout'] && empty($_W['openid']) && ($controller != 'auth' || ($controller == 'auth' && !in_array($action, array('forward', 'oauth'))))) ||
@@ -205,4 +192,3 @@ if ($_W['platform'] == 'account' && $_W['account']->supportJssdk && $controller 
 }
 
 $_W['attachurl'] = attachment_set_attach_url();
-load()->func('compat.biz');

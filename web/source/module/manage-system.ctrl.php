@@ -16,10 +16,10 @@ load()->object('cloudapi');
 load()->model('utility');
 load()->func('db');
 
-$dos = array('subscribe', 'check_subscribe', 'check_upgrade', 'get_upgrade_info', 'upgrade',
+$dos = array('subscribe', 'check_subscribe', 'check_upgrade', 'get_local_upgrade_info', 'get_upgrade_info', 'upgrade',
 			'install', 'installed', 'not_installed', 'uninstall', 'save_module_info', 'module_detail',
 			'change_receive_ban', 'install_success', 'set_site_welcome_module',
-			'founder_update_modules', 'recycle', 'recycle_post',
+			'founder_update_modules', 'recycle', 'recycle_post', 'init_modules_logo'
 );
 $do = in_array($do, $dos) ? $do : 'installed';
 
@@ -75,15 +75,33 @@ if ($do == 'check_subscribe') {
 	}
 }
 
-if ($do == 'get_upgrade_info') {
-	$modulename = trim($_GPC['name']);
+if ($do == 'get_local_upgrade_info') {
+	$modulename = safe_gpc_string($_GPC['name']);
 	$module = module_fetch($modulename);
 	if (empty($module)) {
 		iajax(1, '模块不存在！');
 	}
-	//检查本地是否有更新，否则检查线上是否有更新，
-	//有更新，更新cloud表中的记录，返回更新信息
 	$manifest = ext_module_manifest($modulename);
+	if (!empty($manifest) && version_compare($manifest['application']['version'], $module['version'], '>')) {
+		$local_result = array(
+			'name' => $modulename,
+			'upgrade' => true,
+			'site_branch' => array(),
+			'branches' => array(),
+			'new_branch' => false,
+			'from' => 'local',
+			'best_version' => $manifest['application']['version'],
+		);
+	}
+	iajax(0, $local_result);
+}
+
+if ($do == 'get_upgrade_info') {
+	$modulename = safe_gpc_string($_GPC['name']);
+	$module = module_fetch($modulename);
+	if (empty($module)) {
+		iajax(1, '模块不存在！');
+	}
 	$manifest_cloud = cloud_m_upgradeinfo($modulename);
 	if (is_error($manifest_cloud)) {
 		iajax(1, $manifest_cloud['message']);
@@ -93,29 +111,18 @@ if ($do == 'get_upgrade_info') {
 		'upgrade' => $manifest_cloud['upgrade'],
 		'site_branch' => $manifest_cloud['site_branch'],
 		'new_branch' => $manifest_cloud['new_branch'],
-		'branches' => $manifest_cloud['branches'],
+		'branches' => !empty($manifest_cloud['branches']) ? $manifest_cloud['branches'] : '',
 		'from' => 'cloud',
 		'id' => $manifest_cloud['id'],
 	);
-	//本地如果有manifest并且版本号大于云端，则以本地为准，否则以云端为准
-	if (!empty($manifest) && version_compare($manifest['application']['version'], $manifest_cloud['version']['version'], '>')) {
-		$result = array(
-			'name' => $modulename,
-			'upgrade' => true,
-			'site_branch' => array(),
-			'branches' => array(),
-			'new_branch' => false,
-			'from' => 'local',
-			'best_version' => $manifest['application']['version'],
-		);
-
-	}
 	iajax(0, $result);
 }
 
 if ($do == 'check_upgrade') {
 	$module_upgrade = module_upgrade_info();
-
+	if (is_error($module_upgrade)) {
+		iajax(-1, $module_upgrade['message']);
+	}
 	cache_build_uninstalled_module();
 
 	iajax(0, $module_upgrade);
@@ -125,7 +132,7 @@ if ($do == 'upgrade') {
 	$module_name = safe_gpc_string(trim($_GPC['module_name']));
 	$has_new_support = safe_gpc_boolean($_GPC['has_new_support']); //是否安装新支持
 	//判断模块相关配置和文件是否合法
-	$module = module_fetch($module_name);
+	$module = table('modules')->getByName($module_name);
 	if (empty($module)) {
 		itoast('模块已经被卸载或是不存在！', '', 'error');
 	}
@@ -285,9 +292,9 @@ if ($do == 'upgrade') {
 	cache_build_module_info($module_name);
 	cache_build_uni_group();
 	if ($has_new_support) {
-		itoast('模块安装成功！', url('module/manage-system/install_success', array('support' => $module_support_name)), 'success');
+		itoast('模块安装成功！', url('module/manage-system/installed'), 'success');
 	} else {
-		itoast('模块更新成功！', url('module/manage-system', array('support' => $module_support_name)), 'success');
+		itoast('模块更新成功！', url('module/manage-system/installed'), 'success');
 	}
 }
 
@@ -296,7 +303,7 @@ if ($do =='install') {
 		itoast('您没有安装模块的权限', '', 'error');
 	}
 	$module_name = safe_gpc_string(trim($_GPC['module_name']));
-	$installed_module = module_fetch($module_name);
+	$installed_module = table('modules')->getByName($module_name);
 	if (!empty($_GPC['install_module_support'])){
 		$module_support_name = $_GPC['install_module_support'];
 	}
@@ -348,15 +355,14 @@ if ($do =='install') {
 			define('ONLINE_MODULE', true);
 		}
 	}
-
 	if (!empty($manifest['platform']['main_module'])) {
-        $main_module_fetch = module_fetch($manifest['platform']['main_module']);
-        if (empty($main_module_fetch)) {
-            itoast('请先安装主模块后再安装插件', url('module/manage-system/installed'), 'error', array(array('title' => '查看主程序', 'url' => url('module/manage-system/module_detail', array('name' => $manifest['platform']['main_module'])))));
-        }
+		$main_module_fetch = module_fetch($manifest['platform']['main_module']);
+		if (empty($main_module_fetch)) {
+			itoast('请先安装主模块后再安装插件', url('module/manage-system/installed'), 'error', array(array('title' => '查看主程序', 'url' => url('module/manage-system/module_detail', array('name' => $manifest['platform']['main_module'])))));
+		}
 		$plugin_exist = table('modules_plugin')->getPluginExists($manifest['platform']['main_module'], $manifest['application']['identifie']);
 		if (empty($plugin_exist)) {
-            pdo_insert('modules_plugin', array('main_module' => $manifest['platform']['main_module'], 'name' => $manifest['application']['identifie']));
+			pdo_insert('modules_plugin', array('main_module' => $manifest['platform']['main_module'], 'name' => $manifest['application']['identifie']));
 		}
 	}
 
@@ -391,6 +397,7 @@ if ($do =='install') {
 	$points = ext_module_bindings();
 	if (!empty($points)) {
 		$bindings = array_elements(array_keys($points), $module, false);
+		table('modules_bindings')->deleteByName($manifest['application']['identifie']);
 		foreach ($points as $name => $point) {
 			unset($module[$name]);
 			if (is_array($bindings[$name]) && !empty($bindings[$name])) {
@@ -452,6 +459,15 @@ if ($do =='install') {
 				}
 			}
 		}
+		$store_goods_id = pdo_getcolumn('site_store_goods', array('module' => $module['name'], 'is_wish' => 1), 'id');
+		if (!empty($store_goods_id)) {
+			$store_goods_orders = pdo_getall('site_store_order', array('goodsid' => $store_goods_id));
+		}
+		if (!empty($store_goods_orders)) {
+			foreach ($store_goods_orders as $store_order_info) {
+				cache_build_account_modules($store_order_info['uniacid']);
+			}
+		}
 		cache_build_module_subscribe_type();
 		cache_build_module_info($module_name);
 		cache_build_uni_group();
@@ -481,7 +497,7 @@ if ($do == 'change_receive_ban') {
 	}
 	setting_save($_W['setting']['module_receive_ban'], 'module_receive_ban');
 	cache_build_module_subscribe_type();
-	cache_build_module_info($module_name);
+	cache_build_module_info($modulename);
 	iajax(0, '');
 }
 
@@ -848,6 +864,22 @@ if ($do == 'not_installed') {
 	}
 	$module_uninstall_total = module_uninstall_total($module_support);
 	$pager = pagination(count($modulelist), 1, 15, '', array('ajaxcallback' => true, 'callbackfuncname' => 'loadMore'));
+}
+
+if ($do == 'init_modules_logo') {
+	if (!pdo_fieldexists('modules', 'logo')) {
+		pdo_query("ALTER TABLE " . tablename('modules') . " ADD `logo` varchar(250) NOT NULL DEFAULT '' ;");
+	}
+	$modules = pdo_fetchall("SELECT name FROM " . tablename('modules') . " WHERE issystem!=1");
+	foreach ($modules as $key => $val) {
+		if (file_exists (IA_ROOT . '/addons/' . $val['name'] . '/icon-custom.jpg')) {
+			$val['logo'] = 'addons/' . $val['name'] . '/icon-custom.jpg';
+		} else {
+			$val['logo'] = 'addons/' . $val['name'] . '/icon.jpg';
+		}
+		pdo_update('modules', array('logo' => $val['logo']), array('name' => $val['name']));
+	}
+	iajax(0, '更新成功', url('module/manage-system/installed'));
 }
 
 template('module/manage-system');

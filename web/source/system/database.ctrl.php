@@ -11,7 +11,7 @@ load()->func('file');
 load()->model('cloud');
 load()->func('db');
 load()->model('system');
-$dos = array('backup', 'restore', 'trim', 'optimize', 'run');
+$dos = array('backup', 'restore', 'trim', 'optimize', 'run', 'scrap_table', 'delete_scrap_table', 'load_scrap_table_data');
 $do = in_array($do, $dos) ? $do : 'backup';
 
 //备份
@@ -250,5 +250,81 @@ if ($do == 'run') {
 	}
 }
 
+if (in_array($do, array('scrap_table', 'delete_scrap_table', 'load_scrap_table_data'))) {
+	$installed_modules = table('modules')->where('issystem !=', MODULE_SYSTEM)->getall('name');
+}
+
+if ($do == 'scrap_table') {
+	$pindex = max(1, intval($_GPC['page']));
+	$psize = 20;
+	$modules_cloud_table = table('modules_cloud');
+	$modules_cloud_table->searchWithUninstall(MODULE_CLOUD_UNINSTALL);
+	$modules_cloud_table->searchWithPage($pindex, $psize);
+	$module_cloud = $modules_cloud_table->getall('name');
+
+	$total = $modules_cloud_table->getLastQueryTotal();
+	$pager = pagination($total, $pindex, $psize);
+
+	if (empty($module_cloud)) {
+		$module_upgrade = module_upgrade_info();
+		cache_build_uninstalled_module();
+	}
+	$uninstalled_modules = array_diff(array_keys($module_cloud), $installed_modules);
+	foreach ($module_cloud as $module_key => $module_value) {
+		if (!in_array($module_key, $uninstalled_modules)) {
+			unset($module_cloud[$module_key]);
+			continue;
+		}
+		$module_cloud[$module_key] = array('logo' => $module_value['logo'], 'title' => $module_value['title'], 'name' => $module_value['name']);
+	}
+}
+
+if ($do == 'delete_scrap_table') {
+	$module_name = safe_gpc_string($_GPC['module_name']);
+	$tables = safe_gpc_string($_GPC['tables']);
+	if (!empty($installed_modules[$module_name])) {
+		iajax(-1, '模块已安装并使用，不可删除！');
+	}
+	if (!is_array($tables)) {
+		iajax(-1, '要删除的表数据错误！');
+	}
+	$drop_table = array();
+	foreach ($tables as $table) {
+		if (pdo_tableexists(ltrim($table, 'ims_'))) {
+			$drop_table[] = '`' . $table . '`';
+		}
+	}
+	if (empty($drop_table)) {
+		iajax(0, '系统已不存在这些表，无需删除！');
+	}
+	$result = pdo_run("DROP TABLE " . implode(',', $drop_table) . ";");
+	if ($result) {
+		iajax(0, '删除成功!');
+	} else {
+		iajax(-1, '删除失败!');
+	}
+}
+
+if ($do == 'load_scrap_table_data') {
+	$module_name = safe_gpc_string($_GPC['module_name']);
+	if (!empty($installed_modules[$module_name])) {
+		iajax(0, '');
+	}
+	$buildinfo = cloud_m_build($module_name);
+	if (is_error($buildinfo) || empty($buildinfo['sql'])) {
+		iajax(0, '');
+	}
+	if (!empty($buildinfo['sql'])) {
+		preg_match_all('/\`ims_[a-zA-Z0-9\-\_]{1,50}\`/', $buildinfo['sql'], $tables);
+		$tables = array_map(function($item) {return trim($item, '`');}, $tables[0]);
+		foreach ($tables as $key => $value) {
+			$value = ltrim($value, 'ims_');
+			if (!pdo_tableexists($value)) {
+				unset($tables[$key]);
+			}
+		}
+	}
+	iajax(0, !empty($tables) ? $tables : '');
+}
 template('system/database');
 

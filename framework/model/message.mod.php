@@ -42,7 +42,6 @@ function message_notice_all_read($type = '') {
  */
 function message_setting($uid, $type = 0, $params = array()) {
 	global $_W;
-	static $types;
 	$data = array(
 		'order_message'	=> array(
 			'title' => '订单消息',
@@ -56,8 +55,22 @@ function message_setting($uid, $type = 0, $params = array()) {
 					'notice_data' => array(
 						'sign' => $params['orderid'],
 						'message' => sprintf(
-							'%s ' . date('Y-m-d H:i:s') . ' 在商城订购了%s, 商品金额%.2f',
+							'%s ' . date('Y-m-d H:i:s') . ' 在商城订购了%s, 商品金额 %.2f元',
 							$params['username'],
+							$params['goods_name'],
+							$params['money']
+						)
+					),
+				),
+				MESSAGE_ORDER_WISH_TYPE => array(
+					'title' => '提交星愿订单',
+					'msg' => '用户购买星愿应用，提交订单后，将会有消息提醒，建议打开',
+					'permission' => array(),
+					'notice_data' => array(
+						'sign' => $params['orderid'],
+						'message' => sprintf(
+							'您在商城为%s订购了%s星愿应用, 商品金额 %.2f元',
+							$params['account_name'],
 							$params['goods_name'],
 							$params['money']
 						)
@@ -70,7 +83,20 @@ function message_setting($uid, $type = 0, $params = array()) {
 					'notice_data' => array(
 						'sign' => $params['orderid'],
 						'message' => sprintf(
-							'%s ' . date('Y-m-d H:i:s') . ' 在商城成功支付 %.2f￥',
+							'%s ' . date('Y-m-d H:i:s') . ' 在商城成功支付 %.2f元',
+							$params['username'],
+							$params['money']
+						)
+					),
+				),
+				MESSAGE_ORDER_APPLY_REFUND_TYPE => array(
+					'title' => '申请退款',
+					'msg' => '用户购买模块，服务等，付款后，将会有消息提醒，建议打开',
+					'permission' => array('founder'),
+					'notice_data' => array(
+						'sign' => $params['orderid'],
+						'message' => sprintf(
+							'%s ' . date('Y-m-d H:i:s') . ' 在商城申请退款 %.2f元',
 							$params['username'],
 							$params['money']
 						)
@@ -154,7 +180,7 @@ function message_setting($uid, $type = 0, $params = array()) {
 					'notice_data' => array(
 						'sign' => $params['uid'],
 						'status' => $params['status'],
-						'message' => sprintf('%s ' .date("Y-m-d H:i:s") . '注册成功--%s', $params['username'], $params['source'])
+						'message' => sprintf('%s-%s %s注册成功--%s', $params['username'], $params['type_name'], date("Y-m-d H:i:s"), $params['source'])
 					),
 				),
 			),
@@ -179,12 +205,9 @@ function message_setting($uid, $type = 0, $params = array()) {
 	if (empty($type)) {
 		return $data;
 	}
-
-	if (empty($types)) {
-		foreach ($data as $item) {
-			foreach ($item['types'] as $key => $row) {
-				$types[$key] = $row;
-			}
+	foreach ($data as $item) {
+		foreach ($item['types'] as $key => $row) {
+			$types[$key] = $row;
 		}
 	}
 	if (!is_numeric($type) || !in_array($type, array_keys($types))) {
@@ -540,7 +563,7 @@ function message_sms_expire_notice() {
 			continue;
 		}
 		if (!empty($v['mobile']) && preg_match(REGULAR_MOBILE, $v['mobile'])) {
-			$result = cloud_sms_send($v['mobile'], '800015', array('username' => $v['username']), $custom_sign);
+			$result = cloud_sms_send($v['mobile'], '800015', array('username' => $v['username']), $custom_sign, true);
 			if (is_error($result)) {
 				$content = "您的用户名{$v['username']}即将过期。";
 
@@ -642,7 +665,7 @@ function message_list_detail($lists) {
 	foreach ($lists as &$message) {
 		$message['create_time'] = date('Y-m-d H:i:s', $message['create_time']);
 
-		if ($message['type'] == MESSAGE_ORDER_TYPE || $message['type'] == MESSAGE_ORDER_PAY_TYPE) {
+		if (in_array($message['type'], array(MESSAGE_ORDER_TYPE, MESSAGE_ORDER_WISH_TYPE, MESSAGE_ORDER_PAY_TYPE))) {
 			$message['url'] = url('site/entry/orders', array('m' => 'store', 'direct'=>1, 'message_id' => $message['id']));
 		}
 		if ($message['type'] == MESSAGE_ACCOUNT_EXPIRE_TYPE) {

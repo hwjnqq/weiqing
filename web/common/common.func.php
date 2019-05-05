@@ -62,9 +62,9 @@ function message($msg, $redirect = '', $type = '', $tips = false, $extend = arra
 	$redirect = safe_gpc_url($redirect);
 
 	if($redirect == '') {
-		$type = in_array($type, array('success', 'error', 'info', 'warning', 'ajax', 'sql')) ? $type : 'info';
+		$type = in_array($type, array('success', 'error', 'info', 'warning', 'ajax', 'sql', 'expired')) ? $type : 'info';
 	} else {
-		$type = in_array($type, array('success', 'error', 'info', 'warning', 'ajax', 'sql')) ? $type : 'success';
+		$type = in_array($type, array('success', 'error', 'info', 'warning', 'ajax', 'sql', 'expired')) ? $type : 'success';
 	}
 	if ($_W['isajax'] || !empty($_GET['isajax']) || $type == 'ajax') {
 		if($type != 'ajax' && !empty($_GPC['target'])) {
@@ -89,7 +89,7 @@ function message($msg, $redirect = '', $type = '', $tips = false, $extend = arra
 		exit;
 	}
 	$label = $type;
-	if($type == 'error') {
+	if($type == 'error' || $type == 'expired') {
 		$label = 'danger';
 	}
 	if($type == 'ajax' || $type == 'sql') {
@@ -181,7 +181,9 @@ function buildframes($framename = ''){
 	//从数据库中获取用户权限，并附加上系统管理中的权限
 	//仅当系统管理时才使用预设权限
 	if (!empty($_W['role']) && (empty($_W['isfounder']) || user_is_vice_founder())) {
-		$user_permission = permission_account_user('system');
+		$account_info = uni_fetch($_W['uniacid']);
+		$type_sign = $account_info->typeSign == 'account' ? 'system' : $account_info->typeSign;
+		$user_permission = permission_account_user($type_sign);
 	}
 	if (empty($_W['role']) && empty($_W['uniacid'])) {
 		$user_permission = permission_account_user('system');
@@ -364,6 +366,7 @@ function buildframes($framename = ''){
 				}
 				if(!empty($entries['menu'])) {
 					foreach($entries['menu'] as $k => $row) {
+						if ($row['multilevel']) continue;
 						if(!in_array($modulename.'_menu_'.$row['do'], $permission)) {
 							unset($entries['menu'][$k]);
 						}
@@ -456,11 +459,8 @@ function buildframes($framename = ''){
 			$version_modules = $version_modules['modules'];
 		}
 
-		if (!empty($module['plugin_list'])) {
-			$modules = uni_modules();
-		}
-
 		if (!empty($module['plugin_list']) || !empty($module['main_module'])) {
+			$modules = uni_modules();
 			if (!empty($module['main_module'])) {
 				$main_module = module_fetch($module['main_module']);
 				$plugin_list = $main_module['plugin_list'];
@@ -516,14 +516,38 @@ function buildframes($framename = ''){
 		if (!empty($entries['menu'])) {
 			$frames['account']['section']['platform_module_menu']['title'] = '业务菜单';
 			foreach($entries['menu'] as $key => $row) {
-				if(empty($row)) continue;
-				foreach($row as $li) {
+				if (empty($row)) continue;
+				if (!empty($row['parent']) && !empty($frames['account']['section']['platform_module_menu']['menu']['platform_module_menu' . $row['parent']])) {
+					$frames['account']['section']['platform_module_menu']['menu']['platform_module_menu'.$row['parent']]['childs'][] = array(
+						'title' => $row['title'],
+						'url' => $row['url'] . '&version_id=' . $version_id,
+						'icon' => empty($row['icon']) ? 'wi wi-appsetting' : $row['icon'],
+						'is_display' => 1,
+					);
+					continue;
+				}
+				//因为模块DIY菜单不一定有do值，故有此if()else()
+				if (!empty($row['from']) && $row['from'] == 'call') {
 					$frames['account']['section']['platform_module_menu']['menu']['platform_module_menu'.$row['eid']] = array(
 						'title' => $row['title'],
 						'url' => $row['url'] . '&version_id=' . $version_id,
 						'icon' => empty($row['icon']) ? 'wi wi-appsetting' : $row['icon'],
 						'is_display' => 1,
 					);
+				} else {
+					$frames['account']['section']['platform_module_menu']['menu']['platform_module_menu'.$row['do']] = array(
+						'title' => $row['title'],
+						'url' => $row['url'] . '&version_id=' . $version_id,
+						'icon' => empty($row['icon']) ? 'wi wi-appsetting' : $row['icon'],
+						'is_display' => 1,
+						'multilevel' => $row['multilevel'],
+					);
+				}
+			}
+
+			foreach ($frames['account']['section']['platform_module_menu']['menu'] as $key => $row) {
+				if (!empty($row['multilevel']) && empty($row['childs'])) {
+					unset($frames['account']['section']['platform_module_menu']['menu'][$key]);
 				}
 			}
 		}

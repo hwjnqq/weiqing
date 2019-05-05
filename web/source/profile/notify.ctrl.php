@@ -29,11 +29,11 @@ if ($do == 'mail') {
 		} else {
 			$notify['mail']['smtp']['type'] = '';
 		}
+		uni_setting_save('notify', $notify);
 		$result = ihttp_email($notify['mail']['username'], $_W['account']['name'] . '验证邮件'.date('Y-m-d H:i:s'), '如果您收到这封邮件则表示您系统的发送邮件配置成功！');
 		if (is_error($result)) {
 			itoast('配置失败，请检查配置信息', '', 'error');
 		} else {
-			uni_setting_save('notify', $notify);
 			itoast('配置成功！', url('profile/notify/mail'), 'success');
 		}
 	}

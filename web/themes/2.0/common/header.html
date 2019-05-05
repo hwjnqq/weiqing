@@ -188,13 +188,13 @@
 										</li>
 										{else}
 										{if $menu['active']}{php $active_sub_permission = $menu['sub_permission'];}{/if}
-										<li class="list-group-item list-group-item-plugin {if $menu['active']}active{/if}">
+										<li class="list-group-item list-group-item-plugin {if $menu['multilevel']}list-group-item-more{/if} {if $menu['active']}active{/if}">
 											{if $frame_section_id == 'platform_module_plugin' && !empty($_GPC['m']) && $_GPC['m'] != $menu['main_module']}
 											<a class="back" href="{php echo url('module/welcome', array('m' => $menu['main_module'], 'uniacid' => $_W['uniacid']))}" >
 												<i class="wi wi-angle-left"></i>
 											</a>
 											{/if}
-											<a href="{$menu['url']}" class="text-over" {if $frame_section_id == 'platform_module'}target="_blank"{/if}>
+											<a href="{if $menu['multilevel']}javascript:;{else}{$menu['url']}{/if}" {if $menu['multilevel']}data-toggle="collapse" data-target="#frame-child-{$frame_section_id}-{$menu_id}"{/if} class="text-over" {if $frame_section_id == 'platform_module'}target="_blank"{/if}>
 												<span class="nav-icon" >
 													{if $frame_section_id == 'platform_module' || $frame_section_id == 'platform_module_plugin'}
 													<img src="{$menu['icon']}"/>
@@ -202,8 +202,19 @@
 													<i class="{$menu['icon']}"></i>
 													{/if}
 												</span>
-												<span class="nav-title">{$menu['title']}</span>
+												<span class="nav-title">{$menu['title']}{if $menu['multilevel']}<i class="wi wi-angle-down pull-right setting"></i>{/if}</span>
 											</a>
+											{if $menu['multilevel'] && !empty($menu['childs'])}
+											<ul class="list-child collapse in" id="frame-child-{$frame_section_id}-{$menu_id}">
+												{loop $menu['childs'] $module_menu_child}
+												<li class="list-child-item {if $module_menu_child['active']}active{/if}">
+													<a href="{$module_menu_child['url']}" class="text-over">
+														<span class="nav-title">{$module_menu_child['title']}</span>
+													</a>
+												</li>
+												{/loop}
+											</ul>
+											{/if}
 										</li>
 										{/if}
 									{/if}
@@ -223,7 +234,7 @@
 						{/if}
 						{if $frames['dimension'] == 2}
 							<!-- start用户管理菜单和消息管理菜单特殊,走自己的we7-page-tab,故加此if判断;平台/应用/我的账户无we7-page-table -->
-							{if !in_array(FRAME, array('user_manage', 'message', 'platform', 'module', 'myself'))}
+							{if !in_array(FRAME, array('user_manage', 'message', 'platform', 'module', 'myself', 'workorder'))}
 							<ul class="we7-page-tab">
 								{php $have_right_content_menu = 0;}
 								{loop $frames['section'][FRAME]['menu'] $menu_id $menu}

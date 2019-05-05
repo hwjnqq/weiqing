@@ -7,10 +7,15 @@ defined('IN_IA') or exit('Access Denied');
 class AliPay{
 	public $alipay;
 	public $refundlog_id;
-	public function __construct() {
+	public function __construct($module = '') {
 		global $_W;
-		$setting = uni_setting_load('payment',  $_W['uniacid']);
-		$this->setting = $setting['payment'];
+		if (!empty($module) && $module == 'store') {
+			$setting = setting_load('store_pay');
+			$this->setting = $setting['store_pay'];
+		} else {
+			$setting = uni_setting_load('payment',  $_W['uniacid']);
+			$this->setting = $setting['payment'];
+		}
 	}
 
 	public function array2url($params) {

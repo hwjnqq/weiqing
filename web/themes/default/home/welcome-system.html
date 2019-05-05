@@ -10,9 +10,9 @@
 			</ol>
 			<div class="carousel-inner" role="listbox">
 				<!-- Wrapper for slides -->
-				<div class="item" ng-class="key ==0 ? 'active' : ''" ng-repeat="(key, ad) in ads">
+				<div class="item advertising-box" ng-class="key ==0 ? 'active' : ''" ng-repeat="(key, ad) in ads">
 					<a ng-href="{{ad.url}}" target="_blank" alt="{{ad.title}}">
-						<img ng-src="{{ad.src}}" alt="{{ad.title}}" >
+						<img ng-src="{{ad.cdn_logo}}" alt="{{ad.title}}" >
 					</a>
 				</div>
 			</div>
@@ -32,6 +32,9 @@
 				<li role="presentation">
 					<a href="#app_count" aria-controls="app_count" role="tab" data-toggle="tab">前台统计</a>
 				</li>
+				<div class="pull-right we7-margin-top-sm we7-margin-right">
+					<a href="{php echo url('statistics/account')}" class="color-default" target="_blank">查看详情</a>
+				</div>
 			</ul>
 		</div>
 		<div clss="panel-body">
@@ -231,15 +234,15 @@
 	{/if}
 
 	<!-- 推荐应用 start -->
-	<div class="panel we7-panel" ng-if="is_recommend_close != 1 && recommend_show >= 3">
+	<div class="panel we7-panel" >
 		<div class="panel-heading">
 			<h4>推荐应用</h4>
 			<ul class="nav nav-tabs" role="tablist">
-				<li role="presentation" class="active"><a href="#recommend-app" aria-controls="recommend-app" role="tab" data-toggle="tab">推荐应用</a></li>
-				<li role="presentation"><a href="#new-app" aria-controls="new-app" role="tab" data-toggle="tab">新应用</a></li>
-				<li role="presentation"><a href="#hot-app" aria-controls="hot-app" role="tab" data-toggle="tab">热门排行</a></li>
-				<li role="presentation"><a href="#down-app" aria-controls="down-app" role="tab" data-toggle="tab">下载排行</a></li>
-				<li role="presentation"><a href="#big-app" aria-controls="big-app" role="tab" data-toggle="tab">大额应用排行</a></li>
+				<li role="presentation" class="active"><a href="#recommend-app" data-type="recommend" aria-controls="recommend-app" role="tab" data-toggle="tab">推荐应用</a></li>
+				<li role="presentation"><a href="#new-app" data-type="new-app" aria-controls="new-app" role="tab" data-toggle="tab">新应用</a></li>
+				<li role="presentation"><a href="#hot-app" data-type="hot" aria-controls="hot-app" role="tab" data-toggle="tab">热门排行</a></li>
+				<li role="presentation"><a href="#down-app" data-type="essential" aria-controls="down-app" role="tab" data-toggle="tab">下载排行</a></li>
+				<li role="presentation"><a href="#big-app" data-type="large" aria-controls="big-app" role="tab" data-toggle="tab">大额应用排行</a></li>
 			</ul>
 			
 			<a href="http://s.w7.cc/" target="_blank" class="more">去市场</a>
@@ -254,7 +257,7 @@
 									<li data-target="#recommond-app-carousel" data-slide-to="{{index}}"  ng-class="{active: index == 0}" ng-repeat="(index, ad) in recommend_ads"></li>
 								</ol>
 								<div class="carousel-inner" role="listbox">
-									<div class="item " ng-class="{active: index == 0}" ng-repeat="(index, ad) in recommend_ads">
+									<div class="item advertising-box" ng-class="{active: index == 0}" ng-repeat="(index, ad) in recommend_ads">
 										<a ng-href="{{ad.url}}" target="_blank">
 											<img ng-src="{{ad.cdn_logo}}" alt="">
 										</a>
@@ -297,7 +300,7 @@
 								<div class="title">
 									网罗市场最新应用，更快了解最新应用
 								</div>
-								<a href="" class="btn btn-primary">去应用市场</a>
+								<a href="http://s.w7.cc/" target="_blank" class="btn btn-primary">去应用市场</a>
 							</div>
 						</div>
 						<div class="right-box">
@@ -336,7 +339,7 @@
 								<div class="title">
 									网罗市场最新应用，更快了解最新应用
 								</div>
-								<a href="" class="btn btn-primary">去应用市场</a>
+								<a href="http://s.w7.cc/" target="_blank" class="btn btn-primary">去应用市场</a>
 							</div>
 						</div>
 						<div class="right-box">
@@ -416,7 +419,7 @@
 								<div class="title">
 									网罗市场最新应用，更快了解最新应用
 								</div>
-								<a href="" class="btn btn-primary">去应用市场</a>
+								<a href="http://s.w7.cc/" target="_blank" class="btn btn-primary">去应用市场</a>
 							</div>
 						</div>
 						<div class="right-box">

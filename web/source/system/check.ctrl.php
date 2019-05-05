@@ -12,7 +12,7 @@ if ($do == 'check_table') {
 	$tables = pdo_fetchall("SHOW TABLE STATUS LIKE '{$table_pre}'", array(), 'Name');
 
 	foreach ($tables as $table_name => $table_info) {
-		if (!in_array($table_info['Engine'], array('MyISAM', 'InnoDB'))) {
+		if (!empty($table_info['Engine']) && !in_array($table_info['Engine'], array('MyISAM', 'InnoDB'))) {
 			unset($tables[$table_name]);
 		}
 	}
@@ -27,7 +27,48 @@ if ($do == 'check_table') {
 	iajax(0, $wrong_tables);
 }
 
+if ($do == 'check_fpm') {
+	$result = fastcgi_finish_request();
+	if (is_error($result)) {
+		iajax($result['errno'], $result['message']);
+	}
+	exit();
+}
+
+if ($do == 'check_auth_accounts') {
+	$accounts = pdo_getall('account', array(
+		'isconnect' => 1,
+		'isdeleted' => 0,
+		'type' => array(ACCOUNT_TYPE_OFFCIAL_AUTH, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_XZAPP_AUTH)
+	));
+	$failed_accounts = array();
+	if (!empty($accounts)) {
+		foreach ($accounts as $account) {
+			$uni_account = WeAccount::createByUniacid($account['uniacid']);
+			$token = $uni_account->getAccessToken();
+			if (is_error($token)) {
+				$failed_accounts[] = array(
+					'name' => $uni_account->account['name'],
+					'acid' => $uni_account->account['acid'],
+					'uniacid' => $uni_account->account['uniacid'],
+					'type' => $uni_account->account['type'],
+					'error' => $token['message'],
+				);
+			}
+		}
+	}
+	if (empty($failed_accounts)) {
+		iajax(0, 'success');
+	} else {
+		iajax(-1, $failed_accounts);
+	}
+}
+
 $system_check_items = system_check_items();
+if (version_compare(PHP_VERSION, '7.0.0', '>=')) {
+	unset($system_check_items['mcrypt']);
+}
+
 foreach ($system_check_items as $check_item_name => &$check_item) {
 	$check_item['check_result'] = $check_item['operate']($check_item_name);
 }

@@ -7,7 +7,7 @@
 	</ol>
 	<ul class="we7-step">
 		<li class="new" ng-class="createStep == 1 ? 'active': ''"><span class="content">1. 设置小程序信息</span></li>
-		<li class="new" ng-class="createStep == 3 ? 'active': ''"><span class="content">{{create_type == 2 ? 2 : ''}}. 设计首页</span> </li>
+		<li class="new" ng-class="createStep == 3 ? 'active': ''" ng-if="create_type == 2"><span class="content">2. 设计首页</span> </li>
 		<li class="new " ng-class="createStep == 4 ? 'active': ''"><span class="content">{{create_type == 2 ? 3 : 2}}. 生成版本</span> </li>
 	</ul>
 	<form method="post" ng-submit="package()">

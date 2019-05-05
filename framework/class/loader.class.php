@@ -61,6 +61,7 @@ function table($name) {
 		'mc_member_fields',
 		'mc_fans_groups',
 		'mc_oauth_fans',
+		'mc_fans_tag',
 		'modules_rank',
 		'modules_bindings',
 		'modules_plugin',
@@ -110,6 +111,9 @@ function table($name) {
 		'wechat_attachment',
 		'wxapp_versions',
 		'uni_link_uniacid',
+		'store_goods',
+		'store_order',
+		'store_goods_cloud',
 	))) {
 		return new $table_classname;
 	}
@@ -165,6 +169,7 @@ class Loader {
 		'app' => '/app/common/%s.func.php',
 	);
 	private $accountMap = array(
+		'pay' => 'pay/pay',
 		'account' => 'account/account',
 		'weixin.account' => 'account/weixin.account',
 		'weixin.platform' => 'account/weixin.platform',

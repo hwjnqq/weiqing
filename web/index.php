@@ -161,13 +161,25 @@ function _calc_current_frames(&$frames) {
 	global $_W, $controller, $action;
 	$_W['page']['title'] = (isset($_W['page']['title']) && !empty($_W['page']['title'])) ? $_W['page']['title'] : ($frames['dimension'] == 2 ? $frames['title'] : '');
 
-	if (!empty($frames['section']) && is_array($frames['section'])) {
-		foreach ($frames['section'] as &$frame) {
-			if (empty($frame['menu'])) {
-				continue;
-			}
-			$finished = false;
-			foreach ($frame['menu'] as $key => &$menu) {
+	if (empty($frames['section']) || !is_array($frames['section'])) {
+		return true;
+	}
+	foreach ($frames['section'] as &$frame) {
+		if (empty($frame['menu'])) {
+			continue;
+		}
+		$finished = false;
+		foreach ($frame['menu'] as $key => &$menu) {
+			if (defined('IN_MODULE') && $menu['multilevel']) {
+				foreach ($menu['childs'] as $module_child_key => $module_child_menu) {
+					$query = parse_url($module_child_menu['url'], PHP_URL_QUERY);
+					$server_query = parse_url($_W['siteurl'], PHP_URL_QUERY);
+					if (strpos($server_query, $query) === 0) {
+						$menu['childs'][$module_child_key]['active'] = 'active';
+						break;
+					}
+				}
+			} else {
 				$query = parse_url($menu['url'], PHP_URL_QUERY);
 				parse_str($query, $urls);
 				if (empty($urls)) {
@@ -189,6 +201,7 @@ function _calc_current_frames(&$frames) {
 					continue;
 				}
 				$diff = array_diff_assoc($urls, $get);
+
 				if (empty($diff) ||
 					$key == 'platform_menu' && $get['a'] == 'menu' && in_array($get['do'], array('display')) ||
 					$key == 'platform_site' && in_array($get['a'], array('style', 'article', 'category')) ||
@@ -205,9 +218,9 @@ function _calc_current_frames(&$frames) {
 					break;
 				}
 			}
-			if ($finished) {
-				break;
-			}
+		}
+		if ($finished) {
+			break;
 		}
 	}
 }

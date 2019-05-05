@@ -59,9 +59,9 @@ function site_cover($coverparams = array()) {
 	);
 
 	if (empty($cover['id'])) {
-		table('coverreply')->fill($entry)->save();
+		$coverreply_table->fill($entry)->save();
 	} else {
-		table('coverreply')->fill($entry)->whereId($cover['id'])->save();
+		$coverreply_table->fill($entry)->whereId($cover['id'])->save();
 	}
 	return true;
 }
@@ -74,9 +74,7 @@ function site_cover_delete($page_id) {
 	$cover = $coverreply_table->getByModuleAndUniacid('page', $_W['uniacid']);
 	if(!empty($cover)) {
 		$rid = intval($cover['rid']);
-		pdo_delete('rule', array('id' => $rid));
-		pdo_delete('rule_keyword', array('rid' => $rid));
-		pdo_delete('cover_reply', array('id' => $cover['id']));
+		uni_delete_rule($rid, 'cover_reply');
 	}
 	return true;
 }

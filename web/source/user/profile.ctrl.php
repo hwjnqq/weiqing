@@ -15,7 +15,8 @@ $do = in_array($do, $dos) ? $do : 'base';
 
 if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 	$type = trim($_GPC['type']);
-
+	$extra_filed_key = safe_gpc_string($_GPC['extra_field_key']);
+	$extra_filed_val = safe_gpc_string($_GPC['extra_field_val']);
 	if ($_W['isfounder']) {
 		$uid = is_array($_GPC['uid']) ? 0 : intval($_GPC['uid']);
 	} else {
@@ -42,7 +43,7 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 		if (in_array($type, array('username', 'password'))) {
 			if ($user[$type] == $_GPC[$type] && $type != 'password') iajax(0, '未做修改！', '');
 		} else {
-			if ($users_profile_exist[$type] == $_GPC[$type]) iajax(0, '未作修改！', '');
+			if ($users_profile_exist[$type] == $_GPC[$type] && empty($extra_filed_key)) iajax(0, '未作修改！', '');
 		}
 	}
 	switch ($type) {
@@ -190,6 +191,20 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 				$result = pdo_insert('users_profile', $data);
 			}
 			break;
+		default:
+			if (empty($extra_filed_key)) {
+				iajax(1, '参数错误', '');
+			}
+			if ($users_profile_exist) {
+				$result = pdo_update('users_profile', array($extra_filed_key => $extra_filed_val), array('uid' => $uid));
+			} else {
+				$data = array(
+					'uid' => $uid,
+					$extra_filed_key => $extra_filed_val
+				);
+				$result = pdo_insert('users_profile', $data);
+			}
+			break;
 	}
 	if ($result) {
 		pdo_update('users_profile', array('edittime' => TIMESTAMP), array('uid' => $uid));
@@ -214,6 +229,7 @@ if ($do == 'base') {
 	$user['last_visit'] = date('Y-m-d H:i:s', $user['lastvisit']);
 	$user['joindate'] = date('Y-m-d H:i:s', $user['joindate']);
 	$user['url'] = user_invite_register_url($_W['uid']);
+	$user_founder_info = table('users_founder_own_users')->getFounderByUid($user['uid']);
 
 	$profile = pdo_get('users_profile', array('uid' => $_W['uid']));
 
@@ -284,10 +300,17 @@ if ($do == 'base') {
 	$extra_limit_table = table('users_extra_limit');
 	$extra_limit_info = $extra_limit_table->getExtraLimitByUid($_W['uid']);
 
-	$endtime = user_end_time($_W['uid']);
+	$endtime = $user['endtime'];
+	$total_timelimit = $group_info['timelimit'] + $extra_limit_info['timelimit'];
 
-	$total_timelimit = $endtime == 0 ? '永久' : $group_info['timelimit'] + $extra_limit_info['timelimit'];
-	$endtime = $endtime == 0 ? '永久' : date('Y-m-d', $endtime);
+	if ($endtime == USER_ENDTIME_GROUP_EMPTY_TYPE || $endtime == USER_ENDTIME_GROUP_UNLIMIT_TYPE) {
+		$total_timelimit = '永久';
+		$endtime = '永久';
+	} elseif ($endtime == USER_ENDTIME_GROUP_DELETE_TYPE && $total_timelimit == 0) {
+		$endtime = $total_timelimit == 0 ? date('Y-m-d', $user['joindate']) : date('Y-m-d', $user['endtime']);
+	} else {
+		$endtime = date('Y-m-d', $endtime);
+	}
 
 	$setting_sms_sign = setting_load('site_sms_sign');
 	$bind_sign = !empty($setting_sms_sign['site_sms_sign']['register']) ? $setting_sms_sign['site_sms_sign']['register'] : '';

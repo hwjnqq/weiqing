@@ -12,8 +12,7 @@ load()->classs('weixin.platform');
 load()->model('utility');
 load()->func('file');
 $uniacid = intval($_GPC['uniacid']);
-$acid = intval($_GPC['acid']);
-if (empty($uniacid) || empty($acid)) {
+if (empty($uniacid)) {
 	$url = url('account/manage', array('account_type' => ACCOUNT_TYPE));
 	itoast('请选择要编辑的' . ACCOUNT_TYPE_NAME, $url, 'error');
 }
@@ -84,8 +83,14 @@ if($do == 'base') {
 			case 'appid':
 				$data = array('appid' => $request_data);break;
 			case 'key':
+				if ($account['key'] == $request_data) {
+					iajax(0, '修改成功！');
+				}
 				$data = array('key' => $request_data);break;
 			case 'secret':
+				if ($account['secret'] == $request_data) {
+					iajax(0, '修改成功！');
+				}
 				$data = array('secret' => $request_data);break;
 			case 'token':
 				$oauth = (array)uni_setting_load(array('oauth'), $uniacid);
@@ -167,7 +172,7 @@ if($do == 'base') {
 		}
 		if($result) {
 			cache_delete(cache_system_key('uniaccount', array('uniacid' => $uniacid)));
-			cache_delete(cache_system_key('accesstoken', array('acid' => $acid)));
+			cache_delete(cache_system_key('accesstoken', array('uniacid' => $uniacid)));
 			cache_delete(cache_system_key('statistics', array('uniacid' => $uniacid)));
 			iajax(0, '修改成功！', '');
 		} else {
@@ -197,7 +202,7 @@ if($do == 'base') {
 		}
 	}
 	$account['start'] = date('Y-m-d', $account['starttime']);
-	$account['end'] = $account['endtime'] == 0 ? '永久' : date('Y-m-d', $account['endtime']);
+	$account['end'] = in_array($account['endtime'], array(USER_ENDTIME_GROUP_EMPTY_TYPE, USER_ENDTIME_GROUP_UNLIMIT_TYPE)) ? '永久' : date('Y-m-d', $account['endtime']);
 	$account['endtype'] = $account['endtime'] == 0 ? 1 : 2;
 	$uni_setting = (array)uni_setting_load(array('statistics', 'attachment_limit', 'attachment_size'), $uniacid);
 	$account['highest_visit'] = empty($uni_setting['statistics']['founder']) ? 0 : $uni_setting['statistics']['founder'];

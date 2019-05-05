@@ -32,6 +32,9 @@ if ($do == 'add') {
 		iajax(-1, '敏感词不能为空', url('system/sensitiveword'));
 	}
 	$add_word_array = explode("\n", $add_word);
+	foreach ($add_word_array as &$word) {
+		$word = safe_gpc_string(trim($word));
+	}
 	$words_list = array_merge($words_list, $add_word_array);
 	$word_add = setting_save(array_unique($words_list), 'sensitive_words');
 	if (is_error($words_add)) {
@@ -41,7 +44,7 @@ if ($do == 'add') {
 }
 
 if ($do == 'delete') {
-	$del_word = trim($_GPC['word']);
+	$del_word = safe_gpc_string($_GPC['word']);
 	if (empty($del_word)) {
 		iajax(-1, '不能为空');
 	}

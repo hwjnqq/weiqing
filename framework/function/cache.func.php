@@ -406,7 +406,7 @@ function cache_key_all() {
 
 			/* accesstoken */
 			'accesstoken' => array(
-				'key' => 'accesstoken:%acid',
+				'key' => 'accesstoken:%uniacid',
 				'group' => 'accesstoken',
 			),
 
@@ -432,7 +432,7 @@ function cache_key_all() {
 			),
 
 			'account_auth_refreshtoken' => array(
-				'key' => 'account_auth_refreshtoken:%acid',
+				'key' => 'account_auth_refreshtoken:%uniacid',
 				'group' => '',
 			),
 
@@ -609,6 +609,11 @@ function cache_key_all() {
 
 			'delete_visit_ip' => array(
 				'key' => 'delete_visit_ip:%date',
+				'group' => '',
+			),
+
+			'sms_log_list' => array(
+				'key' => 'sms_log_list',
 				'group' => '',
 			),
 		),

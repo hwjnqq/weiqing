@@ -14,9 +14,13 @@ if ($action == 'process') {
 	define('FRAME', 'site');
 }
 
-if(in_array($action, array('profile', 'device', 'callback', 'appstore', 'sms'))) {
+if(in_array($action, array('device', 'callback', 'appstore'))) {
 	$do = $action;
 	$action = 'redirect';
+}
+if ($action == 'sms') {
+	$action = 'profile';
+	$do = 'sms';
 }
 if($action == 'touch') {
 	exit('success');

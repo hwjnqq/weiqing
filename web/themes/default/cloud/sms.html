@@ -1,0 +1,134 @@
+{template 'common/header'}
+<div class="we7-page-title">短信管理</div>
+<ul class="we7-page-tab">
+    <li class="{if $_GPC['type'] == 'info' || $_GPC['type'] == ''} active {/if}">
+        <a href="{php echo url('cloud/sms')}&type=info">详情</a>
+    </li>
+    <li class="{if $_GPC['type'] == 'sign'} active {/if}">
+        <a href="{php echo url('cloud/sms')}&type=sign">短信签名</a>
+    </li>
+    <li class="{if $_GPC['type'] == 'log'} active {/if}">
+        <a href="{php echo url('cloud/sms')}&type=log">发送日志</a>
+    </li>
+    <li class="{if $_GPC['type'] == 'trade'} active {/if}">
+        <a href="{php echo url('cloud/sms')}&type=trade">购买日志</a>
+    </li>
+</ul>
+
+{if $_GPC['type'] == 'sign'}
+<div class="sms-sign" ng-controller="smsSign" ng-cloak>
+    <table class="table we7-table">
+        <tr>
+            <th>签名</th>
+            <th>状态</th>
+            <th>拒绝原因</th>
+            <th>时间</th>
+            <!-- <th>操作</th> -->
+        </tr>
+        <tr ng-repeat="smssign in smsSigns">
+            <td>{{smssign.sign}}</td>
+            <td>
+                <span class="label " ng-class="smssign.status == -1 ? 'label-danger' : 'label-primary'">{{statusText[smssign.status]}}</span>
+            </td>
+            <td>{{smssign.refuse_reason}}</td>
+            <td>{{smssign.createtime}}</td>
+            <!-- <td></td> -->
+        </tr>
+        <tr ng-if="smsSigns | we7IsEmpty">
+            <td colspan="100">
+                <div class="text-center">暂无数据</div>
+            </td>
+        </tr>
+    </table>
+    <we7-page conf="page2"></we7-page>
+</div>
+{elseif $_GPC['type'] == 'log'}
+<div class="sms-logs" ng-controller="smsLogs" ng-cloak>
+    <div class="search-box we7-margin-bottom">
+        <div class="input-group we7-margin-right">
+            <input type="text" ng-model="mobile" class="form-control" placeholder="手机号">
+        </div>
+        <div class="input-group" we7-date-range-picker ng-model="date">
+            <input type="text" style="width: 400px;" ng-value="(date.startDate + '至' + date.endDate)" class="form-control" placeholder="时间">
+        </div>
+        <a href="javascript:;" class="btn btn-primary we7-margin-left" ng-click="getList(1)">搜索</a>
+    </div>
+    <table class="table we7-table">
+        <tr>
+            <th>手机号</th>
+            <th>内容</th>
+            <th>状态</th>
+            <th>发送时间</th>
+            <th>日志</th>
+        </tr>
+        <tr ng-repeat="smslog in smslogs">
+            <td>{{smslog.send_mobile}}</td>
+            <td>{{smslog.content}}</td>
+            <td>{{smslog.status == 0 ? '发送成功' : '发送失败'}}</td>
+            <td>{{smslog.createtime}}</td>
+            <td>{{smslog.log}}</td>
+        </tr>
+        <tr ng-if="smslogs | we7IsEmpty">
+                <td colspan="100">
+                    <div class="text-center">暂无数据</div>
+                </td>
+            </tr>
+    </table>
+    <we7-page conf="page"></we7-page>
+</div>
+{elseif $_GPC['type'] == 'trade'}
+<div class="sms-trade" ng-controller="smsTrade" ng-cloak>
+    <div class="search-box we7-margin-bottom">
+        <div class="input-group" we7-date-range-picker ng-model="date">
+            <input type="text" style="width: 400px;" ng-value="(date.startDate + '至' + date.endDate)" class="form-control" placeholder="时间">
+        </div>
+        <a href="javascript:;" class="btn btn-primary we7-margin-left" ng-click="getTrade(1)">搜索</a>
+    </div>
+    <table class="table we7-table">
+        <tr>
+            <th>短信名称</th>
+            <th>交易价格</th>
+            <th>购买时间</th>
+        </tr>
+        <tr ng-repeat="smslog in smslogs">
+            <td>{{smslog.title}}</td>
+            <td>{{smslog.amount}}</td>
+            <td>{{smslog.createtime}}</td>
+        </tr>
+        <tr ng-if="smslogs | we7IsEmpty">
+            <td colspan="100">
+                <div class="text-center">暂无数据</div>
+            </td>
+        </tr>
+    </table>
+    <we7-page conf="page1"></we7-page>
+</div>
+{else}
+<div class="form-files-box sms-index" ng-controller="smsIndex" ng-cloak>
+    <div class="form-files">
+        <div class="form-file header">短信信息</div>
+        <div class="form-file">
+            <div class="form-label">剩余短信</div>
+            <div class="form-value">{{info.sms_count}}条</div>
+            <div class="form-edit"></div>
+        </div>
+        <div class="form-file">
+            <div class="form-label">可分配短信签名</div>
+            <div class="form-value"><span ng-repeat="sign in info.sms_sign">{{sign}} <span ng-if="!$last">、</span></span></div>
+            <div class="form-edit"></div>
+        </div>
+    </div>
+</div>
+{/if}
+<script>
+    require(['moment'], function() {
+        angular.module('smsApp').value('config', {
+            apiUrl: "{php echo url('cloud/profile/common_api')}&method="
+        });
+        angular.bootstrap($('.sms-index'), ['smsApp']);
+        angular.bootstrap($('.sms-logs'), ['smsApp']);
+        angular.bootstrap($('.sms-sign'), ['smsApp']);
+        angular.bootstrap($('.sms-trade'), ['smsApp']);
+    })
+</script>
+{template 'common/footer'}

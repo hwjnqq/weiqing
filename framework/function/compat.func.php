@@ -112,3 +112,59 @@ if (!function_exists("fastcgi_finish_request")) {
 		return error(-1, 'Not npm or fast cgi');
 	}
 }
+
+if (!function_exists('openssl_decrypt')) {
+	function openssl_decrypt($ciphertext_dec, $method, $key, $options, $iv) {
+		$module = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_CBC, '');
+		mcrypt_generic_init($module, $key, $iv);
+		$decrypted = mdecrypt_generic($module, $ciphertext_dec);
+		mcrypt_generic_deinit($module);
+		mcrypt_module_close($module);
+		return $decrypted;
+	}
+}
+if (!function_exists('openssl_encrypt')) {
+	function openssl_encrypt($text, $method, $key, $options, $iv) {
+		$module = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_CBC, '');
+		mcrypt_generic_init($module, $key, $iv);
+		$encrypted = mcrypt_generic($module, $text);
+		mcrypt_generic_deinit($module);
+		mcrypt_module_close($module);
+		return $encrypted;
+	}
+}
+//array_column()函数只支持PHP版本5.5以上
+if (!function_exists('array_column')) {
+	function array_column($input, $columnKey, $indexKey = NULL) {
+		$columnKeyIsNumber = (is_numeric($columnKey)) ? true : false;
+		$indexKeyIsNull = (is_null($indexKey)) ? true : false;
+		$indexKeyIsNumber = (is_numeric($indexKey)) ? true : false;
+		$result = array();
+
+		foreach ((array)$input AS $key => $row) {
+			if ($columnKeyIsNumber) {
+				$tmp = array_slice($row, $columnKey, 1);
+				$tmp = (is_array($tmp) && !empty($tmp)) ? current($tmp) : NULL;
+			} else {
+				$tmp = isset($row[$columnKey]) ? $row[$columnKey] : NULL;
+			}
+			if (!$indexKeyIsNull) {
+				if ($indexKeyIsNumber) {
+					$key = array_slice($row, $indexKey, 1);
+					$key = (is_array($key) && ! empty($key)) ? current($key) : NULL;
+					$key = is_null($key) ? 0 : $key;
+				} else {
+					$key = isset($row[$indexKey]) ? $row[$indexKey] : 0;
+				}
+			}
+			$result[$key] = $tmp;
+		}
+		return $result;
+	}
+}
+//boolval要求至少php5.5以上
+if (!function_exists('boolval')) {
+	function boolval($val) {
+		return (bool) $val;
+	}
+}

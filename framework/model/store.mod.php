@@ -4,6 +4,36 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
+function store_goods_type_info($group = '') {
+	$data = array(
+		STORE_TYPE_MODULE => array('title' => '公众号应用', 'type' => STORE_TYPE_MODULE, 'sign' => ACCOUNT_TYPE_SIGN, 'group' => 'module'),
+		STORE_TYPE_WXAPP_MODULE => array('title' => '微信小程序应用', 'type' => STORE_TYPE_WXAPP_MODULE, 'sign' => WXAPP_TYPE_SIGN, 'group' => 'module'),
+		STORE_TYPE_WEBAPP_MODULE => array('title' => 'PC应用', 'type' => STORE_TYPE_WEBAPP_MODULE, 'sign' => WEBAPP_TYPE_SIGN, 'group' => 'module'),
+		STORE_TYPE_PHONEAPP_MODULE => array('title' => 'APP应用', 'type' => STORE_TYPE_PHONEAPP_MODULE, 'sign' => PHONEAPP_TYPE_SIGN, 'group' => 'module'),
+		STORE_TYPE_XZAPP_MODULE => array('title' => '熊掌号应用', 'type' => STORE_TYPE_XZAPP_MODULE, 'sign' => XZAPP_TYPE_SIGN, 'group' => 'module'),
+		STORE_TYPE_ALIAPP_MODULE => array('title' => '支付宝小程序应用', 'type' => STORE_TYPE_ALIAPP_MODULE, 'sign' => ALIAPP_TYPE_SIGN, 'group' => 'module'),
+		STORE_TYPE_BAIDUAPP_MODULE => array('title' => '百度小程序应用', 'type' => STORE_TYPE_BAIDUAPP_MODULE, 'sign' => BAIDUAPP_TYPE_SIGN, 'group' => 'module'),
+		STORE_TYPE_TOUTIAOAPP_MODULE => array('title' => '头条小程序应用', 'type' => STORE_TYPE_TOUTIAOAPP_MODULE, 'sign' => TOUTIAOAPP_TYPE_SIGN, 'group' => 'module'),
+		STORE_TYPE_API => array('title' => '应用访问流量API', 'type' => STORE_TYPE_API, 'group' => ''),
+		STORE_TYPE_PACKAGE => array('title' => '应用权限组', 'type' => STORE_TYPE_PACKAGE, 'group' => ''),
+		STORE_TYPE_USER_PACKAGE => array('title' => '用户权限组', 'type' => STORE_TYPE_USER_PACKAGE, 'group' => ''),
+		STORE_TYPE_ACCOUNT_PACKAGE => array('title' => '账号权限组', 'type' => STORE_TYPE_ACCOUNT_PACKAGE, 'group' => ''),
+		STORE_TYPE_ACCOUNT => array('title' => '公众号平台个数', 'type' => STORE_TYPE_ACCOUNT, 'group' => 'account_num'),
+		STORE_TYPE_WXAPP => array('title' => '微信小程序平台个数', 'type' => STORE_TYPE_WXAPP, 'group' => 'account_num'),
+		STORE_TYPE_ACCOUNT_RENEW => array('title' => '公众号续费', 'type' => STORE_TYPE_ACCOUNT_RENEW, 'group' => 'renew'),
+		STORE_TYPE_WXAPP_RENEW => array('title' => '微信小程序续费', 'type' => STORE_TYPE_WXAPP_RENEW, 'group' => 'renew'),
+	);
+	if (!empty($group)) {
+		foreach ($data as $k => $item) {
+			if ($item['group'] != $group) {
+				unset($data[$k]);
+			}
+		}
+	}
+	return $data;
+
+}
+
 /**
  * 获取某一商品信息
  * @param int id 商品ID
@@ -85,15 +115,22 @@ function store_goods_post($data) {
 	$post['user_group'] = $data['user_group'];
 	$post['account_group'] = $data['account_group'];
 	$post['user_group_price'] = $data['user_group_price'];
+
+	if ($data['type'] == STORE_TYPE_ACCOUNT_RENEW) {
+		$post['account_num'] = $data['account_num'] == 0 ? 1 : $data['account_num'];
+	}
+
+	if ($data['type'] == STORE_TYPE_WXAPP_RENEW) {
+		$post['wxapp_num'] = $data['wxapp_num'] == 0 ? 1 : $data['wxapp_num'];
+	}
+
 	if (!empty($data['id'])) {
 		$result = pdo_update('site_store_goods', $post, array('id' => $data['id']));
 	} else {
 		$post['type'] = $data['type'];
 		$post['createtime'] = TIMESTAMP;
 		$post['title_initial'] = get_first_pinyin($data['title']);
-		if ($data['type'] == STORE_TYPE_USER_PACKAGE && !empty($post['unit'])) {
-			$post['unit'] = $data['unit'];
-		} else {
+		if (empty($post['unit'])) {
 			$post['unit'] = 'month';
 		}
 		if ($data['type'] == STORE_TYPE_API) {

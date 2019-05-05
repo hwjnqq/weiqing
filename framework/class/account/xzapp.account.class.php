@@ -27,7 +27,7 @@ class XzappAccount extends WeAccount {
 	}
 
 	public function getAccessToken() {
-		$cachekey = cache_system_key('accesstoken', array('acid' => $this->account['acid']));
+		$cachekey = cache_system_key('accesstoken', array('uniacid' => $this->account['uniacid']));
 		$cache = cache_load($cachekey);
 
 		if (!empty($cache) && !empty($cache['token']) && $cache['expire'] > TIMESTAMP) {
@@ -96,11 +96,8 @@ class XzappAccount extends WeAccount {
 		$text .= str_repeat(chr($padLen), $padLen == 0 ? $blockSize : $padLen);
 
 		// 加密
-		$td = mcrypt_module_open(MCRYPT_RIJNDAEL_128, null, MCRYPT_MODE_CBC, null);
-		mcrypt_generic_init($td, $key, substr($key, 0, 16));
-		$encoded = mcrypt_generic($td, $text);
-		mcrypt_generic_deinit($td);
-		mcrypt_module_close($td);
+		$iv = substr($key, 0, 16);
+		$encoded = openssl_encrypt($text, 'AES-256-CBC', $key, OPENSSL_RAW_DATA|OPENSSL_ZERO_PADDING, $iv);
 
 		$encrypt_msg = base64_encode($encoded);
 
@@ -133,11 +130,8 @@ class XzappAccount extends WeAccount {
 		}
 
 		// 解密
-		$td = mcrypt_module_open(MCRYPT_RIJNDAEL_128, null, MCRYPT_MODE_CBC, null);
-		mcrypt_generic_init($td, $key, substr($key, 0, 16));
-		$decoded = mdecrypt_generic($td, $encrypt);
-		mcrypt_generic_deinit($td);
-		mcrypt_module_close($td);
+		$iv = substr($key, 0, 16);
+		$decoded = openssl_decrypt($encrypt, 'AES-256-CBC', $key, OPENSSL_RAW_DATA|OPENSSL_ZERO_PADDING, $iv);
 
 		// 去掉填充位数
 		$pad = ord(substr($decoded, -1));

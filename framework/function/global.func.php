@@ -145,7 +145,8 @@ function getip() {
 function token($specialadd = '') {
 	global $_W;
 	if(!defined('IN_MOBILE')) {
-		return substr(md5($_W['config']['setting']['authkey'] . $specialadd), 8, 8);
+		$key = complex_authkey();
+		return substr(md5($key . $specialadd), 8, 8);
 	} else {
 		if(!empty($_SESSION['token'])) {
 			$count  = count($_SESSION['token']) - 5;
@@ -211,10 +212,17 @@ function checksubmit($var = 'submit', $allowget = false) {
 	return FALSE;
 }
 
+function complex_authkey() {
+	global $_W;
+	$key = (array)$_W['setting']['site'];
+	$key['authkey'] = $_W['config']['setting']['authkey'];
+	return implode('', $key);
+}
 function checkcaptcha($code) {
 	global $_W, $_GPC;
 	session_start();
-	$codehash = md5(strtolower($code) . $_W['config']['setting']['authkey']);
+	$key = complex_authkey();
+	$codehash = md5(strtolower($code) . $key);
 	if (!empty($_GPC['__code']) && $codehash == $_SESSION['__code']) {
 		$return = true;
 	} else {
@@ -1210,13 +1218,9 @@ function aes_decode($message, $encodingaeskey = '', $appid = '') {
 	$key = base64_decode($encodingaeskey . '=');
 
 	$ciphertext_dec = base64_decode($message);
-	$module = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_CBC, '');
 	$iv = substr($key, 0, 16);
-
-	mcrypt_generic_init($module, $key, $iv);
-	$decrypted = mdecrypt_generic($module, $ciphertext_dec);
-	mcrypt_generic_deinit($module);
-	mcrypt_module_close($module);
+	//php7不支持mcrypt,换成openssl
+	$decrypted = openssl_decrypt($ciphertext_dec, 'AES-256-CBC', $key, OPENSSL_RAW_DATA|OPENSSL_ZERO_PADDING, $iv);
 	$block_size = 32;
 
 	$pad = ord(substr($decrypted, -1));
@@ -1242,8 +1246,6 @@ function aes_encode($message, $encodingaeskey = '', $appid = '') {
 	$key = base64_decode($encodingaeskey . '=');
 	$text = random(16) . pack("N", strlen($message)) . $message . $appid;
 
-	$size = mcrypt_get_block_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC);
-	$module = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_CBC, '');
 	$iv = substr($key, 0, 16);
 
 	$block_size = 32;
@@ -1260,11 +1262,8 @@ function aes_encode($message, $encodingaeskey = '', $appid = '') {
 		$tmp .= $pad_chr;
 	}
 	$text = $text . $tmp;
-	mcrypt_generic_init($module, $key, $iv);
-	//加密
-	$encrypted = mcrypt_generic($module, $text);
-	mcrypt_generic_deinit($module);
-	mcrypt_module_close($module);
+	//加密，php7不支持mcrypt,换成openssl
+	$encrypted = openssl_encrypt($text, 'AES-256-CBC', $key, OPENSSL_RAW_DATA|OPENSSL_ZERO_PADDING, $iv);
 	//加密后的消息
 	$encrypt_msg = base64_encode($encrypted);
 	return $encrypt_msg;

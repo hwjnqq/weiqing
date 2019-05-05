@@ -105,12 +105,8 @@ class WeixinAccount extends WeAccount {
 		}
 		//对消息进行解密
 		$ciphertext_dec = base64_decode($packet['Encrypt']);
-		$module = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_CBC, '');
 		$iv = substr($key, 0, 16);
-		mcrypt_generic_init($module, $key, $iv);
-		$decrypted = mdecrypt_generic($module, $ciphertext_dec);
-		mcrypt_generic_deinit($module);
-		mcrypt_module_close($module);
+		$decrypted = openssl_decrypt($ciphertext_dec, 'AES-256-CBC', $key, OPENSSL_RAW_DATA|OPENSSL_ZERO_PADDING, $iv);
 		$block_size = 32;
 
 		$pad = ord(substr($decrypted, -1));
@@ -711,7 +707,7 @@ class WeixinAccount extends WeAccount {
 	 * @return error | string accesstoken值
 	 */
 	public function getAccessToken() {
-		$cachekey = cache_system_key('accesstoken', array('acid' => $this->account['acid']));
+		$cachekey = cache_system_key('accesstoken', array('uniacid' => $this->account['uniacid']));
 		$cache = cache_load($cachekey);
 		if (!empty($cache) && !empty($cache['token']) && $cache['expire'] > TIMESTAMP) {
 			$this->account['access_token'] = $cache;
@@ -778,7 +774,7 @@ class WeixinAccount extends WeAccount {
 		$url = 'https://api.weixin.qq.com/cgi-bin/getcallbackip?access_token=' . $access_token;
 		$response = $this->requestApi($url);
 		if (is_error($response) && $response['errno'] == '40001') {
-			cache_delete(cache_system_key('accesstoken', array('acid' => $this->account['acid'])));
+			cache_delete(cache_system_key('accesstoken', array('uniacid' => $this->account['uniacid'])));
 		}
 		return true;
 	}

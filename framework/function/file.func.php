@@ -305,7 +305,7 @@ function file_upload($file, $type = 'image', $name = '', $compress = false) {
 
 	$save_path = ATTACHMENT_ROOT . '/' . $result['path'];
 	if (!file_move($file['tmp_name'], $save_path)) {
-		return error(-1, '保存上传文件失败');
+		return error(-1, '文件上传失败, 请将 attachment 目录权限先777 <br> (如果777上传失败,可尝试将目录设置为755)');
 	}
 
 	if ($type == 'image' && $compress) {
@@ -933,12 +933,20 @@ function file_is_image($url) {
 	if (substr($url, 0, 2) == '//') {
 		$url = 'http:' . $url;
 	}
+	//对于本地图片先转换绝对路径，因为部分客户服务器配置问题，网络图片访问不了（这块兼容一下）
+	if (strpos($url, $_W['siteroot'] . 'attachment/') == 0) {
+		$url = str_replace($_W['siteroot'] . 'attachment/', ATTACHMENT_ROOT, $url);
+	}
 	$lower_url = strtolower($url);
 	if ((substr($lower_url, 0, 7) == 'http://') || (substr($lower_url, 0, 8) == 'https://')) {
-		$img_headers = file_media_content_type($url);
-		if (empty($img_headers) || !in_array($img_headers['ext'], (array)$_W['setting']['upload']['image']['extentions'])) {
+		$analysis_url = parse_url($lower_url);
+		$preg_str = '/.*(\.' . implode('|\.', $allowed_media) . ')$/';
+		if (!empty($analysis_url['query']) || !preg_match($preg_str, $lower_url) || !preg_match($preg_str, $analysis_url['path'])) {
 			return false;
-
+		}
+		$img_headers = file_media_content_type($url);
+		if (empty($img_headers) || !in_array($img_headers['ext'], $allowed_media)) {
+			return false;
 		}
 	}
 

@@ -105,7 +105,7 @@ if ($do == 'del_version') {
 		iajax(1, '模块版本不存在！');
 	}
 	$version_module = current($version_exist['version']['modules']);
-	if (!empty($version_module['uniacid']) && !empty($version_module['name'])) {
+	if (!empty($version_module['name'])) {
 		table('uni_link_uniacid')->searchWithUniacidModulenameVersionid($uniacid, $version_module['name'], $versionid)->delete();
 	}
 	$result = pdo_delete($account_all_type[$account['type']]['version_tablename'], array('id' => $versionid, 'uniacid' => $uniacid));

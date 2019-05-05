@@ -34,6 +34,7 @@ $we7_file_permission = array(
 			'post-step',
 			'post-user',
 			'post',
+			'create',
 		),
 		'operator' => array(
 			'display',
@@ -216,13 +217,15 @@ $we7_file_permission = array(
 			'qr',
 			'mass',
 			'material',
-			'material-post'
+			'material-post',
+			'url2qr',
 		),
 		'operator' => array(
 			'cover',
 			'reply',
 			'material',
-			'material-post'
+			'material-post',
+			'url2qr',
 		),
 		'clerk' => array(
 			'reply',
@@ -267,6 +270,7 @@ $we7_file_permission = array(
 			'nav',
 			'slide',
 			'multi',
+			'comment',
 		),
 		'operator' => array(
 			'editor',
@@ -354,7 +358,8 @@ $we7_file_permission = array(
 			'register',
 			'logout',
 			'find-password',
-			'third-bind'
+			'third-bind',
+			'agreement-show'
 		),
 		'vice_founder' => array('user*'),
 		'owner' => array(
@@ -525,6 +530,7 @@ $we7_file_permission = array(
 			'see_account_manage_display',
 			'see_account_manage_recycle',
 			'see_account_manage_system_platform',
+			'see_account_manage_expired_message',
 			'see_permission_create_account_group',
 			'see_permission_module_group',
 			'see_permission_user_group',
@@ -556,7 +562,7 @@ $we7_file_permission = array(
 		'vice_founder' => array(
 			'see_account_manage_users_adduser',
 			'see_account_manage_users_edit_owner',
-			'see_account_manage_users_set_permission_for_manage',
+			'see_account_manage_users_set_permission_for_manager',
 			'see_account_manage_users_set_permission_for_operator',
 			'see_account_manage_users_deloperator',
 			'see_account_manage_users_delmanager',
@@ -575,7 +581,7 @@ $we7_file_permission = array(
 		),
 		'owner' => array(
 			'see_system_updatecache',
-			'see_account_manage_users_set_permission_for_manage',
+			'see_account_manage_users_set_permission_for_manager',
 			'see_account_manage_users_set_permission_for_operator',
 			'see_account_manage_users_deloperator',
 			'see_account_manage_users_delmanager',
@@ -607,7 +613,8 @@ $we7_file_permission = array(
 		'unbind_user' => array(
 			'see_user_profile_welcome',
 			'see_system_updatecache',
-		)
+		),
+		'expired' => array(),
 	),
 );
 

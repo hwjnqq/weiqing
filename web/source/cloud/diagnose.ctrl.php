@@ -5,6 +5,7 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
+load()->classs('cloudapi');
 load()->model('cloud');
 load()->model('setting');
 
@@ -19,8 +20,16 @@ if ($do == 'testapi') {
 	iajax(0,'请求接口成功，耗时 '.(round($endtime - $starttime, 5)).' 秒');
 } else {
 	if(checksubmit()) {
-		setting_save('', 'site');
-		itoast('成功清除站点记录.', 'refresh', 'success');
+		$result = cloud_reset_siteinfo();
+		$api = new CloudApi();
+		$api->deleteCer();
+
+		if (is_error($result)) {
+			itoast($result['message'], '', 'error');
+		} else {
+			cache_delete('cloud_site_register_info');
+			itoast('重置成功', 'refresh', 'success');
+		}
 	}
 	if (checksubmit('updateserverip')) {
 		if (!empty($_GPC['ip'])) {

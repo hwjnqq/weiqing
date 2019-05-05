@@ -36,6 +36,9 @@ if($sign == $_GET['sign']){
 	// 如果return请求来时，未接到notify通知，则模拟notify通知先请求
 	WeUtility::logging('pay-alipay', var_export($_GET, true));
 	if($_GET['is_success'] == 'T' && ($_GET['trade_status'] == 'TRADE_FINISHED' || $_GET['trade_status'] == 'TRADE_SUCCESS')) {
+		if ($_GET['subject'] == '测试支付接口' && $_GET['total_fee'] == 0.01) {
+			message('支付回调成功！', $_W['siteroot'] . 'web/index.php?c=profile&a=payment', 'success');
+		}
 		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniontid`=:uniontid';
 		$params = array();
 		$params[':uniontid'] = $_GET['out_trade_no'];
@@ -95,6 +98,7 @@ if($sign == $_GET['sign']){
 				}
 				cache_build_account_modules($order['uniacid']);
 				header('Location: ./index.php?c=site&a=entry&direct=1&m=store&do=orders');
+				exit;
 			}
 		}
 	}

@@ -59,19 +59,20 @@ class DB {
 		}
 
 		$pdo = new $dbclass($dsn, $cfg['username'], $cfg['password'], $options);
-		if(DEVELOPMENT && class_exists('\DebugBar\DataCollector\PDO\TraceablePDO')) {
-			$pdo = new \DebugBar\DataCollector\PDO\TraceablePDO($pdo);
-		}
+		//if(DEVELOPMENT && class_exists('\DebugBar\DataCollector\PDO\TraceablePDO')) {
+		//	$pdo = new \DebugBar\DataCollector\PDO\TraceablePDO($pdo);
+		//}
 		$this->pdo = $pdo;
 		//$this->pdo->setAttribute(pdo::ATTR_EMULATE_PREPARES, false);
 		$sql = "SET NAMES '{$cfg['charset']}';";
 		$this->pdo->exec($sql);
 		$this->pdo->exec("SET sql_mode='';");
-		$this->pdo->exec("SET GLOBAL max_allowed_packet = 2*1024*1024*10;");
+		if ($cfg['username'] == 'root') {
+			$this->pdo->exec("SET GLOBAL max_allowed_packet = 2*1024*1024*10;");
+		}
 		if(is_string($name)) {
 			$this->link[$name] = $this->pdo;
 		}
-
 		$this->logging($sql);
 	}
 
@@ -411,6 +412,7 @@ class DB {
 				$this->query($query, array());
 			}
 		}
+		return true;
 	}
 
 	/**
@@ -517,10 +519,6 @@ class DB {
 					$ts .= "file: {$trace['file']}; line: {$trace['line']}; <br />";
 				}
 				$params = var_export($append['params'], true);
-				if (!function_exists('message')) {
-					load()->web('common');
-					load()->web('template');
-				}
 				trigger_error("SQL: <br/>{$append['sql']}<hr/>Params: <br/>{$params}<hr/>SQL Error: <br/>{$append['error'][2]}<hr/>Traces: <br/>{$ts}", E_USER_WARNING);
 			}
 		}
@@ -595,7 +593,7 @@ class DB {
 class SqlPaser {
 	private static $checkcmd = array('SELECT', 'UPDATE', 'INSERT', 'REPLAC', 'DELETE');
 	private static $disable = array(
-		'function' => array('load_file', 'floor', 'hex', 'substring', 'if', 'ord', 'char', 'pi', 'benchmark', 'reverse', 'strcmp', 'datadir', 'updatexml', 'extractvalue', 'name_const', 'multipoint', 'database', 'user'),
+		'function' => array('load_file', 'floor', 'hex', 'substring', 'if', 'ord', 'char', 'benchmark', 'reverse', 'strcmp', 'datadir', 'updatexml', 'extractvalue', 'name_const', 'multipoint', 'database', 'user'),
 		'action' => array('@', 'intooutfile', 'intodumpfile', 'unionselect', 'uniondistinct', 'information_schema', 'current_user', 'current_date'),
 		'note' => array('/*','*/','#','--'),
 	);

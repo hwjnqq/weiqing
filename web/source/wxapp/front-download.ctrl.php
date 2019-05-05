@@ -175,6 +175,12 @@ if ($do == 'commitcode') {
 
 if ($do == 'tominiprogram') {
 	$tomini_lists = iunserializer($version_info['tominiprogram']);
+
+	if (!is_array($tomini_lists)) {
+		$data = array('tominiprogram' => iserializer(array()));
+		miniapp_version_update($version_id, $data);
+	}
+
 	if (checksubmit()) {
 		$tominiprogram_data = array();
 		$appid = safe_gpc_string(trim($_GPC['appid']));
@@ -236,6 +242,7 @@ if ($do == 'getpackage') {
 	$request_cloud_data = array(
 		'name' => $account_wxapp_info['name'],
 		'modules' => $account_wxapp_info['version']['modules'],
+		'support' => $_W['account']['type_sign'], //下载指定支持的程序包
 		'siteInfo' => array(
 			'name' => $account_wxapp_info['name'],
 			'uniacid' => $account_wxapp_info['uniacid'],

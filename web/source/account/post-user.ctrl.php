@@ -102,6 +102,9 @@ if ($do == 'set_manager') {
 		if ($user['status'] != 2) {
 			iajax(3, '用户未通过审核或不存在！', '');
 		}
+		$user_end_time = user_end_time($user['uid']);
+		$account_end_time = $user_end_time == 0 ? 0 : strtotime($user_end_time);
+		pdo_update('account', array('endtime' => $account_end_time), array('uniacid' => $uniacid));
 		$addtype = intval($_GPC['addtype']);
 		if (!in_array($addtype, array(ACCOUNT_MANAGE_TYPE_OPERATOR, ACCOUNT_MANAGE_TYPE_MANAGER, ACCOUNT_MANAGE_TYPE_OWNER, ACCOUNT_MANAGE_TYPE_VICE_FOUNDER))) {
 			iajax(-1, '添加使用者类型有误，只能添加操作员/管理员/主管理员/副创始人！');
@@ -172,8 +175,36 @@ if ($do == 'set_manager') {
 				iajax(1, '添加失败！', '');
 			}
 		} else {
-			//{$username} 已经是该公众号的操作员或管理员，请勿重复添加
-			iajax(2, $username.'已经是该公众号的店员或操作员或管理员，请勿重复添加！', '');
+			$permissions = table('users_permission')->getAllUserPermission($user['uid'], $uniacid);
+			$modulelist = uni_modules();
+			if (!empty($permissions)) {
+				$i = 0;
+				foreach ($permissions as $permission) {
+					if ($i >= 3) {
+						break;
+					}
+					if (!in_array($permission['type'], array_keys($modulelist))) {
+						continue;
+					}
+					$module_info = module_fetch($permission['type']);
+					$modules_str .= $module_info['title'] . ',';
+					$i ++;
+				}
+			}
+
+			if (empty($permissions) && !empty($exists)) {
+				if ($exists['role'] == ACCOUNT_MANAGE_NAME_OPERATOR) {
+					$role_name = '操作员';
+				} elseif ($exists['role'] == ACCOUNT_MANAGE_NAME_MANAGER) {
+					$role_name = '管理员';
+				} elseif ($exists['role'] == ACCOUNT_MANAGE_NAME_OWNER) {
+					$role_name = '主管理员';
+				}
+
+				iajax(2, "添加平台使用者失败, <a style='color:#3296fa'>" . $username . "<a/>, 已经是公众号的<a style='color:#3296fa'>" .$role_name. "<a/> ，请勿重复添加！", '');
+			} else {
+				iajax(2, "添加平台使用者失败, <a style='color:#3296fa'>" . $username . "<a/>, 已经是 <a style='color:#3296fa'>" . rtrim($modules_str, ',') . "</a>的应用操作员，请先取消其应用内操作员身份后再添加平台使用者！", '');
+			}
 		}
 	} else  {
 		iajax(-1, '用户不存在!', '');
@@ -208,68 +239,53 @@ if ($do == 'set_permission') {
 			}
 		}
 	}
-	if ($account['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $account['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
-		//获取系统权限
-		$user_menu_permission_account = permission_account_user_menu($uid, $uniacid, PERMISSION_ACCOUNT);
-		if (is_error($user_menu_permission_account)) {
-			itoast('参数错误！');
-		}
-	} elseif ($account['type'] == ACCOUNT_TYPE_APP_NORMAL) {
-		//获取小程序权限
-		$user_menu_permission_wxapp = permission_account_user_menu($uid, $uniacid, PERMISSION_WXAPP);
-		if (is_error($user_menu_permission_wxapp)) {
-			itoast('参数错误！');
+
+	foreach ($account_all_type_sign as $account_type_sign => $account_type_info) {
+		if (in_array($account['type'], $account_type_info['contain_type'])) {
+			$account_type = $account_type_sign == 'account' ? 'system' : $account_type_sign;
 		}
 	}
-
+	$user_menu_permissions = permission_account_user_menu($uid, $uniacid, $account_type);
 	$menus = system_menu_permission_list($role);
+
+	if (in_array($account['type_sign'], array(ACCOUNT_TYPE_SIGN, XZAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN))) {
+		$account_type_menu = ACCOUNT_TYPE_SIGN;
+	} elseif (in_array($account['type_sign'], array(ALIAPP_TYPE_SIGN, BAIDUAPP_TYPE_SIGN, TOUTIAOAPP_TYPE_SIGN))){
+		$account_type_menu = WXAPP_TYPE_SIGN;
+	} else {
+		$account_type_menu = $account['type_sign'];
+	}
 	if (checksubmit('submit')) {
 		$all_menu_permission = permission_menu_name();
 		$user_menu_permission_new = array();
-		if ($account['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $account['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
-			//公众号权限
-			if (!empty($_GPC['system'])) {
-				foreach ($_GPC['system'] as $permission_name) {
-					if (in_array($permission_name, $all_menu_permission)) {
-						$user_menu_permission_new[] = $permission_name;
-					}
+
+		if (!empty($_GPC['menus'])) {
+			foreach ($_GPC['menus'] as $permission_name) {
+				if (in_array($permission_name, $all_menu_permission)) {
+					$user_menu_permission_new[] = $permission_name;
 				}
-				$data = array(
-					'type' => PERMISSION_ACCOUNT,
-					'permission' => implode('|', $user_menu_permission_new)
-				);
-				$result = permission_update_account_user($uid, $uniacid, $data);
-				if (is_error($result)) {
-					itoast($result['message']);
-				}
-			} else {
-				pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $uid, 'type' => PERMISSION_ACCOUNT));
 			}
-		} elseif ($account['type'] == ACCOUNT_TYPE_APP_NORMAL) {
-			//小程序权限
-			if (!empty($_GPC['wxapp'])) {
-				foreach ($_GPC['wxapp'] as $permission_name) {
-					if (in_array($permission_name, $all_menu_permission)) {
-						$user_menu_permission_new[] = $permission_name;
-					}
-				}
-				$data = array(
-					'type' => PERMISSION_WXAPP,
-					'permission' => implode('|', $user_menu_permission_new)
-				);
-				$result = permission_update_account_user($uid, $uniacid, $data);
-				if (is_error($result)) {
-					itoast($result['message']);
-				}
-			} else {
-				pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $uid, 'type' => PERMISSION_WXAPP));
+			$data = array(
+				'type' => $account_type,
+				'permission' => implode('|', $user_menu_permission_new),
+			);
+			$result = permission_update_account_user($uid, $uniacid, $data);
+			if (is_error($result)) {
+				itoast($result['message']);
 			}
+		} else {
+			pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $uid, 'type' => $account_type));
 		}
-		//模块权限
+		if (is_error($result)) {
+			itoast($result['message']);
+		}
+
 
 		// pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $uid, 'type <>' => PERMISSION_ACCOUNT, 'type <>' => PERMISSION_WXAPP));
 		//	不支持，会丢失一个 “type ！=”，sql语句为：DELETE FROM `ims_users_permission` WHERE `uniacid` = :__uniacid_324 AND `uid` = :__uid_325 AND `type` <> :__type_326
-		pdo_query("DELETE FROM " . tablename('users_permission') . " WHERE uniacid = :uniacid AND uid = :uid AND type != '" . PERMISSION_ACCOUNT . "' AND type != '" . PERMISSION_WXAPP . "'", array(':uniacid' => $uniacid, ':uid' => $uid));
+
+		$permission_names = "'" . implode(array(PERMISSION_ACCOUNT, PERMISSION_WXAPP, PERMISSION_WEBAPP, PERMISSION_PHONEAPP, PERMISSION_XZAPP, PERMISSION_ALIAPP, PERMISSION_BAIDUAPP, PERMISSION_TOUTIAOAPP, PERMISSION_SYSTEM),"','") . "'";
+		pdo_query("DELETE FROM " . tablename('users_permission') . " WHERE uniacid = :uniacid AND uid = :uid AND type not in (" .$permission_names . ")", array(':uniacid' => $uniacid, ':uid' => $uid));
 
 		if (!empty($_GPC['module'])) {
 			foreach($_GPC['module'] as $module_val) {
@@ -311,10 +327,7 @@ if($do == 'module' && $_W['isajax']) {
 	if($isfounder) {
 		iajax(2, '访问错误, 无法编辑站长.', '');
 	}
-
 	$module_name = trim($_GPC['m']);
-	$uniacid = intval($_GPC['uniacid']);
-	$uid = intval($_GPC['uid']);
 	$module = pdo_fetch('SELECT * FROM ' . tablename('modules') . ' WHERE name = :m', array(':m' => $module_name));
 	//获取模块权限
 	$purview = pdo_fetch('SELECT * FROM ' . tablename('users_permission') . ' WHERE uniacid = :aid AND uid = :uid AND type = :type', array(':aid' => $uniacid, ':uid' => $uid, ':type' => $module_name));
@@ -360,6 +373,9 @@ if($do == 'module' && $_W['isajax']) {
 	}
 	if(!empty($entries['menu'])) {
 		foreach($entries['menu'] as $menu) {
+			if (!empty($menu['multilevel'])) {
+				continue;
+			}
 			$data[] = array('title' => $menu['title'], 'permission' => $module_name.'_menu_'.$menu['do']);
 		}
 	}

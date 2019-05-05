@@ -84,6 +84,7 @@
 			<td class="">{php echo date('Y-m-d H:i', $new['createtime']);}</td>
 			<td>
 				<div class="link-group">
+					<a href="{php echo url('article/news-show/detail', array('id' => $new['id']));}" target="_blank">预览</a>
 					<a href="{php echo url('article/news/post', array('id' => $new['id']));}">编辑</a>
 					<a href="javascript:void(0);" class="del" data-id="{php echo $new['id']}" onclick="deleteArticle('{php echo $new["id"]}')">删除</a>
 				</div>

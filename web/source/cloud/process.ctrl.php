@@ -26,6 +26,7 @@ if ($step == 'scripts' && $_W['ispost']) {
 	$fname = trim($_GPC['fname']);
 	$entry = IA_ROOT . '/data/update/' . $fname;
 	if (is_file($entry) && preg_match('/^update\(\d{12}\-\d{12}\)\.php$/', $fname)) {
+		set_time_limit(0);
 		$evalret = include $entry;
 		if (!empty($evalret)) {
 			cache_build_users_struct();
@@ -42,6 +43,10 @@ if (!empty($_GPC['m'])) {
 	$type = 'module';
 	$is_upgrade = intval($_GPC['is_upgrade']);
 	$packet = cloud_m_build($_GPC['m']);
+	//检测模块升级脚本是否存在乱码
+	if (!empty($packet) && !json_encode($packet['scripts'])) {
+		itoast('模块安装脚本有代码错误，请联系开发者解决！', referer(), 'error');
+	}
 } elseif (!empty($_GPC['t'])) {
 	$m = $_GPC['t'];
 	$type = 'theme';
@@ -125,9 +130,25 @@ DAT;
 	}
 } else {
 	if (is_error($packet)) {
-		message($packet['message'], '', 'error');
+		$message = $packet['message'];
+		$extend_button = array();
+
+		if ($packet['errno'] == -3) {
+			$cloud_id = intval($message);
+			$message = str_replace($cloud_id, '', $message);
+			$extend_button[] = array(
+				'url' => "http://s.w7.cc/module-{$cloud_id}.html",
+				'title' => '去商城',
+				'class' => 'btn btn-primary',
+				'target' => '_blank',
+			);
+		}
+		message($message, '', 'error', false, $extend_button);
 	} else {
 		cache_updatecache();
+		if (ini_get('opcache.enable') || ini_get('opcache.enable_cli')) {
+			opcache_reset();
+		}
 		itoast('更新已完成. ', url('cloud/upgrade'), 'success');
 	}
 }

@@ -18,6 +18,8 @@ class Bindings extends \We7Table {
 		'url',
 		'icon',
 		'displayorder',
+		'multilevel',
+		'parent',
 	);
 	protected $default = array(
 		'module' => '',
@@ -30,6 +32,8 @@ class Bindings extends \We7Table {
 		'url' => '',
 		'icon' => 'wi wi-appsetting',
 		'displayorder' => 0,
+		'multilevel' => '',
+		'parent' => '',
 	);
 
 	public function searchWithModuleEntry($modulename, $entry) {

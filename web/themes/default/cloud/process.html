@@ -1,7 +1,7 @@
 {template 'common/header'}
 <script type="text/javascript">
 <!--
-	var packet = {php echo ($packet ? json_encode($packet) : 'null');};
+	var packet = {php echo $packet ? json_encode($packet) : 'null';};
 	angular.module('cloudApp');
 	angular.module('cloudApp')
 	.controller('FileProcessorCtrl', function($scope, $http, config) {
@@ -220,12 +220,12 @@
 	</div>
 	<script type="text/javascript">
 		angular.module('cloudApp').value('config', {
-			files : {php echo ($packet['files'] ? json_encode($packet['files']) : '[]');},
+			files : {php echo $packet['files'] ? json_encode($packet['files']) : '[]'},
 			type : '{$type}',
 			appname : '{$m}',
 			is_upgrade : '{$is_upgrade}',
 			account_type : "{$_GPC['support']}",
-			tasknum : '{$packet['task']}',
+			tasknum : "{$packet['task']}",
 		});
 		angular.bootstrap($('.js-processor'), ['cloudApp']);
 	</script>
@@ -304,8 +304,8 @@
 	</div>
 	<script type="text/javascript">
 		angular.module('cloudApp').value('config', {
-			schemas : {php echo ($schemas ? json_encode($schemas) : '[]');},
-			is_module_install : {php echo (!empty($packet['install']) ? 'true' : 'false')},
+			schemas : {php echo $schemas ? json_encode($schemas) : '[]'},
+			is_module_install : {php echo !empty($packet['install']) ? 'true' : 'false'},
 		});
 		angular.bootstrap($('.js-processor'), ['cloudApp']);
 	</script>

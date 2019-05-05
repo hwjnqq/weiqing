@@ -6,18 +6,6 @@
 defined('IN_IA') or exit('Access Denied');
 
 /**
- * 从商城获取最新应用
- * @return 	array
-*/
-function welcome_get_last_modules() {
-	load()->classs('cloudapi');
-
-	$api = new CloudApi();
-	$last_modules = $api->get('store', 'app_fresh');
-	return $last_modules;
-}
-
-/**
  * 从云商城获取广告
  * @return array()
  */
@@ -101,7 +89,7 @@ function welcome_get_cloud_upgrade() {
 		$upgrade = array();
 	}
 	if (!empty($upgrade['schemas'])) {
-		$upgrade['database'] = cloud_build_schemas($schems);
+		$upgrade['database'] = cloud_build_schemas($upgrade['schemas']);
 	}
 	if (!empty($upgrade['files'])) {
 		$file_nums = count($upgrade['files']);

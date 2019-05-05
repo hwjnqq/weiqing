@@ -6,10 +6,17 @@
 defined('IN_IA') or exit('Access Denied');
 class WeiXinPay extends pay{
 	public $wxpay;
-	public function __construct() {
+	public function __construct($module = '') {
 		global $_W;
-		$setting = uni_setting($_W['uniacid']);
-		$wxpay = $setting['payment']['wechat'];
+
+		if (!empty($module) && $module == 'store') {
+			$setting = setting_load('store_pay');
+			$wxpay = $setting['store_pay']['wechat'];
+		} else {
+			$setting = uni_setting($_W['uniacid']);
+			$wxpay = $setting['payment']['wechat'];
+		}
+
 		if (intval($wxpay['switch']) == 3) {
 			$oauth_account = uni_setting($wxpay['service'], array('payment'));
 			$oauth_acid = pdo_getcolumn('uni_account', array('uniacid' => $wxpay['service']), 'default_acid');
@@ -23,7 +30,7 @@ class WeiXinPay extends pay{
 			);
 		} else {
 			$this->wxpay = array(
-				'appid' => $_W['account']['key'],
+				'appid' => $module == 'store' ? $wxpay['appid'] : $_W['account']['key'],
 				'mch_id' => $wxpay['mchid'],
 				'key' => !empty($wxpay['apikey']) ? $wxpay['apikey'] : $wxpay['signkey'],  //暂时解决方案，todo
 				'notify_url' => $_W['siteroot'] . 'payment/wechat/notify.php',
@@ -470,10 +477,17 @@ EOF;
 	 * 申请退款
 	 * $params 退款参数
 	 * */
-	public function refund($params) {
+	public function refund($params, $module = '') {
 		global $_W;
 		$params['sign'] = $this->bulidSign($params);
-		$result = $this->requestApi('https://api.mch.weixin.qq.com/secapi/pay/refund', $params, array(CURLOPT_SSLCERT => ATTACHMENT_ROOT . $_W['uniacid'] . '_wechat_refund_all.pem'));
+
+		if (!empty($module) && $module == 'store') {
+			$cert_root = ATTACHMENT_ROOT . 'store_wechat_refund_all.pem';
+		} else {
+			$cert_root = ATTACHMENT_ROOT . $_W['uniacid'] . '_wechat_refund_all.pem';
+		}
+
+		$result = $this->requestApi('https://api.mch.weixin.qq.com/secapi/pay/refund', $params, array(CURLOPT_SSLCERT => $cert_root));
 		return $result;
 	}
 }

@@ -306,18 +306,18 @@ class WeixinPlatform extends WeixinAccount {
 	}
 
 	protected function getAuthRefreshToken() {
-		$auth_refresh_token = cache_load(cache_system_key('account_auth_refreshtoken', array('acid' => $this->account['acid'])));
+		$auth_refresh_token = cache_load(cache_system_key('account_auth_refreshtoken', array('uniacid' => $this->account['uniacid'])));
 		if (empty($auth_refresh_token)) {
 			$auth_refresh_token = $this->account['auth_refresh_token'];
-			cache_write(cache_system_key('account_auth_refreshtoken', array('acid' => $this->account['acid'])), $auth_refresh_token);
+			cache_write(cache_system_key('account_auth_refreshtoken', array('uniacid' => $this->account['uniacid'])), $auth_refresh_token);
 		}
 		return $auth_refresh_token;
 	}
 
 	protected function setAuthRefreshToken($token) {
 		$tablename = 'account_wechats';
-		pdo_update($tablename, array('auth_refresh_token' => $token), array('acid' => $this->account['acid']));
-		cache_write(cache_system_key('account_auth_refreshtoken', array('acid' => $this->account['acid'])), $token);
+		pdo_update($tablename, array('auth_refresh_token' => $token), array('uniacid' => $this->account['uniacid']));
+		cache_write(cache_system_key('account_auth_refreshtoken', array('uniacid' => $this->account['uniacid'])), $token);
 	}
 
 	public function result($errno, $message = '', $data = '') {

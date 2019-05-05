@@ -66,7 +66,7 @@ if ($do == 'del') {
 	if (!empty($mass) && $mass['cron_id'] > 0) {
 		$status = cron_delete(array($mass['cron_id']));
 		if (is_error($status)) {
-			iajax(0, $status, '');
+			itoast($status['message'], '', 'error');
 		}
 	}
 	pdo_delete('mc_mass_record', array('uniacid' => $_W['uniacid'], 'id' => intval($_GPC['id'])));
@@ -172,7 +172,10 @@ if ($do == 'post') {
 			);
 			$status = cron_add($cron_data);
 			if (is_error($status)) {
-				$message = "{$cron_title}同步到云服务失败,请手动同步<br>";
+				$message = $status['message'];
+				if (empty($message)) {
+					$message = "{$cron_title}同步到云服务失败,请手动同步<br>";
+				}
 				itoast($message, url('platform/mass/send'), 'info');
 			}
 

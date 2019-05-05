@@ -13,7 +13,7 @@ $do = in_array($do, $dos) ? $do : 'display';
 if ($do == 'display') {
 	$info = array(
 		'os' => php_uname(),
-		'php' => phpversion(),
+		'php' => PHP_VERSION,
 		'sapi' => $_SERVER['SERVER_SOFTWARE'] ? $_SERVER['SERVER_SOFTWARE'] : php_sapi_name(),
 	);
 

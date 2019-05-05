@@ -415,8 +415,8 @@ if ($do == 'delete') {
 			itoast('抱歉，您操作的规则不在存或是已经被删除！', url('platform/reply', array('m' => $m)), 'error');
 		}
 		//删除回复，关键字及规则
-		if (pdo_delete('rule', array('id' => $rid))) {
-			pdo_delete('rule_keyword', array('rid' => $rid));
+		if (pdo_delete('rule', array('id' => $rid, 'uniacid' => $_W['uniacid']))) {
+			pdo_delete('rule_keyword', array('rid' => $rid, 'uniacid' => $_W['uniacid']));
 			//调用模块中的删除
 			if (!in_array($m, $sysmods)) {
 				$reply_module = $m;

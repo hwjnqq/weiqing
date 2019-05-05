@@ -141,10 +141,7 @@ if ($do == 'del') {
 	pdo_delete('site_nav', array('uniacid' => $_W['uniacid'], 'multiid' => $id));
 	//删除微站入口设置
 	$rid = pdo_fetchcolumn('SELECT rid FROM ' .tablename('cover_reply') . ' WHERE uniacid = :uniacid AND multiid = :id', array(':uniacid' => $_W['uniacid'], ':id' => $id));
-	if(pdo_delete('rule', array('id' => $rid, 'uniacid' => $_W['uniacid'])) !== false) {
-		pdo_delete('rule_keyword', array('rid' => $rid));
-		pdo_delete('cover_reply', array('rid' => $rid, 'multiid' => $id));
-	}
+	uni_delete_rule($rid, 'cover_reply');
 	//删除微站信息
 	pdo_delete('site_multi', array('uniacid' => $_W['uniacid'], 'id' => $id));
 	itoast('删除微站成功', referer(), 'success');

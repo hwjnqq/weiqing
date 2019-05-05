@@ -7,11 +7,18 @@
 
 	<table class="table we7-table table-hover we7-form account-and-wxapp">
 	{loop $menus $name $sections}
-		{if $sections['section'] && $name == 'account' && in_array($account['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))}
-			<div>{$sections['title']}<span class="color-default font-sm">（<i class="fa fa-exclamation-circle"></i> 默认未勾选任何菜单时，用户拥有全部权限）</span>
+		{if $name == XZAPP_TYPE_SIGN || $name == WEBAPP_TYPE_SIGN}
+			{php $menu_name = ACCOUNT_TYPE_SIGN}
+		{elseif $name == ALIAPP_TYPE_SIGN || $name == BAIDUAPP_TYPE_SIGN || $name == TOUTIAOAPP_TYPE_SIGN}
+			{php $menu_name = WXAPP_TYPE_SIGN}
+		{else}
+			{php $menu_name = $name}
+		{/if}
+		{if $sections['section'] && $name == $account_type_menu}
+			<div>{$account['type_name']}<span class="color-default font-sm">（<i class="fa fa-exclamation-circle"></i> 默认未勾选任何菜单时，用户拥有全部权限）</span>
 			</div>
 			{loop $sections['section'] $section_id $section}
-				{if !in_array($section_id, array('platform_module'))}
+				{if !in_array($section_id, array('platform_module')) && in_array($account['type'], $section['permission_display'])}
 					<thead>
 					<tr class="text-left">
 						<th colspan="4" class="text-left">
@@ -31,14 +38,15 @@
 						<td class="text-left vertical-middle" style="overflow:inherit;">
 							<div class="dropdown system-select-dropdown">
 								<span>
-									<input id="check-child-{$menu_id}" type="checkbox" we7-check-all="1" value="{$menu['permission_name']}" {if in_array($menu['permission_name'], $user_menu_permission_account)}checked{/if} name="system[]" autocomplete="off" />
+									<input id="check-child-{$menu_id}" type="checkbox" we7-check-all="1" value="{$menu['permission_name']}" {if in_array($menu['permission_name'], $user_menu_permissions)}checked{/if} name="menus[]" autocomplete="off" />
 									<label for="check-child-{$menu_id}" class="we7-margin-horizontal-none" data-toggle="tooltip">{$menu['title']}{if !empty($menu['sub_permission'])}<span class="caret"></span>{/if}</label>
 								</span>
 								{if $menu['sub_permission']}
 								<ul class="dropdown-menu">
 									{loop $menu['sub_permission'] $sub_permission}
+									{if is_array($sub_permission['is_display']) && !in_array($account['type'], $sub_permission['is_display'])}{php continue;}{/if}
 									<li class="text-left">
-										<input id="check-child-{$sub_permission['permission_name']}"  we7-check-all="1" type="checkbox" value="{$sub_permission['permission_name']}" {if in_array($sub_permission['permission_name'], $user_menu_permission_account)}checked{/if} name="system[]">
+										<input id="check-child-{$sub_permission['permission_name']}"  we7-check-all="1" type="checkbox" value="{$sub_permission['permission_name']}" {if in_array($sub_permission['permission_name'], $user_menu_permissions)}checked{/if} name="menus[]">
 										<label class="we7-margin-horizontal-none" for="check-child-{$sub_permission['permission_name']}">
 											{$sub_permission['title']}
 										</label>
@@ -57,61 +65,6 @@
 						for ($x=0; $x<4-($i-1)%4; $x++) {
 							echo "<td></td>";
 						}
-						?>
-						</tr>
-					{/if}
-					</tbody>
-				{/if}
-			{/loop}
-		{/if}
-		{if $sections['section'] && $name == 'wxapp' && $account['type'] == ACCOUNT_TYPE_APP_NORMAL}
-			<div>{$sections['title']}<span class="color-default font-sm">（<i class="fa fa-exclamation-circle"></i> 默认未勾选任何菜单时，用户拥有全部权限）</span></div>
-			{loop $sections['section'] $section_id $section}
-				{if !in_array($section_id, array('platform_module'))}
-					<thead>
-					<tr class="text-left">
-						<th colspan="4" class="text-left">
-							<div class="">
-								<input id="check-{$section_id}" type="checkbox" name="system_{$section_id}"  we7-check-all="1" onChange="selectall(this, 'system_{$section_id}')">
-								<label for="check-{$section_id}" class=" we7-margin-horizontal-none">{$section['title']}</label>
-							</div>
-						</th>
-					</tr>
-					</thead>
-					<tbody class="system_{$section_id}">
-					{php $i=1;}
-					{loop $section['menu'] $menu_id $menu}
-						{if $menu_id == 'front_download'}{php continue;}{/if}
-						{if $i%4 == 1 || $i == 1}<tr>{/if}
-						<td class="text-left vertical-middle" style="overflow:inherit;">
-							<div class="dropdown system-select-dropdown">
-								<span>
-									<input id="check-child-{$menu_id}" type="checkbox" we7-check-all="1" value="{$menu['permission_name']}" {if in_array($menu['permission_name'], $user_menu_permission_wxapp)}checked{/if} name="wxapp[]" autocomplete="off" />
-									<label for="check-child-{$menu_id}" class="we7-margin-horizontal-none" data-toggle="tooltip">{$menu['title']}{if !empty($menu['sub_permission'])}<span class="caret"></span>{/if}</label>
-								</span>
-								{if $menu['sub_permission']}
-								<ul class="dropdown-menu">
-									{loop $menu['sub_permission'] $sub_permission}
-									<li class="text-left">
-										<input id="check-child-{$sub_permission['permission_name']}"  we7-check-all="1" type="checkbox" value="{$sub_permission['permission_name']}" {if in_array($sub_permission['permission_name'], $user_menu_permission_wxapp)}checked{/if} name="wxapp[]">
-										<label class="we7-margin-horizontal-none" for="check-child-{$sub_permission['permission_name']}">
-											{$sub_permission['title']}
-										</label>
-									</li>
-									{/loop}
-								</ul>
-								{/if}
-							</div>
-							
-						</td>
-						{if $i%4 == 0}</tr><tr>{/if}
-						{php $i++;}
-					{/loop}
-					{if ($i-1)%4 != 0}
-						<?php 
-						for ($x=0; $x<4-($i-1)%4; $x++) {
-							echo "<td></td>";
-						} 
 						?>
 						</tr>
 					{/if}
@@ -138,7 +91,7 @@
 		<tbody class="module_select system-select-box">
 			{php $i=1;}
 			{loop $module $k $m}
-				{if empty($m['issystem'])}
+				{if !empty($m['issystem'])}{php continue;}{/if}
 				{if $i%4 == 1 || $i == 1}<tr>{/if}
 					<td  class="text-left vertical-middle" style="overflow:inherit;width:25%">
 						<div class="dropdown system-select-dropdown">
@@ -152,7 +105,6 @@
 					</td>
 				{if $i%4 == 0}</tr>{/if}
 				{php $i++;}
-				{/if}
 			{/loop}
 			{if ($i-1)%4 != 0}
 				<?php 

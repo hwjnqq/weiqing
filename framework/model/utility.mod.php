@@ -17,7 +17,7 @@ function code_verify($uniacid, $receiver, $code) {
 	if (empty($receiver) || !is_numeric($code)) {
 		return false;
 	}
-	$params = array('uniacid' => intval($uniacid), 'receiver' => $receiver, 'verifycode' => $code, 'createtime >' => (TIMESTRAP - 1800));
+	$params = array('uniacid' => intval($uniacid), 'receiver' => $receiver, 'verifycode' => $code, 'createtime >' => (TIMESTAMP - 1800));
 	$data = table('account')->getUniVerifycode($params);
 	if(empty($data)) {
 		return false;

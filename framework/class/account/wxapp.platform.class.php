@@ -71,8 +71,8 @@ class WxappPlatform extends WeixinPlatform {
 
 	protected function setAuthRefreshToken($token) {
 		$tablename = 'account_wxapp';
-		pdo_update($tablename, array('auth_refresh_token' => $token), array('acid' => $this->account['acid']));
-		cache_write(cache_system_key('account_auth_refreshtoken', array('acid' => $this->account['acid'])), $token);
+		pdo_update($tablename, array('auth_refresh_token' => $token), array('uniacid' => $this->account['uniacid']));
+		cache_write(cache_system_key('account_auth_refreshtoken', array('uniacid' => $this->account['uniacid'])), $token);
 	}
 
 	/**

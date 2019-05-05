@@ -30,10 +30,6 @@ class Group extends \We7Table {
 
 		if (!empty($data['modules'])) {
 			$data['modules'] = iunserializer($data['modules']);
-			if (!empty($data['modules']['modules'])) {
-				$data['modules']['account'] = $data['modules']['modules'];
-				unset($data['modules']['modules']);
-			}
 		}
 		if (!empty($data['templates'])) {
 			$data['templates'] = iunserializer($data['templates']);

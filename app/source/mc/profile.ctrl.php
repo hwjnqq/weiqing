@@ -60,19 +60,22 @@ $jobedit_hide = mc_card_settings_hide('jobedit');
 
 if ($do == 'editprofile'){
 	if ($_W['isajax'] && $_W['ispost']) {
-		if (!empty($_GPC)) {
-			foreach ($_GPC as $field => $value) {
-				if (!isset($value) || in_array($field, array('uid','act', 'name', 'token', 'submit', 'session'))) {
-					unset($_GPC[$field]);
-					continue;
-				}
-			}
-			if(empty($_GPC['email']) && $profile['email_effective'] == 1) {
-				unset($_GPC['email']);
-			}
-			mc_update($_W['member']['uid'], safe_gpc_array($_GPC));
+		$data = array(
+			'nickname' => safe_gpc_string($_GPC['nickname']),
+			'realname' => safe_gpc_string($_GPC['realname']),
+			'birth' => array(
+				'year' => intval($_GPC['birth']['year']),
+				'month' => intval($_GPC['birth']['month']),
+				'day' => intval($_GPC['birth']['day'])
+			),
+			'gender' => intval($_GPC['gender']),
+		);
+		$result = mc_update($_W['member']['uid'], $data);
+		if ($result) {
+			message('更新资料成功！', referer(), 'success');
+		} else {
+			message('更新资料失败！', referer(), 'error');
 		}
-		message('更新资料成功！', referer(), 'success');
 	}
 }
 if ($do == 'avatar') {
@@ -91,7 +94,7 @@ if ($do == 'address') {
 	}
 	if ($_GPC['op'] == 'delete') {
 		if (!empty($profile) && !empty($_W['openid'])) {
-			pdo_delete('mc_member_address', array('id' => $address_id, 'uid' => $_W['member']['uid']));
+			pdo_delete('mc_member_address', array('id' => $address_id, 'uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
 		}
 	}
 	$where = ' WHERE 1';

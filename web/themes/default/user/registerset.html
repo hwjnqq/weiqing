@@ -7,7 +7,7 @@
 			<div class="form-file header">注册设置</div>
 			<div class="form-file">
 				<div class="form-label">用户注册</div>
-				<div class="form-value">开启后，登录页面现实立即注册入口</div>
+				<div class="form-value">开启后，登录页面显示立即注册入口</div>
 				<div class="form-edit">
 					<div ng-class="!settings.open ? 'switch' : 'switch switchOn'"  ng-click="saveSettingSwitch('open', settings.open)"></div>
 				</div>
@@ -26,7 +26,18 @@
 					<div ng-class="!settings.verify ? 'switch' : 'switch switchOn'"  ng-click="saveSettingSwitch('verify', settings.verify)"></div>
 				</div>
 			</div>
-
+			<div class="form-file">
+				<div class="form-label">用户协议</div>
+				<div class="form-value">
+					{if !empty($settings['agreement_info'])} 已添加协议 {else} 未添加协议 {/if}
+				</div>
+				<div class="form-edit">
+					<a href="{php echo url('user/agreement')}">去修改</a>&nbsp;&nbsp;&nbsp;
+				</div>
+				<div class="form-edit">
+					<div ng-class="!settings.agreement_status ? 'switch' : 'switch switchOn'"  ng-click="saveSettingSwitch('agreement_status', settings.agreement_status)"></div>
+				</div>
+			</div>
 			<div class="form-file">
 				<div class="form-label">图形验证码</div>
 				<div class="form-value">开启后，用户注册需要输入图形验证码</div>

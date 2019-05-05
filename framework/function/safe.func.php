@@ -95,12 +95,10 @@ function safe_gpc_array($value, $default = array()) {
 /**
  * 转换一个安全的布尔值
  * @param mixed $value
- * @param boolean $default
  * @return boolean
  */
-function safe_gpc_boolean($value, $default = false) {
-	$value = safe_gpc_int($value, $default);
-	return empty($value) ? false : true;
+function safe_gpc_boolean($value) {
+	return boolval($value);
 }
 
 /**

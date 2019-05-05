@@ -37,7 +37,7 @@ if ($do == 'delete') {
 			$result = file_delete($attachment['attachment']);
 		}
 		if (!is_error($result)) {
-			pdo_delete('core_attachment', array('id' => $id));
+			pdo_delete('core_attachment', array('id' => $id, 'uniacid' => $_W['uniacid']));
 		}
 		if (!is_error($result)) {
 			return message(error('0'), '', 'ajax');

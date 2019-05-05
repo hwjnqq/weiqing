@@ -124,12 +124,22 @@ function template($filename, $flag = TEMPLATE_DISPLAY) {
 }
 
 function template_compile($from, $to) {
+	global $_W;
 	$path = dirname($to);
 	if (!is_dir($path)) {
 		load()->func('file');
 		mkdirs($path);
 	}
 	$content = template_parse(file_get_contents($from));
+	if (defined('IN_MODULE') &&
+		$_W['os'] != 'mobile' &&
+		module_get_direct_enter_status($_W['current_module']['name']) == STATUS_ON &&
+		!preg_match('/\<script\>var we7CommonForModule.*document\.body\.appendChild\(we7CommonForModule\)\<\/script\>/', $content) &&
+		!preg_match('/(footer|header|account\/welcome|module\/welcome)+/', $from)) {
+		$extra_code = "<script>var we7CommonForModule = document.createElement(\"script\");we7CommonForModule.src = '//cdn.w7.cc/we7/w7windowside.js?v=" . IMS_RELEASE_DATE . "';document.body.appendChild(we7CommonForModule)
+</script>";
+		$content .= $extra_code;
+	}
 	file_put_contents($to, $content);
 }
 

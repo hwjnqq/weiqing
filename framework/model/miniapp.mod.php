@@ -405,7 +405,7 @@ function miniapp_version_detail_info($version_info) {
 				}
 				$module_info = module_fetch($module['name']);
 				$module_info['version'] = $module['version'];
-				$module['uniacid'] = table('uni_link_uniacid')->getMainUniacid($version_info['uniacid'], $module['name'], $version_info['version_id']);
+				$module['uniacid'] = table('uni_link_uniacid')->getMainUniacid($version_info['uniacid'], $module['name'], $version_info['id']);
 				if (!empty($module['uniacid'])) {
 					$module_info['uniacid'] = $module['uniacid'];
 					$link_account = uni_fetch($module['uniacid']);
@@ -420,8 +420,8 @@ function miniapp_version_detail_info($version_info) {
 			}
 		}
 		if (count($version_info['modules']) > 0) {
-			$cover_entrys = !empty($version_info['modules'][0]['cover_entrys']) ? $version_info['modules'][0]['cover_entrys'] : array();
-			$version_info['cover_entrys'] = !empty($cover_entrys['cover']) ? $cover_entrys['cover'] : array();
+			$version_module = current($version_info['modules']);
+			$version_info['cover_entrys'] = !empty($version_module['cover_entrys']['cover']) ? $version_module['cover_entrys']['cover'] : array();
 		}
 		$version_info['last_modules'] = iunserializer($version_info['last_modules']);
 		$version_info['tominiprogram'] = iunserializer($version_info['tominiprogram']);
@@ -436,7 +436,7 @@ function miniapp_version_detail_info($version_info) {
 			}
 			$module_info = module_fetch($module['name']);
 			$module_info['version'] = $module['version'];
-			$module['uniacid'] = table('uni_link_uniacid')->getMainUniacid($version_info['uniacid'], $module['name'], $version_info['version_id']);
+			$module['uniacid'] = table('uni_link_uniacid')->getMainUniacid($version_info['uniacid'], $module['name'], $version_info['id']);
 			if (!empty($module['uniacid'])) {
 				$module_info['uniacid'] = $module['uniacid'];
 				$link_account = uni_fetch($module['uniacid']);

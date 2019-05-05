@@ -12,11 +12,7 @@ $dos = array('openid', 'userinfo', 'check');
 $do = in_array($do, $dos) ? $do : 'openid';
 
 $account_api = WeAccount::createByUniacid();
-if (!empty($_GPC['wxwork'])) {
-	//如果是企业微信，实例化wxapp.work类，目前没有独立出来小程序企业号类型 先这样处理
-	$_W['account']['type'] = ACCOUNT_TYPE_WXAPP_WORK;
-	$account_api = WeAccount::includes($_W['account']);
-}
+
 if ($do == 'openid') {
 	/**
 	 * 用户可通过code码或是Openid来获取用户信息
@@ -133,19 +129,6 @@ if ($do == 'openid') {
 			'headimgurl' => $userinfo['avatarUrl'],
 		))),
 	);
-	//如果有unionid则查找相关粉丝，将会员数据同步
-	if (!empty($userinfo['unionId'])) {
-		$union_fans = pdo_get('mc_mapping_fans', array('unionid' => $userinfo['unionId'], 'openid !=' => $userinfo['openId']));
-		if (!empty($union_fans['uid'])) {
-			if (!empty($fans['uid'])) {
-				//合并积分数据
-
-// 				pdo_delete('mc_members', array('uid' => $fans['uid']));
-			}
-			$fans_update['uid'] = $union_fans['uid'];
-			$_SESSION['uid'] = $union_fans['uid'];
-		}
-	}
 	
 	$member = mc_fetch($fans['uid']);
 	if (!empty($member)) {
@@ -158,7 +141,7 @@ if ($do == 'openid') {
 			'salt' => random(8),
 			'groupid' => $default_groupid,
 			'createtime' => TIMESTAMP,
-			'password' => md5($member['salt'] . $_W['config']['setting']['authkey']),
+			'password' => md5($userinfo['openId'] . $member['salt'] . $_W['config']['setting']['authkey']),
 			'nickname' => $userinfo['nickName'],
 			'avatar' => $userinfo['avatarUrl'],
 			'gender' => $userinfo['gender'],

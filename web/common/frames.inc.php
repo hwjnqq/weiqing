@@ -70,6 +70,11 @@ $we7_system_menu['account_manage'] = array(
 					'url' => url('system/platform'),
 					'permission_name' => 'account_manage_system_platform',
 				),
+				'account_manage_expired_message' => array(
+					'title' => ' 自定义到期提示',
+					'url' => url('account/expired-message'),
+					'permission_name' => 'account_manage_expired_message',
+				),
 			),
 		),
 	),
@@ -469,8 +474,6 @@ $we7_system_menu['message'] = array(
 	),
 );
 
-
-
 $we7_system_menu['account'] = array(
 	'title' => '公众号',
 	'icon' => 'wi wi-white-collar',
@@ -707,6 +710,12 @@ $we7_system_menu['account'] = array(
 					),
 				),
 			),
+			'permission_display' => array(
+				ACCOUNT_TYPE_OFFCIAL_NORMAL,
+				ACCOUNT_TYPE_OFFCIAL_AUTH,
+				ACCOUNT_TYPE_XZAPP_NORMAL,
+				ACCOUNT_TYPE_XZAPP_AUTH,
+			),
 		),
 		'platform_module' => array(
 			'title' => '应用模块',
@@ -823,6 +832,13 @@ $we7_system_menu['account'] = array(
 						ACCOUNT_TYPE_XZAPP_AUTH,
 					),
 				)
+			),
+			'permission_display' => array(
+				ACCOUNT_TYPE_OFFCIAL_NORMAL,
+				ACCOUNT_TYPE_OFFCIAL_AUTH,
+				ACCOUNT_TYPE_XZAPP_NORMAL,
+				ACCOUNT_TYPE_XZAPP_AUTH,
+				ACCOUNT_TYPE_WEBAPP_NORMAL,
 			),
 		),
 		'profile' => array(
@@ -957,6 +973,13 @@ $we7_system_menu['account'] = array(
 				),
 				
 			),
+			'permission_display' => array(
+				ACCOUNT_TYPE_OFFCIAL_NORMAL,
+				ACCOUNT_TYPE_OFFCIAL_AUTH,
+				ACCOUNT_TYPE_XZAPP_NORMAL,
+				ACCOUNT_TYPE_XZAPP_AUTH,
+				ACCOUNT_TYPE_WEBAPP_NORMAL,
+			),
 		),
 		
 	),
@@ -983,6 +1006,11 @@ $we7_system_menu['wxapp'] = array(
 					'permission_name' => 'wxapp_entrance_link',
 				),
 			),
+			'permission_display' => array(
+				ACCOUNT_TYPE_APP_NORMAL,
+				ACCOUNT_TYPE_APP_AUTH,
+				ACCOUNT_TYPE_WXAPP_WORK,
+			)
 		),
 		'platform_module' => array(
 			'title' => '应用',
@@ -1030,6 +1058,11 @@ $we7_system_menu['wxapp'] = array(
 					),
 				)
 			),
+			'permission_display' => array(
+				ACCOUNT_TYPE_APP_NORMAL,
+				ACCOUNT_TYPE_APP_AUTH,
+				ACCOUNT_TYPE_WXAPP_WORK,
+			)
 		),
 		'wxapp_profile' => array(
 			'title' => '配置',
@@ -1076,7 +1109,7 @@ $we7_system_menu['wxapp'] = array(
 				),
 				'wxapp_profile_front_download' => array(
 					'title' => $_W['account']['type_sign'] == 'wxapp' ? '上传微信审核' : '下载程序包',
-					'url' => url('wxapp/front-download'),
+					'url' => $_W['account']['type_sign'] == 'phoneapp' ? url('phoneapp/front-download') : url('wxapp/front-download'),
 					'is_display' => 1,
 					'icon' => 'wi wi-examine',
 					'permission_name' => 'wxapp_profile_front_download',
@@ -1114,6 +1147,15 @@ $we7_system_menu['wxapp'] = array(
 						),
 					),
 				),
+			),
+			'permission_display' => array(
+				ACCOUNT_TYPE_APP_NORMAL,
+				ACCOUNT_TYPE_APP_AUTH,
+				ACCOUNT_TYPE_WXAPP_WORK,
+				ACCOUNT_TYPE_PHONEAPP_NORMAL,
+				ACCOUNT_TYPE_ALIAPP_NORMAL,
+				ACCOUNT_TYPE_BAIDUAPP_NORMAL,
+				ACCOUNT_TYPE_TOUTIAOAPP_NORMAL,
 			)
 		),
 		'statistics' => array(
@@ -1155,6 +1197,15 @@ $we7_system_menu['wxapp'] = array(
 					),
 				),
 			),
+			'permission_display' => array(
+				ACCOUNT_TYPE_APP_NORMAL,
+				ACCOUNT_TYPE_APP_AUTH,
+				ACCOUNT_TYPE_WXAPP_WORK,
+				ACCOUNT_TYPE_PHONEAPP_NORMAL,
+				ACCOUNT_TYPE_ALIAPP_NORMAL,
+				ACCOUNT_TYPE_BAIDUAPP_NORMAL,
+				ACCOUNT_TYPE_TOUTIAOAPP_NORMAL,
+			)
 		),
 	),
 );
@@ -1197,6 +1248,9 @@ $we7_system_menu['phoneapp'] = array(
 				)
 			),
 			'is_display' => true,
+			'permission_display' => array(
+				ACCOUNT_TYPE_PHONEAPP_NORMAL,
+			)
 		)
 	),
 );

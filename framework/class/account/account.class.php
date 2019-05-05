@@ -312,7 +312,7 @@ class WeAccount extends ArrayObject {
 	}
 
 	protected function supportOauthInfo() {
-		if ($this->account['level'] == ACCOUNT_SERVICE_VERIFY || $this->typeSign == XZAPP_TYPE_SIGN) {
+		if ($this->typeSign == ACCOUNT_TYPE_SIGN && $this->account['level'] == ACCOUNT_SERVICE_VERIFY || $this->typeSign == XZAPP_TYPE_SIGN) {
 			return STATUS_ON;
 		} else {
 			return STATUS_OFF;
@@ -570,7 +570,7 @@ class WeAccount extends ArrayObject {
 		);
 		$code = strval($code);
 		if($code == '40001' || $code == '42001') {
-			cache_delete(cache_system_key('accesstoken', array('acid' => $this->account['acid'])));
+			cache_delete(cache_system_key('accesstoken', array('uniacid' => $this->account['uniacid'])));
 			return '微信公众平台授权异常, 系统已修复这个错误, 请刷新页面重试.';
 		}
 

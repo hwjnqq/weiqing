@@ -33,7 +33,6 @@ if ($do == 'display') {
 	$order = safe_gpc_string($_GPC['order']);
 	$account_table->accountUniacidOrder($order);
 
-
 	$keyword = safe_gpc_string($_GPC['keyword']);
 	if (!empty($keyword)) {
 		$account_table->searchWithKeyword($keyword);
@@ -44,13 +43,12 @@ if ($do == 'display') {
 		$expire_type = safe_gpc_string($_GPC['type']);
 	}
 	$list = $account_table->searchAccountList($expire_type);
-
-	# 获取副创始人下的所有用户所拥有的帐号
-	if (user_is_vice_founder($_W['uid'])) {
-		$founder_own_users_table = table('users_founder_own_users');
-		$users_uids = $founder_own_users_table->getFounderOwnUsersList($_W['uid']);
-		$users_accounts = table('uni_account_users')->getOwnedAccountsByUid(array_keys($users_uids));
-		$list = array_merge($list,$users_accounts);
+	foreach ($account_all_type_sign as $type_sign => $type_value) {
+		$type = $type_sign == 'account' ? 'app' : $type_sign;
+		$type_accounts = uni_user_accounts($_W['uid'], $type);
+		if (!empty($type_accounts)) {
+			$account_all_type_sign[$type_sign]['account_num'] = count($type_accounts);
+		}
 	}
 
 	$list = array_values($list);
@@ -74,7 +72,7 @@ if ($do == 'account_detailinfo') {
 		$account['owner_name'] = $account->owner['username'];
 		$account['support_version'] = $account->supportVersion;
 		$account['sms_num'] = !empty($account['setting']['notify']) ? $account['setting']['notify']['sms']['balance'] : 0;
-		$account['end'] = $account['endtime'] == 0 ? '永久' : date('Y-m-d', $account['endtime']);
+		$account['end'] = $account['endtime'] == USER_ENDTIME_GROUP_EMPTY_TYPE || $account['endtime'] == USER_ENDTIME_GROUP_UNLIMIT_TYPE ? '永久' : date('Y-m-d', $account['endtime']);
 		$account['manage_premission'] = in_array($account['current_user_role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER));
 		if ($account['support_version']) {
 			$account['versions'] = miniapp_get_some_lastversions($uniacid);
@@ -92,42 +90,35 @@ if ($do == 'account_detailinfo') {
 }
 
 if ($do == 'delete') {
-	$uniacid = intval($_GPC['uniacid']);
-	$acid = intval($_GPC['acid']);
+	$uniacids = empty($_GPC['uniacids']) && !empty($_GPC['uniacid']) ? array($_GPC['uniacid']) : $_GPC['uniacids'];
+	if (!empty($uniacids)) {
+		foreach ($uniacids as $uniacid) {
+			$uniacid = intval($uniacid);
+			$state = permission_account_user_role($_W['uid'], $uniacid);
+			if (!in_array($state, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
+				continue;
+			}
 
-	$state = permission_account_user_role($_W['uid'], $uniacid);
-	if (!in_array($state, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
-		itoast('无权限操作！', url('account/manage'), 'error');
+			if (!empty($uniacid)) {
+				$account = pdo_get('uni_account', array('uniacid' => $uniacid));
+				if (empty($account)) {
+					continue;
+				}
+
+				pdo_update('account', array('isdeleted' => 1), array('uniacid' => $uniacid));
+				pdo_delete('uni_modules', array('uniacid' => $uniacid));
+				pdo_delete('users_lastuse', array('uniacid' => $uniacid));
+				pdo_delete('core_menu_shortcut', array('uniacid' => $uniacid));
+				if($uniacid == $_W['uniacid']) {
+					cache_delete(cache_system_key('last_account', array('switch' => $_GPC['__switch'], 'uid' => $_W['uid'])));
+					isetcookie('__uniacid', '');
+				}
+				cache_delete(cache_system_key('uniaccount', array('uniacid' => $uniacid)));
+			}
+		}
 	}
-
-	if (!empty($acid) && empty($uniacid)) {
-		$account = account_fetch($acid);
-		if (empty($account)) {
-			itoast('子公众号不存在或是已经被删除', '', '');
-		}
-		$uniaccount = uni_fetch($account['uniacid']);
-		if ($uniaccount['default_acid'] == $acid) {
-			itoast('默认子公众号不能删除', '', '');
-		}
-		pdo_update('account', array('isdeleted' => 1), array('acid' => $acid));
-		itoast('删除子公众号成功！您可以在回收站中回复公众号', referer(), 'success');
+	if (!$_W['isajax'] || !$_W['ispost']) {
+		itoast('停用成功！，您可以在回收站中恢复', url('account/manage'));
 	}
-
-	if (!empty($uniacid)) {
-		$account = pdo_get('uni_account', array('uniacid' => $uniacid));
-		if (empty($account)) {
-			itoast('抱歉，帐号不存在或是已经被删除', url('account/manage'), 'error');
-		}
-
-		pdo_update('account', array('isdeleted' => 1), array('uniacid' => $uniacid));
-		pdo_delete('uni_modules', array('uniacid' => $uniacid));
-		pdo_delete('users_lastuse', array('uniacid' => $uniacid));
-		pdo_delete('core_menu_shortcut', array('uniacid' => $uniacid));
-		if($uniacid == $_W['uniacid']) {
-			cache_delete(cache_system_key('last_account', array('switch' => $_GPC['__switch'], 'uid' => $_W['uid'])));
-			isetcookie('__uniacid', '');
-		}
-		cache_delete(cache_system_key('uniaccount', array('uniacid' => $uniacid)));
-	}
-	itoast('停用成功！，您可以在回收站中恢复', url('account/manage'), 'success');
+	iajax(0, '停用成功！，您可以在回收站中恢复', url('account/manage'));
 }

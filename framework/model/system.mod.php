@@ -26,6 +26,9 @@ function system_shortcut_menu() {
 			if (!empty($system_menu[$top_menu]['founder']) && !$is_main_founder) {
 				continue;
 			}
+			if (in_array($top_menu, $hidden_menu)) {
+				continue;
+			}
 			$shortcut_menu[$top_menu] = $system_menu[$top_menu];
 			foreach ($shortcut_menu[$top_menu]['section'] as $section_key => &$section) {
 				if (!empty($section['founder']) && !$is_main_founder) {
@@ -43,7 +46,7 @@ function system_shortcut_menu() {
 		}
 
 		$store_setting = $_W['setting']['store'];
-		if ($is_main_founder || empty($store_setting['status'])) {
+		if (!in_array('store', $hidden_menu) && ($is_main_founder || empty($store_setting['status']))) {
 			//用户无商城访问权限
 			if (!$is_main_founder && !empty($_W['username']) && !empty($store_setting['permission_status']) && empty($store_setting['permission_status']['close'])) {
 				if (!in_array($_W['username'], (array)$store_setting['whitelist']) && !empty($store_setting['permission_status']['whitelist'])
@@ -65,6 +68,9 @@ function system_shortcut_menu() {
 					}
 					foreach ($section['menu'] as $menu_key => &$menu) {
 						$menu['is_display'] = 1;
+						if (in_array($menu_key, $hidden_menu)) {
+							$menu['is_display'] = 0;
+						}
 						if ($key == 'store_goods' && !empty($store_setting[$menu_key])) {
 							$menu['is_display'] = 0;
 						}
@@ -271,27 +277,38 @@ function system_check_items() {
 		'mbstring' => array(
 			'operate' => 'system_check_php_ext',
 			'description' => 'mbstring 扩展',
+			'error_message' => '不支持库',
 			'solution' => '安装 mbstring 扩展',
 			'handle' => 'https://bbs.w7.cc/thread-33156-1-1.html'
 		),
 		'mcrypt' => array(
 			'operate' => 'system_check_php_ext',
 			'description' => 'mcrypt 扩展',
+			'error_message' => '不支持库',
 			'solution' => '安装 mcrypt 扩展',
 			'handle' => 'https://bbs.w7.cc/thread-33159-1-1.html'
 		),
 		'openssl' => array(
 			'operate' => 'system_check_php_ext',
 			'description' => 'openssl 扩展',
+			'error_message' => '不支持库',
 			'solution' => '安装 openssl 扩展',
 			'handle' => 'https://bbs.w7.cc/thread-33160-1-1.html'
 		),
 		'system_template' => array(
 			'operate' => 'system_check_template',
 			'description' => '是否系统皮肤',
+			'error_message' => '不是系统皮肤',
 			'solution' => '更换系统默认皮肤',
 			'handle' => 'https://bbs.w7.cc/thread-33162-1-1.html'
 		),
+		'max_allowed_packet' => array(
+			'operate' => 'system_check_mysql_params',
+			'description' => 'mysql max_allowed_packet 值',
+			'error_message' => 'max_allowed_packet 小于 20M',
+			'solution' => '修改 mysql max_allowed_packet 值',
+			'handle' => 'https://bbs.w7.cc/thread-33415-1-1.html'
+		)
 	);
 }
 
@@ -302,6 +319,11 @@ function system_check_items() {
  */
 function system_check_php_ext($extension) {
 	return extension_loaded($extension) ? true : false;
+}
+
+function system_check_mysql_params($param) {
+	$check_result = pdo_fetchall("SHOW GLOBAL VARIABLES LIKE '{$param}'");
+	return $check_result[0]['Value'] < 1024*1024*20 ? false : true;
 }
 
 /**
@@ -335,4 +357,49 @@ function system_setting_items() {
 	
 
 	return $items;
+}
+
+function system_scrap_file() {
+	$scrap_file = array(
+		'/framework/builtin/basic/template/display.html',
+		'/framework/builtin/basic/module.php',
+		'/framework/builtin/chats/template/display.html',
+		'/framework/builtin/custom/template/display.html',
+		'/framework/builtin/custom/module.php',
+		'/framework/builtin/images/template/form.html',
+		'/framework/builtin/images/template/modules.css',
+		'/framework/builtin/images/module.php',
+		'/framework/builtin/music/template/form.html',
+		'/framework/builtin/music/template/modules.css',
+		'/framework/builtin/music/module.php',
+		'/framework/builtin/news/template/display.html',
+		'/framework/builtin/news/module.php',
+		'/framework/builtin/video/template/form.html',
+		'/framework/builtin/video/template/modules.css',
+		'/framework/builtin/video/module.php',
+		'/framework/builtin/voice/template/form.html',
+		'/framework/builtin/voice/template/modules.css',
+		'/framework/builtin/voice/module.php',
+		'/framework/class/account.class.php',
+		'/framework/class/agent.class.php',
+		'/framework/class/ali.pay.class.php',
+		'/framework/class/webapp.account.class.php',
+		'/framework/class/weixin.account.class.php',
+		'/framework/class/weixin.nativepay.php',
+		'/framework/class/weixin.platform.class.php',
+		'/framework/class/weixin.pay.class.php',
+		'/framework/class/wxapp.account.class.php',
+		'/framework/class/yixin.account.class.php',
+		'/framework/class/pay.class.php',
+		'/framework/module/frame.mod.php',
+		'/framework/module/platform.mod.php',
+		'/web/source/phoneapp/version.ctrl.php',
+		'/web/themes/2.0/common/footer-base.html',
+		'/web/themes/black/common/footer-base.html',
+		'/web/themes/black/common/footer.html',
+		'/web/themes/classical/common/footer-base.html',
+		'/web/themes/default/account/manage-sms-wxapp.html',
+		'/web/themes/default/phoneapp/version-home.html',
+	);
+	return $scrap_file;
 }

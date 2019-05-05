@@ -12,16 +12,24 @@
 			<div class="account-num-statistics">
 				<div class="item">
 					<div class="num">
-						{{max_create_num < 0 ? 0 : max_create_num}}
+						{{account_num.max_total < 0 ? 0 : account_num.max_total}}
 					</div>
 					<div class="title">可创建平台总数</div>
 				</div>
 				<div class="item">
-					<div class="num ">{{created_num < 0 ? 0 : created_num}}</div>
+					{if !$user_founder_info}
+					<div class="num ">
+						{{account_num.created_total < 0 ? 0 : account_num.created_total}}
+					</div>
+					{else}
+					<div class="num ">
+						{{account_num.current_vice_founder_user_created_total < 0 ? 0 : account_num.current_vice_founder_user_created_total}}
+					</div>
+					{/if}
 					<div class="title">已创建平台数</div>
 				</div>
 				<div class="item">
-					<div class="num">{{limit_num < 0 ? 0 : limit_num}}</div>
+					<div class="num">{{account_num.limit_total < 0 ? 0 : account_num.limit_total}}</div>
 					<div class="title">剩余可创建平台数</div>
 				</div>
 			</div>
@@ -44,17 +52,29 @@
 				<div ng-if="last_accounts" class="item" ng-repeat="list in last_accounts">
 					<a href="{{list.account.switchurl}}" class="item-box">
 						<div class="info">
-							<img ng-src="{{list.account.logo}}" alt=""> {{ list.role }}
+							<img ng-src="{{list.account.logo}}" alt="">
 							<span class="" ng-if="list.account.current_user_role == 'owner'">主管理员</span>
 							<span class="" ng-if="list.account.current_user_role == 'manager'">管理员</span>
 							<span class="" ng-if="list.account.current_user_role == 'opeartor'">操作员</span>
 							<span class="" ng-if="list.account.current_user_role == 'clerk'">店员</span>
 						</div>
 						<div class="name text-over">{{list.account.name}}</div>
-						<div class="type" ng-if="list.account.type ==1 || list.account.type==3"><i class="wi wi-account"> </i><span>公众号</span></div>
-						<div class="type" ng-if="list.account.type == 4 || list.account.type == 7"><i class="wi wi-account"> </i><span>小程序</span></div>
-						<div class="type" ng-if="list.account.type == 5"><i class="wi wi-pc"> </i><span>pc</span></div>
-						<div class="type" ng-if="list.account.type == 6"><i class="wi wi-phone"> </i><span>app</span></div>
+						<div class="type" ng-if="list.account.type ==1 || list.account.type==3">
+							<i class="wi wi-account"> </i><span>公众号</span>
+							<span ng-if="list.account.need_upload == 1" class="new-version">新版本 </span>
+						</div>
+						<div class="type" ng-if="list.account.type == 4 || list.account.type == 7">
+							<i class="wi wi-account"> </i><span>小程序</span>
+							<span ng-if="list.account.need_upload == 1" class="new-version">新版本 </span>
+						</div>
+						<div class="type" ng-if="list.account.type == 5">
+							<i class="wi wi-pc"> </i><span>pc</span>
+							<span ng-if="list.account.need_upload == 1" class="new-version">新版本 </span>
+						</div>
+						<div class="type" ng-if="list.account.type == 6">
+							<i class="wi wi-phone"> </i><span>app</span>
+							<span ng-if="list.account.need_upload == 1" class="new-version">新版本 </span>
+						</div>
 						<!--<div class="version">版本1.1.0</div>-->
 					</a>
 					<div class="action-up">
@@ -176,11 +196,13 @@
 						{/if}
 					</ul>
 				</div>
+				
 				<div class="tab-pane" id="we7notice" >
 					<ul class="list-group notice-statistics">
 						<script type="text/javascript" src="//bbs.w7.cc/api.php?mod=js&bid=20"></script>
 					</ul>
 				</div>
+				
 			</div>
 		</div>
 	</div>
@@ -192,11 +214,11 @@
 		<div class="panel-heading">
 			<h4>推荐应用</h4>
 			<ul class="nav nav-tabs" role="tablist">
-				<li role="presentation" class="active"><a href="#recommend-app" aria-controls="recommend-app" role="tab" data-toggle="tab">推荐应用</a></li>
-				<li role="presentation"><a href="#new-app" aria-controls="new-app" role="tab" data-toggle="tab">新应用</a></li>
-				<li role="presentation"><a href="#hot-app" aria-controls="hot-app" role="tab" data-toggle="tab">热门排行</a></li>
-				<li role="presentation"><a href="#down-app" aria-controls="down-app" role="tab" data-toggle="tab">下载排行</a></li>
-				<li role="presentation"><a href="#big-app" aria-controls="big-app" role="tab" data-toggle="tab">大额应用排行</a></li>
+				<li role="presentation" class="active"><a href="#recommend-app" data-type="recommend" aria-controls="recommend-app" role="tab" data-toggle="tab">推荐应用</a></li>
+				<li role="presentation"><a href="#new-app" data-type="new-app" aria-controls="new-app" role="tab" data-toggle="tab">新应用</a></li>
+				<li role="presentation"><a href="#hot-app" data-type="hot" aria-controls="hot-app" role="tab" data-toggle="tab">热门排行</a></li>
+				<li role="presentation"><a href="#down-app" data-type="essential" aria-controls="down-app" role="tab" data-toggle="tab">下载排行</a></li>
+				<li role="presentation"><a href="#big-app" data-type="large" aria-controls="big-app" role="tab" data-toggle="tab">大额应用排行</a></li>
 			</ul>
 			<a href="http://s.w7.cc/" target="_blank" class="more">去市场</a>
 		</div>
@@ -210,7 +232,7 @@
 									<li data-slide-to="0"  ng-class="{active: index == 0}" ng-repeat="(ad, index) in recommend_ads"></li>
 								</ol>
 								<div class="carousel-inner" role="listbox">
-									<div class="item " ng-class="{active: index == 0}" ng-repeat="(index, ad) in recommend_ads">
+									<div class="item advertising-box" ng-class="{active: index == 0}" ng-repeat="(index, ad) in recommend_ads">
 										<a ng-href="{{ad.url}}" target="_blank">
 											<img ng-src="{{ad.cdn_logo}}" alt="">
 										</a>
@@ -500,8 +522,8 @@
 <!--end 系统管理首页 普通用户-->
 
 <script>
-    // $('[data-toggle="popover"]').popover()
 	angular.module('homeApp').value('config', {
+	    family: "{php echo IMS_FAMILY}",
 		account_num: {php echo !empty($account_num) ? json_encode($account_num) : 'null'},
 		message_list: {php echo !empty($messages) ? json_encode($messages) : 'null'},
 		last_accounts : {php echo !empty($last_accounts) ? json_encode($last_accounts) : 'null'},

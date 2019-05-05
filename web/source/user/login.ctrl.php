@@ -24,7 +24,7 @@ if (in_array($_GPC['login_type'], $support_login_types)) {
 }
 
 $setting = $_W['setting'];
-$_GPC['login_type'] = !empty($_GPC['login_type']) ? $_GPC['login_type'] : (!empty($_W['setting']['copyright']['login_type']) ? 'mobile': 'system');
+$_GPC['login_type'] = !empty($_GPC['login_type']) ? $_GPC['login_type'] : (!empty($_W['setting']['copyright']['mobile_status']) ? 'mobile': 'system');
 
 $login_urls = user_support_urls();
 template('user/login');
@@ -104,9 +104,30 @@ function _login($forward = '') {
 			pdo_delete('users_failed_login', array('id' => $failed['id']));
 		}
 
-		if ((empty($_W['isfounder']) || user_is_vice_founder()) && !empty($_W['user']['endtime']) && $_W['user']['endtime'] < TIMESTAMP) {
-			$url = url('home/welcome/ext', array('m' => 'store'));
-			message('您的账号已到期，请前往商城购买续费。<div><a class="btn btn-primary" style="width:80px;" href="' . $url . '">去续费</a></div>', $url, 'error');
+		$user_endtime = $_W['user']['endtime'];
+		if (!empty($user_endtime) && !in_array($user_endtime, array(USER_ENDTIME_GROUP_EMPTY_TYPE, USER_ENDTIME_GROUP_UNLIMIT_TYPE)) && $user_endtime < TIMESTAMP) {
+			$user_is_expired = true;
+		}
+
+		if ((empty($_W['isfounder']) || user_is_vice_founder()) && $user_is_expired) {
+			$user_expire = setting_load('user_expire');
+			$user_expire = !empty($user_expire['user_expire']) ? $user_expire['user_expire'] : array();
+			$notice = !empty($user_expire['notice']) ? $user_expire['notice'] : '您的账号已到期，请前往商城购买续费';
+			$redirect = !empty($user_expire['status_store_redirect']) && $user_expire['status_store_redirect'] == 1 ? url('home/welcome/ext', array('m' => 'store')) : '';
+			$extend_buttons = array();
+			if (!empty($user_expire['status_store_button']) && $user_expire['status_store_button'] == 1) {
+				$extend_buttons['status_store_button'] = array(
+					'url' => url('home/welcome/ext', array('m' => 'store')),
+					'class' => 'btn btn-primary',
+					'title' => '去商城续费',
+				);
+			}
+			$extend_buttons['cancel'] = array(
+				'url' => url('user/profile'),
+				'class' => 'btn btn-default',
+				'title' => '取消',
+			);
+			message($notice, $redirect, 'expired', '', $extend_buttons);
 		}
 		cache_build_frame_menu();
 		itoast("欢迎回来，{$record['username']}", $forward, 'success');

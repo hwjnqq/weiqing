@@ -69,6 +69,7 @@ if (intval($_W['account']['level']) == ACCOUNT_SERVICE_VERIFY) {
 	} else {
 		$accObj = WeAccount::create($_W['account']);
 		$userinfo = $accObj->fansQueryInfo($oauth['openid']);
+
 		if(!is_error($userinfo) && !empty($userinfo) && !empty($userinfo['subscribe'])) {
 			$userinfo['nickname'] = stripcslashes($userinfo['nickname']);
 			$userinfo['avatar'] = $userinfo['headimgurl'];
@@ -115,6 +116,22 @@ if (intval($_W['account']['level']) == ACCOUNT_SERVICE_VERIFY) {
 				$_SESSION['uid'] = $uid;
 			}
 			pdo_insert('mc_mapping_fans', $record);
+
+			$mc_fans_tag_table = table('mc_fans_tag');
+			$mc_fans_tag_fields = mc_fans_tag_fields();
+			$fans_tag_update_info = array();
+			foreach ($userinfo as $fans_field_key => $fans_field_info) {
+				if (in_array($fans_field_key, array_keys($mc_fans_tag_fields))) {
+					$fans_tag_update_info[$fans_field_key] = $fans_field_info;
+				}
+				$fans_tag_update_info['tagid_list'] = iserializer($fans_tag_update_info['tagis_list']);
+			}
+			$fans_tag_exists = $mc_fans_tag_table->getByOpenid($fans_tag_update_info['openid']);
+			if (!empty($fans_tag_exists)) {
+				pdo_update('mc_fans_tag', $fans_tag_update_info, array('openid' => $fans_tag_update_info['openid']));
+			} else {
+				pdo_insert('mc_fans_tag', $fans_tag_update_info);
+			}
 		} else {
 			$record = array(
 				'openid' => $oauth['openid'],

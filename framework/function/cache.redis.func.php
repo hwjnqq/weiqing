@@ -143,15 +143,12 @@ function cache_clean($key = '') {
 
 		if (is_array($cache_relation_keys) && !empty($cache_relation_keys)) {
 			foreach ($cache_relation_keys as $key) {
-				$cache_info = cache_load($key);
-				if (!empty($cache_info)) {
-					preg_match_all('/\:([a-zA-Z0-9\-\_]+)/', $key, $matches);
-					if ($keys = $redis->keys(cache_prefix('we7:' . $matches[1][0]) . "*")) {
-						unset($GLOBALS['_W']['cache']);
-						$res = $redis->delete($keys);
-						if (!$res) {
-							return error(-1, '缓存 ' . $key . ' 删除失败');
-						}
+				preg_match_all('/\:([a-zA-Z0-9\-\_]+)/', $key, $matches);
+				if ($keys = $redis->keys(cache_prefix('we7:' . $matches[1][0]) . "*")) {
+					unset($GLOBALS['_W']['cache']);
+					$res = $redis->delete($keys);
+					if (!$res) {
+						return error(-1, '缓存 ' . $key . ' 删除失败');
 					}
 				}
 			}

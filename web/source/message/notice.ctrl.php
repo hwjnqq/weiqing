@@ -15,6 +15,9 @@ if (in_array($do, array('display', 'all_read'))) {
 	if ($type == MESSAGE_ACCOUNT_EXPIRE_TYPE) {
 		$types = array(MESSAGE_ACCOUNT_EXPIRE_TYPE, MESSAGE_WECHAT_EXPIRE_TYPE, MESSAGE_WEBAPP_EXPIRE_TYPE);
 	}
+	if ($type == MESSAGE_ORDER_TYPE) {
+		$types = array(MESSAGE_ORDER_TYPE, MESSAGE_ORDER_APPLY_REFUND_TYPE);
+	}
 
 	if (empty($type) && (!user_is_founder($_W['uid']) || user_is_vice_founder())){
 		$types = array(MESSAGE_ACCOUNT_EXPIRE_TYPE, MESSAGE_WECHAT_EXPIRE_TYPE, MESSAGE_WEBAPP_EXPIRE_TYPE, MESSAGE_USER_EXPIRE_TYPE, MESSAGE_WXAPP_MODULE_UPGRADE);
@@ -39,7 +42,7 @@ if ($do == 'display') {
 		if (!empty($types)) {
 			$message_table->searchWithType($types);
 		} else {
-			$message_table->searchWithOutType(MESSAGE_USER_EXPIRE_TYPE);
+			$message_table->searchWithOutType(array(MESSAGE_USER_EXPIRE_TYPE, MESSAGE_ORDER_WISH_TYPE));
 		}
 	} else {
 		$message_table->searchWithUid($_W['uid']);
@@ -50,7 +53,8 @@ if ($do == 'display') {
 			MESSAGE_USER_EXPIRE_TYPE,
 			MESSAGE_WXAPP_MODULE_UPGRADE,
 			MESSAGE_SYSTEM_UPGRADE,
-			MESSAGE_OFFICIAL_DYNAMICS
+			MESSAGE_OFFICIAL_DYNAMICS,
+			MESSAGE_ORDER_WISH_TYPE,
 		));
 	}
 

@@ -68,6 +68,10 @@ class Attachment extends \We7Table {
 		return $this->query->where(array('type' => $type));
 	}
 
+	public function searchWithModel($model) {
+		return $this->query->where(array('model' => $model));
+	}
+
 	public function searchWithGroupId($groupid) {
 		return $this->query->where(array('group_id =' => $groupid));
 	}

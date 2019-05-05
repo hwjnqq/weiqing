@@ -53,7 +53,9 @@ if ($do == 'getpackage') {
 	if (count($account_info['modules']) == 0) {
 		itoast('请先配置模块');
 	}
-	$m = $account_info['modules'][0]['name'];
+	$m = current($account_info['modules']);
+	$m = $m['name'];
+
 	$type = $_GPC['type'] == 'apk' ? 'apk' : 'ipa';
 	$result = phoneapp_getpackage(array('m'=>$m, 'type'=>$_GPC['type']));
 

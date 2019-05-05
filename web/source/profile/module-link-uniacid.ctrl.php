@@ -45,6 +45,7 @@ if ($do == 'module_link_uniacid') {
 	}
 
 	$modules = uni_modules();
+	$link_uniacid_table = table('uni_link_uniacid');
 	//1.过滤不支持关联的模块,2.获取已关联模块的uniacid信息,3.获取被关联模块的uniacid信息
 	foreach ($modules as $key => $value) {
 		if (!empty($value['issystem'])) {
@@ -65,12 +66,16 @@ if ($do == 'module_link_uniacid') {
 			unset($modules[$key]);
 			continue;
 		}
-		if (!empty($value['config']) && !empty($value['config']['link_uniacid'])) {
-			$modules[$key]['link_uniacid_info'] = uni_fetch($value['config']['link_uniacid']);
+		$link_uniacid = $link_uniacid_table->getMainUniacid($_W['uniacid'], $value['name']);
+		if (!empty($link_uniacid)) {
+			$account = uni_fetch($link_uniacid);
+			$modules[$key]['link_uniacid_info'] = $account->account;
+			$modules[$key]['link_uniacid_info']['logo'] = $account->logo;
 			continue;
 		}
-		if (!empty($value['config']['passive_link_uniacid'])) {
-			foreach ($value['config']['passive_link_uniacid'] as $passive_uniacid) {
+		$passive_link_uniacid = $link_uniacid_table->getSubUniacids($_W['uniacid'], $value['name']);
+		if (!empty($passive_link_uniacid)) {
+			foreach ($passive_link_uniacid as $passive_uniacid) {
 				$modules[$key]['other_link'][] = uni_fetch($passive_uniacid);
 			}
 		}

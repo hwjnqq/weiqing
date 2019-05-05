@@ -84,6 +84,7 @@
 			<td>{php echo date('Y-m-d H:i', $notice['createtime']);}</td>
 			<td>
 				<div class="link-group">
+					<a href="{php echo url('article/notice-show/detail', array('id' => $notice['id']));}" target="_blank">预览</a>
 					<a href="{php echo url('article/notice/post', array('id' => $notice['id']));}">编辑</a>
 					<a href="javascript:void(0);" class="del" onclick="delArtNotice('{php echo $notice["id"]}')">删除</a>
 					{if $comment_status}

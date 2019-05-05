@@ -60,7 +60,7 @@ $engine = new WeEngine();
 if (!empty($_W['setting']['copyright']['status'])) {
 	$engine->died('抱歉，站点已关闭，关闭原因：' . $_W['setting']['copyright']['reason']);
 }
-if (!empty($_W['uniaccount']['endtime']) && TIMESTAMP > $_W['uniaccount']['endtime']) {
+if (!empty($_W['uniaccount']['endtime']) && TIMESTAMP > $_W['uniaccount']['endtime'] && !in_array($_W['uniaccount']['endtime'], array(USER_ENDTIME_GROUP_EMPTY_TYPE, USER_ENDTIME_GROUP_UNLIMIT_TYPE))) {
 	$engine->died('抱歉，您的公众号已过期，请及时联系管理员');
 }
 
@@ -72,7 +72,6 @@ if($_W['isajax'] && $_W['ispost'] && $_GPC['flag'] == 1) {
 if($_W['isajax'] && $_W['ispost'] && $_GPC['flag'] == 2) {
 	$engine->decrypt();
 }
-load()->func('compat.biz');
 $_W['isajax'] = false;
 $engine->start();
 
@@ -576,8 +575,8 @@ class WeEngine {
 			}else{
 				$scene_condition = " `scene_str` = :sceneid";
 			}
-			$condition = array(':sceneid' => $sceneid, ':uniacid' => $_W['uniacid']);
-			$qr = pdo_fetch("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE {$scene_condition} AND `uniacid` = :uniacid AND `type` = 'scene'", $condition);
+			$condition_params = array(':sceneid' => $sceneid, ':uniacid' => $_W['uniacid']);
+			$qr = pdo_fetch("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE {$scene_condition} AND `uniacid` = :uniacid AND `type` = 'scene'", $condition_params);
 
 		}
 		if (empty($qr) && !empty($message['ticket'])) {

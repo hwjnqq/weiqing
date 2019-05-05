@@ -215,8 +215,21 @@
 {if $_W['account']['type_sign'] != 'wxapp'}
 <div class="front-download">
 	<div class="alert we7-page-alert">
-		<p><i class="wi wi-info-sign"></i>下载{$account_all_type[$_W['account']['type']]['title']}模块zip包, 然后用{$account_all_type[$_W['account']['type']]['title']}开发者工具上传开发版本</p>
-		<p><i class="wi wi-info-sign"></i>{$account_all_type[$_W['account']['type']]['title']}开发者工具下载链接：<a href="https://docs.alipay.com/mini/ide/download" target="_blank">https://docs.alipay.com/mini/ide/download/</a></p>
+		<p>
+			<i class="wi wi-info-sign"></i>
+			下载{$account_all_type[$_W['account']['type']]['title']}模块zip包, 然后用{$account_all_type[$_W['account']['type']]['title']}开发者工具上传开发版本
+		</p>
+		<p>
+			<i class="wi wi-info-sign"></i>
+			{$account_all_type[$_W['account']['type']]['title']}开发者工具下载链接：
+			{if $_W['account']['type_sign'] == ALIAPP_TYPE_SIGN}
+			<a href="https://docs.alipay.com/mini/ide/download" target="_blank">https://docs.alipay.com/mini/ide/download/</a>
+			{elseif $_W['account']['type_sign'] == BAIDUAPP_TYPE_SIGN}
+			<a href="https://smartprogram.baidu.com/docs/develop/devtools/show_sur/" target="_blank">https://smartprogram.baidu.com/docs/develop/devtools/show_sur/</a>
+			{elseif $_W['account']['type_sign'] == TOUTIAOAPP_TYPE_SIGN}
+			<a href="https://developer.toutiao.com/docs/devtool/versionUpdate.html" target="_blank">https://developer.toutiao.com/docs/devtool/versionUpdate.html</a>
+			{/if}
+		</p>
 	</div>
 	<div class="app-down-box">
 		<img src="{$module['logo']}" alt="{$module['title']}" class="logo">

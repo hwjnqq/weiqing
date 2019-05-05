@@ -11,7 +11,7 @@ load()->func('cache');
 load()->model('visit');
 load()->model('module');
 
-$dos = array('edit_base', 'edit_modules_tpl', 'edit_account', 'edit_users_permission', 'edit_account_dateline', 'edit_create_account_list', 'edit_user_group', 'edit_user_extra_limit', 'edit_user_extra_group', 'edit_uni_groups', 'edit_extra_modules');
+$dos = array('edit_base', 'edit_modules_tpl', 'edit_account', 'edit_users_permission', 'edit_account_dateline', 'edit_create_account_list', 'edit_user_group', 'edit_user_extra_limit', 'edit_user_extra_group', 'edit_uni_groups', 'edit_extra_modules', 'delete_user_group');
 
 $do = in_array($do, $dos) ? $do: 'edit_base';
 
@@ -33,13 +33,12 @@ if ($do == 'edit_base') {
 	$account_num = permission_user_account_num($uid);
 	$user['last_visit'] = date('Y-m-d H:i:s', $user['lastvisit']);
 	$user['joindate'] = date('Y-m-d H:i:s', $user['joindate']);
-	$user['endtime'] = user_end_time($user['uid']);
-	$user['end'] = $user['endtime'] == 0 ? '永久' : date('Y-m-d', $user['endtime']);
 	$user['endtype'] = $user['endtime'] == 0 ? 1 : 2;
 	$user['url'] = user_invite_register_url($uid);
 
+	$user['end'] = user_end_time($uid);
+	$user['end'] = $user['end'] == 0 ? '永久' : $user['end'];
 	$profile = user_detail_formate($profile);
-	
 	$extra_fields = user_available_extra_fields();
 	template('user/edit-base');
 }
@@ -103,8 +102,15 @@ if ($do == 'edit_modules_tpl') {
 		}
 	}
 
-	# 应用权限组
-	$uni_groups = uni_groups();
+	# 应用权限组(还需要优化，不要全取出来，ajax获取)
+	$group_keys = array();
+	if (user_is_vice_founder($_W['uid'])) {
+		$founder_own_table = table('users_founder_own_uni_groups');
+		$founder_own_uni_groups = $founder_own_table->getOwnUniGroupsByFounderUid($_W['uid']);
+		$group_keys = array_keys((array)$founder_own_uni_groups);
+	}
+
+	$unigroups = uni_groups($group_keys);
 	$users_extra_group_table = table('users_extra_group');
 	$user_extra_groups = $users_extra_group_table->getUniGroupsByUid($uid);
 	$user_extra_groups = !empty($user_extra_groups) ? uni_groups(array_keys($user_extra_groups)) : array();
@@ -200,14 +206,35 @@ if ($do == 'edit_users_permission') {
 }
 
 if ($do == 'edit_account_dateline') {
-	$groups = user_group();
-	$group_info = table('users_group')->getById($user['groupid']);
+	if (user_is_vice_founder($uid)) {
+		$groups = user_founder_group();
+		$group_info = table('users_founder_group')->getById($user['groupid']);
+	} else {
+		$groups = user_group();
+		$group_info = table('users_group')->getById($user['groupid']);
+	}
+
 	$extra_limit_table = table('users_extra_limit');
 	$extra_limit_info = $extra_limit_table->getExtraLimitByUid($uid);
 
-	$endtime = user_end_time($uid);
-	$total_timelimit = $endtime == 0 ? '永久' : $group_info['timelimit'] + $extra_limit_info['timelimit'];
-	$endtime = $endtime == 0 ? '永久' : date('Y-m-d', $endtime);
+	$endtime = $user['endtime'];
+	$total_timelimit = $group_info['timelimit'] + $extra_limit_info['timelimit'];
+	$user_end_time_check = $user['endtime'] == strtotime($total_timelimit . ' days', $user['joindate']);
+	if (!$user_end_time_check && $group_info['timelimit'] != 0) {
+		user_update(array('uid' => $uid, 'endtime' => strtotime($total_timelimit . ' days', $user['joindate'])));
+	}
+
+	if (!empty($group_info) && $group_info['timelimit'] == 0) {
+		user_update(array('uid' => $uid, 'endtime' => USER_ENDTIME_GROUP_UNLIMIT_TYPE));
+	}
+	if ($endtime == USER_ENDTIME_GROUP_EMPTY_TYPE || $endtime == USER_ENDTIME_GROUP_UNLIMIT_TYPE) {
+		$total_timelimit = '永久';
+		$endtime = '永久';
+	} elseif ($endtime == USER_ENDTIME_GROUP_DELETE_TYPE && $total_timelimit == 0) {
+		$endtime = $total_timelimit == 0 ? date('Y-m-d', $user['joindate']) : date('Y-m-d', $user['endtime']);
+	} else {
+		$endtime = date('Y-m-d', $endtime);
+	}
 
 	template('user/edit-account-dateline');
 }
@@ -247,7 +274,13 @@ if ($do == 'edit_create_account_list') {
 		'create_groups' => $create_groups,
 		'create_numbers' => $create_numbers,
 	);
-	$user_groups = user_group();
+
+	if (user_is_vice_founder($uid)) {
+		$user_groups = user_founder_group();
+	} else {
+		$user_groups = user_group();
+	}
+
 	$group_info = user_group_detail_info($user['groupid']);
 	template('user/edit-create-account-list');
 }
@@ -270,15 +303,30 @@ if ($do == 'edit_user_group') {
 if ($do == 'edit_user_extra_limit') {
 	$extra_limit_table = table('users_extra_limit');
 	$extra_limit_info = $extra_limit_table->getExtraLimitByUid($uid);
+	$post_timelimit = intval($_GPC['timelimit']);
+	$time_limit = $post_timelimit - $extra_limit_info['timelimit'];
 	$data = array(
-		'timelimit' => intval($_GPC['timelimit']),
+		'timelimit' => $post_timelimit,
 	);
+
+	if (user_is_vice_founder()) {
+		$permission_check_result = permission_check_vice_founder_limit($data);
+		if (is_error($permission_check_result)) {
+			iajax(-1, $permission_check_result['message']);
+		}
+	}
+
 	if ($extra_limit_info) {
 		$data['uid'] = $extra_limit_info['uid'];
 	}
 	if ($_W['isajax'] && $_W['ispost']) {
 		$res = $extra_limit_table->saveExtraLimit($data, $uid);
 		if ($res) {
+			if ($user['endtime'] != USER_ENDTIME_GROUP_EMPTY_TYPE && $user['endtime'] != USER_ENDTIME_GROUP_UNLIMIT_TYPE) {
+				$user_endtime = $user['endtime'] == USER_ENDTIME_GROUP_DELETE_TYPE ? $user['joindate'] : $user['endtime'];
+				$end_time = strtotime($time_limit . ' days', $user_endtime);
+				user_update(array('endtime' => $end_time, 'uid' => $uid));
+			}
 			iajax(0, '修改成功', url('user/edit/edit_account_dateline', array('uid' => $uid)));
 		} else {
 			iajax(-1, '修改失败');
@@ -312,7 +360,6 @@ if ($do == 'edit_user_extra_group') {
 		}
 
 	} elseif ($operate == 'extend_numbers') {
-		//附加权限
 		$extra_limit_table = table('users_extra_limit');
 		$uni_account_types = uni_account_type();
 		$uni_account_type_signs = array_keys(uni_account_type_sign());
@@ -320,6 +367,14 @@ if ($do == 'edit_user_extra_group') {
 			$max_type = 'max' . $type_sign_name;
 			$data[$max_type] = intval($_GPC['numbers'][$max_type]);
 		}
+
+		if (user_is_vice_founder()) {
+			$permission_check_result = permission_check_vice_founder_limit($data);
+			if (is_error($permission_check_result)) {
+				iajax(-1, $permission_check_result['message']);
+			}
+		}
+
 		$extra_limit_info = $extra_limit_table->getExtraLimitByUid($uid);
 		if ($extra_limit_info) {
 			$data['uid'] = $extra_limit_info['uid'];
@@ -359,8 +414,8 @@ if ($do == 'edit_extra_modules') {
 
 	$templates = $_GPC['extra_templates'];
 	$users_extra_template_table = table('users_extra_templates');
+	$users_extra_template_table->deleteExtraTemplatesByUid($uid);
 	if (!empty($templates)) {
-		$users_extra_template_table->deleteExtraTemplatesByUid($uid);
 		foreach($templates as $template_id) {
 			$users_extra_template_table->addExtraTemplate($uid, $template_id['id']);
 		}
@@ -369,3 +424,50 @@ if ($do == 'edit_extra_modules') {
 	iajax(0, '修改成功!', referer());
 }
 
+if ($do == 'delete_user_group') {
+	$groupid = intval($_GPC['groupid']);
+
+	if (!user_is_founder($_W['uid'])) {
+		itoast('权限错误', referer(), 'error');
+	}
+
+	if (user_is_vice_founder($_W['uid'])) {
+		$founder_own_users = table('users_founder_own_users')->getFounderOwnUsersList($_W['uid']);
+		if (!in_array($uid, array_keys($founder_own_users))) {
+			itoast('信息有误', referer(), 'error');
+		}
+	}
+
+	if (user_is_vice_founder($uid)) {
+		$group_info = user_founder_group_detail_info($groupid);
+	} else {
+		$group_info = user_group_detail_info($groupid);
+	}
+
+	if ($user['groupid'] != $groupid) {
+		itoast('信息有误', referer(), 'error');
+	}
+
+	$user_end_time = $user['endtime'];
+	$users_extra_limit_table = table('users_extra_limit');
+	$extra_limit_info = $users_extra_limit_table->getExtraLimitByUid($uid);
+
+	if (empty($extra_limit_info)) {
+		$result = user_update(array('uid' => $uid, 'groupid' => '', 'endtime' => 1));
+	} else {
+		$group_info_timelimit = $group_info['timelimit'];
+		if ($group_info_timelimit == 0) {
+			$end_time = !empty($extra_limit_info) && $extra_limit_info['timelimit'] > 0 ? strtotime($extra_limit_info['timelimit'] . ' days', $user['joindate']) : $user['joindate'];
+		} else {
+			$end_time = strtotime('-' . $group_info_timelimit . ' days', $user_end_time);
+		}
+
+		$result = user_update(array('uid' => $uid, 'groupid' => '', 'endtime' => $end_time));
+	}
+
+	if ($result) {
+		itoast('修改成功', referer(), 'success');
+	} else {
+		itoast('修改失败', referer(), 'error');
+	}
+}

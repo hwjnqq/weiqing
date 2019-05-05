@@ -31,6 +31,14 @@ class WxappAccount extends WeAccount {
 		return $response = $this->requestApi($url);
 	}
 
+	public function getOauthCodeUrl($callback, $state = '') {
+		return "https://open.weixin.qq.com/connect/oauth2/authorize?appid={$this->account['key']}&redirect_uri={$callback}&response_type=code&scope=snsapi_base&state={$state}#wechat_redirect";
+	}
+
+	public function getOauthUserInfoUrl($callback, $state = '') {
+		return "https://open.weixin.qq.com/connect/oauth2/authorize?appid={$this->account['key']}&redirect_uri={$callback}&response_type=code&scope=snsapi_userinfo&state={$state}#wechat_redirect";
+	}
+
 	/**
 	 * 微擎系统对来自微信公众平台请求的安全校验
 	 *

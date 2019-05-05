@@ -521,7 +521,7 @@ function material_delete($material_id, $location){
 	if (is_error($result)) {
 		return error('-3', '删除文件操作发生错误');
 	}
-	pdo_delete($table, array('id' => $material_id));
+	pdo_delete($table, array('id' => $material_id, 'uniacid' => $_W['uniacid']));
 	return $result;
 }
 
@@ -541,44 +541,41 @@ function material_url_check($url) {
 
 function material_news_list($server = '', $search ='', $page = array('page_index' => 1, 'page_size' => 24)) {
 	global $_W;
-	$conditions[':uniacid'] = $_W['uniacid'];
-	$news_model_sql = '';
-	if (!empty($server)) {
-		$news_model_sql = " AND a.model = :news_model";
-		$conditions[':news_model'] = $server;
-	}
-
-	$search_sql = '';
-	if (!empty($search)) {
-		$search_sql = " AND (b.title LIKE :search_title OR b.author = :search_author OR b.digest LIKE :search_digest)";
-		$conditions[':search_title'] = "%{$search}%";
-		$conditions[':search_author'] = "%{$search}%";
-		$conditions[':search_digest'] = "%{$search}%";
-	}
-
-	$select_sql = "SELECT  %s FROM " . tablename('wechat_attachment') . " AS a RIGHT JOIN " . tablename('wechat_news') . " AS b ON a.id = b.attach_id WHERE  a.uniacid = :uniacid AND a.type = 'news' AND a.id <> '' " . $news_model_sql . $search_sql . "%s";
-	$list_sql = sprintf($select_sql, "a.id as id, a.filename, a.attachment, a.media_id, a.type, a.model, a.tag, a.createtime, b.displayorder, b.title, b.digest, b.thumb_url, b.thumb_media_id, b.attach_id, b.url", " ORDER BY a.createtime DESC, b.displayorder ASC LIMIT " . ($page['page_index'] - 1) * $page['page_size'] . ", " . $page['page_size']);
-	$total_sql = sprintf($select_sql, "count(*)", '');
-	$total = pdo_fetchcolumn($total_sql, $conditions);
-	$news_list = pdo_fetchall($list_sql, $conditions);
-
+	$wechat_news_table = table('wechat_news');
+	$wechat_attachment_table = table('wechat_attachment');
 	$material_list = array();
-	if (! empty($news_list)) {
-		foreach ($news_list as $news){
-			if (isset($material_list[$news['attach_id']])){
-				$material_list[$news['attach_id']]['items'][$news['displayorder']] = $news;
-			}else{
-				$material_list[$news['attach_id']] = array(
-					'id' => $news['id'],
-					'filename' => $news['filename'],
-					'attachment' => $news['attachment'],
-					'media_id' => $news['media_id'],
-					'type' => $news['type'],
-					'model' => $news['model'],
-					'tag' => $news['tag'],
-					'createtime' => $news['createtime'],
-					'items' => array($news['displayorder'] => $news),
-				);
+	if (empty($search)) {
+		$wechat_attachment_table->searchWithUniacid($_W['uniacid']);
+		$wechat_attachment_table->searchWithType('news');
+		if (!empty($server) && in_array($server, array('local', 'perm'))) {
+			$wechat_attachment_table->searchWithModel($server);
+		}
+		$wechat_attachment_table->searchWithPage($page['page_index'], $page['page_size']);
+		$news_list = $wechat_attachment_table->orderby('createtime DESC')->getall();
+		$total = $wechat_attachment_table->getLastQueryTotal();
+
+		if (! empty($news_list)) {
+			foreach ($news_list as $news) {
+				$news['items'] = $wechat_news_table->getAllByAttachId($news['id']);
+				$material_list[$news['id']] = $news;
+			}
+		}
+	} else {
+		$wechat_news_table->searchKeyword("%$search%");
+		$wechat_news_table->searchWithUniacid($_W['uniacid']);
+		$search_attach_id = $wechat_news_table->getall();
+
+		if (!empty($search_attach_id)) {
+			foreach ($search_attach_id as $news) {
+				if (isset($material_list[$news['attach_id']]) && !empty($material_list[$news['attach_id']])) {
+					continue;
+				}
+				$wechat_attachment = $wechat_attachment_table->getById($news['attach_id']);
+				if (empty($wechat_attachment)) {
+					continue;
+				}
+				$material_list[$news['attach_id']] = $wechat_attachment;
+				$material_list[$news['attach_id']]['items'] = $wechat_news_table->getAllByAttachId($news['attach_id']);
 			}
 		}
 	}

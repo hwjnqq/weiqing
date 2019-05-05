@@ -295,6 +295,7 @@ function cache_build_frame_menu() {
 				}
 				$section_hidden_menu_count = 0;
 				foreach ($section['menu'] as $permission_name => $sub_menu) {
+					$sub_menu['permission_name'] = !empty($sub_menu['permission_name']) ? $sub_menu['permission_name'] : $permission_name;
 					$sub_menu_db = $system_menu_db[$sub_menu['permission_name']];
 					$is_display = 1;
 					if (isset($sub_menu_db['is_display']) && empty($sub_menu_db['is_display'])) {
@@ -515,14 +516,20 @@ function cache_build_proxy_wechatpay_account() {
 	global $_W;
 	load()->model('account');
 	$account_table = table('account');
-	$uniaccounts = $account_table->userOwnedAccount($_W['uid']);
+	if (user_is_founder($_W['uid'], true)) {
+		$uniaccounts = pdo_getall('account', array('type IN ' => array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)));
+	} else {
+		$uniaccounts = $account_table->userOwnedAccount($_W['uid']);
+	}
 	$service = array();
 	$borrow = array();
 	if (!empty($uniaccounts)) {
 		foreach ($uniaccounts as $uniaccount) {
-			$account = account_fetch($uniaccount['default_acid']);
-			$account_setting = $account_table->searchWithUniacid($account['uniacid'])->getUniSetting();
-			$payment = iunserializer($account_setting['payment']);
+			if (!in_array($uniaccount['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
+				continue;
+			}
+			$account = uni_fetch($uniaccount['uniacid']);
+			$payment = (array)$account['setting']['payment'];
 			if (!empty($account['key']) && !empty($account['secret']) && in_array($account['level'], array (4)) &&
 				is_array($payment) && !empty($payment) && intval($payment['wechat']['switch']) == 1) {
 
@@ -572,6 +579,10 @@ function cache_updatecache() {
 	cache_build_users_struct();
 	cache_build_setting();
 	cache_build_module_subscribe_type();
+	//删除模板缓存和patch目录
+	rmdirs(IA_ROOT . '/data/patch/');
+	rmdirs(IA_ROOT . '/data/tpl/web/');
+	rmdirs(IA_ROOT . '/data/tpl/app/');
 	//清除模块接口缓存表中的数据
 	pdo_delete('modules_cloud');
 	return true;

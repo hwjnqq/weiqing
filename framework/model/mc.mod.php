@@ -92,6 +92,7 @@ function mc_update($uid, $fields) {
 		$fields['uniacid'] = mc_current_real_uniacid();
 		$fields['createtime'] = TIMESTAMP;
 		pdo_insert('mc_members', $fields);
+		$insert_id = pdo_insertid();
 	} else {
 		if (!empty($fields)) {
 			pdo_update('mc_members', $fields, array('uid' => $uid, 'uniacid' => $_W['uniacid']));
@@ -99,7 +100,7 @@ function mc_update($uid, $fields) {
 	}
 
 	if (!empty($openid) && empty($uid)) {
-		table('mc_mapping_fans')->fill(array('uid' => $result))->where(array('uniacid' => mc_current_real_uniacid(), 'openid' => $openid))->save();
+		table('mc_mapping_fans')->fill(array('uid' => $insert_id))->where(array('uniacid' => mc_current_real_uniacid(), 'openid' => $openid))->save();
 	}
 	cache_build_memberinfo($uid);
 	return true;
@@ -227,26 +228,43 @@ function mc_fansinfo($openidOruid, $acid = 0, $uniacid = 0){
 	$fan = $mc_mapping_fans_table->get();
 
 	if (!empty($fan)) {
-		if (!empty($fan['tag']) && is_string($fan['tag'])) {
-			if (is_base64($fan['tag'])) {
-				$fan['tag'] = @base64_decode($fan['tag']);
+		$mc_fans_tag_table = table('mc_fans_tag');
+		$tags_info = $mc_fans_tag_table->getByOpenid($openid);
+		if (empty($tags_info)) {
+			if (!empty($fan['tag']) && is_string($fan['tag'])) {
+				if (is_base64($fan['tag'])) {
+					$fan['tag'] = @base64_decode($fan['tag']);
+				}
+				if (is_serialized($fan['tag'])) {
+					$fan['tag'] = @iunserializer($fan['tag']);
+				}
+				if (is_array($fan['tag']) && !empty($fan['tag']['headimgurl'])) {
+					$fan['tag']['avatar'] = tomedia($fan['tag']['headimgurl']);
+					unset($fan['tag']['headimgurl']);
+					if (empty($fan['nickname']) && !empty($fan['tag']['nickname'])) {
+						$fan['nickname'] = strip_emoji($fan['tag']['nickname']);
+					}
+					$fan['gender'] = $fan['sex'] = $fan['tag']['sex'];
+					$fan['avatar'] = $fan['headimgurl'] = $fan['tag']['avatar'];
+				}
+			} else {
+				$fan['tag'] = array();
 			}
-			if (is_serialized($fan['tag'])) {
-				$fan['tag'] = @iunserializer($fan['tag']);
-			}
-			if (is_array($fan['tag']) && !empty($fan['tag']['headimgurl'])) {
-				$fan['tag']['avatar'] = tomedia($fan['tag']['headimgurl']);
-				unset($fan['tag']['headimgurl']);
+		} else {
+			if (!empty($tags_info)) {
+				$fan['tag'] = $tags_info;
+				$fan['tag']['avatar'] = $tags_info['headimgurl'];
+
 				if (empty($fan['nickname']) && !empty($fan['tag']['nickname'])) {
 					$fan['nickname'] = strip_emoji($fan['tag']['nickname']);
 				}
 				$fan['gender'] = $fan['sex'] = $fan['tag']['sex'];
 				$fan['avatar'] = $fan['headimgurl'] = $fan['tag']['avatar'];
 			}
-		} else {
-			$fan['tag'] = array();
+
 		}
 	}
+
 	if (empty($fan) && $openid == $_W['openid'] && !empty($_SESSION['userinfo'])) {
 		$fan['tag'] = iunserializer(base64_decode($_SESSION['userinfo']));
 		$fan['uid'] = 0;
@@ -1199,10 +1217,14 @@ function mc_notice_credit2($openid, $uid, $credit2_num, $credit1_num = 0, $store
 	if(empty($url)) {
 		$url = murl('mc/bond/credits', array('credittype' => 'credit2', 'type' => 'record', 'period' => '1'), true, true);
 	}
+	$credit_setting = uni_setting_load('creditnames');
+	$credit1_title = empty($credit_setting['creditnames']['credit1']['title']) ? '积分' : $credit_setting['creditnames']['credit1']['title'];
+	$credit2_title = empty($credit_setting['creditnames']['credit2']['title']) ? '余额' : $credit_setting['creditnames']['credit2']['title'];
+
 	if($_W['account']['level'] == ACCOUNT_SERVICE_VERIFY && !empty($account->noticetpl['credit2']['tpl'])) {
 		$data = array(
 			'first' => array(
-				'value' => "您好，您在{$time}有余额消费",
+				'value' => "您好，您在{$time}有{$credit2_title}消费",
 				'color' => '#ff510'
 			),
 			'keyword1' => array(
@@ -1210,7 +1232,7 @@ function mc_notice_credit2($openid, $uid, $credit2_num, $credit1_num = 0, $store
 				'color' => '#ff510'
 			),
 			'keyword2' => array(
-				'value' => floatval($credit1_num) . '积分',
+				'value' => floatval($credit1_num) . $credit1_title,
 				'color' => '#ff510'
 			),
 			'keyword3' => array(
@@ -1222,7 +1244,7 @@ function mc_notice_credit2($openid, $uid, $credit2_num, $credit1_num = 0, $store
 				'color' => '#ff510'
 			),
 			'keyword5' => array(
-				'value' => $credit['credit1'] . '积分',
+				'value' => $credit['credit1'] . $credit1_title,
 				'color' => '#ff510'
 			),
 			'remark' => array(
@@ -1234,7 +1256,7 @@ function mc_notice_credit2($openid, $uid, $credit2_num, $credit1_num = 0, $store
 	}
 	if($_W['account']['level'] == ACCOUNT_SUBSCRIPTION_VERIFY || is_error($status) || empty($account->noticetpl['credit2']['tpl'])) {
 		$info = "【{$_W['account']['name']}】消费通知\n";
-		$info .= "您在{$time}进行会员余额消费，消费金额【{$credit2_num}】元，获得积分【{$credit1_num}】,消费后余额【{$credit['credit2']}】元，消费后积分【{$credit['credit1']}】。\n";
+		$info .= "您在{$time}进行会员{$credit2_title}消费，消费金额【{$credit2_num}】元，获得{$credit1_title}【{$credit1_num}】,消费后余额【{$credit['credit2']}】元，消费后{$credit1_title}【{$credit['credit1']}】。\n";
 		$info .= !empty($remark) ? "备注：{$remark}\n\n" : '';
 		$custom = array(
 			'msgtype' => 'text',
@@ -1284,18 +1306,21 @@ function mc_notice_credit1($openid, $uid, $credit1_num, $tip, $url = '', $remark
 	if(empty($username)) {
 		$username = $uid;
 	}
+	$credit_setting = uni_setting_load('creditnames');
+	$credit1_title = empty($credit_setting['creditnames']['credit1']['title']) ? '积分' : $credit_setting['creditnames']['credit1']['title'];
+
 	if($_W['account']['level'] == ACCOUNT_SERVICE_VERIFY && !empty($account->noticetpl['credit1']['tpl'])) {
 		$data = array(
 			'first' => array(
-				'value' => "您好，您在{$time}有积分变更",
+				'value' => "您好，您在{$time}有{$credit1_title}变更",
 				'color' => '#ff510'
 			),
 			'keyword1' => array(
-				'value' => "原有积分 : " . ($credit['credit1'] - $credit1_num),
+				'value' => "原有{$credit1_title} : " . ($credit['credit1'] - $credit1_num),
 				'color' => '#ff510'
 			),
 			'keyword2' => array(
-				'value' => "现有积分 : " . $credit['credit1'],
+				'value' => "现有{$credit1_title} : " . $credit['credit1'],
 				'color' => '#ff510'
 			),
 			'keyword3' => array(
@@ -1310,8 +1335,8 @@ function mc_notice_credit1($openid, $uid, $credit1_num, $tip, $url = '', $remark
 		$status = $account->sendTplNotice($openid, $account->noticetpl['credit1']['tpl'], $data, $url);
 	}
 	if($_W['account']['level'] == ACCOUNT_SUBSCRIPTION_VERIFY || empty($account->noticetpl['credit1']['tpl']) || is_error($status)) {
-		$info = "【{$_W['account']['name']}】积分变更通知\n";
-		$info .= "您在{$time}有积分{$type}，{$type}积分【{$credit1_num}】，变更原因：【{$tip}】,消费后账户积分余额【{$credit['credit1']}】。\n";
+		$info = "【{$_W['account']['name']}】{$credit1_title}变更通知\n";
+		$info .= "您在{$time}有{$credit1_title}{$type}，{$type}{$credit1_title}【{$credit1_num}】，变更原因：【{$tip}】,消费后账户{$credit1_title}余额【{$credit['credit1']}】。\n";
 		$info .= !empty($remark) ? "备注：{$remark}\n\n" : '';
 		$custom = array(
 			'msgtype' => 'text',
@@ -1782,7 +1807,7 @@ function mc_init_fans_info($openid, $force_init_member = false){
 			'followtime' => $fans['subscribe_time'],
 			'follow' => $fans['subscribe'],
 			'nickname' => strip_emoji(stripcslashes($fans['nickname'])),
-			'tag' => base64_encode(iserializer($fans)),
+			'tag' => '',
 			'unionid' => $fans['unionid'],
 			'groupid' => !empty($fans['tagid_list']) ? (','.join(',', $fans['tagid_list']).',') : '',
 		);
@@ -1825,6 +1850,7 @@ function mc_init_fans_info($openid, $force_init_member = false){
 
 		if (!empty($fans_mapping)) {
 			pdo_update('mc_mapping_fans', $fans_update_info, array('fanid' => $fans_mapping['fanid']));
+			pdo_update('mc_fans_tag', array('fanid' => $fans_mapping['fanid']), array('openid' => $fans_mapping['openid']));
 		} else {
 			$fans_update_info['salt'] = random(8);
 			$fans_update_info['unfollowtime'] = 0;
@@ -1838,6 +1864,24 @@ function mc_init_fans_info($openid, $force_init_member = false){
 			@sort($groupid, SORT_NATURAL);
 			mc_insert_fanstag_mapping($fans_mapping['fanid'], $groupid);
 		}
+
+		$mc_fans_tag_table = table('mc_fans_tag');
+		$mc_fans_tag_fields = mc_fans_tag_fields();
+		$fans_tag_update_info = array();
+		foreach ($fans as $fans_field_key => $fans_field_info) {
+			if (in_array($fans_field_key, array_keys($mc_fans_tag_fields))) {
+				$fans_tag_update_info[$fans_field_key] = $fans_field_info;
+			}
+			$fans_tag_update_info['tagid_list'] = iserializer($fans_tag_update_info['tagis_list']);
+		}
+
+		$fans_tag_exists = $mc_fans_tag_table->getByOpenid($fans_tag_update_info['openid']);
+		if (!empty($fans_tag_exists)) {
+			pdo_update('mc_fans_tag', $fans_tag_update_info, array('openid' => $fans_tag_update_info['openid']));
+		} else {
+			pdo_insert('mc_fans_tag', $fans_tag_update_info);
+		}
+
 	}
 	if (is_string($openid) && !empty($fans_update_info)) {
 		return $fans_update_info;
@@ -2214,5 +2258,27 @@ function mc_send_content_formate($data) {
 	return array(
 		'send' => $send,
 		'content' => $content
+	);
+}
+
+function mc_fans_tag_fields() {
+	return array(
+		'subscribe' => '用户是否订阅该公众号标识，值为0时，代表此用户没有关注该公众号，拉取不到其余信息',
+		'openid' => '用户的标识，对当前公众号唯一',
+		'nickname' => '用户的昵称',
+		'sex' => '用户的性别，值为1时是男性，值为2时是女性，值为0时是未知',
+		'city' => '用户所在城市',
+		'country' => '用户所在国家',
+		'province' => '用户所在省份',
+		'language' => '用户的语言，简体中文为zh_CN',
+		'headimgurl'=> '用户头像，最后一个数值代表正方形头像大小（有0、46、64、96、132数值可选，0代表640*640正方形头像），用户没有头像时该项为空。若用户更换头像，原有头像URL将失效',
+		'subscribe_time' => '用户关注时间，为时间戳。如果用户曾多次关注，则取最后关注时间',
+		'unionid' => '只有在用户将公众号绑定到微信开放平台帐号后，才会出现该字段',
+		'remark' => '公众号运营者对粉丝的备注，公众号运营者可在微信公众平台用户管理界面对粉丝添加备注',
+		'groupid' => '用户所在的分组ID（暂时兼容用户分组旧接口）',
+		'tagid_list' => '用户被打上的标签ID列表',
+		'subscribe_scene' => '返回用户关注的渠道来源，ADD_SCENE_SEARCH 公众号搜索，ADD_SCENE_ACCOUNT_MIGRATION 公众号迁移，ADD_SCENE_PROFILE_CARD 名片分享，ADD_SCENE_QR_CODE 扫描二维码，ADD_SCENEPROFILE LINK 图文页内名称点击，ADD_SCENE_PROFILE_ITEM 图文页右上角菜单，ADD_SCENE_PAID 支付后关注，ADD_SCENE_OTHERS 其他',
+		'qr_scene' => '二维码扫码场景（开发者自定义）',
+		'qr_scene_str' => '二维码扫码场景描述（开发者自定义）',
 	);
 }

@@ -5,14 +5,14 @@
  */
 defined('IN_IA') or exit('Access Denied');
 abstract class Pay {
-	public static function create($type = 'wechat') {
+	public static function create($type = 'wechat', $module = '') {
 		if($type == 'wechat') {
 			load()->classs('pay/weixin.pay');
-			return new WeiXinPay();
+			return new WeiXinPay($module);
 		}
 		if($type == 'alipay') {
 			load()->classs('pay/ali.pay');
-			return new AliPay();
+			return new AliPay($module);
 		}
 		return null;
 	}

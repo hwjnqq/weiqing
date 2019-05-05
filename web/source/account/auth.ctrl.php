@@ -17,11 +17,11 @@ $account_platform = new WeixinPlatform();
 
 if ($do == 'forward') {
 	if (empty($_GPC['auth_code'])) {
-		itoast('授权登录失败，请重试', url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL)), 'error');
+		itoast('授权登录失败，请重试', url('account/manage'), 'error');
 	}
 	$auth_info = $account_platform->getAuthInfo($_GPC['auth_code']);
 	if (is_error($auth_info)) {
-		itoast('授权登录新建公众号失败：' . $auth_info['message'], url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL)), 'error');
+		itoast('授权登录新建公众号失败：' . $auth_info['message'], url('account/manage'), 'error');
 	}
 	$auth_refresh_token = $auth_info['authorization_info']['authorizer_refresh_token'];
 	$auth_appid = $auth_info['authorization_info']['authorizer_appid'];
@@ -57,7 +57,7 @@ if ($do == 'forward') {
 		'groupid' => 0,
 	);
 	if(!pdo_insert('uni_account', $account_insert)) {
-		itoast('授权登录新建公众号失败，请重试', url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL)), 'error');
+		itoast('授权登录新建公众号失败，请重试', url('account/manage'), 'error');
 	}
 	$uniacid = pdo_insertid();
 	$template = pdo_fetch('SELECT id,title FROM ' . tablename('site_templates') . " WHERE name = 'default'");
@@ -116,7 +116,7 @@ if ($do == 'forward') {
 	);
 	pdo_insert('account_wechats', $subaccount_insert);
 	if(is_error($acid)) {
-		itoast('授权登录新建公众号失败，请重试', url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL)), 'error');
+		itoast('授权登录新建公众号失败，请重试', url('account/manage'), 'error');
 	}
 	if (user_is_vice_founder()) {
 		uni_user_account_role($uniacid, $_W['uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
@@ -136,12 +136,11 @@ if ($do == 'forward') {
 	cache_build_account($uniacid);
 	cache_delete(cache_system_key('proxy_wechatpay_account'));
 	cache_clean(cache_system_key('user_accounts'));
-	itoast('授权登录成功', url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL)), 'success');
+	itoast('授权登录成功', url('account/manage'), 'success');
 } elseif ($do == 'confirm') {
 	$auth_refresh_token = $_GPC['auth_refresh_token'];
 	$auth_appid = $_GPC['auth_appid'];
 	$level = intval($_GPC['level']);
-	$acid = intval($_GPC['acid']);
 	$uniacid = intval($_GPC['uniacid']);
 
 	if (user_is_founder($_W['uid'])) {
@@ -151,7 +150,7 @@ if ($do == 'forward') {
 	}
 	$user_accounts = array_column($user_accounts, 'uniacid');
 	if (empty($user_accounts) || !in_array($uniacid, $user_accounts)) {
-		itoast('账号或用户信息错误!', url('account/post', array('acid' => $acid, 'uniacid' => $uniacid)), 'error');
+		itoast('账号或用户信息错误!', url('account/post', array('uniacid' => $uniacid)), 'error');
 	}
 
 	pdo_update('account_wechats', array(
@@ -160,12 +159,12 @@ if ($do == 'forward') {
 		'token' => $account_platform->token,
 		'level' => $level,
 		'key' => $auth_appid,
-	), array('acid' => $acid));
-	pdo_update('account', array('isconnect' => '1', 'type' => ACCOUNT_OAUTH_LOGIN, 'isdeleted' => 0), array('acid' => $acid));
+	), array('uniacid' => $uniacid));
+	pdo_update('account', array('isconnect' => '1', 'type' => ACCOUNT_OAUTH_LOGIN, 'isdeleted' => 0), array('uniacid' => $uniacid));
 	cache_delete(cache_system_key('uniaccount', array('uniacid' => $uniacid)));
-	cache_delete(cache_system_key('accesstoken', array('acid' => $acid)));
-	cache_delete(cache_system_key('account_auth_refreshtoken', array('acid' => $acid)));
-	itoast('更改公众号授权接入成功', url('account/post', array('acid' => $acid, 'uniacid' => $uniacid)), 'success');
+	cache_delete(cache_system_key('accesstoken', array('uniacid' => $uniacid)));
+	cache_delete(cache_system_key('account_auth_refreshtoken', array('uniacid' => $uniacid)));
+	itoast('更改公众号授权接入成功', url('account/post', array('uniacid' => $uniacid)), 'success');
 } elseif ($do == 'ticket') {
 	$post = file_get_contents('php://input');
 	WeUtility::logging('debug', 'account-ticket' . $post);

@@ -108,17 +108,15 @@
 			</div>
 		</div>
 	</form>
-	<form action="" method="post" ng-if="!upgrade || !upgrade.upgrade">
+	<div ng-if="!upgrade || !upgrade.upgrade">
 		<div class="upgrade-new">
 			当前版本为最新版本，您可以点击此按钮, 立即检查是否有新版本。
 		</div>
 		<div class="text-center">
-			<input name="submit" type="submit" value="{{showtext}}" class="btn btn-primary we7-margin-right" disabled ng-show="submitDisabled">
-			<input name="submit" type="submit" value="{{showtext}}" class="btn btn-primary we7-margin-right" ng-show="!submitDisabled">
-			<input name="rollback" type="button" value="撤回更新" class="btn btn-default" data-toggle="modal" data-target="#rollback-panel" />
-			<input type="hidden" name="token" value="{$_W['token']}" />
+            <button class="btn btn-primary we7-margin-right" ng-disabled="submitDisabled" ng-click="checkUpgrade()">{{showtext}}</button>
+            <button class="btn btn-default" data-toggle="modal" data-target="#rollback-panel" />撤回更新</button>
 		</div>
-	</form>
+	</div>
 
 	
 	<div class="upgrade-wechat">
@@ -126,6 +124,31 @@
 		<div class="info">
 			<p class="title">更新说明和官方公告请关注"<span class="color-default">微擎团队订阅号</span>"查看</p>
 			<p class="">赶快扫码关注吧</p>
+		</div>
+	</div>
+	<div class="modal fade" id="error-file" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog we7-modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">
+						<span aria-hidden="true">&times;</span>
+						<span class="sr-only">Close</span>
+					</button>
+					<div class="font-lg">安装/升级前检测</div>
+				</div>
+				<div class="modal-body">
+					<div class="we7-empty-blcok we7-margin-bottom-sm">
+						下列文件或目录无读写权限，导致无法进行更新。尝试将 <span class="color-red">写入权限设置为最高权限777</span>
+					</div>
+					<div class="we7-margin-bottom"><a href="javascript:;" class="color-default">如何设置服务器读写权限？</a></div>
+					<div class="upgrade-modal-box" ng-if="errorFile && errorFile.length">
+						<p class="color-gray" ng-repeat="line in errorFile track by $index" >{{line}}</p>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default"  data-dismiss="modal">关闭</button>
+				</div>
+			</div>
 		</div>
 	</div>
 	<div class="modal fade" id="upgrade-file" tabindex="-1" role="dialog" aria-hidden="true">
@@ -252,35 +275,59 @@
 		'links': {
 			'process': "{php echo url('cloud/process')}",
 			'getUpgradeInfo': "{php echo url('cloud/upgrade/get_upgrade_info')}",
+			'getErrorFileList': "{php echo url('cloud/upgrade/get_error_file_list')}",
 		}
 	});
 	angular.module('cloudUpgradeApp').controller('CloudUpgradeCtrl', ['$scope', '$http', 'config', function($scope, $http, config) {
 		$scope.upgrade = {};
-		$scope.showtext = '正在检查更新...';
-		$scope.submitDisabled = true;
+		$scope.showtext = '立即检查新版本';
+		$scope.submitDisabled = false;
+		$scope.checkUpgrade = function() {
+			$scope.showtext = '正在检查...';
+			$scope.submitDisabled = true;
+			$http.post(config.links.getUpgradeInfo)
+				.success(function (data) {
+					$scope.showtext = '立即检查新版本';
+					$scope.submitDisabled = false;
+					if (data.message.errno == 1) {
+						util.message(data.message.message, '', 'success');
+						return true;
+					}
+					if (data.message.errno == 0) {
+						$scope.upgrade = data.message.message;
+					} else {
+						util.message(data.message.message);
+					}
+				});
+		};
+
 		$scope.submit = function() {
 			var a = $("#agreement_0").is(':checked');
 			var b = $("#agreement_1").is(':checked');
 			var c = $("#agreement_2").is(':checked');
-			if(a && b && c) {
-				if(confirm('更新将直接覆盖本地文件, 请注意备份文件和数据. \n\n**另注意** 更新过程中不要关闭此浏览器窗口.')) {
-					location.href = config.links.process;
-				}
-			} else {
+			if (!a || !b || !c) {
 				util.message("抱歉，更新前请仔细阅读更新协议！", '', 'error');
 				return false;
 			}
+
+			$http.post(config.links.getErrorFileList)
+				.success(function (data) {
+					if (!data.message) {
+						if(confirm('更新将直接覆盖本地文件, 请注意备份文件和数据. \n\n**另注意** 更新过程中不要关闭此浏览器窗口.')) {
+							location.href = config.links.process;
+						}
+					} else {
+						$scope.errorFile = data.message.message;
+						if ($scope.errorFile) {
+							$('#error-file').modal('show');
+						} else {
+							if(confirm('更新将直接覆盖本地文件, 请注意备份文件和数据. \n\n**另注意** 更新过程中不要关闭此浏览器窗口.')) {
+								location.href = config.links.process;
+							}
+						}
+					}
+				})
 		};
-		$http.post(config.links.getUpgradeInfo)
-			.success(function (data) {
-				$scope.showtext = '立即检查新版本';
-				$scope.submitDisabled = false;
-				if (data.message.errno == 0) {
-					$scope.upgrade = data.message.message;
-				} else {
-					util.message(data.message);
-				}
-			});
 	}]);
 	angular.bootstrap($('#js-cloud-upgrade'), ['cloudUpgradeApp']);
 </script>

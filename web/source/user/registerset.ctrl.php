@@ -35,6 +35,9 @@ if (checksubmit('submit')) {
 		case 'safe':
 			$settings['safe'] = intval($_GPC['value']);
 			break;
+		case 'agreement_status':
+			$settings['agreement_status'] = intval($_GPC['value']);
+			break;
 		case 'mobile_status':
 			$copyright['mobile_status'] = intval($_GPC['value']);
 			$is_copyright = true;
@@ -100,4 +103,5 @@ if ($do == 'clerk') {
 		$bind = array('name' => '无', 'id' => 'null');
 	}
 }
+
 template('user/registerset');

@@ -58,11 +58,11 @@
 			</td>
 			{if $account['type_sign'] == 'wxapp'}
 			<td class="text-center">
-				<div ng-bind="item.module.version"></div>
+				<div ng-bind="item.last_modules.version"></div>
 			</td>
 			<td class="text-center">
 				<div ng-bind="item.module.module_info.version"></div>
-				<div class="color-red" ng-if="item.module.version != item.module.module_info.version">
+				<div class="color-red" ng-if="item.last_modules.version != item.module.module_info.version">
 					<i class="wi wi-warning-sign"></i>
 					<span style="font-size: 10px">需上传微信审核</span>
 				</div>

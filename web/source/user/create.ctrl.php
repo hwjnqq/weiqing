@@ -6,7 +6,7 @@
 defined('IN_IA') or exit('Access Denied');
 load()->model('user');
 
-$dos = array('post', 'save', 'get_user_group_detail_info', 'check_vice_founder_exists', 'check_user_info');
+$dos = array('post', 'save', 'get_user_group_detail_info', 'check_vice_founder_exists', 'check_user_info', 'check_vice_founder_permission_limit');
 $do = in_array($do, $dos) ? $do: 'post';
 
 $groups = user_group();
@@ -36,12 +36,17 @@ if (!empty($modules)) {
 	}
 }
 
+$uni_group_table = table('uni_group');
 # 应用权限 - 应用权限组
 if (user_is_vice_founder($_W['uid'])) {
 	$founder_group_info = user_founder_group_detail_info($_W['user']['groupid']);
 	$modules_group_list = $founder_group_info['package_detail'];
+
+	$uni_group_table->searchWithFounderUid($_W['uid']);
+	$packages = $uni_group_table->getUniGroupList();
+	$packages = uni_groups(array_column($packages, 'id'));
+	$modules_group_list = array_merge($modules_group_list, $packages);
 } else {
-	$uni_group_table = table('uni_group');
 	$uni_group_table->searchWithUniacidAndUid();
 	$modules_group_list = $uni_group_table->getUniGroupList();
 }
@@ -102,8 +107,13 @@ foreach ($uni_account_type_signs as $type_sign_name) {
 }
 
 # 帐号权限 - 帐号权限组
-$account_group_table = table('users_create_group');
-$account_group_lists = $account_group_table->getCreateGroupList();
+if (user_is_vice_founder()) {
+	$users_founder_own_create_groups_table = table('users_founder_own_create_groups');
+	$account_group_lists = $users_founder_own_create_groups_table->getallGroupsByFounderUid($_W['uid']);
+} else {
+	$account_group_table = table('users_create_group');
+	$account_group_lists = $account_group_table->getCreateGroupList();
+}
 
 $user_extra_limits = table('users_extra_limit')->getExtraLimitByUid($uid);
 $create_account = array(
@@ -163,6 +173,10 @@ if ($do == 'save') {
 
 	$user_update['groupid'] = intval($_GPC['groupid']) ? intval($_GPC['groupid']) : 0;
 	$user_update['uid'] = $uid;
+	if ($user_update['groupid'] == 0) {
+		$user_update['endtime'] = empty($_GPC['timelimit']) ? USER_ENDTIME_GROUP_DELETE_TYPE : strtotime(intval($_GPC['timelimit']) . ' days', TIMESTAMP);
+	}
+
 	user_update($user_update);
 
 	if (!empty($_GPC['uni_groups'])) {
@@ -279,4 +293,24 @@ if ($do == 'check_user_info') {
 	$user['username'] = safe_gpc_string($user['username']);
 	$check_result = user_info_check($user);
 	iajax($check_result['errno'], $check_result['message'], url('user/create'));
+}
+
+if ($do == 'check_vice_founder_permission_limit') {
+	if (user_is_vice_founder()) {
+		$timelimit['timelimit'] = $_GPC['timelimit'];
+		$create_account_nums = $_GPC['create_account_nums'];
+
+		if ($_GPC['permissionType'] == USER_CREATE_PERMISSION_GROUP_TYPE) {
+			iajax(0, '权限正确');
+		}
+
+		$check_result = permission_check_vice_founder_limit(array_merge($timelimit, $create_account_nums));
+		if (is_error($check_result)) {
+			iajax(-1, $check_result['message']);
+		} else {
+			iajax(0, '权限正确');
+		}
+	} else {
+		iajax(0, '权限错误');
+	}
 }

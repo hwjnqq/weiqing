@@ -91,8 +91,6 @@ if ($do == 'get_module_replies') {
 }
 
 if ($do == 'get_module_accounts') {
-	$uniacid = intval($_GPC['uniacid']);
-
 	# 主帐号
 	$account_info = uni_fetch($uniacid);
 

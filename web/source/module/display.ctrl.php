@@ -46,7 +46,7 @@ if ($do == 'display') {
 
 	$module_support_types = module_support_type();
 	foreach($own_account_modules['modules'] as $account_module_name => &$account_module_info) {
-		if ($account_module_info['role'] == ACCOUNT_MANAGE_NAME_CLERK || $account_module_info['role'] == ACCOUNT_MANAGE_NAME_OPERATOR) {
+		if ($account_module_info['role'] == ACCOUNT_MANAGE_NAME_CLERK || $account_module_info['role'] == ACCOUNT_MANAGE_NAME_OPERATOR || $account_module_info['role'] == ACCOUNT_MANAGE_NAME_MANAGER) {
 			$user_permission_table = table('users_permission');
 			$operator_modules_permissions = $user_permission_table->getAllUserModulePermission($_W['uid'], $account_module_info['uniacid']);
 			# 如果权限是店员, 检测过滤掉其他没有权限的模块

@@ -154,6 +154,10 @@ define('CACHE_EXPIRE_MIDDLE', 300);
 define('CACHE_EXPIRE_LONG', 3600);
 define('CACHE_KEY_LENGTH', 100); //缓存键的最大长度
 
+//系统模块
+define('MODULE_SYSTEM', 1);
+define('MODULE_NONSYSTEM', 0);
+//非系统模块
 //模块是否支持微信小程序
 define('MODULE_SUPPORT_WXAPP', 2);
 define('MODULE_NONSUPPORT_WXAPP', 1);
@@ -216,6 +220,12 @@ define('MODULE_RECYCLE_UNINSTALL_IGNORE', '2');
 //权限类型
 define('PERMISSION_ACCOUNT', 'system');
 define('PERMISSION_WXAPP', 'wxapp');
+define('PERMISSION_WEBAPP', 'webapp');
+define('PERMISSION_PHONEAPP', 'phoneapp');
+define('PERMISSION_XZAPP', 'xzapp');
+define('PERMISSION_ALIAPP', 'aliapp');
+define('PERMISSION_BAIDUAPP', 'baiduapp');
+define('PERMISSION_TOUTIAOAPP', 'toutiaoapp');
 define('PERMISSION_SYSTEM', 'site');
 
 //微信支付类型
@@ -274,21 +284,33 @@ define('PERSONAL_BIND_TYPE', 4);
 define('PERSONAL_LIMIT_TYPE', 5);
 
 //商品类型
-define('STORE_TYPE_MODULE', 1);
 define('STORE_TYPE_ACCOUNT', 2);
 define('STORE_TYPE_WXAPP', 3);
-define('STORE_TYPE_WXAPP_MODULE', 4);
 define('STORE_TYPE_PACKAGE', 5);
 define('STORE_TYPE_API', 6);
 define('STORE_TYPE_ACCOUNT_RENEW', 7);
 define('STORE_TYPE_WXAPP_RENEW', 8);
 define('STORE_TYPE_USER_PACKAGE', 9);
 define('STORE_TYPE_ACCOUNT_PACKAGE', 10);
+define('STORE_TYPE_MODULE', 1); //公众号应用
+define('STORE_TYPE_WXAPP_MODULE', 4); //小程序应用
+define('STORE_TYPE_WEBAPP_MODULE', 11); //PC应用
+define('STORE_TYPE_PHONEAPP_MODULE', 12); //APP应用
+define('STORE_TYPE_XZAPP_MODULE', 13); //熊掌号应用
+define('STORE_TYPE_ALIAPP_MODULE', 14); //支付宝小程序应用
+define('STORE_TYPE_BAIDUAPP_MODULE', 15); //百度小程序应用
+define('STORE_TYPE_TOUTIAOAPP_MODULE', 16); //头条小程序应用
+
 //订单状态
 define('STORE_ORDER_PLACE', 1);
 define('STORE_ORDER_DELETE', 2);
 define('STORE_ORDER_FINISH', 3);
 define('STORE_ORDER_DEACTIVATE', 4);
+define('STORE_ORDER_APPLY_REFUND', 5);
+define('STORE_ORDER_REFUND_FAIL', 6);
+define('STORE_ORDER_REFUNDED', 7);
+define('STORE_ORDER_FOUNDER_REFUND', 8);
+
 //商品状态
 define('STORE_GOODS_STATUS_OFFlINE', 0);
 define('STORE_GOODS_STATUS_ONLINE', 1);
@@ -311,6 +333,8 @@ define('USER_REGISTER_TYPE_OPEN_WECHAT', 4);
 //消息提醒类型
 //提交订单消息类型
 define('MESSAGE_ORDER_TYPE', 1);
+//提交订单消息类型
+define('MESSAGE_ORDER_WISH_TYPE', 13);
 //订单支付消息类型
 define('MESSAGE_ORDER_PAY_TYPE', 9);
 //公众号过期消息类型
@@ -331,6 +355,8 @@ define('MESSAGE_WXAPP_MODULE_UPGRADE', 8);
 define('MESSAGE_SYSTEM_UPGRADE', 10);
 //官方动态消息
 define('MESSAGE_OFFICIAL_DYNAMICS', 11);
+//用户申请订单退款消息类型
+define('MESSAGE_ORDER_APPLY_REFUND_TYPE', 12);
 
 //消息开关是否开启 1开启 2关闭
 define('MESSAGE_ENABLE', 1);
@@ -379,6 +405,20 @@ define('PHONEAPP_DISPLAY_TYPE', 5);
 define('PLATFORM_DISPLAY_TYPE', 6);
 //应用
 define('MODULE_DISPLAY_TYPE', 7);
+
+# 添加用户时 , 权限选择方式
+// 新的权限方式, 应用所有类型权限组分离存储
+define('USER_CREATE_PERMISSION_ALL_TYPE', 1);
+// 旧的权限方式, 只有用户权限组
+define('USER_CREATE_PERMISSION_GROUP_TYPE', 2);
+
+# 用户到期时间类型
+// 兼容旧的用户到期时间: 用户权限组为空, 或者用户权限组到期时间为0
+define('USER_ENDTIME_GROUP_EMPTY_TYPE', 0);
+// 新: 删除用户用户组
+define('USER_ENDTIME_GROUP_DELETE_TYPE', 1);
+// 新: 添加的用户选择永久用户权限组 或者 修改用户用户组为永久用户组
+define('USER_ENDTIME_GROUP_UNLIMIT_TYPE', 2);
 
 //密码强度
 define('PASSWORD_STRONG_STATE', '密码至少8-16个字符，至少1个大写字母，1个小写字母和1个数字，其他可以是任意字符');

@@ -18,9 +18,9 @@
 			<tr>
 				<td>{$check_item['description']}</td>
 				{if !$check_item['check_result']}
-					<td><i class="color-red wi wi-info-sign"></i>不支持</td>
+					<td><span class="color-red wi wi-info-sign">{$check_item['error_message']}</span></td>
 				{else}
-					<td><span class="color-green wi wi-right-sign">支持库</span></td>
+					<td><span class="color-green wi wi-right-sign">正确</span></td>
 				{/if}
 				<td>
 					<div>
@@ -34,11 +34,56 @@
 			</tr>
 			{/loop}
 
+
+			<!-- fpm 环境 start -->
+			<tr>
+				<td>php-fpm 运行环境</td>
+				<td ng-if="checkFpmStatus == 0"><span class="color-gray wi wi-info-sign">检测中...</span></td>
+				<td ng-if="checkFpmStatus == 1"><span class="color-green wi wi-right-sign">正确</span></td>
+				<td ng-if="checkFpmStatus == 2"><span class="color-red wi wi-info-sign">错误</span></td>
+				<td>
+					<span ng-if="checkFpmStatus != 2">--</span>
+					<a ng-if="checkFpmStatus == 2" href="javascript:void(0);" ng-click="checkFpm()">重新检测</a>
+				</td>
+				<td>
+					<span ng-if="checkFpmStatus != 2">--</span>
+					<span ng-if="checkFpmStatus == 2">安装配置 FPM</span>
+				</td>
+				<td>
+					<span ng-if="checkFpmStatus != 2">--</span>
+					<span ng-if="checkFpmStatus == 2">--</span>
+				</td>
+			</tr>
+			<!-- fpm 环境 end -->
+
+			<!-- 授权接入 start -->
+			<tr ng-if="checkAccountStatus != 2">
+				<td>授权接入账号</td>
+				<td ng-if="checkAccountStatus == 0"><span class="color-gray wi wi-info-sign">检测中...</span></td>
+				<td ng-if="checkAccountStatus == 1"><span class="color-green wi wi-right-sign">正确</span></td>
+				<td><div>--</div></td>
+				<td>--</td>
+				<td>--</td>
+			</tr>
+			<tr ng-repeat="account in errorAccounts">
+				<td>{{ account.name }}</td>
+				<td  style="max-width:250px;"><i class="color-red wi wi-info-sign"></i>{{account.error}}</td>
+				<td><a href="javascript:void(0);" ng-click="checkAuthAccount()">重新检测</a></td>
+				<td>
+					<a href="{{account_post_url}}acid={{account.acid}}&uniacid={{account.uniacid}}&account_type={{account.type}}" target="_blank">
+					重新接入 {{ account.name }}
+					</a>
+				</td>
+				<td>--</td>
+			</tr>
+			<!-- 授权接入 end -->
+
 			<!-- 表损坏 start -->
 			<div>
-			<tr ng-if="wrong_tables == ''">
+			<tr ng-if="wrong_tables == '' || checkMysqlTableStatus == 1 || checkMysqlTableStatus == 0">
 				<td>表损坏</td>
-				<td><span class="color-green wi wi-right-sign">正确</span></td>
+				<td ng-if="checkMysqlTableStatus == 1"><span class="color-green wi wi-right-sign">正确</span></td>
+				<td ng-if="checkMysqlTableStatus == 0"><span class="color-gray wi wi-info-sign">检测中...</span></td>
 				<td><div>--</div></td>
 				<td>--</td>
 				<td>--</td>
@@ -69,10 +114,13 @@
 		location.reload();
 	}
 	angular.module('systemApp').value('config', {
-		'check_num' : {php echo $check_num},
-		'check_wrong_num' : {php echo $check_wrong_num},
+		'check_num' : {$check_num},
+		'check_wrong_num' : {$check_wrong_num},
 		'links': {
+			'account_post_url': "{php echo url('account/post')}",
 			'check_table_link': "{php echo url('system/check/check_table')}",
+			'check_fpm_link': "{php echo url('system/check/check_fpm')}",
+			'check_auth_accounts': "{php echo url('system/check/check_auth_accounts')}",
 		},
 	});
 	angular.bootstrap($('#js-system-check'), ['systemApp']);

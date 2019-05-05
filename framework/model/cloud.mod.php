@@ -26,7 +26,7 @@ function cloud_client_define() {
 function _cloud_build_params($must_authorization_host = true) {
 	global $_W;
 	$pars = array();
-	$pars['host'] = $_SERVER['HTTP_HOST'];
+	$pars['host'] = strexists($_SERVER['HTTP_HOST'], ':') ? parse_url($_SERVER['HTTP_HOST'], PHP_URL_HOST) : $_SERVER['HTTP_HOST'];
 	if (is_array($_W['setting']['site']) && !empty($_W['setting']['site']['url']) && !$must_authorization_host) {
 		$pars['host'] = parse_url($_W['setting']['site']['url'], PHP_URL_HOST);
 	}
@@ -110,7 +110,11 @@ function _cloud_shipping_parse($dat, $file) {
 		}
 		return $ret;
 	} else {
-		return error($ret['errno'], "发生错误: {$ret['message']}");
+		$message = "发生错误: {$ret['message']}";
+		if ($ret['errno'] == '-3') { //模块升级服务到期
+			$message = $ret['data'] . $message;
+		}
+		return error($ret['errno'], $message);
 	}
 }
 
@@ -131,10 +135,11 @@ function cloud_request($url, $post = '', $extra = array(), $timeout = 60) {
 	return $response;
 }
 
-function cloud_api($method, $data = array()) {
+function cloud_api($method, $data = array(), $extra = array(), $timeout = 60) {
 	$cache_key = cache_system_key($method);
 	$cache = cache_load($cache_key);
-	if (!empty($cache) && $cache['expire'] > time()) {
+	//module/query数据量太大，不走缓存
+	if (!empty($cache) && $cache['expire'] > time() && $method != 'module/query') {
 		return $cache;
 	}
 	$api_url = 'http://api.w7.cc/%s';
@@ -145,27 +150,33 @@ function cloud_api($method, $data = array()) {
 	}
 	$pars = _cloud_build_params();
 	$data = array_merge($pars, $data);
-	$response = ihttp_request(sprintf($api_url, $method), $data);
-	$file = IA_ROOT . '/data/' . $method;
+	$response = ihttp_request(sprintf($api_url, $method), $data, $extra, $timeout);
+	$file = IA_ROOT . '/data/' . (!empty($data['method']) ? $data['method'] : $method);
 	$ret = _cloud_shipping_parse($response, $file);
 	cache_write($cache_key, $ret, 300);
 	return $ret;
+}
+
+function cloud_api_request($method, $data = array(), $extra = array(), $timeout = 60) {
+	load()->func('communication');
+	$api_url = 'http://api.w7.cc/%s';
+	$pars = _cloud_build_params();
+	$data = array_merge($pars, $data);
+	$response = ihttp_request(sprintf($api_url, $method), $data, $extra, $timeout);
+	$result = _cloud_response_parse($response);
+	return $result;
 }
 
 function cloud_prepare() {
 	global $_W;
 	setting_load();
 	if(empty($_W['setting']['site']['key']) || empty($_W['setting']['site']['token'])) {
-		return error('-1', '您的站点只有在微擎云服务平台成功注册后，才能使用云服务的相应功能。<div><a class="btn btn-primary" style="width:80px;" href="' . url('cloud/profile') . '">去注册</a></div>');
+		return error('-1', '站点注册信息丢失, 请通过"重置站点ID和通信秘钥"重新获取 !');
 	}
 	return true;
 }
 
 function cloud_build() {
-	$error_file_list = array();
-	if (!cloud_file_permission_pass($error_file_list)) {
-		message('下列文件或是目录无读写权限，导致无法进行系统更新，请及时修复，如有疑问请提交工单或联系客服: <br />' . implode('; <br />', $error_file_list), '', 'error');
-	}
 	$pars = _cloud_build_params();
 	$pars['method'] = 'application.build4';
 	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
@@ -308,6 +319,9 @@ function cloud_download($path, $type = '') {
 		return true;
 	}
 	$ret = @json_decode($dat['content'], true);
+	if (isset($ret['error'])) {
+		return error(1, $ret['error']);
+	}
 	if(is_error($ret)) {
 		return $ret;
 	} else {
@@ -440,7 +454,6 @@ function cloud_m_build($modulename, $type = '') {
  * @return array 应用或错误信息
  */
 function cloud_m_query($module = array()) {
-	$pars = _cloud_build_params();
 	$pars['method'] = 'module.query';
 	if (empty($module)) {
 		$module = cloud_extra_module();
@@ -449,9 +462,10 @@ function cloud_m_query($module = array()) {
 		$module = array($module);
 	}
 	$pars['module'] = base64_encode(iserializer($module));
-	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
-	$file = IA_ROOT . '/data/module.query';
-	$ret = _cloud_shipping_parse($dat, $file);
+	$ret = cloud_api('module/query', $pars);
+	if (isset($ret['error'])) {
+		return error(1, $ret['error']);
+	}
 	if (!is_error($ret)) {
 		$pirate_apps = $ret['pirate_apps'];
 		unset($ret['pirate_apps']);
@@ -471,6 +485,9 @@ function cloud_m_query($module = array()) {
 	return $ret;
 }
 
+/**
+ * @return array|mixed  2.0之后已废弃（保留，先不删）
+ */
 function cloud_m_bought() {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'module.bought';
@@ -481,12 +498,9 @@ function cloud_m_bought() {
 }
 
 function cloud_m_info($name) {
-	$pars = _cloud_build_params();
 	$pars['method'] = 'module.info';
 	$pars['module'] = $name;
-	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars);
-	$file = IA_ROOT . '/data/module.info';
-	$ret = _cloud_shipping_parse($dat, $file);
+	$ret = cloud_api('module/info', $pars);
 	return $ret;
 }
 
@@ -631,7 +645,7 @@ function cloud_t_upgradeinfo($name) {
 	return $ret;
 }
 
-//-后台皮肤接口 start
+//-后台皮肤接口 start 2.0之后已废弃（保留，先不删）
 function cloud_w_prepare($name) {
 	$pars['method'] = 'webtheme.check';
 	$pars['webtheme'] = $name;
@@ -646,7 +660,7 @@ function cloud_w_prepare($name) {
 }
 
 /**
- * 获取当前站点本地和云服务所有后台皮肤详细信息
+ * 获取当前站点本地和云服务所有后台皮肤详细信息 2.0之后已废弃（保留，先不删）
  * @return array 应用或错误信息
  */
 function cloud_w_query() {
@@ -659,6 +673,10 @@ function cloud_w_query() {
 	return $ret;
 }
 
+/**
+ * @param $name 2.0之后已废弃（保留，先不删）
+ * @return array|mixed
+ */
 function cloud_w_info($name) {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'webtheme.info';
@@ -669,6 +687,10 @@ function cloud_w_info($name) {
 	return $ret;
 }
 
+/**
+ * @param $name 2.0之后已废弃（保留，先不删）
+ * @return array|mixed
+ */
 function cloud_w_build($name) {
 	$sql = 'SELECT * FROM ' . tablename('webtheme_homepages') . ' WHERE `name`=:name';
 	$webtheme = pdo_fetch($sql, array(':name' => $name));
@@ -706,7 +728,7 @@ function cloud_w_build($name) {
 }
 
 /**
- * 获取云服务主页模板更新信息详情
+ * 获取云服务主页模板更新信息详情 2.0之后已废弃（保留，先不删）
  * @param string $name 主页模板名称
  * @return array|mixed|string
  */
@@ -725,37 +747,38 @@ function cloud_w_upgradeinfo($name) {
 }
 //-后台皮肤接口 end
 
-function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '') {
+function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '', $use_system_balance = false) {
 	global $_W;
 	if(!preg_match('/^1\d{10}$/', $mobile) || empty($content)) {
 		return error(1, '发送短信失败, 原因: 手机号错误或内容为空.');
 	}
+	$uniacid = empty($use_system_balance) ? $_W['uniacid'] : 0;
 
-	if (empty($_W['uniacid'])) {
+	if (empty($uniacid)) {
 		$sms_info = cloud_sms_info();
 		$balance = empty($sms_info['sms_count']) ? 0 : $sms_info['sms_count'];
 		if (!empty($custom_sign)) {
 			$sign = $custom_sign;
 		}
 	} else {
-		$row = pdo_get('uni_settings' , array('uniacid' => $_W['uniacid']), array('notify'));
+		$row = pdo_get('uni_settings' , array('uniacid' => $uniacid), array('notify'));
 		$row['notify'] = @iunserializer($row['notify']);
 
 		$config = $row['notify']['sms'];
 		$balance = intval($config['balance']);
 
 		$sign = empty($custom_sign) ? $config['signature'] : $custom_sign;
+		$account_name = empty($_W['account']['type_name']) ? '' : $_W['account']['type_name'];
+		$account_name .= empty($_W['account']['name']) ? '' : " [{$_W['account']['name']}] ";
 	}
-	if(empty($sign)) {
+	if(empty($sign) || $sign == 'null') {
 		$sign = '涛盛微擎团队';
 	}
-	$account_name = empty($_W['account']['type_name']) ? '' : $_W['account']['type_name'];
-	$account_name .= empty($_W['account']['name']) ? '' : " [ {$_W['account']['name']} ] ";
 
 	$pars = _cloud_build_params(false);
-	$pars['method'] = 'sms.sendnew';
+	$pars['method'] = 'sms.send';
 	$pars['mobile'] = $mobile;
-	$pars['uniacid'] = $_W['uniacid'];
+	$pars['uniacid'] = $uniacid;
 	$pars['account_name'] = empty($account_name) ? '当前公众号' : $account_name;
 	$pars['balance'] = $balance;
 	$pars['sign'] = $sign;
@@ -766,23 +789,25 @@ function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '
 		$pars['content'] = "{$content} 【{$sign}】";
 	}
 
-	$response = cloud_request('https://s.w7.cc/gateway.php', $pars);
+	$response = cloud_request('https://api.w7.cc/sms/send/index', $pars);
 	if (is_error($response)) {
 		return error($response['errno'], '短信发送失败, 原因:'.$response['message']);
 	}
 
 	$result = json_decode($response['content'], true);
-
 	if (is_error($result)) {
 		return error($result['errno'], $result['message']);
 	}
+	if (!empty($result['error'])) {
+		return error(-1, $result['error']);
+	}
 	if (intval($result['errno']) != -1) {
-		if (!empty($_W['uniacid'])) {
+		if (!empty($uniacid)) {
 			$row['notify']['sms']['balance'] = $row['notify']['sms']['balance'] - 1;
 			if ($row['notify']['sms']['balance'] < 0) {
 				$row['notify']['sms']['balance'] = 0;
 			}
-			pdo_update('uni_settings', array('notify' => iserializer($row['notify'])), array('uniacid' => $_W['uniacid']));
+			pdo_update('uni_settings', array('notify' => iserializer($row['notify'])), array('uniacid' => $uniacid));
 			uni_setting_save('notify', $row['notify']);
 		} else {
 			$sms_info['sms_count'] = $sms_info['sms_count'] - 1;
@@ -799,14 +824,40 @@ function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '
  * 获取当前站点可用短信签名.
  */
 function cloud_sms_info() {
-	$pars = _cloud_build_params(false);
-	$pars['method'] = 'sms.info';
-	$response = ihttp_request('http://api.w7.cc/sms/info?', $pars);
-	$result = @json_decode($response['content'], true);
-	if(is_error($result)) {
-		return error($result['error'], "错误详情: {$result['message']}");
+	return cloud_api_request('sms/info/index');
+}
+
+function cloud_sms_log($mobile = 0, $time = array(), $page = 1, $page_size = 10) {
+	return cloud_api_request('sms/info/log', array(
+		'mobile' => $mobile,
+		'time' => $time,
+		'page' => $page,
+		'page_size' => $page_size,
+	));
+}
+
+function cloud_sms_trade($page = 1, $time = array()) {
+	$page = max(1, $page);
+	if ($page == 1 && !empty($time[1]) && $time[1] > date('Y-m-d')) {
+		$is_cache = true; //缓存第一页数据
+	} else {
+		$is_cache = false;
 	}
-	return (array)$result;
+	if ($is_cache) {
+		$cache_key = cache_system_key('sms_log_list');
+		$cach_data = cache_load($cache_key);
+		if (!empty($cach_data)) {
+			return $cach_data;
+		}
+	}
+	$result = cloud_api_request('util/api/index', array(
+		'method' => 'smsTrade',
+		'params' => array('page' => $page, 'time' => $time),
+	));
+	if ($is_cache) {
+		cache_write($cache_key, $result, 300);
+	}
+	return $result;
 }
 
 /**
@@ -855,17 +906,42 @@ function cloud_extra_webtheme() {
 	}
 }
 
+function cloud_module_setting($acid, $module) {
+	$pars = array(
+		'acid' => $acid,
+		'module_name' => $module['name'],
+		'module_version' => $module['version'],
+	);
+	return cloud_api_request('module/setting/index', $pars);
+}
+
+function cloud_module_setting_save($acid, $module_name, $setting) {
+	$pars = array(
+		'acid' => $acid,
+		'module_name' => $module_name,
+		'setting' => $setting,
+	);
+	return cloud_api_request('module/setting/save', $pars);
+}
+
+function cloud_api_redirect($method, $params = array()) {
+	$pars = array(
+		'method' => $method,
+		'params' => $params,
+	);
+	return cloud_api_request('util/api/index', $pars);
+}
+
 /**
  * 云服务创建计划任务
  * @param array $cron 计划任务数据
  * @return array 创建结果
  */
 function cloud_cron_create($cron) {
-	$pars = _cloud_build_params();
-	$pars['method'] = 'cron.create';
-	$pars['cron'] = base64_encode(iserializer($cron));
-	$result = cloud_request('https://s.w7.cc/gateway.php', $pars);
-	return _cloud_cron_parse($result);
+	$pars = array(
+		'cron' => base64_encode(iserializer($cron)),
+	);
+	return cloud_api_request('site/cron/save', $pars);
 }
 
 /**
@@ -874,11 +950,7 @@ function cloud_cron_create($cron) {
  * @return array 更新结果
  */
 function cloud_cron_update($cron) {
-	$pars = _cloud_build_params();
-	$pars['method'] = 'cron.update';
-	$pars['cron'] = base64_encode(iserializer($cron));
-	$result = cloud_request('https://s.w7.cc/gateway.php', $pars);
-	return _cloud_cron_parse($result);
+	return cloud_cron_create($cron); //更新时 $cron['cloudid'] 不为空
 }
 
 /**
@@ -887,11 +959,10 @@ function cloud_cron_update($cron) {
  * @return array 计划任务或错误信息
  */
 function cloud_cron_get($cron_id) {
-	$pars = _cloud_build_params();
-	$pars['method'] = 'cron.get';
-	$pars['cron_id'] = $cron_id;
-	$result = cloud_request('https://s.w7.cc/gateway.php', $pars);
-	return _cloud_cron_parse($result);
+	$pars = array(
+		'cron_id' => $cron_id,
+	);
+	return cloud_api_request('site/cron/get', $pars);
 }
 
 /**
@@ -901,12 +972,11 @@ function cloud_cron_get($cron_id) {
  * @return array 状态更改结果或错误信息
  */
 function cloud_cron_change_status($cron_id, $status) {
-	$pars = _cloud_build_params();
-	$pars['method'] = 'cron.status';
-	$pars['cron_id'] = $cron_id;
-	$pars['status'] = $status;
-	$result = cloud_request('https://s.w7.cc/gateway.php', $pars);
-	return _cloud_cron_parse($result);
+	$pars = array(
+		'cron_id' => $cron_id,
+		'status' => $status,
+	);
+	return cloud_api_request('site/cron/status', $pars);
 }
 
 /**
@@ -915,19 +985,13 @@ function cloud_cron_change_status($cron_id, $status) {
  * @return array 删除结果或错误信息
  */
 function cloud_cron_remove($cron_id) {
-	$pars = _cloud_build_params();
-	$pars['method'] = 'cron.remove';
-	$pars['cron_id'] = $cron_id;
-	$result = cloud_request('https://s.w7.cc/gateway.php', $pars);
-	return _cloud_cron_parse($result);
+	$pars = array(
+		'cron_id' => $cron_id,
+	);
+	return cloud_api_request('site/cron/remove', $pars);
 }
 
-/**
- * 云服务计划任务返回数据解析
- * @param array $result 计划任务返回数据
- * @return array 解析结果或错误信息
- */
-function _cloud_cron_parse($result) {
+function _cloud_response_parse($result) {
 	if (empty($result)) {
 		return error(-1, '没有接收到服务器的传输的数据');
 	}
@@ -938,11 +1002,19 @@ function _cloud_cron_parse($result) {
 	if (null === $result) {
 		return error(-1, '云服务通讯发生错误，请稍后重新尝试！');
 	}
-	$result = $result['message'];
-	if (is_error($result)) {
-		return error(-1, $result['message']);
+	if (!empty($result['error'])) {
+		return error(-1, $result['error']);
 	}
 	return $result;
+}
+
+function cloud_site_info() {
+	return cloud_api_request('util/api/index', array('method' => 'license'));
+}
+
+function cloud_reset_siteinfo() {
+	global $_W;
+	return cloud_api_request('site/register/profile', array('url' => $_W['siteroot']));
 }
 
 /**
@@ -1021,9 +1093,12 @@ function cloud_resource_to_local($uniacid, $type, $url){
 	}
 	$pathinfo = pathinfo($url);
 	$extension = $pathinfo['extension'];
-	$originname = $pathinfo['basename'];
 
-	$setting['folder'] = "{$type}s/{$uniacid}/".date('Y/m/');
+	if ($uniacid == 0) {
+		$setting['folder'] = "{$type}s/global/".date('Y/m/');
+	} else {
+		$setting['folder'] = "{$type}s/{$uniacid}/".date('Y/m/');
+	}
 
 	$originname = pathinfo($url, PATHINFO_BASENAME);
 	$filename = file_random_name(ATTACHMENT_ROOT .'/'. $setting['folder'], $extension);
@@ -1098,7 +1173,7 @@ function cloud_bakup_files($files) {
 }
 
 /**
- * 流量
+ * 流量 2.0之后已废弃（保留，先不删）
  * @param array $flow_master
  * @return array|error
  */
@@ -1122,7 +1197,7 @@ function cloud_flow_master_post($flow_master) {
 }
 
 /**
- *
+ * 2.0之后已废弃（保留，先不删）
  * @param array $flow_master
  * @return array
  */
@@ -1147,6 +1222,10 @@ function cloud_flow_master_get() {
 	return $ret;
 }
 
+/**
+ * @param $uniaccount 2.0之后已废弃（保留，先不删）
+ * @return array|mixed
+ */
 function cloud_flow_uniaccount_post($uniaccount) {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'flow.uniaccount_post';
@@ -1168,6 +1247,10 @@ function cloud_flow_uniaccount_post($uniaccount) {
 	return $ret;
 }
 
+/**
+ * @param $uniacid 2.0之后已废弃（保留，先不删）
+ * @return array|mixed
+ */
 function cloud_flow_uniaccount_get($uniacid) {
 	$cachekey = cache_system_key('cloud_ad_uniaccount', array('uniacid' => $uniacid));
 	$cache = cache_load($cachekey);
@@ -1189,6 +1272,9 @@ function cloud_flow_uniaccount_get($uniacid) {
 	return $ret;
 }
 
+/** 2.0之后已废弃（保留，先不删）
+ * @return array|mixed
+ */
 function cloud_flow_uniaccount_list_get() {
 	$cachekey = cache_system_key('cloud_ad_uniaccount_list');
 	$cache = cache_load($cachekey);
@@ -1206,6 +1292,9 @@ function cloud_flow_uniaccount_list_get() {
 	return $ret;
 }
 
+/** 2.0之后已废弃（保留，先不删）
+ * @return array|mixed
+ */
 function cloud_flow_ad_tag_list() {
 	$cachekey = cache_system_key('cloud_ad_tags');
 	$cache = cache_load($cachekey);
@@ -1223,6 +1312,9 @@ function cloud_flow_ad_tag_list() {
 	return $ret;
 }
 
+/** 2.0之后已废弃（保留，先不删）
+ * @return array|mixed
+ */
 function cloud_flow_ad_type_list() {
 	$cachekey = cache_system_key('cloud_ad_type_list');
 	$cache = cache_load($cachekey);
@@ -1240,6 +1332,13 @@ function cloud_flow_ad_type_list() {
 	return $ret;
 }
 
+/**
+ * @param $uniacid 2.0之后已废弃（保留，先不删）
+ * @param $module_name
+ * @param int $enable
+ * @param null $ad_types
+ * @return array|mixed
+ */
 function cloud_flow_app_post($uniacid, $module_name, $enable = 0, $ad_types = null) {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'flow.app_post';
@@ -1263,7 +1362,7 @@ function cloud_flow_app_post($uniacid, $module_name, $enable = 0, $ad_types = nu
 }
 
 /*
- * 公众号下所有应用的设置
+ * 公众号下所有应用的设置 2.0之后已废弃（保留，先不删）
  */
 function cloud_flow_app_list_get($uniacid) {
 	$cachekey = cache_system_key('cloud_ad_app_list', array('uniacid' => $uniacid));
@@ -1285,6 +1384,10 @@ function cloud_flow_app_list_get($uniacid) {
 	return $ret;
 }
 
+/**
+ * @param $module_names 2.0之后已废弃（保留，先不删）
+ * @return array|mixed
+ */
 function cloud_flow_app_support_list($module_names) {
 	if (empty($module_names)) {
 		return array();
@@ -1306,6 +1409,10 @@ function cloud_flow_app_support_list($module_names) {
 	return $ret;
 }
 
+/**
+ * @param $condition 2.0之后已废弃（保留，先不删）
+ * @return array|mixed
+ */
 function cloud_flow_site_stat_day($condition) {
 	$cachekey = cache_system_key('cloud_ad_site_finance');
 	$cache = cache_load($cachekey);
@@ -1390,10 +1497,15 @@ function cloud_build_schemas($schemas) {
 function cloud_file_permission_pass(&$error_file_list = array()) {
 
 	$check_path = array(
+		'/app/common',
+		'/app/source',
+		'/app/themes/default',
 		'/web/common',
 		'/web/source',
 		'/web/themes/default',
 		'/web/themes/black',
+		'/web/themes/classical',
+		'/web/themes/2.0',
 		'/framework/class',
 		'/framework/model',
 		'/framework/function',
@@ -1498,7 +1610,7 @@ function cloud_v_to_xs($url) {
 	$pars = _cloud_build_params();
 	$pars['method'] = 'module.query';
 	$pars['url'] = urlencode($url);
-	cloud_request('http://api-old.w7.cc/site/pirate/index', $pars);
+	cloud_request('http://api.w7.cc/site/pirate/index', $pars);
 	return true;
 }
 

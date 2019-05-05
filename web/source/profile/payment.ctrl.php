@@ -9,7 +9,7 @@ load()->model('payment');
 load()->model('account');
 load()->func('communication');
 
-$dos = array('save_setting', 'display', 'test_alipay', 'get_setting', 'switch', 'change_status');
+$dos = array('save_setting', 'display', 'test_alipay', 'get_setting', 'switch', 'change_status', 'get_account_wechatpay_proxy');
 $do = in_array($do, $dos) ? $do : 'display';
 permission_check_account_user('profile_payment_pay');
 
@@ -132,7 +132,6 @@ if ($do == 'change_status') {
 }
 
 if ($do == 'display' || $do == 'switch') {
-	$proxy_wechatpay_account = account_wechatpay_proxy();
 	$pay_setting = payment_setting();
 	$accounts = array();
 	$accounts[$_W['acid']] = array_elements(array('name', 'acid', 'key', 'secret', 'level'), $_W['account']);
@@ -142,5 +141,10 @@ if ($do == 'switch') {
 	if (empty($payment_types[$_GPC['type']])) {
 		itoast('参数错误', url('profile/payment'), 'error');
 	}
+}
+
+if ($do == 'get_account_wechatpay_proxy') {
+	$proxy_wechatpay_account = account_wechatpay_proxy();
+	iajax(0, $proxy_wechatpay_account);
 }
 template('profile/payment');

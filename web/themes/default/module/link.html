@@ -153,7 +153,7 @@
     angular.module('moduleApp').value('config', {
         'submitLinkInfoUrl': '{php echo url("module/link/link_account")}',
         'getLinkAccountUrl': '{php echo url("module/link/get_sub_accounts")}',
-        'getMainAccountUrl': '{php echo url("profile/module-link-uniacid/search_link_account")}',
+        'getMainAccountUrl': '{php echo url("module/link/search_link_account")}',
         'userModules': {php echo json_encode($user_modules)},
     });
     angular.bootstrap($('#js-link-display'), ['moduleApp']);

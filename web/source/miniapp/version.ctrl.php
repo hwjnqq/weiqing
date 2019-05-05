@@ -29,6 +29,9 @@ if ($do == 'display') {
 if ($do == 'home') {
 	$version_id = intval($_GPC['version_id']);
 	$wxapp_info = miniapp_fetch($_W['uniacid']);
+	if ($_GPC['miniapp_version_referer']) {
+		itoast('', url('miniapp/version/display'));
+	}
 	if (!empty($version_id)) {
 		$version_info = miniapp_version($version_id);
 	}

@@ -165,13 +165,14 @@ if ($do == 'post') {
 
 	$user_modules = user_modules($_W['uid']);
 	foreach($user_modules as $name => $module) {
-		if (!empty($val['issystem'])) {
+		if (!empty($module['issystem'])) {
 			continue;
 		}
 		foreach ($module_support_type as $support => $info) {
 			if ($support == MODULE_SUPPORT_SYSTEMWELCOME_NAME) {
 				continue;
 			}
+			$info['type'] = $info['type'] == 'account' ? 'modules' : $info['type'];
 			if ($module[$support] == $info['support']) {
 				$module_list['modules'][] = array(
 					'id' => $module['mid'],

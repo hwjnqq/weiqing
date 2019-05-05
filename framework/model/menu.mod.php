@@ -95,7 +95,9 @@ function menu_update_currentself() {
 		}
 		unset($button);
 	}
-	ksort($default_menu);
+	if (!empty($default_menu)) {
+		ksort($default_menu);
+	}
 	$wechat_menu_data = base64_encode(iserializer($default_menu));
 	$all_default_menus = table('menu')->searchAccountMenuList(MENU_CURRENTSELF);
 	if (!empty($all_default_menus)) {

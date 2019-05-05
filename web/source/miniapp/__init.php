@@ -9,7 +9,12 @@ if (in_array($action, array('post', 'manage'))) {
 	define('FRAME', '');
 } else {
 	if (!empty($_GPC['uniacid']) && intval($_GPC['uniacid']) != $_W['uniacid']) {
-		itoast('', url('account/display/switch', array('uniacid' => intval($_GPC['uniacid']), 'version_id' => intval($_GPC['version_id']))));
+		$params = array('uniacid' => intval($_GPC['uniacid']), 'version_id' => intval($_GPC['version_id']));
+		if ($action == 'version' && $do == 'display') {
+			$params['miniapp_version_referer'] = 1;
+		}
+
+		itoast('', url('account/display/switch', $params));
 	}
 	$account_api = WeAccount::createByUniacid();
 	if (is_error($account_api)) {

@@ -98,6 +98,27 @@ if ($do == 'save') {
 
 if ($do == 'del') {
 	$id = intval($_GPC['id']);
+
+	$users = pdo_getall('users', array('groupid' => $id));
+	if (!empty($users)) {
+		$users_extra_limit_table = table('users_extra_limit');
+		$group_info = pdo_get('users_group', array('id' => $id));
+		foreach ($users as $user_info) {
+			$extra_limit_info = $users_extra_limit_table->getExtraLimitByUid($user_info['uid']);
+			if (empty($extra_limit_info)) {
+				$result = user_update(array('uid' => $uid, 'groupid' => '', 'endtime' => 1));
+			} else {
+				$group_info_timelimit = $group_info['timelimit'];
+				if ($group_info_timelimit == 0) {
+					$end_time = !empty($extra_limit_info) && $extra_limit_info['timelimit'] > 0 ? strtotime($extra_limit_info['timelimit'] . ' days', $user_info['joindate']) : $user_info['joindate'];
+				} else {
+					$end_time = strtotime('-' . $group_info_timelimit . ' days', $user_info['endtime']);
+				}
+				$result = user_update(array('uid' => $user_info['uid'], 'groupid' => '', 'endtime' => $end_time));
+			}
+		}
+	}
+
 	$result = pdo_delete('users_group', array('id' => $id));
 	$result_founder = pdo_delete('users_founder_own_users_groups', array('users_group_id' => $id));
 	itoast('删除成功！', url('user/group/display'), 'success');

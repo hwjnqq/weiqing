@@ -74,12 +74,14 @@ function module_support_type() {
 			'type_name' => '微信小程序',
 			'support' => MODULE_SUPPORT_WXAPP,
 			'not_support' => MODULE_NONSUPPORT_WXAPP,
+			'store_type' => STORE_TYPE_WXAPP_MODULE,
 		),
 		'account_support' => array(
 			'type' => ACCOUNT_TYPE_SIGN,
 			'type_name' => '公众号',
 			'support' => MODULE_SUPPORT_ACCOUNT,
 			'not_support' => MODULE_NONSUPPORT_ACCOUNT,
+			'store_type' => STORE_TYPE_MODULE,
 		),
 		'welcome_support' => array(
 			'type' => WELCOMESYSTEM_TYPE_SIGN,
@@ -92,36 +94,42 @@ function module_support_type() {
 			'type_name' => 'PC',
 			'support' => MODULE_SUPPORT_WEBAPP,
 			'not_support' => MODULE_NOSUPPORT_WEBAPP,
+			'store_type' => STORE_TYPE_WEBAPP_MODULE,
 		),
 		'phoneapp_support' => array(
 			'type' => PHONEAPP_TYPE_SIGN,
 			'type_name' => 'APP',
 			'support' => MODULE_SUPPORT_PHONEAPP,
 			'not_support' => MODULE_NOSUPPORT_PHONEAPP,
+			'store_type' => STORE_TYPE_PHONEAPP_MODULE,
 		),
 		'xzapp_support' => array(
 			'type' => XZAPP_TYPE_SIGN,
 			'type_name' => '熊掌号',
 			'support' => MODULE_SUPPORT_XZAPP,
 			'not_support' => MODULE_NOSUPPORT_XZAPP,
+			'store_type' => STORE_TYPE_XZAPP_MODULE,
 		),
 		'aliapp_support' => array(
 			'type' => ALIAPP_TYPE_SIGN,
 			'type_name' => '支付宝小程序',
 			'support' => MODULE_SUPPORT_ALIAPP,
 			'not_support' => MODULE_NOSUPPORT_ALIAPP,
+			'store_type' => STORE_TYPE_ALIAPP_MODULE,
 		),
 		'baiduapp_support' => array(
 			'type' => BAIDUAPP_TYPE_SIGN,
 			'type_name' => '百度小程序',
 			'support' => MODULE_SUPPORT_BAIDUAPP,
 			'not_support' => MODULE_NOSUPPORT_BAIDUAPP,
+			'store_type' => STORE_TYPE_BAIDUAPP_MODULE,
 		),
 		'toutiaoapp_support' => array(
 			'type' => TOUTIAOAPP_TYPE_SIGN,
 			'type_name' => '头条小程序',
 			'support' => MODULE_SUPPORT_TOUTIAOAPP,
 			'not_support' => MODULE_NOSUPPORT_TOUTIAOAPP,
+			'store_type' => STORE_TYPE_TOUTIAOAPP_MODULE,
 		)
 	);
 	return $module_support_type;
@@ -149,7 +157,7 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 	} else {
 		$types = array_intersect($types, $ts);
 	}
-	$bindings = pdo_getall('modules_bindings', array('module' => $name, 'entry' => $types), array(), '', 'displayorder DESC, eid ASC');
+	$bindings = pdo_getall('modules_bindings', array('module' => $name, 'entry' => $types), array(), '', 'displayorder DESC, multilevel DESC, eid ASC');
 	$entries = array();
 	$cache_key = cache_system_key('module_entry_call', array('module_name' => $name));
 	$entry_call = cache_load($cache_key);
@@ -174,6 +182,8 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 						if (empty($et['url'])) {
 							continue;
 						}
+						$urlinfo = url_params($et['url']);
+						$et['do'] = empty($et['do']) ? $urlinfo['do'] : $et['do'];
 						$et['url'] = $et['url'] . '&__title=' . urlencode($et['title']);
 						$entry_call[$bind['entry']][] = array('eid' => 'user_' . $i, 'title' => $et['title'], 'do' => $et['do'], 'url' => $et['url'], 'from' => 'call', 'icon' => $et['icon'], 'displayorder' => $et['displayorder']);
 					}
@@ -206,7 +216,18 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 			if (!defined('SYSTEM_WELCOME_MODULE') && $bind['entry'] == 'system_welcome') {
 				continue;
 			}
-			$entries[$bind['entry']][] = array('eid' => $bind['eid'], 'title' => $bind['title'], 'do' => $bind['do'], 'url' => $url, 'from' => 'define', 'icon' => $bind['icon'], 'displayorder' => $bind['displayorder'], 'direct' => $bind['direct']);
+			$entries[$bind['entry']][] = array(
+				'eid' => $bind['eid'],
+				'title' => $bind['title'],
+				'do' => $bind['do'],
+				'url' => !$bind['multilevel'] ? $url : '',
+				'from' => 'define',
+				'icon' => $bind['icon'],
+				'displayorder' => $bind['displayorder'],
+				'direct' => $bind['direct'],
+				'multilevel' => $bind['multilevel'],
+				'parent' => $bind['parent'],
+			);
 		}
 	}
 	return $entries;
@@ -463,9 +484,6 @@ function module_fetch($name, $enabled = true) {
 			cache_write($setting_cachekey, $setting);
 		}
 		$module['config'] = !empty($setting['settings']) ? iunserializer($setting['settings']) : array();
-		$link_uniacid_table = table('uni_link_uniacid');
-		$module['config']['link_uniacid'] = $link_uniacid_table->getMainUniacid($_W['uniacid'], $name);;
-		$module['config']['passive_link_uniacid'] = $link_uniacid_table->getSubUniacids($_W['uniacid'], $name);
 		$module['enabled'] = $module['issystem'] || !isset($setting['enabled']) ? 1 : $setting['enabled'];
 		$module['displayorder'] = $setting['displayorder'];
 		$module['shortcut'] = $setting['shortcut'];
@@ -957,20 +975,18 @@ function module_upgrade_info($modulelist = array()) {
 	load()->model('extension');
 
 	$result = array();
+	$module_support_type = module_support_type();
+	//按照本地manifest整理接口数据
+	$manifest_cloud_list = array();
 
 	cloud_prepare();
 	$cloud_m_query_module = cloud_m_query();
 	if (is_error($cloud_m_query_module)) {
-		return array();
+		return $cloud_m_query_module;
 	}
-	$module_support_type = module_support_type();
-
-	//$cloud_m_query_module = include IA_ROOT . '/web/cloud.php';
 	$pirate_apps = $cloud_m_query_module['pirate_apps'];
 	unset($cloud_m_query_module['pirate_apps']);
 
-	//按照本地manifest整理接口数据
-	$manifest_cloud_list = array();
 	foreach ($cloud_m_query_module as $modulename => $manifest_cloud) {
 		$manifest = array(
 			'application' => array(
@@ -978,7 +994,6 @@ function module_upgrade_info($modulelist = array()) {
 				'title' => $manifest_cloud['title'],
 				'version' => $manifest_cloud['version'],
 				'logo' => $manifest_cloud['thumb'],
-				'version' => $manifest_cloud['version'],
 				'last_upgrade_time' => $manifest_cloud['last_upgrade_time'],
 			),
 			'platform' => array(
@@ -1181,8 +1196,11 @@ function module_check_notinstalled_support($module, $manifest_support) {
  * 将模块加入到应用权限组中
  * @param $module 必须包含模块的name和支持
  */
-function module_add_to_uni_group($module, $uni_group_id, $support = 'all') {
-	if ($support != 'all' && (empty($module[$support]) || $module[$support] != MODULE_SUPPORT_ACCOUNT)) {
+function module_add_to_uni_group($module, $uni_group_id, $support) {
+	if (!in_array($support, array_keys(module_support_type()))) {
+		return error(1, '支持类型不存在');
+	}
+	if (empty($module[$support]) || $module[$support] != MODULE_SUPPORT_ACCOUNT) {
 		return error(1, '模块支持不存在');
 	}
 	$unigroup_table = table('uni_group');
@@ -1190,21 +1208,12 @@ function module_add_to_uni_group($module, $uni_group_id, $support = 'all') {
 	if (empty($uni_group)) {
 		return error(1, '应用权限组不存在');
 	}
-	$update_data = iunserializer($uni_group['modules']);
-	$all_support = array('account', 'wxapp', 'webapp', 'phoneapp', 'xzapp', 'aliapp');
-	if ($support == 'all') {
-		foreach ($all_support as $item) {
-			$key = $item == 'account' ? 'modules' : $item;
-			if ($module["{$item}_support"] == MODULE_SUPPORT_ACCOUNT && !in_array($module['name'], $update_data[$key])) {
-				$update_data[$key][] = $module['name'];
-			}
-		}
-	} else {
-		$key = str_replace('_support', '', $support);
-		$key = $key == 'account' ? 'modules' : $key;
-		if (!in_array($module['name'], $update_data[$key])) {
-			$update_data[$key][] = $module['name'];
-		}
+	$update_data = $uni_group['modules'];
+
+	$key = str_replace('_support', '', $support);
+	$key = $key == 'account' ? 'modules' : $key;
+	if (!in_array($module['name'], $update_data[$key])) {
+		$update_data[$key][] = $module['name'];
 	}
 	return $unigroup_table->fill('modules', iserializer($update_data))->where('id', $uni_group_id)->save();
 }
@@ -1316,7 +1325,7 @@ function module_change_direct_enter_status($module_name) {
 	}
 	$module_setting = table('uni_account_modules')->getByUniacidAndModule($module_name, $_W['uniacid']);
 	$direct_enter_status = !empty($module_setting['settings']) && $module_setting['settings']['direct_enter'] == STATUS_ON ? STATUS_OFF : STATUS_ON;
-	if (empty($module_setting['settings'])) {
+	if (empty($module_setting)) {
 		$data = array('direct_enter' => $direct_enter_status);
 		$result = table('uni_account_modules')->fill(array('settings' => iserializer($data), 'uniacid' => $_W['uniacid'], 'module' => $module_name))->save();
 	} else {

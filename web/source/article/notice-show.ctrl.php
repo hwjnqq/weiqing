@@ -80,7 +80,8 @@ if ($do == 'like_comment') {
 	if (empty($comment)) {
 		iajax(1, '评论不存在');
 	}
-	if (!empty($article_comment_table->getLikeComment($_W['uid'], $articleid, $comment_id))) {
+	$like_comment = $article_comment_table->getLikeComment($_W['uid'], $articleid, $comment_id);
+	if (!empty($like_comment)) {
 		iajax(1, '已赞');
 	}
 	if ($article_comment_table->likeComment($_W['uid'], $articleid, $comment_id)) {

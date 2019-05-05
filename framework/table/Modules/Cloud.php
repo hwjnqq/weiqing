@@ -99,8 +99,14 @@ class Cloud extends \We7Table {
 			->getall('name');
 	}
 
-	public function searchWithUninstall() {
-		return $this->where('install_status', array(MODULE_LOCAL_UNINSTALL, MODULE_CLOUD_UNINSTALL));
+	public function searchWithUninstall($local_or_cloud = 0) {
+		if ($local_or_cloud == MODULE_LOCAL_UNINSTALL) {
+			return $this->where('install_status', MODULE_LOCAL_UNINSTALL);
+		} elseif ($local_or_cloud == MODULE_CLOUD_UNINSTALL) {
+			return $this->where('install_status', MODULE_CLOUD_UNINSTALL);
+		} else {
+			return $this->where('install_status', array(MODULE_LOCAL_UNINSTALL, MODULE_CLOUD_UNINSTALL));
+		}
 	}
 
 	public function searchUninstallSupport($support) {

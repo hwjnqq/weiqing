@@ -53,4 +53,3 @@ $_W['template'] = '2.0';
 
 
 $_W['attachurl'] = attachment_set_attach_url();
-load()->func('compat.biz');

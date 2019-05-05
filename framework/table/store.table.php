@@ -28,26 +28,32 @@ class StoreTable extends We7Table {
 	 * @param $type string 1.商品类型
 	 */
 	public function searchAccountBuyGoods($uniacid, $type) {
-		$type_name = array(
-			STORE_TYPE_MODULE => 'module',
-			STORE_TYPE_WXAPP_MODULE => 'module',
-			STORE_TYPE_PACKAGE => 'module_group',
-			STORE_TYPE_API => '(g.api_num * r.duration) as number',
-		);
+		$this->query->from('site_store_goods', 'g')
+			->leftjoin('site_store_order', 'r')
+			->on(array('g.id' => 'r.goodsid'))
+			->where('g.type', $type)
+			->where('r.type', STORE_ORDER_FINISH);
+
 		if ($type == STORE_TYPE_API) {
-			$number_list = $this->query->from('site_store_goods', 'g')->leftjoin('site_store_order', 'r')->on(array('g.id' => 'r.goodsid'))->where('r.uniacid', $uniacid)->where('g.type', $type)->where('r.type', STORE_ORDER_FINISH)->select($type_name[$type])->getall('number');
+			$number_list = $this->query->where('r.uniacid', $uniacid)->select('(g.api_num * r.duration) as number')->getall('number');
 			return array_sum(array_keys($number_list));
+
 		} else{
-			$this->query->from('site_store_goods', 'g')
-				->leftjoin('site_store_order', 'r')
-				->on(array('g.id' => 'r.goodsid'))
-				->where('g.type', $type)
-				->where('r.type', STORE_ORDER_FINISH)
-				->where('r.type <>', STORE_ORDER_DEACTIVATE)
-				->where(function ($query) use ($uniacid) {
-					$query->where('r.uniacid', $uniacid)->whereor('r.wxapp', $uniacid);
-				});
-			return  $this->query->getall($type_name[$type]);
+			$this->query->where(function ($query) use ($uniacid) {
+				$query->where('r.uniacid', $uniacid)->whereor('r.wxapp', $uniacid);
+			});
+
+			load()->model('store');
+			$all_type = store_goods_type_info();
+			if ($all_type[$type]['group'] == 'module') {
+				$keyfield = 'module';
+			} else {
+				$type_name = array(
+					STORE_TYPE_PACKAGE => 'module_group',
+				);
+				$keyfield = empty($type_name[$type]) ? '' : $type_name[$type];
+			}
+			return $this->query->getall($keyfield);
 		}
 	}
 
@@ -75,6 +81,11 @@ class StoreTable extends We7Table {
 			$this->query->where('title_initial LIKE', "%{$letter}%");
 			return $this;
 		}
+	}
+
+	public function searchWithIsWish($is_wish) {
+		$this->query->where('is_wish', $is_wish);
+		return $this;
 	}
 
 	public function searchWithOrderid($orderid) {

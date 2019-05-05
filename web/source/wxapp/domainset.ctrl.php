@@ -35,7 +35,7 @@ if ($do == 'display') {
 		$uniacid = $version_info['uniacid'];
 	}
 	if ($_W['ispost']) {
-		$appurl = safe_gpc_url($_GPC['appurl']);
+		$appurl = safe_gpc_url($_GPC['appurl'], false);
 
 		if (!starts_with($appurl, 'https')) {
 			itoast('域名必须以https开头');

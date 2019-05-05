@@ -198,7 +198,7 @@ function tpl_app_form_field_district($name, $values = array()) {
 	return $html;
 }
 
-function tpl_app_form_field_avatar($name, $value = '') {
+function tpl_app_form_field_avatar($name, $value = '', $type = 0) {
 	$val = './resource/images/nopic.jpg';
 	if (!empty($value)) {
 		$val = tomedia($value);
@@ -213,6 +213,12 @@ function tpl_app_form_field_avatar($name, $value = '') {
 		</li>
 	</ul>
 	';
+	if ($type) {
+		$html = '<div class="mui-pull-right mui-navigate-right js-avatar-'.$name.'" style="padding-right: 50px;">
+					<img class="mui-avatar-select mui-pull-left" src="' . $val. '" width="40" height="40">
+				</div>
+		';
+	}
 	$href = url('mc/profile/avatar');
 	$html .= "<script>
 		util.image($('.js-avatar-{$name}'), function(url){

@@ -257,7 +257,7 @@ if ($do == 'delete') {
 		$delete_ids[] = $media['id'];
 	}
 
-	pdo_delete('core_attachment', array('id' => $delete_ids));
+	pdo_delete('core_attachment', array('id' => $delete_ids, 'uniacid' => $uniacid));
 	iajax(0, '删除成功');
 }
 

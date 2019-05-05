@@ -29,6 +29,7 @@ if (empty($entry) || empty($entry['do'])) {
 $module = module_fetch($entry['module']);
 
 if (empty($module)) {
+	
 	itoast("访问非法, 没有操作权限. (module: {$entry['module']})", '', '');
 }
 

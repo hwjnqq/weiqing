@@ -35,7 +35,12 @@ class PaycenterModule extends WeModule {
 	}
 	
 	public function fieldsFormSubmit($rid = 0) {
-		global $_GPC;
+		global $_W, $_GPC;
+		$rid = intval($rid);
+		$rule_exists = pdo_get('rule', array('id' => $rid, 'uniacid' => $_W['uniacid']));
+		if (empty($rule_exists)) {
+			return false;
+		}
 		pdo_delete($this->tablename, array('rid' => $rid));
 		
 		foreach($this->replies as $reply) {
@@ -55,6 +60,12 @@ class PaycenterModule extends WeModule {
 	}
 	
 	public function ruleDeleted($rid = 0) {
+		global $_W;
+		$rid = intval($rid);
+		$rule_exists = pdo_get('rule', array('id' => $rid, 'uniacid' => $_W['uniacid']));
+		if (empty($rule_exists)) {
+			return false;
+		}
 		pdo_delete($this->tablename, array('rid' => $rid));
 		return true;
 	}
