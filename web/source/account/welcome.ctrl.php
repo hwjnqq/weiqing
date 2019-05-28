@@ -16,7 +16,7 @@ $settings = $_W['setting'];
 $copyright = $settings['copyright'];
 $copyright['slides'] = iunserializer($copyright['slides']);
 if (isset($copyright['showhomepage']) && empty($copyright['showhomepage'])) {
-	header("Location: ".url('user/login'));
+	header("Location: " . $_W['siteroot'] . 'web/index.php?c=user&a=login');
 	exit;
 }
 load()->model('article');

@@ -234,3 +234,18 @@ function reply_insert_without_service($file) {
 	table('userapi_reply')->fill($userapi_reply)->save();
 	return $rule_id;
 }
+
+function reply_check_uni_default_keyword($uniacid = 0) {
+	global $_W;
+	$uniacid = empty($uniacid) ? $_W['uniacid'] : $uniacid;
+
+	$default = uni_setting_load('default', $uniacid);
+	if (!empty($default['default'])) {
+		$rule = table('rule_keyword')->getByUniacidAndContent($uniacid, $default['default']);
+		if (empty($rule)) {
+			uni_setting_save('default', '');
+			cache_delete(cache_system_key('unisetting', array('uniacid' => $uniacid)));
+		}
+	}
+	return true;
+}

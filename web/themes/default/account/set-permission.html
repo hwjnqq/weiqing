@@ -15,7 +15,7 @@
 			{php $menu_name = $name}
 		{/if}
 		{if $sections['section'] && $name == $account_type_menu}
-			<div>{$account['type_name']}<span class="color-default font-sm">（<i class="fa fa-exclamation-circle"></i> 默认未勾选任何菜单时，用户拥有全部权限）</span>
+			<div>{$account['type_name']}<span class="color-default font-sm"></span>
 			</div>
 			{loop $sections['section'] $section_id $section}
 				{if !in_array($section_id, array('platform_module')) && in_array($account['type'], $section['permission_display'])}
@@ -77,7 +77,7 @@
 
 	{if !empty($module)}
 	<table class="table we7-table table-hover vertical-middle we7-form">
-		<div>应用<span class="color-default font-sm">（<i class="fa fa-exclamation-circle"></i> 默认未勾选任何菜单时，用户拥有全部权限）</span></div>
+		<div>应用<span class="color-default font-sm"></span></div>
 		<thead>
 			<tr>
 				<th colspan="4" class="text-left">
@@ -117,7 +117,7 @@
 		</tbody>
 	</table>
 	{/if}
-	<button type="submit" class="btn btn-primary span3" name="submit" value="提交" onclick="if ($('input:checkbox:checked').size() == 0) {return confirm('您未勾选任何菜单权限，意味着允许用户使用所有功能。确定吗？')}">提交</button>
+	<button type="submit" class="btn btn-primary span3" name="submit" value="提交">提交</button>
 	<input type="hidden" name="token" value="{$_W['token']}" />
 </form>
 <script>
@@ -125,6 +125,14 @@ $(function(){
 
 	var uniacid = "{$_GPC['uniacid']}";
 	var acid = "{$_GPC['acid']}";
+	var module_permission_all = "{$module_permission_all}";
+
+	if (module_permission_all == 1) {
+		setTimeout(function () {
+			module_select = $('#check-module').click();
+		})
+	}
+
 	//公众号OR小程序下拉框
 	$('.account-and-wxapp .dropdown span').hover(function(){
 		$(this).parent().addClass('open').find('.dropdown-menu').show();

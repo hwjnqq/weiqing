@@ -93,8 +93,8 @@ if ($do == 'addnews') {
 		$result = material_local_news_upload($attach_id);
 	}
 	if (is_error($result)){
-		iajax(-1, '提交微信素材失败');
-	}else{
+		iajax(-1, $result['message']);
+	} else {
 		iajax(0, '编辑图文素材成功');
 	}
 }

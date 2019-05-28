@@ -482,7 +482,7 @@
 		$.post("{php echo url('mc/fans/add_tag')}", {'tag' : tag}, function(data) {
 			data = $.parseJSON(data);
 			if (data.message.errno != 0) {
-				util.message(data.message.message, '', 'info');
+				util.message(data.message.message.message, '', 'info');
 				return false;
 			} else {
 				util.message('添加成功', "{php echo url('mc/fans', array('follow' => $follow, 'nickname' => $nickname, 'tag' => $tag, 'page' => $pageindex, 'search_mod' => $search_mod))}", 'ajax');

@@ -99,6 +99,7 @@
 				<a href="{{links.edit}}&do=edit_create_account_list&uid={{user.uid}}">帐号创建权限</a>
 				<a href="{{links.edit}}&do=edit_account_dateline&uid={{user.uid}}">帐号使用期限</a>
 				<a href="{{links.edit}}&do=edit_account&uid={{user.uid}}">使用账号列表</a>
+				<a ng-if="user.type != 3" href="{{links.edit}}&do=operators&uid={{user.uid}}">应用操作员管理</a>
 			</div>
 		</td>
 	</tr>

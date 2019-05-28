@@ -49,13 +49,16 @@ if ($do == 'display') {
 if ($do == 'post') {
 	$uid = intval($_GPC['uid']);
 	$user = user_single($uid);
-	$module_and_plugins = array();
 	$all_permission = array();
+	$module_and_plugins = array($module_name);
+
 	if (!empty($module['plugin_list'])) {
-		$module_and_plugins = array_reverse($module['plugin_list']);
+		foreach ($module['plugin_list'] as $item) {
+			if (!empty($modulelist[$item])) {
+				$module_and_plugins[] = $item;
+			}
+		}
 	}
-	array_push($module_and_plugins, $module_name);
-	$module_and_plugins = array_reverse($module_and_plugins);
 
 	foreach ($module_and_plugins as $key => $module_val) {
 		$all_permission[$module_val]['info'] = module_fetch($module_val);
@@ -161,21 +164,29 @@ if ($do == 'delete') {
 	$operator_id = intval($_GPC['uid']);
 	if (empty($operator_id)) {
 		itoast('参数错误', referer(), 'error');
-	} else {
-		$user = pdo_get('users', array('uid' => $operator_id), array('uid'));
-		if (!empty($user)) {
-			$delete_account_users = pdo_delete('uni_account_users', array('uid' => $operator_id, 'role' => 'clerk', 'uniacid' => $_W['uniacid']));
-
-			$module_info = module_fetch($module_name);
-			$module_plugin_list = $module_info['plugin_list'];
-			if (!empty($module_plugin_list)) {
-				pdo_delete('users_permission', array('uid' => $_GPC['uid'], 'uniacid' => $_W['uniacid'], 'type in' => $module_plugin_list));
-			}
-
-			$delete_user_permission = pdo_delete('users_permission', array('uid' => $operator_id, 'type' => $module_name, 'uniacid' => $_W['uniacid']));
-			pdo_delete('users_lastuse', array('uid' => $operator_id, 'uniacid' => $_W['uniacid'], 'modulename' => $module_name));
-		}
-		itoast('删除成功', referer(), 'success');
 	}
+	$uniacid = intval($_GPC['uniacid']);
+	if (!empty($uniacid) && !user_is_founder($_W['uid'], true)) {
+		$role = permission_account_user_role($_W['uid'], $uniacid);
+		if (!in_array($role, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
+			itoast('操作失败, 无权限', referer(), 'error');
+		}
+	}
+	$uniacid = empty($uniacid) ? $_W['uniacid'] : $uniacid;
+
+	$user = pdo_get('users', array('uid' => $operator_id), array('uid'));
+	if (!empty($user)) {
+		$delete_account_users = pdo_delete('uni_account_users', array('uid' => $operator_id, 'role' => 'clerk', 'uniacid' => $uniacid));
+
+		$module_info = module_fetch($module_name);
+		$module_plugin_list = $module_info['plugin_list'];
+		if (!empty($module_plugin_list)) {
+			pdo_delete('users_permission', array('uid' => $_GPC['uid'], 'uniacid' => $uniacid, 'type in' => $module_plugin_list));
+		}
+
+		$delete_user_permission = pdo_delete('users_permission', array('uid' => $operator_id, 'type' => $module_name, 'uniacid' => $uniacid));
+		pdo_delete('users_lastuse', array('uid' => $operator_id, 'uniacid' => $uniacid, 'modulename' => $module_name));
+	}
+	itoast('删除成功', referer(), 'success');
 }
 template('module/permission');

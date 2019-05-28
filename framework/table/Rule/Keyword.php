@@ -25,4 +25,12 @@ class Keyword extends \We7Table {
 		'displayorder' => '1',
 		'status' => '1',
 	);
+
+	public function getByUniacidAndContent($uniacid, $content, $status = 1) {
+		return $this->where(array(
+			'uniacid' => $uniacid,
+			'content' => $content,
+			'status' => $status,
+		))->get();
+	}
 }

@@ -82,9 +82,6 @@ if ($do == 'change_read_status') {
 }
 
 if ($do == 'event_notice') {
-	if (!pdo_tableexists('message_notice_log')) {
-		iajax(-1);
-	}
 	if (user_is_founder($_W['uid'], true)) {
 		message_store_notice();
 	}

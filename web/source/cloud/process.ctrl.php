@@ -130,20 +130,17 @@ DAT;
 	}
 } else {
 	if (is_error($packet)) {
-		$message = $packet['message'];
-		$extend_button = array();
-
 		if ($packet['errno'] == -3) {
-			$cloud_id = intval($message);
-			$message = str_replace($cloud_id, '', $message);
-			$extend_button[] = array(
-				'url' => "http://s.w7.cc/module-{$cloud_id}.html",
-				'title' => '去商城',
-				'class' => 'btn btn-primary',
-				'target' => '_blank',
+			$type = 'expired';
+			$extend_button = array(
+				array('url' => "javascript:history.go(-1);", 'title' => '点击这里返回上一页', 'class' => 'btn btn-primary'),
+				array('url' => "http://s.w7.cc/module-{$packet['cloud_id']}.html", 'title' => '去续费', 'class' => 'btn btn-primary', 'target' => '_blank')
 			);
+		} else {
+			$type = 'error';
+			$extend_button = array();
 		}
-		message($message, '', 'error', false, $extend_button);
+		message($packet['message'], '', $type, false, $extend_button);
 	} else {
 		cache_updatecache();
 		if (ini_get('opcache.enable') || ini_get('opcache.enable_cli')) {

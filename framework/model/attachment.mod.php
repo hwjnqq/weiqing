@@ -8,8 +8,11 @@ defined('IN_IA') or exit('Access Denied');
 function attachment_set_attach_url() {
 	global $_W;
 	$_W['setting']['remote_complete_info'] = $_W['setting']['remote'];
-	if (!empty($_W['setting']['remote'][$_W['uniacid']]['type'])) {
-		$_W['setting']['remote'] = $_W['setting']['remote'][$_W['uniacid']];
+	if (!empty($_W['uniacid'])) {
+		$uni_remote_setting = uni_setting_load('remote');
+		if (!empty($uni_remote_setting['remote']['type'])) {
+			$_W['setting']['remote'] = $uni_remote_setting['remote'];
+		}
 	}
 	$attach_url = $_W['attachurl_local'] = $_W['siteroot'] . $_W['config']['upload']['attachdir'] . '/';
 	if (!empty($_W['setting']['remote']['type'])) {

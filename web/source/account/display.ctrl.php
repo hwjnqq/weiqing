@@ -267,6 +267,9 @@ if ($do == 'switch') {
 			$url .= '&miniapp_version_referer=1';
 		}
 
+		if (!empty($_GPC['redirect'])) {
+			$url = safe_gpc_url($_GPC['redirect']);
+		}
 		itoast('', $url);
 	}
 }

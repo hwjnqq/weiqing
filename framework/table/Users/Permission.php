@@ -41,12 +41,35 @@ class Permission extends \We7Table {
 	public function getAllUserModulePermission($uid, $uniacid) {
 		return $this->query->where('uid', $uid)
 			 				->where('uniacid', $uniacid)
-							->where('type !=', array(PERMISSION_ACCOUNT, PERMISSION_WXAPP))->getall('type');
+							->where('type !=', array(PERMISSION_ACCOUNT, PERMISSION_WXAPP, PERMISSION_WEBAPP, PERMISSION_PHONEAPP, PERMISSION_XZAPP, PERMISSION_ALIAPP, PERMISSION_BAIDUAPP, PERMISSION_TOUTIAOAPP, PERMISSION_SYSTEM))->getall('type');
 	}
 	public function getUserExtendPermission() {}
 
 	public function getClerkPermission($module) {
 		global $_W;
 		return $this->query->from('users_permission', 'p')->leftjoin('uni_account_users', 'u')->on(array('u.uid' => 'p.uid', 'u.uniacid' => 'p.uniacid'))->where('u.role', 'clerk')->where('p.type', $module)->where('u.uniacid', $_W['uniacid'])->getall('uid');
+	}
+
+	public function getClerkPermissionList($uniacid, $module = '', $username = '') {
+		$this->query->from('users_permission', 'p')
+			->select('p.*')
+			->leftjoin('uni_account_users', 'u')
+			->on(array('u.uid' => 'p.uid', 'u.uniacid' => 'p.uniacid'))
+			->where('u.role', 'clerk')
+			->where('u.uniacid', $uniacid);
+
+		if (!empty($username)) {
+			$this->query->leftjoin('users', 's')
+				->on(array('s.uid' => 'p.uid'))
+				->where('s.username like', "%$username%");
+		}
+		if (empty($module)) {
+			$this->query->where('p.type !=', 'system');
+		} else {
+			$this->query->where('p.type', $module);
+		}
+		$this->query->groupby('p.uid');
+		$this->query->groupby('p.uniacid');
+		return $this->query->getall();
 	}
 }

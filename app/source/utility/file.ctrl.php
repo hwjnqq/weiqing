@@ -28,8 +28,9 @@ if ($do == 'delete') {
 			return message(error(1, '无权删除！'), '', 'ajax');
 		}
 
-		if (!empty($_W['setting']['remote'][$_W['uniacid']]['type'])) {
-			$_W['setting']['remote'] = $_W['setting']['remote'][$_W['uniacid']];
+		$uni_remote_setting = uni_setting_load('remote');
+		if (!empty($uni_remote_setting['remote']['type'])) {
+			$_W['setting']['remote'] = $uni_remote_setting['remote'];
 		}
 		if ($_W['setting']['remote']['type']) {
 			$result = file_remote_delete($attachment['attachment']);
@@ -121,8 +122,9 @@ if ($do == 'upload') {
 			$info['height'] = $size[1];
 			
 			setting_load('remote');
-			if (!empty($_W['setting']['remote'][$_W['uniacid']]['type'])) {
-				$_W['setting']['remote'] = $_W['setting']['remote'][$_W['uniacid']];
+			$uni_remote_setting = uni_setting_load('remote');
+			if (!empty($uni_remote_setting['remote']['type'])) {
+				$_W['setting']['remote'] = $uni_remote_setting['remote'];
 			}
 			if (!empty($_W['setting']['remote']['type'])) {
 				$remotestatus = file_remote_upload($pathname);

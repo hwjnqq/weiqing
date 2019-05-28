@@ -36,9 +36,9 @@
 					<!-- 备案号 start -->
 					<div class="form-file">
 						<div class="form-label">备案号</div>
-						<div class="form-value">{$settings['icp']}</div>
+						<div class="form-value">{$settings['icp']}<span class="we7-margin-left">直接填写备案号即可,系统已添加工信部链接</span></div>
 						<div class="form-edit">
-							<we7-modal-form label="'备案号'" on-confirm="saveSetting(formValue, 'icp', 'string')" value="'{$settings['icp']}'"></we7-modal-form>
+							<we7-modal-form label="'备案号'" on-confirm="saveSetting(formValue, 'icp', 'string')" value="settings['icp']"></we7-modal-form>
 						</div>
 					</div>
 					<!-- 备案号 end -->

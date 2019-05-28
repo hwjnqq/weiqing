@@ -10,9 +10,30 @@ load()->model('miniapp');
 load()->model('phoneapp');
 load()->model('user');
 
-$dos = array('display', 'save_account', 'check_params', 'get_user_info');
+$dos = array('display', 'save_account', 'check_params', 'get_user_info', 'load_groups');
 $do = in_array($do, $dos) ? $do : 'display';
 
+$sign = safe_gpc_string($_GPC['sign']);
+if (empty($account_all_type_sign[$sign])) {
+	$error_msg = '所需创建的账号类型不存在, 请重试.';
+	empty($_W['isajax']) ? message($error_msg, '', 'error') : iajax(-1, $error_msg);
+}
+if ($do == 'load_groups') {
+	$group_keys = array();
+	if (user_is_vice_founder($_W['uid'])) {
+		$founder_own_table = table('users_founder_own_uni_groups');
+		$founder_own_uni_groups = $founder_own_table->getOwnUniGroupsByFounderUid($_W['uid']);
+		$group_keys = array_keys((array)$founder_own_uni_groups);
+	}
+	$unigroups = uni_groups($group_keys);
+
+	foreach ($unigroups as $key => $group) {
+		if (empty($group[$sign])) {
+			unset($unigroups[$key]); //unset没有所需支持类型应用的权限组
+		}
+	}
+	iajax(0, $unigroups);
+}
 if ($do == 'get_user_info') {
 	if (!user_is_founder($_W['uid'])) {
 		iajax(-1, '非法请求数据！');
@@ -46,11 +67,6 @@ if ($do == 'get_user_info') {
 	iajax(0, $info);
 }
 
-$sign = safe_gpc_string($_GPC['sign']);
-if (empty($account_all_type_sign[$sign])) {
-	$error_msg = '所需创建的账号类型不存在, 请重试.';
-	empty($_W['isajax']) ? message($error_msg, '', 'error') : iajax(-1, $error_msg);
-}
 $sign_title = $account_all_type_sign[$sign]['title'];
 $create_account_type = $account_all_type_sign[$sign]['contain_type'][0];
 
@@ -61,19 +77,6 @@ if (empty($_W['isfounder']) && $user_account_num["{$sign}_limit"] <= 0) {
 }
 
 if ($do == 'display') {
-	$group_keys = array();
-	if (user_is_vice_founder($_W['uid'])) {
-		$founder_own_table = table('users_founder_own_uni_groups');
-		$founder_own_uni_groups = $founder_own_table->getOwnUniGroupsByFounderUid($_W['uid']);
-		$group_keys = array_keys((array)$founder_own_uni_groups);
-	}
-	$unigroups = uni_groups($group_keys);
-	
-	foreach ($unigroups as $key => $group) {
-		if (empty($group[$sign])) {
-			unset($unigroups[$key]); //unset没有所需支持类型应用的权限组
-		}
-	}
 	$modules = user_modules($_W['uid']);
 	foreach ($modules as $k => $module) {
 		if ($module['issystem'] == 1 || $module[$sign.'_support'] != MODULE_SUPPORT_ACCOUNT) {

@@ -181,7 +181,7 @@ if ($do == 'post') {
 			}
 			$keyword = preg_replace('/，/', ',', $keyword);
 			$keyword_arr = explode(',', $keyword);
-			$result = pdo_getall('rule_keyword', array('uniacid' => $_W['uniacid'], 'content IN' => $keyword_arr, 'status !=' => 1), array('rid'));
+			$result = pdo_getall('rule_keyword', array('uniacid' => $_W['uniacid'], 'content IN' => $keyword_arr), array('rid'));
 			if (!empty($result)) {
 				$keywords = array();
 				foreach ($result as $reply) {
@@ -433,6 +433,7 @@ if ($do == 'delete') {
 			}
 		}
 	}
+	reply_check_uni_default_keyword();
 	itoast('规则操作成功！', referer(), 'success');
 }
 
@@ -487,6 +488,7 @@ if ($do == 'change_keyword_status') {
 		if ($result['status'] == 1) {
 			$rule = pdo_update('rule', array('status' => 0), array('id' => $id, 'uniacid' => $_W['uniacid']));
 			$rule_keyword = pdo_update('rule_keyword', array('status' => 0), array('uniacid' => $_W['uniacid'], 'rid' => $id));
+			reply_check_uni_default_keyword();
 		} else {
 			$rule = pdo_update('rule', array('status' => 1), array('id' => $id, 'uniacid' => $_W['uniacid']));
 			$rule_keyword = pdo_update('rule_keyword', array('status' => 1), array('uniacid' => $_W['uniacid'], 'rid' => $id));

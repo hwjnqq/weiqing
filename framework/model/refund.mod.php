@@ -138,7 +138,7 @@ function reufnd_ali_build($refund_id, $is_wish = 0) {
 		return error(1, '未开启支付宝退款功能！');
 	}
 	if (empty($refund_setting['private_key'])) {
-		return error(1, '缺少支付宝秘钥证书！');
+		return error(1, '缺少支付宝密钥证书！');
 	}
 
 	$refundlog = pdo_get('core_refundlog', array('id' => $refund_id));

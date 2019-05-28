@@ -75,6 +75,7 @@
 				<th></th>
 				{if permission_check_account_user('see_module_manage_system_welcome_support') && $_GPC['support'] == 'welcome_support'}<th>启用</th>{/if}
 				<th class="text-left bg-light-gray">支持</th>
+				<th class="text-left bg-light-gray">来源</th>
 				<th class="text-right bg-light-gray">操作</th>
 			</tr>
 			<tr ng-repeat="module in moduleList">
@@ -100,6 +101,10 @@
 				{/if}
 				<td class="text-left">
 					{{ module.support_name }}
+				</td>
+				<td class="text-left" ng-switch="module.from">
+					<span ng-switch-when="cloud">商城</span>
+					<span ng-switch-when="local">本地</span>
 				</td>
 				<td class="vertical-middle {if $_GPC['support'] != 'welcome_support'} table-manage-td {/if}">
 					<div class="link-group">

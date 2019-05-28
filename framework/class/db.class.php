@@ -67,7 +67,7 @@ class DB {
 		$sql = "SET NAMES '{$cfg['charset']}';";
 		$this->pdo->exec($sql);
 		$this->pdo->exec("SET sql_mode='';");
-		if ($cfg['username'] == 'root') {
+		if ($cfg['username'] == 'root' && in_array($cfg['host'], array('localhost', '127.0.0.1'))) {
 			$this->pdo->exec("SET GLOBAL max_allowed_packet = 2*1024*1024*10;");
 		}
 		if(is_string($name)) {
@@ -159,14 +159,14 @@ class DB {
 	 * @return mixed
 	 */
 	public function fetch($sql, $params = array()) {
-		$starttime = microtime();
+		$starttime = microtime(true);
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
 
 		$this->logging($sql, $params, $statement->errorInfo());
 
-		$endtime = microtime();
-		$this->performance($sql, $endtime - $starttime);
+		$endtime = microtime(true);
+		$this->performance($sql, intval($endtime - $starttime));
 		if (!$result) {
 			return false;
 		} else {

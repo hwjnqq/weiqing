@@ -284,14 +284,26 @@ define('PERSONAL_BIND_TYPE', 4);
 define('PERSONAL_LIMIT_TYPE', 5);
 
 //商品类型
+# 帐号个数
 define('STORE_TYPE_ACCOUNT', 2);
 define('STORE_TYPE_WXAPP', 3);
-define('STORE_TYPE_PACKAGE', 5);
-define('STORE_TYPE_API', 6);
+define('STORE_TYPE_WEBAPP', 17);
+define('STORE_TYPE_PHONEAPP', 18);
+define('STORE_TYPE_XZAPP', 19);
+define('STORE_TYPE_ALIAPP', 20);
+define('STORE_TYPE_BAIDUAPP', 21);
+define('STORE_TYPE_TOUTIAOAPP', 22);
+
+# 帐号期限
 define('STORE_TYPE_ACCOUNT_RENEW', 7);
 define('STORE_TYPE_WXAPP_RENEW', 8);
-define('STORE_TYPE_USER_PACKAGE', 9);
-define('STORE_TYPE_ACCOUNT_PACKAGE', 10);
+define('STORE_TYPE_WEBAPP_RENEW', 23);
+define('STORE_TYPE_PHONEAPP_RENEW', 24);
+define('STORE_TYPE_XZAPP_RENEW', 25);
+define('STORE_TYPE_ALIAPP_RENEW', 26);
+define('STORE_TYPE_BAIDUAPP_RENEW', 27);
+define('STORE_TYPE_TOUTIAOAPP_RENEW', 28);
+
 define('STORE_TYPE_MODULE', 1); //公众号应用
 define('STORE_TYPE_WXAPP_MODULE', 4); //小程序应用
 define('STORE_TYPE_WEBAPP_MODULE', 11); //PC应用
@@ -300,6 +312,12 @@ define('STORE_TYPE_XZAPP_MODULE', 13); //熊掌号应用
 define('STORE_TYPE_ALIAPP_MODULE', 14); //支付宝小程序应用
 define('STORE_TYPE_BAIDUAPP_MODULE', 15); //百度小程序应用
 define('STORE_TYPE_TOUTIAOAPP_MODULE', 16); //头条小程序应用
+
+define('STORE_TYPE_PACKAGE', 5);
+define('STORE_TYPE_API', 6);
+
+define('STORE_TYPE_USER_PACKAGE', 9);
+define('STORE_TYPE_ACCOUNT_PACKAGE', 10);
 
 //订单状态
 define('STORE_ORDER_PLACE', 1);
@@ -310,6 +328,11 @@ define('STORE_ORDER_APPLY_REFUND', 5);
 define('STORE_ORDER_REFUND_FAIL', 6);
 define('STORE_ORDER_REFUNDED', 7);
 define('STORE_ORDER_FOUNDER_REFUND', 8);
+
+// 订单类型
+define('STORE_ORDER_WISH', 1); // 星愿订单
+define('STORE_ORDER_NORMAL', 0); // 普通订单
+define('STORE_ORDER_ALL', 3); // 全部订单
 
 //商品状态
 define('STORE_GOODS_STATUS_OFFlINE', 0);

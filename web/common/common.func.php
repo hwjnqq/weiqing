@@ -111,7 +111,7 @@ function message($msg, $redirect = '', $type = '', $tips = false, $extend = arra
 		if (!empty($extend) && is_array($extend)) {
 			foreach ($extend as $button) {
 				if (!empty($button['title']) && !empty($button['url'])) {
-					$button['url'] = safe_gpc_url($button['url']);
+					$button['url'] = safe_gpc_url($button['url'], false);
 					$button['title'] = rawurlencode($button['title']);
 					$extend_button[] = $button;
 				}
@@ -247,9 +247,9 @@ function buildframes($framename = ''){
 		$modules = uni_modules();
 		$sysmodules = module_system();
 		$status = permission_account_user_permission_exist($_W['uid'], $_W['uniacid']);
+		$module_permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], 'modules');
 		//非创始人应用模块菜单
-		if (!$_W['isfounder'] && $status && $_W['role'] != ACCOUNT_MANAGE_NAME_OWNER) {
-			$module_permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], 'modules');
+		if (!$_W['isfounder'] && $status && $_W['role'] != ACCOUNT_MANAGE_NAME_OWNER && current($module_permission) != 'all') {
 			if (!is_error($module_permission) && !empty($module_permission)) {
 				foreach ($module_permission as $module) {
 					if (!in_array($module['type'], $sysmodules) && $modules[$module['type']][MODULE_SUPPORT_ACCOUNT_NAME] == 2) {

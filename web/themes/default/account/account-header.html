@@ -23,6 +23,7 @@
 		</div>
 	</div>
 	{if $state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER}
+		<a href="{php echo url('account/display/switch', array('uniacid' => $account['uniacid'], 'account_type' => ACCOUNT_TYPE))}" class="btn btn-primary" >进入{ACCOUNT_TYPE_NAME}</a>&nbsp;&nbsp;&nbsp;
 		<a href="{php echo url('account/manage/delete', array('uniacid' => $account['uniacid'], 'account_type' => ACCOUNT_TYPE))}" class="btn btn-primary" onclick="return confirm('确认放入回收站吗？')">停 用</a>
 	{/if}
 </div>
@@ -42,4 +43,7 @@
 		<a href="{php echo url('miniapp/manage/display', array('uniacid' => $account['uniacid'], 'account_type' => ACCOUNT_TYPE))}" class="btn btn-default {if $action == 'manage' && $do == 'display'} active{/if}">版本管理</a>
 	{/if}
 	<a href="{php echo url('account/post/modules_tpl', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => ACCOUNT_TYPE))}" class="btn btn-default {if $action == 'post' && $do == 'modules_tpl'} active{/if}">可用应用模板/模块</a>
+	{if $state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER || $state == ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
+	<a href="{php echo url('account/post/operators', array('uniacid' => $account['uniacid']))}" class="btn btn-default {if $do == 'operators'}active{/if}">应用操作员管理</a>
+	{/if}
 </div>

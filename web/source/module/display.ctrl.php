@@ -123,6 +123,7 @@ if ($do == 'switch') {
 	$module_info = module_fetch($module_name);
 	$module_name = empty($module_info['main_module']) ? $module_name : $module_info['main_module'];
 	$uniacid = intval($_GPC['uniacid']);
+	$redirect = safe_gpc_url($_GPC['redirect']);
 	$account_info = uni_fetch($uniacid);
 	if (empty($module_info)) {
 		itoast('模块不存在或已经删除！', referer(), 'error');
@@ -139,9 +140,9 @@ if ($do == 'switch') {
 	if (!empty($version_id)) {
 		$version_info = miniapp_version($version_id);
 		miniapp_update_last_use_version($version_info['uniacid'], $version_id);
-		$url = url('account/display/switch', array('uniacid' => $uniacid, 'module_name' => $module_name, 'version_id' => $version_id, 'switch_uniacid' => true));
+		$url = url('account/display/switch', array('uniacid' => $uniacid, 'module_name' => $module_name, 'version_id' => $version_id, 'switch_uniacid' => true, 'redirect' => urlencode($redirect)));
 	} else {
-		$url = url('account/display/switch', array('uniacid' => $uniacid, 'module_name' => $module_name, 'switch_uniacid' => true));
+		$url = url('account/display/switch', array('uniacid' => $uniacid, 'module_name' => $module_name, 'switch_uniacid' => true, 'redirect' => urlencode($redirect)));
 	}
 
 	switch_save_module_display($uniacid, $module_name);

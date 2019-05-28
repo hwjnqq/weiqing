@@ -184,11 +184,9 @@ if ($do == 'get_fans_kpi') {
 	$today_stat['cancel'] = intval($today_stat['cancel']);
 	$today_stat['jing_num'] = $today_stat['new'] - $today_stat['cancel'];
 	$today_stat['cumulate'] = intval($today_stat['jing_num']) + $yesterday_stat['cumulate'];
-	if($today_stat['cumulate'] < 0) {
-		$today_stat['cumulate'] = 0;
-	}
-	$all_stat = pdo_count('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'follow' => 1));
-	iajax(0, array('yesterday' => $yesterday_stat, 'today' => $today_stat, 'all' => $all_stat), '');
+	$today_stat['cumulate'] = max(0, $today_stat['cumulate']);
+
+	iajax(0, array('yesterday' => $yesterday_stat, 'today' => $today_stat, 'all' => $today_stat['cumulate']), '');
 }
 
 if ($do == 'get_system_upgrade') {
@@ -345,9 +343,14 @@ if ($do == 'system_home') {
 				$account_info['account'] = uni_fetch($user_account_info['uniacid']);
 				if ($account_info['account']->typeSign == WXAPP_TYPE_SIGN) {
 					$version_info = miniapp_version_all($user_account_info['uniacid']);
-					$last_modules = $version_info['last_modules'] ? current($version_info['last_modules']) : array();
+					if (empty($version_info)) {
+						continue;
+					}
+					foreach ($version_info as $version_key => $version_val) {
+						$last_version_modules = $version_val['last_modules'] ? current($version_val['last_modules']) : array();
+					}
 					$modules = current($version_info[0]['modules']);
-					$account_info['account']['need_upload'] = $last_modules['version'] < $modules['version'] ? 1 : 0;
+					$account_info['account']['need_upload'] = $last_version_modules['version'] < $modules['version'] ? 1 : 0;
 				}
 				if ($account_info['account']['isdeleted']) {
 					continue;

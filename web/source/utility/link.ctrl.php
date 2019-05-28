@@ -218,7 +218,7 @@ if ($do == 'entry') {
 
 	$sysmenus = array(
 		array('title'=>'微站首页','url'=> murl('home')),
-		array('title'=>'个人中心','url'=> murl('mc')),
+		array('title'=>'个人中心','url'=> rtrim(murl('mc'), '&')),
 	);
 
 	//多微站链接处理

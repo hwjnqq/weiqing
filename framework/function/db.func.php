@@ -44,7 +44,7 @@ $GLOBALS['_W']['config']['db']['tablepre'] = empty($GLOBALS['_W']['config']['db'
  */
 function db_table_schema($db, $tablename = '') {
 	$result = $db->fetch("SHOW TABLE STATUS LIKE '" . trim($db->tablename($tablename), '`') . "'");
-	if(empty($result) || empty($result['Create_time'])) {
+	if(empty($result)) {
 		return array();
 	}
 	$ret['tablename'] = $result['Name'];

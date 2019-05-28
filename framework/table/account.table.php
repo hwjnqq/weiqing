@@ -43,8 +43,10 @@ class AccountTable extends We7Table {
 	 * @param int $isdeleted
 	 * @return $this
 	 */
-	public function searchAccount($expire_type, $fields, $isdeleted = 1) {
+	public function searchAccount($expire_type, $fields, $isdeleted = 1, $uid = 0) {
 		global $_W;
+		$uid = empty($uid) ? $_W['uid'] : $uid;
+
 		$this->query->from('uni_account', 'a')
 			->select($fields)
 			->leftjoin('account', 'b')
@@ -53,18 +55,18 @@ class AccountTable extends We7Table {
 			->where('a.default_acid !=', '0');
 
 		//非主创始人查询时，要附加可操作账号条件
-		if (!user_is_founder($_W['uid'], true)) {
+		if (!user_is_founder($uid, true)) {
 			if (empty($expire_type)) {
 				$this->query->leftjoin('uni_account_users', 'c')->on(array('a.uniacid' => 'c.uniacid'));
 			}
 
-			if (user_is_vice_founder($_W['uid'])) {
-				$users_uids = table('users_founder_own_users')->getFounderOwnUsersList($_W['uid']);
+			if (user_is_vice_founder($uid)) {
+				$users_uids = table('users_founder_own_users')->getFounderOwnUsersList($uid);
 				$users_uids = array_keys($users_uids);
-				$users_uids[] = $_W['uid'];
+				$users_uids[] = $uid;
 				$this->query->where('c.uid', $users_uids)->where('c.role', array('manager', 'owner', 'vice_founder'));
 			} else {
-				$this->query->where('c.uid', $_W['uid']);
+				$this->query->where('c.uid', $uid);
 			}
 		}
 		if (!empty($expire_type) && $expire_type == 'expire') {
@@ -104,8 +106,8 @@ class AccountTable extends We7Table {
 		return $this;
 	}
 
-	public function searchAccountList($expire = false, $isdeleted = 1) {
-		$this->searchAccount($expire, 'a.uniacid', $isdeleted);
+	public function searchAccountList($expire = false, $isdeleted = 1, $fields = 'a.uniacid') {
+		$this->searchAccount($expire, $fields, $isdeleted);
 		$this->query->groupby('a.uniacid');
 		$list = $this->query->getall('uniacid');
 		return $list;

@@ -171,7 +171,7 @@ function permission_account_user_permission_exist($uid = 0, $uniacid = 0) {
 	load()->model('user');
 	$uid = intval($uid) > 0 ? $uid : $_W['uid'];
 	$uniacid = intval($uniacid) > 0 ? $uniacid : $_W['uniacid'];
-	if (user_is_founder($uid)) {
+	if (user_is_founder($uid, true)) {
 		return false;
 	}
 	if (defined('FRAME') && FRAME == 'system') {
@@ -231,6 +231,9 @@ function permission_account_user_menu($uid, $uniacid, $type) {
 	$user_permission_table = table('users_permission');
 	if ($type == 'modules') {
 		$user_menu_permission = $user_permission_table->getAllUserModulePermission($uid, $uniacid);
+		if ($user_menu_permission['modules'] && $user_menu_permission['modules']['permission'] == 'all') {
+			return array('all');
+		}
 	} else {
 		$module = uni_modules_by_uniacid($uniacid);
 		$module = array_keys($module);
@@ -302,7 +305,6 @@ function permission_update_account_user($uid, $uniacid, $data) {
 	if (is_error($user_menu_permission)) {
 		return error('-1', '参数错误！');
 	}
-
 	$permission = table('users_permission')->getUserPermissionByType($uid, $uniacid, $data['type']);
 	if (empty($permission)) {
 		$result = table('users_permission')->fill(array(
@@ -491,13 +493,15 @@ function permission_user_account_num($uid = 0) {
 			$group_num[$key_name] = 0;
 		}
 		//获取副创始人下的所有用户（包括自己）所创建的帐号数量
-		$fouder_own_users_owner_account = pdo_fetchall("SELECT DISTINCT f.uid,uau.uniacid,a.type,uau.role FROM " . tablename('users_founder_own_users') . " AS f LEFT JOIN " . tablename('uni_account_users') . " AS uau ON f.uid=uau.uid INNER JOIN " . tablename('account') . " AS a ON uau.uniacid=a.uniacid WHERE uau.role='owner' AND f.founder_uid=:founder_uid", array(':founder_uid' => $user['uid']));
+		$fouder_own_users_owner_account = table('account')->searchAccountList(false, 1, $fields = 'a.uniacid, b.type');
+		$current_vice_founder_user_group_nums = 0;
 		if (!empty($fouder_own_users_owner_account)) {
 			foreach ($fouder_own_users_owner_account as $account) {
 				foreach ($account_all_type as $type_key => $type_info) {
 					if ($type_key == $account['type']) {
 						$key_name = $type_info['type_sign'] . '_num';
 						$group_num[$key_name] += 1;
+						$current_vice_founder_user_group_nums += 1;
 						continue;
 					}
 				}
@@ -601,9 +605,7 @@ function permission_user_account_num($uid = 0) {
 		$data['max_total'] = $data[$maxsign] + $data['max_total'];
 		$data['created_total'] = $data[$sign_num] + $data['created_total'];
 		$data['limit_total'] = $data[$sign . '_limit'] + $data['limit_total'];
-		if (!empty($current_vice_founder_user_group_nums)) {
-			$data['current_vice_founder_user_created_total'] += $current_vice_founder_user_group_nums[$sign_num]; # 当前用户创建的帐号总数量(该用户属于副创始人的情况下)
-		}
+		$data['current_vice_founder_user_created_total'] = !empty($current_vice_founder_user_group_nums) ? $current_vice_founder_user_group_nums : 0;
 
 		if (!empty($vice_founder_own_users_create_nums)) {
 			foreach ($vice_founder_own_users_create_nums as $own_user_uid => $account_num_info) {
@@ -694,8 +696,10 @@ function permission_user_timelimits($uid = 0) {
  * @return array|bool
  */
 function permission_check_vice_founder_limit($group_info) {
+	global $_W;
 	$timelimits = permission_user_timelimits();
-	if ($group_info['timelimit'] > $timelimits['total']) {
+	$user_end_time = user_end_time($_W['uid']);
+	if ($group_info['timelimit'] > $timelimits['total'] && !empty($user_end_time)) {
 		return error(-1, '当前用户组的有效期不能超过' . $timelimits['total'] . '天！');
 	}
 
@@ -706,6 +710,54 @@ function permission_check_vice_founder_limit($group_info) {
 		if ($group_info[$maxtype] > $account_nums[$maxtype]) {
 			return error(-1, "当前用户组的" . $account_type_info['title'] . "个数不能超过" . $account_nums[$maxtype] . '个!');
 		}
+	}
+	return true;
+}
+
+/*
+ * 初始化某个用户在某个公众号的权限(菜单权限和模块权限)
+ * @param number $uid
+ * @param number $uniacid
+ * @return boolean
+ * */
+function permission_account_user_init($uid, $uniacid) {
+	$uid = intval($uid);
+	$uniacid = intval($uniacid);
+
+	if (empty($uid) || empty($uniacid)) {
+		return error(-1, '参数错误');
+	}
+
+	$account = uni_fetch($uniacid);
+	$account_all_type_sign = uni_account_type_sign();
+	foreach ($account_all_type_sign as $account_type_sign => $account_type_info) {
+		if (in_array($account['type'], $account_type_info['contain_type'])) {
+			$account_type = $account_type_sign == 'account' ? 'system' : $account_type_sign;
+		}
+	}
+
+	$user_own_menu_permission = table('users_permission')->getUserPermissionByType($uid, $uniacid, $account_type);
+	$user_own_module_permission = table('users_permission')->getAllUserModulePermission($uid, $uniacid);
+
+	if (empty($user_own_menu_permission)) {
+		$all_menu_permission = permission_menu_name();
+		$user_menu_permission_data = array(
+			'type' => $account_type,
+			'permission' => implode('|', $all_menu_permission),
+		);
+		permission_update_account_user($uid, $uniacid, $user_menu_permission_data);
+
+	}
+
+	if (empty($user_own_module_permission)) {
+		$insert = array(
+			'uniacid' => $uniacid,
+			'uid' => $uid,
+			'type' => 'modules',
+			'permission' => 'all',
+
+		);
+		pdo_insert('users_permission', $insert);
 	}
 	return true;
 }

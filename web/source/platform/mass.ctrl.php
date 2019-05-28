@@ -184,6 +184,9 @@ if ($do == 'post') {
 		} else {
 			$account_api = WeAccount::createByUniacid();
 			$msgtype = $msgtype == 'basic' ? 'text' : $msgtype;
+			if ($msgtype == 'text') {
+				$mass_record['media_id'] = urlencode(emoji_unicode_decode($mass_record['media_id']));
+			}
 			$result = $account_api->fansSendAll($group['id'], $msgtype, $mass_record['media_id']);
 			if (is_error($result)) {
 				itoast($result['message'], url('platform/mass'), 'info');
@@ -249,7 +252,7 @@ if ($do == 'send') {
 	$params[':acid'] = $_W['acid'];
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('mc_mass_record') . $condition, $params);
 	$lists = pdo_getall('mc_mass_record', array('uniacid' => $_W['uniacid'], 'acid' => $_W['acid']), array(), '', 'id DESC', 'LIMIT '.($pindex-1)* $psize.','.$psize);
-	$types = array('text' => '文本消息', 'image' => '图片消息', 'voice' => '语音消息', 'video' => '视频消息', 'news' => '图文消息', 'wxcard' => '微信卡券');
+	$types = array('basic' => '文本消息', 'text' => '文本消息', 'image' => '图片消息', 'voice' => '语音消息', 'video' => '视频消息', 'news' => '图文消息', 'wxcard' => '微信卡券');
 	$pager = pagination($total, $pindex, $psize);
 	template('platform/mass-send');
 }

@@ -1587,14 +1587,17 @@ function mc_notice_times_plus($openid, $card_id, $type, $fee, $days, $endtime = 
 }
 
 /*
- * 会员服务到期提醒
- * $openid		  粉丝openid
- * $title		   服务说明（eg:您好，您有商品即将到期，请您注意。）
- * $type			服务项目（eg:游泳时长）
- * $endtime		 服务截至日期
- * $remark		  备注
+ * 会员卡计时消费通知
+ * $openid		粉丝openid
+ * $title		服务说明（eg:您好，您有商品即将到期，请您注意。）
+ * $type		服务项目（eg:游泳时长）
+ * $endtime		服务有效期
+ * $remark		备注
+ * $card_sn		卡号
+ * $use_time	消费时间
+ * $has_time	剩余时长
  * */
-function mc_notice_times_times($openid, $title, $type, $endtime = '', $remark = '请注意时间，防止服务失效！') {
+function mc_notice_times_times($openid, $title, $type, $endtime = '', $remark = '请注意时间，防止服务失效！', $card_sn = '', $use_time = '', $has_time = '') {
 	global $_W;
 	$account = mc_notice_init();
 	if(is_error($account)) {
@@ -1603,22 +1606,12 @@ function mc_notice_times_times($openid, $title, $type, $endtime = '', $remark = 
 
 	if($_W['account']['level'] == ACCOUNT_SERVICE_VERIFY && !empty($account->noticetpl['times_times']['tpl'])) {
 		$data = array(
-			'first' => array(
-				'value' => $title,
-				'color' => '#ff510'
-			),
-			'name' => array(
-				'value' => $type,
-				'color' => '#ff510'
-			),
-			'expDate' => array(
-				'value' => $endtime,
-				'color' => '#ff510'
-			),
-			'remark' => array(
-				'value' => "{$remark}" ,
-				'color' => '#ff510'
-			),
+			'first' => array('value' => $title, 'color' => '#ff510'),//first
+			'keyword1' => array('value' => $card_sn, 'color' => '#ff510'),//卡号
+			'keyword2' => array('value' => $use_time, 'color' => '#ff510'),//消费时间
+			'keyword3' => array('value' => $has_time, 'color' => '#ff510'),//剩余时长
+			'keyword4' => array('value' => $endtime, 'color' => '#ff510'),//有效期
+			'remark' => array('value' => "{$remark}" ,'color' => '#ff510'),//remark
 		);
 		$status = $account->sendTplNotice($openid, $account->noticetpl['times_times']['tpl'], $data);
 	}

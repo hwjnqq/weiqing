@@ -35,7 +35,6 @@ class Members extends \We7Table {
 		'height',
 		'idcard',
 		'interest',
-		'location',
 		'lookingfor',
 		'mobile',
 		'msn',
@@ -60,7 +59,6 @@ class Members extends \We7Table {
 		'user_from',
 		'vip',
 		'weight',
-		'workerid',
 		'zipcode',
 		'zodiac',
 	);
@@ -92,7 +90,6 @@ class Members extends \We7Table {
 		'height' => '',
 		'idcard' => '',
 		'interest' => '',
-		'location' => '',
 		'lookingfor' => '',
 		'mobile' => '',
 		'msn' => '',
@@ -117,7 +114,6 @@ class Members extends \We7Table {
 		'user_from' => '',
 		'vip' => '0',
 		'weight' => '',
-		'workerid' => '',
 		'zipcode' => '',
 		'zodiac' => '',
 	);

@@ -11,7 +11,7 @@ load()->func('cache');
 load()->model('visit');
 load()->model('module');
 
-$dos = array('edit_base', 'edit_modules_tpl', 'edit_account', 'edit_users_permission', 'edit_account_dateline', 'edit_create_account_list', 'edit_user_group', 'edit_user_extra_limit', 'edit_user_extra_group', 'edit_uni_groups', 'edit_extra_modules', 'delete_user_group');
+$dos = array('edit_base', 'edit_modules_tpl', 'edit_account', 'edit_users_permission', 'edit_account_dateline', 'edit_create_account_list', 'edit_user_group', 'edit_user_extra_limit', 'edit_user_extra_group', 'edit_uni_groups', 'edit_extra_modules', 'delete_user_group', 'operators');
 
 $do = in_array($do, $dos) ? $do: 'edit_base';
 
@@ -110,7 +110,7 @@ if ($do == 'edit_modules_tpl') {
 		$group_keys = array_keys((array)$founder_own_uni_groups);
 	}
 
-	$unigroups = uni_groups($group_keys);
+	$uni_groups = uni_groups($group_keys);
 	$users_extra_group_table = table('users_extra_group');
 	$user_extra_groups = $users_extra_group_table->getUniGroupsByUid($uid);
 	$user_extra_groups = !empty($user_extra_groups) ? uni_groups(array_keys($user_extra_groups)) : array();
@@ -470,4 +470,39 @@ if ($do == 'delete_user_group') {
 	} else {
 		itoast('修改失败', referer(), 'error');
 	}
+}
+
+if ($do == 'operators') {
+	if ($user['type'] == 3) {
+		itoast('', referer());
+	}
+	$page = max(1, intval($_GPC['page']));
+	$username = safe_gpc_string($_GPC['username']);
+	$page_size = 15;
+	$clerks = array();
+	$total = 0;
+
+	$account_table = table('account');
+	$account_table->where('c.role', array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER));
+	$accounts = $account_table->searchAccount(false, 'a.uniacid', 1, $uid)->getall('uniacid');
+
+	if (!empty($accounts)) {
+		$permission_table = table('users_permission');
+		$permission_table->searchWithPage($page, $page_size);
+		$clerks = $permission_table->getClerkPermissionList(array_keys($accounts), '', $username);
+		if (!empty($clerks)) {
+			$total = $permission_table->getLastQueryTotal();
+			$modules_info = array();
+			foreach ($clerks as $k => $clerk) {
+				$modules_info[$clerk['type']] = module_fetch($clerk['type']);
+
+				$clerks[$k]['permission'] = explode('|', $clerk['permission']);
+				$clerks[$k]['permission_module'] = empty($modules_info[$clerk['type']]['main_module']) ? $clerk['type'] : $modules_info[$clerk['type']]['main_module'];
+			}
+			$accounts_info = pdo_getall('uni_account', array('uniacid' => array_column($clerks, 'uniacid')), array('uniacid','name'), 'uniacid');
+			$users_info = pdo_getall('users', array('uid' => array_column($clerks, 'uid')), array('uid','username'), 'uid');
+		}
+	}
+	$pager = pagination($total, $page, $page_size);
+	template('user/edit-operatoers');
 }

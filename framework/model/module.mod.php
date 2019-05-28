@@ -417,16 +417,6 @@ function module_fetch($name, $enabled = true) {
 				$module_info['plugin_list'] = array_keys ($module_info['plugin_list']);
 			}
 		}
-		if ($module_info[MODULE_SUPPORT_ACCOUNT_NAME] != MODULE_SUPPORT_ACCOUNT
-			&& $module_info[MODULE_SUPPORT_PHONEAPP_NAME] != MODULE_SUPPORT_PHONEAPP
-			&& $module_info[MODULE_SUPPORT_XZAPP_NAME] != MODULE_SUPPORT_XZAPP
-			&& $module_info[MODULE_SUPPORT_WXAPP_NAME] != MODULE_SUPPORT_WXAPP
-			&& $module_info[MODULE_SUPPORT_WEBAPP_NAME] != MODULE_SUPPORT_WEBAPP
-			&& $module_info[MODULE_SUPPORT_SYSTEMWELCOME_NAME] != MODULE_SUPPORT_SYSTEMWELCOME
-			&& $module_info[MODULE_SUPPORT_ALIAPP_NAME] != MODULE_SUPPORT_ALIAPP
-		) {
-			$module_info[MODULE_SUPPORT_ACCOUNT_NAME] = MODULE_SUPPORT_ACCOUNT;
-		}
 
 		$module_receive_ban = (array)setting_load('module_receive_ban');
 		if (is_array($module_receive_ban['module_receive_ban']) && in_array($name, $module_receive_ban['module_receive_ban'])) {
@@ -447,20 +437,18 @@ function module_fetch($name, $enabled = true) {
 		$module_info['recycle_info'] = array();
 		$recycle_info = table('modules_recycle')->getByName($name);
 		if (!empty($recycle_info)) {
+			$is_delete = true;
 			foreach (module_support_type() as $support => $value) {
-				$module_info['recycle_info'][$support] = !empty($recycle_info[2][$support]) && $recycle_info[2][$support] == 1 ? 2 : $recycle_info[1][$support];// 0 无操作, 1 已停用, 2 已删除
+				if (!empty($recycle_info[MODULE_RECYCLE_UNINSTALL_IGNORE][$support])) {
+					$module_info['recycle_info'][$support] = MODULE_RECYCLE_UNINSTALL_IGNORE; //0 无操作, 1 已停用, 2 已删除
+				} else {
+					$module_info['recycle_info'][$support] = empty($recycle_info[MODULE_RECYCLE_INSTALL_DISABLED][$support]) ? 0 : MODULE_RECYCLE_INSTALL_DISABLED;
+				}
+				if ($module_info[$support] == $value['support'] && empty($module_info['recycle_info'][$support])) {
+					$is_delete = false;
+				}
 			}
-			if (
-				($module_info['account_support'] == MODULE_SUPPORT_ACCOUNT && $module_info['recycle_info']['account_support'] > 0 || $module_info['account_support'] != MODULE_SUPPORT_ACCOUNT) &&
-				($module_info['wxapp_support'] == MODULE_SUPPORT_ACCOUNT && $module_info['recycle_info']['wxapp_support'] > 0 || $module_info['wxapp_support'] != MODULE_SUPPORT_ACCOUNT) &&
-				($module_info['welcome_support'] == MODULE_SUPPORT_ACCOUNT && $module_info['recycle_info']['welcome_support'] > 0 || $module_info['welcome_support'] != MODULE_SUPPORT_ACCOUNT) &&
-				($module_info['webapp_support'] == MODULE_SUPPORT_ACCOUNT && $module_info['recycle_info']['webapp_support'] > 0 || $module_info['webapp_support'] != MODULE_SUPPORT_ACCOUNT) &&
-				($module_info['phoneapp_support'] == MODULE_SUPPORT_ACCOUNT && $module_info['recycle_info']['phoneapp_support'] > 0 || $module_info['phoneapp_support'] != MODULE_SUPPORT_ACCOUNT) &&
-				($module_info['xzapp_support'] == MODULE_SUPPORT_ACCOUNT && $module_info['recycle_info']['xzapp_support'] > 0 || $module_info['xzapp_support'] != MODULE_SUPPORT_ACCOUNT) &&
-				($module_info['aliapp_support'] == MODULE_SUPPORT_ACCOUNT && $module_info['recycle_info']['aliapp_support'] > 0 || $module_info['aliapp_support'] != MODULE_SUPPORT_ACCOUNT)
-			) {
-				$module_info['is_delete'] = true; //全部支持被停用或删除
-			}
+			$module_info['is_delete'] = $is_delete; //全部支持被停用或删除
 		}
 
 		$module = $module_info;
@@ -980,9 +968,16 @@ function module_upgrade_info($modulelist = array()) {
 	$manifest_cloud_list = array();
 
 	cloud_prepare();
-	$cloud_m_query_module = cloud_m_query();
-	if (is_error($cloud_m_query_module)) {
-		return $cloud_m_query_module;
+	$cloud_m_query_module_pageinfo = cloud_m_query(array(), 1);
+	if (is_error($cloud_m_query_module_pageinfo)) {
+		return $cloud_m_query_module_pageinfo;
+	}
+	$cloud_m_query_module = $cloud_m_query_module_pageinfo['data'];
+	if ($cloud_m_query_module_pageinfo['page'] > 1) {
+		for($i = 2;$i <= $cloud_m_query_module_pageinfo['page']; $i++) {
+			$cloud_m_query_module_i = cloud_m_query(array(), $i);
+			$cloud_m_query_module = array_merge($cloud_m_query_module, $cloud_m_query_module_i['data']);
+		}
 	}
 	$pirate_apps = $cloud_m_query_module['pirate_apps'];
 	unset($cloud_m_query_module['pirate_apps']);
@@ -1334,4 +1329,19 @@ function module_change_direct_enter_status($module_name) {
 		$result = table('uni_account_modules')->fill(array('settings' => iserializer($data)))->where('module', $module_name)->where('uniacid', $_W['uniacid'])->save();
 	}
 	return $result ? true : false;
+}
+
+function module_delete_store_wish_goods($module_name, $support_name) {
+	load()->model('store');
+	$all_type = store_goods_type_info();
+	foreach ($all_type as $info) {
+		if ($info['group'] == 'module' && $support_name == $info['sign'] . '_support') {
+			$type = $info['type'];
+			break;
+		}
+	}
+	if (!empty($type)) {
+		pdo_update('site_store_goods', array('status' => 2), array('module' => $module_name, 'type' => $type));
+	}
+	return true;
 }

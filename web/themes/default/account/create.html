@@ -332,7 +332,7 @@
 					<span class="help-block">平台有效期默认与主管理员一致，修改日期不可超过主管理员有效期的最大期限。未设置主管理员时，创始人默认为主管理员</span>
 				</div>
 			</div>
-			<div class="col-sm-offset-2 form-controls col-sm-8">
+			<div class="col-sm-offset-2 form-controls col-sm-8" ng-show="groupAll.groups">
 				<div class="we7-header" ng-show="owner.username">
 					主管理员应用/模板权限
 				</div>
@@ -401,7 +401,7 @@
 					<a class="action"></a>
 					<a href="" class="remove" ng-click="extend.checked = 0"><i class="wi wi-error"></i></a>
 				</div>
-				<we7-modal-app module-list="groupAll" multiple="true" on-confirm="groupConfirm()">
+				<we7-modal-app module-list="groupAll" multiple="true" ng-init="loadGroups()" on-confirm="groupConfirm()">
 					<div class="add-new-block" >
 						<i class="wi wi-plus"></i> 添加应用权限组
 					</div>
@@ -513,10 +513,10 @@
 		links: {
 			userinfo: "{php echo url('account/create/get_user_info', array('sign' => $sign))}",
 			check_params: "{php echo url('account/create/check_params')}",
-			save_account: "{php echo url('account/create/save_account')}"
+			save_account: "{php echo url('account/create/save_account')}",
+            load_groups: "{php echo url('account/create/load_groups', array('sign' => $sign))}",
 		}
 	});
-
 	angular.bootstrap($('#js-account-create'),['accountApp']);
 </script>
 {template 'common/footer'}

@@ -688,10 +688,10 @@ function tomedia($src, $local_path = false, $is_cahce = false){
 		$urls = parse_url($src);
 		$src = $t = substr($urls['path'], strpos($urls['path'], 'images'));
 	}
-
+	$uni_remote_setting = uni_setting_load('remote');
 	//全局未设置远程附件，帐号内设置远程附件的情况要考虑在内，否则帐号内不显示图片，即第二个“||”判断
 	if ($local_path ||
-		empty($_W['setting']['remote']['type']) && (empty($_W['uniacid']) || !empty($_W['uniacid']) && empty($_W['setting']['remote'][$_W['uniacid']]['type'])) ||
+		empty($_W['setting']['remote']['type']) && (empty($_W['uniacid']) || !empty($_W['uniacid']) && empty($uni_remote_setting['remote']['type'])) ||
 		file_exists(IA_ROOT . '/' . $_W['config']['upload']['attachdir'] . '/' . $src)) {
 
 		$src = $_W['siteroot'] . $_W['config']['upload']['attachdir'] . '/' . $src;

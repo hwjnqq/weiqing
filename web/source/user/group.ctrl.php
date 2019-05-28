@@ -85,7 +85,7 @@ if ($do == 'save') {
 	}
 
 	if ($max_type_all <= 0) {
-		iajax(-1, '至少能创建一个账号!', referer());
+		iajax(-1, '创建账号个数，不能全部为0，至少要有一个!', referer());
 	}
 
 	$user_group_info = user_save_group($user_group);

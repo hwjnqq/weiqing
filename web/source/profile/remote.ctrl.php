@@ -18,9 +18,11 @@ if (!empty($_GPC['version_id'])) {
 	$version_info = miniapp_version($version_id);
 }
 
-$remote = $_W['setting']['remote_complete_info'][$_W['uniacid']];
+$remote = uni_setting_load('remote');
+$remote = empty($remote['remote']) ? array() : $remote['remote'];
+
 if ($do == 'upload_remote') {
-	if (!empty($_W['setting']['remote_complete_info'][$_W['uniacid']]['type'])) {
+	if (!empty($remote['type'])) {
 		if (empty($_W['setting']['remote']['type'])) {
 			iajax(3, '未开启全局远程附件');
 		}
@@ -226,8 +228,7 @@ if ($do == 'save' || $do == 'test_setting') {
 	if ($do == 'save') {
 		$remote['type'] = $type;
 		$remote[$op_sign] = $op_data;
-		$_W['setting']['remote_complete_info'][$_W['uniacid']] = $remote;
-		setting_save($_W['setting']['remote_complete_info'], 'remote');
+		uni_setting_save('remote', $remote);
 		iajax(0, '保存成功', url('profile/remote'));
 	}
 }

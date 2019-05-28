@@ -71,6 +71,26 @@ if ($do == 'display') {
 				$v['member'] = $user;
 			}
 			$v['nickname'] = !empty($v['nickname']) ? strip_emoji($v['nickname']) : '';
+
+			if (empty($v['headimgurl']) && !empty($v['tag'])) {
+				if (is_base64($v['tag'])) {
+					$v['tag'] = @base64_decode($v['tag']);
+				}
+				if (is_serialized($v['tag'])) {
+					$v['tag'] = @iunserializer($v['tag']);
+				}
+
+				if (is_array($v['tag']) && !empty($v['tag']['headimgurl'])) {
+					$v['tag']['avatar'] = tomedia($v['tag']['headimgurl']);
+					unset($v['tag']['headimgurl']);
+					if (empty($v['nickname']) && !empty($v['tag']['nickname'])) {
+						$v['nickname'] = strip_emoji($v['tag']['nickname']);
+					}
+					$v['gender'] = $v['sex'] = $v['tag']['sex'];
+					$v['avatar'] = $v['headimgurl'] = $v['tag']['avatar'];
+				}
+			}
+
 			unset($user);
 		}
 		unset($v);

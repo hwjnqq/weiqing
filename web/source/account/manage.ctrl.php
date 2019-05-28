@@ -10,10 +10,8 @@ load()->model('user');
 load()->model('message');
 load()->model('miniapp');
 
-$dos = array('display', 'delete', 'account_detailinfo');
+$dos = array('display', 'delete', 'account_detailinfo', 'account_create_info');
 $do = in_array($_GPC['do'], $dos) ? $do : 'display';
-
-$account_info = permission_user_account_num();
 
 if ($do == 'display') {
 	$message_id = intval($_GPC['message_id']);
@@ -55,6 +53,20 @@ if ($do == 'display') {
 	$total = $account_table->getLastQueryTotal();
 	$pager = pagination($total, $pindex, $psize);
 	template('account/manage-display');
+}
+
+if ($do == 'account_create_info') {
+	$account_create_info = permission_user_account_num();
+	foreach ($account_all_type_sign as $sign => &$sign_info) {
+		$sign_limit = $sign . '_limit';
+		$founder_sign_limit = 'founder_' . $sign . '_limit';
+		if (!empty($account_create_info[$sign_limit]) && (!empty($account_create_info[$founder_sign_limit]) && $_W['user']['owner_uid'] || empty($_W['user']['owner_uid'])) || $_W['isfounder'] && !user_is_vice_founder()) {
+			$sign_info['can_create'] = true;
+		} else {
+			$sign_info['can_create'] = false;
+		}
+	}
+	iajax(0, $account_all_type_sign);
 }
 
 if ($do == 'account_detailinfo') {

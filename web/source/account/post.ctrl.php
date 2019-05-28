@@ -23,7 +23,7 @@ if (!$defaultaccount) {
 $acid = $defaultaccount['acid']; //强制使用默认的acid
 
 $state = permission_account_user_role($_W['uid'], $uniacid);
-$dos = array('base', 'sms', 'modules_tpl');
+$dos = array('base', 'sms', 'modules_tpl', 'operators');
 
 $role_permission = in_array($state, array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER));
 if ($role_permission) {
@@ -228,7 +228,8 @@ if($do == 'sms') {
 	if (!$role_permission) {
 		itoast('无权限操作！', url('account/post/modules_tpl', array('uniacid' => $uniacid, 'acid' => $acid)), 'error');
 	}
-	$settings = uni_setting($uniacid, array('notify'));
+	$settings = pdo_get('uni_settings', array('uniacid' => $uniacid));
+	$settings['notify'] = iunserializer($settings['notify']);
 	$notify = $settings['notify'] ? $settings['notify'] : array();
 
 	$sms_info = cloud_sms_info();
@@ -254,22 +255,14 @@ if($do == 'sms') {
 			iajax(1, '修改失败！', '');
 		}
 	}
-	if($_W['isajax'] && $_W['ispost'] && $_GPC['type'] == 'signature') {
-		if (!empty($_GPC['signature'])) {
-			$signature = trim($_GPC['signature']);
-			$setting = pdo_get('uni_settings', array('uniacid' => $uniacid));
-			$notify = iunserializer($setting['notify']);
-			$notify['sms']['signature'] = $signature;
 
-			$notify = serialize($notify);
-			$result = pdo_update('uni_settings', array('notify' => $notify), array('uniacid' => $uniacid));
-			if($result) {
-				iajax(0, '修改成功！', '');
-			}else {
-				iajax(1, '修改失败！', '');
-			}
-		}else {
-			iajax(40035, '参数错误！', '');
+	if ($_W['isajax'] && $_W['ispost'] && $_GPC['type'] == 'signature') {
+		$notify['sms']['signature'] = trim(safe_gpc_string($_GPC['signature']));
+		$result = pdo_update('uni_settings', array('notify' => serialize($notify)), array('uniacid' => $uniacid));
+		if ($result) {
+			iajax(0, '修改成功！', '');
+		} else {
+			iajax(1, '修改失败！', '');
 		}
 	}
 
@@ -504,4 +497,29 @@ if($do == 'modules_tpl') {
 
 	
 	template('account/manage-modules-tpl');
+}
+
+if ($do == 'operators') {
+	$page = max(1, intval($_GPC['page']));
+	$username = safe_gpc_string($_GPC['username']);
+	$page_size = 15;
+	$clerks = array();
+	$total = 0;
+
+	$permission_table = table('users_permission');
+	$permission_table->searchWithPage($page, $page_size);
+	$clerks = $permission_table->getClerkPermissionList($uniacid, '', $username);
+	if (!empty($clerks)) {
+		$total = $permission_table->getLastQueryTotal();
+		$modules_info = array();
+		foreach ($clerks as $k => $clerk) {
+			$modules_info[$clerk['type']] = module_fetch($clerk['type']);
+
+			$clerks[$k]['permission'] = explode('|', $clerk['permission']);
+			$clerks[$k]['permission_module'] = empty($modules_info[$clerk['type']]['main_module']) ? $clerk['type'] : $modules_info[$clerk['type']]['main_module'];
+		}
+		$users_info = pdo_getall('users', array('uid' => array_column($clerks, 'uid')), array('uid','username'), 'uid');
+	}
+	$pager = pagination($total, $page, $page_size);
+	template('user/edit-operatoers');
 }

@@ -30,6 +30,7 @@ function _cloud_build_params($must_authorization_host = true) {
 	if (is_array($_W['setting']['site']) && !empty($_W['setting']['site']['url']) && !$must_authorization_host) {
 		$pars['host'] = parse_url($_W['setting']['site']['url'], PHP_URL_HOST);
 	}
+	$pars['https'] = $_W['ishttps'] ? true : false;
 	$pars['family'] = IMS_FAMILY;
 	$pars['version'] = IMS_VERSION;
 	$pars['php_version'] = PHP_VERSION;
@@ -70,12 +71,15 @@ function _cloud_shipping_parse($dat, $file) {
 		return error(-1, '抱歉，您的站点已被列入云服务黑名单，云服务一切业务已被禁止，请联系微擎客服！');
 	}
 
-	if (strlen($dat['content']) != 32) {
-		$content = json_decode($dat['content'], true);
-		if (!empty($content) && is_array($content)) {
-			return $content;
-		}
+	$content = json_decode($dat['content'], true);
+	if (!empty($content['error'])) {
+		return error(-1, $content['error']);
+	}
+	if (!empty($content) && is_array($content)) {
+		return $content;
+	}
 
+	if (strlen($dat['content']) != 32) {
 		$dat['content'] = iunserializer($dat['content']);
 		if (is_array($dat['content']) && isset($dat['content']['files'])) {
 			if (!empty($dat['content']['manifest'])) {
@@ -103,18 +107,21 @@ function _cloud_shipping_parse($dat, $file) {
 			$data = file_get_contents(IA_ROOT . '/framework/version.inc.php');
 			file_put_contents(IA_ROOT . '/framework/version.inc.php', str_replace("'x'", "'v'", $data));
 		}
+		if ($ret['errno'] == '-3') { //模块升级服务到期
+			return array(
+				'errno' => $ret['errno'],
+				'message' => $ret['message'],
+				'cloud_id' => $ret['data'],
+			);
+		}
 	}
-	if (!is_error($ret) && is_array($ret) && !empty($ret)) {
-		if ($ret['state'] == 'fatal') {
+	if (!is_error($ret) && is_array($ret)) {
+		if (!empty($ret) && $ret['state'] == 'fatal') {
 			return error($ret['errorno'], '发生错误: ' . $ret['message']);
 		}
 		return $ret;
 	} else {
-		$message = "发生错误: {$ret['message']}";
-		if ($ret['errno'] == '-3') { //模块升级服务到期
-			$message = $ret['data'] . $message;
-		}
-		return error($ret['errno'], $message);
+		return error($ret['errno'], "发生错误: {$ret['message']}");
 	}
 }
 
@@ -143,13 +150,12 @@ function cloud_api($method, $data = array(), $extra = array(), $timeout = 60) {
 		return $cache;
 	}
 	$api_url = 'http://api.w7.cc/%s';
-	$method = rtrim($method, '/');
-
-	if (!strexists($method, '/index')) {
-		$method .= '/index';
-	}
 	$pars = _cloud_build_params();
+	$pars['token'] = cloud_build_transtoken();
 	$data = array_merge($pars, $data);
+	if ($GLOBALS['_W']['config']['setting']['development'] == 3) {
+		$extra['CURLOPT_USERAGENT'] = 'development';
+	}
 	$response = ihttp_request(sprintf($api_url, $method), $data, $extra, $timeout);
 	$file = IA_ROOT . '/data/' . (!empty($data['method']) ? $data['method'] : $method);
 	$ret = _cloud_shipping_parse($response, $file);
@@ -157,21 +163,11 @@ function cloud_api($method, $data = array(), $extra = array(), $timeout = 60) {
 	return $ret;
 }
 
-function cloud_api_request($method, $data = array(), $extra = array(), $timeout = 60) {
-	load()->func('communication');
-	$api_url = 'http://api.w7.cc/%s';
-	$pars = _cloud_build_params();
-	$data = array_merge($pars, $data);
-	$response = ihttp_request(sprintf($api_url, $method), $data, $extra, $timeout);
-	$result = _cloud_response_parse($response);
-	return $result;
-}
-
 function cloud_prepare() {
 	global $_W;
 	setting_load();
 	if(empty($_W['setting']['site']['key']) || empty($_W['setting']['site']['token'])) {
-		return error('-1', '站点注册信息丢失, 请通过"重置站点ID和通信秘钥"重新获取 !');
+		return error('-1', '站点注册信息丢失, 请通过"重置站点ID和通信密钥"重新获取 !');
 	}
 	return true;
 }
@@ -450,10 +446,10 @@ function cloud_m_build($modulename, $type = '') {
 }
 
 /**
- * 获取当前站点本地和云服务所有模块详细信息
+ * 获取当前站点云服务所有模块详细信息
  * @return array 应用或错误信息
  */
-function cloud_m_query($module = array()) {
+function cloud_m_query($module = array(), $page = 0) {
 	$pars['method'] = 'module.query';
 	if (empty($module)) {
 		$module = cloud_extra_module();
@@ -461,8 +457,11 @@ function cloud_m_query($module = array()) {
 	if (!is_array($module)) {
 		$module = array($module);
 	}
+	if (intval($page) > 0) {
+		$pars['page'] = $page;
+	}
 	$pars['module'] = base64_encode(iserializer($module));
-	$ret = cloud_api('module/query', $pars);
+	$ret = cloud_api('module/query/index', $pars);
 	if (isset($ret['error'])) {
 		return error(1, $ret['error']);
 	}
@@ -471,7 +470,7 @@ function cloud_m_query($module = array()) {
 		unset($ret['pirate_apps']);
 		$support_names = array('app', 'wxapp', 'webapp', 'system_welcome', 'android', 'ios', 'xzapp', 'aliapp', 'baiduapp', 'toutiaoapp');
 
-		foreach ($ret as $modulename => &$info) {
+		foreach ($ret['data'] as $modulename => &$info) {
 			foreach ($support_names as $support) {
 				if (in_array($support, $info['site_branch']['bought']) && !empty($info['site_branch']["{$support}_support"]) && $info['site_branch']["{$support}_support"] == 2) {
 					$info['site_branch']["{$support}_support"] = 2;
@@ -500,7 +499,7 @@ function cloud_m_bought() {
 function cloud_m_info($name) {
 	$pars['method'] = 'module.info';
 	$pars['module'] = $name;
-	$ret = cloud_api('module/info', $pars);
+	$ret = cloud_api('module/info/index', $pars);
 	return $ret;
 }
 
@@ -824,11 +823,11 @@ function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '
  * 获取当前站点可用短信签名.
  */
 function cloud_sms_info() {
-	return cloud_api_request('sms/info/index');
+	return cloud_api('sms/info/index');
 }
 
 function cloud_sms_log($mobile = 0, $time = array(), $page = 1, $page_size = 10) {
-	return cloud_api_request('sms/info/log', array(
+	return cloud_api('sms/info/log', array(
 		'mobile' => $mobile,
 		'time' => $time,
 		'page' => $page,
@@ -838,25 +837,10 @@ function cloud_sms_log($mobile = 0, $time = array(), $page = 1, $page_size = 10)
 
 function cloud_sms_trade($page = 1, $time = array()) {
 	$page = max(1, $page);
-	if ($page == 1 && !empty($time[1]) && $time[1] > date('Y-m-d')) {
-		$is_cache = true; //缓存第一页数据
-	} else {
-		$is_cache = false;
-	}
-	if ($is_cache) {
-		$cache_key = cache_system_key('sms_log_list');
-		$cach_data = cache_load($cache_key);
-		if (!empty($cach_data)) {
-			return $cach_data;
-		}
-	}
-	$result = cloud_api_request('util/api/index', array(
+	$result = cloud_api('util/api/index', array(
 		'method' => 'smsTrade',
 		'params' => array('page' => $page, 'time' => $time),
 	));
-	if ($is_cache) {
-		cache_write($cache_key, $result, 300);
-	}
 	return $result;
 }
 
@@ -912,7 +896,7 @@ function cloud_module_setting($acid, $module) {
 		'module_name' => $module['name'],
 		'module_version' => $module['version'],
 	);
-	return cloud_api_request('module/setting/index', $pars);
+	return cloud_api('module/setting/index', $pars);
 }
 
 function cloud_module_setting_save($acid, $module_name, $setting) {
@@ -921,7 +905,7 @@ function cloud_module_setting_save($acid, $module_name, $setting) {
 		'module_name' => $module_name,
 		'setting' => $setting,
 	);
-	return cloud_api_request('module/setting/save', $pars);
+	return cloud_api('module/setting/save', $pars);
 }
 
 function cloud_api_redirect($method, $params = array()) {
@@ -929,7 +913,7 @@ function cloud_api_redirect($method, $params = array()) {
 		'method' => $method,
 		'params' => $params,
 	);
-	return cloud_api_request('util/api/index', $pars);
+	return cloud_api('util/api/index', $pars);
 }
 
 /**
@@ -941,7 +925,7 @@ function cloud_cron_create($cron) {
 	$pars = array(
 		'cron' => base64_encode(iserializer($cron)),
 	);
-	return cloud_api_request('site/cron/save', $pars);
+	return cloud_api('site/cron/save', $pars);
 }
 
 /**
@@ -962,7 +946,7 @@ function cloud_cron_get($cron_id) {
 	$pars = array(
 		'cron_id' => $cron_id,
 	);
-	return cloud_api_request('site/cron/get', $pars);
+	return cloud_api('site/cron/get', $pars);
 }
 
 /**
@@ -976,7 +960,7 @@ function cloud_cron_change_status($cron_id, $status) {
 		'cron_id' => $cron_id,
 		'status' => $status,
 	);
-	return cloud_api_request('site/cron/status', $pars);
+	return cloud_api('site/cron/status', $pars);
 }
 
 /**
@@ -988,7 +972,7 @@ function cloud_cron_remove($cron_id) {
 	$pars = array(
 		'cron_id' => $cron_id,
 	);
-	return cloud_api_request('site/cron/remove', $pars);
+	return cloud_api('site/cron/remove', $pars);
 }
 
 function _cloud_response_parse($result) {
@@ -1009,12 +993,12 @@ function _cloud_response_parse($result) {
 }
 
 function cloud_site_info() {
-	return cloud_api_request('util/api/index', array('method' => 'license'));
+	return cloud_api('util/api/index', array('method' => 'license'));
 }
 
 function cloud_reset_siteinfo() {
 	global $_W;
-	return cloud_api_request('site/register/profile', array('url' => $_W['siteroot']));
+	return cloud_api('site/register/profile', array('url' => $_W['siteroot']));
 }
 
 /**
@@ -1615,6 +1599,6 @@ function cloud_v_to_xs($url) {
 }
 
 function cloud_workorder() {
-	$result = cloud_api('work-order/status');
+	$result = cloud_api('work-order/status/index');
 	return $result;
 }

@@ -39,8 +39,7 @@ unset($session);
 
 $_W['uniacid'] = igetcookie('__uniacid');
 if (empty($_W['uniacid'])) {
-	//todo 兼容代码,后续删除
-	$_W['uniacid'] = (function_exists('switch_get_account_display') && pdo_tableexists('users_lastuse')) ? switch_get_account_display() : 0;
+	$_W['uniacid'] =  switch_get_account_display();
 }
 $_W['uniacid'] = intval($_W['uniacid']);
 

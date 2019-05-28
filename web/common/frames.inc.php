@@ -264,6 +264,7 @@ $we7_system_menu['system'] = array(
 					'url' => url('cloud/sms-sign'),
 					'icon' => 'wi wi-sms-sign',
 					'permission_name' => 'system_cloud_sms_sign',
+					'is_display' => false,
 				),
 				'system_sms_mass' => array(
 					'title' => '短信群发',
@@ -854,6 +855,7 @@ $we7_system_menu['account'] = array(
 						ACCOUNT_TYPE_OFFCIAL_AUTH,
 						ACCOUNT_TYPE_XZAPP_NORMAL,
 						ACCOUNT_TYPE_XZAPP_AUTH,
+						ACCOUNT_TYPE_WEBAPP_NORMAL,
 					),
 					'sub_permission' => array(
 						'profile_setting_remote' => array(
@@ -1132,6 +1134,10 @@ $we7_system_menu['wxapp'] = array(
 						ACCOUNT_TYPE_APP_NORMAL,
 						ACCOUNT_TYPE_APP_AUTH,
 						ACCOUNT_TYPE_WXAPP_WORK,
+						ACCOUNT_TYPE_PHONEAPP_NORMAL,
+						ACCOUNT_TYPE_ALIAPP_NORMAL,
+						ACCOUNT_TYPE_BAIDUAPP_NORMAL,
+						ACCOUNT_TYPE_TOUTIAOAPP_NORMAL,
 					),
 					'icon' => 'wi wi-parameter-setting',
 					'permission_name' => 'profile_setting_remote',

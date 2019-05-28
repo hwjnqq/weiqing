@@ -86,7 +86,7 @@ if($do == 'download') {
 	if(!empty($_W['setting']['site']['token']) && md5($string) === $ret['sign']) {
 		//模块和微官网模板无需先放在data下，系统文件需放在data下以防升级时文件没有更新完而报错
 		//$path = IA_ROOT . $ret['path'];
-		if (strexists($ret['path'], 'web/') || strexists($ret['path'], 'framework/')) {
+		if (strpos($ret['path'], '/web/') === 0 || strpos($ret['path'], '/framework/') === 0) {
 			$patch_path = sprintf('%s/data/patch/upgrade/%s', IA_ROOT, date('Ymd'));
 		} else {
 			$patch_path = IA_ROOT;

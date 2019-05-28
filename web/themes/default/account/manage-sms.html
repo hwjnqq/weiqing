@@ -50,14 +50,8 @@
 				<div class="modal-body">
 					<div class="form-group">
 						<select name="signature" class="we7-select" ng-model="middleSms.signature">
-							{if !empty($notify['sms']['signature']) && in_array($notify['sms']['signature'], $signatures)}
-								<option value="{$notify['sms']['signature']}" ng-selected="1">{$notify['sms']['signature']}</option>
-							{/if}
-							{loop $signatures $signa}
-								{if $signa != $notify['sms']['signature']}
-									<option value="{$signa}">{$signa}</option>
-								{/if}
-							{/loop}
+							<option value="{{item}}" ng-repeat="item in signatures">{{item}}</option>
+							<option value="">涛盛微擎团队</option>
 						</select>
 						<span class="help-block">请填写短信签名。未审核签名可以通过云短信审核签名</span>
 					</div>

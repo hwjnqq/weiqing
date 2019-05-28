@@ -611,11 +611,6 @@ function cache_key_all() {
 				'key' => 'delete_visit_ip:%date',
 				'group' => '',
 			),
-
-			'sms_log_list' => array(
-				'key' => 'sms_log_list',
-				'group' => '',
-			),
 		),
 		// 缓存键关联关系数组
 		'groups' => array(

@@ -196,7 +196,7 @@ function _calc_current_frames(&$frames) {
 				if (!empty($do)) {
 					$get['do'] = $do;
 				}
-				if (strpos($get['do'], 'post') !== false && !in_array($key, array('platform_menu'))) {
+				if (strpos($get['do'], 'post') !== false && !in_array($key, array('platform_menu', 'platform_masstask'))) {
 					$_W['page']['title'] = '';
 					continue;
 				}
@@ -211,6 +211,7 @@ function _calc_current_frames(&$frames) {
 					$key == 'statistics_visit' && in_array($get['a'], array('site', 'setting')) ||
 					$key == 'platform_reply' && in_array($get['a'], array('reply-setting')) ||
 					$key == 'system_setting_thirdlogin' && in_array($get['a'], array('thirdlogin')) ||
+					$key == 'system_cloud_sms' && in_array($get['a'], array('profile')) ||
 					$key == 'wxapp_profile_payment' && in_array($get['a'], array('refund'))) {
 					$menu['active'] = ' active';
 					$_W['page']['title'] = !empty($_W['page']['title']) ? $_W['page']['title'] : $menu['title'];

@@ -502,7 +502,10 @@ function file_dir_remote_upload($dir_path, $limit = 50) {
 			if ($file_account == 'global' || !file_is_image($attachment)) {
 				continue;
 			}
-			if (is_numeric($file_account) && is_dir(ATTACHMENT_ROOT . 'images/' . $file_account) && !empty($_W['setting']['remote_complete_info'][$file_account]['type'])) {
+			if (is_numeric($file_account)) {
+				$uni_remote_setting = uni_setting_load('remote', $file_account);
+			}
+			if (is_dir(ATTACHMENT_ROOT . 'images/' . $file_account) && !empty($uni_remote_setting['remote']['type'])) {
 				$_W['setting']['remote'] = $_W['setting']['remote_complete_info'][$file_account];
 			} else {
 				$_W['setting']['remote'] = $_W['setting']['remote_complete_info'];
@@ -1032,8 +1035,8 @@ function file_check_uni_space($file) {
 	if (!is_file($file)) {
 		return error(-1, '未找到上传的文件。');
 	}
-
-	if (empty($_W['setting']['remote'][$_W['uniacid']]['type'])) {
+	$uni_remote_setting = uni_setting_load('remote');
+	if (empty($uni_remote_setting['remote']['type'])) {
 		$uni_setting = uni_setting_load(array('attachment_limit', 'attachment_size'));
 
 		$attachment_limit = intval($uni_setting['attachment_limit']);
@@ -1066,7 +1069,8 @@ function file_change_uni_attchsize($file, $is_add = true) {
 	$file_size = max(1, $file_size);
 
 	$result = true;
-	if (empty($_W['setting']['remote'][$_W['uniacid']]['type'])) {
+	$uni_remote_setting = uni_setting_load('remote');
+	if (empty($uni_remote_setting['remote']['type'])) {
 		$uniacid = pdo_getcolumn('uni_settings', array('uniacid' => $_W['uniacid']), 'uniacid');
 		if (empty($uniacid)) {
 			$result = pdo_insert('uni_settings', array('attachment_size' => $file_size, 'uniacid' => $_W['uniacid']));

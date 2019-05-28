@@ -72,13 +72,12 @@ if ($do == 'get_upgrade_info') {
 	if (empty($_W['setting']['site']) || empty($_W['setting']['site']['url'])) {
 		iajax(-1, $notice_str . '<div class="color-red">站点信息不完整，请重置站点 <a href="./index.php?c=cloud&a=diagnose" class="color-default" target="_blank"> 去重置</a></div></div>');
 	}
-	if (rtrim($_W['siteroot'], '/') != $_W['setting']['site']['url']) {
-		iajax(-1, $notice_str . '<div class="color-red">1. 请使用微擎授权域名进行更新，授权域名为：' . $_W['setting']['site']['url'] . '<br>2. 如果域名正确，还无法升级请重置站点再试 <a href="./index.php?c=cloud&a=diagnose" class="color-default" target="_blank"> 去重置</a>；<br> 注： 若必须https访问，请联系微擎官方开启https授权；<br>3. 在data/config.php内添加以下代码： $config[\'setting\'][\'https\'] = 1; </div></div>');
+	if (parse_url($_W['siteroot'], PHP_URL_HOST) != parse_url($_W['setting']['site']['url'], PHP_URL_HOST)) {
+		iajax(-1, $notice_str . '<div class="color-red">1. 请使用微擎授权域名进行更新，授权域名为：' . $_W['setting']['site']['url'] . '<br>2. 重置站点 <a href="./index.php?c=cloud&a=diagnose" class="color-default" target="_blank"> 去重置</a></div></div>');
 	}
-
 	$upgrade = cloud_build();
 	if (is_error($upgrade)) {
-		iajax(-1, $notice_str . '<div class="color-red">1.请关闭服务器的防火墙，杀毒软件，cdn，云锁，云盾，安全狗之类的软件后再重试；<br>2.下载最新的cloud.mod.php覆盖到/framework/model/cloud.mod.php <a href="javascript:;" class="color-default" target="_blank"> 点击下载</a>；<br>3.重置站点 <a href="./index.php?c=cloud&a=diagnose" class="color-default" target="_blank"> 去重置</a></div></div>');
+		iajax(-1, $notice_str . '<div class="color-red">1.请关闭服务器的防火墙，杀毒软件，cdn，云锁，云盾，安全狗之类的软件后再重试；<br>2.下载最新的cloud.mod.php覆盖到/framework/model/cloud.mod.php <a href="//cdn.w7.cc/we7/cloud.mod.php" class="color-default" target="_blank"> 点击下载</a>；<br>3.重置站点 <a href="./index.php?c=cloud&a=diagnose" class="color-default" target="_blank"> 去重置</a></div></div>');
 	}
 
 	if (!$upgrade['upgrade']) {

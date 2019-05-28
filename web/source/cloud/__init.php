@@ -14,7 +14,7 @@ if ($action == 'process') {
 	define('FRAME', 'site');
 }
 
-if(in_array($action, array('device', 'callback', 'appstore'))) {
+if (in_array($action, array('device', 'callback', 'appstore'))) {
 	$do = $action;
 	$action = 'redirect';
 }

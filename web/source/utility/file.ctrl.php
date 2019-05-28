@@ -191,8 +191,9 @@ if ($do == 'fetch' || $do == 'upload') {
 		$size = filesize($fullname);
 		$info['size'] = sizecount($size);
 	}
-	if (empty($option['global']) && !empty($_W['setting']['remote'][$_W['uniacid']]['type'])) {
-		$_W['setting']['remote'] = $_W['setting']['remote'][$_W['uniacid']];
+	$uni_remote_setting = uni_setting_load('remote');
+	if (empty($option['global']) && !empty($uni_remote_setting['remote']['type'])) {
+		$_W['setting']['remote'] = $uni_remote_setting['remote'];
 	}
 	if (!empty($option['global'])) {
 		$_W['setting']['remote'] = $_W['setting']['remote_complete_info'];
@@ -241,8 +242,9 @@ if ($do == 'delete') {
 	}
 	$attachments = $core_attachment_table->getall();
 	$delete_ids = array();
-	if (!empty($_W['setting']['remote'][$_W['uniacid']]['type'])) {
-		$_W['setting']['remote'] = $_W['setting']['remote'][$_W['uniacid']];
+	$uni_remote_setting = uni_setting_load('remote');
+	if (!empty($uni_remote_setting['remote']['type'])) {
+		$_W['setting']['remote'] = $uni_remote_setting['remote'];
 	}
 	foreach ($attachments as $media) {
 		if (!empty($_W['setting']['remote']['type'])) {
@@ -449,7 +451,15 @@ if ($do == 'wechat_upload') {
 	if($type == 'video') {
 		$insert['tag'] = iserializer(array('title' => $originname, 'url' => ''));
 	}
-	pdo_insert('wechat_attachment', $insert);
+
+	if ($type == 'video' && $mode == 'perm') {
+		if (!is_error($result)) {
+			pdo_insert('wechat_attachment', $insert);
+		}
+	} else {
+		pdo_insert('wechat_attachment', $insert);
+	}
+
 	$result['type'] = $type;
 	$result['url'] = tomedia($file['path']);
 
@@ -483,8 +493,8 @@ if ($do == 'keyword') {
 if ($do == 'module') {
 	$enable_modules = array();
 	$is_user_module = isset($_GPC['user_module']) ? intval($_GPC['user_module']) : 0;
-	$uid = empty($_GPC['uid']) ? $_W['uid'] : intval($_GPC['uid']);
-	$module_uniacid = empty($_GPC['module_uniacid']) ? $_W['uniacid'] : intval($_GPC['module_uniacid']);
+	$uid = empty($_GPC['uid']) || !is_numeric($_GPC['uid']) ? $_W['uid'] : intval($_GPC['uid']);
+	$module_uniacid = empty($_GPC['module_uniacid']) || !is_numeric($_GPC['module_uniacid']) ? $_W['uniacid'] : intval($_GPC['module_uniacid']);
 	$have_cover = $_GPC['cover'] == 'true' ? true : false;
 	$account_all_type = uni_account_type();
 	$module_type = in_array($_GPC['mtype'], array_keys(uni_account_type_sign())) ? $_GPC['mtype'] : '';

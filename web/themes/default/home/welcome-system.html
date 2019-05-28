@@ -32,9 +32,7 @@
 				<li role="presentation">
 					<a href="#app_count" aria-controls="app_count" role="tab" data-toggle="tab">前台统计</a>
 				</li>
-				<div class="pull-right we7-margin-top-sm we7-margin-right">
-					<a href="{php echo url('statistics/account')}" class="color-default" target="_blank">查看详情</a>
-				</div>
+				
 			</ul>
 		</div>
 		<div clss="panel-body">
@@ -233,218 +231,91 @@
 	</div>
 	{/if}
 
+	<!-- 搜索应用 -->
+	<div class="panel we7-panel we7-store-search">
+		<div class="panel-heading">
+			<h4>
+				搜索市场应用
+			</h4>
+			<div class="search js-show-search">
+				<div class="show-place">
+					<i class="wi wi-search"></i>
+					此处搜索查询应用市场的模块
+				</div>
+				<div class="show-form">
+					<form action="//s.w7.cc/smart_search/index" target="_blank">
+						<div class="input-group">
+							<input type="text" name="keyword" placeholder="输入关键字" class="form-control">
+							<span class="input-group-btn"> <button class="btn btn-primary">搜索应用</button></span>
+						</div>
+					</form>
+				</div>
+			</div>
+			<div class="count" ng-show="total_count && new_app_count">
+				商城模块总计：<span>{{total_count}}+</span>
+				新增应用：<span>{{new_app_count}}</span>
+			</div>
+		</div>
+	</div>
+	<!-- end搜索应用 -->
+
 	<!-- 推荐应用 start -->
-	<div class="panel we7-panel" >
+	<div class="panel we7-panel" ng-if="is_recommend_close != 1">
 		<div class="panel-heading">
 			<h4>推荐应用</h4>
 			<ul class="nav nav-tabs" role="tablist">
-				<li role="presentation" class="active"><a href="#recommend-app" data-type="recommend" aria-controls="recommend-app" role="tab" data-toggle="tab">推荐应用</a></li>
-				<li role="presentation"><a href="#new-app" data-type="new-app" aria-controls="new-app" role="tab" data-toggle="tab">新应用</a></li>
-				<li role="presentation"><a href="#hot-app" data-type="hot" aria-controls="hot-app" role="tab" data-toggle="tab">热门排行</a></li>
-				<li role="presentation"><a href="#down-app" data-type="essential" aria-controls="down-app" role="tab" data-toggle="tab">下载排行</a></li>
-				<li role="presentation"><a href="#big-app" data-type="large" aria-controls="big-app" role="tab" data-toggle="tab">大额应用排行</a></li>
+				<li role="presentation" :ng-class="{active: key == 'recommend'}" ng-click="changeTab(key)" ng-repeat="(key, item) in recommend"><a href="{{'#' + key}}" role="tab" aria-controls="{{key}}" data-type="{{key}}" data-toggle="tab" >{{item.name}}</a></li>
 			</ul>
 			
 			<a href="http://s.w7.cc/" target="_blank" class="more">去市场</a>
 		</div>
 		<div class="panel-body">
 			<div class="tab-content">
-				<div class="tab-pane active" id="recommend-app">
+				<div class="tab-pane " :ng-class="{active: key == 'recommend'}"  id="{{key}}" ng-repeat="(key, item) in recommend">
 					<div class="app-statistics">
 						<div class="left-box">
-							<div id="recommond-app-carousel" class="carousel  slide recommond-app-carousel" data-ride="carousel">
+							<div id="{{key + '-app-carousel'}}" class="carousel slide recommend-app-carousel" data-ride="carousel">
 								<ol class="carousel-indicators">
-									<li data-target="#recommond-app-carousel" data-slide-to="{{index}}"  ng-class="{active: index == 0}" ng-repeat="(index, ad) in recommend_ads"></li>
+									<li data-target="{{'#' + key + '-app-carousel'}}" data-slide-to="{{index}}"  ng-class="{active: index == 0}" ng-repeat="(index, ad) in item.ads"></li>
 								</ol>
 								<div class="carousel-inner" role="listbox">
-									<div class="item advertising-box" ng-class="{active: index == 0}" ng-repeat="(index, ad) in recommend_ads">
+									<div class="item advertising-box" ng-class="{active: index == 0}" ng-repeat="(index, ad) in item.ads">
 										<a ng-href="{{ad.url}}" target="_blank">
 											<img ng-src="{{ad.cdn_logo}}" alt="">
 										</a>
 									</div>
 								</div>
 							</div>
+							<div class="go-store" ng-if="key != 'recommend' && item.ads.length == 0">
+								<div class="icon">
+									<img ng-src="{{'resource/images/welcome/' + item.icon + '-icon.png'}}" alt="">
+								</div>
+								<div class="name">
+									{{item.name}}
+								</div>
+								<div class="title">
+									网罗市场最新应用，更快了解最新应用
+								</div>
+								<a href="//s.w7.cc" class="btn btn-primary">去应用市场</a>
+							</div>
 						</div>
 						<div class="right-box">
-							<div class="app-item" ng-repeat="app in recommend['recommend'].list">
+							<div class="app-item" ng-repeat="app in item.list">
 								<div class="app-item-box">
 									<div class="info">
 										<div class="logo">
 											<img ng-src="{{app.cdn_logo}}" alt="">
 										</div>
-										<div class="">
-											<div class="name" ng-bind="app.title"></div>
+										<div class="text-over">
+											<div class="name text-over" ng-bind="app.title"></div>
 											<div class="time" ng-bind="'下载次数' + app.down_count"></div>
 										</div>
 									</div>
-									<div class="go">
-										<div class="name" ng-bind="app.title"></div>
-										<div class="time" ng-bind="'下载次数' + app.down_count"></div>
-										<a ng-href="{{'//s.w7.cc/module-'+app.aid+'.html'}}" target="_blank" class="btn btn-primary">查看详情</a>
-									</div>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-				<div class="tab-pane " id="new-app">
-					<div class="app-statistics">
-						<div class="left-box">
-							<div class="go-store">
-								<div class="icon">
-									<img src="resource/images/welcome/new-icon.png" alt="">
-								</div>
-								<div class="name">
-									新应用
-								</div>
-								<div class="title">
-									网罗市场最新应用，更快了解最新应用
-								</div>
-								<a href="http://s.w7.cc/" target="_blank" class="btn btn-primary">去应用市场</a>
-							</div>
-						</div>
-						<div class="right-box">
-							<div class="app-item" ng-repeat="app in recommend['new-app'].list">
-								<div class="app-item-box">
-									<div class="info">
-										<div class="logo">
-											<img ng-src="{{app.cdn_logo}}" alt="">
-										</div>
-										<div class="">
-											<div class="name" ng-bind="app.title"></div>
-											<div class="time" ng-bind="app.upgrade_at | limitTo:10"></div>
-										</div>
-									</div>
-									<div class="go">
-										<div class="name" ng-bind="app.title"></div>
-										<div class="time" ng-bind="app.upgrade_at | limitTo:10"></div>
-										<a ng-href="{{'//s.w7.cc/module-'+app.aid+'.html'}}" target="_blank" class="btn btn-primary">查看详情</a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<!-- 热门排行 start -->
-				<div class="tab-pane " id="hot-app">
-					<div class="app-statistics">
-						<div class="left-box">
-							<div class="go-store">
-								<div class="icon">
-									<img src="resource/images/welcome/hot-icon.png" alt="">
-								</div>
-								<div class="name">
-									热门排行
-								</div>
-								<div class="title">
-									网罗市场最新应用，更快了解最新应用
-								</div>
-								<a href="http://s.w7.cc/" target="_blank" class="btn btn-primary">去应用市场</a>
-							</div>
-						</div>
-						<div class="right-box">
-							<div class="app-item" ng-repeat="app in recommend.hot.list | orderBy:'down_count':true">
-								<div class="app-item-box">
-									<div class="info">
-										<div class="logo">
-											<img ng-src="{{app.cdn_logo}}" alt="">
-										</div>
-										<div class="">
-											<div class="name" ng-bind="app.title"></div>
-											<div class="time" ng-bind="'安装次数' + app.down_count"></div>
-										</div>
-									</div>
-									<div class="go">
-										<div class="name" ng-bind="app.title"></div>
-										<div class="time" ng-bind="'下载次数' + app.down_count"></div>
-										<a ng-href="{{'//s.w7.cc/module-'+app.aid+'.html'}}" target="_blank" class="btn btn-primary">查看详情</a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<!-- 热门排行 end -->
-				<!-- 下载排行 start -->
-				<div class="tab-pane " id="down-app">
-					<div class="app-statistics">
-						<div class="left-box">
-							<div class="go-store">
-								<div class="icon">
-									<img src="resource/images/welcome/down-icon.png" alt="">
-								</div>
-								<div class="name">
-									下载排行
-								</div>
-								<div class="title">
-									网罗市场最新应用，更快了解最新应用
-								</div>
-								<a href="//s.w7.cc" target="_blank" class="btn btn-primary">去应用市场</a>
-							</div>
-						</div>
-						<div class="right-box">
-							<div class="app-item" ng-repeat="app in recommend.essential.list | orderBy:'down_count':true">
-								<div class="app-item-box">
-									<div class="info">
-										<div class="logo">
-											<img ng-src="{{app.cdn_logo}}" alt="">
-										</div>
-										<div class="">
-											<div class="name" ng-bind="app.title"></div>
-											<div class="time" ng-bind="'下载次数' + app.down_count"></div>
-										</div>
-									</div>
-									<div class="go">
-										<div class="name" ng-bind="app.title"></div>
-										<div class="time" ng-bind="'下载次数' + app.down_count"></div>
-										<a ng-href="{{'//s.w7.cc/module-'+app.aid+'.html'}}" target="_blank" class="btn btn-primary">查看详情</a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<!-- 下载排行 end -->
-				<!-- 大额应用排行 start -->
-				<div class="tab-pane " id="big-app">
-					<div class="app-statistics">
-						<div class="left-box">
-							<div class="go-store">
-								<div class="icon">
-									<img src="resource/images/welcome/big-icon.png" alt="">
-								</div>
-								<div class="name">
-									大额应用
-								</div>
-								<div class="title">
-									网罗市场最新应用，更快了解最新应用
-								</div>
-								<a href="http://s.w7.cc/" target="_blank" class="btn btn-primary">去应用市场</a>
-							</div>
-						</div>
-						<div class="right-box">
-							<div class="app-item" ng-repeat="app in recommend['large'].list | orderBy:'down_count':true">
-								<div class="app-item-box">
-									<div class="info">
-										<div class="logo">
-											<img ng-src="{{app.cdn_logo}}" alt="">
-										</div>
-										<div class="">
-											<div class="name" ng-bind="app.title"></div>
-											<div class="time" ng-bind="'下载次数' + app.down_count"></div>
-										</div>
-									</div>
-									<div class="go">
-										<div class="name" ng-bind="app.title"></div>
-										<div class="time" ng-bind="'下载次数' + app.down_count"></div>
-										<a ng-href="{{'//s.w7.cc/module-'+app.aid+'.html'}}" target="_blank" class="btn btn-primary">查看详情</a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<!-- 大额应用排行 end -->
 			</div>
 		</div>
 	</div>
@@ -455,6 +326,16 @@
 
 <script type="text/javascript">
 	$(function(){
+		$('.we7-store-search .js-show-search').click(function() {
+			$(this).addClass('active')
+		})
+		$('body').on('click', function(event) {
+			var target = $(event.target);
+			if (!target.hasClass('js-show-search')
+					&& !target.parents('.js-show-search').length) {
+						$('.we7-store-search .js-show-search').removeClass('active');
+			}
+		});
 		angular.module('systemApp').value('config', {
 			'frame': "{FRAME}",
 			'notices': "{php echo !empty($notices) ? json_encode($notices) : 'null'}",

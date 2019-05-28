@@ -361,6 +361,19 @@ function user_update($user) {
 	if (empty($record)) {
 		return false;
 	}
+
+	if (!empty($record['endtime'])) {
+		$user_own_uniacids = pdo_getall('uni_account_users', array('uid' => $user['uid'], 'role' => 'owner'), array('uniacid'));
+
+		if (!empty($user_own_uniacids)) {
+			foreach ($user_own_uniacids as $uniacid_val) {
+				if (!empty(uni_fetch($uniacid_val['uniacid']))) {
+					pdo_update('account', array('endtime' => $record['endtime']), array('uniacid' => $uniacid_val['uniacid']));
+				}
+			}
+		}
+	}
+
 	return pdo_update('users', $record, array('uid' => intval($user['uid'])));
 }
 
@@ -662,13 +675,11 @@ function user_modules($uid = 0) {
 		$modules = array();
 		if (!empty($module_list)) {
 			$have_plugin_module = array();
-			if (pdo_tableexists('modules_plugin')) {
-				$plugin_list = pdo_getall('modules_plugin', array('name' => array_keys($module_list)), array());
-				if (!empty($plugin_list)) {
-					foreach ($plugin_list as $plugin) {
-						$have_plugin_module[$plugin['main_module']][$plugin['name']] = $module_list[$plugin['name']];
-						unset($module_list[$plugin['name']]);
-					}
+			$plugin_list = pdo_getall('modules_plugin', array('name' => array_keys($module_list)), array());
+			if (!empty($plugin_list)) {
+				foreach ($plugin_list as $plugin) {
+					$have_plugin_module[$plugin['main_module']][$plugin['name']] = $module_list[$plugin['name']];
+					unset($module_list[$plugin['name']]);
 				}
 			}
 			if (!empty($module_list)) {
@@ -783,11 +794,9 @@ function user_login_forward($forward = '') {
 	if (user_is_founder($_W['uid'], true)) {
 		return url('home/welcome/system', array('page' => 'home'));
 	} else {
-		if (!empty($_W['user']['endtime']) && $_W['user']['endtime'] < TIMESTAMP) {
+		$user_end_time = user_end_time($_W['uid']);
+		if (!empty($user_end_time) && strtotime($user_end_time) < TIMESTAMP) {
 			return url('user/profile');
-		}
-		if (user_is_vice_founder()) {
-			return url('user/display');
 		}
 		if ($_W['user']['type'] == ACCOUNT_OPERATE_CLERK || permission_account_user_role($_W['uid']) == ACCOUNT_MANAGE_NAME_CLERK) {
 			return url('module/display');

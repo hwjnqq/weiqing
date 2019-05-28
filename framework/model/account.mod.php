@@ -15,41 +15,49 @@ function uni_account_type_sign($type_sign = '') {
 		ACCOUNT_TYPE_SIGN => array(
 			'contain_type' => array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH),
 			'icon' => 'wi wi-wx-circle',
+			'createurl' => url('account/post-step'),
 			'title' => '公众号',
 		),
 		WXAPP_TYPE_SIGN => array(
 			'contain_type' => array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH),
 			'icon' => 'wi wi-wxapp',
+			'createurl' => url('wxapp/post/design_method'),
 			'title' => '微信小程序',
 		),
 		WEBAPP_TYPE_SIGN => array(
 			'contain_type' => array(ACCOUNT_TYPE_WEBAPP_NORMAL),
 			'icon' => 'wi wi-pc-circle',
+			'createurl' => url('account/create', array('sign' => 'webapp')),
 			'title' => 'PC',
 		),
 		PHONEAPP_TYPE_SIGN => array(
 			'contain_type' => array(ACCOUNT_TYPE_PHONEAPP_NORMAL),
 			'icon' => 'wi wi-app',
+			'createurl' => url('account/create', array('sign' => 'phoneapp')),
 			'title' => 'APP',
 		),
 		XZAPP_TYPE_SIGN => array(
 			'contain_type' => array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH),
 			'icon' => 'wi wi-xzapp',
+			'createurl' => url('xzapp/post-step'),
 			'title' => '熊掌号',
 		),
 		ALIAPP_TYPE_SIGN => array(
 			'contain_type' => array(ACCOUNT_TYPE_ALIAPP_NORMAL),
 			'icon' => 'wi wi-aliapp',
+			'createurl' => url('account/create', array('sign' => 'aliapp')),
 			'title' => '支付宝小程序',
 		),
 		BAIDUAPP_TYPE_SIGN => array(
 			'contain_type' => array(ACCOUNT_TYPE_BAIDUAPP_NORMAL),
 			'icon' => 'wi wi-baiduapp',
+			'createurl' => url('account/create', array('sign' => 'baiduapp')),
 			'title' => '百度小程序',
 		),
 		TOUTIAOAPP_TYPE_SIGN => array(
 			'contain_type' => array(ACCOUNT_TYPE_TOUTIAOAPP_NORMAL),
 			'icon' => 'wi wi-toutiaoapp',
+			'createurl' => url('account/create', array('sign' => 'toutiaoapp')),
 			'title' => '头条小程序',
 		),
 	);
@@ -214,7 +222,7 @@ function uni_owned($uid = 0, $is_uni_fetch = true, $type = 'app') {
 }
 
 /**
- * 获取用户可操作的所有应用
+ * 获取用户可操作的所有平台账号
  * @param int $uid 要查找的用户
  * @param string $type 要查找的类型：公众号：app;小程序：wxapp;PC：webapp;
  * @return array()
@@ -237,8 +245,7 @@ function uni_user_accounts($uid = 0, $type = 'app') {
 	}
 	$where = '';
 	$params = array();
-	$user_is_founder = user_is_founder($uid);
-	if (empty($user_is_founder) || user_is_vice_founder($uid)) {
+	if (!user_is_founder($uid, true)) {
 		$select_fields .= ', u.role';
 		$where .= " LEFT JOIN " . tablename('uni_account_users') . " u ON u.uniacid = w.uniacid WHERE u.uid = :uid AND u.role IN(:role1, :role2) ";
 		$params[':uid'] = $uid;
@@ -561,12 +568,12 @@ function uni_groups($groupids = array(), $show_all = false) {
 		}
 		cache_write($cachekey, $list);
 	}
-
 	$group_list = array();
 	if (empty($list)) {
 		return $group_list;
 	}
 	$module_support_type = module_support_type();
+	$module_support_type_sign = array_keys(uni_account_type_sign());
 	//因为权限组里各个类型的模块有重复，因此数据量大的话，循环调用module_fetch()重复获取同一模块信息，损耗性能。
 	//故外围定义一个大数组，存在的话不进行module_fetch()
 	$modules_info = array();
@@ -574,23 +581,7 @@ function uni_groups($groupids = array(), $show_all = false) {
 		if (empty($item['modules_all'])) {
 			continue;
 		}
-		$modules = (array)iunserializer($item['modules']);
-		//获取模块的权限组支持
-		$module_support = array();
-		foreach ($module_support_type as $support => $info) {
-			if ($support == MODULE_SUPPORT_SYSTEMWELCOME_NAME) {
-				continue;
-			}
-			if ($support == MODULE_SUPPORT_ACCOUNT_NAME) {
-				$info['type'] = 'modules';
-			}
-			if (empty($modules[$info['type']])) {
-				continue;
-			}
-			foreach ($modules[$info['type']] as $modulename) {
-				$module_support[$modulename][$support] = $info['support'];
-			}
-		}
+
 		$modules_all = $item['modules_all'];
 		$item['modules_all'] = array();
 		foreach ($modules_all as $key => $name) {
@@ -602,7 +593,7 @@ function uni_groups($groupids = array(), $show_all = false) {
 				continue;
 			}
 			foreach ($module_support_type as $support => $info) {
-				if ($moduleinfo[$support] == $info['support'] && !empty($module_support[$name][$support])) {
+				if ($moduleinfo[$support] == $info['support'] && in_array($name, (array)$item[$info['type']])) {
 					$moduleinfo['group_support'][$support] = $info['support'];
 				} else {
 					$moduleinfo['group_support'][$support] = $info['not_support'];
@@ -610,15 +601,72 @@ function uni_groups($groupids = array(), $show_all = false) {
 			}
 			$item['modules_all'][$name] = $moduleinfo;
 		}
-
-		foreach (array_keys(uni_account_type_sign()) as $type) {
-			if (empty($item[$type]) || !is_array($item[$type])) {
-				continue;
+		//大数据量的客户不可以使用这个foreach，而是使用下面的if判断。否则加载时间更长。但是注意增加账号类型的时候要及时添加
+		//数据量小的可以使用这个foreach
+		//foreach ($module_support_type_sign as $type) {
+		//	if (empty($item[$type]) || !is_array($item[$type])) {
+		//		continue;
+		//	}
+		//	$module_type = $item[$type];
+		//	$item[$type] = array();
+		//	foreach ($module_type as $name) {
+		//		$item[$type][$name] = $modules_info[$name];
+		//	}
+		//}
+		if (!empty($item['account'])) {
+			$account_modules = $item['account'];
+			$item['account'] = array();
+			foreach ($account_modules as $name) {
+				$item['account'][$name] = $modules_info[$name];
 			}
-			$module_type = $item[$type];
-			$item[$type] = array();
-			foreach ($module_type as $name) {
-				$item[$type][$name] = $modules_info[$name];
+		}
+		if (!empty($item['wxapp'])) {
+			$wxapp_modules = $item['wxapp'];
+			$item['wxapp'] = array();
+			foreach ($wxapp_modules as $name) {
+				$item['wxapp'][$name] = $modules_info[$name];
+			}
+		}
+		if (!empty($item['webapp'])) {
+			$wxapp_modules = $item['webapp'];
+			$item['webapp'] = array();
+			foreach ($wxapp_modules as $name) {
+				$item['webapp'][$name] = $modules_info[$name];
+			}
+		}
+		if (!empty($item['phoneapp'])) {
+			$phoneapp_modules = $item['phoneapp'];
+			$item['phoneapp'] = array();
+			foreach ($phoneapp_modules as $name) {
+				$item['phoneapp'][$name] = $modules_info[$name];
+			}
+		}
+		if (!empty($item['xzapp'])) {
+			$xzapp_modules = $item['xzapp'];
+			$item['xzapp'] = array();
+			foreach ($xzapp_modules as $name) {
+				$item['xzapp'][$name] = $modules_info[$name];
+			}
+		}
+		if (!empty($item['aliapp'])) {
+			$aliapp_modules = $item['aliapp'];
+			$item['aliapp'] = array();
+			foreach ($aliapp_modules as $name) {
+				$item['aliapp'][$name] = $modules_info[$name];
+			}
+		}
+		if (!empty($item['baiduapp'])) {
+			$baiduapp_modules = $item['baiduapp'];
+			$item['baiduapp'] = array();
+			foreach ($baiduapp_modules as $name) {
+				$item['baiduapp'][$name] = $modules_info[$name];
+			}
+		}
+		if (!empty($item['toutiaoapp'])) {
+			$toutiaoapp_modules = $item['toutiaoapp'];
+			$item['toutiaoapp'] = array();
+			foreach ($toutiaoapp_modules as $name) {
+				$item['toutiaoapp'][$name] = $modules_info[$name];
 			}
 		}
 	}
@@ -759,12 +807,12 @@ function uni_setting_load($name = '', $uniacid = 0) {
 	$uniacid = empty($uniacid) ? $_W['uniacid'] : $uniacid;
 	$cachekey = cache_system_key('unisetting', array('uniacid' => $uniacid));
 	$unisetting = cache_load($cachekey);
-	if (empty($unisetting)) {
+	if (empty($unisetting) || ($name == 'remote' && empty($unisetting['remote']))) {
 		$unisetting = pdo_get('uni_settings', array('uniacid' => $uniacid));
 		if (!empty($unisetting)) {
 			$serialize = array('site_info', 'stat', 'oauth', 'passport', 'uc', 'notify',
 				'creditnames', 'default_message', 'creditbehaviors', 'payment',
-				'recharge', 'tplnotice', 'mcplugin', 'statistics', 'bind_domain');
+				'recharge', 'tplnotice', 'mcplugin', 'statistics', 'bind_domain', 'remote');
 			foreach ($unisetting as $key => &$row) {
 				if (in_array($key, $serialize) && !empty($row)) {
 					$row = (array)iunserializer($row);
@@ -902,31 +950,36 @@ function uni_update_week_stat() {
 	if (empty($stat_update_yes)) {
 		return true;
 	}
-	foreach($seven_days as $sevens) {
-		if($_W['account']['level'] == ACCOUNT_SUBSCRIPTION_VERIFY || $_W['account']['level'] == ACCOUNT_SERVICE_VERIFY) {
-			$account_obj = WeAccount::createByUniacid();
-			$weixin_stat = $account_obj->getFansStat();
-			if(is_error($weixin_stat) || empty($weixin_stat)) {
-				return error(-1, '调用微信接口错误');
-			} else {
-				$update_stat = array();
-				$update_stat = array(
-					'uniacid' => $_W['uniacid'],
-					'new' => $weixin_stat[$sevens]['new'],
-					'cancel' => $weixin_stat[$sevens]['cancel'],
-					'cumulate' => $weixin_stat[$sevens]['cumulate'],
-					'date' => $sevens,
-				);
-			}
-		} else {
-			$update_stat = array();
-			$update_stat['cumulate'] = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('mc_mapping_fans') . " WHERE acid = :acid AND uniacid = :uniacid AND follow = :follow AND followtime < :endtime", array(':acid' => $_W['acid'], ':uniacid' => $_W['uniacid'], ':endtime' => strtotime($sevens)+86400, ':follow' => 1));
-			$update_stat['date'] = $sevens;
-			$update_stat['new'] = $week_stat_fans[$sevens]['new'];
-			$update_stat['cancel'] = $week_stat_fans[$sevens]['cancel'];
-			$update_stat['uniacid'] = $_W['uniacid'];
+	$account = uni_fetch($_W['uniacid']);
+	if (is_error($account)) {
+		return $account;
+	}
+	if ($account['level'] == ACCOUNT_SUBSCRIPTION_VERIFY || $account['level'] == ACCOUNT_SERVICE_VERIFY) {
+		$account_obj = WeAccount::createByUniacid();
+		$weixin_stat = $account_obj->getFansStat();
+		if (empty($weixin_stat) || is_error($weixin_stat)) {
+			return error(-1, '调用微信接口错误');
 		}
-		if(empty($week_stat_fans[$sevens])) {
+	}
+	foreach($seven_days as $sevens) {
+		if ($account['level'] == ACCOUNT_SUBSCRIPTION_VERIFY || $account['level'] == ACCOUNT_SERVICE_VERIFY) {
+			$update_stat = array(
+				'uniacid' => $_W['uniacid'],
+				'new' => $weixin_stat[$sevens]['new'],
+				'cancel' => $weixin_stat[$sevens]['cancel'],
+				'cumulate' => $weixin_stat[$sevens]['cumulate'],
+				'date' => $sevens,
+			);
+		} else {
+			$update_stat = array(
+				'cumulate' => pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('mc_mapping_fans') . " WHERE acid = :acid AND uniacid = :uniacid AND follow = :follow AND followtime < :endtime", array(':acid' => $_W['acid'], ':uniacid' => $_W['uniacid'], ':endtime' => strtotime($sevens)+86400, ':follow' => 1)),
+				'date' => $sevens,
+				'new' => $week_stat_fans[$sevens]['new'],
+				'cancel' => $week_stat_fans[$sevens]['cancel'],
+				'uniacid' => $_W['uniacid'],
+			);
+		}
+		if (empty($week_stat_fans[$sevens])) {
 			pdo_insert('stat_fans', $update_stat);
 		} elseif (empty($week_stat_fans[$sevens]['cumulate']) || $week_stat_fans[$sevens]['cumulate'] < 0) {
 			pdo_update('stat_fans', $update_stat, array('id' => $week_stat_fans[$sevens]['id']));

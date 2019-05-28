@@ -18,15 +18,35 @@ function store_goods_type_info($group = '') {
 		STORE_TYPE_PACKAGE => array('title' => '应用权限组', 'type' => STORE_TYPE_PACKAGE, 'group' => ''),
 		STORE_TYPE_USER_PACKAGE => array('title' => '用户权限组', 'type' => STORE_TYPE_USER_PACKAGE, 'group' => ''),
 		STORE_TYPE_ACCOUNT_PACKAGE => array('title' => '账号权限组', 'type' => STORE_TYPE_ACCOUNT_PACKAGE, 'group' => ''),
-		STORE_TYPE_ACCOUNT => array('title' => '公众号平台个数', 'type' => STORE_TYPE_ACCOUNT, 'group' => 'account_num'),
-		STORE_TYPE_WXAPP => array('title' => '微信小程序平台个数', 'type' => STORE_TYPE_WXAPP, 'group' => 'account_num'),
-		STORE_TYPE_ACCOUNT_RENEW => array('title' => '公众号续费', 'type' => STORE_TYPE_ACCOUNT_RENEW, 'group' => 'renew'),
-		STORE_TYPE_WXAPP_RENEW => array('title' => '微信小程序续费', 'type' => STORE_TYPE_WXAPP_RENEW, 'group' => 'renew'),
+
+		STORE_TYPE_ACCOUNT => array('title' => '公众号平台', 'type' => STORE_TYPE_ACCOUNT, 'group' => 'account_num'),
+		STORE_TYPE_WXAPP => array('title' => '微信小程序平台', 'type' => STORE_TYPE_WXAPP, 'group' => 'account_num'),
+		STORE_TYPE_WEBAPP => array('title' => 'PC平台', 'type' => STORE_TYPE_WEBAPP, 'group' => 'account_num'),
+		STORE_TYPE_PHONEAPP => array('title' => 'APP平台', 'type' => STORE_TYPE_PHONEAPP, 'group' => 'account_num'),
+		STORE_TYPE_XZAPP => array('title' => '熊掌号平台', 'type' => STORE_TYPE_XZAPP, 'group' => 'account_num'),
+		STORE_TYPE_ALIAPP => array('title' => '支付宝小程序平台', 'type' => STORE_TYPE_ALIAPP, 'group' => 'account_num'),
+		STORE_TYPE_BAIDUAPP => array('title' => '百度小程序平台', 'type' => STORE_TYPE_BAIDUAPP, 'group' => 'account_num'),
+		STORE_TYPE_TOUTIAOAPP => array('title' => '头条小程序平台', 'type' => STORE_TYPE_TOUTIAOAPP, 'group' => 'account_num'),
+
+		STORE_TYPE_ACCOUNT_RENEW => array('title' => '公众号', 'type' => STORE_TYPE_ACCOUNT_RENEW, 'group' => 'renew'),
+		STORE_TYPE_WXAPP_RENEW => array('title' => '微信小程序', 'type' => STORE_TYPE_WXAPP_RENEW, 'group' => 'renew'),
+		STORE_TYPE_WEBAPP_RENEW => array('title' => 'PC', 'type' => STORE_TYPE_WEBAPP_RENEW, 'group' => 'renew'),
+		STORE_TYPE_PHONEAPP_RENEW => array('title' => 'APP', 'type' => STORE_TYPE_PHONEAPP_RENEW, 'group' => 'renew'),
+		STORE_TYPE_XZAPP_RENEW => array('title' => '熊掌号', 'type' => STORE_TYPE_XZAPP_RENEW, 'group' => 'renew'),
+		STORE_TYPE_ALIAPP_RENEW => array('title' => '支付宝小程序', 'type' => STORE_TYPE_ALIAPP_RENEW, 'group' => 'renew'),
+		STORE_TYPE_BAIDUAPP_RENEW => array('title' => '百度小程序', 'type' => STORE_TYPE_BAIDUAPP_RENEW, 'group' => 'renew'),
+		STORE_TYPE_TOUTIAOAPP_RENEW => array('title' => '头条小程序', 'type' => STORE_TYPE_TOUTIAOAPP_RENEW, 'group' => 'renew'),
 	);
 	if (!empty($group)) {
 		foreach ($data as $k => $item) {
 			if ($item['group'] != $group) {
 				unset($data[$k]);
+			}
+		}
+	} else {
+		foreach ($data as $k => $item) {
+			if (!empty($item['group'])) {
+				$data[$item['group']][$item['type']] = $item;
 			}
 		}
 	}
@@ -77,6 +97,37 @@ function store_goods_delete($id) {
 	return $result;
 }
 
+function update_wish_goods_info($update_data, $module_name) {
+	if (!empty($update_data['title'])) {
+		$data['title'] = $update_data['title'];
+		$data['title_initial'] = $update_data['title_initial'];
+	}
+
+	if (!empty($update_data['logo'])) {
+		$data['logo'] = $update_data['logo'];
+	}
+
+	$store_goods_exists = pdo_get('site_store_goods', array('module' => $module_name));
+	$store_goods_cloud_exists = pdo_get('site_store_goods_cloud', array('name' => $module_name));
+	$module_exists = pdo_get('modules', array('name' => $module_name));
+
+	if ($store_goods_exists) {
+		pdo_update('site_store_goods', $data, array('module' => $module_name));
+	}
+
+	if ($module_exists) {
+		pdo_update('modules', $data, array('name' => $module_name));
+	}
+
+	if ($store_goods_cloud_exists) {
+		unset($data['title_initial']);
+		pdo_update('site_store_goods_cloud', $data, array('name' => $module_name));
+	}
+	cache_build_module_info($module_name);
+	return true;
+}
+
+
 function store_goods_post($data) {
 	$result = false;
 	if (empty($data)) {
@@ -86,7 +137,7 @@ function store_goods_post($data) {
 	if (!empty($data['title'])) {
 		$post['title'] = trim($data['title']);
 	}
-	if (!empty($data['price']) && is_numeric($data['price'])) {
+	if (is_numeric($data['price'])) {
 		$post['price'] = $data['price'];
 	}
 	$post['slide'] = $data['slide'];
@@ -111,6 +162,7 @@ function store_goods_post($data) {
 	}
 	$post['account_num'] = $data['account_num'];
 	$post['wxapp_num'] = $data['wxapp_num'];
+	$post['platform_num'] = $data['platform_num'] == 0 ? 1 : $data['platform_num'];
 	$post['module_group'] = $data['module_group'];
 	$post['user_group'] = $data['user_group'];
 	$post['account_group'] = $data['account_group'];
@@ -126,6 +178,10 @@ function store_goods_post($data) {
 
 	if (!empty($data['id'])) {
 		$result = pdo_update('site_store_goods', $post, array('id' => $data['id']));
+		if (!empty($data['module'])) {
+			$update_data = array('title' => $post['title'], 'title_initial' => get_first_pinyin($post['title']), 'logo' => $data['logo']);
+			$result = update_wish_goods_info($update_data, $data['module']);
+		}
 	} else {
 		$post['type'] = $data['type'];
 		$post['createtime'] = TIMESTAMP;

@@ -21,12 +21,25 @@ if($do == 'site') {
 			cache_write('cloud_site_register_info', $site_info);
 		}
 	} else {
-		message('注册信息丢失, 请通过"重置站点ID和通信秘钥"重新获取 !', url('cloud/diagnose'), 'error');
+		message('注册信息丢失, 请通过"重置站点ID和通信密钥"重新获取 !', url('cloud/diagnose'), 'error');
 	}
 	template('cloud/site');
 }
 
 if ($do == 'sms') {
+	if (empty($_GPC['type']) || $_GPC['type'] == 'info') {
+		$sms_info = cloud_sms_info();
+		if (!empty($sms_info['sms_sign'])) {
+			foreach ($sms_info['sms_sign'] as $item) {
+				$cloud_sms_signs[$item] = $item;
+			}
+		}
+		$setting_sms_sign = setting_load('site_sms_sign');
+		$setting_sms_sign = !empty($setting_sms_sign['site_sms_sign']) ? $setting_sms_sign['site_sms_sign'] : array();
+		$setting_sms_sign['register'] = !empty($setting_sms_sign['register']) ? $setting_sms_sign['register'] : '';
+		$setting_sms_sign['find_password'] = !empty($setting_sms_sign['find_password']) ? $setting_sms_sign['find_password'] : '';
+		$setting_sms_sign['user_expire'] = !empty($setting_sms_sign['user_expire']) ? $setting_sms_sign['user_expire'] : '';
+	}
 	template('cloud/sms');
 }
 
@@ -36,15 +49,15 @@ if ($do == 'common_api') {
 	if (!in_array($method, array('smsInfo', 'smsSign', 'smsTrade', 'smsLog'))) {
 		iajax(-1, '参数有误');
 	}
+	if (!empty($params['time'][1])) {
+		$params['time'][1] += 86400;
+	} else {
+		$params['time'] = array();
+	}
 
 	if ($method == 'smsInfo') {
 		$data = cloud_sms_info();
 	} elseif ($method == 'smsLog') {
-		if (!empty($params['time'][1])) {
-			$params['time'][1] += 86400;
-		} else {
-			$params['time'] = array();
-		}
 		$params['mobile'] = !is_numeric($params['mobile']) || empty($params['mobile']) ? 0 : $params['mobile'];
 		$params['page'] = empty($params['page']) ? 1 : intval($params['page']);
 		$params['page_size'] = empty($params['page_size']) ? 10 : intval($params['page_size']);

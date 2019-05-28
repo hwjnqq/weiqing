@@ -15,7 +15,7 @@ load()->model('account');
 load()->object('cloudapi');
 load()->model('utility');
 load()->func('db');
-
+load()->model('store');
 $dos = array('subscribe', 'check_subscribe', 'check_upgrade', 'get_local_upgrade_info', 'get_upgrade_info', 'upgrade',
 			'install', 'installed', 'not_installed', 'uninstall', 'save_module_info', 'module_detail',
 			'change_receive_ban', 'install_success', 'set_site_welcome_module',
@@ -153,7 +153,11 @@ if ($do == 'upgrade') {
 			define('ONLINE_MODULE', true);
 			$packet = cloud_m_build($module_name);
 			if (is_error($packet)) {
-				itoast($packet['message'], url('module/manage-system', array('support' => $module_support_name)), 'error');
+				$extend_button = array();
+				if ($packet['errno'] == -3) {
+					$extend_button[] = array('url' => "http://s.w7.cc/module-{$packet['cloud_id']}.html", 'title' => '去续费', 'target' => '_blank');
+				}
+				message($packet['message'], url('module/manage-system', array('support' => $module_support_name)), 'error', true, $extend_button);
 			}
 			$manifest = ext_module_manifest_parse($packet['manifest']);
 		}
@@ -292,6 +296,7 @@ if ($do == 'upgrade') {
 	cache_build_module_info($module_name);
 	cache_build_uni_group();
 	if ($has_new_support) {
+		
 		itoast('模块安装成功！', url('module/manage-system/installed'), 'success');
 	} else {
 		itoast('模块更新成功！', url('module/manage-system/installed'), 'success');
@@ -308,7 +313,9 @@ if ($do =='install') {
 		$module_support_name = $_GPC['install_module_support'];
 	}
 	$manifest = ext_module_manifest($module_name);
+	$module_is_cloud = true;
 	if (!empty($manifest)) {
+		$module_is_cloud = false;
 		$result = cloud_m_prepare($module_name);
 		if (is_error($result)) {
 			itoast($result['message'], referer(), 'error');
@@ -333,7 +340,11 @@ if ($do =='install') {
 		}
 		$packet = cloud_m_build($module_name);
 		if (is_error($packet)) {
-			itoast($packet['message'], '', 'error');
+			$extend_button = array();
+			if ($packet['errno'] == -3) {
+				$extend_button[] = array('url' => "http://s.w7.cc/module-{$packet['cloud_id']}.html", 'title' => '去续费', 'target' => '_blank');
+			}
+			message($packet['message'], '', 'error', true, $extend_button);
 		}
 		$manifest = ext_module_manifest_parse($packet['manifest']);
 		if (empty($manifest)) {
@@ -451,6 +462,17 @@ if ($do =='install') {
 		}
 	}
 
+	$module_store_goods_info = pdo_get('site_store_goods', array('module' => $module_name));
+	if (!empty($module_store_goods_info) && $module_store_goods_info['is_wish'] == 1) {
+		$module['title'] = $module_store_goods_info['title'];
+		$module['title_initial'] = get_first_pinyin($module_store_goods_info['title']);
+		$module['logo'] = $module_store_goods_info['logo'];
+	}
+
+	if (!$module_is_cloud) {
+		$module['from'] = 'local';
+	}
+
 	if (pdo_insert('modules', $module)) {
 		if ($_GPC['flag'] && !empty($post_groups) && $module['name']) {
 			foreach ($post_groups as $groupid) {
@@ -459,6 +481,7 @@ if ($do =='install') {
 				}
 			}
 		}
+		
 		$store_goods_id = pdo_getcolumn('site_store_goods', array('module' => $module['name'], 'is_wish' => 1), 'id');
 		if (!empty($store_goods_id)) {
 			$store_goods_orders = pdo_getall('site_store_order', array('goodsid' => $store_goods_id));
@@ -542,6 +565,8 @@ if ($do == 'save_module_info') {
 		$image_destination_url = IA_ROOT . "/addons/" . $module_name . '/' . $module_icon_map[$module_info_type]['filename'];
 		$result = utility_image_rename($module_icon_map[$module_info_type]['url'], $image_destination_url);
 	}
+
+	
 
 	cache_build_module_info($module_name);
 	if (!empty($result)) {

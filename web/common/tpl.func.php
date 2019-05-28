@@ -1080,14 +1080,20 @@ function tpl_form_field_location_category($name, $values = array(), $del = false
 */
 
 function tpl_ueditor($id, $value = '', $options = array()) {
-	$s = '';
+	global $_W;
+	$options['uniacid'] = isset($options['uniacid']) ? intval($options['uniacid']) : $_W['uniacid'];
+	$options['global'] = empty($options['global']) ? '' : $options['global'];
 	$options['height'] = empty($options['height']) ? 200 : $options['height'];
 	$options['allow_upload_video'] = isset($options['allow_upload_video']) ? $options['allow_upload_video'] : true;
+
+	$s = '';
 	$s .= !empty($id) ? "<textarea id=\"{$id}\" name=\"{$id}\" type=\"text/plain\" style=\"height:{$options['height']}px;\">{$value}</textarea>" : '';
 	$s .= "
 	<script type=\"text/javascript\">
 		require(['util'], function(util){
 			util.editor('" . ($id ? $id : "") . "', {
+			uniacid : {$options['uniacid']}, 
+			global : '" . $options['global'] . "', 
 			height : {$options['height']}, 
 			dest_dir : '" .($options['dest_dir'] ? $options['dest_dir'] : "") . "',
 			image_limit : " . (intval($GLOBALS['_W']['setting']['upload']['image']['limit']) * 1024) . ",

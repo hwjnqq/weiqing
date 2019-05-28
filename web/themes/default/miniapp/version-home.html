@@ -90,193 +90,49 @@
 		<div class="panel-heading">
 			<h4>推荐应用</h4>
 			<ul class="nav nav-tabs" role="tablist">
-				<li role="presentation" class="active"><a href="#recommend-app" data-type="recommend" aria-controls="recommend-app" role="tab" data-toggle="tab">推荐应用</a></li>
-				<li role="presentation"><a href="#new-app" data-type="new-app" aria-controls="new-app" role="tab" data-toggle="tab">新应用</a></li>
-				<li role="presentation"><a href="#hot-app" data-type="hot" aria-controls="hot-app" role="tab" data-toggle="tab">热门排行</a></li>
-				<li role="presentation"><a href="#down-app" data-type="essential" aria-controls="down-app" role="tab" data-toggle="tab">下载排行</a></li>
-				<li role="presentation"><a href="#big-app" data-type="large" aria-controls="big-app" role="tab" data-toggle="tab">大额应用排行</a></li>
+				<li role="presentation" :ng-class="{active: key == 'recommend'}" ng-click="changeTab(key)" ng-repeat="(key, item) in recommend"><a href="{{'#' + key}}" role="tab" aria-controls="{{key}}" data-type="{{key}}" data-toggle="tab" >{{item.name}}</a></li>
 			</ul>
 			<a href="http://s.w7.cc/" target="_blank" class="more">去市场</a>
 		</div>
 		<div class="panel-body">
 			<div class="tab-content">
-				<div class="tab-pane active" id="recommend-app">
+				<div class="tab-pane " :ng-class="{active: key == 'recommend'}"  id="{{key}}" ng-repeat="(key, item) in recommend">
 					<div class="app-statistics">
 						<div class="left-box">
-							<div id="recommond-app-carousel" class="carousel  slide recommond-app-carousel" data-ride="carousel">
+							<div id="{{key + '-app-carousel'}}" class="carousel slide recommond-app-carousel" data-ride="carousel">
 								<ol class="carousel-indicators">
-									<li data-target="#recommond-app-carousel" data-slide-to="{{index}}"  ng-class="{active: index == 0}" ng-repeat="(index, ad) in recommend_ads"></li>
+									<li data-target="{{'#' + key + '-app-carousel'}}" data-slide-to="{{index}}"  ng-class="{active: index == 0}" ng-repeat="(index, ad) in item.ads"></li>
 								</ol>
 								<div class="carousel-inner" role="listbox">
-									<div class="item advertising-box" ng-class="{active: index == 0}" ng-repeat="(index, ad) in recommend_ads">
+									<div class="item advertising-box" ng-class="{active: index == 0}" ng-repeat="(index, ad) in item.ads">
 										<a ng-href="{{ad.url}}" target="_blank">
 											<img ng-src="{{ad.cdn_logo}}" alt="">
 										</a>
 									</div>
 								</div>
 							</div>
-						</div>
-						<div class="right-box">
-							<div class="app-item" ng-repeat="app in recommend['recommend'].list">
-								<div class="app-item-box">
-									<div class="info">
-										<div class="logo">
-											<img ng-src="{{app.cdn_logo}}" alt="">
-										</div>
-										<div class="">
-											<div class="name" ng-bind="app.title"></div>
-											<div class="time" ng-bind="'下载次数' + app.down_count"></div>
-										</div>
-									</div>
-									<div class="go">
-										<div class="name" ng-bind="app.title"></div>
-										<div class="time" ng-bind="'下载次数' + app.down_count"></div>
-										<a ng-href="{{'//s.w7.cc/module-'+app.aid+'.html'}}" target="_blank" class="btn btn-primary">查看详情</a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="tab-pane " id="new-app">
-					<div class="app-statistics">
-						<div class="left-box">
-							<div class="go-store">
+							<div class="go-store" ng-if="key != 'recommend' && item.ads.length == 0">
 								<div class="icon">
-									<img src="resource/images/welcome/new-icon.png" alt="">
+									<img ng-src="{{'resource/images/welcome/' + item.icon + '-icon.png'}}" alt="">
 								</div>
 								<div class="name">
-									新应用
+									{{item.name}}
 								</div>
 								<div class="title">
 									网罗市场最新应用，更快了解最新应用
 								</div>
-								<a href="" class="btn btn-primary">去应用市场</a>
+								<a href="//s.w7.cc" class="btn btn-primary">去应用市场</a>
 							</div>
 						</div>
 						<div class="right-box">
-							<div class="app-item" ng-repeat="app in recommend['new-app'].list">
+							<div class="app-item" ng-repeat="app in item.list">
 								<div class="app-item-box">
 									<div class="info">
 										<div class="logo">
 											<img ng-src="{{app.cdn_logo}}" alt="">
 										</div>
-										<div class="">
-											<div class="name" ng-bind="app.title"></div>
-											<div class="time" ng-bind="app.upgrade_at | limitTo:10"></div>
-										</div>
-									</div>
-									<div class="go">
-										<div class="name" ng-bind="app.title"></div>
-										<div class="time" ng-bind="app.upgrade_at | limitTo:10"></div>
-										<a ng-href="{{'//s.w7.cc/module-'+app.aid+'.html'}}" target="_blank" class="btn btn-primary">查看详情</a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="tab-pane " id="hot-app">
-					<div class="app-statistics">
-						<div class="left-box">
-							<div class="go-store">
-								<div class="icon">
-									<img src="resource/images/welcome/hot-icon.png" alt="">
-								</div>
-								<div class="name">
-									热门排行
-								</div>
-								<div class="title">
-									网罗市场最新应用，更快了解最新应用
-								</div>
-								<a href="" class="btn btn-primary">去应用市场</a>
-							</div>
-						</div>
-						<div class="right-box">
-							<div class="app-item" ng-repeat="app in recommend.hot.list">
-								<div class="app-item-box">
-									<div class="info">
-										<div class="logo">
-											<img ng-src="{{app.cdn_logo}}" alt="">
-										</div>
-										<div class="">
-											<div class="name" ng-bind="app.title"></div>
-											<div class="time" ng-bind="'下载次数' + app.down_count"></div>
-										</div>
-									</div>
-									<div class="go">
-										<div class="name" ng-bind="app.title"></div>
-										<div class="time" ng-bind="'下载次数' + app.down_count"></div>
-										<a ng-href="{{'//s.w7.cc/module-'+app.aid+'.html'}}" target="_blank" class="btn btn-primary">查看详情</a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="tab-pane " id="down-app">
-					<div class="app-statistics">
-						<div class="left-box">
-							<div class="go-store">
-								<div class="icon">
-									<img src="resource/images/welcome/down-icon.png" alt="">
-								</div>
-								<div class="name">
-									下载排行
-								</div>
-								<div class="title">
-									网罗市场最新应用，更快了解最新应用
-								</div>
-								<a href="//s.w7.cc" target="_blank" class="btn btn-primary">去应用市场</a>
-							</div>
-						</div>
-						<div class="right-box">
-							<div class="app-item" ng-repeat="app in recommend.essential.list">
-								<div class="app-item-box">
-									<div class="info">
-										<div class="logo">
-											<img ng-src="{{app.cdn_logo}}" alt="">
-										</div>
-										<div class="">
-											<div class="name" ng-bind="app.title"></div>
-											<div class="time" ng-bind="'下载次数' + app.down_count"></div>
-										</div>
-									</div>
-									<div class="go">
-										<div class="name" ng-bind="app.title"></div>
-										<div class="time" ng-bind="'下载次数' + app.down_count"></div>
-										<a ng-href="{{'//s.w7.cc/module-'+app.aid+'.html'}}" target="_blank" class="btn btn-primary">查看详情</a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="tab-pane " id="big-app">
-					<div class="app-statistics">
-						<div class="left-box">
-							<div class="go-store">
-								<div class="icon">
-									<img src="resource/images/welcome/big-icon.png" alt="">
-								</div>
-								<div class="name">
-									大额应用
-								</div>
-								<div class="title">
-									网罗市场最新应用，更快了解最新应用
-								</div>
-								<a href="" class="btn btn-primary">去应用市场</a>
-							</div>
-						</div>
-						<div class="right-box">
-							<div class="app-item" ng-repeat="app in recommend['large'].list">
-								<div class="app-item-box">
-									<div class="info">
-										<div class="logo">
-											<img ng-src="{{app.cdn_logo}}" alt="">
-										</div>
-										<div class="">
-											<div class="name" ng-bind="app.title"></div>
+										<div class="text-over">
+											<div class="name text-over" ng-bind="app.title"></div>
 											<div class="time" ng-bind="'下载次数' + app.down_count"></div>
 										</div>
 									</div>

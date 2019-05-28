@@ -58,6 +58,9 @@ function system_shortcut_menu() {
 			if (!empty($system_menu['store']['section'])) {
 				$shortcut_menu['store'] = $system_menu['store'];
 				foreach ($shortcut_menu['store']['section'] as $key => &$section) {
+					if ($key == 'store_wish_goods' && $_W['setting']['store']['wish_module_status'] == 0) {
+						$section['is_display'] = 0;
+					}
 					if (in_array($key, array('store_manage', 'store_payments', 'store_cash_manage')) && !$is_main_founder) {
 						$section['is_display'] = 0;
 						continue;
@@ -260,11 +263,12 @@ function system_check_statcode($statcode) {
 	);
 	foreach($allowed_stats as $key => $item) {
 		$preg = preg_match($item['reg'], $statcode);
-		if ($preg && $item['enabled']) {
-			return htmlspecialchars_decode($statcode);
+		if (!$preg && !$item['enabled']) {
+			continue;
 		} else {
-			return safe_gpc_html(htmlspecialchars_decode($statcode));
+			return htmlspecialchars_decode($statcode);
 		}
+		return safe_gpc_html(htmlspecialchars_decode($statcode));
 	}
 }
 
@@ -308,7 +312,14 @@ function system_check_items() {
 			'error_message' => 'max_allowed_packet 小于 20M',
 			'solution' => '修改 mysql max_allowed_packet 值',
 			'handle' => 'https://bbs.w7.cc/thread-33415-1-1.html'
-		)
+		),
+		'always_populate_raw_post_data' => array(
+			'operate' => 'system_check_php_raw_post_data',
+			'description' => 'php always_populate_raw_post_data 配置',
+			'error_message' => '配置有误',
+			'solution' => '修改 php always_populate_raw_post_data 配置为 -1',
+			'handle' => 'https://bbs.w7.cc/thread-33148-1-1.html'
+		),
 	);
 }
 
@@ -336,6 +347,14 @@ function system_check_template() {
 	$template_ch_name = system_template_ch_name();
 	return in_array($current_template, array_keys($template_ch_name)) ? true : false;
 }
+
+function system_check_php_raw_post_data() {
+	if (version_compare(PHP_VERSION, '7.0.0') == -1 && version_compare(PHP_VERSION, '5.6.0') >= 0) {
+		return @ini_get('always_populate_raw_post_data') == '-1';
+	}
+	return true;
+}
+
 
 /**
  * 获取站点设置可修改的项

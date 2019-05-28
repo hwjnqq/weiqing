@@ -446,9 +446,6 @@ function message_event_notice_list() {
 function message_account_expire() {
 	global $_W;
 	load()->model('account');
-	if (!pdo_tableexists('message_notice_log')) {
-		return true;
-	}
 	$account_table = table('account');
 	$expire_account_list = $account_table->searchAccountList();
 	if (empty($expire_account_list)) {
