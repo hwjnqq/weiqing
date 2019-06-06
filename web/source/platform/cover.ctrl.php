@@ -47,6 +47,7 @@ if ($do == 'module') {
 	$module_permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], $modulename);
 
 	foreach ($entries['cover'] as $key => &$cover){
+		$cover['url'] = ltrim($cover['url'], './');
 		$permission_name = $modulename . '_cover_' . trim($cover['do']);
 		if ($module_permission[0] != 'all' && !in_array($permission_name, $module_permission)) {
 			unset($entries['cover'][$key]);

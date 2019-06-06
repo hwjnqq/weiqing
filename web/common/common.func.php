@@ -333,12 +333,13 @@ function buildframes($framename = ''){
 		}
 		if($status) {
 			$permission = pdo_get('users_permission', array('uniacid' => $_W['uniacid'], 'uid' => $_W['uid'], 'type' => $modulename), array('permission'));
+			$module_permissions = permission_account_user_menu($_W['uid'], $_W['uniacid'], 'modules');
 			if(!empty($permission)) {
 				$permission = explode('|', $permission['permission']);
 			} else {
 				$permission = array('account*');
 			}
-			if($permission[0] != 'all') {
+			if($permission[0] != 'all' && $module_permissions[0] != 'all') {
 				if(!in_array($modulename.'_rule', $permission)) {
 					unset($module['isrulefields']);
 				}
@@ -551,26 +552,26 @@ function buildframes($framename = ''){
 				}
 			}
 		}
-		if (!empty($module['plugin_list']) || !empty($module['main_module'])) {
-			if (!empty($plugin_list)) {
-				$frames['account']['section']['platform_module_menu']['plugin_menu'] = array(
-					'main_module' => !empty($main_module) ? $main_module['name'] : $module['name'],
-					'title' => !empty($main_module) ? $main_module['title'] : $module['title'],
-					'icon' => !empty($main_module) ? $main_module['logo'] : $module['logo'],
-					'menu' => array()
-				);
-				foreach ($plugin_list as $plugin) {
-					if (!$modules[$plugin]['module_shortcut'] === 0) {
-						continue;
-					}
-					$frames['account']['section']['platform_module_menu']['plugin_menu']['menu'][$modules[$plugin]['name']] = array(
-						'title' => $modules[$plugin]['title'],
-						'icon' => $modules[$plugin]['logo'],
-						'url' => url('home/welcome/ext', array('m' => $plugin, 'version_id' => $version_id)),
-					);
-				}
-			}
-		}
+//		if (!empty($module['plugin_list']) || !empty($module['main_module'])) {
+//			if (!empty($plugin_list)) {
+//				$frames['account']['section']['platform_module_menu']['plugin_menu'] = array(
+//					'main_module' => !empty($main_module) ? $main_module['name'] : $module['name'],
+//					'title' => !empty($main_module) ? $main_module['title'] : $module['title'],
+//					'icon' => !empty($main_module) ? $main_module['logo'] : $module['logo'],
+//					'menu' => array()
+//				);
+//				foreach ($plugin_list as $plugin) {
+//					if (!$modules[$plugin]['module_shortcut'] === 0) {
+//						continue;
+//					}
+//					$frames['account']['section']['platform_module_menu']['plugin_menu']['menu'][$modules[$plugin]['name']] = array(
+//						'title' => $modules[$plugin]['title'],
+//						'icon' => $modules[$plugin]['logo'],
+//						'url' => url('home/welcome/ext', array('m' => $plugin, 'version_id' => $version_id)),
+//					);
+//				}
+//			}
+//		}
 		
 	}
 

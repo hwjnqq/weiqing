@@ -68,8 +68,6 @@ class Permission extends \We7Table {
 		} else {
 			$this->query->where('p.type', $module);
 		}
-		$this->query->groupby('p.uid');
-		$this->query->groupby('p.uniacid');
 		return $this->query->getall();
 	}
 }

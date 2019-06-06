@@ -47,6 +47,7 @@ var requireConfig = {
 		'fileUploader' : '../../components/fileuploader/fileuploader.min',
 		'clockpicker': '../../components/clockpicker/clockpicker.min',
 		'district' : '../lib/district',
+		'district-wechat' : '../lib/district-wechat',
 		'moment': '../lib/moment',
 		'emoji' : '../../components/emoji/emoji',
 		'fontawesome' : '../../components/fontawesome/fontawesome',
@@ -133,6 +134,9 @@ var requireConfig = {
 			deps: ['loadcss!../../components/clockpicker/clockpicker.min.css']
 		},
 		'district' : {
+			exports : '$'
+		},
+		'district-wechat' : {
 			exports : '$'
 		},
 		'jquery.toast': {

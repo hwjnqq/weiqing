@@ -41,9 +41,11 @@
 				<a target="_blank" href="{php echo url('module/display/switch', array('module_name' => $clerk['permission_module'], 'uniacid' => $clerk['uniacid'], 'redirect' => urlencode(url('module/permission/post', array('uid' => $clerk['uid'], 'm' => $clerk['permission_module'], 'uniacid' => $clerk['uniacid']))) ))}">
 					权限设置
 				</a>
+				{if empty($clerk['main_module'])}
 				<a ng-click="deleteClerk('{php echo url('module/permission/delete',  array('uid' => $clerk['uid'], 'm' => $clerk['permission_module'], 'uniacid' => $clerk['uniacid']))}')" href="javascript:;">
 					删除
 				</a>
+				{/if}
 			</td>
 		</tr>
 		{/loop}

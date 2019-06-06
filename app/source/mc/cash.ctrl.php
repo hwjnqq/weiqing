@@ -68,7 +68,9 @@ if(empty($type)) {
 }
 
 if(!empty($type)) {
-	$log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $params['module'], 'tid' => $params['tid']));
+	$log = pdo_getall('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $params['module'], 'tid' => $params['tid']), array(), '', 'plid asc', 1);//混合支付会有两条paylog记录,所以使用getall
+	$log = empty($log) ? $log : $log[0];
+
 	if(!empty($log) && ($type != 'credit' && !empty($_GPC['notify'])) && $log['status'] != '0') {
 		message('这个订单已经支付成功, 不需要重复支付.');
 	}
@@ -98,17 +100,27 @@ if(!empty($type)) {
 
 	if($type != 'delivery') {
 		if ($_GPC['mix_pay']) {
-			$setting = uni_setting($_W['uniacid'], array('creditbehaviors'));
-			$credtis = mc_credit_fetch($_W['member']['uid']);
-			if ($credtis[$setting['creditbehaviors']['currency']] > 0 && in_array('mix', $dos) && $credtis[$setting['creditbehaviors']['currency']] < $log['card_fee']) {
-				$mix_credit_log = $log;
-				unset($mix_credit_log['plid']);
-				$mix_credit_log['uniontid'] = date('YmdHis') . $moduleid . random(8,1);
-				$mix_credit_log['type'] = 'credit';
-				$mix_credit_log['fee'] = $credtis[$setting['creditbehaviors']['currency']];
-				$mix_credit_log['card_fee'] = $credtis[$setting['creditbehaviors']['currency']];
-				pdo_update('core_paylog', array('fee' => $log['card_fee'] - $credtis[$setting['creditbehaviors']['currency']], 'card_fee' => $log['card_fee'] - $credtis[$setting['creditbehaviors']['currency']]), array('plid' => $log['plid']));
-				pdo_insert('core_paylog', $mix_credit_log);
+			$has_mix_credit_log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $params['module'], 'tid' => $params['tid'], 'type' => 'credit'));
+			if ($_GPC['mix_pay'] == 'true' && empty($has_mix_credit_log)) {
+				$setting = uni_setting($_W['uniacid'], array('creditbehaviors'));
+				$credtis = mc_credit_fetch($_W['member']['uid']);
+				if ($credtis[$setting['creditbehaviors']['currency']] > 0 && in_array('mix', $dos) && $credtis[$setting['creditbehaviors']['currency']] < $log['card_fee']) {
+					$mix_credit_log = $log;
+					unset($mix_credit_log['plid']);
+					$mix_credit_log['uniontid'] = date('YmdHis') . $moduleid . random(8,1);
+					$mix_credit_log['type'] = 'credit';
+					$mix_credit_log['fee'] = $credtis[$setting['creditbehaviors']['currency']];
+					$mix_credit_log['card_fee'] = $credtis[$setting['creditbehaviors']['currency']];
+					pdo_insert('core_paylog', $mix_credit_log);
+					$mixed_fee = $log['fee'] - $credtis[$setting['creditbehaviors']['currency']];
+				}
+			} elseif ($_GPC['mix_pay'] == 'false' && $has_mix_credit_log) {
+				pdo_delete('core_paylog', array('plid' => $has_mix_credit_log['plid']));
+				$mixed_fee = $log['fee'] + $has_mix_credit_log['fee'];
+			}
+			if (!empty($mixed_fee)) {
+				$record['card_fee'] = $record['fee'] = $log['card_fee'] = $log['fee'] = $mixed_fee;
+				$record['uniontid'] = $log['uniontid'] = date('YmdHis') . $moduleid . random(8,1);
 			}
 		}
 		$we7_coupon_info = module_fetch('we7_coupon');
@@ -172,7 +184,7 @@ if(!empty($type)) {
 
 	if ($type == 'wechat') {
 		if(!empty($log['plid'])) {
-			$tag = array();
+			$tag = iunserializer($log['tag']);
 			$tag['acid'] = $_W['acid'];
 			$tag['uid'] = $_W['member']['uid'];
 			pdo_update('core_paylog', array('openid' => $_W['openid'], 'tag' => iserializer($tag)), array('plid' => $log['plid']));

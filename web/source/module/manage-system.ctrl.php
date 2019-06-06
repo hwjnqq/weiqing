@@ -119,6 +119,17 @@ if ($do == 'get_upgrade_info') {
 }
 
 if ($do == 'check_upgrade') {
+	$notice_str = '<div class="content text-left we7-margin-left"><div class="we7-margin-bottom-sm">云服务向您的服务器传输数据过程中发生错误！</div><div class=" we7-margin-bottom-sm color-gray">尝试解决以下已知问题后再试：</div>';
+	
+	if ($_W['config']['setting']['timezone'] != 'Asia/Shanghai') {
+		iajax(-1, $notice_str . '<div class="color-red">请把服务器时间修改为北京时间，即修改config.php中timezone为Asia/Shanghai</div></div>');
+	}
+	if (empty($_W['setting']['site']) || empty($_W['setting']['site']['url'])) {
+		iajax(-1, $notice_str . '<div class="color-red">站点信息不完整，请重置站点 <a href="./index.php?c=cloud&a=diagnose" class="color-default" target="_blank"> 去重置</a></div></div>');
+	}
+	if (parse_url($_W['siteroot'], PHP_URL_HOST) != parse_url($_W['setting']['site']['url'], PHP_URL_HOST)) {
+		iajax(-1, $notice_str . '<div class="color-red">1. 请使用微擎授权域名进行更新，授权域名为：' . $_W['setting']['site']['url'] . '<br>2. 重置站点 <a href="./index.php?c=cloud&a=diagnose" class="color-default" target="_blank"> 去重置</a></div></div>');
+	}
 	$module_upgrade = module_upgrade_info();
 	if (is_error($module_upgrade)) {
 		iajax(-1, $module_upgrade['message']);

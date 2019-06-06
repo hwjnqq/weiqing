@@ -277,11 +277,12 @@ if ($do == 'edit_create_account_list') {
 
 	if (user_is_vice_founder($uid)) {
 		$user_groups = user_founder_group();
+		$group_info = user_founder_group_detail_info($user['groupid']);
 	} else {
 		$user_groups = user_group();
+		$group_info = user_group_detail_info($user['groupid']);
 	}
 
-	$group_info = user_group_detail_info($user['groupid']);
 	template('user/edit-create-account-list');
 }
 
@@ -495,9 +496,14 @@ if ($do == 'operators') {
 			$modules_info = array();
 			foreach ($clerks as $k => $clerk) {
 				$modules_info[$clerk['type']] = module_fetch($clerk['type']);
-
 				$clerks[$k]['permission'] = explode('|', $clerk['permission']);
-				$clerks[$k]['permission_module'] = empty($modules_info[$clerk['type']]['main_module']) ? $clerk['type'] : $modules_info[$clerk['type']]['main_module'];
+
+				if (empty($modules_info[$clerk['type']]['main_module'])) {
+					$clerks[$k]['main_module'] = '';
+					$clerks[$k]['permission_module'] = $clerk['type'];
+				} else {
+					$clerks[$k]['main_module'] = $clerks[$k]['permission_module'] = $modules_info[$clerk['type']]['main_module'];
+				}
 			}
 			$accounts_info = pdo_getall('uni_account', array('uniacid' => array_column($clerks, 'uniacid')), array('uniacid','name'), 'uniacid');
 			$users_info = pdo_getall('users', array('uid' => array_column($clerks, 'uid')), array('uid','username'), 'uid');

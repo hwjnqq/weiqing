@@ -59,7 +59,8 @@ if (!$entry['direct']) {
 	} else {
 		$permission = permission_check_account_user_module($entry['module'] . '_rule', $entry['module']);
 	}
-	if (!$permission) {
+	$module_permissions = permission_account_user_menu($_W['uid'], $_W['uniacid'], 'modules');
+	if (!$permission && $module_permissions[0] != 'all') {
 		itoast('您没有权限进行该操作', '', '');
 	}
 

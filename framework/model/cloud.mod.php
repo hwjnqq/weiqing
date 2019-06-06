@@ -449,7 +449,7 @@ function cloud_m_build($modulename, $type = '') {
  * 获取当前站点云服务所有模块详细信息
  * @return array 应用或错误信息
  */
-function cloud_m_query($module = array(), $page = 0) {
+function cloud_m_query($module = array(), $page = 1) {
 	$pars['method'] = 'module.query';
 	if (empty($module)) {
 		$module = cloud_extra_module();
@@ -457,9 +457,7 @@ function cloud_m_query($module = array(), $page = 0) {
 	if (!is_array($module)) {
 		$module = array($module);
 	}
-	if (intval($page) > 0) {
-		$pars['page'] = $page;
-	}
+	$pars['page'] = max(1, intval($page));
 	$pars['module'] = base64_encode(iserializer($module));
 	$ret = cloud_api('module/query/index', $pars);
 	if (isset($ret['error'])) {

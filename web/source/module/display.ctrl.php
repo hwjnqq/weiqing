@@ -56,6 +56,12 @@ if ($do == 'display') {
 			}
 		}
 
+		$uni_module_info = module_fetch($account_module_info['module_name']);
+		if (empty($uni_module_info)) {
+			unset($own_account_modules['modules'][$account_module_name]);
+			continue;
+		}
+
 		if (in_array($account_module_info['module_name'], array_keys($modules_rank_list))) {
 			$account_module_info['rank'] = $modules_rank_list[$account_module_info['module_name']]['rank'];
 		}
@@ -75,7 +81,6 @@ if ($do == 'display') {
 		$account_module_info['account_type'] = $uni_account_info['account_type'];
 		$account_module_info['account_logo'] = $uni_account_info['logo'];
 
-		$uni_module_info = module_fetch($account_module_info['module_name']);
 		$account_module_info['logo'] = tomedia($uni_module_info['logo']);
 		$account_module_info['title'] = $uni_module_info['title'];
 		$account_module_info['title_initial'] = $uni_module_info['title_initial'];

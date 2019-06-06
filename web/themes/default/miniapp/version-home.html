@@ -17,8 +17,11 @@
 					<div>
 						<div class="icon"><span class="wi wi-small-routine"></span></div>
 						<div>新建{php echo ACCOUNT_TYPE_NAME}</div>
-						{if TYPE_SIGN == WXAPP_TYPE_SIGN}<div><a href="{php echo url('wxapp/post/design_method')}" class="color-default" target="_blank">去新建></a></div>{/if}
-						{if TYPE_SIGN == ALIAPP_TYPE_SIGN}<div><a href="{php echo url('miniapp/post')}" class="color-default" target="_blank">去新建></a></div>{/if}
+						{if TYPE_SIGN == WXAPP_TYPE_SIGN}
+							<div><a href="{php echo url('wxapp/post/design_method')}" class="color-default" target="_blank">去新建></a></div>
+						{else}
+							<div><a href="{php echo url('account/create', array('sign' => TYPE_SIGN))}" class="color-default" target="_blank">去新建></a></div>
+						{/if}
 						<div class="arrow"><span class="wi wi-step-arrows"></span></div>
 					</div>
 					<!-- <div>

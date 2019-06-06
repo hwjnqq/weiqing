@@ -332,6 +332,7 @@ $we7_file_permission = array(
 		'vice_founder' => array(
 			'template',
 			'updatecache',
+			'attachment',
 		),
 		'owner' => array(
 			'updatecache',

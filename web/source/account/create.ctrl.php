@@ -107,6 +107,18 @@ if ($do == 'save_account' || $do == 'check_params') {
 		if (!empty($check_uniacname)) {
 			iajax(-1, "该{$sign_title}名称已经存在");
 		}
+		//验证appid唯一性
+		if (in_array($sign, array(ACCOUNT_TYPE_SIGN, XZAPP_TYPE_SIGN))) {
+			$appid = trim(safe_gpc_string($_GPC['key']));
+		} else {
+			$appid = trim(safe_gpc_string($_GPC['appid']));
+		}
+		if (!empty($appid)) {
+			$hasAppid = uni_get_account_by_appid($appid, $create_account_type);
+			if (!empty($hasAppid)) {
+				iajax(-1, "{$hasAppid['key_title']}已被{$hasAppid['type_title']}[ {$hasAppid['name']} ]使用");
+			}
+		}
 	}
 	if (empty($post['step']) || $post['step'] == 'account_modules') {
 		if (user_is_founder($_W['uid'])) {//创始人才有此步骤的操作权限

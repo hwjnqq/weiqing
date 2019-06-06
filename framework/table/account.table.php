@@ -106,8 +106,8 @@ class AccountTable extends We7Table {
 		return $this;
 	}
 
-	public function searchAccountList($expire = false, $isdeleted = 1, $fields = 'a.uniacid') {
-		$this->searchAccount($expire, $fields, $isdeleted);
+	public function searchAccountList($expire = false, $isdeleted = 1, $fields = 'a.uniacid', $uid = 0) {
+		$this->searchAccount($expire, $fields, $isdeleted, $uid);
 		$this->query->groupby('a.uniacid');
 		$list = $this->query->getall('uniacid');
 		return $list;

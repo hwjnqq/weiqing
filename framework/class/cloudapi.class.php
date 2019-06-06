@@ -47,7 +47,7 @@ class CloudApi {
 	private function developerCerContent(){
 		$cer = $this->getCerContent('developer.cer');
 		if (is_error($cer)) {
-			return error(1, '访问云API获取授权失败,模块中没有开发者数字证书,请到 <a href="http://s.w7.cc/index.php?c=develop&a=auth" target="_blank">开发者中心</a> 下载数字证书!');
+			return error(1, '访问云API获取授权失败,模块中没有开发者数字证书,请到 <a href="https://dev.w7.cc/numkey" target="_blank">开发者中心</a> 下载数字证书!');
 		}
 		
 		return $cer;

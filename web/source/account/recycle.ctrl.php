@@ -54,6 +54,18 @@ if ($do == 'recover') {
 	if ($account_info['account_limit'] <= 0 && $_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER) {
 		itoast('您所在用户组可添加的平台账号数量已达上限，请停用后再行恢复此平台账号！', referer(), 'error');
 	}
+	$account = uni_fetch($uniacid);
+	if (in_array($account['type_sign'], array(BAIDUAPP_TYPE_SIGN, TOUTIAOAPP_TYPE_SIGN))) {
+		$appid = $account['appid'];
+	} else {
+		$appid = $account['key'];
+	}
+	if (!empty($appid)) {
+		$hasAppid = uni_get_account_by_appid($appid, $account['type'], $account['uniacid']);
+		if (!empty($hasAppid)) {
+			itoast("该平台{$hasAppid['key_title']}已被其他平台使用, 请停用{$hasAppid['type_title']}[ {$hasAppid['name']} ]后再恢复.", referer(), 'error');
+		}
+	}
 	if (!empty($uniacid)) {
 		pdo_update('account', array('isdeleted' => 0), array('uniacid' => $uniacid));
 		cache_delete(cache_system_key('uniaccount', array('uniacid' => $uniacid)));

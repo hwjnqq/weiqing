@@ -226,6 +226,12 @@ class Loader {
 	public function __call($type, $params) {
 		global $_W;
 		$name = $cachekey = array_shift($params);
+
+		$accountMapKey = array_search($name, $this->accountMap);
+		if (!empty($accountMapKey)) {
+			$name = $cachekey = $accountMapKey;
+		}
+
 		if (!empty($this->cache[$type]) && isset($this->cache[$type][$cachekey])) {
 			return true;
 		}

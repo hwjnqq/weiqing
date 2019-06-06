@@ -229,14 +229,17 @@ function permission_account_user_menu($uid, $uniacid, $type) {
 		return array('all');
 	}
 	$user_permission_table = table('users_permission');
+	$user_menu_permission = $user_permission_table->getAllUserModulePermission($uid, $uniacid);
 	if ($type == 'modules') {
-		$user_menu_permission = $user_permission_table->getAllUserModulePermission($uid, $uniacid);
 		if ($user_menu_permission['modules'] && $user_menu_permission['modules']['permission'] == 'all') {
 			return array('all');
 		}
 	} else {
 		$module = uni_modules_by_uniacid($uniacid);
 		$module = array_keys($module);
+		if (in_array($type, $module) && $user_menu_permission['modules'] && $user_menu_permission['modules']['permission'] == 'all') {
+			return array('all');
+		}
 		if (in_array($type, $module) || in_array($type, array(PERMISSION_ACCOUNT, PERMISSION_WXAPP, PERMISSION_WEBAPP, PERMISSION_PHONEAPP, PERMISSION_XZAPP, PERMISSION_ALIAPP, PERMISSION_BAIDUAPP, PERMISSION_TOUTIAOAPP, PERMISSION_SYSTEM))) {
 			$menu_permission = $user_permission_table->getUserPermissionByType($uid, $uniacid, $type);
 			$user_menu_permission = !empty($menu_permission['permission']) ? $menu_permission['permission'] : array();
@@ -478,7 +481,7 @@ function permission_user_account_num($uid = 0) {
 	$extra_limit_table = table('users_extra_limit');
 
 	if (user_is_vice_founder($user['uid']) || !empty($user_founder_info['founder_uid'])) {
-		if (!empty($user_founder_info['founder_uid'])) {
+		if (!empty($user_founder_info['founder_uid'])  && !user_is_vice_founder($user['uid'])) {
 			$role = ACCOUNT_MANAGE_NAME_OWNER;
 			$group = table('users_group')->getById($user['groupid']);
 			$user_uid = $user_founder_info['founder_uid'];
@@ -493,7 +496,7 @@ function permission_user_account_num($uid = 0) {
 			$group_num[$key_name] = 0;
 		}
 		//获取副创始人下的所有用户（包括自己）所创建的帐号数量
-		$fouder_own_users_owner_account = table('account')->searchAccountList(false, 1, $fields = 'a.uniacid, b.type');
+		$fouder_own_users_owner_account = table('account')->searchAccountList(false, 1, $fields = 'a.uniacid, b.type', $user['uid']);
 		$current_vice_founder_user_group_nums = 0;
 		if (!empty($fouder_own_users_owner_account)) {
 			foreach ($fouder_own_users_owner_account as $account) {

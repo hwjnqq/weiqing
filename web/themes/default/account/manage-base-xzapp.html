@@ -78,7 +78,7 @@
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-					<div class="modal-title">修改公众号附件空间大小</div>
+					<div class="modal-title">修改熊掌号附件空间大小</div>
 				</div>
 				<div class="modal-body">
 					<div class="form-group">
@@ -124,7 +124,7 @@
 				</div>
 				<div class="modal-body">
 					<div class="form-group">
-						<input type="text" ng-model="middleAccount.original" class="form-control" placeholder="公众号原始ID" />
+						<input type="text" ng-model="middleAccount.original" class="form-control" placeholder="熊掌号原始ID" />
 						<span class="help-block"></span>
 					</div>
 				</div>
@@ -215,12 +215,12 @@
 		<col width="100px" />
 		<tr><th class="text-left" colspan="3">自定义菜单通讯设置</th></tr>
 		<tr>
-			<td class="table-label">AppId</td>
+			<td class="table-label">ClientId</td>
 			<td ng-bind="account.key"></td>
 			<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#key"  ng-click="editInfo('key', account.key)">修改</a></div></td>
 		</tr>
 		<tr>
-			<td class="table-label">AppSecret</td>
+			<td class="table-label">ClientSecret</td>
 			<td ng-bind="account.secret"></td>
 			<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#secret"  ng-click="editInfo('secret', account.secret)">修改</a></div></td>
 		</tr>
@@ -234,7 +234,7 @@
 				</div>
 				<div class="modal-body">
 					<div class="form-group">
-						<input type="text" ng-model="middleAccount.key" class="form-control" placeholder="公众号AppId" />
+						<input type="text" ng-model="middleAccount.key" class="form-control" placeholder="熊掌号AppId" />
 						<span class="help-block"></span>
 					</div>
 				</div>
@@ -254,7 +254,7 @@
 				</div>
 				<div class="modal-body">
 					<div class="form-group">
-						<input type="text" ng-model="middleAccount.secret" class="form-control" placeholder="公众号AppSecret" />
+						<input type="text" ng-model="middleAccount.secret" class="form-control" placeholder="熊掌号AppSecret" />
 						<span class="help-block"></span>
 					</div>
 				</div>
@@ -317,8 +317,8 @@
 				</div>
 				<div class="modal-body">
 					<div class="form-group">
-						<input type="text" id="newtoken" class="form-control" placeholder="请填写新的公众号消息校验Token" />
-						<span class="help-block">与公众平台接入设置值一致，必须为英文或者数字，长度为3到32个字符. 请妥善保管, Token 泄露将可能被窃取或篡改平台的操作数据.</span>
+						<input type="text" id="newtoken" class="form-control" placeholder="请填写新的熊掌号消息校验Token" />
+						<span class="help-block">与熊掌号接入设置值一致，必须为英文或者数字，长度为3到32个字符. 请妥善保管, Token 泄露将可能被窃取或篡改平台的操作数据.</span>
 					</div>
 				</div>
 				<div class="modal-footer">
@@ -337,8 +337,8 @@
 				</div>
 				<div class="modal-body">
 					<div class="form-group">
-						<input type="text" id="newencodingaeskey" class="form-control" placeholder="请填写新的公众号消息加解密Key" />
-						<span class="help-block">与公众平台接入设置值一致，必须为英文或者数字，长度为43个字符. 请妥善保管, EncodingAESKey 泄露将可能被窃取或篡改平台的操作数据.</span>
+						<input type="text" id="newencodingaeskey" class="form-control" placeholder="请填写新的熊掌号消息加解密Key" />
+						<span class="help-block">与熊掌号接入设置值一致，必须为英文或者数字，长度为43个字符. 请妥善保管, EncodingAESKey 泄露将可能被窃取或篡改平台的操作数据.</span>
 					</div>
 				</div>
 				<div class="modal-footer">

@@ -2013,7 +2013,7 @@ function mc_card_grant_credit($openid, $card_fee, $storeid = 0, $modulename) {
 	}
 	if (!empty($grant_credit1_enable)) {
 		$num = $card_fee * $grant_rate;
-		$tips .= "用户消费{$card_fee}元，余额支付{$card_fee}，积分赠送比率为:【1：{$grant_rate}】,共赠送【{$num}】积分";
+		$tip = "用户消费{$card_fee}元，支付金额{$card_fee}，积分赠送比率为:【1：{$grant_rate}】,共赠送【{$num}】积分";
 		mc_credit_update($openid, 'credit1', $num, array('0', $tip, $modulename, 0, $storeid, 3));
 		return error(0, $num);
 	} else {

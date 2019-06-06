@@ -89,7 +89,7 @@ template('common/header');
 										$signString = sha1($signString);
 								?>
 								<?php if($development == 1) { ?>
-									<option <?php if ($_W['uniacid'] == $account['uniacid']) { ?>selected<?php } ?> value="<?php echo '../api.php?id='.$account['uniacid'] ?>&timestamp=<?php echo $timestamp ?>&nonce=<?php echo $nonce ?>&signature=<?php echo $signString ?>"><?php echo $account['name']?></option>
+									<option <?php if ($_W['uniacid'] == $account['uniacid']) { ?>selected<?php } ?> value="<?php echo '../api.php?id='.$account['acid'] ?>&timestamp=<?php echo $timestamp ?>&nonce=<?php echo $nonce ?>&signature=<?php echo $signString ?>"><?php echo $account['name']?></option>
 								<?php } else { ?>
 									<option <?php if ($_W['uniacid'] == $account['uniacid']) { ?>selected<?php } ?> value="<?php echo $account['uniacid'];?>"><?php echo $account['name'] ?></option>
 								<?php } ?>

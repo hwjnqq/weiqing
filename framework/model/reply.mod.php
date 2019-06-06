@@ -192,10 +192,13 @@ function reply_getall_common_service() {
 	$diff_url = array_diff($all_url, $api_url);
 	if (!empty($diff_url)) {
 		foreach ($diff_url as $url) {
-			$service_list[$url]['id'] = $all_service[$url];
-			$service_list[$url]['name'] = $all_service[$url]['title'];
-			$service_list[$url]['description'] = $all_service[$url]['description'];
-			$service_list[$url]['switch'] = '';
+			$userapi_reply_info = table('userapi_reply')->getByApiurl($url);
+			$service_list[$userapi_reply_info['rid']]['url'] = $userapi_reply_info['apiurl'];
+			$service_list[$userapi_reply_info['rid']]['rid'] = $userapi_reply_info['rid'];
+			$service_list[$userapi_reply_info['rid']]['id'] = $userapi_reply_info['id'];
+			$service_list[$userapi_reply_info['rid']]['name'] = $all_service[$url]['title'];
+			$service_list[$userapi_reply_info['rid']]['description'] = $all_service[$url]['description'];
+			$service_list[$userapi_reply_info['rid']]['switch'] =  isset($rule_setting_select[$userapi_reply_info['rid']]) && $rule_setting_select[$userapi_reply_info['rid']] ? 'checked' : '';
 		}
 	}
 	return $service_list;

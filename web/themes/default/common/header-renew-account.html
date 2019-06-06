@@ -1,4 +1,4 @@
-{if empty($_COOKIE['check_setmeal']) && !empty($_W['account']['endtime']) && ($_W['account']['endtime'] - TIMESTAMP < (6*86400))}
+{if empty($_COOKIE['check_setmeal']) && !empty($_W['account']['endtime']) && ($_W['account']['endtime'] - TIMESTAMP < (6*86400)) && !in_array($_W['account']['endtime'], array(USER_ENDTIME_GROUP_EMPTY_TYPE, USER_ENDTIME_GROUP_DELETE_TYPE, USER_ENDTIME_GROUP_UNLIMIT_TYPE))}
 <div class="system-tips we7-body-alert" id="setmeal-tips">
 	<div class="container text-right">
 		<div class="alert-info">

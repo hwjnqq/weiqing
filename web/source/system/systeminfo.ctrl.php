@@ -66,6 +66,10 @@ if ($do == 'display') {
 	//当前附件根目录
 	$info['attach']['url'] = $_W['attachurl'];
 
+	if (empty($_W['setting']['remote_complete_info']['type'])) {
+		$info['attach']['url'] = $_W['siteroot'] . $_W['config']['upload']['attachdir'] . '/';
+	}
+
 	template('system/systeminfo');
 }
 

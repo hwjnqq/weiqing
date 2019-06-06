@@ -1461,3 +1461,39 @@ function uni_delete_rule($rid, $relate_table_name) {
 	}
 	return $result ? true : false;
 }
+
+function uni_get_account_by_appid($appid, $account_type, $except_uniacid = 0) {
+	$type_info = uni_account_type($account_type);
+
+	//pc和app没有appid
+	if (in_array($type_info['type_sign'], array(WEBAPP_TYPE_SIGN, PHONEAPP_TYPE_SIGN))) {
+		return array();
+	}
+
+	$sql = 'SELECT t.`key`, t.name, a.acid, a.uniacid FROM '
+		. tablename($type_info['table_name'])
+		. 't JOIN ' . tablename('account')
+		. ' a ON t.uniacid = a.uniacid WHERE a.isdeleted != 1';
+
+	if (in_array($type_info['type_sign'], array(BAIDUAPP_TYPE_SIGN, TOUTIAOAPP_TYPE_SIGN))) {
+		$sql .= ' AND t.`appid` = :appid';
+	} else {
+		//公众号, 微信小程序, 熊掌号, 支付宝小程序: key 即 appid
+		$sql .= ' AND t.`key` = :appid';
+	}
+	if (!empty($except_uniacid)) {
+		$sql .= ' AND a.uniacid != ' . intval($except_uniacid);
+	}
+
+	$account = pdo_fetch($sql, array(':appid' => $appid));
+	if (!empty($account)) {
+		$account['type_title'] = $type_info['title'];
+
+		if ($type_info['type_sign'] == XZAPP_TYPE_SIGN) {
+			$account['key_title'] = 'ClientId';
+		} else {
+			$account['key_title'] = 'AppId';
+		}
+	}
+	return $account;
+}

@@ -81,8 +81,20 @@ if($do == 'base') {
 			case 'level':
 				$data = array('level' => intval($_GPC['request_data']));break;
 			case 'appid':
+				if (!empty($request_data)) {
+					$hasAppid = uni_get_account_by_appid($request_data, $account['type'], $account['uniacid']);
+					if (!empty($hasAppid)) {
+						iajax(1, "{$hasAppid['key_title']}已被{$hasAppid['type_title']}[ {$hasAppid['name']} ]使用");
+					}
+				}
 				$data = array('appid' => $request_data);break;
 			case 'key':
+				if (!empty($request_data) && !in_array($account['type_sign'], array(BAIDUAPP_TYPE_SIGN, TOUTIAOAPP_TYPE_SIGN))) {
+					$hasAppid = uni_get_account_by_appid($request_data, $account['type'], $account['uniacid']);
+					if (!empty($hasAppid)) {
+						iajax(1, "{$hasAppid['key_title']}已被{$hasAppid['type_title']}[ {$hasAppid['name']} ]使用");
+					}
+				}
 				if ($account['key'] == $request_data) {
 					iajax(0, '修改成功！');
 				}
@@ -514,9 +526,14 @@ if ($do == 'operators') {
 		$modules_info = array();
 		foreach ($clerks as $k => $clerk) {
 			$modules_info[$clerk['type']] = module_fetch($clerk['type']);
-
 			$clerks[$k]['permission'] = explode('|', $clerk['permission']);
-			$clerks[$k]['permission_module'] = empty($modules_info[$clerk['type']]['main_module']) ? $clerk['type'] : $modules_info[$clerk['type']]['main_module'];
+
+			if (empty($modules_info[$clerk['type']]['main_module'])) {
+				$clerks[$k]['main_module'] = '';
+				$clerks[$k]['permission_module'] = $clerk['type'];
+			} else {
+				$clerks[$k]['main_module'] = $clerks[$k]['permission_module'] = $modules_info[$clerk['type']]['main_module'];
+			}
 		}
 		$users_info = pdo_getall('users', array('uid' => array_column($clerks, 'uid')), array('uid','username'), 'uid');
 	}

@@ -20,7 +20,7 @@ function user_register($user, $source) {
 	if (isset($user['uid'])) {
 		unset($user['uid']);
 	}
-
+	load()->classs('oauth2/oauth2client');
 	$support_login_types = Oauth2CLient::supportThirdLoginType();
 	if (!in_array($source, $support_login_types)) {
 		$check_pass = safe_check_password(safe_gpc_string($user['password']));
@@ -253,8 +253,13 @@ function user_single($user_or_uid) {
 	//删除关键信息,避免暴露
 	unset($record['password'], $record['salt']);
 	$founder_own_user_info = table('users_founder_own_users')->getFounderByUid($user['uid']);
-	if (!empty($founder_own_user_info['founder_uid'])) {
-		$record['vice_founder_name'] = pdo_getcolumn('users', array('uid' => $founder_own_user_info['founder_uid']), 'username');
+	if (!empty($founder_own_user_info) && !empty($founder_own_user_info['founder_uid'])) {
+		$vice_founder_info = pdo_getcolumn('users', array('uid' => $founder_own_user_info['founder_uid']), 'username');
+		if (!empty($vice_founder_info)) {
+			$record['vice_founder_name'] = $vice_founder_info;
+		} else {
+			pdo_delete('users_founder_own_users', array('founder_uid' => $founder_own_user_info['founder_uid'], 'uid' => $founder_own_user_info['uid']));
+		}
 	}
 	if($record['type'] == ACCOUNT_OPERATE_CLERK) {
 		$clerk = pdo_get('activity_clerks', array('uid' => $record['uid']));
@@ -367,7 +372,8 @@ function user_update($user) {
 
 		if (!empty($user_own_uniacids)) {
 			foreach ($user_own_uniacids as $uniacid_val) {
-				if (!empty(uni_fetch($uniacid_val['uniacid']))) {
+				$uniacid_account_info = uni_fetch($uniacid_val['uniacid']);
+				if (!is_error($uniacid_account_info)) {
 					pdo_update('account', array('endtime' => $record['endtime']), array('uniacid' => $uniacid_val['uniacid']));
 				}
 			}
