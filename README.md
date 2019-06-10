@@ -31,6 +31,9 @@ IIS/Apache/Nginx、PHP >=5.3、MySQL>=5.0
 ### 在线安装
 请到这里下载安装文件：http://s.w7.cc/static/install
 
+### 离线安装
+代码clone完成后，浏览器内输入：您的域名/install.php 来执行安装
+
 ### 更新
 您可以通过 _Master_ 分支得到微擎目前版本最新的代码，但是此代码未通过小规模测试及上线测试，所以在您正式的环境中请还是通过云服务进行一键升级。
 除 _Master_ 分支外，其它分支皆为开发版本，仅供大家了解微擎最新开发功能。
@@ -53,7 +56,7 @@ IIS/Apache/Nginx、PHP >=5.3、MySQL>=5.0
 
 `php console.php make:upgrade name=update_uniaccount`
 ### 后续
-您可以通过查看我们的文件，来对系统进一步的了解和开发、开发模块。文档地址为 http://www.kancloud.cn/donknap/we7/136556 我们会不断的更新文档内容。
+您可以通过查看我们的文件，来对系统进一步的了解和开发、开发模块。文档地址为 http://s.w7.cc/index.php?c=wiki&do=view&id=1 我们会不断的更新文档内容。
 如果在文档中有未尽事宜您可以通过微擎开发者群来与我们取得联系，群号为：①310579684 ②77730481。当您模块开发完毕可以通过我们的应用商城进行发布，地址为：http://s.w7.cc 。
 
 再次感谢您对我们的支持，欢迎您对我们的程序提出意见，我们期待您的Pull Request。
