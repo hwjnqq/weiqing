@@ -421,7 +421,7 @@ PRIMARY KEY (`id`)
 		$iterator = new \RecursiveIteratorIterator($directory);
 		$files = array();
 		foreach ($iterator as $file) {
-			if ('php' == $file->getExtension()) {
+			if ('php' == pathinfo($file->getFilename(), PATHINFO_EXTENSION)) {
 				$path = $file->getPath();
 				$version = pathinfo($path, PATHINFO_BASENAME);
 				$basename = $file->getBasename('.php');
