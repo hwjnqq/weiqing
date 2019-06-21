@@ -32,7 +32,7 @@ $config['cookie']['path'] = '/';
 
 // --------------------------  CONFIG SETTING  --------------------------- //
 $config['setting']['charset'] = 'utf-8';
-$config['setting']['cache'] = 'mysql';
+$config['setting']['cache'] = getenv('CACHE');
 $config['setting']['timezone'] = 'Asia/Shanghai';
 $config['setting']['memory_limit'] = '256M';
 $config['setting']['filemode'] = 0644;
@@ -49,11 +49,19 @@ $config['upload']['audio']['extentions'] = array('mp3');
 $config['upload']['audio']['limit'] = 5000;
 
 // --------------------------  CONFIG MEMCACHE  --------------------------- //
-$config['setting']['memcache']['server'] = '';
-$config['setting']['memcache']['port'] = 11211;
+$config['setting']['memcache']['server'] = getenv('MEMCACHE_SERVER');
+$config['setting']['memcache']['port'] = getenv('MEMCACHE_PORT');
 $config['setting']['memcache']['pconnect'] = 1;
 $config['setting']['memcache']['timeout'] = 30;
 $config['setting']['memcache']['session'] = 1;
+
+// --------------------------  CONFIG REDIS  --------------------------- //
+$config['setting']['redis']['server'] =  getenv('REDIS_SERVER'); 
+$config['setting']['redis']['port'] = getenv('REDIS_PORT'); 
+$config['setting']['redis']['pconnect'] = 1; 
+$config['setting']['redis']['timeout'] = 30;
+$config['setting']['redis']['session'] = 1;
+$config['setting']['redis']['auth'] = ''; 
 
 // --------------------------  CONFIG PROXY  --------------------------- //
 $config['setting']['proxy']['host'] = '';
