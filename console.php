@@ -13,7 +13,6 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL ^ E_NOTICE);
 set_time_limit(0);
 @ini_set('memory_limit', '1356M');
-define('IN_IA', true);
 
 if (strtoupper(php_sapi_name()) != 'CLI') {
     We7Command::line('只能在命令行执行');
@@ -104,6 +103,10 @@ abstract class We7Command {
 	        if ($commandName == 'init:database') {
                 return new We7InitDatabaseCommand();
 			}
+	        if ($commandName == 'change:founder') {
+	           //php console.php change:founder username=admin passward=159951
+	           return new We7ChangeFounderCommand();
+            }
         }
         
         return null;
@@ -965,3 +968,14 @@ EOT;
 	}
 }
 
+class We7ChangeFounderCommand extends We7Command {
+    public function handle() {
+	    $username = $this->argument('username');
+	    $password = $this->argument('passward');
+	    load()->model('user');
+	    $userinfo = pdo_get('users', array('uid' => '1'));
+	    $password = user_hash($password, $userinfo['salt']);
+	    $result = pdo_update('users', array('username' => $username, 'password' => $password), array('uid' => $userinfo['uid']));
+        $this->line('创始人用户名密码更改成功！');
+    }
+}
