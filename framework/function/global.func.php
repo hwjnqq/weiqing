@@ -117,7 +117,9 @@ function igetcookie($key) {
  */
 function getip() {
 	static $ip = '';
-	$ip = $_SERVER['REMOTE_ADDR'];
+	if (isset($_SERVER['REMOTE_ADDR'])) {
+		$ip = $_SERVER['REMOTE_ADDR'];
+	}
 	if(isset($_SERVER['HTTP_CDN_SRC_IP'])) {
 		$ip = $_SERVER['HTTP_CDN_SRC_IP'];
 	} elseif (isset($_SERVER['HTTP_CLIENT_IP'])) {
@@ -363,7 +365,7 @@ function iunserializer($value) {
 	if(version_compare(PHP_VERSION, '7.0.0', '>=')){
 		$result = unserialize($value, array('allowed_classes' => false));
 	}else{
-		if(preg_match('/[oc]:[^:]*\d+:/i', $seried)){
+		if(preg_match('/[oc]:[^:]*\d+:/i', $value)){
 			return array();
 		}
 		$result = unserialize($value);

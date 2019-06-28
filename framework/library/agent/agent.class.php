@@ -187,7 +187,7 @@ class Agent
 	
 	public static function getAgent($agent = '')
 	{
-		$agent = empty($agent) ? $_SERVER['HTTP_USER_AGENT'] : $agent;
+		$agent = empty($agent) ? (isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '') : $agent;
 		return $agent;
 	}
 }

@@ -50,7 +50,7 @@ function setting_load($key = '') {
 		}
 		cache_write($cachekey, $settings);
 	}
-	if (!is_array($_W['setting'])) {
+	if (!isset($_W['setting']) || !is_array($_W['setting'])) {
 		$_W['setting'] = array();
 	}
 	$_W['setting'] = array_merge($settings, $_W['setting']);

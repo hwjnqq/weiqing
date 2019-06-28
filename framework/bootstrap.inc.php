@@ -79,26 +79,28 @@ if(!empty($_W['config']['setting']['memory_limit']) && function_exists('ini_get'
 if (isset($_W['config']['setting']['https']) && $_W['config']['setting']['https'] == '1') {
 	$_W['ishttps'] = $_W['config']['setting']['https'];
 } else {
-	$_W['ishttps'] = $_SERVER['SERVER_PORT'] == 443 ||
+	$_W['ishttps'] = isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443 ||
 	(isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != 'off') ||
-	strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https' ||
-	strtolower($_SERVER['HTTP_X_CLIENT_SCHEME']) == 'https' //阿里云判断方式
+	isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https' ||
+	isset($_SERVER['HTTP_X_CLIENT_SCHEME']) && strtolower($_SERVER['HTTP_X_CLIENT_SCHEME']) == 'https' //阿里云判断方式
 			? true : false;
 }
 
 $_W['isajax'] = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
-$_W['ispost'] = $_SERVER['REQUEST_METHOD'] == 'POST';
+$_W['ispost'] = isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'POST';
 
 $_W['sitescheme'] = $_W['ishttps'] ? 'https://' : 'http://';
 $_W['script_name'] = htmlspecialchars(scriptname());
 $sitepath = substr($_SERVER['PHP_SELF'], 0, strrpos($_SERVER['PHP_SELF'], '/'));
-$_W['siteroot'] = htmlspecialchars($_W['sitescheme'] . $_SERVER['HTTP_HOST'] . $sitepath);
+$_W['siteroot'] = htmlspecialchars($_W['sitescheme'] . (isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '') . $sitepath);
 
 if(substr($_W['siteroot'], -1) != '/') {
 	$_W['siteroot'] .= '/';
 }
 $urls = parse_url($_W['siteroot']);
 $urls['path'] = str_replace(array('/web', '/app', '/payment/wechat', '/payment/alipay', '/payment/jueqiymf', '/api'), '', $urls['path']);
+$urls['scheme'] = !empty($urls['scheme']) ? $urls['scheme'] : 'http';
+$urls['host'] = !empty($urls['host']) ? $urls['host'] : '';
 $_W['siteroot'] = $urls['scheme'].'://'.$urls['host'].((!empty($urls['port']) && $urls['port']!='80') ? ':'.$urls['port'] : '').$urls['path'];
 
 if(MAGIC_QUOTES_GPC) {
@@ -137,13 +139,14 @@ if (!$_W['isajax']) {
 	}
 	unset($input, $__input);
 }
+$_W['uniacid'] = $_W['uid'] = 0;
 
 setting_load();
 if (empty($_W['setting']['upload'])) {
 	$_W['setting']['upload'] = array_merge($_W['config']['upload']);
 }
 
-define('DEVELOPMENT', $_W['setting']['copyright']['develop_status'] == 1 || $_W['config']['setting']['development'] == 1);
+define('DEVELOPMENT', $_W['config']['setting']['development'] == 1);
 if(DEVELOPMENT) {
 	ini_set('display_errors', '1');
 	error_reporting(E_ALL ^ E_NOTICE);
@@ -191,7 +194,7 @@ if ($_W['container'] == 'wechat' || $_W['container'] == 'baidu') {
 	$_W['platform'] = 'account';
 }
 
-$controller = $_GPC['c'];
-$action = $_GPC['a'];
-$do = $_GPC['do'];
+$controller = !empty($_GPC['c']) ? $_GPC['c'] : '';
+$action = !empty($_GPC['a']) ? $_GPC['a'] : '';
+$do = !empty($_GPC['do']) ? $_GPC['do'] : '';
 header('Content-Type: text/html; charset=' . $_W['charset']);

@@ -39,7 +39,7 @@ unset($session);
 
 $_W['uniacid'] = igetcookie('__uniacid');
 if (empty($_W['uniacid'])) {
-	$_W['uniacid'] =  switch_get_account_display();
+	$_W['uniacid'] = switch_get_account_display();
 }
 $_W['uniacid'] = intval($_W['uniacid']);
 
