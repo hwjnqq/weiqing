@@ -209,6 +209,12 @@ abstract class We7Command {
     protected function debug($value) {
         $this->line(is_array($value) ? var_export($value, true) : $value);
     }
+    
+    public function random($length) {
+	    $strs = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklnmopqrstuvwxyz0123456789';
+	    $result = substr(str_shuffle($strs),mt_rand(0,strlen($strs)-($length + 1)),$length);
+	    return $result;
+    }
 }
 
 class We7CreateUpgradeCommand extends We7Command {
@@ -486,7 +492,8 @@ class We7InstallCommand extends We7Command {
         $this->userName = $this->argument('userName');
         $this->password = $this->argument('password');
         $this->w7password = $this->argument('w7password') ?? '123456';
-        $this->authKey = random_bytes(15);
+        $this->cookiepre = $this->random(4) . '_';
+        $this->authKey = $this->random(15);
         
         gc_disable();
         if (extension_loaded('pdo') && !extension_loaded('pdo_mysql')) {
@@ -685,7 +692,7 @@ defined('IN_IA') or exit('Access Denied');
 \$config['db']['common']['slave_except_table'] = array('core_sessions');
 
 // --------------------------  CONFIG COOKIE  --------------------------- //
-\$config['cookie']['pre'] = '{cookiepre}';
+\$config['cookie']['pre'] = '$this->cookiepre';
 \$config['cookie']['domain'] = '';
 \$config['cookie']['path'] = '/';
 
@@ -695,7 +702,7 @@ defined('IN_IA') or exit('Access Denied');
 \$config['setting']['timezone'] = 'Asia/Shanghai';
 \$config['setting']['memory_limit'] = '256M';
 \$config['setting']['filemode'] = 0644;
-\$config['setting']['authkey'] = '{authkey}';
+\$config['setting']['authkey'] = '$this->authKey';
 \$config['setting']['founder'] = '1';
 \$config['setting']['development'] = 0;
 \$config['setting']['referrer'] = 0;
