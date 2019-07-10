@@ -978,7 +978,7 @@ EOT;
 class We7ChangeFounderCommand extends We7Command {
     public function handle() {
 	    $username = $this->argument('username');
-	    $password = $this->argument('passward');
+	    $password = $this->argument('password');
 	    load()->model('user');
 	    $userinfo = pdo_get('users', array('uid' => '1'));
 	    $password = user_hash($password, $userinfo['salt']);
