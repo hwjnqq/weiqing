@@ -32,7 +32,7 @@ IIS/Apache/Nginx、PHP >=5.3、MySQL>=5.0
 请到这里下载安装文件：http://s.w7.cc/static/install
 
 ### 离线安装
-代码clone完成后，浏览器内输入：您的域名/install.php 来执行安装
+master分支的所有代码clone完成后，浏览器内输入：您的域名/install.php 来执行安装
 
 ### 更新
 您可以通过 _Master_ 分支得到微擎目前版本最新的代码，但是此代码未通过小规模测试及上线测试，所以在您正式的环境中请还是通过云服务进行一键升级。
