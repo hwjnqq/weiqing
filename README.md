@@ -29,6 +29,7 @@ IIS/Apache/Nginx、PHP >=5.3、MySQL>=5.0
 ```
 
 ### 在线安装
+#### 支持注册站点，支持在线更新
 请到这里下载安装文件：http://s.w7.cc/static/install
 
 ### 离线安装
