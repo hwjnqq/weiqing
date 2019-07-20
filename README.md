@@ -32,6 +32,7 @@ IIS/Apache/Nginx、PHP >=5.3、MySQL>=5.0
 请到这里下载安装文件：http://s.w7.cc/static/install
 
 ### 离线安装
+#### 注意：此方式不会注册站点且无法在线更新，如若想注册站点并在线更新请使用上面的在线安装
 master分支的所有代码clone完成后，浏览器内输入：您的域名/install.php 来执行安装
 
 ### 更新
