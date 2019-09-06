@@ -1,8 +1,8 @@
 <?php
 /**
- * 调用第三方数据接口模块
+ * 调用第三方数据接口模块.
  *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -12,17 +12,17 @@ class UserapiModule extends WeModule {
 	public function fieldsFormDisplay($rid = 0) {
 		global $_W;
 		if (!empty($rid)) {
-			$row = pdo_fetch("SELECT * FROM ".tablename($this->tablename)." WHERE rid = :rid ORDER BY `id` DESC", array(':rid' => $rid));
+			$row = table($this->tablename)->where(array('rid' => $rid))->orderby(array('id' => 'DESC'))->get();
 			$row['type'] = 1; //远程
 			if (!strexists($row['apiurl'], 'http://') && !strexists($row['apiurl'], 'https://')) {
-				$row['apilocal'] =  $row['apiurl'];
+				$row['apilocal'] = $row['apiurl'];
 				$row['type'] = 0; //本地
 				$row['apiurl'] = '';
 			}
 		} else {
 			$row = array(
 				'cachetime' => 0,
-				'type' => 1
+				'type' => 1,
 			);
 		}
 		$path = IA_ROOT . '/framework/builtin/userapi/api/';
@@ -30,7 +30,7 @@ class UserapiModule extends WeModule {
 			$apis = array();
 			if ($handle = opendir($path)) {
 				while (false !== ($file = readdir($handle))) {
-					if ($file != "." && $file != "..") {
+					if ('.' != $file && '..' != $file) {
 						$apis[] = $file;
 					}
 				}
@@ -47,6 +47,7 @@ class UserapiModule extends WeModule {
 		if ($_GPC['type'] && empty($_GPC['token'])) {
 			itoast('请填写Token值！', '', '');
 		}
+
 		return '';
 	}
 
@@ -62,20 +63,21 @@ class UserapiModule extends WeModule {
 			'default_text' => safe_gpc_string($_GPC['default-text']),
 			'cachetime' => intval($_GPC['cachetime']),
 		);
-		$rule_exists = pdo_get('rule', array('id' => $rid, 'uniacid' => $_W['uniacid']));
+		$rule_exists = table('rule')->getById($rid, $_W['uniacid']);
 		if (empty($rule_exists)) {
 			return false;
 		}
-		$is_exists = pdo_fetchcolumn('SELECT id FROM ' . tablename($this->tablename) . ' WHERE rid = :rid', array(':rid' => $rid));
-		if(!empty($is_exists)) {
-			if(pdo_update($this->tablename, $reply, array('rid' => $rid)) !== false) {
+		$is_exists = table($this->tablename)->where(array('rid' => $rid))->getcolumn('id');
+		if (!empty($is_exists)) {
+			if (false !== table($this->tablename)->where(array('rid' => $rid))->fill($reply)->save()) {
 				return true;
 			}
 		} else {
-			if(pdo_insert($this->tablename, $reply)) {
+			if (table($this->tablename)->fill($reply)->save()) {
 				return true;
 			}
 		}
+
 		return false;
 	}
 
@@ -83,11 +85,11 @@ class UserapiModule extends WeModule {
 		global $_W;
 		$rid = intval($rid);
 		permission_check_account_user('platform_reply_userapi');
-		$rule_exists = pdo_get('rule', array('id' => $rid, 'uniacid' => $_W['uniacid']));
+		$rule_exists = table('rule')->getById($rid, $_W['uniacid']);
 		if (empty($rule_exists)) {
 			return false;
 		}
-		$result = pdo_delete($this->tablename, array('rid' => $rid));
+		$result = table($this->tablename)->where(array('rid' => $rid))->delete();
 		return $result;
 	}
 
@@ -95,11 +97,11 @@ class UserapiModule extends WeModule {
 		global $_W, $_GPC;
 		$m = array_merge($_W['modules']['userapi'], $_W['account']['modules']['userapi']);
 		$cfg = $m['config'];
-		if($_W['ispost']) {
+		if ($_W['ispost']) {
 			$rids = explode(',', $_GPC['rids']);
-			if(is_array($rids)) {
+			if (is_array($rids)) {
 				$cfg = array();
-				foreach($rids as $rid) {
+				foreach ($rids as $rid) {
 					$cfg[intval($rid)] = true;
 				}
 				$this->saveSettings($cfg);
@@ -109,8 +111,8 @@ class UserapiModule extends WeModule {
 		load()->model('reply');
 		$rs = reply_search("uniacid = 0 AND module = 'userapi' AND `status`=1");
 		$ds = array();
-		foreach($rs as $row) {
-			$reply = pdo_fetch('SELECT * FROM ' . tablename($this->tablename) . ' WHERE `rid`=:rid', array(':rid' => $row['id']));
+		foreach ($rs as $row) {
+			$reply = table($this->tablename)->where(array('rid' => $row['id']))->get();
 			$r = array();
 			$r['title'] = $row['name'];
 			$r['rid'] = $row['id'];
@@ -119,5 +121,5 @@ class UserapiModule extends WeModule {
 			$ds[] = $r;
 		}
 		include $this->template('switch');
-}
+	}
 }

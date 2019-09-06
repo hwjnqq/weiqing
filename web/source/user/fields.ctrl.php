@@ -1,15 +1,14 @@
 <?php
 /**
  * 资料字段管理
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
 $dos = array('display', 'post');
 $do = in_array($do, $dos) ? $do : 'display';
 
-if ($do == 'display') {
-
+if ('display' == $do) {
 	$table = table('core_profile_fields');
 
 	$keyword = safe_gpc_string($_GPC['keyword']);
@@ -38,7 +37,7 @@ if ($do == 'display') {
 	template('user/fields-display');
 }
 
-if ($do == 'post') {
+if ('post' == $do) {
 	$field = $_GPC['field'];
 	$id = intval($field['id']);
 	if ($_W['isajax'] && $_W['ispost']) {
@@ -57,27 +56,27 @@ if ($do == 'post') {
 			'displayorder' => intval($field['displayorder']),
 			'unchangeable' => intval($field['unchangeable']),
 			'field' => safe_gpc_string($field['field']),
-			'field_length' => intval($field['field_length'])
+			'field_length' => intval($field['field_length']),
 		);
 		$length = intval($field['field_length']);
 		if (empty($id)) {
 			pdo_insert('profile_fields', $data);
 			if (!pdo_fieldexists('users_profile', $data['field'])) {
-				pdo_query("ALTER TABLE ". tablename('users_profile'). " ADD `". $data['field']."` varchar({$length}) NOT NULL default '';");
+				pdo_query('ALTER TABLE ' . tablename('users_profile') . ' ADD `' . $data['field'] . "` varchar({$length}) NOT NULL default '';");
 			}
 			if (!pdo_fieldexists('mc_members', $data['field'])) {
-				pdo_query("ALTER TABLE ". tablename('mc_members'). " ADD `". $data['field']."` varchar({$length}) NOT NULL default '';");
+				pdo_query('ALTER TABLE ' . tablename('mc_members') . ' ADD `' . $data['field'] . "` varchar({$length}) NOT NULL default '';");
 			}
 		} else {
 			if (!pdo_fieldexists('users_profile', $data['field'])) {
-				pdo_query("ALTER TABLE ". tablename('users_profile'). " ADD `". $data['field']."` varchar({$length}) NOT NULL default '';");
+				pdo_query('ALTER TABLE ' . tablename('users_profile') . ' ADD `' . $data['field'] . "` varchar({$length}) NOT NULL default '';");
 			} else {
-				pdo_query("ALTER TABLE ". tablename('users_profile'). " CHANGE `". $data['field']. "` `". $data['field']."` varchar({$length}) NOT NULL default ''");
+				pdo_query('ALTER TABLE ' . tablename('users_profile') . ' CHANGE `' . $data['field'] . '` `' . $data['field'] . "` varchar({$length}) NOT NULL default ''");
 			}
 			if (!pdo_fieldexists('mc_members', $data['field'])) {
-				pdo_query("ALTER TABLE ". tablename('mc_members'). " ADD `". $data['field']."` varchar({$length}) NOT NULL default '';");
+				pdo_query('ALTER TABLE ' . tablename('mc_members') . ' ADD `' . $data['field'] . "` varchar({$length}) NOT NULL default '';");
 			} else {
-				pdo_query("ALTER TABLE ". tablename('mc_members'). " CHANGE `". $data['field']. "` `". $data['field']."` varchar({$length}) NOT NULL default ''");
+				pdo_query('ALTER TABLE ' . tablename('mc_members') . ' CHANGE `' . $data['field'] . '` `' . $data['field'] . "` varchar({$length}) NOT NULL default ''");
 			}
 			pdo_update('profile_fields', $data, array('id' => $id));
 		}

@@ -1,7 +1,7 @@
 <?php
 /**
  * 手机登录
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -12,14 +12,13 @@ class Mobile extends OAuth2Client {
 	}
 
 	public function showLoginUrl($calback_url = '') {
-
 	}
 
 	public function user() {
 		global $_GPC, $_W;
 		$mobile = trim($_GPC['username']);
 		$member['password'] = $_GPC['password'];
-		pdo_delete('users_failed_login', array('lastupdate <' => TIMESTAMP-3600));
+		pdo_delete('users_failed_login', array('lastupdate <' => TIMESTAMP - 3600));
 		$failed = pdo_get('users_failed_login', array('username' => $mobile, 'ip' => CLIENT_IP));
 		if ($failed['count'] >= 5) {
 			return error('-1', '输入密码错误次数超过5次，请在1小时后再登录');
@@ -51,6 +50,7 @@ class Mobile extends OAuth2Client {
 		}
 		$member['uid'] = $user_profile['uid'];
 		$member['type'] = $this->user_type;
+
 		return $member;
 	}
 
@@ -67,6 +67,7 @@ class Mobile extends OAuth2Client {
 		if (!empty($mobile_exists)) {
 			return error(-1, '手机号已存在');
 		}
+
 		return true;
 	}
 
@@ -89,7 +90,7 @@ class Mobile extends OAuth2Client {
 			return error(-1, $verify_info['message']);
 		}
 
-		if(istrlen($member['password']) < 8) {
+		if (istrlen($member['password']) < 8) {
 			return error(-1, '必须输入密码，且密码长度不得低于8位。');
 		}
 
@@ -98,13 +99,13 @@ class Mobile extends OAuth2Client {
 		$member['register_type'] = USER_REGISTER_TYPE_MOBILE;
 		$member['owner_uid'] = intval($_GPC['owner_uid']);
 
-
 		$profile['mobile'] = $mobile;
 
-		$register =  array(
+		$register = array(
 			'member' => $member,
-			'profile' => $profile
+			'profile' => $profile,
 		);
+
 		return parent::user_register($register);
 	}
 
@@ -160,13 +161,14 @@ class Mobile extends OAuth2Client {
 	public function isbind() {
 		global $_W;
 		$bind_info = table('users_bind')->getByTypeAndUid(USER_REGISTER_TYPE_MOBILE, $_W['uid']);
+
 		return !empty($bind_info['bind_sign']);
 	}
 
 	public function paramValidate() {
 		global $_GPC;
 		$mobile = trim($_GPC['mobile']);
-		$image_code =trim($_GPC['imagecode']);
+		$image_code = trim($_GPC['imagecode']);
 		$sms_code = trim($_GPC['smscode']);
 
 		if (empty($sms_code)) {

@@ -131,9 +131,9 @@
 		state: {php echo !empty($state) ? json_encode($state) : 'null'},
 		accountType: {php echo !empty($_GPC['account_type']) ? json_encode($_GPC['account_type']) : '1'},
 		links: {
-			delete: "{php echo url('account/post-user/delete', array('acid' => $acid, 'uniacid' => $uniacid))}",
-			setPermission: "{php echo url('account/post-user/set_permission', array('acid' => $acid, 'uniacid' => $uniacid));}",
-			addUser: "{php echo url('account/post-user/set_manager', array('acid' => $acid, 'uniacid' => $uniacid))}"
+			delete: "{php echo url('account/post-user/delete', array('uniacid' => $uniacid))}",
+			setPermission: "{php echo url('account/post-user/set_permission', array('uniacid' => $uniacid));}",
+			addUser: "{php echo url('account/post-user/set_manager', array('uniacid' => $uniacid))}"
 		}
 	});
 

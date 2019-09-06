@@ -1,49 +1,52 @@
 <?php
 /**
- * 基本文字回复处理类
- * 
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * 基本文字回复处理类.
+ *
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
 class ChatsModuleProcessor extends WeModuleProcessor {
 	public $priority = 255;
+
 	public function begin($expire = 300) {
 		$this->beginContext($expire);
 		return true;
 	}
+
 	public function end() {
 		$this->respText('系统消息：公众号关闭了对话功能！');
 		$this->endContext();
 		return;
 	}
+
 	public function respond() {
 		global $_W;
 		$msgtype = $this->message['type'];
 		//定义该模块可以处理的消息类型
 		$allow = array('text', 'image', 'location', 'link', 'trace');
-		if(!in_array($msgtype, $allow)) {
+		if (!in_array($msgtype, $allow)) {
 			return $this->respText('抱歉,系统仅支持 文字，图片，地理位置，链接类型的消息！');
 		}
 		$close = 0;
-		if($msgtype == 'text') {
+		if ('text' == $msgtype) {
 			$content = $this->message['content'];
-			if($content == '关闭') {
+			if ('关闭' == $content) {
 				$content = '<span class="text-danger">系统消息：粉丝关闭了对话</span>';
 				$close = 1;
 			}
-		} elseif($msgtype == 'image') {
+		} elseif ('image' == $msgtype) {
 			$content = $this->message['picurl'];
-		} elseif($msgtype == 'location') {
+		} elseif ('location' == $msgtype) {
 			$content = iserializer(array(
 				'location_x' => $this->message['location_x'],
 				'location_y' => $this->message['location_y'],
 				'scale' => $this->message['scale'],
 			));
-		} elseif($msgtype == 'link') {
+		} elseif ('link' == $msgtype) {
 			$content = $this->message['url'];
 		}
-		if(!empty($content)) {
+		if (!empty($content)) {
 			$insert = array(
 				'uniacid' => $_W['uniacid'],
 				'acid' => $_W['acid'],
@@ -51,12 +54,12 @@ class ChatsModuleProcessor extends WeModuleProcessor {
 				'msgtype' => $msgtype,
 				'flag' => 2,
 				'content' => $content,
-				'createtime' => TIMESTAMP
+				'createtime' => TIMESTAMP,
 			);
-			pdo_insert('mc_chats_record', $insert);
+			table('mc_chats_record')->fill($insert)->save();
 		}
 		$this->refreshContext(300);
-		if($close == 1) {
+		if (1 == $close) {
 			$this->endContext();
 			return $this->respText('您成功关闭回话。');
 		}

@@ -2,7 +2,6 @@
 
 defined('IN_IA') or exit('Access Denied');
 
-
 load()->model('phoneapp');
 $account_info = permission_user_account_num();
 
@@ -10,7 +9,6 @@ $dos = array('create_display', 'save');
 $do = in_array($do, $dos) ? $do : 'create_display';
 
 $uniacid = intval($_GPC['uniacid']);
-$acid = intval($_GPC['acid']);
 
 if (!empty($uniacid)) {
 	$state = permission_account_user_role($_W['uid'], $uniacid);
@@ -23,8 +21,7 @@ if (!empty($uniacid)) {
 	}
 }
 
-
-if ($do == 'save') {
+if ('save' == $do) {
 	$version_id = intval($_GPC['version_id']);
 	if (empty($uniacid) && empty($account_info['phoneapp_limit']) && !user_is_founder($_W['uid'])) {
 		iajax(-1, '创建APP个数已满');
@@ -47,17 +44,15 @@ if ($do == 'save') {
 
 	if (empty($uniacid) && empty($version_id)) {
 		//新建平台. 新路由 account/create/base_info  &sign=phoneapp
-
 	} elseif (!empty($version_id)) {
 		$version_exist = phoneapp_version($version_id);
-		if(empty($version_exist)) {
+		if (empty($version_exist)) {
 			iajax(1, '版本不存在或已删除！');
 		}
 		$result = pdo_update('phoneapp_versions', $version_data, array('id' => $version_id));
 		if (!empty($result)) {
 			table('uni_link_uniacid')->searchWithUniacidModulenameVersionid($uniacid, $modulename, $version_id)->delete();
 		}
-
 	} else {
 		$result = pdo_insert('phoneapp_versions', $version_data);
 		$version_id = pdo_insertid();
@@ -70,7 +65,7 @@ if ($do == 'save') {
 	iajax(-1, '创建失败', url('phoneapp/manage/create_display'));
 }
 
-if($do == 'create_display') {
+if ('create_display' == $do) {
 	$version_id = intval($_GPC['version_id']);
 	$version_info = phoneapp_version($version_id);
 	$modules = phoneapp_support_modules();

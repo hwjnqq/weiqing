@@ -1,7 +1,7 @@
 <?php
 /**
  * 自定义菜单
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -12,51 +12,50 @@ load()->model('material');
 $dos = array('display', 'delete', 'refresh', 'post', 'push', 'copy', 'current_menu');
 $do = in_array($do, $dos) ? $do : 'display';
 
-if($_W['isajax']) {
-	if(!empty($_GPC['method'])) {
+if ($_W['isajax']) {
+	if (!empty($_GPC['method'])) {
 		$do = $_GPC['method'];
 	}
 }
 
-
-if($do == 'display') {
+if ('display' == $do) {
 	permission_check_account_user('platform_menu_conditional');
 	set_time_limit(0);
 
 	$type = !empty($_GPC['type']) ? intval($_GPC['type']) : MENU_CURRENTSELF;
-	if ($type == MENU_CONDITIONAL) {
+	if (MENU_CONDITIONAL == $type) {
 		$update_conditional_menu = menu_update_conditional();
-		if(is_error($update_conditional_menu)) {
+		if (is_error($update_conditional_menu)) {
 			itoast($update_conditional_menu['message'], '', 'error');
 		}
 	}
 
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 15;
-	$condition = " WHERE uniacid = :uniacid";
+	$condition = ' WHERE uniacid = :uniacid';
 	$params[':uniacid'] = $_W['uniacid'];
 	if (isset($_GPC['keyword'])) {
-		$condition .= " AND title LIKE :keyword";
+		$condition .= ' AND title LIKE :keyword';
 		$params[':keyword'] = "%{$_GPC['keyword']}%";
 	}
 	if (!empty($type)) {
-		$condition .= " AND type = :type";
+		$condition .= ' AND type = :type';
 		$params[':type'] = $type;
 	}
-	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('uni_account_menus') . $condition, $params);
-	$data = pdo_fetchall("SELECT * FROM " . tablename('uni_account_menus') . $condition . " ORDER BY type ASC, status DESC,id DESC LIMIT " . ($pindex - 1) * $psize . "," . $psize, $params);
+	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('uni_account_menus') . $condition, $params);
+	$data = pdo_fetchall('SELECT * FROM ' . tablename('uni_account_menus') . $condition . ' ORDER BY type ASC, status DESC,id DESC LIMIT ' . ($pindex - 1) * $psize . ',' . $psize, $params);
 	$pager = pagination($total, $pindex, $psize);
-	if ($type == MENU_CONDITIONAL) {
+	if (MENU_CONDITIONAL == $type) {
 		$names = array(
 			'sex' => array('不限', '男', '女'),
-			'client_platform_type' => array('不限', '苹果', '安卓', '其他')
+			'client_platform_type' => array('不限', '苹果', '安卓', '其他'),
 		);
 		$groups = mc_fans_groups(true);
 	}
 	template('platform/menu');
 }
 
-if ($do == 'push') {
+if ('push' == $do) {
 	$id = intval($_GPC['id']);
 	$result = menu_push($id);
 
@@ -67,13 +66,13 @@ if ($do == 'push') {
 	}
 }
 
-if ($do == 'copy') {
+if ('copy' == $do) {
 	$id = intval($_GPC['id']);
 	$menu = menu_get($id);
 	if (empty($menu)) {
 		itoast('菜单不存在或已经删除', url('platform/menu/display'), 'error');
 	}
-	if ($menu['type'] != MENU_CONDITIONAL) {
+	if (MENU_CONDITIONAL != $menu['type']) {
 		itoast('该菜单不能复制', url('platform/menu/display'), 'error');
 	}
 	unset($menu['id'], $menu['menuid']);
@@ -84,7 +83,7 @@ if ($do == 'copy') {
 	itoast('', url('platform/menu/post', array('id' => $id, 'copy' => 1, 'type' => MENU_CONDITIONAL)));
 }
 
-if ($do == 'post') {
+if ('post' == $do) {
 	permission_check_account_user('platform_menu_default');
 	$type = intval($_GPC['type']);
 	$id = intval($_GPC['id']);
@@ -114,7 +113,7 @@ if ($do == 'post') {
 						$button['url'] = preg_replace('/(.*)redirect_uri=(.*)&response_type(.*)wechat_redirect/', '$2', $button['url']);
 					}
 					if (empty($button['sub_button'])) {
-						if ($button['type'] == 'media_id') {
+						if ('media_id' == $button['type']) {
 							$button['type'] = 'click';
 						}
 						$button['sub_button'] = array();
@@ -124,7 +123,7 @@ if ($do == 'post') {
 							if (!empty($subbutton['url'])) {
 								$subbutton['url'] = preg_replace('/(.*)redirect_uri=(.*)&response_type(.*)wechat_redirect/', '$2', $subbutton['url']);
 							}
-							if ($subbutton['type'] == 'media_id') {
+							if ('media_id' == $subbutton['type']) {
 								$subbutton['type'] = 'click';
 							}
 						}
@@ -165,7 +164,7 @@ if ($do == 'post') {
 	if ($_W['isajax'] && $_W['ispost']) {
 		set_time_limit(0);
 		$_GPC['group']['title'] = trim($_GPC['group']['title']);
-		$_GPC['group']['type'] = intval($_GPC['group']['type']) == 0 ? 1 : intval($_GPC['group']['type']);
+		$_GPC['group']['type'] = 0 == intval($_GPC['group']['type']) ? 1 : intval($_GPC['group']['type']);
 		$post = $_GPC['group'];
 		//检测菜单组名称
 		if (empty($post['title'])) {
@@ -183,7 +182,7 @@ if ($do == 'post') {
 			iajax(-1, '菜单组名称已存在，请重新命名！', '');
 		}
 		//判断是否有菜单显示对象提交,默认菜单和个性化菜单唯一区别就是有无菜单显示对象
-		if ($post['type'] == MENU_CONDITIONAL && empty($post['matchrule'])) {
+		if (MENU_CONDITIONAL == $post['type'] && empty($post['matchrule'])) {
 			iajax(-1, '请选择菜单显示对象', '');
 		}
 		if (!empty($post['button'])) {
@@ -205,10 +204,10 @@ if ($do == 'post') {
 			unset($button);
 		}
 
-		$is_conditional = $post['type'] == MENU_CONDITIONAL ? true : false;
+		$is_conditional = MENU_CONDITIONAL == $post['type'] ? true : false;
 		$account_api = WeAccount::createByUniacid();
 		$menu = $account_api->menuBuild($post, $is_conditional);
-		if ($_GPC['submit_type'] == 'publish' || $is_conditional) {
+		if ('publish' == $_GPC['submit_type'] || $is_conditional) {
 			$result = $account_api->menuCreate($menu);
 		} else {
 			$result = true;
@@ -237,15 +236,15 @@ if ($do == 'post') {
 				'createtime' => TIMESTAMP,
 			);
 
-			if ($post['type'] == MENU_CURRENTSELF) {
+			if (MENU_CURRENTSELF == $post['type']) {
 				if (!empty($id)) {
 					pdo_update('uni_account_menus', $insert, array('uniacid' => $_W['uniacid'], 'type' => MENU_CURRENTSELF, 'id' => $id));
 				} else {
 					pdo_insert('uni_account_menus', $insert);
 				}
 				iajax(0, '创建菜单成功', url('platform/menu/display'));
-			} elseif ($post['type'] == MENU_CONDITIONAL) {
-				if ($post['status'] == STATUS_OFF && $post['id'] > 0) {
+			} elseif (MENU_CONDITIONAL == $post['type']) {
+				if (STATUS_OFF == $post['status'] && $post['id'] > 0) {
 					pdo_update('uni_account_menus', $insert, array('uniacid' => $_W['uniacid'], 'type' => MENU_CONDITIONAL, 'id' => $post['id']));
 				} else {
 					pdo_insert('uni_account_menus', $insert);
@@ -257,7 +256,7 @@ if ($do == 'post') {
 	template('platform/menu');
 }
 
-if ($do == 'delete') {
+if ('delete' == $do) {
 	$id = intval($_GPC['id']);
 	$result = menu_delete($id);
 	if (is_error($result)) {
@@ -266,33 +265,33 @@ if ($do == 'delete') {
 	itoast('删除菜单成功', referer(), 'success');
 }
 
-if ($do == 'current_menu') {
+if ('current_menu' == $do) {
 	$current_menu = $_GPC['current_menu'];
-	if ($current_menu['type'] == 'click') {
+	if ('click' == $current_menu['type']) {
 		if (!empty($current_menu['media_id']) && empty($current_menu['key'])) {
 			$wechat_attachment = pdo_get('wechat_attachment', array('media_id' => $current_menu['media_id']));
-			if ($wechat_attachment['type'] == 'news') {
+			if ('news' == $wechat_attachment['type']) {
 				$material = pdo_get('wechat_news', array('uniacid' => $_W['uniacid'], 'attach_id' => $wechat_attachment['id']));
-				$material['items'][0]['thumb_url'] =  tomedia($material['thumb_url']);
+				$material['items'][0]['thumb_url'] = tomedia($material['thumb_url']);
 				$material['items'][0]['title'] = $material['title'];
 				$material['items'][0]['digest'] = $material['digest'];
 				$material['type'] = 'news';
-			} elseif ($wechat_attachment['type'] == 'video') {
+			} elseif ('video' == $wechat_attachment['type']) {
 				$material['tag'] = iunserializer($wechat_attachment['tag']);
 				$material['attach'] = tomedia($wechat_attachment['attachment'], true);
 				$material['type'] = 'video';
-			} elseif ($wechat_attachment['type'] == 'voice') {
+			} elseif ('voice' == $wechat_attachment['type']) {
 				$material['attach'] = tomedia($wechat_attachment['attachment'], true);
 				$material['type'] = 'voice';
 				$material['filename'] = $wechat_attachment['filename'];
-			} elseif ($wechat_attachment['type'] == 'image') {
+			} elseif ('image' == $wechat_attachment['type']) {
 				$material['attach'] = tomedia($wechat_attachment['attachment'], true);
 				$material['url'] = "url({$material['attach']})";
 				$material['type'] = 'image';
 			}
 		} else {
 			$keyword_info = explode(':', $current_menu['key']);
-			if ($keyword_info[0] == 'keyword') {
+			if ('keyword' == $keyword_info[0]) {
 				$rule_info = pdo_get('rule', array('name' => $keyword_info[1]), array('id'));
 				$material['child_items'][0] = pdo_get('rule_keyword', array('rid' => $rule_info['id']), array('content'));
 				$material['name'] = $keyword_info[1];
@@ -300,9 +299,9 @@ if ($do == 'current_menu') {
 			}
 		}
 	}
-	if ($current_menu['type'] != 'click' && $current_menu['type'] != 'view') {
+	if ('click' != $current_menu['type'] && 'view' != $current_menu['type']) {
 		$material = array();
-		if ($current_menu['etype'] == 'module') {
+		if ('module' == $current_menu['etype']) {
 			$module_name = explode(':', $current_menu['key']);
 			load()->model('module');
 			$material = module_fetch($module_name[1]);
@@ -321,9 +320,9 @@ if ($do == 'current_menu') {
 			$material['icon'] = $cion;
 			$material['type'] = $current_menu['type'];
 			$material['etype'] = 'module';
-		} elseif ($current_menu['etype'] == 'click') {
+		} elseif ('click' == $current_menu['etype']) {
 			$keyword_info = explode(':', $current_menu['key']);
-			if ($keyword_info[0] == 'keyword') {
+			if ('keyword' == $keyword_info[0]) {
 				$rule_info = pdo_get('rule', array('name' => $keyword_info[1]), array('id'));
 				$material['child_items'][0] = pdo_get('rule_keyword', array('rid' => $rule_info['id']), array('content'));
 				$material['name'] = $keyword_info[1];

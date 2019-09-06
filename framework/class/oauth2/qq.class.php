@@ -1,7 +1,7 @@
 <?php
 /**
  * qq第三方授权qq登录
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -24,10 +24,12 @@ class Qq extends OAuth2Client {
 
 	/**
 	 * @param string $calback_url
+	 *
 	 * @return string
 	 */
 	public function showLoginUrl($calback_url = '') {
 		$state = $this->stateParam();
+
 		return sprintf(QQ_PLATFORM_API_OAUTH_LOGIN_URL, $this->ak, $this->calback_url, $state);
 	}
 
@@ -42,11 +44,12 @@ class Qq extends OAuth2Client {
 		}
 		$access_url = sprintf(QQ_PLATFORM_API_GET_ACCESS_TOKEN, $this->ak, $this->sk, $code, urlencode($this->calback_url));
 		$response = ihttp_get($access_url);
-		if (strexists($response['content'], 'callback') !== false){
+		if (false !== strexists($response['content'], 'callback')) {
 			return error(-1, $response['content']);
 		}
 
 		parse_str($response['content'], $result);
+
 		return $result;
 	}
 
@@ -56,15 +59,16 @@ class Qq extends OAuth2Client {
 		}
 		$openid_url = sprintf(QQ_PLATFORM_API_GET_OPENID, $token);
 		$response = ihttp_get($openid_url);
-		if (strexists($response['content'], "callback") !== false) {
-			$lpos = strpos($response['content'], "(");
-			$rpos = strrpos($response['content'], ")");
-			$content = substr($response['content'], $lpos + 1, $rpos - $lpos -1);
+		if (false !== strexists($response['content'], 'callback')) {
+			$lpos = strpos($response['content'], '(');
+			$rpos = strrpos($response['content'], ')');
+			$content = substr($response['content'], $lpos + 1, $rpos - $lpos - 1);
 		}
 		$result = json_decode($content, true);
 		if (isset($result->error)) {
 			return error(-1, $result['content']);
 		}
+
 		return $result;
 	}
 
@@ -76,9 +80,10 @@ class Qq extends OAuth2Client {
 		$response = ihttp_get($openid_url);
 		$user_info = json_decode($response['content'], true);
 
-		if ($user_info['ret'] != 0) {
+		if (0 != $user_info['ret']) {
 			return error(-1, $user_info['ret'] . ',' . $user_info['msg']);
 		}
+
 		return $user_info;
 	}
 
@@ -95,6 +100,7 @@ class Qq extends OAuth2Client {
 			return error($getOpenId['errno'], $getOpenId['message']);
 		}
 		$oauth['openid'] = $getOpenId['openid'];
+
 		return $oauth;
 	}
 
@@ -116,14 +122,14 @@ class Qq extends OAuth2Client {
 
 		$profile['avatar'] = $user_info['figureurl_qq_1'];
 		$profile['nickname'] = strip_emoji($user_info['nickname']);
-		$profile['gender'] = $user_info['gender'] == '女' ? 0 : 1;
+		$profile['gender'] = '女' == $user_info['gender'] ? 0 : 1;
 		$profile['resideprovince'] = $user_info['province'];
 		$profile['residecity'] = $user_info['city'];
 		$profile['birthyear'] = $user_info['year'];
 
 		return array(
 			'member' => $user,
-			'profile' => $profile
+			'profile' => $profile,
 		);
 	}
 
@@ -150,6 +156,7 @@ class Qq extends OAuth2Client {
 
 		if (!empty($user_id) && empty($user_bind_info)) {
 			pdo_insert('users_bind', array('uid' => $user_id, 'bind_sign' => $user['member']['openid'], 'third_type' => $user['member']['register_type'], 'third_nickname' => $user['member']['username']));
+
 			return $user_id;
 		}
 
@@ -166,6 +173,7 @@ class Qq extends OAuth2Client {
 			return error(-1, '已被其他用户绑定，请更换账号');
 		}
 		pdo_insert('users_bind', array('uid' => $_W['uid'], 'bind_sign' => $user['member']['openid'], 'third_type' => $user['member']['register_type'], 'third_nickname' => strip_emoji($user['profile']['nickname'])));
+
 		return true;
 	}
 
@@ -179,12 +187,14 @@ class Qq extends OAuth2Client {
 		}
 		pdo_update('users', array('openid' => ''), array('uid' => $_W['uid']));
 		pdo_delete('users_bind', array('uid' => $_W['uid'], 'third_type' => $third_type));
+
 		return error(0, '成功');
 	}
 
 	public function isbind() {
 		global $_W;
 		$bind_info = table('users_bind')->getByTypeAndUid(USER_REGISTER_TYPE_QQ, $_W['uid']);
+
 		return !empty($bind_info['bind_sign']);
 	}
 }

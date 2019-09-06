@@ -1,15 +1,14 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
 $openid = $_W['openid'];
-$dos = array('register', 'uc');
+$dos = array('register');
 $do = in_array($do, $dos) ? $do : 'register';
 
-$setting = uni_setting($_W['uniacid'], array('uc', 'passport'));
-$uc_setting = $setting['uc'] ? $setting['uc'] : array();
+$setting = uni_setting($_W['uniacid'], array('passport'));
 $item = !empty($setting['passport']['item']) ? $setting['passport']['item'] : 'mobile';
 $audit = @intval($setting['passport']['audit']);
 $ltype = empty($setting['passport']['type']) ? 'hybird' : $setting['passport']['type'];
@@ -24,9 +23,7 @@ if(!empty($_W['member']) && (!empty($_W['member']['mobile']) || !empty($_W['memb
 }
 if($do == 'register') {
 	if($_W['ispost'] && $_W['isajax']) {
-		$sql = 'SELECT `uid` FROM ' . tablename('mc_members') . ' WHERE `uniacid`=:uniacid';
-		$pars = array();
-		$pars[':uniacid'] = $_W['uniacid'];
+		$where['uniacid'] = $_W['uniacid'];
 		$code = trim($_GPC['code']);
 		$username = trim($_GPC['username']);
 		$password = trim($_GPC['password']);
@@ -39,28 +36,24 @@ if($do == 'register') {
 			if($item == 'email') {
 				if(preg_match(REGULAR_EMAIL, $username)) {
 					$type = 'email';
-					$sql .= ' AND `email`=:email';
-					$pars[':email'] = $username;
+					$where['email'] = $username;
 				} else {
 					message('邮箱格式不正确', referer(), 'error');
 				}
 			} elseif($item == 'mobile') {
 				if(preg_match(REGULAR_MOBILE, $username)) {
 					$type = 'mobile';
-					$sql .= ' AND `mobile`=:mobile';
-					$pars[':mobile'] = $username;
+					$where['mobile'] = $username;
 				} else {
 					message('手机号格式不正确', referer(), 'error');
 				}
 			} else {
 				if (preg_match(REGULAR_MOBILE, $username)) {
 					$type = 'mobile';
-					$sql .= ' AND `mobile`=:mobile';
-					$pars[':mobile'] = $username;
+					$where['mobile'] = $username;
 				} elseif (preg_match(REGULAR_EMAIL, $username)) {
 					$type = 'email';
-					$sql .= ' AND `email`=:email';
-					$pars[':email'] = $username;
+					$where['email'] = $username;
 				} else {
 					message('用户名格式错误', referer(), 'error');
 				}
@@ -70,12 +63,13 @@ if($do == 'register') {
 			if (!code_verify($_W['uniacid'], $username, $password)) {
 				message('验证码错误', referer(), 'error');
 			} else {
-				pdo_delete('uni_verifycode', array('receiver' => $username));
+				table('uni_verifycode')
+					->where(array('receiver' => $username))
+					->delete();
 			}
 			if (preg_match(REGULAR_MOBILE, $username)) {
 				$type = 'mobile';
-				$sql .= ' AND `mobile`=:mobile';
-				$pars[':mobile'] = $username;
+				$where['mobile'] = $username;
 			} else {
 				message('用户名格式错误', referer(), 'error');
 			}
@@ -91,7 +85,7 @@ if($do == 'register') {
 				$password = '';
 			}
 		}
-		$user = pdo_fetch($sql, $pars);
+		$user = table('mc_members')->where($where)->get();
 		if(!empty($user)) {
 			message('该用户名已被注册', referer(), 'error');
 		}
@@ -106,7 +100,12 @@ if($do == 'register') {
 			}
 		}
 
-		$default_groupid = pdo_fetchcolumn('SELECT groupid FROM ' .tablename('mc_groups') . ' WHERE uniacid = :uniacid AND isdefault = 1', array(':uniacid' => $_W['uniacid']));
+		$default_groupid = table('mc_groups')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'isdefault' => 1
+			))
+			->getcolumn('groupid');
 		$data = array(
 			'uniacid' => $_W['uniacid'], 
 			'salt' => random(8),
@@ -130,11 +129,14 @@ if($do == 'register') {
 			$data['nationality'] = $map_fans['country'];
 			$data['avatar'] = $map_fans['headimgurl'];
 		}
-		
-		pdo_insert('mc_members', $data);
+
+		table('mc_members')->fill($data)->save();
 		$user['uid'] = pdo_insertid();
 		if (!empty($fan) && !empty($fan['fanid'])) {
-			pdo_update('mc_mapping_fans', array('uid'=>$user['uid']), array('fanid'=>$fan['fanid']));
+			table('mc_mapping_fans')
+				->where(array('fanid'=>$fan['fanid']))
+				->fill(array('uid'=>$user['uid']))
+				->save();
 		}
 		if(_mc_login($user)) {
 			message('注册成功！', referer(), 'success');

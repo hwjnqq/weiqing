@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 
@@ -206,7 +206,7 @@ function mc_fetch_one($uid, $uniacid = 0) {
  * @param int $uniacid 主公众号ID
  * @return array
  */
-function mc_fansinfo($openidOruid, $acid = 0, $uniacid = 0){
+function mc_fansinfo($openidOruid, $acid = 0, $uniacid = 0) {
 	global $_W;
 	if (empty($openidOruid)) {
 		return array();
@@ -251,17 +251,14 @@ function mc_fansinfo($openidOruid, $acid = 0, $uniacid = 0){
 				$fan['tag'] = array();
 			}
 		} else {
-			if (!empty($tags_info)) {
-				$fan['tag'] = $tags_info;
-				$fan['tag']['avatar'] = $tags_info['headimgurl'];
+			$fan['tag'] = $tags_info;
+			$fan['tag']['avatar'] = $tags_info['headimgurl'];
 
-				if (empty($fan['nickname']) && !empty($fan['tag']['nickname'])) {
-					$fan['nickname'] = strip_emoji($fan['tag']['nickname']);
-				}
-				$fan['gender'] = $fan['sex'] = $fan['tag']['sex'];
-				$fan['avatar'] = $fan['headimgurl'] = $fan['tag']['avatar'];
+			if (empty($fan['nickname']) && !empty($fan['tag']['nickname'])) {
+				$fan['nickname'] = strip_emoji($fan['tag']['nickname']);
 			}
-
+			$fan['gender'] = $fan['sex'] = $fan['tag']['sex'];
+			$fan['avatar'] = $fan['headimgurl'] = $fan['tag']['avatar'];
 		}
 	}
 
@@ -328,6 +325,19 @@ function mc_oauth_userinfo($acid = 0) {
 
 function mc_oauth_account_userinfo($url = '') {
 	global $_W;
+	if ($_W['account']->typeSign != 'account') {
+		error(-4, '该账号非公众号类型，不支持使用该函数！');
+	}
+	if (empty($_W['account']['oauth'])) {
+		return error(-1, '未指定网页授权公众号, 无法获取用户信息.');
+	}
+	if (empty($_W['account']['oauth']['key'])) {
+		return error(-2, '公众号未设置 appId 或 secret.');
+	}
+	if (intval($_W['account']['oauth']['level']) < 4 && !in_array($_W['account']['oauth']['level'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_WXAPP_WORK))) {
+		return error(-3, '公众号非认证服务号, 无法获取用户信息.');
+	}
+
 	// 认证号, 静默获取用户信息, 不需要跳转到网页授权获取用户信息.
 	if (!empty($_SESSION['openid']) && intval($_W['account']['level']) >= 3) {
 		$oauth_account = WeAccount::createByUniacid();
@@ -346,7 +356,7 @@ function mc_oauth_account_userinfo($url = '') {
 					'unionid' => $userinfo['unionid'],
 					'tag' => base64_encode(iserializer($userinfo))
 				);
-				pdo_update('mc_mapping_fans', $record, array('openid' => $_SESSION['openid'], 'acid' => $_W['acid'], 'uniacid' => $_W['uniacid']));
+				pdo_update('mc_mapping_fans', $record, array('openid' => $_SESSION['openid'], 'uniacid' => $_W['uniacid']));
 			} else {
 				$record = array();
 				$record['updatetime'] = TIMESTAMP;
@@ -356,6 +366,8 @@ function mc_oauth_account_userinfo($url = '') {
 				$record['acid'] = $_W['acid'];
 				$record['uniacid'] = $_W['uniacid'];
 				$record['unionid'] = $userinfo['unionid'];
+				$record['user_from'] = $_W['account']->typeSign == 'wxapp' ? 1 : 0;
+
 				pdo_insert('mc_mapping_fans', $record);
 			}
 
@@ -391,16 +403,6 @@ function mc_oauth_account_userinfo($url = '') {
 			}
 			return $userinfo;
 		}
-	}
-
-	if (empty($_W['account']['oauth'])) {
-		return error(-1, '未指定网页授权公众号, 无法获取用户信息.');
-	}
-	if (empty($_W['account']['oauth']['key'])) {
-		return error(-2, '公众号未设置 appId 或 secret.');
-	}
-	if (intval($_W['account']['oauth']['level']) < 4 && !in_array($_W['account']['oauth']['level'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_WXAPP_WORK))) {
-		return error(-3, '公众号非认证服务号, 无法获取用户信息.');
 	}
 
 	$state = 'we7sid-' . $_W['session_id'];
@@ -554,7 +556,7 @@ function mc_require($uid, $fields, $pre = '') {
 		$coupons = activity_coupon_owned($_W['member']['uid'], $filter);
 		$tokens = activity_token_owned($_W['member']['uid'], $filter);
 
-		$setting = uni_setting($_W['uniacid'], array('creditnames', 'creditbehaviors', 'uc'));
+		$setting = uni_setting($_W['uniacid'], array('creditnames', 'creditbehaviors'));
 		$behavior = $setting['creditbehaviors'];
 		$creditnames = $setting['creditnames'];
 		$credits = mc_credit_fetch($_W['member']['uid'], '*');
@@ -765,7 +767,7 @@ function mc_fans_groups($force_update = false) {
 		pdo_insert('mc_fans_groups', $data);
 	} else {
 		$data = array('groups' => iserializer($tags_tmp));
-		pdo_update('mc_fans_groups', $data, array('uniacid' => $_W['uniacid'], 'acid' => $_W['acid']));
+		pdo_update('mc_fans_groups', $data, array('uniacid' => $_W['uniacid']));
 	}
 	return $tags_tmp;
 }
@@ -839,37 +841,6 @@ function mc_acccount_fields($uniacid = 0, $is_available = true) {
 		$fields[$row['field']] = $row['title'];
 	}
 	return $fields;
-}
-
-/**
- * UC登录初始化
- * @return boolean
- */
-function mc_init_uc() {
-	global $_W;
-	$setting = uni_setting($_W['uniacid'], array('uc'));
-	if (is_array($setting['uc']) && $setting['uc']['status'] == '1') {
-		$uc = $setting['uc'];
-		define('UC_CONNECT', $uc['connect'] == 'mysql' ? 'mysql' : '');
-
-		define('UC_DBHOST', $uc['dbhost']);
-		define('UC_DBUSER', $uc['dbuser']);
-		define('UC_DBPW', $uc['dbpw']);
-		define('UC_DBNAME', $uc['dbname']);
-		define('UC_DBCHARSET', $uc['dbcharset']);
-		define('UC_DBTABLEPRE', $uc['dbtablepre']);
-		define('UC_DBCONNECT', $uc['dbconnect']);
-
-		define('UC_CHARSET', $uc['charset']);
-		define('UC_KEY', $uc['key']);
-		define('UC_API', $uc['api']);
-		define('UC_APPID', $uc['appid']);
-		define('UC_IP', $uc['ip']);
-
-		require IA_ROOT . '/framework/library/uc/client.php';
-		return true;
-	}
-	return false;
 }
 
 /**
@@ -1021,7 +992,7 @@ function mc_group_update($uid = 0) {
 		$user['openid'] = $_W['openid'];
 	} else {
 		$user = pdo_get('mc_members', array('uniacid' => $_W['uniacid'], 'uid' => $uid), array('uid', 'realname', 'credit1', 'credit6', 'groupid'));
-		$user['openid'] = pdo_getcolumn('mc_mapping_fans', array('acid' => $_W['acid'], 'uid' => $uid), 'openid');
+		$user['openid'] = pdo_getcolumn('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'uid' => $uid), 'openid');
 	}
 	if(empty($user)) {
 		return false;
@@ -1785,12 +1756,14 @@ function mc_init_fans_info($openid, $force_init_member = false){
 		$fans_list = array($fans_list);
 	}
 	foreach ($fans_list as $fans) {
-		if (empty($fans['subscribe'])) {
+		$fans_mapping = mc_fansinfo($fans['openid']);
+		if (empty($fans['subscribe']) && empty($fans_mapping)) {
 			pdo_update('mc_mapping_fans', array('follow' => 0, 'unfollowtime' => TIMESTAMP), array('openid' => $fans['openid']));
 			continue;
 		}
-
-		$fans_mapping = mc_fansinfo($fans['openid']);
+		if (!empty($fans_mapping) && $fans['openid'] == $fans_mapping['openid']) {
+			$fans = array_merge($fans, $fans_mapping['tag']);
+		}
 		unset($fans['remark'], $fans['subscribe_scene'], $fans['qr_scene'], $fans['qr_scene_str']);
 		$fans_update_info = array(
 			'openid' => $fans['openid'],
@@ -1803,6 +1776,7 @@ function mc_init_fans_info($openid, $force_init_member = false){
 			'tag' => '',
 			'unionid' => $fans['unionid'],
 			'groupid' => !empty($fans['tagid_list']) ? (','.join(',', $fans['tagid_list']).',') : '',
+			'user_from' => $_W['account']->typeSign == 'wxapp' ? 1 : 0,
 		);
 		if (empty($fans_update_info['groupid'])) {
 			unset($fans_update_info['groupid']);
@@ -2095,11 +2069,6 @@ function mc_member_export_parse($members, $header = array()){
 					}
 					$row['createtime'] = date('Y-m-d H:i:s', $row['createtime']);
 					$row['groupid'] = $groups[$row['groupid']]['title'];
-					if (!empty($row['birthmonth']) && !empty($row['birthday'])) {
-						$row['birthday'] = $row['birthmonth'] . '月' . $row['birthday'] . '日';
-					} else {
-						$row['birthday'] = '';
-					}
 					foreach ($keys as $key) {
 						$data[] = $row[$key];
 					}

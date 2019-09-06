@@ -1,7 +1,7 @@
 <?php
 /**
  * 木马查杀相关操作
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -9,20 +9,20 @@ set_time_limit(0);
 
 load()->func('file');
 
-$dos = array('post', 'count', 'filter_func', 'filter_code', 'encode', 'display','view');
+$dos = array('post', 'count', 'filter_func', 'filter_code', 'encode', 'display', 'view');
 $do = in_array($do, $dos) ? $do : 'post';
 
-if ($do == 'post') {
+if ('post' == $do) {
 	$config = iunserializer(cache_read(cache_system_key('scan_config')));
-	$list = glob(IA_ROOT.'/*', GLOB_NOSORT);
-	$ignore = array('data','attachment');
+	$list = glob(IA_ROOT . '/*', GLOB_NOSORT);
+	$ignore = array('data', 'attachment');
 	foreach ($list as $key => $li) {
 		if (in_array(basename($li), $ignore)) {
 			unset($list[$key]);
 		}
 	}
 
-	$safe = array (
+	$safe = array(
 			'file_type' => 'php|js',
 			'code' => 'weidongli|sinaapp|safedog',
 			'func' => 'com|system|exec|eval|escapeshell|cmd|passthru|base64_decode|gzuncompress',
@@ -45,12 +45,12 @@ if ($do == 'post') {
 		$info['dir'] = $_GPC['dir'];
 		cache_delete(cache_system_key('scan_file'));
 		cache_write(cache_system_key('scan_config'), iserializer($info));
-		itoast("配置保存完成，开始文件统计。。。", url('system/scan', array('do' => 'count')), 'success');
+		itoast('配置保存完成，开始文件统计。。。', url('system/scan', array('do' => 'count')), 'success');
 	}
 }
 
 //文件统计
-if ($do == 'count') {
+if ('count' == $do) {
 	$files = array();
 	$config = iunserializer(cache_read(cache_system_key('scan_config')));
 	if (empty($config)) {
@@ -72,28 +72,30 @@ if ($do == 'count') {
 	unset($list_arr['data/config.php']);
 	$list_arr = iserializer($list_arr);
 	cache_write(cache_system_key('scan_file'), $list_arr);
-	itoast("文件统计完成，进行特征函数过滤。。。", url('system/scan', array('do' => 'filter_func')), 'success');
+	itoast('文件统计完成，进行特征函数过滤。。。', url('system/scan', array('do' => 'filter_func')), 'success');
 }
 
 //特征函数过滤
-if ($do == 'filter_func') {
+if ('filter_func' == $do) {
 	$config = iunserializer(cache_read(cache_system_key('scan_config')));
 	$file = iunserializer(cache_read(cache_system_key('scan_file')));
 	if (isset($config['func']) && !empty($config['func'])) {
 		foreach ($file as $key => $val) {
 			$html = file_get_contents(IA_ROOT . '/' . $key);
-			if (stristr($key, '.php.') != false || preg_match_all('/[^a-z]?('.$config['func'].')\s*\(/i', $html, $state, PREG_SET_ORDER)) {
+			if (false != stristr($key, '.php.') || preg_match_all('/[^a-z]?(' . $config['func'] . ')\s*\(/i', $html, $state, PREG_SET_ORDER)) {
 				$badfiles[$key]['func'] = $state;
 			}
 		}
 	}
-	if (!isset($badfiles)) $badfiles = array();
+	if (!isset($badfiles)) {
+		$badfiles = array();
+	}
 	cache_write(cache_system_key('scan_badfile'), iserializer($badfiles));
-	itoast("特征函数过滤完成，进行特征代码过滤。。。", url('system/scan', array('do' => 'filter_code')), 'success');
+	itoast('特征函数过滤完成，进行特征代码过滤。。。', url('system/scan', array('do' => 'filter_code')), 'success');
 }
 
 //特征代码过滤
-if ($do == 'filter_code') {
+if ('filter_code' == $do) {
 	$config = iunserializer(cache_read(cache_system_key('scan_config')));
 	$file = iunserializer(cache_read(cache_system_key('scan_file')));
 	$badfiles = iunserializer(cache_read(cache_system_key('scan_badfile')));
@@ -101,32 +103,32 @@ if ($do == 'filter_code') {
 		foreach ($file as $key => $val) {
 			if (!empty($config['code'])) {
 				$html = file_get_contents(IA_ROOT . '/' . $key);
-				if (stristr($key, '.php.') != false || preg_match_all('/[^a-z]?('.$config['code'].')/i', $html, $state, PREG_SET_ORDER)) {
+				if (false != stristr($key, '.php.') || preg_match_all('/[^a-z]?(' . $config['code'] . ')/i', $html, $state, PREG_SET_ORDER)) {
 					$badfiles[$key]['code'] = $state;
 				}
 			}
-			if (strtolower(substr($key, -4)) == '.php' && function_exists('zend_loader_file_encoded') && zend_loader_file_encoded(IA_ROOT . '/' . $key)) {
+			if ('.php' == strtolower(substr($key, -4)) && function_exists('zend_loader_file_encoded') && zend_loader_file_encoded(IA_ROOT . '/' . $key)) {
 				$badfiles[$key]['zend'] = 'zend encoded';
 			}
 			$html = '';
 		}
 	}
 	cache_write(cache_system_key('scan_badfile'), iserializer($badfiles));
-	itoast("特征代码过滤完成，进行加密文件过滤。。。", url('system/scan', array('do' => 'encode')), 'success');
+	itoast('特征代码过滤完成，进行加密文件过滤。。。', url('system/scan', array('do' => 'encode')), 'success');
 }
 
 //加密文件过滤
-if ($do == 'encode') {
+if ('encode' == $do) {
 	$file = iunserializer(cache_read(cache_system_key('scan_file')));
 	$badfiles = iunserializer(cache_read(cache_system_key('scan_badfile')));
 	foreach ($file as $key => $val) {
-		if (strtolower(substr($key, -4)) == '.php') {
+		if ('.php' == strtolower(substr($key, -4))) {
 			$html = file_get_contents(IA_ROOT . '/' . $key);
 			$token = token_get_all($html);
 			$html = '';
 			foreach ($token as $to) {
-				if (is_array($to) && $to[0] == T_VARIABLE) {
-					$pre = preg_match("/([".chr(0xb0)."-".chr(0xf7)."])+/", $to[1]);
+				if (is_array($to) && T_VARIABLE == $to[0]) {
+					$pre = preg_match('/([' . chr(0xb0) . '-' . chr(0xf7) . '])+/', $to[1]);
 					if (!empty($pre)) {
 						$badfiles[$key]['danger'] = 'danger';
 						break;
@@ -136,14 +138,14 @@ if ($do == 'encode') {
 		}
 	}
 	cache_write(cache_system_key('scan_badfile'), iserializer($badfiles));
-	itoast("扫描完成。。。", url('system/scan', array('do' => 'display')), 'success');
+	itoast('扫描完成。。。', url('system/scan', array('do' => 'display')), 'success');
 }
 
 //查杀报告
-if ($do == 'display') {
+if ('display' == $do) {
 	$badfiles = iunserializer(cache_read(cache_system_key('scan_badfile')));
 	if (empty($badfiles)) {
-		itoast('没有找到扫描结果，请重新扫描',  url('system/scan'), 'error');
+		itoast('没有找到扫描结果，请重新扫描', url('system/scan'), 'error');
 	}
 	unset($badfiles['data/config.php']);
 	foreach ($badfiles as $k => &$v) {
@@ -169,11 +171,11 @@ if ($do == 'display') {
 }
 
 //查看文件详细
-if ($do == 'view') {
+if ('view' == $do) {
 	$file = authcode(trim($_GPC['file'], 'DECODE'));
 	$file_tmp = $file;
-	$file = str_replace('//','',$file);
-	if (empty($file) || ! parse_path($file) || $file == 'data/config.php') {
+	$file = str_replace('//', '', $file);
+	if (empty($file) || !parse_path($file) || 'data/config.php' == $file) {
 		itoast('文件不存在', referer(), 'error');
 	}
 	//设置过滤文件

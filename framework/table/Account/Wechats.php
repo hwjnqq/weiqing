@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 namespace We7\Table\Account;
 
@@ -28,7 +28,6 @@ class Wechats extends \We7Table {
 		'styleid',
 		'subscribeurl',
 		'createtime',
-
 	);
 	protected $default = array(
 		'uniacid' => '',
@@ -51,6 +50,6 @@ class Wechats extends \We7Table {
 		'styleid' => '1',
 		'subscribeurl' => '',
 		'createtime' => '',
-
 	);
+
 }

@@ -1,8 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
-
 defined('IN_IA') or exit('Access Denied');
 
 permission_check_account_user('mc_member_group');
@@ -10,63 +9,88 @@ permission_check_account_user('mc_member_group');
 $dos = array('display', 'change_group_level', 'save_group', 'get_group', 'set_default', 'del_group');
 $do = in_array($do, $dos) ? $do : 'display';
 
-if ($do == 'display') {
-	$group_level_setting = pdo_get('uni_settings', array('uniacid' => $_W['uniacid']), array('grouplevel'));
+if ('display' == $do) {
+	$group_level_setting = table('uni_settings')
+		->select('grouplevel')
+		->where(array('uniacid' => $_W['uniacid']))
+		->get();
 	$group_level = empty($group_level_setting['grouplevel']) ? 0 : $group_level_setting['grouplevel'];
 
-	$group_list = pdo_getall('mc_groups', array('uniacid' => $_W['uniacid']), array(), 'groupid',array(' isdefault DESC', ' credit ASC'));
-
-	$group_person_count = pdo_fetchall('SELECT groupid,COUNT(*) AS num FROM ' . tablename('mc_members') . ' WHERE uniacid = :uniacid GROUP BY groupid', array(':uniacid' => $_W['uniacid']), 'groupid');
-	$default_group = pdo_get('mc_groups', array('uniacid' => $_W['uniacid'], 'isdefault' => 1));
+	$group_list = table('mc_groups')
+		->where(array('uniacid' => $_W['uniacid']))
+		->orderby(array('isdefault' => 'DESC', 'credit' => 'ASC'))
+		->getall('groupid');
+	$group_person_count = table('mc_members')
+		->select(array('groupid', 'COUNT(*) AS num'))
+		->where(array(
+			'uniacid' => $_W['uniacid']
+		))
+		->groupby('groupid')
+		->getall('groupid');
+	$default_group = table('mc_groups')->where(array('uniacid' => $_W['uniacid'], 'isdefault' => 1))->get();
 	if (empty($default_group)) {
 		$default_group = array();
 	}
 }
 
-if ($do == 'change_group_level') {
+if ('change_group_level' == $do) {
 	$group_level = intval($_GPC['group_level']);
-	pdo_update('uni_settings', array('grouplevel' => $group_level), array('uniacid' => $_W['uniacid']));
-	cache_delete(cache_system_key('unisetting', array('uniacid' =>$_W['uniacid'])));
+	table('uni_settings')
+		->where(array('uniacid' => $_W['uniacid']))
+		->fill(array('grouplevel' => $group_level))
+		->save();
+	cache_delete(cache_system_key('unisetting', array('uniacid' => $_W['uniacid'])));
 	iajax(0, '');
 }
 
-if ($do == 'save_group') {
+if ('save_group' == $do) {
 	$group = $_GPC['group'];
 	if (empty($group)) {
 		iajax(1, '编辑失败', '');
 	}
 	$data = array(
 		'title' => safe_gpc_string($group['title']),
-		'credit' => intval($group['credit'])
+		'credit' => intval($group['credit']),
 	);
 	if (empty($data['title'])) {
 		iajax(1, '请填写会员组名称', '');
 	}
 	$groupid = intval($group['groupid']);
 	if (!empty($groupid)) {
-		pdo_update('mc_groups', $data, array('groupid' => $groupid, 'uniacid' => $_W['uniacid']));
+		table('mc_groups')
+			->where(array(
+				'groupid' => $groupid,
+				'uniacid' => $_W['uniacid']
+			))
+			->fill($data)
+			->save();
 		iajax(2, '修改成功', '');
 	} else {
 		$data['uniacid'] = $_W['uniacid'];
-		$default_group = pdo_get('mc_groups', array('uniacid' => $_W['uniacid'], 'isdefault' => 1));
+		$default_group = table('mc_groups')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'isdefault' => 1
+			))
+			->get();
 		$data['isdefault'] = empty($default_group) ? 1 : 0;
-		pdo_insert('mc_groups', $data);
+		table('mc_groups')->fill($data)->save();
 		$data['groupid'] = pdo_insertid();
 		iajax(3, $data, '');
 	}
 }
 
-if ($do == 'get_group') {
+if ('get_group' == $do) {
 	$group_id = intval($_GPC['group_id']);
 	if (empty($group_id)) {
 		$data = array(
 			'title' => '',
 			'is_default' => 0,
-			'credit' => 0
+			'credit' => 0,
 		);
 		iajax(0, $data, '');
 	}
-	$group_info = pdo_get('mc_groups', array('groupid' => $group_id));
+	$group_info = table('mc_groups')->getById($group_id);
 	if (empty($group_info)) {
 		iajax(1, '会员组不存在', '');
 	} else {
@@ -74,16 +98,30 @@ if ($do == 'get_group') {
 	}
 }
 
-if ($do == 'set_default') {
+if ('set_default' == $do) {
 	$group_id = intval($_GPC['group_id']);
-	pdo_update('mc_groups', array('isdefault' => 0), array('uniacid' => $_W['uniacid']));
-	pdo_update('mc_groups', array('isdefault' => 1), array('groupid' => $group_id, 'uniacid' => $_W['uniacid']));
+	table('mc_groups')
+		->where(array('uniacid' => $_W['uniacid']))
+		->fill(array('isdefault' => 0))
+		->save();
+	table('mc_groups')
+		->where(array(
+			'groupid' => $group_id,
+			'uniacid' => $_W['uniacid']
+		))
+		->fill(array('isdefault' => 1))
+		->save();
 	iajax(0, '');
 }
 
-if ($do == 'del_group') {
+if ('del_group' == $do) {
 	$group_id = intval($_GPC['group_id']);
-	pdo_delete('mc_groups', array('groupid' => $group_id, 'uniacid' => $_W['uniacid']));
+	table('mc_groups')
+		->where(array(
+			'groupid' => $group_id,
+			'uniacid' => $_W['uniacid']
+		))
+		->delete();
 	iajax(0, '');
 }
 template('mc/group');

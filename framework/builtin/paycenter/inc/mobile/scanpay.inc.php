@@ -8,8 +8,8 @@ $op = trim($_GPC['op']) ? trim($_GPC['op']) : 'index';
 if ($_W['account']['level'] != ACCOUNT_SERVICE_VERIFY) {
 	message('公众号权限不足', '', 'error');
 }
-if($op == 'post') {
-	if(checksubmit()) {
+if ('post' == $op) {
+	if (checksubmit()) {
 		$fee = trim($_GPC['fee']) ? trim($_GPC['fee']) : message('收款金额有误', '', 'error');
 		$body = trim($_GPC['body']) ? trim($_GPC['body']) : '收银台收款' . $fee;
 		$data = array(
@@ -23,49 +23,60 @@ if($op == 'post') {
 			'credit_status' => 1,
 			'createtime' => TIMESTAMP,
 		);
-		pdo_insert('paycenter_order', $data);
+		table('paycenter_order')->fill($data)->save();
 		$id = pdo_insertid();
 		header('location:' . $this->createMobileUrl('scanpay', array('op' => 'qrcode', 'id' => $id)));
 		die;
 	}
 }
 
-if($op == 'qrcode') {
+if ('qrcode' == $op) {
 	$id = intval($_GPC['id']);
-	$order = pdo_get('paycenter_order', array('uniacid' => $_W['uniacid'], 'id' => $id));
-	if(empty($order)) {
+	$order = table('paycenter_order')->getById($id, $_W['uniacid']);
+	if (empty($order)) {
 		message('订单不存在或已删除', '', 'error');
 	}
-	if($order['status'] == 1) {
+	if (1 == $order['status']) {
 		message('该订单已付款', '', 'error');
 	}
 }
 
-if($op == 'list') {
-	$condition = ' WHERE uniacid = :uniacid AND status = 1 AND clerk_id = :clerk_id ';
-	$params = array(':uniacid' => $_W['uniacid'], ':clerk_id' => $_W['user']['clerk_id']);
+if ('list' == $op) {
 	$period = intval($_GPC['period']);
-	if($period <= 0) {
+	$where = array(
+		'uniacid' => $_W['uniacid'],
+		'status' => 1,
+		'clerk_id' => $_W['user']['clerk_id'],
+	);
+	if ($period <= 0) {
 		$starttime = strtotime(date('Y-m-d')) + $period * 86400;
 		$endtime = $starttime + 86400;
-		$condition .= ' AND paytime >= :starttime AND paytime <= :endtime ';
-		$params[':starttime'] = $starttime;
-		$params[':endtime'] = $endtime;
+		$where['paytime >='] = $starttime;
+		$where['paytime <='] = $endtime;
 	}
-	$orders = pdo_fetchall('SELECT * FROM ' . tablename('paycenter_order') . $condition . ' ORDER BY paytime DESC ', $params);
+	$orders = table('paycenter_order')
+		->where($where)
+		->orderby(array('paytime' => 'DESC'))
+		->getall();
 }
 
-if($op == 'detail') {
+if ('detail' == $op) {
 	$id = intval($_GPC['id']);
-	$order = pdo_get('paycenter_order', array('uniacid' => $_W['uniacid'], 'id' => $id));
-	if(empty($order)) {
+	$order = table('paycenter_order')->getById($id, $_W['uniacid']);
+	if (empty($order)) {
 		message('订单不存在', '', '');
 	} else {
 		$store_id = $order['store_id'];
 		$types = paycenter_order_types();
 		$trade_types = paycenter_order_trade_types();
 		$status = paycenter_order_status();
-		$store_info = pdo_get('activity_stores', array('id' => $store_id), array('business_name'));
+		$store_info = table('activity_stores')
+			->select('business_name')
+			->where(array(
+				'id' => $id, 
+				'uniacid' => $_W['uniacid']
+			))
+			->get();
 	}
 }
 

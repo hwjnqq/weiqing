@@ -1,12 +1,12 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 W7.CC
+ * $sn$.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('module');
 if (!empty($_W['uid'])) {
-	header('Location: '.url('account/display', array('type' => ACCOUNT_TYPE_SIGN)));
+	header('Location: ' . url('account/display', array('type' => ACCOUNT_TYPE_SIGN)));
 	exit;
 }
 
@@ -16,7 +16,7 @@ $settings = $_W['setting'];
 $copyright = $settings['copyright'];
 $copyright['slides'] = iunserializer($copyright['slides']);
 if (isset($copyright['showhomepage']) && empty($copyright['showhomepage'])) {
-	header("Location: ".url('user/login'));
+	header('Location: ' . url('user/login'));
 	exit;
 }
 load()->model('article');

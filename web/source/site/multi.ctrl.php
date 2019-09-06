@@ -1,7 +1,7 @@
 <?php
 /**
  * 微官网管理
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -17,17 +17,24 @@ permission_check_account_user('platform_site_multi');
 $setting = uni_setting($_W['uniacid'], 'default_site');
 $default_site = intval($setting['default_site']);
 //处理错误数据，默认微站状态不可为零
-$default_site_status = pdo_getcolumn('site_multi', array('id' => $default_site), 'status');
+$site_multi = table('site_multi')->getById($default_site, $_W['uniacid']);
+$default_site_status = $site_multi['status'];
 if ($default_site_status != 1) {
-	pdo_update('site_multi', array('status' => 1), array('id' => $default_site));
+	table('site_multi')
+		->where(array('id' => $default_site))
+		->fill(array('status' => 1))
+		->save();
 }
-
 if ($do == 'post') {
 	if ($_W['isajax'] && $_W['ispost']) {
 		//搜索模板
 		$name = safe_gpc_string($_GPC['name']);
-		$sql = "SELECT s.*, t.`name` AS `tname`, t.`title`, t.`type` FROM " . tablename('site_styles') . " AS s LEFT JOIN " . tablename('site_templates') . " AS t ON s.`templateid` = t.`id` WHERE s.`uniacid` = :uniacid AND s.`name` LIKE :name";
-		$styles = pdo_fetchall($sql, array(':uniacid' => $_W['uniacid'], ':name' => "%{$name}%"));
+		$styles = table('site_styles')
+			->searchWithTemplates()
+			->where(array(
+				'a.uniacid' => $_W['uniacid'],
+				'a.name LIKE' => "%{$name}%"))
+			->getall();
 		iajax(0, $styles, '');
 	}
 	$id = intval($_GPC['multiid']);
@@ -55,9 +62,12 @@ if ($do == 'post') {
 			if ($id == $default_site) {
 				$data['status'] = 1;
 			}
-			pdo_update('site_multi', $data, array('id' => $id));
+			table('site_multi')
+				->where(array('id' => $id))
+				->fill($data)
+				->save();
 		} else {
-			pdo_insert('site_multi', $data);
+			table('site_multi')->fill($data)->save();
 			$id = pdo_insertid();
 		}
 
@@ -77,7 +87,7 @@ if ($do == 'post') {
 	}
 
 	if (!empty($id)) {
-		$multi = pdo_fetch('SELECT * FROM ' . tablename('site_multi') . ' WHERE uniacid = :uniacid AND id = :id', array(':uniacid' => $_W['uniacid'], ':id' => $id));
+		$multi = table('site_multi')->getById($id, $_W['uniacid']);
 		if (empty($multi)) {
 			itoast('微站不存在或已删除', referer(), 'error');
 		}
@@ -87,9 +97,10 @@ if ($do == 'post') {
 
 	$temtypes = ext_template_type();
 	$temtypes[] = array('name' => 'all', 'title' => '全部');
-
-	$sql = 'SELECT `s`.*, `t`.`id` as `tid`, `t`.`name` AS `tname`, `t`.`title`, `t`.`type`, `t`.`sections` FROM ' . tablename('site_styles') . ' AS `s` LEFT JOIN ' . tablename('site_templates') . ' AS `t` ON `s`.`templateid` = `t`.`id` WHERE `s`.`uniacid` = :uniacid';
-	$styles = pdo_fetchall($sql, array(':uniacid' => $_W['uniacid']), 'id');
+	$styles = table('site_styles')
+		->searchWithTemplates()
+		->where(array('a.uniacid' => $_W['uniacid']))
+		->getall();
 
 	if (empty($multi)) {
 		$multi = array(
@@ -104,20 +115,18 @@ if ($do == 'post') {
 if ($do == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 10;
-	$condition = '';
-	$params = array();
-
+	$where['uniacid'] = $_W['uniacid'];
 	if (!empty($_GPC['keyword'])) {
-		$condition .= " AND `title` LIKE :keyword";
-		$params[':keyword'] = "%{$_GPC['keyword']}%";
+		$where['title LIKE'] = "%{$_GPC['keyword']}%";
 	}
-
 	$templates = uni_templates();
-	$params[':uniacid'] = $_W['uniacid'];
-	$multis = pdo_fetchall('SELECT * FROM ' . tablename('site_multi') . ' WHERE uniacid = :uniacid'.$condition.' ORDER BY id ASC LIMIT '.($pindex -1)* $psize.','.$psize, $params);
+	$multis = table('site_multi')
+		->where($where)
+		->searchWithPage($pindex, $psize)
+		->getall();
 	foreach ($multis as &$li) {
-		$li['style'] = pdo_fetch('SELECT * FROM ' .tablename('site_styles') . ' WHERE uniacid = :uniacid AND id = :id', array(':uniacid' => $_W['uniacid'], ':id' => $li['styleid']));
-		$li['template'] = pdo_fetch("SELECT * FROM ".tablename('site_templates')." WHERE id = :id", array(':id' => $li['style']['templateid']));
+		$li['style'] = table('site_styles')->getById($li['styleid'], $_W['uniacid']);
+		$li['template'] = table('site_templates')->getById($li['style']['templateid']);
 		$li['site_info'] = (array)iunserializer($li['site_info']);
 		$li['site_info']['thumb'] = tomedia($li['site_info']['thumb']);
 		if (file_exists('../app/themes/'.$li['template']['name'].'/preview.jpg')) {
@@ -127,7 +136,9 @@ if ($do == 'display') {
 		}
 	}
 	unset($li);
-	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('site_multi') . " WHERE uniacid = :uniacid".$condition, $params);
+	$total = table('site_multi')
+		->where($where)
+		->getcolumn('COUNT(*)');
 	$pager = pagination($total, $pindex, $psize);
 	template('site/display');
 }
@@ -138,59 +149,82 @@ if ($do == 'del') {
 		itoast('您删除的微站是默认微站,删除前先指定其他微站为默认微站', referer(), 'error');
 	}
 	//删除导航
-	pdo_delete('site_nav', array('uniacid' => $_W['uniacid'], 'multiid' => $id));
+	table('site_nav')
+		->where(array(
+			'uniacid' => $_W['uniacid'],
+			'multiid' => $id
+		))
+		->delete();
 	//删除微站入口设置
-	$rid = pdo_fetchcolumn('SELECT rid FROM ' .tablename('cover_reply') . ' WHERE uniacid = :uniacid AND multiid = :id', array(':uniacid' => $_W['uniacid'], ':id' => $id));
+	$rid = table('cover_reply')->where(array('uniacid' => $_W['uniacid'], 'multiid' => $id))->getcolumn('rid');
+
 	uni_delete_rule($rid, 'cover_reply');
 	//删除微站信息
-	pdo_delete('site_multi', array('uniacid' => $_W['uniacid'], 'id' => $id));
+	table('site_multi')
+		->where(array(
+			'uniacid' => $_W['uniacid'],
+			'id' => $id
+		))
+		->delete();
 	itoast('删除微站成功', referer(), 'success');
 }
 
 if ($do == 'copy') {
 	$id = intval($_GPC['multiid']);
-	$multi = pdo_fetch('SELECT * FROM ' . tablename('site_multi') . ' WHERE uniacid = :uniacid AND id = :id', array(':uniacid' => $_W['uniacid'], ':id' => $id));
+	$multi = table('site_multi')->getById($id, $_W['uniacid']);
 	if (empty($multi)) {
 		itoast('微站不存在或已删除', referer(), 'error');
 	}
 	$multi['title'] = $multi['title'] . '_' . random(6);
 	unset($multi['id']);
-	pdo_insert('site_multi', $multi);
+	table('site_multi')
+		->fill($multi)
+		->save();
 	$multi_id = pdo_insertid();
 	if (!$multi_id) {
 		itoast('复制微站出错', '', 'error');
 	} else {
 		//复制微站导航链接
-		$navs = pdo_fetchall('SELECT * FROM ' . tablename('site_nav') . ' WHERE uniacid = :uniacid AND multiid = :id', array(':uniacid' => $_W['uniacid'], ':id' => $id));
+		$navs = table('site_nav')
+			->getBySnake('*', array('uniacid' => $_W['uniacid'], 'multiid' => $id))
+			->getall();
 		if (!empty($navs)) {
 			foreach ($navs as &$nav) {
 				unset($nav['id']);
 				$nav['multiid'] = $multi_id;
-				pdo_insert('site_nav', $nav);
+				table('site_nav')->fill($nav)->save();
 			}
 			unset($nav);
 		}
 		//复制微站入口设置
-		$cover = pdo_fetch('SELECT * FROM ' . tablename('cover_reply') . ' WHERE uniacid = :uniacid AND multiid = :id', array(':uniacid' => $_W['uniacid'], ':id' => $id));
+		$cover = table('cover_reply')
+			->searchWithUniacid($_W['uniacid'])
+			->searchWithMultiid($id)
+			->get();
 		if (!empty($cover)) {
-			$rule = pdo_fetch('SELECT * FROM ' . tablename('rule') . ' WHERE uniacid = :uniacid AND id = :id', array(':uniacid' => $_W['uniacid'], ':id' => $cover['rid']));
-			$keywords = pdo_fetchall('SELECT * FROM ' . tablename('rule_keyword') . ' WHERE uniacid = :uniacid AND rid = :id', array(':uniacid' => $_W['uniacid'], ':id' => $cover['rid']));
+			$rule = table('rule')->getById($cover['rid'], $_W['uniacid']);
+			$keywords = table('rule_keyword')
+				->where(array(
+					'uniacid' => $_W['uniacid'],
+					'rid' => $cover['rid']
+				))
+				->getall();
 			if (!empty($rule) && !empty($keywords)) {
 				$rule['name'] = $multi['title'] . '入口设置';
 				unset($rule['id']);
-				pdo_insert('rule', $rule);
+				table('rule')->fill($rule)->save();
 				$new_rid = pdo_insertid();
 				foreach($keywords as &$keyword) {
 					unset($keyword['id']);
 					$keyword['rid'] = $new_rid;
-					pdo_insert('rule_keyword', $keyword);
+					table('rule_keyword')->fill($keyword)->save();
 				}
 				unset($keyword);
 				unset($cover['id']);
 				$cover['title'] =  $multi['title'] . '入口设置';
 				$cover['multiid'] =  $multi_id;
 				$cover['rid'] =  $new_rid;
-				pdo_insert('cover_reply', $cover);
+				table('cover_reply')->fill($cover)->save();
 			}
 		}
 		itoast('复制微站成功', url('site/multi/post', array('multiid' => $multi_id)), 'success');
@@ -199,12 +233,18 @@ if ($do == 'copy') {
 
 if ($do == 'switch') {
 	$id = intval($_GPC['id']);
-	$multi_info = pdo_get('site_multi', array('id' => $id, 'uniacid' => $_W['uniacid']));
+	$multi_info = table('site_multi')->getById($id, $_W['uniacid']);
 	if(empty($multi_info)) {
 		itoast('微站不存在或已删除', referer(), 'error');
 	}
 	$data = array('status' => $multi_info['status'] == 1 ? 0 : 1);
-	$result = pdo_update('site_multi', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
+	$result = table('site_multi')
+		->where(array(
+			'id' => $id,
+			'uniacid' => $_W['uniacid']
+		))
+		->fill($data)
+		->save();
 	if(!empty($result)) {
 		iajax(0, '更新成功！', '');
 	}else {
@@ -215,7 +255,12 @@ if ($do == 'switch') {
 if ($do == 'quickmenu_display' && $_W['isajax'] && $_W['ispost'] && $_W['role'] != 'operator') {
 	$multiid = intval($_GPC['multiid']);
 	if($multiid > 0){
-		$page = pdo_get('site_page', array('multiid' => $multiid, 'type' => 2));
+		$page = table('site_page')
+			->where(array(
+				'multiid' => $multiid,
+				'type' => 2
+			))
+			->get();
 	}
 	$params = !empty($page['params']) ? $page['params'] : 'null';
 	$status = $page['status'] == 1 ? 1 : 0;
@@ -246,11 +291,20 @@ if ($do == 'quickmenu_post' && $_W['isajax'] && $_W['ispost']) {
 		'html' => $html,
 		'createtime' => TIMESTAMP,
 	);
-	$id = pdo_fetchcolumn("SELECT id FROM ".tablename('site_page')." WHERE multiid = :multiid AND type = 2", array(':multiid' => intval($_GPC['multiid'])));
+	$id = table('site_page')
+		->searchWithMultiid(intval($_GPC['multiid']))
+		->where(array('type' => 2))
+		->getcolumn('id');
 	if (!empty($id)) {
-		$result = pdo_update('site_page', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
+		$result = table('site_page')
+			->where(array(
+				'id' => $id,
+				'uniacid' => $_W['uniacid']
+			))
+			->fill($data)
+			->save();
 	} else {
-		$result = pdo_insert('site_page', $data);
+		$result = table('site_page')->fill($data)->save();
 		$id = pdo_insertid();
 	}
 	if ($result) {

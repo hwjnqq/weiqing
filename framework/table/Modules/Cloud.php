@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 namespace We7\Table\Modules;
 
@@ -30,6 +30,7 @@ class Cloud extends \We7Table {
 		'is_ban',
 		'lastupdatetime',
 		'buytime',
+		'module_status'
 	);
 	protected $default = array(
 		'name' => '',
@@ -54,6 +55,7 @@ class Cloud extends \We7Table {
 		'is_ban' => 0,
 		'lastupdatetime' => 0,
 		'buytime' => 0,
+		'module_status' => 0
 	);
 
 	public function getByName($name) {

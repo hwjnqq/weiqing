@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 namespace We7\Table\Cover;
 
@@ -24,15 +24,18 @@ class Reply extends \We7Table {
 		'rid' => '',
 		'module' => '',
 		'do' => '',
-		'title' => '',
+		'title',
 		'description' => '',
 		'thumb' => '',
 		'url' => '',
 	);
+	
+	public function getAllByUniacid($uniacid) {
+		return $this->query->where('uniacid', $uniacid)->getall();
+	}
 
-	public function getCoverReplayInfo($module, $uniacid) {
-		$result = $this->query->from($this->tableName)->where('module', $module)->where('uniacid', $uniacid)->get();
-		return $result;
+	public function searchWithUniacid($uniacid) {
+		return $this->query->where('uniacid', $uniacid);
 	}
 
 	public function searchWithMultiid($multiid) {

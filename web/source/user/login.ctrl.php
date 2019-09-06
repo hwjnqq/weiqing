@@ -1,7 +1,7 @@
 <?php
 /**
  * 用户登录
- * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 define('IN_GW', true);
@@ -11,7 +11,7 @@ load()->model('message');
 load()->classs('oauth2/oauth2client');
 load()->model('setting');
 
-if (!empty($_W['uid']) && $_GPC['handle_type'] != 'bind') {
+if (!empty($_W['uid']) && 'bind' != $_GPC['handle_type']) {
 	itoast('请先退出再登录！');
 }
 if (checksubmit() || $_W['isajax']) {
@@ -24,7 +24,7 @@ if (in_array($_GPC['login_type'], $support_login_types)) {
 }
 
 $setting = $_W['setting'];
-$_GPC['login_type'] = !empty($_GPC['login_type']) ? $_GPC['login_type'] : (!empty($_W['setting']['copyright']['mobile_status']) ? 'mobile': 'system');
+$_GPC['login_type'] = !empty($_GPC['login_type']) ? $_GPC['login_type'] : (!empty($_W['setting']['copyright']['mobile_status']) ? 'mobile' : 'system');
 
 $login_urls = user_support_urls();
 template('user/login');
@@ -39,13 +39,13 @@ function _login($forward = '') {
 		$_GPC['handle_type'] = 'login';
 	}
 
-	if ($_GPC['handle_type'] == 'login') {
+	if ('login' == $_GPC['handle_type']) {
 		$member = OAuth2Client::create($_GPC['login_type'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appid'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appsecret'])->login();
 	} else {
 		$member = OAuth2Client::create($_GPC['login_type'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appid'], $_W['setting']['thirdlogin'][$_GPC['login_type']]['appsecret'])->bind();
 	}
 
-	if (!empty($_W['user']) && $_GPC['handle_type'] != ''  && $_GPC['handle_type'] == 'bind') {
+	if (!empty($_W['user']) && '' != $_GPC['handle_type'] && 'bind' == $_GPC['handle_type']) {
 		if (is_error($member)) {
 			itoast($member['message'], url('user/profile/bind'), '');
 		} else {
@@ -60,7 +60,7 @@ function _login($forward = '') {
 	$record = user_single($member);
 	$failed = pdo_get('users_failed_login', array('username' => trim($_GPC['username'])));
 	if (!empty($record)) {
-		if ($record['status'] == USER_STATUS_CHECK || $record['status'] == USER_STATUS_BAN) {
+		if (USER_STATUS_CHECK == $record['status'] || USER_STATUS_BAN == $record['status']) {
 			itoast('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决?', url('user/login'), '');
 		}
 		$_W['uid'] = $record['uid'];
@@ -68,13 +68,13 @@ function _login($forward = '') {
 		$_W['user'] = $record;
 
 		$support_login_bind_types = Oauth2CLient::supportThirdLoginBindType();
-		if (in_array($_GPC['login_type'], $support_login_bind_types) && !empty($_W['setting']['copyright']['oauth_bind']) && !$record['is_bind'] && empty($_W['isfounder']) && ($record['register_type'] == USER_REGISTER_TYPE_QQ || $record['register_type'] == USER_REGISTER_TYPE_WECHAT)) {
+		if (in_array($_GPC['login_type'], $support_login_bind_types) && !empty($_W['setting']['copyright']['oauth_bind']) && !$record['is_bind'] && empty($_W['isfounder']) && (USER_REGISTER_TYPE_QQ == $record['register_type'] || USER_REGISTER_TYPE_WECHAT == $record['register_type'])) {
 			message('您还没有注册账号，请前往注册', url('user/third-bind/bind_oauth', array('uid' => $record['uid'], 'openid' => $record['openid'], 'register_type' => $record['register_type'])));
 			exit;
 		}
 
 		if (!empty($_W['siteclose']) && empty($_W['isfounder'])) {
-			itoast('站点已关闭，关闭原因:'. $_W['setting']['copyright']['reason'], '', '');
+			itoast('站点已关闭，关闭原因:' . $_W['setting']['copyright']['reason'], '', '');
 		}
 
 		$cookie = array();
@@ -82,8 +82,10 @@ function _login($forward = '') {
 		$cookie['lastvisit'] = $record['lastvisit'];
 		$cookie['lastip'] = $record['lastip'];
 		$cookie['hash'] = !empty($record['hash']) ? $record['hash'] : md5($record['password'] . $record['salt']);
+		$cookie['rember'] = safe_gpc_int($_GPC['rember']);
 		$session = authcode(json_encode($cookie), 'encode');
-		isetcookie('__session', $session, !empty($_GPC['rember']) ? 7 * 86400 : 0, true);
+		$autosignout = (int)$_W['setting']['copyright']['autosignout'] > 0 ? (int)$_W['setting']['copyright']['autosignout'] * 60 : 0;
+		isetcookie('__session', $session, !empty($_GPC['rember']) ? 7 * 86400 : $autosignout, true);
 		$status = array();
 		$status['uid'] = $record['uid'];
 		$status['lastvisit'] = TIMESTAMP;
@@ -113,9 +115,9 @@ function _login($forward = '') {
 			$user_expire = setting_load('user_expire');
 			$user_expire = !empty($user_expire['user_expire']) ? $user_expire['user_expire'] : array();
 			$notice = !empty($user_expire['notice']) ? $user_expire['notice'] : '您的账号已到期，请前往商城购买续费';
-			$redirect = !empty($user_expire['status_store_redirect']) && $user_expire['status_store_redirect'] == 1 ? url('home/welcome/ext', array('m' => 'store')) : '';
+			$redirect = !empty($user_expire['status_store_redirect']) && 1 == $user_expire['status_store_redirect'] ? url('home/welcome/ext', array('m' => 'store')) : '';
 			$extend_buttons = array();
-			if (!empty($user_expire['status_store_button']) && $user_expire['status_store_button'] == 1) {
+			if (!empty($user_expire['status_store_button']) && 1 == $user_expire['status_store_button']) {
 				$extend_buttons['status_store_button'] = array(
 					'url' => url('home/welcome/ext', array('m' => 'store')),
 					'class' => 'btn btn-primary',

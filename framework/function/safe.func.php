@@ -1,19 +1,20 @@
 <?php
 /**
  * 提供系统安全获取传入值
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
 /**
- * 从GPC中获取一个数字
+ * 从GPC中获取一个数字.
+ *
  * @param unknown $value
- * @param string $default
+ * @param string  $default
  */
 function safe_gpc_int($value, $default = 0) {
 	//如果包含小数点，优先按float对待
 	//否则一律按int对待
-	if (strpos($value, '.') !== false) {
+	if (false !== strpos($value, '.')) {
 		$value = floatval($value);
 		$default = floatval($default);
 	} else {
@@ -24,6 +25,7 @@ function safe_gpc_int($value, $default = 0) {
 	if (empty($value) && $default != $value) {
 		$value = $default;
 	}
+
 	return $value;
 }
 
@@ -39,30 +41,35 @@ function safe_gpc_belong($value, $allow = array(), $default = '') {
 }
 
 /**
- * 转换一个安全字符串
- * @param mixed $value
+ * 转换一个安全字符串.
+ *
+ * @param mixed  $value
  * @param string $default
+ *
  * @return string
  */
 function safe_gpc_string($value, $default = '') {
 	$value = safe_bad_str_replace($value);
-	$value  = preg_replace('/&((#(\d{3,5}|x[a-fA-F0-9]{4}));)/', '&\\1', $value);
+	$value = preg_replace('/&((#(\d{3,5}|x[a-fA-F0-9]{4}));)/', '&\\1', $value);
 
 	if (empty($value) && $default != $value) {
 		$value = $default;
 	}
+
 	return $value;
 }
 
 /**
- * 转换一个安全路径
+ * 转换一个安全路径.
+ *
  * @param string $value
  * @param string $default
+ *
  * @return string
  */
 function safe_gpc_path($value, $default = '') {
 	$path = safe_gpc_string($value);
-	$path = str_replace(array('..', '..\\', '\\\\' ,'\\', '..\\\\'), '', $path);
+	$path = str_replace(array('..', '..\\', '\\\\', '\\', '..\\\\'), '', $path);
 
 	if (empty($path) || $path != $value) {
 		$path = $default;
@@ -72,9 +79,10 @@ function safe_gpc_path($value, $default = '') {
 }
 
 /**
- * 转换一个安全的字符串型数组
+ * 转换一个安全的字符串型数组.
+ *
  * @param unknown $value
- * @param array $default
+ * @param array   $default
  */
 function safe_gpc_array($value, $default = array()) {
 	if (empty($value) || !is_array($value)) {
@@ -89,12 +97,15 @@ function safe_gpc_array($value, $default = array()) {
 			$row = safe_gpc_string($row);
 		}
 	}
+
 	return $value;
 }
 
 /**
  * 转换一个安全的布尔值
+ *
  * @param mixed $value
+ *
  * @return boolean
  */
 function safe_gpc_boolean($value) {
@@ -102,7 +113,7 @@ function safe_gpc_boolean($value) {
 }
 
 /**
- * 转换一个安全HTML数据
+ * 转换一个安全HTML数据.
  */
 function safe_gpc_html($value, $default = '') {
 	if (empty($value) || !is_string($value)) {
@@ -114,6 +125,7 @@ function safe_gpc_html($value, $default = '') {
 	if (empty($value) && $value != $default) {
 		$value = $default;
 	}
+
 	return $value;
 }
 
@@ -140,18 +152,20 @@ function safe_gpc_sql($value, $operator = 'ENCODE', $default = '') {
 		'alt&#101;r', 'ca&#115;',
 	);
 
-	if ($operator == 'ENCODE') {
-		$value  = str_replace($badstr, $newstr, $value);
+	if ('ENCODE' == $operator) {
+		$value = str_replace($badstr, $newstr, $value);
 	} else {
-		$value  = str_replace($newstr, $badstr, $value);
+		$value = str_replace($newstr, $badstr, $value);
 	}
+
 	return $value;
 }
 
 /**
- * 转换一个安全URL
+ * 转换一个安全URL.
+ *
  * @param $_GPC中的值
- * @param boolean $strict_domain 是否严格限制只能为当前域下的URL
+ * @param bool   $strict_domain 是否严格限制只能为当前域下的URL
  * @param string $default
  */
 function safe_gpc_url($value, $strict_domain = true, $default = '') {
@@ -168,6 +182,7 @@ function safe_gpc_url($value, $strict_domain = true, $default = '') {
 		if (starts_with($value, $_W['siteroot'])) {
 			return $value;
 		}
+
 		return $default;
 	}
 
@@ -179,7 +194,8 @@ function safe_gpc_url($value, $strict_domain = true, $default = '') {
 }
 
 /**
- *  去掉可能造成xss攻击的字符
+ *  去掉可能造成xss攻击的字符.
+ *
  * @param $val $string 需处理的字符串
  */
 function safe_remove_xss($val) {
@@ -189,9 +205,9 @@ function safe_remove_xss($val) {
 	$search .= '1234567890!@#$%^&*()';
 	$search .= '~`";:?+/={}[]-_|\'\\';
 
-	for ($i = 0; $i < strlen($search); $i++) {
-		$val = preg_replace('/(&#[xX]0{0,8}'.dechex(ord($search[$i])).';?)/i', $search[$i], $val);
-		$val = preg_replace('/(&#0{0,8}'.ord($search[$i]).';?)/', $search[$i], $val);
+	for ($i = 0; $i < strlen($search); ++$i) {
+		$val = preg_replace('/(&#[xX]0{0,8}' . dechex(ord($search[$i])) . ';?)/i', $search[$i], $val);
+		$val = preg_replace('/(&#0{0,8}' . ord($search[$i]) . ';?)/', $search[$i], $val);
 	}
 	preg_match_all('/href=[\'|\"](.*?)[\'|\"]|src=[\'|\"](.*?)[\'|\"]/i', $val, $matches);
 	$url_list = array_merge($matches[1], $matches[2]);
@@ -206,11 +222,11 @@ function safe_remove_xss($val) {
 	$ra2 = array('onabort', 'onactivate', 'onafterprint', 'onafterupdate', 'onbeforeactivate', 'onbeforecopy', 'onbeforecut', 'onbeforedeactivate', 'onbeforeeditfocus', 'onbeforepaste', 'onbeforeprint', 'onbeforeunload', 'onbeforeupdate', 'onblur', 'onbounce', 'oncellchange', 'onchange', 'onclick', 'oncontextmenu', 'oncontrolselect', 'oncopy', 'oncut', 'ondataavailable', 'ondatasetchanged', 'ondatasetcomplete', 'ondblclick', 'ondeactivate', 'ondrag', 'ondragend', 'ondragenter', 'ondragleave', 'ondragover', 'ondragstart', 'ondrop', 'onerror', 'onerrorupdate', 'onfilterchange', 'onfinish', 'onfocus', 'onfocusin', 'onfocusout', 'onhelp', 'onkeydown', 'onkeypress', 'onkeyup', 'onlayoutcomplete', 'onload', 'onlosecapture', 'onmousedown', 'onmouseenter', 'onmouseleave', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onmousewheel', 'onmove', 'onmoveend', 'onmovestart', 'onpaste', 'onpropertychange', 'onreadystatechange', 'onreset', 'onresize', 'onresizeend', 'onresizestart', 'onrowenter', 'onrowexit', 'onrowsdelete', 'onrowsinserted', 'onscroll', 'onselect', 'onselectionchange', 'onselectstart', 'onstart', 'onstop', 'onsubmit', 'onunload', '@import');
 	$ra = array_merge($ra1, $ra2);
 	$found = true;
-	while ($found == true) {
+	while (true == $found) {
 		$val_before = $val;
-		for ($i = 0; $i < sizeof($ra); $i++) {
+		for ($i = 0; $i < sizeof($ra); ++$i) {
 			$pattern = '/';
-			for ($j = 0; $j < strlen($ra[$i]); $j++) {
+			for ($j = 0; $j < strlen($ra[$i]); ++$j) {
 				if ($j > 0) {
 					$pattern .= '(';
 					$pattern .= '(&#[xX]0{0,8}([9ab]);)';
@@ -221,7 +237,7 @@ function safe_remove_xss($val) {
 				$pattern .= $ra[$i][$j];
 			}
 			$pattern .= '/i';
-			$replacement = substr($ra[$i], 0, 2).'<x>'.substr($ra[$i], 2);
+			$replacement = substr($ra[$i], 0, 2) . '<x>' . substr($ra[$i], 2);
 			$val = preg_replace($pattern, $replacement, $val);
 			if ($val_before == $val) {
 				$found = false;
@@ -233,6 +249,7 @@ function safe_remove_xss($val) {
 			$val = str_replace('we7_' . $key . '_we7placeholder', $url, $val);
 		}
 	}
+
 	return $val;
 }
 
@@ -240,17 +257,18 @@ function safe_bad_str_replace($string) {
 	if (empty($string)) {
 		return '';
 	}
-	$badstr = array("\0", "%00", "%3C", "%3E", '<?', '<%', '<?php', '{php', '{if', '{loop', '../');
+	$badstr = array("\0", '%00', '%3C', '%3E', '<?', '<%', '<?php', '{php', '{if', '{loop', '../');
 	$newstr = array('_', '_', '&lt;', '&gt;', '_', '_', '_', '_', '_', '_', '.._');
-	$string  = str_replace($badstr, $newstr, $string);
+	$string = str_replace($badstr, $newstr, $string);
 
 	return $string;
 }
 
-
 /**
- * 检测密码强度
+ * 检测密码强度.
+ *
  * @param $password
+ *
  * @return array|bool
  */
 function safe_check_password($password) {

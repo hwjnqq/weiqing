@@ -1,7 +1,7 @@
 <?php
 /**
  * 小程序下载
- * [WeEngine System] Copyright (c) 2014 WE7.CC.
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -11,7 +11,7 @@ load()->classs('uploadedfile');
 
 $dos = array('front_download', 'domainset', 'code_uuid', 'code_gen', 'code_token', 'qrcode', 'checkscan',
 	'commitcode', 'preview', 'getpackage', 'entrychoose', 'set_wxapp_entry',
-	'custom', 'custom_save', 'custom_default', 'custom_convert_img', 'upgrade_module', 'tominiprogram', 'del_tominiprogram');
+	'custom', 'custom_save', 'custom_default', 'custom_convert_img', 'upgrade_module', 'tominiprogram');
 $do = in_array($do, $dos) ? $do : 'front_download';
 
 $wxapp_info = miniapp_fetch($_W['uniacid']);
@@ -19,22 +19,22 @@ $wxapp_info = miniapp_fetch($_W['uniacid']);
 // 是否是模块打包小程序
 $is_module_wxapp = false;
 if (!empty($version_id)) {
-	$is_single_module_wxapp = $version_info['type'] == WXAPP_CREATE_MODULE; //是否单应用打包
+	$is_single_module_wxapp = WXAPP_CREATE_MODULE == $version_info['type']; //是否单应用打包
 }
 
 
 
 // 自定义appjson 入口
-if ($do == 'custom') {
+if ('custom' == $do) {
 	$default_appjson = miniapp_code_current_appjson($version_id);
 
 	$default_appjson = json_encode($default_appjson);
 	template('wxapp/version-front-download');
 }
 // 使用默认appjson
-if ($do == 'custom_default') {
+if ('custom_default' == $do) {
 	$result = miniapp_code_set_default_appjson($version_id);
-	if ($result === false) {
+	if (false === $result) {
 		iajax(1, '操作失败，请重试！');
 	} else {
 		iajax(0, '设置成功！', url('wxapp/front-download/front_download', array('version_id' => $version_id)));
@@ -42,7 +42,7 @@ if ($do == 'custom_default') {
 }
 
 // 保存自定义appjson
-if ($do == 'custom_save') {
+if ('custom_save' == $do) {
 	if (empty($version_info)) {
 		iajax(1, '参数错误！');
 	}
@@ -68,15 +68,15 @@ if ($do == 'custom_save') {
 	iajax(0, '设置成功！', url('wxapp/front-download/front_download', array('version_id' => $version_id)));
 }
 
-if ($do == 'custom_convert_img') {
+if ('custom_convert_img' == $do) {
 	$attchid = intval($_GPC['att_id']);
 	$filename = miniapp_code_path_convert($attchid);
 	iajax(0, $filename);
 }
 
-if ($do == 'front_download') {
+if ('front_download' == $do) {
 	permission_check_account_user('wxapp_profile_front_download');
-	$appurl = $_W['siteroot'].'/app/index.php';
+	$appurl = $_W['siteroot'] . '/app/index.php';
 	$uptype = $_GPC['uptype'];
 	$wxapp_versions_info = miniapp_version($version_id);
 	if (!in_array($uptype, array('auto', 'normal'))) {
@@ -101,8 +101,10 @@ if ($do == 'front_download') {
 	template('wxapp/version-front-download');
 }
 
-if ($do == 'upgrade_module') {
-	$modules = pdo_getcolumn('wxapp_versions', array('id' => $version_id), 'modules');
+if ('upgrade_module' == $do) {
+	$modules = table('wxapp_versions')
+		->where(array('id' => $version_id))
+		->getcolumn('modules');
 	$modules = iunserializer($modules);
 	if (!empty($modules)) {
 		foreach ($modules as $name => $module) {
@@ -112,51 +114,54 @@ if ($do == 'upgrade_module') {
 			}
 		}
 		$modules = iserializer($modules);
-		pdo_update('wxapp_versions', array(
-			'modules' => $modules,
-			'last_modules' => $modules,
-			'version' => $_GPC['version'],
-			'description' => trim($_GPC['description']),
-			'upload_time' => TIMESTAMP,
-		), array('id' => $version_id));
+		table('wxapp_versions')
+			->where(array('id' => $version_id))
+			->fill(array(
+				'modules' => $modules,
+				'last_modules' => $modules,
+				'version' => $_GPC['version'],
+				'description' => trim($_GPC['description']),
+				'upload_time' => TIMESTAMP,
+			))
+			->save();
 		cache_delete(cache_system_key('miniapp_version', array('version_id' => $version_id)));
 	}
 	exit;
 }
 
 // 获取上传代码uuid
-if ($do == 'code_uuid') {
+if ('code_uuid' == $do) {
 	$user_version = $_GPC['user_version'];
 	$data = miniapp_code_generate($version_id, $user_version);
 	echo json_encode($data);
 }
 
-if ($do == 'code_gen') {
+if ('code_gen' == $do) {
 	$code_uuid = $_GPC['code_uuid'];
 	$data = miniapp_check_code_isgen($code_uuid);
 	echo json_encode($data);
 }
 
-if ($do == 'code_token') {
+if ('code_token' == $do) {
 	$tokendata = miniapp_code_token();
 	echo json_encode($tokendata);
 }
 
-if ($do == 'qrcode') {
+if ('qrcode' == $do) {
 	$code_token = $_GPC['code_token'];
 	header('Content-type: image/jpg'); //有的站必须指定content-type才能显示
 	echo miniapp_code_qrcode($code_token);
 	exit;
 }
 
-if ($do == 'checkscan') {
+if ('checkscan' == $do) {
 	$code_token = $_GPC['code_token'];
 	$last = $_GPC['last'];
 	$data = miniapp_code_check_scan($code_token, $last);
 	echo json_encode($data);
 }
 
-if ($do == 'preview') {
+if ('preview' == $do) {
 	$code_token = $_GPC['code_token'];
 	$code_uuid = $_GPC['code_uuid'];
 	$data = miniapp_code_preview_qrcode($code_uuid, $code_token);
@@ -164,7 +169,7 @@ if ($do == 'preview') {
 }
 
 // 上传代码
-if ($do == 'commitcode') {
+if ('commitcode' == $do) {
 	$user_version = $_GPC['user_version'];
 	$user_desc = $_GPC['user_desc'];
 	$code_token = $_GPC['code_token'];
@@ -173,59 +178,42 @@ if ($do == 'commitcode') {
 	echo json_encode($data);
 }
 
-if ($do == 'tominiprogram') {
+if ('tominiprogram' == $do) {
 	$tomini_lists = iunserializer($version_info['tominiprogram']);
-
 	if (!is_array($tomini_lists)) {
-		$data = array('tominiprogram' => iserializer(array()));
-		miniapp_version_update($version_id, $data);
+		$tomini_lists = array();
+		miniapp_version_update($version_id, array('tominiprogram' => iserializer(array())));
 	}
 
 	if (checksubmit()) {
-		$tominiprogram_data = array();
-		$appid = safe_gpc_string(trim($_GPC['appid']));
-		$app_name = safe_gpc_string(trim($_GPC['app_name']));
-		$tominiprogram_data[$appid] = array('appid' => $appid, 'app_name' => $app_name);
-		if (empty($appid)) {
-			itoast('appid不可为空！', referer(), 'error');
+		$appids = $_GPC['appid'];
+		$app_names = $_GPC['app_name'];
+		$is_add = intval($_GPC['is_add']);
+
+		if (!is_array($appids) || !is_array($app_names)) {
+			itoast('参数有误！', referer(), 'error');
 		}
-		if (empty($app_name)) {
-			itoast('app_name不可为空！', referer(), 'error');
+		$data = $is_add ? $tomini_lists : array();
+		foreach ($appids as $k => $appid) {
+			if (empty($appid) || empty($app_names[$k])) {
+				continue;
+			}
+			$appid = safe_gpc_string($appid);
+			$data[$appid] = array(
+				'appid' => $appid,
+				'app_name' => safe_gpc_string($app_names[$k])
+			);
+			if (count($data) >= 10) {
+				break;
+			}
 		}
-		if (in_array($appid, array_keys($tomini_lists))) {
-			itoast('该appid值已存在！', referer(), 'error');
-		}
-		if (count($tomini_lists) == 10) {
-			itoast('要跳转的小程序不可超过10个！', referer(), 'error');
-		}
-		if (empty($tomini_lists)) {
-			$data = array('tominiprogram' => iserializer($tominiprogram_data));
-		} else {
-			$tomini_lists[$appid] = array('appid' => $appid, 'app_name' => $app_name);
-			$data = array('tominiprogram' => iserializer($tomini_lists));
-		}
-		miniapp_version_update($version_id, $data);
+		miniapp_version_update($version_id, array('tominiprogram' => iserializer($data)));
 		itoast('保存成功！', referer(), 'success');
 	}
-
 	template('wxapp/version-front-download');
 }
 
-if ($do == 'del_tominiprogram') {
-	$tomini_lists = iunserializer($version_info['tominiprogram']);
-	$appid = safe_gpc_string(trim($_GPC['appid']));
-	$app_name = safe_gpc_string(trim($_GPC['app_name']));
-
-	if (!in_array($appid, array_keys($tomini_lists))) {
-		itoast('不存在该appid', referer(), 'error');
-	}
-	$tomini_lists = array_diff($tomini_lists, array($appid));
-	unset($tomini_lists[$appid]);
-	$data = array('tominiprogram' => iserializer($tomini_lists));
-	miniapp_version_update($version_id, $data);
-	itoast('删除成功！', referer(), 'success');
-}
-if ($do == 'getpackage') {
+if ('getpackage' == $do) {
 	if (empty($version_id)) {
 		itoast('参数错误！', '', '');
 	}
@@ -234,7 +222,7 @@ if ($do == 'getpackage') {
 		itoast('版本不存在！', referer(), 'error');
 	}
 
-	$siteurl = $_W['siteroot'].'app/index.php';
+	$siteurl = $_W['siteroot'] . 'app/index.php';
 	if (!empty($account_wxapp_info['appdomain'])) {
 		$siteurl = $account_wxapp_info['appdomain'];
 	}
@@ -260,7 +248,7 @@ if ($do == 'getpackage') {
 		itoast($result['message'], '', '');
 	} else {
 		header('content-type: application/zip');
-		header('content-disposition: attachment; filename="'.$request_cloud_data['name'].'.zip"');
+		header('content-disposition: attachment; filename="' . $request_cloud_data['name'] . '.zip"');
 		echo $result;
 	}
 	exit;

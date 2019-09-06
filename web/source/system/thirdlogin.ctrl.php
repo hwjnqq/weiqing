@@ -1,7 +1,7 @@
 <?php
 /**
  * 第三方登录配置
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -17,7 +17,7 @@ $type = !empty($type) && in_array($type, $types) ? $type : 'qq';
 $thirdlogin = $_W['setting']['thirdlogin'];
 $copyright = $_W['setting']['copyright'];
 
-if ($do == 'save_setting') {
+if ('save_setting' == $do) {
 	$is_copyright = false;
 	switch ($_GPC['key']) {
 		case 'qqauthstate':
@@ -40,7 +40,7 @@ if ($do == 'save_setting') {
 			break;
 		case 'bind':
 			$copyright['bind'] = safe_gpc_string($_GPC['value']);
-			$copyright['bind'] = $copyright['bind'] == 'null' ? '' : $copyright['bind'];
+			$copyright['bind'] = 'null' == $copyright['bind'] ? '' : $copyright['bind'];
 			$is_copyright = true;
 			break;
 		case 'oauth_bind':
@@ -56,7 +56,7 @@ if ($do == 'save_setting') {
 	itoast('更新设置成功！', referer(), 'success');
 }
 
-if ($do == 'display') {
+if ('display' == $do) {
 	if (empty($thirdlogin)) {
 		foreach ($types as $login_type) {
 			$thirdlogin[$login_type]['appid'] = '';

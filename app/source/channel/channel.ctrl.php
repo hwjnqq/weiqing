@@ -1,15 +1,17 @@
 <?php
 /**
  * 微站频道
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 
 defined('IN_IA') or exit('Access Denied');
 if (!empty($_GPC['styleid'])) {
 	$_W['account']['styleid'] = $_GPC['styleid'];
-	$_W['account']['template'] = pdo_fetchcolumn("SELECT name FROM ".tablename('site_templates')." WHERE id = '{$_W['account']['styleid']}'");
+	$_W['account']['template'] = table('site_templates')
+		->where(array('id' => $_W['account']['styleid']))
+		->getcolumn('name');
 }
-load()->model('app');
+load()->model('site');
 //$_W['styles'] = mobile_styles();
 
 $channel = array('index', 'mc', 'list', 'detail', 'album', 'photo','exchange');
@@ -25,8 +27,14 @@ if ($name == 'index') {
 	load()->model('site');
 	$position = 1;
 	$title = $_W['account']['name'];
-	$navs = app_navs($position);
-	$cover = pdo_fetch("SELECT description, title, thumb FROM ".tablename('cover_reply')." WHERE uniacid = :uniacid AND module = 'wesite'", array(':uniacid' => $_W['uniacid']));
+	$navs = site_app_navs($position);
+	$cover = table('cover_reply')
+		->select(array('description', 'title', 'thumb'))
+		->where(array(
+			'uniacid' => $_W['uniacid'],
+			'module' => 'wesite'
+		))
+		->get();
 	$_share_content = $cover['description'];
 	$title = $cover['title'];
 	$_share_img = $cover['thumb'];
@@ -36,7 +44,7 @@ if ($name == 'index') {
 	if (empty($_W['uid']) && empty($_W['openid'])) {
 		message('非法访问，请重新点击链接进入个人中心！');
 	}
-	$navs = app_navs($position);
+	$navs = site_app_navs($position);
 	if (!empty($navs)) {
 		foreach ($navs as $row) {
 			$menus[$row['module']][] = $row;

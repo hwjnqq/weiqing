@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  *
  * 实现要点: 是否按照统一公号隔离
@@ -682,7 +682,7 @@ function activity_coupon_sync() {
 		return false;
 	}
 	$coupon_api = new coupon($_W['acid']);
-	$cards = pdo_getall('coupon', array('acid' => $_W['acid']), array('id', 'status', 'card_id', 'acid'));
+	$cards = pdo_getall('coupon', array('uniacid' => $_W['uniacid']), array('id', 'status', 'card_id'));
 	foreach ($cards as $val) {
 		$card = $coupon_api -> fetchCard($val['card_id']);
 		if (is_error($card)) {
@@ -699,7 +699,7 @@ function activity_coupon_sync() {
 function activity_coupon_download($card_list) {
 	global $_W;
 	$coupon_api = new coupon($_W['acid']);
-	$local_coupon_list = pdo_getall('coupon', array('acid' => $_W['acid'], 'source' => 2), array('id', 'status', 'card_id', 'type'), 'card_id');
+	$local_coupon_list = pdo_getall('coupon', array('uniacid' => $_W['uniacid'], 'source' => 2), array('id', 'status', 'card_id', 'type'), 'card_id');
 	if (!empty($card_list['card_id_list'])) {
 		foreach ($card_list['card_id_list'] as $card_id) {
 			$coupon_info = $coupon_api->fetchCard($card_id);

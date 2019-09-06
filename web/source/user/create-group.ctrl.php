@@ -1,7 +1,7 @@
 <?php
 /**
  * 帐号权限组管理
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -9,7 +9,7 @@ $dos = array('display', 'delete', 'post', 'save');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
 
 $account_group_table = table('users_create_group');
-if ($do == 'display') {
+if ('display' == $do) {
 	$pageindex = max(1, intval($_GPC['page']));
 	$pagesize = 10;
 
@@ -31,7 +31,7 @@ if ($do == 'display') {
 	template('user/create-group-display');
 }
 
-if ($do == 'post') {
+if ('post' == $do) {
 	$id = intval($_GPC['id']);
 	if (!empty($id)) {
 		$account_group_info = $account_group_table->getCreateGroupInfoById($id);
@@ -65,7 +65,7 @@ if ($do == 'post') {
 	template('user/create-group-post');
 }
 
-if ($do == 'del') {
+if ('del' == $do) {
 	$id = intval($_GPC['id']);
 	$res = $account_group_table->deleteById($id);
 	table('users_founder_own_create_groups')->where('create_group_id', $id)->delete();
@@ -74,4 +74,3 @@ if ($do == 'del') {
 
 	itoast('操作' . $msg, $url);
 }
-

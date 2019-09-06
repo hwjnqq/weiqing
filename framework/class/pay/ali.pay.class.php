@@ -1,32 +1,34 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 W7.CC
+ * $sn$.
  */
 defined('IN_IA') or exit('Access Denied');
-class AliPay{
+class AliPay {
 	public $alipay;
 	public $refundlog_id;
+
 	public function __construct($module = '') {
 		global $_W;
-		if (!empty($module) && $module == 'store') {
+		if (!empty($module) && 'store' == $module) {
 			$setting = setting_load('store_pay');
 			$this->setting = $setting['store_pay'];
 		} else {
-			$setting = uni_setting_load('payment',  $_W['uniacid']);
+			$setting = uni_setting_load('payment', $_W['uniacid']);
 			$this->setting = $setting['payment'];
 		}
 	}
 
 	public function array2url($params) {
 		$str = '';
-		foreach($params as $key => $val) {
-			if(empty($val)) {
+		foreach ($params as $key => $val) {
+			if (empty($val)) {
 				continue;
 			}
 			$str .= "{$key}={$val}&";
 		}
 		$str = trim($str, '&');
+
 		return $str;
 	}
 
@@ -39,22 +41,23 @@ class AliPay{
 		openssl_sign($string, $sign, $res, OPENSSL_ALGO_SHA256);
 		openssl_free_key($res);
 		$sign = base64_encode($sign);
+
 		return $sign;
 	}
 
 	public function handleReufndResult($result) {
 		global $_W;
-		if ($result['code'] == 10000) {
-			WeUtility::logging ('ali_refund', var_export ($result, true));
-			$pay_log = pdo_get ('core_paylog', array ('uniacid' => $_W['uniacid'], 'uniontid' => $result['out_trade_no']));
-			$refund_log = pdo_get ('core_refundlog', array ('uniacid' => $_W['uniacid'], 'id' => $this->refundlog_id));
-			if (!empty($refund_log) && $refund_log['status'] == '0' && (($result['refund_fee']) == $refund_log['fee'])) {
-				pdo_update ('core_refundlog', array ('status' => 1), array ('id' => $refund_log['id']));
-				$site = WeUtility::createModuleSite ($pay_log['module']);
-				if (!is_error ($site)) {
+		if (10000 == $result['code']) {
+			WeUtility::logging('ali_refund', var_export($result, true));
+			$pay_log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'uniontid' => $result['out_trade_no']));
+			$refund_log = pdo_get('core_refundlog', array('uniacid' => $_W['uniacid'], 'id' => $this->refundlog_id));
+			if (!empty($refund_log) && '0' == $refund_log['status'] && (($result['refund_fee']) == $refund_log['fee'])) {
+				pdo_update('core_refundlog', array('status' => 1), array('id' => $refund_log['id']));
+				$site = WeUtility::createModuleSite($pay_log['module']);
+				if (!is_error($site)) {
 					$method = 'refundResult';
-					if (method_exists ($site, $method)) {
-						$ret = array ();
+					if (method_exists($site, $method)) {
+						$ret = array();
 						$ret['uniacid'] = $pay_log['uniacid'];
 						$ret['result'] = 'success';
 						$ret['type'] = $pay_log['type'];
@@ -75,17 +78,18 @@ class AliPay{
 	public function requestApi($url, $params) {
 		load()->func('communication');
 		$result = ihttp_post($url, $params);
-		if(is_error($result)) {
+		if (is_error($result)) {
 			return $result;
 		}
-		$result['content'] = iconv("GBK", "UTF-8//IGNORE", $result['content']);
+		$result['content'] = iconv('GBK', 'UTF-8//IGNORE', $result['content']);
 		$result = json_decode($result['content'], true);
-		if(!is_array($result)) {
+		if (!is_array($result)) {
 			return error(-1, '返回数据错误');
 		}
-		if($result['alipay_trade_refund_response']['code'] != 10000) {
+		if ($result['alipay_trade_refund_response']['code'] != 10000) {
 			return error(-1, $result['alipay_trade_refund_response']['sub_msg']);
 		}
+
 		return $result['alipay_trade_refund_response'];
 	}
 
@@ -95,6 +99,7 @@ class AliPay{
 	public function refund($params, $refundlog_id) {
 		$this->refundlog_id = $refundlog_id;
 		$params['sign'] = $this->bulidSign($params);
+
 		return $this->requestApi('https://openapi.alipay.com/gateway.do', $params);
 	}
 }

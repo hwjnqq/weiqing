@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn: pro/framework/model/extension.mod.php : v fc9f77cc82f2 : 2015/08/31 07:00:43 : yanghf $
  */
 defined('IN_IA') or exit('Access Denied');
@@ -648,28 +648,28 @@ function ext_check_module_subscribe($modulename) {
  */
 function ext_manifest_check($module_name, $manifest) {
 	if(is_string($manifest)) {
-		return error(1, '模块配置项定义错误, 具体错误内容为: <br />' . $manifest);
+		return error(1, '模块 mainfest.xml 配置文件有误, 具体错误内容为: <br />' . $manifest);
 	}
+	$error_msg = '';
 	if(empty($manifest['application']['name'])) {
-		return error(1, '模块名称未定义. ');
+		$error_msg .= '<br/>&lt;application&gt;&lt;name&gt;名称节点不能为空';
 	}
 	if(empty($manifest['application']['identifie']) || !preg_match('/^[a-z][a-z\d_]+$/i', $manifest['application']['identifie'])) {
-		return error(1, '模块标识符未定义或格式错误(仅支持字母和数字, 且只能以字母开头).');
-	}
-	if(strtolower($module_name) != strtolower($manifest['application']['identifie'])) {
-		return error(1, '模块名称定义与模块路径名称定义不匹配. ');
+		$error_msg .= '<br/>&lt;application&gt;&lt;identifie&gt;标识符节点不能为空或格式错误(仅支持字母和数字, 且只能以字母开头)';
+	} elseif(strtolower($module_name) != strtolower($manifest['application']['identifie'])) {
+		$error_msg .= '<br/>&lt;application&gt;&lt;identifie&gt;标识符节点与模块路径名称定义不匹配';
 	}
 	if(empty($manifest['application']['version']) || !preg_match('/^[\d\.]+$/i', $manifest['application']['version'])) {
-		return error(1, '模块版本号未定义(仅支持数字和句点). ');
+		$error_msg .= '<br/>&lt;application&gt;&lt;version&gt;版本号节点未定义或格式不正确(仅支持数字和句点)';
 	}
 	if(empty($manifest['application']['ability'])) {
-		return error(1, '模块功能简述未定义. ');
+		$error_msg .= '<br/>&lt;application&gt;&lt;ability&gt;功能简述节点不能为空';
 	}
 	if($manifest['platform']['isrulefields'] && !in_array('text', $manifest['platform']['handles'])) {
-		return error(1, '模块功能定义错误, 嵌入规则必须要能够处理文本类型消息.. ');
+		$error_msg .= '<br/>模块功能定义错误, 嵌入规则必须要能够处理文本类型消息';
 	}
 	if((!empty($manifest['cover']) || !empty($manifest['rule'])) && !$manifest['platform']['isrulefields']) {
-		return error(1, '模块功能定义错误, 存在封面或规则功能入口绑定时, 必须要嵌入规则. ');
+		$error_msg .= '<br/>模块功能定义错误, 存在封面或规则功能入口绑定时, 必须要嵌入规则';
 	}
 	global $points;
 	if (!empty($points)) {
@@ -677,7 +677,7 @@ function ext_manifest_check($module_name, $manifest) {
 			if(is_array($manifest[$name])) {
 				foreach($manifest[$name] as $menu) {
 					if(trim($menu['title']) == ''  || !preg_match('/^[a-z\d]+$/i', $menu['do']) && empty($menu['call'])) {
-						return error(1, $point['title'] . ' 扩展项功能入口定义错误, (操作标题[title], 入口方法[do])格式不正确.');
+						$error_msg .= "<br/>&lt;$name&gt;节点" . $point['title'] . ' 扩展项功能入口定义错误, (操作标题[title], 入口方法[do])格式不正确.';
 					}
 				}
 			}
@@ -687,12 +687,15 @@ function ext_manifest_check($module_name, $manifest) {
 	if(is_array($manifest['permissions']) && !empty($manifest['permissions'])) {
 		foreach($manifest['permissions'] as $permission) {
 			if(trim($permission['title']) == ''  || !preg_match('/^[a-z\d_]+$/i', $permission['permission'])) {
-				return error(1, "名称为： {$permission['title']} 的权限标识格式不正确,请检查标识名称或标识格式是否正确");
+				$error_msg .= '<br/>' . "&lt;permissions&gt;节点名称为： {$permission['title']} 的权限标识格式不正确,请检查标识名称或标识格式是否正确";
 			}
 		}
 	}
 	if(!is_array($manifest['versions'])) {
-		return error(1, '兼容版本格式错误');
+		$error_msg .= '<br/>&lt;versions&gt;节点兼容版本格式错误';
+	}
+	if (!empty($error_msg)) {
+		return error(-1, '模块 mainfest.xml 配置文件有误<br/>' . $error_msg);
 	}
 	return error(0);
 }

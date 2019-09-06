@@ -1,11 +1,10 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
 
-load()->model('app');
 load()->func('tpl');
 load()->model('user');
 
@@ -43,8 +42,6 @@ if ($do == 'pay_password') {
 
 /*积分记录*/
 if ($do == 'credits') {
-	$where = '';
-	$params = array(':uid' => $_W['member']['uid']);
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 15;
 	/*默认显示时间*/
@@ -59,17 +56,23 @@ if ($do == 'credits') {
 		$starttime = date('Ym01', strtotime(1*$period . "month"));
 		$endtime = date('Ymd', strtotime("$starttime + 1 month - 1 day"));
 	}
-	$where = ' AND `createtime` >= :starttime AND `createtime` < :endtime';
-	$params[':starttime'] = strtotime($starttime);
-	$params[':endtime'] = strtotime($endtime);
+	$where = array(
+		'uid' => $_W['member']['uid'],
+		'createtime >=' => strtotime($starttime),
+		'createtime < ' => strtotime($endtime)
+	);
 	/*获取用户名字和头像*/
-	$sql = 'SELECT `realname`, `avatar` FROM ' . tablename('mc_members') . " WHERE `uid` = :uid";
-	$user = pdo_fetch($sql, array(':uid' => $_W['member']['uid']));
+	$user = table('mc_members')
+		->select(array('realname', 'avatar'))
+		->where(array('uid' => $_W['member']['uid']))
+		->get();
 	if ($_GPC['credittype']) {
 		/*获取充值订单记录*/
 		if ($_GPC['type'] == 'order') {
-			$sql = 'SELECT * FROM ' . tablename('mc_credits_recharge') . " WHERE `uid` = :uid $where LIMIT " . ($pindex - 1) * $psize. ',' . $psize;
-			$orders = pdo_fetchall($sql, $params);
+			$orders = table('mc_credits_recharge')
+				->where($where)
+				->limit(($pindex - 1) * $psize, $psize)
+				->getall();
 			foreach ($orders as &$value) {
 				$value['createtime'] = date('Y-m-d', $value['createtime']);
 				$value['fee'] = number_format($value['fee'], 2);
@@ -79,8 +82,7 @@ if ($do == 'credits') {
 				unset($value);
 			}
 			/*订单数据分页*/
-			$ordersql = 'SELECT COUNT(*) FROM ' .tablename('mc_credits_recharge') . "WHERE `uid` = :uid {$where}";
-			$total = pdo_fetchcolumn($ordersql, $params);
+			$total = table('mc_credits_recharge')->where($where)->getcolumn('COUNT(*)');
 			$orderpager = pagination($total, $pindex, $psize, '', array('before' => 0, 'after' => 0, 'ajaxcallback' => ''));
 			template('mc/bond');
 			exit();
@@ -90,8 +92,7 @@ if ($do == 'credits') {
 	}
 
 	/*获取总支出收入情况*/
-	$sql = 'SELECT `num` FROM ' . tablename('mc_credits_record') . " WHERE `uid` = :uid $where";
-	$nums = pdo_fetchall($sql, $params);
+	$nums = table('mc_credits_record')->where($where)->getall('num');
 	$pay = $income = 0;
 	foreach ($nums as $value) {
 		if ($value['num'] > 0) {
@@ -105,8 +106,11 @@ if ($do == 'credits') {
 		$income = number_format($income, 2);
 	}
 	/*获取交易记录*/
-	$sql = 'SELECT * FROM ' . tablename('mc_credits_record') . " WHERE `uid` = :uid {$where} ORDER BY `createtime` DESC LIMIT " . ($pindex - 1) * $psize.','. $psize;
-	$data = pdo_fetchall($sql, $params);
+	$data = table('mc_credits_record')
+		->where($where)
+		->orderby(array('createtime' => 'DESC'))
+		->limit(($pindex - 1) * $psize, $psize)
+		->getall();
 	foreach ($data as $key=>$value) {
 		$data[$key]['credittype'] = $creditnames[$data[$key]['credittype']]['title'];
 		$data[$key]['createtime'] = date('Y-m-d H:i', $data[$key]['createtime']);
@@ -122,8 +126,7 @@ if ($do == 'credits') {
 		$data[$key]['remark'] = empty($data[$key]['remark']) ? '未记录' : $data[$key]['remark'];
 	}
 	/*数据分页*/
-	$pagesql = 'SELECT COUNT(*) FROM ' .tablename('mc_credits_record') . "WHERE `uid` = :uid {$where}";
-	$total = pdo_fetchcolumn($pagesql, $params);
+	$total = table('mc_credits_record')->where($where)->getcolumn('COUNT(*)');
 	$pager = pagination($total, $pindex, $psize, '', array('before' => 0, 'after' => 0, 'ajaxcallback' => ''));
 	$pagenums = ceil($total / $psize);
 	if($_W['isajax'] && $_W['ispost']) {
@@ -137,7 +140,18 @@ if ($do == 'credits') {
 	if ($type == 'recorddetail') {
 		$id = intval($_GPC['id']);
 		$credittype = $_GPC['credittype'];
-		$data = pdo_fetch("SELECT r.*, u.username FROM " . tablename('mc_credits_record') . ' AS r LEFT JOIN ' .tablename('users') . ' AS u ON r.operator = u.uid ' . ' WHERE r.id = :id AND r.uniacid = :uniacid AND r.credittype = :credittype ORDER BY id DESC LIMIT ' . ($pindex - 1) * $psize .',' . $psize, array(':uniacid' => $_W['uniacid'], ':id' => $id, ':credittype' => $credittype));
+		$data = table('mc_credits_record')
+			->searchWithUsers()
+			->select(array('r.*', 'u.username'))
+			->where(array(
+				'r.id' => $id,
+				'r.uniacid' => $_W['uniacid'],
+				'r.credittype' => $credittype
+			))
+			->orderby(array('r.id' => 'DESC'))
+			->limit(($pindex - 1) * $psize, $psize)
+			->get();
+
 		if ($data['credittype'] == 'credit2') {
 			$data['credittype'] = '余额';
 		} elseif ($data['credittype'] == 'credit1') {
@@ -150,20 +164,33 @@ if ($do == 'credits') {
 }
 
 if($do == 'record') {
-	$setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid']), array('nums_text', 'times_text'));
-	$card = pdo_get('mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
+	$setting = table('mc_card')
+		->where(array('uniacid' => $_W['uniacid']))
+		->select(array('nums_text', 'times_text'))
+		->get();
+	$card = table('mc_card_members')
+		->where( array(
+			'uniacid' => $_W['uniacid'],
+			'uid' => $_W['member']['uid']
+		))
+		->get();
 	$type = trim($_GPC['type']);
-	$where = ' WHERE uniacid = :uniacid AND uid = :uid AND type = :type';
-	$params = array(
-		':uniacid' => $_W['uniacid'],
-		':uid' => $_W['member']['uid'],
-		':type' => $type,
+	$where = array(
+		'uniacid' => $_W['uniacid'],
+		'uid' => $_W['member']['uid'],
+		'type' => $type,
 	);
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_card_record') . $where, $params);
-	$limit = ' ORDER BY id DESC LIMIT ' . ($pindex - 1) * $psize . ', ' . $psize;
-	$data = pdo_fetchall('SELECT * FROM ' . tablename('mc_card_record') . $where . $limit, $params);
+	$total = table('mc_card_record')
+		->where($where)
+		->getcolumn('COUNT(*)');
+
+	$data = table('mc_card_record')
+		->where($where)
+		->orderby(array('id' => 'DESC'))
+		->limit(($pindex - 1) * $psize, $psize)
+		->getall();
 	$pager = pagination($total, $pindex, $psize, '', array('before' => 0, 'after' => 0, 'ajaxcallback' => ''));
 }
 
@@ -185,7 +212,7 @@ if($do == 'mobile') {
 			message(error(-1, '格式错误'), '', 'ajax');
 		}
 		if (!code_verify($_W['uniacid'], $mobile, $code)) {
-			pdo_delete('uni_verifycode', array('receiver' => $username));
+			table('uni_verifycode')->where(array('receiver' => $username))->delete();
 			message(error(-1, '验证码错误'), '', 'ajax');
 		} else {
 
@@ -201,7 +228,14 @@ if($do == 'mobile') {
 				message(error(-1, '密码不一致'), '', 'ajax');
 			}
 		}
-		$is_exist = pdo_fetch('SELECT uid FROM ' . tablename('mc_members') . ' WHERE uniacid = :uniacid AND mobile = :mobile AND uid != :uid', array(':uniacid' => $_W['uniacid'], ':mobile' => $mobile, ':uid' => $_W['member']['uid']));
+		$is_exist = table('mc_members')
+			->select('uid')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'mobile' => $mobile,
+				'uid' => $_W['member']['uid']
+			))
+			->get();
 		if(!empty($is_exist)) {
 			message(error(-1, '手机号已被绑定'), '', 'ajax');
 		} else {
@@ -227,7 +261,13 @@ if ($do == 'password') {
 		if (empty($reregister) && !empty($profile['password'])) {
 			$oldpassword = trim($_GPC['oldpassword']);
 			$oldpassword = md5($oldpassword . $profile['salt'] . $_W['config']['setting']['authkey']);
-			$correct = pdo_get('mc_members', array('uid' => $_W['member']['uid'], 'password' => $oldpassword), array('uid'));
+			$correct = table('mc_members')
+				->where(array(
+					'uid' => $_W['member']['uid'],
+					'password' => $oldpassword
+				))
+				->select('uid')
+				->get();
 			if (empty($correct)) {
 				message('旧密码不正确', '', 'error');
 			}
@@ -259,7 +299,14 @@ if ($do == 'email') {
 			message('请输入您的邮箱', '', 'error');
 		}
 		$data['email'] = trim($_GPC['email']);
-		$emailexists = pdo_get('mc_members', array('email' => $data['email'], 'uniacid' => $_W['uniacid'], 'uid <>' => $_W['member']['uid']), array('uid'));
+		$emailexists = table('mc_members')
+			->where(array(
+				'email' => $data['email'],
+				'uniacid' => $_W['uniacid'],
+				'uid <>' => $_W['member']['uid']
+			))
+			->select('uid')
+			->get();
 		if (!empty($emailexists['uid'])) {
 			message('抱歉，该E-Mail地址已经被注册，请更换。', '', 'error');
 		}
@@ -317,9 +364,23 @@ if ($do == 'binding_account') {
 		}
 		if ($type == '1') {
 			if (!empty($data['email'])) {
-				$userexists = pdo_get('mc_members', array('email' => $data['email'], 'uniacid' => $_W['uniacid'], 'uid <>' => $_W['member']['uid']), array('uid'));
+				$userexists = table('mc_members')
+					->where(array(
+						'email' => $data['email'],
+						'uniacid' => $_W['uniacid'],
+						'uid <>' => $_W['member']['uid']
+					))
+					->select('uid')
+					->get();
 			} elseif (!empty($data['mobile'])) {
-				$userexists = pdo_get('mc_members', array('mobile' => $data['mobile'], 'uniacid' => $_W['uniacid'], 'uid <>' => $_W['member']['uid']), array('uid'));
+				$userexists = table('mc_members')
+					->where(array(
+						'mobile' => $data['mobile'],
+						'uniacid' => $_W['uniacid'],
+						'uid <>' => $_W['member']['uid']
+					))
+					->select('uid')
+					->get();
 				$data['email'] = '';
 			}
 
@@ -336,7 +397,13 @@ if ($do == 'binding_account') {
 				message('邮箱格式不正确', referer(), 'error');
 			}
 			if (!empty($reregister)) {
-				$member = pdo_get('mc_members', array('uniacid' => $_W['uniacid'], 'email' => $data['email']), array('uid', 'salt', 'password'));
+				$member = table('mc_members')
+					->select(array('uid', 'salt', 'password'))
+					->where(array(
+						'uniacid' => $_W['uniacid'],
+						'email' => $data['email']
+					))
+					->get();
 				if (empty($member)) {
 					message('绑定已有账号失败', '', 'error');
 				}
@@ -344,10 +411,13 @@ if ($do == 'binding_account') {
 				if ($member['password'] != $hash) {
 					message('绑定已有账号失败', '', 'error');
 				}
-				pdo_update('mc_mapping_fans', array('uid' => $member['uid']), array(
-					'acid' => $_W['acid'],
-					'openid' => $_W['openid'],
-				));
+				table('mc_mapping_fans')
+					->where(array(
+						'uniacid' => $_W['uniacid'],
+						'openid' => $_W['openid'],
+					))
+					->fill(array('uid' => $member['uid']))
+					->save();
 
 				//删除之前的帐号信息，转称资料，积分数据
 				$member_old = mc_fetch($_W['member']['uid']);
@@ -367,16 +437,57 @@ if ($do == 'binding_account') {
 					$profile_update['credit3'] = $member_old['credit3'] + $member_new['credit3'];
 					$profile_update['credit4'] = $member_old['credit4'] + $member_new['credit4'];
 					$profile_update['credit5'] = $member_old['credit5'] + $member_new['credit5'];
-					pdo_update('mc_members', $profile_update, array('uid' => $member['uid'], 'uniacid' => $_W['uniacid']));
+					table('mc_members')
+						->where(array(
+							'uid' => $member['uid'],
+							'uniacid' => $_W['uniacid']
+						))
+						->fill($profile_update)
+						->save();
 					cache_build_memberinfo($member['uid']);
-					pdo_delete('mc_members', array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
+					table('mc_members')
+						->where(array(
+							'uid' => $_W['member']['uid'],
+							'uniacid' => $_W['uniacid']
+						))
+						->delete();
 					//转换各种券的信息
-					pdo_update('coupon_record', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
-					pdo_update('activity_exchange_trades', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
-					pdo_update('activity_exchange_trades_shipping', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
+					table('coupon_record')
+						->where(array(
+							'uid' => $_W['member']['uid'],
+							'uniacid' => $_W['uniacid']
+						))
+						->fill(array('uid' => $member['uid']))
+						->save();
+					table('activity_exchange_trades')
+						->where(array(
+							'uid' => $_W['member']['uid'],
+							'uniacid' => $_W['uniacid']
+						))
+						->fill(array('uid' => $member['uid']))
+						->save();
+					table('activity_exchange_trades_shipping')
+						->where(array(
+							'uid' => $_W['member']['uid'],
+							'uniacid' => $_W['uniacid']
+						))
+						->fill(array('uid' => $member['uid']))
+						->save();
 					//积分变更日志信息
-					pdo_update('mc_credits_record', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
-					pdo_update('mc_card_members', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
+					table('mc_credits_record')
+						->where(array(
+							'uid' => $_W['member']['uid'],
+							'uniacid' => $_W['uniacid']
+						))
+						->fill(array('uid' => $member['uid']))
+						->save();
+					table('mc_card_members')
+						->where(array(
+							'uid' => $_W['member']['uid'],
+							'uniacid' => $_W['uniacid']
+						))
+						->fill(array('uid' => $member['uid']))
+						->save();
 				}
 				message('绑定已有账号成功', url('mc/home'), 'success');
 			}

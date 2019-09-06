@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn: pro/payment/baifubao/pay.php : v 34f72bf40b9a : 2015/07/28 03:11:13 : RenChao $
  */
 define('IN_MOBILE', true);
@@ -23,10 +23,9 @@ require 'bfb_sdk.php';
 if (!empty($_GPC['pay_result']) && $_GPC['pay_result'] == '1') {
 	$bfb_sdk = new bfb_sdk();
 	if (true === $bfb_sdk->check_bfb_pay_result_notify()) {
-		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniontid`=:uniontid';
-		$params = array();
-		$params[':uniontid'] = $_GPC['order_no'];
-		$log = pdo_fetch($sql, $params);
+		$log = table('core_paylog')
+			->where(array('uniontid' => safe_gpc_string($_GPC['order_no'])))
+			->get();
 		$site = WeUtility::createModuleSite($log['module']);
 		if(!is_error($site)) {
 			$method = 'payResult';
@@ -50,8 +49,9 @@ if (!empty($_GPC['pay_result']) && $_GPC['pay_result'] == '1') {
 	}
 }
 
-$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `plid`=:plid';
-$paylog = pdo_fetch($sql, array(':plid' => $params['tid']));
+$paylog = table('core_paylog')
+	->where(array('plid' => $params['tid']))
+	->get();
 if(!empty($paylog) && $paylog['status'] != '0') {
 	exit('这个订单已经支付成功, 不需要重复支付.');
 }

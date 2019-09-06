@@ -1,7 +1,6 @@
 <?php
 /**
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -16,10 +15,10 @@ if (!empty($version_id)) {
 	}
 }
 
-if ($action == 'version' && $do == 'display') {
+if ('version' == $action && 'display' == $do) {
 	define('FRAME', '');
 }
-if (in_array($action, array('manage', 'post'))) {
+if (in_array($action, array('manage', 'post', 'register'))) {
 	define('FRAME', 'account_manage');
 }
 if (!in_array($action, array('post', 'manage', 'auth'))) {

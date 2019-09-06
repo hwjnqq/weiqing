@@ -1,19 +1,19 @@
 <?php
 /**
  * 敏感词汇
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('setting');
 
 $dos = array('display', 'add', 'delete');
-$do = in_array($_GPC['do'], $dos)? $do : 'display';
+$do = in_array($_GPC['do'], $dos) ? $do : 'display';
 
 $words_list = setting_load('sensitive_words');
 $words_list = !empty($words_list['sensitive_words']) ? $words_list['sensitive_words'] : array();
 
-if ($do == 'display') {
+if ('display' == $do) {
 	$keyword = trim($_GPC['keyword']);
 	$lists = $words_list;
 	if (!empty($keyword)) {
@@ -26,7 +26,7 @@ if ($do == 'display') {
 	}
 }
 
-if ($do == 'add') {
+if ('add' == $do) {
 	$add_word = trim($_GPC['word']);
 	if (empty($add_word)) {
 		iajax(-1, '敏感词不能为空', url('system/sensitiveword'));
@@ -43,13 +43,13 @@ if ($do == 'add') {
 	iajax(0, '添加成功', url('system/sensitiveword'));
 }
 
-if ($do == 'delete') {
+if ('delete' == $do) {
 	$del_word = safe_gpc_string($_GPC['word']);
 	if (empty($del_word)) {
 		iajax(-1, '不能为空');
 	}
 	$del_word_index = array_search($del_word, $words_list);
-	if ($del_word_index === false) {
+	if (false === $del_word_index) {
 		iajax(-1, '敏感词不存在');
 	}
 	unset($words_list[$del_word_index]);

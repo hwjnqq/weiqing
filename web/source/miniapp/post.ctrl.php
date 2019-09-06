@@ -1,12 +1,11 @@
 <?php
 /**
  * 创建小程序
- * [WeEngine System] Copyright (c) 2014 WE7.CC.
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('module');
-load()->model('miniapp');
 
 $dos = array('post', 'get_wxapp_modules', 'module_binding');
 $do = in_array($do, $dos) ? $do : 'post';
@@ -18,7 +17,7 @@ if (!in_array($type, array_keys($account_all_type))) {
 $account_info = permission_user_account_num($_W['uid']);
 $type_sign = $account_all_type[$type]['type_sign'];
 
-if ($do == 'post') {
+if ('post' == $do) {
 	$uniacid = intval($_GPC['uniacid']);
 	$miniapp_info = miniapp_fetch($uniacid);
 	if (empty($miniapp_info)) {
@@ -38,19 +37,19 @@ if ($do == 'post') {
 			'modules' => '',
 			'createtime' => TIMESTAMP,
 		);
-		if ($type_sign == WXAPP_TYPE_SIGN) {
+		if (WXAPP_TYPE_SIGN == $type_sign) {
 			$version['design_method'] = WXAPP_MODULE;
 		}
 		$module = module_fetch($_GPC['choose_module']['name']);
 		if (!empty($module)) {
 			$select_modules[$module['name']] = array(
 				'name' => $module['name'],
-				'version' => $module['version']
+				'version' => $module['version'],
 			);
 			$version['modules'] = serialize($select_modules);
 		}
 
-		pdo_insert('wxapp_versions', $version);
+		table('wxapp_versions')->fill($version)->save();
 		$version_id = pdo_insertid();
 		if (empty($version_id)) {
 			iajax(-1, '创建失败');

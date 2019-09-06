@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
@@ -12,7 +12,9 @@ if (!empty($_SESSION['pay_params'])) {
 	//借用微信支付或服务商支付，授权公众号信息改成借用公众号信息
 	$setting = uni_setting($_W['uniacid'], array('payment'));
 	$uniacid = !empty($setting['payment']['wechat']['service']) ? $setting['payment']['wechat']['service'] : $setting['payment']['wechat']['borrow'];
-	$acid = pdo_getcolumn('uni_account', array('uniacid' => $uniacid), 'default_acid');
+	$acid = table('uni_account')
+		->where(array('uniacid' => $uniacid))
+		->getcolumn('default_acid');
 	$setting = account_fetch($acid);
 	$_W['account']['oauth'] = array(
 		'key' => $setting['key'],
@@ -67,7 +69,7 @@ if (intval($_W['account']['level']) == ACCOUNT_SERVICE_VERIFY) {
 			}
 		}
 	} else {
-		$accObj = WeAccount::create($_W['account']);
+		$accObj = WeAccount::createByUniacid($_W['uniacid']);
 		$userinfo = $accObj->fansQueryInfo($oauth['openid']);
 
 		if(!is_error($userinfo) && !empty($userinfo) && !empty($userinfo['subscribe'])) {
@@ -86,15 +88,27 @@ if (intval($_W['account']['level']) == ACCOUNT_SERVICE_VERIFY) {
 				'followtime' => $userinfo['subscribe_time'],
 				'unfollowtime' => 0,
 				'unionid' => $userinfo['unionid'],
-				'tag' => base64_encode(iserializer($userinfo))
+				'tag' => base64_encode(iserializer($userinfo)),
+				'user_from' => $_W['account']->typeSign == 'wxapp' ? 1 : 0,
 			);
+
 			if (!isset($unisetting['passport']) || empty($unisetting['passport']['focusreg'])) {
 				$email = md5($oauth['openid']).'@we7.cc';
-				$email_exists_member = pdo_getcolumn('mc_members', array('email' => $email, 'uniacid' => $_W['uniacid']), 'uid');
+				$email_exists_member = table('mc_members')
+					->where(array(
+						'email' => $email,
+						'uniacid' => $_W['uniacid']
+					))
+					->getcolumn('uid');
 				if (!empty($email_exists_member)) {
 					$uid = $email_exists_member;
 				} else {
-					$default_groupid = pdo_fetchcolumn('SELECT groupid FROM ' .tablename('mc_groups') . ' WHERE uniacid = :uniacid AND isdefault = 1', array(':uniacid' => $_W['uniacid']));
+					$default_groupid = table('mc_groups')
+						->where(array(
+							'uniacid' => $_W['uniacid'],
+							'isdefault' => 1
+						))
+						->getcolumn('groupid');
 					$data = array(
 						'uniacid' => $_W['uniacid'],
 						'email' => $email,
@@ -109,14 +123,13 @@ if (intval($_W['account']['level']) == ACCOUNT_SERVICE_VERIFY) {
 						'resideprovince' => $userinfo['province'] . '省',
 						'residecity' => $userinfo['city'] . '市',
 					);
-					pdo_insert('mc_members', $data);
+					table('mc_members')->fill($data)->save();
 					$uid = pdo_insertid();
 				}
 				$record['uid'] = $uid;
 				$_SESSION['uid'] = $uid;
 			}
-			pdo_insert('mc_mapping_fans', $record);
-
+			table('mc_mapping_fans')->fill($record)->save();
 			$mc_fans_tag_table = table('mc_fans_tag');
 			$mc_fans_tag_fields = mc_fans_tag_fields();
 			$fans_tag_update_info = array();
@@ -128,9 +141,12 @@ if (intval($_W['account']['level']) == ACCOUNT_SERVICE_VERIFY) {
 			}
 			$fans_tag_exists = $mc_fans_tag_table->getByOpenid($fans_tag_update_info['openid']);
 			if (!empty($fans_tag_exists)) {
-				pdo_update('mc_fans_tag', $fans_tag_update_info, array('openid' => $fans_tag_update_info['openid']));
+				table('mc_fans_tag')
+					->where(array('openid' => $fans_tag_update_info['openid']))
+					->fill($fans_tag_update_info)
+					->save();
 			} else {
-				pdo_insert('mc_fans_tag', $fans_tag_update_info);
+				table('mc_fans_tag')->fill($fans_tag_update_info)->save();
 			}
 		} else {
 			$record = array(
@@ -149,7 +165,10 @@ if (intval($_W['account']['level']) == ACCOUNT_SERVICE_VERIFY) {
 if (intval($_W['account']['level']) != ACCOUNT_SERVICE_VERIFY) {
 	//如果包含Unionid，则直接查原始openid
 	if (!empty($oauth['unionid'])) {
-		$fan = pdo_get('mc_mapping_fans', array('unionid' => $oauth['unionid'], 'uniacid' => $_W['uniacid']));
+		$fan = table('mc_mapping_fans')
+			->searchWithUnionid($oauth['unionid'])
+			->searchWithUniacid($_W['uniacid'])
+			->get();
 		if (!empty($fan)) {
 			if (!empty($fan['uid'])) {
 				$_SESSION['uid'] = intval($fan['uid']);
@@ -167,7 +186,7 @@ if (intval($_W['account']['level']) != ACCOUNT_SERVICE_VERIFY) {
 				'uid' => intval($_SESSION['uid']),
 				'openid' => $_SESSION['openid']
 			);
-			pdo_insert('mc_oauth_fans', $data);
+			table('mc_oauth_fans')->fill($data)->save();
 		}
 		if (!empty($mc_oauth_fan)) {
 			if (empty($_SESSION['uid']) && !empty($mc_oauth_fan['uid'])) {
@@ -185,7 +204,7 @@ if ($scope == 'userinfo' || $scope == 'snsapi_userinfo') {
 		$userinfo['nickname'] = stripcslashes($userinfo['nickname']);
 		$userinfo['avatar'] = $userinfo['headimgurl'];
 		$_SESSION['userinfo'] = base64_encode(iserializer($userinfo));
-		$fan = pdo_get('mc_mapping_fans', array('openid' => $oauth['openid']));
+		$fan = table('mc_mapping_fans')->searchWithOpenid($oauth['openid'])->get();
 		if (!empty($fan)) {
 			$record = array();
 			$record['updatetime'] = TIMESTAMP;
@@ -194,7 +213,13 @@ if ($scope == 'userinfo' || $scope == 'snsapi_userinfo') {
 			if (empty($fan['unionid'])) {
 				$record['unionid'] = !empty($userinfo['unionid']) ? $userinfo['unionid'] : '';
 			}
-			pdo_update('mc_mapping_fans', $record, array('openid' => $fan['openid'], 'acid' => $_W['acid'], 'uniacid' => $_W['uniacid']));
+			table('mc_mapping_fans')
+				->where(array(
+					'openid' => $fan['openid'],
+					'uniacid' => $_W['uniacid']
+				))
+				->fill($record)
+				->save();
 			if (!empty($fan['uid']) || !empty($_SESSION['uid'])) {
 				$uid = $fan['uid'];
 				if(empty($uid)){
@@ -237,10 +262,17 @@ if ($scope == 'userinfo' || $scope == 'snsapi_userinfo') {
 				'followtime' => 0,
 				'unfollowtime' => 0,
 				'tag' => base64_encode(iserializer($userinfo)),
-				'unionid' => !empty($userinfo['unionid']) ? $userinfo['unionid'] : ''
+				'unionid' => !empty($userinfo['unionid']) ? $userinfo['unionid'] : '',
+				'user_from' => $_W['account']->typeSign == 'wxapp' ? 1 : 0,
 			);
+
 			if (!isset($unisetting['passport']) || empty($unisetting['passport']['focusreg'])) {
-				$default_groupid = pdo_fetchcolumn('SELECT groupid FROM ' .tablename('mc_groups') . ' WHERE uniacid = :uniacid AND isdefault = 1', array(':uniacid' => $_W['uniacid']));
+				$default_groupid = table('mc_groups')
+					->where(array(
+						'uniacid' => $_W['uniacid'],
+						'isdefault' => 1
+					))
+					->getcolumn('groupid');
 				$data = array(
 					'uniacid' => $_W['uniacid'],
 					'email' => md5($oauth['openid']).'@we7.cc',
@@ -255,12 +287,14 @@ if ($scope == 'userinfo' || $scope == 'snsapi_userinfo') {
 					'resideprovince' => $userinfo['province'] . '省',
 					'residecity' => $userinfo['city'] . '市',
 				);
-				pdo_insert('mc_members', $data);
+				table('mc_members')
+					->fill($data)
+					->save();
 				$uid = pdo_insertid();
 				$record['uid'] = $uid;
 				$_SESSION['uid'] = $uid;
 			}
-			pdo_insert('mc_mapping_fans', $record);
+			table('mc_mapping_fans')->fill($record)->save();
 		}
 	} else {
 		message('微信授权获取用户信息失败,错误信息为: ' . $response['message']);

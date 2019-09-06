@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 namespace We7\Table\Site;
 
@@ -24,8 +24,7 @@ class Multi extends \We7Table {
 		'bindhost' => '',
 	);
 
-	public function getById($id) {
-		global $_W;
-		return $this->query->where('id', $id)->where('uniacid', $_W['uniacid'])->get();
+	public function getAllByUniacid($uniacid) {
+		return $this->query->where('uniacid', $uniacid)->getall();
 	}
 }

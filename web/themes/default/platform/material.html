@@ -107,7 +107,7 @@
 							</div>
 							<p class="appmsg-desc">{$material['items']['0']['digest']}</p>
 							{if $material['model'] == 'local'}
-								<a href="javascript:;" target="_blank" class="cover-dark">
+								<a href="{if !empty($material['items']['0']['content_source_url']) && filter_var($material['items']['0']['content_source_url'], FILTER_VALIDATE_URL) !== false}{$material['items']['0']['content_source_url']}{else}{php echo url('platform/material/detail', array('newsid' => $material['id']))}{/if}" target="_blank" class="cover-dark">
 							{else}
 								<a href="javascript:;" data-toggle="modal" data-target="#modalWechatView" ng-click="choiceSendType('{$material['items']['0']['url']}', 'news', '{$material['media_id']}')" class="cover-dark">
 							{/if}

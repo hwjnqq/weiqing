@@ -1,7 +1,7 @@
 <?php
 /**
  * 小程序域名设置
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -18,14 +18,14 @@ $wxapp_info = miniapp_fetch($_W['uniacid']);
 // 是否是模块打包小程序
 $is_module_wxapp = false;
 if (!empty($version_id)) {
-	$is_single_module_wxapp = $version_info['type'] == WXAPP_CREATE_MODULE; //是否单应用打包
+	$is_single_module_wxapp = WXAPP_CREATE_MODULE == $version_info['type']; //是否单应用打包
 }
 
-if ($do == 'display') {
-	$appurl = $_W['siteroot'].'app/index.php';
+if ('display' == $do) {
+	$appurl = $_W['siteroot'] . 'app/index.php';
 	$uniacid = 0;
 	if ($version_info) {
-		$wxapp = pdo_get('account_wxapp', array('uniacid' => $version_info['uniacid']));
+		$wxapp = table('account_wxapp')->wxappInfo($version_info['uniacid']);
 		if ($wxapp && !empty($wxapp['appdomain'])) {
 			$appurl = $wxapp['appdomain'];
 		}
@@ -39,19 +39,23 @@ if ($do == 'display') {
 
 		if (!starts_with($appurl, 'https')) {
 			itoast('域名必须以https开头');
+
 			return;
 		}
 
 		$file = $_FILES['file'];
-		if (!empty($file['name']) && $file['error'] == 0) {
+		if (!empty($file['name']) && 0 == $file['error']) {
 			$ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-			if (strtolower($ext) == 'txt') {
+			if ('txt' == strtolower($ext)) {
 				$file['name'] = parse_path($file['name']);
 				file_move($file['tmp_name'], IA_ROOT . '/' . $file['name']);
 			}
 		}
 		if ($version_info) {
-			$update = pdo_update('account_wxapp', array('appdomain' => $appurl), array('uniacid' => $uniacid));
+			$update = table('account_wxapp')
+				->where(array('uniacid' => $uniacid))
+				->fill(array('appdomain' => $appurl))
+				->save();
 			itoast('更新成功'); //新 旧域名一样 返回$update 为0
 		}
 	}

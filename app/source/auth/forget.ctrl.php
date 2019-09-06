@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -10,8 +10,7 @@ $openid = $_W['openid'];
 $dos = array('reset', 'forget');
 $do = in_array($do, $dos) ? $do : 'forget';
 
-$setting = uni_setting($_W['uniacid'], array('uc', 'passport'));
-$uc_setting = $setting['uc'] ? $setting['uc'] : array();
+$setting = uni_setting($_W['uniacid'], array('passport'));
 $register_mode = is_array($setting['passport']) && !empty($setting['passport']['item']) ? $setting['passport']['item'] : 'random';
 $forward = url('mc');
 if(!empty($_GPC['forward'])) {
@@ -57,7 +56,7 @@ if($do == 'reset') {
 		$password = md5($password . $member_info['salt'] . $_W['config']['setting']['authkey']);
 		mc_update($member_info['uid'], array('password' => $password));
 
-		pdo_delete('uni_verifycode', array('receiver' => $username));
+		table('uni_verifycode')->where(array('receiver' => $username))->delete();
 		message('找回成功', referer(), 'success');
 	}
 }

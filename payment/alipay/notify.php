@@ -7,13 +7,14 @@ if(!empty($_POST)) {
 	require '../../framework/bootstrap.inc.php';
 	load()->web('common');
 	load()->classs('coupon');
-	$_W['uniacid'] = $_W['weid'] = intval($_POST['body']);
-	$_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);
-	$_W['acid'] = $_W['uniaccount']['acid'];
-	$setting = uni_setting($_W['uniacid'], array('payment'));
 	if ($_POST['body'] == 'site_store') {
-		$setting['payment'] = setting_load('store_pay');
-		$setting['payment'] = $setting['payment']['store_pay'];
+		$setting = setting_load('store_pay');
+		$setting['payment'] = $setting['store_pay'];
+	} else {
+		$_W['uniacid'] = $_W['weid'] = intval($_POST['body']);
+		$_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);
+		$_W['acid'] = $_W['uniaccount']['acid'];
+		$setting = uni_setting($_W['uniacid'], array('payment'));
 	}
 	if(is_array($setting['payment'])) {
 		$alipay = $setting['payment']['alipay'];
@@ -31,19 +32,29 @@ if(!empty($_POST)) {
 			if($sign == $_POST['sign']) {
 				$_POST['query_type'] = 'notify';
 				WeUtility::logging('pay-alipay', var_export($_POST, true));
-				$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniontid`=:uniontid';
-				$params = array();
-				$params[':uniontid'] = $out_trade_no;
-				$log = pdo_fetch($sql, $params);
+				$log = table('core_paylog')
+					->where(array('uniontid' => $out_trade_no))
+					->get();
 				//此处判断微信请求消息金额必须与系统发起的金额一致
 				if(!empty($log) && $log['status'] == '0' && ($_POST['total_fee'] == $log['card_fee'])) {
 					$log['transaction_id'] = $_POST['trade_no'];
 					$record = array();
 					$record['status'] = '1';
-					pdo_update('core_paylog', $record, array('plid' => $log['plid']));
+					table('core_paylog')
+						->where(array('plid' => $log['plid']))
+						->fill($record)
+						->save();
 					if ($log['is_usecard'] == 1 && !empty($log['encrypt_code'])) {
-						$coupon_info = pdo_get('coupon', array('id' => $log['card_id']), array('id'));
-						$coupon_record = pdo_get('coupon_record', array('code' => $log['encrypt_code'], 'status' => '1'));
+						$coupon_info = table('coupon')
+							->select('id')
+							->where(array('id' => $log['card_id']))
+							->get();
+						$coupon_record = table('coupon_record')
+							->where(array(
+								'code' => $log['encrypt_code'],
+								'status' => '1'
+							))
+							->get();
 						load()->model('activity');
 						$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $log['module']);
 					}

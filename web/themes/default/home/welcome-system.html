@@ -99,7 +99,7 @@
 			<div class="tab-content ">
 				<div class="tab-pane active" id="update-all">
 					<div class="update-module-statistics">
-						<div ng-if="upgrade_modules | we7IsEmpty && search_type_name != 'unstall'" class="empty">恭喜您应用都为最新版本</div>
+						<div ng-if="search_type_name != 'unstall' && (upgrade_modules | we7IsEmpty)" class="empty">恭喜您应用都为最新版本</div>
 						<div ng-if="count_modules_uninstall == 0 && search_type_name == 'unstall'" class="empty">没有未安装应用</div>
 						<div class="item" ng-repeat="module in upgrade_modules" ng-if="!module.is_ignore">
 							<a class="item-box" href="javascript:void(0);" ng-click="moduleLink(module)">
@@ -300,7 +300,7 @@
 							</div>
 						</div>
 						<div class="right-box">
-							<div class="app-item" ng-repeat="app in item.list">
+							<a ng-href="{{'//s.w7.cc/module-'+app.aid+'.html'}}" target="_blank" class="app-item" ng-repeat="app in item.list">
 								<div class="app-item-box">
 									<div class="info">
 										<div class="logo">
@@ -312,7 +312,7 @@
 										</div>
 									</div>
 								</div>
-							</div>
+							</a>
 						</div>
 					</div>
 				</div>

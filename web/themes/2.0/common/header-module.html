@@ -20,7 +20,7 @@
 	</div>
 	{if $_W['current_module']['main_module']}
 	<div class="module-plugin-info">
-		<a href="{php echo url('home/welcome/ext', array('m' => $frames['section']['platform_module_menu']['plugin_menu']['main_module']))}"><i class="wi wi-angle-left"></i></a>
+		<a href="{php echo url('home/welcome/ext', array('m' => $_W['current_module']['main_module']))}"><i class="wi wi-angle-left"></i></a>
 		<div class="plugin-info-box">
 			{if file_exists(IA_ROOT. "/addons/". $_W['current_module']['name']. "/icon-custom.jpg")}
 				<img src="{php echo tomedia("addons/".$_W['current_module']['name']."/icon-custom.jpg")}" class="plugin-info-logo" onerror="this.src='./resource/images/gw-wx.gif'">

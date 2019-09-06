@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
@@ -11,12 +11,12 @@ if($do == 'display') {
 	$profile = mc_fetch($_W['member']['uid'], array('nickname', 'avatar', 'mobile', 'groupid'));
 	$mcgroups = mc_groups();
 	$profile['group'] = $mcgroups[$profile['groupid']];
-	$stores = pdo_fetchall('SELECT * FROM ' . tablename('activity_stores') . ' WHERE uniacid = :uniacid', array(':uniacid' => $_W['uniacid']));
+	$stores = table('activity_stores')->getAllByUniacid($_W['uniacid']);
 }
 
 if($do == 'detail') {
 	$id = intval($_GPC['id']);
-	$store = pdo_get('activity_stores', array('uniacid' => $_W['uniacid'], 'id' => $id));
+	$store = table('activity_stores')->getById($id, $_W['uniacid']);
 	if(empty($store)) {
 		message('门店不存在或已删除', referer(), 'error');
 	}

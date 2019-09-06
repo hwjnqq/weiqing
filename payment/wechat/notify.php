@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn: pro/payment/wechat/notify.php : v a4b6a17a6d8a : 2015/09/14 08:41:00 : yanghf $
  */
 define('IN_MOBILE', true);
@@ -33,13 +33,14 @@ if (!empty($input) && empty($_GET['out_trade_no'])) {
 }
 load()->web('common');
 load()->classs('coupon');
-$_W['uniacid'] = $_W['weid'] = intval($get['attach']);
-$_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);
-$_W['acid'] = $_W['uniaccount']['acid'];
-$setting = uni_setting($_W['uniacid'], array('payment'));
-if ($get['trade_type'] == 'NATIVE') {
+if ($get['attach'] == 'site_store') {
 	$setting = setting_load('store_pay');
 	$setting['payment']['wechat'] = $setting['store_pay']['wechat'];
+} else {
+	$_W['uniacid'] = $_W['weid'] = intval($get['attach']);
+	$_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);
+	$_W['acid'] = $_W['uniaccount']['acid'];
+	$setting = uni_setting($_W['uniacid'], array('payment'));
 }
 if(is_array($setting['payment'])) {
 	$wechat = $setting['payment']['wechat'];
@@ -61,10 +62,9 @@ if(is_array($setting['payment'])) {
 		}
 		$sign = strtoupper(md5($string1 . "key={$wechat['signkey']}"));
 		if($sign == $get['sign']) {
-			$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniontid`=:uniontid';
-			$params = array();
-			$params[':uniontid'] = $get['out_trade_no'];
-			$log = pdo_fetch($sql, $params);
+			$log = table('core_paylog')
+				->where(array('uniontid' => $get['out_trade_no']))
+				->get();
 			if (intval($wechat['switch']) == PAYMENT_WECHAT_TYPE_SERVICE) {
 				$get['openid'] = $log['openid'];
 			}
@@ -76,10 +76,23 @@ if(is_array($setting['payment'])) {
 				$record = array();
 				$record['status'] = '1';
 				$record['tag'] = iserializer($log['tag']);
-				pdo_update('core_paylog', $record, array('plid' => $log['plid']));
-				$mix_pay_credit_log = pdo_get('core_paylog', array('module' => $log['module'], 'tid' => $log['tid'], 'uniacid' => $log['uniacid'], 'type' => 'credit'));
+				table('core_paylog')
+					->where(array('plid' => $log['plid']))
+					->fill($record)
+					->save();
+				$mix_pay_credit_log = table('core_paylog')
+					->where(array(
+						'module' => $log['module'],
+						'tid' => $log['tid'],
+						'uniacid' => $log['uniacid'],
+						'type' => 'credit'
+					))
+					->get();
 				if (!empty($mix_pay_credit_log)) {
-					pdo_update('core_paylog', array('status' => 1), array('plid' => $mix_pay_credit_log['plid']));
+					table('core_paylog')
+						->where(array('plid' => $mix_pay_credit_log['plid']))
+						->fill(array('status' => 1))
+						->save();
 					$log['fee'] = $mix_pay_credit_log['fee'] + $log['fee'];
 					$log['card_fee'] = $mix_pay_credit_log['fee'] + $log['card_fee'];
 					$setting = uni_setting($_W['uniacid'], array('creditbehaviors'));
@@ -87,8 +100,16 @@ if(is_array($setting['payment'])) {
 					mc_credit_update($log['uid'], $setting['creditbehaviors']['currency'], -$mix_pay_credit_log['fee'], array($log['uid'], '消费' . $setting['creditbehaviors']['currency'] . ':' . $fee));
 				}
 				if ($log['is_usecard'] == 1 && !empty($log['encrypt_code'])) {
-					$coupon_info = pdo_get('coupon', array('id' => $log['card_id']), array('id'));
-					$coupon_record = pdo_get('coupon_record', array('code' => $log['encrypt_code'], 'status' => '1'));
+					$coupon_info = table('coupon')
+						->where(array('id' => $log['card_id']))
+						->select('id')
+						->get();
+					$coupon_record = table('coupon_record')
+						->where(array(
+							'code' => $log['encrypt_code'],
+							'status' => '1'
+						))
+						->get();
 					load()->model('activity');
 				 	$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $log['module']);
 				}

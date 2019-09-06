@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 error_reporting(0);
@@ -19,10 +19,9 @@ $payment = $setting['payment']['unionpay'];
 require '__init.php';
 
 if (!empty($_POST) && verify($_POST) && $_POST['respMsg'] == 'success') {
-	$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniontid`=:uniontid';
-	$params = array();
-	$params[':uniontid'] = $_POST['orderId'];
-	$log = pdo_fetch($sql, $params);
+	$log = table('core_paylog')
+		->where(array('uniontid' => $_POST['orderId']))
+		->get();
 	if(!empty($log) && $log['status'] == '0') {
 		$log['tag'] = iunserializer($log['tag']);
 		$log['tag']['queryId'] = $_POST['queryId'];
@@ -30,10 +29,21 @@ if (!empty($_POST) && verify($_POST) && $_POST['respMsg'] == 'success') {
 		$record = array();
 		$record['status'] = 1;
 		$record['tag'] = iserializer($log['tag']);
-		pdo_update('core_paylog', $record, array('plid' => $log['plid']));
+		table('core_paylog')
+			->where(array('plid' => $log['plid']))
+			->fill($record)
+			->save();
 		if ($log['is_usecard'] == 1 && !empty($log['encrypt_code'])) {
-			$coupon_info = pdo_get('coupon', array('id' => $log['card_id']), array('id'));
-			$coupon_record = pdo_get('coupon_record', array('code' => $log['encrypt_code'], 'status' => '1'));
+			$coupon_info = table('coupon')
+				->select('id')
+				->where(array('id' => $log['card_id']))
+				->get();
+			$coupon_record = table('coupon_record')
+				->where(array(
+					'code' => $log['encrypt_code'],
+					'status' => '1'
+				))
+				->get();
 			load()->model('activity');
 		 	$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $log['module']);
 		}

@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 namespace We7\Table\Site;
 
@@ -52,5 +52,9 @@ class Nav extends \We7Table {
 
 	public function searchWithMultiid($multiid) {
 		return $this->query->where('multiid', $multiid);
+	}
+
+	public function getBySnake($fields = '*', $where = array(), $order = array('id' => 'DESC')) {
+		return $this->query->select($fields)->where($where)->orderby($order);
 	}
 }

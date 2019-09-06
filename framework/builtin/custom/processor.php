@@ -2,7 +2,7 @@
 /**
  * 基本文字回复处理类
  * 
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -13,9 +13,7 @@ class CustomModuleProcessor extends WeModuleProcessor {
 		if($this->rule == -1) {
 			return $this->respCustom();
 		}
-
-		$sql = "SELECT * FROM " . tablename('custom_reply') . " WHERE `rid` IN ({$this->rule})  ORDER BY RAND() LIMIT 1";
-		$reply = pdo_fetch($sql);
+		$reply = table('custom_reply')->where(array('rid IN' => $this->rule))->orderby('RAND()')->get();
 		$nhour = date('H', TIMESTAMP);
 		$flag = 0;
 		if($reply['start1'] == 0 && $reply['end'] == 24) {

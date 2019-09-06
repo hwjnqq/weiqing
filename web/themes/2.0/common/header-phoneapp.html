@@ -7,11 +7,11 @@
 </div>
 <div class="webapp-operate">
 	{if in_array($role, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER)) || $_W['isfounder']}
-	<a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid'], 'acid' => $_W['acid'], 'account_type' => ACCOUNT_TYPE_PHONEAPP_NORMAL))}" class="h"><i class="wi wi-appsetting" data-toggle="tooltip" data-placement="bottom" title="设置"></i></a>
+	<a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid'], 'account_type' => ACCOUNT_TYPE_PHONEAPP_NORMAL))}" class="h"><i class="wi wi-appsetting" data-toggle="tooltip" data-placement="bottom" title="设置"></i></a>
 	{/if}
 
 	{if in_array($role, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER)) || $_W['isfounder']}
-	<a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid'], 'acid' => $_W['account']['acid'], 'account_type' => $_W['account']['type']))}"><i class="wi wi-manage" data-toggle="tooltip" data-placement="bottom" title="管理"></i></a>
+	<a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid'], 'account_type' => $_W['account']['type']))}"><i class="wi wi-manage" data-toggle="tooltip" data-placement="bottom" title="管理"></i></a>
 	{/if}
 
 	<a href="{php echo url('account/display', array('type' => 'all'))}"><i class="wi wi-cut-account" data-toggle="tooltip" data-placement="bottom" title="切换平台"></i></a>

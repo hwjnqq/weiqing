@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
@@ -8,22 +8,23 @@ load()->model('job');
 $dos = array('clear', 'execute', 'display');
 $do = in_array($do, $dos) ? $do : 'display';
 
-if ($do == 'display') {
+if ('display' == $do) {
 	$list = job_list($_W['uid'], $_W['isfounder']);
 	$jobid = intval($_GPC['jobid']);
 	if (is_array($list) && !empty($array)) {
-		array_walk($list, function(&$item){
-			$progress = $item['total'] > 0 ? $item['handled']/$item['total']*100 : 0;
+		array_walk($list, function (&$item) {
+			$progress = $item['total'] > 0 ? $item['handled'] / $item['total'] * 100 : 0;
 			$item['progress'] = $item['status'] ? 100 : intval($progress);
 			$item['createtime'] = date('Y-m-d H:i:s', $item['createtime']);
 			$item['endtime'] = date('Y-m-d H:i:s', $item['endtime']);
+
 			return $item;
 		});
 	}
 	template('system/job');
 }
 
-if ($do == 'execute') {
+if ('execute' == $do) {
 	$id = intval($_GPC['id']);
 	$job = job_single($id);
 	// 创史人 可以执行所有人的任务, 非创史人只能执行自己创建的任务
@@ -33,16 +34,11 @@ if ($do == 'execute') {
 			iajax(1, $result['message']);
 		}
 
-		iajax(0,  $result['message']);
-
+		iajax(0, $result['message']);
 	}
 }
 
-if ($do == 'clear') {
+if ('clear' == $do) {
 	$result = job_clear($uid, $_W['isfounder']);
-	itoast(0,  '清除成功', referer());
+	itoast(0, '清除成功', referer());
 }
-
-
-
-

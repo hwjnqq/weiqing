@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -60,16 +60,8 @@ function store_goods_type_info($group = '') {
  * @return array()
  */
 function store_goods_info($id) {
-	$result = array();
-	$id = intval($id);
-	if (empty($id)) {
-		return $result;
-	}
-	$result = table('store')->goodsInfo($id);
-	if (!empty($result[$id])) {
-		$result = $result[$id];
-	}
-	return $result;
+	$result = table('site_store_goods')->getById(intval($id));
+	return $result ? $result : array();
 }
 
 function store_goods_changestatus($id) {
@@ -199,17 +191,8 @@ function store_goods_post($data) {
 }
 
 function store_order_info($id) {
-	$result = array();
-	$id = intval($id);
-	if (empty($id)) {
-		return $result;
-	}
-	$store_table = table('store');
-	$result = $store_table->searchOrderInfo($id);
-	if (!empty($result[$id])) {
-		$result = $result[$id];
-	}
-	return $result;
+	$result = table('site_store_order')->getById(intval($id));
+	return $result ? $result : array();
 }
 
 function store_order_change_price($id, $price) {
@@ -304,9 +287,8 @@ function store_get_cash_orders($condition = array(), $page = 1, $psize = 15) {
 		$order_ids[] = $order['order_id'];
 		$cash_orders[$k]['cash_amount'] = sprintf('%.2f', $order['order_amount'] * $cash_ratio / 100);
 	}
-	$store_table = table('store');
-	$goods = $store_table->goodsInfo($goods_ids);
-	$orders = $store_table->searchOrderInfo($order_ids);
+	$goods = table('site_store_goods')->where('id', $goods_ids)->getall('id');
+	$orders = table('site_store_order')->where('id', $order_ids)->getall('id');
 	foreach ($cash_orders as $k => $order) {
 		$cash_orders[$k]['order'] = empty($orders[$order['order_id']]) ? array() : $orders[$order['order_id']];
 		if (empty($goods[$order['goods_id']])) {

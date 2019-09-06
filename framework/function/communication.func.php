@@ -1,17 +1,19 @@
 <?php
 /**
- * Http协议
+ * Http协议.
  *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
 /**
  * 模拟 http 请求
- * @param string $url 请求URL地址
- * @param string $post 请求数据
- * @param array $extra header 参数
- * @param int $timeout 超时时间
+ *
+ * @param string $url     请求URL地址
+ * @param string $post    请求数据
+ * @param array  $extra   header 参数
+ * @param int    $timeout 超时时间
+ *
  * @return array http响应封装信息或错误信息
  */
 function ihttp_request($url, $post = '', $extra = array(), $timeout = 60) {
@@ -40,7 +42,7 @@ function ihttp_request($url, $post = '', $extra = array(), $timeout = 60) {
 
 	$body = ihttp_build_httpbody($url, $post, $extra);
 
-	if ($urlset['scheme'] == 'https') {
+	if ('https' == $urlset['scheme']) {
 		$fp = ihttp_socketopen('ssl://' . $urlset['host'], $urlset['port'], $errno, $error);
 	} else {
 		$fp = ihttp_socketopen($urlset['host'], $urlset['port'], $errno, $error);
@@ -52,20 +54,22 @@ function ihttp_request($url, $post = '', $extra = array(), $timeout = 60) {
 	} else {
 		fwrite($fp, $body);
 		$content = '';
-		if($timeout > 0) {
+		if ($timeout > 0) {
 			while (!feof($fp)) {
 				$content .= fgets($fp, 512);
 			}
 		}
 		fclose($fp);
+
 		return ihttp_response_parse($content, true);
 	}
 }
 
 /**
- * 封装的 GET 请求方法
+ * 封装的 GET 请求方法.
  *
  * @param string $url 请求URL地址
+ *
  * @return array
  */
 function ihttp_get($url) {
@@ -73,25 +77,28 @@ function ihttp_get($url) {
 }
 
 /**
- * 封装的POST请求方法
+ * 封装的POST请求方法.
  *
- * @param string $url 请求URL地址
- * @param array $data 请求数据
+ * @param string $url  请求URL地址
+ * @param array  $data 请求数据
+ *
  * @return array
  */
 function ihttp_post($url, $data) {
 	$headers = array('Content-Type' => 'application/x-www-form-urlencoded');
+
 	return ihttp_request($url, $data, $headers);
 }
 
 /**
  * 非阻塞并发请求多个URL地址
- * @param array $urls 请求多个地址数组
- * @param array $posts 请求多个地址对应的POST数据
- *					 二维数据组时，需要与URL键值一一对应，每个请求不同的POST数据
- *					 一维数组时，每个请求使用此数据
- * @param array $extra 同 ihttp_request
- * @param int $timeout 同 ihttp_request
+ *
+ * @param array $urls    请求多个地址数组
+ * @param array $posts   请求多个地址对应的POST数据
+ *                       二维数据组时，需要与URL键值一一对应，每个请求不同的POST数据
+ *                       一维数组时，每个请求使用此数据
+ * @param array $extra   同 ihttp_request
+ * @param int   $timeout 同 ihttp_request
  *
  * @return array 返回结果与url键值对应结果数组
  */
@@ -113,7 +120,7 @@ function ihttp_multi_request($urls, $posts = array(), $extra = array(), $timeout
 			if (is_error($curl)) {
 				continue;
 			}
-			if (curl_multi_add_handle($curl_multi, $curl) === CURLM_OK) {
+			if (CURLM_OK === curl_multi_add_handle($curl_multi, $curl)) {
 				//存到数据组中，方便之后获取结果
 				$curl_client[] = $curl;
 			}
@@ -123,12 +130,12 @@ function ihttp_multi_request($urls, $posts = array(), $extra = array(), $timeout
 		$active = null;
 		do {
 			$mrc = curl_multi_exec($curl_multi, $active);
-		} while ($mrc == CURLM_CALL_MULTI_PERFORM);
+		} while (CURLM_CALL_MULTI_PERFORM == $mrc);
 
-		while ($active && $mrc == CURLM_OK) {
+		while ($active && CURLM_OK == $mrc) {
 			do {
 				$mrc = curl_multi_exec($curl_multi, $active);
-			} while ($mrc == CURLM_CALL_MULTI_PERFORM);
+			} while (CURLM_CALL_MULTI_PERFORM == $mrc);
 		}
 	}
 
@@ -137,26 +144,29 @@ function ihttp_multi_request($urls, $posts = array(), $extra = array(), $timeout
 		curl_multi_remove_handle($curl_multi, $curl);
 	}
 	curl_multi_close($curl_multi);
+
 	return $response;
 }
 
 function ihttp_socketopen($hostname, $port = 80, &$errno, &$errstr, $timeout = 15) {
 	$fp = '';
-	if(function_exists('fsockopen')) {
+	if (function_exists('fsockopen')) {
 		$fp = @fsockopen($hostname, $port, $errno, $errstr, $timeout);
-	} elseif(function_exists('pfsockopen')) {
+	} elseif (function_exists('pfsockopen')) {
 		$fp = @pfsockopen($hostname, $port, $errno, $errstr, $timeout);
-	} elseif(function_exists('stream_socket_client')) {
-		$fp = @stream_socket_client($hostname.':'.$port, $errno, $errstr, $timeout);
+	} elseif (function_exists('stream_socket_client')) {
+		$fp = @stream_socket_client($hostname . ':' . $port, $errno, $errstr, $timeout);
 	}
+
 	return $fp;
 }
 
 /**
- * 对请求得到的数据的进行分析和封装
+ * 对请求得到的数据的进行分析和封装.
  *
  * @param string $data
- * @param boolean $chunked
+ * @param bool   $chunked
+ *
  * @return array error 或 $data 的封装
  */
 function ihttp_response_parse($data, $chunked = false) {
@@ -188,31 +198,32 @@ function ihttp_response_parse($data, $chunked = false) {
 		} else {
 			$rlt['headers'][$key] = $value;
 		}
-		if(!$isgzip && strtolower($key) == 'content-encoding' && strtolower($value) == 'gzip') {
+		if (!$isgzip && 'content-encoding' == strtolower($key) && 'gzip' == strtolower($value)) {
 			$isgzip = true;
 		}
-		if(!$ischunk && strtolower($key) == 'transfer-encoding' && strtolower($value) == 'chunked') {
+		if (!$ischunk && 'transfer-encoding' == strtolower($key) && 'chunked' == strtolower($value)) {
 			$ischunk = true;
 		}
 	}
-	if($chunked && $ischunk) {
+	if ($chunked && $ischunk) {
 		$rlt['content'] = ihttp_response_parse_unchunk($split1[1]);
 	} else {
 		$rlt['content'] = $split1[1];
 	}
-	if($isgzip && function_exists('gzdecode')) {
+	if ($isgzip && function_exists('gzdecode')) {
 		$rlt['content'] = gzdecode($rlt['content']);
 	}
 
 	$rlt['meta'] = $data;
-	if($rlt['code'] == '100') {
+	if ('100' == $rlt['code']) {
 		return ihttp_response_parse($rlt['content']);
 	}
+
 	return $rlt;
 }
 
 function ihttp_response_parse_unchunk($str = null) {
-	if(!is_string($str) or strlen($str) < 1) {
+	if (!is_string($str) or strlen($str) < 1) {
 		return false;
 	}
 	$eol = "\r\n";
@@ -222,25 +233,28 @@ function ihttp_response_parse_unchunk($str = null) {
 	do {
 		$tmp = ltrim($tmp);
 		$pos = strpos($tmp, $eol);
-		if($pos === false) {
+		if (false === $pos) {
 			return false;
 		}
 		$len = hexdec(substr($tmp, 0, $pos));
-		if(!is_numeric($len) or $len < 0) {
+		if (!is_numeric($len) or $len < 0) {
 			return false;
 		}
 		$str .= substr($tmp, ($pos + $add), $len);
-		$tmp  = substr($tmp, ($len + $pos + $add));
+		$tmp = substr($tmp, ($len + $pos + $add));
 		$check = trim($tmp);
-	} while(!empty($check));
+	} while (!empty($check));
 	unset($tmp);
+
 	return $str;
 }
 
 /**
- * 格式化请求URL
- * @param string $url 要格式化检查的URL
- * @param boolean $set_default_port 是否根据协议指定默认端口
+ * 格式化请求URL.
+ *
+ * @param string $url              要格式化检查的URL
+ * @param bool   $set_default_port 是否根据协议指定默认端口
+ *
  * @return array
  */
 function ihttp_parse_url($url, $set_default_port = false) {
@@ -258,8 +272,8 @@ function ihttp_parse_url($url, $set_default_port = false) {
 		$urlset['query'] = "?{$urlset['query']}";
 	}
 	if (strexists($url, 'https://') && !extension_loaded('openssl')) {
-		if (!extension_loaded("openssl")) {
-			return error(1,'请开启您PHP环境的openssl', '');
+		if (!extension_loaded('openssl')) {
+			return error(1, '请开启您PHP环境的openssl', '');
 		}
 	}
 	if (empty($urlset['host'])) {
@@ -268,19 +282,22 @@ function ihttp_parse_url($url, $set_default_port = false) {
 		$urlset['scheme'] = $current_url['scheme'];
 		$urlset['path'] = $current_url['path'] . 'web/' . str_replace('./', '', $urlset['path']);
 		$urlset['ip'] = '127.0.0.1';
-	} else if (! ihttp_allow_host($urlset['host'])){
+	} elseif (!ihttp_allow_host($urlset['host'])) {
 		return error(1, 'host 非法');
 	}
 
 	if ($set_default_port && empty($urlset['port'])) {
-		$urlset['port'] = $urlset['scheme'] == 'https' ? '443' : '80';
+		$urlset['port'] = 'https' == $urlset['scheme'] ? '443' : '80';
 	}
+
 	return $urlset;
 }
 
 /**
- *  是否允许指定host访问
+ *  是否允许指定host访问.
+ *
  * @param $host
+ *
  * @return bool
  */
 function ihttp_allow_host($host) {
@@ -288,19 +305,20 @@ function ihttp_allow_host($host) {
 	if (strexists($host, '@')) {
 		return false;
 	}
-	$pattern = "/^(10|172|192|127)/";
+	$pattern = '/^(10|172|192|127)/';
 	if (preg_match($pattern, $host) && isset($_W['setting']['ip_white_list'])) {
 		$ip_white_list = $_W['setting']['ip_white_list'];
 		if ($ip_white_list && isset($ip_white_list[$host]) && !$ip_white_list[$host]['status']) {
 			return false;
 		}
 	}
+
 	return true;
 }
 
 /**
  * 创建一个curl请求对象
- * 参数同 ihttp_request
+ * 参数同 ihttp_request.
  *
  * @return curl response
  */
@@ -324,7 +342,7 @@ function ihttp_build_curl($url, $post, $extra, $timeout) {
 		$urlset['host'] = $extra['ip'];
 		unset($extra['ip']);
 	}
-	curl_setopt($ch, CURLOPT_URL, $urlset['scheme'] . '://' . $urlset['host'] . ($urlset['port'] == '80' || empty($urlset['port']) ? '' : ':' . $urlset['port']) . $urlset['path'] . $urlset['query']);
+	curl_setopt($ch, CURLOPT_URL, $urlset['scheme'] . '://' . $urlset['host'] . (empty($urlset['port']) || '80' == $urlset['port'] ? '' : ':' . $urlset['port']) . $urlset['path'] . $urlset['query']);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 	@curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 	curl_setopt($ch, CURLOPT_HEADER, 1);
@@ -334,10 +352,10 @@ function ihttp_build_curl($url, $post, $extra, $timeout) {
 			$filepost = false;
 			// 5.6版本后，'@'上传，使用CURLFile替代
 			foreach ($post as $name => &$value) {
-				if (version_compare(phpversion(), '5.5') >= 0 && is_string($value) && substr($value, 0, 1) == '@') {
+				if (version_compare(phpversion(), '5.5') >= 0 && is_string($value) && '@' == substr($value, 0, 1)) {
 					$post[$name] = new CURLFile(ltrim($value, '@'));
 				}
-				if ((is_string($value) && substr($value, 0, 1) == '@') || (class_exists('CURLFile') && $value instanceof CURLFile)) {
+				if ((is_string($value) && '@' == substr($value, 0, 1)) || (class_exists('CURLFile') && $value instanceof CURLFile)) {
 					$filepost = true;
 				}
 			}
@@ -388,6 +406,7 @@ function ihttp_build_curl($url, $post, $extra, $timeout) {
 			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 		}
 	}
+
 	return $ch;
 }
 
@@ -406,17 +425,17 @@ function ihttp_build_httpbody($url, $post, $extra) {
 		$filepost = false;
 		$boundary = random(40);
 		foreach ($post as $name => &$value) {
-			if ((is_string($value) && substr($value, 0, 1) == '@') && file_exists(ltrim($value, '@'))) {
+			if ((is_string($value) && '@' == substr($value, 0, 1)) && file_exists(ltrim($value, '@'))) {
 				$filepost = true;
 				$file = ltrim($value, '@');
 
 				$body .= "--$boundary\r\n";
-				$body .= 'Content-Disposition: form-data; name="'.$name.'"; filename="'.basename($file).'"; Content-Type: application/octet-stream'."\r\n\r\n";
-				$body .= file_get_contents($file)."\r\n";
+				$body .= 'Content-Disposition: form-data; name="' . $name . '"; filename="' . basename($file) . '"; Content-Type: application/octet-stream' . "\r\n\r\n";
+				$body .= file_get_contents($file) . "\r\n";
 			} else {
 				$body .= "--$boundary\r\n";
-				$body .= 'Content-Disposition: form-data; name="'.$name.'"'."\r\n\r\n";
-				$body .= $value."\r\n";
+				$body .= 'Content-Disposition: form-data; name="' . $name . '"' . "\r\n\r\n";
+				$body .= $value . "\r\n";
 			}
 		}
 		if (!$filepost) {
@@ -430,7 +449,7 @@ function ihttp_build_httpbody($url, $post, $extra) {
 	$fdata = "{$method} {$urlset['path']}{$urlset['query']} HTTP/1.1\r\n";
 	$fdata .= "Accept: */*\r\n";
 	$fdata .= "Accept-Language: zh-cn\r\n";
-	if ($method == 'POST') {
+	if ('POST' == $method) {
 		$fdata .= empty($filepost) ? "Content-Type: application/x-www-form-urlencoded\r\n" : "Content-Type: multipart/form-data; boundary=$boundary\r\n";
 	}
 	$fdata .= "Host: {$urlset['host']}\r\n";
@@ -451,15 +470,18 @@ function ihttp_build_httpbody($url, $post, $extra) {
 	} else {
 		$fdata .= "\r\n";
 	}
+
 	return $fdata;
 }
 
 /**
- * 发送Email
- * @param string $to 收件人邮箱
+ * 发送Email.
+ *
+ * @param string $to      收件人邮箱
  * @param string $subject 邮件主题
- * @param string $body 邮件内容
- * @param boolean $global 是否使用系统邮箱配置信息
+ * @param string $body    邮件内容
+ * @param bool   $global  是否使用系统邮箱配置信息
+ *
  * @return mixed 发送成功返回 true, 失败返回错误信息
  */
 function ihttp_email($to, $subject, $body, $global = false) {
@@ -474,7 +496,7 @@ function ihttp_email($to, $subject, $body, $global = false) {
 		global $_W;
 		$config = $GLOBALS['_W']['setting']['mail'];
 		if (!$global) {
-			$row = pdo_get("uni_settings", array('uniacid' => $_W['uniacid']), array('notify'));
+			$row = pdo_get('uni_settings', array('uniacid' => $_W['uniacid']), array('notify'));
 			$row['notify'] = @iunserializer($row['notify']);
 			if (!empty($row['notify']) && !empty($row['notify']['mail'])) {
 				$config = $row['notify']['mail'];
@@ -516,9 +538,9 @@ function ihttp_email($to, $subject, $body, $global = false) {
 	if ($body) {
 		if (is_array($body)) {
 			$newbody = '';
-			foreach($body as $value) {
-				if (substr($value, 0, 1) == '@') {
-					if(!is_file($file = ltrim($value, '@'))){
+			foreach ($body as $value) {
+				if ('@' == substr($value, 0, 1)) {
+					if (!is_file($file = ltrim($value, '@'))) {
 						return error(1, $file . ' 附件不存在或非文件！');
 					}
 					$mailer->addAttachment($file);
@@ -528,7 +550,7 @@ function ihttp_email($to, $subject, $body, $global = false) {
 			}
 			$body = $newbody;
 		} else {
-			if (substr($body, 0, 1) == '@') {
+			if ('@' == substr($body, 0, 1)) {
 				$mailer->addAttachment(ltrim($body, '@'));
 				$body = '';
 			}
@@ -540,7 +562,12 @@ function ihttp_email($to, $subject, $body, $global = false) {
 	$mailer->Subject = $subject;
 	$mailer->Body = $body;
 	$mailer->addAddress($to);
-	if ($mailer->send()) {
+	$result = $mailer->send();
+
+	$mailer->clearAddresses();
+	$mailer->clearReplyTos();
+
+	if ($result) {
 		return true;
 	} else {
 		return error(1, $mailer->ErrorInfo);

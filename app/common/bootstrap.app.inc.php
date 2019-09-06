@@ -1,16 +1,16 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 load()->app('common');
 load()->app('template');
 load()->model('mc');
-load()->model('app');
 load()->model('account');
 load()->model('attachment');
 load()->model('permission');
 load()->model('module');
+load()->model('visit');
 
 $_W['uniacid'] = intval($_GPC['i']);
 if(empty($_W['uniacid'])) {
@@ -23,16 +23,16 @@ if(empty($_W['uniacid'])) {
 	exit;
 }
 $_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);
-
+if (is_error($_W['account'])) {
+	message($_W['account']['message']);
+}
+if (!empty($_W['account']['isdeleted'])) {
+	message('指定公众号已被删除');
+}
 if (!empty($_W['uniaccount']['endtime']) && TIMESTAMP > $_W['uniaccount']['endtime']  && !in_array($_W['uniaccount']['endtime'], array(USER_ENDTIME_GROUP_EMPTY_TYPE, USER_ENDTIME_GROUP_UNLIMIT_TYPE))) {
 	message('抱歉，您的平台账号服务已过期，请及时联系管理员');
 }
-
 $_W['acid'] = $_W['uniaccount']['acid'];
-$isdel_account = pdo_get('account', array('isdeleted' => 1, 'acid' => $_W['acid']));
-if (!empty($isdel_account)) {
-	message('指定公众号已被删除');
-}
 
 $_W['session_id'] = '';
 if (isset($_GPC['state']) && !empty($_GPC['state']) && strexists($_GPC['state'], 'we7sid-')) {
@@ -66,7 +66,7 @@ if (!empty($_GPC['j'])) {
 }
 if (!empty($_SESSION['__acid']) && $_SESSION['__uniacid'] == $_W['uniacid']) {
 	$_W['acid'] = intval($_SESSION['__acid']);
-	$_W['account'] = account_fetch($_W['acid']);
+	$_W['account'] = uni_fetch($_W['uniacid']);
 }
 //加入query_string判断，安卓手机访问ico无uniacid导致误删sesion
 if (strpos($_SERVER['QUERY_STRING'], 'favicon.ico') === false && ((!empty($_SESSION['acid']) && $_W['acid'] != $_SESSION['acid']) ||

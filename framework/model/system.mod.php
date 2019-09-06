@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -365,10 +365,12 @@ function system_setting_items() {
 		'bind',
 		'develop_status',
 		'icp',
+		'policeicp',
 		'login_type',
 		'log_status',
 		'mobile_status',
 		'reason',
+		'autosignout',
 		'status',
 		'welcome_link',
 	);
@@ -410,6 +412,11 @@ function system_scrap_file() {
 		'/framework/class/wxapp.account.class.php',
 		'/framework/class/yixin.account.class.php',
 		'/framework/class/pay.class.php',
+		'/framework/table/account.table.php',
+		'/framework/table/job.table.php',
+		'/framework/table/menu.table.php',
+		'/framework/table/store.table.php',
+		'/framework/module/app.mod.php',
 		'/framework/module/frame.mod.php',
 		'/framework/module/platform.mod.php',
 		'/web/source/phoneapp/version.ctrl.php',
@@ -418,7 +425,15 @@ function system_scrap_file() {
 		'/web/themes/black/common/footer.html',
 		'/web/themes/classical/common/footer-base.html',
 		'/web/themes/default/account/manage-sms-wxapp.html',
+		'/web/themes/default/account/manage-base-aliapp.html',
+		'/web/themes/default/account/manage-base-baiduapp.html',
+		'/web/themes/default/account/manage-base-phoneapp.html',
+		'/web/themes/default/account/manage-base-toutiaoapp.html',
+		'/web/themes/default/account/manage-base-webapp.html',
+		'/web/themes/default/account/manage-base-wxapp.html',
+		'/web/themes/default/account/manage-base-xzapp.html',
 		'/web/themes/default/phoneapp/version-home.html',
+		'/web/themes/default/cloud/sms-sign.html',
 	);
 	return $scrap_file;
 }

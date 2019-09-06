@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 namespace We7\Table\Mc;
 
@@ -40,5 +40,11 @@ class MemberFields extends \We7Table {
 
 	public function searchWithAvailable($available) {
 		return $this->query->where('available', $available);
+	}
+
+	public function searchWithProfileFields() {
+		return $this->query->from($this->tableName, 'mf')
+			->leftjoin('profile_fields', 'pf')
+			->on(array('mf.fieldid' => 'pf.id'));
 	}
 }

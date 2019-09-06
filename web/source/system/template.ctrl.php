@@ -1,9 +1,8 @@
 <?php
 /**
  * Date: 2017/1/18
- * 模板管理
+ * 模板管理.
  */
-
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('extension');
@@ -12,12 +11,12 @@ load()->model('cloud');
 $dos = array('installed', 'not_install', 'uninstall', 'install', 'upgrade', 'check_upgrade', 'get_upgrade_info');
 $do = in_array($do, $dos) ? $do : 'installed';
 
-if ($do == 'get_upgrade_info') {
+if ('get_upgrade_info' == $do) {
 	$template_name = $_GPC['name'];
 	if (!empty($template_name)) {
 		$template_info = pdo_get('site_templates', array('name' => $template_name));
 		if (!empty($template_info)) {
-			$cloud_t_upgrade_info = cloud_t_upgradeinfo($template_name);//获取模块更新信息
+			$cloud_t_upgrade_info = cloud_t_upgradeinfo($template_name); //获取模块更新信息
 			if (is_error($cloud_t_upgrade_info)) {
 				iajax(1, $cloud_t_upgrade_info['message'], '');
 			}
@@ -35,7 +34,7 @@ if ($do == 'get_upgrade_info') {
 	}
 }
 
-if ($do == 'check_upgrade') {
+if ('check_upgrade' == $do) {
 	$template_list = $_GPC['template'];
 	if (empty($template_list) || !is_array($template_list)) {
 		iajax(1, '');
@@ -46,8 +45,8 @@ if ($do == 'check_upgrade') {
 	}
 	foreach ($template_list as &$template) {
 		$manifest = ext_template_manifest($template['name'], false);
-		if (!empty($manifest)&& is_array($manifest)) {
-			if (version_compare($template['version'], $manifest['application']['version']) == '-1') {
+		if (!empty($manifest) && is_array($manifest)) {
+			if ('-1' == version_compare($template['version'], $manifest['application']['version'])) {
 				$template['upgrade'] = 1;
 			} else {
 				$template['upgrade'] = 0;
@@ -56,8 +55,8 @@ if ($do == 'check_upgrade') {
 		} else {
 			if (in_array($template['name'], array_keys($cloud_template_list))) {
 				$template['from'] = 'cloud';
-				$site_branch = $cloud_template_list[$template['name']]['branch'];//当前站点模块分之号
-				$cloud_branch_version = $cloud_template_list[$template['name']]['branches'][$site_branch]['version'];//云服务模块分之版本号
+				$site_branch = $cloud_template_list[$template['name']]['branch']; //当前站点模块分之号
+				$cloud_branch_version = $cloud_template_list[$template['name']]['branches'][$site_branch]['version']; //云服务模块分之版本号
 				$best_branch = current($cloud_template_list[$template['name']]['branches']);
 				if (version_compare($template['version'], $cloud_branch_version) == -1 || ($cloud_template_list[$template['name']]['branch'] < $best_branch['id'])) {
 					$template['upgrade'] = 1;
@@ -70,12 +69,12 @@ if ($do == 'check_upgrade') {
 	iajax(0, $template_list, '');
 }
 
-if ($do == 'installed') {
+if ('installed' == $do) {
 	$pindex = max(1, $_GPC['page']);
 	$pagesize = 20;
 	$param = empty($_GPC['type']) ? array() : array('type' => $_GPC['type']);
 	if (!empty($_GPC['keyword'])) {
-		$param['title LIKE'] = "%". trim($_GPC['keyword'])."%";
+		$param['title LIKE'] = '%' . trim($_GPC['keyword']) . '%';
 	}
 
 	if (!$_W['isfounder'] || user_is_vice_founder()) {
@@ -97,18 +96,18 @@ if ($do == 'installed') {
 	$temtypes = ext_template_type();
 }
 
-if ($do == 'not_install') {
-	$installed_template = pdo_getall("site_templates", array(), array(), 'name');
+if ('not_install' == $do) {
+	$installed_template = pdo_getall('site_templates', array(), array(), 'name');
 	$uninstall_template = array();
 
 	$cloud_template = cloud_t_query();
-	if(!is_error($cloud_template)) {
+	if (!is_error($cloud_template)) {
 		$cloudUninstallThemes = array();
-		foreach($cloud_template as $name => $template_info) {
+		foreach ($cloud_template as $name => $template_info) {
 			if (empty($template_info) || !is_array($template_info)) {
 				continue;
 			}
-			if(!in_array(strtolower($name), array_keys($installed_template))) {
+			if (!in_array(strtolower($name), array_keys($installed_template))) {
 				if (!empty($_GPC['keyword']) && !strexists($template_info['title'], trim($_GPC['keyword']))) {
 					continue;
 				}
@@ -116,7 +115,7 @@ if ($do == 'not_install') {
 					'name' => $template_info['name'],
 					'title' => $template_info['title'],
 					'logo' => $template_info['logo'],
-					'from' => 'cloud'
+					'from' => 'cloud',
 				);
 			}
 		}
@@ -127,12 +126,12 @@ if ($do == 'not_install') {
 		$dir_tree = glob($path . '/*');
 		if (!empty($dir_tree)) {
 			foreach ($dir_tree as $modulepath) {
-				$modulepath = str_replace(IA_ROOT. "/app/themes/", '', $modulepath);
+				$modulepath = str_replace(IA_ROOT . '/app/themes/', '', $modulepath);
 				$manifest = ext_template_manifest($modulepath, false);
 				if (!empty($_GPC['title']) && !strexists($manifest['title'], trim($_GPC['title']))) {
 					continue;
 				}
-				if(!empty($manifest) && !in_array($manifest['name'], array_keys($installed_template))) {
+				if (!empty($manifest) && !in_array($manifest['name'], array_keys($installed_template))) {
 					$uninstall_template[$manifest['name']] = $manifest;
 				}
 			}
@@ -147,22 +146,22 @@ if ($do == 'not_install') {
 	$pager = pagination($total, $pindex, 20);
 }
 
-if ($do == 'uninstall') {
+if ('uninstall' == $do) {
 	$template = pdo_getcolumn('site_templates', array('id' => intval($_GPC['id'])), 'name');
-	if($template == 'default') {
+	if ('default' == $template) {
 		itoast('默认模板不能卸载', url('system/template/not_install'), 'error');
 	}
 	if (pdo_delete('site_templates', array('id' => intval($_GPC['id'])))) {
-		pdo_delete('site_styles',array('templateid' => intval($_GPC['id'])));
-		pdo_delete('site_styles_vars',array('templateid' => intval($_GPC['id'])));
+		pdo_delete('site_styles', array('templateid' => intval($_GPC['id'])));
+		pdo_delete('site_styles_vars', array('templateid' => intval($_GPC['id'])));
 		itoast('模板移除成功, 你可以重新安装, 或者直接移除文件来安全删除！', referer(), 'success');
 	} else {
 		itoast('模板移除失败, 请联系模板开发者！', url('system/template/not_install'), 'error');
 	}
 }
 
-if ($do == 'install') {
-	if(empty($_W['isfounder'])) {
+if ('install' == $do) {
+	if (empty($_W['isfounder'])) {
 		itoast('您没有安装模块的权限', url('system/template/not_install'), 'error');
 	}
 	$template_name = $_GPC['templateid'];
@@ -173,13 +172,13 @@ if ($do == 'install') {
 	$manifest = ext_template_manifest($template_name, false);
 	if (!empty($manifest)) {
 		$prepare_result = cloud_t_prepare($template_name);
-		if(is_error($prepare_result)) {
+		if (is_error($prepare_result)) {
 			itoast($prepare_result['message'], url('system/template/not_install'), 'error');
 		}
 	}
 	if (empty($manifest)) {
 		$cloud_result = cloud_prepare();
-		if(is_error($cloud_result)) {
+		if (is_error($cloud_result)) {
 			itoast($cloud_result['message'], url('cloud/profile'), 'error');
 		}
 		$template_info = cloud_t_info($template_name);
@@ -198,7 +197,7 @@ if ($do == 'install') {
 	}
 	unset($manifest['settings']);
 	$module_group = uni_groups();
-	if(!$_W['ispost'] || empty($_GPC['flag'])) {
+	if (!$_W['ispost'] || empty($_GPC['flag'])) {
 		template('system/module-group');
 		exit;
 	}
@@ -220,17 +219,17 @@ if ($do == 'install') {
 	} else {
 		itoast('模板安装失败, 请联系模板开发者！', '', 'error');
 	}
-	if($template_name && $post_groups) {
+	if ($template_name && $post_groups) {
 		if (!pdo_get('site_templates', array('id' => $tid))) {
 			itoast('指定模板不存在！', '', 'error');
 		}
-		foreach($post_groups as $post_group) {
+		foreach ($post_groups as $post_group) {
 			$group = pdo_get('uni_group', array('id' => $post_group));
-			if(empty($group)) {
+			if (empty($group)) {
 				continue;
 			}
 			$group['templates'] = iunserializer($group['templates']);
-			if(in_array($tid, $group['templates'])) {
+			if (in_array($tid, $group['templates'])) {
 				continue;
 			}
 			$group['templates'][] = $tid;
@@ -241,9 +240,9 @@ if ($do == 'install') {
 	itoast('模板安装成功, 请按照【公众号服务套餐】【用户组】来分配权限！', url('system/template'), 'success');
 }
 
-if($do == 'upgrade') {
+if ('upgrade' == $do) {
 	$template_name = $_GPC['templateid'];
-	$template = pdo_get("site_templates", array('name' => $template_name));
+	$template = pdo_get('site_templates', array('name' => $template_name));
 	if (empty($template)) {
 		itoast('模板已经被卸载或是不存在！', url('system/template'), 'error');
 	}
@@ -256,7 +255,7 @@ if($do == 'upgrade') {
 	if (empty($manifest)) {
 		itoast('模块安装配置文件不存在或是格式不正确！', '', 'error');
 	}
-	if(version_compare($template['version'], $packet['version']) != -1) {
+	if (version_compare($template['version'], $packet['version']) != -1) {
 		itoast('已安装的模板版本不低于要更新的版本, 操作无效.', '', 'error');
 	}
 	pdo_update('site_templates', array('version' => $packet['version']), array('id' => $template['id']));

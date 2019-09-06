@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 namespace We7\Table\Uni;
 
@@ -25,17 +25,6 @@ class Group extends \We7Table {
 		'uid' => '0',
 
 	);
-	public function getById($id) {
-		$data = $this->where('id', $id)->get();
-
-		if (!empty($data['modules'])) {
-			$data['modules'] = iunserializer($data['modules']);
-		}
-		if (!empty($data['templates'])) {
-			$data['templates'] = iunserializer($data['templates']);
-		}
-		return $data;
-	}
 
 	public function getData($key) {
 		$data = $this->getall($key);

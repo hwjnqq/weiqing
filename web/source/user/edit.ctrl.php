@@ -1,7 +1,7 @@
 <?php
 /**
  * 编辑用户
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -13,42 +13,44 @@ load()->model('module');
 
 $dos = array('edit_base', 'edit_modules_tpl', 'edit_account', 'edit_users_permission', 'edit_account_dateline', 'edit_create_account_list', 'edit_user_group', 'edit_user_extra_limit', 'edit_user_extra_group', 'edit_uni_groups', 'edit_extra_modules', 'delete_user_group', 'operators');
 
-$do = in_array($do, $dos) ? $do: 'edit_base';
+$do = in_array($do, $dos) ? $do : 'edit_base';
 
 $uid = intval($_GPC['uid']);
 $user = user_single($uid);
 if (empty($user)) {
 	itoast('访问错误, 未找到该操作员.', url('user/display'), 'error');
 }
-if ($user['status'] != USER_STATUS_NORMAL) {
+if (USER_STATUS_NORMAL != $user['status']) {
 	itoast('', url('user/display'), 'info');
 }
 
 $founders = explode(',', $_W['config']['setting']['founder']);
 $profile = pdo_get('users_profile', array('uid' => $uid));
-if (!empty($profile)) $profile['avatar'] = tomedia($profile['avatar']);
+if (!empty($profile)) {
+	$profile['avatar'] = tomedia($profile['avatar']);
+}
 
 //编辑用户基础信息
-if ($do == 'edit_base') {
+if ('edit_base' == $do) {
 	$account_num = permission_user_account_num($uid);
 	$user['last_visit'] = date('Y-m-d H:i:s', $user['lastvisit']);
 	$user['joindate'] = date('Y-m-d H:i:s', $user['joindate']);
-	$user['endtype'] = $user['endtime'] == 0 ? 1 : 2;
+	$user['endtype'] = 0 == $user['endtime'] ? 1 : 2;
 	$user['url'] = user_invite_register_url($uid);
 
 	$user['end'] = user_end_time($uid);
-	$user['end'] = $user['end'] == 0 ? '永久' : $user['end'];
+	$user['end'] = 0 == $user['end'] ? '永久' : $user['end'];
 	$profile = user_detail_formate($profile);
 	$extra_fields = user_available_extra_fields();
 	template('user/edit-base');
 }
 
-if ($do == 'edit_modules_tpl') {
+if ('edit_modules_tpl' == $do) {
 	if ($_W['isajax'] && $_W['ispost']) {
-		if ($user['status'] == USER_STATUS_CHECK || $user['status'] == USER_STATUS_BAN) {
+		if (USER_STATUS_CHECK == $user['status'] || USER_STATUS_BAN == $user['status']) {
 			iajax(-1, '访问错误，该用户未审核或者已被禁用，请先修改用户状态！', '');
 		}
-		if (intval($_GPC['groupid']) == $user['groupid']){
+		if (intval($_GPC['groupid']) == $user['groupid']) {
 			iajax(2, '未做更改！');
 		}
 
@@ -95,19 +97,19 @@ if ($do == 'edit_modules_tpl') {
 	}
 
 	if (!empty($templates) && !empty($user_extend_templates_ids)) {
-		foreach($templates as $template_key => $template_val) {
+		foreach ($templates as $template_key => $template_val) {
 			if (in_array($template_val['id'], $user_extend_templates_ids)) {
 				$templates[$template_key]['checked'] = 1;
 			}
 		}
 	}
 
-	# 应用权限组(还需要优化，不要全取出来，ajax获取)
+	// 应用权限组(还需要优化，不要全取出来，ajax获取)
 	$group_keys = array();
 	if (user_is_vice_founder($_W['uid'])) {
 		$founder_own_table = table('users_founder_own_uni_groups');
 		$founder_own_uni_groups = $founder_own_table->getOwnUniGroupsByFounderUid($_W['uid']);
-		$group_keys = array_keys((array)$founder_own_uni_groups);
+		$group_keys = array_keys((array) $founder_own_uni_groups);
 	}
 
 	$uni_groups = uni_groups($group_keys);
@@ -129,7 +131,7 @@ if ($do == 'edit_modules_tpl') {
 	$user_extend_modules = $users_extra_modules_table->where('uid', $uid)->getall('id');
 	$extra_module_types = array();
 	if (!empty($user_extend_modules)) {
-		foreach($user_extend_modules as $extend_module_info) {
+		foreach ($user_extend_modules as $extend_module_info) {
 			$module_info = module_fetch($extend_module_info['module_name']);
 			$module_info['support'] = $extend_module_info['support'];
 			if (!empty($module_info)) {
@@ -142,7 +144,7 @@ if ($do == 'edit_modules_tpl') {
 	$module_support_type = module_support_type();
 	if (!empty($modules)) {
 		foreach ($modules as $item) {
-			if ($item['issystem'] == 0) {
+			if (0 == $item['issystem']) {
 				foreach ($module_support_type as $module_support_type_key => $module_support_type_val) {
 					if ($item[$module_support_type_key] == $module_support_type_val['support']) {
 						$item['support'] = $module_support_type_key;
@@ -164,13 +166,13 @@ if ($do == 'edit_modules_tpl') {
 	template('user/edit-modules-tpl');
 }
 
-if ($do == 'edit_account') {
+if ('edit_account' == $do) {
 	$account_detail = user_account_detail_info($uid);
 	$account_list = array();
 	if (!empty($account_detail)) {
-		foreach($account_detail as $account_type => $accounts) {
+		foreach ($account_detail as $account_type => $accounts) {
 			foreach ($accounts as $uniacid => $account) {
-				$account['type_name'] = $account_type == 'wechats' ? 'account' : $account_type;
+				$account['type_name'] = $account_type;
 				$account_list[$uniacid] = $account;
 			}
 		}
@@ -178,7 +180,7 @@ if ($do == 'edit_account') {
 	template('user/edit-account');
 }
 
-if ($do == 'edit_users_permission') {
+if ('edit_users_permission' == $do) {
 	if ($_W['isajax'] && $_W['ispost']) {
 		$uid = intval($_GPC['uid']);
 
@@ -189,14 +191,14 @@ if ($do == 'edit_users_permission') {
 		$users_extra_modules_table = table('users_extra_modules');
 		if (!empty($modules)) {
 			$users_extra_modules_table->deleteExtraModulesByUid($uid);
-			foreach($modules as $module_name) {
+			foreach ($modules as $module_name) {
 				$users_extra_modules_table->addExtraModule($uid, $module_name);
 			}
 		}
 
 		if (!empty($templates)) {
 			$users_extra_template_table->deleteExtraTemplatesByUid($uid);
-			foreach($templates as $template_id) {
+			foreach ($templates as $template_id) {
 				$add_res = $users_extra_template_table->addExtraTemplate($uid, $template_id);
 			}
 		}
@@ -205,7 +207,7 @@ if ($do == 'edit_users_permission') {
 	}
 }
 
-if ($do == 'edit_account_dateline') {
+if ('edit_account_dateline' == $do) {
 	if (user_is_vice_founder($uid)) {
 		$groups = user_founder_group();
 		$group_info = table('users_founder_group')->getById($user['groupid']);
@@ -220,18 +222,18 @@ if ($do == 'edit_account_dateline') {
 	$endtime = $user['endtime'];
 	$total_timelimit = $group_info['timelimit'] + $extra_limit_info['timelimit'];
 	$user_end_time_check = $user['endtime'] == strtotime($total_timelimit . ' days', $user['joindate']);
-	if (!$user_end_time_check && $group_info['timelimit'] != 0) {
+	if (!$user_end_time_check && 0 != $group_info['timelimit']) {
 		user_update(array('uid' => $uid, 'endtime' => strtotime($total_timelimit . ' days', $user['joindate'])));
 	}
 
-	if (!empty($group_info) && $group_info['timelimit'] == 0) {
+	if (!empty($group_info) && 0 == $group_info['timelimit']) {
 		user_update(array('uid' => $uid, 'endtime' => USER_ENDTIME_GROUP_UNLIMIT_TYPE));
 	}
-	if ($endtime == USER_ENDTIME_GROUP_EMPTY_TYPE || $endtime == USER_ENDTIME_GROUP_UNLIMIT_TYPE) {
+	if (USER_ENDTIME_GROUP_EMPTY_TYPE == $endtime || USER_ENDTIME_GROUP_UNLIMIT_TYPE == $endtime) {
 		$total_timelimit = '永久';
 		$endtime = '永久';
-	} elseif ($endtime == USER_ENDTIME_GROUP_DELETE_TYPE && $total_timelimit == 0) {
-		$endtime = $total_timelimit == 0 ? date('Y-m-d', $user['joindate']) : date('Y-m-d', $user['endtime']);
+	} elseif (USER_ENDTIME_GROUP_DELETE_TYPE == $endtime && 0 == $total_timelimit) {
+		$endtime = 0 == $total_timelimit ? date('Y-m-d', $user['joindate']) : date('Y-m-d', $user['endtime']);
 	} else {
 		$endtime = date('Y-m-d', $endtime);
 	}
@@ -239,7 +241,7 @@ if ($do == 'edit_account_dateline') {
 	template('user/edit-account-dateline');
 }
 
-if ($do == 'edit_create_account_list') {
+if ('edit_create_account_list' == $do) {
 	$uid = intval($_GPC['uid']);
 	$user_permission_account = permission_user_account_num($uid);
 	if (user_is_vice_founder()) {
@@ -263,7 +265,7 @@ if ($do == 'edit_create_account_list') {
 	$create_numbers = array();
 	$module_support_type = module_support_type();
 	foreach ($module_support_type as $info) {
-		if ($info['type'] == WELCOMESYSTEM_TYPE_SIGN) {
+		if (WELCOMESYSTEM_TYPE_SIGN == $info['type']) {
 			continue;
 		}
 		$max_type = 'max' . $info['type'];
@@ -286,7 +288,7 @@ if ($do == 'edit_create_account_list') {
 	template('user/edit-create-account-list');
 }
 
-if ($do == 'edit_user_group') {
+if ('edit_user_group' == $do) {
 	if ($_W['isajax'] && $_W['ispost']) {
 		$user = array(
 			'groupid' => intval($_GPC['groupid']),
@@ -301,7 +303,7 @@ if ($do == 'edit_user_group') {
 	}
 }
 
-if ($do == 'edit_user_extra_limit') {
+if ('edit_user_extra_limit' == $do) {
 	$extra_limit_table = table('users_extra_limit');
 	$extra_limit_info = $extra_limit_table->getExtraLimitByUid($uid);
 	$post_timelimit = intval($_GPC['timelimit']);
@@ -323,8 +325,8 @@ if ($do == 'edit_user_extra_limit') {
 	if ($_W['isajax'] && $_W['ispost']) {
 		$res = $extra_limit_table->saveExtraLimit($data, $uid);
 		if ($res) {
-			if ($user['endtime'] != USER_ENDTIME_GROUP_EMPTY_TYPE && $user['endtime'] != USER_ENDTIME_GROUP_UNLIMIT_TYPE) {
-				$user_endtime = $user['endtime'] == USER_ENDTIME_GROUP_DELETE_TYPE ? $user['joindate'] : $user['endtime'];
+			if (USER_ENDTIME_GROUP_EMPTY_TYPE != $user['endtime'] && USER_ENDTIME_GROUP_UNLIMIT_TYPE != $user['endtime']) {
+				$user_endtime = USER_ENDTIME_GROUP_DELETE_TYPE == $user['endtime'] ? $user['joindate'] : $user['endtime'];
 				$end_time = strtotime($time_limit . ' days', $user_endtime);
 				user_update(array('endtime' => $end_time, 'uid' => $uid));
 			}
@@ -335,15 +337,14 @@ if ($do == 'edit_user_extra_limit') {
 	}
 }
 
-if ($do == 'edit_user_extra_group') {
+if ('edit_user_extra_group' == $do) {
 	$operate = $_GPC['operate'];
 	$extra_group_table = table('users_extra_group');
 
-	if ($operate == 'delete') {
+	if ('delete' == $operate) {
 		$group_ids = safe_gpc_array($_GPC['group_ids']);
 		$extra_group_table->searchWithUidCreateGroupId($uid, $group_ids)->delete();
-
-	} elseif ($operate == 'extend_group') {
+	} elseif ('extend_group' == $operate) {
 		//附加账号权限组
 		$group_ids = safe_gpc_array($_GPC['group_ids']);
 		$del_ids = safe_gpc_array($_GPC['del_ids']);
@@ -359,8 +360,7 @@ if ($do == 'edit_user_extra_group') {
 		if (!empty($del_ids)) {
 			$extra_group_table->searchWithUidCreateGroupId($uid, $del_ids)->delete();
 		}
-
-	} elseif ($operate == 'extend_numbers') {
+	} elseif ('extend_numbers' == $operate) {
 		$extra_limit_table = table('users_extra_limit');
 		$uni_account_types = uni_account_type();
 		$uni_account_type_signs = array_keys(uni_account_type_sign());
@@ -385,10 +385,10 @@ if ($do == 'edit_user_extra_group') {
 	iajax(0, '修改成功', referer());
 }
 
-/**
+/*
  * 修改用户权限组
  */
-if ($do == 'edit_uni_groups') {
+if ('edit_uni_groups' == $do) {
 	$uni_group_ids = $_GPC['uni_groups'];
 	$ext_group_table = table('users_extra_group');
 	if (!empty($uni_group_ids)) {
@@ -405,7 +405,7 @@ if ($do == 'edit_uni_groups') {
 /*
  * 修改用户附加权限
  * */
-if ($do == 'edit_extra_modules') {
+if ('edit_extra_modules' == $do) {
 	$extra_modules = $_GPC['extra_modules'];
 	$extra_modules_table = table('users_extra_modules');
 	$extra_modules_table->where(array('uid' => $uid))->delete();
@@ -417,7 +417,7 @@ if ($do == 'edit_extra_modules') {
 	$users_extra_template_table = table('users_extra_templates');
 	$users_extra_template_table->deleteExtraTemplatesByUid($uid);
 	if (!empty($templates)) {
-		foreach($templates as $template_id) {
+		foreach ($templates as $template_id) {
 			$users_extra_template_table->addExtraTemplate($uid, $template_id['id']);
 		}
 	}
@@ -425,7 +425,7 @@ if ($do == 'edit_extra_modules') {
 	iajax(0, '修改成功!', referer());
 }
 
-if ($do == 'delete_user_group') {
+if ('delete_user_group' == $do) {
 	$groupid = intval($_GPC['groupid']);
 
 	if (!user_is_founder($_W['uid'])) {
@@ -457,7 +457,7 @@ if ($do == 'delete_user_group') {
 		$result = user_update(array('uid' => $uid, 'groupid' => '', 'endtime' => 1));
 	} else {
 		$group_info_timelimit = $group_info['timelimit'];
-		if ($group_info_timelimit == 0) {
+		if (0 == $group_info_timelimit) {
 			$end_time = !empty($extra_limit_info) && $extra_limit_info['timelimit'] > 0 ? strtotime($extra_limit_info['timelimit'] . ' days', $user['joindate']) : $user['joindate'];
 		} else {
 			$end_time = strtotime('-' . $group_info_timelimit . ' days', $user_end_time);
@@ -473,42 +473,34 @@ if ($do == 'delete_user_group') {
 	}
 }
 
-if ($do == 'operators') {
-	if ($user['type'] == 3) {
-		itoast('', referer());
-	}
+if ('operators' == $do) {
 	$page = max(1, intval($_GPC['page']));
-	$username = safe_gpc_string($_GPC['username']);
 	$page_size = 15;
-	$clerks = array();
+	$module_permission = array();
 	$total = 0;
 
-	$account_table = table('account');
-	$account_table->where('c.role', array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER));
-	$accounts = $account_table->searchAccount(false, 'a.uniacid', 1, $uid)->getall('uniacid');
+	$permission_table = table('users_permission');
+	$permission_table->searchWithPage($page, $page_size);
+	$module_permission = $permission_table->getClerkPermissionList(0, $uid);
 
-	if (!empty($accounts)) {
-		$permission_table = table('users_permission');
-		$permission_table->searchWithPage($page, $page_size);
-		$clerks = $permission_table->getClerkPermissionList(array_keys($accounts), '', $username);
-		if (!empty($clerks)) {
-			$total = $permission_table->getLastQueryTotal();
-			$modules_info = array();
-			foreach ($clerks as $k => $clerk) {
-				$modules_info[$clerk['type']] = module_fetch($clerk['type']);
-				$clerks[$k]['permission'] = explode('|', $clerk['permission']);
+	if (!empty($module_permission)) {
+		$total = $permission_table->getLastQueryTotal();
 
-				if (empty($modules_info[$clerk['type']]['main_module'])) {
-					$clerks[$k]['main_module'] = '';
-					$clerks[$k]['permission_module'] = $clerk['type'];
-				} else {
-					$clerks[$k]['main_module'] = $clerks[$k]['permission_module'] = $modules_info[$clerk['type']]['main_module'];
-				}
+		$modules_info = array();
+		foreach ($module_permission as $m => $permission) {
+			$modules_info[$permission['type']] = module_fetch($permission['type']);
+			$module_permission[$m]['permission'] = explode('|', $permission['permission']);
+
+			if (empty($modules_info[$permission['type']]['main_module'])) {
+				$module_permission[$m]['main_module'] = '';
+				$module_permission[$m]['permission_module'] = $permission['type'];
+			} else {
+				$module_permission[$m]['main_module'] = $module_permission[$m]['permission_module'] = $modules_info[$permission['type']]['main_module'];
 			}
-			$accounts_info = pdo_getall('uni_account', array('uniacid' => array_column($clerks, 'uniacid')), array('uniacid','name'), 'uniacid');
-			$users_info = pdo_getall('users', array('uid' => array_column($clerks, 'uid')), array('uid','username'), 'uid');
 		}
+		$accounts_info = pdo_getall('uni_account', array('uniacid' => array_column($module_permission, 'uniacid')), array('uniacid', 'name'), 'uniacid');
 	}
+
 	$pager = pagination($total, $page, $page_size);
 	template('user/edit-operatoers');
 }

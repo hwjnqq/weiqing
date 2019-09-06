@@ -1,9 +1,8 @@
 <?php
 /**
  * 微信通知参数
- * [WeEngine System] Copyright (c) 2013 WE7.CC 
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
-
 defined('IN_IA') or exit('Access Denied');
 
 $dos = array('set', 'list');
@@ -11,7 +10,7 @@ $do = in_array($do, $dos) ? $do : 'list';
 
 permission_check_account_user('profile_setting');
 
-if ($do  == 'set') {
+if ('set' == $do) {
 	$tpl_list = $_GPC['tpl'];
 	foreach ($tpl_list as &$tpl) {
 		if (!empty($tpl['tpl'])) {
@@ -33,7 +32,7 @@ if ($do  == 'set') {
 
 $setting = uni_setting_load('tplnotice');
 $tpl_setting = $setting['tplnotice'];
-if(!is_array($tpl_setting)) {
+if (!is_array($tpl_setting)) {
 	$tpl_setting = array();
 }
 $tpl = array(

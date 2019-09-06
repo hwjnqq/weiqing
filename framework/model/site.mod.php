@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
@@ -109,4 +109,63 @@ function site_ip_add($ip = '') {
 		$ip_data_format[$ip]['status'] = 1;
 	}
 	return setting_save($ip_data_format, 'ip_white_list');
+}
+
+/**
+ * 获取微站首页,个人中心,快捷导航数据
+ * @param string $type 微站导航类型
+ * @param int $multiid 微站ID
+ * @return array
+ */
+function site_app_navs($type = 'home', $multiid = 0) {
+	global $_W;
+	$pos = array();
+	$pos['home'] = 1;
+	$pos['profile'] = 2;
+	$pos['shortcut'] = 3;
+	if (empty($multiid) && $type != 'profile') {
+		load()->model('account');
+		$setting = uni_setting($_W['uniacid'], array('default_site'));
+		$multiid = $setting['default_site'];
+	}
+
+	$site_nav_table = table('site_nav');
+	$site_nav_table->searchWithMultiid(intval($multiid));
+	$site_nav_table->searchWithPosition($pos[$type]);
+	$site_nav_table->searchWithStatus(1);
+	$site_nav_table->searchWithUniacid($_W['uniacid']);
+	$site_nav_table->orderby(array('displayorder' => 'DESC', 'id' => 'ASC'));
+	$navs = $site_nav_table->getall();
+	if (!empty($navs)) {
+		foreach ($navs as &$row) {
+			if (!strexists($row['url'], 'tel:') && !strexists($row['url'], '://') && !strexists($row['url'], 'www') && !strexists($row['url'], 'i=')) {
+				$row['url'] .= strexists($row['url'], '?') ? "&i={$_W['uniacid']}" : "?i={$_W['uniacid']}";
+			}
+			if (is_serialized($row['css'])) {
+				$row['css'] = iunserializer($row['css']);
+			}
+			if (empty($row['css'])) {
+				$row['css'] = array(
+					'icon' => array(
+						'icon' => 'fa fa-external-link',
+						'font-size' => '35px',
+						'color' => '',
+					),
+					'name' => array('color' => ''),
+				);
+			}
+			if (empty($row['css']['icon']['icon'])) {
+				$row['css']['icon']['icon'] = 'fa fa-external-link';
+			}
+			if ($row['position'] == '3') {
+				if (!empty($row['css'])) {
+					unset($row['css']['icon']['font-size']);
+				}
+			}
+			$row['css']['icon']['style'] = "color:{$row['css']['icon']['color']};font-size:{$row['css']['icon']['font-size']}px;";
+			$row['css']['name'] = "color:{$row['css']['name']['color']};";
+		}
+		unset($row);
+	}
+	return $navs;
 }

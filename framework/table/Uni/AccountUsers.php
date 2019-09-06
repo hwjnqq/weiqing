@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 namespace We7\Table\Uni;
 
@@ -55,5 +55,16 @@ class AccountUsers extends \We7Table {
 	public function getUserRoleByUniacid($uid, $uniacid) {
 		$info = $this->query->where(array('uid' => $uid, 'uniacid' => $uniacid))->get();
 		return $info['role'];
+	}
+
+	public function getUidByUniacidAndRole($uniacid, $role) {
+		$data = $this->where('uniacid', $uniacid)->where('role', $role)->get();
+		return empty($data['uid']) ? 0 : $data['uid'];
+	}
+
+	public function searchWithUsers() {
+		return $this->query->from($this->tableName, 'a')
+			->leftjoin('users', 'b')
+			->on('a.uid', 'b.uid');
 	}
 }

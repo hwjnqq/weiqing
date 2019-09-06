@@ -1,30 +1,30 @@
 <?php
 /**
  * 添加用户
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('user');
 
 $dos = array('post', 'save', 'get_user_group_detail_info', 'check_vice_founder_exists', 'check_user_info', 'check_vice_founder_permission_limit');
-$do = in_array($do, $dos) ? $do: 'post';
+$do = in_array($do, $dos) ? $do : 'post';
 
 $groups = user_group();
 $modules = user_modules($_W['uid']);
 
-$modules = array_filter($modules, function($module) {
+$modules = array_filter($modules, function ($module) {
 	return empty($module['issystem']);
 });
-$templates = pdo_fetchall("SELECT * FROM " . tablename('site_templates'));
+$templates = pdo_fetchall('SELECT * FROM ' . tablename('site_templates'));
 
 $user_extra_modules = table('users_extra_modules')->getExtraModulesByUid($uid);
 
-# 应用权限 - 单独应用权限
+// 应用权限 - 单独应用权限
 $module_support_type = module_support_type();
 $user_modules = array('modules' => array(), 'templates' => array());
 if (!empty($modules)) {
 	foreach ($modules as $item) {
-		if ($item['issystem'] == 0) {
+		if (0 == $item['issystem']) {
 			foreach ($module_support_type as $module_support_type_key => $module_support_type_val) {
 				if ($item[$module_support_type_key] == $module_support_type_val['support']) {
 					$item['support'] = $module_support_type_key;
@@ -37,7 +37,7 @@ if (!empty($modules)) {
 }
 
 $uni_group_table = table('uni_group');
-# 应用权限 - 应用权限组
+// 应用权限 - 应用权限组
 if (user_is_vice_founder($_W['uid'])) {
 	$founder_group_info = user_founder_group_detail_info($_W['user']['groupid']);
 	$modules_group_list = $founder_group_info['package_detail'];
@@ -53,8 +53,8 @@ if (user_is_vice_founder($_W['uid'])) {
 
 if (!empty($modules_group_list)) {
 	foreach ($modules_group_list as $key => $value) {
-		$modules = (array)iunserializer($value['modules']);
-		# 得到该应用套餐里所有的模块名称
+		$modules = (array) iunserializer($value['modules']);
+		// 得到该应用套餐里所有的模块名称
 		$modules_all = array();
 		if (!empty($modules)) {
 			foreach ($modules as $type => $modulenames) {
@@ -70,10 +70,10 @@ if (!empty($modules_group_list)) {
 
 		$module_support = array();
 		foreach ($module_support_type as $support => $info) {
-			if ($support == MODULE_SUPPORT_SYSTEMWELCOME_NAME) {
+			if (MODULE_SUPPORT_SYSTEMWELCOME_NAME == $support) {
 				continue;
 			}
-			if ($support == MODULE_SUPPORT_ACCOUNT_NAME) {
+			if (MODULE_SUPPORT_ACCOUNT_NAME == $support) {
 				$info['type'] = 'modules';
 			}
 			if (empty($modules[$info['type']])) {
@@ -94,7 +94,7 @@ if (!empty($modules_group_list)) {
 			$modules_group_list[$key]['modules_all'][] = $module;
 		}
 
-		$templates = (array)iunserializer($value['templates']);
+		$templates = (array) iunserializer($value['templates']);
 		$modules_group_list[$key]['template_num'] = !empty($templates) ? count($templates) : 0;
 		$modules_group_list[$key]['templates'] = pdo_getall('site_templates', array('id' => $templates), array('id', 'name', 'title'));
 	}
@@ -106,7 +106,7 @@ foreach ($uni_account_type_signs as $type_sign_name) {
 	$max_account_type_signs['max' . $type_sign_name] = 0;
 }
 
-# 帐号权限 - 帐号权限组
+// 帐号权限 - 帐号权限组
 if (user_is_vice_founder()) {
 	$users_founder_own_create_groups_table = table('users_founder_own_create_groups');
 	$account_group_lists = $users_founder_own_create_groups_table->getallGroupsByFounderUid($_W['uid']);
@@ -118,21 +118,21 @@ if (user_is_vice_founder()) {
 $user_extra_limits = table('users_extra_limit')->getExtraLimitByUid($uid);
 $create_account = array(
 	'create_groups' => $account_group_lists,
-	'create_numbers' => !empty($user_extra_limits) ? $user_extra_limits : $max_account_type_signs
+	'create_numbers' => !empty($user_extra_limits) ? $user_extra_limits : $max_account_type_signs,
 );
 
 $source_templates = pdo_getall('site_templates', array(), array('id', 'name', 'title'));
 if (!empty($source_templates)) {
-	foreach	($source_templates as &$source_template) {
+	foreach ($source_templates as &$source_template) {
 		$source_template['checked'] = 0;
 	}
 }
 
-if ($do == 'post') {
+if ('post' == $do) {
 	template('user/post');
 }
 
-if ($do == 'save') {
+if ('save' == $do) {
 	$user = $_GPC['user'];
 	$user_info = array(
 		'username' => safe_gpc_string($user['username']),
@@ -141,6 +141,11 @@ if ($do == 'save') {
 		'remark' => safe_gpc_string($user['remark']),
 		'starttime' => TIMESTAMP,
 	);
+
+	if (user_is_vice_founder()) {
+		$user_info['owner_uid'] = $_W['uid'];
+	}
+
 	$user_add = user_info_save($user_info);
 	if (is_error($user_add)) {
 		iajax(-1, $user_add['message'], url('user/display'));
@@ -151,7 +156,7 @@ if ($do == 'save') {
 		$vice_founder_name = safe_gpc_string($_GPC['vice_founder_name']);
 		$vice_founder_info = user_single(array('username' => $vice_founder_name));
 		if (empty($vice_founder_info)) {
-			iajax(-1, '副创始人不存在！',  'user/display');
+			iajax(-1, '副创始人不存在！', 'user/display');
 		}
 		if (!user_is_vice_founder($vice_founder_info['uid'])) {
 			iajax(-1, '请勿添加非副创始人姓名！', 'user/display');
@@ -173,7 +178,7 @@ if ($do == 'save') {
 
 	$user_update['groupid'] = intval($_GPC['groupid']) ? intval($_GPC['groupid']) : 0;
 	$user_update['uid'] = $uid;
-	if ($user_update['groupid'] == 0) {
+	if (0 == $user_update['groupid']) {
 		$user_update['endtime'] = empty($_GPC['timelimit']) ? USER_ENDTIME_GROUP_DELETE_TYPE : strtotime(intval($_GPC['timelimit']) . ' days', TIMESTAMP);
 	}
 
@@ -194,7 +199,7 @@ if ($do == 'save') {
 
 	if (!empty($_GPC['modules'])) {
 		$extra_modules_table = table('users_extra_modules');
-		foreach($_GPC['modules'] as $module_key => $module_val) {
+		foreach ($_GPC['modules'] as $module_key => $module_val) {
 			$extra_modules_table->searchByUid($uid);
 			$extra_modules_table->searchBySupport($module_val['support']);
 			$extra_modules_table->searchByModuleName($module_val['name']);
@@ -210,7 +215,7 @@ if ($do == 'save') {
 
 	if (!empty($_GPC['templates'])) {
 		$extra_template_table = table('users_extra_templates');
-		foreach($_GPC['templates'] as $template_key => $template_val) {
+		foreach ($_GPC['templates'] as $template_key => $template_val) {
 			$extra_template_exists = $extra_template_table->getExtraTemplateByUidAndTemplateid($uid, $template_val['id']);
 			if (!$extra_template_exists) {
 				$res = $extra_template_table->addExtraTemplate($uid, $template_val['id']);
@@ -255,7 +260,7 @@ if ($do == 'save') {
 		$extra_limit_table = table('users_extra_limit');
 		$extra_limit_exists = $extra_limit_table->getExtraLimitByUid($uid);
 		$data = array(
-			'timelimit' => intval($_GPC['timelimit'])
+			'timelimit' => intval($_GPC['timelimit']),
 		);
 
 		if ($extra_limit_exists) {
@@ -270,17 +275,17 @@ if ($do == 'save') {
 	iajax(0, '修改成功', url('user/display'));
 }
 
-if ($do == 'get_user_group_detail_info') {
+if ('get_user_group_detail_info' == $do) {
 	$user_group_id = intval($_GPC['user_group_id']);
 	$user_group_detail_info = user_group_detail_info($user_group_id);
 	iajax(0, $user_group_detail_info);
 }
 
-if ($do == 'check_vice_founder_exists') {
+if ('check_vice_founder_exists' == $do) {
 	$vice_founder_name = safe_gpc_string($_GPC['vice_founder_name']);
 	$vice_founder_info = user_single(array('username' => $vice_founder_name));
 	if (empty($vice_founder_info)) {
-		iajax(-1, '副创始人不存在！',  url('user/create'));
+		iajax(-1, '副创始人不存在！', url('user/create'));
 	}
 	if (!user_is_vice_founder($vice_founder_info['uid'])) {
 		iajax(-1, '请勿添加非副创始人姓名！', url('user/create'));
@@ -288,19 +293,19 @@ if ($do == 'check_vice_founder_exists') {
 	iajax(0, '');
 }
 
-if ($do == 'check_user_info') {
+if ('check_user_info' == $do) {
 	$user = $_GPC['user'];
 	$user['username'] = safe_gpc_string($user['username']);
 	$check_result = user_info_check($user);
 	iajax($check_result['errno'], $check_result['message'], url('user/create'));
 }
 
-if ($do == 'check_vice_founder_permission_limit') {
+if ('check_vice_founder_permission_limit' == $do) {
 	if (user_is_vice_founder()) {
 		$timelimit['timelimit'] = $_GPC['timelimit'];
 		$create_account_nums = $_GPC['create_account_nums'];
 
-		if ($_GPC['permissionType'] == USER_CREATE_PERMISSION_GROUP_TYPE) {
+		if (USER_CREATE_PERMISSION_GROUP_TYPE == $_GPC['permissionType']) {
 			iajax(0, '权限正确');
 		}
 

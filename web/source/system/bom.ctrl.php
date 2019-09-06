@@ -1,7 +1,7 @@
 <?php
 /**
  * 检测文件BOM相关操作
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -23,7 +23,7 @@ if (checksubmit('submit')) {
 			if (!empty($fp)) {
 				$bom = fread($fp, 3);
 				fclose($fp);
-				if ($bom == "\xEF\xBB\xBF") {
+				if ("\xEF\xBB\xBF" == $bom) {
 					$bomtree[] = $tree;
 				}
 			}

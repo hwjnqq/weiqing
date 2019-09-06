@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 define('IN_MOBILE', true);
 require '../../framework/bootstrap.inc.php';
@@ -10,23 +10,26 @@ load()->app('template');
 error_reporting(0);
 
 if ($_GPC['orderno']) {
-	$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `plid`=:plid and `fee`=:fee';
-	$pars = array();
-	$pars[':plid'] = $_GPC['tid'];
-	$pars[':fee'] = $_GPC['fee'];
-	$log = pdo_fetch($sql, $pars);
-	
+	$log = table('core_paylog')
+		->where(array(
+			'plid' => safe_gpc_int($_GPC['tid']),
+			'fee' => safe_gpc_int($_GPC['fee'])
+		))
+		->get();
 	if(!empty($log) && ($log['status'] == 0)) {
 		$tag = array(
-			'transaction_id' => $_GPC['orderno']
+			'transaction_id' => safe_gpc_string($_GPC['orderno'])
 		);
 		$data = array(
 			'status' => 1,
-			'uniontid' => $_GPC['transId'],
-			'openid' => $_GPC['uuid'],
+			'uniontid' => safe_gpc_string($_GPC['transId']),
+			'openid' => safe_gpc_string($_GPC['uuid']),
 			'tag' => iserializer($tag)
 		);
-		pdo_update('core_paylog', $data, array('tid' => $log['tid']));
+		table('core_paylog')
+			->where(array('tid' => $log['tid']))
+			->fill($data)
+			->save();
 		$site = WeUtility::createModuleSite($log['module']);
 		if (!is_error($site)) {
 			$method = 'payResult';

@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 W7.CC
+ * $sn$.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -16,12 +16,5 @@ class BaiduappAccount extends WeAccount {
 
 	protected function getAccountInfo($acid) {
 		return table('account_baiduapp')->getAccount($acid);
-	}
-
-	public function checkIntoManage() {
-		if (empty($this->account) || (!empty($this->account['account']) && $this->account['type'] != ACCOUNT_TYPE_BAIDUAPP_NORMAL && !defined('IN_MODULE'))) {
-			return false;
-		}
-		return true;
 	}
 }

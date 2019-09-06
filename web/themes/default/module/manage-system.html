@@ -104,12 +104,14 @@
 				</td>
 				<td class="text-left" ng-switch="module.from">
 					<span ng-switch-when="cloud">商城</span>
+					<span ng-switch-when="">商城</span>
 					<span ng-switch-when="local">本地</span>
 				</td>
 				<td class="vertical-middle {if $_GPC['support'] != 'welcome_support'} table-manage-td {/if}">
 					<div class="link-group">
 						{if permission_check_account_user('see_module_manage_system_ugrade')}
-						<a ng-href="{{ './index.php?c=module&a=manage-system&do=upgrade&module_name='+module.name}}" class="color-red del" ng-if="module.new_version && module.from == 'local'">升级</a>
+						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&show=base" class="color-red del" ng-if="module.service_expire">服务费到期</a>
+						<a href="{php echo url('module/manage-system/upgrade')}&module_name={{module.name }}" class="color-red del" ng-if="module.new_version && module.from == 'local'">升级</a>
 						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&show=upgrade" class="color-red del" ng-if="module.new_branch">新分支</a>
 						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&show=upgrade" class="color-red del" ng-if="module.new_version">升级</a>
 						{/if}
@@ -134,9 +136,11 @@
 						{/if}
 						{if permission_check_account_user('see_module_manage_system_stop')}
 						{if $module_support_name != 'all' && !empty($module_support_name)}
-						<a href="{php echo url('module/manage-system/recycle_post')}&module_name={{ module.name }}&support={$module_support_name}" onclick="return confirm('确认停用模块？')">停用</a>
+						<!-- <a href="{php echo url('module/manage-system/recycle_post')}&module_name={{ module.name }}&support={$module_support_name}" onclick="return confirm('确认停用模块？')">停用</a> -->
+						<a href="javascript:;" ng-click="recycle(module.name, '{$module_support_name}')">停用</a>
 						{else}
-						<a href="{php echo url('module/manage-system/recycle_post')}&module_name={{ module.name }}&support={{ module.support }}" onclick="return confirm('确认停用模块？')">停用</a>
+						<!-- <a href="{php echo url('module/manage-system/recycle_post')}&module_name={{ module.name }}&support={{ module.support }}" onclick="return confirm('确认停用模块？')">停用</a> -->
+						<a href="javascript:;" ng-click="recycle(module.name, module.support)">停用</a>
 						{/if}
 						{/if}
 					</div>
@@ -149,6 +153,29 @@
 				</td>
 			</tr>
 		</table>
+		<div id="recycle" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" >
+			<div class="modal-dialog modal-tip">
+				<div class="modal-content">
+					<div class="modal-header clearfix">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+					</div>
+					<div class="modal-body">
+						<div class="text-center">
+							<i class="wi wi-info"></i>
+							<p class="title">应用停用后，会导致用户前台无法正常访问，是否停用？</p>
+							<p class="content">
+								<a href="{php echo url('module/expire')}" class="color-default">可自定义提示，立即去编辑></a>
+							</p>
+						</div>
+						<div class="clearfix"></div>
+					</div>
+					<div class="modal-footer">
+						<a ng-href="{{deleteUrl + 'module_name=' + deleteData.module_name + '&support=' + deleteData.support}}" type="button" class="btn btn-primary ">确认</a>
+						<button type="button" class="btn btn-default " data-dismiss="modal">取消</button>
+					</div>
+				</div>
+			</div>
+		</div>
 		<div class="select-all" ng-hide="search.moduleName || (search.letter && search.letter != '全部') || search.newVersion || search.newBranch">
 			<div class="we7-form text-right js-pager">
 				{$pager}
@@ -167,7 +194,8 @@
 		'filterUrl' : "{php echo url('module/manage-system/filter')}",
 		'welcome_module' : '{$_W['setting']['site_welcome_module']}',
 		'set_site_welcome_url' : "{php echo url('module/manage-system/set_site_welcome_module')}",
-		'initModuleLogoUrl' : "{php echo url('module/manage-system/init_modules_logo')}"
+		'initModuleLogoUrl' : "{php echo url('module/manage-system/init_modules_logo')}",
+		'deleteUrl' : "{php echo url('module/manage-system/recycle_post')}"
 	});
 	angular.bootstrap($('#js-system-module'), ['moduleApp']);
 	require(['fileUploader']);
@@ -421,6 +449,25 @@
 			</td>
 			<td class="text-right">
 				<div class="link-group"><a href="{php echo url('module/manage-system/module_detail')}name={{moduleinfo.name}}&support={{relation}}&type={{moduleinfo.type}}">查看</a></div>
+			</td>
+		</tr>
+	</table>
+
+	<table class="table we7-table table-hover table-form" ng-show="(show == 'base' || show == '') && moduleinfo.service_expiretime">
+		<col width="140px">
+		<col />
+		<col width="100px">
+		<tr>
+			<th class="text-left" colspan="3">应用服务费</th>
+		</tr>
+		<tr>
+			<td class="table-label">到期时间</td>
+			<td>
+				{{ moduleinfo.service_expiretime }}
+				<span ng-if="moduleinfo.service_expire > 0" class="color-red"><i class="wi wi-info-sign"></i>服务费已过期</span>
+			</td>
+			<td class="text-right">
+				<div class="link-group"><a href="http://s.w7.cc/module-{{moduleinfo.cloud_mid}}.html" target="_blank">购买服务</a></div>
 			</td>
 		</tr>
 	</table>

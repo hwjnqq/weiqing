@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 $input = file_get_contents('php://input');
@@ -46,7 +46,9 @@ if($obj instanceof SimpleXMLElement && !empty($obj->FeedBackId)) {
 	}
 	require '../../framework/bootstrap.inc.php';
 	WeUtility::logging('pay-rights', $input);
-	$_W['uniacid'] = pdo_fetchcolumn("SELECT uniacid FROM ".tablename('account_wechats')." WHERE `key` = :key", array(':key' => $data['appid']));
+	$_W['uniacid'] = table('account_wechats')
+		->where(array('key' => $data['appid']))
+		->getcolumn('uniacid');
 	$setting = uni_setting($_W['uniacid'], array('payment'));
 	$_W['weid'] = $_W['uniacid'];
 	

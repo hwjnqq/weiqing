@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn: pro/index.php : v 815cdc81ea88 : 2015/08/29 09:40:39 : RenChao $
  */
 

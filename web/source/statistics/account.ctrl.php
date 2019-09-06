@@ -1,7 +1,7 @@
 <?php
 /**
  * app端所有公众号访问统计
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -17,7 +17,7 @@ $support_type = array(
 
 
 
-if ($do == 'get_account_api') {
+if ('get_account_api' == $do) {
 	$data = array();
 	$time_type = trim($_GPC['time_type']);
 	$type = trim($_GPC['type']);
@@ -31,9 +31,9 @@ if ($do == 'get_account_api') {
 			'end' => date('Ymd', strtotime($_GPC['daterange']['endDate'])),
 		);
 	}
-	if ($type == 'web') {
+	if ('web' == $type) {
 		$all_result = stat_visit_web_bydate($time_type, $daterange, true);
-	} elseif ($type == 'app') {
+	} elseif ('app' == $type) {
 		$all_result = array();
 		$visit_info = stat_visit_info('app', $time_type, '', $daterange, true);
 		if (!empty($visit_info)) {
@@ -47,16 +47,16 @@ if ($do == 'get_account_api') {
 	}
 	$result = $all_result['count'];
 	$ip_visit_result = $all_result['ip_count'];
-	if ($time_type == 'today') {
+	if ('today' == $time_type) {
 		$data_x = array(date('Ymd'));
 	}
-	if ($time_type == 'week') {
+	if ('week' == $time_type) {
 		$data_x = stat_date_range(date('Ymd', strtotime('-6 days')), date('Ymd'));
 	}
-	if ($time_type == 'month') {
+	if ('month' == $time_type) {
 		$data_x = stat_date_range(date('Ymd', strtotime('-29 days')), date('Ymd'));
 	}
-	if ($time_type == 'daterange') {
+	if ('daterange' == $time_type) {
 		$data_x = stat_date_range($daterange['start'], $daterange['end']);
 	}
 	if (empty($result)) {
@@ -101,7 +101,7 @@ if ($do == 'get_account_api') {
 	iajax(0, array('data_x' => $data_x, 'data_y' => $data_y, 'data_y_ip' => $data_y_ip));
 }
 
-if ($do == 'get_account_app_api') {
+if ('get_account_app_api' == $do) {
 	$accounts = array();
 	$data = array();
 	$account_table = table('account');
@@ -127,16 +127,16 @@ if ($do == 'get_account_app_api') {
 	}
 	$result = stat_visit_app_bydate($type, '', $daterange, true);
 	if (empty($result)) {
-		if ($type == 'today') {
+		if ('today' == $type) {
 			$data_x = date('Ymd');
 		}
-		if ($type == 'week') {
+		if ('week' == $type) {
 			$data_x = stat_date_range(date('Ymd', strtotime('-7 days')), date('Ymd'));
 		}
-		if ($type == 'month') {
+		if ('month' == $type) {
 			$data_x = stat_date_range(date('Ymd', strtotime('-30 days')), date('Ymd'));
 		}
-		if ($type == 'daterange') {
+		if ('daterange' == $type) {
 			$data_x = stat_date_range($daterange['start'], $daterange['end']);
 		}
 		foreach ($data_x as $val) {
@@ -146,18 +146,18 @@ if ($do == 'get_account_app_api') {
 	}
 	foreach ($result as $val) {
 		$data_x[] = $val['date'];
-		if ($divide_type == 'bysum') {
+		if ('bysum' == $divide_type) {
 			$data_y[] = $val['count'];
-		} elseif ($divide_type == 'byavg') {
+		} elseif ('byavg' == $divide_type) {
 			$data_y[] = $val['avg'];
-		} elseif ($divide_type == 'byhighest') {
+		} elseif ('byhighest' == $divide_type) {
 			$data_y[] = $val['highest'];
 		}
 	}
 	iajax(0, array('data_x' => $data_x, 'data_y' => $data_y));
 }
 
-if ($do == 'get_account_visit') {
+if ('get_account_visit' == $do) {
 	$page = max(1, intval($_GPC['page']));
 	$size = max(10, intval($_GPC['size']));
 	$start_time = date('Ymd', strtotime($_GPC['start_time']));
@@ -166,14 +166,29 @@ if ($do == 'get_account_visit') {
 		iajax(1, '参数有误');
 	}
 	$account_table = table('account');
-	$accounts = $account_table->searchWithPage($page, $size)->orderby(array('rank' => 'DESC', 'uniacid' => 'DESC'))->getall('uniacid');
+	$account_table->searchWithUniAccount();
+	$account_table->select(array('a.*', 'b.name'));
+	$accounts = $account_table
+		->searchWithPage($page, $size)
+		->orderby(array(
+			'b.rank' => 'DESC',
+			'a.uniacid' => 'DESC'
+		))
+		->getall('a.uniacid');
 	if (empty($accounts)) {
 		iajax(0, array());
 	}
 	$total_account = $account_table->getLastQueryTotal();
 	$tota_visit = 0;
 	$account_stat = array();
-	$visit_data = pdo_getall('stat_visit', array('date >=' => $start_time, 'date <=' => $end_time), array('uniacid', 'count'));
+
+	$visit_data = table('stat_visit')
+		->select(array('uniacid', 'count'))
+		->where(array(
+			'date >=' => $start_time,
+			'date <=' => $end_time
+		))
+		->getall();
 	foreach ($visit_data as $item) {
 		$tota_visit += $item['count'];
 		if (!empty($accounts[$item['uniacid']])) {

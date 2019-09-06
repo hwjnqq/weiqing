@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
@@ -16,7 +16,7 @@ defined('IN_IA') or exit('Access Denied');
  *	'manager'	   代表  管理员拥有的权限
  *	'operator'	  代表  操作员拥有的权限
  *	'clerk'		 代表  店员拥有的权限
- * 权限中带星号'*'指拥有该文件夹下所有权限
+ * 权限中带星号'*'指拥有该文件夹下所有权限.
  */
 $we7_file_permission = array();
 $we7_file_permission = array(
@@ -231,7 +231,7 @@ $we7_file_permission = array(
 			'reply',
 			'cover',
 			'material',
-			'material-post'
+			'material-post',
 		),
 		'unbind_user' => array(),
 	),
@@ -324,7 +324,7 @@ $we7_file_permission = array(
 		'expired' => array(
 			'goods-buyer',
 			'orders',
-		)
+		),
 	),
 	'system' => array(
 		'default' => '',
@@ -350,7 +350,7 @@ $we7_file_permission = array(
 		),
 		'expired' => array(
 			'updatecache',
-		)
+		),
 	),
 	'user' => array(
 		'default' => 'display',
@@ -360,7 +360,7 @@ $we7_file_permission = array(
 			'logout',
 			'find-password',
 			'third-bind',
-			'agreement-show'
+			'agreement-show',
 		),
 		'vice_founder' => array('user*'),
 		'owner' => array(
@@ -380,7 +380,7 @@ $we7_file_permission = array(
 		),
 		'expired' => array(
 			'user*',
-		)
+		),
 	),
 	'miniapp' => array(
 		'default' => '',
@@ -437,10 +437,10 @@ $we7_file_permission = array(
 		),
 		'operator' => array(
 			'home',
-			'manage'
+			'manage',
 		),
 		'clerk' => array(
-			'home'
+			'home',
 		),
 		'unbind_user' => array(),
 	),
@@ -465,15 +465,15 @@ $we7_file_permission = array(
 		'manager' => array(
 			'display',
 			'manage',
-			'version'
+			'version',
 		),
 		'operator' => array(
 			'display',
 			'manage',
-			'version'
+			'version',
 		),
 		'clerk' => array(
-			'display'
+			'display',
 		),
 	),
 	'utility' => array(
@@ -487,7 +487,7 @@ $we7_file_permission = array(
 			'wxcode',
 			'modules',
 			'link',
-			'visit'
+			'visit',
 		),
 		'vice_founder' => array(
 			'user',
@@ -530,6 +530,7 @@ $we7_file_permission = array(
 			'see_account_manage_users_add_viceuser',
 			'see_account_manage_display',
 			'see_account_manage_recycle',
+			'see_account_wxapp_register_list',
 			'see_account_manage_system_platform',
 			'see_account_manage_expired_message',
 			'see_permission_create_account_group',
@@ -609,7 +610,6 @@ $we7_file_permission = array(
 			'see_user_profile_account_num',
 		),
 		'clerk' => array(
-
 		),
 		'unbind_user' => array(
 			'see_user_profile_welcome',

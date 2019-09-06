@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 namespace We7\Table\Mc;
 
@@ -45,6 +45,12 @@ class CreditsRecord extends \We7Table {
 					->where('r.credittype', $credittype)
 					->orderby('r.id', 'desc')
 					->getall();
+	}
+
+	public function searchWithUsers() {
+		return $this->query->from($this->tableName, 'r')
+			->leftjoin('users', 'u')
+			->on(array('r.operator' => 'u.uid'));
 	}
 
 	public function searchWithUniacid($uniacid) {

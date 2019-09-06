@@ -1,7 +1,7 @@
 <?php
 /**
  * 用于调试时模拟用户发送信息到微号公众号 PGCAO改良 www.kl3w.com
- * [WeEngine System] Copyright (c) 2013 w7.cc
+ * [WeEngine System] Copyright (c) 2013 w7.cc.
  */
 $_W['page']['title'] = '模拟测试';
 $development = 1;
@@ -76,26 +76,32 @@ template('common/header');
 						<div class="col-sm-10 col-xs-12">
 							<select name="account" id="account" class="form-control">
 							<?php
-								foreach($accounts as $account) {
-							?>
+								foreach ($accounts as $account) {
+									?>
 								<?php
-									if(!empty($account)) {
+									if (!empty($account)) {
 										$timestamp = TIMESTAMP;
 										$nonce = random(5);
 										$token = $account['token'];
 										$signkey = array($token, TIMESTAMP, $nonce);
 										sort($signkey, SORT_STRING);
 										$signString = implode($signkey);
-										$signString = sha1($signString);
-								?>
-								<?php if($development == 1) { ?>
-									<option <?php if ($_W['uniacid'] == $account['uniacid']) { ?>selected<?php } ?> value="<?php echo '../api.php?id='.$account['acid'] ?>&timestamp=<?php echo $timestamp ?>&nonce=<?php echo $nonce ?>&signature=<?php echo $signString ?>"><?php echo $account['name']?></option>
-								<?php } else { ?>
-									<option <?php if ($_W['uniacid'] == $account['uniacid']) { ?>selected<?php } ?> value="<?php echo $account['uniacid'];?>"><?php echo $account['name'] ?></option>
-								<?php } ?>
+										$signString = sha1($signString); ?>
+								<?php if (1 == $development) {
+											?>
+									<option <?php if ($_W['uniacid'] == $account['uniacid']) {
+												?>selected<?php
+											} ?> value="<?php echo '../api.php?id=' . $account['acid']; ?>&timestamp=<?php echo $timestamp; ?>&nonce=<?php echo $nonce; ?>&signature=<?php echo $signString; ?>"><?php echo $account['name']; ?></option>
 								<?php
-									}
-								?>
+										} else {
+											?>
+									<option <?php if ($_W['uniacid'] == $account['uniacid']) {
+												?>selected<?php
+											} ?> value="<?php echo $account['uniacid']; ?>"><?php echo $account['name']; ?></option>
+								<?php
+										} ?>
+								<?php
+									} ?>
 							<?php
 								}
 							?>
@@ -229,7 +235,8 @@ template('common/header');
 		</div>
 </div>
 <?php
-	if($development == 1) {?>
+	if (1 == $development) {
+		?>
 		<script type="text/javascript">
 			require(['jquery'], function($){
 			$('.content_type').hide();
@@ -497,7 +504,9 @@ template('common/header');
 			return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1' + breakTag + '$2');
 		}
 	</script>
-	<?php } else { ?>
+	<?php
+	} else {
+		?>
 		<script type="text/javascript">
 		require(['jquery'], function($){
 			$('.content_type').hide();
@@ -599,13 +608,13 @@ template('common/header');
 		function submitform() {
 			buildRequest(curtype);
 			var id = $('#account').val();
-			$.ajax('<?php echo $_W['siteroot']?>api.php?flag=1&id=' + id, {
+			$.ajax('<?php echo $_W['siteroot']; ?>api.php?flag=1&id=' + id, {
 				type : 'POST',
 				headers : {"Content-type" : "text/xml"},
 				data : $('#sendxml').val().replace(/[\r\n]/g,""),
 				success : function(data) {
 					var data = $.parseJSON(data);
-					var url = '<?php echo $_W['siteroot']?>api.php?encrypt_type=' + data.encrypt_type + '&id=' + id + '&timestamp=' + data.timestamp + '&nonce=' + data.nonce + '&signature=' + data.signature + '&msg_signature=' + data.msg_signature;
+					var url = '<?php echo $_W['siteroot']; ?>api.php?encrypt_type=' + data.encrypt_type + '&id=' + id + '&timestamp=' + data.timestamp + '&nonce=' + data.nonce + '&signature=' + data.signature + '&msg_signature=' + data.msg_signature;
 					if(data.encrypt_type == 'aes') {
 						var xml = "";
 						xml += "<xml>\n";
@@ -631,7 +640,7 @@ template('common/header');
 						}
 					}).done(function(s){
 						if(1 || curtype!='unsubscribe'){
-							$.ajax('<?php echo $_W['siteroot']?>api.php?flag=2&id=' + id, {
+							$.ajax('<?php echo $_W['siteroot']; ?>api.php?flag=2&id=' + id, {
 								type : 'POST',
 								headers : {"Content-type" : "text/xml"},
 								data : s.replace(/[\r\n]/g,""),
@@ -708,6 +717,7 @@ template('common/header');
 			return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1' + breakTag + '$2');
 		}
 		</script>
-	<?php }
+	<?php
+	}
 ?>
 <?php template('common/footer'); ?>

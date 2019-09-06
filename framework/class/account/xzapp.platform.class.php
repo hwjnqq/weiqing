@@ -2,11 +2,9 @@
 
 defined('IN_IA') or exit('Access Denied');
 
-
 load()->classs('xzapp.account');
 
 class XzappPlatform extends XzappAccount {
-
 	protected $appid;
 	protected $appsecret;
 	protected $encodingaeskey;

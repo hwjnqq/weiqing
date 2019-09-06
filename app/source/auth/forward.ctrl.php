@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn: pro/app/source/auth/forward.ctrl.php : v a6138ccb04fb : 2015/08/26 06:57:40 : RenChao $
  */
 defined('IN_IA') or exit('Access Denied');
@@ -21,14 +21,20 @@ if($_GPC['__auth']) {
 						do{
 							$rec['salt'] = random(8);
 						} while ($rec['salt'] == $fan['salt']);
-						pdo_update ('mc_mapping_fans', $rec, array('uniacid' => $_W['uniacid'], 'acid' => $auth['acid'], 'openid' => $auth['openid']));
+						table('mc_mapping_fans')
+							->where(array(
+								'uniacid' => $_W['uniacid'],
+								'openid' => $auth['openid']
+							))
+							->fill($rec)
+							->save();
 					}
 					$_SESSION['uniacid'] = $_W['uniacid'];
 					$_SESSION['acid'] = $auth['acid'];
 					$_SESSION['openid'] = $auth['openid'];
 					//认证订阅号尝试拉取用户信息
 					if ($_W['account']['level'] == '3' && empty($fan['nickname'])) {
-						$account_obj = WeAccount::create($_W['account']);
+						$account_obj = WeAccount::createByUniacid($_W['uniacid']);
 						$userinfo = $account_obj->fansQueryInfo($auth['openid']);
 						if(!is_error($userinfo) && is_array($userinfo) && !empty($userinfo['nickname'])) {
 							$record = array();
@@ -36,7 +42,10 @@ if($_GPC['__auth']) {
 							$record['nickname'] = stripslashes($userinfo['nickname']);
 							$record['tag'] = base64_encode(iserializer($userinfo));
 							$recode['unionid'] = $userinfo['unionid'];
-							pdo_update('mc_mapping_fans', $record, array('openid' => $fan['openid']));
+							table('mc_mapping_fans')
+								->where(array('openid' => $fan['openid']))
+								->fill($record)
+								->save();
 							if(!empty($fan['uid'])) {
 								$user = mc_fetch($fan['uid'], array('nickname', 'gender', 'residecity', 'resideprovince', 'nationality', 'avatar'));
 								$record = array();

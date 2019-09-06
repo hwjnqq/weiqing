@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 namespace We7\Table\Site;
 
@@ -30,7 +30,7 @@ class ArticleComment extends \We7Table {
 		'createtime' => '',
 	);
 
-	public function getAllByCurrentUniacid()	{
+	public function getAllByUniacid()	{
 		global $_W;
 		return $this->where('uniacid', $_W['uniacid'])->getall();
 	}

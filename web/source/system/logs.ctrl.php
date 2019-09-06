@@ -1,15 +1,16 @@
-<?php 
+<?php
+
 /**
  * 查看日志
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
-$dos = array('wechat', 'system', 'database','sms');
+$dos = array('wechat', 'system', 'database', 'sms');
 $do = in_array($do, $dos) ? $do : 'wechat';
 
 $params = array();
-$where  = '';
+$where = '';
 $order = ' ORDER BY `id` DESC';
 if ($_GPC['time']) {
 	//获取日期范围
@@ -21,7 +22,7 @@ if ($_GPC['time']) {
 }
 
 //微信日志
-if ($do == 'wechat') {
+if ('wechat' == $do) {
 	$path = IA_ROOT . '/data/logs/';
 	$files = glob($path . '*');
 	if (!empty($_GPC['searchtime'])) {
@@ -43,41 +44,41 @@ if ($do == 'wechat') {
 }
 
 //系统日志
-if ($do == 'system') {
+if ('system' == $do) {
 	$pindex = max(1, intval($_GPC['page']));
 	//分页每页显示条数
 	$psize = 10;
 	$where .= " WHERE `type` = '1'";
-	$sql = 'SELECT * FROM ' . tablename('core_performance') . " $where $timewhere $order LIMIT " . ($pindex - 1) * $psize .','. $psize;
+	$sql = 'SELECT * FROM ' . tablename('core_performance') . " $where $timewhere $order LIMIT " . ($pindex - 1) * $psize . ',' . $psize;
 	$list = pdo_fetchall($sql, $params);
 	foreach ($list as $key => $value) {
 		$list[$key]['type'] = '系统日志';
 		$list[$key]['createtime'] = date('Y-m-d H:i:s', $value['createtime']);
 	}
 	//将数据进行分页
-	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('core_performance'). $where . $timewhere , $params);
+	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('core_performance') . $where . $timewhere, $params);
 	$pager = pagination($total, $pindex, $psize);
 }
 
 //数据库日志
-if ($do == 'database') {
+if ('database' == $do) {
 	$pindex = max(1, intval($_GPC['page']));
 	//分页每页显示条数
 	$psize = 10;
 	$where .= " WHERE `type` = '2'";
-	$sql = 'SELECT * FROM ' . tablename('core_performance') . " $where $timewhere $order LIMIT " . ($pindex - 1) * $psize .','. $psize;
+	$sql = 'SELECT * FROM ' . tablename('core_performance') . " $where $timewhere $order LIMIT " . ($pindex - 1) * $psize . ',' . $psize;
 	$list = pdo_fetchall($sql, $params);
 	foreach ($list as $key => $value) {
 		$list[$key]['type'] = '数据库日志';
 		$list[$key]['createtime'] = date('Y-m-d H:i:s', $value['createtime']);
 	}
 	//将数据进行分页
-	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('core_performance'). $where . $timewhere , $params);
+	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('core_performance') . $where . $timewhere, $params);
 	$pager = pagination($total, $pindex, $psize);
 }
 
 //短信发送日志
-if ($do == 'sms') {
+if ('sms' == $do) {
 	if (!empty($_GPC['mobile'])) {
 		$timewhere .= ' AND `mobile` LIKE :mobile ';
 		$params[':mobile'] = "%{$_GPC['mobile']}%";
@@ -85,10 +86,10 @@ if ($do == 'sms') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 40;
 	$params[':uniacid'] = $_W['uniacid'];
-	$sql = "SELECT * FROM". tablename('core_sendsms_log'). " WHERE uniacid = :uniacid ". $timewhere. " ORDER BY id DESC LIMIT ". ($pindex-1)*$psize . ','. $psize;
+	$sql = 'SELECT * FROM' . tablename('core_sendsms_log') . ' WHERE uniacid = :uniacid ' . $timewhere . ' ORDER BY id DESC LIMIT ' . ($pindex - 1) * $psize . ',' . $psize;
 	$list = pdo_fetchall($sql, $params);
-	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM". tablename('core_sendsms_log'). " WHERE uniacid = :uniacid". $timewhere, $params);
+	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM' . tablename('core_sendsms_log') . ' WHERE uniacid = :uniacid' . $timewhere, $params);
 	$pager = pagination($total, $pindex, $psize);
 }
- 
+
 template('system/logs');

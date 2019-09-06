@@ -1,7 +1,7 @@
 <?php
 /**
  * 微信第三方登录
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 load()->func('communication');
 
@@ -21,6 +21,7 @@ class Wechat extends OAuth2Client {
 	public function showLoginUrl($calback_url = '') {
 		$redirect_uri = urlencode($this->calback_url);
 		$state = $this->stateParam();
+
 		return sprintf(Wechat_PLATFORM_API_OAUTH_LOGIN_URL, $this->ak, $redirect_uri, $state);
 	}
 
@@ -30,6 +31,7 @@ class Wechat extends OAuth2Client {
 		}
 		$user_info_url = sprintf(Wechat_PLATFORM_API_GET_USERINFO, $token, $openid);
 		$response = $this->requestApi($user_info_url);
+
 		return $response;
 	}
 
@@ -46,6 +48,7 @@ class Wechat extends OAuth2Client {
 		}
 		$access_url = sprintf(Wechat_PLATFORM_API_GET_ACCESS_TOKEN, $this->ak, $this->sk, $code, urlencode($this->calback_url));
 		$response = $this->requestApi($access_url);
+
 		return $response;
 	}
 
@@ -71,6 +74,7 @@ class Wechat extends OAuth2Client {
 		$profile['resideprovince'] = $user_info['province'];
 		$profile['residecity'] = $user_info['city'];
 		$profile['birthyear'] = '';
+
 		return array(
 			'member' => $user,
 			'profile' => $profile,
@@ -82,14 +86,15 @@ class Wechat extends OAuth2Client {
 		$response = ihttp_request($url, $post);
 
 		$result = @json_decode($response['content'], true);
-		if(is_error($response)) {
+		if (is_error($response)) {
 			return error($result['errcode'], "访问公众平台接口失败, 错误详情: {$result['errmsg']}");
 		}
-		if(empty($result)) {
+		if (empty($result)) {
 			return error(-1, "接口调用失败, 元数据: {$response['meta']}");
-		} elseif(!empty($result['errcode'])) {
+		} elseif (!empty($result['errcode'])) {
 			return error($result['errcode'], "访问公众平台接口失败, 错误: {$result['errmsg']}");
 		}
+
 		return $result;
 	}
 
@@ -124,6 +129,7 @@ class Wechat extends OAuth2Client {
 			if (!empty($user['unionid'])) {
 				pdo_insert('users_bind', array('uid' => $user_id, 'bind_sign' => $user['unionid'], 'third_type' => USER_REGISTER_TYPE_OPEN_WECHAT, 'third_nickname' => ''));
 			}
+
 			return $user_id;
 		}
 
@@ -143,6 +149,7 @@ class Wechat extends OAuth2Client {
 		if (!empty($user['unionid'])) {
 			pdo_insert('users_bind', array('uid' => $_W['uid'], 'bind_sign' => $user['unionid'], 'third_type' => USER_REGISTER_TYPE_OPEN_WECHAT, 'third_nickname' => ''));
 		}
+
 		return true;
 	}
 
@@ -156,7 +163,7 @@ class Wechat extends OAuth2Client {
 		}
 		pdo_update('users', array('openid' => ''), array('uid' => $_W['uid']));
 		pdo_delete('users_bind', array('uid' => $_W['uid'], 'third_type' => $third_type));
-		if ($third_type == USER_REGISTER_TYPE_WECHAT) {
+		if (USER_REGISTER_TYPE_WECHAT == $third_type) {
 			pdo_delete('users_bind', array('uid' => $_W['uid'], 'third_type' => USER_REGISTER_TYPE_OPEN_WECHAT));
 		}
 
@@ -166,6 +173,7 @@ class Wechat extends OAuth2Client {
 	public function isbind() {
 		global $_W;
 		$bind_info = table('users_bind')->getByTypeAndUid(array(USER_REGISTER_TYPE_WECHAT, USER_REGISTER_TYPE_OPEN_WECHAT), $_W['uid']);
+
 		return !empty($bind_info['bind_sign']);
 	}
 }

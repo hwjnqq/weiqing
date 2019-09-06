@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn: pro/app/source/mc/uc.ctrl.php : v 148a6d07bc2b : 2014/07/24 02:02:34 : yanghf $
  */
 
@@ -14,11 +14,12 @@ $setting = uni_setting($_W['uniacid'], array('uc'));
 if($foo == 'bind') {
 	if($setting['uc']['status'] == '1') {
 		$uc = $setting['uc'];
-		$sql = 'SELECT * FROM ' . tablename('mc_mapping_ucenter') . ' WHERE `uniacid`=:uniacid AND `uid`=:uid';
-		$pars = array();
-		$pars[':uniacid'] = $_W['uniacid'];
-		$pars[':uid'] = $_W['member']['uid'];
-		$mapping = pdo_fetch($sql, $pars);
+		$mapping = table('mc_mapping_ucenter')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'uid' => $_W['member']['uid']
+			))
+			->get();
 		//如果没有映射关系
 		if(empty($mapping)) {
 			$op = trim($_GPC['op']);
@@ -35,11 +36,21 @@ if($foo == 'bind') {
 						elseif ($data[0] == -2) message('密码错误！', '', 'error');
 						elseif ($data[0] == -3) message('安全提问错误！', '', 'error');
 					}
-					
-					$exist = pdo_fetch('SELECT * FROM ' . tablename('mc_mapping_ucenter') . ' WHERE `uniacid`=:uniacid AND `centeruid`=:centeruid', array(':uniacid' => $_W['uniacid'], 'centeruid' => $data[0]));
+					$exist = table('mc_mapping_ucenter')
+						->where(array(
+							'uniacid' => $_W['uniacid'],
+							'centeruid' => $data[0]
+						))
+						->get();
 					if(empty($exist)) {
 						//数据库建立映射关系
-						pdo_insert('mc_mapping_ucenter', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid'], 'centeruid' => $data[0]));
+						table('mc_mapping_ucenter')
+							->fill(array(
+								'uniacid' => $_W['uniacid'],
+								'uid' => $_W['member']['uid'],
+								'centeruid' => $data[0]
+							))
+							->save();
 						message('绑定UC账号成功！', url('mc/mc/home'), 'success');
 					} else {
 						message('该UC账号已绑定过,请使用其他账号绑定！', '', 'error');
@@ -66,7 +77,13 @@ if($foo == 'bind') {
 						if($_W['member']['email'] == '') {
 							mc_update($_W['member']['uid'],array('email' => $email));
 						}
-						pdo_insert('mc_mapping_ucenter', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid'], 'centeruid' => $uid));
+						table('mc_mapping_ucenter')
+							->fill(array(
+								'uniacid' => $_W['uniacid'],
+								'uid' => $_W['member']['uid'],
+								'centeruid' => $uid
+							))
+							->save();
 						message('绑定UC账号成功！', url('mc/mc/home'), 'success');
 					}
 				}	
@@ -80,7 +97,12 @@ if($foo == 'bind') {
 		message('系统尚未开启UC！', '', 'success');
 	}
 } else {
-	$result = pdo_delete('mc_mapping_ucenter', array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']), ' AND ');
+	$result = table('mc_mapping_ucenter')
+		->where(array(
+			'uid' => $_W['member']['uid'],
+			'uniacid' => $_W['uniacid']
+		))
+		->delete();
 	if($result === false) {
 		message('解绑定UC账号失败！', referer(), 'error');
 	} else {

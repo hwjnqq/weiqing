@@ -1,7 +1,7 @@
 <?php
 /**
  * 小程序身份获取
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 
 defined('IN_IA') or exit('Access Denied');
@@ -57,13 +57,25 @@ if ($do == 'openid') {
 				'followtime' => TIMESTAMP,
 				'unfollowtime' => 0,
 				'tag' => '',
+				'user_from' => $_W['account']->typeSign == 'wxapp' ? 1 : 0,
 			);
+
 			$email = md5($oauth['openid']).'@we7.cc';
-			$email_exists_member = pdo_getcolumn('mc_members', array('email' => $email, 'uniacid' => $_W['uniacid']), 'uid');
+			$email_exists_member = table('mc_members')
+				->where(array(
+					'email' => $email,
+					'uniacid' => $_W['uniacid']
+				))
+				->getcolumn('uid');
 			if (!empty($email_exists_member)) {
 				$uid = $email_exists_member;
 			} else {
-				$default_groupid = pdo_fetchcolumn('SELECT groupid FROM ' .tablename('mc_groups') . ' WHERE uniacid = :uniacid AND isdefault = 1', array(':uniacid' => $_W['uniacid']));
+				$default_groupid = table('mc_groups')
+					->where(array(
+						'uniacid' => $_W['uniacid'],
+						'isdefault' => 1
+					))
+					->getcolumn('groupid');
 				$data = array(
 					'uniacid' => $_W['uniacid'],
 					'email' => $email,
@@ -78,12 +90,12 @@ if ($do == 'openid') {
 					'resideprovince' => '',
 					'residecity' => '',
 				);
-				pdo_insert('mc_members', $data);
+				table('mc_members')->fill($data)->save();
 				$uid = pdo_insertid();
 			}
 			$record['uid'] = $uid;
 			$_SESSION['uid'] = $uid;
-			pdo_insert('mc_mapping_fans', $record);
+			table('mc_mapping_fans')->fill($record)->save();
 		} else {
 			$userinfo = $fans['tag'];
 			$uid = $fans['uid'];
@@ -132,9 +144,21 @@ if ($do == 'openid') {
 	
 	$member = mc_fetch($fans['uid']);
 	if (!empty($member)) {
-		pdo_update('mc_members', array('nickname' => $userinfo['nickName'], 'avatar' => $userinfo['avatarUrl'], 'gender' => $userinfo['gender']), array('uid' => $fans['uid']));
+		table('mc_members')
+			->where(array('uid' => $fans['uid']))
+			->fill(array(
+				'nickname' => $userinfo['nickName'],
+				'avatar' => $userinfo['avatarUrl'],
+				'gender' => $userinfo['gender']
+			))
+			->save();
 	} else {
-		$default_groupid = pdo_fetchcolumn('SELECT groupid FROM ' .tablename('mc_groups') . ' WHERE uniacid = :uniacid AND isdefault = 1', array(':uniacid' => $_W['uniacid']));
+		$default_groupid = table('mc_groups')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'isdefault' => 1
+			))
+			->getcolumn('groupid');
 		$member = array(
 			'uniacid' => $_W['uniacid'],
 			'email' => md5($_SESSION['openid']).'@we7.cc',
@@ -149,10 +173,10 @@ if ($do == 'openid') {
 			'resideprovince' => '',
 			'residecity' => '',
 		);
-		pdo_insert('mc_members', $member);
+		table('mc_members')->fill($member)->save();
 		$fans_update['uid'] = pdo_insertid();
 	}
-	pdo_update('mc_mapping_fans', $fans_update, array('fanid' => $fans['fanid']));
+	table('mc_mapping_fans')->where(array('fanid' => $fans['fanid']))->fill($fans_update)->save();
 	unset($member['password']);
 	unset($member['salt']);
 	$account_api->result(0, '', $member);

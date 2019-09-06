@@ -1,7 +1,8 @@
-<?php 
+<?php
+
 $matchs = array();
 $ret = preg_match('/^(?P<express>申通|圆通|中通|汇通|韵达|顺丰|ems|天天|宅急送|邮政|德邦|全峰) *(?P<sn>[a-z\d]{1,})$/i', $this->message['content'], $matchs);
-if(!$ret) {
+if (!$ret) {
 	return $this->respText('请输入合适的格式, 快递公司+空格+单号(当前仅支持申通,圆通,中通,汇通,韵达,顺丰,EMS,天天,宅急送,邮政,德邦,全峰), 例如: 申通 2309381801');
 }
 $express = $matchs['express'];
@@ -18,7 +19,7 @@ $mappings = array(
 	'宅急送' => 'zhaijisong',
 	'邮政' => 'youzhengguonei',
 	'德邦' => 'debangwuliu',
-	'全峰' => 'quanfengkuaidi'
+	'全峰' => 'quanfengkuaidi',
 );
 $images = array(
 	'shentong' => 'http://cdn.kuaidi100.com/images/all/st_logo.gif',
@@ -32,32 +33,32 @@ $images = array(
 	'zhaijisong' => 'http://cdn.kuaidi100.com/images/all/zjs_logo.gif',
 	'youzhengguonei' => 'http://cdn.kuaidi100.com/images/all/yzgn_logo.gif',
 	'debangwuliu' => 'http://cdn.kuaidi100.com/images/all/dbwl_logo.gif',
-	'quanfengkuaidi' => 'http://cdn.kuaidi100.com/images/all/qfkd_logo.gif'
-) ;
+	'quanfengkuaidi' => 'http://cdn.kuaidi100.com/images/all/qfkd_logo.gif',
+);
 $code = $mappings[$express];
 $rand = rand();
 $url = "http://wap.kuaidi100.com/wap_result.jsp?rand={$rand}&id={$code}&fromWeb=null&&postid={$sn}";
 $dat = ihttp_get($url);
 $msg = '';
-if(!empty($dat) && !empty($dat['content'])) {
+if (!empty($dat) && !empty($dat['content'])) {
 	$reply = $dat['content'];
-	preg_match ('/查询结果如下所示.+/', $reply, $matchs);
+	preg_match('/查询结果如下所示.+/', $reply, $matchs);
 	$reply = $matchs[0];
 
 	preg_match_all('/&middot;(.*?)<br \/>(.*?)<\/p>/', $reply, $matchs);
 	$traces = '';
-	for ($i = 0; $i < count($matchs[0]); $i++ ) {
-		$traces .= $matchs[1][$i]. '-'. $matchs[2][$i]. PHP_EOL;
+	for ($i = 0; $i < count($matchs[0]); ++$i) {
+		$traces .= $matchs[1][$i] . '-' . $matchs[2][$i] . PHP_EOL;
 	}
 	$replys = array();
 	$replys[] = array(
 		'title' => '已经为你查到相关快递记录:',
 		'picurl' => $images[$code],
 		'description' => $traces,
-		'url' => 'http://m.kuaidi100.com/index_all.html?type='.$code.'&postid='.$sn,
+		'url' => 'http://m.kuaidi100.com/index_all.html?type=' . $code . '&postid=' . $sn,
 	);
-	return $this->respNews ($replys);
 
+	return $this->respNews($replys);
 }
-return $this->respText ('没有查找到相关的数据' . $msg . '. 请重新发送或检查您的输入格式, 正确格式为: 快递公司+空格+单号, 例如: 申通 2309381801');
 
+return $this->respText('没有查找到相关的数据' . $msg . '. 请重新发送或检查您的输入格式, 正确格式为: 快递公司+空格+单号, 例如: 申通 2309381801');

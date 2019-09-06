@@ -102,7 +102,7 @@
 				<div class="tab-pane " :ng-class="{active: key == 'recommend'}"  id="{{key}}" ng-repeat="(key, item) in recommend">
 					<div class="app-statistics">
 						<div class="left-box">
-							<div id="{{key + '-app-carousel'}}" class="carousel slide recommond-app-carousel" data-ride="carousel">
+							<div id="{{key + '-app-carousel'}}" class="carousel slide recommend-app-carousel" data-ride="carousel">
 								<ol class="carousel-indicators">
 									<li data-target="{{'#' + key + '-app-carousel'}}" data-slide-to="{{index}}"  ng-class="{active: index == 0}" ng-repeat="(index, ad) in item.ads"></li>
 								</ol>
@@ -128,7 +128,7 @@
 							</div>
 						</div>
 						<div class="right-box">
-							<div class="app-item" ng-repeat="app in item.list">
+							<a ng-href="{{'//s.w7.cc/module-'+app.aid+'.html'}}" target="_blank" class="app-item" ng-repeat="app in item.list">
 								<div class="app-item-box">
 									<div class="info">
 										<div class="logo">
@@ -139,13 +139,8 @@
 											<div class="time" ng-bind="'下载次数' + app.down_count"></div>
 										</div>
 									</div>
-									<div class="go">
-										<div class="name" ng-bind="app.title"></div>
-										<div class="time" ng-bind="'下载次数' + app.down_count"></div>
-										<a ng-href="{{'//s.w7.cc/module-'+app.aid+'.html'}}" target="_blank" class="btn btn-primary">查看详情</a>
-									</div>
 								</div>
-							</div>
+							</a>
 						</div>
 					</div>
 				</div>

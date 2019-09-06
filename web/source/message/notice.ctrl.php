@@ -1,9 +1,8 @@
 <?php
 /**
  * 消息提醒功能
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
-
 defined('IN_IA') or exit('Access Denied');
 load()->model('message');
 
@@ -12,19 +11,19 @@ $do = in_array($do, $dos) ? $do : 'display';
 
 if (in_array($do, array('display', 'all_read'))) {
 	$type = $types = intval($_GPC['type']);
-	if ($type == MESSAGE_ACCOUNT_EXPIRE_TYPE) {
+	if (MESSAGE_ACCOUNT_EXPIRE_TYPE == $type) {
 		$types = array(MESSAGE_ACCOUNT_EXPIRE_TYPE, MESSAGE_WECHAT_EXPIRE_TYPE, MESSAGE_WEBAPP_EXPIRE_TYPE);
 	}
-	if ($type == MESSAGE_ORDER_TYPE) {
+	if (MESSAGE_ORDER_TYPE == $type) {
 		$types = array(MESSAGE_ORDER_TYPE, MESSAGE_ORDER_APPLY_REFUND_TYPE);
 	}
 
-	if (empty($type) && (!user_is_founder($_W['uid']) || user_is_vice_founder())){
+	if (empty($type) && (!user_is_founder($_W['uid']) || user_is_vice_founder())) {
 		$types = array(MESSAGE_ACCOUNT_EXPIRE_TYPE, MESSAGE_WECHAT_EXPIRE_TYPE, MESSAGE_WEBAPP_EXPIRE_TYPE, MESSAGE_USER_EXPIRE_TYPE, MESSAGE_WXAPP_MODULE_UPGRADE);
 	}
 }
 
-if ($do == 'display') {
+if ('display' == $do) {
 	$message_id = intval($_GPC['message_id']);
 	message_notice_read($message_id);
 
@@ -70,18 +69,17 @@ if ($do == 'display') {
 	$wechat_setting = $wechat_setting['message_wechat_notice_setting'];
 	if (!empty($wechat_setting['uniacid'])) {
 		$uni_account = table('account')->getUniAccountByUniacid($wechat_setting['uniacid']);
-		$uni_account['qrcode'] = tomedia('qrcode_'. $uni_account['acid'] . '.jpg') . '?time='.$_W['timestamp'];
+		$uni_account['qrcode'] = tomedia('qrcode_' . $uni_account['acid'] . '.jpg') . '?time=' . $_W['timestamp'];
 	}
 }
 
-
-if ($do == 'change_read_status') {
+if ('change_read_status' == $do) {
 	$id = $_GPC['id'];
 	message_notice_read($id);
 	iajax(0, '成功');
 }
 
-if ($do == 'event_notice') {
+if ('event_notice' == $do) {
 	if (user_is_founder($_W['uid'], true)) {
 		message_store_notice();
 	}
@@ -92,12 +90,14 @@ if ($do == 'event_notice') {
 		message_notice_worker();
 		message_sms_expire_notice();
 		message_user_expire_notice();
+		message_sms_account_expire_notice();	
+		message_sms_api_account_expire_notice();
 		message_wxapp_modules_version_upgrade();
 	}
 	iajax(0, $message);
 }
 
-if ($do == 'read') {
+if ('read' == $do) {
 	$message_id = pdo_getcolumn('message_notice_log', array('id' => intval($_GPC['id'])), 'id');
 	if (!empty($message_id)) {
 		pdo_update('message_notice_log', array('is_read' => MESSAGE_READ), array('id' => $message_id));
@@ -105,7 +105,7 @@ if ($do == 'read') {
 	iajax(0, '已标记已读');
 }
 
-if ($do == 'all_read') {
+if ('all_read' == $do) {
 	message_notice_all_read($types);
 	if ($_W['isajax']) {
 		iajax(0, '全部已读', url('message/notice', array('type' => $type)));
@@ -113,7 +113,7 @@ if ($do == 'all_read') {
 	itoast('', referer());
 }
 
-if ($do == 'setting') {
+if ('setting' == $do) {
 	$setting = message_setting($_W['uid']);
 	$notice_setting = $_W['user']['notice_setting'];
 	foreach ($setting as &$value) {
@@ -127,13 +127,13 @@ if ($do == 'setting') {
 
 	$type = intval($_GPC['type']);
 	if (!empty($type)) {
-		$notice_setting[$type] = empty($notice_setting[$type]) || $notice_setting[$type] == MESSAGE_ENABLE ? MESSAGE_DISABLE : MESSAGE_ENABLE;
+		$notice_setting[$type] = empty($notice_setting[$type]) || MESSAGE_ENABLE == $notice_setting[$type] ? MESSAGE_DISABLE : MESSAGE_ENABLE;
 		user_update(array('uid' => $_W['uid'], 'notice_setting' => $notice_setting));
 		iajax(0, '更新成功', url('message/notice/setting'));
 	}
 }
 
-if ($do == 'wechat_setting') {
+if ('wechat_setting' == $do) {
 	if (!user_is_founder($_W['uid'], true)) {
 		itoast('无权限', referer(), 'error');
 	}
@@ -144,7 +144,7 @@ if ($do == 'wechat_setting') {
 	if (!empty($_GPC['delete'])) {
 		$wechat_setting = array(
 			'uniacid' => 0,
-			'template' => array('order' => '', 'expire' => '', 'register' => '', 'work' => '', 'upgrade' => '', 'message' => '')
+			'template' => array('order' => '', 'expire' => '', 'register' => '', 'work' => '', 'upgrade' => '', 'message' => ''),
 		);
 		setting_save($wechat_setting, 'message_wechat_notice_setting');
 		itoast('', referer(), 'success');
@@ -152,7 +152,7 @@ if ($do == 'wechat_setting') {
 	if (!empty($uniacid)) {
 		$wechat_setting = array(
 			'uniacid' => $uniacid,
-			'template' => array('order' => '', 'expire' => '', 'register' => '', 'work' => '', 'upgrade' => '', 'message' => '')
+			'template' => array('order' => '', 'expire' => '', 'register' => '', 'work' => '', 'upgrade' => '', 'message' => ''),
 		);
 		setting_save($wechat_setting, 'message_wechat_notice_setting');
 		iajax(0, '操作成功');
@@ -209,10 +209,10 @@ if ($do == 'wechat_setting') {
 	}
 	$accounts = uni_user_accounts($_W['uid'], 'account');
 	foreach ($accounts as $k => $item) {
-		if ($item['level'] != ACCOUNT_SERVICE_VERIFY) {
+		if (ACCOUNT_SERVICE_VERIFY != $item['level']) {
 			unset($accounts[$k]);
 		} else {
-			$accounts[$k]['logo'] = is_file(IA_ROOT . '/attachment/headimg_' . $item['acid'] . '.jpg') ? tomedia('headimg_'.$item['acid']. '.jpg').'?time='.time() : './resource/images/nopic-107.png';
+			$accounts[$k]['logo'] = is_file(IA_ROOT . '/attachment/headimg_' . $item['acid'] . '.jpg') ? tomedia('headimg_' . $item['acid'] . '.jpg') . '?time=' . time() : './resource/images/nopic-107.png';
 		}
 	}
 }

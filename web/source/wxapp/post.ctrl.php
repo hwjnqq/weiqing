@@ -1,7 +1,7 @@
 <?php
 /**
  * 创建小程序
- * [WeEngine System] Copyright (c) 2014 WE7.CC.
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -14,8 +14,7 @@ $dos = array('design_method', 'post', 'get_wxapp_modules', 'module_binding');
 $do = in_array($do, $dos) ? $do : 'post';
 $account_info = permission_user_account_num($_W['uid']);
 
-
-if ($do == 'design_method') {
+if ('design_method' == $do) {
 	// 1 普通小程序  2 授权小程序
 	$choose = isset($_GPC['choose_type']) ? intval($_GPC['choose_type']) : 0;
 	$uniacid = intval($_GPC['uniacid']);
@@ -32,7 +31,7 @@ if ($do == 'design_method') {
 		template('wxapp/choose-type');
 	}
 }
-if ($do == 'post') {
+if ('post' == $do) {
 	$uniacid = intval($_GPC['uniacid']);
 	$design_method = intval($_GPC['design_method']);
 	$create_type = intval($_GPC['create_type']);
@@ -41,20 +40,20 @@ if ($do == 'post') {
 		$is_submit ? iajax(-1, '创建的小程序已达上限') : itoast('创建的小程序已达上限！', '', '');
 	}
 
-	$version_id  = intval($_GPC['version_id']);
-	$isedit  =  $version_id > 0 ? 1 : 0;
+	$version_id = intval($_GPC['version_id']);
+	$isedit = $version_id > 0 ? 1 : 0;
 	if ($isedit) {
 		$wxapp_version = miniapp_version($version_id);
 	}
 	if (empty($design_method)) {
 		$is_submit ? iajax(-1, '请先选择要添加小程序类型') : itoast('请先选择要添加小程序类型', referer(), 'error');
 	}
-	if ($design_method == WXAPP_TEMPLATE) {
+	if (WXAPP_TEMPLATE == $design_method) {
 		$is_submit ? iajax(-1, '拼命开发中。。。') : itoast('拼命开发中。。。', referer(), 'info');
 	}
 
 	if ($is_submit) {
-		if ($design_method == WXAPP_TEMPLATE && empty($_GPC['choose']['modules'])) {
+		if (WXAPP_TEMPLATE == $design_method && empty($_GPC['choose']['modules'])) {
 			iajax(2, '请选择要打包的模块应用', url('wxapp/post'));
 		}
 		if (!preg_match('/^[0-9]{1,2}\.[0-9]{1,2}(\.[0-9]{1,2})?$/', trim($_GPC['version']))) {
@@ -73,8 +72,8 @@ if ($do == 'post') {
 				'key' => trim($_GPC['appid']),
 				'secret' => trim($_GPC['appsecret']),
 				'type' => ACCOUNT_TYPE_APP_NORMAL,
-				'headimg' => file_is_image( $_GPC['headimg']) ?  $_GPC['headimg'] : '',
-				'qrcode' => file_is_image( $_GPC['qrcode']) ?  $_GPC['qrcode'] : '',
+				'headimg' => file_is_image($_GPC['headimg']) ? $_GPC['headimg'] : '',
+				'qrcode' => file_is_image($_GPC['qrcode']) ? $_GPC['qrcode'] : '',
 			);
 			$uniacid = miniapp_create($account_wxapp_data);
 
@@ -83,7 +82,7 @@ if ($do == 'post') {
 			$unisettings['creditbehaviors'] = array('activity' => 'credit1', 'currency' => 'credit2');
 			$unisettings['creditbehaviors'] = iserializer($unisettings['creditbehaviors']);
 			$unisettings['uniacid'] = $uniacid;
-			pdo_insert('uni_settings', $unisettings);
+			table('uni_settings')->fill($unisettings)->save();
 
 			if (is_error($uniacid)) {
 				iajax(3, '添加小程序信息失败', url('wxapp/post'));
@@ -106,19 +105,19 @@ if ($do == 'post') {
 			'design_method' => $design_method,
 			'quickmenu' => '',
 			'createtime' => TIMESTAMP,
-			'template' => $design_method == WXAPP_TEMPLATE ? intval($_GPC['choose']['template']) : 0,
+			'template' => WXAPP_TEMPLATE == $design_method ? intval($_GPC['choose']['template']) : 0,
 			//是否公众号应用 1 是 0默认小程序
-			'type' => 0
+			'type' => 0,
 		);
 		
 		//多模块打包，每个版本对应一个微官网
-		if ($design_method == WXAPP_TEMPLATE) {
+		if (WXAPP_TEMPLATE == $design_method) {
 			$multi_data = array(
 				'uniacid' => $uniacid,
 				'title' => $account_wxapp_data['name'],
 				'styleid' => 0,
 			);
-			pdo_insert('site_multi', $multi_data);
+			table('site_multi')->fill($multi_data)->save();
 			$wxapp_version['multiid'] = pdo_insertid();
 		}
 
@@ -133,7 +132,7 @@ if ($do == 'post') {
 
 				$select_modules[$module['name']] = array('name' => $module['name'],
 					'newicon' => $post_module['newicon'],
-					'version' => $module['version'], 'defaultentry'=>$post_module['defaultentry']);
+					'version' => $module['version'], 'defaultentry' => $post_module['defaultentry'], );
 			}
 
 			$wxapp_version['modules'] = serialize($select_modules);
@@ -150,7 +149,6 @@ if ($do == 'post') {
 				'menus' => array(),
 			);
 			if (!empty($_GPC['quickmenu']['menus'])) {
-
 				foreach ($_GPC['quickmenu']['menus'] as $row) {
 					$quickmenu['menus'][] = array(
 						'name' => $row['name'],
@@ -166,11 +164,17 @@ if ($do == 'post') {
 		}
 		if ($isedit) {
 			$msg = '小程序修改成功';
-			pdo_update('wxapp_versions', $wxapp_version, array('id'=>$version_id, 'uniacid'=>$uniacid));
+			table('wxapp_versions')
+				->where(array(
+					'id' => $version_id,
+					'uniacid' => $uniacid
+				))
+				->fill($wxapp_version)
+				->save();
 			cache_delete(cache_system_key('miniapp_version', array('version_id' => $version_id)));
 		} else {
 			$msg = '小程序创建成功';
-			pdo_insert('wxapp_versions', $wxapp_version);
+			table('wxapp_versions')->fill($wxapp_version)->save();
 			$version_id = pdo_insertid();
 		}
 		cache_delete(cache_system_key('user_accounts', array('type' => 'wxapp', 'uid' => $_W['uid'])));
@@ -183,17 +187,17 @@ if ($do == 'post') {
 }
 
 //获取所有支持小程序的模块
-if ($do == 'get_wxapp_modules') {
+if ('get_wxapp_modules' == $do) {
 	$wxapp_modules = miniapp_support_wxapp_modules();
 	foreach ($wxapp_modules as $name => $module) {
 		if ($module['issystem']) {
-			$path = '/framework/builtin/'.$module['name'];
+			$path = '/framework/builtin/' . $module['name'];
 		} else {
-			$path = '../addons/'.$module['name'];
+			$path = '../addons/' . $module['name'];
 		}
-		$icon = $path.'/icon-custom.jpg';
+		$icon = $path . '/icon-custom.jpg';
 		if (!file_exists($cion)) {
-			$icon = $path.'/icon.jpg';
+			$icon = $path . '/icon.jpg';
 			if (!file_exists($icon)) {
 				$icon = './resource/images/nopic-small.jpg';
 			}
@@ -203,25 +207,24 @@ if ($do == 'get_wxapp_modules') {
 	iajax(0, $wxapp_modules, '');
 }
 
-
-if ($do == 'module_binding') {
+if ('module_binding' == $do) {
 	$modules = $_GPC['modules'];
 	if (empty($modules)) {
 		iajax(1, '参数无效');
+
 		return;
 	}
 	$modules = explode(',', $modules);
-	$modules = array_map(function($item) {
+	$modules = array_map(function ($item) {
 		return trim($item);
 	}, $modules);
 
-	$modules = table('modules')->with(array('bindings' => function($query){
+	$modules = table('modules')->with(array('bindings' => function ($query) {
 		return $query->where('entry', 'cover');
 	}))->where('name', $modules)->getall();
 
-	$modules = array_filter($modules, function($module){
+	$modules = array_filter($modules, function ($module) {
 		return count($module['bindings']) > 0;
 	});
 	iajax(0, $modules);
 }
-

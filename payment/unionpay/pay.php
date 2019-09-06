@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 define('IN_MOBILE', true);
@@ -20,10 +20,9 @@ $payment = $setting['payment']['unionpay'];
 require '__init.php';
 
 if (!empty($_POST) && verify($_POST) && $_POST['respMsg'] == 'success') {
-	$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniontid`=:uniontid';
-	$params = array();
-	$params[':uniontid'] = $_POST['orderId'];
-	$log = pdo_fetch($sql, $params);
+	$log = table('core_paylog')
+		->where(array('uniontid' => $_POST['orderId']))
+		->get();
 	if(!empty($log) && $log['status'] == '0') {
 		$log['tag'] = iunserializer($log['tag']);
 		$log['tag']['queryId'] = $_POST['queryId'];
@@ -31,7 +30,10 @@ if (!empty($_POST) && verify($_POST) && $_POST['respMsg'] == 'success') {
 		$record = array();
 		$record['status'] = 1;
 		$record['tag'] = iserializer($log['tag']);
-		pdo_update('core_paylog', $record, array('plid' => $log['plid']));
+		table('core_paylog')
+			->where(array('plid' => $log['plid']))
+			->fill($record)
+			->save();
 		//核销code码
 		if($log['is_usecard'] == 1 && $log['card_type'] == 1 &&  !empty($log['encrypt_code']) && $log['acid']) {
 			load()->classs('coupon');
@@ -79,8 +81,9 @@ if (!empty($_POST) && verify($_POST) && $_POST['respMsg'] == 'success') {
 		}
 	}
 }
-$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `plid`=:plid';
-$paylog = pdo_fetch($sql, array(':plid' => $params['tid']));
+$paylog = table('core_paylog')
+	->where(array('plid' => $params['tid']))
+	->get();
 if(!empty($paylog) && $paylog['status'] != '0') {
 	exit('这个订单已经支付成功, 不需要重复支付.');
 }

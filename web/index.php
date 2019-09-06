@@ -1,7 +1,7 @@
 <?php
 /**
  * 路由控制器
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 define('IN_SYS', true);
 require '../framework/bootstrap.inc.php';
@@ -28,20 +28,20 @@ $_W['page'] = array();
 $_W['page']['copyright'] = $_W['setting']['copyright'];
 // navs end;
 
-if (($_W['setting']['copyright']['status'] == 1) && empty($_W['isfounder']) && $controller != 'cloud' && $controller != 'utility' && $controller != 'account') {
+if (($_W['setting']['copyright']['status'] == 1) && empty($_W['isfounder']) && 'cloud' != $controller && 'utility' != $controller && 'account' != $controller) {
 	$_W['siteclose'] = true;
-	if ($controller == 'account' && $action == 'welcome') {
+	if ('account' == $controller && 'welcome' == $action) {
 		template('account/welcome');
 		exit();
 	}
-	if ($controller == 'user' && $action == 'login') {
+	if ('user' == $controller && 'login' == $action) {
 		if (checksubmit()) {
 			require _forward($controller, $action);
 		}
 		template('user/login');
 		exit();
 	}
-	isetcookie('__session', '', - 10000);
+	isetcookie('__session', '', -10000);
 	
 		message('站点已关闭，关闭原因：' . $_W['setting']['copyright']['reason'], url('user/login'), 'info');
 	
@@ -52,7 +52,7 @@ $controllers = array();
 $handle = opendir(IA_ROOT . '/web/source/');
 if (!empty($handle)) {
 	while ($dir = readdir($handle)) {
-		if ($dir != '.' && $dir != '..') {
+		if ('.' != $dir && '..' != $dir) {
 			$controllers[] = $dir;
 		}
 	}
@@ -66,7 +66,8 @@ if (is_file($init)) {
 	require $init;
 }
 
-if (defined('FRAME') && in_array(FRAME, array('account', 'wxapp'))) {
+$need_account_info = uni_need_account_info();
+if (defined('FRAME') && $need_account_info) {
 	if (!empty($_W['uniacid'])) {
 		$_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);
 		if (is_error($_W['account'])) {
@@ -84,7 +85,7 @@ foreach ($actions_path as $action_path) {
 
 	$section = basename(dirname($action_path));
 	if ($section !== $controller) {
-		$action_name = $section . '-' .$action_name;
+		$action_name = $section . '-' . $action_name;
 	}
 	$actions[] = $action_name;
 }
@@ -108,14 +109,14 @@ if (is_array($acl[$controller]['direct']) && in_array($action, $acl[$controller]
 }
 checklogin();
 // 判断非创始人是否拥有目标权限
-if ($_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER) {
-	if ($_W['role'] == ACCOUNT_MANAGE_NAME_UNBIND_USER) {
+if (ACCOUNT_MANAGE_NAME_FOUNDER != $_W['role']) {
+	if (ACCOUNT_MANAGE_NAME_UNBIND_USER == $_W['role']) {
 		itoast('', url('user/third-bind'));
 	}
 	if (!defined('FRAME')) {
 		define('FRAME', '');
 	}
-	if (empty($_W['uniacid']) && in_array(FRAME, array('account', 'wxapp')) && $_GPC['m'] != 'store') {
+	if (empty($_W['uniacid']) && in_array(FRAME, array('account', 'wxapp')) && 'store' != $_GPC['m']) {
 		itoast('', url('account/display/platform'), 'info');
 	}
 
@@ -126,7 +127,7 @@ if ($_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER) {
 		$checked_role = $_W['role'];
 	}
 	if (empty($acl[$controller][$checked_role]) ||
-		(!in_array($controller.'*', $acl[$controller][$checked_role]) && !in_array($action, $acl[$controller][$checked_role]))) {
+		(!in_array($controller . '*', $acl[$controller][$checked_role]) && !in_array($action, $acl[$controller][$checked_role]))) {
 		message('不能访问, 需要相应的权限才能访问！');
 	}
 	unset($checked_role);
@@ -145,7 +146,7 @@ if ((ENDTIME - STARTTIME) > $_W['config']['setting']['maxtimeurl']) {
 		'type' => '1',
 		'runtime' => ENDTIME - STARTTIME,
 		'runurl' => $_W['sitescheme'] . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
-		'createtime' => TIMESTAMP
+		'createtime' => TIMESTAMP,
 	);
 	pdo_insert('core_performance', $data);
 }
@@ -155,11 +156,12 @@ function _forward($c, $a) {
 		list($section, $a) = explode('-', $a);
 		$file = IA_ROOT . '/web/source/' . $c . '/' . $section . '/' . $a . '.ctrl.php';
 	}
+
 	return $file;
 }
 function _calc_current_frames(&$frames) {
 	global $_W, $controller, $action;
-	$_W['page']['title'] = (isset($_W['page']['title']) && !empty($_W['page']['title'])) ? $_W['page']['title'] : ($frames['dimension'] == 2 ? $frames['title'] : '');
+	$_W['page']['title'] = (isset($_W['page']['title']) && !empty($_W['page']['title'])) ? $_W['page']['title'] : (2 == $frames['dimension'] ? $frames['title'] : '');
 
 	if (empty($frames['section']) || !is_array($frames['section'])) {
 		return true;
@@ -174,7 +176,7 @@ function _calc_current_frames(&$frames) {
 				foreach ($menu['childs'] as $module_child_key => $module_child_menu) {
 					$query = parse_url($module_child_menu['url'], PHP_URL_QUERY);
 					$server_query = parse_url($_W['siteurl'], PHP_URL_QUERY);
-					if (strpos($server_query, $query) === 0) {
+					if (0 === strpos($server_query, $query)) {
 						$menu['childs'][$module_child_key]['active'] = 'active';
 						break;
 					}
@@ -196,23 +198,23 @@ function _calc_current_frames(&$frames) {
 				if (!empty($do)) {
 					$get['do'] = $do;
 				}
-				if (strpos($get['do'], 'post') !== false && !in_array($key, array('platform_menu', 'platform_masstask'))) {
+				if (false !== strpos($get['do'], 'post') && !in_array($key, array('platform_menu', 'platform_masstask'))) {
 					$_W['page']['title'] = '';
 					continue;
 				}
 				$diff = array_diff_assoc($urls, $get);
 
 				if (empty($diff) ||
-					$key == 'platform_menu' && $get['a'] == 'menu' && in_array($get['do'], array('display')) ||
-					$key == 'platform_site' && in_array($get['a'], array('style', 'article', 'category')) ||
-					$key == 'mc_member' && in_array($get['a'], array('editor', 'group', 'fields')) ||
-					$key == 'profile_setting' && in_array($get['a'], array('passport', 'tplnotice', 'notify', 'common')) ||
-					$key == 'profile_payment' && in_array($get['a'], array('refund')) ||
-					$key == 'statistics_visit' && in_array($get['a'], array('site', 'setting')) ||
-					$key == 'platform_reply' && in_array($get['a'], array('reply-setting')) ||
-					$key == 'system_setting_thirdlogin' && in_array($get['a'], array('thirdlogin')) ||
-					$key == 'system_cloud_sms' && in_array($get['a'], array('profile')) ||
-					$key == 'wxapp_profile_payment' && in_array($get['a'], array('refund'))) {
+					'platform_menu' == $key && 'menu' == $get['a'] && in_array($get['do'], array('display')) ||
+					'platform_site' == $key && in_array($get['a'], array('style', 'article', 'category')) ||
+					'mc_member' == $key && in_array($get['a'], array('editor', 'group', 'fields')) ||
+					'profile_setting' == $key && in_array($get['a'], array('passport', 'tplnotice', 'notify', 'common')) ||
+					'profile_payment' == $key && in_array($get['a'], array('refund')) ||
+					'statistics_visit' == $key && in_array($get['a'], array('site', 'setting')) ||
+					'platform_reply' == $key && in_array($get['a'], array('reply-setting')) ||
+					'system_setting_thirdlogin' == $key && in_array($get['a'], array('thirdlogin')) ||
+					'system_cloud_sms' == $key && in_array($get['a'], array('profile')) ||
+					'wxapp_profile_payment' == $key && in_array($get['a'], array('refund'))) {
 					$menu['active'] = ' active';
 					$_W['page']['title'] = !empty($_W['page']['title']) ? $_W['page']['title'] : $menu['title'];
 					$finished = true;
@@ -224,4 +226,5 @@ function _calc_current_frames(&$frames) {
 			break;
 		}
 	}
+	return true;
 }

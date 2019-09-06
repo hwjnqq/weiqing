@@ -1,7 +1,7 @@
 <?php
 /**
  * 我的账户
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('user');
@@ -13,7 +13,7 @@ load()->model('setting');
 $dos = array('base', 'post', 'bind', 'validate_mobile', 'bind_mobile', 'unbind', 'modules_tpl', 'create_account', 'account_dateline');
 $do = in_array($do, $dos) ? $do : 'base';
 
-if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
+if ('post' == $do && $_W['isajax'] && $_W['ispost']) {
 	$type = trim($_GPC['type']);
 	$extra_filed_key = safe_gpc_string($_GPC['extra_field_key']);
 	$extra_filed_val = safe_gpc_string($_GPC['extra_field_val']);
@@ -30,20 +30,28 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 		iajax(-1, '用户不存在或已经被删除！', '');
 	}
 
-	if ($user['status'] == USER_STATUS_CHECK || $user['status'] == USER_STATUS_BAN) {
+	if (USER_STATUS_CHECK == $user['status'] || USER_STATUS_BAN == $user['status']) {
 		iajax(-1, '访问错误，该用户未审核或者已被禁用，请先修改用户状态！', '');
 	}
 
 	$users_profile_exist = table('users_profile')->getByUid($uid);
-	if ($type == 'birth') {
-		if ($users_profile_exist['year'] == $_GPC['year'] && $users_profile_exist['month'] == $_GPC['month'] && $users_profile_exist['day'] == $_GPC['day']) iajax(0, '未作修改！', '');
-	} elseif ($type == 'reside') {
-		if ($users_profile_exist['province'] == $_GPC['province'] && $users_profile_exist['city'] == $_GPC['city'] && $users_profile_exist['district'] == $_GPC['district']) iajax(0, '未作修改！', '');
+	if ('birth' == $type) {
+		if ($users_profile_exist['year'] == $_GPC['year'] && $users_profile_exist['month'] == $_GPC['month'] && $users_profile_exist['day'] == $_GPC['day']) {
+			iajax(0, '未作修改！', '');
+		}
+	} elseif ('reside' == $type) {
+		if ($users_profile_exist['province'] == $_GPC['province'] && $users_profile_exist['city'] == $_GPC['city'] && $users_profile_exist['district'] == $_GPC['district']) {
+			iajax(0, '未作修改！', '');
+		}
 	} else {
 		if (in_array($type, array('username', 'password'))) {
-			if ($user[$type] == $_GPC[$type] && $type != 'password') iajax(0, '未做修改！', '');
+			if ($user[$type] == $_GPC[$type] && 'password' != $type) {
+				iajax(0, '未做修改！', '');
+			}
 		} else {
-			if ($users_profile_exist[$type] == $_GPC[$type] && empty($extra_filed_key)) iajax(0, '未作修改！', '');
+			if ($users_profile_exist[$type] == $_GPC[$type] && empty($extra_filed_key)) {
+				iajax(0, '未作修改！', '');
+			}
 		}
 	}
 	switch ($type) {
@@ -52,7 +60,7 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 		case 'address':
 		case 'qq':
 		case 'mobile':
-			if ($type == 'mobile') {
+			if ('mobile' == $type) {
 				$match = preg_match(REGULAR_MOBILE, trim($_GPC[$type]));
 				if (empty($match)) {
 					iajax(-1, '手机号不正确', '');
@@ -69,11 +77,11 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 				$data = array(
 					'uid' => $uid,
 					'createtime' => TIMESTAMP,
-					$type => trim($_GPC[$type])
+					$type => trim($_GPC[$type]),
 				);
 				$result = pdo_insert('users_profile', $data);
 			}
-			if ($type == 'mobile') {
+			if ('mobile' == $type) {
 				$data = array(
 					'uid' => $uid,
 					'bind_sign' => trim($_GPC[$type]),
@@ -105,7 +113,7 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 			break;
 		case 'vice_founder_name':
 			$userinfo = user_single(array('username' => safe_gpc_string($_GPC['vice_founder_name'])));
-			if (empty($userinfo) || $userinfo['founder_groupid'] != ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
+			if (empty($userinfo) || ACCOUNT_MANAGE_GROUP_VICE_FOUNDER != $userinfo['founder_groupid']) {
 				iajax(1, '用户不存在或该用户不是副创始人', '');
 			}
 
@@ -125,7 +133,9 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 			$result = pdo_update('users', array('welcome_link' => $welcome_link), array('uid' => $uid));
 			break;
 		case 'password':
-			if ($_GPC['newpwd'] !== $_GPC['renewpwd']) iajax(2, '两次密码不一致！', '');
+			if ($_GPC['newpwd'] !== $_GPC['renewpwd']) {
+				iajax(2, '两次密码不一致！', '');
+			}
 			$_GPC['newpwd'] = safe_gpc_string($_GPC['newpwd']);
 			$check_safe = safe_check_password($_GPC['newpwd']);
 			if (is_error($check_safe)) {
@@ -135,7 +145,9 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 			if (!$_W['isfounder'] && empty($user['register_type'])) {
 				$pwd = user_password($_GPC['oldpwd'], $uid);
 				$pwd_hash = user_password_hash($pwd, $uid);
-				if ($pwd_hash != $user['hash']) iajax(3, '原密码不正确！', '');
+				if ($pwd_hash != $user['hash']) {
+					iajax(3, '原密码不正确！', '');
+				}
 			}
 			$newpwd = user_password($_GPC['newpwd'], $uid);
 			$newpwd_hash = user_password_hash($newpwd, $uid);
@@ -144,8 +156,8 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 			}
 			$result = pdo_update('users', array('password' => $newpwd), array('uid' => $uid));
 			break;
-		case 'endtime' :
-			if ($_GPC['endtype'] == 1) {
+		case 'endtime':
+			if (1 == $_GPC['endtype']) {
 				$endtime = 0;
 			} else {
 				$endtime = strtotime($_GPC['endtime']);
@@ -169,7 +181,7 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 					'createtime' => TIMESTAMP,
 					'birthyear' => intval($_GPC['year']),
 					'birthmonth' => intval($_GPC['month']),
-					'birthday' => intval($_GPC['day'])
+					'birthday' => intval($_GPC['day']),
 				);
 				$result = pdo_insert('users_profile', $data);
 			}
@@ -186,13 +198,16 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 					'createtime' => TIMESTAMP,
 					'resideprovince' => $province,
 					'residecity' => $city,
-					'residedist' => $district
+					'residedist' => $district,
 				);
 				$result = pdo_insert('users_profile', $data);
 			}
 			break;
 		default:
-			if (empty($extra_filed_key)) {
+			$allow_fields = array(
+				'realname', 'nickname', 'avatar', 'qq', 'mobile', 'gender', 'birthyear', 'birthmonth', 'birthday', 'constellation', 'zodiac', 'idcard', 'studentid', 'grade', 'address', 'zipcode', 'nationality', 'resideprovince', 'residecity', 'residedist', 'graduateschool', 'company', 'education', 'occupation', 'position', 'revenue', 'affectivestatus', 'lookingfor', 'bloodtype', 'height', 'weight', 'alipay', 'msn', 'email', 'taobao', 'site', 'bio', 'interest',
+			);
+			if (empty($extra_filed_key) || !in_array($extra_filed_key, $allow_fields)) {
 				iajax(1, '参数错误', '');
 			}
 			if ($users_profile_exist) {
@@ -200,7 +215,7 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 			} else {
 				$data = array(
 					'uid' => $uid,
-					$extra_filed_key => $extra_filed_val
+					$extra_filed_key => $extra_filed_val,
 				);
 				$result = pdo_insert('users_profile', $data);
 			}
@@ -215,7 +230,7 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 }
 
 //账号信息
-if ($do == 'base') {
+if ('base' == $do) {
 	$account_num = permission_user_account_num($_W['uid']);
 	$message_id = intval($_GPC['message_id']);
 	message_notice_read($message_id);
@@ -252,13 +267,13 @@ if ($do == 'base') {
 		$user_extra_groups = !empty($user_extra_groups) ? uni_groups(array_keys($user_extra_groups)) : array();
 
 		$extend = array();
-		$user_extend_templates_ids = array_keys((array)table('users_extra_templates')->getExtraTemplatesIdsByUid($_W['uid']));
+		$user_extend_templates_ids = array_keys((array) table('users_extra_templates')->getExtraTemplatesIdsByUid($_W['uid']));
 		if (!empty($user_extend_templates_ids)) {
 			$extend['templates'] = pdo_getall('site_templates', array('id' => $user_extend_templates_ids), array('id', 'name', 'title'));
 		}
 		$user_extend_modules = table('users_extra_modules')->getExtraModulesByUid($_W['uid']);
 		if (!empty($user_extend_modules)) {
-			foreach($user_extend_modules as $extend_module_info) {
+			foreach ($user_extend_modules as $extend_module_info) {
 				$module_info = module_fetch($extend_module_info['module_name']);
 				if (!empty($module_info)) {
 					$module_info['support'] = $extend_module_info['support'];
@@ -267,7 +282,7 @@ if ($do == 'base') {
 			}
 		}
 	}
-	
+
 	$extra_fields = user_available_extra_fields();
 
 	$redirect_urls = array(
@@ -282,8 +297,8 @@ if ($do == 'base') {
 	$bind_wechat = array();
 	$bind_mobile = array();
 	if (!empty($lists)) {
-		foreach($lists as $list) {
-			switch($list['third_type']){
+		foreach ($lists as $list) {
+			switch ($list['third_type']) {
 				case USER_REGISTER_TYPE_QQ:
 					$bind_qq = $list;
 					break;
@@ -303,11 +318,11 @@ if ($do == 'base') {
 	$endtime = $user['endtime'];
 	$total_timelimit = $group_info['timelimit'] + $extra_limit_info['timelimit'];
 
-	if ($endtime == USER_ENDTIME_GROUP_EMPTY_TYPE || $endtime == USER_ENDTIME_GROUP_UNLIMIT_TYPE) {
+	if (USER_ENDTIME_GROUP_EMPTY_TYPE == $endtime || USER_ENDTIME_GROUP_UNLIMIT_TYPE == $endtime) {
 		$total_timelimit = '永久';
 		$endtime = '永久';
-	} elseif ($endtime == USER_ENDTIME_GROUP_DELETE_TYPE && $total_timelimit == 0) {
-		$endtime = $total_timelimit == 0 ? date('Y-m-d', $user['joindate']) : date('Y-m-d', $user['endtime']);
+	} elseif (USER_ENDTIME_GROUP_DELETE_TYPE == $endtime && 0 == $total_timelimit) {
+		$endtime = 0 == $total_timelimit ? date('Y-m-d', $user['joindate']) : date('Y-m-d', $user['endtime']);
 	} else {
 		$endtime = date('Y-m-d', $endtime);
 	}
@@ -318,7 +333,7 @@ if ($do == 'base') {
 	template('user/profile');
 }
 
-if ($do == 'bind') {
+if ('bind' == $do) {
 	$setting_sms_sign = setting_load('site_sms_sign');
 	$bind_sign = !empty($setting_sms_sign['site_sms_sign']['register']) ? $setting_sms_sign['site_sms_sign']['register'] : '';
 
@@ -344,8 +359,8 @@ if ($do == 'bind') {
 	$bind_mobile = array();
 
 	if (!empty($lists)) {
-		foreach($lists as $list) {
-			switch($list['third_type']){
+		foreach ($lists as $list) {
+			switch ($list['third_type']) {
 				case USER_REGISTER_TYPE_QQ:
 					$bind_qq = $list;
 					break;
@@ -364,7 +379,7 @@ if ($do == 'bind') {
 	template('user/bind');
 }
 
-if (in_array($do, array('validate_mobile', 'bind_mobile')) || $_GPC['bind_type'] == USER_REGISTER_TYPE_MOBILE && $do == 'unbind') {
+if (in_array($do, array('validate_mobile', 'bind_mobile')) || USER_REGISTER_TYPE_MOBILE == $_GPC['bind_type'] && 'unbind' == $do) {
 	$user_profile = table('users_profile')->getByUid($_W['uid']);
 
 	$mobile = safe_gpc_string($_GPC['mobile']);
@@ -386,7 +401,7 @@ if (in_array($do, array('validate_mobile', 'bind_mobile')) || $_GPC['bind_type']
 		iajax(-1, '手机号已存在');
 	}
 }
-if ($do == 'validate_mobile') {
+if ('validate_mobile' == $do) {
 	$user = array('username' => safe_gpc_string($_GPC['mobile']));
 	$mobile_exists = user_check($user);
 	if ($mobile_exists) {
@@ -395,7 +410,7 @@ if ($do == 'validate_mobile') {
 	iajax(0, '本地校验成功');
 }
 
-if ($do == 'bind_mobile') {
+if ('bind_mobile' == $do) {
 	if ($_W['isajax'] && $_W['ispost']) {
 		$bind_info = OAuth2Client::create('mobile')->bind();
 
@@ -414,7 +429,7 @@ if ($do == 'bind_mobile') {
 	}
 }
 
-if ($do == 'unbind') {
+if ('unbind' == $do) {
 	$types = array(1 => 'qq', 2 => 'wechat', 3 => 'mobile');
 	if (!in_array($_GPC['bind_type'], array(USER_REGISTER_TYPE_QQ, USER_REGISTER_TYPE_WECHAT, USER_REGISTER_TYPE_MOBILE))) {
 		iajax(-1, '类型错误');
@@ -431,7 +446,7 @@ if ($do == 'unbind') {
 	iajax(-1, '非法请求');
 }
 
-if ($do == 'modules_tpl') {
+if ('modules_tpl' == $do) {
 	$modules = user_modules($_W['uid']);
 	$templates = pdo_getall('site_templates', array(), array('id', 'name', 'title'));
 
@@ -473,8 +488,8 @@ if ($do == 'modules_tpl') {
 	$user_modules = array('account' => array(), 'wxapp' => array(), 'webapp' => array(), 'phoneapp' => array(), 'xzapp' => array());
 	if (!empty($modules)) {
 		foreach ($modules as $module) {
-			if ($module['issystem'] == 0) {
-				if ($module[MODULE_SUPPORT_ACCOUNT_NAME] == MODULE_SUPPORT_ACCOUNT) {
+			if (0 == $module['issystem']) {
+				if (MODULE_SUPPORT_ACCOUNT == $module[MODULE_SUPPORT_ACCOUNT_NAME]) {
 					if (!empty($user_extend_modules) && in_array($module['name'], $user_extend_modules)) {
 						$module['checked'] = 1;
 					}
@@ -482,7 +497,7 @@ if ($do == 'modules_tpl') {
 					$module['checked'] = 0;
 				}
 
-				if ($module[MODULE_SUPPORT_WXAPP_NAME] == MODULE_SUPPORT_WXAPP) {
+				if (MODULE_SUPPORT_WXAPP == $module[MODULE_SUPPORT_WXAPP_NAME]) {
 					if (!empty($user_extend_modules) && in_array($module['name'], $user_extend_modules)) {
 						$module['checked'] = 1;
 					}
@@ -490,7 +505,7 @@ if ($do == 'modules_tpl') {
 					$module['checked'] = 0;
 				}
 
-				if ($module[MODULE_SUPPORT_WEBAPP_NAME] == MODULE_SUPPORT_WEBAPP) {
+				if (MODULE_SUPPORT_WEBAPP == $module[MODULE_SUPPORT_WEBAPP_NAME]) {
 					if (!empty($user_extend_modules) && in_array($module['name'], $user_extend_modules)) {
 						$module['checked'] = 1;
 					}
@@ -498,7 +513,7 @@ if ($do == 'modules_tpl') {
 					$module['checked'] = 0;
 				}
 
-				if ($module[MODULE_SUPPORT_PHONEAPP_NAME] == MODULE_SUPPORT_PHONEAPP) {
+				if (MODULE_SUPPORT_PHONEAPP == $module[MODULE_SUPPORT_PHONEAPP_NAME]) {
 					if (!empty($user_extend_modules) && in_array($module['name'], $user_extend_modules)) {
 						$module['checked'] = 1;
 					}
@@ -506,7 +521,7 @@ if ($do == 'modules_tpl') {
 					$module['checked'] = 0;
 				}
 
-				if ($module[MODULE_SUPPORT_XZAPP_NAME] == MODULE_SUPPORT_XZAPP) {
+				if (MODULE_SUPPORT_XZAPP == $module[MODULE_SUPPORT_XZAPP_NAME]) {
 					if (!empty($user_extend_modules) && in_array($module['name'], $user_extend_modules)) {
 						$module['checked'] = 1;
 					}
@@ -514,7 +529,7 @@ if ($do == 'modules_tpl') {
 					$module['checked'] = 0;
 				}
 
-				if ($module[MODULE_SUPPORT_ALIAPP_NAME] == MODULE_SUPPORT_ALIAPP) {
+				if (MODULE_SUPPORT_ALIAPP == $module[MODULE_SUPPORT_ALIAPP_NAME]) {
 					if (!empty($user_extend_modules) && in_array($module['name'], $user_extend_modules)) {
 						$module['checked'] = 1;
 					}
@@ -528,20 +543,20 @@ if ($do == 'modules_tpl') {
 	template('user/profile-modules-tpl');
 }
 
-if ($do == 'create_account') {
+if ('create_account' == $do) {
 	$user_permission_account = permission_user_account_num($_W['uid']);
 
 	template('user/profile-create-account-list');
 }
 
-if ($do == 'account_dateline') {
+if ('account_dateline' == $do) {
 	$group_info = table('users_group')->getById($_W['user']['groupid']);
 	$extra_limit_table = table('users_extra_limit');
 	$extra_limit_info = $extra_limit_table->getExtraLimitByUid($_W['uid']);
 
 	$total_timelimit = $group_info['timelimit'] + $extra_limit_info['timelimit'];
 	$starttime = date('Y-m-d', $_W['user']['starttime']);
-	$endtime = date('Y-m-d', strtotime("+" . $total_timelimit . " day", strtotime($starttime)));
+	$endtime = date('Y-m-d', strtotime('+' . $total_timelimit . ' day', strtotime($starttime)));
 
 	template('user/profile-account-dateline');
 }

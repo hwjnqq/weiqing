@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn: pro/framework/model/utility.mod.php : v a80418cf2718 : 2014/09/16 01:07:43 : Gorden $
  */
 defined('IN_IA') or exit('Access Denied');
@@ -17,12 +17,14 @@ function code_verify($uniacid, $receiver, $code) {
 	if (empty($receiver) || !is_numeric($code)) {
 		return false;
 	}
-	$params = array('uniacid' => intval($uniacid), 'receiver' => $receiver, 'verifycode' => $code, 'createtime >' => (TIMESTAMP - 1800));
-	$data = table('account')->getUniVerifycode($params);
-	if(empty($data)) {
-		return false;
-	}
-	return true;
+	$data = table('uni_verifycode')->where(array(
+		'uniacid' => intval($uniacid),
+		'receiver' => $receiver,
+		'verifycode' => $code,
+		'createtime >' => (TIMESTAMP - 1800)
+	))->get();
+
+	return !empty($data);
 }
 
 /**
@@ -38,7 +40,7 @@ function utility_image_rename($image_source_url, $image_destination_url) {
 	if (empty($image_source_url) || !parse_path($image_source_url)) {
 		return false;
 	}
-	if (!strexists($image_source_url, $_W['siteroot'])) {
+	if (!strexists($image_source_url, $_W['siteroot']) || $_W['setting']['remote']['type'] > 0) {
 		$img_local_path = file_remote_attach_fetch($image_source_url);
 		if (is_error($img_local_path)) {
 			return false;

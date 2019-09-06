@@ -1,7 +1,7 @@
 <?php
 
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * User: fanyk
  * Date: 2017/10/28
  * Time: 14:58.
@@ -22,13 +22,15 @@ class UploadedFile extends SplFileInfo {
 	);
 
 	/**
-	 * 上传文件名
+	 * 上传文件名.
+	 *
 	 * @var string
 	 */
 	private $clientFilename;
 
 	/**
-	 * //上传的mimeType
+	 * //上传的mimeType.
+	 *
 	 * @var string
 	 */
 	private $clientMediaType;
@@ -177,7 +179,7 @@ class UploadedFile extends SplFileInfo {
 	 * @return boolean
 	 */
 	public function isOk() {
-		return $this->error === UPLOAD_ERR_OK;
+		return UPLOAD_ERR_OK === $this->error;
 	}
 
 	/**
@@ -209,7 +211,7 @@ class UploadedFile extends SplFileInfo {
 		}
 
 		if ($this->file) {
-			$this->moved = php_sapi_name() == 'cli'
+			$this->moved = 'cli' == php_sapi_name()
 				? rename($this->file, $targetPath)
 				: move_uploaded_file($this->file, $targetPath);
 		}
@@ -233,6 +235,7 @@ class UploadedFile extends SplFileInfo {
 	/**
 	 * {@inheritdoc}
 	 *  上传错误码
+	 *
 	 * @see http://php.net/manual/en/features.file-upload.errors.php
 	 *
 	 * @return int One of PHP's UPLOAD_ERR_XXX constants.
@@ -245,7 +248,7 @@ class UploadedFile extends SplFileInfo {
 	 * {@inheritdoc}
 	 *
 	 * @return string|null The filename sent by the client or null if none
-	 *					 was provided.
+	 *                     was provided.
 	 */
 	public function getClientFilename() {
 		return $this->clientFilename;
@@ -259,8 +262,8 @@ class UploadedFile extends SplFileInfo {
 	}
 
 	/**
+	 * 是否是图片.
 	 *
-	 * 是否是图片
 	 * @return bool
 	 *
 	 * @since version
@@ -270,7 +273,6 @@ class UploadedFile extends SplFileInfo {
 	}
 
 	/**
-	 *
 	 * @since version
 	 */
 	public function clientExtension() {
@@ -279,6 +281,7 @@ class UploadedFile extends SplFileInfo {
 
 	/**
 	 *  是否允许指定的后缀
+	 *
 	 * @param $ext
 	 *
 	 * @return bool
@@ -290,7 +293,8 @@ class UploadedFile extends SplFileInfo {
 	}
 
 	/**
-	 * 获取内容
+	 * 获取内容.
+	 *
 	 * @return bool|string
 	 *
 	 * @since version

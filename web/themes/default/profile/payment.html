@@ -318,8 +318,8 @@
 									<p>维权通知URL: {$_W['siteroot']}payment/wechat/rights.php</p>
 									<p>警告通知URL: {$_W['siteroot']}payment/wechat/warning.php</p>
 								</div>
-								{if $accounts[$_W['acid']]['level'] > ACCOUNT_SERVICE}
-								{if $accounts[$_W['acid']]['level'] == ACCOUNT_SERVICE_VERIFY}
+								{if $account['level'] > ACCOUNT_SERVICE}
+								{if $account['level'] == ACCOUNT_SERVICE_VERIFY}
 								<input id='radio-11' type="radio" name='wechat[switch]' ng-checked='paysetting.wechat.switch == 1' ng-click="changeSwitch('wechat', 1)" value="1"/>
 								<label for="radio-11">微信支付 </label>
 								{/if}
@@ -331,8 +331,8 @@
 								<label for="radio-24">关闭 </label> -->
 							</div>
 						</div>
-						{if $accounts[$_W['acid']]['level'] > ACCOUNT_SERVICE}
-						{if $accounts[$_W['acid']]['level'] == ACCOUNT_SERVICE_VERIFY}
+						{if $account['level'] > ACCOUNT_SERVICE}
+						{if $account['level'] == ACCOUNT_SERVICE_VERIFY}
 						<div ng-show="paysetting.wechat.switch == 1">
 							<div class="form-group">
 								<label for="" class="control-label col-sm-2">接口类型</label>
@@ -644,7 +644,7 @@
 		'text_alipay_url' : "{php echo url('profile/payment/test_alipay')}",
 		'change_status': "{php echo url('profile/payment/change_status')}",
 		'get_setting_url' : "{php echo url('profile/payment/get_setting')}",
-		'account_level' : "{$accounts[$_W['acid']]['level']}",
+		'account_level' : "{$account['level']}",
 		'links': {
 			'getAccountWechatProxy': "{php echo url('profile/payment/get_account_wechatpay_proxy')}",
 		}

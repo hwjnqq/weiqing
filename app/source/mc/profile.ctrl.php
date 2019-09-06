@@ -1,16 +1,16 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
-load()->model('app');
+load()->model('site');
 load()->func('tpl');
 
 $title = $_W['account']['name'] . '微站';
 $dos = array('index', 'editprofile', 'personal_info', 'contact_method', 'education_info', 'jobedit', 'avatar', 'address', 'addressadd');
 $do = in_array($do, $dos) ? $do : 'index';
-$navs = app_navs('profile');
+$navs = site_app_navs('profile');
 if (empty($_W['member']['uid'])) {
 	message('请先登录!', url('auth/login', array('i' => $_W['uniacid'])), 'error');
 }
@@ -24,7 +24,12 @@ if(!empty($profile)) {
 }
 //如果有openid,获取从公众平台同步的用户信息
 if(!empty($_W['openid'])) {
-	$map_fans = pdo_getcolumn('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'openid' => $_W['openid']), 'tag');
+	$map_fans = table('mc_mapping_fans')
+		->where(array(
+			'uniacid' => $_W['uniacid'],
+			'openid' => $_W['openid']
+		))
+		->getcolumn('tag');
 	if(!empty($map_fans)) {
 		if (is_base64($map_fans)){
 			$map_fans = base64_decode($map_fans);
@@ -49,10 +54,14 @@ if(!empty($_W['openid'])) {
 
 
 // 会员启用字段
-$sql = 'SELECT `mf`.*, `pf`.`field` FROM ' . tablename('mc_member_fields') . ' AS `mf` JOIN ' . tablename('profile_fields') . " AS `pf`
-		ON `mf`.`fieldid` = `pf`.`id` WHERE `mf`.`uniacid` = :uniacid AND `mf`.`available` = :available";
-$params = array(':uniacid' => $_W['uniacid'], ':available' => '1');
-$mcFields = pdo_fetchall($sql, $params, 'field');
+$mcFields = table('mc_member_fields')
+	->select(array('mf.*', 'pf.field'))
+	->searchWithProfileFields()
+	->where(array(
+		'mf.uniacid' => $_W['uniacid'],
+		'mf.available' => 1
+	))
+	->getall('field');
 $personal_info_hide = mc_card_settings_hide('personal_info');
 $contact_method_hide = mc_card_settings_hide('contact_method');
 $education_info_hide = mc_card_settings_hide('education_info');
@@ -88,33 +97,53 @@ if ($do == 'avatar') {
 if ($do == 'address') {
 	$address_id = intval($_GPC['id']);
 	if ($_GPC['op'] == 'default') {
-		pdo_update('mc_member_address', array('isdefault' => 0), array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
-		pdo_update('mc_member_address', array('isdefault' => 1), array('id' => $address_id, 'uniacid' => $_W['uniacid']));
+		table('mc_member_address')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'uid' => $_W['member']['uid']
+			))
+			->fill(array('isdefault' => 0))
+			->save();
+		table('mc_member_address')
+			->where(array(
+				'id' => $address_id,
+				'uniacid' => $_W['uniacid']
+			))
+			->fill(array('isdefault' => 1))
+			->save();
 		mc_update($_W['member']['uid'], array('address' => safe_gpc_string($_GPC['address'])));
 	}
 	if ($_GPC['op'] == 'delete') {
 		if (!empty($profile) && !empty($_W['openid'])) {
-			pdo_delete('mc_member_address', array('id' => $address_id, 'uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
+			table('mc_member_address')
+				->where(array(
+					'id' => $address_id,
+					'uid' => $_W['member']['uid'],
+					'uniacid' => $_W['uniacid']
+				))
+				->delete();
 		}
 	}
-	$where = ' WHERE 1';
-	$params = array(':uniacid' => $_W['uniacid'], ':uid' => $_W['member']['uid']);
+	$where = array(
+		'uniacid' => $_W['uniacid'],
+		'uid' => $_W['member']['uid']
+	);
 	if (!empty($_GPC['addid'])) {
-		$where .= ' AND `id` = :id';
-		$params[':id'] = intval($_GPC['addid']);
+		$where['id'] = ntval($_GPC['addid']);
 	}
-	$where .= ' AND `uniacid` = :uniacid AND `uid` = :uid';
-	$sql = 'SELECT * FROM ' . tablename('mc_member_address') . $where;
 	if (empty($params[':id'])) {
 		$psize = 10;
 		$pindex = max(1, intval($_GPC['page']));
-		$sql .= ' LIMIT ' . ($pindex - 1) * $psize . ',' . $psize;
-		$addresses = pdo_fetchall($sql, $params);
-		$sql = 'SELECT COUNT(*) FROM ' . tablename('mc_member_address') . $where;
-		$total = pdo_fetchcolumn($sql, $params);
+		$address = table('mc_member_address')
+			->where($where)
+			->limit(($pindex - 1) * $psize, $psize)
+			->getall();
+		$total = table('mc_member_address')
+			->where($where)
+			->getcolumn('COUNT(*)');
 		$pager = pagination($total, $pindex, $psize);
 	} else {
-		$address = pdo_fetch($sql, $params);
+		$address = table('mc_member_address')->where($where)->get();
 	}
 }
 /*添加或编辑地址*/
@@ -149,12 +178,24 @@ if ($do == 'addressadd') {
 			'district' => empty($post['district']) ? '' : $post['district'],
 			'address' => $post['address'],
 		);
-		$address_data = pdo_get('mc_member_address', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
+		$address_data = table('mc_member_address')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'uid' => $_W['member']['uid']
+			))
+			->get();
 		if (empty($address_data)) {
 			$address['isdefault'] = 1;
 		}
 		if (!empty($addid)) {
-			if (pdo_update('mc_member_address', $address, array('id' => $addid, 'uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']))) {
+			if (table('mc_member_address')
+				->where(array(
+					'id' => $addid,
+					'uniacid' => $_W['uniacid'],
+					'uid' => $_W['member']['uid']
+				))
+				->fill($address)
+				->save()) {
 				message('修改收货地址成功', url('mc/profile/address'), 'success');
 			} else {
 				message('修改收货地址失败，请稍后重试', url('mc/profile/address'), 'error');
@@ -162,8 +203,14 @@ if ($do == 'addressadd') {
 		} else {
 			$address['uniacid'] = $_W['uniacid'];
 			$address['uid'] = $_W['member']['uid'];
-			if (pdo_insert('mc_member_address', $address)) {
-				$adres = pdo_get('mc_member_address', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid'], 'isdefault'=> 1));
+			if (table('mc_member_address')->fill($address)->save()) {
+				$adres = table('mc_member_address')
+					->where(array(
+						'uniacid' => $_W['uniacid'],
+						'uid' => $_W['member']['uid'],
+						'isdefault'=> 1
+					))
+					->get();
 				if (!empty($adres)) {
 					$adres['address'] = $adres['province'].$adres['city'].$adres['district'].$adres['address'];
 					mc_update($_W['member']['uid'], array('address' => $adres['address']));
@@ -173,7 +220,7 @@ if ($do == 'addressadd') {
 		}
 	}
 	if (!empty($addid)) {
-		$address = pdo_get('mc_member_address', array('id' => $addid, 'uniacid' => $_W['uniacid']));
+		$address = table('mc_member_address')->getById($addid, $_W['uniacid']);
 	}
 }
 template('mc/profile');

@@ -318,6 +318,7 @@ function material_local_news_upload($attach_id) {
 	if (is_error($material)){
 		return error('-1', '获取素材文件失败');
 	}
+	$change_media_id = 0;
 	foreach ($material['news'] as $news) {
 		if (empty($news['content'])){
 			return error('-6', '素材内容不能为空');
@@ -342,19 +343,26 @@ function material_local_news_upload($attach_id) {
 			}
 		}
 		pdo_update('wechat_news', $news, array('id' => $news['id']));
-		if (empty($material['media_id'])){
-			$articles['articles'][] = $news;
-		} else {
+
+		$articles['articles'][] = $news;
+
+		if (!empty($material['media_id'])) {
 			$edit_attachment['media_id'] = $material['media_id'];
 			$edit_attachment['index'] = $news['displayorder'];
 			$edit_attachment['articles'] = $news;
 			$result = $account_api->editMaterialNews($edit_attachment);
-			if (is_error($result)){
-				return error('-4', $result['message']);
+			if (is_error($result)) {
+				if ($result['errno'] == 40114) { //图文文章数量变更时, 须删除原图文, 重新上传所有图文
+					$change_media_id = $material['media_id'];
+					break;
+				} else {
+					return error('-4', $result['message']);
+				}
 			}
 		}
 	}
-	if (empty($material['media_id'])){
+
+	if (empty($material['media_id']) || $change_media_id) {
 		$media_id = $account_api->addMatrialNews($articles);
 		if (is_error($media_id)) {
 			return error('-5', $media_id, '');
@@ -372,6 +380,9 @@ function material_local_news_upload($attach_id) {
 			'uniacid' => $_W['uniacid'],
 			'id' => $attach_id
 		));
+		if ($change_media_id) {
+			$account_api->delMaterial($change_media_id);
+		}
 	} else {
 		pdo_update('wechat_attachment', array('model' => 'perm'), array('uniacid' => $_W['uniacid'], 'id' => $attach_id));
 	}

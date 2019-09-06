@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn: pro/payment/baifubao/bfb_pay.cfg.php : v 7dc20c577be1 : 2015/03/14 09:57:55 : RenChao $
  */
 

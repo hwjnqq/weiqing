@@ -604,7 +604,7 @@ require(['underscore'], function(){
 		profile: {php echo !empty($profile) ? json_encode($profile) : 'null'},
 		group_info: {php echo !empty($group_info) ? json_encode($group_info) : 'null'},
 		groups: {php echo !empty($groups) ? json_encode($groups) : 'null'},
-		wechats: {php echo !empty($account_detail['wechats']) ? json_encode($account_detail['wechats']) : 'null'},
+		wechats: {php echo !empty($account_detail['account']) ? json_encode($account_detail['account']) : 'null'},
 		wxapps: {php echo !empty($account_detail['wxapp']) ? json_encode($account_detail['wxapp']) : 'null'},
 		account_num: {php echo !empty($account_num) ? json_encode($account_num) : 'null'},
 		extra_fields: {php echo !empty($extra_fields) ? json_encode($extra_fields) : 'null'},

@@ -1,10 +1,9 @@
 <?php
 /**
- * 验证规则
+ * 验证规则.
  *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
-
 defined('IN_IA') or exit('Access Denied');
 
 define('REGULAR_EMAIL', '/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/i');
@@ -52,6 +51,8 @@ define('ACCOUNT_TYPE_ALIAPP_NORMAL', 11);
 define('ACCOUNT_TYPE_BAIDUAPP_NORMAL', 12);
 //头条小程序
 define('ACCOUNT_TYPE_TOUTIAOAPP_NORMAL', 13);
+//第三方创建接入的小程序
+define('ACCOUNT_TYPE_APP_PLATFORM', 14);
 
 //公众号
 define('ACCOUNT_TYPE_SIGN', 'account');
@@ -71,7 +72,6 @@ define('ALIAPP_TYPE_SIGN', 'aliapp');
 define('BAIDUAPP_TYPE_SIGN', 'baiduapp');
 //头条小程序
 define('TOUTIAOAPP_TYPE_SIGN', 'toutiaoapp');
-
 
 //授权登录接入
 define('ACCOUNT_OAUTH_LOGIN', 3);
@@ -118,22 +118,22 @@ define('SYSTEM_COUPON', 1);
 //微信卡券
 define('WECHAT_COUPON', 2);
 //卡券类型
-define('COUPON_TYPE_DISCOUNT', '1');//折扣券
-define('COUPON_TYPE_CASH', '2');//代金券
-define('COUPON_TYPE_GROUPON', '3');//团购券
-define('COUPON_TYPE_GIFT', '4');//礼品券
-define('COUPON_TYPE_GENERAL', '5');//优惠券
-define('COUPON_TYPE_MEMBER', '6');//会员卡
-define('COUPON_TYPE_SCENIC', '7');//景点票
-define('COUPON_TYPE_MOVIE', '8');//电影票
-define('COUPON_TYPE_BOARDINGPASS', '9');//飞机票
-define('COUPON_TYPE_MEETING', '10');//会议票
-define('COUPON_TYPE_BUS', '11');//汽车票
+define('COUPON_TYPE_DISCOUNT', '1'); //折扣券
+define('COUPON_TYPE_CASH', '2'); //代金券
+define('COUPON_TYPE_GROUPON', '3'); //团购券
+define('COUPON_TYPE_GIFT', '4'); //礼品券
+define('COUPON_TYPE_GENERAL', '5'); //优惠券
+define('COUPON_TYPE_MEMBER', '6'); //会员卡
+define('COUPON_TYPE_SCENIC', '7'); //景点票
+define('COUPON_TYPE_MOVIE', '8'); //电影票
+define('COUPON_TYPE_BOARDINGPASS', '9'); //飞机票
+define('COUPON_TYPE_MEETING', '10'); //会议票
+define('COUPON_TYPE_BUS', '11'); //汽车票
 
-define('ATTACH_FTP', 1);//远程附件类型：ftp
-define('ATTACH_OSS', 2);//远程附件类型：阿里云
-define('ATTACH_QINIU', 3);//远程附件类型：七牛
-define('ATTACH_COS', 4);//远程附件类型：腾讯云对象存储
+define('ATTACH_FTP', 1); //远程附件类型：ftp
+define('ATTACH_OSS', 2); //远程附件类型：阿里云
+define('ATTACH_QINIU', 3); //远程附件类型：七牛
+define('ATTACH_COS', 4); //远程附件类型：腾讯云对象存储
 
 define('ATTACH_TYPE_IMAGE', 1);
 define('ATTACH_TYPE_VOICE', 2);
@@ -203,15 +203,21 @@ define('MODULE_SUPPORT_BAIDUAPP_NAME', 'baiduapp_support');
 define('MODULE_SUPPORT_TOUTIAOAPP_NAME', 'toutiaoapp_support');
 
 //模块安装来源
-//本地安装 
+//本地安装
 define('MODULE_LOCAL_INSTALL', '1');
 //本地未安装
 define('MODULE_LOCAL_UNINSTALL', '2');
 //线上安装
 define('MODULE_CLOUD_INSTALL', '3');
-//线上未安装 
+//线上未安装
 define('MODULE_CLOUD_UNINSTALL', '4');
-//模块卸载类型 
+//线上未安装-正常
+define('MODULE_CLOUD_UNINSTALL_NORMAL', '1');
+//线上未安装-检测无废弃表
+define('MODULE_CLOUD_UNINSTALL_CHECKED', '2');
+//线上未安装-检测忽略
+define('MODULE_CLOUD_UNINSTALL_IGNORE', '3');
+//模块卸载类型
 //停用已安装
 define('MODULE_RECYCLE_INSTALL_DISABLED', '1');
 //忽略未安装
@@ -227,11 +233,12 @@ define('PERMISSION_ALIAPP', 'aliapp');
 define('PERMISSION_BAIDUAPP', 'baiduapp');
 define('PERMISSION_TOUTIAOAPP', 'toutiaoapp');
 define('PERMISSION_SYSTEM', 'site');
+define('PERMISSION_MODULES', 'modules');
 
 //微信支付类型
-define('PAYMENT_WECHAT_TYPE_NORMAL', 1);//微信支付
-define('PAYMENT_WECHAT_TYPE_BORROW', 2);//借用支付
-define('PAYMENT_WECHAT_TYPE_SERVICE', 3);//服务商支付
+define('PAYMENT_WECHAT_TYPE_NORMAL', 1); //微信支付
+define('PAYMENT_WECHAT_TYPE_BORROW', 2); //借用支付
+define('PAYMENT_WECHAT_TYPE_SERVICE', 3); //服务商支付
 define('PAYMENT_WECHAT_TYPE_CLOSE', 4);
 
 //平台给粉丝发消息的类型
@@ -252,8 +259,8 @@ define('WXAPP_CREATE_MUTI_MODULE', 2);
 //普通小程序类型
 define('WXAPP_CREATE_DEFAULT', 0);
 
-define('MATERIAL_LOCAL', 'local');//服务器素材类型
-define('MATERIAL_WEXIN', 'perm');//微信素材类型
+define('MATERIAL_LOCAL', 'local'); //服务器素材类型
+define('MATERIAL_WEXIN', 'perm'); //微信素材类型
 
 //自定义菜单之默认菜单
 define('MENU_CURRENTSELF', 1);
@@ -284,7 +291,7 @@ define('PERSONAL_BIND_TYPE', 4);
 define('PERSONAL_LIMIT_TYPE', 5);
 
 //商品类型
-# 帐号个数
+// 帐号个数
 define('STORE_TYPE_ACCOUNT', 2);
 define('STORE_TYPE_WXAPP', 3);
 define('STORE_TYPE_WEBAPP', 17);
@@ -294,7 +301,7 @@ define('STORE_TYPE_ALIAPP', 20);
 define('STORE_TYPE_BAIDUAPP', 21);
 define('STORE_TYPE_TOUTIAOAPP', 22);
 
-# 帐号期限
+// 帐号期限
 define('STORE_TYPE_ACCOUNT_RENEW', 7);
 define('STORE_TYPE_WXAPP_RENEW', 8);
 define('STORE_TYPE_WEBAPP_RENEW', 23);
@@ -429,13 +436,13 @@ define('PLATFORM_DISPLAY_TYPE', 6);
 //应用
 define('MODULE_DISPLAY_TYPE', 7);
 
-# 添加用户时 , 权限选择方式
+// 添加用户时 , 权限选择方式
 // 新的权限方式, 应用所有类型权限组分离存储
 define('USER_CREATE_PERMISSION_ALL_TYPE', 1);
 // 旧的权限方式, 只有用户权限组
 define('USER_CREATE_PERMISSION_GROUP_TYPE', 2);
 
-# 用户到期时间类型
+// 用户到期时间类型
 // 兼容旧的用户到期时间: 用户权限组为空, 或者用户权限组到期时间为0
 define('USER_ENDTIME_GROUP_EMPTY_TYPE', 0);
 // 新: 删除用户用户组
@@ -446,3 +453,15 @@ define('USER_ENDTIME_GROUP_UNLIMIT_TYPE', 2);
 //密码强度
 define('PASSWORD_STRONG_STATE', '密码至少8-16个字符，至少1个大写字母，1个小写字母和1个数字，其他可以是任意字符');
 define('PASSWORD_STRONG_REGULAR', '/(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,30}/');
+
+//快速注册小程序
+define('WXAPP_REGISTER_CHECK_STATUS_WAIT', 1); //待审核
+define('WXAPP_REGISTER_CHECK_STATUS_PASS', 2); //审核通过
+define('WXAPP_REGISTER_CHECK_STATUS_FAIL', 3); //审核拒绝
+//快速注册小程序版本状态
+define('WXAPP_REGISTER_VERSION_STATUS_DEVELOP', 0); //开发版本(体验版)
+define('WXAPP_REGISTER_VERSION_STATUS_CHECKFAIL', 1); //审核失败
+define('WXAPP_REGISTER_VERSION_STATUS_CHECKING', 2); //审核中
+define('WXAPP_REGISTER_VERSION_STATUS_RETRACT', 3); //已撤回
+define('WXAPP_REGISTER_VERSION_STATUS_RELEASE', 4); //发布成功
+define('WXAPP_REGISTER_VERSION_STATUS_CHECKSUCCESS', 5); //审核通过

@@ -1,13 +1,12 @@
 <?php
 /**
  * 管理公众号
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
 define('FRAME', 'system');
 load()->model('system');
-load()->model('miniapp');
 
 $dos = array('display', 'edit_version', 'del_version');
 $do = in_array($do, $dos) ? $do : 'display';
@@ -28,8 +27,10 @@ if (is_error($account) || empty($account['type'])) {
 	itoast($account['message'], url('account/manage'), 'error');
 }
 
-if ($do == 'display') {
-	$miniapp_info = pdo_get($account_all_type[$account['type']]['table_name'], array('uniacid' => $account['uniacid']));
+if ('display' == $do) {
+	$miniapp_info = table($account_all_type[$account['type']]['table_name'])
+		->where(array('uniacid' => $account['uniacid']))
+		->get();
 	$version_exist = miniapp_fetch($account['uniacid']);
 	if (!empty($version_exist)) {
 		$version_lists = miniapp_version_all($uniacid);
@@ -53,11 +54,19 @@ if ($do == 'display') {
 		}
 
 		$miniapp_modules = miniapp_support_uniacid_modules($uniacid);
+
+		if ($miniapp_modules && WXAPP_TYPE_SIGN == $account->typeSign) {
+			foreach ($miniapp_modules as $k => $module) {
+				if (MODULE_SUPPORT_WXAPP != $module[MODULE_SUPPORT_WXAPP_NAME]) {
+					unset($miniapp_modules[$k]);
+				}
+			}
+		}
 	}
 	template('miniapp/manage');
 }
 
-if ($do == 'edit_version') {
+if ('edit_version' == $do) {
 	$versionid = intval($_GPC['version_id']);
 	$module_name = safe_gpc_string($_GPC['name']);
 
@@ -72,7 +81,7 @@ if ($do == 'edit_version') {
 		iajax(1, '模块不存在！');
 	}
 	$version_exist = miniapp_fetch($uniacid, $versionid);
-	if(empty($version_exist)) {
+	if (empty($version_exist)) {
 		iajax(1, '版本不存在或已删除！');
 	}
 	$miniapp_modules = miniapp_support_uniacid_modules($uniacid);
@@ -84,9 +93,15 @@ if ($do == 'edit_version') {
 	$new_module_data = array();
 	$new_module_data[$module_name] = array(
 		'name' => $module_name,
-		'version' => $module_info['version']
+		'version' => $module_info['version'],
 	);
-	pdo_update($account_all_type[$account['type']]['version_tablename'], array('modules' => iserializer($new_module_data)), array('id' => $versionid, 'uniacid' => $uniacid));
+	table($account_all_type[$account['type']]['version_tablename'])
+		->where(array(
+			'id' => $versionid,
+			'uniacid' => $uniacid
+		))
+		->fill(array('modules' => iserializer($new_module_data)))
+		->save();
 	$version_module = current($version_exist['version']['modules']);
 	if (!empty($version_module['uniacid']) && !empty($version_module['name'])) {
 		table('uni_link_uniacid')->searchWithUniacidModulenameVersionid($uniacid, $version_module['name'], $versionid)->delete();
@@ -95,7 +110,7 @@ if ($do == 'edit_version') {
 	iajax(0, '修改成功！', referer());
 }
 
-if ($do == 'del_version') {
+if ('del_version' == $do) {
 	$versionid = intval($_GPC['versionid']);
 	if (empty($versionid)) {
 		iajax(1, '参数错误！');
@@ -108,7 +123,12 @@ if ($do == 'del_version') {
 	if (!empty($version_module['name'])) {
 		table('uni_link_uniacid')->searchWithUniacidModulenameVersionid($uniacid, $version_module['name'], $versionid)->delete();
 	}
-	$result = pdo_delete($account_all_type[$account['type']]['version_tablename'], array('id' => $versionid, 'uniacid' => $uniacid));
+	$result = table($account_all_type[$account['type']]['version_tablename'])
+		->where(array(
+			'id' => $versionid,
+			'uniacid' => $uniacid
+		))
+		->delete();
 	if (!empty($result)) {
 		iajax(0, '删除成功！', referer());
 	} else {

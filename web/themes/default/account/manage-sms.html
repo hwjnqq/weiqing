@@ -69,7 +69,7 @@
 		notify: {php echo !empty($notify) ? json_encode($notify) : 'null'},
 		signatures: {php echo !empty($signatures) ? json_encode($signatures) : 'null'},
 		links: {
-			postSms: "{php echo url('account/post/sms', array('acid' => $acid, 'uniacid' => $uniacid))}",
+			postSms: "{php echo url('account/post/sms', array('uniacid' => $uniacid))}",
 		},
 	});
 	angular.bootstrap($('#js-account-manage-sms'), ['accountApp']);

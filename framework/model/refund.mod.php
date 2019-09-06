@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 
@@ -87,6 +87,9 @@ function refund($refund_id) {
 	$paylog = pdo_get('core_paylog', $params);
 	if ($paylog['type'] == 'wechat') {
 		$refund_param = reufnd_wechat_build($refund_id, $refundlog['is_wish']);
+		if (is_error($refund_param)) {
+			return $refund_param;
+		}
 		if ($refundlog['is_wish'] == 1) {
 			$module = 'store';
 			$cert_file = ATTACHMENT_ROOT . 'store_wechat_refund_all.pem';
@@ -106,6 +109,9 @@ function refund($refund_id) {
 		}
 	} elseif ($paylog['type'] == 'alipay') {
 		$refund_param = reufnd_ali_build($refund_id, $refundlog['is_wish']);
+		if (is_error($refund_param)) {
+			return $refund_param;
+		}
 		$module = $refundlog['is_wish'] == 1 ? 'store' : '';
 		$ali = Pay::create('alipay', $module);
 		$response = $ali->refund($refund_param, $refund_id);

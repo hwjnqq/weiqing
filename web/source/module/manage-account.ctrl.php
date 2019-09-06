@@ -1,8 +1,8 @@
 <?php
 /**
- * 设置模块启用停用，并显示模块到快捷菜单中
+ * 设置模块启用停用，并显示模块到快捷菜单中.
  *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -19,7 +19,7 @@ $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
 $modulelist = uni_modules();
 
 //检测模块更新和是否盗版
-if ($do == 'check_status') {
+if ('check_status' == $do) {
 	$modulename = $_GPC['module'];
 
 	if (empty($modulename)) {
@@ -40,7 +40,7 @@ if ($do == 'check_status') {
 	iajax(0, '', '');
 }
 
-if($do == 'display') {
+if ('display' == $do) {
 	$pageindex = max(1, intval($_GPC['page']));
 	$pagesize = 30;
 
@@ -61,8 +61,8 @@ if($do == 'display') {
 		}
 	}
 	array_multisort($displayorder, SORT_DESC, $modules);
-	template ('module/manage-account');
-} elseif ($do == 'shortcut') {
+	template('module/manage-account');
+} elseif ('shortcut' == $do) {
 	$status = intval($_GPC['shortcut']);
 	$modulename = $_GPC['modulename'];
 
@@ -71,26 +71,26 @@ if($do == 'display') {
 		itoast($module_enabled['message'], referer(), 'error');
 	}
 	itoast(($status ? '添加' : '取消') . '添加模块快捷操作成功！', referer(), 'success');
-} elseif ($do == 'enable') {
+} elseif ('enable' == $do) {
 	$modulename = $_GPC['modulename'];
-	if(empty($modulelist[$modulename])) {
+	if (empty($modulelist[$modulename])) {
 		itoast('抱歉，你操作的模块不能被访问！', '', '');
 	}
 	pdo_update('uni_account_modules', array(
 		'enabled' => empty($_GPC['enabled']) ? STATUS_OFF : STATUS_ON,
 	), array(
 		'module' => $modulename,
-		'uniacid' => $_W['uniacid']
+		'uniacid' => $_W['uniacid'],
 	));
 	cache_build_module_info($modulename);
 	itoast('模块操作成功！', referer(), 'success');
-} elseif ($do == 'top') {
+} elseif ('top' == $do) {
 	$modulename = $_GPC['modulename'];
 	$module = $modulelist[$modulename];
-	if(empty($module)) {
+	if (empty($module)) {
 		itoast('抱歉，你操作的模块不能被访问！', '', '');
 	}
-	$max_displayorder = (int)pdo_getcolumn('uni_account_modules', array('uniacid' => $_W['uniacid']), 'MAX(displayorder)');
+	$max_displayorder = (int) pdo_getcolumn('uni_account_modules', array('uniacid' => $_W['uniacid']), 'MAX(displayorder)');
 
 	$module_profile = pdo_get('uni_account_modules', array('module' => $modulename, 'uniacid' => $_W['uniacid']));
 	if (!empty($module_profile)) {
@@ -107,14 +107,14 @@ if($do == 'display') {
 	cache_build_module_info($modulename);
 	cache_build_account_modules($_W['uniacid']);
 	itoast('模块置顶成功', referer(), 'success');
-} elseif ($do == 'setting') {
+} elseif ('setting' == $do) {
 	$modulename = $_GPC['m'];
 	$module = $_W['current_module'] = $modulelist[$modulename];
-	if(empty($module)) {
+	if (empty($module)) {
 		itoast('抱歉，你操作的模块不能被访问！', '', '');
 	}
 
-	if(!permission_check_account_user_module($modulename.'_settings', $modulename)) {
+	if (!permission_check_account_user_module($modulename . '_settings', $modulename)) {
 		itoast('您没有权限进行该操作', '', '');
 	}
 
@@ -123,8 +123,7 @@ if($do == 'display') {
 	define('CRUMBS_NAV', 1);
 
 	$config = empty($module['config']) ? array() : $module['config'];
-	if (($module['settings'] == 2) && !is_file(IA_ROOT."/addons/{$module['name']}/developer.cer")) {
-
+	if ((2 == $module['settings']) && !is_file(IA_ROOT . "/addons/{$module['name']}/developer.cer")) {
 		if (empty($_W['setting']['site']['key']) || empty($_W['setting']['site']['token'])) {
 			itoast('站点未注册，请先注册站点。', url('cloud/profile'), 'info');
 		}
@@ -134,21 +133,20 @@ if($do == 'display') {
 	$obj = WeUtility::createModule($module['name']);
 	$obj->settingsDisplay($config);
 	exit();
-
-} elseif ($do == 'setting_params') {
+} elseif ('setting_params' == $do) {
 	$modulename = safe_gpc_string(trim($_GPC['m']));
 	$module = module_fetch($modulename);
 	if (empty($module)) {
 		iajax(-1, '抱歉，你操作的模块不能被访问！');
 	}
-	if ($module['settings'] != 2 || is_file(IA_ROOT."/addons/{$module['name']}/developer.cer")) {
+	if (2 != $module['settings'] || is_file(IA_ROOT . "/addons/{$module['name']}/developer.cer")) {
 		iajax(-1, '模块未开启云参数');
 	}
-	if (!permission_check_account_user_module($modulename.'_settings', $modulename)) {
+	if (!permission_check_account_user_module($modulename . '_settings', $modulename)) {
 		iajax(-1, '您没有权限进行该操作');
 	}
 	if (empty($_W['setting']['site']['key']) || empty($_W['setting']['site']['token'])) {
-		iajax(-1,'站点未注册，请先注册站点。');
+		iajax(-1, '站点未注册，请先注册站点。');
 	}
 
 	if (checksubmit('submit')) {
@@ -158,7 +156,7 @@ if($do == 'display') {
 		);
 		if (is_array($post['params'])) {
 			foreach ($post['params'] as $param) {
-				if ($param['type'] == 'richtext' && !empty($post['setting'][$param['name']])) {
+				if ('richtext' == $param['type'] && !empty($post['setting'][$param['name']])) {
 					$post['setting'][$param['name']] = safe_gpc_html(htmlspecialchars_decode($post['setting'][$param['name']], ENT_QUOTES));
 				}
 			}

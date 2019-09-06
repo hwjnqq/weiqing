@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -10,7 +10,7 @@ $dos = array('mail');
 $do = in_array($do, $dos) ? $do : 'mail';
 permission_check_account_user('profile_setting');
 
-if ($do == 'mail') {
+if ('mail' == $do) {
 	$notify = uni_setting_load('notify');
 	$notify = $notify['notify'];
 	if (!is_array($notify)) {
@@ -24,13 +24,13 @@ if ($do == 'mail') {
 			'sender' => $_GPC['sender'],
 			'signature' => $_GPC['signature'],
 		);
-		if ($_GPC['status'] == 1) {
+		if (1 == $_GPC['status']) {
 			$notify['mail']['smtp']['type'] = safe_gpc_string($_GPC['type']);
 		} else {
 			$notify['mail']['smtp']['type'] = '';
 		}
 		uni_setting_save('notify', $notify);
-		$result = ihttp_email($notify['mail']['username'], $_W['account']['name'] . '验证邮件'.date('Y-m-d H:i:s'), '如果您收到这封邮件则表示您系统的发送邮件配置成功！');
+		$result = ihttp_email($notify['mail']['username'], $_W['account']['name'] . '验证邮件' . date('Y-m-d H:i:s'), '如果您收到这封邮件则表示您系统的发送邮件配置成功！');
 		if (is_error($result)) {
 			itoast('配置失败，请检查配置信息', '', 'error');
 		} else {

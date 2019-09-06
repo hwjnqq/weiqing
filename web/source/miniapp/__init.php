@@ -1,16 +1,17 @@
 <?php
 /**
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
+
+load()->model('miniapp');
 
 if (in_array($action, array('post', 'manage'))) {
 	define('FRAME', '');
 } else {
 	if (!empty($_GPC['uniacid']) && intval($_GPC['uniacid']) != $_W['uniacid']) {
 		$params = array('uniacid' => intval($_GPC['uniacid']), 'version_id' => intval($_GPC['version_id']));
-		if ($action == 'version' && $do == 'display') {
+		if ('version' == $action && 'display' == $do) {
 			$params['miniapp_version_referer'] = 1;
 		}
 
@@ -25,7 +26,7 @@ if (in_array($action, array('post', 'manage'))) {
 		itoast('', $account_api->displayUrl);
 	}
 	$account_type = $account_api->menuFrame;
-	if ($action == 'version' && $do == 'display') {
+	if ('version' == $action && 'display' == $do) {
 		define('FRAME', '');
 	} else {
 		define('FRAME', $account_type);

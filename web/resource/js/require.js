@@ -83,8 +83,8 @@ var requireConfig = {
 		'we7.check' : '../lib/we7.check',
 		'loadjs': '../lib/loadjs', //加载CSS
 		'jszip' : '//cdn.bootcss.com/jszip/3.1.5/jszip',
-		'fileSaver' : '//cdn.bootcss.com/FileSaver.js/2014-11-29/FileSaver'
-
+		'fileSaver' : '//cdn.bootcss.com/FileSaver.js/2014-11-29/FileSaver',
+		'driver': '../../components/driver/driver.min',
 	},
 	shim:{
 		'ueditor': {
@@ -165,6 +165,9 @@ var requireConfig = {
 		},
 		'swiper': {
 			deps: ['loadcss!../../components/swiper/swiper.min.css'],
+		},
+		'driver': {
+			deps: ['loadcss!../../components/driver/driver.min.css'],
 		},
 	}
 };

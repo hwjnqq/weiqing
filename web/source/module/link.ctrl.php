@@ -1,7 +1,7 @@
 <?php
 /**
  * 应用关联账号
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -14,7 +14,7 @@ load()->model('user');
 $dos = array('display', 'link_account', 'get_sub_accounts', 'list', 'search_link_account');
 $do = in_array($do, $dos) ? $do : 'display';
 
-if ($do == 'list') {
+if ('list' == $do) {
 	$module_name = safe_gpc_string($_GPC['m']);
 	$module_info = module_fetch($module_name);
 
@@ -28,31 +28,37 @@ if ($do == 'list') {
 	template('module/link-list');
 }
 
-if ($do == 'display') {
+if ('display' == $do) {
 	$user_modules = user_modules();
 	//排除只有一个支持的模块
 	foreach ($user_modules as $key => $module) {
 		$total_support = 0;
+		$only_support_new_key = '';
 		foreach ($module_all_support as $support => $item) {
-			if ($support == 'welcome_support') {
+			if ('welcome_support' == $support) {
 				continue;
 			}
+			$new_key = $key . $support;
 			if ($module[$support] == $item['support']) {
-				if ($support == 'wxapp_support') {
+				$only_support_new_key = $new_key;
+				if ('wxapp_support' == $support) {
 					$total_support += 2;
 				} else {
 					$total_support += 1;
 				}
+				$module['support'] = $support;
+				$user_modules[$new_key] = $module;
 			}
 		}
 		if ($total_support < 2) {
-			unset($user_modules[$key]);
+			unset($user_modules[$only_support_new_key]);
 		}
+		unset($user_modules[$key]);
 	}
 	template('module/link');
 }
 
-if ($do == 'search_link_account') {
+if ('search_link_account' == $do) {
 	$module_name = safe_gpc_string($_GPC['module_name']);
 	$type_sign = safe_gpc_string($_GPC['type_sign']);
 	if (empty($module_name) || empty($type_sign)) {
@@ -81,7 +87,7 @@ if ($do == 'search_link_account') {
 	iajax(0, $account_list);
 }
 
-if ($do == 'get_sub_accounts') {
+if ('get_sub_accounts' == $do) {
 	$type_sign = safe_gpc_string($_GPC['type_sign']);
 	if (empty($type_sign)) {
 		iajax(1, '账号类型不能为空');
@@ -94,7 +100,7 @@ if ($do == 'get_sub_accounts') {
 	if (is_error($main_account)) {
 		iajax(1, $main_account['message']);
 	}
-	if ($main_account['type_sign'] != WXAPP_TYPE_SIGN && $main_account['type_sign'] == $type_sign) {
+	if (WXAPP_TYPE_SIGN != $main_account['type_sign'] && $main_account['type_sign'] == $type_sign) {
 		iajax(1, '不可关联此类账号');
 	}
 	$module_name = safe_gpc_string($_GPC['module_name']);
@@ -103,7 +109,7 @@ if ($do == 'get_sub_accounts') {
 	}
 	$account_list = uni_user_accounts($_W['uid'], $type_sign);
 	if (!empty($account_list)) {
-		$link_main_uniacids = table('uni_link_uniacid')->getAllMainUniacidsByModuleName($module_name);//被关联的主账号uniacids
+		$link_main_uniacids = table('uni_link_uniacid')->getAllMainUniacidsByModuleName($module_name); //被关联的主账号uniacids
 		foreach ($account_list as $key => $account) {
 			if ($account['uniacid'] == $main_uniacid) {
 				unset($account_list[$key]);
@@ -145,7 +151,7 @@ if ($do == 'get_sub_accounts') {
 	iajax(0, $account_list);
 }
 
-if ($do == 'link_account') {
+if ('link_account' == $do) {
 	$link_info = safe_gpc_array($_GPC['link_info']);
 	if (empty($link_info['module_name'])) {
 		iajax(-1, '应用不能为空');
@@ -158,7 +164,7 @@ if ($do == 'link_account') {
 		iajax(-1, '关联账号不能为空');
 	}
 	foreach ($link_info['link_accounts'] as $uniacid => $account) {
-		if ($uniacid == $link_info['main_account']['uniacid']) {
+		if ($link_info['main_account']['uniacid'] == $uniacid) {
 			continue;
 		}
 		$version_id = 0;

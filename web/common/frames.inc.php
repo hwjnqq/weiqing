@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
@@ -49,6 +49,11 @@ $we7_system_menu['account_manage'] = array(
 							'permission_name' => 'account_manage_stop',
 						),
 					),
+				),
+				'account_wxapp_register_list' => array(
+					'title' => ' 待审核列表',
+					'url' => url('wxapp/register/list'),
+					'permission_name' => 'account_wxapp_register_list',
 				),
 				'account_manage_recycle' => array(
 					'title' => '回收站',
@@ -119,6 +124,12 @@ $we7_system_menu['module_manage'] = array(
 					'permission_name' => 'module_manage_subscribe',
 					'sub_permission' => array(),
 				),
+				'module_manage_expire' => array(
+					'title' => '应用停用提醒',
+					'url' => url('module/expire'),
+					'permission_name' => 'module_manage_expire',
+					'sub_permission' => array(),
+				),
 			),
 		),
 	),
@@ -162,13 +173,6 @@ $we7_system_menu['user_manage'] = array(
 					'title' => '用户属性设置',
 					'url' => url('user/fields/display'),
 					'permission_name' => 'user_manage_fields',
-					'sub_permission' => array(),
-					'founder' => true,
-				),
-				'user_manage_expire' => array(
-					'title' => '用户过期设置',
-					'url' => url('user/expire'),
-					'permission_name' => 'user_manage_expire',
 					'sub_permission' => array(),
 					'founder' => true,
 				),
@@ -236,7 +240,7 @@ $we7_system_menu['system'] = array(
 					),
 				),
 			),
-			'founder' => true
+			'founder' => true,
 		),
 		'system_template' => array(
 			'title' => '模板',
@@ -248,7 +252,7 @@ $we7_system_menu['system'] = array(
 					'permission_name' => 'system_template',
 				),
 			),
-			'founder' => true
+			'founder' => true,
 		),
 		'sms' => array(
 			'title' => '短信',
@@ -272,9 +276,9 @@ $we7_system_menu['system'] = array(
 					'icon' => 'wi wi-sms-sign',
 					'permission_name' => 'system_cloud_sms_mass',
 					'is_display' => false,
-				)
+				),
 			),
-			'founder' => true
+			'founder' => true,
 		),
 		
 
@@ -320,7 +324,7 @@ $we7_system_menu['site'] = array(
 					'icon' => 'wi wi-diagnose',
 					'permission_name' => 'system_cloud_diagnose',
 				),
-			)
+			),
 		),
 		'setting' => array(
 			'title' => '设置',
@@ -379,7 +383,7 @@ $we7_system_menu['site'] = array(
 					'icon' => 'wi wi-oauth',
 					'permission_name' => 'system_setting_oauth',
 				),
-			)
+			),
 		),
 		'utility' => array(
 			'title' => '常用工具',
@@ -420,19 +424,19 @@ $we7_system_menu['site'] = array(
 					'icon' => 'wi wi-bom',
 					'permission_name' => 'system_utility_check',
 				),
-			)
+			),
 		),
-		'backjob'=> array(
+		'backjob' => array(
 			'title' => '后台任务',
-			'menu'=> array(
-				'system_job'=> array(
+			'menu' => array(
+				'system_job' => array(
 					'title' => '后台任务',
 					'url' => url('system/job/display'),
 					'icon' => 'wi wi-job',
 					'permission_name' => 'system_job',
-				)
-			)
-		)
+				),
+			),
+		),
 	),
 	'founder' => true,
 );
@@ -832,7 +836,7 @@ $we7_system_menu['account'] = array(
 						ACCOUNT_TYPE_XZAPP_NORMAL,
 						ACCOUNT_TYPE_XZAPP_AUTH,
 					),
-				)
+				),
 			),
 			'permission_display' => array(
 				ACCOUNT_TYPE_OFFCIAL_NORMAL,
@@ -894,16 +898,6 @@ $we7_system_menu['account'] = array(
 								ACCOUNT_TYPE_OFFCIAL_AUTH,
 							),
 						),
-						'profile_setting_uc_setting' => array(
-							'title' => 'UC站点整合',
-							'url' => url('profile/common/uc_setting'),
-							'permission_name' => 'profile_setting_uc_setting',
-							'active' => 'uc_setting',
-							'is_display' => array(
-								ACCOUNT_TYPE_OFFCIAL_NORMAL,
-								ACCOUNT_TYPE_OFFCIAL_AUTH,
-							),
-						),
 						'profile_setting_upload_file' => array(
 							'title' => '上传JS接口文件',
 							'url' => url('profile/common/upload_file'),
@@ -924,6 +918,7 @@ $we7_system_menu['account'] = array(
 					'is_display' => array(
 						ACCOUNT_TYPE_OFFCIAL_NORMAL,
 						ACCOUNT_TYPE_OFFCIAL_AUTH,
+						ACCOUNT_TYPE_WEBAPP_NORMAL,
 					),
 					'sub_permission' => array(
 						'profile_payment_pay' => array(
@@ -941,7 +936,7 @@ $we7_system_menu['account'] = array(
 					),
 				),
 				'profile_app_module_link' => array(
-					'title' => "数据同步",
+					'title' => '数据同步',
 					'url' => url('profile/module-link-uniacid'),
 					'is_display' => 1,
 					'icon' => 'wi wi-data-synchro',
@@ -955,7 +950,7 @@ $we7_system_menu['account'] = array(
 				),
 				
 				'webapp_module_link' => array(
-					'title' => "数据同步",
+					'title' => '数据同步',
 					'url' => url('profile/module-link-uniacid'),
 					'is_display' => 1,
 					'icon' => 'wi wi-data-synchro',
@@ -997,12 +992,13 @@ $we7_system_menu['wxapp'] = array(
 			'title' => '小程序入口',
 			'menu' => array(
 				'module_entrance_link' => array(
-					'title' => "入口页面",
+					'title' => '入口页面',
 					'url' => url('wxapp/entrance-link'),
 					'is_display' => array(
 						ACCOUNT_TYPE_APP_NORMAL,
 						ACCOUNT_TYPE_APP_AUTH,
 						ACCOUNT_TYPE_WXAPP_WORK,
+						ACCOUNT_TYPE_APP_PLATFORM,
 					),
 					'icon' => 'wi wi-data-synchro',
 					'permission_name' => 'wxapp_entrance_link',
@@ -1012,7 +1008,8 @@ $we7_system_menu['wxapp'] = array(
 				ACCOUNT_TYPE_APP_NORMAL,
 				ACCOUNT_TYPE_APP_AUTH,
 				ACCOUNT_TYPE_WXAPP_WORK,
-			)
+				ACCOUNT_TYPE_APP_PLATFORM,
+			),
 		),
 		'platform_module' => array(
 			'title' => '应用',
@@ -1029,6 +1026,7 @@ $we7_system_menu['wxapp'] = array(
 						ACCOUNT_TYPE_APP_NORMAL,
 						ACCOUNT_TYPE_APP_AUTH,
 						ACCOUNT_TYPE_WXAPP_WORK,
+						ACCOUNT_TYPE_APP_PLATFORM,
 					),
 					'icon' => 'wi wi-fans',
 					'permission_name' => 'mc_wxapp_member',
@@ -1058,24 +1056,70 @@ $we7_system_menu['wxapp'] = array(
 							'active' => 'list',
 						),
 					),
-				)
+				),
 			),
 			'permission_display' => array(
 				ACCOUNT_TYPE_APP_NORMAL,
 				ACCOUNT_TYPE_APP_AUTH,
 				ACCOUNT_TYPE_WXAPP_WORK,
-			)
+				ACCOUNT_TYPE_APP_PLATFORM,
+			),
+		),
+		'wxapp_api' => array(
+			'title' => 'API上传审核',
+			'menu' => array(
+				'wxapp_api_base' => array(
+					'title' => '基本信息',
+					'url' => url('miniapp/platform-basic'),
+					'is_display' => array(
+						ACCOUNT_TYPE_APP_PLATFORM,
+					),
+					'icon' => 'wi wi-data-synchro',
+					'permission_name' => 'wxapp_api_base',
+				),
+				'wxapp_api_version' => array(
+					'title' => '版本管理',
+					'url' => url('miniapp/platform-version'),
+					'is_display' => array(
+						ACCOUNT_TYPE_APP_PLATFORM,
+					),
+					'icon' => 'wi wi-data-synchro',
+					'permission_name' => 'wxapp_api_version',
+				),
+				'wxapp_api_template' => array(
+					'title' => '模板库',
+					'url' => url('miniapp/platform-template'),
+					'is_display' => array(
+						ACCOUNT_TYPE_APP_PLATFORM,
+					),
+					'icon' => 'wi wi-data-synchro',
+					'permission_name' => 'wxapp_api_template',
+				),
+				'wxapp_api_domain' => array(
+					'title' => '服务器配置',
+					'url' => url('miniapp/platform-domain'),
+					'is_display' => array(
+						ACCOUNT_TYPE_APP_PLATFORM,
+					),
+					'icon' => 'wi wi-data-synchro',
+					'permission_name' => 'wxapp_api_domain',
+				),
+			),
+			'permission_display' => array(
+				ACCOUNT_TYPE_APP_PLATFORM,
+			),
 		),
 		'wxapp_profile' => array(
 			'title' => '配置',
 			'menu' => array(
 				'wxapp_profile_module_link_uniacid' => array(
-					'title' => "数据同步",
+					'title' => '数据同步',
 					'url' => url('wxapp/module-link-uniacid'),
 					'is_display' => array(
 						ACCOUNT_TYPE_APP_NORMAL,
 						ACCOUNT_TYPE_APP_AUTH,
 						ACCOUNT_TYPE_WXAPP_WORK,
+						ACCOUNT_TYPE_APP_PLATFORM,
 						ACCOUNT_TYPE_PHONEAPP_NORMAL,
 						ACCOUNT_TYPE_ALIAPP_NORMAL,
 						ACCOUNT_TYPE_BAIDUAPP_NORMAL,
@@ -1091,6 +1135,7 @@ $we7_system_menu['wxapp'] = array(
 						ACCOUNT_TYPE_APP_NORMAL,
 						ACCOUNT_TYPE_APP_AUTH,
 						ACCOUNT_TYPE_WXAPP_WORK,
+						ACCOUNT_TYPE_APP_PLATFORM,
 					),
 					'icon' => 'wi wi-appsetting',
 					'permission_name' => 'wxapp_profile_payment',
@@ -1112,7 +1157,15 @@ $we7_system_menu['wxapp'] = array(
 				'wxapp_profile_front_download' => array(
 					'title' => $_W['account']['type_sign'] == 'wxapp' ? '上传微信审核' : '下载程序包',
 					'url' => $_W['account']['type_sign'] == 'phoneapp' ? url('phoneapp/front-download') : url('wxapp/front-download'),
-					'is_display' => 1,
+					'is_display' => array(
+						ACCOUNT_TYPE_APP_NORMAL,
+						ACCOUNT_TYPE_APP_AUTH,
+						ACCOUNT_TYPE_WXAPP_WORK,
+						ACCOUNT_TYPE_PHONEAPP_NORMAL,
+						ACCOUNT_TYPE_ALIAPP_NORMAL,
+						ACCOUNT_TYPE_BAIDUAPP_NORMAL,
+						ACCOUNT_TYPE_TOUTIAOAPP_NORMAL,
+					),
 					'icon' => 'wi wi-examine',
 					'permission_name' => 'wxapp_profile_front_download',
 				),
@@ -1158,24 +1211,26 @@ $we7_system_menu['wxapp'] = array(
 				ACCOUNT_TYPE_APP_NORMAL,
 				ACCOUNT_TYPE_APP_AUTH,
 				ACCOUNT_TYPE_WXAPP_WORK,
+				ACCOUNT_TYPE_APP_PLATFORM,
 				ACCOUNT_TYPE_PHONEAPP_NORMAL,
 				ACCOUNT_TYPE_ALIAPP_NORMAL,
 				ACCOUNT_TYPE_BAIDUAPP_NORMAL,
 				ACCOUNT_TYPE_TOUTIAOAPP_NORMAL,
-			)
+			),
 		),
 		'statistics' => array(
 			'title' => '统计',
 			'menu' => array(
 				'statistics_visit' => array(
 					'title' => '访问统计',
-					'url' => $_W['account']['type_sign'] == 'wxapp' ? url('wxapp/statistics') : url('statistics/app'),
+					'url' => url('statistics/app'),
 					'icon' => 'wi wi-statistical',
 					'permission_name' => 'statistics_visit_wxapp',
 					'is_display' => array(
 						ACCOUNT_TYPE_APP_NORMAL,
 						ACCOUNT_TYPE_APP_AUTH,
 						ACCOUNT_TYPE_WXAPP_WORK,
+						ACCOUNT_TYPE_APP_PLATFORM,
 						ACCOUNT_TYPE_PHONEAPP_NORMAL,
 						ACCOUNT_TYPE_ALIAPP_NORMAL,
 						ACCOUNT_TYPE_BAIDUAPP_NORMAL,
@@ -1202,16 +1257,29 @@ $we7_system_menu['wxapp'] = array(
 						),
 					),
 				),
+				'statistics_fans' => array(
+					'title' => '用户统计',
+					'url' => url('wxapp/statistics'),
+					'icon' => 'wi wi-statistical',
+					'permission_name' => 'statistics_fans_wxapp',
+					'is_display' => array(
+						ACCOUNT_TYPE_APP_NORMAL,
+						ACCOUNT_TYPE_APP_AUTH,
+						ACCOUNT_TYPE_WXAPP_WORK,
+						ACCOUNT_TYPE_APP_PLATFORM,
+					),
+				),
 			),
 			'permission_display' => array(
 				ACCOUNT_TYPE_APP_NORMAL,
 				ACCOUNT_TYPE_APP_AUTH,
 				ACCOUNT_TYPE_WXAPP_WORK,
+				ACCOUNT_TYPE_APP_PLATFORM,
 				ACCOUNT_TYPE_PHONEAPP_NORMAL,
 				ACCOUNT_TYPE_ALIAPP_NORMAL,
 				ACCOUNT_TYPE_BAIDUAPP_NORMAL,
 				ACCOUNT_TYPE_TOUTIAOAPP_NORMAL,
-			)
+			),
 		),
 	),
 );
@@ -1237,7 +1305,7 @@ $we7_system_menu['phoneapp'] = array(
 			'title' => '配置',
 			'menu' => array(
 				'profile_phoneapp_module_link' => array(
-					'title' => "数据同步",
+					'title' => '数据同步',
 					'url' => url('wxapp/module-link-uniacid'),
 					'is_display' => array(
 						ACCOUNT_TYPE_PHONEAPP_NORMAL,
@@ -1251,13 +1319,13 @@ $we7_system_menu['phoneapp'] = array(
 					'is_display' => true,
 					'icon' => 'wi wi-examine',
 					'permission_name' => 'phoneapp_front_download',
-				)
+				),
 			),
 			'is_display' => true,
 			'permission_display' => array(
 				ACCOUNT_TYPE_PHONEAPP_NORMAL,
-			)
-		)
+			),
+		),
 	),
 );
 
@@ -1355,10 +1423,10 @@ $we7_system_menu['workorder'] = array(
 	'dimension' => 2,
 	'url' => url('system/workorder/display'),
 	'section' => array(
-		'workorder'=> array(
+		'workorder' => array(
 			'title' => '工单系统',
-			'menu'=> array(
-				'system_workorder'=> array(
+			'menu' => array(
+				'system_workorder' => array(
 					'title' => '工单系统',
 					'url' => url('system/workorder/display'),
 					'icon' => 'wi wi-system-work',
@@ -1375,7 +1443,6 @@ $we7_system_menu['help'] = array(
 	'icon' => 'wi wi-market',
 	'url' => url('help/display'),
 	'section' => array(),
-
 );
 
 $we7_system_menu['custom_help'] = array(

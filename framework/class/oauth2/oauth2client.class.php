@@ -1,7 +1,7 @@
 <?php
 
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 abstract class OAuth2Client {
 	protected $ak;
@@ -11,7 +11,7 @@ abstract class OAuth2Client {
 	protected $stateParam = array(
 		'state' => '',
 		'from' => '',
-		'mode' => ''
+		'mode' => '',
 	);
 
 	public function __construct($ak, $sk) {
@@ -27,6 +27,7 @@ abstract class OAuth2Client {
 		} else {
 			$this->stateParam['mode'] = 'login';
 		}
+
 		return base64_encode(http_build_query($this->stateParam, '', '&'));
 	}
 
@@ -36,10 +37,11 @@ abstract class OAuth2Client {
 
 	public function setUserType($user_type) {
 		$this->user_type = $user_type;
+
 		return $this;
 	}
 
-	public static function supportLoginType(){
+	public static function supportLoginType() {
 		return array('system', 'qq', 'wechat', 'mobile');
 	}
 
@@ -60,7 +62,7 @@ abstract class OAuth2Client {
 			'mobile' => array(
 				'type' => 'mobile',
 				'title' => '手机号',
-			)
+			),
 		);
 		if (!empty($type)) {
 			return $data[$type];
@@ -70,7 +72,8 @@ abstract class OAuth2Client {
 	}
 
 	/**
-	 * 第三方登陆后需要进行再次注册绑定的类型
+	 * 第三方登陆后需要进行再次注册绑定的类型.
+	 *
 	 * @return array
 	 */
 	public static function supportThirdLoginBindType() {
@@ -90,10 +93,11 @@ abstract class OAuth2Client {
 			$modes = self::supportThirdMode();
 			$types = self::supportThirdLoginType();
 
-			if (in_array($third_param['mode'],$modes) && in_array($third_param['from'],$types)) {
+			if (in_array($third_param['mode'], $modes) && in_array($third_param['from'], $types)) {
 				return $third_param;
 			}
 		}
+
 		return $param;
 	}
 
@@ -104,22 +108,26 @@ abstract class OAuth2Client {
 			$type_name = ucfirst($type);
 			$obj = new $type_name($appid, $appsecret);
 			$obj->getLoginType($type);
+
 			return $obj;
 		}
+
 		return null;
 	}
 
-	abstract function showLoginUrl($calback_url = '');
+	abstract public function showLoginUrl($calback_url = '');
 
-	abstract function user();
+	abstract public function user();
 
-	abstract function login();
+	abstract public function login();
 
-	abstract function bind();
-	abstract function unbind();
-	abstract function isbind();
+	abstract public function bind();
 
-	abstract function register();
+	abstract public function unbind();
+
+	abstract public function isbind();
+
+	abstract public function register();
 
 	public function user_register($register) {
 		global $_W;
@@ -132,7 +140,7 @@ abstract class OAuth2Client {
 		$profile = $register['profile'];
 
 		$member['type'] = $this->user_type;
-		if ($member['type'] == USER_TYPE_CLERK) {
+		if (USER_TYPE_CLERK == $member['type']) {
 			$member['status'] = !empty($_W['setting']['register']['clerk']['verify']) ? 1 : 2;
 		} else {
 			$member['status'] = !empty($_W['setting']['register']['verify']) ? 1 : 2;
@@ -140,22 +148,22 @@ abstract class OAuth2Client {
 		$member['remark'] = '';
 		$member['groupid'] = intval($_W['setting']['register']['groupid']);
 		if (empty($member['groupid'])) {
-			$member['groupid'] = pdo_fetchcolumn('SELECT id FROM '.tablename('users_group').' ORDER BY id ASC LIMIT 1');
+			$member['groupid'] = pdo_fetchcolumn('SELECT id FROM ' . tablename('users_group') . ' ORDER BY id ASC LIMIT 1');
 			$member['groupid'] = intval($member['groupid']);
 		}
 		$group = user_group_detail_info($member['groupid']);
 
 		$timelimit = intval($group['timelimit']);
-		if($timelimit > 0) {
+		if ($timelimit > 0) {
 			$member['endtime'] = strtotime($timelimit . ' days');
 		}
 		$member['starttime'] = TIMESTAMP;
 
 		$user_id = user_register($member, $this->stateParam['from']);
 		if (in_array($member['register_type'], array(USER_REGISTER_TYPE_QQ, USER_REGISTER_TYPE_WECHAT))) {
-			pdo_update('users', array('username' => $member['username'] . $user_id . rand(100,999)), array('uid' => $user_id));
+			pdo_update('users', array('username' => $member['username'] . $user_id . rand(100, 999)), array('uid' => $user_id));
 		}
-		if($user_id > 0) {
+		if ($user_id > 0) {
 			unset($member['password']);
 			$member['uid'] = $user_id;
 			if (!empty($profile)) {
@@ -169,7 +177,19 @@ abstract class OAuth2Client {
 			if (in_array($member['register_type'], array(USER_REGISTER_TYPE_QQ, USER_REGISTER_TYPE_WECHAT))) {
 				return $user_id;
 			}
-			return error(0, '注册成功'.(!empty($_W['setting']['register']['verify']) ? '，请等待管理员审核！' : '，请重新登录！'));
+
+			$message = '注册成功';
+			if (USER_STATUS_CHECK == $member['status']) {
+				$message .= '，请等待管理员审核！';
+			} elseif (USER_TYPE_CLERK != $member['type']) {
+				$message .= '，请重新登录！';
+			}
+
+			return array(
+				'errno' => 0,
+				'message' => $message,
+				'uid' => $user_id,
+			);
 		}
 
 		return error(-1, '增加用户失败，请稍候重试或联系网站管理员解决！');

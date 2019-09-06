@@ -3,12 +3,16 @@
 class CoreModuleWxapp extends WeModuleWxapp {
 	public function doPagePay() {
 		global $_W, $_GPC;
-		$order_info = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => safe_gpc_string($_GPC['module_name']), 'tid' => safe_gpc_string($_GPC['orderid'])));
+		$order_info = table('core_paylog')
+			->searchWithUniacid($_W['uniacid'])
+			->searchWithModule(safe_gpc_string($_GPC['module_name']))
+			->searchWithTid(safe_gpc_string($_GPC['orderid']))
+			->get();
 		$order = array(
 			'tid' => $order_info['tid'],
 			'user' => $_SESSION['openid'],
 			'fee' => $order_info['fee'],
-			'title' => trim($_GPC['title'])
+			'title' => trim($_GPC['title']),
 		);
 
 		$this->module = array('name' => $order_info['module']);
@@ -21,7 +25,11 @@ class CoreModuleWxapp extends WeModuleWxapp {
 	 */
 	public function doPagePayResult() {
 		global $_GPC, $_W;
-		$log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => safe_gpc_string($_GPC['module_name']), 'tid' => safe_gpc_string($_GPC['orderid'])));
+		$log = table('core_paylog')
+			->searchWithUniacid($_W['uniacid'])
+			->searchWithModule(safe_gpc_string($_GPC['module_name']))
+			->searchWithTid(safe_gpc_string($_GPC['orderid']))
+			->get();
 		if (!empty($log) && !empty($log['status'])) {
 			if (!empty($log['tag'])) {
 				$tag = iunserializer($log['tag']);

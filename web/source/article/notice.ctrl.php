@@ -1,7 +1,7 @@
 <?php
 /**
  * 文章/公共---公告管理
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -12,13 +12,13 @@ $do = in_array($do, $dos) ? $do : 'list';
 permission_check_account_user('system_article_notice');
 
 //添加公告分类
-if ($do == 'category_post') {
+if ('category_post' == $do) {
 	if (checksubmit('submit')) {
 		$i = 0;
 		if (!empty($_GPC['title'])) {
 			foreach ($_GPC['title'] as $k => $v) {
 				$title = safe_gpc_string($v);
-				if  (empty($title)) {
+				if (empty($title)) {
 					continue;
 				}
 				$data = array(
@@ -27,7 +27,7 @@ if ($do == 'category_post') {
 					'type' => 'notice',
 				);
 				pdo_insert('article_category', $data);
-				$i++;
+				++$i;
 			}
 		}
 		itoast('添加公告分类成功', url('article/notice/category'), 'success');
@@ -36,7 +36,7 @@ if ($do == 'category_post') {
 }
 
 //修改公告分类
-if ($do == 'category') {
+if ('category' == $do) {
 	$category_table = table('article_category');
 	if (checksubmit('submit')) {
 		$id = intval($_GPC['id']);
@@ -46,9 +46,9 @@ if ($do == 'category') {
 		if (empty($_GPC['title'])) {
 			iajax(1, '分类名称不能为空');
 		}
-		$update =  array(
+		$update = array(
 			'title' => safe_gpc_string($_GPC['title']),
-			'displayorder' => max(0,intval($_GPC['displayorder']))
+			'displayorder' => max(0, intval($_GPC['displayorder'])),
 		);
 		$category_table->fill($update)->where('id', $id)->save();
 		iajax(0, '修改分类成功');
@@ -58,22 +58,22 @@ if ($do == 'category') {
 }
 
 //删除公告分类
-if ($do == 'category_del') {
+if ('category_del' == $do) {
 	$id = intval($_GPC['id']);
-	pdo_delete('article_category', array('id' => $id,'type' => 'notice'));
+	pdo_delete('article_category', array('id' => $id, 'type' => 'notice'));
 	pdo_delete('article_notice', array('cateid' => $id));
 	itoast('删除公告分类成功', referer(), 'success');
 }
 
 //编辑/添加公告
-if ($do == 'post') {
+if ('post' == $do) {
 	$id = intval($_GPC['id']);
 	$notice = table('article_notice')->searchWithId($id)->get();
 	if (empty($notice)) {
 		$notice = array(
 			'is_display' => 1,
 			'is_show_home' => 1,
-			'group' => array('vice_founder' => array(), 'normal' => array())
+			'group' => array('vice_founder' => array(), 'normal' => array()),
 		);
 	} else {
 		$notice['style'] = iunserializer($notice['style']);
@@ -134,7 +134,7 @@ if ($do == 'post') {
 }
 
 //公告列表
-if ($do == 'list') {
+if ('list' == $do) {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 
@@ -171,7 +171,7 @@ if ($do == 'list') {
 }
 
 //编辑公告
-if ($do == 'batch_post') {
+if ('batch_post' == $do) {
 	if (checksubmit()) {
 		if (!empty($_GPC['ids'])) {
 			foreach ($_GPC['ids'] as $k => $v) {
@@ -188,7 +188,7 @@ if ($do == 'batch_post') {
 }
 
 //删除公告
-if ($do == 'del') {
+if ('del' == $do) {
 	$id = intval($_GPC['id']);
 	pdo_delete('article_notice', array('id' => $id));
 	pdo_delete('article_unread_notice', array('notice_id' => $id));
@@ -196,29 +196,29 @@ if ($do == 'del') {
 }
 
 //显示排序设置
-if ($do == 'displaysetting') {
+if ('displaysetting' == $do) {
 	$setting = safe_gpc_string($_GPC['setting']);
-	$data = $setting == 'createtime' ? 'createtime' : 'displayorder';
+	$data = 'createtime' == $setting ? 'createtime' : 'displayorder';
 	setting_save($data, 'notice_display');
 	itoast('更改成功！', referer(), 'success');
 }
 
 //开关公告留言功能
-if ($do == 'comment_status') {
+if ('comment_status' == $do) {
 	$status = setting_load('notice_comment_status');
 	setting_save(empty($status['notice_comment_status']) ? 1 : 0, 'notice_comment_status');
 	itoast('更改成功！', referer(), 'success');
 }
 
 //留言列表
-if ($do == 'comments') {
+if ('comments' == $do) {
 	$id = intval($_GPC['id']);
-	$order = empty($_GPC['order']) || $_GPC['order'] == 'id' ? 'id' : 'like_num';
+	$order = empty($_GPC['order']) || 'id' == $_GPC['order'] ? 'id' : 'like_num';
 	template('article/comment-list');
 }
 
 //回复留言
-if ($do == 'reply_comment') {
+if ('reply_comment' == $do) {
 	$id = intval($_GPC['id']);
 	$comment_table = table('article_comment');
 	$comment = $comment_table->where('id', $id)->get();

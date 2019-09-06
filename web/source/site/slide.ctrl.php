@@ -1,7 +1,7 @@
 <?php
 /**
  * 微官网幻灯片
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -12,17 +12,20 @@ permission_check_account_user('platform_site');
 if ($do == 'display' && $_W['isajax'] && $_W['ispost']) {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 10;
-	$condition = '';
-	$params = array();
 	$multiid = intval($_GPC['multiid']);
+	$where['uniacid'] = $_W['uniacid'];
 	if ($multiid > 0) {
-		$condition .= " AND multiid = {$multiid}";
+		$where['multiid'] = $multiid;
 	}
 	if (!empty($_GPC['keyword'])) {
-		$condition .= " AND title LIKE '%{$_GPC['keyword']}%'";
+		$where['title LIKE'] = "%{$_GPC['keyword']}%";
 	}
-	$list = pdo_fetchall("SELECT * FROM ".tablename('site_slide')." WHERE uniacid = '{$_W['uniacid']}' $condition ORDER BY displayorder DESC, uniacid DESC LIMIT ".($pindex - 1) * $psize.','.$psize, $params);
-	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('site_slide') . " WHERE uniacid = '{$_W['uniacid']}' $condition");
+	$list = table('site_slide')
+		->getBySnake('*', $where)
+		->searchWithPage($psize, $psize)
+		->getall();
+
+	$total = table('site_slide')->where($where)->getcolumn('COUNT(*)');
 	$pager = pagination($total, $pindex, $psize);
 	iajax(0, $list, '');
 }
@@ -31,14 +34,24 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 	$multiid = intval($_GPC['multiid']);
 	
 	if (empty($_GPC['slide'])) {
-		pdo_delete('site_slide', array('uniacid' => $_W['uniacid'], 'multiid' => $multiid));
+		table('site_slide')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'multiid' => $multiid
+			))
+			->delete();
 	} else {
 		foreach ($_GPC['slide'] as $key => $val) {
 			if (empty($val['thumb'])){
 				iajax(-1, '幻灯图片不可为空', '');
 			}
 		}
-		pdo_delete('site_slide', array('uniacid' => $_W['uniacid'], 'multiid' => $multiid));
+		table('site_slide')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'multiid' => $multiid
+			))
+			->delete();
 		foreach ($_GPC['slide'] as  $value) {
 			$data = array(
 				'uniacid' => $_W['uniacid'],
@@ -48,7 +61,9 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 				'thumb' => $value['thumb'],
 				'displayorder' => intval($value['displayorder']),
 			);
-			pdo_insert('site_slide', $data);
+			table('site_slide')
+				->fill($data)
+				->save();
 		}
 	}
 	iajax(0, '幻灯片保存成功！', '');

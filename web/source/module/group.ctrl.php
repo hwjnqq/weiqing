@@ -1,7 +1,7 @@
 <?php
 /**
  * 编辑应用套餐
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('module');
@@ -10,11 +10,11 @@ load()->model('module');
 
 $dos = array('display', 'delete', 'post', 'save', 'edit');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
-if (!in_array($_W['highest_role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))){
+if (!in_array($_W['highest_role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
 	itoast('无权限操作！', referer(), 'error');
 }
 
-if ($do == 'display') {
+if ('display' == $do) {
 	$pageindex = max(1, intval($_GPC['page']));
 	$pagesize = 10;
 
@@ -49,7 +49,7 @@ if ($do == 'display') {
 					$modules_group_list[$key][$type . '_num'] = 0;
 					continue;
 				} else {
-					$type = $type == 'modules' ? 'account' : $type;
+					$type = 'modules' == $type ? 'account' : $type;
 					$modules_group_list[$key][$type . '_num'] = count($modulenames);
 				}
 				$all_module_names = array_merge($all_module_names, $modulenames);
@@ -76,10 +76,10 @@ if ($do == 'display') {
 
 			$group['modules_all'] = array();
 			foreach ($module_support_type as $support => $info) {
-				if ($support == MODULE_SUPPORT_SYSTEMWELCOME_NAME) {
+				if (MODULE_SUPPORT_SYSTEMWELCOME_NAME == $support) {
 					continue;
 				}
-				if ($support == MODULE_SUPPORT_ACCOUNT_NAME) {
+				if (MODULE_SUPPORT_ACCOUNT_NAME == $support) {
 					$info['type'] = 'modules';
 				}
 				if (empty($group['modules'][$info['type']])) {
@@ -94,7 +94,7 @@ if ($do == 'display') {
 						$group['modules_all'][$modulename] = $all_modules[$modulename];
 					}
 					if ($all_modules[$modulename][$support] == $info['support']) {
-						$support_type = $info['type'] == 'modules' ? 'account' : $info['type'];
+						$support_type = 'modules' == $info['type'] ? 'account' : $info['type'];
 						$group['modules_all'][$modulename]['group_support'][] = $support_type;
 					}
 				}
@@ -105,10 +105,10 @@ if ($do == 'display') {
 
 if (in_array($do, array('save', 'delete', 'post'))) {
 	$id = intval($_GPC['id']);
-	if (empty($id) && $do == 'delete') {
+	if (empty($id) && 'delete' == $do) {
 		itoast('请选择要操作的权限组', referer(), 'error');
 	}
-	if (!empty($id) && $_W['highest_role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER) {
+	if (!empty($id) && ACCOUNT_MANAGE_NAME_VICE_FOUNDER == $_W['highest_role']) {
 		$exists = table('users_founder_own_uni_groups')->getByFounderUidAndUniGroupId($_W['uid'], $id);
 		if (empty($exists)) {
 			itoast('无权限操作！', referer(), 'error');
@@ -116,7 +116,7 @@ if (in_array($do, array('save', 'delete', 'post'))) {
 	}
 }
 
-if ($do == 'save') {
+if ('save' == $do) {
 	$account_all_type = uni_account_type();
 	$account_all_type_sign = array_keys(uni_account_type_sign());
 
@@ -128,7 +128,7 @@ if ($do == 'save') {
 		'templates' => safe_gpc_array($_GPC['templates']),
 	);
 	foreach ($account_all_type_sign as $account_type) {
-		if ($account_type == 'account') {
+		if ('account' == $account_type) {
 			$package_info['modules']['modules'] = empty($modules[$account_type]) ? array() : $modules[$account_type];
 		} else {
 			$package_info['modules'][$account_type] = empty($modules[$account_type]) ? array() : $modules[$account_type];
@@ -142,7 +142,7 @@ if ($do == 'save') {
 	iajax(0, ($id ? '更新成功' : '添加成功'), url('module/group'));
 }
 
-if ($do == 'delete') {
+if ('delete' == $do) {
 	if (!empty($id)) {
 		pdo_delete('uni_group', array('id' => $id));
 		pdo_delete('users_founder_own_uni_groups', array('uni_group_id' => $id));
@@ -152,10 +152,16 @@ if ($do == 'delete') {
 	itoast('删除成功！', referer(), 'success');
 }
 
-if ($do == 'post') {
+if ('post' == $do) {
 	$group_id = $id;
 	if (!empty($group_id)) {
 		$group = table('uni_group')->getById($group_id);
+		if (!empty($group['modules'])) {
+			$group['modules'] = iunserializer($group['modules']);
+		}
+		if (!empty($group['templates'])) {
+			$group['templates'] = iunserializer($group['templates']);
+		}
 	}
 	$module_support_type = module_support_type();
 	$module_list = array(
@@ -164,15 +170,15 @@ if ($do == 'post') {
 	);
 
 	$user_modules = user_modules($_W['uid']);
-	foreach($user_modules as $name => $module) {
+	foreach ($user_modules as $name => $module) {
 		if (!empty($module['issystem'])) {
 			continue;
 		}
 		foreach ($module_support_type as $support => $info) {
-			if ($support == MODULE_SUPPORT_SYSTEMWELCOME_NAME) {
+			if (MODULE_SUPPORT_SYSTEMWELCOME_NAME == $support) {
 				continue;
 			}
-			$info['type'] = $info['type'] == 'account' ? 'modules' : $info['type'];
+			$info['type'] = 'account' == $info['type'] ? 'modules' : $info['type'];
 			if ($module[$support] == $info['support']) {
 				$module_list['modules'][] = array(
 					'id' => $module['mid'],

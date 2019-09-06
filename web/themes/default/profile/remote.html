@@ -306,7 +306,7 @@
 					<div class="form-group">
 						<label class="col-sm-2 control-label">FTP服务器地址</label>
 						<div class="col-sm-9">
-							<input type="text" name="ftp[host]" class="form-control" ng-model="remote.ftp.host" />
+							<input type="text" name="ftp[hostname]" class="form-control" ng-model="remote.ftp.hostname" />
 							<span class="help-block">可以是 FTP 服务器的 IP 地址或域名</span>
 						</div>
 					</div>
@@ -334,17 +334,17 @@
 					<div class="form-group">
 						<label class="col-sm-2 control-label">被动模式(pasv)连接</label>
 						<div class="col-sm-9">
-							<input type="radio" id="ftp[pasv]-1" value="1"  ng-model="remote.ftp.pasv">
-							<label class="radio-inline" for="ftp[pasv]-1">是</label>
-							<input type="radio" id="ftp[pasv]-0" value="0"  ng-model="remote.ftp.pasv">
-							<label class="radio-inline" for="ftp[pasv]-0">否</label>
+							<input type="radio" id="ftp[passive]-1" value="1"  ng-model="remote.ftp.passive">
+							<label class="radio-inline" for="ftp[passive]-1">是</label>
+							<input type="radio" id="ftp[passive]-0" value="0"  ng-model="remote.ftp.passive">
+							<label class="radio-inline" for="ftp[passive]-0">否</label>
 							<span class="help-block">一般情况下非被动模式即可，如果存在上传失败问题，可尝试打开此设置</span>
 						</div>
 					</div>
 					<div class="form-group">
 						<label class="col-sm-2 control-label">远程附件目录</label>
 						<div class="col-sm-9">
-							<input type="text" name="ftp[dir]" class="form-control" ng-model="remote.ftp.dir" />
+							<input type="text" name="ftp[rootdir]" class="form-control" ng-model="remote.ftp.rootdir" />
 							<span class="help-block">远程附件目录的绝对路径或相对于 FTP 主目录的相对路径，结尾不要加斜杠 "/" , 例如：/attachment</span>
 						</div>
 					</div>
@@ -360,7 +360,7 @@
 					<div class="form-group">
 						<label class="col-sm-2 control-label">FTP传输超时时间</label>
 						<div class="col-sm-9">
-							<input type="text" name="ftp[overtime]" class="form-control" ng-model="remote.ftp.overtime" />
+							<input type="text" name="ftp[timeout]" class="form-control" ng-model="remote.ftp.timeout" />
 							<span class="help-block">单位：秒，0为服务器默认</span>
 						</div>
 					</div>

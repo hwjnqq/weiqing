@@ -1,13 +1,12 @@
 <?php
 /**
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
 $account_api = WeAccount::createByUniacid();
 
-if ($action != 'manage' && $do != 'switch') {
+if ('manage' != $action && 'switch' != $do) {
 	if (is_error($account_api)) {
 		message($account_api['message'], url('account/display'));
 	}
@@ -17,7 +16,7 @@ if ($action != 'manage' && $do != 'switch') {
 	}
 }
 
-if ($action == 'manage') {
+if ('manage' == $action) {
 	define('FRAME', '');
 } else {
 	$account_type = $account_api->menuFrame;

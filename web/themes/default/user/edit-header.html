@@ -36,7 +36,5 @@
 	{/if}
 
 	
-	{if $user['type'] != 3}
-	<a href="{php echo url('user/edit/operators', array('uid' => $_GPC['uid']))}" class="btn btn-default {if $do == 'operators'}active{/if}">应用操作员管理</a>
-	{/if}
+	<a href="{php echo url('user/edit/operators', array('uid' => $_GPC['uid']))}" class="btn btn-default {if $do == 'operators'}active{/if}">操作应用列表</a>
 </div>

@@ -1,7 +1,7 @@
 <?php
 /**
  * 授权添加公众号
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -15,7 +15,7 @@ $do = in_array($do, $dos) ? $do : 'forward';
 
 $account_platform = new WeixinPlatform();
 
-if ($do == 'forward') {
+if ('forward' == $do) {
 	if (empty($_GPC['auth_code'])) {
 		itoast('授权登录失败，请重试', url('account/manage'), 'error');
 	}
@@ -49,14 +49,14 @@ if ($do == 'forward') {
 	}
 	$account_found = $account_platform->fetchSameAccountByAppid($auth_appid);
 	if (!empty($account_found)) {
-		message('公众号已经在系统中接入，是否要更改为授权接入方式？ <div><a class="btn btn-primary" href="' . url('account/auth/confirm', array('level' => $level, 'auth_refresh_token' => $auth_refresh_token, 'auth_appid' => $auth_appid, 'acid' => $account_found['acid'], 'uniacid' => $account_found['uniacid'])) . '">是</a> &nbsp;&nbsp;<a class="btn btn-default" href="index.php">否</a></div>', '', 'tips');
+		message('公众号已经在系统中接入，是否要更改为授权接入方式？ <div><a class="btn btn-primary" href="' . url('account/auth/confirm', array('level' => $level, 'auth_refresh_token' => $auth_refresh_token, 'auth_appid' => $auth_appid, 'uniacid' => $account_found['uniacid'])) . '">是</a> &nbsp;&nbsp;<a class="btn btn-default" href="index.php">否</a></div>', '', 'tips');
 	}
 	$account_insert = array(
 		'name' => $account_info['authorizer_info']['nick_name'],
 		'description' => '',
 		'groupid' => 0,
 	);
-	if(!pdo_insert('uni_account', $account_insert)) {
+	if (!pdo_insert('uni_account', $account_insert)) {
 		itoast('授权登录新建公众号失败，请重试', url('account/manage'), 'error');
 	}
 	$uniacid = pdo_insertid();
@@ -80,11 +80,11 @@ if ($do == 'forward') {
 	$unisetting_insert = array(
 		'creditnames' => iserializer(array(
 			'credit1' => array('title' => '积分', 'enabled' => 1),
-			'credit2' => array('title' => '余额', 'enabled' => 1)
+			'credit2' => array('title' => '余额', 'enabled' => 1),
 		)),
 		'creditbehaviors' => iserializer(array(
 			'activity' => 'credit1',
-			'currency' => 'credit2'
+			'currency' => 'credit2',
 		)),
 		'uniacid' => $uniacid,
 		'default_site' => $multi_id,
@@ -97,7 +97,7 @@ if ($do == 'forward') {
 		'uniacid' => $uniacid,
 		'type' => ACCOUNT_OAUTH_LOGIN,
 		'hash' => random(8),
-		'isconnect' => 1
+		'isconnect' => 1,
 	);
 	pdo_insert('account', $account_index_insert);
 	$acid = pdo_insertid();
@@ -115,7 +115,7 @@ if ($do == 'forward') {
 		'token' => $account_platform->token,
 	);
 	pdo_insert('account_wechats', $subaccount_insert);
-	if(is_error($acid)) {
+	if (is_error($acid)) {
 		itoast('授权登录新建公众号失败，请重试', url('account/manage'), 'error');
 	}
 	if (user_is_vice_founder()) {
@@ -130,21 +130,21 @@ if ($do == 'forward') {
 	pdo_update('uni_account', array('default_acid' => $acid), array('uniacid' => $uniacid));
 	$headimg = ihttp_request($account_info['authorizer_info']['head_img']);
 	$qrcode = ihttp_request($account_info['authorizer_info']['qrcode_url']);
-	file_put_contents(IA_ROOT . '/attachment/headimg_'.$acid.'.jpg', $headimg['content']);
-	file_put_contents(IA_ROOT . '/attachment/qrcode_'.$acid.'.jpg', $qrcode['content']);
+	file_put_contents(IA_ROOT . '/attachment/headimg_' . $acid . '.jpg', $headimg['content']);
+	file_put_contents(IA_ROOT . '/attachment/qrcode_' . $acid . '.jpg', $qrcode['content']);
 
 	cache_build_account($uniacid);
 	cache_delete(cache_system_key('proxy_wechatpay_account'));
 	cache_clean(cache_system_key('user_accounts'));
 	itoast('授权登录成功', url('account/manage'), 'success');
-} elseif ($do == 'confirm') {
+} elseif ('confirm' == $do) {
 	$auth_refresh_token = $_GPC['auth_refresh_token'];
 	$auth_appid = $_GPC['auth_appid'];
 	$level = intval($_GPC['level']);
 	$uniacid = intval($_GPC['uniacid']);
 
 	if (user_is_founder($_W['uid'])) {
-		$user_accounts = table('account')->getUniAccountList();
+		$user_accounts = table('account')->getAll();
 	} else {
 		$user_accounts = uni_user_accounts($_W['uid']);
 	}
@@ -165,7 +165,7 @@ if ($do == 'forward') {
 	cache_delete(cache_system_key('accesstoken', array('uniacid' => $uniacid)));
 	cache_delete(cache_system_key('account_auth_refreshtoken', array('uniacid' => $uniacid)));
 	itoast('更改公众号授权接入成功', url('account/post', array('uniacid' => $uniacid)), 'success');
-} elseif ($do == 'ticket') {
+} elseif ('ticket' == $do) {
 	$post = file_get_contents('php://input');
 	WeUtility::logging('debug', 'account-ticket' . $post);
 	$encode_ticket = isimplexml_load_string($post, 'SimpleXMLElement', LIBXML_NOCDATA);
@@ -177,12 +177,46 @@ if ($do == 'forward') {
 	if (empty($ticket_xml)) {
 		exit('fail');
 	}
-	if (!empty($ticket_xml->ComponentVerifyTicket) && $ticket_xml->InfoType == 'component_verify_ticket') {
+	if (!empty($ticket_xml->ComponentVerifyTicket) && 'component_verify_ticket' == $ticket_xml->InfoType) {
 		$ticket = strval($ticket_xml->ComponentVerifyTicket);
 		setting_save($ticket, 'account_ticket');
 	}
+
+	if ('notify_third_fasteregister' == $ticket_xml->InfoType) {
+		$register_table = table('wxapp_register');
+		$register_info = $register_table->getByRegisterInfo((array) $ticket_xml->info, WXAPP_REGISTER_CHECK_STATUS_WAIT);
+		if (empty($register_info)) {
+			WeUtility::logging('third_fasteregister_error', '未找到注册信息');
+			exit('fail');
+		} elseif (!empty($register_info['uniacid'])) {
+			WeUtility::logging('third_fasteregister_error', '小程序已存在');
+			exit('fail');
+		} else {
+			if (0 == $ticket_xml->status) {
+				$register_table->fill(array(
+					'status' => WXAPP_REGISTER_CHECK_STATUS_PASS,
+					'message' => '',
+					'auth_code' => $ticket_xml->auth_code,
+					'appid' => $ticket_xml->appid,
+				))->where('id', $register_info['id'])->save();
+				$uniacid = miniapp_create_wxapp_by_auth_appid($ticket_xml->appid, $register_info['name'] . random(4));
+				if (is_error($uniacid)) {
+					WeUtility::logging('third_fasteregister_error', '小程序创建失败' . $uniacid['message']);
+					exit('fail');
+				} else {
+					$account = uni_fetch($uniacid);
+					$register_table->fill(array('uniacid' => $account['uniacid']))->where('id', $register_info['id'])->save();
+				}
+			} else {
+				$register_table->where('id', $register_info['id'])->fill(array(
+					'status' => WXAPP_REGISTER_CHECK_STATUS_FAIL,
+					'message' => $account_platform->errorCode($ticket_xml->status, $ticket_xml->status),
+				))->save();
+			}
+		}
+	}
 	exit('success');
-} elseif ($do == 'test') {
+} elseif ('test' == $do) {
 	$authurl = $account_platform->getAuthLoginUrl();
-	echo '<a href="'.$authurl.'%26test=1"><img src="https://open.weixin.qq.com/zh_CN/htmledition/res/assets/res-design-download/icon_button3_2.png" /></a>';
+	echo '<a href="' . $authurl . '%26test=1"><img src="https://open.weixin.qq.com/zh_CN/htmledition/res/assets/res-design-download/icon_button3_2.png" /></a>';
 }

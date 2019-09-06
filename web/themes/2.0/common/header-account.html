@@ -27,7 +27,7 @@
 		<span class="account-isconnect">
 			{if $_W['uniaccount']['isconnect'] == 0}
 			未接入
-			<a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid'], 'acid' => $_W['acid']))}" class="text-danger"> 立即接入</a>
+			<a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid']))}" class="text-danger"> 立即接入</a>
 			{else}
 			已接入
 			{/if}
@@ -49,7 +49,7 @@
 		<div class="account-isconnect">
 			{if $_W['uniaccount']['isconnect'] == 0}
 			未接入
-			<a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid'], 'acid' => $_W['acid']))}" class="text-danger">立即接入</a>
+			<a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid']))}" class="text-danger">立即接入</a>
 			{else}
 			已接入
 			{/if}
@@ -61,7 +61,7 @@
 		<a href="{php echo url('utility/emulator');}" target="_blank" class="h">模拟测试</a>
 		{/if}
 		{if $_W['role'] != ACCOUNT_MANAGE_NAME_OPERATOR}
-		<a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid'], 'acid' => $_W['account']['acid'], 'account_type' => $_W['account']['type']))}" class="h">管理设置</a>
+		<a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid'], 'account_type' => $_W['account']['type']))}" class="h">管理设置</a>
 		{/if}
 	</div>
 	<a href="{php echo url('account/display', array('type' => 'all'))}" class="btn btn-default accoutn-cut">切换平台</a>

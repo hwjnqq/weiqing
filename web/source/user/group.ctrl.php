@@ -1,21 +1,21 @@
 <?php
 /**
  * 用户组管理
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('user');
 
-$dos = array('display', 'post', 'del', 'save');
+$dos = array('display', 'post', 'del', 'save', 'info');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
 
-if ($do == 'display') {
+if ('display' == $do) {
 	$pageindex = max(1, intval($_GPC['page']));
 	$pagesize = 10;
 
 	$users_group_table = table('users_group');
-	$condition = '' ;
+	$condition = '';
 	$params = array();
 	$name = safe_gpc_string($_GPC['name']);
 	if (!empty($name)) {
@@ -33,7 +33,7 @@ if ($do == 'display') {
 	template('user/group-display');
 }
 
-if ($do == 'post') {
+if ('post' == $do) {
 	$id = intval($_GPC['id']);
 	if (!empty($id)) {
 		$group_info = pdo_get('users_group', array('id' => $id));
@@ -66,8 +66,7 @@ if ($do == 'post') {
 	template('user/group-post');
 }
 
-
-if ($do == 'save') {
+if ('save' == $do) {
 	$account_all_type = uni_account_type();
 	$account_all_type_sign = array_keys(uni_account_type_sign());
 	$group_info = safe_gpc_array($_GPC['group_info']);
@@ -75,7 +74,8 @@ if ($do == 'save') {
 		'id' => intval($group_info['id']),
 		'name' => $group_info['name'],
 		'package' => $group_info['package'],
-		'timelimit' => intval($group_info['timelimit'])
+		'timelimit' => intval($group_info['timelimit']),
+		'owner_uid' => 0
 	);
 	$max_type_all = 0;
 	foreach ($account_all_type_sign as $account_type) {
@@ -96,7 +96,7 @@ if ($do == 'save') {
 	iajax(0, '用户组更新成功！', url('user/group/display'));
 }
 
-if ($do == 'del') {
+if ('del' == $do) {
 	$id = intval($_GPC['id']);
 
 	$users = pdo_getall('users', array('groupid' => $id));
@@ -109,7 +109,7 @@ if ($do == 'del') {
 				$result = user_update(array('uid' => $uid, 'groupid' => '', 'endtime' => 1));
 			} else {
 				$group_info_timelimit = $group_info['timelimit'];
-				if ($group_info_timelimit == 0) {
+				if (0 == $group_info_timelimit) {
 					$end_time = !empty($extra_limit_info) && $extra_limit_info['timelimit'] > 0 ? strtotime($extra_limit_info['timelimit'] . ' days', $user_info['joindate']) : $user_info['joindate'];
 				} else {
 					$end_time = strtotime('-' . $group_info_timelimit . ' days', $user_info['endtime']);

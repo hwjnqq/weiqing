@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 namespace We7\Table\Site;
 
@@ -27,10 +27,6 @@ class Templates extends \We7Table {
 		'type' => '',
 		'sections' => '',
 	);
-
-	public function getById($id) {
-		return $this->query->where('id', $id)->get();
-	}
 
 	public function getAllTemplates() {
 		return $this->query->getall('name');

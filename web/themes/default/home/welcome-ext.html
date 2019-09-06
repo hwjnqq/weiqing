@@ -9,7 +9,7 @@
             dataType: 'json',
             success: function (data) {
                 var redirect_url = '';
-                if (data.message.errno == 0 && data.message.message.module_info.welcome_display) {
+                if (data.message && data.message.errno == 0 && data.message.message.module_info.welcome_display) {
                     redirect_url = "{php echo url('module/welcome/welcome_display', array('m' => $modulename, 'uniacid' => $redirect_uniacid, 'version_id' => intval($_GPC['version_id'])))}";
                 } else {
                     redirect_url = "{php echo url('module/welcome/display', array('m' => $modulename, 'uniacid' => $redirect_uniacid, 'version_id' => intval($_GPC['version_id'])))}";

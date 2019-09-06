@@ -1,7 +1,7 @@
 <?php
 /*
  * 性能优化相关操作
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 
@@ -12,7 +12,7 @@ load()->func('cache');
 $dos = array('opcache');
 $do = in_array($do, $dos) ? $do : 'index';
 
-if ($do == 'opcache') {
+if ('opcache' == $do) {
 	opcache_reset();
 	itoast('清空缓存成功', url('system/optimize'), 'success');
 } else {
@@ -21,13 +21,13 @@ if ($do == 'opcache') {
 	$extensions = array(
 		'memcache' => array(
 			'support' => extension_loaded('memcache'),
-			'status' => $cache_type == 'memcache',
-			'clear' => $clear
+			'status' => 'memcache' == $cache_type,
+			'clear' => $clear,
 		),
 		'redis' => array(
 			'support' => extension_loaded('redis'),
-			'status' => $cache_type == 'redis',
-			'clear' => $clear
+			'status' => 'redis' == $cache_type,
+			'clear' => $clear,
 		),
 		'eAccelerator' => array(
 			'support' => function_exists('eaccelerator_optimizer'),
@@ -39,12 +39,12 @@ if ($do == 'opcache') {
 			'clear' => array(
 				'url' => url('system/optimize/opcache'),
 				'title' => '清空缓存',
-			)
-		)
+			),
+		),
 	);
 	$slave = $_W['config']['db'];
 	$setting = $_W['config']['setting'];
-	
+
 	if ($extensions['memcache']['status']) {
 		$memobj = cache_memcache();
 		if (!empty($memobj) && method_exists($memobj, 'getExtendedStats')) {

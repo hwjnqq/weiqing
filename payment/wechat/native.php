@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 define('IN_MOBILE', true);
@@ -22,7 +22,7 @@ if(is_error($result)) {
 echo array2xml($result);
 
 echo 90;
-$log = pdo_get('core_paylog', array('plid' => $input['product_id']));
+$log = table('core_paylog')->where(array('plid' => intval($input['product_id'])))->get();
 $site = WeUtility::createModuleSite($log['module']);
 if(!is_error($site)) {
 	$method = 'scanResult';

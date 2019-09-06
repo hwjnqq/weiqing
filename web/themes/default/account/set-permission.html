@@ -124,7 +124,6 @@
 $(function(){
 
 	var uniacid = "{$_GPC['uniacid']}";
-	var acid = "{$_GPC['acid']}";
 	var module_permission_all = "{$module_permission_all}";
 
 	if (module_permission_all == 1) {
@@ -151,7 +150,7 @@ $(function(){
 		var length = $(this).next().find('li').size();
 		if(!length) {
 			_this.next().html('<div class="text-center"><i class="fa-spin wi wi-changing-over"></i> 获取子权限 </div>');
-			$.post("{php echo url('account/post-user/module')}", {'m' : m, 'uid' : uid, 'uniacid' : uniacid, 'acid' : acid}, function(data) {
+			$.post("{php echo url('account/post-user/module')}", {'m' : m, 'uid' : uid, 'uniacid' : uniacid}, function(data) {
 				if(!data.message.errno) {
 					var li_nums = data.message.message.length;
 					var li_checked = 0;

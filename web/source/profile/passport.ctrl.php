@@ -1,20 +1,19 @@
 <?php
 /**
  * 公众平台oAuth选项
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
-
 defined('IN_IA') or exit('Access Denied');
 
 $dos = array('oauth', 'save_oauth', 'uc_setting', 'upload_file');
 $do = in_array($do, $dos) ? $do : 'oauth';
 
 //获取所有的认证服务号
-if ($do == 'save_oauth') {
+if ('save_oauth' == $do) {
 	$type = $_GPC['type'];
 	$account = intval($_GPC['account']);
-	if ($type == 'oauth') {
-		$host = safe_gpc_url(rtrim($_GPC['host'],'/'), false);
+	if ('oauth' == $type) {
+		$host = safe_gpc_url(rtrim($_GPC['host'], '/'), false);
 
 		if (!empty($_GPC['host']) && empty($host)) {
 			iajax(-1, '域名不合法');
@@ -30,14 +29,14 @@ if ($do == 'save_oauth') {
 		}
 		cache_delete(cache_system_key('unisetting', array('uniacid' => $_W['uniacid'])));
 	}
-	if ($type == 'jsoauth') {
+	if ('jsoauth' == $type) {
 		uni_setting_save('jsauth_acid', $account);
 		cache_delete(cache_system_key('unisetting', array('uniacid' => $_W['uniacid'])));
 	}
 	iajax(0, '');
 }
 
-if ($do == 'oauth') {
+if ('oauth' == $do) {
 	$oauthInfo = uni_setting_load();
 	$oauth = $oauthInfo['oauth'];
 

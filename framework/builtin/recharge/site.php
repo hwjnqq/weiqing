@@ -8,18 +8,17 @@
 defined('IN_IA') or exit('Access Denied');
 
 class RechargeModuleSite extends WeModuleSite {
-	
 	public function doMobilePay() {
 		global $_W, $_GPC;
 		checkauth();
 		$type = trim($_GPC['type']) ? trim($_GPC['type']) : 'credit';
-		if($type == 'credit') {
-			load() -> model('card');
+		if ('credit' == $type) {
+			load()->model('card');
 			$recharge_settings = card_params_setting('cardRecharge');
-			if(checksubmit()) {
+			if (checksubmit()) {
 				$fee = floatval($_GPC['fee']);
 				$backtype = trim($_GPC['backtype']);
-				$back= floatval($_GPC['back']);
+				$back = floatval($_GPC['back']);
 				if (empty($fee) || $fee <= 0) {
 					message('请选择充值金额', referer(), 'error');
 				}
@@ -27,7 +26,7 @@ class RechargeModuleSite extends WeModuleSite {
 					'uid' => $_W['member']['uid'],
 					'openid' => $_W['openid'],
 					'uniacid' => $_W['uniacid'],
-					'tid' => date('YmdHi').random(8, 1),
+					'tid' => date('YmdHi') . random(8, 1),
 					'fee' => $fee,
 					'type' => 'credit',
 					'tag' => $back,
@@ -35,7 +34,7 @@ class RechargeModuleSite extends WeModuleSite {
 					'status' => 0,
 					'createtime' => TIMESTAMP,
 				);
-				if (!pdo_insert('mc_credits_recharge', $chargerecord)) {
+				if (!table('mc_credits_recharge')->fill($chargerecord)->save()) {
 					message('创建充值订单失败，请重试！', url('entry', array('m' => 'recharge', 'do' => 'pay')), 'error');
 				}
 				$params = array(
@@ -50,15 +49,15 @@ class RechargeModuleSite extends WeModuleSite {
 					$condition = $fee;
 					$mine = array(
 						'name' => "充{$condition}送{$back}元",
-						'value' => $fee
+						'value' => $fee,
 					);
-				} elseif ($backtype == '1') {
+				} elseif ('1' == $backtype) {
 					$condition = $fee;
 					$mine = array(
 						'name' => "充{$condition}送{$back}积分",
-						'value' => $fee
+						'value' => $fee,
 					);
-				} elseif ($backtype == '2') {
+				} elseif ('2' == $backtype) {
 					$condition = $fee;
 				}
 				$this->pay($params, $mine);
@@ -66,27 +65,27 @@ class RechargeModuleSite extends WeModuleSite {
 			}
 			$member = mc_fetch($_W['member']['uid']);
 			$name = $member['mobile'];
-			if(empty($name)) {
+			if (empty($name)) {
 				$name = $member['realname'];
 			}
-			if(empty($name)) {
+			if (empty($name)) {
 				$name = $member['uid'];
 			}
 			include $this->template('recharge');
 		} else {
 			$fee = floatval($_GPC['fee']);
-			if(!$fee) {
+			if (!$fee) {
 				message('充值金额不能为0', referer(), 'error');
 			}
-			if($fee <= 0) {
+			if ($fee <= 0) {
 				message('请输入充值的金额', referer(), 'error');
 			}
-			$setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid'], 'status' => 1));
-			if(empty($setting)) {
+			$setting = table('mc_card')->getByStatus(1, $_W['uniacid']);
+			if (empty($setting)) {
 				message('会员卡未开启,请联系商家', referer(), 'error');
 			}
-			if($type == 'card_nums') {
-				if(!$setting['nums_status']) {
+			if ('card_nums' == $type) {
+				if (!$setting['nums_status']) {
 					message("会员卡未开启{$setting['nums_text']}充值,请联系商家", referer(), 'error');
 				}
 				$setting['nums'] = iunserializer($setting['nums']);
@@ -101,12 +100,12 @@ class RechargeModuleSite extends WeModuleSite {
 				}
 				$mine = array(
 					'name' => "充{$fee}送{$num_back}次",
-					'value' => "送{$num_back}次"
+					'value' => "送{$num_back}次",
 				);
 				$tag = $num_back;
 			}
-			if($type == 'card_times') {
-				if(!$setting['times_status']) {
+			if ('card_times' == $type) {
+				if (!$setting['times_status']) {
 					message("会员卡未开启{$setting['times_text']}充值,请联系商家", referer(), 'error');
 				}
 
@@ -120,39 +119,42 @@ class RechargeModuleSite extends WeModuleSite {
 						$time_back = $val['time'];
 					}
 				}
-				$member_card = pdo_get('mc_card_members', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
-				if($member_card['endtime'] > TIMESTAMP) {
+				$member_card = table('mc_card_members')->getByUid($_W['member']['uid'], $_W['uniacid']);
+				if ($member_card['endtime'] > TIMESTAMP) {
 					$endtime = $member_card['endtime'] + time_back * 86400;
 				} else {
 					$endtime = strtotime($time_back . 'days');
 				}
 				$mine = array(
 					'name' => "充{$fee}送{$time_back}天",
-					'value' => date('Y-m-d', $endtime) . '到期'
+					'value' => date('Y-m-d', $endtime) . '到期',
 				);
 				$tag = $time_back;
 			}
-	
-			$chargerecord = pdo_fetch("SELECT * FROM ".tablename('mc_credits_recharge')." WHERE uniacid = :uniacid AND uid = :uid AND fee = :fee AND type = :type  AND status = 0 AND tag = :tag", array(
-				':uniacid' => $_W['uniacid'],
-				':uid' => $_W['member']['uid'],
-				':fee' => $fee,
-				':type' => $type,
-				':tag' => $tag,
-			));
+			$chargerecord = table('mc_credits_recharge')
+				->where(array(
+					'uniacid' => $_W['uniacid'],
+					'uid' => $_W['member']['uid'],
+					'fee' => $fee,
+					'type' => $type,
+					'status' => 0,
+					'tag' => $tag,
+				))
+				->get();
+
 			if (empty($chargerecord)) {
 				$chargerecord = array(
 					'uid' => $_W['member']['uid'],
 					'openid' => $_W['openid'],
 					'uniacid' => $_W['uniacid'],
-					'tid' => date('YmdHi').random(8, 1),
+					'tid' => date('YmdHi') . random(8, 1),
 					'fee' => $fee,
 					'type' => $type,
 					'tag' => $tag,
 					'status' => 0,
 					'createtime' => TIMESTAMP,
 				);
-				if (!pdo_insert('mc_credits_recharge', $chargerecord)) {
+				if (!table('mc_credits_recharge')->fill($chargerecord)->save()) {
 					message('创建充值订单失败，请重试！', url('mc/card/mycard'), 'error');
 				}
 			}
@@ -171,44 +173,44 @@ class RechargeModuleSite extends WeModuleSite {
 			exit();
 		}
 	}
-	
+
 	/**
 	 * 支付完成后更改业务状态
 	 */
 	public function payResult($params) {
 		global $_W;
-		load()-> model('mc');
-		load() -> model('card');
-		$order = pdo_fetch("SELECT * FROM ".tablename('mc_credits_recharge')." WHERE tid = :tid", array(':tid' => $params['tid']));
-		if ($params['result'] == 'success' && $params['from'] == 'notify') {
+		load()->model('mc');
+		load()->model('card');
+		$order = table('mc_credits_recharge')->where(array('tid' => $params['tid']))->get();
+		if ('success' == $params['result'] && 'notify' == $params['from']) {
 			$fee = $params['fee'];
 			$total_fee = $fee;
-			$data = array('status' => $params['result'] == 'success' ? 1 : -1);
+			$data = array('status' => 'success' == $params['result'] ? 1 : -1);
 			//如果是微信支付，需要记录transaction_id。
-			if ($params['type'] == 'wechat') {
+			if ('wechat' == $params['type']) {
 				$data['transid'] = $params['tag']['transaction_id'];
 				$params['user'] = mc_openid2uid($params['user']);
 			}
-			pdo_update('mc_credits_recharge', $data, array('tid' => $params['tid']));
+			table('mc_credits_recharge')->where(array('tid' => $params['tid']))->fill($data)->save();
 			$paydata = array('wechat' => '微信', 'alipay' => '支付宝', 'baifubao' => '百付宝', 'unionpay' => '银联');
 			//余额充值
-			if(empty($order['type']) || $order['type'] == 'credit') {
+			if (empty($order['type']) || 'credit' == $order['type']) {
 				$setting = uni_setting($_W['uniacid'], array('creditbehaviors', 'recharge'));
 				$credit = $setting['creditbehaviors']['currency'];
 				$recharge_settings = card_params_setting('cardRecharge');
 				$recharge_params = $recharge_settings['params'];
-				if(empty($credit)) {
+				if (empty($credit)) {
 					message('站点积分行为参数配置错误,请联系服务商', '', 'error');
 				} else {
-					if ($recharge_params['recharge_type'] == '1') {
+					if ('1' == $recharge_params['recharge_type']) {
 						$recharges = $recharge_params['recharges'];
 					}
-					if ($order['backtype'] == '2') {
+					if ('2' == $order['backtype']) {
 						$total_fee = $fee;
 					} else {
 						foreach ($recharges as $key => $recharge) {
 							if ($recharge['backtype'] == $order['backtype'] && $recharge['condition'] == $order['fee']) {
-								if ($order['backtype'] == '1') {
+								if ('1' == $order['backtype']) {
 									$total_fee = $fee;
 									$add_credit = $recharge['back'];
 								} else {
@@ -217,7 +219,7 @@ class RechargeModuleSite extends WeModuleSite {
 							}
 						}
 					}
-					if ($order['backtype'] == '1') {
+					if ('1' == $order['backtype']) {
 						$add_str = ",充值成功,返积分{$add_credit}分,本次操作共增加余额{$total_fee}元,积分{$add_credit}分";
 						$remark = '用户通过' . $paydata[$params['type']] . '充值' . $fee . $add_str;
 						$record[] = $params['user'];
@@ -237,10 +239,16 @@ class RechargeModuleSite extends WeModuleSite {
 			}
 
 			//会员卡次数充值
-			if($order['type'] == 'card_nums') {
-				$member_card = pdo_get('mc_card_members', array('uniacid' => $order['uniacid'], 'uid' => $order['uid']));
+			if ('card_nums' == $order['type']) {
+				$member_card = table('mc_card_members')->getByUid($order['uid'], $_W['uniacid']);
 				$total_num = $member_card['nums'] + $order['tag'];
-				pdo_update('mc_card_members', array('nums' => $total_num), array('uniacid' => $order['uniacid'], 'uid' => $order['uid']));
+				table('mc_card_members')
+					->where(array(
+						'uniacid' => $order['uniacid'],
+						'uid' => $order['uid']
+					))
+					->fill( array('nums' => $total_num))
+					->save();
 				//给会员卡的充值和消费数据表同步一条记录
 				$log = array(
 					'uniacid' => $order['uniacid'],
@@ -250,23 +258,29 @@ class RechargeModuleSite extends WeModuleSite {
 					'model' => '1',
 					'tag' => $order['tag'], //次数
 					'note' => date('Y-m-d H:i') . "通过{$paydata[$params['type']]}充值{$params['fee']}元，返{$order['tag']}次，总共剩余{$total_num}次",
-					'addtime' => TIMESTAMP
+					'addtime' => TIMESTAMP,
 				);
-				pdo_insert('mc_card_record', $log);
-				$type = pdo_fetchcolumn('SELECT nums_text FROM ' . tablename('mc_card') . ' WHERE uniacid = :uniacid', array(':uniacid' => $order['uniacid']));
+				table('mc_card_record')->fill($log)->save();
+				$type = table('mc_card')->where(array('uniacid' => $order['uniacid']))->getcolumn('nums_text');
 				$total_num = $member_card['nums'] + $order['tag'];
 				mc_notice_nums_plus($order['openid'], $type, $order['tag'], $total_num);
 			}
 
 			//会员卡时长充值
-			if($order['type'] == 'card_times') {
-				$member_card = pdo_get('mc_card_members', array('uniacid' => $order['uniacid'], 'uid' => $order['uid']));
-				if($member_card['endtime'] > TIMESTAMP) {
+			if ('card_times' == $order['type']) {
+				$member_card = table('mc_card_members')->getByUid($order['uid'], $_W['uniacid']);
+				if ($member_card['endtime'] > TIMESTAMP) {
 					$endtime = $member_card['endtime'] + $order['tag'] * 86400;
 				} else {
 					$endtime = strtotime($order['tag'] . 'days');
 				}
-				pdo_update('mc_card_members', array('endtime' => $endtime), array('uniacid' => $order['uniacid'], 'uid' => $order['uid']));
+				table('mc_card_members')
+					->where(array(
+						'uniacid' => $order['uniacid'],
+						'uid' => $order['uid']
+					))
+					->fill(array('endtime' => $endtime))
+					->save();
 				$log = array(
 					'uniacid' => $order['uniacid'],
 					'uid' => $order['uid'],
@@ -274,23 +288,23 @@ class RechargeModuleSite extends WeModuleSite {
 					'model' => '1',
 					'fee' => $params['fee'],
 					'tag' => $order['tag'], //天数
-					'note' => date('Y-m-d H:i') . "通过{$paydata[$params['type']]}充值{$params['fee']}元，返{$order['tag']}天，充值后到期时间:". date('Y-m-d', $endtime),
-					'addtime' => TIMESTAMP
+					'note' => date('Y-m-d H:i') . "通过{$paydata[$params['type']]}充值{$params['fee']}元，返{$order['tag']}天，充值后到期时间:" . date('Y-m-d', $endtime),
+					'addtime' => TIMESTAMP,
 				);
-				pdo_insert('mc_card_record', $log);
-				$type = pdo_fetchcolumn('SELECT times_text FROM ' . tablename('mc_card') . ' WHERE uniacid = :uniacid', array(':uniacid' => $order['uniacid']));
+				table('mc_card_record')->fill($log)->save();
+				$type = table('mc_card')->where(array('uniacid' => $order['uniacid']))->getcolumn('times_text');
 				$endtime = date('Y-m-d', $endtime);
 				mc_notice_times_plus($order['openid'], $member_card['cardsn'], $type, $fee, $order['tag'], $endtime);
 			}
 		}
-		if($order['type'] == 'credit' || $order['type'] == '') {
+		if ('credit' == $order['type'] || '' == $order['type']) {
 			$url = murl('mc/home');
 		} else {
 			$url = murl('mc/card/mycard');
 		}
 		//如果消息是用户直接返回（非通知），则提示一个付款成功
-		if ($params['from'] == 'return') {
-			if ($params['result'] == 'success') {
+		if ('return' == $params['from']) {
+			if ('success' == $params['result']) {
 				message('支付成功！', $_W['siteroot'] . 'app/' . $url, 'success');
 			} else {
 				message('支付失败！', $_W['siteroot'] . 'app/' . $url, 'error');
@@ -301,20 +315,20 @@ class RechargeModuleSite extends WeModuleSite {
 	protected function pay($params = array(), $mine = array()) {
 		global $_W;
 		$params['module'] = $this->module['name'];
-		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniacid`=:uniacid AND `module`=:module AND `tid`=:tid';
-		$pars = array();
-		$pars[':uniacid'] = $_W['uniacid'];
-		$pars[':module'] = $params['module'];
-		$pars[':tid'] = $params['tid'];
-		$log = pdo_fetch($sql, $pars);
-		if(!empty($log) && $log['status'] == '1') {
+		$log = table('core_paylog')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'module' => $params['module'],
+				'tid' => $params['tid'],
+			))
+			->get();
+		if (!empty($log) && '1' == $log['status']) {
 			itoast('这个订单已经支付成功, 不需要重复支付.', '', 'info');
 		}
 		$setting = uni_setting($_W['uniacid'], array('payment', 'creditbehaviors'));
-		if(!is_array($setting['payment'])) {
+		if (!is_array($setting['payment'])) {
 			itoast('没有有效的支付方式, 请联系网站管理员.', '', 'error');
 		}
-		$log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $params['module'], 'tid' => $params['tid']));
 		if (empty($log)) {
 			$log = array(
 				'uniacid' => $_W['uniacid'],
@@ -327,7 +341,7 @@ class RechargeModuleSite extends WeModuleSite {
 				'status' => '0',
 				'is_usecard' => '0',
 			);
-			pdo_insert('core_paylog', $log);
+			table('core_paylog')->fill($log)->save();
 		}
 		$pay = $setting['payment'];
 		foreach ($pay as &$value) {

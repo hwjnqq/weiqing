@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 namespace We7\Table\Users;
 
@@ -22,6 +22,19 @@ class Permission extends \We7Table {
 		'url' => '',
 	);
 
+	public $notModuleTypes = array(
+		PERMISSION_ACCOUNT,
+		PERMISSION_WXAPP,
+		PERMISSION_WEBAPP,
+		PERMISSION_PHONEAPP,
+		PERMISSION_XZAPP,
+		PERMISSION_ALIAPP,
+		PERMISSION_BAIDUAPP,
+		PERMISSION_TOUTIAOAPP,
+		PERMISSION_SYSTEM,
+		PERMISSION_MODULES
+	);
+
 	public function getUserPermissionByType($uid, $uniacid, $type = '') {
 		$this->query->where('uid', $uid)->where('uniacid', $uniacid);
 		if (!empty($type)) {
@@ -40,9 +53,10 @@ class Permission extends \We7Table {
 	}
 	public function getAllUserModulePermission($uid, $uniacid) {
 		return $this->query->where('uid', $uid)
-			 				->where('uniacid', $uniacid)
-							->where('type !=', array(PERMISSION_ACCOUNT, PERMISSION_WXAPP, PERMISSION_WEBAPP, PERMISSION_PHONEAPP, PERMISSION_XZAPP, PERMISSION_ALIAPP, PERMISSION_BAIDUAPP, PERMISSION_TOUTIAOAPP, PERMISSION_SYSTEM))->getall('type');
+			->where('uniacid', $uniacid)
+			->where('type !=', array(PERMISSION_ACCOUNT, PERMISSION_WXAPP, PERMISSION_WEBAPP, PERMISSION_PHONEAPP, PERMISSION_XZAPP, PERMISSION_ALIAPP, PERMISSION_BAIDUAPP, PERMISSION_TOUTIAOAPP, PERMISSION_SYSTEM))->getall('type');
 	}
+
 	public function getUserExtendPermission() {}
 
 	public function getClerkPermission($module) {
@@ -50,21 +64,26 @@ class Permission extends \We7Table {
 		return $this->query->from('users_permission', 'p')->leftjoin('uni_account_users', 'u')->on(array('u.uid' => 'p.uid', 'u.uniacid' => 'p.uniacid'))->where('u.role', 'clerk')->where('p.type', $module)->where('u.uniacid', $_W['uniacid'])->getall('uid');
 	}
 
-	public function getClerkPermissionList($uniacid, $module = '', $username = '') {
+	public function getClerkPermissionList($uniacid = 0, $uid = 0, $username = '') {
 		$this->query->from('users_permission', 'p')
 			->select('p.*')
 			->leftjoin('uni_account_users', 'u')
 			->on(array('u.uid' => 'p.uid', 'u.uniacid' => 'p.uniacid'))
-			->where('u.role', 'clerk')
-			->where('u.uniacid', $uniacid);
+			->where('u.role', 'clerk');
 
+		if (!empty($uniacid)) {
+			$this->query->where('u.uniacid', $uniacid);
+		}
+		if (!empty($uid)) {
+			$this->query->where('u.uid', $uid);
+		}
 		if (!empty($username)) {
 			$this->query->leftjoin('users', 's')
 				->on(array('s.uid' => 'p.uid'))
 				->where('s.username like', "%$username%");
 		}
 		if (empty($module)) {
-			$this->query->where('p.type !=', 'system');
+			$this->query->where('p.type !=', $this->notModuleTypes);
 		} else {
 			$this->query->where('p.type', $module);
 		}

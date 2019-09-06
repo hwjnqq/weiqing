@@ -1,12 +1,12 @@
 <?php
 /**
  * 系统常规检测
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('system');
 
-if ($do == 'check_table') {
+if ('check_table' == $do) {
 	$wrong_tables = array();
 	$table_pre = $_W['config']['db']['tablepre'] . '_%';
 	$tables = pdo_fetchall("SHOW TABLE STATUS LIKE '{$table_pre}'", array(), 'Name');
@@ -18,16 +18,16 @@ if ($do == 'check_table') {
 	}
 
 	$tables_str = implode('`,`', array_keys($tables));
-	$check_result = pdo_fetchall("CHECK TABLE `" . $tables_str . '`');
+	$check_result = pdo_fetchall('CHECK TABLE `' . $tables_str . '`');
 	foreach ($check_result as $check_info) {
-		if ($check_info['Msg_text'] != 'OK' && $check_info['Msg_type'] != 'warning') {
+		if ('OK' != $check_info['Msg_text'] && 'warning' != $check_info['Msg_type']) {
 			$wrong_tables[$check_info['Table']] = $check_info;
 		}
 	}
 	iajax(0, $wrong_tables);
 }
 
-if ($do == 'check_fpm') {
+if ('check_fpm' == $do) {
 	$result = fastcgi_finish_request();
 	if (is_error($result)) {
 		iajax($result['errno'], $result['message']);
@@ -35,11 +35,11 @@ if ($do == 'check_fpm') {
 	exit();
 }
 
-if ($do == 'check_auth_accounts') {
+if ('check_auth_accounts' == $do) {
 	$accounts = pdo_getall('account', array(
 		'isconnect' => 1,
 		'isdeleted' => 0,
-		'type' => array(ACCOUNT_TYPE_OFFCIAL_AUTH, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_XZAPP_AUTH)
+		'type' => array(ACCOUNT_TYPE_OFFCIAL_AUTH, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_XZAPP_AUTH),
 	));
 	$failed_accounts = array();
 	if (!empty($accounts)) {
@@ -76,7 +76,7 @@ foreach ($system_check_items as $check_item_name => &$check_item) {
 $check_num = count($system_check_items);
 $check_wrong_num = 0;
 foreach ($system_check_items as $check_key => $check_val) {
-	if ($check_val['check_result'] === false) {
+	if (false === $check_val['check_result']) {
 		$check_wrong_num += 1;
 	}
 }

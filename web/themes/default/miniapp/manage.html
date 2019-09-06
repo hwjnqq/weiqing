@@ -15,19 +15,22 @@
 	</div>
 	{if $state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER}
 	<div class="media-right media-middle">
-		<a href="{php echo url('account/manage/delete', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => $account['type']))}" class="btn btn-primary" onclick="return confirm('确认放入回收站吗？')">停  用</a>
+		<a href="{php echo url('account/manage/delete', array('uniacid' => $account['uniacid'], 'account_type' => $account['type']))}" class="btn btn-primary" onclick="return confirm('确认放入回收站吗？')">停  用</a>
 	</div>
 	{/if}
 </div>
 <div class="clearfix"></div>
 <div class="btn-group we7-btn-group wechat-edit-group">
 	{if $state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER || $state == ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
-	<a href="{php echo url('account/post/base', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => $account['type']))}" class="btn btn-default {if $do == 'base'} active{/if}">基础信息</a>
+	<a href="{php echo url('account/post/base', array('uniacid' => $account['uniacid'], 'account_type' => $account['type']))}" class="btn btn-default {if $do == 'base'} active{/if}">基础信息</a>
 	{/if}
 
-	<a href="{php echo url('account/post-user/edit', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => $account['type']))}" class="btn btn-default {if $action == 'post-user' && $do == 'edit'} active{/if}">使用者管理</a>
-	<a href="{php echo url('miniapp/manage/display', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => $account['type']))}" class="btn btn-default {if $action == 'manage' && $do == 'display'} active{/if}">版本管理</a>
-	<a href="{php echo url('account/post/modules_tpl', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => $account['type']))}" class="btn btn-default {if $action == 'post' && $do == 'modules_tpl'} active{/if}">可用应用模板/模块</a>
+	<a href="{php echo url('account/post-user/edit', array('uniacid' => $account['uniacid'], 'account_type' => $account['type']))}" class="btn btn-default {if $action == 'post-user' && $do == 'edit'} active{/if}">使用者管理</a>
+	<a href="{php echo url('miniapp/manage/display', array('uniacid' => $account['uniacid'], 'account_type' => $account['type']))}" class="btn btn-default {if $action == 'manage' && $do == 'display'} active{/if}">版本管理</a>
+	<a href="{php echo url('account/post/modules_tpl', array('uniacid' => $account['uniacid'], 'account_type' => $account['type']))}" class="btn btn-default {if $action == 'post' && $do == 'modules_tpl'} active{/if}">可用应用模板/模块</a>
+	{if $state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER || $state == ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
+	<a href="{php echo url('account/post/operators', array('uniacid' => $account['uniacid'], 'account_type' => ACCOUNT_TYPE))}" class="btn btn-default {if $do == 'operators'}active{/if}">应用操作员管理</a>
+	{/if}
 </div>
 
 <div id="js-account-manage-aliapp" ng-controller="MiniappManageCtrl" ng-cloak>
@@ -170,8 +173,8 @@ require(['underscore'], function() {
 		'miniapp_modules' : {php echo !empty($miniapp_modules) ? json_encode($miniapp_modules) : 'null'},
 		'version_exist': {php echo !empty($version_exist) ? json_encode($version_exist) : 'null'},
 		'links': {
-			'edit_version': "{php echo url('miniapp/manage/edit_version', array('acid' => $account['acid'], 'uniacid' => $account['uniacid'], 'account_type' => $account['type']))}",
-			'del_version': "{php echo url('miniapp/manage/del_version', array('acid' => $account['acid'], 'uniacid' => $account['uniacid'], 'account_type' => $account['type']))}",
+			'edit_version': "{php echo url('miniapp/manage/edit_version', array('uniacid' => $account['uniacid'], 'account_type' => $account['type']))}",
+			'del_version': "{php echo url('miniapp/manage/del_version', array('uniacid' => $account['uniacid'], 'account_type' => $account['type']))}",
 		},
 	});
 	angular.bootstrap($('#js-account-manage-aliapp'), ['wxApp']);

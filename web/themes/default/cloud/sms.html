@@ -172,12 +172,14 @@
             <th>短信模板</th>
             <th>模板内容</th>
             <th>短信签名</th>
+            <th>是否开启</th>
             <th>操作</th>
         </tr>
         <tr>
             <td>注册/绑定验证码</td>
             <td class="color-gray">您的短信验证码为:[数字] 您正在使用短信验证码相关功能, 需要你进行身份确认【xxx】</td>
             <td>【{{settingSmsSign.register || '涛盛微擎团队'}}】</td>
+            <td></td>
             <td class="color-default">
                 <a href="javascript:;" ng-click="showModal('register')">
                     修改签名
@@ -188,6 +190,7 @@
             <td>找回密码验证码</td>
             <td class="color-gray">您的短信验证码为: [数字] 您正在使用短信验证码相关功能, 需要你进行身份确认【xxx】</td>
             <td>【{{settingSmsSign.find_password || '涛盛微擎团队'}}】</td>
+            <td></td>
             <td class="color-default">
                 <a href="javascript:;" ng-click="showModal('find_password')">
                     修改签名
@@ -198,14 +201,96 @@
             <td>用户过期提醒</td>
             <td class="color-gray">您的用户名[username]即将过期。</td>
             <td>【{{settingSmsSign.user_expire || '涛盛微擎团队'}}】</td>
+
+            <td>
+                <div class="link-group">
+                    <div class="switch" ng-class="{switchOn: userExpire.status == 1}"  ng-click="changeStatus('user_expire', 'userExpire')"></div>
+                </div>
+            </td>
+
             <td class="color-default">
+                <a href="javascript:;" ng-click="showModalSetting('userExpire', 'user_expire', 'day')">
+                    发送设置
+                </a>
                 <a href="javascript:;" ng-click="showModal('user_expire')">
                     修改签名
                 </a>
             </td>
         </tr>
+
+        <tr>
+            <td>平台到期提醒</td>
+            <td class="color-gray">您的平台账号${name}即将过期,为了不影响正常使用，请及时续费。</td>
+            <td>【{{settingSmsSign.account_sms_expire || '涛盛微擎团队'}}】</td>
+
+            <td>
+                <div class="link-group">
+                    <div class="switch" ng-class="{switchOn: accountSmsExpire.status == 1}"  ng-click="changeStatus('account_sms_expire', 'accountSmsExpire')"></div>
+                </div>
+            </td>
+
+            <td class="color-default">
+                <a href="javascript:;" ng-click="showModalSetting('accountSmsExpire', 'account_sms_expire', 'day')">
+                    发送设置
+                </a>
+                <a href="javascript:;" ng-click="showModal('account_sms_expire')">
+                    修改签名
+                </a>
+            </td>
+        </tr>
+
+        <tr>
+            <td>API余量提醒</td>
+            <td class="color-gray">您的平台账号${name}剩余的API流量即将耗尽，请及时购买。</td>
+            <td>【{{settingSmsSign.api_sms_expire || '涛盛微擎团队'}}】</td>
+
+            <td>
+                <div class="link-group">
+                    <div class="switch" ng-class="{switchOn: apiSmsExpire.status == 1}"  ng-click="changeStatus('api_sms_expire', 'apiSmsExpire')"></div>
+                </div>
+            </td>
+
+            <td class="color-default">
+                <a href="javascript:;" ng-click="showModalSetting('apiSmsExpire', 'api_sms_expire', 'num')">
+                    发送设置
+                </a>
+                <a href="javascript:;" ng-click="showModal('api_sms_expire')">
+                    修改签名
+                </a>
+            </td>
+        </tr>
     </table>
-    <div class="modal fade bs-example-modal-sm" id="editSign" tabindex="-1" style="z-index:1039" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+
+    <div class="modal fade" id="editSetting" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog we7-modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <div class="modal-title">发送设置</div>
+                </div>
+                <div class="modal-body we7-form">
+                    <div class="alert we7-page-alert" ng-if="currentType != 'apiSmsExpire'">
+                        <i class="wi wi-info"></i><span class="color-red">默认到期前1天发送短信，</span>请设置提前发送短信的时间
+                    </div>
+                    <div class="alert we7-page-alert" ng-if="currentType == 'apiSmsExpire'">
+                        <i class="wi wi-info"></i><span class="color-red">默认API余量低于3000发送短信，</span>可自定义API余量提醒数值
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group col-sm-12">
+                            <input type="text" ng-model="formData" class="form-control" placeholder="" />
+                            <span class="input-group-addon" ng-if="currentType != 'apiSmsExpire'">天</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" ng-click="changeSetting()">确定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade " id="editSign" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog we7-modal-dialog ">
             <div class="modal-content">
                 <div class="modal-header">
@@ -235,10 +320,14 @@
 <script>
     require(['moment'], function() {
         angular.module('smsApp').value('config', {
-            apiUrl: "{php echo url('cloud/profile/common_api')}&method=",
-            smsSettingUrl: "{php echo url('cloud/sms-sign/save_sms_sign')}",
+            apiUrl: "{php echo url('cloud/sms')}do=",
+            smsSettingUrl: "{php echo url('cloud/sms/settingSign')}",
+            changeUrl: "{php echo url('cloud/sms/change_setting')}",
             cloudSmsSigns: {php echo json_encode($cloud_sms_signs)},
             settingSmsSign: {php echo json_encode($setting_sms_sign)},
+            userExpire: {php echo json_encode($user_expire)},
+            accountSmsExpire: {php echo json_encode($account_sms_expire)},
+            apiSmsExpire: {php echo json_encode($api_sms_expire)},
             smsInfo: {php echo json_encode($sms_info)},
         });
         angular.bootstrap($('.sms-index'), ['smsApp']);

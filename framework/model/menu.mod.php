@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -46,7 +46,7 @@ function menu_get($id) {
 	if (empty($id)) {
 		return array();
 	}
-	$menu_info = table('menu')->accountMenuInfo(array('id' => $id));
+	$menu_info = table('uni_account_menus')->getById($id);
 	if (!empty($menu_info)) {
 		return $menu_info;
 	} else {
@@ -59,9 +59,7 @@ function menu_get($id) {
  * @return array()
  */
 function menu_default() {
-	$result = array();
-	$result = table('menu')->accountDefaultMenuInfo();
-	return $result;
+	return table('uni_account_menus')->where('status', STATUS_ON)->getByType(MENU_CURRENTSELF);
 }
 
 /**
@@ -99,7 +97,7 @@ function menu_update_currentself() {
 		ksort($default_menu);
 	}
 	$wechat_menu_data = base64_encode(iserializer($default_menu));
-	$all_default_menus = table('menu')->searchAccountMenuList(MENU_CURRENTSELF);
+	$all_default_menus = table('uni_account_menus')->getAllByType(MENU_CURRENTSELF);
 	if (!empty($all_default_menus)) {
 		foreach ($all_default_menus as $menus_key => $menu_data) {
 			if (empty($menu_data['data'])) {
@@ -174,7 +172,7 @@ function menu_update_conditional() {
 				'status' => STATUS_ON,
 			);
 			if (!empty($menu['matchrule'])) {
-				$menu_info = table('menu')->accountMenuInfo(array('uniacid' => $_W['uniacid'], 'menuid' => $menu['menuid'], 'type' => MENU_CONDITIONAL));
+				$menu_info = table('uni_account_menus')->where('menuid',$menu['menuid'])->getByType(MENU_CONDITIONAL);
 				$menu_id = $menu_info['id'];
 			}
 			if (!empty($menu_id)) {

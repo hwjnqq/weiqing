@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 W7.CC
+ * $sn$.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('reply');
@@ -11,12 +11,12 @@ $dos = array('module', 'post');
 $do = in_array($do, $dos) ? $do : 'module';
 
 $system_modules = module_system();
-if (!in_array($_GPC['m'], $system_modules) && $do == 'post') {
+if (!in_array($_GPC['m'], $system_modules) && 'post' == $do) {
 	permission_check_account_user('', true, 'cover');
 }
 define('IN_MODULE', true);
 
-if ($do == 'module') {
+if ('module' == $do) {
 	$modulename = $_GPC['m'];
 	$entry_id = intval($_GPC['eid']);
 	$cover_keywords = array();
@@ -38,28 +38,28 @@ if ($do == 'module') {
 
 	define('ACTIVE_FRAME_URL', $url);
 	$entries = module_entries($modulename);
-	$sql = "SELECT b.`do`, a.`type`, a.`content` FROM ".tablename('rule_keyword')." as a LEFT JOIN ".tablename('cover_reply')." as b ON a.rid = b.rid WHERE b.uniacid = :uniacid AND b.module = :module";
+	$sql = 'SELECT b.`do`, a.`type`, a.`content` FROM ' . tablename('rule_keyword') . ' as a LEFT JOIN ' . tablename('cover_reply') . ' as b ON a.rid = b.rid WHERE b.uniacid = :uniacid AND b.module = :module';
 	$params = array(':uniacid' => $_W['uniacid'], ':module' => $module['name']);
 	$replies = pdo_fetchall($sql, $params);
-	foreach ($replies as $replay){
+	foreach ($replies as $replay) {
 		$cover_keywords[$replay['do']][] = $replay;
 	}
 	$module_permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], $modulename);
 
-	foreach ($entries['cover'] as $key => &$cover){
+	foreach ($entries['cover'] as $key => &$cover) {
 		$cover['url'] = ltrim($cover['url'], './');
 		$permission_name = $modulename . '_cover_' . trim($cover['do']);
-		if ($module_permission[0] != 'all' && !in_array($permission_name, $module_permission)) {
+		if ('all' != $module_permission[0] && !in_array($permission_name, $module_permission)) {
 			unset($entries['cover'][$key]);
 		}
-		if (!empty($cover_keywords[$cover['do']])){
+		if (!empty($cover_keywords[$cover['do']])) {
 			$cover['cover']['rule']['keywords'] = $cover_keywords[$cover['do']];
 		}
 	}
 	unset($cover);
-} elseif ($do == 'post') {
+} elseif ('post' == $do) {
 	$entry_id = intval($_GPC['eid']);
-	if(empty($entry_id)) {
+	if (empty($entry_id)) {
 		itoast('访问错误', '', '');
 	}
 	$entry = module_entry($entry_id);
@@ -76,10 +76,10 @@ if ($do == 'module') {
 			'name' => $entry['title'],
 			'module' => 'cover',
 			'containtype' => '',
-			'status' => $_GPC['status'] == 'true' ? 1 : 0,
+			'status' => 'true' == $_GPC['status'] ? 1 : 0,
 			'displayorder' => intval($_GPC['displayorder_rule']),
 		);
-		if ($_GPC['istop'] == 1) {
+		if (1 == $_GPC['istop']) {
 			$rule['displayorder'] = 255;
 		} else {
 			$rule['displayorder'] = range_limit($rule['displayorder'], 0, 254);
@@ -153,8 +153,8 @@ if ($do == 'module') {
 			'url_show' => $entry['url_show'],
 			'rule' => array(
 				'displayorder' => '0',
-				'status' => '1'
-			)
+				'status' => '1',
+			),
 		);
 	}
 }

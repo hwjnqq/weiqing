@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 define('IN_MOBILE', true);
@@ -14,7 +14,9 @@ $sl = $_GPC['ps'];
 $payopenid = $_GPC['payopenid'];
 $params = @json_decode(base64_decode($sl), true);
 if($_GPC['done'] == '1') {
-	$log = pdo_get('core_paylog', array('plid' => $params['tid']));
+	$log = table('core_paylog')
+        ->where(array('plid' => $params['tid']))
+        ->get();
 	if(!empty($log) && !empty($log['status'])) {
 		if (!empty($log['tag'])) {
 			$tag = iunserializer($log['tag']);
@@ -45,7 +47,9 @@ if($_GPC['done'] == '1') {
 	}
 }
 
-$log = pdo_get('core_paylog', array('plid' => $params['tid']));
+$log = table('core_paylog')
+    ->where(array('plid' => $params['tid']))
+    ->get();
 if(!empty($log) && $log['status'] != '0') {
 	exit('这个订单已经支付成功, 不需要重复支付.');
 }
@@ -73,8 +77,10 @@ if(!is_array($setting['payment'])) {
 }
 
 $wechat = $setting['payment']['wechat'];
-$sql = 'SELECT `key`,`secret` FROM ' . tablename('account_wechats') . ' WHERE `acid`=:acid';
-$row = pdo_fetch($sql, array(':acid' => $wechat['account']));
+$row = table('account_wechats')
+    ->select(array('key', 'secret'))
+    ->where(array('acid' => $wechat['account']))
+    ->get();
 $wechat['appid'] = $row['key'];
 $wechat['secret'] = $row['secret'];
 $wechat['openid'] = $payopenid;
@@ -94,7 +100,10 @@ if (intval($wechat['switch']) == 3 || intval($wechat['switch']) == 2) {
 if (is_error($wOpt)) {
 	if ($wOpt['message'] == 'invalid out_trade_no' || $wOpt['message'] == 'OUT_TRADE_NO_USED') {
 		$id = date('YmdH');
-		pdo_update('core_paylog', array('plid' => $id), array('plid' => $log['plid']));
+		table('core_paylog')
+            ->where(array('plid' => $log['plid']))
+            ->fill(array('plid' => $id))
+            ->save();
 		pdo_query("ALTER TABLE ".tablename('core_paylog')." auto_increment = ".($id+1).";");
 		message("抱歉，发起支付失败，系统已经修复此问题，请重新尝试支付。");
 	}

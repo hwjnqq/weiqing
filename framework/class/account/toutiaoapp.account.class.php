@@ -1,12 +1,12 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 W7.CC
+ * $sn$.
  */
 defined('IN_IA') or exit('Access Denied');
 
 /**
- * 微信平台公众号业务操作类
+ * 微信平台公众号业务操作类.
  */
 class ToutiaoappAccount extends WeAccount {
 	protected $tablename = 'account_toutiaoapp';
@@ -19,12 +19,5 @@ class ToutiaoappAccount extends WeAccount {
 
 	protected function getAccountInfo($acid) {
 		return table('account_toutiaoapp')->getAccount($acid);
-	}
-
-	public function checkIntoManage() {
-		if (empty($this->account) || (!empty($this->account['account']) && $this->account['type'] != ACCOUNT_TYPE_TOUTIAOAPP_NORMAL && !defined('IN_MODULE'))) {
-			return false;
-		}
-		return true;
 	}
 }

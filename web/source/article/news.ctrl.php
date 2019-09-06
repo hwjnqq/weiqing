@@ -1,7 +1,7 @@
 <?php
 /**
  * 文章/公告---文章管理
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -10,7 +10,7 @@ $do = in_array($do, $dos) ? $do : 'list';
 permission_check_account_user('system_article_news');
 
 //添加分类
-if ($do == 'category_post') {
+if ('category_post' == $do) {
 	if (checksubmit('submit')) {
 		$i = 0;
 		if (!empty($_GPC['title'])) {
@@ -25,7 +25,7 @@ if ($do == 'category_post') {
 					'type' => 'news',
 				);
 				pdo_insert('article_category', $data);
-				$i++;
+				++$i;
 			}
 		}
 		itoast('添加分类成功', url('article/news/category'), 'success');
@@ -34,7 +34,7 @@ if ($do == 'category_post') {
 }
 
 //修改分类
-if ($do == 'category') {
+if ('category' == $do) {
 	$category_table = table('article_category');
 	if (checksubmit('submit')) {
 		$id = intval($_GPC['id']);
@@ -44,9 +44,9 @@ if ($do == 'category') {
 		if (empty($_GPC['title'])) {
 			iajax(1, '分类名称不能为空');
 		}
-		$update =  array(
+		$update = array(
 			'title' => safe_gpc_string($_GPC['title']),
-			'displayorder' => max(0,intval($_GPC['displayorder']))
+			'displayorder' => max(0, intval($_GPC['displayorder'])),
 		);
 		$category_table->fill($update)->where('id', $id)->save();
 		iajax(0, '修改分类成功');
@@ -57,7 +57,7 @@ if ($do == 'category') {
 }
 
 //删除分类
-if ($do == 'category_del') {
+if ('category_del' == $do) {
 	$id = intval($_GPC['id']);
 	pdo_delete('article_category', array('id' => $id, 'type' => 'news'));
 	pdo_delete('article_news', array('cateid' => $id));
@@ -65,7 +65,7 @@ if ($do == 'category_del') {
 }
 
 //编辑文章
-if ($do == 'post') {
+if ('post' == $do) {
 	$id = intval($_GPC['id']);
 	$new = table('article_news')->searchWithId($id)->get();
 	if (empty($new)) {
@@ -96,7 +96,7 @@ if ($do == 'post') {
 			$match = array();
 			preg_match('/attachment\/(.*?)(\.gif|\.jpg|\.png|\.bmp)/', $data['content'], $match);
 			if (!empty($match[1])) {
-				$data['thumb'] = $match[1].$match[2];
+				$data['thumb'] = $match[1] . $match[2];
 			}
 		} else {
 			$data['thumb'] = '';
@@ -115,7 +115,7 @@ if ($do == 'post') {
 }
 
 //新闻列表
-if ($do == 'list') {
+if ('list' == $do) {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 
@@ -149,7 +149,7 @@ if ($do == 'list') {
 }
 
 //编辑新闻
-if ($do == 'batch_post') {
+if ('batch_post' == $do) {
 	if (checksubmit()) {
 		if (!empty($_GPC['ids'])) {
 			foreach ($_GPC['ids'] as $k => $v) {
@@ -166,16 +166,16 @@ if ($do == 'batch_post') {
 }
 
 //删除文章
-if ($do == 'del') {
+if ('del' == $do) {
 	$id = intval($_GPC['id']);
 	pdo_delete('article_news', array('id' => $id));
 	itoast('删除文章成功', referer(), 'success');
 }
 
 //显示排序设置
-if ($do == 'displaysetting') {
+if ('displaysetting' == $do) {
 	$setting = safe_gpc_string($_GPC['setting']);
-	$data = $setting == 'createtime' ? 'createtime' : 'displayorder';
+	$data = 'createtime' == $setting ? 'createtime' : 'displayorder';
 	setting_save($data, 'news_display');
 	itoast('更改成功！', referer(), 'success');
 }

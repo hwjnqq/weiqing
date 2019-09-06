@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn: pro/app/source/utility/share.ctrl.php : v 9db086b9ae3d : 2014/11/06 06:04:46 : yanghf $
  */
 defined('IN_IA') or exit('Access Denied');
@@ -25,7 +25,13 @@ if(empty($return)) {
 
 $ret = array();
 //判断积分是否达到上限
-$total = pdo_fetchcolumn('SELECT SUM(credit_value) FROM ' . tablename('mc_handsel') . ' WHERE uniacid = :uniacid AND module = :module AND sign = :sign', array(':uniacid' => $_W['uniacid'], ':module' => $_GPC['module'], ':sign' => $_GPC['sign']));
+$total = table('mc_handsel')
+	->where(array(
+		'uniacid' => $_W['uniacid'],
+		'module' => safe_gpc_string($_GPC['module']),
+		'sign' => safe_gpc_string($_GPC['sign'])
+	))
+	->getcolumn('SUM(credit_value)');
 $credit_total = intval($return['credit_total']);
 if($total >= $credit_total) {
 	$ret['result'] = 'total-limit';
@@ -40,17 +46,31 @@ if(empty($_GPC['uid'])) {
 
 //判断用户是否已经加过积分
 if(!empty($uid)) {
-	$user = pdo_fetchcolumn('SELECT uid FROM ' . tablename('mc_members'). ' WHERE uniacid = :uniacid AND uid = :uid', array(':uniacid' => $_W['uniacid'], ':uid' => $uid));
+	$user = table('mc_members')
+		->where(array(
+			'uniacid' => $_W['uniacid'],
+			'uid' => $uid
+		))
+		->getcolumn('uid');
 	if(empty($user)) {
 		$ret['result'] = 'uid-error';
 		moduleInit($_GPC['module'], $ret);
 	}
 	if(!empty($_GPC['action'])) {
-		$sql = 'SELECT id FROM ' . tablename('mc_handsel') . ' WHERE uniacid = :uniacid AND touid = :touid AND fromuid = :fromuid AND module = :module AND sign = :sign AND action = :action';
-		$parm = array(':uniacid' => $_W['uniacid'], ':touid' => $uid, ':fromuid' => 0, ':module' => $_GPC['module'], ':sign' => $_GPC['sign'], ':action' => $_GPC['action']);
-		$is_add = pdo_fetchcolumn($sql, $parm);
+		$is_add = table('mc_handsel')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'touid' => $uid,
+				'fromuid' => 0,
+				'module' => safe_gpc_string($_GPC['module']),
+				'sign' => safe_gpc_string($_GPC['sign']),
+				'action' => safe_gpc_string($_GPC['action'])
+			))
+			->getcolumn('id');
 		if(empty($is_add)) {
-			$creditbehaviors = pdo_fetchcolumn('SELECT creditbehaviors FROM ' . tablename('uni_settings') . ' WHERE uniacid = :uniacid', array(':uniacid' => $_W['uniacid']));
+			$creditbehaviors = table('uni_settings')
+				->where(array('uniacid' => $_W['uniacid']))
+				->getcolumn('creditbehaviors');
 			$creditbehaviors = iunserializer($creditbehaviors) ? iunserializer($creditbehaviors) : array();
 			if(empty($creditbehaviors['activity'])) {
 				$ret['result'] = 'creditset-miss';
@@ -63,14 +83,14 @@ if(!empty($uid)) {
 				'uniacid' => $_W['uniacid'],
 				'touid' => $uid,
 				'fromuid' => 0,
-				'module' => $_GPC['module'],
-				'sign' => $_GPC['sign'],
-				'action' => $_GPC['action'],
+				'module' => safe_gpc_string($_GPC['module']),
+				'sign' => safe_gpc_string($_GPC['sign']),
+				'action' => safe_gpc_string($_GPC['action']),
 				'credit_value' => intval($return['credit_value']),
 				'createtime' => TIMESTAMP
 			);
-			pdo_insert('mc_handsel', $data);
-			$note = empty($_GPC['note']) ? '系统赠送积分' : $_GPC['note'];
+			table('mc_handsel')->fill($data)->save();
+			$note = empty($_GPC['note']) ? '系统赠送积分' : safe_gpc_string($_GPC['note']);
 			$log = array(
 				'uid' => $uid,
 				'credittype' => $credittype,

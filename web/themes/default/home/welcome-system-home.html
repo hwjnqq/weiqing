@@ -12,7 +12,11 @@
 			<div class="account-num-statistics">
 				<div class="item">
 					<div class="num">
-						{{account_num.max_total < 0 ? 0 : account_num.max_total}}
+						{if !$user_founder_info}
+							{{account_num.founder_limit_total > 0 && account_num.max_total - account_num.founder_limit_total > 0 ? account_num.founder_limit_total + account_num.created_total : account_num.max_total}}
+						{else}
+							{{account_num.founder_limit_total > 0 && account_num.max_total - account_num.founder_limit_total > 0 ? account_num.founder_limit_total + account_num.current_vice_founder_user_created_total : account_num.max_total}}
+						{/if}
 					</div>
 					<div class="title">可创建平台总数</div>
 				</div>
@@ -23,13 +27,15 @@
 					</div>
 					{else}
 					<div class="num ">
-						{{account_num.current_vice_founder_user_created_total < 0 ? 0 : account_num.current_vice_founder_user_created_total}}
+						{{account_num.current_vice_founder_user_created_total < 0 ? 0 : account_num.created_total}}
 					</div>
 					{/if}
 					<div class="title">已创建平台数</div>
 				</div>
 				<div class="item">
-					<div class="num">{{account_num.limit_total < 0 ? 0 : account_num.limit_total}}</div>
+					<div class="num">
+						 {{account_num.founder_limit_total > 0 && account_num.limit_total - account_num.founder_limit_total > 0 ? account_num.founder_limit_total : account_num.limit_total}}
+					</div>
 					<div class="title">剩余可创建平台数</div>
 				</div>
 			</div>
@@ -223,7 +229,7 @@
 				<div class="tab-pane " :ng-class="{active: key == 'recommend'}"  id="{{key}}" ng-repeat="(key, item) in recommend">
 					<div class="app-statistics">
 						<div class="left-box">
-							<div id="{{key + '-app-carousel'}}" class="carousel slide recommond-app-carousel" data-ride="carousel">
+							<div id="{{key + '-app-carousel'}}" class="carousel slide recommend-app-carousel" data-ride="carousel">
 								<ol class="carousel-indicators">
 									<li data-target="{{'#' + key + '-app-carousel'}}" data-slide-to="{{index}}"  ng-class="{active: index == 0}" ng-repeat="(index, ad) in item.ads"></li>
 								</ol>
@@ -249,7 +255,7 @@
 							</div>
 						</div>
 						<div class="right-box">
-							<div class="app-item" ng-repeat="app in item.list">
+							<a ng-href="{{'//s.w7.cc/module-'+app.aid+'.html'}}" target="_blank" class="app-item" ng-repeat="app in item.list">
 								<div class="app-item-box">
 									<div class="info">
 										<div class="logo">
@@ -260,13 +266,8 @@
 											<div class="time" ng-bind="'下载次数' + app.down_count"></div>
 										</div>
 									</div>
-									<div class="go">
-										<div class="name" ng-bind="app.title"></div>
-										<div class="time" ng-bind="'下载次数' + app.down_count"></div>
-										<a ng-href="{{'//s.w7.cc/module-'+app.aid+'.html'}}" target="_blank" class="btn btn-primary">查看详情</a>
-									</div>
 								</div>
-							</div>
+							</a>
 						</div>
 					</div>
 				</div>

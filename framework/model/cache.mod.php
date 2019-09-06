@@ -43,7 +43,7 @@ function cache_build_account_modules($uniacid = 0, $uid = 0) {
 	} else {
 		cache_delete(cache_system_key('unimodules', array('uniacid' => $uniacid)));
 		if (empty($uid)) {
-			$uid = table('account')->searchWithUniacid($uniacid)->searchWithRole('owner')->getOwnerUid();
+			$uid = table('uni_account_users')->getUidByUniacidAndRole($uniacid, 'owner');
 		}
 		cache_delete(cache_system_key('user_modules', array('uid' => $uid)));
 	}
@@ -160,7 +160,7 @@ function cache_build_account_modules($uniacid = 0, $uid = 0) {
 function cache_build_account($uniacid = 0) {
 	$uniacid = intval($uniacid);
 	if (empty($uniacid)) {
-		$uniacid_arr = table('account')->getUniAccountList();
+		$uniacid_arr = table('account')->getAll();
 		foreach($uniacid_arr as $account){
 			cache_delete(cache_system_key('uniaccount', array('uniacid' => $account['uniacid'])));
 			cache_delete(cache_system_key('defaultgroupid', array('uniacid' => $account['uniacid'])));
@@ -261,8 +261,8 @@ function cache_build_users_struct() {
 function cache_build_frame_menu() {
 	global $_W;
 	load()->model('system');
-	$table_name = table('menu');
-	$system_menu_db = $table_name->getCoreMenuFillPermissionName();
+	$menu_table = table('core_menu');
+	$system_menu_db = $menu_table->getAllByPermissionNameNotEmpty();
 	$account = pdo_get('account', array('uniacid' => $_W['uniacid']));
 	$system_menu = system_menu();
 	if (!empty($system_menu) && is_array($system_menu)) {
@@ -284,9 +284,9 @@ function cache_build_frame_menu() {
 				if (empty($section['menu'])) {
 					$section['menu'] = array();
 				}
-				$table_name->searchWithGroupName($section_name);
-				$table_name->coreMenuOrderByDisplayorder('DESC');
-				$add_menu = $table_name->getCoreMenuList();
+				$menu_table->searchWithGroupName($section_name);
+				$menu_table->orderby('displayorder', 'DESC');
+				$add_menu = $menu_table->getall('permission_name');
 				if (!empty($add_menu)) {
 					foreach ($add_menu as $permission_name => $menu) {
 						$menu['icon'] = !empty($menu['icon']) ? $menu['icon'] : 'wi wi-appsetting';
@@ -334,7 +334,7 @@ function cache_build_frame_menu() {
 				$system_menu[$menu_name]['section'][$section_name]['menu'] = iarray_sort($system_menu[$menu_name]['section'][$section_name]['menu'], 'displayorder', 'desc');
 			}
 		}
-		$add_top_nav = $table_name->searchWithGroupName('frame')->getTopMenu();
+		$add_top_nav = $menu_table->searchWithGroupName('frame')->getTopMenu();
 
 		if (!empty($add_top_nav)) {
 			foreach ($add_top_nav as $menu) {
@@ -391,7 +391,7 @@ function cache_build_module_subscribe_type() {
 /*更新流量主缓存*/
 function cache_build_cloud_ad() {
 	global $_W;
-	$uniacid_arr = table('account')->getUniAccountList();
+	$uniacid_arr = table('account')->getAll();
 	foreach($uniacid_arr as $account){
 		cache_delete(cache_system_key('stat_todaylock', array('uniacid' => $account['uniacid'])));
 		cache_delete(cache_system_key('cloud_ad_uniaccount', array('uniacid' => $account['uniacid'])));
@@ -563,8 +563,8 @@ function cache_build_module_info($module_name) {
 /**
  * 更新功能权限组
  */
-function cache_build_uni_group() {
-	cache_delete(cache_system_key('uni_groups'));
+function cache_build_uni_group($group_id = 0) {
+	cache_delete(cache_system_key('uni_groups', array('groupids' => $group_id)));
 }
 
 function cache_updatecache() {

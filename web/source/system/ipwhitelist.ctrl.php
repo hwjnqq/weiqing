@@ -1,7 +1,7 @@
 <?php
 /**
  * ip白名单
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -9,11 +9,11 @@ load()->model('site');
 load()->model('setting');
 
 $dos = array('display', 'change_status', 'add', 'delete');
-$do = in_array($_GPC['do'], $dos)? $do : 'display';
+$do = in_array($_GPC['do'], $dos) ? $do : 'display';
 
 $ip_lists = setting_load('ip_white_list');
 $ip_lists = $ip_lists['ip_white_list'];
-if ($do == 'display') {
+if ('display' == $do) {
 	$keyword = trim($_GPC['keyword']);
 	$lists = $ip_lists;
 	if (!empty($keyword)) {
@@ -26,7 +26,7 @@ if ($do == 'display') {
 	}
 }
 
-if ($do == 'change_status') {
+if ('change_status' == $do) {
 	$ip = trim($_GPC['ip']);
 	$status = $ip_lists[$ip]['status'];
 	$status = empty($status) ? 1 : 0;
@@ -38,7 +38,7 @@ if ($do == 'change_status') {
 	iajax(-1, '更新失败', url('system/ipwhitelist'));
 }
 
-if ($do == 'add') {
+if ('add' == $do) {
 	$ips = $_GPC['ips'];
 	$ip_data = site_ip_add($ips);
 	if (is_error($ip_data)) {
@@ -47,7 +47,7 @@ if ($do == 'add') {
 	iajax(0, '添加成功', url('system/ipwhitelist'));
 }
 
-if ($do == 'delete') {
+if ('delete' == $do) {
 	$ip = trim($_GPC['ip']);
 	if (empty($ip)) {
 		itoast('参数错误');

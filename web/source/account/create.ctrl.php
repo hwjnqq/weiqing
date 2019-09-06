@@ -1,7 +1,7 @@
 <?php
 /**
  * 手动创建平台
- * [WeEngine System] Copyright (c) 2014 WE7.CC.
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -18,12 +18,12 @@ if (empty($account_all_type_sign[$sign])) {
 	$error_msg = '所需创建的账号类型不存在, 请重试.';
 	empty($_W['isajax']) ? message($error_msg, '', 'error') : iajax(-1, $error_msg);
 }
-if ($do == 'load_groups') {
+if ('load_groups' == $do) {
 	$group_keys = array();
 	if (user_is_vice_founder($_W['uid'])) {
 		$founder_own_table = table('users_founder_own_uni_groups');
 		$founder_own_uni_groups = $founder_own_table->getOwnUniGroupsByFounderUid($_W['uid']);
-		$group_keys = array_keys((array)$founder_own_uni_groups);
+		$group_keys = array_keys((array) $founder_own_uni_groups);
 	}
 	$unigroups = uni_groups($group_keys);
 
@@ -34,7 +34,7 @@ if ($do == 'load_groups') {
 	}
 	iajax(0, $unigroups);
 }
-if ($do == 'get_user_info') {
+if ('get_user_info' == $do) {
 	if (!user_is_founder($_W['uid'])) {
 		iajax(-1, '非法请求数据！');
 	}
@@ -59,7 +59,7 @@ if ($do == 'get_user_info') {
 	$user_modules = user_modules($user['uid']);
 	if (!empty($user_modules)) {
 		foreach ($user_modules as $module) {
-			if ($module['issystem'] != 1 && $module[$sign.'_support'] == MODULE_SUPPORT_ACCOUNT) {
+			if (1 != $module['issystem'] && MODULE_SUPPORT_ACCOUNT == $module[$sign . '_support']) {
 				$info['modules'][] = $module;
 			}
 		}
@@ -76,21 +76,21 @@ if (empty($_W['isfounder']) && $user_account_num["{$sign}_limit"] <= 0) {
 	empty($_W['isajax']) ? message($error_msg, '', 'error') : iajax(-1, $error_msg);
 }
 
-if ($do == 'display') {
+if ('display' == $do) {
 	$modules = user_modules($_W['uid']);
 	foreach ($modules as $k => $module) {
-		if ($module['issystem'] == 1 || $module[$sign.'_support'] != MODULE_SUPPORT_ACCOUNT) {
-			unset($modules[$k]);//unset 没有所需支持类型的应用
+		if (1 == $module['issystem'] || MODULE_SUPPORT_ACCOUNT != $module[$sign . '_support']) {
+			unset($modules[$k]); //unset 没有所需支持类型的应用
 		} else {
 			$modules[$k]['support'] = $sign . '_support';
 		}
 	}
 	if (in_array($sign, array(ACCOUNT_TYPE_SIGN, XZAPP_TYPE_SIGN))) {
-		$templates = pdo_fetchall("SELECT * FROM ".tablename('site_templates'));
+		$templates = pdo_fetchall('SELECT * FROM ' . tablename('site_templates'));
 	}
 }
 
-if ($do == 'save_account' || $do == 'check_params') {
+if ('save_account' == $do || 'check_params' == $do) {
 	$post = array();
 	$post['step'] = safe_gpc_string(trim($_GPC['step']));
 	$post['name'] = safe_gpc_string(trim($_GPC['name']));
@@ -98,7 +98,7 @@ if ($do == 'save_account' || $do == 'check_params') {
 	$post['owner_uid'] = intval($_GPC['owner_uid']);
 	$post['version'] = safe_gpc_string(trim($_GPC['version']));
 
-	if (empty($post['step']) || $post['step'] == 'base_info') {
+	if (empty($post['step']) || 'base_info' == $post['step']) {
 		if (empty($post['name'])) {
 			iajax(-1, $sign_title . '名称不能为空');
 		}
@@ -120,12 +120,12 @@ if ($do == 'save_account' || $do == 'check_params') {
 			}
 		}
 	}
-	if (empty($post['step']) || $post['step'] == 'account_modules') {
+	if (empty($post['step']) || 'account_modules' == $post['step']) {
 		if (user_is_founder($_W['uid'])) {//创始人才有此步骤的操作权限
 			if (!empty($post['owner_uid']) && !user_is_founder($post['owner_uid'], true)) {
 				$create_account_info = permission_user_account_num($post['owner_uid']);
 				if ($create_account_info[$sign . '_limit'] <= 0) {
-					iajax(-1, "您所设置的主管理员所在的用户组可添加的公众号数量已达上限，请选择其他人做主管理员！");
+					iajax(-1, '您所设置的主管理员所在的用户组可添加的公众号数量已达上限，请选择其他人做主管理员！');
 				}
 			}
 		}
@@ -137,12 +137,12 @@ if ($do == 'save_account' || $do == 'check_params') {
 			}
 		}
 	}
-	if ($do == 'check_params') {
+	if ('check_params' == $do) {
 		iajax(0);
 	}
 }
 
-if ($do == 'save_account') {
+if ('save_account' == $do) {
 	// step1 基础信息数据处理
 	if (in_array($sign, array(ACCOUNT_TYPE_SIGN, XZAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN, PHONEAPP_TYPE_SIGN))) {
 		pdo_insert('uni_account', array(
@@ -151,23 +151,25 @@ if ($do == 'save_account') {
 			'name' => $post['name'],
 			'description' => $post['description'],
 			'title_initial' => get_first_pinyin($post['name']),
+			'createtime' => TIMESTAMP,
+			'create_uid' => intval($_W['uid']),
 		));
 		$uniacid = pdo_insertid();
 		if (empty($uniacid)) {
 			iajax(-1, "添加{$sign_title}失败, 请重试");
 		}
 		$account_data = array('name' => $post['name'], 'type' => $create_account_type);
-		if ($sign == ACCOUNT_TYPE_SIGN) {
+		if (ACCOUNT_TYPE_SIGN == $sign) {
 			$account_data['account'] = safe_gpc_string(trim($_GPC['account']));
 		}
-		if ($sign == ACCOUNT_TYPE_SIGN || $sign == XZAPP_TYPE_SIGN) {
+		if (ACCOUNT_TYPE_SIGN == $sign || XZAPP_TYPE_SIGN == $sign) {
 			$account_data['original'] = safe_gpc_string(trim($_GPC['original']));
 			$account_data['level'] = intval($_GPC['level']);
 			$account_data['key'] = safe_gpc_string(trim($_GPC['key']));
 			$account_data['secret'] = safe_gpc_string(trim($_GPC['secret']));
 		}
 		$acid = account_create($uniacid, $account_data);
-		if(empty($acid)) {
+		if (empty($acid)) {
 			iajax(-1, "添加{$sign_title}信息失败");
 		}
 		pdo_update('uni_account', array('default_acid' => $acid), array('uniacid' => $uniacid));
@@ -176,13 +178,13 @@ if ($do == 'save_account') {
 		if (!empty($_GPC['headimg'])) {
 			$headimg = safe_gpc_path($_GPC['headimg']);
 			if (file_is_image($headimg)) {
-				copy($headimg, IA_ROOT . '/attachment/headimg_'.$acid.'.jpg');
+				copy($headimg, IA_ROOT . '/attachment/headimg_' . $acid . '.jpg');
 			}
 		}
 		if (!empty($_GPC['qrcode'])) {
 			$qrcode = safe_gpc_path($_GPC['qrcode']);
 			if (file_is_image($qrcode)) {
-				copy($qrcode, IA_ROOT . '/attachment/qrcode_'.$acid.'.jpg');
+				copy($qrcode, IA_ROOT . '/attachment/qrcode_' . $acid . '.jpg');
 			}
 		}
 		// 角色
@@ -197,7 +199,7 @@ if ($do == 'save_account') {
 			pdo_insert('mc_groups', array('uniacid' => $uniacid, 'title' => '默认会员组', 'isdefault' => 1));
 			$fields = pdo_getall('profile_fields');
 			if (is_array($fields)) {
-				foreach($fields as $field) {
+				foreach ($fields as $field) {
 					pdo_insert('mc_member_fields', array(
 						'uniacid' => $uniacid,
 						'fieldid' => $field['id'],
@@ -209,10 +211,10 @@ if ($do == 'save_account') {
 			}
 		}
 		// 公众号数据
-		if ($sign == ACCOUNT_TYPE_SIGN) {
+		if (ACCOUNT_TYPE_SIGN == $sign) {
 			//当是认证服务号的时候设置权限到借用oauth中
 			$oauth = uni_setting($uniacid, array('oauth'));
-			if ($acid && empty($oauth['oauth']['account']) && !empty($account_data['key']) && !empty($account_data['secret'])  && $account_data['level'] == ACCOUNT_SERVICE_VERIFY) {
+			if ($acid && empty($oauth['oauth']['account']) && !empty($account_data['key']) && !empty($account_data['secret']) && ACCOUNT_SERVICE_VERIFY == $account_data['level']) {
 				pdo_update('uni_settings',
 					array('oauth' => iserializer(array('account' => $acid, 'host' => $oauth['oauth']['host']))),
 					array('uniacid' => $uniacid)
@@ -247,10 +249,10 @@ if ($do == 'save_account') {
 			'name' => $post['name'],
 			'type' => $create_account_type,
 			'description' => $post['description'],
-			'headimg' => !empty($_GPC['headimg']) && file_is_image($_GPC['headimg']) ?  $_GPC['headimg'] : '',
-			'qrcode' => !empty($_GPC['qrcode']) && file_is_image($_GPC['qrcode']) ?  $_GPC['qrcode'] : '',
+			'headimg' => !empty($_GPC['headimg']) && file_is_image($_GPC['headimg']) ? $_GPC['headimg'] : '',
+			'qrcode' => !empty($_GPC['qrcode']) && file_is_image($_GPC['qrcode']) ? $_GPC['qrcode'] : '',
 		);
-		if ($sign == WXAPP_TYPE_SIGN) {
+		if (WXAPP_TYPE_SIGN == $sign) {
 			$miniapp_data['original'] = safe_gpc_string($_GPC['original']);
 			$miniapp_data['level'] = 1;
 		}
@@ -259,7 +261,7 @@ if ($do == 'save_account') {
 			$miniapp_data['key'] = safe_gpc_string($_GPC['key']);
 		}
 		if (isset($_GPC['appid']) && !empty($_GPC['appid'])) {
-			if ($sign == WXAPP_TYPE_SIGN || $sign == ALIAPP_TYPE_SIGN) {
+			if (WXAPP_TYPE_SIGN == $sign || ALIAPP_TYPE_SIGN == $sign) {
 				$miniapp_data['key'] = safe_gpc_string($_GPC['appid']);
 			} else {
 				$miniapp_data['appid'] = safe_gpc_string($_GPC['appid']);
@@ -273,7 +275,6 @@ if ($do == 'save_account') {
 		if (is_error($uniacid) || empty($uniacid)) {
 			iajax(-1, empty($uniacid) ? '添加失败' : $uniacid['message']);
 		}
-		$acid = pdo_getcolumn('account', array('uniacid' => $uniacid, 'type' => $create_account_type), 'acid');
 	}
 
 	//step2 设置权限
@@ -320,7 +321,7 @@ if ($do == 'save_account') {
 				'uniacid' => $uniacid,
 				'name' => '',
 			);
-			$group_sign = $sign == 'account' ? 'modules' : $sign;
+			$group_sign = 'account' == $sign ? 'modules' : $sign;
 			$data['modules'][$group_sign] = $modules;
 			$data['modules'] = iserializer($data['modules']);
 			pdo_insert('uni_group', $data);
@@ -329,7 +330,7 @@ if ($do == 'save_account') {
 		cache_delete(cache_system_key('unimodules', array('uniacid' => $uniacid, 'enabled' => 1)));
 		cache_delete(cache_system_key('unimodules', array('uniacid' => $uniacid, 'enabled' => '')));
 		cache_delete(cache_system_key('proxy_wechatpay_account'));
-		$cash_index = $sign == 'account' ? 'app' : $sign;
+		$cash_index = 'account' == $sign ? 'app' : $sign;
 		cache_delete(cache_system_key('user_accounts', array('type' => $cash_index, 'uid' => $_W['uid'])));
 		if (!empty($post['owner_uid'])) {
 			cache_delete(cache_system_key('user_accounts', array('type' => $cash_index, 'uid' => $post['owner_uid'])));
@@ -339,14 +340,14 @@ if ($do == 'save_account') {
 
 	//step3 引导页面 or 进入新建的账号
 	$next_url = '';
-	if ($sign == ACCOUNT_TYPE_SIGN) {
-		$next_url = url('account/post-step', array('uniacid' => $uniacid, 'acid' => $acid, 'step' => 4));
-	} elseif ($sign == XZAPP_TYPE_SIGN) {
-		$next_url = url('xzapp/post-step', array('uniacid' => $uniacid, 'acid' => $acid, 'step' => 4));
+	if (ACCOUNT_TYPE_SIGN == $sign) {
+		$next_url = url('account/post-step', array('uniacid' => $uniacid, 'step' => 4));
+	} elseif (XZAPP_TYPE_SIGN == $sign) {
+		$next_url = url('xzapp/post-step', array('uniacid' => $uniacid, 'step' => 4));
 	} elseif (in_array($sign, array(PHONEAPP_TYPE_SIGN, WXAPP_TYPE_SIGN, ALIAPP_TYPE_SIGN, BAIDUAPP_TYPE_SIGN, TOUTIAOAPP_TYPE_SIGN))) {
 		$next_url = '';
 	} else {
-		$next_url = url('account/display/switch', array('uniacid' => $uniacid, 'acid' => $acid, 'type' => $create_account_type));
+		$next_url = url('account/display/switch', array('uniacid' => $uniacid, 'type' => $create_account_type));
 		iajax(0, '创建成功', $next_url);
 	}
 	if (!empty($next_url)) {
@@ -371,7 +372,7 @@ if ($do == 'save_account') {
 				'version' => $module['version'],
 			)));
 		}
-		if ($sign == WXAPP_TYPE_SIGN) {
+		if (WXAPP_TYPE_SIGN == $sign) {
 			$version['design_method'] = WXAPP_MODULE;
 			$version['quickmenu'] = '';
 			$version['createtime'] = TIMESTAMP;

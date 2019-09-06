@@ -1,13 +1,12 @@
 <?php
 /**
  * 小程序入口
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('miniapp');
-
 if (strexists($_SERVER['HTTP_REFERER'], 'https://servicewechat.com/')) {
 	$referer_url = parse_url($_SERVER['HTTP_REFERER']);
 	list($appid, $version) = explode('/', ltrim($referer_url['path'], '/'));
@@ -23,6 +22,7 @@ if (!empty($_W['uniacid'])) {
 		}
 	}
 }
+visit_update_today('app', 'we7_wxapp');
 $site = WeUtility::createModuleWxapp($entry['module']);
 $method = 'doPage' . ucfirst($entry['do']);
 if(!is_error($site)) {

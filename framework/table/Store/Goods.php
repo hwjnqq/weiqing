@@ -26,6 +26,7 @@ class Goods extends \We7Table {
 		'createtime',
 		'synopsis',
 		'description',
+		'account_group',
 		'is_wish',
 		'logo',
 	);
@@ -48,9 +49,17 @@ class Goods extends \We7Table {
 		'createtime' => 0,
 		'synopsis' => '',
 		'description' => '',
+		'account_group' => '0',
 		'is_wish' => 0,
 		'logo' => '',
 	);
+
+	public function searchWithKeyword($title) {
+		if (!empty($title)) {
+			$this->where('title LIKE', "%{$title}%");
+		}
+		return $this;
+	}
 
 	public function searchWithIswishAndStatus($is_wish, $status) {
 		$this->query->where(array(

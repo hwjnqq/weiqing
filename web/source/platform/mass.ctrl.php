@@ -1,7 +1,7 @@
 <?php
 /**
  * 定时群发
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -14,19 +14,19 @@ load()->model('material');
 $dos = array('list', 'post', 'cron', 'send', 'del', 'preview');
 $do = in_array($do, $dos) ? $do : 'post';
 
-if ($do == 'list') {
+if ('list' == $do) {
 	$time = strtotime(date('Y-m-d'));
-	$record = pdo_getall('mc_mass_record', array('uniacid' => $_W['uniacid'], 'sendtime >=' => $time), array(), 'sendtime', 'sendtime ASC', array(1,7));
+	$record = pdo_getall('mc_mass_record', array('uniacid' => $_W['uniacid'], 'sendtime >=' => $time), array(), 'sendtime', 'sendtime ASC', array(1, 7));
 
 	$days = array();
-	for ($i = 0; $i < 8; $i++) {
+	for ($i = 0; $i < 8; ++$i) {
 		$day_info = array();
 		$day_info['day'] = date('Y-m-d', strtotime("+{$i} days", $time));
 
 		$starttime = strtotime("+{$i} days", $time);
-		$endtime = $i+1;
+		$endtime = $i + 1;
 		$endtime = strtotime("+{$endtime} days", $time);
-		$massdata = pdo_fetch('SELECT id, `groupname`, `msgtype`, `group`, `attach_id`, `media_id`, `sendtime` FROM '. tablename('mc_mass_record') . ' WHERE uniacid = :uniacid AND sendtime BETWEEN :starttime AND :endtime AND status = 1', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime));
+		$massdata = pdo_fetch('SELECT id, `groupname`, `msgtype`, `group`, `attach_id`, `media_id`, `sendtime` FROM ' . tablename('mc_mass_record') . ' WHERE uniacid = :uniacid AND sendtime BETWEEN :starttime AND :endtime AND status = 1', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime));
 
 		if (!empty($massdata)) {
 			$massdata['media'] = pdo_get('wechat_attachment', array('id' => $massdata['attach_id']));
@@ -61,7 +61,7 @@ if ($do == 'list') {
 	template('platform/mass-display');
 }
 
-if ($do == 'del') {
+if ('del' == $do) {
 	$mass = pdo_get('mc_mass_record', array('uniacid' => $_W['uniacid'], 'id' => intval($_GPC['id'])));
 	if (!empty($mass) && $mass['cron_id'] > 0) {
 		$status = cron_delete(array($mass['cron_id']));
@@ -73,7 +73,7 @@ if ($do == 'del') {
 	itoast('删除成功', '', 'info');
 }
 
-if ($do == 'post') {
+if ('post' == $do) {
 	permission_check_account_user('platform_masstask_post');
 	$id = intval($_GPC['id']);
 	$mass_info = pdo_get('mc_mass_record', array('id' => $id));
@@ -110,11 +110,11 @@ if ($do == 'post') {
 			}
 			list($temp, $msgtype) = explode('_', $material_type);
 			$attachment = material_get($material);
-			if ($attachment['model'] == 'local') {
+			if ('local' == $attachment['model']) {
 				itoast('图文素材请选择微信素材', '', 'error');
 			}
 
-			if ($material_type == 'reply_basic') {
+			if ('reply_basic' == $material_type) {
 				$material = htmlspecialchars_decode($material);
 				$material = trim($material, '\"');
 			}
@@ -126,7 +126,7 @@ if ($do == 'post') {
 		}
 
 		//定时发送
-		if ($type == 1) {
+		if (1 == $type) {
 			$cloud = cloud_prepare();
 			if (is_error($cloud)) {
 				itoast($cloud['message'], '', 'error');
@@ -135,11 +135,11 @@ if ($do == 'post') {
 
 			$starttime = strtotime(date('Y-m-d', strtotime($_GPC['sendtime'])));
 			$endtime = strtotime(date('Y-m-d', strtotime($_GPC['sendtime']))) + 86400;
-			$cron_title  = date('Y-m-d', strtotime($_GPC['sendtime'])) . '微信群发任务';
+			$cron_title = date('Y-m-d', strtotime($_GPC['sendtime'])) . '微信群发任务';
 
 			$mass_record['sendtime'] = strtotime($_GPC['sendtime']);
 
-			$records = pdo_fetchall("SELECT id, cron_id FROM " . tablename('mc_mass_record') . ' WHERE uniacid = :uniacid AND sendtime BETWEEN :starttime AND :endtime AND status = 1 ORDER BY sendtime ASC LIMIT 8', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime), 'id');
+			$records = pdo_fetchall('SELECT id, cron_id FROM ' . tablename('mc_mass_record') . ' WHERE uniacid = :uniacid AND sendtime BETWEEN :starttime AND :endtime AND status = 1 ORDER BY sendtime ASC LIMIT 8', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime), 'id');
 			if (!empty($records)) {
 				foreach ($records as $record) {
 					if (!$record['cron_id']) {
@@ -183,15 +183,15 @@ if ($do == 'post') {
 			itoast('定时群发设置成功', url('platform/mass/send'), 'success');
 		} else {
 			$account_api = WeAccount::createByUniacid();
-			$msgtype = $msgtype == 'basic' ? 'text' : $msgtype;
-			if ($msgtype == 'text') {
+			$msgtype = 'basic' == $msgtype ? 'text' : $msgtype;
+			if ('text' == $msgtype) {
 				$mass_record['media_id'] = urlencode(emoji_unicode_decode($mass_record['media_id']));
 			}
 			$result = $account_api->fansSendAll($group['id'], $msgtype, $mass_record['media_id']);
 			if (is_error($result)) {
 				itoast($result['message'], url('platform/mass'), 'info');
 			}
-			if ($msgtype == 'news') {
+			if ('news' == $msgtype) {
 				$mass_record['msg_id'] = $result['msg_id'];
 				$mass_record['msg_data_id'] = $result['msg_data_id'];
 			}
@@ -203,7 +203,7 @@ if ($do == 'post') {
 	template('platform/mass-post');
 }
 
-if ($do == 'cron') {
+if ('cron' == $do) {
 	$id = intval($_GPC['id']);
 	$record = pdo_get('mc_mass_record', array('uniacid' => $_W['uniacid'], 'id' => $id));
 	if (empty($record)) {
@@ -211,13 +211,13 @@ if ($do == 'cron') {
 	}
 	$cron = array(
 		'uniacid' => $_W['uniacid'],
-		'name' => date('Y-m-d', $record['sendtime']) . "微信群发任务",
+		'name' => date('Y-m-d', $record['sendtime']) . '微信群发任务',
 		'filename' => 'mass',
 		'type' => 1,
 		'lastruntime' => $record['sendtime'],
 		'extra' => $record['id'],
 		'module' => 'task',
-		'status' => 1
+		'status' => 1,
 	);
 	$status = cron_add($cron);
 	if (is_error($status)) {
@@ -227,7 +227,7 @@ if ($do == 'cron') {
 	itoast('同步到云服务成功', referer(), 'success');
 }
 
-if ($do == 'preview') {
+if ('preview' == $do) {
 	$wxname = trim($_GPC['wxname']);
 	if (empty($wxname)) {
 		iajax(1, '微信号不能为空', '');
@@ -242,16 +242,15 @@ if ($do == 'preview') {
 	iajax(0, 'success', '');
 }
 
-if ($do == 'send') {
+if ('send' == $do) {
 	permission_check_account_user('platform_masstask_send');
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	$condition = ' WHERE `uniacid` = :uniacid AND `acid` = :acid';
 	$params = array();
 	$params[':uniacid'] = $_W['uniacid'];
-	$params[':acid'] = $_W['acid'];
-	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('mc_mass_record') . $condition, $params);
-	$lists = pdo_getall('mc_mass_record', array('uniacid' => $_W['uniacid'], 'acid' => $_W['acid']), array(), '', 'id DESC', 'LIMIT '.($pindex-1)* $psize.','.$psize);
+	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_mass_record') . $condition, $params);
+	$lists = pdo_getall('mc_mass_record', array('uniacid' => $_W['uniacid']), array(), '', 'id DESC', 'LIMIT ' . ($pindex - 1) * $psize . ',' . $psize);
 	$types = array('basic' => '文本消息', 'text' => '文本消息', 'image' => '图片消息', 'voice' => '语音消息', 'video' => '视频消息', 'news' => '图文消息', 'wxcard' => '微信卡券');
 	$pager = pagination($total, $pindex, $psize);
 	template('platform/mass-send');

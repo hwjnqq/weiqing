@@ -1,5 +1,8 @@
 {template 'common/header'}
 <div class="sensitive-word" ng-controller="sensitiveWord" ng-cloak>
+	<div class="alert we7-page-alert">
+		<p><i class="wi wi-info-sign"></i>敏感词在以下功能中过滤：自动回复关键字、微官网文章标题和内容</p>
+	</div>
 	<div class="search-box we7-margin-bottom">
 		<form action="{php url('system/sensitiveword')}" method="post"  class="search-form">
 			<div class="input-group" >

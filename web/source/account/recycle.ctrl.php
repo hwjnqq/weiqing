@@ -1,7 +1,7 @@
 <?php
 /**
  * 帐号回收站
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -12,7 +12,7 @@ if (!in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_
 	itoast('无权限操作！', referer(), 'error');
 }
 
-if ($do == 'display') {
+if ('display' == $do) {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	$account_table = table('account');
@@ -32,15 +32,15 @@ if ($do == 'display') {
 	$total = $account_table->getLastQueryTotal();
 	$pager = pagination($total, $pindex, $psize);
 
-	foreach($del_accounts as &$account) {
+	foreach ($del_accounts as &$account) {
 		$account = uni_fetch($account['uniacid']);
-		$account['end'] = $account['endtime'] == 0 ? '永久' : date('Y-m-d', $account['endtime']);
+		$account['end'] = 0 == $account['endtime'] ? '永久' : date('Y-m-d', $account['endtime']);
 	}
 	$del_accounts = array_values($del_accounts);
 	template('account/recycle');
 }
 
-if ($do == 'recover' || $do == 'delete') {
+if ('recover' == $do || 'delete' == $do) {
 	$acid = intval($_GPC['acid']);
 	$uniacid = intval($_GPC['uniacid']);
 	$state = permission_account_user_role($_W['uid'], $uniacid);
@@ -49,9 +49,9 @@ if ($do == 'recover' || $do == 'delete') {
 	}
 }
 
-if ($do == 'recover') {
+if ('recover' == $do) {
 	$account_info = permission_user_account_num();
-	if ($account_info['account_limit'] <= 0 && $_W['role'] != ACCOUNT_MANAGE_NAME_FOUNDER) {
+	if ($account_info['account_limit'] <= 0 && ACCOUNT_MANAGE_NAME_FOUNDER != $_W['role']) {
 		itoast('您所在用户组可添加的平台账号数量已达上限，请停用后再行恢复此平台账号！', referer(), 'error');
 	}
 	$account = uni_fetch($uniacid);
@@ -75,14 +75,14 @@ if ($do == 'recover') {
 	itoast('恢复成功', referer(), 'success');
 }
 
-if($do == 'delete') {
+if ('delete' == $do) {
 	if (empty($_W['isajax']) || empty($_W['ispost'])) {
 		iajax(0, '非法操作！', referer());
 	}
 
 	$jobid = account_delete($acid);
 	if (user_is_founder($_W['uid'], true)) {
-		$url = url('system/job/display', array('jobid'=>$jobid));
+		$url = url('system/job/display', array('jobid' => $jobid));
 	} else {
 		$url = url('account/recycle', array('account_type' => ACCOUNT_TYPE));
 	}

@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
@@ -22,34 +22,43 @@ if (empty($_GPC['register_type'])) {
 $register_type = safe_gpc_belong(safe_gpc_string($_GPC['register_type']), array('system', 'mobile'), 'system');
 $owner_uid = intval($_GPC['owner_uid']);
 $setting = $_W['setting']['register'];
-$user_type = empty($_GPC['type']) || $_GPC['type'] == USER_TYPE_COMMON ? USER_TYPE_COMMON : USER_TYPE_CLERK;
+$user_type = empty($_GPC['type']) || USER_TYPE_COMMON == $_GPC['type'] ? USER_TYPE_COMMON : USER_TYPE_CLERK;
 
-if ($register_type == 'system') {
+if ('system' == $register_type) {
 	$extendfields = OAuth2Client::create($register_type)->systemFields();
 } else {
 	$setting_sms_sign = setting_load('site_sms_sign');
 	$register_sign = !empty($setting_sms_sign['site_sms_sign']['register']) ? $setting_sms_sign['site_sms_sign']['register'] : '';
 }
 
-if ($do == 'valid_mobile' || $do == 'register' && $register_type == 'mobile') {
+if ('valid_mobile' == $do || 'register' == $do && 'mobile' == $register_type) {
 	$validate_mobile = OAuth2Client::create('mobile')->validateMobile();
 	if (is_error($validate_mobile)) {
 		iajax(-1, $validate_mobile['message']);
 	}
 }
 
-if ($do == 'register') {
-	if(checksubmit() || $_W['ispost'] && $_W['isajax']) {
+if ('register' == $do) {
+	if (checksubmit() || $_W['ispost'] && $_W['isajax']) {
 		$register_user = OAuth2Client::create($register_type)->setUserType($user_type)->register();
 		$redirect = url('user/login');
-		if ($user_type == USER_TYPE_CLERK && !empty($_GPC['m'])) {
-			if (empty($_GPC['redirect'])) {
-				$redirect = url('module/permission/display', array('m' => $_GPC['m']));
-			} else {
-				$redirect = url('module/permission/post', array('m' => $_GPC['m']));
+
+		$module_name = safe_gpc_string($_GPC['m']);
+		$uniacid = intval($_GPC['uniacid']);
+		if (USER_TYPE_CLERK == $user_type && $module_name && $uniacid) {
+			//给注册的操作员分配模块权限
+			$role = permission_account_user_role($_W['uid'], $uniacid);
+			if (in_array($role, array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
+				$uni_modules = uni_modules_by_uniacid($uniacid);
+				if (!empty($uni_modules[$module_name])) {
+					pdo_insert('uni_account_users', array('uniacid' => $uniacid, 'uid' => $register_user['uid'], 'role' => 'clerk'));
+					pdo_insert('users_permission', array('uniacid' => $uniacid, 'uid' => $register_user['uid'], 'type' => $module_name, 'permission' => 'all'));
+				}
 			}
+			$redirect = url('module/permission/display', array('m' => $module_name));
 		}
-		if ($register_type == 'system') {
+
+		if ('system' == $register_type) {
 			if (is_error($register_user)) {
 				itoast($register_user['message']);
 			} else {
@@ -57,7 +66,7 @@ if ($do == 'register') {
 			}
 		}
 
-		if ($register_type == 'mobile') {
+		if ('mobile' == $register_type) {
 			if (is_error($register_user)) {
 				iajax(-1, $register_user['message']);
 			} else {
@@ -67,7 +76,7 @@ if ($do == 'register') {
 	}
 }
 
-if ($do == 'check_username') {
+if ('check_username' == $do) {
 	$member['username'] = safe_gpc_string($_GPC['username']);
 	if (user_check(array('username' => $member['username']))) {
 		iajax(-1, '非常抱歉，此用户名已经被注册，你需要更换注册名称！');
@@ -76,7 +85,7 @@ if ($do == 'check_username') {
 	}
 }
 
-if ($do == 'check_code') {
+if ('check_code' == $do) {
 	if (!checkcaptcha(intval($_GPC['code']))) {
 		iajax(-1, '你输入的验证码不正确, 请重新输入.');
 	} else {

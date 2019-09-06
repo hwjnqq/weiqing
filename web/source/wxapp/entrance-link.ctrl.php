@@ -1,7 +1,7 @@
 <?php
 /**
  * 小程序入口页面
- * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -14,12 +14,19 @@ permission_check_account_user('wxapp_entrance_link');
 
 $wxapp_info = miniapp_fetch($_W['uniacid']);
 
-if ($do == 'entrance_link') {
-	$wxapp_modules = pdo_getcolumn('wxapp_versions', array('id' => $version_id), 'modules');
+if ('entrance_link' == $do) {
+	$wxapp_modules = table('wxapp_versions')
+		->where(array('id' => $version_id))
+		->getcolumn('modules');
 	$module_info = array();
 	if (!empty($wxapp_modules)) {
 		$module_info = iunserializer($wxapp_modules);
-		$module_info = pdo_getall('modules_bindings', array('module' => array_keys($module_info), 'entry' => 'page'));
+		$module_info = table('modules_bindings')
+			->where(array(
+				'module' => array_keys($module_info),
+				'entry' => 'page'
+			))
+			->getall();
 	}
 	template('wxapp/version-entrance');
 }

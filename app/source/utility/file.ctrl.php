@@ -2,7 +2,7 @@
 /**
  * 上传图片
  *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -19,7 +19,13 @@ if ($do == 'delete') {
 			return message($result, '', 'ajax');
 		}
 
-		$attachment = pdo_get('core_attachment', array('id' => $id, 'uniacid' => $_W['uniacid']), array('attachment', 'uniacid', 'uid'));
+		$attachment = table('core_attachment')
+			->select(array('attachment', 'uniacid', 'uid'))
+			->where(array(
+				'id' => $id,
+				'uniacid' => $_W['uniacid']
+			))
+			->get();
 		if (empty($attachment)) {
 			return message(error(1, '图片不存在或已删除！'), '', 'ajax');
 		}
@@ -38,7 +44,12 @@ if ($do == 'delete') {
 			$result = file_delete($attachment['attachment']);
 		}
 		if (!is_error($result)) {
-			pdo_delete('core_attachment', array('id' => $id, 'uniacid' => $_W['uniacid']));
+			table('core_attachment')
+				->where(array(
+					'id' => $id,
+					'uniacid' => $_W['uniacid']
+				))
+				->delete();
 		}
 		if (!is_error($result)) {
 			return message(error('0'), '', 'ajax');
@@ -137,15 +148,17 @@ if ($do == 'upload') {
 					$info['url'] = tomedia($pathname);
 				}
 			}
-			
-			pdo_insert('core_attachment', array(
-				'uniacid' => $uniacid,
-				'uid' => $_W['uid'],
-				'filename' => $_FILES['file']['name'],
-				'attachment' => $pathname,
-				'type' => $type == 'image' ? 1 : 2,
-				'createtime' => TIMESTAMP,
-			));
+
+			table('core_attachment')
+				->fill(array(
+					'uniacid' => $uniacid,
+					'uid' => $_W['uid'],
+					'filename' => $_FILES['file']['name'],
+					'attachment' => $pathname,
+					'type' => $type == 'image' ? 1 : 2,
+					'createtime' => TIMESTAMP,
+				))
+				->save();
 			$info['id'] = pdo_insertid();
 			die(json_encode($info));
 		} else {

@@ -197,7 +197,7 @@
 		extend: {php echo !empty($extend) ? json_encode($extend) : 'null'},
 		uni_groups: {php echo !empty($uni_groups) ? json_encode($uni_groups) : 'null'},
 		links: {
-			postModulesTpl: "{php echo url('account/post/modules_tpl', array('acid' => $acid, 'uniacid' => $uniacid))}",
+			postModulesTpl: "{php echo url('account/post/modules_tpl', array('uniacid' => $uniacid))}",
 		},
 		modules: {php echo !empty($modules) ? json_encode($modules) : 'null'},
 		templates: {php echo !empty($templates) ? json_encode($templates) : 'null'},

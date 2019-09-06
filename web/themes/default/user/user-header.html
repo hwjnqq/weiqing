@@ -13,7 +13,6 @@
 	<li {if $action == 'fields'} class="active"{/if}><a href="{url 'user/fields/display'}">用户属性设置</a></li>
 	{/if}
 	{if permission_check_account_user('see_user_manage_expire')}
-	<li {if $action == 'expire' && $do == 'display'} class="active"{/if}><a href="{url 'user/expire'}">用户过期设置</a></li>
 	<li {if $action == 'expire' && $do == 'setting'} class="active"{/if}><a href="{url 'user/expire/setting'}">自定义到期提示</a></li>
 	{/if}
 </ul>

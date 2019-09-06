@@ -1,7 +1,7 @@
 <?php
 /**
  * 授权添加小程序
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -15,8 +15,7 @@ $do = in_array($do, $dos) ? $do : 'forward';
 
 $account_platform = new WxappPlatform();
 
-if ($do == 'forward') {
-
+if ('forward' == $do) {
 	if (empty($_GPC['auth_code'])) {
 		itoast('授权登录失败，请重试', url('account/manage'), 'error');
 	}
@@ -42,7 +41,7 @@ if ($do == 'forward') {
 	}
 	$account_found = $account_platform->fetchSameAccountByAppid($auth_appid);
 	if (!empty($account_found)) {
-		message('小程序已经在系统中接入，是否要更改为授权接入方式？ <div><a class="btn btn-primary" href="' . url('wxapp/auth/confirm', array('level' => $level, 'auth_refresh_token' => $auth_refresh_token, 'auth_appid' => $auth_appid, 'acid' => $account_found['acid'], 'uniacid' => $account_found['uniacid'])) . '">是</a> &nbsp;&nbsp;<a class="btn btn-default" href="index.php">否</a></div>', '', 'tips');
+		message('小程序已经在系统中接入，是否要更改为授权接入方式？ <div><a class="btn btn-primary" href="' . url('wxapp/auth/confirm', array('level' => $level, 'auth_refresh_token' => $auth_refresh_token, 'auth_appid' => $auth_appid, 'uniacid' => $account_found['uniacid'])) . '">是</a> &nbsp;&nbsp;<a class="btn btn-default" href="index.php">否</a></div>', '', 'tips');
 	}
 
 	$account_wxapp_data = array(
@@ -52,7 +51,7 @@ if ($do == 'forward') {
 		'key' => trim($auth_appid),
 		'type' => ACCOUNT_TYPE_APP_AUTH,
 		'encodingaeskey' => $account_platform->encodingaeskey,
-		'auth_refresh_token'=>$auth_refresh_token,
+		'auth_refresh_token' => $auth_refresh_token,
 		'token' => $account_platform->token,
 		'headimg' => $account_info['authorizer_info']['head_img'],
 		'qrcode' => $account_info['authorizer_info']['qrcode_url'],
@@ -62,17 +61,17 @@ if ($do == 'forward') {
 		itoast('授权登录新建小程序失败，请重试', url('account/manage'), 'error');
 	}
 	cache_build_account($uniacid);
-	itoast('授权登录成功', url('wxapp/post/design_method', array('uniacid' => $uniacid, 'choose_type'=>2)), 'success');
+	itoast('授权登录成功', url('wxapp/post/design_method', array('uniacid' => $uniacid, 'choose_type' => 2)), 'success');
 }
 
-if ($do == 'confirm') {
+if ('confirm' == $do) {
 	$auth_refresh_token = safe_gpc_string($_GPC['auth_refresh_token']);
 	$auth_appid = safe_gpc_string($_GPC['auth_appid']);
 	$level = intval($_GPC['level']);
 	$uniacid = intval($_GPC['uniacid']);
 
 	if (user_is_founder($_W['uid'])) {
-		$user_accounts = table('account')->getUniAccountList();
+		$user_accounts = table('account')->getAll();
 	} else {
 		$user_accounts = uni_user_accounts($_W['uid'], 'wxapp');
 	}
@@ -81,19 +80,28 @@ if ($do == 'confirm') {
 		itoast('账号或用户信息错误!', url('account/post', array('uniacid' => $uniacid)), 'error');
 	}
 
-	pdo_update('account_wxapp', array(
-		'auth_refresh_token' => $auth_refresh_token,
-		'encodingaeskey' => $account_platform->encodingaeskey,
-		'token' => $account_platform->token,
-		'level' => $level,
-		'key' => $auth_appid,
-	), array('uniacid' => $uniacid));
-	pdo_update('account', array('isconnect' => '1', 'type' => ACCOUNT_TYPE_APP_AUTH, 'isdeleted' => 0), array('uniacid' => $uniacid));
+	table('account_wxapp')
+		->where(array('uniacid' => $uniacid))
+		->fill(array(
+			'auth_refresh_token' => $auth_refresh_token,
+			'encodingaeskey' => $account_platform->encodingaeskey,
+			'token' => $account_platform->token,
+			'level' => $level,
+			'key' => $auth_appid,
+		))
+		->save();
+	table('account')->where(array('uniacid' => $uniacid))
+		->fill(array(
+			'isconnect' => '1',
+			'type' => ACCOUNT_TYPE_APP_AUTH,
+			'isdeleted' => 0
+		))
+		->save();
 
 	cache_delete(cache_system_key('uniaccount', array('uniacid' => $uniacid)));
 	cache_delete(cache_system_key('accesstoken', array('uniacid' => $uniacid)));
 	cache_delete(cache_system_key('account_auth_refreshtoken', array('uniacid' => $uniacid)));
-	$url = url('wxapp/post/design_method', array('uniacid' => $uniacid, 'choose_type'=>2));
+	$url = url('wxapp/post/design_method', array('uniacid' => $uniacid, 'choose_type' => 2));
 
 	itoast('更改小程序授权接入成功', $url, 'success');
 }

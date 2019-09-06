@@ -1,10 +1,15 @@
 <?php
 defined('IN_IA') or exit('Access Denied');
 global $_GPC;
-$card = pdo_get('mc_card', array('uniacid' => $_GPC['uniacid']));
+$card = table('mc_card')->where(array('uniacid' => safe_gpc_int($_GPC['uniacid'])))->get();
 if (!empty($card)) {
 	if ($card['source'] == 2) {
-		$code = pdo_getcolumn('coupon_record', array('uniacid' => $_GPC['uniacid'], 'card_id' => $card['card_id']), 'code');
+		$code = table('coupon_record')
+			->where(array(
+				'uniacid' => safe_gpc_int($_GPC['uniacid']),
+				'card_id' => $card['card_id']
+			))
+			->getcolumn('code');
 		$status = empty($code) ? 3 : 1;
 		if (empty($code)) {
 			load()->classs('coupon');

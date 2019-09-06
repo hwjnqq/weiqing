@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
@@ -252,7 +252,7 @@ function module_app_entries($name, $types = array(), $args = null) {
 			load()->func('communication');
 			$urlset = parse_url($_W['siteurl']);
 			$urlset = pathinfo($urlset['path']);
-			$response = ihttp_request($_W['sitescheme'] . '127.0.0.1/'. $urlset['dirname'] . '/' . url('utility/bindcall', array('modulename' => $bind['module'], 'callname' => $bind['call'], 'args' => $args, 'uniacid' => $_W['uniacid'])), array('W'=>base64_encode(iserializer($_W))), $extra);
+			$response = ihttp_request($_W['sitescheme'] . $extra['Host']. $urlset['dirname'] . '/' . url('utility/bindcall', array('modulename' => $bind['module'], 'callname' => $bind['call'], 'args' => $args, 'uniacid' => $_W['uniacid'])), array('W'=>base64_encode(iserializer($_W))), $extra);
 			if (is_error($response)) {
 				continue;
 			}
@@ -644,7 +644,7 @@ function module_get_user_account_list($uid, $module_name) {
 	if (empty($account_users_info)) {
 		return $accounts_list;
 	}
-	$accounts = array();
+
 	foreach ($account_users_info as $account) {
 		if (empty($account['uniacid'])) {
 			continue;
@@ -983,6 +983,9 @@ function module_upgrade_info($modulelist = array()) {
 	unset($cloud_m_query_module['pirate_apps']);
 
 	foreach ($cloud_m_query_module as $modulename => $manifest_cloud) {
+		if (empty($manifest_cloud) || empty($manifest_cloud['site_branch'])) {
+			continue;
+		}
 		$manifest = array(
 			'application' => array(
 				'name' => $modulename,
@@ -1020,6 +1023,7 @@ function module_upgrade_info($modulelist = array()) {
 		$manifest['site_branch'] = $manifest_cloud['site_branch'];
 		$manifest['cloud_id'] = $manifest_cloud['id'];
 		$manifest['buytime'] = $manifest_cloud['buytime'];
+		$manifest['service_expiretime'] = empty($manifest_cloud['service_expiretime']) ? 0 : $manifest_cloud['service_expiretime'];
 		$manifest_cloud_list[$modulename] = $manifest;
 	}
 
@@ -1063,15 +1067,14 @@ function module_upgrade_info($modulelist = array()) {
 		//云服务模块已在本地安装，unset后方便后面排查未安装模块
 		//云上模块，如果在本地有manifest.xml，以本地模块为主
 		unset($manifest_cloud_list[$modulename]);
-
 		if (version_compare($module['version'], $manifest['application']['version']) == '-1') {
-			$module_upgrade_data['has_new_version'] = 1;
-			$module_upgrade_data['lastupdatetime'] = TIMESTAMP;
-			$result[$modulename] = array(
-				'name' => $modulename,
-				'new_version' => 1,
-				'best_version' => $manifest['application']['version'],
-			);
+				$module_upgrade_data['has_new_version'] = 1;
+				$module_upgrade_data['lastupdatetime'] = TIMESTAMP;
+				$result[$modulename] = array(
+					'name' => $modulename,
+					'new_version' => 1,
+					'best_version' => $manifest['application']['version'],
+				);
 		}
 
 		//本地已安装，没有更新的模块不入表，防止无用数据太多
@@ -1085,6 +1088,13 @@ function module_upgrade_info($modulelist = array()) {
 					$module_upgrade_data['has_new_branch'] = 1;
 					$result[$modulename]['new_branch'] = 1;
 				}
+			}
+		}
+
+		if (!empty($manifest['service_expiretime'])) {
+			$result[$modulename]['service_expiretime'] = date('Y-m-d H:i:s', $manifest['service_expiretime']);
+			if ($manifest['service_expiretime'] < time()) {
+				$result[$modulename]['service_expire'] = 1;
 			}
 		}
 
@@ -1254,7 +1264,7 @@ function module_recycle($modulename, $type, $support) {
 		return false;
 	}
 	if ($type == MODULE_RECYCLE_UNINSTALL_IGNORE) {
-		table('modules_cloud')->fill(array($support => 1))->where('name', $modulename)->save();
+		table('modules_cloud')->fill(array($support => 1, 'module_status' => MODULE_CLOUD_UNINSTALL_NORMAL))->where('name', $modulename)->save();
 	}
 	$module_recycle = table('modules_recycle');
 	$record = $module_recycle->searchWithNameType($modulename, $type)->get();
@@ -1287,7 +1297,7 @@ function module_cancel_recycle($modulename, $type, $support) {
 		}
 	}
 	if ($type == MODULE_RECYCLE_UNINSTALL_IGNORE) {
-		table('modules_cloud')->fill(array($support => 2))->where('name', $modulename)->save();
+		table('modules_cloud')->fill(array($support => 2, 'module_status' => MODULE_CLOUD_UNINSTALL_NORMAL))->where('name', $modulename)->save();
 	}
 	if ($is_update) {
 		return $module_recycle->where('id', $record['id'])->fill($record)->save();

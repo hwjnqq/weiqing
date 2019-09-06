@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 W7.CC
+ * $sn$.
  */
 $_W['page']['title'] = '系统-流量主';
 $dos = array('flow_control', 'finance_info', 'register_flow', 'display', 'account_list', 'ad_type_get', 'content_provider');
@@ -10,7 +10,7 @@ load()->model('cloud');
 load()->func('file');
 $flow_master_info = cloud_flow_master_get();
 $flow_uniaccount_list = cloud_flow_uniaccount_list_get();
-if (isset($flow_master_info['site_key']) && $flow_master_info['site_key'] == '0') {
+if (isset($flow_master_info['site_key']) && '0' == $flow_master_info['site_key']) {
 	itoast('请注册站点或者重置站点信息', referer(), 'error');
 }
 $commission_show = false;
@@ -25,15 +25,15 @@ $status = cloud_prepare();
 if (is_error($status)) {
 	itoast($status['message'], url('cloud/profile'), 'error');
 }
-if ($do == 'display') {
-	if ($flow_master_info['status'] == 4 || IMS_FAMILY == 'v') {
+if ('display' == $do) {
+	if (4 == $flow_master_info['status'] || IMS_FAMILY == 'v') {
 		header('Location:' . url('advertisement/content-provider/account_list'));
 		exit;
 	}
 }
 
-if ($do == 'register_flow') {
-	if (($flow_master_info['status'] == 4 || IMS_FAMILY == 'v') || $flow_master_info['status'] == 2) {
+if ('register_flow' == $do) {
+	if ((4 == $flow_master_info['status'] || IMS_FAMILY == 'v') || 2 == $flow_master_info['status']) {
 		itoast('权限不足', url('advertisement/content-provider/account_list'), 'error');
 	}
 	if (checksubmit('submit')) {
@@ -46,7 +46,7 @@ if ($do == 'register_flow') {
 		if (empty($mobile)) {
 			itoast('电话不能为空', referer(), 'error');
 		} else {
-			if(!preg_match(REGULAR_MOBILE, $mobile)) {
+			if (!preg_match(REGULAR_MOBILE, $mobile)) {
 				itoast('手机号格式不正确', referer(), 'error');
 			}
 		}
@@ -58,10 +58,10 @@ if ($do == 'register_flow') {
 			$_W['uploadsetting']['image']['folder'] = '';
 			$_W['uploadsetting']['image']['extentions'] = array('jpg');
 			$_W['uploadsetting']['image']['limit'] = $_W['config']['upload']['image']['limit'];
-			$upload = file_upload($_FILES['id_card_photo'], 'image', "id_card");
+			$upload = file_upload($_FILES['id_card_photo'], 'image', 'id_card');
 			$id_card_photo = $upload['path'];
-			if(is_error($upload)) {
-				itoast('身份证保存失败,'.$upload['message'],referer(),'info');
+			if (is_error($upload)) {
+				itoast('身份证保存失败,' . $upload['message'], referer(), 'info');
 			}
 		}
 		if (!empty($_FILES['business_licence_photo']['tmp_name'])) {
@@ -69,10 +69,10 @@ if ($do == 'register_flow') {
 			$_W['uploadsetting']['image']['folder'] = '';
 			$_W['uploadsetting']['image']['extentions'] = array('jpg');
 			$_W['uploadsetting']['image']['limit'] = $_W['config']['upload']['image']['limit'];
-			$upload = file_upload($_FILES['business_licence_photo'], 'image', "business_licence");
+			$upload = file_upload($_FILES['business_licence_photo'], 'image', 'business_licence');
 			$business_licence_photo = $upload['path'];
-			if(is_error($upload)) {
-				itoast('营业执照保存失败,'.$upload['message'], referer(), 'info');
+			if (is_error($upload)) {
+				itoast('营业执照保存失败,' . $upload['message'], referer(), 'info');
 			}
 		}
 		if (!empty($flow_master_info['id_card_photo']) && empty($id_card_photo)) {
@@ -97,8 +97,8 @@ if ($do == 'register_flow') {
 	}
 }
 
-if ($do == 'account_list') {
-	if ($flow_master_info['status'] != 4 && IMS_FAMILY != 'v') {
+if ('account_list' == $do) {
+	if (4 != $flow_master_info['status'] && IMS_FAMILY != 'v') {
 		header('Location:' . url('advertisement/content-provider/display'));
 		exit;
 	}
@@ -110,41 +110,41 @@ if ($do == 'account_list') {
 	$keyword = trim($_GPC['keyword']);
 	$s_uniacid = intval($_GPC['s_uniacid']);
 	if (!empty($_W['isfounder'])) {
-		$condition .= " WHERE a.default_acid <> 0 AND b.isdeleted <> 1";
-		$order_by = " ORDER BY a.`rank` DESC";
+		$condition .= ' WHERE a.default_acid <> 0 AND b.isdeleted <> 1';
+		$order_by = ' ORDER BY a.`rank` DESC';
 	} else {
-		$condition .= "LEFT JOIN ". tablename('uni_account_users')." as c ON a.uniacid = c.uniacid WHERE a.default_acid <> 0 AND c.uid = :uid AND b.isdeleted <> 1";
+		$condition .= 'LEFT JOIN ' . tablename('uni_account_users') . ' as c ON a.uniacid = c.uniacid WHERE a.default_acid <> 0 AND c.uid = :uid AND b.isdeleted <> 1';
 		$pars[':uid'] = $_W['uid'];
-		$order_by = " ORDER BY c.`rank` DESC";
+		$order_by = ' ORDER BY c.`rank` DESC';
 	}
-	if(!empty($keyword)) {
-		$condition .=" AND a.`name` LIKE :name";
+	if (!empty($keyword)) {
+		$condition .= ' AND a.`name` LIKE :name';
 		$pars[':name'] = "%{$keyword}%";
 	}
-	if(!empty($s_uniacid)) {
-		$condition .=" AND a.`uniacid` = :uniacid";
+	if (!empty($s_uniacid)) {
+		$condition .= ' AND a.`uniacid` = :uniacid';
 		$pars[':uniacid'] = $s_uniacid;
 	}
-	
-	if(!empty($_GPC['expiretime'])) {
+
+	if (!empty($_GPC['expiretime'])) {
 		$expiretime = intval($_GPC['expiretime']);
-		$condition .= " AND a.`uniacid` IN(SELECT uniacid FROM " .tablename('uni_account_users') . " WHERE role = 'owner' AND uid IN (SELECT uid FROM " .tablename('users'). " WHERE endtime > :time AND endtime < :endtime))";
+		$condition .= ' AND a.`uniacid` IN(SELECT uniacid FROM ' . tablename('uni_account_users') . " WHERE role = 'owner' AND uid IN (SELECT uid FROM " . tablename('users') . ' WHERE endtime > :time AND endtime < :endtime))';
 		$pars[':time'] = time();
-		$pars[':endtime'] = strtotime(date('Y-m-d', time()+86400*($expiretime+2)));
+		$pars[':endtime'] = strtotime(date('Y-m-d', time() + 86400 * ($expiretime + 2)));
 	}
-	if ($_GPC['type'] == '3') {
-		$condition .= " AND b.type = 3";
-	} elseif ($_GPC['type'] == '1') {
-		$condition .= " AND b.type <> 3";
+	if ('3' == $_GPC['type']) {
+		$condition .= ' AND b.type = 3';
+	} elseif ('1' == $_GPC['type']) {
+		$condition .= ' AND b.type <> 3';
 	}
-	$tsql = "SELECT COUNT(*) FROM " . tablename('uni_account'). " as a LEFT JOIN". tablename('account'). " as b ON a.default_acid = b.acid {$condition} {$order_by}, a.`uniacid` DESC";
+	$tsql = 'SELECT COUNT(*) FROM ' . tablename('uni_account') . ' as a LEFT JOIN' . tablename('account') . " as b ON a.default_acid = b.acid {$condition} {$order_by}, a.`uniacid` DESC";
 	$total = pdo_fetchcolumn($tsql, $pars);
-	$sql = "SELECT * FROM ". tablename('uni_account'). " as a LEFT JOIN". tablename('account'). " as b ON a.default_acid = b.acid  {$condition} {$order_by}, a.`uniacid` DESC LIMIT {$start}, {$psize}";
+	$sql = 'SELECT * FROM ' . tablename('uni_account') . ' as a LEFT JOIN' . tablename('account') . " as b ON a.default_acid = b.acid  {$condition} {$order_by}, a.`uniacid` DESC LIMIT {$start}, {$psize}";
 	$pager = pagination($total, $pindex, $psize);
 	$list = pdo_fetchall($sql, $pars, 'uniacid');
 	$flow_uniaccount_list = cloud_flow_uniaccount_list_get();
-	if(!empty($list)) {
-		foreach($list as $unia => &$account) {
+	if (!empty($list)) {
+		foreach ($list as $unia => &$account) {
 			$account_details = uni_accounts($account['uniacid']);
 			//公众号列表只取默认acid
 			$account['details'][$account['default_acid']] = $account_details[$account['default_acid']];
@@ -162,21 +162,21 @@ if ($do == 'account_list') {
 	}
 }
 
-if ($do == 'flow_control') {
+if ('flow_control' == $do) {
 	if (empty($_GPC['uniacid'])) {
 		itoast('公众号id参数有误，请重新进入', url('advertisement/content-provider/account_list'), 'error');
 	}
 	$current_account = uni_fetch($_GPC['uniacid']);
-	load() -> model('account');
+	load()->model('account');
 	$_W['uniacid'] = $_GPC['uniacid'];
 	$installedmodulelist = uni_modules();
 	foreach ($installedmodulelist as $val) {
-		if ($val['issystem'] == 0 && $val['enabled'] == 1) {
+		if (0 == $val['issystem'] && 1 == $val['enabled']) {
 			$path = '../addons/' . $val['name'];
 			$cion = $path . '/icon-custom.jpg';
-			if(!file_exists($cion)) {
+			if (!file_exists($cion)) {
 				$cion = $path . '/icon.jpg';
-				if(!file_exists($cion)) {
+				if (!file_exists($cion)) {
 					$cion = './resource/images/nopic-small.jpg';
 				}
 			}
@@ -195,7 +195,7 @@ if ($do == 'flow_control') {
 	}
 	if (!empty($cloud_module_support)) {
 		foreach ($cloud_module_support as $support) {
-			if ($support['ad_support'] == 2) {
+			if (2 == $support['ad_support']) {
 				$modulelist_available[$support['name']] = $modulelist[$support['name']];
 				$modulelist_available[$support['name']]['flow_setting'] = $flow_app_list_setting[$support['name']];
 				$modulelist_available[$support['name']]['ad_types'] = json_encode($support['ad_types']);
@@ -218,8 +218,8 @@ if ($do == 'flow_control') {
 	}
 	$ad_type_lists = cloud_flow_ad_type_list();
 	if ($_W['isajax'] && $_W['ispost']) {
-		if ($_GPC['type'] == 'tags') {
-			if ($_GPC['enable'] == 2) {
+		if ('tags' == $_GPC['type']) {
+			if (2 == $_GPC['enable']) {
 				if (!empty($_GPC['tagids'])) {
 					foreach ($_GPC['tagids'] as $value) {
 						$ad_tags[$value] = $items[$value];
@@ -230,9 +230,9 @@ if ($do == 'flow_control') {
 			}
 			$uniacid = intval($_GPC['uniacid']);
 			$uniaccount['uniacid'] = intval($_GPC['uniacid']);
-			if ($_GPC['enable'] == 1) {
+			if (1 == $_GPC['enable']) {
 				$uniaccount['enable'] = 1;
-			} elseif ($_GPC['enable'] == 2) {
+			} elseif (2 == $_GPC['enable']) {
 				$uniaccount['title'] = trim($current_account['name']);
 				$uniaccount['original'] = trim($current_account['original']);
 				$uniaccount['gh_type'] = trim($current_account['level']);
@@ -240,7 +240,7 @@ if ($do == 'flow_control') {
 				$uniaccount['enable'] = 2;
 			}
 			$result = cloud_flow_uniaccount_post($uniaccount);
-		} elseif ($_GPC['type'] == 'types') {
+		} elseif ('types' == $_GPC['type']) {
 			$uniacid = intval($_GPC['uniacid']);
 			$module_name = trim($_GPC['module_name']);
 			if (!empty($_GPC['typeids'])) {
@@ -260,7 +260,7 @@ if ($do == 'flow_control') {
 	}
 }
 
-if ($do == 'ad_type_get') {
+if ('ad_type_get' == $do) {
 	$module_name = trim($_GPC['module_name']);
 	$uniacid = intval($_GPC['uniacid']);
 	$flow_app_list_setting = cloud_flow_app_list_get($uniacid);
@@ -272,7 +272,7 @@ if ($do == 'ad_type_get') {
 	}
 }
 
-if ($do == 'finance_info') {
+if ('finance_info' == $do) {
 	if (empty($commission_show)) {
 		itoast('权限不足', url('advertisement/content-provider/account_list'), 'error');
 	}
@@ -281,10 +281,10 @@ if ($do == 'finance_info') {
 		'page' => $_GPC['page'],
 	);
 	if (!empty($_GPC['type'])) {
-		if ($_GPC['type'] == 1) {
+		if (1 == $_GPC['type']) {
 			$params['starttime'] = strtotime(date('Y-m-d'));
 			$params['endtime'] = TIMESTAMP;
-		} elseif ($_GPC['type'] == 2) {
+		} elseif (2 == $_GPC['type']) {
 			$params['starttime'] = strtotime('yesterday');
 			$params['endtime'] = strtotime(date('Y-m-d'));
 		}
@@ -305,7 +305,7 @@ if ($do == 'finance_info') {
 	$pager = pagination($finance_info['total'], $pindex, $finance_info['size']);
 }
 
-if ($do == 'content_provider') {
+if ('content_provider' == $do) {
 	$iframe = cloud_auth_url('content-provider');
 	$title = '广告主';
 }

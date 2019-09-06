@@ -1,16 +1,13 @@
 <?php
 /**
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
-
 defined('IN_IA') or exit('Access Denied');
 
 /**
  * @property Query $query
  */
 abstract class We7Table {
-
 	const ONE_TO_ONE = 'ONE_TO_ONE';
 	const ONE_TO_MANY = 'ONE_TO_MANY';
 	const BELONGS_TO = 'BELONGS_TO';
@@ -32,11 +29,11 @@ abstract class We7Table {
 	//数据库属性
 	private $attribute = array();
 	/**
-	 *  关联关系定义
+	 *  关联关系定义.
+	 *
 	 * @var array
 	 */
 	private $relationDefine = array();
-
 
 	public function __construct() {
 		//实例化Query对象,并重置查询信息
@@ -47,9 +44,11 @@ abstract class We7Table {
 	}
 
 	/**
-	 * 构造一个查询分页
+	 * 构造一个查询分页.
+	 *
 	 * @param int $pageindex
 	 * @param int $pagesize
+	 *
 	 * @return We7Table
 	 */
 	public function searchWithPage($pageindex, $pagesize) {
@@ -61,24 +60,25 @@ abstract class We7Table {
 	}
 
 	/**
-	 * 获取上一次查询的除去Limit的条数
+	 * 获取上一次查询的除去Limit的条数.
 	 */
 	public function getLastQueryTotal() {
 		return $this->query->getLastQueryTotal();
 	}
 
 	/**
-	 *  总数
+	 *  总数.
 	 */
 	public function count() {
 		return $this->query->count();
 	}
 
-
 	/**
-	 *  字段填充
+	 *  字段填充.
+	 *
 	 * @param $field
 	 * @param string $value
+	 *
 	 * @return $this
 	 */
 	public function fill($field, $value = '') {
@@ -86,14 +86,17 @@ abstract class We7Table {
 			foreach ($field as $column => $val) {
 				$this->fillField($column, $val);
 			}
+
 			return $this;
 		}
 		$this->fillField($field, $value);
+
 		return $this;
 	}
 
 	/**
-	 *  字段填充
+	 *  字段填充.
+	 *
 	 * @param $column
 	 * @param $val
 	 */
@@ -106,51 +109,54 @@ abstract class We7Table {
 	}
 
 	/**
-	 *  fill 填充前处理数据
+	 *  fill 填充前处理数据.
+	 *
 	 * @param $column
 	 * @param $val
+	 *
 	 * @return bool|float|int|string
 	 */
 	private function getColumnVal($column, $val) {
-		$method = 'set'.$this->studly($column).'Field';
+		$method = 'set' . $this->studly($column) . 'Field';
 		if (method_exists($this, $method)) {
 			return $this->{$method}($val);
 		}
+
 		return $this->cast($column, $val);
 	}
 
-
 	/**
-	 *  fill 字段前强转类型
+	 *  fill 字段前强转类型.
+	 *
 	 * @param $column
 	 * @param $val
+	 *
 	 * @return bool|float|int|string
 	 */
 	private function cast($column, $val) {
 		if (isset($this->cast[$column])) {
 			switch ($this->cast[$column]) {
-				case 'int' : return intval($val); break;
-				case 'string' : return strval($val); break;
-				case 'float' : return floatval($val); break;
-				case 'double' : return doubleval($val); break;
-				case 'bool' : return boolval($val); break;
+				case 'int': return intval($val); break;
+				case 'string': return strval($val); break;
+				case 'float': return floatval($val); break;
+				case 'double': return doubleval($val); break;
+				case 'bool': return boolval($val); break;
 			}
 		}
+
 		return $val;
 	}
 
-
-	
 	/**
-	 * 追加默认数据
+	 * 追加默认数据.
 	 */
 	private function appendDefault() {
 		foreach ($this->default as $field => $value) {
-			if (! isset($this->attribute[$field])) {
-				if ($value === 'custom') {
-					$method = 'default'.$this->studly($field);
-					if (! method_exists($this, $method)) {
-						trigger_error($method.'方法未找到');
+			if (!isset($this->attribute[$field])) {
+				if ('custom' === $value) {
+					$method = 'default' . $this->studly($field);
+					if (!method_exists($this, $method)) {
+						trigger_error($method . '方法未找到');
 					}
 					$value = call_user_func(array($this, $method));
 				}
@@ -160,7 +166,7 @@ abstract class We7Table {
 	}
 
 	/**
-	 *  获取字段所有验证规则
+	 *  获取字段所有验证规则.
 	 */
 	protected function valid($data) {
 		if (count($this->rule) <= 0) {
@@ -168,29 +174,41 @@ abstract class We7Table {
 		}
 		$validator = Validator::create($data, $this->rule);
 		$result = $validator->valid();
+
 		return $result;
+	}
+
+	public function select($fields = '*') {
+		return $this->query->select($fields);
+	}
+
+	public function limit($limit) {
+		return $this->query->limit($limit);
 	}
 
 	public function get() {
 		$data = $this->query->get();
-		if (! $data || empty($data)) {
+		if (!$data || empty($data)) {
 			return $data;
 		}
 		$this->loadRelation($data);
+
 		return $data;
 	}
 
 	public function getall($keyfield = '') {
 		$data = $this->query->getall($keyfield);
-		if (! $data || empty($data)) {
+		if (!$data || empty($data)) {
 			return $data;
 		}
 		$this->loadRelation($data, true);
+
 		return $data;
 	}
 
 	/**
 	 *  多对多需要使用内部query 对象
+	 *
 	 * @return Query
 	 */
 	public function getQuery() {
@@ -200,13 +218,15 @@ abstract class We7Table {
 	public function getTableName() {
 		return $this->tableName;
 	}
+
 	/**
-	 *  确定加载哪个关联关系
+	 *  确定加载哪个关联关系.
+	 *
 	 * @param $relation
 	 */
 	public function with($relation) {
 		$relations = is_string($relation) ? func_get_args() : $relation;
-		foreach ($relations as $relation =>$val) {
+		foreach ($relations as $relation => $val) {
 			if (is_numeric($relation)) {
 				$relation = $val;
 			}
@@ -218,10 +238,12 @@ abstract class We7Table {
 
 		return $this;
 	}
+
 	/**
-	 *  加载关联关系
+	 *  加载关联关系.
+	 *
 	 * @param array $data 查询出来的文字
-	 * @param bool $muti 是否主查询是 多条记录
+	 * @param bool  $muti 是否主查询是 多条记录
 	 */
 	private function loadRelation(array &$data, $muti = false) {
 		foreach ($this->relationDefine as $relation => $closure) {
@@ -230,7 +252,8 @@ abstract class We7Table {
 	}
 
 	/**
-	 *  加载关联表数据
+	 *  加载关联表数据.
+	 *
 	 * @param $relation
 	 * @param $data
 	 * @param bool $muti
@@ -239,12 +262,13 @@ abstract class We7Table {
 		if (method_exists($this, $relation)) {
 			$relation_param = call_user_func(array($this, $relation));
 			list($type, $table, $foreign_key, $owner_key) = $relation_param;
-			if ($type == self::MANY_TO_MANY) {
+			if (self::MANY_TO_MANY == $type) {
 				$this->doManyToMany($relation, $relation_param, $data, $muti);
+
 				return;
 			}
 			/**
-			 *  获取关联类型如果是单条数据
+			 *  获取关联类型如果是单条数据.
 			 */
 			$single = $this->isGetSingle($type);
 			/**
@@ -253,11 +277,12 @@ abstract class We7Table {
 			 */
 			$foreign_vals = $this->getForeignVal($data, $owner_key, $muti);
 			/**
-			 *  获取关联表的数据  $single 表示 只获取一条即可
+			 *  获取关联表的数据  $single 表示 只获取一条即可.
 			 */
 			$second_table_data = $this->getSecondTableData($table, $foreign_key, $foreign_vals, $single, $closure);
-			if (! $muti) {
+			if (!$muti) {
 				$data[$relation] = $second_table_data;
+
 				return;
 			}
 			if ($single) {
@@ -270,13 +295,14 @@ abstract class We7Table {
 				if ($single) {
 					$relation_val = count($relation_val) > 0 ? current($relation_val) : array();
 				}
-				$item[$relation] =  $relation_val;
+				$item[$relation] = $relation_val;
 			}
 		}
 	}
 
 	/**
-	 *  改为join 方式查询
+	 *  改为join 方式查询.
+	 *
 	 * @param $relation
 	 * @param $relation_param
 	 * @param $data
@@ -286,40 +312,38 @@ abstract class We7Table {
 		list($type, $table, $foreign_key, $owner_key, $center_table, $center_foreign_key, $center_owner_key)
 			= $relation_param;
 
-
 		$foreign_vals = $this->getForeignVal($data, $owner_key, $muti);
 		$three_table = table($table);
 		$nativeQuery = $three_table->getQuery();
 
 		$nativeQuery->from($three_table->getTableName(), 'three')
 			->innerjoin($center_table, 'center')
-			->on(array('center.'.$center_foreign_key => 'three.'.$foreign_key))
+			->on(array('center.' . $center_foreign_key => 'three.' . $foreign_key))
 			->select('center.*')
-			->where('center.'.$center_owner_key, $foreign_vals);
+			->where('center.' . $center_owner_key, $foreign_vals);
 
 		$three_table_data = $three_table->getall(); //$three_table->getall();
 		if (!$muti) {
 			$data[$relation] = $three_table_data;
+
 			return;
 		}
 
 		$three_table_data = $this->groupBy($center_owner_key, $three_table_data);
-		/**
+		/*
 		 *  按组归类
 		 */
 		foreach ($data as &$item) {
 			$three_val = isset($three_table_data[$item[$owner_key]]) ? $three_table_data[$item[$owner_key]] : array();
 			$item[$relation] = $three_val;
 		}
-
-
 	}
 
-
-
 	/**
-	 *  是否获取单条数据
+	 *  是否获取单条数据.
+	 *
 	 * @param $type
+	 *
 	 * @return bool
 	 */
 	private function isGetSingle($type) {
@@ -328,26 +352,31 @@ abstract class We7Table {
 
 	/**
 	 *  获取所有外键值
+	 *
 	 * @param $data
 	 * @param $owner_key
 	 * @param bool $muti
+	 *
 	 * @return array
 	 */
 	private function getForeignVal($data, $owner_key, $muti = false) {
-		if (! $muti) {
+		if (!$muti) {
 			return $data[$owner_key];
 		}
-		return array_map(function($item) use ($owner_key){
+
+		return array_map(function ($item) use ($owner_key) {
 			return $item[$owner_key];
 		}, $data);
 	}
 
 	/**
-	 *  获取关联表数据
+	 *  获取关联表数据.
+	 *
 	 * @param $table
 	 * @param $foreign_key
 	 * @param $foreign_vals
 	 * @param bool $single
+	 *
 	 * @return mixed
 	 */
 	private function getSecondTableData($table, $foreign_key, $foreign_vals, $single = false, $closure = null) {
@@ -358,29 +387,28 @@ abstract class We7Table {
 		if ($single) {
 			return $table_instance->get();
 		}
+
 		return $table_instance->getall();
 	}
 
-
-
 	/**
-	 * [
-	['account_id' => 'account-x10', 'product' => 'Chair'],
-	['account_id' => 'account-x10', 'product' => 'Bookcase'],
-	['account_id' => 'account-x11', 'product' => 'Desk'],
-	]);
+	 * [.
+	 ['account_id' => 'account-x10', 'product' => 'Chair'],
+	 ['account_id' => 'account-x10', 'product' => 'Bookcase'],
+	 ['account_id' => 'account-x11', 'product' => 'Desk'],
+	 ]);
 
-	$grouped = $this->groupBy('account_id');
-	/*
-	[
-	'account-x10' => [
-	['account_id' => 'account-x10', 'product' => 'Chair'],
-	['account_id' => 'account-x10', 'product' => 'Bookcase'],
-	],
-	'account-x11' => [
-	['account_id' => 'account-x11', 'product' => 'Desk'],
-	],
-	]
+	 $grouped = $this->groupBy('account_id');
+	 /*
+	 [
+	 'account-x10' => [
+	 ['account_id' => 'account-x10', 'product' => 'Chair'],
+	 ['account_id' => 'account-x10', 'product' => 'Bookcase'],
+	 ],
+	 'account-x11' => [
+	 ['account_id' => 'account-x11', 'product' => 'Desk'],
+	 ],
+	 ]
 	 * @param $key
 	 * @param $array
 	 */
@@ -395,11 +423,13 @@ abstract class We7Table {
 				$result[$val] = array($item);
 			}
 		}
+
 		return $result;
 	}
 
 	/**
 	 *  一对一
+	 *
 	 * @param $table
 	 * @param $foreign_key
 	 * @param bool $owner_key
@@ -409,10 +439,12 @@ abstract class We7Table {
 	}
 
 	/**
-	 *  一对多
+	 *  一对多.
+	 *
 	 * @param $table
 	 * @param $foreign_key
 	 * @param bool $owner_key
+	 *
 	 * @return array
 	 */
 	protected function hasMany($table, $foreign_key, $owner_key = false) {
@@ -420,29 +452,31 @@ abstract class We7Table {
 	}
 
 	/**
-	 *  反向关联
+	 *  反向关联.
+	 *
 	 * @param $table
 	 * @param $foreign_key 关联表ID
 	 * @param bool $owner_key 不填默认主键
+	 *
 	 * @return array
 	 */
 	protected function belongsTo($table, $foreign_key, $owner_key = false) {
 		return $this->relationArray(self::BELONGS_TO, $table, $foreign_key, $owner_key);
 	}
 
-
 	/**
 	 * @param $table
 	 * @param $center_table 中间表
 	 * @param $foreign_key 关联表的键
-	 * @param bool $owner_key 不填默认主键
+	 * @param bool $owner_key          不填默认主键
 	 * @param bool $center_foreign_key 不填默认 关联表的建
-	 * @param bool $center_onwer_key  不填默认主键
+	 * @param bool $center_onwer_key   不填默认主键
+	 *
 	 * @return array
 	 */
 	protected function belongsMany($table, $foreign_key, $owner_key, $center_table, $center_foreign_key = false,
 								   $center_owner_key = false) {
-		if (! $owner_key) {
+		if (!$owner_key) {
 			$owner_key = $this->primaryKey;
 		}
 		if (!$center_foreign_key) {
@@ -451,81 +485,98 @@ abstract class We7Table {
 		if (!$center_owner_key) {
 			$center_owner_key = $owner_key;
 		}
+
 		return array(self::MANY_TO_MANY, $table, $foreign_key, $owner_key, $center_table, $center_foreign_key, $center_owner_key);
 	}
 
 	/**
-	 *  定义关联数据
+	 *  定义关联数据.
+	 *
 	 * @param $type
 	 * @param $table
 	 * @param $foreign_key
 	 * @param $owner_key
+	 *
 	 * @return array
 	 */
 	private function relationArray($type, $table, $foreign_key, $owner_key) {
-		if (! $owner_key) {
+		if (!$owner_key) {
 			$owner_key = $this->primaryKey;
 		}
 		if (!in_array($type, array(self::ONE_TO_ONE, self::ONE_TO_MANY, self::BELONGS_TO), true)) {
 			trigger_error('不支持的关联类型');
 		}
+
 		return array($type, $table, $foreign_key, $owner_key);
 	}
 
 	/**
-	 *  根据主键获取数据
+	 *  根据主键获取数据.
+	 *
 	 * @param $id
+	 *
 	 * @return mixed
 	 */
-	public function getById($id) {
+	public function getById($id, $uniacid = 0) {
 		$this->query->from($this->tableName)->where($this->primaryKey, $id);
+		if (!empty($uniacid)) {
+			$this->where('uniacid', $uniacid);
+		}
 		if (is_array($id)) {
 			return $this->getall();
 		}
+
 		return $this->get();
 	}
 
 	public function getcolumn($field = '') {
 		$data = $this->query->getcolumn($field);
+
 		return $data;
 	}
 
 	/**
-	 *  拦截where 条件
+	 *  拦截where 条件.
+	 *
 	 * @param $condition
-	 * @param array $parameters
+	 * @param array  $parameters
 	 * @param string $operator
+	 *
 	 * @return $this
 	 */
 	public function where($condition, $parameters = array(), $operator = 'AND') {
 		$this->query->where($condition, $parameters, $operator);
+
 		return $this;
 	}
 
 	/**
-	 * where or
+	 * where or.
+	 *
 	 * @param $condition
 	 * @param array $parameters
+	 *
 	 * @return We7Table
 	 */
 	public function whereor($condition, $parameters = array()) {
 		return $this->where($condition, $parameters, 'OR');
 	}
-	
+
 	public function orderby($field, $direction = 'ASC') {
 		return $this->query->orderby($field, $direction);
 	}
-	
+
 	/**
 	 *  创建对象
 	 */
-	public function save() {
+	public function save($replace = false) {
 		// 更新不处理默认值
-		if($this->query->hasWhere()) {
+		if ($this->query->hasWhere()) {
 			$result = $this->valid($this->attribute);
 			if (is_error($result)) {
 				return $result;
 			}
+
 			return $this->query->update();
 		}
 
@@ -534,70 +585,80 @@ abstract class We7Table {
 		if (is_error($result)) {
 			return $result;
 		}
-		return $this->query->insert();
+
+		return $this->query->insert($replace);
 	}
 
 	/** 删除数据
 	 * @param $value
+	 *
 	 * @return mixed
 	 */
 	public function delete() {
 		if ($this->query->hasWhere()) {
 			return $this->query->delete();
 		}
+
 		return false;
 	}
 
 	private function doWhere($field, $params, $operator = 'AND') {
-		if ($params == 0) {
+		if (0 == $params) {
 			return $this;
 		}
 		$value = $params[0];
 		if (count($params) > 1) {
 			//params[1] 操作符
-			$field = $field.' '.$params[1];
+			$field = $field . ' ' . $params[1];
 		}
 		$this->query->where($field, $value, $operator);
+
 		return $this;
 	}
 
 	/**
-	 *  HelloWord 转 hello_word
+	 *  HelloWord 转 hello_word.
+	 *
 	 * @param $value
+	 *
 	 * @return mixed|string
 	 */
 	private function snake($value) {
 		$delimiter = '_';
-		if (! ctype_lower($value)) {
+		if (!ctype_lower($value)) {
 			$value = preg_replace('/\s+/u', '', ucwords($value));
-			$value = strtolower(preg_replace('/(.)(?=[A-Z])/u', '$1'.$delimiter, $value));
+			$value = strtolower(preg_replace('/(.)(?=[A-Z])/u', '$1' . $delimiter, $value));
 		}
+
 		return $value;
 	}
 
 	/**
-	 * hello_word 转HelloWord
+	 * hello_word 转HelloWord.
+	 *
 	 * @return mixed
 	 */
 	private function studly($value) {
 		$value = ucwords(str_replace(array('-', '_'), ' ', $value));
+
 		return str_replace(' ', '', $value);
 	}
 
 	/**
-	 *  找不到方法默认调用query
+	 *  找不到方法默认调用query.
+	 *
 	 * @param $method
 	 * @param $params
+	 *
 	 * @return mixed
-	 * 
+	 *
 	 * 语法糖 -> where() fill()
 	 * whereUsername('test')->delete()  ->get()...;
 	 * searchWithUsername('test') ->get()
 	 * fillUsername('test')->update()   ->insert()
-	 * 
+	 *
 	 * 业务方法
 	 * getByid()
-	 * 
 	 */
 	public function __call($method, $params) {
 		//whereor 必须在where 前边 否则 whereorAge 或被替换成 where('or_age',1)
@@ -605,7 +666,7 @@ abstract class We7Table {
 			'searchWith',
 			'whereor',
 			'where',
-			'fill'
+			'fill',
 		);
 		foreach ($actions as $action) {
 			$fields = explode($action, $method);
@@ -614,14 +675,16 @@ abstract class We7Table {
 				switch ($action) {
 					case 'whereor':
 						return $this->doWhere($field, $params, 'OR');
-					case 'fill' :
+					case 'fill':
 						$this->fill($field, $params[0]);
+
 						return $this;
-					default :
+					default:
 						return $this->doWhere($field, $params);
 				}
 			}
 		}
+
 		return $this;
 	}
 }

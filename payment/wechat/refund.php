@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn: pro/payment/wechat/notify.php : v a4b6a17a6d8a : 2015/09/14 08:41:00 : yanghf $
  */
 
@@ -35,13 +35,17 @@ if (!empty($input)) {
 	exit;
 }
 
-$account = pdo_get('account_wechats', array('key' => $wechat_data['appid']));
+$account = table('account_wechats')
+	->where(array('key' => $wechat_data['appid']))
+	->get();
 if (empty($account)) {
-	$account = pdo_get('account_wxapp', array('key' => $wechat_data['appid']));
+	$account = table('account_wxapp')
+		->where(array('key' => $wechat_data['appid']))
+		->get();
 }
 $_W['uniacid'] = $account['uniacid'];
 if (!empty($wechat_data['sub_mch_id'])) {
-	$account_list = pdo_getall('account', array(), array('uniacid'));
+	$account_list = table('account')->select('uniacid')->getall();
 	if (is_array($account_list)) {
 		foreach ($account_list as $sub_account) {
 			$setting = uni_setting_load('payment', $sub_account['uniacid']);
@@ -67,11 +71,25 @@ if(!empty($pay_setting['signkey'])) {
 	$refund = json_decode(json_encode(isimplexml_load_string($wechat_data['req_info'], 'SimpleXMLElement', LIBXML_NOCDATA)), true);
 
 	if(!empty($refund)) {
-		$pay_log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'uniontid' => $refund['out_trade_no']));
-		$refund_log = pdo_get('core_refundlog', array('uniacid' => $_W['uniacid'], 'refund_uniontid' => $refund['out_refund_no'], 'uniontid' => $refund['out_trade_no']));
+		$pay_log = table('core_paylog')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'uniontid' => $refund['out_trade_no']
+			))
+			->get();
+		$refund_log = table('core_refundlog')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'refund_uniontid' => $refund['out_refund_no'],
+				'uniontid' => $refund['out_trade_no']
+			))
+			->get();
 		//此处判断微信请求消息金额必须与系统发起的金额一致
 		if(!empty($refund_log) && $refund_log['status'] == '0' && (($refund['total_fee'] / 100) == $pay_log['card_fee'])) {
-			pdo_update('core_refundlog', array('status' => 1), array('id' => $refund_log['id']));
+			table('core_refundlog')
+				->where(array('id' => $refund_log['id']))
+				->fill(array('status' => 1))
+				->save();
 			$site = WeUtility::createModuleSite($pay_log['module']);
 			if(!is_error($site)) {
 				$method = 'refundResult';

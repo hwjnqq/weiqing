@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn: pro/payment/wechat/warning.php : v 1184e30b9b78 : 2015/09/06 10:57:13 : RenChao $
  */
 require '../../source/bootstrap.inc.php';

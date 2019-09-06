@@ -33,12 +33,95 @@
 					</div>
 					<!-- 关闭原因 end -->
 
+					<!-- 自动退出 start -->
+					<div class="form-file">
+						<div class="form-label">自动退出</div>
+						<div class="form-value" ng-bind="settings.autosignout_notice"></div>
+						<div class="form-edit">
+							<a href="#autosignout" data-toggle="modal" data-target="#autosignout">修改</a>
+						</div>
+						<div class="modal fade modal-form" id="autosignout" role="dialog">
+							<div class="we7-modal-dialog modal-dialog">
+								<div class="modal-content">
+									<div class="modal-header">
+										<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+										<div class="modal-title">设置自动退出时间</div>
+									</div>
+									<div class="modal-body we7-form">
+										<div class="alert alert-info we7-page-alert">
+											<p><i class="wi wi-info-sign"></i>登录状态下，若长时间无操作系统将自动退出。</p>
+										</div>
+										<div class="form-group" ng-init="autosignout = settings.autosignout; autosignoutCopy = autosignout">
+											<input type="radio" id="autosignout1" value="30" ng-change="autosignoutCopy = autosignout" ng-model="autosignout">
+											<label for="autosignout1">30分钟退出 <span class="active"></span></label>
+											<input type="radio" id="autosignout2" ng-change="autosignoutCopy = autosignout" value="60" ng-model="autosignout" >
+											<label for="autosignout2">1小时退出<span></span></label>
+											<input type="radio" id="autosignout3" ng-change="autosignoutCopy = autosignout" value="180" ng-model="autosignout" >
+											<label for="autosignout3">3小时退出<span></span></label>
+											<input type="radio" id="autosignout4" ng-change="autosignoutCopy = autosignout" value="" ng-model="autosignout" ng-checked="autosignout != 30 && autosignout != 60 && autosignout != 180">
+											<label for="autosignout4">自行设置<span></span></label>
+										</div>
+										<div class="form-group marbot0" ng-show="autosignout != 30 && autosignout != 60 && autosignout != 180">
+											<!-- <label class="col-sm-2 co	ntrol-label">备案号</label> -->
+											<div class="input-group" >
+												<input type="text" ng-model="autosignoutCopy" class="form-control" placeholder="自动退出时间" autocomplete="off" >
+												<span class="input-group-addon">
+													分钟
+												</span>
+											</div>
+										</div>
+									</div>
+									<div class="modal-footer">
+										<button type="button" class="btn btn-primary" ng-click="saveSetting({value: autosignoutCopy}, 'autosignout', 'int')" data-dismiss="modal">确定</button>
+										<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- 自动退出 end -->
+
 					<!-- 备案号 start -->
 					<div class="form-file">
 						<div class="form-label">备案号</div>
 						<div class="form-value">{$settings['icp']}<span class="we7-margin-left">直接填写备案号即可,系统已添加工信部链接</span></div>
 						<div class="form-edit">
 							<we7-modal-form label="'备案号'" on-confirm="saveSetting(formValue, 'icp', 'string')" value="settings['icp']"></we7-modal-form>
+						</div>
+					</div>
+					<div class="form-file">
+						<div class="form-label">联网备案信息</div>
+						<div class="form-value">{$settings['policeicp']['policeicp_location']} {$settings['policeicp']['policeicp_code']}<span class="we7-margin-left">直接填写联网备案信息即可,系统已添加工信部链接</span></div>
+						<div class="form-edit">
+							<a href="#policeicp" data-toggle="modal" data-target="#policeicp">修改</a>
+						</div>
+					</div>
+					<div class="modal fade modal-form" id="policeicp" role="dialog">
+						<div class="we7-modal-dialog modal-dialog">
+							<div class="modal-content">
+								<div class="modal-header">
+									<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+									<div class="modal-title">联网备案信息</div>
+								</div>
+								<div class="modal-body we7-form">
+									<div class="form-group">
+										<label class="col-sm-2 control-label">备案地</label>
+										<div class="col-sm-10">
+											<input type="text" ng-model="policeicp.value.location" class="form-control" placeholder="例如：京公网安备"  autocomplete="off" >
+										</div>
+									</div>
+									<div class="form-group marbot0">
+										<label class="col-sm-2 control-label">备案号</label>
+										<div class="col-sm-10">
+											<input type="text" ng-model="policeicp.value.code" class="form-control" placeholder="例如：11000002000001" autocomplete="off" >
+										</div>
+									</div>
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-primary" ng-click="saveSetting(policeicp, 'policeicp', 'string')" data-dismiss="modal">确定</button>
+									<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+								</div>
+							</div>
 						</div>
 					</div>
 					<!-- 备案号 end -->

@@ -2,7 +2,7 @@
 /**
  * 图片处理类.
  *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -43,10 +43,10 @@ class Image {
 		if ($width > 0 || $height > 0) {
 			$this->actions[] = 'resize';
 		}
-		if ($width > 0 && $height == 0) {
+		if ($width > 0 && 0 == $height) {
 			$height = $width;
 		}
-		if ($height > 0 && $width == 0) {
+		if ($height > 0 && 0 == $width) {
 			$width = $height;
 		}
 		$this->resize_width = $width;
@@ -59,10 +59,10 @@ class Image {
 		if ($width > 0 || $height > 0) {
 			$this->actions[] = 'crop';
 		}
-		if ($width > 0 && $height == 0) {
+		if ($width > 0 && 0 == $height) {
 			$height = $width;
 		}
-		if ($height > 0 && $width == 0) {
+		if ($height > 0 && 0 == $width) {
 			$width = $height;
 		}
 		$this->crop_width = $width;
@@ -78,7 +78,7 @@ class Image {
 	}
 
 	public function isPng() {
-		return file_is_image($this->src) && $this->getExt() == 'png';
+		return file_is_image($this->src) && 'png' == $this->getExt();
 	}
 
 	public function isJPEG() {
@@ -86,7 +86,7 @@ class Image {
 	}
 
 	public function isGif() {
-		return file_is_image($this->src) && $this->getExt() == 'gif';
+		return file_is_image($this->src) && 'gif' == $this->getExt();
 	}
 
 	/**
@@ -107,7 +107,7 @@ class Image {
 			return false;
 		}
 		$ext = $this->getExt();
-		if ($ext == 'jpg') {
+		if ('jpg' == $ext) {
 			$ext = 'jpeg';
 		}
 		$func = 'image' . $ext;
@@ -287,10 +287,10 @@ class Image {
 		$s_height = $this->imageinfo[1];
 		$dst_x = $dst_y = 0;
 		// 处理裁剪的宽高
-		if ($this->crop_width == '0' || $this->crop_width > $s_width) {
+		if ('0' == $this->crop_width || $this->crop_width > $s_width) {
 			$this->crop_width = $s_width;
 		}
-		if ($this->crop_height == '0' || $this->crop_height > $s_height) {
+		if ('0' == $this->crop_height || $this->crop_height > $s_height) {
 			$this->crop_height = $s_height;
 		}
 		switch ($this->crop_position) {

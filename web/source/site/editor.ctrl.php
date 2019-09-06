@@ -1,7 +1,7 @@
 <?php
 /**
  * 会员中心
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('site');
@@ -16,7 +16,7 @@ if (in_array($do, array('quickmenu', 'uc'))) {
 }
 
 if ($do == 'uc') {
-	if (!empty($_GPC['wapeditor'])) {
+	if (!empty($_GPC['wapeditor']) && 0) {
 		$params = $_GPC['wapeditor']['params'];
 		if (empty($params)) {
 			itoast('请您先设计手机端页面.', '', 'error');
@@ -39,12 +39,23 @@ if ($do == 'uc') {
 			'html' => $html,
 			'createtime' => TIMESTAMP,
 		);
-		$id = pdo_fetchcolumn("SELECT id FROM ".tablename('site_page')." WHERE uniacid = :uniacid AND type = '3'", array(':uniacid' => $_W['uniacid']));
+		$id = table('site_page')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'type' => 3
+			))
+			->getcolumn('id');
 		if (empty($id)) {
-			pdo_insert('site_page', $data);
+			table('site_page')->fill($data)->save();
 			$id = pdo_insertid();
 		} else {
-			pdo_update('site_page', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
+			table('site_page')
+				->where(array(
+					'id' => $id,
+					'uniacid' => $_W['uniacid']
+				))
+				->fill($data)
+				->save();
 		}
 		if (!empty($page['params']['keyword'])) {
 			$cover = array(
@@ -74,19 +85,31 @@ if ($do == 'uc') {
 					'displayorder' => 0,
 				);
 				if (!empty($row['id'])) {
-					pdo_update('site_nav', $data, array('id' => $row['id'], 'uniacid' => $_W['uniacid']));
+					table('site_nav')
+						->where(array(
+							'id' => $row['id'],
+							'uniacid' => $_W['uniacid']
+						))
+						->fill($data)
+						->save();
 				} else {
 					$data['status'] = 1;
-					pdo_insert('site_nav', $data);
+					table('site_nav')->fill($data)->save();
 					$row['id'] = pdo_insertid();
 				}
 				$ids[] = $row['id'];
 			}
 		}
-		pdo_delete('site_nav', array('uniacid' => $_W['uniacid'], 'position' => '2', 'id <>' => $ids));
+		table('site_nav')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'position' => '2',
+				'id <>' => $ids
+			))
+			->delete();
 		itoast('个人中心保存成功.', url('site/editor/uc'), 'success');
 	}
-	$navs = pdo_fetchall("SELECT id, icon, css, name, module, status, url FROM ".tablename('site_nav')." WHERE uniacid = :uniacid AND position = '2' ORDER BY displayorder DESC, id ASC", array(':uniacid' => $_W['uniacid']));
+	$navs = table('site_nav')->getBySnake(array('id', 'icon', 'css', 'name', 'module', 'status', 'url'), array('uniacid' => $_W['uniacid'], 'position' => 2), array('displayorder' => 'DESC', 'id' => 'ASC'))->getall();
 	if (!empty($navs)) {
 		foreach ($navs as &$nav) {
 			/*处理icon图片链接*/
@@ -105,7 +128,12 @@ if ($do == 'uc') {
 		}
 		unset($nav);
 	}
-	$page = pdo_fetch("SELECT * FROM ".tablename('site_page')." WHERE uniacid = :uniacid AND type = '3'", array(':uniacid' => $_W['uniacid']));
+	$page = table('site_page')
+		->where(array(
+			'uniacid' => $_W['uniacid'],
+			'type' => 3
+		))
+		->get();
 	template('site/editor');
 } elseif ($do == 'quickmenu') {
 	$multiid = intval($_GPC['multiid']);
@@ -133,25 +161,51 @@ if ($do == 'uc') {
 			'createtime' => TIMESTAMP,
 		);
 		if ($type == '4') {
-			$id = pdo_fetchcolumn("SELECT id FROM ".tablename('site_page')." WHERE uniacid = :uniacid AND type = :type", array(':uniacid' => $_W['uniacid'], ':type' => $type));
+			$id = table('site_page')
+				->where(array(
+					'uniacid' => $_W['uniacid'],
+					'type' => $type
+				))
+				->getcolumn('id');
 		} else {
-			$id = pdo_fetchcolumn("SELECT id FROM ".tablename('site_page')." WHERE multiid = :multiid AND type = :type", array(':multiid' => $multiid, ':type' => $type));
+			$id = table('site_page')
+				->where(array(
+					'multiid' => $multiid,
+					'type' => $type
+				))
+				->getcolumn('id');
 		}
 		if (!empty($id)) {
-			pdo_update('site_page', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
+			table('site_page')
+				->where(array(
+					'id' => $id,
+					'uniacid' => $_W['uniacid']
+				))
+				->fill($data)
+				->save();
 		} else {
 			if ($type == 4) {
 				$data['status'] = 1;
 			}
-			pdo_insert('site_page', $data);
+			table('site_page')->fill($data)->save();
 			$id = pdo_insertid();
 		}
 		itoast('快捷菜单保存成功.', url('site/editor/quickmenu', array('multiid' => $multiid, 'type' => $type)), 'success');
 	}
 	if ($type == '4') {
-		$page = pdo_fetch("SELECT * FROM ".tablename('site_page')." WHERE type = :type AND uniacid = :uniacid", array(':type' => $type, ':uniacid' => $_W['uniacid']));
+		$page = table('site_page')
+			->where(array(
+				'type' => $type,
+				'uniacid' => $_W['uniacid']
+			))
+			->get();
 	} else {
-		$page = pdo_fetch("SELECT * FROM ".tablename('site_page')." WHERE multiid = :multiid AND type = :type", array(':multiid' => $multiid, ':type' => $type));
+		$page = table('site_page')
+			->where(array(
+				'type' => $type,
+				'multiid' => $multiid
+			))
+			->get();
 	}
 	$modules = uni_modules();
 	template('site/editor');

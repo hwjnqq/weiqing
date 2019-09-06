@@ -1,7 +1,7 @@
 <?php
 /**
  * 用户管理
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -9,11 +9,11 @@ load()->model('user');
 load()->model('message');
 
 $dos = array('display', 'operate');
-$do = in_array($do, $dos) ? $do: 'display';
+$do = in_array($do, $dos) ? $do : 'display';
 
 $founders = explode(',', $_W['config']['setting']['founder']);
 
-if ($do == 'display') {
+if ('display' == $do) {
 	$message_id = intval($_GPC['message_id']);
 	message_notice_read($message_id);
 
@@ -23,8 +23,8 @@ if ($do == 'display') {
 	$users_table = table('users');
 	$users_table->searchWithTimelimitStatus(intval($_GPC['expire']));
 	if (!empty($_GPC['user_type'])) {
-		$user_type = $_GPC['user_type'] == USER_TYPE_COMMON ? USER_TYPE_COMMON : USER_TYPE_CLERK;
-		if ($user_type == USER_TYPE_CLERK) {
+		$user_type = USER_TYPE_COMMON == $_GPC['user_type'] ? USER_TYPE_COMMON : USER_TYPE_CLERK;
+		if (USER_TYPE_CLERK == $user_type) {
 			$users_table->searchWithType(USER_TYPE_CLERK);
 		} else {
 			$users_table->searchWithType(USER_TYPE_COMMON);
@@ -52,7 +52,8 @@ if ($do == 'display') {
 
 		$search = safe_gpc_string($_GPC['search']);
 		if (!empty($search)) {
-			$users_table->searchWithNameOrMobile($search);
+			$search_uids = table('users_profile')->where('mobile like ', "%{$search}%")->getall('uid');
+			$users_table->searchWithNameOrMobile($search, false, is_array($search_uids) ? array_keys($search_uids) : array());
 		}
 
 		$group_id = intval($_GPC['groupid']);
@@ -64,16 +65,22 @@ if ($do == 'display') {
 
 		$users_table->searchWithoutFounder();
 		$users_table->searchWithPage($pindex, $psize);
-		$users = $users_table->getUsersList();
+		$users = $users_table->getUsersList(false);
 		$total = $users_table->getLastQueryTotal();
-		$users = user_list_format($users);
+		if (!empty($users)) {
+			$profiles = table('users_profile')->searchWithUid(array_keys($users))->getAll('uid');
+			foreach ($profiles as $profile) {
+				$users[$profile['uid']]['avatar'] = $profile['avatar'];
+			}
+		}
+		$users = user_list_format($users, false);
 		$users = array_values($users);
 		$pager = pagination($total, $pindex, $psize);
 	}
 	template('user/display');
 }
 
-if ($do == 'operate') {
+if ('operate' == $do) {
 	if (!$_W['isajax'] || !$_W['ispost']) {
 		iajax(-1, '非法操作！', referer());
 	}
@@ -104,7 +111,7 @@ if ($do == 'operate') {
 	switch ($type) {
 		case 'check_pass':
 			$data = array('status' => USER_STATUS_NORMAL);
-			pdo_update('users', $data , array('uid' => $uid));
+			pdo_update('users', $data, array('uid' => $uid));
 			iajax(0, '更新成功', referer());
 			break;
 		case 'recycle'://删除用户到回收站
@@ -117,7 +124,7 @@ if ($do == 'operate') {
 			break;
 		case 'recycle_restore':
 			$data = array('status' => USER_STATUS_NORMAL);
-			pdo_update('users', $data , array('uid' => $uid));
+			pdo_update('users', $data, array('uid' => $uid));
 			iajax(0, '启用成功', referer());
 			break;
 	}

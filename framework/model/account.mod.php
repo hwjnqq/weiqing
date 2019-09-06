@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
@@ -19,7 +19,7 @@ function uni_account_type_sign($type_sign = '') {
 			'title' => '公众号',
 		),
 		WXAPP_TYPE_SIGN => array(
-			'contain_type' => array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH),
+			'contain_type' => array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_APP_PLATFORM),
 			'icon' => 'wi wi-wxapp',
 			'createurl' => url('wxapp/post/design_method'),
 			'title' => '微信小程序',
@@ -80,6 +80,9 @@ function uni_account_type($type = 0) {
 			'table_name' => 'account_wechats',
 			'module_support_name' => MODULE_SUPPORT_ACCOUNT_NAME,
 			'module_support_value' => MODULE_SUPPORT_ACCOUNT,
+			'store_type_module' => STORE_TYPE_MODULE,
+			'store_type_number' => STORE_TYPE_ACCOUNT,
+			'store_type_renew' => STORE_TYPE_ACCOUNT_RENEW,
 		),
 		ACCOUNT_TYPE_OFFCIAL_AUTH => array(
 			'title' => '公众号',
@@ -87,6 +90,9 @@ function uni_account_type($type = 0) {
 			'table_name' => 'account_wechats',
 			'module_support_name' => MODULE_SUPPORT_ACCOUNT_NAME,
 			'module_support_value' => MODULE_SUPPORT_ACCOUNT,
+			'store_type_module' => STORE_TYPE_MODULE,
+			'store_type_number' => STORE_TYPE_ACCOUNT,
+			'store_type_renew' => STORE_TYPE_ACCOUNT_RENEW,
 		),
 		ACCOUNT_TYPE_APP_NORMAL => array(
 			'title' => '微信小程序',
@@ -96,6 +102,9 @@ function uni_account_type($type = 0) {
 			'version_tablename' => 'wxapp_versions',
 			'module_support_name' => MODULE_SUPPORT_WXAPP_NAME,
 			'module_support_value' => MODULE_SUPPORT_WXAPP,
+			'store_type_module' => STORE_TYPE_WXAPP_MODULE,
+			'store_type_number' => STORE_TYPE_WXAPP,
+			'store_type_renew' => STORE_TYPE_WXAPP_RENEW,
 		),
 		ACCOUNT_TYPE_APP_AUTH => array(
 			'title' => '微信小程序',
@@ -105,6 +114,21 @@ function uni_account_type($type = 0) {
 			'version_tablename' => 'wxapp_versions',
 			'module_support_name' => MODULE_SUPPORT_WXAPP_NAME,
 			'module_support_value' => MODULE_SUPPORT_WXAPP,
+			'store_type_module' => STORE_TYPE_WXAPP_MODULE,
+			'store_type_number' => STORE_TYPE_WXAPP,
+			'store_type_renew' => STORE_TYPE_WXAPP_RENEW,
+		),
+		ACCOUNT_TYPE_APP_PLATFORM => array(
+			'title' => '微信小程序',
+			'type_sign' => WXAPP_TYPE_SIGN,
+			'table_name' => 'account_wxapp',
+			'support_version' => 1,
+			'version_tablename' => 'wxapp_versions',
+			'module_support_name' => MODULE_SUPPORT_WXAPP_NAME,
+			'module_support_value' => MODULE_SUPPORT_WXAPP,
+			'store_type_module' => STORE_TYPE_WXAPP_MODULE,
+			'store_type_number' => STORE_TYPE_WXAPP,
+			'store_type_renew' => STORE_TYPE_WXAPP_RENEW,
 		),
 		//弄得时候再放开注释
 		//ACCOUNT_TYPE_WXAPP_WORK => array(
@@ -122,6 +146,9 @@ function uni_account_type($type = 0) {
 			'table_name' => 'account_webapp',
 			'module_support_name' => MODULE_SUPPORT_WEBAPP_NAME,
 			'module_support_value' => MODULE_SUPPORT_WEBAPP,
+			'store_type_module' => STORE_TYPE_WEBAPP_MODULE,
+			'store_type_number' => STORE_TYPE_WEBAPP,
+			'store_type_renew' => STORE_TYPE_WEBAPP_RENEW,
 		),
 		ACCOUNT_TYPE_PHONEAPP_NORMAL => array(
 			'title' => 'APP',
@@ -131,6 +158,9 @@ function uni_account_type($type = 0) {
 			'version_tablename' => 'wxapp_versions',
 			'module_support_name' => MODULE_SUPPORT_PHONEAPP_NAME,
 			'module_support_value' => MODULE_SUPPORT_PHONEAPP,
+			'store_type_module' => STORE_TYPE_PHONEAPP_MODULE,
+			'store_type_number' => STORE_TYPE_PHONEAPP,
+			'store_type_renew' => STORE_TYPE_PHONEAPP_RENEW,
 		),
 		ACCOUNT_TYPE_XZAPP_NORMAL => array(
 			'title' => '熊掌号',
@@ -138,6 +168,9 @@ function uni_account_type($type = 0) {
 			'table_name' => 'account_xzapp',
 			'module_support_name' => MODULE_SUPPORT_XZAPP_NAME,
 			'module_support_value' => MODULE_SUPPORT_XZAPP,
+			'store_type_module' => STORE_TYPE_XZAPP_MODULE,
+			'store_type_number' => STORE_TYPE_XZAPP,
+			'store_type_renew' => STORE_TYPE_XZAPP_RENEW,
 		),
 		ACCOUNT_TYPE_XZAPP_AUTH => array(
 			'title' => '熊掌号',
@@ -145,6 +178,9 @@ function uni_account_type($type = 0) {
 			'table_name' => 'account_xzapp',
 			'module_support_name' => MODULE_SUPPORT_XZAPP_NAME,
 			'module_support_value' => MODULE_SUPPORT_XZAPP,
+			'store_type_module' => STORE_TYPE_XZAPP_MODULE,
+			'store_type_number' => STORE_TYPE_XZAPP,
+			'store_type_renew' => STORE_TYPE_XZAPP_RENEW,
 		),
 		ACCOUNT_TYPE_ALIAPP_NORMAL => array(
 			'title' => '支付宝小程序',
@@ -154,6 +190,9 @@ function uni_account_type($type = 0) {
 			'version_tablename' => 'wxapp_versions',
 			'module_support_name' => MODULE_SUPPORT_ALIAPP_NAME,
 			'module_support_value' => MODULE_SUPPORT_ALIAPP,
+			'store_type_module' => STORE_TYPE_ALIAPP_MODULE,
+			'store_type_number' => STORE_TYPE_ALIAPP,
+			'store_type_renew' => STORE_TYPE_ALIAPP_RENEW,
 		),
 		ACCOUNT_TYPE_BAIDUAPP_NORMAL => array(
 			'title' => '百度小程序',
@@ -163,6 +202,9 @@ function uni_account_type($type = 0) {
 			'version_tablename' => 'wxapp_versions',
 			'module_support_name' => MODULE_SUPPORT_BAIDUAPP_NAME,
 			'module_support_value' => MODULE_SUPPORT_BAIDUAPP,
+			'store_type_module' => STORE_TYPE_BAIDUAPP_MODULE,
+			'store_type_number' => STORE_TYPE_BAIDUAPP,
+			'store_type_renew' => STORE_TYPE_BAIDUAPP_RENEW,
 		),
 		ACCOUNT_TYPE_TOUTIAOAPP_NORMAL => array(
 			'title' => '头条小程序',
@@ -172,12 +214,32 @@ function uni_account_type($type = 0) {
 			'version_tablename' => 'wxapp_versions',
 			'module_support_name' => MODULE_SUPPORT_TOUTIAOAPP_NAME,
 			'module_support_value' => MODULE_SUPPORT_TOUTIAOAPP,
+			'store_type_module' => STORE_TYPE_TOUTIAOAPP_MODULE,
+			'store_type_number' => STORE_TYPE_TOUTIAOAPP,
+			'store_type_renew' => STORE_TYPE_TOUTIAOAPP_RENEW,
 		),
 	);
 	if (!empty($type)) {
 		return !empty($all_account_type[$type]) ? $all_account_type[$type] : array();
 	}
 	return $all_account_type;
+}
+	
+/**
+ * 是否加载account数据(即$_W['account'])
+ * @return bool
+ */
+function uni_need_account_info() {
+	global $controller, $action, $do;
+	if (defined('FRAME') && in_array(FRAME, array('account', 'wxapp'))) {
+		return true;
+	}
+	if ($controller == 'miniapp') {
+		if ($action == 'version' && $do == 'display') {
+			return true;
+		}
+	}
+	return false;
 }
 
 /**
@@ -331,7 +393,7 @@ function uni_site_store_buy_goods($uniacid, $type = STORE_TYPE_MODULE) {
 	if (!empty($site_store_buy_goods)) {
 		return $site_store_buy_goods;
 	}
-	$store_table = table('store');
+	$store_table = table('site_store_order');
 	if ($type != STORE_TYPE_API) {
 		$store_table->searchWithEndtime();
 		$site_store_buy_goods = $store_table->searchAccountBuyGoods($uniacid, $type);
@@ -430,6 +492,10 @@ function uni_modules_by_uniacid($uniacid) {
 				in_array($account_info['type'], array(ACCOUNT_TYPE_ALIAPP_NORMAL))) {
 				continue;
 			}
+			if ($module_info[MODULE_SUPPORT_BAIDUAPP_NAME] != MODULE_SUPPORT_BAIDUAPP &&
+				in_array($account_info['type'], array(ACCOUNT_TYPE_BAIDUAPP_NORMAL))) {
+				continue;
+			}
 			if ($module_info[MODULE_SUPPORT_WXAPP_NAME] != MODULE_SUPPORT_WXAPP &&
 				$module_info[MODULE_SUPPORT_ACCOUNT_NAME] != MODULE_SUPPORT_ACCOUNT &&
 				in_array($account_info['type'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH))) {
@@ -440,6 +506,7 @@ function uni_modules_by_uniacid($uniacid) {
 				$module_info[MODULE_SUPPORT_WEBAPP_NAME] != MODULE_SUPPORT_WEBAPP &&
 				$module_info[MODULE_SUPPORT_PHONEAPP_NAME] != MODULE_SUPPORT_PHONEAPP &&
 				$module_info[MODULE_SUPPORT_ALIAPP_NAME] != MODULE_SUPPORT_ALIAPP &&
+				$module_info[MODULE_SUPPORT_BAIDUAPP_NAME] != MODULE_SUPPORT_BAIDUAPP &&
 				$module_info[MODULE_SUPPORT_WXAPP_NAME] != MODULE_SUPPORT_WXAPP) {
 				continue;
 			}
@@ -810,7 +877,7 @@ function uni_setting_load($name = '', $uniacid = 0) {
 	if (empty($unisetting) || ($name == 'remote' && empty($unisetting['remote']))) {
 		$unisetting = pdo_get('uni_settings', array('uniacid' => $uniacid));
 		if (!empty($unisetting)) {
-			$serialize = array('site_info', 'stat', 'oauth', 'passport', 'uc', 'notify',
+			$serialize = array('site_info', 'stat', 'oauth', 'passport', 'notify',
 				'creditnames', 'default_message', 'creditbehaviors', 'payment',
 				'recharge', 'tplnotice', 'mcplugin', 'statistics', 'bind_domain', 'remote');
 			foreach ($unisetting as $key => &$row) {
@@ -862,7 +929,7 @@ function uni_account_default($uniacid = 0) {
 	if (!empty($uni_account)) {
 		$account_tablename = uni_account_type($uni_account['type']);
 		$account_tablename = $account_tablename['table_name'];
-		$account = pdo_get($account_tablename, array('acid' => $uni_account['acid']));
+		$account = pdo_get($account_tablename, array('uniacid' => $uni_account['uniacid']));
 		if (empty($account)) {
 			$account['uniacid'] = $uni_account['uniacid'];
 			$account['acid'] = $uni_account['default_acid'];
@@ -972,7 +1039,7 @@ function uni_update_week_stat() {
 			);
 		} else {
 			$update_stat = array(
-				'cumulate' => pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('mc_mapping_fans') . " WHERE acid = :acid AND uniacid = :uniacid AND follow = :follow AND followtime < :endtime", array(':acid' => $_W['acid'], ':uniacid' => $_W['uniacid'], ':endtime' => strtotime($sevens)+86400, ':follow' => 1)),
+				'cumulate' => pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('mc_mapping_fans') . " WHERE uniacid = :uniacid AND follow = :follow AND followtime < :endtime", array(':uniacid' => $_W['uniacid'], ':endtime' => strtotime($sevens)+86400, ':follow' => 1)),
 				'date' => $sevens,
 				'new' => $week_stat_fans[$sevens]['new'],
 				'cancel' => $week_stat_fans[$sevens]['cancel'],
@@ -1218,8 +1285,8 @@ function account_delete($acid) {
 		if ($uniaccount['default_acid'] == $acid) {
 			itoast('默认子公众号不能删除', '', '');
 		}
-		pdo_delete('account', array('acid' => $acid));
-		pdo_delete('account_wechats', array('acid' => $acid, 'uniacid' => $uniacid));
+		pdo_delete('account', array('uniacid' => $uniacid));
+		pdo_delete('account_wechats', array('uniacid' => $uniacid));
 		cache_delete(cache_system_key('uniaccount', array('uniacid' => $uniacid)));
 		cache_delete(cache_system_key('account_auth_refreshtoken', array('uniacid' => $uniacid)));
 		$oauth = uni_setting($uniacid, array('oauth'));

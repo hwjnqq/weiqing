@@ -1,7 +1,7 @@
 <?php
 /**
  * 小程序-数据同步
- * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -11,7 +11,7 @@ $dos = array('module_link_uniacid', 'search_link_account', 'module_unlink_uniaci
 $do = in_array($do, $dos) ? $do : 'module_link_uniacid';
 permission_check_account_user('wxapp_profile_module_link_uniacid');
 
-if ($do == 'module_link_uniacid') {
+if ('module_link_uniacid' == $do) {
 	if (checksubmit('submit')) {
 		$uniacid = intval($_GPC['uniacid']);
 		$module_name = safe_gpc_string(trim($_GPC['module_name']));
@@ -73,7 +73,7 @@ if ($do == 'module_link_uniacid') {
 	template('wxapp/version-module-link-uniacid');
 }
 
-if ($do == 'module_unlink_uniacid') {
+if ('module_unlink_uniacid' == $do) {
 	if (empty($version_info)) {
 		iajax(-1, '版本信息错误！');
 	}
@@ -101,7 +101,7 @@ if ($do == 'module_unlink_uniacid') {
 	}
 }
 
-if ($do == 'search_link_account') {
+if ('search_link_account' == $do) {
 	$module_name = safe_gpc_string($_GPC['module_name']);
 	$account_type_sign = safe_gpc_string($_GPC['type_sign']);
 	if (empty($module_name) || empty($account_type_sign)) {
@@ -113,7 +113,7 @@ if ($do == 'search_link_account') {
 	}
 
 	$all_account_type_sign = uni_account_type_sign();
-	if (!empty($_W['account']) && $_W['account']->typeSign != WXAPP_TYPE_SIGN) {
+	if (!empty($_W['account']) && WXAPP_TYPE_SIGN != $_W['account']->typeSign) {
 		unset($all_account_type_sign[$_W['account']->typeSign]); //除小程序外,不可关联与自身同类的账号
 	}
 	if (!in_array($account_type_sign, array_keys($all_account_type_sign))) {
@@ -130,7 +130,7 @@ if ($do == 'search_link_account') {
 				unset($account_list[$key]);
 				continue;
 			}
-			$account_list[$key]['logo'] = is_file(IA_ROOT . '/attachment/headimg_' . $account['acid'] . '.jpg') ? tomedia('headimg_'.$account['acid']. '.jpg').'?time='.time() : './resource/images/nopic-107.png';
+			$account_list[$key]['logo'] = is_file(IA_ROOT . '/attachment/headimg_' . $account['acid'] . '.jpg') ? tomedia('headimg_' . $account['acid'] . '.jpg') . '?time=' . time() : './resource/images/nopic-107.png';
 		}
 	}
 	iajax(0, $account_list);

@@ -2,7 +2,7 @@
 /**
  * 接口文件
  *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2013 W7.CC
  * $sn: pro/api.php : v 24db125c5a0f : 2015/09/14 10:42:33 : RenChao $
  */
 define('IN_API', true);
@@ -10,7 +10,6 @@ require_once './framework/bootstrap.inc.php';
 load()->model('reply');
 load()->model('attachment');
 load()->model('visit');
-load()->model('app');
 load()->app('common');
 load()->classs('wesession');
 $hash = $_GPC['hash'];
@@ -36,7 +35,7 @@ if(empty($id)) {
 if (!empty($id)) {
 	$uniacid = pdo_getcolumn('account', array('acid' => $id), 'uniacid');
 	$_W['account'] = $_W['uniaccount'] = uni_fetch($uniacid);
-	if (!empty($_W['account']['uniacid']) && app_pass_visit_limit($_W['account']['uniacid'])) {
+	if (!empty($_W['account']['uniacid']) && visit_app_pass_visit_limit($_W['account']['uniacid'])) {
 		exit('success');
 	}
 }
@@ -177,7 +176,7 @@ class WeEngine {
 		if(strtolower($_SERVER['REQUEST_METHOD']) == 'get') {
 			$row = array();
 			$row['isconnect'] = 1;
-			pdo_update('account', $row, array('acid' => $_W['acid']));
+			pdo_update('account', $row, array('uniacid' => $_W['uniacid']));
 			cache_delete(cache_system_key('uniaccount', array('uniacid' => $_W['uniacid'])));
 			exit(htmlspecialchars($_GET['echostr']));
 		}
@@ -619,6 +618,11 @@ class WeEngine {
 		$cachekey = cache_system_key('keyword', array('content' => md5($message['content']), 'uniacid' => $_W['uniacid']));
 		$keyword_cache = cache_load($cachekey);
 		if (!empty($keyword_cache) && $keyword_cache['expire'] > TIMESTAMP) {
+			//计入缓存的时候可能是另一个粉丝的openid信息，故此处再换回当前粉丝信息message
+			foreach ($keyword_cache['data'] as $key => &$value) {
+				$value['message'] = $message;
+			}
+			unset($value);
 			return $keyword_cache['data'];
 		}
 		$condition = <<<EOF

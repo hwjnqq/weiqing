@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -18,17 +18,17 @@ if (empty($_W['uniacid'])) {
 	);
 } else {
 	$uniacid_arr = pdo_fetch('SELECT * FROM ' . tablename('uni_account') . ' WHERE uniacid = :uniacid', array(':uniacid' => $_W['uniacid']));
-	if(empty($uniacid_arr)) {
+	if (empty($uniacid_arr)) {
 		iajax(-1, '非法访问');
 	}
 }
 
 $receiver = trim($_GPC['receiver']);
-if(empty($receiver)){
+if (empty($receiver)) {
 	iajax(-1, '请输入邮箱或手机号');
-} elseif(preg_match(REGULAR_MOBILE, $receiver)){
+} elseif (preg_match(REGULAR_MOBILE, $receiver)) {
 	$receiver_type = 'mobile';
-} elseif(preg_match("/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/", $receiver)) {
+} elseif (preg_match("/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/", $receiver)) {
 	$receiver_type = 'email';
 } else {
 	iajax(-1, '您输入的邮箱或手机号格式错误');
@@ -36,7 +36,7 @@ if(empty($receiver)){
 
 pdo_delete('uni_verifycode', array('createtime <' => TIMESTAMP - 1800));
 
-if ($do == 'check_smscode') {
+if ('check_smscode' == $do) {
 	$smscode = intval($_GPC['smscode']);
 	$verify_res = utility_smscode_verify(0, $receiver, $smscode);
 	if (is_error($verify_res)) {
@@ -44,14 +44,14 @@ if ($do == 'check_smscode') {
 	}
 }
 
-if ($do == 'send_code') {
+if ('send_code' == $do) {
 	$verifycode_table = table('uni_verifycode');
 	$row = $verifycode_table->getByReceiverVerifycode($_W['uniacid'], $receiver, '');
 
 	$record = array();
 	$code = random(6, true);
 
-	if(!empty($row)) {
+	if (!empty($row)) {
 		$imagecode = intval($_GPC['imagecode']);
 		$failed_count = table('uni_verifycode')->getFailedCountByReceiver($receiver);
 
@@ -65,7 +65,7 @@ if ($do == 'send_code') {
 			}
 		}
 
-		if($row['total'] >= 5) {
+		if ($row['total'] >= 5) {
 			iajax(-1, '您的操作过于频繁,请稍后再试');
 		}
 
@@ -78,19 +78,19 @@ if ($do == 'send_code') {
 	$record['verifycode'] = $code;
 	$record['createtime'] = TIMESTAMP;
 
-	if(!empty($row)) {
+	if (!empty($row)) {
 		pdo_update('uni_verifycode', $record, array('id' => $row['id']));
 	} else {
 		pdo_insert('uni_verifycode', $record);
 	}
-	if($receiver_type == 'email') {
+	if ('email' == $receiver_type) {
 		load()->func('communication');
 		$content = "您的邮箱验证码为: {$code} 您正在使用{$uniacid_arr['name']}相关功能, 需要你进行身份确认.";
 		$result = ihttp_email($receiver, "{$uniacid_arr['name']}身份确认验证码", $content);
 	} else {
 		load()->model('cloud');
 		$r = cloud_prepare();
-		if(is_error($r)) {
+		if (is_error($r)) {
 			iajax(-1, $r['message']);
 		}
 		$setting = uni_setting($_W['uniacid'], 'notify');

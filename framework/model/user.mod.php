@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -378,6 +378,14 @@ function user_update($user) {
 				}
 			}
 		}
+		//用户到期时间有变动时, 允许再次发送短信提醒
+		$expire_notice = setting_load('user_expire');
+		if (!empty($expire_notice['user_expire']['status'])) {
+			$user_info = empty($user_info) ? table('users')->getById($user['uid']) : $user_info;
+			if ($user_info['endtime'] != $record['endtime']) {
+				pdo_update('users_profile', array('send_expire_status' => 0), array('uid' => intval($user_info['uid'])));
+			}
+		}
 	}
 
 	return pdo_update('users', $record, array('uid' => intval($user['uid'])));
@@ -543,22 +551,18 @@ function user_account_detail_info($uid) {
 	}
 
 	$account_users_info = table('account')->userOwnedAccount($uid);
-	$account_type_signs = uni_account_type_sign();
+	$account_type_signs = uni_account_type();
 	$accounts = array();
 	if (!empty($account_users_info)) {
 		foreach ($account_users_info as $uniacid => $account) {
-			foreach ($account_type_signs as $type_sign_key => $type_sign_val) {
-				if (in_array($account['type'], $type_sign_val['contain_type'])) {
-					$type = $type_sign_key == 'account' ? 'wechats' : $type_sign_key;
-					$account_method = 'account' . ucfirst($type) . 'Info';
-					if (method_exists(table('account'), $account_method)) {
-						$account_info = current(table('account')->$account_method($uniacid, $uid));
-						$account_info['type'] = $account['type'];
-						$account_info['thumb'] =  tomedia('headimg_'.$account_info['default_acid']. '.jpg');
-						$accounts[$type][$uniacid] = $account_info;
-					}
-				}
+			$type_sign = $account_type_signs[$account['type']]['type_sign'];
+			if (empty($type_sign)) {
+				continue;
 			}
+			$account_info = current(table('account')->getUserAccountInfo($uid, $uniacid, $account['type']));
+			$account_info['type'] = $account['type'];
+			$account_info['thumb'] =  tomedia('headimg_'.$account_info['default_acid']. '.jpg');
+			$accounts[$type_sign][$uniacid] = $account_info;
 		}
 	}
 	return $accounts;
@@ -1154,7 +1158,7 @@ function user_end_time($uid) {
 	if ($user['endtime'] == USER_ENDTIME_GROUP_EMPTY_TYPE || $user['endtime'] == USER_ENDTIME_GROUP_UNLIMIT_TYPE) {
 		$user['end'] = 0;
 	} elseif ($user['endtime'] == USER_ENDTIME_GROUP_DELETE_TYPE && $total_timelimit == 0) {
-		$user['end'] = $total_timelimit == 0 ? date('Y-m-d', $user['joindate']): date('Y-m-d', $user['endtime']);
+		$user['end'] = date('Y-m-d', $user['joindate']);
 	}  else {
 		$user['end'] = date('Y-m-d', $user['endtime']);
 	}
@@ -1164,10 +1168,10 @@ function user_end_time($uid) {
 /**
  * 用户和副创始人列表数据格式化
  * @param $users
- * @param int $type
+ * @param bool $founder_list
  * @return array
  */
-function user_list_format($users) {
+function user_list_format($users, $founder_list = true) {
 	if (empty($users)) {
 		return array();
 	}
@@ -1188,8 +1192,10 @@ function user_list_format($users) {
 		} else {
 			$group = $groups[$user['groupid']];
 		}
-
-		$user['account_nums'] = permission_user_account_num($user['uid']);
+		if ($founder_list) {
+			//副创始人列表才获取平台数量, 优化列表加载速度
+			$user['account_nums'] = permission_user_account_num($user['uid']);
+		}
 		$user['groupname'] = $group['name'];
 		unset($user);
 		unset($group);
@@ -1469,4 +1475,19 @@ function user_available_extra_fields() {
 
 function user_lastuse_module_default_account() {
 	return table('users_lastuse')->getDefaultModulesAccount();
+}
+
+function user_role_title($role = '') {
+	$data = array(
+		ACCOUNT_MANAGE_NAME_FOUNDER => '创始人',
+		ACCOUNT_MANAGE_NAME_VICE_FOUNDER => '副创始人',
+		ACCOUNT_MANAGE_NAME_OWNER => '主管理员',
+		ACCOUNT_MANAGE_NAME_MANAGER => '管理员',
+		ACCOUNT_MANAGE_NAME_OPERATOR => '操作员',
+		ACCOUNT_MANAGE_NAME_CLERK => '店员',
+	);
+	if (!empty($role)) {
+		return empty($data[$role]) ? '' : $data[$role];
+	}
+	return $data;
 }

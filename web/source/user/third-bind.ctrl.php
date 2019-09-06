@@ -1,7 +1,7 @@
 <?php
 /**
  * 绑定用户信息
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('user');
@@ -24,11 +24,11 @@ if (in_array($do, array('validate_mobile', 'bind_mobile'))) {
 	}
 }
 
-if ($do == 'validate_mobile') {
+if ('validate_mobile' == $do) {
 	iajax(0, '本地校验成功');
 }
 
-if ($do == 'bind_mobile') {
+if ('bind_mobile' == $do) {
 	if ($_W['isajax'] && $_W['ispost']) {
 		$bind_info = OAuth2Client::create('mobile')->bind();
 		if (is_error($bind_info)) {
@@ -40,7 +40,7 @@ if ($do == 'bind_mobile') {
 	}
 }
 
-if ($do == 'display') {
+if ('display' == $do) {
 	$support_bind_urls = user_support_urls();
 	$setting_sms_sign = setting_load('site_sms_sign');
 	$bind_sign = !empty($setting_sms_sign['site_sms_sign']['register']) ? $setting_sms_sign['site_sms_sign']['register'] : '';
@@ -49,7 +49,7 @@ if ($do == 'display') {
 	}
 }
 
-if ($do == 'bind_oauth') {
+if ('bind_oauth' == $do) {
 	$uid = intval($_GPC['uid']);
 	$openid = safe_gpc_string($_GPC['openid']);
 	$register_type = intval($_GPC['register_type']);
@@ -70,10 +70,10 @@ if ($do == 'bind_oauth') {
 		$member['is_bind'] = 1;
 
 		if (empty($member['username']) || empty($member['password']) || empty($member['repassword'])) {
-			itoast('请填写完整信息！',  referer(), '');
+			itoast('请填写完整信息！', referer(), '');
 		}
 
-		if(!preg_match(REGULAR_USERNAME, $member['username'])) {
+		if (!preg_match(REGULAR_USERNAME, $member['username'])) {
 			itoast('必须输入用户名，格式为 3-15 位字符，可以包括汉字、字母（不区分大小写）、数字、下划线和句点。', referer(), '');
 		}
 
@@ -81,7 +81,7 @@ if ($do == 'bind_oauth') {
 			itoast('非常抱歉，此用户名已经被注册，你需要更换注册名称！', referer(), '');
 		}
 
-		if(istrlen($member['password']) < 8) {
+		if (istrlen($member['password']) < 8) {
 			itoast('必须输入密码，且密码长度不得低于8位。', referer(), '');
 		}
 
@@ -97,7 +97,7 @@ if ($do == 'bind_oauth') {
 		$member['salt'] = random(8);
 		$member['password'] = user_hash($member['password'], $member['salt']);
 		$result = pdo_update('users', $member, array('uid' => $uid, 'openid' => $openid, 'register_type' => $register_type));
-		
+
 		if ($result) {
 			itoast('注册绑定成功!', url('user/login'), '');
 		} else {

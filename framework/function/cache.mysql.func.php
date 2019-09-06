@@ -1,14 +1,16 @@
 <?php
 /**
- * 数据库缓存
+ * 数据库缓存.
  *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
 /**
- * 获取缓存单条数据
+ * 获取缓存单条数据.
+ *
  * @param string $key 缓存键名 多个层级或分组请使用:隔开
+ *
  * @return array
  */
 function cache_read($key) {
@@ -29,8 +31,10 @@ function cache_read($key) {
 }
 
 /**
- * 检索缓存中指定层级或分组的所有缓存
+ * 检索缓存中指定层级或分组的所有缓存.
+ *
  * @param string 缓存分组
+ *
  * @return array
  */
 function cache_search($prefix) {
@@ -39,17 +43,20 @@ function cache_search($prefix) {
 	$params[':key'] = "{$prefix}%";
 	$rs = pdo_fetchall($sql, $params);
 	$result = array();
-	foreach ((array)$rs as $v) {
+	foreach ((array) $rs as $v) {
 		$result[$v['key']] = iunserializer($v['value']);
 	}
+
 	return $result;
 }
 
 /**
- * 将缓存数据写入数据库
- * @param string $key 缓存键名
- * @param mixed $data 缓存数据
+ * 将缓存数据写入数据库.
+ *
+ * @param string $key    缓存键名
+ * @param mixed  $data   缓存数据
  * @param string $expire 缓存超时时间
+ *
  * @return mixed
  */
 function cache_write($key, $data, $expire = 0) {
@@ -62,18 +69,21 @@ function cache_write($key, $data, $expire = 0) {
 	if (!empty($expire)) {
 		$cache_data = array(
 			'expire' => TIMESTAMP + $expire,
-			'data' => $data
+			'data' => $data,
 		);
 	} else {
 		$cache_data = $data;
 	}
 	$record['value'] = iserializer($cache_data);
+
 	return pdo_insert('core_cache', $record, true);
 }
 
 /**
- * 删除某个键的缓存数据
+ * 删除某个键的缓存数据.
+ *
  * @param string $key 缓存键名
+ *
  * @return boolean
  */
 function cache_delete($key) {
@@ -94,13 +104,16 @@ function cache_delete($key) {
 				}
 			}
 		}
+
 		return true;
 	}
 }
 
 /**
- * 清空指定前缀缓存或所有数据
+ * 清空指定前缀缓存或所有数据.
+ *
  * @param string $prefix 缓存前缀
+ *
  * @return mixed
  */
 function cache_clean($prefix = '') {
@@ -120,7 +133,7 @@ function cache_clean($prefix = '') {
 		if (is_array($cache_relation_keys) && !empty($cache_relation_keys)) {
 			foreach ($cache_relation_keys as $key) {
 				preg_match_all('/\:([a-zA-Z0-9\-\_]+)/', $key, $matches);
-				$sql = "DELETE FROM " . tablename('core_cache') . ' WHERE `key` LIKE :key';
+				$sql = 'DELETE FROM ' . tablename('core_cache') . ' WHERE `key` LIKE :key';
 				$params = array();
 				$params[':key'] = "we7:{$matches[1][0]}%";
 				$result = pdo_query($sql, $params);
@@ -130,5 +143,6 @@ function cache_clean($prefix = '') {
 			}
 		}
 	}
+
 	return true;
 }

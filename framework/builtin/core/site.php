@@ -1,6 +1,7 @@
 <?php
 /**
- * 系统中一些必须以模块形式表现的功能
+ * 系统中一些必须以模块形式表现的功能.
+ *
  * @author 微擎团队
  * @url http://bbs.w7.cc/
  */
@@ -18,7 +19,7 @@ class CoreModuleSite extends WeModuleSite {
 			message(error(1, '支付参数不完整'));
 		}
 		//如果价格为0 直接执行模块支付回调方法
-		if($params['fee'] <= 0) {
+		if ($params['fee'] <= 0) {
 			$notify_params = array(
 				'form' => 'return',
 				'result' => 'success',
@@ -32,8 +33,11 @@ class CoreModuleSite extends WeModuleSite {
 				message(error(-1, '支付成功'));
 			}
 		}
-		
-		$log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $params['module'], 'tid' => $params['tid']));
+		$log = table('core_paylog')
+			->searWithUniacid($_W['uniacid'])
+			->SearWithModule($params['module'])
+			->searWithTid($params['tid'])
+			->get();
 		if (empty($log)) {
 			$log = array(
 				'uniacid' => $_W['uniacid'],
@@ -46,13 +50,13 @@ class CoreModuleSite extends WeModuleSite {
 				'status' => '0',
 				'is_usecard' => '0',
 			);
-			pdo_insert('core_paylog', $log);
+			table('core_paylog')->fill($log)->save();
 		}
-		if($log['status'] == '1') {
+		if ('1' == $log['status']) {
 			message(error(1, '订单已经支付'));
 		}
 		$setting = uni_setting($_W['uniacid'], array('payment', 'creditbehaviors'));
-		if(!is_array($setting['payment'])) {
+		if (!is_array($setting['payment'])) {
 			message(error(1, '暂无有效支付方式'));
 		}
 		$pay = $setting['payment'];
@@ -62,59 +66,66 @@ class CoreModuleSite extends WeModuleSite {
 		if (!empty($pay['credit']['switch'])) {
 			$credtis = mc_credit_fetch($_W['member']['uid']);
 		}
-		
+
 		include $this->template('pay');
 	}
 
 	/**
 	 * 各个支付都配置有支付开关：pay_switch和充值开关：recharge_switch,
 	 * 支付中使用pay_switch(如本方法中),充值中使用recharge_switch(recharge/site.php中,目前充值只有这一个),
-	 * 最后在common/paycenter中统一使用switch
+	 * 最后在common/paycenter中统一使用switch.
 	 */
 	public function doMobilePay() {
 		global $_W, $_GPC;
-		
+
 		$moduels = uni_modules();
 		$params = $_POST;
-		
-		if(empty($params) || !array_key_exists($params['module'], $moduels)) {
+
+		if (empty($params) || !array_key_exists($params['module'], $moduels)) {
 			message(error(1, '模块不存在'), '', 'ajax', true);
 		}
-		
+
 		$setting = uni_setting($_W['uniacid'], 'payment');
 		$dos = array();
-		if(!empty($setting['payment']['credit']['pay_switch'])) {
+		if (!empty($setting['payment']['credit']['pay_switch'])) {
 			$dos[] = 'credit';
 		}
-		if(!empty($setting['payment']['alipay']['pay_switch'])) {
+		if (!empty($setting['payment']['alipay']['pay_switch'])) {
 			$dos[] = 'alipay';
 		}
-		if(!empty($setting['payment']['wechat']['pay_switch'])) {
+		if (!empty($setting['payment']['wechat']['pay_switch'])) {
 			$dos[] = 'wechat';
 		}
-		if(!empty($setting['payment']['delivery']['pay_switch'])) {
+		if (!empty($setting['payment']['delivery']['pay_switch'])) {
 			$dos[] = 'delivery';
 		}
-		if(!empty($setting['payment']['unionpay']['pay_switch'])) {
+		if (!empty($setting['payment']['unionpay']['pay_switch'])) {
 			$dos[] = 'unionpay';
 		}
-		if(!empty($setting['payment']['baifubao']['pay_switch'])) {
+		if (!empty($setting['payment']['baifubao']['pay_switch'])) {
 			$dos[] = 'baifubao';
 		}
 		$type = in_array($params['method'], $dos) ? $params['method'] : '';
-		if(empty($type)) {
+		if (empty($type)) {
 			message(error(1, '暂无有效支付方式,请联系商家'), '', 'ajax', true);
 		}
-		$moduleid = pdo_getcolumn('modules', array('name' => $params['module']), 'mid');
-		$moduleid = empty($moduleid) ? '000000' : sprintf("%06d", $moduleid);
-		$uniontid = date('YmdHis').$moduleid.random(8,1);
-		
-		$paylog = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $params['module'], 'tid' => $params['tid']));
+		$moduleid = table('modules')
+			->where(array('name' => $params['module']))
+			->getcolumn('mid');
+		$moduleid = empty($moduleid) ? '000000' : sprintf('%06d', $moduleid);
+		$uniontid = date('YmdHis') . $moduleid . random(8, 1);
+
+		$paylog = table('core_paylog')
+			->where(array('uniacid' => $uniacid))
+			->searchWithModule($params['module'])
+			->searchWithTid($params['tid'])
+			->get();
 		if (empty($paylog)) {
 			$paylog = array(
 				'uniacid' => $_W['uniacid'],
 				'acid' => $_W['acid'],
 				'openid' => $_W['member']['uid'],
+				'type' => $type,
 				'module' => $params['module'],
 				'tid' => $params['tid'],
 				'uniontid' => $uniontid,
@@ -123,25 +134,26 @@ class CoreModuleSite extends WeModuleSite {
 				'status' => '0',
 				'is_usecard' => '0',
 			);
-			pdo_insert('core_paylog', $paylog);
+			table('core_paylog')->fill($paylog)->save();
 			$paylog['plid'] = pdo_insertid();
 		}
-		if(!empty($paylog) && $paylog['status'] != '0') {
+		if (!empty($paylog) && '0' != $paylog['status']) {
 			message(error(1, '这个订单已经支付成功, 不需要重复支付.'), '', 'ajax', true);
 		}
 		if (!empty($paylog) && empty($paylog['uniontid'])) {
-			pdo_update('core_paylog', array(
-				'uniontid' => $uniontid,
-			), array('plid' => $paylog['plid']));
+			table('core_paylog')
+				->where(array('plid' => $paylog['plid']))
+				->fill(array('uniontid' => $uniontid))
+				->save();
 		}
 		$paylog['title'] = $params['title'];
 		if (intval($_GPC['iswxapp'])) {
-			message(error(2, $_W['siteroot']."app/index.php?i={$_W['uniacid']}&c=wxapp&a=home&do=go_paycenter&title={$params['title']}&plid={$paylog['plid']}"), '', 'ajax', true);
+			message(error(2, $_W['siteroot'] . "app/index.php?i={$_W['uniacid']}&c=wxapp&a=home&do=go_paycenter&title={$params['title']}&plid={$paylog['plid']}"), '', 'ajax', true);
 		}
 
-		if ($params['method'] == 'wechat') {
+		if ('wechat' == $params['method']) {
 			return $this->doMobilePayWechat($paylog);
-		} elseif ($params['method'] == 'alipay') {
+		} elseif ('alipay' == $params['method']) {
 			return $this->doMobilePayAlipay($paylog);
 		} else {
 			$params['tid'] = $paylog['plid'];
@@ -151,26 +163,29 @@ class CoreModuleSite extends WeModuleSite {
 			exit();
 		}
 	}
-	
+
 	private function doMobilePayWechat($paylog = array()) {
 		global $_W;
 		load()->model('payment');
-		
-		pdo_update('core_paylog', array(
-			'openid' => $_W['openid'], 
-			'tag' => iserializer(array('acid' => $_W['acid'], 'uid' => $_W['member']['uid']))
-		), array('plid' => $paylog['plid']));
-		
+
+		table('core_paylog')
+			->where(array('plid' => $paylog['plid']))
+			->fill(array(
+				'openid' => $_W['openid'],
+				'tag' => iserializer(array('acid' => $_W['acid'], 'uid' => $_W['member']['uid'])),
+			))
+			->save();
 		$_W['uniacid'] = $paylog['uniacid'];
-		
+
 		$setting = uni_setting($_W['uniacid'], array('payment'));
 		$wechat_payment = $setting['payment']['wechat'];
-		
-		$account = pdo_get('account_wechats', array('acid' => $wechat_payment['account']), array('key', 'secret'));
-		
+
+		$account = table('account_wechats')
+			->where(array('acid' => $wechat_payment['account']))
+			->get();
 		$wechat_payment['appid'] = $account['key'];
 		$wechat_payment['secret'] = $account['secret'];
-		
+
 		$params = array(
 			'tid' => $paylog['tid'],
 			'fee' => $paylog['card_fee'],
@@ -178,7 +193,7 @@ class CoreModuleSite extends WeModuleSite {
 			'title' => urldecode($paylog['title']),
 			'uniontid' => $paylog['uniontid'],
 		);
-		if (intval($wechat_payment['switch']) == PAYMENT_WECHAT_TYPE_SERVICE || intval($wechat_payment['switch']) == PAYMENT_WECHAT_TYPE_BORROW) {
+		if (PAYMENT_WECHAT_TYPE_SERVICE == intval($wechat_payment['switch']) || PAYMENT_WECHAT_TYPE_BORROW == intval($wechat_payment['switch'])) {
 			if (!empty($_W['openid'])) {
 				$params['sub_user'] = $_W['openid'];
 				$wechat_payment_params = wechat_proxy_build($params, $wechat_payment);
@@ -188,11 +203,11 @@ class CoreModuleSite extends WeModuleSite {
 				$params['title'] = urlencode($params['title']);
 				$sl = base64_encode(json_encode($params));
 				$auth = sha1($sl . $paylog['uniacid'] . $_W['config']['setting']['authkey']);
-				
+
 				$callback = urlencode($_W['siteroot'] . "payment/wechat/pay.php?i={$_W['uniacid']}&auth={$auth}&ps={$sl}");
 				$proxy_pay_account = payment_proxy_pay_account();
 				if (!is_error($proxy_pay_account)) {
-					$forward = $proxy_pay_account->getOauthCodeUrl($callback, 'we7sid-'.$_W['session_id']);
+					$forward = $proxy_pay_account->getOauthCodeUrl($callback, 'we7sid-' . $_W['session_id']);
 					message(error(2, $forward), $forward, 'ajax');
 					exit;
 				}
@@ -225,38 +240,44 @@ class CoreModuleSite extends WeModuleSite {
 			'uniontid' => $paylog['uniontid'],
 		);
 		$alipay_payment_params = alipay_build($params, $setting['payment']['alipay']);
-		if($alipay_payment_params['url']) {
+		if ($alipay_payment_params['url']) {
 			message(error(0, $alipay_payment_params['url']), '', 'ajax', true);
 			exit();
 		}
 	}
+
 	public function doMobileDetail() {
 		global $_W, $_GPC;
 		$id = intval($_GPC['id']);
-		$sql = "SELECT * FROM " . tablename('news_reply') . " WHERE `id`=:id";
-		$row = pdo_fetch($sql, array(':id'=>$id));
+		$row = table('news_reply')->getById($id);
 		$createtime = $row['createtime'];
 		if (!empty($row['url'])) {
-			header("Location: ".$row['url']);
+			header('Location: ' . $row['url']);
 			exit;
 		}
 		//兼容0.8写法，在此回复新版1.0本地素材
-		if (!empty($row['media_id']) && intval($row['media_id']) != 0) {
-			$row = pdo_get('wechat_news', array('attach_id' => $row['media_id'], 'displayorder' => $row['displayorder']));
+		if (!empty($row['media_id']) && 0 != intval($row['media_id'])) {
+			$row = table('wechat_news')
+				->where(array(
+					'attach_id' => $row['media_id'],
+					'displayorder' => $row['displayorder']
+				))
+				->get();
 			$row['createtime'] = $createtime;
 			if (!empty($row['content_source_url'])) {
-				header("Location: ".$row['content_source_url']);
+				header('Location: ' . $row['content_source_url']);
 				exit;
 			}
 		}
 		$row = istripslashes($row);
 		$title = $row['title'];
 		/*获取引导素材*/
-		if($_W['os'] == 'android' && $_W['container'] == 'wechat' && $_W['account']['account']) {
+		if ('android' == $_W['os'] && 'wechat' == $_W['container'] && $_W['account']['account']) {
 			$subscribeurl = "weixin://profile/{$_W['account']['account']}";
 		} else {
-			$sql = 'SELECT `subscribeurl` FROM ' . tablename('account_wechats') . " WHERE `acid` = :acid";
-			$subscribeurl = pdo_fetchcolumn($sql, array(':acid' => intval($_W['acid'])));
+			$subscribeurl = table('account_wechats')
+				->where(array('uniacid' => intval($_W['uniacid'])))
+				->getcolumn('subscribeurl');
 		}
 		include $this->template('detail');
 	}

@@ -1,7 +1,7 @@
 <?php
 /**
  * 用户注册设置
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('setting');
@@ -68,7 +68,7 @@ if (checksubmit('submit')) {
 	iajax(0, '更新设置成功！', referer());
 }
 
-if ($do == 'display') {
+if ('display' == $do) {
 	$settings['mobile_status'] = $copyright['mobile_status'];
 
 	$groups = user_group();
@@ -87,14 +87,14 @@ if ($do == 'display') {
 	}
 }
 
-if ($do == 'clerk') {
+if ('clerk' == $do) {
 	$binds = array(array('name' => '无', 'id' => 'null'));
 	foreach (OAuth2Client::supportBindTypeInfo() as $info) {
 		$binds[] = array('name' => $info['title'], 'id' => $info['type']);
 	}
 	$bind = array();
 	foreach ($binds as $item) {
-		if ($item['id'] == $copyright['clerk']['bind']) {
+		if ($copyright['clerk']['bind'] == $item['id']) {
 			$bind = $item;
 			break;
 		}

@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 namespace We7\Table\Wxapp;
 
@@ -52,15 +52,6 @@ class Versions extends \We7Table {
 	 */
 	public function latestVersion($uniacid) {
 		return $this->query->where('uniacid', $uniacid)->orderby('id', 'desc')->limit(4)->getall('id');
-	}
-
-	public function getById($version_id) {
-		$result = $this->query->where('id', $version_id)->get();
-		if (empty($result)) {
-			return array();
-		}
-		$result = $this->dataunserializer($result);
-		return $result;
 	}
 
 	public function getLastByUniacid($uniacid) {

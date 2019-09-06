@@ -1,7 +1,7 @@
 <?php
 /**
  * 微文章
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 $do = in_array($do, array('list', 'detail', 'handsel', 'comment')) ? $do : 'list';
@@ -12,7 +12,7 @@ load()->model('account');
 
 if ($do == 'list') {
 	$cid = intval($_GPC['cid']);
-	$category = pdo_fetch("SELECT * FROM " . tablename('site_category') . " WHERE id = '{$cid}' AND uniacid = '{$_W['uniacid']}'");
+	$category = table('site_category')->getById($cid, $_W['uniacid']);
 	if (empty($category)) {
 		message('分类不存在或是已经被删除！');
 	}
@@ -24,13 +24,14 @@ if ($do == 'list') {
 	$_share['title'] = $category['name'];
 
 	$title = $category['name'];
-	$category['template'] = pdo_fetchcolumn('SELECT b.name FROM ' . tablename('site_styles') . ' AS a LEFT JOIN ' . tablename('site_templates') . ' AS b ON a.templateid = b.id WHERE a.id = :id', array(
-		':id' => $category['styleid']
-	));
+	$category['template'] = table('site_styles')
+		->searchWithTemplates()
+		->where(array('a.id' => $category['styleid']))
+		->getcolumn('b.name');
 	if (! empty($category['template'])) {
-		$styles_vars = pdo_fetchall('SELECT * FROM ' . tablename('site_styles_vars') . ' WHERE styleid = :styleid', array(
-			':styleid' => $category['styleid']
-		));
+		$styles_vars = table('site_styles_vars')
+			->where(array('styleid' => $category['styleid']))
+			->get();
 		if (! empty($styles_vars)) {
 			foreach ($styles_vars as $row) {
 				if (strexists($row['variable'], 'img')) {
@@ -55,7 +56,16 @@ if ($do == 'list') {
 		}
 		$ishomepage = 1;
 		// 该分类下子分类
-		$navs = pdo_fetchall("SELECT * FROM " . tablename('site_category') . " WHERE uniacid = '{$_W['uniacid']}' AND parentid = '$cid' ORDER BY displayorder DESC,id DESC");
+		$navs = table('site_category')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'parentid' => $cid
+			))
+			->orderby(array(
+				'displayorder' => 'DESC',
+				'id' => 'DESC'
+			))
+			->getall();
 		if (! empty($navs)) {
 			foreach ($navs as &$row) {
 				if (empty($row['linkurl']) || (! strexists($row['linkurl'], 'http://') && ! strexists($row['linkurl'], 'https://'))) {
@@ -75,17 +85,15 @@ if ($do == 'list') {
 					$row['css'] = '';
 				}
 			}
+			template('home/home');
+		}else {
+			template('site/list');
 		}
-		template('home/home');
 		exit();
 	}
 } elseif ($do == 'detail') {
-	$id = intval($_GPC['id']);
-	$sql = "SELECT * FROM " . tablename('site_article') . " WHERE `id`=:id AND uniacid = :uniacid";
-	$detail = pdo_fetch($sql, array(
-		':id' => $id,
-		':uniacid' => $_W['uniacid']
-	));
+	$id = safe_gpc_int($_GPC['id']);
+	$detail = table('site_article')->getById($id, $_W['uniacid']);
 	if (empty($detail)) {
 		message('文章已不存在或已被删除！', referer(), 'info');
 	}
@@ -118,19 +126,19 @@ if ($do == 'list') {
 	if ($_W['os'] == 'android' && $_W['container'] == 'wechat' && $_W['account']['account']) {
 		$subscribeurl = "weixin://profile/{$_W['account']['account']}";
 	} else {
-		$sql = 'SELECT `subscribeurl` FROM ' . tablename('account_wechats') . " WHERE `acid` = :acid";
-		$subscribeurl = pdo_fetchcolumn($sql, array(
-			':acid' => intval($_W['acid'])
-		));
+		$subscribeurl = table('account_wechats')->where(array('uniacid' => intval($_W['uniacid'])))->getcolumn('subscribeurl');
 	}
 	// 阅读次数
 	$detail['click'] = intval($detail['click']) + 1;
-	pdo_update('site_article', array(
-		'click' => $detail['click']
-	), array(
-		'uniacid' => $_W['uniacid'],
-		'id' => $id
-	));
+	table('site_article')
+		->where(array(
+			'uniacid' => $_W['uniacid'],
+			'id' => $id
+		))
+		->fill(array(
+			'click' => $detail['click']
+		))
+		->save();
 	// 设置分享信息
 	$_share = array(
 		'desc' => $detail['description'],
@@ -148,7 +156,7 @@ if ($do == 'list') {
 		$comment_table->searchWithParentid(ARTICLE_COMMENT_DEFAULT);
 		$comment_table->searchWithPage($pindex, $psize);
 
-		$article_lists = $comment_table->getAllByCurrentUniacid();
+		$article_lists = $comment_table->getAllByUniacid();
 		$total = $comment_table->getLastQueryTotal();
 		$pager = pagination($total, $pindex, $psize);
 		$article_lists = article_comment_detail($article_lists);
@@ -158,11 +166,8 @@ if ($do == 'list') {
 } elseif ($do == 'handsel') {
 	// 处理分享成功后的积分处理
 	if ($_W['ispost']) {
-		$id = intval($_GPC['id']);
-		$article = pdo_fetch('SELECT id, credit FROM ' . tablename('site_article') . ' WHERE uniacid = :uniacid AND id = :id', array(
-			':uniacid' => $_W['uniacid'],
-			':id' => $id
-		));
+		$id = safe_gpc_int($_GPC['id']);
+		$article = table('site_article')->getById($id, $_W['uniacid']);
 		$credit = iunserializer($article['credit']) ? iunserializer($article['credit']) : array();
 		if (! empty($article) && $credit['status'] == 1) {
 			if ($_GPC['action'] == 'share') {
@@ -190,11 +195,13 @@ if ($do == 'list') {
 					'credit_log' => '分享的文章在朋友圈被阅读,赠送积分'
 				);
 			}
-			$total = pdo_fetchcolumn('SELECT SUM(credit_value) FROM ' . tablename('mc_handsel') . ' WHERE uniacid = :uniacid AND module = :module AND sign = :sign', array(
-				':uniacid' => $_W['uniacid'],
-				':module' => 'article',
-				':sign' => $handsel['sign']
-			));
+			$total = table('mc_handsel')
+				->where(array(
+					'uniacid' => $_W['uniacid'],
+					'module' => 'article',
+					'sign' => $handsel['sign']
+				))
+				->getcolumn('SUM(credit_value)');
 
 			if (($total >= $credit['limit']) || (($total + $handsel['credit_value']) > $credit['limit'])) {
 				exit(json_encode(error(- 1, '赠送积分已达到上限')));
@@ -209,7 +216,12 @@ if ($do == 'list') {
 				}else if ($handsel['action'] == 'click') {
 					$send_msg = '分享的文章被阅读，赠送积分';
 				}
-				$openid = pdo_getcolumn('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']), 'openid');
+				$openid = table('mc_mapping_fans')
+					->where(array(
+						'uniacid' => $_W['uniacid'],
+						'uid' => $_W['member']['uid']
+					))
+					->getcolumn('openid');
 				mc_notice_credit1($openid, $touid, $credit['share'], $send_msg);
 				exit('success');
 			}
@@ -229,14 +241,13 @@ if ($do == 'list') {
 
 
 if ($do == 'comment') {
-	$article_id = intval($_GPC['article_id']);
-	$parent_id = intval($_GPC['parent_id']);
-	$article_info = pdo_get('site_article', array('id' => $article_id, 'uniacid' => $_W['uniacid']));
-
+	$article_id = safe_gpc_int($_GPC['article_id']);
+	$parent_id = safe_gpc_int($_GPC['parent_id']);
+	$article_info = table('site_article')->getById($article_id, $_W['uniacid']);
 	if ($_W['ispost']) {
 		$comment = array(
 			'uniacid' => $_W['uniacid'],
-			'articleid' => intval($_GPC['article_id']),
+			'articleid' => $article_id,
 			'openid' => $_W['openid'],
 			'content' => safe_gpc_html(htmlspecialchars_decode($_GPC['content']))
 		);

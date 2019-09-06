@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
@@ -68,7 +68,16 @@ if(empty($type)) {
 }
 
 if(!empty($type)) {
-	$log = pdo_getall('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $params['module'], 'tid' => $params['tid']), array(), '', 'plid asc', 1);//混合支付会有两条paylog记录,所以使用getall
+	//混合支付会有两条paylog记录,所以使用getall
+	$log = table(core_paylog)
+		->where(array(
+			'uniacid' => $_W['uniacid'],
+			'module' => $params['module'],
+			'tid' => $params['tid']
+		))
+		->orderby(array('plid' => 'ASC'))
+		->limit(1)
+		->getall();
 	$log = empty($log) ? $log : $log[0];
 
 	if(!empty($log) && ($type != 'credit' && !empty($_GPC['notify'])) && $log['status'] != '0') {
@@ -82,14 +91,16 @@ if(!empty($type)) {
 		'card_fee' => $log['fee'],
 		'type' => $type,
 	);
-	pdo_update('core_paylog', $update_card_log, array('plid' => $log['plid']));
-
+	table('core_paylog')
+		->where(array('plid' => $log['plid']))
+		->fill($update_card_log)
+		->save();
 	$log['is_usecard'] = '0';
 	$log['card_type'] = '0';
 	$log['card_id'] = '0';
 	$log['card_fee'] = $log['fee'];
 
-	$moduleid = pdo_fetchcolumn("SELECT mid FROM ".tablename('modules')." WHERE name = :name", array(':name' => $params['module']));
+	$moduleid = table('modules')->where(array('name' => $params['module']))->getcolumn('mid');
 	$moduleid = empty($moduleid) ? '000000' : sprintf("%06d", $moduleid);
 
 	$record = array();
@@ -100,7 +111,14 @@ if(!empty($type)) {
 
 	if($type != 'delivery') {
 		if ($_GPC['mix_pay']) {
-			$has_mix_credit_log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $params['module'], 'tid' => $params['tid'], 'type' => 'credit'));
+			$has_mix_credit_log = table('core_paylog')
+				->where(array(
+					'uniacid' => $_W['uniacid'],
+					'module' => $params['module'],
+					'tid' => $params['tid'],
+					'type' => 'credit'
+				))
+				->get();
 			if ($_GPC['mix_pay'] == 'true' && empty($has_mix_credit_log)) {
 				$setting = uni_setting($_W['uniacid'], array('creditbehaviors'));
 				$credtis = mc_credit_fetch($_W['member']['uid']);
@@ -111,11 +129,13 @@ if(!empty($type)) {
 					$mix_credit_log['type'] = 'credit';
 					$mix_credit_log['fee'] = $credtis[$setting['creditbehaviors']['currency']];
 					$mix_credit_log['card_fee'] = $credtis[$setting['creditbehaviors']['currency']];
-					pdo_insert('core_paylog', $mix_credit_log);
+					table('core_paylog')->fill($mix_credit_log)->save();
 					$mixed_fee = $log['fee'] - $credtis[$setting['creditbehaviors']['currency']];
 				}
 			} elseif ($_GPC['mix_pay'] == 'false' && $has_mix_credit_log) {
-				pdo_delete('core_paylog', array('plid' => $has_mix_credit_log['plid']));
+				table('core_paylog')
+					->where(array('plid' => $has_mix_credit_log['plid']))
+					->delete();
 				$mixed_fee = $log['fee'] + $has_mix_credit_log['fee'];
 			}
 			if (!empty($mixed_fee)) {
@@ -126,7 +146,7 @@ if(!empty($type)) {
 		$we7_coupon_info = module_fetch('we7_coupon');
 		if (!empty($we7_coupon_info)) {
 			$coupon_id = intval($_GPC['coupon_id']);
-			$coupon_info = pdo_get('coupon', array('uniacid' => $_W['uniacid'], 'id' => $coupon_id));
+			$coupon_info = table('coupon')->getById($coupon_id, $_W['uniacid']);
 			$coupon_info['fee'] = $log['card_fee'];
 			if (!empty($coupon_info)) {
 				$extra = iunserializer($coupon_info['extra']);
@@ -156,7 +176,10 @@ if(!empty($type)) {
 	if (empty($log)) {
 		message('系统支付错误, 请稍后重试.');
 	} else {
-		pdo_update('core_paylog', $record, array('plid' => $log['plid']));
+		table('core_paylog')
+			->where(array('plid' => $log['plid']))
+			->fill($record)
+			->save();
 		if (!empty($log['uniontid']) && $record['card_fee']) {
 			$log['card_fee'] = $record['card_fee'];
 			$log['card_id'] = $record['card_id'];
@@ -173,7 +196,10 @@ if(!empty($type)) {
 	);
 	if ($type == 'alipay') {
 		if (!empty($log['plid'])) {
-			pdo_update('core_paylog', array('openid' => $_W['member']['uid']), array('plid' => $log['plid']));
+			table('core_paylog')
+				->where(array('plid' => $log['plid']))
+				->fill(array('openid' => $_W['member']['uid']))
+				->save();
 		}
 		$ret = alipay_build($ps, $setting['payment']['alipay']);
 		if($ret['url']) {
@@ -187,7 +213,13 @@ if(!empty($type)) {
 			$tag = iunserializer($log['tag']);
 			$tag['acid'] = $_W['acid'];
 			$tag['uid'] = $_W['member']['uid'];
-			pdo_update('core_paylog', array('openid' => $_W['openid'], 'tag' => iserializer($tag)), array('plid' => $log['plid']));
+			table('core_paylog')
+				->where(array('plid' => $log['plid']))
+				->fill(array(
+					'openid' => $_W['openid'],
+					'tag' => iserializer($tag)
+				))
+				->save();
 		}
 		$ps['title'] = urlencode($params['title']);
 		$sl = base64_encode(json_encode($ps));
@@ -215,13 +247,13 @@ if(!empty($type)) {
 	}
 
 	if($type == 'credit') {
+		ignore_user_abort(true);
 		$we7_coupon_info = module_fetch('we7_coupon');
 		$setting = uni_setting($_W['uniacid'], array('creditbehaviors'));
 		$credtis = mc_credit_fetch($_W['member']['uid']);
-		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `plid`=:plid';
-		$pars = array();
-		$pars[':plid'] = $ps['tid'];
-		$log = pdo_fetch($sql, $pars);
+		$log = table('core_paylog')
+			->where(array('plid' => $ps['tid']))
+			->get();
 		if($log['module'] == 'recharge') {
 			message('不能使用余额支付', referer(), 'error');
 		}
@@ -240,8 +272,18 @@ if(!empty($type)) {
 					message("余额不足以支付, 需要 {$ps['fee']}, 当前 {$credtis[$setting['creditbehaviors']['currency']]}");
 				}
 				if (!empty($we7_coupon_info) && $log['is_usecard'] == 1 && !empty($log['encrypt_code'])) {
-					$coupon_info = pdo_get('coupon', array('id' => $log['card_id']), array('id'));
-					$coupon_record = pdo_get('coupon_record', array('couponid' => $log['card_id'], 'openid' => $_W['openid'], 'code' => $log['encrypt_code'], 'status' => '1'));
+					$coupon_info = table('coupon')
+						->select('id')
+						->where(array('id' => $log['card_id']))
+						->get();
+					$coupon_record = table('coupon_record')
+						->where(array(
+							'couponid' => $log['card_id'],
+							'openid' => $_W['openid'],
+							'code' => $log['encrypt_code'],
+							'status' => '1'
+						))
+						->get();
 					$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $params['module']);
 				}
 				$fee = floatval($ps['fee']);
@@ -249,7 +291,10 @@ if(!empty($type)) {
 					load()->model('mc');
 					$store_id = 0;
 					if ($log['module'] == 'we7_coupon') {
-						$paycenter_order = pdo_get('paycenter_order', array('id' => $log['tid']), array('store_id'));
+						$paycenter_order = table('paycenter_order')
+							->where(array('id' => $log['tid']))
+							->select('store_id')
+							->get();
 						$store_id = $paycenter_order['store_id'];
 					}
 					$is_grant_credit = mc_card_grant_credit($log['openid'], $fee, $store_id, $log['module']);
@@ -260,7 +305,7 @@ if(!empty($type)) {
 				if (is_error($result)) {
 					message($result['message'], '', 'error');
 				}
-				pdo_update('core_paylog', array('status' => '1'), array('plid' => $log['plid']));
+				table('core_paylog')->where( array('plid' => $log['plid']))->fill(array('status' => '1'))->save();
 				if (!empty($_W['openid'])) {
 					if (is_error($is_grant_credit)) {
 						$grant_credit_nums = 0;
@@ -294,8 +339,8 @@ if(!empty($type)) {
 						$ret['card_type'] = $log['card_type']; //区分是系统优惠券还是微信卡券
 						$ret['card_fee'] = $log['card_fee'];
 						$ret['card_id'] = $log['card_id'];
-
-						echo '<iframe style="display:none;" src="'.murl('mc/cash/credit', array('notify' => 'yes', 'params' => $_GPC['params'], 'code' => $_GPC['code'], 'coupon_id' => $_GPC['coupon_id']), true, true).'"></iframe>';
+						$notify_url = murl('mc/cash/credit', array('notify' => 'yes', 'params' => $_GPC['params'], 'code' => $_GPC['code'], 'coupon_id' => $_GPC['coupon_id']), true, true);
+						ihttp_request($notify_url);
 						$site->$method($ret);
 					}
 				}
@@ -331,14 +376,23 @@ if(!empty($type)) {
 
 	if ($type == 'delivery') {
 		$we7_coupon_info = module_fetch('we7_coupon');
-		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `plid`=:plid';
-		$pars = array();
-		$pars[':plid'] = $ps['tid'];
-		$log = pdo_fetch($sql, $pars);
+		$log = table('core_paylog')
+			->where(array('plid' => $ps['tid']))
+			->get();
 		if(!empty($log) && $log['status'] == '0') {
 			if (!empty($we7_coupon_info) && $log['is_usecard'] == 1) {
-				$coupon_info = pdo_get('coupon', array('id' => $log['card_id']), array('id'));
-				$coupon_record = pdo_get('coupon_record', array('couponid' => $log['card_id'], 'openid' => $_W['openid'], 'code' => $log['encrypt_code'], 'status' => '1'));
+				$coupon_info = table('coupon')
+					->where(array('id' => $log['card_id']))
+					->select('id')
+					->get();
+				$coupon_record = table('coupon_record')
+					->where(array(
+						'couponid' => $log['card_id'],
+						'openid' => $_W['openid'],
+						'code' => $log['encrypt_code'],
+						'status' => '1'
+					))
+					->get();
 			 	$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $params['module']);
 			 	if (is_error($status)) {
 			 		message($status['message']);

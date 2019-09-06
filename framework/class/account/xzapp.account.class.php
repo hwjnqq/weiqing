@@ -1,4 +1,5 @@
 <?php
+
 defined('IN_IA') or exit('Access Denied');
 
 class XzappAccount extends WeAccount {
@@ -8,7 +9,6 @@ class XzappAccount extends WeAccount {
 	protected $typeName = '熊掌号';
 	protected $typeSign = XZAPP_TYPE_SIGN;
 	protected $typeTempalte = '-xzapp';
-
 
 	protected function getAccountInfo($acid) {
 		return table('account_xzapp')->getByAcid($acid);
@@ -23,6 +23,7 @@ class XzappAccount extends WeAccount {
 		sort($arrParams, SORT_STRING);
 		$strParam = implode($arrParams);
 		$strSignature = sha1($strParam);
+
 		return $strSignature == $_GET['signature'];
 	}
 
@@ -32,6 +33,7 @@ class XzappAccount extends WeAccount {
 
 		if (!empty($cache) && !empty($cache['token']) && $cache['expire'] > TIMESTAMP) {
 			$this->account['access_token'] = $cache;
+
 			return $cache['token'];
 		}
 
@@ -49,12 +51,15 @@ class XzappAccount extends WeAccount {
 		$this->account['access_token'] = $record;
 
 		cache_write($cachekey, $record);
+
 		return $record['token'];
 	}
 
 	/**
-	 * 生成签名
+	 * 生成签名.
+	 *
 	 * @param string $encrypt_msg
+	 *
 	 * @return string
 	 */
 	public function buildSignature($encrypt_msg) {
@@ -63,22 +68,28 @@ class XzappAccount extends WeAccount {
 		sort($array, SORT_STRING);
 		$str = implode($array);
 		$str = sha1($str);
+
 		return $str;
 	}
 
 	/**
-	 * 验证签名是否合法
+	 * 验证签名是否合法.
+	 *
 	 * @param string $encrypt_msg
+	 *
 	 * @return boolean
 	 */
 	public function checkSignature($encrypt_msg) {
 		$str = $this->buildSignature($encrypt_msg);
+
 		return $str == $_GET['msg_signature'];
 	}
 
 	/**
-	 * 消息加密
+	 * 消息加密.
+	 *
 	 * @param $text
+	 *
 	 * @return array
 	 */
 	public function encryptMsg($text) {
@@ -93,23 +104,25 @@ class XzappAccount extends WeAccount {
 
 		// 填充位数
 		$padLen = $blockSize - (strlen($text) % $blockSize);
-		$text .= str_repeat(chr($padLen), $padLen == 0 ? $blockSize : $padLen);
+		$text .= str_repeat(chr($padLen), 0 == $padLen ? $blockSize : $padLen);
 
 		// 加密
 		$iv = substr($key, 0, 16);
-		$encoded = openssl_encrypt($text, 'AES-256-CBC', $key, OPENSSL_RAW_DATA|OPENSSL_ZERO_PADDING, $iv);
+		$encoded = openssl_encrypt($text, 'AES-256-CBC', $key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $iv);
 
 		$encrypt_msg = base64_encode($encoded);
 
 		//生成的签名
 		$signature = $this->buildSignature($encrypt_msg);
+
 		return array($signature, $encrypt_msg);
 	}
 
 	/**
-	 * 对消息进行解密
+	 * 对消息进行解密.
 	 *
 	 * @param array $postData
+	 *
 	 * @return error 或 string
 	 */
 	public function decryptMsg($postData) {
@@ -125,13 +138,13 @@ class XzappAccount extends WeAccount {
 		$encrypt = base64_decode($packet['encrypt']);
 		//检验签名
 		$istrue = $this->checkSignature($packet['encrypt']);
-		if(!$istrue) {
-			return error(-1, "熊掌号签名错误！");
+		if (!$istrue) {
+			return error(-1, '熊掌号签名错误！');
 		}
 
 		// 解密
 		$iv = substr($key, 0, 16);
-		$decoded = openssl_decrypt($encrypt, 'AES-256-CBC', $key, OPENSSL_RAW_DATA|OPENSSL_ZERO_PADDING, $iv);
+		$decoded = openssl_decrypt($encrypt, 'AES-256-CBC', $key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $iv);
 
 		// 去掉填充位数
 		$pad = ord(substr($decoded, -1));
@@ -147,43 +160,47 @@ class XzappAccount extends WeAccount {
 		if ($clientId != $appid) {
 			return error(-1, 'ERR: decode clientId is ' . $clientId . ', need client is ' . $appid);
 		}
+
 		return $content;
 	}
 
 	/**
-	 * 从xml中提取密文
+	 * 从xml中提取密文.
 	 *
 	 * @param string $message
+	 *
 	 * @return array error/array
 	 */
 	public function xmlExtract($message) {
 		$packet = array();
-		if (!empty($message)){
+		if (!empty($message)) {
 			$obj = isimplexml_load_string($message, 'SimpleXMLElement', LIBXML_NOCDATA);
-			if($obj instanceof SimpleXMLElement) {
+			if ($obj instanceof SimpleXMLElement) {
 				$packet['encrypt'] = strval($obj->Encrypt);
 				$packet['to'] = strval($obj->ToUserName);
 			}
 		}
-		if(!empty($packet['encrypt'])) {
+		if (!empty($packet['encrypt'])) {
 			return $packet;
 		} else {
-			return error(-1, "熊掌号返回接口错误");
+			return error(-1, '熊掌号返回接口错误');
 		}
 	}
 
 	/**
-	 * 生成加密后xml
+	 * 生成加密后xml.
 	 *
 	 * @param array $data
+	 *
 	 * @return string xml
 	 */
-	function xmlDetract($data) {
+	public function xmlDetract($data) {
 		//生成xml
 		$xml['Encrypt'] = $data[1];
 		$xml['MsgSignature'] = $data[0];
 		$xml['TimeStamp'] = $_GET['timestamp'];
 		$xml['Nonce'] = $_GET['nonce'];
+
 		return array2xml($xml);
 	}
 
@@ -193,23 +210,19 @@ class XzappAccount extends WeAccount {
 		if ($result['error_code']) {
 			return error(-1, "访问熊掌号接口失败, 错误代码：【{$result['error_code']}】, 错误信息：【{$result['error_msg']}】");
 		}
-		return $result;
-	}
 
-	public function checkIntoManage() {
-		if (empty($this->account) || (!empty($this->uniaccount['account']) && $this->uniaccount['type'] != ACCOUNT_TYPE_XZAPP_NORMAL && !defined('IN_MODULE'))) {
-			return false;
-		}
-		return true;
+		return $result;
 	}
 
 	public function getOauthCodeUrl($callback, $state = '') {
 		$this->account['callbackurl'] = $callback;
+
 		return "https://openapi.baidu.com/oauth/2.0/authorize?response_type=code&client_id={$this->account['key']}&redirect_uri={$callback}&scope=snsapi_base&state={$state}";
 	}
 
 	public function getOauthUserInfoUrl($callback, $state = '') {
 		$this->account['callbackurl'] = $callback;
+
 		return "https://openapi.baidu.com/oauth/2.0/authorize?response_type=code&client_id={$this->account['key']}&redirect_uri={$callback}&scope=snsapi_userinfo&state={$state}";
 	}
 
@@ -227,7 +240,7 @@ class XzappAccount extends WeAccount {
 		}
 
 		$str = '';
-		if(uni_is_multi_acid()) {
+		if (uni_is_multi_acid()) {
 			$str = "&j={$_W['acid']}";
 		}
 		$oauth_type = $_GPC['scope'];
@@ -237,6 +250,7 @@ class XzappAccount extends WeAccount {
 		$oauth_info = $this->getOauthAccessToken($code, $callback);
 		$user_info_url = "https://openapi.baidu.com/rest/2.0/cambrian/sns/userinfo?access_token={$oauth_info['token']}&openid={$oauth_info['openid']}";
 		$response = $this->requestApi($user_info_url);
+
 		return $response;
 	}
 
@@ -254,6 +268,7 @@ class XzappAccount extends WeAccount {
 		$record['openid'] = $oauth_info['openid'];
 		$record['expire'] = TIMESTAMP + $oauth_info['expires_in'] - 200;
 		cache_write($cachekey, $record);
+
 		return $record;
 	}
 
@@ -274,6 +289,7 @@ class XzappAccount extends WeAccount {
 
 		$url = "https://openapi.baidu.com/rest/2.0/cambrian/tags/get?access_token={$token}";
 		$result = $this->requestApi($url);
+
 		return $result;
 	}
 
@@ -300,13 +316,16 @@ class XzappAccount extends WeAccount {
 		$return['total'] = $content['total'];
 		$return['fans'] = $content['data'];
 		$return['next'] = $content['start_index'];
+
 		return $return;
 	}
 
 	/**
-	 * 获取用户基本信息(单个)
+	 * 获取用户基本信息(单个).
+	 *
 	 * @param $uniid
 	 * @param bool $isOpen
+	 *
 	 * @return array
 	 */
 	public function fansQueryInfo($uniid, $isOpen = true) {
@@ -316,25 +335,28 @@ class XzappAccount extends WeAccount {
 			exit('error');
 		}
 		$token = $this->getAccessToken();
-		if(is_error($token)){
+		if (is_error($token)) {
 			return $token;
 		}
 		$data = array(
 			'user_list' => array(
 				array(
 					'openid' => $uniid,
-				)
+				),
 			),
 		);
 		$url = "https://openapi.baidu.com/rest/2.0/cambrian/user/info?access_token={$token}";
 
 		$result = $this->requestApi($url, json_encode($data));
+
 		return $result['user_info_list'][0];
 	}
 
 	/**
-	 * 获取用户基本信息(批量)
+	 * 获取用户基本信息(批量).
+	 *
 	 * @param $data
+	 *
 	 * @return array
 	 */
 	public function fansBatchQueryInfo($data) {
@@ -354,34 +376,39 @@ class XzappAccount extends WeAccount {
 
 		$url = "https://openapi.baidu.com/rest/2.0/cambrian/user/info?access_token={$token}";
 		$result = $this->requestApi($url, json_encode($list));
+
 		return $result['user_info_list'];
 	}
 
 	/**
-	 * 创建粉丝标签
-	 * @param 	array 		$tagname
-	 * @return 	array 		$result
+	 * 创建粉丝标签.
 	 *
+	 * @param array $tagname
+	 *
+	 * @return array $result
 	 */
 	public function fansTagAdd($tagname) {
-		if(empty($tagname)) {
+		if (empty($tagname)) {
 			return error(-1, '请填写标签名称');
 		}
 		$token = $this->getAccessToken();
-		if(is_error($token)){
+		if (is_error($token)) {
 			return $token;
 		}
 
 		$url = "https://openapi.baidu.com/rest/2.0/cambrian/tags/create?access_token={$token}";
 		$data = stripslashes(ijson_encode(array('tag' => array('name' => $tagname)), JSON_UNESCAPED_UNICODE));
 		$result = $this->requestApi($url, $data);
+
 		return $result;
 	}
 
 	/**
-	 * 单个粉丝打标签
+	 * 单个粉丝打标签.
+	 *
 	 * @param $openid
 	 * @param $tagids
+	 *
 	 * @return array|bool|mixed
 	 */
 	public function fansTagTagging($openid, $tagids) {
@@ -415,7 +442,7 @@ class XzappAccount extends WeAccount {
 		foreach ($tagids as $tagid) {
 			$data = array(
 				'openid_list' => array($openid),
-				'tagid' => $tagid
+				'tagid' => $tagid,
 			);
 			$data = json_encode($data);
 			$result = $this->requestApi($url, $data);
@@ -423,16 +450,19 @@ class XzappAccount extends WeAccount {
 				return $result;
 			}
 		}
+
 		return true;
 	}
 
 	/**
-	 * 获取用户身上的标签列表
+	 * 获取用户身上的标签列表.
+	 *
 	 * @param $openid
+	 *
 	 * @return array|mixed
 	 */
 	public function fansTagFetchOwnTags($openid) {
-		$openid = (string)$openid;
+		$openid = (string) $openid;
 		if (empty($openid)) {
 			return error(-1, '没有填写用户openid');
 		}
@@ -444,18 +474,21 @@ class XzappAccount extends WeAccount {
 		$url = "https://openapi.baidu.com/rest/2.0/cambrian/tags/getidlist?access_token={$token}";
 		$data = json_encode(array('openid' => $openid));
 		$result = $this->requestApi($url, $data);
+
 		return $result;
 	}
 
 	/**
-	 * 批量为用户取消标签
+	 * 批量为用户取消标签.
+	 *
 	 * @param $openid_list
 	 * @param $tagid
+	 *
 	 * @return array|bool|mixed
 	 */
 	public function fansTagBatchUntagging($openid_list, $tagid) {
-		$openid_list = (array)$openid_list;
-		$tagid = (int)$tagid;
+		$openid_list = (array) $openid_list;
+		$tagid = (int) $tagid;
 		if (empty($openid_list)) {
 			return error(-1, '缺少openid参数');
 		}
@@ -470,50 +503,56 @@ class XzappAccount extends WeAccount {
 		$url = "https://openapi.baidu.com/rest/2.0/cambrian/tags/batchuntagging?access_token={$token}";
 		$data = array(
 			'openid_list' => $openid_list,
-			'tagid' => $tagid
+			'tagid' => $tagid,
 		);
 		$data = json_encode($data);
 		$result = $this->requestApi($url, $data);
 		if (is_error($result)) {
 			return $result;
 		}
+
 		return true;
 	}
 
 	/**
-	 * 批量为用户打标签
+	 * 批量为用户打标签.
+	 *
 	 * @param $openid_list
 	 * @param $tagid
+	 *
 	 * @return array|bool|mixed
 	 */
 	public function fansTagBatchTagging($openid_list, $tagid) {
-		$openid_list = (array)$openid_list;
-		$tagid = (int)$tagid;
-		if(empty($openid_list)){
+		$openid_list = (array) $openid_list;
+		$tagid = (int) $tagid;
+		if (empty($openid_list)) {
 			return error(-1, '没有填写用户openid列表');
 		}
-		if(empty($tagid)) {
+		if (empty($tagid)) {
 			return error(-1, '没有填写tagid');
 		}
 		$token = $this->getAccessToken();
-		if(is_error($token)){
+		if (is_error($token)) {
 			return $token;
 		}
 		$url = "https://openapi.baidu.com/rest/2.0/cambrian/tags/batchtagging?access_token={$token}";
 		$data = array(
 			'openid_list' => $openid_list,
-			'tagid' => $tagid
+			'tagid' => $tagid,
 		);
 		$result = $this->requestApi($url, json_encode($data));
 		if (is_error($result)) {
 			return $result;
 		}
+
 		return true;
 	}
 
-	# 自定义菜单
+	// 自定义菜单
+
 	/**
-	 * API配置自定义菜单查询
+	 * API配置自定义菜单查询.
+	 *
 	 * @return array|mixed
 	 */
 	public function menuCurrentQuery() {
@@ -523,18 +562,21 @@ class XzappAccount extends WeAccount {
 		}
 		$url = "https://openapi.baidu.com/rest/2.0/cambrian/menu/get?access_token={$token}";
 		$res = $this->requestApi($url);
+
 		return $res;
 	}
 
 	/**
-	 * 自定义菜单创建
+	 * 自定义菜单创建.
+	 *
 	 * @param $post
+	 *
 	 * @return array|mixed
 	 */
 	public function menuCreate($menu) {
 		global $_W;
 		$token = $this->getAccessToken();
-		if(is_error($token)){
+		if (is_error($token)) {
 			return $token;
 		}
 		$data['menues'] = json_encode($menu);
@@ -548,8 +590,10 @@ class XzappAccount extends WeAccount {
 	}
 
 	/**
-	 * 构造可直接请求自定义菜单创建接口的数据
+	 * 构造可直接请求自定义菜单创建接口的数据.
+	 *
 	 * @param $post
+	 *
 	 * @return array
 	 */
 	public function menuBuild($post, $is_conditional = false) {
@@ -559,21 +603,20 @@ class XzappAccount extends WeAccount {
 			$temp['name'] = $button['name'];
 			if (empty($button['sub_button'])) {
 				$temp['type'] = $button['type'];
-				if ($button['type'] == 'click') {
+				if ('click' == $button['type']) {
 					if (!empty($button['media_id']) && empty($button['key'])) {
 						$temp['key'] = $button['media_id'];
 						$temp['msg'] = array(
 							'text' => '',
 							'type' => 'view_limited',
-							'materialId' => $button['media_id']
+							'materialId' => $button['media_id'],
 						);
 					}
-					if (!empty($button['key']) && $button['key'] == $button['msg']['materialId']) {
+					if (!empty($button['key']) && $button['msg']['materialId'] == $button['key']) {
 						$temp['msg'] = $button['msg'];
 						$temp['key'] = $button['key'];
 					}
-
-				} elseif ($button['type'] == 'view') {
+				} elseif ('view' == $button['type']) {
 					$temp['url'] = $button['url'];
 				}
 			} else {
@@ -581,21 +624,20 @@ class XzappAccount extends WeAccount {
 					$sub_temp = array();
 					$sub_temp['name'] = $sub_button['name'];
 					$sub_temp['type'] = $sub_button['type'];
-					if ($sub_button['type'] == 'click') {
+					if ('click' == $sub_button['type']) {
 						if (!empty($sub_button['media_id']) && empty($sub_button['key'])) {
 							$sub_temp['key'] = $sub_button['media_id'];
 							$sub_temp['msg'] = array(
 								'text' => '',
 								'type' => 'view_limited',
-								'materialId' => $sub_button['media_id']
+								'materialId' => $sub_button['media_id'],
 							);
 						}
-						if (!empty($sub_button['key']) && $sub_button['key'] == $sub_button['msg']['materialId']) {
+						if (!empty($sub_button['key']) && $sub_button['msg']['materialId'] == $sub_button['key']) {
 							$sub_temp['msg'] = $sub_button['msg'];
 							$sub_temp['key'] = $sub_button['key'];
 						}
-
-					} elseif ($sub_button['type'] == 'view') {
+					} elseif ('view' == $sub_button['type']) {
 						$sub_temp['url'] = $sub_button['url'];
 					}
 					$temp['sub_button'][] = $sub_temp;
@@ -603,15 +645,19 @@ class XzappAccount extends WeAccount {
 			}
 			$menu['button'][] = $temp;
 		}
+
 		return $menu;
 	}
 
-	# 素材
+	// 素材
+
 	/**
-	 * 获取熊掌号素材列表（熊掌号只支持图片和图文）
-	 * @param string $type	素材的类型:image/news
-	 * @param int $offset	素材偏移的位置，从０开始
-	 * @param int $count	素材的数量，取值在１－２０之间，默认２０
+	 * 获取熊掌号素材列表（熊掌号只支持图片和图文）.
+	 *
+	 * @param string $type   素材的类型:image/news
+	 * @param int    $offset 素材偏移的位置，从０开始
+	 * @param int    $count  素材的数量，取值在１－２０之间，默认２０
+	 *
 	 * @return array|mixed
 	 */
 	public function batchGetMaterial($type = 'news', $offset = 0, $count = 20) {
@@ -627,7 +673,7 @@ class XzappAccount extends WeAccount {
 			foreach ($response['item'] as $key => &$item) {
 				foreach ($item['content']['news_item'] as $news_key => &$news_item) {
 					$content = json_decode($news_item['content'], true);
-					if (!empty($content) && is_array($content) && !empty($content['orihtml'])){
+					if (!empty($content) && is_array($content) && !empty($content['orihtml'])) {
 						$news_item['content'] = $content['orihtml'];
 					}
 					$news_info = $this->getMaterial($news_item['thumb_media_id']);
@@ -635,12 +681,15 @@ class XzappAccount extends WeAccount {
 				}
 			}
 		}
+
 		return $response;
 	}
 
 	/**
-	 * 删除永久素材
+	 * 删除永久素材.
+	 *
 	 * @param $media_id
+	 *
 	 * @return array|mixed
 	 */
 	public function delMaterial($media_id) {
@@ -652,48 +701,57 @@ class XzappAccount extends WeAccount {
 		if (is_error($token)) {
 			return $token;
 		}
-		$url = "https://openapi.baidu.com/rest/2.0/cambrian/material/del_material?access_token=" . $token . "&media_id=" . $media_id;
+		$url = 'https://openapi.baidu.com/rest/2.0/cambrian/material/del_material?access_token=' . $token . '&media_id=' . $media_id;
 
 		$response = $this->requestApi($url);
+
 		return $response;
 	}
 
 	/**
-	 * 新增永久图文素材
+	 * 新增永久图文素材.
+	 *
 	 * @param $data
+	 *
 	 * @return array
 	 */
 	public function addMatrialNews($data) {
 		$token = $this->getAccessToken();
-		if(is_error($token)){
+		if (is_error($token)) {
 			return $token;
 		}
 		$url = "https://openapi.baidu.com/rest/2.0/cambrian/material/add_news?access_token={$token}";
 		$data = stripslashes(urldecode(ijson_encode($data, JSON_UNESCAPED_UNICODE)));
 
 		$response = $this->requestApi($url, $data);
+
 		return $response['media_id'];
 	}
 
 	/**
-	 * 修改永久图文素材
+	 * 修改永久图文素材.
+	 *
 	 * @param $data
+	 *
 	 * @return array|mixed
 	 */
 	public function editMaterialNews($data) {
 		$token = $this->getAccessToken();
-		if(is_error($token)){
+		if (is_error($token)) {
 			return $token;
 		}
 		$url = "https://openapi.baidu.com/rest/2.0/cambrian/material/update_news?access_token={$token}";
 
 		$response = $this->requestApi($url, stripslashes(ijson_encode($data, JSON_UNESCAPED_UNICODE)));
+
 		return $response;
 	}
 
 	/**
-	 * 获取永久素材
+	 * 获取永久素材.
+	 *
 	 * @param $media_id
+	 *
 	 * @return array|mixed
 	 */
 	public function getMaterial($media_id) {
@@ -705,12 +763,15 @@ class XzappAccount extends WeAccount {
 		$url = "https://openapi.baidu.com/rest/2.0/cambrian/material/get_material?access_token={$token}&media_id={$media_id}";
 
 		$response = $this->requestApi($url);
+
 		return $response;
 	}
 
 	/**
-	 * 上传图文消息内的图片获取URL
+	 * 上传图文消息内的图片获取URL.
+	 *
 	 * @param $thumb
+	 *
 	 * @return array
 	 */
 	public function uploadNewsThumb($thumb) {
@@ -729,11 +790,12 @@ class XzappAccount extends WeAccount {
 		$url = "https://openapi.baidu.com/rest/2.0/cambrian/media/uploadimg?access_token={$token}";
 
 		$response = $this->requestApi($url, $data);
+
 		return $response['url'];
 	}
 
 	public function uploadMediaFixed($path, $type = 'images') {
-		# 未测试
+		// 未测试
 		if (empty($path)) {
 			return error(-1, '参数错误');
 		}
@@ -744,25 +806,26 @@ class XzappAccount extends WeAccount {
 			return error(1, '文件不存在');
 		}
 		$token = $this->getAccessToken();
-		if (is_error($token)){
+		if (is_error($token)) {
 			return $token;
 		}
 		$data = array(
-			'media' => '@' . $path
+			'media' => '@' . $path,
 		);
 		$url = "https://openapi.baidu.com/rest/2.0/cambrian/media/add_material?access_token={$token}";
 
 		$response = $this->requestApi($url, $data);
+
 		return $response;
 	}
 
 	/*发送客服消息*/
 	public function sendCustomNotice($data) {
-		if(empty($data)) {
+		if (empty($data)) {
 			return error(-1, '参数错误');
 		}
 		$token = $this->getAccessToken();
-		if(is_error($token)){
+		if (is_error($token)) {
 			return $token;
 		}
 		$url = "https://openapi.baidu.com/rest/2.0/cambrian/message/custom_send?access_token={$token}";
@@ -771,24 +834,26 @@ class XzappAccount extends WeAccount {
 		if (is_error($response)) {
 			return $response;
 		}
+
 		return true;
 	}
 
 	/**
-	 * 发送模板消息
+	 * 发送模板消息.
+	 *
 	 *  @param string $touser 粉丝openid
 	 *  @param string $tpl_id_short 模板id
 	 *  @param array $postdata 根据模板规则完善消息
 	 *  @param string $url 详情页链接
 	 */
 	public function sendTplNotice($touser, $template_id, $postdata, $url = '') {
-		if(empty($touser)) {
+		if (empty($touser)) {
 			return error(-1, '参数错误,粉丝openid不能为空');
 		}
-		if(empty($template_id)) {
+		if (empty($template_id)) {
 			return error(-1, '参数错误,模板标示不能为空');
 		}
-		if(empty($postdata) || !is_array($postdata)) {
+		if (empty($postdata) || !is_array($postdata)) {
 			return error(-1, '参数错误,请根据模板规则完善消息内容');
 		}
 		$token = $this->getAccessToken();
@@ -804,17 +869,20 @@ class XzappAccount extends WeAccount {
 		$data = json_encode($data);
 		$post_url = "https://openapi.baidu.com/rest/2.0/cambrian/template/send?access_token={$token}";
 		$response = $this->requestApi($post_url, $data);
-		if(is_error($response)) {
+		if (is_error($response)) {
 			return error(-1, "访问公众平台接口失败, 错误: {$response['message']}");
 		}
+
 		return true;
 	}
 
 	/**
-	 * 消息群发
+	 * 消息群发.
+	 *
 	 * @param $group
 	 * @param $msgtype
 	 * @param $media_id
+	 *
 	 * @return array|mixed
 	 */
 	public function fansSendAll($group, $msgtype, $media_id) {
@@ -822,12 +890,12 @@ class XzappAccount extends WeAccount {
 		if (empty($types[$msgtype])) {
 			return error(-1, '消息类型不合法');
 		}
-		$send_conent = ($types[$msgtype] == 'text') ? array('content' => $media_id) : array('media_id' => $media_id);
+		$send_conent = ('text' == $types[$msgtype]) ? array('content' => $media_id) : array('media_id' => $media_id);
 		if ($group == -1) {
 			$data = array(
 				'filter' => array(
 					'is_to_all' => true,
-					'group_id' => $group
+					'group_id' => $group,
 				),
 				'msgtype' => $types[$msgtype],
 				$types[$msgtype] => $send_conent,
@@ -841,42 +909,47 @@ class XzappAccount extends WeAccount {
 			);
 		}
 		$token = $this->getAccessToken();
-		if(is_error($token)){
+		if (is_error($token)) {
 			return $token;
 		}
 		$url = "https://openapi.baidu.com/rest/2.0/cambrian/message/sendall?access_token={$token}";
 		$response = $this->requestApi($url, json_encode($data));
+
 		return $response;
 	}
 
 	/**
-	 * 获取标签下粉丝列表
+	 * 获取标签下粉丝列表.
+	 *
 	 * @param $tagid
+	 *
 	 * @return array
 	 */
-	public function getFansByTag($tagid){
+	public function getFansByTag($tagid) {
 		$token = $this->getAccessToken();
-		if(is_error($token)){
+		if (is_error($token)) {
 			return $token;
 		}
 		$url = "https://openapi.baidu.com/rest/2.0/cambrian/tag/get?access_token={$token}";
 		$data = array('tagid' => $tagid);
 		$response = $this->requestApi($url, json_encode($data));
+
 		return $response['data']['openid'];
 	}
 
 	/**
-	 * jsapi_ticket
+	 * jsapi_ticket.
+	 *
 	 * @return array|mixed
 	 */
 	public function getJsApiTicket() {
-		$cachekey = cache_system_key('jsticket', array('acid' => $this->account['acid']));
+		$cachekey = cache_system_key('jsticket', array('uniacid' => $this->account['uniacid']));
 		$cache = cache_load($cachekey);
-		if(!empty($cache) && !empty($cache['ticket']) && $cache['expire'] > TIMESTAMP) {
+		if (!empty($cache) && !empty($cache['ticket']) && $cache['expire'] > TIMESTAMP) {
 			return $cache['ticket'];
 		}
 		$access_token = $this->getAccessToken();
-		if(is_error($access_token)){
+		if (is_error($access_token)) {
 			return $access_token;
 		}
 
@@ -897,7 +970,8 @@ class XzappAccount extends WeAccount {
 	}
 
 	/**
-	 * 获取 jssdk config
+	 * 获取 jssdk config.
+	 *
 	 * @return array
 	 */
 	public function getJssdkConfig($url = '') {
@@ -910,33 +984,34 @@ class XzappAccount extends WeAccount {
 		$timestamp = TIMESTAMP;
 		$url = empty($url) ? $_W['siteurl'] : $url;
 		$arr = array(
-			"jsapi_ticket" => $jsapiTicket,
-			"nonce_str" => $nonceStr,
-			"timestamp" => $timestamp,
-			"url" => urlencode($url)
+			'jsapi_ticket' => $jsapiTicket,
+			'nonce_str' => $nonceStr,
+			'timestamp' => $timestamp,
+			'url' => urlencode($url),
 		);
 		ksort($arr);
 		$string1 = http_build_query($arr);
 		$signature = sha1($string1);
 		$config = array(
-			"appId"		=> $this->account['original'],
-			"nonceStr"	=> $nonceStr,
-			"timestamp" => "$timestamp",
-			"signature" => $signature,
-			"url" => urlencode($url),
+			'appId' => $this->account['original'],
+			'nonceStr' => $nonceStr,
+			'timestamp' => "$timestamp",
+			'signature' => $signature,
+			'url' => urlencode($url),
 		);
+
 		return $config;
 	}
 
 	/**
-	 * 获取熊掌号前端显示的素材支持内容
+	 * 获取熊掌号前端显示的素材支持内容.
+	 *
 	 * @return array
 	 */
 	public function getMaterialSupport() {
 		return array(
-			'mass' => array('news'=> false, 'image'=> false,'voice'=> false,'basic'=> false),
-			'chats' => array('basic'=> false,'news'=> false,'image'=> false,'music'=> true,'voice'=> false,'video'=> true)
+			'mass' => array('news' => false, 'image' => false, 'voice' => false, 'basic' => false),
+			'chats' => array('basic' => false, 'news' => false, 'image' => false, 'music' => true, 'voice' => false, 'video' => true),
 		);
 	}
-
 }

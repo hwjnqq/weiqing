@@ -1,9 +1,9 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
-load()->model('app');
+load()->model('site');
 $multiid = intval($_GPC['t']);
 if(empty($multiid)) {
 	load()->model('account');
@@ -11,13 +11,25 @@ if(empty($multiid)) {
 	$multiid = $setting['default_site'];
 }
 $title = $_W['page']['title'];
-$navs = app_navs('home', $multiid);
+$navs = site_app_navs('home', $multiid);
 //设置分享信息
-$share_tmp = pdo_fetch('SELECT title,description,thumb FROM ' . tablename('cover_reply') . ' WHERE uniacid = :aid AND multiid = :id AND module = :m', array(':aid' => $_W['uniacid'], ':id' => $multiid, ':m' => 'site'));
+$share_tmp = table('cover_reply')
+	->where(array(
+		'uniacid' => $_W['uniacid'],
+		'multiid' => $multiid,
+		'module' => 'site'
+	))
+	->select(array('title', 'description', 'thumb'))
+	->get();
 $_share['imgUrl'] = tomedia($share_tmp['thumb']);
 $_share['desc'] = $share_tmp['description'];
 $_share['title'] = $share_tmp['title'];
-$category_list = pdo_getall('site_category', array('uniacid' => $_W['uniacid'], 'multiid' => $multiid), array(), 'id');
+$category_list = table('site_category')
+	->where(array(
+		'uniacid' => $_W['uniacid'],
+		'multiid' => $multiid
+	))
+	->getall('id');
 if (!empty($multiid)) {
 	isetcookie('__multiid', $multiid);
 }

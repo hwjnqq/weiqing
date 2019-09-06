@@ -1,7 +1,7 @@
 <?php
 /**
  * 触发定时任务
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -9,7 +9,7 @@ load()->func('cron');
 
 $id = intval($_GPC['id']);
 $cron = cron_check($id);
-if(is_error($cron)) {
+if (is_error($cron)) {
 	message($cron, '', 'ajax');
 }
 
@@ -20,7 +20,7 @@ $_W['weid'] = $_W['uniacid'];
 $_W['cron'] = $cron;
 
 $moduleCron = WeUtility::createModuleCron($cron['module']);
-if(!is_error($moduleCron)) {
+if (!is_error($moduleCron)) {
 	define('IN_MODULE', $cron['module']);
 	$method = 'doCron' . ucfirst($cron['filename']);
 	$moduleCron->$method();

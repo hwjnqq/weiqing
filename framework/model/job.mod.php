@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn: pro/framework/model/extension.mod.php : v fc9f77cc82f2 : 2015/08/31 07:00:43 : yanghf $
  */
 defined('IN_IA') or exit('Access Denied');
@@ -10,7 +10,7 @@ defined('IN_IA') or exit('Access Denied');
  *  任务列表
  */
 function job_list($uid, $isfounder = false) {
-	$table = table('job')->where('isdeleted',0);
+	$table = table('core_job')->where('isdeleted',0);
 	if (!$isfounder) {
 		// 非创始人只能看到自己创建的任务
 		$table->where('uid', $uid);
@@ -25,7 +25,7 @@ function job_list($uid, $isfounder = false) {
  * @return mixed
  */
 function job_single($id) {
-	return table('job')->getById($id);
+	return table('core_job')->getById($id);
 }
 
 
@@ -34,12 +34,10 @@ function job_single($id) {
  * @param $uniacid
  */
 function job_create_delete_account($uniacid, $accountName, $uid) {
-	global $_W;
-	$job = table('job');
 	$core_count = table('core_attachment')->where('uniacid', $uniacid)->count();
 	$wechat_count = table('wechat_attachment')->where('uniacid', $uniacid)->count();
 	$total = $core_count + intval($wechat_count);
-	return $job->createDeleteAccountJob($uniacid, $accountName, $total, $uid);
+	return table('core_job')->createDeleteAccountJob($uniacid, $accountName, $total, $uid);
 }
 /**
  *  执行任务
@@ -84,7 +82,7 @@ function job_execute_delete_account($job) {
 	// 都为0 说明已经删除完了
 	if (count($core_attchments) == 0 && count($wechat_attachments) == 0) {
 		table('core_attachment_group')->where('uniacid', $uniacid)->delete();
-		$upjob = table('job')->where('id', $job['id']);
+		$upjob = table('core_job')->where('id', $job['id']);
 		$upjob->fill('status', 1);//改为完成状态
 		$upjob->fill('endtime', TIMESTAMP);//加结束时间
 		$upjob->save();
@@ -106,7 +104,7 @@ function job_execute_delete_account($job) {
 	$handled = count($core_ids) + count($wechat_ids);
 	$all_handled = intval($job['handled']) + $handled;
 	$total = intval($job['total']);
-	table('job')->where('id', $job['id'])->fill('handled', $all_handled)
+	table('core_job')->where('id', $job['id'])->fill('handled', $all_handled)
 		->fill('updatetime',TIMESTAMP)->save();
 	return error(0, array('finished'=>0, 'progress'=>intval($all_handled/$total*100), 'id'=>$job['id']));
 
@@ -116,5 +114,5 @@ function job_execute_delete_account($job) {
  *  清除已完成任务
  */
 function job_clear($uid, $isfounder = false) {
-	return table('job')->clear($uid, $isfounder);
+	return table('core_job')->clear($uid, $isfounder);
 }

@@ -1,7 +1,7 @@
 <?php
 /**
  * 欢迎页，统计等信息
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -16,21 +16,21 @@ load()->model('cloud');
 $dos = array('platform', 'system', 'ext', 'account_ext', 'get_fans_kpi', 'get_system_upgrade', 'get_upgrade_modules', 'get_module_statistics', 'get_ads', 'get_not_installed_modules', 'system_home', 'set_top', 'set_default', 'add_welcome', 'ignore_update_module', 'get_workerorder', 'add_welcome_shortcut', 'remove_welcome_shortcut', 'build_account_modules');
 $do = in_array($do, $dos) ? $do : 'platform';
 
-if ($_W['highest_role'] == ACCOUNT_MANAGE_NAME_CLERK && in_array($do, array('platform', 'system_home', 'system'))) {
+if (ACCOUNT_MANAGE_NAME_CLERK == $_W['highest_role'] && in_array($do, array('platform', 'system_home', 'system'))) {
 	itoast('', url('module/display'));
 }
-if ($_W['highest_role'] == ACCOUNT_MANAGE_NAME_EXPIRED && in_array($do, array('system_home'))) {
+if (ACCOUNT_MANAGE_NAME_EXPIRED == $_W['highest_role'] && in_array($do, array('system_home'))) {
 	cache_updatecache();
 	itoast('', url('user/profile'));
 }
 
-if ($do == 'get_not_installed_modules') {
+if ('get_not_installed_modules' == $do) {
 	$not_installed_modules = module_uninstall_list();
 	iajax(0, $not_installed_modules);
 }
 
 
-	if ($do == 'ext') {
+	if ('ext' == $do) {
 		if (!empty($_GPC['version_id'])) {
 			$version_info = miniapp_version($_GPC['version_id']);
 		}
@@ -46,7 +46,7 @@ if ($do == 'get_not_installed_modules') {
 
 
 
-if ($do == 'platform') {
+if ('platform' == $do) {
 	if (empty($_W['account'])) {
 		itoast('账号信息有误!', url('account/manage'), 'info');
 	}
@@ -58,8 +58,8 @@ if ($do == 'platform') {
 	template('home/welcome');
 }
 
-if ($do == 'system') {
-	if(!$_W['isfounder'] || user_is_vice_founder()){
+if ('system' == $do) {
+	if (!$_W['isfounder'] || user_is_vice_founder()) {
 		header('Location: ' . url('home/welcome/system_home'));
 		exit;
 	}
@@ -71,17 +71,17 @@ if ($do == 'system') {
 	} else {
 		$backup_days = 0;
 	}
-	$today_start = strtotime(date('Y-m-d',time()));
-	$yestoday_start = strtotime(date('Y-m-d',strtotime("-1 days")));
+	$today_start = strtotime(date('Y-m-d', time()));
+	$yestoday_start = strtotime(date('Y-m-d', strtotime('-1 days')));
 
-	$statistics_order['today'] = table('store')->getStatisticsOrderInfoByDate($today_start, $today_start + 86400);
-	$statistics_order['yestoday'] = table('store')->getStatisticsOrderInfoByDate($yestoday_start, $yestoday_start + 86400);
+	$statistics_order['today'] = table('site_store_order')->getStatisticsInfoByDate($today_start, $today_start + 86400);
+	$statistics_order['yestoday'] = table('site_store_order')->getStatisticsInfoByDate($yestoday_start, $yestoday_start + 86400);
 
 	$system_check = cache_load(cache_system_key('system_check'));
 	template('home/welcome-system');
 }
 
-if ($do =='get_module_statistics') {
+if ('get_module_statistics' == $do) {
 	$install_modules = module_installed_list();
 
 	$module_statistics = array(
@@ -89,7 +89,7 @@ if ($do =='get_module_statistics') {
 			'total' => array(
 				'uninstall' => module_uninstall_total('account'),
 				'upgrade' => module_upgrade_total('account'),
-				'all' => 0
+				'all' => 0,
 			),
 		),
 		'wxapp' => array(
@@ -97,18 +97,18 @@ if ($do =='get_module_statistics') {
 				'uninstall' => module_uninstall_total('wxapp'),
 				'upgrade' => module_upgrade_total('wxapp'),
 				'all' => 0,
-			)
+			),
 		),
 	);
 
 	//因权限问题，用户所分配的模块不同，所以此处直接count安装列表
-	$module_statistics['account']['total']['all'] = $module_statistics['account']['total']['uninstall'] + count((array)$install_modules['account']);
-	$module_statistics['wxapp']['total']['all'] = $module_statistics['wxapp']['total']['uninstall'] + count((array)$install_modules['wxapp']);
+	$module_statistics['account']['total']['all'] = $module_statistics['account']['total']['uninstall'] + count((array) $install_modules['account']);
+	$module_statistics['wxapp']['total']['all'] = $module_statistics['wxapp']['total']['uninstall'] + count((array) $install_modules['wxapp']);
 
 	iajax(0, $module_statistics, '');
 }
 
-if ($do == 'ext') {
+if ('ext' == $do) {
 	$uniacid = intval($_GPC['uniacid']);
 	$modulename = $_GPC['m'];
 	if (!empty($modulename)) {
@@ -120,16 +120,15 @@ if ($do == 'ext') {
 		define('SYSTEM_WELCOME_MODULE', true);
 		$frames = buildframes('system_welcome');
 	} else {
-
 		//模块插件不进系统给定的模块欢迎页（非开发者module.php中的模块欢迎页）
-		if ($modulename != 'store' && empty($_W['current_module']['main_module']) && module_get_direct_enter_status($modulename) != STATUS_ON || $_GPC['tohome'] == STATUS_ON) {
+		if ('store' != $modulename && empty($_W['current_module']['main_module']) && STATUS_ON != module_get_direct_enter_status($modulename) || STATUS_ON == $_GPC['tohome']) {
 			itoast('', url('module/welcome', array('m' => $modulename, 'uniacid' => $uniacid)));
 		}
 		//统一进模块欢迎页,后面的代码暂时保留(先不要删)
 		$site = WeUtility::createModule($modulename);
 		if (!is_error($site)) {
 			$method = 'welcomeDisplay';
-			if(method_exists($site, $method)){
+			if (method_exists($site, $method)) {
 				define('FRAME', 'module_welcome');
 				$entries = module_entries($modulename, array('menu', 'home', 'profile', 'shortcut', 'cover', 'mine'));
 				$site->$method($entries);
@@ -154,14 +153,40 @@ if ($do == 'ext') {
 	template('home/welcome-ext');
 }
 
-if ($do == 'account_ext') {
+if ('account_ext' == $do) {
 	$modulename = $_GPC['m'];
 	if (!empty($modulename)) {
-		$module_info = module_fetch($modulename);
+		$module_info = module_fetch($modulename, false);
 	}
-	if (empty($module_info)) {
-		itoast('抱歉，你操作的模块不能被访问！');
+	$account_info = account_fetch($_W['uniacid']);
+	$type = $account_info->typeSign;
+	if (empty($module_info['is_delete']) && !empty($module_info['recycle_info'])) {
+		foreach ($module_info['recycle_info'] as $key => $value)
+		{
+			if ($type.'_support' == $key && $value == MODULE_RECYCLE_UNINSTALL_IGNORE) {
+				$module_info = array();
+				break;
+			} elseif ( $type.'_support' == $key && $value == MODULE_RECYCLE_INSTALL_DISABLED ){
+				$system_module_expire = setting_load('system_module_expire');
+				$system_module_expire = !empty($system_module_expire['system_module_expire']) ? $system_module_expire['system_module_expire'] : '您访问的功能模块不存在，请重新进入';
+				$module_expire = setting_load('module_expire');
+				$module_expire = !empty($module_expire['module_expire']) ? $module_expire['module_expire'] : array();
+				$expire_notice = '';
+				foreach ($module_expire as $key => $value) {
+					if ($value['status'] == 1) {
+						$expire_notice = $value['notice'];
+						break;
+					}
+					continue;
+				}
+				itoast($expire_notice ? $expire_notice : $system_module_expire, url('home/welcome'), 'info');
+			}
+		}
 	}
+	if (empty($module_info) || (!empty($module_info['is_delete']) && empty($module_info['recycle_info']))) {
+		itoast('抱歉，你操作的模块不能被访问！', url('home/welcome'), 'info');
+	}
+
 	$link_uniacid = table('uni_link_uniacid')->getMainUniacid($_W['uniacid'], $modulename, intval($_GPC['version_id']));
 	$redirect_uniacid = empty($link_uniacid) ? $_W['uniacid'] : $link_uniacid;
 	switch_save_account_display($redirect_uniacid);
@@ -169,7 +194,7 @@ if ($do == 'account_ext') {
 	template('home/welcome-ext');
 }
 
-if ($do == 'get_fans_kpi') {
+if ('get_fans_kpi' == $do) {
 	uni_update_week_stat();
 	//今日昨日指标
 	$yesterday = date('Ymd', strtotime('-1 days'));
@@ -189,13 +214,13 @@ if ($do == 'get_fans_kpi') {
 	iajax(0, array('yesterday' => $yesterday_stat, 'today' => $today_stat, 'all' => $today_stat['cumulate']), '');
 }
 
-if ($do == 'get_system_upgrade') {
+if ('get_system_upgrade' == $do) {
 	//系统更新信息
 	$upgrade = welcome_get_cloud_upgrade();
 	iajax(0, $upgrade, '');
 }
 
-if ($do == 'get_upgrade_modules') {
+if ('get_upgrade_modules' == $do) {
 	$module_support_types = module_support_type();
 	//可升级应用
 	module_upgrade_info();
@@ -255,7 +280,7 @@ if ($do == 'get_upgrade_modules') {
 	iajax(0, $upgrade_modules, '');
 }
 
-if ($do == 'get_ads') {
+if ('get_ads' == $do) {
 	$ads = welcome_get_ads();
 	if (is_error($ads)) {
 		iajax(1, $ads['message']);
@@ -264,7 +289,7 @@ if ($do == 'get_ads') {
 	}
 }
 
-if ($do == 'system_home') {
+if ('system_home' == $do) {
 	$user_info = user_single($_W['uid']);
 	$account_num = permission_user_account_num($_W['uid']);
 	$redirect_urls = array(
@@ -281,14 +306,14 @@ if ($do == 'system_home') {
 	$own_account_modules_all = $uni_modules_table->getModulesByUid($_W['uid']);
 
 	if (!empty($own_account_modules_all)) {
-		foreach($own_account_modules_all['modules'] as $key => &$value) {
+		foreach ($own_account_modules_all['modules'] as $key => &$value) {
 			$module_info = module_fetch($value['module_name']);
 			$value['title'] = $module_info['title'];
 			$value['logo'] = tomedia($module_info['logo']);
 			$value['checked'] = 0;
 			$own_account_modules_all['modules'][$key] = $value;
 
-			if ($value['role'] == ACCOUNT_MANAGE_NAME_CLERK || $value['role'] == ACCOUNT_MANAGE_NAME_OPERATOR) {
+			if (ACCOUNT_MANAGE_NAME_CLERK == $value['role'] || ACCOUNT_MANAGE_NAME_OPERATOR == $value['role']) {
 				$user_permission_table = table('users_permission');
 				$operator_modules_permissions = $user_permission_table->getAllUserModulePermission($_W['uid'], $value['uniacid']);
 
@@ -316,7 +341,7 @@ if ($do == 'system_home') {
 				continue;
 			}
 			$last_modules_account_info = uni_fetch($info['uniacid']);
-			if (is_error($last_modules_account_info) || $last_modules_account_info['isdeleted'] == 1) {
+			if (is_error($last_modules_account_info) || 1 == $last_modules_account_info['isdeleted']) {
 				continue;
 			}
 			if (!empty($info['modulename'])) {
@@ -324,14 +349,14 @@ if ($do == 'system_home') {
 				$info['module']['switchurl'] = url('module/display/switch', array('module_name' => $info['modulename']));
 				$info['account'] = $last_modules_account_info;
 				$last_modules[$info['modulename']] = $info;
-			}else {
+			} else {
 				$info['account'] = $last_modules_account_info;
 				$last_accounts[$info['uniacid']] = $info;
- 			}
+			}
 		}
 	}
 
-	# 如果常用平台为空,默认添加5条
+	// 如果常用平台为空,默认添加5条
 	if (empty($last_accounts)) {
 		$is_empty_accounts = 1;
 		$uni_account_users_table = table('uni_account_users');
@@ -341,7 +366,7 @@ if ($do == 'system_home') {
 		if (!empty($user_accounts)) {
 			foreach ($user_accounts as $user_account_info) {
 				$account_info['account'] = uni_fetch($user_account_info['uniacid']);
-				if ($account_info['account']->typeSign == WXAPP_TYPE_SIGN) {
+				if (WXAPP_TYPE_SIGN == $account_info['account']->typeSign) {
 					$version_info = miniapp_version_all($user_account_info['uniacid']);
 					if (empty($version_info)) {
 						continue;
@@ -363,7 +388,7 @@ if ($do == 'system_home') {
 		$is_empty_accounts = 0;
 	}
 
-	# 如果常用应用为空,默认添加5条
+	// 如果常用应用为空,默认添加5条
 	if (empty($last_modules) && !empty($own_account_modules_all['modules'])) {
 		$is_empty_modules = 1;
 		$i = 0;
@@ -376,13 +401,13 @@ if ($do == 'system_home') {
 			$module_info['module']['switchurl'] = url('module/display/switch', array('module_name' => $m_val['module_name']));
 			$module_info['account'] = uni_fetch($m_val['uniacid']);
 			$last_modules[$m_val['module_name']] = $module_info;
-			$i++;
+			++$i;
 		}
 	} else {
 		$is_empty_modules = 0;
 	}
 
-	# 模块默认账号
+	// 模块默认账号
 	$default_module_list = user_lastuse_module_default_account();
 	if (!empty($last_modules) && !empty($default_module_list)) {
 		foreach ($last_modules as $last_module_key => &$last_module_val) {
@@ -402,7 +427,7 @@ if ($do == 'system_home') {
 	template('home/welcome-system-home');
 }
 
-if ($do == 'set_top') {
+if ('set_top' == $do) {
 	$id = intval($_GPC['id']);
 	$displayorder = pdo_get('core_menu_shortcut', array('position' => 'home_welcome_system_common'), 'MAX(displayorder)');
 	$displayorder = current($displayorder);
@@ -413,7 +438,7 @@ if ($do == 'set_top') {
 	iajax(0, '', referer());
 }
 
-if ($do == 'add_welcome_shortcut') {
+if ('add_welcome_shortcut' == $do) {
 	$core_menu_shortcut_table = table('core_menu_shortcut');
 	$shortcuts = safe_gpc_array($_GPC['shortcuts']);
 
@@ -425,7 +450,7 @@ if ($do == 'add_welcome_shortcut') {
 	}
 }
 
-if ($do == 'remove_welcome_shortcut') {
+if ('remove_welcome_shortcut' == $do) {
 	$core_menu_shortcut_table = table('core_menu_shortcut');
 	$uniacid = intval($_GPC['uniacid']);
 	$module_name = safe_gpc_string($_GPC['module_name']);
@@ -433,14 +458,14 @@ if ($do == 'remove_welcome_shortcut') {
 	pdo_delete('core_menu_shortcut', array('uid' => $_W['uid'], 'uniacid' => $uniacid, 'modulename' => $module_name, 'position' => 'home_welcome_system_common'));
 }
 
-if ($do == 'set_default') {
+if ('set_default' == $do) {
 	$uniacid = intval($_GPC['uniacid']);
 	$module_name = safe_gpc_string($_GPC['module_name']);
 	switch_save_module($uniacid, $module_name);
 	iajax(0, '', '');
 }
 
-if ($do == 'ignore_update_module') {
+if ('ignore_update_module' == $do) {
 	if (empty($_GPC['name'])) {
 		iajax(1, '参数错误');
 	}
@@ -453,12 +478,12 @@ if ($do == 'ignore_update_module') {
 	iajax(0, '');
 }
 
-if ($do == 'get_workerorder') {
+if ('get_workerorder' == $do) {
 	$workorder_info = cloud_workorder();
 	iajax(0, $workorder_info, '');
 }
 
-if ($do == 'build_account_modules') {
+if ('build_account_modules' == $do) {
 	cache_build_account_modules($_W['uniacid']);
 	iajax(0, '');
 }

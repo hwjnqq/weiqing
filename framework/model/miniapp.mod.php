@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
@@ -40,6 +40,8 @@ function miniapp_create($account) {
 		'description' => $account['description'],
 		'title_initial' => get_first_pinyin($account['name']),
 		'groupid' => 0,
+		'createtime' => TIMESTAMP,
+		'create_uid' => intval($_W['uid']),
 	);
 	if (!pdo_insert('uni_account', $uni_account_data)) {
 		return error(1, '添加失败');
@@ -62,7 +64,7 @@ function miniapp_create($account) {
 		utility_image_rename($account['qrcode'], ATTACHMENT_ROOT . 'qrcode_' . $acid . '.jpg');
 	}
 
-	if (in_array($account['type'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH))) {
+	if (in_array($account['type'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_APP_PLATFORM))) {
 		$data = array(
 			'acid' => $acid,
 			'token' => isset($account['token']) ? $account['token'] : random(32),
@@ -125,43 +127,121 @@ function miniapp_create($account) {
 	return $uniacid;
 }
 
+
+function miniapp_create_wxapp_by_auth_appid($auth_appid, $account_name = '') {
+	load()->classs('wxapp.platform');
+	$account_platform = new WxappPlatform();
+
+	$sameAccount = $account_platform->fetchSameAccountByAppid($auth_appid);
+	if (!empty($sameAccount)) {
+		return $sameAccount['uniacid'];
+	}
+	$account_info = $account_platform->getAuthorizerInfo($auth_appid);
+	if (is_error($account_info)) {
+		return $account_info;
+	}
+
+	if ($account_info['authorizer_info']['service_type_info']['id'] == '0' || $account_info['authorizer_info']['service_type_info']['id'] == '1') {
+		if ($account_info['authorizer_info']['verify_type_info']['id'] > '-1') {
+			$level = '3';
+		} else {
+			$level = '1';
+		}
+	} elseif ($account_info['authorizer_info']['service_type_info']['id'] == '2') {
+		if ($account_info['authorizer_info']['verify_type_info']['id'] > '-1') {
+			$level = '4';
+		} else {
+			$level = '2';
+		}
+	}
+	$name = $account_name ? $account_name : ($account_info['authorizer_info']['principal_name'] . '-' . $account_info['authorizer_info']['nick_name']);
+	$uniacid = miniapp_create(array(
+		'name' => $name,
+		'original' => $account_info['authorizer_info']['user_name'],
+		'level' => $level,
+		'key' => $auth_appid,
+		'type' => ACCOUNT_TYPE_APP_PLATFORM,
+		'encodingaeskey' => $account_platform->encodingaeskey,
+		'auth_refresh_token'=> $account_info['authorization_info']['authorizer_refresh_token'],
+		'token' => $account_platform->token,
+		'headimg' => $account_info['authorizer_info']['head_img'],
+		'qrcode' => $account_info['authorizer_info']['qrcode_url'],
+	));
+	if (is_error($uniacid)) {
+		return $uniacid;
+	}
+	cache_build_account($uniacid);
+	return $uniacid;
+}
+
+function miniapp_add_register_version($data) {
+	$result = pdo_insert('wxapp_register_version', $data);
+	return $result ? true : false;
+}
+function miniapp_change_register_version_status($auditid, $status, $reason = '') {
+	global $_W;
+	$register_info = table('wxapp_register_version')->getByUniacidAndAuditid($_W['uniacid'], $auditid);
+	if (empty($register_info) || !in_array($status, array(WXAPP_REGISTER_VERSION_STATUS_CHECKFAIL, WXAPP_REGISTER_VERSION_STATUS_RETRACT, WXAPP_REGISTER_VERSION_STATUS_CHECKSUCCESS))) {
+		return false;
+	}
+	$data = array('status' => $status);
+	if (!empty($reason)) {
+		$data['reason'] = iserializer($reason);
+	}
+	$result = table('wxapp_register_version')->where('id', $register_info['id'])->fill($data)->save();
+	return $result ? true : false;
+}
+function miniapp_update_submit_audit($auditid) {
+	global $_W;
+	$register_info = table('wxapp_register_version')->getByUniacid($_W['uniacid']);
+	if (empty($register_info)) {
+		return false;
+	}
+	$audit_info = array(
+		'version'       =>  $register_info['version'],
+		'description'   =>  $register_info['description'],
+		'upload_time'   =>  TIMESTAMP
+	);
+	$data = array(
+		'status'        =>  WXAPP_REGISTER_VERSION_STATUS_CHECKING,
+		'audit_info'     =>  iserializer($audit_info),
+		'auditid' => $auditid
+	);
+	$result = table('wxapp_register_version')->where('id', $register_info['id'])->fill($data)->save();
+	return $result ? true : false;
+}
+
+function miniapp_update_release() {
+	global $_W;
+	$register_info = table('wxapp_register_version')->getByUniacid($_W['uniacid']);
+	$submit_info = array(
+		'version'       =>  $register_info['version'],
+		'description'   =>  $register_info['description'],
+		'upload_time'   =>  TIMESTAMP
+	);
+	$data = array(
+		'status'        =>  WXAPP_REGISTER_VERSION_STATUS_RELEASE,
+		'submit_info'     =>  iserializer($submit_info)
+	);
+	$result = table('wxapp_register_version')->where('id', $register_info['id'])->fill($data)->save();
+	return $result ? true : false;
+}
 /**
  * 获取所有支持小程序的模块.
  */
 function miniapp_support_wxapp_modules($uniacid = 0) {
 	global $_W;
-	load()->model('user');
 	$uniacid = empty($uniacid) ? $_W['uniacid'] : intval($uniacid);
-	$modules = user_modules($_W['uid']);
+	$modules = uni_modules_by_uniacid($uniacid);
+	if (empty($modules)) {
+		return array();
+	}
 	$wxapp_modules = array();
-	if (!empty($modules)) {
-		foreach ($modules as $module) {
-			if ($module['wxapp_support'] == MODULE_SUPPORT_WXAPP) {
-				$wxapp_modules[$module['name']] = $module;
-			}
+	foreach ($modules as $module) {
+		if ($module['wxapp_support'] == MODULE_SUPPORT_WXAPP) {
+			$wxapp_modules[$module['name']] = $module;
 		}
 	}
-	$store_table = table('store');
-	$store_table->searchWithEndtime();
-	$buy_wxapp_modules = $store_table->searchAccountBuyGoods($uniacid, STORE_TYPE_WXAPP_MODULE);
-	$store_table->searchWithEndtime();
-	$buy_group = $store_table->searchAccountBuyGoods($uniacid, STORE_TYPE_PACKAGE);
-	$buy_group_wxapp_modules = array();
-	if (!empty($buy_group)) {
-		foreach ($buy_group as $id => $group) {
-			$uni_groups = uni_groups(array($id));
-			if (is_array($uni_groups[$id]['wxapp'])) {
-				$buy_group_wxapp_modules = array_merge($buy_group_wxapp_modules, $uni_groups[$id]['wxapp']);
-			}
-		}
-	}
-	$extra_permission = table('account')->getAccountExtraPermission($uniacid);
-	$extra_modules = empty($extra_permission['modules']) ? array() : $extra_permission['modules'];
-	foreach ($extra_modules as $key => $value) {
-		$extra_modules[$value] = module_fetch($value);
-		unset($extra_modules[$key]);
-	}
-	$wxapp_modules = array_merge($buy_wxapp_modules, $buy_group_wxapp_modules, $wxapp_modules, $extra_modules);
 	if (empty($wxapp_modules)) {
 		return array();
 	}
@@ -171,7 +251,6 @@ function miniapp_support_wxapp_modules($uniacid = 0) {
 			$wxapp_modules[$bind['module']]['bindings'][] = array('title' => $bind['title'], 'do' => $bind['do']);
 		}
 	}
-
 	return $wxapp_modules;
 }
 
@@ -381,6 +460,7 @@ function miniapp_version($version_id) {
 		return $cache;
 	}
 	$version_info = table('wxapp_versions')->getById($version_id);
+	$version_info = table('wxapp_versions')->dataunserializer($version_info);
 	$version_info = miniapp_version_detail_info($version_info);
 	cache_write($cachekey, $version_info);
 
@@ -490,19 +570,6 @@ function miniapp_site_info($multiid) {
 	$site_info['recommend'] = pdo_fetchall($recommend_sql, array(':multiid' => $multiid));
 
 	return $site_info;
-}
-
-/**
- * 获取小程序支付参数.
- *
- * @return mixed
- */
-function miniapp_payment_param() {
-	global $_W;
-	$setting = uni_setting_load('payment', $_W['uniacid']);
-	$pay_setting = $setting['payment'];
-
-	return $pay_setting;
 }
 
 function miniapp_update_daily_visittrend() {

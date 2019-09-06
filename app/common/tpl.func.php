@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn: pro/app/common/tpl.func.php : v 8b6dd7b5a696 : 2015/09/17 03:20:11 : yanghf $
  */
 defined('IN_IA') or exit('Access Denied');
@@ -245,15 +245,21 @@ function tpl_app_form_field_avatar($name, $value = '', $type = 0) {
  * @return string
  */
 function tpl_app_form_field_image($name, $value = '') {
-
-	$thumb = empty($value) ? 'images/global/nopic.jpg' : $value;
-	$thumb = tomedia($thumb);
-
+	$value = safe_gpc_string($value);
 	$html = <<<EOF
 	<div class="mui-table-view-chevron">
 		<div class="mui-image-uploader">
 			<a href="javascript:;" class="mui-upload-btn mui-pull-right js-image-{$name}"></a>
-			<div class="mui-image-preview js-image-preview mui-pull-right"></div>
+			<div class="mui-image-preview js-image-preview mui-pull-right">
+EOF;
+	if (!empty($value)) {
+		$thumb = tomedia($value);
+		$html .= <<<EOF
+				<input type="hidden" value="{$value}" name="{$name}[]" /><img src="{$thumb}" data-preview-src="" data-preview-group="__IMG_UPLOAD_{$name}" />
+EOF;
+	}
+	$html .= <<<EOF
+			</div>
 		</div>
 	</div>
 	<script>

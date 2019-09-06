@@ -1,7 +1,8 @@
-<?php 
+<?php
+
 /**
  * 云服务诊断
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -13,13 +14,13 @@ $dos = array('display', 'testapi');
 $do = in_array($do, $dos) ? $do : 'display';
 permission_check_account_user('system_cloud_diagnose');
 
-if ($do == 'testapi') {
+if ('testapi' == $do) {
 	$starttime = microtime(true);
 	$response = cloud_request('http://api-upgrade.w7.cc', array(), array('ip' => $_GPC['ip']));
 	$endtime = microtime(true);
-	iajax(0,'请求接口成功，耗时 '.(round($endtime - $starttime, 5)).' 秒');
+	iajax(0, '请求接口成功，耗时 ' . (round($endtime - $starttime, 5)) . ' 秒');
 } else {
-	if(checksubmit()) {
+	if (checksubmit()) {
 		$result = cloud_reset_siteinfo();
 		$api = new CloudApi();
 		$api->deleteCer();
@@ -27,7 +28,6 @@ if ($do == 'testapi') {
 		if (is_error($result)) {
 			itoast($result['message'], '', 'error');
 		} else {
-			cache_delete('cloud_site_register_info');
 			itoast('重置成功', 'refresh', 'success');
 		}
 	}
@@ -39,7 +39,7 @@ if ($do == 'testapi') {
 		}
 		itoast('修改云服务ip成功.', 'refresh', 'success');
 	}
-	if(empty($_W['setting']['site'])) {
+	if (empty($_W['setting']['site'])) {
 		$_W['setting']['site'] = array();
 	}
 	$checkips = array();
@@ -52,7 +52,7 @@ if ($do == 'testapi') {
 			$checkips[] = $cloudip;
 		}
 	} else {
-		for ($i = 0; $i <= 10; $i++) {
+		for ($i = 0; $i <= 10; ++$i) {
 			$cloudip = gethostbyname('api-upgrade.w7.cc');
 			if (!in_array($cloudip, $checkips)) {
 				$checkips[] = $cloudip;

@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 $week = array();
 $week[0] = '日';
 $week[1] = '一';
@@ -10,9 +11,9 @@ $week[6] = '六';
 
 $reply = '今天是 ' . date('Y年n月j日') . ' 星期' . $week[date('w')];
 
-$url = 'http://hl.zdic.net/j/gl/'. date('Y/n') .'.php';
+$url = 'http://hl.zdic.net/j/gl/' . date('Y/n') . '.php';
 $response = ihttp_get($url);
-if ($response['code'] == 200 && !empty($response['content'])) {
+if (200 == $response['code'] && !empty($response['content'])) {
 	preg_match('[{.*}]', $response['content'], $content);
 	$data = json_decode("[{$content[0]}]", true);
 	if (is_array($data)) {
@@ -34,4 +35,5 @@ if ($response['code'] == 200 && !empty($response['content'])) {
 		}
 	}
 }
+
 return $this->respText($reply);

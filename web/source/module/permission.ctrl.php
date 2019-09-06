@@ -1,7 +1,7 @@
 <?php
 /**
  * 设置模块权限
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -12,16 +12,16 @@ $module_name = trim($_GPC['m']);
 $modulelist = uni_modules();
 $module = $_W['current_module'] = $modulelist[$module_name];
 
-if(empty($module)) {
+if (empty($module)) {
 	itoast('抱歉，你操作的模块不能被访问！');
 }
-if(!permission_check_account_user_module($module_name.'_permissions', $module_name)) {
+if (!permission_check_account_user_module($module_name . '_permissions', $module_name)) {
 	itoast('您没有权限进行该操作');
 }
 
-if ($do == 'display') {
-	$user_permissions = module_clerk_info($module_name); # 模块店员信息
-	$current_module_permission = module_permission_fetch($module_name); # 某个模块的权限列表
+if ('display' == $do) {
+	$user_permissions = module_clerk_info($module_name); // 模块店员信息
+	$current_module_permission = module_permission_fetch($module_name); // 某个模块的权限列表
 
 	$permission_name = array();
 	if (!empty($current_module_permission)) {
@@ -41,12 +41,12 @@ if ($do == 'display') {
 		}
 		unset($permission);
 	}
-	if($_W['ispost'] && $_W['isajax']) {
+	if ($_W['ispost'] && $_W['isajax']) {
 		iajax(0, $user_permissions, '');
 	}
 }
 
-if ($do == 'post') {
+if ('post' == $do) {
 	$uid = intval($_GPC['uid']);
 	$user = user_single($uid);
 	$all_permission = array();
@@ -93,11 +93,19 @@ if ($do == 'post') {
 			$user = user_single(array('username' => $username));
 
 			if (!empty($user)) {
-				if ($user['status'] != 2) {
+				if (2 != $user['status']) {
 					itoast('用户未通过审核或不存在', url('module/permission', array('m' => $module_name)), 'error');
 				}
-				if (in_array($user['uid'], $founders)) {
-					itoast('不可操作网站创始人!', url('module/permission', array('m' => $module_name)), 'error');
+				$role = permission_account_user_role($user['uid'], $_W['uniacid']);
+				if (in_array($role, array(
+					ACCOUNT_MANAGE_NAME_FOUNDER,
+					ACCOUNT_MANAGE_NAME_VICE_FOUNDER,
+					ACCOUNT_MANAGE_NAME_OWNER,
+					ACCOUNT_MANAGE_NAME_MANAGER,
+					ACCOUNT_MANAGE_NAME_OPERATOR,
+				))) {
+					$role_title = user_role_title($role);
+					itoast("该用户已是平台$role_title, 不可操作!", url('module/permission/post', array('m' => $module_name)), 'error');
 				}
 			} else {
 				itoast('用户不存在', url('module/permission', array('m' => $module_name)), 'error');
@@ -160,7 +168,7 @@ if ($do == 'post') {
 	}
 }
 
-if ($do == 'delete') {
+if ('delete' == $do) {
 	$operator_id = intval($_GPC['uid']);
 	if (empty($operator_id)) {
 		itoast('参数错误', referer(), 'error');
@@ -176,15 +184,19 @@ if ($do == 'delete') {
 
 	$user = pdo_get('users', array('uid' => $operator_id), array('uid'));
 	if (!empty($user)) {
-		$delete_account_users = pdo_delete('uni_account_users', array('uid' => $operator_id, 'role' => 'clerk', 'uniacid' => $uniacid));
-
 		$module_info = module_fetch($module_name);
 		$module_plugin_list = $module_info['plugin_list'];
 		if (!empty($module_plugin_list)) {
 			pdo_delete('users_permission', array('uid' => $_GPC['uid'], 'uniacid' => $uniacid, 'type in' => $module_plugin_list));
 		}
-
 		$delete_user_permission = pdo_delete('users_permission', array('uid' => $operator_id, 'type' => $module_name, 'uniacid' => $uniacid));
+
+		$has_permission = pdo_get('users_permission', array('uid' => $operator_id, 'uniacid' => $uniacid));
+		if (empty($has_permission)) {
+			//删除了所有模块的权限后,才删除平台的角色数据
+			pdo_delete('uni_account_users', array('uid' => $operator_id, 'role' => 'clerk', 'uniacid' => $uniacid));
+		}
+
 		pdo_delete('users_lastuse', array('uid' => $operator_id, 'uniacid' => $uniacid, 'modulename' => $module_name));
 	}
 	itoast('删除成功', referer(), 'success');

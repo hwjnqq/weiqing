@@ -1,8 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
-
 $version_id = intval($_GPC['version_id']);
 if (!empty($version_id)) {
 	load()->model('miniapp');

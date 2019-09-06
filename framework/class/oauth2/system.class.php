@@ -1,9 +1,8 @@
 <?php
 /**
  * 系统用户登录
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
-
 class System extends OAuth2Client {
 	private $calback_url;
 
@@ -44,10 +43,11 @@ class System extends OAuth2Client {
 		if (empty($member['password'])) {
 			return error('-1', '请输入密码');
 		}
+
 		return $member;
 	}
 
-	public function register(){
+	public function register() {
 		global $_GPC;
 		load()->model('user');
 		$member = array();
@@ -56,34 +56,34 @@ class System extends OAuth2Client {
 		$member['owner_uid'] = intval($_GPC['owner_uid']);
 		$member['password'] = $_GPC['password'];
 
-		if(!preg_match(REGULAR_USERNAME, $member['username'])) {
+		if (!preg_match(REGULAR_USERNAME, $member['username'])) {
 			return error(-1, '必须输入用户名，格式为 3-15 位字符，可以包括汉字、字母（不区分大小写）、数字、下划线和句点。');
 		}
 
-		if(user_check(array('username' => $member['username']))) {
+		if (user_check(array('username' => $member['username']))) {
 			return error(-1, '非常抱歉，此用户名已经被注册，你需要更换注册名称！');
 		}
 
-		if(!empty($_W['setting']['register']['code'])) {
+		if (!empty($_W['setting']['register']['code'])) {
 			if (!checkcaptcha($_GPC['code'])) {
 				return error(-1, '你输入的验证码不正确, 请重新输入.');
 			}
 		}
-		if(istrlen($member['password']) < 8) {
+		if (istrlen($member['password']) < 8) {
 			return error(-1, '必须输入密码，且密码长度不得低于8位。');
 		}
 
 		$extendfields = $this->systemFields();
 		if (!empty($extendfields)) {
 			$fields = array_keys($extendfields);
-			if(in_array('birthyear', $fields)) {
+			if (in_array('birthyear', $fields)) {
 				$extendfields[] = array('field' => 'birthmonth', 'title' => '出生生日', 'required' => $extendfields['birthyear']['required']);
 				$extendfields[] = array('field' => 'birthday', 'title' => '出生生日', 'required' => $extendfields['birthyear']['required']);
 				$_GPC['birthyear'] = $_GPC['birth']['year'];
 				$_GPC['birthmonth'] = $_GPC['birth']['month'];
 				$_GPC['birthday'] = $_GPC['birth']['day'];
 			}
-			if(in_array('resideprovince', $fields)) {
+			if (in_array('resideprovince', $fields)) {
 				$extendfields[] = array('field' => 'residecity', 'title' => '居住地址', 'required' => $extendfields['resideprovince']['required']);
 				$extendfields[] = array('field' => 'residedist', 'title' => '居住地址', 'required' => $extendfields['resideprovince']['required']);
 				$_GPC['resideprovince'] = $_GPC['reside']['province'];
@@ -92,16 +92,17 @@ class System extends OAuth2Client {
 			}
 			foreach ($extendfields as $row) {
 				if (!empty($row['required']) && empty($_GPC[$row['field']])) {
-					return error(-1, '“'.$row['title'].'”此项为必填项，请返回填写完整！');
+					return error(-1, '“' . $row['title'] . '”此项为必填项，请返回填写完整！');
 				}
 				$profile[$row['field']] = $_GPC[$row['field']];
 			}
 		}
 
-		$register =  array(
+		$register = array(
 			'member' => $member,
-			'profile' => $profile
+			'profile' => $profile,
 		);
+
 		return parent::user_register($register);
 	}
 

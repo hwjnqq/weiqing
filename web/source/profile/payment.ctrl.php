@@ -1,7 +1,7 @@
 <?php
 /**
  * 支付参数配置
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -9,25 +9,27 @@ load()->model('payment');
 load()->model('account');
 load()->func('communication');
 
-$dos = array('save_setting', 'display', 'test_alipay', 'get_setting', 'switch', 'change_status', 'get_account_wechatpay_proxy');
-$do = in_array($do, $dos) ? $do : 'display';
 permission_check_account_user('profile_payment_pay');
 
-if ($do == 'get_setting') {
+$dos = array('save_setting', 'save_setting_webapp', 'display', 'test_alipay', 'test_wechat', 'get_setting', 'switch', 'change_status', 'get_account_wechatpay_proxy');
+$do = in_array($do, $dos) ? $do : 'display';
+$account_sign = $_W['account']['type_sign'];
+
+if ('get_setting' == $do) {
 	$pay_setting = payment_setting();
 	iajax(0, $pay_setting, '');
 }
 
-if ($do == 'test_alipay') {
+if ('test_alipay' == $do) {
 	$alipay = $_GPC['param'];
 	$pay_data = array(
 		'uniacid' => $_W['uniacid'],
 		'acid' => $_W['acid'],
-		'uniontid' => date('Ymd', time()).time(),
+		'uniontid' => date('Ymd', time()) . time(),
 		'module' => 'system',
 		'fee' => '0.01',
 		'status' => 0,
-		'card_fee' => 0.01
+		'card_fee' => 0.01,
 	);
 	$params = array();
 	$params['tid'] = md5(uniqid());
@@ -35,44 +37,68 @@ if ($do == 'test_alipay') {
 	$params['fee'] = '0.01';
 	$params['title'] = '测试支付接口';
 	$params['uniontid'] = $pay_data['uniontid'];
-
+	if ($account_sign == WEBAPP_TYPE_SIGN) {
+		$params['service'] = 'create_direct_pay_by_user';
+	}
 	$result = alipay_build($params, $alipay);
 	iajax(0, $result['url'], '');
 }
 
-if ($do == 'save_setting') {
+if ('test_wechat' == $do) {
+	$wechat = safe_gpc_array($_GPC['param']);
+	$param = array(
+		'pay_way' => 'web',
+		'title' => '测试商品标题',
+		'uniontid' => md5(uniqid()),
+		'fee' => '0.01',
+		'goodsid' => '1',
+	);
+	$wechat_result = wechat_build($param, $wechat);
+
+	if (is_error($wechat_result)) {
+		iajax(1, $wechat_result['message']);
+	} else {
+		load()->library('qrcode');
+		$picture_attach = 'wechat_pay_test_' . $_W['uniacid'] . '.png';
+		file_delete($picture_attach);
+		QRcode::png($wechat_result['code_url'], ATTACHMENT_ROOT . $picture_attach);
+		iajax(0, $_W['siteroot'] . 'attachment/' . $picture_attach);
+	}
+}
+
+if ('save_setting' == $do) {
 	$type = $_GPC['type'];
 	$param = $_GPC['param'];
 	$setting = uni_setting_load('payment', $_W['uniacid']);
-	$pay_setting = $setting['payment'];
+	$pay_setting = empty($setting['payment']) ? array() : $setting['payment'];
 	
-	if ($type == 'wechat') {
+	if ('wechat' == $type) {
 		$param['account'] = $_W['acid'];
-		if ($param['switch'] == 1) {
-			$param['signkey'] = $param['version'] == 2 ? trim($param['apikey']) : trim($param['signkey']);
+		if (1 == $param['switch']) {
+			$param['signkey'] = 2 == $param['version'] ? trim($param['apikey']) : trim($param['signkey']);
 		}
 	}
 
-	if ($type == 'unionpay') {
+	if ('unionpay' == $type) {
 		$unionpay = $_GPC['unionpay'];
 		$switch_status = ($unionpay['pay_switch'] || $unionpay['recharge_switch']) ? true : false;
-		if ($switch_status && empty($_FILES['unionpay']['tmp_name']['signcertpath']) && !file_exists(IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx')) {
+		if ($switch_status && empty($_FILES['unionpay']['tmp_name']['signcertpath']) && !file_exists(IA_ROOT . '/attachment/unionpay/PM_' . $_W['uniacid'] . '_acp.pfx')) {
 			itoast('请上联银商户私钥证书.', referer(), 'error');
 		}
 		$param = array(
 			'merid' => $unionpay['merid'],
-			'signcertpwd' => $unionpay['signcertpwd']
+			'signcertpwd' => $unionpay['signcertpwd'],
 		);
-		if($switch_status && (empty($param['merid']) || empty($param['signcertpwd']))) {
+		if ($switch_status && (empty($param['merid']) || empty($param['signcertpwd']))) {
 			itoast('请输入完整的银联支付接口信息.', referer(), 'error');
 		}
-		if ($switch_status && empty($_FILES['unionpay']['tmp_name']['signcertpath']) && !file_exists(IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx')) {
+		if ($switch_status && empty($_FILES['unionpay']['tmp_name']['signcertpath']) && !file_exists(IA_ROOT . '/attachment/unionpay/PM_' . $_W['uniacid'] . '_acp.pfx')) {
 			itoast('请上传银联商户私钥证书.', referer(), 'error');
 		}
 		if ($switch_status && !empty($_FILES['unionpay']['tmp_name']['signcertpath'])) {
 			load()->func('file');
 			mkdirs(IA_ROOT . '/attachment/unionpay/');
-			file_put_contents(IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx', file_get_contents($_FILES['unionpay']['tmp_name']['signcertpath']));
+			file_put_contents(IA_ROOT . '/attachment/unionpay/PM_' . $_W['uniacid'] . '_acp.pfx', file_get_contents($_FILES['unionpay']['tmp_name']['signcertpath']));
 			$public_rsa = '-----BEGIN CERTIFICATE-----
 MIIEIDCCAwigAwIBAgIFEDRVM3AwDQYJKoZIhvcNAQEFBQAwITELMAkGA1UEBhMC
 Q04xEjAQBgNVBAoTCUNGQ0EgT0NBMTAeFw0xNTEwMjcwOTA2MjlaFw0yMDEwMjIw
@@ -108,7 +134,7 @@ MFF/yA==
 	iajax(0, '设置成功！', referer());
 }
 
-if ($do == 'change_status') {
+if ('change_status' == $do) {
 	$types = array('unionpay', 'jueqiymf', 'alipay', 'baifubao', 'line', 'credit', 'delivery', 'mix', 'wechat');
 	$type = in_array($_GPC['type'], $types) ? $_GPC['type'] : '';
 	if (empty($type)) {
@@ -118,10 +144,10 @@ if ($do == 'change_status') {
 	$setting = uni_setting_load('payment', $_W['uniacid']);
 	$pay_setting = $setting['payment'];
 	$setting_data = array(
-		'pay_switch' => $param['pay_switch'] == 'true' ? true : false,
-		'recharge_switch' => $param['recharge_switch'] == 'true' ? true : false,
+		'pay_switch' => 'true' == $param['pay_switch'] ? true : false,
+		'recharge_switch' => 'true' == $param['recharge_switch'] ? true : false,
 	);
-	if ($type == 'credit' || $type == 'delivery' || $type == 'mix') {
+	if ('credit' == $type || 'delivery' == $type || 'mix' == $type) {
 		$param['recharge_switch'] = false;
 	}
 	$pay_setting[$type]['pay_switch'] = $setting_data['pay_switch'];
@@ -131,19 +157,52 @@ if ($do == 'change_status') {
 	iajax(0, '设置成功！', referer());
 }
 
-if ($do == 'display' || $do == 'switch') {
-	$pay_setting = payment_setting();
-	$accounts = array();
-	$accounts[$_W['acid']] = array_elements(array('name', 'acid', 'key', 'secret', 'level'), $_W['account']);
+if ('save_setting_webapp' == $do) {
+	$type = safe_gpc_string($_GPC['type']);
+	$param = safe_gpc_array($_GPC['param']);
+	$payment = uni_setting_load('payment');
+	$payment = empty($payment['payment']) ? array() : $payment['payment'];
+	if ('wechat' == $type) {
+		$payment[$type] = array(
+			'appid' => $param['appid'],
+			'mchid' => $param['mchid'],
+			'signkey' => $param['signkey'],
+			'version' => 2,
+		);
+	} elseif ('alipay' == $type) {
+		$payment[$type] = array(
+			'account' => $param['account'],
+			'partner' => $param['partner'],
+			'secret' => $param['secret'],
+		);
+	}
+	foreach ($payment[$type] as $item) {
+		if (empty($item)) {
+			iajax(-1, '缺少必要参数');
+		}
+	}
+	uni_setting_save('payment', $payment);
+	iajax(0, '操作成功', url('profile/payment'));
 }
-if ($do == 'switch') {
+
+if ('display' == $do || 'switch' == $do) {
+	if ($account_sign == WEBAPP_TYPE_SIGN) {
+		$pay_setting = uni_setting_load('payment');
+		$pay_setting = empty($pay_setting['payment']) ? array() : $pay_setting['payment'];
+		template('profile/payment_webapp');
+		exit;
+	}
+	$pay_setting = payment_setting();
+	$account = array_elements(array('name', 'key', 'secret', 'level'), $_W['account']);
+}
+if ('switch' == $do) {
 	$payment_types = payment_types();
 	if (empty($payment_types[$_GPC['type']])) {
 		itoast('参数错误', url('profile/payment'), 'error');
 	}
 }
 
-if ($do == 'get_account_wechatpay_proxy') {
+if ('get_account_wechatpay_proxy' == $do) {
 	$proxy_wechatpay_account = account_wechatpay_proxy();
 	iajax(0, $proxy_wechatpay_account);
 }

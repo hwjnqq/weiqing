@@ -1,7 +1,7 @@
 <?php
 /**
  * 自动回复
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('reply');
@@ -23,7 +23,7 @@ if (in_array($m, array('keyword', 'special', 'welcome', 'default', 'apply', 'ser
 if (empty($m)) {
 	itoast('错误访问.', '', '');
 }
-if ($m == 'special') {
+if ('special' == $m) {
 	$mtypes = array(
 		'image' => '图片消息',
 		'voice' => '语音消息',
@@ -54,17 +54,17 @@ if (in_array($m, array('custom'))) {
 	$site = WeUtility::createModuleSite('reply');
 	$site_urls = $site->getTabUrls();
 }
-if ($do == 'display') {
-	if ($m == 'keyword' || !in_array($m, $sysmods)) {
+if ('display' == $do) {
+	if ('keyword' == $m || !in_array($m, $sysmods)) {
 		$pindex = max(1, intval($_GPC['page']));
 		$psize = 8;
-		$cids = $parentcates = $list =  array();
+		$cids = $parentcates = $list = array();
 		$condition = "uniacid = :uniacid AND module != 'cover' AND module != 'userapi'";
 		$params = array();
 		$params[':uniacid'] = $_W['uniacid'];
 		if (isset($_GPC['type']) && !empty($_GPC['type'])) {
 			$type = trim($_GPC['type']);
-			if ($type == 'apply') {
+			if ('apply' == $type) {
 				$condition .= " AND module NOT IN ('basic', 'news', 'images', 'voice', 'video', 'music', 'wxcard', 'reply')";
 			} else {
 				if (!in_array($type, array('basic', 'news', 'images', 'voice', 'video', 'music', 'wxcard'))) {
@@ -75,21 +75,21 @@ if ($do == 'display') {
 			}
 		}
 		if (!in_array($m, $sysmods)) {
-			$condition .= " AND `module` = :type";
+			$condition .= ' AND `module` = :type';
 			$params[':type'] = $m;
 		}
 		if (!empty($_GPC['keyword'])) {
-			if ($_GPC['search_type'] == 'keyword') {
-				$rule_keyword_rid_list = pdo_getall('rule_keyword',array('content LIKE' => "%{$_GPC['keyword']}%"),array('rid'),'rid',array('id DESC'));
+			if ('keyword' == $_GPC['search_type']) {
+				$rule_keyword_rid_list = pdo_getall('rule_keyword', array('content LIKE' => "%{$_GPC['keyword']}%"), array('rid'), 'rid', array('id DESC'));
 				if (!empty($rule_keyword_rid_list)) {
-					$condition .= " AND id IN (" . implode(",", array_keys($rule_keyword_rid_list)) . ")";
+					$condition .= ' AND id IN (' . implode(',', array_keys($rule_keyword_rid_list)) . ')';
 				}
 			} else {
-				$condition .= " AND `name` LIKE :keyword";
+				$condition .= ' AND `name` LIKE :keyword';
 				$params[':keyword'] = "%{$_GPC['keyword']}%";
 			}
 		}
-		if (!empty($_GPC['keyword']) && $_GPC['search_type'] == 'keyword' && empty($rule_keyword_rid_list)) {
+		if (!empty($_GPC['keyword']) && 'keyword' == $_GPC['search_type'] && empty($rule_keyword_rid_list)) {
 			$replies = array();
 			$pager = '';
 		} else {
@@ -102,12 +102,12 @@ if ($do == 'display') {
 					$params[':rid'] = $item['id'];
 					$item['keywords'] = reply_keywords_search($condition, $params);
 					$item['allreply'] = reply_contnet_search($item['id']);
-					$entries = module_entries($item['module'], array('rule'),$item['id']);
+					$entries = module_entries($item['module'], array('rule'), $item['id']);
 					if (!empty($entries)) {
 						$item['options'] = $entries['rule'];
 					}
 					//若是模块，获取模块图片
-					if (!in_array($item['module'], array("basic", "news", "images", "voice", "video", "music", "wxcard", "reply"))) {
+					if (!in_array($item['module'], array('basic', 'news', 'images', 'voice', 'video', 'music', 'wxcard', 'reply'))) {
 						$item['module_info'] = module_fetch($item['module']);
 					}
 				}
@@ -116,12 +116,12 @@ if ($do == 'display') {
 		}
 		$entries = module_entries($m, array('rule'));
 	}
-	if ($m == 'special') {
+	if ('special' == $m) {
 		$setting = uni_setting_load('default_message', $_W['uniacid']);
 		$setting = $setting['default_message'] ? $setting['default_message'] : array();
 		$module = uni_modules();
 	}
-	if ($m == 'default' || $m == 'welcome') {
+	if ('default' == $m || 'welcome' == $m) {
 		$setting = uni_setting($_W['uniacid'], array($m));
 		if (!empty($setting[$m])) {
 			$rule_keyword_id = pdo_getcolumn('rule_keyword', array('uniacid' => $_W['uniacid'], 'content' => $setting[$m]), 'rid');
@@ -129,29 +129,29 @@ if ($do == 'display') {
 			$setting_keyword = $setting[$m];
 		}
 	}
-	if ($m == 'service') {
+	if ('service' == $m) {
 		$service_list = reply_getall_common_service();
 	}
-	if ($m == 'userapi') {
+	if ('userapi' == $m) {
 		$pindex = max(1, intval($_GPC['page']));
 		$psize = 8;
 
-		$condition = "uniacid = :uniacid AND `module`=:module";
+		$condition = 'uniacid = :uniacid AND `module`=:module';
 		$params = array();
 		$params[':uniacid'] = $_W['uniacid'];
 		$params[':module'] = 'userapi';
 		if (!empty($_GPC['keyword'])) {
-			if ($_GPC['search_type'] == 'keyword') {
-				$rule_keyword_rid_list = pdo_getall('rule_keyword',array('content LIKE' => "%{$_GPC['keyword']}%"),array('rid'),'rid',array('id DESC'));
+			if ('keyword' == $_GPC['search_type']) {
+				$rule_keyword_rid_list = pdo_getall('rule_keyword', array('content LIKE' => "%{$_GPC['keyword']}%"), array('rid'), 'rid', array('id DESC'));
 				if (!empty($rule_keyword_rid_list)) {
-					$condition .= " AND id IN (" . implode(",", array_keys($rule_keyword_rid_list)) . ")";
+					$condition .= ' AND id IN (' . implode(',', array_keys($rule_keyword_rid_list)) . ')';
 				}
 			} else {
-				$condition .= " AND `name` LIKE :keyword" ;
+				$condition .= ' AND `name` LIKE :keyword';
 				$params[':keyword'] = "%{$_GPC['keyword']}%";
 			}
 		}
-		if (!empty($_GPC['keyword']) && $_GPC['search_type'] == 'keyword' && empty($rule_keyword_rid_list)) {
+		if (!empty($_GPC['keyword']) && 'keyword' == $_GPC['search_type'] && empty($rule_keyword_rid_list)) {
 			$replies = array();
 			$pager = '';
 		} else {
@@ -170,8 +170,8 @@ if ($do == 'display') {
 	}
 	template('platform/reply');
 }
-if ($do == 'post') {
-	if ($m == 'keyword' || $m == 'userapi' || !in_array($m, $sysmods)) {
+if ('post' == $do) {
+	if ('keyword' == $m || 'userapi' == $m || !in_array($m, $sysmods)) {
 		$module['title'] = '关键字自动回复';
 		if ($_W['isajax'] && $_W['ispost']) {
 			$keyword = safe_gpc_string($_GPC['keyword']);
@@ -188,7 +188,7 @@ if ($do == 'post') {
 					$keywords[] = $reply['rid'];
 				}
 				$rids = implode($keywords, ',');
-				$sql = "SELECT `id`, `name` FROM " . tablename('rule') . " WHERE `id` IN ($rids)";
+				$sql = 'SELECT `id`, `name` FROM ' . tablename('rule') . " WHERE `id` IN ($rids)";
 				$rules = pdo_fetchall($sql);
 				iajax(-1, $rules, '');
 			}
@@ -208,7 +208,6 @@ if ($do == 'post') {
 			}
 		}
 		if (checksubmit('submit')) {
-
 			$keywords = @json_decode(htmlspecialchars_decode($_GPC['keywords']), true);
 
 			if (empty($keywords)) {
@@ -217,32 +216,32 @@ if ($do == 'post') {
 
 			$rulename = trim($_GPC['rulename']);
 			$containtype = '';
-			$_GPC['reply'] = (array)$_GPC['reply'];
+			$_GPC['reply'] = (array) $_GPC['reply'];
 
 			foreach ($_GPC['reply'] as $replykey => $replyval) {
 				if (!empty($replyval)) {
 					$type = substr($replykey, 6);
-					$containtype .= $type == 'image' ? 'images' : $type .',';
+					$containtype .= 'image' == $type ? 'images' : $type . ',';
 				}
 			}
-			if (empty($containtype) && in_array($m, $sysmods) && $m != 'userapi') {
+			if (empty($containtype) && in_array($m, $sysmods) && 'userapi' != $m) {
 				itoast('必须填写有效的回复内容！');
 			}
 			$rule = array(
 				'uniacid' => $_W['uniacid'],
 				'name' => $rulename,
-				'module' => $m == 'keyword' ? 'reply' : $m,
+				'module' => 'keyword' == $m ? 'reply' : $m,
 				'containtype' => $containtype,
-				'status' => $_GPC['status'] == 'true' ? 1 : 0,
+				'status' => 'true' == $_GPC['status'] ? 1 : 0,
 				'displayorder' => intval($_GPC['displayorder_rule']),
 			);
-			if ($_GPC['istop'] == 1) {
+			if (1 == $_GPC['istop']) {
 				$rule['displayorder'] = 255;
 			} else {
 				$rule['displayorder'] = range_limit($rule['displayorder'], 0, 254);
 			}
 
-			if ($m == 'userapi') {
+			if ('userapi' == $m) {
 				$module = WeUtility::createModule('userapi');
 			} else {
 				$module = WeUtility::createModule('core');
@@ -257,8 +256,8 @@ if ($do == 'post') {
 				}
 				$user_module_error_msg = $user_module->fieldsFormValidate();
 			}
-			if ((is_string($msg) && trim($msg) != '') || (is_string($user_module_error_msg) && trim($user_module_error_msg) != '')) {
-				itoast($msg.$user_module_error_msg, '', '');
+			if ((is_string($msg) && '' != trim($msg)) || (is_string($user_module_error_msg) && '' != trim($user_module_error_msg))) {
+				itoast($msg . $user_module_error_msg, '', '');
 			}
 			if (!empty($rid)) {
 				$result = pdo_update('rule', $rule, array('id' => $rid, 'uniacid' => $_W['uniacid']));
@@ -273,7 +272,7 @@ if ($do == 'post') {
 				$rowtpl = array(
 					'rid' => $rid,
 					'uniacid' => $_W['uniacid'],
-					'module' => $m == 'keyword' ? 'reply' : $m,
+					'module' => 'keyword' == $m ? 'reply' : $m,
 					'status' => $rule['status'],
 					'displayorder' => $rule['displayorder'],
 				);
@@ -295,14 +294,14 @@ if ($do == 'post') {
 		}
 		template('platform/reply-post');
 	}
-	if ($m == 'special') {
+	if ('special' == $m) {
 		$type = trim($_GPC['type']);
 		$setting = uni_setting_load('default_message', $_W['uniacid']);
 		$setting = $setting['default_message'] ? $setting['default_message'] : array();
 		if (checksubmit('submit')) {
-			$rule_id = intval(trim(htmlspecialchars_decode($_GPC['reply']['reply_keyword']), "\""));
-			$module = trim(htmlspecialchars_decode($_GPC['reply']['reply_module']), "\"");
-			if ((empty($rule_id) && empty($module)) || $_GPC['status'] === '0') {
+			$rule_id = intval(trim(htmlspecialchars_decode($_GPC['reply']['reply_keyword']), '"'));
+			$module = trim(htmlspecialchars_decode($_GPC['reply']['reply_module']), '"');
+			if ((empty($rule_id) && empty($module)) || '0' === $_GPC['status']) {
 				$setting[$type] = array('type' => '', 'module' => $module, 'keyword' => $rule_id);
 				uni_setting_save('default_message', $setting);
 				itoast('关闭成功', url('platform/reply', array('m' => 'special')), 'success');
@@ -314,7 +313,7 @@ if ($do == 'post') {
 				itoast($result['message'], '', 'info');
 			}
 
-			if ($reply_type == 'module') {
+			if ('module' == $reply_type) {
 				$setting[$type] = array('type' => 'module', 'module' => $module);
 			} else {
 				$rule = pdo_get('rule_keyword', array('id' => $rule_id, 'uniacid' => $_W['uniacid']));
@@ -332,19 +331,19 @@ if ($do == 'post') {
 		}
 		template('platform/specialreply-post');
 	}
-	if ($m == 'default' || $m == 'welcome') {
+	if ('default' == $m || 'welcome' == $m) {
 		if (checksubmit('submit')) {
-			$rule_keyword_id = intval(trim(htmlspecialchars_decode($_GPC['reply']['reply_keyword']), "\""));
+			$rule_keyword_id = intval(trim(htmlspecialchars_decode($_GPC['reply']['reply_keyword']), '"'));
 			if (!empty($rule_keyword_id)) {
 				$rule = pdo_get('rule_keyword', array('id' => $rule_keyword_id, 'uniacid' => $_W['uniacid']));
 				$settings = array(
-					$m => $rule['content']
+					$m => $rule['content'],
 				);
 			} else {
 				$settings = array($m => '');
 			}
-			$item = pdo_fetch("SELECT uniacid FROM " . tablename('uni_settings') . " WHERE uniacid=:uniacid", array(':uniacid' => $_W['uniacid']));
-			if (!empty($item)){
+			$item = pdo_fetch('SELECT uniacid FROM ' . tablename('uni_settings') . ' WHERE uniacid=:uniacid', array(':uniacid' => $_W['uniacid']));
+			if (!empty($item)) {
 				pdo_update('uni_settings', $settings, array('uniacid' => $_W['uniacid']));
 			} else {
 				$settings['uniacid'] = $_W['uniacid'];
@@ -355,11 +354,11 @@ if ($do == 'post') {
 			itoast('系统回复更新成功！', url('platform/reply', array('m' => $m)), 'success');
 		}
 	}
-	if ($m == 'apply') {
+	if ('apply' == $m) {
 		$module['title'] = '应用关键字';
 		$installedmodulelist = uni_modules();
 		foreach ($installedmodulelist as $key => &$value) {
-			if ($value['type'] == 'system' || in_array($value['name'], $sysmods)) {
+			if ('system' == $value['type'] || in_array($value['name'], $sysmods)) {
 				unset($installedmodulelist[$key]);
 				continue;
 			}
@@ -367,7 +366,7 @@ if ($do == 'post') {
 		}
 		unset($value);
 		foreach ($installedmodulelist as $name => $module) {
-			if (empty($module['isrulefields']) && $name != "core") {
+			if (empty($module['isrulefields']) && 'core' != $name) {
 				continue;
 			}
 			$module['title_first_pinyin'] = get_first_pinyin($module['title']);
@@ -385,7 +384,7 @@ if ($do == 'post') {
 			}
 			$module['icon'] = $cion;
 
-			if ($module['enabled'] == 1) {
+			if (1 == $module['enabled']) {
 				$enable_modules[$name] = $module;
 			} else {
 				$unenable_modules[$name] = $module;
@@ -400,7 +399,7 @@ if ($do == 'post') {
 	}
 }
 
-if ($do == 'delete') {
+if ('delete' == $do) {
 	$rids = $_GPC['rid'];
 	if (!is_array($rids)) {
 		$rids = array($rids);
@@ -421,7 +420,7 @@ if ($do == 'delete') {
 			if (!in_array($m, $sysmods)) {
 				$reply_module = $m;
 			} else {
-				if ($m == 'userapi') {
+				if ('userapi' == $m) {
 					$reply_module = 'userapi';
 				} else {
 					$reply_module = 'reply';
@@ -438,12 +437,12 @@ if ($do == 'delete') {
 }
 
 //非文字自动回复切换开启关闭状态
-if ($do == 'change_status') {
+if ('change_status' == $do) {
 	$m = $_GPC['m'];
-	if ($m == 'service') {
+	if ('service' == $m) {
 		$rid = intval($_GPC['rid']);
 		$file = trim($_GPC['file']);
-		if ($rid == 0) {
+		if (0 == $rid) {
 			$rid = reply_insert_without_service($file);
 			if (empty($rid)) {
 				iajax(1, '参数错误');
@@ -479,13 +478,13 @@ if ($do == 'change_status') {
 	}
 }
 
-if ($do == 'change_keyword_status') {
+if ('change_keyword_status' == $do) {
 	/*改变状态：是否开启该关键字*/
 	$id = intval($_GPC['id']);
 	$result = pdo_get('rule', array('id' => $id), array('status'));
 	if (!empty($result)) {
 		$rule = $rule_keyword = false;
-		if ($result['status'] == 1) {
+		if (1 == $result['status']) {
 			$rule = pdo_update('rule', array('status' => 0), array('id' => $id, 'uniacid' => $_W['uniacid']));
 			$rule_keyword = pdo_update('rule_keyword', array('status' => 0), array('uniacid' => $_W['uniacid'], 'rid' => $id));
 			reply_check_uni_default_keyword();

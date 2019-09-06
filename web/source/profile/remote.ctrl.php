@@ -1,7 +1,7 @@
 <?php
 /**
  * 公众号远程附件配置
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->func('communication');
@@ -21,7 +21,7 @@ if (!empty($_GPC['version_id'])) {
 $remote = uni_setting_load('remote');
 $remote = empty($remote['remote']) ? array() : $remote['remote'];
 
-if ($do == 'upload_remote') {
+if ('upload_remote' == $do) {
 	if (!empty($remote['type'])) {
 		if (empty($_W['setting']['remote']['type'])) {
 			iajax(3, '未开启全局远程附件');
@@ -37,7 +37,7 @@ if ($do == 'upload_remote') {
 	}
 }
 
-if ($do == 'display') {
+if ('display' == $do) {
 	$safe_path = safe_gpc_path(IA_ROOT . '/attachment/images/' . $_W['uniacid']);
 	if (!empty($safe_path)) {
 		$local_attachment = file_dir_exist_image($safe_path);
@@ -46,7 +46,7 @@ if ($do == 'display') {
 	}
 }
 
-if ($do == 'save' || $do == 'test_setting') {
+if ('save' == $do || 'test_setting' == $do) {
 	$type_sign = array(ATTACH_FTP => 'ftp', ATTACH_OSS => 'alioss', ATTACH_QINIU => 'qiniu', ATTACH_COS => 'cos');
 	$type = intval($_GPC['type']); //开启的类型
 	$op_type = intval($_GPC['operate_type']);
@@ -56,7 +56,7 @@ if ($do == 'save' || $do == 'test_setting') {
 	if (!in_array($op_type, array_keys($type_sign))) {
 		iajax(-1, '参数有误');
 	}
-	if ($type != 0 && !in_array($type, array_keys($type_sign))) {
+	if (0 != $type && !in_array($type, array_keys($type_sign))) {
 		iajax(-1, '附件类型有误');
 	}
 	//参数必选验证
@@ -112,9 +112,9 @@ if ($do == 'save' || $do == 'test_setting') {
 				'secretkey' => strexists(trim($post['secretkey']), '*') ? $remote['cos']['secretkey'] : trim($post['secretkey']),
 				'bucket' => trim($post['bucket']),
 				'local' => trim($post['local']),
-				'url' => trim(trim($post['url']), '/')
+				'url' => trim(trim($post['url']), '/'),
 			);
-			$op_data['bucket'] =  str_replace("-{$post['appid']}", '', $post['bucket']);
+			$op_data['bucket'] = str_replace("-{$post['appid']}", '', $post['bucket']);
 			if (empty($op_data['url'])) {
 				$op_data['url'] = sprintf('https://%s-%s.cos%s.myqcloud.com', $op_data['bucket'], $op_data['appid'], $op_data['local']);
 			}
@@ -133,17 +133,17 @@ if ($do == 'save' || $do == 'test_setting') {
 			break;
 		case ATTACH_FTP:
 			$op_data = array(
-				'ssl' => intval($post['ssl']),
-				'host' => $post['host'],
+				'hostname' => $post['host'] ?: $post['hostname'],
 				'port' => empty($post['port']) ? 21 : $post['port'],
+				'ssl' => intval($post['ssl']),
 				'username' => $post['username'],
 				'password' => strexists($post['password'], '*') ? $remote['ftp']['password'] : $post['password'],
-				'pasv' => intval($post['pasv']),
-				'dir' => $post['dir'],
-				'url' => $post['url'],
-				'overtime' => intval($post['overtime']),
+				'passive' => intval($post['pasv'] ?: $post['passive']) ,
+				'rootdir' => $post['dir'] ?: $post['rootdir'],
+				'timeout' => intval($post['overtime'] ?: $post['timeout']),
+				'url' => trim(trim($post['url']), '/')
 			);
-			if (empty($op_data['host'])) {
+			if (empty($op_data['hostname'])) {
 				iajax(-1, 'FTP服务器地址为必填项.');
 			}
 			if (empty($op_data['username'])) {
@@ -155,7 +155,7 @@ if ($do == 'save' || $do == 'test_setting') {
 			break;
 	}
 	//参数值,上传,读取验证
-	if ($do == 'test_setting') {
+	if ('test_setting' == $do) {
 		$test_type = $op_type;
 	} elseif ($type == $op_type) {
 		$test_type = $type;
@@ -180,9 +180,9 @@ if ($do == 'save' || $do == 'test_setting') {
 					iajax(-1, 'Bucket不存在或是已经被删除');
 				}
 				if (empty($op_data['url'])) {
-					$op_data['url'] = 'http://'.$op_data['bucket'].'.'.$buckets[$op_data['bucket']]['location'].'.aliyuncs.com';
+					$op_data['url'] = 'http://' . $op_data['bucket'] . '.' . $buckets[$op_data['bucket']]['location'] . '.aliyuncs.com';
 				}
-				$op_data['ossurl'] = $buckets[$op_data['bucket']]['location'].'.aliyuncs.com';
+				$op_data['ossurl'] = $buckets[$op_data['bucket']]['location'] . '.aliyuncs.com';
 				$result = attachment_newalioss_auth($op_data['key'], $op_data['secret'], $op_data['bucket'], $op_data['internal']);
 				if (is_error($result)) {
 					iajax(-1, 'OSS-Access Key ID 或 OSS-Access Key Secret错误，请重新填写');
@@ -204,7 +204,7 @@ if ($do == 'save' || $do == 'test_setting') {
 				}
 				// 将上传图片同步到 FTP 服务器
 				$filename = 'MicroEngine.ico';
-				if (!$ftp->upload(ATTACHMENT_ROOT .'images/global/'. $filename, $filename)) {
+				if (!$ftp->upload(ATTACHMENT_ROOT . 'images/global/' . $filename, $filename)) {
 					iajax(-1, '上传图片失败，请检查配置');
 				}
 				break;
@@ -213,7 +213,7 @@ if ($do == 'save' || $do == 'test_setting') {
 		if (is_error($response)) {
 			iajax(-1, '配置失败，' . $title . '访问url错误');
 		}
-		if (intval($response['code']) != 200) {
+		if (200 != intval($response['code'])) {
 			iajax(-1, '配置失败，' . $title . '访问url错误,请保证bucket为公共读取的');
 		}
 		$image = getimagesizefromstring($response['content']);
@@ -222,10 +222,10 @@ if ($do == 'save' || $do == 'test_setting') {
 		}
 	}
 	//返回或保存正确结果
-	if ($do == 'test_setting') {
-		iajax(0,'配置成功');
+	if ('test_setting' == $do) {
+		iajax(0, '配置成功');
 	}
-	if ($do == 'save') {
+	if ('save' == $do) {
 		$remote['type'] = $type;
 		$remote[$op_sign] = $op_data;
 		uni_setting_save('remote', $remote);

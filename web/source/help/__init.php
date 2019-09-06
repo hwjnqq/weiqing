@@ -1,10 +1,8 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
-
-
-if ($do == 'custom') {
+if ('custom' == $do) {
 	define('FRAME', 'custom_help');
 } else {
 	define('FRAME', 'help');

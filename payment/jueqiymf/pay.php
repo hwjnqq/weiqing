@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 define('IN_MOBILE', true);
 require '../../framework/bootstrap.inc.php';
@@ -14,11 +14,9 @@ $params = @json_decode(base64_decode($sl), true);
 
 
 if($_GPC['done'] == '1') {
-	$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `plid`=:plid';
-	$pars = array();
-	$pars[':plid'] = $_GPC['tid'];
-	$log = pdo_fetch($sql, $pars);
-	
+	$log = table('core_paylog')
+		->where(array('plid' => safe_gpc_int($_GPC['tid'])))
+		->get();
 	if(!empty($log) && !empty($log['status'])) {
 		if (!empty($log['tag'])) {
 			$tag = iunserializer($log['tag']);
@@ -55,8 +53,9 @@ if(!is_array($setting['payment'])) {
 }
 $jueqiymf = $setting['payment']['jueqiymf'];
 
-$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `plid`=:plid';
-$paylog = pdo_fetch($sql, array(':plid' => $params['tid']));
+$paylog = table('core_paylog')
+	->where(array('plid' => $params['tid']))
+	->get();
 if(!empty($paylog) && $paylog['status'] != '0') {
 	exit('这个订单已经支付成功, 不需要重复支付.');
 }

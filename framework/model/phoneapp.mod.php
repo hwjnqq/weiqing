@@ -74,7 +74,8 @@ function phoneapp_version($version_id) {
 		return $version_info;
 	}
 	$version_info = table('wxapp_versions')->getById($version_id);
-
+	$version_info = table('wxapp_versions')->dataunserializer($version_info);
+	
 	if (is_array($version_info['modules'])) {
 		$uni_modules = uni_modules_by_uniacid($version_info['uniacid']);
 		$uni_modules = array_keys($uni_modules);

@@ -1,7 +1,7 @@
 <?php
 /**
  * 验证手机号
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -22,12 +22,11 @@ if (!empty($do)) {
 	}
 }
 
-
-if ($do == 'valid_mobile') {
+if ('valid_mobile' == $do) {
 	iajax(0, '手机号正确.');
 }
 
-if ($do == 'set_password') {
+if ('set_password' == $do) {
 	if ($_W['isajax'] && $_W['ispost']) {
 		$code = safe_gpc_string($_GPC['code']);
 		if (empty($code)) {

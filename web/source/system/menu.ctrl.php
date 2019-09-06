@@ -1,9 +1,8 @@
 <?php
 /**
  * 后台菜单管理
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
-
 defined('IN_IA') or exit('Access Denied');
 load()->model('system');
 
@@ -39,11 +38,11 @@ if (!empty($system_menu)) {
 		}
 	}
 }
-if ($do == 'display') {
+if ('display' == $do) {
 	template('system/menu');
-} elseif ($do == 'post') {
+} elseif ('post' == $do) {
 	$id = intval($_GPC['id']);
-	if ($_GPC['group'] == 'platform_module') {
+	if ('platform_module' == $_GPC['group']) {
 		iajax(-1, '应用模块下不可添加下级分类！', referer());
 	}
 	$menu = array(
@@ -72,7 +71,6 @@ if ($do == 'display') {
 		if (!empty($menu_db) && $menu_db['id'] != $id) {
 			iajax(-1, '菜单标识不得重复请更换', referer());
 		}
-
 	}
 	$permission_name = $menu['permission_name'];
 	$menu_db = pdo_get('core_menu', array('permission_name' => $permission_name));
@@ -87,7 +85,7 @@ if ($do == 'display') {
 	}
 	cache_clean(cache_system_key('system_frame'));
 	iajax(0, '更新成功', referer());
-} elseif ($do == 'display_status') {
+} elseif ('display_status' == $do) {
 	$permission_name = $_GPC['permission_name'];
 	$status = intval($_GPC['status']);
 	$menu_db = pdo_get('core_menu', array('permission_name' => $permission_name));
@@ -100,11 +98,11 @@ if ($do == 'display') {
 			$menu_data['is_system'] = 1;
 			$menu_data['group_name'] = 'frame';
 		}
-		pdo_insert('core_menu',  $menu_data);
+		pdo_insert('core_menu', $menu_data);
 	}
 	cache_clean(cache_system_key('system_frame'));
 	iajax(0, '更新成功', referer());
-} elseif ($do == 'delete') {
+} elseif ('delete' == $do) {
 	$permission_name = $_GPC['permission_name'];
 	$menu_db = pdo_get('core_menu', array('permission_name' => $permission_name));
 
@@ -116,7 +114,7 @@ if ($do == 'display') {
 		cache_clean(cache_system_key('system_frame'));
 	}
 	iajax(0, '更新成功', referer());
-} elseif ($do == 'change_displayorder') {
+} elseif ('change_displayorder' == $do) {
 	$menu_db = pdo_get('core_menu', array('permission_name' => $_GPC['permission'], 'group_name' => 'frame'));
 	if (empty($menu_db)) {
 		$menu = array(

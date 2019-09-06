@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
@@ -20,13 +20,7 @@ if ($controller == 'mc' && $action == 'card') {
 	}
 }
 $filter = array();
-$setting = uni_setting($_W['uniacid'], array('creditnames', 'creditbehaviors', 'uc', 'payment', 'passport'));
+$setting = uni_setting($_W['uniacid'], array('creditnames', 'creditbehaviors', 'payment', 'passport'));
 $behavior = $setting['creditbehaviors'];
 $creditnames = $setting['creditnames'];
 $credits = mc_credit_fetch($_W['member']['uid'], '*');
-
-$ucpage = pdo_fetch("SELECT * FROM ".tablename('site_page')." WHERE uniacid = :uniacid AND type = '3'", array(':uniacid' => $_W['uniacid']));
-if (!empty($ucpage['params'])) {
-	$ucpage['params'] = json_decode($ucpage['params'], true);
-}
-$title = $ucpage['title'];

@@ -1,11 +1,12 @@
-<?php 
+<?php
+
 /**
- * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 $dos = array('receive', '');
-$do = in_array($do, $dos) ? $do: '';
+$do = in_array($do, $dos) ? $do : '';
 
 $_W['uniacid'] = intval($_GPC['i']);
 
@@ -14,7 +15,7 @@ if (empty($_W['uniacid'])) {
 }
 $_W['account'] = uni_fetch($_W['uniacid']);
 
-if ($do == 'receive') {
+if ('receive' == $do) {
 	ignore_user_abort(true);
 	set_time_limit(30);
 
@@ -32,7 +33,7 @@ if ($do == 'receive') {
 		$module_receiver->keyword = $request['keyword'];
 		$module_receiver->module = $module;
 		$module_receiver->uniacid = $_W['uniacid'];
-		if(method_exists($module_receiver, 'receive')) {
+		if (method_exists($module_receiver, 'receive')) {
 			@$module_receiver->receive();
 		}
 	}

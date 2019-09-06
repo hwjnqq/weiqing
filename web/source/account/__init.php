@@ -1,12 +1,11 @@
 <?php
 /**
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
-if ($action != 'display') {
+if ('display' != $action) {
 	define('FRAME', 'account_manage');
 } else {
-	if ($action == 'display') {
+	if ('display' == $action) {
 		define('FRAME', 'platform');
 	} else {
 		//高版本php引用未定义常量报错，此处定义空值兼容高版本
@@ -14,8 +13,8 @@ if ($action != 'display') {
 	}
 }
 
-if ($controller == 'account' && $action == 'manage') {
-	if ($_GPC['account_type'] == ACCOUNT_TYPE_APP_NORMAL) {
+if ('account' == $controller && 'manage' == $action) {
+	if (ACCOUNT_TYPE_APP_NORMAL == $_GPC['account_type']) {
 		define('ACTIVE_FRAME_URL', url('account/manage/display', array('account_type' => ACCOUNT_TYPE_APP_NORMAL)));
 	}
 }

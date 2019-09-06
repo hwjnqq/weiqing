@@ -5,7 +5,7 @@
 		{if empty($module['main_module'])}
 		<div class="pull-right">
 			<a href="{php echo url('module/permission/post', array('m' => $module_name))}" class="btn btn-primary we7-padding-horizontal">添加操作员</a>
-			<a href="{php echo url('user/register', array('type' => USER_TYPE_CLERK, 'm' => $module_name))}"  target="_blank" class="btn btn-primary we7-padding-horizontal">注册操作员</a>
+			<a href="{php echo url('user/register', array('type' => USER_TYPE_CLERK, 'm' => $module_name, 'uniacid' => $_W['uniacid']))}"  target="_blank" class="btn btn-primary we7-padding-horizontal">注册操作员</a>
 		</div>
 		{/if}
 	</div>
@@ -14,6 +14,7 @@
 		<tr>
 			<th class="text-center" style="width:100px;">操作员名称</th>
 			<th class="text-center" style="width:150px">权限信息</th>
+			<th class="text-center" style="width:150px">状态</th>
 			<th class="text-right" style="width:100px;">操作</th>
 		</tr>
 		</thead>
@@ -29,6 +30,12 @@
 						{/loop}
 					{else}
 						<span class="label label-primary">所有</span>
+					{/if}
+				</td>
+				<td class="text-center">
+					{if $item['user_info']['status'] == 1}<span class="color-red">待审核</span>
+					{elseif $item['user_info']['status'] == 3}<span class="color-gray">已禁用</span>
+					{else}<span class="color-default">正常</span>
 					{/if}
 				</td>
 				<td style="width:100px;">
@@ -72,7 +79,7 @@
 			<div class="col-sm-6 input-group">
 				<input id="" name="username" type="text" class="form-control" value="{$user['username']}" {if !empty($_GPC['uid'])}readonly{/if}/>
 				<span class="input-group-btn">
-					<a href="{php echo url('user/register', array('type' => USER_TYPE_CLERK, 'm' => $module_name, 'redirect' => 'post'))}"  target="_blank" class="btn btn-default">注册操作员</a>
+					<a href="{php echo url('user/register', array('type' => USER_TYPE_CLERK, 'm' => $module_name, 'uniacid' => $_W['uniacid']))}"  target="_blank" class="btn btn-default">注册操作员</a>
 				</span>
 			</div>
 			<div class="col-sm-offset-2">

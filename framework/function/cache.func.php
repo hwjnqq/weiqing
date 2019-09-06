@@ -1,15 +1,16 @@
 <?php
 /**
- * 缓存统一接口
+ * 缓存统一接口.
  *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
 load()->func('cache.' . cache_type());
 
 /**
- * 获取缓存类型
+ * 获取缓存类型.
+ *
  * @param $cache_type
  */
 function cache_type() {
@@ -20,9 +21,9 @@ function cache_type() {
 	if (extension_loaded($cache_type)) {
 		$config = $_W['config']['setting'][$cache_type];
 		if (!empty($config['server']) && !empty($config['port'])) {
-			if ($cache_type == 'memcache') {
+			if ('memcache' == $cache_type) {
 				$cacher = new Memcache();
-			} elseif ($cache_type == 'redis') {
+			} elseif ('redis' == $cache_type) {
 				$cacher = new Redis();
 			}
 			$connect = $cacher->connect($config['server'], $config['port']);
@@ -31,13 +32,16 @@ function cache_type() {
 	if (empty($cacher) || empty($connect)) {
 		$cache_type = 'mysql';
 	}
+
 	return $cache_type;
 }
 
 /**
- * 读取缓存，并将缓存加载至 $_W 全局变量中
- * @param string $key 缓存键名
- * @param boolean $unserialize 是否反序列化
+ * 读取缓存，并将缓存加载至 $_W 全局变量中.
+ *
+ * @param string $key         缓存键名
+ * @param bool   $unserialize 是否反序列化
+ *
  * @return array
  */
 function cache_load($key, $unserialize = false) {
@@ -46,21 +50,25 @@ function cache_load($key, $unserialize = false) {
 
 	if (is_error($key)) {
 		trigger_error($key['message'], E_USER_WARNING);
+
 		return false;
 	}
 	if (!empty($we7_cache[$key])) {
 		return $we7_cache[$key];
 	}
 	$data = $we7_cache[$key] = cache_read($key);
-	if ($key == 'setting') {
+	if ('setting' == $key) {
 		$_W['setting'] = $data;
+
 		return $_W['setting'];
-	} elseif ($key == 'modules') {
+	} elseif ('modules' == $key) {
 		$_W['modules'] = $data;
+
 		return $_W['modules'];
-	} elseif ($key == 'module_receive_enable' && empty($data)) {
+	} elseif ('module_receive_enable' == $key && empty($data)) {
 		//如果不存在订阅模块数据，就再获取一下缓存
 		cache_build_module_subscribe_type();
+
 		return cache_read($key);
 	} else {
 		return $unserialize ? iunserializer($data) : $data;
@@ -68,13 +76,14 @@ function cache_load($key, $unserialize = false) {
 }
 
 function &cache_global($key) {
-
 }
 
 /**
- * 获取缓存名称
+ * 获取缓存名称.
+ *
  * @param $cache_key
  * @param array $params
+ *
  * @return array|mixed|string
  */
 function cache_system_key($cache_key) {
@@ -89,9 +98,10 @@ function cache_system_key($cache_key) {
 	if (!is_array($args[1])) {
 		$cache_key = $cache_key_all['caches'][$cache_key]['key'];
 		preg_match_all('/\%([a-zA-Z\_\-0-9]+)/', $cache_key, $matches);
-		for ($i = 0; $i < func_num_args()-1; $i++) {
-			$cache_key = str_replace($matches[0][$i], $args[$i+1], $cache_key);
+		for ($i = 0; $i < func_num_args() - 1; ++$i) {
+			$cache_key = str_replace($matches[0][$i], $args[$i + 1], $cache_key);
 		}
+
 		return 'we7:' . $cache_key;
 	} else {
 		$params = $args[1];
@@ -135,7 +145,7 @@ function cache_system_key($cache_key) {
 				} else {
 					return 'we7:' . $cache_info_key;
 				}
-			} else  {
+			} else {
 				return 'we7:' . $cache_key;
 			}
 		}
@@ -172,12 +182,15 @@ function cache_system_key($cache_key) {
 	if (strlen($cache_key) > CACHE_KEY_LENGTH) {
 		trigger_error('Cache name is over the maximum length');
 	}
+
 	return $cache_key;
 }
 
 /**
- * （根据缓存键）获取缓存的关联信息
+ * （根据缓存键）获取缓存的关联信息.
+ *
  * @param $key 传入的缓存键
+ *
  * @return array|int|string
  */
 function cache_relation_keys($key) {
@@ -246,15 +259,18 @@ function cache_relation_keys($key) {
 	} else {
 		$cache_keys[] = $key;
 	}
+
 	return $cache_keys;
 }
 
 /**
- * 获取所有缓存键及缓存键的关联信息
+ * 获取所有缓存键及缓存键的关联信息.
+ *
  * @key string 缓存键值
  * @relation string 关联关系组名称
  * @relations array 关联关系组
  * @relation_params array 构建关联缓存键的参数
+ *
  * @return array
  */
 function cache_key_all() {
@@ -347,7 +363,7 @@ function cache_key_all() {
 			),
 
 			'keyword' => array(
-				# conent 需要MD5 加密
+				// conent 需要MD5 加密
 				'key' => 'keyword:%content:%uniacid',
 				'group' => '',
 			),
@@ -384,13 +400,13 @@ function cache_key_all() {
 
 			'uniaccount' => array(
 				// 指定统一公众号下默认子号的信息
-				'key' => "uniaccount:%uniacid",
+				'key' => 'uniaccount:%uniacid',
 				'group' => 'uniaccount',
 			),
 
 			'unisetting' => array(
 				// 公众号的配置项
-				'key' => "unisetting:%uniacid",
+				'key' => 'unisetting:%uniacid',
 				'group' => 'uniaccount',
 			),
 
@@ -400,7 +416,7 @@ function cache_key_all() {
 			),
 
 			'uniaccount_type' => array(
-				'key' => "uniaccount_type:%account_type",
+				'key' => 'uniaccount_type:%account_type',
 				'group' => '',
 			),
 
@@ -411,12 +427,12 @@ function cache_key_all() {
 			),
 
 			'jsticket' => array(
-				'key' => 'jsticket:%acid',
+				'key' => 'jsticket:%uniacid',
 				'group' => 'accesstoken',
 			),
 
 			'cardticket' => array(
-				'key' => 'cardticket:%acid',
+				'key' => 'cardticket:%uniacid',
 				'group' => 'accesstoken',
 			),
 			/* accesstoken */
@@ -433,6 +449,11 @@ function cache_key_all() {
 
 			'account_auth_refreshtoken' => array(
 				'key' => 'account_auth_refreshtoken:%uniacid',
+				'group' => '',
+			),
+
+			'account_tags' => array(
+				'key' => 'account_tags:%uniacid',
 				'group' => '',
 			),
 
@@ -471,7 +492,10 @@ function cache_key_all() {
 				'key' => 'account_component_assesstoken',
 				'group' => '',
 			),
-
+			'cloud_api_method' => array(
+				'key' => 'cloud_api_method:%method',
+				'group' => '',
+			),
 			'cloud_ad_uniaccount' => array(
 				'key' => 'cloud_ad_uniaccount:%uniacid',
 				'group' => '',
@@ -632,5 +656,6 @@ function cache_key_all() {
 			),
 		),
 	);
+
 	return $caches_all;
 }

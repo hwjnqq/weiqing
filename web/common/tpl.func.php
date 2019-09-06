@@ -1,19 +1,20 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/web/common/tpl.func.php : v 8b6dd7b5a696 : 2015/09/17 03:20:11 : yanghf $
+ * [WeEngine System] Copyright (c) 2014 W7.CC
+ * $sn: pro/web/common/tpl.func.php : v 8b6dd7b5a696 : 2015/09/17 03:20:11 : yanghf $.
  */
 defined('IN_IA') or exit('Access Denied');
 
 /**
- * 【表单控件】: 日期控件
+ * 【表单控件】: 日期控件.
  *
  * @param string $name
- * 		表单名称
+ *                         表单名称
  * @param string $value
- * 		默认为当前日期时间
- * @param boolean $withtime
- * 		是否显示时间(时分),默认为不显示
+ *                         默认为当前日期时间
+ * @param bool   $withtime
+ *                         是否显示时间(时分),默认为不显示
+ *
  * @return form input string
  */
 function _tpl_form_field_date($name, $value = '', $withtime = false) {
@@ -25,35 +26,38 @@ function _tpl_form_field_date($name, $value = '', $withtime = false) {
 		$value = TIMESTAMP;
 	}
 	$value = ($withtime ? date('Y-m-d H:i:s', $value) : date('Y-m-d', $value));
-	$s .= '<input type="text" name="' . $name . '"  value="'.$value.'" placeholder="请选择日期时间" readonly="readonly" class="datetimepicker form-control" style="padding-left:12px;" />';
+	$s .= '<input type="text" name="' . $name . '"  value="' . $value . '" placeholder="请选择日期时间" readonly="readonly" class="datetimepicker form-control" style="padding-left:12px;" />';
 	$s .= '
 		<script type="text/javascript">
 			require(["datetimepicker"], function(){
 					var option = {
 						lang : "zh",
 						step : 5,
-						timepicker : ' . (!empty($withtime) ? "true" : "false") .',
+						timepicker : ' . (!empty($withtime) ? 'true' : 'false') . ',
 						closeOnDateSelect : true,
-						format : "Y-m-d' . (!empty($withtime) ? ' H:i"' : '"') .'
+						format : "Y-m-d' . (!empty($withtime) ? ' H:i"' : '"') . '
 					};
 				$(".datetimepicker[name = \'' . $name . '\']").datetimepicker(option);
 			});
 		</script>';
+
 	return $s;
 }
 
 /**
- * 【表单控件】: 系统链接选择器
- * @param string $name 表单input名称
- * @param string $value 表单input值
- * @param array $options 选择器样式配置信息
+ * 【表单控件】: 系统链接选择器.
+ *
+ * @param string $name    表单input名称
+ * @param string $value   表单input值
+ * @param array  $options 选择器样式配置信息
+ *
  * @return string
  */
 function tpl_form_field_link($name, $value = '', $options = array()) {
 	global $_GPC, $_W;
-	if(!empty($options)) {
-		foreach ($options as $key => $val){
-			$options .= $key.':'.$val.',';
+	if (!empty($options)) {
+		foreach ($options as $key => $val) {
+			$options .= $key . ':' . $val . ',';
 		}
 	}
 	$s = '';
@@ -65,7 +69,7 @@ function tpl_form_field_link($name, $value = '', $options = array()) {
 			function showLinkDialog(elm) {
 				var ipt = $(elm).parent().parent().parent().prev();
 				util.linkBrowser(function(href){
-					var multiid = "'. $_GPC['multiid'] .'";
+					var multiid = "' . $_GPC['multiid'] . '";
 					if (multiid) {
 						href = /(&)?t=/.test(href) ? href : href + "&t=" + multiid;
 					}
@@ -79,7 +83,7 @@ function tpl_form_field_link($name, $value = '', $options = array()) {
 						newsLinkDialog(elm, page);
 						return false;
 					}
-					var multiid = "'. $_GPC['multiid'] .'";
+					var multiid = "' . $_GPC['multiid'] . '";
 					if (multiid) {
 						href = /(&)?t=/.test(href) ? href : href + "&t=" + multiid;
 					}
@@ -93,7 +97,7 @@ function tpl_form_field_link($name, $value = '', $options = array()) {
 						pageLinkDialog(elm, page);
 						return false;
 					}
-					var multiid = "'. $_GPC['multiid'] .'";
+					var multiid = "' . $_GPC['multiid'] . '";
 					if (multiid) {
 						href = /(&)?t=/.test(href) ? href : href + "&t=" + multiid;
 					}
@@ -107,7 +111,7 @@ function tpl_form_field_link($name, $value = '', $options = array()) {
 						articleLinkDialog(elm, page);
 						return false;
 					}
-					var multiid = "'. $_GPC['multiid'] .'";
+					var multiid = "' . $_GPC['multiid'] . '";
 					if (multiid) {
 						href = /(&)?t=/.test(href) ? href : href + "&t=" + multiid;
 					}
@@ -128,7 +132,7 @@ function tpl_form_field_link($name, $value = '', $options = array()) {
 				var ipt = $(elm).parent().parent().parent().prev();
 				util.map(elm, function(val){
 					var href = \'https://api.map.baidu.com/marker?location=\'+val.lat+\',\'+val.lng+\'&output=html&src=we7\';
-					var multiid = "'. $_GPC['multiid'] .'";
+					var multiid = "' . $_GPC['multiid'] . '";
 					if (multiid) {
 						href = /(&)?t=/.test(href) ? href : href + "&t=" + multiid;
 					}
@@ -140,7 +144,7 @@ function tpl_form_field_link($name, $value = '', $options = array()) {
 	}
 	$s .= '
 	<div class="input-group">
-		<input type="text" value="'.$value.'" name="'.$name.'" class="form-control" autocomplete="off" style="'.($options ? $options : 'width:525px').'">
+		<input type="text" value="' . $value . '" name="' . $name . '" class="form-control" autocomplete="off" style="' . ($options ? $options : 'width:525px') . '">
 		<span class="input-group-btn">
 			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" type="button" aria-haspopup="true" aria-expanded="false">选择链接 <span class="caret"></span></button>
 			<ul class="dropdown-menu">
@@ -154,13 +158,16 @@ function tpl_form_field_link($name, $value = '', $options = array()) {
 		</span>
 	</div>
 	';
+
 	return $s;
 }
 
 /**
- * 【表单控件】:
- * @param string $name 表单input名称
+ * 【表单控件】:.
+ *
+ * @param string $name  表单input名称
  * @param string $value 表单input值
+ *
  * @return string
  */
 function tpl_form_module_link($name) {
@@ -182,19 +189,22 @@ function tpl_form_module_link($name) {
 	$s .= '
 	<div class="input-group">
 		<input type="text" class="form-control" name="permission" style="display: none">
-		<input type="text" class="form-control" name="'.$name.'">
+		<input type="text" class="form-control" name="' . $name . '">
 			<span class="input-group-btn">
 				<a href="javascript:"  class="btn btn-default" onclick="showModuleLink(this)">选择链接</a>
 			</span>
 	</div>
 	';
+
 	return $s;
 }
 
 /**
- * 【表单控件】: Emoji表情选择器
- * @param string $name 表单input名称
+ * 【表单控件】: Emoji表情选择器.
+ *
+ * @param string $name  表单input名称
  * @param string $value 表单input值
+ *
  * @return string
  */
 function tpl_form_field_emoji($name, $value = '') {
@@ -227,13 +237,16 @@ function tpl_form_field_emoji($name, $value = '') {
 		</span>
 	</div>
 	';
+
 	return $s;
 }
 
 /**
- * 【表单控件】: 拾色器 (获取 HTML 色彩代码)
- * @param string $name 表单input名称
+ * 【表单控件】: 拾色器 (获取 HTML 色彩代码).
+ *
+ * @param string $name  表单input名称
  * @param string $value 表单input值
+ *
  * @return string
  */
 function tpl_form_field_color($name, $value = '') {
@@ -261,8 +274,8 @@ function tpl_form_field_color($name, $value = '') {
 		<div class="row row-fix">
 			<div class="col-xs-8 col-sm-8" style="padding-right:0;">
 				<div class="input-group">
-					<input class="form-control" type="text" name="'.$name.'" placeholder="请选择颜色" value="'.$value.'">
-					<span class="input-group-addon" style="width:35px;border-left:none;background-color:'.$value.'"></span>
+					<input class="form-control" type="text" name="' . $name . '" placeholder="请选择颜色" value="' . $value . '">
+					<span class="input-group-addon" style="width:35px;border-left:none;background-color:' . $value . '"></span>
 					<span class="input-group-btn">
 						<button class="btn btn-default colorpicker" type="button">选择颜色 <i class="fa fa-caret-down"></i></button>
 						<button class="btn btn-default colorclean" type="button"><span><i class="fa fa-remove"></i></span></button>
@@ -271,17 +284,20 @@ function tpl_form_field_color($name, $value = '') {
 			</div>
 		</div>
 		';
+
 	return $s;
 }
 
 /**
- * 【表单控件】: 系统图标选择器
- * @param string $name 表单input名称
+ * 【表单控件】: 系统图标选择器.
+ *
+ * @param string $name  表单input名称
  * @param string $value 表单input值
+ *
  * @return string
  */
-function tpl_form_field_icon($name, $value='') {
-	if(empty($value)){
+function tpl_form_field_icon($name, $value = '') {
+	if (empty($value)) {
 		$value = 'fa fa-external-link';
 	}
 	$s = '';
@@ -307,31 +323,34 @@ function tpl_form_field_icon($name, $value='') {
 	}
 	$s .= '
 	<div class="input-group" style="width: 300px;">
-		<input type="text" value="'.$value.'" name="'.$name.'" class="form-control" autocomplete="off">
-		<span class="input-group-addon"><i class="'.$value.' fa"></i></span>
+		<input type="text" value="' . $value . '" name="' . $name . '" class="form-control" autocomplete="off">
+		<span class="input-group-addon"><i class="' . $value . ' fa"></i></span>
 		<span class="input-group-btn">
 			<button class="btn btn-default" type="button" onclick="showIconDialog(this);">选择图标</button>
 		</span>
 	</div>
 	';
+
 	return $s;
 }
 
 /**
- * 【表单控件】: 图片上传与选择控件
- * @param string $name 表单input名称
- * @param string $value 表单input值
+ * 【表单控件】: 图片上传与选择控件.
+ *
+ * @param string $name    表单input名称
+ * @param string $value   表单input值
  * @param string $default 默认显示的缩略图
- * @param array $options 图片上传配置信息
- * <pre>
- * 		$options['width'] = '';
- * 		$options['height'] = '';
- * 		$options['global'] = '';// 是否显示 global 目录（公共目录）
- * 		$options['extras'] = array(
- * 			&nbsp;'image'=> 缩略图img标签的自定义属性及属性值 ,
- * 			&nbsp;'text'=> input 标签的自定义属性及属性值
- * 		)
- * </pre>
+ * @param array  $options 图片上传配置信息
+ *                        <pre>
+ *                        $options['width'] = '';
+ *                        $options['height'] = '';
+ *                        $options['global'] = '';// 是否显示 global 目录（公共目录）
+ *                        $options['extras'] = array(
+ *                        &nbsp;'image'=> 缩略图img标签的自定义属性及属性值 ,
+ *                        &nbsp;'text'=> input 标签的自定义属性及属性值
+ *                        )
+ *                        </pre>
+ *
  * @return string
  */
 function tpl_form_field_image($name, $value = '', $default = '', $options = array()) {
@@ -376,7 +395,7 @@ function tpl_form_field_image($name, $value = '', $default = '', $options = arra
 					var ipt = btn.parent().prev();
 					var val = ipt.val();
 					var img = ipt.parent().next().children();
-					options = '.str_replace('"', '\'', json_encode($options)).';
+					options = ' . str_replace('"', '\'', json_encode($options)) . ';
 					util.image(val, function(url){
 						if(url.url){
 							if(img.length > 0){
@@ -414,14 +433,17 @@ function tpl_form_field_image($name, $value = '', $default = '', $options = arra
 			<img src="' . $val . '" onerror="this.src=\'' . $default . '\'; this.title=\'图片未找到.\'" class="img-responsive img-thumbnail" ' . ($options['extras']['image'] ? $options['extras']['image'] : '') . ' width="150" />
 			<em class="close" style="position:absolute; top: 0px; right: -14px;" title="删除这张图片" onclick="deleteImage(this)">×</em>
 		</div>';
+
 	return $s;
 }
 
 /**
- * 批量上传图片
- * @param string $name 表单input名称
- * @param array $value 附件路径信息
- * @param array $options  自定义图片上传路径
+ * 批量上传图片.
+ *
+ * @param string $name    表单input名称
+ * @param array  $value   附件路径信息
+ * @param array  $options 自定义图片上传路径
+ *
  * @return string
  */
 function tpl_form_field_multi_image($name, $value = array(), $options = array()) {
@@ -479,10 +501,12 @@ EOF;
 }
 
 /**
- * 【表单控件】: 音乐选择与上传
- * @param string $name 表单input名称
- * @param string $value 表单input值
- * @param array $options 表单中input附加信息
+ * 【表单控件】: 音乐选择与上传.
+ *
+ * @param string $name    表单input名称
+ * @param string $value   表单input值
+ * @param array  $options 表单中input附加信息
+ *
  * @return string
  */
 function tpl_form_field_audio($name, $value = '', $options = array()) {
@@ -562,14 +586,17 @@ function tpl_form_field_audio($name, $value = '', $options = array()) {
 		</span>
 	</div>
 	<div class="input-group audio-player"></div>';
+
 	return $s;
 }
 
 /**
- * 批量上传音频
- * @param string $name 表单input名称
- * @param array $value 表单input值
- * @param array $options 自定义上传路径
+ * 批量上传音频.
+ *
+ * @param string $name    表单input名称
+ * @param array  $value   表单input值
+ * @param array  $options 自定义上传路径
+ *
  * @return string
  */
 function tpl_form_field_multi_audio($name, $value = array(), $options = array()) {
@@ -655,7 +682,7 @@ function tpl_form_field_multi_audio($name, $value = array(), $options = array())
 		<input type="hidden" name="' . $name . '[]" value="' . $row . '">
 	</div>
 	<script language="javascript">setMultiAudioPlayer($(".multi-audio-item-' . $n . '-' . $m . '"));</script>';
-			$n++;
+			++$n;
 		}
 	}
 	$s .= '
@@ -665,14 +692,16 @@ function tpl_form_field_multi_audio($name, $value = array(), $options = array())
 }
 
 /**
- * 【表单控件】: 视频选择与上传
- * @param string $name 表单input名称
- * @param string $value 表单input值
- * @param array $options 表单中input附加信息
+ * 【表单控件】: 视频选择与上传.
+ *
+ * @param string $name    表单input名称
+ * @param string $value   表单input值
+ * @param array  $options 表单中input附加信息
+ *
  * @return string
  */
 function tpl_form_field_video($name, $value = '', $options = array()) {
-	if(!is_array($options)){
+	if (!is_array($options)) {
 		$options = array();
 	}
 	if (!is_array($options)) {
@@ -701,7 +730,7 @@ function tpl_form_field_video($name, $value = '', $options = array()) {
 				if(url && url.media_id){
 					ipt.val(url.media_id);
 				}
-			}, '.json_encode($options).');
+			}, ' . json_encode($options) . ');
 		});
 	}
 
@@ -712,27 +741,28 @@ function tpl_form_field_video($name, $value = '', $options = array()) {
 
 	$s .= '
 	<div class="input-group">
-		<input type="text" value="'.$value.'" name="'.$name.'" class="form-control" autocomplete="off" '.($options['extras']['text'] ? $options['extras']['text'] : '').'>
+		<input type="text" value="' . $value . '" name="' . $name . '" class="form-control" autocomplete="off" ' . ($options['extras']['text'] ? $options['extras']['text'] : '') . '>
 		<span class="input-group-btn">
-			<button class="btn btn-default" type="button" onclick="showVideoDialog(this,'.str_replace('"','\'', json_encode($options)).');">选择媒体文件</button>
+			<button class="btn btn-default" type="button" onclick="showVideoDialog(this,' . str_replace('"', '\'', json_encode($options)) . ');">选择媒体文件</button>
 		</span>
 	</div>';
+
 	return $s;
 }
 
 function tpl_form_field_wechat_image($name, $value = '', $default = '', $options = array()) {
 	global $_W;
-	if(!$_W['acid'] || $_W['account']['level'] < 3) {
+	if (!$_W['acid'] || $_W['account']['level'] < 3) {
 		$options['account_error'] = 1;
 	} else {
 		$options['acid'] = $_W['acid'];
 	}
-	if(empty($default)) {
+	if (empty($default)) {
 		$default = './resource/images/nopic.jpg';
 	}
 	$val = $default;
 	if (!empty($value)) {
-		$media_data = (array)media2local($value, true);
+		$media_data = (array) media2local($value, true);
 		$val = $media_data['attachment'];
 	}
 	if (empty($options['class_extra'])) {
@@ -781,23 +811,24 @@ function tpl_form_field_wechat_image($name, $value = '', $default = '', $options
 			<img src="' . $val . '" onerror="this.src=\'' . $default . '\'; this.title=\'图片未找到.\'" class="img-responsive img-thumbnail" ' . ($options['extras']['image'] ? $options['extras']['image'] : '') . ' width="150" />
 			<em class="close" style="position:absolute; top: 0px; right: -14px;" title="删除这张图片" onclick="deleteImage(this)">×</em>
 		</div>';
-	if (!empty($media_data) && $media_data['model'] == 'temp' && (time() - $media_data['createtime'] > 259200)) {
+	if (!empty($media_data) && 'temp' == $media_data['model'] && (time() - $media_data['createtime'] > 259200)) {
 		$s .= '<span class="help-block"><b class="text-danger">该素材已过期 [有效期为3天]，请及时更新素材</b></span>';
 	}
+
 	return $s;
 }
 
 function tpl_form_field_wechat_multi_image($name, $value = '', $default = '', $options = array()) {
 	global $_W;
-	if(!$_W['acid'] || $_W['account']['level'] < 3) {
+	if (!$_W['acid'] || $_W['account']['level'] < 3) {
 		$options['account_error'] = 1;
 	} else {
 		$options['acid'] = $_W['acid'];
 	}
-	if(empty($default)) {
+	if (empty($default)) {
 		$default = './resource/images/nopic.jpg';
 	}
-	if(empty($options['class_extra'])) {
+	if (empty($options['class_extra'])) {
 		$options['class_extra'] = '';
 	}
 
@@ -814,7 +845,7 @@ function tpl_form_field_wechat_multi_image($name, $value = '', $default = '', $o
 			$.each(urls, function(idx, url){
 				$(elm).parent().parent().next().append(\'<div class="multi-item"><img onerror="this.src=\\\'./resource/images/nopic.jpg\\\'; this.title=\\\'图片未找到.\\\'" src="\'+url.url+\'" class="img-responsive img-thumbnail"><input type="hidden" name="\'+name+\'[]" value="\'+url.media_id+\'"><em class="close" title="删除这张图片" onclick="deleteWechatMultiImage(this)">×</em></div>\');
 			});
-		}, '.json_encode($options).');
+		}, ' . json_encode($options) . ');
 	}
 	function deleteWechatMultiImage(elm){
 		$(elm).parent().remove();
@@ -833,32 +864,33 @@ function tpl_form_field_wechat_multi_image($name, $value = '', $default = '', $o
 </div>
 <div class="input-group multi-img-details">
 EOF;
-	if (is_array($value) && count($value)>0) {
+	if (is_array($value) && count($value) > 0) {
 		foreach ($value as $row) {
-			$s .='
+			$s .= '
 <div class="multi-item">
-	<img src="'.media2local($row).'" onerror="this.src=\'./resource/images/nopic.jpg\'; this.title=\'图片未找到.\'" class="img-responsive img-thumbnail">
-	<input type="hidden" name="'.$name.'[]" value="'.$row.'" >
+	<img src="' . media2local($row) . '" onerror="this.src=\'./resource/images/nopic.jpg\'; this.title=\'图片未找到.\'" class="img-responsive img-thumbnail">
+	<input type="hidden" name="' . $name . '[]" value="' . $row . '" >
 	<em class="close" title="删除这张图片" onclick="deleteWechatMultiImage(this)">×</em>
 </div>';
 		}
 	}
 	$s .= '</div>';
+
 	return $s;
 }
 
 function tpl_form_field_wechat_voice($name, $value = '', $options = array()) {
 	global $_W;
-	if(!$_W['acid'] || $_W['account']['level'] < 3) {
+	if (!$_W['acid'] || $_W['account']['level'] < 3) {
 		$options['account_error'] = 1;
 	} else {
 		$options['acid'] = $_W['acid'];
 	}
-	if(!empty($value)) {
-		$media_data = (array)media2local($value, true);
+	if (!empty($value)) {
+		$media_data = (array) media2local($value, true);
 		$val = $media_data['attachment'];
 	}
-	if(!is_array($options)){
+	if (!is_array($options)) {
 		$options = array();
 	}
 	$options['direct'] = true;
@@ -885,7 +917,7 @@ function tpl_form_field_wechat_voice($name, $value = '', $options = array()) {
 				if(url && url.media_id){
 					ipt.val(url.media_id);
 				}
-			} , '.json_encode($options).');
+			} , ' . json_encode($options) . ');
 		});
 	}
 
@@ -930,38 +962,39 @@ function tpl_form_field_wechat_voice($name, $value = '', $options = array()) {
 
 	$s .= '
 	<div class="input-group">
-		<input type="text" value="'.$value.'" name="'.$name.'" class="form-control audio-player-media" autocomplete="off" '.($options['extras']['text'] ? $options['extras']['text'] : '').'>
+		<input type="text" value="' . $value . '" name="' . $name . '" class="form-control audio-player-media" autocomplete="off" ' . ($options['extras']['text'] ? $options['extras']['text'] : '') . '>
 		<span class="input-group-btn">
 			<button class="btn btn-default audio-player-play" type="button" style="display:none"><i class="fa fa-play"></i></button>
-			<button class="btn btn-default" type="button" onclick="showWechatVoiceDialog(this,'.str_replace('"','\'', json_encode($options)).');">选择媒体文件</button>
+			<button class="btn btn-default" type="button" onclick="showWechatVoiceDialog(this,' . str_replace('"', '\'', json_encode($options)) . ');">选择媒体文件</button>
 		</span>
 	</div>
 	<div class="input-group audio-player">
 	</div>';
-	if(!empty($media_data) && $media_data['model'] == 'temp' && (time() - $media_data['createtime'] > 259200)){
+	if (!empty($media_data) && 'temp' == $media_data['model'] && (time() - $media_data['createtime'] > 259200)) {
 		$s .= '<span class="help-block"><b class="text-danger">该素材已过期 [有效期为3天]，请及时更新素材</b></span>';
 	}
+
 	return $s;
 }
 
 function tpl_form_field_wechat_video($name, $value = '', $options = array()) {
 	global $_W;
-	if(!$_W['acid'] || $_W['account']['level'] < 3) {
+	if (!$_W['acid'] || $_W['account']['level'] < 3) {
 		$options['account_error'] = 1;
 	} else {
 		$options['acid'] = $_W['acid'];
 	}
-	if(!empty($value)) {
-		$media_data = (array)media2local($value, true);
+	if (!empty($value)) {
+		$media_data = (array) media2local($value, true);
 		$val = $media_data['attachment'];
 	}
-	if(!is_array($options)){
+	if (!is_array($options)) {
 		$options = array();
 	}
-	if(empty($options['tabs'])){
-		$options['tabs'] = array('video'=>'active', 'browser'=>'');
+	if (empty($options['tabs'])) {
+		$options['tabs'] = array('video' => 'active', 'browser' => '');
 	}
-	$options = array_elements(array('tabs','global','dest_dir', 'acid', 'error'), $options);
+	$options = array_elements(array('tabs', 'global', 'dest_dir', 'acid', 'error'), $options);
 	$options['direct'] = true;
 	$options['multi'] = false;
 	$options['type'] = 'video';
@@ -984,7 +1017,7 @@ function tpl_form_field_wechat_video($name, $value = '', $options = array()) {
 				if(url && url.media_id){
 					ipt.val(url.media_id);
 				}
-			}, '.json_encode($options).');
+			}, ' . json_encode($options) . ');
 		});
 	}
 
@@ -995,16 +1028,17 @@ function tpl_form_field_wechat_video($name, $value = '', $options = array()) {
 
 	$s .= '
 	<div class="input-group">
-		<input type="text" value="'.$value.'" name="'.$name.'" class="form-control" autocomplete="off" '.($options['extras']['text'] ? $options['extras']['text'] : '').'>
+		<input type="text" value="' . $value . '" name="' . $name . '" class="form-control" autocomplete="off" ' . ($options['extras']['text'] ? $options['extras']['text'] : '') . '>
 		<span class="input-group-btn">
-			<button class="btn btn-default" type="button" onclick="showWechatVideoDialog(this,'.str_replace('"','\'', json_encode($options)).');">选择媒体文件</button>
+			<button class="btn btn-default" type="button" onclick="showWechatVideoDialog(this,' . str_replace('"', '\'', json_encode($options)) . ');">选择媒体文件</button>
 		</span>
 	</div>
 	<div class="input-group audio-player">
 	</div>';
-	if(!empty($media_data) && $media_data['model'] == 'temp' && (time() - $media_data['createtime'] > 259200)){
+	if (!empty($media_data) && 'temp' == $media_data['model'] && (time() - $media_data['createtime'] > 259200)) {
 		$s .= '<span class="help-block"><b class="text-danger">该素材已过期 [有效期为3天]，请及时更新素材</b></span>';
 	}
+
 	return $s;
 }
 
@@ -1034,15 +1068,15 @@ function tpl_form_field_location_category($name, $values = array(), $del = false
 		define('TPL_INIT_LOCATION_CATEGORY', true);
 	}
 	if (empty($values) || !is_array($values)) {
-		$values = array('cate'=>'','sub'=>'','clas'=>'');
+		$values = array('cate' => '', 'sub' => '', 'clas' => '');
 	}
-	if(empty($values['cate'])) {
+	if (empty($values['cate'])) {
 		$values['cate'] = '';
 	}
-	if(empty($values['sub'])) {
+	if (empty($values['sub'])) {
 		$values['sub'] = '';
 	}
-	if(empty($values['clas'])) {
+	if (empty($values['clas'])) {
 		$values['clas'] = '';
 	}
 	$html .= '
@@ -1059,8 +1093,8 @@ function tpl_form_field_location_category($name, $values = array(), $del = false
 				<select name="' . $name . '[clas]" data-value="' . $values['clas'] . '" class="form-control tpl-clas">
 				</select>
 			</div>';
-	if($del) {
-		$html .='
+	if ($del) {
+		$html .= '
 			<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3" style="padding-top:5px">
 				<a title="删除" onclick="$(this).parents(\'.tpl-location-container\').remove();return false;"><i class="fa fa-times-circle"></i></a>
 			</div>
@@ -1091,18 +1125,19 @@ function tpl_ueditor($id, $value = '', $options = array()) {
 	$s .= "
 	<script type=\"text/javascript\">
 		require(['util'], function(util){
-			util.editor('" . ($id ? $id : "") . "', {
+			util.editor('" . ($id ? $id : '') . "', {
 			uniacid : {$options['uniacid']}, 
 			global : '" . $options['global'] . "', 
 			height : {$options['height']}, 
-			dest_dir : '" .($options['dest_dir'] ? $options['dest_dir'] : "") . "',
-			image_limit : " . (intval($GLOBALS['_W']['setting']['upload']['image']['limit']) * 1024) . ",
-			allow_upload_video : " . ($options['allow_upload_video'] ? 'true' : 'false') . ",
-			audio_limit : " . (intval($GLOBALS['_W']['setting']['upload']['audio']['limit']) * 1024) . ",
+			dest_dir : '" . ($options['dest_dir'] ? $options['dest_dir'] : '') . "',
+			image_limit : " . (intval($GLOBALS['_W']['setting']['upload']['image']['limit']) * 1024) . ',
+			allow_upload_video : ' . ($options['allow_upload_video'] ? 'true' : 'false') . ',
+			audio_limit : ' . (intval($GLOBALS['_W']['setting']['upload']['audio']['limit']) * 1024) . ",
 			callback : ''
 			});
 		});
 	</script>";
+
 	return $s;
 }
 
@@ -1113,7 +1148,7 @@ function tpl_ueditor($id, $value = '', $options = array()) {
 function tpl_edit_sms($name, $value, $uniacid, $url, $num) {
 	$s = '
 				<div class="input-group">
-					<input type="text" name="'.$name.'" id="balance" readonly value="'.$value.'" class="form-control" autocomplete="off">
+					<input type="text" name="' . $name . '" id="balance" readonly value="' . $value . '" class="form-control" autocomplete="off">
 					<span class="input-group-btn">
 						<button type="button" class="btn btn-default" data-toggle="modal" data-target="#edit_sms">编辑短信条数</button>
 					</span>
@@ -1142,7 +1177,7 @@ function tpl_edit_sms($name, $value, $uniacid, $url, $num) {
 									</div>
 								</div>
 
-								<div class="help-block">点击加号或减号切换修改短信条数方式<br>最多可添加<span id="count_sms">'.$num.'</span>条短信</div>
+								<div class="help-block">点击加号或减号切换修改短信条数方式<br>最多可添加<span id="count_sms">' . $num . '</span>条短信</div>
 							</div>
 						</div>
 					</div>
@@ -1211,8 +1246,8 @@ function tpl_edit_sms($name, $value, $uniacid, $url, $num) {
 			});
 			$(\'#edit_sms_sub\').click(function () {
 				var edit_num = $(\'#edit_num\').val() == \'\' ? 0 : Math.abs(parseInt($(\'#edit_num\').val()));
-				var uniacid = '.$uniacid.';
-				$.post(\''.$url.'\', {\'balance\' : edit_num, \'uniacid\' : uniacid, \'status\' : status}, function(data) {
+				var uniacid = ' . $uniacid . ';
+				$.post(\'' . $url . '\', {\'balance\' : edit_num, \'uniacid\' : uniacid, \'status\' : status}, function(data) {
 					var data = $.parseJSON(data);
 
 					$(\'#count_sms\').html(data.message.message.count);
@@ -1229,13 +1264,14 @@ function tpl_edit_sms($name, $value, $uniacid, $url, $num) {
 			});
 			</script>
 	';
+
 	return $s;
 }
 
 function tpl_coupon_colors($name, $value = 'Color082') {
 	load()->model('activity');
 	$options = activity_coupon_colors();
-	
+
 	empty($name) && ($name = 'coupon_color');
 	if (!defined('TPL_INIT_COUPON_COLOR')) {
 		$html = '
@@ -1267,9 +1303,9 @@ function tpl_coupon_colors($name, $value = 'Color082') {
 	$html .= '
 		<div class="col-sm-9 col-xs-12 coupon-color" style="position: relative;width:200px;">
 			<div class="input-group" style="width:200px;">
-				<input type="text" class="form-control" name="'.$name.'" value="'.$value.'"/>
-				<input type="hidden" name="'.$name.'-value" class="form-control" value="'.$value.'"/>
-				<span class="input-group-addon" style="width:35px;background:'.$options[$value].'"></span>
+				<input type="text" class="form-control" name="' . $name . '" value="' . $value . '"/>
+				<input type="hidden" name="' . $name . '-value" class="form-control" value="' . $value . '"/>
+				<span class="input-group-addon" style="width:35px;background:' . $options[$value] . '"></span>
 				<span class="input-group-btn">
 					<button class="btn btn-default" type="button" onclick="showCouponColor(this);">选择颜色</button>
 				</span>
@@ -1277,9 +1313,9 @@ function tpl_coupon_colors($name, $value = 'Color082') {
 			<div class="dropdown-menu" style="display:none;padding:6px 0 0 6px;width:185px;position: absolute;top:35px;left:15px">
 				<ul style="padding:0">
 			';
-	if(!empty($options)) {
-		foreach($options as $colorname => $colorvalue) {
-			$html .= '<li data-name="'.$colorname.'" data-color="'.$colorvalue.'" style="padding: 0;margin-right:5px;margin-bottom:5px;width:30px;height:30px;background:'.$colorvalue.';float:left;list-style: none;"></li>';
+	if (!empty($options)) {
+		foreach ($options as $colorname => $colorvalue) {
+			$html .= '<li data-name="' . $colorname . '" data-color="' . $colorvalue . '" style="padding: 0;margin-right:5px;margin-bottom:5px;width:30px;height:30px;background:' . $colorvalue . ';float:left;list-style: none;"></li>';
 		}
 	}
 	$html .= '
@@ -1287,5 +1323,6 @@ function tpl_coupon_colors($name, $value = 'Color082') {
 			</div>
 		</div>
 		';
+
 	return $html;
 }

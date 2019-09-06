@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
@@ -145,11 +145,13 @@ function __buildSiteUrl($url) {
 	$pass['openid'] = $engine->message['from'];
 	$pass['acid'] = $_W['acid'];
 
-	$sql = 'SELECT `fanid`,`salt`,`uid` FROM ' . tablename('mc_mapping_fans') . ' WHERE `acid`=:acid AND `openid`=:openid';
-	$params = array();
-	$params[':acid'] = $_W['acid'];
-	$params[':openid'] = $pass['openid'];
-	$fan = pdo_fetch($sql, $params);
+	$fan = table('mc_mapping_fans')
+		->select(array('fanid', 'salt', 'uid'))
+		->where(array(
+			'uniacid' => $_W['uniacid'],
+			'openid' => $pass['openid']
+		))
+		->get();
 	if(empty($fan) || !is_array($fan) || empty($fan['salt'])) {
 		$fan = array('salt' => '');
 	}

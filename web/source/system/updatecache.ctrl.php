@@ -1,7 +1,7 @@
 <?php
 /** 更新缓存
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/web/source/system/updatecache.ctrl.php : v 25c4f271f9c1 : 2015/09/16 10:49:43 : RenChao $
+ * [WeEngine System] Copyright (c) 2014 W7.CC
+ * $sn: pro/web/source/system/updatecache.ctrl.php : v 25c4f271f9c1 : 2015/09/16 10:49:43 : RenChao $.
  */
 defined('IN_IA') or exit('Access Denied');
 

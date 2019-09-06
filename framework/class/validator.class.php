@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * User: fanyk
  * Date: 2017/10/30
  * Time: 11:24.
@@ -96,7 +96,7 @@ class Validator {
 		'regex' => ':attribute 不是有效的数据', //regex:pattern
 		'same' => ':attribute 和 %s 不一致', //some:field
 		'bool' => ':attribute 必须是bool值',
-		'path' => ':attribute 不是有效的路径'
+		'path' => ':attribute 不是有效的路径',
 	);
 	/**
 	 * 自定义校验.
@@ -166,7 +166,7 @@ class Validator {
 	 * @return bool
 	 */
 	public function isError() {
-		return count($this->errors) !== 0;
+		return 0 !== count($this->errors);
 	}
 
 	/**
@@ -181,15 +181,17 @@ class Validator {
 	}
 
 	/**
-	 * 错误消息
+	 * 错误消息.
+	 *
 	 * @return string
 	 */
 	public function message() {
 		$init = array();
-		$errmsg = array_reduce($this->error(), function($result, $value){
+		$errmsg = array_reduce($this->error(), function ($result, $value) {
 			return array_merge($result, array_values($value));
 		}, $init);
-		return implode(',' , array_values($errmsg));
+
+		return implode(',', array_values($errmsg));
 	}
 
 	public function getData() {
@@ -207,7 +209,7 @@ class Validator {
 	 */
 	protected function parseRule(array $rules) {
 		$result = array();
-		if (count($rules) == 0) {
+		if (0 == count($rules)) {
 			throw new InvalidArgumentException('无效的rules');
 		}
 		foreach ($rules as $key => $rule) {
@@ -241,35 +243,38 @@ class Validator {
 		}
 		if (is_array($value)) {
 			// 规范数据
-			$value = array_map(function($item) {
-				if(is_string($item)) {
+			$value = array_map(function ($item) {
+				if (is_string($item)) {
 					$name_params = explode(':', $item);
 					$params = array();
 					if (count($name_params) > 1) {
 						$params = explode(',', $name_params[1]);
 					}
-					return array('name'=>$name_params[0], 'params'=>$params);
+
+					return array('name' => $name_params[0], 'params' => $params);
 				}
 				if (!is_array($item)) {
 					throw new InvalidArgumentException('无效的rule参数');
 				}
 				$newitem = $item;
-				if (! isset($item['name'])) {
+				if (!isset($item['name'])) {
 					$newitem = array();
 					$newitem['name'] = $newitem[0];
-					$newitem['params'] =  count($item) > 1 ? $item[1] : array();
+					$newitem['params'] = count($item) > 1 ? $item[1] : array();
 				}
+
 				return $newitem;
 			}, $value);
+
 			return $value;
 		}
 		throw new InvalidArgumentException('无效的rule配置项');
 	}
 
-
 	private function getRules($key) {
 		return isset($this->rules[$key]) ? $this->rules[$key] : array();
 	}
+
 	public function valid() {
 		$this->errors = array();
 		foreach ($this->data as $key => $value) {
@@ -278,6 +283,7 @@ class Validator {
 				$this->doValid($key, $value, $rule);
 			}
 		}
+
 		return $this->isError() ? error(1, $this->message()) : error(0);
 	}
 
@@ -391,18 +397,18 @@ class Validator {
 		}
 
 		if (is_array($value)) {
-			return count($value) != 0;
+			return 0 != count($value);
 		}
 
 		if (is_string($value)) {
-			return $value !== '';
+			return '' !== $value;
 		}
 
 		return true;
 	}
 
 	public function validInteger($key, $value, $params) {
-		return filter_var($value, FILTER_VALIDATE_INT) !== false;
+		return false !== filter_var($value, FILTER_VALIDATE_INT);
 	}
 
 	public function validInt($key, $value, $params) {
@@ -424,7 +430,7 @@ class Validator {
 
 		json_decode($value);
 
-		return json_last_error() === JSON_ERROR_NONE;
+		return JSON_ERROR_NONE === json_last_error();
 	}
 
 	/**
@@ -478,6 +484,7 @@ class Validator {
 	 */
 	public function validRegex($key, $value, $params) {
 		$this->checkParams(1, $params, 'regex');
+
 		return preg_match($params[0], $value);
 	}
 
@@ -604,7 +611,6 @@ class Validator {
 	}
 
 	public function validBetween($key, $value, $params) {
-
 		$this->checkParams(2, $params, 'between');
 		$size = $this->getSize($key, $value);
 
@@ -674,10 +680,12 @@ class Validator {
 	}
 
 	/**
-	 *  验证路径是否有非法字符
+	 *  验证路径是否有非法字符.
+	 *
 	 * @param $key
 	 * @param $value
 	 * @param $params
+	 *
 	 * @return bool|string
 	 */
 	public function validPath($key, $value, $params) {
@@ -736,7 +744,7 @@ class Validator {
 		if ($value instanceof DateTimeInterface) {
 			return true;
 		}
-		if ((!is_string($value) && !is_numeric($value)) || strtotime($value) === false) {
+		if ((!is_string($value) && !is_numeric($value)) || false === strtotime($value)) {
 			return false;
 		}
 		$date = date_parse($value);

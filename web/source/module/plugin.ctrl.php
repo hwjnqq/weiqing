@@ -1,7 +1,7 @@
 <?php
 /**
  * 应用插件
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -15,7 +15,7 @@ $uniacid = intval($_GPC['uniacid']);
 $modulelist = uni_modules();
 $module = $_W['current_module'] = $modulelist[$module_name];
 
-if ($do == 'display') {
+if ('display' == $do) {
 	$modules_plugin_rank_table = table('modules_plugin_rank');
 	$modules_plugin_rank_table->searchWithUid($_W['uid']);
 	$plugin_list = $modules_plugin_rank_table->getPluginRankList($module_name, $uniacid);
@@ -29,11 +29,15 @@ if ($do == 'display') {
 		}
 	}
 
-	# 显示到模块菜单的插件
+	// 显示到模块菜单的插件
 	$module_menu_plugin_list = table('core_menu_shortcut')->getCurrentModuleMenuPluginList($module_name);
 
 	if (!empty($plugin_list)) {
 		foreach ($plugin_list as $plugin_key => &$plugin_val) {
+			if (empty($modulelist[$plugin_key])) {
+				unset($plugin_list[$plugin_key]);
+				continue;
+			}
 			if (!empty($plugin_val['uid']) && $plugin_val['uid'] != $_W['uid']) {
 				unset($plugin_list[$plugin_key]);
 				continue;
@@ -51,7 +55,7 @@ if ($do == 'display') {
 	template('module/plugin');
 }
 
-if ($do == 'rank') {
+if ('rank' == $do) {
 	$plugin_name = trim($_GPC['plugin_name']);
 	$main_module_name = trim($_GPC['main_module_name']);
 	$uniacid = intval($_GPC['uniacid']);
@@ -63,7 +67,7 @@ if ($do == 'rank') {
 	itoast('更新成功！', referer(), 'success');
 }
 
-if ($do == 'module_shortcut') {
+if ('module_shortcut' == $do) {
 	global $_W;
 	$status = intval($_GPC['module_shortcut']);
 	$plugin_name = $_GPC['plugin_name'];

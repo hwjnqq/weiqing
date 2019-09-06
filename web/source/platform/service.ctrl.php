@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/web/source/platform/service.ctrl.php : v 7e4ce85c5d2f : 2015/07/15 03:25:22 : yanghf $
+ * [WeEngine System] Copyright (c) 2014 W7.CC
+ * $sn: pro/web/source/platform/service.ctrl.php : v 7e4ce85c5d2f : 2015/07/15 03:25:22 : yanghf $.
  */
 defined('IN_IA') or exit('Access Denied');
 $_W['page']['title'] = '常用接入服务 - 常用接入服务 - 高级功能';
@@ -13,7 +13,7 @@ $cfg = $m['config'];
 $ds = reply_search("`uniacid` = 0 AND module = 'userapi' AND `status`=1");
 $apis = array();
 foreach ($ds as $row) {
-	$apis[$row['id']] = $row; 
+	$apis[$row['id']] = $row;
 }
 
 if ($_W['ispost'] && $_W['isajax']) {

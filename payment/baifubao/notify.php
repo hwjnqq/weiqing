@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn: pro/payment/baifubao/notify.php : v 34f72bf40b9a : 2015/07/28 03:11:13 : RenChao $
  */
 define('IN_MOBILE', true);
@@ -23,21 +23,31 @@ require 'bfb_sdk.php';
 $bfb_sdk = new bfb_sdk();
 if (!empty($_GPC['pay_result']) && $_GPC['pay_result'] == '1') {
 	if (true === $bfb_sdk->check_bfb_pay_result_notify()) {
-		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniontid`=:uniontid';
-		$params = array();
-		$params[':uniontid'] = $_GPC['order_no'];
 		WeUtility::logging('pay', var_export($_GPC, true));
-		$log = pdo_fetch($sql, $params);
+		$log = table('core_paylog')
+			->where(array('uniontid' => safe_gpc_string($_GPC['order_no'])))
+			->get();
 		if(!empty($log) && $log['status'] == '0' && (($_GPC['total_amount'] / 100) == $log['card_fee'])) {
 			$log['tag'] = iunserializer($log['tag']);
 			$log['tag']['bfb_order_no'] = $_POST['bfb_order_no'];
 			$record = array();
 			$record['status'] = 1;
 			$record['tag'] = iserializer($log['tag']);
-			pdo_update('core_paylog', $record, array('plid' => $log['plid']));
+			table('core_paylog')
+				->where(array('plid' => $log['plid']))
+				->fill($record)
+				->save();
 			if ($log['is_usecard'] == 1 && !empty($log['encrypt_code'])) {
-				$coupon_info = pdo_get('coupon', array('id' => $log['card_id']), array('id'));
-				$coupon_record = pdo_get('coupon_record', array('code' => $log['encrypt_code'], 'status' => '1'));
+				$coupon_info = table('coupon')
+					->where(array('id' => $log['card_id']))
+					->select('id')
+					->get();
+				$coupon_record = table('coupon_record')
+					->where(array(
+						'code' => $log['encrypt_code'],
+						'status' => '1'
+					))
+					->get();
 				load()->model('activity');
 			 	$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $log['module']);
 			}

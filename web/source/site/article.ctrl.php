@@ -1,7 +1,7 @@
 <?php
 /**
  * 文章管理 - 微官网
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 load()->func('file');
@@ -12,7 +12,7 @@ $dos = array('display', 'post', 'del');
 $do = in_array($do, $dos) ? $do : 'display';
 
 permission_check_account_user('platform_site_article');
-$category = pdo_fetchall("SELECT id,parentid,name FROM ".tablename('site_category')." WHERE uniacid = '{$_W['uniacid']}' AND enabled=1 ORDER BY parentid ASC, displayorder ASC, id ASC ", array(), 'id');
+$category = table('site_category')->getBySnake(array('id', 'parentid', 'name'), array('uniacid' => $_W['uniacid'], 'enabled' => 1), array('parentid' => 'ASC', 'displayorder' => 'ASC', 'id' => 'ASC'))->getall();
 
 $parent = array();
 $children = array();
@@ -30,22 +30,22 @@ if (!empty($category)) {
 if ($do == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-	$condition = '';
-	$params = array();
+	$where = array('uniacid' => $_W['uniacid']);
 	if (!empty($_GPC['keyword'])) {
-		$condition .= " AND `title` LIKE :keyword";
-		$params[':keyword'] = "%{$_GPC['keyword']}%";
+		$where['title LiKE'] = "%{$_GPC['keyword']}%";
 	}
-	
 	if (!empty($_GPC['category']['childid'])) {
-		$cid = intval($_GPC['category']['childid']);
-		$condition .= " AND ccate = '{$cid}'";
+		$where['ccate'] = $cid;
 	} elseif (!empty($_GPC['category']['parentid'])) {
-		$cid = intval($_GPC['category']['parentid']);
-		$condition .= " AND pcate = '{$cid}'";
+		$where['pcate'] = $cid;
 	}
-	$list = pdo_fetchall("SELECT * FROM ".tablename('site_article')." WHERE uniacid = '{$_W['uniacid']}' $condition ORDER BY displayorder DESC, edittime DESC, id DESC LIMIT ".($pindex - 1) * $psize.','.$psize, $params);
-	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('site_article') . " WHERE uniacid = '{$_W['uniacid']}'".$condition, $params);
+	$list = table('site_article')
+		->searchWithPage($pindex, $psize)
+		->getBySnake('*', $where, array('displayorder' => 'DESC', 'edittime' => 'DESC', 'id' => 'DESC'))
+		->getall();
+	$total = table('site_article')
+		->getBySnake('*', $where, array('displayorder' => 'DESC', 'edittime' => 'DESC', 'id' => 'DESC'))
+		->count();
 	$pager = pagination($total, $pindex, $psize);
 
 	$article_ids = array();
@@ -65,14 +65,20 @@ if ($do == 'display') {
 	$pcate = intval($_GPC['pcate']);
 	$ccate = intval($_GPC['ccate']);
 	if (!empty($id)) {
-		$item = pdo_fetch("SELECT * FROM ".tablename('site_article')." WHERE id = :id" , array(':id' => $id));
+		$item = table('site_article')->getById($id);
 		$item['type'] = explode(',', $item['type']);
 		$pcate = $item['pcate'];
 		$ccate = $item['ccate'];
 		if (empty($item)) {
 			itoast('抱歉，文章不存在或是已经删除！', '', 'error');
 		}
-		$key = pdo_fetchall('SELECT content FROM ' . tablename('rule_keyword') . ' WHERE rid = :rid AND uniacid = :uniacid', array(':rid' => $item['rid'], ':uniacid' => $_W['uniacid']));
+		$key = table('rule_keyword')
+			->select('content')
+			->where(array(
+				'rid' => $item['rid'],
+				'uniacid' => $_W['uniacid']
+			))
+			->getall();
 		if (!empty($key)) {
 			$keywords = array();
 			foreach ($key as $row) {
@@ -83,7 +89,7 @@ if ($do == 'display') {
 		$item['credit'] = iunserializer($item['credit']) ? iunserializer($item['credit']) : array();
 		if (!empty($item['credit']['limit'])) {
 			//获取该文章已经赠送的积分数
-			$credit_num = pdo_fetchcolumn('SELECT SUM(credit_value) FROM ' . tablename('mc_handsel') . ' WHERE uniacid = :uniacid AND module = :module AND sign = :sign', array(':uniacid' => $_W['uniacid'], ':module' => 'article', ':sign' => md5(iserializer(array('id' => $id)))));
+			$credit_num = table('mc_handsel')->getBySnake('*', array('uniacid' => $_W['uniacid'], 'module' => 'article', 'sign' => md5(iserializer(array('id' => $id)))))->getcolumn('SUM(credit_value)');
 			if (is_null($credit_num)) {
 				$credit_num = 0;
 			}
@@ -174,43 +180,64 @@ if ($do == 'display') {
 			$data['credit'] = iserializer($credit);
 		} else {
 			$data['credit'] = iserializer(array('status' => 0, 'limit' => 0, 'share' => 0, 'click' => 0));
-		}	
+		}
 		if (empty($id)) {
 			unset($data['edittime']);
 			if (!empty($keywords)) {
-				pdo_insert('rule', $rule);
+				table('rule')
+					->fill($rule)
+					->save();
 				$rid = pdo_insertid();
 				foreach ($keywords as $li) {
 					$li['rid'] = $rid;
-					pdo_insert('rule_keyword', $li);
+					table('rule_keyword')
+						->fill($li)
+						->save();
 				}
 				$reply['rid'] = $rid;
-				pdo_insert('news_reply', $reply);
+				table('news_reply')
+					->fill($reply)
+					->save();
 				$data['rid'] = $rid;
 			}
-			pdo_insert('site_article', $data);
+			table('site_article')
+				->fill($data)
+				->save();
 			$aid = pdo_insertid();
-			pdo_update('news_reply', array('url' => murl('site/site/detail', array('id' => $aid))), array('rid' => $rid));
+			table('news_reply')
+				->where(array('rid' => $rid))
+				->fill(array('url' => murl('site/site/detail', array('id' => $aid))))
+				->save();
 		} else {
 			unset($data['createtime']);
 			uni_delete_rule($item['rid'], 'news_reply');
 			if (!empty($keywords)) {
-				pdo_insert('rule', $rule);
+				$rid = table('rule')
+					->fill($rule)
+					->save();
 				$rid = pdo_insertid();
-
 				foreach ($keywords as $li) {
 					$li['rid'] = $rid;
-					pdo_insert('rule_keyword', $li);
+					table('rule_keyword')
+						->fill($li)
+						->save();
 				}
-
 				$reply['rid'] = $rid;
-				pdo_insert('news_reply', $reply);
+				table('news_reply')
+					->fill($reply)
+					->save();
 				$data['rid'] = $rid;
 			} else {
 				$data['rid'] = 0;
 				$data['kid'] = 0;
 			}
-			pdo_update('site_article', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
+			table('site_article')
+				->where(array(
+					'id' => $id,
+					'uniacid' => $_W['uniacid']
+				))
+				->fill($data)
+				->save();
 		}
 		itoast('文章更新成功！', url('site/article/display'), 'success');
 	} else {
@@ -220,8 +247,7 @@ if ($do == 'display') {
 	if (checksubmit('submit')) {
 		foreach ($_GPC['rid'] as $key => $id) {
 			$id = intval($id);
-			$row = pdo_get('site_article', array('id' => $id, 'uniacid' => $_W['uniacid']));
-			
+			$row = table('site_article')->getById();
 			if (empty($row)) {
 				itoast('抱歉，文章不存在或是已经被删除！', '', '');
 			}
@@ -229,21 +255,29 @@ if ($do == 'display') {
 			if (!empty($row['rid'])) {
 				uni_delete_rule($row['rid'], 'news_reply');
 			}
-			pdo_delete('site_article', array('id' => $id, 'uniacid'=>$_W['uniacid']));
+			table('site_article')
+				->where(array(
+					'id' => $id,
+					'uniacid'=>$_W['uniacid']
+				))
+				->delete();
 		}
 		itoast('批量删除成功！', referer(), 'success');
 	} else {
 		$id = intval($_GPC['id']);
-		$row = pdo_fetch("SELECT id,rid,kid,thumb FROM ".tablename('site_article')." WHERE id = :id", array(':id' => $id));
-		
+		$row = table('site_article')
+			->where(array(
+				'id' => $id,
+				'uniacid' => $_W['uniacid']
+			))
+			->get();
 		if (empty($row)) {
 			itoast('抱歉，文章不存在或是已经被删除！', '', '');
 		}
-
 		if (!empty($row['rid'])) {
 			uni_delete_rule($row['rid'], 'news_reply');
 		}
-		if (pdo_delete('site_article', array('id' => $id,'uniacid'=>$_W['uniacid']))){
+		if (table('site_article')->where(array('id' => $id, 'uniacid'=>$_W['uniacid']))->delete()) {
 			itoast('删除成功！', referer(), 'success');
 		} else {
 			itoast('删除失败！', referer(), 'error');

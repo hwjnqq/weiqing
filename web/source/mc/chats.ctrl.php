@@ -1,9 +1,8 @@
 <?php
 /**
  * 粉丝聊天功能
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
-
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('mc');
@@ -12,10 +11,10 @@ load()->classs('account');
 load()->model('material');
 
 $dos = array('chats', 'send', 'endchats');
-$do = in_array($do , $dos) ? $do : 'chats';
+$do = in_array($do, $dos) ? $do : 'chats';
 permission_check_account_user('mc_fans');
 
-if ($do == 'chats') {
+if ('chats' == $do) {
 	$account_api = WeAccount::createByUniacid();
 	$supports = $account_api->getMaterialSupport();
 	$show_chast_content = $supports['chats'];
@@ -29,7 +28,7 @@ if ($do == 'chats') {
 	$chat_record = mc_fans_chats_record_formate($chat_record);
 }
 
-if ($do == 'send') {
+if ('send' == $do) {
 	$content_formate = mc_send_content_formate($_GPC);
 	$send = $content_formate['send'];
 	$content = $content_formate['content'];
@@ -40,10 +39,10 @@ if ($do == 'send') {
 		iajax(-1, $result['message']);
 	} else {
 		//生成上下文
-		$account = account_fetch($_W['acid']);
+		$account = uni_fetch($_W['uniacid']);
 		$message['from'] = $_W['openid'] = $send['touser'];
 		$message['to'] = $account['original'];
-		if(!empty($message['to'])) {
+		if (!empty($message['to'])) {
 			$sessionid = md5($message['from'] . $message['to'] . $_W['uniacid']);
 			session_id($sessionid);
 			WeSession::start($_W['uniacid'], $_W['openid'], 300);
@@ -51,34 +50,41 @@ if ($do == 'send') {
 			$processor->begin(300);
 		}
 
-		if($send['msgtype'] == 'mpnews') {
-			$material = pdo_getcolumn('wechat_attachment', array('uniacid' => $_W['uniacid'], 'media_id' => $content['mediaid']), 'id');
+		if ('mpnews' == $send['msgtype']) {
+			$material = table('wechat_attachment')
+				->where(array(
+					'uniacid' => $_W['uniacid'],
+					'media_id' => $content['mediaid']
+				))
+				->getcolumn('id');
 			$content = $content['thumb'];
 		}
 		//保存消息记录
-		pdo_insert('mc_chats_record',array(
-			'uniacid' => $_W['uniacid'],
-			'acid' => $acid,
-			'flag' => 1,
-			'openid' => $send['touser'],
-			'msgtype' => $send['msgtype'],
-			'content' => iserializer($send[$send['msgtype']]),
-			'createtime' => TIMESTAMP,
-		));
+		table('mc_chats_record')
+			->fill(array(
+				'uniacid' => $_W['uniacid'],
+				'acid' => $acid,
+				'flag' => 1,
+				'openid' => $send['touser'],
+				'msgtype' => $send['msgtype'],
+				'content' => iserializer($send[$send['msgtype']]),
+				'createtime' => TIMESTAMP,
+			))
+			->save();
 		iajax(0, array('createtime' => date('Y-m-d H:i:s', time()), 'content' => $content, 'msgtype' => $send['msgtype']), '');
 	}
 }
 
-if ($do == 'endchats') {
+if ('endchats' == $do) {
 	$openid = trim($_GPC['openid']);
 	if (empty($openid)) {
 		iajax(1, '粉丝openid不合法', '');
 	}
 	$fans_info = mc_fansinfo($openid);
-	$account = account_fetch($fans_info['acid']);
+	$account = uni_fetch($fans_info['uniacid']);
 	$message['from'] = $_W['openid'] = $openid['openid'];
 	$message['to'] = $account['original'];
-	if(!empty($message['to'])) {
+	if (!empty($message['to'])) {
 		$sessionid = md5($message['from'] . $message['to'] . $_W['uniacid']);
 		session_id($sessionid);
 		WeSession::start($_W['uniacid'], $_W['openid'], 300);

@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 load()->func('communication');
 load()->model('cloud');
@@ -13,8 +13,7 @@ $step = $_GPC['step'];
 $steps = array('files', 'schemas', 'scripts');
 $step = in_array($step, $steps) ? $step : 'files';
 
-
-if ($step == 'files' && $_W['ispost']) {
+if ('files' == $step && $_W['ispost']) {
 	$ret = cloud_download($_GPC['path'], $_GPC['type']);
 	if (is_error($ret)) {
 		exit($ret['message']);
@@ -22,7 +21,7 @@ if ($step == 'files' && $_W['ispost']) {
 	exit('success');
 }
 
-if ($step == 'scripts' && $_W['ispost']) {
+if ('scripts' == $step && $_W['ispost']) {
 	$fname = trim($_GPC['fname']);
 	$entry = IA_ROOT . '/data/update/' . $fname;
 	if (is_file($entry) && preg_match('/^update\(\d{12}\-\d{12}\)\.php$/', $fname)) {
@@ -39,10 +38,10 @@ if ($step == 'scripts' && $_W['ispost']) {
 }
 $has_new_support = intval($_GPC['has_new_support']);
 if (!empty($_GPC['m'])) {
-	$m = $_GPC['m'];
+	$m = safe_gpc_string($_GPC['m']);
 	$type = 'module';
 	$is_upgrade = intval($_GPC['is_upgrade']);
-	$packet = cloud_m_build($_GPC['m']);
+	$packet = cloud_m_build($m, $is_upgrade ? 'upgrade' : '');
 	//检测模块升级脚本是否存在乱码
 	if (!empty($packet) && !json_encode($packet['scripts'])) {
 		itoast('模块安装脚本有代码错误，请联系开发者解决！', referer(), 'error');
@@ -61,7 +60,7 @@ if (!empty($_GPC['m'])) {
 	$m = '';
 	$packet = cloud_build();
 }
-if ($step == 'schemas' && $_W['ispost']) {
+if ('schemas' == $step && $_W['ispost']) {
 	$tablename = $_GPC['table'];
 	foreach ($packet['schemas'] as $schema) {
 		if (substr($schema['tablename'], 4) == $tablename) {
@@ -75,7 +74,7 @@ if ($step == 'schemas' && $_W['ispost']) {
 		$sqls = db_table_fix_sql($local, $remote);
 		$error = false;
 		foreach ($sqls as $sql) {
-			if (pdo_query($sql) === false) {
+			if (false === pdo_query($sql)) {
 				$error = true;
 				$errormsg .= pdo_debug(false);
 				break;
@@ -133,8 +132,8 @@ DAT;
 		if ($packet['errno'] == -3) {
 			$type = 'expired';
 			$extend_button = array(
-				array('url' => "javascript:history.go(-1);", 'title' => '点击这里返回上一页', 'class' => 'btn btn-primary'),
-				array('url' => "http://s.w7.cc/module-{$packet['cloud_id']}.html", 'title' => '去续费', 'class' => 'btn btn-primary', 'target' => '_blank')
+				array('url' => 'javascript:history.go(-1);', 'title' => '点击这里返回上一页', 'class' => 'btn btn-primary'),
+				array('url' => "http://s.w7.cc/module-{$packet['cloud_id']}.html", 'title' => '去续费', 'class' => 'btn btn-primary', 'target' => '_blank'),
 			);
 		} else {
 			$type = 'error';

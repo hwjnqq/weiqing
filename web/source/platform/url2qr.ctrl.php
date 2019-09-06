@@ -1,9 +1,8 @@
 <?php
 /**
  * 长链接转二维码
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
-
 defined('IN_IA') or exit('Access Denied');
 load()->model('account');
 load()->func('communication');
@@ -13,11 +12,11 @@ $dos = array('display', 'change', 'qr', 'chat', 'down_qr');
 $do = !empty($_GPC['do']) && in_array($do, $dos) ? $do : 'display';
 permission_check_account_user('platform_qr_qr');
 
-if ($do == 'display') {
+if ('display' == $do) {
 	template('platform/url2qr');
 }
 
-if ($do == 'change') {
+if ('change' == $do) {
 	if ($_W['ispost'] && $_W['isajax']) {
 		$longurl = trim($_GPC['longurl']);
 		$token = $_W['account']->getAccessToken();
@@ -32,7 +31,7 @@ if ($do == 'change') {
 		}
 		$result = @json_decode($response['content'], true);
 		if (empty($result)) {
-			$result =  error(-1, "接口调用失败, 元数据: {$response['meta']}");
+			$result = error(-1, "接口调用失败, 元数据: {$response['meta']}");
 		} elseif (!empty($result['errcode'])) {
 			$result = error(-1, "访问微信接口错误, 错误代码: {$result['errcode']}, 错误信息: {$result['errmsg']}");
 		}
@@ -45,23 +44,23 @@ if ($do == 'change') {
 	}
 }
 
-if ($do == 'qr') {
+if ('qr' == $do) {
 	$url = $_GPC['url'];
-	$errorCorrectionLevel = "L";
-	$matrixPointSize = "5";
+	$errorCorrectionLevel = 'L';
+	$matrixPointSize = '5';
 	QRcode::png($url, false, $errorCorrectionLevel, $matrixPointSize);
 	exit();
 }
 
-if ($do == 'down_qr') {
+if ('down_qr' == $do) {
 	$qrlink = $_GPC['qrlink'];
-	$errorCorrectionLevel = "L";
-	$matrixPointSize = "5";
+	$errorCorrectionLevel = 'L';
+	$matrixPointSize = '5';
 	$qr_pic = QRcode::png($qrlink, false, $errorCorrectionLevel, $matrixPointSize);
 	$name = random(8);
 	header('cache-control:private');
 	header('content-type:image/jpeg');
-	header('content-disposition: attachment;filename="'.$name.'.jpg"');
+	header('content-disposition: attachment;filename="' . $name . '.jpg"');
 	readfile($qr_pic);
 	exit;
 }

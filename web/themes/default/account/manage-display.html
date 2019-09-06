@@ -86,20 +86,25 @@
 			<td class="vertical-middle table-manage-td">
 				<div class="link-group">
 					<a ng-href="{{links.switch}}uniacid={{list.uniacid}}&type={{list.type}}"  ng-if="!list.support_version" class="">进入{{ list.type_name }}</a>
-					
-					
 					<a ng-href="{{links.switch}}uniacid={{list.uniacid}}&version_id={{list.current_version.id}}&type={{list.type}}" ng-if="list.support_version" class="">进入{{ list.type_name }}</a>
-					
-					<a ng-href="{{links.post}}&acid={{list.acid}}&uniacid={{list.uniacid}}&account_type={{list.type}}" ng-if="list.manage_premission">管理设置</a>
+					<a ng-href="{{links.post}}&uniacid={{list.uniacid}}&account_type={{list.type}}" ng-if="list.manage_premission">管理设置</a>
 				</div>
 
 				<div class="manage-option text-right" ng-if="list.manage_premission">
-					<a href="{{links.post}}&acid={{list.acid}}&uniacid={{list.uniacid}}&account_type={{list.type}}">基础信息</a>
-					<a href="{{links.post}}&do=sms&uniacid={{list.uniacid}}&acid={{list.acid}}&account_type={{list.type}}" ng-if="list.type_sign == 'account'">短信信息</a>
-					<a href="{{links.postUser}}&do=edit&uniacid={{list.uniacid}}&acid={{list.acid}}&account_type={{list.type}}">使用者管理</a>
-					<a href="{{links.post}}&do=modules_tpl&uniacid={{list.uniacid}}&acid={{list.acid}}&account_type={{list.type}}">可用应用模板/模块</a>
-					<a href="{{links.post}}&do=operators&uniacid={{list.uniacid}}&acid={{list.acid}}&account_type={{list.type}}">应用操作员管理</a>
-					<a href="javascript:void(0);" ng-click="receiveAccount(links.del, [list.uniacid], '')" class="del">停用</a>
+					<a ng-if="list.current_user_role == 'founder' || list.current_user_role == 'vice_founder' || list.current_user_role == 'owner'"
+					   href="{{links.post}}&uniacid={{list.uniacid}}&account_type={{list.type}}">基础信息</a>
+
+					<a ng-if="list.current_user_role == 'founder' || list.current_user_role == 'vice_founder' || list.current_user_role == 'owner'"
+					   href="{{links.post}}&do=sms&uniacid={{list.uniacid}}&account_type={{list.type}}" ng-if="list.type_sign == 'account'">短信信息</a>
+
+					<a href="{{links.postUser}}&do=edit&uniacid={{list.uniacid}}&&account_type={{list.type}}">使用者管理</a>
+					<a href="{{links.post}}&do=modules_tpl&uniacid={{list.uniacid}}&account_type={{list.type}}">可用应用模板/模块</a>
+
+					<a ng-if="list.current_user_role == 'founder' || list.current_user_role == 'vice_founder' || list.current_user_role == 'owner'"
+					   href="{{links.post}}&do=operators&uniacid={{list.uniacid}}&account_type={{list.type}}">应用操作员管理</a>
+
+					<a ng-if="list.current_user_role == 'founder' || list.current_user_role == 'vice_founder' || list.current_user_role == 'owner'"
+					   href="javascript:void(0);" ng-click="receiveAccount(links.del, [list.uniacid], '')" class="del">停用</a>
 				</div>
 			</td>
 		</tr>

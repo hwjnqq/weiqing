@@ -1,12 +1,10 @@
 <?php
 /**
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
-
-if (!($action == 'material' && $do == 'delete') && empty($_GPC['version_id'])) {
+if (!('material' == $action && 'delete' == $do) && empty($_GPC['version_id'])) {
 	$account_api = WeAccount::createByUniacid();
 	if (is_error($account_api)) {
 		itoast('', url('account/display'));
@@ -15,20 +13,25 @@ if (!($action == 'material' && $do == 'delete') && empty($_GPC['version_id'])) {
 	if (is_error($check_manange)) {
 		itoast('', $account_api->displayUrl);
 	}
+	if ('detail' == $do) {
+		define('FRAME', '');
+	} else {
+		define('FRAME', 'account');
+	}
 }
 
-if ($action != 'material-post' && $_GPC['uniacid'] != FILE_NO_UNIACID) {
+if ('material-post' != $action && FILE_NO_UNIACID != $_GPC['uniacid']) {
 	define('FRAME', 'account');
 } else {
 	define('FRAME', '');
 }
-if ($action == 'qr') {
+if ('qr' == $action) {
 	$platform_qr_permission = permission_check_account_user('platform_qr', false);
-	if ($platform_qr_permission ===  false) {
-		header("Location: ". url('platform/url2qr'));
+	if (false === $platform_qr_permission) {
+		header('Location: ' . url('platform/url2qr'));
 	}
 }
 
-if ($action == 'url2qr') {
+if ('url2qr' == $action) {
 	define('ACTIVE_FRAME_URL', url('platform/qr'));
 }

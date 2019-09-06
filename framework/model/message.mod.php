@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
@@ -267,7 +267,7 @@ function message_send_wechat_notice($notice_info) {
 	if (empty($uniaccount)) {
 		return error(-1, '帐号不存在或是已经被删除');
 	}
-	$account_api = WeAccount::create($uniaccount);
+	$account_api = WeAccount::createByUniacid($uniaccount['uniacid']);
 	if (is_error($account_api)) {
 		return $account_api;
 	}
@@ -456,7 +456,7 @@ function message_account_expire() {
 		if (empty($account_detail->owner['uid'])) {
 			continue;
 		}
-		if ($account_detail['endtime'] > 0 && $account_detail['endtime'] < TIMESTAMP) {
+		if ($account_detail['endtime'] > USER_ENDTIME_GROUP_UNLIMIT_TYPE && $account_detail['endtime'] < TIMESTAMP) {
 			switch ($account_detail['type']) {
 				case ACCOUNT_TYPE_APP_NORMAL:
 					$type = MESSAGE_WECHAT_EXPIRE_TYPE;
@@ -543,11 +543,12 @@ function message_sms_expire_notice() {
 	$setting_sms_sign = setting_load('site_sms_sign');
 	$custom_sign = !empty($setting_sms_sign['site_sms_sign']['user_expire']) ? $setting_sms_sign['site_sms_sign']['user_expire'] : '';
 
-	$day = !empty($setting_user_expire['user_expire']['day']) ? $setting_user_expire['user_expire']['day'] : 1;
+	$day = max(1, intval($setting_user_expire['user_expire']['day']));
 
 	$user_table = table('users');
 	$user_table->searchWithMobile();
 	$user_table->searchWithEndtime($day);
+	$user_table->where('u.endtime >', TIMESTAMP - 86400 * 7); //7天前过期未发送短信的用户不再发短信提醒
 	$user_table->searchWithSendStatus();
 	$user_table->searchWithViceFounder();
 	$users_expire = $user_table->getUsersList();
@@ -567,7 +568,12 @@ function message_sms_expire_notice() {
 				$data = array('mobile' => $v['mobile'], 'content' => $content, 'result' => $result['errno'] . $result['message'], 'createtime' => TIMESTAMP);
 				table('core_sendsms_log')->fill($data)->save();
 			} else {
-				table('users_profile')->fill('send_expire_status', 1)->whereUid($v['uid'])->save();
+				$profile_table = table('users_profile');
+				$profile = $profile_table->whereUid($v['uid'])->get();
+				if ($profile) {
+					$profile_table->whereId($profile['id']);
+				}
+				$profile_table->fill(array('send_expire_status' => 1,'uid' => $v['uid']))->save();
 			}
 		}
 	}
@@ -593,6 +599,166 @@ function message_user_expire_notice() {
 	}
 	return true;
 }
+
+/**
+ * 平台到期短信提醒
+ * @return bool
+ */
+function message_sms_account_expire_notice() {
+	load()->model('cloud');
+	load()->model('setting');
+	$setting_user_expire = setting_load('account_sms_expire');
+	if (empty($setting_user_expire['account_sms_expire']['status'])) {
+		return true;
+	}
+
+	$setting_sms_sign = setting_load('site_sms_sign');
+	$custom_sign = !empty($setting_sms_sign['site_sms_sign']['account_expire']) ? $setting_sms_sign['site_sms_sign']['account_expire'] : '';
+	$day = max(1, intval($setting_user_expire['account_sms_expire']['day']));
+
+	$account_expire = table('account')
+		->searchWithuniAccountUsers()
+		->leftjoin('users_profile', 'c')
+		->on(array('b.uid' => 'c.uid'))
+		->leftjoin('uni_account', 'd')
+		->on('d.uniacid', 'a.uniacid')
+		->leftjoin('users', 'e')
+		->on('e.uid', 'b.uid')
+		->select(array('a.uniacid', 'd.name', 'c.mobile', 'e.username'))
+		->where(array(
+			'a.endtime >' => TIMESTAMP,
+			'a.endtime <' => TIMESTAMP + 86400 * $day,
+			'a.isdeleted' => 0,
+			'a.send_account_expire_status' => 0,
+			'b.role' => 'owner',
+			'c.mobile !=' => '',
+			'd.name !=' => '',
+			'e.endtime >' => TIMESTAMP
+		))
+		->getall();
+
+	if (empty($account_expire)) {
+		return true;
+	}
+	foreach ($account_expire as $v) {
+		if (!empty($v['mobile']) && preg_match(REGULAR_MOBILE, $v['mobile'])) {
+			$result = cloud_sms_send($v['mobile'], '800016', array('name' => $v['name']), $custom_sign, true);
+			if (is_error($result)) {
+				$content = "您的平台账号{$v['name']}即将过期,为了不影响正常使用，请及时续费。";
+
+				$data = array('mobile' => $v['mobile'], 'content' => $content, 'result' => $result['errno'] . $result['message'], 'createtime' => TIMESTAMP);
+				table('core_sendsms_log')->fill($data)->save();
+			} else {
+				$profile_table = table('account');
+				$profile = $profile_table->getByUniacid($v['uniacid']);
+				if ($profile) {
+					$profile_table->where('uniacid', $v['uniacid']);
+				}
+				$profile_table->fill(array('send_account_expire_status' => 1))->save();
+			}
+		}
+	}
+	return true;
+}
+
+/**
+ * 平台api到期短信提醒
+ * @return bool
+ */
+function message_sms_api_account_expire_notice() {
+	load()->model('cloud');
+	load()->model('setting');
+	$setting_api_expire = setting_load('api_sms_expire');
+
+	if (empty($setting_api_expire['api_sms_expire']['status'])) {
+		return true;
+	}
+
+	$setting_sms_sign = setting_load('site_sms_sign');
+	$custom_sign = !empty($setting_sms_sign['site_sms_sign']['api_expire']) ? $setting_sms_sign['site_sms_sign']['api_expire'] : '';
+
+	$num = max(1, intval($setting_api_expire['api_sms_expire']['num']));
+
+	$account_expire = table('account')
+		->searchWithuniAccountUsers()
+		->leftjoin('users_profile', 'c')
+		->on(array('b.uid' => 'c.uid'))
+		->leftjoin('uni_account', 'd')
+		->on('d.uniacid', 'a.uniacid')
+		->leftjoin('users', 'e')
+		->on('e.uid', 'b.uid')
+		->select(array('a.uniacid', 'd.name', 'c.mobile'))
+		->where(array(
+			'a.endtime >' => TIMESTAMP,
+			'a.isdeleted' => 0,
+			'a.send_api_expire_status' => 0,
+			'b.role' => 'owner',
+			'c.mobile !=' => '',
+			'd.name !=' => '',
+			'e.endtime >' => TIMESTAMP
+		))
+		->getall();
+
+	if (empty($account_expire)) {
+		return true;
+	}
+	foreach ($account_expire as $v) {
+		if (!empty($v['mobile']) && preg_match(REGULAR_MOBILE, $v['mobile'])) {
+			//首先看当前平台的api
+			$statistics_setting = (array) uni_setting_load(array('statistics'), $v['uniacid']);
+			$statistics_setting = !empty($statistics_setting['statistics']) ? $statistics_setting['statistics'] : array();
+			if (empty($statistics_setting) || empty($statistics_setting['founder'])) {
+				continue;
+			}
+
+			$highest_api_visit = $statistics_setting['founder'];
+			$month_use = 0;
+
+			$stat_visit_teble = table('stat_visit');
+			$stat_visit_teble->searchWithGreaterThenDate(date('Ym01'));
+			$stat_visit_teble->searchWithLessThenDate(date('Ymt'));
+			$stat_visit_teble->searchWithType('app');
+			$stat_visit_teble->searchWithUnacid($v['uniacid']);
+			$visit_list = $stat_visit_teble->getall();
+
+			if (!empty($visit_list)) {
+				foreach ($visit_list as $key => $val) {
+					$month_use += $val['count'];
+				}
+			}
+
+			$order_num = 0;
+			$orders = table('site_store_order')->getApiOrderByUniacid($v['uniacid']);
+			if (!empty($orders)) {
+				foreach ($orders as $order) {
+					$order_num += $order['duration'] * $order['api_num'] * 10000;
+				}
+			}
+
+			$api_remain_num = empty($statistics_setting['use']) ? $highest_api_visit + $order_num : ($highest_api_visit + $order_num - $statistics_setting['use']);
+			if ($api_remain_num > $num){
+				continue;
+			}
+
+			$result = cloud_sms_send($v['mobile'], '800017', array('name' => $v['name']), $custom_sign, true);
+			if (is_error($result)) {
+				$content = "您的平台账号{$v['name']}剩余的API流量即将耗尽，请及时购买。";
+
+				$data = array('mobile' => $v['mobile'], 'content' => $content, 'result' => $result['errno'] . $result['message'], 'createtime' => TIMESTAMP);
+				table('core_sendsms_log')->fill($data)->save();
+			} else {
+				$profile_table = table('account');
+				$profile = $profile_table->getByUniacid($v['uniacid']);
+				if ($profile) {
+					$profile_table->where('uniacid', $v['uniacid']);
+				}
+				$profile_table->fill(array('send_api_expire_status' => 1))->save();
+			}
+		}
+	}
+	return true;
+}
+
 
 /**
  * 把消息推送到云服务

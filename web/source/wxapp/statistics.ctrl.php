@@ -1,7 +1,7 @@
 <?php
 /**
  * 小程序统计
- * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -12,11 +12,17 @@ $do = in_array($do, $dos) ? $do : 'display';
 
 permission_check_account_user('statistics_visit_wxapp');
 
-if ($do == 'display') {
+if ('display' == $do) {
 	//昨日指标
 	miniapp_update_daily_visittrend();
 	$yesterday = date('Ymd', strtotime('-1 days'));
-	$yesterday_stat = pdo_get('wxapp_general_analysis', array('uniacid' => $_W['uniacid'], 'type' => '2', 'ref_date' => $yesterday));
+	$yesterday_stat = table('wxapp_general_analysis')
+		->where(array(
+			'uniacid' => $_W['uniacid'],
+			'type' => '2',
+			'ref_date' => $yesterday
+		))
+		->get();
 	if (empty($yesterday_stat)) {
 		$yesterday_stat = array('session_cnt' => 0, 'visit_pv' => 0, 'visit_uv' => 0, 'visit_uv_new' => 0, 'stay_time_uv' => 0, 'stay_time_session' => 0);
 	} else {
@@ -25,7 +31,7 @@ if ($do == 'display') {
 	}
 }
 
-if ($do == 'get_visit_api') {
+if ('get_visit_api' == $do) {
 	$support_type = array(
 		'time' => array('today', 'week', 'month', 'daterange'),
 		'divide' => array('session_cnt', 'visit_pv', 'visit_uv', 'visit_uv_new', 'stay_time_uv', 'stay_time_session'),
@@ -61,14 +67,16 @@ if ($do == 'get_visit_api') {
 			$params['ref_date <='] = date('Ymd', strtotime($daterange['end']));
 			break;
 	}
-	$result = pdo_getall('wxapp_general_analysis', $params, array(), 'ref_date');
-	if ($type == 'week') {
+	$result = table('wxapp_general_analysis')
+		->where($params)
+		->getall('ref_date');
+	if ('week' == $type) {
 		$data_x = stat_date_range(date('Ymd', strtotime('-7 days')), date('Ymd'));
 	}
-	if ($type == 'month') {
+	if ('month' == $type) {
 		$data_x = stat_date_range(date('Ymd', strtotime('-30 days')), date('Ymd'));
 	}
-	if ($type == 'daterange') {
+	if ('daterange' == $type) {
 		$data_x = stat_date_range($daterange['start'], $daterange['end']);
 	}
 	if (empty($result)) {

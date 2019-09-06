@@ -1,19 +1,19 @@
 <?php
 /**
  * 域名访问设置
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
 $dos = array('bind_domain', 'delete', 'default_module');
 $do = in_array($do, $dos) ? $do : 'bind_domain';
 
-if ($do == 'bind_domain') {
+if ('bind_domain' == $do) {
 	
 	$modulelist = uni_modules();
 	if (!empty($modulelist)) {
 		foreach ($modulelist as $key => $module_val) {
-			if (!empty($module_val['issystem']) || $module_val['webapp_support'] != MODULE_SUPPORT_WEBAPP) {
+			if (!empty($module_val['issystem']) || MODULE_SUPPORT_WEBAPP != $module_val['webapp_support']) {
 				unset($modulelist[$key]);
 				continue;
 			}
@@ -22,13 +22,12 @@ if ($do == 'bind_domain') {
 	template('webapp/bind-domain');
 }
 
-if ($do == 'delete') {
+if ('delete' == $do) {
 	uni_setting_save('bind_domain', '');
 	itoast('删除成功！', referer(), 'success');
 }
 
-
-if ($do == 'default_module') {
+if ('default_module' == $do) {
 	$module_name = safe_gpc_string($_GPC['module_name']);
 	if (empty($module_name)) {
 		iajax(-1, '请选择一个模块！');

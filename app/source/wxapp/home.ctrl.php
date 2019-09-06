@@ -1,7 +1,7 @@
 <?php
 /**
  * 小程序的接口文件
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$.
 */
 defined('IN_IA') or exit('Access Denied');
@@ -13,12 +13,16 @@ $do = in_array($_GPC['do'], $dos) ? $_GPC['do'] : 'nav';
 $multiid = intval($_GPC['t']);
 
 if ($do == 'nav') {
-	$navs = pdo_getall('site_nav', array(
-		'uniacid' => $_W['uniacid'],
-		'multiid' => $multiid,
-		'status' => 1,
-		'icon !=' => '',
-	), array('url', 'name', 'icon'), '', 'displayorder DESC');
+	$navs = table('site_nav')
+		->where(array(
+			'uniacid' => $_W['uniacid'],
+			'multiid' => $multiid,
+			'status' => 1,
+			'icon !=' => '',
+		))
+		->select(array('url', 'name', 'icon'))
+		->orderby(array('displayorder' => 'DESC'))
+		->getall();
 
 	if (!empty($navs)) {
 		foreach ($navs as $i => &$row) {
@@ -27,10 +31,14 @@ if ($do == 'nav') {
 	}
 	message(error(0, $navs), '', 'ajax');
 } elseif ($do == 'slide') {
-	$slide = pdo_getall('site_slide', array(
-		'uniacid' => $_W['uniacid'],
-		'multiid' => $multiid,
-	), array('url', 'title', 'thumb'), '', 'displayorder DESC');
+	$slide = table('site_slide')
+		->where(array(
+			'uniacid' => $_W['uniacid'],
+			'multiid' => $multiid,
+		))
+		->select(array('url', 'title', 'thumb'))
+		->orderby(array('displayorder' => 'DESC'))
+		->getall();
 	if (!empty($slide)) {
 		foreach ($slide as $i => &$row) {
 			$row['thumb'] = tomedia($row['thumb']);
@@ -39,10 +47,14 @@ if ($do == 'nav') {
 	message(error(0, $slide), '', 'ajax');
 } elseif ($do == 'commend') {
 	//获取一级分类
-	$category = pdo_getall('site_category', array(
-		'uniacid' => $_W['uniacid'],
-		'multiid' => $multiid,
-	), array('id', 'name', 'parentid'), '', 'displayorder DESC');
+	$category = table('site_category')
+		->where(array(
+			'uniacid' => $_W['uniacid'],
+			'multiid' => $multiid,
+		))
+		->select(array('id', 'name', 'parentid'))
+		->orderby(array('displayorder' => 'DESC'))
+		->getall();
 	//一级分类不能添加文章，推荐时获取到其子类
 	if (!empty($category)) {
 		foreach ($category as $id => &$category_row) {
@@ -51,7 +63,12 @@ if ($do == 'nav') {
 			} else {
 				$condition['ccate'] = $category_row['id'];
 			}
-			$category_row['article'] = pdo_getall('site_article', $condition, array('id', 'title', 'thumb'), '', 'displayorder DESC', array(8));
+			$category_row['article'] = table('site_article')
+				->where($condition)
+				->select(array('id', 'title', 'thumb'))
+				->orderby(array('displayorder' => 'DESC'))
+				->limit(8)
+				->getall();
 			if (!empty($category_row['article'])) {
 				foreach ($category_row['article'] as &$row) {
 					$row['thumb'] = tomedia($row['thumb']);
@@ -126,7 +143,7 @@ if ($do == 'wxappweb_pay_result') {
 
 if ($do == 'go_paycenter') {
 	$plid = intval($_GPC['plid']);
-	$params = pdo_get('core_paylog', array('plid' => $plid));
+	$params = table('core_paylog')->where(array('plid' => $plid))->get();
 	$params['title'] = safe_gpc_string($_GPC['title']);
 	template('common/paycenter');
 }

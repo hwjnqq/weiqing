@@ -1,7 +1,7 @@
 <?php
 /**
  * 应用欢迎页
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -15,11 +15,11 @@ $modulelist = uni_modules();
 $module = $_W['current_module'] = $modulelist[$module_name];
 $module_shortcut_talbe = table('uni_account_modules_shortcut');
 
-if(empty($module)) {
+if (empty($module)) {
 	itoast('抱歉，你操作的模块不能被访问！');
 }
 
-if ($do == 'display') {
+if ('display' == $do) {
 	$pageindex = max(1, intval($_GPC['page']));
 	$pagesize = 15;
 
@@ -33,7 +33,7 @@ if ($do == 'display') {
 	template('module/shortcut');
 }
 
-if ($do == 'post') {
+if ('post' == $do) {
 	$id = intval($_GPC['id']);
 	if (!empty($id)) {
 		$shortcut_info = $module_shortcut_talbe->getShortcutById($id);
@@ -62,7 +62,7 @@ if ($do == 'post') {
 	template('module/shortcut-post');
 }
 
-if ($do == 'delete') {
+if ('delete' == $do) {
 	$id = intval($_GPC['id']);
 	if (empty($id)) {
 		itoast('请求错误，请刷新页面重试！', referer(), 'error');
@@ -78,4 +78,3 @@ if ($do == 'delete') {
 		itoast('删除失败', referer(), 'error');
 	}
 }
-

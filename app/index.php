@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 define('IN_MOBILE', true);
@@ -29,11 +29,12 @@ if(empty($multiid)) {
 	unset($setting);
 }
 
-$multi = pdo_fetch("SELECT * FROM ".tablename('site_multi')." WHERE id=:id AND uniacid=:uniacid", array(':id' => $multiid, ':uniacid' => $_W['uniacid']));
+$multi = table('site_multi')->getById($multiid, $_W['uniacid']);
+
 $multi['site_info'] = @iunserializer($multi['site_info']);
 
 $styleid = !empty($_GPC['s']) ? intval($_GPC['s']) : intval($multi['styleid']);
-$style = pdo_fetch("SELECT * FROM ".tablename('site_styles')." WHERE id = :id", array(':id' => $styleid));
+$style = table('site_styles')->getById($styleid, $_W['uniacid']);
 
 $templates = uni_templates();
 $templateid = intval($style['templateid']);
@@ -44,11 +45,13 @@ $_W['styles'] = array();
 
 //对于设置的默认风格，判断该用户有没有该风格对应的模板的使用权限，如果没有，直接default，不再加载该风格自定义的变量。
 if(!empty($template) && !empty($style)) {
-	$sql = "SELECT `variable`, `content` FROM " . tablename('site_styles_vars') . " WHERE `uniacid`=:uniacid AND `styleid`=:styleid";
-	$params = array();
-	$params[':uniacid'] = $_W['uniacid'];
-	$params[':styleid'] = $styleid;
-	$stylevars = pdo_fetchall($sql, $params);
+	$stylevars = table('site_styles_vars')
+		->select(array('variable', 'content'))
+		->where(array(
+			'uniacid' => $_W['uniacid'],
+			'styleid' => $styleid
+		))
+		->getall();
 	if(!empty($stylevars)) {
 		foreach($stylevars as $row) {
 			if (strexists($row['variable'], 'img')) {

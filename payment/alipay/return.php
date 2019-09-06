@@ -7,11 +7,12 @@ if (empty($_GET['out_trade_no'])) {
 require '../../framework/bootstrap.inc.php';
 load()->app('common');
 load()->app('template');
-$_W['uniacid'] = $_W['weid'] = intval($_GET['body']);
-$setting = uni_setting($_W['uniacid'], array('payment'));
-if ($_GET['exterface'] == 'create_direct_pay_by_user') {
+if ($_GET['body'] == 'site_store') {
 	$setting['payment'] = setting_load('store_pay');
 	$setting['payment'] = $setting['payment']['store_pay'];
+} else {
+	$_W['uniacid'] = $_W['weid'] = intval($_GET['body']);
+	$setting = uni_setting($_W['uniacid'], array('payment'));
 }
 if (!is_array($setting['payment'])) {
 	exit('request failed.');
@@ -39,10 +40,9 @@ if($sign == $_GET['sign']){
 		if ($_GET['subject'] == '测试支付接口' && $_GET['total_fee'] == 0.01) {
 			message('支付回调成功！', $_W['siteroot'] . 'web/index.php?c=profile&a=payment', 'success');
 		}
-		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniontid`=:uniontid';
-		$params = array();
-		$params[':uniontid'] = $_GET['out_trade_no'];
-		$log = pdo_fetch($sql, $params);
+		$log = table('core_paylog')
+			->where(array('uniontid' => $_GET['out_trade_no']))
+			->get();
 		if (!empty($log)) {
 			$site = WeUtility::createModuleSite($log['module']);
 			$method = 'payResult';
@@ -50,11 +50,22 @@ if($sign == $_GET['sign']){
 				$log['transaction_id'] = $_GET['trade_no'];
 				$record = array();
 				$record['status'] = '1';
-				pdo_update('core_paylog', $record, array('plid' => $log['plid']));
+				table('core_paylog')
+					->where(array('plid' => $log['plid']))
+					->fill($record)
+					->save();
 				// 卡券处理
 				if ($log['is_usecard'] == 1 && !empty($log['encrypt_code'])) {
-					$coupon_info = pdo_get('coupon', array('id' => $log['card_id']), array('id'));
-					$coupon_record = pdo_get('coupon_record', array('code' => $log['encrypt_code'], 'status' => '1'));
+					$coupon_info = table('coupon')
+						->select('id')
+						->where(array('id' => $log['card_id']))
+						->get();
+					$coupon_record = table('coupon_record')
+						->where(array(
+							'code' => $log['encrypt_code'],
+							'status' => '1'
+						))
+						->get();
 					load()->model('activity');
 					$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $log['module']);
 				}
@@ -91,10 +102,15 @@ if($sign == $_GET['sign']){
 				exit;
 			}
 		} else {
-			$order = pdo_get('site_store_order', array('orderid' => $_GET['out_trade_no']));
+			$order = table('site_store_order')
+				->where(array('orderid' => $_GET['out_trade_no']))
+				->get();
 			if (!empty($order)) {
 				if ($order['type'] == 1) {
-					pdo_update('site_store_order', array('type' => 3), array('orderid' => $_GET['out_trade_no']));
+					table('site_store_order')
+						->where(array('orderid' => $_GET['out_trade_no']))
+						->fill(array('type' => 3))
+						->save();
 				}
 				cache_build_account_modules($order['uniacid']);
 				header('Location: ./index.php?c=site&a=entry&direct=1&m=store&do=orders');

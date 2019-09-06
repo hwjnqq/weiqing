@@ -1,8 +1,7 @@
 <?php
 /**
  * 新增素材
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- *
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->func('file');
@@ -13,25 +12,25 @@ $do = in_array($do, $dos) ? $do : 'news';
 
 permission_check_account_user('platform_material');
 
-if ($do == 'tomedia') {
+if ('tomedia' == $do) {
 	iajax('0', tomedia($_GPC['url']), '');
 }
 
-if ($do == 'news') {
+if ('news' == $do) {
 	$type = trim($_GPC['type']);
 	$newsid = intval($_GPC['newsid']);
 	$upload_limit = material_upload_limit();
 	if (empty($newsid)) {
-		if ($type == 'reply') {
+		if ('reply' == $type) {
 			$reply_news_id = intval($_GPC['reply_news_id']);
 			$news = pdo_get('news_reply', array(
-				'id' => $reply_news_id 
+				'id' => $reply_news_id,
 			));
 			$news_list = pdo_getall('news_reply', array(
-				'parent_id' => $news['id'] 
+				'parent_id' => $news['id'],
 			), array(), '', ' displayorder ASC');
 			$news_list = array_merge(array(
-				$news 
+				$news,
 			), $news_list);
 			if (!empty($news_list)) {
 				foreach ($news_list as $key => &$row_news) {
@@ -45,7 +44,7 @@ if ($do == 'news') {
 						'url' => $row_news['url'],
 						'displayorder' => $key,
 						'show_cover_pic' => intval($row_news['incontent']),
-						'content_source_url' => $row_news['content_source_url']
+						'content_source_url' => $row_news['content_source_url'],
 					);
 				}
 				unset($row_news);
@@ -53,7 +52,7 @@ if ($do == 'news') {
 		}
 	} else {
 		$attachment = material_get($newsid);
-		if (is_error($attachment)){
+		if (is_error($attachment)) {
 			itoast('图文素材不存在，或已删除', url('platform/material'), 'warning');
 		}
 		$news_list = $attachment['news'];
@@ -76,11 +75,11 @@ if ($do == 'news') {
 	template('platform/material-post');
 }
 
-if ($do == 'addnews') {
-	$is_sendto_wechat = trim($_GPC['target']) == 'wechat' ? true : false;
+if ('addnews' == $do) {
+	$is_sendto_wechat = 'wechat' == trim($_GPC['target']) ? true : false;
 	$attach_id = intval($_GPC['attach_id']);
 	if (empty($_GPC['news'])) {
-		iajax(- 1, '提交内容参数有误');
+		iajax(-1, '提交内容参数有误');
 	}
 	$attach_id = material_news_set($_GPC['news'], $attach_id);
 	if (is_error($attach_id)) {
@@ -92,14 +91,14 @@ if ($do == 'addnews') {
 	if ($is_sendto_wechat) {
 		$result = material_local_news_upload($attach_id);
 	}
-	if (is_error($result)){
+	if (is_error($result)) {
 		iajax(-1, $result['message']);
 	} else {
 		iajax(0, '编辑图文素材成功');
 	}
 }
 
-if ($do == 'upload_material') {
+if ('upload_material' == $do) {
 	$material_id = intval($_GPC['material_id']);
 	$result = material_local_upload($material_id);
 	if (is_error($result)) {
@@ -108,10 +107,10 @@ if ($do == 'upload_material') {
 	iajax(0, json_encode($result));
 }
 
-if ($do == 'upload_news') {
+if ('upload_news' == $do) {
 	$material_id = intval($_GPC['material_id']);
 	$result = material_local_news_upload($material_id);
-	if (is_error($result)){
+	if (is_error($result)) {
 		iajax(-1, $result['message']);
 	} else {
 		iajax(0, '转换成功');

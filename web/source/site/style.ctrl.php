@@ -1,7 +1,7 @@
 <?php
 /**
  * 微站风格管理
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -18,7 +18,7 @@ $site_styles_table = table('site_styles');
 $site_styles_vars_table = table('site_styles_vars');
 $site_templates_table = table('site_templates');
 
-if ($do == 'template') {
+if ('template' == $do) {
 	$setting = uni_setting($_W['uniacid'], array('default_site'));
 	$site_multi_info = $site_multi_table->getById($setting['default_site']);
 	$setting['styleid'] = $site_multi_info['styleid'];
@@ -35,12 +35,12 @@ if ($do == 'template') {
 	$stylesResult = array();
 	foreach ($templates as $k => $v) {
 		if (!empty($keyword)) {
-			if (strpos($v['title'], $keyword) !== false) {
+			if (false !== strpos($v['title'], $keyword)) {
 				$stylesResult[$k] = array(
 					'templateid' => $v['id'],
 					'name' => $v['name'],
 					'title' => $v['title'],
-					'type' => $v['type']
+					'type' => $v['type'],
 				);
 			}
 		} else {
@@ -48,7 +48,7 @@ if ($do == 'template') {
 				'templateid' => $v['id'],
 				'name' => $v['name'],
 				'title' => $v['title'],
-				'type' => $v['type']
+				'type' => $v['type'],
 			);
 			foreach ($styles as $style_val) {
 				if ($v['id'] == $style_val['templateid']) {
@@ -56,7 +56,6 @@ if ($do == 'template') {
 				}
 			}
 		}
-
 	}
 	$templates_id = array_keys($templates);
 	foreach ($styles as $v) {
@@ -64,15 +63,15 @@ if ($do == 'template') {
 		if (!in_array($v['templateid'], $templates_id)) {
 			continue;
 		}
-		$stylesResult[] =  array(
+		$stylesResult[] = array(
 			'styleid' => $v['id'],
 			'templateid' => $v['templateid'],
 			'name' => $templates[$v['templateid']]['name'],
 			'title' => $v['name'],
-			'type' => $templates[$v['templateid']]['type']
+			'type' => $templates[$v['templateid']]['type'],
 		);
 	}
-	if (!empty($_GPC['type']) && $_GPC['type'] != 'all') {
+	if (!empty($_GPC['type']) && 'all' != $_GPC['type']) {
 		$tmp = array();
 		foreach ($stylesResult as $k => $v) {
 			if ($v['type'] == $_GPC['type']) {
@@ -86,7 +85,7 @@ if ($do == 'template') {
 	template('site/tpl-display');
 }
 
-if ($do == 'default') {
+if ('default' == $do) {
 	$setting = uni_setting($_W['uniacid'], array('default_site'));
 	$multi = $site_multi_table->getById($setting['default_site']);
 	if (empty($multi)) {
@@ -118,21 +117,32 @@ if ($do == 'default') {
 	if (empty($styles)) {
 		if (!empty($templatedata['settings'])) {
 			foreach ($templatedata['settings'] as $list) {
-				pdo_insert('site_styles_vars', array('variable' => $list['key'], 'content' => $list['value'], 'description' => $list['desc'], 'templateid' => $templateid, 'styleid' => $styleid, 'uniacid' => $_W['uniacid']));
+				table('site_styles_vars')
+					->fill(array(
+						'variable' => $list['key'],
+						'content' => $list['value'],
+						'description' => $list['desc'],
+						'templateid' => $templateid,
+						'styleid' => $styleid,
+						'uniacid' => $_W['uniacid']
+					))
+					->save();
 			}
 		}
 	} else {
 		if (!empty($templatedata['settings'])) {
 			foreach ($templatedata['settings'] as $list) {
 				if (!in_array($list['key'], $styles_tmp)) {
-					pdo_insert('site_styles_vars', array(
-						'content' => $list['value'],
-						'templateid' => $templateid,
-						'styleid' => $styleid,
-						'variable' => $list['key'],
-						'description' => $list['desc'],
-						'uniacid' => $_W['uniacid']
-					));
+					table('site_styles_vars')
+						->fill(array(
+							'content' => $list['value'],
+							'templateid' => $templateid,
+							'styleid' => $styleid,
+							'variable' => $list['key'],
+							'description' => $list['desc'],
+							'uniacid' => $_W['uniacid'],
+						))
+						->save();
 				}
 			}
 		}
@@ -140,7 +150,7 @@ if ($do == 'default') {
 	itoast('默认模板更新成功！', url('site/style/template'), 'success');
 }
 
-if ($do == 'designer') {
+if ('designer' == $do) {
 	$styleid = intval($_GPC['styleid']);
 	$style = $site_styles_table->getById($styleid);
 	if (empty($style)) {
@@ -162,7 +172,7 @@ if ($do == 'designer') {
 		'fontcolor',
 		'fontnavcolor',
 		'linkcolor',
-		'css'
+		'css',
 	);
 	if (checksubmit('submit')) {
 		if (!empty($_GPC['style'])) {
@@ -172,25 +182,30 @@ if ($do == 'designer') {
 					continue;
 				}
 				$value = safe_gpc_html(htmlspecialchars_decode($value, ENT_QUOTES));
-				if ($variable == 'imgdir') {
+				if ('imgdir' == $variable) {
 					$value = safe_gpc_path($value);
 				}
 				if (!empty($styles[$variable])) {
 					if ($styles[$variable]['content'] != $value) {
-						pdo_update('site_styles_vars', array('content' => $value), array(
-							'styleid' => $styleid,
-							'variable' => $variable,
-						));
+						table('site_styles_vars')
+							->where(array(
+								'styleid' => $styleid,
+								'variable' => $variable,
+							))
+							->fill(array('content' => $value))
+							->save();
 					}
 					unset($styles[$variable]);
 				} elseif (!empty($value)) {
-					pdo_insert('site_styles_vars', array(
-						'content' => $value,
-						'templateid' => $templateid,
-						'styleid' => $styleid,
-						'variable' => $variable,
-						'uniacid' => $_W['uniacid']
-					));
+					table('site_styles_vars')
+						->fill(array(
+							'content' => $value,
+							'templateid' => $templateid,
+							'styleid' => $styleid,
+							'variable' => $variable,
+							'uniacid' => $_W['uniacid'],
+						))
+						->save();
 				}
 			}
 		}
@@ -205,23 +220,31 @@ if ($do == 'designer') {
 				if (!empty($value)) {
 					if (!empty($styles[$variable])) {
 						if ($styles[$variable] != $value) {
-							pdo_update('site_styles_vars', array('content' => $value, 'description' => $desc), array(
-								'templateid' => $templateid,
-								'variable' => $variable,
-								'uniacid' => $_W['uniacid'],
-								'styleid' => $styleid
-							));
+							table('site_styles_vars')
+								->where(array(
+									'templateid' => $templateid,
+									'variable' => $variable,
+									'uniacid' => $_W['uniacid'],
+									'styleid' => $styleid,
+								))
+								->fill(array(
+									'content' => $value,
+									'description' => $desc
+								))
+								->save();
 						}
 						unset($styles[$variable]);
 					} else {
-						pdo_insert('site_styles_vars', array(
-							'content' => $value,
-							'templateid' => $templateid,
-							'styleid' => $styleid,
-							'variable' => $variable,
-							'description' => $desc,
-							'uniacid' => $_W['uniacid']
-						));
+						table('site_styles_vars')
+							->fill(array(
+								'content' => $value,
+								'templateid' => $templateid,
+								'styleid' => $styleid,
+								'variable' => $variable,
+								'description' => $desc,
+								'uniacid' => $_W['uniacid'],
+							))
+							->save();
 					}
 				}
 			}
@@ -230,7 +253,13 @@ if ($do == 'designer') {
 		if (!empty($styles)) {
 			$stylekeys = array_keys($styles);
 			foreach ($stylekeys as $value) {
-				pdo_delete('site_styles_vars', array('uniacid' => $_W['uniacid'], 'styleid' => $styleid, 'variable' => $value));
+				table('site_styles_vars')
+					->where(array(
+						'uniacid' => $_W['uniacid'],
+						'styleid' => $styleid,
+						'variable' => $value
+					))
+					->delete();
 			}
 		}
 		$site_styles_table->fill(array('name' => safe_gpc_string($_GPC['name'])))->where(array('id' => $styleid, 'uniacid' => $_W['uniacid']))->save();
@@ -240,7 +269,7 @@ if ($do == 'designer') {
 	template('site/tpl-post');
 }
 
-if ($do == 'module') {
+if ('module' == $do) {
 	// permission_check_account_user('site_style_module');
 	if (empty($_W['isfounder'])) {
 		itoast('您无权进行该操作！', '', '');
@@ -257,11 +286,11 @@ if ($do == 'module') {
 	if (is_dir($path)) {
 		if ($handle = opendir($path)) {
 			while (false !== ($modulepath = readdir($handle))) {
-				if ($modulepath != '.' && $modulepath != '..' && !empty($modules[$modulepath])) {
+				if ('.' != $modulepath && '..' != $modulepath && !empty($modules[$modulepath])) {
 					if (is_dir($path . '/' . $modulepath . '/template/mobile')) {
 						if ($handle1 = opendir($path . '/' . $modulepath . '/template/mobile')) {
 							while (false !== ($mobilepath = readdir($handle1))) {
-								if ($mobilepath != '.' && $mobilepath != '..' && strexists($mobilepath, '.html')) {
+								if ('.' != $mobilepath && '..' != $mobilepath && strexists($mobilepath, '.html')) {
 									$templates[$modulepath][] = $mobilepath;
 								}
 							}
@@ -274,7 +303,7 @@ if ($do == 'module') {
 	template('site/style');
 }
 
-if ($do == 'build') {
+if ('build' == $do) {
 	$templateid = intval($_GPC['styleid']);
 	$template = array();
 	$templates = uni_templates();
@@ -292,31 +321,35 @@ if ($do == 'build') {
 	list($templatetitle) = explode('_', $template['title']);
 	$newstyle = array(
 		'uniacid' => $_W['uniacid'],
-		'name' => $templatetitle.'_'.random(4),
+		'name' => $templatetitle . '_' . random(4),
 		'templateid' => $template['id'],
 	);
-	pdo_insert('site_styles', $newstyle);
+	table('site_styles')
+		->fill($newstyle)
+		->save();
 	$id = pdo_insertid();
 
 	$templatedata = ext_template_manifest($template['name']);
 	if (!empty($templatedata['settings'])) {
 		foreach ($templatedata['settings'] as $style_var) {
 			if (!empty($style_var['key']) && !empty($style_var['desc'])) {
-				pdo_insert('site_styles_vars', array(
-					'content' => $style_var['value'],
-					'templateid' => $templateid,
-					'styleid' => $id,
-					'variable' => $style_var['key'],
-					'uniacid' => $_W['uniacid'],
-					'description' => $style_var['desc'],
-				));
+				table('site_styles_vars')
+					->fill(array(
+						'content' => $style_var['value'],
+						'templateid' => $templateid,
+						'styleid' => $id,
+						'variable' => $style_var['key'],
+						'uniacid' => $_W['uniacid'],
+						'description' => $style_var['desc'],
+					))
+					->save();
 			}
 		}
 	}
 	itoast('风格创建成功，进入“设计风格”界面。', url('site/style/designer', array('templateid' => $template['id'], 'styleid' => $id)), 'success');
 }
 
-if ($do == 'copy') {
+if ('copy' == $do) {
 	$styleid = intval($_GPC['styleid']);
 
 	$style = $site_styles_table->getById($styleid);
@@ -332,25 +365,39 @@ if ($do == 'copy') {
 	list($name) = explode('_', $style['name']);
 	$newstyle = array(
 		'uniacid' => $_W['uniacid'],
-		'name' => $name.'_'.random(4),
+		'name' => $name . '_' . random(4),
 		'templateid' => $style['templateid'],
 	);
-	pdo_insert('site_styles', $newstyle);
+	table('site_styles')
+		->fill($newstyle)
+		->save();
 	$id = pdo_insertid();
 
 	$styles = $site_styles_vars_table->getAllByStyleid($styleid);
 	if (!empty($styles)) {
-		foreach($styles as $data) {
+		foreach ($styles as $data) {
 			$data['styleid'] = $id;
-			pdo_insert('site_styles_vars', $data);
+			table('site_styles_vars')
+				->fill($data)
+				->save();
 		}
 	}
 	itoast('风格复制成功，进入“设计风格”界面。', url('site/style/designer', array('templateid' => $style['templateid'], 'styleid' => $id)), 'success');
 }
 
-if ($do == 'del') {
+if ('del' == $do) {
 	$styleid = intval($_GPC['styleid']);
-	pdo_delete('site_styles_vars', array('uniacid' => $_W['uniacid'], 'styleid' => $styleid));
-	pdo_delete('site_styles', array('uniacid' => $_W['uniacid'], 'id' => $styleid));
+	table('site_styles_vars')
+		->where(array(
+			'uniacid' => $_W['uniacid'],
+			'styleid' => $styleid
+		))
+		->delete();
+	table('site_styles')
+		->where(array(
+			'uniacid' => $_W['uniacid'],
+			'id' => $styleid
+		))
+		->delete();
 	itoast('删除风格成功。', referer(), 'success');
 }

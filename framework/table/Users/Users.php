@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 namespace We7\Table\Users;
 
@@ -58,18 +58,17 @@ class Users extends \We7Table {
 		return $notice_setting;
 	}
 
-	public function getUsersList() {
-		return $this->query
-			->from('users', 'u')
-			->select(
-				'u.uid, u.owner_uid, u.groupid, u.username, u.type, u.status, u.joindate, u.joinip, u.lastvisit,
-				u.lastip, u.remark, u.starttime, u.endtime, u.founder_groupid,u.register_type, u.openid, u.welcome_link,
-				p.avatar as avatar, p.mobile as mobile, p.uid as puid, p.mobile as mobile'
-			)
-			->leftjoin('users_profile', 'p')
-			->on(array('u.uid' => 'p.uid'))
-			->orderby('u.uid', 'DESC')
-			->getall('uid');
+	public function getUsersList($join_profile = true) {
+		$this->query->from('users', 'u');
+
+		$select = 'u.uid, u.owner_uid, u.groupid, u.username, u.type, u.status, u.joindate, u.joinip, u.lastvisit,
+				u.lastip, u.remark, u.starttime, u.endtime, u.founder_groupid,u.register_type, u.openid, u.welcome_link';
+
+		if ($join_profile) {
+			$select .= ',p.avatar as avatar, p.mobile as mobile, p.uid as puid, p.mobile as mobile';
+			$this->query->leftjoin('users_profile', 'p')->on(array('u.uid' => 'p.uid'));
+		}
+		return $this->query->select($select)->orderby('u.uid', 'DESC')->getall('uid');
 	}
 
 	public function searchFounderOwnUsers($founder_uid) {
@@ -112,17 +111,24 @@ class Users extends \We7Table {
 		if ($status == 1) {
 			//未过期
 			$this->where(function ($query) {
-				$query->where('u.endtime', 0)->whereor('u.endtime >', TIMESTAMP);
+				$query->where('u.endtime', 0)
+					->whereor('u.endtime', USER_ENDTIME_GROUP_UNLIMIT_TYPE)
+					->whereor('u.endtime >', TIMESTAMP);
 			});
 		} elseif ($status == 2) {
 			//已过期
-			$this->where('u.endtime !=', 0)->where('u.endtime <=', TIMESTAMP);
+			$this->where(function ($query) {
+				$query->where('u.endtime >', USER_ENDTIME_GROUP_UNLIMIT_TYPE)
+					->where('u.endtime <=', TIMESTAMP)
+					->whereor('u.endtime', USER_ENDTIME_GROUP_DELETE_TYPE);
+			});
+
 		}
 		return $this;
 	}
 
 	public function searchWithEndtime($day) {
-		$this->query->where('u.endtime !=', 0)->where('u.endtime <', TIMESTAMP + 86400 * $day);
+		$this->query->where('u.endtime >', USER_ENDTIME_GROUP_UNLIMIT_TYPE)->where('u.endtime <', TIMESTAMP + 86400 * $day);
 		return $this;
 	}
 
@@ -141,8 +147,14 @@ class Users extends \We7Table {
 		return $this;
 	}
 
-	public function searchWithNameOrMobile($search) {
-		$this->query->where('u.username LIKE', "%{$search}%")->whereor('p.mobile LIKE', "%{$search}%");
+	public function searchWithNameOrMobile($search, $join_profile = true, $uid_in = array()) {
+		if ($join_profile) {
+			$this->query->where(function ($query) use ($search) {
+				$query->where('u.username LIKE', "%{$search}%")->whereor('p.mobile LIKE', "%{$search}%");
+			});
+		} else {
+			$this->query->where('u.username LIKE', "%{$search}%")->whereor('u.uid', $uid_in);
+		}
 		return $this;
 	}
 

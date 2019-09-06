@@ -1,6 +1,7 @@
 <?php
 /**
- * 收银台
+ * 收银台.
+ *
  * @author WeEngine Team
  */
 defined('IN_IA') or exit('Access Denied');
@@ -8,14 +9,14 @@ class PaycenterModuleSite extends WeModuleSite {
 	public function __construct() {
 		global $_W, $_GPC;
 		load()->model('paycenter');
-		if($_GPC['do'] != 'pay' && $_GPC['do'] != 'consume') {
+		if ('pay' != $_GPC['do'] && 'consume' != $_GPC['do']) {
 			$session = json_decode(base64_decode($_GPC['_pc_session']), true);
-			if(is_array($session)) {
+			if (is_array($session)) {
 				load()->model('user');
-				$user = user_single(array('uid'=>$session['uid']));
-				if(is_array($user) && $session['hash'] === $user['hash']) {
-					$clerk = pdo_get('activity_clerks', array('uniacid' => $_W['uniacid'], 'uid' => $user['uid']));
-					if(empty($clerk)) {
+				$user = user_single(array('uid' => $session['uid']));
+				if (is_array($user) && $session['hash'] === $user['hash']) {
+					$clerk = table('activity_clerks')->getByUid($user['uid'], $_W['uniacid']);
+					if (empty($clerk)) {
 						message('您没有管理该店铺的权限', referer(), 'error');
 					}
 					$_W['uid'] = $user['uid'];
@@ -26,11 +27,11 @@ class PaycenterModuleSite extends WeModuleSite {
 				}
 				unset($user);
 			}
-			if(empty($_W['user']) && $_W['openid'] && $_GPC['_wechat_logout'] != '1') {
-				$clerk = pdo_get('activity_clerks', array('openid' => $_W['openid'], 'uniacid' => $_W['uniacid']));
-				if(!empty($clerk)) {
-					$user = pdo_get('users', array('uid' => $clerk['uid']));
-					if(!empty($user)) {
+			if (empty($_W['user']) && $_W['openid'] && '1' != $_GPC['_wechat_logout']) {
+				$clerk = table('activity_clerks')->getByOpenid($_W['openid'], $_W['uniacid']);
+				if (!empty($clerk)) {
+					$user = table('users')->where(array('uid' => $clerk['uid']))->get();
+					if (!empty($user)) {
 						$cookie = array();
 						$cookie['uid'] = $user['uid'];
 						$cookie['username'] = $user['username'];
@@ -48,24 +49,24 @@ class PaycenterModuleSite extends WeModuleSite {
 
 	public function doMobileLogin() {
 		global $_W, $_GPC;
-		if(!empty($_W['user'])) {
+		if (!empty($_W['user'])) {
 			header('Location:' . $this->createMobileUrl('home'));
 			die;
 		}
-		if($_W['isajax']) {
+		if ($_W['isajax']) {
 			load()->model('user');
 			$user['username'] = trim($_GPC['username']);
 			$user['password'] = trim($_GPC['password']);
 
 			$user = user_single($user);
-			if(empty($user)) {
+			if (empty($user)) {
 				message(error(-1, '账号或密码错误'), '', 'ajax');
 			}
-			if($user['status'] == 1) {
+			if (1 == $user['status']) {
 				message(error(-1, '您的账号正在审核或是已经被系统禁止，请联系网站管理员解决'), '', 'ajax');
 			}
-			$clerk = pdo_get('activity_clerks', array('uniacid' => $_W['uniacid'], 'uid' => $user['uid']));
-			if(empty($clerk)) {
+			$clerk = table('activity_clerks')->getByUid($user['uid'], $_W['uniacid']);
+			if (empty($clerk)) {
 				message(error(-1, '您没有管理该店铺的权限'), '', 'ajax');
 			}
 			$cookie = array();
@@ -82,7 +83,7 @@ class PaycenterModuleSite extends WeModuleSite {
 		isetcookie('_pc_session', '', -10000);
 		isetcookie('_wechat_logout', '1', 180);
 		$forward = $_GPC['forward'];
-		if(empty($forward)) {
+		if (empty($forward)) {
 			$forward = './?refersh';
 		}
 		header('Location:' . $this->createMobileUrl('login'));
@@ -98,47 +99,60 @@ class PaycenterModuleSite extends WeModuleSite {
 		$seven_revenue = $this->revenue(-7);
 		include $this->template('home');
 	}
-	
-	/** 
-	* 
-	* @param $period 时间周期,默认0为今日营收,-1为昨日营收,-7为七日营收
-	* @return $revenus 营收数额
-	*/
+
+	/**
+	 * @param $period 时间周期,默认0为今日营收,-1为昨日营收,-7为七日营收
+	 *
+	 * @return $revenus 营收数额
+	 */
 	public function revenue($period) {
 		global $_W;
-		if($period == '0') {
+		if ('0' == $period) {
 			$starttime = strtotime(date('Y-m-d'));
 			$endtime = $starttime + 86400;
 		} else {
-			$starttime = strtotime(date('Y-m-d',strtotime($period . 'day')));
+			$starttime = strtotime(date('Y-m-d', strtotime($period . 'day')));
 			$endtime = strtotime(date('Y-m-d'));
 		}
-		$condition = "WHERE uniacid = :uniacid AND status = 1 AND paytime >= :starttime AND paytime <= :endtime AND clerk_id = :clerk_id";
-		$params = array(':starttime' => $starttime, ':endtime' => $endtime, ':uniacid' => $_W['uniacid'], ':clerk_id' => intval($_W['user']['clerk_id']));
-		$revenue = pdo_fetchcolumn("SELECT SUM(final_fee) FROM" . tablename('paycenter_order') . $condition, $params);
+		$revenue = table('paycenter_order')
+			->where(array(
+				'uniacid' =>  $_W['uniacid'],
+				'status' => 1,
+				'paytime >=' => $starttime,
+				'paytime <=' => $endtime,
+				'clerk_id' => intval($_W['user']['clerk_id'])
+			))
+			->getcolumn('SUM(final_fee)');
 		return floatval($revenue);
 	}
 
 	public function doMobilePay() {
 		global $_W, $_GPC;
 		$id = intval($_GPC['id']);
-		$order = pdo_get('paycenter_order', array('uniacid' => $_W['uniacid'], 'id' => $id));
-		if(empty($order)) {
+		$order = table('paycenter_order')->getById($id, $_W['uniacid']);
+
+		if (empty($order)) {
 			message('订单不存在或已删除', '', 'error');
 		}
-		if($order['status'] == 1) {
+		if (1 == $order['status']) {
 			message('该订单已付款', '', 'error');
 		}
-		if(!empty($_W['member']['uid']) || !empty($_W['fans'])) {
+		if (!empty($_W['member']['uid']) || !empty($_W['fans'])) {
 			$update = array(
 				'uid' => $_W['member']['uid'],
 				'openid' => $_W['openid'],
-				'nickname' => $_W['fans']['nickname']
+				'nickname' => $_W['fans']['nickname'],
 			);
-			pdo_update('paycenter_order', $update, array('uniacid' => $_W['uniacid'], 'id' => $id));
+			table('paycenter_order')
+				->where(array(
+					'uniacid' => $_W['uniacid'],
+					'id' => $id
+				))
+				->fill($update)
+				->save();
 			$order['uid'] = $_W['member']['uid'];
 		}
-		$params['module'] = "paycenter_order";
+		$params['module'] = 'paycenter_order';
 		$params['tid'] = $order['id'];
 		$params['ordersn'] = $order['id'];
 		$params['user'] = $order['uid'];
@@ -149,10 +163,10 @@ class PaycenterModuleSite extends WeModuleSite {
 
 	public function payResult($params) {
 		global $_W;
-		if($params['result'] == 'success' && $params['from'] == 'notify') {
-			$order = pdo_get('paycenter_order', array('id' => $params['tid'], 'uniacid' => $_W['uniacid']));
-			if(!empty($order)) {
-				if(!empty($params['tag'])) {
+		if ('success' == $params['result'] && 'notify' == $params['from']) {
+			$order = table('paycenter_order')->getById($params['tid'], $_W['uniacid']);
+			if (!empty($order)) {
+				if (!empty($params['tag'])) {
 					$params['tag'] = iunserializer($params['tag']);
 				}
 				$data = array(
@@ -165,16 +179,23 @@ class PaycenterModuleSite extends WeModuleSite {
 					'follow' => intval($params['follow']),
 					'final_fee' => $params['card_fee'],
 				);
-				if($params['type'] == 'credit') {
+				if ('credit' == $params['type']) {
 					$data['credit2'] = $params['card_fee'];
 				} else {
 					$data['cash'] = $params['card_fee'];
 				}
-				if($params['is_usecard'] == 1) {
+				if (1 == $params['is_usecard']) {
 					$discount_fee = $order['fee'] - $params['card_fee'];
 					$data['remark'] = "使用优惠券减免{$discount_fee}元";
 				}
-				pdo_update('paycenter_order', $data, array('id' => $params['tid'], 'uniacid' => $_W['uniacid']));
+				table('paycenter_order')
+					->where(array(
+						'id' => $params['tid'],
+						'uniacid' => $_W['uniacid']
+					))
+					->fill($data)
+					->save();
+
 				$cash_data = array(
 						'uniacid' => $_W['uniacid'],
 						'uid' => $order['uid'],
@@ -192,10 +213,10 @@ class PaycenterModuleSite extends WeModuleSite {
 						'clerk_type' => $order['clerk_type'],
 						'createtime' => TIMESTAMP,
 				);
-				pdo_insert('mc_cash_record', $cash_data);
+				table('mc_cash_record')->fill($cash_data)->save();
 			}
 		}
-		if($params['result'] == 'success' && $params['from'] == 'return') {
+		if ('success' == $params['result'] && 'return' == $params['from']) {
 			message('支付成功！', $this->createMobileUrl('paydetail', array('id' => $params['tid'])), 'success');
 		}
 	}
@@ -203,23 +224,26 @@ class PaycenterModuleSite extends WeModuleSite {
 	public function doMobilePayDetail() {
 		global $_W, $_GPC;
 		$id = intval($_GPC['id']);
-		$order = pdo_get('paycenter_order', array('id' => $id, 'uniacid' => $_W['uniacid']));
-		if(empty($order)) {
+		$order = table('paycenter_order')->getById($id, $_W['uniacid']);
+		if (empty($order)) {
 			message('订单不存在或已删除', '', 'error');
 		}
-		if($order['store_id'] > 0) {
-			$store = pdo_get('activity_stores', array('id' => $order['store_id']), array('business_name'));
+		if ($order['store_id'] > 0) {
+			$store = table('activity_stores')
+				->select('business_name')
+				->where(array('id' => $order['store_id']))
+				->get();
 		}
 		include $this->template('paydetail');
 	}
 
 	public function doMobileSelfpay() {
 		global $_W, $_GPC;
-		if(checksubmit()) {
+		if (checksubmit()) {
 			$fee = trim($_GPC['fee']) ? trim($_GPC['fee']) : message('收款金额有误', '', 'error');
 			$body = trim($_GPC['body']) ? trim($_GPC['body']) : '收银台收款' . trim($_GPC['fee']);
-			$openid = trim($_GPC['openid']) ? trim($_GPC['openid']) : message('用户信息错误',  '', 'error');
-			$clerk = pdo_get('activity_clerks', array('uniacid' => $_W['uniacid'], 'id' => intval($_GPC['clerk_id'])));
+			$openid = trim($_GPC['openid']) ? trim($_GPC['openid']) : message('用户信息错误', '', 'error');
+			$clerk = table('activity_clerks')->getById(intval($_GPC['clerk_id']), $_W['uniacid']);
 			$data = array(
 				'uniacid' => $_W['uniacid'],
 				'openid' => $openid,
@@ -234,17 +258,18 @@ class PaycenterModuleSite extends WeModuleSite {
 				'credit_status' => 1,
 				'createtime' => TIMESTAMP,
 			);
-			pdo_insert('paycenter_order', $data);
+			table('paycenter_order')->fill($data)->save();
 			$id = pdo_insertid();
 			header('location:' . $this->createMobileUrl('pay', array('id' => $id)));
 			die;
 		}
 		$fans = mc_oauth_userinfo();
-		if(is_error($fans) || empty($fans)) {
+		if (is_error($fans) || empty($fans)) {
 			message('获取粉丝信息失败', '', 'error');
 		}
 		include $this->template('selfpay');
 	}
+
 	public function doMobileConsume() {
 		global $_GPC, $_W;
 		$url = murl('entry', array('m' => 'we7_coupon', 'do' => 'consume', 'card_id' => trim($_GPC['card_id']), 'encrypt_code' => trim($_GPC['encrypt_code']), 'openid' => trim($_GPC['openid'])));

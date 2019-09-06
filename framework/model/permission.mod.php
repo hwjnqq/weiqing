@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * $sn$
  */
 defined('IN_IA') or exit('Access Denied');
@@ -527,23 +527,48 @@ function permission_user_account_num($uid = 0) {
 			}
 		}
 	}
-
 	if (!empty($user_founder_info['founder_uid'])) {
 		$owner_info = table('users')->getById($user_founder_info['founder_uid']);
 		$group_vice = table('users_founder_group')->getById($owner_info['groupid']);
 		$founder_group_num = uni_owner_account_nums($owner_info['uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
 	}
-
-	$store_table = table('store');
-	$create_buy_num['account'] = $store_table->searchUserCreateAccountNum($user['uid']);
-	$create_buy_num['wxapp'] = $store_table->searchUserCreateWxappNum($user['uid']);
-	$store_buy['account'] = $store_table->searchUserBuyAccount($user['uid']);
-	$store_buy['wxapp'] = $store_table->searchUserBuyWxapp($user['uid']);
+	$store_order_table = table('site_store_order');
+	$store_create_table = table('site_store_create_account');
+	$create_buy_num['account'] = $store_create_table->getUserCreateAccountNum($user['uid']);
+	$create_buy_num['wxapp'] = $store_create_table->getUserCreateWxappNum($user['uid']);
+	$store_buy['account'] = $store_order_table->getUserBuyAccountNum($user['uid']);
+	$store_buy['wxapp'] = $store_order_table->getUserBuyWxappNum($user['uid']);
 	$store_buy['account'] = $store_buy['account'] < 0 ? 0 : $store_buy['account'];
 	$store_buy['wxapp'] = $store_buy['wxapp'] < 0 ? 0 : $store_buy['wxapp'];
 
 	$extra_create_group_info  = array_keys($extra_group_table->getCreateGroupsByUid($user['uid']));
 	$extra_limits_info = $extra_limit_table->getExtraLimitByUid($user['uid']);
+	if (!empty($user_founder_info['founder_uid'])) {
+		$founder_extra_create_group_info  = array_keys($extra_group_table->getCreateGroupsByUid($user_founder_info['founder_uid']));
+		$founder_extra_limits_info = $extra_limit_table->getExtraLimitByUid($user_founder_info['founder_uid']);
+
+		$vice_founder_own_users_create_accounts = table('account')->searchAccountList(false, 1, $fields = 'a.uniacid, b.type', $user_founder_info['founder_uid']);
+		$vice_founder_own_users_create_nums = array();
+		$account_all_type = uni_account_type();
+		$account_all_type_sign = array_keys(uni_account_type_sign());
+
+		foreach ($account_all_type_sign as $type_info) {
+			$key_name = $type_info . '_num';
+			$vice_founder_own_users_create_nums[$key_name] = 0;
+		}
+		if (!empty($vice_founder_own_users_create_accounts)) {
+			foreach ($vice_founder_own_users_create_accounts as $vice_founder_own_users_create_account){
+				foreach ($account_all_type as $type_key => $type_info) {
+					if ($vice_founder_own_users_create_account['type'] == $type_key) {
+						$key_name = $type_info['type_sign'] . '_num';
+						$vice_founder_own_users_create_nums[$key_name] += 1;
+						continue;
+					}
+				}
+			}
+		}
+
+	}
 	$create_group_info_all = array();
 	if (!empty($extra_create_group_info)) {
 		$create_group_table = table('users_create_group');
@@ -557,22 +582,39 @@ function permission_user_account_num($uid = 0) {
 			}
 		}
 	}
-
+	$founcder_create_group_info_all = array();
+	if (!empty($user_founder_info['founder_uid']) && !empty($extra_create_group_info)) {
+		$create_group_table = table('users_create_group');
+		$founder_create_groups = array();
+		foreach($founder_extra_create_group_info as $create_group_id) {
+			$create_group_info = $create_group_table->getById($create_group_id);
+			$founder_create_groups[] = $create_group_info;
+			foreach ($account_all_type_sign as $sign) {
+				$maxsign = 'max' . $sign;
+				$founcder_create_group_info_all[$maxsign] += $create_group_info[$maxsign];
+			}
+		}
+	}
 	$extra = $limit = $founder_limit = array();
+	$founder_limit_total = 0;
+
 	foreach ($account_all_type_sign as $sign) {
 		$maxsign = 'max' . $sign;
 		$extra[$sign] = $create_group_info_all[$maxsign] + $extra_limits_info[$maxsign];
-
+		if (!empty($user_founder_info['founder_uid'])){
+			$founder_extra[$sign] = $founcder_create_group_info_all[$maxsign] + $founder_extra_limits_info[$maxsign];
+		} else {
+			$founder_extra[$sign] = 0;
+		}
 		$sign_num = $sign . '_num';
 		$limit[$sign] = max((intval($group[$maxsign]) + $extra[$sign] + intval($store_buy[$sign]) - $group_num[$sign_num]), 0);
+		$founder_limit[$sign] = max((intval($group_vice[$maxsign]) + $founder_extra[$sign]), 0);
 
-		$founder_limit[$sign] = max((intval($group_vice[$maxsign]) + intval($store_buy[$sign]) - $founder_group_num[$sign_num]), 0);
 		# 当当前用户属于副创始人时, (副创始人总的创建权限要减去副创始人下所有用户创建的帐号数量)
 		if (!empty($vice_founder_own_users_create_nums)) {
-			foreach ($vice_founder_own_users_create_nums as $own_user_uid => $own_user_info) {
-				$founder_limit[$sign] -= $own_user_info[$sign_num];
-			}
+			$founder_limit[$sign] -= $vice_founder_own_users_create_nums[$sign_num];
 		}
+		$founder_limit_total += $founder_limit[$sign];
 	}
 
 	$data = array(
@@ -583,11 +625,14 @@ function permission_user_account_num($uid = 0) {
 		//商城购买权限
 		'store_buy_account' => $store_buy['account'],
 		'store_buy_wxapp' => $store_buy['wxapp'],
+		'store_account_limit' => $store_account_limit = intval($store_buy['account']) - intval($create_buy_num['account']) <= 0 ? 0 : intval($store_buy['account']),
+		'store_wxapp_limit' => $store_wxapp_limit = intval($store_buy['wxapp']) - intval($create_buy_num['wxapp']) <= 0 ? 0 : intval($store_buy['wxapp']),
+		'store_limit_total' => $store_account_limit + $store_wxapp_limit,
+		'founder_limit_total' => $founder_limit_total,
 	);
 	$data['max_total'] = 0;
 	$data['created_total'] = 0;
-	$data['limit_total'] = $data['store_buy_account'] + $data['store_buy_wxapp'];
-
+	$data['limit_total'] = 0;
 	foreach ($account_all_type_sign as $sign) {
 		$maxsign = 'max' . $sign;
 		$sign_num = $sign . '_num';
@@ -609,20 +654,16 @@ function permission_user_account_num($uid = 0) {
 		$data['created_total'] = $data[$sign_num] + $data['created_total'];
 		$data['limit_total'] = $data[$sign . '_limit'] + $data['limit_total'];
 		$data['current_vice_founder_user_created_total'] = !empty($current_vice_founder_user_group_nums) ? $current_vice_founder_user_group_nums : 0;
-
 		if (!empty($vice_founder_own_users_create_nums)) {
-			foreach ($vice_founder_own_users_create_nums as $own_user_uid => $account_num_info) {
-				$data['vice_founder_own_users_' . $sign_num] += $account_num_info[$sign_num]; # 副创始人下所有用户创建的各类型帐号数量
-				$data['vice_founder_own_users_created_total'] += $account_num_info[$sign_num]; # 副创始人下所有用户创建的帐号总数量(所有类型相加)
-			}
+			$data['vice_founder_own_users_' . $sign_num] = $vice_founder_own_users_create_nums[$sign_num]; # 副创始人下所有用户创建的各类型帐号数量
 		}
 	}
 
-	if (user_is_vice_founder()) {
-		$data['created_total'] += intval($data['vice_founder_own_users_created_total']);
-		$data['limit_total'] = $data['max_total'] - $data['created_total'];
+	if (!empty($vice_founder_own_users_create_nums)) {
+		foreach ($vice_founder_own_users_create_nums as $vice_founder_own_users_create_num) {
+			$data['vice_founder_own_users_created_total'] += $vice_founder_own_users_create_num; # 副创始人下所有用户创建的帐号总数量(所有类型相加)
+		}
 	}
-
 	ksort($data);
 	return $data;
 }

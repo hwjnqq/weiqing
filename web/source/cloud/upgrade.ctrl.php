@@ -1,7 +1,7 @@
 <?php
 /**
  * 自动更新相关功能
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -18,7 +18,7 @@ if (is_error($cloud_ready)) {
 $dos = array('upgrade', 'get_upgrade_info', 'get_error_file_list');
 $do = in_array($do, $dos) ? $do : 'upgrade';
 
-if ($do == 'upgrade') {
+if ('upgrade' == $do) {
 	if (empty($_W['setting']['cloudip']) || $_W['setting']['cloudip']['expire'] < TIMESTAMP) {
 		$cloudip = gethostbyname('api-upgrade.w7.cc');
 		if (empty($cloudip) || !preg_match('/^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$/', $cloudip)) {
@@ -31,8 +31,8 @@ if ($do == 'upgrade') {
 	if (is_dir($path)) {
 		if ($handle = opendir($path)) {
 			while (false !== ($patchpath = readdir($handle))) {
-				if ($patchpath != '.' && $patchpath != '..') {
-					if(is_dir($path.$patchpath)){
+				if ('.' != $patchpath && '..' != $patchpath) {
+					if (is_dir($path . $patchpath)) {
 						$patchs[] = $patchpath;
 					}
 				}
@@ -58,26 +58,15 @@ if ($do == 'upgrade') {
 		itoast(implode('<br>', $have_no_permission_file) . '<br>以上废弃文件删除失败，可尝试将文件权限设置为777，再行删除！', referer(), 'error');
 	}
 }
-if ($do == 'get_error_file_list') {
+if ('get_error_file_list' == $do) {
 	$error_file_list = array();
 	cloud_file_permission_pass($error_file_list);
 	iajax(0, !empty($error_file_list) ? $error_file_list : '');
 }
-if ($do == 'get_upgrade_info') {
-	$notice_str = '<div class="content text-left we7-margin-left"><div class="we7-margin-bottom-sm">云服务向您的服务器传输数据过程中发生错误！</div><div class=" we7-margin-bottom-sm color-gray">尝试解决以下已知问题后再试：</div>';
-
-	if ($_W['config']['setting']['timezone'] != 'Asia/Shanghai') {
-		iajax(-1, $notice_str . '<div class="color-red">请把服务器时间修改为北京时间，即修改config.php中timezone为Asia/Shanghai</div></div>');
-	}
-	if (empty($_W['setting']['site']) || empty($_W['setting']['site']['url'])) {
-		iajax(-1, $notice_str . '<div class="color-red">站点信息不完整，请重置站点 <a href="./index.php?c=cloud&a=diagnose" class="color-default" target="_blank"> 去重置</a></div></div>');
-	}
-	if (parse_url($_W['siteroot'], PHP_URL_HOST) != parse_url($_W['setting']['site']['url'], PHP_URL_HOST)) {
-		iajax(-1, $notice_str . '<div class="color-red">1. 请使用微擎授权域名进行更新，授权域名为：' . $_W['setting']['site']['url'] . '<br>2. 重置站点 <a href="./index.php?c=cloud&a=diagnose" class="color-default" target="_blank"> 去重置</a></div></div>');
-	}
+if ('get_upgrade_info' == $do) {
 	$upgrade = cloud_build();
 	if (is_error($upgrade)) {
-		iajax(-1, $notice_str . '<div class="color-red">1.请关闭服务器的防火墙，杀毒软件，cdn，云锁，云盾，安全狗之类的软件后再重试；<br>2.下载最新的cloud.mod.php覆盖到/framework/model/cloud.mod.php <a href="//cdn.w7.cc/we7/cloud.mod.php" class="color-default" target="_blank"> 点击下载</a>；<br>3.重置站点 <a href="./index.php?c=cloud&a=diagnose" class="color-default" target="_blank"> 去重置</a></div></div>');
+		iajax(-1, $upgrade['message']);
 	}
 
 	if (!$upgrade['upgrade']) {

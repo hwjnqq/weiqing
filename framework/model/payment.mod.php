@@ -1,7 +1,7 @@
 <?php
 
 /**
- * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 
@@ -10,7 +10,7 @@ defined('IN_IA') or exit('Access Denied');
 define('ALIPAY_GATEWAY', 'https://mapi.alipay.com/gateway.do');
 
 
-function alipay_build($params, $alipay = array()) {
+function alipay_build($params, $alipay = array(), $is_site_store = false) {
 	global $_W;
 	$tid = $params['uniontid'];
 	$set = array();
@@ -25,11 +25,10 @@ function alipay_build($params, $alipay = array()) {
 	$set['total_fee'] = $params['fee'];
 	$set['seller_id'] = $alipay['account'];
 	$set['payment_type'] = 1;
-	$set['body'] = $_W['uniacid'];
+	$set['body'] = $is_site_store ? 'site_store' : $_W['uniacid'];
 	if ($params['service'] == 'create_direct_pay_by_user') {
 		$set['service'] = 'create_direct_pay_by_user';
 		$set['seller_id'] = $alipay['partner'];
-		$set['body'] = 'site_store';
 	} else {
 		$set['app_pay'] = 'Y';
 	}
@@ -65,13 +64,12 @@ function wechat_proxy_build($params, $wechat) {
 		$wechat['signkey'] = $oauth_account['payment']['wechat_facilitator']['signkey'];
 		$wechat['mchid'] = $oauth_account['payment']['wechat_facilitator']['mchid'];
 	}
-	$acid = pdo_getcolumn('uni_account', array('uniacid' => $uniacid), 'default_acid');
-	$wechat['appid'] = pdo_getcolumn('account_wechats', array('acid' => $acid), 'key');
+	$wechat['appid'] = pdo_getcolumn('account_wechats', array('uniacid' => $uniacid), 'key');
 	$wechat['version'] = 2;
 	return wechat_build($params, $wechat);
 }
 
-function wechat_build($params, $wechat) {
+function wechat_build($params, $wechat, $is_site_store = false) {
 	global $_W;
 	load()->func('communication');
 	if (empty($wechat['version']) && !empty($wechat['signkey'])) {
@@ -143,7 +141,7 @@ function wechat_build($params, $wechat) {
 		$package['mch_id'] = $wechat['mchid'];
 		$package['nonce_str'] = random(8);
 		$package['body'] = cutstr($params['title'], 26);
-		$package['attach'] = $_W['uniacid'];
+		$package['attach'] = $is_site_store ? 'site_store' : $_W['uniacid'];
 		$package['out_trade_no'] = $params['uniontid'];
 		$package['total_fee'] = $params['fee'] * 100;
 		$package['spbill_create_ip'] = CLIENT_IP;
@@ -223,7 +221,7 @@ function payment_proxy_pay_account() {
 	if (empty($uniacid) || empty($pay_account)) {
 		return error(1);
 	}
-	return WeAccount::create($pay_account);
+	return WeAccount::createByUniacid($uniacid);
 }
 function payment_types($type = '') {
 	$pay_types= array(

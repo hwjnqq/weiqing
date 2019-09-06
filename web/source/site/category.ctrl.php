@@ -1,7 +1,7 @@
 <?php
 /**
  * 微官网文章分类
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -13,7 +13,7 @@ permission_check_account_user('platform_site');
 
 if ($do == 'display') {
 	$children = array();
-	$category = pdo_fetchall("SELECT * FROM ".tablename('site_category')." WHERE uniacid = '{$_W['uniacid']}' ORDER BY parentid, displayorder DESC, id");
+	$category = table('site_category')->getBySnake('*', array('uniacid' => $_W['uniacid']), array('parentid' => 'DESC', 'displayorder' => 'DESC', 'id' => 'DESC'))->getall();
 	foreach ($category as $index => $row) {
 		if (!empty($row['parentid'])){
 			$children[$row['parentid']][] = $row;
@@ -26,15 +26,25 @@ if ($do == 'display') {
 	$id = intval($_GPC['id']);
 	//获取当前默认微站的模板
 	$setting = uni_setting($_W['uniacid'], array('default_site'));
-	$site_styleid = pdo_fetchcolumn('SELECT styleid FROM ' . tablename('site_multi') . ' WHERE id = :id', array(':id' => $setting['default_site']));
+	$site_styleid = table('site_multi')->where(array('id' => $setting['default_site']))->getcolumn('styleid');
 	if ($site_styleid) {
-		$site_template = pdo_fetch("SELECT a.*,b.name,b.sections FROM ".tablename('site_styles').' AS a LEFT JOIN ' . tablename('site_templates') . ' AS b ON a.templateid = b.id WHERE a.uniacid = :uniacid AND a.id = :id', array(':uniacid' => $_W['uniacid'], ':id' => $site_styleid));
+		$site_template = table('site_styles')
+			->searchWithTemplates(array('a.*', 'b.name', 'b.sections'))
+			->where(array(
+				'a.uniacid' => $_W['uniacid'],
+				'a.id' => $site_styleid
+			))
+			->get();
 	}
 
 	//微站风格模板
-	$styles = pdo_fetchall("SELECT a.*, b.name AS tname, b.title FROM ".tablename('site_styles').' AS a LEFT JOIN ' . tablename('site_templates') . ' AS b ON a.templateid = b.id WHERE a.uniacid = :uniacid', array(':uniacid' => $_W['uniacid']), 'id');
+	$styles = $site_template = table('site_styles')
+		->searchWithTemplates(array('a.*', 'b.name as tname', 'b.title'))
+		->where(array('a.uniacid' => $_W['uniacid']))
+		->getall();
+
 	if (!empty($id)) {
-		$category = pdo_fetch("SELECT * FROM ".tablename('site_category')." WHERE id = '$id' AND uniacid = {$_W['uniacid']}");
+		$category = table('site_category')->getBySnake('*', array('uniacid' => $_W['uniacid'], 'id' => $id))->get();
 		if (empty($category)) {
 			itoast('分类不存在或已删除', '', 'error');
 		}
@@ -50,7 +60,7 @@ if ($do == 'display') {
 		);
 	}
 	if (!empty($parentid)) {
-		$parent = pdo_fetch("SELECT id, name FROM ".tablename('site_category')." WHERE id = '$parentid'");
+		$parent = table('site_category')->getById($parentid, $_W['uniacid']);
 		if (empty($parent)) {
 			itoast('抱歉，上级分类不存在或是已经被删除！', url('site/category/display'), 'error');
 		}
@@ -58,12 +68,11 @@ if ($do == 'display') {
 	$category['style'] = $styles[$category['styleid']];
 	$category['style']['tname'] = empty($category['style']['tname'])? 'default' : $category['style']['tname'];
 	if (!empty($category['nid'])) {
-		$category['nav'] = pdo_get('site_nav', array('id' => $category['nid']));
+		$category['nav'] = table('site_nav')->getById($category['nid']);
 	} else {
 		$category['nav'] = array();
 	}
-	$multis = pdo_getall('site_multi', array('uniacid' => $_W['uniacid']), array(), 'id');
-
+	$multis = table('site_multi')->getAllByUniacid($_W['uniacid']);
 	if (checksubmit('submit')) {
 		if (empty($_GPC['cname'])) {
 			itoast('抱歉，请输入分类名称！', '', '');
@@ -128,31 +137,61 @@ if ($do == 'display') {
 				$nav['icon'] = $_GPC['iconfile'];
 			}
 			if ($category['nid']) {
-				$nav_exist = pdo_fetch('SELECT id FROM ' . tablename('site_nav') . ' WHERE id = :id AND uniacid = :uniacid', array(':id' => $category['nid'], ':uniacid' => $_W['uniacid']));
+				$nav_exist = table('site_nav')
+					->where(array(
+						'id' => $category['nid'],
+						'uniacid' => $_W['uniacid']
+					))
+					->get();
 			} else {
 				$nav_exist = '';
 			}
 			if (!empty($nav_exist)) {
-				pdo_update('site_nav', $nav, array('id' => $category['nid'], 'uniacid' => $_W['uniacid']));
+				table('site_nav')
+					->where(array(
+						'id' => $category['nid'],
+						'uniacid' => $_W['uniacid']
+					))
+					->fill($nav)
+					->save();
 			} else {
-				pdo_insert('site_nav', $nav);
+				table('site_nav')
+					->fill($nav)
+					->save();
 				$nid = pdo_insertid();
 				$data['nid'] = $nid;
 			}
 		} else {
 			if ($category['nid']) {
 				$data['nid'] = 0;
-				pdo_delete('site_nav', array('id' => $category['nid'], 'uniacid' => $_W['uniacid']));
+				table('site_nav')
+					->where(array(
+						'id' => $category['nid'],
+						'uniacid' => $_W['uniacid']
+					))
+					->delete();
 			}
 		}
 		if (!empty($id)) {
 			unset($data['parentid']);
-			pdo_update('site_category', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
+			table('site_category')
+				->where(array(
+					'id' => $id,
+					'uniacid' => $_W['uniacid']
+				))
+				->fill($data)
+				->save();
 		} else {
-			pdo_insert('site_category', $data);
+			table('site_category')->fill($data)->save();
 			$id = pdo_insertid();
 			$nav_url['url'] = "./index.php?c=site&a=site&cid={$id}&i={$_W['uniacid']}";
-			pdo_update('site_nav', $nav_url, array('id' => $data['nid'], 'uniacid' => $_W['uniacid']));
+			table('site_nav')
+				->where(array(
+					'id' => $data['nid'],
+					'uniacid' => $_W['uniacid']
+				))
+				->fill($nav_url)
+				->save();
 		}
 		itoast('更新分类成功！', url('site/category'), 'success');
 	}
@@ -183,12 +222,23 @@ if ($do == 'display') {
 			itoast('操作失败！', referer(), 'error');
 		}
 	}
-} else if ($do == 'change_status') {
+} elseif ($do == 'change_status') {
 	$id = intval($_GPC['id']);
-	$category_exist = pdo_get('site_category', array('id' => $id, 'uniacid' => $_W['uniacid']));
+	$category_exist = table('site_category')
+		->where(array(
+			'id' => $id,
+			'uniacid' => $_W['uniacid']
+		))
+		->get();
 	if (!empty($category_exist)) {
 		$status = $category_exist['enabled'] == 1 ? 0 : 1;
-		$result = pdo_update('site_category', array('enabled' => $status), array('id' => $id, 'uniacid' => $_W['uniacid']));
+		$result = table('site_category')
+			->where(array(
+				'id' => $id,
+				'uniacid' => $_W['uniacid']
+			))
+			->fill(array('enabled' => $status))
+			->save();
 		if ($result) {
 			iajax(0, '更改成功！', url('site/category'));
 		} else {

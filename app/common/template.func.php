@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
@@ -20,7 +20,7 @@ function template_compat($filename) {
 
 function template_page($id, $flag = TEMPLATE_DISPLAY) {
 	global $_W;
-	$page = pdo_fetch("SELECT * FROM ".tablename('site_page')." WHERE id = :id LIMIT 1", array(':id' => $id));
+	$page = table('site_page')->getById($id);
 	if (empty($page)) {
 		return error(1, 'Error: Page is not found');
 	}
@@ -303,14 +303,28 @@ function site_navs($params = array()) {
 		$condition['uniacid'] = $_W['uniacid'];
 		$condition['multiid'] = $multiid;
 		$fields = array('id', 'name', 'description', 'url', 'icon', 'css', 'position', 'module');
-		$navs = pdo_getall('site_nav', $condition, $fields, '', array('section ASC', 'displayorder DESC', 'id DESC'));
+		$navs = table('site_nav')
+			->where($condition)
+			->select($fields)
+			->orderby(array(
+				'section' => 'ASC',
+				'displayorder' => 'DESC',
+				'id' => 'DESC'
+			))
+			->getall();
 	} else {
 		$condition = array(
 			'parentid' => $cid,
 			'enabled' => 1,
 			'uniacid' => $_W['uniacid']
 		);
-		$navs = pdo_getall('site_category', $condition, array(), '', array('displayorder DESC', 'id DESC'));
+		$navs = table('site_category')
+			->where($condition)
+			->orderby(array(
+				'displayorder' => 'DESC',
+				'id' => 'DESC'
+			))
+			->getall();
 	}
 	if(!empty($navs)) {
 		foreach ($navs as &$row) {
@@ -354,7 +368,7 @@ function site_article($params = array()) {
 	$condition = " WHERE uniacid = :uniacid ";
 	$pars = array(':uniacid' => $_W['uniacid']);
 	if (!empty($cid)) {
-		$category = pdo_getcolumn('site_category', array('id' => $cid, 'enabled' => 1), 'parentid');
+		$category = table('site_category')->where(array('id' => $cid, 'enabled' => 1))->getcolumn('parentid');
 		if (!empty($category)) {
 			$condition .= " AND ccate = :ccate ";
 			$pars[':ccate'] = $cid;
@@ -364,7 +378,12 @@ function site_article($params = array()) {
 			$pars[':ccate'] = ARTICLE_CCATE;
 		}
 	} else {
-		$category_list = pdo_getall('site_category', array('uniacid' => $_W['uniacid'], 'multiid' => $multiid), array(), 'id');
+		$category_list = table('site_category')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'multiid' => $multiid
+			))
+			->getall('id');
 		$category_list = implode(',', array_keys($category_list));
 		if (!empty($category_list)) {
 			$condition .= " AND (pcate IN (". $category_list .") OR ccate IN (". $category_list .") OR pcate = 0 AND ccate = 0)";
@@ -394,14 +413,22 @@ function site_article($params = array()) {
 function site_category($params = array()) {
 	global $_GPC, $_W;
 	extract($params);
-	if (!isset($parentid)) {
-		$condition = "";
-	} else {
+	$where['uniacid'] = $_W['uniacid'];
+	if (isset($parentid)) {
 		$parentid = intval($parentid);
-		$condition = " AND parentid = '$parentid'";
+		$where['parentid'] = $parentid;
 	}
 	$category = array();
-	$result = pdo_fetchall("SELECT * FROM ".tablename('site_category')." WHERE uniacid = '{$_W['uniacid']}' $condition ORDER BY parentid ASC, displayorder ASC, id ASC ");
+
+	$result = table('site_category')
+		->where($where)
+		->orderby(array(
+			'parentid' => 'ASC',
+			'displayorder' => 'ASC',
+			'id' => 'ASC'
+		))
+		->getall();
+
 	if (!empty($result)) {
 		foreach ($result as $row) {
 			if(empty($row['linkurl'])) {
@@ -434,12 +461,22 @@ function site_slide_search($params = array()) {
 		$params['limit'] = 8;
 	}
 	if(empty($params['multiid'])) {
-		$multiid = pdo_fetchcolumn('SELECT default_site FROM ' . tablename('uni_settings') . ' WHERE uniacid = :id', array(':id' => $_W['uniacid']));
+		$multiid = table('uni_settings')->where(array('uniacid' => $_W['uniacid']))->getcolumn('default_site');
 	} else{
 		$multiid = intval($params['multiid']);
 	}
-	$sql = "SELECT * FROM " . tablename('site_slide') . " WHERE uniacid = '{$_W['uniacid']}' AND multiid = {$multiid} ORDER BY `displayorder` DESC, `id` DESC LIMIT " . intval($params['limit']);
-	$list = pdo_fetchall($sql);
+
+	$list = table('site_slide')
+		->where(array(
+			'uniacid' => $_W['uniacid'],
+			'multiid' => $multiid
+		))
+		->orderby(array(
+			'displayorder' => 'DESC',
+			'id' => 'DESC'
+		))
+		->getall();
+
 	if(!empty($list)) {
 		foreach($list as &$row) {
 			if (!strexists($row['url'], './')) {
@@ -462,30 +499,29 @@ function site_widget_link($params = array()) {
 	$widget = json_decode($params['widgetdata'], true);
 	$widgetparams = !empty($widget['params']) ? $widget['params'] : array();
 
-	$sql = 'SELECT * FROM ' .tablename('site_article')." WHERE uniacid = :uniacid ";
-	$sqlparams = array(':uniacid' => $widget['uniacid']);
+	$table = table('site_article');
+	$where['uniacid'] = $widget['uniacid'];
 	if (!empty($widgetparams['selectCate']['pid'])) {
-		$sql .= " AND pcate = :pid";
-		$sqlparams[':pid'] = $widgetparams['selectCate']['pid'];
+		$where['pcate'] = $widgetparams['selectCate']['pid'];
 	}
 	if (!empty($widgetparams['selectCate']['cid'])) {
-		$sql .= " AND ccate = :cid";
-		$sqlparams[':cid'] = $widgetparams['selectCate']['cid'];
+		$where['ccate'] = $widgetparams['selectCate']['cid'];
 	}
 	if (!empty($widgetparams['iscommend'])) {
-		$sql .= " AND iscommend = '1'";
+		$where['iscommend'] = 1;
 	}
 	if (!empty($widgetparams['ishot'])) {
-		$sql .= " AND ishot = '1'";
+		$where['ishot'] = 1;
 	}
+	$table->where($where);
 	if (!empty($widgetparams['isnew'])) {
-		$sql .= " ORDER BY id DESC ";
+		$table->orderby(array('id' => 'DESC'));
 	}
 	if (!empty($widgetparams['pageSize'])) {
 		$limit = intval($widgetparams['pageSize']);
-		$sql .= " LIMIT {$limit}";
+		$table->limit($limit);
 	}
-	$list = pdo_fetchall($sql, $sqlparams);
+	$list = $table->getall();
 	if (!empty($list)) {
 		foreach ($list as $i => &$row) {
 			$row['title'] = cutstr($row['title'], 20, true);
@@ -501,14 +537,22 @@ function site_quickmenu() {
 	global $_W, $_GPC;
 
 	if ($_GPC['c'] == 'mc' || $_GPC['c'] == 'activity') {
-		$quickmenu = pdo_fetch("SELECT html, params FROM ".tablename('site_page')." WHERE uniacid = :uniacid AND type = '4' AND status = '1'", array(':uniacid' => $_W['uniacid']));
+		$quickmenu = table('site_page')
+			->select(array('html', 'params'))
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'type' => 4,
+				'status' => 1
+			))
+			->get();
+
 	} elseif ($_GPC['c'] == 'auth') {
 		return false;
 	} else {
 		$multiid = intval($_GPC['t']);
 		if (empty($multiid) && !empty($_GPC['__multiid'])) {
 			$id = intval($_GPC['__multiid']);
-			$site_multi_info = pdo_get('site_multi', array('id' => $id,'uniacid' => $_W['uniacid']));
+			$site_multi_info = table('site_multi')->getById($id, $_W['uniacid']);
 			$multiid = empty($site_multi_info) ? '' : $id;
 		} else {
 			if(!($_GPC['c'] == 'home' && $_GPC['a'] == 'page')){
@@ -519,7 +563,14 @@ function site_quickmenu() {
 			$setting = uni_setting($_W['uniacid'], array('default_site'));
 			$multiid = $setting['default_site'];
 		}
-		$quickmenu = pdo_fetch("SELECT html, params FROM ".tablename('site_page')." WHERE multiid = :multiid AND type = '2' AND status = '1'", array(':multiid' => $multiid));
+		$quickmenu = table('site_page')
+			->select(array('html', 'params'))
+			->where(array(
+				'multiid' => $multiid,
+				'type' => 2,
+				'status' => 1
+			))
+			->get();
 	}
 	if (empty($quickmenu)) {
 		return false;

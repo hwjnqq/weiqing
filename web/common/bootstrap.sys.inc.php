@@ -1,7 +1,7 @@
 <?php
 /**
  * 初始化web端数据
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -20,7 +20,7 @@ load()->model('switch');
 $_W['token'] = token();
 $session = json_decode(authcode($_GPC['__session']), true);
 if (is_array($session)) {
-	$user = user_single(array('uid'=>$session['uid']));
+	$user = user_single(array('uid' => $session['uid']));
 	if (is_array($user) && $session['hash'] === $user['hash']) {
 		$_W['uid'] = $user['uid'];
 		$_W['username'] = $user['username'];

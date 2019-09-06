@@ -1,7 +1,7 @@
 <?php
 /**
  * 应用列表
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -12,7 +12,7 @@ load()->model('miniapp');
 $dos = array('display', 'switch', 'have_permission_uniacids', 'accounts_dropdown_menu', 'rank', 'set_default_account', 'switch_last_module', 'init_uni_modules');
 $do = in_array($do, $dos) ? $do : 'display';
 
-if ($do == 'switch_last_module') {
+if ('switch_last_module' == $do) {
 	$last_module = switch_get_module_display();
 	if (!empty($last_module)) {
 		$account_info = uni_fetch($last_module['uniacid']);
@@ -23,7 +23,7 @@ if ($do == 'switch_last_module') {
 	$do = 'display';
 }
 
-if ($do == 'display') {
+if ('display' == $do) {
 	$pageindex = max(1, intval($_GPC['page']));
 	$pagesize = 20;
 
@@ -45,11 +45,11 @@ if ($do == 'display') {
 	$modules_rank_list = $modules_rank_table->getAllByUid($_W['uid']);
 
 	$module_support_types = module_support_type();
-	foreach($own_account_modules['modules'] as $account_module_name => &$account_module_info) {
-		if ($account_module_info['role'] == ACCOUNT_MANAGE_NAME_CLERK || $account_module_info['role'] == ACCOUNT_MANAGE_NAME_OPERATOR || $account_module_info['role'] == ACCOUNT_MANAGE_NAME_MANAGER) {
+	foreach ($own_account_modules['modules'] as $account_module_name => &$account_module_info) {
+		if (ACCOUNT_MANAGE_NAME_CLERK == $account_module_info['role'] || ACCOUNT_MANAGE_NAME_OPERATOR == $account_module_info['role'] || ACCOUNT_MANAGE_NAME_MANAGER == $account_module_info['role']) {
 			$user_permission_table = table('users_permission');
 			$operator_modules_permissions = $user_permission_table->getAllUserModulePermission($_W['uid'], $account_module_info['uniacid']);
-			# 如果权限是店员, 检测过滤掉其他没有权限的模块
+			// 如果权限是店员, 检测过滤掉其他没有权限的模块
 			$user_module_permission_info = $user_permission_table->getUserPermissionByType($_W['uid'], $account_module_info['uniacid'], $account_module_info['module_name']);
 			if (!$user_module_permission_info && !empty($operator_modules_permissions)) {
 				unset($own_account_modules['modules'][$account_module_name]);
@@ -70,14 +70,13 @@ if ($do == 'display') {
 			$account_module_info['default_uniacid'] = $default_module_list[$account_module_info['module_name']]['default_uniacid'];
 		}
 
-		if ($_W['highest_role'] == ACCOUNT_MANAGE_NAME_CLERK) {
+		if (ACCOUNT_MANAGE_NAME_CLERK == $_W['highest_role']) {
 			$account_module_info['uniacid'] = $account_module_info['permission_uniacid'];
 			$account_module_info['default_uniacid'] = $account_module_info['permission_uniacid'];
 		}
 
 		$uni_account_info = uni_fetch($account_module_info['uniacid']);
 		$account_module_info['account_name'] = $uni_account_info['name'];
-		$account_module_info['acid'] = $uni_account_info['acid'];
 		$account_module_info['account_type'] = $uni_account_info['account_type'];
 		$account_module_info['account_logo'] = $uni_account_info['logo'];
 
@@ -95,7 +94,6 @@ if ($do == 'display') {
 			$account_module_info['default_account_type'] = $account_module_info['default_account_info']['type'];
 			$account_module_info['default_account_logo'] = $account_module_info['default_account_info']['logo'];
 		}
-
 	}
 	unset($account_module_info);
 
@@ -104,14 +102,14 @@ if ($do == 'display') {
 	foreach ($own_account_modules['modules'] as $sort_key => $sort_val) {
 		$sort_arr[$sort_key] = $sort_val['rank'];
 	}
-	array_multisort($sort_arr,SORT_DESC,$own_account_modules['modules']);
+	array_multisort($sort_arr, SORT_DESC, $own_account_modules['modules']);
 
 	//用于判断初始是否加载数据
 	$own_account_modules['system_have_modules'] = table('modules')->where('issystem !=', 1)->get();
 	template('module/display');
 }
 
-if ($do == 'rank') {
+if ('rank' == $do) {
 	$module_name = trim($_GPC['module_name']);
 	$uniacid = intval($_GPC['uniacid']);
 
@@ -123,7 +121,7 @@ if ($do == 'rank') {
 	itoast('更新成功！', referer(), 'success');
 }
 
-if ($do == 'switch') {
+if ('switch' == $do) {
 	$module_name = trim($_GPC['module_name']);
 	$module_info = module_fetch($module_name);
 	$module_name = empty($module_info['main_module']) ? $module_name : $module_info['main_module'];
@@ -154,13 +152,13 @@ if ($do == 'switch') {
 	itoast('', $url, 'success');
 }
 
-if ($do == 'have_permission_uniacids') {
+if ('have_permission_uniacids' == $do) {
 	$module_name = trim($_GPC['module_name']);
 	$accounts_list = module_link_uniacid_fetch($_W['uid'], $module_name);
 	iajax(0, $accounts_list);
 }
 
-if ($do == 'accounts_dropdown_menu') {
+if ('accounts_dropdown_menu' == $do) {
 	$module_name = trim($_GPC['module_name']);
 	if (empty($module_name)) {
 		exit();
@@ -181,7 +179,7 @@ if ($do == 'accounts_dropdown_menu') {
 	exit;
 }
 
-if ($do == 'set_default_account') {
+if ('set_default_account' == $do) {
 	$uniacid = intval($_GPC['uniacid']);
 	$module_name = safe_gpc_string($_GPC['module_name']);
 	if (empty($uniacid) || empty($module_name)) {
@@ -195,12 +193,12 @@ if ($do == 'set_default_account') {
 	}
 }
 
-if ($do == 'init_uni_modules') {
+if ('init_uni_modules' == $do) {
 	$pageindex = max(1, intval($_GPC['pageindex']));
 	$pagesize = 20;
 	$total = table('account')->count();
-	$total = ceil($total/$pagesize);
-	$init_accounts = table('account')->searchWithPage($pageindex, $pagesize)->getUniAccountList();
+	$total = ceil($total / $pagesize);
+	$init_accounts = table('account')->searchWithPage($pageindex, $pagesize)->getAll();
 	if (empty($init_accounts)) {
 		iajax(1, 'finished');
 	}

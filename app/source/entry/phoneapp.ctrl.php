@@ -17,7 +17,6 @@ if (!empty($_W['uniacid'])) {
 $site = WeUtility::createModulePhoneapp($entry['module']);
 $method = 'doPage' . ucfirst($entry['do']);
 if(!is_error($site)) {
-	$site->version = $version;
 	exit($site->$method());
 }
 message('模块不存在或是 '.$method.' 方法不存在', '', 'error');

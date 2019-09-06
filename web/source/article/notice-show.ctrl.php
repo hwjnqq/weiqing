@@ -1,19 +1,18 @@
 <?php
 /**
- * 
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('article');
 load()->model('user');
 
-$dos = array( 'detail', 'list', 'like_comment', 'more_comments');
+$dos = array('detail', 'list', 'like_comment', 'more_comments');
 $do = in_array($do, $dos) ? $do : 'list';
 
-if($do == 'detail') {
+if ('detail' == $do) {
 	$id = intval($_GPC['id']);
 	$notice = article_notice_info($id);
-	if(is_error($notice)) {
+	if (is_error($notice)) {
 		itoast('公告不存在或已删除', referer(), 'error');
 	}
 	$comment_status = setting_load('notice_comment_status');
@@ -38,14 +37,14 @@ if($do == 'detail') {
 
 	pdo_update('article_notice', array('click +=' => 1), array('id' => $id));
 
-	if(!empty($_W['uid'])) {
+	if (!empty($_W['uid'])) {
 		pdo_update('article_unread_notice', array('is_new' => 0), array('notice_id' => $id, 'uid' => $_W['uid']));
 	}
 	$title = $notice['title'];
 }
 
-if ($do == 'more_comments') {
-	$order = empty($_GPC['order']) || $_GPC['order'] == 'id' ? 'id' : 'like_num';
+if ('more_comments' == $do) {
+	$order = empty($_GPC['order']) || 'id' == $_GPC['order'] ? 'id' : 'like_num';
 	$pageindex = max(1, intval($_GPC['page']));
 	$pagesize = 15;
 	$comment_table = table('article_comment');
@@ -67,11 +66,11 @@ if ($do == 'more_comments') {
 	}
 	iajax(0, array(
 		'list' => array_values($comments),
-		'pager' => pagination($total, $pageindex, $pagesize, '', array('ajaxcallback' => true, 'callbackfuncname' => 'changePage'))
+		'pager' => pagination($total, $pageindex, $pagesize, '', array('ajaxcallback' => true, 'callbackfuncname' => 'changePage')),
 	));
 }
 
-if ($do == 'like_comment') {
+if ('like_comment' == $do) {
 	$articleid = intval($_GPC['articleid']);
 	$comment_id = intval($_GPC['id']);
 	$article_comment_table = table('article_comment');
@@ -91,7 +90,7 @@ if ($do == 'like_comment') {
 	}
 }
 
-if($do == 'list') {
+if ('list' == $do) {
 	$categroys = article_categorys('notice');
 	$categroys[0] = array('title' => '所有公告');
 

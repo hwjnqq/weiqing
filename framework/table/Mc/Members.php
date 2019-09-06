@@ -1,6 +1,6 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC
  */
 namespace We7\Table\Mc;
 
@@ -147,5 +147,10 @@ class Members extends \We7Table {
 	public function searchWithMobileOrEmail($mobile_or_email) {
 		$this->query->where('mobile', $mobile_or_email)->whereor('email', $mobile_or_email);
 		return $this;
+	}
+	public function searchWithMappingFans() {
+		return $this->query->from('mc_members', 'a')
+			->leftjoin('mc_mapping_fans', 'b')
+			->on(array('a.uid' => 'b.uid'));
 	}
 }

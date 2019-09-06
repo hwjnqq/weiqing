@@ -1,19 +1,24 @@
 {template 'common/header'}
-<div id="js-user-edit-account" ng-controller="UserEditAccount" ng-cloak>
+<span id="js-user-edit-account" ng-controller="UserEditAccount" ng-cloak>
 	{template 'user/edit-header'}
-
 	<table class="table we7-table ">
+		<col width="400px">
+		<col width="200px">
 		<tr>
-			<th>账户使用期限</th>
-			<th class="text-left">总有效天数：{$total_timelimit} </th>
-			<th class="text-right">有效期至：{$endtime}</th>
+			<th class="user-dateline-box">
+				<span class="color-default">总计</span>用户有效期<i  data-trigger="hover" data-toggle="popover" data-placement="bottom"  data-html="true" data-content="</i>
+					用户有效期由<span class='color-red'>用户所在的用户组</span>、主管理员设置的<span class='color-red'>附加时间</span>、用户自己在<span class='color-red'>商城购买的用户组</span>构成。请单独修改对应选项" class='wi wi-info color-default'></i>
+			</th>
+			<th class="text-left">
+				<span class="color-default">{$total_timelimit}</span>
+			</th>
+			<th class="text-right">到期时间：{$endtime}</th>
 		</tr>
 		<tr>
-			<td>所属用户组：{{ group_info.name }}</td>
-			<td class="text-left">有 效 天 数：
-				<span ng-if="!group_info"> 0 </span>
+			<td class="color-gray">所属用户组：{{ group_info.name }}</td>
+			<td class="text-left">
 				<span ng-if="group_info && group_info.timelimit == 0"> 永久 </span>
-				<span ng-if="group_info && group_info.timelimit != 0"> {{ group_info.timelimit }} </span>
+				<span ng-if="group_info && group_info.timelimit != 0"> {{ group_info.timelimit }} 天</span>
 			</td>
 			<td class="text-right">
 				<a href="javascript:;" ng-if="user.groupid != 0" class="color-default" ng-click="delUserGroup(group_info.id)">删除</a>
@@ -21,8 +26,8 @@
 			</td>
 		</tr>
 		<tr>
-			<td>附加权限</td>
-			<td class="text-left">有 效 天 数：{{ extra_limit_info.timelimit * 1 }} </td>
+			<td class="color-gray">附加权限</td>
+			<td class="text-left">{{ extra_limit_info.timelimit > 0 ? (extra_limit_info.timelimit * 1 + ' 天') : '永久' }}</td>
 			<td class="text-right">
 				<a href="#date" class="color-default" data-toggle="modal" data-target="#date" >修改</a>
 			</td>

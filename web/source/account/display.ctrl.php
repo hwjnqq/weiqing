@@ -1,9 +1,8 @@
 <?php
 /**
  * 公众号列表
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
-
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('miniapp');
@@ -12,7 +11,7 @@ load()->model('phoneapp');
 $dos = array('rank', 'display', 'switch', 'platform');
 $do = in_array($_GPC['do'], $dos) ? $do : 'display';
 
-if ($do == 'platform') {
+if ('platform' == $do) {
 	$url = url('account/display');
 	$last_uniacid = switch_get_account_display();
 	if (empty($last_uniacid)) {
@@ -27,9 +26,9 @@ if ($do == 'platform') {
 	}
 	$account_info = uni_fetch($last_uniacid);
 
-	if ($account_info['type_sign'] == ACCOUNT_TYPE_SIGN || $account_info['type_sign'] == XZAPP_TYPE_SIGN) {
+	if (ACCOUNT_TYPE_SIGN == $account_info['type_sign'] || XZAPP_TYPE_SIGN == $account_info['type_sign']) {
 		$url = url('home/welcome');
-	} elseif ($account_info['type_sign'] == WEBAPP_TYPE_SIGN) {
+	} elseif (WEBAPP_TYPE_SIGN == $account_info['type_sign']) {
 		$url = url('webapp/home/display');
 	} else {
 		$last_version = miniapp_fetch($last_uniacid);
@@ -40,7 +39,7 @@ if ($do == 'platform') {
 	itoast('', $url);
 }
 
-if ($do == 'display') {
+if ('display' == $do) {
 	$account_info = permission_user_account_num($_W['uid']);
 	$user_founder_info = table('users_founder_own_users')->getFounderByUid($_W['uid']);
 	$user_founder_uid = !empty($user_founder_info) && !empty($user_founder_info['founder_uid']) ? $user_founder_info['founder_uid'] : 0;
@@ -55,7 +54,7 @@ if ($do == 'display') {
 	$title = safe_gpc_string($_GPC['title']);
 	$type = in_array($_GPC['type'], array_keys($account_all_type_sign)) ? $_GPC['type'] : 'all';
 
-	if ($type == 'all') {
+	if ('all' == $type) {
 		$condition = array_keys($account_all_type);
 	} else {
 		$condition = $account_all_type_sign[$type]['contain_type'];
@@ -68,11 +67,11 @@ if ($do == 'display') {
 		$table->searchWithKeyword($keyword);
 	}
 	$letter = safe_gpc_string($_GPC['letter']);
-	if (!empty($letter) && $letter != '全部') {
+	if (!empty($letter) && '全部' != $letter) {
 		$table->searchWithLetter($letter);
 	}
 
-	if ($type == 'all') {
+	if ('all' == $type) {
 		$total_list = array();
 		foreach ($account_all_type as $account_type) {
 			$total_list[$account_type['type_sign']] = 0;
@@ -111,23 +110,23 @@ if ($do == 'display') {
 		if (!user_is_founder($_W['uid'])) {
 			$account_user_roles = table('uni_account_users')->where('uid', $_W['uid'])->getall('uniacid');
 		}
-		foreach($list as $k => &$account) {
+		foreach ($list as $k => &$account) {
 			$account = uni_fetch($account['uniacid']);
 			$account['support_version'] = $account->supportVersion;
 			$account['type_name'] = $account->typeName;
 			$account['user_role'] = $account_user_roles[$account['uniacid']]['role'];
-			if ($account['user_role'] == ACCOUNT_MANAGE_NAME_CLERK) {
+			if (ACCOUNT_MANAGE_NAME_CLERK == $account['user_role']) {
 				unset($list[$k]);
 				continue;
 			}
 
-			if ($account['endtime'] != USER_ENDTIME_GROUP_EMPTY_TYPE && $account['endtime'] != USER_ENDTIME_GROUP_UNLIMIT_TYPE && $account['endtime'] < TIMESTAMP) {
+			if (USER_ENDTIME_GROUP_EMPTY_TYPE != $account['endtime'] && USER_ENDTIME_GROUP_UNLIMIT_TYPE != $account['endtime'] && $account['endtime'] < TIMESTAMP) {
 				$account['endtime_status'] = 1;
 			} else {
 				$account['endtime_status'] = 0;
 			}
 
-			if ($account->typeSign == WXAPP_TYPE_SIGN) {
+			if (WXAPP_TYPE_SIGN == $account->typeSign) {
 				$version_info = miniapp_version_all($account['uniacid']);
 				if (empty($version_info)) {
 					continue;
@@ -135,17 +134,18 @@ if ($do == 'display') {
 				foreach ($version_info as $version_key => $version_val) {
 					$last_modules = $version_val['last_modules'] ? current($version_val['last_modules']) : array();
 				}
-
-				$modules = current($version_info[0]['modules']);
-				$account['need_upload'] = $last_modules['version'] < $modules['version'] ? 1 : 0;
+				if (!empty($version_info[0]['modules'])) {
+					$modules = current($version_info[0]['modules']);
+					$account['need_upload'] = $last_modules['version'] < $modules['version'] ? 1 : 0;
+				}
 			}
 
 			switch ($account['type']) {
-				case ACCOUNT_TYPE_APP_NORMAL :
-				case ACCOUNT_TYPE_APP_AUTH :
-				case ACCOUNT_TYPE_ALIAPP_NORMAL :
-				case ACCOUNT_TYPE_BAIDUAPP_NORMAL :
-				case ACCOUNT_TYPE_TOUTIAOAPP_NORMAL :
+				case ACCOUNT_TYPE_APP_NORMAL:
+				case ACCOUNT_TYPE_APP_AUTH:
+				case ACCOUNT_TYPE_ALIAPP_NORMAL:
+				case ACCOUNT_TYPE_BAIDUAPP_NORMAL:
+				case ACCOUNT_TYPE_TOUTIAOAPP_NORMAL:
 					$account['versions'] = miniapp_get_some_lastversions($account['uniacid']);
 					if (!empty($account['versions'])) {
 						foreach ($account['versions'] as $version) {
@@ -155,7 +155,7 @@ if ($do == 'display') {
 						}
 					}
 					break;
-				case ACCOUNT_TYPE_PHONEAPP_NORMAL :
+				case ACCOUNT_TYPE_PHONEAPP_NORMAL:
 					$account['versions'] = phoneapp_get_some_lastversions($account['uniacid']);
 					if (!empty($account['versions'])) {
 						foreach ($account['versions'] as $version) {
@@ -177,7 +177,7 @@ if ($do == 'display') {
 	template('account/display');
 }
 
-if ($do == 'rank' && $_W['isajax'] && $_W['ispost']) {
+if ('rank' == $do && $_W['isajax'] && $_W['ispost']) {
 	$uniacid = intval($_GPC['uniacid']);
 	if (!empty($uniacid)) {
 		$exist = uni_fetch($uniacid);
@@ -189,16 +189,16 @@ if ($do == 'rank' && $_W['isajax'] && $_W['ispost']) {
 	iajax(0, '更新成功！', '');
 }
 
-if ($do == 'switch') {
+if ('switch' == $do) {
 	$uniacid = intval($_GPC['uniacid']);
 	if (!empty($uniacid)) {
 		$role = permission_account_user_role($_W['uid'], $uniacid);
-		if(empty($role)) {
+		if (empty($role)) {
 			itoast('操作失败, 非法访问.', '', 'error');
 		}
 		$account_info = uni_fetch($uniacid);
 
-		if ($account_info['endtime'] != USER_ENDTIME_GROUP_EMPTY_TYPE && $account_info['endtime'] != USER_ENDTIME_GROUP_UNLIMIT_TYPE && TIMESTAMP > $account_info['endtime'] && !user_is_founder($_W['uid'], true)) {
+		if (USER_ENDTIME_GROUP_EMPTY_TYPE != $account_info['endtime'] && USER_ENDTIME_GROUP_UNLIMIT_TYPE != $account_info['endtime'] && TIMESTAMP > $account_info['endtime'] && !user_is_founder($_W['uid'], true)) {
 			$type_sign = $account_info->typeSign;
 			$expired_message_settings = setting_load('account_expired_message');
 			$expired_message_settings = $expired_message_settings['account_expired_message'][$type_sign];
@@ -212,10 +212,10 @@ if ($do == 'switch') {
 		$module_name = safe_gpc_string($_GPC['module_name']);
 		$version_id = intval($_GPC['version_id']);
 
-		if ($account_info->supportVersion != STATUS_ON) {
+		if (STATUS_ON != $account_info->supportVersion) {
 			if (empty($module_name)) {
 				$url = url('home/welcome');
-				if ($type == ACCOUNT_TYPE_WEBAPP_NORMAL) {
+				if (ACCOUNT_TYPE_WEBAPP_NORMAL == $type) {
 					$url = url('webapp/home/display');
 				}
 			} else {
@@ -228,7 +228,7 @@ if ($do == 'switch') {
 			}
 		} else {
 			if (empty($version_id)) {
-				if ($type == ACCOUNT_TYPE_PHONEAPP_NORMAL) {
+				if (ACCOUNT_TYPE_PHONEAPP_NORMAL == $type) {
 					$versions = phoneapp_get_some_lastversions($uniacid);
 				} else {
 					$versions = miniapp_get_some_lastversions($uniacid);
