@@ -253,30 +253,6 @@ if($action == 'db') {
 			), $config);
 			$verfile = IA_ROOT . '/framework/version.inc.php';
 			$dbfile = IA_ROOT . '/data/db.php';
-			if($_POST['type'] == 'remote') {
-				$link = NULL;
-				$ins = remote_install();
-				if(empty($ins)) {
-					die('<script type="text/javascript">alert("连接不到服务器, 请稍后重试！");history.back();</script>');
-				}
-				if($ins == 'error') {
-					die('<script type="text/javascript">alert("版本错误，请确认是否为微擎最新版安装文件！");history.back();</script>');
-				}
-				$link = new PDO("mysql:dbname={$db['name']};host={$db['server']};port={$db['port']}", $db['username'], $db['password']);
-				$link->exec("SET character_set_connection=utf8, character_set_results=utf8, character_set_client=binary");
-				$link->exec("SET sql_mode=''");
-				$tmpfile = IA_ROOT . '/we7source.tmp';
-				file_put_contents($tmpfile, $ins);
-				$zip = new ZipArchive;
-				$res = $zip->open($tmpfile);
-				if ($res === TRUE) {
-					$zip->extractTo(IA_ROOT);
-					$zip->close();
-				} else {
-					die('<script type="text/javascript">alert("安装失败，请确认当前目录是否有写入权限！");history.back();</script>');
-				}
-				unlink($tmpfile);
-			}
 			if(file_exists(IA_ROOT . '/index.php') && is_dir(IA_ROOT . '/web') && file_exists($verfile) && file_exists($dbfile)) {
 				$dat = require $dbfile;
 				if(empty($dat) || !is_array($dat)) {
@@ -790,11 +766,7 @@ function tpl_install_db($error = '') {
 		$message = '<div class="alert alert-danger">发生错误: ' . $error . '</div>';
 	}
 	$insTypes = array();
-	if(file_exists(IA_ROOT . '/index.php') && is_dir(IA_ROOT . '/app') && is_dir(IA_ROOT . '/web')) {
-		$insTypes['local'] = ' checked="checked"';
-	} else {
-		$insTypes['remote'] = ' checked="checked"';
-	}
+	$insTypes['local'] = ' checked="checked"';
 	if (!empty($_POST['type'])) {
 		$insTypes = array();
 		$insTypes[$_POST['type']] = ' checked="checked"';
@@ -809,9 +781,6 @@ function tpl_install_db($error = '') {
 				<div class="form-group">
 					<label class="col-sm-2 control-label">安装方式</label>
 					<div class="col-sm-10">
-						<label class="radio-inline hidden">
-							<input type="radio" name="type" value="remote"{$insTypes['remote']}> 在线安装
-						</label>
 						<label class="radio-inline">
 							<input type="radio" name="type" value="local"{$insTypes['local']}{$disabled}> 离线安装
 						</label>
