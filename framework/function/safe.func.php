@@ -276,9 +276,9 @@ function safe_check_password($password) {
 	if (!$setting['register']['safe']) {
 		return true;
 	}
-	preg_match(PASSWORD_STRONG_REGULAR, $password, $out);
+	preg_match('/(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,30}/', $password, $out);
 	if (empty($out)) {
-		return error(-1, PASSWORD_STRONG_STATE);
+		return error(-1, '密码至少8-16个字符，至少1个大写字母，1个小写字母和1个数字，其他可以是任意字符');
 	} else {
 		return true;
 	}

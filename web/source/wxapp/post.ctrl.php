@@ -13,7 +13,7 @@ load()->classs('wxapp.platform');
 $dos = array('design_method', 'post', 'get_wxapp_modules', 'module_binding');
 $do = in_array($do, $dos) ? $do : 'post';
 $account_info = permission_user_account_num($_W['uid']);
-
+$_W['breadcrumb'] = '新建平台账号';
 if ('design_method' == $do) {
 	// 1 普通小程序  2 授权小程序
 	$choose = isset($_GPC['choose_type']) ? intval($_GPC['choose_type']) : 0;
@@ -196,7 +196,7 @@ if ('get_wxapp_modules' == $do) {
 			$path = '../addons/' . $module['name'];
 		}
 		$icon = $path . '/icon-custom.jpg';
-		if (!file_exists($cion)) {
+		if (!file_exists($icon)) {
 			$icon = $path . '/icon.jpg';
 			if (!file_exists($icon)) {
 				$icon = './resource/images/nopic-small.jpg';

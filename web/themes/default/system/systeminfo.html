@@ -13,17 +13,7 @@
 		</tr>
 		<tr>
 			<td class="text-left">产品系列</td>
-			<td class="text-left">
-				{if IMS_FAMILY == 'v'}
-				您的产品是开源版, 没有购买商业授权, 不能用于商业用途
-				{elseif IMS_FAMILY == 's'}
-				您的产品是授权版
-				{elseif IMS_FAMILY == 'x'}
-				您的产品是商业版
-				{else}
-				您的产品是单版
-				{/if}
-			</td>
+			<td class="text-left">{$info['family']}</td>
 		</tr>
 		<tr>
 			<td class="text-left">服务器系统</td>
@@ -69,44 +59,25 @@
 		<tr>
 			<td class="text-left">版权所有</td>
 			<td>
-				<a href="http://www.w7.cc/" target="_blank" style="color: #428bca;"><b>宿 州 市 微 擎 云 计 算 有 限 公 司</b></a>
+				<a href="http://www.w7.cc/" target="_blank" style="color: #428bca;"><b>{$info['company']}</b></a>
 			</td>
 		</tr>
 		<tr>
 			<td class="text-left">Team 成员</td>
 			<td class="text-left">
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">袁文涛</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">任超 (米粥)</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">马德坤</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">宋建君 (Gorden)</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">赵波</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">杨峰</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">卜睿君</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">张宏</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">高建业</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">葛海波</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">马莉娜</a>;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">樊永康</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">刘贵龙</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">郭维鹤</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">王玉</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">侯旭伟</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">翟佳佳</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">张拯</a>; &nbsp;
+				{loop $info['developers'] $developer}
+				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">{$developer}</a>; &nbsp;
+				{/loop}
 				<br /><br />
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">侯琪琪 (琪琪)</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">杨欣雨 (小雨)</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">赵小雷 (擎擎)</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">蔡帅帅 (小帅)</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">朱传宝 (阿宝)</a>; &nbsp;
-				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">蒋康康 (阿康)</a>; &nbsp;
-				<a class="lightlink2 smallfont" target="_blank" style="color: #428bca;">王鹏 (鹏鹏)</a>; &nbsp;
+				{loop $info['operators'] $operator}
+				<a href="javascript:;" class="lightlink2 smallfont" target="_blank" style="color: #428bca;">{$operator}</a>; &nbsp;
+				{/loop}
 			</td>
 		</tr>
 		<tr>
 			<td class="text-left">官方交流群</td>
 			<td>
-				<a target="_blank" href="https://jq.qq.com/?_wv=1027&k=5NzXzQ3" style="color: #428bca;">547025486</a>
+				<a target="_blank" href="{$info['exchange_group']['link']}" style="color: #428bca;">{$info['exchange_group']['title']}</a>
 			</td>
 		</tr>
 		<tr>
@@ -116,7 +87,6 @@
 				<a href="https://s.w7.cc/goods-1.html" class="lightlink2" target="_blank" style="color: #428bca;">购买授权</a>&nbsp;&nbsp;
 				<a href="https://s.w7.cc/" class="lightlink2" target="_blank" style="color: #428bca;">更多模块</a>&nbsp;&nbsp;
 				<a href="https://s.w7.cc/index.php?c=wiki&do=view&id=1" class="lightlink2" target="_blank" style="color: #428bca;">文档</a>&nbsp;&nbsp;
-				<a href="https://bbs.w7.cc/" class="lightlink2" target="_blank" style="color: #428bca;">讨论区</a>
 			</td>
 		</tr>
 	</table>

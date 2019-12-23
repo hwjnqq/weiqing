@@ -79,6 +79,7 @@ abstract class We7Command {
 	    self::line('php console.php make:config => 生成系统配置文件config.php');
 	    self::line('php console.php init:database => 初始化数据库脚本');
 	    self::line('php console.php change:founder => 修改创始人账号密码');
+	    self::line('php console.php reset:site => 重置站点信息');
     }
     
     public static function createCommand() {
@@ -106,6 +107,9 @@ abstract class We7Command {
 	           //php console.php change:founder username=admin password=159951
 	           return new We7ChangeFounderCommand();
             }
+	        if ($commandName == 'reset:site') {
+		        return new We7ResetSiteCommand();
+	        }
         }
         
         return null;
@@ -1083,6 +1087,28 @@ class We7ChangeFounderCommand extends We7Command {
 	    $userinfo = pdo_get('users', array('uid' => '1'));
 	    $password = user_hash($password, $userinfo['salt']);
 	    $result = pdo_update('users', array('username' => $username, 'password' => $password), array('uid' => $userinfo['uid']));
-        $this->line('创始人用户名密码更改成功！');
+	    if ($result) {
+		    $this->line('创始人用户名密码更改成功！');
+	    } else {
+		    $this->line('创始人用户名密码更改失败！');
+	    }
     }
+}
+
+class We7ResetSiteCommand extends We7Command {
+	public function handle()
+	{
+		global $_W;
+		$site_url = getenv('SITE_URL');
+		if (empty($site_url)) {
+			$this->line('站点URL不可为空！');
+			return false;
+		}
+		$result = ihttp_request('http://api.w7.cc/site/register/profile', $site_url);
+		if ($result) {
+			$this->line('重置站点成功！');
+		} else {
+			$this->line('重置站点失败！');
+		}
+	}
 }

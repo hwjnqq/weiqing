@@ -20,9 +20,10 @@ class Auth {
      * Return error code if parameter is not valid.
      */
     public static function createReusableSignature($expiration, $bucket, $filepath = null) {
-        $appId = Conf::APP_ID;
-        $secretId = Conf::SECRET_ID;
-        $secretKey = Conf::SECRET_KEY;
+		global $_W;
+		$appId = !empty($_W['setting']['remote']['cos']['appid']) ?$_W['setting']['remote']['cos']['appid']: Conf::APP_ID;
+		$secretId = !empty($_W['setting']['remote']['cos']['secretid']) ? $_W['setting']['remote']['cos']['secretid'] : Conf::SECRET_ID;
+		$secretKey = !empty($_W['setting']['remote']['cos']['secretkey']) ? $_W['setting']['remote']['cos']['secretkey'] : Conf::SECRET_KEY;
 
         if (empty($appId) || empty($secretId) || empty($secretKey)) {
             return self::AUTH_SECRET_ID_KEY_ERROR;
@@ -46,9 +47,10 @@ class Auth {
      * Return error code if parameter is not valid.
      */
     public static function createNonreusableSignature($bucket, $filepath) {
-        $appId = Conf::APP_ID;
-        $secretId = Conf::SECRET_ID;
-        $secretKey = Conf::SECRET_KEY;
+		global $_W;
+		$appId = !empty($_W['setting']['remote']['cos']['appid']) ? $_W['setting']['remote']['cos']['appid'] : Conf::APP_ID;
+		$secretId = !empty($_W['setting']['remote']['cos']['secretid']) ? $_W['setting']['remote']['cos']['secretid'] : Conf::SECRET_ID;
+		$secretKey = !empty($_W['setting']['remote']['cos']['secretkey']) ? $_W['setting']['remote']['cos']['secretkey'] : Conf::SECRET_KEY;
 
         if (empty($appId) || empty($secretId) || empty($secretKey)) {
             return self::AUTH_SECRET_ID_KEY_ERROR;

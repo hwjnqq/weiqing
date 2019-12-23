@@ -92,7 +92,7 @@ class Account extends \We7Table {
 				$users_uids[] = $uid;
 				$this->query->where('c.uid', $users_uids)->where('c.role', array('manager', 'owner', 'vice_founder'));
 			} else {
-				$this->query->where('c.uid', $uid);
+				$this->query->where('c.uid', $uid)->where('c.role <>', 'clerk');
 			}
 		}
 		if ($expire_type == 'expire') {
@@ -103,6 +103,10 @@ class Account extends \We7Table {
 		return $this;
 	}
 
+	public function searchWithRole($role) {
+		global $_W;
+		return $this->query->where('c.role', $role)->where('c.uid', $_W['uid']);
+	}
 	public function searchWithExprie() {
 		$this->query->where(array(
 			'b.endtime <' => TIMESTAMP,
@@ -146,7 +150,7 @@ class Account extends \We7Table {
 				$users = table('uni_account_users')
 					->searchWithUsers()
 					->where('a.role', 'owner')
-					->where('b.username LIKE', "%{$title}%");
+					->where('b.username', $title);
 				if (user_is_vice_founder($_W['uid'])) {
 					$uids = table('users_founder_own_users')->where('founder_uid', $_W['uid'])->getall('uid');
 					if (!empty($uid)) {
@@ -190,6 +194,12 @@ class Account extends \We7Table {
 	public function accountUniacidOrder($order = 'desc') {
 		$order = !empty($order) ? $order : 'desc';
 		$this->query->orderby('a.uniacid', $order);
+		return $this;
+	}
+
+	public function accountInitialsOrder($order = 'asc') {
+		$order = !empty($order) ? $order : 'asc';
+		$this->query->orderby('a.title_initial', $order);
 		return $this;
 	}
 
@@ -262,7 +272,7 @@ class Account extends \We7Table {
 	public function userOwnedAccount($uid = 0) {
 		global $_W;
 		$uid = intval($uid) > 0 ? intval($uid) : $_W['uid'];
-		if (! user_is_founder($uid, true)) {
+		if (!user_is_founder($uid, true)) {
 			$uniacid_list = table('uni_account_users')->getUsableAccountsByUid($uid);
 			if (empty($uniacid_list)) {
 				return array();
@@ -273,6 +283,7 @@ class Account extends \We7Table {
 			->leftjoin('account', 'a')
 			->on(array('u.default_acid' => 'a.acid'))
 			->where('a.isdeleted', 0)
+			->orderby('a.uniacid', 'DESC')
 			->getall('uniacid');
 	}
 

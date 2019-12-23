@@ -14,48 +14,56 @@ function uni_account_type_sign($type_sign = '') {
 	$all_account_type_sign = array(
 		ACCOUNT_TYPE_SIGN => array(
 			'contain_type' => array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH),
+			'level' => array(ACCOUNT_SUBSCRIPTION => '订阅号', ACCOUNT_SERVICE => '服务号', ACCOUNT_SUBSCRIPTION_VERIFY => '认证订阅号', ACCOUNT_SERVICE_VERIFY => '认证服务号'),
 			'icon' => 'wi wi-wx-circle',
 			'createurl' => url('account/post-step'),
 			'title' => '公众号',
 		),
 		WXAPP_TYPE_SIGN => array(
 			'contain_type' => array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_APP_PLATFORM),
+			'level' => array(),
 			'icon' => 'wi wi-wxapp',
 			'createurl' => url('wxapp/post/design_method'),
 			'title' => '微信小程序',
 		),
 		WEBAPP_TYPE_SIGN => array(
 			'contain_type' => array(ACCOUNT_TYPE_WEBAPP_NORMAL),
+			'level' => array(),
 			'icon' => 'wi wi-pc-circle',
 			'createurl' => url('account/create', array('sign' => 'webapp')),
 			'title' => 'PC',
 		),
 		PHONEAPP_TYPE_SIGN => array(
 			'contain_type' => array(ACCOUNT_TYPE_PHONEAPP_NORMAL),
+			'level' => array(),
 			'icon' => 'wi wi-app',
 			'createurl' => url('account/create', array('sign' => 'phoneapp')),
 			'title' => 'APP',
 		),
 		XZAPP_TYPE_SIGN => array(
 			'contain_type' => array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH),
+			'level' => array(),
 			'icon' => 'wi wi-xzapp',
 			'createurl' => url('xzapp/post-step'),
 			'title' => '熊掌号',
 		),
 		ALIAPP_TYPE_SIGN => array(
 			'contain_type' => array(ACCOUNT_TYPE_ALIAPP_NORMAL),
+			'level' => array(),
 			'icon' => 'wi wi-aliapp',
 			'createurl' => url('account/create', array('sign' => 'aliapp')),
 			'title' => '支付宝小程序',
 		),
 		BAIDUAPP_TYPE_SIGN => array(
 			'contain_type' => array(ACCOUNT_TYPE_BAIDUAPP_NORMAL),
+			'level' => array(),
 			'icon' => 'wi wi-baiduapp',
 			'createurl' => url('account/create', array('sign' => 'baiduapp')),
 			'title' => '百度小程序',
 		),
 		TOUTIAOAPP_TYPE_SIGN => array(
 			'contain_type' => array(ACCOUNT_TYPE_TOUTIAOAPP_NORMAL),
+			'level' => array(),
 			'icon' => 'wi wi-toutiaoapp',
 			'createurl' => url('account/create', array('sign' => 'toutiaoapp')),
 			'title' => '头条小程序',
@@ -230,8 +238,8 @@ function uni_account_type($type = 0) {
  * @return bool
  */
 function uni_need_account_info() {
-	global $controller, $action, $do;
-	if (defined('FRAME') && in_array(FRAME, array('account', 'wxapp'))) {
+	global $controller, $action, $do, $_GPC;
+	if (defined('FRAME') && in_array(FRAME, array('account', 'wxapp')) && $_GPC['m'] != 'store') {
 		return true;
 	}
 	if ($controller == 'miniapp') {
@@ -240,6 +248,23 @@ function uni_need_account_info() {
 		}
 	}
 	return false;
+}
+
+function uni_account_create_info() {
+	global $_W;
+	load()->model('permission');
+	$account_create_info = permission_user_account_num();
+	$account_all_type_sign = uni_account_type_sign();
+	foreach ($account_all_type_sign as $sign => &$sign_info) {
+		$sign_limit = $sign . '_limit';
+		$founder_sign_limit = 'founder_' . $sign . '_limit';
+		if (!empty($account_create_info[$sign_limit]) && (!empty($account_create_info[$founder_sign_limit]) && $_W['user']['owner_uid'] || empty($_W['user']['owner_uid'])) || !empty($account_create_info['store_' . $sign . '_limit']) || $_W['isfounder'] && !user_is_vice_founder()) {
+			$sign_info['can_create'] = true;
+		} else {
+			$sign_info['can_create'] = false;
+		}
+	}
+	return $account_all_type_sign;
 }
 
 /**
@@ -265,7 +290,7 @@ function uni_account_extra_info($uniacid) {
  * @param int $uid 指定操作用户
  * @return array
  */
-function uni_owned($uid = 0, $is_uni_fetch = true, $type = 'app') {
+function uni_owned($uid = 0, $is_uni_fetch = true, $type = 'account') {
 	global $_W;
 	$uid = intval($uid) > 0 ? intval($uid) : $_W['uid'];
 	$uniaccounts = array();
@@ -289,18 +314,18 @@ function uni_owned($uid = 0, $is_uni_fetch = true, $type = 'app') {
  * @param string $type 要查找的类型：公众号：app;小程序：wxapp;PC：webapp;
  * @return array()
  */
-function uni_user_accounts($uid = 0, $type = 'app') {
+function uni_user_accounts($uid = 0, $type = 'account') {
 	global $_W;
 	$uid = intval($uid) > 0 ? intval($uid) : $_W['uid'];
-	if (!in_array($type, array('app', 'wxapp', 'webapp', 'phoneapp', 'xzapp', 'aliapp', 'baiduapp', 'toutiaoapp'))) {
-		$type = 'app';
+	if (!in_array($type, array('account', 'wxapp', 'webapp', 'phoneapp', 'xzapp', 'aliapp', 'baiduapp', 'toutiaoapp'))) {
+		$type = 'account';
 	}
-	$type = $type == 'app' ? 'wechats' : $type;
 	$cachekey = cache_system_key('user_accounts', array('type' => $type, 'uid' => $uid));
 	$cache = cache_load($cachekey);
 	if (!empty($cache)) {
 		return $cache;
 	}
+	$type = in_array($type, array('account')) ? 'wechats' : $type;
 	$select_fields = 'w.acid, w.uniacid, w.name, a.type';
 	if (in_array($type, array('wechats', 'wxapp', 'xzapp'))) {
 		$select_fields .= ', w.level, w.key, w.secret, w.token';
@@ -309,10 +334,12 @@ function uni_user_accounts($uid = 0, $type = 'app') {
 	$params = array();
 	if (!user_is_founder($uid, true)) {
 		$select_fields .= ', u.role';
-		$where .= " LEFT JOIN " . tablename('uni_account_users') . " u ON u.uniacid = w.uniacid WHERE u.uid = :uid AND u.role IN(:role1, :role2) ";
+		$where .= " LEFT JOIN " . tablename('uni_account_users') . " u ON u.uniacid = w.uniacid WHERE u.uid = :uid AND u.role IN(:role1, :role2, :role3, :role4) ";
 		$params[':uid'] = $uid;
-		$params[':role1'] = ACCOUNT_MANAGE_NAME_OWNER;
-		$params[':role2'] = ACCOUNT_MANAGE_NAME_VICE_FOUNDER;
+		$params[':role1'] = ACCOUNT_MANAGE_NAME_OPERATOR;
+		$params[':role2'] = ACCOUNT_MANAGE_NAME_MANAGER;
+		$params[':role3'] = ACCOUNT_MANAGE_NAME_OWNER;
+		$params[':role4'] = ACCOUNT_MANAGE_NAME_VICE_FOUNDER;
 	}
 	$where .= !empty($where) ? " AND a.isdeleted <> 1 AND u.role IS NOT NULL" : " WHERE a.isdeleted <> 1";
 
@@ -378,6 +405,8 @@ function uni_fetch($uniacid = 0) {
 		return $account_api;
 	}
 	$account_api->__toArray();
+	$account_api['accessurl'] = $account_api['manageurl'] = wurl('account/post', array('uniacid' => $uniacid, 'account_type' => $account_api['type']));
+	$account_api['roleurl'] = wurl('account/post-user/edit', array('uniacid' => $uniacid, 'account_type' => $account_api['type']));
 	return $account_api;
 }
 
@@ -407,7 +436,6 @@ function uni_site_store_buy_goods($uniacid, $type = STORE_TYPE_MODULE) {
 	cache_write($cachekey, $site_store_buy_goods);
 	return $site_store_buy_goods;
 }
-
 
 /**
  * 获取指定公号下所有安装模块及模块信息
@@ -494,6 +522,10 @@ function uni_modules_by_uniacid($uniacid) {
 			}
 			if ($module_info[MODULE_SUPPORT_BAIDUAPP_NAME] != MODULE_SUPPORT_BAIDUAPP &&
 				in_array($account_info['type'], array(ACCOUNT_TYPE_BAIDUAPP_NORMAL))) {
+				continue;
+			}
+			if ($module_info[MODULE_SUPPORT_TOUTIAOAPP_NAME] != MODULE_SUPPORT_TOUTIAOAPP &&
+				in_array($account_info['type'], array(ACCOUNT_TYPE_TOUTIAOAPP_NORMAL))) {
 				continue;
 			}
 			if ($module_info[MODULE_SUPPORT_WXAPP_NAME] != MODULE_SUPPORT_WXAPP &&
@@ -781,8 +813,8 @@ function uni_templates() {
 
 	$extend = pdo_getall('uni_account_group', array('uniacid' => $_W['uniacid']), array(), 'groupid');//附加权限组
 	$uni_extend = pdo_get('uni_group', array('uniacid' => $_W['uniacid']));//附加应用
-	$owner_extend_groups = table('users_extra_group')->getUniGroupsByUid($_W['uid']);
-	$owner_extend_templates = table('users_extra_templates')->getExtraTemplatesIdsByUid($_W['uid']);
+	$owner_extend_groups = table('users_extra_group')->getUniGroupsByUid($owneruid);
+	$owner_extend_templates = table('users_extra_templates')->getExtraTemplatesIdsByUid($owneruid);
 	//为了统一返回数据格式,故用pdo_fetchall,实际只有一条
 	$template_default = pdo_fetchall("SELECT * FROM " . tablename('site_templates') . " WHERE name = 'default'", array(), 'id');
 
@@ -1088,6 +1120,11 @@ function account_create($uniacid, $account) {
 
 	$accountdata = array('uniacid' => $uniacid, 'type' => $type, 'hash' => random(8));
 	$user_create_account_info = permission_user_account_num();
+
+	if (!user_is_founder($_W['uid'], true)  && $_W['user']['endtime'] > USER_ENDTIME_GROUP_UNLIMIT_TYPE) {
+		$accountdata['endtime'] = $_W['user']['endtime'];
+	}
+
 	if (empty($_W['isfounder']) && empty($user_create_account_info["usergroup_{$type_sign}_limit"])) {
 		$accountdata['endtime'] = strtotime('+1 month', time());
 		pdo_insert('site_store_create_account', array('endtime' => strtotime('+1 month', time()), 'uid' => $_W['uid'], 'uniacid' => $uniacid, 'type' => $type));
@@ -1256,14 +1293,13 @@ function account_delete($acid) {
 
 		//遍历全部表删除公众号数据
 		$tables = array(
-			'account','account_wechats', 'account_wxapp', 'wxapp_versions', 'account_webapp', 'account_phoneapp',
-			'phoneapp_versions','core_paylog','core_resource',
+			'account','account_wechats', 'account_wxapp', 'wxapp_versions', 'account_webapp', 'account_phoneapp','core_paylog',
 			 'cover_reply', 'mc_chats_record','mc_credits_recharge','mc_credits_record',
-			'mc_fans_groups','mc_groups','mc_handsel','mc_mapping_fans','mc_mapping_ucenter','mc_mass_record',
+			'mc_fans_groups','mc_groups','mc_handsel','mc_mapping_fans','mc_mass_record',
 			'mc_member_address','mc_member_fields','mc_members','menu_event',
 			'qrcode','qrcode_stat', 'rule','rule_keyword','site_article','site_category','site_multi','site_nav','site_slide',
 			'site_styles','site_styles_vars','stat_keyword', 'stat_rule','uni_account','uni_account_modules','uni_account_users','uni_settings', 'uni_group', 'uni_verifycode','users_permission',
-			'mc_member_fields', 'wechat_news', 'users_lastuse',
+			'mc_member_fields', 'wechat_news', 'users_lastuse', 'users_operate_history', 'users_operate_star'
 		);
 		if (!empty($tables)) {
 			foreach ($tables as $table) {

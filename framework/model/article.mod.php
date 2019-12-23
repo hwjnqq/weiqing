@@ -62,6 +62,11 @@ function article_news_all($filter = array(), $pindex = 1, $psize = 10) {
 	$limit = ' LIMIT ' . ($pindex - 1) * $psize . ',' . $psize;
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('article_news') . $condition, $params);
 	$news = pdo_fetchall("SELECT * FROM " . tablename('article_news') . $condition . " ORDER BY " . $order . " DESC " . $limit, $params, 'id');
+	if (!empty($news)) {
+		foreach ($news as $key => $new) {
+			$news[$key]['createtime'] = date('Y-m-d H:i:s', $new['createtime']);
+		}
+	}
 	return array('total' => $total, 'news' => $news);
 }
 
@@ -82,8 +87,12 @@ function article_notice_all($filter = array(), $pindex = 1, $psize = 10) {
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('article_notice') . $condition, $params);
 	$notice = pdo_fetchall("SELECT * FROM " . tablename('article_notice') . $condition . " ORDER BY " . $order . " DESC " . $limit, $params, 'id');
 	foreach ($notice as $key => $notice_val) {
+		$notice[$key]['createtime'] = date('Y-m-d H:i:s', $notice_val['createtime']);
 		$notice[$key]['style'] = iunserializer($notice_val['style']);
 		$notice[$key]['group'] = empty($notice_val['group']) ? array('vice_founder' => array(), 'normal' => array()) : iunserializer($notice_val['group']);
+		if (user_is_founder($_W['uid'], true)) {
+			continue;
+		}
 		if (empty($_W['user']) && !empty($notice_val['group']) || !empty($_W['user']['groupid']) && !empty($notice_val['group']) && !in_array($_W['user']['groupid'], $notice[$key]['group']['vice_founder']) && !in_array($_W['user']['groupid'], $notice[$key]['group']['normal'])) {
 			unset($notice[$key]);
 		}

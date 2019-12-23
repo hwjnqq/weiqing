@@ -15,7 +15,7 @@ class DB {
 	protected $statement;
 	protected $errors = array();
 	protected $link = array();
-
+	protected $name = '';
 	public function getPDO() {
 		return $this->pdo;
 	}
@@ -23,11 +23,23 @@ class DB {
 	public function __construct($name = 'master') {
 		global $_W;
 		$this->cfg = $_W['config']['db'];
+		$this->name = $name;
 		//unset掉敏感信息，一些非敏感信息保留
 		unset($_W['config']['db']);
 		$_W['config']['db']['tablepre'] = $this->cfg['tablepre'];
 		$_W['config']['db']['slave_status'] = $this->cfg['slave_status'];
 		$this->connect($name);
+	}
+
+	public function reConnect($errorInfo,$params) {
+		if (in_array($errorInfo[1], array(1317, 2013))) {
+			$this->pdo = null;
+			$this->connect($this->name);
+			$method = $params['method'];
+			unset($params['method']);
+			return call_user_func_array(array($this, $method), $params);
+		}
+		return false;
 	}
 
 	public function connect($name = 'master') {
@@ -113,8 +125,16 @@ class DB {
 		$starttime = microtime(true);
 		if (empty($params)) {
 			$result = $this->pdo->exec($sql);
+			$error_info = $this->pdo->errorInfo();
 			$this->logging($sql, array(), $this->pdo->errorInfo());
-
+			if (in_array($error_info[1], array(1317, 2013))) {
+				$reConnect = $this->reConnect($error_info, array(
+					'method'=> __METHOD__,
+					'sql' => $sql,
+					'params' => $params,
+				));
+				return empty($reConnect) ? false : $reConnect;
+			}
 			return $result;
 		}
 		$statement = $this->prepare($sql);
@@ -124,8 +144,14 @@ class DB {
 
 		$endtime = microtime(true);
 		$this->performance($sql, $endtime - $starttime);
-		if (!$result) {
-			return false;
+		$error_info = $statement->errorInfo();
+		if (in_array($error_info[1], array(1317, 2013))) {
+			$reConnect = $this->reConnect($error_info, array(
+				'method' => __METHOD__,
+				'sql' => $sql,
+				'params' => $params,
+			));
+			return empty($reConnect) ? false : $reConnect;
 		} else {
 			return $statement->rowCount();
 		}
@@ -149,8 +175,15 @@ class DB {
 
 		$endtime = microtime();
 		$this->performance($sql, $endtime - $starttime);
-		if (!$result) {
-			return false;
+		$error_info = $statement->errorInfo();
+		if (in_array($error_info[1], array(1317, 2013))) {
+			$reConnect = $this->reConnect($error_info, array(
+				'method' => __METHOD__,
+				'sql' => $sql,
+				'params' => $params,
+				'column' => $column,
+			));
+			return empty($reConnect) ? false : $reConnect;
 		} else {
 			$data = $statement->fetchColumn($column);
 
@@ -175,8 +208,14 @@ class DB {
 
 		$endtime = microtime(true);
 		$this->performance($sql, intval($endtime - $starttime));
-		if (!$result) {
-			return false;
+		$error_info = $statement->errorInfo();
+		if (in_array($error_info[1], array(1317, 2013))) {
+			$reConnect = $this->reConnect($error_info, array(
+				'method' => __METHOD__,
+				'sql' => $sql,
+				'params' => $params,
+			));
+			return empty($reConnect) ? false : $reConnect;
 		} else {
 			$data = $statement->fetch(pdo::FETCH_ASSOC);
 
@@ -201,8 +240,15 @@ class DB {
 
 		$endtime = microtime();
 		$this->performance($sql, $endtime - $starttime);
-		if (!$result) {
-			return false;
+		$error_info = $statement->errorInfo();
+		if (in_array($error_info[1], array(1317, 2013))) {
+			$reConnect = $this->reConnect($error_info, array(
+				'method'=> __METHOD__,
+				'sql' => $sql,
+				'params' => $params,
+				'keyfield' => $keyfield,
+			));
+			return empty($reConnect) ? false : $reConnect;
 		} else {
 			if (empty($keyfield)) {
 				$result = $statement->fetchAll(pdo::FETCH_ASSOC);

@@ -35,13 +35,16 @@ if (($_W['setting']['copyright']['status'] == 1) && empty($_W['isfounder']) && '
 		exit();
 	}
 	if ('user' == $controller && 'login' == $action) {
-		if (checksubmit()) {
+		if (checksubmit() || $_W['isajax'] && $_W['ispost']) {
 			require _forward($controller, $action);
 		}
 		template('user/login');
 		exit();
 	}
 	isetcookie('__session', '', -10000);
+	if ($_W['isajax']) {
+		iajax(-1, '站点已关闭，关闭原因：' . $_W['setting']['copyright']['reason']);
+	}
 	
 		message('站点已关闭，关闭原因：' . $_W['setting']['copyright']['reason'], url('user/login'), 'info');
 	
@@ -101,11 +104,14 @@ if (!in_array($action, $actions)) {
 if (!in_array($action, $actions)) {
 	$action = $acl[$controller]['default'] ? $acl[$controller]['default'] : $actions[0];
 }
-
+$_W['iscontroller'] = current_operate_is_controller();
 if (is_array($acl[$controller]['direct']) && in_array($action, $acl[$controller]['direct'])) {
 	// 如果这个目标被配置为不需要登录直接访问, 则直接访问
 	require _forward($controller, $action);
 	exit();
+}
+if (!defined('FRAME')) {
+	define('FRAME', '');
 }
 checklogin();
 // 判断非创始人是否拥有目标权限
@@ -113,15 +119,12 @@ if (ACCOUNT_MANAGE_NAME_FOUNDER != $_W['role']) {
 	if (ACCOUNT_MANAGE_NAME_UNBIND_USER == $_W['role']) {
 		itoast('', url('user/third-bind'));
 	}
-	if (!defined('FRAME')) {
-		define('FRAME', '');
-	}
 	if (empty($_W['uniacid']) && in_array(FRAME, array('account', 'wxapp')) && 'store' != $_GPC['m']) {
 		itoast('', url('account/display/platform'), 'info');
 	}
 
 	$acl = permission_build();
-	if (in_array(FRAME, array('system', 'site', 'account_manage', 'platform', 'module', 'welcome'))) {
+	if (in_array(FRAME, array('system', 'site', 'account_manage', 'platform', 'module', 'welcome', 'myself'))) {
 		$checked_role = $_W['highest_role'];
 	} else {
 		$checked_role = $_W['role'];
@@ -161,8 +164,16 @@ function _forward($c, $a) {
 }
 function _calc_current_frames(&$frames) {
 	global $_W, $controller, $action;
-	$_W['page']['title'] = (isset($_W['page']['title']) && !empty($_W['page']['title'])) ? $_W['page']['title'] : (2 == $frames['dimension'] ? $frames['title'] : '');
-
+	$_W['page']['title'] = (isset($_W['page']['title']) && !empty($_W['page']['title'])) ? $_W['page']['title'] : ((2 == $frames['dimension'] && !('account' == $controller && 'welcome' == $action)) ? $frames['title'] : '');
+	if (in_array(FRAME, array('account', 'wxapp'))) {
+		$_W['breadcrumb'] = $_W['account']['name'];
+	}
+	if (in_array(FRAME, array('myself', 'message'))) {
+		$_W['breadcrumb'] = $frames['title'];
+	}
+	if (defined('IN_MODULE')) {
+		$_W['breadcrumb'] = ($_W['current_module']['name'] == 'store' ? '' : ('<a href="' . url('home/welcome', array('uniacid' => $_W['account']['uniacid'])) . '">' . $_W['account']['name'] . '</a> / ')) .  $_W['current_module']['title'];
+	}
 	if (empty($frames['section']) || !is_array($frames['section'])) {
 		return true;
 	}

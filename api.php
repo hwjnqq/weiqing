@@ -563,10 +563,7 @@ class WeEngine {
 	private function analyzeQR(&$message) {
 		global $_W;
 		$params = array();
-		$params = $this->handler($message['type']);
-		if (!empty($params)) {
-			return $params;
-		}
+		$default_message = $message;
 		$message['type'] = 'text';
 		$message['redirection'] = true;
 		if(!empty($message['scene'])) {
@@ -601,6 +598,16 @@ class WeEngine {
 				$message['msgtype'] = 'text';
 			}
 			$params += $this->analyzeText($message);
+		}
+		if (empty($qr)) {
+			$params = $this->handler($default_message['type']);
+			if (!empty($params)) {
+				$message = $default_message;
+				return $params;
+			}
+		}
+		if (empty($params)) {
+			$params = $this->handler($message['type']);
 		}
 		return $params;
 	}
@@ -654,6 +661,7 @@ EOF;
 		if(empty($keywords)) {
 			return $pars;
 		}
+
 		//系统模块处理回复，则走缓存机制；其他模块不走缓存（可能有动态处理）
 		$system_module_reply = true;
 		foreach($keywords as $keyword) {

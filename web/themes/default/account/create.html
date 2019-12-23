@@ -1,10 +1,12 @@
 {template 'common/header'}
 <div id="js-account-create" ng-controller="commonCreateAccountCtrl" ng-cloak>
+	{if $_W['iscontroller']}
 	<ol class="breadcrumb we7-breadcrumb">
 		<a href="{php echo url('account/manage')}"><i class="wi wi-back-circle"></i> </a>
 		<li><a href="{php echo url('account/manage')}">平台列表</a></li>
 		<li>新建{$account_all_type_sign[$sign]['title']}</li>
 	</ol>
+	{/if}
 	<ul class="we7-step">
 		<li ng-class="step == 'base_info' ? 'active' : ''"> <span class="content">1. 设置{$account_all_type_sign[$sign]['title']}信息</span> </li>
 		{if !empty($_W['isfounder'])}

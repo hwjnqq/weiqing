@@ -61,6 +61,10 @@ body > .tips{display:none;left:50%;padding:20px;position:fixed;text-align:center
 .reply-list {margin-left: 50px;}
 .reply-item {border-top: 1px solid #e7e7eb;padding: 10px 0;}
 .reply-item .head:before {content: '';border-left: 2px solid #428bca;margin-right: 5px;}
+#swiper-container-page {position: fixed;top: 0;left: 0;right: 0;width: 100%;height: 100%;background-color: #000000;}
+#swiper-container-page .swiper-slide {text-align: center;display: -webkit-box;display: -ms-flexbox;display: -webkit-flex;display: flex;-webkit-box-pack: center;-ms-flex-pack: center;-webkit-justify-content: center;justify-content: center;-webkit-box-align: center;-ms-flex-align: center;-webkit-align-items: center;align-items: center;}
+#swiper-container-page .swiper-slide img {max-width: 100%;}
+#swiper-container-page .swiper-pagination-bullet {background: #ffffff;}
 </style>
 <div class="page-bizinfo">
 	<div class="header">
@@ -75,7 +79,7 @@ body > .tips{display:none;left:50%;padding:20px;position:fixed;text-align:center
 	</div>
 </div>
 <div class="page-content">
-	<div class="text">
+	<div class="text" id="swiper-content-page">
 		{$detail['content']}
 	</div>
 	{if !empty($setting['comment_status'])}
@@ -104,7 +108,7 @@ body > .tips{display:none;left:50%;padding:20px;position:fixed;text-align:center
 						<div class="head">
 							作者回复
 						</div>
-						<p class="content">
+						<p id="content" class="content">
 							{php echo $comment['content']}
 						</p>
 						<p class="time">
@@ -119,7 +123,54 @@ body > .tips{display:none;left:50%;padding:20px;position:fixed;text-align:center
 		{$pager}
 	</div>
 	{/if}
+	<!-- <div class="swiper-container swiper-container-page" id="swiper-container-page" style="z-index: -1; opacity: 0;">
+		<div class="wiper-wrapper swiper-wrapper-page" id="swiper-wrapper-page"></div>
+		<div class="swiper-pagination swiper-pagination-page"></div>
+	</div> -->
 </div>
 </div>
-
+<script>
+	$(function() {
+		
+	})
+	require(['swiper'], function() {
+		var imgs = document.getElementById("swiper-content-page").getElementsByTagName("img")
+		if(imgs && imgs.length) {
+			var container = document.createElement('div')
+			container.id = "swiper-container-page"
+			container.style.zIndex = -1
+			container.style.opacity = 0
+			var html = '<div class="swiper-wrapper" >'
+			for (let i = 0; i < imgs.length; i++) {
+				html = html + '<div class="swiper-slide">'+ imgs[i].outerHTML +'</div>'
+			}
+			html = html + '</div><div class="swiper-pagination"></div>'
+			container.innerHTML = html
+			document.body.appendChild(container)
+			for (let i = 0; i < imgs.length; i++) {
+				imgs[i].onclick = function() {
+					if(!window.SwiperPage) {
+						container.className = "swiper-container"
+						window.SwiperPage = new Swiper('#swiper-container-page', {
+							pagination: '.swiper-pagination',
+							direction: 'horizontal'
+						})
+					}
+					SwiperPage.update()
+					SwiperPage.slideTo(i, 0)
+					SwiperPage.update()
+					//显示
+					container.style.zIndex = 2222
+					container.style.opacity = 1
+				}
+			}
+			container.onclick = function() {
+				//隐藏
+				container.style.zIndex = -1
+				container.style.opacity = 0
+			}
+		}
+		
+	})
+</script>
 {template 'common/footer'}

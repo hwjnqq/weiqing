@@ -15,16 +15,24 @@ $uniacid = intval($_GPC['uniacid']);
 $step = intval($_GPC['step']) ? intval($_GPC['step']) : 1;
 //模版调用，显示该用户所在用户组可添加的主公号数量，已添加的数量，还可以添加的数量
 $user_create_account_info = permission_user_account_num();
-
-if (1 == $step) {
+$dos = array('check_account_limit');
+$do = in_array($do, $dos) ? $do : 'check_account_limit';
+$_W['breadcrumb'] = '新建平台账号';
+if ('check_account_limit' == $do) {
 	if ($user_create_account_info['account_limit'] <= 0 && !$_W['isfounder']) {
-		$authurl = "javascript:alert('创建公众号已达上限！');";
+		iajax(-1, '创建公众号已达上限！');
 	}
 
 	if (empty($authurl) && !empty($_W['setting']['platform']['authstate'])) {
 		$account_platform = new WeixinPlatform();
 		$authurl = $account_platform->getAuthLoginUrl();
+		iajax(0, array('url' => $authurl));
 	}
+	iajax(-1, '请求错误');
+}
+
+if (1 == $step) {
+
 } elseif (2 == $step) {
 	//新建平台基本信息. 新路由 account/create/base_info  &sign=account
 } elseif (3 == $step) {

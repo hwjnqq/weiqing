@@ -392,7 +392,10 @@ function cache_key_all() {
 				'key' => 'recycle_module',
 				'group' => '',
 			),
-
+			'random' => array(
+				'key' => 'random',
+				'group' => '',
+			),
 			'sync_fans_pindex' => array(
 				'key' => 'sync_fans_pindex:%uniacid',
 				'group' => '',
@@ -492,8 +495,8 @@ function cache_key_all() {
 				'key' => 'account_component_assesstoken',
 				'group' => '',
 			),
-			'cloud_api_method' => array(
-				'key' => 'cloud_api_method:%method',
+			'cloud_api' => array(
+				'key' => 'cloud_api:%method',
 				'group' => '',
 			),
 			'cloud_ad_uniaccount' => array(

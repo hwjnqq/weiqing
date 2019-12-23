@@ -9,7 +9,7 @@ load()->model('cloud');
 load()->func('communication');
 
 class CloudApi {
-	private $url = 'http://api.we7.cc/index.php?c=%s&a=%s&access_token=%s&';
+	private $url = 'http://api-old.w7.cc/index.php?c=%s&a=%s&access_token=%s&';
 	private $development = false;
 	private $module = null;
 	private $sys_call = false;
@@ -101,8 +101,7 @@ class CloudApi {
 			return $this->default_token;
 		}
 
-		$cer_filename = 'module.cer';
-		$cer_filepath = IA_ROOT . '/framework/builtin/core/module.cer';
+		$cer_filepath = IA_ROOT . '/framework/builtin/core/'.md5(complex_authkey()).'.cer';
 
 		load()->func('file');
 		$we7_team_dir = dirname($cer_filepath);
@@ -236,7 +235,6 @@ class CloudApi {
 		$response = ihttp_get($url);
 
 		if (is_error($response)) {
-			//$this->deleteCer();
 			return $response;
 		}
 
@@ -255,7 +253,6 @@ class CloudApi {
 
 			$response = ihttp_request($url, array(), $ihttp_options);
 			if (is_error($response)) {
-//				$this->deleteCer();
 				return $response;
 			}
 		}
@@ -274,7 +271,6 @@ class CloudApi {
 		if ($with_cookie) {
 			$response = ihttp_get($url);
 			if (is_error($response)) {
-//				$this->deleteCer();
 				return $response;
 			}
 			$ihttp_options = array();
@@ -291,7 +287,6 @@ class CloudApi {
 		}
 		$response = ihttp_request($url, $post_params, $ihttp_options);
 		if (is_error($response)) {
-//			$this->deleteCer();
 			return $response;
 		}
 		if ('binary' == $dataType) {
@@ -303,9 +298,11 @@ class CloudApi {
 
 	public function deleteCer() {
 		if ($this->sys_call) {
-			$cer_filepath = IA_ROOT . '/framework/builtin/core/module.cer';
-			if (is_file($cer_filepath)) {
-				unlink($cer_filepath);
+			$files = file_tree(IA_ROOT . '/framework/builtin/core');
+			foreach ($files as $key => $value) {
+				if (strpos($value, '.cer')) {
+					unlink($value);
+				}
 			}
 		}
 	}

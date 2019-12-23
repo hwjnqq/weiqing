@@ -1081,6 +1081,9 @@
 					var month = now.getMonth();
 					var day = now.getDate();
 					// options.ranges['今天'] = [new Date(year, month, day, 0, 0, 0), moment()];
+					if(options.clear) {
+						options.ranges['不限时间'] = [moment('不限时间', 'Y'), moment('不限时间', 'Y')];
+					}
 					options.ranges['一周内'] = [moment().subtract('days', 6), moment()];
 					options.ranges['二周内'] = [moment().subtract('days', 13), moment()];
 					options.ranges['一月内'] = [moment().subtract('days', 29), moment()];

@@ -3,7 +3,7 @@
 	{if $do == 'list'}
 	<ul class="we7-page-tab">
 		<li >
-			<a href="{php echo url('article/notice-show/list');}" >全部</a>
+			<a href="{php echo url('article/notice-news/list');}" >全部</a>
 		</li>
 		<li>
 			<a href="{php echo url('article/news-show/list');}" >新闻</a>
@@ -35,7 +35,7 @@
 				<a href="{php echo url('article/news-show/detail', array('id' => $da['id']));}" target="_blank" class="text-over" style="{if !empty($da['style'])}{if !empty($da['style']['color'])}color: {php echo $da['style']['color']};{/if}{if !empty($da['style']['bold'])}font-weight:bold;{/if}{/if}">{$da['title']}</a>
 			</td>
 			<td>新闻</td>
-			<td>{php echo date('Y-m-d', $da['createtime']);}</td>
+			<td>{$da['createtime']}</td>
 		</tr>
 		{/loop}
 		{else}

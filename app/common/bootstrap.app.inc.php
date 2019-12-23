@@ -136,7 +136,9 @@ if($controller != 'utility') {
 	$_W['token'] = token();
 }
 
-if (!empty($_W['account']['oauth']) && $_W['account']['oauth']['support_oauthinfo'] && empty($_W['isajax'])) {
+if (!empty($_W['account']['oauth']) && $_W['account']['oauth']['support_oauthinfo'] && empty($_W['isajax']) &&
+	(($_W['container'] == 'baidu' && $_W['account']->typeSign != 'account') || $_W['container'] != 'baidu')) {
+
 	if (($_W['platform'] == 'account' && !$_GPC['logout'] && empty($_W['openid']) && ($controller != 'auth' || ($controller == 'auth' && !in_array($action, array('forward', 'oauth'))))) ||
 		($_W['platform'] == 'account' && !$_GPC['logout'] && empty($_SESSION['oauth_openid']) && ($controller != 'auth'))) {
 		$state = 'we7sid-'.$_W['session_id'];
@@ -166,6 +168,7 @@ if (!empty($_W['account']['oauth']) && $_W['account']['oauth']['support_oauthinf
 		header('Location: ' . $forward);
 		exit();
 	}
+
 }
 $_W['account']['groupid'] = $_W['uniaccount']['groupid'];
 $_W['account']['qrcode'] = tomedia('qrcode_'.$_W['acid'].'.jpg').'?time='.$_W['timestamp'];

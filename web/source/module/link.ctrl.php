@@ -24,7 +24,6 @@ if ('list' == $do) {
 			$account_list[] = uni_fetch($uniacid_val['uniacid']);
 		}
 	}
-
 	template('module/link-list');
 }
 

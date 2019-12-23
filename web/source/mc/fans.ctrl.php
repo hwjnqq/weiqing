@@ -56,7 +56,7 @@ if ('display' == $do) {
 		$select_sql = 'SELECT %s FROM ' . tablename('mc_mapping_fans') . ' AS f ' . $condition . ' %s';
 	}
 
-	$fans_list_sql = sprintf($select_sql, 'f.fanid, f.acid, f.uniacid, f.uid, f.openid, f.nickname as nickname, f.groupid, f.follow, f.followtime, f.unfollowtime', ' GROUP BY f.`fanid` ORDER BY f.`fanid` DESC LIMIT ' . ($pageindex - 1) * $pagesize . ',' . $pagesize);
+	$fans_list_sql = sprintf($select_sql, 'f.fanid, f.acid, f.uniacid, f.uid, f.tag,f.openid, f.nickname as nickname, f.groupid, f.follow, f.followtime, f.unfollowtime', ' GROUP BY f.`fanid` ORDER BY f.`fanid` DESC LIMIT ' . ($pageindex - 1) * $pagesize . ',' . $pagesize);
 
 	$fans_list = pdo_fetchall($fans_list_sql, $param);
 
@@ -103,7 +103,10 @@ if ('display' == $do) {
 		->getall('openid');
 	if (!empty($fans_list) && !empty($fans_tag_list)) {
 		foreach ($fans_list as &$fans_info) {
-			$fans_info['headimgurl'] = $fans_tag_list[$fans_info['openid']]['headimgurl'];
+			if (!empty($fans_tag_list[$fans_info['openid']]['headimgurl'])) {
+
+				$fans_info['headimgurl'] = $fans_tag_list[$fans_info['openid']]['headimgurl'];
+			}
 		}
 	}
 
@@ -205,7 +208,7 @@ if ('edit_fans_tag' == $do) {
 		->getcolumn('openid');
 	$account_api = WeAccount::createByUniacid();
 	if (empty($tagids) || !is_array($tagids)) {
-		$fans_tag = table('mc_fans_tag_mapping')->where(array('fanid' => $fanid))->getall('tagid');
+		$fans_tags = table('mc_fans_tag_mapping')->where(array('fanid' => $fanid))->getall('tagid');
 		if (!empty($fans_tags)) {
 			foreach ($fans_tags as $tag) {
 				$result = $account_api->fansTagBatchUntagging(array($openid), $tag['tagid']);

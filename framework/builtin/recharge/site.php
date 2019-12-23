@@ -3,7 +3,7 @@
  * 手机充值模块,会员卡充值
  *
  * @author 微擎团队
- * @url http://bbs.w7.cc/
+ * @url http://www.w7.cc/
  */
 defined('IN_IA') or exit('Access Denied');
 

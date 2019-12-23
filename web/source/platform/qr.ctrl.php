@@ -187,10 +187,11 @@ if ('display' == $do) {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 30;
 	$qrcode_table = table('qrcode_stat');
-	$starttime = empty($_GPC['time']['start']) ? TIMESTAMP - 86399 * 30 : strtotime($_GPC['time']['start']);
-	$endtime = empty($_GPC['time']['end']) ? TIMESTAMP + 6 * 86400 : strtotime($_GPC['time']['end']) + 86399;
-
-	$qrcode_table->searchWithTime($starttime, $endtime);
+	$starttime = !empty($_GPC['time']['start']) ? strtotime($_GPC['time']['start']) :  '';
+	$endtime = !empty($_GPC['time']['end']) ? strtotime($_GPC['time']['end']) + 86399 : '';
+	if (!empty($starttime)) {
+		$qrcode_table->searchWithTime($starttime, $endtime);
+	}
 	$keyword = trim($_GPC['keyword']);
 	if (!empty($keyword)) {
 		$qrcode_table->searchWithKeyword($keyword);

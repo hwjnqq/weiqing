@@ -234,6 +234,19 @@ function system_template_ch_name() {
 }
 
 /**
+ * 系统登录页风格中文名字
+ * @return array
+ */
+function system_login_template_ch_name() {
+	$result = array(
+		'big' => '大图版',
+		'half' => '半屏图版',
+		'base' => '基础版'
+	);
+	return $result;
+}
+
+/**
  * 获取系统注册站点信息
  */
 function system_site_info() {
@@ -283,21 +296,21 @@ function system_check_items() {
 			'description' => 'mbstring 扩展',
 			'error_message' => '不支持库',
 			'solution' => '安装 mbstring 扩展',
-			'handle' => 'https://bbs.w7.cc/thread-33156-1-1.html'
+			'handle' => 'http://s.w7.cc/wo/problem/46'
 		),
 		'mcrypt' => array(
 			'operate' => 'system_check_php_ext',
 			'description' => 'mcrypt 扩展',
 			'error_message' => '不支持库',
 			'solution' => '安装 mcrypt 扩展',
-			'handle' => 'https://bbs.w7.cc/thread-33159-1-1.html'
+			'handle' => 'http://s.w7.cc/wo/problem/46'
 		),
 		'openssl' => array(
 			'operate' => 'system_check_php_ext',
 			'description' => 'openssl 扩展',
 			'error_message' => '不支持库',
 			'solution' => '安装 openssl 扩展',
-			'handle' => 'https://bbs.w7.cc/thread-33160-1-1.html'
+			'handle' => 'http://s.w7.cc/wo/problem/46'
 		),
 		'system_template' => array(
 			'operate' => 'system_check_template',
@@ -318,7 +331,7 @@ function system_check_items() {
 			'description' => 'php always_populate_raw_post_data 配置',
 			'error_message' => '配置有误',
 			'solution' => '修改 php always_populate_raw_post_data 配置为 -1',
-			'handle' => 'https://bbs.w7.cc/thread-33148-1-1.html'
+			'handle' => 'https://s.w7.cc/wo/problem/134'
 		),
 	);
 }
@@ -361,7 +374,7 @@ function system_check_php_raw_post_data() {
  * @return array
  */
 function system_setting_items() {
-	$items = array(
+	return array(
 		'bind',
 		'develop_status',
 		'icp',
@@ -373,11 +386,36 @@ function system_setting_items() {
 		'autosignout',
 		'status',
 		'welcome_link',
+		'login_verify_status',
+		'address',
+		'blogo',
+		'baidumap',
+		'background_img',
+		'company',
+		'companyprofile',
+		'description',
+		'email',
+		'footerleft',
+		'footerright',
+		'flogo',
+		'icon',
+		'keywords',
+		'leftmenufixed',
+		'notice',
+		'oauth_bind',
+		'phone',
+		'person',
+		'qq',
+		'statcode',
+		'slides',
+		'showhomepage',
+		'sitename',
+		'template',
+		'login_template',
+		'url',
+		'verifycode',
+		'slide_logo',
 	);
-
-	
-
-	return $items;
 }
 
 function system_scrap_file() {
@@ -433,7 +471,71 @@ function system_scrap_file() {
 		'/web/themes/default/account/manage-base-wxapp.html',
 		'/web/themes/default/account/manage-base-xzapp.html',
 		'/web/themes/default/phoneapp/version-home.html',
-		'/web/themes/default/cloud/sms-sign.html',
 	);
 	return $scrap_file;
+}
+
+/**
+ * 星标首页菜单
+ * @return array
+ */
+function system_star_menu() {
+	global $_W;
+	$result = array(
+		'mystar' => array(
+			'title' => '我的星标',
+			'icon' => 'wi wi-star',
+			'apiurl' => url('account/display/list_star'),
+			'one_page' => 1,
+			'hide_sort' => 1,
+		),
+		'history' => array(
+			'title' => '历史查看',
+			'icon' => 'wi wi-waiting',
+			'apiurl' => url('account/display/history'),
+			'one_page' => 1,
+			'hide_sort' => 1,
+		),
+		'platform' => array(
+			'title' => '所有平台',
+			'icon' => 'wi wi-platform',
+			'apiurl' => url('account/display/list', array('type' => 'all')),
+			'one_page' => 0,
+			'hide_sort' => 0,
+		),
+		'modules' => array(
+			'title' => '所有应用',
+			'icon' => 'wi wi-apply',
+			'apiurl' => url('module/display/own'),
+			'one_page' => 0,
+			'hide_sort' => 1,
+		),
+		'account_recycle' => array(
+			'title' => '回收站',
+			'icon' => 'wi wi-delete2',
+			'apiurl' => url('account/recycle'),
+			'one_page' => 0,
+			'hide_sort' => 0,
+		),
+		'platform_children' => array(
+			'title' => '平台分类',
+			'menu' => array(),
+		),
+	);
+
+	$account_all = table('account')->searchAccountList();
+	$result['platform']['num'] = max(0, count($account_all));
+
+	foreach (uni_account_type_sign() as $type_sign => $type_sign_info) {
+		$account_num = uni_user_accounts($_W['uid'], $type_sign);
+		$result['platform_children']['menu'][$type_sign] = array(
+			'title' => $type_sign_info['title'],
+			'icon' => $type_sign_info['icon'],
+			'num' => max(0, count($account_num)),
+			'apiurl' => url('account/display/list', array('type' => $type_sign)),
+			'one_page' => 0,
+			'hide_sort' => 0,
+		);
+	}
+	return $result;
 }

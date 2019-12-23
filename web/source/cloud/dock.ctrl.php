@@ -7,6 +7,8 @@ defined('IN_IA') or exit('Access Denied');
 
 load()->model('cloud');
 load()->model('setting');
+load()->model('statistics');
+
 
 $dos = array(
 	'auth',
@@ -27,6 +29,7 @@ $dos = array(
 	'sms.info',
 	'api.oauth',
 	'if_un',
+	'member_module',
 );
 $do = in_array($do, $dos) ? $do : '';
 
@@ -37,16 +40,24 @@ if ('auth' != $do) {
 }
 
 $post = file_get_contents('php://input');
-
 if ('auth' == $do) {
 	$auth = @json_decode(base64_decode($post), true);
 	if (empty($auth)) {
 		exit('推送的站点数据有误');
 	}
+	//对要写入的数据，再次发起请求，以防非法写入
+	$_W['setting']['site']['url'] = $auth['url'];
+	$_W['setting']['site']['key'] = $auth['key'];
+	$_W['setting']['site']['token'] = $auth['token'];
+	$result = cloud_build_transtoken();
+	if (empty($result)) {
+		exit('非法请求！');
+	}
 	setting_save($auth, 'site');
 	exit('success');
 }
 
+$cache_random = cache_random();
 if ('build' == $do) {
 	$dat = __secure_decode($post);
 	if (!empty($dat)) {
@@ -54,7 +65,7 @@ if ('build' == $do) {
 		$ret = array();
 		$ret['data'] = $dat;
 		$ret['secret'] = $secret;
-		file_put_contents(IA_ROOT . '/data/application.build', iserializer($ret));
+		file_put_contents(IA_ROOT . '/data/application.build' . $cache_random, iserializer($ret));
 		exit($secret);
 	}
 }
@@ -66,7 +77,7 @@ if ('schema' == $do) {
 		$ret = array();
 		$ret['data'] = $dat;
 		$ret['secret'] = $secret;
-		file_put_contents(IA_ROOT . '/data/application.schema', iserializer($ret));
+		file_put_contents(IA_ROOT . '/data/application.schema' . $cache_random, iserializer($ret));
 		exit($secret);
 	}
 }
@@ -112,7 +123,7 @@ if (in_array($do, array('module.query', 'module.bought', 'module.info', 'module.
 		$ret = array();
 		$ret['data'] = $dat;
 		$ret['secret'] = $secret;
-		file_put_contents(IA_ROOT . '/data/' . $do, iserializer($ret));
+		file_put_contents(IA_ROOT . '/data/' . $do . $cache_random, iserializer($ret));
 		exit($secret);
 	}
 }
@@ -154,6 +165,12 @@ if ('if_un' == $do) {
 	}
 	exit('1');
 }
+//会员和模块统计
+if ('member_module' == $do) {
+	$result['member'] = stat_mc_member();
+	$result['module'] = stat_module();
+	exit(json_encode($result));
+}
 
 if ('sms.send' == $do) {
 	$dat = __secure_decode($post);
@@ -176,7 +193,7 @@ if ('api.oauth' == $do) {
 	$dat = iunserializer($dat);
 	if (!empty($dat) && is_array($dat)) {
 		if ('core' == $dat['module']) {
-			$result = file_put_contents(IA_ROOT . '/framework/builtin/core/module.cer', $dat['access_token']);
+			$result = file_put_contents(IA_ROOT . '/framework/builtin/core/'.md5(complex_authkey()).'.cer', $dat['access_token']);
 		} else {
 			$result = file_put_contents(IA_ROOT . "/addons/{$dat['module']}/module.cer", $dat['access_token']);
 		}

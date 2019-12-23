@@ -27,7 +27,7 @@ class AccountUsers extends \We7Table {
 	}
 
 	public function getUsableAccountsByUid($uid) {
-		return $this->query->where('uid', $uid)->getall('uniacid');
+		return $this->query->where('uid', $uid)->where('role !=', ACCOUNT_MANAGE_NAME_CLERK)->getall('uniacid');
 	}
 
 	public function getOwnedAccountsByUid($uid) {

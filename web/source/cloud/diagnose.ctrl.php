@@ -20,24 +20,26 @@ if ('testapi' == $do) {
 	$endtime = microtime(true);
 	iajax(0, '请求接口成功，耗时 ' . (round($endtime - $starttime, 5)) . ' 秒');
 } else {
-	if (checksubmit()) {
-		$result = cloud_reset_siteinfo();
-		$api = new CloudApi();
-		$api->deleteCer();
+	if ($_W['ispost']){
+		if ($_GPC['submit']) {
+			$result = cloud_reset_siteinfo();
+			$api = new CloudApi();
+			$api->deleteCer();
 
-		if (is_error($result)) {
-			itoast($result['message'], '', 'error');
-		} else {
-			itoast('重置成功', 'refresh', 'success');
+			if (is_error($result)) {
+				itoast($result['message'], '', 'error');
+			} else {
+				itoast('重置成功', 'refresh', 'success');
+			}
 		}
-	}
-	if (checksubmit('updateserverip')) {
-		if (!empty($_GPC['ip'])) {
-			setting_save(array('ip' => $_GPC['ip'], 'expire' => TIMESTAMP + 201600), 'cloudip');
-		} else {
-			setting_save(array(), 'cloudip');
+		if ($_GPC['updateserverip']) {
+			if (!empty($_GPC['ip'])) {
+				setting_save(array('ip' => $_GPC['ip'], 'expire' => TIMESTAMP + 201600), 'cloudip');
+			} else {
+				setting_save(array(), 'cloudip');
+			}
+			itoast('修改云服务ip成功.', 'refresh', 'success');
 		}
-		itoast('修改云服务ip成功.', 'refresh', 'success');
 	}
 	if (empty($_W['setting']['site'])) {
 		$_W['setting']['site'] = array();

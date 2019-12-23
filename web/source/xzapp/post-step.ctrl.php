@@ -9,7 +9,7 @@ $uniacid = intval($_GPC['uniacid']);
 $step = intval($_GPC['step']) ? intval($_GPC['step']) : 1;
 
 $user_create_account_info = permission_user_account_num();
-
+$_W['breadcrumb'] = '新建平台账号';
 if (1 == $step) {
 	if ($user_create_account_info['xzapp_limit'] <= 0 && !$_W['isfounder']) {
 		$authurl = "javascript:alert('创建熊掌号已达上限');";

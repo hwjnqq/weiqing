@@ -12,7 +12,7 @@ $dos = array('display', 'post', 'del');
 $do = in_array($do, $dos) ? $do : 'display';
 
 permission_check_account_user('platform_site_article');
-$category = table('site_category')->getBySnake(array('id', 'parentid', 'name'), array('uniacid' => $_W['uniacid'], 'enabled' => 1), array('parentid' => 'ASC', 'displayorder' => 'ASC', 'id' => 'ASC'))->getall();
+$category = table('site_category')->getBySnake(array('id', 'parentid', 'name'), array('uniacid' => $_W['uniacid'], 'enabled' => 1), array('parentid' => 'ASC', 'displayorder' => 'ASC', 'id' => 'ASC'))->getall('id');
 
 $parent = array();
 $children = array();
@@ -32,11 +32,14 @@ if ($do == 'display') {
 	$psize = 20;
 	$where = array('uniacid' => $_W['uniacid']);
 	if (!empty($_GPC['keyword'])) {
-		$where['title LiKE'] = "%{$_GPC['keyword']}%";
+		$keyword = safe_gpc_string($_GPC['keyword']);
+		$where['title LIKE'] = "%$keyword%";
 	}
-	if (!empty($_GPC['category']['childid'])) {
+	if (!empty($_GPC['childid'])) {
+		$cid = safe_gpc_int($_GPC['childid']);
 		$where['ccate'] = $cid;
-	} elseif (!empty($_GPC['category']['parentid'])) {
+	} elseif (!empty($_GPC['parentid'])) {
+		$cid = safe_gpc_int($_GPC['parentid']);
 		$where['pcate'] = $cid;
 	}
 	$list = table('site_article')
@@ -99,6 +102,7 @@ if ($do == 'display') {
 		$item['credit'] = array();
 		$keywords = '';
 	}
+
 	if (checksubmit('submit')) {
 		if (empty($_GPC['title'])) {
 			itoast('标题不能为空，请输入标题！', '', '');

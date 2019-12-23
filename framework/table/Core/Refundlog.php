@@ -39,7 +39,7 @@ class Refundlog extends \We7Table {
 	);
 
 	public function getByUniontid($uniontid) {
-		return $this->query->where('uniontid', $uniontid);
+		return $this->query->where('uniontid', $uniontid)->get();
 	}
 
 }

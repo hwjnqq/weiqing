@@ -7,10 +7,12 @@
 		.popover-content{padding-top: 0;line-height: 30px}
 		.popover-content h5{padding-bottom: 5px}
 	</style>
+	{if $_W['iscontroller']}
 	<ol class="breadcrumb we7-breadcrumb">
 		<li><a href="javascript:;" onclick="history.go(-1)"><i class="wi wi-back-circle"></i>{$_W['account']['name']}</a></li>
 		<li>版本列表</li>
 	</ol>
+	{/if}
 	<div class="panel panel-cut">
 		<div class="panel-body">
 			<div class="user-head-info">

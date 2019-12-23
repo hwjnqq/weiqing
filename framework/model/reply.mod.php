@@ -52,6 +52,7 @@ function reply_single($id) {
  * @return array
  */
 function reply_keywords_search($condition = '', $params = array(), $pindex = 0, $psize = 10, &$total = 0) {
+	global $_W;
 	if (!empty($condition)) {
 		$where = " WHERE {$condition} ";
 	}
@@ -64,7 +65,15 @@ function reply_keywords_search($condition = '', $params = array(), $pindex = 0, 
 	}
 	$result = pdo_fetchall($sql, $params);
 	if (!empty($result)) {
+		// 判断是否常用服务为开启
+		$rule_setting_select = table('uni_account_modules')->getByUniacidAndModule('userapi', $_W['uniacid']);
 		foreach ($result as $key => $val) {
+			if ($val['module'] == 'userapi' && empty($val['uniacid'])) {
+				if (empty($rule_setting_select['settings'][$val['rid']])) {
+					unset($result[$key]);
+					continue;
+				}
+			}
 			$containtypes = pdo_get('rule', array('id' => $val['rid']), array('containtype'));
 			if (!empty($containtypes)) {
 				$containtype = explode(',', $containtypes['containtype']);

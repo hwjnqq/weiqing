@@ -11,12 +11,26 @@
 		<div class="pull-right">
 			
 		</div>
-		<form action="./index.php" method="get" class="search-form " role="form">
+		<form action="" method="post" class="search-form " role="form">
 			<input type="hidden" name="a" value="article" />
 			<input type="hidden" name="c" value="site" />
 			<input type="hidden" name="do" value="display" />
 			<div class="pull-left">
-				{php echo tpl_form_field_category_2level('category', $parent, $children, $_GPC['category']['parentid'], $_GPC['category']['childid']);}
+				<select name="" class="we7-margin-right">
+					<option data-url="{php echo filter_url('parentid:,childid:');}" >请选择一级分类</option>
+					{loop $parent $parentid $row}
+					<option data-url="{php echo filter_url('parentid:' . $parentid . ',childid:');}" {if $_GPC['parentid'] == $parentid} selected{/if}>{$row['name']}</option>
+					{/loop}
+				</select>
+				<select name="" class="we7-margin-right">
+					<option data-url="{php echo filter_url('childid:');}" >请选择二级分类</option>
+					{if $_GPC['parentid']}
+						{loop $children[$_GPC['parentid']] $row}
+						<option data-url="{php echo filter_url('childid:' . $row[id]);}" {if $_GPC['childid'] == $row[id]} selected{/if}>{$row['name']}</option>
+						{/loop}
+					{/if}
+				</select>
+
 			</div>
 			<div class="input-group we7-padding-left ">
 				<input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}" placeholder="请输入标题名">

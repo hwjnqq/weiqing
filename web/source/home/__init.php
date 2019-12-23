@@ -16,6 +16,6 @@ if ('system' == $do) {
 	}
 }
 
-if (in_array($do, array('platform', 'ext')) || empty($do)) {
+if (in_array($do, array('platform', 'ext', 'account_ext')) || empty($do)) {
 	define('FRAME', 'account');
 }

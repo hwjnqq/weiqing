@@ -5,7 +5,7 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-if (in_array($action, array('sms', 'sms-sign'))) {
+if (in_array($action, array('sms', 'sms-sign', 'sms-package', 'sms-statistics', 'sms-template', 'sms-share'))) {
 	define('FRAME', 'system');
 }
 if ('process' == $action) {

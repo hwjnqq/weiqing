@@ -51,9 +51,11 @@ class Permission extends \We7Table {
 		return $this->query->where('uid', $uid)
 					->where('uniacid', $uniacid)->getall('type');
 	}
-	public function getAllUserModulePermission($uid, $uniacid) {
+	public function getAllUserModulePermission($uid, $uniacid = 0) {
+		if (!empty($uniacid)) {
+			$this->query->where('uniacid', $uniacid);
+		}
 		return $this->query->where('uid', $uid)
-			->where('uniacid', $uniacid)
 			->where('type !=', array(PERMISSION_ACCOUNT, PERMISSION_WXAPP, PERMISSION_WEBAPP, PERMISSION_PHONEAPP, PERMISSION_XZAPP, PERMISSION_ALIAPP, PERMISSION_BAIDUAPP, PERMISSION_TOUTIAOAPP, PERMISSION_SYSTEM))->getall('type');
 	}
 

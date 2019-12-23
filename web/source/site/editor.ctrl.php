@@ -16,7 +16,7 @@ if (in_array($do, array('quickmenu', 'uc'))) {
 }
 
 if ($do == 'uc') {
-	if (!empty($_GPC['wapeditor']) && 0) {
+	if (!empty($_GPC['wapeditor'])) {
 		$params = $_GPC['wapeditor']['params'];
 		if (empty($params)) {
 			itoast('请您先设计手机端页面.', '', 'error');
@@ -170,6 +170,7 @@ if ($do == 'uc') {
 		} else {
 			$id = table('site_page')
 				->where(array(
+					'uniacid' => $_W['uniacid'],
 					'multiid' => $multiid,
 					'type' => $type
 				))
@@ -203,10 +204,12 @@ if ($do == 'uc') {
 		$page = table('site_page')
 			->where(array(
 				'type' => $type,
-				'multiid' => $multiid
+				'multiid' => $multiid,
+				'uniacid' => $_W['uniacid']
 			))
 			->get();
 	}
+
 	$modules = uni_modules();
 	template('site/editor');
 } elseif ($do == 'qrcode') {

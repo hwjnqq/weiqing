@@ -92,6 +92,13 @@ if ('detail' == $do) {
 }
 
 if ('delete' == $do) {
+
+	permission_check_account_user('platform_material_delete');
+
+	if (empty($_W['isfounder']) && ACCOUNT_MANAGE_NAME_MANAGER != $_W['role'] && ACCOUNT_MANAGE_NAME_OWNER != $_W['role']) {
+		iajax(1, '您没有权限删除文件');
+	}
+
 	if (isset($_GPC['uniacid'])) { //如果强制指定了uniacid
 		$requniacid = intval($_GPC['uniacid']);
 		attachment_reset_uniacid($requniacid);

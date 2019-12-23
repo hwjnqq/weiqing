@@ -64,10 +64,13 @@
 	</div>
 	<form action="" method="get">
 		<table class="table we7-table table-hover vertical-middle table-manage">
-			<col width="140px" />
+			<col width="90px" />
 			<col width="250px"/>
 			{if permission_check_account_user('see_module_manage_system_welcome_support') && $_GPC['support'] == 'welcome_support'}<col width="100px">{/if}
-			<col width="500px" />
+			<col width="100px" />
+			<col width="100px" />
+			<col width="400px" />
+			<col width="300px" />
 			<tr>
 				<th class="text-left bg-light-gray">
 					应用名/版本 <a href="javascript:;" class="color-default we7-margin-left-sm"></a>
@@ -76,6 +79,7 @@
 				{if permission_check_account_user('see_module_manage_system_welcome_support') && $_GPC['support'] == 'welcome_support'}<th>启用</th>{/if}
 				<th class="text-left bg-light-gray">支持</th>
 				<th class="text-left bg-light-gray">来源</th>
+				<th class="text-left bg-light-gray">说明</th>
 				<th class="text-right bg-light-gray">操作</th>
 			</tr>
 			<tr ng-repeat="module in moduleList">
@@ -107,13 +111,18 @@
 					<span ng-switch-when="">商城</span>
 					<span ng-switch-when="local">本地</span>
 				</td>
+				<td class="text-left">
+					<span ng-show="module.system_shutdown == 2 && module.can_update">该应用因违反平台规定已于<span class="color-red" ng-bind="module.system_shutdown_delay_time"></span>下架，无法购买但可以更新版本，一个月后将无法更新，如有疑问请及时反馈</span></span>
+					<span ng-show="module.system_shutdown == 3 && module.can_update">该应用因违反平台规定将于<span class="color-red" ng-bind="module.system_shutdown_delay_time"></span>下架，目前不影响版本升级，<span class="color-red">下架后将无法购买和升级版本</span>，如有疑问请及时反馈</span>
+					<span ng-show="!module.system_shutdown || module.system_shutdown == 1"></span>
+				</td>
 				<td class="vertical-middle {if $_GPC['support'] != 'welcome_support'} table-manage-td {/if}">
 					<div class="link-group">
 						{if permission_check_account_user('see_module_manage_system_ugrade')}
-						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&show=base" class="color-red del" ng-if="module.service_expire">服务费到期</a>
-						<a href="{php echo url('module/manage-system/upgrade')}&module_name={{module.name }}" class="color-red del" ng-if="module.new_version && module.from == 'local'">升级</a>
-						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&show=upgrade" class="color-red del" ng-if="module.new_branch">新分支</a>
-						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&show=upgrade" class="color-red del" ng-if="module.new_version">升级</a>
+						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&show=base" class="color-red del" ng-if="module.service_expire && module.system_shutdown != 2">升级服务到期</a>
+						<a href="{php echo url('module/manage-system/upgrade')}&module_name={{module.name }}" class="color-red del" ng-if="module.new_version && module.from == 'local' && module.system_shutdown != 2">升级</a>
+						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&show=upgrade" class="color-red del" ng-if="module.new_branch && module.system_shutdown != 2">新分支</a>
+						<a href="{php echo url('module/manage-system/module_detail')}&name={{ module.name }}&show=upgrade" class="color-red del" ng-if="module.new_version && module.system_shutdown != 2">升级</a>
 						{/if}
 
 						{if $module_support_name != 'all' && !empty($module_support_name)}
@@ -136,10 +145,8 @@
 						{/if}
 						{if permission_check_account_user('see_module_manage_system_stop')}
 						{if $module_support_name != 'all' && !empty($module_support_name)}
-						<!-- <a href="{php echo url('module/manage-system/recycle_post')}&module_name={{ module.name }}&support={$module_support_name}" onclick="return confirm('确认停用模块？')">停用</a> -->
 						<a href="javascript:;" ng-click="recycle(module.name, '{$module_support_name}')">停用</a>
 						{else}
-						<!-- <a href="{php echo url('module/manage-system/recycle_post')}&module_name={{ module.name }}&support={{ module.support }}" onclick="return confirm('确认停用模块？')">停用</a> -->
 						<a href="javascript:;" ng-click="recycle(module.name, module.support)">停用</a>
 						{/if}
 						{/if}
@@ -147,6 +154,9 @@
 					{/if}
 				</td>
 			</tr>
+			{if $_GPC['support'] != 'welcome_support'}
+			<tr style="height: 52px;"></tr>
+			{/if}
 			<tr ng-if="moduleList | we7IsEmpty">
 				<td colspan="100">
 					<div class="we7-empty-block">暂无</div>
@@ -235,7 +245,7 @@
 		</tr>
 		<tr ng-repeat="module in module_list">
 			<td class="text-left module-img">
-				<img ng-src="{{ module.logo }}" alt="" class="module-img ">
+				<img ng-src="{{ module.logo + '?imageView2/5/w/76/h/76/format/png'}}" alt="" class="module-img ">
 			</td>
 			<td class="text-left">
 				<p>{{ module.title }}</p>
@@ -310,7 +320,7 @@
 	angular.module('moduleApp').value('config', {
 		'module_list' : {php echo json_encode($modulelist)},
 		'support': {php echo json_encode($_GPC['support'])},
-		'module_support_types' : {php echo json_encode($module_support_types)},
+		'module_support_types' : {php echo json_encode($module_all_support)},
 		'permission_check' : {php echo json_encode($permission_check)},
 		'do' : "{php echo $do}",
 		'support' : "{php echo $_GPC['support']}",
@@ -343,10 +353,15 @@
 		</div>
 		
 		{if permission_check_account_user('see_module_manage_system_shopinfo')}
-		<a ng-if="isFounder == 1 && moduleinfo.cloud_mid != ''" ng-href="{{ 'http://s.w7.cc/module-' + moduleinfo.cloud_mid + '.html' }}" target="_blank" class="btn btn-primary ">查看商城详情</a>
+		<a ng-if="isFounder == 1 && moduleinfo.cloud_mid != '' && moduleinfo.system_shutdown != 2" ng-href="{{ 'http://s.w7.cc/module-' + moduleinfo.cloud_mid + '.html' }}" target="_blank" class="btn btn-primary ">查看商城详情</a>
 		{/if}
 	</div>
-
+	<div class="alert we7-page-alert" ng-if="moduleinfo.system_shutdown == 2 || moduleinfo.system_shutdown == 3">
+		<p class="text-danger"><i class="wi wi-info-sign"></i>
+			<span ng-show="moduleinfo.system_shutdown == 2 && moduleinfo.can_update">该应用因违反平台规定已于<span class="color-red" ng-bind="moduleinfo.system_shutdown_delay_time"></span>下架，无法购买但可以更新版本，一个月后将无法更新，如有疑问请及时反馈</span></span>
+			<span ng-show="moduleinfo.system_shutdown == 3 && moduleinfo.can_update">该应用因违反平台规定将于<span class="color-red" ng-bind="moduleinfo.system_shutdown_delay_time"></span>下架，目前不影响版本升级，<span class="color-red">下架后将无法购买和升级版本</span>，如有疑问请及时反馈</span>
+		</p>
+	</div>
 	<div class="btn-group we7-btn-group we7-margin-bottom">
 		<a href="javascript:;" ng-click="changeShow('base')" class="btn " ng-class="{'active' : show == 'base' || show == ''}">基本信息</a>
 		<a href="javascript:;" ng-click="changeShow('plugin')" class="btn " ng-class="{'active' : show == 'plugin'}" ng-show="moduleinfo.main_module == '' && moduleinfo.plugin_list != undefined && moduleinfo.plugin_list != ''">模块子应用</a>
@@ -514,13 +529,11 @@
 	</table>
 	<table class="table we7-table table-hover vertical-middle" ng-show="show == 'upgrade'" ng-if="isFounder == 1 && upgradeInfo.from == 'cloud' && branch.displayorder >= upgradeInfo.site_branch.displayorder" ng-repeat="branch in upgradeInfo.branches">
 		<col width="300px"/>
-		<!-- <col /> -->
 		<col />
 		<col />
 		<col width="200px"/>
 		<tr>
 			<th class="text-left">分支名称</th>
-			<!-- <th>分支价格</th> -->
 			<th>目前版本</th>
 			<th>最新版本</th>
 			<th class="text-right">操作</th>
@@ -528,20 +541,15 @@
 		<tbody>
 		<tr>
 			<td class="text-left">{{ branch.name }}</td>
-			<!-- <td class="color-red">
-				<span ng-if="branch.displayorder > upgradeInfo.site_branch.displayorder" ng-bind="branch.price"></span>
-				<span ng-if="branch.displayorder == upgradeInfo.site_branch.displayorder && branch.id > upgradeInfo.site_branch.id" ng-bind="branch.upgrade_price"></span>
-				<span class="label label-success" ng-if="branch.id == upgradeInfo.site_branch.id">当前分支</span>
-			</td> -->
 			<td>{{ upgradeInfo.site_branch.id == branch.id ? moduleinfo.version : ''}}</td>
 			<td>线上：{{ branch.version.version }}<br><span ng-if="localUpgradeInfo">本地：{{localUpgradeInfo.best_version}}</span></td>
 			<td class="text-right">
 				<span class="text text-success" ng-if="branch.id == upgradeInfo.site_branch.id && branch.version.version ==  moduleinfo.version">无需升级</span>
 				{if permission_check_account_user('see_module_manage_system_ugrade')}
 				<a ng-if="localUpgradeInfo" href="{php echo url('module/manage-system/upgrade')}module_name={{ moduleinfo.name }}" class="btn btn-primary">本地升级</a>
-				<a href="javascript:;" ng-click="notice(service_expire, upgradeInfo.id, upgradeInfo.name)" ng-if="branch.id == upgradeInfo.site_branch.id && branch.version.version !=  moduleinfo.version" class="btn btn-primary">升级</a>
+				<a href="javascript:;" ng-click="notice(service_expire, upgradeInfo.id, upgradeInfo.name)" ng-if="branch.id == upgradeInfo.site_branch.id && branch.version.version !=  moduleinfo.version && upgradeInfo.can_update" class="btn btn-primary">升级</a>
 				{/if}
-				<a href="javascript:;" ng-click="upgrade(branch.upgrade_price, upgradeInfo.name, upgradeInfo.id)" ng-if="branch.displayorder > upgradeInfo.site_branch.displayorder || (branch.displayorder == upgradeInfo.site_branch.displayorder && branch.id > upgradeInfo.site_branch.id)" class="btn btn-danger">购买</a>
+				<a href="javascript:;" ng-click="upgrade(branch.upgrade_price, upgradeInfo.name, upgradeInfo.id)" ng-if="upgradeInfo.can_update && (branch.displayorder > upgradeInfo.site_branch.displayorder || (branch.displayorder == upgradeInfo.site_branch.displayorder && branch.id > upgradeInfo.site_branch.id))" class="btn btn-danger">购买</a>
 			</td>
 		</tr>
 		<tr>

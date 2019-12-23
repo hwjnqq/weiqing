@@ -1,9 +1,11 @@
 {template 'common/header'}
+{if $_W['iscontroller']}
 <ol class="breadcrumb we7-breadcrumb">
 	<a href="{php echo url('account/manage')}"><i class="wi wi-back-circle"></i> </a>
 	<li><a href="{php echo url('account/manage')}">平台列表</a></li>
 	<li>{php echo $account->typeName}设置</li>
 </ol>
+{/if}
 <div class="media media-wechat-setting">
 	<a class="media-left">
 		<span class="icon"><i class="wi wi-{$account['type_sign']}"></i></span>

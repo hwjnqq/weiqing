@@ -45,6 +45,13 @@ if ('oauth' == $do) {
 	$user_have_accounts = user_borrow_oauth_account_list();
 	$oauth_accounts = $user_have_accounts['oauth_accounts'];
 	$jsoauth_accounts = $user_have_accounts['jsoauth_accounts'];
+	if (!empty($oauth['account']) && empty($oauth_accounts[$oauth['account']])) {
+		$oauth_accounts[$oauth['account']] = table('account_wechats')->where('acid', $oauth['account'])->getcolumn('name');
+
+	}
+	if (!empty($jsoauth) && empty($jsoauth_accounts[$jsoauth])) {
+		$jsoauth_accounts[$jsoauth] = table('account_wechats')->where('acid', $oauth['account'])->getcolumn('name');
+	}
 }
 
 template('profile/passport');

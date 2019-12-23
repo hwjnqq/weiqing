@@ -127,7 +127,11 @@ function cache_delete($key) {
 		foreach ($cache_relation_keys as $key) {
 			$cache_info = cache_load($key);
 			if (!empty($cache_info)) {
-				$result = $redis->delete(cache_prefix($key));
+				if (method_exists($redis, 'del')) {
+					$result = $redis->del(cache_prefix($key));
+				} else {
+					$result = $redis->delete(cache_prefix($key));
+				}
 				if ($result) {
 					unset($GLOBALS['_W']['cache'][$key]);
 				} else {

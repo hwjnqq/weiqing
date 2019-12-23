@@ -23,6 +23,7 @@ if (!$role_permission) {
 $founders = explode(',', $_W['config']['setting']['founder']);
 $founder_info = pdo_getcolumn('users', array('uid' => current($founders)), 'username');
 $account = uni_fetch($uniacid);
+$_W['breadcrumb'] = $account['name'];
 $headimgsrc = tomedia('headimg_' . $account['acid'] . '.jpg');
 if (is_error($account)) {
 	itoast($account['message']);
@@ -61,12 +62,9 @@ if ('edit' == $do) {
 }
 
 if ('delete' == $do) {
-	if (!$_W['isajax'] || !$_W['ispost']) {
-		itoast('非法操作！', referer(), 'error');
-	}
-	$uid = is_array($_GPC['uid']) ? 0 : intval($_GPC['uid']);
+	$uid = intval($_GPC['uid']);
 	if (empty($uid)) {
-		itoast('请选择要删除的用户！', referer(), 'error');
+		iajax(-1, '请选择要删除的用户！');
 	}
 	$data = array(
 		'uniacid' => $uniacid,
@@ -74,11 +72,11 @@ if ('delete' == $do) {
 	);
 	$exists = pdo_get('uni_account_users', array('uniacid' => $uniacid, 'uid' => $uid));
 	if (empty($exists)) {
-		itoast('该平台账号下不存在该用户！', referer(), 'error');
+		iajax(-1, '该平台账号下不存在该用户！');
 	}
 
 	if (ACCOUNT_MANAGE_NAME_MANAGER == $state && (ACCOUNT_MANAGE_NAME_OWNER == $exists['role'] || ACCOUNT_MANAGE_NAME_MANAGER == $exists['role'])) {
-		itoast('管理员不可操作其他管理员', referer(), 'error');
+		iajax(-1, '管理员不可操作其他管理员');
 	}
 	$result = pdo_delete('uni_account_users', $data);
 	if ($result) {
@@ -87,9 +85,9 @@ if ('delete' == $do) {
 		}
 		pdo_delete('users_lastuse', $data);
 		pdo_delete('system_stat_visit', $data);
-		itoast('删除成功！', referer(), 'success');
+		iajax(0, '删除成功！', referer());
 	} else {
-		itoast('删除失败，请重试！', referer(), 'error');
+		iajax(-1, '删除失败，请重试！');
 	}
 }
 
@@ -100,7 +98,7 @@ if ('set_manager' == $do) {
 		if (2 != $user['status']) {
 			iajax(3, '用户未通过审核或不存在！', '');
 		}
-
+		
 		if (ACCOUNT_OPERATE_CLERK == $user['type']) {
 			iajax(-1, '该用户是应用操作员，不能成为账号的操作员!', '');
 		}

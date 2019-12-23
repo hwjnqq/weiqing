@@ -22,6 +22,7 @@ if ('display' == $do) {
 			$version['module'] = is_array($version['modules']) ? current($version['modules']) : array();
 		}
 	}
+	$_W['breadcrumb'] = $_W['account']['name'];
 	template('miniapp/version-display');
 }
 

@@ -75,7 +75,7 @@ if (empty($_W['isfounder']) && $user_account_num["{$sign}_limit"] <= 0) {
 	$error_msg = $sign_title . '创建数量已达上限！';
 	empty($_W['isajax']) ? message($error_msg, '', 'error') : iajax(-1, $error_msg);
 }
-
+$_W['breadcrumb'] = '新建平台账号';
 if ('display' == $do) {
 	$modules = user_modules($_W['uid']);
 	foreach ($modules as $k => $module) {
@@ -102,16 +102,15 @@ if ('save_account' == $do || 'check_params' == $do) {
 		if (empty($post['name'])) {
 			iajax(-1, $sign_title . '名称不能为空');
 		}
-		$account_table = table('account');
-		$check_uniacname = $account_table->searchWithTitle($post['name'])->searchWithType($create_account_type)->searchAccountList();
+		$check_uniacname = table('account')->searchWithTitle($post['name'])->searchWithType($create_account_type)->searchAccountList();
 		if (!empty($check_uniacname)) {
-			iajax(-1, "该{$sign_title}名称已经存在");
+			iajax(-1, "该名称'{$sign_title}'已经存在");
 		}
 		//验证appid唯一性
 		if (in_array($sign, array(ACCOUNT_TYPE_SIGN, XZAPP_TYPE_SIGN))) {
-			$appid = trim(safe_gpc_string($_GPC['key']));
+			$appid = safe_gpc_string($_GPC['key']);
 		} else {
-			$appid = trim(safe_gpc_string($_GPC['appid']));
+			$appid = safe_gpc_string($_GPC['appid']);
 		}
 		if (!empty($appid)) {
 			$hasAppid = uni_get_account_by_appid($appid, $create_account_type);
@@ -190,8 +189,8 @@ if ('save_account' == $do) {
 		// 角色
 		if (empty($_W['isfounder'])) {
 			uni_user_account_role($uniacid, $_W['uid'], ACCOUNT_MANAGE_NAME_OWNER);
-			cache_build_account_modules($uniacid);
 		}
+		cache_build_account_modules($uniacid);
 		
 
 		// 其他数据

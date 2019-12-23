@@ -33,7 +33,7 @@ if (in_array($action, array('group'))) {
 if (in_array($action, array('display', 'link'))) {
 	define('FRAME', 'module');
 }
-if (in_array($action, array('link', 'link-account', 'permission', 'plugin', 'shortcut', 'welcome'))) {
+if (in_array($action, array('link', 'link-account', 'manage-account', 'permission', 'plugin', 'shortcut', 'welcome'))) {
 	define('IN_MODULE', trim($_GPC['m']));
 }
 $account_all_type = uni_account_type();

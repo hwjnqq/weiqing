@@ -87,9 +87,7 @@ function cache_build_account_modules($uniacid = 0, $uid = 0) {
 				continue;
 			}
 			if (empty($version_modules) || !in_array($uni_module_val, $version_modules)) {
-				pdo_delete('uni_modules', array('uniacid' => $uniacid, 'module_name' => $uni_module_val));
 				pdo_delete('users_lastuse', array('uniacid' => $uniacid, 'modulename' => $uni_module_val));
-				unset($uni_modules_new[$uni_module_key]);
 			}
 		}
 	}
@@ -340,7 +338,7 @@ function cache_build_frame_menu() {
 			foreach ($add_top_nav as $menu) {
 				$system_menu[$menu['permission_name']] = $menu;
 				if (!empty($menu['url'])) {
-					$system_menu[$menu['permission_name']]['url'] = strexists($menu['url'], 'http') ?  $menu['url'] : $_W['siteroot'] . $menu['url'];
+					$system_menu[$menu['permission_name']]['url'] = $menu['url'];
 				}
 				//用户自己额外加的菜单,全部新窗口打开(header.html中使用)
 				$menu['blank'] = true;
@@ -567,6 +565,21 @@ function cache_build_uni_group($group_id = 0) {
 	cache_delete(cache_system_key('uni_groups', array('groupids' => $group_id)));
 }
 
+/**
+ * @param int $length
+ * @return string
+ */
+function cache_random($length = 4) {
+	$cachekey = cache_system_key('random');
+	$cache = cache_load($cachekey);
+	if ($cache) {
+		return $cache;
+	}
+	$result = random($length);
+	cache_write($cachekey, $result, CACHE_EXPIRE_SHORT);
+	return $result;
+}
+
 function cache_updatecache() {
 	$account_ticket_cache = cache_read(cache_system_key('account_ticket'));
 	//无论是哪种缓存方式，更新缓存时强制删除数据库中的值
@@ -580,7 +593,7 @@ function cache_updatecache() {
 	cache_build_setting();
 	cache_build_module_subscribe_type();
 	//删除模板缓存和patch目录
-	rmdirs(IA_ROOT . '/data/patch/');
+	rmdirs(IA_ROOT . '/data/patch/upgrade/');
 	rmdirs(IA_ROOT . '/data/tpl/web/');
 	rmdirs(IA_ROOT . '/data/tpl/app/');
 	//清除模块接口缓存表中的数据

@@ -204,7 +204,7 @@ if ($scope == 'userinfo' || $scope == 'snsapi_userinfo') {
 		$userinfo['nickname'] = stripcslashes($userinfo['nickname']);
 		$userinfo['avatar'] = $userinfo['headimgurl'];
 		$_SESSION['userinfo'] = base64_encode(iserializer($userinfo));
-		$fan = table('mc_mapping_fans')->searchWithOpenid($oauth['openid'])->get();
+		$fan = table('mc_mapping_fans')->searchWithOpenid($oauth['openid'])->searchWithUniacid($_W['uniacid'])->get();
 		if (!empty($fan)) {
 			$record = array();
 			$record['updatetime'] = TIMESTAMP;

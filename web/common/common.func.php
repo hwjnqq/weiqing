@@ -8,6 +8,33 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('module');
 load()->model('miniapp');
 
+function current_operate_is_controller() {
+	global $_W, $_GPC;
+	$result = 0;
+	if (!$_W['isfounder']) {
+		return $result;
+	}
+	$result = igetcookie('__iscontroller');
+	if (isset($_GPC['iscontroller'])) {
+		if (1 == $_GPC['iscontroller']) {
+			$result = 1;
+			isetcookie('__iscontroller', $result);
+			return $result;
+		}
+		if (0 == $_GPC['iscontroller']) {
+			$result = 0;
+		}
+	}
+
+	if (in_array(FRAME, array('welcome', 'module_manage', 'user_manage', 'permission', 'system', 'site'))) {
+		$result = 1;
+	}
+	if (in_array(FRAME, array('account', 'wxapp')) && $_GPC['m'] != 'store') {
+		$result = 0;
+	}
+	isetcookie('__iscontroller', $result);
+	return $result;
+}
 /**
  * 原系统函数,兼容模块.
  *
@@ -25,8 +52,8 @@ function system_modules() {
  *
  * @return string eg:(./index.php?c=*&a=*&do=*&...)
  */
-function url($segment, $params = array()) {
-	return wurl($segment, $params);
+function url($segment, $params = array(), $contain_domain = false) {
+	return wurl($segment, $params, $contain_domain);
 }
 
 /**
@@ -158,6 +185,27 @@ function checklogin() {
 	}
 
 	return true;
+}
+
+function get_position_by_ip($ip = '') {
+	$ip = $ip ? $ip : CLIENT_IP;
+	$url = 'http://ip.taobao.com/service/getIpInfo.php?ip=' . $ip;
+	$ip_content = file_get_contents($url);
+	$ip_content = json_decode($ip_content, true);
+	if (empty($ip_content) || $ip_content['code'] != 0) {
+		$res = @file_get_contents('https://whois.pconline.com.cn/ipJson.jsp');
+		$res = strtoutf8($res);
+		$json_matches = array();
+		preg_match('/{IPCallBack\((.+?)\);\}/', $res, $json_matches);
+		if (empty($json_matches[1])) {
+			return error(-1, '获取地址失败，请重新配置Ip查询接口');
+		}
+		$ip_content = array(
+			'code' => 0,
+			'data' => json_decode($json_matches[1], true)
+		);
+	}
+	return $ip_content;
 }
 
 //新版buildframes
@@ -581,14 +629,13 @@ function buildframes($framename = '') {
 		}
 
 		if (!empty($wxapp_version['modules'])) {
-			foreach ($wxapp_version['modules'] as $key => $module) {
+			foreach ($wxapp_version['modules'] as $module) {
 				$wxapp_module_permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], $module['name']);
 				if (empty($wxapp_module_permission)) {
 					$frames['wxapp']['section']['platform_module']['is_display'] = false;
 					break;
 				}
 				$need_upload = !empty($last_modules) && ($module['version'] != $last_modules['version']);
-				$module = module_fetch($key);
 				if (!empty($module) && (isset($module['recycle_info']) ? (empty($module['recycle_info']['wxapp_support']) ? true : false) : true)) {
 					$frames['wxapp']['section']['platform_module']['menu']['module_menu' . $module['mid']] = array(
 						'icon' => $module['logo'],
@@ -657,6 +704,7 @@ function frames_top_menu($frames) {
 			'blank' => $menu['blank'],
 			'icon' => $menu['icon'],
 			'is_display' => $menu['is_display'],
+			'is_system' => $menu['is_system'],
 		);
 	}
 
@@ -766,4 +814,9 @@ EOF;
 	}
 
 	return '';
+}
+
+function strtoutf8($str) {
+	$current_encode = mb_detect_encoding($str, array('ASCII', 'GB2312', 'GBK', 'BIG5', 'UTF-8'));
+	return mb_convert_encoding($str, 'UTF-8', $current_encode);
 }

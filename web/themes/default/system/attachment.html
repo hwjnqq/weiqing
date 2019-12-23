@@ -246,7 +246,7 @@
 	</div>
 	<div class="remote-alioss" {if empty($remote['type']) || $remote['type'] != '2'} style="display:none;" {/if}>
 		<div class="alert alert-info we7-page-alert">
-			<i class="wi wi-info-sign"></i> 启用阿里oss后，请把/attachment目录（不包括此目录）下的子文件及子目录上传至阿里云oss,
+			<i class="wi wi-info-sign"></i> 启用阿里oss后，请把/attachment目录（不包括此目录及global目录）下的子文件及子目录上传至阿里云oss,当文件大于10g时,建议手动上传
 			<ul class="link-list we7-margin-top-sm">
 				相关工具：<br>
 			<li><a target="_blank" href="http://market.aliyun.com/products/52738003/cmgj000304.html?spm=5176.383663.9.21.faitxp" class="we7-margin-left color-default" data-spm-anchor-id="5176.383663.9.21">cloudfs4oss(ECS挂载文件盘工具)</a></li>
@@ -327,7 +327,7 @@
 	</div>
 	<div class="remote-qiniu" {if empty($remote['type']) || $remote['type'] != '3'} style="display:none;" {/if}>
 	<div class="alert alert-info we7-page-alert">
-		<span><i class="wi wi-info-sign"></i> 启用七牛云存储后，请把/attachment目录（不包括此目录）下的子文件及子目录上传至七牛云存储, </span><br>
+		<span><i class="wi wi-info-sign"></i> 启用七牛云存储后，请把/attachment目录（不包括此目录及global目录）下的子文件及子目录上传至七牛云存储, 当文件大于10g时,建议手动上传</span><br>
 		<span><i class="wi wi-info-sign"></i> 七牛云存储，现在不支持上传文件夹</span><br>
 		<ul class="link-list we7-margin-top-sm">
 			<li>相关工具：<a target="_blank" href="https://portal.qiniu.com/signin" class="color-default" >七牛云存储</a></li>
@@ -374,7 +374,7 @@
 	</div>
 	<div class="remote-cos" {if empty($remote['type']) || $remote['type'] != '4'} style="display:none;" {/if}>
 	<div class="alert alert-info we7-page-alert">
-		<i class="wi wi-info-sign"></i> 启用腾讯云cos对象存储后，请把/attachment目录（不包括此目录）下的子文件及子目录上传至腾讯云存储, <br>
+		<i class="wi wi-info-sign"></i> 启用腾讯云cos对象存储后，请把/attachment目录（不包括此目录及global目录）下的子文件及子目录上传至腾讯云存储, 当文件大于10g时,建议手动上传<br>
 		<ul class="link-list we7-margin-top-sm">
 			<li>相关工具：<a target="_blank" href="https://console.qcloud.com/cos/bucket" class="color-default" >腾讯云存储</a></li>
 		</ul>
@@ -507,13 +507,16 @@
         $('#name').modal('show');
 		$.post("{php echo url('system/attachment/upload_remote')}", {}, function(data) {
 			var data = $.parseJSON(data);
-			if (data.message.errno == 2) {
-				upload_remote();
-			}
 			if (data.message.errno == 0) {
-                util.message('上传完毕', location.reload(), 'success');
-            }
-            if (data.message.errno == 1) {
+				if (data.message.message.status == 1){
+					upload_remote();
+				}
+				if (data.message.message.status == 0) {
+					util.message('上传完毕', location.reload(), 'success');
+				}
+			}
+
+            if (data.message.errno == -1) {
                 util.message(data.message.message, '', 'success');
             }
 		});

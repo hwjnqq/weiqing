@@ -262,6 +262,9 @@ function permission_menu_name() {
 	$middle_sub_menu = array();
 	if (!empty($menu_list)) {
 		foreach ($menu_list as $nav_id => $section) {
+			if (empty($section['section'])) {
+				continue;
+			}
 			foreach ($section['section'] as $section_id => $section) {
 				if (!empty($section['menu'])) {
 					$middle_menu[] = $section['menu'];
@@ -616,7 +619,7 @@ function permission_user_account_num($uid = 0) {
 		}
 		$founder_limit_total += $founder_limit[$sign];
 	}
-
+	$founder_limit_total = max(0, $founder_limit_total);
 	$data = array(
 		'group_name' => $group['name'],
 		'vice_group_name' => $group_vice['name'],

@@ -118,8 +118,8 @@
 				var type = $(this).attr('data-type');
 				var data = $(this).prev().text();
 				var table = $(this).parent().parent().parent().children("td.tablename").text();
-				$.post('{php echo url('system/database/trim')}', {'type' : type, 'data' : data, 'table' : table}, function(status){
-					if (status == 'success') {
+				$.post('{php echo url('system/database/trim')}', {'type' : type, 'data' : data, 'table' : table}, function(data){
+					if (data.messsge.errno == 0) {
 						$('#'+type+data).remove();
 					}
 				});

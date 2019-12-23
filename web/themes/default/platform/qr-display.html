@@ -15,7 +15,7 @@
 				<div class="pull-left we7-margin-right">
 					<label class="control-label col-sm-3">时间范围</label>
 					<div class="form-controls col-sm-8">
-						{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
+						{php echo tpl_form_field_daterange('time', array('starttime' => $_GPC['time']['start'],'endtime' => $_GPC['time']['end']));}
 					</div>
 				</div>
 				<div class="pull-left">

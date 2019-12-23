@@ -63,6 +63,7 @@ if ('display' == $do) {
 			}
 		}
 	}
+	$_W['breadcrumb'] = $account['name'];
 	template('miniapp/manage');
 }
 
@@ -111,7 +112,7 @@ if ('edit_version' == $do) {
 }
 
 if ('del_version' == $do) {
-	$versionid = intval($_GPC['versionid']);
+	$versionid = intval($_GPC['version_id']);
 	if (empty($versionid)) {
 		iajax(1, '参数错误！');
 	}
@@ -119,7 +120,7 @@ if ('del_version' == $do) {
 	if (empty($version_exist)) {
 		iajax(1, '模块版本不存在！');
 	}
-	$version_module = current($version_exist['version']['modules']);
+	$version_module = !empty($version_exist['version']['modules']) ? current($version_exist['version']['modules']) : array();
 	if (!empty($version_module['name'])) {
 		table('uni_link_uniacid')->searchWithUniacidModulenameVersionid($uniacid, $version_module['name'], $versionid)->delete();
 	}

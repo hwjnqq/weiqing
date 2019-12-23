@@ -14,6 +14,7 @@ $system_menu = system_menu_permission_list();
 
 $account_all_type = uni_account_type();
 $account_all_type_sign = array_keys(uni_account_type_sign());
+$not_operate_menu = array_merge($account_all_type_sign, array('appmarket', 'site', 'myself'));
 //获取全部permission_name，方便判断是否是系统菜单
 $system_menu_permission = array();
 if (!empty($system_menu)) {
@@ -31,10 +32,6 @@ if (!empty($system_menu)) {
 					}
 				}
 			}
-		}
-		if (in_array($menu_name, $account_all_type_sign)) {
-			$system_menu['platform']['section'][$menu_name] = $menu;
-			unset($system_menu[$menu_name]);
 		}
 	}
 }

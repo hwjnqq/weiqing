@@ -27,4 +27,9 @@ class Account extends \We7Table {
 		'title_initial' => '',
 		'create_uid' => '0',
 	);
+	public function searchWithAccount() {
+		return $this->query->from($this->tableName, 'a')
+			->leftjoin('account', 'b')
+			->on('a.uniacid', 'b.uniacid');
+	}
 }

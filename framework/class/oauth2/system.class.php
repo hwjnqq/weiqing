@@ -24,7 +24,11 @@ class System extends OAuth2Client {
 		if ($failed['count'] >= 5) {
 			return error('-1', "输入密码错误次数超过5次，请在{$refused_login_limit}分钟后再登录");
 		}
-		if (!empty($_W['setting']['copyright']['verifycode'])) {
+		$need_check_captcha = true;
+		if ($_W['setting']['copyright']['login_verify_status'] && !empty($_GPC['smscode'])) {
+			$need_check_captcha = false;
+		}
+		if (!empty($_W['setting']['copyright']['verifycode']) && $need_check_captcha) {
 			$verify = trim($_GPC['verify']);
 			if (empty($verify)) {
 				return error('-1', '请输入验证码');
@@ -93,6 +97,16 @@ class System extends OAuth2Client {
 			foreach ($extendfields as $row) {
 				if (!empty($row['required']) && empty($_GPC[$row['field']])) {
 					return error(-1, '“' . $row['title'] . '”此项为必填项，请返回填写完整！');
+				}
+				if ($row['field'] == 'mobile') {
+					$mobile = safe_gpc_int($_GPC['mobile']);
+					if (!preg_match(REGULAR_MOBILE, $mobile)) {
+						return error(-1, '手机号格式不正确');
+					}
+					$mobile_exists = table('users_profile')->getByMobile($mobile);
+					if (!empty($mobile_exists)) {
+						return error(-1, '手机号已存在');
+					}
 				}
 				$profile[$row['field']] = $_GPC[$row['field']];
 			}

@@ -85,7 +85,9 @@ if ('edit_modules_tpl' == $do) {
 
 	$modules = user_modules($_W['uid']);
 	$templates = pdo_getall('site_templates', array(), array('id', 'name', 'title'));
-
+	foreach ($templates as &$template) {
+		$template['logo'] = "../app/themes/{$template['name']}/preview.jpg";
+	}
 	$groups = user_group();
 	$group_info = user_group_detail_info($user['groupid']);
 
@@ -94,6 +96,9 @@ if ('edit_modules_tpl' == $do) {
 	$user_extend_templates_ids = array_keys($users_extra_template_table->getExtraTemplatesIdsByUid($_GPC['uid']));
 	if (!empty($user_extend_templates_ids)) {
 		$extend['templates'] = pdo_getall('site_templates', array('id' => $user_extend_templates_ids), array('id', 'name', 'title'));
+		foreach ($extend['templates'] as &$extend_template) {
+			$extend_template['logo'] = "../app/themes/{$extend_template['name']}/preview.jpg";
+		}
 	}
 
 	if (!empty($templates) && !empty($user_extend_templates_ids)) {
@@ -118,6 +123,22 @@ if ('edit_modules_tpl' == $do) {
 	$user_extra_groups = !empty($user_extra_groups) ? uni_groups(array_keys($user_extra_groups)) : array();
 	if (!empty($uni_groups)) {
 		foreach ($uni_groups as $module_group_key => &$module_group_val) {
+			unset($module_group_val['modules']);
+			foreach ($module_group_val['modules_all'] as $per_module_name => &$per_module) {
+				$pre_module_info = array(
+					'title' => $per_module['title'],
+					'logo' => $per_module['logo'],
+					'group_support' => $per_module['group_support']
+				);
+				$per_module = $pre_module_info;
+				unset($pre_module_info);
+			}
+			$module_support_type_sign = array_keys(uni_account_type_sign());
+			foreach ($module_support_type_sign as $type_sign) {
+				if(!empty($module_group_val[$type_sign])) {
+					unset($module_group_val[$type_sign]);
+				}
+			}
 			if (!empty($user_extra_groups[$module_group_key])) {
 				$module_group_val['checked'] = 1;
 			} else {
@@ -290,6 +311,13 @@ if ('edit_create_account_list' == $do) {
 
 if ('edit_user_group' == $do) {
 	if ($_W['isajax'] && $_W['ispost']) {
+		if (!isset($_GPC['groupid'])) {
+			iajax(-1, '请选择所属用户组');
+		}
+		$user = array(
+			'groupid' => safe_gpc_int($_GPC['groupid']),
+			'uid' => $uid,
+		);
 		$user = array(
 			'groupid' => intval($_GPC['groupid']),
 			'uid' => $uid,
@@ -429,13 +457,13 @@ if ('delete_user_group' == $do) {
 	$groupid = intval($_GPC['groupid']);
 
 	if (!user_is_founder($_W['uid'])) {
-		itoast('权限错误', referer(), 'error');
+		iajax(-1, '权限错误');
 	}
 
 	if (user_is_vice_founder($_W['uid'])) {
 		$founder_own_users = table('users_founder_own_users')->getFounderOwnUsersList($_W['uid']);
 		if (!in_array($uid, array_keys($founder_own_users))) {
-			itoast('信息有误', referer(), 'error');
+			iajax(-1, '信息有误', referer());
 		}
 	}
 
@@ -446,7 +474,7 @@ if ('delete_user_group' == $do) {
 	}
 
 	if ($user['groupid'] != $groupid) {
-		itoast('信息有误', referer(), 'error');
+		iajax(-1, '信息有误');
 	}
 
 	$user_end_time = $user['endtime'];
@@ -467,9 +495,9 @@ if ('delete_user_group' == $do) {
 	}
 
 	if ($result) {
-		itoast('修改成功', referer(), 'success');
+		iajax(0, '删除成功', referer());
 	} else {
-		itoast('修改失败', referer(), 'error');
+		iajax(-1, '删除失败');
 	}
 }
 

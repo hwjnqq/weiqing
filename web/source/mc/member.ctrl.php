@@ -70,10 +70,6 @@ if ('display' == $do) {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 25;
 
-	if (empty($_GPC['datelimit'])) {
-		$_GPC['datelimit']['start'] = date('Y-m-d', strtotime('-1 year'));
-		$_GPC['datelimit']['end'] = date('Y-m-d');
-	}
 	$condition = '';
 	$params = array(':uniacid' => $_W['uniacid']);
 	if (!empty($_GPC['username'])) {
@@ -103,10 +99,12 @@ if ('display' == $do) {
 	}
 	if (!empty($_GPC['datelimit'])) {
 		$starttime = strtotime($_GPC['datelimit']['start']);
-		$endtime = strtotime($_GPC['datelimit']['end']) + 86399;
-		$condition .= ' AND createtime > :start AND createtime < :end';
-		$params[':start'] = $starttime;
-		$params[':end'] = $endtime;
+		if (!empty($starttime)) {
+			$endtime = strtotime($_GPC['datelimit']['end']) + 86399;
+			$condition .= ' AND createtime > :start AND createtime < :end';
+			$params[':start'] = $starttime;
+			$params[':end'] = $endtime;
+		}
 	}
 	if (intval($_GPC['groupid']) > 0) {
 		$condition .= ' AND `groupid` = :groupid';
@@ -300,45 +298,43 @@ if ('group' == $do) {
 if ('credit_statistics' == $do) {
 	$uid = intval($_GPC['uid']);
 	$credits = array(
-			'credit1' => $creditnames['credit1']['title'],
-			'credit2' => $creditnames['credit2']['title'],
+		'credit1' => $creditnames['credit1']['title'],
+		'credit2' => $creditnames['credit2']['title'],
 	);
-	$type = intval($_GPC['type']);
-	$starttime = strtotime('-7 day');
-	$endtime = strtotime('7 day');
-	if (1 == $type) {
-		$starttime = strtotime(date('Y-m-d'));
-		$endtime = TIMESTAMP;
-	} elseif ($type == -1) {
-		$starttime = strtotime('-1 day');
-		$endtime = strtotime(date('Y-m-d'));
-	} else {
+	if (!empty($_GPC['datelimit'])) {
 		$starttime = strtotime($_GPC['datelimit']['start']);
 		$endtime = strtotime($_GPC['datelimit']['end']) + 86399;
+		$time_where = array(
+			'createtime >' => $starttime,
+			'createtime <' => $endtime,
+		);
 	}
 	if (!empty($credits)) {
 		$data = array();
 		foreach ($credits as $key => $li) {
-			$data[$key]['add'] = round(table('mc_credits_record')
+			$mc_credits_record_add = table('mc_credits_record')
 				->where(array(
 					'uniacid' => $_W['uniacid'],
 					'uid' => $uid,
-					'createtime >' => $starttime,
-					'createtime <' => $endtime,
 					'credittype' => $key,
 					'num >' => 0,
-				))
-				->getcolumn('SUM(num)'), 2);
-			$data[$key]['del'] = abs(round(table('mc_credits_record')
+				));
+
+
+			$mc_credits_record_del = table('mc_credits_record')
 				->where(array(
 					'uniacid' => $_W['uniacid'],
 					'uid' => $uid,
-					'createtime >' => $starttime,
-					'createtime <' => $endtime,
 					'credittype' => $key,
 					'num <' => 0
-				))
-				->getcolumn('SUM(num)'), 2));
+				));
+			if (!empty($time_where)) {
+				$mc_credits_record_add->where($time_where);
+				$mc_credits_record_del->where($time_where);
+			}
+			$data[$key]['add'] = round($mc_credits_record_add
+				->getcolumn('SUM(num)'), 2);
+			$data[$key]['del'] = abs(round($mc_credits_record_del->getcolumn('SUM(num)'), 2));
 			$data[$key]['end'] = $data[$key]['add'] - $data[$key]['del'];
 		}
 	}

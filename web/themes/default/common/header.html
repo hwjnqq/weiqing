@@ -5,7 +5,7 @@
 		<div class="container {if !empty($frames['section']['platform_module_menu']['plugin_menu'])}plugin-head{/if}">
 			<div class="navbar-header">
 					<a class="navbar-brand" href="{php echo url('home/welcome/system', array('page' => 'home'));}">
-					<img src="{if !empty($_W['setting']['copyright']['blogo'])}{php echo to_global_media($_W['setting']['copyright']['blogo'])}{else}./resource/images/logo/logo.png{/if}" class="pull-left" width="110px" height="35px">
+					<img src="{if !empty($_W['setting']['copyright']['blogo'])}{php echo to_global_media($_W['setting']['copyright']['blogo'])}{else}./resource/images/logo/logo.png{/if}" class="pull-left" style="max-height: 40px;max-width: 100px;">
 					<span class="version hidden">{IMS_VERSION}</span>
 				</a>
 			</div>
@@ -21,53 +21,25 @@
 				{loop $top_nav $nav}
 					{if in_array($nav['name'], array(ACCOUNT_TYPE_SIGN, WXAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN, PHONEAPP_TYPE_SIGN, XZAPP_TYPE_SIGN, ALIAPP_TYPE_SIGN, BAIDUAPP_TYPE_SIGN, TOUTIAOAPP_TYPE_SIGN))}
 						{php $nav_top_fold[]=$nav}
-					{elseif in_array($nav['name'], array('store', 'help', 'workorder', 'custom_help'))}
+					{elseif in_array($nav['name'], array('store', 'help', 'workorder', 'custom_help')) || !$nav['is_system']}
 						{php $nav_top_tiled_other[] = $nav}
 					{elseif $nav['name'] =='message'}
 						{php $nav_top_message = $nav}
 					{else}
 						{php $nav_top_tiled_system[] = $nav}
 					{/if}
+					{if 'store' == $nav['name'] && user_is_founder($_W['uid'], true)}{php $nav_top_tiled_system[] = $nav}{/if}
 				{/loop}
 				<ul class="nav navbar-nav  navbar-left">
 					{loop $nav_top_tiled_system $nav}
 					<li {if FRAME == $nav['name'] && !defined('IN_MODULE')} class="active" {/if}>
-					<a href="{$nav['url']}" {if !empty($nav['blank'])}target="_blank"{/if}>{$nav['title']}</a>
+					<a href="{$nav['url']}{if $nav['title'] != '市场'}&iscontroller=1{/if}" {if !empty($nav['blank'])}target="_blank"{/if}>{$nav['title']}</a>
 					</li>
 					{/loop}
 				</ul>
 
 				<ul class="nav navbar-nav navbar-right ">
-					{loop $nav_top_tiled_other $other}
-					{if $other['is_display']}
-					{if $other['name'] == 'workorder' && !permission_check_account_user('see_workorder')}{php continue;}{/if}
-					<li>
-						<a href="{$other['url']}" ><i class="{$other['icon']} color-gray" data-toggle="tooltip"  data-placement="bottom"></i>{$other['title']}</a>
-					</li>
-					{/if}
-					{/loop}
-
-					{template 'common/header-notice'}
-					<li class="dropdown">
-						<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown"><i class="wi wi-user color-gray"></i>{$_W['user']['username']} <span class="caret"></span></a>
-						<ul class="dropdown-menu color-gray" role="menu">
-							<li>
-								<a href="{url 'user/profile'}" target="_blank"><i class="wi wi-money color-gray"></i> 我的账号</a>
-							</li>
-							<li class="divider"></li>
-
-							{if permission_check_account_user('see_system_upgrade')}
-							<li><a href="{url 'cloud/upgrade'}" target="_blank"><i class="wi wi-update color-gray"></i> 自动更新</a></li>
-							{/if}
-							{if permission_check_account_user('see_system_updatecache')}
-							<li><a href="{url 'system/updatecache'}" target="_blank"><i class="wi wi-cache color-gray"></i> 更新缓存</a></li>
-							<li class="divider"></li>
-							{/if}
-							<li>
-								<a href="{url 'user/logout'}"><i class="fa fa-sign-out color-gray"></i> 退出系统</a>
-							</li>
-						</ul>
-					</li>
+					{template 'common/header-user'}
 				</ul>
 			</div>
 			{else}
@@ -86,7 +58,7 @@
 	{if !defined('IN_MESSAGE')}
 	<div class="container">
 		<a href="javascript:;" class="js-big-main button-to-big color-gray" title="加宽">{if $_GPC['main-lg']}正常{else}宽屏{/if}</a>
-		{if $frames['dimension'] == 3 && defined('FRAME') && in_array(FRAME, array('account', 'system', 'wxapp', 'site', 'store', 'webapp', 'phoneapp', 'xzapp')) && !in_array($_GPC['a'], array('news-show', 'notice-show'))}
+		{if $frames['dimension'] == 3 && defined('FRAME') && in_array(FRAME, array('account', 'system', 'wxapp', 'site', 'store', 'webapp', 'phoneapp', 'xzapp')) && !in_array($_GPC['a'], array('news-show', 'notice-show', 'notice-news'))}
 		<div class="panel panel-content main-panel-content {if !empty($frames['section']['platform_module_menu']['plugin_menu'])}panel-content-plugin{/if}">
 			<div class="content-head panel-heading main-panel-heading">
 				{if ($_GPC['c'] != 'cloud' && !empty($_GPC['m']) && !in_array($_GPC['m'], array('keyword', 'special', 'welcome', 'default', 'userapi', 'service', 'apply'))) || defined('IN_MODULE')}

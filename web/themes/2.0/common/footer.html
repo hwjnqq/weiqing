@@ -5,7 +5,6 @@
 		{if empty($_W['setting']['copyright']['footerright'])}
 			<a href="http://www.w7.cc">微信开发</a>
 			<a href="http://s.w7.cc">微信应用</a>
-			<a href="http://bbs.w7.cc">微擎论坛</a>
 			<a href="http://s.w7.cc">小程序开发</a>
 		{else}
 			{$_W['setting']['copyright']['footerright']}
@@ -30,70 +29,5 @@
 </div>
 </div>
 {template 'common/footer-base'}
-<script>
-	require(['driver'], function(Driver) {
-		var driver = new Driver(
-			{
-				className: 'scoped-class menu-driver',
-				animate: true,
-				opacity: 0.75,
-				padding: 0,
-				allowClose: true,
-				overlayClickNext: false,
-				doneBtnText: '我已知晓',
-				closeBtnText: '&nbsp;',
-				nextBtnText: '下一步',
-				prevBtnText: '上一步',
-				showButtons: true,
-				keyboardControl: true,
-				onHighlightStarted: function(Element) {
-					$('.skin-2__left').css('position', 'absolute');
-					$('body').css('overflow', 'hidden')
-					var style = document.createElement('style');
-					style.type = 'text/css';
-					style.id = 'js-menu-driver-id';
-					style.innerHTML='#driver-highlighted-element-stage {max-width:'+ ($('.skin-2__left--small').length ? 60 : 180)  +'px;left: 10px !important;}.main-nav li.driver-highlighted-element.active,.main-nav li.driver-highlighted-element:hover {background: unset;}';
-					document.getElementsByTagName('head').item(0).appendChild(style);
-				},
-				onReset: function(Element) {
-					$('.skin-2__left').css('position', '');
-					$('body').css('overflow', '');
-					$('#js-menu-driver-id').remove();
-					window.localStorage.setItem('js-displayed-driver', 1);
-				},
-			}
-		);
-
-		// Define the steps for introduction
-		driver.defineSteps([
-		{
-			element: '.js-w7-menu-platform',
-			popover: {
-				className: 'first-step-popover-class',
-				title: '平台入口',
-				description: '之前平台的公众号/小程序等都归入平台入口',
-				position: 'right'
-			}
-		},
-		{
-			element: '.js-w7-menu-module',
-			popover: {
-				title: '应用入口',
-				description: '之前平台的公众号/小程序等应用都归入应用入口',
-				position: 'right'
-			}
-		},
-		]);
-		// Start the introduction
-		if(!window.localStorage.getItem('js-displayed-driver') && $('.main-nav')) {
-			driver.start();
-			$(document).on('click', 'a', function(e) {
-				if ($(this).parent().hasClass('driver-highlighted-element')) {
-					e.preventDefault();
-				}
-			})
-		}
-	})
-</script>
 </body>
 </html>

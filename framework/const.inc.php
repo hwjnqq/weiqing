@@ -421,16 +421,6 @@ define('COMMENT_STATUS_ON', 1);
 
 //用户欢迎页
 define('WELCOME_DISPLAY_TYPE', 9);
-//上次登陆最后访问页面
-define('LASTVISIT_DISPLAY_TYPE', 1);
-//公众号列表
-define('ACCOUNT_DISPLAY_TYPE', 2);
-//小程序列表
-define('WXAPP_DISPLAY_TYPE', 3);
-//pc列表
-define('WEBAPP_DISPLAY_TYPE', 4);
-//app列表
-define('PHONEAPP_DISPLAY_TYPE', 5);
 //平台
 define('PLATFORM_DISPLAY_TYPE', 6);
 //应用
@@ -450,9 +440,8 @@ define('USER_ENDTIME_GROUP_DELETE_TYPE', 1);
 // 新: 添加的用户选择永久用户权限组 或者 修改用户用户组为永久用户组
 define('USER_ENDTIME_GROUP_UNLIMIT_TYPE', 2);
 
-//密码强度
-define('PASSWORD_STRONG_STATE', '密码至少8-16个字符，至少1个大写字母，1个小写字母和1个数字，其他可以是任意字符');
-define('PASSWORD_STRONG_REGULAR', '/(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,30}/');
+define('USERS_OPERATE_TYPE_ACCOUNT', 1);
+define('USERS_OPERATE_TYPE_MODULE', 2);
 
 //快速注册小程序
 define('WXAPP_REGISTER_CHECK_STATUS_WAIT', 1); //待审核

@@ -19,52 +19,64 @@ $dos = array('upgrade', 'get_upgrade_info', 'get_error_file_list');
 $do = in_array($do, $dos) ? $do : 'upgrade';
 
 if ('upgrade' == $do) {
-	if (empty($_W['setting']['cloudip']) || $_W['setting']['cloudip']['expire'] < TIMESTAMP) {
-		$cloudip = gethostbyname('api-upgrade.w7.cc');
-		if (empty($cloudip) || !preg_match('/^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$/', $cloudip)) {
-			itoast('云服务域名解析失败，请查看服务器DNS设置或是在“云服务诊断”中手动设置云服务IP', url('cloud/diagnose'), 'error');
+	if ($_W['isajax']) {
+		if (empty($_W['setting']['cloudip']) || $_W['setting']['cloudip']['expire'] < TIMESTAMP) {
+			$cloudip = gethostbyname('api-upgrade.w7.cc');
+			if (empty($cloudip) || !preg_match('/^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$/', $cloudip)) {
+				iajax(-1, '云服务域名解析失败，请查看服务器DNS设置或是在“云服务诊断”中手动设置云服务IP');
+			}
+			setting_save(array('ip' => $cloudip, 'expire' => TIMESTAMP + 3600), 'cloudip');
 		}
-		setting_save(array('ip' => $cloudip, 'expire' => TIMESTAMP + 3600), 'cloudip');
-	}
 
-	$path = IA_ROOT . '/data/patch/' . date('Ymd') . '/';
-	if (is_dir($path)) {
-		if ($handle = opendir($path)) {
-			while (false !== ($patchpath = readdir($handle))) {
-				if ('.' != $patchpath && '..' != $patchpath) {
-					if (is_dir($path . $patchpath)) {
-						$patchs[] = $patchpath;
+		$path = IA_ROOT . '/data/patch/' . date('Ymd') . '/';
+		if (is_dir($path)) {
+			if ($handle = opendir($path)) {
+				while (false !== ($patchpath = readdir($handle))) {
+					if ('.' != $patchpath && '..' != $patchpath) {
+						if (is_dir($path . $patchpath)) {
+							$patchs[] = $patchpath;
+						}
 					}
 				}
 			}
+			if (!empty($patchs)) {
+				sort($patchs, SORT_NUMERIC);
+			}
 		}
-		if (!empty($patchs)) {
-			sort($patchs, SORT_NUMERIC);
+		//删除废弃文件
+		$scrap_file = system_scrap_file();
+		$have_no_permission_file = array();
+		foreach ($scrap_file as $key => $file) {
+			if (!file_exists(IA_ROOT . $file)) {
+				continue;
+			}
+			$result = @unlink(IA_ROOT . $file);
+			if (!$result) {
+				$have_no_permission_file[] = $file;
+			}
 		}
-	}
-	//删除废弃文件
-	$scrap_file = system_scrap_file();
-	$have_no_permission_file = array();
-	foreach ($scrap_file as $key => $file) {
-		if (!file_exists(IA_ROOT . $file)) {
-			continue;
+		if ($have_no_permission_file) {
+			itoast(implode('<br>', $have_no_permission_file) . '<br>以上废弃文件删除失败，可尝试将文件权限设置为777，再行删除！', referer(), 'error');
 		}
-		$result = @unlink(IA_ROOT . $file);
-		if (!$result) {
-			$have_no_permission_file[] = $file;
-		}
-	}
-	if ($have_no_permission_file) {
-		itoast(implode('<br>', $have_no_permission_file) . '<br>以上废弃文件删除失败，可尝试将文件权限设置为777，再行删除！', referer(), 'error');
+		$version = array(
+			'IMS_FAMILY' => IMS_FAMILY,
+			'IMS_VERSION' => IMS_VERSION,
+			'IMS_RELEASE_DATE' => IMS_RELEASE_DATE
+		);
+		$message = array(
+			'version' => $version,
+			'patchs' => $patchs,
+		);
+		iajax(0, $message);
 	}
 }
 if ('get_error_file_list' == $do) {
 	$error_file_list = array();
 	cloud_file_permission_pass($error_file_list);
-	iajax(0, !empty($error_file_list) ? $error_file_list : '');
+	iajax(0, !empty($error_file_list) ? $error_file_list : array());
 }
 if ('get_upgrade_info' == $do) {
-	$upgrade = cloud_build();
+	$upgrade = cloud_build(true);
 	if (is_error($upgrade)) {
 		iajax(-1, $upgrade['message']);
 	}

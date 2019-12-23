@@ -52,6 +52,9 @@ function miniapp_create($account) {
 		'type' => $account['type'],
 		'hash' => random(8),
 	);
+	if (!user_is_founder($_W['uid'], true)  && $_W['user']['endtime'] > USER_ENDTIME_GROUP_UNLIMIT_TYPE) {
+		$account_data['endtime'] = $_W['user']['endtime'];
+	}
 	pdo_insert('account', $account_data);
 	$acid = pdo_insertid();
 	pdo_update('uni_account', array('default_acid' => $acid), array('uniacid' => $uniacid));

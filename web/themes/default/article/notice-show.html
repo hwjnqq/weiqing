@@ -3,7 +3,7 @@
 	{if $do == 'list'}
 	<ul class="we7-page-tab">
 		<li >
-			<a href="{php echo url('article/notice-show/list');}" >全部</a>
+			<a href="{php echo url('article/notice-news/list');}" >全部</a>
 		</li>
 		<li>
 			<a href="{php echo url('article/news-show/list');}" >新闻</a>
@@ -35,7 +35,7 @@
 				<a href="{php echo url('article/notice-show/detail', array('id' => $da['id']));}" target="_blank" class="text-over" style="{if !empty($da['style'])}{if !empty($da['style']['color'])}color: {php echo $da['style']['color']};{/if}{if !empty($da['style']['bold'])}font-weight:bold;{/if}{/if}">{$da['title']}</a>
 			</td>
 			<td>公告</td>
-			<td>{php echo date('Y-m-d', $da['createtime']);}</td>
+			<td>{$da['createtime']}</td>
 		</tr>
 		{/loop}
 		{else}
@@ -54,7 +54,7 @@
 	<div class="article-page">
 		<ol class="breadcrumb we7-breadcrumb container">
 			<a href="{php echo url('article/notice-show/list');}"><i class="wi wi-back-circle"></i></a>
-			<li class="active"><a href="{php echo url('article/notice-show/list');}">新闻列表</a></li>
+			<li class="active"><a href="{php echo url('article/notice-show/list');}">公告列表</a></li>
 			<li class="active">{$notice['title']}</li>
 		</ol>
 		<div class="container">

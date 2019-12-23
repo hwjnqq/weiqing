@@ -9,20 +9,27 @@ load()->model('module');
 load()->model('switch');
 load()->model('miniapp');
 
-$dos = array('display', 'switch', 'have_permission_uniacids', 'accounts_dropdown_menu', 'rank', 'set_default_account', 'switch_last_module', 'init_uni_modules');
+$dos = array('display', 'switch', 'have_permission_uniacids', 'accounts_dropdown_menu', 'rank', 'set_default_account', 'switch_last_module', 'init_uni_modules', 'own');
 $do = in_array($do, $dos) ? $do : 'display';
 
 if ('switch_last_module' == $do) {
 	$last_module = switch_get_module_display();
 	if (!empty($last_module)) {
 		$account_info = uni_fetch($last_module['uniacid']);
-		if (!is_error($account_info) && !($account_info['endtime'] > 0 && TIMESTAMP > $account_info['endtime'] && !user_is_founder($_W['uid'], true))) {
+		if (!is_error($account_info) && ($account_info['endtime'] > 0 && TIMESTAMP > $account_info['endtime'] && !user_is_founder($_W['uid'], true))) {
 			itoast('', url('account/display/switch', array('module_name' => $last_module['modulename'], 'uniacid' => $last_module['uniacid'], 'switch_uniacid' => 1, 'tohome' => intval($_GPC['tohome']))));
 		}
 	}
-	$do = 'display';
+	if ($_W['isfounder']) {
+		$do = 'display';
+	} else {
+		itoast('', $_W['siteroot'] . 'web/home.php', 'info');
+	}
 }
-
+if ('display' == $do) {
+	itoast('', $_W['siteroot'] . 'web/home.php');
+}
+//待删除（以及相关）
 if ('display' == $do) {
 	$pageindex = max(1, intval($_GPC['page']));
 	$pagesize = 20;
@@ -207,4 +214,74 @@ if ('init_uni_modules' == $do) {
 	}
 	$pageindex = $pageindex + 1;
 	iajax(0, array('pageindex' => $pageindex, 'total' => $total));
+}
+
+if ('own' == $do) {
+	$pageindex = max(1, intval($_GPC['page']));
+	$pagesize = 24;
+	$limit_num = intval($_GPC['limit_num']);
+	$pagesize = $limit_num > 0 ? $limit_num : $pagesize;
+	$keyword = safe_gpc_string($_GPC['keyword']);
+	if (!empty($keyword)) {
+		$search_module = table('modules')->select('name')->where('title LIKE', '%'.$keyword.'%')->getall('name');
+	}
+	$uni_modules_table = table('uni_modules');
+	$modules_list = $result =  array();
+	$_W['highest_role'] = ACCOUNT_MANAGE_NAME_CLERK == $_GPC['role'] ? ACCOUNT_MANAGE_NAME_CLERK : $_W['highest_role'];
+	switch($_W['highest_role']) {
+		case ACCOUNT_MANAGE_NAME_MANAGER:
+		case ACCOUNT_MANAGE_NAME_OPERATOR:
+		case ACCOUNT_MANAGE_NAME_CLERK:
+			if (!empty($keyword)) {
+				$uni_modules_table->where('u.module_name IN', array_keys($search_module));
+			}
+			$modules_list = $uni_modules_table->getModulesByUid($_W['uid']);
+			if (in_array($_W['highest_role'], array(ACCOUNT_MANAGE_NAME_OPERATOR, ACCOUNT_MANAGE_NAME_MANAGER))) {
+				foreach ($modules_list['modules'] as $account_module_name => &$account_module_info) {
+					$user_permission_table = table('users_permission');
+					$user_module_permission_info = $user_permission_table->getUserPermissionByType($_W['uid'], $account_module_info['uniacid'], $account_module_info['module_name']);
+					if (empty($user_module_permission_info)) {
+						unset($modules_list['modules'][$account_module_name]);
+						continue;
+					}
+				}
+			}
+			$modules_list = $modules_list['modules'];
+			$modules_list = array_slice($modules_list, ($pageindex - 1) * $pagesize, $pagesize);
+			break;
+		default:
+			$owned_account_list = table('account')->userOwnedAccount();
+			if (empty($owned_account_list)) {
+				iajax(0, array());
+			}
+
+			if (!empty($keyword)) {
+				$uni_modules_table->where('module_name IN', array_keys($search_module));
+			}
+			$uni_modules_table->where('uniacid IN', array_keys($owned_account_list));
+			$uni_modules_list = $uni_modules_table->getall();
+			$clerk_modules_list = pdo_fetchall("SELECT uau.id, uau.uniacid, up.type module_name FROM " . tablename('uni_account_users') . " as uau LEFT JOIN " . tablename('users_permission') . " as up ON uau.uniacid=up.uniacid AND uau.uid=up.uid WHERE uau.role='clerk' AND uau.uid=" . $_W['uid']);
+			$modules_list_all = array_merge($uni_modules_list, $clerk_modules_list);
+			$modules_list = array_slice($modules_list_all, ($pageindex - 1) * $pagesize, $pagesize);
+			break;
+	}
+	if (empty($modules_list)) {
+		iajax(0, array());
+	}
+
+	foreach ($modules_list as $module) {
+		$module_info = module_fetch($module['module_name']);
+		$module_info['list_type'] = 'module';
+		$module_info['is_star'] = table('users_operate_star')->getByUidUniacidModulename($_W['uid'], $module['uniacid'], $module['module_name']) ? 1 : 0;
+		$module_info['switchurl'] = url('module/display/switch', array('module_name' => $module['module_name'], 'uniacid' => $module['uniacid']));
+		$uni_account_info = uni_fetch($module['uniacid']);
+		$module_info['default_account'] = array(
+			'name' => $uni_account_info['name'],
+			'uniacid' => $uni_account_info['uniacid'],
+			'type' => $uni_account_info['type'],
+			'logo' => $uni_account_info['logo'],
+		);
+		$result[] = $module_info;
+	}
+	iajax(0,$result);
 }

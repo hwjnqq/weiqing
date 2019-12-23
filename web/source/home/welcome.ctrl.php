@@ -16,7 +16,7 @@ load()->model('cloud');
 $dos = array('platform', 'system', 'ext', 'account_ext', 'get_fans_kpi', 'get_system_upgrade', 'get_upgrade_modules', 'get_module_statistics', 'get_ads', 'get_not_installed_modules', 'system_home', 'set_top', 'set_default', 'add_welcome', 'ignore_update_module', 'get_workerorder', 'add_welcome_shortcut', 'remove_welcome_shortcut', 'build_account_modules');
 $do = in_array($do, $dos) ? $do : 'platform';
 
-if (ACCOUNT_MANAGE_NAME_CLERK == $_W['highest_role'] && in_array($do, array('platform', 'system_home', 'system'))) {
+if (ACCOUNT_MANAGE_NAME_CLERK == $_W['role'] && in_array($do, array('platform', 'system_home', 'system'))) {
 	itoast('', url('module/display'));
 }
 if (ACCOUNT_MANAGE_NAME_EXPIRED == $_W['highest_role'] && in_array($do, array('system_home'))) {
@@ -29,22 +29,19 @@ if ('get_not_installed_modules' == $do) {
 	iajax(0, $not_installed_modules);
 }
 
-
-	if ('ext' == $do) {
-		if (!empty($_GPC['version_id'])) {
-			$version_info = miniapp_version($_GPC['version_id']);
-		}
-		$account_api = WeAccount::createByUniacid();
-		if (is_error($account_api)) {
-			message($account_api['message'], url('account/display'));
-		}
-		$check_manange = $account_api->checkIntoManage();
-		if (is_error($check_manange)) {
-			itoast('', $account_api->displayUrl);
-		}
+if ('ext' == $do && 'store' != $_GPC['m'] && !$_GPC['system_welcome']) {
+	if (!empty($_GPC['version_id'])) {
+		$version_info = miniapp_version($_GPC['version_id']);
 	}
-
-
+	$account_api = WeAccount::createByUniacid();
+	if (is_error($account_api)) {
+		message($account_api['message'], url('account/display'));
+	}
+	$check_manange = $account_api->checkIntoManage();
+	if (is_error($check_manange)) {
+		itoast('', $account_api->displayUrl);
+	}
+}
 
 if ('platform' == $do) {
 	if (empty($_W['account'])) {
@@ -59,8 +56,8 @@ if ('platform' == $do) {
 }
 
 if ('system' == $do) {
-	if (!$_W['isfounder'] || user_is_vice_founder()) {
-		header('Location: ' . url('home/welcome/system_home'));
+	if (!user_is_founder($_W['uid'], true)) {
+		header('Location: ' . $_W['siteroot'] . 'web/home.php');
 		exit;
 	}
 	$reductions = system_database_backup();
@@ -156,42 +153,27 @@ if ('ext' == $do) {
 if ('account_ext' == $do) {
 	$modulename = $_GPC['m'];
 	if (!empty($modulename)) {
-		$module_info = module_fetch($modulename, false);
+		$module_info  = $_W['current_module']= module_fetch($modulename);
 	}
-	$account_info = account_fetch($_W['uniacid']);
-	$type = $account_info->typeSign;
-	if (empty($module_info['is_delete']) && !empty($module_info['recycle_info'])) {
-		foreach ($module_info['recycle_info'] as $key => $value)
-		{
-			if ($type.'_support' == $key && $value == MODULE_RECYCLE_UNINSTALL_IGNORE) {
-				$module_info = array();
-				break;
-			} elseif ( $type.'_support' == $key && $value == MODULE_RECYCLE_INSTALL_DISABLED ){
-				$system_module_expire = setting_load('system_module_expire');
-				$system_module_expire = !empty($system_module_expire['system_module_expire']) ? $system_module_expire['system_module_expire'] : '您访问的功能模块不存在，请重新进入';
-				$module_expire = setting_load('module_expire');
-				$module_expire = !empty($module_expire['module_expire']) ? $module_expire['module_expire'] : array();
-				$expire_notice = '';
-				foreach ($module_expire as $key => $value) {
-					if ($value['status'] == 1) {
-						$expire_notice = $value['notice'];
-						break;
-					}
-					continue;
-				}
-				itoast($expire_notice ? $expire_notice : $system_module_expire, url('home/welcome'), 'info');
-			}
-		}
+	if (empty($module_info)) {
+		itoast('抱歉，你操作的模块不能被访问！');
 	}
-	if (empty($module_info) || (!empty($module_info['is_delete']) && empty($module_info['recycle_info']))) {
-		itoast('抱歉，你操作的模块不能被访问！', url('home/welcome'), 'info');
-	}
-
 	$link_uniacid = table('uni_link_uniacid')->getMainUniacid($_W['uniacid'], $modulename, intval($_GPC['version_id']));
 	$redirect_uniacid = empty($link_uniacid) ? $_W['uniacid'] : $link_uniacid;
 	switch_save_account_display($redirect_uniacid);
 
-	template('home/welcome-ext');
+	$site = WeUtility::createModule($modulename);
+	if (!is_error($site)) {
+		$method = 'welcomeDisplay';
+		if (method_exists($site, $method)) {
+			//不能直接近模块。必须这样处理，否则会影响模块
+			itoast('', url('module/welcome/welcome_display', array('m' => $modulename, 'uniacid' => $redirect_uniacid, 'version_id' => intval($_GPC['version_id']))));
+		} else {
+			itoast('', url('module/welcome/display', array('m' => $modulename, 'uniacid' => $redirect_uniacid, 'version_id' => intval($_GPC['version_id']))));
+		}
+	} else {
+		itoast('模块不存在', url('home/welcome'), 'error');
+	}
 }
 
 if ('get_fans_kpi' == $do) {
@@ -299,7 +281,6 @@ if ('system_home' == $do) {
 	);
 
 	$user_founder_info = table('users_founder_own_users')->getFounderByUid($user_info['uid']);
-
 	$uni_modules_table = table('uni_modules');
 
 	$uni_modules_table->searchGroupbyModuleName();
@@ -337,7 +318,7 @@ if ('system_home' == $do) {
 			if (empty($info['uniacid'])) {
 				continue;
 			}
-			if (!in_array($info['modulename'], array_column($own_account_modules_all['modules'], 'module_name'))) {
+			if (!empty($info['modulename']) && !in_array($info['modulename'], array_column($own_account_modules_all['modules'], 'module_name'))) {
 				continue;
 			}
 			$last_modules_account_info = uni_fetch($info['uniacid']);

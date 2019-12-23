@@ -434,7 +434,9 @@ function message_event_notice_list() {
 	$lists = message_list_detail($lists);
 	return array(
 		'lists' => $lists,
-		'total' => $total
+		'total' => $total,
+		'more_url' => url('message/notice') . (igetcookie('__iscontroller') ? 'iscontroller=1' : ''),
+		'all_read_url' => url('message/notice/all_read') . (igetcookie('__iscontroller') ? 'iscontroller=1' : ''),
 	);
 }
 

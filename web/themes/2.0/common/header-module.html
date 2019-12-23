@@ -4,19 +4,15 @@
 <div class="sub-module-info">
 	<div class="module-info-name">
 		{if empty($_W['current_module']['logo'])}
-			<img src="./resource/images/init_module_logo.png" class="head-app-logo" onclick="initModuleLogo()">
+			<img src="./resource/images/init_module_logo.png" class="head-app-logo module-img" onclick="initModuleLogo()">
 		{else}
-			<img src="{php echo tomedia($_W['current_module']['logo'])}" class="head-app-logo">
+			<img src="{php echo tomedia($_W['current_module']['logo'])}" class="head-app-logo module-img">
 		{/if}
 		{if $_W['current_module']['main_module']}
 			<div class="name text-over">{$_W['current_module']['main_module_title']}</div>
 		{else}
 			<div class="name text-over">{$_W['current_module']['title']}</div>
 		{/if}
-	</div>
-	<div class="module-inof-cut">
-		<a href="{php echo url('module/link/list', array('m'=> $_GPC['m']))}" class="btn btn-default">切换关联</a>
-		<a href="{php echo url('module/display')}" class="btn btn-default">切换应用</a>
 	</div>
 	{if $_W['current_module']['main_module']}
 	<div class="module-plugin-info">

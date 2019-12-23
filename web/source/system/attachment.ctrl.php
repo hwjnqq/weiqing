@@ -14,16 +14,16 @@ if ('upload_remote' == $do) {
 	if (!empty($_W['setting']['remote_complete_info']['type'])) {
 		$result = file_dir_remote_upload(ATTACHMENT_ROOT . 'images');
 		if (is_error($result)) {
-			iajax(1, $result['message']);
+			iajax(-1, $result['message']);
 		} else {
 			if (file_dir_exist_image(ATTACHMENT_ROOT . 'images')) {
-				iajax(2);
+				iajax(0, array('status' => 1));
 			} else {
-				iajax(0);
+				iajax(0, array('status' => 0, 'message' => '完成'));
 			}
 		}
 	} else {
-		iajax(1, '请先填写并开启远程附件设置');
+		iajax(-1, '请先填写并开启远程附件设置');
 	}
 }
 
@@ -37,7 +37,7 @@ if ('global' == $do) {
 	$post_max_size = ini_get('post_max_size');
 	$post_max_size = $post_max_size > 0 ? bytecount($post_max_size) / 1024 : 0;
 	$upload_max_filesize = ini_get('upload_max_filesize');
-	if (checksubmit('submit')) {
+	if ($_W['ispost']) {
 		$harmtype = array('asp', 'php', 'jsp', 'js', 'css', 'php3', 'php4', 'php5', 'ashx', 'aspx', 'exe', 'cgi');
 
 		switch ($_GPC['key']) {
@@ -118,7 +118,7 @@ if ('remote' == $do) {
 		'cos' => array('old_url' => $remote['cos']['url']),
 	);
 
-	if (checksubmit('submit')) {
+	if ($_W['ispost']) {
 		$remote = array(
 			'type' => intval($_GPC['type']),
 			'ftp' => array(
@@ -232,6 +232,7 @@ if ('remote' == $do) {
 				$remote['cos']['url'] = sprintf('https://%s-%s.cos%s.myqcloud.com', $remote['cos']['bucket'], $remote['cos']['appid'], $remote['cos']['local']);
 			}
 			$remote['cos']['url'] = rtrim($remote['cos']['url'], '/');
+			$_W['setting']['remote']['cos'] = array();
 			attachment_replace_article_remote_url($remote_urls['cos']['old_url'], $remote['cos']['url']);
 			$auth = attachment_cos_auth($remote['cos']['bucket'], $remote['cos']['appid'], $remote['cos']['secretid'], $remote['cos']['secretkey'], $remote['cos']['local']);
 
@@ -261,10 +262,11 @@ if ('buckets' == $do) {
 	$bucket_datacenter = attachment_alioss_datacenters();
 	$bucket = array();
 	foreach ($buckets as $key => $value) {
+		$value['bucket_key'] = $value['name'] . '@@' . $value['location'];
 		$value['loca_name'] = $key . '@@' . $bucket_datacenter[$value['location']];
 		$bucket[] = $value;
 	}
-	iajax(1, $bucket, '');
+	iajax(0, $bucket);
 }
 
 if ('ftp' == $do) {
@@ -384,6 +386,7 @@ if ('cos' == $do) {
 		$url = sprintf('https://%s-%s.cos%s.myqcloud.com', $bucket, $appid, $_GPC['local']);
 	}
 	$url = rtrim($url, '/');
+	$_W['setting']['remote']['cos'] = array();
 	$auth = attachment_cos_auth($bucket, $appid, $secretid, $secretkey, $_GPC['local']);
 
 	if (is_error($auth)) {

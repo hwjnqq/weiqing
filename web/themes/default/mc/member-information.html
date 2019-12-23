@@ -39,7 +39,7 @@
 					<input name="a" value="member" type="hidden" />
 					<input name="do" value="credit_statistics" type="hidden" />
 					<input name="uid" value="{$uid}" type="hidden" />
-					{php echo tpl_form_field_daterange('datelimit', array('start' => date('Y-m-d', $starttime),'end' => date('Y-m-d', $endtime)), '')}
+					{php echo tpl_form_field_daterange('datelimit', array('start' => $_GPC['datelimit']['start'],'end' => $_GPC['datelimit']['end']), '')}
 				</form>
 			</ul>
 		</div>

@@ -3,7 +3,7 @@
  * 系统中一些必须以模块形式表现的功能.
  *
  * @author 微擎团队
- * @url http://bbs.w7.cc/
+ * @url http://www.w7.cc/
  */
 defined('IN_IA') or exit('Access Denied');
 

@@ -24,6 +24,9 @@ if (empty($_W['uniacid'])) {
 }
 
 $receiver = trim($_GPC['receiver']);
+if (empty($receiver) && $_W['setting']['copyright']['login_verify_status']) {
+	$receiver = $_W['setting']['copyright']['login_verify_mobile'];
+}
 if (empty($receiver)) {
 	iajax(-1, '请输入邮箱或手机号');
 } elseif (preg_match(REGULAR_MOBILE, $receiver)) {

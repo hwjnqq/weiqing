@@ -559,9 +559,8 @@ function user_account_detail_info($uid) {
 			if (empty($type_sign)) {
 				continue;
 			}
-			$account_info = current(table('account')->getUserAccountInfo($uid, $uniacid, $account['type']));
-			$account_info['type'] = $account['type'];
-			$account_info['thumb'] =  tomedia('headimg_'.$account_info['default_acid']. '.jpg');
+			$account_info = uni_fetch($uniacid);
+			$account_info['role'] = permission_account_user_role($uid, $uniacid);
 			$accounts[$type_sign][$uniacid] = $account_info;
 		}
 	}
@@ -786,17 +785,10 @@ function modules_support_all($modulenames) {
  * return string
  */
 function user_login_forward($forward = '') {
-	global $_W, $_GPC;
+	global $_W;
 	load()->model('module');
 	$login_forward = trim($forward);
 
-	$login_location = array(
-		'account' => url('home/welcome'),
-		'wxapp' => url('wxapp/version/home'),
-		'module' => url('module/display'),
-		'webapp' => url('webapp/home'),
-		'phoneapp' => url('phoneapp/display/home'),
-	);
 	if (!empty($forward)) {
 		return $login_forward;
 	}
@@ -808,65 +800,9 @@ function user_login_forward($forward = '') {
 		if (!empty($user_end_time) && strtotime($user_end_time) < TIMESTAMP) {
 			return url('user/profile');
 		}
-		if ($_W['user']['type'] == ACCOUNT_OPERATE_CLERK || permission_account_user_role($_W['uid']) == ACCOUNT_MANAGE_NAME_CLERK) {
-			return url('module/display');
-		}
 	}
 
-	$url = user_after_login_link();
-	if (!empty($url)) {
-		return $url;
-	}
-
-	$login_forward = url('account/display');
-	$visit_key = '__lastvisit_' . $_W['uid'];
-	if (!empty($_GPC[$visit_key])) {
-		$last_visit = explode(',', $_GPC[$visit_key]);
-		$last_visit_uniacid = intval($last_visit[0]);
-		$last_visit_url = url_params($last_visit[1]);
-		if ($last_visit_url['c'] == 'site' && in_array($last_visit_url['a'], array('entry', 'nav')) ||
-			$last_visit_url['c'] == 'platform' && in_array($last_visit_url['a'], array('cover', 'reply')) && !in_array($last_visit_url['m'], module_system()) ||
-			$last_visit_url['c'] == 'module' && in_array($last_visit_url['a'], array('manage-account', 'permission', 'display'))) {
-			return $login_location['module'];
-		} else {
-			if ($last_visit_url['c'] == 'wxapp') {
-				return $last_visit_url['a'] == 'display' ? url('account/display', array('type' => WXAPP_TYPE_SIGN)) : $login_location['wxapp'];
-			}
-			$account_info = uni_fetch($last_visit_uniacid);
-			if (empty($account_info) || $last_visit_url['c'] == 'account' && $last_visit_url['a'] == 'display') {
-				return $login_forward;
-			}
-			if (in_array($account_info['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
-				return $login_location['account'];
-			}
-			if ($account_info['type'] == ACCOUNT_TYPE_APP_NORMAL) {
-				return $login_location['wxapp'];
-			}
-			if ($account_info['type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
-				return $login_location['webapp'];
-			}
-			if ($account_info['type'] == ACCOUNT_TYPE_PHONEAPP_NORMAL) {
-				return $login_location['phoneapp'];
-			}
-		}
-	}
-
-	if (!empty($_W['uniacid']) && !empty($_W['account'])) {
-		$permission = permission_account_user_role($_W['uid'], $_W['uniacid']);
-		if (empty($permission)) {
-			return $login_forward;
-		}
-		if ($_W['account']['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $_W['account']['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
-			$login_forward = url('home/welcome');
-		} elseif ($_W['account']['type'] == ACCOUNT_TYPE_APP_NORMAL) {
-			$login_forward = url('wxapp/display/home');
-		} elseif ($_W['account']['type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
-			$login_forward = url('webapp/home/display');
-		} elseif ($_W['account']['type'] == ACCOUNT_TYPE_PHONEAPP_NORMAL) {
-			$login_forward = url('phoneapp/display/home');
-		}
-	}
-
+	$login_forward = user_after_login_link();
 	return $login_forward;
 }
 
@@ -1435,7 +1371,7 @@ function user_change_welcome_status($uid, $welcome_status) {
  */
 function user_after_login_link() {
 	global $_W;
-
+	$url = '';
 	$type = WELCOME_DISPLAY_TYPE;
 	if (!empty($_W['user']['welcome_link'])) {
 		$type = $_W['user']['welcome_link'];
@@ -1443,19 +1379,22 @@ function user_after_login_link() {
 
 	switch ($type) {
 		case WELCOME_DISPLAY_TYPE:
-			$url = url('home/welcome/system_home');
+			$url = './home.php';
 			break;
 		case PLATFORM_DISPLAY_TYPE:
-			$url = url('account/display/platform');
-			break;
 		case MODULE_DISPLAY_TYPE:
-			$url = url('module/display/switch_last_module');
-			break;
 		default:
-			$url = '';
+			$last_operate = table('users_operate_history')->where('uid', $_W['uid'])->orderby('createtime', 'DESC')->get();
+			if (USERS_OPERATE_TYPE_ACCOUNT == $last_operate['type']) {
+				$url = url('account/display/platform');
+			} elseif (USERS_OPERATE_TYPE_MODULE == $last_operate['type']) {
+				$url = url('account/display/switch', array('module_name' => $last_operate['module_name'], 'uniacid' => $last_operate['uniacid'], 'switch_uniacid' => 1));
+			}
 			break;
 	}
-
+	if (empty($url)) {
+		$url = './home.php';
+	}
 	return $url;
 }
 
@@ -1490,4 +1429,78 @@ function user_role_title($role = '') {
 		return empty($data[$role]) ? '' : $data[$role];
 	}
 	return $data;
+}
+
+/**
+ * @param $type int 操作历史类型：1.平台账号；2.模块
+ * @param $value string 平台账号UNIACID或模块名
+ * @return bool
+ */
+function user_save_operate_history($type, $value) {
+	global $_W;
+	$vaild_type = array(USERS_OPERATE_TYPE_ACCOUNT, USERS_OPERATE_TYPE_MODULE);
+	if (!in_array($type, $vaild_type)) {
+		return false;
+	}
+	$data = array('uid' => $_W['uid'], 'type' => $type);
+	if (USERS_OPERATE_TYPE_ACCOUNT == $type) {
+		$data['uniacid'] = $value;
+	} elseif (USERS_OPERATE_TYPE_MODULE == $type) {
+		$data['module_name'] = $value;
+		$data['uniacid'] = $_W['uniacid'];
+	}
+	table('users_operate_history')->deleteByUidTypeOperate($data);
+	$data['createtime'] = TIMESTAMP;
+	$result = table('users_operate_history')->fill($data)->save();
+	if ($result) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function user_load_operate_history($limit_num = 40) {
+	global $_W;
+	$users_operate_history_table = table('users_operate_history');
+	$users_operate_history_table->searchWithLimit($limit_num);
+	$result = $users_operate_history_table->getALlByUid($_W['uid']);
+	return $result;
+}
+
+function user_save_operate_star($type, $uniacid, $module_name) {
+	global $_W;
+	if (!in_array($type, array(USERS_OPERATE_TYPE_ACCOUNT, USERS_OPERATE_TYPE_MODULE)) || empty($uniacid)) {
+		return error(-1, '参数不合法！');
+	}
+	if (USERS_OPERATE_TYPE_MODULE == $type) {
+		if (!empty($module_name) && !module_exist_in_account($module_name, $uniacid)) {
+			return error(-1, '平台账号无该模块权限，请更新缓存后重试！');
+		}
+	}
+	$data = array('uid' => $_W['uid'], 'uniacid' => $uniacid, 'module_name' => $module_name, 'type' => $type);
+	if (USERS_OPERATE_TYPE_ACCOUNT == $type) {
+		unset($data['module_name']);
+	}
+	$if_exists = table('users_operate_star')->where($data)->get();
+	if ($if_exists) {
+		$result = table('users_operate_star')->where($data)->delete();
+	} else {
+		$data['createtime'] = TIMESTAMP;
+		$maxrank = table('users_operate_star')->getMaxRank();
+		$data['rank'] = intval($maxrank) + 1;
+		$result = table('users_operate_star')->fill($data)->save();
+	}
+	if ($result) {
+		return error(0, '');
+	} else {
+		return error(-1, '设置失败！');
+	}
+}
+
+function user_load_operate_star($limit_num = 100) {
+	global $_W;
+	$users_operate_star_table = table('users_operate_star');
+	$users_operate_star_table->searchWithLimit($limit_num);
+	$result = $users_operate_star_table->getAllByUid($_W['uid']);
+	return $result;
 }

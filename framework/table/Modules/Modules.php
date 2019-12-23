@@ -36,6 +36,7 @@ class Modules extends \We7Table {
 		'logo',
 		'baiduapp_support',
 		'toutiaoapp_support',
+		'cloud_record',
 	);
 	protected $default = array(
 		'name' => '',
@@ -66,6 +67,7 @@ class Modules extends \We7Table {
 		'logo' => '',
 		'baiduapp_support' => '1',
 		'toutiaoapp_support' => '1',
+		'cloud_record' => 0
 	);
 
 	public function bindings() {
@@ -131,6 +133,9 @@ class Modules extends \We7Table {
 	}
 
 	public function getInstalled() {
-		return $this->query->select(array('name', 'version'))->where(array('issystem' => '0'))->getall('name');
+		load()->model('module');
+		$fields = array_keys(module_support_type());
+		$fields = array_merge(array('name', 'version', 'cloud_record'), $fields);
+		return $this->query->select($fields)->where(array('issystem' => '0'))->getall('name');
 	}
 }

@@ -300,15 +300,16 @@
 							</div>
 						</div>
 						<div class="right-box">
-							<a ng-href="{{'//s.w7.cc/module-'+app.aid+'.html'}}" target="_blank" class="app-item" ng-repeat="app in item.list">
+							<a ng-href="{{'//s.w7.cc/module-'+app.aid+'.html'}}" target="_blank" class="app-item" ng-repeat="(index, app) in item.list" ng-if="index < 9">
 								<div class="app-item-box">
 									<div class="info">
 										<div class="logo">
-											<img ng-src="{{app.cdn_logo}}" alt="">
+											<img ng-src="{{app.cdn_logo + '?imageView2/5/w/60/h/60/format/png'}}" alt="">
 										</div>
 										<div class="text-over">
 											<div class="name text-over" ng-bind="app.title"></div>
-											<div class="time" ng-bind="'下载次数' + app.down_count"></div>
+											<div class="time" ng-bind="'下载次数' + app.down_count" ng-if="key != 'new-app'"></div>
+											<div class="time" ng-bind="'更新时间' + app.last_upgrade_time" ng-if="key == 'new-app'"></div>
 										</div>
 									</div>
 								</div>

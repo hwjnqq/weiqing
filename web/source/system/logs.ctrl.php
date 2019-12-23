@@ -6,7 +6,7 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-$dos = array('wechat', 'system', 'database', 'sms');
+$dos = array('wechat', 'system', 'database', 'sms', 'attachment');
 $do = in_array($do, $dos) ? $do : 'wechat';
 
 $params = array();
@@ -89,6 +89,45 @@ if ('sms' == $do) {
 	$sql = 'SELECT * FROM' . tablename('core_sendsms_log') . ' WHERE uniacid = :uniacid ' . $timewhere . ' ORDER BY id DESC LIMIT ' . ($pindex - 1) * $psize . ',' . $psize;
 	$list = pdo_fetchall($sql, $params);
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM' . tablename('core_sendsms_log') . ' WHERE uniacid = :uniacid' . $timewhere, $params);
+	$pager = pagination($total, $pindex, $psize);
+}
+
+if ('attachment' == $do) {
+	$where = array(
+		'a.uid <>' => 0,
+		'a.createtime >=' => $starttime,
+		'a.createtime <' => $endtime + 86400
+	);
+	if (!empty($_GPC['keyword'])) {
+		$where['c.name LIKE'] = '%' . safe_gpc_string($_GPC['keyword']) . '%';
+	}
+	$pindex = max(1, intval($_GPC['page']));
+	$psize = 20;
+	$core_attachment_table = table('core_attachment');
+	$core_list = $core_attachment_table
+		->SearchWithUserAndUniAccount()
+		->select('a.uniacid, a.uid, a.filename, a.createtime, b.username, c.name')
+		->orderby(array(
+			'a.createtime' => 'DESC',
+			'a.displayorder' => 'DESC'
+		))
+		->where($where)
+		->getall();
+	$wechat_attachment_table = table('wechat_attachment');
+	$wechat_list = $wechat_attachment_table
+		->SearchWithUserAndUniAccount()
+		->select('a.uniacid, a.uid, a.filename, a.createtime, b.username, c.name')
+		->orderby(array(
+			'a.createtime' => 'DESC'
+		))
+		->where($where)
+		->getall();
+	$list = array_merge($core_list, $wechat_list);
+	$last_names = array_column($list, 'createtime');
+	array_multisort($last_names,SORT_DESC, $list);
+	$total = $core_attachment_table->getLastQueryTotal();
+	$total += $wechat_attachment_table->getLastQueryTotal();
+	$list =  array_slice($list, ($pindex - 1) * $psize, $psize);
 	$pager = pagination($total, $pindex, $psize);
 }
 

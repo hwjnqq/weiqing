@@ -337,55 +337,6 @@
 			</div>
 		</div>
 	</div>
-
-	<!-- todo 列表-->
-	<table class="table we7-table table-hover wxapp-up-table hidden">
-		<tr>
-			<th>版本号</th>
-			<th>开发者</th>
-			<th>提交审核时间</th>
-			<th>描述</th>
-			<th>审核状态</th>
-			<th>操作</th>
-		</tr>
-		<tr>
-			<td>1.0.1</td>
-			<td>kksds</td>
-			<td>2019-05-16 12:00:00</td>
-			<td>测试版本</td>
-			<td>
-				<span class="color-orange">审核中</span>
-			</td>
-			<td></td>
-		</tr>
-		<tr>
-			<td>1.0.1</td>
-			<td>kksds</td>
-			<td>2019-05-16 12:00:00</td>
-			<td>测试版本</td>
-			<td>
-				<span class="color-green">审核通过</span> <span class="label label-success">当前线上版本</span>
-			</td>
-			<td></td>
-		</tr>
-
-		<tr>
-			<td>1.0.1</td>
-			<td>kksds</td>
-			<td>2019-05-16 12:00:00</td>
-			<td>测试版本</td>
-			<td>
-				<span class="color-red">审核失败</span>
-			</td>
-			<td>
-				<div class="link-group">
-					<a href="">重新提交</a>
-					<a href="">重新提交</a>
-					<a href="">重新提交</a>
-				</div>
-			</td>
-		</tr>
-	</table>
 	<div class="waiting text-center" id="wait_code_token" ng-show="show_wait" style="border-top: 1px solid #e7e7eb; padding: 150px!important;">
 		<div><span class="wi wi-waiting"></span></div>
 		<div>正在获取二维码,请耐心等待,等待时间大约</div>
@@ -435,14 +386,6 @@
 					<input type="hidden" id="version_id" value="{$version_id}">
 					<!--<button class="btn btn-primary" type="button" id="commitcode" ng-click="commit()">上传代码</button>-->
 					<button class="btn btn-primary" type="button" id="begin-upload" ng-click="beginUpload()">确 认</button>
-					<!-- todo 审核提示 -->
-					<div class="tooltip wxapp-up-tooltip right hidden" role="tooltip">
-						<div class="tooltip-arrow"></div>
-						<div class="tooltip-inner">
-							<i class="wi wi-info color-red"></i>已有审核版本，<span class="color-red">不支持重复</span>提交审核发布，查看<a class="color-default" href="">审核版本</a>
-						</div>
-					</div>
-					<!--end -->
 				</div>
 			</div>
 		</form>
@@ -451,31 +394,6 @@
 			<img alt="" src="{{qrcode_src}}"  class="qr-img" id="qrcode" >
 			<div>请扫描二维码，确认后将直接上传代码</div>
 		</div>
-		<!--todo 上传成功提示 -->
-		<div class="success  step3 hidden">
-			<div class="text-center"><span class="wi wi-right-sign"></span></div>
-			<div class="status-state text-center">上传代码成功，是否立即<span class="color-default">审核发布</span></div>
-			<div class="text-center">
-				<div class="color-gray text-left status-info">
-					<p>1、已提交审核版本，<span class="color-red">审核通过后将立即更新到线上</span></p>
-					<p>2、审核期间，<span class="color-red">不支持再次提交审核</span></p>
-					<p>3、微信官方审核需要1-5天，结果将通过微信通知</p>
-				</div>
-			</div>
-			<div class="btns text-center">
-				<button  class="btn btn-140 btn-hastip btn-primary" disabled>
-					立即审核发布
-					<div class="tooltip wxapp-up-tooltip bottom" role="tooltip">
-						<div class="tooltip-arrow"></div>
-						<div class="tooltip-inner">
-							<i class="wi wi-info color-red"></i>已有审核版本，<span class="color-red">不支持重复</span>提交审核发布，查看<a class="color-default" href="">审核版本</a>
-						</div>
-					</div>
-				</button>
-				<button class="btn btn-140 btn-default" type="button" ng-click="preview()">预览</button>
-			</div>
-		</div>
-		<!-- end上传成功提示 -->
 		<div class="success text-center step3" ng-show="show_step3">
 			<div><span class="wi wi-right-sign"></span></div>
 			<div class="status-state">上传代码成功，请到微信开发平台小程序后台预览，提交审核应用。</div>

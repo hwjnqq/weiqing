@@ -77,16 +77,16 @@ if ('like_comment' == $do) {
 
 	$comment = $article_comment_table->getById($comment_id);
 	if (empty($comment)) {
-		iajax(1, '评论不存在');
+		iajax(-1, '评论不存在');
 	}
 	$like_comment = $article_comment_table->getLikeComment($_W['uid'], $articleid, $comment_id);
 	if (!empty($like_comment)) {
-		iajax(1, '已赞');
+		iajax(-1, '已赞');
 	}
 	if ($article_comment_table->likeComment($_W['uid'], $articleid, $comment_id)) {
 		iajax(0);
 	} else {
-		iajax(1, '操作失败，请重试。');
+		iajax(-1, '操作失败，请重试。');
 	}
 }
 

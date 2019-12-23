@@ -576,20 +576,29 @@
 	{/if}
 	{if $user_type == PERSONAL_LIMIT_TYPE}
 		<div class="account">
-			<table class="table we7-table table-hover vertical-middle">
+			<table class="table we7-table ">
+				<col width="400px">
+				<col width="200px">
 				<tr>
-					<th class="text-left">账户使用期限</th>
-					<th>总有效天数:{$total_timelimit}</th>
-					<th class="text-right">有效期至:{$endtime}</th>
+					<th class="user-dateline-box">
+						<span class="color-default">总计</span>用户有效期<i  data-trigger="hover" data-toggle="popover" data-placement="bottom"  data-html="true" data-content="</i>
+					用户有效期由<span class='color-red'>用户所在的用户组</span>、系统设置的<span class='color-red'>附加时间</span>、用户自己在<span class='color-red'>商城购买的用户组</span>构成。请单独修改对应选项" class='wi wi-info color-default'></i>
+					</th>
+					<th class="text-left">
+						<span class="color-default">{$total_timelimit}</span>
+					</th>
+					<th class="text-right">到期时间：{$endtime}</th>
 				</tr>
 				<tr>
-					<td>所属用户组：{$group_info['name']}</td>
-					<td class="text-left">有 效 天 数：{if $group_info['timelimit'] == 0 || !$group_info} 永久 {else} {$group_info['timelimit']} {/if} </td>
+					<td class="color-gray">所属用户组：{$group_info['name']}</td>
+					<td class="text-left">
+						<span>{if $group_info['timelimit'] == 0 || !$group_info} 永久 {else} {$group_info['timelimit']} 天{/if}</span>
+					</td>
 					<td class="text-right"></td>
 				</tr>
 				<tr>
-					<td>附加权限</td>
-					<td class="text-left">有 效 天 数：{$extra_limit_info['timelimit']} </td>
+					<td class="color-gray">附加权限</td>
+					<td class="text-left">{php echo max(0, $extra_limit_info['timelimit']) . '天'}</td>
 					<td class="text-right"></td>
 				</tr>
 			</table>

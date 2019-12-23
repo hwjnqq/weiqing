@@ -189,6 +189,7 @@ if ('save' == $do || 'test_setting' == $do) {
 				}
 				break;
 			case ATTACH_COS:
+				$_W['setting']['remote']['cos'] = array();
 				$title = '腾讯cos';
 				$auth = attachment_cos_auth($op_data['bucket'], $op_data['appid'], $op_data['secretid'], $op_data['secretkey'], $op_data['local']);
 				if (is_error($auth)) {

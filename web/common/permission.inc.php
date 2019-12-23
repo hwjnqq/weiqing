@@ -72,15 +72,13 @@ $we7_file_permission = array(
 	),
 	'message' => array(
 		'default' => '',
-		'direct' => array(
-			'notice',
-		),
-		'vice_founder' => array(),
-		'owner' => array(),
-		'manager' => array(),
-		'operator' => array(),
-		'clerk' => array(),
-		'unbind_user' => array(),
+		'direct' => array(),
+		'vice_founder' => array('notice',),
+		'owner' => array('notice',),
+		'manager' => array('notice',),
+		'operator' => array('notice',),
+		'clerk' => array('notice',),
+		'unbind_user' => array('notice',),
 	),
 	'cloud' => array(
 		'default' => 'touch',
@@ -481,7 +479,6 @@ $we7_file_permission = array(
 		'direct' => array(
 			'verifycode',
 			'code',
-			'file',
 			'bindcall',
 			'subscribe',
 			'wxcode',
@@ -492,15 +489,23 @@ $we7_file_permission = array(
 		'vice_founder' => array(
 			'user',
 			'emulator',
+			'file',
 		),
 		'owner' => array(
 			'emulator',
+			'file',
 		),
 		'manager' => array(
 			'emulator',
+			'file',
 		),
 		'operator' => array(
 			'emulator',
+			'file',
+		),
+		'clerk' => array(
+			'emulator',
+			'file',
 		),
 		'unbind_user' => array(),
 	),
@@ -559,6 +564,7 @@ $we7_file_permission = array(
 			'see_user_manage_fields',
 			'see_user_manage_expire',
 			'see_workorder',
+			'see_controller',
 			'see_modules_deactivate',
 		),
 		'vice_founder' => array(
@@ -580,9 +586,9 @@ $we7_file_permission = array(
 			'see_user_manage_check',
 			'see_user_manage_recycle',
 			'see_system_updatecache',
+			'see_controller',
 		),
 		'owner' => array(
-			'see_system_updatecache',
 			'see_account_manage_users_set_permission_for_manager',
 			'see_account_manage_users_set_permission_for_operator',
 			'see_account_manage_users_deloperator',
@@ -598,14 +604,12 @@ $we7_file_permission = array(
 			'see_account_manage_users_deloperator',
 			'see_account_manage_display',
 			'see_user_profile_welcome',
-			'see_system_updatecache',
 			'see_user_add_welcome_account',
 			'see_user_profile_account_num',
 		),
 		'operator' => array(
 			'see_account_manage_display',
 			'see_user_profile_welcome',
-			'see_system_updatecache',
 			'see_user_add_welcome_account',
 			'see_user_profile_account_num',
 		),
@@ -613,7 +617,6 @@ $we7_file_permission = array(
 		),
 		'unbind_user' => array(
 			'see_user_profile_welcome',
-			'see_system_updatecache',
 		),
 		'expired' => array(),
 	),

@@ -6,7 +6,7 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>{if !empty($_W['page']['title'])}{$_W['page']['title']}{/if}{if empty($_W['page']['copyright']['sitename'])}{if IMS_FAMILY != 'x'}{if !empty($_W['page']['title'])} - {/if}微擎 - 公众平台自助引擎 -  Powered by WE7.CC{/if}{else}{if !empty($_W['page']['title'])} - {/if}{$_W['page']['copyright']['sitename']}{/if}</title>
+	<title>{if !empty($_W['page']['title'])}{$_W['page']['title']}{/if}{if empty($_W['page']['copyright']['sitename'])}{if IMS_FAMILY != 'x'}{if !empty($_W['page']['title'])} - {/if}微擎 - 公众平台自助引擎 -  Powered by W7.CC{/if}{else}{if !empty($_W['page']['title'])} - {/if}{$_W['page']['copyright']['sitename']}{/if}</title>
 	<meta name="keywords" content="{if empty($_W['page']['copyright']['keywords'])}{if IMS_FAMILY != 'x'}微擎,微信,微信公众平台,w7.cc{/if}{else}{$_W['page']['copyright']['keywords']}{/if}" />
 	<meta name="description" content="{if empty($_W['page']['copyright']['description'])}{if IMS_FAMILY != 'x'}公众平台自助引擎（www.w7.cc），简称微擎，微擎是一款免费开源的微信公众平台管理系统，是国内最完善移动网站及移动互联网技术解决方案。{/if}{else}{$_W['page']['copyright']['description']}{/if}" />
 	<link rel="shortcut icon" href="{if !empty($_W['setting']['copyright']['icon'])}{php echo to_global_media($_W['setting']['copyright']['icon'])}{else}./resource/images/favicon.ico{/if}" />
@@ -24,6 +24,7 @@
 		{if !empty($_W['openid'])}'openid': '{$_W['openid']}',{/if}
 		{if !empty($_W['uid'])}'uid': '{$_W['uid']}',{/if}
 		{if !empty($_W['role'])}'role': '{$_W['role']}',{/if}
+        {if !empty($_W['highest_role'])}'highest_role': '{$_W['highest_role']}',{/if}
 		'isfounder': {if !empty($_W['isfounder'])}1{else}0{/if},
 		'family': '{IMS_FAMILY}',
 		'siteroot': '{$_W['siteroot']}',
@@ -39,12 +40,6 @@
 	};
 	</script>
 	<script>var require = { urlArgs: 'v={IMS_RELEASE_DATE}' };</script>
-	<script>
-		document.addEventListener('error', function(event) {
-			var elem = event.target;
-			elem.src = ''
-		}, true)
-	</script>
 	<script type="text/javascript" src="./resource/js/lib/jquery-1.11.1.min.js"></script>
 	<script type="text/javascript" src="./resource/js/lib/bootstrap.min.js"></script>
 	<script type="text/javascript" src="./resource/js/app/util.js?v={IMS_RELEASE_DATE}"></script>

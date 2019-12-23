@@ -49,7 +49,7 @@
 		<h2 class="notice-list-head">最近20条聊天记录</h2>
 			<div class="media notice-item" ng-repeat="log in chatLogs">
 				<a class="media-left" href="#">
-					<img src="{php echo $_W['account']['logo']}" width="48" class="head-logo" ng-if="log.flag == 1">
+					<img src="{php echo $_W['account']['logo']}" width="48" class="head-logo account-img" ng-if="log.flag == 1">
 					<img src="{php echo tomedia($fans_info['tag']['avatar'])}?time={php echo time()}" width="48" ng-if="log.flag == 2">
 				</a>
 				<div class="media-body">

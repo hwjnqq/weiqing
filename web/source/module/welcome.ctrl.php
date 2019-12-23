@@ -16,14 +16,30 @@ $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
 
 $module_name = trim($_GPC['m']);
 $uniacid = intval($_GPC['uniacid']);
-$module = $_W['current_module'] = module_fetch($module_name);
+$module = $_W['current_module'] = module_fetch($module_name, false);
+$type = $_W['account']->typeSign;
+if (!empty($module) && empty($module['is_delete']) && !empty($module['recycle_info'])) {
+	foreach ($module['recycle_info'] as $key => $value)
+	{
+		if ($type.'_support' == $key && $value == MODULE_RECYCLE_UNINSTALL_IGNORE) {
+			$module = array();
+			break;
+		}
+		if ( $type.'_support' == $key && $value == MODULE_RECYCLE_INSTALL_DISABLED ){
+			$expire_notice = module_expire_notice();
+			itoast($expire_notice, url('home/welcome'), 'info');
+		}
+	}
+}
 
-if (empty($module)) {
+if (empty($module) || !empty($module['is_delete'])) {
+	$_W['current_module'] = array();
 	cache_build_account_modules($uniacid);
-	itoast('抱歉，你操作的模块不能被访问！');
+	itoast('抱歉，你操作的模块不能被访问！', url('home/welcome'), 'info');
 }
 
 if ('display' == $do) {
+	user_save_operate_history(USERS_OPERATE_TYPE_MODULE, $module_name);
 	$notices = welcome_notices_get();
 	template('module/welcome');
 }
@@ -94,13 +110,19 @@ if ('get_module_replies' == $do) {
 if ('get_module_accounts' == $do) {
 	// 主帐号
 	$account_info = uni_fetch($uniacid);
-
+	if (ACCOUNT_MANAGE_NAME_CLERK == $account_info['current_user_role']) {
+		unset($account_info['switchurl']);
+	}
 	// 子账号
 	$sub_account_uniacids = table('uni_link_uniacid')->getSubUniacids($uniacid, $module_name);
 	$link_accounts = array();
 	if (!empty($sub_account_uniacids)) {
 		foreach ($sub_account_uniacids as $sub_uniacid) {
-			$link_accounts[] = uni_fetch($sub_uniacid);
+			$sub_account_info = uni_fetch($sub_uniacid);
+			if (ACCOUNT_MANAGE_NAME_CLERK == $sub_account_info['current_user_role']) {
+				unset($sub_account_info['switchurl']);
+			}
+			$link_accounts[] = $sub_account_info;
 		}
 	}
 

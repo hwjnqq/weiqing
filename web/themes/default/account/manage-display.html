@@ -63,7 +63,7 @@
 				<label for="{{'uid-' + list.acid}}">&nbsp;</label>
 			</td>
 			<td class="text-left td-link">
-				<a href="javascript:;"><img src="{{list.logo}}" class="img-responsive account-img icon"></a>
+				<a href="javascript:;"><img ng-src="{{list.logo}}" class="img-responsive account-img icon"></a>
 			</td>
 			<td class="text-left">
 				<p class="color-dark" ng-bind="list.name"></p>
@@ -84,19 +84,15 @@
 			</td>
 			<td><p ng-bind="list.owner_name"></p></td>
 			<td class="vertical-middle table-manage-td">
-				<div class="link-group">
-					<a ng-href="{{links.switch}}uniacid={{list.uniacid}}&type={{list.type}}"  ng-if="!list.support_version" class="">进入{{ list.type_name }}</a>
-					<a ng-href="{{links.switch}}uniacid={{list.uniacid}}&version_id={{list.current_version.id}}&type={{list.type}}" ng-if="list.support_version" class="">进入{{ list.type_name }}</a>
+				<div class="link-group" ng-if="!showActionStatus">
+					<a ng-href="{{links.switch}}uniacid={{list.uniacid}}&type={{list.type}}"  ng-if="!list.support_version" target="_blank">进入{{ list.type_name }}</a>
+					<a ng-href="{{links.switch}}uniacid={{list.uniacid}}&version_id={{list.current_version.id}}&type={{list.type}}" ng-if="list.support_version" target="_blank">进入{{ list.type_name }}</a>
 					<a ng-href="{{links.post}}&uniacid={{list.uniacid}}&account_type={{list.type}}" ng-if="list.manage_premission">管理设置</a>
 				</div>
 
-				<div class="manage-option text-right" ng-if="list.manage_premission">
+				<div class="manage-option text-right" ng-if="list.manage_premission && !showActionStatus">
 					<a ng-if="list.current_user_role == 'founder' || list.current_user_role == 'vice_founder' || list.current_user_role == 'owner'"
 					   href="{{links.post}}&uniacid={{list.uniacid}}&account_type={{list.type}}">基础信息</a>
-
-					<a ng-if="list.current_user_role == 'founder' || list.current_user_role == 'vice_founder' || list.current_user_role == 'owner'"
-					   href="{{links.post}}&do=sms&uniacid={{list.uniacid}}&account_type={{list.type}}" ng-if="list.type_sign == 'account'">短信信息</a>
-
 					<a href="{{links.postUser}}&do=edit&uniacid={{list.uniacid}}&&account_type={{list.type}}">使用者管理</a>
 					<a href="{{links.post}}&do=modules_tpl&uniacid={{list.uniacid}}&account_type={{list.type}}">可用应用模板/模块</a>
 
@@ -108,6 +104,7 @@
 				</div>
 			</td>
 		</tr>
+		<tr style="height: 52px;"></tr>
 	</table>
 	<!-- 列表数据 end -->
 

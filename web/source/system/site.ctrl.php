@@ -72,6 +72,16 @@ if ('save_setting' == $do) {
 			}
 			$settings[$key] = safe_gpc_int($_GPC['value']);
 			break;
+		case 'login_verify_status':
+			if (!$_W['isfounder']) {
+				iajax(-1, '您没有权限', url('system/site'));
+			}
+			if (empty($_W['user']['mobile'])) {
+				iajax(-1, '您的账户还未绑定手机号，请先绑定手机号，再开启此功能');
+			}
+			$settings[$key] = 1 == $_GPC['is_int'] ? intval($_GPC['value']) : safe_gpc_string($_GPC['value']);
+			$settings['login_verify_mobile'] = $_W['user']['mobile'];
+			break;
 		default:
 			$settings[$key] = 1 == $_GPC['is_int'] ? intval($_GPC['value']) : safe_gpc_string($_GPC['value']);
 			break;
@@ -80,8 +90,10 @@ if ('save_setting' == $do) {
 	if (!in_array($key, $system_setting_items)) {
 		iajax(-1, '参数错误！', url('system/site'));
 	}
-	if ('template' == $key) {
-		setting_save(array('template' => safe_gpc_string($_GPC['value'])), 'basic');
+	if (in_array($key, array('template', 'login_template'))) {
+		$basic_setting = $_W['setting']['basic'];
+		$basic_setting[$key] = safe_gpc_string($_GPC['value']);
+		setting_save($basic_setting, 'basic');
 	} elseif ($key = 'baidumap') {
 		$settings['baidumap'] = array('lng' => $_GPC['lng'], 'lat' => $_GPC['lat']);
 		setting_save($settings, 'copyright');

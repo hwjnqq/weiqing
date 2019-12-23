@@ -59,7 +59,7 @@ if ($do == 'credits') {
 	$where = array(
 		'uid' => $_W['member']['uid'],
 		'createtime >=' => strtotime($starttime),
-		'createtime < ' => strtotime($endtime)
+		'createtime <' => strtotime($endtime)
 	);
 	/*获取用户名字和头像*/
 	$user = table('mc_members')
@@ -87,12 +87,11 @@ if ($do == 'credits') {
 			template('mc/bond');
 			exit();
 		}
-		$where .= " AND `credittype` = :credit_type";
-		$params[':credit_type'] = safe_gpc_string($_GPC['credittype']);
+		$where['credittype'] = safe_gpc_string($_GPC['credittype']);
 	}
 
 	/*获取总支出收入情况*/
-	$nums = table('mc_credits_record')->where($where)->getall('num');
+	$nums = table('mc_credits_record')->select('num')->where($where)->getall();
 	$pay = $income = 0;
 	foreach ($nums as $value) {
 		if ($value['num'] > 0) {

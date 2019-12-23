@@ -13,10 +13,10 @@ $founders = explode(',', $_W['config']['setting']['founder']);
 
 if ($_W['isajax'] && $_W['ispost']) {
 	$data = array();
-	$token = trim($_GPC['token']);
-	$encodingaeskey = trim($_GPC['encodingaeskey']);
-	$appid = trim($_GPC['appid']);
-	$appsecret = trim($_GPC['appsecret']);
+	$token = safe_gpc_string(trim($_GPC['token']));
+	$encodingaeskey = safe_gpc_string(trim($_GPC['encodingaeskey']));
+	$appid = safe_gpc_string(trim($_GPC['appid']));
+	$appsecret = safe_gpc_string(trim($_GPC['appsecret']));
 
 	$authstate = isset($_GPC['authstate']) ? intval($_GPC['authstate']) : $_W['setting']['platform']['authstate'];
 	$data['token'] = !empty($token) ? $token : $_W['setting']['platform']['token'];

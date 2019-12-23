@@ -44,6 +44,7 @@ if ('display' == $do) {
 	if ($_W['ispost'] && $_W['isajax']) {
 		iajax(0, $user_permissions, '');
 	}
+	user_save_operate_history(USERS_OPERATE_TYPE_MODULE, $module_name);
 }
 
 if ('post' == $do) {
@@ -187,7 +188,7 @@ if ('delete' == $do) {
 		$module_info = module_fetch($module_name);
 		$module_plugin_list = $module_info['plugin_list'];
 		if (!empty($module_plugin_list)) {
-			pdo_delete('users_permission', array('uid' => $_GPC['uid'], 'uniacid' => $uniacid, 'type in' => $module_plugin_list));
+			pdo_delete('users_permission', array('uid' => $operator_id, 'uniacid' => $uniacid, 'type in' => $module_plugin_list));
 		}
 		$delete_user_permission = pdo_delete('users_permission', array('uid' => $operator_id, 'type' => $module_name, 'uniacid' => $uniacid));
 

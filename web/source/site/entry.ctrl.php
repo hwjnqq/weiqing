@@ -96,7 +96,6 @@ $_W['current_module'] = $module;
 
 
 define('IN_MODULE', $entry['module']);
-
 if (!is_error($site)) {
 	if (ACCOUNT_MANAGE_NAME_OWNER == $_W['role']) {
 		$_W['role'] = ACCOUNT_MANAGE_NAME_MANAGER;

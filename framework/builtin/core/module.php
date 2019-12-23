@@ -58,7 +58,7 @@ class CoreModule extends WeModule {
 							$replies['news'] = $wechat_attachment['news'];
 							break;
 						case 'image':
-							$replies['image'][0]['img_url'] = tomedia($wechat_attachment['attachment'], true);
+							$replies['image'][0]['img_url'] = tomedia($wechat_attachment['attachment']);
 							$replies['image'][0]['mediaid'] = $isexists['media_id'];
 							break;
 						case 'voice':

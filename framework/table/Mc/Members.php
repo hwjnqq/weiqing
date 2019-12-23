@@ -153,4 +153,10 @@ class Members extends \We7Table {
 			->leftjoin('mc_mapping_fans', 'b')
 			->on(array('a.uid' => 'b.uid'));
 	}
+
+	public function searchWithAccount() {
+		return $this->query->from('mc_members', 'm')
+			->leftjoin('account', 'a')
+			->on(array('m.uniacid' => 'a.uniacid'));
+	}
 }

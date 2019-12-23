@@ -21,5 +21,7 @@ if ('display' == $do) {
 		}
 		$modules = $modulelist;
 	}
+	//PC没有欢迎页，故先放在此重建账号模块。后期有欢迎页后需异步请求
+	cache_build_account_modules($_W['uniacid']);
 	template('webapp/home');
 }

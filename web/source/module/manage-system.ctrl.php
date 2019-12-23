@@ -113,6 +113,9 @@ if ('get_upgrade_info' == $do) {
 		'branches' => !empty($manifest_cloud['branches']) ? $manifest_cloud['branches'] : '',
 		'from' => 'cloud',
 		'id' => $manifest_cloud['id'],
+		'system_shutdown' => $manifest_cloud['system_shutdown'],
+		'system_shutdown_delay_time' => date('Y-m-d', $manifest_cloud['system_shutdown_delay_time']),
+		'can_update' => isset($manifest_cloud['can_update']) ? $manifest_cloud['can_update'] : -1,
 	);
 	iajax(0, $result);
 }
@@ -266,8 +269,8 @@ if ('upgrade' == $do) {
 	}
 
 	if ($has_new_support) {
-		$module_support_type = module_support_type();
-		foreach ($module_support_type as $support_name => $info) {
+		$module_upgrade['cloud_record'] = STATUS_ON;
+		foreach ($module_all_support as $support_name => $info) {
 			if (!in_array($support_name, $support)) {
 				$module_upgrade[$support_name] = $module[$support_name];
 			}
@@ -336,7 +339,7 @@ if ('install' == $do) {
 		if (is_error($module_info)) {
 			itoast($module_info['message'], '', 'error');
 		}
-		$packet = cloud_m_build($module_name);
+		$packet = cloud_m_build($module_name, 'install');
 		if (is_error($packet)) {
 			$extend_button = array();
 			if ($packet['errno'] == -3) {
@@ -453,8 +456,7 @@ if ('install' == $do) {
 	ext_module_run_script($manifest, 'install');
 
 	$module_support_name_arr = explode(',', $module_support_name);
-	$all_support = module_support_type();
-	foreach ($all_support as $support => $value) {
+	foreach ($module_all_support as $support => $value) {
 		if (!in_array($support, $module_support_name_arr)) {
 			$module[$support] = $value['not_support'];
 		}
@@ -626,17 +628,17 @@ if ('module_detail' == $do) {
 
 //卸载模块
 if ('uninstall' == $do) {
-	if (empty($_W['isfounder'])) {
-		return error(1, '您没有卸载模块的权限！');
+	if (!user_is_founder($_W['uid'], true)) {
+		itoast('您没有卸载模块的权限！');
 	}
 	$name = safe_gpc_string(trim($_GPC['module_name']));
 	$module = module_fetch($name, false);
 	if (empty($module) || MODULE_SUPPORT_ACCOUNT != $module[$module_support_name]) {
-		itoast('应用不存在或是已经卸载！', referer(), 'success');
+		itoast('应用不存在或是已经卸载！');
 	}
 	$module[$module_support_name] = MODULE_NONSUPPORT_ACCOUNT;
 	$uninstall_all = true;
-	foreach (module_support_type() as $support => $value) {
+	foreach ($module_all_support as $support => $value) {
 		if (MODULE_SUPPORT_ACCOUNT == $module[$support]) {
 			$uninstall_all = false;
 			break;
@@ -655,7 +657,7 @@ if ('uninstall' == $do) {
 		ext_module_uninstall($name, $_GPC['confirm']);
 		cache_build_module_subscribe_type();
 	} else {
-		table('modules')->where('mid', $module['mid'])->fill($module_support_name, MODULE_NONSUPPORT_ACCOUNT)->save();
+		table('modules')->where('mid', $module['mid'])->fill(array($module_support_name => MODULE_NONSUPPORT_ACCOUNT, 'cloud_record' => STATUS_OFF))->save();
 		module_cancel_recycle($name, MODULE_RECYCLE_INSTALL_DISABLED, $module_support_name);
 	}
 
@@ -721,7 +723,7 @@ if ('recycle_post' == $do) {
 	$module = table('modules')->getByName($name);
 	$recycle_table = table('modules_recycle');
 	foreach ($supports as $support) {
-		if (!in_array($support, array_keys(module_support_type()))) {
+		if (!in_array($support, array_keys($module_all_support))) {
 			continue;
 		}
 		$recycle_table->searchWithSupport($support);
@@ -747,6 +749,13 @@ if ('recycle_post' == $do) {
 				$msg = '模块已恢复!';
 				module_cancel_recycle($name, MODULE_RECYCLE_UNINSTALL_IGNORE, $support);
 			}
+		}
+	}
+	if (in_array('wxapp_support', $supports)) {
+		$wxapp_version_table = table('wxapp_versions');
+		$wxapp_versions = $wxapp_version_table->where(array('modules LIKE' => "%$name%"))->getall();
+		foreach ($wxapp_versions as $wxapp_version) {
+			cache_delete(cache_system_key('miniapp_version', array('version_id' => $wxapp_version['id'])));
 		}
 	}
 	itoast($msg, referer(), 'success');
@@ -787,7 +796,6 @@ if ('recycle' == $do) {
 
 	$modulelist = $module_recycle_table->getall();
 	if (!empty($modulelist)) {
-		$module_support_type = module_support_type();
 		$modulelist_recycle = array();
 		foreach ($modulelist as $modulename => &$module) {
 			$module_recycle_info = $module;
@@ -796,7 +804,7 @@ if ('recycle' == $do) {
 				$module = table('modules_cloud')->getByName($module_recycle_info['name']);
 			}
 			$module['cloud_id'] = $module_recycle_info['cloud_id'];
-			foreach ($module_support_type as $type_key => $type_val) {
+			foreach ($module_all_support as $type_key => $type_val) {
 				if ('all' == $support) {
 					if (1 == $module_recycle_info[$type_key] && MODULE_SUPPORT_SYSTEMWELCOME_NAME != $type_key) {
 						$module['support'] = $module_recycle_info['support'] = $type_key;
@@ -806,7 +814,7 @@ if ('recycle' == $do) {
 					}
 				} else {
 					$module['support'] = $support;
-					$module['support_name'] = $module_support_type[$support]['type_name'];
+					$module['support_name'] = $module_all_support[$support]['type_name'];
 				}
 			}
 		}
@@ -816,8 +824,7 @@ if ('recycle' == $do) {
 	if ('all' == $support) {
 		$modulelist = $modulelist_recycle;
 	}
-
-	$total = count($modulelist);
+	$total = count((array)$modulelist);
 	$pager = pagination($total, $pageindex, $pagesize, '', array('ajaxcallback' => true, 'callbackfuncname' => 'loadMore'));
 
 	$module_uninstall_total = module_uninstall_total($module_support);
@@ -825,14 +832,13 @@ if ('recycle' == $do) {
 
 if ('installed' == $do) {
 	$module_list = module_installed_list($module_support);
-	$module_support_types = module_support_type();
 	if (!empty($module_list)) {
 		foreach ($module_list as $key => &$module) {
 			if (!empty($module['issystem'])) {
 				unset($module_list[$key]);
 			}
 			if ('all' != $module_support) {
-				$module['support_name'] = $module_support_types[$module_support_name]['type_name'];
+				$module['support_name'] = $module_all_support[$module_support_name]['type_name'];
 			}
 		}
 		unset($module);
@@ -842,7 +848,7 @@ if ('installed' == $do) {
 		$module_list_support = array();
 		if (!empty($module_list)) {
 			foreach ($module_list as $key => &$module) {
-				foreach ($module_support_types as $module_support_type => $module_support_val) {
+				foreach ($module_all_support as $module_support_type => $module_support_val) {
 					if (MODULE_SUPPORT_SYSTEMWELCOME_NAME == $module_support_type) {
 						continue;
 					}
@@ -866,7 +872,6 @@ if ('not_installed' == $do) {
 	$title = safe_gpc_string($_GPC['title']);
 	$letter = safe_gpc_string($_GPC['letter']);
 
-	$module_support_types = module_support_type();
 	cache_build_uninstalled_module();
 
 	$module_cloud_table = table('modules_cloud');
@@ -897,7 +902,7 @@ if ('not_installed' == $do) {
 			$modules_recycle = table('modules_recycle')->getByName($modulenames, '');
 			if (!empty($modules_recycle)) {
 				foreach ($modules_recycle as $info) {
-					foreach ($module_support_types as $support => $value) {
+					foreach ($module_all_support as $support => $value) {
 						if (empty($module_recycle_support[$info['name']][$support])) {
 							$module_recycle_support[$info['name']][$support] = $info[$support];
 						}
@@ -908,7 +913,7 @@ if ('not_installed' == $do) {
 		//unset 数据中已停用删除支持, 和 系统首页支持
 		foreach ($modulelist as $key => $module) {
 			$is_unset = true;
-			foreach ($module_support_types as $support => $value) {
+			foreach ($module_all_support as $support => $value) {
 				if (!empty($module_recycle_support[$module['name']][$support])) {
 					$module[$support] = $value['not_support'];
 				}

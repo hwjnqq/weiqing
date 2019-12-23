@@ -14,21 +14,21 @@ $we7_system_menu['welcome'] = array(
 	'section' => array(),
 );
 
-$we7_system_menu['platform'] = array(
-	'title' => '平台入口',
-	'icon' => 'wi wi-platform',
-	'dimension' => 2,
-	'url' => url('account/display/platform'),
-	'section' => array(),
-);
+//$we7_system_menu['platform'] = array(
+//	'title' => '平台入口',
+//	'icon' => 'wi wi-platform',
+//	'dimension' => 2,
+//	'url' => url('account/display/platform'),
+//	'section' => array(),
+//);
 
-$we7_system_menu['module'] = array(
-	'title' => '应用入口',
-	'icon' => 'wi wi-apply',
-	'dimension' => 2,
-	'url' => url('module/display/switch_last_module'),
-	'section' => array(),
-);
+//$we7_system_menu['module'] = array(
+//	'title' => '应用入口',
+//	'icon' => 'wi wi-apply',
+//	'dimension' => 2,
+//	'url' => url('module/display/switch_last_module'),
+//	'section' => array(),
+//);
 
 $we7_system_menu['account_manage'] = array(
 	'title' => '平台管理',
@@ -255,20 +255,37 @@ $we7_system_menu['system'] = array(
 			'founder' => true,
 		),
 		'sms' => array(
-			'title' => '短信',
+			'title' => '系统短信',
 			'menu' => array(
-				'system_cloud_sms' => array(
-					'title' => '短信管理',
-					'url' => url('cloud/sms'),
-					'icon' => 'wi wi-sms',
-					'permission_name' => 'system_cloud_sms',
-				),
 				'system_cloud_sms_sign' => array(
-					'title' => '短信签名',
+					'title' => '签名管理',
 					'url' => url('cloud/sms-sign'),
-					'icon' => 'wi wi-sms-sign',
+					'icon' => 'wi wi-sms',
 					'permission_name' => 'system_cloud_sms_sign',
-					'is_display' => false,
+				),
+				'system_cloud_sms_package' => array(
+					'title' => '购买短信包',
+					'url' => url('cloud/sms-package'),
+					'icon' => 'wi wi-sms',
+					'permission_name' => 'system_cloud_sms_package',
+				),
+				'system_cloud_sms_statistics' => array(
+					'title' => '发送统计',
+					'url' => url('cloud/sms-statistics'),
+					'icon' => 'wi wi-sms',
+					'permission_name' => 'system_cloud_sms_statistics',
+				),
+				'system_cloud_sms_template' => array(
+					'title' => '短信模板',
+					'url' => url('cloud/sms-template'),
+					'icon' => 'wi wi-sms',
+					'permission_name' => 'system_cloud_sms_template',
+				),
+				'system_cloud_sms_share' => array(
+					'title' => '分配短信',
+					'url' => url('cloud/sms-share'),
+					'icon' => 'wi wi-sms',
+					'permission_name' => 'system_cloud_sms_share',
 				),
 				'system_sms_mass' => array(
 					'title' => '短信群发',
@@ -451,7 +468,7 @@ $we7_system_menu['myself'] = array(
 
 $we7_system_menu['message'] = array(
 	'title' => '消息管理',
-	'icon' => 'wi wi-bell',
+	'icon' => 'wi wi-xiaoxi',
 	'dimension' => 2,
 	'url' => url('message/notice'),
 	'section' => array(
@@ -1221,42 +1238,7 @@ $we7_system_menu['wxapp'] = array(
 		'statistics' => array(
 			'title' => '统计',
 			'menu' => array(
-				'statistics_visit' => array(
-					'title' => '访问统计',
-					'url' => url('statistics/app'),
-					'icon' => 'wi wi-statistical',
-					'permission_name' => 'statistics_visit_wxapp',
-					'is_display' => array(
-						ACCOUNT_TYPE_APP_NORMAL,
-						ACCOUNT_TYPE_APP_AUTH,
-						ACCOUNT_TYPE_WXAPP_WORK,
-						ACCOUNT_TYPE_APP_PLATFORM,
-						ACCOUNT_TYPE_PHONEAPP_NORMAL,
-						ACCOUNT_TYPE_ALIAPP_NORMAL,
-						ACCOUNT_TYPE_BAIDUAPP_NORMAL,
-						ACCOUNT_TYPE_TOUTIAOAPP_NORMAL,
-					),
-					'sub_permission' => array(
-						'statistics_visit_app' => array(
-							'title' => 'app端访问统计信息',
-							'url' => url('statistics/app/display'),
-							'permission_name' => 'statistics_visit_app',
-							'active' => 'app',
-						),
-						'statistics_visit_site' => array(
-							'title' => '所有用户访问统计',
-							'url' => url('statistics/site/current_account'),
-							'permission_name' => 'statistics_visit_site',
-							'active' => 'site',
-						),
-						'statistics_visit_setting' => array(
-							'title' => '访问统计设置',
-							'url' => url('statistics/setting/display'),
-							'permission_name' => 'statistics_visit_setting',
-							'active' => 'setting',
-						),
-					),
-				),
+				
 				'statistics_fans' => array(
 					'title' => '用户统计',
 					'url' => url('wxapp/statistics'),
@@ -1269,6 +1251,7 @@ $we7_system_menu['wxapp'] = array(
 						ACCOUNT_TYPE_APP_PLATFORM,
 					),
 				),
+
 			),
 			'permission_display' => array(
 				ACCOUNT_TYPE_APP_NORMAL,
@@ -1380,35 +1363,11 @@ $we7_system_menu['toutiaoapp'] = array(
 	),
 );
 
-/*$we7_system_menu['advertisement'] = array (
-	'title' => '广告联盟',
-	'icon' => 'wi wi-advert',
-	'url' => url('advertisement/content-provider'),
-	'section' => array(
-		'advertisement' => array(
-			'title' => '常用系统工具',
-			'menu' => array(
-				'advertisement-content-provider' => array(
-					'title' => '流量主',
-					'url' => url('advertisement/content-provider/account_list'),
-					'icon' => 'wi wi-flow',
-					'permission_name' => 'advertisement_content-use',
-				),
-				'advertisement-content-create' => array(
-					'title' => '广告主',
-					'url' => url('advertisement/content-provider/content_provider'),
-					'icon' => 'wi wi-adgroup',
-					'permission_name' => 'advertisement_content-create',
-				),
-			)
-		),
-	),
-	'founder' => true,
-);*/
+
 
 $we7_system_menu['appmarket'] = array(
 	'title' => '市场',
-	'icon' => 'wi wi-market',
+	'icon' => 'wi wi-shichang',
 	'url' => 'http://s.w7.cc',
 	'section' => array(),
 	'blank' => true,
@@ -1419,7 +1378,7 @@ $we7_system_menu['appmarket'] = array(
 
 $we7_system_menu['workorder'] = array(
 	'title' => '工单',
-	'icon' => 'wi wi-bell',
+	'icon' => 'wi wi-gongdan',
 	'dimension' => 2,
 	'url' => url('system/workorder/display'),
 	'section' => array(
@@ -1440,14 +1399,14 @@ $we7_system_menu['workorder'] = array(
 
 $we7_system_menu['help'] = array(
 	'title' => '帮助',
-	'icon' => 'wi wi-market',
+	'icon' => 'wi wi-bangzhu',
 	'url' => url('help/display'),
 	'section' => array(),
 );
 
 $we7_system_menu['custom_help'] = array(
 	'title' => '本站帮助',
-	'icon' => 'wi wi-market',
+	'icon' => 'wi wi-bangzhu',
 	'url' => url('help/display/custom'),
 	'section' => array(),
 );

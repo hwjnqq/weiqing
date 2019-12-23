@@ -98,7 +98,9 @@ if ('save' == $do) {
 
 if ('del' == $do) {
 	$id = intval($_GPC['id']);
-
+	if (empty($id)) {
+		iajax(-1, '参数错误！');
+	}
 	$users = pdo_getall('users', array('groupid' => $id));
 	if (!empty($users)) {
 		$users_extra_limit_table = table('users_extra_limit');
@@ -121,6 +123,5 @@ if ('del' == $do) {
 
 	$result = pdo_delete('users_group', array('id' => $id));
 	$result_founder = pdo_delete('users_founder_own_users_groups', array('users_group_id' => $id));
-	itoast('删除成功！', url('user/group/display'), 'success');
-	exit;
+	iajax(0, '删除成功！', url('user/group/display'));
 }

@@ -198,7 +198,6 @@ function register_jssdk($debug = false){
 	$debug = $debug ? 'true' : 'false';
 	
 	$script = <<<EOF
-
 <script src="https://res.wx.qq.com/open/js/jweixin-1.3.2.js"></script>
 <script type="text/javascript">
 	window.sysinfo = window.sysinfo || $sysinfo || {};
@@ -255,7 +254,7 @@ EOF;
 
 function tourl($url) {
 	$reg = '/^tel:(\d+)$/';
-	if (preg_match($reg, $url)) {
+	if (preg_match($reg, $url) || strexists($url, 'https://mp.weixin.qq.com/')) {
 		return $url;
 	}
 	return $url . '&wxref=mp.weixin.qq.com#wechat_redirect';

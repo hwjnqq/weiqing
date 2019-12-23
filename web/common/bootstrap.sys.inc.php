@@ -16,6 +16,7 @@ load()->model('permission');
 load()->model('attachment');
 load()->classs('oauth2/oauth2client');
 load()->model('switch');
+load()->model('system');
 
 $_W['token'] = token();
 $session = json_decode(authcode($_GPC['__session']), true);

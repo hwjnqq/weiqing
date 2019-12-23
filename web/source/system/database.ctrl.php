@@ -158,15 +158,15 @@ if ('trim' == $do) {
 		$type = $_GPC['type'];
 		$data = $_GPC['data'];
 		$table = $_GPC['table'];
-		if ('field' == $type) {
+		if ('field' == $type && pdo_fieldexists($table, $data)) {
 			$sql = "ALTER TABLE `$table` DROP `$data`";
 			if (false !== pdo_query($sql, $params)) {
-				exit('success');
+				iajax(0, '操作成功');
 			}
-		} elseif ('index' == $type) {
+		} elseif ('index' == $type && pdo_indexexists($table, $data)) {
 			$sql = "ALTER TABLE `$table` DROP INDEX `$data`";
 			if (false !== pdo_query($sql, $params)) {
-				exit('success');
+				iajax(0, '操作成功');
 			}
 		}
 		exit();
@@ -228,7 +228,7 @@ if ('optimize' == $do) {
 		}
 	}
 
-	if (checksubmit()) {
+	if ($_W['ispost']) {
 		foreach ($_GPC['select'] as $tablename) {
 			if (!empty($optimize_table[$tablename])) {
 				$sql = "OPTIMIZE TABLE {$tablename}";
@@ -243,7 +243,7 @@ if ('run' == $do) {
 	if (!DEVELOPMENT) {
 		itoast('请先开启开发模式后再使用此功能', referer(), 'info');
 	}
-	if (checksubmit()) {
+	if ($_W['ispost']) {
 		$sql = $_POST['sql'];
 		pdo_run($sql);
 		itoast('查询执行成功.', 'refresh', 'success');

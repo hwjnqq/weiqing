@@ -254,3 +254,64 @@ function stat_date_range($start, $end) {
 	}
 	return $result;
 }
+
+/**
+ * 站点所有会员统计（总量、各类型占比）
+ * @return array
+ */
+function stat_mc_member() {
+	$result = array('total' => 0);
+	$members = table('mc_members')->searchWithAccount()->select('m.uid, a.type')->getall();
+	if (empty($members)) {
+		return $result;
+	}
+	$result['total'] = count($members);
+	$account_type = uni_account_type();
+	foreach ($members as $member) {
+		foreach ($account_type as $type => $type_info) {
+			if ($member['type'] == $type) {
+				$result[$type_info['type_sign']] += 1;
+			}
+		}
+	}
+	foreach ($result as $key => &$item) {
+		if ('total' != $key) {
+			$item = round($item/$result['total'] * 100, 2) . '%';
+		}
+	}
+	return $result;
+}
+
+/**
+ * 站点所有模块统计（总量、各类型占比）
+ * tips:一个模块同时支持多个类型,按多个模块算（如模块A支持3个类型则按3个模块算）
+ * @return array
+ */
+function stat_module() {
+	$module_support_type = module_support_type();
+	$result = array('total' => 0, 'account' => 0, 'wxapp' => 0, 'other' => 0);
+	$select_fields = array_merge(array('name'), array_keys($module_support_type));
+	$modules = table('modules')->select($select_fields)->where('issystem', 0)->getall();
+	if (empty($modules)) {
+		return $result;
+	}
+	foreach ($modules as $module) {
+		foreach ($module_support_type as $type => $type_info) {
+			if ($module[$type] == $type_info['support']) {
+				if (in_array($type_info['type'], array_keys($result))) {
+					$result[$type_info['type']] += 1;
+				}
+				if (!in_array($type_info['type'], array_keys($result))) {
+					$result['other'] += 1;
+				}
+				$result['total'] += 1;
+			}
+		}
+	}
+	foreach ($result as $key => $item) {
+		if ('total' != $key) {
+			$result[$key] = round($item/$result['total'] * 100, 2) . '%';
+		}
+	}
+	return $result;
+}

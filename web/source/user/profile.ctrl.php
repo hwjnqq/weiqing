@@ -13,7 +13,7 @@ load()->model('setting');
 $dos = array('base', 'post', 'bind', 'validate_mobile', 'bind_mobile', 'unbind', 'modules_tpl', 'create_account', 'account_dateline');
 $do = in_array($do, $dos) ? $do : 'base';
 
-if ('post' == $do && $_W['isajax'] && $_W['ispost']) {
+if ('post' == $do) {
 	$type = trim($_GPC['type']);
 	$extra_filed_key = safe_gpc_string($_GPC['extra_field_key']);
 	$extra_filed_val = safe_gpc_string($_GPC['extra_field_val']);
@@ -23,7 +23,7 @@ if ('post' == $do && $_W['isajax'] && $_W['ispost']) {
 		$uid = $_W['uid'];
 	}
 	if (empty($uid) || empty($type)) {
-		iajax(40035, '参数错误，请刷新后重试！', '');
+		iajax(-1, '参数错误，请刷新后重试！', '');
 	}
 	$user = user_single($uid);
 	if (empty($user)) {
@@ -44,7 +44,7 @@ if ('post' == $do && $_W['isajax'] && $_W['ispost']) {
 			iajax(0, '未作修改！', '');
 		}
 	} else {
-		if (in_array($type, array('username', 'password'))) {
+		if (in_array($type, array('username', 'password', 'welcome_link'))) {
 			if ($user[$type] == $_GPC[$type] && 'password' != $type) {
 				iajax(0, '未做修改！', '');
 			}
@@ -102,19 +102,19 @@ if ('post' == $do && $_W['isajax'] && $_W['ispost']) {
 		case 'username':
 			$founders = explode(',', $_W['config']['setting']['founder']);
 			if (!in_array($_W['uid'], $founders) && $_W['uid'] != $user['owner_uid']) {
-				iajax(1, '无权限修改，请联系网站创始人！');
+				iajax(-1, '无权限修改，请联系网站创始人！');
 			}
 			$username = safe_gpc_string($_GPC['username']);
 			$name_exist = pdo_get('users', array('username' => $username));
 			if (!empty($name_exist)) {
-				iajax(2, '用户名已存在，请更换其他用户名！', '');
+				iajax(-1, '用户名已存在，请更换其他用户名！', '');
 			}
 			$result = pdo_update('users', array('username' => $username), array('uid' => $uid));
 			break;
 		case 'vice_founder_name':
 			$userinfo = user_single(array('username' => safe_gpc_string($_GPC['vice_founder_name'])));
 			if (empty($userinfo) || ACCOUNT_MANAGE_GROUP_VICE_FOUNDER != $userinfo['founder_groupid']) {
-				iajax(1, '用户不存在或该用户不是副创始人', '');
+				iajax(-1, '用户不存在或该用户不是副创始人', '');
 			}
 
 			$founder_own_user_table = table('users_founder_own_users');
@@ -134,19 +134,19 @@ if ('post' == $do && $_W['isajax'] && $_W['ispost']) {
 			break;
 		case 'password':
 			if ($_GPC['newpwd'] !== $_GPC['renewpwd']) {
-				iajax(2, '两次密码不一致！', '');
+				iajax(-1, '两次密码不一致！', '');
 			}
 			$_GPC['newpwd'] = safe_gpc_string($_GPC['newpwd']);
 			$check_safe = safe_check_password($_GPC['newpwd']);
 			if (is_error($check_safe)) {
-				iajax(4, $check_safe['message']);
+				iajax(-1, $check_safe['message']);
 			}
 
 			if (!$_W['isfounder'] && empty($user['register_type'])) {
 				$pwd = user_password($_GPC['oldpwd'], $uid);
 				$pwd_hash = user_password_hash($pwd, $uid);
 				if ($pwd_hash != $user['hash']) {
-					iajax(3, '原密码不正确！', '');
+					iajax(-1, '原密码不正确！', '');
 				}
 			}
 			$newpwd = user_password($_GPC['newpwd'], $uid);
@@ -208,7 +208,7 @@ if ('post' == $do && $_W['isajax'] && $_W['ispost']) {
 				'realname', 'nickname', 'avatar', 'qq', 'mobile', 'gender', 'birthyear', 'birthmonth', 'birthday', 'constellation', 'zodiac', 'idcard', 'studentid', 'grade', 'address', 'zipcode', 'nationality', 'resideprovince', 'residecity', 'residedist', 'graduateschool', 'company', 'education', 'occupation', 'position', 'revenue', 'affectivestatus', 'lookingfor', 'bloodtype', 'height', 'weight', 'alipay', 'msn', 'email', 'taobao', 'site', 'bio', 'interest',
 			);
 			if (empty($extra_filed_key) || !in_array($extra_filed_key, $allow_fields)) {
-				iajax(1, '参数错误', '');
+				iajax(-1, '参数错误', '');
 			}
 			if ($users_profile_exist) {
 				$result = pdo_update('users_profile', array($extra_filed_key => $extra_filed_val), array('uid' => $uid));
@@ -225,7 +225,7 @@ if ('post' == $do && $_W['isajax'] && $_W['ispost']) {
 		pdo_update('users_profile', array('edittime' => TIMESTAMP), array('uid' => $uid));
 		iajax(0, '修改成功！', '');
 	} else {
-		iajax(1, '修改失败，请稍候重试！', '');
+		iajax(-1, '修改失败，请稍候重试！', '');
 	}
 }
 
@@ -287,8 +287,7 @@ if ('base' == $do) {
 
 	$redirect_urls = array(
 		array('id' => WELCOME_DISPLAY_TYPE, 'name' => '用户欢迎页'),
-		array('id' => PLATFORM_DISPLAY_TYPE, 'name' => '平台入口'),
-		array('id' => MODULE_DISPLAY_TYPE, 'name' => '应用入口'),
+		array('id' => PLATFORM_DISPLAY_TYPE, 'name' => '最后进入的平台或应用'),
 	);
 	$support_login_urls = user_support_urls();
 
@@ -380,12 +379,12 @@ if ('bind' == $do) {
 }
 
 if (in_array($do, array('validate_mobile', 'bind_mobile')) || USER_REGISTER_TYPE_MOBILE == $_GPC['bind_type'] && 'unbind' == $do) {
-	$user_profile = table('users_profile')->getByUid($_W['uid']);
+	$user_bind = table('users_bind')->getByTypeAndUid(USER_REGISTER_TYPE_MOBILE, $_W['uid']);
 
 	$mobile = safe_gpc_string($_GPC['mobile']);
 	$type = trim($_GPC['type']);
 
-	$mobile_exists = table('users_profile')->getByMobile($mobile);
+	$mobile_exists = table('users_profile')->where('uid !=', $_W['uid'])->getByMobile($mobile);
 	if (empty($mobile)) {
 		iajax(-1, '手机号不能为空');
 	}
@@ -393,7 +392,7 @@ if (in_array($do, array('validate_mobile', 'bind_mobile')) || USER_REGISTER_TYPE
 		iajax(-1, '手机号格式不正确');
 	}
 
-	if (!empty($type) && $mobile != $user_profile['mobile']) {
+	if (!empty($type) && $mobile != $user_bind['bind_sign']) {
 		iajax(-1, '请输入已绑定的手机号');
 	}
 
@@ -440,6 +439,11 @@ if ('unbind' == $do) {
 
 		if (is_error($unbind_info)) {
 			iajax(-1, $unbind_info['message']);
+		}
+		$settings = $_W['setting']['copyright'];
+		if (user_is_founder($_W['uid'], true) && $settings['login_verify_status']) {
+			$settings['login_verify_status'] = 0;
+			setting_save($settings, 'copyright');
 		}
 		iajax(0, '解绑成功', url('user/profile/bind'));
 	}

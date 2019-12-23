@@ -37,7 +37,16 @@ if ('display' == $do) {
 		$account['end'] = 0 == $account['endtime'] ? '永久' : date('Y-m-d', $account['endtime']);
 	}
 	$del_accounts = array_values($del_accounts);
-	template('account/recycle');
+	if ($_W['isajax']) {
+		iajax(0, array(
+			'total' => $total,
+			'page' => $pindex,
+			'page_size' => $psize,
+			'list' => $del_accounts
+		));
+	} else {
+		template('account/recycle');
+	}
 }
 
 if ('recover' == $do || 'delete' == $do) {
@@ -51,10 +60,12 @@ if ('recover' == $do || 'delete' == $do) {
 
 if ('recover' == $do) {
 	$account_info = permission_user_account_num();
-	if ($account_info['account_limit'] <= 0 && ACCOUNT_MANAGE_NAME_FOUNDER != $_W['role']) {
+	$account = uni_fetch($uniacid);
+	$sign_limit = $account['type_sign'].'_limit';
+	$founder_sign_limit = 'founder_' . $account['type_sign'] . '_limit';
+	if (!(!empty($account_info[$sign_limit]) && (!empty($account_info[$founder_sign_limit]) && $_W['user']['owner_uid'] || empty($_W['user']['owner_uid'])) || !empty($account_info['store_' . $sign . '_limit']) || $_W['isfounder'] && !user_is_vice_founder())) {
 		itoast('您所在用户组可添加的平台账号数量已达上限，请停用后再行恢复此平台账号！', referer(), 'error');
 	}
-	$account = uni_fetch($uniacid);
 	if (in_array($account['type_sign'], array(BAIDUAPP_TYPE_SIGN, TOUTIAOAPP_TYPE_SIGN))) {
 		$appid = $account['appid'];
 	} else {

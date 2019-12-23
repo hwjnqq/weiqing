@@ -61,12 +61,12 @@ class Modules extends \We7Table {
 			$this->query->from('uni_account_users', 'uau')
 				->leftjoin('uni_modules', 'u')
 				->on(array('uau.uniacid' => 'u.uniacid'));
-		} elseif (!user_is_founder($uid) && $_W['highest_role'] == ACCOUNT_MANAGE_NAME_CLERK) {
+		} elseif ($_W['highest_role'] == ACCOUNT_MANAGE_NAME_CLERK) {
 			$select_fields .= ", up.uniacid as permission_uniacid";
 			$this->where('up.uid', $uid);
 			$this->query->from('users_permission', 'up')
 				->leftjoin('uni_modules', 'u')
-				->on(array('up.type' => 'u.module_name'));
+				->on(array('up.type' => 'u.module_name', 'up.uniacid' => 'u.uniacid'));
 		} else {
 			$this->query->from('uni_modules', 'u');
 		}

@@ -7,7 +7,7 @@ defined('IN_IA') or exit('Access Denied');
 
 load()->model('article');
 
-$dos = array('category_post', 'category', 'category_del', 'list', 'post', 'batch_post', 'del', 'displaysetting', 'comment_status', 'comments', 'reply_comment');
+$dos = array('category_post', 'category', 'category_del', 'list', 'post', 'del', 'displaysetting', 'comment_status', 'comments', 'reply_comment');
 $do = in_array($do, $dos) ? $do : 'list';
 permission_check_account_user('system_article_notice');
 
@@ -155,7 +155,7 @@ if ('list' == $do) {
 		$article_table->searchWithTitle($title);
 	}
 
-	$order = !empty($_W['setting']['news_display']) ? $_W['setting']['news_display'] : 'displayorder';
+	$order = !empty($_W['setting']['notice_display']) ? $_W['setting']['notice_display'] : 'displayorder';
 
 	$article_table->searchWithPage($pindex, $psize);
 	$article_table->orderby($order, 'DESC');
@@ -168,23 +168,6 @@ if ('list' == $do) {
 	$comment_status = setting_load('notice_comment_status');
 	$comment_status = empty($comment_status['notice_comment_status']) ? 0 : 1;
 	template('article/notice');
-}
-
-//编辑公告
-if ('batch_post' == $do) {
-	if (checksubmit()) {
-		if (!empty($_GPC['ids'])) {
-			foreach ($_GPC['ids'] as $k => $v) {
-				$data = array(
-					'title' => trim($_GPC['title'][$k]),
-					'displayorder' => intval($_GPC['displayorder'][$k]),
-					'click' => intval($_GPC['click'][$k]),
-				);
-				pdo_update('article_notice', $data, array('id' => intval($v)));
-			}
-			itoast('编辑公告列表成功', referer(), 'success');
-		}
-	}
 }
 
 //删除公告

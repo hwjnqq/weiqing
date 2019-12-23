@@ -5,8 +5,6 @@
  */
 defined('IN_IA') or exit('Access Denied');
 
-load()->func('file');
-load()->model('user');
 load()->model('message');
 load()->model('miniapp');
 
@@ -14,6 +12,9 @@ $dos = array('display', 'delete', 'account_detailinfo', 'account_create_info');
 $do = in_array($_GPC['do'], $dos) ? $do : 'display';
 
 if ('display' == $do) {
+	if (!$_W['isfounder']) {
+		itoast('', $_W['siteroot'] . 'web/home.php');
+	}
 	$message_id = intval($_GPC['message_id']);
 	message_notice_read($message_id);
 
@@ -42,8 +43,7 @@ if ('display' == $do) {
 	}
 	$list = $account_table->searchAccountList($expire_type);
 	foreach ($account_all_type_sign as $type_sign => $type_value) {
-		$type = 'account' == $type_sign ? 'app' : $type_sign;
-		$type_accounts = uni_user_accounts($_W['uid'], $type);
+		$type_accounts = uni_user_accounts($_W['uid'], $type_sign);
 		if (!empty($type_accounts)) {
 			$account_all_type_sign[$type_sign]['account_num'] = count($type_accounts);
 		}
@@ -56,17 +56,8 @@ if ('display' == $do) {
 }
 
 if ('account_create_info' == $do) {
-	$account_create_info = permission_user_account_num();
-	foreach ($account_all_type_sign as $sign => &$sign_info) {
-		$sign_limit = $sign . '_limit';
-		$founder_sign_limit = 'founder_' . $sign . '_limit';
-		if (!empty($account_create_info[$sign_limit]) && (!empty($account_create_info[$founder_sign_limit]) && $_W['user']['owner_uid'] || empty($_W['user']['owner_uid'])) || !empty($account_create_info['store_' . $sign . '_limit']) || $_W['isfounder'] && !user_is_vice_founder()) {
-			$sign_info['can_create'] = true;
-		} else {
-			$sign_info['can_create'] = false;
-		}
-	}
-	iajax(0, $account_all_type_sign);
+	$result = uni_account_create_info();
+	iajax(0, $result);
 }
 
 if ('account_detailinfo' == $do) {
@@ -84,7 +75,7 @@ if ('account_detailinfo' == $do) {
 		$account['owner_name'] = $account->owner['username'];
 		$account['support_version'] = $account->supportVersion;
 		$account['sms_num'] = !empty($account['setting']['notify']) ? $account['setting']['notify']['sms']['balance'] : 0;
-		$account['end'] = USER_ENDTIME_GROUP_EMPTY_TYPE == $account['endtime'] || USER_ENDTIME_GROUP_UNLIMIT_TYPE == $account['endtime'] ? '永久' : date('Y-m-d', $account['endtime']);
+		$account['end'] = USER_ENDTIME_GROUP_EMPTY_TYPE == $account['endtime'] || USER_ENDTIME_GROUP_UNLIMIT_TYPE == $account['endtime'] ? '永久' : ($account['endtime'] > TIMESTAMP ? date('Y-m-d', $account['endtime']) : '已过期');
 		$account['manage_premission'] = in_array($account['current_user_role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER));
 		if ($account['support_version']) {
 			$account['versions'] = miniapp_get_some_lastversions($uniacid);
@@ -112,7 +103,7 @@ if ('delete' == $do) {
 			}
 
 			if (!empty($uniacid)) {
-				$account = pdo_get('uni_account', array('uniacid' => $uniacid));
+				$account = pdo_get('account', array('uniacid' => $uniacid));
 				if (empty($account)) {
 					continue;
 				}
@@ -126,6 +117,7 @@ if ('delete' == $do) {
 					cache_delete(cache_system_key('last_account', array('switch' => $_GPC['__switch'], 'uid' => $_W['uid'])));
 					isetcookie('__uniacid', '');
 				}
+				cache_delete(cache_system_key('user_accounts', array('type' => $account_all_type[$account['type']]['type_sign'], 'uid' => $_W['uid'])));
 				cache_delete(cache_system_key('uniaccount', array('uniacid' => $uniacid)));
 			}
 		}

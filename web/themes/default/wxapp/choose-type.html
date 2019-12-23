@@ -1,10 +1,12 @@
 {template 'common/header'}
 <div id="js-wxapp-create" class="account-list-add">
+	{if $_W['iscontroller']}
 	<ol class="breadcrumb we7-breadcrumb">
 		<a href="{php echo url ('account/manage')}"><i class="wi wi-back-circle"></i></a>
 		<li><a href="{php echo url ('account/manage')}">平台列表</a></li>
 		<li>新建小程序</li>
 	</ol>
+	{/if}
 	<div class="panel we7-panel">
 		<div class="panel-body we7-padding">
 			<div class="col-lg-4 list-item">

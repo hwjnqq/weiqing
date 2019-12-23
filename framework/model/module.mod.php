@@ -347,8 +347,8 @@ function module_save_group_package($package) {
 
 	if (!empty($package['templates'])) {
 		$templates = array();
-		foreach ($package['templates'] as $template) {
-			$templates[] = $template['id'];
+		foreach ($package['templates'] as $id) {
+			$templates[] = $id;
 		}
 		$package['templates'] = iserializer($templates);
 	}
@@ -510,6 +510,9 @@ function module_permission_fetch($name) {
 	}
 	if(!empty($entries['menu'])) {
 		foreach($entries['menu'] as $menu) {
+			if (!empty($menu['multilevel'])) {
+				continue;
+			}
 			$data[$menu['do']] = array('title' => $menu['title'], 'permission' => $name.'_menu_'.$menu['do']);
 		}
 	}
@@ -1023,6 +1026,9 @@ function module_upgrade_info($modulelist = array()) {
 		$manifest['site_branch'] = $manifest_cloud['site_branch'];
 		$manifest['cloud_id'] = $manifest_cloud['id'];
 		$manifest['buytime'] = $manifest_cloud['buytime'];
+		$manifest['system_shutdown'] = $manifest_cloud['system_shutdown'];
+		$manifest['system_shutdown_delay_time'] = $manifest_cloud['system_shutdown_delay_time'];
+		$manifest['can_update'] = $manifest_cloud['can_update'];
 		$manifest['service_expiretime'] = empty($manifest_cloud['service_expiretime']) ? 0 : $manifest_cloud['service_expiretime'];
 		$manifest_cloud_list[$modulename] = $manifest;
 	}
@@ -1067,14 +1073,14 @@ function module_upgrade_info($modulelist = array()) {
 		//云服务模块已在本地安装，unset后方便后面排查未安装模块
 		//云上模块，如果在本地有manifest.xml，以本地模块为主
 		unset($manifest_cloud_list[$modulename]);
+		$result[$modulename] = array(
+			'name' => $modulename,
+			'best_version' => $manifest['application']['version'],
+		);
 		if (version_compare($module['version'], $manifest['application']['version']) == '-1') {
 				$module_upgrade_data['has_new_version'] = 1;
 				$module_upgrade_data['lastupdatetime'] = TIMESTAMP;
-				$result[$modulename] = array(
-					'name' => $modulename,
-					'new_version' => 1,
-					'best_version' => $manifest['application']['version'],
-				);
+				$result[$modulename]['new_version'] = 1;
 		}
 
 		//本地已安装，没有更新的模块不入表，防止无用数据太多
@@ -1090,7 +1096,11 @@ function module_upgrade_info($modulelist = array()) {
 				}
 			}
 		}
-
+		if (!empty($manifest['system_shutdown'])) {
+			$result[$modulename]['system_shutdown'] = $manifest['system_shutdown'];
+			$result[$modulename]['system_shutdown_delay_time'] = date('Y-m-d', $manifest['system_shutdown_delay_time']);
+			$result[$modulename]['can_update'] = $manifest['can_update'] ? 1 : 0;
+		}
 		if (!empty($manifest['service_expiretime'])) {
 			$result[$modulename]['service_expiretime'] = date('Y-m-d H:i:s', $manifest['service_expiretime']);
 			if ($manifest['service_expiretime'] < time()) {
@@ -1212,6 +1222,9 @@ function module_add_to_uni_group($module, $uni_group_id, $support) {
 	$uni_group = $unigroup_table->getById($uni_group_id);
 	if (empty($uni_group)) {
 		return error(1, '应用权限组不存在');
+	}
+	if (!empty($uni_group['modules'])) {
+		$uni_group['modules'] = iunserializer($uni_group['modules']);
 	}
 	$update_data = $uni_group['modules'];
 
@@ -1354,4 +1367,20 @@ function module_delete_store_wish_goods($module_name, $support_name) {
 		pdo_update('site_store_goods', array('status' => 2), array('module' => $module_name, 'type' => $type));
 	}
 	return true;
+}
+
+function module_expire_notice() {
+	$module_expire = setting_load('module_expire');
+	$module_expire = !empty($module_expire['module_expire']) ? $module_expire['module_expire'] : array();
+	foreach ($module_expire as $value) {
+		if ($value['status'] == 1) {
+			$expire_notice = $value['notice'];
+			break;
+		}
+	}
+	if (empty($expire_notice)) {
+		$system_module_expire = setting_load('system_module_expire');
+		$expire_notice = !empty($system_module_expire['system_module_expire']) ? $system_module_expire['system_module_expire'] : '您访问的功能模块不存在，请重新进入';
+	}
+	return $expire_notice;
 }

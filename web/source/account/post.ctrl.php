@@ -24,9 +24,8 @@ $acid = $defaultaccount['acid']; //强制使用默认的acid
 
 $state = permission_account_user_role($_W['uid'], $uniacid);
 $dos = array('base', 'sms', 'modules_tpl', 'operators');
-
 $role_permission = in_array($state, array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER));
-if ($role_permission) {
+if ($role_permission || $_W['isajax']) {
 	$do = in_array($do, $dos) ? $do : 'base';
 } elseif (ACCOUNT_MANAGE_NAME_MANAGER == $state) {
 	if (ACCOUNT_TYPE == ACCOUNT_TYPE_APP_NORMAL || ACCOUNT_TYPE == ACCOUNT_TYPE_APP_AUTH) {
@@ -42,9 +41,9 @@ if ($role_permission) {
 $headimgsrc = tomedia('headimg_' . $acid . '.jpg');
 $qrcodeimgsrc = tomedia('qrcode_' . $acid . '.jpg');
 $account = account_fetch($acid);
-
+$_W['breadcrumb'] = $account['name'];
 if ('base' == $do) {
-	if (!$role_permission) {
+	if (!$role_permission && !$_W['isajax']) {
 		itoast('无权限操作！', url('account/post/modules_tpl', array('uniacid' => $uniacid)), 'error');
 	}
 	if ($_W['ispost'] && $_W['isajax']) {
@@ -194,10 +193,9 @@ if ('base' == $do) {
 	}
 
 	if(!user_is_founder($_W['uid'], true)){
-		$owner_id = pdo_getcolumn('uni_account_users', array('uniacid' => $_W['uniacid'], 'role' => 'owner'), 'uid');
+		$owner_id = pdo_getcolumn('uni_account_users', array('uniacid' => $uniacid, 'role' => 'owner'), 'uid');
 		$user_endtime = user_end_time($owner_id);
 	}
-
 	if ($_W['setting']['platform']['authstate']) {
 		$account_platform = new WeixinPlatform();
 		$preauthcode = $account_platform->getPreauthCode();
@@ -240,56 +238,17 @@ if ('base' == $do) {
 		$attachment_limit = -1;
 	}
 	$account['attachment_limit'] = intval($attachment_limit);
+	$account['switchurl_full'] = $_W['siteroot'] . 'web/' . ltrim($account['switchurl'], './');
     $account['endtime'] = strlen($account['endtime']) == 10 ? $account['endtime'] : time();
+	$account['type_class'] = $account_all_type_sign[$account['type_sign']]['icon'];
 	$uniaccount = array();
 	$uniaccount = pdo_get('uni_account', array('uniacid' => $uniacid));
 	
-	template('account/manage-base');
-}
-
-if ('sms' == $do) {
-	if (!$role_permission) {
-		itoast('无权限操作！', url('account/post/modules_tpl', array('uniacid' => $uniacid)), 'error');
+	if ($_W['isajax']) {
+		iajax(0, $account);
+	} else {
+		template('account/manage-base');
 	}
-	$settings = pdo_get('uni_settings', array('uniacid' => $uniacid));
-	$settings['notify'] = iunserializer($settings['notify']);
-	$notify = $settings['notify'] ? $settings['notify'] : array();
-
-	$sms_info = cloud_sms_info();
-	$max_num = empty($sms_info['sms_count']) ? 0 : $sms_info['sms_count'];
-	$signatures = $sms_info['sms_sign'];
-
-	if ($_W['isajax'] && $_W['ispost'] && 'balance' == $_GPC['type']) {
-		if (0 == $max_num) {
-			iajax(-1, '您现有短信数量为0，请联系服务商购买短信！', '');
-		}
-		$balance = intval($_GPC['balance']);
-		$notify['sms']['balance'] = $balance;
-		$notify['sms']['balance'] = min(max(0, $notify['sms']['balance']), $max_num);
-		$count_num = $max_num - $notify['sms']['balance'];
-		$num = $notify['sms']['balance'];
-		$notify = iserializer($notify);
-		$updatedata['notify'] = $notify;
-		$result = pdo_update('uni_settings', $updatedata, array('uniacid' => $uniacid));
-		cache_delete(cache_system_key('uniaccount', array('uniacid' => $uniacid)));
-		if ($result) {
-			iajax(0, array('count' => $count_num, 'num' => $num), '');
-		} else {
-			iajax(1, '修改失败！', '');
-		}
-	}
-
-	if ($_W['isajax'] && $_W['ispost'] && 'signature' == $_GPC['type']) {
-		$notify['sms']['signature'] = trim(safe_gpc_string($_GPC['signature']));
-		$result = pdo_update('uni_settings', array('notify' => serialize($notify)), array('uniacid' => $uniacid));
-		if ($result) {
-			iajax(0, '修改成功！', '');
-		} else {
-			iajax(1, '修改失败！', '');
-		}
-	}
-
-	template('account/manage-sms' . ACCOUNT_TYPE_TEMPLATE);
 }
 
 if ('modules_tpl' == $do) {

@@ -101,65 +101,10 @@ if ('get_account_api' == $do) {
 	iajax(0, array('data_x' => $data_x, 'data_y' => $data_y, 'data_y_ip' => $data_y_ip));
 }
 
-if ('get_account_app_api' == $do) {
-	$accounts = array();
-	$data = array();
-	$account_table = table('account');
-	$account_table->searchWithType(array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH));
-	$account_table->accountRankOrder();
-	$account_list = $account_table->searchAccountList();
-	foreach ($account_list as $key => $account) {
-		$account_list[$key] = uni_fetch($account['uniacid']);
-		$accounts[] = mb_substr($account_list[$key]['name'], 0, 5, 'utf-8');
-	}
-
-	$type = trim($_GPC['time_type']);
-	$divide_type = trim($_GPC['divide_type']);
-	if (!in_array($type, $support_type['time']) || !in_array($divide_type, $support_type['divide'])) {
-		iajax(-1, '参数错误！');
-	}
-	$daterange = array();
-	if (!empty($_GPC['daterange'])) {
-		$daterange = array(
-			'start' => date('Ymd', strtotime($_GPC['daterange']['startDate'])),
-			'end' => date('Ymd', strtotime($_GPC['daterange']['endDate'])),
-		);
-	}
-	$result = stat_visit_app_bydate($type, '', $daterange, true);
-	if (empty($result)) {
-		if ('today' == $type) {
-			$data_x = date('Ymd');
-		}
-		if ('week' == $type) {
-			$data_x = stat_date_range(date('Ymd', strtotime('-7 days')), date('Ymd'));
-		}
-		if ('month' == $type) {
-			$data_x = stat_date_range(date('Ymd', strtotime('-30 days')), date('Ymd'));
-		}
-		if ('daterange' == $type) {
-			$data_x = stat_date_range($daterange['start'], $daterange['end']);
-		}
-		foreach ($data_x as $val) {
-			$data_y[] = 0;
-		}
-		iajax(0, array('data_x' => $data_x, 'data_y' => $data_y));
-	}
-	foreach ($result as $val) {
-		$data_x[] = $val['date'];
-		if ('bysum' == $divide_type) {
-			$data_y[] = $val['count'];
-		} elseif ('byavg' == $divide_type) {
-			$data_y[] = $val['avg'];
-		} elseif ('byhighest' == $divide_type) {
-			$data_y[] = $val['highest'];
-		}
-	}
-	iajax(0, array('data_x' => $data_x, 'data_y' => $data_y));
-}
-
 if ('get_account_visit' == $do) {
 	$page = max(1, intval($_GPC['page']));
 	$size = max(10, intval($_GPC['size']));
+	$type = safe_gpc_string($_GPC['type']);
 	$start_time = date('Ymd', strtotime($_GPC['start_time']));
 	$end_time = date('Ymd', strtotime($_GPC['end_time']) + 86400);
 	if (empty($start_time) || empty($end_time)) {
@@ -168,26 +113,39 @@ if ('get_account_visit' == $do) {
 	$account_table = table('account');
 	$account_table->searchWithUniAccount();
 	$account_table->select(array('a.*', 'b.name'));
+	if (!empty($type) && $type == 'app') {
+		$account_table->where('a.isdeleted', 0);
+	}
 	$accounts = $account_table
 		->searchWithPage($page, $size)
+		->where(array('a.type' => array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH, ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_APP_PLATFORM)))
+		->where(function ($query) {
+			$query->where(array('a.endtime' => 0))
+				->whereor(array('a.endtime' => USER_ENDTIME_GROUP_UNLIMIT_TYPE))
+				->whereor(array('a.endtime >=' => TIMESTAMP));
+		})
 		->orderby(array(
 			'b.rank' => 'DESC',
 			'a.uniacid' => 'DESC'
 		))
-		->getall('a.uniacid');
+		->getall('uniacid');
 	if (empty($accounts)) {
 		iajax(0, array());
 	}
 	$total_account = $account_table->getLastQueryTotal();
 	$tota_visit = 0;
 	$account_stat = array();
-
+	$where = array(
+		'uniacid IN' => array_keys($accounts),
+		'date >=' => $start_time,
+		'date <=' => $end_time
+	);
+	if (!empty($type) && $type == 'app') {
+		$where['type'] = 'app';
+	}
 	$visit_data = table('stat_visit')
 		->select(array('uniacid', 'count'))
-		->where(array(
-			'date >=' => $start_time,
-			'date <=' => $end_time
-		))
+		->where($where)
 		->getall();
 	foreach ($visit_data as $item) {
 		$tota_visit += $item['count'];

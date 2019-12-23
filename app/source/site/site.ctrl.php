@@ -59,7 +59,8 @@ if ($do == 'list') {
 		$navs = table('site_category')
 			->where(array(
 				'uniacid' => $_W['uniacid'],
-				'parentid' => $cid
+				'parentid' => $cid,
+				'enabled' => 1
 			))
 			->orderby(array(
 				'displayorder' => 'DESC',
@@ -184,7 +185,7 @@ if ($do == 'list') {
 				);
 			} elseif ($_GPC['action'] == 'click') {
 				$touid = intval($_GPC['u']);
-				$formuid = CLIENT_IP;
+				$formuid = !empty($_W['member']['uid']) ? $_W['member']['uid'] : CLIENT_IP;
 				$handsel = array(
 					'module' => 'article',
 					'sign' => md5(iserializer(array(
@@ -212,17 +213,17 @@ if ($do == 'list') {
 				exit(json_encode($status));
 			} else {
 				if ($handsel['action'] == 'share') {
-					$send_msg = '分享文章,赠送积分';
+					$credit_num = $credit['share'];
 				}else if ($handsel['action'] == 'click') {
-					$send_msg = '分享的文章被阅读，赠送积分';
+					$credit_num = $credit['click'];
 				}
 				$openid = table('mc_mapping_fans')
 					->where(array(
 						'uniacid' => $_W['uniacid'],
-						'uid' => $_W['member']['uid']
+						'uid' => $touid
 					))
 					->getcolumn('openid');
-				mc_notice_credit1($openid, $touid, $credit['share'], $send_msg);
+				mc_notice_credit1($openid, $touid, $credit_num, $handsel['credit_log']);
 				exit('success');
 			}
 		} else {
@@ -241,6 +242,7 @@ if ($do == 'list') {
 
 
 if ($do == 'comment') {
+	mc_oauth_userinfo();
 	$article_id = safe_gpc_int($_GPC['article_id']);
 	$parent_id = safe_gpc_int($_GPC['parent_id']);
 	$article_info = table('site_article')->getById($article_id, $_W['uniacid']);

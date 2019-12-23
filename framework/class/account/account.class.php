@@ -88,6 +88,7 @@ class WeAccount extends ArrayObject {
 		'switchurl' => 'switchUrl',
 		'setmeal' => 'setMeal',
 		'current_user_role' => 'CurrentUserRole',
+		'is_star' => 'isStar',
 	);
 
 	//帐号类型所对应的类名及文件
@@ -281,15 +282,7 @@ class WeAccount extends ArrayObject {
 	}
 
 	protected function fetchEndTime() {
-		if (!empty($this->account['endtime'])) {
-			return '-1' == $this->account['endtime'] ? 0 : $this->account['endtime'];
-		} else {
-			if (empty($this->owner)) {
-				$this->owner = $this->fetchOwner();
-			}
-
-			return $this->owner['endtime'];
-		}
+		return '-1' == $this->account['endtime'] ? 0 : $this->account['endtime'];
 	}
 
 	protected function fetchGroups() {
@@ -319,6 +312,12 @@ class WeAccount extends ArrayObject {
 
 	protected function fetchSameAccountExist() {
 		return pdo_getall($this->tablename, array('key' => $this->account['key'], 'uniacid <>' => $this->uniacid), array(), 'uniacid');
+	}
+
+	protected function fetchIsStar() {
+		global $_W;
+		$is_star = table('users_operate_star')->getByUidUniacidModulename($_W['uid'], $this->uniacid, '');
+		return $is_star ? 1 : 0;
 	}
 
 	protected function supportOauthInfo() {
@@ -571,6 +570,7 @@ class WeAccount extends ArrayObject {
 			'45057' => '该标签下粉丝数超过10w，不允许直接删除',
 			'45058' => '不能修改0/1/2这三个系统默认保留的标签',
 			'45059' => '有粉丝身上的标签数已经超过限制',
+			'45064' => '创建菜单包含未关联的小程序',
 			'45065' => '24小时内不可给该组人群发该素材',
 			'45072' => 'command字段取值不对',
 			'45080' => '下发输入状态，需要之前30秒内跟用户有过消息交互',
@@ -2189,7 +2189,7 @@ abstract class WeModuleWxapp extends WeBase {
 		global $_GPC;
 		if (!empty($_GET) && !empty($_GPC['sign'])) {
 			foreach ($_GET as $key => $get_value) {
-				if (!empty($get_value) && 'sign' != $key) {
+				if ('sign' != $key) {
 					$sign_list[$key] = $get_value;
 				}
 			}

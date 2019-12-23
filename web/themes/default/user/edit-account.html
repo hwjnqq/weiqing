@@ -14,20 +14,12 @@
 		</tr>
 
 		<tr ng-repeat="account in account_list" ng-if="account_list">
-			<td class="text-left"><img ng-src="{{account.thumb}}" class="img-responsive account-img__list"/></td>
+			<td class="text-left"><img ng-src="{{account.logo}}" class="img-responsive account-img__list"/></td>
 			<td class="text-left">
 				<p ng-bind="account.name"></p>
-				<span class="color-gray" ng-if="account.type_name == 'wechats'">
-					<i class="wi wi-account"></i>
-					<span ng-if="wechat.level == 1">普通订阅号</span>
-					<span ng-if="wechat.level == 2">普通服务号</span>
-					<span ng-if="wechat.level == 3">认证订阅号</span>
-					<span ng-if="wechat.level == 4">认证服务号/认证媒体/政府订阅号</span>
-				</span>
-
 				<span class="color-gray" >
-					<i class="wi wi-{{we7TypeDefault[account.type_name]['icon']}}"></i>
-					<span >{{we7TypeDefault[account.type_name]['name']}}</span>
+					<i class="wi wi-{{we7TypeDefault[account.type_sign]['icon']}}"></i>
+					<span >{{we7TypeDefault[account.type_sign]['name']}}</span>
 				</span>
 			</td>
 			<td>
@@ -40,8 +32,8 @@
 			</td>
 			<td>
 				<div class="link-group">
-					<a ng-href="./index.php?c=account&a=post&do=base&uniacid={{account.uniacid}}&acid={{account.acid}}&account_type={{account.type}}" class="color-default">设置</a>
-					<a ng-href="./index.php?c=account&a=post-user&do=edit&uniacid={{account.uniacid}}&acid={{account.acid}}&account_type={{account.type}}" class="color-default">操作员设置</a>
+					<a ng-href="{{account.manageurl}}" class="color-default">设置</a>
+					<a ng-href="{{account.roleurl}}" class="color-default">操作员设置</a>
 				</div>
 			</td>
 		</tr>

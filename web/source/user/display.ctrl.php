@@ -35,16 +35,13 @@ if ('display' == $do) {
 	if (in_array($type, array('display', 'check', 'recycle'))) {
 		switch ($type) {
 			case 'check':
-				permission_check_account_user('system_user_check');
 				$users_table->searchWithStatus(USER_STATUS_CHECK);
 				$users_table->userOrderBy('joindate', 'DESC');
 				break;
 			case 'recycle':
-				permission_check_account_user('system_user_recycle');
 				$users_table->searchWithStatus(USER_STATUS_BAN);
 				break;
 			default:
-				permission_check_account_user('system_user');
 				$users_table->searchWithStatus(USER_STATUS_NORMAL);
 				$users_table->searchWithFounder(array(ACCOUNT_MANAGE_GROUP_GENERAL, ACCOUNT_MANAGE_GROUP_FOUNDER));
 				break;
@@ -52,7 +49,7 @@ if ('display' == $do) {
 
 		$search = safe_gpc_string($_GPC['search']);
 		if (!empty($search)) {
-			$search_uids = table('users_profile')->where('mobile like ', "%{$search}%")->getall('uid');
+			$search_uids = table('users_profile')->where('mobile like', "%{$search}%")->getall('uid');
 			$users_table->searchWithNameOrMobile($search, false, is_array($search_uids) ? array_keys($search_uids) : array());
 		}
 

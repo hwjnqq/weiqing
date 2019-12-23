@@ -31,7 +31,7 @@ if ('execute' == $do) {
 	if ($_W['isfounder'] || $job['uid'] == $_W['uid']) {
 		$result = job_execute($id);
 		if (is_error($result)) {
-			iajax(1, $result['message']);
+			iajax(-1, $result['message']);
 		}
 
 		iajax(0, $result['message']);
@@ -40,5 +40,5 @@ if ('execute' == $do) {
 
 if ('clear' == $do) {
 	$result = job_clear($uid, $_W['isfounder']);
-	itoast(0, '清除成功', referer());
+	itoast('清除成功', referer());
 }

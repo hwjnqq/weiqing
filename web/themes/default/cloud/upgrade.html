@@ -7,18 +7,7 @@
 		<img src="./resource/images/logo/logo-lg.png" alt="" class="we7-logo"/>
 		<h2 class="upgrade-version">系统当前版本: {IMS_FAMILY}{IMS_VERSION}（{IMS_RELEASE_DATE}）</h2>
 	</div>
-	<div ng-if="upgrade && upgrade.upgrade">	
-		<div class="upgrade-detail hidden" >
-			<div class="header">
-				{{upgrade.family}}{{upgrade.version}}【{{upgrade.release}}】版
-			</div>
-			<div class="info">
-				<div class="title">版本更新内容</div>
-				<div class="detail">
-					更新说明
-				</div>
-			</div>
-		</div>
+	<div ng-if="upgrade && upgrade.upgrade">
 		<div class="upgrade-info">
 			<div class="item">
 				<div class="title">需要更新文件</div>
@@ -56,69 +45,21 @@
 			</div>
 		</div>
 		<div class="text-center we7-margin-top">
-			<input type="button" name="" id="forward" value="一键更新" class="btn btn-primary we7-margin-right" ng-click="submit()"/>
+			<input type="button" name="" id="forward" value="一键更新" class="btn btn-primary we7-margin-right" ng-show="upgrade.tips.length == 0" ng-click="submit()"/>
+			<button type="button" class="btn btn-primary we7-margin-right" data-toggle="modal" ng-show="upgrade.tips.length != 0" ng-click="agree()">阅读用户协议后更新</button>
 			<input name="rollback" type="button" value="撤回更新" class="btn btn-default" data-toggle="modal" data-target="#rollback-panel" />
 		</div>
 	</div>
-	<form action="" class="form we7-form hidden" ng-if="upgrade && upgrade.upgrade">
-		<div class="upgrade-info we7-padding-bottom">
-			<div class="panel we7-panel">
-				<div class="panel-heading we7-padding ">
-					<span class="col-sm-2 we7-padding-none color-gray">最新版本</span>
-					<span class="col-sm-7 we7-padding-none">微擎 {{upgrade.family}}{{upgrade.version}}【{{upgrade.release}}】版</span>
-				</div>
-				<div class="panel-body we7-padding">
-					<div class="form-group">
-						<label for="" class="control-label color-gray col-sm-2">需要更新文件</label>
-						<div class="form-controls col-sm-7 text-center form-control-static">{{upgrade.files.length > 0 ? upgrade.files.length : 0}} 个</div>
-						<span class="color-default col-sm-3 text-right"><a href="#upgrade-file" data-toggle="modal" >查看</a></span>
-					</div>
-					<div class="form-group">
-						<label for="" class="control-label color-gray col-sm-2">需要更新数据库</label>
-						<div class="form-controls col-sm-7 text-center form-control-static">{{upgrade.database.length > 0 ? upgrade.database.length  + '项' : '暂无更新数据库'}} </div>
-						<span class="color-default col-sm-3 text-right"><a href="#upgrade-databases" data-toggle="modal" >查看</a></span>
-					</div>
-					<div class="form-group">
-						<label for="" class="control-label color-gray col-sm-2">需要更新脚本</label>
-						<div class="form-controls col-sm-7 text-center form-control-static">{{upgrade.scripts.length > 0 ? upgrade.scripts.length : 0}} 项</div>
-						<span class="color-default col-sm-3 text-right"><a href="#upgrade-scripts" data-toggle="modal" >查看</a></span>
-					</div>
-					<div class="form-group  we7-padding-none">
-						<label for="" class="control-label color-gray col-sm-2">更新协议事项</label>
-						<div class="form-controls col-sm-10 form-control-static">
-							<div class="">
-								<input id='agreement_0' type="checkbox" name='agreement_0' autocomplete="off" />
-								<label for="agreement_0">确保您的系统文件官方文件保持一致，避免被非法篡改，远离盗版</label>
-							</div>
-							<div class="">
-								<input id='agreement_1' type="checkbox" name='agreement_1' autocomplete="off"/>
-								<label for="agreement_1">已经做好了相关文件的备份工作，认同官方的更新行为并自愿承担更新所存在的风险</label>
-							</div>
-							<div class="">
-								<input id='agreement_2' type="checkbox" name='agreement_2' autocomplete="off"/>
-								<label for="agreement_2">认同“购买系统商业授权后进行商业化运营”的协议</label>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="text-center">
-				<input type="button" name="" id="forward" value="一键更新" class="btn btn-primary we7-margin-right" ng-click="submit()"/>
-				<input name="rollback" type="button" value="撤回更新" class="btn btn-default" data-toggle="modal" data-target="#rollback-panel" />
-			</div>
-		</div>
-	</form>
 	<div ng-if="!upgrade || !upgrade.upgrade">
 		<div class="upgrade-new">
 			当前版本为最新版本，您可以点击此按钮, 立即检查是否有新版本。
 		</div>
 		<div class="text-center">
-            <button class="btn btn-primary we7-margin-right" ng-disabled="submitDisabled" ng-click="checkUpgrade()">{{showtext}}</button>
-            <button class="btn btn-default" data-toggle="modal" data-target="#rollback-panel" />撤回更新</button>
+			<button class="btn btn-primary we7-margin-right" ng-disabled="submitDisabled" ng-click="checkUpgrade()">{{showtext}}</button>
+			<button class="btn btn-default" data-toggle="modal" data-target="#rollback-panel" />撤回更新</button>
 		</div>
 	</div>
 
-	
 	<div class="upgrade-wechat">
 		<img src="//cdn.w7.cc/images/2018/12/27/KoQkSCmzxpGjDtRDWgov4gG8STCaG7MaBtdPKIgL.jpeg?imageView2/5/w/105/format/png" alt="">
 		<div class="info">
@@ -207,7 +148,6 @@
 			</div>
 		</div>
 	</div>
-
 	<div class="modal fade" id="upgrade-scripts" tabindex="-1" role="dialog" aria-hidden="true">
 		<div class="modal-dialog we7-modal-dialog">
 			<div class="modal-content">
@@ -267,8 +207,26 @@
 			</div>
 		</div>
 	</div>
+	<div class="modal fade" id="new-agreement" tabindex="-1" role="dialog" aria-labelledby="rollback-label">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="text-center"><span>微擎新模式用户须知</span></h4>
+				</div>
+				<div class="modal-body overflow-auto">
+					<div class="alert we7-page-alert">
+						<i class="wi wi-info-sign"></i>本次更新，微擎系统模式改变，请认真阅读更新须知，谨慎选择。<a href="" target="_blank" class="color-default hidden">用户协议详情至论坛查询</a>
+					</div>
+					<div class="we7-empty-blcok we7-margin-bottom-sm" id="tipmessage"></div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default we7-margin-right"  data-dismiss="modal">稍后更新</button>
+					<button type="button" class="btn btn-primary"  data-dismiss="modal" ng-click="submit()">同意并去更新</button>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
-
 <script>
 	angular.module('cloudUpgradeApp', []);
 	angular.module('cloudUpgradeApp').value('config', {
@@ -295,12 +253,31 @@
 					}
 					if (data.message.errno == 0) {
 						$scope.upgrade = data.message.message;
+						setTimeout(function () {
+							var tips = data.message.message.tips;
+							var html = '';
+							for(var i in tips) {
+								html = html + '<p>' + tips[i].version + '更新微擎新模式详情：</p>' + '<div>' + tips[i].message + '</div>'
+							}
+							$('#tipmessage')[0].innerHTML = html;
+						}, 100)
 					} else {
 						util.message(data.message.message);
 					}
 				});
 		};
-
+		$scope.agree = function() {
+			var a = $("#agreement_0").is(':checked');
+			var b = $("#agreement_1").is(':checked');
+			var c = $("#agreement_2").is(':checked');
+			if (!a || !b || !c) {
+				util.message("抱歉，更新前请仔细阅读更新协议！", '', 'error');
+				return false;
+			}
+			if ($scope.upgrade.tips.length > 0) {
+				$('#new-agreement').modal('show');
+			}
+		}
 		$scope.submit = function() {
 			var a = $("#agreement_0").is(':checked');
 			var b = $("#agreement_1").is(':checked');
@@ -309,7 +286,6 @@
 				util.message("抱歉，更新前请仔细阅读更新协议！", '', 'error');
 				return false;
 			}
-
 			$http.post(config.links.getErrorFileList)
 				.success(function (data) {
 					if (!data.message) {

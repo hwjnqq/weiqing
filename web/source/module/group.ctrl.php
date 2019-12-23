@@ -8,9 +8,9 @@ load()->model('module');
 load()->model('user');
 load()->model('module');
 
-$dos = array('display', 'delete', 'post', 'save', 'edit');
+$dos = array('display', 'del', 'post', 'save', 'edit');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
-if (!in_array($_W['highest_role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
+if (!user_is_founder($_W['uid'])) {
 	itoast('无权限操作！', referer(), 'error');
 }
 
@@ -103,11 +103,8 @@ if ('display' == $do) {
 	}
 }
 
-if (in_array($do, array('save', 'delete', 'post'))) {
+if (in_array($do, array('save', 'del', 'post'))) {
 	$id = intval($_GPC['id']);
-	if (empty($id) && 'delete' == $do) {
-		itoast('请选择要操作的权限组', referer(), 'error');
-	}
 	if (!empty($id) && ACCOUNT_MANAGE_NAME_VICE_FOUNDER == $_W['highest_role']) {
 		$exists = table('users_founder_own_uni_groups')->getByFounderUidAndUniGroupId($_W['uid'], $id);
 		if (empty($exists)) {
@@ -142,14 +139,15 @@ if ('save' == $do) {
 	iajax(0, ($id ? '更新成功' : '添加成功'), url('module/group'));
 }
 
-if ('delete' == $do) {
-	if (!empty($id)) {
-		pdo_delete('uni_group', array('id' => $id));
-		pdo_delete('users_founder_own_uni_groups', array('uni_group_id' => $id));
-		cache_build_uni_group();
-		cache_build_account_modules();
+if ('del' == $do) {
+	if (empty($id)) {
+		iajax(-1, '请选择要操作的权限组');
 	}
-	itoast('删除成功！', referer(), 'success');
+	pdo_delete('uni_group', array('id' => $id));
+	pdo_delete('users_founder_own_uni_groups', array('uni_group_id' => $id));
+	cache_build_uni_group();
+	cache_build_account_modules();
+	iajax(0, '删除成功！', referer());
 }
 
 if ('post' == $do) {
@@ -191,11 +189,11 @@ if ('post' == $do) {
 			}
 		}
 	}
-
-	
-	
+	if (user_is_vice_founder($_W['uid'])) {
+		$template_list = user_founder_templates($_W['user']['groupid']);
+	} else {
 		$template_list = pdo_getall('site_templates');
-	
+	}
 
 	foreach ($template_list as $temp) {
 		$module_list['templates'][] = array(

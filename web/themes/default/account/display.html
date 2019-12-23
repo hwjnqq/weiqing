@@ -21,51 +21,9 @@
 						<span class="input-group-btn"><button class="btn btn-default button"><i class="fa fa-search"></i></button></span>
 					</div>
 				</form>
-				
-	
-				
 				<div class="creat" ng-switch="type">
 					<a ng-switch-when="all" href="javascript:;" data-toggle="modal" data-target="#owner-modal" class="btn btn-primary">新增平台</a>
-
-					{if !empty($account_info['account_limit']) || $_W['isfounder'] && !user_is_vice_founder()}
-					<a href="./index.php?c=account&a=post-step" class="color-primary" ng-if="type == 'account'">
-						新增公众号
-					</a>
-					{/if}
-	
-					{if !empty($account_info['wxapp_limit']) || $_W['isfounder'] && !user_is_vice_founder()}
-					<a href="{php echo url('wxapp/post/design_method')}" class="btn btn-primary" ng-if="type == 'wxapp'">
-						新建微信小程序
-					</a>
-					{/if}
-	
-					{if !empty($account_info['webapp_limit']) || $_W['isfounder'] && !user_is_vice_founder()}
-					<a href="{php echo url('account/create', array('sign' => 'webapp'))}" class="btn btn-primary" ng-if="type == 'webapp'">
-						新增PC
-					</a>
-					{/if}
-	
-					{if !empty($account_info['phoneapp_limit']) || $_W['isfounder'] && !user_is_vice_founder()}
-					<a href="{php echo url('account/create', array('sign' => 'phoneapp'))}" class="btn btn-primary" ng-if="type == 'phoneapp'">
-						新建APP
-					</a>
-					{/if}
-	
-					{if !empty($account_info['xzapp_limit']) || $_W['isfounder'] && !user_is_vice_founder()}
-					<a href="{php echo url('xzapp/post-step')}" class="btn btn-primary" ng-if="type == 'xzapp'">新建熊掌号</a>
-					{/if}
-	
-					{if !empty($account_info['aliapp_limit']) && (!empty($account_info['founder_aliapp_limit']) && $_W['user']['owner_uid'] || empty($_W['user']['owner_uid'])) || $_W['isfounder'] && !user_is_vice_founder()}
-					<a ng-switch-when="aliapp" href="{php echo url('account/create', array('sign' => 'aliapp'))}" class="btn btn-primary">新建支付宝小程序</a>
-					{/if}
-					{if !empty($account_info['baiduapp_limit']) && (!empty($account_info['founder_baiduapp_limit']) && $_W['user']['owner_uid'] || empty($_W['user']['owner_uid'])) || $_W['isfounder'] && !user_is_vice_founder()}
-					<a ng-switch-when="baiduapp" href="{php echo url('account/create', array('sign' => 'baiduapp'))}" class="btn btn-primary">新建百度小程序</a>
-					{/if}
-					{if !empty($account_info['toutiaoapp_limit']) && (!empty($account_info['founder_toutiaoapp_limit']) && $_W['user']['owner_uid'] || empty($_W['user']['owner_uid'])) || $_W['isfounder'] && !user_is_vice_founder()}
-					<a ng-switch-when="toutiaoapp" href="{php echo url('account/create', array('sign' => 'toutiaoapp'))}" class="btn btn-primary">新建头条小程序</a>
-					{/if}
 				</div>
-				
 			</div>
 			<div class="account-display-list" infinite-scroll='loadMore()' infinite-scroll-disabled='busy' infinite-scroll-distance='0' infinite-scroll-use-document-bottom="true">
 				<div class="item" ng-repeat="detail in list|orderBy:'endtime_status'">
@@ -118,7 +76,7 @@
 									<span ng-if="detail.need_upload == 1" class="new-version">新版本</span>
 								</div>
 								<div class="type" ng-if="detail.type_sign == 'toutiaoapp'">
-									<span>百度小程序</span>
+									<span>头条小程序</span>
 									<span ng-if="detail.need_upload == 1" class="new-version">新版本</span>
 								</div>
 								<div class="type" ng-if="detail.support_version">
@@ -156,85 +114,16 @@
 						</div>
 						<div class="modal-body">
 							<div class="type-list">
-								{if !empty($account_info['account_limit']) && (!empty($account_info['founder_account_limit']) && $user_founder_uid || empty($user_founder_uid)) || $_W['isfounder'] && !user_is_vice_founder()}
-								<a class="item" href="./index.php?c=account&a=post-step">
-									<i class="wi wi-wx-circle"></i>
-									<div class="name">新建公众号</div>
+								{loop $account_info $info}
+								{if !$info['can_create']}{php continue}{/if}
+								<a class="item" href="{php echo $info['createurl']}">
+									<i class="{php echo $info['icon']}"></i>
+									<div class="name">新建{php echo $info['title']}</div>
 									<div class="mark">
 										去新建
 									</div>
 								</a>
-								{/if}
-	
-								{if !empty($account_info['wxapp_limit']) && (!empty($account_info['founder_wxapp_limit']) && $user_founder_uid || empty($user_founder_uid)) || $_W['isfounder'] && !user_is_vice_founder()}
-								<a href="{php echo url('wxapp/post/design_method')}" class="item">
-									<i class="wi wi-wxapp"></i>
-									<div class="name">新建微信小程序</div>
-									<div class="mark">
-										去新建
-									</div>
-								</a>
-								{/if}
-	
-								{if !empty($account_info['webapp_limit']) && (!empty($account_info['founder_webapp_limit']) && $user_founder_uid || empty($user_founder_uid)) || $_W['isfounder'] && !user_is_vice_founder()}
-								<a href="{php echo url('account/create', array('sign' => 'webapp'))}" class="item">
-									<i class="wi wi-pc-circle"></i>
-									<div class="name">新建PC</div>
-									<div class="mark">
-										去新建
-									</div>
-								</a>
-								{/if}
-	
-								{if !empty($account_info['phoneapp_limit']) && (!empty($account_info['founder_phoneapp_limit']) && $user_founder_uid || empty($user_founder_uid)) || $_W['isfounder'] && !user_is_vice_founder()}
-								<a href="{php echo url('account/create', array('sign' => 'phoneapp'))}" class="item">
-									<i class="wi wi-app"></i>
-									<div class="name">新建APP</div>
-									<div class="mark">
-										去新建
-									</div>
-								</a>
-								{/if}
-	
-								{if !empty($account_info['xzapp_limit']) && (!empty($account_info['founder_xzapp_limit']) && $user_founder_uid || empty($user_founder_uid)) || $_W['isfounder'] && !user_is_vice_founder()}
-								<a href="{php echo url('xzapp/post-step')}" class="item">
-									<i class="wi wi-xzapp"></i>
-									<div class="name">新建熊掌号</div>
-									<div class="mark">
-										去新建
-									</div>
-								</a>
-								{/if}
-	
-								{if !empty($account_info['aliapp_limit']) && (!empty($account_info['founder_aliapp_limit']) && $user_founder_uid || empty($user_founder_uid)) || $_W['isfounder'] && !user_is_vice_founder()}
-								<a href="{php echo url('account/create', array('sign' => 'aliapp'))}" class="item">
-									<i class="wi wi-aliapp"></i>
-									<div class="name">新建支付宝小程序</div>
-									<div class="mark">
-										去新建
-									</div>
-								</a>
-								{/if}
-	
-								{if !empty($account_info['baiduapp_limit']) && (!empty($account_info['founder_baiduapp_limit']) && $user_founder_uid || empty($user_founder_uid)) || $_W['isfounder'] && !user_is_vice_founder()}
-								<a href="{php echo url('account/create', array('sign' => 'baiduapp'))}" class="item">
-									<i class="wi wi-baiduapp"></i>
-									<div class="name">新建百度小程序</div>
-									<div class="mark">
-										去新建
-									</div>
-								</a>
-								{/if}
-	
-								{if !empty($account_info['toutiaoapp_limit']) && (!empty($account_info['founder_toutiaoapp_limit']) && $user_founder_uid || empty($user_founder_uid)) || $_W['isfounder'] && !user_is_vice_founder()}
-								<a href="{php echo url('account/create', array('sign' => 'toutiaoapp'))}" class="item">
-									<i class="wi wi-toutiaoapp"></i>
-									<div class="name">新建头条小程序</div>
-									<div class="mark">
-										去新建
-									</div>
-								</a>
-								{/if}
+								{/loop}
 							</div>
 						</div>
 						<div class="modal-footer">
@@ -254,7 +143,6 @@
 		'accountUrl': '{php echo url('account/display/')}',
 		'list' : {php echo !empty($list) ? json_encode($list) : 'null'},
 		'type' : "{$type}",
-		'title' : "{$title}",
 		'keyword' : "{$keyword}",
 		'letter' : "{$letter}",
 		'founder_id' : "{$founder_id}",

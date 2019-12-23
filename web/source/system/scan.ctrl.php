@@ -29,10 +29,11 @@ if ('post' == $do) {
 			'dir' => '',
 	);
 
-	if (checksubmit('submit')) {
+	if ($_W['ispost'] && $_W['token'] == safe_gpc_string($_GPC['token'])) {
 		if (empty($_GPC['dir'])) {
 			itoast('请选择要扫描的目录', referer(), 'success');
 		}
+		set_time_limit(0);
 		foreach ($_GPC['dir'] as $k => $v) {
 			if (in_array(basename($v), $ignore)) {
 				unset($_GPC['dir'][$k]);
@@ -45,100 +46,74 @@ if ('post' == $do) {
 		$info['dir'] = $_GPC['dir'];
 		cache_delete(cache_system_key('scan_file'));
 		cache_write(cache_system_key('scan_config'), iserializer($info));
-		itoast('配置保存完成，开始文件统计。。。', url('system/scan', array('do' => 'count')), 'success');
-	}
-}
 
-//文件统计
-if ('count' == $do) {
-	$files = array();
-	$config = iunserializer(cache_read(cache_system_key('scan_config')));
-	if (empty($config)) {
-		itoast('获取扫描配置失败', url('system/scan'), 'error');
-	}
-	$config['file_type'] = explode('|', $config['file_type']);
-	$list_arr = array();
-	foreach ($config['dir'] as $v) {
-		if (is_dir($v)) {
-			if (!empty($config['file_type'])) {
-				foreach ($config['file_type'] as $k) {
-					$list_arr = array_merge($list_arr, file_lists($v . '/', 1, $k, 0, 1, 1));
+		//统计开始
+		if (empty($info)) {
+			itoast('获取扫描配置失败', url('system/scan'), 'error');
+		}
+		$info['file_type'] = explode('|', $info['file_type']);
+		$list_arr = array();
+		foreach ($info['dir'] as $v) {
+			if (is_dir($v)) {
+				if (!empty($info['file_type'])) {
+					foreach ($info['file_type'] as $k) {
+						$list_arr = array_merge($list_arr, file_lists($v . '/', 1, $k, 0, 1, 1));
+					}
 				}
-			}
-		} else {
-			$list_arr = array_merge($list_arr, array(str_replace(IA_ROOT . '/', '', $v) => md5_file($v)));
-		}
-	}
-	unset($list_arr['data/config.php']);
-	$list_arr = iserializer($list_arr);
-	cache_write(cache_system_key('scan_file'), $list_arr);
-	itoast('文件统计完成，进行特征函数过滤。。。', url('system/scan', array('do' => 'filter_func')), 'success');
-}
-
-//特征函数过滤
-if ('filter_func' == $do) {
-	$config = iunserializer(cache_read(cache_system_key('scan_config')));
-	$file = iunserializer(cache_read(cache_system_key('scan_file')));
-	if (isset($config['func']) && !empty($config['func'])) {
-		foreach ($file as $key => $val) {
-			$html = file_get_contents(IA_ROOT . '/' . $key);
-			if (false != stristr($key, '.php.') || preg_match_all('/[^a-z]?(' . $config['func'] . ')\s*\(/i', $html, $state, PREG_SET_ORDER)) {
-				$badfiles[$key]['func'] = $state;
+			} else {
+				$list_arr = array_merge($list_arr, array(str_replace(IA_ROOT . '/', '', $v) => md5_file($v)));
 			}
 		}
-	}
-	if (!isset($badfiles)) {
-		$badfiles = array();
-	}
-	cache_write(cache_system_key('scan_badfile'), iserializer($badfiles));
-	itoast('特征函数过滤完成，进行特征代码过滤。。。', url('system/scan', array('do' => 'filter_code')), 'success');
-}
-
-//特征代码过滤
-if ('filter_code' == $do) {
-	$config = iunserializer(cache_read(cache_system_key('scan_config')));
-	$file = iunserializer(cache_read(cache_system_key('scan_file')));
-	$badfiles = iunserializer(cache_read(cache_system_key('scan_badfile')));
-	if (isset($config['code']) && !empty($config['code'])) {
-		foreach ($file as $key => $val) {
-			if (!empty($config['code'])) {
+		unset($list_arr['data/config.php']);
+		cache_write(cache_system_key('scan_file'), iserializer($list_arr));
+		//特征函数过滤
+		if (isset($info['func']) && !empty($info['func'])) {
+			foreach ($list_arr as $key => $val) {
 				$html = file_get_contents(IA_ROOT . '/' . $key);
-				if (false != stristr($key, '.php.') || preg_match_all('/[^a-z]?(' . $config['code'] . ')/i', $html, $state, PREG_SET_ORDER)) {
-					$badfiles[$key]['code'] = $state;
+				if (false != stristr($key, '.php.') || preg_match_all('/[^a-z]?(' . $config['func'] . ')\s*\(/i', $html, $state, PREG_SET_ORDER)) {
+					$badfiles[$key]['func'] = $state;
 				}
 			}
-			if ('.php' == strtolower(substr($key, -4)) && function_exists('zend_loader_file_encoded') && zend_loader_file_encoded(IA_ROOT . '/' . $key)) {
-				$badfiles[$key]['zend'] = 'zend encoded';
-			}
-			$html = '';
 		}
-	}
-	cache_write(cache_system_key('scan_badfile'), iserializer($badfiles));
-	itoast('特征代码过滤完成，进行加密文件过滤。。。', url('system/scan', array('do' => 'encode')), 'success');
-}
-
-//加密文件过滤
-if ('encode' == $do) {
-	$file = iunserializer(cache_read(cache_system_key('scan_file')));
-	$badfiles = iunserializer(cache_read(cache_system_key('scan_badfile')));
-	foreach ($file as $key => $val) {
-		if ('.php' == strtolower(substr($key, -4))) {
-			$html = file_get_contents(IA_ROOT . '/' . $key);
-			$token = token_get_all($html);
-			$html = '';
-			foreach ($token as $to) {
-				if (is_array($to) && T_VARIABLE == $to[0]) {
-					$pre = preg_match('/([' . chr(0xb0) . '-' . chr(0xf7) . '])+/', $to[1]);
-					if (!empty($pre)) {
-						$badfiles[$key]['danger'] = 'danger';
-						break;
+		if (!isset($badfiles)) {
+			$badfiles = array();
+		}
+		//特征代码过滤
+		if (isset($info['code']) && !empty($info['code'])) {
+			foreach ($list_arr as $key => $val) {
+				if (!empty($info['code'])) {
+					$html = file_get_contents(IA_ROOT . '/' . $key);
+					if (false != stristr($key, '.php.') || preg_match_all('/[^a-z]?(' . $info['code'] . ')/i', $html, $state, PREG_SET_ORDER)) {
+						$badfiles[$key]['code'] = $state;
+					}
+				}
+				if ('.php' == strtolower(substr($key, -4)) && function_exists('zend_loader_file_encoded') && zend_loader_file_encoded(IA_ROOT . '/' . $key)) {
+					$badfiles[$key]['zend'] = 'zend encoded';
+				}
+				$html = '';
+			}
+		}
+		//加密文件过滤
+		foreach ($info as $key => $val) {
+			if ('.php' == strtolower(substr($key, -4))) {
+				$html = file_get_contents(IA_ROOT . '/' . $key);
+				$token = token_get_all($html);
+				$html = '';
+				foreach ($token as $to) {
+					if (is_array($to) && T_VARIABLE == $to[0]) {
+						$pre = preg_match('/([' . chr(0xb0) . '-' . chr(0xf7) . '])+/', $to[1]);
+						if (!empty($pre)) {
+							$badfiles[$key]['danger'] = 'danger';
+							break;
+						}
 					}
 				}
 			}
 		}
+
+		cache_write(cache_system_key('scan_badfile'), iserializer($badfiles));
+		itoast('扫描完成。。。', url('system/scan', array('do' => 'display')), 'success');
 	}
-	cache_write(cache_system_key('scan_badfile'), iserializer($badfiles));
-	itoast('扫描完成。。。', url('system/scan', array('do' => 'display')), 'success');
 }
 
 //查杀报告
@@ -175,7 +150,7 @@ if ('view' == $do) {
 	$file = authcode(trim($_GPC['file'], 'DECODE'));
 	$file_tmp = $file;
 	$file = str_replace('//', '', $file);
-	if (empty($file) || !parse_path($file) || 'data/config.php' == $file) {
+	if (empty($file) || !parse_path($file) || preg_match('/data.*config\.php/', $file)) {
 		itoast('文件不存在', referer(), 'error');
 	}
 	//设置过滤文件

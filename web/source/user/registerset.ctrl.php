@@ -17,7 +17,7 @@ if (empty($settings['clerk'])) {
 if (empty($copyright['clerk'])) {
 	$copyright['clerk'] = array('bind' => 'null');
 }
-if (checksubmit('submit')) {
+if ($_W['ispost']) {
 	$is_copyright = false;
 	switch ($_GPC['key']) {
 		case 'open':

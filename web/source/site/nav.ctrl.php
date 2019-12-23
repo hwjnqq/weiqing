@@ -170,7 +170,7 @@ if ('home' == $do || 'profile' == $do) {
 		$modulenames = array_keys($modules);
 	}
 
-	$_W['current_module'] = module_fetch($modulename);
+	$module = $_W['current_module'] = module_fetch($modulename);
 	foreach ($modulenames as $modulename) {
 		$entries = module_entries($modulename, array($do));
 		if (!empty($entries[$do])) {

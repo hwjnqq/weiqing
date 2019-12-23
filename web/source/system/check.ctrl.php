@@ -24,13 +24,21 @@ if ('check_table' == $do) {
 			$wrong_tables[$check_info['Table']] = $check_info;
 		}
 	}
-	iajax(0, $wrong_tables);
+	$message = array(
+		'status' => !empty($wrong_tables) ? -1 : 0,
+		'list' => $wrong_tables
+	);
+	iajax(0, $message);
 }
 
 if ('check_fpm' == $do) {
 	$result = fastcgi_finish_request();
 	if (is_error($result)) {
-		iajax($result['errno'], $result['message']);
+		$message = array(
+			'status' => $result['errno'],
+			'message' => $result['message']
+		);
+		iajax(0, $message);
 	}
 	exit();
 }
@@ -53,14 +61,23 @@ if ('check_auth_accounts' == $do) {
 					'uniacid' => $uni_account->account['uniacid'],
 					'type' => $uni_account->account['type'],
 					'error' => $token['message'],
+					'url' => url('account/post', array('acid' => $uni_account->account['acid'], 'uniacid' => $uni_account->account['uniacid'], 'account_type' => $uni_account->account['type']))
 				);
 			}
 		}
 	}
 	if (empty($failed_accounts)) {
-		iajax(0, 'success');
+		$message = array(
+			'status' => 0,
+			'message' => 'success'
+		);
+		iajax(0, $message);
 	} else {
-		iajax(-1, $failed_accounts);
+		$message = array(
+			'status' => -1,
+			'list' => $failed_accounts
+		);
+		iajax(0, $message);
 	}
 }
 

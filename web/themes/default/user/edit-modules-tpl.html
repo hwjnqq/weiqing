@@ -122,7 +122,7 @@
 			<span>附加权限</span>
 			<we7-modal-app module-list="moduleList" multiple="true" on-confirm="selectExtraModules()"><a href="javascript:;" class="pull-right color-default">修改</a></we7-modal-app>
 		</div>
-		<div class="we7-group-show we7-padding" ng-if="!(extend.modules | we7IsEmpty)">
+		<div class="we7-group-show we7-padding" ng-if="!(extend.modules | we7IsEmpty) || !(extend.templates | we7IsEmpty)">
 			<div class="name">
 				附加应用
 			</div>
@@ -153,8 +153,8 @@
 			<a class="action"></a>
 		</div>
 
-		<div class="we7-empty-block" ng-if="extend.modules | we7IsEmpty">
-			无应用权限组
+		<div class="we7-empty-block" ng-if="(extend.modules | we7IsEmpty) && (extend.templates | we7IsEmpty)">
+			无应用附加权限
 		</div>
 	</div>
 	<!-- 附加权限 end -->

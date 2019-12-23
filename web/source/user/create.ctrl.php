@@ -133,12 +133,11 @@ if ('post' == $do) {
 }
 
 if ('save' == $do) {
-	$user = $_GPC['user'];
 	$user_info = array(
-		'username' => safe_gpc_string($user['username']),
-		'password' => $user['password'],
-		'repassword' => $user['repassword'],
-		'remark' => safe_gpc_string($user['remark']),
+		'username' => safe_gpc_string($_GPC['username']),
+		'password' => $_GPC['password'],
+		'repassword' => $_GPC['repassword'],
+		'remark' => safe_gpc_string($_GPC['remark']),
 		'starttime' => TIMESTAMP,
 	);
 
@@ -186,10 +185,10 @@ if ('save' == $do) {
 
 	if (!empty($_GPC['uni_groups'])) {
 		$ext_group_table = table('users_extra_group');
-		foreach ($_GPC['uni_groups'] as $uni_group_key => $uni_group_val) {
-			$uni_group_exists = $ext_group_table->getUniGroupByUidAndGroupid($uid, $uni_group_val['id']);
+		foreach ($_GPC['uni_groups'] as $uni_group_key => $uni_group_id) {
+			$uni_group_exists = $ext_group_table->getUniGroupByUidAndGroupid($uid, $uni_group_id);
 			if (!$uni_group_exists) {
-				$res = $ext_group_table->addExtraUniGroup($uid, $uni_group_val['id']);
+				$res = $ext_group_table->addExtraUniGroup($uid, $uni_group_id);
 				if (!$res) {
 					iajax('-1', '添加应用权限组失败!', 'user/display');
 				}
@@ -215,10 +214,10 @@ if ('save' == $do) {
 
 	if (!empty($_GPC['templates'])) {
 		$extra_template_table = table('users_extra_templates');
-		foreach ($_GPC['templates'] as $template_key => $template_val) {
-			$extra_template_exists = $extra_template_table->getExtraTemplateByUidAndTemplateid($uid, $template_val['id']);
+		foreach ($_GPC['templates'] as $template_key => $template_id) {
+			$extra_template_exists = $extra_template_table->getExtraTemplateByUidAndTemplateid($uid, $template_id);
 			if (!$extra_template_exists) {
-				$res = $extra_template_table->addExtraTemplate($uid, $template_val['id']);
+				$res = $extra_template_table->addExtraTemplate($uid, $template_id);
 				if (!$res) {
 					iajax('-1', '添加附加模板失败!', 'user/display');
 				}
@@ -228,10 +227,10 @@ if ('save' == $do) {
 
 	if (!empty($_GPC['create_account_groups'])) {
 		$ext_group_table = table('users_extra_group');
-		foreach ($_GPC['create_account_groups'] as $create_account_group_val) {
-			$create_account_group_exists = $ext_group_table->getCreateGroupByUidAndGroupid($uid, $create_account_group_val['id']);
+		foreach ($_GPC['create_account_groups'] as $create_account_group_id) {
+			$create_account_group_exists = $ext_group_table->getCreateGroupByUidAndGroupid($uid, $create_account_group_id);
 			if (!$create_account_group_exists) {
-				$res = $ext_group_table->addExtraCreateGroup($uid, $create_account_group_val['id']);
+				$res = $ext_group_table->addExtraCreateGroup($uid, $create_account_group_id);
 				if (!$res) {
 					iajax('-1', '添加账户权限组失败!', 'user/display');
 				}
@@ -272,7 +271,7 @@ if ('save' == $do) {
 		}
 	}
 
-	iajax(0, '修改成功', url('user/display'));
+	iajax(0, '添加成功', url('user/display'));
 }
 
 if ('get_user_group_detail_info' == $do) {

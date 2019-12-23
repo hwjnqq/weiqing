@@ -145,11 +145,44 @@
 						</div>
 					</div>
 					<!-- 日志开关 end -->
+
+					<!-- 异地登录验证 start -->
+					<div class="form-file">
+						<div class="form-label">异地登录验证</div>
+						<div class="form-value">{{'{$_W['user']['mobile']}' | mobile}}</div>
+						<div class="form-edit">
+							<div ng-class="settings.login_verify_status == undefined || settings.login_verify_status == 0 ? 'switch' : 'switch switchOn'" ng-click="saveSettingSwitch('login_verify_status', settings.login_verify_status, '{$_W['user']['mobile']}')"></div>
+						</div>
+						<div class="modal fade modal-form" id="login_verify" role="dialog">
+							<div class="we7-modal-dialog modal-dialog modal-tip">
+								<div class="modal-content">
+									<div class="modal-header">
+										<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+									</div>
+									<div class="modal-body ">
+										<div class="text-center">
+											<i class="text-info wi wi-info"></i>
+											<p class="title">系统提示</p>
+											<p class="content">您的账号还未绑定手机号，请先绑定手机号后，再开启此功能</p>
+										</div>
+									</div>
+									<div class="modal-footer">
+										<a href="{php echo url('user/profile', array('user_type' => 4));}" class="btn btn-primary" >前去设置</a>
+										<button type="button" class="btn btn-default" data-dismiss="modal">确认</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- 异地登录验证 end -->
 				</div>
 				<!-- 基本设置 end -->
 
 				<!-- 站点风格 start -->
 				
+
+					
+					
 				<!-- 站点风格 end -->
 			</div>
 			{/if}
@@ -192,7 +225,17 @@
 		'settings' : {php echo json_encode($settings)},
 		'template' : {php echo json_encode($template)},
 		'template_ch_name' : {php echo json_encode($template_ch_name)},
+		'login_ch_name' : {php echo json_encode($login_ch_name)},
 		'saveSettingUrl' : "{php echo url('system/site/save_setting')}",
+	});
+	angular.module('systemApp').filter('mobile', function() {
+		return function(mobile) {
+			if(!mobile) {
+				return '还未绑定手机号'
+			} else {
+				return mobile.substr(0, 3) + '****' + mobile.substr(7, 11)
+			}
+		}
 	});
 	angular.bootstrap($('#system-site-setting'), ['systemApp']);
 </script>

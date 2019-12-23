@@ -79,4 +79,12 @@ class Attachment extends \We7Table {
 	public function searchWithTime($start_time, $end_time) {
 		return $this->query->where(array('createtime >=' => $start_time))->where(array('createtime <=' => $end_time));
 	}
+
+	public function SearchWithUserAndUniAccount() {
+		return $this->query->from($this->tableName, 'a')
+			->leftjoin('users', 'b')
+			->on('b.uid', 'a.uid')
+			->leftjoin('uni_account', 'c')
+			->on('a.uniacid','c.uniacid');
+	}
 }

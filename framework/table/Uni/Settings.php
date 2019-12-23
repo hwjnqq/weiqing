@@ -34,7 +34,7 @@ class Settings extends \We7Table {
 		'reply_setting',
 		'default_module',
 		'attachment_limit',
-		'attachment_siza',
+		'attachment_size',
 		'sync_member',
 		'remote'
 	);
@@ -65,9 +65,16 @@ class Settings extends \We7Table {
 		'reply_setting' => '',
 		'default_module' => '',
 		'attachment_limit' => '',
-		'attachment_siza' => '',
+		'attachment_size' => '',
 		'sync_member' => '',
 		'remote' => ''
 	);
+	public function searchWirhUniAccountAndAccount(){
+		return $this->query->from($this->tableName, 'a')
+			->leftjoin('uni_account', 'b')
+			->on('a.uniacid', 'b.uniacid')
+			->leftjoin('account', 'c')
+			->on('a.uniacid', 'c.uniacid');
+	}
 
 }

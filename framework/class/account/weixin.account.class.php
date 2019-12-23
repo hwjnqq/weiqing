@@ -760,10 +760,7 @@ class WeixinAccount extends WeAccount {
 			return error(-1, $this->errorCode($token['errcode'], $token['errmsg']));
 		}
 		if (empty($token) || !is_array($token) || empty($token['access_token']) || empty($token['expires_in'])) {
-			$errorinfo = substr($content['meta'], strpos($content['meta'], '{'));
-			$errorinfo = @json_decode($errorinfo, true);
-
-			return error('-1', '获取微信公众号授权失败, 请稍后重试！ 公众平台返回原始数据为: 错误代码-' . $errorinfo['errcode'] . '，错误信息-' . $errorinfo['errmsg']);
+			return error('-1', '获取微信公众号授权失败！错误代码:' . $token['errcode'] . '，错误信息:' . $this->errorCode($token['errcode']));
 		}
 		$record = array();
 		$record['token'] = $token['access_token'];
@@ -1281,7 +1278,7 @@ class WeixinAccount extends WeAccount {
 
 	/*根据分组群发微信消息*/
 	public function fansSendAll($group, $msgtype, $media_id) {
-		$types = array('text' => 'text', 'image' => 'image', 'news' => 'mpnews', 'voice' => 'voice', 'video' => 'mpvideo', 'wxcard' => 'wxcard');
+		$types = array('text' => 'text', 'basic' => 'text', 'image' => 'image', 'news' => 'mpnews', 'voice' => 'voice', 'video' => 'mpvideo', 'wxcard' => 'wxcard');
 		if (empty($types[$msgtype])) {
 			return error(-1, '消息类型不合法');
 		}
@@ -1289,7 +1286,7 @@ class WeixinAccount extends WeAccount {
 		if ($group == -1) {
 			$is_to_all = true;
 		}
-		$send_conent = ('text' == $msgtype) ? array('content' => $media_id) : array('media_id' => $media_id);
+		$send_conent = ('text' == $types[$msgtype]) ? array('content' => $media_id) : array('media_id' => $media_id);
 		$data = array(
 				'filter' => array(
 						'is_to_all' => $is_to_all,
@@ -1298,7 +1295,7 @@ class WeixinAccount extends WeAccount {
 				'msgtype' => $types[$msgtype],
 				$types[$msgtype] => $send_conent,
 		);
-		if ('wxcard' == $msgtype) {
+		if ('wxcard' == $types[$msgtype]) {
 			unset($data['wxcard']['media_id']);
 			$data['wxcard']['card_id'] = $media_id;
 		}

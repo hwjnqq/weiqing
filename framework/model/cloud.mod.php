@@ -25,7 +25,7 @@ function _cloud_build_params($must_authorization_host = true) {
 	global $_W;
 	$pars = array();
 	$pars['host'] = strexists($_SERVER['HTTP_HOST'], ':') ? parse_url($_SERVER['HTTP_HOST'], PHP_URL_HOST) : $_SERVER['HTTP_HOST'];
-	if (is_array($_W['setting']['site']) && !empty($_W['setting']['site']['url']) && !$must_authorization_host) {
+	if (is_array($_W['setting']['site']) && !empty($_W['setting']['site']['url']) && $must_authorization_host) {
 		$pars['host'] = parse_url($_W['setting']['site']['url'], PHP_URL_HOST);
 	}
 	$pars['https'] = $_W['ishttps'] ? 1 : 0;
@@ -49,7 +49,7 @@ function _cloud_build_params($must_authorization_host = true) {
 
 function _cloud_shipping_parse($dat, $file) {
 	if (is_error($dat)) {
-		return error(-1, '网络传输错误, 请检查您的cURL是否可用, 或者服务器网络是否正常. ' . $dat['message']);
+		return error(-1, '网络传输故障，详情： ' . (strpos($dat['message'], 'Connection reset by peer') ? '云服务瞬时访问过大而导致网络传输中断，请稍后重试。' : $dat['message']));
 	}
 	$tmp = iunserializer($dat['content']);
 	if (is_array($tmp) && is_error($tmp)) {
@@ -70,7 +70,6 @@ function _cloud_shipping_parse($dat, $file) {
 	if ($dat['content'] == 'install-theme-protect' || $dat['content'] == 'install-module-protect') {
 		return error('-1', '此' . ($dat['content'] == 'install-theme-protect' ? '模板' : '模块') . '已设置版权保护，您只能通过云平台来安装，请先删除该模块的所有文件，购买后再行安装。');
 	}
-
 	$content = json_decode($dat['content'], true);
 	if (!empty($content['error'])) {
 		return error(-1, $content['error']);
@@ -93,7 +92,7 @@ function _cloud_shipping_parse($dat, $file) {
 		if (is_array($dat['content']) && isset($dat['content']['data'])) {
 			$data = $dat['content'];
 		} else {
-			return error(-1, '云服务平台向您的服务器传输数据过程中出现错误, 这个错误可能是由于您的通信密钥和云服务不一致, 请尝试诊断云服务参数(重置站点ID和通信密钥). 传输数据:' . $dat['content']);
+			return error(-1, '云服务平台向您的服务器传输数据过程中出现错误,详情:' . $dat['content']);
 		}
 	} else {
 		$data = @file_get_contents($file);
@@ -102,7 +101,7 @@ function _cloud_shipping_parse($dat, $file) {
 	
 	$ret = @iunserializer($data);
 	if (empty($data) || empty($ret)) {
-		return error(-1, '云服务平台向您的服务器传输的数据校验失败, 可能是因为您的网络不稳定, 或网络不安全, 请稍后重试.');
+		return error(-1, '云服务平台向您的服务器传输的数据校验失败,请稍后重试.');
 	}
 	$ret = iunserializer($ret['data']);
 	if (is_array($ret) && is_error($ret)) {
@@ -145,10 +144,9 @@ function cloud_request($url, $post = '', $extra = array(), $timeout = 60) {
 }
 
 function cloud_api($method, $data = array(), $extra = array(), $timeout = 60) {
-	$cache_key = cache_system_key('cloud_api_method', array('method' => $method));
+	$cache_key = cache_system_key('cloud_api', array('method' => md5($method . implode('', $data))));
 	$cache = cache_load($cache_key);
-	//module/query数据量太大，不走缓存
-	if (!empty($cache) && $cache['expire'] > time() && $method != 'module/query') {
+	if (!empty($cache) && !$extra['nocache']) {
 		return $cache;
 	}
 	$api_url = 'http://api.w7.cc/%s';
@@ -163,8 +161,11 @@ function cloud_api($method, $data = array(), $extra = array(), $timeout = 60) {
 	}
 	$response = ihttp_request(sprintf($api_url, $method), $data, $extra, $timeout);
 	$file = IA_ROOT . '/data/' . (!empty($data['file']) ? $data['file'] : $data['method']);
+	$file = $file . cache_random();
 	$ret = _cloud_shipping_parse($response, $file);
-	cache_write($cache_key, $ret, 300);
+	if (!is_error($ret) && !empty($ret)) {
+		cache_write($cache_key, $ret, CACHE_EXPIRE_MIDDLE);
+	}
 	return $ret;
 }
 
@@ -177,10 +178,11 @@ function cloud_prepare() {
 	return true;
 }
 
-function cloud_build() {
+function cloud_build($nocache = false) {
 	$pars['method'] = 'application.build4';
 	$pars['file'] = 'application.build';
-	$ret = cloud_api('site/build/index', $pars);
+	$extra = $nocache ? array('nocache' => $nocache) : array();
+	$ret = cloud_api('site/build/index', $pars, $extra);
 	if (is_error($ret)) {
 		return $ret;
 	}
@@ -306,27 +308,22 @@ function cloud_download($path, $type = '') {
 	$pars['type'] = $type;
 	$pars['gz'] = function_exists('gzcompress') && function_exists('gzuncompress') ? 'true' : 'false';
 	$pars['download'] = 'true';
-	$headers = array('content-type' => 'application/x-www-form-urlencoded');
-	$dat = cloud_request('http://api-upgrade.w7.cc/gateway.php', $pars, $headers, 300);
+	$pars['token'] = cloud_build_transtoken();
+	$dat = ihttp_request('http://api.w7.cc/util/shipping/index', $pars);
 	if(is_error($dat)) {
 		return error(-1, '网络存在错误， 请稍后重试。' . $dat['message']);
 	}
 	if($dat['content'] == 'success') {
 		return true;
 	}
-	$ret = @json_decode($dat['content'], true);
-	if (isset($ret['error'])) {
-		return error(1, $ret['error']);
+	$content = @json_decode($dat['content'], true);
+	if (isset($content['error'])) {
+		return error(1, $content['error']);
 	}
-	if(is_error($ret)) {
-		return $ret;
+	if(is_error($content)) {
+		return $content;
 	} else {
-		$post = $dat['content'];
-		$data = base64_decode($post);
-		if (base64_encode($data) !== $post) {
-			$data = $post;
-		}
-		$ret = iunserializer($data);
+		$ret = iunserializer($dat['content']);
 		$gz = function_exists('gzcompress') && function_exists('gzuncompress');
 		$file = base64_decode($ret['file']);
 		if($gz) {
@@ -351,10 +348,10 @@ function cloud_download($path, $type = '') {
 			if (file_put_contents($path, $file)) {
 				return true;
 			} else {
-				return error(-1, '写入失败');
+				return error(-1, '写入失败，请检查是否有写入权限或是否磁盘已满！');
 			}
 		}
-		return error(-1, '写入失败');
+		return error(-1, '写入失败！');
 	}
 }
 
@@ -395,7 +392,6 @@ function cloud_m_build($modulename, $type = '') {
 	} else {
 		$module = table('modules')->getByName($modulename);
 	}
-	$pars['method'] = 'module.build';
 	$pars['module'] = $modulename;
 	$pars['type'] = $type;
 	if (!empty($module)) {
@@ -468,8 +464,11 @@ function cloud_m_query($module = array(), $page = 1) {
 		$pirate_apps = $ret['pirate_apps'];
 		unset($ret['pirate_apps']);
 		$support_names = array('app', 'wxapp', 'webapp', 'system_welcome', 'android', 'ios', 'xzapp', 'aliapp', 'baiduapp', 'toutiaoapp');
-
+		$record_module = array();
 		foreach ($ret['data'] as $modulename => &$info) {
+			if ($info['is_record']) {
+				$record_module[] = $info['name'];
+			}
 			if (empty($info['site_branch'])) {
 				continue;
 			}
@@ -482,6 +481,9 @@ function cloud_m_query($module = array(), $page = 1) {
 			}
 		}
 		$ret['pirate_apps'] = $pirate_apps;
+		if (!empty($record_module)) {
+			table('modules')->where(array('name IN' => $record_module))->fill(array('cloud_record' => STATUS_ON))->save();
+		}
 	}
 	return $ret;
 }
@@ -619,6 +621,15 @@ function cloud_t_upgradeinfo($name) {
 	));
 }
 
+/**
+ * 发送短信
+ * @param string $mobile 接收手机号
+ * @param string $content 短信模板名称或短信内容
+ * @param array $postdata 传输数据
+ * @param string $custom_sign 用户签名
+ * @param bool $use_system_balance 是否使用系统短信（短信分为系统短信和平台账号短信）
+ * @return array|bool
+ */
 function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '', $use_system_balance = false) {
 	global $_W;
 	if(!preg_match('/^1\d{10}$/', $mobile) || empty($content)) {
@@ -628,10 +639,11 @@ function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '
 
 	if (empty($uniacid)) {
 		$sms_info = cloud_sms_info();
-		$balance = empty($sms_info['sms_count']) ? 0 : $sms_info['sms_count'];
-		if (!empty($custom_sign)) {
-			$sign = $custom_sign;
-		}
+		$setting_sms_blance = setting_load('system_sms_balance');
+		$balance = !empty($setting_sms_blance['system_sms_balance']) ? $setting_sms_blance['system_sms_balance'] : 0;
+		$setting_sms_sign = setting_load('site_sms_sign');
+		$setting_sms_sign = !empty($setting_sms_sign['site_sms_sign']) ? $setting_sms_sign['site_sms_sign'] : array();
+		$sign = !empty($setting_sms_sign['system_sms_sign']) ? $setting_sms_sign['system_sms_sign'] : '';
 	} else {
 		$row = pdo_get('uni_settings' , array('uniacid' => $uniacid), array('notify'));
 		$row['notify'] = @iunserializer($row['notify']);
@@ -646,8 +658,10 @@ function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '
 	if(empty($sign) || $sign == 'null') {
 		$sign = '涛盛微擎团队';
 	}
-
-	$pars = _cloud_build_params(false);
+	if ($balance < 1) {
+		return error(-1, '短信不足');
+	}
+	$pars = _cloud_build_params();
 	$pars['method'] = 'sms.send';
 	$pars['mobile'] = $mobile;
 	$pars['uniacid'] = $uniacid;
@@ -682,6 +696,11 @@ function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '
 			pdo_update('uni_settings', array('notify' => iserializer($row['notify'])), array('uniacid' => $uniacid));
 			uni_setting_save('notify', $row['notify']);
 		} else {
+			$balance -= 1;
+			if ($balance < 0) {
+				$balance = 0;
+			}
+			setting_save($balance, 'system_sms_balance');
 			$sms_info['sms_count'] = $sms_info['sms_count'] - 1;
 			if ($sms_info['sms_count'] < 0) {
 				$sms_info['sms_count'] = 0;
@@ -705,13 +724,14 @@ function cloud_sms_sign($page = 1) {
 	));
 }
 
-function cloud_sms_log($mobile = 0, $time = array(), $page = 1, $page_size = 10) {
+function cloud_sms_log($mobile = 0, $time = array(), $page = 1, $page_size = 10, $status = -1) {
 	$time = !empty($time) ? $time : array(strtotime('-7 days'), time());
 	return cloud_api('sms/log', array(
 		'mobile' => $mobile,
 		'time' => $time,
 		'page' => $page,
 		'page_size' => $page_size,
+		'status' => $status
 	));
 }
 
@@ -721,6 +741,37 @@ function cloud_sms_trade($page = 1, $time = array()) {
 		'page' => max(1, $page),
 		'time' => $time
 	));
+}
+
+function cloud_sms_count_remained(){
+	$cache_key = cache_system_key('cloud_api', array('method' => md5('cloud_sms_count_remained')));
+	$cache = cache_load($cache_key);
+	if (!empty($cache) && $cache['expire'] > TIMESTAMP) {
+		return $cache['cloud_sms_count_remained'];
+	}
+	$sms_info = cloud_sms_info();
+	if (is_error($sms_info)){
+		return $sms_info;
+	}
+	$sms_count = $sms_info['sms_count'];
+	$sms_accounts = table('uni_settings')->select(array('uniacid', 'notify'))->where(array('notify LIKE' => '%sms%'))->getall();
+
+	$setting_sms_blance = setting_load('system_sms_balance');
+	$system_sms_balance = !empty($setting_sms_blance['system_sms_balance']) ? $setting_sms_blance['system_sms_balance'] : 0;
+	$sms_count -= $system_sms_balance;
+	if (empty($sms_accounts)){
+		return $sms_count;
+	}
+	foreach ($sms_accounts as $sms_account) {
+		$notify = iunserializer($sms_account['notify']);
+		$sms_count -= $notify['sms']['balance'];
+	}
+	$sms_count = max(0, $sms_count);
+	$cache_data = array(
+		'cloud_sms_count_remained' => $sms_count
+	);
+	cache_write($cache_key, $cache_data, CACHE_EXPIRE_MIDDLE);
+	return $sms_count;
 }
 
 /**
@@ -738,7 +789,52 @@ function cloud_extra_account() {
  * @return string 模块标识序列化
  */
 function cloud_extra_module() {
-	return table('modules')->getInstalled();
+	load()->model('module');
+	$module_support_type = array_keys(module_support_type());
+	$installed = table('modules')->getInstalled();
+	$recycle = table('modules_recycle')->where('type', 2)->getall('name');
+	$result = array();
+	foreach($installed as $install_module) {
+		if ($install_module['cloud_record']) {
+			continue;
+		}
+		$result[$install_module['name']] = array(
+			'name' => $install_module['name'],
+			'version' => $install_module['version'],
+		);
+		$all_uninstall = true;
+		foreach ($module_support_type as $support) {
+			$type = str_replace('_support', '', $support);
+			if ($install_module[$support] == 2) {
+				$all_uninstall = false;
+				$result[$install_module['name']]['support'][$type]['is_install'] = 2;
+			}
+		}
+		if ($all_uninstall) {
+			unset($result[$install_module['name']]);
+		}
+	}
+	foreach($recycle as $recycle_module) {
+		if (empty($result[$recycle_module['name']])) {
+			$result[$recycle_module['name']] = array(
+				'name' => $recycle_module['name'],
+			);
+		}
+		$in_recycle = false;
+		foreach ($module_support_type as $support) {
+			$type = str_replace('_support', '', $support);
+			if ($recycle_module[$support]) {
+				$in_recycle = true;
+				$result[$recycle_module['name']]['support'][$type] = array(
+					'is_recycle' => 2
+				);
+			}
+		}
+		if (!$in_recycle) {
+			unset($result[$recycle_module['name']]);
+		}
+	}
+	return $result;
 }
 
 /**
